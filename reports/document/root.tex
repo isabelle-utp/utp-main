@@ -1,0 +1,99 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+%\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage[greek,english]{babel}
+  %option greek for \<euro>
+  %option english (default language) for \<guillemotleft>, \<guillemotright>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
+  %\<currency>
+
+% this should be the last package used
+\usepackage{pdfsetup}
+\usepackage{fullpage}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{tt}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
+% Added by Frank Zeyda
+\renewcommand{\isacharunderscorekeyword}{\mbox{\_}}%
+\renewcommand{\isacharunderscore}{\mbox{\_}}%
+% End of Addition
+
+\begin{document}
+
+\title{UTP Mechanisation in Isabelle HOL}
+
+\author{Frank Zeyda}
+
+\maketitle
+
+\tableofcontents
+
+\newpage
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+%\input{session}
+
+\input{utp_config}
+\newpage
+\input{utp_sets}
+\newpage
+\input{utp_base}
+\newpage
+\input{utp_sorts}
+\newpage
+\input{utp_name}
+\newpage
+\input{GLOBAL}
+\newpage
+\input{utp_abstract_value}
+\newpage
+\input{utp_complex_value}
+\newpage
+\input{utp_gen_value}
+\newpage
+\input{utp_gen_var}
+\newpage
+\input{utp_gen_pred}
+\newpage
+\input{utp_typed_pred}
+\newpage
+\input{utp_generic}
+\newpage
+\input{utp_default_values}
+\newpage
+\input{utp_default_pred}
+
+% optional bibliography
+%\bibliographystyle{abbrv}
+%\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
