@@ -1,27 +1,23 @@
-theory utp_gen_var
-imports "../utp_base" "../utp_name"
+(******************************************************************************)
+(* Title: utp/generic/utp_var.thy                                             *)
+(* Author: Frank Zeyda, University of York                                    *)
+(******************************************************************************)
+theory utp_var
+imports utp_name
 begin
 
 section {* Generic Variables *}
 
-text {* Should we introduce a proper (logical) type for variables? *}
+text {* Should we introduce a proper type for variables? *}
 
 types 'TYPE VAR = "NAME \<times> 'TYPE"
 
-subsection {* Variable Locale *}
+subsection {* Locale @{text "VAR"} *}
 
 locale VAR =
--- {* Type Universe -- mostly needed to determine @{text "'TYPE"}. *}
+-- {* Type Universe -- needed to determine @{text "'TYPE"}. *}
   fixes var_type_univ :: "'TYPE set"
 begin
-
-subsection {* Destructors *}
-
-abbreviation var_name :: "'TYPE VAR \<Rightarrow> NAME" ("name") where
-"name v \<equiv> (fst v)"
-
-abbreviation var_type :: "'TYPE VAR \<Rightarrow> 'TYPE" ("type") where
-"type v \<equiv> (snd v)"
 
 subsection {* Constructors *}
 
@@ -31,7 +27,15 @@ definition MkVar :: "NAME \<Rightarrow> 'TYPE \<Rightarrow> 'TYPE VAR" where
 definition MkPlain :: "string \<Rightarrow> 'TYPE \<Rightarrow> 'TYPE VAR" where
 "MkPlain s t = MkVar \<lparr>name_str = s, dashes = 0, subscript = NoSub\<rparr> t"
 
-subsection {* Variable Operators *}
+subsection {* Destructors *}
+
+abbreviation var_name :: "'TYPE VAR \<Rightarrow> NAME" ("name") where
+"name v \<equiv> (fst v)"
+
+abbreviation var_type :: "'TYPE VAR \<Rightarrow> 'TYPE" ("type") where
+"type v \<equiv> (snd v)"
+
+subsection {* Operators *}
 
 definition dash :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
 "dash v =
@@ -39,7 +43,13 @@ definition dash :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
    dashes = dashes (name v) + 1,
    subscript = subscript (name v)\<rparr>, type v)"
 
-subsection {* Semantic Sets *}
+definition undash :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
+"undash v =
+   (\<lparr>name_str = name_str (name v),
+   dashes = dashes (name v) - 1,
+   subscript = subscript (name v)\<rparr>, type v)"
+
+subsection {* Restrictions *}
 
 definition UNDASHED :: "'TYPE VAR set" where
 "UNDASHED \<equiv> {v . dashes (name v) = 0}"

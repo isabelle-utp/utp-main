@@ -1,8 +1,12 @@
-theory utp_gen_eval
-imports utp_gen_pred
+(******************************************************************************)
+(* Title: utp/generic/utp_eval_tactic.thy                                     *)
+(* Author: Frank Zeyda, University of York                                    *)
+(******************************************************************************)
+theory utp_eval_tactic
+imports utp_generic_pred
 begin
 
-section {* Proof Strategy for Predicates *}
+section {* Proof Tactic for Predicates *}
 
 context GEN_PRED
 begin
@@ -14,14 +18,15 @@ definition EvalP ::
     (('TYPE VAR), 'VALUE) BINDING] \<Rightarrow> bool" where
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
- EvalP p b \<equiv> b \<in> \<beta>  p"
+ EvalP p b \<longleftrightarrow> b \<in> \<beta> p"
 
 subsection {* Fundamental Theorem *}
 
 theorem EvalP_intro :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- p1 = p2 \<longleftrightarrow> (\<alpha> p1) = (\<alpha> p2) \<and>
+ p1 = p2 \<longleftrightarrow>
+   (\<alpha> p1) = (\<alpha> p2) \<and>
    (\<forall> b \<in> WF_BINDING . (EvalP p1 b) \<longleftrightarrow> (EvalP p2 b))"
 apply (safe)
 apply (simp add: EvalP_def)
@@ -30,14 +35,15 @@ apply (assumption)
 apply (subgoal_tac "\<beta> p1 \<subseteq> WF_BINDING")
 apply (subgoal_tac "\<beta> p2 \<subseteq> WF_BINDING")
 apply (auto) [1]
-apply (simp_all add: binds_subset_binding)
+apply (simp_all add: pred_subset_binding)
 done
 
 theorem EvalP_intro_rule :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE;
  (\<alpha> p1) = (\<alpha> p2);
- (\<forall> b \<in> WF_BINDING . (EvalP p1 b) \<longleftrightarrow> (EvalP p2 b))\<rbrakk> \<Longrightarrow> p1 = p2"
+ (\<forall> b \<in> WF_BINDING . (EvalP p1 b) \<longleftrightarrow> (EvalP p2 b))\<rbrakk> \<Longrightarrow>
+ p1 = p2"
 apply (subst EvalP_intro)
 apply (simp_all)
 done
@@ -67,20 +73,6 @@ theorem EvalP_FalseP :
  EvalP (false a) b = False"
 apply (simp add: EvalP_def)
 apply (simp add: FalseP_def)
-done
-
-theorem EvalP_TRUE :
-"\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
- EvalP TRUE b = True"
-apply (simp add: TRUE_def)
-apply (simp add: EvalP_TrueP)
-done
-
-theorem EvalP_FALSE :
-"\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
- EvalP FALSE b = False"
-apply (simp add: FALSE_def)
-apply (simp add: EvalP_FalseP)
 done
 
 theorem EvalP_ExtP :
@@ -155,6 +147,26 @@ apply (simp add: EvalP_AndP EvalP_ImpliesP)
 apply (auto)
 done
 
+theorem EvalP_ExistsResP :
+"\<lbrakk>a \<in> WF_ALPHABET;
+ p \<in> WF_ALPHA_PREDICATE;
+ b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+ EvalP (\<exists>-p a . p) b =
+   (\<exists> b' \<in> WF_BINDING . EvalP p (b \<oplus> b' on a))"
+apply (simp add: ExistsResP_def)
+apply (simp add: EvalP_ResP)
+done
+
+theorem EvalP_ForallResP :
+"\<lbrakk>a \<in> WF_ALPHABET;
+ p \<in> WF_ALPHA_PREDICATE;
+ b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+ EvalP (\<forall>-p a . p) b =
+   (\<forall> b' \<in> WF_BINDING . EvalP p (b \<oplus> b' on a))"
+apply (simp add: ForallResP_def)
+apply (simp add: EvalP_NotP EvalP_ExistsResP)
+done
+
 theorem EvalP_ExistsP :
 "\<lbrakk>a \<in> WF_ALPHABET;
  p \<in> WF_ALPHA_PREDICATE;
@@ -162,7 +174,7 @@ theorem EvalP_ExistsP :
  EvalP (\<exists>p a . p) b =
    (\<exists> b' \<in> WF_BINDING . EvalP p (b \<oplus> b' on a))"
 apply (simp add: ExistsP_def)
-apply (simp add: EvalP_ResP)
+apply (simp add: EvalP_ExtP EvalP_ExistsResP)
 done
 
 theorem EvalP_ForallP :
@@ -172,48 +184,29 @@ theorem EvalP_ForallP :
  EvalP (\<forall>p a . p) b =
    (\<forall> b' \<in> WF_BINDING . EvalP p (b \<oplus> b' on a))"
 apply (simp add: ForallP_def)
-apply (simp add: EvalP_NotP EvalP_ExistsP)
+apply (simp add: EvalP_ExtP EvalP_ForallResP)
 done
+end
 
-theorem EvalP_ExistsExtP :
-"\<lbrakk>a \<in> WF_ALPHABET;
- p \<in> WF_ALPHA_PREDICATE;
- b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
- EvalP (\<exists>p+ a . p) b =
-   (\<exists> b' \<in> WF_BINDING . EvalP p (b \<oplus> b' on a))"
-apply (simp add: ExistsExtP_def)
-apply (simp add: EvalP_ExtP EvalP_ExistsP)
-done
+(*
+text {* How do we deal elegantly with single quantified variables? *}
 
-theorem EvalP_ForallExtP :
-"\<lbrakk>a \<in> WF_ALPHABET;
- p \<in> WF_ALPHA_PREDICATE;
- b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
- EvalP (\<forall>p+ a . p) b =
-   (\<forall> b' \<in> WF_BINDING . EvalP p (b \<oplus> b' on a))"
-apply (simp add: ForallExtP_def)
-apply (simp add: EvalP_ExtP EvalP_ForallP)
-done
+text {* This is still subject to investigation! *}
 
-text {* An open issue is how to best deal with single-quantified variables. *}
-
-definition implicit_type :: "'TYPE VAR \<Rightarrow> ('VALUE set)" ("itype") where
-"implicit_type v = (\<lambda> b . b v) ` WF_BINDING"
-
-theorem EvalP_ResP_singleton :
+theorem (in GEN_PRED) EvalP_ResP_single_var :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
- EvalP (p \<ominus> {v}) b = (\<exists> x \<in> itype v . EvalP p (b(v:=x)))"
+ EvalP (p \<ominus> {v}) b = (\<exists> x . x : (type v) \<and> EvalP p (b(v:=x)))"
 apply (simp add: EvalP_def)
 apply (simp add: ResP_def)
-apply (simp add: implicit_type_def)
+apply (simp add: typing_consistency)
 apply (safe)
-apply (rule_tac x = "b1" in bexI)
+apply (rule_tac x = "b1 v" in exI)
+apply (auto)
 apply (simp add: EvalP_def)
-apply (simp)
-apply (subgoal_tac "b(v := x v) = b \<oplus> x on {v}")
+apply (subgoal_tac "b(v := ba v) = b \<oplus> ba on {v}")
 apply (simp add: EvalP_def)
-apply (rule_tac x = "b \<oplus> x on {v}" in exI)
+apply (rule_tac x = "b \<oplus> ba on {v}" in exI)
 apply (simp)
 apply (rule_tac x = "b" in exI)
 apply (simp)
@@ -221,7 +214,7 @@ apply (simp add: override_on_def)
 apply (rule ext)
 apply (auto)
 done
-end
+*)
 
 subsection {* Automatic Tactics *}
 
@@ -245,32 +238,32 @@ declare EvalP_intro [eval]
 declare EvalP_LiftP [eval]
 declare EvalP_TrueP [eval]
 declare EvalP_FalseP [eval]
-declare EvalP_TRUE [eval]
-declare EvalP_FALSE [eval]
 declare EvalP_ExtP [eval]
 declare EvalP_ResP [eval]
+(* declare EvalP_ResP_single_var [eval] *)
 declare EvalP_NotP [eval]
 declare EvalP_AndP [eval]
 declare EvalP_OrP [eval]
 declare EvalP_ImpliesP [eval]
 declare EvalP_IffP [eval]
+declare EvalP_ExistsResP [eval]
+declare EvalP_ForallResP [eval]
 declare EvalP_ExistsP [eval]
 declare EvalP_ForallP [eval]
-declare EvalP_ExistsExtP [eval]
-declare EvalP_ForallExtP [eval]
 declare ClosureP_def [eval]
 declare RefP_def [eval]
-declare alpha_alphabet [eval]
+declare pred_alphabet [eval]
 declare Tautology_def [taut]
 declare Contradiction_def [taut]
+declare Contingency_def [taut]
 declare Refinement_def [taut]
 end
 
 subsubsection {* Proof Methods *}
 
 text {*
-  The proof methods are fully generic now and do not need to be recreated for
-  concrete instantiations of the @{text "GEN_PRED"} locale.
+  We note that the proof methods are also generic and do not have to be
+  recreated for concrete instantiations of the @{text "GEN_PRED"} locale.
 *}
 
 ML{*
@@ -289,7 +282,7 @@ method_setup utp_pred_eq_tac = {*
     SIMPLE_METHOD' (fn i =>
       CHANGED (asm_full_simp_tac
         (utp_pred_eq_simpset ctxt) i)))
-*} "proof tactic for utp predicate equalities"
+*} "Proof Tactic for UTP Predicate Equalities"
 
 method_setup utp_pred_taut_tac = {*
   Attrib.thms >>
@@ -297,7 +290,9 @@ method_setup utp_pred_taut_tac = {*
     SIMPLE_METHOD' (fn i =>
       CHANGED (asm_full_simp_tac
         (utp_pred_taut_simpset ctxt) i)))
-*} "proof tactic for utp predicate tautologies"
+*} "Proof Tactic for UTP Predicate Tautologies"
+
+text {* TODO: Integrate Hogler Gast's code for the simplifer. *}
 
 subsection {* Proof Experiments *}
 
@@ -357,6 +352,14 @@ theorem
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
   p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  taut p1 \<or>p p2 \<sqsubseteq>p p1"
+apply (utp_pred_taut_tac)
+done
+
+theorem
+"\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
+  p2 \<in> WF_ALPHA_PREDICATE;
+ (\<alpha> p1) = (\<alpha> p2)\<rbrakk> \<Longrightarrow>
+ p1 \<or>p p2 \<sqsubseteq> p1"
 apply (utp_pred_taut_tac)
 done
 end

@@ -1,3 +1,7 @@
+(******************************************************************************)
+(* Title: utp/utp_config.thy                                                  *)
+(* Author: Frank Zeyda, University of York                                    *)
+(******************************************************************************)
 theory utp_config
 imports Main Countable
 begin
@@ -8,7 +12,7 @@ text {* This theory also acts as a meta-theory for importing libraries.*}
 
 subsection {* Notations *}
 
-text {* We want to use the colon for type membership in the semantic model. *}
+text {* We want to use the colon for type membership in our model. *}
 
 no_notation
   Set.member ("op :") and

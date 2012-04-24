@@ -1,5 +1,9 @@
+(******************************************************************************)
+(* Title: utp/generic/utp_abstract_value.thy                                  *)
+(* Author: Frank Zeyda, University of York                                    *)
+(******************************************************************************)
 theory utp_abstract_value
-imports "../utp_base"
+imports "../utp_common"
 begin
 
 section {* Abstract Values *}
@@ -13,7 +17,7 @@ locale VALUE =
   fixes value_ref :: "'VALUE \<Rightarrow> 'VALUE \<Rightarrow> bool" (infix "\<sqsubseteq>" 50)
 -- {* A type must not be empty. *}
   assumes type_non_empty : "\<exists> x . x : t"
--- {* Do we need to assume some properties for refinement too? *}
+-- {* Do we need additional assumptions for the refinement order? *}
 begin
 
 subsubsection {* Universe *}
@@ -36,10 +40,11 @@ theorem carrier_member [intro!] :
 apply (auto simp: carrier_def type_non_empty)
 done
 
-subsubsection {* Typed Value Sets *}
+subsubsection {* Value Sets *}
 
 definition set_type_rel :: "'VALUE set \<Rightarrow> 'TYPE \<Rightarrow> bool" where
 "set_type_rel s t = (\<forall> x \<in> s . x : t)"
+
 notation set_type_rel (infix ":\<subseteq>" 50)
 
 theorem set_type_rel_empty [simp] :
@@ -48,14 +53,14 @@ apply (auto simp: set_type_rel_def)
 done
 
 theorem set_type_rel_insert [simp] :
-"(insert x s) :\<subseteq> t = (x : t \<and> s :\<subseteq> t)"
+"(insert x s) :\<subseteq> t \<longleftrightarrow> (x : t \<and> s :\<subseteq> t)"
 apply (auto simp: set_type_rel_def)
 done
 
 subsubsection {* Indexable Types *}
 
 definition IdxType :: "'TYPE \<Rightarrow> bool" where
-"IdxType t = IdxSet (carrier t)"
+"IdxType t \<longleftrightarrow> IdxSet (carrier t)"
 
 theorem IdxType_IdxSet [simp] :
 "s :\<subseteq> t \<and> (IdxType t) \<longrightarrow> (IdxSet s)"
@@ -70,7 +75,7 @@ end
 
 subsection {* Locale @{text "PROC_VALUE"} *}
 
-text {* Here we can introduce additional assumptions for procedure values. *}
+text {* This locale introduces additional assumptions for procedure values. *}
 
 locale PROC_VALUE = VALUE "proc_type_rel" "proc_value_ref"
 for proc_type_rel :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool" and

@@ -1,25 +1,26 @@
+(******************************************************************************)
+(* Title: utp/utils/utp_sets.thy                                              *)
+(* Author: Frank Zeyda, University of York                                    *)
+(******************************************************************************)
 theory utp_sets
 imports "../utp_config"
 begin
 
-section {* Restricted Sets *}
+section {* Limited Cardinality Sets *}
 
 text {*
-  The purpose of restricted cardinality sets is that we can use them without
-  soundness issues in recursive constructor functions of data types over sets.
-  They thus provide a limited facility to handle infinitary sets in the UTP
-  semantic model of values, up to a certain limit cardinal. We also use a type
-  class to facilitate the automation of proofs about sets which are constructed
-  over permissible HOL types; the latter have to be indexable by an index set
-  @{text IDX}.
+  The purpose of limited cardinality sets is that we can use them without
+  soundness issues in recursive constructor functions of data types. They thus
+  provide a limited facility to handle infinite sets in the semantic model of
+  UTP values. We make use of a type class to facilitate automation of proofs
+  about such sets, constructed over the various HOL types.
 *}
 
 subsection {* Type Definition *}
 
-text {*
-  For now we only consider countably infinite sets. Higher cardinalities can in
-  principle be used.
-*}
+text {* For now we only consider countably infinite sets. *}
+
+text {* Higher degrees of infinity can in principle be supported. *}
 
 types IDX = "nat"
 
@@ -38,10 +39,9 @@ primrec DecSet :: "'a SET \<Rightarrow> 'a set" where
 definition EncSet :: "'a set \<Rightarrow> 'a SET" where
 "EncSet = (inv DecSet)"
 
-text {*
-  Unfortunately the representation is not canonical. We thus define
-  a notion of equivalence.
-*}
+text {* Unfortunately the representation is not canonical. *}
+
+text {* We thus define a notion of equivalence. *}
 
 definition CongSet :: "'a SET \<Rightarrow> 'a SET \<Rightarrow> bool" (infix "\<cong>" 50) where
 "s1 \<cong> s2 \<longleftrightarrow> (DecSet s1) = (DecSet s2)"
@@ -123,9 +123,7 @@ apply (rule_tac a = "x" in someI2)
 apply (simp_all)
 done
 
-text {*
-  The following proof may fail if the definition of @{text IDX} is altered.
-*}
+(* The following proof may fail if the definition of @{text IDX} changes. *)
 
 theorem IdxSet_union [simp]:
 "\<lbrakk>IdxSet s1; IdxSet s2\<rbrakk> \<Longrightarrow> IdxSet (s1 \<union> s2)"
@@ -248,9 +246,7 @@ subsection {* Type Class Indexable *}
 class indexable =
   assumes IdxSet [simp] : "\<forall> s :: 'a set . IdxSet s"
 
-text {*
-  The following proof may be invalidated if the definition of @{text IDX} changes.
-*}
+(* The following proof may fail if the definition of @{text IDX} changes. *)
 
 instance countable \<subseteq> indexable
 apply (intro_classes)

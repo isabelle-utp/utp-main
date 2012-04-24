@@ -1,14 +1,12 @@
-theory utp_default_values
-imports "../utp_base" "../utp_sorts" "../generic/utp_gen_value"
+(******************************************************************************)
+(* Title: utp/models/utp_default_value.thy                                    *)
+(* Author: Frank Zeyda, University of York                                    *)
+(******************************************************************************)
+theory utp_default_value
+imports "../utp_common" "../utp_sorts" "../generic/utp_abstract_value"
 begin
 
 section {* Default Values *}
-
-text {*
-  Note that we do not interpret any value locale here. This is done as part of
-  interpreting the predicate model. One reason is that the same locale can only
-  be interpreted once with the same set of constants.
-*}
 
 subsection {* Data Types *}
 
@@ -30,14 +28,26 @@ definition MkInt_DEFAULT_VALUE :: "int \<Rightarrow> DEFAULT_VALUE" where
 "MkInt_DEFAULT_VALUE i = IntVal i"
 primrec DestInt_DEFAULT_VALUE :: "DEFAULT_VALUE \<Rightarrow> int" where
 "DestInt_DEFAULT_VALUE (IntVal i) = i"
+primrec IsInt_DEFAULT_VALUE :: "DEFAULT_VALUE \<Rightarrow> bool" where
+"IsInt_DEFAULT_VALUE (IntVal i) = True" |
+"IsInt_DEFAULT_VALUE (BoolVal b) = False" |
+"IsInt_DEFAULT_VALUE (StringVal s) = False"
 definition MkBool_DEFAULT_VALUE :: "bool \<Rightarrow> DEFAULT_VALUE" where
 "MkBool_DEFAULT_VALUE b = BoolVal b"
 primrec DestBool_DEFAULT_VALUE :: "DEFAULT_VALUE \<Rightarrow> bool" where
 "DestBool_DEFAULT_VALUE (BoolVal b) = b"
+primrec IsBool_DEFAULT_VALUE :: "DEFAULT_VALUE \<Rightarrow> bool" where
+"IsBool_DEFAULT_VALUE (IntVal i) = False" |
+"IsBool_DEFAULT_VALUE (BoolVal b) = True" |
+"IsBool_DEFAULT_VALUE (StringVal s) = False"
 definition MkStr_DEFAULT_VALUE :: "string \<Rightarrow> DEFAULT_VALUE" where
 "MkStr_DEFAULT_VALUE s = StringVal s"
 primrec DestStr_DEFAULT_VALUE:: "DEFAULT_VALUE \<Rightarrow> string" where
 "DestStr_DEFAULT_VALUE (StringVal s) = s"
+primrec IsString_DEFAULT_VALUE :: "DEFAULT_VALUE \<Rightarrow> bool" where
+"IsString_DEFAULT_VALUE (IntVal i) = False" |
+"IsString_DEFAULT_VALUE (BoolVal b) = False" |
+"IsString_DEFAULT_VALUE (StringVal s) = True"
 instance
 apply (intro_classes)
 apply (simp add: MkBool_DEFAULT_VALUE_def DestBool_DEFAULT_VALUE_def)
@@ -60,13 +70,14 @@ fun default_type_rel ::
 "(StringVal i) : BoolType = False" |
 "(StringVal i) : StringType = True"
 
-no_notation default_type_rel (infix ":" 50)
-
-text {* The refinement ordering for default values is flat. *}
+text {* The refinement order of default values is flat. *}
 
 definition default_value_ref ::
-  "DEFAULT_VALUE \<Rightarrow> DEFAULT_VALUE \<Rightarrow> bool" where
+  "DEFAULT_VALUE \<Rightarrow> DEFAULT_VALUE \<Rightarrow> bool"  (infix "\<sqsubseteq>v" 50) where
 "default_value_ref v1 v2 \<longleftrightarrow> (v1 = v2)"
+
+no_notation default_type_rel (infix ":" 50)
+no_notation default_type_rel (infix "\<sqsubseteq>v" 50)
 
 subsection {* Theorems *}
 

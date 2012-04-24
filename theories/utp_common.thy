@@ -1,8 +1,12 @@
-theory utp_base
+(******************************************************************************)
+(* Title: utp/utp_common.thy                                                  *)
+(* Author: Frank Zeyda, University of York                                    *)
+(******************************************************************************)
+theory utp_common
 imports "utp_config" "utils/utp_sets"
 begin
 
-section {* Base Definitions *}
+section {* Common Definitions *}
 
 subsection {* Uncurrying *}
 
@@ -13,24 +17,18 @@ definition uncurry :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a 
 
 declare uncurry [simp]
 
-subsection {* Relation Application *}
+subsection {* Application of Relations *}
 
-text {*
-  It would be nice to have a neater syntax here although overloading of
-  application may be too inefficient in terms of parsing.
-*}
+text {* It would be nice to have a neater syntax here. *}
 
 definition RelApp :: "('a \<times> 'b) set \<Rightarrow> 'a \<Rightarrow> 'b" where
 "RelApp r x = (THE y . y \<in> r `` {x})"
 
 declare RelApp_def [simp]
 
-subsection {* Value Coercion *}
+subsection {* Coercion *}
 
-text {*
-  Coercion can be used to capture assumptions that some expression is
-  well-defined in the semantic model.
-*}
+text {* Coercion can be used to capture well-definedness assumptions. *}
 
 definition Coerce :: "'a \<Rightarrow> ('a set) \<Rightarrow> 'a" (infix "\<hookrightarrow>" 100) where
 "x \<hookrightarrow> s = (if x \<in> s then x else (SOME x . x \<in> s))"
@@ -107,7 +105,7 @@ apply (rule ext)
 apply (auto)
 done
 
-subsection {* Other Theorems *}
+subsection {* Theorems *}
 
 subsubsection {* Sets and Logic *}
 
@@ -160,7 +158,7 @@ done
 subsection {* Proof Experiments *}
 
 theorem relapp_test_lemma :
-"RelApp {(1::nat,2::nat)} 1 = 2"
+"RelApp {(1::nat, 2::nat)} 1 = 2"
 apply (simp)
 done
 end

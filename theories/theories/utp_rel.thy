@@ -1,5 +1,9 @@
+(******************************************************************************)
+(* Title: utp/theories/utp_rel.thy                                            *)
+(* Author: Frank Zeyda, University of York                                    *)
+(******************************************************************************)
 theory utp_rel
-imports "../generic/utp_gen_pred"
+imports "../generic/utp_generic_pred"
 begin
 
 section {* Theory of Relations *}
@@ -7,17 +11,19 @@ section {* Theory of Relations *}
 context GEN_PRED
 begin
 
-subsection {* Semantic Restrictions *}
+subsection {* Restrictions *}
 
 definition WF_RELATION :: "('TYPE VAR, 'VALUE) ALPHA_PREDICATE set" where
-"WF_RELATION \<equiv>
+"WF_RELATION =
  {p . p \<in> WF_ALPHA_PREDICATE \<and> \<alpha> p \<subseteq> UNDASHED \<union> DASHED}"
 
 definition WF_CONDITION :: "('TYPE VAR, 'VALUE) ALPHA_PREDICATE set" where
-"WF_CONDITION \<equiv>
- {p . p \<in> WF_RELATION \<and> p = (\<exists>p DASHED . p) \<oplus> (\<alpha> p)}"
+"WF_CONDITION =
+ {p . p \<in> WF_RELATION \<and> p = (\<exists>p DASHED . p)}"
 
-subsection {* Relational Operators *}
+subsection {* Substitution *}
+
+text {* The definitions below should probably be in the predicate locale. *}
 
 definition SubstB ::
   "('TYPE VAR \<Rightarrow> 'TYPE VAR) \<Rightarrow>
@@ -27,40 +33,29 @@ definition SubstB ::
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  SubstB ss b = b \<circ> (inv ss)"
 
+(* The mixfix annotation of the below operator could be subject to revision. *)
+
 definition SubstP ::
-  "('TYPE VAR \<Rightarrow> 'TYPE VAR) \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" ("_\<lbrakk>_\<rbrakk>") where
+  " ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
+   ('TYPE VAR \<Rightarrow> 'TYPE VAR) \<Rightarrow>
+   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" ("_[_]" [200]) where
 "\<lbrakk>ss \<in> VAR_SUBST;
  p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- SubstP ss p = (ss ` (\<alpha> p), (SubstB ss) ` (\<beta> p))"
+ SubstP p ss = (ss ` (\<alpha> p), (SubstB ss) ` (\<beta> p))"
 
-theorem SubstP_wf :
-"\<lbrakk>ss \<in> VAR_SUBST;
- p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- SubstP ss p \<in> WF_ALPHA_PREDICATE"
-apply (simp add: SubstP_def)
-apply (simp add: WF_ALPHA_PREDICATE_def)
-apply (simp add: WF_BINDING_SET_def)
-apply (safe)
-prefer 3
-apply (subgoal_tac "SubstB ss b1 \<in> WF_BINDING")
-apply (drule_tac x = "SubstB ss b1" in bspec)
-apply (assumption)
-apply (drule_tac x = "b2" in bspec)
-apply (assumption)
-oops
+definition SS1 :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
+"SS1 v = (
+ if dashes (name v) = 1 then (VAR.dash v) else
+ if dashes (name v) = 2 then (VAR.undash v) else v)"
 
-definition Semi ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" (infixr ";" 140) where
-"\<lbrakk>r1 \<in> WF_RELATION;
- r2 \<in> WF_RELATION;
- COMPOSABLE (\<alpha> r1) (\<alpha> r1)\<rbrakk> \<Longrightarrow>
- r1 ; r2 = (\<exists>p dash ` (out (\<alpha> r1)) . r1 \<and>p r2)"
+definition SS2 :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
+"SS2 v = (
+ if dashes (name v) = 0 then (VAR.dash o VAR.dash) v else
+ if dashes (name v) = 2 then (VAR.undash o VAR.undash) v else v)"
 
-definition Cond ::
+subsection {* Relational Operators *}
+
+definition CondR ::
   "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
    ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
    ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
@@ -72,35 +67,58 @@ definition Cond ::
  \<alpha> b \<subseteq> \<alpha> p1 \<longrightarrow>
  (p1 \<triangleleft> b \<triangleright> p2) = (b \<and>p p1) \<or>p (\<not>p b \<and>p p2)"
 
-(* Theorems *)
+definition SemiR ::
+  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
+   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
+   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" (infixr ";" 140) where
+"r1 \<in> WF_RELATION \<and>
+ r2 \<in> WF_RELATION \<and>
+ COMPOSABLE (\<alpha> r1) (\<alpha> r1) \<longrightarrow>
+ r1 ; r2 = (\<exists>-p dash ` (out (\<alpha> r1)) . r1[SS1] \<and>p r2[SS2])"
 
-theorem Cond_wf [simp] :
+subsubsection {* Theorems *}
+
+theorem SubstP_closure :
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
+ ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
+ p[ss] \<in> WF_ALPHA_PREDICATE"
+apply (simp add: SubstP_def)
+apply (simp add: WF_ALPHA_PREDICATE_def)
+apply (safe)
+apply (simp add: WF_ALPHABET_def)
+apply (simp add: WF_BINDING_SET_def)
+apply (safe)
+-- {* To prove this we need consistency of typing w.r.t. WF_BINDING! *}
+-- {* This shows that we do need typing to be fixed in the GEN_PRED locale. *}
+oops
+
+theorem CondR_closure [simp] :
 "\<lbrakk>p1 \<in> WF_RELATION;
  p2 \<in> WF_RELATION;
  b \<in> WF_CONDITION;
  \<alpha> p1 = \<alpha> p2;
  \<alpha> b \<subseteq> \<alpha> p1\<rbrakk> \<Longrightarrow>
  (p1 \<triangleleft> b \<triangleright> p2) \<in> WF_RELATION"
-apply (simp add: Cond_def)
+apply (simp add: CondR_def)
 apply (simp add: WF_RELATION_def WF_CONDITION_def)
 done
 
-theorem Cond_alphabet [simp]:
+theorem CondR_alphabet [simp]:
 "\<lbrakk>p1 \<in> WF_RELATION;
  p2 \<in> WF_RELATION;
  b \<in> WF_CONDITION;
  \<alpha> p1 = \<alpha> p2;
  \<alpha> b \<subseteq> \<alpha> p1\<rbrakk> \<Longrightarrow>
  \<alpha> (p1 \<triangleleft> b \<triangleright> p2) = \<alpha> p1"
-apply (simp add: Cond_def)
+apply (simp add: CondR_def)
 apply (simp add: WF_RELATION_def WF_CONDITION_def)
 apply (auto)
 done
 
-(* Proof Experiments *)
+subsection {* Proof Experiments *}
 
 theorem non_empty_exists :
-"s \<noteq> {} = (\<exists> x . x \<in> s)"
+"s \<noteq> {} \<longleftrightarrow> (\<exists> x . x \<in> s)"
 apply (auto)
 done
 
@@ -162,7 +180,7 @@ apply (simp)
 apply (simp)
 done
 
-theorem
+theorem bij_from_inj_on :
 "inj_on f a \<and> a \<inter> f ` a = {} \<longrightarrow>
  bij (id \<oplus> f on a) \<oplus> (inv f) on (f ` a)"
 apply (simp only: bij_def)
@@ -172,7 +190,7 @@ apply (safe intro!: inj_override_on) [1]
 apply (safe intro!: inj_on_override_on) [1]
 apply (force)
 apply (force)
-(* A bit more to do to finish proof! *)
+-- {* TODO: Finish the proof! *}
 oops
 end
 end

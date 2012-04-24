@@ -1,14 +1,18 @@
-theory utp_default_pred
-imports "../GLOBAL" "../generic/utp_typed_pred" utp_default_values
+(******************************************************************************)
+(* Title: utp/models/utp_std_pred.thy                                         *)
+(* Author: Frank Zeyda, University of York                                    *)
+(******************************************************************************)
+theory utp_std_pred
+imports "../GLOBAL" "../generic/utp_generic" utp_default_value
 begin
 
-section {* Default Predicates *}
+section {* Standard Predicates *}
 
 subsection {* Type Synonyms *}
 
-types STD_VALUE = "DEFAULT_VALUE COMPLEX_VALUE"
-types STD_TYPE = "DEFAULT_TYPE COMPLEX_TYPE"
-types STD_VAR = "DEFAULT_TYPE COMPLEX_TYPE VAR"
+types STD_VALUE = "DEFAULT_VALUE COMPOSITE_VALUE"
+types STD_TYPE = "DEFAULT_TYPE COMPOSITE_TYPE"
+types STD_VAR = "DEFAULT_TYPE COMPOSITE_TYPE VAR"
 types STD_ALPHABET = "STD_VAR ALPHABET"
 types STD_BINDING = "(STD_VAR, STD_VALUE) BINDING"
 types STD_BINDING_SET = "(STD_VAR, STD_VALUE) BINDING_SET"
@@ -16,10 +20,21 @@ types STD_BINDING_FUN = "(STD_VAR, STD_VALUE) BINDING_FUN"
 types STD_PREDICATE = "(STD_VAR, STD_VALUE) ALPHA_PREDICATE"
 types STD_FUNCTION = "(STD_VAR, STD_VALUE) ALPHA_FUNCTION"
 
-subsection {* Interpretation *}
+subsection {* Standard Predicate Model *}
+
+locale STD_PRED =
+  COMPOSITE_VALUE "basic_type_rel" "basic_value_ref" +
+  TYPED_PRED
+    "lift_type_rel_composite basic_type_rel"
+    "lift_value_ref_composite basic_value_ref"
+for basic_type_rel :: "'BASIC_VALUE :: BASIC_SORT \<Rightarrow> 'BASIC_TYPE \<Rightarrow> bool" and
+  basic_value_ref :: "'BASIC_VALUE :: BASIC_SORT \<Rightarrow> 'BASIC_VALUE \<Rightarrow> bool"
 
 interpretation STD :
-  TYPED_PRED "default_type_rel" "default_value_ref"
+  STD_PRED
+    "lift_type_rel_composite default_type_rel"
+    "lift_value_ref_composite default_value_ref"
+apply (simp add: STD_PRED_def)
 apply (auto)
 done
 
@@ -40,7 +55,25 @@ definition STD_BINDING_FUN [simp] :
 definition STD_PREDICATE [simp] :
 "STD_PREDICATE \<equiv> STD.WF_ALPHA_PREDICATE"
 
+definition STD_FUNCTION [simp] :
+"STD_FUNCTION \<equiv> STD.WF_ALPHA_FUNCTION"
+
 subsection {* Global Syntax *}
+
+subsubsection {* Value Syntax *}
+
+text {* Not sure about the following yet. *}
+
+defs STD_type_rel [simp] :
+"GLOBAL.type_rel \<equiv> lift_type_rel_composite default_type_rel"
+
+defs STD_set_type_rel [simp] :
+"GLOBAL.set_type_rel \<equiv> STD.set_type_rel"
+
+defs STD_value_ref [simp] :
+"GLOBAL.value_ref \<equiv> lift_value_ref_composite default_value_ref"
+
+subsubsection {* Predicate Syntax *}
 
 defs STD_BINDING_EQUIV [simp] :
 "GLOBAL.BINDING_EQUIV \<equiv> STD.BINDING_EQUIV"
@@ -81,17 +114,17 @@ defs STD_ImpliesP [simp] :
 defs STD_IffP [simp] :
 "GLOBAL.IffP \<equiv> STD.IffP"
 
-defs STD_ExistsP :
+defs STD_ExistsResP [simp] :
+"GLOBAL.ExistsResP \<equiv> STD.ExistsResP"
+
+defs STD_ForallResP [simp] :
+"GLOBAL.ForallResP \<equiv> STD.ForallResP"
+
+defs STD_ExistsP [simp] :
 "GLOBAL.ExistsP \<equiv> STD.ExistsP"
 
-defs STD_ForallP [simp] :
-"GLOBAL.ForallP \<equiv> STD.ForallP"
-
-defs STD_ExistsExtP [simp] :
-"GLOBAL.ExistsExtP \<equiv> STD.ExistsExtP"
-
 defs STD_ForallExtP [simp] :
-"GLOBAL.ForallExtP \<equiv> STD.ForallExtP"
+"GLOBAL.ForallP \<equiv> STD.ForallP"
 
 defs STD_ClosureP [simp] :
 "GLOBAL.ClosureP \<equiv> STD.ClosureP"
@@ -104,6 +137,9 @@ defs STD_Tautology [simp] :
 
 defs STD_Contradiction [simp] :
 "GLOBAL.Contradiction \<equiv> STD.Contradiction"
+
+defs STD_Contingency [simp] :
+"GLOBAL.Contingency \<equiv> STD.Contingency"
 
 defs STD_Refinement [simp] :
 "GLOBAL.Refinement \<equiv> STD.Refinement"
@@ -154,4 +190,3 @@ theorem
 apply (simp)
 apply (utp_pred_taut_tac)
 done
-end

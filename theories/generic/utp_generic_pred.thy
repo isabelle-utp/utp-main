@@ -1,38 +1,56 @@
-theory utp_gen_pred
-imports utp_gen_var utp_alphabet
+(******************************************************************************)
+(* Title: utp/generic/utp_generic_pred.thy                                    *)
+(* Author: Frank Zeyda, University of York                                    *)
+(******************************************************************************)
+theory utp_generic_pred
+imports utp_var utp_alphabet
 begin
 
 section {* Generic Predicates *}
 
 subsection {* Type Synonyms *}
 
-types 'TYPE VAR = "NAME \<times> 'TYPE"
-types 'VAR ALPHABET = "'VAR set"
 types ('VAR, 'VALUE) BINDING = "'VAR \<Rightarrow> 'VALUE"
 types ('VAR, 'VALUE) BINDING_SET = "('VAR, 'VALUE) BINDING set"
 types ('VAR, 'VALUE) BINDING_FUN = "('VAR, 'VALUE) BINDING \<Rightarrow> bool"
 types ('VAR, 'VALUE) ALPHA_PREDICATE =
   "('VAR ALPHABET) \<times> ('VAR, 'VALUE) BINDING_SET"
 
-subsection {* Predicate Locale *}
+subsection {* Locale @{text "GEN_PRED"} *}
 
 text {*
-  For more flexibility in instantiation which we need when creating the model
-  for higher-order predicates the parametrisation of the locale has changes in
-  a way that we specify the @{text WF_BINDING} directly rather than the typing
-  relation. This allows us to impose additional constraints on bindings, i.e.
-  here the consistency of the value procedure variables at different levels.
+  For more flexibility needed when instantiating the layered model for higher-
+  order predicates, the parametrisation of the locale has changed in a way that
+  we specify @{text WF_BINDING} directly rather than the typing relation. This
+  allows one to impose general structural constraints on bindings, i.e. here to
+  ensure consistency of higher-order variables between different layers.
 *}
 
 locale GEN_PRED = VAR "UNIV :: 'TYPE set" +
+-- {* Typing Relation *}
+-- {* fixes type_rel :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50)
 -- {* We fix the notion of a well-formed binding. *}
   fixes WF_BINDING :: "('TYPE VAR, 'VALUE) BINDING set"
 -- {* There must be at least one well-formed binding. *}
   assumes binding_non_empty [simp] : "WF_BINDING \<noteq> {}"
--- {* Well-formed bindings must be closed under overriding. *}
-  assumes binding_override [simp, intro!] :
-  "b1 \<in> WF_BINDING \<and> b2 \<in> WF_BINDING \<longrightarrow> (b1 \<oplus> b2 on a) \<in> WF_BINDING"
+-- {* Well-formed bindings are closed under overriding. *}
+  assumes binding_closure [simp, intro!] :
+  "b1 \<in> WF_BINDING \<and>
+   b2 \<in> WF_BINDING \<longrightarrow> (b1 \<oplus> b2 on a) \<in> WF_BINDING"
+-- {* Typing Consistency *}
+-- {* assumes typing_consistency : *}
+-- {*  "x : (type v) \<longleftrightarrow> (\<exists> b \<in> WF_BINDING . x = (b v))" *}
 begin
+
+text {*
+  A design decision we have to make is whether we ask the user to provide an
+  independent notion of typing in addition to @{text WF_BINDING}. Originally,
+  I did not do so, however, it turns out that this can be useful in order to
+  define the distribution laws for quantifiers as part of the proof strategy.
+  In particular, to define neat laws for single quantified variables, we would
+  otherwise have to introduce an implied notion of typing; this is likely to
+  make things more complicated in practical terms. Still subject to research!
+*}
 
 subsection {* Binding Sets *}
 
@@ -46,25 +64,25 @@ definition WF_BINDING_SET ::
 
 subsection {* Predicate Model *}
 
-abbreviation alpha ::
+abbreviation alphabet ::
   "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
    ('TYPE VAR ALPHABET)" ("\<alpha>") where
 "\<alpha> p \<equiv> (fst p)"
 
-abbreviation binds ::
+abbreviation bindings ::
   "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
    ('TYPE VAR, 'VALUE) BINDING_SET" ("\<beta>") where
 "\<beta> p \<equiv> (snd p)"
 
 definition WF_ALPHA_PREDICATE ::
   "('TYPE VAR, 'VALUE) ALPHA_PREDICATE set" where
-"WF_ALPHA_PREDICATE \<equiv>
+"WF_ALPHA_PREDICATE =
  {p . (\<alpha> p) \<in> WF_ALPHABET \<and> (\<beta> p) \<in> WF_BINDING_SET (\<alpha> p)}"
 
 definition WF_ALPHA_PREDICATE_OVER ::
   "'TYPE VAR ALPHABET \<Rightarrow> ('TYPE VAR, 'VALUE) ALPHA_PREDICATE set" where
-"\<lbrakk>a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
- WF_ALPHA_PREDICATE_OVER a \<equiv> {p . p \<in> WF_ALPHA_PREDICATE \<and> \<alpha> p = a}"
+"a \<in> WF_ALPHABET \<longrightarrow>
+ WF_ALPHA_PREDICATE_OVER a = {p . p \<in> WF_ALPHA_PREDICATE \<and> \<alpha> p = a}"
 
 subsection {* Predicate Operators *}
 
@@ -83,13 +101,13 @@ definition BINDING_EQUIV ::
 
 notation BINDING_EQUIV ("_ \<cong> _ on _")
 
-text {* With it we introduce a notion of well-formed binding function. *}
+text {* We next introduce the notion of a well-formed function on bindings. *}
 
 definition WF_BINDING_FUN ::
   "'TYPE VAR ALPHABET \<Rightarrow> ('TYPE VAR, 'VALUE) BINDING_FUN set" where
-"WF_BINDING_FUN a \<equiv> {f . \<forall> b1 b2 . b1 \<cong> b2 on a \<longrightarrow> f b1 = f b2}"
+"WF_BINDING_FUN a = {f . \<forall> b1 b2 . b1 \<cong> b2 on a \<longrightarrow> f b1 = f b2}"
 
-text {* Shallow lifting is only defined for well-formed binding functions. *}
+text {* Shallow lifting is defined in terms of well-formed binding functions. *}
 
 definition LiftP ::
   "('TYPE VAR ALPHABET) \<Rightarrow>
@@ -120,7 +138,7 @@ definition ResP ::
 
 notation ResP (infix "\<ominus>" 200)
 
-subsubsection {* Logical Connectives *}
+subsubsection {* True and False *}
 
 definition TrueP ::
   "'TYPE VAR ALPHABET \<Rightarrow> ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
@@ -136,11 +154,13 @@ definition FalseP ::
 
 notation FalseP ("false")
 
-definition TRUE :: "('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
-"TRUE = true {}"
+abbreviation TRUE :: "('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+"TRUE \<equiv> TrueP {}"
 
-definition FALSE :: "('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
-"FALSE = false {}"
+abbreviation FALSE :: "('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+"FALSE \<equiv> FalseP {}"
+
+subsubsection {* Logical Connectives *}
 
 definition NotP ::
   "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
@@ -192,15 +212,35 @@ notation IffP (infixr "\<Leftrightarrow>p" 150)
 
 subsubsection {* Quantifiers *}
 
-(* An open question is whether there is benefit in requiring a \<subseteq> (\<alpha> p). *)
+(* An open question is whether there is any benefit in requiring a \<subseteq> (\<alpha> p). *)
 
-definition ExistsP ::
+definition ExistsResP ::
   "('TYPE VAR ALPHABET) \<Rightarrow>
    ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
    ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
 "a \<in> WF_ALPHABET \<and>
  p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
- ExistsP a p = p \<ominus> a"
+ ExistsResP a p = p \<ominus> a"
+
+notation ExistsResP ("(\<exists>-p _ ./ _)" [0, 10] 10)
+
+definition ForallResP ::
+  "'TYPE VAR ALPHABET \<Rightarrow>
+   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
+   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+"a \<in> WF_ALPHABET \<and>
+ p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
+ ForallResP a p = \<not>p (\<exists>-p a . \<not>p p)"
+
+notation ForallResP ("(\<forall>-p _ ./ _)" [0, 10] 10)
+
+definition ExistsP ::
+  "'TYPE VAR ALPHABET \<Rightarrow>
+   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
+   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+"a \<in> WF_ALPHABET \<and>
+ p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
+ ExistsP a p = (\<exists>-p a . p) \<oplus> a"
 
 notation ExistsP ("(\<exists>p _ ./ _)" [0, 10] 10)
 
@@ -210,29 +250,9 @@ definition ForallP ::
    ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
 "a \<in> WF_ALPHABET \<and>
  p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
- ForallP a p = \<not>p (\<exists>p a . \<not>p p)"
+ ForallP a p = (\<forall>-p a . p) \<oplus> a"
 
 notation ForallP ("(\<forall>p _ ./ _)" [0, 10] 10)
-
-definition ExistsExtP ::
-  "'TYPE VAR ALPHABET \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
-"a \<in> WF_ALPHABET \<and>
- p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
- ExistsExtP a p = (\<exists>p a . p) \<oplus> a"
-
-notation ExistsExtP ("(\<exists>p+ _ ./ _)" [0, 10] 10)
-
-definition ForallExtP ::
-  "'TYPE VAR ALPHABET \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
-"a \<in> WF_ALPHABET \<and>
- p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
- ForallExtP a p = (\<forall>p a . p) \<oplus> a"
-
-notation ForallExtP ("(\<forall>p+ _ ./ _)" [0, 10] 10)
 
 subsubsection {* Universal Closure *}
 
@@ -240,7 +260,7 @@ definition ClosureP ::
   "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
    ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
 "p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
- ClosureP p = (\<forall>p (\<alpha> p) . p)"
+ ClosureP p = (\<forall>-p (\<alpha> p) . p)"
 
 notation ClosureP ("[_]")
 
@@ -263,20 +283,23 @@ subsubsection {* Tautology *}
 definition Tautology ::
   "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow> bool" where
 "p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
- Tautology p = (p = true (\<alpha> p))"
+ Tautology p \<longleftrightarrow> (p = true (\<alpha> p))"
 
 notation Tautology ("taut _" [50] 50)
 
 definition Contradiction ::
   "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow> bool" where
 "p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
- Contradiction p = (p = false (\<alpha> p))"
+ Contradiction p \<longleftrightarrow> (p = false (\<alpha> p))"
 
 notation Contradiction ("contra _" [50] 50)
 
-subsubsection {* Refinement *}
+definition Contingency ::
+  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow> bool" where
+"p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
+ Contingency p \<longleftrightarrow> ((\<not> taut p) \<and> (\<not> contra p))"
 
-text {* Overloaded version of refinement that yields a HOL predicate. *}
+notation Contingency ("contg _" [50] 50)
 
 definition Refinement ::
   "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
@@ -299,12 +322,11 @@ theorem empty_alphabet [simp] :
 apply (simp add: WF_ALPHABET_def)
 done
 
-theorem singleton_alphabet [simp] :
-"{v} \<in> WF_ALPHABET"
+theorem insert_alphabet [simp] :
+"\<lbrakk>a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
+ (insert x a) \<in> WF_ALPHABET"
 apply (simp add: WF_ALPHABET_def)
 done
-
-text {* TODO: Add a general theorem for enumerated (finite) sets. *}
 
 theorem union_alphabet [simp] :
 "\<lbrakk>a1 \<in> WF_ALPHABET;
@@ -327,7 +349,7 @@ theorem diff_alphabet [simp] :
 apply (simp add: WF_ALPHABET_def)
 done
 
-theorem alpha_alphabet :
+theorem pred_alphabet :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  (\<alpha> p) \<in> WF_ALPHABET"
 apply (simp add: WF_ALPHA_PREDICATE_def)
@@ -341,7 +363,7 @@ apply (rule_tac x = "(SOME b . b \<in> WF_BINDING)" in exI)
 apply (simp)
 done
 
-text {* Not sure whether the following two should be default simplifications. *}
+text {* Should the following be a default simplification? *}
 
 theorem member_subset_binding [simp] :
 "\<lbrakk>bs \<subseteq> WF_BINDING;
@@ -350,7 +372,7 @@ theorem member_subset_binding [simp] :
 apply (auto)
 done
 
-theorem member_binds_binding [simp] :
+theorem pred_binding [simp] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  b \<in> \<beta> p\<rbrakk> \<Longrightarrow>
  b \<in> WF_BINDING"
@@ -359,7 +381,7 @@ apply (simp add: WF_BINDING_SET_def)
 apply (auto)
 done
 
-theorem binds_subset_binding :
+theorem pred_subset_binding :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  \<beta> p \<subseteq> WF_BINDING"
 apply (simp add: WF_ALPHA_PREDICATE_def)
@@ -454,7 +476,7 @@ done
 
 subsubsection {* Closure Theorems *}
 
-theorem Coerce_predicate_wf [simp] :
+theorem Coerce_closure [simp] :
 "p \<hookrightarrow> WF_ALPHA_PREDICATE \<in> WF_ALPHA_PREDICATE"
 apply (rule_tac Coerce_member)
 apply (simp add: WF_ALPHA_PREDICATE_def)
@@ -462,7 +484,7 @@ apply (rule_tac x = "({}, {})" in exI)
 apply (simp add: WF_BINDING_SET_def)
 done
 
-theorem LiftP_wf [simp] :
+theorem LiftP_closure [simp] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  f \<in> WF_BINDING_FUN a\<rbrakk> \<Longrightarrow>
  LiftP a f \<in> WF_ALPHA_PREDICATE"
@@ -474,7 +496,7 @@ apply (subst override_on_comm)
 apply (simp add: binding_fun_app_override)
 done
 
-theorem TrueP_wf [simp] :
+theorem TrueP_closure [simp] :
 "\<lbrakk>a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  (true a) \<in> WF_ALPHA_PREDICATE"
 apply (simp add: TrueP_def)
@@ -482,7 +504,7 @@ apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_BINDING_SET_def)
 done
 
-theorem FalseP_wf [simp] :
+theorem FalseP_closure [simp] :
 "\<lbrakk>a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  (false a) \<in> WF_ALPHA_PREDICATE"
 apply (simp add: FalseP_def)
@@ -490,17 +512,7 @@ apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_BINDING_SET_def)
 done
 
-theorem TRUE_wf [simp] :
-"TRUE \<in> WF_ALPHA_PREDICATE"
-apply (simp add: TRUE_def)
-done
-
-theorem FALSE_wf [simp] :
-"FALSE \<in> WF_ALPHA_PREDICATE"
-apply (simp add: FALSE_def)
-done
-
-theorem ExtP_wf [simp] :
+theorem ExtP_closure [simp] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  p \<oplus> a \<in> WF_ALPHA_PREDICATE"
@@ -509,7 +521,7 @@ apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: binding_set_ext)
 done
 
-theorem ResP_wf [simp] :
+theorem ResP_closure [simp] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  p \<ominus> a \<in> WF_ALPHA_PREDICATE"
@@ -528,7 +540,7 @@ apply (rule ext)
 apply (auto)
 done
 
-theorem NotP_wf [simp] :
+theorem NotP_closure [simp] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  (\<not>p p) \<in> WF_ALPHA_PREDICATE"
 apply (simp add: NotP_def)
@@ -536,7 +548,7 @@ apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: binding_set_compl)
 done
 
-theorem AndP_wf [simp] :
+theorem AndP_closure [simp] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<and>p p2 \<in> WF_ALPHA_PREDICATE"
@@ -545,7 +557,7 @@ apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: binding_set_inter)
 done
 
-theorem OrP_wf [simp] :
+theorem OrP_closure [simp] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<or>p p2 \<in> WF_ALPHA_PREDICATE"
@@ -554,49 +566,49 @@ apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: binding_set_union)
 done
 
-theorem ImpliesP_wf [simp] :
+theorem ImpliesP_closure [simp] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<Rightarrow>p p2 \<in> WF_ALPHA_PREDICATE"
 apply (simp add: ImpliesP_def)
 done
 
-theorem IffP_wf [simp] :
+theorem IffP_closure [simp] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<Leftrightarrow>p p2 \<in> WF_ALPHA_PREDICATE"
 apply (simp add: IffP_def)
 done
 
-theorem ExistsP_wf [simp] :
+theorem ExistsResP_closure [simp] :
+"\<lbrakk>a \<in> WF_ALPHABET;
+ p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
+ (\<exists>-p a . p) \<in> WF_ALPHA_PREDICATE"
+apply (simp add: ExistsResP_def)
+done
+
+theorem ForallResP_closure [simp] :
+"\<lbrakk>a \<in> WF_ALPHABET;
+ p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
+ (\<forall>-p a . p) \<in> WF_ALPHA_PREDICATE"
+apply (simp add: ForallResP_def)
+done
+
+theorem ExistsP_closure [simp] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  (\<exists>p a . p) \<in> WF_ALPHA_PREDICATE"
 apply (simp add: ExistsP_def)
 done
 
-theorem ForallP_wf [simp] :
+theorem ForallP_closure [simp] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  (\<forall>p a . p) \<in> WF_ALPHA_PREDICATE"
 apply (simp add: ForallP_def)
 done
 
-theorem ExistsExtP_wf [simp] :
-"\<lbrakk>a \<in> WF_ALPHABET;
- p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- (\<exists>p+ a . p) \<in> WF_ALPHA_PREDICATE"
-apply (simp add: ExistsExtP_def)
-done
-
-theorem ForallExtP_wf [simp] :
-"\<lbrakk>a \<in> WF_ALPHABET;
- p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- (\<forall>p+ a . p) \<in> WF_ALPHA_PREDICATE"
-apply (simp add: ForallExtP_def)
-done
-
-theorem ClosureP_wf [simp] :
+theorem ClosureP_closure [simp] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  [p] \<in> WF_ALPHA_PREDICATE"
 apply (simp add: ClosureP_def)
@@ -605,14 +617,14 @@ apply (simp)
 apply (simp add: WF_ALPHA_PREDICATE_def)
 done
 
-theorem RefP_wf [simp] :
+theorem RefP_closure [simp] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<sqsubseteq>p p2 \<in> WF_ALPHA_PREDICATE"
 apply (simp add: RefP_def)
 done
 
-subsubsection {* Alpha Theorems *}
+subsubsection {* Alphabet Theorems *}
 
 theorem LiftP_alphabet [simp] :
 "\<lbrakk>a \<in> WF_ALPHABET;
@@ -631,16 +643,6 @@ theorem FalseP_alphabet [simp] :
 "\<lbrakk>a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  \<alpha> (false a) = a"
 apply (simp add: FalseP_def)
-done
-
-theorem TRUE_alphabet [simp] :
-"\<alpha> TRUE = {}"
-apply (simp add: TRUE_def)
-done
-
-theorem FALSE_alphabet [simp] :
-"\<alpha> FALSE = {}"
-apply (simp add: FALSE_def)
 done
 
 theorem ExtP_alphabet [simp] :
@@ -692,32 +694,32 @@ apply (simp add: IffP_def)
 apply (auto)
 done
 
+theorem ExistsResP_alphabet [simp] :
+"\<lbrakk>a \<in> WF_ALPHABET;
+ p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
+ \<alpha> (\<exists>-p a . p) = (\<alpha> p) - a"
+apply (simp add: ExistsResP_def)
+done
+
+theorem ForallResP_alphabet [simp] :
+"\<lbrakk>a \<in> WF_ALPHABET;
+ p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
+ \<alpha> (\<forall>-p a . p) = (\<alpha> p) - a"
+apply (simp add: ForallResP_def)
+done
+
 theorem ExistsP_alphabet [simp] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- \<alpha> (\<exists>p a . p) = (\<alpha> p) - a"
+ \<alpha> (\<exists>p a . p) = (\<alpha> p) \<union> a"
 apply (simp add: ExistsP_def)
 done
 
 theorem ForallP_alphabet [simp] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- \<alpha> (\<forall>p a . p) = (\<alpha> p) - a"
+ \<alpha> (\<forall>p a . p) = (\<alpha> p) \<union> a"
 apply (simp add: ForallP_def)
-done
-
-theorem ExistsExtP_alphabet [simp] :
-"\<lbrakk>a \<in> WF_ALPHABET;
- p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- \<alpha> (\<exists>p+ a . p) = (\<alpha> p) \<union> a"
-apply (simp add: ExistsExtP_def)
-done
-
-theorem ForallExtP_alphabet [simp] :
-"\<lbrakk>a \<in> WF_ALPHABET;
- p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- \<alpha> (\<forall>p+ a . p) = (\<alpha> p) \<union> a"
-apply (simp add: ForallExtP_def)
 done
 
 theorem ClosureP_alphabet [simp] :

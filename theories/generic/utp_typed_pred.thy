@@ -1,5 +1,9 @@
+(******************************************************************************)
+(* Title: utp/generic/utp_typed_pred.thy                                      *)
+(* Author: Frank Zeyda, University of York                                    *)
+(******************************************************************************)
 theory utp_typed_pred
-imports "../utp_sorts" utp_gen_pred utp_gen_eval utp_complex_value
+imports utp_composite_value utp_generic_pred
 begin
 
 section {* Typed Predicates *}
@@ -9,13 +13,11 @@ subsection {* Well-typed Bindings *}
 definition WT_BINDING :
 "WT_BINDING type_rel = {b . (\<forall> v . type_rel (b v) (VAR.var_type v))}"
 
-subsection {* Standard Locale *}
+subsection {* Locale @{text TYPED_PRED} *}
 
-locale TYPED_PRED =
-  COMPLEX_VALUE "base_type_rel" "base_value_ref" +
-  GEN_PRED "WT_BINDING (lift_type_rel_complex base_type_rel)"
-for base_type_rel :: "'BASE_VALUE :: BASIC_SORT \<Rightarrow> 'BASE_TYPE \<Rightarrow> bool" and
-  base_value_ref :: "'BASE_VALUE :: BASIC_SORT \<Rightarrow> 'BASE_VALUE \<Rightarrow> bool"
+locale TYPED_PRED = GEN_PRED "(WT_BINDING type_rel)"
+for type_rel :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool" and
+    value_ref :: "'VALUE \<Rightarrow> 'VALUE \<Rightarrow> bool"
 
 subsection {* Theorems *}
 
@@ -41,13 +43,11 @@ apply (case_tac "v \<in> a")
 apply (auto)
 done
 
-text {* The following theorem facilitates interpretation proofs. *}
+text {* The following theorem facilitates locale instantiation. *}
 
 theorem TYPED_PRED_inst [intro!, simp] :
-"VALUE base_type_rel \<Longrightarrow>
- TYPED_PRED base_type_rel"
+"\<lbrakk>VALUE type_rel\<rbrakk> \<Longrightarrow> TYPED_PRED type_rel"
 apply (simp add: TYPED_PRED_def)
 apply (simp add: GEN_PRED_def)
-apply (auto)
 done
 end

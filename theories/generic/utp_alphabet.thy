@@ -1,5 +1,9 @@
+(******************************************************************************)
+(* Title: utp/generic/utp_alphabet.thy                                        *)
+(* Author: Frank Zeyda, University of York                                    *)
+(******************************************************************************)
 theory utp_alphabet
-imports utp_gen_var
+imports utp_var
 begin
 
 section {* Alphabets *}
@@ -11,21 +15,21 @@ begin
 subsection {* Well-formed Alphabets *}
 
 definition WF_ALPHABET :: "('TYPE VAR) ALPHABET set" where
-"WF_ALPHABET \<equiv> {a . finite a}"
+"WF_ALPHABET = {a . finite a}"
 
-subsection {* Variable Operators *}
+subsection {* Alphabet Operators *}
 
-definition in_alpha ::
+definition in_alphabet ::
   "('TYPE VAR) ALPHABET \<Rightarrow>
    ('TYPE VAR) ALPHABET" ("in") where
 "in a = (a \<inter> UNDASHED)"
 
-definition out_alpha ::
+definition out_alphabet ::
   "('TYPE VAR) ALPHABET \<Rightarrow>
    ('TYPE VAR) ALPHABET" ("out") where
 "out a = (a \<inter> DASHED)"
 
-subsection {* Semantic Restrictions *}
+subsection {* Restrictions *}
 
 definition COMPOSABLE ::
   "('TYPE VAR) ALPHABET \<Rightarrow>

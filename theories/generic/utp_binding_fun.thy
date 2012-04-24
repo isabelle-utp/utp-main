@@ -1,5 +1,9 @@
-theory utp_gen_bfun
-imports utp_gen_pred
+(******************************************************************************)
+(* Title: utp/generic/utp_binding_fun.thy                                     *)
+(* Author: Frank Zeyda, University of York                                    *)
+(******************************************************************************)
+theory utp_binding_fun
+imports utp_generic_pred
 begin
 
 section {* Binding Functions *}
@@ -69,18 +73,11 @@ theorem binding_fun_not [simp] :
  (\<lambda> b . \<not> (f b)) \<in> WF_BINDING_FUN a"
 apply (simp add: WF_BINDING_FUN_def)
 done
-(*
+
 subsection {* Proof Experiments *}
 
-text {* We cannot do the following proof anymore at this level! *}
-
-text {* Maybe we should assume some type constructors for basic types... *}
-
-definition x_var :: "'TYPE VAR" where
-"x_var \<equiv> MkPlain ''x'' IntType"
-
 theorem
-"({x_var} \<odot> b \<bullet> IntOf (b x_var) = 1 \<and> IntOf (b x_var) = 2) = false {x_var}"
+"v1 \<noteq> v2 \<longrightarrow> LiftP {x} (\<lambda> b . (b x) = v1 \<and> (b x) = v2) = false {x}"
 apply (subst LiftP_def)
 apply (simp_all)
 apply (subst binding_fun_non_interfere1)
@@ -88,6 +85,5 @@ apply (simp_all)
 apply (subst FalseP_def)
 apply (simp_all)
 done
-*)
 end
 end

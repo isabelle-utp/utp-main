@@ -1,10 +1,16 @@
+(******************************************************************************)
+(* Title: utp/utp_sorts.thy                                                   *)
+(* Author: Frank Zeyda, University of York                                    *)
+(******************************************************************************)
 theory utp_sorts
-imports utp_base
+imports utp_common
 begin
 
-section {* Value Sorts *}
+text {* Some sorts still need to be developed in terms of operators. *}
 
-subsection {* Integer Values *}
+section {* Basic Sorts *}
+
+subsection {* Integer Sort *}
 
 class INT_SORT =
   fixes MkInt :: "int \<Rightarrow> 'a"
@@ -33,11 +39,11 @@ notation times (infixl "*v" 70)
 
 definition divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "divide i1 i2 = MkInt (DestInt(i1) div DestInt(i2))"
-notation divide (infixl "DIV" 70)
+notation divide (infixl "divv" 70)
 
 definition modulus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "modulus i1 i2 = MkInt (DestInt(i1) mod DestInt(i2))"
-notation modulus (infixl "MOD" 70)
+notation modulus (infixl "modv" 70)
 
 subsubsection {* Default Simplifications *}
 
@@ -49,7 +55,7 @@ declare divide_def [simp]
 declare modulus_def [simp]
 end
 
-subsection {* Boolean Values *}
+subsection {* Boolean Sort *}
 
 class BOOL_SORT =
   fixes MkBool :: "bool \<Rightarrow> 'a"
@@ -57,7 +63,7 @@ class BOOL_SORT =
   fixes IsBool :: "'a \<Rightarrow> bool"
   assumes inverse [simp] : "DestBool (MkBool b) = b"
 
-subsection {* String Values *}
+subsection {* String Sort *}
 
 class STRING_SORT =
   fixes MkStr :: "string \<Rightarrow> 'a"
@@ -65,7 +71,9 @@ class STRING_SORT =
   fixes IsStr :: "'a \<Rightarrow> bool"
   assumes inverse [simp] : "DestStr (MkStr s) = s"
 
-subsection {* Pair Values *}
+section {* Composite Sorts *}
+
+subsection {* Pair Sort *}
 
 class PAIR_SORT =
   fixes MkPair :: "('a \<times> 'a) \<Rightarrow> 'a"
@@ -74,7 +82,7 @@ class PAIR_SORT =
   assumes inverse [simp] :
   "DestPair (MkPair v1_v2) = v1_v2"
 
-subsection {* Set Values *}
+subsection {* Set Sort *}
 
 class SET_SORT =
   fixes MkSet :: "'a set \<Rightarrow> 'a"
@@ -106,13 +114,13 @@ definition not_member :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
 "not_member v1 v2 = (v1 \<notin> (DestSet v2))"
 notation not_member ("(_/ \<notin>v _)" [50, 51] 50)
 
+definition subseteq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
+"subseteq v1 v2 = ((DestSet v1) \<subseteq> (DestSet v2))"
+notation subseteq ("(_/ \<subseteq>v _)" [50, 51] 50)
+
 definition subset :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
 "subset v1 v2 = ((DestSet v1) \<subset> (DestSet v2))"
 notation subset ("(_/ \<subset>v _)" [50, 51] 50)
-
-definition subset_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
-"subset_eq v1 v2 = ((DestSet v1) \<subseteq> (DestSet v2))"
-notation subset_eq ("(_/ \<subseteq>v _)" [50, 51] 50)
 
 subsection {* Default Simplifications *}
 
@@ -120,21 +128,19 @@ declare union_def [simp]
 declare inter_def [simp]
 declare member_def [simp]
 declare not_member_def [simp]
+declare subseteq_def [simp]
 declare subset_def [simp]
-declare subset_eq_def [simp]
 end
 
-subsection {* Basic and Complex Values *}
+subsection {* Aggregated Sorts *}
 
 class BASIC_SORT =
   INT_SORT + BOOL_SORT + STRING_SORT
 
-class COMPLEX_SORT =
+class COMPOSITE_SORT =
   BASIC_SORT + PAIR_SORT + SET_SORT
 
 subsection {* Proof Experiments *}
-
-text {* The inconvenience is that we need the typing information below. *}
 
 theorem "MkInt(1) +v MkInt(2) = MkInt(3)"
 apply (auto)
