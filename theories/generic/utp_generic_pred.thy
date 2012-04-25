@@ -66,13 +66,17 @@ subsection {* Predicate Model *}
 
 abbreviation alphabet ::
   "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR ALPHABET)" ("\<alpha>") where
-"\<alpha> p \<equiv> (fst p)"
+   ('TYPE VAR ALPHABET)" where
+"alphabet p \<equiv> (fst p)"
+
+notation alphabet ("\<alpha>")
 
 abbreviation bindings ::
   "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) BINDING_SET" ("\<beta>") where
-"\<beta> p \<equiv> (snd p)"
+   ('TYPE VAR, 'VALUE) BINDING_SET" where
+"bindings p \<equiv> (snd p)"
+
+notation bindings ("\<beta>")
 
 definition WF_ALPHA_PREDICATE ::
   "('TYPE VAR, 'VALUE) ALPHA_PREDICATE set" where

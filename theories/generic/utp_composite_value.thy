@@ -189,7 +189,7 @@ definition MkSet ::
    'BASIC_VALUE COMPOSITE_VALUE" where
 "MkSet = SET_SORT_class.MkSet"
 
-text {* Destructors *}
+subsubsection {* Destructors *}
 
 definition DestInt ::
   "'BASIC_VALUE COMPOSITE_VALUE \<Rightarrow> int" where

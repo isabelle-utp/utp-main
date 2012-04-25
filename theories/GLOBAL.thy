@@ -30,6 +30,14 @@ consts value_ref :: "'VALUE \<Rightarrow> 'VALUE \<Rightarrow> bool" (infix "\<s
 
 subsection {* Predicate Syntax *}
 
+consts alphabet ::
+  "('VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
+   ('VAR ALPHABET)" ("\<alpha>")
+
+consts bindings ::
+  "('VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
+   ('VAR, 'VALUE) BINDING_SET" ("\<beta>")
+
 consts BINDING_EQUIV ::
   "('VAR, 'VALUE) BINDING \<Rightarrow>
    ('VAR, 'VALUE) BINDING \<Rightarrow>

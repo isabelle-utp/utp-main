@@ -8,20 +8,6 @@ begin
 
 section {* Standard Predicates *}
 
-subsection {* Type Synonyms *}
-
-types STD_VALUE = "DEFAULT_VALUE COMPOSITE_VALUE"
-types STD_TYPE = "DEFAULT_TYPE COMPOSITE_TYPE"
-types STD_VAR = "DEFAULT_TYPE COMPOSITE_TYPE VAR"
-types STD_ALPHABET = "STD_VAR ALPHABET"
-types STD_BINDING = "(STD_VAR, STD_VALUE) BINDING"
-types STD_BINDING_SET = "(STD_VAR, STD_VALUE) BINDING_SET"
-types STD_BINDING_FUN = "(STD_VAR, STD_VALUE) BINDING_FUN"
-types STD_PREDICATE = "(STD_VAR, STD_VALUE) ALPHA_PREDICATE"
-types STD_FUNCTION = "(STD_VAR, STD_VALUE) ALPHA_FUNCTION"
-
-subsection {* Standard Predicate Model *}
-
 locale STD_PRED =
   COMPOSITE_VALUE "basic_type_rel" "basic_value_ref" +
   TYPED_PRED
@@ -39,6 +25,9 @@ apply (auto)
 done
 
 subsection {* Definitions *}
+
+definition STD_VALUE [simp] :
+"STD_VALUE = STD.universe"
 
 definition STD_ALPHABET [simp] :
 "STD_ALPHABET \<equiv> STD.WF_ALPHABET"
@@ -62,8 +51,6 @@ subsection {* Global Syntax *}
 
 subsubsection {* Value Syntax *}
 
-text {* Not sure about the following yet. *}
-
 defs STD_type_rel [simp] :
 "GLOBAL.type_rel \<equiv> lift_type_rel_composite default_type_rel"
 
@@ -74,6 +61,12 @@ defs STD_value_ref [simp] :
 "GLOBAL.value_ref \<equiv> lift_value_ref_composite default_value_ref"
 
 subsubsection {* Predicate Syntax *}
+
+defs STD_alphabet [simp] :
+"GLOBAL.alphabet \<equiv> STD.alphabet"
+
+defs STD_bindings [simp] :
+"GLOBAL.bindings \<equiv> STD.bindings"
 
 defs STD_BINDING_EQUIV [simp] :
 "GLOBAL.BINDING_EQUIV \<equiv> STD.BINDING_EQUIV"
@@ -190,3 +183,4 @@ theorem
 apply (simp)
 apply (utp_pred_taut_tac)
 done
+end

@@ -132,6 +132,10 @@ declare subseteq_def [simp]
 declare subset_def [simp]
 end
 
+subsection {* Higher-Order Sorts *}
+
+class HO_VALUE
+
 subsection {* Aggregated Sorts *}
 
 class BASIC_SORT =
