@@ -8,45 +8,45 @@ begin
 
 section {* UTP Theories *}
 
-record ('VAR, 'VALUE) UTP_THEORY =
-  alphabet::"'VAR ALPHABET" ("\<alpha>")
-  healthconds::"('VAR, 'VALUE) ALPHA_FUNCTION set" ("\<H>")
+record ('VALUE, 'TYPE) UTP_THEORY =
+  alphabet::"'TYPE ALPHABET" ("\<alpha>")
+  healthconds::"('VALUE, 'TYPE) ALPHA_FUNCTION set" ("\<H>")
 
 context GEN_PRED
 begin
 definition WF_HEALTH_COND ::
-  "('TYPE VAR) ALPHABET \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_FUNCTION set" where
+  "('TYPE ALPHABET) \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_FUNCTION set" where
 "a \<in> WF_ALPHABET \<longrightarrow>
  WF_HEALTH_COND a = {hc . hc \<in> IDEMPOTENT_OVER a}"
 
 (* Should we also require hc \<in> WF_ALPHA_FUNCTION_BETWEEN a a ? *)
 
 definition WF_HEALTH_CONDS ::
-  "('TYPE VAR) ALPHABET \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_FUNCTION set set" where
+  "('TYPE ALPHABET) \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_FUNCTION set set" where
 "a \<in> WF_ALPHABET \<longrightarrow>
  WF_HEALTH_CONDS a =
    {hs . finite hs \<and> (\<forall> hc \<in> hs . hc \<in> WF_HEALTH_COND a)}"
 
-definition WF_UTP_THEORY :: "('TYPE VAR, 'VALUE) UTP_THEORY set" where
+definition WF_UTP_THEORY :: "('VALUE, 'TYPE) UTP_THEORY set" where
 "WF_UTP_THEORY =
    {th . (\<alpha> th) \<in> WF_ALPHABET \<and> (\<H> th) \<in> WF_HEALTH_CONDS (\<alpha> th)}"
 
 subsection {* Theory Operators *}
 
 definition MakeTheory ::
-  "('TYPE VAR) ALPHABET \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_FUNCTION set \<Rightarrow>
-   ('TYPE VAR, 'VALUE) UTP_THEORY" where
+  "('TYPE ALPHABET) \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_FUNCTION set \<Rightarrow>
+   ('VALUE, 'TYPE) UTP_THEORY" where
 "a \<in> WF_ALPHABET \<and>
  hs \<in> WF_HEALTH_CONDS a \<longrightarrow>
  MakeTheory a hs = \<lparr>alphabet = a, healthconds = hs\<rparr>"
 
 definition SpecTheory ::
-  "('TYPE VAR, 'VALUE) UTP_THEORY \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_FUNCTION set \<Rightarrow>
-   ('TYPE VAR, 'VALUE) UTP_THEORY" where
+  "('VALUE, 'TYPE) UTP_THEORY \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_FUNCTION set \<Rightarrow>
+   ('VALUE, 'TYPE) UTP_THEORY" where
 "th \<in> WF_UTP_THEORY \<and>
  hs \<in> WF_HEALTH_CONDS (\<alpha> th) \<longrightarrow>
  SpecTheory th hs = \<lparr>alphabet = (\<alpha> th), healthconds = (\<H> th) \<union> hs\<rparr>"
@@ -54,8 +54,8 @@ definition SpecTheory ::
 subsection {* Theory Predicates *}
 
 definition TheoryPreds ::
-  "('TYPE VAR, 'VALUE) UTP_THEORY \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE set" where
+  "('VALUE, 'TYPE) UTP_THEORY \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE set" where
 "th \<in> WF_UTP_THEORY \<longrightarrow>
  TheoryPreds th =
    {p \<in> WF_ALPHA_PREDICATE_OVER (\<alpha> th) . (\<forall> hc \<in> \<H> th . hc p = p)}"
@@ -63,8 +63,8 @@ definition TheoryPreds ::
 subsection {* UTP Theory of Predicates *}
 
 definition PredTheory ::
-  "('TYPE VAR) ALPHABET \<Rightarrow>
-   ('TYPE VAR, 'VALUE) UTP_THEORY" where
+  "'TYPE ALPHABET \<Rightarrow>
+   ('VALUE, 'TYPE) UTP_THEORY" where
 "a \<in> WF_ALPHABET \<longrightarrow>
  PredTheory a = MakeTheory a {}"
 end

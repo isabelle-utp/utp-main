@@ -8,54 +8,23 @@ begin
 
 section {* HO2 Predicates *}
 
-(* TODO: This instantiation does not take into account HO consistency yet! *)
+text {*
+  Typing alone is not sufficient here; we require additional constraints for
+  consistency of higher-orderer variables at different levels.
+
+  This is work in progress!
+*}
 
 locale HO2_PRED =
-  COMPOSITE_VALUE "basic_type_rel" "basic_value_ref" +
-  TYPED_PRED
-    "lift_type_rel_composite basic_type_rel"
-    "lift_value_ref_composite basic_value_ref"
-for basic_type_rel :: "'BASIC_VALUE :: BASIC_SORT \<Rightarrow> 'BASIC_TYPE \<Rightarrow> bool" and
-  basic_value_ref :: "'BASIC_VALUE :: BASIC_SORT \<Rightarrow> 'BASIC_VALUE \<Rightarrow> bool"
-begin
+-- {* The mere use of the typed predicate locale is not appropriate for HO2. *}
+  HO2_VALUE_LOCALE + TYPED_PRED "ho2_type_rel"
 
-definition MkProg1 ::
-  "PROG1_VALUE \<Rightarrow> HO2_VALUE" where
-"MkProg1 = utp_ho2_value.MkProg1"
-
-definition MkProg2 ::
-  "PROG2_VALUE \<Rightarrow> HO2_VALUE" where
-"MkProg2 = utp_ho2_value.MkProg2"
-
-definition DestProg1 :: "HO2_VALUE \<Rightarrow> PROG1_VALUE" where
-"DestProg1 = utp_ho2_value.DestProg1"
-
-definition DestProg2 :: "HO2_VALUE \<Rightarrow> PROG2_VALUE" where
-"DestProg2 = utp_ho2_value.DestProg2"
-
-definition IsProg1 :: "HO2_VALUE \<Rightarrow> bool" where
-"IsProg1 = utp_ho2_value.IsProg1Val"
-
-definition IsProg2 :: "HO2_VALUE \<Rightarrow> bool" where
-"IsProg2 = utp_ho2_value.IsProg2Val"
-
-declare MkProg1_def [simp]
-declare MkProg2_def [simp]
-declare DestProg1_def [simp]
-declare DestProg2_def [simp]
-declare IsProg1_def [simp]
-declare IsProg2_def [simp]
-end
-
-interpretation HO2 :
-  HO2_PRED
-    "lift_type_rel_composite ho2_type_rel"
-    "lift_value_ref_composite ho2_value_ref"
-apply (simp add: HO2_PRED_def)
+interpretation HO2 : HO2_PRED
+apply (unfold HO2_PRED_def HO2_VALUE_LOCALE_def)
 apply (auto)
 done
 
-subsection {* Definitions *}
+subsection {* Semantic Domains *}
 
 definition HO2_VALUE [simp] :
 "HO2_VALUE = HO2.universe"
@@ -82,14 +51,13 @@ subsection {* Global Syntax *}
 
 subsubsection {* Value Syntax *}
 
+text {* Should the following be done in the theory @{text utp_ho2_value}? *}
+
 defs HO2_type_rel [simp] :
-"GLOBAL.type_rel \<equiv> lift_type_rel_composite ho2_type_rel"
+"GLOBAL.type_rel \<equiv> ho2_type_rel"
 
 defs HO2_set_type_rel [simp] :
 "GLOBAL.set_type_rel \<equiv> HO2.set_type_rel"
-
-defs HO2_value_ref [simp] :
-"GLOBAL.value_ref \<equiv> lift_value_ref_composite ho2_value_ref"
 
 subsubsection {* Predicate Syntax *}
 
@@ -99,8 +67,8 @@ defs HO2_alphabet [simp] :
 defs HO2_bindings [simp] :
 "GLOBAL.bindings \<equiv> HO2.bindings"
 
-defs HO2_BINDING_EQUIV [simp] :
-"GLOBAL.BINDING_EQUIV \<equiv> HO2.BINDING_EQUIV"
+defs HO2_binding_equiv [simp] :
+"GLOBAL.binding_equiv \<equiv> HO2.binding_equiv"
 
 defs HO2_LiftP [simp] :
 "GLOBAL.LiftP \<equiv> HO2.LiftP"

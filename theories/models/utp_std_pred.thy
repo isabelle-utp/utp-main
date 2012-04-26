@@ -8,23 +8,23 @@ begin
 
 section {* Standard Predicates *}
 
+text {* Standard predicates are typed using composite default values. *}
+
+types STD_VALUE = "DEFAULT_VALUE COMPOSITE_VALUE"
+types STD_TYPE = "DEFAULT_TYPE COMPOSITE_TYPE"
+
 locale STD_PRED =
-  COMPOSITE_VALUE "basic_type_rel" "basic_value_ref" +
-  TYPED_PRED
-    "lift_type_rel_composite basic_type_rel"
-    "lift_value_ref_composite basic_value_ref"
-for basic_type_rel :: "'BASIC_VALUE :: BASIC_SORT \<Rightarrow> 'BASIC_TYPE \<Rightarrow> bool" and
-  basic_value_ref :: "'BASIC_VALUE :: BASIC_SORT \<Rightarrow> 'BASIC_VALUE \<Rightarrow> bool"
+  COMPOSITE_VALUE "basic_type_rel" +
+  TYPED_PRED "lift_type_rel_composite basic_type_rel"
+for basic_type_rel :: "'BASIC_VALUE :: BASIC_SORT \<Rightarrow> 'BASIC_TYPE \<Rightarrow> bool"
 
 interpretation STD :
-  STD_PRED
-    "lift_type_rel_composite default_type_rel"
-    "lift_value_ref_composite default_value_ref"
+  STD_PRED "default_type_rel"
 apply (simp add: STD_PRED_def)
 apply (auto)
 done
 
-subsection {* Definitions *}
+subsection {* Semantic Domains *}
 
 definition STD_VALUE [simp] :
 "STD_VALUE = STD.universe"
@@ -57,9 +57,6 @@ defs STD_type_rel [simp] :
 defs STD_set_type_rel [simp] :
 "GLOBAL.set_type_rel \<equiv> STD.set_type_rel"
 
-defs STD_value_ref [simp] :
-"GLOBAL.value_ref \<equiv> lift_value_ref_composite default_value_ref"
-
 subsubsection {* Predicate Syntax *}
 
 defs STD_alphabet [simp] :
@@ -68,8 +65,8 @@ defs STD_alphabet [simp] :
 defs STD_bindings [simp] :
 "GLOBAL.bindings \<equiv> STD.bindings"
 
-defs STD_BINDING_EQUIV [simp] :
-"GLOBAL.BINDING_EQUIV \<equiv> STD.BINDING_EQUIV"
+defs STD_binding_equiv [simp] :
+"GLOBAL.binding_equiv \<equiv> STD.binding_equiv"
 
 defs STD_LiftP [simp] :
 "GLOBAL.LiftP \<equiv> STD.LiftP"

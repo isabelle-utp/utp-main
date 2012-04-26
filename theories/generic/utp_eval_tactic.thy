@@ -14,8 +14,8 @@ begin
 subsection {* Interpretation Function *}
 
 definition EvalP ::
-  "[(('TYPE VAR), 'VALUE) ALPHA_PREDICATE,
-    (('TYPE VAR), 'VALUE) BINDING] \<Rightarrow> bool" where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) BINDING \<Rightarrow> bool" where
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP p b \<longleftrightarrow> b \<in> \<beta> p"
@@ -26,8 +26,7 @@ theorem EvalP_intro :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 = p2 \<longleftrightarrow>
-   (\<alpha> p1) = (\<alpha> p2) \<and>
-   (\<forall> b \<in> WF_BINDING . (EvalP p1 b) \<longleftrightarrow> (EvalP p2 b))"
+ (\<alpha> p1) = (\<alpha> p2) \<and> (\<forall> b \<in> WF_BINDING . (EvalP p1 b) \<longleftrightarrow> (EvalP p2 b))"
 apply (safe)
 apply (simp add: EvalP_def)
 apply (rule prod_eqI)
@@ -42,8 +41,7 @@ theorem EvalP_intro_rule :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE;
  (\<alpha> p1) = (\<alpha> p2);
- (\<forall> b \<in> WF_BINDING . (EvalP p1 b) \<longleftrightarrow> (EvalP p2 b))\<rbrakk> \<Longrightarrow>
- p1 = p2"
+ (\<forall> b \<in> WF_BINDING . (EvalP p1 b) \<longleftrightarrow> (EvalP p2 b))\<rbrakk> \<Longrightarrow> p1 = p2"
 apply (subst EvalP_intro)
 apply (simp_all)
 done
@@ -189,9 +187,9 @@ done
 end
 
 (*
-text {* How do we deal elegantly with single quantified variables? *}
+-- {* How do we elegantly deal with single-quantified variables? *}
 
-text {* This is still subject to investigation! *}
+-- {* The tentative theorem below requires typing to be fixed in the locale. *}
 
 theorem (in GEN_PRED) EvalP_ResP_single_var :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
@@ -282,7 +280,7 @@ method_setup utp_pred_eq_tac = {*
     SIMPLE_METHOD' (fn i =>
       CHANGED (asm_full_simp_tac
         (utp_pred_eq_simpset ctxt) i)))
-*} "Proof Tactic for UTP Predicate Equalities"
+*} "Proof Tactic for Predicate Equalities"
 
 method_setup utp_pred_taut_tac = {*
   Attrib.thms >>
@@ -290,9 +288,9 @@ method_setup utp_pred_taut_tac = {*
     SIMPLE_METHOD' (fn i =>
       CHANGED (asm_full_simp_tac
         (utp_pred_taut_simpset ctxt) i)))
-*} "Proof Tactic for UTP Predicate Tautologies"
+*} "Proof Tactic for Predicate Tautologies"
 
-text {* TODO: Integrate Hogler Gast's code for the simplifer. *}
+text {* TODO: Integrate Holger's code for the simplifier to raise provisos. *}
 
 subsection {* Proof Experiments *}
 

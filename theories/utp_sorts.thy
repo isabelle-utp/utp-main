@@ -6,17 +6,39 @@ theory utp_sorts
 imports utp_common
 begin
 
-text {* Some sorts still need to be developed in terms of operators. *}
+section {* Value Sorts *}
 
-section {* Basic Sorts *}
+text {* Some sorts still need to be developed in terms of their operators. *}
+
+text {*
+  I decided for the time being to give up on the @{text "inverse"} theorems.
+  Their motivation was initially to support proofs about operators within the
+  type classes but it turns out that in particular in mechanising HO values,
+  they become a liability to discharge upon instantiation. For instance, our
+  current higher-order value model does not retain enough information in order
+  to reverse the construction of arbitrary nested values.
+*}
+
+subsection {* Common Value Sort *}
+
+text {*
+  It would be neat to introduce typing in @{text "VALUE_SORT"} too but this
+  is not feasible because it would require a second HOL type parameter in the
+  respective fixed constant, namely for the underlying value type. Our design
+  thus opted for introducing typing by virtue of a locale @{text "VALUE"}.
+*}
+
+class VALUE_SORT =
+  fixes ValueRef :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<sqsubseteq>v" 50)
+-- {* We may need additional assumptions here (open issue). *}
 
 subsection {* Integer Sort *}
 
-class INT_SORT =
+class INT_SORT = VALUE_SORT +
   fixes MkInt :: "int \<Rightarrow> 'a"
   fixes DestInt :: "'a \<Rightarrow> int"
   fixes IsInt :: "'a \<Rightarrow> bool"
-  assumes inverse [simp] : "DestInt (MkInt i) = i"
+(* assumes inverse [simp] : "DestInt (MkInt i) = i" *)
 begin
 
 subsubsection {* Integer Operators *}
@@ -57,39 +79,35 @@ end
 
 subsection {* Boolean Sort *}
 
-class BOOL_SORT =
+class BOOL_SORT = VALUE_SORT +
   fixes MkBool :: "bool \<Rightarrow> 'a"
   fixes DestBool :: "'a \<Rightarrow> bool"
   fixes IsBool :: "'a \<Rightarrow> bool"
-  assumes inverse [simp] : "DestBool (MkBool b) = b"
+(* assumes inverse [simp] : "DestBool (MkBool b) = b" *)
 
 subsection {* String Sort *}
 
-class STRING_SORT =
+class STRING_SORT = VALUE_SORT +
   fixes MkStr :: "string \<Rightarrow> 'a"
   fixes DestStr :: "'a \<Rightarrow> string"
   fixes IsStr :: "'a \<Rightarrow> bool"
-  assumes inverse [simp] : "DestStr (MkStr s) = s"
-
-section {* Composite Sorts *}
+(* assumes inverse [simp] : "DestStr (MkStr s) = s" *)
 
 subsection {* Pair Sort *}
 
-class PAIR_SORT =
+class PAIR_SORT = VALUE_SORT +
   fixes MkPair :: "('a \<times> 'a) \<Rightarrow> 'a"
   fixes DestPair :: "'a \<Rightarrow> ('a \<times> 'a)"
   fixes IsPair :: "'a \<Rightarrow> bool"
-  assumes inverse [simp] :
-  "DestPair (MkPair v1_v2) = v1_v2"
+(* assumes inverse [simp] : "DestPair (MkPair v1_v2) = v1_v2" *)
 
 subsection {* Set Sort *}
 
-class SET_SORT =
+class SET_SORT = VALUE_SORT +
   fixes MkSet :: "'a set \<Rightarrow> 'a"
   fixes DestSet :: "'a \<Rightarrow> 'a set"
   fixes IsSet :: "'a \<Rightarrow> bool"
-  assumes inverse [simp] :
-  "IdxSet vs \<Longrightarrow> DestSet (MkSet vs) = vs"
+(* assumes inverse [simp] : "IdxSet vs \<longrightarrow> DestSet (MkSet vs) = vs" *)
 begin
 
 subsubsection {* Set Operators *}
@@ -132,10 +150,6 @@ declare subseteq_def [simp]
 declare subset_def [simp]
 end
 
-subsection {* Higher-Order Sorts *}
-
-class HO_VALUE
-
 subsection {* Aggregated Sorts *}
 
 class BASIC_SORT =
@@ -143,22 +157,4 @@ class BASIC_SORT =
 
 class COMPOSITE_SORT =
   BASIC_SORT + PAIR_SORT + SET_SORT
-
-subsection {* Proof Experiments *}
-
-theorem "MkInt(1) +v MkInt(2) = MkInt(3)"
-apply (auto)
-done
-
-theorem "MkInt(1) \<in>v MkSet({MkInt(1), MkInt(2)})"
-apply (simp)
-done
-
-theorem "MkInt(3) \<in>v MkSet({MkInt(1)}) \<union>v MkSet({MkInt(1) +v MkInt(2)})"
-apply (simp)
-done
-
-theorem "IdxSet s1 \<and> IdxSet s2 \<longrightarrow> MkSet(s1) \<inter>v MkSet(s2) \<subseteq>v MkSet(s1)"
-apply (simp)
-done
 end

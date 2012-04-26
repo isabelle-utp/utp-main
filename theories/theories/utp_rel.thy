@@ -13,11 +13,11 @@ begin
 
 subsection {* Restrictions *}
 
-definition WF_RELATION :: "('TYPE VAR, 'VALUE) ALPHA_PREDICATE set" where
+definition WF_RELATION :: "('VALUE, 'TYPE) ALPHA_PREDICATE set" where
 "WF_RELATION =
  {p . p \<in> WF_ALPHA_PREDICATE \<and> \<alpha> p \<subseteq> UNDASHED \<union> DASHED}"
 
-definition WF_CONDITION :: "('TYPE VAR, 'VALUE) ALPHA_PREDICATE set" where
+definition WF_CONDITION :: "('VALUE, 'TYPE) ALPHA_PREDICATE set" where
 "WF_CONDITION =
  {p . p \<in> WF_RELATION \<and> p = (\<exists>p DASHED . p)}"
 
@@ -27,18 +27,16 @@ text {* The definitions below should probably be in the predicate locale. *}
 
 definition SubstB ::
   "('TYPE VAR \<Rightarrow> 'TYPE VAR) \<Rightarrow>
-   ('TYPE VAR, 'VALUE) BINDING \<Rightarrow>
-   ('TYPE VAR, 'VALUE) BINDING" where
+   ('VALUE, 'TYPE) BINDING \<Rightarrow>
+   ('VALUE, 'TYPE) BINDING" where
 "\<lbrakk>ss \<in> VAR_SUBST;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  SubstB ss b = b \<circ> (inv ss)"
 
-(* The mixfix annotation of the below operator could be subject to revision. *)
-
 definition SubstP ::
-  " ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
+  " ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
    ('TYPE VAR \<Rightarrow> 'TYPE VAR) \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" ("_[_]" [200]) where
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" ("_[_]" [200]) where
 "\<lbrakk>ss \<in> VAR_SUBST;
  p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  SubstP p ss = (ss ` (\<alpha> p), (SubstB ss) ` (\<beta> p))"
@@ -50,16 +48,16 @@ definition SS1 :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
 
 definition SS2 :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
 "SS2 v = (
- if dashes (name v) = 0 then (VAR.dash o VAR.dash) v else
- if dashes (name v) = 2 then (VAR.undash o VAR.undash) v else v)"
+ if dashes (name v) = 0 then VAR.dash (VAR.dash v) else
+ if dashes (name v) = 2 then VAR.undash (VAR.undash v) else v)"
 
 subsection {* Relational Operators *}
 
 definition CondR ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" ("_ \<triangleleft> _ \<triangleright> _") where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" ("_ \<triangleleft> _ \<triangleright> _") where
 "p1 \<in> WF_RELATION \<and>
  p2 \<in> WF_RELATION \<and>
  b \<in> WF_CONDITION \<and>
@@ -68,9 +66,9 @@ definition CondR ::
  (p1 \<triangleleft> b \<triangleright> p2) = (b \<and>p p1) \<or>p (\<not>p b \<and>p p2)"
 
 definition SemiR ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" (infixr ";" 140) where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" (infixr ";" 140) where
 "r1 \<in> WF_RELATION \<and>
  r2 \<in> WF_RELATION \<and>
  COMPOSABLE (\<alpha> r1) (\<alpha> r1) \<longrightarrow>
@@ -89,7 +87,7 @@ apply (simp add: WF_ALPHABET_def)
 apply (simp add: WF_BINDING_SET_def)
 apply (safe)
 -- {* To prove this we need consistency of typing w.r.t. WF_BINDING! *}
--- {* This shows that we do need typing to be fixed in the GEN_PRED locale. *}
+-- {* This shows that we do need typing to be fixed in the locale. *}
 oops
 
 theorem CondR_closure [simp] :

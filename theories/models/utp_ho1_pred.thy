@@ -9,38 +9,14 @@ begin
 section {* HO1 Predicates *}
 
 locale HO1_PRED =
-  COMPOSITE_VALUE "basic_type_rel" "basic_value_ref" +
-  TYPED_PRED
-    "lift_type_rel_composite basic_type_rel"
-    "lift_value_ref_composite basic_value_ref"
-for basic_type_rel :: "'BASIC_VALUE :: BASIC_SORT \<Rightarrow> 'BASIC_TYPE \<Rightarrow> bool" and
-  basic_value_ref :: "'BASIC_VALUE :: BASIC_SORT \<Rightarrow> 'BASIC_VALUE \<Rightarrow> bool"
-begin
+  HO1_VALUE_LOCALE + TYPED_PRED "ho1_type_rel"
 
-definition MkProg ::
-  "PROG_VALUE \<Rightarrow> HO1_VALUE" where
-"MkProg = utp_ho1_value.MkProg"
-
-definition DestProg :: "HO1_VALUE \<Rightarrow> PROG_VALUE" where
-"DestProg = utp_ho1_value.DestProg"
-
-definition IsProg :: "HO1_VALUE \<Rightarrow> bool" where
-"IsProg = utp_ho1_value.IsProgVal"
-
-declare MkProg_def [simp]
-declare DestProg_def [simp]
-declare IsProg_def [simp]
-end
-
-interpretation HO1 :
-  HO1_PRED
-    "lift_type_rel_composite ho1_type_rel"
-    "lift_value_ref_composite ho1_value_ref"
-apply (simp add: HO1_PRED_def)
+interpretation HO1 : HO1_PRED
+apply (unfold HO1_PRED_def HO1_VALUE_LOCALE_def)
 apply (auto)
 done
 
-subsection {* Definitions *}
+subsection {* Semantic Domains *}
 
 definition HO1_VALUE [simp] :
 "HO1_VALUE = HO1.universe"
@@ -67,14 +43,13 @@ subsection {* Global Syntax *}
 
 subsubsection {* Value Syntax *}
 
+text {* Should the following be done in the theory @{text utp_ho1_value}? *}
+
 defs HO1_type_rel [simp] :
-"GLOBAL.type_rel \<equiv> lift_type_rel_composite ho1_type_rel"
+"GLOBAL.type_rel \<equiv> ho1_type_rel"
 
 defs HO1_set_type_rel [simp] :
 "GLOBAL.set_type_rel \<equiv> HO1.set_type_rel"
-
-defs HO1_value_ref [simp] :
-"GLOBAL.value_ref \<equiv> lift_value_ref_composite ho1_value_ref"
 
 subsubsection {* Predicate Syntax *}
 
@@ -84,8 +59,8 @@ defs HO1_alphabet [simp] :
 defs HO1_bindings [simp] :
 "GLOBAL.bindings \<equiv> HO1.bindings"
 
-defs HO1_BINDING_EQUIV [simp] :
-"GLOBAL.BINDING_EQUIV \<equiv> HO1.BINDING_EQUIV"
+defs HO1_binding_equiv [simp] :
+"GLOBAL.binding_equiv \<equiv> HO1.binding_equiv"
 
 defs HO1_LiftP [simp] :
 "GLOBAL.LiftP \<equiv> HO1.LiftP"

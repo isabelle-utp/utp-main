@@ -8,32 +8,32 @@ begin
 
 section {* Alphabets *}
 
-types 'VAR ALPHABET = "'VAR set"
+types 'TYPE ALPHABET = "'TYPE VAR set"
 
 context VAR
 begin
 subsection {* Well-formed Alphabets *}
 
-definition WF_ALPHABET :: "('TYPE VAR) ALPHABET set" where
+definition WF_ALPHABET :: "'TYPE ALPHABET set" where
 "WF_ALPHABET = {a . finite a}"
 
 subsection {* Alphabet Operators *}
 
 definition in_alphabet ::
-  "('TYPE VAR) ALPHABET \<Rightarrow>
-   ('TYPE VAR) ALPHABET" ("in") where
+  "'TYPE ALPHABET \<Rightarrow>
+   'TYPE ALPHABET" ("in") where
 "in a = (a \<inter> UNDASHED)"
 
 definition out_alphabet ::
-  "('TYPE VAR) ALPHABET \<Rightarrow>
-   ('TYPE VAR) ALPHABET" ("out") where
+  "'TYPE ALPHABET \<Rightarrow>
+   'TYPE ALPHABET" ("out") where
 "out a = (a \<inter> DASHED)"
 
 subsection {* Restrictions *}
 
 definition COMPOSABLE ::
-  "('TYPE VAR) ALPHABET \<Rightarrow>
-   ('TYPE VAR) ALPHABET \<Rightarrow> bool" where
+  "'TYPE ALPHABET \<Rightarrow>
+   'TYPE ALPHABET \<Rightarrow> bool" where
 "\<lbrakk>a1 \<in> WF_ALPHABET;
  a2 \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  COMPOSABLE a1 a2 \<longleftrightarrow> (out a1) = dash ` (in a2)"

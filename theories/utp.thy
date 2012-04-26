@@ -1,13 +1,14 @@
 (******************************************************************************)
-(* Title: utp/theories/utp_theories.thy                                       *)
+(* Title: utp/utp.thy                                                         *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
-theory utp_theories
+theory utp
 imports
-  utp_theory
-  utp_rel
+  "generic/utp_generic"
+  "models/utp_models"
+  "theories/utp_theories"
 begin
 
-text {* Meta-theory that imports all UTP theory embeddings. *}
+text {* Meta-theory that imports all UTP Isabelle theories. *}
 
 end

@@ -13,11 +13,8 @@ subsection {* Locale @{text "VALUE"} *}
 locale VALUE =
 -- {* Typing Relation *}
   fixes type_rel :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50)
--- {* Refinement Ordering *}
-  fixes value_ref :: "'VALUE \<Rightarrow> 'VALUE \<Rightarrow> bool" (infix "\<sqsubseteq>" 50)
 -- {* A type must not be empty. *}
   assumes type_non_empty : "\<exists> x . x : t"
--- {* Do we need additional assumptions for the refinement order? *}
 begin
 
 subsubsection {* Universe *}
@@ -72,24 +69,4 @@ apply (simp)
 apply (auto simp: carrier_def) [1]
 done
 end
-
-subsection {* Locale @{text "PROC_VALUE"} *}
-
-text {* This locale introduces additional assumptions for procedure values. *}
-
-locale PROC_VALUE = VALUE "proc_type_rel" "proc_value_ref"
-for proc_type_rel :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool" and
-  proc_value_ref :: "'VALUE \<Rightarrow> 'VALUE \<Rightarrow> bool"
-
-subsection {* Theorems *}
-
-theorem PROC_VALUE_inst [intro!] :
-"VALUE proc_type_rel \<Longrightarrow> PROC_VALUE proc_type_rel"
-apply (simp add: PROC_VALUE_def)
-done
-
-subsection {* Proof Experiments *}
-
-print_locale "VALUE"
-print_locale "PROC_VALUE"
 end

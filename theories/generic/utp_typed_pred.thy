@@ -16,8 +16,7 @@ definition WT_BINDING :
 subsection {* Locale @{text TYPED_PRED} *}
 
 locale TYPED_PRED = GEN_PRED "(WT_BINDING type_rel)"
-for type_rel :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool" and
-    value_ref :: "'VALUE \<Rightarrow> 'VALUE \<Rightarrow> bool"
+for type_rel :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool"
 
 subsection {* Theorems *}
 

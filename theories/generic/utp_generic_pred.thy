@@ -3,18 +3,10 @@
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
 theory utp_generic_pred
-imports utp_var utp_alphabet
+imports "../utp_types" utp_var utp_alphabet
 begin
 
 section {* Generic Predicates *}
-
-subsection {* Type Synonyms *}
-
-types ('VAR, 'VALUE) BINDING = "'VAR \<Rightarrow> 'VALUE"
-types ('VAR, 'VALUE) BINDING_SET = "('VAR, 'VALUE) BINDING set"
-types ('VAR, 'VALUE) BINDING_FUN = "('VAR, 'VALUE) BINDING \<Rightarrow> bool"
-types ('VAR, 'VALUE) ALPHA_PREDICATE =
-  "('VAR ALPHABET) \<times> ('VAR, 'VALUE) BINDING_SET"
 
 subsection {* Locale @{text "GEN_PRED"} *}
 
@@ -22,69 +14,66 @@ text {*
   For more flexibility needed when instantiating the layered model for higher-
   order predicates, the parametrisation of the locale has changed in a way that
   we specify @{text WF_BINDING} directly rather than the typing relation. This
-  allows one to impose general structural constraints on bindings, i.e. here to
-  ensure consistency of higher-order variables between different layers.
+  allows one to impose more general structural constraints on bindings, i.e.
+  here to ensure consistency of higher-order variables between layers.
+*}
+
+text {*
+  An open issue at the moment is whether despite @{text "WF_BINDING"} we fix
+  the notion of typing. An argument for it is that in some cases we require
+  typing to specify laws, for instance, involving substitution. It seems that
+  there is an implied notion of typing deduced from @{text "WF_BINDING"} but
+  using it instead might make matters more complicated than necessary.
 *}
 
 locale GEN_PRED = VAR "UNIV :: 'TYPE set" +
 -- {* Typing Relation *}
--- {* fixes type_rel :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50)
+-- {* fixes type_rel :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50) *}
 -- {* We fix the notion of a well-formed binding. *}
-  fixes WF_BINDING :: "('TYPE VAR, 'VALUE) BINDING set"
+  fixes WF_BINDING :: "('VALUE, 'TYPE) BINDING set"
 -- {* There must be at least one well-formed binding. *}
   assumes binding_non_empty [simp] : "WF_BINDING \<noteq> {}"
 -- {* Well-formed bindings are closed under overriding. *}
   assumes binding_closure [simp, intro!] :
-  "b1 \<in> WF_BINDING \<and>
-   b2 \<in> WF_BINDING \<longrightarrow> (b1 \<oplus> b2 on a) \<in> WF_BINDING"
+  "b1 \<in> WF_BINDING \<and> b2 \<in> WF_BINDING \<longrightarrow> (b1 \<oplus> b2 on a) \<in> WF_BINDING"
 -- {* Typing Consistency *}
--- {* assumes typing_consistency : *}
+-- {* assumes typing_consistent : *}
 -- {*  "x : (type v) \<longleftrightarrow> (\<exists> b \<in> WF_BINDING . x = (b v))" *}
 begin
-
-text {*
-  A design decision we have to make is whether we ask the user to provide an
-  independent notion of typing in addition to @{text WF_BINDING}. Originally,
-  I did not do so, however, it turns out that this can be useful in order to
-  define the distribution laws for quantifiers as part of the proof strategy.
-  In particular, to define neat laws for single quantified variables, we would
-  otherwise have to introduce an implied notion of typing; this is likely to
-  make things more complicated in practical terms. Still subject to research!
-*}
 
 subsection {* Binding Sets *}
 
 text {* Well-formed binding sets are upward-closed w.r.t. an alphabet. *}
 
 definition WF_BINDING_SET ::
-  "('TYPE VAR ALPHABET) \<Rightarrow> ('TYPE VAR, 'VALUE) BINDING_SET set" where
-"WF_BINDING_SET a \<equiv>
+  "('TYPE ALPHABET) \<Rightarrow> ('VALUE, 'TYPE) BINDING_SET set" where
+"WF_BINDING_SET a =
  {bs . bs \<subseteq> WF_BINDING \<and>
    (\<forall> b1 \<in> WF_BINDING . \<forall> b2 \<in> bs . (b1 \<oplus> b2 on a) \<in> bs)}"
 
 subsection {* Predicate Model *}
 
 abbreviation alphabet ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR ALPHABET)" where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('TYPE ALPHABET)" where
 "alphabet p \<equiv> (fst p)"
 
 notation alphabet ("\<alpha>")
 
 abbreviation bindings ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) BINDING_SET" where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) BINDING_SET" where
 "bindings p \<equiv> (snd p)"
 
 notation bindings ("\<beta>")
 
 definition WF_ALPHA_PREDICATE ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE set" where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE set" where
 "WF_ALPHA_PREDICATE =
  {p . (\<alpha> p) \<in> WF_ALPHABET \<and> (\<beta> p) \<in> WF_BINDING_SET (\<alpha> p)}"
 
 definition WF_ALPHA_PREDICATE_OVER ::
-  "'TYPE VAR ALPHABET \<Rightarrow> ('TYPE VAR, 'VALUE) ALPHA_PREDICATE set" where
+  "'TYPE ALPHABET \<Rightarrow> ('VALUE, 'TYPE) ALPHA_PREDICATE set" where
 "a \<in> WF_ALPHABET \<longrightarrow>
  WF_ALPHA_PREDICATE_OVER a = {p . p \<in> WF_ALPHA_PREDICATE \<and> \<alpha> p = a}"
 
@@ -94,29 +83,29 @@ subsubsection {* Shallow Lifting *}
 
 text {* We first have to define a notion of binding equivalence. *}
 
-definition BINDING_EQUIV ::
-  "('TYPE VAR, 'VALUE) BINDING \<Rightarrow>
-   ('TYPE VAR, 'VALUE) BINDING \<Rightarrow>
-   ('TYPE VAR ALPHABET) \<Rightarrow> bool" where
-"(BINDING_EQUIV b1 b2 a) \<longleftrightarrow>
+definition binding_equiv ::
+  "('VALUE, 'TYPE) BINDING \<Rightarrow>
+   ('VALUE, 'TYPE) BINDING \<Rightarrow>
+   ('TYPE ALPHABET) \<Rightarrow> bool" where
+"(binding_equiv b1 b2 a) \<longleftrightarrow>
  b1 \<in> WF_BINDING \<and>
  b2 \<in> WF_BINDING \<and>
  (\<forall> x \<in> a . b1 x = b2 x)"
 
-notation BINDING_EQUIV ("_ \<cong> _ on _")
+notation binding_equiv ("_ \<cong> _ on _")
 
 text {* We next introduce the notion of a well-formed function on bindings. *}
 
 definition WF_BINDING_FUN ::
-  "'TYPE VAR ALPHABET \<Rightarrow> ('TYPE VAR, 'VALUE) BINDING_FUN set" where
+  "'TYPE ALPHABET \<Rightarrow> ('VALUE, 'TYPE) BINDING_FUN set" where
 "WF_BINDING_FUN a = {f . \<forall> b1 b2 . b1 \<cong> b2 on a \<longrightarrow> f b1 = f b2}"
 
 text {* Shallow lifting is defined in terms of well-formed binding functions. *}
 
 definition LiftP ::
-  "('TYPE VAR ALPHABET) \<Rightarrow>
-   (('TYPE VAR, 'VALUE) BINDING \<Rightarrow> bool) \<Rightarrow>
-    ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+  "('TYPE ALPHABET) \<Rightarrow>
+   ('VALUE, 'TYPE) BINDING_FUN \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "a \<in> WF_ALPHABET \<and>
  f \<in> WF_BINDING_FUN a \<longrightarrow>
  LiftP a f = (a, {b . b \<in> WF_BINDING \<and> f b})"
@@ -124,8 +113,8 @@ definition LiftP ::
 subsubsection {* Extension and Restriction *}
 
 definition ExtP ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow> 'TYPE VAR ALPHABET \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow> 'TYPE ALPHABET \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "p \<in> WF_ALPHA_PREDICATE \<and>
  a \<in> WF_ALPHABET \<longrightarrow>
  ExtP p a = ((\<alpha> p) \<union> a, \<beta> p)"
@@ -133,8 +122,8 @@ definition ExtP ::
 notation ExtP (infix "\<oplus>" 200)
 
 definition ResP ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow> 'TYPE VAR ALPHABET \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow> 'TYPE ALPHABET \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "p \<in> WF_ALPHA_PREDICATE \<and>
  a \<in> WF_ALPHABET \<longrightarrow>
  ResP p a = ((\<alpha> p) - a,
@@ -145,39 +134,39 @@ notation ResP (infix "\<ominus>" 200)
 subsubsection {* True and False *}
 
 definition TrueP ::
-  "'TYPE VAR ALPHABET \<Rightarrow> ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+  "'TYPE ALPHABET \<Rightarrow> ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "a \<in> WF_ALPHABET \<longrightarrow>
  TrueP a = (a, WF_BINDING)"
 
 notation TrueP ("true")
 
 definition FalseP ::
-  "'TYPE VAR ALPHABET \<Rightarrow> ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+  "'TYPE ALPHABET \<Rightarrow> ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "a \<in> WF_ALPHABET \<longrightarrow>
  FalseP a = (a, {})"
 
 notation FalseP ("false")
 
-abbreviation TRUE :: "('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+abbreviation TRUE :: "('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "TRUE \<equiv> TrueP {}"
 
-abbreviation FALSE :: "('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+abbreviation FALSE :: "('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "FALSE \<equiv> FalseP {}"
 
 subsubsection {* Logical Connectives *}
 
 definition NotP ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
  NotP p = (\<alpha> p, WF_BINDING - \<beta> p)"
 
 notation NotP ("\<not>p _" [190] 190)
 
 definition AndP ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "p1 \<in> WF_ALPHA_PREDICATE \<and>
  p2 \<in> WF_ALPHA_PREDICATE \<longrightarrow>
  AndP p1 p2 = ((\<alpha> p1) \<union> (\<alpha> p2), (\<beta> p1) \<inter> (\<beta> p2))"
@@ -185,9 +174,9 @@ definition AndP ::
 notation AndP (infixr "\<and>p" 180)
 
 definition OrP ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "p1 \<in> WF_ALPHA_PREDICATE \<and>
  p2 \<in> WF_ALPHA_PREDICATE \<longrightarrow>
  OrP p1 p2 = ((\<alpha> p1) \<union> (\<alpha> p2), (\<beta> p1) \<union> (\<beta> p2))"
@@ -195,9 +184,9 @@ definition OrP ::
 notation OrP (infixr "\<or>p" 170)
 
 definition ImpliesP ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "p1 \<in> WF_ALPHA_PREDICATE \<and>
  p2 \<in> WF_ALPHA_PREDICATE \<longrightarrow>
  ImpliesP p1 p2 = (\<not>p p1 \<or>p p2)"
@@ -205,9 +194,9 @@ definition ImpliesP ::
 notation ImpliesP (infixr "\<Rightarrow>p" 160)
 
 definition IffP ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "p1 \<in> WF_ALPHA_PREDICATE \<and>
  p2 \<in> WF_ALPHA_PREDICATE \<longrightarrow>
  IffP p1 p2 = (p1 \<Rightarrow>p p2) \<and>p (p2 \<Rightarrow>p p1)"
@@ -219,9 +208,9 @@ subsubsection {* Quantifiers *}
 (* An open question is whether there is any benefit in requiring a \<subseteq> (\<alpha> p). *)
 
 definition ExistsResP ::
-  "('TYPE VAR ALPHABET) \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+  "('TYPE ALPHABET) \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "a \<in> WF_ALPHABET \<and>
  p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
  ExistsResP a p = p \<ominus> a"
@@ -229,9 +218,9 @@ definition ExistsResP ::
 notation ExistsResP ("(\<exists>-p _ ./ _)" [0, 10] 10)
 
 definition ForallResP ::
-  "'TYPE VAR ALPHABET \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+  "'TYPE ALPHABET \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "a \<in> WF_ALPHABET \<and>
  p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
  ForallResP a p = \<not>p (\<exists>-p a . \<not>p p)"
@@ -239,9 +228,9 @@ definition ForallResP ::
 notation ForallResP ("(\<forall>-p _ ./ _)" [0, 10] 10)
 
 definition ExistsP ::
-  "'TYPE VAR ALPHABET \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+  "'TYPE ALPHABET \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "a \<in> WF_ALPHABET \<and>
  p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
  ExistsP a p = (\<exists>-p a . p) \<oplus> a"
@@ -249,9 +238,9 @@ definition ExistsP ::
 notation ExistsP ("(\<exists>p _ ./ _)" [0, 10] 10)
 
 definition ForallP ::
-  "'TYPE VAR ALPHABET \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+  "'TYPE ALPHABET \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "a \<in> WF_ALPHABET \<and>
  p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
  ForallP a p = (\<forall>-p a . p) \<oplus> a"
@@ -261,8 +250,8 @@ notation ForallP ("(\<forall>p _ ./ _)" [0, 10] 10)
 subsubsection {* Universal Closure *}
 
 definition ClosureP ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
  ClosureP p = (\<forall>-p (\<alpha> p) . p)"
 
@@ -271,9 +260,9 @@ notation ClosureP ("[_]")
 subsubsection {* Refinement *}
 
 definition RefP ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE" where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "p1 \<in> WF_ALPHA_PREDICATE \<and>
  p2 \<in> WF_ALPHA_PREDICATE \<longrightarrow>
  RefP p1 p2 = [p2 \<Rightarrow>p p1]"
@@ -285,29 +274,29 @@ subsection {* Meta-logical Operators *}
 subsubsection {* Tautology *}
 
 definition Tautology ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow> bool" where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow> bool" where
 "p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
  Tautology p \<longleftrightarrow> (p = true (\<alpha> p))"
 
 notation Tautology ("taut _" [50] 50)
 
 definition Contradiction ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow> bool" where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow> bool" where
 "p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
  Contradiction p \<longleftrightarrow> (p = false (\<alpha> p))"
 
 notation Contradiction ("contra _" [50] 50)
 
 definition Contingency ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow> bool" where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow> bool" where
 "p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
  Contingency p \<longleftrightarrow> ((\<not> taut p) \<and> (\<not> contra p))"
 
 notation Contingency ("contg _" [50] 50)
 
 definition Refinement ::
-  "('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE VAR, 'VALUE) ALPHA_PREDICATE \<Rightarrow> bool" where
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow> bool" where
 "p1 \<in> WF_ALPHA_PREDICATE \<and>
  p2 \<in> WF_ALPHA_PREDICATE \<and>
  (\<alpha> p1) = (\<alpha> p2) \<longrightarrow>
@@ -475,7 +464,7 @@ theorem binding_fun_app_override [simp] :
  f \<in> WF_BINDING_FUN a \<longrightarrow>
  f (b1 \<oplus> b2 on -a) = (f b1)"
 apply (simp add: WF_BINDING_FUN_def)
-apply (simp add: BINDING_EQUIV_def)
+apply (simp add: binding_equiv_def)
 done
 
 subsubsection {* Closure Theorems *}
