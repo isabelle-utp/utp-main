@@ -11,7 +11,7 @@ section {* Typed Predicates *}
 subsection {* Well-typed Bindings *}
 
 definition WT_BINDING :
-"WT_BINDING type_rel = {b . (\<forall> v . type_rel (b v) (VAR.var_type v))}"
+"WT_BINDING type_rel = {b . (\<forall> v . type_rel (b v) (type v))}"
 
 subsection {* Locale @{text TYPED_PRED} *}
 
@@ -24,7 +24,7 @@ theorem WT_BINDING_non_empty [intro!, simp] :
 "VALUE type_rel \<Longrightarrow>
  WT_BINDING type_rel \<noteq> {}"
 apply (simp add: WT_BINDING)
-apply (rule_tac x = "(\<lambda> v . (SOME x . type_rel x (snd v)))" in exI)
+apply (rule_tac x = "(\<lambda> v . (SOME x . type_rel x (type v)))" in exI)
 apply (clarify)
 apply (drule_tac t = "snd v" in VALUE.type_non_empty)
 apply (clarify)

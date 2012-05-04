@@ -34,7 +34,7 @@ apply (assumption)
 apply (subgoal_tac "\<beta> p1 \<subseteq> WF_BINDING")
 apply (subgoal_tac "\<beta> p2 \<subseteq> WF_BINDING")
 apply (auto) [1]
-apply (simp_all add: pred_subset_binding)
+apply (simp_all add: WF_BINDING_bindings)
 done
 
 theorem EvalP_intro_rule :
@@ -87,18 +87,44 @@ theorem EvalP_ResP :
  a \<in> WF_ALPHABET;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (p \<ominus> a) b =
-   (\<exists> b' \<in> WF_BINDING . EvalP p (b \<oplus> b' on a))"
+   (\<exists> b' \<in> WF_BINDING . b \<cong> b' on (\<alpha> p) - a \<and> EvalP p b')"
 apply (simp add: EvalP_def)
 apply (simp add: ResP_def)
 apply (safe)
-apply (unfold Bex_def)
-apply (rule_tac x = "b1" in exI)
-apply (simp)
-apply (rule_tac x = "b \<oplus> b' on a" in exI)
-apply (simp)
-apply (rule_tac x = "b" in exI)
-apply (simp)
+apply (rule_tac x = "b1" in bexI)
+apply (simp add: binding_equiv_comm)
+apply (simp add: WF_BINDING_member2)
+apply (rule_tac x = "b'" in bexI)
+apply (simp add: binding_equiv_comm)
+apply (assumption)
 done
+
+(*
+  The theorem below is provable if we remove @{text "b \<in> WF_BINDING"} from the
+  assumptions in the definition of EvalP. However, it turns out that the law
+  is not as useful in practice because we have no general law that establishes
+  that the overridden binding is in @{text "WF_BINDING}. There is an open issue
+  how we recover the simplicity of the old approach using function override.
+*)
+
+(*
+theorem EvalP_ResP_override :
+"\<lbrakk>a \<in> WF_ALPHABET;
+ p \<in> WF_ALPHA_PREDICATE;
+ b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+ EvalP (p \<ominus> a) b =
+   (\<exists> b' \<in> WF_BINDING . EvalP p (b' \<oplus> b on (\<alpha> p) - a))"
+apply (simp add: EvalP_def)
+apply (simp add: ResP_def)
+apply (safe)
+apply (rule_tac x = "b1" in bexI)
+apply (simp add: binding_equiv_override)
+apply (simp add: WF_BINDING_member2)
+apply (rule_tac x = "b' \<oplus> b on \<alpha> p - a" in bexI)
+apply (simp add: binding_equiv_def)
+apply (assumption)
+done
+*)
 
 theorem EvalP_NotP :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
@@ -150,7 +176,7 @@ theorem EvalP_ExistsResP :
  p \<in> WF_ALPHA_PREDICATE;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (\<exists>-p a . p) b =
-   (\<exists> b' \<in> WF_BINDING . EvalP p (b \<oplus> b' on a))"
+   (\<exists> b' \<in> WF_BINDING . b \<cong> b' on (\<alpha> p) - a \<and> EvalP p b')"
 apply (simp add: ExistsResP_def)
 apply (simp add: EvalP_ResP)
 done
@@ -160,7 +186,7 @@ theorem EvalP_ForallResP :
  p \<in> WF_ALPHA_PREDICATE;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (\<forall>-p a . p) b =
-   (\<forall> b' \<in> WF_BINDING . EvalP p (b \<oplus> b' on a))"
+   (\<forall> b' \<in> WF_BINDING . b \<cong> b' on (\<alpha> p) - a \<longrightarrow> EvalP p b')"
 apply (simp add: ForallResP_def)
 apply (simp add: EvalP_NotP EvalP_ExistsResP)
 done
@@ -170,7 +196,7 @@ theorem EvalP_ExistsP :
  p \<in> WF_ALPHA_PREDICATE;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (\<exists>p a . p) b =
-   (\<exists> b' \<in> WF_BINDING . EvalP p (b \<oplus> b' on a))"
+   (\<exists> b' \<in> WF_BINDING . b \<cong> b' on (\<alpha> p) - a \<and> EvalP p b')"
 apply (simp add: ExistsP_def)
 apply (simp add: EvalP_ExtP EvalP_ExistsResP)
 done
@@ -180,39 +206,11 @@ theorem EvalP_ForallP :
  p \<in> WF_ALPHA_PREDICATE;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (\<forall>p a . p) b =
-   (\<forall> b' \<in> WF_BINDING . EvalP p (b \<oplus> b' on a))"
+   (\<forall> b' \<in> WF_BINDING . b \<cong> b' on (\<alpha> p) - a \<longrightarrow> EvalP p b')"
 apply (simp add: ForallP_def)
 apply (simp add: EvalP_ExtP EvalP_ForallResP)
 done
 end
-
-(*
--- {* How do we elegantly deal with single-quantified variables? *}
-
--- {* The tentative theorem below requires typing to be fixed in the locale. *}
-
-theorem (in GEN_PRED) EvalP_ResP_single_var :
-"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
- b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
- EvalP (p \<ominus> {v}) b = (\<exists> x . x : (type v) \<and> EvalP p (b(v:=x)))"
-apply (simp add: EvalP_def)
-apply (simp add: ResP_def)
-apply (simp add: typing_consistency)
-apply (safe)
-apply (rule_tac x = "b1 v" in exI)
-apply (auto)
-apply (simp add: EvalP_def)
-apply (subgoal_tac "b(v := ba v) = b \<oplus> ba on {v}")
-apply (simp add: EvalP_def)
-apply (rule_tac x = "b \<oplus> ba on {v}" in exI)
-apply (simp)
-apply (rule_tac x = "b" in exI)
-apply (simp)
-apply (simp add: override_on_def)
-apply (rule ext)
-apply (auto)
-done
-*)
 
 subsection {* Automatic Tactics *}
 
@@ -238,7 +236,6 @@ declare EvalP_TrueP [eval]
 declare EvalP_FalseP [eval]
 declare EvalP_ExtP [eval]
 declare EvalP_ResP [eval]
-(* declare EvalP_ResP_single_var [eval] *)
 declare EvalP_NotP [eval]
 declare EvalP_AndP [eval]
 declare EvalP_OrP [eval]
@@ -250,7 +247,7 @@ declare EvalP_ExistsP [eval]
 declare EvalP_ForallP [eval]
 declare ClosureP_def [eval]
 declare RefP_def [eval]
-declare pred_alphabet [eval]
+declare WF_ALPHABET_alphabet [eval]
 declare Tautology_def [taut]
 declare Contradiction_def [taut]
 declare Contingency_def [taut]

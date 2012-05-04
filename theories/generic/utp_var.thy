@@ -12,6 +12,12 @@ text {* Should we introduce a proper type for variables? *}
 
 types 'TYPE VAR = "NAME \<times> 'TYPE"
 
+abbreviation var_name :: "'TYPE VAR \<Rightarrow> NAME" ("name") where
+"var_name \<equiv> fst"
+
+abbreviation var_type :: "'TYPE VAR \<Rightarrow> 'TYPE" ("type") where
+"var_type \<equiv> snd"
+
 subsection {* Locale @{text "VAR"} *}
 
 locale VAR =
@@ -26,14 +32,6 @@ definition MkVar :: "NAME \<Rightarrow> 'TYPE \<Rightarrow> 'TYPE VAR" where
 
 definition MkPlain :: "string \<Rightarrow> 'TYPE \<Rightarrow> 'TYPE VAR" where
 "MkPlain s t = MkVar \<lparr>name_str = s, dashes = 0, subscript = NoSub\<rparr> t"
-
-subsection {* Destructors *}
-
-abbreviation var_name :: "'TYPE VAR \<Rightarrow> NAME" ("name") where
-"name v \<equiv> (fst v)"
-
-abbreviation var_type :: "'TYPE VAR \<Rightarrow> 'TYPE" ("type") where
-"type v \<equiv> (snd v)"
 
 subsection {* Operators *}
 

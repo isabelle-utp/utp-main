@@ -3,7 +3,7 @@
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
 theory utp_default_value
-imports GLOBAL "../utp_common" "../utp_sorts" "../generic/utp_abstract_value"
+imports "../GLOBAL" "../utp_common" "../utp_sorts" "../generic/utp_abstract_value"
 begin
 
 section {* Default Values *}

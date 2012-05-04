@@ -115,11 +115,6 @@ done
 
 subsection {* Proof Experiments *}
 
-theorem non_empty_exists :
-"s \<noteq> {} \<longleftrightarrow> (\<exists> x . x \<in> s)"
-apply (auto)
-done
-
 theorem inj_on_override_on :
 "inj_on f a \<and> inj_on g b \<and> (f ` a) \<inter> (g ` b) = {} \<Longrightarrow>
  inj_on (f \<oplus> g on b) a"

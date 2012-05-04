@@ -45,13 +45,48 @@ apply (rule_tac a = "xa" in someI2)
 apply (auto)
 done
 
-subsection {* Function Override *}
+subsection {* Theorems *}
+
+subsubsection {* Sets and Logic *}
+
+theorem pairI :
+"p = (fst p, snd p)"
+apply (auto)
+done
+
+theorem diff_subset [simp] :
+"b - a \<subseteq> b"
+apply (auto)
+done
+
+theorem non_empty_exists :
+"s \<noteq> {} \<longleftrightarrow> (\<exists> x . x \<in> s)"
+apply (auto)
+done
+
+subsubsection {* Functions *}
+
+theorem fun_upd_cancel [simp] :
+"f (x := f x) = f"
+apply (auto)
+done
+
+theorem fun_upd_comm :
+"x \<noteq> y \<Longrightarrow> f (x := a, y := b) = f (y := b, x := a)"
+apply (rule ext)
+apply (simp)
+done
+
+theorem image_chain_elim :
+"f ` g ` a = {y . \<exists> x . x \<in> a \<and> y = f (g x)}"
+apply (auto)
+done
+
+subsubsection {* Function Override *}
 
 text {* We first define a neater syntax for function overriding. *}
 
 notation override_on ("_ \<oplus> _ on _")
-
-subsubsection {* Theorems *}
 
 theorem override_on_idem [simp]:
 "f \<oplus> f on a = f"
@@ -103,33 +138,6 @@ theorem override_on_cancel4 [simp] :
 apply (simp add: override_on_def)
 apply (rule ext)
 apply (auto)
-done
-
-subsection {* Theorems *}
-
-subsubsection {* Sets and Logic *}
-
-theorem pairI :
-"p = (fst p, snd p)"
-apply (auto)
-done
-
-theorem diff_subset [simp] :
-"b - a \<subseteq> b"
-apply (auto)
-done
-
-subsubsection {* Function Update *}
-
-theorem fun_upd_cancel [simp] :
-"f (x := f x) = f"
-apply (auto)
-done
-
-theorem fun_upd_comm :
-"x \<noteq> y \<Longrightarrow> f (x := a, y := b) = f (y := b, x := a)"
-apply (rule ext)
-apply (simp)
 done
 
 subsubsection {* Miscellaneous *}

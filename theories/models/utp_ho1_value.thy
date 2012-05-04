@@ -12,41 +12,45 @@ section {* HO1 Values *}
 
 subsection {* Program Encoding *}
 
-typedef STD_PREDICATE = STD_PREDICATE
+text {* We might not need a type for @{text "STD_PREDICATE"}. *}
+
+typedef (open) STD_PREDICATE_T = "STD.WF_ALPHA_PREDICATE"
+  morphisms Dest_STD_PREDICATE Mk_STD_PREDICATE
 apply (rule_tac x = "FALSE" in exI)
 apply (auto)
 done
 
-typedef STD_ALPHABET = STD_ALPHABET
+typedef (open) STD_ALPHABET_T = "STD.WF_ALPHABET"
+  morphisms Dest_STD_ALPHABET Mk_STD_ALPHABET
 apply (rule_tac x = "{}" in exI)
 apply (auto)
 done
 
 subsubsection {* Default Simplifications *}
 
-declare Abs_STD_PREDICATE_inverse [simp]
-declare Rep_STD_PREDICATE_inverse [simp]
-declare Abs_STD_PREDICATE_inject [simp, intro!]
-declare Rep_STD_PREDICATE_inject [simp, intro!]
-declare Rep_STD_PREDICATE [simp]
+declare Mk_STD_PREDICATE_inverse [simp]
+declare Dest_STD_PREDICATE_inverse [simp]
+declare Mk_STD_PREDICATE_inject [simp, intro!]
+declare Dest_STD_PREDICATE_inject [simp, intro!]
+declare Dest_STD_PREDICATE [simp]
 
-declare Abs_STD_ALPHABET_inverse [simp]
-declare Rep_STD_ALPHABET_inverse [simp]
-declare Abs_STD_ALPHABET_inject [simp, intro!]
-declare Rep_STD_ALPHABET_inject [simp, intro!]
-declare Rep_STD_ALPHABET [simp]
+declare Mk_STD_ALPHABET_inverse [simp]
+declare Dest_STD_ALPHABET_inverse [simp]
+declare Mk_STD_ALPHABET_inject [simp, intro!]
+declare Dest_STD_ALPHABET_inject [simp, intro!]
+declare Dest_STD_ALPHABET [simp]
 
 subsection {* Value Encoding *}
 
 types BASE_VALUE = "STD_VALUE"
-types PROG_VALUE = "STD_PREDICATE"
+types PROG_VALUE = "STD_PREDICATE_T"
 
 datatype HO1_VALUE =
   BaseVal "BASE_VALUE" |
   ProgVal "PROG_VALUE"
 
 types BASE_TYPE = "STD_TYPE"
-types PROG_TYPE = "STD_ALPHABET"
+types PROG_TYPE = "STD_ALPHABET_T"
 
 datatype HO1_TYPE =
   BaseType "BASE_TYPE" |
@@ -60,6 +64,12 @@ primrec BaseOf :: "HO1_VALUE \<Rightarrow> BASE_VALUE" where
 primrec ProgOf :: "HO1_VALUE \<Rightarrow> PROG_VALUE" where
 "ProgOf (ProgVal p) = p"
 
+primrec BaseTypeOf :: "HO1_TYPE \<Rightarrow> BASE_TYPE" where
+"BaseTypeOf (BaseType t) = t"
+
+primrec ProgTypeOf :: "HO1_TYPE \<Rightarrow> PROG_TYPE" where
+"ProgTypeOf (ProgType t) = t"
+
 subsubsection {* Tests *}
 
 primrec IsBaseVal :: "HO1_VALUE \<Rightarrow> bool" where
@@ -70,13 +80,23 @@ primrec IsProgVal :: "HO1_VALUE \<Rightarrow> bool" where
 "IsProgVal (BaseVal _) = False" |
 "IsProgVal (ProgVal _) = True"
 
+primrec IsBaseType :: "HO1_TYPE \<Rightarrow> bool" where
+"IsBaseType (BaseType _) = True" |
+"IsBaseType (ProgType _) = False"
+
+primrec IsProgType :: "HO1_TYPE \<Rightarrow> bool" where
+"IsProgType (BaseType _) = False" |
+"IsProgType (ProgType _) = True"
+
 subsection {* Typing and Refinement *}
 
 definition std_prog_type_rel :: "PROG_VALUE \<Rightarrow> PROG_TYPE \<Rightarrow> bool" where
-"std_prog_type_rel p a = (\<alpha> (Rep_STD_PREDICATE p) = (Rep_STD_ALPHABET a))"
+"std_prog_type_rel p t \<longleftrightarrow>
+ \<alpha> (Dest_STD_PREDICATE p) = (Dest_STD_ALPHABET t)"
 
 definition std_prog_value_ref :: "PROG_VALUE \<Rightarrow> PROG_VALUE \<Rightarrow> bool" where
-"std_prog_value_ref p1 p2 = ((Rep_STD_PREDICATE p1) \<sqsubseteq> (Rep_STD_PREDICATE p2))"
+"std_prog_value_ref p1 p2 \<longleftrightarrow>
+ (Dest_STD_PREDICATE p1) \<sqsubseteq> (Dest_STD_PREDICATE p2)"
 
 defs global_std_prog_type_rel [simp] :
 "GLOBAL.type_rel \<equiv> std_prog_type_rel"
@@ -97,15 +117,6 @@ declare std_prog_type_rel_def [simp]
 declare std_prog_value_ref_def [simp]
 
 subsection {* Sort Membership *}
-
-instantiation STD_PREDICATE :: VALUE_SORT
-begin
-definition ValueRef_STD_PREDICATE [simp] :
-"ValueRef_STD_PREDICATE = std_prog_value_ref"
-instance
-apply (intro_classes)
-done
-end
 
 text {*
   Instantiation to @{text "COMPOSITE_SORT"} succeeds because we removed the
@@ -155,6 +166,15 @@ apply (intro_classes)
 done
 end
 
+instantiation STD_PREDICATE_T :: VALUE_SORT
+begin
+definition ValueRef_STD_PREDICATE [simp] :
+"ValueRef_STD_PREDICATE = std_prog_value_ref"
+instance
+apply (intro_classes)
+done
+end
+
 subsection {* Locale @{text "HO1_VALUE"} *}
 
 locale HO1_VALUE_LOCALE = VALUE "ho1_type_rel"
@@ -179,7 +199,7 @@ definition MkSet :: "HO1_VALUE set \<Rightarrow> HO1_VALUE" where
 "MkSet = SET_SORT_class.MkSet"
 
 definition MkProg :
-"MkProg p = ProgVal (Abs_STD_PREDICATE p)"
+"MkProg p = ProgVal (Mk_STD_PREDICATE p)"
 
 subsubsection {* Destructors *}
 
@@ -200,7 +220,7 @@ definition DestSet :: "HO1_VALUE \<Rightarrow> HO1_VALUE set" where
 "DestSet = SET_SORT_class.DestSet"
 
 definition DestProg :
-"DestProg v = Rep_STD_PREDICATE (ProgOf v)"
+"DestProg v = Dest_STD_PREDICATE (ProgOf v)"
 
 subsubsection {* Tests *}
 
@@ -260,13 +280,8 @@ apply (rule_tac x = "BaseVal x" in exI)
 apply (simp)
 apply (auto)
 apply (rule_tac x =
-  "ProgVal (Abs_STD_PREDICATE
-     (STD.FalseP (Rep_STD_ALPHABET STD_ALPHABET)))" in exI)
+  "ProgVal (Mk_STD_PREDICATE
+     (STD.FalseP (Dest_STD_ALPHABET STD_ALPHABET_T)))" in exI)
 apply (simp)
-apply (subgoal_tac "Rep_STD_ALPHABET STD_ALPHABET \<in> STD.WF_ALPHABET")
-apply (subst Abs_STD_PREDICATE_inverse)
-apply (simp_all add: STD_PREDICATE_def)
-apply (fold utp_std_pred.STD_ALPHABET)
-apply (fold STD_ALPHABET_def, simp)
 done
 end

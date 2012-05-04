@@ -12,35 +12,37 @@ section {* HO2 Values *}
 
 subsection {* Program Encoding *}
 
-typedef HO1_PREDICATE = HO1_PREDICATE
+typedef (open) HO1_PREDICATE_T = "HO1.WF_ALPHA_PREDICATE"
+  morphisms "Dest_HO1_PREDICATE" "Mk_HO1_PREDICATE"
 apply (rule_tac x = "FALSE" in exI)
 apply (auto)
 done
 
-typedef HO1_ALPHABET = HO1_ALPHABET
+typedef (open) HO1_ALPHABET_T = "HO1.WF_ALPHABET"
+  morphisms "Dest_HO1_ALPHABET" "Mk_HO1_ALPHABET"
 apply (rule_tac x = "{}" in exI)
 apply (auto)
 done
 
 subsubsection {* Default Simplifications *}
 
-declare Abs_HO1_PREDICATE_inverse [simp]
-declare Rep_HO1_PREDICATE_inverse [simp]
-declare Abs_HO1_PREDICATE_inject [simp, intro!]
-declare Rep_HO1_PREDICATE_inject [simp, intro!]
-declare Rep_HO1_PREDICATE [simp]
+declare Mk_HO1_PREDICATE_inverse [simp]
+declare Dest_HO1_PREDICATE_inverse [simp]
+declare Mk_HO1_PREDICATE_inject [simp, intro!]
+declare Dest_HO1_PREDICATE_inject [simp, intro!]
+declare Dest_HO1_PREDICATE [simp]
 
-declare Abs_HO1_ALPHABET_inverse [simp]
-declare Rep_HO1_ALPHABET_inverse [simp]
-declare Abs_HO1_ALPHABET_inject [simp, intro!]
-declare Rep_HO1_ALPHABET_inject [simp, intro!]
-declare Rep_HO1_ALPHABET [simp]
+declare Mk_HO1_ALPHABET_inverse [simp]
+declare Dest_HO1_ALPHABET_inverse [simp]
+declare Mk_HO1_ALPHABET_inject [simp, intro!]
+declare Dest_HO1_ALPHABET_inject [simp, intro!]
+declare Dest_HO1_ALPHABET [simp]
 
 subsection {* Value Encoding *}
 
 types BASE_VALUE = "STD_VALUE"
-types PROG1_VALUE = "STD_PREDICATE"
-types PROG2_VALUE = "HO1_PREDICATE"
+types PROG1_VALUE = "STD_PREDICATE_T"
+types PROG2_VALUE = "HO1_PREDICATE_T"
 
 datatype HO2_VALUE =
   BaseVal "BASE_VALUE" |
@@ -48,8 +50,8 @@ datatype HO2_VALUE =
   Prog2Val "PROG2_VALUE"
 
 types BASE_TYPE = "STD_TYPE"
-types PROG1_TYPE = "STD_ALPHABET"
-types PROG2_TYPE = "HO1_ALPHABET"
+types PROG1_TYPE = "STD_ALPHABET_T"
+types PROG2_TYPE = "HO1_ALPHABET_T"
 
 datatype HO2_TYPE =
   BaseType "BASE_TYPE" |
@@ -66,6 +68,15 @@ primrec Prog1Of :: "HO2_VALUE \<Rightarrow> PROG1_VALUE" where
 
 primrec Prog2Of :: "HO2_VALUE \<Rightarrow> PROG2_VALUE" where
 "Prog2Of (Prog2Val p) = p"
+
+primrec BaseTypeOf :: "HO2_TYPE \<Rightarrow> BASE_TYPE" where
+"BaseTypeOf (BaseType t) = t"
+
+primrec Prog1TypeOf :: "HO2_TYPE \<Rightarrow> PROG1_TYPE" where
+"Prog1TypeOf (Prog1Type t) = t"
+
+primrec Prog2TypeOf :: "HO2_TYPE \<Rightarrow> PROG2_TYPE" where
+"Prog2TypeOf (Prog2Type t) = t"
 
 subsubsection {* Tests *}
 
@@ -84,13 +95,30 @@ primrec IsProg2Val :: "HO2_VALUE \<Rightarrow> bool" where
 "IsProg2Val (Prog1Val _) = False" |
 "IsProg2Val (Prog2Val _) = True"
 
+primrec IsBaseType :: "HO2_TYPE \<Rightarrow> bool" where
+"IsBaseType (BaseType _) = True" |
+"IsBaseType (Prog1Type _) = False" |
+"IsBaseType (Prog2Type _) = False"
+
+primrec IsProg1Type :: "HO2_TYPE \<Rightarrow> bool" where
+"IsProg1Type (BaseType _) = False" |
+"IsProg1Type (Prog1Type _) = True" |
+"IsProg1Type (Prog2Type _) = False"
+
+primrec IsProg2Type :: "HO2_TYPE \<Rightarrow> bool" where
+"IsProg2Type (BaseType _) = False" |
+"IsProg2Type (Prog1Type _) = False" |
+"IsProg2Type (Prog2Type _) = True"
+
 subsection {* Typing and Refinement *}
 
 definition ho1_prog_type_rel :: "PROG2_VALUE \<Rightarrow> PROG2_TYPE \<Rightarrow> bool" where
-"ho1_prog_type_rel p a = (\<alpha> (Rep_HO1_PREDICATE p) = (Rep_HO1_ALPHABET a))"
+"ho1_prog_type_rel p a \<longleftrightarrow>
+ \<alpha> (Dest_HO1_PREDICATE p) = (Dest_HO1_ALPHABET a)"
 
 definition ho1_prog_value_ref :: "PROG2_VALUE \<Rightarrow> PROG2_VALUE \<Rightarrow> bool" where
-"ho1_prog_value_ref p1 p2 = ((Rep_HO1_PREDICATE p1) \<sqsubseteq> (Rep_HO1_PREDICATE p2))"
+"ho1_prog_value_ref p1 p2 \<longleftrightarrow>
+ (Dest_HO1_PREDICATE p1) \<sqsubseteq> (Dest_HO1_PREDICATE p2)"
 
 defs global_ho1_prog_type_rel [simp] :
 "GLOBAL.type_rel \<equiv> ho1_prog_type_rel"
@@ -121,15 +149,6 @@ declare ho1_prog_type_rel_def [simp]
 declare ho1_prog_value_ref_def [simp]
 
 subsection {* Sort Membership *}
-
-instantiation HO1_PREDICATE :: VALUE_SORT
-begin
-definition ValueRef_HO1_PREDICATE [simp] :
-"ValueRef_HO1_PREDICATE = ho1_prog_value_ref"
-instance
-apply (intro_classes)
-done
-end
 
 text {*
   Instantiation to @{text "COMPOSITE_SORT"} succeeds because we removed the
@@ -179,6 +198,15 @@ apply (intro_classes)
 done
 end
 
+instantiation HO1_PREDICATE_T :: VALUE_SORT
+begin
+definition ValueRef_HO1_PREDICATE_T [simp] :
+"ValueRef_HO1_PREDICATE_T = ho1_prog_value_ref"
+instance
+apply (intro_classes)
+done
+end
+
 subsection {* Locale @{text "HO2_VALUE"} *}
 
 locale HO2_VALUE_LOCALE = VALUE "ho2_type_rel"
@@ -203,10 +231,10 @@ definition MkSet :: "HO2_VALUE set \<Rightarrow> HO2_VALUE" where
 "MkSet = SET_SORT_class.MkSet"
 
 definition MkProg1 :
-"MkProg1 p = Prog1Val (Abs_STD_PREDICATE p)"
+"MkProg1 p = Prog1Val (Mk_STD_PREDICATE p)"
 
 definition MkProg2 :
-"MkProg2 p = Prog2Val (Abs_HO1_PREDICATE p)"
+"MkProg2 p = Prog2Val (Mk_HO1_PREDICATE p)"
 
 subsubsection {* Destructors *}
 
@@ -227,10 +255,10 @@ definition DestSet :: "HO2_VALUE \<Rightarrow> HO2_VALUE set" where
 "DestSet = SET_SORT_class.DestSet"
 
 definition DestProg1 :
-"DestProg1 v = Rep_STD_PREDICATE (Prog1Of v)"
+"DestProg1 v = Dest_STD_PREDICATE (Prog1Of v)"
 
 definition DestProg2 :
-"DestProg2 v = Rep_HO1_PREDICATE (Prog2Of v)"
+"DestProg2 v = Dest_HO1_PREDICATE (Prog2Of v)"
 
 subsubsection {* Tests *}
 
@@ -288,7 +316,6 @@ theorem VALUE_ho2_type_rel [simp] :
 "VALUE ho2_type_rel"
 apply (unfold_locales)
 apply (induct_tac t)
-(* TODO: Fix the remainder of the proof! *)
 apply (subgoal_tac "COMPOSITE_VALUE default_type_rel")
 apply (simp add: COMPOSITE_VALUE_def VALUE_def)
 apply (drule_tac x = "COMPOSITE_TYPE" in spec)
@@ -297,22 +324,12 @@ apply (rule_tac x = "BaseVal x" in exI)
 apply (simp)
 apply (auto)
 apply (rule_tac x =
-  "Prog1Val (Abs_STD_PREDICATE
-     (STD.FalseP (Rep_STD_ALPHABET STD_ALPHABET)))" in exI)
+  "Prog1Val (Mk_STD_PREDICATE
+     (STD.FalseP (Dest_STD_ALPHABET STD_ALPHABET_T)))" in exI)
 apply (simp)
-apply (subgoal_tac "Rep_STD_ALPHABET STD_ALPHABET \<in> STD.WF_ALPHABET")
-apply (subst Abs_STD_PREDICATE_inverse)
-apply (simp_all add: STD_PREDICATE_def)
-apply (fold utp_std_pred.STD_ALPHABET)
-apply (fold STD_ALPHABET_def, simp)
 apply (rule_tac x =
-  "Prog2Val (Abs_HO1_PREDICATE
-     (HO1.FalseP (Rep_HO1_ALPHABET HO1_ALPHABET)))" in exI)
+  "Prog2Val (Mk_HO1_PREDICATE
+     (HO1.FalseP (Dest_HO1_ALPHABET HO1_ALPHABET_T)))" in exI)
 apply (simp)
-apply (subgoal_tac "Rep_HO1_ALPHABET HO1_ALPHABET \<in> HO1.WF_ALPHABET")
-apply (subst Abs_HO1_PREDICATE_inverse)
-apply (simp_all add: HO1_PREDICATE_def)
-apply (fold utp_ho1_pred.HO1_ALPHABET)
-apply (fold HO1_ALPHABET_def, simp)
 done
 end
