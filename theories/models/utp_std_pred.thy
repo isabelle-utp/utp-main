@@ -113,7 +113,7 @@ defs STD_ForallResP [simp] :
 defs STD_ExistsP [simp] :
 "GLOBAL.ExistsP \<equiv> STD.ExistsP"
 
-defs STD_ForallExtP [simp] :
+defs STD_ForallP [simp] :
 "GLOBAL.ForallP \<equiv> STD.ForallP"
 
 defs STD_ClosureP [simp] :

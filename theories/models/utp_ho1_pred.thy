@@ -107,7 +107,7 @@ defs HO1_ForallResP [simp] :
 defs HO1_ExistsP [simp] :
 "GLOBAL.ExistsP \<equiv> HO1.ExistsP"
 
-defs HO1_ForallExtP [simp] :
+defs HO1_ForallP [simp] :
 "GLOBAL.ForallP \<equiv> HO1.ForallP"
 
 defs HO1_ClosureP [simp] :
