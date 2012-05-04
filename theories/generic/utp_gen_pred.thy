@@ -731,5 +731,15 @@ theorem RefP_alphabet [simp] :
  \<alpha> (p1 \<sqsubseteq>p p2) = {}"
 apply (simp add: RefP_def)
 done
+
+subsubsection {* Miscellaneous Theorems *}
+
+text {* The proof below relies on non-emptiness of @{text "WF_BINDINGS"}. *}
+
+theorem TrueP_noteq_FalseP [simp] :
+"\<lbrakk>a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
+ TrueP a \<noteq> FalseP a"
+apply (simp add: TrueP_def FalseP_def)
+done
 end
 end
