@@ -29,14 +29,14 @@ done
 subsubsection {* Default Simplifications *}
 
 declare Mk_STD_PREDICATE_inverse [simp]
-declare Dest_STD_PREDICATE_inverse [simp]
 declare Mk_STD_PREDICATE_inject [simp, intro!]
+declare Dest_STD_PREDICATE_inverse [simp]
 declare Dest_STD_PREDICATE_inject [simp, intro!]
 declare Dest_STD_PREDICATE [simp]
 
 declare Mk_STD_ALPHABET_inverse [simp]
-declare Dest_STD_ALPHABET_inverse [simp]
 declare Mk_STD_ALPHABET_inject [simp, intro!]
+declare Dest_STD_ALPHABET_inverse [simp]
 declare Dest_STD_ALPHABET_inject [simp, intro!]
 declare Dest_STD_ALPHABET [simp]
 

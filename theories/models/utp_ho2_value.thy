@@ -27,14 +27,14 @@ done
 subsubsection {* Default Simplifications *}
 
 declare Mk_HO1_PREDICATE_inverse [simp]
-declare Dest_HO1_PREDICATE_inverse [simp]
 declare Mk_HO1_PREDICATE_inject [simp, intro!]
+declare Dest_HO1_PREDICATE_inverse [simp]
 declare Dest_HO1_PREDICATE_inject [simp, intro!]
 declare Dest_HO1_PREDICATE [simp]
 
 declare Mk_HO1_ALPHABET_inverse [simp]
-declare Dest_HO1_ALPHABET_inverse [simp]
 declare Mk_HO1_ALPHABET_inject [simp, intro!]
+declare Dest_HO1_ALPHABET_inverse [simp]
 declare Dest_HO1_ALPHABET_inject [simp, intro!]
 declare Dest_HO1_ALPHABET [simp]
 

@@ -3,7 +3,7 @@
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
 theory utp_eval_tactic
-imports utp_generic_pred
+imports utp_gen_pred
 begin
 
 section {* Proof Tactic for Predicates *}

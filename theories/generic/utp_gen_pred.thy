@@ -1,8 +1,8 @@
 (******************************************************************************)
-(* Title: utp/generic/utp_generic_pred.thy                                    *)
+(* Title: utp/generic/utp_gen_pred.thy                                        *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
-theory utp_generic_pred
+theory utp_gen_pred
 imports "../utp_types" utp_var utp_alphabet
 begin
 

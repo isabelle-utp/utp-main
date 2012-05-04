@@ -3,7 +3,7 @@
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
 theory utp_function
-imports utp_generic_pred
+imports utp_gen_pred
 begin
 
 section {* Functions on Predicates *}

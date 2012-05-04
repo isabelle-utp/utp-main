@@ -9,7 +9,7 @@ imports
   utp_alphabet
   utp_abstract_value
   utp_composite_value
-  utp_generic_pred
+  utp_gen_pred
   utp_typed_pred
   utp_eval_tactic
   utp_function

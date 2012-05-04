@@ -3,7 +3,7 @@
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
 theory utp_rel
-imports "../generic/utp_generic_pred"
+imports "../generic/utp_gen_pred"
 begin
 
 section {* Theory of Relations *}

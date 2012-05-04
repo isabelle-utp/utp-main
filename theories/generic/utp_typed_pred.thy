@@ -3,7 +3,7 @@
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
 theory utp_typed_pred
-imports utp_composite_value utp_generic_pred
+imports utp_composite_value utp_gen_pred
 begin
 
 section {* Typed Predicates *}

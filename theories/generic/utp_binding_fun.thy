@@ -3,7 +3,7 @@
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
 theory utp_binding_fun
-imports utp_generic_pred
+imports utp_gen_pred
 begin
 
 section {* Binding Functions *}
