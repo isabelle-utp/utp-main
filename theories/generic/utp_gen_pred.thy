@@ -2,55 +2,41 @@
 (* Title: utp/generic/utp_gen_pred.thy                                        *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
-theory utp_gen_pred
-imports "../utp_types" utp_var utp_alphabet
-begin
 
-section {* Generic Predicates *}
+header {* Generic Predicates *}
+
+theory utp_gen_pred
+imports "../utp_types" utp_value utp_var utp_alphabet
+begin
 
 subsection {* Locale @{text "GEN_PRED"} *}
 
-text {*
-  For more flexibility needed when instantiating the layered model for higher-
-  order predicates, the parametrisation of the locale has changed in a way that
-  we specify @{text WF_BINDING} directly rather than the typing relation. This
-  allows one to impose more general structural constraints on bindings, i.e.
-  here to ensure consistency of higher-order variables between layers.
-*}
-
-text {*
-  An open issue at the moment is whether despite @{text "WF_BINDING"} we fix
-  the notion of typing. An argument for it is that in some cases we require
-  typing to specify laws, for instance, involving substitution. It seems that
-  there is an implied notion of typing deduced from @{text "WF_BINDING"} but
-  using it instead might make matters more complicated than necessary.
-*}
-
-locale GEN_PRED = VAR "UNIV :: 'TYPE set" +
--- {* Typing Relation *}
--- {* fixes type_rel :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50) *}
--- {* We fix the notion of well-formed bindings. *}
-  fixes WF_BINDING :: "('VALUE, 'TYPE) BINDING set"
--- {* There must be at least one well-formed binding. *}
-  assumes binding_non_empty [simp] : "WF_BINDING \<noteq> {}"
--- {* Typing Consistency *}
--- {* assumes typing_consistent : *}
--- {*  "x : (type v) \<longleftrightarrow> (\<exists> b \<in> WF_BINDING . x = (b v))" *}
+locale GEN_PRED =
+  VALUE "type_rel" + VAR "UNIV :: 'TYPE set"
+-- {* Typing Relation for Values *}
+for type_rel :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50)
 begin
 
-subsection {* Binding Sets *}
+subsection {* Bindings *}
 
-text {* We first introduce a notion of binding equivalence. *}
+text {* We require bindings to be well-typed. *}
 
-definition binding_equiv ::
+definition WF_BINDING :: "('VALUE, 'TYPE) BINDING_SET" where
+"WF_BINDING = {b . \<forall> v . (b v) : (type v)}"
+
+text {* Binding Equivalence *}
+
+definition beta_equiv ::
   "('VALUE, 'TYPE) BINDING \<Rightarrow>
    ('VALUE, 'TYPE) BINDING \<Rightarrow>
    ('TYPE ALPHABET) \<Rightarrow> bool" where
-"(binding_equiv b1 b2 a) \<longleftrightarrow> (\<forall> x \<in> a . b1 x = b2 x)"
+"(beta_equiv b1 b2 a) \<longleftrightarrow> (\<forall> x \<in> a . b1 x = b2 x)"
 
-notation binding_equiv ("_ \<cong> _ on _")
+notation beta_equiv ("_ \<cong> _ on _")
 
-text {* Well-formed binding sets are upward-closed w.r.t. an alphabet. *}
+text {* Binding Sets *}
+
+text {* Well-formed binding sets are upward-closed with respect to an alphabet. *}
 
 definition WF_BINDING_SET ::
   "('TYPE ALPHABET) \<Rightarrow> ('VALUE, 'TYPE) BINDING_SET set" where
@@ -58,7 +44,7 @@ definition WF_BINDING_SET ::
  {bs . bs \<subseteq> WF_BINDING \<and>
    (\<forall> b1 \<in> bs . \<forall> b2 \<in> WF_BINDING . b1 \<cong> b2 on a \<longrightarrow> b2 \<in> bs)}"
 
-subsection {* Predicate Model *}
+subsection {* Predicates *}
 
 abbreviation alphabet ::
   "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
@@ -84,7 +70,7 @@ definition WF_ALPHA_PREDICATE_OVER ::
 "a \<in> WF_ALPHABET \<longrightarrow>
  WF_ALPHA_PREDICATE_OVER a = {p . p \<in> WF_ALPHA_PREDICATE \<and> \<alpha> p = a}"
 
-subsection {* Predicate Operators *}
+subsection {* Operators *}
 
 subsubsection {* Shallow Lifting *}
 
@@ -111,7 +97,7 @@ definition ExtP ::
  a \<in> WF_ALPHABET \<longrightarrow>
  ExtP p a = ((\<alpha> p) \<union> a, \<beta> p)"
 
-notation ExtP (infix "\<oplus>" 200)
+notation ExtP (infix "\<oplus>p" 200)
 
 definition ResP ::
   "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow> 'TYPE ALPHABET \<Rightarrow>
@@ -121,7 +107,7 @@ definition ResP ::
  ResP p a = ((\<alpha> p) - a,
    {b2 \<in> WF_BINDING . (\<exists> b1 \<in> \<beta> p . b1 \<cong> b2 on ((\<alpha> p) - a))})"
 
-notation ResP (infix "\<ominus>" 200)
+notation ResP (infix "\<ominus>p" 200)
 
 subsubsection {* True and False *}
 
@@ -197,7 +183,7 @@ notation IffP (infixr "\<Leftrightarrow>p" 150)
 
 subsubsection {* Quantifiers *}
 
-(* An open question is whether there is any benefit in requiring a \<subseteq> (\<alpha> p). *)
+-- {* Open question: is there any benefit in requiring @{text "a \<subseteq> (\<alpha> p)"}. *}
 
 definition ExistsResP ::
   "('TYPE ALPHABET) \<Rightarrow>
@@ -205,7 +191,7 @@ definition ExistsResP ::
    ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "a \<in> WF_ALPHABET \<and>
  p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
- ExistsResP a p = p \<ominus> a"
+ ExistsResP a p = p \<ominus>p a"
 
 notation ExistsResP ("(\<exists>-p _ ./ _)" [0, 10] 10)
 
@@ -225,7 +211,7 @@ definition ExistsP ::
    ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "a \<in> WF_ALPHABET \<and>
  p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
- ExistsP a p = (\<exists>-p a . p) \<oplus> a"
+ ExistsP a p = (\<exists>-p a . p) \<oplus>p a"
 
 notation ExistsP ("(\<exists>p _ ./ _)" [0, 10] 10)
 
@@ -235,7 +221,7 @@ definition ForallP ::
    ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "a \<in> WF_ALPHABET \<and>
  p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
- ForallP a p = (\<forall>-p a . p) \<oplus> a"
+ ForallP a p = (\<forall>-p a . p) \<oplus>p a"
 
 notation ForallP ("(\<forall>p _ ./ _)" [0, 10] 10)
 
@@ -282,7 +268,7 @@ definition Contingency ::
 "p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
  Contingency p \<longleftrightarrow> ((\<not> taut p) \<and> (\<not> contra p))"
 
-notation Contingency ("contg _" [50] 50)
+notation Contingency ("cont _" [50] 50)
 
 definition Refinement ::
   "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
@@ -332,6 +318,12 @@ theorem WF_ALPHABET_diff [simp] :
 apply (simp add: WF_ALPHABET_def)
 done
 
+theorem WF_ALPHABET_image [simp] :
+"\<lbrakk>a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
+ f ` a \<in> WF_ALPHABET"
+apply (simp add: WF_ALPHABET_def)
+done
+
 theorem WF_ALPHABET_alphabet :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  (\<alpha> p) \<in> WF_ALPHABET"
@@ -340,24 +332,36 @@ done
 
 subsubsection {* Binding Theorems *}
 
-text {* Make the following three theorems default simplifications? Examine! *}
-
 theorem WF_BINDING_exists :
 "\<exists> b . b \<in> WF_BINDING"
-apply (rule_tac x = "(SOME b . b \<in> WF_BINDING)" in exI)
-apply (simp)
+apply (rule_tac x = "(\<lambda> v . SOME x . x : (type v))" in exI)
+apply (simp add: WF_BINDING_def)
+apply (safe)
+apply (rule someI2_ex)
+apply (simp only: type_non_empty)
+apply (assumption)
 done
 
-theorem WF_BINDING_member1 :
-"\<lbrakk>bs \<subseteq> WF_BINDING;
- b \<in> bs\<rbrakk> \<Longrightarrow>
- b \<in> WF_BINDING"
+theorem WF_BINDING_non_empty :
+"WF_BINDING \<noteq> {}"
+apply (insert WF_BINDING_exists)
 apply (auto)
 done
 
-theorem WF_BINDING_member2 :
-"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
- b \<in> \<beta> p\<rbrakk> \<Longrightarrow>
+theorem WF_BINDING_override [simp] :
+"\<lbrakk>b1 \<in> WF_BINDING;
+ b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+ b1 \<oplus> b2 on a \<in> WF_BINDING"
+apply (simp add: WF_BINDING_def)
+apply (safe)
+apply (case_tac "v \<in> a")
+apply (auto)
+done
+
+text {* Can we make the following two theorems default simplifications? *}
+
+theorem WF_BINDING_predicate :
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE; b \<in> \<beta> p\<rbrakk> \<Longrightarrow>
  b \<in> WF_BINDING"
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_BINDING_SET_def)
@@ -371,28 +375,28 @@ apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_BINDING_SET_def)
 done
 
-subsubsection {* Binding Equivalence Theorems *}
+text {* Binding Equivalence *}
 
-theorem  binding_equiv_comm :
+theorem  beta_equiv_comm :
 "b1 \<cong> b2 on a \<longleftrightarrow> b2 \<cong> b1 on a"
-apply (simp add: binding_equiv_def)
+apply (simp add: beta_equiv_def)
 apply (auto)
 done
 
-theorem  binding_equiv_trans :
+theorem  beta_equiv_trans :
 "\<lbrakk>b1 \<cong> b2 on a; b2 \<cong> b3 on a\<rbrakk> \<Longrightarrow> b1 \<cong> b3 on a"
-apply (simp add: binding_equiv_def)
+apply (simp add: beta_equiv_def)
 done
 
-theorem binding_equiv_override :
+theorem beta_equiv_override :
 "b1 \<cong> b2 on a \<Longrightarrow> b1 \<oplus> b2 on a = b1"
-apply (simp add: binding_equiv_def)
+apply (simp add: beta_equiv_def)
 apply (rule ext)
 apply (case_tac "x \<in> a")
 apply (auto)
 done
 
-subsubsection {* Binding Set Theorems *}
+text {* Binding Set Theorems *}
 
 theorem  WF_BINDING_SET_ext :
 "bs \<in> WF_BINDING_SET a1 \<Longrightarrow>
@@ -401,7 +405,7 @@ apply (simp only: WF_BINDING_SET_def)
 apply (safe)
 apply (drule_tac x = "b1" in bspec, assumption)
 apply (drule_tac x = "b2" in bspec, assumption)
-apply (simp only: binding_equiv_def)
+apply (simp only: beta_equiv_def)
 apply (auto)
 done
 
@@ -412,7 +416,7 @@ theorem WF_BINDING_SET_res :
 apply (simp only: WF_BINDING_SET_def)
 apply (safe)
 apply (rule_tac x = "b1a" in bexI)
-apply (auto intro: binding_equiv_trans)
+apply (auto intro: beta_equiv_trans)
 done
 
 theorem WF_BINDING_SET_compl :
@@ -422,12 +426,12 @@ apply (simp only: WF_BINDING_SET_def)
 apply (safe)
 apply (drule_tac x = "b2" in bspec, assumption)
 apply (drule_tac x = "b1" in bspec, assumption)
-apply (simp add: binding_equiv_comm)
+apply (simp add: beta_equiv_comm)
 done
 
 theorem WF_BINDING_SET_inter :
-"bs1 \<in> WF_BINDING_SET a1 \<and>
- bs2 \<in> WF_BINDING_SET a2 \<longrightarrow>
+"\<lbrakk>bs1 \<in> WF_BINDING_SET a1;
+ bs2 \<in> WF_BINDING_SET a2\<rbrakk> \<Longrightarrow>
  bs1 \<inter> bs2 \<in> WF_BINDING_SET (a1 \<union> a2)"
 apply (simp add: WF_BINDING_SET_def)
 apply (clarify)
@@ -438,19 +442,19 @@ apply (drule_tac x = "b1" in bspec, assumption)
 apply (drule_tac x = "b2" in bspec)
 back
 apply (assumption)
-apply (simp add: binding_equiv_def)
+apply (simp add: beta_equiv_def)
 apply (drule_tac x = "b1" in bspec)
 back
 apply (assumption)
 apply (drule_tac x = "b2" in bspec)
 back
 apply (assumption)
-apply (simp add: binding_equiv_def)
+apply (simp add: beta_equiv_def)
 done
 
 theorem WF_BINDING_SET_union :
-"bs1 \<in> WF_BINDING_SET a1 \<and>
- bs2 \<in> WF_BINDING_SET a2 \<longrightarrow>
+"\<lbrakk>bs1 \<in> WF_BINDING_SET a1;
+ bs2 \<in> WF_BINDING_SET a2\<rbrakk> \<Longrightarrow>
  bs1 \<union> bs2 \<in> WF_BINDING_SET (a1 \<union> a2)"
 apply (simp add: WF_BINDING_SET_def)
 apply (safe)
@@ -458,25 +462,25 @@ apply (drule_tac x = "b1" in bspec, assumption)
 apply (drule_tac x = "b2" in bspec)
 back
 apply (assumption)
-apply (simp add: binding_equiv_def)
+apply (simp add: beta_equiv_def)
 apply (drule_tac x = "b1" in bspec)
 back
 apply (assumption)
 apply (drule_tac x = "b2" in bspec)
 back
 apply (assumption)
-apply (simp add: binding_equiv_def)
+apply (simp add: beta_equiv_def)
 done
 
-subsubsection {* Binding Function Theorems *}
+text {* Binding Function Theorems *}
 
 theorem WF_BINDING_FUN_override [simp] :
-"b1 \<in> WF_BINDING \<and>
- b2 \<in> WF_BINDING \<and>
- f \<in> WF_BINDING_FUN a \<longrightarrow>
+"\<lbrakk>b1 \<in> WF_BINDING;
+ b2 \<in> WF_BINDING;
+ f \<in> WF_BINDING_FUN a\<rbrakk> \<Longrightarrow>
  f (b1 \<oplus> b2 on -a) = (f b1)"
 apply (simp add: WF_BINDING_FUN_def)
-apply (simp add: binding_equiv_def)
+apply (simp add: beta_equiv_def)
 done
 
 subsubsection {* Closure Theorems *}
@@ -519,7 +523,7 @@ done
 theorem ExtP_closure [simp] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
- p \<oplus> a \<in> WF_ALPHA_PREDICATE"
+ p \<oplus>p a \<in> WF_ALPHA_PREDICATE"
 apply (simp add: ExtP_def)
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_BINDING_SET_ext)
@@ -528,7 +532,7 @@ done
 theorem ResP_closure [simp] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
- p \<ominus> a \<in> WF_ALPHA_PREDICATE"
+ p \<ominus>p a \<in> WF_ALPHA_PREDICATE"
 apply (simp add: ResP_def)
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_BINDING_SET_res)
@@ -618,7 +622,7 @@ theorem RefP_closure [simp] :
 apply (simp add: RefP_def)
 done
 
-subsubsection {* Alphabet Theorems *}
+subsubsection {* Predicate Alphabets *}
 
 theorem LiftP_alphabet [simp] :
 "\<lbrakk>a \<in> WF_ALPHABET;
@@ -642,14 +646,14 @@ done
 theorem ExtP_alphabet [simp] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
- \<alpha> (p \<oplus> a) = (\<alpha> p) \<union> a"
+ \<alpha> (p \<oplus>p a) = (\<alpha> p) \<union> a"
 apply (simp add: ExtP_def)
 done
 
 theorem ResP_alphabet [simp] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
- \<alpha> (p \<ominus> a) = (\<alpha> p) - a"
+ \<alpha> (p \<ominus>p a) = (\<alpha> p) - a"
 apply (simp add: ResP_def)
 done
 
@@ -732,14 +736,12 @@ theorem RefP_alphabet [simp] :
 apply (simp add: RefP_def)
 done
 
-subsubsection {* Miscellaneous Theorems *}
-
-text {* The proof below relies on non-emptiness of @{text "WF_BINDINGS"}. *}
+subsubsection {* Soundness Checks *}
 
 theorem TrueP_noteq_FalseP [simp] :
-"\<lbrakk>a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
- TrueP a \<noteq> FalseP a"
+"\<lbrakk>a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow> TrueP a \<noteq> FalseP a"
 apply (simp add: TrueP_def FalseP_def)
+apply (simp add: WF_BINDING_non_empty)
 done
 end
 end

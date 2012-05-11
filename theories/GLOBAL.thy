@@ -2,11 +2,14 @@
 (* Title: utp/GLOBAL.thy                                                      *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
+
+header {* Global Syntax *}
+
 theory GLOBAL
 imports utp_common utp_types
 begin
 
-section {* Global Syntax *}
+text {* This theory introduces generic definitions for global syntax. *}
 
 subsection {* Value Syntax *}
 
@@ -16,132 +19,142 @@ consts set_type_rel :: "'VALUE set \<Rightarrow> 'TYPE \<Rightarrow> bool" (infi
 
 subsection {* Predicate Syntax *}
 
+(*
+  We do not use generic operators for the following two. The reason is that
+  typing can become a little subtle with generic constants here, namely it is
+  not enough to type the operands in order to type the operator. This can lead
+  to unexpected behaviours resulting from instantiation with the wrong types.
+*)
+
+(*
 consts alphabet ::
   "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
    ('TYPE ALPHABET)" ("\<alpha>")
+*)
 
+(*
 consts bindings ::
   "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
    ('VALUE, 'TYPE) BINDING_SET" ("\<beta>")
+*)
 
-consts binding_equiv ::
+consts beta_equiv ::
   "('VALUE, 'TYPE) BINDING \<Rightarrow>
    ('VALUE, 'TYPE) BINDING \<Rightarrow>
    ('TYPE ALPHABET) \<Rightarrow> bool"
   ("_ \<cong> _ on _")
 
 consts LiftP ::
-  "('TYPE ALPHABET) \<Rightarrow>
-   ('VALUE, 'TYPE) BINDING_FUN \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE"
+  "('TYPE ALPHABET) \<Rightarrow> ('VALUE, 'TYPE) BINDING_FUN \<Rightarrow> 'PREDICATE"
 
 syntax "LiftP_Syntax" ::
-  "'TYPE ALPHABET \<Rightarrow> idt \<Rightarrow> bool \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE" ("(1_ \<odot> _ \<bullet>/ _)")
+  "'TYPE ALPHABET \<Rightarrow> idt \<Rightarrow> bool \<Rightarrow> 'PREDICATE" ("(1_ \<odot> _ \<bullet>/ _)")
 
 translations
   "a \<odot> b \<bullet> P" == "CONST LiftP a (\<lambda> b . P)"
 
 consts TrueP ::
-  "'TYPE ALPHABET \<Rightarrow> ('VALUE, 'TYPE) ALPHA_PREDICATE" ("true")
+  "'TYPE ALPHABET \<Rightarrow>
+   'PREDICATE" ("true")
 
 consts FalseP ::
-  "'TYPE ALPHABET \<Rightarrow> ('VALUE, 'TYPE) ALPHA_PREDICATE" ("false")
+  "'TYPE ALPHABET \<Rightarrow>
+   'PREDICATE" ("false")
 
 consts TRUE ::
-  "('VALUE, 'TYPE) ALPHA_PREDICATE" ("TRUE")
+  "'PREDICATE" ("TRUE")
 
 consts FALSE ::
-  "('VALUE, 'TYPE) ALPHA_PREDICATE" ("FALSE")
+  "'PREDICATE" ("FALSE")
 
 consts ExtP ::
-  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow> 'TYPE ALPHABET \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE"
-  (infix "\<oplus>" 200)
+  "'PREDICATE \<Rightarrow> ('TYPE ALPHABET) \<Rightarrow>
+   'PREDICATE"
+  (infix "\<oplus>p" 200)
 
 consts ResP ::
-  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow> 'TYPE ALPHABET \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE"
-  (infix "\<ominus>" 200)
+  "'PREDICATE \<Rightarrow> ('TYPE ALPHABET) \<Rightarrow>
+   'PREDICATE"
+  (infix "\<ominus>p" 200)
 
 consts NotP ::
-  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE"
+  "'PREDICATE \<Rightarrow>
+   'PREDICATE"
   ("\<not>p _" [190] 190)
 
 consts AndP ::
-  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE"
+  "'PREDICATE \<Rightarrow>
+   'PREDICATE \<Rightarrow>
+   'PREDICATE"
   (infixr "\<and>p" 180)
 
 consts OrP ::
-  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE"
+  "'PREDICATE \<Rightarrow>
+   'PREDICATE \<Rightarrow>
+   'PREDICATE"
   (infixr "\<or>p" 170)
 
 consts ImpliesP ::
-  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE"
+  "'PREDICATE \<Rightarrow>
+   'PREDICATE \<Rightarrow>
+   'PREDICATE"
   (infixr "\<Rightarrow>p" 160)
 
 consts IffP ::
-  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE"
+  "'PREDICATE \<Rightarrow>
+   'PREDICATE \<Rightarrow>
+   'PREDICATE"
   (infixr "\<Leftrightarrow>p" 150)
 
 consts ExistsResP ::
   "('TYPE ALPHABET) \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE"
+   'PREDICATE \<Rightarrow>
+   'PREDICATE"
   ("(\<exists>-p _ ./ _)" [0, 10] 10)
 
 consts ForallResP ::
   "('TYPE ALPHABET) \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE"
+   'PREDICATE \<Rightarrow>
+   'PREDICATE"
   ("(\<forall>-p _ ./ _)" [0, 10] 10)
 
 consts ExistsP ::
   "('TYPE ALPHABET) \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE"
+   'PREDICATE \<Rightarrow>
+   'PREDICATE"
   ("(\<exists>p _ ./ _)" [0, 10] 10)
 
 consts ForallP ::
   "('TYPE ALPHABET) \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE"
+   'PREDICATE \<Rightarrow>
+   'PREDICATE"
   ("(\<forall>p _ ./ _)" [0, 10] 10)
 
 consts ClosureP ::
-  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE"
+  "'PREDICATE \<Rightarrow>
+   'PREDICATE"
   ("[_]")
 
 consts RefP ::
-  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE"
+  "'PREDICATE \<Rightarrow>
+   'PREDICATE \<Rightarrow>
+   'PREDICATE"
   (infix "\<sqsubseteq>p" 100)
 
 consts Tautology ::
-  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow> bool"
+  "'PREDICATE \<Rightarrow> bool"
   ("taut _" [50] 50)
 
 consts Contradiction ::
-  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow> bool"
+  "'PREDICATE \<Rightarrow> bool"
   ("contra _" [50] 50)
 
 consts Contingency ::
-  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow> bool"
-  ("contg _" [50] 50)
+  "'PREDICATE \<Rightarrow> bool"
+  ("cont _" [50] 50)
 
 consts Refinement ::
-  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow> bool"
+  "'PREDICATE \<Rightarrow>
+   'PREDICATE \<Rightarrow> bool"
   (infix "\<sqsubseteq>" 50)
 end

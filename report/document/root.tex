@@ -27,6 +27,8 @@
 \usepackage{pdfsetup}
 \usepackage{fullpage}
 
+\hypersetup{linkcolor=black}
+
 % urls in roman style, theory text in math-similar italics
 \urlstyle{rm}
 \isabellestyle{tt}
@@ -35,13 +37,13 @@
 %\renewcommand{\isastyle}{\isastyleminor}
 
 % Added by Frank Zeyda
-\renewcommand{\isacharunderscorekeyword}{\mbox{\_}}%
-\renewcommand{\isacharunderscore}{\mbox{\_}}%
+\renewcommand{\isacharunderscorekeyword}{\mbox{\_}}
+\renewcommand{\isacharunderscore}{\mbox{\_}}
 % End of Addition
 
 \begin{document}
 
-\title{UTP Mechanisation in Isabelle HOL}
+\title{Mechanisation of the UTP in Isabelle HOL}
 
 \author{Frank Zeyda}
 
@@ -57,35 +59,99 @@
 % generated text of all theories
 %\input{session}
 
-\input{utp_config}
+\input{utp_config.tex}
+
 \newpage
-\input{utp_sets}
+
+\input{utp_common.tex}
+
 \newpage
-\input{utp_base}
+
+\input{utp_sets.tex}
+
 \newpage
-\input{utp_sorts}
+
+\input{utp_types.tex}
+
 \newpage
-\input{utp_name}
+
+\input{utp_sorts.tex}
+
 \newpage
-\input{GLOBAL}
+
+\input{GLOBAL.tex}
+
 \newpage
-\input{utp_abstract_value}
+
+\input{utp_name.tex}
+
 \newpage
-\input{utp_composite_value}
+
+\input{utp_value.tex}
+
 \newpage
-\input{utp_gen_value}
+
+\input{utp_composite.tex}
+
 \newpage
-\input{utp_gen_var}
+
+\input{utp_var.tex}
+
 \newpage
-\input{utp_gen_pred}
+
+\input{utp_alphabet.tex}
+
 \newpage
-\input{utp_typed_pred}
+
+\input{utp_gen_pred.tex}
+
 \newpage
-\input{utp_generic}
+
+\input{utp_rel.tex}
+
 \newpage
-\input{utp_default_values}
+
+\input{utp_eval_tactic.tex}
+
 \newpage
-\input{utp_default_pred}
+
+\input{utp_gen_laws.tex}
+
+\newpage
+
+\input{utp_binding_fun.tex}
+
+\newpage
+
+\input{utp_function.tex}
+
+\newpage
+
+\input{utp_default_value.tex}
+
+\newpage
+
+\input{utp_std_pred.tex}
+
+\newpage
+
+\input{utp_theory.tex}
+
+%\newpage
+
+\input{utp_generic.tex}
+
+%\newpage
+
+\input{utp_models.tex}
+
+%\newpage
+
+\input{utp_theories.tex}
+
+%\newpage
+
+\input{utp.tex}
 
 % optional bibliography
 %\bibliographystyle{abbrv}

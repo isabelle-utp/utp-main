@@ -2,15 +2,16 @@
 (* Title: utp/utp_common.thy                                                  *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
+
+header {* Common Definitions *}
+
 theory utp_common
 imports "utp_config" "utils/utp_sets"
 begin
 
-section {* Common Definitions *}
-
 subsection {* Uncurrying *}
 
-text {* Isabelle provides a currying operator but none for uncurrying. *}
+text {* Isabelle provides a currying operator but it seems none for uncurrying. *}
 
 definition uncurry :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a \<times> 'b \<Rightarrow> 'c)" where
 "uncurry f = (\<lambda> p . f (fst p) (snd p))"
@@ -28,12 +29,10 @@ declare RelApp_def [simp]
 
 subsection {* Coercion *}
 
-text {* Coercion can be used to capture well-definedness assumptions. *}
-
 definition Coerce :: "'a \<Rightarrow> ('a set) \<Rightarrow> 'a" (infix "\<hookrightarrow>" 100) where
 "x \<hookrightarrow> s = (if x \<in> s then x else (SOME x . x \<in> s))"
 
-subsubsection {* Fundamental Theorem *}
+text {* Fundamental Theorem *}
 
 theorem Coerce_member :
 "\<lbrakk>s \<noteq> {}\<rbrakk> \<Longrightarrow> x \<hookrightarrow> s \<in> s"
@@ -47,15 +46,21 @@ done
 
 subsection {* Theorems *}
 
-subsubsection {* Sets and Logic *}
+subsubsection {* Logic *}
+
+theorem some_member_rule [simp, intro!]:
+"s \<noteq> {} \<Longrightarrow> (SOME x . x \<in> s) \<in> s"
+apply (auto)
+apply (rule_tac Q = "(SOME x. x \<in> s) \<notin> s" in contrapos_pp)
+apply (assumption)
+apply (rule_tac a = "x" in someI2)
+apply (simp_all)
+done
+
+subsubsection {* Sets and Pairs *}
 
 theorem pairI :
 "p = (fst p, snd p)"
-apply (auto)
-done
-
-theorem diff_subset [simp] :
-"b - a \<subseteq> b"
 apply (auto)
 done
 
@@ -65,6 +70,8 @@ apply (auto)
 done
 
 subsubsection {* Functions *}
+
+text {* Function Update *}
 
 theorem fun_upd_cancel [simp] :
 "f (x := f x) = f"
@@ -82,7 +89,7 @@ theorem image_chain_elim :
 apply (auto)
 done
 
-subsubsection {* Function Override *}
+text {* Function Override *}
 
 text {* We first define a neater syntax for function overriding. *}
 
@@ -141,15 +148,6 @@ apply (auto)
 done
 
 subsubsection {* Miscellaneous *}
-
-theorem some_member_rule [simp, intro!]:
-"s \<noteq> {} \<Longrightarrow> (SOME x . x \<in> s) \<in> s"
-apply (auto)
-apply (rule_tac Q = "(SOME x. x \<in> s) \<notin> s" in contrapos_pp)
-apply (assumption)
-apply (rule_tac a = "x" in someI2)
-apply (simp_all)
-done
 
 theorem let_pair_simp [simp] :
 "(let (a, b) = p in e a b) = e (fst p) (snd p)"

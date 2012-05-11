@@ -2,13 +2,14 @@
 (* Title: utp/utp_config.thy                                                  *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
+
+header {* Configuration *}
+
 theory utp_config
-imports Main Countable
+imports Main "~~/src/HOL/Library/Countable"
 begin
 
-section {* Configuration *}
-
-text {* This theory also acts as a meta-theory for importing libraries.*}
+text {* This theory acts as a meta-theory for importing libraries.*}
 
 subsection {* Notations *}
 
@@ -20,7 +21,7 @@ no_notation
 
 subsection {* Isabelle Prover *}
 
-text {* Prevent Isabelle from automatically splitting pairs. *}
+text {* This prevents Isabelle from automatically splitting pairs. *}
 
 declare split_paired_All [simp del]
 declare split_paired_Ex [simp del]

@@ -1,14 +1,15 @@
 (******************************************************************************)
-(* Title: utp/generic/utp_abstract_value.thy                                  *)
+(* Title: utp/generic/utp_value.thy                                           *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
-theory utp_abstract_value
+
+header {* Abstract Values *}
+
+theory utp_value
 imports "../utp_common"
 begin
 
-section {* Abstract Values *}
-
-subsection {* Locale @{text "VALUE"} *}
+subsection {* Locale @{term "VALUE"} *}
 
 locale VALUE =
 -- {* Typing Relation *}
@@ -17,12 +18,12 @@ locale VALUE =
   assumes type_non_empty : "\<exists> x . x : t"
 begin
 
-subsubsection {* Universe *}
+subsection {* Universe *}
 
-definition universe :: "'VALUE set" where
-"universe = UNIV"
+definition VALUE :: "'VALUE set" where
+"VALUE = UNIV"
 
-subsubsection {* Carrier Set *}
+subsection {* Carrier Set *}
 
 definition carrier :: "'TYPE \<Rightarrow> 'VALUE set" where
 "carrier t = {x . x : t}"
@@ -37,7 +38,7 @@ theorem carrier_member [intro!] :
 apply (auto simp: carrier_def type_non_empty)
 done
 
-subsubsection {* Value Sets *}
+subsection {* Value Sets *}
 
 definition set_type_rel :: "'VALUE set \<Rightarrow> 'TYPE \<Rightarrow> bool" where
 "set_type_rel s t = (\<forall> x \<in> s . x : t)"
@@ -54,19 +55,18 @@ theorem set_type_rel_insert [simp] :
 apply (auto simp: set_type_rel_def)
 done
 
-subsubsection {* Indexable Types *}
+subsection {* Indexable Types *}
 
 definition IdxType :: "'TYPE \<Rightarrow> bool" where
 "IdxType t \<longleftrightarrow> IdxSet (carrier t)"
 
 theorem IdxType_IdxSet [simp] :
-"s :\<subseteq> t \<and> (IdxType t) \<longrightarrow> (IdxSet s)"
-apply (clarify)
+"\<lbrakk>s :\<subseteq> t; IdxType t\<rbrakk> \<Longrightarrow> IdxSet s"
 apply (simp add: IdxType_def)
 apply (simp add: set_type_rel_def)
 apply (subgoal_tac "s \<subseteq> carrier t")
 apply (simp)
-apply (auto simp: carrier_def) [1]
+apply (auto simp: carrier_def)
 done
 end
 end

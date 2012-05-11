@@ -2,13 +2,14 @@
 (* Title: utp/utp_sorts.thy                                                   *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
+
+header {* Value Sorts *}
+
 theory utp_sorts
 imports utp_common
 begin
 
-section {* Value Sorts *}
-
-text {* Some sorts still need to be developed in terms of their operators. *}
+text {* Some of the sorts still need to be developed in terms of their operators. *}
 
 text {*
   I decided for the time being to give up on the @{text "inverse"} theorems.
@@ -16,14 +17,14 @@ text {*
   type classes but it turns out that in particular in mechanising HO values,
   they become a liability to discharge upon instantiation. For instance, our
   current higher-order value model does not retain enough information in order
-  to reverse the construction of arbitrary nested values.
+  to reverse the construction of arbitrarily nested values.
 *}
 
-subsection {* Common Value Sort *}
+subsection {* Value Sort *}
 
 text {*
-  It would be neat to introduce typing in @{text "VALUE_SORT"} too but this
-  is not feasible because it would require a second HOL type parameter in the
+  It would be neat to introduce typing in @{text "VALUE_SORT"}, too, but this
+  is not possible because it would require a second HOL type parameter in the
   respective fixed constant, namely for the underlying value type. Our design
   thus opted for introducing typing by virtue of a locale @{text "VALUE"}.
 *}
@@ -41,7 +42,7 @@ class INT_SORT = VALUE_SORT +
 (* assumes inverse [simp] : "DestInt (MkInt i) = i" *)
 begin
 
-subsubsection {* Integer Operators *}
+text {* Integer Operators *}
 
 definition uminus :: "'a \<Rightarrow> 'a" where
 "uminus i = MkInt (-DestInt(i))"
@@ -67,7 +68,7 @@ definition modulus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "modulus i1 i2 = MkInt (DestInt(i1) mod DestInt(i2))"
 notation modulus (infixl "modv" 70)
 
-subsubsection {* Default Simplifications *}
+text {* Default Simplifications *}
 
 declare uminus_def [simp]
 declare plus_def [simp]
@@ -110,7 +111,7 @@ class SET_SORT = VALUE_SORT +
 (* assumes inverse [simp] : "IdxSet vs \<longrightarrow> DestSet (MkSet vs) = vs" *)
 begin
 
-subsubsection {* Set Operators *}
+text {* Set Operators *}
 
 definition union :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "union v1 v2 = MkSet ((DestSet v1) \<union> (DestSet v2))"
@@ -140,7 +141,7 @@ definition subset :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
 "subset v1 v2 = ((DestSet v1) \<subset> (DestSet v2))"
 notation subset ("(_/ \<subset>v _)" [50, 51] 50)
 
-subsection {* Default Simplifications *}
+text {* Default Simplifications *}
 
 declare union_def [simp]
 declare inter_def [simp]

@@ -2,18 +2,19 @@
 (* Title: utp/utils/utp_sets.thy                                              *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
+
+header {* Limited Cardinality Sets *}
+
 theory utp_sets
 imports "../utp_config"
 begin
 
-section {* Limited Cardinality Sets *}
-
 text {*
-  The purpose of limited cardinality sets is that we can use them without
+  The benefit of limited cardinality sets is that we can use them without
   soundness issues in recursive constructor functions of data types. They thus
   provide a limited facility to handle infinite sets in the semantic model of
   UTP values. We make use of a type class to facilitate automation of proofs
-  about such sets, constructed over the various HOL types.
+  about such sets constructed over the various HOL types.
 *}
 
 subsection {* Type Definition *}
@@ -24,8 +25,7 @@ text {* Higher degrees of infinity can in principle be supported. *}
 
 types IDX = "nat"
 
-datatype 'a SET =
-  MkSet "IDX \<Rightarrow> 'a" | EmptySet
+datatype 'a SET = MkSet "IDX \<Rightarrow> 'a" | EmptySet
 
 subsection {* Core Operators *}
 
@@ -41,12 +41,10 @@ definition EncSet :: "'a set \<Rightarrow> 'a SET" where
 
 text {* Unfortunately the representation is not canonical. *}
 
-text {* We thus define a notion of equivalence. *}
-
 definition CongSet :: "'a SET \<Rightarrow> 'a SET \<Rightarrow> bool" (infix "\<cong>" 50) where
 "s1 \<cong> s2 \<longleftrightarrow> (DecSet s1) = (DecSet s2)"
 
-subsection {* Fundamental Theorems *}
+subsection {* Inverse Theorems *}
 
 theorem DecSet_EncSet_inv :
 "\<lbrakk>IdxSet s\<rbrakk> \<Longrightarrow> DecSet (EncSet s) = s"
@@ -123,7 +121,7 @@ apply (rule_tac a = "x" in someI2)
 apply (simp_all)
 done
 
-(* The following proof may fail if the definition of @{text IDX} changes. *)
+text {* The following proof may fail if the definition of @{term IDX} changes. *}
 
 theorem IdxSet_union [simp]:
 "\<lbrakk>IdxSet s1; IdxSet s2\<rbrakk> \<Longrightarrow> IdxSet (s1 \<union> s2)"
@@ -246,7 +244,7 @@ subsection {* Type Class Indexable *}
 class indexable =
   assumes IdxSet [simp] : "\<forall> s :: 'a set . IdxSet s"
 
-(* The following proof may fail if the definition of @{text IDX} changes. *)
+text {* The following proof may fail if the definition of @{term IDX} changes. *}
 
 instance countable \<subseteq> indexable
 apply (intro_classes)
@@ -280,13 +278,13 @@ done
 
 subsection {* Proof Experiments *}
 
-lemma set_test_lemma_1 :
-"DecSet(EncSet {[1, 2, 3] :: int list}) = {[1, 2, 3]}"
+theorem sets_test_lemma_1 :
+"DecSet(EncSet {1, 2, 3}) = {1, 2, 3}"
 apply (simp)
 done
 
-lemma set_test_lemma_2 :
-"DecSet(EncSet {[1, 2] :: int list} \<union>s EncSet {[3]}) = {[1, 2], [3]}"
+theorem sets_test_lemma_2 :
+"DecSet(EncSet {[1, 2]} \<union>s EncSet {[3]}) = {[1, 2], [3]}"
 apply (auto)
 done
 end

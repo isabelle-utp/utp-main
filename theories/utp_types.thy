@@ -2,11 +2,14 @@
 (* Title: utp/utp_types.thy                                                   *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
+
+header {* Type Synonyms *}
+
 theory utp_types
 imports utp_common "generic/utp_name"
 begin
 
-section {* Type Synonyms *}
+text {* This theory contains type synonyms for the various semantic domains. *}
 
 types 'TYPE VAR = "NAME \<times> 'TYPE"
 

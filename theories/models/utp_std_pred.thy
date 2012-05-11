@@ -2,38 +2,78 @@
 (* Title: utp/models/utp_std_pred.thy                                         *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
+
+header {* Standard Predicates *}
+
 theory utp_std_pred
 imports "../GLOBAL" "../generic/utp_generic" utp_default_value
 begin
 
-section {* Standard Predicates *}
-
-text {* Standard predicates are typed using composite default values. *}
+text {* Standard predicates make use of composite default values. *}
 
 types STD_VALUE = "DEFAULT_VALUE COMPOSITE_VALUE"
 types STD_TYPE = "DEFAULT_TYPE COMPOSITE_TYPE"
 
+subsection {* Locale @{term STD_PRED} *}
+
 locale STD_PRED =
-  COMPOSITE_VALUE "basic_type_rel" +
-  TYPED_PRED "lift_type_rel_composite basic_type_rel"
-for basic_type_rel :: "'BASIC_VALUE :: BASIC_SORT \<Rightarrow> 'BASIC_TYPE \<Rightarrow> bool"
+  COMPOSITE_VALUE "default_type_rel" +
+  GEN_PRED "lift_type_rel_composite default_type_rel"
+for default_type_rel :: "'BASIC_VALUE :: BASIC_SORT \<Rightarrow> 'BASIC_TYPE \<Rightarrow> bool"
+
+subsection {* Locale Interpretation *}
 
 interpretation STD :
   STD_PRED "default_type_rel"
-apply (simp add: STD_PRED_def)
+apply (simp add: STD_PRED_def GEN_PRED_def)
 apply (auto)
 done
 
-subsection {* Semantic Domains *}
+subsection {* Type Definitions *}
 
-definition STD_VALUE [simp] :
-"STD_VALUE = STD.universe"
+typedef (open) STD_PREDICATE = "STD.WF_ALPHA_PREDICATE"
+  morphisms Dest_STD_PREDICATE Mk_STD_PREDICATE
+apply (rule_tac x = "STD.FALSE" in exI)
+apply (auto)
+done
+
+typedef (open) STD_ALPHABET = "STD.WF_ALPHABET"
+  morphisms Dest_STD_ALPHABET Mk_STD_ALPHABET
+apply (rule_tac x = "{}" in exI)
+apply (auto)
+done
+
+text {* Default Simplifications *}
+
+declare Mk_STD_PREDICATE_inverse [simp]
+declare Mk_STD_PREDICATE_inject [simp, intro!]
+declare Dest_STD_PREDICATE_inverse [simp]
+(* declare Dest_STD_PREDICATE_inject [simp, intro!] *)
+declare Dest_STD_PREDICATE [simp]
+
+theorem Dest_STD_PREDICATE_inject_sym [simp, intro!] :
+"(p1 = p2) \<longleftrightarrow> (Dest_STD_PREDICATE p1 = Dest_STD_PREDICATE p2)"
+apply (simp add: Dest_STD_PREDICATE_inject)
+done
+
+declare Mk_STD_ALPHABET_inverse [simp]
+declare Mk_STD_ALPHABET_inject [simp, intro!]
+declare Dest_STD_ALPHABET_inverse [simp]
+(* declare Dest_STD_ALPHABET_inject [simp, intro!] *)
+declare Dest_STD_ALPHABET [simp]
+
+theorem Dest_STD_ALPHABET_inject_sym [simp, intro!] :
+"(p1 = p2) \<longleftrightarrow> (Dest_STD_PREDICATE p1 = Dest_STD_PREDICATE p2)"
+apply (simp add: Dest_STD_ALPHABET_inject)
+done
+
+subsection {* Semantic Domains *}
 
 definition STD_ALPHABET [simp] :
 "STD_ALPHABET \<equiv> STD.WF_ALPHABET"
 
 definition STD_BINDING [simp] :
-"STD_BINDING \<equiv> WT_BINDING default_type_rel"
+"STD_BINDING \<equiv> STD.WF_BINDING"
 
 definition STD_BINDING_SET [simp] :
 "STD_BINDING_SET \<equiv> STD.WF_BINDING_SET"
@@ -49,7 +89,7 @@ definition STD_FUNCTION [simp] :
 
 subsection {* Global Syntax *}
 
-subsubsection {* Value Syntax *}
+text {* Value Syntax *}
 
 defs STD_type_rel [simp] :
 "GLOBAL.type_rel \<equiv> lift_type_rel_composite default_type_rel"
@@ -57,86 +97,132 @@ defs STD_type_rel [simp] :
 defs STD_set_type_rel [simp] :
 "GLOBAL.set_type_rel \<equiv> STD.set_type_rel"
 
-subsubsection {* Predicate Syntax *}
+text {* Predicate Syntax *}
 
-defs STD_alphabet [simp] :
-"GLOBAL.alphabet \<equiv> STD.alphabet"
+definition STD_alphabet ::
+  "STD_PREDICATE \<Rightarrow> STD_TYPE ALPHABET" ("\<alpha>") where
+"\<alpha> p \<equiv> STD.alphabet (Dest_STD_PREDICATE p)"
 
-defs STD_bindings [simp] :
-"GLOBAL.bindings \<equiv> STD.bindings"
+definition STD_bindings ::
+  "STD_PREDICATE \<Rightarrow>
+   (STD_VALUE, STD_TYPE) BINDING_SET" ("\<beta>") where
+"\<beta> p \<equiv> STD.bindings (Dest_STD_PREDICATE p)"
 
-defs STD_binding_equiv [simp] :
-"GLOBAL.binding_equiv \<equiv> STD.binding_equiv"
+declare STD_alphabet_def [simp]
+declare STD_bindings_def [simp]
+
+defs STD_beta_equiv [simp] :
+"GLOBAL.beta_equiv \<equiv> STD.beta_equiv"
 
 defs STD_LiftP [simp] :
-"GLOBAL.LiftP \<equiv> STD.LiftP"
+"GLOBAL.LiftP a bfun \<equiv>
+ Mk_STD_PREDICATE (STD.LiftP a bfun)"
 
 defs STD_TrueP [simp] :
-"GLOBAL.TrueP \<equiv> STD.TrueP"
+"GLOBAL.TrueP a \<equiv>
+ Mk_STD_PREDICATE (STD.TrueP a)"
 
 defs STD_FalseP [simp] :
-"GLOBAL.FalseP \<equiv> STD.FalseP"
+"GLOBAL.FalseP a \<equiv>
+ Mk_STD_PREDICATE (STD.FalseP a)"
 
 defs STD_TRUE [simp] :
-"GLOBAL.TRUE \<equiv> STD.TRUE"
+"GLOBAL.TRUE \<equiv>
+ Mk_STD_PREDICATE STD.TRUE"
 
 defs STD_FALSE [simp] :
-"GLOBAL.FALSE \<equiv> STD.FALSE"
+"GLOBAL.FALSE \<equiv>
+ Mk_STD_PREDICATE STD.FALSE"
 
 defs STD_ExtP [simp] :
-"GLOBAL.ExtP \<equiv> STD.ExtP"
+"GLOBAL.ExtP p a \<equiv>
+ Mk_STD_PREDICATE
+   (STD.ExtP (Dest_STD_PREDICATE p) a)"
 
 defs STD_ResP [simp] :
-"GLOBAL.ResP \<equiv> STD.ResP"
+"GLOBAL.ResP p a\<equiv>
+ Mk_STD_PREDICATE
+   (STD.ResP (Dest_STD_PREDICATE p) a)"
 
 defs STD_NotP [simp] :
-"GLOBAL.NotP \<equiv> STD.NotP"
+"GLOBAL.NotP p \<equiv>
+ Mk_STD_PREDICATE
+   (STD.NotP (Dest_STD_PREDICATE p))"
 
 defs STD_AndP [simp] :
-"GLOBAL.AndP \<equiv> STD.AndP"
+"GLOBAL.AndP p1 p2 \<equiv>
+ Mk_STD_PREDICATE (STD.AndP
+   (Dest_STD_PREDICATE p1)
+   (Dest_STD_PREDICATE p2))"
 
 defs STD_OrP [simp] :
-"GLOBAL.OrP \<equiv> STD.OrP"
+"GLOBAL.OrP p1 p2 \<equiv>
+ Mk_STD_PREDICATE (STD.OrP
+   (Dest_STD_PREDICATE p1)
+   (Dest_STD_PREDICATE p2))"
 
 defs STD_ImpliesP [simp] :
-"GLOBAL.ImpliesP \<equiv> STD.ImpliesP"
+"GLOBAL.ImpliesP p1 p2 \<equiv>
+ Mk_STD_PREDICATE (STD.ImpliesP
+   (Dest_STD_PREDICATE p1)
+   (Dest_STD_PREDICATE p2))"
 
 defs STD_IffP [simp] :
-"GLOBAL.IffP \<equiv> STD.IffP"
+"GLOBAL.IffP p1 p2 \<equiv>
+ Mk_STD_PREDICATE (STD.IffP
+   (Dest_STD_PREDICATE p1)
+   (Dest_STD_PREDICATE p2))"
 
 defs STD_ExistsResP [simp] :
-"GLOBAL.ExistsResP \<equiv> STD.ExistsResP"
+"GLOBAL.ExistsResP a p \<equiv>
+ Mk_STD_PREDICATE
+   (STD.ExistsResP a (Dest_STD_PREDICATE p))"
 
 defs STD_ForallResP [simp] :
-"GLOBAL.ForallResP \<equiv> STD.ForallResP"
+"GLOBAL.ForallResP a p \<equiv>
+ Mk_STD_PREDICATE
+   (STD.ForallResP a (Dest_STD_PREDICATE p))"
 
 defs STD_ExistsP [simp] :
-"GLOBAL.ExistsP \<equiv> STD.ExistsP"
+"GLOBAL.ExistsP a p \<equiv>
+ Mk_STD_PREDICATE
+   (STD.ExistsP a (Dest_STD_PREDICATE p))"
 
 defs STD_ForallP [simp] :
-"GLOBAL.ForallP \<equiv> STD.ForallP"
+"GLOBAL.ForallP a p \<equiv>
+ Mk_STD_PREDICATE
+   (STD.ForallP a (Dest_STD_PREDICATE p))"
 
 defs STD_ClosureP [simp] :
-"GLOBAL.ClosureP \<equiv> STD.ClosureP"
+"GLOBAL.ClosureP p \<equiv>
+ Mk_STD_PREDICATE
+   (STD.ClosureP (Dest_STD_PREDICATE p))"
 
 defs STD_RefP [simp] :
-"GLOBAL.RefP \<equiv> STD.RefP"
+"GLOBAL.RefP p1 p2 \<equiv>
+ Mk_STD_PREDICATE (STD.RefP
+   (Dest_STD_PREDICATE p1)
+   (Dest_STD_PREDICATE p2))"
 
 defs STD_Tautology [simp] :
-"GLOBAL.Tautology \<equiv> STD.Tautology"
+"GLOBAL.Tautology p \<equiv>
+ STD.Tautology (Dest_STD_PREDICATE p)"
 
 defs STD_Contradiction [simp] :
-"GLOBAL.Contradiction \<equiv> STD.Contradiction"
+"GLOBAL.Contradiction p \<equiv>
+ STD.Contradiction (Dest_STD_PREDICATE p)"
 
 defs STD_Contingency [simp] :
-"GLOBAL.Contingency \<equiv> STD.Contingency"
+"GLOBAL.Contingency p \<equiv>
+ STD.Contingency (Dest_STD_PREDICATE p)"
 
 defs STD_Refinement [simp] :
-"GLOBAL.Refinement \<equiv> STD.Refinement"
+"GLOBAL.Refinement p1 p2 \<equiv>
+ STD.Refinement
+   (Dest_STD_PREDICATE p1)
+   (Dest_STD_PREDICATE p2)"
 
 subsection {* Proof Experiments *}
-
-text {* Value Proofs *}
 
 theorem
 "STD.MkInt(1) +v STD.MkInt(2) = STD.MkInt(3)"
@@ -154,30 +240,36 @@ theorem
 apply (simp)
 done
 
-text {* Predicate Proofs *}
-
 theorem
-"\<lbrakk>p1 \<in> STD_PREDICATE;
- p2 \<in> STD_PREDICATE;
- p3 \<in> STD_PREDICATE\<rbrakk> \<Longrightarrow>
- p1 \<and>p (p2 \<and>p p3) = (p1 \<and>p p2) \<and>p p3"
+"(p1 :: STD_PREDICATE) \<and>p (p2 \<and>p p3) = (p1 \<and>p p2) \<and>p p3"
 apply (utp_pred_eq_tac)
 apply (auto)
 done
 
 theorem
-"\<lbrakk>p1 \<in> STD_PREDICATE;
- p2 \<in> STD_PREDICATE\<rbrakk> \<Longrightarrow>
- taut p1 \<and>p p2 \<Rightarrow>p p1"
+"taut (p1 :: STD_PREDICATE) \<and>p p2 \<Rightarrow>p p1"
 apply (utp_pred_taut_tac)
 done
 
 theorem
-"\<lbrakk>p1 \<in> STD_PREDICATE;
- p2 \<in> STD_PREDICATE;
- \<alpha> p1 = \<alpha> p2\<rbrakk> \<Longrightarrow>
+"\<alpha> (p1 :: STD_PREDICATE) = \<alpha> p2 \<Longrightarrow>
  p1 \<or>p p2 \<sqsubseteq> p1"
 apply (simp)
 apply (utp_pred_taut_tac)
+done
+
+theorem
+"\<lbrakk>(\<alpha> (p1 :: STD_PREDICATE)) = (\<alpha> p2);
+ taut (p1 \<Rightarrow>p p2)\<rbrakk> \<Longrightarrow>
+ p1 = (p1 \<and>p p2)"
+apply (utp_pred_taut_tac)
+apply (auto)
+done
+
+theorem
+"\<lbrakk>(\<alpha> (p1 :: STD_PREDICATE)) = (\<alpha> p2);
+ taut (p1 \<Rightarrow>p p2)\<rbrakk> \<Longrightarrow>
+ p1 = (p1 \<and>p p2)"
+apply (auto intro: STD.AndP_intro)
 done
 end

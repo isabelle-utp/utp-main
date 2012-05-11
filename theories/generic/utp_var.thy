@@ -2,13 +2,12 @@
 (* Title: utp/generic/utp_var.thy                                             *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
+
+header {* Variables *}
+
 theory utp_var
 imports utp_name
 begin
-
-section {* Generic Variables *}
-
-text {* Should we introduce a proper type for variables? *}
 
 types 'TYPE VAR = "NAME \<times> 'TYPE"
 
@@ -18,10 +17,10 @@ abbreviation var_name :: "'TYPE VAR \<Rightarrow> NAME" ("name") where
 abbreviation var_type :: "'TYPE VAR \<Rightarrow> 'TYPE" ("type") where
 "var_type \<equiv> snd"
 
-subsection {* Locale @{text "VAR"} *}
+subsection {* Locale @{term "VAR"} *}
 
 locale VAR =
--- {* Type Universe -- needed to determine @{text "'TYPE"}. *}
+-- {* The type universe is fixed to determine @{typ "'TYPE"}. *}
   fixes var_type_univ :: "'TYPE set"
 begin
 
@@ -36,31 +35,31 @@ definition MkPlain :: "string \<Rightarrow> 'TYPE \<Rightarrow> 'TYPE VAR" where
 subsection {* Operators *}
 
 definition dash :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
-"dash v =
-   (\<lparr>name_str = name_str (name v),
+"dash v = (
+   \<lparr>name_str = name_str (name v),
    dashes = dashes (name v) + 1,
    subscript = subscript (name v)\<rparr>, type v)"
 
 definition undash :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
-"undash v =
-   (\<lparr>name_str = name_str (name v),
+"undash v = (
+   \<lparr>name_str = name_str (name v),
    dashes = dashes (name v) - 1,
    subscript = subscript (name v)\<rparr>, type v)"
-
-subsection {* Restrictions *}
-
-definition UNDASHED :: "'TYPE VAR set" where
-"UNDASHED \<equiv> {v . dashes (name v) = 0}"
-
-definition DASHED :: "'TYPE VAR set" where
-"DASHED \<equiv> {v . dashes (name v) = 1}"
-
-definition PLAIN :: "'TYPE VAR set" where
-"PLAIN \<equiv> {v . v \<in> UNDASHED \<and> subscript (name v) = NoSub}"
 
 subsection {* Substitution *}
 
 definition VAR_SUBST :: "('TYPE VAR \<Rightarrow> 'TYPE VAR) set" where
-"VAR_SUBST \<equiv> {ss . bij ss \<and> (\<forall> v . type (ss v) = type v)}"
+"VAR_SUBST = {ss . bij ss \<and> (\<forall> v . type (ss v) = type v)}"
+
+subsection {* Restrictions *}
+
+definition UNDASHED :: "'TYPE VAR set" where
+"UNDASHED = {v . dashes (name v) = 0}"
+
+definition DASHED :: "'TYPE VAR set" where
+"DASHED = {v . dashes (name v) = 1}"
+
+definition PLAIN :: "'TYPE VAR set" where
+"PLAIN = {v . v \<in> UNDASHED \<and> subscript (name v) = NoSub}"
 end
 end

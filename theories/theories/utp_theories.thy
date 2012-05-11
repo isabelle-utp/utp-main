@@ -2,6 +2,9 @@
 (* Title: utp/theories/utp_theories.thy                                       *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
+
+header {* Meta-theory for UTP Theories *}
+
 theory utp_theories
 imports
   utp_theory

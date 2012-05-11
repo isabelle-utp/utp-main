@@ -2,6 +2,9 @@
 (* Title: utp/models/utp_models.thy                                           *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
+
+header {* Meta-theory for Models *}
+
 theory utp_models
 imports
   utp_default_value

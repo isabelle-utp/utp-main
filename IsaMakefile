@@ -1,9 +1,9 @@
 
 ## targets
 
-default: reports
+default: report
 images: 
-test: reports
+test: report
 
 all: images test
 
@@ -17,15 +17,15 @@ LOG = $(OUT)/log
 USEDIR = $(ISABELLE_TOOL) usedir -v true -i true -d pdf  ## -D generated
 
 
-## reports
+## report
 
-reports: $(LOG)/HOL-reports.gz
+report: $(LOG)/HOL-report.gz
 
-$(LOG)/HOL-reports.gz: ## reports/ROOT.ML reports/document/root.tex reports/*.thy
-	@$(USEDIR) HOL reports
+$(LOG)/HOL-report.gz: ## report/ROOT.ML report/document/root.tex report/*.thy
+	@$(USEDIR) HOL report
 
 
 ## clean
 
 clean:
-	@rm -f $(LOG)/HOL-reports.gz
+	@rm -f $(LOG)/HOL-report.gz

@@ -2,22 +2,24 @@
 (* Title: utp/generic/utp_alphabet.thy                                        *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
+
+header {* Alphabets *}
+
 theory utp_alphabet
 imports utp_var
 begin
-
-section {* Alphabets *}
 
 types 'TYPE ALPHABET = "'TYPE VAR set"
 
 context VAR
 begin
-subsection {* Well-formed Alphabets *}
+
+text {* Alphabets are encoded by finite sets of variables. *}
 
 definition WF_ALPHABET :: "'TYPE ALPHABET set" where
 "WF_ALPHABET = {a . finite a}"
 
-subsection {* Alphabet Operators *}
+subsection {* Operators *}
 
 definition in_alphabet ::
   "'TYPE ALPHABET \<Rightarrow>

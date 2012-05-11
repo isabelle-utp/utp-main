@@ -2,13 +2,14 @@
 (* Title: utp/models/utp_default_value.thy                                    *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
+
+header {* Default Values *}
+
 theory utp_default_value
-imports "../GLOBAL" "../utp_common" "../utp_sorts" "../generic/utp_abstract_value"
+imports "../GLOBAL" "../utp_common" "../utp_sorts" "../generic/utp_value"
 begin
 
-section {* Default Values *}
-
-subsection {* Value Encoding *}
+subsection {* Value Model *}
 
 datatype DEFAULT_VALUE =
   IntVal "int" |
@@ -20,7 +21,7 @@ datatype DEFAULT_TYPE =
   BoolType |
   StringType
 
-subsubsection {* Tests *}
+text {* Testing Functions *}
 
 primrec IsIntVal :: "DEFAULT_VALUE \<Rightarrow> bool" where
 "IsIntVal (IntVal _) = True" |
@@ -53,13 +54,13 @@ fun default_type_rel :: "DEFAULT_VALUE \<Rightarrow> DEFAULT_TYPE \<Rightarrow> 
 defs default_type_rel [simp] :
 "GLOBAL.type_rel \<equiv> default_type_rel"
 
-text {* The refinement ordering for basic values is flat. *}
+text {* The refinement order for basic values is flat. *}
 
 definition default_value_ref ::
   "DEFAULT_VALUE \<Rightarrow> DEFAULT_VALUE \<Rightarrow> bool"  where
 "default_value_ref v1 v2 = (v1 = v2)"
 
-declare  default_value_ref_def [simp]
+declare default_value_ref_def [simp]
 
 subsection {* Sort Membership *}
 
@@ -91,7 +92,7 @@ apply (intro_classes)
 done
 end
 
-subsubsection {* Default Simplifications *}
+text {* Default Simplifications *}
 
 declare ValueRef_DEFAULT_VALUE_def [simp]
 declare MkInt_DEFAULT_VALUE_def [simp]

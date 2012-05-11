@@ -1,16 +1,17 @@
 (******************************************************************************)
-(* Title: utp/generic/utp_composite_value.thy                                 *)
+(* Title: utp/generic/utp_composite.thy                                       *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
-theory utp_composite_value
-imports "../utp_sorts" utp_abstract_value
+
+header {* Composite Values *}
+
+theory utp_composite
+imports "../utp_sorts" utp_value
 begin
 
-section {* Composite Values *}
+subsection {* Data Types *}
 
-subsection {* Value Encoding *}
-
-text {* Does @{text "SetVal"} need to know about the type of the set? *}
+text {* Does @{term "SetVal"} need to know about the type of the set? *}
 
 datatype 'BASIC_VALUE COMPOSITE_VALUE =
   BasicVal "'BASIC_VALUE" |
@@ -22,7 +23,7 @@ datatype 'BASIC_TYPE COMPOSITE_TYPE =
   PairType "'BASIC_TYPE COMPOSITE_TYPE" "'BASIC_TYPE COMPOSITE_TYPE" |
   SetType "'BASIC_TYPE COMPOSITE_TYPE"
 
-subsubsection {* Destructors *}
+text {* Destructors *}
 
 primrec BasicOf ::
   "'BASIC_VALUE COMPOSITE_VALUE \<Rightarrow> 'BASIC_VALUE" where
@@ -39,7 +40,7 @@ primrec SetOf ::
    'BASIC_VALUE COMPOSITE_VALUE SET" where
 "SetOf (SetVal s) = s"
 
-subsubsection {* Tests *}
+text {* Testing Functions *}
 
 primrec IsBasicVal ::
   "'BASIC_VALUE COMPOSITE_VALUE \<Rightarrow> bool" where
@@ -59,7 +60,7 @@ primrec IsSetVal ::
 "IsSetVal (PairVal v1 v2) = False" |
 "IsSetVal (SetVal s) = True"
 
-subsubsection {* Abbreviations *}
+text {* Abbreviations *}
 
 abbreviation EncSetVal ::
   "'BASIC_VALUE COMPOSITE_VALUE set \<Rightarrow>
@@ -77,32 +78,34 @@ fun lift_type_rel_composite ::
   "('BASIC_VALUE \<Rightarrow> 'BASIC_TYPE \<Rightarrow> bool) \<Rightarrow>
    ('BASIC_VALUE COMPOSITE_VALUE \<Rightarrow>
     'BASIC_TYPE COMPOSITE_TYPE \<Rightarrow> bool)"
-  ("(_ \<up> _ : _)" [50, 51] 50) where
-"type_rel \<up> (BasicVal v) : (BasicType t) = (type_rel v t)" |
-"type_rel \<up> (PairVal v1 v2) : (PairType t1 t2) =
-   ((type_rel \<up>  v1 : t1) \<and> (type_rel \<up>  v2 : t2))" |
-"type_rel \<up> (SetVal vs) : (SetType t) =
-   (\<forall> v \<in> DecSet(vs) . type_rel \<up>  v : t)" |
-"(type_rel \<up> _ : _) = False"
+  ("\<up>trel") where
+"\<up>trel type_rel (BasicVal v) (BasicType t) =
+   (type_rel v t)" |
+"\<up>trel type_rel (PairVal v1 v2) (PairType t1 t2) = (
+   (\<up>trel type_rel v1 t1) \<and>
+   (\<up>trel type_rel v2 t2))" |
+"\<up>trel type_rel (SetVal vs) (SetType t) =
+   (\<forall> v \<in> DecSet(vs) . \<up>trel type_rel v t)" |
+"\<up>trel type_rel _ _ = False"
 
 fun lift_value_ref_composite ::
   "('BASIC_VALUE \<Rightarrow> 'BASIC_VALUE \<Rightarrow> bool) \<Rightarrow>
    ('BASIC_VALUE COMPOSITE_VALUE \<Rightarrow>
     'BASIC_VALUE COMPOSITE_VALUE \<Rightarrow> bool)"
-  ("(_ \<up> _ \<sqsubseteq>v/ _)" [50, 51] 50) where
-"value_ref \<up> (BasicVal v) \<sqsubseteq>v (BasicVal v') = (value_ref v v')" |
-"value_ref \<up> (PairVal v1 v2) \<sqsubseteq>v (PairVal v1' v2') =
+  ("\<up>vref") where
+"\<up>vref value_ref (BasicVal v) (BasicVal v') =
+   (value_ref v v')" |
+"\<up>vref value_ref (PairVal v1 v2) (PairVal v1' v2') =
    (v1 = v1' \<and> v2 = v2')" |
-"value_ref \<up> (SetVal vs) \<sqsubseteq>v (SetVal vs') = (vs = vs')" |
-"(value_ref \<up> _ \<sqsubseteq>v _) = False"
+"\<up>vref value_ref (SetVal vs) (SetVal vs') = (vs = vs')" |
+"\<up>vref value_ref _ _ = False"
 
 subsection {* Sort Membership *}
 
 instantiation COMPOSITE_VALUE :: (BASIC_SORT) COMPOSITE_SORT
 begin
 definition ValueRef_COMPOSITE_VALUE :
-"ValueRef_COMPOSITE_VALUE =
- lift_value_ref_composite (VALUE_SORT_class.ValueRef)"
+"ValueRef_COMPOSITE_VALUE = \<up>vref VALUE_SORT_class.ValueRef"
 definition MkInt_COMPOSITE_VALUE :
 "MkInt_COMPOSITE_VALUE i = BasicVal (MkInt i)"
 definition DestInt_COMPOSITE_VALUE :
@@ -138,7 +141,7 @@ apply (intro_classes)
 done
 end
 
-subsubsection {* Default Simplifications *}
+subsection {* Default Simplifications *}
 
 declare ValueRef_COMPOSITE_VALUE [simp]
 declare MkInt_COMPOSITE_VALUE [simp]
@@ -160,11 +163,11 @@ declare IsSet_COMPOSITE_VALUE [simp]
 subsection {* Locale @{text "COMPOSITE_VALUE"} *}
 
 locale COMPOSITE_VALUE =
-  VALUE "lift_type_rel_composite basic_type_rel"
+  VALUE "\<up>trel basic_type_rel"
 for basic_type_rel :: "'BASIC_VALUE :: BASIC_SORT \<Rightarrow> 'BASIC_TYPE \<Rightarrow> bool"
 begin
 
-subsubsection {* Constructors *}
+text {* Constructors *}
 
 definition MkInt ::
   "int \<Rightarrow> 'BASIC_VALUE COMPOSITE_VALUE" where
@@ -189,7 +192,7 @@ definition MkSet ::
    'BASIC_VALUE COMPOSITE_VALUE" where
 "MkSet = SET_SORT_class.MkSet"
 
-subsubsection {* Destructors *}
+text {* Destructors *}
 
 definition DestInt ::
   "'BASIC_VALUE COMPOSITE_VALUE \<Rightarrow> int" where
@@ -214,7 +217,7 @@ definition DestSet ::
    'BASIC_VALUE COMPOSITE_VALUE set" where
 "DestSet = SET_SORT_class.DestSet"
 
-subsubsection {* Tests *}
+text {* Testing Functions *}
 
 definition IsInt ::
   "'BASIC_VALUE COMPOSITE_VALUE \<Rightarrow> bool" where
@@ -236,7 +239,7 @@ definition IsSet ::
   "'BASIC_VALUE COMPOSITE_VALUE \<Rightarrow> bool" where
 "IsSet = SET_SORT_class.IsSet"
 
-subsubsection {* Default Simplifications *}
+text {* Default Simplifications *}
 
 declare MkInt_def [simp]
 declare MkBool_def [simp]
@@ -260,8 +263,7 @@ end
 subsection {* Theorems *}
 
 theorem lift_type_rel_composite_VALUE [intro!] :
-"\<lbrakk>VALUE basic_type_rel\<rbrakk> \<Longrightarrow>
- VALUE (lift_type_rel_composite basic_type_rel)"
+"VALUE type_rel \<Longrightarrow> VALUE (\<up>trel type_rel)"
 apply (simp add: VALUE_def)
 apply (clarify)
 apply (induct_tac t)
@@ -277,8 +279,8 @@ done
 
 text {* The following theorem facilitates locale instantiation. *}
 
-theorem VALUE_COMPOSITE_VALUE_inst [intro!, simp] :
-"\<lbrakk>VALUE type_rel\<rbrakk> \<Longrightarrow> COMPOSITE_VALUE type_rel"
+theorem VALUE_COMPOSITE_VALUE_inst [intro!] :
+"VALUE type_rel \<Longrightarrow> COMPOSITE_VALUE type_rel"
 apply (simp add: COMPOSITE_VALUE_def)
 apply (auto)
 done
