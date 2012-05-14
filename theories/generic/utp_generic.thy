@@ -10,7 +10,7 @@ imports
   utp_name
   utp_var
   utp_value
-  utp_composite
+  utp_composite_value
   utp_alphabet
   utp_gen_pred
   utp_gen_laws

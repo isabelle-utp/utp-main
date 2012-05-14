@@ -1,11 +1,11 @@
 (******************************************************************************)
-(* Title: utp/generic/utp_composite.thy                                       *)
+(* Title: utp/generic/utp_composite_value.thy                                 *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
 
 header {* Composite Values *}
 
-theory utp_composite
+theory utp_composite_value
 imports "../utp_sorts" utp_value
 begin
 
