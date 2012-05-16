@@ -46,11 +46,6 @@ definition undash :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
    dashes = dashes (name v) - 1,
    subscript = subscript (name v)\<rparr>, type v)"
 
-subsection {* Substitution *}
-
-definition VAR_SUBST :: "('TYPE VAR \<Rightarrow> 'TYPE VAR) set" where
-"VAR_SUBST = {ss . bij ss \<and> (\<forall> v . type (ss v) = type v)}"
-
 subsection {* Restrictions *}
 
 definition UNDASHED :: "'TYPE VAR set" where

@@ -338,6 +338,41 @@ method_setup utp_pred_taut_tac = {*
 
 text {* TODO: Integrate Holger's code for the simplifier to raise provisos. *}
 
+subsection {* Theorems *}
+
+context GEN_PRED
+begin
+theorem EvalP_override :
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
+ b1 \<in> WF_BINDING;
+ b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+ EvalP p (b1 \<oplus> b2 on - \<alpha> p) = EvalP p b1"
+apply (simp add: EvalP_def)
+apply (simp add: WF_ALPHA_PREDICATE_def WF_BINDING_SET_def)
+apply (auto simp: beta_equiv_def)
+done
+
+theorem EvalP_total [simp] :
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE; b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+ (\<forall> b' \<in> WF_BINDING . EvalP p b \<oplus> b' on \<alpha> p) =
+ (\<forall> b  \<in> WF_BINDING . EvalP p b)"
+apply (safe)
+apply (drule_tac x = "ba" in bspec)
+apply (assumption)
+apply (subgoal_tac "EvalP p (b \<oplus> ba on \<alpha> p) \<oplus> ba on - \<alpha> p")
+apply (subgoal_tac "ba = b \<oplus> ba on \<alpha> p \<oplus> ba on - \<alpha> p")
+apply (simp)
+apply (rule ext)
+apply (auto) [1]
+apply (subgoal_tac "b \<oplus> ba on \<alpha> p \<in> WF_BINDING")
+apply (simp only: EvalP_override)
+apply (simp)
+apply (drule_tac x = "b \<oplus> b' on \<alpha> p" in bspec)
+apply (simp)
+apply (simp)
+done
+end
+
 subsection {* Proof Experiments *}
 
 context GEN_PRED

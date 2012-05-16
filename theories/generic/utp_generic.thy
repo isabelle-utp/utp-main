@@ -17,6 +17,7 @@ imports
   utp_eval_tactic
   utp_binding_fun
   utp_function
+  utp_subst
 begin
 
 text {* Meta-theory that imports all theories for generic models. *}

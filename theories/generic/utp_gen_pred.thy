@@ -358,7 +358,9 @@ apply (case_tac "v \<in> a")
 apply (auto)
 done
 
-text {* Can we make the following two theorems default simplifications? *}
+text {* The following three theorems have to be reviewd. *}
+
+text {* Can we make use of them as default simplifications? *}
 
 theorem WF_BINDING_predicate :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE; b \<in> \<beta> p\<rbrakk> \<Longrightarrow>
@@ -373,6 +375,21 @@ theorem WF_BINDING_bindings :
  \<beta> p \<subseteq> WF_BINDING"
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_BINDING_SET_def)
+done
+
+theorem bindings_override :
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
+ b1 \<in> \<beta> p;
+ b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+ b1 \<oplus> b2 on - \<alpha> p \<in> \<beta> p"
+apply (simp add: WF_ALPHA_PREDICATE_def)
+apply (simp add: WF_BINDING_SET_def)
+apply (clarify)
+apply (drule_tac x = "b1" in bspec)
+apply (assumption)
+apply (drule_tac x = "b1 \<oplus> b2 on - \<alpha> p" in bspec)
+apply (auto) [1]
+apply (auto simp: beta_equiv_def)
 done
 
 text {* Binding Equivalence *}

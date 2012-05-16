@@ -39,5 +39,21 @@ definition COMPOSABLE ::
 "\<lbrakk>a1 \<in> WF_ALPHABET;
  a2 \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  COMPOSABLE a1 a2 \<longleftrightarrow> (out a1) = dash ` (in a2)"
+
+subsection {* Theorems *}
+
+theorem WF_ALPHABET_in [simp] :
+"a \<in> WF_ALPHABET \<Longrightarrow>
+ in a \<in> WF_ALPHABET"
+apply (simp add: in_alphabet_def)
+apply (simp add: WF_ALPHABET_def)
+done
+
+theorem WF_ALPHABET_out [simp] :
+"a \<in> WF_ALPHABET \<Longrightarrow>
+ out a \<in> WF_ALPHABET"
+apply (simp add: out_alphabet_def)
+apply (simp add: WF_ALPHABET_def)
+done
 end
 end

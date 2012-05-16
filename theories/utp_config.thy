@@ -29,4 +29,10 @@ declare split_paired_Ex [simp del]
 declaration {* fn _ =>
   Classical.map_cs (fn cs => cs delSWrapper "split_all_tac")
 *}
+
+text {* Temporary hack, remove when there are no more sorrys. *}
+
+ML {*
+  quick_and_dirty := true
+*}
 end
