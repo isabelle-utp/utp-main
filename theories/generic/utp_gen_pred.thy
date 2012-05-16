@@ -330,6 +330,16 @@ theorem WF_ALPHABET_alphabet :
 apply (simp add: WF_ALPHA_PREDICATE_def)
 done
 
+theorem WF_ALPHABET_subset[intro]:
+"\<lbrakk>a \<in> WF_ALPHABET; b \<subseteq> a\<rbrakk> \<Longrightarrow>
+ b \<in> WF_ALPHABET"
+  by (auto simp add:WF_ALPHABET_def finite_subset)
+
+theorem WF_ALPHA_PREDICATE_subset[intro]:
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE; a \<subseteq> \<alpha> p\<rbrakk> \<Longrightarrow> 
+ a \<in> WF_ALPHABET"
+  by (auto intro:WF_ALPHABET_alphabet)
+
 subsubsection {* Binding Theorems *}
 
 theorem WF_BINDING_exists :
@@ -348,7 +358,7 @@ apply (insert WF_BINDING_exists)
 apply (auto)
 done
 
-theorem WF_BINDING_override [simp] :
+theorem WF_BINDING_override [simp,intro] :
 "\<lbrakk>b1 \<in> WF_BINDING;
  b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  b1 \<oplus> b2 on a \<in> WF_BINDING"
@@ -563,7 +573,7 @@ apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_BINDING_SET_compl)
 done
 
-theorem AndP_closure [simp] :
+theorem AndP_closure [simp,intro] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<and>p p2 \<in> WF_ALPHA_PREDICATE"
@@ -572,7 +582,7 @@ apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_BINDING_SET_inter)
 done
 
-theorem OrP_closure [simp] :
+theorem OrP_closure [simp,intro] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<or>p p2 \<in> WF_ALPHA_PREDICATE"

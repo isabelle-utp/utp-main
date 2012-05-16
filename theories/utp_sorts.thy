@@ -158,4 +158,20 @@ class BASIC_SORT =
 
 class COMPOSITE_SORT =
   BASIC_SORT + PAIR_SORT + SET_SORT
+
+class FUNCTION_SORT = COMPOSITE_SORT +
+  fixes MkFunc   :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"
+  fixes DestFunc :: "'a \<Rightarrow> ('a \<Rightarrow> 'a)"
+  fixes IsFunc   :: "'a \<Rightarrow> bool"
+begin
+
+subsubsection {* Function Operators *}
+definition idv :: 'a where
+"idv = MkFunc id"
+
+definition app :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+"app = DestFunc"
+
+end
+
 end

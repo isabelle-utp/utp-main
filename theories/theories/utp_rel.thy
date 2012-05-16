@@ -57,10 +57,19 @@ definition SemiR ::
  COMPOSABLE (\<alpha> r1) (\<alpha> r2) \<longrightarrow>
  r1 ; r2 = (\<exists>-p dash ` (out (\<alpha> r1)) . r1[SS1] \<and>p r2[SS2])"
 
+definition SkipR :: 
+  "'TYPE ALPHABET \<Rightarrow> ('VALUE, 'TYPE) ALPHA_PREDICATE" ("\<Pi>_") where
+"a \<in> WF_ALPHABET \<and> a \<subseteq> UNDASHED \<longrightarrow> \<Pi> a = (a \<union> dash ` a , { b . (b \<in> WF_BINDING) \<and> (\<forall> x \<in> a . b x = b (dash x)) })"
+
 text {* Configure theorems for the predicate proof tactic. *}
 
+lemma EvalP_SemiR[eval]: "\<lbrakk> r1 \<in> WF_RELATION; r2 \<in> WF_RELATION; COMPOSABLE (\<alpha> r1) (\<alpha> r2) \<rbrakk> \<Longrightarrow>
+                    EvalP (r1 ; r2) b = EvalP (\<exists>-p dash ` (out (\<alpha> r1)) . r1[SS1] \<and>p r2[SS2]) b"
+  by (simp add:SemiR_def)
+
 declare CondR_def [eval]
-declare SemiR_def [eval]
+ declare SemiR_def [eval]
+declare SkipR_def [eval]
 
 subsection {* Theorems *}
 
@@ -71,27 +80,48 @@ theorem WF_RELATION_WF_ALPHA_PREDICATE :
 apply (simp add: WF_RELATION_def)
 done
 
+theorem WF_RELATION_WF_ALPHABET[intro] :
+"p \<in> WF_RELATION \<Longrightarrow> \<alpha> p \<in> WF_ALPHABET"
+apply (auto simp add: WF_RELATION_def)
+done
+
 declare WF_RELATION_WF_ALPHA_PREDICATE [eval]
+declare WF_RELATION_WF_ALPHABET [eval]
 
 subsubsection {* Substitutions *}
 
-theorem SS1_VAR_SUBST [simp] :
-"SS1 \<in> VAR_SUBST"
-apply (simp add: SS1_def_raw)
-apply (simp add: VAR_SUBST_def)
-apply (simp_all add: dash_def undash_def)
-apply (rule bijI)
-apply (rule injI)
-sorry
+lemma SS1_range_total: "x \<in> range SS1"
+  apply(case_tac x, case_tac a)
+  apply(simp add:SS1_def image_def dash_def undash_def)
+  apply(smt fst_conv NAME.simps(1-3) snd_conv)
+done
 
-theorem SS2_VAR_SUBST [simp] :
-"SS2 \<in> VAR_SUBST"
-apply (simp add: SS2_def_raw)
-apply (simp add: VAR_SUBST_def)
-apply (simp_all add: dash_def undash_def)
-apply (rule bijI)
-apply (rule injI)
-sorry
+theorem SS1_VAR_SUBST [simp,intro] : "SS1 \<in> VAR_SUBST"
+  apply(auto simp add:VAR_SUBST_def SS1_def bij_def inj_on_def undash_def dash_def)
+  apply(smt NAME.equality prod_eq_iff unit.exhaust)+
+  apply(rule SS1_range_total)
+done
+
+lemma SS1_dashes[simp,intro,eval]: "a \<subseteq> UNDASHED \<union> DASHED \<Longrightarrow> SS1 ` a = in a \<union> dash ` (out a)"
+  by (force simp add: SS1_def DASHED_def UNDASHED_def Un_def in_alphabet_def out_alphabet_def image_def SS1_def)
+
+lemma SS2_range_total: "x \<in> range SS2"
+  apply(case_tac x, case_tac a)
+  apply(simp add:SS2_def image_def dash_def undash_def)
+  apply(smt fst_conv NAME.simps(1-3) snd_conv)
+done
+
+theorem SS2_VAR_SUBST [simp,intro] :  "SS2 \<in> VAR_SUBST"
+  apply(auto simp add:VAR_SUBST_def SS2_def bij_def inj_on_def undash_def dash_def)
+  apply(smt NAME.equality prod_eq_iff unit.exhaust)+
+  apply(rule SS2_range_total)
+done
+
+lemma SS2_dashes[simp,intro,eval]: "a \<subseteq> UNDASHED \<union> DASHED \<Longrightarrow> SS2 ` a = (dash ` dash ` in a) \<union> (out a)"
+  apply(auto simp add: SS2_def DASHED_def UNDASHED_def Un_def in_alphabet_def out_alphabet_def)
+  apply(simp_all add:image_def SS2_def)
+  apply(rule bexI, auto)+
+done
 
 subsubsection {* Alphabet Theorems *}
 
@@ -108,23 +138,24 @@ apply (auto)
 done
 
 theorem SemiR_alphabet [simp] :
-"r1 \<in> WF_RELATION \<and>
- r2 \<in> WF_RELATION \<and>
- COMPOSABLE (\<alpha> r1) (\<alpha> r2) \<longrightarrow>
- \<alpha> (r1 ; r2) = in (\<alpha> r1) \<union> out (\<alpha> r2)"
-apply (simp add: SemiR_def)
-apply (simp add: WF_RELATION_def)
-apply (simp add: WF_ALPHABET_alphabet)
-apply (safe)
--- {* Subgoal 1 *}
-apply (case_tac "xa \<in> DASHED")
-apply (simp add: SS1_def DASHED_def)
-apply (simp add: out_alphabet_def DASHED_def)
-apply (subgoal_tac "xa \<in> UNDASHED")
-apply (simp add: SS1_def in_alphabet_def UNDASHED_def)
-apply (auto)
--- {* Subgoal 2 *}
-sorry
+assumes assm: "r1 \<in> WF_RELATION" "r2 \<in> WF_RELATION" "COMPOSABLE (\<alpha> r1) (\<alpha> r2)"
+shows "\<alpha> (r1 ; r2) = in (\<alpha> r1) \<union> out (\<alpha> r2)"
+proof (insert assm, utp_pred_eq_tac)
+  from assm have "\<alpha> r1 \<subseteq> UNDASHED \<union> DASHED" "\<alpha> r2 \<subseteq> UNDASHED \<union> DASHED"
+                 "\<alpha> r1 \<in> WF_ALPHABET" "\<alpha> r2 \<in> WF_ALPHABET"
+    by (auto simp add:WF_RELATION_def)
+  with assm show "(SS1 ` \<alpha> r1 \<union> SS2 ` \<alpha> r2) - dash ` out (\<alpha> r1) = in (\<alpha> r1) \<union> out (\<alpha> r2)"
+    apply(auto simp add:COMPOSABLE_def)
+    apply(simp add: dash_def in_alphabet_def UNDASHED_def)
+    apply(simp add: dash_def out_alphabet_def DASHED_def)
+  done
+qed
+
+
+theorem SkipR_alphabet [simp]:
+"\<lbrakk> a \<in> WF_ALPHABET; a \<subseteq> UNDASHED \<rbrakk> \<Longrightarrow> \<alpha> (\<Pi> a) = a \<union> dash ` a"
+ by (simp add: SkipR_def)
+
 
 (***********************)
 (* REVIEWED UNTIL HERE *)
@@ -143,31 +174,16 @@ apply (simp add: CondR_def)
 apply (simp add: WF_RELATION_def WF_CONDITION_def)
 done
 
-theorem SemiR_closure [simp] :
-"r1 \<in> WF_RELATION \<and>
- r2 \<in> WF_RELATION \<and>
- COMPOSABLE (\<alpha> r1) (\<alpha> r2) \<longrightarrow>
- r1 ; r2 \<in> WF_RELATION"
-apply (simp add: SemiR_def)
-apply (simp add: WF_RELATION_def)
-apply (simp add: WF_ALPHABET_alphabet)
-apply (auto)
--- {* Subgoal 1 *}
-apply (case_tac "xa \<in> DASHED")
-apply (simp add: SS1_def DASHED_def)
-apply (simp add: out_alphabet_def DASHED_def)
-apply (subgoal_tac "xa \<in> UNDASHED")
-apply (simp add: SS1_def UNDASHED_def)
-apply (auto)
--- {* Subgoal 2 *}
-apply (case_tac "xa \<in> UNDASHED")
-apply (simp add: WF_ALPHABET_alphabet COMPOSABLE_def)
-apply (simp add: SS2_def UNDASHED_def)
-apply (simp add: in_alphabet_def UNDASHED_def)
-apply (subgoal_tac "xa \<in> DASHED")
-apply (simp add: SS2_def DASHED_def)
-apply (auto)
-done
+theorem SemiR_closure [simp, eval]:
+  assumes assm: "r1 \<in> WF_RELATION" "r2 \<in> WF_RELATION" "COMPOSABLE (\<alpha> r1) (\<alpha> r2)"
+  shows  "r1 ; r2 \<in> WF_RELATION"
+proof -
+  from assm have "r1 ; r2 \<in> WF_ALPHA_PREDICATE"
+    by (utp_pred_eq_tac)
+
+  with assm show ?thesis
+    by (auto simp add: WF_RELATION_def in_alphabet_def out_alphabet_def)
+qed
 
 theorem WF_RELATION_TrueP [simp] :
 "\<lbrakk>a \<in> WF_ALPHABET;
@@ -197,5 +213,25 @@ apply (utp_pred_eq_tac)
 apply (auto)
 -- {* TODO: See if the proof of the subgoals can be automated. *}
 oops
+
+thm COMPOSABLE_def
+
+theorem semi_assoc:
+ assumes assm: "p \<in> WF_RELATION" "q \<in> WF_RELATION" "r \<in> WF_RELATION"
+               "COMPOSABLE (\<alpha> p) (\<alpha> q)" "COMPOSABLE (\<alpha> q) (\<alpha> r)"
+ shows "p ; (q ; r) = (p ; q) ; r"
+proof -
+  from assm have r1:"q ; r \<in> WF_RELATION" "p ; q \<in> WF_RELATION"
+    by (auto)
+
+  from assm have r2:"COMPOSABLE (\<alpha> p) (\<alpha> (q ; r))" "COMPOSABLE (\<alpha> (p ; q)) (\<alpha> r)"
+    by(auto elim!:COMPOSABLE_elim)    
+
+  from r1 r2 assm show ?thesis
+    apply(utp_pred_eq_tac)
+    apply(safe)
+  sorry
+qed
+
 end
 end

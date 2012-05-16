@@ -42,18 +42,51 @@ definition COMPOSABLE ::
 
 subsection {* Theorems *}
 
-theorem WF_ALPHABET_in [simp] :
+theorem WF_ALPHABET_in [simp,intro] :
 "a \<in> WF_ALPHABET \<Longrightarrow>
  in a \<in> WF_ALPHABET"
 apply (simp add: in_alphabet_def)
 apply (simp add: WF_ALPHABET_def)
 done
 
-theorem WF_ALPHABET_out [simp] :
+theorem WF_ALPHABET_out [simp,intro] :
 "a \<in> WF_ALPHABET \<Longrightarrow>
  out a \<in> WF_ALPHABET"
 apply (simp add: out_alphabet_def)
 apply (simp add: WF_ALPHABET_def)
 done
+
+lemma WF_ALPHABET_union [intro] :
+"\<lbrakk> a \<in> WF_ALPHABET ; b \<in> WF_ALPHABET \<rbrakk> \<Longrightarrow> a \<union> b \<in> WF_ALPHABET"
+  by (simp add:WF_ALPHABET_def)
+
+lemma COMPOSABLE_intro[intro!]: "\<lbrakk> a \<in> WF_ALPHABET ; b \<in> WF_ALPHABET ; out a = dash ` in b \<rbrakk> \<Longrightarrow>
+                                COMPOSABLE a b"
+  by (simp add:COMPOSABLE_def)
+
+lemma COMPOSABLE_elim[elim]: "\<lbrakk> COMPOSABLE a b ; a \<in> WF_ALPHABET ; b \<in> WF_ALPHABET ; out a = dash ` in b \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (simp add:COMPOSABLE_def)  
+
+lemma COMPOSABLE_dest[dest]: "\<lbrakk> COMPOSABLE a b ; a \<in> WF_ALPHABET ; b \<in> WF_ALPHABET \<rbrakk> \<Longrightarrow> out a = dash ` in b"
+  by (simp add:COMPOSABLE_def)  
+
+lemma in_alphabet_in[simp]: "in (in a) = in a"
+  by (auto simp add: in_alphabet_def)
+
+lemma in_alphabet_out[simp]: "in (out a) = {}"
+  by (auto simp add: in_alphabet_def out_alphabet_def DASHED_def UNDASHED_def)
+
+lemma out_alphabet_out[simp]: "out (out a) = out a"
+  by (auto simp add: out_alphabet_def)
+
+lemma out_alphabet_in[simp]: "out (in a) = {}"
+  by (auto simp add: in_alphabet_def out_alphabet_def DASHED_def UNDASHED_def)
+
+lemma in_alphabet_union[simp]: "in (a \<union> b) = in a \<union> in b"
+  by (auto simp add: in_alphabet_def)
+
+lemma out_alphabet_union[simp]: "out (a \<union> b) = out a \<union> out b"
+  by (auto simp add: out_alphabet_def)
+
 end
 end

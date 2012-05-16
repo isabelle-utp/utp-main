@@ -377,23 +377,6 @@ subsection {* Proof Experiments *}
 
 context GEN_PRED
 begin
-theorem
-"\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
- p2 \<in> WF_ALPHA_PREDICATE;
- p3 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- p1 \<and>p (p2 \<and>p p3) = (p1 \<and>p p2) \<and>p p3"
-apply (utp_pred_eq_tac)
-apply (auto)
-done
-
-theorem
-"\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
- p2 \<in> WF_ALPHA_PREDICATE;
- p3 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- p1 \<and>p (p2 \<or>p p3) = (p1 \<and>p p2) \<or>p (p1 \<and>p p3)"
-apply (utp_pred_eq_tac)
-apply (auto)
-done
 
 theorem
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
@@ -420,6 +403,19 @@ apply (utp_pred_taut_tac)
 apply (auto)
 done
 
+theorem 
+"\<lbrakk> p \<in> WF_ALPHA_PREDICATE;
+   a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
+   p \<and>p \<not>p p = false (\<alpha> p)"
+ by (utp_pred_eq_tac)
+
+theorem 
+"\<lbrakk> p \<in> WF_ALPHA_PREDICATE;
+   a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
+   p \<or>p \<not>p p = true (\<alpha> p)"
+ by (utp_pred_eq_tac)
+
+
 theorem
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
@@ -439,7 +435,7 @@ theorem
   p2 \<in> WF_ALPHA_PREDICATE;
  (\<alpha> p1) = (\<alpha> p2)\<rbrakk> \<Longrightarrow>
  p1 \<or>p p2 \<sqsubseteq> p1"
-apply (utp_pred_taut_tac)
-done
+by (utp_pred_taut_tac)
+
 end
 end

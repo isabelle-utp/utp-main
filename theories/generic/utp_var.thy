@@ -54,6 +54,9 @@ definition UNDASHED :: "'TYPE VAR set" where
 definition DASHED :: "'TYPE VAR set" where
 "DASHED = {v . dashes (name v) = 1}"
 
+definition DASHED2 :: "'TYPE VAR set" where
+"DASHED2 = {v . dashes (name v) = 2}"
+
 definition PLAIN :: "'TYPE VAR set" where
 "PLAIN = {v . v \<in> UNDASHED \<and> subscript (name v) = NoSub}"
 end
