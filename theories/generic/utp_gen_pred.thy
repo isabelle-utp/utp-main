@@ -286,59 +286,17 @@ subsection {* Theorems *}
 
 subsubsection {* Alphabet Theorems *}
 
-theorem WF_ALPHABET_empty [simp] :
-"{} \<in> WF_ALPHABET"
-apply (simp add: WF_ALPHABET_def)
-done
-
-theorem WF_ALPHABET_insert [simp] :
-"\<lbrakk>a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
- (insert x a) \<in> WF_ALPHABET"
-apply (simp add: WF_ALPHABET_def)
-done
-
-theorem WF_ALPHABET_union [simp] :
-"\<lbrakk>a1 \<in> WF_ALPHABET;
- a2 \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
- a1 \<union> a2 \<in> WF_ALPHABET"
-apply (simp add: WF_ALPHABET_def)
-done
-
-theorem WF_ALPHABET_inter [simp] :
-"\<lbrakk>a1 \<in> WF_ALPHABET;
- a2 \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
- a1 \<inter> a2 \<in> WF_ALPHABET"
-apply (simp add: WF_ALPHABET_def)
-done
-
-theorem WF_ALPHABET_diff [simp] :
-"\<lbrakk>a1 \<in> WF_ALPHABET;
- a2 \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
- a1 - a2 \<in> WF_ALPHABET"
-apply (simp add: WF_ALPHABET_def)
-done
-
-theorem WF_ALPHABET_image [simp] :
-"\<lbrakk>a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
- f ` a \<in> WF_ALPHABET"
-apply (simp add: WF_ALPHABET_def)
-done
-
 theorem WF_ALPHABET_alphabet :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  (\<alpha> p) \<in> WF_ALPHABET"
 apply (simp add: WF_ALPHA_PREDICATE_def)
 done
 
-theorem WF_ALPHABET_subset[intro]:
-"\<lbrakk>a \<in> WF_ALPHABET; b \<subseteq> a\<rbrakk> \<Longrightarrow>
- b \<in> WF_ALPHABET"
-  by (auto simp add:WF_ALPHABET_def finite_subset)
-
-theorem WF_ALPHA_PREDICATE_subset[intro]:
-"\<lbrakk>p \<in> WF_ALPHA_PREDICATE; a \<subseteq> \<alpha> p\<rbrakk> \<Longrightarrow> 
+theorem WF_ALPHA_PREDICATE_subset [intro] :
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE; a \<subseteq> \<alpha> p\<rbrakk> \<Longrightarrow>
  a \<in> WF_ALPHABET"
-  by (auto intro:WF_ALPHABET_alphabet)
+apply (auto intro: WF_ALPHABET_alphabet)
+done
 
 subsubsection {* Binding Theorems *}
 
