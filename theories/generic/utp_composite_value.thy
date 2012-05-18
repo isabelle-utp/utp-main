@@ -9,7 +9,7 @@ theory utp_composite_value
 imports "../utp_sorts" utp_value
 begin
 
-subsection {* Data Types *}
+subsection {* Type Definitions *}
 
 text {* Does @{term "SetVal"} need to know about the type of the set? *}
 
