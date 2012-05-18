@@ -10,6 +10,7 @@ imports
   "generic/utp_generic"
   "models/utp_models"
   "theories/utp_theories"
+  "algebra/utp_algebra"
 begin
 
 text {* Meta-theory that imports all theories of the UTP mechanisation. *}

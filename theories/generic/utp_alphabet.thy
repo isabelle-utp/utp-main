@@ -1,6 +1,6 @@
 (******************************************************************************)
 (* Title: utp/generic/utp_alphabet.thy                                        *)
-(* Author: Frank Zeyda, University of York                                    *)
+(* Authors: Frank Zeyda and Simon Foster, University of York                  *)
 (******************************************************************************)
 
 header {* Alphabets *}
