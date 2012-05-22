@@ -107,6 +107,13 @@ apply (rule ext)
 apply (auto)
 done
 
+theorem override_on_comm_sym :
+"f \<oplus> g on (- a) = g \<oplus> f on a"
+apply (simp add: override_on_def)
+apply (rule ext)
+apply (auto)
+done
+
 theorem override_on_singleton :
 "(f \<oplus> g on {x}) = f(x := g x)"
 apply (rule ext)
