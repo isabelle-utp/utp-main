@@ -1,5 +1,6 @@
 (******************************************************************************)
-(* Title: utp/utp.thy                                                         *)
+(* Project: Deep Mechanisation of the UTP                                     *)
+(* File: utp/utp.thy                                                          *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
 
@@ -11,6 +12,7 @@ imports
   "models/utp_models"
   "theories/utp_theories"
   "algebra/utp_algebra"
+(*  "high-order/utp_ho_inst" *)
 begin
 
 text {* Meta-theory that imports all theories of the UTP mechanisation. *}

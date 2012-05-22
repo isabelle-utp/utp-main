@@ -1,5 +1,6 @@
 (******************************************************************************)
-(* Title: utp/GLOBAL.thy                                                      *)
+(* Project: Deep Mechanisation of the UTP                                     *)
+(* File: utp/GLOBAL.thy                                                       *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
 

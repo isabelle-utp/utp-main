@@ -1,5 +1,6 @@
 (******************************************************************************)
-(* Title: utp/models/utp_algebra.thy                                          *)
+(* Project: Deep Mechanisation of the UTP                                     *)
+(* File: utp/models/utp_algebra.thy                                           *)
 (* Author: Simon Foster, University of York                                   *)
 (******************************************************************************)
 

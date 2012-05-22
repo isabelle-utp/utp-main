@@ -1,5 +1,6 @@
 (******************************************************************************)
-(* Title: utp/theories/utp_theories.thy                                       *)
+(* Project: Deep Mechanisation of the UTP                                     *)
+(* File: utp/theories/utp_theories.thy                                        *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
 

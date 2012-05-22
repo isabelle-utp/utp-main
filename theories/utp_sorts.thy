@@ -1,6 +1,7 @@
 (******************************************************************************)
-(* Title: utp/utp_sorts.thy                                                   *)
-(* Author: Frank Zeyda, University of York                                    *)
+(* Project: Deep Mechanisation of the UTP                                     *)
+(* File: utp/utp_sorts.thy                                                    *)
+(* Authors: Frank Zeyda and Simon Foster, University of York                  *)
 (******************************************************************************)
 
 header {* Value Sorts *}

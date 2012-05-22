@@ -1,5 +1,6 @@
 (******************************************************************************)
-(* Title: utp/generic/utp_binding_fun.thy                                     *)
+(* Project: Deep Mechanisation of the UTP                                     *)
+(* File: utp/generic/utp_binding_fun.thy                                      *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
 

@@ -1,5 +1,6 @@
 (******************************************************************************)
-(* Title: utp/generic/utp_alphabet.thy                                        *)
+(* Project: Deep Mechanisation of the UTP                                     *)
+(* File: utp/generic/utp_alphabet.thy                                         *)
 (* Authors: Frank Zeyda and Simon Foster, University of York                  *)
 (******************************************************************************)
 

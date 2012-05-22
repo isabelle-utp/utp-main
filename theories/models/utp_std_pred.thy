@@ -1,5 +1,6 @@
 (******************************************************************************)
-(* Title: utp/models/utp_std_pred.thy                                         *)
+(* Project: Deep Mechanisation of the UTP                                     *)
+(* File: utp/models/utp_std_pred.thy                                          *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
 

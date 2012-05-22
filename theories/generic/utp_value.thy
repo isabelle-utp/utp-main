@@ -1,5 +1,6 @@
 (******************************************************************************)
-(* Title: utp/generic/utp_value.thy                                           *)
+(* Project: Deep Mechanisation of the UTP                                     *)
+(* File: utp/generic/utp_value.thy                                            *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
 

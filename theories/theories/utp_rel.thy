@@ -1,5 +1,6 @@
 (******************************************************************************)
-(* Title: utp/theories/utp_rel.thy                                            *)
+(* Project: Deep Mechanisation of the UTP                                     *)
+(* File: utp/theories/utp_rel.thy                                             *)
 (* Authors: Frank Zeyda and Simon Foster, University of York                  *)
 (******************************************************************************)
 
