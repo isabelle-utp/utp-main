@@ -381,6 +381,15 @@ apply (case_tac "x \<in> a")
 apply (auto)
 done
 
+theorem beta_equiv_bindings :
+"\<lbrakk>b1 \<cong> b2 on (\<alpha> p);
+ p \<in> WF_ALPHA_PREDICATE;
+ b1 \<in> \<beta> p; b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+ b2 \<in> \<beta> p"
+apply (simp add: WF_ALPHA_PREDICATE_def)
+apply (simp add: WF_BINDING_SET_def)
+done
+
 text {* Binding Set Theorems *}
 
 theorem  WF_BINDING_SET_ext :

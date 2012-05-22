@@ -19,6 +19,15 @@ no_notation
   Set.member ("op :") and
   Set.member ("(_/ : _)" [50, 51] 50)
 
+subsection {* Type Definitions *}
+
+text {* Supplementary theorem for type definitions. *}
+
+lemma (in type_definition) Rep_inject_sym [simp, intro!] :
+"(x = y) \<longleftrightarrow> (Rep x = Rep y)"
+apply (simp add: Rep_inject)
+done
+
 subsection {* Isabelle Prover *}
 
 text {* This prevents Isabelle from automatically splitting pairs. *}
