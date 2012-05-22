@@ -3,13 +3,13 @@
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
 
+header {* Global Value Syntax *}
+
 theory GLOBAL0
 imports utp_common utp_types
 begin
 
 text {* This theory introduces generic constants for global syntax. *}
-
-subsection {* Value Syntax *}
 
 consts type_rel :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50)
 

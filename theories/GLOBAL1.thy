@@ -3,6 +3,8 @@
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
 
+header {* Global Predicate Syntax *}
+
 theory GLOBAL1
 imports utp_common utp_types
 begin
