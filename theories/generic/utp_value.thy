@@ -60,6 +60,8 @@ subsection {* Indexable Types *}
 definition IdxType :: "'TYPE \<Rightarrow> bool" where
 "IdxType t \<longleftrightarrow> IdxSet (carrier t)"
 
+subsection {* Theorems *}
+
 theorem IdxType_IdxSet [simp] :
 "\<lbrakk>s :\<subseteq> t; IdxType t\<rbrakk> \<Longrightarrow> IdxSet s"
 apply (simp add: IdxType_def)
