@@ -23,8 +23,7 @@ for default_type_rel :: "'BASIC_VALUE :: BASIC_SORT \<Rightarrow> 'BASIC_TYPE \<
 
 subsection {* Locale Interpretation *}
 
-interpretation STD :
-  STD_PRED "default_type_rel"
+interpretation STD : STD_PRED "default_type_rel"
 apply (simp add: STD_PRED_def GEN_PRED_def)
 apply (auto)
 done
@@ -92,10 +91,10 @@ subsection {* Global Syntax *}
 text {* Value Syntax *}
 
 defs STD_type_rel [simp] :
-"GLOBAL.type_rel \<equiv> lift_type_rel_composite default_type_rel"
+"GLOBAL0.type_rel \<equiv> lift_type_rel_composite default_type_rel"
 
 defs STD_set_type_rel [simp] :
-"GLOBAL.set_type_rel \<equiv> STD.set_type_rel"
+"GLOBAL0.set_type_rel \<equiv> STD.set_type_rel"
 
 text {* Predicate Syntax *}
 
@@ -112,112 +111,112 @@ declare STD_alphabet_def [simp]
 declare STD_bindings_def [simp]
 
 defs STD_beta_equiv [simp] :
-"GLOBAL.beta_equiv \<equiv> STD.beta_equiv"
+"GLOBAL1.beta_equiv \<equiv> STD.beta_equiv"
 
 defs STD_LiftP [simp] :
-"GLOBAL.LiftP a bfun \<equiv>
+"GLOBAL1.LiftP a bfun \<equiv>
  Mk_STD_PREDICATE (STD.LiftP a bfun)"
 
 defs STD_TrueP [simp] :
-"GLOBAL.TrueP a \<equiv>
+"GLOBAL1.TrueP a \<equiv>
  Mk_STD_PREDICATE (STD.TrueP a)"
 
 defs STD_FalseP [simp] :
-"GLOBAL.FalseP a \<equiv>
+"GLOBAL1.FalseP a \<equiv>
  Mk_STD_PREDICATE (STD.FalseP a)"
 
 defs STD_TRUE [simp] :
-"GLOBAL.TRUE \<equiv>
+"GLOBAL1.TRUE \<equiv>
  Mk_STD_PREDICATE STD.TRUE"
 
 defs STD_FALSE [simp] :
-"GLOBAL.FALSE \<equiv>
+"GLOBAL1.FALSE \<equiv>
  Mk_STD_PREDICATE STD.FALSE"
 
 defs STD_ExtP [simp] :
-"GLOBAL.ExtP p a \<equiv>
+"GLOBAL1.ExtP p a \<equiv>
  Mk_STD_PREDICATE
    (STD.ExtP (Dest_STD_PREDICATE p) a)"
 
 defs STD_ResP [simp] :
-"GLOBAL.ResP p a\<equiv>
+"GLOBAL1.ResP p a\<equiv>
  Mk_STD_PREDICATE
    (STD.ResP (Dest_STD_PREDICATE p) a)"
 
 defs STD_NotP [simp] :
-"GLOBAL.NotP p \<equiv>
+"GLOBAL1.NotP p \<equiv>
  Mk_STD_PREDICATE
    (STD.NotP (Dest_STD_PREDICATE p))"
 
 defs STD_AndP [simp] :
-"GLOBAL.AndP p1 p2 \<equiv>
+"GLOBAL1.AndP p1 p2 \<equiv>
  Mk_STD_PREDICATE (STD.AndP
    (Dest_STD_PREDICATE p1)
    (Dest_STD_PREDICATE p2))"
 
 defs STD_OrP [simp] :
-"GLOBAL.OrP p1 p2 \<equiv>
+"GLOBAL1.OrP p1 p2 \<equiv>
  Mk_STD_PREDICATE (STD.OrP
    (Dest_STD_PREDICATE p1)
    (Dest_STD_PREDICATE p2))"
 
 defs STD_ImpliesP [simp] :
-"GLOBAL.ImpliesP p1 p2 \<equiv>
+"GLOBAL1.ImpliesP p1 p2 \<equiv>
  Mk_STD_PREDICATE (STD.ImpliesP
    (Dest_STD_PREDICATE p1)
    (Dest_STD_PREDICATE p2))"
 
 defs STD_IffP [simp] :
-"GLOBAL.IffP p1 p2 \<equiv>
+"GLOBAL1.IffP p1 p2 \<equiv>
  Mk_STD_PREDICATE (STD.IffP
    (Dest_STD_PREDICATE p1)
    (Dest_STD_PREDICATE p2))"
 
 defs STD_ExistsResP [simp] :
-"GLOBAL.ExistsResP a p \<equiv>
+"GLOBAL1.ExistsResP a p \<equiv>
  Mk_STD_PREDICATE
    (STD.ExistsResP a (Dest_STD_PREDICATE p))"
 
 defs STD_ForallResP [simp] :
-"GLOBAL.ForallResP a p \<equiv>
+"GLOBAL1.ForallResP a p \<equiv>
  Mk_STD_PREDICATE
    (STD.ForallResP a (Dest_STD_PREDICATE p))"
 
 defs STD_ExistsP [simp] :
-"GLOBAL.ExistsP a p \<equiv>
+"GLOBAL1.ExistsP a p \<equiv>
  Mk_STD_PREDICATE
    (STD.ExistsP a (Dest_STD_PREDICATE p))"
 
 defs STD_ForallP [simp] :
-"GLOBAL.ForallP a p \<equiv>
+"GLOBAL1.ForallP a p \<equiv>
  Mk_STD_PREDICATE
    (STD.ForallP a (Dest_STD_PREDICATE p))"
 
 defs STD_ClosureP [simp] :
-"GLOBAL.ClosureP p \<equiv>
+"GLOBAL1.ClosureP p \<equiv>
  Mk_STD_PREDICATE
    (STD.ClosureP (Dest_STD_PREDICATE p))"
 
 defs STD_RefP [simp] :
-"GLOBAL.RefP p1 p2 \<equiv>
+"GLOBAL1.RefP p1 p2 \<equiv>
  Mk_STD_PREDICATE (STD.RefP
    (Dest_STD_PREDICATE p1)
    (Dest_STD_PREDICATE p2))"
 
 defs STD_Tautology [simp] :
-"GLOBAL.Tautology p \<equiv>
+"GLOBAL1.Tautology p \<equiv>
  STD.Tautology (Dest_STD_PREDICATE p)"
 
 defs STD_Contradiction [simp] :
-"GLOBAL.Contradiction p \<equiv>
+"GLOBAL1.Contradiction p \<equiv>
  STD.Contradiction (Dest_STD_PREDICATE p)"
 
 defs STD_Contingency [simp] :
-"GLOBAL.Contingency p \<equiv>
+"GLOBAL1.Contingency p \<equiv>
  STD.Contingency (Dest_STD_PREDICATE p)"
 
 defs STD_Refinement [simp] :
-"GLOBAL.Refinement p1 p2 \<equiv>
+"GLOBAL1.Refinement p1 p2 \<equiv>
  STD.Refinement
    (Dest_STD_PREDICATE p1)
    (Dest_STD_PREDICATE p2)"

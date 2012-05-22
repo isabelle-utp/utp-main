@@ -6,7 +6,11 @@
 header {* Default Values *}
 
 theory utp_default_value
-imports "../GLOBAL" "../utp_common" "../utp_sorts" "../generic/utp_value"
+imports
+  "../GLOBAL0"
+  "../utp_common"
+  "../utp_sorts"
+  "../generic/utp_value"
 begin
 
 subsection {* Value Model *}
@@ -40,7 +44,7 @@ primrec IsStringVal :: "DEFAULT_VALUE \<Rightarrow> bool" where
 
 subsection {* Typing and Refinement *}
 
-fun default_type_rel :: "DEFAULT_VALUE \<Rightarrow> DEFAULT_TYPE \<Rightarrow> bool"  where
+fun default_type_rel :: "DEFAULT_VALUE \<Rightarrow> DEFAULT_TYPE \<Rightarrow> bool" where
 "default_type_rel (IntVal _) IntType = True" |
 "default_type_rel (IntVal _) BoolType = False" |
 "default_type_rel (IntVal _) StringType = False" |
@@ -52,7 +56,7 @@ fun default_type_rel :: "DEFAULT_VALUE \<Rightarrow> DEFAULT_TYPE \<Rightarrow> 
 "default_type_rel (StringVal _) StringType = True"
 
 defs default_type_rel [simp] :
-"GLOBAL.type_rel \<equiv> default_type_rel"
+"GLOBAL0.type_rel \<equiv> default_type_rel"
 
 text {* The refinement order for basic values is flat. *}
 
