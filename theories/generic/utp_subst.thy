@@ -261,9 +261,9 @@ apply (drule_tac x = "SubstB ss x" in bspec)
 apply (simp)
 apply (simp add: SubstB_def)
 apply (subgoal_tac
-  "EvalP p ((b \<oplus> x \<circ> (inv ss) on ss ` \<alpha> p) \<circ> ss) \<oplus> x on - \<alpha> p")
+  "EvalP p (((b \<oplus> (x \<circ> (inv ss)) on ss ` \<alpha> p) \<circ> ss) \<oplus> x on - \<alpha> p)")
 apply (subgoal_tac
-  "x = ((b \<oplus> x \<circ> (inv ss) on ss ` \<alpha> p) \<circ> ss) \<oplus> x on - \<alpha> p")
+  "x = ((b \<oplus> (x \<circ> (inv ss)) on ss ` \<alpha> p) \<circ> ss) \<oplus> x on - \<alpha> p")
 apply (simp)
 apply (rule ext)
 apply (simp add: comp_def)

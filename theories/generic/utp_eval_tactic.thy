@@ -19,7 +19,7 @@ subsection {* Interpretation Function *}
 
 definition EvalP ::
   "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) BINDING \<Rightarrow> bool" where
+   ('VALUE, 'TYPE) BINDING \<Rightarrow> bool" ("\<lbrakk>_\<rbrakk>_" [0, 1000] 51) where
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP p b \<longleftrightarrow> b \<in> \<beta> p"
@@ -355,13 +355,13 @@ done
 
 theorem EvalP_total [simp] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE; b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
- (\<forall> b' \<in> WF_BINDING . EvalP p b \<oplus> b' on \<alpha> p) =
+ (\<forall> b' \<in> WF_BINDING . EvalP p (b \<oplus> b' on \<alpha> p)) =
  (\<forall> b  \<in> WF_BINDING . EvalP p b)"
 apply (safe)
 apply (drule_tac x = "ba" in bspec)
 apply (assumption)
-apply (subgoal_tac "EvalP p (b \<oplus> ba on \<alpha> p) \<oplus> ba on - \<alpha> p")
-apply (subgoal_tac "ba = b \<oplus> ba on \<alpha> p \<oplus> ba on - \<alpha> p")
+apply (subgoal_tac "EvalP p ((b \<oplus> ba on \<alpha> p) \<oplus> ba on - \<alpha> p)")
+apply (subgoal_tac "ba = (b \<oplus> ba on \<alpha> p) \<oplus> ba on - \<alpha> p")
 apply (simp)
 apply (rule ext)
 apply (auto) [1]

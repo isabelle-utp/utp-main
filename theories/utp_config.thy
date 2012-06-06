@@ -7,7 +7,7 @@
 header {* Configuration *}
 
 theory utp_config
-imports Main "~~/src/HOL/Library/Countable"
+imports Main "~~/src/HOL/Library/Countable" "~~/src/HOL/Algebra/Lattice"
 begin
 
 text {* This theory acts as a meta-theory for importing libraries.*}
