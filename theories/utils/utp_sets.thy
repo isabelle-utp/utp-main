@@ -4,7 +4,7 @@
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
 
-header {* Limited Cardinality Sets *}
+header {* Restricted Cardinality Sets *}
 
 theory utp_sets
 imports "../utp_config"
