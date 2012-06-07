@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Project: Mechanisation of the UTP                                          *)
 (* File: utp/generic/utp_lattice.thy                                          *)
-(* Author: Simon Foster and Frank Zeyda, University of York                   *)
+(* Authors: Simon Foster and Frank Zeyda, University of York                  *)
 (******************************************************************************)
 
 header {* Predicate Lattice *}
