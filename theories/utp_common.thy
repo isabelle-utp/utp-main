@@ -94,7 +94,7 @@ text {* Function Override *}
 
 text {* We first define a neater syntax for function overriding. *}
 
-notation override_on ("_ \<oplus> _ on _")
+notation override_on ("_ \<oplus> _ on _" [56, 56, 0] 55)
 
 theorem override_on_idem [simp]:
 "f \<oplus> f on a = f"
@@ -149,7 +149,7 @@ apply (auto)
 done
 
 theorem override_on_cancel4 [simp] :
-"f \<oplus> g \<oplus> h on a on (b - a) = f \<oplus> g on (b - a)"
+"f \<oplus> (g \<oplus> h on a) on (b - a) = f \<oplus> g on (b - a)"
 apply (simp add: override_on_def)
 apply (rule ext)
 apply (auto)

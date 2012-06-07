@@ -18,6 +18,7 @@ imports
   utp_eval_tactic
   utp_binding_fun
   utp_function
+  utp_lattice
   utp_subst
 begin
 
