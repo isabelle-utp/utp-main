@@ -1,5 +1,5 @@
 (******************************************************************************)
-(* Project: Deep Mechanisation of the UTP                                     *)
+(* Project: Mechanisation of the UTP                                          *)
 (* File: utp/utp_types.thy                                                    *)
 (* Author: Frank Zeyda, University of York                                    *)
 (******************************************************************************)
