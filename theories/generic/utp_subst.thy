@@ -20,6 +20,23 @@ text {* Substitutions are total bijections and have to respect typing. *}
 definition VAR_SUBST :: "('TYPE VAR \<Rightarrow> 'TYPE VAR) set" where
 "VAR_SUBST = {ss . bij ss \<and> (\<forall> v . type (ss v) = type v)}"
 
+definition mappings :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a set" where
+"mappings f = {v. f v \<noteq> v} \<union> {v. (inv f) v \<noteq> v}"
+
+lemma mappings_inv: "bij f \<Longrightarrow> mappings (inv f) = mappings f"
+  by (auto simp add:mappings_def bij_def inv_inv_eq)
+
+lemma disj_mapping_comm: "\<lbrakk> inj f; inj g; mappings f \<inter> mappings g = {} \<rbrakk> \<Longrightarrow> f \<circ> g = g \<circ> f"
+  apply(auto simp add:mappings_def Int_def comp_def)
+  apply(rule ext)
+  apply(smt inv_f_f)
+done
+
+lemma disj_mapping_image: "\<lbrakk> mappings f \<inter> a = {} \<rbrakk> \<Longrightarrow> f ` a = a"
+  apply(auto simp add:mappings_def Un_def Int_def image_def)
+  apply(metis)+
+done
+
 subsection {* Binding Substitution *}
 
 definition SubstB ::
@@ -102,6 +119,23 @@ apply (simp add: VAR_SUBST_def)
 apply (auto simp: bij_def inj_eq)
 done
 
+theorem VAR_SUBST_compose [simp]:
+"\<lbrakk> ss1 \<in> VAR_SUBST ; ss2 \<in> VAR_SUBST \<rbrakk> \<Longrightarrow> (ss1 \<circ> ss2) \<in> VAR_SUBST"
+apply (simp add: VAR_SUBST_def)
+apply (auto simp: bij_def)
+apply(simp add:inj_comp)
+apply(metis UNIV_I image_compose)
+done
+
+theorem VAR_SUBST_id [simp]:
+"id \<in> VAR_SUBST"
+  by (simp add:VAR_SUBST_def)
+
+theorem VAR_SUBSTS_disj_comm [simp]:
+"\<lbrakk> ss1 \<in> VAR_SUBST; ss2 \<in> VAR_SUBST; mappings ss1 \<inter> mappings ss2 = {} \<rbrakk> \<Longrightarrow>
+ ss1 \<circ> ss2 = ss2 \<circ> ss1"
+  by (auto intro:disj_mapping_comm simp add:VAR_SUBST_def bij_def)
+
 theorem VAR_SUBST_WF_BINDING [simp] :
 "\<lbrakk>b \<in> WF_BINDING; ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
  b \<circ> ss \<in> WF_BINDING"
@@ -151,6 +185,78 @@ apply (rule ext)
 apply (simp_all)
 done
 
+theorem SubstB_compose:
+"\<lbrakk>ss1 \<in> VAR_SUBST; ss2 \<in> VAR_SUBST;
+ b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+ SubstB ss1 (SubstB ss2 b) = SubstB (ss1\<circ>ss2) b"
+apply(subgoal_tac "SubstB ss2 b \<in> WF_BINDING")
+apply(simp add: SubstB_def)
+apply(auto simp add:VAR_SUBST_def o_inv_distrib)
+done
+
+theorem SubstB_id [simp] :
+"\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+ SubstB id b = b"
+  by (simp add:SubstB_def)
+
+theorem SubstB_disj_comm [simp] :
+"\<lbrakk>ss1 \<in> VAR_SUBST; ss2 \<in> VAR_SUBST;
+ b \<in> WF_BINDING; mappings ss1 \<inter> mappings ss2 = {} \<rbrakk> \<Longrightarrow>
+ SubstB ss1 (SubstB ss2 b) = SubstB ss2 (SubstB ss1 b)"
+  by (metis SubstB_compose VAR_SUBSTS_disj_comm)
+
+lemma SubstB_override1:
+"\<lbrakk> ss \<in> VAR_SUBST; a \<in> WF_ALPHABET;
+   b \<in> WF_BINDING; b' \<in> WF_BINDING \<rbrakk> \<Longrightarrow>
+(SubstB ss b) \<oplus> SubstB ss b' on ss ` a = SubstB ss (b \<oplus> b' on a)"
+apply (simp add:SubstB_def)
+apply (simp add:override_on_def)
+apply(rule ext)
+apply(auto)
+apply (smt VAR_SUBST_ss_inv imageI)
+done
+
+
+lemma SubstB_override2:
+"\<lbrakk> ss \<in> VAR_SUBST; a \<in> WF_ALPHABET;
+   b \<in> WF_BINDING; b' \<in> WF_BINDING \<rbrakk> \<Longrightarrow>
+SubstB (inv ss) (SubstB ss b \<oplus> b' on ss ` a) = b \<oplus> SubstB (inv ss) b' on a"
+apply (simp add:SubstB_def)
+apply (simp add:override_on_def)
+apply(rule ext)
+apply(auto)
+done
+
+lemma SubstB_override3:
+"\<lbrakk> ss \<in> VAR_SUBST; a \<in> WF_ALPHABET;
+   b \<in> WF_BINDING; b' \<in> WF_BINDING; mappings ss \<inter> a = {} \<rbrakk> \<Longrightarrow>
+SubstB ss (b \<oplus> b' on a) = (SubstB ss b) \<oplus> (SubstB ss b') on a"
+apply(simp add:SubstB_def)
+apply(simp add:override_on_def)
+apply(rule ext)
+apply(auto)
+apply(simp add:mappings_def Un_def Int_def)
+apply(metis VAR_SUBST_ss_inv)
+apply(metis VAR_SUBST_in_image_simp VAR_SUBST_ss_inv disj_mapping_image)
+done
+
+lemma SubstB_override4:
+"\<lbrakk> ss \<in> VAR_SUBST; a \<in> WF_ALPHABET;
+   b \<in> WF_BINDING; b' \<in> WF_BINDING; mappings ss \<inter> a = {} \<rbrakk> \<Longrightarrow>
+SubstB ss (b \<oplus> b' on a) = SubstB ss (b \<oplus> (SubstB ss b') on a)"
+apply(simp add:SubstB_def)
+apply(simp add:override_on_def)
+apply(rule ext)
+apply(auto)
+apply(simp add:mappings_def Un_def Int_def)
+apply(metis)
+done
+
+lemma SubstB_invol:
+"\<lbrakk> ss \<in> VAR_SUBST; b \<in> WF_BINDING; ss \<circ> ss = id \<rbrakk> \<Longrightarrow>
+ SubstB ss (SubstB ss b) = b"
+  by (metis SubstB_compose SubstB_id)
+
 subsubsection {* Predicate Substitution *}
 
 theorem SubstP_alphabet [simp] :
@@ -159,6 +265,13 @@ theorem SubstP_alphabet [simp] :
  \<alpha> p[ss] = ss ` (\<alpha> p)"
 apply (simp add: SubstP_def)
 done
+
+(*
+theorem SubstP_alpha_disj_comm [simp] :
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
+ ss1 \<in> VAR_SUBST; ss2 \<in> VAR_SUBST; 
+ mappings ss1 \<inter> mappings ss2 = {} \<rbrakk> \<Longrightarrow>
+*)
 
 text {* Could the following be useful in other places too? Examine! *}
 
@@ -241,6 +354,31 @@ theorem SubstP_inverse :
 apply (utp_pred_taut_tac)
 done
 
+theorem SubstP_compose :
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
+ ss1 \<in> VAR_SUBST; ss2 \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
+ p[ss1][ss2] = p[ss2\<circ>ss1]"
+apply (utp_pred_eq_tac)
+apply(rule conjI)
+apply(force)
+apply(simp add:SubstB_compose)
+apply(simp add:o_inv_distrib VAR_SUBST_def)
+done
+
+theorem SubstP_disj_comm:
+"\<lbrakk> p \<in> WF_ALPHA_PREDICATE; ss1 \<in> VAR_SUBST; ss2 \<in> VAR_SUBST
+; mappings ss1 \<inter> mappings ss2 = {} \<rbrakk> \<Longrightarrow> p[ss1][ss2] = p[ss2][ss1]"
+apply (utp_pred_eq_tac)
+apply(rule conjI)
+apply(metis SubstP_alphabet SubstP_closure SubstP_compose VAR_SUBSTS_disj_comm)
+apply(smt SubstB_closure SubstB_def SubstB_disj_comm SubstB_inv_cancel2 SubstsB_inject VAR_SUBST_inv VAR_SUBST_inv_inv)
+done
+
+theorem SubstP_id :
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE \<rbrakk> \<Longrightarrow>
+ p[id] = p"
+  by (utp_pred_eq_tac)
+
 theorem SubstP_AndP_distr :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE;
@@ -249,6 +387,71 @@ theorem SubstP_AndP_distr :
 apply (utp_pred_eq_tac)
 apply (auto)
 done
+
+theorem SubstP_OrP_distr :
+"\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
+ p2 \<in> WF_ALPHA_PREDICATE;
+ ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
+ (p1 \<or>p p2)[ss] = p1[ss] \<or>p p2[ss]"
+apply (utp_pred_eq_tac)
+apply (auto)
+done
+
+theorem SubstP_NotP_distr :
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
+ ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
+ (\<not>p p)[ss] = \<not>p p[ss]"
+apply (utp_pred_eq_tac)
+done
+
+theorem ExistsResP_Subst:
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
+  ss \<in> VAR_SUBST; a \<in> WF_ALPHABET \<rbrakk> \<Longrightarrow>
+  p \<ominus>p a = (p[ss] \<ominus>p (ss ` a))[inv ss]"
+apply (utp_pred_eq_tac)
+apply(rule conjI)
+apply (smt VAR_SUBST_image_inv VAR_SUBST_inv VAR_SUBST_inv_inv image_diff_subset image_mono set_eq_subset)
+apply(auto)
+apply(rule_tac x="SubstB ss b'" in bexI)
+apply(auto simp add:SubstB_override1)
+apply(rule_tac x="SubstB (inv ss) b'" in bexI)
+apply(auto simp add:SubstB_override2)
+done
+
+theorem ResP_Subst_disj:
+  assumes "p \<in> WF_ALPHA_PREDICATE" "ss \<in> VAR_SUBST" "a \<in> WF_ALPHABET" "mappings ss \<inter> a = {}"
+  shows "(p \<ominus>p a)[ss] = p[ss] \<ominus>p a"
+apply(insert assms)
+apply(utp_pred_eq_tac)
+apply(rule conjI)
+apply(simp add:VAR_SUBST_def bij_def image_set_diff disj_mapping_image)
+apply(auto)
+apply(rule_tac x="SubstB (inv ss) b'" in bexI)
+apply (smt SubstB_closure SubstB_inv_cancel2 SubstB_override3 SubstB_override4 VAR_SUBST_inv VAR_SUBST_inv_inv WF_BINDING_override)
+apply(force)
+apply(rule_tac x="SubstB (inv ss) b'" in bexI)
+apply (smt SubstB_closure SubstB_inv_cancel2 SubstB_override2 VAR_SUBST_inv assms(2) disj_mapping_image)
+apply(force)
+done
+
+theorem ExistsResP_Subst_disj:
+  assumes "p \<in> WF_ALPHA_PREDICATE" "ss \<in> VAR_SUBST" "a \<in> WF_ALPHABET" "mappings ss \<inter> a = {}"
+  shows "(\<exists>-p a . p)[ss] = (\<exists>-p a . p[ss])"
+apply(insert assms)
+apply(simp add:ExistsResP_def)
+apply(simp add:ResP_Subst_disj)
+done
+
+(*
+theorem SubstP_ExistsResP :
+"\<lbrakk> a \<in> WF_ALPHABET
+ ; p \<in> WF_ALPHA_PREDICATE
+ ; ss \<in> VAR_SUBST \<rbrakk> \<Longrightarrow>
+ (\<exists>-p a . p)[ss] = (\<exists>-p a . p[ss \<oplus> id on a])"
+apply(subgoal_tac "ss \<oplus> id on a \<in> VAR_SUBST")
+apply(utp_pred_eq_tac)
+apply(auto)
+*)
 
 theorem Closure_SubstP :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;

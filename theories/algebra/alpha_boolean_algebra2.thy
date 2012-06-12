@@ -1,5 +1,5 @@
 theory alpha_boolean_algebra2
-imports "../generic/utp_gen_pred" 
+imports "../generic/utp_gen_pred" "~~/src/HOL/Algebra/Lattice"
 begin
 
 declare [[smt_solver = z3]]
@@ -31,8 +31,8 @@ locale alpha_boolean_algebra =
   and     conj_defn:    "\<lbrakk> x \<in> carrier B; y \<in> carrier B \<rbrakk> \<Longrightarrow> x \<sqinter> y = ` (` x \<squnion> ` y)"
   and     top_defn:     "\<lbrakk> x \<in> carrier B \<rbrakk> \<Longrightarrow> x \<squnion> ` x = \<top>\<^bsub>\<alpha>(x)\<^esub>"
   and     bot_defn:     "a \<in> wfalpha B \<Longrightarrow> \<bottom>\<^bsub>a\<^esub> = ` \<top>\<^bsub>a\<^esub>"
-  and     leq_defn: "\<lbrakk> x \<in> carrier B; y \<in> carrier B; \<alpha> x = \<alpha> y \<rbrakk> \<Longrightarrow>
-                         x \<sqsubseteq> y \<longleftrightarrow> x \<squnion> y = y"
+  and     leq_defn:     "\<lbrakk> x \<in> carrier B; y \<in> carrier B \<rbrakk> \<Longrightarrow>
+                         x \<sqsubseteq> y \<longleftrightarrow> \<alpha> x = \<alpha> y \<and> (x \<squnion> y = y)"
   and     disj_assoc:   "\<lbrakk> x \<in> carrier B; y \<in> carrier B; z \<in> carrier B \<rbrakk> \<Longrightarrow>  
                          (x\<squnion>y)\<squnion>z = x\<squnion>(y\<squnion>z)"
   and     disj_comm:    "\<lbrakk> x \<in> carrier B; y \<in> carrier B \<rbrakk> \<Longrightarrow> x\<squnion>y = y\<squnion>x"
@@ -147,25 +147,30 @@ lemma compl: "\<lbrakk> x \<in> carrier B; y \<in> carrier B; \<alpha> y \<subse
   by (smt alpha_compl_sub compl_alpha compl_closed conj_assoc conj_compl conj_defn conj_idem conj_ident disj_alpha disj_assoc disj_closed disj_comm disj_compl disj_ident dist_2 double_compl)
 
 lemma leq_refl: "\<lbrakk> x \<in> carrier B \<rbrakk> \<Longrightarrow> x \<sqsubseteq> x"
-  by (metis disj_idem leq_defn)
+  by (metis disj_idem leq_defn subset_refl)
 
-lemma leq_trans: "\<lbrakk> x \<in> carrier B; y \<in> carrier B; z \<in> carrier B; \<alpha> x = \<alpha> y; \<alpha> y = \<alpha> z \<rbrakk> \<Longrightarrow>
+lemma leq_trans: "\<lbrakk> x \<in> carrier B; y \<in> carrier B; z \<in> carrier B \<rbrakk> \<Longrightarrow>
                   x \<sqsubseteq> y \<and> y \<sqsubseteq> z \<longrightarrow> x \<sqsubseteq> z"
   by (metis disj_assoc leq_defn)
 
-lemma leq_antisym: "\<lbrakk> x \<in> carrier B; y \<in> carrier B; z \<in> carrier B; \<alpha> x = \<alpha> y; \<alpha> y = \<alpha> z \<rbrakk> \<Longrightarrow> 
+lemma leq_antisym: "\<lbrakk> x \<in> carrier B; y \<in> carrier B; z \<in> carrier B \<rbrakk> \<Longrightarrow> 
                     x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
   by (metis disj_comm leq_defn)
 
-lemma disj_iso: "\<lbrakk> x \<in> carrier B; y \<in> carrier B; z \<in> carrier B; \<alpha> x = \<alpha> y; \<alpha> z \<subseteq> \<alpha> y \<rbrakk> \<Longrightarrow> x \<sqsubseteq> y \<longrightarrow> x\<squnion>z \<sqsubseteq> y\<squnion>z"
-  by (smt disj_alpha disj_alpha_subset disj_assoc disj_closed disj_comm disj_idem leq_defn)
+lemma alpha_iso: "\<lbrakk> x \<in> carrier B; y \<in> carrier B; z \<in> carrier B; \<alpha> x \<subseteq> \<alpha> y \<rbrakk> \<Longrightarrow> \<alpha> (x\<squnion>z) \<subseteq> \<alpha> (y\<squnion>z)"
+  by (metis Un_least Un_upper2 disj_alpha le_supI1)
 
-lemma disj_ub: "\<lbrakk> x \<in> carrier B; y \<in> carrier B; \<alpha> y \<subseteq> \<alpha> x  \<rbrakk> \<Longrightarrow> x \<sqsubseteq> x\<squnion>y"
-  by (smt disj_alpha disj_assoc disj_closed disj_idem leq_defn sup_absorb1)
+lemma disj_iso: 
+  assumes assm: "x \<in> carrier B" "y \<in> carrier B" "z \<in> carrier B" "x \<sqsubseteq> y" 
+  shows "x\<squnion>z \<sqsubseteq> y\<squnion>z"
+  by (smt assm disj_alpha disj_assoc disj_closed disj_comm disj_idem leq_defn)
 
-lemma disj_lub: "\<lbrakk> x \<in> carrier B ; y \<in> carrier B ; z \<in> carrier B; \<alpha> x = \<alpha> y; \<alpha> y = \<alpha> z \<rbrakk> 
+lemma disj_ub: "\<lbrakk> x \<in> carrier B; y \<in> carrier B \<rbrakk> \<Longrightarrow> x \<sqsubseteq> x\<squnion>y"
+  by (smt disj_assoc disj_closed disj_idem leq_defn)
+
+lemma disj_lub: "\<lbrakk> x \<in> carrier B ; y \<in> carrier B ; z \<in> carrier B \<rbrakk> 
                 \<Longrightarrow> x\<squnion>y \<sqsubseteq> z \<longleftrightarrow> x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
-  by (smt disj_alpha disj_assoc disj_closed disj_comm disj_idem leq_defn subset_refl)
+  by (smt disj_assoc disj_closed disj_comm disj_ub leq_defn)
 
 lemma comp_anti: "\<lbrakk> x \<in> carrier B; y \<in> carrier B; \<alpha> x = \<alpha> y \<rbrakk> \<Longrightarrow> x \<sqsubseteq> y \<longleftrightarrow> `y \<sqsubseteq> `x"
   by (smt alpha_compl_eq compl compl_closed disj_closed disj_comm disj_ub double_compl disj_idem leq_defn order_refl top_defn)
@@ -174,24 +179,50 @@ text {* We now show that $0$ and $1$ are the least and greatest
 elements of the order *}
 
 lemma bot_min: "\<lbrakk> x \<in> carrier B \<rbrakk> \<Longrightarrow> \<bottom>\<^bsub>\<alpha>(x)\<^esub> \<sqsubseteq> x"
-  by (metis bot_alpha bot_closed disj_comm disj_ident leq_defn wfalpha)
+  by (metis bot_alpha bot_closed disj_ident disj_lub leq_refl wfalpha)
 
 lemma top_max: "\<lbrakk> x \<in> carrier B \<rbrakk> \<Longrightarrow> x \<sqsubseteq> \<top>\<^bsub>\<alpha>(x)\<^esub>"
-  by (metis compl_alpha compl_closed disj_ub subset_refl top_defn)
+  by (metis compl_alpha compl_closed disj_compl disj_ub subset_refl)
+
+lemma conj_iso: "\<lbrakk> x \<in> carrier B; y \<in> carrier B; z \<in> carrier B; x \<sqsubseteq> y \<rbrakk> \<Longrightarrow> x\<sqinter>z \<sqsubseteq> y\<sqinter>z"
+  by (metis conj_closed conj_comm disj_ub dist_2 leq_defn)
 
 lemma leq_conj: "\<lbrakk> x \<in> carrier B; y \<in> carrier B; \<alpha> x = \<alpha> y \<rbrakk> \<Longrightarrow> 
                  x \<sqsubseteq> y \<longleftrightarrow> x\<sqinter>y = x"
-  apply(auto)
-  apply(smt comp_anti compl_alpha compl_closed conj_defn disj_comm double_compl leq_defn)
-  apply(smt comp_anti compl_alpha compl_closed conj_defn disj_closed disj_comm double_compl leq_defn)
-done
+  by (smt bot_closed conj_anhil conj_comm conj_ident conj_iso disj_ident dist_1 leq_defn top_closed top_max wfalpha)
 
-lemma conj_iso: "\<lbrakk> x \<in> carrier B; y \<in> carrier B; z \<in> carrier B; \<alpha> x = \<alpha> y; \<alpha> z = \<alpha> y ; x \<sqsubseteq> y \<rbrakk> \<Longrightarrow> x\<sqinter>z \<sqsubseteq> y\<sqinter>z"
-  by (smt alpha_compl_eq comp_anti compl_alpha compl_closed conj_defn disj_closed disj_lub double_compl leq_refl leq_trans)
-         
+lemma conj_lb: "\<lbrakk> x \<in> carrier B; y \<in> carrier B \<rbrakk> \<Longrightarrow> x\<sqinter>y \<sqsubseteq> x"
+  proof -
+    assume assm: "x \<in> carrier B" "y \<in> carrier B"
+    then have "x\<sqinter>y \<in> carrier B"
+      by (metis conj_closed)
 
-lemma conj_lb: "\<lbrakk> x \<in> carrier B; y \<in> carrier B; \<alpha> y \<subseteq> \<alpha> x \<rbrakk> \<Longrightarrow> x\<sqinter>y \<sqsubseteq> x"
-  by (smt compl compl_closed conj_alpha_subset conj_defn disj_assoc disj_closed disj_idem leq_defn)
+    then have a1:"(x \<sqinter> y) \<squnion> x = ((x \<sqinter> y) \<squnion> x) \<sqinter> \<top>\<^bsub>\<alpha>((x \<sqinter> y) \<squnion> x)\<^esub>"
+      by (metis assm conj_ident disj_closed)
+
+    fix a::"'b set"
+
+    assume "\<alpha> x = \<alpha> y"
+
+    have "((x \<sqinter> y) \<squnion> x) \<sqinter> \<top>\<^bsub>a\<^esub> = ((x \<sqinter> y) \<sqinter> \<top>\<^bsub>a\<^esub>) \<squnion> (x \<sqinter> \<top>\<^bsub>a\<^esub>)"
+      
+    have "... = ((x \<squnion> \<top>\<^bsub>a\<^esub>) \<sqinter> (y \<squnion> \<top>\<^bsub>a\<^esub>) \<sqinter> (x \<squnion> \<top>\<^bsub>a\<^esub>)"
+
+by (metis assm(1) assm(2) conj_ident disj_anhil dist_2 top_closed wfalpha)
+      by (metis assm(1) assm(2) conj_idem dist_2)
+
+    
+
+    then also have "x \<sqinter> (y \<squnion> x) = x"
+      by (metis a1 assm conj_ident disj_anhil dist_2 top_closed wfalpha)
+
+
+    with assm show ?thesis
+      apply(simp add:leq_defn)
+  by (metis conj_alpha_subset conj_assoc conj_closed conj_comm leq_conj leq_refl)
+
+
+
 
 lemma conj_lb': "\<lbrakk> x \<in> carrier B; y \<in> carrier B; \<alpha> x \<subseteq> \<alpha> y \<rbrakk> \<Longrightarrow> x\<sqinter>y \<sqsubseteq> y"
   by (metis conj_comm conj_lb)
@@ -200,7 +231,7 @@ lemma conj_glb: "\<lbrakk> x \<in> carrier B ; y \<in> carrier B ; z \<in> carri
                  z \<sqsubseteq>  x\<sqinter>y \<longleftrightarrow> z\<sqsubseteq>x \<and> z\<sqsubseteq>y"
   by (smt conj_alpha_subset conj_assoc conj_closed conj_comm conj_lb leq_conj subset_refl)
 
-lemma leq_symm_intro: "\<lbrakk> x \<in> carrier B; y \<in> carrier B; x \<sqsubseteq> y; y \<sqsubseteq> x; \<alpha> x = \<alpha> y\<rbrakk> \<Longrightarrow> x = y"
+lemma leq_symm_intro: "\<lbrakk> x \<in> carrier B; y \<in> carrier B; x \<sqsubseteq> y; y \<sqsubseteq> x \<rbrakk> \<Longrightarrow> x = y"
   by (metis disj_comm leq_defn)
 
 text {* Next we show the absorption laws of lattice theory *}
@@ -292,7 +323,7 @@ lemma galois_1:
 proof
   assume "x \<sqinter> `y \<sqsubseteq> z"
   thus "x \<sqsubseteq> y \<squnion> z"
-    by (smt alpha_compl_eq assm compl7 compl_alpha compl_closed conj_closed demorgan1 demorgan3 disj_assoc disj_comm leq_defn)
+    by (smt assm compl7 compl_closed conj_closed conj_defn disj_alpha disj_assoc disj_closed disj_comm double_compl leq_defn)
 next
   assume "x \<sqsubseteq> y \<squnion> z"
   thus "x \<sqinter> `y \<sqsubseteq> z"
@@ -312,7 +343,31 @@ apply(metis assm bot_min compl_alpha compl_closed double_compl galois_1 disj_ide
 apply(smt assm bot_defn compl_5 compl_alpha compl_closed conj_comm conj_defn leq_defn top_defn wfalpha)
 done
 
+abbreviation "ba_partial_order \<equiv>
+ \<lparr> partial_object.carrier = carrier B,
+   eq = (\<lambda> x y. x = y), 
+   le = ble B \<rparr>"
 end
+
+sublocale alpha_boolean_algebra \<subseteq> lattice "ba_partial_order" where
+  "partial_object.carrier ba_partial_order = carrier B" and
+  "eq ba_partial_order = (\<lambda> x y. x = y)" and
+  "le ba_partial_order = ble B"
+apply(unfold_locales)
+apply(auto)
+apply(metis leq_refl)
+apply (metis leq_symm_intro)
+apply(metis leq_trans)
+apply(rule_tac x="x\<squnion>y" in exI)
+apply(simp add:least_def)
+apply(safe)
+apply(simp_all add:Upper_def)
+apply(safe)
+apply(subgoal_tac "\<alpha> x = \<alpha> y")
+apply (metis disj_ub subset_refl)
+
+
+done
 
 end
 

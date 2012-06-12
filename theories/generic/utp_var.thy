@@ -60,5 +60,29 @@ definition DASHED_TWICE :: "'TYPE VAR set" where
 
 definition PLAIN :: "'TYPE VAR set" where
 "PLAIN = {v . v \<in> UNDASHED \<and> subscript (name v) = NoSub}"
+
+subsection {* Properties *}
+
+lemma inj_dash: "inj dash"
+  apply(auto simp add:inj_on_def dash_def)
+  apply(case_tac x)
+  apply(case_tac y)
+  apply(simp)
+done
+
+lemma inj_dashed_undash: "inj_on undash DASHED"
+  apply(auto simp add:inj_on_def undash_def DASHED_def)
+  apply(case_tac x)
+  apply(case_tac y)
+  apply(simp)
+done
+
+lemma inj_dashed2_undash: "inj_on undash DASHED_TWICE"  
+  apply(auto simp add:inj_on_def undash_def DASHED_TWICE_def)
+  apply(case_tac x)
+  apply(case_tac y)
+  apply(simp)
+done
+
 end
 end

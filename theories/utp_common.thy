@@ -108,6 +108,18 @@ apply (rule ext)
 apply (auto)
 done
 
+theorem override_on_assoc :
+"(f \<oplus> g on a) \<oplus> h on b = f \<oplus> (g \<oplus> h on b) on (a \<union> b)"
+apply (simp add: override_on_def)
+apply (rule ext)
+apply (auto)
+done
+
+(*
+
+
+*)
+
 theorem override_on_comm_sym :
 "f \<oplus> g on (- a) = g \<oplus> f on a"
 apply (simp add: override_on_def)
@@ -148,12 +160,29 @@ apply (rule ext)
 apply (auto)
 done
 
+theorem override_on_cancel3' [simp] :
+"(f \<oplus> g on a) \<oplus> h on a = f \<oplus> h on a"
+apply (simp add: override_on_def)
+apply (rule ext)
+apply(auto)
+done
+
 theorem override_on_cancel4 [simp] :
 "f \<oplus> (g \<oplus> h on a) on (b - a) = f \<oplus> g on (b - a)"
 apply (simp add: override_on_def)
 apply (rule ext)
 apply (auto)
 done
+
+theorem override_on_cancel5 [simp] :
+"(f \<oplus> g on (a \<union> b)) \<oplus> h on (a \<union> c) = (f \<oplus> g on b) \<oplus> h on (a \<union> c)"
+apply (simp add: override_on_def)
+apply (rule ext)
+apply (auto)
+done
+
+lemma override_on_cancel6: "f \<oplus> (g \<oplus> h on a) on a = f \<oplus> h on a"
+  by (metis override_on_assoc override_on_chain override_on_emptyset)
 
 subsubsection {* Miscellaneous *}
 

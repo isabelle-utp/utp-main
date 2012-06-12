@@ -343,7 +343,7 @@ subsection {* Theorems *}
 
 context GEN_PRED
 begin
-theorem EvalP_override :
+theorem EvalP_override [eval]:
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  b1 \<in> WF_BINDING;
  b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
@@ -351,6 +351,24 @@ theorem EvalP_override :
 apply (simp add: EvalP_def)
 apply (simp add: WF_ALPHA_PREDICATE_def WF_BINDING_SET_def)
 apply (auto simp: beta_equiv_def)
+done
+
+theorem EvalP_override_2 [eval]:
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
+ b1 \<in> WF_BINDING;
+ b2 \<in> WF_BINDING;
+ a  \<in> WF_ALPHABET;
+ a \<inter> \<alpha> p = {} \<rbrakk> \<Longrightarrow>
+ EvalP p (b1 \<oplus> b2 on a) = EvalP p b1"
+apply (auto simp add: EvalP_def)
+apply(simp_all add: WF_ALPHA_PREDICATE_def WF_BINDING_SET_def)
+apply(subgoal_tac "(b1 \<oplus> b2 on a) \<cong> b1 on \<alpha> p")
+apply(simp)
+apply(simp add: beta_equiv_override_2)
+apply(subgoal_tac "b1 \<cong> (b1 \<oplus> b2 on a) on \<alpha> p")
+apply(simp)
+apply(simp add: beta_equiv_def override_on_def)
+apply(auto)
 done
 
 theorem EvalP_total [simp] :
