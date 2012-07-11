@@ -47,11 +47,21 @@ definition VarE :: "'TYPE VAR \<Rightarrow> ('VALUE, 'TYPE) ALPHA_EXPRESSION" wh
 
 subsection {* Predicates *}
 
+(*
+definition ExprP :: "('VALUE, 'TYPE) ALPHA_EXPRESSION \<Rightarrow> ('VALUE, 'TYPE) ALPHA_PREDICATE" where
+"expr_type e = BoolType \<longrightarrow> ExprP e \<equiv> e" 
+*)
+
 definition EqualP :: "('VALUE, 'TYPE) ALPHA_EXPRESSION \<Rightarrow> ('VALUE, 'TYPE) ALPHA_EXPRESSION \<Rightarrow> ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "e \<in> WF_ALPHA_EXPR \<and> f \<in> WF_ALPHA_EXPR \<longrightarrow> 
  EqualP e f = (\<alpha>e e \<union> \<alpha>e f, {b. b \<in> WF_BINDING \<and> (expr_body e b = expr_body f b)})"
 
-notation EqualP (infixr "=p" 150)
+notation EqualP (infixr "==p" 150)
+
+abbreviation EqualVP :: "'TYPE VAR \<Rightarrow> ('VALUE, 'TYPE) ALPHA_EXPRESSION \<Rightarrow> ('VALUE, 'TYPE) ALPHA_PREDICATE" where
+"EqualVP v e \<equiv> EqualP (VarE v) e"
+
+notation EqualVP (infixr "=p" 150)
 
 subsubsection {* Alphabet Theorems *}
 
@@ -59,30 +69,33 @@ lemma VarP_alphabet [simp]: "\<alpha>e (VarE v) = {v}"
   by (simp add:VarE_def)
 
 lemma EqualP_alphabet [simp]: 
-"\<lbrakk> e \<in> WF_ALPHA_EXPR; f \<in> WF_ALPHA_EXPR \<rbrakk> \<Longrightarrow> \<alpha> (e =p f) = \<alpha>e e \<union> \<alpha>e f"
+"\<lbrakk> e \<in> WF_ALPHA_EXPR; f \<in> WF_ALPHA_EXPR \<rbrakk> \<Longrightarrow> \<alpha> (e ==p f) = \<alpha>e e \<union> \<alpha>e f"
   by (simp add:EqualP_def)
 
 subsubsection {* Closure Theorems *}
 
 lemma VarE_closure[simp]:
 "VarE v \<in> WF_ALPHA_EXPR"
-  by (simp add:VarE_def WF_ALPHA_EXPR_def WF_BINDING_def beta_equiv_def)
+  by (simp add:VarE_def WF_ALPHA_EXPR_def WF_BINDING_def beta_equiv_def alpha_closure var)
 
 lemma EqualP_closure[simp]: 
 "\<lbrakk> e \<in> WF_ALPHA_EXPR; f \<in> WF_ALPHA_EXPR \<rbrakk> \<Longrightarrow>
- e =p f \<in> WF_ALPHA_PREDICATE"
-  by (auto simp add:EqualP_def WF_ALPHA_EXPR_def WF_ALPHA_PREDICATE_def WF_BINDING_SET_def beta_equiv_union)
+ e ==p f \<in> WF_ALPHA_PREDICATE"
+  apply (simp add:EqualP_def WF_ALPHA_EXPR_def WF_ALPHA_PREDICATE_def WF_BINDING_SET_def)
+  apply (simp add:alpha_closure var beta_equiv_union)
+  apply (auto)
+done
   
 subsubsection {* Equality Theorems *}
 
-lemma EqualP_refl: "e \<in> WF_ALPHA_EXPR \<Longrightarrow> taut (e =p e)"
+lemma EqualP_refl: "e \<in> WF_ALPHA_EXPR \<Longrightarrow> taut (e ==p e)"
   apply(insert EqualP_closure [where e="e" and f="e"])
   apply(simp add:Tautology_def EqualP_def WF_ALPHA_PREDICATE_def TrueP_def)
 done
 
 lemma EqualP_sym: 
-"\<lbrakk> e \<in> WF_ALPHA_EXPR; f \<in> WF_ALPHA_EXPR; taut (e =p f)\<rbrakk> 
- \<Longrightarrow> taut (f =p e)"
+"\<lbrakk> e \<in> WF_ALPHA_EXPR; f \<in> WF_ALPHA_EXPR; taut (e ==p f)\<rbrakk> 
+ \<Longrightarrow> taut (f ==p e)"
   apply(insert EqualP_closure [where e="e" and f="f"])
   apply(insert EqualP_closure [where e="f" and f="e"])
   apply(simp add:Tautology_def EqualP_def WF_ALPHA_PREDICATE_def TrueP_def)
@@ -90,8 +103,8 @@ lemma EqualP_sym:
 done
 
 lemma EqualP_trans: 
-"\<lbrakk> e \<in> WF_ALPHA_EXPR; f \<in> WF_ALPHA_EXPR; g \<in> WF_ALPHA_EXPR; taut (e =p f); taut (f =p g)\<rbrakk> 
- \<Longrightarrow> taut (e =p g)"
+"\<lbrakk> e \<in> WF_ALPHA_EXPR; f \<in> WF_ALPHA_EXPR; g \<in> WF_ALPHA_EXPR; taut (e ==p f); taut (f ==p g)\<rbrakk> 
+ \<Longrightarrow> taut (e ==p g)"
   apply(insert EqualP_closure [where e="e" and f="f"])
   apply(insert EqualP_closure [where e="f" and f="g"])
   apply(insert EqualP_closure [where e="e" and f="g"])

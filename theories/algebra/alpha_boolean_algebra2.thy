@@ -151,7 +151,8 @@ lemma leq_refl: "\<lbrakk> x \<in> carrier B \<rbrakk> \<Longrightarrow> x \<sqs
 
 lemma leq_trans: "\<lbrakk> x \<in> carrier B; y \<in> carrier B; z \<in> carrier B \<rbrakk> \<Longrightarrow>
                   x \<sqsubseteq> y \<and> y \<sqsubseteq> z \<longrightarrow> x \<sqsubseteq> z"
-  by (metis disj_assoc leq_defn)
+  by (smt disj_assoc leq_defn)
+
 
 lemma leq_antisym: "\<lbrakk> x \<in> carrier B; y \<in> carrier B; z \<in> carrier B \<rbrakk> \<Longrightarrow> 
                     x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"

@@ -24,7 +24,7 @@ text {* For now we only consider countably infinite sets. *}
 
 text {* Higher degrees of infinity can in principle be supported. *}
 
-types IDX = "nat"
+type_synonym IDX = "nat"
 
 datatype 'a SET = MkSet "IDX \<Rightarrow> 'a" | EmptySet
 

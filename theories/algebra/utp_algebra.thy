@@ -7,9 +7,9 @@
 header {* Meta-theory for Algebras *}
 
 theory utp_algebra
-imports
+imports Main
 (* alpha_boolean_algebra1 *)
-  alpha_boolean_algebra2
+(*  alpha_boolean_algebra2 *)
 begin
 
 text {* Meta-theory that imports all theories for algebraic reasoning. *}

@@ -115,11 +115,6 @@ apply (rule ext)
 apply (auto)
 done
 
-(*
-
-
-*)
-
 theorem override_on_comm_sym :
 "f \<oplus> g on (- a) = g \<oplus> f on a"
 apply (simp add: override_on_def)
@@ -181,8 +176,129 @@ apply (rule ext)
 apply (auto)
 done
 
-lemma override_on_cancel6: "f \<oplus> (g \<oplus> h on a) on a = f \<oplus> h on a"
+lemma override_on_cancel6: 
+"f \<oplus> (g \<oplus> h on a) on a = f \<oplus> h on a"
   by (metis override_on_assoc override_on_chain override_on_emptyset)
+
+lemma override_image[simp]: 
+"(f \<oplus> g on a) ` b = f ` (b \<inter> -a) \<union> g ` (b \<inter> a)"
+  by (auto simp add:override_on_def)
+
+lemma override_before[simp]: 
+"bij h \<Longrightarrow> ((f \<oplus> g on a) \<circ> h) = (f \<circ> h) \<oplus> (g \<circ> h) on (inv h) ` a"
+  apply (auto simp add:bij_def override_on_def)
+  apply (rule ext)
+  apply (auto)
+  apply (metis (lifting) image_surj_f_inv_f inj_image_mem_iff)
+  apply (metis surj_f_inv_f)
+done
+
+lemma override_imageR[simp]: "(f \<oplus> g on a) ` a = g ` a"
+  by (auto simp add:override_on_def)
+
+lemma override_imageL[simp]: "a \<inter> b = {} \<Longrightarrow> (f \<oplus> g on a) ` b = f ` b"
+  by (auto simp add:override_on_def)
+
+subsubsection {* Bijections *}
+
+text {* Bijections with two disjoint partitions *}
+
+definition bij_split :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> bool" where
+"bij_split f a b \<equiv> bij_betw f a b \<and> bij_betw f (-a) (-b)"
+
+theorem bij_comp_inject :
+"bij g \<Longrightarrow> (f1 \<circ> g = f2 \<circ> g) = (f1 = f2)"
+apply (safe)
+apply (rule ext)
+apply (subgoal_tac "\<exists> y . x = g y")
+apply (clarify)
+apply (drule_tac x = "y" in fun_cong)
+apply (auto)
+apply (simp add: bij_def surj_def)
+done
+
+declare bij_imp_bij_inv [simp, intro!]
+
+lemma bij_betw_empty[simp]: "bij_betw f {} {}"
+  by (simp add:bij_betw_def)
+
+lemma bij_split_bij: 
+"\<lbrakk> bij_split f a b \<rbrakk> \<Longrightarrow> bij f"
+apply(simp add:bij_betw_def bij_split_def bij_def inj_on_def)
+apply(auto)
+apply(blast)+
+done
+
+lemma bij_split_id:
+"bij_split id a a"
+  by (simp add:bij_betw_def bij_split_def bij_def inj_on_def)
+
+lemma bij_split_override:
+"\<lbrakk> bij_split f a b; bij_betw g (-a) (-b) \<rbrakk> \<Longrightarrow> bij_split (g \<oplus> f on a) a b"
+  by (auto simp add:bij_split_def bij_betw_def inj_on_def override_on_def)
+
+declare bij_split_def[simp]
+
+lemma override_bij:
+  assumes "bij_betw f a a" "bij_betw g b b" "a \<inter> b = {}"
+  shows "bij_betw (g \<oplus> f on a) (a \<union> b) (a \<union> b)"
+proof -
+  from assms have "inj_on (g \<oplus> f on a) (a \<union> b)"
+    apply(simp add:bij_betw_def inj_on_def override_on_def)
+    apply(clarify)
+    apply (metis Int_iff Un_iff empty_iff imageI)
+  done
+
+  moreover from assms have " (g \<oplus> f on a) ` (a \<union> b) = a \<union> b"
+  proof (auto simp add:bij_betw_def inj_on_def override_on_def)
+    fix x
+    assume "g ` b = b" "x \<notin> g ` ((a \<union> b) \<inter> {x. x \<notin> a})" "x \<in> b"
+    moreover from assms have "(a \<union> b) \<inter> (-a) = b"
+      by force
+
+    ultimately show "x \<in> f ` ((a \<union> b) \<inter> a)"
+      by (auto)
+  qed
+
+  ultimately show ?thesis
+    by (simp add:bij_betw_def)
+qed
+
+lemma override_inv:
+  assumes "bij_split f a b" "bij_split g a b"
+  shows "(inv (g \<oplus> f on a)) = ((inv g) \<oplus> (inv f) on b)"
+proof -
+  from assms have "bij f" "bij g"
+    by (metis bij_split_bij)+
+
+  with assms show ?thesis
+apply(auto)
+apply(rule ext)
+apply(simp add:bij_betw_def bij_def override_on_def)
+apply(rule conjI)
+apply(clarify)
+apply(simp add:inv_f_f)
+apply(rule inv_f_eq)
+apply(simp add:inj_on_def)
+apply(blast)
+apply(force)
+apply(subgoal_tac "\<exists>xa.(x = g xa)")
+apply(clarify)
+apply(simp add:inv_f_f)
+apply(rule inv_f_eq)
+apply(simp add:inj_on_def)
+apply(auto)
+done
+
+qed
+
+lemma override_inv_id:
+  assumes "bij_split f a a"
+  shows "inv (id \<oplus> f on a) = id \<oplus> inv f on a"
+  by (metis assms bij_split_id inv_id override_inv)
+
+lemma f_inv [simp]: "surj f \<Longrightarrow> f \<circ> inv f = id"
+  by (metis surj_iff)
 
 subsubsection {* Miscellaneous *}
 

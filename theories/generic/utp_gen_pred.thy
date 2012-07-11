@@ -10,6 +10,20 @@ theory utp_gen_pred
 imports "../utp_types" utp_value utp_var utp_alphabet
 begin
 
+ML {*
+  structure BindingThm =
+    Named_Thms (val name = @{binding "binding"} val description = "predicate binding rules");
+*}
+
+setup {* BindingThm.setup *}
+
+ML {*
+  structure ClosureThm =
+    Named_Thms (val name = @{binding "closure"} val description = "predicate closure rules");
+*}
+
+setup {* ClosureThm.setup *}
+
 subsection {* Locale @{text "GEN_PRED"} *}
 
 locale GEN_PRED =
@@ -287,21 +301,24 @@ subsection {* Theorems *}
 
 subsubsection {* Alphabet Theorems *}
 
-theorem WF_ALPHABET_alphabet :
+(* We add some laws from HOL which are useful for proving alphabet lemmas *)
+declare image_Un [alphabet]
+declare refl [alphabet]
+declare image_set_diff [alphabet]
+
+theorem WF_ALPHABET_alphabet [alpha_closure] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  (\<alpha> p) \<in> WF_ALPHABET"
-apply (simp add: WF_ALPHA_PREDICATE_def)
-done
+  by (simp add: WF_ALPHA_PREDICATE_def)
 
 theorem WF_ALPHA_PREDICATE_subset [intro] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE; a \<subseteq> \<alpha> p\<rbrakk> \<Longrightarrow>
  a \<in> WF_ALPHABET"
-apply (auto intro: WF_ALPHABET_alphabet)
-done
+  by (auto intro:finite_subset simp add: WF_ALPHA_PREDICATE_def WF_ALPHABET_def)
 
 subsubsection {* Binding Theorems *}
 
-theorem WF_BINDING_exists :
+theorem WF_BINDING_exists[binding] :
 "\<exists> b . b \<in> WF_BINDING"
 apply (rule_tac x = "(\<lambda> v . SOME x . x : (type v))" in exI)
 apply (simp add: WF_BINDING_def)
@@ -311,13 +328,13 @@ apply (simp only: type_non_empty)
 apply (assumption)
 done
 
-theorem WF_BINDING_non_empty :
+theorem WF_BINDING_non_empty[binding] :
 "WF_BINDING \<noteq> {}"
 apply (insert WF_BINDING_exists)
 apply (auto)
 done
 
-theorem WF_BINDING_override [simp,intro] :
+theorem WF_BINDING_override [simp,intro,binding] :
 "\<lbrakk>b1 \<in> WF_BINDING;
  b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  b1 \<oplus> b2 on a \<in> WF_BINDING"
@@ -331,7 +348,7 @@ text {* The following three theorems have to be reviewd. *}
 
 text {* Can we make use of them as default simplifications? *}
 
-theorem WF_BINDING_predicate :
+theorem WF_BINDING_predicate[binding] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE; b \<in> \<beta> p\<rbrakk> \<Longrightarrow>
  b \<in> WF_BINDING"
 apply (simp add: WF_ALPHA_PREDICATE_def)
@@ -339,14 +356,14 @@ apply (simp add: WF_BINDING_SET_def)
 apply (auto)
 done
 
-theorem WF_BINDING_bindings :
+theorem WF_BINDING_bindings[binding] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  \<beta> p \<subseteq> WF_BINDING"
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_BINDING_SET_def)
 done
 
-theorem bindings_override :
+theorem bindings_override[binding] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  b1 \<in> \<beta> p;
  b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
@@ -362,7 +379,7 @@ apply (auto simp: beta_equiv_def)
 done
 
 text {* Binding Equivalence *}
-theorem  beta_equiv_refl :
+theorem  beta_equiv_refl[binding] :
 "b \<cong> b on a"
 by (simp add: beta_equiv_def)
 
@@ -375,7 +392,7 @@ theorem  beta_equiv_trans :
 apply (simp add: beta_equiv_def)
 done
 
-theorem beta_equiv_override :
+theorem beta_equiv_override[binding] :
 "b1 \<cong> b2 on a \<Longrightarrow> b1 \<oplus> b2 on a = b1"
 apply (simp add: beta_equiv_def)
 apply (rule ext)
@@ -430,7 +447,7 @@ theorem beta_equiv_override_intro1[intro]:
 
 text {* Binding Set Theorems *}
 
-theorem  WF_BINDING_SET_ext :
+theorem  WF_BINDING_SET_ext[binding] :
 "bs \<in> WF_BINDING_SET a1 \<Longrightarrow>
  bs \<in> WF_BINDING_SET (a1 \<union> a2)"
 apply (simp only: WF_BINDING_SET_def)
@@ -441,7 +458,7 @@ apply (simp only: beta_equiv_def)
 apply (auto)
 done
 
-theorem WF_BINDING_SET_res :
+theorem WF_BINDING_SET_res[binding] :
 "bs \<in> WF_BINDING_SET a1 \<Longrightarrow>
  {b2 \<in> WF_BINDING .
    (\<exists> b1 \<in> bs . b1 \<cong> b2 on (a1 - a2))} \<in> WF_BINDING_SET (a1 - a2)"
@@ -451,7 +468,7 @@ apply (rule_tac x = "b1a" in bexI)
 apply (auto intro: beta_equiv_trans)
 done
 
-theorem WF_BINDING_SET_compl :
+theorem WF_BINDING_SET_compl[binding] :
 "bs \<in> WF_BINDING_SET a \<Longrightarrow>
  (WF_BINDING - bs) \<in> WF_BINDING_SET a"
 apply (simp only: WF_BINDING_SET_def)
@@ -461,7 +478,7 @@ apply (drule_tac x = "b1" in bspec, assumption)
 apply (simp add: beta_equiv_comm)
 done
 
-theorem WF_BINDING_SET_inter :
+theorem WF_BINDING_SET_inter[binding] :
 "\<lbrakk>bs1 \<in> WF_BINDING_SET a1;
  bs2 \<in> WF_BINDING_SET a2\<rbrakk> \<Longrightarrow>
  bs1 \<inter> bs2 \<in> WF_BINDING_SET (a1 \<union> a2)"
@@ -484,7 +501,7 @@ apply (assumption)
 apply (simp add: beta_equiv_def)
 done
 
-theorem WF_BINDING_SET_union :
+theorem WF_BINDING_SET_union[binding] :
 "\<lbrakk>bs1 \<in> WF_BINDING_SET a1;
  bs2 \<in> WF_BINDING_SET a2\<rbrakk> \<Longrightarrow>
  bs1 \<union> bs2 \<in> WF_BINDING_SET (a1 \<union> a2)"
@@ -517,15 +534,23 @@ done
 
 subsubsection {* Closure Theorems *}
 
-theorem Coerce_closure [simp] :
+theorem WF_ALPHA_PREDICATE_OVER_intro [closure]:
+"\<lbrakk> a \<in> WF_ALPHABET; p \<in> WF_ALPHA_PREDICATE; \<alpha> p = a\<rbrakk> \<Longrightarrow> p \<in> WF_ALPHA_PREDICATE_OVER a"
+  by (simp add:WF_ALPHA_PREDICATE_OVER_def)
+
+theorem WF_ALPHA_PREDICATE_OVER_dest:
+"\<lbrakk> a \<in> WF_ALPHABET; p \<in> WF_ALPHA_PREDICATE_OVER a \<rbrakk> \<Longrightarrow> p \<in> WF_ALPHA_PREDICATE \<and> \<alpha> p = a"
+  by (simp add:WF_ALPHA_PREDICATE_OVER_def)
+
+theorem Coerce_closure [closure] :
 "p \<hookrightarrow> WF_ALPHA_PREDICATE \<in> WF_ALPHA_PREDICATE"
 apply (rule_tac Coerce_member)
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (rule_tac x = "({}, {})" in exI)
-apply (simp add: WF_BINDING_SET_def)
+apply (simp add: WF_BINDING_SET_def var alpha_closure)
 done
 
-theorem LiftP_closure [simp] :
+theorem LiftP_closure [closure] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  f \<in> WF_BINDING_FUN a\<rbrakk> \<Longrightarrow>
  LiftP a f \<in> WF_ALPHA_PREDICATE"
@@ -536,7 +561,7 @@ apply (simp add: WF_BINDING_FUN_def)
 apply (auto)
 done
 
-theorem TrueP_closure [simp] :
+theorem TrueP_closure [closure] :
 "\<lbrakk>a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  (true a) \<in> WF_ALPHA_PREDICATE"
 apply (simp add: TrueP_def)
@@ -544,7 +569,7 @@ apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_BINDING_SET_def)
 done
 
-theorem FalseP_closure [simp] :
+theorem FalseP_closure [closure] :
 "\<lbrakk>a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  (false a) \<in> WF_ALPHA_PREDICATE"
 apply (simp add: FalseP_def)
@@ -552,25 +577,25 @@ apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_BINDING_SET_def)
 done
 
-theorem ExtP_closure [simp] :
+theorem ExtP_closure [closure] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  p \<oplus>p a \<in> WF_ALPHA_PREDICATE"
-apply (simp add: ExtP_def)
+apply (simp add: ExtP_def binding closure alphabet var)
 apply (simp add: WF_ALPHA_PREDICATE_def)
-apply (simp add: WF_BINDING_SET_ext)
+apply (simp add: WF_BINDING_SET_ext var alpha_closure)
 done
 
-theorem ResP_closure [simp] :
+theorem ResP_closure [closure] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  p \<ominus>p a \<in> WF_ALPHA_PREDICATE"
 apply (simp add: ResP_def)
 apply (simp add: WF_ALPHA_PREDICATE_def)
-apply (simp add: WF_BINDING_SET_res)
+apply (auto intro:alpha_closure simp add: WF_BINDING_SET_res var)
 done
 
-theorem NotP_closure [simp] :
+theorem NotP_closure [closure] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  (\<not>p p) \<in> WF_ALPHA_PREDICATE"
 apply (simp add: NotP_def)
@@ -578,194 +603,180 @@ apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_BINDING_SET_compl)
 done
 
-theorem AndP_closure [simp,intro] :
+theorem AndP_closure [closure] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<and>p p2 \<in> WF_ALPHA_PREDICATE"
 apply (simp add: AndP_def)
 apply (simp add: WF_ALPHA_PREDICATE_def)
-apply (simp add: WF_BINDING_SET_inter)
+apply (auto intro:alpha_closure simp add: WF_BINDING_SET_inter var)
 done
 
-theorem OrP_closure [simp,intro] :
+theorem OrP_closure [closure] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<or>p p2 \<in> WF_ALPHA_PREDICATE"
 apply (simp add: OrP_def)
 apply (simp add: WF_ALPHA_PREDICATE_def)
-apply (simp add: WF_BINDING_SET_union)
+apply (auto intro:alpha_closure simp add: WF_BINDING_SET_union var)
 done
 
-theorem ImpliesP_closure [simp] :
+theorem ImpliesP_closure [closure] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<Rightarrow>p p2 \<in> WF_ALPHA_PREDICATE"
-apply (simp add: ImpliesP_def)
+apply (simp add: ImpliesP_def closure)
 done
 
-theorem IffP_closure [simp] :
+theorem IffP_closure [closure] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<Leftrightarrow>p p2 \<in> WF_ALPHA_PREDICATE"
-apply (simp add: IffP_def)
+apply (simp add: IffP_def closure)
 done
 
-theorem ExistsResP_closure [simp] :
+theorem ExistsResP_closure [closure] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  (\<exists>-p a . p) \<in> WF_ALPHA_PREDICATE"
-apply (simp add: ExistsResP_def)
+apply (simp add: ExistsResP_def closure)
 done
 
-theorem ForallResP_closure [simp] :
+theorem ForallResP_closure [closure] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  (\<forall>-p a . p) \<in> WF_ALPHA_PREDICATE"
-apply (simp add: ForallResP_def)
+apply (auto intro:closure simp add: ForallResP_def)
 done
 
-theorem ExistsP_closure [simp] :
+theorem ExistsP_closure [closure] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  (\<exists>p a . p) \<in> WF_ALPHA_PREDICATE"
-apply (simp add: ExistsP_def)
+apply (auto intro: closure simp add: ExistsP_def)
 done
 
-theorem ForallP_closure [simp] :
+theorem ForallP_closure [closure] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  (\<forall>p a . p) \<in> WF_ALPHA_PREDICATE"
-apply (simp add: ForallP_def)
+apply (auto intro:closure simp add: ForallP_def)
 done
 
-theorem ClosureP_closure [simp] :
+theorem ClosureP_closure [closure] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  [p] \<in> WF_ALPHA_PREDICATE"
 apply (simp add: ClosureP_def)
 apply (subgoal_tac "(\<alpha> p) \<in> WF_ALPHABET")
-apply (simp)
-apply (simp add: WF_ALPHA_PREDICATE_def)
+apply(blast intro:closure)
+apply (simp add: WF_ALPHA_PREDICATE_def closure)
 done
 
-theorem RefP_closure [simp] :
+theorem RefP_closure [closure] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<sqsubseteq>p p2 \<in> WF_ALPHA_PREDICATE"
-apply (simp add: RefP_def)
-done
+  by (auto intro:closure simp add: RefP_def)
 
 subsubsection {* Predicate Alphabets *}
 
-theorem LiftP_alphabet [simp] :
+theorem LiftP_alphabet [alphabet] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  f \<in> WF_BINDING_FUN a\<rbrakk> \<Longrightarrow>
  \<alpha> (LiftP a (\<lambda> b . f b)) = a"
-apply (simp add: LiftP_def)
-done
+  by (simp add: LiftP_def closure)
 
-theorem TrueP_alphabet [simp] :
+theorem TrueP_alphabet [alphabet] :
 "\<lbrakk>a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  \<alpha> (true a) = a"
-apply (simp add: TrueP_def)
-done
+  by (simp add: TrueP_def)
 
-theorem FalseP_alphabet [simp] :
+
+theorem FalseP_alphabet [alphabet] :
 "\<lbrakk>a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  \<alpha> (false a) = a"
-apply (simp add: FalseP_def)
-done
+  by (simp add: FalseP_def)
 
-theorem ExtP_alphabet [simp] :
+theorem ExtP_alphabet [alphabet] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  \<alpha> (p \<oplus>p a) = (\<alpha> p) \<union> a"
-apply (simp add: ExtP_def)
-done
+  by (simp add: ExtP_def)
 
-theorem ResP_alphabet [simp] :
+
+theorem ResP_alphabet [alphabet] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  \<alpha> (p \<ominus>p a) = (\<alpha> p) - a"
-apply (simp add: ResP_def)
-done
+  by (simp add: ResP_def)
 
-theorem NotP_alphabet [simp] :
+theorem NotP_alphabet [alphabet] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  \<alpha> (\<not>p p) = (\<alpha> p)"
-apply (simp add: NotP_def)
-done
+  by (simp add: NotP_def)
 
-theorem AndP_alphabet [simp] :
+theorem AndP_alphabet [alphabet] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  \<alpha> (p1 \<and>p p2) = (\<alpha> p1) \<union> (\<alpha> p2)"
-apply (simp add: AndP_def)
-done
+  by (simp add: AndP_def)
 
-theorem OrP_alphabet [simp] :
+theorem OrP_alphabet [alphabet] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  \<alpha> (p1 \<or>p p2) = (\<alpha> p1) \<union> (\<alpha> p2)"
-apply (simp add: OrP_def)
-done
+  by (simp add: OrP_def)
 
-theorem ImpliesP_alphabet [simp] :
+theorem ImpliesP_alphabet [alphabet] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  \<alpha> (p1 \<Rightarrow>p p2) = (\<alpha> p1) \<union> (\<alpha> p2)"
-apply (simp add: ImpliesP_def)
-done
+  by (simp add: ImpliesP_def alphabet closure)
 
-theorem IffP_alphabet [simp] :
+theorem IffP_alphabet [alphabet] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  \<alpha> (p1 \<Leftrightarrow>p p2) = (\<alpha> p1) \<union> (\<alpha> p2)"
-apply (simp add: IffP_def)
-apply (auto)
-done
+  by (auto simp add: IffP_def closure var alphabet)
 
-theorem ExistsResP_alphabet [simp] :
+theorem ExistsResP_alphabet [alphabet] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  \<alpha> (\<exists>-p a . p) = (\<alpha> p) - a"
-apply (simp add: ExistsResP_def)
-done
+  by (simp add: ExistsResP_def alphabet)
 
-theorem ForallResP_alphabet [simp] :
+theorem ForallResP_alphabet [alphabet] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  \<alpha> (\<forall>-p a . p) = (\<alpha> p) - a"
-apply (simp add: ForallResP_def)
-done
+  by (simp add:ForallResP_def alphabet closure)
 
-theorem ExistsP_alphabet [simp] :
+theorem ExistsP_alphabet [alphabet] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  \<alpha> (\<exists>p a . p) = (\<alpha> p) \<union> a"
-apply (simp add: ExistsP_def)
-done
+  by (simp add: ExistsP_def closure alphabet)
 
-theorem ForallP_alphabet [simp] :
+theorem ForallP_alphabet [alphabet] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  \<alpha> (\<forall>p a . p) = (\<alpha> p) \<union> a"
-apply (simp add: ForallP_def)
-done
+  by (simp add: ForallP_def closure alphabet)
 
-theorem ClosureP_alphabet [simp] :
+theorem ClosureP_alphabet [alphabet] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  \<alpha> ([p]) = {}"
 apply (simp add: ClosureP_def)
 apply (subgoal_tac "(\<alpha> p) \<in> WF_ALPHABET")
-apply (simp)
+apply (simp add:closure alphabet)
 apply (simp add: WF_ALPHA_PREDICATE_def)
 done
 
-theorem RefP_alphabet [simp] :
+theorem RefP_alphabet [alphabet] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  \<alpha> (p1 \<sqsubseteq>p p2) = {}"
-apply (simp add: RefP_def)
+apply (simp add: RefP_def closure alphabet)
 done
 
 subsubsection {* Soundness Checks *}

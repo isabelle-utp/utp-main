@@ -10,7 +10,7 @@ theory utp_function
 imports utp_gen_pred
 begin
 
-types ('VALUE, 'TYPE) ALPHA_FUNCTION =
+type_synonym ('VALUE, 'TYPE) ALPHA_FUNCTION =
   "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
    ('VALUE, 'TYPE) ALPHA_PREDICATE"
 

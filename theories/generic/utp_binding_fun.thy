@@ -81,11 +81,11 @@ subsection {* Proof Experiments *}
 theorem LiftP_test_lemma :
 "v1 \<noteq> v2 \<longrightarrow> LiftP {x} (\<lambda> b . (b x) = v1 \<and> (b x) = v2) = false {x}"
 apply (subst LiftP_def)
-apply (simp_all)
+apply(auto simp add: alpha_closure)
 apply (subst binding_fun_non_interfere1)
 apply (simp_all)
 apply (subst FalseP_def)
-apply (simp_all)
+apply (simp_all add:alpha_closure)
 done
 end
 end

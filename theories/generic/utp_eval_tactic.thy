@@ -57,7 +57,7 @@ theorem EvalP_LiftP :
  f \<in> WF_BINDING_FUN a;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (LiftP a f) b = f b"
-apply (simp add: EvalP_def)
+apply (simp add: EvalP_def alphabet closure)
 apply (simp add: LiftP_def)
 done
 
@@ -65,7 +65,7 @@ theorem EvalP_TrueP :
 "\<lbrakk>a \<in> WF_ALPHABET;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (true a) b = True"
-apply (simp add: EvalP_def)
+apply (simp add: EvalP_def alphabet closure)
 apply (simp add: TrueP_def)
 done
 
@@ -73,7 +73,7 @@ theorem EvalP_FalseP :
 "\<lbrakk>a \<in> WF_ALPHABET;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (false a) b = False"
-apply (simp add: EvalP_def)
+apply (simp add: EvalP_def alphabet closure)
 apply (simp add: FalseP_def)
 done
 
@@ -82,7 +82,7 @@ theorem EvalP_ExtP :
  a \<in> WF_ALPHABET;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (p \<oplus>p a) b = (EvalP p b)"
-apply (simp add: EvalP_def)
+apply (simp add: EvalP_def alphabet closure)
 apply (simp add: ExtP_def)
 done
 
@@ -92,7 +92,7 @@ theorem EvalP_ResP :
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (p \<ominus>p a) b =
    (\<exists> b' \<in> WF_BINDING . b \<cong> b' on (\<alpha> p) - a \<and> EvalP p b')"
-apply (simp add: EvalP_def)
+apply (simp add: EvalP_def alphabet closure)
 apply (simp add: ResP_def)
 apply (safe)
 apply (rule_tac x = "b1" in bexI)
@@ -110,12 +110,13 @@ theorem EvalP_ResP_override :
  p \<in> WF_ALPHA_PREDICATE;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (p \<ominus>p a) b = (\<exists> b' \<in> WF_BINDING . EvalP p (b \<oplus> b' on a))"
-apply (simp add: EvalP_def)
+apply (simp add: EvalP_def alphabet closure)
 apply (simp add: ResP_def)
 apply (safe)
 -- {* Subgoal 1 *}
 apply (rule_tac x = "b1" in bexI)
-apply (simp add: WF_ALPHA_PREDICATE_def WF_BINDING_SET_def)
+apply (simp only: WF_ALPHA_PREDICATE_def WF_BINDING_SET_def alphabet)
+apply (simp)
 apply (clarify)
 apply (drule_tac x = "b1" in bspec)
 apply (assumption)
@@ -140,7 +141,7 @@ theorem EvalP_NotP :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (\<not>p p) b = (\<not> (EvalP p b))"
-apply (simp add: EvalP_def)
+apply (simp add: EvalP_def alphabet closure)
 apply (simp add: NotP_def)
 done
 
@@ -149,7 +150,7 @@ theorem EvalP_AndP :
  p2 \<in> WF_ALPHA_PREDICATE;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (p1 \<and>p p2) b = ((EvalP p1 b) \<and> (EvalP p2 b))"
-apply (simp add: EvalP_def)
+apply (simp add: EvalP_def alphabet closure)
 apply (simp add: AndP_def)
 done
 
@@ -158,7 +159,7 @@ theorem EvalP_OrP :
  p2 \<in> WF_ALPHA_PREDICATE;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (p1 \<or>p p2) b = ((EvalP p1 b) \<or> (EvalP p2 b))"
-apply (simp add: EvalP_def)
+apply (simp add: EvalP_def alphabet closure)
 apply (simp add: OrP_def)
 done
 
@@ -167,8 +168,8 @@ theorem EvalP_ImpliesP :
  p2 \<in> WF_ALPHA_PREDICATE;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (p1 \<Rightarrow>p p2) b = ((EvalP p1 b) \<longrightarrow> (EvalP p2 b))"
-apply (simp add: ImpliesP_def)
-apply (simp add: EvalP_OrP EvalP_NotP)
+apply (simp add: ImpliesP_def alphabet closure)
+apply (simp add: EvalP_OrP EvalP_NotP alphabet closure)
 done
 
 theorem EvalP_IffP :
@@ -176,8 +177,8 @@ theorem EvalP_IffP :
  p2 \<in> WF_ALPHA_PREDICATE;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (p1 \<Leftrightarrow>p p2) b = ((EvalP p1 b) \<longleftrightarrow> (EvalP p2 b))"
-apply (simp add: IffP_def)
-apply (simp add: EvalP_AndP EvalP_ImpliesP)
+apply (simp add: IffP_def alphabet closure)
+apply (simp add: EvalP_AndP EvalP_ImpliesP alphabet closure)
 apply (auto)
 done
 
@@ -187,8 +188,8 @@ theorem EvalP_ExistsResP :
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (\<exists>-p a . p) b =
    (\<exists> b' \<in> WF_BINDING . b \<cong> b' on (\<alpha> p) - a \<and> EvalP p b')"
-apply (simp add: ExistsResP_def)
-apply (simp add: EvalP_ResP)
+apply (simp add: ExistsResP_def alphabet closure)
+apply (simp add: EvalP_ResP alphabet closure)
 done
 
 theorem EvalP_ExistsResP_override :
@@ -197,8 +198,8 @@ theorem EvalP_ExistsResP_override :
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (\<exists>-p a . p) b =
    (\<exists> b' \<in> WF_BINDING . EvalP p (b \<oplus> b' on a))"
-apply (simp add: ExistsResP_def)
-apply (simp add: EvalP_ResP_override)
+apply (simp add: ExistsResP_def alphabet closure)
+apply (simp add: EvalP_ResP_override alphabet closure)
 done
 
 theorem EvalP_ForallResP :
@@ -207,8 +208,8 @@ theorem EvalP_ForallResP :
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (\<forall>-p a . p) b =
    (\<forall> b' \<in> WF_BINDING . b \<cong> b' on (\<alpha> p) - a \<longrightarrow> EvalP p b')"
-apply (simp add: ForallResP_def)
-apply (simp add: EvalP_NotP EvalP_ExistsResP)
+apply (simp add: ForallResP_def alphabet closure)
+apply (simp add: EvalP_NotP EvalP_ExistsResP alphabet closure)
 done
 
 theorem EvalP_ForallResP_override :
@@ -217,8 +218,8 @@ theorem EvalP_ForallResP_override :
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (\<forall>-p a . p) b =
    (\<forall> b' \<in> WF_BINDING . EvalP p (b \<oplus> b' on a))"
-apply (simp add: ForallResP_def)
-apply (simp add: EvalP_NotP EvalP_ExistsResP_override)
+apply (simp add: ForallResP_def alphabet closure)
+apply (simp add: EvalP_NotP EvalP_ExistsResP_override alphabet closure)
 done
 
 theorem EvalP_ExistsP :
@@ -227,8 +228,8 @@ theorem EvalP_ExistsP :
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (\<exists>p a . p) b =
    (\<exists> b' \<in> WF_BINDING . b \<cong> b' on (\<alpha> p) - a \<and> EvalP p b')"
-apply (simp add: ExistsP_def)
-apply (simp add: EvalP_ExtP EvalP_ExistsResP)
+apply (simp add: ExistsP_def alphabet closure)
+apply (simp add: EvalP_ExtP EvalP_ExistsResP alphabet closure)
 done
 
 theorem EvalP_ExistsP_override :
@@ -237,8 +238,8 @@ theorem EvalP_ExistsP_override :
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (\<exists>p a . p) b =
    (\<exists> b' \<in> WF_BINDING . EvalP p (b \<oplus> b' on a))"
-apply (simp add: ExistsP_def)
-apply (simp add: EvalP_ExtP EvalP_ExistsResP_override)
+apply (simp add: ExistsP_def alphabet closure)
+apply (simp add: EvalP_ExtP EvalP_ExistsResP_override alphabet closure)
 done
 
 theorem EvalP_Forall :
@@ -247,8 +248,8 @@ theorem EvalP_Forall :
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP (\<forall>p a . p) b =
    (\<forall> b' \<in> WF_BINDING . b \<cong> b' on (\<alpha> p) - a \<longrightarrow> EvalP p b')"
-apply (simp add: ForallP_def)
-apply (simp add: EvalP_ExtP EvalP_ForallResP)
+apply (simp add: ForallP_def alphabet closure)
+apply (simp add: EvalP_ExtP EvalP_ForallResP alphabet closure)
 done
 
 theorem EvalP_ForallP_override :
@@ -258,23 +259,31 @@ theorem EvalP_ForallP_override :
  EvalP (\<forall>p a . p) b =
    (\<forall> b' \<in> WF_BINDING . EvalP p (b \<oplus> b' on a))"
 apply (simp add: ForallP_def)
-apply (simp add: EvalP_ExtP EvalP_ForallResP_override)
+apply (simp add: EvalP_ExtP EvalP_ForallResP_override alphabet closure)
 done
 end
+
 
 subsection {* Automatic Tactics *}
 
 text {* Theorem Attributes *}
 
 ML {*
+  structure eval_intro =
+    Named_Thms (val name = @{binding "eval_intro"} val description = "eval introduction theorems")
+*}
+setup eval_intro.setup
+
+
+ML {*
   structure eval =
-    Named_Thms (val name = "eval" val description = "eval theorems")
+    Named_Thms (val name = @{binding "eval"} val description = "eval theorems")
 *}
 setup eval.setup
 
 ML {*
   structure taut =
-    Named_Thms (val name = "taut" val description = "taut theorems")
+    Named_Thms (val name = @{binding "taut"} val description = "taut theorems")
 *}
 setup taut.setup
 
@@ -302,6 +311,34 @@ declare Tautology_def [taut]
 declare Contradiction_def [taut]
 declare Contingency_def [taut]
 declare Refinement_def [taut]
+
+lemma TautologyP_intro[intro,eval_intro]: "\<lbrakk> p \<in> WF_ALPHA_PREDICATE; \<forall>b\<in>WF_BINDING. EvalP p b \<rbrakk> \<Longrightarrow> taut p"
+  by (case_tac p, auto simp add:Tautology_def WF_ALPHA_PREDICATE_def TrueP_def EvalP_def WF_BINDING_SET_def)
+
+lemma RefinementP_intro[intro,eval_intro]: 
+"\<lbrakk> p \<in> WF_ALPHA_PREDICATE; q \<in> WF_ALPHA_PREDICATE; \<alpha> p = \<alpha> q
+ ; \<forall>b\<in>WF_BINDING. EvalP (p \<sqsubseteq>p q) b \<rbrakk> \<Longrightarrow> p \<sqsubseteq> q"
+  apply(simp add:Refinement_def)
+  apply(rule TautologyP_intro)
+  apply(blast intro: closure)
+  apply(simp add:eval)
+done
+
+text {* This is the main introduction rule on which the proof strategy rotates. I'm not sure if this
+        is optimal yet. For instance, does it really give an advantage adding the closure properties
+        we've already proven at assumptions for the remaining two properties? In theory it might take the pressure
+        off the simplifier in these steps, but I'm not sure. The fundamental issue is how do we avoid proving
+        closure over and over? *}
+lemma EqualityP_intro[intro,eval_intro]: 
+"\<lbrakk> p \<in> WF_ALPHA_PREDICATE; q \<in> WF_ALPHA_PREDICATE
+ ; \<lbrakk> p \<in> WF_ALPHA_PREDICATE; q \<in> WF_ALPHA_PREDICATE \<rbrakk> \<Longrightarrow> \<alpha> p = \<alpha> q
+ ; \<lbrakk> p \<in> WF_ALPHA_PREDICATE; q \<in> WF_ALPHA_PREDICATE \<rbrakk> \<Longrightarrow> \<forall>b\<in>WF_BINDING. EvalP p b = EvalP q b \<rbrakk> 
+   \<Longrightarrow> p = q"
+  apply (case_tac p)
+  apply (case_tac q)
+  apply (auto simp add: WF_ALPHA_PREDICATE_def EvalP_def WF_BINDING_SET_def)
+done
+
 end
 
 text {* Proof Methods *}
@@ -313,7 +350,12 @@ text {*
 
 ML {*
   fun utp_pred_eq_simpset ctxt =
-    (simpset_of ctxt) addsimps (eval.get ctxt);
+    (simpset_of ctxt) addsimps (eval.get ctxt) 
+                      addsimps (AlphaClosureThm.get ctxt)
+                      addsimps (AlphabetThm.get ctxt)
+                      addsimps (BindingThm.get ctxt)
+                      addsimps (ClosureThm.get ctxt)
+                      addsimps (VarThm.get ctxt);
 *}
 
 ML {*
@@ -348,8 +390,18 @@ theorem EvalP_override [eval]:
  b1 \<in> WF_BINDING;
  b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  EvalP p (b1 \<oplus> b2 on - \<alpha> p) = EvalP p b1"
-apply (simp add: EvalP_def)
-apply (simp add: WF_ALPHA_PREDICATE_def WF_BINDING_SET_def)
+apply (simp add: EvalP_def alphabet closure)
+apply (simp only: WF_ALPHA_PREDICATE_def WF_BINDING_SET_def)
+apply (auto simp: beta_equiv_def)
+done
+
+theorem EvalP_override_1 [eval]:
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
+ b1 \<in> WF_BINDING;
+ b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+ EvalP p (b1 \<oplus> b2 on \<alpha> p) = EvalP p b2"
+apply (simp add: EvalP_def alphabet closure)
+apply (simp only: WF_ALPHA_PREDICATE_def WF_BINDING_SET_def)
 apply (auto simp: beta_equiv_def)
 done
 
@@ -361,7 +413,7 @@ theorem EvalP_override_2 [eval]:
  a \<inter> \<alpha> p = {} \<rbrakk> \<Longrightarrow>
  EvalP p (b1 \<oplus> b2 on a) = EvalP p b1"
 apply (auto simp add: EvalP_def)
-apply(simp_all add: WF_ALPHA_PREDICATE_def WF_BINDING_SET_def)
+apply(simp_all only: WF_ALPHA_PREDICATE_def WF_BINDING_SET_def)
 apply(subgoal_tac "(b1 \<oplus> b2 on a) \<cong> b1 on \<alpha> p")
 apply(simp)
 apply(simp add: beta_equiv_override_2)
@@ -371,7 +423,7 @@ apply(simp add: beta_equiv_def override_on_def)
 apply(auto)
 done
 
-theorem EvalP_total [simp] :
+theorem EvalP_total [eval] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE; b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  (\<forall> b' \<in> WF_BINDING . EvalP p (b \<oplus> b' on \<alpha> p)) =
  (\<forall> b  \<in> WF_BINDING . EvalP p b)"
@@ -394,25 +446,59 @@ end
 
 subsection {* Proof Experiments *}
 
+
+ML {*
+blast_tac
+*}
+
+text {* 
+The new proof strategy works as follows:
+\begin{enumerate}
+  \item Use the introduction rules to split the goal up
+  \item Execute \textsf{blast} twice with the closure laws
+  \item Execute the simplifier with the alphabet laws
+  \item Try \textsf{blast} (in case non-trivial set theory is present)
+  \item Execute the simplifier with the evaluation laws
+  \item Try \textsf{blast} (in case a non-trivial predicate is present)
+\end{enumerate}
+*}
+  
+
+method_setup utp_pred_eq_tac2 = {*
+  Attrib.thms >>
+  (fn thms => fn ctxt =>
+    SIMPLE_METHOD' (fn i =>
+      CHANGED (resolve_tac (eval_intro.get ctxt) 1 
+        THEN 
+          blast_tac (addIs (ctxt, (ClosureThm.get ctxt @ AlphaClosureThm.get ctxt))) 1
+        THEN
+          blast_tac (addIs (ctxt, (ClosureThm.get ctxt @ AlphaClosureThm.get ctxt))) 1
+        THEN
+          asm_full_simp_tac ((simpset_of ctxt) addsimps (AlphabetThm.get ctxt @ AlphaClosureThm.get ctxt @ ClosureThm.get ctxt)) 1
+        THEN
+          TRY (blast_tac ctxt 1)
+        THEN
+          asm_full_simp_tac ((simpset_of ctxt) addsimps AlphaClosureThm.get ctxt @ ClosureThm.get ctxt @ BindingThm.get ctxt @ eval.get ctxt @ taut.get ctxt) 1
+        THEN
+          TRY (blast_tac ctxt 1))))
+*} "proof tactic for predicate equalities"
+
 context GEN_PRED
 begin
+
 theorem
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE;
  p3 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<and>p (p2 \<and>p p3) = (p1 \<and>p p2) \<and>p p3"
-apply (utp_pred_eq_tac)
-apply (auto)
-done
+  by (utp_pred_eq_tac2)
 
 theorem
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE;
  p3 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<and>p (p2 \<or>p p3) = (p1 \<and>p p2) \<or>p (p1 \<and>p p3)"
-apply (utp_pred_eq_tac)
-apply (auto)
-done
+  by (utp_pred_eq_tac2)
 
 theorem
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
@@ -421,58 +507,50 @@ theorem
  p4 \<in> WF_ALPHA_PREDICATE;
  p5 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<and>p p2 \<and>p p3 \<and>p p4 \<and>p p5 = (p1 \<and>p p5) \<and>p p3 \<and>p (p4 \<and>p p2)"
-apply (utp_pred_eq_tac)
-apply (auto)
-done
+  by (utp_pred_eq_tac2)
 
 theorem
 "\<lbrakk>a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  (true a) = \<not>p (false a)"
-apply (utp_pred_eq_tac)
-done
+  by (utp_pred_eq_tac2)
 
 theorem
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  taut (p1 \<and>p p2) \<Leftrightarrow>p (p2 \<and>p p1)"
-apply (utp_pred_taut_tac)
-apply (auto)
-done
+  by (rule eval_intro, auto simp add:eval alphabet alpha_closure closure var)
 
 theorem
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  p \<and>p \<not>p p = false (\<alpha> p)"
-apply (utp_pred_eq_tac)
-done
+  by (utp_pred_eq_tac2)
 
 theorem
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  p \<or>p \<not>p p = true (\<alpha> p)"
-apply (utp_pred_eq_tac)
-done
+  by (utp_pred_eq_tac2)
 
 theorem
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  taut (\<forall>p a . \<not>p p) \<Leftrightarrow>p \<not>p (\<exists>p a . p)"
-apply (utp_pred_taut_tac)
-done
+  by (auto intro:eval_intro simp add:taut eval alphabet var closure alpha_closure)
 
 theorem
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  taut p1 \<or>p p2 \<sqsubseteq>p p1"
-apply (utp_pred_taut_tac)
-done
+  by (simp add:taut eval alphabet alpha_closure closure)
 
 theorem
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE;
  (\<alpha> p1) = (\<alpha> p2)\<rbrakk> \<Longrightarrow>
  p1 \<or>p p2 \<sqsubseteq> p1"
-apply (utp_pred_taut_tac)
-done
+  by (utp_pred_eq_tac2)
+
 end
+
 end

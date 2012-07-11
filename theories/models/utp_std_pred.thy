@@ -12,8 +12,8 @@ begin
 
 text {* Standard predicates make use of composite default values. *}
 
-types STD_VALUE = "DEFAULT_VALUE COMPOSITE_VALUE"
-types STD_TYPE = "DEFAULT_TYPE COMPOSITE_TYPE"
+type_synonym STD_VALUE = "DEFAULT_VALUE COMPOSITE_VALUE"
+type_synonym STD_TYPE = "DEFAULT_TYPE COMPOSITE_TYPE"
 
 subsection {* Locale @{term STD_PRED} *}
 
@@ -34,13 +34,13 @@ subsection {* Type Definitions *}
 typedef (open) STD_PREDICATE = "STD.WF_ALPHA_PREDICATE"
   morphisms Dest_STD_PREDICATE Mk_STD_PREDICATE
 apply (rule_tac x = "STD.FALSE" in exI)
-apply (auto)
+apply (auto simp add:alpha_closure closure)
 done
 
 typedef (open) STD_ALPHABET = "STD.WF_ALPHABET"
   morphisms Dest_STD_ALPHABET Mk_STD_ALPHABET
 apply (rule_tac x = "{}" in exI)
-apply (auto)
+apply (auto simp add:alpha_closure)
 done
 
 text {* Default Simplifications *}
@@ -270,6 +270,7 @@ theorem
 "\<lbrakk>(\<alpha> (p1 :: STD_PREDICATE)) = (\<alpha> p2);
  taut (p1 \<Rightarrow>p p2)\<rbrakk> \<Longrightarrow>
  p1 = (p1 \<and>p p2)"
+apply (utp_pred_taut_tac)
 apply (auto intro: STD.AndP_intro)
 done
 end

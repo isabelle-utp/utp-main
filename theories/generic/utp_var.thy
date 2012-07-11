@@ -10,13 +10,20 @@ theory utp_var
 imports utp_name
 begin
 
-types 'TYPE VAR = "NAME \<times> 'TYPE"
+type_synonym 'TYPE VAR = "NAME \<times> 'TYPE"
 
 abbreviation var_name :: "'TYPE VAR \<Rightarrow> NAME" ("name") where
 "var_name \<equiv> fst"
 
 abbreviation var_type :: "'TYPE VAR \<Rightarrow> 'TYPE" ("type") where
 "var_type \<equiv> snd"
+
+ML {*
+  structure VarThm =
+    Named_Thms (val name = @{binding "var"} val description = "variable laws");
+*}
+
+setup {* VarThm.setup *}
 
 subsection {* Locale @{term "VAR"} *}
 
@@ -63,25 +70,103 @@ definition PLAIN :: "'TYPE VAR set" where
 
 subsection {* Properties *}
 
-lemma inj_dash: "inj dash"
+theorem dash_undash[var]: "x \<in> -UNDASHED \<Longrightarrow> dash (undash x) = x"
+  apply(auto simp add:dash_def undash_def UNDASHED_def)
+  apply(smt NAME.surjective pair_collapse unit.exhaust)
+done
+
+theorem undash_dash[var]: "undash (dash x) = x"
+  apply(auto simp add:dash_def undash_def)
+  apply(smt NAME.surjective pair_collapse unit.exhaust)
+done
+
+lemma dash_inj[var]: "inj dash"
   apply(auto simp add:inj_on_def dash_def)
   apply(case_tac x)
   apply(case_tac y)
   apply(simp)
 done
 
-lemma inj_dashed_undash: "inj_on undash DASHED"
+lemma dash_bij[var]: "bij_betw dash UNIV (-UNDASHED)"
+  apply(auto simp add:bij_betw_def dash_inj)
+  apply(simp add:UNDASHED_def dash_def)
+  apply(simp add:image_def)
+  apply(rule_tac x="undash x" in exI)
+  apply(metis ComplI dash_undash)
+done
+
+lemma dashed_undash_inj[var]: "inj_on undash DASHED"
   apply(auto simp add:inj_on_def undash_def DASHED_def)
   apply(case_tac x)
   apply(case_tac y)
   apply(simp)
 done
 
-lemma inj_dashed2_undash: "inj_on undash DASHED_TWICE"  
+lemma dashed2_undash_inj[var]: "inj_on undash DASHED_TWICE"  
   apply(auto simp add:inj_on_def undash_def DASHED_TWICE_def)
   apply(case_tac x)
   apply(case_tac y)
   apply(simp)
+done
+
+theorem dash_undashed [var]:
+"vs \<subseteq> UNDASHED \<Longrightarrow> dash ` vs \<subseteq> DASHED"
+  by (auto simp add: DASHED_def UNDASHED_def dash_def)
+
+theorem dash_dashed [var]:
+"vs \<subseteq> DASHED \<Longrightarrow> dash ` vs \<subseteq> DASHED_TWICE"
+  by (auto simp add: DASHED_def DASHED_TWICE_def dash_def)
+
+theorem undash_dashed [var]:
+"vs \<subseteq> DASHED \<Longrightarrow> undash ` vs \<subseteq> UNDASHED"
+  by (auto simp add: DASHED_def UNDASHED_def undash_def)
+
+theorem undash_dashed_twice [var]:
+"vs \<subseteq> DASHED_TWICE \<Longrightarrow> undash ` vs \<subseteq> DASHED"
+  by (auto simp add: DASHED_def DASHED_TWICE_def undash_def)
+
+lemma [var]: "v \<in> UNDASHED \<Longrightarrow> dash v \<in> DASHED"
+  by (simp add:UNDASHED_def DASHED_def dash_def)
+
+lemma [var]: "v \<in> DASHED \<Longrightarrow> dash v \<in> DASHED_TWICE"
+  by (simp add:DASHED_def DASHED_TWICE_def dash_def)
+
+lemma [var]: "v \<in> DASHED \<Longrightarrow> undash v \<in> UNDASHED"
+  by (simp add:DASHED_def UNDASHED_def undash_def)
+
+lemma [var]: "v \<in> DASHED_TWICE \<Longrightarrow> undash v \<in> DASHED"
+  by (simp add:DASHED_def DASHED_TWICE_def undash_def)
+
+lemma [var]: "UNDASHED \<subseteq> UNDASHED \<union> DASHED" by auto
+lemma [var]: "DASHED \<subseteq> UNDASHED \<union> DASHED" by auto
+
+lemma [var]: "a \<subseteq> UNDASHED \<Longrightarrow> a \<subseteq> UNDASHED \<union> DASHED"
+  by auto
+
+lemma [var]: "a \<subseteq> DASHED \<Longrightarrow> a \<subseteq> UNDASHED \<union> DASHED"
+  by auto
+
+lemma [var]: "DASHED \<subseteq> -UNDASHED"
+  by (auto simp add:DASHED_def UNDASHED_def)
+
+lemma [var]: "DASHED_TWICE \<subseteq> -UNDASHED"
+  by (auto simp add:DASHED_TWICE_def UNDASHED_def)
+
+lemma [var]: "x \<in> DASHED \<Longrightarrow> dash (undash x) = x"
+  by (insert var, auto)
+
+lemma [var]: "dash ` UNDASHED = DASHED"
+  apply(auto simp add: image_def)
+  apply(simp add:var dash_def DASHED_def UNDASHED_def)
+  apply(rule_tac x="undash x" in bexI)
+  apply(auto simp add:var)
+done
+
+lemma [var]: "undash ` DASHED = UNDASHED"
+  apply(auto simp add: image_def)
+  apply(simp add:var undash_def DASHED_def UNDASHED_def)
+  apply(rule_tac x="dash x" in bexI)
+  apply(auto simp add:var)
 done
 
 end

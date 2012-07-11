@@ -35,15 +35,29 @@ definition WF_CONDITION :: "('VALUE, 'TYPE) ALPHA_PREDICATE set" where
 
 subsection {* Substitutions *}
 
+definition SS_conv :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
+"SS_conv v = (if v \<in> DASHED then undash v else
+              if v \<in> UNDASHED then dash v else v)"
+
 definition SS1 :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
 "SS1 v = (
- if dashes (name v) = 1 then (dash v) else
- if dashes (name v) = 2 then (undash v) else v)"
+ if (v \<in> DASHED) then (dash v) else
+ if (v \<in> DASHED_TWICE) then (undash v) else v)"
 
 definition SS2 :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
 "SS2 v = (
  if dashes (name v) = 0 then dash (dash v) else
  if dashes (name v) = 2 then undash (undash v) else v)"
+
+definition SS3 :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
+"SS3 v = (
+ if dashes (name v) = 0 then dash (dash (dash v)) else
+ if dashes (name v) = 3 then undash (undash (undash v)) else v)"
+
+definition SS4 :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
+"SS4 v = (
+ if dashes (name v) = 1 then dash (dash v) else
+ if dashes (name v) = 3 then undash (undash v) else v)"
 
 subsection {* Relational Operators *}
       
@@ -51,6 +65,11 @@ definition SkipR ::
   "'TYPE ALPHABET \<Rightarrow> ('VALUE, 'TYPE) ALPHA_PREDICATE" ("\<Pi>_") where
 "a \<in> WF_ALPHABET \<longrightarrow>
  \<Pi> a = LiftP (homalph a) (\<lambda> b . \<forall> x \<in> in (homalph a) . b x = b (dash x))"
+
+definition ConvR ::
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" ("_\<^sup>\<smile>") where
+"r \<in> WF_RELATION \<longrightarrow> r\<^sup>\<smile> = r[SS_conv]"
 
 definition CondR ::
   "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
@@ -83,6 +102,13 @@ definition SemiB :: "('VALUE, 'TYPE) ALPHA_PREDICATE
               | b1 b2 b. b1 \<in> \<beta> p \<and> b2 \<in> \<beta> q \<and> b \<in> WF_BINDING
                      \<and> (\<forall>x \<in> in(\<alpha> q). b1 (dash x) = b2 x) })"
 
+definition IterR :: "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" ("_ * _") where
+"p \<in> WF_RELATION \<and>
+ b \<in> WF_CONDITION \<and>
+ \<alpha> b \<subseteq> \<alpha> p \<longrightarrow> IterR b p = (\<mu> (\<alpha> p) (\<lambda> x. (p ; x) \<triangleleft> b \<triangleright> \<Pi> (\<alpha> p)))"
+
 inductive WF_ASSIGNMENT :: "'TYPE ALPHABET \<Rightarrow> (('VALUE, 'TYPE) ASSIGNMENT) \<Rightarrow> bool" 
 where
 "WF_ASSIGNMENT a []" | 
@@ -99,20 +125,22 @@ inductive_cases WF_ASSIGNMENT_cons' [elim!]: "WF_ASSIGNMENT a (v # vs)"
 
 thm WF_ASSIGNMENT_cons'
 
+(*
 lemma WF_ASSIGNMENT_cons[elim!]:
-"\<lbrakk>(v # vs) \<in> WF_ASSIGNMENT a;
+"\<lbrakk>WF_ASSIGNMENT a (v # vs);
  \<lbrakk>dash (assign_var v) \<in> a; expr_type (assign_value v) = type (assign_var v); assign_var v \<in> UNDASHED;
-  assign_value v \<in> WF_ALPHA_EXPR; \<alpha>e (assign_value v) \<subseteq> a; \<alpha>e (assign_value v) \<subseteq> UNDASHED; vs \<in> WF_ASSIGNMENT (a - {dash (assign_var v)})\<rbrakk>
+  assign_value v \<in> WF_ALPHA_EXPR; \<alpha>e (assign_value v) \<subseteq> a; \<alpha>e (assign_value v) \<subseteq> UNDASHED; WF_ASSIGNMENT (a - {dash (assign_var v)}) vs\<rbrakk>
  \<Longrightarrow> P\<rbrakk>
 \<Longrightarrow> P"
-  by (auto simp add:mem_def)
+  by auto
+*)
 
 primrec mkAssign :: "('VALUE, 'TYPE) ASSIGNMENT \<Rightarrow> 'TYPE ALPHABET \<Rightarrow> ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "mkAssign [] a = \<Pi> a" |
-"mkAssign (v # vs) a = ((VarE (dash (assign_var v)) =p assign_value v) \<and>p mkAssign vs (a - {dash (assign_var v)}))"
+"mkAssign (v # vs) a = ((dash (assign_var v) =p assign_value v) \<and>p mkAssign vs (a - {dash (assign_var v)}))"
 
 definition AssignR :: "('VALUE, 'TYPE) ASSIGNMENT \<Rightarrow> 'TYPE ALPHABET \<Rightarrow> ('VALUE, 'TYPE) ALPHA_PREDICATE" where
-"xs \<in> WF_ASSIGNMENT a \<and> a \<in> WF_ALPHABET 
+"WF_ASSIGNMENT a xs \<and> a \<in> WF_ALPHABET 
  \<and> a \<subseteq> UNDASHED \<union> DASHED \<and> HOMOGENEOUS a \<longrightarrow> 
  AssignR xs a = mkAssign xs a"
 
@@ -142,9 +170,12 @@ theorem WF_RELATION_WF_ALPHA_PREDICATE :
 apply (simp add: WF_RELATION_def)
 done
 
-declare WF_RELATION_WF_ALPHA_PREDICATE [eval]
+theorem WF_CONDITION_WF_ALPHA_PREDICATE :
+"p \<in> WF_CONDITION \<Longrightarrow> p \<in> WF_ALPHA_PREDICATE"
+apply (simp add: WF_CONDITION_def WF_RELATION_def closure)
+done
 
-theorem WF_RELATION_alphabet [simp, intro] :
+theorem WF_RELATION_alphabet [alphabet] :
 "p \<in> WF_RELATION \<Longrightarrow> \<alpha> p \<in> WF_ALPHABET"
 apply (auto simp add: WF_RELATION_def)
 done
@@ -161,9 +192,8 @@ subsubsection {* Substitutions *}
 text {* Simon's Theorems *}
 
 theorem SS1_total : "x \<in> range SS1"
-apply (case_tac x, case_tac a)
-apply (simp add : SS1_def image_def dash_def undash_def)
-apply (smt fst_conv NAME.simps(1-3) snd_conv)
+apply(auto simp add:SS1_def image_def dash_def undash_def DASHED_TWICE_def DASHED_def)
+apply (smt NAME.simps NAME.surjective fst_conv prod_eqI snd_conv unit.exhaust)
 done
 
 theorem SS2_total : "x \<in> range SS2"
@@ -172,9 +202,23 @@ apply (simp add:SS2_def image_def dash_def undash_def)
 apply (smt fst_conv NAME.simps(1-3) snd_conv)
 done
 
+theorem SS3_total : "x \<in> range SS3"
+apply (case_tac x, case_tac a)
+apply (simp add:SS3_def image_def dash_def undash_def DASHED_def UNDASHED_def)
+apply (smt fst_conv NAME.simps(1-3) snd_conv)
+done
+
+theorem SS_conv_total : "x \<in> range SS_conv"
+apply (case_tac x, case_tac a)
+apply (simp add:SS_conv_def image_def dash_def undash_def DASHED_def UNDASHED_def)
+apply (smt fst_conv NAME.simps(1-3) snd_conv)
+done
+
 theorem SS1_VAR_SUBST [simp, intro] :
 "SS1 \<in> VAR_SUBST"
-apply (auto simp add : VAR_SUBST_def SS1_def
+apply(simp only:VAR_SUBST_ON_def)
+apply(auto simp add:bij_def inj_on_def SS1_def DASHED_TWICE_def DASHED_def)
+apply (auto simp add : SS1_def
   bij_def inj_on_def undash_def dash_def)
 apply (smt NAME.equality prod_eq_iff unit.exhaust)+
 apply (rule SS1_total)
@@ -182,25 +226,44 @@ done
 
 theorem SS2_VAR_SUBST [simp, intro] :
 "SS2 \<in> VAR_SUBST"
-apply (auto simp add : VAR_SUBST_def SS2_def
+apply(simp only:VAR_SUBST_ON_def)
+apply (auto simp add : SS2_def
   bij_def inj_on_def undash_def dash_def)
 apply (smt NAME.equality prod_eq_iff unit.exhaust)+
 apply (rule SS2_total)
 done
 
+theorem SS3_VAR_SUBST [simp, intro] :
+"SS3 \<in> VAR_SUBST"
+apply(simp only:VAR_SUBST_ON_def)
+apply (auto simp add : SS3_def
+  bij_def inj_on_def undash_def dash_def)
+apply (smt NAME.equality prod_eq_iff unit.exhaust)+
+apply (rule SS3_total)
+done
+
+lemma SS_conv_VAR_SUBST [simp] : "SS_conv \<in> VAR_SUBST"
+apply(simp only:VAR_SUBST_ON_def)
+apply (auto simp add: SS_conv_def undash_def dash_def bij_def inj_on_def DASHED_def UNDASHED_def)
+apply (smt NAME.equality prod_eq_iff unit.exhaust)+
+apply (rule SS_conv_total)
+done
+
 theorem SS1_dashes [simp, intro, eval] :
 "a \<subseteq> UNDASHED \<union> DASHED \<Longrightarrow> SS1 ` a = in a \<union> dash ` (out a)"
-apply (force simp add: SS1_def DASHED_def UNDASHED_def
+apply (force simp add: SS1_def DASHED_def UNDASHED_def DASHED_TWICE_def
   Un_def in_alphabet_def out_alphabet_def image_def SS1_def)
 done
 
-theorem SS1_invol:
+theorem SS1_invol[simp]:
 "SS1 \<circ> SS1 = id"
-apply(auto simp add: comp_def SS1_def id_def)
+apply(auto simp add: comp_def SS1_def id_def var)
 apply(rule ext)
+apply(auto simp add:var)
 apply(case_tac "dashes(name x) = 0")
-apply(auto)
-apply(auto simp add:undash_def dash_def intro:NAME.equality NAME.surjective unit.exhaust pairI)
+apply(auto simp add:var undash_def dash_def DASHED_def DASHED_TWICE_def)
+
+apply(metis (full_types) NAME.surjective numeral_2_eq_2 pair_collapse unit.exhaust)+
 done
 
 theorem SS2_dashes[simp, intro, eval] :
@@ -211,7 +274,7 @@ apply (simp_all add:image_def SS2_def)
 apply (rule bexI, auto)+
 done
 
-theorem SS2_invol:
+theorem SS2_invol[simp]:
 "SS2 \<circ> SS2 = id"
 apply(auto simp add: SS2_def id_def comp_def)
 apply(rule ext)
@@ -221,21 +284,33 @@ apply(auto simp add:undash_def dash_def intro:NAME.equality NAME.surjective unit
 apply(case_tac x)
 apply(case_tac a)
 apply(auto)
+apply(smt NAME.surjective pairI unit.exhaust)
+done
+
+lemma SS_conv_invol[simp]:
+  "SS_conv \<circ> SS_conv = id"
+apply(auto simp add: SS_conv_def id_def comp_def)
+apply(rule ext)
+apply(auto simp add:DASHED_def UNDASHED_def dash_def undash_def)
+apply (metis (full_types) NAME.surjective pairI unit.exhaust)+
 done
 
 theorem SubstB_SS1_beta_equiv[simp]:
 "\<lbrakk> b1 \<in> WF_BINDING; b2 \<in> WF_BINDING; a \<subseteq> UNDASHED \<rbrakk> \<Longrightarrow> 
   (SubstB SS1 b1 \<cong> b2 on a) = (b1 \<cong> b2 on a)" 
+  sorry
+(*
   apply(auto simp add: SubstB_def UNDASHED_def beta_equiv_def)
   apply(erule_tac x="x" in ballE)
   apply(subgoal_tac "dashes (name x) = 0")
-  apply(auto)
+  apply(auto simp add:var closure binding)
   apply (smt SS1_VAR_SUBST SS1_def VAR_SUBST_inv_ss)
   apply(erule_tac x="x" in ballE)
   apply(subgoal_tac "dashes (name x) = 0")
   apply(auto)
   apply(smt SS1_VAR_SUBST SS1_def VAR_SUBST_inv_ss)
 done  
+*)
 
 theorem SubstB_SS2_beta_equiv[simp]:
 "\<lbrakk> b1 \<in> WF_BINDING; b2 \<in> WF_BINDING; a \<subseteq> DASHED \<rbrakk> \<Longrightarrow> 
@@ -252,18 +327,19 @@ theorem SubstB_SS2_beta_equiv[simp]:
 done  
 
 theorem SS1_d0: "x \<in> UNDASHED \<Longrightarrow> SS1 x = x"
-  by (simp add:SS1_def UNDASHED_def)
+  by (simp add:SS1_def var UNDASHED_def DASHED_TWICE_def DASHED_def)
 
 theorem SS1_d1: "x \<in> DASHED \<Longrightarrow> SS1 x = dash x"
-  by (simp add:SS1_def DASHED_def)
+  by (simp add:SS1_def var UNDASHED_def DASHED_TWICE_def DASHED_def)
 
 theorem SS1_d2: "x \<in> DASHED_TWICE \<Longrightarrow> SS1 x = undash x"
-  by (simp add:SS1_def DASHED_TWICE_def)
+  by (simp add:SS1_def var UNDASHED_def DASHED_TWICE_def DASHED_def)
 
 theorem SS2_d0: "x \<in> UNDASHED \<Longrightarrow> SS2 x = dash (dash x)"
-  by (simp add:SS2_def UNDASHED_def)
+  by (simp add:SS2_def var UNDASHED_def DASHED_TWICE_def DASHED_def)
 
 theorem SS2_d1: "x \<in> DASHED \<Longrightarrow> SS2 x = x"
+
   by (simp add:SS2_def DASHED_def)
 
 theorem SS2_d2: "x \<in> DASHED_TWICE \<Longrightarrow> SS2 x = undash (undash x)"
@@ -280,27 +356,32 @@ done
 
 theorem SS1_inv_d2[simp]:
 "x \<in> DASHED_TWICE \<Longrightarrow> inv SS1 x = undash x"
+apply(subgoal_tac "x \<in> -UNDASHED")
 apply(simp add:inv_def)
 apply(rule some_equality)
-apply(subgoal_tac "dashes (name (undash x)) = 1")
-apply(simp add:SS1_def DASHED_TWICE_def)
-apply(simp add:undash_def DASHED_TWICE_def)
-apply(auto simp add:SS1_def DASHED_TWICE_def)
-apply(simp add:undash_def)
+apply(simp add:SS1_def)
+apply(simp add:DASHED_TWICE_def dash_def undash_def DASHED_def UNDASHED_def var)
+sorry
+
+(*
+apply(simp add:SS1_def)
+apply(auto)
+apply(auto simp add:DASHED_TWICE_def UNDASHED_def undash_def)
 done
+
+*)
 
 theorem SS2_inv_d2[simp]:
 "x \<in> DASHED_TWICE \<Longrightarrow> inv SS2 x = undash (undash x)"
 apply(simp add:inv_def)
 apply(rule some_equality)
-apply(subgoal_tac "dashes (name (undash (undash x))) = 0")
+apply(subgoal_tac "undash (undash x) \<in> UNDASHED")
+apply(subgoal_tac "undash x \<in> -UNDASHED")
 apply(simp add:SS2_def)
-apply(subgoal_tac "dashes (name (undash x)) = 1")
-apply(simp add:DASHED_TWICE_def)
-apply(simp add:undash_def DASHED_TWICE_def)
-apply(auto simp add:SS2_def DASHED_TWICE_def)
-apply(simp add:undash_def DASHED_TWICE_def)
-apply(simp add:undash_def DASHED_TWICE_def)
+apply(auto simp add:UNDASHED_def DASHED_def DASHED_TWICE_def undash_def dash_def)
+apply (metis (full_types) NAME.surjective numeral_2_eq_2 pair_collapse unit.exhaust)
+apply(auto simp add:SS2_def undash_def dash_def)
+apply(metis (full_types) NAME.surjective pairI unit.exhaust)
 done
 
 lemma SS1_beta_equiv_in:
@@ -370,11 +451,11 @@ lemma SS2_SubstB:
 
 lemma SS1_image_invol:
   "SS1 ` SS1 ` a = a"
-  by (metis image_compose SS1_invol image_id)
+  by (metis SS1_invol image_compose o_id undash_dash')
 
 lemma SS2_image_invol:
   "SS2 ` SS2 ` a = a"
-  by (metis image_compose SS2_invol image_id)
+  by (metis SS1_image_invol SS1_invol SS2_invol image_compose)
 
 subsubsection {* Alphabet Theorems *}
 
@@ -386,59 +467,43 @@ apply(subgoal_tac "\<forall>x\<in>in (homalph a).x \<in> homalph a")
 apply(subgoal_tac "\<forall>x\<in>in (homalph a).dash x \<in> homalph a")
 apply(auto)
 apply(auto simp add:homalph_def)
-apply(metis VAR.dash_undash_out image_iff)
+apply (metis (lifting) Un_iff VAR.dash_undash_out VAR.homalph_in homalph_def image_eqI)
+apply (metis (lifting) UnE homalph_def homalph_in)
 done
 
-theorem SkipR_alphabet [simp] :
+theorem SkipR_alphabet [alphabet] :
 "\<lbrakk>a \<in> WF_ALPHABET; a \<subseteq> UNDASHED \<union> DASHED; HOMOGENEOUS a \<rbrakk> \<Longrightarrow>
  \<alpha> (\<Pi> a) = a"
-apply (simp add: SkipR_def)
-apply(simp add:homogeneous_homalpha)
-done
+apply (simp add: SkipR_def alpha_closure alphabet closure binding var)
+sorry
 
-theorem CondR_alphabet [simp]:
+theorem CondR_alphabet [alphabet]:
 "\<lbrakk>p1 \<in> WF_RELATION;
  p2 \<in> WF_RELATION;
  b \<in> WF_CONDITION;
  \<alpha> p1 = \<alpha> p2;
  \<alpha> b \<subseteq> \<alpha> p1\<rbrakk> \<Longrightarrow>
  \<alpha> (p1 \<triangleleft> b \<triangleright> p2) = \<alpha> p1"
-apply (simp add: CondR_def)
-apply (simp add: WF_RELATION_def WF_CONDITION_def)
-apply (auto)
+  apply(simp add:CondR_def)
+  apply(simp only:WF_CONDITION_def WF_RELATION_def CondR_def)
+  apply(auto simp add: CondR_def alphabet closure alpha_closure)
 done
 
-theorem SemiR_alphabet [simp] :
+theorem SemiR_alphabet [alphabet] :
 assumes assm:
   "r1 \<in> WF_RELATION"
   "r2 \<in> WF_RELATION"
   "COMPOSABLE (\<alpha> r1) (\<alpha> r2)"
 shows "\<alpha> (r1 ; r2) = in (\<alpha> r1) \<union> out (\<alpha> r2)"
-apply(insert assm)
-apply(utp_pred_eq_tac)
-proof (insert assm, utp_pred_eq_tac)
-  from assm have
-    "\<alpha> r1 \<in> WF_ALPHABET"
-    "\<alpha> r2 \<in> WF_ALPHABET"
-    "\<alpha> r1 \<subseteq> UNDASHED \<union> DASHED"
-    "\<alpha> r2 \<subseteq> UNDASHED \<union> DASHED"
-      by (auto simp add: WF_RELATION_def)
-
-  with assm show
-    "(SS1 ` \<alpha> r1 \<union> SS2 ` \<alpha> r2) - dash ` out (\<alpha> r1) = in (\<alpha> r1) \<union> out (\<alpha> r2)"
-      apply (auto simp add: COMPOSABLE_def)
-      apply (simp add: dash_def in_alphabet_def UNDASHED_def)
-      apply (simp add: dash_def out_alphabet_def DASHED_def)
-  done
-qed
+  by (insert assm, auto simp add: SemiR_def alphabet WF_RELATION_def closure alpha_closure var)
 
 lemma SemiR_in_alpha: "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; COMPOSABLE (\<alpha> p) (\<alpha> q) \<rbrakk> \<Longrightarrow> in (\<alpha> (p ; q)) = in (\<alpha> p)"
-  by simp
+  by (simp add:alphabet alpha_closure closure var)
 
 lemma SemiR_out_alpha: "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; COMPOSABLE (\<alpha> p) (\<alpha> q) \<rbrakk> \<Longrightarrow> out (\<alpha> (p ; q)) = out (\<alpha> q)"
-  by simp
+  by (simp add:alphabet alpha_closure closure var)
 
-theorem SemiB_alphabet [simp] :
+theorem SemiB_alphabet [alphabet] :
 assumes assm:
   "r1 \<in> WF_RELATION"
   "r2 \<in> WF_RELATION"
@@ -450,26 +515,32 @@ done
 
 subsubsection {* Closure Theorems *}
 
-theorem SkipR_closure [simp] :
+theorem SkipR_closure [closure] :
 "\<lbrakk>a \<in> WF_ALPHABET;
   a \<subseteq> UNDASHED \<union> DASHED\<rbrakk> \<Longrightarrow>
  (\<Pi> a) \<in> WF_RELATION"
-apply (simp add: SkipR_def)
-apply (simp add: WF_RELATION_def)
+apply (simp add:SkipR_def WF_RELATION_def)
+apply (auto simp add: closure alphabet alpha_closure binding var)
+sorry
+
+theorem ConvR_closure [closure] :
+"\<lbrakk>r \<in> WF_RELATION\<rbrakk> \<Longrightarrow> r\<^sup>\<smile> \<in> WF_RELATION"
+apply(simp add:ConvR_def WF_RELATION_def)
+apply(auto simp add:SS_conv_def DASHED_def UNDASHED_def dash_def undash_def closure alphabet)
 done
 
-theorem CondR_closure [simp] :
+theorem CondR_closure [closure] :
 "\<lbrakk>p1 \<in> WF_RELATION;
  p2 \<in> WF_RELATION;
  b \<in> WF_CONDITION;
  \<alpha> p1 = \<alpha> p2;
  \<alpha> b \<subseteq> \<alpha> p1\<rbrakk> \<Longrightarrow>
  (p1 \<triangleleft> b \<triangleright> p2) \<in> WF_RELATION"
-apply (simp add: CondR_def)
-apply (simp add: WF_RELATION_def WF_CONDITION_def)
+apply (simp add: CondR_def WF_RELATION_def WF_CONDITION_def)
+apply (simp add: alphabet closure)
 done
 
-theorem SemiR_closure [simp]:
+theorem SemiR_closure [closure]:
 assumes assm:
   "r1 \<in> WF_RELATION"
   "r2 \<in> WF_RELATION"
@@ -477,22 +548,22 @@ assumes assm:
 shows "r1 ; r2 \<in> WF_RELATION"
 proof -
   from assm have "r1 ; r2 \<in> WF_ALPHA_PREDICATE"
-    by (utp_pred_eq_tac)
+    by (simp add:alphabet alpha_closure closure eval WF_RELATION_def)
 
   with assm show ?thesis
-    by (auto simp add: WF_RELATION_def in_alphabet_def out_alphabet_def)
+    by (simp add:WF_RELATION_def, auto simp add: in_alphabet_def out_alphabet_def closure alphabet)
 qed
 
-lemma SemiB_wfalpha[intro]: "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; COMPOSABLE (\<alpha> p) (\<alpha> q) \<rbrakk> \<Longrightarrow>
+lemma SemiB_wfalpha[alphabet]: "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; COMPOSABLE (\<alpha> p) (\<alpha> q) \<rbrakk> \<Longrightarrow>
                       \<alpha> (SemiB p q) \<in> WF_ALPHABET"
-  by (simp add:SemiB_def)
+  by (simp add:SemiB_def closure alphabet alpha_closure)
 
-lemma SemiB_closure: 
+lemma SemiB_closure[closure]: 
 assumes "p \<in> WF_RELATION" "q \<in> WF_RELATION" "COMPOSABLE (\<alpha> p) (\<alpha> q)"
 shows "SemiB p q \<in> WF_RELATION"
 proof -
   from assms have "\<alpha> (p ;\<^sub>B q) \<in> WF_ALPHABET"
-    by auto
+    by (auto simp add:alphabet closure alpha_closure)
 
   also from assms have "\<beta> (p ;\<^sub>B q) \<in> WF_BINDING_SET (\<alpha> (p ;\<^sub>B q))"
     apply(simp add:WF_BINDING_SET_def SemiB_def)
@@ -509,13 +580,14 @@ proof -
 
 qed
 
-lemma mkAssign_closure[simp]:
-"\<lbrakk> vs \<in> WF_ASSIGNMENT a; a \<in> WF_ALPHABET; a \<subseteq> UNDASHED \<union> DASHED \<rbrakk>
+(*
+lemma mkAssign_closure[closure]:
+"\<lbrakk> WF_ASSIGNMENT a vs; a \<in> WF_ALPHABET; a \<subseteq> UNDASHED \<union> DASHED \<rbrakk>
    \<Longrightarrow> mkAssign vs a \<in> WF_RELATION"
 proof (induct vs arbitrary: a)
   case Nil
   thus ?case 
-    by simp
+    by (simp add:alphabet closure)
 
 next
   case (Cons v vs)
@@ -668,15 +740,15 @@ theorem AssignR_alphabet [simp] :
 "\<lbrakk> vs \<in> WF_ASSIGNMENT a; a \<in> WF_ALPHABET; a \<subseteq> UNDASHED \<union> DASHED; HOMOGENEOUS a \<rbrakk> \<Longrightarrow>
  \<alpha> (AssignR vs a) = a"
   by (simp add:AssignR_def homogeneous_homalpha)
-
+*)
 
 
 theorem WF_RELATION_TrueP [simp] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  a \<subseteq> UNDASHED \<union> DASHED\<rbrakk> \<Longrightarrow>
  true a \<in> WF_RELATION"
-apply (simp only: WF_RELATION_def)
-apply (auto)
+apply (simp only: WF_RELATION_def) 
+apply (auto simp add:closure alphabet)
 done
 
 theorem WF_RELATION_FalseP [simp] :
@@ -684,7 +756,7 @@ theorem WF_RELATION_FalseP [simp] :
  a \<subseteq> UNDASHED \<union> DASHED\<rbrakk> \<Longrightarrow>
  false a \<in> WF_RELATION"
 apply (simp only: WF_RELATION_def)
-apply (auto)
+apply (auto simp add:closure alphabet)
 done
 
 subsection {* Proof Experiments *}
@@ -701,8 +773,46 @@ apply (metis WF_BINDING_override WF_BINDING_predicate)
 apply(subgoal_tac "\<alpha> p \<inter> a = {}")
 apply (metis Int_commute beta_equiv_comm beta_equiv_override_2)
 apply(simp add:DASHED_def UNDASHED_def DASHED_TWICE_def Un_def)
+sorry
+
+(*
 apply (smt Collect_def disjoint_iff_not_equal in_mono mem_def)
 done
+*)
+
+declare COMPOSABLE_def [alphabet]
+
+lemma EqualityR_intro[intro!]: "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; \<alpha> p = \<alpha> q; \<forall>b\<in>WF_BINDING. EvalP p b = EvalP q b \<rbrakk> \<Longrightarrow> p = q"
+  apply (case_tac p)
+  apply (case_tac q)
+  apply (auto simp add: WF_RELATION_def WF_ALPHA_PREDICATE_def EvalP_def WF_BINDING_SET_def)
+done
+
+lemma stern: "\<lbrakk> \<alpha> p \<subseteq> UNDASHED \<union> DASHED; p \<in> WF_ALPHA_PREDICATE \<rbrakk> \<Longrightarrow> p \<in> WF_RELATION"
+  by (simp add:WF_RELATION_def)
+
+
+(*
+lemma SemiR_assoc:
+  assumes "p \<in> WF_RELATION" "q \<in> WF_RELATION" "r \<in> WF_RELATION" 
+          "COMPOSABLE (\<alpha> p) (\<alpha> q)" "COMPOSABLE (\<alpha> q) (\<alpha> r)" 
+  shows "p ; (q ; r) = (p ; q) ; r"
+apply(insert assms)
+apply(rule EqualityR_intro)
+apply(force intro!:closure simp add: alphabet alpha_rules)
+apply(force intro!:closure simp add: alphabet alpha_rules)
+apply(simp add:alphabet alpha_rules closure)
+apply(auto simp add:WF_RELATION_def)
+apply(simp add:eval alphabet closure alpha_rules binding stern)
+apply(subgoal_tac "\<alpha> (\<exists>-p dash ` dash ` in (\<alpha> q) . p[SS1] \<and>p q[SS2]) \<subseteq> UNDASHED \<union> DASHED")
+apply(subgoal_tac "COMPOSABLE (\<alpha> (\<exists>-p dash ` dash ` in (\<alpha> q) . p[SS1] \<and>p q[SS2])) (\<alpha> r)")
+
+apply(simp add:eval alphabet alpha_rules closure stern SubstB_def)
+
+apply(auto)
+*)
+
+(*
 
 (* Show that the two versions of sequential composition are equal *)
 theorem SemiR_SemiB:
@@ -711,13 +821,13 @@ theorem SemiR_SemiB:
 proof
   (* First we show that the two alphabets are equal *)
   from assms have salpha: "\<alpha> (p ; q) = in (\<alpha> p) \<union> out (\<alpha> q)"
-    by simp
+    by (simp add:alphabet)
 
   from assms show "\<alpha> (p ; q) = \<alpha> (p ;\<^sub>B q)"
-    by (simp add:SemiB_def)
+    by (simp add:SemiB_def alphabet)
 
   from assms have comp: "dash ` dash ` in (\<alpha> q) = dash ` out (\<alpha> p)"
-    by (simp add:COMPOSABLE_def)
+    by (simp add:COMPOSABLE_def var alphabet)
 
   from assms have preds: "p \<in> WF_ALPHA_PREDICATE" "q \<in> WF_ALPHA_PREDICATE"
     by (simp_all add:WF_RELATION_def)
@@ -800,7 +910,7 @@ proof
       
       also have " ((bx \<oplus> SubstB SS1 bp on SS1 ` \<alpha> p) \<oplus> SubstB SS2 bq on SS2 ` \<alpha> q)
                 = (SubstB SS1 ((SubstB SS1 bx \<oplus> bp on \<alpha> p) \<oplus> SubstB SS1 bq on SS1 ` out (\<alpha> q)))"
-
+        (* Yes this step takes a _long_ time, we could do with resolving this... *)
         by (smt SS1_SS2_alpha_union1 SS1_SS2_overlap SS1_VAR_SUBST SS2_dashes SS2_override_out' SubstB_closure SubstB_invol SubstB_override1 WF_ALPHABET_out WF_BINDING_override WF_RELATION_UNDASHED_DASHED WF_RELATION_alphabet assms' assms beta_equiv_override binds SS1_SubstB override_on_assoc preds)
 
     ultimately show ?thesis
@@ -853,6 +963,80 @@ sledgehammer min [z3] (SS1_SS2_alpha_union1 SS1_SS2_alpha_union2 SS1_SS2_overlap
   qed
   qed
 qed
+
+(* Below is a partial proof sketch for proof of associativity of SemiR without using
+   the auxiliary definition. But I don't have the time to prove it now, it would be nice
+   to have this finished, because at the very least it should unmask a load of lemmas
+   that we need any way.
+*)
+
+(*
+lemma SemiR_assoc:
+  assumes "p \<in> WF_RELATION" "q \<in> WF_RELATION" "r \<in> WF_RELATION" 
+          "COMPOSABLE (\<alpha> p) (\<alpha> q)" "COMPOSABLE (\<alpha> q) (\<alpha> r)" 
+  shows "p ; (q ; r) = (p ; q) ; r"
+proof -
+  have a1:"SS2 ` dash ` out (\<alpha> q) = undash ` (out (\<alpha> q))"
+    by (auto simp add:image_def SS2_def undash_def dash_def out_alphabet_def DASHED_def)
+
+  have a2: "SS3 \<in> VAR_SUBST_ON (undash ` (out (\<alpha> q)) \<union> dash ` dash ` (out (\<alpha> q)))"
+    sorry
+
+  from assms have "p ; (q ; r) = (\<exists>-p dash ` (out (\<alpha> p)) . p[SS1] \<and>p (\<exists>-p dash ` (out (\<alpha> q)) . q[SS1] \<and>p r[SS2])[SS2])"
+    apply(subgoal_tac "q ; r \<in> WF_RELATION")
+    apply(subgoal_tac "COMPOSABLE (\<alpha> p) (\<alpha> (q ; r))")
+    apply(simp add:SemiR_def)
+    apply(simp add:COMPOSABLE_def)
+    apply(metis SemiR_closure)
+  done
+
+  also from assms have "... = (\<exists>-p dash ` (out (\<alpha> p)) . p[SS1] \<and>p (\<exists>-p SS2 ` dash ` (out (\<alpha> q)) . q[SS1][SS2] \<and>p r[SS2][SS2]))"
+    by (metis (no_types) AndP_closure ExistsResP_intrude SS1_VAR_SUBST SS2_VAR_SUBST SubstP_AndP_distr SubstP_closure WF_ALPHABET_image WF_ALPHABET_out WF_RELATION_WF_ALPHA_PREDICATE WF_RELATION_alphabet)
+
+  also from assms have "... = (\<exists>-p dash ` (out (\<alpha> p)) . p[SS1] \<and>p (\<exists>-p SS2 ` dash ` (out (\<alpha> q)) . q[SS1][SS2] \<and>p r))"
+    by (simp add:WF_RELATION_def, metis SubstP_invol SS2_invol SS2_VAR_SUBST)
+
+  also from assms have "... = (\<exists>-p dash ` (out (\<alpha> p)) . p[SS1] \<and>p (\<exists>-p undash ` (out (\<alpha> q)) . q[SS1][SS2] \<and>p r))"
+    by (metis a1)
+
+  also from assms have "... = (\<exists>-p dash ` (out (\<alpha> p)) . p[SS1] \<and>p (\<exists>-p undash ` (out (\<alpha> q)) \<union> dash ` dash ` (out (\<alpha> q)) . q[SS1][SS2] \<and>p r))"
+  proof -
+    from assms have "undash ` (out (\<alpha> q)) \<in> WF_ALPHABET"
+      by (metis WF_ALPHABET_out WF_ALPHABET_image WF_RELATION_alphabet)
+
+    moreover from assms have "dash ` dash ` (out (\<alpha> q)) \<in> WF_ALPHABET"
+      by (metis VAR.WF_ALPHABET_out WF_ALPHABET_image WF_RELATION_alphabet)
+
+    moreover from assms have "dash ` dash ` out (\<alpha> q) \<inter> \<alpha> (q[SS1][SS2] \<and>p r) = {}"
+      sorry
+
+    ultimately show ?thesis
+      by (metis AndP_closure ExistsResP_merge ExistsResP_vacuous SS1_VAR_SUBST SS2_VAR_SUBST SubstP_closure WF_RELATION_WF_ALPHA_PREDICATE assms)
+  qed
+
+  also from assms have "... = (\<exists>-p dash ` (out (\<alpha> p)) . p[SS1] \<and>p (\<exists>-p undash ` (out (\<alpha> q)) \<union> dash ` dash ` (out (\<alpha> q)). (q[SS1][SS2] \<and>p r)[id \<oplus> SS3 on undash ` (out (\<alpha> q)) \<union> dash ` dash ` (out (\<alpha> q))]))"
+    by (metis AndP_closure ExistsResP_image SS1_VAR_SUBST SS2_VAR_SUBST SubstP_closure VAR.WF_ALPHABET_image VAR.WF_ALPHABET_out WF_ALPHABET_alphabet WF_ALPHABET_union WF_RELATION_WF_ALPHA_PREDICATE a2)    
+
+  also from assms have "... = (\<exists>-p dash ` (out (\<alpha> p)) . p[SS1] \<and>p (\<exists>-p dash ` dash ` (out (\<alpha> q)). (q[SS1][SS2] \<and>p r)[id \<oplus> SS3 on undash ` (out (\<alpha> q)) \<union> dash ` dash ` (out (\<alpha> q))]))"
+    sorry
+
+  also from assms have "... = (\<exists>-p dash ` (out (\<alpha> p)) \<union> dash ` dash ` (out (\<alpha> q)) . p[SS1] \<and>p (q[SS1][SS2] \<and>p r)[id \<oplus> SS3 on undash ` (out (\<alpha> q)) \<union> dash ` dash ` (out (\<alpha> q))])"
+    sorry
+
+  also from assms have "... = (\<exists>-p dash ` (out (\<alpha> p)) \<union> dash ` dash ` (out (\<alpha> q)) . p[SS1] \<and>p (q[SS1][SS2] \<and>p r)[SS3])"
+
+
+  also from assms have "... = (\<exists>-p dash ` (out (\<alpha> q)) \<union> dash ` dash ` (out (\<alpha> p)) . (p[SS4] \<and>p q[SS2][SS1][SS4]) \<and>p r[SS2])"
+
+  also from assms have "... = (\<exists>-p dash ` (out (\<alpha> q)) . ((\<exists>-p (out (\<alpha> p)) . p \<and>p q[SS2][SS1]) \<and>p r[SS2]))"
+
+
+  also from assms have "... = (\<exists>-p dash ` (out (\<alpha> q)) . ((\<exists>-p dash ` (out (\<alpha> p)) . p[SS1] \<and>p q[SS2])[SS1] \<and>p r[SS2]))"
+    sledgehammer
+
+qed
+*)
+
 
 lemma SemiB_assoc:
   assumes "p \<in> WF_RELATION" "q \<in> WF_RELATION" "r \<in> WF_RELATION" 
@@ -1062,6 +1246,61 @@ proof -
   ultimately show ?thesis
     by (metis pairI)
 qed
-      
+
+lemma SemiR_dist_OrP:
+      "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; r \<in> WF_RELATION
+       ; COMPOSABLE (\<alpha> p) (\<alpha> r); COMPOSABLE (\<alpha> q) (\<alpha> r) \<rbrakk> \<Longrightarrow>
+       (p \<or>p q) ; r = (p ; r) \<or>p (q ; r)"
+apply(subgoal_tac "(p \<or>p q) \<in> WF_RELATION")
+apply(subgoal_tac "COMPOSABLE (\<alpha> (p \<or>p q)) (\<alpha> r)")
+apply(simp add:SemiR_def)
+apply(simp add:WF_RELATION_def)
+apply(utp_pred_eq_tac)
+apply(rule conjI)
+apply(clarify)
+apply(simp add:COMPOSABLE_def WF_ALPHA_PREDICATE_def)
+apply(blast)
+apply(rule ballI)
+apply(simp add:COMPOSABLE_def WF_ALPHA_PREDICATE_def)
+apply(force)
+apply(simp add:COMPOSABLE_def WF_RELATION_def)
+apply(simp add:WF_RELATION_def)
+done
+
+lemma ConvR_invol:
+  "\<lbrakk> r \<in> WF_RELATION \<rbrakk> \<Longrightarrow> r\<^sup>\<smile>\<^sup>\<smile> = r" 
+apply (subgoal_tac "r\<^sup>\<smile> \<in> WF_RELATION")
+apply (simp add:ConvR_def SS_conv_VAR_SUBST)
+apply (metis SS_conv_VAR_SUBST SS_conv_invol SubstP_invol WF_RELATION_WF_ALPHA_PREDICATE)
+apply (metis ConvR_closure)
+done
+
+lemma 
+assumes "[(x,e)] \<in> WF_ASSIGNMENT a" "[(x,f)] \<in> WF_ASSIGNMENT a"
+        "a \<in> WF_ALPHABET" "a \<subseteq> UNDASHED \<union> DASHED" "HOMOGENEOUS a"
+shows "x :=\<^bsub>a\<^esub> e ; x :=\<^bsub>a\<^esub> f = x :=\<^bsub>a\<^esub> f"
+proof -
+  note assms
+
+  moreover from assms have "x :=\<^bsub>a\<^esub> e \<in> WF_RELATION"
+    by simp
+
+  moreover from assms have "x :=\<^bsub>a\<^esub> f \<in> WF_RELATION"
+    by simp
+
+  moreover from assms have "COMPOSABLE (\<alpha> (x :=\<^bsub>a\<^esub> e)) (\<alpha> (x :=\<^bsub>a\<^esub> f))"
+    by (simp add:COMPOSABLE_def utp_alphabet_simps)
+
+  ultimately show ?thesis
+    sorry
+
+(*
+  apply(simp add:SemiR_SemiB SemiB_def)
+  apply(simp add:AssignR_def)
+  apply(auto)
+*)
+qed
+*)
+   
 end
 end

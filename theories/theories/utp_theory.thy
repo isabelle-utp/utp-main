@@ -114,7 +114,7 @@ theorem SpecTheory_TheoryPreds :
 apply (simp add: TheoryPreds_def)
 apply (safe)
 apply (drule_tac th = "th" and hs = "hs" in SpecTheory_healthconds)
-apply (auto)
+apply (auto simp add:closure alpha_closure eval taut binding alphabet)
 done
 end
 end

@@ -17,12 +17,14 @@ text {* Does @{term "SetVal"} need to know about the type of the set? *}
 datatype 'BASIC_VALUE COMPOSITE_VALUE =
   BasicVal "'BASIC_VALUE" |
   PairVal "'BASIC_VALUE COMPOSITE_VALUE" "'BASIC_VALUE COMPOSITE_VALUE" |
-  SetVal "'BASIC_VALUE COMPOSITE_VALUE SET"
+  SetVal "'BASIC_VALUE COMPOSITE_VALUE SET" |
+  FunVal "('BASIC_VALUE COMPOSITE_VALUE \<times> 'BASIC_VALUE COMPOSITE_VALUE) SET"
 
 datatype 'BASIC_TYPE COMPOSITE_TYPE =
   BasicType "'BASIC_TYPE" |
   PairType "'BASIC_TYPE COMPOSITE_TYPE" "'BASIC_TYPE COMPOSITE_TYPE" |
-  SetType "'BASIC_TYPE COMPOSITE_TYPE"
+  SetType "'BASIC_TYPE COMPOSITE_TYPE" |
+  FunType "'BASIC_TYPE COMPOSITE_TYPE" "'BASIC_TYPE COMPOSITE_TYPE"
 
 text {* Destructors *}
 
@@ -41,25 +43,41 @@ primrec SetOf ::
    'BASIC_VALUE COMPOSITE_VALUE SET" where
 "SetOf (SetVal s) = s"
 
+primrec FunOf ::   
+   "'BASIC_VALUE COMPOSITE_VALUE \<Rightarrow>
+   ('BASIC_VALUE COMPOSITE_VALUE \<times>
+    'BASIC_VALUE COMPOSITE_VALUE) SET" where
+"FunOf (FunVal s) = s"
+
 text {* Testing Functions *}
 
 primrec IsBasicVal ::
   "'BASIC_VALUE COMPOSITE_VALUE \<Rightarrow> bool" where
 "IsBasicVal (BasicVal v) = True" |
 "IsBasicVal (PairVal v1 v2) = False" |
-"IsBasicVal (SetVal s) = False"
+"IsBasicVal (SetVal s) = False" |
+"IsBasicVal (FunVal f) = False"
 
 primrec IsPairVal ::
   "'BASIC_VALUE COMPOSITE_VALUE \<Rightarrow> bool" where
 "IsPairVal (BasicVal v) = False" |
 "IsPairVal (PairVal v1 v2) = True" |
-"IsPairVal (SetVal s) = False"
+"IsPairVal (SetVal s) = False" |
+"IsPairVal (FunVal f) = False"
 
 primrec IsSetVal ::
   "'BASIC_VALUE COMPOSITE_VALUE \<Rightarrow> bool" where
 "IsSetVal (BasicVal v) = False" |
 "IsSetVal (PairVal v1 v2) = False" |
-"IsSetVal (SetVal s) = True"
+"IsSetVal (SetVal s) = True" |
+"IsSetVal (FunVal s) = False"
+
+primrec IsFunVal ::
+  "'BASIC_VALUE COMPOSITE_VALUE \<Rightarrow> bool" where
+"IsFunVal (BasicVal v) = False" |
+"IsFunVal (PairVal v1 v2) = False" |
+"IsFunVal (SetVal s) = False" |
+"IsFunVal (FunVal f) = True"
 
 text {* Abbreviations *}
 
@@ -72,6 +90,16 @@ abbreviation DecSetOf ::
   "'BASIC_VALUE COMPOSITE_VALUE \<Rightarrow>
    'BASIC_VALUE COMPOSITE_VALUE set" where
 "DecSetOf v \<equiv> DecSet (SetOf v)"
+
+abbreviation EncFunVal ::
+  "('BASIC_VALUE COMPOSITE_VALUE \<Rightarrow> 'BASIC_VALUE COMPOSITE_VALUE) \<Rightarrow>
+   'BASIC_VALUE COMPOSITE_VALUE" where
+"EncFunVal f \<equiv> FunVal (EncSet {(x, f x) | x. x \<in> UNIV})"
+
+abbreviation DecFunOf ::
+  "'BASIC_VALUE COMPOSITE_VALUE \<Rightarrow>
+   ('BASIC_VALUE COMPOSITE_VALUE \<Rightarrow> 'BASIC_VALUE COMPOSITE_VALUE)" where
+"DecFunOf f \<equiv> \<lambda> x. THE y. (x, y) \<in> DecSet (FunOf f)"
 
 subsection {* Typing and Refinement *}
 
@@ -87,6 +115,9 @@ fun lift_type_rel_composite ::
    (\<up>trel type_rel v2 t2))" |
 "\<up>trel type_rel (SetVal vs) (SetType t) =
    (\<forall> v \<in> DecSet(vs) . \<up>trel type_rel v t)" |
+"\<up>trel type_rel (FunVal f) (FunType a b) =
+   (\<forall> v \<in> DecSet(f) . \<up>trel type_rel (fst v) a 
+                    \<and> \<up>trel type_rel (snd v) b)" |
 "\<up>trel type_rel _ _ = False"
 
 fun lift_value_ref_composite ::
@@ -99,11 +130,12 @@ fun lift_value_ref_composite ::
 "\<up>vref value_ref (PairVal v1 v2) (PairVal v1' v2') =
    (v1 = v1' \<and> v2 = v2')" |
 "\<up>vref value_ref (SetVal vs) (SetVal vs') = (vs = vs')" |
+"\<up>vref value_ref (FunVal f) (FunVal f') = (f = f')" |
 "\<up>vref value_ref _ _ = False"
 
 subsection {* Sort Membership *}
 
-instantiation COMPOSITE_VALUE :: (BASIC_SORT) COMPOSITE_SORT
+instantiation COMPOSITE_VALUE :: (BASIC_SORT) COMPOSITE_SORT2
 begin
 definition ValueRef_COMPOSITE_VALUE :
 "ValueRef_COMPOSITE_VALUE = \<up>vref VALUE_SORT_class.ValueRef"
@@ -137,6 +169,12 @@ definition DestSet_COMPOSITE_VALUE :
 "DestSet_COMPOSITE_VALUE v = DecSetOf v"
 definition IsSet_COMPOSITE_VALUE :
 "IsSet_COMPOSITE_VALUE v = (IsSetVal v)"
+definition MkFunc_COMPOSITE_VALUE :
+"MkFunc_COMPOSITE_VALUE f = EncFunVal f"
+definition DestFunc_COMPOSITE_VALUE :
+"DestFunc_COMPOSITE_VALUE f = DecFunOf f"
+definition IsFunc_COMPOSITE_VALUE :
+"IsFunc_COMPOSITE_VALUE f = (IsFunVal f)"
 instance
 apply (intro_classes)
 done
@@ -160,6 +198,9 @@ declare IsPair_COMPOSITE_VALUE [simp]
 declare MkSet_COMPOSITE_VALUE [simp]
 declare DestSet_COMPOSITE_VALUE [simp]
 declare IsSet_COMPOSITE_VALUE [simp]
+declare MkFunc_COMPOSITE_VALUE [simp]
+declare DestFunc_COMPOSITE_VALUE [simp]
+declare IsFunc_COMPOSITE_VALUE [simp]
 
 subsection {* Locale @{text "COMPOSITE_VALUE"} *}
 
@@ -193,6 +234,11 @@ definition MkSet ::
    'BASIC_VALUE COMPOSITE_VALUE" where
 "MkSet = SET_SORT_class.MkSet"
 
+definition MkFun ::
+  "('BASIC_VALUE COMPOSITE_VALUE \<Rightarrow> 'BASIC_VALUE COMPOSITE_VALUE) \<Rightarrow>
+   'BASIC_VALUE COMPOSITE_VALUE" where
+"MkFun = FUNCTION_SORT_class.MkFunc"
+
 text {* Destructors *}
 
 definition DestInt ::
@@ -218,6 +264,11 @@ definition DestSet ::
    'BASIC_VALUE COMPOSITE_VALUE set" where
 "DestSet = SET_SORT_class.DestSet"
 
+definition DestFun ::
+  "'BASIC_VALUE COMPOSITE_VALUE \<Rightarrow>
+   ('BASIC_VALUE COMPOSITE_VALUE \<Rightarrow> 'BASIC_VALUE COMPOSITE_VALUE)" where
+"DestFun = FUNCTION_SORT_class.DestFunc"
+
 text {* Testing Functions *}
 
 definition IsInt ::
@@ -240,6 +291,10 @@ definition IsSet ::
   "'BASIC_VALUE COMPOSITE_VALUE \<Rightarrow> bool" where
 "IsSet = SET_SORT_class.IsSet"
 
+definition IsFun ::
+  "'BASIC_VALUE COMPOSITE_VALUE \<Rightarrow> bool" where
+"IsFun = FUNCTION_SORT_class.IsFunc"
+
 text {* Default Simplifications *}
 
 declare MkInt_def [simp]
@@ -247,18 +302,21 @@ declare MkBool_def [simp]
 declare MkStr_def [simp]
 declare MkPair_def [simp]
 declare MkSet_def [simp]
+declare MkFun_def [simp]
 
 declare DestInt_def [simp]
 declare DestBool_def [simp]
 declare DestStr_def [simp]
 declare DestPair_def [simp]
 declare DestSet_def [simp]
+declare DestFun_def [simp]
 
 declare IsInt_def [simp]
 declare IsBool_def [simp]
 declare IsStr_def [simp]
 declare IsPair_def [simp]
 declare IsSet_def [simp]
+declare IsFun_def [simp]
 end
 
 subsection {* Theorems *}
@@ -273,10 +331,13 @@ apply (safe)
 apply (rule_tac x = "BasicVal x" in exI)
 apply (simp)
 apply (rule_tac x = "PairVal x xa" in exI)
-apply (auto)
+apply (force)
 apply (rule_tac x = "EncSetVal {}" in exI)
+apply (force)
+apply (rule_tac x = "EncFunVal id" in exI)
 apply (auto)
-done
+(* The proof about functions doesn't go through yet *)
+sorry
 
 text {* The following theorem facilitates locale instantiation. *}
 

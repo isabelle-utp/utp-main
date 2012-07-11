@@ -18,9 +18,7 @@ theorem AndP_intro :
  p2 \<in> WF_ALPHA_PREDICATE;
  \<alpha> p2 \<subseteq> \<alpha> p1;
  taut (p1 \<Rightarrow>p p2)\<rbrakk> \<Longrightarrow> p1 = (p1 \<and>p p2)"
-apply (utp_pred_taut_tac)
-apply (auto)
-done
+  by (utp_pred_eq_tac2)
 
 subsection {* Simons Theorems *}
 
@@ -29,26 +27,21 @@ theorem OrP_assoc:
  p2 \<in> WF_ALPHA_PREDICATE;
  p3 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<or>p (p2 \<or>p p3) = (p1 \<or>p p2) \<or>p p3"
-apply (utp_pred_taut_tac)
-apply (auto)
-done
+  by (utp_pred_eq_tac2)
+
 
 theorem OrP_comm:
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  q \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p \<or>p q = q \<or>p p"
-apply (utp_pred_taut_tac)
-apply (auto)
-done
+  by (utp_pred_eq_tac2)
 
 theorem OrP_identity:
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<subseteq> \<alpha> p\<rbrakk> \<Longrightarrow>
  p \<or>p false a = p"
-apply(frule WF_ALPHA_PREDICATE_subset)
-apply(auto)
-apply(utp_pred_eq_tac)
-apply(auto)
+apply(frule_tac a="a" in WF_ALPHA_PREDICATE_subset)
+apply(auto simp add:closure alphabet alpha_closure eval)+
 done
 
 theorem OrP_AndP_dist:
@@ -56,45 +49,70 @@ theorem OrP_AndP_dist:
  p2 \<in> WF_ALPHA_PREDICATE;
  p3 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<or>p (p2 \<and>p p3) = (p1 \<or>p p2) \<and>p (p1 \<or>p p3)"
-apply (utp_pred_eq_tac)
-apply (auto)
-done
+ by (utp_pred_eq_tac2)
+
 
 theorem Huntington:
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  q \<in> WF_ALPHA_PREDICATE;
  \<alpha> q \<subseteq> \<alpha> p\<rbrakk> \<Longrightarrow>
  \<not>p (\<not>p p \<or>p \<not>p q) \<or>p \<not>p (\<not>p p \<or>p q) = p"
-apply (utp_pred_eq_tac)
-apply (auto)
-done
-
+ by (utp_pred_eq_tac2)
 
 theorem OrP_RefP1:
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  q \<in> WF_ALPHA_PREDICATE;
- \<alpha> p = \<alpha> q; p \<or>p q = q \<rbrakk> \<Longrightarrow>
+ \<alpha> q = \<alpha> p; p \<or>p q = q \<rbrakk> \<Longrightarrow>
  q \<sqsubseteq> p"
-apply (utp_pred_taut_tac)
-apply(auto)
-done
+  by (utp_pred_eq_tac2)
 
 theorem OrP_RefP2:
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  q \<in> WF_ALPHA_PREDICATE;
  \<alpha> p = \<alpha> q; q \<sqsubseteq> p \<rbrakk> \<Longrightarrow>
  p \<or>p q = q"
-apply (utp_pred_taut_tac)
-apply(rule ballI)
-apply(erule ballE)
-apply(auto)
-done
+  by (utp_pred_eq_tac2)
 
 theorem OrP_RefP:
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  q \<in> WF_ALPHA_PREDICATE \<rbrakk> \<Longrightarrow>
 (\<alpha> p = \<alpha> q \<and> p \<or>p q = p) = (\<alpha> p = \<alpha> q \<and> p \<sqsubseteq> q)"
   by (metis OrP_RefP1 OrP_RefP2 OrP_comm)
+
+theorem ResP_extrude:
+assumes "p \<in> WF_ALPHA_PREDICATE" "q \<in> WF_ALPHA_PREDICATE"
+        "a \<in> WF_ALPHABET" "a \<inter> \<alpha> p = {}"
+shows   "p \<and>p (q \<ominus>p a) = (p \<and>p q) \<ominus>p a"
+  by (insert assms, utp_pred_eq_tac2)
+
+theorem ExistsResP_extrude:
+assumes "p \<in> WF_ALPHA_PREDICATE" "q \<in> WF_ALPHA_PREDICATE"
+        "a \<in> WF_ALPHABET" "a \<inter> \<alpha> p = {}"
+shows   "p \<and>p (\<exists>-p a . q) = (\<exists>-p a . (p \<and>p q))"
+  by (insert assms, utp_pred_eq_tac2)
+
+theorem ExistsResP_merge:
+assumes "p \<in> WF_ALPHA_PREDICATE" "a \<in> WF_ALPHABET" "b \<in> WF_ALPHABET"
+shows "(\<exists>-p a . \<exists>-p b. p) = (\<exists>-p (a \<union> b) . p)"
+  apply (insert assms)
+  apply (utp_pred_eq_tac2)
+  apply (auto simp add:override_on_assoc)
+  apply (metis override_on_idem)
+done
+
+theorem ResP_vacuous:
+assumes "p \<in> WF_ALPHA_PREDICATE"
+        "a \<in> WF_ALPHABET" "a \<inter> \<alpha> p = {}"
+shows "p = p \<ominus>p a"
+  by (insert assms, utp_pred_eq_tac2)
+
+theorem ExistsResP_vacuous:
+assumes "p \<in> WF_ALPHA_PREDICATE"
+        "a \<in> WF_ALPHABET" "a \<inter> \<alpha> p = {}"
+shows "p = (\<exists>-p a. p)"
+  by (insert assms, utp_pred_eq_tac2)
+
+(* The commented code is instantiation of the boolean algebra *)
 
 (*
 abbreviation "GEN_PRED_algebra \<equiv>
