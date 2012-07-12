@@ -39,16 +39,6 @@ text {* We require bindings to be well-typed. *}
 definition WF_BINDING :: "('VALUE, 'TYPE) BINDING_SET" where
 "WF_BINDING = {b . \<forall> v . (b v) : (type v)}"
 
-text {* Binding Equivalence *}
-
-definition beta_equiv ::
-  "('VALUE, 'TYPE) BINDING \<Rightarrow>
-   ('VALUE, 'TYPE) BINDING \<Rightarrow>
-   ('TYPE ALPHABET) \<Rightarrow> bool" where
-"(beta_equiv b1 b2 a) \<longleftrightarrow> (\<forall> x \<in> a . b1 x = b2 x)"
-
-notation beta_equiv ("_ \<cong> _ on _")
-
 text {* Binding Sets *}
 
 text {* Well-formed binding sets are upward-closed with respect to an alphabet. *}
@@ -318,6 +308,8 @@ theorem WF_ALPHA_PREDICATE_subset [intro] :
 
 subsubsection {* Binding Theorems *}
 
+declare beta_equiv_refl [binding]
+
 theorem WF_BINDING_exists[binding] :
 "\<exists> b . b \<in> WF_BINDING"
 apply (rule_tac x = "(\<lambda> v . SOME x . x : (type v))" in exI)
@@ -378,48 +370,6 @@ apply (auto) [1]
 apply (auto simp: beta_equiv_def)
 done
 
-text {* Binding Equivalence *}
-theorem  beta_equiv_refl[binding] :
-"b \<cong> b on a"
-by (simp add: beta_equiv_def)
-
-theorem  beta_equiv_comm :
-"b1 \<cong> b2 on a \<Longrightarrow> b2 \<cong> b1 on a"
-by (simp add: beta_equiv_def)
-
-theorem  beta_equiv_trans :
-"\<lbrakk>b1 \<cong> b2 on a; b2 \<cong> b3 on a\<rbrakk> \<Longrightarrow> b1 \<cong> b3 on a"
-apply (simp add: beta_equiv_def)
-done
-
-theorem beta_equiv_override[binding] :
-"b1 \<cong> b2 on a \<Longrightarrow> b1 \<oplus> b2 on a = b1"
-apply (simp add: beta_equiv_def)
-apply (rule ext)
-apply (case_tac "x \<in> a")
-apply (auto)
-done
-
-theorem beta_equiv_override_2 :
-"a1 \<inter> a2 = {} \<Longrightarrow> b1 \<oplus> b2 on a1 \<cong> b1 on a2"
-  by (auto simp add: beta_equiv_def override_on_def)
-
-theorem beta_equiv_override_3 [simp] :
-"f \<oplus> g on a \<cong> h on a = g \<cong> h on a"
-  by (simp add: beta_equiv_def override_on_def)
- 
-theorem beta_equiv_override_4 [simp] :
-"\<lbrakk> a \<subseteq> b; f \<oplus> g on a \<cong> h on b \<rbrakk> \<Longrightarrow> g \<cong> h on a"
-apply (auto simp add: beta_equiv_def override_on_def)
-apply (case_tac "x \<in> b")
-apply (auto)
-done
-
-theorem beta_equiv_override_5 [simp] :
-"\<lbrakk> a \<subseteq> b; f \<oplus> g on a \<cong> h on b \<rbrakk> \<Longrightarrow> f \<cong> h on b - a"
-  by (auto simp add: beta_equiv_def override_on_def)
-
-
 theorem beta_equiv_bindings :
 "\<lbrakk>b1 \<cong> b2 on (\<alpha> p);
  p \<in> WF_ALPHA_PREDICATE;
@@ -428,22 +378,6 @@ theorem beta_equiv_bindings :
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_BINDING_SET_def)
 done
-
-theorem beta_equiv_empty:
-"a \<subseteq> {} \<Longrightarrow> b1 \<cong> b2 on a"
-  by (simp add:beta_equiv_def)
-
-theorem beta_equiv_union :
-"b1 \<cong> b2 on (a \<union> b) = (b1 \<cong> b2 on a \<and> b1 \<cong> b2 on b)"
-  by (auto simp add:beta_equiv_def)
-
-theorem beta_equiv_subset :
-"\<lbrakk> a \<subseteq> b; x \<cong> y on b \<rbrakk> \<Longrightarrow> x \<cong> y on a"
-  by (metis Un_absorb1 beta_equiv_union)
-
-theorem beta_equiv_override_intro1[intro]:
-"\<lbrakk> f \<cong> h on b - a ; g \<cong> h on a \<inter> b \<rbrakk> \<Longrightarrow> f \<oplus> g on a \<cong> h on b"
-  by (auto simp add:beta_equiv_def override_on_def)
 
 text {* Binding Set Theorems *}
 

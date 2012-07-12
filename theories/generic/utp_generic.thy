@@ -15,6 +15,7 @@ imports
   utp_alphabet
   utp_gen_pred
   utp_gen_laws
+  utp_expression
   utp_eval_tactic
   utp_binding_fun
   utp_function

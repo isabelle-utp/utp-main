@@ -20,7 +20,7 @@ definition assign_value :: "('VALUE, 'TYPE) ASSIGN \<Rightarrow> ('VALUE, 'TYPE)
 "assign_value \<equiv> snd"
 
 
-context GEN_PRED
+context GEN_EXPR
 begin
 
 subsection {* Restrictions *}

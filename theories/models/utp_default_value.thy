@@ -94,6 +94,8 @@ definition IsStr_DEFAULT_VALUE :: "DEFAULT_VALUE \<Rightarrow> bool" where
 "IsStr_DEFAULT_VALUE = IsStringVal"
 instance
 apply (intro_classes)
+apply(simp add:MkBool_DEFAULT_VALUE_def)
+apply(simp add:MkBool_DEFAULT_VALUE_def IsBool_DEFAULT_VALUE_def)
 done
 end
 
@@ -122,6 +124,13 @@ apply (rule_tac x = "BoolVal b" in exI)
 apply (auto)
 apply (rule_tac x = "StringVal s" in exI)
 apply (auto)
+apply (induct_tac x)
+apply (rule_tac x = "IntType" in exI)
+apply (simp)
+apply (rule_tac x = "BoolType" in exI)
+apply (simp)
+apply (rule_tac x = "StringType" in exI)
+apply (simp)
 done
 
 subsection {* Proof Experiments *}

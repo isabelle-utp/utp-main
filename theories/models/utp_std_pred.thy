@@ -111,8 +111,10 @@ definition STD_bindings ::
 declare STD_alphabet_def [simp]
 declare STD_bindings_def [simp]
 
+(*
 defs STD_beta_equiv [simp] :
 "GLOBAL1.beta_equiv \<equiv> STD.beta_equiv"
+*)
 
 defs STD_LiftP [simp] :
 "GLOBAL1.LiftP a bfun \<equiv>

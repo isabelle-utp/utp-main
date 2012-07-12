@@ -199,6 +199,78 @@ lemma override_imageR[simp]: "(f \<oplus> g on a) ` a = g ` a"
 lemma override_imageL[simp]: "a \<inter> b = {} \<Longrightarrow> (f \<oplus> g on a) ` b = f ` b"
   by (auto simp add:override_on_def)
 
+subsubsection {* Function equivalence *}
+
+definition beta_equiv ::
+  "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow>
+   ('a set) \<Rightarrow> bool" where
+"(beta_equiv b1 b2 a) \<longleftrightarrow> (\<forall> x \<in> a . b1 x = b2 x)"
+
+notation beta_equiv ("_ \<cong> _ on _")
+
+theorem  beta_equiv_refl :
+"b \<cong> b on a"
+by (simp add: beta_equiv_def)
+
+theorem  beta_equiv_comm :
+"b1 \<cong> b2 on a \<Longrightarrow> b2 \<cong> b1 on a"
+by (simp add: beta_equiv_def)
+
+theorem  beta_equiv_trans :
+"\<lbrakk>b1 \<cong> b2 on a; b2 \<cong> b3 on a\<rbrakk> \<Longrightarrow> b1 \<cong> b3 on a"
+apply (simp add: beta_equiv_def)
+done
+
+lemma beta_equiv_single[simp]: "b1 x = b2 x \<Longrightarrow> b1 \<cong> b2 on {x}"
+  by (simp add:beta_equiv_def)
+
+lemma beta_equiv_combine[simp]: 
+"\<lbrakk> b1 \<cong> b2 on a; b1 \<cong> b2 on b \<rbrakk> \<Longrightarrow> b1 \<cong> b2 on a \<union> b"
+  by (auto simp add:beta_equiv_def)
+
+theorem beta_equiv_override :
+"b1 \<cong> b2 on a \<Longrightarrow> b1 \<oplus> b2 on a = b1"
+apply (simp add: beta_equiv_def)
+apply (rule ext)
+apply (case_tac "x \<in> a")
+apply (auto)
+done
+
+theorem beta_equiv_override_2 :
+"a1 \<inter> a2 = {} \<Longrightarrow> b1 \<oplus> b2 on a1 \<cong> b1 on a2"
+  by (auto simp add: beta_equiv_def override_on_def)
+
+theorem beta_equiv_override_3 [simp] :
+"f \<oplus> g on a \<cong> h on a = g \<cong> h on a"
+  by (simp add: beta_equiv_def override_on_def)
+ 
+theorem beta_equiv_override_4 [simp] :
+"\<lbrakk> a \<subseteq> b; f \<oplus> g on a \<cong> h on b \<rbrakk> \<Longrightarrow> g \<cong> h on a"
+apply (auto simp add: beta_equiv_def override_on_def)
+apply (case_tac "x \<in> b")
+apply (auto)
+done
+
+theorem beta_equiv_override_5 [simp] :
+"\<lbrakk> a \<subseteq> b; f \<oplus> g on a \<cong> h on b \<rbrakk> \<Longrightarrow> f \<cong> h on b - a"
+  by (auto simp add: beta_equiv_def override_on_def)
+
+theorem beta_equiv_empty:
+"a \<subseteq> {} \<Longrightarrow> b1 \<cong> b2 on a"
+  by (simp add:beta_equiv_def)
+
+theorem beta_equiv_union :
+"b1 \<cong> b2 on (a \<union> b) = (b1 \<cong> b2 on a \<and> b1 \<cong> b2 on b)"
+  by (auto simp add:beta_equiv_def)
+
+theorem beta_equiv_subset :
+"\<lbrakk> a \<subseteq> b; x \<cong> y on b \<rbrakk> \<Longrightarrow> x \<cong> y on a"
+  by (metis Un_absorb1 beta_equiv_union)
+
+theorem beta_equiv_override_intro1[intro]:
+"\<lbrakk> f \<cong> h on b - a ; g \<cong> h on a \<inter> b \<rbrakk> \<Longrightarrow> f \<oplus> g on a \<cong> h on b"
+  by (auto simp add:beta_equiv_def override_on_def)
+
 subsubsection {* Bijections *}
 
 text {* Bijections with two disjoint partitions *}

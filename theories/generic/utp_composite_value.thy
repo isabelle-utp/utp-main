@@ -175,8 +175,11 @@ definition DestFunc_COMPOSITE_VALUE :
 "DestFunc_COMPOSITE_VALUE f = DecFunOf f"
 definition IsFunc_COMPOSITE_VALUE :
 "IsFunc_COMPOSITE_VALUE f = (IsFunVal f)"
+
 instance
 apply (intro_classes)
+apply (simp add: Bool_inverse DestBool_COMPOSITE_VALUE MkBool_COMPOSITE_VALUE)
+apply(simp add:IsBool_COMPOSITE_VALUE IsBool_MkBool MkBool_COMPOSITE_VALUE)
 done
 end
 
@@ -324,6 +327,7 @@ subsection {* Theorems *}
 theorem lift_type_rel_composite_VALUE [intro!] :
 "VALUE type_rel \<Longrightarrow> VALUE (\<up>trel type_rel)"
 apply (simp add: VALUE_def)
+apply (rule conjI)
 apply (clarify)
 apply (induct_tac t)
 apply (drule_tac x = "BASIC_TYPE" in spec)
@@ -337,6 +341,7 @@ apply (force)
 apply (rule_tac x = "EncFunVal id" in exI)
 apply (auto)
 (* The proof about functions doesn't go through yet *)
+(* Also need to do the proof that all values have at least one type *)
 sorry
 
 text {* The following theorem facilitates locale instantiation. *}

@@ -10,6 +10,7 @@ theory utp_theories
 imports
   utp_theory
   utp_rel
+  utp_designs
 begin
 
 text {* Meta-theory that imports all UTP theory embeddings. *}

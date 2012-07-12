@@ -85,7 +85,9 @@ class BOOL_SORT = VALUE_SORT +
   fixes MkBool :: "bool \<Rightarrow> 'a"
   fixes DestBool :: "'a \<Rightarrow> bool"
   fixes IsBool :: "'a \<Rightarrow> bool"
-(* assumes inverse [simp] : "DestBool (MkBool b) = b" *)
+  assumes Bool_inverse [simp]  : "DestBool (MkBool b) = b" 
+  and     IsBool_MkBool [simp] : "IsBool (MkBool b)"
+
 
 subsection {* String Sort *}
 

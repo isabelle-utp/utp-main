@@ -7,14 +7,14 @@
 header {* UTP Theories *}
 
 theory utp_theory
-imports "../GLOBAL" "../generic/utp_generic"
+imports "../generic/utp_generic"
 begin
 
 record ('VALUE, 'TYPE) UTP_THEORY =
   utp_alphabet::"'TYPE ALPHABET" ("\<alpha>")
   healthconds::"('VALUE, 'TYPE) ALPHA_FUNCTION set" ("\<H>")
 
-context GEN_PRED
+context GEN_EXPR
 begin
 definition WF_HEALTH_COND ::
   "('TYPE ALPHABET) \<Rightarrow>
@@ -69,12 +69,9 @@ definition PredTheory ::
    ('VALUE, 'TYPE) UTP_THEORY" where
 "a \<in> WF_ALPHABET \<longrightarrow>
  PredTheory a = MakeTheory a {}"
-end
 
 subsection {* Theorems *}
 
-context GEN_PRED
-begin
 theorem WF_HEALTH_CONDS_union :
 "\<lbrakk>a \<in> WF_ALPHABET;
  hs1 \<in> WF_HEALTH_CONDS a;

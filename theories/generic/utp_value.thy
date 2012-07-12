@@ -7,7 +7,7 @@
 header {* Abstract Values *}
 
 theory utp_value
-imports "../utp_common"
+imports "../utp_common" "../utp_sorts"
 begin
 
 subsection {* Locale @{term "VALUE"} *}
@@ -17,6 +17,7 @@ locale VALUE =
   fixes type_rel :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50)
 -- {* A type must not be empty. *}
   assumes type_non_empty : "\<exists> x . x : t"
+  and     type_rel_total : "\<exists> t . x : t"
 begin
 
 subsection {* Universe *}
@@ -72,4 +73,23 @@ apply (simp)
 apply (auto simp: carrier_def)
 done
 end
+
+locale BOOL_VALUE = VALUE "type_rel" 
+  for     type_rel :: "'VALUE :: BOOL_SORT \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50) +  
+  fixes   BoolType :: "'TYPE"
+  assumes IsBool_type: "y : BoolType \<longleftrightarrow> IsBool y"
+
+locale INT_VALUE  = VALUE "type_rel"
+  for     type_rel :: "'VALUE :: INT_SORT \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50) + 
+  fixes   IntType :: "'TYPE"
+  assumes IsInt_type: "y : IntType \<longleftrightarrow> IsInt y"
+
+locale STRING_VALUE  = VALUE "type_rel"
+  for     type_rel :: "'VALUE :: STRING_SORT \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50) + 
+  fixes   StringType :: "'TYPE"
+  assumes IsString_type: "y : StringType \<longleftrightarrow> IsString y"
+
+locale BASIC_VALUE = BOOL_VALUE "type_rel" + INT_VALUE "type_rel" + STRING_VALUE "type_rel"
+  for type_rel :: "'VALUE :: BASIC_SORT \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50)
+
 end
