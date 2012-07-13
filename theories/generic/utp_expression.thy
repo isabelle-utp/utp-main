@@ -143,9 +143,17 @@ lemma SubsP_closure[closure]:
  p[e|x] \<in> WF_ALPHA_PREDICATE"
   by (simp add:SubsP_def closure alpha_closure)
 
+lemma TrueE_closure[closure]:
+"true \<in> WF_ALPHA_EXPR"
+  by (simp add:TrueE_def closure alpha_closure)
+
+lemma FalseE_closure[closure]:
+"false \<in> WF_ALPHA_EXPR"
+  by (simp add:FalseE_def closure alpha_closure)
+
 subsubsection {* Alphabet Theorems *}
 
-lemma VarP_alphabet [alphabet]: "\<alpha>e (VarE v) = {v}"
+lemma VarE_alphabet [alphabet]: "\<alpha>e (VarE v) = {v}"
   by (simp add:VarE_def)
 
 lemma EqualP_alphabet [alphabet]: 
@@ -159,10 +167,22 @@ lemma ExprP_alphabet [alphabet]:
 "\<lbrakk> e \<in> WF_ALPHA_EXPR; expr_type e = BoolType \<rbrakk> \<Longrightarrow> \<alpha> (ExprP e) = \<alpha>e e"
   by (simp add:ExprP_def)
 
+lemma VarP_alphabet [alphabet]: "type v = BoolType \<Longrightarrow> \<alpha> (& v) = {v}"
+  apply(subgoal_tac "expr_type (VarE v) = BoolType")
+  apply(simp add:alphabet closure alpha_closure)
+  apply(simp add:VarE_def)
+done
+
 lemma SubsP_alphabet [alphabet]:
 "\<lbrakk> p \<in> WF_ALPHA_PREDICATE; e \<in> WF_ALPHA_EXPR; x \<notin> \<alpha>e e \<rbrakk> \<Longrightarrow> 
  \<alpha> (p[e|x]) = (\<alpha> p \<union> \<alpha>e e) - {x}"
   by (simp add:SubsP_def alphabet closure alpha_closure)
+
+lemma TrueE_alphabet [alphabet]:
+"\<alpha>e true = {}" by (simp add:TrueE_def alphabet)
+
+lemma FalseE_alphabet [alphabet]:
+"\<alpha>e false = {}" by (simp add:FalseE_def alphabet)
 
 subsubsection {* Binding Theorems *}
 
@@ -252,7 +272,6 @@ lemma SubsP_VarP:
   apply(rule iffI)
   apply(simp add:VarE_def VarE_type)
 sorry
-
 
 end
 end

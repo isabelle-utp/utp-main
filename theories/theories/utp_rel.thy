@@ -109,6 +109,13 @@ definition IterR :: "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
  b \<in> WF_CONDITION \<and>
  \<alpha> b \<subseteq> \<alpha> p \<longrightarrow> IterR b p = (\<mu> (\<alpha> p) (\<lambda> x. (p ; x) \<triangleleft> b \<triangleright> \<Pi> (\<alpha> p)))"
 
+definition AssignR :: 
+"'TYPE VAR \<Rightarrow> 'TYPE ALPHABET \<Rightarrow> 
+ ('VALUE, 'TYPE) ALPHA_EXPRESSION \<Rightarrow> ('VALUE, 'TYPE) ALPHA_PREDICATE" ("_ :=\<^bsub>_ \<^esub>_") where
+"x \<in> UNDASHED \<and> x \<in> a \<and> dash x \<in> a \<and> 
+ a \<in> WF_ALPHABET \<and> a \<subseteq> UNDASHED \<union> DASHED \<longrightarrow> AssignR x a e = (dash x =p e) \<and>p (\<Pi> (a - {x, dash x}))"
+
+(*
 inductive WF_ASSIGNMENT :: "'TYPE ALPHABET \<Rightarrow> (('VALUE, 'TYPE) ASSIGNMENT) \<Rightarrow> bool" 
 where
 "WF_ASSIGNMENT a []" | 
@@ -146,6 +153,7 @@ definition AssignR :: "('VALUE, 'TYPE) ASSIGNMENT \<Rightarrow> 'TYPE ALPHABET \
 
 abbreviation AssignR_1 :: "'TYPE VAR \<Rightarrow> 'TYPE ALPHABET \<Rightarrow> ('VALUE, 'TYPE) ALPHA_EXPRESSION \<Rightarrow> ('VALUE, 'TYPE) ALPHA_PREDICATE" ("_ :=\<^bsub>_ \<^esub>_") where
 "AssignR_1 x a e \<equiv> AssignR [(x,e)] a"
+*)
 
 (* ("_ :=\<^bsub>_ \<^esub>_") *)
 
