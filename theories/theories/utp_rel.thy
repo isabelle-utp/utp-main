@@ -33,7 +33,7 @@ definition WF_CONDITION :: "('VALUE, 'TYPE) ALPHA_PREDICATE set" where
 "WF_CONDITION =
  {p . p \<in> WF_RELATION \<and> p = (\<exists>p DASHED . p)}"
 
-subsection {* Substitutions *}
+subsection {* Renamings *}
 
 definition SS_conv :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
 "SS_conv v = (if v \<in> DASHED then undash v else
@@ -194,8 +194,7 @@ theorem WF_RELATION_UNDASHED_DASHED :
 "p \<in> WF_RELATION \<Longrightarrow> \<alpha> p \<subseteq> UNDASHED \<union> DASHED"
   by (simp add: WF_RELATION_def)
 
-subsubsection {* Substitutions *}
-
+subsubsection {* Renamings *}
 
 text {* Simon's Theorems *}
 
@@ -222,9 +221,9 @@ apply (simp add:SS_conv_def image_def dash_def undash_def DASHED_def UNDASHED_de
 apply (smt fst_conv NAME.simps(1-3) snd_conv)
 done
 
-theorem SS1_VAR_SUBST [simp, intro] :
-"SS1 \<in> VAR_SUBST"
-apply(simp only:VAR_SUBST_ON_def)
+theorem SS1_VAR_RENAME [simp, intro] :
+"SS1 \<in> VAR_RENAME"
+apply(simp only:VAR_RENAME_ON_def)
 apply(auto simp add:bij_def inj_on_def SS1_def DASHED_TWICE_def DASHED_def)
 apply (auto simp add : SS1_def
   bij_def inj_on_def undash_def dash_def)
@@ -232,26 +231,26 @@ apply (smt NAME.equality prod_eq_iff unit.exhaust)+
 apply (rule SS1_total)
 done
 
-theorem SS2_VAR_SUBST [simp, intro] :
-"SS2 \<in> VAR_SUBST"
-apply(simp only:VAR_SUBST_ON_def)
+theorem SS2_VAR_RENAME [simp, intro] :
+"SS2 \<in> VAR_RENAME"
+apply(simp only:VAR_RENAME_ON_def)
 apply (auto simp add : SS2_def
   bij_def inj_on_def undash_def dash_def)
 apply (smt NAME.equality prod_eq_iff unit.exhaust)+
 apply (rule SS2_total)
 done
 
-theorem SS3_VAR_SUBST [simp, intro] :
-"SS3 \<in> VAR_SUBST"
-apply(simp only:VAR_SUBST_ON_def)
+theorem SS3_VAR_RENAME [simp, intro] :
+"SS3 \<in> VAR_RENAME"
+apply(simp only:VAR_RENAME_ON_def)
 apply (auto simp add : SS3_def
   bij_def inj_on_def undash_def dash_def)
 apply (smt NAME.equality prod_eq_iff unit.exhaust)+
 apply (rule SS3_total)
 done
 
-lemma SS_conv_VAR_SUBST [simp] : "SS_conv \<in> VAR_SUBST"
-apply(simp only:VAR_SUBST_ON_def)
+lemma SS_conv_VAR_RENAME [simp] : "SS_conv \<in> VAR_RENAME"
+apply(simp only:VAR_RENAME_ON_def)
 apply (auto simp add: SS_conv_def undash_def dash_def bij_def inj_on_def DASHED_def UNDASHED_def)
 apply (smt NAME.equality prod_eq_iff unit.exhaust)+
 apply (rule SS_conv_total)
@@ -303,35 +302,35 @@ apply(auto simp add:DASHED_def UNDASHED_def dash_def undash_def)
 apply (metis (full_types) NAME.surjective pairI unit.exhaust)+
 done
 
-theorem SubstB_SS1_beta_equiv[simp]:
+theorem RenameB_SS1_beta_equiv[simp]:
 "\<lbrakk> b1 \<in> WF_BINDING; b2 \<in> WF_BINDING; a \<subseteq> UNDASHED \<rbrakk> \<Longrightarrow> 
-  (SubstB SS1 b1 \<cong> b2 on a) = (b1 \<cong> b2 on a)" 
+  (RenameB SS1 b1 \<cong> b2 on a) = (b1 \<cong> b2 on a)" 
   sorry
 (*
-  apply(auto simp add: SubstB_def UNDASHED_def beta_equiv_def)
+  apply(auto simp add: RenameB_def UNDASHED_def beta_equiv_def)
   apply(erule_tac x="x" in ballE)
   apply(subgoal_tac "dashes (name x) = 0")
   apply(auto simp add:var closure binding)
-  apply (smt SS1_VAR_SUBST SS1_def VAR_SUBST_inv_ss)
+  apply (smt SS1_VAR_RENAME SS1_def VAR_RENAME_inv_ss)
   apply(erule_tac x="x" in ballE)
   apply(subgoal_tac "dashes (name x) = 0")
   apply(auto)
-  apply(smt SS1_VAR_SUBST SS1_def VAR_SUBST_inv_ss)
+  apply(smt SS1_VAR_RENAME SS1_def VAR_RENAME_inv_ss)
 done  
 *)
 
-theorem SubstB_SS2_beta_equiv[simp]:
+theorem RenameB_SS2_beta_equiv[simp]:
 "\<lbrakk> b1 \<in> WF_BINDING; b2 \<in> WF_BINDING; a \<subseteq> DASHED \<rbrakk> \<Longrightarrow> 
-  (SubstB SS2 b1 \<cong> b2 on a) = (b1 \<cong> b2 on a)" 
-  apply(auto simp add: SubstB_def DASHED_def beta_equiv_def)
+  (RenameB SS2 b1 \<cong> b2 on a) = (b1 \<cong> b2 on a)" 
+  apply(auto simp add: RenameB_def DASHED_def beta_equiv_def)
   apply(erule_tac x="x" in ballE)
   apply(subgoal_tac "dashes (name x) = 1")
   apply(auto)
-  apply (smt SS2_VAR_SUBST SS2_def VAR_SUBST_inv_ss)
+  apply (smt SS2_VAR_RENAME SS2_def VAR_RENAME_inv_ss)
   apply(erule_tac x="x" in ballE)
   apply(subgoal_tac "dashes (name x) = 1")
   apply(auto)
-  apply(smt SS2_VAR_SUBST SS2_def VAR_SUBST_inv_ss)
+  apply(smt SS2_VAR_RENAME SS2_def VAR_RENAME_inv_ss)
 done  
 
 theorem SS1_d0: "x \<in> UNDASHED \<Longrightarrow> SS1 x = x"
@@ -394,46 +393,46 @@ done
 
 lemma SS1_beta_equiv_in:
 assumes "p \<in> WF_ALPHA_PREDICATE" "bp \<in> \<beta> p" "a \<subseteq> in (\<alpha> p)"
-shows "SubstB SS1 bp \<cong> bp on a"
-  by (smt SubstB_SS1_beta_equiv in_undashed WF_BINDING_predicate assms beta_equiv_def beta_equiv_subset)
+shows "RenameB SS1 bp \<cong> bp on a"
+  by (smt RenameB_SS1_beta_equiv in_undashed WF_BINDING_predicate assms beta_equiv_def beta_equiv_subset)
 
 lemma SS1_override_in:
 assumes "p \<in> WF_ALPHA_PREDICATE" "bp \<in> \<beta> p" "a \<subseteq> in (\<alpha> p)"
-shows "SubstB SS1 bp \<oplus> bp on a = SubstB SS1 bp"
+shows "RenameB SS1 bp \<oplus> bp on a = RenameB SS1 bp"
   by (metis SS1_beta_equiv_in assms beta_equiv_override)
 
 (* Unfortunately I have to specialise this, as the First Order ATPs don't seem
    to cope with subset proofs very well (even trivial ones) *)
 lemma SS1_override_in':
 "\<lbrakk> p \<in> WF_ALPHA_PREDICATE; bp \<in> \<beta> p \<rbrakk> \<Longrightarrow>
-   SubstB SS1 bp \<oplus> bp on in (\<alpha> p) = SubstB SS1 bp"
+   RenameB SS1 bp \<oplus> bp on in (\<alpha> p) = RenameB SS1 bp"
   by (auto intro: SS1_override_in)
 
 lemma SS2_beta_equiv_out:
 assumes "p \<in> WF_ALPHA_PREDICATE" "bp \<in> \<beta> p" "a \<subseteq> out (\<alpha> p)"
-shows "SubstB SS2 bp \<cong> bp on a"
-  by (smt SubstB_SS2_beta_equiv out_undashed WF_BINDING_predicate assms beta_equiv_def beta_equiv_subset)
+shows "RenameB SS2 bp \<cong> bp on a"
+  by (smt RenameB_SS2_beta_equiv out_undashed WF_BINDING_predicate assms beta_equiv_def beta_equiv_subset)
 
 lemma SS2_override_out:
 assumes "p \<in> WF_ALPHA_PREDICATE" "bp \<in> \<beta> p" "a \<subseteq> out (\<alpha> p)"
-shows "SubstB SS2 bp \<oplus> bp on a = SubstB SS2 bp"
+shows "RenameB SS2 bp \<oplus> bp on a = RenameB SS2 bp"
   by (metis SS2_beta_equiv_out assms beta_equiv_override)
 
 lemma SS2_override_out':
 "\<lbrakk> p \<in> WF_ALPHA_PREDICATE; bp \<in> \<beta> p  \<rbrakk> \<Longrightarrow>
-   SubstB SS2 bp \<oplus> bp on out (\<alpha> p) = SubstB SS2 bp"
+   RenameB SS2 bp \<oplus> bp on out (\<alpha> p) = RenameB SS2 bp"
   by (auto intro: SS2_override_out)
 
 lemma SS1_SS2_overlap:
 assumes "p \<in> WF_ALPHA_PREDICATE" "q \<in> WF_ALPHA_PREDICATE" "bp \<in> \<beta> p" "bq \<in> \<beta> q"
         "\<forall>x\<in>in (\<alpha> q). bp (dash x) = bq x" 
-shows "SubstB SS1 bp \<cong> SubstB SS2 bq on (dash ` dash ` in (\<alpha> q))"
+shows "RenameB SS1 bp \<cong> RenameB SS2 bq on (dash ` dash ` in (\<alpha> q))"
 proof -
   from assms have "bp \<in> WF_BINDING" "bq \<in> WF_BINDING"
     by (auto simp add:WF_ALPHA_PREDICATE_def WF_BINDING_SET_def)    
 
   with assms show ?thesis
-    by (simp add:beta_equiv_def SubstB_def) 
+    by (simp add:beta_equiv_def RenameB_def) 
        (metis SS1_inv_d2 SS2_inv_d2 VAR.in_undashed dash_dashed dash_undashed imageI subsetD undash_dash)
 qed
 
@@ -449,13 +448,13 @@ lemma SS1_SS2_alpha_union2:
   SS1 ` a \<union> SS2 ` b = in a \<union> SS2 ` b"
   by auto
 
-lemma SS1_SubstB:
-  "b \<in> WF_BINDING \<Longrightarrow> SubstB SS1 (SubstB SS1 b) = b"
-  by (metis SS1_VAR_SUBST SS1_invol SubstB_invol)
+lemma SS1_RenameB:
+  "b \<in> WF_BINDING \<Longrightarrow> RenameB SS1 (RenameB SS1 b) = b"
+  by (metis SS1_VAR_RENAME SS1_invol RenameB_invol)
 
-lemma SS2_SubstB:
-  "b \<in> WF_BINDING \<Longrightarrow> SubstB SS2 (SubstB SS2 b) = b"
-  by (metis SS2_VAR_SUBST SS2_invol SubstB_invol)
+lemma SS2_RenameB:
+  "b \<in> WF_BINDING \<Longrightarrow> RenameB SS2 (RenameB SS2 b) = b"
+  by (metis SS2_VAR_RENAME SS2_invol RenameB_invol)
 
 lemma SS1_image_invol:
   "SS1 ` SS1 ` a = a"
@@ -815,7 +814,7 @@ apply(simp add:eval alphabet closure alpha_rules binding stern)
 apply(subgoal_tac "\<alpha> (\<exists>-p dash ` dash ` in (\<alpha> q) . p[SS1] \<and>p q[SS2]) \<subseteq> UNDASHED \<union> DASHED")
 apply(subgoal_tac "COMPOSABLE (\<alpha> (\<exists>-p dash ` dash ` in (\<alpha> q) . p[SS1] \<and>p q[SS2])) (\<alpha> r)")
 
-apply(simp add:eval alphabet alpha_rules closure stern SubstB_def)
+apply(simp add:eval alphabet alpha_rules closure stern RenameB_def)
 
 apply(auto)
 *)
@@ -846,7 +845,7 @@ proof
     (* \<beta> (p ; q) \<subseteq> \<beta> (p ;\<^sub>B q) *)
 
    from assms preds salpha show "\<beta> (p ; q) \<subseteq> \<beta> (p ;\<^sub>B q)"
-   proof (simp add:SemiB_def SemiR_def ExistsResP_def ResP_def, simp add: AndP_def, simp add: SubstP_def, auto)
+   proof (simp add:SemiB_def SemiR_def ExistsResP_def ResP_def, simp add: AndP_def, simp add: RenameP_def, auto)
      from assms have "dash ` out (\<alpha> p) \<in> WF_ALPHABET"
        by auto
 
@@ -854,8 +853,8 @@ proof
 
      assume assms':
        "bp \<in> \<beta> p" "bq \<in> \<beta> q" "bx \<in> WF_BINDING" 
-       "SubstB SS2 bq \<cong> bx on in (\<alpha> p) \<union> out (\<alpha> q)"
-       "SubstB SS1 bp = SubstB SS2 bq"
+       "RenameB SS2 bq \<cong> bx on in (\<alpha> p) \<union> out (\<alpha> q)"
+       "RenameB SS1 bp = RenameB SS2 bq"
 
      from preds assms' have binds: "bp \<in> WF_BINDING" "bq \<in> WF_BINDING"
        by (auto simp add:WF_ALPHA_PREDICATE_def WF_BINDING_SET_def)
@@ -864,16 +863,16 @@ proof
        by (auto simp add:in_alphabet_def out_alphabet_def)
 
      from assms' binds adashes have bxbp: "bx \<cong> bp on in (\<alpha> p)"
-       by (metis SubstB_SS1_beta_equiv beta_equiv_comm beta_equiv_union)
+       by (metis RenameB_SS1_beta_equiv beta_equiv_comm beta_equiv_union)
 
      from assms' binds adashes have bxbq: "bx \<cong> bq on out (\<alpha> q)"
-       by (metis SubstB_SS2_beta_equiv beta_equiv_comm beta_equiv_union)
+       by (metis RenameB_SS2_beta_equiv beta_equiv_comm beta_equiv_union)
 
      from bxbp bxbq have bxover: "bx = (bx \<oplus> bp on in (\<alpha> p)) \<oplus> bq on out (\<alpha> q)"
        by (metis beta_equiv_override)
 
      moreover from assms' binds have "\<forall>x\<in>in (\<alpha> q). bp (dash x) = bq x"
-     proof (auto simp add:SubstB_def)
+     proof (auto simp add:RenameB_def)
        fix x
        assume assms'': "x \<in> in (\<alpha> q)" "bp \<circ> inv SS1 = bq \<circ> inv SS2"
        hence dash2: "dash (dash (x)) \<in> DASHED_TWICE"
@@ -896,7 +895,7 @@ proof
    (* \<beta> (p ;\<^sub>B q) \<subseteq> \<beta> (p ; q) *)
 
    from assms preds salpha show "\<beta> (p ;\<^sub>B q) \<subseteq> \<beta> (p ; q)"
-   proof (simp add:SemiB_def SemiR_def ExistsResP_def ResP_def, simp add: AndP_def, simp add: SubstP_def, auto)
+   proof (simp add:SemiB_def SemiR_def ExistsResP_def ResP_def, simp add: AndP_def, simp add: RenameP_def, auto)
      fix bp bq bx
      assume assms': "bp \<in> \<beta> p" "bq \<in> \<beta> q" "bx \<in> WF_BINDING" "\<forall>x\<in>in (\<alpha> q). bp (dash x) = bq x"
 
@@ -906,42 +905,42 @@ proof
      with preds show "(bx \<oplus> bp on in (\<alpha> p)) \<oplus> bq on out (\<alpha> q) \<in> WF_BINDING"
        by (metis WF_BINDING_override assms')
 
-    from assms' have "SubstB SS1 bp \<in> SubstB SS1 ` \<beta> p"
+    from assms' have "RenameB SS1 bp \<in> RenameB SS1 ` \<beta> p"
       by auto
 
-    have inbp: "(bx \<oplus> SubstB SS1 bp on SS1 ` \<alpha> p) \<oplus> SubstB SS2 bq on SS2 ` \<alpha> q
-          \<in> SubstB SS1 ` \<beta> p"
+    have inbp: "(bx \<oplus> RenameB SS1 bp on SS1 ` \<alpha> p) \<oplus> RenameB SS2 bq on SS2 ` \<alpha> q
+          \<in> RenameB SS1 ` \<beta> p"
     proof -
 
-      have "(SubstB SS1 bx \<oplus> bp on \<alpha> p) \<oplus> SubstB SS1 bq on SS1 ` out (\<alpha> q) \<in> \<beta> p"
-        by (smt SS1_VAR_SUBST SS1_dashed SubstB_closure assms' assms bindings_override binds dashed_twice_override out_undashed override_on_comm preds)
+      have "(RenameB SS1 bx \<oplus> bp on \<alpha> p) \<oplus> RenameB SS1 bq on SS1 ` out (\<alpha> q) \<in> \<beta> p"
+        by (smt SS1_VAR_RENAME SS1_dashed RenameB_closure assms' assms bindings_override binds dashed_twice_override out_undashed override_on_comm preds)
       
-      also have " ((bx \<oplus> SubstB SS1 bp on SS1 ` \<alpha> p) \<oplus> SubstB SS2 bq on SS2 ` \<alpha> q)
-                = (SubstB SS1 ((SubstB SS1 bx \<oplus> bp on \<alpha> p) \<oplus> SubstB SS1 bq on SS1 ` out (\<alpha> q)))"
+      also have " ((bx \<oplus> RenameB SS1 bp on SS1 ` \<alpha> p) \<oplus> RenameB SS2 bq on SS2 ` \<alpha> q)
+                = (RenameB SS1 ((RenameB SS1 bx \<oplus> bp on \<alpha> p) \<oplus> RenameB SS1 bq on SS1 ` out (\<alpha> q)))"
         (* Yes this step takes a _long_ time, we could do with resolving this... *)
-        by (smt SS1_SS2_alpha_union1 SS1_SS2_overlap SS1_VAR_SUBST SS2_dashes SS2_override_out' SubstB_closure SubstB_invol SubstB_override1 WF_ALPHABET_out WF_BINDING_override WF_RELATION_UNDASHED_DASHED WF_RELATION_alphabet assms' assms beta_equiv_override binds SS1_SubstB override_on_assoc preds)
+        by (smt SS1_SS2_alpha_union1 SS1_SS2_overlap SS1_VAR_RENAME SS2_dashes SS2_override_out' RenameB_closure RenameB_invol RenameB_override1 WF_ALPHABET_out WF_BINDING_override WF_RELATION_UNDASHED_DASHED WF_RELATION_alphabet assms' assms beta_equiv_override binds SS1_RenameB override_on_assoc preds)
 
     ultimately show ?thesis
       by (metis imageI)
   qed
 
-  have inbq:"(bx \<oplus> SubstB SS1 bp on SS1 ` \<alpha> p) \<oplus> SubstB SS2 bq on SS2 ` \<alpha> q \<in> SubstB SS2 ` \<beta> q"
+  have inbq:"(bx \<oplus> RenameB SS1 bp on SS1 ` \<alpha> p) \<oplus> RenameB SS2 bq on SS2 ` \<alpha> q \<in> RenameB SS2 ` \<beta> q"
   proof -
-    have b1:"(SubstB SS2 bx \<oplus> SubstB SS2 bp on SS2 ` in (\<alpha> p)) \<in> WF_BINDING"
-      by (metis SS2_VAR_SUBST SubstB_closure WF_BINDING_override assms'(3) binds(1))
+    have b1:"(RenameB SS2 bx \<oplus> RenameB SS2 bp on SS2 ` in (\<alpha> p)) \<in> WF_BINDING"
+      by (metis SS2_VAR_RENAME RenameB_closure WF_BINDING_override assms'(3) binds(1))
 
-    then have "(SubstB SS2 bx \<oplus> SubstB SS2 bp on SS2 ` in (\<alpha> p)) \<oplus> bq on (\<alpha> q) \<in> \<beta> q"
+    then have "(RenameB SS2 bx \<oplus> RenameB SS2 bp on SS2 ` in (\<alpha> p)) \<oplus> bq on (\<alpha> q) \<in> \<beta> q"
       by (metis WF_BINDING_override assms'(2) beta_equiv_bindings beta_equiv_override_3 beta_equiv_refl binds(2) preds(2))
 
 
-    also have " ((bx \<oplus> SubstB SS1 bp on SS1 ` \<alpha> p) \<oplus> SubstB SS2 bq on SS2 ` \<alpha> q)
-              = SubstB SS2 ((SubstB SS2 bx \<oplus> SubstB SS2 bp on SS2 ` in (\<alpha> p)) \<oplus> bq on (\<alpha> q))"
-      by (smt SS1_SS2_alpha_union2 SS1_override_in' SS2_SubstB SS2_VAR_SUBST SubstB_closure SubstB_override1 WF_ALPHABET_in WF_BINDING_override WF_RELATION_UNDASHED_DASHED WF_RELATION_alphabet assms' assms binds override_on_assoc override_on_cancel6 preds)
+    also have " ((bx \<oplus> RenameB SS1 bp on SS1 ` \<alpha> p) \<oplus> RenameB SS2 bq on SS2 ` \<alpha> q)
+              = RenameB SS2 ((RenameB SS2 bx \<oplus> RenameB SS2 bp on SS2 ` in (\<alpha> p)) \<oplus> bq on (\<alpha> q))"
+      by (smt SS1_SS2_alpha_union2 SS1_override_in' SS2_RenameB SS2_VAR_RENAME RenameB_closure RenameB_override1 WF_ALPHABET_in WF_BINDING_override WF_RELATION_UNDASHED_DASHED WF_RELATION_alphabet assms' assms binds override_on_assoc override_on_cancel6 preds)
     
 
  
 (*
-sledgehammer min [z3] (SS1_SS2_alpha_union1 SS1_SS2_alpha_union2 SS1_SS2_overlap SS1_VAR_SUBST SS1_invol SS1_dashes SS1_override_in' SS2_VAR_SUBST SS2_invol SS2_dashes SS2_override_out' SS2_SubstB SubstB_closure SubstB_invol SubstB_override1 SubstB_override2 WF_ALPHABET_image WF_ALPHABET_in WF_ALPHABET_out WF_BINDING_override WF_RELATION_UNDASHED_DASHED WF_RELATION_alphabet assms' assms beta_equiv_override binds image_compose image_id override_on_assoc override_on_comm preds out_undashed bindings_override override_on_cancel5 override_on_cancel6)
+sledgehammer min [z3] (SS1_SS2_alpha_union1 SS1_SS2_alpha_union2 SS1_SS2_overlap SS1_VAR_RENAME SS1_invol SS1_dashes SS1_override_in' SS2_VAR_RENAME SS2_invol SS2_dashes SS2_override_out' SS2_RenameB RenameB_closure RenameB_invol RenameB_override1 RenameB_override2 WF_ALPHABET_image WF_ALPHABET_in WF_ALPHABET_out WF_BINDING_override WF_RELATION_UNDASHED_DASHED WF_RELATION_alphabet assms' assms beta_equiv_override binds image_compose image_id override_on_assoc override_on_comm preds out_undashed bindings_override override_on_cancel5 override_on_cancel6)
 
 *)
 
@@ -950,7 +949,7 @@ sledgehammer min [z3] (SS1_SS2_alpha_union1 SS1_SS2_alpha_union2 SS1_SS2_overlap
 
   qed
       
-  from assms assms' have eqt:"(bx \<oplus> SubstB SS1 bp on SS1 ` \<alpha> p) \<oplus> SubstB SS2 bq on SS2 ` \<alpha> q \<cong> (bx \<oplus> bp on in (\<alpha> p)) \<oplus> bq on out (\<alpha> q) on in (\<alpha> p) \<union> out (\<alpha> q)"
+  from assms assms' have eqt:"(bx \<oplus> RenameB SS1 bp on SS1 ` \<alpha> p) \<oplus> RenameB SS2 bq on SS2 ` \<alpha> q \<cong> (bx \<oplus> bp on in (\<alpha> p)) \<oplus> bq on out (\<alpha> q) on in (\<alpha> p) \<union> out (\<alpha> q)"
     apply(auto intro!:beta_equiv_override_intro1 beta_equiv_override_intro1 [THEN beta_equiv_comm] beta_equiv_refl)
     apply(auto intro:beta_equiv_empty simp add:WF_RELATION_def)
     apply(rule_tac SS1_beta_equiv_in)
@@ -961,9 +960,9 @@ sledgehammer min [z3] (SS1_SS2_alpha_union1 SS1_SS2_alpha_union2 SS1_SS2_overlap
     
 
 
-  from assms' show "\<exists>b1a\<in>SubstB SS1 ` \<beta> p \<inter> SubstB SS2 ` \<beta> q.
+  from assms' show "\<exists>b1a\<in>RenameB SS1 ` \<beta> p \<inter> RenameB SS2 ` \<beta> q.
     b1a \<cong> (bx \<oplus> bp on in (\<alpha> p)) \<oplus> bq on out (\<alpha> q) on in (\<alpha> p) \<union> out (\<alpha> q)"
-    apply(rule_tac x="(bx \<oplus> (SubstB SS1 bp) on (SS1 ` \<alpha> p)) \<oplus> (SubstB SS2 bq) on (SS2 ` \<alpha> q)" in bexI)
+    apply(rule_tac x="(bx \<oplus> (RenameB SS1 bp) on (SS1 ` \<alpha> p)) \<oplus> (RenameB SS2 bq) on (SS2 ` \<alpha> q)" in bexI)
     apply(auto simp add:inbp inbq eqt)
 
   done
@@ -987,7 +986,7 @@ proof -
   have a1:"SS2 ` dash ` out (\<alpha> q) = undash ` (out (\<alpha> q))"
     by (auto simp add:image_def SS2_def undash_def dash_def out_alphabet_def DASHED_def)
 
-  have a2: "SS3 \<in> VAR_SUBST_ON (undash ` (out (\<alpha> q)) \<union> dash ` dash ` (out (\<alpha> q)))"
+  have a2: "SS3 \<in> VAR_RENAME_ON (undash ` (out (\<alpha> q)) \<union> dash ` dash ` (out (\<alpha> q)))"
     sorry
 
   from assms have "p ; (q ; r) = (\<exists>-p dash ` (out (\<alpha> p)) . p[SS1] \<and>p (\<exists>-p dash ` (out (\<alpha> q)) . q[SS1] \<and>p r[SS2])[SS2])"
@@ -999,10 +998,10 @@ proof -
   done
 
   also from assms have "... = (\<exists>-p dash ` (out (\<alpha> p)) . p[SS1] \<and>p (\<exists>-p SS2 ` dash ` (out (\<alpha> q)) . q[SS1][SS2] \<and>p r[SS2][SS2]))"
-    by (metis (no_types) AndP_closure ExistsResP_intrude SS1_VAR_SUBST SS2_VAR_SUBST SubstP_AndP_distr SubstP_closure WF_ALPHABET_image WF_ALPHABET_out WF_RELATION_WF_ALPHA_PREDICATE WF_RELATION_alphabet)
+    by (metis (no_types) AndP_closure ExistsResP_intrude SS1_VAR_RENAME SS2_VAR_RENAME RenameP_AndP_distr RenameP_closure WF_ALPHABET_image WF_ALPHABET_out WF_RELATION_WF_ALPHA_PREDICATE WF_RELATION_alphabet)
 
   also from assms have "... = (\<exists>-p dash ` (out (\<alpha> p)) . p[SS1] \<and>p (\<exists>-p SS2 ` dash ` (out (\<alpha> q)) . q[SS1][SS2] \<and>p r))"
-    by (simp add:WF_RELATION_def, metis SubstP_invol SS2_invol SS2_VAR_SUBST)
+    by (simp add:WF_RELATION_def, metis RenameP_invol SS2_invol SS2_VAR_RENAME)
 
   also from assms have "... = (\<exists>-p dash ` (out (\<alpha> p)) . p[SS1] \<and>p (\<exists>-p undash ` (out (\<alpha> q)) . q[SS1][SS2] \<and>p r))"
     by (metis a1)
@@ -1019,11 +1018,11 @@ proof -
       sorry
 
     ultimately show ?thesis
-      by (metis AndP_closure ExistsResP_merge ExistsResP_vacuous SS1_VAR_SUBST SS2_VAR_SUBST SubstP_closure WF_RELATION_WF_ALPHA_PREDICATE assms)
+      by (metis AndP_closure ExistsResP_merge ExistsResP_vacuous SS1_VAR_RENAME SS2_VAR_RENAME RenameP_closure WF_RELATION_WF_ALPHA_PREDICATE assms)
   qed
 
   also from assms have "... = (\<exists>-p dash ` (out (\<alpha> p)) . p[SS1] \<and>p (\<exists>-p undash ` (out (\<alpha> q)) \<union> dash ` dash ` (out (\<alpha> q)). (q[SS1][SS2] \<and>p r)[id \<oplus> SS3 on undash ` (out (\<alpha> q)) \<union> dash ` dash ` (out (\<alpha> q))]))"
-    by (metis AndP_closure ExistsResP_image SS1_VAR_SUBST SS2_VAR_SUBST SubstP_closure VAR.WF_ALPHABET_image VAR.WF_ALPHABET_out WF_ALPHABET_alphabet WF_ALPHABET_union WF_RELATION_WF_ALPHA_PREDICATE a2)    
+    by (metis AndP_closure ExistsResP_image SS1_VAR_RENAME SS2_VAR_RENAME RenameP_closure VAR.WF_ALPHABET_image VAR.WF_ALPHABET_out WF_ALPHABET_alphabet WF_ALPHABET_union WF_RELATION_WF_ALPHA_PREDICATE a2)    
 
   also from assms have "... = (\<exists>-p dash ` (out (\<alpha> p)) . p[SS1] \<and>p (\<exists>-p dash ` dash ` (out (\<alpha> q)). (q[SS1][SS2] \<and>p r)[id \<oplus> SS3 on undash ` (out (\<alpha> q)) \<union> dash ` dash ` (out (\<alpha> q))]))"
     sorry
@@ -1278,8 +1277,8 @@ done
 lemma ConvR_invol:
   "\<lbrakk> r \<in> WF_RELATION \<rbrakk> \<Longrightarrow> r\<^sup>\<smile>\<^sup>\<smile> = r" 
 apply (subgoal_tac "r\<^sup>\<smile> \<in> WF_RELATION")
-apply (simp add:ConvR_def SS_conv_VAR_SUBST)
-apply (metis SS_conv_VAR_SUBST SS_conv_invol SubstP_invol WF_RELATION_WF_ALPHA_PREDICATE)
+apply (simp add:ConvR_def SS_conv_VAR_RENAME)
+apply (metis SS_conv_VAR_RENAME SS_conv_invol RenameP_invol WF_RELATION_WF_ALPHA_PREDICATE)
 apply (metis ConvR_closure)
 done
 

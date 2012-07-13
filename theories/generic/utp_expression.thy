@@ -100,8 +100,8 @@ abbreviation EqualVP :: "'TYPE VAR \<Rightarrow> ('VALUE, 'TYPE) ALPHA_EXPRESSIO
 notation EqualVP (infixr "=p" 150)
 
 (* Coarse substitution *)
-definition SubsP :: "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow> ('VALUE, 'TYPE) ALPHA_EXPRESSION \<Rightarrow> 'TYPE VAR \<Rightarrow> ('VALUE, 'TYPE) ALPHA_PREDICATE" ("_[_|_]" [200]) where
-"x \<notin> \<alpha>e e \<longrightarrow> SubsP p e x = (\<exists>-p {x} . p \<and>p (x =p e))"
+definition SubstP :: "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow> ('VALUE, 'TYPE) ALPHA_EXPRESSION \<Rightarrow> 'TYPE VAR \<Rightarrow> ('VALUE, 'TYPE) ALPHA_PREDICATE" ("_[_|_]" [200]) where
+"x \<notin> \<alpha>e e \<longrightarrow> SubstP p e x = (\<exists>-p {x} . p \<and>p (x =p e))"
 
 subsubsection {* Closure Theorems *}
 
@@ -138,10 +138,10 @@ lemma EqualVP_closure[closure]:
  x =p e \<in> WF_ALPHA_PREDICATE"
   by (simp add:closure)
 
-lemma SubsP_closure[closure]:
+lemma SubstP_closure[closure]:
 "\<lbrakk> p \<in> WF_ALPHA_PREDICATE; e \<in> WF_ALPHA_EXPR; x \<notin> \<alpha>e e \<rbrakk> \<Longrightarrow>
  p[e|x] \<in> WF_ALPHA_PREDICATE"
-  by (simp add:SubsP_def closure alpha_closure)
+  by (simp add:SubstP_def closure alpha_closure)
 
 lemma TrueE_closure[closure]:
 "true \<in> WF_ALPHA_EXPR"
@@ -173,10 +173,10 @@ lemma VarP_alphabet [alphabet]: "type v = BoolType \<Longrightarrow> \<alpha> (&
   apply(simp add:VarE_def)
 done
 
-lemma SubsP_alphabet [alphabet]:
+lemma SubstP_alphabet [alphabet]:
 "\<lbrakk> p \<in> WF_ALPHA_PREDICATE; e \<in> WF_ALPHA_EXPR; x \<notin> \<alpha>e e \<rbrakk> \<Longrightarrow> 
  \<alpha> (p[e|x]) = (\<alpha> p \<union> \<alpha>e e) - {x}"
-  by (simp add:SubsP_def alphabet closure alpha_closure)
+  by (simp add:SubstP_def alphabet closure alpha_closure)
 
 lemma TrueE_alphabet [alphabet]:
 "\<alpha>e true = {}" by (simp add:TrueE_def alphabet)
@@ -244,9 +244,9 @@ lemma expr_body_weaken[simp]: "\<lbrakk> e \<in> WF_ALPHA_EXPR; v \<notin> \<alp
 done
 
 (* Quick sanity check *)
-lemma SubsP_AndP: "\<lbrakk> p \<in> WF_ALPHA_PREDICATE; q \<in> WF_ALPHA_PREDICATE; e \<in> WF_ALPHA_EXPR; x \<notin> \<alpha>e e \<rbrakk> \<Longrightarrow>
+lemma SubstP_AndP: "\<lbrakk> p \<in> WF_ALPHA_PREDICATE; q \<in> WF_ALPHA_PREDICATE; e \<in> WF_ALPHA_EXPR; x \<notin> \<alpha>e e \<rbrakk> \<Longrightarrow>
        (p \<and>p q)[e|x] = p[e|x] \<and>p q[e|x]"
-  apply(simp add:SubsP_def)
+  apply(simp add:SubstP_def)
   apply(intro eval_intro)
   apply(blast intro:closure alpha_closure)
   apply(blast intro:closure alpha_closure)
@@ -260,14 +260,14 @@ lemma SubsP_AndP: "\<lbrakk> p \<in> WF_ALPHA_PREDICATE; q \<in> WF_ALPHA_PREDIC
   apply(auto)
 done
 
-lemma SubsP_VarP: 
+lemma SubstP_VarP: 
 "\<lbrakk> e \<in> WF_ALPHA_EXPR; x \<notin> \<alpha>e e; expr_type e = BoolType; type x = BoolType \<rbrakk> 
 \<Longrightarrow> (VarP x)[e|x] = ExprP e"
   apply(rule eval_intro)
   apply(simp add:closure alpha_closure VarE_type)
   apply(simp add:closure alpha_closure VarE_type)
   apply(simp add:alphabet closure alpha_closure VarE_type)
-  apply(simp add:eval closure alpha_closure VarE_type SubsP_def)
+  apply(simp add:eval closure alpha_closure VarE_type SubstP_def)
   apply(rule ballI)
   apply(rule iffI)
   apply(simp add:VarE_def VarE_type)
