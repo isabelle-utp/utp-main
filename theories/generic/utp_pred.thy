@@ -378,7 +378,7 @@ theorems QuantP_deatomise =
 
 subsection {* Proof Experiments *}
 
-theorem ExistsP_decompose_test :
+theorem ExistsP_deatomise_test :
 "p \<in> WF_PREDICATE \<Longrightarrow>
  (\<exists>p {x, y} . p) = (\<exists>p {y, x} . p)"
 apply (simp add: QuantP_deatomise)
