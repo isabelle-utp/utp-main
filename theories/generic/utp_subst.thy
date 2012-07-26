@@ -20,7 +20,7 @@ text {* Substitutions are total bijections and have to respect typing. *}
 definition VAR_SUBST :: "('TYPE VAR \<Rightarrow> 'TYPE VAR) set" where
 "VAR_SUBST = {ss . bij ss \<and> (\<forall> v . type (ss v) = type v)}"
 
-subsection {* Restrictions *}
+subsubsection {* Restrictions *}
 
 text {* Variable substitutions confined to a set of variables. *}
 
@@ -55,7 +55,7 @@ subsection {* Theorems *}
 
 subsubsection {* Bijections *}
 
-(* Should we have a corresponding theorem for variable substitution? *)
+text {* Should we have a corresponding theorem for variable substitution? *}
 
 theorem bij_comp_inject [simp] :
 "bij g \<Longrightarrow> (f1 \<circ> g = f2 \<circ> g) = (f1 = f2)"
@@ -70,7 +70,7 @@ done
 
 declare bij_imp_bij_inv [simp, intro!]
 
-subsubsection {* Variable Substitution *}
+subsubsection {* Variable Substitutions *}
 
 text {* Theorems about @{term "VAR_SUBST"} *}
 
@@ -186,9 +186,9 @@ back back
 apply (simp)
 done
 
-(* Should the following three theorems be default simplifications? *)
-  
-(* This causes a loop though when simplifying VAR_SUBST_ON. *)
+text {* Should the following three theorems be default simplifications? *}
+
+text {* This causes a loop though when simplifying @{term VAR_SUBST_ON}. *}
 
 theorem VAR_SUBST_ON_app_simp :
 "\<lbrakk>ss \<in> VAR_SUBST_ON vs; x \<notin> vs\<rbrakk> \<Longrightarrow> ss x = x"
@@ -287,7 +287,7 @@ theorem VAR_SUBST_INV_VAR_SUBST [closure] :
 apply (simp add: VAR_SUBST_INV_def)
 done
 
-text {* Binding Substitution *}
+subsubsection {* Binding Substitution *}
 
 theorem SubstB_closure [closure] :
 "\<lbrakk>ss \<in> VAR_SUBST;
@@ -576,7 +576,7 @@ done
 subsection {* Proof Experiments *}
 
 text {*
-  The following proof illustrate how we use a mixture of algebraic laws and
+  The following proof illustrates how we use a mixture of algebraic laws and
   the proof strategy for predicates to proof more complex properties. For now
   the strategy alone is not powerful enough to prove the theorem by itself.
 *}
