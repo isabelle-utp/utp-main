@@ -190,7 +190,7 @@ apply (insert WF_BINDING_exists)
 apply (auto)
 done
 
-theorem WF_BINDING_override [simp, intro] :
+theorem WF_BINDING_override [closure, intro] :
 "\<lbrakk>b1 \<in> WF_BINDING;
  b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  b1 \<oplus> b2 on vs \<in> WF_BINDING"
@@ -200,7 +200,7 @@ apply (case_tac "v \<in> vs")
 apply (auto)
 done
 
-theorem member_WF_BINDING [simp, intro] :
+theorem WF_BINDING_member [simp, intro] :
 "\<lbrakk>b \<in> p;
  p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  b \<in> WF_BINDING"
@@ -210,19 +210,19 @@ done
 
 subsubsection {* Closure Theorems *}
 
-theorem TrueP_closure [simp] :
+theorem TrueP_closure [closure] :
 "true \<in> WF_PREDICATE"
 apply (simp add: TrueP_def)
 apply (simp add: WF_PREDICATE_def)
 done
 
-theorem FalseP_closure [simp] :
+theorem FalseP_closure [closure] :
 "false \<in> WF_PREDICATE"
 apply (simp add: FalseP_def)
 apply (simp add: WF_PREDICATE_def)
 done
 
-theorem NotP_closure [simp, intro!] :
+theorem NotP_closure [closure, intro!] :
 "\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  (\<not>p p) \<in> WF_PREDICATE"
 apply (simp add: NotP_def)
@@ -230,7 +230,7 @@ apply (simp add: WF_PREDICATE_def)
 apply (auto)
 done
 
-theorem AndP_closure [simp, intro!] :
+theorem AndP_closure [closure, intro!] :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<and>p p2 \<in> WF_PREDICATE"
@@ -239,7 +239,7 @@ apply (simp add: WF_PREDICATE_def)
 apply (auto)
 done
 
-theorem OrP_closure [simp, intro!] :
+theorem OrP_closure [closure, intro!] :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<or>p p2 \<in> WF_PREDICATE"
@@ -247,21 +247,23 @@ apply (simp add: OrP_def)
 apply (simp add: WF_PREDICATE_def)
 done
 
-theorem ImpliesP_closure [simp, intro!] :
+theorem ImpliesP_closure [closure, intro!] :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<Rightarrow>p p2 \<in> WF_PREDICATE"
 apply (simp add: ImpliesP_def)
+apply (auto)
 done
 
-theorem IffP_closure [simp, intro!] :
+theorem IffP_closure [closure, intro!] :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<Leftrightarrow>p p2 \<in> WF_PREDICATE"
 apply (simp add: IffP_def)
+apply (auto)
 done
 
-theorem ExistsP_closure [simp, intro!] :
+theorem ExistsP_closure [closure, intro!] :
 "\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  (\<exists>p vs . p) \<in> WF_PREDICATE"
 apply (simp add: ExistsP_def)
@@ -269,23 +271,26 @@ apply (simp add: WF_PREDICATE_def)
 apply (auto)
 done
 
-theorem ForallP_closure [simp, intro!] :
+theorem ForallP_closure [closure, intro!] :
 "\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  (\<forall>p vs . p) \<in> WF_PREDICATE"
 apply (simp add: ForallP_def)
+apply (auto)
 done
 
-theorem ClosureP_closure [simp, intro!] :
+theorem ClosureP_closure [closure, intro!] :
 "\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  [p] \<in> WF_PREDICATE"
 apply (simp add: ClosureP_def)
+apply (auto)
 done
 
-theorem RefP_closure [simp, intro!] :
+theorem RefP_closure [closure, intro!] :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<sqsubseteq>p p2 \<in> WF_PREDICATE"
 apply (simp add: RefP_def)
+apply (auto)
 done
 
 subsubsection {* Normalisation *}
@@ -307,7 +312,7 @@ theorem ForallP_empty :
 "p \<in> WF_PREDICATE \<Longrightarrow>
  (\<forall>p {} . p) = p"
 apply (simp add: ForallP_def)
-apply (simp add: ExistsP_empty)
+apply (simp add: ExistsP_empty closure)
 apply (simp add: NotP_NotP)
 done
 
@@ -332,7 +337,7 @@ done
 theorem ExistsP_insert :
 "p \<in> WF_PREDICATE \<Longrightarrow>
  (\<exists>p (insert v vs) . p) = (\<exists>p {v} . (\<exists>p vs . p))"
-apply (simp add: ExistsP_def [of "(\<exists>p vs . p)"])
+apply (simp add: ExistsP_def [of "(\<exists>p vs . p)"] closure)
 apply (simp add: ExistsP_def)
 apply (safe)
 -- {* Subgoal 1 *}
@@ -346,16 +351,16 @@ apply (simp)
 apply (rule_tac x = "b1a" in exI)
 apply (rule_tac x = "b2a \<oplus> b2 on {v}" in exI)
 apply (simp)
-apply (simp add: override_on_assoc)
+apply (simp add: override_on_assoc closure)
 done
 
 theorem ForallP_insert :
 "p \<in> WF_PREDICATE \<Longrightarrow>
  (\<forall>p (insert v vs) . p) = (\<forall>p {v} . (\<forall>p vs . p))"
-apply (simp add: ForallP_def)
-apply (simp add: NotP_NotP)
+apply (simp add: ForallP_def closure)
+apply (simp add: NotP_NotP closure)
 apply (subst ExistsP_insert)
-apply (simp_all)
+apply (simp_all add: closure)
 done
 
 theorem ExistsP_deatomise :

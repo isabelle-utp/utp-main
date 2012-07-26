@@ -97,7 +97,7 @@ theorem EvalP_ImpliesP [eval] :
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  \<lbrakk>p1 \<Rightarrow>p p2\<rbrakk>b = (\<lbrakk>p1\<rbrakk>b \<longrightarrow> \<lbrakk>p2\<rbrakk>b)"
 apply (simp add: ImpliesP_def)
-apply (simp add: EvalP_OrP EvalP_NotP)
+apply (simp add: EvalP_OrP EvalP_NotP closure)
 done
 
 theorem EvalP_IffP [eval] :
@@ -106,7 +106,7 @@ theorem EvalP_IffP [eval] :
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  \<lbrakk>p1 \<Leftrightarrow>p p2\<rbrakk>b = (\<lbrakk>p1\<rbrakk>b \<longleftrightarrow> \<lbrakk>p2\<rbrakk>b)"
 apply (simp add: IffP_def)
-apply (simp add: EvalP_AndP EvalP_ImpliesP)
+apply (simp add: EvalP_AndP EvalP_ImpliesP closure)
 apply (auto)
 done
 
@@ -133,7 +133,7 @@ theorem EvalP_ForallP [eval] :
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  \<lbrakk>\<forall>p vs . p\<rbrakk>b = (\<forall> b' \<in> WF_BINDING . \<lbrakk>p\<rbrakk>(b \<oplus> b' on vs))"
 apply (simp add: ForallP_def)
-apply (simp add: EvalP_NotP EvalP_ExistsP)
+apply (simp add: EvalP_NotP EvalP_ExistsP closure)
 done
 
 theorem EvalP_ClosureP [eval] :
@@ -150,7 +150,7 @@ theorem EvalP_RefP [eval] :
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  \<lbrakk>p1 \<sqsubseteq>p p2\<rbrakk>b = (\<forall> b \<in> WF_BINDING . \<lbrakk>p2\<rbrakk>b \<longrightarrow> \<lbrakk>p1\<rbrakk>b)"
 apply (simp add: RefP_def)
-apply (simp add: EvalP_ClosureP EvalP_ImpliesP)
+apply (simp add: EvalP_ClosureP EvalP_ImpliesP closure)
 done
 
 declare Tautology_def [eval]
@@ -211,7 +211,9 @@ text {*
 
 ML {*
   fun utp_pred_simpset ctxt =
-    (simpset_of ctxt) addsimps (eval.get ctxt);
+    (simpset_of ctxt)
+      addsimps (eval.get ctxt)
+      addsimps (closure.get ctxt);
 *}
 
 method_setup utp_pred_tac = {*

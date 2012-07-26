@@ -27,6 +27,15 @@ declaration {* fn _ =>
   Classical.map_cs (fn cs => cs delSWrapper "split_all_tac")
 *}
 
+subsection {* Theorem Attributes *}
+
+ML {*
+  structure closure =
+    Named_Thms (val name = "closure" val description = "closure theorems")
+*}
+
+setup closure.setup
+
 subsection {* Function Override *}
 
 text {* We introduce a neater syntax for function overriding. *}
