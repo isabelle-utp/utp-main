@@ -42,6 +42,21 @@ text {* We introduce a neater syntax for function overriding. *}
 
 notation override_on ("_ \<oplus> _ on _" [56, 56, 0] 55)
 
+theorem override_on_equals :
+"f1 \<oplus> g1 on a = f2 \<oplus> g2 on a \<longleftrightarrow>
+ (\<forall> x . x \<in> a \<longrightarrow> g1 x = g2 x) \<and>
+ (\<forall> x . x \<notin> a \<longrightarrow> f1 x = f2 x)"
+apply (simp add: fun_eq_iff)
+apply (safe)
+apply (drule_tac x = "x" in spec)
+apply (simp)
+apply (drule_tac x = "x" in spec)
+apply (simp)
+apply (drule_tac x = "x" in spec)
+apply (case_tac "x \<in> a")
+apply (simp_all)
+done
+
 theorem override_on_assoc :
 "(f \<oplus> g on a) \<oplus> h on b = f \<oplus> (g \<oplus> h on b) on (a \<union> b)"
 apply (simp add: override_on_def)
@@ -72,5 +87,27 @@ theorem override_on_cancel2 [simp] :
 apply (simp add: override_on_def)
 apply (rule ext)
 apply (auto)
+done
+
+theorem override_on_cancel3 [simp] :
+"f \<oplus> (g \<oplus> h on a) on a = f \<oplus> h on a"
+apply (rule ext)
+apply (case_tac "x \<in> a")
+apply (auto)
+done
+
+subsection {* Transfer Strategy *}
+
+theorem inj_on_eval_simp :
+"inj_on f s \<Longrightarrow>
+ \<lbrakk>x1 \<in> s; x2 \<in> s\<rbrakk> \<Longrightarrow> x1 = x2 \<longleftrightarrow> (f x1 = f x2)"
+apply (simp add: inj_on_def)
+apply (auto)
+done
+
+theorem inj_on_eval_intro :
+"inj_on f s \<Longrightarrow>
+ \<lbrakk>x1 \<in> s; x2 \<in> s; f x1 = f x2\<rbrakk> \<Longrightarrow> x1 = x2"
+apply (simp add: inj_on_eval_simp)
 done
 end

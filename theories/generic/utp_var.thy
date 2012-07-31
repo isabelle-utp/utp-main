@@ -65,10 +65,84 @@ definition PLAIN :: "'TYPE VAR set" where
 
 subsection {* Theorems *}
 
-theorem override_on_VAR [simp] :
-"(b1 \<oplus> b2 on VAR) = b2"
-apply (simp add: VAR_def)
+theorems var_defs =
+  VAR_def
+  UNDASHED_def
+  DASHED_def
+  DASHED_TWICE_def
+  PLAIN_def
+  undash_def
+  dash_def
+
+theorem type_dash [simp] :
+"type (dash v) = type v"
+apply (simp add: var_defs)
+done
+
+theorem type_undash [simp] :
+"type (undash v) = type v"
+apply (simp add: var_defs)
+done
+
+theorem UNDASHED_dash_DASHED [simp] :
+"x \<in> UNDASHED \<Longrightarrow> dash x \<in> DASHED"
+apply (simp add: var_defs)
+done
+
+theorem DASHED_undash_UNDASHED [simp] :
+"x \<in> DASHED \<Longrightarrow> undash x \<in> UNDASHED"
+apply (simp add: var_defs)
+done
+
+theorem UNDASHED_DASHED_contra [dest] :
+"\<lbrakk>x \<in> UNDASHED; x \<in> DASHED\<rbrakk> \<Longrightarrow> False"
+apply (simp add: var_defs)
+done
+
+theorem UNDASHED_dash_contra [dest] :
+"\<lbrakk>x \<in> UNDASHED; x = dash y\<rbrakk> \<Longrightarrow> False"
+apply (simp add: var_defs)
+done
+
+theorem undash_dash_contra [dest] :
+"\<lbrakk>x \<in> DASHED; y \<in> UNDASHED; undash x = dash y\<rbrakk> \<Longrightarrow> False"
+apply (simp add: var_defs)
+done
+
+theorem undash_dash [simp] :
+"undash (dash x) = x"
+apply (simp add: var_defs)
+apply (induct_tac x)
+apply (simp)
+done
+
+theorem dash_undash [simp] :
+"x \<in> DASHED \<Longrightarrow> dash (undash x) = x"
+apply (simp add: var_defs)
+apply (atomize (full))
+apply (induct_tac x)
 apply (auto)
+done
+
+theorem dash_inj :
+"inj dash"
+apply (rule injI)
+apply (simp add: dash_def)
+apply (auto simp: split_paired_all)
+done
+
+theorem undash_inj_on :
+"inj_on undash (VAR - UNDASHED)"
+apply (rule inj_onI)
+apply (simp add: var_defs)
+apply (auto simp: split_paired_all)
+done
+
+theorem undash_inj_on_DASHED :
+"inj_on undash DASHED"
+apply (rule inj_onI)
+apply (simp add: var_defs)
+apply (auto simp: split_paired_all)
 done
 end
 end

@@ -322,6 +322,15 @@ theorem VAR_SUBST_INV_inv [closure] :
 apply (simp add: VAR_SUBST_INV_def)
 done
 
+theorem VAR_SUBST_INV_app [simp] :
+"ss \<in> VAR_SUBST_INV \<Longrightarrow> ss (ss x) = x"
+apply (simp add: VAR_SUBST_INV_def)
+apply (clarify)
+apply (drule VAR_SUBST_bij)
+apply (erule ssubst) back
+apply (simp add: bij_def)
+done
+
 subsubsection {* Binding Substitution *}
 
 theorem SubstB_closure [closure] :
@@ -331,7 +340,7 @@ theorem SubstB_closure [closure] :
 apply (simp add: SubstB_def closure)
 done
 
-theorem SubstsB_inject [simp]:
+theorem SubstB_inject [simp]:
 "\<lbrakk>b1 \<in> WF_BINDING;
  b2 \<in> WF_BINDING;
  ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>

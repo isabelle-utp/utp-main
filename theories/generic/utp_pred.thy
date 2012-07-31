@@ -208,6 +208,14 @@ apply (simp add: WF_PREDICATE_def)
 apply (auto)
 done
 
+theorem WF_BINDING_override_on_VAR [simp] :
+"\<lbrakk>b1 \<in> WF_BINDING;
+ b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+ b1 \<oplus> b2 on VAR = b2"
+apply (simp add: VAR_def)
+apply (auto)
+done
+
 subsubsection {* Closure Theorems *}
 
 theorem TrueP_closure [closure] :
