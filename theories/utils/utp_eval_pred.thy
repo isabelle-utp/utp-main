@@ -1,13 +1,13 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming                                  *)
-(* File: utp_eval.thy                                                         *)
+(* File: utp_eval_pred.thy                                                    *)
 (* Author: Frank Zeyda, University of York (UK)                               *)
 (******************************************************************************)
 
-header {* Evaluation Tactic *}
+header {* Proof Tactic for Predicates *}
 
-theory utp_eval
-imports utp_pred
+theory utp_eval_pred
+imports "../generic/utp_pred"
 begin
 
 text {* Theorem Attribute *}
@@ -24,14 +24,14 @@ begin
 
 subsection {* Interpretation Function *}
 
-(* Can we use notation here? *)
-
 definition EvalP ::
   "('VALUE, 'TYPE) PREDICATE \<Rightarrow>
    ('VALUE, 'TYPE) BINDING \<Rightarrow> bool" ("\<lbrakk>_\<rbrakk>_" [0, 1000] 51) where
 "EvalP p b = (b \<in> p)"
 
-subsection {* Introduction Theorems *}
+notation EvalP ("\<lbrakk>_\<rbrakk>_" [0, 1000] 51)
+
+subsection {* Transfer Theorems *}
 
 theorem EvalP_simp [eval] :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
@@ -202,7 +202,7 @@ apply (assumption)
 done
 end
 
-text {* Proof Method *}
+subsection {* Proof Tactic *}
 
 text {*
   We note that the proof method is also generic and does not have to be

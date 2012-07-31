@@ -7,7 +7,7 @@
 header {* Substitution *}
 
 theory utp_subst
-imports utp_pred utp_eval
+imports utp_pred "../utils/utp_eval_pred"
 begin
 
 context PRED

@@ -13,8 +13,9 @@ imports utp_common
   "generic/utp_value"
   "generic/utp_var"
   "generic/utp_pred"
-  "generic/utp_eval"
   "generic/utp_subst"
   "generic/utp_rel"
+  "utils/utp_eval_pred"
+  "utils/utp_eval_rel"
 begin
 end
