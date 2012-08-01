@@ -102,7 +102,7 @@ apply (simp_all)
 apply (auto)
 done
 
-theorem IdxSet_empty [simp]:
+theorem IdxSet_empty [simp] :
 "IdxSet {}"
 apply (simp add: IdxSet_def)
 done
@@ -124,7 +124,7 @@ done
 
 text {* The following proof may fail if the definition of @{term IDX} changes. *}
 
-theorem IdxSet_union [simp]:
+theorem IdxSet_union [simp] :
 "\<lbrakk>IdxSet s1; IdxSet s2\<rbrakk> \<Longrightarrow> IdxSet (s1 \<union> s2)"
 apply (simp add: IdxSet_def)
 apply (case_tac "s1 = {}")
@@ -150,7 +150,7 @@ apply (simp add: sum_encode_def sum_decode_def)
 apply (auto)
 done
 
-theorem IdxSet_inter [simp]:
+theorem IdxSet_inter [simp] :
 "\<lbrakk>IdxSet s1; IdxSet s2\<rbrakk> \<Longrightarrow> IdxSet (s1 \<inter> s2)"
 apply (simp add: IdxSet_def)
 apply (case_tac "s1 \<inter> s2 = {}")
@@ -174,7 +174,7 @@ apply (drule sym)
 apply (simp)
 done
 
-theorem IdxSet_insert [simp]:
+theorem IdxSet_insert [simp] :
 "IdxSet s \<Longrightarrow> IdxSet (insert x s)"
 apply (unfold insert_def)
 apply (subst IdxSet_union)
