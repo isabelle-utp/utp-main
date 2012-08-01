@@ -28,7 +28,7 @@ type_synonym ('VALUE, 'TYPE) RELATION =
 context PRED
 begin
 
-subsection {* Auxiliary Definitions *}
+subsection {* Relational Model *}
 
 text {*
   We require an arbitrary but fixed binding in our model of relations in order
@@ -48,19 +48,10 @@ apply (rule_tac P = "\<lambda> b . b \<in> WF_BINDING" in someI_ex)
 apply (simp add: WF_BINDING_exists)
 done
 
-subsection {* Semantic Domain *}
-
 definition WF_REL_BINDING :: "('VALUE, 'TYPE) BINDING set" where
 "WF_REL_BINDING = {b \<oplus> bc on DASHED | b . b \<in> WF_BINDING}"
 
 subsection {* Interpretation Function *}
-
-text {* The substitution @{term "SS"} swaps dashed and undashed variables. *}
-
-definition SS :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
-"SS = (\<lambda> v .
-   if v \<in> UNDASHED then (dash v) else
-   if v \<in> DASHED then (undash v) else v)"
 
 definition BindR ::
   "('VALUE, 'TYPE) BINDING \<Rightarrow>
@@ -84,105 +75,7 @@ definition IEvalR ::
    ('VALUE, 'TYPE) PREDICATE" where
 "IEvalR r = BindP ` r"
 
-subsection {* Theorems about @{term SS} *}
-
-text {* TODO: Maybe try and shorten the following proof. *}
-
-theorem SS_VAR_SUBST [closure] :
-"SS \<in> VAR_SUBST"
-apply (simp add: SS_def VAR_SUBST_def)
-apply (simp add: bij_def)
-apply (rule conjI)
-apply (simp add: inj_on_def)
-apply (safe)
-apply (auto)
-apply (insert dash_inj undash_inj_on_DASHED)
--- {* Subgoal 1 *}
-apply (simp add: inj_on_eq_iff)
--- {* Subgoal 2 *}
-apply (simp add: inj_eq)
--- {* Subgoal 3 *}
-apply (simp add: image_def)
-apply (drule_tac x = "dash x" in bspec) back
-apply (simp add: var_defs)
-apply (simp)
--- {* Subgoal 4 *}
-apply (simp add: image_def)
-apply (drule_tac x = "undash x" in bspec)
-apply (simp)
-apply (simp)
-done
-
-theorem SS_VAR_SUBST_ON [closure] :
-"SS \<in> VAR_SUBST_ON (UNDASHED \<union> DASHED)"
-apply (simp add: VAR_SUBST_ON_def)
-apply (simp add: SS_VAR_SUBST)
-apply (simp add: SS_def)
-done
-
-theorem SS_VAR_SUBST_INV [closure] :
-"SS \<in> VAR_SUBST_INV"
-apply (simp add: VAR_SUBST_INV_def)
-apply (simp add: SS_VAR_SUBST)
-apply (rule sym [OF inv_equality])
-apply (simp_all add: SS_def)
-apply (auto)
-done
-
-theorem SS_inv [simp] :
-"inv SS = SS"
-apply (insert SS_VAR_SUBST_INV)
-apply (simp add: VAR_SUBST_INV_def)
-done
-
-theorem SS_DASHED_member :
-"x \<in> DASHED \<Longrightarrow> \<not> SS x \<in> DASHED"
-apply (simp add: SS_def)
-apply (simp add: var_defs)
-done
-
-theorem SubstB_SS_COMPOSABLE_1 :
-"\<lbrakk>b1 \<in> WF_BINDING;
- b2 \<in> WF_BINDING;
- (b1, b2) \<in> COMPOSABLE\<rbrakk> \<Longrightarrow>
- SubstB SS b1 \<oplus> bc on DASHED = b2 \<oplus> bc on DASHED"
-apply (simp add: override_on_equals)
-apply (simp add: SubstB_def closure)
-apply (simp add: SS_def)
-apply (safe)
-apply (simp add: COMPOSABLE_def)
-apply (simp add: COMPOSABLE_def)
-apply (clarify)
-apply (simp add: binding_equiv_def)
-apply (simp add: NON_REL_VAR_def)
-apply (drule_tac x = "x" in bspec) back
-apply (simp add: VAR_def)
-apply (assumption)
-done
-
-theorem SubstB_SS_COMPOSABLE_2 :
-"\<lbrakk>b1 \<in> WF_BINDING;
- b2 \<in> WF_BINDING;
- (b1, b2) \<in> COMPOSABLE\<rbrakk> \<Longrightarrow>
- SubstB SS (b1 \<oplus> b2 on DASHED) \<oplus> bc on DASHED = SubstB SS b2 \<oplus> bc on DASHED"
-apply (simp add: override_on_equals)
-apply (simp add: SubstB_def closure)
-apply (simp add: SS_def)
-apply (safe)
-apply (simp add: COMPOSABLE_def)
-apply (clarify)
-apply (simp add: binding_equiv_def)
-apply (simp add: NON_REL_VAR_def)
-apply (drule_tac x = "x" in bspec) back
-apply (simp add: VAR_def)
-apply (assumption)
-done
-
-theorems SubstB_SS_COMPOSABLE =
-  SubstB_SS_COMPOSABLE_1
-  SubstB_SS_COMPOSABLE_2
-
-subsection {* Model Theorems *}
+subsection {* Auxilary Theorems *}
 
 theorem EvalR_range :
 "p \<in> WF_PREDICATE \<Longrightarrow>
@@ -221,12 +114,21 @@ apply (simp add: SubstB_def SS_DASHED_member closure)
 apply (simp)
 done
 
+theorem IEvalR_inverse :
+"p \<in> WF_PREDICATE \<Longrightarrow> IEvalR (EvalR p) = p"
+apply (simp add: IEvalR_def EvalR_def)
+apply (simp add: image_image)
+apply (simp add: image_def)
+apply (simp add: set_eq_iff)
+apply (simp add: BindP_inverse)
+done
+
 theorem BindR_inject [simp] :
 "\<lbrakk>b1 \<in> WF_BINDING;
  b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  BindR b1 = BindR b2 \<longleftrightarrow> b1 = b2"
 apply (simp add: BindR_def)
-apply (simp add: override_on_equals)
+apply (simp add: override_on_eq)
 apply (safe)
 apply (rule ext)
 apply (case_tac "x \<in> DASHED")
@@ -248,19 +150,19 @@ theorem BindR_COMPOSABLE :
  (rb1, rb3) = BindR b1;
  (rb3, rb2) = BindR b2\<rbrakk> \<Longrightarrow>
  (b1, b2) \<in> COMPOSABLE"
-apply (simp add: BindR_def COMPOSABLE_def)
-apply (simp add: override_on_equals)
+apply (simp add: BindR_def)
+apply (simp add: COMPOSABLE_def)
+apply (simp add: override_on_eq)
 apply (simp_all add: SubstB_def closure)
 apply (safe)
 -- {* Subgoal 1 *}
 apply (simp add: SS_def)
 apply (drule_tac x = "v" in spec)
 apply (simp)
-apply (auto) [1]
 -- {* Subgoal 2 *}
 apply (simp add: binding_equiv_def)
 apply (simp add: NON_REL_VAR_def)
-apply (safe)
+apply (rule ballI)
 apply (simp add: SS_def)
 apply (drule_tac x = "x" in spec)
 apply (simp)
@@ -273,22 +175,13 @@ theorem BindR_override :
  (rb3, rb2) = BindR b2\<rbrakk> \<Longrightarrow>
  (rb1, rb2) = BindR (b1 \<oplus> b2 on DASHED)"
 apply (simp add: BindR_def)
-apply (simp add: override_on_equals)
+apply (simp add: override_on_eq)
 apply (simp_all add: SubstB_def closure)
 apply (clarify)
 apply (simp add: SS_def)
 apply (safe)
 apply (drule_tac x = "x" in spec)
 apply (simp)
-done
-
-theorem IEvalR_inverse :
-"p \<in> WF_PREDICATE \<Longrightarrow> IEvalR (EvalR p) = p"
-apply (simp add: IEvalR_def EvalR_def)
-apply (simp add: image_image)
-apply (simp add: image_def)
-apply (simp add: set_eq_iff)
-apply (simp add: BindP_inverse)
 done
 
 subsection {* Transfer Theorems *}
@@ -347,11 +240,12 @@ apply (simp add: SS_def)
 -- {* Subgoal 5 *}
 apply (rule_tac x = "b \<oplus> (SubstB SS ba) on DASHED" in bexI)
 apply (simp)
-apply (simp add: override_on_equals)
+apply (simp add: override_on_eq)
 apply (safe)
 apply (simp add: SubstB_def closure)
-apply (simp add: SS_def)
-apply (auto) [1]
+apply (case_tac "x \<in> UNDASHED")
+apply (simp add: SS_simps)
+apply (simp add: SS_simps)
 apply (drule_tac x = "x" in bspec)
 apply (simp add: NON_REL_VAR_def var_defs)
 apply (simp)
@@ -413,7 +307,7 @@ apply (safe)
 -- {* Subgoal 1 *}
 apply (rename_tac x b)
 apply (rule_tac x = "b \<oplus> bc on DASHED" in exI)
-apply (simp add: override_on_equals)
+apply (simp add: override_on_eq)
 apply (rule conjI)
 apply (rule_tac x = "b" in exI)
 apply (simp)
@@ -421,7 +315,7 @@ apply (simp add: SubstB_def closure)
 apply (simp add: SS_def)
 -- {* Subgoal 2 *}
 apply (rule_tac x = "b \<oplus> (SubstB SS b) on DASHED" in exI)
-apply (simp add: override_on_equals)
+apply (simp add: override_on_eq)
 apply (simp add: closure)
 apply (rule conjI)
 -- {* Subgoal 2.1 *}
@@ -437,6 +331,41 @@ apply (simp add: SubstB_def closure)
 apply (simp add: SS_def)
 apply (auto) [1]
 done
+
+theorem SubstB_SS_COMPOSABLE_1 :
+"\<lbrakk>b1 \<in> WF_BINDING;
+ b2 \<in> WF_BINDING;
+ (b1, b2) \<in> COMPOSABLE\<rbrakk> \<Longrightarrow>
+ SubstB SS b1 \<oplus> bc on DASHED = b2 \<oplus> bc on DASHED"
+apply (simp add: override_on_eq)
+apply (simp add: SubstB_def closure)
+apply (simp add: SS_def)
+apply (safe)
+apply (simp add: COMPOSABLE_def)
+apply (simp add: COMPOSABLE_def)
+apply (clarify)
+apply (simp add: binding_equiv_def)
+apply (simp add: NON_REL_VAR_def)
+done
+
+theorem SubstB_SS_COMPOSABLE_2 :
+"\<lbrakk>b1 \<in> WF_BINDING;
+ b2 \<in> WF_BINDING;
+ (b1, b2) \<in> COMPOSABLE\<rbrakk> \<Longrightarrow>
+ SubstB SS (b1 \<oplus> b2 on DASHED) \<oplus> bc on DASHED = SubstB SS b2 \<oplus> bc on DASHED"
+apply (simp add: override_on_eq)
+apply (simp add: SubstB_def closure)
+apply (simp add: SS_def)
+apply (safe)
+apply (simp add: COMPOSABLE_def)
+apply (clarify)
+apply (simp add: binding_equiv_def)
+apply (simp add: NON_REL_VAR_def)
+done
+
+theorems SubstB_SS_COMPOSABLE =
+  SubstB_SS_COMPOSABLE_1
+  SubstB_SS_COMPOSABLE_2
 
 theorem EvalR_SemiR [evalr] :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
@@ -473,6 +402,8 @@ apply (simp add: BindR_COMPOSABLE)
 apply (simp add: BindR_override)
 done
 
+declare CondR_def [evalr]
+
 (* The following are useless since quantifications are not supported yet. *)
 
 (*
@@ -483,6 +414,11 @@ declare Refinement_def [evalr]
 end
 
 subsection {* Proof Tactics *}
+
+text {*
+  We note that the proof method is also generic and does not have to be
+  recreated for concrete instantiations of the @{term PRED} locale.
+*}
 
 ML {*
   fun utp_rel_simpset ctxt =
@@ -525,6 +461,7 @@ subsection {* Algebraic Laws *}
 
 context PRED
 begin
+
 theorem SemiP_FalseP :
 "\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  p ; false = false"
@@ -562,8 +499,23 @@ theorem SemiP_assoc :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE;
  p3 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
- (p1 ; p2) ; p3 = p1 ; (p2 ; p3)"
+ p1 ; (p2 ; p3) = (p1 ; p2) ; p3"
 apply (utp_rel_auto_tac)
 done
+
+subsection {* Proof Experiments *}
+
+text {* The proof below is still very nasty even with simple predicates. *}
+
+theorem SemiP_assoc :
+"\<lbrakk>p1 \<in> WF_PREDICATE;
+ p2 \<in> WF_PREDICATE;
+ p3 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ (p1 ; p2) ; p3 = p1 ; (p2 ; p3)"
+apply (subgoal_tac "(p1 ; p2) \<in> WF_PREDICATE")
+apply (subgoal_tac "(p2 ; p3) \<in> WF_PREDICATE")
+apply (simp add: SemiR_def)
+apply (safe)
+oops
 end
 end

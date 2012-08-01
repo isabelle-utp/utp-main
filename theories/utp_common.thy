@@ -27,6 +27,12 @@ declaration {* fn _ =>
   Classical.map_cs (fn cs => cs delSWrapper "split_all_tac")
 *}
 
+text {* Temporary hack, comment out when there are no sorrys. *}
+
+ML {*
+  quick_and_dirty := true
+*}
+
 subsection {* Theorem Attributes *}
 
 ML {*
@@ -42,7 +48,7 @@ text {* We introduce a neater syntax for function overriding. *}
 
 notation override_on ("_ \<oplus> _ on _" [56, 56, 0] 55)
 
-theorem override_on_equals :
+theorem override_on_eq :
 "f1 \<oplus> g1 on a = f2 \<oplus> g2 on a \<longleftrightarrow>
  (\<forall> x . x \<in> a \<longrightarrow> g1 x = g2 x) \<and>
  (\<forall> x . x \<notin> a \<longrightarrow> f1 x = f2 x)"

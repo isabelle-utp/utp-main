@@ -147,6 +147,8 @@ notation RefP (infix "\<sqsubseteq>p" 100)
 
 subsection {* Meta-logical Operators *}
 
+subsubsection {* Tautologies *}
+
 definition Tautology ::
   "('VALUE, 'TYPE) PREDICATE \<Rightarrow> bool" where
 "p \<in> WF_PREDICATE \<longrightarrow>
@@ -160,6 +162,8 @@ definition Contradiction ::
  Contradiction p \<longleftrightarrow> [p] = false"
 
 notation Contradiction ("contra _" [50] 50)
+
+subsubsection {* Refinement *}
 
 definition Refinement ::
   "('VALUE, 'TYPE) PREDICATE \<Rightarrow>

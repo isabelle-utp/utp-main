@@ -202,7 +202,7 @@ apply (assumption)
 done
 end
 
-subsection {* Proof Tactic *}
+subsection {* Proof Tactics *}
 
 text {*
   We note that the proof method is also generic and does not have to be
@@ -216,91 +216,112 @@ ML {*
       addsimps (closure.get ctxt);
 *}
 
+ML {*
+  fun utp_pred_auto_simpset ctxt =
+    (simpset_of ctxt)
+*}
+
+ML {*
+  fun utp_pred_tac thms ctxt i =
+    CHANGED (asm_full_simp_tac (utp_pred_simpset ctxt) i)
+*}
+
+ML {*
+  fun utp_pred_auto_tac thms ctxt i =
+    TRY (asm_full_simp_tac (utp_pred_simpset ctxt) i) THEN
+    TRY (asm_full_simp_tac (utp_pred_auto_simpset ctxt) i) THEN
+    (auto_tac ctxt)
+*}
+
 method_setup utp_pred_tac = {*
   Attrib.thms >>
   (fn thms => fn ctxt =>
-    SIMPLE_METHOD' (fn i =>
-      CHANGED (asm_full_simp_tac
-        (utp_pred_simpset ctxt) i)))
+    SIMPLE_METHOD' (utp_pred_tac thms ctxt))
 *} "proof tactic for predicates"
+
+method_setup utp_pred_auto_tac = {*
+  Attrib.thms >>
+  (fn thms => fn ctxt =>
+    SIMPLE_METHOD' (utp_pred_auto_tac thms ctxt))
+*} "proof tactic for predicates with auto"
 
 subsection {* Proof Experiments *}
 
 context PRED
 begin
-theorem
+
+theorem AndP_assoc :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE;
  p3 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<and>p (p2 \<and>p p3) = (p1 \<and>p p2) \<and>p p3"
-apply (utp_pred_tac)
+apply (utp_pred_auto_tac)
 done
 
-theorem
+theorem AndP_OrP_distr :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE;
  p3 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<and>p (p2 \<or>p p3) = (p1 \<and>p p2) \<or>p (p1 \<and>p p3)"
-apply (utp_pred_tac)
-apply (auto)
+apply (utp_pred_auto_tac)
 done
 
-theorem
+theorem NotP_FalseP :
+"true = \<not>p false"
+apply (utp_pred_auto_tac)
+done
+
+theorem AndP_comm_taut :
+"\<lbrakk>p1 \<in> WF_PREDICATE;
+ p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ taut (p1 \<and>p p2) \<Leftrightarrow>p (p2 \<and>p p1)"
+apply (utp_pred_auto_tac)
+done
+
+theorem AndP_eq_FalseP :
+"\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ p \<and>p \<not>p p = false"
+apply (utp_pred_auto_tac)
+done
+
+theorem OrP_eq_TrueP :
+"\<lbrakk>p \<in> WF_PREDICATE;
+ a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
+ p \<or>p \<not>p p = true"
+apply (utp_pred_auto_tac)
+done
+
+theorem ForallP_NotP_taut :
+"\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ taut (\<forall>p vs . \<not>p p) \<Leftrightarrow>p \<not>p (\<exists>p vs . p)"
+apply (utp_pred_auto_tac)
+done
+
+theorem OrP_RefP_taut :
+"\<lbrakk>p1 \<in> WF_PREDICATE;
+ p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ taut p1 \<or>p p2 \<sqsubseteq>p p1"
+apply (utp_pred_auto_tac)
+done
+
+theorem OrP_ref :
+"\<lbrakk>p1 \<in> WF_PREDICATE;
+ p2 \<in> WF_PREDICATE;
+ (\<alpha> p1) = (\<alpha> p2)\<rbrakk> \<Longrightarrow>
+ p1 \<or>p p2 \<sqsubseteq> p1"
+apply (utp_pred_auto_tac)
+done
+
+text {* The theorem below would be tedious to prove by mere rewriting. *}
+
+lemma AndP_reorder_test :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE;
  p3 \<in> WF_PREDICATE;
  p4 \<in> WF_PREDICATE;
  p5 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<and>p p2 \<and>p p3 \<and>p p4 \<and>p p5 = (p1 \<and>p p5) \<and>p p3 \<and>p (p4 \<and>p p2)"
-apply (utp_pred_tac)
-apply (auto)
-done
-
-theorem
-"true = \<not>p false"
-apply (utp_pred_tac)
-done
-
-theorem
-"\<lbrakk>p1 \<in> WF_PREDICATE;
- p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
- taut (p1 \<and>p p2) \<Leftrightarrow>p (p2 \<and>p p1)"
-apply (utp_pred_tac)
-apply (auto)
-done
-
-theorem
-"\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
- p \<and>p \<not>p p = false"
-apply (utp_pred_tac)
-done
-
-theorem
-"\<lbrakk>p \<in> WF_PREDICATE;
- a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
- p \<or>p \<not>p p = true"
-apply (utp_pred_tac)
-done
-
-theorem
-"\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
- taut (\<forall>p vs . \<not>p p) \<Leftrightarrow>p \<not>p (\<exists>p vs . p)"
-apply (utp_pred_tac)
-done
-
-theorem
-"\<lbrakk>p1 \<in> WF_PREDICATE;
- p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
- taut p1 \<or>p p2 \<sqsubseteq>p p1"
-apply (utp_pred_tac)
-done
-
-theorem
-"\<lbrakk>p1 \<in> WF_PREDICATE;
- p2 \<in> WF_PREDICATE;
- (\<alpha> p1) = (\<alpha> p2)\<rbrakk> \<Longrightarrow>
- p1 \<or>p p2 \<sqsubseteq> p1"
-apply (utp_pred_tac)
+apply (utp_pred_auto_tac)
 done
 end
 end

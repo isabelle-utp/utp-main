@@ -2,4 +2,5 @@
 
 nedit\
   theories/*.thy\
-  theories/generic/*.thy
+  theories/generic/*.thy\
+  theories/utils/*.thy

@@ -74,55 +74,158 @@ theorems var_defs =
   undash_def
   dash_def
 
+theorem VAR_member [simp] :
+"x \<in> VAR"
+apply (simp add: VAR_def)
+done
+
+subsubsection {* Names and Types *}
+
 theorem type_dash [simp] :
-"type (dash v) = type v"
+"type (dash x) = type x"
 apply (simp add: var_defs)
 done
 
 theorem type_undash [simp] :
-"type (undash v) = type v"
+"type (undash x) = type x"
 apply (simp add: var_defs)
 done
 
-theorem UNDASHED_dash_DASHED [simp] :
+subsubsection {* Membership Theorems *}
+
+theorem UNDASHED_not_DASHED :
+"x \<in> UNDASHED \<Longrightarrow> \<not> x \<in> DASHED"
+apply (simp add: var_defs)
+done
+
+theorem UNDASHED_not_DASHED_TWICE :
+"x \<in> UNDASHED \<Longrightarrow> \<not> x \<in> DASHED_TWICE"
+apply (simp add: var_defs)
+done
+
+theorem DASHED_not_DASHED_TWICE :
+"x \<in> DASHED \<Longrightarrow> \<not> x \<in> DASHED_TWICE"
+apply (simp add: var_defs)
+done
+
+theorem UNDASHED_dash_DASHED :
 "x \<in> UNDASHED \<Longrightarrow> dash x \<in> DASHED"
 apply (simp add: var_defs)
 done
 
-theorem DASHED_undash_UNDASHED [simp] :
+theorem DASHED_undash_UNDASHED :
 "x \<in> DASHED \<Longrightarrow> undash x \<in> UNDASHED"
 apply (simp add: var_defs)
 done
 
-theorem UNDASHED_DASHED_contra [dest] :
+theorem DASHED_dash_DASHED_TWICE :
+"x \<in> DASHED \<Longrightarrow> dash x \<in> DASHED_TWICE"
+apply (simp add: var_defs)
+done
+
+theorem DASHED_TWICE_undash_DASHED :
+"x \<in> DASHED_TWICE \<Longrightarrow> undash x \<in> DASHED"
+apply (simp add: var_defs)
+done
+
+theorems var_member =
+  UNDASHED_not_DASHED
+  UNDASHED_not_DASHED_TWICE
+  DASHED_not_DASHED_TWICE
+  UNDASHED_dash_DASHED
+  DASHED_undash_UNDASHED
+  DASHED_dash_DASHED_TWICE
+  DASHED_TWICE_undash_DASHED
+
+declare var_member [intro, simp]
+
+subsubsection {* Contradiction Theorems *}
+
+theorem UNDASHED_DASHED_contra :
 "\<lbrakk>x \<in> UNDASHED; x \<in> DASHED\<rbrakk> \<Longrightarrow> False"
 apply (simp add: var_defs)
 done
 
-theorem UNDASHED_dash_contra [dest] :
-"\<lbrakk>x \<in> UNDASHED; x = dash y\<rbrakk> \<Longrightarrow> False"
+theorem UNDASHED_DASHED_TWICE_contra :
+"\<lbrakk>x \<in> UNDASHED; x \<in> DASHED_TWICE\<rbrakk> \<Longrightarrow> False"
 apply (simp add: var_defs)
 done
 
-theorem undash_dash_contra [dest] :
-"\<lbrakk>x \<in> DASHED; y \<in> UNDASHED; undash x = dash y\<rbrakk> \<Longrightarrow> False"
+theorem DASHED_DASHED_TWICE_contra :
+"\<lbrakk>x \<in> DASHED; x \<in> DASHED_TWICE\<rbrakk> \<Longrightarrow> False"
 apply (simp add: var_defs)
 done
 
-theorem undash_dash [simp] :
-"undash (dash x) = x"
+theorem UNDASHED_eq_dash_contra :
+"\<lbrakk>x = dash y; x \<in> UNDASHED\<rbrakk> \<Longrightarrow> False"
 apply (simp add: var_defs)
-apply (induct_tac x)
-apply (simp)
 done
 
-theorem dash_undash [simp] :
+theorem undash_eq_dash_contra1 :
+"\<lbrakk>undash x = dash y; x \<in> DASHED\<rbrakk> \<Longrightarrow> False"
+apply (simp add: var_defs)
+done
+
+theorem undash_eq_dash_contra2 :
+"\<lbrakk>undash x = dash y; x \<in> DASHED_TWICE; y \<in> DASHED\<rbrakk> \<Longrightarrow> False"
+apply (simp add: var_defs)
+done
+
+theorem dash_eq_undash_contra1 :
+"\<lbrakk>dash x = undash y; y \<in> DASHED\<rbrakk> \<Longrightarrow> False"
+apply (simp add: var_defs)
+done
+
+theorem dash_eq_undash_contra2 :
+"\<lbrakk>dash x = undash y; x \<in> DASHED; y \<in> DASHED_TWICE\<rbrakk> \<Longrightarrow> False"
+apply (simp add: var_defs)
+done
+
+theorems var_contra =
+  UNDASHED_DASHED_contra
+  UNDASHED_DASHED_TWICE_contra
+  DASHED_DASHED_TWICE_contra
+  UNDASHED_eq_dash_contra
+  undash_eq_dash_contra1
+  undash_eq_dash_contra2
+  dash_eq_undash_contra1
+  dash_eq_undash_contra2
+
+declare var_contra [dest]
+
+subsubsection {* Simplification Theorems *}
+
+theorem dash_undash_DASHED :
 "x \<in> DASHED \<Longrightarrow> dash (undash x) = x"
 apply (simp add: var_defs)
 apply (atomize (full))
 apply (induct_tac x)
 apply (auto)
 done
+
+theorem dash_undash_DASHED_TWICE :
+"x \<in> DASHED_TWICE \<Longrightarrow> dash (undash x) = x"
+apply (simp add: var_defs)
+apply (atomize (full))
+apply (induct_tac x)
+apply (auto)
+done
+
+theorem undash_dash :
+"undash (dash x) = x"
+apply (simp add: var_defs)
+apply (induct_tac x)
+apply (simp)
+done
+
+theorems var_simps =
+  dash_undash_DASHED
+  dash_undash_DASHED_TWICE
+  undash_dash
+
+declare var_simps [simp]
+
+subsubsection {* Injectivity Theorems *}
 
 theorem dash_inj :
 "inj dash"
@@ -140,6 +243,13 @@ done
 
 theorem undash_inj_on_DASHED :
 "inj_on undash DASHED"
+apply (rule inj_onI)
+apply (simp add: var_defs)
+apply (auto simp: split_paired_all)
+done
+
+theorem undash_inj_on_DASHED_TWICE :
+"inj_on undash DASHED_TWICE"
 apply (rule inj_onI)
 apply (simp add: var_defs)
 apply (auto simp: split_paired_all)

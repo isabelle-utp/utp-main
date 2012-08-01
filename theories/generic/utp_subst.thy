@@ -13,22 +13,21 @@ begin
 context PRED
 begin
 
-subsection {* Variable Substitutions *}
+subsection {* Variable Substitution *}
 
-text {* Substitutions are total bijections and have to respect typing. *}
+text {* Substitutions are total bijections that respect typing. *}
 
 definition VAR_SUBST :: "('TYPE VAR \<Rightarrow> 'TYPE VAR) set" where
 "VAR_SUBST = {ss . bij ss \<and> (\<forall> v . type (ss v) = type v)}"
-
-subsubsection {* Restrictions *}
 
 text {* Variable substitutions confined to a set of variables. *}
 
 definition VAR_SUBST_ON ::
   "('TYPE VAR) set \<Rightarrow> ('TYPE VAR \<Rightarrow> 'TYPE VAR) set" where
-"VAR_SUBST_ON vs = {ss . ss \<in> VAR_SUBST \<and> (\<forall> v . v \<notin> vs \<longrightarrow> ss v = v)}"
+"VAR_SUBST_ON vs =
+ {ss . ss \<in> VAR_SUBST \<and> (\<forall> v . v \<notin> vs \<longrightarrow> ss v = v)}"
 
-text {* Variable substitutions that are moreover involutions. *}
+text {* Variable substitutions that are also involutions. *}
 
 definition VAR_SUBST_INV :: "('TYPE VAR \<Rightarrow> 'TYPE VAR) set" where
 "VAR_SUBST_INV = {ss . ss \<in> VAR_SUBST \<and> ss = inv ss}"
@@ -53,9 +52,7 @@ definition SubstP ::
 
 subsection {* Theorems *}
 
-subsubsection {* Bijections *}
-
-text {* Should we have a corresponding theorem for variable substitution? *}
+subsubsection {* Auxiliary Theorems *}
 
 theorem bij_comp_inject [simp] :
 "bij g \<Longrightarrow> (f1 \<circ> g = f2 \<circ> g) = (f1 = f2)"
@@ -70,7 +67,7 @@ done
 
 declare bij_imp_bij_inv [simp, intro!]
 
-subsubsection {* Variable Substitutions *}
+subsubsection {* Variable Substitution *}
 
 text {* Theorems about @{term "VAR_SUBST"} *}
 
@@ -141,7 +138,7 @@ apply (clarsimp)
 apply (simp add: bij_def inv_f_f)
 done
 
-theorem VAR_SUBST_inv_distr :
+theorem VAR_SUBST_inv_distr [simp] :
 "\<lbrakk>ss1 \<in> VAR_SUBST;
  ss2 \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
  inv (ss1 \<circ> ss2) = (inv ss2) \<circ> (inv ss1)"
@@ -170,7 +167,7 @@ apply (simp add: image_def)
 apply (auto)
 done
 
--- {* The following two theorems might be redundant with the above theorem. *}
+text {* The following two theorems might be redundant. Check this. *}
 
 theorem VAR_SUBST_image_inv [simp] :
 "ss \<in> VAR_SUBST \<Longrightarrow> ss ` (inv ss) ` a = a"
@@ -317,8 +314,17 @@ theorem VAR_SUBST_INV_VAR_SUBST [closure] :
 apply (simp add: VAR_SUBST_INV_def)
 done
 
-theorem VAR_SUBST_INV_inv [closure] :
+theorem VAR_SUBST_INV_inv_closure [closure] :
 "ss \<in> VAR_SUBST_INV \<Longrightarrow> (inv ss) \<in> VAR_SUBST_INV"
+apply (simp add: VAR_SUBST_INV_def)
+done
+
+text {* Should the following theorem be a default simplifications? *}
+
+text {* This causes a loop though when simplifying @{term VAR_SUBST_INV}. *}
+
+theorem VAR_SUBST_INV_inv :
+"ss \<in> VAR_SUBST_INV \<Longrightarrow> (inv ss) = ss"
 apply (simp add: VAR_SUBST_INV_def)
 done
 
@@ -361,7 +367,6 @@ theorem SubstB_compose :
  SubstB ss1 (SubstB ss2 b) = SubstB (ss1 \<circ> ss2) b"
 apply (subgoal_tac "SubstB ss2 b \<in> WF_BINDING")
 apply (simp add: SubstB_def closure)
-apply (simp add: VAR_SUBST_inv_distr)
 apply (simp add: o_assoc)
 apply (simp add: closure)
 done
@@ -397,8 +402,6 @@ apply (simp add: SubstB_def closure)
 apply (rule ext)
 apply (simp_all add: closure)
 done
-
-text {* Maybe rename the following four distribution theorems. *}
 
 theorem SubstB_override_distr1 :
 "\<lbrakk>ss \<in> VAR_SUBST;
@@ -441,7 +444,7 @@ theorem SubstB_override_distr4 :
 apply (simp add: SubstB_override_distr3)
 done
 
-theorem SubstB_invol [simp] :
+theorem SubstB_involution [simp] :
 "\<lbrakk>ss \<in> VAR_SUBST_INV;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  SubstB ss (SubstB ss b) = b"
@@ -493,18 +496,16 @@ apply (simp add: SubstP_def)
 apply (simp add: image_def)
 done
 
-subsubsection {* Algebraic Laws *}
-
 theorem SubstP_id :
 "p \<in> WF_PREDICATE \<Longrightarrow> p[id] = p"
-apply (utp_pred_tac)
+apply (utp_pred_auto_tac)
 done
 
 theorem SubstP_inverse :
 "\<lbrakk>p \<in> WF_PREDICATE;
  ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
  p[ss][inv ss] = p"
-apply (utp_pred_tac)
+apply (utp_pred_auto_tac)
 done
 
 theorem SubstP_compose :
@@ -513,7 +514,6 @@ theorem SubstP_compose :
  ss2 \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
  p[ss1][ss2] = p[ss2 \<circ> ss1]"
 apply (utp_pred_tac)
-apply (simp add: VAR_SUBST_inv_distr)
 apply (simp add: SubstB_compose closure)
 done
 
@@ -529,117 +529,11 @@ apply (subst SubstB_commute [of "(inv ss1)" "vs1" "(inv ss2)" "vs2" "b"])
 apply (simp_all add: closure)
 done
 
-theorem SubstP_invol [simp] :
+theorem SubstP_involution [simp] :
 "\<lbrakk>p \<in> WF_PREDICATE;
  ss \<in> VAR_SUBST_INV\<rbrakk> \<Longrightarrow>
  p[ss][ss] = p"
-apply (utp_pred_tac)
-done
-
-text {* Distribution Theorems for Substitution *}
-
-theorem SubstP_NotP_distr :
-"\<lbrakk>p \<in> WF_PREDICATE;
- ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
- (\<not>p p)[ss] = \<not>p p[ss]"
-apply (utp_pred_tac)
-done
-
-theorem SubstP_AndP_distr :
-"\<lbrakk>p1 \<in> WF_PREDICATE;
- p2 \<in> WF_PREDICATE;
- ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
- (p1 \<and>p p2)[ss] = p1[ss] \<and>p p2[ss]"
-apply (utp_pred_tac)
-done
-
-theorem SubstP_OrP_distr :
-"\<lbrakk>p1 \<in> WF_PREDICATE;
- p2 \<in> WF_PREDICATE;
- ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
- (p1 \<or>p p2)[ss] = p1[ss] \<or>p p2[ss]"
-apply (utp_pred_tac)
-done
-
-theorem SubstP_ImpliesP_distr :
-"\<lbrakk>p1 \<in> WF_PREDICATE;
- p2 \<in> WF_PREDICATE;
- ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
- (p1 \<Rightarrow>p p2)[ss] = p1[ss] \<Rightarrow>p p2[ss]"
-apply (utp_pred_tac)
-done
-
-theorem SubstP_IffP_distr :
-"\<lbrakk>p1 \<in> WF_PREDICATE;
- p2 \<in> WF_PREDICATE;
- ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
- (p1 \<Leftrightarrow>p p2)[ss] = p1[ss] \<Leftrightarrow>p p2[ss]"
-apply (utp_pred_tac)
-done
-
-theorem SubstP_ExistsP_distr :
-"\<lbrakk>p \<in> WF_PREDICATE;
- ss \<in> VAR_SUBST_ON vs1;
- vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
- (\<exists>p vs2 . p)[ss] = (\<exists>p vs2 . p[ss])"
-apply (utp_pred_tac)
-apply (safe)
-apply (subgoal_tac "(inv ss) \<in> VAR_SUBST_ON vs1")
-apply (rule_tac x = "SubstB ss b'" in bexI)
-apply (subst SubstB_override_distr3 [of "(inv ss)" vs1])
-apply (simp_all add: closure)
-apply (subgoal_tac "(inv ss) \<in> VAR_SUBST_ON vs1")
-apply (rule_tac x = "SubstB (inv ss) b'" in bexI)
-apply (subst SubstB_override_distr4 [of "(inv ss)" vs1])
-apply (simp_all add: closure)
-done
-
-theorem SubstP_ForallP_distr :
-"\<lbrakk>p \<in> WF_PREDICATE;
- ss \<in> VAR_SUBST_ON vs1;
- vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
- (\<forall>p vs2 . p)[ss] = (\<forall>p vs2 . p[ss])"
-apply (simp add: ForallP_def closure)
-apply (simp add: SubstP_ExistsP_distr SubstP_NotP_distr closure)
-done
-
-theorem SubstP_ClosureP :
-"\<lbrakk>p \<in> WF_PREDICATE;
- ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
- [p[ss]] = ([p] :: ('VALUE, 'TYPE) PREDICATE)"
-apply (utp_pred_tac)
-apply (safe)
-apply (drule_tac x = "SubstB ss x" in bspec)
-apply (simp_all add: closure)
-done
-
-subsection {* Proof Experiments *}
-
-text {*
-  The following proof illustrates how we use a mixture of algebraic laws and
-  the proof strategy for predicates to proof more complex properties. For now
-  the strategy alone is not powerful enough to prove the theorem by itself.
-*}
-
-theorem SubstP_lemma1 :
-"\<lbrakk>p1 \<in> WF_PREDICATE;
- p2 \<in> WF_PREDICATE;
- ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
- taut [p1 \<Leftrightarrow>p p2] \<Leftrightarrow>p [p1[ss] \<Leftrightarrow>p p2[ss]]"
-apply (utp_pred_tac)
-apply (auto simp add: closure)
-oops
-
-theorem SubstP_lemma1 :
-"\<lbrakk>p1 \<in> WF_PREDICATE;
- p2 \<in> WF_PREDICATE;
- ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
- taut [p1 \<Leftrightarrow>p p2] \<Leftrightarrow>p [p1[ss] \<Leftrightarrow>p p2[ss]]"
-apply (subgoal_tac "p1[ss] \<Leftrightarrow>p p2[ss] = (p1 \<Leftrightarrow>p p2)[ss]")
-apply (simp)
-apply (simp add: SubstP_ClosureP closure)
-apply (utp_pred_tac)
-apply (simp add: SubstP_IffP_distr)
+apply (utp_pred_auto_tac)
 done
 end
 end
