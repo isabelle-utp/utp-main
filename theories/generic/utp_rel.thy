@@ -13,7 +13,7 @@ begin
 context PRED
 begin
 
-subsection {* Restrictions *}
+subsection {* Composable Bindings *}
 
 definition NON_REL_VAR :: "'TYPE VAR set" where
 "NON_REL_VAR = VAR - (UNDASHED \<union> DASHED)"
@@ -23,10 +23,6 @@ definition COMPOSABLE ::
     ('VALUE, 'TYPE) BINDING) set" where
 "COMPOSABLE = {(b1, b2) .
    (\<forall> v \<in> UNDASHED . b1(dash v) = b2 v) \<and> b1 \<cong> b2 on NON_REL_VAR}"
-
-definition UNREST ::
-  "('TYPE VAR) set \<Rightarrow> ('VALUE, 'TYPE) PREDICATE \<Rightarrow> bool" where
-"UNREST vs p \<longleftrightarrow> (\<forall> b1 \<in> p . \<forall> b2 \<in> WF_BINDING . b1 \<oplus> b2 on vs \<in> p)"
 
 subsection {* Substitutions *}
 
@@ -342,13 +338,7 @@ apply (insert SS2_VAR_SUBST_INV)
 apply (simp add: VAR_SUBST_INV_def)
 done
 
-subsubsection {* Restriction Theorems *}
-
-theorem UNREST_member [intro] :
-"\<lbrakk>p \<in> WF_PREDICATE; b \<in> p; UNREST vs p; b' \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
- (b \<oplus> b' on vs) \<in> p"
-apply (simp add: UNREST_def)
-done
+subsubsection {* Theorems for @{term "COMPOSABLE"} *}
 
 theorem COMPOSABLE_dash [intro] :
 "\<lbrakk>(b1, b2) \<in> COMPOSABLE; x \<in> UNDASHED\<rbrakk> \<Longrightarrow> b1(dash x) = b2 x"

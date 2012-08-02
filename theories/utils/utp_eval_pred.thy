@@ -139,7 +139,7 @@ done
 theorem EvalP_ClosureP [eval] :
 "\<lbrakk>p \<in> WF_PREDICATE;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
- \<lbrakk>[p]\<rbrakk>b = (\<forall> b \<in> WF_BINDING . \<lbrakk>p\<rbrakk>b)"
+ \<lbrakk>[p]p\<rbrakk>b = (\<forall> b \<in> WF_BINDING . \<lbrakk>p\<rbrakk>b)"
 apply (simp add: ClosureP_def)
 apply (simp add: EvalP_ForallP)
 done

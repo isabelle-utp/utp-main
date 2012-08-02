@@ -35,12 +35,30 @@ definition binding_equiv ::
 
 notation binding_equiv ("_ \<cong> _ on _")
 
+subsection {* Unrestricted Variables *}
+
+definition UNREST ::
+  "('TYPE VAR) set \<Rightarrow> ('VALUE, 'TYPE) PREDICATE \<Rightarrow> bool" where
+"UNREST vs p \<longleftrightarrow> (\<forall> b1 \<in> p . \<forall> b2 \<in> WF_BINDING . b1 \<oplus> b2 on vs \<in> p)"
+
 subsection {* Predicates *}
 
 definition WF_PREDICATE :: "('VALUE, 'TYPE) PREDICATE set" where
 "WF_PREDICATE = {b . b \<subseteq> WF_BINDING}"
 
+definition WF_PREDICATE_OVER ::
+  "('TYPE VAR) set \<Rightarrow>
+   ('VALUE, 'TYPE) PREDICATE set" where
+"WF_PREDICATE_OVER vs = {p . p \<in> WF_PREDICATE \<and> UNREST (VAR - vs) p}"
+
 subsection {* Operators *}
+
+subsubsection {* Shallow Lifting *}
+
+definition LiftP ::
+  "('VALUE, 'TYPE) BINDING_BFUN \<Rightarrow>
+   ('VALUE, 'TYPE) PREDICATE" where
+"LiftP f = {b \<in> WF_BINDING . f b}"
 
 subsubsection {* True and False *}
 
@@ -131,7 +149,7 @@ definition ClosureP ::
 "p \<in> WF_PREDICATE \<longrightarrow>
  ClosureP p = (\<forall>p VAR . p)"
 
-notation ClosureP ("[_]")
+notation ClosureP ("[_]p")
 
 subsubsection {* Refinement *}
 
@@ -141,7 +159,7 @@ definition RefP ::
    ('VALUE, 'TYPE) PREDICATE" where
 "p1 \<in> WF_PREDICATE \<and>
  p2 \<in> WF_PREDICATE \<longrightarrow>
- RefP p1 p2 = [p2 \<Rightarrow>p p1]"
+ RefP p1 p2 = [p2 \<Rightarrow>p p1]p"
 
 notation RefP (infix "\<sqsubseteq>p" 100)
 
@@ -152,14 +170,14 @@ subsubsection {* Tautologies *}
 definition Tautology ::
   "('VALUE, 'TYPE) PREDICATE \<Rightarrow> bool" where
 "p \<in> WF_PREDICATE \<longrightarrow>
- Tautology p \<longleftrightarrow> [p] = true"
+ Tautology p \<longleftrightarrow> [p]p = true"
 
 notation Tautology ("taut _" [50] 50)
 
 definition Contradiction ::
   "('VALUE, 'TYPE) PREDICATE \<Rightarrow> bool" where
 "p \<in> WF_PREDICATE \<longrightarrow>
- Contradiction p \<longleftrightarrow> [p] = false"
+ Contradiction p \<longleftrightarrow> [p]p = false"
 
 notation Contradiction ("contra _" [50] 50)
 
@@ -218,6 +236,14 @@ theorem WF_BINDING_override_on_VAR [simp] :
  b1 \<oplus> b2 on VAR = b2"
 apply (simp add: VAR_def)
 apply (auto)
+done
+
+subsubsection {* Unrest Theorems *}
+
+theorem UNREST_member [intro] :
+"\<lbrakk>p \<in> WF_PREDICATE; b \<in> p; UNREST vs p; b' \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+ (b \<oplus> b' on vs) \<in> p"
+apply (simp add: UNREST_def)
 done
 
 subsubsection {* Closure Theorems *}
@@ -292,7 +318,7 @@ done
 
 theorem ClosureP_closure [closure, intro!] :
 "\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
- [p] \<in> WF_PREDICATE"
+ [p]p \<in> WF_PREDICATE"
 apply (simp add: ClosureP_def)
 apply (auto)
 done
@@ -392,6 +418,14 @@ done
 theorems QuantP_deatomise =
   ExistsP_deatomise
   ForallP_deatomise
+
+subsubsection {* Validation of Soundness *}
+
+theorem TrueP_noteq_FalseP :
+"true \<noteq> false"
+apply (simp add: TrueP_def FalseP_def)
+apply (simp add: WF_BINDING_non_empty)
+done
 
 subsection {* Proof Experiments *}
 
