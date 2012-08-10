@@ -18,10 +18,10 @@ subsection {* Composable Bindings *}
 definition NON_REL_VAR :: "'TYPE VAR set" where
 "NON_REL_VAR = VAR - (UNDASHED \<union> DASHED)"
 
-definition COMPOSABLE ::
+definition COMPOSABLE_BINDINGS ::
   "(('VALUE, 'TYPE) BINDING \<times>
     ('VALUE, 'TYPE) BINDING) set" where
-"COMPOSABLE = {(b1, b2) .
+"COMPOSABLE_BINDINGS = {(b1, b2) .
    (\<forall> v \<in> UNDASHED . b1(dash v) = b2 v) \<and> b1 \<cong> b2 on NON_REL_VAR}"
 
 subsection {* Substitutions *}
@@ -61,7 +61,7 @@ definition SemiR ::
 "p1 \<in> WF_PREDICATE \<and>
  p2 \<in> WF_PREDICATE \<longrightarrow>
  SemiR p1 p2 = {b1 \<oplus> b2 on DASHED | b1 b2 .
-   b1 \<in> p1 \<and> b2 \<in> p2 \<and> (b1, b2) \<in> COMPOSABLE}"
+   b1 \<in> p1 \<and> b2 \<in> p2 \<and> (b1, b2) \<in> COMPOSABLE_BINDINGS}"
 
 (* Not sure about the precedence of sequential composition yet. *)
 
@@ -338,16 +338,16 @@ apply (insert SS2_VAR_SUBST_INV)
 apply (simp add: VAR_SUBST_INV_def)
 done
 
-subsubsection {* Theorems for @{term "COMPOSABLE"} *}
+subsubsection {* Theorems for @{term "COMPOSABLE_BINDINGS"} *}
 
-theorem COMPOSABLE_dash [intro] :
-"\<lbrakk>(b1, b2) \<in> COMPOSABLE; x \<in> UNDASHED\<rbrakk> \<Longrightarrow> b1(dash x) = b2 x"
-apply (simp add: COMPOSABLE_def)
+theorem COMPOSABLE_BINDINGS_dash [intro] :
+"\<lbrakk>(b1, b2) \<in> COMPOSABLE_BINDINGS; x \<in> UNDASHED\<rbrakk> \<Longrightarrow> b1(dash x) = b2 x"
+apply (simp add: COMPOSABLE_BINDINGS_def)
 done
 
-theorem COMPOSABLE_ident [intro] :
-"\<lbrakk>(b1, b2) \<in> COMPOSABLE; \<not> x \<in> UNDASHED; \<not> x \<in> DASHED\<rbrakk> \<Longrightarrow> b1 x = b2 x"
-apply (simp only: COMPOSABLE_def)
+theorem COMPOSABLE_BINDINGS_ident [intro] :
+"\<lbrakk>(b1, b2) \<in> COMPOSABLE_BINDINGS; \<not> x \<in> UNDASHED; \<not> x \<in> DASHED\<rbrakk> \<Longrightarrow> b1 x = b2 x"
+apply (simp only: COMPOSABLE_BINDINGS_def)
 apply (simp add: NON_REL_VAR_def)
 apply (simp add: binding_equiv_def)
 done
@@ -384,7 +384,7 @@ subsection {* Validation of Soundness *}
 lemma SemiR_Semi2R_equiv_lemma1 :
 "\<lbrakk>b1 \<in> WF_BINDING;
  b2 \<in> WF_BINDING;
- (b1, b2) \<in> COMPOSABLE\<rbrakk> \<Longrightarrow>
+ (b1, b2) \<in> COMPOSABLE_BINDINGS\<rbrakk> \<Longrightarrow>
  ((b1 \<oplus> b2 on DASHED) \<oplus> (SubstB SS1 b1) on DASHED_TWICE) \<circ> SS1 =
    b1 \<oplus> (SubstB SS1 b2) on DASHED_TWICE"
 apply (rule ext)
@@ -401,20 +401,20 @@ done
 lemma SemiR_Semi2R_equiv_lemma2 :
 "\<lbrakk>b1 \<in> WF_BINDING;
  b2 \<in> WF_BINDING;
- (b1, b2) \<in> COMPOSABLE\<rbrakk> \<Longrightarrow>
+ (b1, b2) \<in> COMPOSABLE_BINDINGS\<rbrakk> \<Longrightarrow>
  ((b1 \<oplus> b2 on DASHED) \<oplus> (SubstB SS1 b1) on DASHED_TWICE) \<circ> SS2 =
    b2 \<oplus> (SubstB SS2 b1) on DASHED_TWICE"
 apply (rule ext)
 apply (simp add: SubstB_def closure)
 apply (case_tac "x \<in> UNDASHED")
 apply (simp add: SS1_simps SS2_simps)
-apply (simp add: COMPOSABLE_dash)
+apply (simp add: COMPOSABLE_BINDINGS_dash)
 apply (case_tac "x \<in> DASHED")
 apply (simp add: SS1_simps SS2_simps)
 apply (case_tac "x \<in> DASHED_TWICE")
 apply (simp add: SS1_simps SS2_simps)
 apply (simp add: SS1_simps SS2_simps)
-apply (simp add: COMPOSABLE_ident)
+apply (simp add: COMPOSABLE_BINDINGS_ident)
 done
 
 theorem SemiR_SemiR2_equiv :
@@ -450,7 +450,7 @@ apply (auto intro: UNREST_member) [1]
 apply (auto intro: UNREST_member) [1]
 -- {* Subgoal 1.3 *}
 apply (simp add: SubstB_def closure)
-apply (simp add: COMPOSABLE_def)
+apply (simp add: COMPOSABLE_BINDINGS_def)
 apply (safe)
 apply (simp add: SS1_simps SS2_simps)
 apply (simp add: binding_equiv_def)

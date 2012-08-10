@@ -1,12 +1,12 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming                                  *)
-(* File: utp_rel_eval.thy                                                     *)
+(* File: utp_rel_tac.thy                                                      *)
 (* Author: Frank Zeyda, University of York (UK)                               *)
 (******************************************************************************)
 
 header {* Proof Tactic for Relations *}
 
-theory utp_eval_rel
+theory utp_rel_tac
 imports "../generic/utp_pred" "../generic/utp_rel"
 begin
 
@@ -144,14 +144,14 @@ apply (simp add: var_defs)
 apply (simp)
 done
 
-theorem BindR_COMPOSABLE :
+theorem BindR_COMPOSABLE_BINDINGS :
 "\<lbrakk>b1 \<in> WF_BINDING;
  b2 \<in> WF_BINDING;
  (rb1, rb3) = BindR b1;
  (rb3, rb2) = BindR b2\<rbrakk> \<Longrightarrow>
- (b1, b2) \<in> COMPOSABLE"
+ (b1, b2) \<in> COMPOSABLE_BINDINGS"
 apply (simp add: BindR_def)
-apply (simp add: COMPOSABLE_def)
+apply (simp add: COMPOSABLE_BINDINGS_def)
 apply (simp add: override_on_eq)
 apply (simp_all add: SubstB_def closure)
 apply (safe)
@@ -332,40 +332,40 @@ apply (simp add: SS_def)
 apply (auto) [1]
 done
 
-theorem SubstB_SS_COMPOSABLE_1 :
+theorem SubstB_SS_COMPOSABLE_BINDINGS_1 :
 "\<lbrakk>b1 \<in> WF_BINDING;
  b2 \<in> WF_BINDING;
- (b1, b2) \<in> COMPOSABLE\<rbrakk> \<Longrightarrow>
+ (b1, b2) \<in> COMPOSABLE_BINDINGS\<rbrakk> \<Longrightarrow>
  SubstB SS b1 \<oplus> bc on DASHED = b2 \<oplus> bc on DASHED"
 apply (simp add: override_on_eq)
 apply (simp add: SubstB_def closure)
 apply (simp add: SS_def)
 apply (safe)
-apply (simp add: COMPOSABLE_def)
-apply (simp add: COMPOSABLE_def)
+apply (simp add: COMPOSABLE_BINDINGS_def)
+apply (simp add: COMPOSABLE_BINDINGS_def)
 apply (clarify)
 apply (simp add: binding_equiv_def)
 apply (simp add: NON_REL_VAR_def)
 done
 
-theorem SubstB_SS_COMPOSABLE_2 :
+theorem SubstB_SS_COMPOSABLE_BINDINGS_2 :
 "\<lbrakk>b1 \<in> WF_BINDING;
  b2 \<in> WF_BINDING;
- (b1, b2) \<in> COMPOSABLE\<rbrakk> \<Longrightarrow>
+ (b1, b2) \<in> COMPOSABLE_BINDINGS\<rbrakk> \<Longrightarrow>
  SubstB SS (b1 \<oplus> b2 on DASHED) \<oplus> bc on DASHED = SubstB SS b2 \<oplus> bc on DASHED"
 apply (simp add: override_on_eq)
 apply (simp add: SubstB_def closure)
 apply (simp add: SS_def)
 apply (safe)
-apply (simp add: COMPOSABLE_def)
+apply (simp add: COMPOSABLE_BINDINGS_def)
 apply (clarify)
 apply (simp add: binding_equiv_def)
 apply (simp add: NON_REL_VAR_def)
 done
 
-theorems SubstB_SS_COMPOSABLE =
-  SubstB_SS_COMPOSABLE_1
-  SubstB_SS_COMPOSABLE_2
+theorems SubstB_SS_COMPOSABLE_BINDINGS =
+  SubstB_SS_COMPOSABLE_BINDINGS_1
+  SubstB_SS_COMPOSABLE_BINDINGS_2
 
 theorem EvalR_SemiR [evalr] :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
@@ -387,7 +387,7 @@ apply (assumption)
 -- {* Subgoal 1.2 *}
 apply (rule_tac x = "b2" in bexI)
 apply (simp add: BindR_def)
-apply (simp add: SubstB_SS_COMPOSABLE)
+apply (simp add: SubstB_SS_COMPOSABLE_BINDINGS)
 apply (assumption)
 -- {* Subgoal 2 *}
 apply (rename_tac x rb1 rb2 rb3 b1 b2)
@@ -397,7 +397,7 @@ apply (rule conjI)
 apply (rule_tac x = "b1" in exI)
 apply (rule_tac x = "b2" in exI)
 apply (simp)
-apply (simp add: BindR_COMPOSABLE)
+apply (simp add: BindR_COMPOSABLE_BINDINGS)
 -- {* Subgoal 2.1 *}
 apply (simp add: BindR_override)
 done

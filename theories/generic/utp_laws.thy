@@ -8,12 +8,59 @@ header {* Albegraic Laws *}
 
 theory utp_laws
 imports utp_pred utp_rel utp_subst
+  "../tactics/utp_pred_tac"
+  "../tactics/utp_rel_tac"
 begin
 
 context PRED
 begin
 
-subsection {* Variable Substitution *}
+subsection {* Quantifiers *}
+
+theorem ExistsP_ident :
+"\<lbrakk>p \<in> WF_PREDICATE;
+ UNREST vs p\<rbrakk> \<Longrightarrow>
+ (\<exists>p vs . p) = p"
+apply (simp add: ExistsP_def)
+apply (safe)
+apply (simp add: UNREST_member)
+apply (rule_tac x = "x" in exI)
+apply (rule_tac x = "x" in exI)
+apply (simp)
+done
+
+theorem ForallP_ident :
+"\<lbrakk>p \<in> WF_PREDICATE;
+ UNREST vs p\<rbrakk> \<Longrightarrow>
+ (\<forall>p vs . p) = p"
+apply (simp add: ForallP_def)
+apply (simp add: ExistsP_ident UNREST_NotP closure)
+apply (simp add: NotP_NotP closure)
+done
+
+theorem ExistsP_union :
+"\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ (\<exists>p vs1 \<union> vs2 . p) = (\<exists>p vs1 . \<exists>p vs2 . p)"
+apply (utp_pred_tac)
+apply (safe)
+apply (rule_tac x = "b'" in bexI)
+apply (rule_tac x = "b'" in bexI)
+apply (simp)+
+apply (simp add: override_on_assoc)
+apply (rule_tac x = "b' \<oplus> b'a on vs2" in bexI)
+apply (assumption)
+apply (simp add: closure)
+done
+
+theorem ForallP_union :
+"\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ (\<forall>p vs1 \<union> vs2 . p) = (\<forall>p vs1 . \<forall>p vs2 . p)"
+apply (simp add: ForallP_def closure)
+apply (simp add: ExistsP_union UNREST_NotP closure)
+apply (simp add: NotP_NotP closure)
+done
+
+subsection {* Substitution *}
 
 subsubsection {* Distribution Theorems *}
 
@@ -85,7 +132,7 @@ done
 theorem SubstP_ClosureP :
 "\<lbrakk>p \<in> WF_PREDICATE;
  ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
- [p[ss]] = ([p] :: ('VALUE, 'TYPE) PREDICATE)"
+ [p[ss]]p = [p]p"
 apply (utp_pred_tac)
 apply (safe)
 apply (drule_tac x = "SubstB ss x" in bspec)
@@ -104,7 +151,7 @@ theorem SubstP_invariant_taut :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE;
  ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
- taut [p1 \<Leftrightarrow>p p2] \<Leftrightarrow>p [p1[ss] \<Leftrightarrow>p p2[ss]]"
+ taut [p1 \<Leftrightarrow>p p2]p \<Leftrightarrow>p [p1[ss] \<Leftrightarrow>p p2[ss]]p"
 apply (utp_pred_auto_tac)
 oops
 
@@ -112,7 +159,7 @@ theorem SubstP_invariant_taut :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE;
  ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
- taut [p1 \<Leftrightarrow>p p2] \<Leftrightarrow>p [p1[ss] \<Leftrightarrow>p p2[ss]]"
+ taut [p1 \<Leftrightarrow>p p2]p \<Leftrightarrow>p [p1[ss] \<Leftrightarrow>p p2[ss]]p"
 apply (subgoal_tac "p1[ss] \<Leftrightarrow>p p2[ss] = (p1 \<Leftrightarrow>p p2)[ss]")
 apply (simp)
 apply (simp add: SubstP_ClosureP closure)

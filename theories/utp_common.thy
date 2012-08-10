@@ -102,6 +102,13 @@ apply (case_tac "x \<in> a")
 apply (auto)
 done
 
+theorem override_on_cancel4 [simp] :
+"f \<oplus> (g \<oplus> f on b) on a = f \<oplus> g on a - b"
+apply (simp add: override_on_def)
+apply (rule ext)
+apply (auto)
+done
+
 subsection {* Transfer Strategy *}
 
 theorem inj_on_eval_simp :

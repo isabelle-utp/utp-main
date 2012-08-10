@@ -15,9 +15,11 @@ imports utp_common
   "generic/utp_pred"
   "generic/utp_subst"
   "generic/utp_rel"
-(*  "generic/utp_laws" *)
+  "generic/utp_laws"
+  "alpha/utp_alphabet"
   "alpha/utp_alpha_pred"
-  "utils/utp_eval_pred"
-  "utils/utp_eval_rel"
+  "tactics/utp_pred_tac"
+  "tactics/utp_rel_tac"
+(* "tactics/utp_alpha_tac" *)
 begin
 end

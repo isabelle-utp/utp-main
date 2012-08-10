@@ -254,5 +254,17 @@ apply (rule inj_onI)
 apply (simp add: var_defs)
 apply (auto simp: split_paired_all)
 done
+
+subsubsection {* Distribution Theorems *}
+
+theorem dash_inter_distr :
+"dash ` (vs1 \<inter> vs2) = (dash ` vs1) \<inter> (dash ` vs2)"
+apply (auto intro!: image_Int dash_inj)
+done
+
+theorem dash_unsion_distr :
+"dash ` (vs1 \<union> vs2) = (dash ` vs1) \<union> (dash ` vs2)"
+apply (auto intro!: image_Un)
+done
 end
 end

@@ -1,12 +1,12 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming                                  *)
-(* File: utp_eval_pred.thy                                                    *)
+(* File: utp_pred_tac.thy                                                     *)
 (* Author: Frank Zeyda, University of York (UK)                               *)
 (******************************************************************************)
 
 header {* Proof Tactic for Predicates *}
 
-theory utp_eval_pred
+theory utp_pred_tac
 imports "../generic/utp_pred"
 begin
 
@@ -28,8 +28,6 @@ definition EvalP ::
   "('VALUE, 'TYPE) PREDICATE \<Rightarrow>
    ('VALUE, 'TYPE) BINDING \<Rightarrow> bool" ("\<lbrakk>_\<rbrakk>_" [0, 1000] 51) where
 "EvalP p b = (b \<in> p)"
-
-notation EvalP ("\<lbrakk>_\<rbrakk>_" [0, 1000] 51)
 
 subsection {* Transfer Theorems *}
 
