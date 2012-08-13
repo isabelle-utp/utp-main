@@ -3,4 +3,5 @@
 nedit\
   theories/*.thy\
   theories/generic/*.thy\
-  theories/utils/*.thy
+  theories/alpha/*.thy
+  theories/tactics/*.thy

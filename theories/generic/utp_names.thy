@@ -1,5 +1,5 @@
 (******************************************************************************)
-(* Project: Unifying Theories of Programming                                  *)
+(* Project: Unifying Theories of Programming in HOL                           *)
 (* File: utp_names.thy                                                        *)
 (* Author: Frank Zeyda, University of York (UK)                               *)
 (******************************************************************************)
