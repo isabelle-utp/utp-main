@@ -52,33 +52,6 @@ definition SkipR :: "('VALUE, 'TYPE) PREDICATE" where
 
 notation SkipR ("II")
 
-subsubsection {* Sequence *}
-
-definition SemiR ::
-  "('VALUE, 'TYPE) PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) PREDICATE" where
-"p1 \<in> WF_PREDICATE \<and>
- p2 \<in> WF_PREDICATE \<longrightarrow>
- SemiR p1 p2 = {b1 \<oplus> b2 on DASHED | b1 b2 .
-   b1 \<in> p1 \<and> b2 \<in> p2 \<and> (b1, b2) \<in> COMPOSABLE_BINDINGS}"
-
-(* Not sure about the precedence of sequential composition yet. *)
-
-notation SemiR (infixr ";" 140)
-
-text {* Algebraic version of sequential composition *}
-
-definition SemiR2 ::
-  "('VALUE, 'TYPE) PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) PREDICATE" where
-"p1 \<in> WF_PREDICATE \<and>
- p2 \<in> WF_PREDICATE \<and>
- UNREST DASHED_TWICE p1 \<and>
- UNREST DASHED_TWICE p2 \<longrightarrow>
- SemiR2 p1 p2 = (\<exists>p DASHED_TWICE . p1[SS1] \<and>p p2[SS2])"
-
 subsubsection {* Conditional *}
 
 text {* Should we impose a constraint on b for it to be a condition? *}
@@ -94,6 +67,21 @@ definition CondR ::
  CondR p1 b p2 = (b \<and>p p1) \<or>p (\<not>p b \<and>p p2)"
 
 notation CondR ("_ \<triangleleft> _ \<triangleright> _")
+
+subsubsection {* Sequence *}
+
+definition SemiR ::
+  "('VALUE, 'TYPE) PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) PREDICATE \<Rightarrow>
+   ('VALUE, 'TYPE) PREDICATE" where
+"p1 \<in> WF_PREDICATE \<and>
+ p2 \<in> WF_PREDICATE \<longrightarrow>
+ SemiR p1 p2 = {b1 \<oplus> b2 on DASHED | b1 b2 .
+   b1 \<in> p1 \<and> b2 \<in> p2 \<and> (b1, b2) \<in> COMPOSABLE_BINDINGS}"
+
+(* Not sure about the precedence of sequential composition yet. *)
+
+notation SemiR (infixr ";" 140)
 
 subsection {* Theorems *}
 
@@ -381,7 +369,7 @@ done
 
 subsection {* Validation of Soundness *}
 
-lemma SemiR_Semi2R_equiv_lemma1 :
+lemma SemiR_algebraic_lemma1 :
 "\<lbrakk>b1 \<in> WF_BINDING;
  b2 \<in> WF_BINDING;
  (b1, b2) \<in> COMPOSABLE_BINDINGS\<rbrakk> \<Longrightarrow>
@@ -398,7 +386,7 @@ apply (simp add: SS1_simps SS2_simps)
 apply (simp add: SS1_simps SS2_simps)
 done
 
-lemma SemiR_Semi2R_equiv_lemma2 :
+lemma SemiR_algebraic_lemma2 :
 "\<lbrakk>b1 \<in> WF_BINDING;
  b2 \<in> WF_BINDING;
  (b1, b2) \<in> COMPOSABLE_BINDINGS\<rbrakk> \<Longrightarrow>
@@ -417,14 +405,13 @@ apply (simp add: SS1_simps SS2_simps)
 apply (simp add: COMPOSABLE_BINDINGS_ident)
 done
 
-theorem SemiR_SemiR2_equiv :
+theorem SemiR_algebraic :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE;
  UNREST DASHED_TWICE p1;
  UNREST DASHED_TWICE p2\<rbrakk> \<Longrightarrow>
- SemiR p1 p2 = SemiR2 p1 p2"
+ SemiR p1 p2 = (\<exists>p DASHED_TWICE . p1[SS1] \<and>p p2[SS2])"
 apply (rule sym)
-apply (simp add: SemiR2_def)
 apply (utp_pred_tac)
 apply (simp add: EvalP_def)
 apply (simp add: SemiR_def)
@@ -465,13 +452,43 @@ apply (simp add: SubstB_def closure)
 apply (rule_tac x = "SubstB SS1 b1" in bexI)
 apply (rule conjI)
 -- {* Subgoal 2.1 *}
-apply (simp add: SemiR_Semi2R_equiv_lemma1)
+apply (simp add: SemiR_algebraic_lemma1)
 apply (auto intro: UNREST_member simp: closure) [1]
 -- {* Subgoal 2.2 *}
-apply (simp add: SemiR_Semi2R_equiv_lemma2)
+apply (simp add: SemiR_algebraic_lemma2)
 apply (auto intro: UNREST_member simp: closure) [1]
 -- {* Subgoal 2.3 *}
 apply (simp add: closure)
 done
+
+subsubsection {* Evaluation Theorems *}
+
+theorem EvalP_SkipR [eval] :
+"\<lbrakk>p \<in> WF_PREDICATE;
+ b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+ \<lbrakk>II\<rbrakk>b \<longleftrightarrow> (\<forall> v \<in> UNDASHED . b v = b (dash v))"
+apply (simp add: EvalP_def)
+apply (simp add: SkipR_def)
+done
+
+declare CondR_def [eval]
+
+declare SemiR_algebraic [eval]
+
+subsection {* Proof Experiments *}
+
+theorem SemiP_assoc :
+"\<lbrakk>p1 \<in> WF_PREDICATE;
+ p2 \<in> WF_PREDICATE;
+ p3 \<in> WF_PREDICATE;
+ UNREST DASHED_TWICE p1;
+ UNREST DASHED_TWICE p2;
+ UNREST DASHED_TWICE p3\<rbrakk> \<Longrightarrow>
+ p1 ; (p2 ; p3) = (p1 ; p2) ; p3"
+apply (subgoal_tac "UNREST DASHED_TWICE (p2 ; p3)")
+apply (subgoal_tac "UNREST DASHED_TWICE (p1 ; p2)")
+apply (utp_pred_tac)
+apply (safe)
+oops
 end
 end

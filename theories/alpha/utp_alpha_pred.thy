@@ -254,7 +254,6 @@ apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
 apply (simp add: closure)
 apply (erule UNREST_LiftP)
-apply (assumption)
 done
 
 theorem ExtP_closure [closure] :

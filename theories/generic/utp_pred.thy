@@ -218,6 +218,28 @@ apply (insert WF_BINDING_exists)
 apply (auto)
 done
 
+theorem WF_BINDING_app_type [intro] :
+"\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow> (b v) : (type v)"
+apply (simp add: WF_BINDING_def)
+done
+
+theorem WF_BINDING_app_carrier [intro] :
+"\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow> (b v) \<in> carrier (type v)"
+apply (simp add: WF_BINDING_app_type carrier_def)
+done
+
+theorem WF_BINDING_update1 [closure, intro] :
+"\<lbrakk>b \<in> WF_BINDING; x : (type v)\<rbrakk> \<Longrightarrow>
+ b(v := x) \<in> WF_BINDING"
+apply (simp add: WF_BINDING_def)
+done
+
+theorem WF_BINDING_update2 [closure, intro] :
+"\<lbrakk>b \<in> WF_BINDING; x \<in> carrier (type v)\<rbrakk> \<Longrightarrow>
+ b(v := x) \<in> WF_BINDING"
+apply (simp add: carrier_def closure)
+done
+
 theorem WF_BINDING_override [closure, intro] :
 "\<lbrakk>b1 \<in> WF_BINDING;
  b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
@@ -339,7 +361,9 @@ done
 subsubsection {* @{term UNREST} Theorems *}
 
 theorem UNREST_member [intro] :
-"\<lbrakk>p \<in> WF_PREDICATE; b \<in> p; UNREST vs p; b' \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+"\<lbrakk>p \<in> WF_PREDICATE; b \<in> p;
+ UNREST vs p;
+ b' \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  (b \<oplus> b' on vs) \<in> p"
 apply (simp add: UNREST_def)
 done
@@ -366,16 +390,33 @@ apply (simp)
 apply (auto)
 done
 
+theorem UNREST_union :
+"\<lbrakk>p \<in> WF_PREDICATE;
+ UNREST vs1 p;
+ UNREST vs2 p\<rbrakk> \<Longrightarrow>
+ UNREST (vs1 \<union> vs2) p"
+apply (simp add: UNREST_def)
+apply (clarify)
+apply (drule_tac x = "b1" in bspec)
+apply (assumption)
+apply (drule_tac x = "b2" in bspec) back
+apply (assumption)
+apply (drule_tac x = "b1 \<oplus> b2 on vs1" in bspec)
+apply (assumption)
+apply (drule_tac x = "b2" in bspec)
+apply (assumption)
+apply (simp)
+done
+
 theorem UNREST_LiftP :
-"\<lbrakk>a \<in> WF_ALPHABET;
- f \<in> WF_BINDING_BFUN a\<rbrakk> \<Longrightarrow>
- UNREST (VAR - a) (LiftP f)"
+"\<lbrakk>f \<in> WF_BINDING_BFUN vs\<rbrakk> \<Longrightarrow>
+ UNREST (VAR - vs) (LiftP f)"
 apply (simp add: UNREST_def LiftP_def)
 apply (simp add: WF_BINDING_BFUN_def)
 apply (safe)
 apply (simp add: closure)
 apply (drule_tac x = "b1" in spec)
-apply (drule_tac x = "b1 \<oplus> b2 on VAR - a" in spec)
+apply (drule_tac x = "b1 \<oplus> b2 on VAR - vs" in spec)
 apply (simp add: binding_equiv_def)
 done
 
@@ -452,111 +493,23 @@ apply (simp add: ForallP_def)
 apply (auto intro!: UNREST_ExistsP UNREST_NotP)
 done
 
-subsubsection {* Quantifier Normalisation *}
-
-lemma NotP_NotP :
-"p \<in> WF_PREDICATE \<Longrightarrow>
- \<not>p \<not>p p = p"
-apply (auto simp: NotP_def)
-done
-
-theorem ExistsP_empty :
-"p \<in> WF_PREDICATE \<Longrightarrow>
- (\<exists>p {} . p) = p"
-apply (simp add: ExistsP_def)
-apply (auto)
-done
-
-theorem ForallP_empty :
-"p \<in> WF_PREDICATE \<Longrightarrow>
- (\<forall>p {} . p) = p"
-apply (simp add: ForallP_def)
-apply (simp add: ExistsP_empty closure)
-apply (simp add: NotP_NotP)
-done
-
-theorem ExistsP_single :
-"p \<in> WF_PREDICATE \<Longrightarrow>
- (\<exists>p {v} . p) = {b(v := x) | b x . b \<in> p \<and> x : (type v)}"
-apply (simp add: ExistsP_def)
-apply (safe)
--- {* Subgoal 1 *}
-apply (rule_tac x = "b1" in exI)
-apply (rule_tac x = "b2 v" in exI)
-apply (simp add: WF_BINDING_def)
-apply (simp add: override_on_singleton)
--- {* Subgoal 2 *}
-apply (rule_tac x = "b" in exI)
-apply (rule_tac x = "b(v := xa)" in exI)
-apply (simp add: WF_BINDING_def)
-apply (simp add: override_on_singleton)
-apply (auto simp add: WF_PREDICATE_def WF_BINDING_def)
-done
-
-theorem ExistsP_insert :
-"p \<in> WF_PREDICATE \<Longrightarrow>
- (\<exists>p (insert v vs) . p) = (\<exists>p {v} . (\<exists>p vs . p))"
-apply (simp add: ExistsP_def [of "(\<exists>p vs . p)"] closure)
-apply (simp add: ExistsP_def)
-apply (safe)
--- {* Subgoal 1 *}
-apply (rule_tac x = "b1 \<oplus> b2 on vs" in exI)
-apply (rule_tac x = "b2" in exI)
-apply (simp)
-apply (rule_tac x = "b1" in exI)
-apply (rule_tac x = "b2" in exI)
-apply (simp)
--- {* Subgoal 2 *}
+theorem UNREST_ExistsP_simple :
+"\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ UNREST vs2 (\<exists>p vs2 . p)"
+apply (simp add: UNREST_def ExistsP_def)
+apply (clarify)
+apply (simp add: override_on_assoc)
 apply (rule_tac x = "b1a" in exI)
-apply (rule_tac x = "b2a \<oplus> b2 on {v}" in exI)
+apply (rule_tac x = "b2" in exI)
 apply (simp)
-apply (simp add: override_on_assoc closure)
 done
 
-theorem ForallP_insert :
-"p \<in> WF_PREDICATE \<Longrightarrow>
- (\<forall>p (insert v vs) . p) = (\<forall>p {v} . (\<forall>p vs . p))"
-apply (simp add: ForallP_def closure)
-apply (simp add: NotP_NotP closure)
-apply (subst ExistsP_insert)
-apply (simp_all add: closure)
+theorem UNREST_ForallP_simple :
+"\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ UNREST vs2 (\<forall>p vs2 . p)"
+apply (simp add: ForallP_def)
+apply (simp add: UNREST_NotP UNREST_ExistsP_simple closure)
 done
-
-theorem ExistsP_deatomise :
-"p \<in> WF_PREDICATE \<Longrightarrow>
- (\<exists>p (insert x (insert y vs)) . p) =
- (\<exists>p {x} . (\<exists>p (insert y vs) . p))"
-apply (auto intro!: ExistsP_insert)
-done
-
-theorem ForallP_deatomise :
-"p \<in> WF_PREDICATE \<Longrightarrow>
- (\<forall>p (insert x (insert y vs)) . p) =
- (\<forall>p {x} . (\<forall>p (insert y vs) . p))"
-apply (auto intro!: ForallP_insert)
-done
-
-theorems QuantP_deatomise =
-  ExistsP_deatomise
-  ForallP_deatomise
-
-theorem ExistsP_atomise :
-"p \<in> WF_PREDICATE \<Longrightarrow>
- (\<exists>p {x} . (\<exists>p (insert y vs) . p)) =
- (\<exists>p (insert x (insert y vs)) . p)"
-apply (simp add: ExistsP_deatomise)
-done
-
-theorem ForallP_atomise :
-"p \<in> WF_PREDICATE \<Longrightarrow>
- (\<forall>p {x} . (\<forall>p (insert y vs) . p)) =
- (\<forall>p (insert x (insert y vs)) . p)"
-apply (simp add: ForallP_deatomise)
-done
-
-theorems QuantP_atomise =
-  ExistsP_atomise
-  ForallP_atomise
 
 subsubsection {* Validation of Soundness *}
 
@@ -564,17 +517,6 @@ theorem TrueP_noteq_FalseP :
 "true \<noteq> false"
 apply (simp add: TrueP_def FalseP_def)
 apply (simp add: WF_BINDING_non_empty)
-done
-
-subsection {* Proof Experiments *}
-
-theorem ExistsP_atomise_test :
-"p \<in> WF_PREDICATE \<Longrightarrow>
- (\<exists>p {x} . \<exists>p {y} . p) = (\<exists>p {y} . \<exists>p {x} . p)"
-apply (simp add: QuantP_atomise)
-apply (subgoal_tac "{x, y} = {y, x}")
-apply (simp)
-apply (auto)
 done
 end
 end

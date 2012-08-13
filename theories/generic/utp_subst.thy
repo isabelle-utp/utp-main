@@ -71,7 +71,7 @@ subsubsection {* Variable Substitution *}
 
 text {* Theorems about @{term "VAR_SUBST"} *}
 
-theorem VAR_SUBST_bij :
+theorem VAR_SUBST_bij [dest] :
 "ss \<in> VAR_SUBST \<Longrightarrow> bij ss"
 apply (simp add: VAR_SUBST_def)
 done
@@ -162,21 +162,7 @@ done
 theorem VAR_SUBST_image_comp [simp] :
 "\<lbrakk>ss1 \<in> VAR_SUBST;
  ss2 \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
- ss1 ` ss2 ` a = (ss1 \<circ> ss2) ` a"
-apply (simp add: image_def)
-apply (auto)
-done
-
-text {* The following two theorems might be redundant. Check this. *}
-
-theorem VAR_SUBST_image_inv [simp] :
-"ss \<in> VAR_SUBST \<Longrightarrow> ss ` (inv ss) ` a = a"
-apply (simp add: image_def)
-apply (auto)
-done
-
-theorem VAR_SUBST_inv_image [simp] :
-"ss \<in> VAR_SUBST \<Longrightarrow> (inv ss) ` ss ` a = a"
+ ss1 ` ss2 ` vs = (ss1 \<circ> ss2) ` vs"
 apply (simp add: image_def)
 apply (auto)
 done
@@ -189,7 +175,7 @@ done
 
 text {* Theorems about @{term "VAR_SUBST_ON"} *}
 
-theorem VAR_SUBST_ON_bij :
+theorem VAR_SUBST_ON_bij [dest] :
 "ss \<in> VAR_SUBST_ON vs \<Longrightarrow> bij ss"
 apply (simp add: VAR_SUBST_ON_def VAR_SUBST_def)
 done
@@ -208,8 +194,8 @@ theorem VAR_SUBST_ON_inv [closure] :
 "ss \<in> VAR_SUBST_ON vs \<Longrightarrow>
  (inv ss) \<in> VAR_SUBST_ON vs"
 apply (simp add: VAR_SUBST_ON_def)
+apply (simp add: closure)
 apply (safe)
-apply (simp add: VAR_SUBST_inv)
 apply (drule_tac x = "v" in spec)
 apply (clarify)
 apply (drule sym)
@@ -277,7 +263,7 @@ apply (rule_tac x = "x" in bexI)
 apply (auto)
 done
 
-theorem VAR_SUBST_ON_comm :
+theorem VAR_SUBST_ON_commute :
 "\<lbrakk>ss1 \<in> VAR_SUBST_ON vs1;
  ss2 \<in> VAR_SUBST_ON vs2;
  vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
@@ -304,7 +290,7 @@ done
 
 text {* Theorems about @{term "VAR_SUBST_INV"} *}
 
-theorem VAR_SUBST_INV_bij :
+theorem VAR_SUBST_INV_bij [dest] :
 "ss \<in> VAR_SUBST_INV \<Longrightarrow> bij ss"
 apply (simp add: VAR_SUBST_INV_def VAR_SUBST_def)
 done
@@ -328,13 +314,17 @@ theorem VAR_SUBST_INV_inv :
 apply (simp add: VAR_SUBST_INV_def)
 done
 
-theorem VAR_SUBST_INV_app [simp] :
-"ss \<in> VAR_SUBST_INV \<Longrightarrow> ss (ss x) = x"
+theorem VAR_SUBST_INV_comp [simp] :
+"ss \<in> VAR_SUBST_INV \<Longrightarrow> (ss \<circ> ss) = id"
 apply (simp add: VAR_SUBST_INV_def)
 apply (clarify)
-apply (drule VAR_SUBST_bij)
 apply (erule ssubst) back
-apply (simp add: bij_def)
+apply (simp)
+done
+
+theorem VAR_SUBST_INV_app [simp] :
+"ss \<in> VAR_SUBST_INV \<Longrightarrow> ss (ss x) = x"
+apply (simp add: sym [OF o_apply])
 done
 
 subsubsection {* Binding Substitution *}
@@ -380,7 +370,7 @@ theorem SubstB_commute :
 apply (simp add: SubstB_compose VAR_SUBST_ON_VAR_SUBST)
 apply (subgoal_tac "ss1 \<circ> ss2 = ss2 \<circ> ss1")
 apply (simp)
-apply (auto intro: VAR_SUBST_ON_comm)
+apply (auto intro: VAR_SUBST_ON_commute)
 done
 
 theorem SubstB_inv_cancel1 [simp] :
@@ -451,9 +441,6 @@ theorem SubstB_involution [simp] :
 apply (subgoal_tac "ss \<circ> ss = id")
 apply (drule VAR_SUBST_INV_VAR_SUBST)
 apply (simp add: SubstB_compose)
-apply (simp add: VAR_SUBST_INV_def)
-apply (clarify)
-apply (erule ssubst) back
 apply (simp)
 done
 
@@ -486,25 +473,22 @@ apply (simp)
 apply (assumption)
 done
 
-theorem EvalP_SubstsP_SubstB [simp] :
-"\<lbrakk>p \<in> WF_PREDICATE;
- b \<in> WF_BINDING;
- ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
- \<lbrakk>p[ss]\<rbrakk>(SubstB ss b) = \<lbrakk>p\<rbrakk>b"
-apply (simp add: EvalP_def)
-apply (simp add: SubstP_def)
-apply (simp add: image_def)
-done
-
 theorem SubstP_id :
 "p \<in> WF_PREDICATE \<Longrightarrow> p[id] = p"
 apply (utp_pred_auto_tac)
 done
 
-theorem SubstP_inverse :
+theorem SubstP_inverse1 :
 "\<lbrakk>p \<in> WF_PREDICATE;
  ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
  p[ss][inv ss] = p"
+apply (utp_pred_auto_tac)
+done
+
+theorem SubstP_inverse2 :
+"\<lbrakk>p \<in> WF_PREDICATE;
+ ss \<in> VAR_SUBST\<rbrakk> \<Longrightarrow>
+ p[inv ss][ss] = p"
 apply (utp_pred_auto_tac)
 done
 

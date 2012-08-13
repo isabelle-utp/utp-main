@@ -70,6 +70,8 @@ apply (rule ext)
 apply (auto)
 done
 
+text {* Maybe the next theorem should be a default simplification? *}
+
 theorem override_on_singleton :
 "(f \<oplus> g on {x}) = f(x := g x)"
 apply (rule ext)

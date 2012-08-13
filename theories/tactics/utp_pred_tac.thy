@@ -134,6 +134,10 @@ apply (simp add: ForallP_def)
 apply (simp add: EvalP_NotP EvalP_ExistsP closure)
 done
 
+theorems EvalP_QuantP =
+  EvalP_ExistsP
+  EvalP_ForallP
+
 theorem EvalP_ClosureP [eval] :
 "\<lbrakk>p \<in> WF_PREDICATE;
  b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
@@ -154,51 +158,125 @@ done
 declare Tautology_def [eval]
 declare Contradiction_def [eval]
 declare Refinement_def [eval]
-end
 
-context PRED
-begin
-theorem WF_BINDING_type [intro] :
-"\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow> (b v) : (type v)"
-apply (simp add: WF_BINDING_def)
-done
+subsection {* Support Theorems *}
 
-theorem WF_BINDING_update [intro] :
-"\<lbrakk>b \<in> WF_BINDING; x : (type v)\<rbrakk> \<Longrightarrow>
- b(v := x) \<in> WF_BINDING"
-apply (simp add: WF_BINDING_def)
-done
-
-theorem Exists_WF_BINDING_override_single :
-"\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
- (\<exists> b' \<in> WF_BINDING . f (b \<oplus> b' on {v})) =
- (\<exists> x \<in> carrier (type v) . f (b(v := x)))"
-apply (simp add: override_on_singleton)
+theorem EvalP_ExistsP_singleton :
+"\<lbrakk>p \<in> WF_PREDICATE;
+ b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+ \<lbrakk>\<exists>p {x} . p\<rbrakk>b = (\<exists> v \<in> carrier (type x) . \<lbrakk>p\<rbrakk>(b(x := v)))"
+apply (simp add: ExistsP_def)
+apply (simp add: EvalP_def)
 apply (safe)
-apply (rule_tac x = "b' v" in bexI)
-apply (assumption)
-apply (unfold carrier_def)
-apply (auto) [1]
-apply (rule_tac x = "b(v := x)" in bexI)
-apply (simp)
+-- {* Subgoal 1 *}
+apply (rule_tac x = "b1 x" in bexI)
+apply (simp add: override_on_singleton)
+apply (simp add: WF_BINDING_app_carrier)
+-- {* Subgoal 2 *}
+apply (rule_tac x = "b(x := v)" in exI)
+apply (rule_tac x = "b" in exI)
+apply (simp add: override_on_singleton)
+done
+
+theorem EvalP_ForallP_singleton :
+"\<lbrakk>p \<in> WF_PREDICATE;
+ b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+ \<lbrakk>\<forall>p {x} . p\<rbrakk>b = (\<forall> v \<in> carrier (type x) . \<lbrakk>p\<rbrakk>(b(x := v)))"
+apply (simp add: ForallP_def)
+apply (simp add: EvalP_NotP EvalP_ExistsP_singleton closure)
+done
+
+theorems EvalP_QuantP_singleton =
+  EvalP_ExistsP_singleton
+  EvalP_ForallP_singleton
+
+subsection {* Normalisation *}
+
+theorem NotP_NotP :
+"p \<in> WF_PREDICATE \<Longrightarrow>
+ \<not>p \<not>p p = p"
+apply (auto simp: NotP_def)
+done
+
+theorem ExistsP_empty :
+"p \<in> WF_PREDICATE \<Longrightarrow>
+ (\<exists>p {} . p) = p"
+apply (simp add: ExistsP_def)
 apply (auto)
 done
 
-theorem Forall_WF_BINDING_override_single :
-"\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
- (\<forall> b' \<in> WF_BINDING . f (b \<oplus> b' on {v})) =
- (\<forall> x \<in> carrier (type v) . f (b(v := x)))"
-apply (simp add: override_on_singleton)
-apply (safe)
-apply (drule_tac x = "b(v := x)" in bspec)
-apply (unfold carrier_def)
-apply (auto) [1]
-apply (simp)
-apply (drule_tac x = "b' v" in bspec)
-apply (auto) [1]
-apply (assumption)
+theorem ForallP_empty :
+"p \<in> WF_PREDICATE \<Longrightarrow>
+ (\<forall>p {} . p) = p"
+apply (simp add: ForallP_def)
+apply (simp add: ExistsP_empty closure)
+apply (simp add: NotP_NotP)
 done
-end
+
+theorem ExistsP_insert :
+"p \<in> WF_PREDICATE \<Longrightarrow>
+ (\<exists>p (insert v vs) . p) = (\<exists>p {v} . (\<exists>p vs . p))"
+apply (simp add: ExistsP_def [of "(\<exists>p vs . p)"] closure)
+apply (simp add: ExistsP_def)
+apply (safe)
+-- {* Subgoal 1 *}
+apply (rule_tac x = "b1 \<oplus> b2 on vs" in exI)
+apply (rule_tac x = "b2" in exI)
+apply (simp)
+apply (rule_tac x = "b1" in exI)
+apply (rule_tac x = "b2" in exI)
+apply (simp)
+-- {* Subgoal 2 *}
+apply (rule_tac x = "b1a" in exI)
+apply (rule_tac x = "b2a \<oplus> b2 on {v}" in exI)
+apply (simp)
+apply (simp add: override_on_assoc closure)
+done
+
+theorem ForallP_insert :
+"p \<in> WF_PREDICATE \<Longrightarrow>
+ (\<forall>p (insert v vs) . p) = (\<forall>p {v} . (\<forall>p vs . p))"
+apply (simp add: ForallP_def closure)
+apply (simp add: NotP_NotP closure)
+apply (subst ExistsP_insert)
+apply (simp_all add: closure)
+done
+
+theorem ExistsP_atomise :
+"p \<in> WF_PREDICATE \<Longrightarrow>
+ (\<exists>p {x} . (\<exists>p (insert y vs) . p)) =
+ (\<exists>p (insert x (insert y vs)) . p)"
+apply (auto intro!: sym [OF ExistsP_insert])
+done
+
+theorem ForallP_atomise :
+"p \<in> WF_PREDICATE \<Longrightarrow>
+ (\<forall>p {x} . (\<forall>p (insert y vs) . p)) =
+ (\<forall>p (insert x (insert y vs)) . p)"
+apply (auto intro!: sym [OF ForallP_insert])
+done
+
+theorems QuantP_atomise =
+  ExistsP_atomise
+  ForallP_atomise
+
+theorem ExistsP_deatomise :
+"p \<in> WF_PREDICATE \<Longrightarrow>
+ (\<exists>p (insert x (insert y vs)) . p) =
+ (\<exists>p {x} . (\<exists>p (insert y vs) . p))"
+apply (auto intro!: ExistsP_insert)
+done
+
+theorem ForallP_deatomise :
+"p \<in> WF_PREDICATE \<Longrightarrow>
+ (\<forall>p (insert x (insert y vs)) . p) =
+ (\<forall>p {x} . (\<forall>p (insert y vs) . p))"
+apply (auto intro!: ForallP_insert)
+done
+
+theorems QuantP_deatomise =
+  ExistsP_deatomise
+  ForallP_deatomise
 
 subsection {* Proof Tactics *}
 
@@ -215,27 +293,81 @@ ML {*
 *}
 
 ML {*
-  fun utp_pred_auto_simpset ctxt =
+  fun utp_atomise_simpset ctxt =
     (simpset_of ctxt)
+      addsimps @{thms QuantP_atomise}
+      addsimps (closure.get ctxt);
+*}
+
+ML {*
+  fun utp_deatomise_simpset ctxt =
+    (simpset_of ctxt)
+      addsimps @{thms QuantP_deatomise}
+      addsimps (closure.get ctxt);
+*}
+
+ML {*
+  fun utp_singleton_simpset ctxt =
+    (simpset_of ctxt)
+      addsimps (eval.get ctxt)
+      delsimps @{thms EvalP_QuantP}
+      addsimps @{thms EvalP_QuantP_singleton}
+      addsimps (closure.get ctxt);
+*}
+
+ML {*
+  fun utp_auto_simpset ctxt =
+    (simpset_of ctxt);
 *}
 
 ML {*
   fun utp_pred_tac thms ctxt i =
-    CHANGED (asm_full_simp_tac (utp_pred_simpset ctxt) i)
+    CHANGED (
+      TRY (asm_full_simp_tac (utp_pred_simpset ctxt) i))
 *}
 
 ML {*
-  fun utp_pred_auto_tac thms ctxt i =
-    TRY (asm_full_simp_tac (utp_pred_simpset ctxt) i) THEN
-    TRY (asm_full_simp_tac (utp_pred_auto_simpset ctxt) i) THEN
-    (auto_tac ctxt)
+  fun utp_pred_atomise_tac thms ctxt i =
+    CHANGED (
+      TRY (asm_full_simp_tac (utp_atomise_simpset ctxt) i) THEN
+      TRY (asm_full_simp_tac (utp_pred_simpset ctxt) i))
 *}
+
+ML {*
+  fun utp_pred_deatomise_tac thms ctxt i =
+    CHANGED (
+      TRY (asm_full_simp_tac (utp_deatomise_simpset ctxt) i) THEN
+      TRY (asm_full_simp_tac (utp_singleton_simpset ctxt) i))
+*}
+
+text {* Should we atomise or deatomise below? *}
+
+ML {*
+  fun utp_pred_auto_tac thms ctxt i =
+    CHANGED  (
+      TRY (asm_full_simp_tac (utp_pred_simpset ctxt) i) THEN
+      TRY (asm_full_simp_tac (utp_auto_simpset ctxt) i) THEN
+      (auto_tac ctxt))
+*}
+end
 
 method_setup utp_pred_tac = {*
   Attrib.thms >>
   (fn thms => fn ctxt =>
     SIMPLE_METHOD' (utp_pred_tac thms ctxt))
 *} "proof tactic for predicates"
+
+method_setup utp_pred_atomise_tac = {*
+  Attrib.thms >>
+  (fn thms => fn ctxt =>
+    SIMPLE_METHOD' (utp_pred_atomise_tac thms ctxt))
+*} "proof tactic for predicates with atomisation"
+
+method_setup utp_pred_deatomise_tac = {*
+  Attrib.thms >>
+  (fn thms => fn ctxt =>
+    SIMPLE_METHOD' (utp_pred_deatomise_tac thms ctxt))
+*} "proof tactic for predicates with deatomisation"
 
 method_setup utp_pred_auto_tac = {*
   Attrib.thms >>
@@ -247,6 +379,15 @@ subsection {* Proof Experiments *}
 
 context PRED
 begin
+
+theorem ExistsP_norm_test :
+"p \<in> WF_PREDICATE \<Longrightarrow>
+ (\<exists>p {x} . \<exists>p {y} . p) = (\<exists>p {y} . \<exists>p {x} . p)"
+apply (utp_pred_atomise_tac)
+apply (subgoal_tac "{x, y} = {y, x}")
+apply (simp)
+apply (auto)
+done
 
 theorem AndP_assoc :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
@@ -276,20 +417,20 @@ theorem AndP_comm_taut :
 apply (utp_pred_auto_tac)
 done
 
-theorem AndP_eq_FalseP :
+theorem AndP_equals_FalseP :
 "\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  p \<and>p \<not>p p = false"
 apply (utp_pred_auto_tac)
 done
 
-theorem OrP_eq_TrueP :
+theorem OrP_equals_TrueP :
 "\<lbrakk>p \<in> WF_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  p \<or>p \<not>p p = true"
 apply (utp_pred_auto_tac)
 done
 
-theorem ForallP_NotP_taut :
+theorem ForallP_NotP_ExistsP_taut :
 "\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  taut (\<forall>p vs . \<not>p p) \<Leftrightarrow>p \<not>p (\<exists>p vs . p)"
 apply (utp_pred_auto_tac)
