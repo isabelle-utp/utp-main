@@ -7,7 +7,7 @@
 header {* Alphabetised Predicates *}
 
 theory utp_alpha_pred
-imports "../generic/utp_pred" "../generic/utp_laws" utp_alphabet
+imports "../core/utp_pred" "../core/utp_laws" utp_alphabet
 begin
 
 subsection {* Locale @{text "ALPHA_PRED"} *}

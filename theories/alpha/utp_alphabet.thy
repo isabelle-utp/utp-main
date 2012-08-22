@@ -7,7 +7,7 @@
 header {* Alphabets *}
 
 theory utp_alphabet
-imports "../generic/utp_var"
+imports "../core/utp_var"
 begin
 
 type_synonym 'TYPE ALPHABET = "'TYPE VAR set"

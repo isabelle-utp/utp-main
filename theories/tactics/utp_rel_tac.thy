@@ -7,7 +7,7 @@
 header {* Proof Tactic for Relations *}
 
 theory utp_rel_tac
-imports "../generic/utp_pred" "../generic/utp_rel"
+imports "../core/utp_pred" "../core/utp_rel"
 begin
 
 text {* Theorem Attribute *}
