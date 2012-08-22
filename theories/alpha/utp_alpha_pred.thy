@@ -591,20 +591,6 @@ theorem IffA_alphabet [alphabet] :
 apply (simp add: IffA_def)
 done
 
-theorem ExistsResA_alphabet [alphabet] :
-"\<lbrakk>a \<in> WF_ALPHABET;
- p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- \<alpha> (\<exists>-\<alpha> a . p) = (\<alpha> p) - a"
-apply (simp add: ExistsResA_def)
-done
-
-theorem ForallResA_alphabet [alphabet] :
-"\<lbrakk>a \<in> WF_ALPHABET;
- p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- \<alpha> (\<forall>-\<alpha> a . p) = (\<alpha> p) - a"
-apply (simp add: ForallResA_def)
-done
-
 theorem ExistsA_alphabet [alphabet] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
@@ -617,6 +603,20 @@ theorem ForallA_alphabet [alphabet] :
  p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  \<alpha> (\<forall>\<alpha> a . p) = (\<alpha> p)"
 apply (simp add: ForallA_def)
+done
+
+theorem ExistsResA_alphabet [alphabet] :
+"\<lbrakk>a \<in> WF_ALPHABET;
+ p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
+ \<alpha> (\<exists>-\<alpha> a . p) = (\<alpha> p) - a"
+apply (simp add: ExistsResA_def)
+done
+
+theorem ForallResA_alphabet [alphabet] :
+"\<lbrakk>a \<in> WF_ALPHABET;
+ p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
+ \<alpha> (\<forall>-\<alpha> a . p) = (\<alpha> p) - a"
+apply (simp add: ForallResA_def)
 done
 
 theorem ClosureA_alphabet [alphabet] :

@@ -20,6 +20,6 @@ imports utp_common
   "alpha/utp_alpha_pred"
   "tactics/utp_pred_tac"
   "tactics/utp_rel_tac"
-(* "tactics/utp_alpha_tac" *)
+  "tactics/utp_alpha_tac"
 begin
 end
