@@ -14,7 +14,7 @@ text {* Theorem Attribute *}
 
 ML {*
   structure evalr =
-    Named_Thms (val name = "evalr" val description = "evalr theorems")
+    Named_Thms (val name = @{binding evalr} val description = "evalr theorems")
 *}
 
 setup evalr.setup
@@ -374,7 +374,7 @@ theorem EvalR_SemiR [evalr] :
 apply (simp add: EvalR_def)
 apply (simp add: SemiR_def)
 apply (simp add: set_eq_iff)
-apply (simp add: rel_comp_def image_def)
+apply (simp add: relcomp_unfold image_def)
 apply (safe)
 -- {* Subgoal 1 *}
 apply (rename_tac x rb1 rb2 xa b1 b2)
@@ -430,7 +430,7 @@ ML {*
 ML {*
   fun utp_rel_auto_simpset ctxt =
     (simpset_of ctxt)
-      addsimps @{thms "rel_comp_def"}
+      addsimps @{thms "relcomp_unfold"}
 *}
 
 ML {*

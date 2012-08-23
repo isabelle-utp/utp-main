@@ -14,7 +14,7 @@ text {* Theorem Attribute *}
 
 ML {*
   structure eval =
-    Named_Thms (val name = "eval" val description = "eval theorems")
+    Named_Thms (val name = @{binding eval} val description = "eval theorems")
 *}
 
 setup eval.setup

@@ -29,6 +29,6 @@ subsection {* Restrictions *}
 
 text {* We only consider substitutions that are permutations. *}
 
-definition NAME_SUBST :: "(NAME \<Rightarrow> NAME) set" where
+definition NAME_SUBST :: "(NAME \<Rightarrow> NAME) \<Rightarrow> bool" where
 "NAME_SUBST = bij"
 end

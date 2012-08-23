@@ -52,7 +52,7 @@ subsection {* Proof Support *}
 
 ML {*
   structure alphabet =
-    Named_Thms (val name = "alphabet" val description = "alphabet theorems")
+    Named_Thms (val name = @{binding alphabet} val description = "alphabet theorems")
 *}
 
 setup alphabet.setup
