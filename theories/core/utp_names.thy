@@ -1,32 +1,29 @@
 (******************************************************************************)
-(* Project: Mechanisation of the UTP                                          *)
-(* File: utp/generic/utp_name.thy                                             *)
-(* Author: Frank Zeyda, University of York                                    *)
+(* Project: Unifying Theories of Programming in HOL                           *)
+(* File: utp_names.thy                                                        *)
+(* Author: Frank Zeyda, University of York (UK)                               *)
 (******************************************************************************)
 
 header {* Variable Names *}
 
-theory utp_name
+theory utp_names
 imports "../utp_common"
 begin
 
 subsection {* Subscripts *}
 
-text {* Subscripts are encoded by virtue of a data type. *}
+text {* Subscripts are encoded by virtue of a datatype. *}
 
-datatype SUBSCRIPT =
-  Sub "nat" | NoSub
+datatype SUBSCRIPT = Sub "nat" | NoSub
 
-subsection {* Name Type *}
+subsection {* Names *}
 
 text {* A record type is used to encode names. *}
 
-record SIMPLE_NAME =
+record NAME =
   name_str::"string"
-  subscript::"SUBSCRIPT"
-
-record NAME = SIMPLE_NAME +
   dashes::"nat"
+  subscript::"SUBSCRIPT"
 
 subsection {* Restrictions *}
 
