@@ -14,7 +14,7 @@ record ('VALUE, 'TYPE) UTP_THEORY =
   utp_alphabets::"'TYPE ALPHABET set" ("\<A>")
   healthconds::"('VALUE, 'TYPE) ALPHA_FUNCTION set" ("\<H>")
 
-context GEN_EXPR
+context GEN_PRED
 begin
 definition WF_HEALTH_COND ::
   "('TYPE ALPHABET) set \<Rightarrow>

@@ -21,10 +21,12 @@ subsection {* Name Type *}
 
 text {* A record type is used to encode names. *}
 
-record NAME =
+record SIMPLE_NAME =
   name_str::"string"
-  dashes::"nat"
   subscript::"SUBSCRIPT"
+
+record NAME = SIMPLE_NAME +
+  dashes::"nat"
 
 subsection {* Restrictions *}
 

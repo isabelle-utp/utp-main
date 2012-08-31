@@ -160,7 +160,7 @@ class FUNCTION_SORT =
   fixes MkFunc :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"
   fixes DestFunc :: "'a \<Rightarrow> ('a \<Rightarrow> 'a)"
   fixes IsFunc :: "'a \<Rightarrow> bool"
-(* assumes inverse [simp] : "MkFun (DestFun f) = f" *)
+  assumes inverse [simp] : "MkFunc (DestFunc f) = f"
 begin
 
 text {* Function Operators *}
@@ -168,8 +168,27 @@ text {* Function Operators *}
 definition idv :: 'a where
 "idv = MkFunc id"
 
-definition app :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"app = DestFunc"
+definition appv :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+"appv = DestFunc"
+
+end
+
+class PARTIAL_FUNCTION_SORT =
+  fixes MkPFunc   :: "('a \<rightharpoonup> 'a) \<Rightarrow> 'a"
+  fixes DestPFunc :: "'a \<Rightarrow> ('a \<rightharpoonup> 'a)"
+  fixes IsPFunc   :: "'a \<Rightarrow> bool"
+  assumes pinverse1 [simp] : "IsPFunc f \<Longrightarrow> MkPFunc (DestPFunc f) = f"
+  and     pinverse2 [simp] : "DestPFunc (MkPFunc g) = g"
+  and     DestPFunc_inj[simp] : "inj DestPFunc"
+begin
+
+text {* Function Operators *}
+
+definition idv :: 'a where
+"idv = MkPFunc (\<lambda> x. Some x)"
+
+definition app :: "'a \<Rightarrow> 'a \<Rightarrow> 'a option" where
+"app = DestPFunc"
 end
 
 subsection {* Aggregated Sorts *}
@@ -182,4 +201,9 @@ class COMPOSITE_SORT =
 
 class COMPOSITE_SORT2 =
   BASIC_SORT + PAIR_SORT + SET_SORT + FUNCTION_SORT
+
+class COMPOSITE_SORT3 =
+  BASIC_SORT + PAIR_SORT + SET_SORT + PARTIAL_FUNCTION_SORT
+
+
 end

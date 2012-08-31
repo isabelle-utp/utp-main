@@ -7,7 +7,7 @@
 header {* Relational Predicates *}
 
 theory utp_rel
-imports "../generic/utp_generic" "../generic/utp_expression"
+imports "../generic/utp_generic" "../generic/utp_expression" Relation
 begin
 
 type_synonym ('VALUE, 'TYPE) ASSIGN = "('TYPE VAR * ('VALUE, 'TYPE) ALPHA_EXPRESSION)"
@@ -200,25 +200,25 @@ text {* Simon's Theorems *}
 
 theorem SS1_total : "x \<in> range SS1"
 apply(auto simp add:SS1_def image_def dash_def undash_def DASHED_TWICE_def DASHED_def)
-apply (smt NAME.simps NAME.surjective fst_conv prod_eqI snd_conv unit.exhaust)
+apply(metis (hide_lams, mono_tags) NAME.simps(1) NAME.surjective SIMPLE_NAME.simps(1) SIMPLE_NAME.simps(2) fst_conv numeral_2_eq_2 pairI snd_conv unit.exhaust)
 done
 
 theorem SS2_total : "x \<in> range SS2"
 apply (case_tac x, case_tac a)
-apply (simp add:SS2_def image_def dash_def undash_def)
-apply (smt fst_conv NAME.simps(1-3) snd_conv)
+apply (auto simp add:SS2_def image_def dash_def undash_def)
+apply (smt NAME.simps(1) SIMPLE_NAME.simps(1) SIMPLE_NAME.simps(2) fst_conv snd_conv)
 done
 
 theorem SS3_total : "x \<in> range SS3"
 apply (case_tac x, case_tac a)
-apply (simp add:SS3_def image_def dash_def undash_def DASHED_def UNDASHED_def)
-apply (smt fst_conv NAME.simps(1-3) snd_conv)
+apply (auto simp add:SS3_def image_def dash_def undash_def DASHED_def UNDASHED_def)
+apply (smt MkVar_def NAME.simps(1) One_nat_def SIMPLE_NAME.simps(1) SIMPLE_NAME.simps(2) Suc_pred' VarE_type fst_conv snd_conv)
 done
 
 theorem SS_conv_total : "x \<in> range SS_conv"
 apply (case_tac x, case_tac a)
-apply (simp add:SS_conv_def image_def dash_def undash_def DASHED_def UNDASHED_def)
-apply (smt fst_conv NAME.simps(1-3) snd_conv)
+apply (auto simp add:SS_conv_def image_def dash_def undash_def DASHED_def UNDASHED_def)
+apply (metis NAME.simps(1) SIMPLE_NAME.simps(1) SIMPLE_NAME.simps(2) fst_conv not_less_eq snd_eqD)
 done
 
 theorem SS1_VAR_RENAME [simp, intro] :
@@ -1308,6 +1308,7 @@ proof -
 *)
 qed
 *)
+
    
 end
 end

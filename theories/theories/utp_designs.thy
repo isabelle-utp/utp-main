@@ -17,13 +17,13 @@ subsection {* Constructs *}
 
 definition ok :: "'TYPE VAR" where
 "ok \<equiv> (\<lparr>name_str = ''ok'',
-        dashes = 0,
-        subscript = NoSub\<rparr>, BoolType)"
+        subscript = NoSub,
+        dashes = 0\<rparr>, BoolType)"
 
 definition ok' :: "'TYPE VAR" where
 "ok' \<equiv> (\<lparr>name_str = ''ok'',
-        dashes = 1,
-        subscript = NoSub\<rparr>, BoolType)"
+        subscript = NoSub,
+        dashes = 1\<rparr>, BoolType)"
 
 abbreviation OK where "OK \<equiv> {ok,ok'}"
 
@@ -87,6 +87,7 @@ lemma H1_idempotent: "p \<in> WF_RELATION \<Longrightarrow> H1 (H1 p) = H1 p"
   by (simp add:H1_def WF_RELATION_def, utp_pred_eq_tac)
 
 lemma H2_idempotent: "p \<in> WF_RELATION \<Longrightarrow> H2 (H2 p) = H2 p"
+  apply (simp add:H2_def WF_RELATION_def)
   sorry
 
 lemma H3_idempotent: "p \<in> WF_RELATION \<Longrightarrow> H3 (H3 p) = H3 p"

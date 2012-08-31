@@ -10,6 +10,7 @@ theory utp_var
 imports utp_name
 begin
 
+type_synonym 'TYPE SIMPLE_VAR = "SIMPLE_NAME \<times> 'TYPE"
 type_synonym 'TYPE VAR = "NAME \<times> 'TYPE"
 
 abbreviation var_name :: "'TYPE VAR \<Rightarrow> NAME" ("name") where
@@ -17,6 +18,12 @@ abbreviation var_name :: "'TYPE VAR \<Rightarrow> NAME" ("name") where
 
 abbreviation var_type :: "'TYPE VAR \<Rightarrow> 'TYPE" ("type") where
 "var_type \<equiv> snd"
+
+definition add_dash :: "nat \<Rightarrow> 'TYPE SIMPLE_VAR \<Rightarrow> 'TYPE VAR" where
+"add_dash n v \<equiv> (\<lparr> name_str = name_str (fst v), subscript = subscript (fst v), dashes = n \<rparr>, snd v)"
+
+definition rem_dash :: "'TYPE VAR \<Rightarrow> 'TYPE SIMPLE_VAR" where
+"rem_dash v \<equiv> (\<lparr> name_str = name_str (fst v), subscript = subscript (fst v) \<rparr>, snd v)"
 
 ML {*
   structure VarThm =
@@ -38,21 +45,21 @@ definition MkVar :: "NAME \<Rightarrow> 'TYPE \<Rightarrow> 'TYPE VAR" where
 "MkVar n t = (n, t)"
 
 definition MkPlain :: "string \<Rightarrow> 'TYPE \<Rightarrow> 'TYPE VAR" where
-"MkPlain s t = MkVar \<lparr>name_str = s, dashes = 0, subscript = NoSub\<rparr> t"
+"MkPlain s t = MkVar \<lparr>name_str = s, subscript = NoSub, dashes = 0\<rparr> t"
 
 subsection {* Operators *}
 
 definition dash :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
 "dash v = (
    \<lparr>name_str = name_str (name v),
-   dashes = dashes (name v) + 1,
-   subscript = subscript (name v)\<rparr>, type v)"
+   subscript = subscript (name v),
+   dashes = dashes (name v) + 1\<rparr>, type v)"
 
 definition undash :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
 "undash v = (
    \<lparr>name_str = name_str (name v),
-   dashes = dashes (name v) - 1,
-   subscript = subscript (name v)\<rparr>, type v)"
+   subscript = subscript (name v),
+   dashes = dashes (name v) - 1\<rparr>, type v)"
 
 subsection {* Restrictions *}
 
@@ -167,6 +174,11 @@ lemma [var]: "undash ` DASHED = UNDASHED"
   apply(simp add:var undash_def DASHED_def UNDASHED_def)
   apply(rule_tac x="dash x" in bexI)
   apply(auto simp add:var)
+done
+
+lemma add_dash_inj[simp,var]: "inj (add_dash n)"
+  apply(auto simp add:inj_on_def add_dash_def)
+  apply(case_tac x, case_tac y, simp)
 done
 
 end

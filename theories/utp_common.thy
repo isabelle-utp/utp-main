@@ -7,7 +7,7 @@
 header {* Common Definitions *}
 
 theory utp_common
-imports "utp_config" "utils/utp_sets"
+imports "utp_config" (* "utils/utp_sets" *)
 begin
 
 subsection {* Uncurrying *}

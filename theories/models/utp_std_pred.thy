@@ -22,12 +22,25 @@ locale STD_PRED =
   GEN_PRED "lift_type_rel_composite default_type_rel"
 for default_type_rel :: "'BASIC_VALUE :: BASIC_SORT \<Rightarrow> 'BASIC_TYPE \<Rightarrow> bool"
 
+locale STD_EXPR =
+  GEN_EXPR "BasicType BoolType" "FunType" "in_type" "out_type" "lift_type_rel_composite default_type_rel"
+
+
 subsection {* Locale Interpretation *}
 
 interpretation STD : STD_PRED "default_type_rel"
 apply (simp add: STD_PRED_def GEN_PRED_def)
 apply (auto)
 done
+
+interpretation STD : STD_EXPR
+apply(unfold_locales)
+apply(simp_all)
+apply(induct_tac y)
+apply(simp_all)
+apply(case_tac BASIC_VALUE)
+apply(simp_all)
+sorry
 
 subsection {* Type Definitions *}
 

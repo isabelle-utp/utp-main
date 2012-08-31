@@ -19,7 +19,7 @@ subsection {* Value Model *}
 datatype DEFAULT_VALUE =
   IntVal "int" |
   BoolVal "bool" |
-  StringVal "string"
+  StringVal "string" 
 
 datatype DEFAULT_TYPE =
   IntType |

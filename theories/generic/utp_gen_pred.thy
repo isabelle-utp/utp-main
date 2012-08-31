@@ -7,7 +7,7 @@
 header {* Generic Predicates *}
 
 theory utp_gen_pred
-imports "../utp_types" utp_value utp_var utp_alphabet
+imports "../utp_types" utp_value2 utp_var utp_alphabet
 begin
 
 ML {*
@@ -38,6 +38,13 @@ text {* We require bindings to be well-typed. *}
 
 definition WF_BINDING :: "('VALUE, 'TYPE) BINDING_SET" where
 "WF_BINDING = {b . \<forall> v . (b v) : (type v)}"
+
+text {* Binding equivalence class under an alphabet *}
+
+abbreviation binding_upto :: 
+"('VALUE, 'TYPE) BINDING set \<Rightarrow> 'TYPE ALPHABET \<Rightarrow> 
+ ('VALUE, 'TYPE) BINDING set" (infix "upto" 100)  where
+"bs upto a \<equiv> {b2 \<in> WF_BINDING . (\<exists> b1 \<in> bs . b1 \<cong> b2 on a)}"
 
 text {* Binding Sets *}
 
@@ -109,8 +116,7 @@ definition ResP ::
    ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "p \<in> WF_ALPHA_PREDICATE \<and>
  a \<in> WF_ALPHABET \<longrightarrow>
- ResP p a = ((\<alpha> p) - a,
-   {b2 \<in> WF_BINDING . (\<exists> b1 \<in> \<beta> p . b1 \<cong> b2 on ((\<alpha> p) - a))})"
+ ResP p a = ((\<alpha> p) - a, \<beta> p upto ((\<alpha> p) - a))"
 
 notation ResP (infix "\<ominus>p" 200)
 
@@ -355,6 +361,17 @@ apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_BINDING_SET_def)
 done
 
+theorem bindings_assign[binding] :
+"\<lbrakk> v : type x; b \<in> WF_BINDING \<rbrakk> \<Longrightarrow> b(x:=v) \<in> WF_BINDING"
+  by (simp add:WF_BINDING_def)
+
+theorem bindings_assign_type[binding] :
+"\<lbrakk> b(x:=v) \<in> WF_BINDING \<rbrakk> \<Longrightarrow> v : type x"
+  apply (auto simp add:WF_BINDING_def)
+  apply (drule_tac x="x" in spec)
+  apply (auto)
+done
+
 theorem bindings_override[binding] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  b1 \<in> \<beta> p;
@@ -454,6 +471,15 @@ back
 apply (assumption)
 apply (simp add: beta_equiv_def)
 done
+
+(*
+theorem WF_BINDING_SET_assign[binding] :
+"\<lbrakk> bs \<in> WF_BINDING_SET a; b \<in> bs; x \<in> a; v \<in> {f x | f. f \<in> bs} \<rbrakk> \<Longrightarrow>
+ b(x := v) \<in> bs"
+  apply(simp add:WF_BINDING_SET_def)
+  apply(clarify)
+  apply(auto)
+*)
 
 text {* Binding Function Theorems *}
 

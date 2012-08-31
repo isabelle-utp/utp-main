@@ -49,6 +49,16 @@ primrec FunOf ::
     'BASIC_VALUE COMPOSITE_VALUE) SET" where
 "FunOf (FunVal s) = s"
 
+primrec in_type ::
+   "'BASIC_TYPE COMPOSITE_TYPE \<Rightarrow>
+    'BASIC_TYPE COMPOSITE_TYPE" where
+"in_type (FunType a b) = a"
+
+primrec out_type ::
+   "'BASIC_TYPE COMPOSITE_TYPE \<Rightarrow>
+    'BASIC_TYPE COMPOSITE_TYPE" where
+"out_type (FunType a b) = b"
+
 text {* Testing Functions *}
 
 primrec IsBasicVal ::
@@ -101,6 +111,20 @@ abbreviation DecFunOf ::
    ('BASIC_VALUE COMPOSITE_VALUE \<Rightarrow> 'BASIC_VALUE COMPOSITE_VALUE)" where
 "DecFunOf f \<equiv> \<lambda> x. THE y. (x, y) \<in> DecSet (FunOf f)"
 
+abbreviation EncPFunVal ::
+  "('BASIC_VALUE COMPOSITE_VALUE \<rightharpoonup> 'BASIC_VALUE COMPOSITE_VALUE) \<Rightarrow>
+   'BASIC_VALUE COMPOSITE_VALUE" where
+"EncPFunVal f \<equiv> FunVal (EncSet {(x, the (f x)) | x. x \<in> dom f})"
+
+abbreviation DecPFunVal ::
+  "'BASIC_VALUE COMPOSITE_VALUE \<Rightarrow>
+   ('BASIC_VALUE COMPOSITE_VALUE \<rightharpoonup> 'BASIC_VALUE COMPOSITE_VALUE)" where
+"DecPFunVal f \<equiv> \<lambda> x. if (\<exists> y. (x, y) \<in> DecSet (FunOf f)) then Some (SOME y. (x, y) \<in> DecSet (FunOf f)) else None"
+
+lemma "IsFunVal f \<Longrightarrow> EncPFunVal (DecPFunVal f) = f"
+apply(case_tac f)
+apply(auto)
+
 subsection {* Typing and Refinement *}
 
 fun lift_type_rel_composite ::
@@ -135,7 +159,7 @@ fun lift_value_ref_composite ::
 
 subsection {* Sort Membership *}
 
-instantiation COMPOSITE_VALUE :: (BASIC_SORT) COMPOSITE_SORT2
+instantiation COMPOSITE_VALUE :: (BASIC_SORT) COMPOSITE_SORT3
 begin
 definition ValueRef_COMPOSITE_VALUE :
 "ValueRef_COMPOSITE_VALUE = \<up>vref VALUE_SORT_class.ValueRef"
@@ -180,6 +204,9 @@ instance
 apply (intro_classes)
 apply (simp add: Bool_inverse DestBool_COMPOSITE_VALUE MkBool_COMPOSITE_VALUE)
 apply(simp add:IsBool_COMPOSITE_VALUE IsBool_MkBool MkBool_COMPOSITE_VALUE)
+thm MkBool_COMPOSITE_VALUE
+apply(simp add:MkBool_COMPOSITE_VALUE DestBool_COMPOSITE_VALUE)
+
 done
 end
 
