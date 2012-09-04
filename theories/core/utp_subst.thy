@@ -421,7 +421,7 @@ theorem SubstB_override_distr3 :
  b2 \<in> WF_BINDING;
  vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
  SubstB ss (b1 \<oplus> b2 on vs2) = (SubstB ss b1) \<oplus> (SubstB ss b2) on vs2"
-apply (subst SubstB_override_distr1 [of ss b1 b2 vs2]);
+apply (subst SubstB_override_distr1 [of ss b1 b2 vs2])
 apply (simp_all add: closure)
 done
 
@@ -519,5 +519,24 @@ theorem SubstP_involution [simp] :
  p[ss][ss] = p"
 apply (utp_pred_auto_tac)
 done
+
+theorem UNREST_SubstP :
+"\<lbrakk>p \<in> WF_PREDICATE;
+  ss \<in> VAR_SUBST;
+  UNREST vs p\<rbrakk> \<Longrightarrow>
+  UNREST (ss ` vs) p[ss]"
+apply (auto simp add:UNREST_def SubstP_def)
+apply (subgoal_tac "b2 = SubstB ss (SubstB (inv ss) b2)")
+apply (subgoal_tac "SubstB ss b1 \<oplus> SubstB ss (SubstB (inv ss) b2) on ss ` vs \<in> SubstB ss ` p")
+apply (simp)
+apply (subgoal_tac "SubstB (inv ss) b2 \<in> WF_BINDING")
+apply (subgoal_tac "b1 \<in> WF_BINDING")
+apply (unfold SubstB_override_distr2)
+apply (force)
+apply (force)
+apply (metis SubstB_closure VAR_SUBST_inv)
+apply (force)
+done
+
 end
 end

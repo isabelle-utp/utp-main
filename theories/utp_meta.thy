@@ -18,6 +18,7 @@ imports utp_common
   "core/utp_laws"
   "alpha/utp_alphabet"
   "alpha/utp_alpha_pred"
+  "alpha/utp_alpha_rel"
   "tactics/utp_pred_tac"
   "tactics/utp_rel_tac"
   "tactics/utp_alpha_tac"

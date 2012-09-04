@@ -7,7 +7,7 @@
 header {* Relations *}
 
 theory utp_rel
-imports utp_pred utp_subst
+imports utp_pred utp_subst "../alpha/utp_alphabet"
 begin
 
 context PRED
@@ -194,11 +194,17 @@ theorem SS1_ident_app :
 apply (simp add: SS1_def)
 done
 
+theorem SS1_image :
+"vs \<subseteq> UNDASHED \<union> DASHED \<Longrightarrow> SS1 ` vs = in vs \<union> (dash ` out vs)"
+  by (force simp add: DASHED_def UNDASHED_def DASHED_TWICE_def
+      Un_def in_alphabet_def out_alphabet_def image_def SS1_def)
+
 theorems SS1_simps =
   SS1_UNDASHED_app
   SS1_DASHED_app
   SS1_DASHED_TWICE_app
   SS1_ident_app
+  SS1_image
 
 theorem SS1_VAR_SUBST [closure] :
 "SS1 \<in> VAR_SUBST"
@@ -272,11 +278,17 @@ theorem SS2_ident_app :
 apply (simp add: SS2_def)
 done
 
+theorem SS2_image :
+"vs \<subseteq> UNDASHED \<union> DASHED \<Longrightarrow> SS2 ` vs = dash ` dash ` in vs \<union> out vs"
+  by (force simp add: DASHED_def UNDASHED_def DASHED_TWICE_def
+      Un_def in_alphabet_def out_alphabet_def image_def SS2_def)
+
 theorems SS2_simps =
   SS2_UNDASHED_app
   SS2_DASHED_app
   SS2_DASHED_TWICE_app
   SS2_ident_app
+  SS2_image
 
 theorem SS2_VAR_SUBST [closure] :
 "SS2 \<in> VAR_SUBST"
