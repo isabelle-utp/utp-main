@@ -161,31 +161,31 @@ theorems alphabet_member =
 
 subsubsection {* Simplification Theorems *}
 
-theorem in_in :
+theorem in_in[alphabet] :
 "in (in a) = in a"
 apply (simp add: in_alphabet_def)
 apply (auto)
 done
 
-theorem out_out :
+theorem out_out[alphabet] :
 "out (out a) = out a"
 apply (simp add: out_alphabet_def)
 apply (auto)
 done
 
-theorem in_out :
+theorem in_out[alphabet] :
 "in (out a) = {}"
 apply (simp add: in_alphabet_def out_alphabet_def)
 apply (auto)
 done
 
-theorem out_in :
+theorem out_in[alphabet] :
 "out (in a) = {}"
 apply (simp add: in_alphabet_def out_alphabet_def)
 apply (auto)
 done
 
-lemma in_out_disj :
+lemma in_out_disj[alphabet] :
 "(in a1) \<inter> (out a2) = {}"
 apply (simp add: in_alphabet_def out_alphabet_def)
 apply (auto)
@@ -198,6 +198,11 @@ apply (simp add: in_alphabet_def out_alphabet_def)
 apply (auto)
 done
 
+theorem UNDASHED_DASHED_in_out [alphabet]:
+"a \<subseteq> UNDASHED \<union> DASHED \<Longrightarrow> in a \<union> out a = a" 
+  apply (force simp add:alphabet_defs)
+done
+
 theorems alphabet_simps =
   in_in
   out_out
@@ -205,40 +210,41 @@ theorems alphabet_simps =
   out_in
   in_out_disj
   in_out_union
+  UNDASHED_DASHED_in_out
 
 subsubsection {* Distribution Theorems *}
 
-theorem in_alphabet_union :
+theorem in_alphabet_union[alphabet] :
 "in (a1 \<union> a2) = (in a1) \<union> (in a2)"
 apply (simp add: in_alphabet_def)
 apply (auto)
 done
 
-theorem in_alphabet_inter :
+theorem in_alphabet_inter[alphabet] :
 "in (a1 \<inter> a2) = (in a1) \<inter> (in a2)"
 apply (simp add: in_alphabet_def)
 apply (auto)
 done
 
-theorem in_alphabet_diff :
+theorem in_alphabet_diff[alphabet] :
 "in (a1 - a2) = (in a1) - (in a2)"
 apply (simp add: in_alphabet_def)
 apply (auto)
 done
 
-theorem out_alphabet_union :
+theorem out_alphabet_union[alphabet] :
 "out (a1 \<union> a2) = (out a1) \<union> (out a2)"
 apply (simp add: out_alphabet_def)
 apply (auto)
 done
 
-theorem out_alphabet_inter :
+theorem out_alphabet_inter[alphabet] :
 "out (a1 \<inter> a2) = (out a1) \<inter> (out a2)"
 apply (simp add: out_alphabet_def)
 apply (auto)
 done
 
-theorem out_alphabet_diff :
+theorem out_alphabet_diff[alphabet] :
 "out (a1 - a2) = (out a1) - (out a2)"
 apply (simp add: out_alphabet_def)
 apply (auto)

@@ -243,6 +243,10 @@ apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
 done
 
+theorem WF_ALPHA_PREDICATE_UNREST [closure] :
+"p \<in> WF_ALPHA_PREDICATE \<Longrightarrow> UNREST (VAR - \<alpha> p) (\<pi> p)"
+  by (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
+
 subsubsection {* Closure Theorems *}
 
 theorem LiftA_closure [closure] :
