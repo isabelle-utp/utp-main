@@ -7,7 +7,7 @@
 header {* Relations *}
 
 theory utp_rel
-imports utp_pred utp_subst
+imports utp_pred utp_subst utp_unrest
 begin
 
 context PRED

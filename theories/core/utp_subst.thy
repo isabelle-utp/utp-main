@@ -473,23 +473,6 @@ apply (simp)
 apply (assumption)
 done
 
-theorem UNREST_SubstP :
-"\<lbrakk>p \<in> WF_PREDICATE;
- ss \<in> VAR_SUBST;
- UNREST vs p\<rbrakk> \<Longrightarrow>
- UNREST (ss ` vs) p[ss]"
-apply (simp add: UNREST_def)
-apply (simp add: SubstP_def)
-apply (safe)
-apply (drule_tac x = "b1" in bspec)
-apply (assumption)
-apply (drule_tac x = "SubstB (inv ss) b2" in bspec)
-apply (simp add: closure)
-apply (drule imageI [where f = "SubstB ss"])
-back back
-apply (simp add: SubstB_override_distr1 closure)
-done
-
 theorem SubstP_id :
 "p \<in> WF_PREDICATE \<Longrightarrow> p[id] = p"
 apply (utp_pred_auto_tac)
