@@ -365,7 +365,7 @@ theorem SemiR_closure [closure] :
  p1 ; p2 \<in> WF_PREDICATE"
 apply (simp add: SemiR_def)
 apply (simp add: WF_PREDICATE_def)
-apply (auto)
+apply (auto intro!: closure)
 done
 
 subsection {* Validation of Soundness *}

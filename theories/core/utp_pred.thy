@@ -224,19 +224,19 @@ theorem WF_BINDING_app_carrier [intro] :
 apply (simp add: WF_BINDING_app_type carrier_def)
 done
 
-theorem WF_BINDING_update1 [closure, intro] :
+theorem WF_BINDING_update1 [closure] :
 "\<lbrakk>b \<in> WF_BINDING; x : (type v)\<rbrakk> \<Longrightarrow>
  b(v := x) \<in> WF_BINDING"
 apply (simp add: WF_BINDING_def)
 done
 
-theorem WF_BINDING_update2 [closure, intro] :
+theorem WF_BINDING_update2 [closure] :
 "\<lbrakk>b \<in> WF_BINDING; x \<in> carrier (type v)\<rbrakk> \<Longrightarrow>
  b(v := x) \<in> WF_BINDING"
 apply (simp add: carrier_def closure)
 done
 
-theorem WF_BINDING_override [closure, intro] :
+theorem WF_BINDING_override [closure] :
 "\<lbrakk>b1 \<in> WF_BINDING;
  b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  b1 \<oplus> b2 on vs \<in> WF_BINDING"
@@ -283,7 +283,7 @@ apply (simp add: FalseP_def)
 apply (simp add: WF_PREDICATE_def)
 done
 
-theorem NotP_closure [closure, intro!] :
+theorem NotP_closure [closure] :
 "\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  (\<not>p p) \<in> WF_PREDICATE"
 apply (simp add: NotP_def)
@@ -291,7 +291,7 @@ apply (simp add: WF_PREDICATE_def)
 apply (auto)
 done
 
-theorem AndP_closure [closure, intro!] :
+theorem AndP_closure [closure] :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<and>p p2 \<in> WF_PREDICATE"
@@ -300,7 +300,7 @@ apply (simp add: WF_PREDICATE_def)
 apply (auto)
 done
 
-theorem OrP_closure [closure, intro!] :
+theorem OrP_closure [closure] :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<or>p p2 \<in> WF_PREDICATE"
@@ -308,50 +308,50 @@ apply (simp add: OrP_def)
 apply (simp add: WF_PREDICATE_def)
 done
 
-theorem ImpliesP_closure [closure, intro!] :
+theorem ImpliesP_closure [closure] :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<Rightarrow>p p2 \<in> WF_PREDICATE"
 apply (simp add: ImpliesP_def)
-apply (auto)
+apply (auto simp: closure)
 done
 
-theorem IffP_closure [closure, intro!] :
+theorem IffP_closure [closure] :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<Leftrightarrow>p p2 \<in> WF_PREDICATE"
 apply (simp add: IffP_def)
-apply (auto)
+apply (auto simp: closure)
 done
 
-theorem ExistsP_closure [closure, intro!] :
+theorem ExistsP_closure [closure] :
 "\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  (\<exists>p vs . p) \<in> WF_PREDICATE"
 apply (simp add: ExistsP_def)
 apply (simp add: WF_PREDICATE_def)
-apply (auto)
+apply (auto intro!: closure)
 done
 
-theorem ForallP_closure [closure, intro!] :
+theorem ForallP_closure [closure] :
 "\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  (\<forall>p vs . p) \<in> WF_PREDICATE"
 apply (simp add: ForallP_def)
-apply (auto)
+apply (auto simp: closure)
 done
 
-theorem ClosureP_closure [closure, intro!] :
+theorem ClosureP_closure [closure] :
 "\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  [p]p \<in> WF_PREDICATE"
 apply (simp add: ClosureP_def)
-apply (auto)
+apply (auto simp: closure)
 done
 
-theorem RefP_closure [closure, intro!] :
+theorem RefP_closure [closure] :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<sqsubseteq>p p2 \<in> WF_PREDICATE"
 apply (simp add: RefP_def)
-apply (auto)
+apply (auto simp: closure)
 done
 
 subsubsection {* Validation of Soundness *}

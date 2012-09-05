@@ -243,7 +243,7 @@ apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
 done
 
-theorem WF_ALPHA_PREDICATE_UNREST [closure] :
+theorem WF_ALPHA_PREDICATE_UNREST [closure] (* [dest] *) :
 "p \<in> WF_ALPHA_PREDICATE \<Longrightarrow> UNREST (VAR - \<alpha> p) (\<pi> p)"
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
@@ -346,159 +346,91 @@ apply (simp add: closure)
 apply (auto intro: unrest)
 done
 
-theorem ImpliesA_lemma :
-"\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
- p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- p1 \<Rightarrow>\<alpha> p2 = \<not>\<alpha> p1 \<or>\<alpha> p2"
-apply (simp add: ImpliesA_def)
-apply (simp add: ImpliesP_def closure)
-apply (simp add: OrA_def closure)
-apply (simp add: NotA_def closure)
-done
-
 theorem ImpliesA_closure [closure] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<Rightarrow>\<alpha> p2 \<in> WF_ALPHA_PREDICATE"
-apply (simp add: ImpliesA_lemma)
+apply (simp add: ImpliesA_def)
+apply (simp add: WF_ALPHA_PREDICATE_def)
+apply (simp add: WF_PREDICATE_OVER_def)
 apply (simp add: closure)
-done
-
-theorem IffA_lemma :
-"\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
- p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- p1 \<Leftrightarrow>\<alpha> p2 = (p1 \<Rightarrow>\<alpha> p2) \<and>\<alpha> (p2 \<Rightarrow>\<alpha> p1)"
-apply (simp add: IffA_def)
-apply (simp add: IffP_def closure)
-apply (simp add: AndA_def closure)
-apply (simp add: ImpliesA_def closure)
-apply (auto)
+apply (auto intro: unrest)
 done
 
 theorem IffA_closure [closure] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<Leftrightarrow>\<alpha> p2 \<in> WF_ALPHA_PREDICATE"
-apply (simp add: IffA_lemma)
+apply (simp add: IffA_def)
+apply (simp add: WF_ALPHA_PREDICATE_def)
+apply (simp add: WF_PREDICATE_OVER_def)
 apply (simp add: closure)
-done
-
-theorem ExistsA_lemma :
-"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
- a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
- (\<exists>\<alpha> a . p) = (p \<ominus>\<alpha> a) \<oplus>\<alpha> (\<alpha> p)"
-apply (simp add: ExistsA_def)
-apply (simp add: ExtA_def closure)
-apply (simp add: ResA_def closure)
-apply (auto)
+apply (auto intro: unrest)
 done
 
 theorem ExistsA_closure [closure] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  (\<exists>\<alpha> a . p) \<in> WF_ALPHA_PREDICATE"
-apply (simp add: ExistsA_lemma)
+apply (simp add: ExistsA_def)
+apply (simp add: WF_ALPHA_PREDICATE_def)
+apply (simp add: WF_PREDICATE_OVER_def)
 apply (simp add: closure)
-done
-
-theorem ForallA_lemma :
-"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
- a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
- (\<forall>\<alpha> a . p) = \<not>\<alpha> (\<exists>\<alpha> a . \<not>\<alpha> p)"
-apply (simp add: ForallA_def)
-apply (simp add: ForallP_def closure)
-apply (subst NotA_def)
-apply (simp add: closure)
-apply (simp add: ExistsA_def closure)
-apply (simp add: NotA_def closure)
+apply (auto intro: unrest)
 done
 
 theorem ForallA_closure [closure] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  (\<forall>\<alpha> a . p) \<in> WF_ALPHA_PREDICATE"
-apply (simp add: ForallA_lemma)
+apply (simp add: ForallA_def)
+apply (simp add: WF_ALPHA_PREDICATE_def)
+apply (simp add: WF_PREDICATE_OVER_def)
 apply (simp add: closure)
-done
-
-theorem ExistsResA_lemma :
-"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
- a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
- (\<exists>-\<alpha> a . p) = p \<ominus>\<alpha> a"
-apply (simp add: ExistsResA_def)
-apply (simp add: ResA_def closure)
+apply (auto intro: unrest)
 done
 
 theorem ExistsResA_closure [closure] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  (\<exists>-\<alpha> a . p) \<in> WF_ALPHA_PREDICATE"
-apply (simp add: ExistsResA_lemma)
+apply (simp add: ExistsResA_def)
+apply (simp add: WF_ALPHA_PREDICATE_def)
+apply (simp add: WF_PREDICATE_OVER_def)
 apply (simp add: closure)
-done
-
-theorem ForallResA_lemma :
-"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
- a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
- (\<forall>-\<alpha> a . p) = \<not>\<alpha> (\<exists>-\<alpha> a . \<not>\<alpha> p)"
-apply (simp add: ForallResA_def)
-apply (simp add: ForallP_def closure)
-apply (subst NotA_def)
-apply (simp add: closure)
-apply (simp add: ExistsResA_def closure)
-apply (simp add: NotA_def closure)
+apply (auto intro: unrest)
 done
 
 theorem ForallResA_closure [closure] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
  (\<forall>-\<alpha> a . p) \<in> WF_ALPHA_PREDICATE"
-apply (simp add: ForallResA_lemma)
-apply (simp add: closure)
-done
-
-lemma VAR_decomp :
-"VAR = vs \<union> (VAR - vs)"
-apply (simp add: VAR_def)
-done
-
-theorem ClosureA_lemma :
-"\<lbrakk>p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- [p]\<alpha> = (\<forall>-\<alpha> (\<alpha> p) . p)"
-apply (simp add: ClosureA_def)
-apply (simp add: ClosureP_def closure)
-apply (simp add: ForallResA_def closure)
+apply (simp add: ForallResA_def)
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
-apply (clarify)
-apply (subst VAR_decomp [of "\<alpha> p"])
-apply (simp only: ForallP_union)
-apply (simp only: ForallP_ident)
+apply (simp add: closure)
+apply (auto intro: unrest)
 done
 
 theorem ClosureA_closure [closure] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  [p]\<alpha> \<in> WF_ALPHA_PREDICATE"
-apply (simp add: ClosureA_lemma)
+apply (simp add: ClosureA_def)
+apply (simp add: WF_ALPHA_PREDICATE_def)
+apply (simp add: WF_PREDICATE_OVER_def)
 apply (simp add: closure)
-done
-
-theorem RefA_lemma :
-"\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
- p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- p1 \<sqsubseteq>\<alpha> p2 = [p2 \<Rightarrow>\<alpha> p1]\<alpha>"
-apply (simp add: RefA_def)
-apply (simp add: RefP_def closure)
-apply (simp add: ClosureA_def closure)
-apply (simp add: ImpliesA_def closure)
+apply (auto intro: unrest)
 done
 
 theorem RefA_closure [closure] :
 "\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
  p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<sqsubseteq>\<alpha> p2 \<in> WF_ALPHA_PREDICATE"
-apply (simp add: RefA_lemma)
+apply (simp add: RefA_def)
+apply (simp add: WF_ALPHA_PREDICATE_def)
+apply (simp add: WF_PREDICATE_OVER_def)
 apply (simp add: closure)
+apply (auto intro: unrest)
 done
 
 subsubsection {* Alphabet Theorems *}
@@ -612,6 +544,98 @@ apply (simp add: RefA_def alphabet closure)
 done
 
 subsubsection {* Validation of Soundness *}
+
+theorem ImpliesA_lemma :
+"\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
+ p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
+ p1 \<Rightarrow>\<alpha> p2 = \<not>\<alpha> p1 \<or>\<alpha> p2"
+apply (simp add: ImpliesA_def)
+apply (simp add: ImpliesP_def closure)
+apply (simp add: OrA_def closure)
+apply (simp add: NotA_def closure)
+done
+
+theorem IffA_lemma :
+"\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
+ p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
+ p1 \<Leftrightarrow>\<alpha> p2 = (p1 \<Rightarrow>\<alpha> p2) \<and>\<alpha> (p2 \<Rightarrow>\<alpha> p1)"
+apply (simp add: IffA_def)
+apply (simp add: IffP_def closure)
+apply (simp add: AndA_def closure)
+apply (simp add: ImpliesA_def closure)
+apply (auto)
+done
+
+theorem ExistsA_lemma :
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
+ a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
+ (\<exists>\<alpha> a . p) = (p \<ominus>\<alpha> a) \<oplus>\<alpha> (\<alpha> p)"
+apply (simp add: ExistsA_def)
+apply (simp add: ExtA_def closure)
+apply (simp add: ResA_def closure)
+apply (auto)
+done
+
+theorem ForallA_lemma :
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
+ a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
+ (\<forall>\<alpha> a . p) = \<not>\<alpha> (\<exists>\<alpha> a . \<not>\<alpha> p)"
+apply (simp add: ForallA_def)
+apply (simp add: ForallP_def closure)
+apply (subst NotA_def)
+apply (simp add: closure)
+apply (simp add: ExistsA_def closure)
+apply (simp add: NotA_def closure)
+done
+
+theorem ExistsResA_lemma :
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
+ a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
+ (\<exists>-\<alpha> a . p) = p \<ominus>\<alpha> a"
+apply (simp add: ExistsResA_def)
+apply (simp add: ResA_def closure)
+done
+
+theorem ForallResA_lemma :
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
+ a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
+ (\<forall>-\<alpha> a . p) = \<not>\<alpha> (\<exists>-\<alpha> a . \<not>\<alpha> p)"
+apply (simp add: ForallResA_def)
+apply (simp add: ForallP_def closure)
+apply (subst NotA_def)
+apply (simp add: closure)
+apply (simp add: ExistsResA_def closure)
+apply (simp add: NotA_def closure)
+done
+
+lemma VAR_decomp :
+"VAR = vs \<union> (VAR - vs)"
+apply (simp add: VAR_def)
+done
+
+theorem ClosureA_lemma :
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
+ [p]\<alpha> = (\<forall>-\<alpha> (\<alpha> p) . p)"
+apply (simp add: ClosureA_def)
+apply (simp add: ClosureP_def closure)
+apply (simp add: ForallResA_def closure)
+apply (simp add: WF_ALPHA_PREDICATE_def)
+apply (simp add: WF_PREDICATE_OVER_def)
+apply (clarify)
+apply (subst VAR_decomp [of "\<alpha> p"])
+apply (simp only: ForallP_union)
+apply (simp only: ForallP_ident)
+done
+
+theorem RefA_lemma :
+"\<lbrakk>p1 \<in> WF_ALPHA_PREDICATE;
+ p2 \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
+ p1 \<sqsubseteq>\<alpha> p2 = [p2 \<Rightarrow>\<alpha> p1]\<alpha>"
+apply (simp add: RefA_def)
+apply (simp add: RefP_def closure)
+apply (simp add: ClosureA_def closure)
+apply (simp add: ImpliesA_def closure)
+done
 
 theorem TrueA_noteq_FalseA :
 "a \<in> WF_ALPHABET \<Longrightarrow> true a \<noteq> false a"

@@ -97,13 +97,6 @@ apply (drule_tac x = "b1 \<oplus> b2 on (VAR - vs)" in spec)
 apply (simp add: binding_equiv_def)
 done
 
-theorem UNREST_LiftP_alt :
-"\<lbrakk>f \<in> WF_BINDING_BFUN vs1;
- vs2 \<subseteq> VAR - vs1\<rbrakk> \<Longrightarrow>
- UNREST vs2 (LiftP f)"
-apply (auto intro: UNREST_LiftP UNREST_subset simp: closure)
-done
-
 theorem UNREST_TrueP :
 "UNREST vs true"
 apply (simp add: UNREST_def TrueP_def)
@@ -162,7 +155,7 @@ theorem UNREST_ImpliesP :
  UNREST vs p2\<rbrakk> \<Longrightarrow>
  UNREST vs (p1 \<Rightarrow>p p2)"
 apply (simp add: ImpliesP_def)
-apply (auto intro: UNREST_OrP UNREST_NotP)
+apply (auto intro: UNREST_OrP UNREST_NotP closure)
 done
 
 theorem UNREST_IffP :
@@ -172,7 +165,7 @@ theorem UNREST_IffP :
  UNREST vs p2\<rbrakk> \<Longrightarrow>
  UNREST vs (p1 \<Leftrightarrow>p p2)"
 apply (simp add: IffP_def)
-apply (auto intro: UNREST_ImpliesP UNREST_AndP)
+apply (auto intro: UNREST_ImpliesP UNREST_AndP closure)
 done
 
 theorem UNREST_ExistsP :
@@ -195,37 +188,41 @@ theorem UNREST_ForallP :
  p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  UNREST (vs1 \<union> vs2) (\<forall>p vs2 . p)"
 apply (simp add: ForallP_def)
-apply (auto intro: UNREST_ExistsP UNREST_NotP)
-done
-
-theorem UNREST_ExistsP_alt :
-"\<lbrakk>UNREST vs1 p;
- vs3 \<subseteq> vs1 \<union> vs2;
- p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
- UNREST vs3 (\<exists>p vs2 . p)"
-apply (auto intro: UNREST_ExistsP UNREST_subset simp: closure)
-done
-
-theorem UNREST_ForallP_alt :
-"\<lbrakk>UNREST vs1 p;
- vs3 \<subseteq> vs1 \<union> vs2;
- p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
- UNREST vs3 (\<forall>p vs2 . p)"
-apply (auto intro: UNREST_ForallP UNREST_subset simp: closure)
+apply (auto intro: UNREST_ExistsP UNREST_NotP closure)
 done
 
 theorem UNREST_ExistsP_simple :
 "\<lbrakk>p \<in> WF_PREDICATE;
  vs1 \<subseteq> vs2\<rbrakk> \<Longrightarrow>
  UNREST vs1 (\<exists>p vs2 . p)"
-apply (auto intro: UNREST_ExistsP_alt UNREST_empty)
+apply (insert UNREST_ExistsP [of "{}" "p" "vs2"])
+apply (simp add: UNREST_empty)
+apply (auto intro: UNREST_subset closure)
 done
 
 theorem UNREST_ForallP_simple :
 "\<lbrakk>p \<in> WF_PREDICATE;
  vs1 \<subseteq> vs2\<rbrakk> \<Longrightarrow>
  UNREST vs1 (\<forall>p vs2 . p)"
-apply (auto intro: UNREST_ForallP_alt UNREST_empty)
+apply (insert UNREST_ForallP [of "{}" "p" "vs2"])
+apply (simp add: UNREST_empty)
+apply (auto intro: UNREST_subset closure)
+done
+
+theorem UNREST_ClosureP :
+"\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ UNREST VAR [p]p"
+apply (simp add: ClosureP_def)
+apply (insert UNREST_ForallP [of "{}" "p" "VAR"])
+apply (simp add: UNREST_empty)
+done
+
+theorem UNREST_RefP :
+"\<lbrakk>p1 \<in> WF_PREDICATE;
+ p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ UNREST VAR (p1 \<sqsubseteq>p p2)"
+apply (simp add: RefP_def)
+apply (auto intro: UNREST_ClosureP closure)
 done
 
 theorem UNREST_SubstP :
@@ -245,6 +242,31 @@ back back
 apply (simp add: SubstB_override_distr1 closure)
 done
 
+subsubsection {* Proof Support *}
+
+theorem UNREST_LiftP_alt :
+"\<lbrakk>f \<in> WF_BINDING_BFUN vs1;
+ vs2 \<subseteq> VAR - vs1\<rbrakk> \<Longrightarrow>
+ UNREST vs2 (LiftP f)"
+apply (auto intro: UNREST_LiftP UNREST_subset simp: closure)
+done
+
+theorem UNREST_ExistsP_alt :
+"\<lbrakk>UNREST vs1 p;
+ vs3 \<subseteq> vs1 \<union> vs2;
+ p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ UNREST vs3 (\<exists>p vs2 . p)"
+apply (auto intro: UNREST_ExistsP UNREST_subset simp: closure)
+done
+
+theorem UNREST_ForallP_alt :
+"\<lbrakk>UNREST vs1 p;
+ vs3 \<subseteq> vs1 \<union> vs2;
+ p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ UNREST vs3 (\<forall>p vs2 . p)"
+apply (auto intro: UNREST_ForallP UNREST_subset simp: closure)
+done
+
 theorem UNREST_SubstP_alt :
 "\<lbrakk>UNREST vs1 p;
  vs2 \<subseteq> (ss ` vs1);
@@ -253,8 +275,6 @@ theorem UNREST_SubstP_alt :
  UNREST vs2 p[ss]"
 apply (auto intro: UNREST_SubstP UNREST_subset simp: closure)
 done
-
-subsubsection {* Proof Support *}
 
 declare UNREST_empty [unrest]
 declare UNREST_subset [unrest]
@@ -271,6 +291,8 @@ declare UNREST_ExistsP_alt [unrest]
 declare UNREST_ForallP_alt [unrest]
 declare UNREST_ExistsP_simple [unrest]
 declare UNREST_ForallP_simple [unrest]
+declare UNREST_ClosureP [unrest]
+declare UNREST_RefP [unrest]
 declare UNREST_SubstP_alt [unrest]
 end
 end
