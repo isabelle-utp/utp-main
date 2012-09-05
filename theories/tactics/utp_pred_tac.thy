@@ -344,10 +344,10 @@ text {* Should we atomise or deatomise below? *}
 
 ML {*
   fun utp_pred_auto_tac thms ctxt i =
-    CHANGED  (
-      TRY (asm_full_simp_tac (utp_pred_simpset ctxt) i) THEN
-      TRY (asm_full_simp_tac (utp_auto_simpset ctxt) i) THEN
-      (auto_tac ctxt))
+    CHANGED ((
+      (asm_full_simp_tac (utp_pred_simpset ctxt)) THEN_ALL_NEW
+      (asm_full_simp_tac (utp_auto_simpset ctxt)) THEN_ALL_NEW
+      (SELECT_GOAL (auto_tac ctxt))) i)
 *}
 end
 

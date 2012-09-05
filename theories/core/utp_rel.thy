@@ -21,8 +21,8 @@ definition NON_REL_VAR :: "'TYPE VAR set" where
 definition COMPOSABLE_BINDINGS ::
   "(('VALUE, 'TYPE) BINDING \<times>
     ('VALUE, 'TYPE) BINDING) set" where
-"COMPOSABLE_BINDINGS = {(b1, b2) .
-   (\<forall> v \<in> UNDASHED . b1(dash v) = b2 v) \<and> b1 \<cong> b2 on NON_REL_VAR}"
+"COMPOSABLE_BINDINGS =
+ {(b1, b2) . (\<forall> v \<in> UNDASHED . b1(dash v) = b2 v) \<and> b1 \<cong> b2 on NON_REL_VAR}"
 
 subsection {* Substitutions *}
 
@@ -35,13 +35,13 @@ definition SS :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
 
 definition SS1 :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
 "SS1 = (\<lambda> v .
- if (v \<in> DASHED) then (dash v) else
- if (v \<in> DASHED_TWICE) then (undash v) else v)"
+   if (v \<in> DASHED) then (dash v) else
+   if (v \<in> DASHED_TWICE) then (undash v) else v)"
 
 definition SS2 :: "'TYPE VAR \<Rightarrow> 'TYPE VAR" where
 "SS2 = (\<lambda> v .
- if v \<in> UNDASHED then dash (dash v) else
- if v \<in> DASHED_TWICE then undash (undash v) else v)"
+   if v \<in> UNDASHED then dash (dash v) else
+   if v \<in> DASHED_TWICE then undash (undash v) else v)"
 
 subsection {* Operators *}
 
@@ -68,7 +68,7 @@ definition CondR ::
 
 notation CondR ("_ \<triangleleft> _ \<triangleright> _")
 
-subsubsection {* Sequence *}
+subsubsection {* Sequential Composition *}
 
 definition SemiR ::
   "('VALUE, 'TYPE) PREDICATE \<Rightarrow>
@@ -76,7 +76,8 @@ definition SemiR ::
    ('VALUE, 'TYPE) PREDICATE" where
 "p1 \<in> WF_PREDICATE \<and>
  p2 \<in> WF_PREDICATE \<longrightarrow>
- SemiR p1 p2 = {b1 \<oplus> b2 on DASHED | b1 b2 .
+ SemiR p1 p2 =
+ {b1 \<oplus> b2 on DASHED | b1 b2 .
    b1 \<in> p1 \<and> b2 \<in> p2 \<and> (b1, b2) \<in> COMPOSABLE_BINDINGS}"
 
 (* Not sure about the precedence of sequential composition yet. *)

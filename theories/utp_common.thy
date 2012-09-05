@@ -7,7 +7,7 @@
 header {* Common Definitions *}
 
 theory utp_common
-imports Main
+imports Main "~~/src/HOL/Algebra/Lattice"
 begin
 
 subsection {* Configuration *}

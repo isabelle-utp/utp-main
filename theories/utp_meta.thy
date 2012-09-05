@@ -13,6 +13,7 @@ imports utp_common
   "core/utp_value"
   "core/utp_var"
   "core/utp_pred"
+  "core/utp_lattice"
   "core/utp_subst"
   "core/utp_rel"
   "core/utp_laws"

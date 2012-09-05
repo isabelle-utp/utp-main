@@ -57,6 +57,13 @@ definition WF_PREDICATE_OVER ::
    ('VALUE, 'TYPE) PREDICATE set" where
 "WF_PREDICATE_OVER vs = {p . p \<in> WF_PREDICATE \<and> UNREST (VAR - vs) p}"
 
+subsection {* Functions *}
+
+definition WF_FUNCTION ::
+  "(('VALUE, 'TYPE) PREDICATE \<Rightarrow>
+    ('VALUE, 'TYPE) PREDICATE) set" where
+"WF_FUNCTION = {f . \<forall> p \<in> WF_PREDICATE . f p \<in> WF_PREDICATE}"
+
 subsection {* Operators *}
 
 subsubsection {* Shallow Lifting *}

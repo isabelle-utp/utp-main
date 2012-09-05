@@ -56,7 +56,7 @@ definition CondA ::
 
 notation CondA ("_ \<triangleleft>\<alpha> _ \<alpha>\<triangleright> _")
 
-subsubsection {* Sequence *}
+subsubsection {* Sequential Composition *}
 
 definition SemiA ::
   "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
