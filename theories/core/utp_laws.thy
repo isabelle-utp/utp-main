@@ -23,7 +23,7 @@ theorem ExistsP_ident :
  (\<exists>p vs . p) = p"
 apply (simp add: ExistsP_def)
 apply (safe)
-apply (simp add: UNREST_member)
+apply (simp add: UNREST_binding_override)
 apply (rule_tac x = "x" in exI)
 apply (rule_tac x = "x" in exI)
 apply (simp)

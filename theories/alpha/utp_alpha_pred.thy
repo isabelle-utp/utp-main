@@ -253,9 +253,10 @@ theorem WF_ALPHA_PREDICATE_UNREST_intro [intro] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<subseteq> VAR - (\<alpha> p)\<rbrakk> \<Longrightarrow> UNREST a (\<pi> p)"
 apply (insert WF_ALPHA_PREDICATE_UNREST [of "p"])
+apply (clarsimp)
 apply (erule UNREST_subset)
-apply (simp add: closure)
 apply (assumption)
+apply (simp add: closure)
 done
 
 subsubsection {* Closure Theorems *}
@@ -268,7 +269,7 @@ apply (simp add: LiftA_def)
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
 apply (simp add: closure)
-apply (erule UNREST_LiftP)
+apply (auto intro: unrest)
 done
 
 theorem ExtP_closure [closure] :
@@ -279,11 +280,7 @@ apply (simp add: ExtA_def)
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
 apply (simp add: closure)
-apply (clarify)
-apply (subgoal_tac "VAR - (\<alpha> p \<union> a) \<subseteq> VAR - (\<alpha> p)")
-apply (erule UNREST_subset)
-apply (assumption)+
-apply (auto)
+apply (auto intro: unrest)
 done
 
 theorem ResP_closure [closure] :
@@ -294,12 +291,7 @@ apply (simp add: ResA_def)
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
 apply (simp add: closure)
-apply (clarify)
-apply (subgoal_tac "(VAR - (\<alpha> p - a)) = (VAR - \<alpha> p) \<union> a")
-apply (simp)
-apply (erule UNREST_ExistsP)
-apply (assumption)
-apply (auto)
+apply (auto intro: unrest)
 done
 
 theorem TrueA_closure [closure] :
@@ -309,7 +301,7 @@ apply (simp add: TrueA_def)
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
 apply (simp add: closure)
-apply (simp add: UNREST_TrueP)
+apply (auto intro: unrest)
 done
 
 theorem FalseA_closure [closure] :
@@ -319,7 +311,7 @@ apply (simp add: FalseA_def)
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
 apply (simp add: closure)
-apply (simp add: UNREST_FalseP)
+apply (auto intro: unrest)
 done
 
 theorem NotA_closure [closure] :
@@ -329,9 +321,7 @@ apply (simp add: NotA_def)
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
 apply (simp add: closure)
-apply (clarify)
-apply (erule UNREST_NotP)
-apply (assumption)
+apply (auto intro: unrest)
 done
 
 theorem AndA_closure [closure] :
@@ -342,20 +332,7 @@ apply (simp add: AndA_def)
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
 apply (simp add: closure)
-apply (clarify)
-apply (subgoal_tac "UNREST (VAR - (\<alpha> p1 \<union> \<alpha> p2)) (\<pi> p1)")
-apply (subgoal_tac "UNREST (VAR - (\<alpha> p1 \<union> \<alpha> p2)) (\<pi> p2)")
-apply (simp add: UNREST_AndP)
--- {* Subgoal 1 *}
-apply (subgoal_tac "(VAR - (\<alpha> p1 \<union> \<alpha> p2)) \<subseteq> (VAR - (\<alpha> p2))")
-apply (erule UNREST_subset)
-apply (assumption)+
-apply (auto) [1]
--- {* Subgoal 2 *}
-apply (subgoal_tac "(VAR - (\<alpha> p1 \<union> \<alpha> p2)) \<subseteq> (VAR - (\<alpha> p1))")
-apply (erule UNREST_subset)
-apply (assumption)+
-apply (auto) [1]
+apply (auto intro: unrest)
 done
 
 theorem OrA_closure [closure] :
@@ -366,20 +343,7 @@ apply (simp add: OrA_def)
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
 apply (simp add: closure)
-apply (clarify)
-apply (subgoal_tac "UNREST (VAR - (\<alpha> p1 \<union> \<alpha> p2)) (\<pi> p1)")
-apply (subgoal_tac "UNREST (VAR - (\<alpha> p1 \<union> \<alpha> p2)) (\<pi> p2)")
-apply (simp add: UNREST_OrP)
--- {* Subgoal 1 *}
-apply (subgoal_tac "(VAR - (\<alpha> p1 \<union> \<alpha> p2)) \<subseteq> (VAR - (\<alpha> p2))")
-apply (erule UNREST_subset)
-apply (assumption)+
-apply (auto) [1]
--- {* Subgoal 2 *}
-apply (subgoal_tac "(VAR - (\<alpha> p1 \<union> \<alpha> p2)) \<subseteq> (VAR - (\<alpha> p1))")
-apply (erule UNREST_subset)
-apply (assumption)+
-apply (auto) [1]
+apply (auto intro: unrest)
 done
 
 theorem ImpliesA_lemma :

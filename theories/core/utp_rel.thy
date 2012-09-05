@@ -433,9 +433,9 @@ apply (case_tac "x \<in> DASHED_TWICE")
 apply (simp add: SS1_simps SS2_simps)
 apply (simp add: SS1_simps SS2_simps)
 -- {* Subgoal 1.2 *}
-apply (auto intro: UNREST_member) [1]
+apply (auto intro: UNREST_binding_override) [1]
 -- {* Subgoal 1.3 *}
-apply (auto intro: UNREST_member) [1]
+apply (auto intro: UNREST_binding_override) [1]
 -- {* Subgoal 1.3 *}
 apply (simp add: SubstB_def closure)
 apply (simp add: COMPOSABLE_BINDINGS_def)
@@ -454,10 +454,10 @@ apply (rule_tac x = "SubstB SS1 b1" in bexI)
 apply (rule conjI)
 -- {* Subgoal 2.1 *}
 apply (simp add: SemiR_algebraic_lemma1)
-apply (auto intro: UNREST_member simp: closure) [1]
+apply (auto intro: UNREST_binding_override simp: closure) [1]
 -- {* Subgoal 2.2 *}
 apply (simp add: SemiR_algebraic_lemma2)
-apply (auto intro: UNREST_member simp: closure) [1]
+apply (auto intro: UNREST_binding_override simp: closure) [1]
 -- {* Subgoal 2.3 *}
 apply (simp add: closure)
 done

@@ -173,8 +173,7 @@ apply (simp add: WF_PREDICATE_OVER_def)
 apply (simp add: closure)
 apply (simp add: REL_ALPHABET_def)
 apply (clarify)
-apply (insert UNREST_ExistsP [of "II" "{}" "VAR - a"])
-apply (simp add: closure UNREST_empty)
+apply (auto intro: unrest closure)
 done
 
 theorem CondA_closure [closure] :
