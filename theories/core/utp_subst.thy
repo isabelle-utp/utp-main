@@ -473,6 +473,23 @@ apply (simp)
 apply (assumption)
 done
 
+theorem UNREST_SubstP :
+"\<lbrakk>p \<in> WF_PREDICATE;
+ ss \<in> VAR_SUBST;
+ UNREST vs p\<rbrakk> \<Longrightarrow>
+ UNREST (ss ` vs) p[ss]"
+apply (simp add: UNREST_def)
+apply (simp add: SubstP_def)
+apply (safe)
+apply (drule_tac x = "b1" in bspec)
+apply (assumption)
+apply (drule_tac x = "SubstB (inv ss) b2" in bspec)
+apply (simp add: closure)
+apply (drule imageI [where f = "SubstB ss"])
+back back
+apply (simp add: SubstB_override_distr1 closure)
+done
+
 theorem SubstP_id :
 "p \<in> WF_PREDICATE \<Longrightarrow> p[id] = p"
 apply (utp_pred_auto_tac)
@@ -519,24 +536,5 @@ theorem SubstP_involution [simp] :
  p[ss][ss] = p"
 apply (utp_pred_auto_tac)
 done
-
-theorem UNREST_SubstP :
-"\<lbrakk>p \<in> WF_PREDICATE;
-  ss \<in> VAR_SUBST;
-  UNREST vs p\<rbrakk> \<Longrightarrow>
-  UNREST (ss ` vs) p[ss]"
-apply (auto simp add:UNREST_def SubstP_def)
-apply (subgoal_tac "b2 = SubstB ss (SubstB (inv ss) b2)")
-apply (subgoal_tac "SubstB ss b1 \<oplus> SubstB ss (SubstB (inv ss) b2) on ss ` vs \<in> SubstB ss ` p")
-apply (simp)
-apply (subgoal_tac "SubstB (inv ss) b2 \<in> WF_BINDING")
-apply (subgoal_tac "b1 \<in> WF_BINDING")
-apply (unfold SubstB_override_distr2)
-apply (force)
-apply (force)
-apply (metis SubstB_closure VAR_SUBST_inv)
-apply (force)
-done
-
 end
 end

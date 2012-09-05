@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
 (* File: utp_alpha_pred.thy                                                   *)
-(* Author: Frank Zeyda, University of York (UK)                               *)
+(* Author: Frank Zeyda and Simon Foster, University of York (UK)              *)
 (******************************************************************************)
 
 header {* Alphabetised Predicates *}
@@ -245,7 +245,18 @@ done
 
 theorem WF_ALPHA_PREDICATE_UNREST [closure] :
 "p \<in> WF_ALPHA_PREDICATE \<Longrightarrow> UNREST (VAR - \<alpha> p) (\<pi> p)"
-  by (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
+apply (simp add: WF_ALPHA_PREDICATE_def)
+apply (simp add: WF_PREDICATE_OVER_def)
+done
+
+theorem WF_ALPHA_PREDICATE_UNREST_intro [intro] :
+"\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
+ a \<subseteq> VAR - (\<alpha> p)\<rbrakk> \<Longrightarrow> UNREST a (\<pi> p)"
+apply (insert WF_ALPHA_PREDICATE_UNREST [of "p"])
+apply (erule UNREST_subset)
+apply (simp add: closure)
+apply (assumption)
+done
 
 subsubsection {* Closure Theorems *}
 

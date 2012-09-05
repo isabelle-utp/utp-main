@@ -197,7 +197,9 @@ ML {*
   fun utp_alphabet_simpset ctxt =
     (simpset_of ctxt)
       addsimps (alphabet.get ctxt)
-      addsimps (closure.get ctxt);
+      addsimps (closure.get ctxt)
+      addsimps @{thms VAR.alphabet_simps}
+      addsimps @{thms VAR.alphabet_dist};
 *}
 
 ML {*
