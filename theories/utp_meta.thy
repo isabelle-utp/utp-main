@@ -9,7 +9,7 @@ header {* Meta-Theory for Inclusion *}
 theory utp_meta
 imports utp_common
   "core/utp_names"
-  "core/utp_types"
+  "core/utp_synonyms"
   "core/utp_value"
   "core/utp_var"
   "core/utp_pred"

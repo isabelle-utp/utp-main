@@ -7,7 +7,7 @@
 header {* Variables *}
 
 theory utp_var
-imports utp_types utp_names
+imports utp_synonyms utp_names
 begin
 
 definition VAR :: "'TYPE VAR set" where

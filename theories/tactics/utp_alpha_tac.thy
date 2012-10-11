@@ -52,7 +52,7 @@ subsection {* Distribution Theorems *}
 
 theorem EvalA_LiftA [evala] :
 "\<lbrakk>a \<in> WF_ALPHABET;
- f \<in> WF_BINDING_BFUN a\<rbrakk> \<Longrightarrow>
+ f \<in> WF_BINDING_PRED a\<rbrakk> \<Longrightarrow>
  \<lbrakk>LiftA a f\<rbrakk>\<pi> = LiftP f"
 apply (simp add: EvalA_def)
 apply (simp add: LiftA_def)

@@ -86,10 +86,10 @@ apply (simp)
 done
 
 theorem UNREST_LiftP :
-"\<lbrakk>f \<in> WF_BINDING_BFUN vs\<rbrakk> \<Longrightarrow>
+"\<lbrakk>f \<in> WF_BINDING_PRED vs\<rbrakk> \<Longrightarrow>
  UNREST (VAR - vs) (LiftP f)"
 apply (simp add: UNREST_def LiftP_def)
-apply (simp add: WF_BINDING_BFUN_def)
+apply (simp add: WF_BINDING_PRED_def)
 apply (safe)
 apply (simp add: closure)
 apply (drule_tac x = "b1" in spec)
@@ -245,7 +245,7 @@ done
 subsubsection {* Proof Support *}
 
 theorem UNREST_LiftP_alt :
-"\<lbrakk>f \<in> WF_BINDING_BFUN vs1;
+"\<lbrakk>f \<in> WF_BINDING_PRED vs1;
  vs2 \<subseteq> VAR - vs1\<rbrakk> \<Longrightarrow>
  UNREST vs2 (LiftP f)"
 apply (auto intro: UNREST_LiftP UNREST_subset simp: closure)

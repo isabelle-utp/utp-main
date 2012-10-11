@@ -1,12 +1,12 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
-(* File: utp_types.thy                                                        *)
+(* File: utp_synonyms.thy                                                        *)
 (* Author: Frank Zeyda, University of York (UK)                               *)
 (******************************************************************************)
 
 header {* Type Synonyms *}
 
-theory utp_types
+theory utp_synonyms
 imports utp_names
 begin
 
@@ -24,7 +24,7 @@ type_synonym ('VALUE, 'TYPE) BINDING =
 type_synonym ('VALUE, 'TYPE) BINDING_SET =
   "('VALUE, 'TYPE) BINDING set"
 
-type_synonym ('VALUE, 'TYPE) BINDING_BFUN =
+type_synonym ('VALUE, 'TYPE) BINDING_PRED =
   "('VALUE, 'TYPE) BINDING \<Rightarrow> bool"
 
 type_synonym ('VALUE, 'TYPE) BINDING_FUN =

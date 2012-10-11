@@ -7,7 +7,7 @@
 header {* Predicates *}
 
 theory utp_pred
-imports utp_types utp_value utp_var
+imports utp_synonyms utp_value utp_var
 begin
 
 subsection {* Locale @{text "PRED"} *}
@@ -35,11 +35,11 @@ definition binding_equiv ::
 
 notation binding_equiv ("_ \<cong> _ on _")
 
-text {* Binding Functions *}
+text {* Binding Predicates *}
 
-definition WF_BINDING_BFUN ::
-  "'TYPE ALPHABET \<Rightarrow> ('VALUE, 'TYPE) BINDING_BFUN set" where
-"WF_BINDING_BFUN vs = {f . \<forall> b1 b2 . b1 \<cong> b2 on vs \<longrightarrow> f b1 = f b2}"
+definition WF_BINDING_PRED ::
+  "'TYPE ALPHABET \<Rightarrow> ('VALUE, 'TYPE) BINDING_PRED set" where
+"WF_BINDING_PRED vs = {f . \<forall> b1 b2 . b1 \<cong> b2 on vs \<longrightarrow> f b1 = f b2}"
 
 subsection {* Predicates *}
 
@@ -58,7 +58,7 @@ subsection {* Operators *}
 subsubsection {* Shallow Lifting *}
 
 definition LiftP ::
-  "('VALUE, 'TYPE) BINDING_BFUN \<Rightarrow>
+  "('VALUE, 'TYPE) BINDING_PRED \<Rightarrow>
    ('VALUE, 'TYPE) PREDICATE" where
 "LiftP f = {b \<in> WF_BINDING . f b}"
 
@@ -109,7 +109,7 @@ definition ImpliesP ::
    ('VALUE, 'TYPE) PREDICATE" where
 "p1 \<in> WF_PREDICATE \<and>
  p2 \<in> WF_PREDICATE \<longrightarrow>
- ImpliesP p1 p2 = (\<not>p p1 \<or>p p2)"
+ ImpliesP p1 p2 = \<not>p p1 \<or>p p2"
 
 notation ImpliesP (infixr "\<Rightarrow>p" 160)
 
@@ -183,6 +183,13 @@ definition Contradiction ::
 
 notation Contradiction ("contra _" [50] 50)
 
+definition Contingency ::
+  "('VALUE, 'TYPE) PREDICATE \<Rightarrow> bool" where
+"p \<in> WF_PREDICATE \<longrightarrow>
+ Contingency p \<longleftrightarrow> (\<not> taut p) \<and> (\<not> contra p)"
+
+notation Contingency ("contg _" [50] 50)
+
 subsubsection {* Refinement *}
 
 definition Refinement ::
@@ -193,6 +200,10 @@ definition Refinement ::
  Refinement p1 p2 \<longleftrightarrow> taut (p1 \<sqsubseteq>p p2)"
 
 notation Refinement (infix "\<sqsubseteq>" 50)
+
+(***********************)
+(* REVIEWED UNTIL HERE *)
+(***********************)
 
 subsection {* Theorems *}
 
@@ -207,6 +218,24 @@ apply (rule someI2_ex)
 apply (simp only: type_non_empty)
 apply (assumption)
 done
+
+(* Some attempt to convert the above proof into ISAR. *)
+
+(*
+theorem WF_BINDING_exists :
+"\<exists> b . b \<in> WF_BINDING"
+apply (rule_tac x = "(\<lambda> v . SOME x . x : (type v))" in exI)
+apply (simp add: WF_BINDING_def)
+apply (safe)
+apply (rule someI2_ex)
+proof -
+  fix v
+  have lemma1 : "\<exists>a. a : type v"
+    apply (simp only: type_non_empty)
+  done
+  then show ?thesis using lemma1
+qed
+*)
 
 theorem WF_BINDING_non_empty :
 "WF_BINDING \<noteq> {}"

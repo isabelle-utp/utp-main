@@ -134,6 +134,8 @@ theorems SS2_simps = SS2_simps
 
 subsubsection {* Closure Theorems *}
 
+text {* TODO: Provide a complete set of closure theorems! *}
+
 theorem NotA_WF_RELATION [closure] :
 "\<lbrakk>r \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
  \<not>\<alpha> r \<in> WF_RELATION"
@@ -217,13 +219,32 @@ apply (auto intro: UNREST_subset) [1]
 apply (auto) [1]
 -- {* Subgoal 3 *}
 apply (rule conjI)
-apply (subgoal_tac
-  "(VAR - (in (\<alpha> r1) \<union> out (\<alpha> r2))) =
-   (VAR - (in (\<alpha> r1) \<union> out (\<alpha> r2))) \<union> DASHED_TWICE")
-apply (erule ssubst)
-apply (auto intro!: UNREST_ExistsP UNREST_AndP) [1]
-apply (simp_all add: closure)
 -- {* Subgoal 3.1 *}
+oops
+
+theorem SemiA_closure [closure] :
+"\<lbrakk>r1 \<in> WF_RELATION;
+ r2 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
+ r1 ;\<alpha> r2 \<in> WF_RELATION"
+apply (simp add: SemiA_def)
+apply (simp add: WF_RELATION_unfold)
+apply (simp add: WF_ALPHA_PREDICATE_def)
+apply (simp add: WF_PREDICATE_OVER_def)
+apply (simp add: closure)
+apply (clarify)
+apply (simp add: SemiR_def)
+apply (simp (no_asm_simp) add: UNREST_def)
+apply (safe)
+-- {* Subgoal 1 *}
+apply (rule_tac x = "b1a \<oplus> b2 on (VAR - \<alpha> r1)" in exI)
+apply (rule_tac x = "b2a \<oplus> b2 on (VAR - \<alpha> r2)" in exI)
+apply (safe)
+-- {* Subgoal 1.1 *}
+-- {* Subgoal 1.2 *}
+-- {* Subgoal 1.3 *}
+-- {* Subgoal 1.4 *}
+-- {* Subgoal 2 *}
+-- {* Subgoal 3 *}
 oops
 
 theorem SemiA_closure [closure] :

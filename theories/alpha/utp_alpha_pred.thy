@@ -48,10 +48,10 @@ subsubsection {* Shallow Lifting *}
 
 definition LiftA ::
   "'TYPE ALPHABET \<Rightarrow>
-   ('VALUE, 'TYPE) BINDING_BFUN \<Rightarrow>
+   ('VALUE, 'TYPE) BINDING_PRED \<Rightarrow>
    ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "a \<in> WF_ALPHABET \<and>
- f \<in> WF_BINDING_BFUN a \<longrightarrow>
+ f \<in> WF_BINDING_PRED a \<longrightarrow>
  LiftA a f = (a, LiftP f)"
 
 subsubsection {* Extension and Restriction *}
@@ -263,7 +263,7 @@ subsubsection {* Closure Theorems *}
 
 theorem LiftA_closure [closure] :
 "\<lbrakk>a \<in> WF_ALPHABET;
- f \<in> WF_BINDING_BFUN a\<rbrakk> \<Longrightarrow>
+ f \<in> WF_BINDING_PRED a\<rbrakk> \<Longrightarrow>
  LiftA a f \<in> WF_ALPHA_PREDICATE"
 apply (simp add: LiftA_def)
 apply (simp add: WF_ALPHA_PREDICATE_def)
@@ -437,7 +437,7 @@ subsubsection {* Alphabet Theorems *}
 
 theorem LiftA_alphabet [alphabet] :
 "\<lbrakk>a \<in> WF_ALPHABET;
- f \<in> WF_BINDING_BFUN a\<rbrakk> \<Longrightarrow>
+ f \<in> WF_BINDING_PRED a\<rbrakk> \<Longrightarrow>
  \<alpha> (LiftA a (\<lambda> b . f b)) = a"
 apply (simp add: LiftA_def)
 done
