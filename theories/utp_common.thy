@@ -48,6 +48,13 @@ ML {*
 
 setup closure.setup
 
+text {* Type Definitions *}
+
+lemma (in type_definition) Rep_inject_sym [simp, intro!] :
+"(x = y) \<longleftrightarrow> (Rep x = Rep y)"
+apply (simp only: Rep_inject)
+done
+
 subsection {* Uncurrying *}
 
 text {* Isabelle provides a currying operator but it seems none for uncurrying. *}

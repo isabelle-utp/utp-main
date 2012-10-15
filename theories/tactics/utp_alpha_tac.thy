@@ -190,7 +190,9 @@ ML {*
   fun utp_alpha_simpset ctxt =
     (simpset_of ctxt)
       addsimps (evala.get ctxt)
-      addsimps (closure.get ctxt);
+      addsimps (closure.get ctxt)
+      (* Closure alone seems not enough e.g. to simplify (p1 \<or>\<alpha> p2) \<sqsubseteq> p2. *)
+      addsimps (alphabet.get ctxt);
 *}
 
 ML {*
@@ -246,9 +248,7 @@ theorem EvalA_test :
 "p \<in> WF_ALPHA_PREDICATE \<Longrightarrow>
  \<not>\<alpha> (\<not>\<alpha> p) = p"
 apply (utp_alpha_tac)
-apply (rule conjI)
-apply (utp_alphabet_tac) [1]
-apply (utp_pred_auto_tac) [1]
+apply (utp_pred_auto_tac)
 done
 end
 end

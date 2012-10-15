@@ -90,6 +90,12 @@ definition FalseA ::
 
 notation FalseA ("false")
 
+abbreviation TRUE :: "('VALUE, 'TYPE) ALPHA_PREDICATE" where
+"TRUE \<equiv> true {}"
+
+abbreviation FALSE :: "('VALUE, 'TYPE) ALPHA_PREDICATE" where
+"FALSE \<equiv> false {}"
+
 subsubsection {* Logical Connectives *}
 
 definition NotA ::
@@ -200,7 +206,7 @@ definition RefA ::
    ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "p1 \<in> WF_ALPHA_PREDICATE \<and>
  p2 \<in> WF_ALPHA_PREDICATE \<longrightarrow>
- RefA p1 p2 = ({}, (\<pi> p1) \<sqsubseteq>p  (\<pi> p2))"
+ RefA p1 p2 = ({}, (\<pi> p1) \<sqsubseteq>p (\<pi> p2))"
 
 notation RefA (infix "\<sqsubseteq>\<alpha>" 100)
 
@@ -209,14 +215,14 @@ subsection {* Meta-logical Operators *}
 definition TautologyA ::
   "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow> bool" where
 "p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
- TautologyA p \<longleftrightarrow> (p = true (\<alpha> p))"
+ TautologyA p = (p = true (\<alpha> p))"
 
 notation TautologyA ("taut _" [50] 50)
 
 definition ContradictionA ::
   "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow> bool" where
 "p \<in> WF_ALPHA_PREDICATE \<longrightarrow>
- ContradictionA p \<longleftrightarrow> (p = false (\<alpha> p))"
+ ContradictionA p = (p = false (\<alpha> p))"
 
 notation ContradictionA ("contra _" [50] 50)
 
@@ -226,7 +232,7 @@ definition RefinementA ::
 "p1 \<in> WF_ALPHA_PREDICATE \<and>
  p2 \<in> WF_ALPHA_PREDICATE \<and>
  (\<alpha> p1) = (\<alpha> p2) \<longrightarrow>
- RefinementA p1 p2 \<longleftrightarrow> taut (p1 \<sqsubseteq>\<alpha> p2)"
+ RefinementA p1 p2 = (taut (p1 \<sqsubseteq>\<alpha> p2))"
 
 notation RefinementA (infix "\<sqsubseteq>" 50)
 
