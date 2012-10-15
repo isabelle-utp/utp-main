@@ -56,16 +56,16 @@ declare Dest_STD_PREDICATE_inverse [simp]
 (* declare Dest_STD_PREDICATE_inject [simp, intro!] *)
 declare Dest_STD_PREDICATE [simp]
 
+theorem Dest_STD_PREDICATE_inject_sym [simp, intro!] :
+"(p1 = p2) \<longleftrightarrow> (Dest_STD_PREDICATE p1 = Dest_STD_PREDICATE p2)"
+apply (simp add: Dest_STD_PREDICATE_inject)
+done
+
 declare Mk_STD_ALPHABET_inverse [simp]
 declare Mk_STD_ALPHABET_inject [simp, intro!]
 declare Dest_STD_ALPHABET_inverse [simp]
 (* declare Dest_STD_ALPHABET_inject [simp, intro!] *)
 declare Dest_STD_ALPHABET [simp]
-
-theorem Dest_STD_PREDICATE_inject_sym [simp, intro!] :
-"(p1 = p2) \<longleftrightarrow> (Dest_STD_PREDICATE p1 = Dest_STD_PREDICATE p2)"
-apply (simp add: Dest_STD_PREDICATE_inject)
-done
 
 theorem Dest_STD_ALPHABET_inject_sym [simp, intro!] :
 "(p1 = p2) \<longleftrightarrow> (Dest_STD_PREDICATE p1 = Dest_STD_PREDICATE p2)"
@@ -100,14 +100,15 @@ text {* Predicate Syntax *}
 
 definition STD_alphabet ::
   "STD_PREDICATE \<Rightarrow> STD_TYPE ALPHABET" ("\<alpha>") where
-"\<alpha> p \<equiv> STD.alphabet (Dest_STD_PREDICATE p)"
+"\<alpha> p = STD.alphabet (Dest_STD_PREDICATE p)"
+
+declare STD_alphabet_def [simp]
 
 definition STD_predicate ::
   "STD_PREDICATE \<Rightarrow>
    (STD_VALUE, STD_TYPE) PREDICATE" ("\<pi>") where
-"\<pi> p \<equiv> STD.predicate (Dest_STD_PREDICATE p)"
+"\<pi> p = STD.predicate (Dest_STD_PREDICATE p)"
 
-declare STD_alphabet_def [simp]
 declare STD_predicate_def [simp]
 
 defs STD_binding_equiv [simp] :
@@ -172,16 +173,6 @@ defs STD_IffG [simp] :
    (Dest_STD_PREDICATE p1)
    (Dest_STD_PREDICATE p2))"
 
-defs STD_ExistsResG [simp] :
-"ExistsResG a p \<equiv>
- Mk_STD_PREDICATE
-   (STD.ExistsResA a (Dest_STD_PREDICATE p))"
-
-defs STD_ForallResG [simp] :
-"ForallResG a p \<equiv>
- Mk_STD_PREDICATE
-   (STD.ForallResA a (Dest_STD_PREDICATE p))"
-
 defs STD_ExistsG [simp] :
 "ExistsG a p \<equiv>
  Mk_STD_PREDICATE
@@ -191,6 +182,16 @@ defs STD_ForallG [simp] :
 "ForallG a p \<equiv>
  Mk_STD_PREDICATE
    (STD.ForallA a (Dest_STD_PREDICATE p))"
+
+defs STD_ExistsResG [simp] :
+"ExistsResG a p \<equiv>
+ Mk_STD_PREDICATE
+   (STD.ExistsResA a (Dest_STD_PREDICATE p))"
+
+defs STD_ForallResG [simp] :
+"ForallResG a p \<equiv>
+ Mk_STD_PREDICATE
+   (STD.ForallResA a (Dest_STD_PREDICATE p))"
 
 defs STD_ClosureG [simp] :
 "ClosureG p \<equiv>
@@ -216,6 +217,55 @@ defs STD_Refinement [simp] :
  STD.RefinementA
    (Dest_STD_PREDICATE p1)
    (Dest_STD_PREDICATE p2)"
+
+theorem meta_sym : "(A \<equiv> B) \<Longrightarrow> (B = A)"
+apply (auto)
+done
+
+subsection {* Proof Support *}
+
+theorems global_syntax_intro_simps =
+  sym [OF STD_alphabet_def]
+  sym [OF STD_predicate_def]
+  meta_sym [OF STD_binding_equiv]
+  meta_sym [OF STD_LiftG]
+  meta_sym [OF STD_TrueG]
+  meta_sym [OF STD_FalseG]
+  meta_sym [OF STD_TRUE]
+  meta_sym [OF STD_FALSE]
+  meta_sym [OF STD_ExtG]
+  meta_sym [OF STD_ResG]
+  meta_sym [OF STD_NotG]
+  meta_sym [OF STD_AndG]
+  meta_sym [OF STD_OrG]
+  meta_sym [OF STD_ImpliesG]
+  meta_sym [OF STD_IffG]
+  meta_sym [OF STD_ExistsG]
+  meta_sym [OF STD_ForallG]
+  meta_sym [OF STD_ExistsResG]
+  meta_sym [OF STD_ForallResG]
+  meta_sym [OF STD_ClosureG]
+  meta_sym [OF STD_RefG]
+  meta_sym [OF STD_Tautology]
+  meta_sym [OF STD_Contradiction]
+  meta_sym [OF STD_Refinement]
+
+ML {*
+  fun utp_syntax_intro_simpset ctxt =
+    HOL_basic_ss
+      addsimps @{thms global_syntax_intro_simps};
+*}
+
+ML {*
+  fun utp_syntax_intro_tac ctxt i =
+    TRY (asm_full_simp_tac (utp_syntax_intro_simpset ctxt) i);
+*}
+
+method_setup utp_syntax_intro = {*
+  Attrib.thms >>
+  (fn thms => fn ctxt =>
+    SIMPLE_METHOD' (utp_syntax_intro_tac ctxt))
+*} "proof tactic to (re)introduce global syntax"
 
 subsection {* Proof Experiments *}
 
@@ -260,7 +310,10 @@ theorem
 "\<lbrakk>(\<alpha> (p1 :: STD_PREDICATE)) = (\<alpha> p2);
  taut (p1 \<Rightarrow>u p2)\<rbrakk> \<Longrightarrow>
  p1 = (p1 \<and>u p2)"
+apply (simp)
+apply (utp_syntax_intro)
 apply (utp_alpha_tac)
+apply (utp_syntax_intro)
 apply (utp_pred_auto_tac)
 done
 end
