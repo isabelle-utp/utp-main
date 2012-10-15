@@ -140,7 +140,7 @@ defs STD_ExtG [simp] :
    (STD.ExtA (Dest_STD_PREDICATE p) a)"
 
 defs STD_ResG [simp] :
-"ResG p a\<equiv>
+"ResG p a \<equiv>
  Mk_STD_PREDICATE
    (STD.ResA (Dest_STD_PREDICATE p) a)"
 
