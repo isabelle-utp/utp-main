@@ -7,7 +7,9 @@
 header {* Common Definitions *}
 
 theory utp_common
-imports Main "~~/src/HOL/Algebra/Lattice"
+imports Main
+  "~~/src/HOL/Library/Countable"
+  "~~/src/HOL/Algebra/Lattice"
 begin
 
 subsection {* Configuration *}
@@ -17,6 +19,10 @@ text {* We want to use the colon for type membership in our model. *}
 no_notation
   Set.member ("op :") and
   Set.member ("(_/ : _)" [50, 51] 50)
+
+no_notation (xsymbols)
+  ord_class.less_eq  ("op \<le>") and
+  ord_class.less_eq  ("(_/ \<le> _)"  [51, 51] 50)
 
 text {* This prevents Isabelle from automatically splitting pairs. *}
 
@@ -41,6 +47,15 @@ ML {*
 *}
 
 setup closure.setup
+
+subsection {* Uncurrying *}
+
+text {* Isabelle provides a currying operator but it seems none for uncurrying. *}
+
+definition uncurry :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a \<times> 'b \<Rightarrow> 'c)" where
+"uncurry f = (\<lambda> p . f (fst p) (snd p))"
+
+declare uncurry [simp]
 
 subsection {* Function Override *}
 
