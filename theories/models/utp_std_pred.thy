@@ -75,19 +75,19 @@ done
 subsection {* Semantic Domains *}
 
 definition STD_ALPHABET [simp] :
-"STD_ALPHABET \<equiv> STD.WF_ALPHABET"
+"STD_ALPHABET = STD.WF_ALPHABET"
 
 definition STD_BINDING [simp] :
-"STD_BINDING \<equiv> STD.WF_BINDING"
+"STD_BINDING = STD.WF_BINDING"
 
 definition STD_BINDING_PRED [simp] :
-"STD_BINDING_PRED \<equiv> STD.WF_BINDING_PRED"
+"STD_BINDING_PRED = STD.WF_BINDING_PRED"
 
 definition STD_PREDICATE [simp] :
-"STD_PREDICATE \<equiv> STD.WF_ALPHA_PREDICATE"
+"STD_PREDICATE = STD.WF_ALPHA_PREDICATE"
 
 definition STD_FUNCTION [simp] :
-"STD_FUNCTION \<equiv> STD.WF_FUNCTION"
+"STD_FUNCTION = STD.WF_FUNCTION"
 
 subsection {* Global Syntax *}
 
@@ -114,106 +114,106 @@ declare STD_predicate_def [simp]
 defs STD_binding_equiv [simp] :
 "global_binding_equiv \<equiv> STD.binding_equiv"
 
-defs STD_LiftG [simp] :
-"LiftG a bfun \<equiv>
+defs STD_Lift [simp] :
+"utp_global.Lift a bfun \<equiv>
  Mk_STD_PREDICATE (STD.LiftA a bfun)"
 
-defs STD_TrueG [simp] :
-"TrueG a \<equiv>
+defs STD_True [simp] :
+"utp_global.True a \<equiv>
  Mk_STD_PREDICATE (STD.TrueA a)"
 
-defs STD_FalseG [simp] :
-"FalseG a \<equiv>
+defs STD_False [simp] :
+"utp_global.False a \<equiv>
  Mk_STD_PREDICATE (STD.FalseA a)"
 
 defs STD_TRUE [simp] :
-"TRUE \<equiv>
+"utp_global.TRUE \<equiv>
  Mk_STD_PREDICATE STD.TRUE"
 
 defs STD_FALSE [simp] :
-"FALSE \<equiv>
+"utp_global.FALSE \<equiv>
  Mk_STD_PREDICATE STD.FALSE"
 
-defs STD_ExtG [simp] :
-"ExtG p a \<equiv>
+defs STD_Ext [simp] :
+"utp_global.Ext p a \<equiv>
  Mk_STD_PREDICATE
    (STD.ExtA (Dest_STD_PREDICATE p) a)"
 
-defs STD_ResG [simp] :
-"ResG p a \<equiv>
+defs STD_Res [simp] :
+"utp_global.Res p a \<equiv>
  Mk_STD_PREDICATE
    (STD.ResA (Dest_STD_PREDICATE p) a)"
 
-defs STD_NotG [simp] :
-"NotG p \<equiv>
+defs STD_Not [simp] :
+"utp_global.Not p \<equiv>
  Mk_STD_PREDICATE
    (STD.NotA (Dest_STD_PREDICATE p))"
 
-defs STD_AndG [simp] :
-"AndG p1 p2 \<equiv>
+defs STD_And [simp] :
+"utp_global.And p1 p2 \<equiv>
  Mk_STD_PREDICATE (STD.AndA
    (Dest_STD_PREDICATE p1)
    (Dest_STD_PREDICATE p2))"
 
-defs STD_OrG [simp] :
-"OrG p1 p2 \<equiv>
+defs STD_Or [simp] :
+"utp_global.Or p1 p2 \<equiv>
  Mk_STD_PREDICATE (STD.OrA
    (Dest_STD_PREDICATE p1)
    (Dest_STD_PREDICATE p2))"
 
-defs STD_ImpliesG [simp] :
-"ImpliesG p1 p2 \<equiv>
+defs STD_Implies [simp] :
+"utp_global.Implies p1 p2 \<equiv>
  Mk_STD_PREDICATE (STD.ImpliesA
    (Dest_STD_PREDICATE p1)
    (Dest_STD_PREDICATE p2))"
 
-defs STD_IffG [simp] :
-"IffG p1 p2 \<equiv>
+defs STD_Iff [simp] :
+"utp_global.Iff p1 p2 \<equiv>
  Mk_STD_PREDICATE (STD.IffA
    (Dest_STD_PREDICATE p1)
    (Dest_STD_PREDICATE p2))"
 
-defs STD_ExistsG [simp] :
-"ExistsG a p \<equiv>
+defs STD_Exists [simp] :
+"utp_global.Exists a p \<equiv>
  Mk_STD_PREDICATE
    (STD.ExistsA a (Dest_STD_PREDICATE p))"
 
-defs STD_ForallG [simp] :
-"ForallG a p \<equiv>
+defs STD_Forall [simp] :
+"utp_global.Forall a p \<equiv>
  Mk_STD_PREDICATE
    (STD.ForallA a (Dest_STD_PREDICATE p))"
 
-defs STD_ExistsResG [simp] :
-"ExistsResG a p \<equiv>
+defs STD_ExistsRes [simp] :
+"utp_global.ExistsRes a p \<equiv>
  Mk_STD_PREDICATE
    (STD.ExistsResA a (Dest_STD_PREDICATE p))"
 
-defs STD_ForallResG [simp] :
-"ForallResG a p \<equiv>
+defs STD_ForallRes [simp] :
+"utp_global.ForallRes a p \<equiv>
  Mk_STD_PREDICATE
    (STD.ForallResA a (Dest_STD_PREDICATE p))"
 
-defs STD_ClosureG [simp] :
-"ClosureG p \<equiv>
+defs STD_Closure [simp] :
+"utp_global.Closure p \<equiv>
  Mk_STD_PREDICATE
    (STD.ClosureA (Dest_STD_PREDICATE p))"
 
-defs STD_RefG [simp] :
-"RefG p1 p2 \<equiv>
+defs STD_Ref [simp] :
+"utp_global.Ref p1 p2 \<equiv>
  Mk_STD_PREDICATE (STD.RefA
    (Dest_STD_PREDICATE p1)
    (Dest_STD_PREDICATE p2))"
 
 defs STD_Tautology [simp] :
-"Tautology p \<equiv>
+"utp_global.Tautology p \<equiv>
  STD.TautologyA (Dest_STD_PREDICATE p)"
 
 defs STD_Contradiction [simp] :
-"Contradiction p \<equiv>
+"utp_global.Contradiction p \<equiv>
  STD.ContradictionA (Dest_STD_PREDICATE p)"
 
 defs STD_Refinement [simp] :
-"Refinement p1 p2 \<equiv>
+"utp_global.Refinement p1 p2 \<equiv>
  STD.RefinementA
    (Dest_STD_PREDICATE p1)
    (Dest_STD_PREDICATE p2)"
@@ -228,43 +228,42 @@ theorems global_syntax_intro_simps =
   sym [OF STD_alphabet_def]
   sym [OF STD_predicate_def]
   meta_sym [OF STD_binding_equiv]
-  meta_sym [OF STD_LiftG]
-  meta_sym [OF STD_TrueG]
-  meta_sym [OF STD_FalseG]
+  meta_sym [OF STD_Lift]
+  meta_sym [OF STD_True]
+  meta_sym [OF STD_False]
   meta_sym [OF STD_TRUE]
   meta_sym [OF STD_FALSE]
-  meta_sym [OF STD_ExtG]
-  meta_sym [OF STD_ResG]
-  meta_sym [OF STD_NotG]
-  meta_sym [OF STD_AndG]
-  meta_sym [OF STD_OrG]
-  meta_sym [OF STD_ImpliesG]
-  meta_sym [OF STD_IffG]
-  meta_sym [OF STD_ExistsG]
-  meta_sym [OF STD_ForallG]
-  meta_sym [OF STD_ExistsResG]
-  meta_sym [OF STD_ForallResG]
-  meta_sym [OF STD_ClosureG]
-  meta_sym [OF STD_RefG]
+  meta_sym [OF STD_Ext]
+  meta_sym [OF STD_Res]
+  meta_sym [OF STD_Not]
+  meta_sym [OF STD_And]
+  meta_sym [OF STD_Or]
+  meta_sym [OF STD_Implies]
+  meta_sym [OF STD_Iff]
+  meta_sym [OF STD_Exists]
+  meta_sym [OF STD_Forall]
+  meta_sym [OF STD_ExistsRes]
+  meta_sym [OF STD_ForallRes]
+  meta_sym [OF STD_Closure]
+  meta_sym [OF STD_Ref]
   meta_sym [OF STD_Tautology]
   meta_sym [OF STD_Contradiction]
   meta_sym [OF STD_Refinement]
 
 ML {*
-  fun utp_syntax_intro_simpset ctxt =
+  fun global_syntax_intro_simpset ctxt =
     HOL_basic_ss
       addsimps @{thms global_syntax_intro_simps};
 *}
 
 ML {*
-  fun utp_syntax_intro_tac ctxt i =
-    TRY (asm_full_simp_tac (utp_syntax_intro_simpset ctxt) i);
+  fun global_syntax_intro_tac ctxt i =
+    TRY (asm_full_simp_tac (global_syntax_intro_simpset ctxt) i);
 *}
 
-method_setup utp_syntax_intro = {*
-  Attrib.thms >>
-  (fn thms => fn ctxt =>
-    SIMPLE_METHOD' (utp_syntax_intro_tac ctxt))
+method_setup global_syntax_intro = {*
+  Scan.succeed (fn ctxt =>
+    SIMPLE_METHOD' (global_syntax_intro_tac ctxt))
 *} "proof tactic to (re)introduce global syntax"
 
 subsection {* Proof Experiments *}
@@ -311,9 +310,10 @@ theorem
  taut (p1 \<Rightarrow>u p2)\<rbrakk> \<Longrightarrow>
  p1 = (p1 \<and>u p2)"
 apply (simp)
-apply (utp_syntax_intro)
+apply (global_syntax_intro)
 apply (utp_alpha_tac)
-apply (utp_syntax_intro)
+-- {* The following doesn't do much! *}
+apply (global_syntax_intro)
 apply (utp_pred_auto_tac)
 done
 end

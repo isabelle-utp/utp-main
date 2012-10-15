@@ -46,32 +46,34 @@ consts global_binding_equiv ::
    ('TYPE ALPHABET) \<Rightarrow> bool"
   ("_ \<cong> _ on _")
 
-consts LiftG ::
+consts Lift ::
   "('TYPE ALPHABET) \<Rightarrow> ('VALUE, 'TYPE) BINDING_PRED \<Rightarrow> 'PREDICATE"
 
-syntax "Lift_Syntax" ::
+syntax Lift_Syntax ::
   "'TYPE ALPHABET \<Rightarrow> idt \<Rightarrow> bool \<Rightarrow> 'PREDICATE" ("(1_ \<odot> _ \<bullet>/ _)")
 
 translations
-  "a \<odot> b \<bullet> P" == "CONST LiftG a (\<lambda> b . P)"
+  "a \<odot> b \<bullet> P" == "CONST Lift a (\<lambda> b . P)"
 
-consts ExtG ::
+consts Ext ::
   "'PREDICATE \<Rightarrow> ('TYPE ALPHABET) \<Rightarrow>
    'PREDICATE"
   (infix "\<oplus>u" 200)
 
-consts ResG ::
+consts Res ::
   "'PREDICATE \<Rightarrow> ('TYPE ALPHABET) \<Rightarrow>
    'PREDICATE"
   (infix "\<ominus>u" 200)
 
-consts TrueG ::
+consts True ::
   "'TYPE ALPHABET \<Rightarrow>
    'PREDICATE" ("true")
+hide_const (open) True
 
-consts FalseG ::
+consts False ::
   "'TYPE ALPHABET \<Rightarrow>
    'PREDICATE" ("false")
+hide_const (open) False
 
 consts TRUE ::
   "'PREDICATE" ("TRUE")
@@ -79,65 +81,65 @@ consts TRUE ::
 consts FALSE ::
   "'PREDICATE" ("FALSE")
 
-consts NotG ::
+consts Not ::
   "'PREDICATE \<Rightarrow>
    'PREDICATE"
   ("\<not>u _" [190] 190)
 
-consts AndG ::
+consts And ::
   "'PREDICATE \<Rightarrow>
    'PREDICATE \<Rightarrow>
    'PREDICATE"
   (infixr "\<and>u" 180)
 
-consts OrG ::
+consts Or ::
   "'PREDICATE \<Rightarrow>
    'PREDICATE \<Rightarrow>
    'PREDICATE"
   (infixr "\<or>u" 170)
 
-consts ImpliesG ::
+consts Implies ::
   "'PREDICATE \<Rightarrow>
    'PREDICATE \<Rightarrow>
    'PREDICATE"
   (infixr "\<Rightarrow>u" 160)
 
-consts IffG ::
+consts Iff ::
   "'PREDICATE \<Rightarrow>
    'PREDICATE \<Rightarrow>
    'PREDICATE"
   (infixr "\<Leftrightarrow>u" 150)
 
-consts ExistsG ::
+consts Exists ::
   "('TYPE ALPHABET) \<Rightarrow>
    'PREDICATE \<Rightarrow>
    'PREDICATE"
   ("(\<exists>u _ ./ _)" [0, 10] 10)
 
-consts ForallG ::
+consts Forall ::
   "('TYPE ALPHABET) \<Rightarrow>
    'PREDICATE \<Rightarrow>
    'PREDICATE"
   ("(\<forall>u _ ./ _)" [0, 10] 10)
 
-consts ExistsResG ::
+consts ExistsRes ::
   "('TYPE ALPHABET) \<Rightarrow>
    'PREDICATE \<Rightarrow>
    'PREDICATE"
   ("(\<exists>-u _ ./ _)" [0, 10] 10)
 
-consts ForallResG ::
+consts ForallRes ::
   "('TYPE ALPHABET) \<Rightarrow>
    'PREDICATE \<Rightarrow>
    'PREDICATE"
   ("(\<forall>-u _ ./ _)" [0, 10] 10)
 
-consts ClosureG ::
+consts Closure ::
   "'PREDICATE \<Rightarrow>
    'PREDICATE"
   ("[_]u")
 
-consts RefG ::
+consts Ref ::
   "'PREDICATE \<Rightarrow>
    'PREDICATE \<Rightarrow>
    'PREDICATE"
