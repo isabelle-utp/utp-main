@@ -1,22 +1,15 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
-(* File: utp_meta.thy                                                         *)
+(* File: utp_alpha.thy                                                        *)
 (* Author: Frank Zeyda, University of York (UK)                               *)
 (******************************************************************************)
 
-header {* Meta-Theory for Everything *}
+header {* Meta-Theory for Alphabetised Predicates *}
 
-theory utp_meta
+theory utp_alpha
 imports
-  utp_common
-  utp_global
-  "core/utp_core"
-  "alpha/utp_alpha"
-  "models/utp_models"
-  "models/utp_std_pred"
-  "tactics/utp_pred_tac"
-  "tactics/utp_rel_tac"
-  "tactics/utp_alpha_tac"
-  "utils/utp_sets"
+  utp_alphabet
+  utp_alpha_pred
+  utp_alpha_rel
 begin
 end

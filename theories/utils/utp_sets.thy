@@ -27,7 +27,7 @@ text {*
 
 type_synonym IDX = "nat"
 
-datatype 'a SET = MkSet "IDX \<Rightarrow> 'a" | EmptySet
+datatype 'a SET = MakeSet "IDX \<Rightarrow> 'a" | EmptySet
 
 subsection {* Core Operators *}
 
@@ -35,7 +35,7 @@ definition IdxSet :: "'a set \<Rightarrow> bool" where
 "(IdxSet s) \<longleftrightarrow> (s = {}) \<or> (\<exists> f :: IDX \<Rightarrow> 'a . s = range f)"
 
 primrec DecSet :: "'a SET \<Rightarrow> 'a set" where
-"DecSet (MkSet f) = range f" |
+"DecSet (MakeSet f) = range f" |
 "DecSet EmptySet = {}"
 
 definition EncSet :: "'a set \<Rightarrow> 'a SET" where
@@ -63,7 +63,7 @@ apply (clarify)
 apply (rule_tac Q =
   "DecSet (SOME x . DecSet x = range f) = range f" in contrapos_np)
 apply (assumption)
-apply (rule_tac a = "MkSet f" in someI2)
+apply (rule_tac a = "MakeSet f" in someI2)
 apply (simp_all)
 done
 
@@ -123,7 +123,7 @@ apply (rule_tac a = "x" in someI2)
 apply (simp_all)
 done
 
-text {* The following proof may fail if the definition of @{term IDX} changes. *}
+text {* The following proof may fail if the definition of @{typ IDX} changes. *}
 
 theorem IdxSet_union [simp] :
 "\<lbrakk>IdxSet s1; IdxSet s2\<rbrakk> \<Longrightarrow> IdxSet (s1 \<union> s2)"
@@ -246,7 +246,7 @@ subsection {* Type Class Indexable *}
 class indexable =
   assumes IdxSet [simp] : "\<forall> s :: 'a set . IdxSet s"
 
-text {* The following proof may fail if the definition of @{term IDX} changes. *}
+text {* The following proof may fail if the definition of @{typ IDX} changes. *}
 
 instance countable \<subseteq> indexable
 apply (intro_classes)

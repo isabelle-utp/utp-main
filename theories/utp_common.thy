@@ -7,14 +7,14 @@
 header {* Common Definitions *}
 
 theory utp_common
-imports Main
+imports Main Real
   "~~/src/HOL/Library/Countable"
   "~~/src/HOL/Algebra/Lattice"
 begin
 
 subsection {* Configuration *}
 
-text {* We want to use the colon for type membership in our model. *}
+text {* We are going to use the colon for type membership in our model. *}
 
 no_notation
   Set.member ("op :") and

@@ -7,7 +7,7 @@
 header {* Global Syntax *}
 
 theory utp_global
-imports utp_common "./core/utp_synonyms"
+imports utp_common "core/utp_synonyms"
 begin
 
 text {* This theory introduces generic constants for global syntax. *}
@@ -23,21 +23,23 @@ notation global_set_type_rel (infix ":\<subseteq>" 50)
 subsection {* Predicate Syntax *}
 
 text {*
-  We do not define generic constants for the alphabet and predicate operator.
-  The reason for this is that typing can become subtle with generic constants
-  here. Namely, it is not enough to type the operands in order to fully type
+  We do not define generic constants for the following two operators. The
+  reason for this is that typing can become subtle with generic constants
+  here. Namely, it is not enough to type the operand in order to fully type
   the operator. This can lead to unexpected behaviours during parsing; that
   is, for instance, instantiation of the operators with the wrong types.
 *}
+
+text {* TODO: I cannot quite follow the above anymore, review this! *}
 
 (*
 consts global_alphabet ::
   "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
    ('TYPE ALPHABET)" ("\<alpha>")
 
-consts global_bindings ::
+consts global_predicate ::
   "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('VALUE, 'TYPE) BINDING_PRED" ("\<beta>")
+   ('VALUE, 'TYPE) PREDICATE ("\<pi>")
 *)
 
 consts global_binding_equiv ::

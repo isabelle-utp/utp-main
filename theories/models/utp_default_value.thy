@@ -19,87 +19,108 @@ subsection {* Value Model *}
 datatype DEFAULT_VALUE =
   IntVal "int" |
   BoolVal "bool" |
-  StrVal "string"
+  StrVal "string" |
+  RealVal "real"
 
 datatype DEFAULT_TYPE =
   IntType |
   BoolType |
-  StrType
+  StringType |
+  RealType
 
 text {* Testing Functions *}
 
 primrec IsIntVal :: "DEFAULT_VALUE \<Rightarrow> bool" where
 "IsIntVal (IntVal _) = True" |
 "IsIntVal (BoolVal _) = False" |
-"IsIntVal (StrVal _) = False"
+"IsIntVal (StrVal _) = False" |
+"IsIntVal (RealVal _) = False"
 
 primrec IsBoolVal :: "DEFAULT_VALUE \<Rightarrow> bool" where
 "IsBoolVal (IntVal _) = False" |
 "IsBoolVal (BoolVal _) = True" |
-"IsBoolVal (StrVal _) = False"
+"IsBoolVal (StrVal _) = False" |
+"IsBoolVal (RealVal _) = False"
 
 primrec IsStrVal :: "DEFAULT_VALUE \<Rightarrow> bool" where
 "IsStrVal (IntVal _) = False" |
 "IsStrVal (BoolVal _) = False" |
-"IsStrVal (StrVal _) = True"
+"IsStrVal (StrVal _) = True" |
+"IsStrVal (RealVal _) = False"
+
+primrec IsRealVal :: "DEFAULT_VALUE \<Rightarrow> bool" where
+"IsRealVal (IntVal _) = False" |
+"IsRealVal (BoolVal _) = False" |
+"IsRealVal (StrVal _) = False" |
+"IsRealVal (RealVal _) = True"
 
 subsection {* Typing Relation *}
 
-fun default_type_rel :: "DEFAULT_VALUE \<Rightarrow> DEFAULT_TYPE \<Rightarrow> bool" where
+fun default_type_rel ::
+  "DEFAULT_VALUE \<Rightarrow> DEFAULT_TYPE \<Rightarrow> bool" where
 "default_type_rel (IntVal _) IntType = True" |
 "default_type_rel (IntVal _) BoolType = False" |
 "default_type_rel (IntVal _) StringType = False" |
+"default_type_rel (IntVal _) RealType = False" |
 "default_type_rel (BoolVal _) IntType = False" |
 "default_type_rel (BoolVal _) BoolType = True" |
 "default_type_rel (BoolVal _) StringType = False" |
+"default_type_rel (BoolVal _) RealType = False" |
 "default_type_rel (StrVal _) IntType = False" |
 "default_type_rel (StrVal _) BoolType = False" |
-"default_type_rel (StrVal _) StringType = True"
+"default_type_rel (StrVal _) StringType = True" |
+"default_type_rel (StrVal _) RealType = False" |
+"default_type_rel (RealVal _) IntType = False" |
+"default_type_rel (RealVal _) BoolType = False" |
+"default_type_rel (RealVal _) StringType = False" |
+"default_type_rel (RealVal _) RealType = True"
 
-defs default_type_rel [simp] :
+defs global_default_type_rel [simp] :
 "global_type_rel \<equiv> default_type_rel"
-
-fun default_value_ref :: "DEFAULT_VALUE \<Rightarrow> DEFAULT_VALUE \<Rightarrow> bool" where
-"default_value_ref v1 v2 = (v1 = v2)"
 
 subsection {* Sort Membership *}
 
-instantiation DEFAULT_VALUE :: BASIC_VALUE
+instantiation DEFAULT_VALUE :: BASIC_SORT
 begin
-definition WellFormed_DEFAULT_VALUE :: "DEFAULT_VALUE \<Rightarrow> bool" where
-"WellFormed_DEFAULT_VALUE v = True"
+definition Defined_DEFAULT_VALUE :: "DEFAULT_VALUE \<Rightarrow> bool" where
+"Defined_DEFAULT_VALUE v = True"
 definition MkInt_DEFAULT_VALUE :: "int \<Rightarrow> DEFAULT_VALUE" where
-"MkInt_DEFAULT_VALUE i = IntVal i"
+"MkInt_DEFAULT_VALUE = IntVal"
 primrec DestInt_DEFAULT_VALUE :: "DEFAULT_VALUE \<Rightarrow> int" where
 "DestInt_DEFAULT_VALUE (IntVal i) = i"
 definition IsInt_DEFAULT_VALUE :: "DEFAULT_VALUE \<Rightarrow> bool" where
 "IsInt_DEFAULT_VALUE = IsIntVal"
 definition MkBool_DEFAULT_VALUE :: "bool \<Rightarrow> DEFAULT_VALUE" where
-"MkBool_DEFAULT_VALUE b = BoolVal b"
+"MkBool_DEFAULT_VALUE = BoolVal"
 primrec DestBool_DEFAULT_VALUE :: "DEFAULT_VALUE \<Rightarrow> bool" where
 "DestBool_DEFAULT_VALUE (BoolVal b) = b"
 definition IsBool_DEFAULT_VALUE :: "DEFAULT_VALUE \<Rightarrow> bool" where
 "IsBool_DEFAULT_VALUE = IsBoolVal"
 definition MkStr_DEFAULT_VALUE :: "string \<Rightarrow> DEFAULT_VALUE" where
-"MkStr_DEFAULT_VALUE s = StrVal s"
+"MkStr_DEFAULT_VALUE = StrVal"
 primrec DestStr_DEFAULT_VALUE:: "DEFAULT_VALUE \<Rightarrow> string" where
 "DestStr_DEFAULT_VALUE (StrVal s) = s"
 definition IsStr_DEFAULT_VALUE :: "DEFAULT_VALUE \<Rightarrow> bool" where
 "IsStr_DEFAULT_VALUE = IsStrVal"
+definition MkReal_DEFAULT_VALUE :: "real \<Rightarrow> DEFAULT_VALUE" where
+"MkReal_DEFAULT_VALUE = RealVal"
+primrec DestReal_DEFAULT_VALUE:: "DEFAULT_VALUE \<Rightarrow> real" where
+"DestReal_DEFAULT_VALUE (RealVal s) = s"
+definition IsReal_DEFAULT_VALUE :: "DEFAULT_VALUE \<Rightarrow> bool" where
+"IsReal_DEFAULT_VALUE = IsRealVal"
 instance
 apply (intro_classes)
-apply(simp add: WellFormed_DEFAULT_VALUE_def)
-apply(simp add: MkBool_DEFAULT_VALUE_def DestBool_DEFAULT_VALUE_def)
-apply(simp add: WellFormed_DEFAULT_VALUE_def)
-apply(simp add: MkInt_DEFAULT_VALUE_def DestInt_DEFAULT_VALUE_def)
-apply(simp add: WellFormed_DEFAULT_VALUE_def)
-apply(simp add: MkStr_DEFAULT_VALUE_def DestStr_DEFAULT_VALUE_def)
+apply (simp_all add: Defined_DEFAULT_VALUE_def)
+apply (simp add: MkBool_DEFAULT_VALUE_def DestBool_DEFAULT_VALUE_def)
+apply (simp add: MkInt_DEFAULT_VALUE_def DestInt_DEFAULT_VALUE_def)
+apply (simp add: MkReal_DEFAULT_VALUE_def DestReal_DEFAULT_VALUE_def)
+apply (simp add: MkStr_DEFAULT_VALUE_def DestStr_DEFAULT_VALUE_def)
 done
 end
 
 text {* Default Simplifications *}
 
-declare WellFormed_DEFAULT_VALUE_def [simp]
+declare Defined_DEFAULT_VALUE_def [simp]
 declare MkInt_DEFAULT_VALUE_def [simp]
 declare DestInt_DEFAULT_VALUE_def [simp]
 declare IsInt_DEFAULT_VALUE_def [simp]
@@ -109,6 +130,9 @@ declare IsBool_DEFAULT_VALUE_def [simp]
 declare MkStr_DEFAULT_VALUE_def [simp]
 declare DestStr_DEFAULT_VALUE_def [simp]
 declare IsStr_DEFAULT_VALUE_def [simp]
+declare MkReal_DEFAULT_VALUE_def [simp]
+declare DestReal_DEFAULT_VALUE_def [simp]
+declare IsReal_DEFAULT_VALUE_def [simp]
 
 subsection {* Theorems *}
 
@@ -121,6 +145,8 @@ apply (auto)
 apply (rule_tac x = "BoolVal b" in exI)
 apply (auto)
 apply (rule_tac x = "StrVal s" in exI)
+apply (auto)
+apply (rule_tac x = "RealVal r" in exI)
 apply (auto)
 done
 

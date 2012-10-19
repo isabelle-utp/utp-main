@@ -5,7 +5,7 @@
 % further packages required for unusual symbols (see also
 % isabellesym.sty), use only when needed
 
-%\usepackage{amssymb}
+\usepackage{amssymb}
   %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
   %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
   %\<triangleq>, \<yen>, \<lozenge>
@@ -56,11 +56,19 @@
 
 \newpage
 
+\input{utp_global.tex}
+
+\newpage
+
 \input{utp_names.tex}
 
 \newpage
 
 \input{utp_synonyms.tex}
+
+\newpage
+
+\input{utp_sorts.tex}
 
 \newpage
 
@@ -108,6 +116,26 @@
 
 \newpage
 
+\input{utp_default_value.tex}
+
+\newpage
+
+\input{utp_complex_value.tex}
+
+\newpage
+
+\input{utp_flat_value.tex}
+
+\newpage
+
+\input{utp_ho_value.tex}
+
+\newpage
+
+\input{utp_std_pred.tex}
+
+\newpage
+
 \input{utp_pred_tac.tex}
 
 \newpage
@@ -117,6 +145,10 @@
 \newpage
 
 \input{utp_alpha_tac.tex}
+
+\newpage
+
+\input{utp_sets.tex}
 
 % optional bibliography
 %\bibliographystyle{abbrv}

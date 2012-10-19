@@ -25,7 +25,7 @@ locale STD_PRED =
   COMPLEX_VALUE "basic_type_rel" +
   ALPHA_PRED "complex_type_rel ::
     'VALUE COMPLEX_VALUE \<Rightarrow> 'TYPE COMPLEX_TYPE \<Rightarrow> bool"
-for basic_type_rel :: "'VALUE :: BASIC_VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool"
+for basic_type_rel :: "'VALUE :: BASIC_SORT \<Rightarrow> 'TYPE \<Rightarrow> bool"
 
 subsection {* Locale Interpretation *}
 
