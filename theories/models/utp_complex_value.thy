@@ -338,7 +338,7 @@ end
 
 subsection {* Theorems *}
 
-theorem complex_type_rel_VALUE [intro!] :
+theorem complex_type_rel_VALUE [simp, intro!] :
 "VALUE (global_type_rel :: 'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool) \<Longrightarrow>
  VALUE (complex_type_rel :: ('VALUE, 'TYPE) COMPLEX_TYPE_REL)"
 apply (simp add: VALUE_def)

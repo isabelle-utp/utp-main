@@ -54,6 +54,15 @@ definition LiftA ::
  f \<in> WF_BINDING_PRED a \<longrightarrow>
  LiftA a f = (a, LiftP f)"
 
+subsubsection {* Equality *}
+
+definition EqualsA ::
+  "'TYPE VAR \<Rightarrow> 'VALUE \<Rightarrow>
+   ('VALUE, 'TYPE) ALPHA_PREDICATE" where
+"EqualsA v x = ({v}, v =p x)"
+
+notation EqualsA (infix "=\<alpha>" 210)
+
 subsubsection {* Extension and Restriction *}
 
 definition ExtA ::
@@ -278,6 +287,15 @@ apply (simp add: closure)
 apply (auto intro: unrest)
 done
 
+theorem EqualsA_closure [closure] :
+"v =\<alpha> x \<in> WF_ALPHA_PREDICATE"
+apply (simp add: EqualsA_def)
+apply (simp add: WF_ALPHA_PREDICATE_def)
+apply (simp add: WF_PREDICATE_OVER_def)
+apply (simp add: closure)
+apply (auto intro: unrest)
+done
+
 theorem ExtP_closure [closure] :
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE;
  a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
@@ -446,6 +464,11 @@ theorem LiftA_alphabet [alphabet] :
  f \<in> WF_BINDING_PRED a\<rbrakk> \<Longrightarrow>
  \<alpha> (LiftA a (\<lambda> b . f b)) = a"
 apply (simp add: LiftA_def)
+done
+
+theorem EqualsA_alphabet [alphabet] :
+"\<alpha> (v =\<alpha> x) = {v}"
+apply (simp add: EqualsA_def)
 done
 
 theorem TrueA_alphabet [alphabet] :

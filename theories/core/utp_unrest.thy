@@ -97,6 +97,14 @@ apply (drule_tac x = "b1 \<oplus> b2 on (VAR - vs)" in spec)
 apply (simp add: binding_equiv_def)
 done
 
+theorem UNREST_EqualsP :
+"UNREST (VAR - {v}) (v =p x)"
+apply (simp add: EqualsP_def)
+apply (rule UNREST_LiftP)
+apply (simp add: WF_BINDING_PRED_def)
+apply (simp add: binding_equiv_def)
+done
+
 theorem UNREST_TrueP :
 "UNREST vs true"
 apply (simp add: UNREST_def TrueP_def)
@@ -280,6 +288,7 @@ declare UNREST_empty [unrest]
 declare UNREST_subset [unrest]
 declare UNREST_union [unrest]
 declare UNREST_LiftP_alt [unrest]
+declare UNREST_EqualsP [unrest]
 declare UNREST_TrueP [unrest]
 declare UNREST_FalseP [unrest]
 declare UNREST_NotP [unrest]

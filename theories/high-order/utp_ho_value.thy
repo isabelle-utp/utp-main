@@ -328,7 +328,40 @@ end
 
 subsection {* Theorems *}
 
-theorem VALUE_ho_type_rel [simp] :
+theorem global_ho_type_rel_intro :
+"(ho_type_rel v t) = (v : t)"
+apply (simp)
+done
+
+theorem IsNormType_type [simp] :
+"\<lbrakk>IsNormVar v\<rbrakk> \<Longrightarrow> IsNormType (type v)"
+apply (simp add: IsNormVar_def)
+done
+
+theorem IsProgType_type [simp] :
+"\<lbrakk>IsProgVar m\<rbrakk> \<Longrightarrow> IsProgType (type m)"
+apply (simp add: IsProgVar_def)
+done
+
+theorem IsNormVal_intro [simp, intro] :
+"\<lbrakk>IsNormType t; v : t\<rbrakk> \<Longrightarrow> IsNormVal v"
+apply (atomize (full))
+apply (induct_tac t)
+apply (simp_all)
+apply (induct_tac v)
+apply (simp_all)
+done
+
+theorem IsProgVal_intro [simp, intro] :
+"\<lbrakk>IsProgType t; v : t\<rbrakk> \<Longrightarrow> IsProgVal v"
+apply (atomize (full))
+apply (induct_tac t)
+apply (simp_all)
+apply (induct_tac v)
+apply (simp_all)
+done
+
+theorem VALUE_ho_type_rel [simp, intro!] :
 "VALUE prog_type_rel \<Longrightarrow> VALUE ho_type_rel"
 apply (simp add: VALUE_def)
 apply (clarify)
@@ -393,8 +426,10 @@ text {* Concrete Rank Induction Theorems *}
 
 theorems RankType_induct_thm = generic_rank_induct_thm [where r = "RankType"]
 theorems RankType_induct_rule = generic_rank_induct_rule [where r = "RankType"]
+
 theorems RankVar_induct_thm = generic_rank_induct_thm [where r = "RankVar"]
 theorems RankVar_induct_rule = generic_rank_induct_rule [where r = "RankVar"]
+
 theorems RankAlpha_induct_thm = generic_rank_induct_thm [where r = "RankAlpha"]
 theorems RankAlpha_induct_rule = generic_rank_induct_rule [where r = "RankAlpha"]
 end

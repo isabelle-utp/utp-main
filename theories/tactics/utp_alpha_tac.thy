@@ -58,6 +58,12 @@ apply (simp add: EvalA_def)
 apply (simp add: LiftA_def)
 done
 
+theorem EvalA_EqualsA [evala] :
+"\<lbrakk>v =\<alpha> x\<rbrakk>\<pi> = (v =p x)"
+apply (simp add: EvalA_def)
+apply (simp add: EqualsA_def)
+done
+
 theorem EvalA_TrueA [evala] :
 "a \<in> WF_ALPHABET \<Longrightarrow>
  \<lbrakk>true a\<rbrakk>\<pi> = true"

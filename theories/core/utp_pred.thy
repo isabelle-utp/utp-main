@@ -22,7 +22,7 @@ subsection {* Bindings *}
 
 text {* We require bindings to be well-typed. *}
 
-definition WF_BINDING :: "('VALUE, 'TYPE) BINDING_SET" where
+definition WF_BINDING :: "('VALUE, 'TYPE) BINDING set" where
 "WF_BINDING = {b . \<forall> v . (b v) : (type v)}"
 
 text {* Binding Equivalence *}
@@ -61,6 +61,15 @@ definition LiftP ::
   "('VALUE, 'TYPE) BINDING_PRED \<Rightarrow>
    ('VALUE, 'TYPE) PREDICATE" where
 "LiftP f = {b \<in> WF_BINDING . f b}"
+
+subsubsection {* Equality *}
+
+definition EqualsP ::
+  "'TYPE VAR \<Rightarrow> 'VALUE \<Rightarrow>
+   ('VALUE, 'TYPE) PREDICATE" where
+"EqualsP v x = LiftP (\<lambda> b . b v = x)"
+
+notation EqualsP (infix "=p" 210)
 
 subsubsection {* True and False *}
 
@@ -201,10 +210,6 @@ definition Refinement ::
 
 notation Refinement (infix "\<sqsubseteq>" 50)
 
-(***********************)
-(* REVIEWED UNTIL HERE *)
-(***********************)
-
 subsection {* Theorems *}
 
 subsubsection {* Binding Theorems *}
@@ -298,6 +303,12 @@ theorem LiftP_closure [closure] :
 apply (simp add: LiftP_def)
 apply (simp add: WF_PREDICATE_def)
 apply (auto)
+done
+
+theorem EqualsP_closure [closure] :
+"v =p x \<in> WF_PREDICATE"
+apply (simp add: EqualsP_def)
+apply (auto simp: closure)
 done
 
 theorem TrueP_closure [closure] :

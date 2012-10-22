@@ -49,6 +49,20 @@ done
 
 subsection {* Distribution Theorems *}
 
+theorem EvalP_LiftP [eval] :
+"\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+ \<lbrakk>LiftP f\<rbrakk>b = f b"
+apply (simp add: EvalP_def)
+apply (simp add: LiftP_def)
+done
+
+theorem EvalP_EqualsP [eval] :
+"\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+ \<lbrakk>v =p x\<rbrakk>b = (b v = x)"
+apply (simp add: EqualsP_def)
+apply (simp add: EvalP_LiftP)
+done
+
 theorem EvalP_TrueP [eval] :
 "\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  \<lbrakk>true\<rbrakk>b = True"
