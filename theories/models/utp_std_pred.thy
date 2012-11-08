@@ -31,7 +31,6 @@ subsection {* Locale Interpretation *}
 
 interpretation STD : STD_PRED "default_type_rel"
 apply (simp add: STD_PRED_def ALPHA_PRED_def PRED_def)
-apply (auto)
 done
 
 subsection {* Type Definitions *}
@@ -217,10 +216,6 @@ defs STD_Refinement [simp] :
  STD.RefinementA
    (Dest_STD_PREDICATE p1)
    (Dest_STD_PREDICATE p2)"
-
-theorem meta_sym : "(A \<equiv> B) \<Longrightarrow> (B = A)"
-apply (auto)
-done
 
 subsection {* Proof Support *}
 

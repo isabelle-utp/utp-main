@@ -1,7 +1,7 @@
 (******************************************************************************)
-(* Project: Mechanisation of the UTP                                          *)
-(* File: utp/models/utp_ho_pred.thy                                           *)
-(* Author: Frank Zeyda, University of York                                    *)
+(* Project: Unifying Theories of Programming in HOL                           *)
+(* File: utp_ho_pred.thy                                                      *)
+(* Author: Frank Zeyda, University of York (UK)                               *)
 (******************************************************************************)
 
 header {* HO Predicates *}
@@ -15,7 +15,7 @@ begin
 
 subsection {* Undeclaring Notations *}
 
-text {* Having to undeclare the global typing operator is a bit of an issue. *}
+text {* Having to undeclare the global typing operator here is an issue. *}
 
 no_notation global_type_rel (infix ":" 50)
 
@@ -163,7 +163,7 @@ apply (simp_all add: DestProg_def)
 apply (simp_all add: fix_type_rel)
 done
 
-subsection {* Progam Variables *}
+subsection {* Program Variables *}
 
 theorem WF_ALPHABET_var_alphabet [closure] :
 "IsProgVar m \<Longrightarrow> (\<alpha> m) \<in> WF_ALPHABET"

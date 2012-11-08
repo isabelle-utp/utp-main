@@ -7,12 +7,14 @@
 header {* Common Definitions *}
 
 theory utp_common
-imports Main Real
+imports Main Real HOLCF
   "~~/src/HOL/Library/Countable"
   "~~/src/HOL/Algebra/Lattice"
 begin
 
 subsection {* Configuration *}
+
+default_sort type
 
 text {* We are going to use the colon for type membership in our model. *}
 
@@ -146,5 +148,11 @@ theorem inj_on_eval_intro :
 "inj_on f s \<Longrightarrow>
  \<lbrakk>x1 \<in> s; x2 \<in> s; f x1 = f x2\<rbrakk> \<Longrightarrow> x1 = x2"
 apply (simp add: inj_on_eval_simp)
+done
+
+subsection {* Miscellaneous *}
+
+theorem meta_sym : "(A \<equiv> B) \<Longrightarrow> (B = A)"
+apply (auto)
 done
 end

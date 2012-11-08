@@ -15,16 +15,16 @@ imports
 begin
 
 text {*
-  In this theory we provide a basic model for HO predicates. This cannot be
+  In this theory, we provide a basic model for HO predicates. This cannot be
   simply done by interpretation of the @{term ALPHA_PRED} locale as we would
   have to discharge @{term "VALUE ho_type_rel"}. However, @{const ho_type_rel}
-  only becomes fully meaningful when the type morphisms for @{type PROG_VALUE}
-  are defined. In turn, the morphisms require the higher-order predicate model
-  to be in place. To break this circularity, we duplicate the core definitions
-  of @{term PRED} and @{term ALPHA_PRED} just so that the morphism can be
-  defined. This is slightly cumbersome, but the only alternative solution may
-  be to endow predicate locales with weaker assumptions and I am not sure this
-  is an elegant and desirable solution either as it create surplus structure.
+  only becomes meaningful when the type morphisms for @{type PROG_VALUE} are
+  defined. In turn, the morphisms require the higher-order predicate model
+  to be in place, which is where a circularity occurs. To break it, we here
+  duplicate the core definitions of @{term PRED} and @{term ALPHA_PRED} just
+  so that the morphism can be defined. This is slightly cumbersome but the
+  only alternative solution may be to endow predicate locales with weaker
+  assumptions on the value model; I am not sure that is a feasible solution.
 *}
 
 subsection {* HO Alphabets *}
@@ -41,6 +41,21 @@ definition HO_UNREST ::
   "(HO_TYPE VAR) set \<Rightarrow> (HO_VALUE, HO_TYPE) PREDICATE \<Rightarrow> bool" where
 "HO_UNREST vs p \<longleftrightarrow> (\<forall> b1 \<in> p . \<forall> b2 \<in> HO_BINDING . b1 \<oplus> b2 on vs \<in> p)"
 
+subsection {* Predicate Rank *}
+
+abbreviation ho_alphabet ::
+  "(HO_VALUE, HO_TYPE) ALPHA_PREDICATE \<Rightarrow>
+   (HO_TYPE ALPHABET)" ("\<alpha>") where
+"ho_alphabet p \<equiv> (fst p)"
+
+abbreviation ho_predicate ::
+  "(HO_VALUE, HO_TYPE) ALPHA_PREDICATE \<Rightarrow>
+   (HO_VALUE, HO_TYPE) PREDICATE" ("\<pi>") where
+"ho_predicate p \<equiv> (snd p)"
+
+definition Rank :: "(HO_VALUE, HO_TYPE) ALPHA_PREDICATE \<Rightarrow> nat" where
+"p \<in> HO_ALPHA_PREDICATE \<Longrightarrow> Rank p = RankAlpha (\<alpha> p)"
+
 subsection {* HO Predicates *}
 
 definition HO_PREDICATE :: "(HO_VALUE, HO_TYPE) PREDICATE set" where
@@ -50,26 +65,19 @@ definition HO_PREDICATE_OVER ::
   "(HO_TYPE VAR) set \<Rightarrow> (HO_VALUE, HO_TYPE) PREDICATE set" where
 "HO_PREDICATE_OVER vs = {p . p \<in> HO_PREDICATE \<and> HO_UNREST (VAR - vs) p}"
 
-subsection {* HO Alphabetised Predicates *}
-
-abbreviation ho_alphabet ::
-  "(HO_VALUE, HO_TYPE) ALPHA_PREDICATE \<Rightarrow>
-   (HO_TYPE ALPHABET)" where
-"ho_alphabet p \<equiv> (fst p)"
-
-notation ho_alphabet ("\<alpha>")
-
-abbreviation ho_predicate ::
-  "(HO_VALUE, HO_TYPE) ALPHA_PREDICATE \<Rightarrow>
-   (HO_VALUE, HO_TYPE) PREDICATE" where
-"ho_predicate p \<equiv> (snd p)"
-
-notation ho_predicate ("\<pi>")
-
 definition HO_ALPHA_PREDICATE ::
   "(HO_VALUE, HO_TYPE) ALPHA_PREDICATE set" where
 "HO_ALPHA_PREDICATE =
  {p . (\<alpha> p) \<in> HO_ALPHABET \<and> (\<pi> p) \<in> HO_PREDICATE_OVER (\<alpha> p)}"
+
+definition HO_ALPHA_PREDICATE_OVER ::
+  "HO_TYPE ALPHABET \<Rightarrow> (HO_VALUE, HO_TYPE) ALPHA_PREDICATE set" where
+"a \<in> HO_ALPHABET \<Longrightarrow>
+ HO_ALPHA_PREDICATE_OVER a = {p . p \<in> HO_ALPHA_PREDICATE \<and> (\<alpha> p) = a}"
+
+definition HO_ALPHA_PREDICATE_RANK ::
+  "nat \<Rightarrow> (HO_VALUE, HO_TYPE) ALPHA_PREDICATE set" where
+"HO_ALPHA_PREDICATE_RANK n = {p . p \<in> HO_ALPHA_PREDICATE \<and> Rank p = n}"
 
 theorems ho_model_simps =
   HO_ALPHABET_def
@@ -78,10 +86,12 @@ theorems ho_model_simps =
   HO_PREDICATE_def
   HO_PREDICATE_OVER_def
   HO_ALPHA_PREDICATE_def
+  HO_ALPHA_PREDICATE_OVER_def
+  HO_ALPHA_PREDICATE_RANK_def
 
 subsection {* Theorems *}
 
-text {* TODO: Check where the theorems below are actually needed. *}
+text {* TODO: Check where these  theorems are still required. *}
 
 subsubsection {* HO Alphabets *}
 
@@ -101,8 +111,7 @@ done
 subsubsection {* HO Bindings *}
 
 theorem HO_BINDING_subset [simp] :
-"\<lbrakk>b \<in> bs; bs \<subseteq> HO_BINDING\<rbrakk> \<Longrightarrow>
- b \<in> HO_BINDING"
+"\<lbrakk>b \<in> bs; bs \<subseteq> HO_BINDING\<rbrakk> \<Longrightarrow> b \<in> HO_BINDING"
 apply (auto)
 done
 
@@ -114,6 +123,8 @@ apply (simp add: HO_PREDICATE_OVER_def)
 apply (simp add: HO_PREDICATE_def HO_BINDING_def)
 apply (auto)
 done
+
+subsubsection {* HO Alphabetised Predicates *}
 
 theorem HO_ALPHA_PREDICATE_equals :
 "\<lbrakk>p1 \<in> HO_ALPHA_PREDICATE;

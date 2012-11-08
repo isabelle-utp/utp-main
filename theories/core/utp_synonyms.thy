@@ -7,7 +7,7 @@
 header {* Type Synonyms *}
 
 theory utp_synonyms
-imports utp_names
+imports utp_names utp_sorts
 begin
 
 text {* This theory defines type synonyms for the various semantic domains. *}
@@ -43,4 +43,23 @@ type_synonym ('VALUE, 'TYPE) ALPHA_PREDICATE =
 type_synonym ('VALUE, 'TYPE) ALPHA_FUNCTION =
   "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
    ('VALUE, 'TYPE) ALPHA_PREDICATE"
+
+subsection {* Translations *}
+
+translations
+  (type) "NAME \<times> 'TYPE" => (type) "'TYPE VAR"
+
+translations
+  (type) "('TYPE VAR) \<Rightarrow> 'VALUE" =>
+  (type) "('VALUE, 'TYPE) BINDING"
+
+translations
+  (type) "('VALUE, 'TYPE) BINDING set" =>
+  (type) "('VALUE, 'TYPE) PREDICATE"
+
+(*
+translations
+  (type) "('TYPE ALPHABET) \<times> ('VALUE, 'TYPE) PREDICATE" =>
+  (type) "('VALUE :: VALUE_SORT, 'TYPE) ALPHA_PREDICATE"
+*)
 end

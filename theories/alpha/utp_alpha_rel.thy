@@ -117,8 +117,12 @@ apply (simp_all)
 apply (auto simp add: SS1_def)
 done
 
+(* Causes a duplicate definition in utp_ho_inst. Maybe we should use a theorem attribute here. *)
+
+(*
 theorems SS1_simps = SS1_simps
   SS1_UNDASHED_DASHED_image
+*)
 
 theorem SS2_UNDASHED_DASHED_image :
 "\<lbrakk>vs \<subseteq> UNDASHED \<union> DASHED\<rbrakk> \<Longrightarrow>
@@ -129,8 +133,12 @@ apply (simp_all)
 apply (auto simp add: SS2_def)
 done
 
+(* Causes a duplicate definition in utp_ho_inst. Maybe we should use a theorem attribute here. *)
+
+(*
 theorems SS2_simps = SS2_simps
   SS2_UNDASHED_DASHED_image
+*)
 
 subsubsection {* Closure Theorems *}
 
