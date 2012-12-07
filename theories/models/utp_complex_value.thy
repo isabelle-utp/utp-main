@@ -23,7 +23,7 @@ datatype 'VALUE COMPLEX_VALUE =
   BaseVal "'VALUE" |
   PairVal "'VALUE COMPLEX_VALUE" "'VALUE COMPLEX_VALUE" |
   SetVal "'VALUE COMPLEX_VALUE SET" |
-  VoidVal -- {* Use to encode undefined results. *}
+  VoidVal -- {* This value is use to encode undefined results. *}
 
 datatype 'TYPE COMPLEX_TYPE =
   BaseType "'TYPE" |
@@ -58,28 +58,28 @@ primrec IsBaseVal ::
 "IsBaseVal (BaseVal v) = True" |
 "IsBaseVal (PairVal v1 v2) = False" |
 "IsBaseVal (SetVal vs) = False" |
-"IsBaseVal VoidVal = False"
+"IsBaseVal (VoidVal) = False"
 
 primrec IsPairVal ::
   "'VALUE COMPLEX_VALUE \<Rightarrow> bool" where
 "IsPairVal (BaseVal v) = False" |
 "IsPairVal (PairVal v1 v2) = True" |
 "IsPairVal (SetVal vs) = False" |
-"IsPairVal VoidVal = False"
+"IsPairVal (VoidVal) = False"
 
 primrec IsSetVal ::
   "'VALUE COMPLEX_VALUE \<Rightarrow> bool" where
 "IsSetVal (BaseVal v) = False" |
 "IsSetVal (PairVal v1 v2) = False" |
 "IsSetVal (SetVal vs) = True" |
-"IsSetVal VoidVal = False"
+"IsSetVal (VoidVal) = False"
 
 primrec IsVoidVal ::
   "'VALUE COMPLEX_VALUE \<Rightarrow> bool" where
 "IsVoidVal (BaseVal v) = False" |
 "IsVoidVal (PairVal v1 v2) = False" |
 "IsVoidVal (SetVal vs) = False" |
-"IsVoidVal VoidVal = True"
+"IsVoidVal (VoidVal) = True"
 
 text {* Abbreviations *}
 
@@ -96,14 +96,13 @@ abbreviation DecSetOf ::
 
 subsection {* Well-formed Values *}
 
-text {* A recursive definition here fails due to the termination proof. *}
+text {* A recursive definition below fails due to the termination proof. *}
 
 inductive WellFormed ::
   "('VALUE :: VALUE_SORT) COMPLEX_VALUE \<Rightarrow> bool" where
 "(Defined v) \<Longrightarrow> WellFormed (BaseVal v)" |
 "(WellFormed v1) \<and>
- (WellFormed v2) \<Longrightarrow>
- WellFormed (PairVal v1 v2)" |
+ (WellFormed v2) \<Longrightarrow> WellFormed (PairVal v1 v2)" |
 "(\<forall> v \<in> vs . WellFormed v) \<and> IdxSet vs \<Longrightarrow>
  WellFormed (EncSetVal vs)"
 
@@ -115,8 +114,7 @@ done
 
 subsection {* Typing Relation *}
 
-fun complex_type_rel ::
-  "('VALUE, 'TYPE) COMPLEX_TYPE_REL" where
+fun complex_type_rel :: "('VALUE, 'TYPE) COMPLEX_TYPE_REL" where
 "complex_type_rel (BaseVal v) (BaseType t) =
    (global_type_rel v t)" |
 "complex_type_rel (PairVal v1 v2) (PairType t1 t2) \<longleftrightarrow>
@@ -134,8 +132,8 @@ subsection {* Sort Membership *}
 
 text {*
   The definedness notion we use in the instantiation below is weaker than
-  the one of well-formedness via the inductive predicate @{const WellFormed}.
-  It is nevertheless sufficient to discharge the axioms of the type class.
+  well-formedness as introduced by the the inductive predicate above. But
+  it is nevertheless sufficient to discharge the axioms of the type class.
   The main reason for using it is that it simplifies proofs about values.
 *}
 

@@ -102,7 +102,6 @@ theorem UNREST_EqualsP :
 apply (simp add: EqualsP_def)
 apply (rule UNREST_LiftP)
 apply (simp add: WF_BINDING_PRED_def)
-apply (simp add: binding_equiv_def)
 done
 
 theorem UNREST_TrueP :

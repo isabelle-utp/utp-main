@@ -274,6 +274,12 @@ apply (assumption)
 apply (simp add: closure)
 done
 
+theorem WF_BINDING_member_alpha [simp, intro] :
+"\<lbrakk>b \<in> (\<pi> p); p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow> b \<in> WF_BINDING"
+apply (simp add: WF_ALPHA_PREDICATE_def)
+apply (simp add: WF_PREDICATE_OVER_def WF_PREDICATE_def)
+done
+
 subsubsection {* Closure Theorems *}
 
 theorem LiftA_closure [closure] :
@@ -672,4 +678,19 @@ apply (simp add: TrueA_def FalseA_def)
 apply (simp add: TrueP_noteq_FalseP)
 done
 end
+
+subsection {* Locale @{text "ALPHA_PRED_BOT"} *}
+
+locale ALPHA_PRED_BOT =
+  ALPHA_PRED "type_rel" +
+  PRED_BOT "type_rel"
+for type_rel :: "'VALUE :: BOT_SORT \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50)
+
+subsection {* Locale @{text "ALPHA_PRED_BOOL"} *}
+
+locale ALPHA_PRED_BOOL =
+  ALPHA_PRED_BOT "type_rel" +
+  PRED_BOOL "type_rel"
+for type_rel :: "'VALUE :: {BOOL_SORT, BOT_SORT} \<Rightarrow>
+    'TYPE :: BOOL_TYPE \<Rightarrow> bool" (infix ":" 50)
 end

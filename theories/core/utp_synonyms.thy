@@ -30,6 +30,9 @@ type_synonym ('VALUE, 'TYPE) BINDING_PRED =
 type_synonym ('VALUE, 'TYPE) BINDING_FUN =
   "('VALUE, 'TYPE) BINDING \<Rightarrow> 'VALUE"
 
+type_synonym ('VALUE, 'TYPE) EXPRESSION =
+  "('VALUE, 'TYPE) BINDING_FUN"
+
 type_synonym ('VALUE, 'TYPE) PREDICATE =
   "('VALUE, 'TYPE) BINDING_SET"
 
