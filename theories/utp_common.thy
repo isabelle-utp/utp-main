@@ -16,19 +16,15 @@ subsection {* Configuration *}
 
 default_sort type
 
-hide_const (open) partial_object.carrier
-
 text {* We are going to use the colon for type membership in our model. *}
 
 no_notation
   Set.member ("op :") and
   Set.member ("(_/ : _)" [50, 51] 50)
 
-(*
 no_notation (xsymbols)
   ord_class.less_eq  ("op \<le>") and
   ord_class.less_eq  ("(_/ \<le> _)"  [51, 51] 50)
-*)
 
 text {* This prevents Isabelle from automatically splitting pairs. *}
 
@@ -38,10 +34,6 @@ declare split_paired_Ex [simp del]
 declaration {* fn _ =>
   Classical.map_cs (fn cs => cs delSWrapper "split_all_tac")
 *}
-
-text {* Needed for the proofs in the higher-order model. *}
-
-declare One_nat_def [simp del]
 
 text {* Temporary hack, comment out when there are no sorrys. *}
 
@@ -58,54 +50,12 @@ ML {*
 
 setup closure.setup
 
-ML {*
-  structure typing =
-    Named_Thms (val name = @{binding typing} val description = "typing theorems")
-*}
-
-setup typing.setup
-
 text {* Type Definitions *}
 
-theorem bij_betw_type_definition :
-"bij_betw Abs A UNIV \<Longrightarrow> type_definition (the_inv_into A Abs) Abs A"
-apply (simp add: bij_betw_def)
-apply (clarify)
-apply (simp add: type_definition_def)
-apply (safe)
--- {* Subgoal 1 *}
-apply (rule the_inv_into_into)
-apply (assumption)
-apply (simp_all)
--- {* Subgoal 2 *}
-apply (simp add: f_the_inv_into_f)
--- {* Subgoal 2 *}
-apply (simp add: the_inv_into_f_f)
-done
-
-context type_definition
-begin
-theorem Rep_inject_sym [simp, intro!] :
+lemma (in type_definition) Rep_inject_sym [simp, intro!] :
 "(x = y) \<longleftrightarrow> (Rep x = Rep y)"
 apply (simp only: Rep_inject)
 done
-
-theorem Abs_inj_on [simp] :
-"inj_on Abs A"
-apply (rule inj_onI)
-apply (simp only: Abs_inject)
-done
-
-theorem Abs_image_UNIV [simp] :
-"Abs ` A = UNIV"
-apply (simp add: image_def)
-apply (simp add: set_eq_iff)
-apply (clarify)
-apply (rule_tac x = "Rep x" in bexI)
-apply (simp add: Rep_inverse)
-apply (simp add: Rep)
-done
-end
 
 subsection {* Uncurrying *}
 
@@ -150,12 +100,6 @@ theorem override_on_singleton :
 "(f \<oplus> g on {x}) = f(x := g x)"
 apply (rule ext)
 apply (auto)
-done
-
-theorem override_on_fun_upd [simp] :
-"(f \<oplus> g on a)(x := v) = f(x := v) \<oplus> g on (a - {x})"
-apply (rule ext)
-apply (simp add: override_on_def)
 done
 
 theorem override_on_chain [simp] :

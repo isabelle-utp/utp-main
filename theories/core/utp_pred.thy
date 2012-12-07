@@ -255,17 +255,7 @@ done
 
 theorem WF_BINDING_app_carrier [intro] :
 "\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow> (b v) \<in> carrier (type v)"
-apply (simp add: carrier_member)
-apply (erule WF_BINDING_app_type)
-done
-
-theorem WF_BINDING_app_carrier_types [simp, intro] :
-"\<lbrakk>b \<in> WF_BINDING; (type v) \<in> ts\<rbrakk> \<Longrightarrow>
- (b v) \<in> (carrier_types ts)"
-apply (simp add: carrier_types_member)
-apply (rule_tac x = "type v" in bexI)
-apply (erule WF_BINDING_app_carrier)
-apply (assumption)
+apply (simp add: WF_BINDING_app_type carrier_def)
 done
 
 theorem WF_BINDING_update1 [closure] :
@@ -302,52 +292,6 @@ theorem WF_BINDING_override_on_VAR [simp] :
 "\<lbrakk>b1 \<in> WF_BINDING;
  b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  b1 \<oplus> b2 on VAR = b2"
-apply (simp add: VAR_def)
-apply (auto)
-done
-
-subsubsection {* Binding Equivalence *}
-
-theorem binding_equiv_empty [simp] :
-"b1 \<cong> b2 on {}"
-apply (simp add: binding_equiv_def)
-done
-
-theorem binding_equiv_insert [simp] :
-"b1 \<cong> b2 on (insert x a) \<longleftrightarrow>
- (b1 \<cong> b2 on a) \<and> b1 x = b2 x"
-apply (simp add: binding_equiv_def)
-apply (auto)
-done
-
-theorem binding_equiv_subset :
-"\<lbrakk>b1 \<cong> b2 on a2;
- a1 \<subseteq> a2\<rbrakk> \<Longrightarrow>
- b1 \<cong> b2 on a1"
-apply (simp add: binding_equiv_def)
-apply (auto)
-done
-
-theorem binding_equiv_idem [simp] :
-"b \<cong> b on a"
-apply (simp add: binding_equiv_def)
-done
-
-theorem binding_equiv_comm :
-"b1 \<cong> b2 on a \<Longrightarrow> b2 \<cong> b1 on a"
-apply (simp add: binding_equiv_def)
-done
-
-theorem binding_equiv_trans :
-"\<lbrakk>b1 \<cong> b2 on a;
- b2 \<cong> b3 on a\<rbrakk> \<Longrightarrow>
- b2 \<cong> b3 on a"
-apply (simp add: binding_equiv_def)
-done
-
-theorem binding_equiv_total :
-"b1 \<cong> b2 on VAR \<longleftrightarrow> b1 = b2"
-apply (simp add: binding_equiv_def)
 apply (simp add: VAR_def)
 apply (auto)
 done
@@ -458,19 +402,4 @@ apply (simp add: TrueP_def FalseP_def)
 apply (simp add: WF_BINDING_non_empty)
 done
 end
-
-subsection {* Locale @{text "PRED_BOT"} *}
-
-locale PRED_BOT =
-  PRED "type_rel" +
-  BOT_VALUE  "type_rel"
-for type_rel :: "'VALUE :: BOT_SORT \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50)
-
-subsection {* Locale @{text "PRED_BOOL"} *}
-
-locale PRED_BOOL =
-  PRED_BOT "type_rel" +
-  BOOL_VALUE  "type_rel"
-for type_rel :: "'VALUE :: {BOOL_SORT, BOT_SORT} \<Rightarrow>
-    'TYPE :: BOOL_TYPE \<Rightarrow> bool" (infix ":" 50)
 end

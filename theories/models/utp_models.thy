@@ -11,6 +11,6 @@ imports
   utp_default_value
   utp_complex_value
   utp_flat_value
-(* "../high-order/utp_ho_value" *)
+  "../high-order/utp_ho_value"
 begin
 end

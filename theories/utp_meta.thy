@@ -14,7 +14,7 @@ imports
   "alpha/utp_alpha"
   "models/utp_models"
   "models/utp_std_pred"
-(*  "high-order-new/utp_ho_meta" *)
+  "high-order/utp_ho_inst"
   "tactics/utp_pred_tac"
   "tactics/utp_rel_tac"
   "tactics/utp_alpha_tac"

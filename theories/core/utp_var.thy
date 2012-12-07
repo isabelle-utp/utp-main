@@ -137,7 +137,7 @@ theorems var_member =
   DASHED_dash_DASHED_TWICE
   DASHED_TWICE_undash_DASHED
 
-declare var_member [simp, intro]
+declare var_member [intro, simp]
 
 subsubsection {* Contradiction Theorems *}
 
