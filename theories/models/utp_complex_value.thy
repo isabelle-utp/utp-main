@@ -183,8 +183,8 @@ definition MkSet_COMPLEX_VALUE ::
 definition DestSet_COMPLEX_VALUE ::
   "'a COMPLEX_VALUE \<Rightarrow> 'a COMPLEX_VALUE set" where
 "DestSet_COMPLEX_VALUE v = DecSetOf v"
-definition IsSet_COMPLEX_VALUE :: "'a COMPLEX_VALUE \<Rightarrow> bool" where
-"IsSet_COMPLEX_VALUE v = (IsSetVal v)"
+definition IsSet_COMPLEX_VALUE :: "'a COMPLEX_VALUE set \<Rightarrow> bool" where
+"IsSet_COMPLEX_VALUE v = True (* (IsSetVal v) *)"
 instance
 apply (intro_classes)
 apply (simp add: MkBool_COMPLEX_VALUE_def)

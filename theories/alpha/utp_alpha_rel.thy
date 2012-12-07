@@ -7,7 +7,7 @@
 header {* Alphabetised Predicates *}
 
 theory utp_alpha_rel
-imports utp_alpha_pred
+imports utp_alpha_pred utp_alpha_expr
   "../tactics/utp_alpha_tac" "../tactics/utp_rel_tac"
 begin
 
@@ -34,9 +34,21 @@ subsubsection {* Skip *}
 
 definition SkipA :: "'TYPE ALPHABET \<Rightarrow> ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "a \<in> REL_ALPHABET \<longrightarrow>
- SkipA a = (a, \<exists>p (VAR - a). SkipR)"
+ SkipA a = (a, SkipRA a)"
 
 notation SkipA ("II\<alpha>")
+
+subsubsection {* Assignment *}
+
+definition AssignA ::
+"'TYPE VAR \<Rightarrow>
+ 'TYPE ALPHABET \<Rightarrow>
+ ('VALUE, 'TYPE) ALPHA_EXPRESSION \<Rightarrow>
+ ('VALUE, 'TYPE) ALPHA_PREDICATE" where
+"a \<in> REL_ALPHABET \<Longrightarrow>
+ AssignA x a v \<equiv> (a, AssignR x a (\<epsilon> v))"
+
+notation AssignA ("_ :=\<^bsub>_ \<^esub>_" [190] 190)
 
 subsubsection {* Conditional *}
 
@@ -80,6 +92,11 @@ apply (safe)
 apply (simp add: closure)
 done
 
+theorem WF_RELATION_intro [intro] :
+  assumes "r \<in> WF_ALPHA_PREDICATE" "\<alpha> r \<subseteq> UNDASHED \<union> DASHED"
+  shows "r \<in> WF_RELATION"
+  by (simp add:WF_RELATION_unfold assms)
+
 theorem WF_RELATION_WF_ALPHA_PREDICATE [closure] :
 "r \<in> WF_RELATION \<Longrightarrow> r \<in> WF_ALPHA_PREDICATE"
 apply (simp add: WF_RELATION_def)
@@ -89,6 +106,7 @@ theorem WF_CONDITION_WF_RELATION [closure] :
 "r \<in> WF_CONDITION \<Longrightarrow> r \<in> WF_RELATION"
 apply (simp add: WF_CONDITION_def)
 done
+
 
 theorem REL_ALPHABET_WF_ALPHABET [closure] :
 "a \<in> REL_ALPHABET \<Longrightarrow> a \<in> WF_ALPHABET"
@@ -100,37 +118,15 @@ theorem HOM_ALPHABET_REL_ALPHABET [closure] :
 apply (simp add: HOM_ALPHABET_def)
 done
 
-theorem WF_RELATION_UNDASHED_DASHED :
+theorem WF_RELATION_REL_ALPHABET [closure] :
+"r \<in> WF_RELATION \<Longrightarrow> (\<alpha> r) \<in> REL_ALPHABET"
+  by (simp add: WF_RELATION_def)
+
+theorem WF_RELATION_UNDASHED_DASHED [closure]:
 "r \<in> WF_RELATION \<Longrightarrow> (\<alpha> r) \<subseteq> UNDASHED \<union> DASHED"
 apply (simp add: WF_RELATION_def)
 apply (simp add: REL_ALPHABET_def)
 done
-
-subsubsection {* Substitution Theorems *}
-
-theorem SS1_UNDASHED_DASHED_image :
-"\<lbrakk>vs \<subseteq> UNDASHED \<union> DASHED\<rbrakk> \<Longrightarrow>
- SS1 ` vs = (in vs) \<union> dash ` (out vs)"
-apply (simp add: image_def alphabet_defs)
-apply (safe)
-apply (simp_all)
-apply (auto simp add: SS1_def)
-done
-
-theorems SS1_simps = SS1_simps
-  SS1_UNDASHED_DASHED_image
-
-theorem SS2_UNDASHED_DASHED_image :
-"\<lbrakk>vs \<subseteq> UNDASHED \<union> DASHED\<rbrakk> \<Longrightarrow>
- SS2 ` vs = dash ` dash ` (in vs) \<union> (out vs)"
-apply (simp add: image_def alphabet_defs)
-apply (safe)
-apply (simp_all)
-apply (auto simp add: SS2_def)
-done
-
-theorems SS2_simps = SS2_simps
-  SS2_UNDASHED_DASHED_image
 
 subsubsection {* Closure Theorems *}
 
@@ -145,6 +141,16 @@ apply (simp add: closure)
 apply (simp_all add: alphabet)
 done
 
+theorem NotA_WF_CONDITION [closure] :
+"\<lbrakk>r \<in> WF_CONDITION\<rbrakk> \<Longrightarrow>
+ \<not>\<alpha> r \<in> WF_CONDITION"
+apply (simp add:WF_CONDITION_def)
+apply (simp add:closure)
+apply (simp add:NotA_def closure)
+apply (rule unrest)
+apply (simp_all add:closure)
+done
+
 theorem AndA_WF_RELATION [closure] :
 "\<lbrakk>r1 \<in> WF_RELATION;
  r2 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
@@ -155,6 +161,17 @@ apply (simp add: closure)
 apply (simp_all add: alphabet)
 done
 
+theorem AndA_WF_CONDITION [closure] :
+"\<lbrakk>r1 \<in> WF_CONDITION;
+ r2 \<in> WF_CONDITION\<rbrakk> \<Longrightarrow>
+ r1 \<and>\<alpha> r2 \<in> WF_CONDITION"
+apply (simp add:WF_CONDITION_def)
+apply (simp add:closure)
+apply (simp add:AndA_def closure)
+apply (rule unrest)
+apply (simp_all add:closure)
+done
+
 theorem OrA_WF_RELATION [closure] :
 "\<lbrakk>r1 \<in> WF_RELATION;
  r2 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
@@ -163,6 +180,68 @@ apply (simp add: WF_RELATION_unfold)
 apply (rule conjI)
 apply (simp add: closure)
 apply (simp add: alphabet)
+done
+
+theorem OrA_WF_CONDITION [closure] :
+"\<lbrakk>r1 \<in> WF_CONDITION;
+ r2 \<in> WF_CONDITION\<rbrakk> \<Longrightarrow>
+ r1 \<or>\<alpha> r2 \<in> WF_CONDITION"
+apply (simp add:WF_CONDITION_def)
+apply (simp add:closure)
+apply (simp add:OrA_def closure)
+apply (rule unrest)
+apply (simp_all add:closure)
+done
+
+theorem ImpliesA_WF_RELATION [closure] :
+"\<lbrakk>r1 \<in> WF_RELATION;
+ r2 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
+ r1 \<Rightarrow>\<alpha> r2 \<in> WF_RELATION"
+apply (simp add:WF_RELATION_unfold)
+apply (simp add: closure alphabet)
+done
+
+theorem ImpliesA_WF_CONDITION [closure] :
+"\<lbrakk>r1 \<in> WF_CONDITION;
+ r2 \<in> WF_CONDITION\<rbrakk> \<Longrightarrow>
+ r1 \<Rightarrow>\<alpha> r2 \<in> WF_CONDITION"
+apply (simp add:WF_CONDITION_def)
+apply (simp add:closure)
+apply (simp add:ImpliesA_def closure)
+apply (rule unrest)
+apply (simp_all add:closure)
+done
+
+theorem TrueA_WF_RELATION [closure] :
+"a \<in> REL_ALPHABET \<Longrightarrow>
+ true a \<in> WF_RELATION"
+apply (simp add:WF_RELATION_def)
+apply (simp add:closure alphabet)
+done
+
+theorem TrueA_WF_CONDITION [closure] :
+"a \<in> REL_ALPHABET \<Longrightarrow>
+ true a \<in> WF_CONDITION"
+apply (simp add:WF_CONDITION_def)
+apply (simp add:closure)
+apply (simp add:TrueA_def closure)
+apply (rule unrest)
+done
+
+theorem FalseA_WF_RELATION [closure] :
+"a \<in> REL_ALPHABET \<Longrightarrow>
+ false a \<in> WF_RELATION"
+apply (simp add:WF_RELATION_def)
+apply (simp add:closure alphabet)
+done
+
+theorem FalseA_WF_CONDITION [closure] :
+"a \<in> REL_ALPHABET \<Longrightarrow>
+ false a \<in> WF_CONDITION"
+apply (simp add:WF_CONDITION_def)
+apply (simp add:closure)
+apply (simp add:FalseA_def closure)
+apply (rule unrest)
 done
 
 theorem SkipA_closure [closure] :
@@ -177,6 +256,44 @@ apply (simp add: REL_ALPHABET_def)
 apply (clarify)
 apply (auto intro: unrest closure)
 done
+
+theorem AssignA_closure [closure] :
+  assumes 
+   "a \<in> REL_ALPHABET"
+   "x \<in> a" "dash x \<in> a"
+   "x \<in> UNDASHED"
+   "v \<in> WF_ALPHA_EXPRESSION"
+   "\<alpha>\<epsilon> v \<subseteq> a"
+  shows "x :=\<^bsub>a\<^esub> v \<in> WF_RELATION"
+proof
+  show "x :=\<^bsub>a \<^esub>v \<in> WF_ALPHA_PREDICATE"
+  proof
+
+    show "\<alpha> (x :=\<^bsub>a \<^esub>v) \<in> WF_ALPHABET" and "\<pi> (x :=\<^bsub>a \<^esub>v) \<in> WF_PREDICATE"
+      by (simp_all add:AssignA_def assms closure)
+
+    show "UNREST (VAR - \<alpha> (x :=\<^bsub>a \<^esub>v)) (\<pi> (x :=\<^bsub>a \<^esub>v))"
+    proof (simp add:AssignA_def assms)
+      have "UNREST (VAR - ({dash x} \<union> a)) (x :=p\<^bsub>a \<^esub>\<epsilon> v)"
+        apply (rule UNREST_AssignR)
+        apply (simp_all add:assms closure unrest)
+        apply (rule_tac ?vs1.0="VAR - \<alpha>\<epsilon> v" in UNREST_EXPR_subset)
+        apply (simp_all add: closure assms)
+        apply (insert assms, force)
+      done
+
+      with assms show "UNREST (VAR - a) (x :=p\<^bsub>a \<^esub>\<epsilon> v)"
+        by (metis insert_absorb insert_is_Un)
+    qed
+  qed
+
+next
+  
+  from assms show "\<alpha> (x :=\<^bsub>a \<^esub>v) \<subseteq> UNDASHED \<union> DASHED"
+    apply (simp add:AssignA_def closure)
+    apply (simp add:REL_ALPHABET_def)
+  done
+qed
 
 theorem CondA_closure [closure] :
 "\<lbrakk>r1 \<in> WF_RELATION;
@@ -385,6 +502,11 @@ theorem SkipA_alphabet [alphabet] :
 apply (simp add: SkipA_def)
 done
 
+theorem AssignA_alphabet [alphabet] :
+"a \<in> REL_ALPHABET \<Longrightarrow>
+ \<alpha> (x :=\<^bsub>a\<^esub> v) = a"
+  by (simp add: AssignA_def)
+
 theorem CondA_alphabet [alphabet] :
 "\<lbrakk>r1 \<in> WF_RELATION;
  r2 \<in> WF_RELATION;
@@ -429,6 +551,11 @@ apply (auto simp: NON_REL_VAR_def) [1]
 done
 
 theorem EvalA_SkipA [evala] :
+"a \<in> REL_ALPHABET \<Longrightarrow> \<lbrakk>II\<alpha> a\<rbrakk>\<pi> = II a"
+  by (simp add:EvalA_def SkipA_def)
+
+(*
+theorem EvalA_SkipA [evala] :
 "\<lbrakk>II\<alpha> (UNDASHED \<union> DASHED)\<rbrakk>\<pi> = II"
 apply (simp add: EvalA_def)
 apply (subgoal_tac "UNDASHED \<union> DASHED \<in> REL_ALPHABET")
@@ -444,6 +571,7 @@ apply (assumption)
 apply (simp add: REL_ALPHABET_def WF_ALPHABET_def)
 -- {* Fails because @{term UNDASHED} and  @{term DASHED} are not alphabets. *}
 oops
+*)
 
 theorem EvalA_CondA [evala] :
 "\<lbrakk>r1 \<in> WF_RELATION;
@@ -477,7 +605,7 @@ apply (utp_alphabet_tac) [1]
 apply (utp_rel_auto_tac) [1]
 done
 
-theorem SemiA_OrA_distr :
+theorem SemiA_OrA_distl :
 "\<lbrakk>r1 \<in> WF_RELATION;
  r2 \<in> WF_RELATION;
  r3 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
@@ -488,15 +616,93 @@ apply (utp_alphabet_tac) [1]
 apply (utp_rel_auto_tac) [1]
 done
 
-theorem SemiP_SkipR_left :
-"\<lbrakk>r \<in> WF_RELATION;
- a \<in> HOM_ALPHABET;
- out a = dash ` in (\<alpha> r)\<rbrakk> \<Longrightarrow>
- II\<alpha> a ;\<alpha> r = r"
+theorem SemiA_OrA_distr :
+"\<lbrakk>r1 \<in> WF_RELATION;
+ r2 \<in> WF_RELATION;
+ r3 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
+ (r1 \<or>\<alpha> r2) ;\<alpha> r3 = (r1 ;\<alpha> r3) \<or>\<alpha> (r2 ;\<alpha> r3)"
 apply (utp_alpha_tac)
 apply (rule conjI)
-prefer 2
-apply (utp_rel_tac) [1]
-oops
+apply (utp_alphabet_tac) [1]
+apply (utp_rel_auto_tac) [1]
+done
+
+theorem SemiP_SkipR_left:
+  assumes "r \<in> WF_RELATION" "a \<in> HOM_ALPHABET" "out a = dash ` in (\<alpha> r)"
+  shows "II\<alpha> a ;\<alpha> r = r"
+proof -
+
+  from assms have ina:"in a = in (\<alpha> r)"
+    apply (simp add:WF_RELATION_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def)
+    apply (metis undash_dash_image)
+  done
+    
+  moreover with assms(1) have "in a \<union> out (\<alpha> r) = \<alpha> r"
+    by (simp add:WF_RELATION_def REL_ALPHABET_def in_out_union)
+
+  moreover from assms have "II a ; (\<pi> r) = (\<pi> r)"
+  proof -
+    have "undash ` (DASHED - dash ` in (\<alpha> r)) = UNDASHED - in (\<alpha> r)"
+    proof -  
+      have "dash ` in (\<alpha> r) \<subseteq> DASHED"
+        by (metis out_dash out_DASHED)
+
+      thus ?thesis
+        by (simp add: inj_on_image_set_diff[OF undash_inj_on_DASHED])
+    qed
+
+    with assms show ?thesis
+      apply (simp add:WF_RELATION_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def)
+      apply (rule_tac SemiP_SkipRA_left)
+      apply (simp_all add:closure ina)
+      apply (force intro:UNREST_subset simp add:closure alphabet_defs)+
+    done
+  qed
+
+  ultimately show ?thesis using assms
+    by (utp_alpha_tac, simp add: EvalA_def)
+qed
+
+theorem SemiP_SkipR_right:
+  assumes "r \<in> WF_RELATION" "a \<in> HOM_ALPHABET" "in a = undash ` out (\<alpha> r)"
+  shows "r ;\<alpha> II\<alpha> a = r"
+proof -
+  from assms have ina:"out a = out (\<alpha> r)"
+    apply (simp add:WF_RELATION_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def)
+    apply (metis dash_undash_image out_DASHED)
+  done
+    
+  moreover with assms(1) have "in (\<alpha> r) \<union> out (\<alpha> r) = \<alpha> r"
+    by (metis WF_RELATION_unfold in_out_union sup_commute)
+
+  moreover from assms have "(\<pi> r) ; II a = (\<pi> r)"
+  proof -
+    have "dash ` (UNDASHED - undash ` out (\<alpha> r)) = DASHED - out (\<alpha> r)"
+      by (simp add: inj_on_image_set_diff[OF dash_inj] dash_UNDASHED_image dash_undash_image out_DASHED)
+
+    with assms show ?thesis
+      apply (simp add:WF_RELATION_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def)
+      apply (rule_tac SemiP_SkipRA_right)
+      apply (simp_all add:closure ina)
+      apply (force intro:UNREST_subset simp add:closure alphabet_defs)+
+    done
+  qed
+
+  ultimately show ?thesis using assms
+    by (utp_alpha_tac, simp add: EvalA_def)
+qed
+
 end
+
+context ALPHA_PRED_BOOL
+begin
+
+theorem VarA_rel_closure [closure] :
+"x \<in> UNDASHED \<union> DASHED \<Longrightarrow>
+VarA x \<in> WF_RELATION"
+apply (simp add:WF_RELATION_def REL_ALPHABET_def)
+apply (simp add:alphabet closure)
+done
+end
+
 end

@@ -167,10 +167,15 @@ text {* Refinement *}
 notation less_eq (infixr "\<sqsubseteq>v" 50)
 notation less (infixr "\<sqsubset>v" 50)
 
-text {* Bottom and Top *}
+text {* Top *}
 
 notation top ("\<top>v")
-notation bot ("\<bottom>v")
+subsubsection {* Theorems *}
+
+theorem Defined_not_eq_bot :
+"Defined v \<Longrightarrow> \<not> v = \<bottom>v"
+apply (auto)
+done
 end
 
 subsection {* Integer Sort *}
@@ -229,6 +234,17 @@ class BOOL_SORT = VALUE_SORT +
   assumes Inverse [simp] : "DestBool (MkBool b) = b"
 begin
 
+subsubsection {* Simple Lemmas *}
+
+lemma DestBool_inj: "inj_on DestBool (range MkBool)"
+  by (simp add:inj_on_def)
+
+lemma MkBool_inj: "inj MkBool"
+  by (smt Inverse injI)
+
+lemma DestBool_inv: "x \<in> range MkBool \<Longrightarrow> MkBool (DestBool x) = x"
+  by (smt DestBool_inj Inverse inj_on_iff rangeI)
+
 subsubsection {* Boolean Operators *}
 
 definition TrueV :: "'a" where
@@ -268,26 +284,6 @@ declare AndV_def [simp]
 declare OrV_def [simp]
 declare ImpliesV_def [simp]
 declare IffV_def [simp]
-
-subsubsection {* Theorems *}
-
-theorem DestBool_inj_on :
-"inj_on DestBool (range MkBool)"
-apply (simp add: inj_on_def)
-done
-
-theorem MkBool_inj :
-"inj MkBool"
-apply (rule injI)
-apply (drule_tac f = "DestBool" in arg_cong)
-apply (simp)
-done
-
-theorem DestBool_inverse [simp, intro] :
-"x \<in> range MkBool \<Longrightarrow> MkBool (DestBool x) = x"
-apply (subst sym [OF inj_on_iff [where f = "DestBool" and A = "range MkBool"]])
-apply (simp_all add: DestBool_inj_on)
-done
 end
 
 subsection {* Character Sort *}
@@ -331,9 +327,11 @@ subsection {* Set Sort *}
 class SET_SORT = VALUE_SORT +
   fixes MkSet :: "'a set \<Rightarrow> 'a"
   fixes DestSet :: "'a \<Rightarrow> 'a set"
-  fixes IsSet :: "'a \<Rightarrow> bool"
-  assumes Inverse [simp] :
-    "Defined (MkSet vs) \<longrightarrow> DestSet (MkSet vs) = vs"
+  fixes IsSet :: "'a set \<Rightarrow> bool"
+  assumes Defined [simp] :
+    "IsSet vs \<Longrightarrow> Defined (MkSet vs)"
+  assumes Inverse [simp]:
+    "IsSet vs \<Longrightarrow> DestSet (MkSet vs) = vs"
 begin
 
 subsubsection {* Set Operators *}
@@ -383,7 +381,10 @@ class LIST_SORT = VALUE_SORT +
   fixes DestList :: "'a \<Rightarrow> 'a list"
   fixes IsList :: "'a list \<Rightarrow> bool"
   assumes Inverse [simp] :
-    "Defined (MkList l) \<longrightarrow> DestList (MkList l) = l"
+    "IsList l \<Longrightarrow> DestList (MkList l) = l"
+  assumes Defined [simp] :
+    "IsList l \<Longrightarrow> Defined (MkList l)"
+
 begin
 
 subsubsection {* List Operators *}
@@ -407,11 +408,45 @@ declare ConsV_def [simp]
 declare ConcatV_def [simp]
 end
 
-subsection {* Aggregated Sorts *}
+subsection {* Function Sort *}
+
+class FUNCTION_SORT = BOT_SORT +
+  fixes MkFunc   :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"
+  and   DestFunc :: "'a \<Rightarrow> ('a \<Rightarrow> 'a)"
+  and   IsFunc   :: "('a \<Rightarrow> 'a) \<Rightarrow> bool"
+  assumes Inverse [simp]: "IsFunc f \<Longrightarrow> DestFunc (MkFunc f) = f"
+  and     Defined [simp]: "IsFunc f \<Longrightarrow> Defined (MkFunc f)"
+
+begin
+
+subsubsection {* Function Type *}
+
+definition FuncBetw :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool" where
+"FuncBetw a b f \<equiv> f \<in> MkFunc ` Collect IsFunc
+                \<and> (fdom (DestFunc f) \<subseteq> a)
+                \<and> (fran (DestFunc f) \<subseteq> b)"
+
+subsubsection {* Function Operators *}
+
+definition AppV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+"AppV f = DestFunc f"
+
+definition CompV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+"CompV f g = MkFunc (DestFunc f \<circ> DestFunc g)"
+
+definition IdV_on :: "'a set \<Rightarrow> 'a" where
+"IdV_on a = MkFunc (func_on a id)"
+
+subsubsection {* Default Simplifications *}
+
+declare AppV_def [simp] CompV_def [simp] IdV_on_def [simp]
+
+end
+
 
 class BASIC_SORT =
   INT_SORT + BOOL_SORT + STRING_SORT + REAL_SORT
 
 class COMPOSITE_SORT =
-  BASIC_SORT + PAIR_SORT + SET_SORT
+  BASIC_SORT + PAIR_SORT + SET_SORT + FUNCTION_SORT
 end

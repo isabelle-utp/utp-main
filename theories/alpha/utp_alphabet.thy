@@ -7,7 +7,7 @@
 header {* Alphabets *}
 
 theory utp_alphabet
-imports "../core/utp_var" "../core/utp_rel"
+imports "../core/utp_var"
 begin
 
 type_synonym 'TYPE ALPHABET = "'TYPE VAR set"
@@ -185,6 +185,18 @@ apply (simp add: in_alphabet_def out_alphabet_def)
 apply (auto)
 done
 
+lemma in_dash :
+"in (dash ` vs) = {}"
+  by (auto simp add: in_alphabet_def out_alphabet_def dash_def UNDASHED_def)
+
+lemma in_undash :
+"in (undash ` out vs) = undash ` (out vs)"
+  by (auto simp add: in_alphabet_def out_alphabet_def)
+
+lemma out_dash :
+"out (dash ` vs) = dash ` (in vs)"
+  by (auto simp add: in_alphabet_def out_alphabet_def DASHED_def UNDASHED_def image_def dash_def)
+
 lemma in_out_disj :
 "(in a1) \<inter> (out a2) = {}"
 apply (simp add: in_alphabet_def out_alphabet_def)
@@ -203,6 +215,9 @@ theorems alphabet_simps =
   out_out
   in_out
   out_in
+  in_dash
+  in_undash
+  out_dash
   in_out_disj
   in_out_union
 
@@ -251,5 +266,26 @@ theorems alphabet_dist =
   out_alphabet_union
   out_alphabet_inter
   out_alphabet_diff
+
+subsubsection {* Composability Theorems *}
+
+lemma comp_alphabet_undash [elim]:
+  "\<lbrakk> COMPOSABLE vs1 vs2; v \<in> vs2; v \<in> UNDASHED; dash v \<in> vs1 \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (auto simp add:COMPOSABLE_def alphabet_defs)
+
+lemma comp_alphabet_dash [elim]:
+  "\<lbrakk> COMPOSABLE vs1 vs2; dash v \<in> vs1; v \<in> UNDASHED; v \<in> vs2 \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  apply (simp add:COMPOSABLE_def alphabet_defs)
+  apply (metis Int_iff UNDASHED_dash_DASHED image_eqI undash_dash undash_dash_image) 
+done
+
+lemma hom_alphabet_undash [elim]:
+  "\<lbrakk> HOMOGENEOUS vs; v \<in> vs; v \<in> UNDASHED; dash v \<in> vs \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (auto simp add:HOMOGENEOUS_def)
+
+lemma hom_alphabet_dash [elim]:
+  "\<lbrakk> HOMOGENEOUS vs; dash v \<in> vs; v \<in> UNDASHED; v \<in> vs \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (auto simp add:HOMOGENEOUS_def)
+
 end
 end

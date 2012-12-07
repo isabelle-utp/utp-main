@@ -92,12 +92,27 @@ apply (rule ext)
 apply (auto)
 done
 
+lemma override_on_subset: 
+"\<lbrakk> f = f \<oplus> g on vs1; vs2 \<subseteq> vs1 \<rbrakk> \<Longrightarrow> f = f \<oplus> g on vs2"
+apply (auto simp add:override_on_def)
+apply (rule ext)
+apply (auto)
+apply (drule_tac x="a" and y="a" in cong)
+apply (auto)
+done
+
 text {* Maybe the next theorem should be a default simplification? *}
 
 theorem override_on_singleton :
 "(f \<oplus> g on {x}) = f(x := g x)"
 apply (rule ext)
 apply (auto)
+done
+
+theorem override_on_assign [simp]:
+"(f \<oplus> g on a)(x := v) = f(x := v) \<oplus> g on (a - {x})"
+apply (rule ext)
+apply (simp add:override_on_def)
 done
 
 theorem override_on_chain [simp] :
@@ -132,6 +147,22 @@ apply (simp add: override_on_def)
 apply (rule ext)
 apply (auto)
 done
+
+theorem override_on_cancel5 [simp] : 
+"f \<oplus> (f \<oplus> g on a) on b = f \<oplus> g on a \<inter> b"
+  by (auto simp add:override_on_def)
+
+theorem override_on_reorder :
+"\<lbrakk> a \<inter> b = {} \<rbrakk> \<Longrightarrow>
+ (f \<oplus> g on a) \<oplus> h on b = (f \<oplus> h on b) \<oplus> g on a"
+apply (simp add: override_on_def)
+apply (rule ext)
+apply (auto)
+done
+
+theorem override_on_minus [simp]:
+"v \<in> vs2 \<Longrightarrow> (b \<oplus> b' on vs1 - vs2) v = b v"
+  by (simp add:override_on_def)
 
 subsection {* Transfer Strategy *}
 

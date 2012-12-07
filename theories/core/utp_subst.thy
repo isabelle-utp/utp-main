@@ -519,5 +519,6 @@ theorem SubstP_involution [simp] :
  p[ss][ss] = p"
 apply (utp_pred_auto_tac)
 done
+
 end
 end

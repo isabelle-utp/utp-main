@@ -218,10 +218,30 @@ apply (induct_tac x)
 apply (simp)
 done
 
+lemma dash_UNDASHED_image: 
+"dash ` UNDASHED = DASHED"
+  by (auto simp add:image_def, metis DASHED_undash_UNDASHED dash_undash_DASHED)
+
+lemma undash_DASHED_image: 
+"undash ` DASHED = UNDASHED"
+  by (auto simp add:image_def, metis UNDASHED_dash_DASHED undash_dash)
+
+lemma dash_undash_image:
+"vs \<subseteq> DASHED \<Longrightarrow> dash ` undash ` vs = vs"
+  by (auto simp add:image_def dash_undash_DASHED, metis dash_undash_DASHED set_mp)
+
+lemma undash_dash_image: 
+"undash ` dash ` vs = vs"
+  by (auto simp add: image_def undash_dash)
+
 theorems var_simps =
   dash_undash_DASHED
   dash_undash_DASHED_TWICE
   undash_dash
+  dash_UNDASHED_image
+  undash_DASHED_image
+  dash_undash_image
+  undash_dash_image
 
 declare var_simps [simp]
 

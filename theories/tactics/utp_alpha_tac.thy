@@ -136,16 +136,14 @@ done
 theorem EvalA_ExistsA [evala] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- \<lbrakk>\<exists>\<alpha> a . p\<rbrakk>\<pi> = \<lbrakk>\<exists>\<alpha> a . p\<rbrakk>\<pi>"
-apply (simp add: EvalA_def)
-done
+ \<lbrakk>\<exists>\<alpha> a . p\<rbrakk>\<pi> = (\<exists>p a . \<lbrakk>p\<rbrakk>\<pi>)"
+  by (simp add: EvalA_def ExistsA_def)
 
 theorem EvalA_ForallA [evala] :
 "\<lbrakk>a \<in> WF_ALPHABET;
  p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
- \<lbrakk>\<forall>\<alpha> a . p\<rbrakk>\<pi> = \<lbrakk>\<forall>\<alpha> a . p\<rbrakk>\<pi>"
-apply (simp add: EvalA_def)
-done
+ \<lbrakk>\<forall>\<alpha> a . p\<rbrakk>\<pi> = (\<forall>p a . \<lbrakk>p\<rbrakk>\<pi>)"
+  by (simp add: EvalA_def ForallA_def)
 
 theorem EvalA_ExistsResA [evala] :
 "\<lbrakk>a \<in> WF_ALPHABET;
@@ -256,5 +254,13 @@ theorem EvalA_test :
 apply (utp_alpha_tac)
 apply (utp_pred_auto_tac)
 done
+
+theorem EvalA_contr:
+"p \<in> WF_ALPHA_PREDICATE \<Longrightarrow> 
+p \<Rightarrow>\<alpha> false (\<alpha> p) = \<not>\<alpha> p"
+apply (utp_alpha_tac)
+apply (utp_pred_auto_tac)
+done
+
 end
 end

@@ -403,6 +403,17 @@ apply (simp)
 apply (auto)
 done
 
+theorem AndP_comm :
+"\<lbrakk>p1 \<in> WF_PREDICATE;
+ p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ p1 \<and>p p2 = p2 \<and>p p1"
+  by (utp_pred_auto_tac)
+
+theorem AndP_idem :
+"p \<in> WF_PREDICATE \<Longrightarrow>
+ p \<and>p p = p"
+  by (utp_pred_auto_tac)
+
 theorem AndP_assoc :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE;
@@ -411,11 +422,53 @@ theorem AndP_assoc :
 apply (utp_pred_auto_tac)
 done
 
-theorem AndP_OrP_distr :
+theorem AndP_OrP_distl :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE;
  p3 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<and>p (p2 \<or>p p3) = (p1 \<and>p p2) \<or>p (p1 \<and>p p3)"
+apply (utp_pred_auto_tac)
+done
+
+theorem AndP_OrP_distr:
+"\<lbrakk>p1 \<in> WF_PREDICATE;
+ p2 \<in> WF_PREDICATE;
+ p3 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ (p1 \<or>p p2) \<and>p p3 = (p1 \<and>p p3) \<or>p (p2 \<and>p p3)"
+apply (utp_pred_auto_tac)
+done
+
+theorem OrP_comm :
+"\<lbrakk>p1 \<in> WF_PREDICATE;
+ p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ p1 \<or>p p2 = p2 \<or>p p1"
+  by (utp_pred_auto_tac)
+
+theorem OrP_idem :
+"p \<in> WF_PREDICATE \<Longrightarrow>
+ p \<or>p p = p"
+  by (utp_pred_auto_tac)
+
+theorem OrP_assoc :
+"\<lbrakk>p1 \<in> WF_PREDICATE;
+ p2 \<in> WF_PREDICATE;
+ p3 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ p1 \<or>p (p2 \<or>p p3) = (p1 \<or>p p2) \<or>p p3"
+  by (utp_pred_auto_tac)
+
+theorem OrP_AndP_distl :
+"\<lbrakk>p1 \<in> WF_PREDICATE;
+ p2 \<in> WF_PREDICATE;
+ p3 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ p1 \<or>p (p2 \<and>p p3) = (p1 \<or>p p2) \<and>p (p1 \<or>p p3)"
+apply (utp_pred_auto_tac)
+done
+
+theorem OrP_AndP_distr :
+"\<lbrakk>p1 \<in> WF_PREDICATE;
+ p2 \<in> WF_PREDICATE;
+ p3 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ (p1 \<and>p p2) \<or>p p3 = (p1 \<or>p p3) \<and>p (p2 \<or>p p3)"
 apply (utp_pred_auto_tac)
 done
 

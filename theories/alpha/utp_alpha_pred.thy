@@ -13,9 +13,10 @@ begin
 subsection {* Locale @{text "ALPHA_PRED"} *}
 
 locale ALPHA_PRED =
-  PRED "type_rel"
+  PRED "default" "type_rel" 
 -- {* Typing Relation for Values *}
 for type_rel :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50)
+and default  :: "'TYPE \<Rightarrow> 'VALUE"
 begin
 
 abbreviation alphabet ::
@@ -257,6 +258,11 @@ theorem WF_ALPHA_PREDICATE_WF_PREDICATE [closure] :
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
 done
+
+theorem WF_ALPHA_PREDICATE_intro [intro]:
+  assumes "\<alpha> p \<in> WF_ALPHABET" "\<pi> p \<in> WF_PREDICATE" "UNREST (VAR - \<alpha> p) (\<pi> p)"
+  shows "p \<in> WF_ALPHA_PREDICATE"
+  by (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def assms)
 
 theorem WF_ALPHA_PREDICATE_UNREST [closure] (* [dest] *) :
 "p \<in> WF_ALPHA_PREDICATE \<Longrightarrow> UNREST (VAR - \<alpha> p) (\<pi> p)"
@@ -672,4 +678,14 @@ apply (simp add: TrueA_def FalseA_def)
 apply (simp add: TrueP_noteq_FalseP)
 done
 end
+
+locale ALPHA_PRED_BOT = 
+ALPHA_PRED where type_rel = type_rel +
+PRED_BOT  where type_rel = type_rel
+for type_rel :: "'VALUE :: BOT_SORT \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50)
+
+locale ALPHA_PRED_BOOL = 
+ALPHA_PRED_BOT where type_rel = type_rel +
+PRED_BOOL      where type_rel = type_rel
+for type_rel :: "'VALUE :: {BOOL_SORT,BOT_SORT} \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50)
 end

@@ -7,7 +7,7 @@
 header {* Relations *}
 
 theory utp_rel
-imports utp_pred utp_subst utp_unrest
+imports utp_pred utp_expr utp_subst utp_unrest "../tactics/utp_expr_tac" "../alpha/utp_alphabet"
 begin
 
 context PRED
@@ -52,6 +52,13 @@ definition SkipR :: "('VALUE, 'TYPE) PREDICATE" where
 
 notation SkipR ("II")
 
+subsubsection {* Alphabet Skip *}
+
+definition SkipRA :: "'TYPE VAR set \<Rightarrow> ('VALUE, 'TYPE) PREDICATE" where
+"SkipRA vs = (\<exists>p ((UNDASHED \<union> DASHED) - vs). II)"
+
+notation SkipRA ("II")
+
 subsubsection {* Conditional *}
 
 text {* Should we impose a constraint on b for it to be a condition? *}
@@ -83,6 +90,17 @@ definition SemiR ::
 (* Not sure about the precedence of sequential composition yet. *)
 
 notation SemiR (infixr ";" 140)
+
+subsubsection {* Assignment *}
+
+definition AssignR ::
+"'TYPE VAR \<Rightarrow>
+ 'TYPE ALPHABET \<Rightarrow>
+ ('VALUE, 'TYPE) EXPRESSION \<Rightarrow>
+ ('VALUE, 'TYPE) PREDICATE" where
+"AssignR x a v \<equiv> VarE (dash x) ==p v \<and>p II (a - {x,dash x})"
+
+notation AssignR ("_ :=p\<^bsub>_ \<^esub>_" [190] 190)
 
 subsection {* Theorems *}
 
@@ -195,12 +213,6 @@ theorem SS1_ident_app :
 apply (simp add: SS1_def)
 done
 
-theorems SS1_simps =
-  SS1_UNDASHED_app
-  SS1_DASHED_app
-  SS1_DASHED_TWICE_app
-  SS1_ident_app
-
 theorem SS1_VAR_SUBST [closure] :
 "SS1 \<in> VAR_SUBST"
 apply (simp add: VAR_SUBST_def)
@@ -249,6 +261,22 @@ apply (insert SS1_VAR_SUBST_INV)
 apply (simp add: VAR_SUBST_INV_def)
 done
 
+theorem SS1_UNDASHED_DASHED_image :
+"\<lbrakk>vs \<subseteq> UNDASHED \<union> DASHED\<rbrakk> \<Longrightarrow>
+ SS1 ` vs = (in vs) \<union> dash ` (out vs)"
+apply (simp add: image_def alphabet_defs)
+apply (safe)
+apply (simp_all)
+apply (auto simp add: SS1_def)
+done
+
+theorems SS1_simps =
+  SS1_UNDASHED_app
+  SS1_DASHED_app
+  SS1_DASHED_TWICE_app
+  SS1_ident_app
+  SS1_UNDASHED_DASHED_image
+
 text {* Theorems for @{term SS2} *}
 
 theorem SS2_DASHED_app :
@@ -272,12 +300,6 @@ theorem SS2_ident_app :
 "\<lbrakk>\<not> x \<in> UNDASHED; \<not> x \<in> DASHED_TWICE\<rbrakk> \<Longrightarrow> SS2 x = x"
 apply (simp add: SS2_def)
 done
-
-theorems SS2_simps =
-  SS2_UNDASHED_app
-  SS2_DASHED_app
-  SS2_DASHED_TWICE_app
-  SS2_ident_app
 
 theorem SS2_VAR_SUBST [closure] :
 "SS2 \<in> VAR_SUBST"
@@ -327,6 +349,22 @@ apply (insert SS2_VAR_SUBST_INV)
 apply (simp add: VAR_SUBST_INV_def)
 done
 
+theorem SS2_UNDASHED_DASHED_image :
+"\<lbrakk>vs \<subseteq> UNDASHED \<union> DASHED\<rbrakk> \<Longrightarrow>
+ SS2 ` vs = dash ` dash ` (in vs) \<union> (out vs)"
+apply (simp add: image_def alphabet_defs)
+apply (safe)
+apply (simp_all)
+apply (auto simp add: SS2_def)
+done
+
+theorems SS2_simps =
+  SS2_UNDASHED_app
+  SS2_DASHED_app
+  SS2_DASHED_TWICE_app
+  SS2_ident_app
+  SS2_UNDASHED_DASHED_image
+
 subsubsection {* Theorems for @{term "COMPOSABLE_BINDINGS"} *}
 
 theorem COMPOSABLE_BINDINGS_dash [intro] :
@@ -350,6 +388,10 @@ apply (simp add: WF_PREDICATE_def)
 apply (auto)
 done
 
+theorem SkipRA_closure [closure] :
+"II a \<in> WF_PREDICATE"
+  by (simp add: SkipRA_def closure)
+
 theorem CondR_closure [closure] :
 "p1 \<in> WF_PREDICATE \<and>
  p2 \<in> WF_PREDICATE \<and>
@@ -366,6 +408,29 @@ theorem SemiR_closure [closure] :
 apply (simp add: SemiR_def)
 apply (simp add: WF_PREDICATE_def)
 apply (auto intro!: closure)
+done
+
+theorem AssignR_closure [closure] :
+"v \<in> WF_EXPRESSION \<Longrightarrow>
+x :=p\<^bsub>vs\<^esub> v \<in> WF_PREDICATE"
+  by (simp add:AssignR_def closure)
+
+subsubsection {* @{term UNREST} theorems *}
+
+theorem UNREST_SkipR [unrest]:
+"UNREST (VAR - (UNDASHED \<union> DASHED)) II"
+  by (simp add:SkipR_def UNREST_def WF_BINDING_def override_on_def)
+
+theorem UNREST_SkipRA [unrest]:
+"UNREST (VAR - vs) (II vs)"
+  by (auto intro:closure unrest simp add:SkipRA_def)
+
+theorem UNREST_AssignR [unrest]:
+"\<lbrakk> v \<in> WF_EXPRESSION; UNREST_EXPR (VAR - vs) v \<rbrakk> \<Longrightarrow> 
+ UNREST (VAR - ({dash x} \<union> vs)) (x :=p\<^bsub>vs\<^esub> v)"
+  apply (subgoal_tac "(VAR - insert (dash x) vs) = (VAR - {dash x}) \<inter> (VAR - vs)") 
+  apply (force intro:closure unrest simp add:AssignR_def)
+  apply (force)
 done
 
 subsection {* Validation of Soundness *}
@@ -465,8 +530,7 @@ done
 subsubsection {* Evaluation Theorems *}
 
 theorem EvalP_SkipR [eval] :
-"\<lbrakk>p \<in> WF_PREDICATE;
- b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+"b \<in> WF_BINDING \<Longrightarrow>
  \<lbrakk>II\<rbrakk>b \<longleftrightarrow> (\<forall> v \<in> UNDASHED . b v = b (dash v))"
 apply (simp add: EvalP_def)
 apply (simp add: SkipR_def)
@@ -492,4 +556,5 @@ apply (utp_pred_tac)
 apply (safe)
 oops
 end
+
 end

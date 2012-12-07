@@ -10,14 +10,29 @@ theory utp_value
 imports "../utp_common"
 begin
 
+subsection {* Theorem Attributes *}
+
+ML {*
+  structure typing =
+    Named_Thms (val name = @{binding typing} val description = "typing theorems")
+*}
+
+setup typing.setup
+
 subsection {* Locale @{term "VALUE"} *}
 
 locale VALUE =
 -- {* Typing Relation *}
-  fixes type_rel :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50)
+  fixes   type_rel :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50)
+  and     default  :: "'TYPE \<Rightarrow> 'VALUE"
 -- {* A type must not be empty. *}
-  assumes type_non_empty : "\<exists> x . x : t"
+  assumes default_type [typing]: "default t : t"
 begin
+
+lemma type_non_empty: "\<exists> x. x : t"
+  apply (rule_tac x="default t" in exI)
+  apply (simp add: default_type)
+done
 
 subsection {* Universe *}
 
@@ -65,5 +80,40 @@ theorem set_type_rel_insert [simp] :
 "(insert x s) :\<subseteq> t \<longleftrightarrow> (x : t \<and> s :\<subseteq> t)"
 apply (simp add: set_type_rel_def)
 done
+
+subsection {* Subtyping *}
+
+definition subtype :: "'TYPE \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix "<:" 65) where
+"s <: t \<equiv> \<forall> x. x : s \<longrightarrow> x : t"
+
+definition ssubtype :: "'TYPE \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix "<:!" 65) where
+"ssubtype s t \<equiv> s <: t \<and> \<not> (t <: s)"
+
+lemma subtype_intro[intro]:
+  "\<lbrakk> x : s; s <: t \<rbrakk> \<Longrightarrow> x : t"
+  by (simp add:subtype_def)
+
 end
+
+sublocale VALUE \<subseteq> preorder "subtype" "ssubtype" 
+proof
+
+  show "\<And>x y. x <:! y = (x <: y \<and> \<not> y <: x)"
+    by (simp add:ssubtype_def)
+
+  show "\<And>x. x <: x"
+    by (simp add:subtype_def)
+
+  show "\<And>x y z. \<lbrakk>x <: y; y <: z\<rbrakk> \<Longrightarrow> x <: z"
+    by (simp add:subtype_def)
+
+qed
+
+context VALUE
+begin
+
+abbreviation TLeast where "TLeast \<equiv> ord.Least (op <:)"
+
+end
+
 end

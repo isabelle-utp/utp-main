@@ -92,8 +92,9 @@ apply (simp add: UNREST_def LiftP_def)
 apply (simp add: WF_BINDING_PRED_def)
 apply (safe)
 apply (simp add: closure)
-apply (drule_tac x = "b1" in spec)
-apply (drule_tac x = "b1 \<oplus> b2 on (VAR - vs)" in spec)
+apply (drule_tac x = "b1" in bspec, auto)
+apply (drule_tac x = "b1 \<oplus> b2 on (VAR - vs)" in bspec)
+apply (simp add: WF_BINDING_override)
 apply (simp add: binding_equiv_def)
 done
 

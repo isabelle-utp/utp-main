@@ -7,7 +7,7 @@
 header {* Predicates *}
 
 theory utp_pred
-imports utp_synonyms utp_value utp_var
+imports utp_synonyms utp_value utp_types utp_var
 begin
 
 subsection {* Locale @{text "PRED"} *}
@@ -39,7 +39,7 @@ text {* Binding Predicates *}
 
 definition WF_BINDING_PRED ::
   "'TYPE ALPHABET \<Rightarrow> ('VALUE, 'TYPE) BINDING_PRED set" where
-"WF_BINDING_PRED vs = {f . \<forall> b1 b2 . b1 \<cong> b2 on vs \<longrightarrow> f b1 = f b2}"
+"WF_BINDING_PRED vs = {f . \<forall>b1\<in>WF_BINDING. \<forall>b2\<in>WF_BINDING . b1 \<cong> b2 on vs \<longrightarrow> f b1 = f b2}"
 
 subsection {* Predicates *}
 
@@ -402,4 +402,15 @@ apply (simp add: TrueP_def FalseP_def)
 apply (simp add: WF_BINDING_non_empty)
 done
 end
+
+locale PRED_BOT = 
+PRED where type_rel = type_rel +
+BOT_VALUE  where type_rel = type_rel
+for type_rel :: "'VALUE :: BOT_SORT \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50)
+
+locale PRED_BOOL = 
+PRED where type_rel = type_rel +
+BOOL_VALUE  where type_rel = type_rel
+for type_rel :: "'VALUE :: {BOOL_SORT,BOT_SORT} \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50)
+
 end
