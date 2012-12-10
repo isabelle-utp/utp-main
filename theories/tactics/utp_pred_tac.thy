@@ -512,8 +512,7 @@ done
 
 theorem OrP_ref :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
- p2 \<in> WF_PREDICATE;
- (\<alpha> p1) = (\<alpha> p2)\<rbrakk> \<Longrightarrow>
+ p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
  p1 \<or>p p2 \<sqsubseteq> p1"
 apply (utp_pred_auto_tac)
 done

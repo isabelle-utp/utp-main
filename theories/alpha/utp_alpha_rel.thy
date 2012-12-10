@@ -263,7 +263,7 @@ theorem AssignA_closure [closure] :
    "x \<in> a" "dash x \<in> a"
    "x \<in> UNDASHED"
    "v \<in> WF_ALPHA_EXPRESSION"
-   "\<alpha>\<epsilon> v \<subseteq> a"
+   "\<alpha> v \<subseteq> a"
   shows "x :=\<^bsub>a\<^esub> v \<in> WF_RELATION"
 proof
   show "x :=\<^bsub>a \<^esub>v \<in> WF_ALPHA_PREDICATE"
@@ -277,7 +277,7 @@ proof
       have "UNREST (VAR - ({dash x} \<union> a)) (x :=p\<^bsub>a \<^esub>\<epsilon> v)"
         apply (rule UNREST_AssignR)
         apply (simp_all add:assms closure unrest)
-        apply (rule_tac ?vs1.0="VAR - \<alpha>\<epsilon> v" in UNREST_EXPR_subset)
+        apply (rule_tac ?vs1.0="VAR - \<alpha> v" in UNREST_EXPR_subset)
         apply (simp_all add: closure assms)
         apply (insert assms, force)
       done

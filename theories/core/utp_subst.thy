@@ -44,11 +44,20 @@ definition SubstB ::
 subsection {* Predicate Substitution *}
 
 definition SubstP ::
-  " ('VALUE, 'TYPE) PREDICATE \<Rightarrow>
+  "('VALUE, 'TYPE) PREDICATE \<Rightarrow>
    ('TYPE VAR \<Rightarrow> 'TYPE VAR) \<Rightarrow>
    ('VALUE, 'TYPE) PREDICATE" ("_[_]" [200]) where
 "\<lbrakk>ss \<in> VAR_SUBST; p \<in> WF_ALPHA_PREDICATE\<rbrakk> \<Longrightarrow>
  SubstP p ss = (SubstB ss) ` p"
+
+subsection {* Substitution builder *}
+
+definition MapSubst :: 
+  "('TYPE VAR \<rightharpoonup> 'TYPE VAR) \<Rightarrow>
+   ('TYPE VAR \<Rightarrow> 'TYPE VAR)" where
+"MapSubst f = (\<lambda> x. if (x \<in> dom f) then the (f x) 
+                    else if (x \<in> ran f) then SOME y. f x = Some y 
+                    else x)"
 
 subsection {* Theorems *}
 

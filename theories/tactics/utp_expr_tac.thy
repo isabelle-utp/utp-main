@@ -136,6 +136,7 @@ definition
 lemma PROP_VARS_Defined: "\<lbrakk> x \<in> PROP_VARS \<D> p; b \<in> p \<rbrakk> \<Longrightarrow> \<D> (b x)"
   by (simp add:PROP_VARS_def)
 
+(*
 theorem Taut_subst_cases:
 "\<lbrakk> p \<in> WF_PREDICATE;
    \<And> v. v : type x \<Longrightarrow> taut (p[LitE (type x) v|x]) \<rbrakk> \<Longrightarrow>

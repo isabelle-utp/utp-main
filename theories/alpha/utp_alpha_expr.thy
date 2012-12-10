@@ -13,15 +13,20 @@ begin
 type_synonym ('VALUE, 'TYPE) ALPHA_EXPRESSION =
   "('TYPE ALPHABET) \<times> ('VALUE, 'TYPE) EXPRESSION"
 
-context ALPHA_PRED
-begin
-
-abbreviation ealphabet ::
+definition expr_alphabet ::
   "('VALUE, 'TYPE) ALPHA_EXPRESSION \<Rightarrow>
    ('TYPE ALPHABET)" where
-"ealphabet e \<equiv> (fst e)"
+"expr_alphabet e \<equiv> (fst e)"
 
-notation ealphabet ("\<alpha>\<epsilon>")
+lemma [simp]: "expr_alphabet (a,e) = a" 
+  by (simp add:expr_alphabet_def)
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name alphabet} @{const_name expr_alphabet}
+*}
+
+context ALPHA_PRED
+begin
 
 abbreviation expression ::
   "('VALUE, 'TYPE) ALPHA_EXPRESSION \<Rightarrow>
@@ -33,7 +38,7 @@ notation expression ("\<epsilon>")
 definition WF_ALPHA_EXPRESSION ::
   "('VALUE, 'TYPE) ALPHA_EXPRESSION set" where
 "WF_ALPHA_EXPRESSION =
- {e . (\<alpha>\<epsilon> e) \<in> WF_ALPHABET \<and> (\<epsilon> e) \<in> WF_EXPRESSION_OVER (\<alpha>\<epsilon> e)}"
+ {e . \<alpha> e \<in> WF_ALPHABET \<and> \<epsilon> e \<in> WF_EXPRESSION_OVER (\<alpha> e)}"
 
 subsection {* Operators *}
 
@@ -42,7 +47,7 @@ definition EqualA ::
  ('VALUE, 'TYPE) ALPHA_EXPRESSION \<Rightarrow> 
  ('VALUE, 'TYPE) ALPHA_PREDICATE" where
 "e \<in> WF_ALPHA_EXPRESSION \<and> f \<in> WF_ALPHA_EXPRESSION \<longrightarrow>
-EqualA e f = (\<alpha>\<epsilon> e \<union> \<alpha>\<epsilon> f, EqualP (\<epsilon> e) (\<epsilon> f))"
+EqualA e f = (\<alpha> e \<union> \<alpha> f, EqualP (\<epsilon> e) (\<epsilon> f))"
 
 notation EqualA (infixr "==\<alpha>" 150)
 
@@ -66,7 +71,7 @@ definition SubstAE ::
  ('VALUE, 'TYPE) ALPHA_EXPRESSION \<Rightarrow> 
  'TYPE VAR \<Rightarrow> 
  ('VALUE, 'TYPE) ALPHA_EXPRESSION" ("_[_|_]\<alpha>\<epsilon>" [200]) where
-"f[v|x]\<alpha>\<epsilon> \<equiv> ((\<alpha>\<epsilon> f - {x}) \<union> \<alpha>\<epsilon> v, \<epsilon> f [\<epsilon> v|x])"
+"f[v|x]\<alpha>\<epsilon> \<equiv> ((\<alpha> f - {x}) \<union> \<alpha> v, \<epsilon> f [\<epsilon> v|x])"
 
 subsection {* Theorems *}
 
@@ -77,7 +82,7 @@ theorem WF_EXPRESSION_WF_ALPHA_EXPRESSION [closure] :
   by (simp add: WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
 
 theorem WF_ALPHA_EXPRESSION_UNREST_EXPR [closure] :
-"e \<in> WF_ALPHA_EXPRESSION \<Longrightarrow> UNREST_EXPR (VAR - \<alpha>\<epsilon> e) (\<epsilon> e)"
+"e \<in> WF_ALPHA_EXPRESSION \<Longrightarrow> UNREST_EXPR (VAR - \<alpha> e) (\<epsilon> e)"
 apply (simp add: WF_ALPHA_EXPRESSION_def)
 apply (simp add: WF_EXPRESSION_OVER_def)
 done
@@ -118,27 +123,27 @@ subsubsection {* Alphabet Theorems *}
 theorem EqualA_alphabet [alphabet]:
 "\<lbrakk>e \<in> WF_ALPHA_EXPRESSION; 
  f \<in> WF_ALPHA_EXPRESSION\<rbrakk> \<Longrightarrow>
- \<alpha> (e ==\<alpha> f) = \<alpha>\<epsilon> e \<union> \<alpha>\<epsilon> f"
+ \<alpha> (e ==\<alpha> f) = \<alpha> e \<union> \<alpha> f"
   by (simp add:EqualA_def)
 
 theorem VarAE_alphabet [alphabet]:
-"\<alpha>\<epsilon> (VarAE x) = {x}"
+"\<alpha> (VarAE x) = {x}"
   by (simp add:VarAE_def)
 
 theorem LitAE_alphabet [alphabet]:
-"\<alpha>\<epsilon> (LitAE t v) = {}"
+"\<alpha> (LitAE t v) = {}"
   by (simp add:LitAE_def)
 
 theorem SubstA_alphabet [alphabet]:
 "\<lbrakk>p \<in> WF_ALPHA_PREDICATE; 
  v \<in> WF_ALPHA_EXPRESSION\<rbrakk> \<Longrightarrow>
-\<alpha>(p[v|x]\<alpha>) = (\<alpha> p \<union> \<alpha>\<epsilon> v) - {x}"
+\<alpha>(p[v|x]\<alpha>) = (\<alpha> p \<union> \<alpha> v) - {x}"
   by (simp add:SubstA_def alphabet closure)
 
 theorem SubstAE_alphabet [alphabet]:
 "\<lbrakk>f \<in> WF_ALPHA_EXPRESSION; 
  v \<in> WF_ALPHA_EXPRESSION\<rbrakk> \<Longrightarrow>
-\<alpha>\<epsilon>(f[v|x]\<alpha>\<epsilon>) = (\<alpha>\<epsilon> f - {x}) \<union> \<alpha>\<epsilon> v"
+\<alpha>(f[v|x]\<alpha>\<epsilon>) = (\<alpha> f - {x}) \<union> \<alpha> v"
   by (simp add:SubstAE_def)
 
 subsubsection {* Typing theorems *}
@@ -191,15 +196,15 @@ done
 
 subsubsection {* Alphabet Theorems *}
 
-theorem TrueAE_alphabet [alphabet]: "\<alpha>\<epsilon> TrueAE = {}"
+theorem TrueAE_alphabet [alphabet]: "\<alpha> TrueAE = {}"
   by (simp add:TrueAE_def)
 
-theorem FalseAE_alphabet [alphabet]: "\<alpha>\<epsilon> FalseAE = {}"
+theorem FalseAE_alphabet [alphabet]: "\<alpha> FalseAE = {}"
   by (simp add:FalseAE_def)
 
 theorem PredAE_alphabet [alphabet]: 
 "p \<in> WF_ALPHA_PREDICATE \<Longrightarrow> 
-\<alpha>\<epsilon> (PredAE p) = \<alpha> p"
+\<alpha> (PredAE p) = \<alpha> p"
   by (simp add:PredAE_def)
 
 theorem VarA_alphabet [alphabet]: "\<alpha> (VarA x) = {x}"

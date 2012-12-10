@@ -80,12 +80,23 @@ definition SubstE ::
 "f \<in> WF_EXPRESSION \<and> v \<in> WF_EXPRESSION \<longrightarrow>
 SubstE f v x = wfexpr (expr_type f, \<lambda> b. expr_bfun f (b(x := expr_bfun v b)))"
 
+(*
+definition SubstPE ::
+"('VALUE, 'TYPE) PREDICATE \<Rightarrow> 
+ ('VALUE, 'TYPE) EXPRESSION \<Rightarrow> 
+ 'TYPE VAR \<Rightarrow> 
+ ('VALUE, 'TYPE) PREDICATE" ("_[_|_]" [200]) where
+"p[v|x] \<equiv> {b'. \<exists> b. b \<in> p \<and> b x = expr_bfun v b'} \<inter> {b \<oplus> b' on {x} | b b'. b \<in> p \<and> b' \<in> WF_BINDING}"
+*)
+
+
 definition SubstPE ::
 "('VALUE, 'TYPE) PREDICATE \<Rightarrow> 
  ('VALUE, 'TYPE) EXPRESSION \<Rightarrow> 
  'TYPE VAR \<Rightarrow> 
  ('VALUE, 'TYPE) PREDICATE" ("_[_|_]" [200]) where
 "p[v|x] \<equiv> (\<exists>p {x} . p \<and>p (VarE x ==p v))"
+
 
 subsection {* Theorems *}
 
@@ -181,7 +192,9 @@ theorem SubstE_closure[closure]:
 theorem SubstPE_closure[closure]:
  assumes "p \<in> WF_PREDICATE" "v \<in> WF_EXPRESSION" "v :e: type x"
  shows "SubstPE p v x \<in> WF_PREDICATE"
-  by (simp add:SubstPE_def closure assms)
+  apply (insert assms)
+  apply (simp add:SubstPE_def WF_PREDICATE_def etype_rel_def)
+  oops
 
 subsubsection {* Typing Theorems *}
 
@@ -308,6 +321,45 @@ apply (simp add:etype_rel_def closure)
 apply (force intro:UNREST_EXPR_subset)+
 done
 
+theorem UNREST_SubstPE [unrest] :
+"\<lbrakk> p \<in> WF_PREDICATE; v \<in> WF_EXPRESSION; v :e: type x;
+   UNREST vs1 p; UNREST_EXPR vs2 v \<rbrakk> \<Longrightarrow>
+ UNREST ((vs1 \<union> {x}) \<inter> vs2) p[v|x]"
+  oops
+
+(*
+  apply (auto simp add:SubstPE_def UNREST_def UNREST_EXPR_def)
+  apply (simp add:override_on_assoc)
+  apply (rule_tac x="b" in exI)
+  apply (rule_tac x="b' \<oplus> b2 on insert x vs1 \<inter> vs2" in exI)
+  apply (safe)
+  apply (case_tac "x \<in> vs2")
+  apply (simp add:override_on_assoc)
+  thm 
+  apply (simp add:closure, simp)
+  apply (metis Int_commute Int_left_absorb insert_absorb)
+
+  apply (drule_tac x="b1" in bspec, simp)
+  apply (drule_tac x="b1 \<oplus> b2 on {x}" in bspec)
+  apply (simp add:closure)
+  apply (simp)
+  apply (drule_tac x="b1 \<oplus> b2 on vs1 \<inter> vs2" in bspec)
+  apply (simp add:closure)
+  apply (simp)
+
+
+
+  apply (simp)
+  apply (force)
+  apply (case_tac "x \<in> vs2")
+  apply (simp)
+  apply (simp add:override_on_def)
+  apply (rule_tac x="b \<oplus> b2 on (vs1 \<union> {x}) \<inter> vs2" in exI)
+  apply (simp)
+  thm UNREST_ExistsP
+  apply (auto intro:unrest closure)
+*)  
+
 end
 
 subsection {* Boolean Expressions *}
@@ -370,17 +422,12 @@ PredE p :e: BoolType"
   by (auto intro:typing simp add:PredE_def etype_rel_def)
 
 subsubsection {* Laws about booleans *}
-
-lemma notext [elim]: "\<lbrakk> f \<noteq> g; \<And> x. f x \<noteq> g x \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (auto)
-
  
 lemma ExprP_TrueE [simp]: "ExprP TrueE = true"
   by (simp add:ExprP_def TrueE_def LiftP_def expr_bfun_def LitE_def wfexpr_def TrueP_def)
 
 lemma ExprP_FalseE [simp]: "ExprP FalseE = false"
   by (simp add:ExprP_def FalseE_def LiftP_def expr_bfun_def LitE_def wfexpr_def FalseP_def)
-
 
 subsubsection {* @{term UNREST_EXPR} Theorems *}
 
@@ -414,7 +461,6 @@ apply (rule_tac ?vs1.0="{x}" in UNREST_LiftP_alt)
 apply (auto)
 apply (simp add:WF_BINDING_PRED_def VarE_def wfexpr_def binding_equiv_def) 
 done
-
 
 end
 end

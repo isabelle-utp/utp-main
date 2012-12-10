@@ -7,10 +7,22 @@
 header {* Alphabetised Predicates *}
 
 theory utp_alpha_pred
-imports "../core/utp_pred" "../core/utp_laws" utp_alphabet
+imports "../core/utp_pred" "../core/utp_laws" utp_alphabet "../utp_syntax"
 begin
 
 subsection {* Locale @{text "ALPHA_PRED"} *}
+
+definition pred_alphabet ::
+  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
+   ('TYPE ALPHABET)" where
+"pred_alphabet p \<equiv> (fst p)"
+
+lemma [simp]: "pred_alphabet (a,p) = a" 
+  by (simp add:pred_alphabet_def)
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name alphabet} @{const_name pred_alphabet}
+*}
 
 locale ALPHA_PRED =
   PRED "default" "type_rel" 
@@ -18,13 +30,6 @@ locale ALPHA_PRED =
 for type_rel :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50)
 and default  :: "'TYPE \<Rightarrow> 'VALUE"
 begin
-
-abbreviation alphabet ::
-  "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>
-   ('TYPE ALPHABET)" where
-"alphabet p \<equiv> (fst p)"
-
-notation alphabet ("\<alpha>")
 
 abbreviation predicate ::
   "('VALUE, 'TYPE) ALPHA_PREDICATE \<Rightarrow>

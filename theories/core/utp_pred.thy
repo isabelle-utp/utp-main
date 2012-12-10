@@ -100,6 +100,10 @@ definition AndP ::
  p2 \<in> WF_PREDICATE \<longrightarrow>
  AndP p1 p2 = p1 \<inter> p2"
 
+local_setup {*
+  Adhoc_Overloading.add_variant @{const_name uconj} @{const_name AndP}
+*}
+
 notation AndP (infixr "\<and>p" 180)
 
 definition OrP ::

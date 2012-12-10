@@ -37,6 +37,7 @@ theorem EvalA_simp [evala] :
  p1 = p2 \<longleftrightarrow> (\<alpha> p1) = (\<alpha> p2) \<and> \<lbrakk>p1\<rbrakk>\<pi> = \<lbrakk>p2\<rbrakk>\<pi>"
 apply (simp add: EvalA_def)
 apply (simp add: prod_eq_iff)
+apply (case_tac p1, case_tac p2, simp)
 done
 
 theorem EvalA_intro :
@@ -46,6 +47,7 @@ theorem EvalA_intro :
  \<lbrakk>p1\<rbrakk>\<pi> = \<lbrakk>p2\<rbrakk>\<pi>\<rbrakk> \<Longrightarrow> p1 = p2"
 apply (simp add: EvalA_def)
 apply (simp add: prod_eq_iff)
+apply (case_tac p1, case_tac p2, simp)
 done
 
 subsection {* Distribution Theorems *}

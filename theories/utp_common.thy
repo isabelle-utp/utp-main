@@ -10,6 +10,7 @@ theory utp_common
 imports Main Real
   "~~/src/HOL/Library/Countable"
   "~~/src/HOL/Algebra/Lattice"
+  "~~/src/Tools/Adhoc_Overloading"
 begin
 
 subsection {* Configuration *}
@@ -178,4 +179,17 @@ theorem inj_on_eval_intro :
  \<lbrakk>x1 \<in> s; x2 \<in> s; f x1 = f x2\<rbrakk> \<Longrightarrow> x1 = x2"
 apply (simp add: inj_on_eval_simp)
 done
+
+no_notation (xsymbols)
+  conj  (infixr "\<and>" 35)
+
+consts
+  alphabet  :: "'r \<Rightarrow> 'a" ("\<alpha>")
+  uconj     :: "'r \<Rightarrow> 'r \<Rightarrow> 'r" (infixr "\<and>" 35)
+
+setup {*
+  Adhoc_Overloading.add_overloaded @{const_name alphabet}
+  #> Adhoc_Overloading.add_overloaded @{const_name uconj}
+  #> Adhoc_Overloading.add_variant @{const_name uconj} @{const_name conj}
+*}
 end
