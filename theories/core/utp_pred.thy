@@ -100,10 +100,6 @@ definition AndP ::
  p2 \<in> WF_PREDICATE \<longrightarrow>
  AndP p1 p2 = p1 \<inter> p2"
 
-local_setup {*
-  Adhoc_Overloading.add_variant @{const_name uconj} @{const_name AndP}
-*}
-
 notation AndP (infixr "\<and>p" 180)
 
 definition OrP ::
@@ -122,7 +118,7 @@ definition ImpliesP ::
    ('VALUE, 'TYPE) PREDICATE" where
 "p1 \<in> WF_PREDICATE \<and>
  p2 \<in> WF_PREDICATE \<longrightarrow>
- ImpliesP p1 p2 = \<not>p p1 \<or>p p2"
+ImpliesP p1 p2 = \<not>p p1 \<or>p p2"
 
 notation ImpliesP (infixr "\<Rightarrow>p" 160)
 
@@ -130,9 +126,9 @@ definition IffP ::
   "('VALUE, 'TYPE) PREDICATE \<Rightarrow>
    ('VALUE, 'TYPE) PREDICATE \<Rightarrow>
    ('VALUE, 'TYPE) PREDICATE" where
-"p1 \<in> WF_PREDICATE \<and>
- p2 \<in> WF_PREDICATE \<longrightarrow>
- IffP p1 p2 = (p1 \<Rightarrow>p p2) \<and>p (p2 \<Rightarrow>p p1)"
+"\<lbrakk> p1 \<in> WF_PREDICATE 
+ ; p2 \<in> WF_PREDICATE \<rbrakk> \<Longrightarrow>
+ IffP p1 p2 \<equiv> (p1 \<Rightarrow>p p2) \<and>p (p2 \<Rightarrow>p p1)"
 
 notation IffP (infixr "\<Leftrightarrow>p" 150)
 
@@ -338,7 +334,7 @@ done
 theorem AndP_closure [closure] :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
- p1 \<and>p p2 \<in> WF_PREDICATE"
+ (p1 \<and>p p2) \<in> WF_PREDICATE"
 apply (simp add: AndP_def)
 apply (simp add: WF_PREDICATE_def)
 apply (auto)
@@ -347,7 +343,7 @@ done
 theorem OrP_closure [closure] :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
- p1 \<or>p p2 \<in> WF_PREDICATE"
+ (p1 \<or>p p2) \<in> WF_PREDICATE"
 apply (simp add: OrP_def)
 apply (simp add: WF_PREDICATE_def)
 done
@@ -355,7 +351,7 @@ done
 theorem ImpliesP_closure [closure] :
 "\<lbrakk>p1 \<in> WF_PREDICATE;
  p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
- p1 \<Rightarrow>p p2 \<in> WF_PREDICATE"
+ (p1 \<Rightarrow>p p2) \<in> WF_PREDICATE"
 apply (simp add: ImpliesP_def)
 apply (auto simp: closure)
 done
@@ -406,6 +402,8 @@ apply (simp add: TrueP_def FalseP_def)
 apply (simp add: WF_BINDING_non_empty)
 done
 end
+
+
 
 locale PRED_BOT = 
 PRED where type_rel = type_rel +

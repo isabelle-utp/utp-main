@@ -28,6 +28,11 @@ definition UNREST ::
   "('TYPE VAR) set \<Rightarrow> ('VALUE, 'TYPE) PREDICATE \<Rightarrow> bool" where
 "UNREST vs p \<longleftrightarrow> (\<forall> b1 \<in> p . \<forall> b2 \<in> WF_BINDING . b1 \<oplus> b2 on vs \<in> p)"
 
+subsubsection {* Fresh variables *}
+
+definition fresh_var :: "('VALUE, 'TYPE) PREDICATE \<Rightarrow> 'TYPE \<Rightarrow> 'TYPE VAR" where
+"fresh_var p t \<equiv> SOME x. UNREST {x} p \<and> type x = t"
+
 subsubsection {* Restricted Predicates *}
 
 definition WF_PREDICATE_OVER ::
@@ -251,6 +256,13 @@ back back
 apply (simp add: SubstB_override_distr1 closure)
 done
 
+(*
+theorem UNREST_SubstP_single :
+"\<lbrakk>p \<in> WF_PREDICATE; UNREST vs p\<rbrakk> \<Longrightarrow>
+ UNREST vs p\<^bsup>[x \<mapsto> y]\<^esup>"
+  apply (simp)
+*)
+
 subsubsection {* Proof Support *}
 
 theorem UNREST_LiftP_alt :
@@ -285,6 +297,12 @@ theorem UNREST_SubstP_alt :
 apply (auto intro: UNREST_SubstP UNREST_subset simp: closure)
 done
 
+theorem UNREST_fresh_var: 
+  "\<exists> v. UNREST {v} p \<and> type v = t \<Longrightarrow> UNREST {fresh_var p t} p"
+  apply (auto simp add:fresh_var_def)
+  apply (smt someI_ex)
+done
+
 declare UNREST_empty [unrest]
 declare UNREST_subset [unrest]
 declare UNREST_union [unrest]
@@ -304,5 +322,7 @@ declare UNREST_ForallP_simple [unrest]
 declare UNREST_ClosureP [unrest]
 declare UNREST_RefP [unrest]
 declare UNREST_SubstP_alt [unrest]
+declare UNREST_fresh_var [unrest]
+
 end
 end

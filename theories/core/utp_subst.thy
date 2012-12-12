@@ -55,9 +55,13 @@ subsection {* Substitution builder *}
 definition MapSubst :: 
   "('TYPE VAR \<rightharpoonup> 'TYPE VAR) \<Rightarrow>
    ('TYPE VAR \<Rightarrow> 'TYPE VAR)" where
-"MapSubst f = (\<lambda> x. if (x \<in> dom f) then the (f x) 
-                    else if (x \<in> ran f) then SOME y. f x = Some y 
-                    else x)"
+"MapSubst f = the \<circ> (Some ++ (map_inv f ++ f))"
+
+definition SubstPMap :: 
+  "('VALUE, 'TYPE) PREDICATE \<Rightarrow> 
+   ('TYPE VAR \<rightharpoonup> 'TYPE VAR) \<Rightarrow> 
+   ('VALUE, 'TYPE) PREDICATE" ("_\<^bsup>_\<^esup>" [200]) where
+"SubstPMap p ss \<equiv> SubstP p (MapSubst ss)"
 
 subsection {* Theorems *}
 
@@ -75,6 +79,133 @@ apply (simp add: bij_def surj_def)
 done
 
 declare bij_imp_bij_inv [simp, intro!]
+
+subsubsection {* @{term "MapSubst"} theorems *}
+
+lemma MapSubst_empty[simp]:
+  "MapSubst empty = id"
+  by (auto simp add:MapSubst_def)
+
+lemma MapSubst_fwd [simp]:
+  "x \<in> dom f \<Longrightarrow> MapSubst f x = the (f x)"
+  by (simp add:MapSubst_def)
+
+lemma MapSubst_bwd [simp]: 
+  "\<lbrakk>x \<notin> dom f; x \<in> ran f\<rbrakk> \<Longrightarrow> MapSubst f x = the (map_inv f x)"
+  by (simp add:MapSubst_def)
+
+lemma MapSubst_copy [simp]:
+  "\<lbrakk>x \<notin> dom f; x \<notin> ran f\<rbrakk> \<Longrightarrow> MapSubst f x = x"
+  by (simp add:MapSubst_def)
+
+lemma MapSubst_bij [intro]:
+  assumes "length xs = length ys" "distinct xs" "distinct ys" "set xs \<inter> set ys = {}"
+  shows "bij (MapSubst [xs [\<mapsto>] ys])"
+proof (unfold MapSubst_def, rule bij_map_Some, rule bij_completed_map)
+
+  from assms 
+  have ran_dist: "ran (map_inv [xs [\<mapsto>] ys] ++ [xs [\<mapsto>] ys]) = 
+                  ran [xs [\<mapsto>] ys] \<union> ran (map_inv [xs [\<mapsto>] ys])"
+    by (force intro!:ran_map_add)
+
+  from assms have minj:"inj_on [xs [\<mapsto>] ys] (set xs)"
+    by (rule maplets_distinct_inj)
+
+  with assms show "dom (map_inv [xs [\<mapsto>] ys] ++ [xs [\<mapsto>] ys]) =
+                   ran (map_inv [xs [\<mapsto>] ys] ++ [xs [\<mapsto>] ys])"
+    by (unfold ran_dist, force)
+
+  from assms show "inj_on (map_inv [xs [\<mapsto>] ys] ++ [xs [\<mapsto>] ys])
+                          (dom (map_inv [xs [\<mapsto>] ys] ++ [xs [\<mapsto>] ys]))"
+    apply (simp only:dom_map_add dom_map_inv)
+    apply (rule map_self_adjoin_complete)
+    apply (simp_all add:minj)
+  done
+qed
+
+lemma MapSubst_inj [intro]:
+  assumes "length xs = length ys" "distinct xs" "distinct ys" "set xs \<inter> set ys = {}"
+  shows "inj (MapSubst [xs [\<mapsto>] ys])"
+  by (metis MapSubst_bij assms bij_betw_imp_inj_on)
+
+lemma MapSubst_image_out [simp]:
+  "\<lbrakk> length xs = length ys; distinct xs; vs \<inter> (set xs \<union> set ys) = {} \<rbrakk> \<Longrightarrow>
+       MapSubst [xs [\<mapsto>] ys] ` vs = vs"
+  apply (auto)
+  apply (subgoal_tac "xa \<notin> ran [xs [\<mapsto>] ys]")
+  apply (subgoal_tac "xa \<notin> dom [xs [\<mapsto>] ys]")
+  apply (simp)
+  apply (force)
+  apply (force)
+  apply (simp add:image_def)
+  apply (rule_tac x="x" in bexI)
+  apply (subgoal_tac "x \<notin> ran [xs [\<mapsto>] ys]")
+  apply (subgoal_tac "x \<notin> dom [xs [\<mapsto>] ys]")
+  apply (auto)
+done
+
+lemma list_set_index_elim [elim]:
+  "\<lbrakk> v \<in> set xs; \<And>i. \<lbrakk> xs!i = v; i < length xs \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (metis in_set_conv_nth)
+
+lemma MapSubst_image_fwd [simp]:
+  assumes "length xs = length ys" "distinct xs" "vs \<subseteq> set xs" "set xs \<inter> set ys = {}"
+  shows "MapSubst [xs [\<mapsto>] ys] ` vs = the ` [xs [\<mapsto>] ys] ` (set xs \<inter> vs)"
+using assms proof (auto)
+  fix x
+  assume assms':"x \<in> set xs" "x \<in> vs"
+  
+  moreover then obtain i where "x = xs!i" "i < length xs"
+    by (auto)
+
+  ultimately show "the ([xs [\<mapsto>] ys] x) \<in> MapSubst [xs [\<mapsto>] ys] ` vs" using assms
+    apply (simp add:image_def)
+    apply (rule_tac x="x" in bexI)
+    apply (simp_all)
+  done
+qed
+
+lemma MapSubst_image_bwd [simp]:
+  assumes "length xs = length ys" "distinct xs" "distinct ys" "vs \<subseteq> set ys" "set xs \<inter> set ys = {}"
+  shows "MapSubst [xs [\<mapsto>] ys] ` vs = the ` [ys [\<mapsto>] xs] ` (set ys \<inter> vs)"
+using assms
+  apply (auto)
+  apply (subgoal_tac "xa \<in> ran [xs [\<mapsto>] ys]")
+  apply (subgoal_tac "xa \<notin> dom [xs [\<mapsto>] ys]")
+  apply (auto)
+  apply (simp add:image_def)
+  apply (rule_tac x="xb" in bexI)
+  apply (simp_all)
+  apply (subgoal_tac "xb \<in> ran [xs [\<mapsto>] ys]")
+  apply (subgoal_tac "xb \<notin> dom [xs [\<mapsto>] ys]")
+  apply (auto)
+done
+
+lemma MapSubst_image [simp]:
+  assumes "length xs = length ys" "distinct xs" "distinct ys" "set xs \<inter> set ys = {}"
+  shows "MapSubst [xs [\<mapsto>] ys] ` vs = vs - (set xs \<union> set ys) 
+                              \<union> the ` [xs [\<mapsto>] ys] ` (set xs \<inter> vs)
+                              \<union> the ` [ys [\<mapsto>] xs] ` (set ys \<inter> vs)"
+proof -
+  have "MapSubst [xs [\<mapsto>] ys] ` vs = 
+        MapSubst [xs [\<mapsto>] ys] ` (vs - (set xs \<union> set ys)) \<union> 
+        MapSubst [xs [\<mapsto>] ys] ` (vs \<inter> set xs) \<union>
+        MapSubst [xs [\<mapsto>] ys] ` (vs \<inter> set ys)"
+    apply (subgoal_tac "vs = (vs - (set xs \<union> set ys)) \<union> (vs \<inter> set xs) \<union> (vs \<inter> set ys)")
+    apply (metis image_Un)
+    apply (force)
+  done
+
+  moreover have "MapSubst [xs [\<mapsto>] ys] ` (vs - (set xs \<union> set ys)) = vs - (set xs \<union> set ys)"
+    apply (rule MapSubst_image_out)
+    apply (simp_all add:assms)
+    apply (force)
+  done
+
+  ultimately show ?thesis using assms
+    by (force)
+qed
+
 
 subsubsection {* Variable Substitution *}
 
@@ -181,6 +312,25 @@ theorem VAR_SUBST_in_image [simp] :
 apply (simp add: VAR_SUBST_def)
 apply (auto simp: bij_def inj_eq)
 done
+
+lemma VAR_SUBST_MapSubst [closure]:
+  assumes "length xs = length ys" "distinct xs" "distinct ys" 
+          "set xs \<inter> set ys = {}" "\<forall>i<length xs. type (xs!i) = type (ys!i)"
+  shows "MapSubst [xs [\<mapsto>] ys] \<in> VAR_SUBST"
+proof -
+
+  from assms  have "\<And> v. type (MapSubst [xs [\<mapsto>] ys] v) = type v"
+    apply (case_tac "v \<in> set xs")
+    apply (erule list_set_index_elim)
+    apply (auto)
+    apply (case_tac "v \<in> set ys")
+    apply (erule list_set_index_elim)
+    apply (auto)
+  done
+
+  with assms show ?thesis
+    by (auto simp add:VAR_SUBST_def)
+qed
 
 text {* Theorems about @{term "VAR_SUBST_ON"} *}
 
@@ -465,6 +615,14 @@ apply (safe)
 apply (subgoal_tac "xa \<in> WF_BINDING")
 apply (simp add: closure)
 apply (auto)
+done
+
+theorem SubstPMap_single_closure [closure]:
+  "\<lbrakk> p \<in> WF_PREDICATE; x \<noteq> y; type x = type y \<rbrakk> \<Longrightarrow> p\<^bsup>[x \<mapsto> y] \<^esup>\<in> WF_PREDICATE"
+  apply (simp add:SubstPMap_def)
+  apply (rule closure, simp)
+  apply (rule VAR_SUBST_MapSubst[of "[x]" "[y]",simplified])
+  apply (auto)
 done
 
 theorem EvalP_SubstP [eval] :

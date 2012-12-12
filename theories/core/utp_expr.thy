@@ -89,14 +89,29 @@ definition SubstPE ::
 "p[v|x] \<equiv> {b'. \<exists> b. b \<in> p \<and> b x = expr_bfun v b'} \<inter> {b \<oplus> b' on {x} | b b'. b \<in> p \<and> b' \<in> WF_BINDING}"
 *)
 
+definition SubstPE_body ::
+"('VALUE, 'TYPE) PREDICATE \<Rightarrow> 
+ ('VALUE, 'TYPE) EXPRESSION \<Rightarrow> 
+ 'TYPE VAR \<Rightarrow> 
+ 'TYPE VAR \<Rightarrow>
+ ('VALUE, 'TYPE) PREDICATE" where
+"SubstPE_body p v x x' \<equiv> \<exists>p {x'} . p\<^bsup>[x \<mapsto> x']\<^esup> \<and>p (VarE x' ==p v)"
 
+definition is_SubstPE_var ::
+"('VALUE, 'TYPE) PREDICATE \<Rightarrow> 
+ ('VALUE, 'TYPE) EXPRESSION \<Rightarrow> 
+ 'TYPE VAR \<Rightarrow> 
+ 'TYPE VAR \<Rightarrow>
+ bool" where
+ "is_SubstPE_var p v x x' \<equiv> x \<noteq> x' \<and> UNREST {x'} p \<and> UNREST_EXPR {x'} v \<and> type x' = type x"
+
+(* Substitution generates a variable fresh in p and v and uses it to semantically substitute *)
 definition SubstPE ::
 "('VALUE, 'TYPE) PREDICATE \<Rightarrow> 
  ('VALUE, 'TYPE) EXPRESSION \<Rightarrow> 
  'TYPE VAR \<Rightarrow> 
  ('VALUE, 'TYPE) PREDICATE" ("_[_|_]" [200]) where
-"p[v|x] \<equiv> (\<exists>p {x} . p \<and>p (VarE x ==p v))"
-
+"p[v|x] \<equiv> SubstPE_body p v x (SOME x'. is_SubstPE_var p v x x')"
 
 subsection {* Theorems *}
 
@@ -159,7 +174,6 @@ theorem WF_EXPRESSION_wfexpr [closure]:
 "e :e: expr_type e \<Longrightarrow> wfexpr e \<in> WF_EXPRESSION"
   by (unfold WF_EXPRESSION_def wfexpr_def, auto simp add:etype_rel_def)
 
-
 theorem WF_EXPRESSION_BODY_wfexpr_drop [simp]:
 "e \<in> WF_EXPRESSION \<Longrightarrow> wfexpr e = e"
   apply (rule EXPRESSION_eqI)
@@ -189,12 +203,25 @@ theorem SubstE_closure[closure]:
  shows "(e::('VALUE,'TYPE) EXPRESSION)[v|x] \<in> WF_EXPRESSION"
   by (auto intro:closure simp add:SubstE_def WF_BINDING_def etype_rel_def assms)
 
+theorem SubstPE_body_closure[closure]:
+ assumes "p \<in> WF_PREDICATE" "v \<in> WF_EXPRESSION" "v :e: type x"
+         "is_SubstPE_var p v x x'"
+ shows "SubstPE_body p v x x' \<in> WF_PREDICATE"
+  apply (insert assms)
+  apply (simp add:SubstPE_body_def is_SubstPE_var_def)
+  apply (simp add:closure)
+done
+
 theorem SubstPE_closure[closure]:
  assumes "p \<in> WF_PREDICATE" "v \<in> WF_EXPRESSION" "v :e: type x"
+         "\<exists> x'. is_SubstPE_var p v x x'"
  shows "SubstPE p v x \<in> WF_PREDICATE"
-  apply (insert assms)
-  apply (simp add:SubstPE_def WF_PREDICATE_def etype_rel_def)
-  oops
+  apply (simp add:SubstPE_def)
+  apply (insert assms(4), erule exE)
+  apply (rule_tac a="x'" in someI2, simp)
+  apply (rule closure)
+  apply (auto simp add:assms)
+done
 
 subsubsection {* Typing Theorems *}
 
@@ -321,44 +348,40 @@ apply (simp add:etype_rel_def closure)
 apply (force intro:UNREST_EXPR_subset)+
 done
 
+(*
 theorem UNREST_SubstPE [unrest] :
 "\<lbrakk> p \<in> WF_PREDICATE; v \<in> WF_EXPRESSION; v :e: type x;
+   is_SubstPE_var p v x x'; x' \<in> vs1 \<inter> vs2;
    UNREST vs1 p; UNREST_EXPR vs2 v \<rbrakk> \<Longrightarrow>
- UNREST ((vs1 \<union> {x}) \<inter> vs2) p[v|x]"
-  oops
-
-(*
-  apply (auto simp add:SubstPE_def UNREST_def UNREST_EXPR_def)
-  apply (simp add:override_on_assoc)
-  apply (rule_tac x="b" in exI)
-  apply (rule_tac x="b' \<oplus> b2 on insert x vs1 \<inter> vs2" in exI)
-  apply (safe)
-  apply (case_tac "x \<in> vs2")
-  apply (simp add:override_on_assoc)
-  thm 
-  apply (simp add:closure, simp)
-  apply (metis Int_commute Int_left_absorb insert_absorb)
-
-  apply (drule_tac x="b1" in bspec, simp)
-  apply (drule_tac x="b1 \<oplus> b2 on {x}" in bspec)
-  apply (simp add:closure)
+ UNREST ((vs1 \<union> {x})\<inter> vs2) p[v|x]"
+  apply (simp add:SubstPE_def SubstPE_body_def)
+  apply (rule someI2)
+  apply (force)
+  apply (unfold is_SubstPE_var_def, clarify)
+  apply (rule_tac ?vs1.0="(insert x vs1 \<inter> vs2 \<union> {xa})" in UNREST_subset)
+  apply (rule UNREST_ExistsP)
+  apply (rule unrest)
+  apply (force simp del: fun_upd_apply intro!:closure)[1]
+  apply (force simp del: fun_upd_apply intro!:closure)[1]
+  apply (simp add:SubstPMap_def del: fun_upd_apply)
+  thm UNREST_SubstP_alt
+  apply (rule_tac ?vs1.0="{x,xa} \<union> vs1" in UNREST_SubstP_alt)
+  apply (blast intro:unrest closure)
+(*  apply (simp_all del: fun_upd_apply add:closure) *)
+  apply (subgoal_tac "MapSubst [[x] [\<mapsto>] [xa]] ` ({xa} \<union> vs1) = vs1 - {xa,x} \<union> the ` [x \<mapsto> xa] ` ({x} \<inter> ({xa} \<union> vs1)) \<union> the ` [xa \<mapsto> x] ` ({xa} \<inter> ({xa} \<union> vs1))")
   apply (simp)
-  apply (drule_tac x="b1 \<oplus> b2 on vs1 \<inter> vs2" in bspec)
-  apply (simp add:closure)
+  apply (case_tac "x \<in> vs1")
+  apply (force)
   apply (simp)
+  apply (subgoal_tac "set [x] \<inter> set [xa] = {}")
+  apply (subgoal_tac "length [x] = length [xa]")
+  apply (subgoal_tac "distinct [x]")
+  apply (subgoal_tac "distinct [xa]")
 
-
-
+  apply (simp only: MapSubst_image)
   apply (simp)
   apply (force)
-  apply (case_tac "x \<in> vs2")
-  apply (simp)
-  apply (simp add:override_on_def)
-  apply (rule_tac x="b \<oplus> b2 on (vs1 \<union> {x}) \<inter> vs2" in exI)
-  apply (simp)
-  thm UNREST_ExistsP
-  apply (auto intro:unrest closure)
-*)  
+*)
 
 end
 

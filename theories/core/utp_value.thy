@@ -23,14 +23,20 @@ subsection {* Locale @{term "VALUE"} *}
 
 locale VALUE =
 -- {* Typing Relation *}
+
   fixes   type_rel :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":" 50)
   and     default  :: "'TYPE \<Rightarrow> 'VALUE"
+
 -- {* A type must not be empty. *}
-  assumes default_type [typing]: "default t : t"
+  assumes default_type [typing]: "(default t) : t"
 begin
 
-lemma type_non_empty: "\<exists> x. x : t"
+definition type_rel' :: "'VALUE \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix ":\<^sub>l" 50) where
+"type_rel' \<equiv> type_rel"
+
+lemma type_non_empty: "\<exists> x::'VALUE. x : (t::'TYPE)"
   apply (rule_tac x="default t" in exI)
+  thm default_type
   apply (simp add: default_type)
 done
 
@@ -81,10 +87,14 @@ theorem set_type_rel_insert [simp] :
 apply (simp add: set_type_rel_def)
 done
 
+(*
 subsection {* Subtyping *}
 
+
 definition subtype :: "'TYPE \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix "<:" 65) where
-"s <: t \<equiv> \<forall> x. x : s \<longrightarrow> x : t"
+"s <: t \<equiv> \<forall> x. x :\<^sub>l s \<longrightarrow> x :\<^sub>l t"
+
+
 
 definition ssubtype :: "'TYPE \<Rightarrow> 'TYPE \<Rightarrow> bool" (infix "<:!" 65) where
 "ssubtype s t \<equiv> s <: t \<and> \<not> (t <: s)"
@@ -113,6 +123,7 @@ context VALUE
 begin
 
 abbreviation TLeast where "TLeast \<equiv> ord.Least (op <:)"
+*)
 
 end
 

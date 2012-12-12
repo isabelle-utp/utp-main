@@ -11,6 +11,7 @@ imports Main Real
   "~~/src/HOL/Library/Countable"
   "~~/src/HOL/Algebra/Lattice"
   "~~/src/Tools/Adhoc_Overloading"
+  "utils/Library_extra"
 begin
 
 subsection {* Configuration *}
@@ -21,9 +22,11 @@ no_notation
   Set.member ("op :") and
   Set.member ("(_/ : _)" [50, 51] 50)
 
+(*
 no_notation (xsymbols)
   ord_class.less_eq  ("op \<le>") and
   ord_class.less_eq  ("(_/ \<le> _)"  [51, 51] 50)
+*)
 
 text {* This prevents Isabelle from automatically splitting pairs. *}
 
@@ -180,16 +183,33 @@ theorem inj_on_eval_intro :
 apply (simp add: inj_on_eval_simp)
 done
 
+(*
+
 no_notation (xsymbols)
-  conj  (infixr "\<and>" 35)
+  conj  (infixr "\<and>" 35) and
+  disj  (infixr "\<or>" 30) and
+  Not   ("\<not> _" [40] 40) and
+  implies (infixr "\<longrightarrow>" 25)
 
 consts
   alphabet  :: "'r \<Rightarrow> 'a" ("\<alpha>")
   uconj     :: "'r \<Rightarrow> 'r \<Rightarrow> 'r" (infixr "\<and>" 35)
+  udisj     :: "'r \<Rightarrow> 'r \<Rightarrow> 'r" (infixr "\<or>" 35)
+  uimplies  :: "'r \<Rightarrow> 'r \<Rightarrow> 'r" (infixr "\<longrightarrow>" 25)
+  unot      :: "'r \<Rightarrow> 'r" ("\<not> _" [40] 40)
 
 setup {*
   Adhoc_Overloading.add_overloaded @{const_name alphabet}
   #> Adhoc_Overloading.add_overloaded @{const_name uconj}
+  #> Adhoc_Overloading.add_overloaded @{const_name udisj}
+  #> Adhoc_Overloading.add_overloaded @{const_name unot}
+  #> Adhoc_Overloading.add_overloaded @{const_name uimplies}
   #> Adhoc_Overloading.add_variant @{const_name uconj} @{const_name conj}
+  #> Adhoc_Overloading.add_variant @{const_name udisj} @{const_name disj}
+  #> Adhoc_Overloading.add_variant @{const_name unot} @{const_name Not}
+  #> Adhoc_Overloading.add_variant @{const_name uimplies} @{const_name implies}
 *}
+
+*)
+
 end
