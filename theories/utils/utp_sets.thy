@@ -1,32 +1,33 @@
 (******************************************************************************)
-(* Project: Mechanisation of the UTP                                          *)
-(* File: utp/utils/utp_sets                                                   *)
-(* Author: Frank Zeyda, University of York                                    *)
+(* Project: Unifying Theories of Programming in HOL                           *)
+(* File: utp_sets.thy                                                         *)
+(* Author: Frank Zeyda, University of York (UK)                               *)
 (******************************************************************************)
 
-header {* Restricted Cardinality Sets *}
+header {* Cardinality-Bounded Sets *}
 
 theory utp_sets
-imports "../utp_config"
+imports "../utp_common"
 begin
 
 text {*
-  The benefit of limited cardinality sets is that we can use them without
-  soundness issues in recursive constructor functions of data types. They thus
-  provide a limited facility to handle infinite sets in the semantic model of
-  UTP values. We make use of a type class to facilitate automation of proofs
-  about such sets constructed over the various HOL types.
+  The benefit of considering sets with a bounded cardinality is that we can
+  use them without soundness issues in recursive constructor functions of data
+  types. They thus can provide a limited facility to handle infinite sets in
+  the semantic model of UTP values. We make use of a type class to facilitate
+  automation of proofs about such sets constructed over the various HOL types.
 *}
 
 subsection {* Type Definition *}
 
-text {* For now we only consider countably infinite sets. *}
-
-text {* Higher degrees of infinity can in principle be supported. *}
+text {*
+  For now we only consider countably infinite sets. However, higher degrees of
+  infinity can in principle be supported.
+*}
 
 type_synonym IDX = "nat"
 
-datatype 'a SET = MkSet "IDX \<Rightarrow> 'a" | EmptySet
+datatype 'a SET = MakeSet "IDX \<Rightarrow> 'a" | EmptySet
 
 subsection {* Core Operators *}
 
@@ -34,13 +35,13 @@ definition IdxSet :: "'a set \<Rightarrow> bool" where
 "(IdxSet s) \<longleftrightarrow> (s = {}) \<or> (\<exists> f :: IDX \<Rightarrow> 'a . s = range f)"
 
 primrec DecSet :: "'a SET \<Rightarrow> 'a set" where
-"DecSet (MkSet f) = range f" |
+"DecSet (MakeSet f) = range f" |
 "DecSet EmptySet = {}"
 
 definition EncSet :: "'a set \<Rightarrow> 'a SET" where
 "EncSet = (inv DecSet)"
 
-text {* Unfortunately the representation is not canonical. *}
+text {* We observe that the representation is not canonical. *}
 
 definition CongSet :: "'a SET \<Rightarrow> 'a SET \<Rightarrow> bool" (infix "\<cong>" 50) where
 "s1 \<cong> s2 \<longleftrightarrow> (DecSet s1) = (DecSet s2)"
@@ -62,7 +63,7 @@ apply (clarify)
 apply (rule_tac Q =
   "DecSet (SOME x . DecSet x = range f) = range f" in contrapos_np)
 apply (assumption)
-apply (rule_tac a = "MkSet f" in someI2)
+apply (rule_tac a = "MakeSet f" in someI2)
 apply (simp_all)
 done
 
@@ -122,7 +123,7 @@ apply (rule_tac a = "x" in someI2)
 apply (simp_all)
 done
 
-text {* The following proof may fail if the definition of @{term IDX} changes. *}
+text {* The following proof may fail if the definition of @{typ IDX} changes. *}
 
 theorem IdxSet_union [simp] :
 "\<lbrakk>IdxSet s1; IdxSet s2\<rbrakk> \<Longrightarrow> IdxSet (s1 \<union> s2)"
@@ -192,7 +193,7 @@ apply (simp_all)
 apply (auto)
 done
 
-subsection {* Lifted Operators *}
+subsection {* Lifted Set Operators *}
 
 definition set_compl :: "'a SET \<Rightarrow> 'a SET" ("-s _" [81] 80) where
 "-s s = EncSet(- DecSet(s))"
@@ -245,7 +246,7 @@ subsection {* Type Class Indexable *}
 class indexable =
   assumes IdxSet [simp] : "\<forall> s :: 'a set . IdxSet s"
 
-text {* The following proof may fail if the definition of @{term IDX} changes. *}
+text {* The following proof may fail if the definition of @{typ IDX} changes. *}
 
 instance countable \<subseteq> indexable
 apply (intro_classes)

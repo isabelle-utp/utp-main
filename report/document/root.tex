@@ -1,10 +1,11 @@
 \documentclass[11pt,a4paper]{article}
 \usepackage{isabelle,isabellesym}
+\usepackage{fullpage}
 
 % further packages required for unusual symbols (see also
 % isabellesym.sty), use only when needed
 
-%\usepackage{amssymb}
+\usepackage{amssymb}
   %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
   %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
   %\<triangleq>, \<yen>, \<lozenge>
@@ -25,9 +26,6 @@
 
 % this should be the last package used
 \usepackage{pdfsetup}
-\usepackage{fullpage}
-
-\hypersetup{linkcolor=black}
 
 % urls in roman style, theory text in math-similar italics
 \urlstyle{rm}
@@ -36,22 +34,15 @@
 % for uniform font size
 %\renewcommand{\isastyle}{\isastyleminor}
 
-% Added by Frank Zeyda
-\renewcommand{\isacharunderscorekeyword}{\mbox{\_}}
-\renewcommand{\isacharunderscore}{\mbox{\_}}
-% End of Addition
-
 \begin{document}
 
-\title{Mechanisation of the UTP in Isabelle HOL}
+\title{A Deep Model of the UTP in Isabelle-HOL}
 
-\author{Frank Zeyda}
+\author{Frank Zeyda \and Simon Foster}
 
 \maketitle
 
 \tableofcontents
-
-\newpage
 
 % sane default for proof documents
 \parindent 0pt\parskip 0.5ex
@@ -59,19 +50,21 @@
 % generated text of all theories
 %\input{session}
 
-\input{utp_config.tex}
-
 \newpage
 
 \input{utp_common.tex}
 
 \newpage
 
-\input{utp_sets.tex}
+\input{utp_global.tex}
 
 \newpage
 
-\input{utp_types.tex}
+\input{utp_names.tex}
+
+\newpage
+
+\input{utp_synonyms.tex}
 
 \newpage
 
@@ -79,23 +72,7 @@
 
 \newpage
 
-\input{GLOBAL.tex}
-
-\input{GLOBAL0.tex}
-
-\input{GLOBAL1.tex}
-
-\newpage
-
-\input{utp_name.tex}
-
-\newpage
-
 \input{utp_value.tex}
-
-\newpage
-
-\input{utp_composite_value.tex}
 
 \newpage
 
@@ -103,39 +80,7 @@
 
 \newpage
 
-\input{utp_alphabet.tex}
-
-\newpage
-
-\input{utp_gen_pred.tex}
-
-\newpage
-
-\input{utp_rel.tex}
-
-\newpage
-
-\input{utp_designs.tex}
-
-\newpage
-
-\input{utp_eval_tactic.tex}
-
-\newpage
-
-\input{utp_gen_laws.tex}
-
-\newpage
-
-\input{utp_binding_fun.tex}
-
-\newpage
-
-\input{utp_function.tex}
-
-\newpage
-
-\input{utp_lattice.tex}
+\input{utp_pred.tex}
 
 \newpage
 
@@ -143,7 +88,31 @@
 
 \newpage
 
-\input{utp_expression.tex}
+\input{utp_lattice.tex}
+
+\newpage
+
+\input{utp_unrest.tex}
+
+\newpage
+
+\input{utp_rel.tex}
+
+\newpage
+
+\input{utp_laws.tex}
+
+\newpage
+
+\input{utp_alphabet.tex}
+
+\newpage
+
+\input{utp_alpha_pred.tex}
+
+\newpage
+
+\input{utp_alpha_rel.tex}
 
 \newpage
 
@@ -151,41 +120,35 @@
 
 \newpage
 
+\input{utp_complex_value.tex}
+
+\newpage
+
+\input{utp_flat_value.tex}
+
+\newpage
+
+\input{utp_ho_value.tex}
+
+\newpage
+
 \input{utp_std_pred.tex}
 
 \newpage
 
-\input{utp_theory.tex}
+\input{utp_pred_tac.tex}
 
 \newpage
 
-%\input{utp_ho_value.tex}
+\input{utp_rel_tac.tex}
 
-%\newpage
+\newpage
 
-%\input{utp_ho_model.tex}
+\input{utp_alpha_tac.tex}
 
-%\newpage
+\newpage
 
-%\input{utp_ho_program.tex}
-
-%\newpage
-
-%\input{utp_ho_pred.tex}
-
-%\newpage
-
-%\input{utp_ho_inst.tex}
-
-%\newpage
-
-\input{utp_generic.tex}
-
-\input{utp_models.tex}
-
-\input{utp_theories.tex}
-
-\input{utp.tex}
+\input{utp_sets.tex}
 
 % optional bibliography
 %\bibliographystyle{abbrv}

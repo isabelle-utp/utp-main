@@ -1,16 +1,15 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
-(* File: utp_models.thy                                                       *)
+(* File: utp_alpha.thy                                                        *)
 (* Author: Frank Zeyda, University of York (UK)                               *)
 (******************************************************************************)
 
-header {* Meta-Theory for Generic Models *}
+header {* Meta-Theory for Alphabetised Predicates *}
 
-theory utp_models
+theory utp_alpha
 imports
-  utp_default_value
-  utp_complex_value
-  utp_flat_value
-  "../high-order/utp_ho_value"
+  utp_alphabet
+  utp_alpha_pred
+  utp_alpha_rel
 begin
 end
