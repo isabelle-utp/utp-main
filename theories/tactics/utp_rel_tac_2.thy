@@ -6,8 +6,8 @@
 
 header {* Proof Tactic for Relations *}
 
-theory utp_rel_tac
-imports "../core/utp_pred" "../core/utp_rel"
+theory utp_rel_tac_2
+imports "../core/utp_pred_2" "../core/utp_rel_2"
 begin
 
 text {* Theorem Attribute *}

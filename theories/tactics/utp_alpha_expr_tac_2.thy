@@ -6,8 +6,8 @@
 
 header {* Proof Tactic for Alphabetised Expressions *}
 
-theory utp_alpha_expr_tac
-imports "../alpha/utp_alpha_expr" utp_pred_tac utp_expr_tac utp_alpha_tac
+theory utp_alpha_expr_tac_2
+imports "../alpha/utp_alpha_expr_2" utp_pred_tac_2 utp_expr_tac_2 utp_alpha_tac_2
 begin
 
 subsection {* Interpretation Function *}

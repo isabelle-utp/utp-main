@@ -6,9 +6,21 @@
 
 header {* Alphabets *}
 
-theory utp_alphabet
-imports "../core/utp_var" "../core/utp_synonyms"
+theory utp_alphabet_2
+imports "../core/utp_var_2" "../core/utp_synonyms"
 begin
+
+(*
+text {* Alphabets are finite sets of variables. *}
+
+definition WF_ALPHABET :: "(('VALUE, 'VALUE UTYPE) ALPHABET) set" where
+"WF_ALPHABET = {vs . finite vs}"
+
+typedef (open) 'VALUE WF_ALPHABET = "WF_ALPHABET :: ('VALUE ALPHABET) set"
+  by (auto simp add:WF_ALPHABET_def)
+
+setup_lifting type_definition_WF_ALPHABET
+*)
 
 subsection {* Operators *}
 
@@ -33,6 +45,16 @@ definition hom_alphabet ::
 
 subsection {* Restrictions *}
 
+(*
+definition COMPOSABLE ::
+  "'VALUE UTYPE ALPHABET \<Rightarrow>
+   'VALUE UTYPE ALPHABET \<Rightarrow> bool" where
+"COMPOSABLE a1 a2 \<longleftrightarrow> (out\<^sub>\<alpha> a1) = dash `\<^sub>f (in\<^sub>\<alpha> a2)"
+
+definition HOMOGENEOUS :: "'VALUE UTYPE ALPHABET \<Rightarrow> bool" where
+"HOMOGENEOUS a \<longleftrightarrow> COMPOSABLE a a"
+*)
+
 definition PROGRAM_ALPHABET :: "'VALUE ALPHABET \<Rightarrow> bool" where
 "PROGRAM_ALPHABET a \<equiv> \<langle>a\<rangle>\<^sub>f \<subseteq> PROGRAM_VARS"
 
@@ -48,9 +70,81 @@ setup alphabet.setup
 subsection {* Theorems *}
 
 theorems alphabet_defs =
+(*  COMPOSABLE_def
+  HOMOGENEOUS_def *)
   in_alphabet_def
   out_alphabet_def
   hom_alphabet_def
+
+subsubsection {* Closure Theorems *}
+
+(*
+theorem WF_ALPHABET_empty [closure] :
+"{} \<in> WF_ALPHABET"
+apply (simp add: WF_ALPHABET_def)
+done
+
+theorem WF_ALPHABET_insert [closure] :
+"a \<in> WF_ALPHABET \<Longrightarrow>
+ (insert x a) \<in> WF_ALPHABET"
+apply (simp add: WF_ALPHABET_def)
+done
+
+theorem WF_ALPHABET_union [closure] :
+"\<lbrakk>a1 \<in> WF_ALPHABET;
+ a2 \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
+ a1 \<union> a2 \<in> WF_ALPHABET"
+apply (simp add: WF_ALPHABET_def)
+done
+
+theorem WF_ALPHABET_inter [closure] :
+"\<lbrakk>a1 \<in> WF_ALPHABET;
+ a2 \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
+ a1 \<inter> a2 \<in> WF_ALPHABET"
+apply (simp add: WF_ALPHABET_def)
+done
+
+theorem WF_ALPHABET_diff [closure] :
+"\<lbrakk>a1 \<in> WF_ALPHABET;
+ a2 \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
+ a1 - a2 \<in> WF_ALPHABET"
+apply (simp add: WF_ALPHABET_def)
+done
+
+theorem WF_ALPHABET_subset [intro]:
+"\<lbrakk>a1 \<in> WF_ALPHABET; a2 \<subseteq> a1\<rbrakk> \<Longrightarrow>
+ a2 \<in> WF_ALPHABET"
+apply (simp add: WF_ALPHABET_def)
+apply (simp add: finite_subset)
+done
+
+theorem WF_ALPHABET_image [closure] :
+"\<lbrakk>a \<in> WF_ALPHABET\<rbrakk> \<Longrightarrow>
+ f ` a \<in> WF_ALPHABET"
+apply (simp add: WF_ALPHABET_def)
+done
+
+theorem WF_ALPHABET_in [closure] :
+"a \<in> WF_ALPHABET \<Longrightarrow>
+ in a \<in> WF_ALPHABET"
+apply (simp add: in_alphabet_def)
+apply (simp add: WF_ALPHABET_def)
+done
+
+theorem WF_ALPHABET_out [closure] :
+"a \<in> WF_ALPHABET \<Longrightarrow>
+ out a \<in> WF_ALPHABET"
+apply (simp add: out_alphabet_def)
+apply (simp add: WF_ALPHABET_def)
+done
+
+theorem WF_ALPHABET_hom [closure] :
+"a \<in> WF_ALPHABET \<Longrightarrow>
+ hom a \<in> WF_ALPHABET"
+apply (simp add: hom_alphabet_def)
+apply (simp add: closure)
+done
+*)
 
 subsubsection {* Membership Theorems *}
 

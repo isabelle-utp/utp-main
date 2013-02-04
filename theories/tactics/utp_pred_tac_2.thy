@@ -6,8 +6,8 @@
 
 header {* Proof Tactic for Predicates *}
 
-theory utp_pred_tac
-imports "../core/utp_pred"
+theory utp_pred_tac_2
+imports "../core/utp_pred_2"
 begin
 
 text {* Theorem Attribute *}

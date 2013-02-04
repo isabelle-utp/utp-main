@@ -4,13 +4,13 @@
 (* Author: Frank Zeyda, University of York (UK)                               *)
 (******************************************************************************)
 
-header {* Algebraic Laws *}
+header {* Albegraic Laws *}
 
-theory utp_laws
-imports utp_pred utp_rel utp_subst "../alpha/utp_alphabet"
-  "../tactics/utp_pred_tac"
-  "../tactics/utp_rel_tac"
-  "../tactics/utp_expr_tac"
+theory utp_laws_2
+imports utp_pred_2 utp_rel_2 utp_subst_2 "../alpha/utp_alphabet_2"
+  "../tactics/utp_pred_tac_2"
+  "../tactics/utp_rel_tac_2"
+  "../tactics/utp_expr_tac_2"
 begin
 
 lemma IffP_eq_intro[intro]:
@@ -268,7 +268,7 @@ proof -
       moreover from assms have "UNREST (dash ` out vs) p2[SS2]"
         apply (rule_tac ?vs1.0="undash ` out vs" in UNREST_SubstP_alt)
         apply (auto simp add:var_member closure calculation var_simps SS2_simps)
-        apply (smt SS2.rep_eq dash_UNDASHED_image image_iff in_mono undash_dash utp_var.out_DASHED)
+        apply (smt SS2.rep_eq dash_UNDASHED_image image_iff in_mono undash_dash utp_var_2.out_DASHED)
       done
 
       moreover from assms have "UNREST (in vs) p2[SS2]"
@@ -277,7 +277,7 @@ proof -
         apply (auto simp add:closure alphabet_defs image_def)
         apply (rule_tac x="dash (dash x)" in exI)
         apply (auto simp add:SS2_simps SS2.rep_eq)
-        apply (metis (lifting) DASHED_dash_DASHED_TWICE UNDASHED_dash_DASHED set_mp utp_var.in_UNDASHED)
+        apply (metis (lifting) DASHED_dash_DASHED_TWICE UNDASHED_dash_DASHED set_mp utp_var_2.in_UNDASHED)
       done
 
       ultimately show ?thesis using assms

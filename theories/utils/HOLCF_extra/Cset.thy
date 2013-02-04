@@ -4,17 +4,17 @@ begin
 
 section {* LCF-style sets *}
 
-default_sort cpo
+default_sort pcpo
 
 subsection {* Definition of continuous set type *}
 
-pcpodef (open) 'a cset = "UNIV :: ('a \<rightarrow> tr) set"
+pcpodef (open) 'a cset = "{f :: 'a \<rightarrow> tr. f\<cdot>\<bottom> = \<bottom>}"
   by simp_all
 
 definition
   cset_abs :: "('a \<rightarrow> tr) \<rightarrow> ('a cset)"
 where
-  "cset_abs = (\<Lambda> f. Abs_cset f)"
+  "cset_abs = (\<Lambda> f. Abs_cset (strictify\<cdot>f))"
 
 definition
   cset_rep :: "('a cset) \<rightarrow> ('a \<rightarrow> tr)"
@@ -38,22 +38,29 @@ notation (xsymbols)
 lemma cset_rep_beta: "cset_rep\<cdot>f = Rep_cset f"
   unfolding cset_rep_def by (simp add: cont_Rep_cset)
 
-lemma cset_abs_cset_rep [simp]: "cset_abs\<cdot>(cset_rep\<cdot>f) = f"
-  unfolding cset_abs_def cset_rep_def
-  by (simp add: cont_Abs_cset cont_Rep_cset Rep_cset_inverse)
+lemma Rep_cset_strict' [simp]: "Rep_cset xs\<cdot>\<bottom> = \<bottom>"
+  by (insert Rep_cset[of xs], simp)
 
-lemma cset_rep_cset_abs [simp]: "cset_rep\<cdot>(cset_abs\<cdot>f) = f"
+lemma cset_rep_strict' [simp]: "cset_rep\<cdot>xs\<cdot>\<bottom> = \<bottom>"
+  by (simp add:cset_rep_def cont_Rep_cset)
+
+lemma cset_abs_cset_rep [simp]: "cset_abs\<cdot>(cset_rep\<cdot>xs) = xs"
   unfolding cset_abs_def cset_rep_def
-  by (simp add: cont_Abs_cset cont_Rep_cset Abs_cset_inverse)
+  by (simp add: cont_Rep_cset cont_Abs_cset strictify_cancel Rep_cset_inverse)
+
+lemma cset_rep_cset_abs [simp]: "cset_rep\<cdot>(cset_abs\<cdot>f) = strictify\<cdot>f"
+  unfolding cset_abs_def cset_rep_def
+  by (simp add: cont_Abs_cset cont_Rep_cset Abs_cset_inverse strictify_cancel)
 
 lemma cset_rep_strict [simp]: "cset_rep\<cdot>\<bottom> = \<bottom>"
-  unfolding cset_rep_beta by (rule Rep_cset_strict)
+  unfolding cset_rep_beta 
+  by (rule Rep_cset_strict)
 
-lemma cset_abs_mem_beta [simp]: "(x \<in>\<in> cset_abs\<cdot>f) = f\<cdot>x"
+lemma cset_abs_mem_beta [simp]: "(x \<in>\<in> cset_abs\<cdot>f) = strictify\<cdot>f\<cdot>x"
   by (simp add:cmember_def)
 
 lemma cset_abs_strict [simp]: "cset_abs\<cdot>\<bottom> = \<bottom>"
-  by (metis (lifting) cset_abs_cset_rep cset_rep_strict)
+  by (metis (hide_lams, no_types) cset_abs_cset_rep strictI)
 
 lemma cset_eq_iff: "xs = ys \<longleftrightarrow> cset_rep\<cdot>xs = cset_rep\<cdot>ys"
   by (simp add: cset_rep_def cont_Rep_cset Rep_cset_inject)
@@ -61,12 +68,11 @@ lemma cset_eq_iff: "xs = ys \<longleftrightarrow> cset_rep\<cdot>xs = cset_rep\<
 lemma cset_below_iff: "xs \<sqsubseteq> ys \<longleftrightarrow> cset_rep\<cdot>xs \<sqsubseteq> cset_rep\<cdot>ys"
   by (simp add: cset_rep_def cont_Rep_cset below_cset_def)
 
-lemma cmem_CCollect_eq [iff]: "cmember a (CCollect P) = P\<cdot>a"
+lemma cmem_CCollect_eq [iff]: "cmember a (CCollect P) = strictify\<cdot>P\<cdot>a"
   by (simp add:cmember_def CCollect_def Abs_cset_inverse)
 
 lemma CCollect_cmem_eq [simp]: "CCollect (\<Lambda> x. cmember x A) = A"
   by (simp add: CCollect_def cmember_def Rep_cfun_inverse Rep_cset_inverse)
-
 
 text {* Continuity of membership and collect *}
 
@@ -104,8 +110,10 @@ lemmas monofun_Rep_cset = cont_Rep_cset [THEN cont2mono]
 lemmas monofun_Rep_cset1 = cont_Rep_cset1 [THEN cont2mono]
 lemmas monofun_Rep_cset2 = cont_Rep_cset2 [THEN cont2mono]
 
+(*
 lemma CCollectF_mem [simp]: "x \<in> flat \<Longrightarrow> x \<in>\<in> CCollectF f = f x"
-  by (simp add:cmember_def CCollectF_def)
+  apply (simp add:cmember_def CCollectF_def)
+*)
 
 text {* Extensionality for continuous sets *}
 
@@ -139,24 +147,33 @@ text {* Set Mapping Function *}
 definition cset_map :: "('b \<rightarrow> 'a) \<rightarrow> ('a cset) \<rightarrow> ('b cset)" where
 "cset_map = (\<Lambda> f. cset_abs oo cfun_map\<cdot>f\<cdot>ID oo cset_rep)"
 
-lemma cset_map_beta [simp]: "(x \<in>\<in> cset_map\<cdot>f\<cdot>xs) = (f\<cdot>x \<in>\<in> xs)"
-  by (simp add:cset_map_def cfun_map_def cont2cont_LAM cfun_eq_iff cmember_def)
+lemma cset_map_beta [simp]: "f\<cdot>\<bottom> = \<bottom> \<Longrightarrow> (x \<in>\<in> cset_map\<cdot>f\<cdot>xs) = (f\<cdot>x \<in>\<in> xs)"
+  by (simp add:cset_map_def cfun_map_def cont2cont_LAM cfun_eq_iff cmember_def strictify_cancel)
 
 lemma cset_map_ID [domain_map_ID]: "cset_map\<cdot>ID = ID"
   unfolding cfun_eq_iff cset_mem_iff by simp
 
 lemma cset_map_map:
-  "cset_map\<cdot>f1\<cdot>(cset_map\<cdot>f2\<cdot>p) =
+  "\<lbrakk> f1\<cdot>\<bottom> = \<bottom>; f2\<cdot>\<bottom> = \<bottom> \<rbrakk> \<Longrightarrow>
+   cset_map\<cdot>f1\<cdot>(cset_map\<cdot>f2\<cdot>p) =
     cset_map\<cdot>(\<Lambda> x. f2\<cdot>(f1\<cdot>x))\<cdot>p"
   by (rule cset_eqI) simp
+
 
 lemma ep_pair_cset_map:
   assumes "ep_pair e p"
   shows "ep_pair (cset_map\<cdot>p) (cset_map\<cdot>e)"
 proof
-  interpret e1p1: ep_pair e p by fact
+  interpret e1p1: pcpo_ep_pair e p 
+    unfolding pcpo_ep_pair_def by fact
   fix x show "cset_map\<cdot>e\<cdot>(cset_map\<cdot>p\<cdot>x) = x"
-    by (simp add:cset_mem_iff)
+    unfolding cset_map_def
+    apply (simp add:cset_eq_iff strictify_cancel)
+    apply (rule ep_pair.e_inverse)
+    apply (rule ep_pair_cfun_map)
+    apply (simp add:assms)
+    apply (simp add:ep_pair_ID_ID)
+  done
 
   fix x show "cset_map\<cdot>p\<cdot>(cset_map\<cdot>e\<cdot>x) \<sqsubseteq> x"
     apply (rule cset_belowI, simp)
@@ -165,17 +182,22 @@ proof
   done
 qed
 
+
 lemma deflation_cset_map [domain_deflation]:
   assumes 1: "deflation d"
   shows "deflation (cset_map\<cdot>d)"
 apply (rule deflation.intro)
 apply (rule cset_eqI)
-apply (simp add: "1" deflation.idem)
+apply (metis "1" cset_map_beta deflation.idem deflation_strict)
 apply (metis "1" ID1 cset_map_ID deflation.below_ID monofun_cfun_arg monofun_cfun_fun)
 done
 
+(*
 lemma Collect_eq_iff: "x = y \<longleftrightarrow> CCollect x = CCollect y"
+  apply (simp add:cfun_eq_iff cmem_CCollect_eq)
+  apply (simp add:CCollect_def)
   by (metis cfun_eq_iff cmem_CCollect_eq)
+*)
 
 lemma sort_finite_deflation: "deflation (d:: ('a::{cpo,finite}) \<rightarrow> 'a) \<Longrightarrow> finite_deflation d"
    by (rule finite_deflation_intro, simp_all add:finite)
@@ -212,7 +234,12 @@ proof (intro finite_deflation_intro)
     by (rule finite_vimageI)
   then show "finite {f. cset_map\<cdot>d\<cdot>f = f}"
     unfolding cset_map_def cset_eq_iff
-    by (simp)
+    apply (simp add:strictify_cancel)
+    apply (subgoal_tac "\<And> f. cfun_map\<cdot>d\<cdot>ID\<cdot>(cset_rep\<cdot>f)\<cdot>\<bottom> = \<bottom>")
+    apply (simp add:strictify_cancel)
+    apply (simp)
+    apply (metis (hide_lams, no_types) Rep_cset_strict' below_bottom_iff cset_rep_beta d1.below)
+  done
 qed
 
 lemma approx_chain_cset_map:
@@ -220,7 +247,6 @@ lemma approx_chain_cset_map:
   shows "approx_chain (\<lambda>i. cset_map\<cdot>(a i))"
   using assms unfolding approx_chain_def
   by (simp add: lub_APP cset_map_ID finite_deflation_cset_map)
-
 
 instance cset :: (bifinite) bifinite
 proof
@@ -311,10 +337,10 @@ definition cempty :: "'a cset" ("\<emptyset>") where
 definition cuniv :: "'a cset" where
 "cuniv = CCollect (\<Lambda> x. TT)"
 
-lemma cmem_empty [simp]: "x \<in>\<in> \<emptyset> = FF"
+lemma cmem_empty [simp]: "x \<noteq> \<bottom> \<Longrightarrow> x \<in>\<in> \<emptyset> = FF"
   by (simp add:cmember_def cempty_def CCollect_def Abs_cset_inverse)
 
-lemma cmem_cuniv [simp]: "x \<in>\<in> cuniv = TT"
+lemma cmem_cuniv [simp]: "x \<noteq> \<bottom> \<Longrightarrow> x \<in>\<in> cuniv = TT"
   by (simp add:cmember_def cuniv_def CCollect_def Abs_cset_inverse)
 
 definition cunion :: "'a cset \<rightarrow> 'a cset \<rightarrow> 'a cset" where
@@ -323,6 +349,112 @@ definition cunion :: "'a cset \<rightarrow> 'a cset \<rightarrow> 'a cset" where
 abbreviation cunion_syn :: "'a cset \<Rightarrow> 'a cset \<Rightarrow> 'a cset" (infixl "\<union>\<union>" 60) where
 "x \<union>\<union> y \<equiv> cunion\<cdot>x\<cdot>y"
 
+
+
+text {* For the time being, set injenction is converted to sets of flat values.
+        This may be too restrictive, but if a larger set than flat can be found
+        which preserver continuity then this can be inserted *}
+
+definition set2cset_aux :: "('a::pcpo) set \<Rightarrow> 'a \<Rightarrow> tr" where
+"set2cset_aux xs = (\<lambda> x. if (x \<in> flat) then (if (x \<in> xs) then TT else FF) else \<bottom>)"
+
+lemma cont_set2cset_aux [cont2cont, simp]: 
+  "cont (set2cset_aux xs)"
+  apply (rule cont_flat_cdom)
+  apply (simp add:cdom_def set2cset_aux_def)
+done  
+
+definition set2cset :: "('a::pcpo) set \<Rightarrow> 'a cset" where
+"set2cset xs = cset_abs\<cdot>(\<Lambda> x. set2cset_aux xs x)"
+ 
+definition cset2set :: "('a::pcpo) cset \<Rightarrow> 'a set" where
+"cset2set xs = {x. \<lbrakk> x \<in>\<in> xs \<rbrakk>st}"
+
+lemma set2cset_inv[simp]: "xs \<subseteq> flat \<Longrightarrow> cset2set (set2cset xs) = xs"
+  apply (simp add:cset2set_def set2cset_def cmember_def)
+  apply (simp add:set_eq_iff)
+  apply (clarify)
+  apply (case_tac "x = \<bottom>")
+  apply (simp add:flat_def)
+  apply (metis (lifting) Cfun_Partial.flat_def flat_nbot set_rev_mp)
+  apply (simp)
+  apply (simp add:flat_def set2cset_aux_def)
+  apply (auto)
+done
+
+lemma cset2set_inv[simp]: 
+  "\<lbrakk> \<forall>x. \<lbrakk>x \<in>\<in> xs\<rbrakk>st \<longrightarrow> flat_value x \<rbrakk> \<Longrightarrow> set2cset (cset2set xs) = xs"
+  apply (simp add: cset_mem_iff)
+  apply (auto simp add:cset2set_def set2cset_def)
+  apply (case_tac "x=\<bottom>")
+  apply (simp)
+  apply (metis (no_types) cmember_def cset_rep_strict')
+  apply (simp)
+  apply (auto simp add:set2cset_aux_def)
+  apply (metis staut_def)
+  apply (force simp add:flat_def)
+  apply (simp add: staut_def)
+oops
+
+lemma set2cset_mem[simp]: "xs \<subseteq> flat \<Longrightarrow> \<lbrakk>x \<in>\<in> set2cset xs\<rbrakk>st \<longleftrightarrow> x \<in> xs"
+  apply (simp add:set2cset_def)
+  apply (case_tac "x = \<bottom>")
+  apply (simp add:flat_def)
+  apply (metis (lifting) Cfun_Partial.flat_def flat_nbot set_rev_mp)
+  apply (auto simp add:set2cset_aux_def)
+done
+
+lemma set2cset_nbot[simp]: 
+  "\<lbrakk> (xs::('a::pcpo) set) \<subseteq> flat; \<exists> (x::'a). x \<in> flat \<rbrakk> \<Longrightarrow> set2cset xs \<noteq> \<bottom>"
+  apply (auto simp add:set2cset_def)
+  apply (drule_tac f="cset_rep" in cfun_arg_cong)
+  apply (simp)
+  apply (case_tac "\<exists>y . y \<in> xs")
+  apply (erule exE)
+  apply (drule_tac x="y" in cfun_fun_cong)
+  apply (simp)
+  apply (case_tac "y=\<bottom>")
+  apply (force simp add:flat_def flat_value_def)
+  apply (simp add:set2cset_aux_def)
+  apply (auto)
+  apply (drule_tac x="x" in cfun_fun_cong)
+  apply (simp)
+  apply (case_tac "x=\<bottom>")
+  apply (simp_all add:set2cset_aux_def)
+done
+
+(*
+
+(*
+definition fdom :: "('a::pcpo \<rightarrow> 'b::pcpo) \<rightarrow> 'a cset" where
+"fdom = (\<Lambda> f. CCollectF (\<lambda> x. if (f\<cdot>x = \<bottom>) then FF else TT))"
+
+lemma "cont (\<lambda> f. CCollectF (\<lambda> x. if (f\<cdot>x = \<bottom>) then FF else TT))"
+  apply (rule cont2cont)
+oops
+*)
+
+(*
+definition fran :: "('a::pcpo \<rightarrow> 'b::pcpo) \<rightarrow> 'b cset" where
+"fran = (\<Lambda> f. CCollectF (\<lambda> f x. if (f\<cdot>x = \<bottom>) then FF else TT))"
+*)
+
+
+
+
+subsection {* Strict Lists to sets *}
+
+fixrec slist2cset :: "('a::domain) slist \<rightarrow> 'a cset" where
+"slist2cset\<cdot>SNil = \<emptyset>" |
+"\<lbrakk>x\<noteq>\<bottom>;xs\<noteq>\<bottom>\<rbrakk> \<Longrightarrow> slist2cset\<cdot>(SCons\<cdot>x\<cdot>xs) = cinsert\<cdot>x\<cdot>(slist2cset\<cdot>xs)"
+*)
+
+(*
+lemma "\<lbrakk>x \<noteq> \<bottom>;xs \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> \<lbrakk>x \<in>\<in> slist2cset\<cdot>(SCons\<cdot>x\<cdot>xs)\<rbrakk>st"
+  apply (simp)
+*)
+
+(*
 lemma cunion_thms:
   "\<bottom> \<union>\<union> y = \<bottom>"
   "x \<union>\<union> \<bottom> = \<bottom>"
@@ -330,7 +462,10 @@ lemma cunion_thms:
   "x \<union>\<union> y = y \<union>\<union> x"
   "x \<union>\<union> x = x"
   "x \<union>\<union> \<emptyset> = x"
-  apply (simp_all add:cunion_def cont2cont_LAM)
+  apply (simp add:cunion_def cont2cont_LAM)
+  apply (simp add:cunion_def cont2cont_LAM)
+  apply (simp add:cunion_def cont2cont_LAM)
+  apply (simp add:strictify_cancel)
   apply (simp add:vor_assoc)
   apply (simp add:vor_comm)
   done
@@ -414,71 +549,9 @@ lemma cinsert_mem: "x \<in> flat \<Longrightarrow> \<lbrakk>x \<in>\<in> cinsert
 text {* To make this work we need a notion of typing. It must be the case that xs is a subset of
    a downward closed set t (i.e. a type). The membership check then returns TT if x in xs AND x is in t,
    FF if x is only in t and \<bottom> otherwise *}
-
-
-text {* For the time being, set injenction is converted to sets of flat values.
-        This may be too restrictive, but if a larger set than flat can be found
-        which preserver continuity then this can be inserted *}
-definition set2cset_aux :: "('a::pcpo) set \<Rightarrow> 'a \<Rightarrow> tr" where
-"set2cset_aux xs = (\<lambda> x. if (x \<in> flat) then (if (x \<in> xs) then TT else FF) else \<bottom>)"
-
-lemma cont_set2cset_aux [cont2cont, simp]: 
-  "cont (set2cset_aux xs)"
-  apply (rule cont_flat_cdom)
-  apply (simp add:cdom_def set2cset_aux_def)
-done  
-
-definition set2cset :: "('a::pcpo) set \<Rightarrow> 'a cset" where
-"set2cset xs = cset_abs\<cdot>(\<Lambda> x. set2cset_aux xs x)"
- 
-definition cset2set :: "('a::cpo) cset \<Rightarrow> 'a set" where
-"cset2set xs = {x. \<lbrakk> x \<in>\<in> xs \<rbrakk>st}"
-
-lemma set2cset_inv[simp]: "xs \<subseteq> flat \<Longrightarrow> cset2set (set2cset xs) = xs"
-  apply (simp add:cset2set_def set2cset_def cmember_def)
-  apply (auto simp add: flat_def set2cset_aux_def)
-done
-
-lemma set2cset_nbot[simp]: 
-  "\<lbrakk> (xs::('a::pcpo) set) \<subseteq> flat; \<exists> (x::'a). x \<in> flat \<rbrakk> \<Longrightarrow> set2cset xs \<noteq> \<bottom>"
-  apply (auto simp add:set2cset_def)
-  apply (drule_tac f="cset_rep" in cfun_arg_cong)
-  apply (simp)
-  apply (case_tac "\<exists>y . y \<in> xs")
-  apply (erule exE)
-  apply (drule_tac x="y" in cfun_fun_cong)
-  apply (simp)
-  apply (force simp add:set2cset_aux_def)
-  apply (auto)
-  apply (drule_tac x="x" in cfun_fun_cong)
-  apply (simp)
-  apply (simp add:set2cset_aux_def)
-done
-
-definition fdom :: "('a::pcpo \<rightarrow> 'b::pcpo) \<rightarrow> 'a cset" where
-"fdom = (\<Lambda> f. CCollectF (\<lambda> x. if (f\<cdot>x = \<bottom>) then FF else TT))"
-
-lemma "cont (\<lambda> f. CCollectF (\<lambda> x. if (f\<cdot>x = \<bottom>) then FF else TT))"
-  apply (rule cont2cont)
-oops
-
-(*
-definition fran :: "('a::pcpo \<rightarrow> 'b::pcpo) \<rightarrow> 'b cset" where
-"fran = (\<Lambda> f. CCollectF (\<lambda> f x. if (f\<cdot>x = \<bottom>) then FF else TT))"
 *)
 
 
-
-
-subsection {* Strict Lists to sets *}
-
-fixrec slist2cset :: "('a::domain) slist \<rightarrow> 'a cset" where
-"slist2cset\<cdot>SNil = \<emptyset>" |
-"\<lbrakk>x\<noteq>\<bottom>;xs\<noteq>\<bottom>\<rbrakk> \<Longrightarrow> slist2cset\<cdot>(SCons\<cdot>x\<cdot>xs) = cinsert\<cdot>x\<cdot>(slist2cset\<cdot>xs)"
-
-(*
-lemma "\<lbrakk>x \<noteq> \<bottom>;xs \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> \<lbrakk>x \<in>\<in> slist2cset\<cdot>(SCons\<cdot>x\<cdot>xs)\<rbrakk>st"
-  apply (simp)
-*)
+default_sort cpo
 
 end

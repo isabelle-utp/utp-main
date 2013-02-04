@@ -6,8 +6,8 @@
 
 header {* Proof Tactic for Expressions *}
 
-theory utp_expr_tac
-imports "../core/utp_expr" utp_pred_tac
+theory utp_expr_tac_2
+imports "../core/utp_expr_2" utp_pred_tac_2
 begin
 
 text {* Theorem Attribute *}

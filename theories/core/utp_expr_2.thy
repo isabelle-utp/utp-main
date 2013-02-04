@@ -6,8 +6,8 @@
 
 header {* Basic Expressions *}
 
-theory utp_expr
-imports  utp_pred utp_unrest utp_sorts
+theory utp_expr_2
+imports  utp_pred_2 utp_unrest_2 utp_sorts_2
 begin
 
 text {* The type which an expression holds should be the maximal type, if such a notion exists *}
@@ -241,6 +241,61 @@ lemma wfexpr_simp [simp]:
   apply (auto simp add:wfexpr_def WF_EXPRESSION_wfexpr wf_expr_bfun_def)
   apply (simp_all add:mk_wfexpr_def)
 done
+
+(*
+theorem WF_EXPRESSION_wfexpr [closure]:
+"e :\<^sub>e expr_type e \<Longrightarrow> wfexpr e \<in> WF_EXPRESSION"
+  by (unfold WF_EXPRESSION_def wfexpr_def, auto simp add:etype_rel_def)
+
+theorem WF_EXPRESSION_BODY_wfexpr_drop [simp]:
+"e \<in> WF_EXPRESSION \<Longrightarrow> wfexpr e = e"
+  apply (rule EXPRESSION_eqI)
+  apply (simp_all add:WF_EXPRESSION_def wfexpr_def)
+done
+
+theorem wfexpr_idem [simp]: "wfexpr (wfexpr e) = wfexpr e"
+  by (auto simp add: wfexpr_def)
+
+theorem EqualP_closure[closure]: "\<lbrakk> e \<in> WF_EXPRESSION; f \<in> WF_EXPRESSION \<rbrakk> \<Longrightarrow> e ==p f \<in> WF_PREDICATE"
+  by (auto intro:closure simp add:EqualP_def WF_EXPRESSION_def WF_PREDICATE_def WF_BINDING_def)
+
+theorem VarE_closure[closure]: "VarE x \<in> WF_EXPRESSION"
+  by (auto intro!:closure simp add:VarE_def closure WF_BINDING_def etype_rel_def)
+
+theorem LitE_closure[closure]: 
+assumes "v : t"
+shows "LitE t v \<in> WF_EXPRESSION"
+  by (auto intro:closure simp add:LitE_def WF_BINDING_def etype_rel_def assms)
+ 
+theorem DefaultE_closure[closure]:
+"DefaultE t \<in> WF_EXPRESSION"
+  by (simp add:DefaultE_def closure default_type)
+
+theorem SubstE_closure[closure]:
+ assumes "e \<in> WF_EXPRESSION" "v \<in> WF_EXPRESSION" "v :\<^sub>e type x"
+ shows "(e::('VALUE,'TYPE) EXPRESSION)[v|x] \<in> WF_EXPRESSION"
+  by (auto intro:closure simp add:SubstE_def WF_BINDING_def etype_rel_def assms)
+
+theorem SubstPE_body_closure[closure]:
+ assumes "p \<in> WF_PREDICATE" "v \<in> WF_EXPRESSION" "v :\<^sub>e type x"
+         "is_SubstPE_var p v x x'"
+ shows "SubstPE_body p v x x' \<in> WF_PREDICATE"
+  apply (insert assms)
+  apply (simp add:SubstPE_body_def is_SubstPE_var_def)
+  apply (simp add:closure)
+done
+
+theorem SubstPE_closure[closure]:
+ assumes "p \<in> WF_PREDICATE" "v \<in> WF_EXPRESSION" "v :\<^sub>e type x"
+         "\<exists> x'. is_SubstPE_var p v x x'"
+ shows "SubstPE p v x \<in> WF_PREDICATE"
+  apply (simp add:SubstPE_def)
+  apply (insert assms(4), erule exE)
+  apply (rule_tac a="x'" in someI2, simp)
+  apply (rule closure)
+  apply (auto simp add:assms)
+done
+*)
 
 subsubsection {* Typing Theorems *}
 

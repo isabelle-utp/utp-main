@@ -1,12 +1,12 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
 (* File: utp_value.thy                                                        *)
-(* Author: Simon Foster and Frank Zeyda, University of York (UK)              *)
+(* Author: Frank Zeyda, University of York (UK)                               *)
 (******************************************************************************)
 
 header {* Abstract Values *}
 
-theory utp_value
+theory utp_value_2
 imports "../utp_common"
 begin
 
@@ -26,24 +26,8 @@ ML {*
 
 setup defined.setup
 
-subsection {* The @{term "VALUE"} class *}
-
-text {* We fix a notion of definedness from the start. This is because control
-variables, such as @{term "ok"}, must always be defined but we can't assume that
-all values are. *}
-
 class DEFINED =
   fixes Defined   :: "'a \<Rightarrow> bool" ("\<D>")
-
-text {* The @{term "VALUE"} class introduces the typing relation with an arbitrary
-value sort, and the type sort given by @{term "udom"}, the Universal Domain from
-HOLCF. Specifically the type sort must be injectable into udom, which has the
-cardinality of the continuum and can be populated using the domain package from
-HOLCF. We expect that most type sorts will be @{term "countable"}. 
-
-We require that the typing relation have at least one type with at least one defined
-value.
- *}
 
 class VALUE = DEFINED +
   fixes   utype_rel :: "'a \<Rightarrow> udom \<Rightarrow> bool" (infix ":\<^sub>u" 50)
@@ -51,13 +35,7 @@ class VALUE = DEFINED +
 
 default_sort VALUE
 
-subsection {* The @{term "UTYPE"} type *}
-
-text {* The type @{term "UTYPE"} consists of the set of types which, according
-to the typing relation, have at least one defined value. This set should be
-more-or-less isomorphic to the underlying type sort in the user's value
-model. *}
-
+(* A type must contain at least one defined value *) 
 definition "UTYPES (x::'a itself) = {t. \<exists> v :: 'a. v :\<^sub>u t \<and> \<D> v}"
 
 typedef (open) 'VALUE UTYPE = "UTYPES TYPE('VALUE)"
@@ -70,9 +48,6 @@ lemma Rep_UTYPE_elim [elim]:
   apply (insert Rep_UTYPE[of t])
   apply (auto simp add:UTYPES_def)
 done
-
-text {* We derive a typing relation using @{term "UTYPE"}, which has more 
-useful properties than the underlying @{term "utype_rel"}. *}
 
 definition type_rel :: "'VALUE \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool" (infix ":" 50) where
 "x : t \<longleftrightarrow> x :\<^sub>u Rep_UTYPE t"
@@ -136,7 +111,15 @@ lemma embTYPE_inv [simp]:
   apply (simp add:assms)
 done
 
-subsection {* Typing operator syntax *}
+(*
+lemma prjTYPE_inv [simp]:
+  fixes x :: "'a::{countable,cpo}"
+        and v :: "'b"
+  assumes "v :\<^sub>u emb\<cdot>(Def x)"
+  shows "prjTYPE (embTYPE x :: 'b UTYPE) = x"
+*)
+
+subsection {* Syntax *}
 
 abbreviation Tall :: "'a UTYPE \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
   "Tall t P \<equiv> (\<forall>x. x : t \<longrightarrow> P x)"
@@ -211,8 +194,5 @@ theorem set_type_rel_insert [simp] :
 "(insert x s) :\<subseteq> t \<longleftrightarrow> (x : t \<and> s :\<subseteq> t)"
 apply (simp add: set_type_rel_def)
 done
-
-definition dcarrier :: "'VALUE UTYPE \<Rightarrow> 'VALUE set" where
-"dcarrier t = {x . x : t \<and> \<D> x}"
 
 end

@@ -6,10 +6,8 @@
 
 header {* Alphabetised Expressions *}
 
-theory utp_alpha_expr
-imports 
-  "../core/utp_pred" "../core/utp_expr" "../core/utp_laws" "../core/utp_synonyms" 
-  utp_alphabet utp_alpha_pred "../tactics/utp_alpha_tac" "../tactics/utp_expr_tac"
+theory utp_alpha_expr_2
+imports "../core/utp_pred_2" "../core/utp_expr_2" "../core/utp_laws_2" "../core/utp_synonyms" utp_alphabet_2 utp_alpha_pred_2 "../tactics/utp_alpha_tac_2" "../tactics/utp_expr_tac_2"
 begin
 
 type_synonym 'VALUE ALPHA_EXPRESSION =

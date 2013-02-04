@@ -6,8 +6,8 @@
 
 header {* Unrestricted Variables *}
 
-theory utp_unrest
-imports utp_pred utp_subst
+theory utp_unrest_2
+imports utp_pred_2 utp_subst_2
 begin
 
 subsection {* Theorem Attributes *}

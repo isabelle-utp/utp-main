@@ -6,8 +6,8 @@
 
 header {* Relations *}
 
-theory utp_rel
-imports utp_pred utp_expr utp_subst utp_unrest "../tactics/utp_expr_tac"
+theory utp_rel_2
+imports utp_pred_2 utp_expr_2 utp_subst_2 utp_unrest_2 "../tactics/utp_expr_tac_2"
 begin
 
 subsection {* Composable Bindings *}
@@ -494,7 +494,7 @@ lemma UNREST_SemiR:
   apply (simp add:SS2_UNDASHED_DASHED_image[simplified])
   apply (simp add:VAR_def)
   apply (auto)
-  apply (metis DASHED_dash_DASHED_TWICE set_mp out_DASHED)
+  apply (metis DASHED_dash_DASHED_TWICE set_mp utp_var_2.out_DASHED)
   apply (metis DASHED_dash_DASHED_TWICE Int_iff UNDASHED_dash_DASHED in_vars_def)
   apply (rule_tac ?vs1.0="VAR - vs2" in UNREST_subset)
   apply (auto)

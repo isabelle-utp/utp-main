@@ -6,8 +6,8 @@
 
 header {* Proof Tactic for Alphabetised Predicates *}
 
-theory utp_alpha_tac
-imports "../alpha/utp_alpha_pred"
+theory utp_alpha_tac_2
+imports "../alpha/utp_alpha_pred_2"
 begin
 
 text {* Theorem Attribute *}

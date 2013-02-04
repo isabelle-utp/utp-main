@@ -1,4 +1,4 @@
-(******************************************************************************)
+ (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
 (* File: utp_lattice.thy                                                      *)
 (* Author: Frank Zeyda, University of York (UK)                               *)
@@ -6,8 +6,8 @@
 
 header {* Predicate Lattice *}
 
-theory utp_lattice
-imports utp_pred "../tactics/utp_pred_tac"
+theory utp_lattice_2
+imports utp_pred_2 (* utp_function *) "../tactics/utp_pred_tac_2"
 begin
 
 notation

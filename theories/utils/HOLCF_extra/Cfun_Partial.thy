@@ -12,6 +12,9 @@ definition cdom :: "('a \<Rightarrow> 'b::pcpo) \<Rightarrow> 'a set" where
 definition cran :: "('a \<Rightarrow> 'b::pcpo) \<Rightarrow> 'b set" where
 "cran f = { (f x) | x . (f x) \<noteq> \<bottom>}"
 
+definition cgraph :: "('a \<Rightarrow> 'b::pcpo) \<Rightarrow> ('a * 'b) set" where
+"cgraph f = { (x, f x) | x . (f x) \<noteq> \<bottom>}"
+
 definition chain_closed :: "('a::cpo) set \<Rightarrow> bool" where
 "chain_closed xs \<equiv> \<forall> Y i. (chain Y \<and> Y i \<in> xs) \<longrightarrow> (\<forall> j. Y j \<in> xs)"
 
@@ -26,6 +29,22 @@ lemma flat_valueI:
   apply (simp add:flat_def flat_value_def)
   apply (safe)
   apply (metis chain_mono_less linorder_cases)
+done
+
+lemma Def_below_elim1 [elim!]:
+  "\<lbrakk> Def x \<sqsubseteq> y; y = Def x \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (case_tac y, simp_all)
+
+lemma Def_below_elim2 [elim!]:
+  "\<lbrakk> x \<sqsubseteq> Def y; x = \<bottom> \<Longrightarrow> P; x = Def y \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (case_tac x, simp_all add:flat_below_iff)
+
+lemma flat_value_Def [simp]:
+  "flat_value (Def x)"
+  apply (auto simp add:flat_value_def)
+  apply (case_tac "xa \<le> xb")
+  apply (smt chain_mono flat_below_iff)
+  apply (metis Def_below_elim1 chain_mono_less linorder_not_le)
 done
 
 lemma flat_nbot[simp]: "\<bottom> \<notin> flat"
@@ -119,10 +138,9 @@ definition chfin :: "('a::po) set \<Rightarrow> bool" where
 "chfin xs = (\<forall> Y. chain Y \<and> (\<forall> i. Y i \<in> xs) \<longrightarrow> (\<exists>n. max_in_chain n Y))"
 
 (*
-lemma flat_chfin: "flat xs \<Longrightarrow> chfin xs"
-  apply (simp add:chfin_def flat_def max_in_chain_def)
-  apply (metis discrete_chain_const member_remove remove_def)
-done
+definition 
+  cfun_override :: "('a::flat \<rightarrow> 'b::pcpo) \<Rightarrow> ('a \<rightarrow> 'b) \<Rightarrow> ('a \<rightarrow> 'b)" (infixl "\<oplus>" 65) where
+"f \<oplus> g = (\<Lambda> x. if (f\<cdot>x = \<bottom>) then g\<cdot>x else f\<cdot>x)"
 *)
 
 end

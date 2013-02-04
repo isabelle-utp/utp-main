@@ -1,13 +1,5 @@
-(******************************************************************************)
-(* Project: Unifying Theories of Programming in HOL                           *)
-(* File: utp_alpha_laws.thy                                                   *)
-(* Author: Simon Foster and Frank Zeyda, University of York (UK)              *)
-(******************************************************************************)
-
-header {* Algebraic Laws *}
-
-theory utp_alpha_laws
-imports utp_alpha_pred utp_alpha_rel "../tactics/utp_alpha_expr_tac"
+theory utp_alpha_laws_2
+imports utp_alpha_pred_2 utp_alpha_rel_2 "../tactics/utp_alpha_expr_tac_2"
 begin
 
 theorem CondA_unfold:

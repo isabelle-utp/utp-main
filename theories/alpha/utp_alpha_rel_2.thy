@@ -6,9 +6,9 @@
 
 header {* Alphabetised Predicates *}
 
-theory utp_alpha_rel
-imports utp_alpha_pred utp_alpha_expr
-  "../tactics/utp_alpha_tac" "../tactics/utp_rel_tac"
+theory utp_alpha_rel_2
+imports utp_alpha_pred_2 utp_alpha_expr_2
+  "../tactics/utp_alpha_tac_2" "../tactics/utp_rel_tac_2"
 begin
 
 subsection {* Restrictions *}
@@ -449,7 +449,7 @@ proof -
     have "undash ` (DASHED - dash ` in \<langle>\<alpha> r\<rangle>\<^sub>f) = UNDASHED - in \<langle>\<alpha> r\<rangle>\<^sub>f"
     proof -  
       have "dash ` in \<langle>\<alpha> r\<rangle>\<^sub>f \<subseteq> DASHED"
-        by (metis out_dash utp_var.out_DASHED)
+        by (metis out_dash utp_var_2.out_DASHED)
 
       thus ?thesis
         by (simp add: inj_on_image_set_diff[OF undash_inj_on_DASHED])

@@ -10,9 +10,6 @@ theory utp_var
 imports utp_names utp_value
 begin
 
-text {* A variable constists of a name, type and a flag denoting if it is a control
-variable or not. *}
-
 type_synonym 'VALUE VAR =
   "NAME \<times> 'VALUE UTYPE \<times> bool"
 
@@ -35,17 +32,17 @@ definition MkVar ::
 "MkVar n t d = (n, t, d)"
 
 definition MkPlain :: "string \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool \<Rightarrow> 'VALUE VAR" where
-"MkPlain s t d = MkVar (MkName s 0 NoSub) t d"
+"MkPlain s t d = MkVar (mkName s 0 NoSub) t d"
 
 subsection {* Operators *}
 
 definition dash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" where
-"dash \<equiv> \<lambda> x. ( MkName (name_str (name x)) (dashes (fst x) + 1) (subscript (name x))
+"dash \<equiv> \<lambda> x. ( mkName (name_str (name x)) (dashes (fst x) + 1) (subscript (name x))
              , type x
              , control x)"
 
 definition undash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" where
-"undash \<equiv> \<lambda> x. ( MkName (name_str (name x)) (dashes (fst x)- 1) (subscript (name x))
+"undash \<equiv> \<lambda> x. ( mkName (name_str (name x)) (dashes (fst x)- 1) (subscript (name x))
                , fst (snd x)
                , snd (snd x))"
 
@@ -458,10 +455,7 @@ lemma hom_alphabet_dash [elim]:
 
 subsubsection {* Fresh variables *}
 
-text {* This proof uses the infinitness of @{term "NAME"} proof to demonstrate
-that, given a finite set of variables, we can always generate a fresh variable
-with any given type and controlness *}
-
+(* There is always a fresh variable with any given type and controlness *)
 theorem fresh_var: "\<exists>x::'VALUE VAR. x \<notin> \<langle>xs\<rangle>\<^sub>f \<and> type x = t \<and> control x = s"
 proof -
 

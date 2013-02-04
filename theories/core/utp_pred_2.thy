@@ -1,13 +1,13 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
 (* File: utp_pred.thy                                                         *)
-(* Author: Simon Foster and Frank Zeyda, University of York (UK)              *)
+(* Author: Frank Zeyda, University of York (UK)                               *)
 (******************************************************************************)
 
 header {* Predicates *}
 
-theory utp_pred
-imports utp_synonyms utp_value utp_sorts utp_var
+theory utp_pred_2
+imports utp_synonyms utp_value_2 utp_sorts_2 utp_var_2
 begin
 
 subsection {* Value Compatibility *}
@@ -315,9 +315,19 @@ lemma destPRED_elim [elim]:
 
 setup_lifting type_definition_WF_PREDICATE
 
+(*
+type_synonym 'VALUE WF_PREDICATE = "'VALUE WF_BINDING set"
+*)
+
 subsection {* Functions *}
 
 type_synonym 'VALUE WF_FUNCTION = "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE"
+(*
+definition WF_FUNCTION ::
+  "('VALUE WF_PRED \<Rightarrow>
+    'VALUE WF_PRED) set" where
+"WF_FUNCTION = {f . \<forall> p \<in> WF_PREDICATE . f p \<in> WF_PREDICATE}"
+*)
 
 subsection {* Operators *}
 
@@ -454,6 +464,13 @@ notation Contingency ("contg _" [50] 50)
 
 subsubsection {* Refinement *}
 
+(*
+definition Refinement ::
+  "'VALUE WF_PREDICATE \<Rightarrow>
+   'VALUE WF_PREDICATE \<Rightarrow> bool" where
+"Refinement p1 p2 \<longleftrightarrow> taut (p1 \<sqsubseteq>p p2)"
+*)
+
 instantiation WF_PREDICATE :: (VALUE) ord
 begin
 
@@ -471,11 +488,121 @@ notation less_eq (infix "\<sqsubseteq>" 50)
 
 subsection {* Theorems *}
 
+
+(*
+theorem WF_BINDING_member [simp, intro] :
+"\<lbrakk>b \<in> p :: 'VALUE WF_PREDICATE;
+ p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ b \<in> WF_BINDING"
+w'VALUE WF_PREDICATE
+apply (simp add: WF_PREDICATE_def)
+apply (auto)
+done
+*)
+
 theorem WF_BINDING_override_on_VAR [simp] :
 "\<lbrakk>b1 \<in> WF_BINDING;
  b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
  b1 \<oplus> b2 on VAR = b2"
   by (auto)
+
+subsubsection {* Closure Theorems *}
+
+(*
+(*
+theorem LiftP_closure [closure] :
+"LiftP f \<in> WF_PREDICATE"
+apply (simp add: LiftP_def)
+apply (simp add: WF_PREDICATE_def)
+apply (auto)
+done
+
+theorem EqualsP_closure [closure] :
+"v =p x \<in> WF_PREDICATE"
+apply (simp add: EqualsP_def)
+apply (auto simp: closure)
+done
+*)
+
+theorem TrueP_closure [closure] :
+"true \<in> Pow (Abs_WF_BINDING ` WF_BINDING)"
+  apply (simp)
+  apply (auto simp add: TrueP_def WF_PREDICATE_def Rep_WF_BINDING )
+
+theorem FalseP_closure [closure] :
+"Rep_WF_BINDING ` false \<in> WF_PREDICATE"
+  by (simp add: FalseP_def WF_PREDICATE_def)
+
+theorem NotP_closure [closure] :
+"Rep_WF_BINDING ` (\<not>p p) \<in> WF_PREDICATE"
+apply (simp add: NotP_def)
+apply (simp add: WF_PREDICATE_def)
+apply (auto)
+done
+
+theorem AndP_closure [closure] :
+"\<lbrakk>p1 \<in> WF_PREDICATE;
+ p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ (p1 \<and>p p2) \<in> WF_PREDICATE"
+apply (simp add: AndP_def)
+apply (simp add: WF_PREDICATE_def)
+apply (auto)
+done
+
+theorem OrP_closure [closure] :
+"\<lbrakk>p1 \<in> WF_PREDICATE;
+ p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ (p1 \<or>p p2) \<in> WF_PREDICATE"
+apply (simp add: OrP_def)
+apply (simp add: WF_PREDICATE_def)
+done
+
+theorem ImpliesP_closure [closure] :
+"\<lbrakk>p1 \<in> WF_PREDICATE;
+ p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ (p1 \<Rightarrow>p p2) \<in> WF_PREDICATE"
+apply (simp add: ImpliesP_def)
+apply (auto simp: closure)
+done
+
+theorem IffP_closure [closure] :
+"\<lbrakk>p1 \<in> WF_PREDICATE;
+ p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ p1 \<Leftrightarrow>p p2 \<in> WF_PREDICATE"
+apply (simp add: IffP_def)
+apply (auto simp: closure)
+done
+
+theorem ExistsP_closure [closure] :
+"\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ (\<exists>p vs . p) \<in> WF_PREDICATE"
+apply (simp add: ExistsP_def)
+apply (simp add: WF_PREDICATE_def)
+apply (auto intro!: closure)
+done
+
+theorem ForallP_closure [closure] :
+"\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ (\<forall>p vs . p) \<in> WF_PREDICATE"
+apply (simp add: ForallP_def)
+apply (auto simp: closure)
+done
+
+theorem ClosureP_closure [closure] :
+"\<lbrakk>p \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ [p]p \<in> WF_PREDICATE"
+apply (simp add: ClosureP_def)
+apply (auto simp: closure)
+done
+
+theorem RefP_closure [closure] :
+"\<lbrakk>p1 \<in> WF_PREDICATE;
+ p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
+ p1 \<sqsubseteq>p p2 \<in> WF_PREDICATE"
+apply (simp add: RefP_def)
+apply (auto simp: closure)
+done
+*)
 
 subsubsection {* Validation of Soundness *}
 

@@ -96,8 +96,36 @@ done
 definition map_inv :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('b \<rightharpoonup> 'a)" where
 "map_inv f \<equiv> \<lambda> y. if (y \<in> ran f) then Some (SOME x. f x = Some y) else None"
 
+definition map_id_on :: "'a set \<Rightarrow> ('a \<rightharpoonup> 'a)" where
+"map_id_on xs \<equiv> \<lambda> x. if (x \<in> xs) then Some x else None"
+
+lemma map_id_on_in [simp]:
+  "x \<in> xs \<Longrightarrow> map_id_on xs x = Some x"
+  by (simp add:map_id_on_def)
+
+lemma map_id_on_out [simp]:
+  "x \<notin> xs \<Longrightarrow> map_id_on xs x = None"
+  by (simp add:map_id_on_def)
+
+lemma map_id_dom [simp]: "dom (map_id_on xs) = xs"
+  by (simp add:dom_def map_id_on_def)
+
+lemma map_id_ran [simp]: "ran (map_id_on xs) = xs"
+  by (force simp add:ran_def map_id_on_def)
+
+lemma map_id_on_UNIV[simp]: "map_id_on UNIV = Some"
+  by (simp add:map_id_on_def)
+
+lemma map_id_on_inj [simp]:
+  "inj_on (map_id_on xs) xs" 
+  by (simp add:inj_on_def)
+
 lemma map_inv_empty [simp]: "map_inv empty = empty"
   by (simp add:map_inv_def)
+
+lemma map_inv_id [simp]: 
+  "map_inv (map_id_on xs) = map_id_on xs"
+  by (force simp add:map_inv_def map_id_on_def ran_def)
 
 lemma map_inv_Some [simp]: "map_inv Some = Some"
   by (simp add:map_inv_def ran_def)
@@ -140,6 +168,29 @@ done
 
 lemma inj_map_bij: "inj_on f (dom f) \<Longrightarrow> bij_betw f (dom f) (Some ` ran f)"
   by (auto simp add:inj_on_def dom_def ran_def image_def bij_betw_def)
+
+
+lemma map_inv_map_inv [simp]:
+  assumes "inj_on f (dom f)"
+  shows "map_inv (map_inv f) = f"
+proof -
+
+  from assms have "inj_on (map_inv f) (ran f)"
+    by auto
+
+  thus ?thesis
+    apply (rule_tac ext)
+    apply (case_tac "\<exists> y. map_inv f y = Some x")
+    apply (auto)[1]
+    apply (simp add:map_inv_def)
+    apply (case_tac "y \<in> ran f", simp_all)
+    apply (auto)
+    apply (rule someI2_ex)
+    apply (simp add:ran_def)
+    apply (simp)
+    apply (metis assms dom_image_ran dom_map_inv image_iff map_add_dom_app_simps(2) map_add_dom_app_simps(3) ran_map_inv)
+  done
+qed    
 
 lemma dom_left_map_add [simp]: "x \<in> dom g \<Longrightarrow> (f ++ g) x = g x"
   by (auto simp add:map_add_def dom_def)
@@ -293,7 +344,13 @@ qed
 lemma map_add_lookup [simp]: 
   "x \<notin> dom f \<Longrightarrow> ([x \<mapsto> y] ++ f) x = Some y"
   by (simp add:map_add_def dom_def)
-  
+
+lemma map_add_Some: "Some ++ f = map_id_on (- dom f) ++ f"
+  apply (rule ext)
+  apply (case_tac "x \<in> dom f")
+  apply (simp_all)
+done
+
 lemma distinct_map_dom: 
   "x \<notin> set xs \<Longrightarrow> x \<notin> dom [xs [\<mapsto>] ys]"
   by (simp add:dom_def)
@@ -360,5 +417,26 @@ lemma maplets_lookup_nth [rule_format,simp]:
   apply (case_tac i)
   apply (auto)
 done
+
+
+theorem the_Some[simp]: "the \<circ> Some = id"
+  by (simp add:comp_def id_def)
+
+(*
+theorem "\<lbrakk> inj_on f (dom f); ran f \<subseteq> dom f \<rbrakk> 
+  \<Longrightarrow> inv (the \<circ> (Some ++ f)) = the \<circ> map_inv (Some ++ f)"
+  apply (rule ext)
+  apply (simp add:map_add_Some)
+  apply (subgoal_tac "(- dom f) \<inter> ran f = {}")
+  defer
+  apply (force)
+  apply (simp)
+  apply (simp)
+  apply (simp add:inv_def)
+  apply (rule some_equality)
+  apply (case_tac "x \<in> ran f")
+  apply (simp)
+  apply (auto)
+*)
 
 end

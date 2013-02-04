@@ -11,7 +11,7 @@ imports
   "utp_vdm/utp_vdm_values"
   "utp_vdm/utp_vdm_inject"
   "utp_vdm/utp_vdm_functions"
-  "utp_vdm/utp_vdm_sorts"
+(*  "utp_vdm/utp_vdm_sorts" *)
 begin
 
 end

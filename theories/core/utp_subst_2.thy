@@ -1,13 +1,13 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
 (* File: utp_pred.thy                                                         *)
-(* Author: Simon Foster and Frank Zeyda, University of York (UK)              *)
+(* Author: Frank Zeyda, University of York (UK)                               *)
 (******************************************************************************)
 
 header {* Substitution *}
 
-theory utp_subst
-imports utp_pred "../tactics/utp_pred_tac"
+theory utp_subst_2
+imports utp_pred_2 "../tactics/utp_pred_tac_2"
 begin
 
 subsection {* Variable Substitution *}

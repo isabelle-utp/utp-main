@@ -6,17 +6,42 @@
 
 header {* Value Sorts *}
 
-theory utp_sorts
-imports "../utp_common" utp_value
+theory utp_sorts_2
+imports "../utp_common" utp_value_2
 begin
 
+(*
+hide_const (open) Lattice.top
+hide_const (open) Lattice.inf
+hide_const (open) Lattice.sup
+*)
+
 text {* Some sorts still need to be developed in terms of their operators. *}
+
+subsection {* Root Value Sort *}
+
+text {*
+  It is still an open issue whether to include a notion of well-formedness
+  of a value. From our experience with concrete value models, we noticed that
+  this can be useful. Examples are the HO model and Simon's injectable values.
+  Despite this, for reasons of simplicity, we require refinement to be defined
+  on the entire carrier set of the value type. Possible this design needs to
+  be evaluated too.
+*}
+
+text {*
+  It would be nice to introduce typing in @{text "VALUE_SORT"} but this seems
+  not to be feasible as it would require a second HOL type parameter in the
+  respective fixed constant, namely for the underlying value type. Our design
+  thus opted for introducing the connection to types by virtue of locales.
+*}
 
 subsection {* Bottom Element Sort *}
 
 class BOT_SORT = VALUE +
   fixes ubot :: "'a"
-  assumes not_Defined_ubot [simp] : "\<not> \<D> ubot"
+  assumes not_Defined_ubot [simp] : "\<not> Defined ubot"
+
 
 subsubsection {* Notations *}
 
@@ -25,7 +50,7 @@ notation ubot ("\<bottom>v")
 subsubsection {* Theorems *}
 
 theorem Defined_not_eq_bot [simp] :
-"\<D> v \<Longrightarrow> v \<noteq> \<bottom>v"
+"Defined v \<Longrightarrow> v \<noteq> \<bottom>v"
   by (metis not_Defined_ubot)
 
 subsubsection {* Partial Functions (Simon) *}
@@ -72,7 +97,8 @@ subsubsection {* Simon's Theorems *}
 
 theorem to_map_inv [simp] :
 "from_map (to_map x) = x"
-  by (auto simp: to_map_def from_map_def)
+apply (auto simp: to_map_def from_map_def)
+done
 
 theorem from_map_inv [simp] :
 "\<bottom>v \<notin> ran m \<Longrightarrow> to_map (from_map m) = m"
@@ -91,15 +117,18 @@ done
 
 theorem fdom_elseBot [simp] :
 "fdom (\<lambda> x . if (P x) then (f x) else \<bottom>v) = {x . (P x) \<and> x \<in> fdom f}"
-  by (auto simp: fdom_def to_map_def dom_def)
+apply (auto simp: fdom_def to_map_def dom_def)
+done
 
 theorem fran_elseBot [simp] :
 "fran (\<lambda> x. if (P x) then (f x) else \<bottom>v) = {f x | x . (P x) \<and> f x \<noteq> \<bottom>v}"
-  by (auto simp: fran_def to_map_def ran_def)
+apply (auto simp: fran_def to_map_def ran_def)
+done
 
 theorem to_graph_on_inv [simp] :
 "from_graph (to_graph_on a f) = func_on a f"
-  by (auto simp: to_graph_on_def from_graph_def func_on_def)
+apply (auto simp: to_graph_on_def from_graph_def func_on_def)
+done
 
 theorem func_on_fdom [simp] :
 "func_on (fdom f) f = f"
@@ -112,56 +141,20 @@ done
 
 theorem to_graph_inv [simp] :
 "from_graph (to_graph f) = f"
-  by (simp)
+apply (simp)
+done
 end
 
 subsection {* Integer Sort *}
 
-text {* The @{term "INT_SORT"} and most other sorts in this file
-define three constants and several properties. The constants are an
-injection @{term "MkInt"}, a projection @{term "DestInt"}, and 
-a type. *}
-
 class INT_SORT = VALUE +
-  fixes MkInt    :: "int \<Rightarrow> 'a"
-  fixes DestInt  :: "'a \<Rightarrow> int"
-  fixes IntUType :: "'a itself \<Rightarrow> udom"
-  -- {* The injection can always be reversed. *}
+  fixes MkInt :: "int \<Rightarrow> 'a"
+  fixes DestInt :: "'a \<Rightarrow> int"
+  fixes IntType :: "'a UTYPE" ("\<int>")
+  assumes Defined [simp] : "Defined (MkInt i)"
   assumes Inverse [simp] : "DestInt (MkInt i) = i"
-  -- {* The values produced by the injection are precisely the well typed 
-        and defined integer values. *}
-  assumes MkInt_range: "range MkInt = {x. x :\<^sub>u IntUType TYPE('a) \<and> \<D> x}"
+  assumes MkInt_range: "range MkInt = {x. x : IntType \<and> \<D> x}"
 begin
-
-subsubsection {* Derived theorems *}
-
-definition IntType :: "'a UTYPE" where
-"IntType = Abs_UTYPE (IntUType TYPE('a))"
-
-lemma IntUType_UTYPES [simp]: "IntUType TYPE('a) \<in> UTYPES TYPE('a)"
-  apply (simp add:UTYPES_def)
-  apply (metis (lifting) CollectD MkInt_range rangeI)
-done
-
-text {* The results of the injection are always defined. *}
-
-lemma Defined [simp]: "\<D> (MkInt i)"
-  by (metis (lifting) CollectD MkInt_range rangeI)
-
-lemma MkInt_type [typing]: "MkInt n : IntType"
-  apply (simp add:type_rel_def IntType_def)
-  apply (metis (lifting) CollectD MkInt_range rangeI)
-done
-
-lemma MkInt_cases [elim]: 
-  "\<lbrakk> x : IntType; \<not> \<D> x \<Longrightarrow> P; \<And> i. x = MkInt i \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  apply (case_tac "\<D> x")
-  apply (simp)
-  apply (subgoal_tac "x \<in> range MkInt")
-  apply (auto)
-  apply (simp add:IntType_def type_rel_def)
-  apply (metis (lifting) CollectI MkInt_range)
-done
 
 subsubsection {* Integer Operators *}
 
@@ -198,6 +191,18 @@ declare MultV_def [simp]
 declare DivideV_def [simp]
 declare ModulusV_def [simp]
 
+lemma MkInt_type [typing]: "MkInt n : IntType"
+  by (metis (lifting) CollectE MkInt_range rangeI)
+
+lemma MkInt_cases [elim]: 
+  "\<lbrakk> x : IntType; \<not> \<D> x \<Longrightarrow> P; \<And> i. x = MkInt i \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  apply (case_tac "\<D> x")
+  apply (simp)
+  apply (subgoal_tac "x \<in> range MkInt")
+  apply (auto)
+  apply (metis (lifting) CollectI MkInt_range)
+done
+
 end
 
 subsection {* Boolean Sort *}
@@ -205,28 +210,13 @@ subsection {* Boolean Sort *}
 class BOOL_SORT = VALUE +
   fixes MkBool :: "bool \<Rightarrow> 'a"
   fixes DestBool :: "'a \<Rightarrow> bool"
-  fixes BoolUType :: "'a itself \<Rightarrow> udom"
+  fixes BoolType :: "'a UTYPE"
+  assumes Defined [simp] : "Defined (MkBool b)"
   assumes Inverse [simp] : "DestBool (MkBool b) = b"
-  assumes MkBool_range: "range MkBool = {x. x :\<^sub>u BoolUType TYPE('a) \<and> \<D> x}"
+  assumes MkBool_range: "range MkBool = {x. x : BoolType \<and> \<D> x}"
 begin
 
-subsubsection {* Derived theorems *}
-
-definition BoolType :: "'a UTYPE" where
-"BoolType = Abs_UTYPE (BoolUType TYPE('a))"
-
-lemma BoolUType_UTYPES [simp]: "BoolUType TYPE('a) \<in> UTYPES TYPE('a)"
-  apply (simp add:UTYPES_def)
-  apply (metis (lifting) CollectD MkBool_range rangeI)
-done
-
-lemma Defined [simp] : "\<D> (MkBool b)"
-  by (metis (lifting) CollectE MkBool_range rangeI)
-
-lemma MkBool_type [typing]: "MkBool b : BoolType"
-  apply (simp add:type_rel_def BoolType_def)
-  apply (metis (lifting) CollectD MkBool_range rangeI)
-done
+subsubsection {* Simple Lemmas *}
 
 lemma DestBool_inj: "inj_on DestBool (range MkBool)"
   by (simp add:inj_on_def)
@@ -277,52 +267,69 @@ declare OrV_def [simp]
 declare ImpliesV_def [simp]
 declare IffV_def [simp]
 
+lemma MkBool_type [typing]: "MkBool b : BoolType"
+  by (metis (lifting) CollectE MkBool_range rangeI)
+
 lemma MkBool_cases [elim]: 
   "\<lbrakk> x : BoolType; \<not> \<D> x \<Longrightarrow> P; x = TrueV \<Longrightarrow> P; x = FalseV \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  apply (auto simp add:BoolType_def type_rel_def)
-  apply (case_tac "\<D> x")
-  apply (simp)
-  apply (subgoal_tac "x \<in> range MkBool")
-  apply (auto)
-  apply (metis (lifting) CollectI MkInt_range)
-  apply (metis (lifting) CollectI MkBool_range)
-done  
+  by (metis (lifting, full_types) DestBool_inv FalseV_def MkBool_range TrueV_def mem_Collect_eq range_eqI top_set_def)
+  
 end
+
+subsection {* Character Sort *}
+
+class CHAR_SORT = VALUE +
+  fixes MkChar :: "char \<Rightarrow> 'a"
+  fixes DestChar :: "'a \<Rightarrow> char"
+  fixes CharType :: "'a UTYPE"
+  assumes Defined [simp] : "Defined (MkChar c)"
+  assumes Inverse [simp] : "DestChar (MkChar c) = c"
+  assumes MkChar_type [typing] : "MkChar x : CharType"
+
+subsection {* String Sort *}
+
+class STRING_SORT = VALUE +
+  fixes MkStr :: "string \<Rightarrow> 'a"
+  fixes DestStr :: "'a \<Rightarrow> string"
+  fixes StringType :: "'a UTYPE"
+  assumes Defined [simp] : "Defined (MkStr s)"
+  assumes Inverse [simp] : "DestStr (MkStr s) = s"
+  assumes MkStr_type [typing] : "MkStr s : StringType"
+
+subsection {* Real Sort *}
+
+class REAL_SORT = VALUE +
+  fixes MkReal :: "real \<Rightarrow> 'a"
+  fixes DestReal :: "'a \<Rightarrow> real"
+  fixes IsReal :: "'a \<Rightarrow> bool"
+  fixes RealType :: "'a UTYPE" ("\<real>")
+  assumes Defined [simp] : "Defined (MkReal r)"
+  assumes Inverse [simp] : "DestReal (MkReal r) = r"
+  assumes MkReal_type [typing] : "MkReal r : \<real>"
+
+subsection {* Pair Sort *}
+
+class PAIR_SORT = VALUE +
+  fixes MkPair :: "('a \<times> 'a) \<Rightarrow> 'a"
+  fixes DestPair :: "'a \<Rightarrow> ('a \<times> 'a)"
+  fixes IsPair :: "('a \<times> 'a) \<Rightarrow> bool"
+  fixes PairType :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> 'a UTYPE"
+  assumes Inverse [simp] :
+    "Defined (MkPair v1_v2) \<Longrightarrow> DestPair (MkPair v1_v2) = v1_v2"
 
 subsection {* Set Sort *}
 
-class SET_SORT_PRE = VALUE +
+class SET_SORT = VALUE +
   fixes MkSet :: "'a set \<Rightarrow> 'a"
   fixes DestSet :: "'a \<Rightarrow> 'a set"
-  fixes IsSetElemType :: "'a UTYPE \<Rightarrow> bool"
+  fixes IsSet :: "'a set \<Rightarrow> bool"
   fixes SetType :: "'a UTYPE \<Rightarrow> 'a UTYPE"
-begin
-
-abbreviation IsSet :: "'a set \<Rightarrow> bool" where
-"IsSet xs \<equiv> (\<exists> t. IsSetElemType t \<and> (\<forall>x\<in>xs. x : t \<and> \<D> x))"
-
-end
-
-class SET_SORT = SET_SORT_PRE +
+  assumes Defined [simp] :
+    "IsSet vs \<Longrightarrow> Defined (MkSet vs)"
   assumes Inverse [simp]:
     "IsSet vs \<Longrightarrow> DestSet (MkSet vs) = vs"
-  assumes MkSet_range: 
-    "IsSetElemType t \<Longrightarrow> MkSet ` Pow (dcarrier t) = dcarrier (SetType t)"
-
+  assumes MkSet_type: "\<forall> x \<in> xs. x : t \<longrightarrow> MkSet xs : SetType t"
 begin
-
-lemma Defined [simp] :
-  "IsSet vs \<Longrightarrow> \<D> (MkSet vs)"
-  apply (auto)
-  apply (drule MkSet_range)
-  apply (auto simp add:set_eq_iff dcarrier_def)
-done
-
-lemma MkSet_type [typing]: 
-  "\<lbrakk> IsSetElemType t; \<forall> x \<in> xs. x : t \<and> \<D> x \<rbrakk> \<Longrightarrow> MkSet xs : SetType t"
-  apply (drule MkSet_range)
-  apply (auto simp add:set_eq_iff dcarrier_def)
-done
 
 subsubsection {* Set Operators *}
 
@@ -363,69 +370,6 @@ declare NotMemberV_def [simp]
 declare SubsetEqV_def [simp]
 declare SubsetV_def [simp]
 end
-
-
-subsection {* Character Sort *}
-
-class CHAR_SORT = VALUE +
-  fixes MkChar :: "char \<Rightarrow> 'a"
-  fixes DestChar :: "'a \<Rightarrow> char"
-  fixes CharType :: "'a UTYPE"
-  assumes Inverse [simp] : "DestChar (MkChar c) = c"
-  assumes MkChar_range: "range MkChar = {x. x : CharType \<and> \<D> x}"
-begin
-
-subsubsection {* Derived theorems *}
-
-lemma Defined [simp] : "Defined (MkChar c)"
-  by (metis (lifting) CollectD MkChar_range rangeI)
-
-lemma MkChar_type [typing] : "MkChar x : CharType"
-  by (metis (lifting) CollectD MkChar_range rangeI)
-
-end
-
-subsection {* String Sort *}
-
-class STRING_SORT = VALUE +
-  fixes MkStr :: "string \<Rightarrow> 'a"
-  fixes DestStr :: "'a \<Rightarrow> string"
-  fixes StringType :: "'a UTYPE"
-  assumes Inverse [simp] : "DestStr (MkStr s) = s"
-  assumes MkString_range: "range MkString = {x. x : StringType \<and> \<D> x}"
-begin
-
-subsubsection {* Derived theorems *}
-
-lemma Defined [simp] : "\<D> (MkStr s)"
-  by (metis (lifting) CollectD MkString_range image_ident iso_tuple_UNIV_I)
-
-lemma MkStr_type [typing] : "MkStr s : StringType"
-  by (metis (lifting) CollectD MkString_range UNIV_I image_ident)
-
-end
-
-subsection {* Real Sort *}
-
-class REAL_SORT = VALUE +
-  fixes MkReal :: "real \<Rightarrow> 'a"
-  fixes DestReal :: "'a \<Rightarrow> real"
-  fixes IsReal :: "'a \<Rightarrow> bool"
-  fixes RealType :: "'a UTYPE" ("\<real>")
-  assumes Defined [simp] : "Defined (MkReal r)"
-  assumes Inverse [simp] : "DestReal (MkReal r) = r"
-  assumes MkReal_type [typing] : "MkReal r : \<real>"
-
-subsection {* Pair Sort *}
-
-class PAIR_SORT = VALUE +
-  fixes MkPair :: "('a \<times> 'a) \<Rightarrow> 'a"
-  fixes DestPair :: "'a \<Rightarrow> ('a \<times> 'a)"
-  fixes PairType :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> 'a UTYPE"
-  fixes InjTypes :: "'a UTYPE set"
-  assumes Inverse [simp] :
-    "Defined (MkPair v1_v2) \<Longrightarrow> DestPair (MkPair v1_v2) = v1_v2"
-  assumes MkPair_range: "MkPair ` Collect IsPair = {x. (\<exists> a b. x : PairType a b) \<and> \<D> x}"
 
 subsection {* List Sort *}
 
@@ -507,6 +451,5 @@ class BASIC_SORT =
 
 class COMPOSITE_SORT =
   BASIC_SORT + PAIR_SORT + SET_SORT + FUNCTION_SORT
-
 
 end

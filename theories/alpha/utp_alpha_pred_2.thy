@@ -6,8 +6,8 @@
 
 header {* Alphabetised Predicates *}
 
-theory utp_alpha_pred
-imports "../core/utp_pred" "../core/utp_laws" utp_alphabet
+theory utp_alpha_pred_2
+imports "../core/utp_pred_2" "../core/utp_laws_2" utp_alphabet_2
 begin
 
 type_synonym 'VALUE ALPHA_PREDICATE =
