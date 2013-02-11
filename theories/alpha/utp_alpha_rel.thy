@@ -358,25 +358,6 @@ theorem EvalA_SkipA [evala] :
 "a \<in> REL_ALPHABET \<Longrightarrow> \<lbrakk>II\<alpha> a\<rbrakk>\<pi> = II \<langle>a\<rangle>\<^sub>f"
   by (simp add:EvalA_def SkipA.rep_eq)
 
-(*
-theorem EvalA_SkipA [evala] :
-"\<lbrakk>II\<alpha> (UNDASHED \<union> DASHED)\<rbrakk>\<pi> = II"
-apply (simp add: EvalA_def)
-apply (subgoal_tac "UNDASHED \<union> DASHED \<in> REL_ALPHABET")
-apply (simp add: SkipA_def)
-apply (utp_pred_tac)
-apply (safe)
-apply (subgoal_tac "VAR - (UNDASHED \<union> DASHED) \<subseteq> NON_REL_VAR")
-apply (simp add: EvalP_SkipP_override)
-apply (simp add: NON_REL_VAR_def)
-apply (rule_tac x = "b" in bexI)
-apply (simp)
-apply (assumption)
-apply (simp add: REL_ALPHABET_def WF_ALPHABET_def)
--- {* Fails because @{term UNDASHED} and  @{term DASHED} are not alphabets. *}
-oops
-*)
-
 theorem EvalA_CondA [evala] :
 "\<lbrakk>r1 \<in> WF_RELATION;
  r2 \<in> WF_RELATION;

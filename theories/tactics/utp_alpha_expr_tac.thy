@@ -81,13 +81,13 @@ theorem EvalA_SubstAE [evala] :
 "\<lbrakk>v\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e x \<Longrightarrow> \<lbrakk>SubstAE f v x\<rbrakk>\<alpha>\<epsilon> = \<lbrakk>f\<rbrakk>\<alpha>\<epsilon>[\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>|x]"
   by (simp add:SubstAE_rep_eq EvalAE_def)
 
-theorem EvalA_is_SubstPE_var [evala]:
-  "\<exists> x'. is_SubstPE_var \<lbrakk>p\<rbrakk>\<pi> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon> x x'"
-  by (simp add:EvalA_def WF_ALPHA_EXPRESSION_is_SubstPE_var EvalAE_def)
+theorem EvalA_is_SubstP_var [evala]:
+  "\<exists> x'. is_SubstP_var \<lbrakk>p\<rbrakk>\<pi> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon> x x'"
+  by (simp add:EvalA_def WF_ALPHA_EXPRESSION_is_SubstP_var EvalAE_def)
 
 theorem EvalP_EvalA_SubstA [evala]: 
   "\<lbrakk> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e x; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> \<lbrakk>\<lbrakk>p[v|x]\<alpha>\<rbrakk>\<pi>\<rbrakk>b = \<lbrakk>\<lbrakk>p\<rbrakk>\<pi>\<rbrakk>(b(x :=\<^sub>b \<lbrakk>\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>\<rbrakk>\<epsilon>b))"
-  by (metis EvalA_SubstA EvalA_def EvalA_is_SubstPE_var EvalE_SubstPE)
+  by (metis EvalA_SubstA EvalA_def EvalA_is_SubstP_var EvalE_SubstP)
 
 subsection {* Proof Experiements *}
 

@@ -133,9 +133,9 @@ proof -
   done
 qed
 
-(* Alphabet laws *)
+subsection {* Alphabet laws *}
 
-(* These are needed so the evaluation tactic works correctly *)
+text {* These are needed so the evaluation tactic works correctly *}
 
 theorem SubstA_alphabet_alt [alphabet]:
 "\<lbrakk> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e x; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow>  
@@ -147,7 +147,7 @@ theorem SubstAE_alphabet_alt [alphabet]:
 "\<lbrakk>v\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e x \<Longrightarrow> \<alpha>(f[v|x]\<alpha>\<epsilon>) = (\<alpha> f -\<^sub>f finsert x {}\<^sub>f) \<union>\<^sub>f \<alpha> v"
   by (simp add:EvalAE_def alphabet)
 
-(* Substitution Laws *)
+subsection {* Substitution Laws *}
 
 lemma SubstA_AndA: "\<lbrakk> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e x ; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> (p \<and>\<alpha> q)[v|x]\<alpha> = p[v|x]\<alpha> \<and>\<alpha> q[v|x]\<alpha>"
   apply (rule EvalA_intro)
@@ -177,14 +177,14 @@ lemma SubstA_no_var [simp]: "\<lbrakk> \<epsilon> v \<rhd>\<^sub>e x ; x \<notin
   \<Longrightarrow> p[v|x]\<alpha> = p"
   apply (utp_alpha_tac)
   apply (simp add:EvalA_SubstA)
-  apply (rule SubstPE_no_var)
+  apply (rule SubstP_no_var)
   apply (simp_all)
-  apply (metis EvalA_is_SubstPE_var)
+  apply (metis EvalA_is_SubstP_var)
   apply (auto intro:unrest)
 done
 
 lemma SubstA_PROGRAM_ALPHABET [simp]: 
-  "\<lbrakk> \<epsilon> v \<rhd>\<^sub>e x ; control x; PROGRAM_ALPHABET (\<alpha> p); x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> 
+  "\<lbrakk> \<epsilon> v \<rhd>\<^sub>e x ; aux x; PROGRAM_ALPHABET (\<alpha> p); x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> 
   \<Longrightarrow> p[v|x]\<alpha> = p"
   apply (rule SubstA_no_var)
   apply (simp_all)

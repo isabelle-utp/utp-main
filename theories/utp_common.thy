@@ -182,7 +182,9 @@ done
 
 subsection {* Overloaded constants *}
 
-(* Add the \<alpha> symbol as an overloaded constant for alphabets *)
+text {* Ad-hoc overloading allows the binding of symbols to multiple
+  constructs.  This adds the \<alpha> symbol as an overloaded constant for
+  alphabets *}
 
 consts
   alphabet  :: "'r \<Rightarrow> 'a" ("\<alpha>")

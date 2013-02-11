@@ -91,23 +91,23 @@ theorem EvalE_UNREST_assign [evale] :
   apply (metis binding_override_simps(2) binding_override_simps(8))
 done
 
-theorem EvalE_SubstPE [eval] :
+theorem EvalE_SubstP [eval] :
   assumes "v \<rhd>\<^sub>e x"
-          "\<exists> z. is_SubstPE_var p v x z"
-  shows "\<lbrakk>SubstPE p v x\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b))"
+          "\<exists> z. is_SubstP_var p v x z"
+  shows "\<lbrakk>SubstP p v x\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b))"
 proof -
 
-  from assms(1) have "\<And> x'. is_SubstPE_var p v x x' \<Longrightarrow> 
-                       \<lbrakk>SubstPE_body p v x x'\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b))"
+  from assms(1) have "\<And> x'. is_SubstP_var p v x x' \<Longrightarrow> 
+                       \<lbrakk>SubstP_body p v x x'\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b))"
     apply (subgoal_tac "b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b, x' :=\<^sub>b \<langle>b\<rangle>\<^sub>b x) \<oplus>\<^sub>b b on {x'} = b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b)")
     apply (drule_tac b="b" in EvalE_compat)
-    apply (simp add:SubstPE_body_def)
-(*    apply (simp add:is_SubstPE_var_def, clarify) *)
+    apply (simp add:SubstP_body_def)
+(*    apply (simp add:is_SubstP_var_def, clarify) *)
     apply (utp_pred_tac)
     apply (auto)
-    apply (simp add:is_SubstPE_var_def, clarify)
+    apply (simp add:is_SubstP_var_def, clarify)
     apply (simp add:eval evale closure)
-(*    apply (simp add:is_SubstPE_var_def UNREST_def, clarify) *)
+(*    apply (simp add:is_SubstP_var_def UNREST_def, clarify) *)
     apply (subgoal_tac "\<lbrakk>v\<rbrakk>\<epsilon> (b(x' :=\<^sub>b \<langle>b'\<rangle>\<^sub>b x')) = \<langle>v\<rangle>\<^sub>e b")
     apply (simp add:UNREST_def binding_upd_twist)
     apply (drule_tac x="b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b, x' :=\<^sub>b \<langle>b\<rangle>\<^sub>b x)" in bspec)
@@ -119,7 +119,7 @@ proof -
     apply (simp add:EvalE_def UNREST_EXPR_def)
     apply (metis)
     apply (rule_tac x="b(x' :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b)" in exI)
-    apply (simp add:is_SubstPE_var_def eval evale closure binding_upd_twist)
+    apply (simp add:is_SubstP_var_def eval evale closure binding_upd_twist)
     apply (rule conjI)
     apply (simp_all add:EvalP_def EvalE_def UNREST_def var_compat_def)
     apply (clarify)
@@ -127,12 +127,12 @@ proof -
     apply (simp)
     apply (metis (lifting) assms(1) binding_upd_apply binding_upd_twist binding_value_alt evar_compat_def)
     apply (metis EvalE_UNREST_assign EvalE_def insertI1 var_compat_intros(1) var_compat_intros(2))
-    apply (simp add:is_SubstPE_var_def eval evale closure binding_upd_twist)
+    apply (simp add:is_SubstP_var_def eval evale closure binding_upd_twist)
     apply (metis (lifting) binding_compat binding_upd_simps(2) binding_upd_twist evar_compat_def)
   done
 
   with assms show ?thesis
-    apply (simp add:SubstPE_def)
+    apply (simp add:SubstP_def)
     apply (erule exE)
     apply (rule someI2)
     apply (force)
@@ -174,11 +174,11 @@ theorem EqualP_sym:
   by utp_pred_auto_tac
 
 (* These need adapting for strictness *)
-theorem VarE_subst: "\<lbrakk> type x = \<tau>\<^sub>e v; \<not> control x \<rbrakk> \<Longrightarrow> VarE x[v|x] = v"
+theorem VarE_subst: "\<lbrakk> type x = \<tau>\<^sub>e v; \<not> aux x \<rbrakk> \<Longrightarrow> VarE x[v|x] = v"
   by utp_expr_tac
 
 theorem one_point:
-  "\<lbrakk> e \<rhd>\<^sub>e x; \<exists> z. is_SubstPE_var p e x z; UNREST_EXPR {x} e \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> e \<rhd>\<^sub>e x; \<exists> z. is_SubstP_var p e x z; UNREST_EXPR {x} e \<rbrakk> \<Longrightarrow>
   (\<exists>p {x}. p \<and>p (VarE x ==p e)) = p[e|x]"
   apply (utp_pred_tac)
   apply (utp_expr_tac)
@@ -216,7 +216,7 @@ theorem taut_casesI:
   apply (utp_expr_tac)
   apply (subgoal_tac "xa x : type x")
   apply (auto)
-  apply (simp add:SubstPE_def typing)
+  apply (simp add:SubstP_def typing)
   apply (utp_pred_tac)
   apply (utp_expr_tac)
   apply (metis override_on_cancel1 override_on_singleton)

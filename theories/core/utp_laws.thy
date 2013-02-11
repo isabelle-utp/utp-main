@@ -306,7 +306,10 @@ proof -
     by simp
 qed
 
-(* Note that assumption assumption 3 is automatic under a homogeneous alphabet *)
+(* Note that assumption assumption 2 is automatic under a homogeneous alphabet.
+    The following proof is performed by application of existential lifting.
+ *)
+
 theorem SemiP_SkipRA_right :
   assumes 
   "UNREST (DASHED - out vs) p"
@@ -481,7 +484,7 @@ qed
 
 (* Expression substitution *)
 
-theorem SubstPE_no_var:
+theorem SubstP_no_var:
   "\<lbrakk> e \<rhd>\<^sub>e x; \<exists> z. is_SubstP_var p e x z; UNREST_EXPR {x} e; UNREST {x} p \<rbrakk> \<Longrightarrow>
   p[e|x] = p"
   apply (unfold one_point[THEN sym])

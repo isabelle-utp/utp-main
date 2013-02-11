@@ -10,10 +10,10 @@ theory utp_alpha_pred
 imports "../core/utp_pred" "../core/utp_laws" utp_alphabet
 begin
 
+subsection {* Wellformed alphabetised predicates *}
+
 type_synonym 'VALUE ALPHA_PREDICATE =
   "('VALUE ALPHABET) \<times> 'VALUE WF_PREDICATE"
-
-subsection {* Locale @{text "ALPHA_PRED"} *}
 
 definition WF_ALPHA_PREDICATE ::
   "'VALUE ALPHA_PREDICATE set" where
@@ -456,7 +456,7 @@ theorem TrueA_noteq_FalseA :
 "true a \<noteq> false a"
   by (auto simp add: TrueA_rep_eq FalseA_rep_eq TrueP_noteq_FalseP )
 
-
+(* This lines make many later proofs easier *)
 declare pred_alphabet_def [simp del]
 
 end

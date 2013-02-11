@@ -66,16 +66,16 @@ apply (simp add:WF_ALPHA_EXPRESSION_def expr_alpha_def WF_EXPRESSION_OVER_def)
 done
 
 (* We can always generate a fresh variable within the context of alphabets *)
-theorem WF_ALPHA_EXPRESSION_is_SubstPE_var:
-  "\<exists> x'. is_SubstPE_var (\<pi> p) (\<epsilon> v) x x'"
+theorem WF_ALPHA_EXPRESSION_is_SubstP_var:
+  "\<exists> x'. is_SubstP_var (\<pi> p) (\<epsilon> v) x x'"
 proof -
-  obtain x' where "x' \<notin> \<langle>\<alpha> p \<union>\<^sub>f \<alpha> v\<rangle>\<^sub>f" "x' \<noteq> x" "type x' = type x" "control x' = control x"
+  obtain x' where "x' \<notin> \<langle>\<alpha> p \<union>\<^sub>f \<alpha> v\<rangle>\<^sub>f" "x' \<noteq> x" "type x' = type x" "aux x' = aux x"
     apply (insert fresh_var[of "finsert x (\<alpha> p \<union>\<^sub>f \<alpha> v)"])
     apply (auto)
   done
 
   thus ?thesis
-    apply (simp add:is_SubstPE_var_def)
+    apply (simp add:is_SubstP_var_def)
     apply (rule_tac x="x'" in exI)
     apply (auto)
     apply (insert WF_ALPHA_EXPRESSION_UNREST_EXPR[of v])
@@ -183,13 +183,13 @@ lemma SubstA_closure [closure]:
     apply (simp)
     apply (insert WF_ALPHA_PREDICATE_UNREST[of p])
     apply (insert WF_ALPHA_EXPRESSION_UNREST_EXPR[of v])
-    apply (auto intro:unrest WF_ALPHA_EXPRESSION_is_SubstPE_var simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
-    apply (frule_tac ?vs1.0="VAR - \<langle>\<alpha> p\<rangle>\<^sub>f - {x}" and ?vs2.0="VAR - \<langle>\<alpha> v\<rangle>\<^sub>f" and p="\<pi> p" in UNREST_SubstPE)
+    apply (auto intro:unrest WF_ALPHA_EXPRESSION_is_SubstP_var simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
+    apply (frule_tac ?vs1.0="VAR - \<langle>\<alpha> p\<rangle>\<^sub>f - {x}" and ?vs2.0="VAR - \<langle>\<alpha> v\<rangle>\<^sub>f" and p="\<pi> p" in UNREST_SubstP)
     apply (simp_all)
-    apply (simp add:WF_ALPHA_EXPRESSION_is_SubstPE_var)
-    apply (frule_tac ?vs1.0="VAR - \<langle>\<alpha> p\<rangle>\<^sub>f - {x}" and ?vs2.0="VAR - \<langle>\<alpha> v\<rangle>\<^sub>f" and p="\<pi> p" in UNREST_SubstPE_var)
+    apply (simp add:WF_ALPHA_EXPRESSION_is_SubstP_var)
+    apply (frule_tac ?vs1.0="VAR - \<langle>\<alpha> p\<rangle>\<^sub>f - {x}" and ?vs2.0="VAR - \<langle>\<alpha> v\<rangle>\<^sub>f" and p="\<pi> p" in UNREST_SubstP_var)
     apply (auto)
-    apply (metis WF_ALPHA_EXPRESSION_is_SubstPE_var)
+    apply (metis WF_ALPHA_EXPRESSION_is_SubstP_var)
     apply (subgoal_tac "(VAR - (\<langle>\<alpha> p\<rangle>\<^sub>f - {x} \<union> \<langle>\<alpha> v\<rangle>\<^sub>f)) = ((VAR - \<langle>\<alpha> p\<rangle>\<^sub>f - {x}) \<inter> (VAR - \<langle>\<alpha> v\<rangle>\<^sub>f)) \<union> {x}")
     apply (auto)
     apply (drule UNREST_union) back
@@ -197,9 +197,9 @@ lemma SubstA_closure [closure]:
     apply (simp)
     apply (subgoal_tac "\<pi> p[\<epsilon> v|x] = \<pi> p")
     apply (simp)
-    apply (rule SubstPE_no_var)
+    apply (rule SubstP_no_var)
     apply (simp)
-    apply (simp add:WF_ALPHA_EXPRESSION_is_SubstPE_var)
+    apply (simp add:WF_ALPHA_EXPRESSION_is_SubstP_var)
     apply (force intro:unrest)
     apply (force intro:unrest)
 done
