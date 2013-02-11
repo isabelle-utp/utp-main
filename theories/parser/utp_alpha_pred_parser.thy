@@ -26,16 +26,17 @@ syntax
   "_uapred_iff"      :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr "\<Leftrightarrow>" 25)
   "_uapred_ref"      :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr "\<sqsubseteq>" 25)
   "_uapred_clos"     :: "uapred \<Rightarrow> uapred" ("[_]")
-  "_uapred_not"      :: "uapred \<Rightarrow> uapred" ("\<not> _" [40] 40)
+  "_uapred_not"      :: "uapred \<Rightarrow> uapred" ("\<not> _" [40] 40) 
+  "_uapred_ext"      :: "uapred \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" (infixr "\<oplus>" 40)
   "_uapred_all1"     :: "pttrn \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<forall> _./ _)" [0, 10] 10) 
   "_uapred_exists1"  :: "pttrn \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<exists> _./ _)" [0, 10] 10) 
   "_uapred_equal"    :: "uaexpr \<Rightarrow> uaexpr \<Rightarrow> uapred" (infixl "=" 50)
-  "_uapred_skip"     :: "'a ALPHABET \<Rightarrow> uapred" ("\<Pi>\<^bsub>_\<^esub>")
-  "_uapred_seq"      :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr ";" 50)
+  "_uapred_skip"     :: "'a ALPHABET \<Rightarrow> uapred" ("II\<^bsub>_\<^esub>")
+  "_uapred_seq"      :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr ";" 45)
   "_uapred_cond"     :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" ("_ \<triangleleft> _ \<triangleright> _")
   "_uapred_assign"   :: "'a VAR \<Rightarrow> 'a ALPHABET \<Rightarrow> uaexpr \<Rightarrow> uapred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
   "_uapred_zpara"    :: "uzdecls \<Rightarrow> uapred \<Rightarrow> uapred" ("[_|_]")
-  "_uzdecl_basic"    :: "'a VAR \<Rightarrow> 'a VAR \<Rightarrow> uzdecl" (infix ":" 50)
+  "_uzdecl_basic"    :: "'a VAR \<Rightarrow> 'a VAR \<Rightarrow> uzdecl" (infix ":" 45)
   ""                 :: "uzdecl => uzdecls"             ("_")
   "_uzdecls"         :: "[uzdecl, uzdecls] => uzdecls" ("_,/ _")
 
@@ -58,6 +59,7 @@ translations
   "_uapred_iff p q"     == "CONST IffA p q"
   "_uapred_clos p"      == "CONST ClosureA p"
   "_uapred_not p"       == "CONST NotA p"
+  "_uapred_ext a p"     == "CONST ExtA a p"
   "_uapred_all1 x p"    == "CONST ForallA {x} p"
   "_uapred_exists1 x p" == "CONST ExistsA {x} p"
   "_uapred_equal e f"   == "CONST EqualA e f"
@@ -76,7 +78,7 @@ syntax
   "_uaexpr_false"    :: "uaexpr" ("false")
   "_uaexpr_var"      :: "pttrn \<Rightarrow> uaexpr" ("_")
   "_uaexpr_evar"     :: "'a VAR \<Rightarrow> uaexpr" ("$_")
-  "_uaexpr_substp"   :: "uapred \<Rightarrow> uaexpr \<Rightarrow> pttrn \<Rightarrow> uapred" ("(_[_'/_])")
+  "_uaexpr_substp"   :: "uapred \<Rightarrow> uaexpr \<Rightarrow> pttrn \<Rightarrow> uapred" ("(_[_'/_])" [60,60,60] 60)
 
 translations
   "_uaexpr_true"         == "CONST TrueAE"

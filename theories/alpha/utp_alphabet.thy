@@ -86,6 +86,10 @@ declare alphabet_simps [simp]
 
 subsubsection {* Distribution Theorems *}
 
+theorem in_alphabet_empty :
+  "in\<^sub>\<alpha> {}\<^sub>f = {}\<^sub>f"
+  by (force simp add:var_defs)
+
 theorem in_alphabet_union :
 "in\<^sub>\<alpha> (a1 \<union>\<^sub>f a2) = (in\<^sub>\<alpha> a1) \<union>\<^sub>f (in\<^sub>\<alpha> a2)"
   by (force simp add: var_dist)
@@ -97,6 +101,18 @@ theorem in_alphabet_inter :
 theorem in_alphabet_diff :
 "in\<^sub>\<alpha>(a1 -\<^sub>f a2) = (in\<^sub>\<alpha>a1) -\<^sub>f (in\<^sub>\<alpha>a2)"
   by (force simp add: var_dist)
+
+theorem in_alphabet_finsert1 :
+  "x \<in> UNDASHED \<Longrightarrow> in\<^sub>\<alpha> (finsert x xs) = finsert x (in\<^sub>\<alpha> xs)"
+  by (force simp add: var_dist)
+
+theorem in_alphabet_finsert2 :
+  "x \<in> DASHED \<Longrightarrow> in\<^sub>\<alpha> (finsert x xs) = (in\<^sub>\<alpha> xs)"
+  by (force simp add: var_dist)
+
+theorem out_alphabet_empty :
+  "out\<^sub>\<alpha> {}\<^sub>f = {}\<^sub>f"
+  by (force simp add:var_defs)
 
 theorem out_alphabet_union :
 "out\<^sub>\<alpha>(a1 \<union>\<^sub>f a2) = (out\<^sub>\<alpha>a1) \<union>\<^sub>f (out\<^sub>\<alpha>a2)"
@@ -110,12 +126,26 @@ theorem out_alphabet_diff :
 "out\<^sub>\<alpha>(a1 -\<^sub>f a2) = (out\<^sub>\<alpha>a1) -\<^sub>f (out\<^sub>\<alpha>a2)"
   by (force simp add: var_dist)
 
+theorem out_alphabet_finsert1 :
+  "x \<in> DASHED \<Longrightarrow> out\<^sub>\<alpha> (finsert x xs) = finsert x (out\<^sub>\<alpha> xs)"
+  by (force simp add: var_dist)
+
+theorem out_alphabet_finsert2 :
+  "x \<in> UNDASHED \<Longrightarrow> out\<^sub>\<alpha> (finsert x xs) = out\<^sub>\<alpha> xs"
+  by (force simp add: var_dist)
+
 theorems alphabet_dist =
+  in_alphabet_empty
   in_alphabet_union
   in_alphabet_inter
   in_alphabet_diff
+  in_alphabet_finsert1
+  in_alphabet_finsert2
+  out_alphabet_empty
   out_alphabet_union
   out_alphabet_inter
   out_alphabet_diff
+  out_alphabet_finsert1
+  out_alphabet_finsert2
 
 end

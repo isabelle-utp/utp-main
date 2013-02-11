@@ -412,6 +412,14 @@ theorem in_vars_diff :
 "in (vs1 - vs2) = (in vs1) - (in vs2)"
   by (auto simp add: var_defs)
 
+theorem in_vars_insert1 :
+"v \<in> UNDASHED \<Longrightarrow> in (insert v vs) = insert v (in vs)"
+  by (auto simp add: var_defs)
+
+theorem in_vars_insert2 :
+"v \<in> DASHED \<Longrightarrow> in (insert v vs) = in vs"
+  by (auto simp add: var_defs)
+
 theorem out_vars_union :
 "out (vs1 \<union> vs2) = (out vs1) \<union> (out vs2)"
   by (auto simp add: var_defs)
@@ -424,15 +432,27 @@ theorem out_vars_diff :
 "out (a1 - a2) = (out a1) - (out a2)"
   by (auto simp add: var_defs)
 
+theorem out_vars_insert1 :
+"v \<in> DASHED \<Longrightarrow> out (insert v vs) = insert v (out vs)"
+  by (auto simp add: var_defs)
+
+theorem out_vars_insert2 :
+"v \<in> UNDASHED \<Longrightarrow> out (insert v vs) = out vs"
+  by (auto simp add: var_defs)
+
 theorems var_dist =
   dash_inter_distr
   dash_unsion_distr
   in_vars_union
   in_vars_inter
   in_vars_diff
+  in_vars_insert1
+  in_vars_insert2
   out_vars_union
   out_vars_inter
   out_vars_diff
+  out_vars_insert1
+  out_vars_insert2
 
 subsubsection {* Composability Theorems *}
 

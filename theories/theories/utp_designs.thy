@@ -7,9 +7,15 @@
 header {* UTP Designs *}
 
 theory utp_designs
-imports "../alpha/utp_alpha_laws" "../tactics/utp_alpha_tac" "../tactics/utp_alpha_expr_tac" utp_theory
+imports 
+  utp_theory
+  "../alpha/utp_alpha_laws" 
+  "../tactics/utp_alpha_tac" 
+  "../tactics/utp_alpha_expr_tac" 
+  "../parser/utp_alpha_pred_parser"
 begin
 
+(* Everything in here requires booleans *)
 default_sort BOOL_SORT
 
 subsection {* Constructs *}
@@ -19,84 +25,49 @@ definition "okay' \<equiv> MkVar (MkName ''okay'' 1 NoSub) BoolType True"
 
 lemma okay_simps [simp]: 
   "okay \<noteq> okay'" "okay' \<noteq> okay"
+  "okay \<in> UNDASHED" "okay' \<in> DASHED"
   "MkBool True \<rhd> okay" "MkBool False \<rhd> okay"
   "MkBool True \<rhd> okay'" "MkBool False \<rhd> okay'"
   "TrueE \<rhd>\<^sub>e okay" "FalseE \<rhd>\<^sub>e okay"
   "TrueE \<rhd>\<^sub>e okay'" "FalseE \<rhd>\<^sub>e okay'"
   "type okay = BoolType" "type okay' = BoolType"
-  "control okay" "control okay'"
-  by (force intro:typing defined simp add:okay_def okay'_def)+
+  "aux okay" "aux okay'"
+  by (force intro:typing defined simp add:okay_def okay'_def UNDASHED_def DASHED_def)+
 
 abbreviation OK where "OK \<equiv> Abs_fset {okay,okay'}"
 
 abbreviation ok_true :: 
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" ("_\<^sup>t" [150]) where
-"p\<^sup>t \<equiv> p[TrueAE|okay]\<alpha>"
+"p\<^sup>t \<equiv> `p[true/okay]`"
 
 abbreviation ok_false :: 
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" ("_\<^sup>f" [150]) where
-"p\<^sup>f \<equiv> p[FalseAE|okay]\<alpha>"
-
+"p\<^sup>f \<equiv> `p[false/okay]`"
 
 abbreviation "ok  \<equiv> VarA okay"
 abbreviation "ok' \<equiv> VarA okay'"
 
-definition DesignA :: 
+definition DesignD :: 
 "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
  'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
  'VALUE WF_ALPHA_PREDICATE" (infixr "\<turnstile>" 60) where
-"p \<turnstile> q \<equiv> (ok \<and>\<alpha> p) \<Rightarrow>\<alpha> (ok' \<and>\<alpha> q)"
+"p \<turnstile> q = `ok \<and> p \<Rightarrow> ok' \<and> q`"
 
-(*
-lift_definition DesignA ::
-"'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
- 'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
- 'VALUE WF_ALPHA_PREDICATE" (infixr "\<turnstile>\<^sub>\<alpha>" 60) is
-"\<lambda> p q. (OK \<union>\<^sub>f \<alpha> p \<union>\<^sub>f \<alpha> q, \<pi> p \<turnstile> \<pi> q)" 
-  apply (auto simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
-  apply (simp add:DesignP_def)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (force intro: unrest)
-  apply (force intro: unrest)
-  apply (rule unrest)
-  apply (force intro: unrest)+
-done
-*)
-
-(*
 definition SkipD ::
-"'VALUE WF_PREDICATE" ("IID") where
-"IID = (true \<turnstile> II)"
-*)
-
-definition SkipA ::
   "'VALUE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" ("IID") where
 "IID a \<equiv> true a \<turnstile> II\<alpha> a"
 
-(*
-lift_definition SkipA ::
-"'VALUE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" ("IID") is
-"\<lambda> a. (a \<union>\<^sub>f OK, true \<turnstile> II \<langle>a\<rangle>\<^sub>f)"
-  apply (auto simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def DesignP_def)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (force intro:unrest)
-  apply (force intro:unrest)
-  apply (rule unrest)
-  apply (force intro:unrest)
-  apply (force intro:unrest)
-done
-*)
+declare DesignD_def [evala]
+declare SkipD_def [evala]
 
-declare DesignA_def [evala]
-declare SkipA_def [evala]
+syntax
+  "_uapred_design" :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr "\<turnstile>" 50)
+  "_uapred_skipd"  :: "'a ALPHABET \<Rightarrow> uapred" ("IID\<^bsub>_\<^esub>")
 
-abbreviation is_healthy :: 
-  " 'VALUE WF_ALPHA_PREDICATE 
-  \<Rightarrow> 'VALUE ALPHA_FUNCTION 
-  \<Rightarrow> bool" ("_ is _ healthy") where
-"is_healthy p H \<equiv> p = H p"
+translations
+  "_uapred_skipd"       == "CONST SkipD"
+  "_uapred_design p q"  => "CONST DesignD p q"
+
 
 (*
 definition Mk_ALPHA_FUNCTION :: 
@@ -104,40 +75,65 @@ definition Mk_ALPHA_FUNCTION ::
 "Mk_ALPHA_FUNCTION a f = (\<lambda> p. Abs_WF_ALPHA_PREDICATE (\<alpha> p, f (\<pi> p)))"
 *)
 
-definition "H1   \<equiv> \<lambda> p. ok \<Rightarrow>\<alpha> p"
-definition "J a  \<equiv> (ok \<Rightarrow>\<alpha> ok') \<and>\<alpha> II\<alpha> a"
+definition "H1   \<equiv> \<lambda> p. `ok \<Rightarrow> p`"
+definition "J a  \<equiv> `(ok \<Rightarrow> ok') \<and> II\<^bsub>a\<^esub>`"
 definition "H2   \<equiv> \<lambda> p. (p ;\<alpha> J (\<alpha> p))"
 (* definition "H2'  \<equiv> \<lambda> p. [p\<^sup>t \<Rightarrow>p (p\<^sup>f)]p" *)
-definition "H3  \<equiv> \<lambda> p. p ;\<alpha> IID (\<alpha> p)"
-definition "H4  \<equiv> \<lambda> p. p ;\<alpha> true (\<alpha> p) \<Rightarrow>\<alpha> true (\<alpha> p)"
+definition "H3  \<equiv> \<lambda> p. `p ; IID\<^bsub>\<alpha> p\<^esub>`"
+definition "H4  \<equiv> \<lambda> p. `p ; true\<^bsub>\<alpha> p\<^esub> \<Rightarrow> true\<^bsub>\<alpha> p\<^esub>`"
+
+lemma ok_rel_closure [closure]:
+  "ok \<in> WF_RELATION"
+  by (auto intro:closure)
+
+lemma ok'_rel_closure [closure]:
+  "ok' \<in> WF_RELATION"
+  by (auto intro:closure)
+
+lemma DesignD_rel_closure [closure]:
+  "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION \<rbrakk> \<Longrightarrow>
+   p \<turnstile> q \<in> WF_RELATION"
+  by (auto intro: closure simp add:DesignD_def)
+
+lemma SkipD_rel_closure [closure]:
+  "a \<in> REL_ALPHABET \<Longrightarrow>
+   IID a \<in> WF_RELATION"
+  by (simp add:SkipD_def closure)
+
+lemma DesignD_alphabet [alphabet]:
+  "\<alpha> (r1 \<turnstile> r2) = \<alpha> r1 \<union>\<^sub>f \<alpha> r2 \<union>\<^sub>f OK"
+  by (auto simp add:DesignD_def alphabet)
+
+definition DESIGN_ALPHABET :: "'TYPE ALPHABET set"
+where "DESIGN_ALPHABET = REL_ALPHABET \<inter> {a. OK \<subseteq>\<^sub>f a}"
 
 lemma extreme_point_true:
-  "false a \<turnstile> false a = false a \<turnstile> true a"
-  apply (utp_alpha_tac)
+  "`false\<^bsub>a \<^esub>\<turnstile> false\<^bsub>a\<^esub>` = `false\<^bsub>a\<^esub> \<turnstile> true\<^bsub>a\<^esub>`"
+  apply (utp_alpha_tac2)
   apply (utp_pred_tac)
 done
 
-(*
 lemma extreme_point_nok:
-  "true a \<turnstile> false a = \<not>\<alpha> ok"
-  apply (utp_alpha_tac)
+  "`true\<^bsub>a\<^esub> \<turnstile> false\<^bsub>a\<^esub>` = `(\<not> ok) \<oplus> OK \<union>\<^sub>f a`"
+  apply (utp_alpha_tac2)
   apply (utp_pred_tac)
-  by (utp_pred_tac)
-*)
+done
 
 lemma export_precondition:
   "p \<turnstile> q = p \<turnstile> p \<and>\<alpha> q"
-  by (utp_alpha_tac, utp_pred_auto_tac)
+  by (utp_alpha_tac2, utp_pred_tac)
 
-lemma BoolType_var_control_cases [elim]:
-  "\<lbrakk> type x = BoolType; \<not> control x \<Longrightarrow> P; \<langle>b\<rangle>\<^sub>b x = TrueV \<Longrightarrow> P; \<langle>b\<rangle>\<^sub>b x = FalseV \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+lemma BoolType_var_aux_cases [elim]:
+  "\<lbrakk> type x = BoolType
+   ; \<not> aux x \<Longrightarrow> P
+   ; \<langle>b\<rangle>\<^sub>b x = TrueV \<Longrightarrow> P
+   ; \<langle>b\<rangle>\<^sub>b x = FalseV \<Longrightarrow> P \<rbrakk> 
+   \<Longrightarrow> P"
   by (metis MkBool_cases binding_value_alt var_compat_def)
 
 lemma EvalP_BoolType_cases [intro]:
-  "\<lbrakk> type x = BoolType; control x; \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b TrueV)) ; \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b FalseV)) \<rbrakk> \<Longrightarrow> \<lbrakk>p\<rbrakk>b"
-  by (metis (lifting) BoolType_var_control_cases binding_upd_simps(2))
-
-
+  "\<lbrakk> type x = BoolType; aux x; \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b TrueV)) ; \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b FalseV)) \<rbrakk> \<Longrightarrow> \<lbrakk>p\<rbrakk>b"
+  by (metis (lifting) BoolType_var_aux_cases binding_upd_simps(2))
 
 (*
 lemma "\<lbrakk> \<lbrakk>p\<rbrakk>b; \<And> x t. \<lbrakk> v : type x; \<D> v; \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b v)) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
@@ -145,25 +141,13 @@ lemma "\<lbrakk> \<lbrakk>p\<rbrakk>b; \<And> x t. \<lbrakk> v : type x; \<D> v;
 *)
 
 
-lemma BoolType_control_var_split:
-  "\<lbrakk> type x = BoolType; control x \<rbrakk> 
-  \<Longrightarrow> [p]\<alpha> = [p[FalseAE|x]\<alpha> \<and>\<alpha> p[TrueAE|x]\<alpha>]\<alpha>"
-  apply (subgoal_tac "\<lbrakk>TrueAE\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e x")
-  apply (subgoal_tac "x \<notin> \<langle>\<alpha> TrueAE\<rangle>\<^sub>f")
-  apply (subgoal_tac "\<lbrakk>FalseAE\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e x")
-  apply (subgoal_tac "x \<notin> \<langle>\<alpha> FalseAE\<rangle>\<^sub>f")
+lemma BoolType_aux_var_split:
+  "\<lbrakk> type x = BoolType; aux x \<rbrakk> 
+  \<Longrightarrow> `[p]` = `[p[false/x] \<and> p[true/x]]`"
   apply (rule EvalA_intro)
   apply (simp add:alphabet)
-  apply (rule EvalP_intro)
-  apply (simp add:evala eval)
-  apply (utp_expr_tac)
-  apply (auto)[1]
-  apply (utp_alpha_tac)
-  apply (simp add:evala)
-  apply (force intro:defined typing)  
-  apply (utp_alpha_tac)
-  apply (simp add:evala)
-  apply (force intro:defined typing)  
+  apply (simp add:evala eval alphabet closure evale typing defined)
+  apply (auto)
 done
 
 lemma [evala]: "\<epsilon> e = \<lbrakk>e\<rbrakk>\<alpha>\<epsilon>"
@@ -186,65 +170,66 @@ lemma DesignA_refinement:
   assumes 
     "PROGRAM_ALPHABET (\<alpha> p1)" "PROGRAM_ALPHABET (\<alpha> p2)"
     "PROGRAM_ALPHABET (\<alpha> q1)" "PROGRAM_ALPHABET (\<alpha> q2)"
-  shows "(p1 \<turnstile> q1) \<sqsubseteq>\<alpha> (p2 \<turnstile> q2) = [p1 \<Rightarrow>\<alpha> p2]\<alpha> \<and>\<alpha> [p1 \<and>\<alpha> q2 \<Rightarrow>\<alpha> q1]\<alpha>"
+  shows "`p1 \<turnstile> q1 \<sqsubseteq> p2 \<turnstile> q2` = `[p1 \<Rightarrow> p2] \<and> [p1 \<and> q2 \<Rightarrow> q1]`"
 proof -
-  have "(p1 \<turnstile> q1) \<sqsubseteq>\<alpha> (p2 \<turnstile> q2) = [(p2 \<turnstile> q2) \<Rightarrow>\<alpha> (p1 \<turnstile> q1)]\<alpha>"
+  have "`p1 \<turnstile> q1 \<sqsubseteq> p2 \<turnstile> q2` = `[p2 \<turnstile> q2 \<Rightarrow> p1 \<turnstile> q1]`"
     by (utp_alpha_tac, utp_pred_tac)
 
-  also have "... = [(ok \<and>\<alpha> p2 \<Rightarrow>\<alpha> ok' \<and>\<alpha> q2) \<Rightarrow>\<alpha> (ok \<and>\<alpha> p1 \<Rightarrow>\<alpha> ok' \<and>\<alpha> q1)]\<alpha>"
-    by (utp_alpha_tac)
+  also have "... = `[(ok \<and> p2 \<Rightarrow> ok' \<and> q2) \<Rightarrow> (ok \<and> p1 \<Rightarrow> ok' \<and> q1)]`"
+    by (utp_alpha_tac2)
 
-  also have "... = [(p2 \<Rightarrow>\<alpha> ok' \<and>\<alpha> q2) \<Rightarrow>\<alpha> (p1 \<Rightarrow>\<alpha> ok' \<and>\<alpha> q1)]\<alpha>"
+  also have "... = `[(p2 \<Rightarrow> ok' \<and> q2) \<Rightarrow> (p1 \<Rightarrow> ok' \<and> q1)]`"
     apply (rule_tac trans)
-    apply (rule_tac x="okay" in BoolType_control_var_split)
+    apply (rule_tac x="okay" in BoolType_aux_var_split)
     apply (simp_all)
-    apply (simp add:SubstA_ImpliesA SubstA_AndA SubstA_OrA evala alphabet)
     apply (insert assms)
-    apply (simp add:alphabet evala)
+    apply (simp add:SubstA_ImpliesA SubstA_AndA SubstA_OrA alphabet evala)
   done
 
-  also have "... = [(\<not>\<alpha> p2 \<Rightarrow>\<alpha> \<not>\<alpha> p1) \<and>\<alpha> ((p2 \<Rightarrow>\<alpha> q2) \<Rightarrow>\<alpha> (p1 \<Rightarrow>\<alpha> q1))]\<alpha>"
+  also have "... = `[(\<not> p2 \<Rightarrow> \<not> p1) \<and> ((p2 \<Rightarrow> q2) \<Rightarrow> (p1 \<Rightarrow> q1))]`"
     apply (rule_tac trans)
-    apply (rule_tac x="okay'" in BoolType_control_var_split)
+    apply (rule_tac x="okay'" in BoolType_aux_var_split)
     apply (simp_all)
     apply (simp add:SubstA_ImpliesA SubstA_AndA SubstA_OrA evala alphabet)
     apply (insert assms)
     apply (simp add:alphabet evala eval)
   done
 
-  also have "... = [(p1 \<Rightarrow>\<alpha> p2) \<and>\<alpha> ((p2 \<Rightarrow>\<alpha> q2) \<Rightarrow>\<alpha> (p1 \<Rightarrow>\<alpha> q1))]\<alpha>"
+  also have "... = `[(p1 \<Rightarrow> p2) \<and> ((p2 \<Rightarrow> q2) \<Rightarrow> (p1 \<Rightarrow> q1))]`"
     by (auto simp add:alphabet evala eval)
 
-  also have "... = [(p1 \<Rightarrow>\<alpha> p2)]\<alpha> \<and>\<alpha> [p1 \<and>\<alpha> q2 \<Rightarrow>\<alpha> q1]\<alpha>"
+  also have "... = `[(p1 \<Rightarrow> p2)] \<and> [p1 \<and> q2 \<Rightarrow> q1]`"
     by (auto simp add:alphabet evala eval)
 
   ultimately show ?thesis
     by simp
 qed
 
-lemma DesignA_diverge:
+lemma DesignD_diverge:
   "\<lbrakk> PROGRAM_ALPHABET (\<alpha> p); PROGRAM_ALPHABET (\<alpha> q) \<rbrakk> \<Longrightarrow>
    (p \<turnstile> q)[false|okay]\<alpha> = true (\<alpha> p \<union>\<^sub>f \<alpha> q \<union>\<^sub>f (finsert okay' {}\<^sub>f))"
-  apply (simp add:DesignA_def)
+  apply (simp add:DesignD_def)
   apply (simp add:SubstA_ImpliesA SubstA_AndA evala alphabet)
   apply (auto)
 done
 
 lemma H1_idempotent: "H1 (H1 p) = H1 p"
   apply (simp add:H1_def)
-  apply (utp_alpha_tac)
-  apply (utp_pred_auto_tac)
+  apply (utp_alpha_tac2)
+  apply (utp_pred_tac)
 done
 
 lemma H1_DesignD: "p \<turnstile> q is H1 healthy"
-  apply (simp add:DesignA_def H1_def)
-  apply (utp_alpha_tac)
-  apply (utp_rel_auto_tac)
+  apply (simp add:DesignD_def H1_def)
+  apply (utp_alpha_tac2)
+  apply (utp_pred_auto_tac)
 done
-
-lemma J_split: "P ;\<alpha> J (\<alpha> P) = P\<^sup>f \<or>\<alpha> (P\<^sup>t \<and>\<alpha> ok')"
+lemma J_split: "P \<in> WF_RELATION \<Longrightarrow> P ;\<alpha> J (\<alpha> P) = P\<^sup>f \<or>\<alpha> (P\<^sup>t \<and>\<alpha> ok')"
   apply (simp add: J_def)
-  apply (utp_alpha_tac)
+  apply (utp_alpha_tac2)
+  apply (simp add:evala alphabet)
+  apply (auto)
+  apply (simp add:closure alphabet)
   apply (utp_pred_auto_tac)
 oops
 
