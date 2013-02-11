@@ -183,9 +183,9 @@ ML {*
   fun utp_alpha_tac2 thms ctxt i =
     CHANGED (resolve_tac @{thms EvalA_intro} 1 
       THEN
-        asm_full_simp_tac ((simpset_of ctxt) addsimps (evala.get ctxt @ closure.get ctxt)) 2
+        asm_full_simp_tac ((simpset_of ctxt) addsimps (evala.get ctxt @ closure.get ctxt @ typing.get ctxt)) 2
       THEN
-        asm_full_simp_tac ((simpset_of ctxt) addsimps (alphabet.get ctxt @ closure.get ctxt)
+        asm_full_simp_tac ((simpset_of ctxt) addsimps (alphabet.get ctxt @ closure.get ctxt @ typing.get ctxt)
                                              addsimps @{thms alphabet_simps}
                                              addsimps @{thms alphabet_dist}) 1
       THEN

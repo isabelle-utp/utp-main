@@ -30,6 +30,8 @@ lemma okay_simps [simp]:
   "MkBool True \<rhd> okay'" "MkBool False \<rhd> okay'"
   "TrueE \<rhd>\<^sub>e okay" "FalseE \<rhd>\<^sub>e okay"
   "TrueE \<rhd>\<^sub>e okay'" "FalseE \<rhd>\<^sub>e okay'"
+  "TrueAE \<rhd>\<^sub>\<alpha> okay" "FalseAE \<rhd>\<^sub>\<alpha> okay"
+  "TrueAE \<rhd>\<^sub>\<alpha> okay'" "FalseAE \<rhd>\<^sub>\<alpha> okay'"
   "type okay = BoolType" "type okay' = BoolType"
   "aux okay" "aux okay'"
   by (force intro:typing defined simp add:okay_def okay'_def UNDASHED_def DASHED_def)+
@@ -150,8 +152,10 @@ lemma BoolType_aux_var_split:
   apply (auto)
 done
 
+(*
 lemma [evala]: "\<epsilon> e = \<lbrakk>e\<rbrakk>\<alpha>\<epsilon>"
   by (simp add:EvalAE_def)
+*)
 
 lemma [evala]: 
   "ok[false|okay]\<alpha> = FALSE" "ok[true|okay]\<alpha> = TRUE"
@@ -166,10 +170,13 @@ lemma [evala]:
 lemma [simp]: "false \<and>p x = false" "false \<Rightarrow>p x = true" "p \<Rightarrow>p true = true" "true \<and>p p = p"
   by (utp_pred_tac)+
 
+lemma [simp]: "\<lbrakk>true\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e okay" "\<lbrakk>false\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e okay"
+  by (simp_all add:evala)
+
 lemma DesignA_refinement:
   assumes 
-    "PROGRAM_ALPHABET (\<alpha> p1)" "PROGRAM_ALPHABET (\<alpha> p2)"
-    "PROGRAM_ALPHABET (\<alpha> q1)" "PROGRAM_ALPHABET (\<alpha> q2)"
+    "\<alpha> p1 \<in> PROGRAM_ALPHABET" "\<alpha> p2 \<in> PROGRAM_ALPHABET"
+    "\<alpha> q1 \<in> PROGRAM_ALPHABET" "\<alpha> q2 \<in> PROGRAM_ALPHABET"
   shows "`p1 \<turnstile> q1 \<sqsubseteq> p2 \<turnstile> q2` = `[p1 \<Rightarrow> p2] \<and> [p1 \<and> q2 \<Rightarrow> q1]`"
 proof -
   have "`p1 \<turnstile> q1 \<sqsubseteq> p2 \<turnstile> q2` = `[p2 \<turnstile> q2 \<Rightarrow> p1 \<turnstile> q1]`"
@@ -178,39 +185,37 @@ proof -
   also have "... = `[(ok \<and> p2 \<Rightarrow> ok' \<and> q2) \<Rightarrow> (ok \<and> p1 \<Rightarrow> ok' \<and> q1)]`"
     by (utp_alpha_tac2)
 
-  also have "... = `[(p2 \<Rightarrow> ok' \<and> q2) \<Rightarrow> (p1 \<Rightarrow> ok' \<and> q1)]`"
+  also with assms have "... = `[(p2 \<Rightarrow> ok' \<and> q2) \<Rightarrow> (p1 \<Rightarrow> ok' \<and> q1)]`"
     apply (rule_tac trans)
     apply (rule_tac x="okay" in BoolType_aux_var_split)
-    apply (simp_all)
-    apply (insert assms)
-    apply (simp add:SubstA_ImpliesA SubstA_AndA SubstA_OrA alphabet evala)
+    apply (simp_all add:usubst alphabet)
+    apply (utp_alpha_tac2)
   done
 
-  also have "... = `[(\<not> p2 \<Rightarrow> \<not> p1) \<and> ((p2 \<Rightarrow> q2) \<Rightarrow> (p1 \<Rightarrow> q1))]`"
+  also from assms have "... = `[(\<not> p2 \<Rightarrow> \<not> p1) \<and> ((p2 \<Rightarrow> q2) \<Rightarrow> (p1 \<Rightarrow> q1))]`"
     apply (rule_tac trans)
     apply (rule_tac x="okay'" in BoolType_aux_var_split)
-    apply (simp_all)
-    apply (simp add:SubstA_ImpliesA SubstA_AndA SubstA_OrA evala alphabet)
-    apply (insert assms)
-    apply (simp add:alphabet evala eval)
+    apply (simp_all add:usubst alphabet)
+    apply (utp_alpha_tac2)
+    apply (utp_pred_tac)
   done
 
   also have "... = `[(p1 \<Rightarrow> p2) \<and> ((p2 \<Rightarrow> q2) \<Rightarrow> (p1 \<Rightarrow> q1))]`"
-    by (auto simp add:alphabet evala eval)
+    by (utp_alpha_tac2, utp_pred_auto_tac)
 
   also have "... = `[(p1 \<Rightarrow> p2)] \<and> [p1 \<and> q2 \<Rightarrow> q1]`"
-    by (auto simp add:alphabet evala eval)
+    by (utp_alpha_tac2, utp_pred_auto_tac)
 
   ultimately show ?thesis
     by simp
 qed
 
 lemma DesignD_diverge:
-  "\<lbrakk> PROGRAM_ALPHABET (\<alpha> p); PROGRAM_ALPHABET (\<alpha> q) \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> \<alpha> p \<in> PROGRAM_ALPHABET; \<alpha> q \<in> PROGRAM_ALPHABET \<rbrakk> \<Longrightarrow>
    (p \<turnstile> q)[false|okay]\<alpha> = true (\<alpha> p \<union>\<^sub>f \<alpha> q \<union>\<^sub>f (finsert okay' {}\<^sub>f))"
   apply (simp add:DesignD_def)
-  apply (simp add:SubstA_ImpliesA SubstA_AndA evala alphabet)
-  apply (auto)
+  apply (simp add:usubst alphabet)
+  apply (utp_alpha_tac2)
 done
 
 lemma H1_idempotent: "H1 (H1 p) = H1 p"
@@ -224,18 +229,17 @@ lemma H1_DesignD: "p \<turnstile> q is H1 healthy"
   apply (utp_alpha_tac2)
   apply (utp_pred_auto_tac)
 done
-lemma J_split: "P \<in> WF_RELATION \<Longrightarrow> P ;\<alpha> J (\<alpha> P) = P\<^sup>f \<or>\<alpha> (P\<^sup>t \<and>\<alpha> ok')"
-  apply (simp add: J_def)
+lemma J_split: "\<lbrakk> P \<in> WF_RELATION; \<alpha> P \<in> DESIGN_ALPHABET \<rbrakk> \<Longrightarrow> P ;\<alpha> J (\<alpha> P) = (P\<^sup>f \<or>\<alpha> (P\<^sup>t \<and>\<alpha> ok')) \<oplus>\<alpha> OK"
+  apply (simp add: J_def DESIGN_ALPHABET_def)
   apply (utp_alpha_tac2)
-  apply (simp add:evala alphabet)
-  apply (auto)
-  apply (simp add:closure alphabet)
-  apply (utp_pred_auto_tac)
+  apply (simp add:WF_RELATION_def REL_ALPHABET_def)
+  apply (force)
+  apply (utp_rel_tac)
 oops
 
-lemma H2_H2': "P is H2 healthy \<longleftrightarrow> taut ([P\<^sup>t \<Rightarrow>p (P\<^sup>f)]p)"
+lemma H2_H2': "P is H2 healthy \<longleftrightarrow> taut ([P\<^sup>t \<Rightarrow>\<alpha> (P\<^sup>f)]\<alpha>)"
 proof -
-  have "P is H2 healthy \<longleftrightarrow> P = P ; J"
+  have "P is H2 healthy \<longleftrightarrow> P = P ;\<alpha> J (\<alpha> P)"
     by (simp add: H2_def)
   
   also have "... = 

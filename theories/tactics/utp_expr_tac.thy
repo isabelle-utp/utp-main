@@ -63,6 +63,10 @@ theorem EvalE_LitE [evale] :
 "v : t \<Longrightarrow> \<lbrakk>LitE t v\<rbrakk>\<epsilon>b = v"
   by (simp add: LitE_def EvalE_def)
 
+theorem EvalP_ExprP [eval] :
+"\<lbrakk>ExprP e\<rbrakk>b = DestBool (\<lbrakk>e\<rbrakk>\<epsilon>b)"
+  by (simp add:ExprP_def eval EvalE_def)
+
 theorem EvalE_SubstE [evale] :
 "\<lbrakk>SubstE f v x\<rbrakk>\<epsilon>b = \<lbrakk>f\<rbrakk>\<epsilon>(b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b))"
   by (simp add:SubstE_def EvalE_def)

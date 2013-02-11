@@ -33,8 +33,8 @@ definition hom_alphabet ::
 
 subsection {* Restrictions *}
 
-definition PROGRAM_ALPHABET :: "'VALUE ALPHABET \<Rightarrow> bool" where
-"PROGRAM_ALPHABET a \<equiv> \<langle>a\<rangle>\<^sub>f \<subseteq> PROGRAM_VARS"
+definition PROGRAM_ALPHABET :: "'VALUE ALPHABET set" where
+"PROGRAM_ALPHABET \<equiv> {a. \<langle>a\<rangle>\<^sub>f \<subseteq> PROGRAM_VARS}"
 
 subsection {* Proof Support *}
 

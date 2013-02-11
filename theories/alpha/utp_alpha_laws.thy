@@ -138,18 +138,25 @@ subsection {* Alphabet laws *}
 text {* These are needed so the evaluation tactic works correctly *}
 
 theorem SubstA_alphabet_alt [alphabet]:
-"\<lbrakk> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e x; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow>  
+"\<lbrakk> v \<rhd>\<^sub>\<alpha> x; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow>  
   \<alpha>(p[v|x]\<alpha>) = (if (x \<in>\<^sub>f \<alpha> p) then (\<alpha> p -\<^sub>f finsert x {}\<^sub>f) \<union>\<^sub>f \<alpha> v
                else \<alpha> p)"
   by (simp add:EvalAE_def alphabet)
 
 theorem SubstAE_alphabet_alt [alphabet]:
-"\<lbrakk>v\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e x \<Longrightarrow> \<alpha>(f[v|x]\<alpha>\<epsilon>) = (\<alpha> f -\<^sub>f finsert x {}\<^sub>f) \<union>\<^sub>f \<alpha> v"
+"v \<rhd>\<^sub>\<alpha> x \<Longrightarrow> \<alpha>(f[v|x]\<alpha>\<epsilon>) = (\<alpha> f -\<^sub>f finsert x {}\<^sub>f) \<union>\<^sub>f \<alpha> v"
   by (simp add:EvalAE_def alphabet)
 
 subsection {* Substitution Laws *}
 
-lemma SubstA_AndA: "\<lbrakk> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e x ; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> (p \<and>\<alpha> q)[v|x]\<alpha> = p[v|x]\<alpha> \<and>\<alpha> q[v|x]\<alpha>"
+ML {*
+  structure usubst =
+    Named_Thms (val name = @{binding usubst} val description = "substitution theorems")
+*}
+
+setup usubst.setup
+
+lemma SubstA_AndA [usubst]: "\<lbrakk> v \<rhd>\<^sub>\<alpha> x ; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> (p \<and>\<alpha> q)[v|x]\<alpha> = p[v|x]\<alpha> \<and>\<alpha> q[v|x]\<alpha>"
   apply (rule EvalA_intro)
   apply (simp add:alphabet)
   apply (force)
@@ -157,7 +164,7 @@ lemma SubstA_AndA: "\<lbrakk> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub
   apply (simp add:evala eval)
 done
 
-lemma SubstA_ImpliesA: "\<lbrakk> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e x ; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> (p \<Rightarrow>\<alpha> q)[v|x]\<alpha> = p[v|x]\<alpha> \<Rightarrow>\<alpha> q[v|x]\<alpha>"
+lemma SubstA_ImpliesA [usubst]: "\<lbrakk> v \<rhd>\<^sub>\<alpha> x ; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> (p \<Rightarrow>\<alpha> q)[v|x]\<alpha> = p[v|x]\<alpha> \<Rightarrow>\<alpha> q[v|x]\<alpha>"
   apply (rule EvalA_intro)
   apply (simp add:alphabet)
   apply (force)
@@ -165,7 +172,7 @@ lemma SubstA_ImpliesA: "\<lbrakk> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon> \<rhd>\<
   apply (simp add:evala eval)
 done
 
-lemma SubstA_OrA: "\<lbrakk> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e x ; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> (p \<or>\<alpha> q)[v|x]\<alpha> = p[v|x]\<alpha> \<or>\<alpha> q[v|x]\<alpha>"
+lemma SubstA_OrA [usubst]: "\<lbrakk> v \<rhd>\<^sub>\<alpha> x ; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> (p \<or>\<alpha> q)[v|x]\<alpha> = p[v|x]\<alpha> \<or>\<alpha> q[v|x]\<alpha>"
   apply (rule EvalA_intro)
   apply (simp add:alphabet)
   apply (force)
@@ -173,22 +180,29 @@ lemma SubstA_OrA: "\<lbrakk> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>
   apply (simp add:evala eval)
 done
 
-lemma SubstA_no_var [simp]: "\<lbrakk> \<epsilon> v \<rhd>\<^sub>e x ; x \<notin> \<langle>\<alpha> p\<rangle>\<^sub>f; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> 
+lemma SubstA_var [usubst]: "\<lbrakk> type x = BoolType; v \<rhd>\<^sub>\<alpha> x; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> &x[v|x]\<alpha> = ExprA v"
+  apply (subgoal_tac "v :\<^sub>\<alpha> BoolType")
+  apply (utp_alpha_tac2)
+  apply (rule EvalP_intro)
+  apply (auto simp add:evala eval closure typing)
+done
+
+lemma SubstA_no_var [usubst]: "\<lbrakk> v \<rhd>\<^sub>\<alpha> x ; x \<notin> \<langle>\<alpha> p\<rangle>\<^sub>f; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> 
   \<Longrightarrow> p[v|x]\<alpha> = p"
-  apply (utp_alpha_tac)
+  apply (utp_alpha_tac2)
   apply (simp add:EvalA_SubstA)
   apply (rule SubstP_no_var)
-  apply (simp_all)
+  apply (metis EvalAE_compat)
   apply (metis EvalA_is_SubstP_var)
   apply (auto intro:unrest)
 done
 
-lemma SubstA_PROGRAM_ALPHABET [simp]: 
-  "\<lbrakk> \<epsilon> v \<rhd>\<^sub>e x ; aux x; PROGRAM_ALPHABET (\<alpha> p); x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> 
+lemma SubstA_PROGRAM_ALPHABET [usubst]: 
+  "\<lbrakk> v \<rhd>\<^sub>\<alpha> x ; aux x; \<alpha> p \<in> PROGRAM_ALPHABET; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> 
   \<Longrightarrow> p[v|x]\<alpha> = p"
   apply (rule SubstA_no_var)
-  apply (simp_all)
-  apply (simp add:PROGRAM_ALPHABET_def PROGRAM_VARS_def)
+  apply (simp_all add:eavar_compat_def)
+  apply (simp add:PROGRAM_ALPHABET_def PROGRAM_VARS_def )
   apply (auto)
 done
 

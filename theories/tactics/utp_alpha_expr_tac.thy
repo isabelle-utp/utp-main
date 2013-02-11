@@ -29,8 +29,12 @@ theorem EvalAE_intro :
   by (auto simp add: EvalAE_def)
 
 theorem EvalAE_type [typing] :
-"\<lbrakk>\<epsilon> e :\<^sub>e t\<rbrakk> \<Longrightarrow> \<lbrakk>e\<rbrakk>\<alpha>\<epsilon> :\<^sub>e t"
-  by (simp add:EvalAE_def)
+"\<lbrakk>e :\<^sub>\<alpha> t\<rbrakk> \<Longrightarrow> \<lbrakk>e\<rbrakk>\<alpha>\<epsilon> :\<^sub>e t"
+  by (simp add:EvalAE_def eatype_rel_def)
+
+theorem EvalAE_compat [typing] :
+"\<lbrakk>e \<rhd>\<^sub>\<alpha> x\<rbrakk> \<Longrightarrow> \<lbrakk>e\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e x"
+  by (simp add: EvalAE_def eavar_compat_def)
 
 (*
 theorem EvalAE_tau: 
@@ -73,12 +77,16 @@ theorem EvalE_FalseAE [evala] :
 "\<lbrakk>FalseAE\<rbrakk>\<alpha>\<epsilon> = FalseE"
   by (simp add:FalseAE.rep_eq EvalAE_def)
 
+theorem Eval_ExprA [evala] :
+"e :\<^sub>\<alpha> BoolType \<Longrightarrow> \<lbrakk>ExprA e\<rbrakk>\<pi> = ExprP \<lbrakk>e\<rbrakk>\<alpha>\<epsilon>"
+  by (simp add:ExprA_rep_eq EvalA_def EvalAE_def)
+
 theorem EvalA_SubstA :
-"\<lbrakk> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e x; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> \<lbrakk>SubstA p v x\<rbrakk>\<pi> = \<lbrakk>p\<rbrakk>\<pi>[\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>|x]"
+"\<lbrakk> v \<rhd>\<^sub>\<alpha> x; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> \<lbrakk>SubstA p v x\<rbrakk>\<pi> = \<lbrakk>p\<rbrakk>\<pi>[\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>|x]"
   by (simp add:SubstA_rep_eq EvalA_def EvalAE_def)
 
 theorem EvalA_SubstAE [evala] :
-"\<lbrakk>v\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e x \<Longrightarrow> \<lbrakk>SubstAE f v x\<rbrakk>\<alpha>\<epsilon> = \<lbrakk>f\<rbrakk>\<alpha>\<epsilon>[\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>|x]"
+"v \<rhd>\<^sub>\<alpha> x \<Longrightarrow> \<lbrakk>SubstAE f v x\<rbrakk>\<alpha>\<epsilon> = \<lbrakk>f\<rbrakk>\<alpha>\<epsilon>[\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>|x]"
   by (simp add:SubstAE_rep_eq EvalAE_def)
 
 theorem EvalA_is_SubstP_var [evala]:
@@ -86,8 +94,8 @@ theorem EvalA_is_SubstP_var [evala]:
   by (simp add:EvalA_def WF_ALPHA_EXPRESSION_is_SubstP_var EvalAE_def)
 
 theorem EvalP_EvalA_SubstA [evala]: 
-  "\<lbrakk> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e x; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> \<lbrakk>\<lbrakk>p[v|x]\<alpha>\<rbrakk>\<pi>\<rbrakk>b = \<lbrakk>\<lbrakk>p\<rbrakk>\<pi>\<rbrakk>(b(x :=\<^sub>b \<lbrakk>\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>\<rbrakk>\<epsilon>b))"
-  by (metis EvalA_SubstA EvalA_def EvalA_is_SubstP_var EvalE_SubstP)
+  "\<lbrakk> v \<rhd>\<^sub>\<alpha> x; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> \<lbrakk>\<lbrakk>p[v|x]\<alpha>\<rbrakk>\<pi>\<rbrakk>b = \<lbrakk>\<lbrakk>p\<rbrakk>\<pi>\<rbrakk>(b(x :=\<^sub>b \<lbrakk>\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>\<rbrakk>\<epsilon>b))"
+  by (metis (full_types) EvalAE_expr EvalA_SubstA EvalA_def EvalE_SubstP WF_ALPHA_EXPRESSION_is_SubstP_var eavar_compat_def)
 
 subsection {* Proof Experiements *}
 
@@ -103,4 +111,13 @@ theorem SubstAE_VarAE:
   apply (simp add:typing)
 done
 *)
+
+subsubsection {* Simplifications *}
+
+theorem ExprA_true [simp]: "ExprA TrueAE = TRUE"
+  by (utp_alpha_tac2)
+
+theorem ExprA_false [simp]: "ExprA FalseAE = FALSE"
+  by (utp_alpha_tac2)
+
 end
