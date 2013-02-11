@@ -1,13 +1,13 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
 (* File: utp_alpha_lattice.thy                                                *)
-(* Author: Frank Zeyda, University of York (UK)                               *)
+(* Author: Simon Foster and Frank Zeyda, University of York (UK)              *)
 (******************************************************************************)
 
 header {* Alphabetised Lattice *}
 
-theory utp_alpha_lattice_2
-imports "../core/utp_lattice_2" utp_alpha_laws_2
+theory utp_alpha_lattice
+imports "../core/utp_lattice" utp_alpha_laws
 begin
 
 instantiation WF_ALPHA_PREDICATE :: (VALUE) order
@@ -39,10 +39,10 @@ definition inf_WF_ALPHA_PREDICATE ::
 instance ..
 end
 
-definition BotA :: "'VALUE UTYPE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" ("\<bottom>\<^bsub>_\<^esub>") where
+definition BotA :: "'VALUE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" ("\<bottom>\<^bsub>_\<^esub>") where
 "BotA = TrueA"
 
-definition TopA :: "'VALUE UTYPE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" ("\<top>\<^bsub>_\<^esub>") where
+definition TopA :: "'VALUE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" ("\<top>\<^bsub>_\<^esub>") where
 "TopA = FalseA"
 
 declare sup_WF_ALPHA_PREDICATE_def [evala]
@@ -57,7 +57,7 @@ lemma RefinementA_intro [intro]:
 done
 
 definition SupP ::
-  "'VALUE UTYPE ALPHABET \<Rightarrow>
+  "'VALUE ALPHABET \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE set \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" where
 "\<forall> p\<in>ps. \<alpha> p \<subseteq>\<^sub>f a \<Longrightarrow>
@@ -66,7 +66,7 @@ definition SupP ::
    Abs_WF_ALPHA_PREDICATE (a, \<Squnion> (\<pi> ` ps)))"
 
 definition InfP ::
-  "'VALUE UTYPE ALPHABET \<Rightarrow>
+  "'VALUE ALPHABET \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE set \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" where
 "\<forall> p\<in>ps. \<alpha> p \<subseteq>\<^sub>f a \<Longrightarrow>
@@ -74,6 +74,7 @@ definition InfP ::
  (if ps = {} then \<top>\<^bsub>a\<^esub> else
    Abs_WF_ALPHA_PREDICATE (a, \<Sqinter> (\<pi> ` ps)))"
 
+(*
 lemma InfP_alphabet:
   "\<forall> p\<in>ps. \<alpha> p \<subseteq>\<^sub>f a \<Longrightarrow> \<alpha> (InfP a ps) = a"
   apply (simp add:InfP_def)
@@ -81,13 +82,12 @@ lemma InfP_alphabet:
 
 lemma "\<alpha> P = a \<Longrightarrow> P \<sqsubseteq> InfP a S"
 
-
 subsection {* Fixed Points *}
 
 definition WFP ::
-  "'TYPE ALPHABET \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_FUNCTION \<Rightarrow>
-   ('VALUE, 'TYPE) ALPHA_PREDICATE" ("\<mu>") where
+  "'VALUE ALPHABET \<Rightarrow>
+   'VALUE ALPHA_FUNCTION \<Rightarrow>
+   'VALUE ALPHA_PREDICATE" ("\<mu>") where
 "a \<in> WF_ALPHABET \<and>
  f \<in> WF_ALPHA_FUNCTION_BETWEEN a a \<longrightarrow>
  WFP a f = \<Squnion> a {x \<in> WF_ALPHA_PREDICATE_OVER a . f x \<sqsubseteq> x}"
@@ -106,6 +106,6 @@ lemma BotA_least: "\<bottom>\<^bsub>\<alpha> p\<^esub> \<sqsubseteq> p"
 
 lemma TopA_greatest: "p \<sqsubseteq> \<top>\<^bsub>\<alpha> p\<^esub>"
   by (utp_alpha_tac, utp_pred_tac)
-
+*)
 
 end

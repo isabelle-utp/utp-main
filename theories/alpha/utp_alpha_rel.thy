@@ -405,10 +405,9 @@ theorem SemiA_assoc :
  r2 \<in> WF_RELATION;
  r3 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
  (r1 ;\<alpha> r2) ;\<alpha> r3 = r1 ;\<alpha> (r2 ;\<alpha> r3)"
-apply (utp_alpha_tac)
-apply (rule conjI)
-apply (utp_alphabet_tac) [1]
-apply (utp_rel_auto_tac) [1]
+apply (utp_alpha_tac2)
+apply (utp_rel_tac)
+apply (auto)
 done
 
 theorem SemiA_OrA_distl :
@@ -416,10 +415,8 @@ theorem SemiA_OrA_distl :
  r2 \<in> WF_RELATION;
  r3 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
  r1 ;\<alpha> (r2 \<or>\<alpha> r3) = (r1 ;\<alpha> r2) \<or>\<alpha> (r1 ;\<alpha> r3)"
-apply (utp_alpha_tac)
-apply (rule conjI)
-apply (utp_alphabet_tac) [1]
-apply (utp_rel_auto_tac) [1]
+apply (utp_alpha_tac2)
+apply (utp_rel_auto_tac)
 done
 
 theorem SemiA_OrA_distr :
@@ -427,10 +424,8 @@ theorem SemiA_OrA_distr :
  r2 \<in> WF_RELATION;
  r3 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
  (r1 \<or>\<alpha> r2) ;\<alpha> r3 = (r1 ;\<alpha> r3) \<or>\<alpha> (r2 ;\<alpha> r3)"
-apply (utp_alpha_tac)
-apply (rule conjI)
-apply (utp_alphabet_tac) [1]
-apply (utp_rel_auto_tac) [1]
+apply (utp_alpha_tac2)
+apply (utp_rel_auto_tac)
 done
 
 theorem SemiP_SkipR_left:

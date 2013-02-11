@@ -7,7 +7,7 @@
 header {* UTP Theories *}
 
 theory utp_theory
-imports "../alpha/utp_alpha_pred_2"
+imports "../alpha/utp_alpha_pred"
 begin
 
 definition IDEMPOTENT_OVER ::

@@ -180,6 +180,19 @@ ML {*
 *}
 
 ML {*
+  fun utp_alpha_tac2 thms ctxt i =
+    CHANGED (resolve_tac @{thms EvalA_intro} 1 
+      THEN
+        asm_full_simp_tac ((simpset_of ctxt) addsimps (evala.get ctxt @ closure.get ctxt)) 2
+      THEN
+        asm_full_simp_tac ((simpset_of ctxt) addsimps (alphabet.get ctxt @ closure.get ctxt)
+                                             addsimps @{thms alphabet_simps}
+                                             addsimps @{thms alphabet_dist}) 1
+      THEN
+        TRY (force_tac ctxt 1))
+*}
+
+ML {*
   fun utp_alphabet_tac thms ctxt i =
     CHANGED  (
       TRY (asm_full_simp_tac (utp_alphabet_simpset ctxt) i) THEN
@@ -192,19 +205,34 @@ method_setup utp_alpha_tac = {*
     SIMPLE_METHOD' (utp_alpha_tac thms ctxt))
 *} "proof tactic for alphabetised predicates"
 
+
+method_setup utp_alpha_tac2 = {*
+  Attrib.thms >>
+  (fn thms => fn ctxt =>
+    SIMPLE_METHOD' (utp_alpha_tac2 thms ctxt))
+*} "proof tactic for alphabetised predicates"
+
 method_setup utp_alphabet_tac = {*
   Attrib.thms >>
   (fn thms => fn ctxt =>
     SIMPLE_METHOD' (utp_alphabet_tac thms ctxt))
 *} "proof tactic for alphabets"
 
+ML {* utp_alpha_tac2 *}
+
 subsection {* Proof Experiments *}
 
 theorem EvalA_test :
 "\<not>\<alpha> (\<not>\<alpha> p) = p"
+  apply (utp_alpha_tac2)
+  apply (utp_pred_auto_tac)
+done
+
+(*
 apply (utp_alpha_tac)
 apply (utp_pred_auto_tac)
 done
+*)
 
 theorem EvalA_contr:
 "p \<Rightarrow>\<alpha> false (\<alpha> p) = \<not>\<alpha> p"

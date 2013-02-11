@@ -7,7 +7,7 @@
 header {* UTP Designs *}
 
 theory utp_designs_2
-imports "../alpha/utp_alpha_laws_2" "../tactics/utp_alpha_tac_2" "../tactics/utp_alpha_expr_tac_2" utp_theory
+imports "../alpha/utp_alpha_laws" "../tactics/utp_alpha_tac" "../tactics/utp_alpha_expr_tac_2" utp_theory
 begin
 
 default_sort BOOL_SORT
