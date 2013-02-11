@@ -7,7 +7,7 @@
 header {* Algebraic Laws *}
 
 theory utp_laws
-imports utp_pred utp_rel utp_subst "../alpha/utp_alphabet"
+imports utp_pred utp_rel utp_rename "../alpha/utp_alphabet"
   "../tactics/utp_pred_tac"
   "../tactics/utp_rel_tac"
   "../tactics/utp_expr_tac"
@@ -57,73 +57,73 @@ apply (simp add: ExistsP_union UNREST_NotP closure)
 apply (simp add: NotP_NotP closure)
 done
 
-subsection {* Substitution *}
+subsection {* Renaming *}
 
 subsubsection {* Distribution Theorems *}
 
-theorem SubstP_NotP_distr :
+theorem RenameP_NotP_distr :
 "(\<not>p p)[ss] = \<not>p p[ss]"
   by (utp_pred_auto_tac)
 
-theorem SubstP_AndP_distr :
+theorem RenameP_AndP_distr :
 "(p1 \<and>p p2)[ss] = p1[ss] \<and>p p2[ss]"
   by (utp_pred_auto_tac)
 
-theorem SubstP_OrP_distr :
+theorem RenameP_OrP_distr :
 "(p1 \<or>p p2)[ss] = p1[ss] \<or>p p2[ss]"
   by (utp_pred_auto_tac)
 
-theorem SubstP_ImpliesP_distr :
+theorem RenameP_ImpliesP_distr :
 "(p1 \<Rightarrow>p p2)[ss] = p1[ss] \<Rightarrow>p p2[ss]"
   by (utp_pred_auto_tac)
 
-theorem SubstP_IffP_distr :
+theorem RenameP_IffP_distr :
 "(p1 \<Leftrightarrow>p p2)[ss] = p1[ss] \<Leftrightarrow>p p2[ss]"
   by (utp_pred_auto_tac)
 
-theorem SubstP_ExistsP_distr1 :
+theorem RenameP_ExistsP_distr1 :
 "(\<exists>p vs . p)[ss] = (\<exists>p ss `\<^sub>s vs . p[ss])"
 apply (utp_pred_tac)
 apply (safe)
-apply (rule_tac x="SubstB ss b'" in exI)
-apply (simp add:SubstB_override_distr1 closure)
-apply (rule_tac x="SubstB (inv\<^sub>s ss) b'" in exI)
-apply (simp add:SubstB_override_distr1 closure)
+apply (rule_tac x="RenameB ss b'" in exI)
+apply (simp add:RenameB_override_distr1 closure)
+apply (rule_tac x="RenameB (inv\<^sub>s ss) b'" in exI)
+apply (simp add:RenameB_override_distr1 closure)
 done
 
-theorem SubstP_ExistsP_distr2 :
-"\<lbrakk>ss \<in> VAR_SUBST_ON vs1;
+theorem RenameP_ExistsP_distr2 :
+"\<lbrakk>ss \<in> VAR_RENAME_ON vs1;
  vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
  (\<exists>p vs2 . p)[ss] = (\<exists>p vs2 . p[ss])"
-  apply (simp add:SubstP_ExistsP_distr1)
-  apply (metis VAR_SUBST_ON_disj_image subst_image_def)
+  apply (simp add:RenameP_ExistsP_distr1)
+  apply (metis VAR_RENAME_ON_disj_image rename_image_def)
 done
 
-theorem SubstP_ForallP_distr :
-"\<lbrakk>ss \<in> VAR_SUBST_ON vs1;
+theorem RenameP_ForallP_distr :
+"\<lbrakk>ss \<in> VAR_RENAME_ON vs1;
  vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
  (\<forall>p vs2 . p)[ss] = (\<forall>p vs2 . p[ss])"
 apply (simp add: ForallP_def closure)
-apply (simp add: SubstP_ExistsP_distr2 SubstP_NotP_distr closure)
+apply (simp add: RenameP_ExistsP_distr2 RenameP_NotP_distr closure)
 done
 
-theorem SubstP_ClosureP :
+theorem RenameP_ClosureP :
 "[p[ss]]p = [p]p"
 apply (utp_pred_tac)
 apply (safe)
-apply (drule_tac x = "SubstB ss x" in spec)
+apply (drule_tac x = "RenameB ss x" in spec)
 apply (simp_all)
 done
 
-subsubsection {* Other substitution laws *}
+subsubsection {* Other renaming laws *}
 
-theorem SubstP_UNREST [simp]:
-"\<lbrakk> UNREST vs p; ss \<in> VAR_SUBST_ON vs \<rbrakk> \<Longrightarrow> p[ss] = p"
+theorem RenameP_UNREST [simp]:
+"\<lbrakk> UNREST vs p; ss \<in> VAR_RENAME_ON vs \<rbrakk> \<Longrightarrow> p[ss] = p"
   apply (utp_pred_tac)
   apply (rule allI)
-  apply (frule VAR_SUBST_ON_inv)
-  apply (simp add:VAR_SUBST_ON_def)
-  apply (simp add:SubstB_def EvalP_def UNREST_def)
+  apply (frule VAR_RENAME_ON_inv)
+  apply (simp add:VAR_RENAME_ON_def)
+  apply (simp add:RenameB_def EvalP_def UNREST_def)
   apply (rule iffI)
   apply (subgoal_tac "(CompB b ss) \<oplus>\<^sub>b b on vs = b")
   apply (drule_tac x="CompB b ss" in bspec, simp)
@@ -153,9 +153,9 @@ theorem SubstP_invariant_taut :
 "taut [p1 \<Leftrightarrow>p p2]p \<Leftrightarrow>p [p1[ss] \<Leftrightarrow>p p2[ss]]p"
 apply (subgoal_tac "p1[ss] \<Leftrightarrow>p p2[ss] = (p1 \<Leftrightarrow>p p2)[ss]")
 apply (simp)
-apply (simp add: SubstP_ClosureP closure)
+apply (simp add: RenameP_ClosureP closure)
 apply (utp_pred_tac)
-apply (simp add: SubstP_IffP_distr)
+apply (simp add: RenameP_IffP_distr)
 done
 
 theorem ExistsP_OrP_expand:
@@ -189,7 +189,7 @@ proof -
     by (simp add:SemiR_algebraic)
 
   also have "... = (\<exists>p DASHED_TWICE . p1[SS1] \<and>p (\<exists>p (SS2 `\<^sub>s vs) . p2[SS2]))"
-    by (simp add: SubstP_ExistsP_distr1)
+    by (simp add: RenameP_ExistsP_distr1)
 
   also have "... = (\<exists>p DASHED_TWICE . \<exists>p (SS2 `\<^sub>s vs) . (p1[SS1] \<and>p p2[SS2]))"
   proof -
@@ -203,10 +203,10 @@ proof -
         by (force simp add:var_defs)
 
       moreover from assms have "UNREST (dash ` dash ` in vs) p1[SS1]"
-        by (smt SS1_UNDASHED_DASHED_image UNREST_SubstP_alt Un_empty_left calculation(1) in_dash in_in le_iff_sup out_dash subst_image_def sup.idem)
+        by (smt SS1_UNDASHED_DASHED_image UNREST_RenameP_alt Un_empty_left calculation(1) in_dash in_in le_iff_sup out_dash rename_image_def sup.idem)
 
       moreover from assms have "UNREST (out vs) p1[SS1]"
-        apply (rule_tac ?vs1.0="dash ` out vs" in UNREST_SubstP_alt)
+        apply (rule_tac ?vs1.0="dash ` out vs" in UNREST_RenameP_alt)
         apply (force intro:  UNREST_subset simp add:var_defs)
         apply (auto simp add:image_def SS1_simps closure out_vars_def)
       done
@@ -226,7 +226,7 @@ proof -
 
     thus ?thesis using assms
       apply (simp add:SS2_simps)
-      apply (smt ExistsP_union SS2_UNDASHED_DASHED_image subst_image_def sup_commute)
+      apply (smt ExistsP_union SS2_UNDASHED_DASHED_image rename_image_def sup_commute)
     done
   qed
 
@@ -252,7 +252,7 @@ proof -
     by (simp add:SemiR_algebraic closure)
 
   also have "... = (\<exists>p DASHED_TWICE . (\<exists>p (SS1 `\<^sub>s vs) . p1[SS1]) \<and>p p2[SS2])"
-    by (metis (lifting) SubstP_ExistsP_distr1)
+    by (metis (lifting) RenameP_ExistsP_distr1)
 
   also have "... = (\<exists>p DASHED_TWICE . \<exists>p (SS1 `\<^sub>s vs) . (p1[SS1] \<and>p p2[SS2]))"
   proof -
@@ -266,13 +266,13 @@ proof -
         by (force simp add:var_defs)
 
       moreover from assms have "UNREST (dash ` out vs) p2[SS2]"
-        apply (rule_tac ?vs1.0="undash ` out vs" in UNREST_SubstP_alt)
+        apply (rule_tac ?vs1.0="undash ` out vs" in UNREST_RenameP_alt)
         apply (auto simp add:var_member closure calculation var_simps SS2_simps)
         apply (smt SS2.rep_eq dash_UNDASHED_image image_iff in_mono undash_dash utp_var.out_DASHED)
       done
 
       moreover from assms have "UNREST (in vs) p2[SS2]"
-        apply (rule_tac ?vs1.0="dash ` dash ` in vs" in UNREST_SubstP_alt)
+        apply (rule_tac ?vs1.0="dash ` dash ` in vs" in UNREST_RenameP_alt)
         apply (force intro:  UNREST_subset simp add:var_defs)
         apply (auto simp add:closure alphabet_defs image_def)
         apply (rule_tac x="dash (dash x)" in exI)
@@ -295,7 +295,7 @@ proof -
 
     thus ?thesis using assms
       apply (simp add:SS1_simps)
-      apply (smt ExistsP_union SS1_UNDASHED_DASHED_image Un_commute subst_image_def)
+      apply (smt ExistsP_union SS1_UNDASHED_DASHED_image Un_commute rename_image_def)
     done
   qed
 
@@ -451,7 +451,7 @@ proof -
 
   also from assms 
   have "... = (\<exists>p DASHED_TWICE . (b \<and>p p[SS1] \<or>p \<not>p b \<and>p q[SS1]) \<and>p r[SS2])"
-    by (metis ExistsP_ident SS1_VAR_SUBST_ON SubstP_UNREST UNREST_ExistsP)
+    by (metis ExistsP_ident SS1_VAR_RENAME_ON RenameP_UNREST UNREST_ExistsP)
 
   also from assms 
   have "... = (\<exists>p DASHED_TWICE . (b \<and>p p[SS1] \<and>p r[SS2] \<or>p \<not>p b \<and>p q[SS1] \<and>p r[SS2]))"
@@ -482,7 +482,7 @@ qed
 (* Expression substitution *)
 
 theorem SubstPE_no_var:
-  "\<lbrakk> e \<rhd>\<^sub>e x; \<exists> z. is_SubstPE_var p e x z; UNREST_EXPR {x} e; UNREST {x} p \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> e \<rhd>\<^sub>e x; \<exists> z. is_SubstP_var p e x z; UNREST_EXPR {x} e; UNREST {x} p \<rbrakk> \<Longrightarrow>
   p[e|x] = p"
   apply (unfold one_point[THEN sym])
   apply (unfold ExistsP_AndP_expand2[THEN sym])

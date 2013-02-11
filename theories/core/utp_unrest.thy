@@ -7,7 +7,7 @@
 header {* Unrestricted Variables *}
 
 theory utp_unrest
-imports utp_pred utp_subst
+imports utp_pred utp_rename
 begin
 
 subsection {* Theorem Attributes *}
@@ -204,17 +204,17 @@ apply (simp add: RefP_def)
 apply (auto intro: UNREST_ClosureP closure)
 done
 
-theorem UNREST_SubstP :
+theorem UNREST_RenameP :
 "UNREST vs p \<Longrightarrow>
  UNREST (\<langle>ss\<rangle>\<^sub>s ` vs) p[ss]"
 apply (simp add: UNREST_def)
-apply (simp add: SubstP_def)
+apply (simp add: RenameP_def)
 apply (safe)
 apply (drule_tac x = "b1" in bspec)
 apply (assumption)
-apply (drule_tac x = "SubstB (inv\<^sub>s ss) b2" in spec)
-apply (drule imageI [where f = "SubstB ss"]) back
-apply (simp add: SubstB_override_distr1 closure)
+apply (drule_tac x = "RenameB (inv\<^sub>s ss) b2" in spec)
+apply (drule imageI [where f = "RenameB ss"]) back
+apply (simp add: RenameB_override_distr1 closure)
 done
 
 subsubsection {* Proof Support *}
@@ -246,32 +246,32 @@ theorem UNREST_ForallP_alt :
 apply (auto intro: UNREST_ForallP UNREST_subset simp: closure)
 done
 
-theorem UNREST_SubstP_alt :
+theorem UNREST_RenameP_alt :
 "\<lbrakk>UNREST vs1 p;
  vs2 \<subseteq> (\<langle>ss\<rangle>\<^sub>s ` vs1)\<rbrakk> \<Longrightarrow>
  UNREST vs2 p[ss]"
-apply (auto intro: UNREST_SubstP UNREST_subset simp: closure)
+apply (auto intro: UNREST_RenameP UNREST_subset simp: closure)
 done
 
-theorem UNREST_SubstP_single :
-"\<lbrakk> x \<noteq> y; type x = type y; control x = control y; x \<in> vs; y \<notin> vs;
+theorem UNREST_RenameP_single :
+"\<lbrakk> x \<noteq> y; type x = type y; aux x = aux y; x \<in> vs; y \<notin> vs;
    UNREST ((vs - {x}) \<union> {y})  p \<rbrakk> \<Longrightarrow> 
    UNREST vs p\<^bsup>[x \<mapsto> y]\<^esup>"
-  apply (simp add:SubstPMap_def)
-  apply (rule UNREST_SubstP_alt)
+  apply (simp add:RenamePMap_def)
+  apply (rule UNREST_RenameP_alt)
   apply (simp)
   apply (simp add:closure)
-  apply (simp add: MapSubst_image[of "[x]" "[y]" "(vs - {x})",simplified])
+  apply (simp add: MapRename_image[of "[x]" "[y]" "(vs - {x})",simplified])
   apply (force)
 done
 
 (*
-theorem UNREST_SubstP_single :
-"\<lbrakk> x \<noteq> y; type x = type y; control x = control y;
+theorem UNREST_RenameP_single :
+"\<lbrakk> x \<noteq> y; type x = type y; aux x = aux y;
    UNREST {y} p \<rbrakk> \<Longrightarrow> 
    UNREST {x} p\<^bsup>[x \<mapsto> y]\<^esup>"
-  apply (simp add:SubstPMap_def)
-  apply (rule UNREST_SubstP_alt)
+  apply (simp add:RenamePMap_def)
+  apply (rule UNREST_RenameP_alt)
   apply (auto simp add:closure)
 done
 *)
@@ -302,8 +302,8 @@ declare UNREST_ExistsP_simple [unrest]
 declare UNREST_ForallP_simple [unrest]
 declare UNREST_ClosureP [unrest]
 declare UNREST_RefP [unrest]
-declare UNREST_SubstP_alt [unrest]
-declare UNREST_SubstP_single [unrest]
+declare UNREST_RenameP_alt [unrest]
+declare UNREST_RenameP_single [unrest]
 declare UNREST_fresh_var [unrest]
 
 end

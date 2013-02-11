@@ -10,7 +10,7 @@ theory utp_var
 imports utp_names utp_value
 begin
 
-text {* A variable constists of a name, type and a flag denoting if it is a control
+text {* A variable constists of a name, type and a flag denoting if it is a auxiliary
 variable or not. *}
 
 type_synonym 'VALUE VAR =
@@ -25,8 +25,8 @@ abbreviation var_name :: "'VALUE VAR \<Rightarrow> NAME" ("name") where
 abbreviation var_type :: "'VALUE VAR \<Rightarrow> 'VALUE UTYPE" ("type") where 
 "var_type x \<equiv> fst (snd x)"
 
-abbreviation var_control :: "'VALUE VAR \<Rightarrow> bool" ("control") where 
-"var_control x \<equiv> snd (snd x)"
+abbreviation var_aux :: "'VALUE VAR \<Rightarrow> bool" ("aux") where 
+"var_aux x \<equiv> snd (snd x)"
 
 subsection {* Constructors *}
 
@@ -42,7 +42,7 @@ subsection {* Operators *}
 definition dash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" where
 "dash \<equiv> \<lambda> x. ( MkName (name_str (name x)) (dashes (fst x) + 1) (subscript (name x))
              , type x
-             , control x)"
+             , aux x)"
 
 definition undash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" where
 "undash \<equiv> \<lambda> x. ( MkName (name_str (name x)) (dashes (fst x)- 1) (subscript (name x))
@@ -63,11 +63,11 @@ definition DASHED_TWICE :: "'VALUE VAR set" where
 definition PLAIN :: "'VALUE VAR set" where
 "PLAIN = {v . v \<in> UNDASHED \<and> subscript (name v) = NoSub}"
 
-definition CONTROL_VARS :: "'VALUE VAR set" where
-"CONTROL_VARS = {v . control v}"
+definition AUX_VARS :: "'VALUE VAR set" where
+"AUX_VARS = {v . aux v}"
 
 definition PROGRAM_VARS :: "'VALUE VAR set" where
-"PROGRAM_VARS = {v . \<not> control v}"
+"PROGRAM_VARS = {v . \<not> aux v}"
 
 definition in_vars ::
   "'VALUE VAR set \<Rightarrow>
@@ -116,8 +116,8 @@ theorem MkVar_type [simp]:
   "type (MkVar n t s) = t" 
   by (simp add:var_defs)
 
-theorem MkVar_control [simp]: 
-  "control (MkVar n t s) = s" 
+theorem MkVar_aux [simp]: 
+  "aux (MkVar n t s) = s" 
   by (simp add:var_defs)
 
 lemma MkVar_eq_iff[simp]: 
@@ -134,12 +134,12 @@ theorem type_undash [simp] :
 "type (undash x) = type x"
   by (simp add: var_defs)
 
-theorem control_dash [simp] :
-"control (dash x) = control x"
+theorem aux_dash [simp] :
+"aux (dash x) = aux x"
   by (simp add: var_defs)
 
-theorem control_undash [simp] :
-"control (undash x) = control x"
+theorem aux_undash [simp] :
+"aux (undash x) = aux x"
   by (simp add: var_defs)
 
 subsubsection {* Membership Theorems *}
@@ -460,9 +460,9 @@ subsubsection {* Fresh variables *}
 
 text {* This proof uses the infinitness of @{term "NAME"} proof to demonstrate
 that, given a finite set of variables, we can always generate a fresh variable
-with any given type and controlness *}
+with any given type and auxness *}
 
-theorem fresh_var: "\<exists>x::'VALUE VAR. x \<notin> \<langle>xs\<rangle>\<^sub>f \<and> type x = t \<and> control x = s"
+theorem fresh_var: "\<exists>x::'VALUE VAR. x \<notin> \<langle>xs\<rangle>\<^sub>f \<and> type x = t \<and> aux x = s"
 proof -
 
   obtain n where "n \<notin> name ` \<langle>xs\<rangle>\<^sub>f"

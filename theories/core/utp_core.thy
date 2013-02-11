@@ -14,7 +14,7 @@ imports
   utp_value
   utp_var
   utp_pred
-  utp_subst
+  utp_rename
   utp_lattice
   utp_unrest
   utp_rel
