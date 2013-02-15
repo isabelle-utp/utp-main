@@ -180,6 +180,24 @@ lemma SubstA_OrA [usubst]: "\<lbrakk> v \<rhd>\<^sub>\<alpha> x ; x \<notin> \<l
   apply (simp add:evala eval)
 done
 
+lemma SubstA_IffA [usubst]: 
+  "\<lbrakk> v \<rhd>\<^sub>\<alpha> x ; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> (p \<Leftrightarrow>\<alpha> q)[v|x]\<alpha> = p[v|x]\<alpha> \<Leftrightarrow>\<alpha> q[v|x]\<alpha>"
+  apply (utp_alpha_tac2)
+  apply (rule EvalP_intro)
+  apply (simp add:evala eval)
+done
+
+(*
+lemma SubstA_EqualA [usubst]:
+  "\<lbrakk> v \<rhd>\<^sub>\<alpha> x ; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> (e ==\<alpha> f)[v|x]\<alpha> = (e[v|x]\<alpha>\<epsilon> ==\<alpha> f[v|x]\<alpha>\<epsilon>)"
+  apply (rule EvalA_intro)
+  apply (simp add:alphabet)
+  apply (auto)
+  apply (utp_alpha_tac2)
+  apply (rule EvalP_intro)
+  apply (simp add:evala eval)
+*)
+
 lemma SubstA_var [usubst]: "\<lbrakk> type x = BoolType; v \<rhd>\<^sub>\<alpha> x; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> &x[v|x]\<alpha> = ExprA v"
   apply (subgoal_tac "v :\<^sub>\<alpha> BoolType")
   apply (utp_alpha_tac2)

@@ -287,6 +287,12 @@ lemma MkBool_cases [elim]:
   apply (metis (lifting) CollectI MkInt_range)
   apply (metis (lifting) CollectI MkBool_range)
 done  
+
+lemma MkBool_unq [simp]: 
+  "MkBool True \<noteq> MkBool False"
+  "MkBool False \<noteq> MkBool True"
+  by (metis Inverse)+
+
 end
 
 subsection {* Set Sort *}

@@ -1,9 +1,8 @@
-
 ## targets
 
-default: report
+default: UTP
 images: 
-test: report
+test: UTP
 
 all: images test
 
@@ -14,18 +13,18 @@ SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 
-USEDIR = $(ISABELLE_TOOL) usedir -v true -i true -d pdf  ## -D generated
+USEDIR = $(ISABELLE_TOOL) usedir -v true -i true -d pdf -b
 
 
-## report
+## UTP
 
-report: $(LOG)/HOL-report.gz
+UTP: $(LOG)/UTP.gz
 
-$(LOG)/HOL-report.gz: ## report/ROOT.ML report/document/root.tex report/*.thy
-	@$(USEDIR) HOL report
+$(LOG)/UTP.gz: ## UTP/ROOT.ML UTP/document/root.tex UTP/*.thy
+	@$(USEDIR) Datatype_Order_Generator UTP
 
 
 ## clean
 
 clean:
-	@rm -f $(LOG)/HOL-report.gz
+	@rm -f $(LOG)/UTP.gz

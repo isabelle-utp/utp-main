@@ -40,11 +40,11 @@ abbreviation OK where "OK \<equiv> Abs_fset {okay,okay'}"
 
 abbreviation ok_true :: 
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" ("_\<^sup>t" [150]) where
-"p\<^sup>t \<equiv> `p[true/okay]`"
+"p\<^sup>t \<equiv> `p \<and> ($okay = true)`"
 
 abbreviation ok_false :: 
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" ("_\<^sup>f" [150]) where
-"p\<^sup>f \<equiv> `p[false/okay]`"
+"p\<^sup>f \<equiv> `p \<and> ($okay = false)`"
 
 abbreviation "ok  \<equiv> VarA okay"
 abbreviation "ok' \<equiv> VarA okay'"
@@ -79,8 +79,8 @@ definition Mk_ALPHA_FUNCTION ::
 
 definition "H1   \<equiv> \<lambda> p. `ok \<Rightarrow> p`"
 definition "J a  \<equiv> `(ok \<Rightarrow> ok') \<and> II\<^bsub>a\<^esub>`"
-definition "H2   \<equiv> \<lambda> p. (p ;\<alpha> J (\<alpha> p))"
-(* definition "H2'  \<equiv> \<lambda> p. [p\<^sup>t \<Rightarrow>p (p\<^sup>f)]p" *)
+definition "H2  \<equiv> \<lambda> p. [p\<^sup>t \<Rightarrow>\<alpha> (p\<^sup>f)]\<alpha>"
+definition "H2' \<equiv> \<lambda> p. (p ;\<alpha> J (\<alpha> p))"
 definition "H3  \<equiv> \<lambda> p. `p ; IID\<^bsub>\<alpha> p\<^esub>`"
 definition "H4  \<equiv> \<lambda> p. `p ; true\<^bsub>\<alpha> p\<^esub> \<Rightarrow> true\<^bsub>\<alpha> p\<^esub>`"
 
@@ -102,6 +102,25 @@ lemma SkipD_rel_closure [closure]:
    IID a \<in> WF_RELATION"
   by (simp add:SkipD_def closure)
 
+lemma H1_rel_closure [closure]:
+  "p \<in> WF_RELATION \<Longrightarrow>
+   H1 p \<in> WF_RELATION"
+  by (simp add:H1_def closure)
+
+lemma J_rel_closure [closure]:
+  "a \<in> REL_ALPHABET \<Longrightarrow> J a \<in> WF_RELATION"
+  by (simp add:J_def closure)
+
+lemma H2_rel_closure [closure]:
+  "p \<in> WF_RELATION \<Longrightarrow>
+   H2 p \<in> WF_RELATION"
+  by (simp add:H2_def closure)
+
+lemma H2'_rel_closure [closure]:
+  "p \<in> WF_RELATION \<Longrightarrow>
+   H2' p \<in> WF_RELATION"
+  by (simp add:H2'_def closure)
+
 lemma DesignD_alphabet [alphabet]:
   "\<alpha> (r1 \<turnstile> r2) = \<alpha> r1 \<union>\<^sub>f \<alpha> r2 \<union>\<^sub>f OK"
   by (auto simp add:DesignD_def alphabet)
@@ -122,7 +141,7 @@ lemma extreme_point_nok:
 done
 
 lemma export_precondition:
-  "p \<turnstile> q = p \<turnstile> p \<and>\<alpha> q"
+  "`p \<turnstile> q` = `p \<turnstile> p \<and> q`"
   by (utp_alpha_tac2, utp_pred_tac)
 
 lemma BoolType_var_aux_cases [elim]:
@@ -142,6 +161,16 @@ lemma "\<lbrakk> \<lbrakk>p\<rbrakk>b; \<And> x t. \<lbrakk> v : type x; \<D> v;
   apply (simp add:EvalP_def)
 *)
 
+lemma BoolType_aux_var_split_imp:
+  "\<lbrakk> type x = BoolType; aux x \<rbrakk> 
+  \<Longrightarrow> `[p]` = `[$x = true \<Rightarrow> p] \<and> [$x = false \<Rightarrow> p]`"
+  apply (rule EvalA_intro)
+  apply (simp add:alphabet)
+  apply (force)
+  apply (simp add:evala eval closure evale typing defined)
+  apply (auto)
+  apply (metis BOOL_SORT_class.Defined BOOL_SORT_class.Inverse BoolType_var_aux_cases MkBool_cases MkBool_type)
+done
 
 lemma BoolType_aux_var_split:
   "\<lbrakk> type x = BoolType; aux x \<rbrakk> 
@@ -151,6 +180,16 @@ lemma BoolType_aux_var_split:
   apply (simp add:evala eval alphabet closure evale typing defined)
   apply (auto)
 done
+
+lemma BoolType_aux_var_split_imp_intro:
+  "\<lbrakk> type x = BoolType; aux x; [$x = true \<Rightarrow> p]; [$x = false \<Rightarrow> p] \<rbrakk> \<Longrightarrow>
+  [p]"
+  by (auto simp add:evala eval alphabet closure evale typing defined)
+
+lemma BoolType_aux_var_split_intro:
+  "\<lbrakk> type x = BoolType; aux x; [p[false/x] \<and> p[true/x]] \<rbrakk> \<Longrightarrow>
+  [p]"
+  by (auto simp add:evala eval alphabet closure evale typing defined)
 
 (*
 lemma [evala]: "\<epsilon> e = \<lbrakk>e\<rbrakk>\<alpha>\<epsilon>"
@@ -224,18 +263,45 @@ lemma H1_idempotent: "H1 (H1 p) = H1 p"
   apply (utp_pred_tac)
 done
 
+lemma ClosureA_intro: "\<lbrakk> \<alpha> p = \<alpha> q; [p \<Leftrightarrow> q] \<rbrakk> \<Longrightarrow> p = q"
+  apply (utp_alpha_tac)
+  apply (utp_pred_tac)
+done
+
+lemma J_split: "\<lbrakk> P \<in> WF_RELATION; \<alpha> P \<in> DESIGN_ALPHABET \<rbrakk> \<Longrightarrow> P ;\<alpha> J (\<alpha> P) = (P\<^sup>f \<or>\<alpha> (P\<^sup>t \<and>\<alpha> ok'))"
+  apply (rule ClosureA_intro)
+  apply (simp add: J_def)
+  apply (simp add:alphabet closure typing alphabet_simps alphabet_dist)
+  apply (simp add:WF_RELATION_def REL_ALPHABET_def DESIGN_ALPHABET_def)
+  apply (force)
+  apply (rule_tac x="okay" in BoolType_aux_var_split_imp_intro)
+  apply (simp_all add:J_def)
+  apply (simp add:evala eval evale closure alphabet SemiR_algebraic)
+  apply (utp_rel_tac)
+  apply (auto)
+  apply (utp_alpha_tac2)
+  apply (simp only: BoolType_aux_var_split[of okay,simplified])
+  apply (simp add:BoolType_aux_var_split)
+  apply (simp add:J_def)
+  apply (utp_rel_tac)
+  apply (simp add:evala closure)
+  apply (auto)
+oops
+
+
+lemma H2_idempotent: "p \<in> WF_RELATION \<Longrightarrow> H2 (H2 p) = H2 p"
+  apply (simp add:H2_def)
+  apply (utp_alpha_tac2)
+  apply (utp_pred_auto_tac)
+done
+
 lemma H1_DesignD: "p \<turnstile> q is H1 healthy"
   apply (simp add:DesignD_def H1_def)
   apply (utp_alpha_tac2)
   apply (utp_pred_auto_tac)
 done
-lemma J_split: "\<lbrakk> P \<in> WF_RELATION; \<alpha> P \<in> DESIGN_ALPHABET \<rbrakk> \<Longrightarrow> P ;\<alpha> J (\<alpha> P) = (P\<^sup>f \<or>\<alpha> (P\<^sup>t \<and>\<alpha> ok')) \<oplus>\<alpha> OK"
-  apply (simp add: J_def DESIGN_ALPHABET_def)
-  apply (utp_alpha_tac2)
-  apply (simp add:WF_RELATION_def REL_ALPHABET_def)
-  apply (force)
-  apply (utp_rel_tac)
-oops
+
+
 
 lemma H2_H2': "P is H2 healthy \<longleftrightarrow> taut ([P\<^sup>t \<Rightarrow>\<alpha> (P\<^sup>f)]\<alpha>)"
 proof -

@@ -183,7 +183,7 @@ done
 subsection {* Overloaded constants *}
 
 text {* Ad-hoc overloading allows the binding of symbols to multiple
-  constructs.  This adds the \<alpha> symbol as an overloaded constant for
+  constructs.  This adds the @{text "\<alpha>"} symbol as an overloaded constant for
   alphabets *}
 
 consts

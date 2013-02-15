@@ -225,6 +225,7 @@ apply (simp add:WF_CONDITION_def)
 apply (simp add:FalseA_rep_eq closure)
 apply (auto intro:unrest)
 done
+
 theorem SkipA_closure [closure] :
 "a \<in> REL_ALPHABET \<Longrightarrow>
  II\<alpha> a \<in> WF_RELATION"
@@ -477,6 +478,12 @@ proof -
     apply (metis Rep_fset_intro alpha out_alphabet.rep_eq)
   done
 qed
+
+theorem ClosureA_rel_closure [closure] :
+  "[p]\<alpha> \<in> WF_RELATION"
+  apply (simp add:WF_RELATION_def REL_ALPHABET_def)
+  apply (simp add:alphabet closure)
+done
 
 theorem VarA_rel_closure [closure] :
 "x \<in> UNDASHED \<union> DASHED \<Longrightarrow>
