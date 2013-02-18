@@ -184,6 +184,10 @@ theorem not_dash_member_in :
 "\<not> dash x \<in> in a"
   by (simp add: var_defs)
 
+theorem not_dash_dash_member_out :
+"\<not> dash (dash x) \<in> out a"
+  by (simp add: var_defs)
+
 theorems var_member =
   UNDASHED_not_DASHED
   UNDASHED_not_DASHED_TWICE
@@ -194,6 +198,8 @@ theorems var_member =
   DASHED_TWICE_undash_DASHED
   in_UNDASHED
   out_DASHED
+  not_dash_member_in
+  not_dash_dash_member_out
 
 declare var_member [intro, simp]
 
@@ -285,9 +291,17 @@ lemma dash_UNDASHED_image:
 "dash ` UNDASHED = DASHED"
   by auto
 
+lemma dash_DASHED_image:
+"dash ` DASHED = DASHED_TWICE"
+  by auto
+
 lemma undash_DASHED_image: 
 "undash ` DASHED = UNDASHED"
   by auto
+
+lemma undash_DASHED_TWICE_image:
+"undash ` DASHED_TWICE = DASHED"
+  by (auto, metis DASHED_dash_DASHED_TWICE imageI undash_dash)
 
 lemma dash_undash_image:
 "vs \<subseteq> DASHED \<Longrightarrow> dash ` undash ` vs = vs"
@@ -296,6 +310,14 @@ lemma dash_undash_image:
 lemma undash_dash_image: 
 "undash ` dash ` vs = vs"
   by (auto simp add: image_def undash_dash)
+
+theorem in_empty :
+"in {} = {}"
+  by (simp add:var_defs)
+
+theorem out_empty :
+"out {} = {}"
+  by (simp add:var_defs)
 
 theorem in_in :
 "in (in vs) = in vs"
@@ -334,14 +356,25 @@ theorem in_out_union [intro] :
  (in vs) \<union> (out vs) = vs"
   by (auto simp add: var_defs)
 
+theorem in_out_UNDASHED_DASHED:
+  "in UNDASHED = UNDASHED"
+  "out UNDASHED = {}"
+  "in DASHED = {}"
+  "out DASHED = DASHED"
+  by (auto simp add:var_defs)
+
 theorems var_simps =
   dash_undash_DASHED
   dash_undash_DASHED_TWICE
   undash_dash
   dash_UNDASHED_image
+  dash_DASHED_image
   undash_DASHED_image
+  undash_DASHED_TWICE_image
   dash_undash_image
   undash_dash_image
+  in_empty
+  out_empty
   in_in
   out_out
   in_out
@@ -351,6 +384,7 @@ theorems var_simps =
   out_dash
   in_out_disj
   in_out_union
+  in_out_UNDASHED_DASHED
 
 declare var_simps [simp]
 
@@ -440,6 +474,23 @@ theorem out_vars_insert2 :
 "v \<in> UNDASHED \<Longrightarrow> out (insert v vs) = out vs"
   by (auto simp add: var_defs)
 
+theorem dash_image_union:
+  "dash ` (vs1 \<union> vs2) = dash ` vs1 \<union> dash ` vs2"
+  by (auto)
+
+theorem undash_image_union:
+  "undash ` (vs1 \<union> vs2) = undash ` vs1 \<union> undash ` vs2"
+  by (auto)
+
+theorem dash_image_minus:
+  "dash ` (vs1 - vs2) = (dash ` vs1) - (dash ` vs2)"
+  by (auto)
+
+theorem undash_image_minus:
+ "\<lbrakk> vs1 \<subseteq> DASHED; vs2 \<subseteq> DASHED \<rbrakk> \<Longrightarrow>
+  undash ` (vs1 - vs2) = (undash ` vs1) - (undash ` vs2)"
+  by (metis dash_image_minus dash_undash_image undash_dash_image)
+
 theorems var_dist =
   dash_inter_distr
   dash_unsion_distr
@@ -453,6 +504,10 @@ theorems var_dist =
   out_vars_diff
   out_vars_insert1
   out_vars_insert2
+  dash_image_union
+  undash_image_union
+  dash_image_minus
+  undash_image_minus
 
 subsubsection {* Composability Theorems *}
 
@@ -496,3 +551,4 @@ proof -
 qed
 
 end
+

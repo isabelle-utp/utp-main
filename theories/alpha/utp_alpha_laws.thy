@@ -7,8 +7,32 @@
 header {* Algebraic Laws *}
 
 theory utp_alpha_laws
-imports utp_alpha_pred utp_alpha_rel "../tactics/utp_alpha_expr_tac"
+imports utp_alpha_pred utp_alpha_rel "../tactics/utp_alpha_expr_tac" "../parser/utp_alpha_pred_parser"
 begin
+
+theorem AndA_assoc:
+  "`p \<and> (q \<and> r)` = `(p \<and> q) \<and> r`"
+  by (utp_alpha_tac2, utp_pred_tac)
+
+theorem AndA_comm:
+  "`p \<and> q` = `q \<and> p`"
+  by (utp_alpha_tac2, utp_pred_auto_tac)
+
+theorem AndA_idem:
+  "`p \<and> p` = `p`"
+  by (utp_alpha_tac2, utp_pred_auto_tac)
+
+theorem OrA_assoc:
+  "`p \<or> (q \<or> r)` = `(p \<or> q) \<or> r`"
+  by (utp_alpha_tac2, utp_pred_tac)
+
+theorem OrA_comm:
+  "`p \<or> q` = `q \<or> p`"
+  by (utp_alpha_tac2, utp_pred_auto_tac)
+
+theorem OrA_idem:
+  "`p \<or> p` = `p`"
+  by (utp_alpha_tac2, utp_pred_auto_tac)
 
 theorem CondA_unfold:
 "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; b \<in> WF_CONDITION; \<alpha> p = \<alpha> q; \<alpha> b \<subseteq>\<^sub>f \<alpha> p \<rbrakk> \<Longrightarrow>
@@ -133,18 +157,86 @@ proof -
   done
 qed
 
+theorem RenameA_id :
+"p[id\<^sub>s]\<alpha> = p"
+  by (utp_alpha_tac2, simp add:RenameP_id)
+
+theorem RenameA_inverse1 :
+"p[ss]\<alpha>[inv\<^sub>s ss]\<alpha> = p"
+  by (utp_alpha_tac2, simp add:RenameP_inverse1)
+
+theorem RenameA_inverse2 :
+"p[inv\<^sub>s ss]\<alpha>[ss]\<alpha> = p"
+  by (utp_alpha_tac2, simp add:RenameP_inverse2)
+
+theorem RenameA_compose :
+"p[ss1]\<alpha>[ss2]\<alpha> = p[ss2 \<circ>\<^sub>s ss1]\<alpha>"
+  by (utp_alpha_tac2, simp add:RenameP_compose)
+
+theorem RenameA_NotA_distr [urename]:
+"(\<not>\<alpha> p)[ss]\<alpha> = \<not>\<alpha> p[ss]\<alpha>"
+  by (utp_alpha_tac2, utp_pred_tac)
+
+theorem RenameA_AndA_distr [urename]:
+"(p1 \<and>\<alpha> p2)[ss]\<alpha> = p1[ss]\<alpha> \<and>\<alpha> p2[ss]\<alpha>"
+  by (utp_alpha_tac2, utp_pred_auto_tac)
+
+theorem RenameA_OrA_distr [urename]:
+"(p1 \<or>\<alpha> p2)[ss]\<alpha> = p1[ss]\<alpha> \<or>\<alpha> p2[ss]\<alpha>"
+  by (utp_alpha_tac2, utp_pred_auto_tac)
+
+theorem RenameA_ImpliesA_distr [urename]:
+"(p1 \<Rightarrow>\<alpha> p2)[ss]\<alpha> = p1[ss]\<alpha> \<Rightarrow>\<alpha> p2[ss]\<alpha>"
+  by (utp_alpha_tac2, utp_pred_auto_tac)
+
+theorem RenameA_IffA_distr [urename]:
+"(p1 \<Leftrightarrow>\<alpha> p2)[ss]\<alpha> = p1[ss]\<alpha> \<Leftrightarrow>\<alpha> p2[ss]\<alpha>"
+  by (utp_alpha_tac2, utp_pred_auto_tac)
+
+theorem RenameA_ClosureA [urename]:
+"[p[ss]\<alpha>]\<alpha> = [p]\<alpha>"
+  by (utp_alpha_tac2, metis RenameP_ClosureP)
+
+theorem RenameA_VarA [urename]:
+"&x[ss]\<alpha> = &(\<langle>ss\<rangle>\<^sub>s x)"
+  apply (utp_alpha_tac2)
+  apply (simp add:RenameP_VarP)
+done
+
+theorem ExistsA_union :
+"(\<exists>-\<alpha> a1 \<union>\<^sub>f a2 . p) = (\<exists>-\<alpha> a1 . \<exists>-\<alpha> a2 . p)"
+  by (utp_alpha_tac2, metis ExistsP_union)
+
+theorem ExistsA_AndA_expand1:
+"a \<inter>\<^sub>f \<alpha> p2 = \<lbrace>\<rbrace>  \<Longrightarrow>
+ (\<exists>-\<alpha> a. p1) \<and>\<alpha> p2 = (\<exists>-\<alpha> a. (p1 \<and>\<alpha> p2))"
+  apply (utp_alpha_tac2)
+  apply (rule_tac ExistsP_AndP_expand1)
+  apply (insert EvalA_UNREST[of p2])
+  apply (force intro:unrest)
+done
+
+theorem ExistsA_AndA_expand2:
+"a \<inter>\<^sub>f \<alpha> p1 = \<lbrace>\<rbrace>  \<Longrightarrow>
+ p1 \<and>\<alpha> (\<exists>-\<alpha> a. p2) = (\<exists>-\<alpha> a. (p1 \<and>\<alpha> p2))"
+  apply (utp_alpha_tac2)
+  apply (rule_tac ExistsP_AndP_expand2)
+  apply (insert EvalA_UNREST[of p1])
+  apply (force intro:unrest)
+done
+
 subsection {* Alphabet laws *}
 
 text {* These are needed so the evaluation tactic works correctly *}
 
 theorem SubstA_alphabet_alt [alphabet]:
 "\<lbrakk> v \<rhd>\<^sub>\<alpha> x; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow>  
-  \<alpha>(p[v|x]\<alpha>) = (if (x \<in>\<^sub>f \<alpha> p) then (\<alpha> p -\<^sub>f finsert x {}\<^sub>f) \<union>\<^sub>f \<alpha> v
+  \<alpha>(p[v|x]\<alpha>) = (if (x \<in>\<^sub>f \<alpha> p) then (\<alpha> p -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
                else \<alpha> p)"
   by (simp add:EvalAE_def alphabet)
 
 theorem SubstAE_alphabet_alt [alphabet]:
-"v \<rhd>\<^sub>\<alpha> x \<Longrightarrow> \<alpha>(f[v|x]\<alpha>\<epsilon>) = (\<alpha> f -\<^sub>f finsert x {}\<^sub>f) \<union>\<^sub>f \<alpha> v"
+"v \<rhd>\<^sub>\<alpha> x \<Longrightarrow> \<alpha>(f[v|x]\<alpha>\<epsilon>) = (\<alpha> f -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v"
   by (simp add:EvalAE_def alphabet)
 
 subsection {* Substitution Laws *}
@@ -223,5 +315,98 @@ lemma SubstA_PROGRAM_ALPHABET [usubst]:
   apply (simp add:PROGRAM_ALPHABET_def PROGRAM_VARS_def )
   apply (auto)
 done
+
+theorem SkipA_empty :
+  shows "II\<alpha> \<lbrace>\<rbrace> = TRUE"
+  apply (utp_alpha_tac2)
+  apply (simp add:SkipRA_empty)
+done
+
+theorem SkipA_unfold :
+  assumes "x \<in>\<^sub>f a" "dash x \<in>\<^sub>f a" "x \<in> UNDASHED" "a \<in> REL_ALPHABET" "HOM_ALPHA a"
+  shows "II\<alpha> a = (VarAE (dash x) ==\<alpha> VarAE x) \<and>\<alpha> II\<alpha> (a -\<^sub>f \<lbrace>x,dash x\<rbrace>)"
+  using assms
+  apply (utp_alpha_tac2)
+  apply (simp add:SkipRA_unfold HOM_ALPHA_HOMOGENEOUS)
+done
+
+(*
+lemma "\<lbrakk> UNREST (VAR - vs) p; ss1 \<cong>\<^sub>s ss2 on vs \<rbrakk> \<Longrightarrow> p[ss1] = p[ss2]"
+  apply (utp_pred_tac)
+  apply (clarsimp)
+  apply (simp add:RenameB_def)
+  apply (simp add:EvalP_def)
+  apply (subgoal_tac "CompB b ss1 = CompB b ss2")
+  apply (simp)
+  apply (rule Rep_WF_BINDING_intro)
+  apply (simp add:CompB_rep_eq)
+  apply (rule ext)
+  apply (auto simp add:rename_equiv_def)
+  apply (case_tac "x \<in> vs")
+  apply (simp)
+  apply (simp)
+*)
+
+lemma SubstA_equiv: 
+  "\<lbrakk> \<langle>\<alpha> p\<rangle>\<^sub>f \<subseteq> vs; ss1 \<cong>\<^sub>s ss2 on vs \<rbrakk> \<Longrightarrow> p[ss1]\<alpha> = p[ss2]\<alpha>"
+  apply (utp_alpha_tac2)
+  apply (simp add:rename_equiv_def)
+  apply (force)
+  apply (utp_pred_tac)
+  apply (simp add:EvalA_def EvalP_def rename_equiv_def rename_equiv_def RenameB_def)
+  apply (clarify)
+  apply (subgoal_tac "CompB b ss1 \<cong> CompB b ss2 on vs")
+  apply (insert WF_ALPHA_PREDICATE_UNREST [of p])
+  apply (simp add:UNREST_def)
+  apply (auto)
+  apply (drule_tac x="CompB b ss1" in bspec,simp)
+  apply (smt binding_override_equiv binding_override_simps(10) binding_override_simps(2) binding_override_simps(4) binding_override_simps(5) binding_override_subset)
+  apply (drule_tac x="CompB b ss2" in bspec,simp)
+  apply (metis binding_override_equiv binding_override_simps(10) binding_override_simps(5) binding_override_subset)
+  apply (simp add:binding_equiv_def)
+done
+
+lemma fimage_funion [simp]: "f `\<^sub>f (A \<union>\<^sub>f B) = (f `\<^sub>f A) \<union>\<^sub>f (f `\<^sub>f B)"
+  by (auto)
+
+lemma funion_assoc [simp]: "(A \<union>\<^sub>f B) \<union>\<^sub>f C =  A \<union>\<^sub>f (B \<union>\<^sub>f C)"
+  by (auto)
+
+theorem SemiA_ConjA_cond: 
+  assumes "p \<in> WF_RELATION" "q \<in> WF_RELATION" "r \<in> WF_RELATION"
+    "\<langle>\<alpha> q\<rangle>\<^sub>f \<subseteq> UNDASHED"
+  shows "p ;\<alpha> (q \<and>\<alpha> r) = (p \<and>\<alpha> q[SS]\<alpha>) ;\<alpha> r"
+proof -
+
+  let ?A = "dash `\<^sub>f out\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f (in\<^sub>\<alpha> (\<alpha> q) \<union>\<^sub>f in\<^sub>\<alpha> (\<alpha> r))"
+  from assms have "p ;\<alpha> (q \<and>\<alpha> r) = (\<exists>-\<alpha> ?A . p[SS1]\<alpha> \<and>\<alpha> (q \<and>\<alpha> r)[SS2]\<alpha>)"
+    by (simp add:SemiA_algebraic closure alphabet_dist alphabet)
+
+  also from assms have "... = (\<exists>-\<alpha> ?A . p[SS1]\<alpha> \<and>\<alpha> (q[SS2]\<alpha> \<and>\<alpha> r[SS2]\<alpha>))"
+    by (metis (no_types) RenameA_AndA_distr)
+
+  also from assms have "... = (\<exists>-\<alpha> ?A . p[SS1]\<alpha> \<and>\<alpha> (q[SS]\<alpha>[SS1]\<alpha> \<and>\<alpha> r[SS2]\<alpha>))"
+    apply (simp add:RenameA_compose)
+    apply (unfold SubstA_equiv[of "q" UNDASHED "SS1 \<circ>\<^sub>s SS" SS2,OF assms(4) SS1_SS_eq_SS2])
+    apply (simp)
+  done
+
+  also from assms have "... = (\<exists>-\<alpha> ?A . (p \<and>\<alpha> q[SS]\<alpha>)[SS1]\<alpha> \<and>\<alpha> r[SS2]\<alpha>)"
+    by (smt AndA_assoc RenameA_AndA_distr)
+
+  also from assms have "... = (p \<and>\<alpha> q[SS]\<alpha>) ;\<alpha> r"
+    by (simp add:SemiA_algebraic closure alphabet_dist alphabet SS_alpha_image)
+
+  ultimately show ?thesis
+    by (simp)
+qed
+
+lemma utp_alpha_pred_simps [simp]:
+  "\<not>\<alpha> (false a) = true a"
+  "\<not>\<alpha> (true a)  = false a"
+  "TRUE \<and>\<alpha> x = x"
+  "x \<and>\<alpha> TRUE = x"
+  "TRUE \<Rightarrow>\<alpha> x = x"
+  by (utp_alpha_tac2)+
 
 end

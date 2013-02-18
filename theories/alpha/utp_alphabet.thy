@@ -26,10 +26,19 @@ lift_definition out_alphabet ::
 
 declare out_alphabet.rep_eq [simp]
 
-definition hom_alphabet ::
-  "'VALUE ALPHABET \<Rightarrow>
-   'VALUE ALPHABET" ("hom") where
-"hom a = a \<union>\<^sub>f (dash `\<^sub>f in\<^sub>\<alpha> a) \<union>\<^sub>f (undash `\<^sub>f out\<^sub>\<alpha> a)"
+definition COMP_ALPHAS :: "'VALUE ALPHABET \<Rightarrow> 'VALUE ALPHABET \<Rightarrow> bool" where
+"COMP_ALPHAS a1 a2 = COMPOSABLE \<langle>a1\<rangle>\<^sub>f \<langle>a2\<rangle>\<^sub>f"
+
+definition HOM_ALPHA :: "'VALUE ALPHABET \<Rightarrow> bool" where
+"HOM_ALPHA a = COMP_ALPHAS a a"
+
+lemma HOM_ALPHA_HOMOGENEOUS:
+  "HOM_ALPHA a \<longleftrightarrow> HOMOGENEOUS \<langle>a\<rangle>\<^sub>f"
+  by (simp add:HOM_ALPHA_def HOMOGENEOUS_def COMP_ALPHAS_def COMPOSABLE_def)
+
+lemma HOM_ALPHA_unfold:
+  "HOM_ALPHA a \<longleftrightarrow> out\<^sub>\<alpha> a = dash `\<^sub>f in\<^sub>\<alpha> a"
+  by (auto simp add:HOM_ALPHA_def COMP_ALPHAS_def COMPOSABLE_def)
 
 subsection {* Restrictions *}
 
@@ -50,7 +59,6 @@ subsection {* Theorems *}
 theorems alphabet_defs =
   in_alphabet_def
   out_alphabet_def
-  hom_alphabet_def
 
 subsubsection {* Membership Theorems *}
 
@@ -74,20 +82,23 @@ subsubsection {* Simplification Theorems *}
 
 theorem alphabet_simps:
   "in\<^sub>\<alpha> (in\<^sub>\<alpha> a) = in\<^sub>\<alpha> a" "out\<^sub>\<alpha> (out\<^sub>\<alpha> a) = out\<^sub>\<alpha> a"
-  "in\<^sub>\<alpha> (out\<^sub>\<alpha> a) = {}\<^sub>f" "out\<^sub>\<alpha> (in\<^sub>\<alpha> a) = {}\<^sub>f"
-  "in\<^sub>\<alpha> (dash `\<^sub>f vs) = {}\<^sub>f"
+  "in\<^sub>\<alpha> (out\<^sub>\<alpha> a) = \<lbrace>\<rbrace>" "out\<^sub>\<alpha> (in\<^sub>\<alpha> a) = \<lbrace>\<rbrace>"
+  "in\<^sub>\<alpha> (dash `\<^sub>f vs) = \<lbrace>\<rbrace>"
   "in\<^sub>\<alpha> (undash `\<^sub>f out\<^sub>\<alpha> vs) = undash `\<^sub>f (out\<^sub>\<alpha> vs)"
   "out\<^sub>\<alpha> (dash `\<^sub>f vs) = dash `\<^sub>f (in\<^sub>\<alpha> vs)"
-  "(in\<^sub>\<alpha> a1) \<inter>\<^sub>f (out\<^sub>\<alpha> a2) = {}\<^sub>f"
+  "out\<^sub>\<alpha> (undash `\<^sub>f out\<^sub>\<alpha> a) = \<lbrace>\<rbrace>"
+  "(in\<^sub>\<alpha> a1) \<inter>\<^sub>f (out\<^sub>\<alpha> a2) = \<lbrace>\<rbrace>"
   "\<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED \<Longrightarrow> (in\<^sub>\<alpha> a) \<union>\<^sub>f (out\<^sub>\<alpha> a) = a"
-  by (auto)
+  "undash `\<^sub>f dash `\<^sub>f a = a"
+  "dash `\<^sub>f undash `\<^sub>f out\<^sub>\<alpha> a = out\<^sub>\<alpha> a"
+  by (auto, metis (lifting) equals0D in_undash out_in)
 
 declare alphabet_simps [simp]
 
 subsubsection {* Distribution Theorems *}
 
 theorem in_alphabet_empty :
-  "in\<^sub>\<alpha> {}\<^sub>f = {}\<^sub>f"
+  "in\<^sub>\<alpha> \<lbrace>\<rbrace> = \<lbrace>\<rbrace>"
   by (force simp add:var_defs)
 
 theorem in_alphabet_union :
@@ -111,7 +122,7 @@ theorem in_alphabet_finsert2 :
   by (force simp add: var_dist)
 
 theorem out_alphabet_empty :
-  "out\<^sub>\<alpha> {}\<^sub>f = {}\<^sub>f"
+  "out\<^sub>\<alpha> \<lbrace>\<rbrace> = \<lbrace>\<rbrace>"
   by (force simp add:var_defs)
 
 theorem out_alphabet_union :
@@ -149,3 +160,4 @@ theorems alphabet_dist =
   out_alphabet_finsert2
 
 end
+

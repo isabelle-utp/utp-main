@@ -84,7 +84,7 @@ subsubsection {* Equality *}
 
 lift_definition EqualsA ::
   "'VALUE VAR \<Rightarrow> 'VALUE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" is "\<lambda> v x. (finsert v {}\<^sub>f, v =p x)"
+   'VALUE WF_ALPHA_PREDICATE" is "\<lambda> v x. (\<lbrace>v\<rbrace>, v =p x)"
   by (simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
   
 notation EqualsA (infix "=\<alpha>" 210)
@@ -128,10 +128,10 @@ definition FalseA ::
 notation FalseA ("false")
 
 abbreviation TRUE :: "'VALUE WF_ALPHA_PREDICATE" where
-"TRUE \<equiv> true {}\<^sub>f"
+"TRUE \<equiv> true \<lbrace>\<rbrace>"
 
 abbreviation FALSE :: "'VALUE WF_ALPHA_PREDICATE" where
-"FALSE \<equiv> false {}\<^sub>f"
+"FALSE \<equiv> false \<lbrace>\<rbrace>"
 
 subsubsection {* Logical Connectives *}
 
@@ -222,7 +222,7 @@ subsubsection {* Universal Closure *}
 lift_definition ClosureA ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" is
-"\<lambda> p. ({}\<^sub>f, [\<pi> p]p)"
+"\<lambda> p. (\<lbrace>\<rbrace>, [\<pi> p]p)"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation ClosureA ("[_]\<alpha>")
@@ -233,10 +233,29 @@ lift_definition RefA ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" is
-"\<lambda> p1 p2. ({}\<^sub>f, (\<pi> p1) \<sqsubseteq>p (\<pi> p2))"
+"\<lambda> p1 p2. (\<lbrace>\<rbrace>, (\<pi> p1) \<sqsubseteq>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation RefA (infix "\<sqsubseteq>\<alpha>" 100)
+
+subsubsection {* Renaming *}
+
+(*
+lift_definition alpha_rename_image :: 
+  "('VALUE VAR_RENAME) \<Rightarrow> 'VALUE ALPHABET \<Rightarrow> 'VALUE ALPHABET" (infixr "`\<^sub>\<alpha>" 90) is rename_image
+  by (simp add:rename_image_def fsets_def)
+*)
+
+lift_definition RenameA ::
+  "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
+   'VALUE VAR_RENAME \<Rightarrow>
+   'VALUE WF_ALPHA_PREDICATE" ("_[_]\<alpha>" [200]) is
+"\<lambda> p ss. (\<langle>ss\<rangle>\<^sub>s `\<^sub>f \<alpha> p, (\<pi> p)[ss])"
+  apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
+  apply (rule UNREST_RenameP_alt)
+  apply (rule WF_ALPHA_PREDICATE_UNREST)
+  apply (metis (lifting) Rep_VAR_RENAME_surj VAR_def image_diff_subset)
+done
 
 subsection {* Meta-logical Operators *}
 
@@ -319,7 +338,7 @@ theorem LiftA_alphabet [alphabet] :
   by (simp add: LiftA_rep_eq)
 
 theorem EqualsA_alphabet [alphabet] :
-"\<alpha> (v =\<alpha> x) = finsert v {}\<^sub>f"
+"\<alpha> (v =\<alpha> x) = \<lbrace>v\<rbrace>"
   by (simp add: EqualsA.rep_eq)
 
 theorem TrueA_alphabet [alphabet] :
@@ -375,12 +394,16 @@ theorem ForallResA_alphabet [alphabet] :
   by (simp add: ForallResA.rep_eq)
 
 theorem ClosureA_alphabet [alphabet] :
-"\<alpha> ([p]\<alpha>) = {}\<^sub>f"
+"\<alpha> ([p]\<alpha>) = \<lbrace>\<rbrace>"
   by (simp add: ClosureA.rep_eq)
 
 theorem RefA_alphabet [alphabet] :
-"\<alpha> (p1 \<sqsubseteq>\<alpha> p2) = {}\<^sub>f"
+"\<alpha> (p1 \<sqsubseteq>\<alpha> p2) = \<lbrace>\<rbrace>"
   by (simp add: RefA.rep_eq)
+
+theorem RenameA_alphabet [alphabet] :
+"\<alpha> (p[ss]\<alpha>) = \<langle>ss\<rangle>\<^sub>s `\<^sub>f (\<alpha> p)"
+  by (simp add:RenameA.rep_eq)
 
 subsubsection {* Validation of Soundness *}
 
@@ -436,8 +459,6 @@ theorem ClosureA_lemma :
 "[p]\<alpha> = (\<forall>-\<alpha> (\<alpha> p) . p)"
 apply (rule Rep_WF_ALPHA_PREDICATE_intro)
 apply (simp add:ClosureA.rep_eq ForallResA.rep_eq)
-apply (rule conjI)
-apply (force)
 apply (simp add:ClosureP_def)
 apply (subst VAR_decomp [of "\<langle>\<alpha> p\<rangle>\<^sub>f"])
 apply (simp only: ForallP_union)

@@ -42,7 +42,7 @@ syntax
 
 abbreviation InSet :: 
   "('VALUE::SET_SORT) VAR \<Rightarrow> 'VALUE VAR \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" where
-"InSet x A \<equiv> LiftA (finsert x (finsert A {}\<^sub>f)) (\<lambda> b. \<langle>b\<rangle>\<^sub>b x \<in>v \<langle>b\<rangle>\<^sub>b A)"
+"InSet x A \<equiv> LiftA \<lbrace>x,A\<rbrace> (\<lambda> b. \<langle>b\<rangle>\<^sub>b x \<in>v \<langle>b\<rangle>\<^sub>b A)"
 
 translations
   "_uapred_brack p"     => "p"

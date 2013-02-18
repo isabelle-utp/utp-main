@@ -144,6 +144,10 @@ apply (simp add: EvalA_def)
 apply (simp add: RefA.rep_eq)
 done
 
+theorem EvalA_RenameA [evala] :
+"\<lbrakk>p[ss]\<alpha>\<rbrakk>\<pi> = \<lbrakk>p\<rbrakk>\<pi>[ss]"
+  by (simp add:EvalA_def RenameA.rep_eq)
+
 declare TautologyA_def [evala]
 declare ContradictionA_def [evala]
 declare less_eq_WF_ALPHA_PREDICATE_def [evala]
@@ -236,8 +240,6 @@ done
 
 theorem EvalA_contr:
 "p \<Rightarrow>\<alpha> false (\<alpha> p) = \<not>\<alpha> p"
-apply (utp_alpha_tac)
-apply (utp_pred_auto_tac)
-done
+  by (utp_alpha_tac)
 
 end

@@ -139,12 +139,6 @@ theorem SS_ident_app :
 apply (simp add: SS.rep_eq)
 done
 
-theorems SS_simps =
-  SS_UNDASHED_app
-  SS_DASHED_app
-  SS_DASHED_TWICE_app
-  SS_ident_app
-
 theorem SS_VAR_RENAME_ON [closure] :
 "SS \<in> VAR_RENAME_ON (UNDASHED \<union> DASHED)"
   by (simp add: VAR_RENAME_ON_def SS.rep_eq)
@@ -172,30 +166,43 @@ theorem SS_inv' [simp] :
   apply (simp only: rename_inv_rep_eq)
 done
 
+theorem SS_UNDASHED_DASHED_image :
+"\<lbrakk>vs \<subseteq> UNDASHED \<union> DASHED\<rbrakk> \<Longrightarrow>
+ SS `\<^sub>s vs = dash ` (in vs) \<union> undash ` (out vs)"
+  by (auto simp add: image_def var_defs SS.rep_eq)
+
 theorem SS_DASHED_member :
 "x \<in> DASHED \<Longrightarrow> \<not> \<langle>SS\<rangle>\<^sub>s x \<in> DASHED"
 apply (simp add: SS.rep_eq)
 apply (simp add: var_defs)
 done
 
+theorems SS_simps =
+  SS_UNDASHED_app
+  SS_DASHED_app
+  SS_DASHED_TWICE_app
+  SS_ident_app
+  SS_inv
+  SS_UNDASHED_DASHED_image
+
 text {* Theorems for @{term SS1} *}
 
-theorem SS1_UNDASHED_app :
+theorem SS1_UNDASHED_app [urename]:
 "\<lbrakk>x \<in> UNDASHED\<rbrakk> \<Longrightarrow> \<langle>SS1\<rangle>\<^sub>s x = x"
   by (simp add: SS1.rep_eq)
 
-theorem SS1_DASHED_app :
+theorem SS1_DASHED_app [urename]:
 "\<lbrakk>x \<in> DASHED\<rbrakk> \<Longrightarrow> \<langle>SS1\<rangle>\<^sub>s x = dash x"
 apply (simp add: SS1.rep_eq)
 done
 
-theorem SS1_DASHED_TWICE_app :
+theorem SS1_DASHED_TWICE_app [urename]:
 "\<lbrakk>x \<in> DASHED_TWICE\<rbrakk> \<Longrightarrow> \<langle>SS1\<rangle>\<^sub>s x = undash x"
 apply (simp add: SS1.rep_eq)
 apply (simp add: var_defs)
 done
 
-theorem SS1_ident_app :
+theorem SS1_ident_app [urename]:
 "\<lbrakk>\<not> x \<in> DASHED; \<not> x \<in> DASHED_TWICE\<rbrakk> \<Longrightarrow> \<langle>SS1\<rangle>\<^sub>s x = x"
 apply (simp add: SS1.rep_eq)
 done
@@ -243,24 +250,24 @@ theorems SS1_simps =
 
 text {* Theorems for @{term SS2} *}
 
-theorem SS2_DASHED_app :
+theorem SS2_DASHED_app [urename]:
 "x \<in> DASHED \<Longrightarrow> \<langle>SS2\<rangle>\<^sub>s x = x"
 apply (simp add: SS2.rep_eq)
 apply (simp add: var_defs)
 done
 
-theorem SS2_UNDASHED_app :
+theorem SS2_UNDASHED_app [urename]:
 "x \<in> UNDASHED \<Longrightarrow> \<langle>SS2\<rangle>\<^sub>s x = dash (dash x)"
 apply (simp add: SS2.rep_eq)
 done
 
-theorem SS2_DASHED_TWICE_app :
+theorem SS2_DASHED_TWICE_app [urename]:
 "\<lbrakk>x \<in> DASHED_TWICE\<rbrakk> \<Longrightarrow> \<langle>SS2\<rangle>\<^sub>s x =  undash (undash x)"
 apply (simp add: SS2.rep_eq)
 apply (simp add: var_defs)
 done
 
-theorem SS2_ident_app :
+theorem SS2_ident_app [urename]:
 "\<lbrakk>\<not> x \<in> UNDASHED; \<not> x \<in> DASHED_TWICE\<rbrakk> \<Longrightarrow> \<langle>SS2\<rangle>\<^sub>s x = x"
 apply (simp add: SS2.rep_eq)
 done
@@ -303,6 +310,14 @@ theorems SS2_simps =
   SS2_DASHED_TWICE_app
   SS2_ident_app
   SS2_UNDASHED_DASHED_image
+
+subsubsection {* Equalities *}
+
+lemma SS1_SS_eq_SS2: "SS1 \<circ>\<^sub>s SS \<cong>\<^sub>s SS2 on UNDASHED"
+  by (auto simp add:rename_equiv_def SS1.rep_eq SS.rep_eq SS2.rep_eq)
+
+lemma SS2_SS_eq_SS1: "SS2 \<circ>\<^sub>s SS \<cong>\<^sub>s SS1 on DASHED"
+  by (auto simp add:rename_equiv_def SS1.rep_eq SS.rep_eq SS2.rep_eq)
 
 subsubsection {* Theorems for @{term "COMPOSABLE_BINDINGS"} *}
 

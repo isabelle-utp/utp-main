@@ -10,6 +10,13 @@ theory utp_rename
 imports utp_pred "../tactics/utp_pred_tac"
 begin
 
+ML {*
+  structure urename =
+    Named_Thms (val name = @{binding urename} val description = "renaming theorems")
+*}
+
+setup urename.setup
+
 subsection {* Variable Renaming *}
 
 text {* Renamings are total bijections that respect typing. *}
@@ -363,6 +370,12 @@ definition rename_image ::
 
 declare rename_image_def [simp]
 
+definition rename_equiv ::
+  "'VALUE VAR_RENAME \<Rightarrow> 'VALUE VAR_RENAME \<Rightarrow> 'VALUE VAR set \<Rightarrow> bool" where
+"rename_equiv ss1 ss2 vs \<equiv> \<forall>x \<in> vs. (\<langle>ss1\<rangle>\<^sub>s x = \<langle>ss2\<rangle>\<^sub>s x)"
+
+notation rename_equiv ("_ \<cong>\<^sub>s _ on _")
+
 text {* More theorems about @{term "VAR_RENAME"} *}
 
 lemma VAR_RENAME_MapRename [closure]:
@@ -715,6 +728,7 @@ apply (simp add: MapRename_def closure)
 apply (auto)
 sorry
 
+subsection {* Simplification theorems *}
 
 theorem RenameP_id :
 "p[id\<^sub>s] = p"
@@ -753,5 +767,36 @@ theorem RenameP_involution [simp] :
  p[ss][ss] = p"
 apply (utp_pred_auto_tac)
 done
+
+theorem RenameP_VAR:
+  "\<langle>ss\<rangle>\<^sub>s ` VAR = VAR"
+  by (auto simp add:VAR_def)
+
+theorems rename_simps =
+  RenameP_id
+  RenameP_inverse1
+  RenameP_inverse2
+  RenameP_compose
+  RenameP_involution
+  RenameP_VAR
+
+subsection {* Distribution theorems *}
+
+theorem RenameP_image_union:
+  "\<langle>ss\<rangle>\<^sub>s ` (vs1 \<union> vs2) = \<langle>ss\<rangle>\<^sub>s ` vs1 \<union> \<langle>ss\<rangle>\<^sub>s ` vs2"
+  by auto
+
+theorem RenameP_image_inter:
+  "\<langle>ss\<rangle>\<^sub>s ` (vs1 \<inter> vs2) = \<langle>ss\<rangle>\<^sub>s ` vs1 \<inter> \<langle>ss\<rangle>\<^sub>s ` vs2"
+  by (auto, metis Rep_VAR_RENAME VAR_RENAME_in_image)
+
+theorem RenameP_image_minus:
+  "\<langle>ss\<rangle>\<^sub>s ` (vs1 - vs2) = \<langle>ss\<rangle>\<^sub>s ` vs1 - \<langle>ss\<rangle>\<^sub>s ` vs2"
+  by (metis Rep_VAR_RENAME_inj image_set_diff)
+  
+theorems rename_dist =
+  RenameP_image_union
+  RenameP_image_inter
+  RenameP_image_minus
 
 end

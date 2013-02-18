@@ -115,6 +115,12 @@ apply (drule_tac x = "RenameB ss x" in spec)
 apply (simp_all)
 done
 
+theorem RenameP_VarP :
+"(VarP x)[ss] = VarP (\<langle>ss\<rangle>\<^sub>s x)"
+  apply (utp_pred_tac)
+  apply (simp add:RenameB_def)
+done
+
 subsubsection {* Other renaming laws *}
 
 theorem RenameP_UNREST [simp]:
@@ -366,6 +372,14 @@ proof -
     by (metis (lifting) ExistsP_SemiP_expand2 ExistsP_ident SkipRA.rep_eq)
 qed
 
+theorem SkipRA_empty :
+  shows "II {} = true"
+  apply (simp add:SkipRA_def)
+  apply (utp_pred_tac)
+  apply (rule_tac x="\<B>" in exI)
+  apply (simp add:default_binding.rep_eq)
+done
+
 theorem SkipRA_unfold :
   assumes "x \<in> vs" "dash x \<in> vs" "x \<in> UNDASHED" "HOMOGENEOUS vs"
   shows "II vs = VarE (dash x) ==p VarE x \<and>p II (vs - {x,dash x})"
@@ -494,5 +508,27 @@ theorem SubstP_no_var:
   apply (auto)
   apply (metis EvalE_UNREST_assign EvalE_compat binding_upd_apply insertI1)
 done
+
+(*
+theorem SemiR_AndR_distl :
+"\<lbrakk> \<forall> vs1 vs2. UNREST vs1 r2 \<and> UNREST vs2 r3 \<longrightarrow> vs1 \<inter> vs2 = {};
+   UNREST DASHED_TWICE r1; UNREST DASHED_TWICE r2; UNREST DASHED_TWICE r3 \<rbrakk> \<Longrightarrow>
+  r1 ; (r2 \<and>p r3) = (r1 ; r2) \<and>p (r1 ; r3)"
+  apply (simp add: SemiR_algebraic UNREST_AndP RenameP_AndP_distr)
+  apply (utp_pred_auto_tac)
+*)
+
+lemma utp_pred_simps [simp]:
+  "\<not>p false = true"
+  "\<not>p true  = false"
+  "false \<and>p x = false" 
+  "x \<and>p false = false"
+  "true \<and>p x = x"
+  "x \<and>p true = x"
+  "false \<Rightarrow>p x = true" 
+  "true \<Rightarrow>p x = x" 
+  "p \<Rightarrow>p true = true" 
+  "p \<Rightarrow>p false = \<not>p p"
+  by (utp_pred_tac)+
 
 end

@@ -177,6 +177,10 @@ done
 lemma binding_compat [simp, intro]: "\<langle>b\<rangle>\<^sub>bx \<rhd> x"
   by auto
 
+lemma aux_defined [defined]:
+  "aux v \<Longrightarrow> \<D> (\<langle>b\<rangle>\<^sub>b v)"
+  by (metis binding_compat var_compat_def)
+
 lemma binding_value_alt [simp, intro]: 
   "\<lbrakk> type x = type x'; aux x = aux x' \<rbrakk> \<Longrightarrow> \<langle>b\<rangle>\<^sub>bx \<rhd> x'"
   by (auto simp add:var_compat_def intro: defined)
@@ -291,5 +295,15 @@ lemma binding_upd_simps [simp]:
   "\<lbrakk> v1 \<rhd> x; v2 \<rhd> x \<rbrakk> \<Longrightarrow> b(x :=\<^sub>b v1, x :=\<^sub>b v2) = b(x :=\<^sub>b v2)"
   "b(x :=\<^sub>b \<langle>b\<rangle>\<^sub>b x) = b"
   by (auto)
+
+text {* The default binding *}
+
+lift_definition default_binding :: 
+  "'VALUE WF_BINDING" ("\<B>") is "(\<lambda> v . SOME x . x : (type v) \<and> \<D> x)" 
+  apply (auto simp add: WF_BINDING_def)
+  apply (rule someI2_ex)
+  apply (rule type_non_empty_elim)
+  apply (auto)
+done
 
 end

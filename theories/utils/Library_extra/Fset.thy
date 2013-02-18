@@ -39,18 +39,23 @@ done
 
 setup_lifting type_definition_fset
 
-lift_definition fempty :: "'a fset" ("{}\<^sub>f") is "{}"
+lift_definition fempty :: "'a fset" ("\<lbrace>\<rbrace>") is "{}"
   by (simp add:fsets_def)
 
 declare fempty.rep_eq [simp]
 
 lift_definition fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" is "op \<in>" ..
+lift_definition fnmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" is "op \<notin>" ..
 
 declare fmember.rep_eq [simp]
+declare fnmember.rep_eq [simp]
 
 notation (xsymbols)
   fmember      ("op \<in>\<^sub>f") and
-  fmember      ("(_/ \<in>\<^sub>f _)" [50, 51] 50)
+  fmember      ("(_/ \<in>\<^sub>f _)" [50, 51] 50) and
+  fnmember      ("op \<notin>\<^sub>f") and
+  fnmember      ("(_/ \<notin>\<^sub>f _)" [50, 51] 50)
+
 
 lift_definition funion :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" (infixl "\<union>\<^sub>f" 65) is "op \<union>"
   by (simp add:fsets_def)
@@ -85,6 +90,13 @@ declare fsubset_eq.rep_eq [simp]
 notation
   fsubset_eq  ("op \<subseteq>\<^sub>f") and
   fsubset_eq  ("(_/ \<subseteq>\<^sub>f _)" [50, 51] 50)
+
+syntax
+  "_FinFset" :: "args => 'a fset"    ("\<lbrace>(_)\<rbrace>")
+
+translations
+  "\<lbrace>x, xs\<rbrace>" == "CONST finsert x \<lbrace>xs\<rbrace>"
+  "\<lbrace>x\<rbrace>" == "CONST finsert x \<lbrace>\<rbrace>"
 
 definition fset_elem :: "('a * 'a fset) set" 
 where "fset_elem = {(x,xs) | x xs. x \<notin> Rep_fset xs}"
@@ -139,7 +151,7 @@ lemma flist_props [simp]:
   by (simp_all add:flist_def)
 
 lemma flist_empty [simp]:
-  "flist {}\<^sub>f = []"
+  "flist \<lbrace>\<rbrace> = []"
   by (simp add:flist_def)
 
 definition fset :: "'a list \<Rightarrow> 'a fset" where
@@ -148,7 +160,7 @@ definition fset :: "'a list \<Rightarrow> 'a fset" where
 lemma flist_inv [simp]: "fset (flist xs) = xs"
   by (simp add:fset_def flist_def Rep_fset_inverse)
 
-lemma fset_empty [simp]: "fset [] = {}\<^sub>f"
+lemma fset_empty [simp]: "fset [] = \<lbrace>\<rbrace>"
   by (simp add:fset_def fempty_def)
 
 end
@@ -218,5 +230,52 @@ proof (rule Abs_fset_cases [of s])
   done
 qed
 *)
-  
+
+(* Induction rule for fset *)  
+lemma fset_induct [case_names fempty finsert, induct type]:
+  -- {* Discharging @{text "x \<notin> F"} entails extra work. *}
+  assumes "P \<lbrace>\<rbrace>"
+    and finsert: "\<And>x F. x \<notin>\<^sub>f F \<Longrightarrow> P F \<Longrightarrow> P (finsert x F)"
+  shows "P F"
+  apply (case_tac F, simp add:fsets_def)
+  apply (erule finite_induct)
+  apply (metis assms(1) fempty_def)
+  apply (auto)
+  apply (metis Rep_fset_inv Rep_fset_inverse finsert finsert.rep_eq fnmember.rep_eq)
+done
+
+lemma fimage_fempty [simp]:
+  "f `\<^sub>f \<lbrace>\<rbrace> = \<lbrace>\<rbrace>"
+  by (auto)
+
+lemma fimage_finsert [simp]:
+  "f `\<^sub>f finsert x xs = finsert (f x) (f `\<^sub>f xs)"
+  by (auto)
+
+
+lemma funion_finsert_left [simp]:
+  "finsert a B \<union>\<^sub>f C = finsert a (B \<union>\<^sub>f C)"
+  by auto
+
+lemma funion_finsert_right [simp]: 
+  "A \<union>\<^sub>f (finsert a B) = finsert a (A \<union>\<^sub>f B)"
+  by (auto)
+
+lemma finsert_idem [simp]:
+  "finsert x (finsert x xs) = finsert x xs"
+  by (auto)
+
+lemma fset_simps [simp]:
+  "x \<union>\<^sub>f \<lbrace>\<rbrace> = x"
+  "\<lbrace>\<rbrace> \<union>\<^sub>f x = x"
+  "x \<inter>\<^sub>f \<lbrace>\<rbrace> = \<lbrace>\<rbrace>"
+  "\<lbrace>\<rbrace> \<inter>\<^sub>f x = \<lbrace>\<rbrace>"
+  "x \<union>\<^sub>f x = x"
+  "x \<inter>\<^sub>f x = x"
+  "xs -\<^sub>f xs = \<lbrace>\<rbrace>"
+  "xs -\<^sub>f \<lbrace>\<rbrace> = xs"
+  "\<lbrace>\<rbrace> -\<^sub>f xs = \<lbrace>\<rbrace>"
+  by (auto)
+
 end
+
