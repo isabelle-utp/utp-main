@@ -527,12 +527,24 @@ proof (rule EvalA_intro)
   done
 qed
 
-lemma utp_alpha_pred_simps [simp]:
+lemma utp_alpha_pred_simps_simple [simp]:
   "\<not>\<alpha> (false a) = true a"
   "\<not>\<alpha> (true a)  = false a"
   "TRUE \<and>\<alpha> x = x"
   "x \<and>\<alpha> TRUE = x"
+  "`true\<^bsub>a\<^esub> \<and> x` = `x \<oplus> a`"
+  "`x \<and> true\<^bsub>a\<^esub>` = `x \<oplus> a`"
   "TRUE \<Rightarrow>\<alpha> x = x"
+  "`p \<and> false\<^bsub>a\<^esub>` = `false\<^bsub>\<alpha> p \<union>\<^sub>f a\<^esub>`"
+  "`false\<^bsub>a\<^esub> \<and> p` = `false\<^bsub>\<alpha> p \<union>\<^sub>f a\<^esub>`"
+  "\<alpha> p \<union>\<^sub>f a = \<alpha> p \<Longrightarrow> `p \<oplus> a` = `p`"
   by (utp_alpha_tac2)+
+
+
+lemma utp_alpha_pred_simps [simp]:
+  "`p \<or> false\<^bsub>a\<^esub>` = `p \<oplus> a`"
+  "`false\<^bsub>a\<^esub> \<or> p` = `p \<oplus> a`"
+  "`p \<Leftrightarrow> p` = true (\<alpha> p)"
+  by (utp_alpha_tac2, utp_pred_tac)+
 
 end

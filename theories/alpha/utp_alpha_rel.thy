@@ -191,6 +191,28 @@ theorem HOM_ALPHABET_minus [closure]:
   apply (simp add:closure)
 done
 
+theorem REL_ALPHABET_hom_right [closure]: 
+  "homr a \<in> REL_ALPHABET"
+  by (auto simp add:REL_ALPHABET_def var_defs hom_right_def)
+
+theorem HOM_ALPHABET_hom_right [closure]: 
+  "homr a \<in> HOM_ALPHABET"
+  apply (auto simp add:HOM_ALPHABET_def)
+  apply (simp add:closure)
+  apply (simp add:HOM_ALPHA_unfold hom_right_def alphabet_dist)
+done
+
+theorem REL_ALPHABET_hom_left [closure]: 
+  "homl a \<in> REL_ALPHABET"
+  by (auto simp add:REL_ALPHABET_def var_defs hom_left_def)
+
+theorem HOM_ALPHABET_hom_left [closure]: 
+  "homl a \<in> HOM_ALPHABET"
+  apply (auto simp add:HOM_ALPHABET_def)
+  apply (simp add:closure)
+  apply (simp add:HOM_ALPHA_unfold hom_left_def alphabet_dist)
+done
+
 theorem NotA_WF_RELATION [closure] :
 "\<lbrakk>r \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
  \<not>\<alpha> r \<in> WF_RELATION"
@@ -688,3 +710,4 @@ theorem SkipA_unfold :
   apply (simp add:SkipRA_unfold)
 done
 end
+

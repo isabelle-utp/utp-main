@@ -10,7 +10,7 @@ theory utp_theory
 imports "../alpha/utp_alpha_pred"
 begin
 
-abbreviation is_healthy :: 
+definition is_healthy :: 
   " 'VALUE WF_ALPHA_PREDICATE 
   \<Rightarrow> 'VALUE ALPHA_FUNCTION 
   \<Rightarrow> bool" ("_ is _ healthy") where
