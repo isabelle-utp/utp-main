@@ -538,13 +538,35 @@ lemma utp_alpha_pred_simps_simple [simp]:
   "`p \<and> false\<^bsub>a\<^esub>` = `false\<^bsub>\<alpha> p \<union>\<^sub>f a\<^esub>`"
   "`false\<^bsub>a\<^esub> \<and> p` = `false\<^bsub>\<alpha> p \<union>\<^sub>f a\<^esub>`"
   "\<alpha> p \<union>\<^sub>f a = \<alpha> p \<Longrightarrow> `p \<oplus> a` = `p`"
+  "`p \<Rightarrow> FALSE` = `\<not> p`" 
+  "`p \<Rightarrow> TRUE` = `true\<^bsub>\<alpha> p\<^esub>`"
+  "`p \<oplus> a \<and> q` = `(p \<and> q) \<oplus> a`"
+  "`p \<oplus> a \<or> q` = `(p \<or> q) \<oplus> a`"
+  "`p \<and> q \<oplus> a` = `(p \<and> q) \<oplus> a`"
+  "`p \<or> q \<oplus> a` = `(p \<or> q) \<oplus> a`"
   by (utp_alpha_tac2)+
-
 
 lemma utp_alpha_pred_simps [simp]:
   "`p \<or> false\<^bsub>a\<^esub>` = `p \<oplus> a`"
   "`false\<^bsub>a\<^esub> \<or> p` = `p \<oplus> a`"
   "`p \<Leftrightarrow> p` = true (\<alpha> p)"
   by (utp_alpha_tac2, utp_pred_tac)+
+
+lemma hom_simps [simp]:
+  "out\<^sub>\<alpha> (homr a) = out\<^sub>\<alpha> a"
+  "in\<^sub>\<alpha> (homr a) = undash `\<^sub>f out\<^sub>\<alpha> a"
+  "out\<^sub>\<alpha> (homl a) = dash `\<^sub>f in\<^sub>\<alpha> a"
+  "in\<^sub>\<alpha> (homl a) = in\<^sub>\<alpha> a"
+  by (simp_all add:hom_right_def hom_left_def alphabet_dist)
+
+lemma HOM_ALPHABET_homr  [simp]: "a \<in> HOM_ALPHABET \<Longrightarrow> homr a = a"
+  apply (simp add:HOM_ALPHABET_def hom_right_def HOM_ALPHA_unfold alphabet_dist alphabet_simps)
+  apply (metis SkipA_alphabet SkipA_closure WF_RELATION_UNDASHED_DASHED alphabet_simps(14))
+done
+
+lemma HOM_ALPHABET_homl [simp]: "a \<in> HOM_ALPHABET \<Longrightarrow> homl a = a"
+  apply (simp add:HOM_ALPHABET_def hom_left_def HOM_ALPHA_unfold alphabet_dist alphabet_simps)
+  apply (metis SkipA_alphabet SkipA_closure WF_RELATION_UNDASHED_DASHED alphabet_simps(14))
+done
 
 end

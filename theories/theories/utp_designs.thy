@@ -92,8 +92,8 @@ definition Mk_ALPHA_FUNCTION ::
 
 definition "H1   \<equiv> \<lambda> p. `ok \<Rightarrow> p`"
 definition "J a  \<equiv> `(ok \<Rightarrow> ok') \<and> II\<^bsub>a -\<^sub>f OK\<^esub>`"
-definition "H2  \<equiv> \<lambda> p. [p\<^sup>t \<Rightarrow>\<alpha> (p\<^sup>f)]\<alpha>"
-definition "H2' \<equiv> \<lambda> p. (p ;\<alpha> J (homr (\<alpha> p)))"
+definition "isH2  \<equiv> \<lambda> p. [p\<^sup>f \<Rightarrow>\<alpha> (p\<^sup>t)]\<alpha>"
+definition "H2 \<equiv> \<lambda> p. (p ;\<alpha> J (homr (\<alpha> p)))"
 definition "H3  \<equiv> \<lambda> p. `p ; IID\<^bsub>\<alpha> p\<^esub>`"
 definition "H4  \<equiv> \<lambda> p. `p ; true\<^bsub>\<alpha> p\<^esub> \<Rightarrow> true\<^bsub>\<alpha> p\<^esub>`"
 
@@ -129,10 +129,12 @@ lemma H2_rel_closure [closure]:
    H2 p \<in> WF_RELATION"
   by (simp add:H2_def closure)
 
+(*
 lemma H2'_rel_closure [closure]:
   "p \<in> WF_RELATION \<Longrightarrow>
    H2' p \<in> WF_RELATION"
   by (simp add:H2'_def closure)
+*)
 
 lemma DesignD_alphabet [alphabet]:
   "\<alpha> (r1 \<turnstile> r2) = \<alpha> r1 \<union>\<^sub>f \<alpha> r2 \<union>\<^sub>f OK"
@@ -504,7 +506,7 @@ lemma okay_false_alphabet [alphabet]: "\<alpha> (P\<^sup>f) = \<alpha> P -\<^sub
 lemma H2_equivalence:
   assumes "P \<in> WF_RELATION" "\<alpha> P \<in> DESIGN_ALPHABET"
           "a \<in> HOM_ALPHABET" "in\<^sub>\<alpha> a = undash `\<^sub>f out\<^sub>\<alpha> (\<alpha> P)"
-  shows "[P \<Leftrightarrow>\<alpha> (P ;\<alpha> J a)]\<alpha> = [P\<^sup>f \<Rightarrow>\<alpha> (P\<^sup>t)]\<alpha>"
+  shows "[P \<Leftrightarrow>\<alpha> (P ;\<alpha> J a)]\<alpha> = isH2 P"
 proof -
 
   from assms have "[P \<Leftrightarrow>\<alpha> (P ;\<alpha> J a)]\<alpha> = [P \<Leftrightarrow>\<alpha> (P\<^sup>f \<or>\<alpha> (P\<^sup>t \<and>\<alpha> ok'))]\<alpha>"
@@ -528,7 +530,7 @@ proof -
   done
 
   ultimately show ?thesis
-    by simp
+    by (simp add:isH2_def)
 qed
 
 lemma [simp]: "taut [p]\<alpha> \<longleftrightarrow> taut p"
@@ -537,45 +539,27 @@ lemma [simp]: "taut [p]\<alpha> \<longleftrightarrow> taut p"
 lemma H2_equivalence':
   assumes "P \<in> WF_RELATION" "\<alpha> P \<in> DESIGN_ALPHABET"
           "a \<in> HOM_ALPHABET" "in\<^sub>\<alpha> a = undash `\<^sub>f out\<^sub>\<alpha> (\<alpha> P)"
-  shows "P = (P ;\<alpha> J a) \<longleftrightarrow> taut [P\<^sup>f \<Rightarrow>\<alpha> (P\<^sup>t)]\<alpha>"
+  shows "P is H2 healthy \<longleftrightarrow> taut (isH2 P)"
 using assms
-  apply (simp add:H2_equivalence[THEN sym])
-  apply (subgoal_tac "\<alpha> P = \<alpha> (P ;\<alpha> J a)")
+  apply (simp add:H2_equivalence[THEN sym] is_healthy_def)
+  apply (subgoal_tac "\<alpha> P = \<alpha> (H2 P)")
   apply (simp add:eq_iff_taut)
+  apply (unfold H2_def)
   apply (simp add:alphabet closure alphabet_simps alphabet_dist)
-  apply (metis DESIGN_ALPHABET_finsert(2) HOM_ALPHABET_REL_ALPHABET SemiA_SkipA_right SemiA_alphabet SkipA_alphabet SkipA_closure assms(2))
-done
-
-
-lemma [simp]:
-  "`p \<Rightarrow> FALSE` = `\<not> p`" 
-  "`p \<Rightarrow> TRUE` = `true\<^bsub>\<alpha> p\<^esub>`"
-  by (utp_alpha_tac2)+
-
-lemma [simp]:
-  "`p \<oplus> a \<and> q` = `(p \<and> q) \<oplus> a`"
-  "`p \<oplus> a \<or> q` = `(p \<or> q) \<oplus> a`"
-  "`p \<and> q \<oplus> a` = `(p \<and> q) \<oplus> a`"
-  "`p \<or> q \<oplus> a` = `(p \<or> q) \<oplus> a`"
-  by (utp_alpha_tac2)+
-
-lemma [simp]: "a \<in> HOM_ALPHABET \<Longrightarrow> homr a = a"
-  apply (simp add:HOM_ALPHABET_def hom_right_def HOM_ALPHA_unfold alphabet_dist alphabet_simps)
-  apply (metis SkipA_alphabet SkipA_closure WF_RELATION_UNDASHED_DASHED alphabet_simps(14))
-done
-
-lemma [simp]: "a \<in> HOM_ALPHABET \<Longrightarrow> homl a = a"
-  apply (simp add:HOM_ALPHABET_def hom_left_def HOM_ALPHA_unfold alphabet_dist alphabet_simps)
-  apply (metis SkipA_alphabet SkipA_closure WF_RELATION_UNDASHED_DASHED alphabet_simps(14))
+  apply (subgoal_tac "a = homr (\<alpha> P)")
+  apply (simp)
+  apply (simp add:hom_right_def alphabet_dist alphabet_simps HOM_ALPHABET_def HOM_ALPHA_unfold)
+  apply (metis SemiA_SkipA_right SemiA_alphabet SkipA_alphabet SkipA_closure assms(3))
+  apply (simp add:alphabet closure alphabet_simps alphabet_dist)
 done
 
 lemma J_H2:
   assumes "a \<in> DESIGN_ALPHABET" "a \<in> HOM_ALPHABET"
-  shows "J a is H2' healthy"
+  shows "J a is H2 healthy"
 proof -
 
-  from assms have "H2' (J a) = J a ;\<alpha> J a"
-    by (simp add:H2'_def alphabet closure is_healthy_def)
+  from assms have "H2 (J a) = J a ;\<alpha> J a"
+    by (simp add:H2_def alphabet closure is_healthy_def)
 
   also from assms have "... = (J a)\<^sup>f \<or>\<alpha> ((J a)\<^sup>t  \<and>\<alpha> ok')"
     apply (rule_tac J_split)
@@ -607,25 +591,23 @@ qed
 
 lemma H2_idempotent: 
   assumes "p \<in> WF_RELATION" "\<alpha> p \<in> DESIGN_ALPHABET"
-  shows "H2' (H2' p) = H2' p"
+  shows "H2 (H2 p) = H2 p"
 proof -
 
-  from assms have "H2' (H2' p) = (p ;\<alpha> J (homr (\<alpha> p))) ;\<alpha> J (homr (\<alpha> p))"
-    apply (simp add:H2'_def alphabet closure)
-    apply (simp add:hom_right_def alphabet alphabet_simps alphabet_dist)
-  done
+  from assms have "H2 (H2 p) = (p ;\<alpha> J (homr (\<alpha> p))) ;\<alpha> J (homr (\<alpha> p))"
+    by (simp add:H2_def alphabet closure)
 
   also from assms have "... = p ;\<alpha> (J (homr (\<alpha> p)) ;\<alpha> J (homr (\<alpha> p)))"
     by (metis J_rel_closure REL_ALPHABET_hom_right SemiA_assoc)
 
-  also from assms have "... = p ;\<alpha> H2' (J (homr (\<alpha> p)))"
-    by (insert J_H2[of "homr (\<alpha> p)"], simp add:is_healthy_def H2'_def alphabet closure)
+  also from assms have "... = p ;\<alpha> H2 (J (homr (\<alpha> p)))"
+    by (insert J_H2[of "homr (\<alpha> p)"], simp add:is_healthy_def H2_def alphabet closure)
 
   also from assms have "... = p ;\<alpha> J (homr (\<alpha> p))"
     by (metis (lifting) DESIGN_ALPHABET_homr HOM_ALPHABET_hom_right J_H2 is_healthy_def)
 
-  also from assms have "... = H2' p"
-    by (simp add: H2'_def)
+  also from assms have "... = H2 p"
+    by (simp add: H2_def)
 
   ultimately show ?thesis
     by simp
@@ -636,7 +618,7 @@ lemma H1_H2_DesignD:
   assumes cl: "p \<in> WF_RELATION" 
   and alpha: "\<alpha> p \<in> DESIGN_ALPHABET" 
   and H1:"p is H1 healthy" 
-  and H2:"p is H2' healthy"
+  and H2:"p is H2 healthy"
   shows "p = (\<not>\<alpha> (p\<^sup>f) \<turnstile> (p\<^sup>t))"
 proof -
 
@@ -644,12 +626,11 @@ proof -
     by (metis H1 H1_def is_healthy_def) 
 
   also have "... = ok \<Rightarrow>\<alpha> (p ;\<alpha> J (homr (\<alpha> p)))"
-    by (metis H2 H2'_def calculation is_healthy_def)
+    by (metis H2 H2_def calculation is_healthy_def)
 
   also have "... = ok \<Rightarrow>\<alpha> ((p\<^sup>f) \<or>\<alpha> (p\<^sup>t \<and>\<alpha> ok'))"
     apply (insert J_split[of p "homr (\<alpha> p)"])
     apply (simp add:closure cl alpha)
-    apply (simp add:hom_right_def alphabet_simps alphabet_dist)
   done
 
   also have "... = ok \<and>\<alpha> \<not>\<alpha> (p\<^sup>f) \<Rightarrow>\<alpha> ok' \<and>\<alpha> (p\<^sup>t)"
@@ -660,5 +641,13 @@ proof -
 
 qed
 
-   
+lift_definition DESIGN_THEORY :: "'a::BOOL_SORT WF_THEORY" 
+  is "(DESIGN_ALPHABET, {H1, H2})"
+  apply (auto simp add:WF_THEORY_def IDEMPOTENT_OVER_def)
+  apply (metis H1_idempotent)
+  apply (rule_tac H2_idempotent)
+  apply (simp_all add:WF_RELATION_def WF_ALPHA_PREDICATE_OVER_def)
+  apply (simp add:closure)
+done
+
 end
