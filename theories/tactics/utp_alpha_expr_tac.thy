@@ -82,7 +82,7 @@ theorem Eval_ExprA [evala] :
   by (simp add:ExprA_rep_eq EvalA_def EvalAE_def)
 
 theorem EvalA_SubstA :
-"\<lbrakk> v \<rhd>\<^sub>\<alpha> x; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> \<lbrakk>SubstA p v x\<rbrakk>\<pi> = \<lbrakk>p\<rbrakk>\<pi>[\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>|x]"
+"\<lbrakk> v \<rhd>\<^sub>\<alpha> x; x \<notin>\<^sub>f \<alpha> v \<rbrakk> \<Longrightarrow> \<lbrakk>SubstA p v x\<rbrakk>\<pi> = \<lbrakk>p\<rbrakk>\<pi>[\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>|x]"
   by (simp add:SubstA_rep_eq EvalA_def EvalAE_def)
 
 theorem EvalA_SubstAE [evala] :
@@ -94,7 +94,7 @@ theorem EvalA_is_SubstP_var [evala]:
   by (simp add:EvalA_def WF_ALPHA_EXPRESSION_is_SubstP_var EvalAE_def)
 
 theorem EvalP_EvalA_SubstA [evala]: 
-  "\<lbrakk> v \<rhd>\<^sub>\<alpha> x; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> \<lbrakk>\<lbrakk>p[v|x]\<alpha>\<rbrakk>\<pi>\<rbrakk>b = \<lbrakk>\<lbrakk>p\<rbrakk>\<pi>\<rbrakk>(b(x :=\<^sub>b \<lbrakk>\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>\<rbrakk>\<epsilon>b))"
+  "\<lbrakk> v \<rhd>\<^sub>\<alpha> x; x \<notin>\<^sub>f \<alpha> v \<rbrakk> \<Longrightarrow> \<lbrakk>\<lbrakk>p[v|x]\<alpha>\<rbrakk>\<pi>\<rbrakk>b = \<lbrakk>\<lbrakk>p\<rbrakk>\<pi>\<rbrakk>(b(x :=\<^sub>b \<lbrakk>\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>\<rbrakk>\<epsilon>b))"
   by (metis (full_types) EvalAE_expr EvalA_SubstA EvalA_def EvalE_SubstP WF_ALPHA_EXPRESSION_is_SubstP_var eavar_compat_def)
 
 subsection {* Proof Experiements *}

@@ -81,6 +81,10 @@ theorems alphabet_member =
 subsubsection {* Simplification Theorems *}
 
 theorem alphabet_simps:
+  "\<langle>a\<rangle>\<^sub>f \<subseteq> DASHED \<Longrightarrow> in\<^sub>\<alpha> a = \<lbrace>\<rbrace>"
+  "\<langle>a\<rangle>\<^sub>f \<subseteq> DASHED \<Longrightarrow> out\<^sub>\<alpha> a = a"
+  "\<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED \<Longrightarrow> in\<^sub>\<alpha> a = a"
+  "\<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED \<Longrightarrow> out\<^sub>\<alpha> a = \<lbrace>\<rbrace>"
   "in\<^sub>\<alpha> (in\<^sub>\<alpha> a) = in\<^sub>\<alpha> a" "out\<^sub>\<alpha> (out\<^sub>\<alpha> a) = out\<^sub>\<alpha> a"
   "in\<^sub>\<alpha> (out\<^sub>\<alpha> a) = \<lbrace>\<rbrace>" "out\<^sub>\<alpha> (in\<^sub>\<alpha> a) = \<lbrace>\<rbrace>"
   "in\<^sub>\<alpha> (dash `\<^sub>f vs) = \<lbrace>\<rbrace>"

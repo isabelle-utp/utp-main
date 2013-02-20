@@ -166,7 +166,7 @@ theorem SS_inv' [simp] :
   apply (simp only: rename_inv_rep_eq)
 done
 
-theorem SS_UNDASHED_DASHED_image :
+theorem SS_UNDASHED_DASHED_image [urename]:
 "\<lbrakk>vs \<subseteq> UNDASHED \<union> DASHED\<rbrakk> \<Longrightarrow>
  SS `\<^sub>s vs = dash ` (in vs) \<union> undash ` (out vs)"
   by (auto simp add: image_def var_defs SS.rep_eq)
@@ -236,7 +236,7 @@ theorem SS1_inv' [simp] :
   apply (simp only: rename_inv_rep_eq)
 done
 
-theorem SS1_UNDASHED_DASHED_image :
+theorem SS1_UNDASHED_DASHED_image [urename] :
 "\<lbrakk>vs \<subseteq> UNDASHED \<union> DASHED\<rbrakk> \<Longrightarrow>
  SS1 `\<^sub>s vs = (in vs) \<union> dash ` (out vs)"
   by (auto simp add: image_def var_defs SS1.rep_eq)
@@ -299,7 +299,7 @@ theorem SS2_inv' [simp] :
   apply (simp only: rename_inv_rep_eq)
 done
 
-theorem SS2_UNDASHED_DASHED_image :
+theorem SS2_UNDASHED_DASHED_image [urename]:
 "\<lbrakk>vs \<subseteq> UNDASHED \<union> DASHED\<rbrakk> \<Longrightarrow>
  SS2 `\<^sub>s vs = dash ` dash ` (in vs) \<union> (out vs)"
   by (auto simp add: image_def var_defs SS2.rep_eq)
@@ -311,13 +311,19 @@ theorems SS2_simps =
   SS2_ident_app
   SS2_UNDASHED_DASHED_image
 
-subsubsection {* Equalities *}
+subsubsection {* Renamings Equalities *}
 
 lemma SS1_SS_eq_SS2: "SS1 \<circ>\<^sub>s SS \<cong>\<^sub>s SS2 on UNDASHED"
   by (auto simp add:rename_equiv_def SS1.rep_eq SS.rep_eq SS2.rep_eq)
 
 lemma SS2_SS_eq_SS1: "SS2 \<circ>\<^sub>s SS \<cong>\<^sub>s SS1 on DASHED"
   by (auto simp add:rename_equiv_def SS1.rep_eq SS.rep_eq SS2.rep_eq)
+
+lemma SS1_eq_id: "SS1 \<cong>\<^sub>s id\<^sub>s on UNDASHED"
+  by (auto simp add:rename_equiv_def SS1.rep_eq)
+
+lemma SS2_eq_id: "SS2 \<cong>\<^sub>s id\<^sub>s on DASHED"
+  by (auto simp add:rename_equiv_def SS2.rep_eq)
 
 subsubsection {* Theorems for @{term "COMPOSABLE_BINDINGS"} *}
 

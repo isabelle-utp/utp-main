@@ -216,7 +216,7 @@ lemma WF_ALPHA_EXPRESSION_OVER [closure]:
   by (simp add:WF_EXPRESSION_OVER_def unrest)
 
 lemma SubstA_closure [closure]: 
-  "\<lbrakk> v \<rhd>\<^sub>\<alpha> x; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> 
+  "\<lbrakk> v \<rhd>\<^sub>\<alpha> x; x \<notin>\<^sub>f \<alpha> v \<rbrakk> \<Longrightarrow> 
   (if (x \<in>\<^sub>f \<alpha> p) then (\<alpha> p -\<^sub>f finsert x \<lbrace>\<rbrace>) \<union>\<^sub>f \<alpha> v
                  else \<alpha> p
   , (\<pi> p)[\<epsilon> v|x]) \<in> WF_ALPHA_PREDICATE"
@@ -247,16 +247,13 @@ lemma SubstA_closure [closure]:
 done
 
 lemma SubstA_rep_eq:
-  "\<lbrakk> v \<rhd>\<^sub>\<alpha> x; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> 
+  "\<lbrakk> v \<rhd>\<^sub>\<alpha> x; x \<notin>\<^sub>f \<alpha> v \<rbrakk> \<Longrightarrow> 
   Rep_WF_ALPHA_PREDICATE (p[v|x]\<alpha>) = 
   (if (x \<in>\<^sub>f \<alpha> p) then (\<alpha> p -\<^sub>f finsert x \<lbrace>\<rbrace>) \<union>\<^sub>f \<alpha> v
                  else \<alpha> p
 
   , (\<pi> p)[\<epsilon> v|x])"
-  apply (simp only: SubstA_def SubstA_closure Abs_WF_ALPHA_PREDICATE_inverse)
-  apply (rule_tac Abs_WF_ALPHA_PREDICATE_inverse)
-  apply (metis SubstA_closure)
-done
+  by (simp only: SubstA_def SubstA_closure Abs_WF_ALPHA_PREDICATE_inverse)
 
 theorem SubstAE_closure [closure]:
 "\<lbrakk> v \<rhd>\<^sub>\<alpha> x \<rbrakk> \<Longrightarrow>

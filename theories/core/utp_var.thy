@@ -180,6 +180,22 @@ theorem out_DASHED :
 "out vs \<subseteq> DASHED"
   by (simp add: out_vars_def)
 
+theorem in_of_UNDASHED :
+"vs \<subseteq> UNDASHED \<Longrightarrow> in vs = vs"
+  by (auto simp add: var_defs)
+
+theorem in_of_DASHED :
+"vs \<subseteq> DASHED \<Longrightarrow> in vs = {}"
+  by (auto simp add: var_defs)
+
+theorem out_of_UNDASHED :
+"vs \<subseteq> UNDASHED \<Longrightarrow> out vs = {}"
+  by (auto simp add: var_defs)  
+
+theorem out_of_DASHED :
+"vs \<subseteq> DASHED \<Longrightarrow> out vs = vs"
+  by (auto simp add: var_defs)
+
 theorem not_dash_member_in :
 "\<not> dash x \<in> in a"
   by (simp add: var_defs)
@@ -198,6 +214,10 @@ theorems var_member =
   DASHED_TWICE_undash_DASHED
   in_UNDASHED
   out_DASHED
+  in_of_UNDASHED
+  in_of_DASHED
+  out_of_UNDASHED
+  out_of_DASHED
   not_dash_member_in
   not_dash_dash_member_out
 

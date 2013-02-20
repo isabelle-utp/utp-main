@@ -61,27 +61,27 @@ subsection {* Renaming *}
 
 subsubsection {* Distribution Theorems *}
 
-theorem RenameP_NotP_distr :
+theorem RenameP_NotP_distr [urename]:
 "(\<not>p p)[ss] = \<not>p p[ss]"
   by (utp_pred_auto_tac)
 
-theorem RenameP_AndP_distr :
+theorem RenameP_AndP_distr [urename]:
 "(p1 \<and>p p2)[ss] = p1[ss] \<and>p p2[ss]"
   by (utp_pred_auto_tac)
 
-theorem RenameP_OrP_distr :
+theorem RenameP_OrP_distr [urename]:
 "(p1 \<or>p p2)[ss] = p1[ss] \<or>p p2[ss]"
   by (utp_pred_auto_tac)
 
-theorem RenameP_ImpliesP_distr :
+theorem RenameP_ImpliesP_distr [urename]:
 "(p1 \<Rightarrow>p p2)[ss] = p1[ss] \<Rightarrow>p p2[ss]"
   by (utp_pred_auto_tac)
 
-theorem RenameP_IffP_distr :
+theorem RenameP_IffP_distr [urename]:
 "(p1 \<Leftrightarrow>p p2)[ss] = p1[ss] \<Leftrightarrow>p p2[ss]"
   by (utp_pred_auto_tac)
 
-theorem RenameP_ExistsP_distr1 :
+theorem RenameP_ExistsP_distr1 [urename]:
 "(\<exists>p vs . p)[ss] = (\<exists>p ss `\<^sub>s vs . p[ss])"
 apply (utp_pred_tac)
 apply (safe)
@@ -91,7 +91,7 @@ apply (rule_tac x="RenameB (inv\<^sub>s ss) b'" in exI)
 apply (simp add:RenameB_override_distr1 closure)
 done
 
-theorem RenameP_ExistsP_distr2 :
+theorem RenameP_ExistsP_distr2 [urename]:
 "\<lbrakk>ss \<in> VAR_RENAME_ON vs1;
  vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
  (\<exists>p vs2 . p)[ss] = (\<exists>p vs2 . p[ss])"
@@ -99,7 +99,7 @@ theorem RenameP_ExistsP_distr2 :
   apply (metis VAR_RENAME_ON_disj_image rename_image_def)
 done
 
-theorem RenameP_ForallP_distr :
+theorem RenameP_ForallP_distr [urename]:
 "\<lbrakk>ss \<in> VAR_RENAME_ON vs1;
  vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
  (\<forall>p vs2 . p)[ss] = (\<forall>p vs2 . p[ss])"
@@ -107,7 +107,7 @@ apply (simp add: ForallP_def closure)
 apply (simp add: RenameP_ExistsP_distr2 RenameP_NotP_distr closure)
 done
 
-theorem RenameP_ClosureP :
+theorem RenameP_ClosureP [urename]:
 "[p[ss]]p = [p]p"
 apply (utp_pred_tac)
 apply (safe)
@@ -115,7 +115,7 @@ apply (drule_tac x = "RenameB ss x" in spec)
 apply (simp_all)
 done
 
-theorem RenameP_VarP :
+theorem RenameP_VarP [urename]:
 "(VarP x)[ss] = VarP (\<langle>ss\<rangle>\<^sub>s x)"
   apply (utp_pred_tac)
   apply (simp add:RenameB_def)
@@ -438,6 +438,120 @@ theorem SkipRA_assign :
   shows "II vs = x :=p\<^bsub>vs\<^esub> VarE x"
   by (simp add:AssignR_def SkipRA_unfold assms)
 
+theorem SemiP_ExistsP_left:
+  assumes
+  "UNREST DASHED_TWICE p" "UNREST DASHED_TWICE q"
+  "UNREST (DASHED - vs1) p" "UNREST (UNDASHED - vs2) q"
+  "vs1 \<subseteq> DASHED" "vs2 \<subseteq> UNDASHED"
+  "dash ` vs2 \<subseteq> vs1"
+  shows "(\<exists>p (vs1 - dash ` vs2). p) ; q = p ; q"
+proof -
+
+  let ?A = "dash ` out vs1 - dash ` dash ` in vs2"
+
+  from assms have UNREST: "UNREST DASHED_TWICE (\<exists>p vs1 - dash ` vs2 . p)"
+    by (auto intro:unrest)
+
+  hence "(\<exists>p (vs1 - dash ` vs2). p) ; q = 
+        (\<exists>p DASHED_TWICE .
+         (\<exists>p ?A . p[SS1]) \<and>p q[SS2])"
+  proof -
+
+    from assms have "vs1 \<subseteq> UNDASHED \<union> DASHED"
+      by (auto)
+
+    with UNREST show ?thesis using assms
+      apply (simp add: SemiR_algebraic closure urename var_simps)
+      apply (simp add: SS1_UNDASHED_DASHED_image[simplified] var_simps var_dist closure)
+    done
+  qed
+
+  also from assms(4) have "... = (\<exists>p DASHED_TWICE . (\<exists>p ?A . p[SS1] \<and>p q[SS2]))"
+  proof -
+    from assms(4) have "UNREST ?A q[SS2]"
+      apply (rule unrest)
+      apply (subgoal_tac "UNDASHED - vs2 \<subseteq> UNDASHED \<union> DASHED")
+      apply (simp add: SS2_UNDASHED_DASHED_image[simplified] var_simps var_dist closure)
+      apply (auto intro: unrest)
+      apply (metis (lifting) DASHED_dash_DASHED_TWICE set_rev_mp utp_var.out_DASHED)
+    done
+
+    thus ?thesis
+      by (metis ExistsP_AndP_expand1)
+  qed
+
+  also have "... = (\<exists>p DASHED_TWICE . p[SS1] \<and>p q[SS2])"
+  proof -
+    have "?A \<subseteq> DASHED_TWICE"
+      by (auto simp add:var_defs)
+
+    thus ?thesis
+      by (metis ExistsP_union sup_absorb1)
+  qed
+
+  ultimately show ?thesis using assms UNREST
+    by (simp add:SemiR_algebraic)
+qed
+    
+theorem SemiP_ExistsP_right:
+  assumes
+  "UNREST DASHED_TWICE p" "UNREST DASHED_TWICE q"
+  "UNREST (DASHED - vs1) p" "UNREST (UNDASHED - vs2) q"
+  "vs1 \<subseteq> DASHED" "vs2 \<subseteq> UNDASHED"
+  "vs1 \<subseteq> dash ` vs2"
+  shows "p ; (\<exists>p (vs2 - undash ` vs1). q) = p ; q"
+proof -
+
+  let ?A = "dash ` dash ` in vs2 - (dash ` dash ` in (undash ` vs1) \<union> out (undash ` vs1))"
+
+  from assms have UNREST: "UNREST DASHED_TWICE (\<exists>p vs2 - undash ` vs1 . q)"
+    by (auto intro:unrest)
+
+  hence "p ; (\<exists>p (vs2 - undash ` vs1). q) = 
+        (\<exists>p DASHED_TWICE .
+         p[SS1] \<and>p (\<exists>p ?A . q[SS2]))"
+  proof -
+
+    from assms have "vs1 \<subseteq> UNDASHED \<union> DASHED"
+      by (auto)
+
+    with UNREST show ?thesis using assms
+      apply (simp add: SemiR_algebraic closure urename var_simps)
+      apply (subgoal_tac "undash ` vs1 \<subseteq> UNDASHED \<union> DASHED")
+      apply (subgoal_tac "vs2 \<subseteq> UNDASHED \<union> DASHED")
+      apply (simp add: SS2_UNDASHED_DASHED_image[simplified] var_simps var_dist closure)
+      apply (auto)
+    done
+  qed
+
+  also have "... = (\<exists>p DASHED_TWICE . (\<exists>p ?A . p[SS1] \<and>p q[SS2]))"
+  proof -
+    from assms(3) have "UNREST ?A p[SS1]"
+      apply (rule unrest)
+      apply (subgoal_tac "DASHED - vs1 \<subseteq> UNDASHED \<union> DASHED")
+      apply (simp add: SS1_UNDASHED_DASHED_image[simplified] var_simps var_dist closure)
+      apply (auto intro: unrest)
+      apply (metis DASHED_dash_DASHED_TWICE Int_iff UNDASHED_dash_DASHED in_vars_def)
+      apply (metis (lifting) assms(5) dash_undash_image image_eqI out_dash)
+    done
+
+    thus ?thesis
+      by (smt ExistsP_AndP_expand2)
+  qed
+
+  also have "... = (\<exists>p DASHED_TWICE . p[SS1] \<and>p q[SS2])"
+  proof -
+    have "?A \<subseteq> DASHED_TWICE"
+      by (auto simp add:var_defs)
+
+    thus ?thesis
+      by (smt ExistsP_union sup_absorb1)
+  qed
+
+  ultimately show ?thesis using assms UNREST
+    by (simp add:SemiR_algebraic)
+qed
+
 theorem SemiR_OrR_distl :
 "r1 ; (r2 \<or>p r3) = (r1 ; r2) \<or>p (r1 ; r3)"
   by utp_rel_tac
@@ -501,7 +615,7 @@ qed
 theorem SubstP_no_var:
   "\<lbrakk> e \<rhd>\<^sub>e x; \<exists> z. is_SubstP_var p e x z; UNREST_EXPR {x} e; UNREST {x} p \<rbrakk> \<Longrightarrow>
   p[e|x] = p"
-  apply (unfold one_point[THEN sym])
+  apply (unfold SubstP_one_point[THEN sym])
   apply (unfold ExistsP_AndP_expand2[THEN sym])
   apply (utp_pred_tac)
   apply (utp_expr_tac)

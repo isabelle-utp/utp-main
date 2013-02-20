@@ -165,6 +165,32 @@ theorem REL_ALPHABET_minus [closure]:
   "a1 \<in> REL_ALPHABET \<Longrightarrow> (a1 -\<^sub>f a2) \<in> REL_ALPHABET"
   by (auto simp add:REL_ALPHABET_def)
 
+theorem HOM_ALPHABET_empty [closure]:
+  "\<lbrace>\<rbrace> \<in> HOM_ALPHABET"
+  apply (simp add:HOM_ALPHABET_def HOM_ALPHA_def COMP_ALPHAS_def COMPOSABLE_def)
+  apply (simp add:closure)
+done
+
+theorem HOM_ALPHABET_union [closure]:
+  "\<lbrakk> a1 \<in> HOM_ALPHABET; a2 \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> (a1 \<union>\<^sub>f a2) \<in> HOM_ALPHABET"
+  apply (simp add:HOM_ALPHABET_def HOM_ALPHA_unfold alphabet_dist)
+  apply (simp add:closure)
+done
+
+theorem HOM_ALPHABET_inter [closure]:
+  "\<lbrakk> a1 \<in> HOM_ALPHABET; a2 \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> (a1 \<inter>\<^sub>f a2) \<in> HOM_ALPHABET"
+  apply (simp add:HOM_ALPHABET_def HOM_ALPHA_unfold alphabet_dist dash_inj dash_inter_distr)
+  apply (simp add:closure)
+  apply (clarsimp)
+  apply (simp add: dash_inter_distr)
+done
+
+theorem HOM_ALPHABET_minus [closure]:
+  "\<lbrakk> a1 \<in> HOM_ALPHABET; a2 \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> (a1 -\<^sub>f a2) \<in> HOM_ALPHABET"
+  apply (simp add:HOM_ALPHABET_def HOM_ALPHA_unfold alphabet_dist dash_inj)
+  apply (simp add:closure)
+done
+
 theorem NotA_WF_RELATION [closure] :
 "\<lbrakk>r \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
  \<not>\<alpha> r \<in> WF_RELATION"
@@ -253,6 +279,26 @@ apply (simp add:WF_CONDITION_def)
 apply (simp add:FalseA_rep_eq closure)
 apply (auto intro:unrest)
 done
+
+theorem ExistsResA_WF_RELATION [closure]:
+"p \<in> WF_RELATION \<Longrightarrow>
+ (\<exists>-\<alpha> a. p) \<in> WF_RELATION"
+  by (auto intro:closure simp add:WF_RELATION_def alphabet)
+
+theorem ExistsResA_WF_CONDITION [closure]:
+"p \<in> WF_CONDITION \<Longrightarrow>
+ (\<exists>-\<alpha> a. p) \<in> WF_CONDITION"
+  by (auto intro:closure unrest simp add:WF_CONDITION_def alphabet ExistsResA.rep_eq)
+
+theorem ExistsA_WF_RELATION [closure]:
+"p \<in> WF_RELATION \<Longrightarrow>
+ (\<exists>\<alpha> a. p) \<in> WF_RELATION"
+  by (auto intro:closure simp add:WF_RELATION_def alphabet)
+
+theorem ExistsA_WF_CONDITION [closure]:
+"p \<in> WF_CONDITION \<Longrightarrow>
+ (\<exists>\<alpha> a. p) \<in> WF_CONDITION"
+  by (auto intro:closure unrest simp add:WF_CONDITION_def alphabet ExistsA.rep_eq)
 
 theorem SkipA_closure [closure] :
 "a \<in> REL_ALPHABET \<Longrightarrow>
@@ -388,6 +434,18 @@ apply (subgoal_tac "dash v \<notin> vs", simp)
 apply (auto simp: NON_REL_VAR_def) [1]
 apply (auto simp: NON_REL_VAR_def) [1]
 done
+
+theorem EvalA_UNREST_DASHED_TWICE [unrest]:
+  "r \<in> WF_RELATION \<Longrightarrow> UNREST DASHED_TWICE \<lbrakk>r\<rbrakk>\<pi>"
+  by (simp add:EvalA_def unrest)
+
+theorem EvalA_UNREST_out [unrest]:
+  "p \<in> WF_RELATION \<Longrightarrow> UNREST (DASHED - out \<langle>\<alpha> p\<rangle>\<^sub>f) \<lbrakk>p\<rbrakk>\<pi>"
+  by (auto intro:unrest simp add:var_defs)
+
+theorem EvalA_UNREST_in [unrest]:
+  "p \<in> WF_RELATION \<Longrightarrow> UNREST (UNDASHED - in \<langle>\<alpha> p\<rangle>\<^sub>f) \<lbrakk>p\<rbrakk>\<pi>"
+  by (auto intro:unrest simp add:var_defs)
 
 theorem EvalA_SkipA [evala] :
 "a \<in> REL_ALPHABET \<Longrightarrow> \<lbrakk>II\<alpha> a\<rbrakk>\<pi> = II \<langle>a\<rangle>\<^sub>f"
@@ -526,7 +584,8 @@ apply (simp add:WF_RELATION_def REL_ALPHABET_def)
 apply (simp add:alphabet closure)
 done
 
-lemma SS1_alpha_image: "a \<in> REL_ALPHABET \<Longrightarrow> \<langle>SS1\<rangle>\<^sub>s `\<^sub>f a = (in\<^sub>\<alpha> a) \<union>\<^sub>f dash `\<^sub>f (out\<^sub>\<alpha> a)"
+lemma SS1_alpha_image [urename]: 
+  "a \<in> REL_ALPHABET \<Longrightarrow> \<langle>SS1\<rangle>\<^sub>s `\<^sub>f a = (in\<^sub>\<alpha> a) \<union>\<^sub>f dash `\<^sub>f (out\<^sub>\<alpha> a)"
   apply (simp add:REL_ALPHABET_def)
   apply (clarify)
   apply (simp)
@@ -534,7 +593,8 @@ lemma SS1_alpha_image: "a \<in> REL_ALPHABET \<Longrightarrow> \<langle>SS1\<ran
   apply (simp)
 done
 
-lemma SS2_alpha_image: "a \<in> REL_ALPHABET \<Longrightarrow> \<langle>SS2\<rangle>\<^sub>s `\<^sub>f a = (dash `\<^sub>f dash `\<^sub>f (in\<^sub>\<alpha> a)) \<union>\<^sub>f (out\<^sub>\<alpha> a)"
+lemma SS2_alpha_image [urename]: 
+  "a \<in> REL_ALPHABET \<Longrightarrow> \<langle>SS2\<rangle>\<^sub>s `\<^sub>f a = (dash `\<^sub>f dash `\<^sub>f (in\<^sub>\<alpha> a)) \<union>\<^sub>f (out\<^sub>\<alpha> a)"
   apply (simp add:REL_ALPHABET_def)
   apply (clarify)
   apply (simp)
@@ -542,7 +602,8 @@ lemma SS2_alpha_image: "a \<in> REL_ALPHABET \<Longrightarrow> \<langle>SS2\<ran
   apply (simp)
 done
 
-lemma SS_alpha_image: "a \<in> REL_ALPHABET \<Longrightarrow> \<langle>SS\<rangle>\<^sub>s `\<^sub>f a = dash `\<^sub>f (in\<^sub>\<alpha> a) \<union>\<^sub>f undash `\<^sub>f (out\<^sub>\<alpha> a)"
+lemma SS_alpha_image [urename]: 
+  "a \<in> REL_ALPHABET \<Longrightarrow> \<langle>SS\<rangle>\<^sub>s `\<^sub>f a = dash `\<^sub>f (in\<^sub>\<alpha> a) \<union>\<^sub>f undash `\<^sub>f (out\<^sub>\<alpha> a)"
   apply (simp add:REL_ALPHABET_def)
   apply (clarify)
   apply (simp)

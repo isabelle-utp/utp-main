@@ -782,15 +782,15 @@ theorems rename_simps =
 
 subsection {* Distribution theorems *}
 
-theorem RenameP_image_union:
+theorem RenameP_image_union [urename]:
   "\<langle>ss\<rangle>\<^sub>s ` (vs1 \<union> vs2) = \<langle>ss\<rangle>\<^sub>s ` vs1 \<union> \<langle>ss\<rangle>\<^sub>s ` vs2"
   by auto
 
-theorem RenameP_image_inter:
+theorem RenameP_image_inter [urename]:
   "\<langle>ss\<rangle>\<^sub>s ` (vs1 \<inter> vs2) = \<langle>ss\<rangle>\<^sub>s ` vs1 \<inter> \<langle>ss\<rangle>\<^sub>s ` vs2"
   by (auto, metis Rep_VAR_RENAME VAR_RENAME_in_image)
 
-theorem RenameP_image_minus:
+theorem RenameP_image_minus [urename]:
   "\<langle>ss\<rangle>\<^sub>s ` (vs1 - vs2) = \<langle>ss\<rangle>\<^sub>s ` vs1 - \<langle>ss\<rangle>\<^sub>s ` vs2"
   by (metis Rep_VAR_RENAME_inj image_set_diff)
   

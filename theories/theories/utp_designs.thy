@@ -47,13 +47,16 @@ lemma REL_ALPHABET_OK [closure]: "OK \<in> REL_ALPHABET"
 lemma HOM_ALPHA_OK [closure]: "HOM_ALPHA OK"
   by (auto simp add:HOM_ALPHA_unfold var_simps var_dist)
 
+lemma HOM_ALPHABET_OK [closure]: "OK \<in> HOM_ALPHABET"
+  by (simp add:HOM_ALPHABET_def, simp add:closure)
+
 abbreviation ok_true :: 
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" ("_\<^sup>t" [150]) where
-"p\<^sup>t \<equiv> `p \<and> ($okay' = true)`"
+"p\<^sup>t \<equiv> `p[true/okay']`"
 
 abbreviation ok_false :: 
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" ("_\<^sup>f" [150]) where
-"p\<^sup>f \<equiv> `p \<and> ($okay' = false)`"
+"p\<^sup>f \<equiv> `p[false/okay']`"
 
 abbreviation "ok  \<equiv> VarA okay"
 abbreviation "ok' \<equiv> VarA okay'"
@@ -88,7 +91,7 @@ definition Mk_ALPHA_FUNCTION ::
 *)
 
 definition "H1   \<equiv> \<lambda> p. `ok \<Rightarrow> p`"
-definition "J a  \<equiv> `(ok \<Rightarrow> ok') \<and> II\<^bsub>a\<^esub>`"
+definition "J a  \<equiv> `(ok \<Rightarrow> ok') \<and> II\<^bsub>a -\<^sub>f OK\<^esub>`"
 definition "H2  \<equiv> \<lambda> p. [p\<^sup>t \<Rightarrow>\<alpha> (p\<^sup>f)]\<alpha>"
 definition "H2' \<equiv> \<lambda> p. (p ;\<alpha> J (\<alpha> p))"
 definition "H3  \<equiv> \<lambda> p. `p ; IID\<^bsub>\<alpha> p\<^esub>`"
@@ -137,7 +140,7 @@ lemma DesignD_alphabet [alphabet]:
 
 lemma J_alphabet [alphabet]:
   "a \<in> REL_ALPHABET \<Longrightarrow> \<alpha> (J a) = a \<union>\<^sub>f OK"
-  by (auto simp add:J_def alphabet)
+  by (auto simp add:J_def alphabet closure)
 
 definition DESIGN_ALPHABET :: "'TYPE ALPHABET set"
 where "DESIGN_ALPHABET = REL_ALPHABET \<inter> {a. OK \<subseteq>\<^sub>f a}"
@@ -317,95 +320,122 @@ proof -
     apply (simp add:HOM_ALPHABET_def)
     apply (simp add:HOM_ALPHA_unfold)
     apply (auto)
-    apply (metis (hide_lams, no_types) COMPOSABLE_def alphabet_simps(12) alphabet_simps(7) comp_alphabet_dash fimage.rep_eq okay_simps(7) out_alphabet.rep_eq out_dash)
+    apply (metis (hide_lams, no_types) COMPOSABLE_def alphabet_simps comp_alphabet_dash fimage.rep_eq okay_simps(7) out_alphabet.rep_eq out_dash)
     apply (metis (hide_lams, no_types) COMPOSABLE_def comp_alphabet_dash comp_vars_undash dash_undash_image fimage.rep_eq in_alphabet.rep_eq okay_simps(7) out_alphabet.rep_eq utp_alphabet.out_DASHED)
   done
 
-  have "P ;\<alpha> J a = P ;\<alpha> ((ok \<Rightarrow>\<alpha> ok') \<and>\<alpha> II\<alpha> a)"
+  have "P ;\<alpha> J a = P ;\<alpha> ((ok \<Rightarrow>\<alpha> ok') \<and>\<alpha> II\<alpha> (a -\<^sub>f OK))"
     by (simp add:J_def)
 
-  also from assms have "... = P ;\<alpha> ((ok \<Rightarrow>\<alpha> (ok \<and>\<alpha> ok')) \<and>\<alpha> II\<alpha> a)"
+  also from assms have "... = P ;\<alpha> ((ok \<Rightarrow>\<alpha> (ok \<and>\<alpha> ok')) \<and>\<alpha> II\<alpha> (a -\<^sub>f OK))"
     apply (subgoal_tac "((ok \<Rightarrow>\<alpha> ok') :: 'a WF_ALPHA_PREDICATE) = (ok \<Rightarrow>\<alpha> (ok \<and>\<alpha> ok'))")
     apply (simp)
     apply (utp_alpha_tac)
     apply (utp_pred_tac)
   done
 
-  also from assms have "... = P ;\<alpha> ((\<not>\<alpha> ok \<or>\<alpha> (ok \<and>\<alpha> ok')) \<and>\<alpha> II\<alpha> a)"
+  also from assms have "... = P ;\<alpha> ((\<not>\<alpha> ok \<or>\<alpha> (ok \<and>\<alpha> ok')) \<and>\<alpha> II\<alpha> (a -\<^sub>f OK))"
     apply (subgoal_tac "((ok \<Rightarrow>\<alpha> (ok \<and>\<alpha> ok')) :: 'a WF_ALPHA_PREDICATE) = (\<not>\<alpha> ok \<or>\<alpha> (ok \<and>\<alpha> ok'))")
     apply (simp)
     apply (utp_alpha_tac)
     apply (utp_pred_tac)
   done
 
-  also from assms have "... = `P ; ((\<not> ok \<and> II\<^bsub>a\<^esub>) \<or> ((ok \<and> ok') \<and> II\<^bsub>a\<^esub>))`" 
-    by (metis AndA_OrA_dist)
+  also from assms have "... = `P ; ((\<not> ok \<and> II\<^bsub>a -\<^sub>f OK\<^esub>) \<or> ((ok \<and> ok') \<and> II\<^bsub>a -\<^sub>f OK\<^esub>))`" 
+    by (smt AndA_OrA_dist)
 
-  also from assms have "... = `(P ; (\<not> ok \<and> II\<^bsub>a\<^esub>)) \<or> (P ; ((ok \<and> ok') \<and> II\<^bsub>a\<^esub>))`"
+  also from assms have "... = `(P ; (\<not> ok \<and> II\<^bsub>a -\<^sub>f OK\<^esub>)) \<or> (P ; ((ok \<and> ok') \<and> II\<^bsub>a -\<^sub>f OK\<^esub>))`"
     by (simp add:SemiA_OrA_distl closure)
 
   also from assms have "... = (P\<^sup>f \<or>\<alpha> (P\<^sup>t \<and>\<alpha> ok'))"
   proof -
-    from assms have "`P ; (\<not> ok \<and> II\<^bsub>a\<^esub>)` = P\<^sup>f"
+    from assms have "`P ; (\<not> ok \<and> II\<^bsub>a -\<^sub>f OK\<^esub>)` = P\<^sup>f"
     proof -
-      from assms have "`P ; (\<not> ok \<and> II\<^bsub>a\<^esub>)` = `(P \<and> (\<not> ok')) ; II\<^bsub>a\<^esub>`"
-        by (simp add:SemiA_ConjA_cond closure alphabet urename SS_UNDASHED_app)
+      from assms have "`P ; (\<not> ok \<and> II\<^bsub>a -\<^sub>f OK\<^esub>)` = `(P \<and> (\<not> ok')) ; II\<^bsub>a -\<^sub>f OK\<^esub>`"
+        by (simp add:SemiA_ConjA_right_precond closure alphabet urename SS_UNDASHED_app)
 
-      also from assms have "... = `P \<and> (\<not> ok')`"
-        by (simp add:SemiA_SkipA_right closure alphabet)
-
-      ultimately show ?thesis
-        apply (unfold aux_eq_false[of okay',simplified])
-        apply (simp)
+      also from assms have "... = (\<exists>-\<alpha> \<lbrace>okay'\<rbrace> . (P \<and>\<alpha> \<not>\<alpha> ok')) ;\<alpha> II\<alpha> (a -\<^sub>f OK)"
+        apply (rule_tac trans)
+        apply (rule_tac SemiA_ExistsA_left[of "`(P \<and> (\<not> ok'))`" "`II\<^bsub>a -\<^sub>f OK\<^esub>`", THEN sym])
+        apply (auto simp add:alphabet alphabet_dist alphabet_simps closure dash_inj)
+        apply (subgoal_tac "out\<^sub>\<alpha> (\<alpha> P) -\<^sub>f (out\<^sub>\<alpha> (\<alpha> P) -\<^sub>f \<lbrace>okay'\<rbrace>) = \<lbrace>okay'\<rbrace>")
+        apply (auto)
+        apply (unfold DESIGN_ALPHABET_def)
+        apply (auto)
+        apply (simp add:okay_def var_defs)
       done
+
+
+      also from assms have "... = (\<exists>-\<alpha> \<lbrace>okay'\<rbrace> . (P \<and>\<alpha> \<not>\<alpha> ok'))"
+        apply (rule_tac SemiA_SkipA_right)
+        apply (simp_all add:alphabet alphabet_dist alphabet_simps closure dash_inj)
+        apply (clarsimp)
+        apply (smt alphabet_simps dash_image_minus fimage.rep_eq image_empty image_insert out_alphabet.rep_eq undash_dash_image)
+      done
+
+      also from assms have "... = P\<^sup>f"
+        apply (rule_tac trans) defer
+        apply (rule_tac SubstA_one_point)
+        apply (simp_all add:alphabet)
+        apply (unfold DESIGN_ALPHABET_def)
+        apply (force)
+        apply (simp add: aux_eq_false[THEN sym])
+      done
+
+      ultimately show ?thesis by simp
     qed
 
     moreover 
-    have "`P ; ((ok \<and> ok') \<and> II\<^bsub>a\<^esub>)` = (P\<^sup>t \<and>\<alpha> ok')"
+    have "`P ; ((ok \<and> ok') \<and> II\<^bsub>a -\<^sub>f OK\<^esub>)` = (P\<^sup>t \<and>\<alpha> ok')"
     proof -
 
-      from assms aDESALPH have II_expand: "II\<alpha> a = `($okay' = $okay) \<and> II\<^bsub>(a -\<^sub>f OK)\<^esub>`"
-        apply (rule_tac SkipA_unfold)
-        apply (unfold DESIGN_ALPHABET_def)
-        apply (auto simp add:HOM_ALPHABET_def)
-      done
-
-      with assms have "`P ; ((ok \<and> ok') \<and> II\<^bsub>a\<^esub>)` = `P ; ((ok \<and> ok') \<and> ($okay' = $okay \<and> II\<^bsub>a -\<^sub>f OK\<^esub>))`"
-        by simp
-
-      also from assms have "... = `P ; (($okay = true \<and> $okay' = true) \<and> ($okay' = $okay \<and> II\<^bsub>a -\<^sub>f OK\<^esub>))`"
-        apply (unfold aux_eq_true[of okay,simplified,THEN sym])
-        apply (unfold aux_eq_true[of okay',simplified,THEN sym])
-        apply (simp)
-      done
-
-      also from assms have "... = `P ; (($okay = true) \<and> ($okay' = $okay \<and> II\<^bsub>a -\<^sub>f OK\<^esub>))`"
+      from assms have "`P ; ((ok \<and> ok') \<and> II\<^bsub>a -\<^sub>f OK\<^esub>)` = `(P ; (ok \<and> II\<^bsub>a -\<^sub>f OK\<^esub>)) \<and> ok'`"
       proof -
-        from assms have "`(($okay = true \<and> $okay' = true) \<and> ($okay' = $okay \<and> II\<^bsub>a -\<^sub>f OK\<^esub>))` = `(($okay = true) \<and> ($okay' = $okay \<and> II\<^bsub>a -\<^sub>f OK\<^esub>))`"
-          apply (utp_alpha_tac)
-          apply (utp_pred_tac)
-          apply (utp_expr_tac)
-          apply (auto)
-        done
+        have "\<langle>\<alpha> ok'\<rangle>\<^sub>f \<subseteq> DASHED"
+          by (simp add:alphabet)
 
         thus ?thesis
-          by simp
+          by (smt AndA_WF_RELATION AndA_assoc AndA_comm HOM_ALPHABET_REL_ALPHABET REL_ALPHABET_minus SemiA_ConjA_right_postcond SkipA_closure assms ok'_rel_closure ok_rel_closure)
       qed
-        
-      also have "... = `P ; (ok \<and> II\<^bsub>a\<^esub>)`"
-        by (metis II_expand aux_eq_true okay_simps(22) okay_simps(24))
 
-      also from assms have "... = `(P \<and> ok') ; II\<^bsub>a\<^esub>`"
-        by (simp add:SemiA_ConjA_cond closure alphabet urename SS_UNDASHED_app)
+      also from assms have "... = `((P \<and> ok') ; II\<^bsub>a -\<^sub>f OK\<^esub>) \<and> ok'`"
+        by (simp add:SemiA_ConjA_right_precond closure alphabet urename SS_UNDASHED_app)
 
-      also from assms have "... = `P \<and> ok'`"
-        by (simp add:SemiA_SkipA_right closure alphabet)
+      also from assms have "... = P\<^sup>t \<and>\<alpha> ok'"
+      proof -
+
+        from assms have "out\<^sub>\<alpha> (\<alpha> P) -\<^sub>f (out\<^sub>\<alpha> (\<alpha> P) -\<^sub>f \<lbrace>okay'\<rbrace>) = \<lbrace>okay'\<rbrace>"
+          apply (unfold DESIGN_ALPHABET_def)
+          apply (auto simp add:okay_def var_defs)
+        done
+
+        with assms have "`(P \<and> ok') ; II\<^bsub>a -\<^sub>f OK\<^esub>` = `(\<exists>- okay' . (P \<and> ok')) ; II\<^bsub>a -\<^sub>f OK\<^esub>`"
+          apply (rule_tac trans)
+          apply (rule_tac SemiA_ExistsA_left[of "`P \<and> ok'`" "`II\<^bsub>a -\<^sub>f OK\<^esub>`", THEN sym])
+          apply (auto simp add:alphabet alphabet_dist alphabet_simps closure dash_inj)
+        done
+
+        also with assms have "... = `\<exists>- okay' . (P \<and> ok')`"
+          apply (rule_tac SemiA_SkipA_right)
+          apply (simp_all add:alphabet alphabet_dist alphabet_simps closure dash_inj)
+          apply (clarsimp)
+          apply (smt alphabet_simps dash_image_minus fimage.rep_eq image_empty image_insert out_alphabet.rep_eq undash_dash_image)
+        done
+      
+        also from assms have "... = P\<^sup>t"
+          apply (rule_tac trans) defer
+          apply (rule_tac SubstA_one_point)
+          apply (simp_all add:alphabet)
+          apply (unfold DESIGN_ALPHABET_def)
+          apply (force)
+          apply (simp add: aux_eq_true[THEN sym])
+        done
+
+        ultimately show ?thesis by simp
+      qed
 
       ultimately show ?thesis
-        apply (unfold aux_eq_true[of okay',simplified])
-        apply (simp)
-        apply (metis (lifting) AndA_assoc AndA_idem)
-      done
+        by simp
     qed
 
     ultimately show ?thesis
@@ -413,7 +443,7 @@ proof -
   qed
 
   ultimately show ?thesis
-    by (simp)
+    by simp
 qed
 
 lemma 

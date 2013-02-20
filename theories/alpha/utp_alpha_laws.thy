@@ -347,7 +347,7 @@ lemma "\<lbrakk> UNREST (VAR - vs) p; ss1 \<cong>\<^sub>s ss2 on vs \<rbrakk> \<
   apply (simp)
 *)
 
-lemma SubstA_equiv: 
+lemma RenameA_equiv: 
   "\<lbrakk> \<langle>\<alpha> p\<rangle>\<^sub>f \<subseteq> vs; ss1 \<cong>\<^sub>s ss2 on vs \<rbrakk> \<Longrightarrow> p[ss1]\<alpha> = p[ss2]\<alpha>"
   apply (utp_alpha_tac2)
   apply (simp add:rename_equiv_def)
@@ -366,13 +366,17 @@ lemma SubstA_equiv:
   apply (simp add:binding_equiv_def)
 done
 
-lemma fimage_funion [simp]: "f `\<^sub>f (A \<union>\<^sub>f B) = (f `\<^sub>f A) \<union>\<^sub>f (f `\<^sub>f B)"
-  by (auto)
+theorem RenameA_SS1_UNDASHED [simp]:
+  "\<lbrakk> p \<in> WF_RELATION; \<langle>\<alpha> p\<rangle>\<^sub>f \<subseteq> UNDASHED \<rbrakk> \<Longrightarrow> p[SS1]\<alpha> = p"
+  by (metis RenameA_id SS1_eq_id RenameA_equiv)
+  
+theorem RenameA_SS2_DASHED [simp]:
+  "\<lbrakk> p \<in> WF_RELATION; \<langle>\<alpha> p\<rangle>\<^sub>f \<subseteq> DASHED \<rbrakk> \<Longrightarrow> p[SS2]\<alpha> = p"
+  by (metis RenameA_id SS2_eq_id RenameA_equiv)
 
-lemma funion_assoc [simp]: "(A \<union>\<^sub>f B) \<union>\<^sub>f C =  A \<union>\<^sub>f (B \<union>\<^sub>f C)"
-  by (auto)
-
-theorem SemiA_ConjA_cond: 
+text {* If the right-hand side of a sequential composition contains only undashed
+variables it can be transferred to the left-hand side by renaming to dashed variables *}
+theorem SemiA_ConjA_right_precond: 
   assumes "p \<in> WF_RELATION" "q \<in> WF_RELATION" "r \<in> WF_RELATION"
     "\<langle>\<alpha> q\<rangle>\<^sub>f \<subseteq> UNDASHED"
   shows "p ;\<alpha> (q \<and>\<alpha> r) = (p \<and>\<alpha> q[SS]\<alpha>) ;\<alpha> r"
@@ -387,7 +391,7 @@ proof -
 
   also from assms have "... = (\<exists>-\<alpha> ?A . p[SS1]\<alpha> \<and>\<alpha> (q[SS]\<alpha>[SS1]\<alpha> \<and>\<alpha> r[SS2]\<alpha>))"
     apply (simp add:RenameA_compose)
-    apply (unfold SubstA_equiv[of "q" UNDASHED "SS1 \<circ>\<^sub>s SS" SS2,OF assms(4) SS1_SS_eq_SS2])
+    apply (unfold RenameA_equiv[of "q" UNDASHED "SS1 \<circ>\<^sub>s SS" SS2,OF assms(4) SS1_SS_eq_SS2])
     apply (simp)
   done
 
@@ -399,6 +403,128 @@ proof -
 
   ultimately show ?thesis
     by (simp)
+qed
+
+theorem SemiA_ConjA_right_postcond: 
+  assumes "p \<in> WF_RELATION" "q \<in> WF_RELATION" "r \<in> WF_RELATION"
+    "\<langle>\<alpha> r\<rangle>\<^sub>f \<subseteq> DASHED"
+  shows "p ;\<alpha> (q \<and>\<alpha> r) = (p ;\<alpha> q) \<and>\<alpha> r" (is "?P = ?Q")
+proof -
+
+  let ?A = "dash `\<^sub>f out\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> q)"
+
+  from assms have "p ;\<alpha> (q \<and>\<alpha> r) = (\<exists>-\<alpha> ?A. (p[SS1]\<alpha> \<and>\<alpha> q[SS2]\<alpha> \<and>\<alpha> r))"
+    by (simp add:SemiA_algebraic closure alphabet_dist alphabet alphabet_simps urename)
+
+  also from assms have "... = (\<exists>-\<alpha> ?A. ((p[SS1]\<alpha> \<and>\<alpha> q[SS2]\<alpha>) \<and>\<alpha> r))"
+    by (smt AndA_assoc)
+
+  also from assms have "... = (\<exists>-\<alpha> ?A. p[SS1]\<alpha> \<and>\<alpha> q[SS2]\<alpha>) \<and>\<alpha> r"
+    apply (rule_tac ExistsA_AndA_expand1[THEN sym])
+    apply (auto)
+    apply (metis DASHED_dash_DASHED_TWICE DASHED_not_DASHED_TWICE UnI2 sup.commute sup_absorb2 utp_var.out_DASHED)
+    apply (metis (lifting) in_mono not_dash_dash_member_out var_simps(24))
+  done
+ 
+  ultimately show ?thesis using assms
+    by (simp add:SemiA_algebraic closure alphabet_dist alphabet alphabet_simps urename)
+
+qed
+
+theorem SemiA_ConjA_left_postcond: 
+  assumes "p \<in> WF_RELATION" "q \<in> WF_RELATION" "r \<in> WF_RELATION"
+    "\<langle>\<alpha> q\<rangle>\<^sub>f \<subseteq> DASHED"
+  shows "(p \<and>\<alpha> q) ;\<alpha> r = p ;\<alpha> (q[SS]\<alpha> \<and>\<alpha> r)"
+proof -
+
+  let ?A = "dash `\<^sub>f out\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f (dash `\<^sub>f \<alpha> q \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> r))"
+  from assms have "(p \<and>\<alpha> q) ;\<alpha> r = (\<exists>-\<alpha> ?A . (p[SS1]\<alpha> \<and>\<alpha> q[SS1]\<alpha>) \<and>\<alpha> r[SS2]\<alpha>)"
+    by (simp add:SemiA_algebraic closure alphabet_dist alphabet urename)
+
+  also from assms have "... = (\<exists>-\<alpha> ?A . (p[SS1]\<alpha> \<and>\<alpha> q[SS]\<alpha>[SS2]\<alpha>) \<and>\<alpha> r[SS2]\<alpha>)"
+    apply (simp add:RenameA_compose)
+    apply (unfold RenameA_equiv[of "q" DASHED "SS2 \<circ>\<^sub>s SS" SS1,OF assms(4) SS2_SS_eq_SS1])
+    apply (simp)
+  done
+
+  also from assms have "... = (\<exists>-\<alpha> ?A . p[SS1]\<alpha> \<and>\<alpha> (q[SS]\<alpha> \<and>\<alpha> r)[SS2]\<alpha>)"
+    by (smt AndA_assoc RenameA_AndA_distr)
+
+  also from assms have "... = p ;\<alpha> (q[SS]\<alpha> \<and>\<alpha> r)"
+    apply (simp add:SemiA_algebraic closure alphabet_dist alphabet alphabet_simps SS_alpha_image)
+    apply (smt alphabet_simps)
+  done
+
+  ultimately show ?thesis
+    by (simp)
+qed
+
+theorem SemiA_ConjA_left_precond: 
+  assumes "p \<in> WF_RELATION" "q \<in> WF_RELATION" "r \<in> WF_RELATION"
+    "\<langle>\<alpha> p\<rangle>\<^sub>f \<subseteq> UNDASHED"
+  shows "(p \<and>\<alpha> q) ;\<alpha> r = p \<and>\<alpha> (q ;\<alpha> r)" (is "?P = ?Q")
+using assms
+proof -
+
+  let ?A = "dash `\<^sub>f out\<^sub>\<alpha> (\<alpha> q) \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> r)"
+
+  from assms have "(p \<and>\<alpha> q) ;\<alpha> r = (\<exists>-\<alpha> ?A. ((p \<and>\<alpha> q[SS1]\<alpha>) \<and>\<alpha> r[SS2]\<alpha>))"
+    by (simp add:SemiA_algebraic closure alphabet_dist alphabet alphabet_simps urename)
+
+  also from assms have "... = (\<exists>-\<alpha> ?A. (p \<and>\<alpha> (q[SS1]\<alpha> \<and>\<alpha> r[SS2]\<alpha>)))"
+    by (smt AndA_assoc)
+
+  also from assms have "... = p \<and>\<alpha> (\<exists>-\<alpha> ?A. q[SS1]\<alpha> \<and>\<alpha> r[SS2]\<alpha>)"
+    apply (rule_tac ExistsA_AndA_expand2[THEN sym])
+    apply (auto)
+    apply (metis UNDASHED_eq_dash_contra set_mp)
+    apply (metis UNDASHED_eq_dash_contra set_mp)
+  done
+ 
+  ultimately show ?thesis using assms
+    by (simp add:SemiA_algebraic closure alphabet_dist alphabet alphabet_simps urename)
+
+qed
+
+theorem SemiA_ExistsA_left:
+  assumes
+  "p \<in> WF_RELATION"
+  "q \<in> WF_RELATION"
+  "dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> q) \<subseteq>\<^sub>f out\<^sub>\<alpha> (\<alpha> p)"
+  shows "(\<exists>-\<alpha> (out\<^sub>\<alpha> (\<alpha> p) -\<^sub>f dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> q)). p) ;\<alpha> q = p ;\<alpha> q"
+  using assms
+  apply (utp_alpha_tac)
+  apply (simp add:alphabet_dist)
+  apply (rule_tac SemiP_ExistsP_left)
+  apply (auto intro: unrest closure)
+done
+
+theorem SemiA_ExistsA_right:
+  assumes
+  "p \<in> WF_RELATION"
+  "q \<in> WF_RELATION"
+  "out\<^sub>\<alpha> (\<alpha> p) \<subseteq>\<^sub>f dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> q)"
+  shows "p ;\<alpha> (\<exists>-\<alpha> (in\<^sub>\<alpha> (\<alpha> q) -\<^sub>f undash `\<^sub>f out\<^sub>\<alpha> (\<alpha> p)). q) = p ;\<alpha> q"
+  using assms
+  apply (utp_alpha_tac)
+  apply (simp add:alphabet_dist)
+  apply (rule_tac SemiP_ExistsP_right)
+  apply (auto intro: unrest closure)
+done
+
+lemma SubstA_one_point:
+  assumes "v \<rhd>\<^sub>\<alpha> x" "x \<notin>\<^sub>f \<alpha> v" "x \<in>\<^sub>f \<alpha> p"
+  shows "`(\<exists>- x . p \<and> $x = v)` = `p[v/x]`" (is "?P = ?Q")
+proof (rule EvalA_intro)
+
+  from assms show "\<alpha> ?P = \<alpha> ?Q"
+    by (force simp add:alphabet alphabet_dist alphabet_simps)
+
+  from assms show "\<lbrakk>?P\<rbrakk>\<pi> = \<lbrakk>?Q\<rbrakk>\<pi>"
+    apply (simp add:evala typing unrest EvalA_SubstA)
+    apply (rule_tac SubstP_one_point)
+    apply (auto intro:unrest simp add:evala typing EvalA_SubstA)
+  done
 qed
 
 lemma utp_alpha_pred_simps [simp]:

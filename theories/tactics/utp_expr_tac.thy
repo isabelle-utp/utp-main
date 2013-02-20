@@ -145,6 +145,10 @@ proof -
 
 qed
 
+lemma EvalE_UNREST_binding_upd [evale]:
+  "\<lbrakk> v \<rhd> x; UNREST_EXPR {x} e \<rbrakk> \<Longrightarrow> \<lbrakk>e\<rbrakk>\<epsilon>(b(x :=\<^sub>b v)) = \<lbrakk>e\<rbrakk>\<epsilon>b"
+  by (auto simp add:EvalE_def UNREST_EXPR_def, smt binding_upd_apply)
+
 subsection {* Proof Tactics *}
 
 ML {*
@@ -181,7 +185,7 @@ theorem EqualP_sym:
 theorem VarE_subst: "\<lbrakk> type x = \<tau>\<^sub>e v; \<not> aux x \<rbrakk> \<Longrightarrow> VarE x[v|x] = v"
   by utp_expr_tac
 
-theorem one_point:
+theorem SubstP_one_point:
   "\<lbrakk> e \<rhd>\<^sub>e x; \<exists> z. is_SubstP_var p e x z; UNREST_EXPR {x} e \<rbrakk> \<Longrightarrow>
   (\<exists>p {x}. p \<and>p (VarE x ==p e)) = p[e|x]"
   apply (utp_pred_tac)
@@ -191,7 +195,6 @@ theorem one_point:
   apply (simp_all)
   apply (rule_tac x="b(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<epsilon>b)" in exI)
   apply (auto)
-  apply (metis EvalE_UNREST_assign EvalE_compat EvalE_def insertI1)
 done
 
 (*

@@ -174,6 +174,7 @@ ML {*
     (simpset_of ctxt)
       addsimps (alphabet.get ctxt)
       addsimps (closure.get ctxt)
+      addsimps (typing.get ctxt)
       addsimps @{thms alphabet_simps}
       addsimps @{thms alphabet_dist};
 *}
@@ -189,9 +190,7 @@ ML {*
       THEN
         asm_full_simp_tac ((simpset_of ctxt) addsimps (evala.get ctxt @ closure.get ctxt @ typing.get ctxt)) 2
       THEN
-        asm_full_simp_tac ((simpset_of ctxt) addsimps (alphabet.get ctxt @ closure.get ctxt @ typing.get ctxt)
-                                             addsimps @{thms alphabet_simps}
-                                             addsimps @{thms alphabet_dist}) 1
+        asm_full_simp_tac (utp_alphabet_simpset ctxt) 1
       THEN
         TRY (force_tac ctxt 1))
 *}
