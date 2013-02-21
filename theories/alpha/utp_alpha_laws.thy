@@ -423,7 +423,7 @@ proof -
     apply (rule_tac ExistsA_AndA_expand1[THEN sym])
     apply (auto)
     apply (metis DASHED_dash_DASHED_TWICE DASHED_not_DASHED_TWICE UnI2 sup.commute sup_absorb2 utp_var.out_DASHED)
-    apply (metis (lifting) in_mono not_dash_dash_member_out var_simps(24))
+    apply (smt in_mono not_dash_dash_member_out var_simps)
   done
  
   ultimately show ?thesis using assms

@@ -275,6 +275,12 @@ declare var_contra [dest]
 
 subsubsection {* Simplification Theorems *}
 
+theorem dash_uniqs:
+"x \<noteq> dash x" "dash x \<noteq> x"
+"x \<noteq> dash (dash x)" "dash (dash x) \<noteq> x"
+"dash x \<noteq> dash (dash x)" "dash (dash x) \<noteq> dash x"
+  by (case_tac x, case_tac a, simp add:var_defs)+
+
 theorem dash_undash_DASHED :
 "x \<in> DASHED \<Longrightarrow> dash (undash x) = x"
 apply (simp add: var_defs)
@@ -384,6 +390,7 @@ theorem in_out_UNDASHED_DASHED:
   by (auto simp add:var_defs)
 
 theorems var_simps =
+  dash_uniqs
   dash_undash_DASHED
   dash_undash_DASHED_TWICE
   undash_dash

@@ -24,10 +24,8 @@ definition "okay  \<equiv> MkVar (MkName ''okay'' 0 NoSub) BoolType True"
 abbreviation "okay' \<equiv> dash okay"
 abbreviation "okay'' \<equiv> dash (dash okay)"
 
+
 lemma okay_simps [simp]: 
-  "okay \<noteq> okay'" "okay' \<noteq> okay" 
-  "okay \<noteq> okay''" "okay'' \<noteq> okay" 
-  "okay' \<noteq> okay''" "okay'' \<noteq> okay'"
   "okay \<in> UNDASHED" "okay' \<in> DASHED" "okay'' \<in> DASHED_TWICE"
   "MkBool True \<rhd> okay" "MkBool False \<rhd> okay"
   "MkBool True \<rhd> okay'" "MkBool False \<rhd> okay'"
@@ -175,8 +173,8 @@ lemma DESIGN_ALPHABET_homr [closure]:
   apply (unfold DESIGN_ALPHABET_def)
   apply (simp add:closure)
   apply (auto simp add:hom_right_def closure)
-  apply (metis Int_iff imageI okay_simps(8) out_vars_def undash_dash)
-  apply (metis IntI okay_simps(8) out_vars_def)
+  apply (metis Int_iff imageI okay_simps out_vars_def undash_dash)
+  apply (metis IntI okay_simps out_vars_def)
 done
 
 lemma DESIGN_ALPHABET_homl [closure]:
@@ -184,8 +182,8 @@ lemma DESIGN_ALPHABET_homl [closure]:
   apply (unfold DESIGN_ALPHABET_def)
   apply (simp add:closure)
   apply (auto simp add:hom_left_def closure)
-  apply (metis Int_iff in_vars_def okay_simps(7))
-  apply (metis Int_iff imageI in_vars_def okay_simps(7))
+  apply (metis Int_iff in_vars_def okay_simps)
+  apply (metis Int_iff imageI in_vars_def okay_simps)
 done
 
 lemma extreme_point_true:
@@ -371,8 +369,8 @@ proof -
     apply (simp add:HOM_ALPHABET_def)
     apply (simp add:HOM_ALPHA_unfold)
     apply (auto)
-    apply (metis (hide_lams, no_types) COMPOSABLE_def alphabet_simps comp_alphabet_dash fimage.rep_eq okay_simps(7) out_alphabet.rep_eq out_dash)
-    apply (metis (hide_lams, no_types) COMPOSABLE_def comp_alphabet_dash comp_vars_undash dash_undash_image fimage.rep_eq in_alphabet.rep_eq okay_simps(7) out_alphabet.rep_eq utp_alphabet.out_DASHED)
+    apply (metis (hide_lams, no_types) COMPOSABLE_def alphabet_simps comp_alphabet_dash fimage.rep_eq okay_simps out_alphabet.rep_eq out_dash)
+    apply (metis (hide_lams, no_types) COMPOSABLE_def comp_alphabet_dash comp_vars_undash dash_undash_image fimage.rep_eq in_alphabet.rep_eq okay_simps out_alphabet.rep_eq utp_alphabet.out_DASHED)
   done
 
   have "P ;\<alpha> J a = P ;\<alpha> ((ok \<Rightarrow>\<alpha> ok') \<and>\<alpha> II\<alpha> (a -\<^sub>f OK))"
