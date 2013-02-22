@@ -543,6 +543,7 @@ proof (rule EvalA_intro)
   done
 qed
 
+
 lemma utp_alpha_pred_simps_simple [simp]:
   "\<not>\<alpha> (false a) = true a"
   "\<not>\<alpha> (true a)  = false a"
@@ -566,6 +567,7 @@ lemma utp_alpha_pred_simps [simp]:
   "`p \<or> false\<^bsub>a\<^esub>` = `p \<oplus> a`"
   "`false\<^bsub>a\<^esub> \<or> p` = `p \<oplus> a`"
   "`p \<Leftrightarrow> p` = true (\<alpha> p)"
+  "`\<not> \<not> p` = p"
   by (utp_alpha_tac2, utp_pred_tac)+
 
 lemma hom_simps [simp]:

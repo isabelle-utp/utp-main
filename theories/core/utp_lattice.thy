@@ -122,6 +122,22 @@ instance
 done
 end
 
+instantiation WF_PREDICATE :: (VALUE) boolean_algebra
+begin
+
+definition uminus_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+"uminus_WF_PREDICATE p = \<not>p p"
+
+definition minus_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+"minus_WF_PREDICATE p q = (p \<or>p \<not>p q)"
+
+instance 
+  apply (intro_classes)
+  apply (simp_all add: uminus_WF_PREDICATE_def minus_WF_PREDICATE_def inf_WF_PREDICATE_def sup_WF_PREDICATE_def bot_WF_PREDICATE_def top_WF_PREDICATE_def)
+  apply (utp_pred_tac)+
+done
+end
+
 subsection {* Fixed Points *}
 
 abbreviation WFP ::
