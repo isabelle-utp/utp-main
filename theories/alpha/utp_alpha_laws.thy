@@ -48,6 +48,15 @@ lemma OrA_AndA_dist:
   "`(p \<and> q) \<or> r` = `(p \<or> r) \<and> (q \<or> r)`"
   by (utp_alpha_tac2, utp_pred_auto_tac)
 
+lemma demorgan1: "`\<not>(x\<or>y)` = `(\<not>x)\<and>(\<not>y)`"
+  by (utp_alpha_tac2, utp_pred_auto_tac)
+
+lemma demorgan2: "`\<not>(x\<and>y)` = `(\<not>x)\<or>(\<not>y)`"
+  by (utp_alpha_tac2, utp_pred_auto_tac)
+
+lemma demorgan3: "`x\<or>y` = `\<not>((\<not>x)\<and>(\<not>y))`"
+  by (utp_alpha_tac2, utp_pred_auto_tac)
+
 subsection {* Conditional Laws *}
 
 theorem CondA_unfold:
