@@ -7,7 +7,7 @@
 header {* Predicate Lattice *}
 
 theory utp_lattice
-imports utp_pred "../tactics/utp_pred_tac"
+imports utp_pred utp_unrest "../tactics/utp_pred_tac"
 begin
 
 notation
@@ -179,5 +179,37 @@ proof -
   ultimately show ?thesis by simp
 
 qed
-    
+  
+subsection {* @{term UNREST} Theorems *}
+
+theorem UNREST_BotP [unrest]: "UNREST vs bot"
+  by (simp add:bot_WF_PREDICATE_def unrest)
+
+theorem UNREST_TopP [unrest]: "UNREST vs top"
+  by (simp add:top_WF_PREDICATE_def unrest)
+
+theorem UNREST_sup :
+"\<lbrakk>UNREST vs p1;
+ UNREST vs p2\<rbrakk> \<Longrightarrow>
+ UNREST vs (p1 \<squnion> p2)"
+  by (simp add: sup_WF_PREDICATE_def UNREST_AndP)
+
+theorem UNREST_inf [unrest]:
+"\<lbrakk>UNREST vs p1;
+ UNREST vs p2\<rbrakk> \<Longrightarrow>
+ UNREST vs (p1 \<sqinter> p2)"
+  by (auto simp add: inf_WF_PREDICATE_def UNREST_OrP)
+
+theorem UNREST_Sup [unrest]:
+"\<forall> p \<in> ps. UNREST vs p \<Longrightarrow> UNREST vs (\<Squnion> ps)"
+  apply (simp add: Sup_WF_PREDICATE_def UNREST_BotP)
+  apply (simp add: UNREST_def)
+done
+
+theorem UNREST_Inf [unrest]:
+"\<forall> p \<in> ps. UNREST vs p \<Longrightarrow> UNREST vs (\<Sqinter> ps)"
+  apply (simp add: Inf_WF_PREDICATE_def UNREST_TopP)
+  apply (auto simp add: UNREST_def)
+done
+
 end

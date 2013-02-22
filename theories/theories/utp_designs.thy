@@ -24,7 +24,6 @@ definition "okay  \<equiv> MkVar (MkName ''okay'' 0 NoSub) BoolType True"
 abbreviation "okay' \<equiv> dash okay"
 abbreviation "okay'' \<equiv> dash (dash okay)"
 
-
 lemma okay_simps [simp]: 
   "okay \<in> UNDASHED" "okay' \<in> DASHED" "okay'' \<in> DASHED_TWICE"
   "MkBool True \<rhd> okay" "MkBool False \<rhd> okay"
@@ -319,26 +318,6 @@ lemma H1_DesignD: "p \<turnstile> q is H1 healthy"
   apply (utp_alpha_tac2)
   apply (utp_pred_auto_tac)
 done
-
-lemma ClosureA_intro: "\<lbrakk> \<alpha> p = \<alpha> q; [p \<Leftrightarrow> q] \<rbrakk> \<Longrightarrow> p = q"
-  apply (utp_alpha_tac)
-  apply (utp_pred_tac)
-done
-
-lemma eq_iff_taut: "\<lbrakk> \<alpha> P = \<alpha> Q \<rbrakk> \<Longrightarrow> P = Q \<longleftrightarrow> taut (P \<Leftrightarrow>\<alpha> Q)"
-  apply (auto)
-  apply (utp_alpha_tac)
-  apply (rule ClosureA_intro)
-  apply (auto)
-done
-
-lemma AndA_OrA_dist:
-  "`(P \<or> Q) \<and> R` = `(P \<and> R) \<or> (Q \<and> R)`"
-  by (utp_alpha_tac2, utp_pred_auto_tac)
-
-lemma OrA_AndA_dist:
-  "`(P \<and> Q) \<or> R` = `(P \<or> R) \<and> (Q \<or> R)`"
-  by (utp_alpha_tac2, utp_pred_auto_tac)
 
 lemma MkBool_True: "\<lbrakk> \<D> p; p : BoolType; DestBool p \<rbrakk> \<Longrightarrow> p = MkBool True"
   by (auto)

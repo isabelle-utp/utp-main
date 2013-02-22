@@ -7,8 +7,14 @@
 header {* Algebraic Laws *}
 
 theory utp_alpha_laws
-imports utp_alpha_pred utp_alpha_rel "../tactics/utp_alpha_expr_tac" "../parser/utp_alpha_pred_parser"
+imports 
+  utp_alpha_pred 
+  utp_alpha_rel 
+  "../tactics/utp_alpha_expr_tac" 
+  "../parser/utp_alpha_pred_parser"
 begin
+
+subsection {* Basic properties *}
 
 theorem AndA_assoc:
   "`p \<and> (q \<and> r)` = `(p \<and> q) \<and> r`"
@@ -18,7 +24,7 @@ theorem AndA_comm:
   "`p \<and> q` = `q \<and> p`"
   by (utp_alpha_tac2, utp_pred_auto_tac)
 
-theorem AndA_idem:
+theorem AndA_idem [simp]:
   "`p \<and> p` = `p`"
   by (utp_alpha_tac2, utp_pred_auto_tac)
 
@@ -30,9 +36,19 @@ theorem OrA_comm:
   "`p \<or> q` = `q \<or> p`"
   by (utp_alpha_tac2, utp_pred_auto_tac)
 
-theorem OrA_idem:
+theorem OrA_idem [simp]:
   "`p \<or> p` = `p`"
   by (utp_alpha_tac2, utp_pred_auto_tac)
+
+lemma AndA_OrA_dist:
+  "`(p \<or> q) \<and> r` = `(p \<and> r) \<or> (q \<and> r)`"
+  by (utp_alpha_tac2, utp_pred_auto_tac)
+
+lemma OrA_AndA_dist:
+  "`(p \<and> q) \<or> r` = `(p \<or> r) \<and> (q \<or> r)`"
+  by (utp_alpha_tac2, utp_pred_auto_tac)
+
+subsection {* Conditional Laws *}
 
 theorem CondA_unfold:
 "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; b \<in> WF_CONDITION; \<alpha> p = \<alpha> q; \<alpha> b \<subseteq>\<^sub>f \<alpha> p \<rbrakk> \<Longrightarrow>
@@ -567,6 +583,18 @@ done
 lemma HOM_ALPHABET_homl [simp]: "a \<in> HOM_ALPHABET \<Longrightarrow> homl a = a"
   apply (simp add:HOM_ALPHABET_def hom_left_def HOM_ALPHA_unfold alphabet_dist alphabet_simps)
   apply (metis SkipA_alphabet SkipA_closure WF_RELATION_UNDASHED_DASHED alphabet_simps(14))
+done
+
+lemma ClosureA_intro: "\<lbrakk> \<alpha> p = \<alpha> q; [p \<Leftrightarrow> q] \<rbrakk> \<Longrightarrow> p = q"
+  apply (utp_alpha_tac)
+  apply (utp_pred_tac)
+done
+
+lemma eq_iff_taut: "\<lbrakk> \<alpha> P = \<alpha> Q \<rbrakk> \<Longrightarrow> P = Q \<longleftrightarrow> taut (P \<Leftrightarrow>\<alpha> Q)"
+  apply (auto)
+  apply (utp_alpha_tac)
+  apply (rule ClosureA_intro)
+  apply (auto)
 done
 
 end
