@@ -228,6 +228,19 @@ theorem RenameA_VarA [urename]:
   apply (simp add:RenameP_VarP)
 done
 
+theorem ExistsA_ident :
+  "a \<inter>\<^sub>f \<alpha> p = \<lbrace>\<rbrace> \<Longrightarrow> (\<exists>-\<alpha> a . p) = p"
+  apply (utp_alpha_tac2)
+  apply (rule_tac ExistsP_ident)
+  apply (rule UNREST_subset)
+  apply (rule EvalA_UNREST)
+  apply (force)
+done
+
+theorem ExistsA_ident1 :
+  "x \<notin>\<^sub>f \<alpha> p \<Longrightarrow> `\<exists>- x . p` = p"
+  by (auto intro: ExistsA_ident)
+
 theorem ExistsA_union :
 "(\<exists>-\<alpha> a1 \<union>\<^sub>f a2 . p) = (\<exists>-\<alpha> a1 . \<exists>-\<alpha> a2 . p)"
   by (utp_alpha_tac2, metis ExistsP_union)
@@ -584,7 +597,12 @@ lemma hom_simps [simp]:
   "in\<^sub>\<alpha> (homr a) = undash `\<^sub>f out\<^sub>\<alpha> a"
   "out\<^sub>\<alpha> (homl a) = dash `\<^sub>f in\<^sub>\<alpha> a"
   "in\<^sub>\<alpha> (homl a) = in\<^sub>\<alpha> a"
-  by (simp_all add:hom_right_def hom_left_def alphabet_dist)
+  "x \<in> UNDASHED \<Longrightarrow> x \<in>\<^sub>f homl a \<longleftrightarrow> x \<in>\<^sub>f a"
+  "x \<in> DASHED \<Longrightarrow> x \<in>\<^sub>f homl a \<longleftrightarrow> undash x \<in>\<^sub>f a"
+  apply (simp_all add:hom_right_def hom_left_def alphabet_dist var_simps var_dist)
+  apply (metis Int_iff UNDASHED_not_DASHED in_vars_def out_dash out_vars_def)
+  apply (metis IntE IntI dash_undash_DASHED imageI out_dash out_vars_def undash_dash_image utp_var.not_dash_member_in)
+done
 
 lemma HOM_ALPHABET_homr  [simp]: "a \<in> HOM_ALPHABET \<Longrightarrow> homr a = a"
   apply (simp add:HOM_ALPHABET_def hom_right_def HOM_ALPHA_unfold alphabet_dist alphabet_simps)
@@ -607,5 +625,97 @@ lemma eq_iff_taut: "\<lbrakk> \<alpha> P = \<alpha> Q \<rbrakk> \<Longrightarrow
   apply (rule ClosureA_intro)
   apply (auto)
 done
+
+lemma AssignA_unfold:
+  "\<lbrakk> a \<in> REL_ALPHABET; x \<in>\<^sub>f a; dash x \<in>\<^sub>f a; \<alpha> v \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow>
+   `x :=\<^bsub>a\<^esub> v` = ((VarAE (dash x) ==\<alpha> v) \<and>\<alpha> II\<alpha> (a -\<^sub>f \<lbrace>x,dash x\<rbrace>)) \<oplus>\<alpha> \<lbrace>x\<rbrace>"
+  apply (utp_alpha_tac2)
+  apply (simp add:AssignR_def)
+done
+
+lemma SubstA_ident_twice:
+  assumes "x \<noteq> y" "type x = type y" "aux x = aux y" "x \<in>\<^sub>f \<alpha> P" "y \<notin>\<^sub>f \<alpha> P"
+  shows "`P[$y/x][$x/y]` = P"
+proof -
+
+  from assms have "VarAE y \<rhd>\<^sub>\<alpha> x" "VarAE x \<rhd>\<^sub>\<alpha> y"
+    by (auto intro!:typing defined)
+
+  with assms have "`P[$y/x][$x/y]` = `\<exists>- y. (\<exists>- x. P \<and> $x = $y) \<and> $y = $x`"
+    apply (simp)
+    apply (insert SubstA_one_point[of "VarAE y" "x" "P", THEN sym])
+    apply (insert SubstA_one_point[of "VarAE x" "y" "`\<exists>- x. P \<and> $x = $y`", THEN sym])
+    apply (simp add:alphabet)
+  done
+
+  also from assms have "`\<exists>- y. (\<exists>- x. P \<and> $x = $y) \<and> $y = $x` = P"
+    apply (utp_alpha_tac)
+    apply (rule conjI)
+    apply (force)
+    apply (utp_pred_tac)
+    apply (utp_expr_tac)
+    apply (clarify)
+    apply (rule iffI)
+    apply (clarsimp)
+    apply (subgoal_tac "\<langle>b\<rangle>\<^sub>b x \<rhd> y")
+    apply (subgoal_tac "UNREST (VAR - \<langle>\<alpha> P\<rangle>\<^sub>f) \<lbrakk>P\<rbrakk>\<pi>")
+    apply (simp add: EvalP_UNREST_binding_upd binding_upd_twist)
+    apply (simp add: unrest)
+    apply (simp add: typing)
+    apply (rule_tac x="b(y:=\<^sub>b(\<langle>b\<rangle>\<^sub>b x))" in exI)
+    apply (clarsimp)
+    apply (rule_tac x="b" in exI)
+    apply (simp)
+    apply (subgoal_tac "\<langle>b\<rangle>\<^sub>b x \<rhd> y")
+    apply (subgoal_tac "UNREST (VAR - \<langle>\<alpha> P\<rangle>\<^sub>f) \<lbrakk>P\<rbrakk>\<pi>")
+    apply (simp add: EvalP_UNREST_binding_upd binding_upd_twist)
+    apply (simp add: unrest)
+    apply (simp add: typing)
+  done
+
+  ultimately show ?thesis
+    by simp
+qed
+
+lemma ExistsA_insert: 
+  assumes "x \<in>\<^sub>f \<alpha> P" "y \<notin>\<^sub>f \<alpha> P" "x \<noteq> y" "type x = type y" "aux x = aux y"
+  shows "P = `\<exists>- y. P[$y/x] \<and> $y = $x`"
+proof -
+
+  from assms have "P = `P[$y/x][$x/y]`"
+    by (metis SubstA_ident_twice)
+
+  also from assms have "... = `\<exists>- y. P[$y/x] \<and> $y = $x`"
+    apply (subgoal_tac "VarAE x \<rhd>\<^sub>\<alpha> y")
+    apply (subgoal_tac "VarAE y \<rhd>\<^sub>\<alpha> x")
+    apply (insert SubstA_one_point[of "VarAE x" "y" "`P[$y/x]`"])
+    apply (simp_all add:unrest typing alphabet)
+    apply (auto intro!:typing defined)
+  done
+
+  ultimately show ?thesis by simp
+
+qed
+
+lemma AssignA_SubstA: 
+  assumes "x \<in> UNDASHED" "x \<in>\<^sub>f \<alpha> p" "\<alpha> v \<subseteq>\<^sub>f in\<^sub>\<alpha> (\<alpha> p)"
+  shows "`(x :=\<^bsub>homl (\<alpha> p)\<^esub> v) ; p` = `p[v/x]`"
+  apply (insert AssignA_unfold[of "homl (\<alpha> p)" "x" "v"])
+
+proof -
+
+  from assms have "\<alpha> v \<subseteq>\<^sub>f homl (\<alpha> p)"
+    by (auto simp add:hom_left_def)
+
+  with assms have "`(x :=\<^bsub>homl (\<alpha> p)\<^esub> v) ; p` = (((VarAE (dash x) ==\<alpha> v) \<and>\<alpha> II\<alpha> (homl (\<alpha> p) -\<^sub>f \<lbrace>x, dash x\<rbrace>)) \<oplus>\<alpha> \<lbrace>x\<rbrace>) ;\<alpha> p"
+    by (smt AssignA_unfold REL_ALPHABET_hom_left UNDASHED_dash_DASHED hom_simps undash_dash)
+
+  from assms have "... = ((((\<exists>-\<alpha> \<lbrace> x \<rbrace>. (VarAE x ==\<alpha> v) \<and>\<alpha> (VarAE (dash x) ==\<alpha> VarAE x))) \<and>\<alpha> II\<alpha> (homl (\<alpha> p) -\<^sub>f \<lbrace>x, dash x\<rbrace>)) \<oplus>\<alpha> \<lbrace>x\<rbrace>) ;\<alpha> p"
+    sorry
+
+  from assms have "... = `((\<exists>- x. $x = v \<and> II\<^bsub>homl (\<alpha> p)\<^esub>) \<oplus> \<lbrace>x\<rbrace>) ; p`"
+oops
+
+
 
 end

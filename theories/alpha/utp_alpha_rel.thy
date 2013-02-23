@@ -492,6 +492,11 @@ apply (simp add: EvalA_def)
 apply (simp add: SemiA_rep_eq)
 done
 
+theorem EvalA_AssignA [evala] :
+"\<lbrakk> a \<in> REL_ALPHABET; x \<in>\<^sub>f a; dash x \<in>\<^sub>f a; \<alpha> v \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow> 
+ \<lbrakk>x :=\<^bsub>a\<^esub> v\<rbrakk>\<pi> = x :=p\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon>"
+  by (simp add:AssignA_rep_eq EvalA_def EvalAE_def)
+
 declare pred_alphabet_def [simp del]
 
 subsubsection {* Proof Experiments *}

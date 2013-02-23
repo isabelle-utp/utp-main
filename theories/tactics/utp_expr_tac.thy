@@ -95,6 +95,10 @@ theorem EvalE_UNREST_assign [evale] :
   apply (metis binding_override_simps(2) binding_override_simps(8))
 done
 
+theorem EvalE_RenameE [evale] :
+"\<lbrakk>e[ss]\<epsilon>\<rbrakk>\<epsilon>b = \<lbrakk>e\<rbrakk>\<epsilon>(RenameB (inv\<^sub>s ss) b)"
+  by (simp add: EvalE_def wf_expr_bfun_def RenameE.rep_eq)
+
 theorem EvalE_SubstP [eval] :
   assumes "v \<rhd>\<^sub>e x"
           "\<exists> z. is_SubstP_var p v x z"

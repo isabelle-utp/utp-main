@@ -610,7 +610,50 @@ proof -
 
 qed
 
-(* Expression substitution *)
+text {* Expressions renaming *}
+
+theorem RenameE_id :
+"p[id\<^sub>s]\<epsilon> = p"
+  by (utp_expr_tac)
+
+theorem RenameE_inverse1 :
+"e[ss]\<epsilon>[inv\<^sub>s ss]\<epsilon> = e"
+  by (utp_expr_tac)
+
+theorem RenameE_inverse2 :
+"e[inv\<^sub>s ss]\<epsilon>[ss]\<epsilon> = e"
+  by (utp_expr_tac)
+
+theorem RenameE_compose :
+"e[ss1]\<epsilon>[ss2]\<epsilon> = e[ss2 \<circ>\<^sub>s ss1]\<epsilon>"
+apply (utp_expr_tac)
+apply (simp add: RenameB_compose closure)
+done
+
+theorem RenameE_commute :
+"\<lbrakk>ss1 \<in> VAR_RENAME_ON vs1;
+ ss2 \<in> VAR_RENAME_ON vs2;
+ vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
+ (e::'VALUE WF_EXPRESSION)[ss1]\<epsilon>[ss2]\<epsilon> = e[ss2]\<epsilon>[ss1]\<epsilon>"
+apply (utp_expr_tac)
+apply (clarify)
+apply (subst RenameB_commute [of "(inv\<^sub>s ss1)" "vs1" "(inv\<^sub>s ss2)" "vs2" "b"])
+apply (simp_all add: closure)
+done
+
+theorem RenameE_involution [simp] :
+"\<lbrakk>ss \<in> VAR_RENAME_INV\<rbrakk> \<Longrightarrow>
+ p[ss]\<epsilon>[ss]\<epsilon> = p"
+  by (utp_expr_tac)
+
+theorems erename_simps =
+  RenameE_id
+  RenameE_inverse1
+  RenameE_inverse2
+  RenameE_compose
+  RenameE_involution
+
+text {* Expression substitution *}
 
 theorem SubstP_no_var:
   "\<lbrakk> e \<rhd>\<^sub>e x; \<exists> z. is_SubstP_var p e x z; UNREST_EXPR {x} e; UNREST {x} p \<rbrakk> \<Longrightarrow>
@@ -644,5 +687,22 @@ lemma utp_pred_simps [simp]:
   "p \<Rightarrow>p true = true" 
   "p \<Rightarrow>p false = \<not>p p"
   by (utp_pred_tac)+
+
+subsubsection {* Additional EvalP laws *}
+
+lemma EvalP_UNREST_binding_override [eval]:
+  "\<lbrakk> UNREST vs p \<rbrakk> \<Longrightarrow> \<lbrakk>p\<rbrakk>(b1 \<oplus>\<^sub>b b2 on vs) = \<lbrakk>p\<rbrakk>b1"
+  by (metis EvalP_ExistsP EvalP_ForallP ExistsP_ident ForallP_ident)
+
+lemma EvalP_UNREST_binding_upd [eval]:
+  "\<lbrakk> UNREST vs p; x \<in> vs; v \<rhd> x \<rbrakk> \<Longrightarrow> \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b v)) = \<lbrakk>p\<rbrakk>b"
+  apply (auto simp add:UNREST_def EvalP_def)
+  apply (drule_tac x="b(x :=\<^sub>b v)" in bspec, simp)
+  apply (drule_tac x="b" in spec)
+  apply (simp)
+  apply (drule_tac x="b" in bspec, simp)
+  apply (drule_tac x="b(x :=\<^sub>b v)" in spec)
+  apply (simp add:override_on_def binding_equiv_def)
+done
 
 end

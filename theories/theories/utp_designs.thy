@@ -627,4 +627,11 @@ lift_definition DESIGN_THEORY :: "'a::BOOL_SORT WF_THEORY"
   apply (simp add:closure)
 done
 
+
+
+(* WP tactic transfer theorem
+lemma "d1 = d2 \<longleftrightarrow> \<forall> r. d1 wp r = d2 wp r"
+*)
+
+
 end

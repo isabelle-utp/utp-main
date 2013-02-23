@@ -291,6 +291,10 @@ lemma binding_override_upd [simp]:
   "\<lbrakk> x \<in> vs; v \<rhd> x \<rbrakk> \<Longrightarrow> b1 \<oplus>\<^sub>b b2(x :=\<^sub>b v) on vs = b1(x :=\<^sub>b v) \<oplus>\<^sub>b b2 on (vs - {x})"
   by (force simp add:override_on_def)
 
+lemma binding_upd_override [simp]: 
+  "\<lbrakk> x \<in> vs; v \<rhd> x \<rbrakk> \<Longrightarrow> (b1(x :=\<^sub>b v)) \<oplus>\<^sub>b b2 on vs = b1 \<oplus>\<^sub>b b2 on vs"
+  by (force simp add:override_on_def binding_equiv_def)
+
 lemma binding_upd_simps [simp]:
   "\<lbrakk> v1 \<rhd> x; v2 \<rhd> x \<rbrakk> \<Longrightarrow> b(x :=\<^sub>b v1, x :=\<^sub>b v2) = b(x :=\<^sub>b v2)"
   "b(x :=\<^sub>b \<langle>b\<rangle>\<^sub>b x) = b"

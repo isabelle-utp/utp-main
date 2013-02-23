@@ -7,7 +7,7 @@
 header {* Basic Expressions *}
 
 theory utp_expr
-imports  utp_pred utp_unrest utp_sorts
+imports  utp_pred utp_unrest utp_sorts utp_rename
 begin
 
 text {* The type which an expression holds should be the maximal type, if such a notion exists *}
@@ -46,6 +46,8 @@ lemma Rep_WF_EXPRESSION_intro [intro]:
 lemma Rep_WF_EXPRESSION_elim [elim]:
   "\<lbrakk> x = y; Rep_WF_EXPRESSION x = Rep_WF_EXPRESSION y \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (auto)
+
+setup_lifting type_definition_WF_EXPRESSION
 
 definition wf_expr_bfun :: 
   "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_BINDING_FUN" ("\<langle>_\<rangle>\<^sub>e") where
@@ -124,6 +126,13 @@ definition DefinedP :: "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_PREDICATE" 
 
 definition VarDefinedP :: "'VALUE VAR \<Rightarrow> 'VALUE WF_PREDICATE" ("\<V>") where
 "\<V> x \<equiv> DefinedP (VarE x)"
+
+lift_definition RenameE ::
+  "'VALUE WF_EXPRESSION \<Rightarrow>
+   'VALUE VAR_RENAME \<Rightarrow>
+   'VALUE WF_EXPRESSION" ("_[_]\<epsilon>" [200]) is
+"\<lambda> e ss. (expr_type e, expr_bfun e \<circ> (RenameB (inv\<^sub>s ss)))" 
+  by (simp add:WF_EXPRESSION_def)
 
 definition SubstE :: 
 "'VALUE WF_EXPRESSION \<Rightarrow> 
@@ -274,6 +283,14 @@ theorem DefaultE_tau [typing]:
 "\<tau>\<^sub>e (DefaultE t) = t"
   by (simp add:DefaultE_def)
 
+theorem RenameE_type [typing]:
+  "e :\<^sub>e t \<Longrightarrow> e[ss]\<epsilon> :\<^sub>e t" 
+  by (simp add:etype_rel_def wf_expr_bfun_def RenameE.rep_eq)
+
+theorem RenameE_tau [typing]:
+  "\<tau>\<^sub>e (e[ss]\<epsilon>) = \<tau>\<^sub>e e" 
+  by (simp add:wf_expr_type_def RenameE.rep_eq)
+
 theorem SubstE_type [typing]:
 "\<lbrakk> v :\<^sub>e type x; e :\<^sub>e t \<rbrakk> \<Longrightarrow>
  e[v|x] :\<^sub>e t"
@@ -287,6 +304,9 @@ subsubsection {* Definedness Theorems *}
 
 theorem LitE_defined [defined]: "\<lbrakk> \<D> v; v :t \<rbrakk> \<Longrightarrow> \<D> (LitE t v)"
   by (auto simp add:LitE_def Defined_WF_EXPRESSION_def)
+
+theorem VarE_defined [defined]: "aux x \<Longrightarrow> \<D> (VarE x)"
+  by (simp add:VarE_def Defined_WF_EXPRESSION_def defined)
 
 subsubsection {* bfun theorems *}
 
@@ -347,6 +367,11 @@ theorem UNREST_EXPR_VarE [unrest] :
 theorem UNREST_EXPR_LitE [unrest] :
 "UNREST_EXPR vs (LitE t v)"
   by (simp add:LitE_def UNREST_EXPR_def)
+
+theorem UNREST_EXPR_RenameE :
+"UNREST_EXPR vs p \<Longrightarrow>
+ UNREST_EXPR (\<langle>ss\<rangle>\<^sub>s ` vs) p[ss]\<epsilon>"
+  by (auto simp add: UNREST_EXPR_def wf_expr_bfun_def wf_expr_type_def RenameE.rep_eq RenameB_override_distr1 closure)
 
 theorem UNREST_EXPR_SubstE [unrest] :
 "\<lbrakk> v \<rhd>\<^sub>e x;

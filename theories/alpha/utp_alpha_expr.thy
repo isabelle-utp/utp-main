@@ -292,7 +292,7 @@ theorem ExprA_alphabet [alphabet]:
   by (simp add:ExprA_rep_eq)
 
 theorem SubstA_alphabet [alphabet]:
-"\<lbrakk> v \<rhd>\<^sub>\<alpha> x; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> 
+"\<lbrakk> v \<rhd>\<^sub>\<alpha> x; x \<notin>\<^sub>f \<alpha> v \<rbrakk> 
   \<Longrightarrow>  \<alpha>(p[v|x]\<alpha>) = (if (x \<in>\<^sub>f \<alpha> p) then (\<alpha> p -\<^sub>f finsert x \<lbrace>\<rbrace>) \<union>\<^sub>f \<alpha> v
                      else \<alpha> p)"
   by (auto simp add:SubstA_rep_eq)
@@ -330,6 +330,10 @@ theorem LitAE_type [typing]:
 "v : t \<Longrightarrow> LitAE t v :\<^sub>\<alpha> t"
   by (simp add:LitAE.rep_eq eatype_rel_def typing)
 
+theorem VarAE_type [typing]:
+"t = type x \<Longrightarrow> VarAE x :\<^sub>\<alpha> t"
+  by (simp add:VarAE.rep_eq eatype_rel_def typing)
+
 theorem expr_type [typing]: "\<epsilon> e :\<^sub>e \<tau>\<^sub>e (\<epsilon> e)"
   by (simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def typing)
 
@@ -346,6 +350,9 @@ theorem TrueAE_defined [defined]: "\<D> TrueAE"
 
 theorem FalseAE_defined [defined]: "\<D> FalseAE"
   by (auto simp add:FalseAE.rep_eq Defined_WF_ALPHA_EXPRESSION_def defined)
+
+theorem VarAE_defined [defined]: "aux x \<Longrightarrow> \<D> (VarAE x)"
+  by (simp add:VarAE.rep_eq Defined_WF_ALPHA_EXPRESSION_def defined)
 
 declare expr_alpha_def [simp del]
 declare pred_alphabet_def [simp del]
