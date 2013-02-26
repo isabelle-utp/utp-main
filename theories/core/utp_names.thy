@@ -17,6 +17,7 @@ text {* Subscripts are encoded by virtue of a datatype. *}
 datatype SUBSCRIPT = Sub "nat" | NoSub
 
 derive countable SUBSCRIPT
+derive linorder SUBSCRIPT
 
 subsection {* Names *}
 
@@ -28,6 +29,10 @@ usual record theorems manually.
 
 datatype NAME =
   MkName string nat SUBSCRIPT
+
+derive countable NAME
+derive linorder NAME
+
 
 primrec name_str :: "NAME \<Rightarrow> string" where
 "name_str (MkName n d s) = n"

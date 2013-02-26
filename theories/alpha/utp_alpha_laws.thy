@@ -182,7 +182,15 @@ proof -
   done
 qed
 
-theorem RenameA_id :
+theorem RenameA_TRUE [urename]: 
+"TRUE[ss]\<alpha> = TRUE"
+  by (utp_alpha_tac, utp_pred_tac)
+
+theorem RenameA_FALSE [urename]: 
+"FALSE[ss]\<alpha> = FALSE"
+  by (utp_alpha_tac, utp_pred_tac)
+
+theorem RenameA_id [urename]:
 "p[id\<^sub>s]\<alpha> = p"
   by (utp_alpha_tac2, simp add:RenameP_id)
 
@@ -619,6 +627,19 @@ lemma ClosureA_intro: "\<lbrakk> \<alpha> p = \<alpha> q; [p \<Leftrightarrow> q
   apply (utp_pred_tac)
 done
 
+lemma "\<lbrakk> x \<in>\<^sub>f \<alpha> p; \<forall> v. v \<rhd> x \<longrightarrow> taut (p[LitAE (type x) v|x]\<alpha>) \<rbrakk> \<Longrightarrow> taut p"
+
+(*
+lemma SubstA_intro:
+  "\<lbrakk> x \<in>\<^sub>f \<alpha> P; \<forall> v. v \<rhd>\<^sub>\<alpha> x \<and> x \<notin>\<^sub>f \<alpha> v \<longrightarrow> [P[v/x]] \<rbrakk> \<Longrightarrow> [P]"
+  apply (utp_alpha_tac)
+  apply (utp_pred_tac)
+  apply (simp add:evala)
+  apply (auto)
+ 
+  apply ()
+*)
+
 lemma eq_iff_taut: "\<lbrakk> \<alpha> P = \<alpha> Q \<rbrakk> \<Longrightarrow> P = Q \<longleftrightarrow> taut (P \<Leftrightarrow>\<alpha> Q)"
   apply (auto)
   apply (utp_alpha_tac)
@@ -696,6 +717,42 @@ proof -
   ultimately show ?thesis by simp
 
 qed
+
+(*
+lemma 
+  shows "p[ss]\<alpha> = p[Abs_VAR_RENAME (MapRename [flist (\<alpha> p) [\<mapsto>] (map \<langle>ss\<rangle>\<^sub>s (flist (\<alpha> p)))])]\<alpha>"
+proof -
+
+  obtain xs where "\<alpha> p = fset xs" "sorted xs" "distinct xs"
+    by (metis flist_inv flist_props)
+
+  thus ?thesis
+    apply (simp)
+    apply (rule_tac vs="\<langle>\<alpha> p\<rangle>\<^sub>f" in RenameA_equiv)
+    apply (simp)
+    apply (simp add:rename_equiv_def)
+    apply (induct xs)
+    apply (auto)
+    thm VAR_RENAME_MapRename
+    apply (simp add:closure)
+    thm MapRename_
+    thm Abs_VAR_RENAME_inverse
+    apply (auto)
+    apply (case_tac "x=a")
+    apply (simp add:)
+
+    apply (simp add:RenameA.rep_eq)
+
+  apply (induct "\<alpha> p")
+  apply (simp)
+  apply (drule sym)
+  apply (erule WF_ALPHA_PREDICATE_empty_elim)
+  apply (simp add:urename)+
+  apply (drule sym)
+  apply (simp)
+
+  done
+*)
 
 lemma AssignA_SubstA: 
   assumes "x \<in> UNDASHED" "x \<in>\<^sub>f \<alpha> p" "\<alpha> v \<subseteq>\<^sub>f in\<^sub>\<alpha> (\<alpha> p)"

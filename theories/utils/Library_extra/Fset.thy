@@ -160,6 +160,11 @@ definition fset :: "'a list \<Rightarrow> 'a fset" where
 lemma flist_inv [simp]: "fset (flist xs) = xs"
   by (simp add:fset_def flist_def Rep_fset_inverse)
 
+lemma fset_inv [simp]: "\<lbrakk> sorted xs; distinct xs \<rbrakk> \<Longrightarrow> flist (fset xs) = xs"
+  apply (simp add:fset_def flist_def Rep_fset_inverse)
+  apply (metis finite_set sorted_distinct_set_unique sorted_list_of_set)
+done
+
 lemma fset_empty [simp]: "fset [] = \<lbrace>\<rbrace>"
   by (simp add:fset_def fempty_def)
 
@@ -284,6 +289,16 @@ lemma fset_simps [simp]:
   "xs -\<^sub>f \<lbrace>\<rbrace> = xs"
   "\<lbrace>\<rbrace> -\<^sub>f xs = \<lbrace>\<rbrace>"
   by (auto)
+
+lemma flist_finsert [simp]:
+  "\<forall>x'. x'\<in>\<^sub>fA \<longrightarrow> x < x' \<Longrightarrow> flist (finsert x A) = x # flist A"
+  apply (subgoal_tac "x \<notin>\<^sub>f A")
+  apply (auto)
+  apply (induct A)
+  apply (simp_all add:flist_def)
+  apply (drule_tac x="xa" in spec)
+  apply (smt insort_key.simps insort_left_comm linorder_not_less)
+done
 
 end
 

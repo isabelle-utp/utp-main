@@ -480,4 +480,26 @@ theorem TrueA_noteq_FalseA :
 (* This lines make many later proofs easier *)
 declare pred_alphabet_def [simp del]
 
+lemma WF_ALPHA_PREDICATE_neq_elim [elim]: 
+  "\<lbrakk> p \<noteq> q; \<alpha> p \<noteq> \<alpha> q \<Longrightarrow> P; \<pi> p \<noteq> \<pi> q \<Longrightarrow> P \<rbrakk>  \<Longrightarrow> P "
+  by (auto)
+
+theorem WF_ALPHA_PREDICATE_empty_true_false:
+  "\<alpha> p = \<lbrace>\<rbrace> \<Longrightarrow> p = TRUE \<or> p = FALSE"
+  apply (auto)
+  apply (rule WF_ALPHA_PREDICATE_intro)
+  apply (simp add:alphabet)
+  apply (erule WF_ALPHA_PREDICATE_neq_elim)
+  apply (simp add:TrueA_rep_eq FalseA_rep_eq alphabet)
+  apply (simp add:TrueA_rep_eq FalseA_rep_eq alphabet)
+  apply (insert WF_ALPHA_PREDICATE_UNREST[of p])
+  apply (simp)
+  apply (drule UNREST_true_false)
+  apply (force)
+done
+
+theorem WF_ALPHA_PREDICATE_empty_elim:
+  "\<lbrakk> \<alpha> p = \<lbrace>\<rbrace>; p = TRUE \<Longrightarrow> P; p = FALSE \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (metis WF_ALPHA_PREDICATE_empty_true_false)
+
 end

@@ -46,7 +46,7 @@ value.
  *}
 
 class VALUE = DEFINED +
-  fixes   utype_rel :: "'a \<Rightarrow> udom \<Rightarrow> bool" (infix ":\<^sub>u" 50)
+  fixes   utype_rel :: "'a \<Rightarrow> nat \<Rightarrow> bool" (infix ":\<^sub>u" 50)
   assumes utype_nonempty: "\<exists> t v. v :\<^sub>u t \<and> \<D> v"
 
 default_sort VALUE
@@ -65,11 +65,34 @@ typedef (open) 'VALUE UTYPE = "UTYPES TYPE('VALUE)"
   apply (auto simp add:UTYPES_def)
 done
 
+declare Rep_UTYPE [simp]
+declare Abs_UTYPE_inverse [simp]
+declare Rep_UTYPE_inverse [simp]
+
+lemma Rep_UTYPE_intro [intro!]:
+  "Rep_UTYPE x = Rep_UTYPE y \<Longrightarrow> x = y"
+  by (simp add:Rep_UTYPE_inject)
+
 lemma Rep_UTYPE_elim [elim]:
   "\<lbrakk> \<And> v\<Colon>'VALUE. \<lbrakk> v :\<^sub>u Rep_UTYPE (t :: 'VALUE UTYPE); \<D> v \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   apply (insert Rep_UTYPE[of t])
   apply (auto simp add:UTYPES_def)
 done
+
+instantiation UTYPE :: (VALUE) linorder 
+begin
+
+definition less_eq_UTYPE :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> bool" where
+"less_eq_UTYPE x y = (Rep_UTYPE x \<le> Rep_UTYPE y)"
+
+definition less_UTYPE :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> bool" where
+"less_UTYPE x y = (Rep_UTYPE x < Rep_UTYPE y)"
+
+instance
+  apply (intro_classes)
+  apply (auto simp add:less_eq_UTYPE_def less_UTYPE_def)
+done
+end
 
 text {* We derive a typing relation using @{term "UTYPE"}, which has more 
 useful properties than the underlying @{term "utype_rel"}. *}
@@ -112,18 +135,16 @@ lemma someType_value: "\<exists> v. v : someType"
   apply (metis (lifting) Rep_UTYPE_elim type_rel_def)
 done
 
-declare Abs_UTYPE_inverse [simp]
-declare Rep_UTYPE_inverse [simp]
-
 lemma Abs_UTYPE_type [typing,intro]: "\<lbrakk> x :\<^sub>u t; \<D> x \<rbrakk> \<Longrightarrow> x : Abs_UTYPE t"
   by (metis (lifting) Rep_UTYPE_cases Rep_UTYPE_inverse UTYPES_def mem_Collect_eq type_rel_def)
 
 definition embTYPE :: "'b::countable \<Rightarrow> 'a::VALUE UTYPE" where
-"embTYPE t \<equiv> Abs_UTYPE (emb\<cdot>(Def t))"
+"embTYPE t \<equiv> Abs_UTYPE (to_nat t)"
 
 definition prjTYPE :: "'a::VALUE UTYPE \<Rightarrow> 'b::{countable,cpo}" where
-"prjTYPE t \<equiv> Undef (prj\<cdot>(Rep_UTYPE t))"
+"prjTYPE t \<equiv> from_nat (Rep_UTYPE t)"
 
+(*
 lemma embTYPE_inv [simp]:
   fixes x :: "'a::{countable,cpo}"
         and v :: "'b"
@@ -135,6 +156,7 @@ lemma embTYPE_inv [simp]:
   apply (rule_tac x="v" in exI)
   apply (simp add:assms)
 done
+*)
 
 subsection {* Typing operator syntax *}
 

@@ -125,7 +125,7 @@ a type. *}
 class INT_SORT = VALUE +
   fixes MkInt    :: "int \<Rightarrow> 'a"
   fixes DestInt  :: "'a \<Rightarrow> int"
-  fixes IntUType :: "'a itself \<Rightarrow> udom"
+  fixes IntUType :: "'a itself \<Rightarrow> nat"
   -- {* The injection can always be reversed. *}
   assumes Inverse [simp] : "DestInt (MkInt i) = i"
   -- {* The values produced by the injection are precisely the well typed 
@@ -205,7 +205,7 @@ subsection {* Boolean Sort *}
 class BOOL_SORT = VALUE +
   fixes MkBool :: "bool \<Rightarrow> 'a"
   fixes DestBool :: "'a \<Rightarrow> bool"
-  fixes BoolUType :: "'a itself \<Rightarrow> udom"
+  fixes BoolUType :: "'a itself \<Rightarrow> nat"
   assumes Inverse [simp] : "DestBool (MkBool b) = b"
   assumes MkBool_range: "range MkBool = {x. x :\<^sub>u BoolUType TYPE('a) \<and> \<D> x}"
 begin

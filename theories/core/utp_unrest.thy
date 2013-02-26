@@ -282,6 +282,12 @@ theorem UNREST_fresh_var:
   apply (smt someI_ex)
 done
 
+text {* A predicate unrestricted on all variables is either true or false *}
+
+theorem UNREST_true_false: 
+  "UNREST VAR p \<Longrightarrow> p = true \<or> p = false"
+  by (auto simp add:UNREST_def TrueP_def FalseP_def)
+
 declare UNREST_empty [unrest]
 declare UNREST_subset [unrest]
 declare UNREST_union [unrest]
