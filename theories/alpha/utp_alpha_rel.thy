@@ -337,8 +337,7 @@ theorem AssignA_rep_eq:
   apply (subgoal_tac "\<langle>a\<rangle>\<^sub>f = {dash x} \<union> (\<langle>a\<rangle>\<^sub>f - {dash x})")
   apply (force)
   apply (force)
-  apply (rule UNREST_AssignR)
-  apply (metis Diff_mono UNREST_EXPR_subset WF_ALPHA_EXPRESSION_UNREST_EXPR order_refl)
+  apply (force intro:unrest)
 done
 
 theorem AssignA_closure [closure] :

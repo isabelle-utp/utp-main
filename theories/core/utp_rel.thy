@@ -388,6 +388,16 @@ theorem UNREST_SkipRA [unrest]:
   by (auto intro:closure unrest simp add:SkipRA_def)
 
 theorem UNREST_AssignR [unrest]:
+"\<lbrakk> UNREST_EXPR (VAR - vs1) v \<rbrakk> \<Longrightarrow> 
+ UNREST (VAR - ({dash x} \<union> (vs1 \<union> vs2))) (x :=p\<^bsub>vs2\<^esub> v)"
+  apply (simp add:AssignR_def)
+  apply (rule unrest)
+  apply (force intro :unrest)
+  apply (force intro :unrest)
+done
+
+(*
+theorem UNREST_AssignR [unrest]:
 "\<lbrakk> UNREST_EXPR (VAR - vs) v \<rbrakk> \<Longrightarrow> 
  UNREST (VAR - ({dash x} \<union> vs)) (x :=p\<^bsub>vs\<^esub> v)"
   apply (subgoal_tac "(VAR - insert (dash x) vs) = (VAR - {dash x}) \<inter> (- vs)") 
@@ -395,6 +405,7 @@ theorem UNREST_AssignR [unrest]:
   apply (force intro:closure unrest simp add:AssignR_def)
   apply (auto)
 done
+*)
 
 theorem UNREST_CondR [unrest]: 
   "\<lbrakk>UNREST vs p1; UNREST vs p2; UNREST vs b\<rbrakk> \<Longrightarrow>

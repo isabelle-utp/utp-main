@@ -134,21 +134,13 @@ lift_definition RenameE ::
 "\<lambda> e ss. (expr_type e, expr_bfun e \<circ> (RenameB (inv\<^sub>s ss)))" 
   by (simp add:WF_EXPRESSION_def)
 
+(* FIXME: Expression substitution doesn't substitute, it just identifies *)
 definition SubstE :: 
 "'VALUE WF_EXPRESSION \<Rightarrow> 
  'VALUE WF_EXPRESSION \<Rightarrow> 
  'VALUE VAR \<Rightarrow> 
  'VALUE WF_EXPRESSION" ("_[_|_]" [200]) where
 "SubstE f v x = wfexpr (\<tau>\<^sub>e f, \<lambda> b. \<langle>f\<rangle>\<^sub>e (b(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b)))"
-
-(*
-definition SubstP ::
-"('VALUE, 'TYPE) PREDICATE \<Rightarrow> 
- ('VALUE, 'TYPE) EXPRESSION \<Rightarrow> 
- 'TYPE VAR \<Rightarrow> 
- ('VALUE, 'TYPE) PREDICATE" ("_[_|_]" [200]) where
-"p[v|x] \<equiv> {b'. \<exists> b. b \<in> p \<and> b x = expr_bfun v b'} \<inter> {b \<oplus> b' on {x} | b b'. b \<in> p \<and> b' \<in> WF_BINDING}"
-*)
 
 definition SubstP_body ::
 "'VALUE WF_PREDICATE \<Rightarrow> 

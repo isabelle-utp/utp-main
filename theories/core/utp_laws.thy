@@ -121,6 +121,18 @@ theorem RenameP_VarP [urename]:
   apply (simp add:RenameB_def)
 done
 
+theorem RenameP_EqualP [urename]:
+"(e ==p f)[ss] = e[ss]\<epsilon> ==p f[ss]\<epsilon>"
+  apply (utp_pred_tac)
+  apply (utp_expr_tac)
+done
+
+theorem RenameE_VarE [urename]:
+"(VarE x)[ss]\<epsilon> = VarE (\<langle>ss\<rangle>\<^sub>s x)"
+  apply (utp_expr_tac)
+  apply (simp add:RenameB_def)
+done
+
 subsubsection {* Other renaming laws *}
 
 theorem RenameP_UNREST [simp]:
@@ -666,14 +678,106 @@ theorem SubstP_no_var:
   apply (metis EvalE_UNREST_assign EvalE_compat binding_upd_apply insertI1)
 done
 
-(*
-theorem SemiR_AndR_distl :
-"\<lbrakk> \<forall> vs1 vs2. UNREST vs1 r2 \<and> UNREST vs2 r3 \<longrightarrow> vs1 \<inter> vs2 = {};
-   UNREST DASHED_TWICE r1; UNREST DASHED_TWICE r2; UNREST DASHED_TWICE r3 \<rbrakk> \<Longrightarrow>
-  r1 ; (r2 \<and>p r3) = (r1 ; r2) \<and>p (r1 ; r3)"
-  apply (simp add: SemiR_algebraic UNREST_AndP RenameP_AndP_distr)
-  apply (utp_pred_auto_tac)
-*)
+lemma is_SubstP_var_equiv:
+  "\<lbrakk> is_SubstP_var p v x x'; 
+     is_SubstP_var p v x x''; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> 
+     SubstP_body p v x x' = SubstP_body p v x x''" 
+  apply (subgoal_tac "v \<rhd>\<^sub>e x'")
+  apply (subgoal_tac "v \<rhd>\<^sub>e x''")
+  apply (simp add:SubstP_def SubstP_body_def is_SubstP_var_def)
+  apply (erule conjE)+
+  apply (utp_pred_tac)
+  apply (utp_expr_tac)
+  apply (clarify)
+  apply (simp add:binding_upd_twist)
+  apply (rule iffI)
+  apply (rule_tac x="b(x'' :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b)" in exI)
+  apply (erule exE, erule conjE)
+  apply (simp add:binding_upd_twist)
+  apply (metis EvalP_ExistsP_singleton EvalP_ForallP_singleton ExistsP_ident ForallP_ident binding_value_alt)
+  apply (rule_tac x="b(x' :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b)" in exI)
+  apply (erule exE, erule conjE)
+  apply (simp add:binding_upd_twist)
+  apply (metis EvalP_ExistsP_singleton EvalP_ForallP_singleton ExistsP_ident ForallP_ident binding_value_alt)
+  apply (simp add:evar_compat_def is_SubstP_var_def var_compat_def)
+  apply (simp add:evar_compat_def is_SubstP_var_def var_compat_def)
+done
+
+lemma is_SubstP_var_UNDASHED: 
+  "\<lbrakk> x \<in> UNDASHED; 
+     UNREST {dash (dash x)} p; 
+     UNREST_EXPR {dash (dash x)} v \<rbrakk> \<Longrightarrow> 
+   is_SubstP_var p v x (dash (dash x))"
+  by (simp add:is_SubstP_var_def)
+
+lemma is_SubstP_var_DASHED: 
+  "\<lbrakk> x \<in> DASHED; 
+     UNREST {dash x} p; 
+     UNREST_EXPR {dash x} v \<rbrakk> \<Longrightarrow> 
+   is_SubstP_var p v x (dash x)"
+  by (simp add:is_SubstP_var_def)
+
+lemma SubstP_UNDASHED:
+  assumes 
+    "x \<in> UNDASHED" "UNREST {dash (dash x)} p"
+    "UNREST_EXPR {dash (dash x)} v" "v \<rhd>\<^sub>e x"
+  shows "p[v|x] = (\<exists>p {dash (dash x)} . p\<^bsup>[x \<mapsto> dash (dash x)]\<^esup> \<and>p (VarE (dash (dash x)) ==p v))"
+proof -
+
+  from assms have "p[v|x] = SubstP_body p v x (SOME x'. is_SubstP_var p v x x')"
+    by (simp add:SubstP_def)
+
+  also from assms have "... = SubstP_body p v x (dash (dash x))"
+  proof -
+    from assms have "is_SubstP_var p v x (dash (dash x))"
+      by (simp add: is_SubstP_var_UNDASHED)
+
+    thus ?thesis using assms
+      apply (rule_tac is_SubstP_var_equiv)
+      apply (rule someI)
+      apply (simp_all)
+    done
+  qed
+
+  ultimately show ?thesis
+    by (simp add:SubstP_body_def)
+qed
+
+lemma SubstP_DASHED:
+  assumes 
+    "x \<in> DASHED" "UNREST {dash x} p"
+    "UNREST_EXPR {dash x} v" "v \<rhd>\<^sub>e x"
+  shows "p[v|x] = (\<exists>p {dash x} . p\<^bsup>[x \<mapsto> dash x]\<^esup> \<and>p (VarE (dash x) ==p v))"
+proof -
+
+  from assms have "p[v|x] = SubstP_body p v x (SOME x'. is_SubstP_var p v x x')"
+    by (simp add:SubstP_def)
+
+  also from assms have "... = SubstP_body p v x (dash x)"
+  proof -
+    from assms have "is_SubstP_var p v x (dash x)"
+      by (simp add: is_SubstP_var_DASHED)
+
+    thus ?thesis using assms
+      apply (rule_tac is_SubstP_var_equiv)
+      apply (rule someI)
+      apply (simp_all)
+    done
+  qed
+
+  ultimately show ?thesis
+    by (simp add:SubstP_body_def)
+qed
+
+lemma 
+  assumes 
+    "UNREST DASHED_TWICE p"
+    "UNREST_EXPR (VAR - vs) v"  
+    "x \<in> UNDASHED"
+    "vs \<subseteq> UNDASHED"
+    "v \<rhd>\<^sub>e x"
+  shows "x :=p\<^bsub>vs\<^esub> v ; p = p[v|x]"
+  oops
 
 lemma utp_pred_simps [simp]:
   "\<not>p false = true"

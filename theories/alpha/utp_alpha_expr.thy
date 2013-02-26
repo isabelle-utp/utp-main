@@ -73,7 +73,7 @@ instance ..
 
 end
 
-lemma eavar_compat_intros [simp,intro]:
+lemma eavar_compat_intros [intro]:
   "\<lbrakk> v :\<^sub>\<alpha> type x; \<D> v \<rbrakk> \<Longrightarrow> v \<rhd>\<^sub>\<alpha> x"
   "\<lbrakk> v :\<^sub>\<alpha> type x; \<not> aux x \<rbrakk> \<Longrightarrow> v \<rhd>\<^sub>\<alpha> x"
   by (auto simp add:eavar_compat_def eatype_rel_def Defined_WF_ALPHA_EXPRESSION_def)

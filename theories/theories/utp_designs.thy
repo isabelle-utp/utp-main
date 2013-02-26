@@ -510,9 +510,6 @@ proof -
     by (simp add:isH2_def)
 qed
 
-lemma [simp]: "taut [p]\<alpha> \<longleftrightarrow> taut p"
-  by (utp_alpha_tac, utp_pred_tac)
-
 lemma H2_equivalence':
   assumes "P \<in> WF_RELATION" "\<alpha> P \<in> DESIGN_ALPHABET"
           "a \<in> HOM_ALPHABET" "in\<^sub>\<alpha> a = undash `\<^sub>f out\<^sub>\<alpha> (\<alpha> P)"

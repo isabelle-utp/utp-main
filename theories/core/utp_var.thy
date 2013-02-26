@@ -39,7 +39,7 @@ definition MkPlain :: "string \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool \<Ri
 
 subsection {* Operators *}
 
-definition dash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" where
+definition dash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" ("_\<acute>") where
 "dash \<equiv> \<lambda> x. ( MkName (name_str (name x)) (dashes (fst x) + 1) (subscript (name x))
              , type x
              , aux x)"
@@ -576,6 +576,8 @@ proof -
     apply (metis (lifting) MkVar_name assms image_iff)
   done
 qed
+
+
 
 end
 

@@ -54,6 +54,16 @@ lemma Rep_VAR_RENAME_inj [simp]: "inj \<langle>ss\<rangle>\<^sub>s"
 lemma Rep_VAR_RENAME_surj [simp]: "surj \<langle>ss\<rangle>\<^sub>s"
   by (metis Rep_VAR_RENAME_bij bij_betw_def)
 
+lemma Rep_VAR_RENAME_type [simp]: "type (\<langle>ss\<rangle>\<^sub>s x) = type x"
+  apply (insert Rep_VAR_RENAME[of ss])
+  apply (simp add:VAR_RENAME_def)
+done
+
+lemma Rep_VAR_RENAME_aux [simp]: "aux (\<langle>ss\<rangle>\<^sub>s x) = aux x"
+  apply (insert Rep_VAR_RENAME[of ss])
+  apply (simp add:VAR_RENAME_def)
+done
+
 subsection {* Renaming builder *}
 
 definition MapRename :: 
@@ -274,7 +284,7 @@ apply (simp add: VAR_RENAME_def WF_BINDING_def)
 apply (safe)
 apply (drule_tac x = "ss v" in spec)
 apply (drule_tac x = "v" in spec)
-apply (auto)
+apply (force)
 done
 
 theorem VAR_RENAME_inject [simp] :

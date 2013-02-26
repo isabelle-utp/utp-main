@@ -19,7 +19,7 @@ syntax
   "_uapred_true"     :: "'a ALPHABET \<Rightarrow> uapred" ("true\<^bsub>_\<^esub>")
   "_uapred_false"    :: "'a ALPHABET \<Rightarrow> uapred" ("false\<^bsub>_\<^esub>")
   "_uapred_var"      :: "pttrn \<Rightarrow> uapred" ("(_)")
-  "_uapred_evar"     :: "'a VAR \<Rightarrow> uapred" ("$_")
+  "_uapred_evar"     :: "idt \<Rightarrow> uapred" ("$_")
   "_uapred_and"      :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr "\<and>" 35)
   "_uapred_or"       :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr "\<or>" 35)
   "_uapred_imp"      :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr "\<Rightarrow>" 25)

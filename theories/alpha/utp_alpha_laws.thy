@@ -598,7 +598,10 @@ lemma utp_alpha_pred_simps [simp]:
   "`false\<^bsub>a\<^esub> \<or> p` = `p \<oplus> a`"
   "`p \<Leftrightarrow> p` = true (\<alpha> p)"
   "`\<not> \<not> p` = p"
-  by (utp_alpha_tac2, utp_pred_tac)+
+  "taut [p]\<alpha> \<longleftrightarrow> taut p"
+  apply (utp_alpha_tac2, utp_pred_tac)+
+  apply (utp_alpha_tac, utp_pred_tac)
+done
 
 lemma hom_simps [simp]:
   "out\<^sub>\<alpha> (homr a) = out\<^sub>\<alpha> a"
@@ -627,7 +630,12 @@ lemma ClosureA_intro: "\<lbrakk> \<alpha> p = \<alpha> q; [p \<Leftrightarrow> q
   apply (utp_pred_tac)
 done
 
-lemma "\<lbrakk> x \<in>\<^sub>f \<alpha> p; \<forall> v. v \<rhd> x \<longrightarrow> taut (p[LitAE (type x) v|x]\<alpha>) \<rbrakk> \<Longrightarrow> taut p"
+lemma EvalAE_SubstA_LitAE [evala]: 
+  "v \<rhd> x \<Longrightarrow> \<lbrakk>\<lbrakk>p[LitAE (type x) v|x]\<alpha>\<rbrakk>\<pi>\<rbrakk>b = \<lbrakk>\<lbrakk>p\<rbrakk>\<pi>\<rbrakk>(b(x :=\<^sub>b v))"
+  apply (subgoal_tac "LitAE (type x) v \<rhd>\<^sub>\<alpha> x")
+  apply (simp add:evala evale closure typing defined alphabet)
+  apply (metis (lifting) LitAE_defined LitAE_type eavar_compat_intros(1) eavar_compat_intros(2) var_compat_def)
+done
 
 (*
 lemma SubstA_intro:
@@ -640,11 +648,20 @@ lemma SubstA_intro:
   apply ()
 *)
 
+
 lemma eq_iff_taut: "\<lbrakk> \<alpha> P = \<alpha> Q \<rbrakk> \<Longrightarrow> P = Q \<longleftrightarrow> taut (P \<Leftrightarrow>\<alpha> Q)"
   apply (auto)
   apply (utp_alpha_tac)
   apply (rule ClosureA_intro)
   apply (auto)
+done
+
+(* A tautology can be proven by proven it for any substitution of a variable *)
+lemma taut_cases:
+  "\<lbrakk> x \<in>\<^sub>f \<alpha> p; \<And> v. v \<rhd> x \<Longrightarrow> taut (p[LitAE (type x) v|x]\<alpha>) \<rbrakk> \<Longrightarrow> taut p"
+  apply (utp_alpha_tac)
+  apply (utp_pred_tac)
+  apply (metis EvalAE_SubstA_LitAE binding_compat binding_upd_triv)
 done
 
 lemma AssignA_unfold:
@@ -764,8 +781,9 @@ proof -
   from assms have "\<alpha> v \<subseteq>\<^sub>f homl (\<alpha> p)"
     by (auto simp add:hom_left_def)
 
-  with assms have "`(x :=\<^bsub>homl (\<alpha> p)\<^esub> v) ; p` = (((VarAE (dash x) ==\<alpha> v) \<and>\<alpha> II\<alpha> (homl (\<alpha> p) -\<^sub>f \<lbrace>x, dash x\<rbrace>)) \<oplus>\<alpha> \<lbrace>x\<rbrace>) ;\<alpha> p"
+  with assms have "`(x :=\<^bsub>homl (\<alpha> p)\<^esub> v) ; p` = (((VarAE x' ==\<alpha> v) \<and>\<alpha> II\<alpha> (homl (\<alpha> p) -\<^sub>f \<lbrace>x, dash x\<rbrace>)) \<oplus>\<alpha> \<lbrace>x\<rbrace>) ;\<alpha> p"
     by (smt AssignA_unfold REL_ALPHABET_hom_left UNDASHED_dash_DASHED hom_simps undash_dash)
+
 
   from assms have "... = ((((\<exists>-\<alpha> \<lbrace> x \<rbrace>. (VarAE x ==\<alpha> v) \<and>\<alpha> (VarAE (dash x) ==\<alpha> VarAE x))) \<and>\<alpha> II\<alpha> (homl (\<alpha> p) -\<^sub>f \<lbrace>x, dash x\<rbrace>)) \<oplus>\<alpha> \<lbrace>x\<rbrace>) ;\<alpha> p"
     sorry

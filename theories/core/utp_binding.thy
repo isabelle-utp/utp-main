@@ -17,7 +17,7 @@ text {* Can the given value be placed into the given variable? *}
 definition var_compat :: "'VALUE \<Rightarrow> 'VALUE VAR \<Rightarrow> bool" (infix "\<rhd>" 50) where
 "v \<rhd> x \<equiv> v : type x \<and> (aux x \<longrightarrow> \<D> v)"
 
-lemma var_compat_intros [simp,intro]:
+lemma var_compat_intros [intro]:
   "\<lbrakk> v : type x; \<D> v \<rbrakk> \<Longrightarrow> v \<rhd> x"
   "\<lbrakk> v : type x; \<not> aux x \<rbrakk> \<Longrightarrow> v \<rhd> x"
   by (simp_all add:var_compat_def)
@@ -26,6 +26,14 @@ lemma var_compat_cases [elim]:
   "\<lbrakk> v \<rhd> x; \<lbrakk> v : type x; \<D> v \<rbrakk> \<Longrightarrow> P
           ; \<lbrakk> v : type x; \<not> aux x \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (auto simp add:var_compat_def)
+
+lemma var_compat_typing [typing]:
+  "v \<rhd> x \<Longrightarrow> v : type x"
+  by (auto simp add:var_compat_def)
+
+lemma var_compat_defined [defined]:
+  "\<lbrakk> v \<rhd> x; aux x \<rbrakk> \<Longrightarrow> \<D> v"
+  by (auto simp add:var_compat_def)  
 
 subsection {* Bindings *}
 
@@ -94,13 +102,13 @@ done
 theorem WF_BINDING_update2 [closure] :
 "\<lbrakk>b \<in> WF_BINDING; x \<in> carrier (type v); \<not> aux v\<rbrakk> \<Longrightarrow>
  b(v := x) \<in> WF_BINDING"
-apply (simp add: carrier_def closure)
+apply (simp add: carrier_def closure var_compat_intros)
 done
 
 theorem WF_BINDING_update2_aux [closure] :
 "\<lbrakk>b \<in> WF_BINDING; x \<in> carrier (type v); aux v; \<D> x\<rbrakk> \<Longrightarrow>
  b(v := x) \<in> WF_BINDING"
-apply (simp add: carrier_def closure)
+apply (simp add: carrier_def closure var_compat_intros)
 done
 
 theorem WF_BINDING_override [closure] :
