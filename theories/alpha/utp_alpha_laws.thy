@@ -781,7 +781,7 @@ proof -
   from assms have "\<alpha> v \<subseteq>\<^sub>f homl (\<alpha> p)"
     by (auto simp add:hom_left_def)
 
-  with assms have "`(x :=\<^bsub>homl (\<alpha> p)\<^esub> v) ; p` = (((VarAE x' ==\<alpha> v) \<and>\<alpha> II\<alpha> (homl (\<alpha> p) -\<^sub>f \<lbrace>x, dash x\<rbrace>)) \<oplus>\<alpha> \<lbrace>x\<rbrace>) ;\<alpha> p"
+  with assms have "`(x :=\<^bsub>homl (\<alpha> p)\<^esub> v) ; p` = `(($x\<acute> = v \<and> II\<^bsub>homl (\<alpha> p) -\<^sub>f \<lbrace>x, x\<acute>\<rbrace>\<^esub>) \<oplus> \<lbrace>x\<rbrace>) ; p`"
     by (smt AssignA_unfold REL_ALPHABET_hom_left UNDASHED_dash_DASHED hom_simps undash_dash)
 
 
