@@ -281,6 +281,18 @@ theorem dash_uniqs:
 "dash x \<noteq> dash (dash x)" "dash (dash x) \<noteq> dash x"
   by (case_tac x, case_tac a, simp add:var_defs)+
 
+theorem dash_name_str:
+  "name_str (name (dash x)) = name_str (name x)"
+  by (simp add:var_defs)
+
+theorem dash_dashes:
+  "dashes (name (dash x)) = dashes (name x) + 1"
+  by (simp add:var_defs)
+
+theorem dash_subscript:
+  "subscript (name (dash x)) = subscript (name x)"
+  by (simp add:var_defs)
+
 theorem dash_undash_DASHED :
 "x \<in> DASHED \<Longrightarrow> dash (undash x) = x"
 apply (simp add: var_defs)
@@ -443,6 +455,13 @@ theorem undash_inj_on_DASHED_TWICE :
 "inj_on undash DASHED_TWICE"
 apply (rule inj_onI)
 apply (force simp add: var_defs prod_eq_iff)
+done
+
+theorem dash_strict_mono :
+"strict_mono dash"
+  apply (auto simp add:strict_mono_def)
+  apply (simp add: NAME_less_iff prod_less_def dash_name_str dash_subscript dash_dashes)
+  apply (smt NAME_eq_intro dash_dashes dash_name_str dash_subscript dashes_mono linorder_not_less name_str_mono order_antisym_conv order_eq_refl subscript_mono)
 done
 
 subsubsection {* Distribution Theorems *}

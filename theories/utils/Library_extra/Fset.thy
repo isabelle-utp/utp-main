@@ -157,7 +157,13 @@ lemma flist_empty [simp]:
 definition fset :: "'a list \<Rightarrow> 'a fset" where
 "fset xs = Abs_fset (set xs)"
 
+lemma fset_rep_eq [simp]: "\<langle>fset xs\<rangle>\<^sub>f = set xs"
+  by (simp add:fset_def)
+
 lemma flist_inv [simp]: "fset (flist xs) = xs"
+  by (simp add:fset_def flist_def Rep_fset_inverse)
+
+lemma flist_set [simp]: "set (flist xs) = \<langle>xs\<rangle>\<^sub>f"
   by (simp add:fset_def flist_def Rep_fset_inverse)
 
 lemma fset_inv [simp]: "\<lbrakk> sorted xs; distinct xs \<rbrakk> \<Longrightarrow> flist (fset xs) = xs"
@@ -167,6 +173,9 @@ done
 
 lemma fset_empty [simp]: "fset [] = \<lbrace>\<rbrace>"
   by (simp add:fset_def fempty_def)
+
+lemma fset_cons [simp]: "fset (x # xs) = finsert x (fset xs)"
+  by (simp add:fset_def finsert_def)
 
 end
 
@@ -299,6 +308,35 @@ lemma flist_finsert [simp]:
   apply (drule_tac x="xa" in spec)
   apply (smt insort_key.simps insort_left_comm linorder_not_less)
 done
+
+lemma flist_fimage:
+  assumes "strict_mono f"
+  shows "flist (f `\<^sub>f A) = map f (flist A)"
+proof -
+  obtain xs where Alist: "A = fset xs" and sorted:"sorted xs" and distinct:"distinct xs"
+    by (metis flist_inv flist_props)
+
+  from sorted distinct have "flist (f `\<^sub>f fset xs) = map f xs"
+  proof (induct xs)
+    case Nil thus ?case by simp
+  next
+    case (Cons xs x)
+    with assms show ?case
+      apply (clarsimp)
+      apply (subgoal_tac "\<forall>x'. x'\<in>\<^sub>ffset xs \<longrightarrow> x < x'")
+      apply (subgoal_tac "\<forall>x'. x'\<in>\<^sub>f(f `\<^sub>f fset xs) \<longrightarrow> f x < x'")
+      apply (simp add: sorted_Cons)
+      apply (simp add: strict_mono_def)
+      apply (auto)
+      apply (metis order_le_neq_trans)
+    done
+  qed
+
+  with Alist sorted distinct show ?thesis by (simp)
+
+qed
+
+
 
 end
 

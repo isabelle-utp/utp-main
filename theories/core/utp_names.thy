@@ -33,6 +33,14 @@ datatype NAME =
 derive countable NAME
 derive linorder NAME
 
+lemma MkName_name_mono: "n1 < n2 \<Longrightarrow> MkName n1 d1 s1 < MkName n2 d2 s2"
+  by (simp add: less_NAME_def)
+
+lemma MkName_dash_mono: "d1 < d2 \<Longrightarrow> MkName n d1 s1 < MkName n d2 s2"
+  by (simp add: less_NAME_def)
+
+lemma MkName_subscript_mono: "s1 < s2 \<Longrightarrow> MkName n d s1 < MkName n d s2"
+  by (simp add: less_NAME_def)
 
 primrec name_str :: "NAME \<Rightarrow> string" where
 "name_str (MkName n d s) = n"
@@ -58,6 +66,27 @@ lemma NAME_eq_intro [intro]:
 lemma NAME_elim [elim]:
   "\<lbrakk> \<And> n d s. a = MkName n d s \<Longrightarrow> P a \<rbrakk> \<Longrightarrow> P a"
   by (case_tac a, simp)
+
+lemma NAME_less_iff: 
+  "n1 < n2 \<longleftrightarrow> 
+    name_str n1 < name_str n2 \<or> 
+    (name_str n1 = name_str n2 \<and> dashes n1 < dashes n2) \<or>
+    (name_str n1 = name_str n2 \<and> dashes n1 = dashes n2 \<and> subscript n1 < subscript n2)"
+  by (case_tac n1, case_tac n2, auto simp add:less_NAME_def)
+
+lemma name_str_mono: "name_str x < name_str y \<Longrightarrow> x < y"
+  by (case_tac x, case_tac y, auto intro: MkName_name_mono)
+
+lemma dashes_mono: "\<lbrakk> name_str x \<le> name_str y; dashes x < dashes y \<rbrakk> \<Longrightarrow> x < y"
+  apply (case_tac x, case_tac y, auto)
+  apply (metis MkName_dash_mono MkName_name_mono order_less_le)
+done
+
+lemma subscript_mono: 
+  "\<lbrakk> name_str x \<le> name_str y; dashes x \<le> dashes y; subscript x < subscript y \<rbrakk> \<Longrightarrow> x < y"
+  apply (case_tac x, case_tac y, auto)
+  apply (metis MkName_dash_mono MkName_name_mono MkName_subscript_mono linorder_not_le order_antisym)
+done
 
 subsection {* There are infinite names *}
 

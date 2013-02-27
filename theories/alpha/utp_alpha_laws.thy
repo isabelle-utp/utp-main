@@ -256,6 +256,142 @@ theorem RenameAE_VarAE [urename]:
 "(VarAE x)[ss]\<alpha>\<epsilon> = VarAE (\<langle>ss\<rangle>\<^sub>s x)"
   by (utp_alpha_tac, simp add:urename)
 
+text {* Finite unfolding of renamings *}
+
+lemma REL_ALPHABET_in_out: 
+  "a \<in> REL_ALPHABET \<Longrightarrow> (in\<^sub>\<alpha> a \<union>\<^sub>f out\<^sub>\<alpha> a) = a"
+  by (simp add:REL_ALPHABET_def)
+
+
+abbreviation "SS1_MapR a \<equiv> MapR [flist (out\<^sub>\<alpha> a) [\<mapsto>] flist (dash `\<^sub>f out\<^sub>\<alpha> a)]"
+abbreviation "SS2_MapR a \<equiv> MapR [flist (in\<^sub>\<alpha> a) [\<mapsto>] flist (dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha> a)]"
+
+lemma SS1_eq_map: 
+  assumes "a \<in> REL_ALPHABET"
+  shows "SS1 \<cong>\<^sub>s SS1_MapR a on \<langle>a\<rangle>\<^sub>f"
+proof -
+
+  let ?xs = "flist (out\<^sub>\<alpha> a)" and ?ys = "flist (dash `\<^sub>f out\<^sub>\<alpha> a)"
+  
+  have tys:"\<forall>i<length ?xs. type (?xs ! i) = type (?ys ! i) \<and> aux (?xs ! i) = aux (?ys ! i)"
+    by (simp add:rename_equiv_def flist_fimage dash_strict_mono)
+
+  moreover have inter:"set ?xs \<inter> set ?ys = {}"
+    by (auto simp add:rename_equiv_def flist_fimage dash_strict_mono var_defs)
+
+  moreover have lens:"length ?ys = length ?xs"
+    by (simp add:rename_equiv_def flist_fimage dash_strict_mono)
+
+  ultimately show ?thesis using assms
+  proof (auto simp add:rename_equiv_def MapR_rep_eq[of ?xs ?ys])
+    fix x
+    assume x_in_a: "x \<in> \<langle>a\<rangle>\<^sub>f"
+
+    show "\<langle>SS1\<rangle>\<^sub>s x = MapRename [?xs [\<mapsto>] ?ys] x"
+    proof (cases "x \<in>\<^sub>f out\<^sub>\<alpha> a")
+      case True 
+      note x_in_out = this
+      show ?thesis
+      proof -
+        from x_in_out inter lens tys have "x \<in> dom ([?xs [\<mapsto>] ?ys])"
+          by (simp)
+
+        moreover from x_in_out inter lens tys 
+        obtain i where ithms: "x = ?xs!i" "i < length (flist (out\<^sub>\<alpha> a))"
+          by (metis (lifting) flist_set fmember.rep_eq in_set_conv_nth)
+
+        moreover from ithms x_in_out have "(flist (out\<^sub>\<alpha> a) ! i) \<in> DASHED"
+          by (simp add:var_defs)
+
+        ultimately show ?thesis
+          by (simp add:dash_strict_mono flist_fimage urename)
+      qed
+    next
+      case False
+      note x_nin_out = this
+      show ?thesis
+      proof -
+
+        from x_nin_out x_in_a assms have "x \<in>\<^sub>f in\<^sub>\<alpha> a"
+          by (force dest!:REL_ALPHABET_in_out elim!:Rep_fset_elim simp add:var_defs)
+
+        moreover hence "x \<in> UNDASHED"
+          by (metis fmember.rep_eq set_mp utp_alphabet.in_UNDASHED)
+
+        moreover hence "x \<notin>\<^sub>f (dash `\<^sub>f out\<^sub>\<alpha> a)"
+          by auto
+
+        ultimately show ?thesis using lens inter tys x_nin_out
+          by (simp add:urename)
+
+      qed
+    qed
+  qed
+qed
+
+lemma SS2_eq_map: 
+  assumes "a \<in> REL_ALPHABET"
+  shows "SS2 \<cong>\<^sub>s SS2_MapR a on \<langle>a\<rangle>\<^sub>f"
+proof -
+
+  let ?xs = "flist (in\<^sub>\<alpha> a)" and ?ys = "flist (dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha> a)"
+  
+  have tys:"\<forall>i<length ?xs. type (?xs ! i) = type (?ys ! i) \<and> aux (?xs ! i) = aux (?ys ! i)"
+    by (simp add:rename_equiv_def flist_fimage dash_strict_mono)
+
+  moreover have inter:"set ?xs \<inter> set ?ys = {}"
+    by (auto simp add:rename_equiv_def flist_fimage dash_strict_mono var_defs)
+
+  moreover have lens:"length ?ys = length ?xs"
+    by (simp add:rename_equiv_def flist_fimage dash_strict_mono)
+
+  ultimately show ?thesis using assms
+  proof (auto simp add:rename_equiv_def MapR_rep_eq[of ?xs ?ys])
+    fix x
+    assume x_in_a: "x \<in> \<langle>a\<rangle>\<^sub>f"
+
+    show "\<langle>SS2\<rangle>\<^sub>s x = MapRename [?xs [\<mapsto>] ?ys] x"
+    proof (cases "x \<in>\<^sub>f in\<^sub>\<alpha> a")
+      case True 
+      note x_in_in = this
+      show ?thesis
+      proof -
+        from x_in_in inter lens tys have "x \<in> dom ([?xs [\<mapsto>] ?ys])"
+          by (simp)
+
+        moreover from x_in_in inter lens tys 
+        obtain i where ithms: "x = ?xs!i" "i < length (flist (in\<^sub>\<alpha> a))"
+          by (metis (lifting) flist_set fmember.rep_eq in_set_conv_nth)
+
+        moreover from ithms x_in_in have "(flist (in\<^sub>\<alpha> a) ! i) \<in> UNDASHED"
+          by (simp add:var_defs)
+
+        ultimately show ?thesis
+          by (simp add:dash_strict_mono flist_fimage urename)
+      qed
+    next
+      case False
+      note x_nin_in = this
+      show ?thesis
+      proof -
+
+        from x_nin_in x_in_a assms have "x \<in>\<^sub>f out\<^sub>\<alpha> a"
+          by (force dest!:REL_ALPHABET_in_out elim!:Rep_fset_elim simp add:var_defs)
+
+        moreover hence "x \<in> DASHED"
+          by (metis fmember.rep_eq set_mp utp_alphabet.out_DASHED)
+
+        moreover hence "x \<notin>\<^sub>f (dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha> a)"
+          by auto
+
+        ultimately show ?thesis using lens inter tys x_nin_in
+          by (simp add:urename)
+
+      qed
+    qed
+  qed
+qed
+
 theorem ExistsA_ident :
   "a \<inter>\<^sub>f \<alpha> p = \<lbrace>\<rbrace> \<Longrightarrow> (\<exists>-\<alpha> a . p) = p"
   apply (utp_alpha_tac2)

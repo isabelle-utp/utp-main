@@ -751,13 +751,5 @@ theorem SkipA_unfold :
   apply (simp add:SkipRA_unfold)
 done
 
-text {* Finite unfolding of renamings *}
-
-lemma SS1_eq_map: 
-  "a \<in> REL_ALPHABET \<Longrightarrow> 
-   SS1 \<cong>\<^sub>s (MapR [flist (out\<^sub>\<alpha> a) [\<mapsto>] flist (dash `\<^sub>f dash `\<^sub>f out\<^sub>\<alpha> a)]) on \<langle>a\<rangle>\<^sub>f"
-  apply (simp add:rename_equiv_def)
-  oops
-
 end
 
