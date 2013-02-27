@@ -422,21 +422,36 @@ done
 theorem the_Some[simp]: "the \<circ> Some = id"
   by (simp add:comp_def id_def)
 
-(*
-theorem "\<lbrakk> inj_on f (dom f); ran f \<subseteq> dom f \<rbrakk> 
+theorem map_inv_expand [simp]:
+  "\<lbrakk> inj_on f (dom f); f x = Some y \<rbrakk> \<Longrightarrow> map_inv f y = Some x"
+  apply (auto simp add:ran_def map_inv_def)
+  apply (rule some_equality, simp)
+  apply (metis map_inv_f_f option.inject)
+done
+
+theorem inv_map_inv:
+  "\<lbrakk> inj_on f (dom f); ran f = dom f \<rbrakk> 
   \<Longrightarrow> inv (the \<circ> (Some ++ f)) = the \<circ> map_inv (Some ++ f)"
   apply (rule ext)
   apply (simp add:map_add_Some)
-  apply (subgoal_tac "(- dom f) \<inter> ran f = {}")
-  defer
-  apply (force)
-  apply (simp)
-  apply (simp)
   apply (simp add:inv_def)
-  apply (rule some_equality)
-  apply (case_tac "x \<in> ran f")
+  apply (case_tac "\<exists> y. f y = Some x")
+  apply (erule exE)
+  apply (subgoal_tac "x \<in> ran f")
+  apply (subgoal_tac "y \<in> dom f")
   apply (simp)
-  apply (auto)
-*)
+  apply (rule some_equality)
+  apply (simp)
+  apply (metis (hide_lams, mono_tags) domD domI dom_left_map_add inj_on_contraD map_add_Some map_add_dom_app_simps(3) the.simps)
+  apply (simp add:dom_def)
+  apply (metis ranI)
+  apply (simp)
+  apply (subgoal_tac "x \<notin> ran f")
+  apply (simp)
+  apply (rule some_equality)
+  apply (simp)
+  apply (metis domD dom_left_map_add map_add_Some map_add_dom_app_simps(3) the.simps)
+  apply (metis dom_image_ran image_iff)
+done
 
 end

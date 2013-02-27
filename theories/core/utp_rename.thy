@@ -214,15 +214,61 @@ proof -
     by (force)
 qed
 
-(*
-(* This is a long and incredibly boring proof, so I can't be bothered with it right now *)
 theorem MapRename_inv [simp]: 
-  "inj_on f (dom f) \<Longrightarrow> inv (MapRename f) = MapRename (map_inv f)"
-  apply (auto simp add:MapRename_def)
-  apply (rule_tac ext)
-  apply (simp)
-sorry
-*)
+  assumes "inj_on f (dom f)" "ran f \<inter> dom f = {}"
+  shows "inv (MapRename f) = MapRename (map_inv f)"
+proof -
+
+  from assms have "inv (MapRename f) = inv (the \<circ> Some ++ (map_inv f ++ f))"
+    by (simp add:MapRename_def)
+
+  also from assms have "... = the \<circ> map_inv (Some ++ (map_inv f ++ f))"
+  proof -
+    from assms have "dom (map_inv f ++ f) = ran (map_inv f ++ f)"
+      apply (simp)
+      by (auto)
+
+    moreover from assms have "inj_on (map_inv f ++ f) (dom (map_inv f ++ f))"
+      by (auto)
+
+    ultimately show ?thesis
+      apply (rule_tac ext)
+      apply (simp only:inv_map_inv)
+    done
+  qed
+
+  also from assms have "... = the \<circ> map_inv (map_id_on (-(dom f \<union> ran f)) ++ (map_inv f ++ f))"
+    by (metis (no_types) dom_map_add dom_map_inv map_add_Some)
+
+
+  also from assms have "... = the \<circ> (map_inv (map_id_on (-(dom f \<union> ran f))) ++ map_inv (map_inv f ++ f))" (is "the \<circ> ?P = the \<circ> ?Q")
+  proof -
+    from assms have "?P = ?Q"
+      by (rule_tac map_inv_add, auto)
+
+    thus ?thesis by simp
+  qed
+
+  also from assms have "... = the \<circ> ((map_id_on (-(dom f \<union> ran f))) ++ (f ++ map_inv f))"
+  proof -
+    from assms have "map_inv (map_inv f ++ f) = (f ++ map_inv f)"
+      by (smt dom_map_inv inf_sup_aci(1) inj_map_inv map_inv_add map_inv_map_inv)
+
+    thus ?thesis by simp
+  qed
+
+  also from assms have "... = MapRename (map_inv f)"
+    apply (simp add: MapRename_def)
+    apply (smt compl_sup dom_map_add dom_map_inv map_add_Some map_add_assoc sup_commute)
+  done
+
+  ultimately show ?thesis by simp
+qed
+
+theorem MapRename_map_inv [simp]: 
+  assumes "inj_on f (dom f)" "ran f \<inter> dom f = {}"
+  shows "MapRename (map_inv f) = MapRename f"
+  by (metis MapRename_def assms dom_map_inv map_add_comm map_inv_map_inv)
 
 subsubsection {* Variable Renaming *}
 
@@ -417,6 +463,22 @@ proof -
     by (auto simp add:VAR_RENAME_def)
 qed
 
+lemma MapRename_invol:
+  assumes "length xs = length ys" "distinct xs" "distinct ys" 
+          "set xs \<inter> set ys = {}" "\<forall>i<length xs. type (xs!i) = type (ys!i) \<and> aux (xs!i) = aux (ys!i)"
+  shows "inv (MapRename [xs [\<mapsto>] ys]) = MapRename [xs [\<mapsto>] ys]"
+proof -
+
+  from assms have "inv (MapRename [xs [\<mapsto>] ys]) = MapRename (map_inv [xs [\<mapsto>] ys])"
+    by (smt Int_commute MapRename_inv dom_map_inv map_inv_maplets maplets_distinct_inj ran_maplets)
+
+  also from assms have "... = MapRename [xs [\<mapsto>] ys]"
+    by (metis (no_types) Int_commute MapRename_map_inv dom_map_inv map_inv_maplets maplets_distinct_inj ran_maplets)
+
+  ultimately show ?thesis by simp
+
+qed
+
 lemma VAR_RENAME_MapRename_one [closure]:
   "\<lbrakk> type x = type y; aux x = aux y \<rbrakk> \<Longrightarrow> MapRename [x \<mapsto> y] \<in> VAR_RENAME"
   apply (case_tac "x \<noteq> y")
@@ -590,11 +652,24 @@ lift_definition RenameP ::
    'VALUE WF_PREDICATE" ("_[_]" [200]) is
 "\<lambda> p ss. (RenameB ss) ` p" done
 
+definition MapR ::
+  "('VALUE VAR \<rightharpoonup> 'VALUE VAR) \<Rightarrow>
+   'VALUE VAR_RENAME" where
+"MapR f = Abs_VAR_RENAME (MapRename f)"
+
+
+lemma MapR_rep_eq:
+  assumes "length xs = length ys" "distinct xs" "distinct ys" 
+          "set xs \<inter> set ys = {}" "\<forall>i<length xs. type (xs!i) = type (ys!i) \<and> aux (xs!i) = aux (ys!i)"
+
+  shows "\<langle>MapR [xs [\<mapsto>] ys]\<rangle>\<^sub>s = MapRename [xs [\<mapsto>] ys]"
+  by (simp add:MapR_def closure assms)
+
 definition RenamePMap :: 
   "'VALUE  WF_PREDICATE \<Rightarrow> 
    ('VALUE VAR \<rightharpoonup> 'VALUE VAR) \<Rightarrow> 
    'VALUE WF_PREDICATE" ("_\<^bsup>_\<^esup>" [200]) where
-"RenamePMap p ss \<equiv> RenameP p (Abs_VAR_RENAME (MapRename ss))"
+"RenamePMap p ss \<equiv> RenameP p (MapR ss)"
 
 subsubsection {* Binding Renaming *}
 
@@ -617,7 +692,6 @@ theorem RenameB_inject [simp]:
 theorem RenameB_id [simp] :
 "RenameB id\<^sub>s b = b"
   by (auto simp add: RenameB_def CompB_rep_eq closure)
-
 
 theorem RenameB_compose :
 "RenameB ss1 (RenameB ss2 b) = RenameB (ss1 \<circ>\<^sub>s ss2) b"
@@ -720,13 +794,13 @@ apply (assumption)
 done
 
 theorem EvalP_RenamePMap_one [eval] :
-"\<lbrakk> type x' = type x; aux x' = aux x \<rbrakk> \<Longrightarrow>
+"\<lbrakk> x \<noteq> x'; type x' = type x; aux x' = aux x \<rbrakk> \<Longrightarrow>
  \<lbrakk>p\<^bsup>[x \<mapsto> x']\<^esup>\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b \<langle>b\<rangle>\<^sub>b x', x' :=\<^sub>b \<langle>b\<rangle>\<^sub>b x))"
 apply (simp add: RenamePMap_def)
 apply (simp add: eval closure)
 apply (simp add: EvalP_def)
 apply (simp add: RenameP_def RenameB_def image_def closure)
-apply (simp add: CompB_def)
+apply (simp add: MapR_rep_eq[of "[x]" "[x']",simplified] CompB_def)
 apply (subgoal_tac "Abs_WF_BINDING (\<langle>b\<rangle>\<^sub>b \<circ> MapRename [x \<mapsto> x']) = b(x :=\<^sub>b \<langle>b\<rangle>\<^sub>b x', x' :=\<^sub>b \<langle>b\<rangle>\<^sub>b x)")
 apply (simp add: closure)
 apply (rule Rep_WF_BINDING_intro)
@@ -736,7 +810,7 @@ apply (simp)
 apply (rule ext)
 apply (simp add: MapRename_def closure)
 apply (auto)
-sorry
+done
 
 subsection {* Simplification theorems *}
 

@@ -34,6 +34,9 @@ definition hom_right ::
 definition WF_RELATION :: "'VALUE WF_ALPHA_PREDICATE set" where
 "WF_RELATION = {p . (\<alpha> p) \<in> REL_ALPHABET}"
 
+definition WF_REL_EXPR :: "'VALUE WF_ALPHA_EXPRESSION set" where
+"WF_REL_EXPR = {e . (\<alpha> e) \<in> REL_ALPHABET}"
+
 typedef (open) 'VALUE WF_RELATION = "WF_RELATION :: 'VALUE WF_ALPHA_PREDICATE set"
   apply (auto simp add:WF_RELATION_def REL_ALPHABET_def)
   apply (metis ClosureA_alphabet bot_least fempty.rep_eq pred_alphabet_def)
@@ -151,6 +154,10 @@ text {* TODO: Provide a complete set of closure theorems! *}
 
 theorem REL_ALPHABET_empty [closure]:
   "\<lbrace>\<rbrace> \<in> REL_ALPHABET"
+  by (simp add:REL_ALPHABET_def)
+
+theorem REL_ALPHABET_finsert [closure]:
+  "\<lbrakk> x \<in> UNDASHED \<union> DASHED; a \<in> REL_ALPHABET \<rbrakk> \<Longrightarrow> finsert x a \<in> REL_ALPHABET"
   by (simp add:REL_ALPHABET_def)
 
 theorem REL_ALPHABET_union [closure]:
@@ -302,6 +309,20 @@ apply (simp add:FalseA_rep_eq closure)
 apply (auto intro:unrest)
 done
 
+theorem ExtA_WF_RELATION [closure] :
+"\<lbrakk> a \<in> REL_ALPHABET; p \<in> WF_RELATION \<rbrakk> \<Longrightarrow>
+ p \<oplus>\<alpha> a \<in> WF_RELATION"
+  by (auto intro:closure simp add:ExtA.rep_eq WF_RELATION_def alphabet)
+
+theorem ExtA_WF_CONDITION [closure] :
+"\<lbrakk> \<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED; p \<in> WF_CONDITION \<rbrakk> \<Longrightarrow>
+ p \<oplus>\<alpha> a \<in> WF_CONDITION"
+  apply (auto intro:closure simp add:ExtA.rep_eq WF_CONDITION_def alphabet)
+  apply (rule closure)
+  apply (force simp add:REL_ALPHABET_def)
+  apply (simp)
+done
+
 theorem ExistsResA_WF_RELATION [closure]:
 "p \<in> WF_RELATION \<Longrightarrow>
  (\<exists>-\<alpha> a. p) \<in> WF_RELATION"
@@ -321,6 +342,20 @@ theorem ExistsA_WF_CONDITION [closure]:
 "p \<in> WF_CONDITION \<Longrightarrow>
  (\<exists>\<alpha> a. p) \<in> WF_CONDITION"
   by (auto intro:closure unrest simp add:WF_CONDITION_def alphabet ExistsA.rep_eq)
+
+theorem EqualA_WF_RELATION [closure]:
+"\<lbrakk> e \<in> WF_REL_EXPR; f \<in> WF_REL_EXPR \<rbrakk> \<Longrightarrow>
+ e ==\<alpha> f \<in> WF_RELATION"
+  by (auto intro:closure simp add:WF_RELATION_def WF_REL_EXPR_def alphabet)
+
+theorem VarAE_WF_REL_EXPR [closure]:
+"x \<in> UNDASHED \<union> DASHED \<Longrightarrow>
+ VarAE x \<in> WF_REL_EXPR"
+  by (auto intro:closure simp add:WF_REL_EXPR_def alphabet)
+
+theorem LitAE_WF_REL_EXPR [closure]:
+"LitAE t v \<in> WF_REL_EXPR"
+  by (simp add:WF_REL_EXPR_def alphabet closure)
 
 theorem SkipA_closure [closure] :
 "a \<in> REL_ALPHABET \<Longrightarrow>
@@ -404,6 +439,8 @@ apply (simp add: WF_RELATION_unfold pred_alphabet_def)
 apply (simp add: SemiA_rep_eq assms)
 apply (metis in_vars_def inf_sup_ord(2) le_supI1 le_supI2 out_vars_def)
 done
+
+
 
 subsection {* Alphabet Theorems *}
 
@@ -713,5 +750,14 @@ theorem SkipA_unfold :
   apply (simp add:HOM_ALPHA_HOMOGENEOUS)
   apply (simp add:SkipRA_unfold)
 done
+
+text {* Finite unfolding of renamings *}
+
+lemma SS1_eq_map: 
+  "a \<in> REL_ALPHABET \<Longrightarrow> 
+   SS1 \<cong>\<^sub>s (MapR [flist (out\<^sub>\<alpha> a) [\<mapsto>] flist (dash `\<^sub>f dash `\<^sub>f out\<^sub>\<alpha> a)]) on \<langle>a\<rangle>\<^sub>f"
+  apply (simp add:rename_equiv_def)
+  oops
+
 end
 

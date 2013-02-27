@@ -230,11 +230,31 @@ theorem RenameA_ClosureA [urename]:
 "[p[ss]\<alpha>]\<alpha> = [p]\<alpha>"
   by (utp_alpha_tac2, metis RenameP_ClosureP)
 
+theorem RenameA_ExtA [urename]:
+"(p \<oplus>\<alpha> a)[ss]\<alpha> = (p[ss]\<alpha> \<oplus>\<alpha> (\<langle>ss\<rangle>\<^sub>s `\<^sub>f a))"
+  by (utp_alpha_tac)
+
 theorem RenameA_VarA [urename]:
 "&x[ss]\<alpha> = &(\<langle>ss\<rangle>\<^sub>s x)"
   apply (utp_alpha_tac2)
   apply (simp add:RenameP_VarP)
 done
+
+theorem RenameA_EqualA [urename]:
+"(e ==\<alpha> f)[ss]\<alpha> = e[ss]\<alpha>\<epsilon> ==\<alpha> f[ss]\<alpha>\<epsilon>"
+  by (utp_alpha_tac2, simp add:urename)
+
+theorem RenameAE_id [urename]:
+"e[id\<^sub>s]\<alpha>\<epsilon> = e"
+  by (utp_alpha_tac, utp_expr_tac, auto)
+
+theorem RenameAE_LitAE [urename]:
+"v : t \<Longrightarrow> (LitAE t v)[ss]\<alpha>\<epsilon> = LitAE t v"
+  by (utp_alpha_tac, utp_expr_tac)
+
+theorem RenameAE_VarAE [urename]:
+"(VarAE x)[ss]\<alpha>\<epsilon> = VarAE (\<langle>ss\<rangle>\<^sub>s x)"
+  by (utp_alpha_tac, simp add:urename)
 
 theorem ExistsA_ident :
   "a \<inter>\<^sub>f \<alpha> p = \<lbrace>\<rbrace> \<Longrightarrow> (\<exists>-\<alpha> a . p) = p"
@@ -412,13 +432,39 @@ lemma RenameA_equiv:
   apply (simp add:binding_equiv_def)
 done
 
-theorem RenameA_SS1_UNDASHED [simp]:
-  "\<lbrakk> p \<in> WF_RELATION; \<langle>\<alpha> p\<rangle>\<^sub>f \<subseteq> UNDASHED \<rbrakk> \<Longrightarrow> p[SS1]\<alpha> = p"
+lemma RenameAE_equiv: 
+  "\<lbrakk> \<langle>\<alpha> e\<rangle>\<^sub>f \<subseteq> vs; ss1 \<cong>\<^sub>s ss2 on vs \<rbrakk> \<Longrightarrow> e[ss1]\<alpha>\<epsilon> = e[ss2]\<alpha>\<epsilon>"
+  apply (utp_alpha_tac)
+  apply (simp add:rename_equiv_def)
+  apply (rule conjI)
+  apply (force)
+  apply (utp_expr_tac)
+  apply (simp add:EvalAE_def EvalE_def rename_equiv_def rename_equiv_def RenameB_def)
+  apply (clarify)
+  apply (subgoal_tac "CompB b ss1 \<cong> CompB b ss2 on vs")
+  apply (insert WF_ALPHA_EXPRESSION_UNREST_EXPR [of e])
+  apply (simp add:UNREST_EXPR_def)
+  apply (drule_tac x="CompB b ss1" in spec)
+  apply (drule_tac x="CompB b ss2" in spec)
+  apply (smt binding_override_equiv binding_override_simps(10) binding_override_simps(2) binding_override_simps(4) binding_override_simps(5) binding_override_subset)
+  apply (simp add:binding_equiv_def)
+done
+
+theorem RenameA_SS1_UNDASHED [urename]:
+  "\<lbrakk> \<langle>\<alpha> p\<rangle>\<^sub>f \<subseteq> UNDASHED \<rbrakk> \<Longrightarrow> p[SS1]\<alpha> = p"
   by (metis RenameA_id SS1_eq_id RenameA_equiv)
   
-theorem RenameA_SS2_DASHED [simp]:
-  "\<lbrakk> p \<in> WF_RELATION; \<langle>\<alpha> p\<rangle>\<^sub>f \<subseteq> DASHED \<rbrakk> \<Longrightarrow> p[SS2]\<alpha> = p"
+theorem RenameA_SS2_DASHED [urename]:
+  "\<lbrakk> \<langle>\<alpha> p\<rangle>\<^sub>f \<subseteq> DASHED \<rbrakk> \<Longrightarrow> p[SS2]\<alpha> = p"
   by (metis RenameA_id SS2_eq_id RenameA_equiv)
+
+theorem RenameAE_SS1_UNDASHED [simp]:
+  "\<lbrakk> \<langle>\<alpha> e\<rangle>\<^sub>f \<subseteq> UNDASHED \<rbrakk> \<Longrightarrow> e[SS1]\<alpha>\<epsilon> = e"
+  by (metis RenameAE_id SS1_eq_id RenameAE_equiv)
+  
+theorem RenameAE_SS2_DASHED [simp]:
+  "\<lbrakk> \<langle>\<alpha> e\<rangle>\<^sub>f \<subseteq> DASHED \<rbrakk> \<Longrightarrow> e[SS2]\<alpha>\<epsilon> = e"
+  by (metis RenameAE_id SS2_eq_id RenameAE_equiv)
 
 text {* If the right-hand side of a sequential composition contains only undashed
 variables it can be transferred to the left-hand side by renaming to dashed variables *}
@@ -771,12 +817,17 @@ proof -
   done
 *)
 
-lemma AssignA_SubstA: 
-  assumes "x \<in> UNDASHED" "x \<in>\<^sub>f \<alpha> p" "\<alpha> v \<subseteq>\<^sub>f in\<^sub>\<alpha> (\<alpha> p)"
-  shows "`(x :=\<^bsub>homl (\<alpha> p)\<^esub> v) ; p` = `p[v/x]`"
-  apply (insert AssignA_unfold[of "homl (\<alpha> p)" "x" "v"])
+lemma EqualA_WF_RELATION [closure]: 
+  "\<lbrakk> \<alpha> e \<in> REL_ALPHABET; \<alpha> f \<in> REL_ALPHABET \<rbrakk> \<Longrightarrow> e ==\<alpha> f \<in> WF_RELATION"
+  by (auto intro:closure simp add:WF_RELATION_def alphabet)
 
+lemma AssignA_SubstA: 
+  assumes "p \<in> WF_RELATION" "v \<in> WF_REL_EXPR"
+   "x \<in> UNDASHED" "x \<in>\<^sub>f \<alpha> p" "\<alpha> v \<subseteq>\<^sub>f in\<^sub>\<alpha> (\<alpha> p)" 
+  shows "`(x :=\<^bsub>homl (\<alpha> p)\<^esub> v) ; p` = `p[v/x]`"
 proof -
+ 
+  let ?A = "(dash `\<^sub>f out\<^sub>\<alpha> (\<alpha> v) \<union>\<^sub>f (dash `\<^sub>f (dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> p) -\<^sub>f \<lbrace>x\<acute>\<rbrace>) \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> p)))"
 
   from assms have "\<alpha> v \<subseteq>\<^sub>f homl (\<alpha> p)"
     by (auto simp add:hom_left_def)
@@ -784,13 +835,18 @@ proof -
   with assms have "`(x :=\<^bsub>homl (\<alpha> p)\<^esub> v) ; p` = `(($x\<acute> = v \<and> II\<^bsub>homl (\<alpha> p) -\<^sub>f \<lbrace>x, x\<acute>\<rbrace>\<^esub>) \<oplus> \<lbrace>x\<rbrace>) ; p`"
     by (smt AssignA_unfold REL_ALPHABET_hom_left UNDASHED_dash_DASHED hom_simps undash_dash)
 
+  also from assms 
+  have "... = (\<exists>-\<alpha> finsert x\<acute>\<acute> ?A. ((VarAE x\<acute>\<acute> ==\<alpha> v) \<and>\<alpha> (II\<alpha> (homl (\<alpha> p) -\<^sub>f \<lbrace>x, x\<acute>\<rbrace>))[SS1]\<alpha>) 
+                       \<and>\<alpha> p[SS2]\<alpha> \<oplus>\<alpha> \<lbrace>x\<rbrace>)"
+    apply (subgoal_tac "\<langle>\<alpha> v\<rangle>\<^sub>f \<subseteq> UNDASHED")
+    apply (simp add:SemiA_algebraic closure alphabet alphabet_dist alphabet_simps urename)
+    apply (auto)
+    apply (smt set_mp utp_var.in_UNDASHED)
+  done
 
-  from assms have "... = ((((\<exists>-\<alpha> \<lbrace> x \<rbrace>. (VarAE x ==\<alpha> v) \<and>\<alpha> (VarAE (dash x) ==\<alpha> VarAE x))) \<and>\<alpha> II\<alpha> (homl (\<alpha> p) -\<^sub>f \<lbrace>x, dash x\<rbrace>)) \<oplus>\<alpha> \<lbrace>x\<rbrace>) ;\<alpha> p"
+  have "... = (\<exists>-\<alpha> ?A. ((II\<alpha> (homl (\<alpha> p) -\<^sub>f \<lbrace>x, x\<acute>\<rbrace>))[SS1]\<alpha>) \<and>\<alpha> (p[SS2]\<alpha> \<oplus>\<alpha> \<lbrace>x\<rbrace>)[v|x\<acute>\<acute>]\<alpha>)"
     sorry
 
-  from assms have "... = `((\<exists>- x. $x = v \<and> II\<^bsub>homl (\<alpha> p)\<^esub>) \<oplus> \<lbrace>x\<rbrace>) ; p`"
 oops
-
-
 
 end

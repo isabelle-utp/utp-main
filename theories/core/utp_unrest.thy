@@ -261,6 +261,7 @@ theorem UNREST_RenameP_single :
   apply (rule UNREST_RenameP_alt)
   apply (simp)
   apply (simp add:closure)
+  apply (simp add: MapR_rep_eq[of "[x]" "[y]", simplified])
   apply (simp add: MapRename_image[of "[x]" "[y]" "(vs - {x})",simplified])
   apply (force)
 done
