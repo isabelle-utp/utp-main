@@ -153,6 +153,18 @@ lemma ExprA_rep_eq:
   apply (auto intro: unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def ExprA_def eatype_rel_def)
 done
 
+lift_definition RenameAE ::
+  "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow>
+   'VALUE VAR_RENAME \<Rightarrow>
+   'VALUE WF_ALPHA_EXPRESSION" ("_[_]\<alpha>\<epsilon>" [200]) is
+"\<lambda> e ss. (\<langle>ss\<rangle>\<^sub>s `\<^sub>f \<alpha> e, (\<epsilon> e)[ss]\<epsilon>)"
+  apply (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
+  apply (rule unrest)+
+  apply (auto)
+  apply (metis Diff_iff RenameP_VAR RenameP_image_minus VAR_member)
+done
+
+
 (*
 lift_definition SubstA ::
 "'VALUE WF_ALPHA_PREDICATE \<Rightarrow> 
@@ -291,6 +303,10 @@ theorem ExprA_alphabet [alphabet]:
 "e :\<^sub>\<alpha> BoolType \<Longrightarrow> \<alpha> (ExprA e) = \<alpha> e"
   by (simp add:ExprA_rep_eq)
 
+theorem RenameAE_alphabet [alphabet]:
+"\<alpha> e[ss]\<alpha>\<epsilon> = \<langle>ss\<rangle>\<^sub>s `\<^sub>f \<alpha> e"
+  by (simp add:RenameAE.rep_eq)
+
 theorem SubstA_alphabet [alphabet]:
 "\<lbrakk> v \<rhd>\<^sub>\<alpha> x; x \<notin>\<^sub>f \<alpha> v \<rbrakk> 
   \<Longrightarrow>  \<alpha>(p[v|x]\<alpha>) = (if (x \<in>\<^sub>f \<alpha> p) then (\<alpha> p -\<^sub>f finsert x \<lbrace>\<rbrace>) \<union>\<^sub>f \<alpha> v
@@ -334,6 +350,10 @@ theorem VarAE_type [typing]:
 "t = type x \<Longrightarrow> VarAE x :\<^sub>\<alpha> t"
   by (simp add:VarAE.rep_eq eatype_rel_def typing)
 
+theorem RenameAE_type:
+  "e :\<^sub>\<alpha> t \<Longrightarrow> e[ss]\<alpha>\<epsilon> :\<^sub>\<alpha> t" 
+  by (simp add:RenameAE.rep_eq eatype_rel_def typing)
+
 theorem expr_type [typing]: "\<epsilon> e :\<^sub>e \<tau>\<^sub>e (\<epsilon> e)"
   by (simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def typing)
 
@@ -353,6 +373,11 @@ theorem FalseAE_defined [defined]: "\<D> FalseAE"
 
 theorem VarAE_defined [defined]: "aux x \<Longrightarrow> \<D> (VarAE x)"
   by (simp add:VarAE.rep_eq Defined_WF_ALPHA_EXPRESSION_def defined)
+
+(*
+theorem RenameAE_defined [defined]: "\<D> (e[ss]\<alpha>\<epsilon>) = \<D> e"
+  apply (simp add:RenameAE.rep_eq Defined_WF_ALPHA_EXPRESSION_def defined)
+*)
 
 declare expr_alpha_def [simp del]
 declare pred_alphabet_def [simp del]

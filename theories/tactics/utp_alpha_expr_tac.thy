@@ -77,10 +77,14 @@ theorem EvalE_FalseAE [evala] :
 "\<lbrakk>FalseAE\<rbrakk>\<alpha>\<epsilon> = FalseE"
   by (simp add:FalseAE.rep_eq EvalAE_def)
 
-theorem Eval_ExprA [evala] :
+theorem EvalA_ExprA [evala] :
 "e :\<^sub>\<alpha> BoolType \<Longrightarrow> \<lbrakk>ExprA e\<rbrakk>\<pi> = ExprP \<lbrakk>e\<rbrakk>\<alpha>\<epsilon>"
   by (simp add:ExprA_rep_eq EvalA_def EvalAE_def)
 
+theorem EvalA_RenameAE [evala] :
+"\<lbrakk>e[ss]\<alpha>\<epsilon>\<rbrakk>\<alpha>\<epsilon> = \<lbrakk>e\<rbrakk>\<alpha>\<epsilon>[ss]\<epsilon>"
+  by (simp add:RenameAE.rep_eq EvalAE_def)
+ 
 theorem EvalA_SubstA :
 "\<lbrakk> v \<rhd>\<^sub>\<alpha> x; x \<notin>\<^sub>f \<alpha> v \<rbrakk> \<Longrightarrow> \<lbrakk>SubstA p v x\<rbrakk>\<pi> = \<lbrakk>p\<rbrakk>\<pi>[\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>|x]"
   by (simp add:SubstA_rep_eq EvalA_def EvalAE_def)

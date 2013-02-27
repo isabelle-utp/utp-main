@@ -300,6 +300,8 @@ theorem LitE_defined [defined]: "\<lbrakk> \<D> v; v :t \<rbrakk> \<Longrightarr
 theorem VarE_defined [defined]: "aux x \<Longrightarrow> \<D> (VarE x)"
   by (simp add:VarE_def Defined_WF_EXPRESSION_def defined)
 
+(* theorem RenameE_defined [defined]: "\<D> (RenameE e ss) = \<D> e" *)
+
 subsubsection {* bfun theorems *}
 
 lemma LitE_bfun [simp]: "a : t \<Longrightarrow> \<langle>LitE t a\<rangle>\<^sub>e = (\<lambda> x. a)"
@@ -360,7 +362,7 @@ theorem UNREST_EXPR_LitE [unrest] :
 "UNREST_EXPR vs (LitE t v)"
   by (simp add:LitE_def UNREST_EXPR_def)
 
-theorem UNREST_EXPR_RenameE :
+theorem UNREST_EXPR_RenameE [unrest] :
 "UNREST_EXPR vs p \<Longrightarrow>
  UNREST_EXPR (\<langle>ss\<rangle>\<^sub>s ` vs) p[ss]\<epsilon>"
   by (auto simp add: UNREST_EXPR_def wf_expr_bfun_def wf_expr_type_def RenameE.rep_eq RenameB_override_distr1 closure)
