@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
 (* File: utp_sorts.thy                                                        *)
-(* Author: Frank Zeyda and Simon Foster, University of York (UK)              *)
+(* Author: Mrank Zeyda and Simon Foster, University of York (UK)              *)
 (******************************************************************************)
 
 header {* Value Sorts *}
@@ -39,11 +39,11 @@ definition to_map :: "('b \<Rightarrow> 'a) \<Rightarrow> ('b \<rightharpoonup> 
 definition from_map :: "('b \<rightharpoonup> 'a) \<Rightarrow> ('b \<Rightarrow> 'a)" where
 "from_map m = (\<lambda> x . case (m x) of Some y \<Rightarrow> y | None \<Rightarrow> \<bottom>v)"
 
-definition fdom :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set" where
-"fdom f = dom (to_map f)"
+definition mdom :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set" where
+"mdom f = dom (to_map f)"
 
-definition fran :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a set" where
-"fran f = ran (to_map f)"
+definition mran :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a set" where
+"mran f = ran (to_map f)"
 
 definition fempty :: "'b \<Rightarrow> 'a" where
 "fempty = from_map Map.empty"
@@ -57,7 +57,7 @@ definition to_graph_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarr
 "to_graph_on a f = {(x, f x) | x . x \<in> a}"
 
 abbreviation to_graph :: "('a \<Rightarrow> 'a) \<Rightarrow> ('a \<times> 'a) set" where
-"to_graph f \<equiv> to_graph_on (fdom f) f"
+"to_graph f \<equiv> to_graph_on (mdom f) f"
 
 definition from_graph :: "('a \<times> 'a) set \<Rightarrow> ('a \<Rightarrow> 'a)" where
 "from_graph s =
@@ -82,32 +82,32 @@ apply (rule ext)
 apply (metis not_Some_eq option.simps)
 done
 
-theorem fdom_fran [dest] :
-"x \<in> fdom f \<Longrightarrow> f x \<in> fran f"
-apply (simp add: fdom_def fran_def to_map_def)
+theorem mdom_mran [dest] :
+"x \<in> mdom f \<Longrightarrow> f x \<in> mran f"
+apply (simp add: mdom_def mran_def to_map_def)
 apply (case_tac "f x = \<bottom>v")
 apply (auto simp: ran_def)
 done
 
-theorem fdom_elseBot [simp] :
-"fdom (\<lambda> x . if (P x) then (f x) else \<bottom>v) = {x . (P x) \<and> x \<in> fdom f}"
-  by (auto simp: fdom_def to_map_def dom_def)
+theorem mdom_elseBot [simp] :
+"mdom (\<lambda> x . if (P x) then (f x) else \<bottom>v) = {x . (P x) \<and> x \<in> mdom f}"
+  by (auto simp: mdom_def to_map_def dom_def)
 
-theorem fran_elseBot [simp] :
-"fran (\<lambda> x. if (P x) then (f x) else \<bottom>v) = {f x | x . (P x) \<and> f x \<noteq> \<bottom>v}"
-  by (auto simp: fran_def to_map_def ran_def)
+theorem mran_elseBot [simp] :
+"mran (\<lambda> x. if (P x) then (f x) else \<bottom>v) = {f x | x . (P x) \<and> f x \<noteq> \<bottom>v}"
+  by (auto simp: mran_def to_map_def ran_def)
 
 theorem to_graph_on_inv [simp] :
 "from_graph (to_graph_on a f) = func_on a f"
   by (auto simp: to_graph_on_def from_graph_def func_on_def)
 
-theorem func_on_fdom [simp] :
-"func_on (fdom f) f = f"
+theorem func_on_mdom [simp] :
+"func_on (mdom f) f = f"
 apply (simp add: func_on_def)
 apply (rule ext)
-apply (case_tac "x \<in> fdom f")
+apply (case_tac "x \<in> mdom f")
 apply (force)
-apply (force simp: fdom_def to_map_def)
+apply (force simp: mdom_def to_map_def)
 done
 
 theorem to_graph_inv [simp] :
@@ -487,8 +487,8 @@ subsubsection {* Function Type *}
 
 definition FuncBetw :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool" where
 "FuncBetw a b f \<equiv> f \<in> MkFunc ` Collect IsFunc
-                \<and> (fdom (DestFunc f) \<subseteq> a)
-                \<and> (fran (DestFunc f) \<subseteq> b)"
+                \<and> (mdom (DestFunc f) \<subseteq> a)
+                \<and> (mran (DestFunc f) \<subseteq> b)"
 
 subsubsection {* Function Operators *}
 

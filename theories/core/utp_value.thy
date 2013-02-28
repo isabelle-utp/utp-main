@@ -101,7 +101,7 @@ definition type_rel :: "'VALUE \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool" (i
 "x : t \<longleftrightarrow> x :\<^sub>u Rep_UTYPE t"
 
 definition default :: "'VALUE UTYPE \<Rightarrow> 'VALUE" where
-"default t \<equiv> SOME x. x : t"
+"default t \<equiv> SOME x. x : t \<and> \<D> x"
 
 definition someType :: "'VALUE UTYPE" where
 "someType \<equiv> SOME t. \<exists>x. x : t"
@@ -127,7 +127,12 @@ done
 lemma default_type [typing,intro]: "default t : t"
   apply (simp add:default_def)
   apply (rule type_non_empty_elim)
-  apply (force intro:someI)
+  apply (smt tfl_some)
+done
+
+lemma default_defined [defined]: "\<D> (default t)"
+  apply (simp add:default_def)
+  apply (metis (lifting) some_eq_ex type_non_empty_defined)
 done
 
 lemma someType_value: "\<exists> v. v : someType"

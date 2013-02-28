@@ -502,4 +502,11 @@ theorem WF_ALPHA_PREDICATE_empty_elim:
   "\<lbrakk> \<alpha> p = \<lbrace>\<rbrace>; p = TRUE \<Longrightarrow> P; p = FALSE \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (metis WF_ALPHA_PREDICATE_empty_true_false)
 
+lemma WF_ALPHA_PREDICATE_binding_equiv:
+  "\<lbrakk> b1 \<in> destPRED (\<pi> p); b1 \<cong> b2 on \<langle>\<alpha> p\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> b2 \<in> destPRED (\<pi> p)"
+  apply (insert WF_ALPHA_PREDICATE_UNREST[of "p"])
+  apply (auto simp add:UNREST_def)
+  apply (smt binding_equiv_comm binding_override_equiv binding_override_simps(10) binding_override_simps(5))
+done
+
 end

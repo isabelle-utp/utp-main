@@ -35,6 +35,10 @@ lemma var_compat_defined [defined]:
   "\<lbrakk> v \<rhd> x; aux x \<rbrakk> \<Longrightarrow> \<D> v"
   by (auto simp add:var_compat_def)  
 
+lemma var_compat_default [typing]:
+  "default (vtype x) \<rhd> x"
+  by (auto intro:typing defined)
+
 subsection {* Bindings *}
 
 text {* We require bindings to be well-typed. *}
@@ -308,6 +312,52 @@ lemma binding_upd_simps [simp]:
   "b(x :=\<^sub>b \<langle>b\<rangle>\<^sub>b x) = b"
   by (auto)
 
+subsubsection {* Binding Equivalence *}
+
+theorem binding_equiv_empty [simp] :
+"b1 \<cong> b2 on {}"
+apply (simp add: binding_equiv_def)
+done
+
+theorem binding_equiv_insert [simp] :
+"b1 \<cong> b2 on (insert x a) \<longleftrightarrow>
+ (b1 \<cong> b2 on a) \<and> \<langle>b1\<rangle>\<^sub>b x = \<langle>b2\<rangle>\<^sub>b x"
+apply (simp add: binding_equiv_def)
+apply (auto)
+done
+
+theorem binding_equiv_subset :
+"\<lbrakk>b1 \<cong> b2 on a2;
+ a1 \<subseteq> a2\<rbrakk> \<Longrightarrow>
+ b1 \<cong> b2 on a1"
+apply (simp add: binding_equiv_def)
+apply (auto)
+done
+
+theorem binding_equiv_idem [simp] :
+"b \<cong> b on a"
+apply (simp add: binding_equiv_def)
+done
+
+theorem binding_equiv_comm :
+"b1 \<cong> b2 on a \<Longrightarrow> b2 \<cong> b1 on a"
+apply (simp add: binding_equiv_def)
+done
+
+theorem binding_equiv_trans :
+"\<lbrakk>b1 \<cong> b2 on a;
+ b2 \<cong> b3 on a\<rbrakk> \<Longrightarrow>
+ b1 \<cong> b3 on a"
+apply (simp add: binding_equiv_def)
+done
+
+theorem binding_equiv_total :
+"b1 \<cong> b2 on VAR \<longleftrightarrow> b1 = b2"
+apply (simp add: binding_equiv_def)
+apply (simp add: VAR_def)
+apply (auto)
+done
+
 text {* The default binding *}
 
 lift_definition default_binding :: 
@@ -317,5 +367,7 @@ lift_definition default_binding ::
   apply (rule type_non_empty_elim)
   apply (auto)
 done
+
+
 
 end
