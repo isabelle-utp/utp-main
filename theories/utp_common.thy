@@ -7,11 +7,9 @@
 header {* Common Definitions *}
 
 theory utp_common
-imports Main Real HOLCF Derive
+imports Main Real Derive
   "~~/src/HOL/Library/Countable"
-  "~~/src/HOL/HOLCF/Library/List_Predomain"
   "~~/src/Tools/Adhoc_Overloading"
-  "utils/HOLCF_extra"
   "utils/Library_extra"
 begin
 

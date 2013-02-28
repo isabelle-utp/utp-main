@@ -141,22 +141,20 @@ lemma Abs_UTYPE_type [typing,intro]: "\<lbrakk> x :\<^sub>u t; \<D> x \<rbrakk> 
 definition embTYPE :: "'b::countable \<Rightarrow> 'a::VALUE UTYPE" where
 "embTYPE t \<equiv> Abs_UTYPE (to_nat t)"
 
-definition prjTYPE :: "'a::VALUE UTYPE \<Rightarrow> 'b::{countable,cpo}" where
+definition prjTYPE :: "'a::VALUE UTYPE \<Rightarrow> 'b::{countable}" where
 "prjTYPE t \<equiv> from_nat (Rep_UTYPE t)"
 
-(*
 lemma embTYPE_inv [simp]:
-  fixes x :: "'a::{countable,cpo}"
-        and v :: "'b"
-  assumes "v :\<^sub>u emb\<cdot>(Def x)" "\<D> v"
-  shows "prjTYPE (embTYPE x :: 'b UTYPE) = x"
-  apply (subgoal_tac "emb\<cdot>(Def x) \<in> UTYPES TYPE('b)")
-  apply (simp add:prjTYPE_def embTYPE_def)
+  fixes t :: "'a::countable"
+    and v :: "'b"
+  assumes "v :\<^sub>u to_nat t" "\<D> v"
+  shows "prjTYPE (embTYPE t :: 'b UTYPE) = t"
+  apply (subgoal_tac "to_nat t \<in> UTYPES TYPE('b)")
+  apply (simp add:embTYPE_def prjTYPE_def)
   apply (simp add:UTYPES_def)
   apply (rule_tac x="v" in exI)
   apply (simp add:assms)
 done
-*)
 
 subsection {* Typing operator syntax *}
 
