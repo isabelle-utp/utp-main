@@ -382,20 +382,6 @@ lemma set2cset_inv[simp]: "xs \<subseteq> flat \<Longrightarrow> cset2set (set2c
   apply (auto)
 done
 
-lemma cset2set_inv[simp]: 
-  "\<lbrakk> \<forall>x. \<lbrakk>x \<in>\<in> xs\<rbrakk>st \<longrightarrow> flat_value x \<rbrakk> \<Longrightarrow> set2cset (cset2set xs) = xs"
-  apply (simp add: cset_mem_iff)
-  apply (auto simp add:cset2set_def set2cset_def)
-  apply (case_tac "x=\<bottom>")
-  apply (simp)
-  apply (metis (no_types) cmember_def cset_rep_strict')
-  apply (simp)
-  apply (auto simp add:set2cset_aux_def)
-  apply (metis staut_def)
-  apply (force simp add:flat_def)
-  apply (simp add: staut_def)
-oops
-
 lemma set2cset_mem[simp]: "xs \<subseteq> flat \<Longrightarrow> \<lbrakk>x \<in>\<in> set2cset xs\<rbrakk>st \<longleftrightarrow> x \<in> xs"
   apply (simp add:set2cset_def)
   apply (case_tac "x = \<bottom>")
@@ -421,6 +407,24 @@ lemma set2cset_nbot[simp]:
   apply (simp)
   apply (case_tac "x=\<bottom>")
   apply (simp_all add:set2cset_aux_def)
+done
+
+definition flat_cset :: "'a cset \<Rightarrow> bool" where
+"flat_cset xs = (\<forall>x. (x \<in>\<in> xs) \<noteq> \<bottom> \<longleftrightarrow> flat_value x)"
+
+lemma cset2set_inv[simp]: 
+  "flat_cset xs \<Longrightarrow> set2cset (cset2set xs) = xs"
+  apply (simp add: cset_mem_iff)
+  apply (auto simp add:cset2set_def set2cset_def staut_def)
+  apply (case_tac "x=\<bottom>")
+  apply (simp)
+  apply (metis (no_types) cmember_def cset_rep_strict')
+  apply (simp)
+  apply (simp add:set2cset_aux_def flat_cset_def)
+  apply (auto)
+  apply (force simp add:flat_def)
+  apply (metis Cfun_Partial.flat_def Exh_tr mem_Collect_eq)
+  apply (metis (lifting) Cfun_Partial.flat_def mem_Collect_eq)
 done
 
 (*

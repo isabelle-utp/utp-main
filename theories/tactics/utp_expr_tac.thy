@@ -186,7 +186,7 @@ theorem EqualP_sym:
   by utp_pred_auto_tac
 
 (* These need adapting for strictness *)
-theorem VarE_subst: "\<lbrakk> type x = \<tau>\<^sub>e v; \<not> aux x \<rbrakk> \<Longrightarrow> VarE x[v|x] = v"
+theorem VarE_subst: "\<lbrakk> vtype x = \<tau>\<^sub>e v; \<not> aux x \<rbrakk> \<Longrightarrow> VarE x[v|x] = v"
   by utp_expr_tac
 
 theorem SubstP_one_point:
@@ -218,14 +218,14 @@ lemma PROP_VARS_Defined: "\<lbrakk> x \<in> PROP_VARS \<D> p; b \<in> p \<rbrakk
 
 
 theorem taut_casesI:
-"\<lbrakk> \<And> v. v : type x \<Longrightarrow> taut (p[LitE (type x) v|x]) \<rbrakk> \<Longrightarrow>
+"\<lbrakk> \<And> v. v : vtype x \<Longrightarrow> taut (p[LitE (vtype x) v|x]) \<rbrakk> \<Longrightarrow>
  taut p"
   apply (utp_pred_tac)
   apply (utp_expr_tac)
   apply (auto)
   apply (simp add:EvalP_def)
   apply (utp_expr_tac)
-  apply (subgoal_tac "xa x : type x")
+  apply (subgoal_tac "xa x : vtype x")
   apply (auto)
   apply (simp add:SubstP_def typing)
   apply (utp_pred_tac)
@@ -238,7 +238,7 @@ theorem "\<lbrakk> p \<in> WF_PREDICATE; q \<in> WF_PREDICATE; x \<in> PROP_VARS
   apply (utp_pred_tac)
 
 theorem Bool_cases:
-"\<lbrakk> p \<in> WF_PREDICATE; type x = BoolType; x \<in> DEF_VARS p;
+"\<lbrakk> p \<in> WF_PREDICATE; vtype x = BoolType; x \<in> DEF_VARS p;
    taut (p[TrueE|x]);
    taut (p[FalseE|x]);
    taut (p[ \<rbrakk> \<Longrightarrow>

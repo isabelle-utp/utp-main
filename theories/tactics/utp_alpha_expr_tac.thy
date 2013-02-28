@@ -105,9 +105,9 @@ subsection {* Proof Experiements *}
 
 (*
 theorem SubstAE_VarAE:
-"type x = \<tau>\<^sub>e (\<epsilon> e) \<Longrightarrow>
+"vtype x = \<tau>\<^sub>e (\<epsilon> e) \<Longrightarrow>
  SubstAE (VarAE x) e x = e"
-  apply (subgoal_tac "\<epsilon> e :\<^sub>e type x")
+  apply (subgoal_tac "\<epsilon> e :\<^sub>e vtype x")
   apply (utp_alpha_tac)
   apply (utp_expr_tac)
   apply (simp add:alphabet)

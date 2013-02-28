@@ -1,19 +1,23 @@
+(******************************************************************************)
+(* Project: VDM model for Isabelle/UTP                                        *)
+(* File: utp_vdm_values.thy                                                   *)
+(* Author: Simon Foster, University of York (UK)                              *)
+(******************************************************************************)
 theory utp_vdm_values
 imports 
    HOLCF 
+   Derive
   "~~/src/HOL/HOLCF/Library/HOL_Cpo" 
   "~~/src/HOL/Library/Char_ord" 
   "~~/src/HOL/Library/Monad_Syntax" 
-  "../../utils/HOLCF_extra" "../../utils/Library_extra"
+  "../../core/utp_var"
+  "../../utils/HOLCF_extra" 
+  "../../utils/Library_extra"
   "../../utils/HOLCF_extra/Sfun_Extra"
-   Derive
+
 begin
 
-(*
-hide_const (open) Lattice.top
-hide_const (open) Lattice.inf
-hide_const (open) Lattice.sup
-*)
+default_sort cpo
 
 section {* Main domain types *}
 
@@ -453,7 +457,7 @@ BasicV_type[intro]: "x :\<^sub>b a \<Longrightarrow> BasicV\<cdot>(Def x) : Basi
 
 inductive vtype_rel :: "vval \<Rightarrow> vtype \<Rightarrow> bool" (infix ":\<^sub>v" 50) where
 BotV_type[intro]: "\<bottom> :\<^sub>v a" |
-SetV_type[intro]: "\<lbrakk> \<forall> x. \<lbrakk>Def x \<in>\<in> xs\<rbrakk>st \<longrightarrow> x :\<^sub>b a \<rbrakk> \<Longrightarrow> SetV\<cdot>xs :\<^sub>v SetT a" |
+SetV_type[intro]: "\<lbrakk> a \<in> vbtypes; \<forall> x. (\<lbrakk>Def x \<in>\<in> xs\<rbrakk>st \<longrightarrow> x :\<^sub>b a) \<rbrakk> \<Longrightarrow> SetV\<cdot>xs :\<^sub>v SetT a" |
 BasicV_type[intro]: "x :\<^sub>b a \<Longrightarrow> BasicV\<cdot>(Def x) :\<^sub>v a" |
 FuncV_type[intro]: "\<lbrakk> \<forall> x. x :\<^sub>b a \<longrightarrow> f\<cdot>!(BasicV\<cdot>(Def x)) :\<^sub>v b \<rbrakk> \<Longrightarrow> FuncV\<cdot>f :\<^sub>v a → b"
 

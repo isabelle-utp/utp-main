@@ -273,7 +273,7 @@ proof -
 
   let ?xs = "flist (out\<^sub>\<alpha> a)" and ?ys = "flist (dash `\<^sub>f out\<^sub>\<alpha> a)"
   
-  have tys:"\<forall>i<length ?xs. type (?xs ! i) = type (?ys ! i) \<and> aux (?xs ! i) = aux (?ys ! i)"
+  have tys:"\<forall>i<length ?xs. vtype (?xs ! i) = vtype (?ys ! i) \<and> aux (?xs ! i) = aux (?ys ! i)"
     by (simp add:rename_equiv_def flist_fimage dash_strict_mono)
 
   moreover have inter:"set ?xs \<inter> set ?ys = {}"
@@ -336,7 +336,7 @@ proof -
 
   let ?xs = "flist (in\<^sub>\<alpha> a)" and ?ys = "flist (dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha> a)"
   
-  have tys:"\<forall>i<length ?xs. type (?xs ! i) = type (?ys ! i) \<and> aux (?xs ! i) = aux (?ys ! i)"
+  have tys:"\<forall>i<length ?xs. vtype (?xs ! i) = vtype (?ys ! i) \<and> aux (?xs ! i) = aux (?ys ! i)"
     by (simp add:rename_equiv_def flist_fimage dash_strict_mono)
 
   moreover have inter:"set ?xs \<inter> set ?ys = {}"
@@ -492,7 +492,7 @@ lemma SubstA_EqualA [usubst]:
   apply (simp add:evala eval)
 *)
 
-lemma SubstA_var [usubst]: "\<lbrakk> type x = BoolType; v \<rhd>\<^sub>\<alpha> x; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> &x[v|x]\<alpha> = ExprA v"
+lemma SubstA_var [usubst]: "\<lbrakk> vtype x = BoolType; v \<rhd>\<^sub>\<alpha> x; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> &x[v|x]\<alpha> = ExprA v"
   apply (subgoal_tac "v :\<^sub>\<alpha> BoolType")
   apply (utp_alpha_tac2)
   apply (rule EvalP_intro)
@@ -813,8 +813,8 @@ lemma ClosureA_intro: "\<lbrakk> \<alpha> p = \<alpha> q; [p \<Leftrightarrow> q
 done
 
 lemma EvalAE_SubstA_LitAE [evala]: 
-  "v \<rhd> x \<Longrightarrow> \<lbrakk>\<lbrakk>p[LitAE (type x) v|x]\<alpha>\<rbrakk>\<pi>\<rbrakk>b = \<lbrakk>\<lbrakk>p\<rbrakk>\<pi>\<rbrakk>(b(x :=\<^sub>b v))"
-  apply (subgoal_tac "LitAE (type x) v \<rhd>\<^sub>\<alpha> x")
+  "v \<rhd> x \<Longrightarrow> \<lbrakk>\<lbrakk>p[LitAE (vtype x) v|x]\<alpha>\<rbrakk>\<pi>\<rbrakk>b = \<lbrakk>\<lbrakk>p\<rbrakk>\<pi>\<rbrakk>(b(x :=\<^sub>b v))"
+  apply (subgoal_tac "LitAE (vtype x) v \<rhd>\<^sub>\<alpha> x")
   apply (simp add:evala evale closure typing defined alphabet)
   apply (metis (lifting) LitAE_defined LitAE_type eavar_compat_intros(1) eavar_compat_intros(2) var_compat_def)
 done
@@ -840,7 +840,7 @@ done
 
 (* A tautology can be proven by proven it for any substitution of a variable *)
 lemma taut_cases:
-  "\<lbrakk> x \<in>\<^sub>f \<alpha> p; \<And> v. v \<rhd> x \<Longrightarrow> taut (p[LitAE (type x) v|x]\<alpha>) \<rbrakk> \<Longrightarrow> taut p"
+  "\<lbrakk> x \<in>\<^sub>f \<alpha> p; \<And> v. v \<rhd> x \<Longrightarrow> taut (p[LitAE (vtype x) v|x]\<alpha>) \<rbrakk> \<Longrightarrow> taut p"
   apply (utp_alpha_tac)
   apply (utp_pred_tac)
   apply (metis EvalAE_SubstA_LitAE binding_compat binding_upd_triv)
@@ -854,7 +854,7 @@ lemma AssignA_unfold:
 done
 
 lemma SubstA_ident_twice:
-  assumes "x \<noteq> y" "type x = type y" "aux x = aux y" "x \<in>\<^sub>f \<alpha> P" "y \<notin>\<^sub>f \<alpha> P"
+  assumes "x \<noteq> y" "vtype x = vtype y" "aux x = aux y" "x \<in>\<^sub>f \<alpha> P" "y \<notin>\<^sub>f \<alpha> P"
   shows "`P[$y/x][$x/y]` = P"
 proof -
 
@@ -898,7 +898,7 @@ proof -
 qed
 
 lemma ExistsA_insert: 
-  assumes "x \<in>\<^sub>f \<alpha> P" "y \<notin>\<^sub>f \<alpha> P" "x \<noteq> y" "type x = type y" "aux x = aux y"
+  assumes "x \<in>\<^sub>f \<alpha> P" "y \<notin>\<^sub>f \<alpha> P" "x \<noteq> y" "vtype x = vtype y" "aux x = aux y"
   shows "P = `\<exists>- y. P[$y/x] \<and> $y = $x`"
 proof -
 

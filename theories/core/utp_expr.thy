@@ -74,13 +74,13 @@ instance ..
 end
 
 lemma evar_compat_intros [simp,intro]:
-  "\<lbrakk> v :\<^sub>e type x; \<D> v \<rbrakk> \<Longrightarrow> v \<rhd>\<^sub>e x"
-  "\<lbrakk> v :\<^sub>e type x; \<not> aux x \<rbrakk> \<Longrightarrow> v \<rhd>\<^sub>e x"
+  "\<lbrakk> v :\<^sub>e vtype x; \<D> v \<rbrakk> \<Longrightarrow> v \<rhd>\<^sub>e x"
+  "\<lbrakk> v :\<^sub>e vtype x; \<not> aux x \<rbrakk> \<Longrightarrow> v \<rhd>\<^sub>e x"
   by (auto simp add:evar_compat_def etype_rel_def Defined_WF_EXPRESSION_def)
 
 lemma evar_compat_cases [elim]:
-  "\<lbrakk> v \<rhd>\<^sub>e x; \<lbrakk> v :\<^sub>e type x; \<D> v \<rbrakk> \<Longrightarrow> P
-           ; \<lbrakk> v :\<^sub>e type x; \<not> aux x \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk> v \<rhd>\<^sub>e x; \<lbrakk> v :\<^sub>e vtype x; \<D> v \<rbrakk> \<Longrightarrow> P
+           ; \<lbrakk> v :\<^sub>e vtype x; \<not> aux x \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (auto simp add:evar_compat_def etype_rel_def Defined_WF_EXPRESSION_def)
 
 definition UNREST_EXPR :: "('VALUE VAR) set \<Rightarrow> 'VALUE WF_EXPRESSION \<Rightarrow> bool" where
@@ -113,7 +113,7 @@ definition EqualP ::
 notation EqualP (infixr "==p" 200)
 
 definition VarE :: "'VALUE VAR \<Rightarrow> 'VALUE WF_EXPRESSION" where
-"VarE x \<equiv> wfexpr (type x, \<lambda> b. \<langle>b\<rangle>\<^sub>b x)"
+"VarE x \<equiv> wfexpr (vtype x, \<lambda> b. \<langle>b\<rangle>\<^sub>b x)"
 
 definition LitE :: "'VALUE UTYPE \<Rightarrow> 'VALUE \<Rightarrow> 'VALUE WF_EXPRESSION" where
 "LitE t v \<equiv> wfexpr (t, \<lambda> b. v)"
@@ -156,7 +156,7 @@ definition is_SubstP_var ::
  'VALUE VAR \<Rightarrow> 
  'VALUE VAR \<Rightarrow>
  bool" where
- "is_SubstP_var p v x x' \<equiv> x \<noteq> x' \<and> UNREST {x'} p \<and> UNREST_EXPR {x'} v \<and> type x' = type x \<and> aux x' = aux x"
+ "is_SubstP_var p v x x' \<equiv> x \<noteq> x' \<and> UNREST {x'} p \<and> UNREST_EXPR {x'} v \<and> vtype x' = vtype x \<and> aux x' = aux x"
 
 (* Substitution generates a variable fresh in p and v and uses it to semantically substitute *)
 definition SubstP ::
@@ -253,10 +253,10 @@ theorem wfexpr_tau [simp]: "\<tau>\<^sub>e (wfexpr e) = expr_type e"
   apply (simp add:mk_wfexpr_def)
 done
 
-theorem VarE_type [typing]: "VarE x :\<^sub>e type x"
+theorem VarE_type [typing]: "VarE x :\<^sub>e vtype x"
   by (simp add:VarE_def WF_BINDING_def typing etype_rel_def)
 
-theorem VarE_tau [simp]: "\<tau>\<^sub>e (VarE x) = type x"
+theorem VarE_tau [simp]: "\<tau>\<^sub>e (VarE x) = vtype x"
   by (simp add:VarE_def)
 
 theorem LitE_type [typing]: 
@@ -284,7 +284,7 @@ theorem RenameE_tau [typing]:
   by (simp add:wf_expr_type_def RenameE.rep_eq)
 
 theorem SubstE_type [typing]:
-"\<lbrakk> v :\<^sub>e type x; e :\<^sub>e t \<rbrakk> \<Longrightarrow>
+"\<lbrakk> v :\<^sub>e vtype x; e :\<^sub>e t \<rbrakk> \<Longrightarrow>
  e[v|x] :\<^sub>e t"
   by (simp add:SubstE_def etype_rel_def WF_BINDING_update1)
 

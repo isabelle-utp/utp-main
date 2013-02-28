@@ -15,20 +15,20 @@ subsection {* Value Compatibility *}
 text {* Can the given value be placed into the given variable? *}
 
 definition var_compat :: "'VALUE \<Rightarrow> 'VALUE VAR \<Rightarrow> bool" (infix "\<rhd>" 50) where
-"v \<rhd> x \<equiv> v : type x \<and> (aux x \<longrightarrow> \<D> v)"
+"v \<rhd> x \<equiv> v : vtype x \<and> (aux x \<longrightarrow> \<D> v)"
 
 lemma var_compat_intros [intro]:
-  "\<lbrakk> v : type x; \<D> v \<rbrakk> \<Longrightarrow> v \<rhd> x"
-  "\<lbrakk> v : type x; \<not> aux x \<rbrakk> \<Longrightarrow> v \<rhd> x"
+  "\<lbrakk> v : vtype x; \<D> v \<rbrakk> \<Longrightarrow> v \<rhd> x"
+  "\<lbrakk> v : vtype x; \<not> aux x \<rbrakk> \<Longrightarrow> v \<rhd> x"
   by (simp_all add:var_compat_def)
 
 lemma var_compat_cases [elim]:
-  "\<lbrakk> v \<rhd> x; \<lbrakk> v : type x; \<D> v \<rbrakk> \<Longrightarrow> P
-          ; \<lbrakk> v : type x; \<not> aux x \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk> v \<rhd> x; \<lbrakk> v : vtype x; \<D> v \<rbrakk> \<Longrightarrow> P
+          ; \<lbrakk> v : vtype x; \<not> aux x \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (auto simp add:var_compat_def)
 
 lemma var_compat_typing [typing]:
-  "v \<rhd> x \<Longrightarrow> v : type x"
+  "v \<rhd> x \<Longrightarrow> v : vtype x"
   by (auto simp add:var_compat_def)
 
 lemma var_compat_defined [defined]:
@@ -45,7 +45,7 @@ subsubsection {* Binding Theorems *}
 
 theorem WF_BINDING_exists :
 "\<exists> b . b \<in> WF_BINDING"
-apply (rule_tac x = "(\<lambda> v . SOME x . x : (type v) \<and> \<D> x)" in exI)
+apply (rule_tac x = "(\<lambda> v . SOME x . x : (vtype v) \<and> \<D> x)" in exI)
 apply (auto simp add: WF_BINDING_def)
 apply (rule someI2_ex)
 apply (rule type_non_empty_elim)
@@ -84,12 +84,12 @@ theorem WF_BINDING_app_compat [intro] :
 done
 
 theorem WF_BINDING_app_type [intro] :
-"\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow> (b v) : (type v)"
+"\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow> (b v) : (vtype v)"
 apply (auto simp add: WF_BINDING_def)
 done
 
 theorem WF_BINDING_app_carrier [intro] :
-"\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow> (b v) \<in> carrier (type v)"
+"\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow> (b v) \<in> carrier (vtype v)"
 apply (simp add: WF_BINDING_app_type carrier_def)
 done
 
@@ -100,13 +100,13 @@ apply (simp add: WF_BINDING_def)
 done
 
 theorem WF_BINDING_update2 [closure] :
-"\<lbrakk>b \<in> WF_BINDING; x \<in> carrier (type v); \<not> aux v\<rbrakk> \<Longrightarrow>
+"\<lbrakk>b \<in> WF_BINDING; x \<in> carrier (vtype v); \<not> aux v\<rbrakk> \<Longrightarrow>
  b(v := x) \<in> WF_BINDING"
 apply (simp add: carrier_def closure var_compat_intros)
 done
 
 theorem WF_BINDING_update2_aux [closure] :
-"\<lbrakk>b \<in> WF_BINDING; x \<in> carrier (type v); aux v; \<D> x\<rbrakk> \<Longrightarrow>
+"\<lbrakk>b \<in> WF_BINDING; x \<in> carrier (vtype v); aux v; \<D> x\<rbrakk> \<Longrightarrow>
  b(v := x) \<in> WF_BINDING"
 apply (simp add: carrier_def closure var_compat_intros)
 done
@@ -177,7 +177,7 @@ done
 
 declare binding_override_on.rep_eq [simp]
 
-lemma binding_type [simp, typing, intro]: "t = type x \<Longrightarrow> \<langle>b\<rangle>\<^sub>bx : t"
+lemma binding_type [simp, typing, intro]: "t = vtype x \<Longrightarrow> \<langle>b\<rangle>\<^sub>bx : t"
   apply (insert Rep_WF_BINDING[of b])
   apply (auto simp add:WF_BINDING_def)
 done
@@ -190,7 +190,7 @@ lemma aux_defined [defined]:
   by (metis binding_compat var_compat_def)
 
 lemma binding_value_alt [simp, intro]: 
-  "\<lbrakk> type x = type x'; aux x = aux x' \<rbrakk> \<Longrightarrow> \<langle>b\<rangle>\<^sub>bx \<rhd> x'"
+  "\<lbrakk> vtype x = vtype x'; aux x = aux x' \<rbrakk> \<Longrightarrow> \<langle>b\<rangle>\<^sub>bx \<rhd> x'"
   by (auto simp add:var_compat_def intro: defined)
 
 lemma binding_eq_iff: "f = g = (\<forall>x. \<langle>f\<rangle>\<^sub>b x = \<langle>g\<rangle>\<^sub>b x)"
@@ -311,7 +311,7 @@ lemma binding_upd_simps [simp]:
 text {* The default binding *}
 
 lift_definition default_binding :: 
-  "'VALUE WF_BINDING" ("\<B>") is "(\<lambda> v . SOME x . x : (type v) \<and> \<D> x)" 
+  "'VALUE WF_BINDING" ("\<B>") is "(\<lambda> v . SOME x . x : (vtype v) \<and> \<D> x)" 
   apply (auto simp add: WF_BINDING_def)
   apply (rule someI2_ex)
   apply (rule type_non_empty_elim)

@@ -135,7 +135,8 @@ lemma someType_value: "\<exists> v. v : someType"
   apply (metis (lifting) Rep_UTYPE_elim type_rel_def)
 done
 
-lemma Abs_UTYPE_type [typing,intro]: "\<lbrakk> x :\<^sub>u t; \<D> x \<rbrakk> \<Longrightarrow> x : Abs_UTYPE t"
+lemma Abs_UTYPE_type [typing,intro]: 
+  "\<lbrakk> x :\<^sub>u t; \<D> x \<rbrakk> \<Longrightarrow> x : Abs_UTYPE t"
   by (metis (lifting) Rep_UTYPE_cases Rep_UTYPE_inverse UTYPES_def mem_Collect_eq type_rel_def)
 
 definition embTYPE :: "'b::countable \<Rightarrow> 'a::VALUE UTYPE" where

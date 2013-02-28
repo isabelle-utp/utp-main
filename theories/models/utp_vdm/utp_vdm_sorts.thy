@@ -1,13 +1,19 @@
 theory utp_vdm_sorts
-imports utp_vdm_inject "../../core/utp_sorts" "../../core/utp_value"
+imports 
+  "../../core/utp_sorts" 
+  utp_vdm_inject 
 begin
 
 instantiation vval :: VALUE
 begin
 
+(*
+definition utype_rel_vval :: "vval \<Rightarrow> nat \<Rightarrow> bool" where
+"utype_rel_vval x u = \<exists> t :: vtype. u = emb\<cdot>(Def t) \<and> x :\<^sub>v t)"
+*)
 
-definition utype_rel_vval :: "vval \<Rightarrow> udom \<Rightarrow> bool" where
-"utype_rel_vval x u = (\<exists> t :: vtype. u = emb\<cdot>(Def t) \<and> x :\<^sub>v t)"
+definition utype_rel_vval :: "vval \<Rightarrow> nat \<Rightarrow> bool" where
+"utype_rel_vval x u = (\<exists> t :: vtype. u = to_nat t \<and> x :\<^sub>v t)"
 
 definition Defined_vval :: "vval \<Rightarrow> bool" where
 "Defined_vval x \<equiv> x \<noteq> \<bottom>"
@@ -17,46 +23,33 @@ definition arb_vtype :: "vtype \<Rightarrow> udom" where
 
 instance
   apply (intro_classes)
-  apply (force simp add:utype_rel_vval_def Defined_vval_def)
+  apply (simp add:utype_rel_vval_def Defined_vval_def)
+  apply (rule_tac x="to_nat BoolT" in exI)
+  apply (force)
 done
 end
 
 lemma Defined_BasicV [simp]: "\<D> (BasicV\<cdot>(Def x))"
   by (simp add:Defined_vval_def)
 
-
-lemma vtype_UTYPE [simp]: "\<lbrakk> v :\<^sub>v t; \<D> v \<rbrakk> \<Longrightarrow> emb\<cdot>(Def (t :: vtype)) \<in> UTYPES (TYPE(vval))"
+lemma vtype_UTYPE [simp]: "\<lbrakk> v :\<^sub>v t; \<D> v \<rbrakk> \<Longrightarrow> to_nat t \<in> UTYPES (TYPE(vval))"
   by (auto simp add:UTYPES_def utype_rel_vval_def)
 
-(*
-lemma "embTYPE ((prjTYPE t) :: vtype) = (t :: vval UTYPE)"
+lemma prjTYPE_inv_vdm [simp]
+  : "embTYPE ((prjTYPE t) :: vtype) = (t :: vval UTYPE)"
   apply (simp add:prjTYPE_def embTYPE_def)
   apply (case_tac t)
-  apply (simp)
-  apply (auto simp add:UTYPES_def)
-  apply (simp add: utype_rel_vval_def)
-  apply (case_tac "prj\<cdot>y :: vtype lift")
-  apply (simp)
-  apply (simp)
-  apply (subgoal_tac "emb\<cdot>(Def a) \<sqsubseteq> y")
-  defer
-  apply (metis (lifting) emb_prj_below)
-  apply (subgoal_tac "emb\<cdot>(Def a) \<noteq> \<bottom>")
-  defer
-  apply (simp)
-*)
+  apply (auto simp add: utype_rel_vval_def UTYPES_def)
+done
 
 lemma type_rel_vtype_exists: 
   "(x::vval) : a \<Longrightarrow> \<exists> t. a = embTYPE t \<and> x :\<^sub>v t" 
   apply (simp add:type_rel_def)
   apply (simp add:utype_rel_vval_def)
   apply (case_tac a)
-  apply (simp)
-  apply (case_tac "prj\<cdot>y :: vtype lift")
-  apply (auto)
+  apply (auto simp add:UTYPES_def)
+  apply (rule_tac x="t" in exI)
   apply (simp add:embTYPE_def)
-  apply (rule_tac x="a" in exI)
-  apply (simp)
 done
 
 lemma type_rel_vtype_elim [elim]:
@@ -72,11 +65,9 @@ lemma type_rel_vtype [simp]: "x : t \<longleftrightarrow> x :\<^sub>v prjTYPE t"
   apply (rule_tac x="prjTYPE t" in exI)
   apply (simp add:prjTYPE_def)
   apply (case_tac t)
-  apply (auto simp add:UTYPES_def)
-  apply (metis (lifting) Undef.simps emb_inverse utype_rel_vval_def)
+  apply (auto simp add:UTYPES_def utype_rel_vval_def)
 done
 
-  
 instantiation vval :: BOT_SORT
 begin
 
@@ -98,12 +89,11 @@ lemma Defined_bot [simp]: "\<D> (\<bottom> :: vval) \<longleftrightarrow> False"
 lemma Defined_ubot [simp]: "\<D> \<bottom>v \<longleftrightarrow> False"
   by (simp add:Defined_vval_def)
 
-subsection {* Function sort instantiation *}
-
+(*
 lemma vval_UTYPE_nbot [simp]: 
-  "(prj\<cdot>(Rep_UTYPE (a :: vval UTYPE)) :: vtype lift) \<noteq> \<bottom>"
-  apply (case_tac a)
-  apply (simp add: UTYPES_def utype_rel_vval_def)
+  "(from_nat (Rep_UTYPE (t :: vval UTYPE)) :: vtype lift) \<noteq> \<bottom>"
+  apply (case_tac t)
+  apply (auto simp add: UTYPES_def utype_rel_vval_def)
   apply (auto)
 done
 
@@ -119,7 +109,7 @@ lemma vval_UTYPE_elim [elim]:
   assumes "\<And> x. (prj\<cdot>(Rep_UTYPE (a :: vval UTYPE)) :: vtype lift) = Def x \<Longrightarrow> P" 
   shows "P"
   by (metis assms vval_UTYPE_Def)
-
+*)
 subsection {* Int sort instantiation *}
 
 instantiation vval :: INT_SORT
@@ -127,8 +117,8 @@ begin
 
 definition MkInt_vval where "MkInt_vval (x::int) = InjVB x"
 definition DestInt_vval where "DestInt_vval x = (ProjVB x :: int)"
-definition IntUType_vval :: "vval itself \<Rightarrow> udom" where 
-"IntUType_vval = (\<lambda>x. emb\<cdot>(Def IntT))"
+definition IntUType_vval :: "vval itself \<Rightarrow> nat" where 
+"IntUType_vval = (\<lambda> x. to_nat IntT)"
 
 instance 
   apply (intro_classes, simp_all add:MkInt_vval_def DestInt_vval_def IntUType_vval_def type_rel_def utype_rel_vval_def embTYPE_def)
@@ -145,8 +135,8 @@ begin
 
 definition MkBool_vval where "MkBool_vval (x::bool) = InjVB x"
 definition DestBool_vval where "DestBool_vval x = (ProjVB x :: bool)"
-definition BoolUType_vval :: "vval itself \<Rightarrow> udom" where 
-"BoolUType_vval = (\<lambda>x. emb\<cdot>(Def BoolT))"
+definition BoolUType_vval :: "vval itself \<Rightarrow> nat" where 
+"BoolUType_vval = (\<lambda>x. to_nat BoolT)"
 
 instance 
   apply (intro_classes, simp_all add:MkBool_vval_def DestBool_vval_def BoolUType_vval_def type_rel_def utype_rel_vval_def embTYPE_def)
@@ -197,14 +187,13 @@ instance
   apply (simp_all)
   apply (simp add:dcarrier_def)
   apply (simp add:SetType_vval_def MkSet_vval_def IsSetElemType_vval_def)
-  apply (subgoal_tac "\<exists> v::vval. v :\<^sub>u emb\<cdot>(Def (SetT (prjTYPE t))) \<and> \<D> v")
+  apply (subgoal_tac "\<exists> v::vval. v :\<^sub>u to_nat (SetT (prjTYPE t)) \<and> \<D> v")
   apply (clarify)
   apply (auto)
   apply (simp add:MkSet_vval_def)
   apply (rule SetV_type)
   apply (auto)
   apply (subgoal_tac "(Rep_cfun ProjBasicV ` xa) \<subseteq> flat")
-  apply (simp add:carrier_def)
   apply (force)
   apply (auto)[1]
   apply (simp add:flat_def carrier_def)
@@ -221,6 +210,10 @@ instance
   apply (simp add:image_def MkSet_vval_def)
   apply (rule_tac x="Rep_cfun BasicV ` (cset2set xs)" in bexI)
   apply (auto)
+
+  apply (rule_tac cset2set_inv[THEN sym])
+  apply (auto)
+  thm set2cset_nbot
   apply (drule set2cset_nbot)
   apply (simp)
   apply (erule vbtypes_type_cases)

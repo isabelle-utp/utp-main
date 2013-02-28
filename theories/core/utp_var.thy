@@ -22,7 +22,7 @@ definition VAR :: "'VALUE VAR set" where
 abbreviation var_name :: "'VALUE VAR \<Rightarrow> NAME" ("name") where
 "var_name x \<equiv> fst x"
 
-abbreviation var_type :: "'VALUE VAR \<Rightarrow> 'VALUE UTYPE" ("type") where 
+abbreviation var_type :: "'VALUE VAR \<Rightarrow> 'VALUE UTYPE" ("vtype") where 
 "var_type x \<equiv> fst (snd x)"
 
 abbreviation var_aux :: "'VALUE VAR \<Rightarrow> bool" ("aux") where 
@@ -41,7 +41,7 @@ subsection {* Operators *}
 
 definition dash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" ("_\<acute>") where
 "dash \<equiv> \<lambda> x. ( MkName (name_str (name x)) (dashes (fst x) + 1) (subscript (name x))
-             , type x
+             , vtype x
              , aux x)"
 
 definition undash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" where
@@ -112,8 +112,8 @@ theorem MkVar_name [simp]:
   "name (MkVar n t s) = n" 
   by (simp add:var_defs)
 
-theorem MkVar_type [simp]: 
-  "type (MkVar n t s) = t" 
+theorem MkVar_vtype [simp]: 
+  "vtype (MkVar n t s) = t" 
   by (simp add:var_defs)
 
 theorem MkVar_aux [simp]: 
@@ -126,12 +126,12 @@ lemma MkVar_eq_iff[simp]:
 
 subsubsection {* Names and Types *}
 
-theorem type_dash [simp] :
-"type (dash x) = type x"
+theorem vtype_dash [simp] :
+"vtype (dash x) = vtype x"
   by (simp add: var_defs)
 
-theorem type_undash [simp] :
-"type (undash x) = type x"
+theorem vtype_undash [simp] :
+"vtype (undash x) = vtype x"
   by (simp add: var_defs)
 
 theorem aux_dash [simp] :
@@ -583,7 +583,7 @@ text {* This proof uses the infinitness of @{term "NAME"} proof to demonstrate
 that, given a finite set of variables, we can always generate a fresh variable
 with any given type and auxness *}
 
-theorem fresh_var: "\<exists>x::'VALUE VAR. x \<notin> \<langle>xs\<rangle>\<^sub>f \<and> type x = t \<and> aux x = s"
+theorem fresh_var: "\<exists>x::'VALUE VAR. x \<notin> \<langle>xs\<rangle>\<^sub>f \<and> vtype x = t \<and> aux x = s"
 proof -
 
   obtain n where "n \<notin> name ` \<langle>xs\<rangle>\<^sub>f"
@@ -595,8 +595,6 @@ proof -
     apply (metis (lifting) MkVar_name assms image_iff)
   done
 qed
-
-
 
 end
 

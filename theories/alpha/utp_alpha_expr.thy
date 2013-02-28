@@ -8,8 +8,14 @@ header {* Alphabetised Expressions *}
 
 theory utp_alpha_expr
 imports 
-  "../core/utp_pred" "../core/utp_expr" "../core/utp_laws" "../core/utp_synonyms" 
-  utp_alphabet utp_alpha_pred "../tactics/utp_alpha_tac" "../tactics/utp_expr_tac"
+  "../core/utp_pred" 
+  "../core/utp_expr" 
+  "../core/utp_laws" 
+  "../core/utp_synonyms" 
+  utp_alphabet 
+  utp_alpha_pred 
+  "../tactics/utp_alpha_tac" 
+  "../tactics/utp_expr_tac"
 begin
 
 type_synonym 'VALUE ALPHA_EXPRESSION =
@@ -74,13 +80,13 @@ instance ..
 end
 
 lemma eavar_compat_intros [intro]:
-  "\<lbrakk> v :\<^sub>\<alpha> type x; \<D> v \<rbrakk> \<Longrightarrow> v \<rhd>\<^sub>\<alpha> x"
-  "\<lbrakk> v :\<^sub>\<alpha> type x; \<not> aux x \<rbrakk> \<Longrightarrow> v \<rhd>\<^sub>\<alpha> x"
+  "\<lbrakk> v :\<^sub>\<alpha> vtype x; \<D> v \<rbrakk> \<Longrightarrow> v \<rhd>\<^sub>\<alpha> x"
+  "\<lbrakk> v :\<^sub>\<alpha> vtype x; \<not> aux x \<rbrakk> \<Longrightarrow> v \<rhd>\<^sub>\<alpha> x"
   by (auto simp add:eavar_compat_def eatype_rel_def Defined_WF_ALPHA_EXPRESSION_def)
 
 lemma eavar_compat_cases [elim]:
-  "\<lbrakk> v \<rhd>\<^sub>\<alpha> x; \<lbrakk> v :\<^sub>\<alpha> type x; \<D> v \<rbrakk> \<Longrightarrow> P
-           ; \<lbrakk> v :\<^sub>\<alpha> type x; \<not> aux x \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk> v \<rhd>\<^sub>\<alpha> x; \<lbrakk> v :\<^sub>\<alpha> vtype x; \<D> v \<rbrakk> \<Longrightarrow> P
+           ; \<lbrakk> v :\<^sub>\<alpha> vtype x; \<not> aux x \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (auto simp add:eavar_compat_def eatype_rel_def Defined_WF_ALPHA_EXPRESSION_def)
 
 theorem WF_ALPHA_EXPRESSION_intro [intro] :
@@ -100,7 +106,7 @@ done
 theorem WF_ALPHA_EXPRESSION_is_SubstP_var:
   "\<exists> x'. is_SubstP_var (\<pi> p) (\<epsilon> v) x x'"
 proof -
-  obtain x' where "x' \<notin> \<langle>\<alpha> p \<union>\<^sub>f \<alpha> v\<rangle>\<^sub>f" "x' \<noteq> x" "type x' = type x" "aux x' = aux x"
+  obtain x' where "x' \<notin> \<langle>\<alpha> p \<union>\<^sub>f \<alpha> v\<rangle>\<^sub>f" "x' \<noteq> x" "vtype x' = vtype x" "aux x' = aux x"
     apply (insert fresh_var[of "finsert x (\<alpha> p \<union>\<^sub>f \<alpha> v)"])
     apply (auto)
   done
@@ -347,7 +353,7 @@ theorem LitAE_type [typing]:
   by (simp add:LitAE.rep_eq eatype_rel_def typing)
 
 theorem VarAE_type [typing]:
-"t = type x \<Longrightarrow> VarAE x :\<^sub>\<alpha> t"
+"t = vtype x \<Longrightarrow> VarAE x :\<^sub>\<alpha> t"
   by (simp add:VarAE.rep_eq eatype_rel_def typing)
 
 theorem RenameAE_type:

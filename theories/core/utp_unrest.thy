@@ -34,7 +34,7 @@ definition rv ::
 subsubsection {* Fresh variables *}
 
 definition fresh_var :: "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE UTYPE \<Rightarrow> 'VALUE VAR" where
-"fresh_var p t \<equiv> SOME x. UNREST {x} p \<and> type x = t"
+"fresh_var p t \<equiv> SOME x. UNREST {x} p \<and> vtype x = t"
 
 subsubsection {* Restricted Predicates *}
 
@@ -254,7 +254,7 @@ apply (auto intro: UNREST_RenameP UNREST_subset simp: closure)
 done
 
 theorem UNREST_RenameP_single :
-"\<lbrakk> x \<noteq> y; type x = type y; aux x = aux y; x \<in> vs; y \<notin> vs;
+"\<lbrakk> x \<noteq> y; vtype x = vtype y; aux x = aux y; x \<in> vs; y \<notin> vs;
    UNREST ((vs - {x}) \<union> {y})  p \<rbrakk> \<Longrightarrow> 
    UNREST vs p\<^bsup>[x \<mapsto> y]\<^esup>"
   apply (simp add:RenamePMap_def)
@@ -268,7 +268,7 @@ done
 
 (*
 theorem UNREST_RenameP_single :
-"\<lbrakk> x \<noteq> y; type x = type y; aux x = aux y;
+"\<lbrakk> x \<noteq> y; vtype x = vtype y; aux x = aux y;
    UNREST {y} p \<rbrakk> \<Longrightarrow> 
    UNREST {x} p\<^bsup>[x \<mapsto> y]\<^esup>"
   apply (simp add:RenamePMap_def)
@@ -278,7 +278,7 @@ done
 *)
 
 theorem UNREST_fresh_var: 
-  "\<exists> v. UNREST {v} p \<and> type v = t \<Longrightarrow> UNREST {fresh_var p t} p"
+  "\<exists> v. UNREST {v} p \<and> vtype v = t \<Longrightarrow> UNREST {fresh_var p t} p"
   apply (auto simp add:fresh_var_def)
   apply (smt someI_ex)
 done

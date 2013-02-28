@@ -22,7 +22,7 @@ subsection {* Variable Renaming *}
 text {* Renamings are total bijections that respect typing. *}
 
 definition VAR_RENAME :: "('VALUE VAR \<Rightarrow> 'VALUE VAR) set" where
-"VAR_RENAME = {ss . bij ss \<and> (\<forall> v . type (ss v) = type v \<and> aux (ss v) = aux v)}"
+"VAR_RENAME = {ss . bij ss \<and> (\<forall> v . vtype (ss v) = vtype v \<and> aux (ss v) = aux v)}"
 
 typedef (open) 'VALUE VAR_RENAME = "VAR_RENAME :: ('VALUE VAR \<Rightarrow> 'VALUE VAR) set"
   by (auto simp add:VAR_RENAME_def)
@@ -54,7 +54,7 @@ lemma Rep_VAR_RENAME_inj [simp]: "inj \<langle>ss\<rangle>\<^sub>s"
 lemma Rep_VAR_RENAME_surj [simp]: "surj \<langle>ss\<rangle>\<^sub>s"
   by (metis Rep_VAR_RENAME_bij bij_betw_def)
 
-lemma Rep_VAR_RENAME_type [simp]: "type (\<langle>ss\<rangle>\<^sub>s x) = type x"
+lemma Rep_VAR_RENAME_type [simp]: "vtype (\<langle>ss\<rangle>\<^sub>s x) = vtype x"
   apply (insert Rep_VAR_RENAME[of ss])
   apply (simp add:VAR_RENAME_def)
 done
@@ -436,11 +436,11 @@ text {* More theorems about @{term "VAR_RENAME"} *}
 
 lemma VAR_RENAME_MapRename [closure]:
   assumes "length xs = length ys" "distinct xs" "distinct ys" 
-          "set xs \<inter> set ys = {}" "\<forall>i<length xs. type (xs!i) = type (ys!i) \<and> aux (xs!i) = aux (ys!i)"
+          "set xs \<inter> set ys = {}" "\<forall>i<length xs. vtype (xs!i) = vtype (ys!i) \<and> aux (xs!i) = aux (ys!i)"
   shows "MapRename [xs [\<mapsto>] ys] \<in> VAR_RENAME"
 proof -
 
-  from assms  have "\<And> v. type (MapRename [xs [\<mapsto>] ys] v) = type v"
+  from assms  have "\<And> v. vtype (MapRename [xs [\<mapsto>] ys] v) = vtype v"
     apply (case_tac "v \<in> set xs")
     apply (erule list_set_index_elim)
     apply (auto)
@@ -465,7 +465,7 @@ qed
 
 lemma MapRename_invol:
   assumes "length xs = length ys" "distinct xs" "distinct ys" 
-          "set xs \<inter> set ys = {}" "\<forall>i<length xs. type (xs!i) = type (ys!i) \<and> aux (xs!i) = aux (ys!i)"
+          "set xs \<inter> set ys = {}" "\<forall>i<length xs. vtype (xs!i) = vtype (ys!i) \<and> aux (xs!i) = aux (ys!i)"
   shows "inv (MapRename [xs [\<mapsto>] ys]) = MapRename [xs [\<mapsto>] ys]"
 proof -
 
@@ -480,7 +480,7 @@ proof -
 qed
 
 lemma VAR_RENAME_MapRename_one [closure]:
-  "\<lbrakk> type x = type y; aux x = aux y \<rbrakk> \<Longrightarrow> MapRename [x \<mapsto> y] \<in> VAR_RENAME"
+  "\<lbrakk> vtype x = vtype y; aux x = aux y \<rbrakk> \<Longrightarrow> MapRename [x \<mapsto> y] \<in> VAR_RENAME"
   apply (case_tac "x \<noteq> y")
   apply (rule VAR_RENAME_MapRename[of "[x]" "[y]",simplified])
   apply (simp_all)
@@ -660,7 +660,7 @@ definition MapR ::
 
 lemma MapR_rep_eq:
   assumes "length xs = length ys" "distinct xs" "distinct ys" 
-          "set xs \<inter> set ys = {}" "\<forall>i<length xs. type (xs!i) = type (ys!i) \<and> aux (xs!i) = aux (ys!i)"
+          "set xs \<inter> set ys = {}" "\<forall>i<length xs. vtype (xs!i) = vtype (ys!i) \<and> aux (xs!i) = aux (ys!i)"
 
   shows "\<langle>MapR [xs [\<mapsto>] ys]\<rangle>\<^sub>s = MapRename [xs [\<mapsto>] ys]"
   by (simp add:MapR_def closure assms)
@@ -773,7 +773,7 @@ apply (auto)
 done
 
 theorem RenamePMap_single_closure [closure]:
-  "\<lbrakk> p \<in> WF_PREDICATE; x \<noteq> y; type x = type y \<rbrakk> \<Longrightarrow> p\<^bsup>[x \<mapsto> y] \<^esup>\<in> WF_PREDICATE"
+  "\<lbrakk> p \<in> WF_PREDICATE; x \<noteq> y; vtype x = vtype y \<rbrakk> \<Longrightarrow> p\<^bsup>[x \<mapsto> y] \<^esup>\<in> WF_PREDICATE"
   apply (simp add:RenamePMap_def)
   apply (rule closure, simp)
   apply (rule VAR_RENAME_MapRename[of "[x]" "[y]",simplified])
@@ -794,7 +794,7 @@ apply (assumption)
 done
 
 theorem EvalP_RenamePMap_one [eval] :
-"\<lbrakk> x \<noteq> x'; type x' = type x; aux x' = aux x \<rbrakk> \<Longrightarrow>
+"\<lbrakk> x \<noteq> x'; vtype x' = vtype x; aux x' = aux x \<rbrakk> \<Longrightarrow>
  \<lbrakk>p\<^bsup>[x \<mapsto> x']\<^esup>\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b \<langle>b\<rangle>\<^sub>b x', x' :=\<^sub>b \<langle>b\<rangle>\<^sub>b x))"
 apply (simp add: RenamePMap_def)
 apply (simp add: eval closure)
