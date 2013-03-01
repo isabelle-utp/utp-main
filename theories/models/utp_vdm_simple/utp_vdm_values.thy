@@ -13,7 +13,36 @@ imports
 
 begin
 
+declare split_paired_All [simp del]
+declare split_paired_Ex [simp del]
+
 section {* Main domain types *}
+
+subsection {* Types *}
+
+text {* We only introduce a single datatype for types, as the move between vdmval and
+  vbasic should be transparent *}
+
+datatype vdmtype =
+    FSetT vdmtype
+  | MapT vdmtype vdmtype 
+  | ListT vdmtype
+  | PairT vdmtype vdmtype 
+  | RecordT "vdmtype list"
+  | BoolT ("\<bool>")
+  | NatT ("\<nat>")
+  | IntT ("\<int>")
+  | RatT ("\<rat>")
+  | CharT
+  | QuoteT
+  | TokenT
+  | VarT nat
+  | SetT vdmtype 
+  | FuncT vdmtype vdmtype (infixr "→" 60)
+  | NameT
+  | TypeT
+
+derive countable vdmtype
 
 subsection {* Basic (countable) values *}
 
@@ -34,6 +63,8 @@ datatype vbasic
   | BoolI bool
   | RecI "vbasic list"
   | MapI "(vbasic * vbasic) list" 
+  | NameI "NAME"
+  | TypeI "vdmtype"
 
 (* Deriving the linear order necessarily takes a while *)
 
@@ -110,6 +141,9 @@ fun ProjBoolI :: "vbasic \<Rightarrow> bool option" where
 fun ProjListI :: "vbasic \<Rightarrow> (vbasic list) option" where
 "ProjListI (ListI xs) = Some xs" | "ProjListI xs = None"
 
+fun ProjRecI :: "vbasic \<Rightarrow> (vbasic list) option" where
+"ProjRecI (RecI r) = Some r" | "ProjRecI xs = None"
+
 fun ProjMapI :: "vbasic \<Rightarrow> ((vbasic* vbasic) list) option" where
 "ProjMapI (MapI f) = Some f" | "ProjMapI x = None"
 
@@ -121,31 +155,13 @@ lemma FinMapI_inj [simp]: "FinMapI f = FinMapI g \<Longrightarrow> f = g"
   apply (metis fmap_list_inv)
 done
 
+fun ProjNameI :: "vbasic \<Rightarrow> NAME option" where
+"ProjNameI (NameI n) = Some n" | "ProjNameI _ = None"
+
+fun ProjTypeI :: "vbasic \<Rightarrow> vdmtype option" where
+"ProjTypeI (TypeI t) = Some t" | "ProjTypeI _ = None"
+
 section {* The type-system *}
-
-subsection {* Types *}
-
-text {* We only introduce a single datatype for types, as the move between vdmval and
-  vbasic should be transparent *}
-
-datatype vdmtype =
-    FSetT vdmtype
-  | MapT vdmtype vdmtype 
-  | ListT vdmtype
-  | PairT vdmtype vdmtype 
-  | RecordT "vdmtype list"
-  | BoolT ("\<bool>")
-  | NatT ("\<nat>")
-  | IntT ("\<int>")
-  | RatT ("\<rat>")
-  | CharT
-  | QuoteT "string fset"
-  | TokenT
-  | VarT nat
-  | SetT vdmtype 
-  | FuncT vdmtype vdmtype (infixr "→" 60)
-
-derive countable vdmtype
 
 subsection {* Basic value typing relation *}
 
@@ -157,12 +173,14 @@ IntI_type[intro]: "IntI x :\<^sub>b IntT" |
 RatI_type[intro]: "RatI x :\<^sub>b RatT" |
 CharI_type[intro]: "CharI x :\<^sub>b CharT" |
 TokenI_type[intro]: "TokenI x :\<^sub>b TokenT" |
-QuoteI_type[intro]: "x \<in>\<^sub>f xs \<Longrightarrow> QuoteI x :\<^sub>b QuoteT xs" |
+QuoteI_type[intro]: "QuoteI x :\<^sub>b QuoteT" |
 ListI_type[intro]: "\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>b a \<rbrakk> \<Longrightarrow> ListI xs :\<^sub>b ListT a" |
 FinI_type[intro]: "\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>b a; sorted xs; distinct xs \<rbrakk> \<Longrightarrow> FinI xs :\<^sub>b FSetT a" |
 PairI_type[intro]: "\<lbrakk> x :\<^sub>b a; y :\<^sub>b b \<rbrakk> \<Longrightarrow> PairI x y :\<^sub>b PairT a b" |
 MapI_type[intro]: "\<lbrakk> \<forall>(x,y)\<in>set xs. x :\<^sub>b a \<and> y :\<^sub>b b; sorted (map fst xs); distinct (map fst xs) \<rbrakk> \<Longrightarrow> MapI xs :\<^sub>b MapT a b" |
 RecI_type[intro]: "\<lbrakk> xs :\<^sub>r ts \<rbrakk>  \<Longrightarrow> RecI xs :\<^sub>b RecordT ts" |
+NameI_type[intro]: "NameI n :\<^sub>b NameT" |
+TypeI_type[intro]: "TypeI t :\<^sub>b TypeT" |
 Cons_type[intro]: "\<lbrakk> x :\<^sub>b t; xs :\<^sub>r ts \<rbrakk> \<Longrightarrow> (x # xs) :\<^sub>r (t # ts)" |
 Nil_type[intro]: "[] :\<^sub>r []"
 
@@ -180,7 +198,7 @@ inductive_cases
   TokenI_type_cases [elim]: "TokenI x :\<^sub>b t" and
   TokenT_type_cases [elim!]: "x :\<^sub>b TokenT" and
   QuoteI_type_cases [elim]: "QuoteI x :\<^sub>b t" and
-  QuoteT_type_cases [elim!]: "x :\<^sub>b QuoteT xs" and
+  QuoteT_type_cases [elim!]: "x :\<^sub>b QuoteT" and
   ListI_type_cases [elim]: "ListI xs :\<^sub>b t" and
   ListT_type_cases [elim!]: "x :\<^sub>b ListT a" and
   FinI_type_cases [elim]: "FinI x :\<^sub>b t" and

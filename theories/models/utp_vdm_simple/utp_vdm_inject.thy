@@ -162,7 +162,7 @@ instance
   apply (intro_classes)
   apply (force simp add:Inject_prod_def)
   apply (auto simp add:Type_prod_def Inject_prod_def image_def)
-  apply (metis Project_Inject)+
+  apply (metis Project_Inject fst_conv snd_conv)
 done
 end
 
