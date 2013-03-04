@@ -336,7 +336,46 @@ proof -
 
 qed
 
+subsection {* Finite set binders *}
 
+abbreviation Fall :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "Fall t P \<equiv> (\<forall>x. x \<in>\<^sub>f t \<longrightarrow> P x)"
+
+abbreviation Fex :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "Fex t P \<equiv> (\<exists>x. x \<in>\<^sub>f t \<and> P x)"
+
+syntax
+  "_Fall" :: "pttrn => 'a fset => bool => bool" ("(3\<forall> _\<in>\<^sub>f_./ _)" [0, 0, 10] 10)
+  "_Fex"  :: "pttrn => 'a fset => bool => bool" ("(3\<exists> _\<in>\<^sub>f_./ _)" [0, 0, 10] 10)
+  
+translations
+  "\<forall> x\<in>\<^sub>fA. P" == "CONST Fall A (%x. P)"
+  "\<exists> x\<in>\<^sub>fA. P" == "CONST Fex A (%x. P)"
+
+(* A version of fset induction which uses the linear order *)
+lemma fset_induct_sorted [case_names fempty finsert, induct type]:
+  -- {* Discharging @{text "x \<notin> F"} entails extra work. *}
+  fixes F :: "'a::linorder fset"
+  assumes fempty:"P \<lbrace>\<rbrace>"
+    and finsert: "\<And>x F. \<forall>y\<in>\<^sub>fF. x < y \<Longrightarrow> P F \<Longrightarrow> P (finsert x F)"
+  shows "P F"
+proof -
+
+  obtain xs where xs_def: "F = fset xs" and xs_props: "sorted xs" "distinct xs"
+    by (metis flist_inv flist_props(1) flist_props(2))
+
+  from xs_props have "P (fset xs)"
+  proof (induct xs)
+    case Nil thus ?case 
+      by (simp add:fempty)
+  next
+    case (Cons ys y) thus ?case
+      by (metis distinct.simps(2) finsert fmember.rep_eq fset_cons fset_rep_eq order_le_neq_trans)
+
+  qed
+
+  thus ?thesis by (simp add:xs_def)
+qed
 
 end
 

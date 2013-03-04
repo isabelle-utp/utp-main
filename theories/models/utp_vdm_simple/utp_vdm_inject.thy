@@ -494,7 +494,7 @@ lemma bplus_test: "bplus\<cdot>(InjB\<cdot>(Def (5::int)))\<cdot>(InjB\<cdot>(De
 *)
 
 definition "InjVB  x \<equiv> BasicV (Inject x)"
-definition "ProjVB x \<equiv> the (Project (ProjBasicV x))"
+definition "ProjVB x \<equiv> the (Project (the (ProjBasicV x)))"
 
 lemma InjVB_inv[simp]: "ProjVB (InjVB x) = x"
   by (simp add:ProjVB_def InjVB_def)

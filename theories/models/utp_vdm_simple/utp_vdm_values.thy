@@ -27,6 +27,7 @@ datatype vdmtype =
     FSetT vdmtype
   | MapT vdmtype vdmtype 
   | ListT vdmtype
+  | OptionT vdmtype
   | PairT vdmtype vdmtype 
   | RecordT "vdmtype list"
   | BoolT ("\<bool>")
@@ -36,13 +37,20 @@ datatype vdmtype =
   | CharT
   | QuoteT
   | TokenT
-  | VarT nat
+  | TVarT nat
   | SetT vdmtype 
   | FuncT vdmtype vdmtype (infixr "→" 60)
   | NameT
   | TypeT
 
 derive countable vdmtype
+(* derive linorder vdmtype *)
+instantiation vdmtype :: linorder
+begin
+
+instance sorry
+
+end
 
 subsection {* Basic (countable) values *}
 
@@ -55,10 +63,12 @@ datatype vbasic
   | NatI "nat"
   | IntI "int" 
   | RatI "rat" 
+  | RealI "real"
   | CharI "char"
   | QuoteI "string" 
   | TokenI vbasic
   | ListI "vbasic list" 
+  | OptionI "vbasic option"
   | FinI "vbasic list"
   | BoolI bool
   | RecI "vbasic list"
@@ -66,11 +76,11 @@ datatype vbasic
   | NameI "NAME"
   | TypeI "vdmtype"
 
+
 (* Deriving the linear order necessarily takes a while *)
 
-(*
-derive linorder vbasic
-*)
+
+(* derive linorder vbasic *)
 
 instantiation vbasic :: linorder
 begin
@@ -79,7 +89,6 @@ instance sorry
 
 end
 
-derive countable vbasic
 
 subsection {* Full values *}
 
@@ -141,6 +150,9 @@ fun ProjBoolI :: "vbasic \<Rightarrow> bool option" where
 fun ProjListI :: "vbasic \<Rightarrow> (vbasic list) option" where
 "ProjListI (ListI xs) = Some xs" | "ProjListI xs = None"
 
+fun ProjOptionI :: "vbasic \<Rightarrow> (vbasic option) option" where
+"ProjOptionI (OptionI x) = Some x" | "ProjOptionI x = None"
+
 fun ProjRecI :: "vbasic \<Rightarrow> (vbasic list) option" where
 "ProjRecI (RecI r) = Some r" | "ProjRecI xs = None"
 
@@ -175,6 +187,8 @@ CharI_type[intro]: "CharI x :\<^sub>b CharT" |
 TokenI_type[intro]: "TokenI x :\<^sub>b TokenT" |
 QuoteI_type[intro]: "QuoteI x :\<^sub>b QuoteT" |
 ListI_type[intro]: "\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>b a \<rbrakk> \<Longrightarrow> ListI xs :\<^sub>b ListT a" |
+OptionI_Some_type[intro]: "\<lbrakk> x :\<^sub>b a \<rbrakk> \<Longrightarrow> OptionI (Some x) :\<^sub>b OptionT a" |
+OptionI_None_type[intro]: "OptionI None :\<^sub>b OptionT a" |
 FinI_type[intro]: "\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>b a; sorted xs; distinct xs \<rbrakk> \<Longrightarrow> FinI xs :\<^sub>b FSetT a" |
 PairI_type[intro]: "\<lbrakk> x :\<^sub>b a; y :\<^sub>b b \<rbrakk> \<Longrightarrow> PairI x y :\<^sub>b PairT a b" |
 MapI_type[intro]: "\<lbrakk> \<forall>(x,y)\<in>set xs. x :\<^sub>b a \<and> y :\<^sub>b b; sorted (map fst xs); distinct (map fst xs) \<rbrakk> \<Longrightarrow> MapI xs :\<^sub>b MapT a b" |
@@ -201,6 +215,8 @@ inductive_cases
   QuoteT_type_cases [elim!]: "x :\<^sub>b QuoteT" and
   ListI_type_cases [elim]: "ListI xs :\<^sub>b t" and
   ListT_type_cases [elim!]: "x :\<^sub>b ListT a" and
+  OptionI_type_cases [elim]: "OptionI x :\<^sub>b t" and
+  OptionT_type_cases [elim]: "x :\<^sub>b OptionT a" and
   FinI_type_cases [elim]: "FinI x :\<^sub>b t" and
   FinT_type_cases [elim!]: "x :\<^sub>b FSetT a" and
   PairI_type_cases [elim]: "PairI x y :\<^sub>b t" and
@@ -221,7 +237,7 @@ definition vbtypes :: "vdmtype set" where
 "vbtypes = {t. \<exists> x. x :\<^sub>b t}"
 
 definition vbvalues :: "vdmval set" where
-"vbvalues = {BasicV x | x t. x :\<^sub>b t}"
+"vbvalues = {BotV} \<union> {BasicV x | x t. x :\<^sub>b t}"
 
 lemma vbtypes_simps [simp]:
   "\<nat> \<in> vbtypes" "\<int> \<in> vbtypes" "\<rat> \<in> vbtypes"
@@ -296,6 +312,10 @@ lemma vbtypes_type_cases [elim]:
   apply (auto elim:BasicV_type_cases simp add:vbtypes_def)
 done
 
+lemma vbvalues_vbtype:
+  "\<lbrakk> a :\<^sub>v t; t \<in> vbtypes \<rbrakk> \<Longrightarrow> a \<in> vbvalues"
+  by (auto simp add:vbvalues_def)
+
 definition vcarrier :: "vdmtype \<Rightarrow> vdmval set" where
 "vcarrier t = {x. x :\<^sub>v t}"
 
@@ -309,23 +329,26 @@ lemma vcarrier_simps [simp]:
   "vcarrier \<bool> = {BotV} \<union> {BasicV (BoolI x) | x . True}"
   by (auto simp add:vcarrier_def)
 
+(*
 lemma vbvalues_vbtypes [simp]: 
   "\<lbrakk> x \<in> vbvalues; x :\<^sub>v t \<rbrakk> \<Longrightarrow> t \<in> vbtypes"
   by (auto simp add:vbvalues_def vbtypes_def)
+*)
 
 (* Flatness of vbasic values *)
 
 subsection {* Injecting basic values into vdmval *}
 
-primrec ProjBasicV :: "vdmval \<Rightarrow> vbasic" where
-"ProjBasicV (BasicV x) = x"
+fun ProjBasicV :: "vdmval \<Rightarrow> vbasic option" where
+"ProjBasicV (BasicV x) = Some x" |
+"ProjBasicV _ = None"
 
 fun IsBasicV :: "vdmval \<Rightarrow> bool" where
 "IsBasicV (BasicV x) = True" |
 "IsBasicV _ = False"
 
 lemma ProjBasicV_inv [simp] :
-  "IsBasicV x \<Longrightarrow> BasicV (ProjBasicV x) = x"
+  "IsBasicV x \<Longrightarrow> BasicV (the (ProjBasicV x)) = x"
   by (case_tac x, simp_all)
 
 definition vbasic_fun1 :: "(vbasic \<Rightarrow> vbasic) \<Rightarrow> vdmval" where

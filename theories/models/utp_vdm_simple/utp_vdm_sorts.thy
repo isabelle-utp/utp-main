@@ -150,7 +150,7 @@ instantiation vdmval :: SET_SORT_PRE
 begin
 
   definition MkSet_vdmval :: "vdmval set \<Rightarrow> vdmval" where
-  "MkSet_vdmval xs = SetV (ProjBasicV ` xs)"
+  "MkSet_vdmval xs = SetV ((the \<circ> ProjBasicV) ` xs)"
   
   definition DestSet_vdmval :: "vdmval \<Rightarrow> vdmval set" where
   "DestSet_vdmval v = BasicV ` ProjSetV v"
@@ -277,31 +277,59 @@ lemma vdm_enc_var_inv [simp]:
   "vdm_dec_var (vdm_enc_var v) = v"
   by (simp add:vdm_enc_var_def vdm_dec_var_def MkVar_def)
 
+abbreviation "VarT \<equiv> RecordT [NameT, TypeT, BoolT]"
 
-definition vdm_encode_binding :: 
+lemma vdm_enc_var_type [typing]:
+  "vdm_enc_var v :\<^sub>b VarT"
+  by (force simp add:vdm_enc_var_def)
+
+(*
+lemma "xs < ys \<Longrightarrow> RecI xs < RecI ys"
+*)
+
+lemma vdm_enc_var_strict_mono [simp]:
+  "strict_mono vdm_enc_var"
+  apply (simp add:strict_mono_def vdm_enc_var_def)
+  sorry
+
+definition vdm_enc_value :: "vdmval \<Rightarrow> vbasic" where
+"vdm_enc_value v = OptionI (ProjBasicV v)"
+
+fun vdm_dec_value :: "vbasic \<Rightarrow> vdmval" where
+"vdm_dec_value (OptionI (Some v)) = BasicV v" |
+"vdm_dec_value (OptionI None) = BotV" |
+"vdm_dec_value _ = BotV"
+
+lemma vdm_enc_value_inv [simp]:
+  "v \<in> vbvalues \<Longrightarrow> vdm_dec_value (vdm_enc_value v) = v"
+  apply (simp add:vdm_enc_value_def)
+  apply (case_tac v)
+  apply (simp_all add:vbvalues_def)
+done
+
+definition vdm_enc_binding :: 
   "vdmval ALPHABET \<Rightarrow> vdmval WF_BINDING \<Rightarrow> vbasic" where
-"vdm_encode_binding a b =
+"vdm_enc_binding a b =
   (let bf = fmap_list (binding_fmap a b)
-    in PairI (FinI (map (vdm_enc_var \<circ> fst) bf)) (ListI (map (ProjBasicV \<circ> snd) bf)))"
+    in PairI (FinI (map (vdm_enc_var \<circ> fst) bf)) (RecI (map (vdm_enc_value \<circ> snd) bf)))"
 
-fun vdm_decode_binding ::
+fun vdm_dec_binding ::
   "vbasic \<Rightarrow> vdmval WF_BINDING" where
-"vdm_decode_binding (PairI (FinI vs) (ListI bs)) = fmap_binding (list_fmap (zip (map vdm_dec_var vs) (map BasicV bs)))"
+"vdm_dec_binding (PairI (FinI vs) (RecI bs)) 
+  = fmap_binding 
+      (list_fmap 
+         (zip (map vdm_dec_var vs) (map vdm_dec_value bs)))"
 
-lemma ProjBasicV_vbvalues_inv [simp]: 
-  "v \<in> vbvalues \<Longrightarrow> BasicV (ProjBasicV v) = v"
-  by (auto simp add:vbvalues_def)
-
-lemma 
-  assumes "\<forall>v. v \<in>\<^sub>f a \<longrightarrow> prjTYPE (vtype v) \<in> vbtypes" 
-  shows "vdm_decode_binding (vdm_encode_binding a b) \<cong> b on \<langle>a\<rangle>\<^sub>f"
+lemma vdm_enc_binding_inv [simp]:
+  assumes "\<forall>v\<in>\<^sub>fa. prjTYPE (vtype v) \<in> vbtypes" 
+  shows "vdm_dec_binding (vdm_enc_binding a b) \<cong> b on \<langle>a\<rangle>\<^sub>f"
 proof -
 
   have map_simp:
-        "map (BasicV \<circ> (ProjBasicV \<circ> snd)) (fmap_list (binding_fmap a b)) =
+        "map (vdm_dec_value \<circ> (vdm_enc_value \<circ> snd)) (fmap_list (binding_fmap a b)) =
         map snd (fmap_list (binding_fmap a b))" (is "?A = ?B")
   proof -
-    have "?A = map (BasicV \<circ> ProjBasicV) (map snd (fmap_list (binding_fmap a b)))"
+    have "?A = map (vdm_dec_value \<circ> vdm_enc_value) (map snd (fmap_list (binding_fmap a b)))"
       by (metis map_map)
 
     also have "... = map snd (fmap_list (binding_fmap a b))"
@@ -316,12 +344,13 @@ proof -
         apply (erule vbtypes_type_cases)
         apply (simp add:vbvalues_def)
         apply (simp add:vbvalues_def)
-        apply (auto)
-        apply (simp add:vbvalues_def vbtypes_def)
-        sorry
+        apply (simp_all add:vbvalues_def vbtypes_def)
+        apply (force)
+        apply (metis binding_type type_rel_vdmtype)
+      done
 
       with assms show ?thesis
-        by (metis (no_types) map_idI o_def ProjBasicV_vbvalues_inv)
+        by (metis (no_types) map_idI o_def vdm_enc_value_inv)
     qed
     
     ultimately show ?thesis by simp
@@ -329,7 +358,7 @@ proof -
   qed
   
   show ?thesis
-    apply (simp add:vdm_encode_binding_def)
+    apply (simp add:vdm_enc_binding_def)
     apply (simp add:Let_def)
     apply (simp add:map_simp)
     apply (unfold comp_def)
@@ -339,6 +368,50 @@ proof -
     apply (metis binding_fmap_inv)
     apply (simp add:comp_def)
   done
+qed
+
+lemma vdm_enc_binding_type [typing]:
+  assumes "\<forall>v\<in>\<^sub>fa. prjTYPE (vtype v) \<in> vbtypes" 
+  shows "vdm_enc_binding a b :\<^sub>b  
+         PairT (FSetT VarT) (RecordT (map (OptionT \<circ> prjTYPE \<circ> vtype) (flist a)))"
+  proof -
+
+    obtain xs where xs_def: "a = fset xs" and xs_props: "distinct xs" "sorted xs"
+      by (metis flist_inv flist_props(1) flist_props(2))
+      
+    with assms have "\<forall>v\<in>\<^sub>ffset xs. prjTYPE (vtype v) \<in> vbtypes" 
+      by simp
+
+    with xs_props
+    have "map (\<lambda>x. vdm_enc_value (\<langle>b\<rangle>\<^sub>b x)) xs :\<^sub>r map (\<lambda>x. OptionT (prjTYPE (vtype x))) xs"
+    proof (induct xs)
+      case Nil thus ?case by (force)
+
+    next
+
+      case (Cons y ys)
+      thus ?case
+        apply (simp add:vdm_enc_value_def)
+        apply (rule)
+        apply (case_tac "\<langle>b\<rangle>\<^sub>b y = BotV")
+        apply (simp)
+        apply (force)
+
+        sorry
+    qed
+
+    with xs_props show ?thesis
+      apply (simp add:vdm_enc_binding_def Let_def)
+      apply (rule)
+      apply (rule)
+      apply (simp add: fmap_list_binding_fmap typing)
+      apply (simp add: map_map[THEN sym])
+      apply (metis flist_fimage flist_props(1) vdm_enc_var_strict_mono)
+      apply (simp add: map_map[THEN sym])
+      apply (metis flist_fimage flist_props(2) vdm_enc_var_strict_mono)
+      apply (rule)
+      apply (simp add: fmap_list_binding_fmap typing comp_def xs_def)
+    done
 qed
 
 end
