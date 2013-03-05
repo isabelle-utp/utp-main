@@ -400,7 +400,6 @@ proof -
         apply (force)
         apply (simp add: is_SubstP_var_def)
         apply (erule conjE)
-        apply (simp add:MapR_rep_eq[of "[x]" "[x']", simplified])
         apply (simp add:MapRename_image[of "[x]" "[x']" "vs1", simplified])
         apply (force)
     done

@@ -204,6 +204,22 @@ theorem not_dash_dash_member_out :
 "\<not> dash (dash x) \<in> out a"
   by (simp add: var_defs)
 
+lemma undash_image_member :
+  "dash x \<in> xs \<Longrightarrow> x \<in> undash ` xs"
+  by (force simp add: var_defs)
+
+lemma dash_image_member :
+  "\<lbrakk> x \<in> DASHED; undash x \<in> xs \<rbrakk> \<Longrightarrow> x \<in> dash ` xs"
+  by (case_tac x, force simp add: var_defs)
+
+lemma out_member : 
+  "\<lbrakk> x \<in> DASHED; x \<in> vs \<rbrakk> \<Longrightarrow> x \<in> out vs"
+  by (simp add:var_defs)
+
+lemma in_member : 
+  "\<lbrakk> x \<in> UNDASHED; x \<in> vs \<rbrakk> \<Longrightarrow> x \<in> in vs"
+  by (simp add:var_defs)
+
 theorems var_member =
   UNDASHED_not_DASHED
   UNDASHED_not_DASHED_TWICE
@@ -220,6 +236,10 @@ theorems var_member =
   out_of_DASHED
   not_dash_member_in
   not_dash_dash_member_out
+  undash_image_member
+  dash_image_member
+  out_member
+  in_member
 
 declare var_member [intro, simp]
 
@@ -339,7 +359,7 @@ lemma undash_DASHED_image:
 
 lemma undash_DASHED_TWICE_image:
 "undash ` DASHED_TWICE = DASHED"
-  by (auto, metis DASHED_dash_DASHED_TWICE imageI undash_dash)
+  by (auto)
 
 lemma dash_undash_image:
 "vs \<subseteq> DASHED \<Longrightarrow> dash ` undash ` vs = vs"

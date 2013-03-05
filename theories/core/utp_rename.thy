@@ -658,11 +658,16 @@ definition MapR ::
 "MapR f = Abs_VAR_RENAME (MapRename f)"
 
 
-lemma MapR_rep_eq:
+lemma MapR_rep_eq [simp]:
   assumes "length xs = length ys" "distinct xs" "distinct ys" 
           "set xs \<inter> set ys = {}" "\<forall>i<length xs. vtype (xs!i) = vtype (ys!i) \<and> aux (xs!i) = aux (ys!i)"
 
   shows "\<langle>MapR [xs [\<mapsto>] ys]\<rangle>\<^sub>s = MapRename [xs [\<mapsto>] ys]"
+  by (simp add:MapR_def closure assms)
+
+lemma MapR_rep_eq_one [simp]:
+  assumes "x \<noteq> y" "vtype x = vtype y" "aux x = aux y"
+  shows "\<langle>MapR [x \<mapsto> y]\<rangle>\<^sub>s = MapRename [x \<mapsto> y]"
   by (simp add:MapR_def closure assms)
 
 definition RenamePMap :: 

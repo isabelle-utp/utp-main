@@ -10,6 +10,7 @@ theory utp_designs
 imports 
   utp_theory
   "../alpha/utp_alpha_laws" 
+  "../alpha/utp_alpha_wp"
   "../tactics/utp_alpha_tac" 
   "../tactics/utp_alpha_expr_tac" 
   "../parser/utp_alpha_pred_parser"
@@ -25,16 +26,17 @@ abbreviation "okay' \<equiv> dash okay"
 abbreviation "okay'' \<equiv> dash (dash okay)"
 
 lemma okay_simps [simp]: 
-  "okay \<in> UNDASHED" "okay' \<in> DASHED" "okay'' \<in> DASHED_TWICE"
+  "okay \<in> UNDASHED"
   "MkBool True \<rhd> okay" "MkBool False \<rhd> okay"
   "MkBool True \<rhd> okay'" "MkBool False \<rhd> okay'"
   "TrueE \<rhd>\<^sub>e okay" "FalseE \<rhd>\<^sub>e okay"
   "TrueE \<rhd>\<^sub>e okay'" "FalseE \<rhd>\<^sub>e okay'"
   "TrueAE \<rhd>\<^sub>\<alpha> okay" "FalseAE \<rhd>\<^sub>\<alpha> okay"
   "TrueAE \<rhd>\<^sub>\<alpha> okay'" "FalseAE \<rhd>\<^sub>\<alpha> okay'"
-  "type okay = BoolType" "type okay' = BoolType"
+  "vtype okay = BoolType" "vtype okay' = BoolType"
   "aux okay" "aux okay'"
   by (force intro:typing defined simp add:okay_def UNDASHED_def DASHED_def DASHED_TWICE_def var_defs)+
+
 
 abbreviation OK where "OK \<equiv> \<lbrace>okay, okay'\<rbrace>"
 
@@ -171,9 +173,7 @@ lemma DESIGN_ALPHABET_homr [closure]:
   "a \<in> DESIGN_ALPHABET \<Longrightarrow> homr a \<in> DESIGN_ALPHABET"
   apply (unfold DESIGN_ALPHABET_def)
   apply (simp add:closure)
-  apply (auto simp add:hom_right_def closure)
-  apply (metis Int_iff imageI okay_simps out_vars_def undash_dash)
-  apply (metis IntI okay_simps out_vars_def)
+  apply (force simp add:hom_right_def closure)
 done
 
 lemma DESIGN_ALPHABET_homl [closure]:
@@ -181,8 +181,12 @@ lemma DESIGN_ALPHABET_homl [closure]:
   apply (unfold DESIGN_ALPHABET_def)
   apply (simp add:closure)
   apply (auto simp add:hom_left_def closure)
-  apply (metis Int_iff in_vars_def okay_simps)
-  apply (metis Int_iff imageI in_vars_def okay_simps)
+done
+
+lemma DESIGN_ALPHABET_DesignD [closure]:
+  "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> \<alpha> (P \<turnstile> Q) \<in> DESIGN_ALPHABET"
+  apply (unfold DESIGN_ALPHABET_def)
+  apply (simp add:closure alphabet)
 done
 
 lemma extreme_point_true:
@@ -199,8 +203,26 @@ lemma export_precondition:
   apply (utp_pred_tac)
 done
 
+lemma "\<lbrakk> vtype x = vtype y; aux x = aux y; x \<noteq> y; x \<in>\<^sub>f \<alpha> P \<rbrakk> \<Longrightarrow> 
+       P[VarAE y|x]\<alpha> = P[MapR [x \<mapsto> y]]\<alpha>"
+  apply (subgoal_tac "VarAE y \<rhd>\<^sub>\<alpha> x")
+  apply (utp_alpha_tac)
+  oops
+
+lemma SemiA_ok_extract:
+  assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
+          "\<alpha> P \<in> DESIGN_ALPHABET" "\<alpha> Q \<in> DESIGN_ALPHABET"
+  shows "`P ; Q` = `\<exists>- okay''. ((P[$okay''/okay']) ; (Q[$okay''/okay]))`"
+proof -
+
+  from assms have "`P ; Q` = undefined"
+    apply (simp add:SemiA_algebraic)
+
+    oops
+
+
 lemma BoolType_var_aux_cases [elim]:
-  "\<lbrakk> type x = BoolType
+  "\<lbrakk> vtype x = BoolType
    ; \<not> aux x \<Longrightarrow> P
    ; \<langle>b\<rangle>\<^sub>b x = TrueV \<Longrightarrow> P
    ; \<langle>b\<rangle>\<^sub>b x = FalseV \<Longrightarrow> P \<rbrakk> 
@@ -208,16 +230,16 @@ lemma BoolType_var_aux_cases [elim]:
   by (metis MkBool_cases binding_value_alt var_compat_def)
 
 lemma EvalP_BoolType_cases [intro]:
-  "\<lbrakk> type x = BoolType; aux x; \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b TrueV)) ; \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b FalseV)) \<rbrakk> \<Longrightarrow> \<lbrakk>p\<rbrakk>b"
+  "\<lbrakk> vtype x = BoolType; aux x; \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b TrueV)) ; \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b FalseV)) \<rbrakk> \<Longrightarrow> \<lbrakk>p\<rbrakk>b"
   by (metis (lifting) BoolType_var_aux_cases binding_upd_simps(2))
 
 (*
-lemma "\<lbrakk> \<lbrakk>p\<rbrakk>b; \<And> x t. \<lbrakk> v : type x; \<D> v; \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b v)) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+lemma "\<lbrakk> \<lbrakk>p\<rbrakk>b; \<And> x t. \<lbrakk> v : vtype x; \<D> v; \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b v)) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   apply (simp add:EvalP_def)
 *)
 
 lemma BoolType_aux_var_split_imp:
-  "\<lbrakk> type x = BoolType; aux x \<rbrakk> 
+  "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> 
   \<Longrightarrow> `[p]` = `[$x = true \<Rightarrow> p] \<and> [$x = false \<Rightarrow> p]`"
   apply (rule EvalA_intro)
   apply (simp add:alphabet)
@@ -227,28 +249,37 @@ lemma BoolType_aux_var_split_imp:
 done
 
 lemma BoolType_aux_var_split:
-  "\<lbrakk> type x = BoolType; aux x \<rbrakk> 
+  "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> 
   \<Longrightarrow> `[p]` = `[p[false/x] \<and> p[true/x]]`"
   apply (rule EvalA_intro)
   apply (simp add:alphabet)
+  apply (subgoal_tac "true \<rhd>\<^sub>\<alpha> x")
+  apply (subgoal_tac "false \<rhd>\<^sub>\<alpha> x")
   apply (simp add:evala eval alphabet closure evale typing defined)
-  apply (auto)
+  apply (smt BOOL_SORT_class.Defined BOOL_SORT_class.Inverse BoolType_var_aux_cases MkBool_cases MkBool_type Rep_WF_BINDING_inverse binding_upd_def fun_upd_triv)
+  apply (force intro:typing defined)+
 done
 
 lemma BoolType_aux_var_split_imp_intro:
-  "\<lbrakk> type x = BoolType; aux x; [$x = true \<Rightarrow> p]; [$x = false \<Rightarrow> p] \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> vtype x = BoolType; aux x; [$x = true \<Rightarrow> p]; [$x = false \<Rightarrow> p] \<rbrakk> \<Longrightarrow>
   [p]"
-  by (auto simp add:evala eval alphabet closure evale typing defined)
+  apply (auto simp add:evala eval alphabet closure evale typing defined)
+  apply (metis (lifting) BoolType_var_aux_cases MkBool_cases MkBool_type MkBool_unq(1) okay_simps(16) okay_simps(2) okay_simps(3) var_compat_defined)
+done
 
 lemma BoolType_aux_var_split_intro:
-  "\<lbrakk> type x = BoolType; aux x; [p[false/x] \<and> p[true/x]] \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> vtype x = BoolType; aux x; [p[false/x] \<and> p[true/x]] \<rbrakk> \<Longrightarrow>
   [p]"
-  by (auto simp add:evala eval alphabet closure evale typing defined)
+  apply (subgoal_tac "true \<rhd>\<^sub>\<alpha> x")
+  apply (subgoal_tac "false \<rhd>\<^sub>\<alpha> x")
+
+  apply (auto simp add:evala eval alphabet closure evale typing defined)
 
 (*
 lemma [evala]: "\<epsilon> e = \<lbrakk>e\<rbrakk>\<alpha>\<epsilon>"
   by (simp add:EvalAE_def)
 *)
+by (metis EvalE_FalseE EvalE_LitE EvalE_TrueE EvalP_BoolType_cases FalseE_def MkBool_type TrueE_def)
 
 lemma [evala]: 
   "ok[false|okay]\<alpha> = FALSE" "ok[true|okay]\<alpha> = TRUE"
@@ -307,6 +338,10 @@ lemma DesignD_diverge:
   apply (utp_alpha_tac2)
 done
 
+lemma DesignD_left_zero:
+  "`true\<^bsub>a\<^esub> ; (P \<turnstile> Q)` = `true\<^bsub>a\<^esub>`"
+  oops
+
 lemma H1_idempotent: "H1 (H1 p) = H1 p"
   apply (simp add:H1_def)
   apply (utp_alpha_tac2)
@@ -326,71 +361,61 @@ lemma MkBool_False: "\<lbrakk> \<D> p; p : BoolType; \<not> DestBool p \<rbrakk>
   by (auto)
 
 lemma aux_eq_true: 
-  "\<lbrakk> type x = BoolType; aux x \<rbrakk> \<Longrightarrow> `$x = true` = `$x`"
+  "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> \<Longrightarrow> `$x = true` = `$x`"
   apply (utp_alpha_tac2, utp_pred_tac, utp_expr_tac)
   apply (force intro:defined typing MkBool_True)
 done
 
 lemma aux_eq_false: 
-  "\<lbrakk> type x = BoolType; aux x \<rbrakk> \<Longrightarrow> `$x = false` = `\<not> $x`"
+  "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> \<Longrightarrow> `$x = false` = `\<not> $x`"
   apply (utp_alpha_tac2, utp_pred_tac, utp_expr_tac)
   apply (force intro:defined typing MkBool_False)
 done
 
+
 lemma J_split: 
   assumes "P \<in> WF_RELATION" "\<alpha> P \<in> DESIGN_ALPHABET"
-          "a \<in> HOM_ALPHABET" "in\<^sub>\<alpha> a = undash `\<^sub>f out\<^sub>\<alpha> (\<alpha> P)"
-  shows "P ;\<alpha> J a = (P\<^sup>f \<or>\<alpha> (P\<^sup>t \<and>\<alpha> ok'))"
+  shows "P ;\<alpha> J (homr (\<alpha> P)) = (P\<^sup>f \<or>\<alpha> (P\<^sup>t \<and>\<alpha> ok'))"
 proof - 
 
-  from assms have aDESALPH: "a \<in> DESIGN_ALPHABET"
-    apply (unfold DESIGN_ALPHABET_def)
-    apply (simp add:HOM_ALPHABET_def)
-    apply (simp add:HOM_ALPHA_unfold)
-    apply (auto)
-    apply (metis (hide_lams, no_types) COMPOSABLE_def alphabet_simps comp_alphabet_dash fimage.rep_eq okay_simps out_alphabet.rep_eq out_dash)
-    apply (metis (hide_lams, no_types) COMPOSABLE_def comp_alphabet_dash comp_vars_undash dash_undash_image fimage.rep_eq in_alphabet.rep_eq okay_simps out_alphabet.rep_eq utp_alphabet.out_DASHED)
-  done
-
-  have "P ;\<alpha> J a = P ;\<alpha> ((ok \<Rightarrow>\<alpha> ok') \<and>\<alpha> II\<alpha> (a -\<^sub>f OK))"
+  have "P ;\<alpha> J (homr (\<alpha> P)) = P ;\<alpha> ((ok \<Rightarrow>\<alpha> ok') \<and>\<alpha> II\<alpha> (homr (\<alpha> P) -\<^sub>f OK))"
     by (simp add:J_def)
 
-  also from assms have "... = P ;\<alpha> ((ok \<Rightarrow>\<alpha> (ok \<and>\<alpha> ok')) \<and>\<alpha> II\<alpha> (a -\<^sub>f OK))"
+  also from assms have "... = P ;\<alpha> ((ok \<Rightarrow>\<alpha> (ok \<and>\<alpha> ok')) \<and>\<alpha> II\<alpha> (homr (\<alpha> P) -\<^sub>f OK))"
     apply (subgoal_tac "((ok \<Rightarrow>\<alpha> ok') :: 'a WF_ALPHA_PREDICATE) = (ok \<Rightarrow>\<alpha> (ok \<and>\<alpha> ok'))")
     apply (simp)
     apply (utp_alpha_tac)
     apply (utp_pred_tac)
   done
 
-  also from assms have "... = P ;\<alpha> ((\<not>\<alpha> ok \<or>\<alpha> (ok \<and>\<alpha> ok')) \<and>\<alpha> II\<alpha> (a -\<^sub>f OK))"
+  also from assms have "... = P ;\<alpha> ((\<not>\<alpha> ok \<or>\<alpha> (ok \<and>\<alpha> ok')) \<and>\<alpha> II\<alpha> (homr (\<alpha> P) -\<^sub>f OK))"
     apply (subgoal_tac "((ok \<Rightarrow>\<alpha> (ok \<and>\<alpha> ok')) :: 'a WF_ALPHA_PREDICATE) = (\<not>\<alpha> ok \<or>\<alpha> (ok \<and>\<alpha> ok'))")
     apply (simp)
     apply (utp_alpha_tac)
     apply (utp_pred_tac)
   done
 
-  also from assms have "... = `P ; ((\<not> ok \<and> II\<^bsub>a -\<^sub>f OK\<^esub>) \<or> ((ok \<and> ok') \<and> II\<^bsub>a -\<^sub>f OK\<^esub>))`" 
+  also from assms have "... = `P ; ((\<not> ok \<and> II\<^bsub>homr (\<alpha> P) -\<^sub>f OK\<^esub>) \<or> ((ok \<and> ok') \<and> II\<^bsub>homr (\<alpha> P) -\<^sub>f OK\<^esub>))`" 
     by (smt AndA_OrA_dist)
 
-  also from assms have "... = `(P ; (\<not> ok \<and> II\<^bsub>a -\<^sub>f OK\<^esub>)) \<or> (P ; ((ok \<and> ok') \<and> II\<^bsub>a -\<^sub>f OK\<^esub>))`"
+  also from assms have "... = `(P ; (\<not> ok \<and> II\<^bsub>homr (\<alpha> P) -\<^sub>f OK\<^esub>)) \<or> (P ; ((ok \<and> ok') \<and> II\<^bsub>(homr (\<alpha> P)) -\<^sub>f OK\<^esub>))`"
     by (simp add:SemiA_OrA_distl closure)
 
   also from assms have "... = (P\<^sup>f \<or>\<alpha> (P\<^sup>t \<and>\<alpha> ok'))"
   proof -
-    from assms have "`P ; (\<not> ok \<and> II\<^bsub>a -\<^sub>f OK\<^esub>)` = P\<^sup>f"
+    from assms have "`P ; (\<not> ok \<and> II\<^bsub>homr (\<alpha> P) -\<^sub>f OK\<^esub>)` = P\<^sup>f"
     proof -
-      from assms have "`P ; (\<not> ok \<and> II\<^bsub>a -\<^sub>f OK\<^esub>)` = `(P \<and> (\<not> ok')) ; II\<^bsub>a -\<^sub>f OK\<^esub>`"
+      from assms have "`P ; (\<not> ok \<and> II\<^bsub>homr (\<alpha> P) -\<^sub>f OK\<^esub>)` = `(P \<and> (\<not> ok')) ; II\<^bsub>homr (\<alpha> P) -\<^sub>f OK\<^esub>`"
         by (simp add:SemiA_ConjA_right_precond closure alphabet urename SS_UNDASHED_app)
 
-      also from assms have "... = (\<exists>-\<alpha> \<lbrace>okay'\<rbrace> . (P \<and>\<alpha> \<not>\<alpha> ok')) ;\<alpha> II\<alpha> (a -\<^sub>f OK)"
+      also from assms have "... = (\<exists>-\<alpha> \<lbrace>okay'\<rbrace> . (P \<and>\<alpha> \<not>\<alpha> ok')) ;\<alpha> II\<alpha> (homr (\<alpha> P) -\<^sub>f OK)"
         apply (rule_tac trans)
-        apply (rule_tac SemiA_ExistsA_left[of "`(P \<and> (\<not> ok'))`" "`II\<^bsub>a -\<^sub>f OK\<^esub>`", THEN sym])
+        apply (rule_tac SemiA_ExistsA_left[of "`(P \<and> (\<not> ok'))`" "`II\<^bsub>homr (\<alpha> P) -\<^sub>f OK\<^esub>`", THEN sym])
         apply (auto simp add:alphabet alphabet_dist alphabet_simps closure dash_inj)
         apply (subgoal_tac "out\<^sub>\<alpha> (\<alpha> P) -\<^sub>f (out\<^sub>\<alpha> (\<alpha> P) -\<^sub>f \<lbrace>okay'\<rbrace>) = \<lbrace>okay'\<rbrace>")
         apply (auto)
         apply (unfold DESIGN_ALPHABET_def)
         apply (auto)
-        apply (simp add:okay_def var_defs)
       done
 
 
@@ -414,19 +439,19 @@ proof -
     qed
 
     moreover 
-    have "`P ; ((ok \<and> ok') \<and> II\<^bsub>a -\<^sub>f OK\<^esub>)` = (P\<^sup>t \<and>\<alpha> ok')"
+    have "`P ; ((ok \<and> ok') \<and> II\<^bsub>homr (\<alpha> P) -\<^sub>f OK\<^esub>)` = (P\<^sup>t \<and>\<alpha> ok')"
     proof -
 
-      from assms have "`P ; ((ok \<and> ok') \<and> II\<^bsub>a -\<^sub>f OK\<^esub>)` = `(P ; (ok \<and> II\<^bsub>a -\<^sub>f OK\<^esub>)) \<and> ok'`"
+      from assms have "`P ; ((ok \<and> ok') \<and> II\<^bsub>homr (\<alpha> P) -\<^sub>f OK\<^esub>)` = `(P ; (ok \<and> II\<^bsub>homr (\<alpha> P) -\<^sub>f OK\<^esub>)) \<and> ok'`"
       proof -
         have "\<langle>\<alpha> ok'\<rangle>\<^sub>f \<subseteq> DASHED"
           by (simp add:alphabet)
 
         thus ?thesis
-          by (smt AndA_WF_RELATION AndA_assoc AndA_comm HOM_ALPHABET_REL_ALPHABET REL_ALPHABET_minus SemiA_ConjA_right_postcond SkipA_closure assms ok'_rel_closure ok_rel_closure)
+          by (smt AndA_WF_RELATION AndA_assoc AndA_comm REL_ALPHABET_hom_right REL_ALPHABET_minus SemiA_ConjA_right_postcond SkipA_closure assms(1) ok'_rel_closure ok_rel_closure)
       qed
 
-      also from assms have "... = `((P \<and> ok') ; II\<^bsub>a -\<^sub>f OK\<^esub>) \<and> ok'`"
+      also from assms have "... = `((P \<and> ok') ; II\<^bsub>homr (\<alpha> P) -\<^sub>f OK\<^esub>) \<and> ok'`"
         by (simp add:SemiA_ConjA_right_precond closure alphabet urename SS_UNDASHED_app)
 
       also from assms have "... = P\<^sup>t \<and>\<alpha> ok'"
@@ -437,9 +462,9 @@ proof -
           apply (auto simp add:okay_def var_defs)
         done
 
-        with assms have "`(P \<and> ok') ; II\<^bsub>a -\<^sub>f OK\<^esub>` = `(\<exists>- okay' . (P \<and> ok')) ; II\<^bsub>a -\<^sub>f OK\<^esub>`"
+        with assms have "`(P \<and> ok') ; II\<^bsub>homr (\<alpha> P) -\<^sub>f OK\<^esub>` = `(\<exists>- okay' . (P \<and> ok')) ; II\<^bsub>homr (\<alpha> P) -\<^sub>f OK\<^esub>`"
           apply (rule_tac trans)
-          apply (rule_tac SemiA_ExistsA_left[of "`P \<and> ok'`" "`II\<^bsub>a -\<^sub>f OK\<^esub>`", THEN sym])
+          apply (rule_tac SemiA_ExistsA_left[of "`P \<and> ok'`" "`II\<^bsub>homr (\<alpha> P) -\<^sub>f OK\<^esub>`", THEN sym])
           apply (auto simp add:alphabet alphabet_dist alphabet_simps closure dash_inj)
         done
 
@@ -473,7 +498,6 @@ proof -
   ultimately show ?thesis
     by simp
 qed
-
 lemma okay_true_alphabet [alphabet]: "\<alpha> (P\<^sup>t) = \<alpha> P -\<^sub>f \<lbrace>okay'\<rbrace>"
   by (auto simp add:alphabet)
 
@@ -482,16 +506,15 @@ lemma okay_false_alphabet [alphabet]: "\<alpha> (P\<^sup>f) = \<alpha> P -\<^sub
 
 lemma H2_equivalence:
   assumes "P \<in> WF_RELATION" "\<alpha> P \<in> DESIGN_ALPHABET"
-          "a \<in> HOM_ALPHABET" "in\<^sub>\<alpha> a = undash `\<^sub>f out\<^sub>\<alpha> (\<alpha> P)"
-  shows "[P \<Leftrightarrow>\<alpha> (P ;\<alpha> J a)]\<alpha> = isH2 P"
+  shows "[P \<Leftrightarrow>\<alpha> (P ;\<alpha> J (homr (\<alpha> P)))]\<alpha> = isH2 P"
 proof -
 
-  from assms have "[P \<Leftrightarrow>\<alpha> (P ;\<alpha> J a)]\<alpha> = [P \<Leftrightarrow>\<alpha> (P\<^sup>f \<or>\<alpha> (P\<^sup>t \<and>\<alpha> ok'))]\<alpha>"
+  from assms have "[P \<Leftrightarrow>\<alpha> (P ;\<alpha> J (homr (\<alpha> P)))]\<alpha> = [P \<Leftrightarrow>\<alpha> (P\<^sup>f \<or>\<alpha> (P\<^sup>t \<and>\<alpha> ok'))]\<alpha>"
     by (simp add:J_split)
 
   also from assms 
   have "... = [((P \<Leftrightarrow>\<alpha> (P\<^sup>f \<or>\<alpha> (P\<^sup>t \<and>\<alpha> ok')))\<^sup>f) \<and>\<alpha> ((P \<Leftrightarrow>\<alpha> (P\<^sup>f \<or>\<alpha> (P\<^sup>t \<and>\<alpha> ok')))\<^sup>t)]\<alpha>"
-    by (smt AndA_comm BoolType_aux_var_split okay_simps type_dash)
+    by (smt AndA_comm BoolType_aux_var_split okay_simps vtype_dash)
 
   also from assms
   have "... = [(P\<^sup>f \<Leftrightarrow>\<alpha> (P\<^sup>f \<or>\<alpha> (P\<^sup>t \<and>\<alpha> FALSE))) \<and>\<alpha> (P\<^sup>t \<Leftrightarrow>\<alpha> (P\<^sup>f \<or>\<alpha> (P\<^sup>t \<and>\<alpha> TRUE)))]\<alpha>"
@@ -512,19 +535,13 @@ qed
 
 lemma H2_equivalence':
   assumes "P \<in> WF_RELATION" "\<alpha> P \<in> DESIGN_ALPHABET"
-          "a \<in> HOM_ALPHABET" "in\<^sub>\<alpha> a = undash `\<^sub>f out\<^sub>\<alpha> (\<alpha> P)"
   shows "P is H2 healthy \<longleftrightarrow> taut (isH2 P)"
 using assms
   apply (simp add:H2_equivalence[THEN sym] is_healthy_def)
   apply (subgoal_tac "\<alpha> P = \<alpha> (H2 P)")
   apply (simp add:eq_iff_taut)
   apply (unfold H2_def)
-  apply (simp add:alphabet closure alphabet_simps alphabet_dist)
-  apply (subgoal_tac "a = homr (\<alpha> P)")
-  apply (simp)
-  apply (simp add:hom_right_def alphabet_dist alphabet_simps HOM_ALPHABET_def HOM_ALPHA_unfold)
-  apply (metis SemiA_SkipA_right SemiA_alphabet SkipA_alphabet SkipA_closure assms(3))
-  apply (simp add:alphabet closure alphabet_simps alphabet_dist)
+  apply (simp_all add:alphabet closure alphabet_simps alphabet_dist)
 done
 
 lemma J_H2:
@@ -532,14 +549,12 @@ lemma J_H2:
   shows "J a is H2 healthy"
 proof -
 
-  from assms have "H2 (J a) = J a ;\<alpha> J a"
+  from assms have "H2 (J a) = J a ;\<alpha> J (homr (\<alpha> (J a)))"
     by (simp add:H2_def alphabet closure is_healthy_def)
 
   also from assms have "... = (J a)\<^sup>f \<or>\<alpha> ((J a)\<^sup>t  \<and>\<alpha> ok')"
     apply (rule_tac J_split)
     apply (simp_all add:alphabet closure)
-    apply (simp add:HOM_ALPHABET_def, erule conjE)
-    apply (simp add:HOM_ALPHA_unfold)
   done
 
   also from assms have "... = `(\<not> ok \<and> II\<^bsub>a -\<^sub>f OK\<^esub>) \<or> (ok' \<and> II\<^bsub>a -\<^sub>f OK\<^esub>)`"
@@ -588,6 +603,20 @@ proof -
 
 qed
 
+lemma H2_DesignD:
+  "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION;
+     \<alpha> P \<in> PROGRAM_ALPHABET; \<alpha> Q \<in> PROGRAM_ALPHABET \<rbrakk> \<Longrightarrow>
+   (P \<turnstile> Q) is H2 healthy"
+  apply (simp add:H2_equivalence' closure isH2_def)
+  apply (simp add:DesignD_def)
+  apply (simp add:usubst closure alphabet)
+  apply (utp_alpha_tac)
+  apply (utp_pred_auto_tac)
+done
+
+lemma "P \<in> WF_RELATION \<Longrightarrow> `\<not> (\<not> P ; true\<^bsub>\<alpha> P\<^esub>)` = P"
+
+
 lemma H1_H2_DesignD:
   assumes cl: "p \<in> WF_RELATION" 
   and alpha: "\<alpha> p \<in> DESIGN_ALPHABET" 
@@ -624,11 +653,13 @@ lift_definition DESIGN_THEORY :: "'a::BOOL_SORT WF_THEORY"
   apply (simp add:closure)
 done
 
-
-
-(* WP tactic transfer theorem
-lemma "d1 = d2 \<longleftrightarrow> \<forall> r. d1 wp r = d2 wp r"
+(*
+lemma "(d1 = d2) \<longleftrightarrow> (\<forall> r. d1 wp r = d2 wp r)"
+  apply (simp add:WeakPrecondA_def)
+  apply (utp_alpha_tac)
+  apply (utp_pred_tac)
 *)
+
 
 
 end

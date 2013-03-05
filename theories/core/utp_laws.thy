@@ -769,6 +769,19 @@ proof -
     by (simp add:SubstP_body_def)
 qed
 
+lemma SubstP_RenameP:
+  assumes 
+    "vtype x = vtype y" "aux x = aux y" "x \<noteq> y" 
+    "\<exists> z. is_SubstP_var p (VarE y) x z" "UNREST {y} p"
+  shows "p[VarE y|x] = p\<^bsup>[x \<mapsto> y]\<^esup>"
+  using assms
+  apply (subgoal_tac "VarE y \<rhd>\<^sub>e x")
+  apply (utp_pred_tac)
+  apply (utp_expr_tac)
+  apply (metis (lifting) EvalP_UNREST_assign assms binding_value_alt insertI1 insert_is_Un)
+  apply (metis VarE_defined VarE_type evar_compat_intros(1) evar_compat_intros(2))
+done  
+
 lemma 
   assumes 
     "UNREST DASHED_TWICE p"

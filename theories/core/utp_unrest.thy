@@ -260,7 +260,6 @@ theorem UNREST_RenameP_single :
   apply (rule UNREST_RenameP_alt)
   apply (simp)
   apply (simp add:closure)
-  apply (simp add: MapR_rep_eq[of "[x]" "[y]", simplified])
   apply (simp add: MapRename_image[of "[x]" "[y]" "(vs - {x})",simplified])
   apply (force)
 done
@@ -311,5 +310,14 @@ declare UNREST_RefP [unrest]
 declare UNREST_RenameP_alt [unrest]
 declare UNREST_RenameP_single [unrest]
 declare UNREST_fresh_var [unrest]
+
+text {* Evaluation Laws *}
+
+theorem EvalP_UNREST_assign [eval] :
+"\<lbrakk> x \<in> vs; UNREST vs p; v \<rhd> x \<rbrakk> \<Longrightarrow> 
+  \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b v)) = \<lbrakk>p\<rbrakk>b"
+  apply (simp add:EvalP_def)
+  apply (metis UNREST_binding_override binding_override_simps(2) binding_upd_override)
+done
 
 end

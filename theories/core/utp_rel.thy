@@ -35,9 +35,7 @@ lift_definition SS1 :: "'VALUE VAR_RENAME" is
 "(\<lambda> v .
    if (v \<in> DASHED) then (dash v) else
    if (v \<in> DASHED_TWICE) then (undash v) else v)"
-  apply (auto simp add: VAR_RENAME_def bij_def inj_on_def)
-  apply (smt DASHED_dash_DASHED_TWICE DASHED_not_DASHED_TWICE IntI imageI mem_Collect_eq undash_dash)
-done
+  by (auto simp add: VAR_RENAME_def bij_def inj_on_def)
 
 lift_definition SS2 :: "'VALUE VAR_RENAME" is
 "(\<lambda> v .
