@@ -118,6 +118,19 @@ definition VarE :: "'VALUE VAR \<Rightarrow> 'VALUE WF_EXPRESSION" where
 definition LitE :: "'VALUE UTYPE \<Rightarrow> 'VALUE \<Rightarrow> 'VALUE WF_EXPRESSION" where
 "LitE t v \<equiv> wfexpr (t, \<lambda> b. v)"
 
+definition AppE :: 
+  "'VALUE::FUNCTION_SORT WF_EXPRESSION \<Rightarrow> 'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_EXPRESSION" where
+"AppE f v = wfexpr (func_out_type (\<tau>\<^sub>e f), \<lambda> b. DestFunc (\<langle>f\<rangle>\<^sub>e b) (\<langle>v\<rangle>\<^sub>e b))"
+ 
+definition Op1E :: 
+  "('VALUE \<Rightarrow> 'VALUE) \<Rightarrow> 'VALUE UTYPE \<Rightarrow> 'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_EXPRESSION" where
+"Op1E f t e = wfexpr (t, \<lambda> b. f (\<langle>e\<rangle>\<^sub>e b))"
+
+definition Op2E :: 
+  "('VALUE \<Rightarrow> 'VALUE \<Rightarrow> 'VALUE) \<Rightarrow> 'VALUE UTYPE \<Rightarrow> 
+   'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_EXPRESSION" where
+"Op2E f t e1 e2 = wfexpr (t, \<lambda> b. f (\<langle>e1\<rangle>\<^sub>e b) (\<langle>e2\<rangle>\<^sub>e b))"
+
 definition DefaultE :: "'VALUE UTYPE \<Rightarrow> 'VALUE WF_EXPRESSION" where
 "DefaultE t \<equiv> LitE t (default t)"
 
@@ -267,6 +280,30 @@ theorem LitE_tau [simp]:
 "\<tau>\<^sub>e (LitE t e) = t"
   by (simp add:LitE_def)
 
+theorem AppE_type [typing]:
+"\<lbrakk> \<tau>\<^sub>e f = FuncType a b; \<D> f; v :\<^sub>e a \<rbrakk> \<Longrightarrow> AppE f v :\<^sub>e b"
+  by (auto intro:typing simp add:AppE_def etype_rel_def)
+
+theorem AppE_tau [typing]: 
+"\<tau>\<^sub>e (AppE f v) = func_out_type (\<tau>\<^sub>e f)"
+  by (simp add: AppE_def)
+
+theorem Op1E_type [typing]: 
+"Op1E f b e :\<^sub>e b"
+  by (simp add: Op1E_def etype_rel_def typing)
+
+theorem Op1E_tau [typing]: 
+"\<tau>\<^sub>e (Op1E f b e) = b"
+  by (simp add: Op1E_def etype_rel_def)
+
+theorem Op2E_type [typing]: 
+"Op2E f c e1 e2 :\<^sub>e c"
+  by (simp add: Op2E_def etype_rel_def typing)
+ 
+theorem Op2E_tau [typing]: 
+"\<tau>\<^sub>e (Op2E f c e1 e2) = c"
+  by (simp add: Op2E_def etype_rel_def)
+
 theorem DefaultE_type [typing]:
 "DefaultE t :\<^sub>e t"
   by (simp add:DefaultE_def typing)
@@ -361,6 +398,18 @@ theorem UNREST_EXPR_VarE [unrest] :
 theorem UNREST_EXPR_LitE [unrest] :
 "UNREST_EXPR vs (LitE t v)"
   by (simp add:LitE_def UNREST_EXPR_def)
+
+theorem UNREST_EXPR_AppE [unrest] :
+"\<lbrakk> UNREST_EXPR vs f; UNREST_EXPR vs v \<rbrakk> \<Longrightarrow> UNREST_EXPR vs (AppE f v)"
+  by (simp add:AppE_def UNREST_EXPR_def)
+
+theorem UNREST_EXPR_Op1E [unrest] :
+"UNREST_EXPR vs e \<Longrightarrow> UNREST_EXPR vs (Op1E f t e)"
+  by (simp add:Op1E_def UNREST_EXPR_def)
+
+theorem UNREST_EXPR_Op2E [unrest] :
+"\<lbrakk> UNREST_EXPR vs e1; UNREST_EXPR vs e2 \<rbrakk> \<Longrightarrow> UNREST_EXPR vs (Op2E f t e1 e2)"
+  by (simp add:Op2E_def UNREST_EXPR_def)
 
 theorem UNREST_EXPR_RenameE [unrest] :
 "UNREST_EXPR vs p \<Longrightarrow>

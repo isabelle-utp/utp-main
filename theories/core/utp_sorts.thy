@@ -478,10 +478,44 @@ class FUNCTION_SORT = BOT_SORT +
   and   FuncType :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> 'a UTYPE"
   assumes Inverse [simp]: "IsFunc f \<Longrightarrow> DestFunc (MkFunc f) = f"
   and     Defined [simp]: "IsFunc f \<Longrightarrow> Defined (MkFunc f)"
-  and     MkFunc_type: 
-    "\<lbrakk> IsFunc f; \<forall> x. x : a \<longrightarrow> f x : b  \<rbrakk> \<Longrightarrow> MkFunc f : FuncType a b"
+  and     MkFunc_range: "{MkFunc f | f . \<forall> x : a. f x : b \<and> IsFunc f} = dcarrier (FuncType a b)"
+  and     FuncType_inj1: "FuncType a1 b1 = FuncType a2 b2 \<Longrightarrow> a1 = a2"
+  and     FuncType_inj2: "FuncType a1 b1 = FuncType a2 b2 \<Longrightarrow> b1 = b2"
 
 begin
+
+lemma MkFunc_type [typing]: 
+  "\<lbrakk> \<forall> x : a. f x : b; IsFunc f \<rbrakk> \<Longrightarrow> MkFunc f : FuncType a b"
+  apply (insert MkFunc_range[of a b])
+  apply (auto simp add:dcarrier_def)
+done
+
+lemma DestFunc_type [typing]:
+  "\<lbrakk> f : FuncType a b; x : a; \<D> f \<rbrakk> \<Longrightarrow> DestFunc f x : b"
+  apply (insert MkFunc_range[of a b])
+  apply (auto simp add:dcarrier_def)
+  apply (smt CollectE CollectI Inverse)
+done
+
+definition func_inp_type :: "'a UTYPE \<Rightarrow> 'a UTYPE" where
+"func_inp_type t = (SOME a. \<exists> b. t = FuncType a b)"
+
+definition func_out_type :: "'a UTYPE \<Rightarrow> 'a UTYPE" where
+"func_out_type t = (SOME b. \<exists> a. t = FuncType a b)"
+
+lemma func_inp_type [simp]:
+  "func_inp_type (FuncType a b) = a"
+  apply (simp add:func_inp_type_def)
+  apply (rule some_equality)
+  apply (auto dest: FuncType_inj1)
+done
+
+lemma func_out_type [simp]:
+  "func_out_type (FuncType a b) = b"
+  apply (simp add:func_out_type_def)
+  apply (rule some_equality)
+  apply (auto dest: FuncType_inj2)
+done
 
 subsubsection {* Function Type *}
 

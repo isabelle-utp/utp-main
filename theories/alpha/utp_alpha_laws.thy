@@ -266,6 +266,15 @@ lemma REL_ALPHABET_in_out:
 abbreviation "SS1_MapR a \<equiv> MapR [flist (out\<^sub>\<alpha> a) [\<mapsto>] flist (dash `\<^sub>f out\<^sub>\<alpha> a)]"
 abbreviation "SS2_MapR a \<equiv> MapR [flist (in\<^sub>\<alpha> a) [\<mapsto>] flist (dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha> a)]"
 
+
+
+
+(*
+lemma "x \<in>\<^sub>f a \<Longrightarrow> SS1_MapR a \<cong>\<^sub>s MapR [x \<mapsto> x\<acute>\<acute>] \<circ>\<^sub>s SS1_MapR (a -\<^sub>f \<lbrace>x\<rbrace>) on \<langle>a\<rangle>\<^sub>f"
+  apply (simp add:rename_equiv_def MapR_rep_eq)
+*)  
+
+
 lemma SS1_eq_map: 
   assumes "a \<in> REL_ALPHABET"
   shows "SS1 \<cong>\<^sub>s SS1_MapR a on \<langle>a\<rangle>\<^sub>f"

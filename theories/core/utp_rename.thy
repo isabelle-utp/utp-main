@@ -432,6 +432,24 @@ definition rename_equiv ::
 
 notation rename_equiv ("_ \<cong>\<^sub>s _ on _")
 
+lemma rename_equiv_empty:
+  "ss1 \<cong>\<^sub>s ss2 on {}"
+  by (simp add: rename_equiv_def)
+
+lemma rename_equiv_refl:
+  "ss \<cong>\<^sub>s ss on vs"
+  by (simp add: rename_equiv_def)
+
+lemma rename_equiv_sym:
+  "ss1 \<cong>\<^sub>s ss2 on vs \<Longrightarrow> ss2 \<cong>\<^sub>s ss1 on vs"
+  by (simp add: rename_equiv_def)
+
+lemma rename_equiv_trans :
+"\<lbrakk>ss1 \<cong>\<^sub>s ss2 on vs;
+ ss2 \<cong>\<^sub>s ss3 on vs\<rbrakk> \<Longrightarrow>
+ ss1 \<cong>\<^sub>s ss3 on vs"
+  by (simp add: rename_equiv_def)
+
 text {* More theorems about @{term "VAR_RENAME"} *}
 
 lemma VAR_RENAME_MapRename [closure]:
@@ -669,6 +687,50 @@ lemma MapR_rep_eq_one [simp]:
   assumes "x \<noteq> y" "vtype x = vtype y" "aux x = aux y"
   shows "\<langle>MapR [x \<mapsto> y]\<rangle>\<^sub>s = MapRename [x \<mapsto> y]"
   by (simp add:MapR_def closure assms)
+
+lemma VAR_RENAME_ON_MapR:
+  assumes "length xs = length ys" "distinct xs" "distinct ys" 
+          "set xs \<inter> set ys = {}"   
+          "\<forall>i<length xs. vtype (xs!i) = vtype (ys!i) \<and> aux (xs!i) = aux (ys!i)"
+  shows "MapR [xs [\<mapsto>] ys] \<in> VAR_RENAME_ON (set xs \<union> set ys)"
+  using assms
+  by (simp add:VAR_RENAME_ON_def MapR_rep_eq)
+
+lemma MapR_split: 
+  assumes "length xs = length ys" "distinct xs" "distinct ys" 
+          "set xs \<inter> set ys = {}" 
+          "\<forall>i<length xs. vtype (xs!i) = vtype (ys!i) \<and> aux (xs!i) = aux (ys!i)"
+          "x \<in> set xs" "y \<in> set ys" "vtype x = vtype y" "aux x = aux y"
+  shows "MapR [xs [\<mapsto>] ys] = MapR [x \<mapsto> y] \<circ>\<^sub>s MapR [remove1 x xs [\<mapsto>] remove1 y ys]"
+proof -
+
+  from assms have "x \<noteq> y"
+    by auto
+
+  moreover from assms have "length (remove1 x xs) = length (remove1 y ys)"
+    by (metis length_remove1)
+
+  moreover from assms have "distinct (remove1 x xs)" "distinct (remove1 y ys)"
+    by (metis distinct_remove1)+
+
+  moreover from assms have  "set (remove1 x xs) \<inter> set (remove1 y ys) = {}" 
+    by (auto)
+
+  moreover
+  from assms have "\<forall>i<length (remove1 y ys)
+                   . vtype (remove1 x xs ! i) = vtype (remove1 y ys ! i) 
+                   \<and> aux (remove1 x xs ! i) = aux (remove1 y ys ! i)"
+    sorry
+
+  ultimately show ?thesis using assms
+    apply (rule_tac Rep_VAR_RENAME_intro)
+    apply (simp add:MapR_rep_eq)
+    apply (rule ext)
+    apply (case_tac "xa \<in> set (remove1 x xs)")
+    apply (simp)
+  sorry
+qed
+
 
 definition RenamePMap :: 
   "'VALUE  WF_PREDICATE \<Rightarrow> 

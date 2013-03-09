@@ -63,6 +63,15 @@ theorem EvalE_LitE [evale] :
 "v : t \<Longrightarrow> \<lbrakk>LitE t v\<rbrakk>\<epsilon>b = v"
   by (simp add: LitE_def EvalE_def)
 
+theorem EvalE_Op1E [evale] :
+"\<lbrakk> e :\<^sub>e u; \<forall>x:u. f x : t \<rbrakk> \<Longrightarrow> \<lbrakk>Op1E f t e\<rbrakk>\<epsilon>b = f (\<lbrakk>e\<rbrakk>\<epsilon>b)"
+  by (simp add:Op1E_def EvalE_def etype_rel_def)
+
+theorem EvalE_Op2E [evale] :
+"\<lbrakk> e1 :\<^sub>e u1; e2 :\<^sub>e u2;  \<forall>x:u1. \<forall>y:u2. f x y : t \<rbrakk> \<Longrightarrow> 
+  \<lbrakk>Op2E f t e1 e2\<rbrakk>\<epsilon>b = f (\<lbrakk>e1\<rbrakk>\<epsilon>b) (\<lbrakk>e2\<rbrakk>\<epsilon>b)"
+  by (simp add:Op2E_def EvalE_def etype_rel_def)
+
 theorem EvalP_ExprP [eval] :
 "\<lbrakk>ExprP e\<rbrakk>b = DestBool (\<lbrakk>e\<rbrakk>\<epsilon>b)"
   by (simp add:ExprP_def eval EvalE_def)

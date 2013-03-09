@@ -14,11 +14,14 @@ definition utype_rel_vval :: "vval \<Rightarrow> nat \<Rightarrow> bool" where
 "utype_rel_vval x u = \<exists> t :: vdmtype. u = emb\<cdot>(Def t) \<and> x :\<^sub>v t)"
 *)
 
+lemma Defined_nbot [simp]: "\<D>\<^sub>v x \<Longrightarrow> x \<noteq> BotV"
+  by (auto)
+
 definition utype_rel_vdmval :: "vdmval \<Rightarrow> nat \<Rightarrow> bool" where
 "utype_rel_vdmval x u = (\<exists> t :: vdmtype. u = to_nat t \<and> x :\<^sub>v t)"
 
 definition Defined_vdmval :: "vdmval \<Rightarrow> bool" where
-"Defined_vdmval x \<equiv> x \<noteq> BotV"
+"Defined_vdmval \<equiv> \<D>\<^sub>v"
 
 instance
   apply (intro_classes)
@@ -27,9 +30,6 @@ instance
   apply (force)
 done
 end
-
-lemma Defined_BasicV [simp]: "\<D> (BasicV x)"
-  by (simp add:Defined_vdmval_def)
 
 lemma vdmtype_UTYPE [simp]: "\<lbrakk> v :\<^sub>v t; \<D> v \<rbrakk> \<Longrightarrow> to_nat t \<in> UTYPES (TYPE(vdmval))"
   by (auto simp add:UTYPES_def utype_rel_vdmval_def)
@@ -52,19 +52,15 @@ lemma type_rel_vdmtype_exists:
 done
 
 lemma type_rel_vdmtype_elim [elim]:
-  "\<lbrakk>(x::vdmval) : a; \<And> t. a = embTYPE t \<and> x :\<^sub>v t \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk>(x::vdmval) : a; \<And> t. \<lbrakk> a = embTYPE t; x :\<^sub>v t \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (metis type_rel_vdmtype_exists)
 
+lemma BotV_type: "BotV :\<^sub>v a"
+  by (auto)
+
 lemma type_rel_vdmtype [simp]: "x : t \<longleftrightarrow> x :\<^sub>v prjTYPE t"
-  apply (auto)
-  apply (erule type_rel_vdmtype_elim)
-  apply (auto)
-  apply (metis BotV_type Defined_vdmval_def embTYPE_inv utype_rel_vdmval_def)
-  apply (simp add:type_rel_def utype_rel_vdmval_def)
-  apply (rule_tac x="prjTYPE t" in exI)
-  apply (simp add:prjTYPE_def)
-  apply (case_tac t)
-  apply (auto simp add:UTYPES_def utype_rel_vdmval_def)
+  apply (auto simp add: type_rel_def utype_rel_vdmval_def prjTYPE_def)
+  apply (metis Rep_UTYPE_elim from_nat_to_nat utype_rel_vdmval_def)
 done
 
 instantiation vdmval :: BOT_SORT
@@ -150,7 +146,7 @@ instantiation vdmval :: SET_SORT_PRE
 begin
 
   definition MkSet_vdmval :: "vdmval set \<Rightarrow> vdmval" where
-  "MkSet_vdmval xs = SetV ((the \<circ> ProjBasicV) ` xs)"
+  "MkSet_vdmval xs = SetV (ProjBasicV ` xs)"
   
   definition DestSet_vdmval :: "vdmval \<Rightarrow> vdmval set" where
   "DestSet_vdmval v = BasicV ` ProjSetV v"
@@ -164,6 +160,12 @@ begin
 instance ..
 
 end
+
+lemma embTYPE_inv_SetT:
+  "prjTYPE (embTYPE (SetT t) :: vdmval UTYPE) = SetT t"
+  apply (rule_tac embTYPE_inv[of "SetV {}"])
+  apply (auto simp add: utype_rel_vdmval_def Defined_vdmval_def)
+done
 
 instantiation vdmval :: SET_SORT
 begin
@@ -180,17 +182,73 @@ instance
   apply (subgoal_tac "\<exists> v::vdmval. v :\<^sub>u to_nat (SetT (prjTYPE t)) \<and> \<D> v")
   apply (force)
   apply (rule_tac x="SetV {}" in exI)
-  apply (auto simp add:utype_rel_vdmval_def Defined_vdmval_def)
-  apply (subgoal_tac "\<exists> v::vdmval. v :\<^sub>u to_nat (SetT (prjTYPE t)) \<and> \<D> v")
-  apply (auto simp add:image_def MkSet_vdmval_def utype_rel_vdmval_def Defined_vdmval_def)
+  apply (auto simp add:utype_rel_vdmval_def Defined_vdmval_def embTYPE_inv_SetT)
+  apply (metis (lifting) CollectD IsBasicV.simps(1) ProjBasicV_inv set_mp vbtypes_type_cases vdefined.simps(1))
+  apply (simp add:image_def MkSet_vdmval_def)
   apply (erule SetT_type_cases)
-  apply (simp)
   apply (auto)
   apply (rule_tac x="BasicV ` xs" in bexI)
   apply (auto)
 done
 
 end
+
+lemma ProjBasicV_inv [simp]: 
+  "x \<in> vbvalues \<Longrightarrow> BasicV (ProjBasicV x) = x"
+  by (auto simp add:vbvalues_def)
+
+lemma ProjBasicV_not_basic [simp]: "\<not> IsBasicV x \<Longrightarrow> ProjBasicV x = BotI"
+  by (case_tac x, auto)
+
+lemma embTYPE_inv_FuncT:
+  "prjTYPE (embTYPE (a → b) :: vdmval UTYPE) = (a → b)"
+  apply (rule_tac embTYPE_inv[of "FuncV (\<lambda> x. BotV)"])
+  apply (auto simp add: utype_rel_vdmval_def Defined_vdmval_def)
+done
+
+instantiation vdmval :: FUNCTION_SORT
+begin
+
+definition "MkFunc_vdmval f = FuncV (f \<circ> BasicV)"
+definition "DestFunc_vdmval f = (\<lambda> x. (ProjFuncV f) (ProjBasicV x))"
+definition "IsFunc_vdmval f = ({x. f x \<noteq> BotV} \<subseteq> range BasicV \<and> f BotV = BotV)"
+definition FuncType_vdmval :: "vdmval UTYPE \<Rightarrow> vdmval UTYPE \<Rightarrow> vdmval UTYPE" where
+"FuncType_vdmval a b = embTYPE (FuncT (prjTYPE a) (prjTYPE b))"
+
+instance 
+  apply (intro_classes)
+  apply (rule ext)
+  apply (simp add:DestFunc_vdmval_def MkFunc_vdmval_def IsFunc_vdmval_def FuncType_vdmval_def)
+  apply (clarify)
+  apply (case_tac "IsBasicV x")
+  apply (simp)
+  apply (simp add: subset_iff)
+  apply (metis IsBasicV.simps(1) image_iff)
+  apply (metis Defined_vdmval_def MkFunc_vdmval_def vdefined.simps(3))
+  apply (simp add:MkFunc_vdmval_def IsFunc_vdmval_def dcarrier_def FuncType_vdmval_def embTYPE_inv_FuncT Defined_vdmval_def)
+  apply (auto)
+  apply (rule)
+  apply (force)
+  apply (force)
+  apply (erule FuncT_type_cases)
+  apply (rule_tac x="f \<circ> ProjBasicV" in exI)
+  apply (clarify)
+  apply (rule)
+  apply (force)
+  apply (rule)
+  apply (rule)
+  apply (rule)
+  apply (auto)[1]
+  apply (metis (lifting) BasicV_type_cases BotI_type ProjBasicV_not_basic utp_vdm_values.ProjBasicV_inv)
+  apply (simp)
+  apply (smt ProjBasicV_not_basic UNIV_I image_iff mem_Collect_eq subsetI utp_vdm_values.ProjBasicV_inv)
+  apply (force)
+  apply (simp_all add:FuncType_vdmval_def)
+  apply (metis (lifting) embTYPE_inv_FuncT prjTYPE_inv_vdm vdmtype.simps(9))+
+done
+
+end
+
 
 (*
 instantiation vdmval :: FUNCTION_SORT
@@ -293,7 +351,7 @@ lemma vdm_enc_var_strict_mono [simp]:
   sorry
 
 definition vdm_enc_value :: "vdmval \<Rightarrow> vbasic" where
-"vdm_enc_value v = OptionI (ProjBasicV v)"
+"vdm_enc_value v = ProjBasicV v"
 
 fun vdm_dec_value :: "vbasic \<Rightarrow> vdmval" where
 "vdm_dec_value (OptionI (Some v)) = BasicV v" |

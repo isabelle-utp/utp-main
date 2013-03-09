@@ -22,7 +22,7 @@ class vbasic =
   fixes Inject  :: "'a \<Rightarrow> vbasic"
   and   Type    :: "'a itself \<Rightarrow> vdmtype"
   assumes Inject_inj [simp]: "Inject x = Inject y \<Longrightarrow> x = y"
-  and     Inject_range [simp]: "range Inject = {x. x :\<^sub>b Type (TYPE('a))}"
+  and     Inject_range [simp]: "range Inject = {x. x :\<^sub>b Type (TYPE('a)) \<and> \<D>\<^sub>b x}"
 
 text {* InjB and ProjB lift the Inject and Project functions up to domain level. *}
 
@@ -30,15 +30,19 @@ context vbasic
 begin
 
 definition Project :: "vbasic \<Rightarrow> 'a option" where
-"Project x \<equiv> if (x :\<^sub>b Type (TYPE('a))) then Some (inv Inject x) else None"
+"Project x \<equiv> if (x :\<^sub>b Type (TYPE('a)) \<and> \<D>\<^sub>b x) then Some (inv Inject x) else None"
 
 lemma Inject_type[simp]: "Inject x :\<^sub>b Type (TYPE('a))"
   by (insert Inject_range, auto simp add:image_def)
 
 lemma Inject_Project [simp]: "Project (Inject x) = Some x"
-  by (auto simp add:Project_def, metis Inject_inj injI inv_f_f)
+  apply (auto simp add:Project_def)
+  apply (metis Inject_inj injI inv_f_f)
+  apply (metis (mono_tags) Inject_range mem_Collect_eq rangeI)
+done
 
-lemma Project_Inject [simp]: "\<And> x. x :\<^sub>b Type TYPE('a) \<Longrightarrow> Inject (the (Project x)) = x"
+lemma Project_Inject [simp]: 
+  "\<And> x. \<lbrakk> x :\<^sub>b Type TYPE('a); \<D>\<^sub>b x \<rbrakk> \<Longrightarrow> Inject (the (Project x)) = x"
   by (auto intro:f_inv_into_f simp add:Project_def)
 
 lemma Project_dom [simp]: "\<And> x y. Project x = Some y \<Longrightarrow> x :\<^sub>b Type TYPE('a)"
@@ -48,14 +52,26 @@ lemma Inject_Project_comp [simp]:
   "Project \<circ> Inject = Some" 
   by (simp add:comp_def)
 
-lemma Project_defined [dest]: "x :\<^sub>b Type TYPE('a) \<Longrightarrow> Project x \<noteq> None"
-  by (metis Inject_Project Project_Inject option.simps(3))
+lemma Inject_defined [simp]:
+  "\<D>\<^sub>b (Inject x)"
+  by (metis Inject_Project Project_def option.simps(2))
+  
+lemma Project_defined [dest]: 
+  "\<lbrakk> x :\<^sub>b Type TYPE('a); \<D>\<^sub>b x \<rbrakk> \<Longrightarrow> Project x \<noteq> None"
+  by (metis Project_def option.simps(3))
 
-lemma Project_Some [dest,simp]: "\<And> x. Project x = Some y \<Longrightarrow> x = Inject y"
+lemma Project_Some [dest,simp]: 
+  "\<And> x. Project x = Some y \<Longrightarrow> x = Inject y"
   apply (frule Project_dom)
   apply (drule Project_Inject)
+  apply (metis Project_def option.simps(3))
   apply (simp)
 done
+
+lemma Inject_Project_list [simp]:
+  assumes "foldr (op \<and> \<circ> \<D>\<^sub>b) xs True" "\<forall>x\<in>set xs. x :\<^sub>b Type TYPE('a)"
+  shows "xs = map Inject (map (the \<circ> Project) xs)"
+using assms by (induct xs, auto)
 
 end
 
@@ -69,7 +85,8 @@ definition Type_nat :: "nat itself \<Rightarrow> vdmtype" where
 
 declare Type_nat_def [simp]
 
-instance by (intro_classes, auto simp add:Inject_nat_def) 
+instance
+  by (intro_classes, auto simp add:Inject_nat_def) 
 end
 
 lemma Type_nat: "NatT = Type TYPE(nat)"
@@ -205,9 +222,15 @@ instance
   apply (auto simp add:Inject_list_def Type_list_def)
   apply (rule ListI_type)
   apply (auto simp add:image_def Inject_list_def)
-  apply (metis Project_Inject ex_map_conv)
+  apply (induct_tac xa, auto)
+  apply (rule_tac x="map (the \<circ> Project :: vbasic \<Rightarrow> 'a) xs" in exI)
+  apply (simp)
+  apply (metis Inject_Project_list map_map)
 done
 end
+
+(*
+*)
 
 (* Unfortunately the injections only work for monomorphically typed function, at the moment
    which is no surprise as we need explicit machinery to build polymorphic versions *)
@@ -261,10 +284,15 @@ instance
   apply (rule FSetI_type)
   apply (auto simp add:flist_def)
   apply (auto simp add:FSetI_def flist_def)
+
+(*
+  apply (induct_tac xa)
   apply (rule_tac x="Abs_fset ((the \<circ> Project) ` (set xs))" in exI)
   apply (simp)
   apply (metis finite_set sorted_distinct_set_unique sorted_list_of_set)
 done
+*)
+sorry
 end
 
 subsection {* Finite maps are injectable *}
@@ -335,12 +363,18 @@ instance proof
 
 next
   
-  show "range (Inject :: ('a,'b) fmap \<Rightarrow> vbasic) = {x. x :\<^sub>b Type TYPE(('a,'b) fmap)}"
+  show "range (Inject :: ('a,'b) fmap \<Rightarrow> vbasic) = {x. x :\<^sub>b Type TYPE(('a,'b) fmap) \<and> \<D>\<^sub>b x}"
   proof (auto simp add:Inject_fmap_def Type_fmap_def)
     fix x :: "('a,'b) fmap"
     show "FinMapI (Abs_fmap (vbasic_map x)) :\<^sub>b MapT (Type TYPE('a)) (Type TYPE('b))"      
       by (auto intro!:FinMapI_type simp add:fdom_def fran_def Rep_fmap_inverse
          ,force simp add:ran_def)
+
+
+  next
+    fix x :: "('a,'b) fmap"
+    show "\<D>\<^sub>b (FinMapI (Abs_fmap (vbasic_map x)))"
+      sorry
 
   next
     fix f :: "(vbasic, vbasic) fmap"
@@ -356,6 +390,9 @@ next
         apply (simp add:vbasic_map_def)
         apply (case_tac "Project x :: 'a option")
         apply (simp)
+      sorry
+
+(*
         apply (metis Project_defined domIff fdom.rep_eq tyassm(1))
         apply (simp add:map_vbasic_def)
         apply (auto dest!: Project_Some)
@@ -366,6 +403,7 @@ next
         apply (force simp add:ran_def)
         apply (force dest!: Project_Some)
       done
+*)
 
       thus ?thesis
         apply (simp add:image_def Inject_fmap_def) 
@@ -385,208 +423,47 @@ definition vfun1 :: "('a::vbasic \<Rightarrow> 'b::vbasic) \<Rightarrow> ('a set
                               None \<Rightarrow> BotV 
                             | Some v \<Rightarrow> if (v \<in> P) then BasicV (Inject (f v)) else BotV)"
 
-(*
-lemma vbfun1_app [simp]: 
-  "x \<in> P \<Longrightarrow> vbfun1 f P\<cdot>(InjB\<cdot>(Def x)) = InjB\<cdot>(Def (f x))"
-  by (simp add:vbfun1_def)
-
-lemma vbfun1_napp [simp]: 
-  "x \<notin> P \<Longrightarrow> vbfun1 f P\<cdot>(InjB\<cdot>(Def x)) = \<bottom>"
-  by (simp add:vbfun1_def)
-
-lemma vbfun1_nbot_exists:
-  fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic"
-  assumes "vbfun1 f P\<cdot>x \<noteq> \<bottom>"
-  shows "\<exists> a::'a. x = InjB\<cdot>(Def a) \<and> a \<in> P"
-  apply (insert assms)
-  apply (case_tac x, simp_all)
-  apply (simp add:vbfun1_def ProjB_def)
-  apply (case_tac "Project a :: 'a option", simp_all)
-  apply (case_tac "aa \<in> P")
-  apply (simp add:InjB_def)
-  apply (metis Project_Some)
-  apply (simp)
-done
-
-lemma vbfun1_elim [elim]:
-  fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic"
-  assumes "vbfun1 f P\<cdot>x \<noteq> \<bottom>" "\<And> a::'a. \<lbrakk> x = InjB\<cdot>(Def a); a \<in> P \<rbrakk> \<Longrightarrow> Q"
-  shows "Q"
-  by (metis assms(1) assms(2) vbfun1_nbot_exists)
-
-definition vbfun2 :: 
+definition vfun2 :: 
   "('a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic) \<Rightarrow>
-   'a set \<Rightarrow> 'b set \<Rightarrow>
-  (vbasic lift \<rightarrow> vbasic lift \<rightarrow> vbasic lift)" where
-"vbfun2 \<equiv> \<lambda> f P Q. \<Lambda> a b. InjB\<cdot>((\<Lambda> (Def x) (Def y). if (x \<in> P \<and> y \<in> Q) then Def (f x y) else \<bottom>)\<cdot>(ProjB\<cdot>a)\<cdot>(ProjB\<cdot>b))"
+   'a set \<Rightarrow> 'b set \<Rightarrow> vdmval" where
+"vfun2 \<equiv> \<lambda> f P Q. FuncV (\<lambda> x. case (Project x) of
+                                None \<Rightarrow> BotV
+                              | Some v \<Rightarrow> if (v \<in> P) then vfun1 (f v) Q else BotV)"
 
-lemma vbfun2_cont [simp,cont2cont]: 
-  "cont vbfun2"
-  by (simp add:vbfun2_def InjB_def ProjB_def)
-
-lemma vbfun2_bot [simp]: 
-  "(vbfun2 f P Q)\<cdot>\<bottom> = \<bottom>"
-  "(vbfun2 f P Q)\<cdot>x\<cdot>\<bottom> = \<bottom>"
-  apply (simp_all add:vbfun2_def InjB_def ProjB_def)
-  apply (case_tac "x")
-  apply (simp_all)
-  apply (case_tac "Project a :: 'a option")
-  apply (simp_all)
+lemma vfun1_type [typing]:
+  fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic"
+  shows "vfun1 f P :\<^sub>v Type TYPE('a) → Type TYPE('b)"
+  apply (simp add:vfun1_def)
+  apply (rule FuncV_type)
+  apply (auto)
+  apply (case_tac "Project x :: 'a option")
+  apply (auto)
+  apply (smt Inject_defined Project_Some not_None_eq option.simps(4) vbdefined.simps(1))
 done
 
-lemma vbfun2_app [simp]:
+lemma vfun2_type [typing]:
   fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic"
-  and   x :: "'a" 
-  assumes "x \<in> P"
-  shows "vbfun2 f P Q\<cdot>(InjB\<cdot>(Def x)) = vbfun1 (f x) Q"
-  by (simp add:vbfun2_def vbfun1_def assms oo_def)
-
-lemma vbfun2_napp [simp]: 
-  "x \<notin> P \<Longrightarrow> vbfun2 f P Q\<cdot>(InjB\<cdot>(Def x)) = \<bottom>"
-  "\<And> x y. y \<notin> Q \<Longrightarrow> (vbfun2 f P Q)\<cdot>x\<cdot>(InjB\<cdot>(Def y)) = \<bottom>"
-  apply (simp add:vbfun2_def)
-  apply (rule cfun_eqI)
-  apply (simp)
-  apply (case_tac "ProjB\<cdot>xa :: 'b lift")
-  apply (simp_all)
-  apply (simp add:vbfun2_def)
-  apply (case_tac "ProjB\<cdot>x :: 'a lift")
-  apply (simp_all)
+  shows "vfun2 f P Q :\<^sub>v Type TYPE('a) → Type TYPE('b) → Type TYPE('c)"
+  apply (simp add:vfun2_def)
+  apply (rule FuncV_type)
+  apply (auto)
+  apply (case_tac "Project x :: 'a option")
+  apply (auto intro:typing)
+  apply (metis (mono_tags) Inject_defined Project_Some bind_runit not_None_eq option.simps(4) vbdefined.simps(1))
 done
-
-lemma vbfun2_nbot_exists:
-  fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic"
-  assumes "vbfun2 f P Q\<cdot>x\<cdot>y \<noteq> \<bottom>"
-  shows "\<exists> a::'a. x = InjB\<cdot>(Def a) \<and> a \<in> P" "\<exists> b::'b. y = InjB\<cdot>(Def b) \<and> b \<in> Q"
-  apply (insert assms)
-  apply (case_tac x, simp_all)
-  apply (case_tac y, simp_all)
-  apply (simp add:vbfun2_def ProjB_def)
-  apply (case_tac "Project a :: 'a option", simp_all)
-  apply (case_tac "Project aa :: 'b option", simp_all)
-  apply (case_tac "ab \<in> P")
-  apply (simp add:InjB_def)
-  apply (metis Project_Some)
-  apply (simp)
-  apply (case_tac x, simp_all)
-  apply (case_tac y, simp_all)
-  apply (simp add:vbfun2_def ProjB_def)
-  apply (case_tac "Project a :: 'a option", simp_all)
-  apply (case_tac "Project aa :: 'b option", simp_all)
-  apply (case_tac "ac \<in> Q")
-  apply (simp add:InjB_def)
-  apply (metis Project_Some)
-  apply (simp)
-done
-
-lemma vbfun2_elim [elim]:
-  fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic"
-  assumes 
-    "vbfun2 f P Q\<cdot>x\<cdot>y \<noteq> \<bottom>" 
-    "\<And> a::'a. \<And> b::'b. \<lbrakk> x = InjB\<cdot>(Def a); a \<in> P; y = InjB\<cdot>(Def b); b \<in> Q \<rbrakk> \<Longrightarrow> R"
-  shows "R"
-  by (metis assms vbfun2_nbot_exists)
-
-definition "bplus \<equiv> vbfun2 ((op +) :: int \<Rightarrow> int \<Rightarrow> int) UNIV UNIV"
-
-lemma bplus_test: "bplus\<cdot>(InjB\<cdot>(Def (5::int)))\<cdot>(InjB\<cdot>(Def (6::int))) = InjB\<cdot>(Def (11::int))"
-  by (simp add:bplus_def)
-*)
 
 definition "InjVB  x \<equiv> BasicV (Inject x)"
-definition "ProjVB x \<equiv> the (Project (the (ProjBasicV x)))"
+definition "ProjVB x \<equiv> the (Project (ProjBasicV x))"
 
 lemma InjVB_inv[simp]: "ProjVB (InjVB x) = x"
   by (simp add:ProjVB_def InjVB_def)
 
-lemma InjVB_nbot [simp]: "InjVB x \<noteq> BotV"
+lemma InjVB_nbot [simp]: "\<D>\<^sub>v (InjVB x)"
   by (simp add:InjVB_def)
 
 lemma InjVB_vbvalues [simp]: "InjVB x \<in> vbvalues"
   apply (auto simp add:vbvalues_def InjVB_def)
   apply (metis Inject_type)
 done
-
-(*
-
-(*
-lemma ProjVB_inv[simp]: 
-  "\<lbrakk> x :\<^sub>v Type TYPE('a::vbasic); x \<noteq> \<bottom> \<rbrakk> \<Longrightarrow> InjVB (ProjVB x :: 'a) = x"
-  apply (auto simp add:InjVB_def ProjVB_def ProjB_def InjB_def)
-  apply (simp add:ProjVB_def)
-
-  sorry
-*)
-
-lemma InjVB_type[intro]: "Type (TYPE('a)) = a \<Longrightarrow> InjVB (x::'a::vbasic) :\<^sub>v a"
-  by (auto simp add:InjVB_def InjB_def)
-
-definition pfun1 :: "('a::vbasic \<Rightarrow> 'b::vbasic) \<Rightarrow> 'a set \<Rightarrow> vdmval" where
-"pfun1 f P \<equiv> FuncV\<cdot>(sfun_abs\<cdot>(BasicV oo (vbfun1 f P) oo ProjBasicV))"
-
-definition pfun2 :: 
-  "('a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic) \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> vdmval" where
-"pfun2 f P Q \<equiv> SFuncV2\<cdot>(\<Lambda> x y. BasicV\<cdot>(vbfun2 f P Q\<cdot>(ProjBasicV\<cdot>x)\<cdot>(ProjBasicV\<cdot>y)))"
-
-(*
-definition "pfun3 f P Q R \<equiv> InjV\<cdot>(\<Lambda> (Def x) (Def y) (Def z). if (P x \<and> Q y \<and> R z) then Def (f x y z) else \<bottom>)"
-*)
-
-abbreviation "bfun1 f \<equiv> pfun1 f UNIV"
-abbreviation "bfun2 f \<equiv> pfun2 f UNIV UNIV"
-(* abbreviation "bfun3 f \<equiv> pfun3 f (\<lambda> x. True) (\<lambda> x. True) (\<lambda> x. True)" *)
-
-
-lemma pfun1_type [intro]:
-  fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic"
-  shows "pfun1 f P :\<^sub>v Type TYPE('a) → Type TYPE('b)"
-  apply (simp add:pfun1_def oo_def)
-  apply (rule FuncV_type)
-  apply (auto simp add:cdom_def cran_def)
-  apply (metis BotV_type InjB_type vbfun1_app vbfun1_elim vdmval.con_rews(3))
-done
-
-lemma pfun1_type_atomic [intro]:
-  fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic"
-  assumes "a = Type TYPE('a)" "b = Type TYPE('b)"
-  shows "pfun1 f P :\<^sub>v a → b"
-  by (auto simp add:assms)
-
-lemma pfun1_app [simp]:
-  fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic" and x :: "'a"
-  assumes "x \<in> P"
-  shows "(ProjFuncV\<cdot>(pfun1 f P))\<cdot>!(InjVB x) = InjVB (f x)"
-  by (simp add:pfun1_def assms InjVB_def)
-
-lemma sfun_bot_intro [intro]: "\<forall> x. f\<cdot>!x = \<bottom> \<Longrightarrow> f = \<bottom>"
-  apply (simp add: sfun_eq_iff sfun_rep_def)
-  apply (auto intro: cfun_eqI)
-done
-
-lemma sfun_nbot_param: "(\<Lambda>! x. f x) \<noteq> \<bottom> \<Longrightarrow> \<exists> x. f x \<noteq> \<bottom>"
-  by (rule ccontr, simp)
-
-lemma sfun_nbotE[elim]: "\<lbrakk> (\<Lambda>! x. f x) \<noteq> \<bottom>; \<And> x. f x \<noteq> \<bottom> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (metis (hide_lams, no_types) sfun_nbot_param)  
-
-lemma pfun2_type [intro]:
-  fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic"
-  shows "pfun2 f P Q :\<^sub>v Type TYPE('a) → Type TYPE('b) → Type TYPE('c)"
-  apply (auto intro!:FuncV_type simp add:cdom_def cran_def pfun2_def)
-  apply (smt BotV_type InjVB_type InjVB_def vbfun1_app vbfun2_app vbfun2_elim vdmval.con_rews(6))
-done
-
-lemma pfun2_type_atomic [intro]:
-  fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic"
-  assumes "a = Type TYPE('a)" "b = Type TYPE('b)" "c = Type TYPE('c)"
-  shows "pfun2 f P Q :\<^sub>v a → b → c"
-  by (auto simp add: assms)
-
-lemma pfun2_app [simp]:
-  fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic" and x :: "'a"
-  assumes "x \<in> P"
-  shows "(ProjFuncV\<cdot>(pfun2 f P Q))\<cdot>!(InjVB x) = pfun1 (f x) Q"
-  by (simp add:pfun2_def pfun1_def assms sfun_eq_iff cfun_eq_iff InjVB_def)
-*)
 
 end

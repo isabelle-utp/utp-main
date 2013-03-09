@@ -209,16 +209,40 @@ lemma "\<lbrakk> vtype x = vtype y; aux x = aux y; x \<noteq> y; x \<in>\<^sub>f
   apply (utp_alpha_tac)
   oops
 
+
+(*
+lemma
+  assumes "sorted xs1" "distinct xs1" "sorted xs2" "distinct xs2"
+          "sorted ys1" "distinct ys1" "sorted ys2" "distinct ys2"
+          "set xs1 \<inter> set xs2 = {}"
+          "set ys1 \<inter> set ys2 = {}"
+          "set xs1 \<inter> set ys2 = {}"
+          "set ys1 \<inter> set xs2 = {}"
+  shows "MapR [xs1 [\<mapsto>] ys1] \<circ>\<^sub>s MapR [xs2 [\<mapsto>] ys2] = MapR [xs1 [\<mapsto>] ys1] \<circ>\<^sub>s MapR [xs2 [\<mapsto>] ys2]
+*)
+
+
 lemma SemiA_ok_extract:
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
           "\<alpha> P \<in> DESIGN_ALPHABET" "\<alpha> Q \<in> DESIGN_ALPHABET"
   shows "`P ; Q` = `\<exists>- okay''. ((P[$okay''/okay']) ; (Q[$okay''/okay]))`"
 proof -
 
-  from assms have "`P ; Q` = undefined"
+  from assms have "`P ; Q` = 
+                   (\<exists>-\<alpha> dash `\<^sub>f out\<^sub>\<alpha> (\<alpha> P) \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> Q) .
+                    P[SS1_MapR (\<alpha> P)]\<alpha> \<and>\<alpha> Q[SS2_MapR (\<alpha> Q)]\<alpha>)"
     apply (simp add:SemiA_algebraic)
+    apply (simp add: RenameA_equiv[of P "\<langle>\<alpha> P\<rangle>\<^sub>f",simplified,OF SS1_eq_map] closure)
+    apply (simp add: RenameA_equiv[of Q "\<langle>\<alpha> Q\<rangle>\<^sub>f",simplified,OF SS2_eq_map] closure)
+  done
 
-    oops
+  from assms have "... =
+                   (\<exists>-\<alpha> dash `\<^sub>f out\<^sub>\<alpha> (\<alpha> P) \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> Q) .
+                    P[SS1_MapR (\<alpha> P -\<^sub>f \<lbrace>okay\<rbrace>)]\<alpha>[MapR [okay' \<mapsto> okay'']]\<alpha> \<and>\<alpha> 
+                    Q[SS2_MapR (\<alpha> Q -\<^sub>f \<lbrace>okay\<rbrace>)]\<alpha>[MapR [okay \<mapsto> okay'']]\<alpha>)"
+
+
+
 
 
 lemma BoolType_var_aux_cases [elim]:

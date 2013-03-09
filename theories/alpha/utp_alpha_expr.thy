@@ -149,6 +149,16 @@ lift_definition LitAE ::
 "\<lambda> t v. (\<lbrace>\<rbrace>, LitE t v)"
   by (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
 
+lift_definition Op1AE :: 
+  "('VALUE \<Rightarrow> 'VALUE) \<Rightarrow> 'VALUE UTYPE \<Rightarrow> 'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE WF_ALPHA_EXPRESSION" is
+"\<lambda> f t v. (\<alpha> v, Op1E f t (\<epsilon> v))"
+  by (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
+
+lift_definition Op2AE :: 
+  "('VALUE \<Rightarrow> 'VALUE \<Rightarrow> 'VALUE) \<Rightarrow> 'VALUE UTYPE \<Rightarrow> 'VALUE WF_ALPHA_EXPRESSION \<Rightarrow>'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE WF_ALPHA_EXPRESSION" is
+"\<lambda> f t v1 v2. (\<alpha> v1 \<union>\<^sub>f \<alpha> v2, Op2E f t (\<epsilon> v1) (\<epsilon> v2))"
+  by (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
+
 definition ExprA ::
   "'VALUE::BOOL_SORT WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" where
 "ExprA e = Abs_WF_ALPHA_PREDICATE (\<alpha> e, ExprP (\<epsilon> e))"

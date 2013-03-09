@@ -34,6 +34,7 @@ datatype vdmtype =
   | NatT ("\<nat>")
   | IntT ("\<int>")
   | RatT ("\<rat>")
+  | RealT ("\<real>")
   | CharT
   | QuoteT
   | TokenT
@@ -75,7 +76,7 @@ datatype vbasic
   | MapI "(vbasic * vbasic) list" 
   | NameI "NAME"
   | TypeI "vdmtype"
-
+  | BotI
 
 (* Deriving the linear order necessarily takes a while *)
 
@@ -102,8 +103,8 @@ text {* Full values are represented using a domain, which adds functions,
 datatype vdmval = SetV "vbasic set"
                 | FuncV "vbasic \<Rightarrow> vdmval"
                 | BasicV "vbasic"
-                | BotV
 
+abbreviation "BotV \<equiv> BasicV BotI"
 abbreviation "TrueV \<equiv> BasicV (BoolI True)"
 abbreviation "FalseV \<equiv> BasicV (BoolI False)"
 
@@ -183,6 +184,7 @@ BoolI_type[intro]: "BoolI x :\<^sub>b BoolT" |
 NatI_type[intro]: "NatI x :\<^sub>b NatT" |
 IntI_type[intro]: "IntI x :\<^sub>b IntT" |
 RatI_type[intro]: "RatI x :\<^sub>b RatT" |
+RealI_type[intro]: "RealI x :\<^sub>b RealT" |
 CharI_type[intro]: "CharI x :\<^sub>b CharT" |
 TokenI_type[intro]: "TokenI x :\<^sub>b TokenT" |
 QuoteI_type[intro]: "QuoteI x :\<^sub>b QuoteT" |
@@ -195,6 +197,7 @@ MapI_type[intro]: "\<lbrakk> \<forall>(x,y)\<in>set xs. x :\<^sub>b a \<and> y :
 RecI_type[intro]: "\<lbrakk> xs :\<^sub>r ts \<rbrakk>  \<Longrightarrow> RecI xs :\<^sub>b RecordT ts" |
 NameI_type[intro]: "NameI n :\<^sub>b NameT" |
 TypeI_type[intro]: "TypeI t :\<^sub>b TypeT" |
+BotI_type[intro]: "BotI :\<^sub>b a" |
 Cons_type[intro]: "\<lbrakk> x :\<^sub>b t; xs :\<^sub>r ts \<rbrakk> \<Longrightarrow> (x # xs) :\<^sub>r (t # ts)" |
 Nil_type[intro]: "[] :\<^sub>r []"
 
@@ -228,23 +231,52 @@ inductive_cases
   Cons_type_cases [elim!]: "x :\<^sub>r f # fs" and
   Nil_type_cases [elim!]: "x :\<^sub>r []" and
   FuncT_type_casesB [elim!]: "x :\<^sub>b a → b" and
-  SetT_type_casesB [elim!]: "x :\<^sub>b SetT a"
+  SetT_type_casesB [elim!]: "x :\<^sub>b SetT a" and
+  BotI_type_cases[elim]: "BotI :\<^sub>b a"
 
 definition bcarrier :: "vdmtype \<Rightarrow> vbasic set" where
 "bcarrier t = {x. x :\<^sub>b t}"
 
+fun vbdefined :: "vbasic \<Rightarrow> bool" ("\<D>\<^sub>b") where
+"\<D>\<^sub>b BotI = False" |
+"\<D>\<^sub>b (PairI x y) = (\<D>\<^sub>b x \<and> \<D>\<^sub>b y)" |
+"\<D>\<^sub>b (BoolI x) = True" |
+"\<D>\<^sub>b (NatI n) = True" |
+"\<D>\<^sub>b (IntI n) = True" |
+"\<D>\<^sub>b (RatI n) = True" |
+"\<D>\<^sub>b (RealI n) = True" |
+"\<D>\<^sub>b (CharI x) = True" |
+"\<D>\<^sub>b (QuoteI x) = True" |
+"\<D>\<^sub>b (TokenI x) = \<D>\<^sub>b x" |
+"\<D>\<^sub>b (ListI xs) = foldr (op \<and> \<circ> \<D>\<^sub>b) xs True" |
+"\<D>\<^sub>b (OptionI None) = True" |
+"\<D>\<^sub>b (OptionI (Some x)) = \<D>\<^sub>b x" |
+"\<D>\<^sub>b (FinI xs) = foldr (op \<and> \<circ> \<D>\<^sub>b) xs True" |
+"\<D>\<^sub>b (RecI xs) = foldr (op \<and> \<circ> \<D>\<^sub>b) xs True" |
+"\<D>\<^sub>b (MapI xs) = foldr (op \<and> \<circ> (\<lambda> x. \<D>\<^sub>b (fst x) \<and> \<D>\<^sub>b (snd x))) xs True" | 
+"\<D>\<^sub>b (NameI n) = True" |
+"\<D>\<^sub>b (TypeI t) = True"
+
+fun vdefined :: "vdmval \<Rightarrow> bool" ("\<D>\<^sub>v") where
+"\<D>\<^sub>v (BasicV x) = \<D>\<^sub>b x" |
+"\<D>\<^sub>v (SetV xs) = (\<forall>x\<in>xs. \<D>\<^sub>b x)" |
+"\<D>\<^sub>v (FuncV f) = True"
+
 definition vbtypes :: "vdmtype set" where
-"vbtypes = {t. \<exists> x. x :\<^sub>b t}"
+"vbtypes = {t. \<exists> x. x :\<^sub>b t \<and> \<D>\<^sub>b x}"
 
 definition vbvalues :: "vdmval set" where
-"vbvalues = {BotV} \<union> {BasicV x | x t. x :\<^sub>b t}"
+"vbvalues = {BasicV x | x t. x :\<^sub>b t}"
 
 lemma vbtypes_simps [simp]:
   "\<nat> \<in> vbtypes" "\<int> \<in> vbtypes" "\<rat> \<in> vbtypes"
   "\<bool> \<in> vbtypes" "CharT \<in> vbtypes" "TokenT \<in> vbtypes"
   "a → b \<notin> vbtypes"
   "SetT a \<notin> vbtypes"
-  by (auto simp add:vbtypes_def)
+ apply (auto simp add:vbtypes_def)
+ apply (rule_tac x="TokenI (NatI 0)" in exI)
+ apply (force)
+done
 
 text {* We introduce a couple of derived typing rules *}
 
@@ -271,7 +303,7 @@ lemma ran_map_of: "y \<in> ran (map_of xs) \<Longrightarrow> \<exists> x. (x,y) 
   by (auto dest:map_of_SomeD simp add:ran_def)
 
 lemma FinMapI_type_cases [elim!]:
-  "\<lbrakk>x :\<^sub>b MapT a b; \<And>f. \<lbrakk>x = FinMapI f; \<forall> x\<in>Rep_fset(fdom f). x :\<^sub>b a; \<forall> y\<in>Rep_fset(fran f). y :\<^sub>b b \<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk>x :\<^sub>b MapT a b; x \<noteq> BotI; \<And>f. \<lbrakk>x = FinMapI f; \<forall> x\<in>Rep_fset(fdom f). x :\<^sub>b a; \<forall> y\<in>Rep_fset(fran f). y :\<^sub>b b \<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   apply (case_tac x, auto elim!:MapI_type_cases)
   apply (simp add:FinMapI_def fdom_def fran_def)
   apply (subgoal_tac "list = fmap_list (list_fmap list)")
@@ -293,21 +325,32 @@ subsection {* Full value typing relation *}
    Treatment of higher-order functions needs more work *)
 
 inductive vdmtype_rel :: "vdmval \<Rightarrow> vdmtype \<Rightarrow> bool" (infix ":\<^sub>v" 50) where
-BotV_type[intro]: "BotV :\<^sub>v a" |
 SetV_type[intro]: "\<lbrakk> \<forall> x\<in>xs. x :\<^sub>b a \<rbrakk> \<Longrightarrow> SetV xs :\<^sub>v SetT a" |
 BasicV_type[intro]: "x :\<^sub>b a \<Longrightarrow> BasicV x :\<^sub>v a" |
-FuncV_type[intro]: "\<lbrakk> \<forall> x. x :\<^sub>b a \<longrightarrow> f x :\<^sub>v b \<rbrakk> \<Longrightarrow> FuncV f :\<^sub>v a → b"
+FuncV_type[intro]: "\<lbrakk> \<forall> x. x :\<^sub>b a \<longrightarrow> f x :\<^sub>v b; f BotI = BotV \<rbrakk> \<Longrightarrow> FuncV f :\<^sub>v a → b"
 
 inductive_cases
-  BotV_type_cases[elim]: "BotV :\<^sub>v a" and
-  SetT_type_cases[elim]: "x :\<^sub>v SetT a" and
+  SetT_type_cases': "x :\<^sub>v SetT a" and
   SetV_type_cases[elim!]: "SetV x :\<^sub>v t" and
-  FuncT_type_cases[elim!]: "x :\<^sub>v a → b" and
+  FuncT_type_cases': "x :\<^sub>v a → b" and
   FuncI_type_cases[elim!]: "FuncV f :\<^sub>v t" and
   BasicV_type_cases[elim]: "BasicV x :\<^sub>v t"
 
+lemma SetT_type_cases [elim]: 
+  "\<lbrakk> x :\<^sub>v SetT a; \<And> xs. \<lbrakk> x = SetV xs; \<forall>x\<in>xs. x :\<^sub>b a \<rbrakk> \<Longrightarrow> P; x = BotV \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  apply (erule SetT_type_cases')
+  apply (auto)
+done
+
+lemma FuncT_type_cases [elim]: 
+  "\<lbrakk> x :\<^sub>v a → b; \<And> f. \<lbrakk> x = FuncV f; \<forall> x. x :\<^sub>b a \<longrightarrow> f x :\<^sub>v b; f BotI = BotV \<rbrakk> \<Longrightarrow> P
+   ; x = BotV \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  apply (erule FuncT_type_cases')
+  apply (auto)
+done
+
 lemma vbtypes_type_cases [elim]: 
-  "\<lbrakk> a :\<^sub>v t; t \<in> vbtypes; \<And> x. \<lbrakk> a = BasicV x; x :\<^sub>b t \<rbrakk> \<Longrightarrow> P; a = BotV \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk> a :\<^sub>v t; t \<in> vbtypes; \<And> x. \<lbrakk> a = BasicV x; x :\<^sub>b t \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   apply (case_tac a)
   apply (auto elim:BasicV_type_cases simp add:vbtypes_def)
 done
@@ -339,16 +382,16 @@ lemma vbvalues_vbtypes [simp]:
 
 subsection {* Injecting basic values into vdmval *}
 
-fun ProjBasicV :: "vdmval \<Rightarrow> vbasic option" where
-"ProjBasicV (BasicV x) = Some x" |
-"ProjBasicV _ = None"
+fun ProjBasicV :: "vdmval \<Rightarrow> vbasic" where
+"ProjBasicV (BasicV x) = x" |
+"ProjBasicV _ = BotI"
 
 fun IsBasicV :: "vdmval \<Rightarrow> bool" where
 "IsBasicV (BasicV x) = True" |
 "IsBasicV _ = False"
 
 lemma ProjBasicV_inv [simp] :
-  "IsBasicV x \<Longrightarrow> BasicV (the (ProjBasicV x)) = x"
+  "IsBasicV x \<Longrightarrow> BasicV (ProjBasicV x) = x"
   by (case_tac x, simp_all)
 
 definition vbasic_fun1 :: "(vbasic \<Rightarrow> vbasic) \<Rightarrow> vdmval" where
@@ -370,5 +413,6 @@ primrec ProjSetV :: "vdmval \<Rightarrow> vbasic set" where
 fun IsSetV :: "vdmval \<Rightarrow> bool" where
 "IsSetV (SetV x) = True" |
 "IsSetV _ = False"
+
 
 end

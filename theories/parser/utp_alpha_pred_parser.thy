@@ -81,6 +81,7 @@ syntax
   "_uaexpr_var"      :: "pttrn \<Rightarrow> uaexpr" ("_")
   "_uaexpr_evar"     :: "'a VAR \<Rightarrow> uaexpr" ("$_")
   "_uaexpr_substp"   :: "uapred \<Rightarrow> uaexpr \<Rightarrow> pttrn \<Rightarrow> uapred" ("(_[_'/_])" [60,60,60] 60)
+  "_uaexpr_member"   :: "uaexpr \<Rightarrow> uaexpr \<Rightarrow> uaexpr" (infix ":" 45)
 
 translations
   "_uaexpr_true"         == "CONST TrueAE"
