@@ -1,37 +1,28 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
-(* File: utp_pred.thy                                                         *)
+(* File: utp_expr.thy                                                         *)
 (* Author: Simon Foster and Frank Zeyda, University of York (UK)              *)
 (******************************************************************************)
 
 header {* Basic Expressions *}
 
 theory utp_expr
-imports  utp_pred utp_unrest utp_sorts utp_rename
+imports utp_pred utp_unrest utp_sorts utp_rename
 begin
 
 text {* The type which an expression holds should be the maximal type, if such a notion exists *}
-type_synonym 'VALUE EXPRESSION = "('VALUE UTYPE * 'VALUE WF_BINDING_FUN)"
+type_synonym 'VALUE EXPRESSION = "('VALUE WF_BINDING_FUN)"
 
-definition expr_type :: "'VALUE EXPRESSION \<Rightarrow> 'VALUE UTYPE" where
-"expr_type e = fst e"
-
-definition expr_bfun :: "'VALUE EXPRESSION \<Rightarrow> 'VALUE WF_BINDING_FUN" where
-"expr_bfun = snd"
-
-lemma expr_simps [simp]:
-  "expr_bfun (t,f) = f"
-  "expr_type (t,f) = t"
-  by (simp_all add:expr_type_def expr_bfun_def)
 
 text {* A well-formed expression must produce a well-typed value for every binding, and non well-formed bindings yield an fixed arbitrary well-typed value *}
 
 definition WF_EXPRESSION :: "'VALUE EXPRESSION set" where
-"WF_EXPRESSION = {f. \<forall>b. expr_bfun f b : expr_type f}"
+"WF_EXPRESSION = {f. \<exists> t. \<forall>b. f b : t}"
 
 typedef (open) 'VALUE WF_EXPRESSION = "WF_EXPRESSION :: 'VALUE EXPRESSION set"
   apply (simp add:WF_EXPRESSION_def)
-  apply (rule_tac x="(someType, \<lambda> x. default someType)" in exI)
+  apply (rule_tac x="(\<lambda> x. default someType)" in exI)
+  apply (rule_tac x="someType" in exI)
   apply (force)
 done
 
@@ -49,13 +40,13 @@ lemma Rep_WF_EXPRESSION_elim [elim]:
 
 setup_lifting type_definition_WF_EXPRESSION
 
-definition wf_expr_bfun :: 
-  "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_BINDING_FUN" ("\<langle>_\<rangle>\<^sub>e") where
-"wf_expr_bfun e = expr_bfun (Rep_WF_EXPRESSION e)"
+notation Rep_WF_EXPRESSION ("\<langle>_\<rangle>\<^sub>e")
 
-definition wf_expr_type ::
-  "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE UTYPE" ("\<tau>\<^sub>e") where
-"wf_expr_type e = expr_type (Rep_WF_EXPRESSION e)"
+lemma Rep_WF_EXPRESSION_typed [typing]:
+  "\<exists> t. \<forall> b. \<langle>e\<rangle>\<^sub>e b : t"
+  apply (insert Rep_WF_EXPRESSION[of e])
+  apply (auto simp add:WF_EXPRESSION_def)
+done
 
 definition etype_rel :: "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool" (infix ":\<^sub>e" 50) where
 "etype_rel e t \<equiv> \<forall>b. \<langle>e\<rangle>\<^sub>e b : t"
@@ -93,15 +84,6 @@ definition WF_EXPRESSION_OVER ::
 
 subsection {* Operators *}
 
-subsubsection {* Well-formed expression builders *}
-
-definition mk_wfexpr ::
-"'VALUE EXPRESSION \<Rightarrow> 
- 'VALUE EXPRESSION" where
-"mk_wfexpr e \<equiv> (expr_type e, \<lambda> b. if (expr_bfun e b : expr_type e) then expr_bfun e b else default (expr_type e))"
-
-definition "wfexpr e \<equiv> Abs_WF_EXPRESSION (mk_wfexpr e)"
-
 subsubsection {* Equality *}
 
 definition EqualP :: 
@@ -112,27 +94,33 @@ definition EqualP ::
 
 notation EqualP (infixr "==p" 200)
 
-definition VarE :: "'VALUE VAR \<Rightarrow> 'VALUE WF_EXPRESSION" where
-"VarE x \<equiv> wfexpr (vtype x, \<lambda> b. \<langle>b\<rangle>\<^sub>b x)"
+definition LitE :: "'VALUE \<Rightarrow> 'VALUE WF_EXPRESSION" where 
+"LitE v = Abs_WF_EXPRESSION (if (\<exists> t. v : t) then (\<lambda> b. v) else (\<lambda> b. default someType))"
 
-definition LitE :: "'VALUE UTYPE \<Rightarrow> 'VALUE \<Rightarrow> 'VALUE WF_EXPRESSION" where
-"LitE t v \<equiv> wfexpr (t, \<lambda> b. v)"
+definition DefaultE :: "'VALUE UTYPE \<Rightarrow> 'VALUE WF_EXPRESSION" where
+"DefaultE t \<equiv> LitE (default t)"
+
+lift_definition VarE :: "'VALUE VAR \<Rightarrow> 'VALUE WF_EXPRESSION" is "\<lambda> x. (\<lambda> b. \<langle>b\<rangle>\<^sub>b x)"
+  by (auto simp add:WF_EXPRESSION_def)
+
+lemma LitE_rep_eq: 
+  "\<langle>LitE v\<rangle>\<^sub>e = (if (\<exists> t. v : t) then (\<lambda> b. v) else (\<lambda> b. default someType))"
+  apply (subgoal_tac "(if (\<exists> t. v : t) then (\<lambda> b. v) else (\<lambda> b. default someType)) \<in> WF_EXPRESSION")
+  apply (auto simp add:LitE_def WF_EXPRESSION_def)
+done
 
 definition AppE :: 
   "'VALUE::FUNCTION_SORT WF_EXPRESSION \<Rightarrow> 'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_EXPRESSION" where
-"AppE f v = wfexpr (func_out_type (\<tau>\<^sub>e f), \<lambda> b. DestFunc (\<langle>f\<rangle>\<^sub>e b) (\<langle>v\<rangle>\<^sub>e b))"
- 
-definition Op1E :: 
-  "('VALUE \<Rightarrow> 'VALUE) \<Rightarrow> 'VALUE UTYPE \<Rightarrow> 'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_EXPRESSION" where
-"Op1E f t e = wfexpr (t, \<lambda> b. f (\<langle>e\<rangle>\<^sub>e b))"
+"AppE f v = Abs_WF_EXPRESSION (\<lambda> b. DestFunc (\<langle>f\<rangle>\<^sub>e b) (\<langle>v\<rangle>\<^sub>e b))"
 
-definition Op2E :: 
-  "('VALUE \<Rightarrow> 'VALUE \<Rightarrow> 'VALUE) \<Rightarrow> 'VALUE UTYPE \<Rightarrow> 
-   'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_EXPRESSION" where
-"Op2E f t e1 e2 = wfexpr (t, \<lambda> b. f (\<langle>e1\<rangle>\<^sub>e b) (\<langle>e2\<rangle>\<^sub>e b))"
-
-definition DefaultE :: "'VALUE UTYPE \<Rightarrow> 'VALUE WF_EXPRESSION" where
-"DefaultE t \<equiv> LitE t (default t)"
+lemma AppE_rep_eq:
+  "\<lbrakk> f :\<^sub>e FuncType a b; v :\<^sub>e a; \<D> f \<rbrakk> \<Longrightarrow> \<langle>AppE f v\<rangle>\<^sub>e = (\<lambda> b. DestFunc (\<langle>f\<rangle>\<^sub>e b) (\<langle>v\<rangle>\<^sub>e b))"
+  apply (subgoal_tac "(\<lambda> b. DestFunc (\<langle>f\<rangle>\<^sub>e b) (\<langle>v\<rangle>\<^sub>e b)) \<in> WF_EXPRESSION")
+  apply (simp add:AppE_def)
+  apply (simp add:WF_EXPRESSION_def)
+  apply (rule_tac x="b" in exI)
+  apply (auto intro:typing simp add:etype_rel_def Defined_WF_EXPRESSION_def)
+done
 
 definition DefinedP :: "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_PREDICATE" ("\<D>") where
 "DefinedP e \<equiv> LiftP (\<D> \<circ> \<langle>e\<rangle>\<^sub>e)"
@@ -144,16 +132,26 @@ lift_definition RenameE ::
   "'VALUE WF_EXPRESSION \<Rightarrow>
    'VALUE VAR_RENAME \<Rightarrow>
    'VALUE WF_EXPRESSION" ("_[_]\<epsilon>" [200]) is
-"\<lambda> e ss. (expr_type e, expr_bfun e \<circ> (RenameB (inv\<^sub>s ss)))" 
-  by (simp add:WF_EXPRESSION_def)
+"\<lambda> e ss. (\<langle>e\<rangle>\<^sub>e \<circ> (RenameB (inv\<^sub>s ss)))"
+proof -
+  fix e ss
+  show "\<langle>e\<rangle>\<^sub>e \<circ> RenameB (inv\<^sub>s ss) \<in> WF_EXPRESSION"
+    apply (simp add:WF_EXPRESSION_def)
+    apply (insert Rep_WF_EXPRESSION_typed[of e])    
+    apply (auto)
+  done
+qed
 
 (* FIXME: Expression substitution doesn't substitute, it just identifies *)
-definition SubstE :: 
+lift_definition SubstE :: 
 "'VALUE WF_EXPRESSION \<Rightarrow> 
  'VALUE WF_EXPRESSION \<Rightarrow> 
  'VALUE VAR \<Rightarrow> 
- 'VALUE WF_EXPRESSION" ("_[_|_]" [200]) where
-"SubstE f v x = wfexpr (\<tau>\<^sub>e f, \<lambda> b. \<langle>f\<rangle>\<^sub>e (b(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b)))"
+ 'VALUE WF_EXPRESSION" ("_[_|_]" [200]) is
+"\<lambda> f v x. (\<lambda> b. \<langle>f\<rangle>\<^sub>e (b(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b)))"
+  apply (simp add: WF_EXPRESSION_def)
+  apply (metis Rep_WF_EXPRESSION_typed)
+done
 
 definition SubstP_body ::
 "'VALUE WF_PREDICATE \<Rightarrow> 
@@ -183,20 +181,12 @@ subsection {* Theorems *}
 
 subsubsection {* Well-formed expression properties *}
 
-lemma WF_EXPRESSION_bfun [simp]:
-  "\<langle>e\<rangle>\<^sub>e b : \<tau>\<^sub>e e"
-  apply (insert Rep_WF_EXPRESSION[of e])
-  apply (simp add: WF_EXPRESSION_def wf_expr_bfun_def wf_expr_type_def)
-done
-
 lemma EXPRESSION_eqI [intro]:
-  "\<lbrakk> \<tau>\<^sub>e e = \<tau>\<^sub>e f; \<forall> b. \<langle>e\<rangle>\<^sub>e b = \<langle>f\<rangle>\<^sub>e b \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> \<forall> b. \<langle>e\<rangle>\<^sub>e b = \<langle>f\<rangle>\<^sub>e b \<rbrakk> \<Longrightarrow>
   e = f"
   apply (case_tac e, case_tac f, auto)
   apply (rule Rep_WF_EXPRESSION_intro)
-  apply (simp)
-  apply (case_tac y, case_tac ya)
-  apply (auto simp add: wf_expr_bfun_def wf_expr_type_def)
+  apply (auto)
 done
 
 (* It would be nice to have this as a typing rule, but it
@@ -216,133 +206,60 @@ theorem WF_EXPRESSION_type:
 
 theorem WF_EXPRESSION_has_type [typing]: 
 "\<exists> t. e :\<^sub>e t"
-  apply (rule_tac x="\<tau>\<^sub>e e" in exI)
-  apply (auto simp add: etype_rel_def)
-done
-
-(*
-theorem WF_EXPRESSION_wfexpr_bfun [simp]:
-"expr_bfun (wfexpr e) b = expr_bfun e b"
-  by (simp add:wfexpr_def)
-*)
+  by (metis Rep_WF_EXPRESSION_typed etype_rel_def)
 
 lemma WF_EXPRESSION_value_exists:
-  "\<exists> v. v : \<tau>\<^sub>e e \<and> \<langle>e\<rangle>\<^sub>e b = v"
-  by (metis WF_EXPRESSION_bfun)
+  "\<exists> t v. v : t \<and> \<langle>e\<rangle>\<^sub>e b = v"
+  by (metis Rep_WF_EXPRESSION_typed)
 
 lemma WF_EXPRESSION_value_elim [elim]:
-  "\<And> v b. \<lbrakk> v : \<tau>\<^sub>e e; \<langle>e\<rangle>\<^sub>e b = v \<rbrakk> \<Longrightarrow> P \<Longrightarrow> P"
+  "\<And> t v b. \<lbrakk> v : t; \<langle>e\<rangle>\<^sub>e b = v \<rbrakk> \<Longrightarrow> P \<Longrightarrow> P"
   by (simp)
  
 subsubsection {* Closure Theorems *}
 
 lemma WF_EXPRESSION_bindings [simp,intro]:
-  "\<forall> b. expr_bfun e b : expr_type e \<Longrightarrow> e \<in> WF_EXPRESSION"
-  by (simp add:WF_EXPRESSION_def)
-
-lemma WF_EXPRESSION_wfexpr [simp]:
-  "mk_wfexpr e \<in> WF_EXPRESSION"
-  by (auto simp add:mk_wfexpr_def WF_EXPRESSION_def)
-
-lemma wfexpr_typed_simp [simp]:
-  "\<forall>b. expr_bfun e b : expr_type e \<Longrightarrow> \<langle>wfexpr e\<rangle>\<^sub>e = expr_bfun e"
-  by (auto simp add:wfexpr_def WF_EXPRESSION_wfexpr wf_expr_bfun_def mk_wfexpr_def)
-
-lemma wfexpr_simp [simp]:
-  "\<langle>wfexpr e\<rangle>\<^sub>e b = (if (expr_bfun e b : expr_type e) 
-                   then expr_bfun e b 
-                   else default (expr_type e))"
-  apply (auto simp add:wfexpr_def WF_EXPRESSION_wfexpr wf_expr_bfun_def)
-  apply (simp_all add:mk_wfexpr_def)
-done
+  "\<forall> b. e b : t \<Longrightarrow> e \<in> WF_EXPRESSION"
+  by (auto simp add:WF_EXPRESSION_def)
 
 subsubsection {* Typing Theorems *}
 
-theorem expr_type [typing]: "e :\<^sub>e \<tau>\<^sub>e e"
-  by (simp add:etype_rel_def)
-
-theorem wfexpr_tau [simp]: "\<tau>\<^sub>e (wfexpr e) = expr_type e"
-  apply (simp add:wfexpr_def wf_expr_type_def)
-  apply (simp add:mk_wfexpr_def)
-done
-
 theorem VarE_type [typing]: "VarE x :\<^sub>e vtype x"
-  by (simp add:VarE_def WF_BINDING_def typing etype_rel_def)
-
-theorem VarE_tau [simp]: "\<tau>\<^sub>e (VarE x) = vtype x"
-  by (simp add:VarE_def)
+  by (simp add:VarE.rep_eq WF_BINDING_def typing etype_rel_def)
 
 theorem LitE_type [typing]: 
-"v : t \<Longrightarrow> LitE t v :\<^sub>e t"
-  by (simp add:LitE_def etype_rel_def typing)
-
-theorem LitE_tau [simp]:
-"\<tau>\<^sub>e (LitE t e) = t"
-  by (simp add:LitE_def)
+"v : t \<Longrightarrow> LitE v :\<^sub>e t"
+  by (auto simp add:LitE_rep_eq etype_rel_def typing)
 
 theorem AppE_type [typing]:
-"\<lbrakk> \<tau>\<^sub>e f = FuncType a b; \<D> f; v :\<^sub>e a \<rbrakk> \<Longrightarrow> AppE f v :\<^sub>e b"
-  by (auto intro:typing simp add:AppE_def etype_rel_def)
-
-theorem AppE_tau [typing]: 
-"\<tau>\<^sub>e (AppE f v) = func_out_type (\<tau>\<^sub>e f)"
-  by (simp add: AppE_def)
-
-theorem Op1E_type [typing]: 
-"Op1E f b e :\<^sub>e b"
-  by (simp add: Op1E_def etype_rel_def typing)
-
-theorem Op1E_tau [typing]: 
-"\<tau>\<^sub>e (Op1E f b e) = b"
-  by (simp add: Op1E_def etype_rel_def)
-
-theorem Op2E_type [typing]: 
-"Op2E f c e1 e2 :\<^sub>e c"
-  by (simp add: Op2E_def etype_rel_def typing)
- 
-theorem Op2E_tau [typing]: 
-"\<tau>\<^sub>e (Op2E f c e1 e2) = c"
-  by (simp add: Op2E_def etype_rel_def)
+"\<lbrakk> f :\<^sub>e FuncType a b; \<D> f; v :\<^sub>e a \<rbrakk> \<Longrightarrow> AppE f v :\<^sub>e b"
+  by (auto intro:typing simp add:AppE_rep_eq etype_rel_def Defined_WF_EXPRESSION_def)
 
 theorem DefaultE_type [typing]:
 "DefaultE t :\<^sub>e t"
   by (simp add:DefaultE_def typing)
 
-theorem DefaultE_tau [typing]:
-"\<tau>\<^sub>e (DefaultE t) = t"
-  by (simp add:DefaultE_def)
-
 theorem RenameE_type [typing]:
   "e :\<^sub>e t \<Longrightarrow> e[ss]\<epsilon> :\<^sub>e t" 
-  by (simp add:etype_rel_def wf_expr_bfun_def RenameE.rep_eq)
-
-theorem RenameE_tau [typing]:
-  "\<tau>\<^sub>e (e[ss]\<epsilon>) = \<tau>\<^sub>e e" 
-  by (simp add:wf_expr_type_def RenameE.rep_eq)
+  by (simp add:etype_rel_def RenameE.rep_eq)
 
 theorem SubstE_type [typing]:
 "\<lbrakk> v :\<^sub>e vtype x; e :\<^sub>e t \<rbrakk> \<Longrightarrow>
  e[v|x] :\<^sub>e t"
-  by (simp add:SubstE_def etype_rel_def WF_BINDING_update1)
-
-theorem SubstE_tau [simp]:
-"\<tau>\<^sub>e (SubstE e v x) = \<tau>\<^sub>e e"
-  by (simp add:SubstE_def)
+  by (simp add:SubstE.rep_eq etype_rel_def WF_BINDING_update1)
 
 subsubsection {* Definedness Theorems *}
 
-theorem LitE_defined [defined]: "\<lbrakk> \<D> v; v :t \<rbrakk> \<Longrightarrow> \<D> (LitE t v)"
+theorem LitE_defined [defined]: "\<lbrakk> \<D> v; v : t \<rbrakk> \<Longrightarrow> \<D> (LitE v)"
   by (auto simp add:LitE_def Defined_WF_EXPRESSION_def)
 
 theorem VarE_defined [defined]: "aux x \<Longrightarrow> \<D> (VarE x)"
-  by (simp add:VarE_def Defined_WF_EXPRESSION_def defined)
-
-(* theorem RenameE_defined [defined]: "\<D> (RenameE e ss) = \<D> e" *)
+  by (simp add:VarE.rep_eq Defined_WF_EXPRESSION_def defined)
 
 subsubsection {* bfun theorems *}
 
-lemma LitE_bfun [simp]: "a : t \<Longrightarrow> \<langle>LitE t a\<rangle>\<^sub>e = (\<lambda> x. a)"
-  by (simp add:LitE_def)
+lemma LitE_bfun [simp]: "a : t \<Longrightarrow> \<langle>LitE a\<rangle>\<^sub>e = (\<lambda> x. a)"
+  by (auto simp add:LitE_def)
 
 subsubsection {* @{term UNREST_EXPR} Theorems *}
 
@@ -393,34 +310,26 @@ theorem UNREST_EXPR_wfexpr [unrest]:
 
 theorem UNREST_EXPR_VarE [unrest] :
 "UNREST_EXPR (vs - {x}) (VarE x)"
-  by (simp add:VarE_def UNREST_EXPR_def)
+  by (simp add:VarE.rep_eq UNREST_EXPR_def)
 
 theorem UNREST_EXPR_LitE [unrest] :
-"UNREST_EXPR vs (LitE t v)"
-  by (simp add:LitE_def UNREST_EXPR_def)
+"UNREST_EXPR vs (LitE v)"
+  by (simp add:LitE_rep_eq UNREST_EXPR_def)
 
 theorem UNREST_EXPR_AppE [unrest] :
-"\<lbrakk> UNREST_EXPR vs f; UNREST_EXPR vs v \<rbrakk> \<Longrightarrow> UNREST_EXPR vs (AppE f v)"
-  by (simp add:AppE_def UNREST_EXPR_def)
-
-theorem UNREST_EXPR_Op1E [unrest] :
-"UNREST_EXPR vs e \<Longrightarrow> UNREST_EXPR vs (Op1E f t e)"
-  by (simp add:Op1E_def UNREST_EXPR_def)
-
-theorem UNREST_EXPR_Op2E [unrest] :
-"\<lbrakk> UNREST_EXPR vs e1; UNREST_EXPR vs e2 \<rbrakk> \<Longrightarrow> UNREST_EXPR vs (Op2E f t e1 e2)"
-  by (simp add:Op2E_def UNREST_EXPR_def)
+"\<lbrakk> f :\<^sub>e FuncType a b; v :\<^sub>e a; \<D> f; UNREST_EXPR vs f; UNREST_EXPR vs v \<rbrakk> \<Longrightarrow> UNREST_EXPR vs (AppE f v)"
+  by (simp add:AppE_rep_eq UNREST_EXPR_def)
 
 theorem UNREST_EXPR_RenameE [unrest] :
 "UNREST_EXPR vs p \<Longrightarrow>
  UNREST_EXPR (\<langle>ss\<rangle>\<^sub>s ` vs) p[ss]\<epsilon>"
-  by (auto simp add: UNREST_EXPR_def wf_expr_bfun_def wf_expr_type_def RenameE.rep_eq RenameB_override_distr1 closure)
+  by (auto simp add: UNREST_EXPR_def RenameE.rep_eq RenameB_override_distr1 closure)
 
 theorem UNREST_EXPR_SubstE [unrest] :
 "\<lbrakk> v \<rhd>\<^sub>e x;
    UNREST_EXPR vs1 f; UNREST_EXPR vs2 v \<rbrakk> \<Longrightarrow>
  UNREST_EXPR ((vs1 \<union> {x}) \<inter> vs2) (f[v|x])"
-  apply (auto simp add:UNREST_EXPR_def SubstE_def evar_compat_def)
+  apply (auto simp add:UNREST_EXPR_def SubstE.rep_eq evar_compat_def)
   apply (smt Rep_WF_BINDING_rep_eq binding_override_simps(3) binding_override_simps(5) binding_override_simps(6) binding_override_simps(7) binding_override_singleton etype_rel_def fun_upd_same inf.commute)
 done
 
@@ -570,11 +479,13 @@ qed
 
 subsection {* Boolean Expressions *}
 
-definition "TrueE \<equiv> LitE BoolType (MkBool True)"
-definition "FalseE \<equiv> LitE BoolType (MkBool False)"
+definition "TrueE \<equiv> LitE (MkBool True)"
+definition "FalseE \<equiv> LitE (MkBool False)"
 definition "ExprP e = LiftP (DestBool \<circ> \<langle>e\<rangle>\<^sub>e)"
-definition "PredE p = wfexpr (BoolType, \<lambda> b. MkBool (b \<in> destPRED p))"
 definition "VarP v \<equiv> LiftP (DestBool \<circ> \<langle>VarE v\<rangle>\<^sub>e)"
+
+lift_definition PredE :: "'VALUE::BOOL_SORT WF_PREDICATE \<Rightarrow> 'VALUE WF_EXPRESSION" is "\<lambda> p. \<lambda> b. MkBool (b \<in> destPRED p)"
+  by (auto intro:typing simp add:WF_EXPRESSION_def)
 
 subsubsection {* Typing Theorems *}
 
@@ -590,7 +501,7 @@ done
 
 theorem PredE_type [typing]:
 "PredE p :\<^sub>e BoolType"
-  by (auto intro:typing simp add:PredE_def etype_rel_def)
+  by (auto intro:typing simp add:PredE.rep_eq etype_rel_def)
 
 subsubsection {* Definedness Theorems *}
 
@@ -603,10 +514,10 @@ theorem FalseE_defined [defined]: "\<D> FalseE"
 subsubsection {* Laws about booleans *}
  
 lemma ExprP_TrueE [simp]: "ExprP TrueE = true"
-  by (auto simp add:ExprP_def LitE_def TrueE_def MkBool_type LiftP_def TrueP_def)
+  by (auto intro:typing simp add:ExprP_def LitE_rep_eq TrueE_def LiftP_def TrueP_def)
 
 lemma ExprP_FalseE [simp]: "ExprP FalseE = false"
-  by (auto simp add:ExprP_def LitE_def FalseE_def MkBool_type LiftP_def FalseP_def)
+  by (auto intro:typing simp add:ExprP_def LitE_rep_eq FalseE_def LiftP_def FalseP_def)
 
 subsubsection {* @{term UNREST_EXPR} Theorems *}
 
@@ -631,8 +542,7 @@ done
 
 theorem UNREST_EXPR_PredE [unrest]: 
 "UNREST vs p \<Longrightarrow> UNREST_EXPR vs (PredE p)"
-  apply (simp add:PredE_def)
-  apply (auto simp add:UNREST_EXPR_def UNREST_def MkBool_type)
+  apply (auto simp add:UNREST_EXPR_def UNREST_def MkBool_type PredE.rep_eq)
   apply (rule_tac f="MkBool" and g="MkBool" in cong, simp)
   apply (metis (full_types) binding_override_simps(2) binding_override_simps(3))
 done
@@ -642,7 +552,7 @@ theorem UNREST_VarP [unrest]:
 apply (simp add:VarP_def)
 apply (rule_tac ?vs1.0="{x}" in UNREST_LiftP_alt)
 apply (auto)
-apply (simp add:WF_BINDING_PRED_def VarE_def binding_equiv_def)
+apply (simp add:WF_BINDING_PRED_def VarE.rep_eq binding_equiv_def)
 done
 
 end

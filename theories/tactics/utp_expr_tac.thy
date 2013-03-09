@@ -37,12 +37,11 @@ theorem EvalE_compat [typing, simp]:
 subsection {* Transfer Theorems *}
 
 theorem EvalE_simp [evale] :
-"e1 = e2 \<longleftrightarrow> (\<forall> b . \<lbrakk>e1\<rbrakk>\<epsilon>b = \<lbrakk>e2\<rbrakk>\<epsilon>b) \<and> \<tau>\<^sub>e e1 = \<tau>\<^sub>e e2"
+"e1 = e2 \<longleftrightarrow> (\<forall> b . \<lbrakk>e1\<rbrakk>\<epsilon>b = \<lbrakk>e2\<rbrakk>\<epsilon>b)"
   by (auto simp add: EvalE_def)
 
 theorem EvalE_intro :
-"\<lbrakk>(\<forall> b . \<lbrakk>e1\<rbrakk>\<epsilon>b = \<lbrakk>e2\<rbrakk>\<epsilon>b);
- \<tau>\<^sub>e e1 = \<tau>\<^sub>e e2\<rbrakk> \<Longrightarrow> e1 = e2"
+"\<lbrakk>(\<forall> b . \<lbrakk>e1\<rbrakk>\<epsilon>b = \<lbrakk>e2\<rbrakk>\<epsilon>b)\<rbrakk> \<Longrightarrow> e1 = e2"
   by (simp add: EvalE_simp)
 
 subsection {* Distribution Theorems *}
@@ -53,24 +52,19 @@ theorem EvalP_EqualP [eval]:
 
 theorem EvalE_VarE [evale] :
 "\<lbrakk>VarE x\<rbrakk>\<epsilon>b = \<langle>b\<rangle>\<^sub>b x"
-  by (simp add:VarE_def EvalE_def)
+  by (simp add:VarE.rep_eq EvalE_def)
 
 theorem EvalP_VarP [eval] :
 "\<lbrakk>VarP x\<rbrakk>b = DestBool (\<langle>b\<rangle>\<^sub>b x)"
-  by (simp add:VarP_def VarE_def eval)
+  by (simp add:VarP_def VarE.rep_eq eval)
 
 theorem EvalE_LitE [evale] :
-"v : t \<Longrightarrow> \<lbrakk>LitE t v\<rbrakk>\<epsilon>b = v"
-  by (simp add: LitE_def EvalE_def)
+"v : t \<Longrightarrow> \<lbrakk>LitE v\<rbrakk>\<epsilon>b = v"
+  by (auto simp add: LitE_rep_eq EvalE_def)
 
-theorem EvalE_Op1E [evale] :
-"\<lbrakk> e :\<^sub>e u; \<forall>x:u. f x : t \<rbrakk> \<Longrightarrow> \<lbrakk>Op1E f t e\<rbrakk>\<epsilon>b = f (\<lbrakk>e\<rbrakk>\<epsilon>b)"
-  by (simp add:Op1E_def EvalE_def etype_rel_def)
-
-theorem EvalE_Op2E [evale] :
-"\<lbrakk> e1 :\<^sub>e u1; e2 :\<^sub>e u2;  \<forall>x:u1. \<forall>y:u2. f x y : t \<rbrakk> \<Longrightarrow> 
-  \<lbrakk>Op2E f t e1 e2\<rbrakk>\<epsilon>b = f (\<lbrakk>e1\<rbrakk>\<epsilon>b) (\<lbrakk>e2\<rbrakk>\<epsilon>b)"
-  by (simp add:Op2E_def EvalE_def etype_rel_def)
+theorem EvalE_AppE [evale] :
+"\<lbrakk> f :\<^sub>e FuncType s t; v :\<^sub>e s; \<D> f \<rbrakk> \<Longrightarrow> \<lbrakk>AppE f v\<rbrakk>\<epsilon>b = DestFunc (\<lbrakk>f\<rbrakk>\<epsilon>b) (\<lbrakk>v\<rbrakk>\<epsilon>b)"
+  by (simp add:EvalE_def AppE_rep_eq)
 
 theorem EvalP_ExprP [eval] :
 "\<lbrakk>ExprP e\<rbrakk>b = DestBool (\<lbrakk>e\<rbrakk>\<epsilon>b)"
@@ -78,15 +72,15 @@ theorem EvalP_ExprP [eval] :
 
 theorem EvalE_SubstE [evale] :
 "\<lbrakk>SubstE f v x\<rbrakk>\<epsilon>b = \<lbrakk>f\<rbrakk>\<epsilon>(b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b))"
-  by (simp add:SubstE_def EvalE_def)
+  by (simp add:SubstE.rep_eq EvalE_def)
 
 theorem EvalE_TrueE [evale] :
 "\<lbrakk>TrueE\<rbrakk>\<epsilon>b = TrueV"
-  by (auto simp add:TrueE_def evale typing)
+  by (simp add:TrueE_def EvalE_LitE[OF MkBool_type])
 
 theorem EvalE_FalseE [evale] :
 "\<lbrakk>FalseE\<rbrakk>\<epsilon>b = FalseV"
-  by (auto simp add:FalseE_def evale typing)
+  by (simp add:FalseE_def EvalE_LitE[OF MkBool_type])
 
 theorem EvalE_UNREST_override [evale] :
 "\<lbrakk> UNREST_EXPR vs e \<rbrakk> \<Longrightarrow> 
@@ -106,7 +100,7 @@ done
 
 theorem EvalE_RenameE [evale] :
 "\<lbrakk>e[ss]\<epsilon>\<rbrakk>\<epsilon>b = \<lbrakk>e\<rbrakk>\<epsilon>(RenameB (inv\<^sub>s ss) b)"
-  by (simp add: EvalE_def wf_expr_bfun_def RenameE.rep_eq)
+  by (simp add: EvalE_def RenameE.rep_eq)
 
 theorem EvalE_SubstP [eval] :
   assumes "v \<rhd>\<^sub>e x"
@@ -195,7 +189,7 @@ theorem EqualP_sym:
   by utp_pred_auto_tac
 
 (* These need adapting for strictness *)
-theorem VarE_subst: "\<lbrakk> vtype x = \<tau>\<^sub>e v; \<not> aux x \<rbrakk> \<Longrightarrow> VarE x[v|x] = v"
+theorem VarE_subst: "\<lbrakk> v :\<^sub>e vtype x; \<not> aux x \<rbrakk> \<Longrightarrow> VarE x[v|x] = v"
   by utp_expr_tac
 
 theorem SubstP_one_point:
@@ -204,10 +198,7 @@ theorem SubstP_one_point:
   apply (utp_pred_tac)
   apply (utp_expr_tac)
   apply (auto)
-  apply (drule_tac v="\<langle>b'\<rangle>\<^sub>b x" and b="b" in EvalE_UNREST_assign[of x "{x}" e, simplified])
-  apply (simp_all)
-  apply (rule_tac x="b(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<epsilon>b)" in exI)
-  apply (auto)
+  apply (metis EvalE_compat binding_upd_apply)
 done
 
 (*

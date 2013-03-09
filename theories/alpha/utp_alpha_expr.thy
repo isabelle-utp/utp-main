@@ -54,9 +54,11 @@ abbreviation expression ::
   "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE WF_EXPRESSION" ("\<epsilon>") where
 "expression e \<equiv> snd (Rep_WF_ALPHA_EXPRESSION e)"
 
+(*
 definition alpha_expr_type ::
   "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE UTYPE" ("\<tau>\<^sub>\<alpha>") where
 "alpha_expr_type e = \<tau>\<^sub>e (\<epsilon> e)"
+*)
 
 definition eatype_rel :: 
   "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool" (infix ":\<^sub>\<alpha>" 50) where
@@ -145,19 +147,23 @@ lift_definition VarAE ::
   by (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
 
 lift_definition LitAE :: 
-  "'VALUE UTYPE \<Rightarrow> 'VALUE \<Rightarrow> 'VALUE WF_ALPHA_EXPRESSION" is
-"\<lambda> t v. (\<lbrace>\<rbrace>, LitE t v)"
+  "'VALUE \<Rightarrow> 'VALUE WF_ALPHA_EXPRESSION" is
+"\<lambda> v. (\<lbrace>\<rbrace>, LitE v)"
   by (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
 
-lift_definition Op1AE :: 
-  "('VALUE \<Rightarrow> 'VALUE) \<Rightarrow> 'VALUE UTYPE \<Rightarrow> 'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE WF_ALPHA_EXPRESSION" is
-"\<lambda> f t v. (\<alpha> v, Op1E f t (\<epsilon> v))"
-  by (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
+definition AppAE ::
+  "'VALUE::FUNCTION_SORT WF_ALPHA_EXPRESSION \<Rightarrow> 
+   'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
+   'VALUE WF_ALPHA_EXPRESSION" where
+"AppAE f v = Abs_WF_ALPHA_EXPRESSION (\<alpha> f \<union>\<^sub>f \<alpha> v, AppE (\<epsilon> f) (\<epsilon> v))"
 
-lift_definition Op2AE :: 
-  "('VALUE \<Rightarrow> 'VALUE \<Rightarrow> 'VALUE) \<Rightarrow> 'VALUE UTYPE \<Rightarrow> 'VALUE WF_ALPHA_EXPRESSION \<Rightarrow>'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE WF_ALPHA_EXPRESSION" is
-"\<lambda> f t v1 v2. (\<alpha> v1 \<union>\<^sub>f \<alpha> v2, Op2E f t (\<epsilon> v1) (\<epsilon> v2))"
-  by (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
+lemma AppAE_rep_eq:
+  "\<lbrakk> f :\<^sub>\<alpha> FuncType a b; v :\<^sub>\<alpha> a; \<D> f \<rbrakk> \<Longrightarrow> Rep_WF_ALPHA_EXPRESSION (AppAE f v) = (\<alpha> f \<union>\<^sub>f \<alpha> v, AppE (\<epsilon> f) (\<epsilon> v))"
+  apply (subgoal_tac "(\<alpha> f \<union>\<^sub>f \<alpha> v, AppE (\<epsilon> f) (\<epsilon> v)) \<in> WF_ALPHA_EXPRESSION")
+  apply (simp add:AppAE_def)
+  apply (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def eatype_rel_def Defined_WF_ALPHA_EXPRESSION_def)
+done
+
 
 definition ExprA ::
   "'VALUE::BOOL_SORT WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" where
@@ -312,7 +318,7 @@ theorem VarAE_alphabet [alphabet]:
   by (simp add:VarAE.rep_eq)
 
 theorem LitAE_alphabet [alphabet]:
-"\<alpha> (LitAE t v) = \<lbrace>\<rbrace>"
+"\<alpha> (LitAE v) = \<lbrace>\<rbrace>"
   by (simp add:LitAE.rep_eq)
 
 theorem ExprA_alphabet [alphabet]:
@@ -359,7 +365,7 @@ theorem PredAE_type [typing]:
   by (simp add: PredAE.rep_eq typing eatype_rel_def)
 
 theorem LitAE_type [typing]:
-"v : t \<Longrightarrow> LitAE t v :\<^sub>\<alpha> t"
+"v : t \<Longrightarrow> LitAE v :\<^sub>\<alpha> t"
   by (simp add:LitAE.rep_eq eatype_rel_def typing)
 
 theorem VarAE_type [typing]:
@@ -370,15 +376,12 @@ theorem RenameAE_type:
   "e :\<^sub>\<alpha> t \<Longrightarrow> e[ss]\<alpha>\<epsilon> :\<^sub>\<alpha> t" 
   by (simp add:RenameAE.rep_eq eatype_rel_def typing)
 
-theorem expr_type [typing]: "\<epsilon> e :\<^sub>e \<tau>\<^sub>e (\<epsilon> e)"
-  by (simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def typing)
-
-theorem alpha_expr_type [typing]: "e :\<^sub>\<alpha> \<tau>\<^sub>\<alpha> e"
-  by (simp add:alpha_expr_type_def typing eatype_rel_def)
+theorem alpha_expr_type [typing]: "\<exists> t. e :\<^sub>\<alpha> t"
+  by (simp add:typing eatype_rel_def)
 
 subsubsection {* Definedness Theorems *}
 
-theorem LitAE_defined [defined]: "\<lbrakk> \<D> v; v :t \<rbrakk> \<Longrightarrow> \<D> (LitAE t v)"
+theorem LitAE_defined [defined]: "\<lbrakk> \<D> v; v :t \<rbrakk> \<Longrightarrow> \<D> (LitAE v)"
   by (auto simp add:LitAE.rep_eq Defined_WF_ALPHA_EXPRESSION_def defined)
 
 theorem TrueAE_defined [defined]: "\<D> TrueAE"

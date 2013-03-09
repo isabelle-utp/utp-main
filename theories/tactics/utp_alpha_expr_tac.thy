@@ -66,8 +66,12 @@ theorem EvalA_EqualA [evala] :
   by (simp add:EqualA.rep_eq EvalA_def EvalAE_def)
 
 theorem EvalE_LitAE [evala] :
-"\<lbrakk>LitAE t v\<rbrakk>\<alpha>\<epsilon> = LitE t v"
+"\<lbrakk>LitAE v\<rbrakk>\<alpha>\<epsilon> = LitE v"
   by (simp add: LitAE.rep_eq EvalAE_def)
+
+theorem EvalE_AppAE [evala] :
+"\<lbrakk> f :\<^sub>\<alpha> FuncType a b; v :\<^sub>\<alpha> a; \<D> f \<rbrakk> \<Longrightarrow> \<lbrakk>AppAE f v\<rbrakk>\<alpha>\<epsilon> = AppE \<lbrakk>f\<rbrakk>\<alpha>\<epsilon> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon>"
+  by (simp add:EvalAE_def AppAE_rep_eq)
 
 theorem EvalE_TrueAE [evala] :
 "\<lbrakk>TrueAE\<rbrakk>\<alpha>\<epsilon> = TrueE"
