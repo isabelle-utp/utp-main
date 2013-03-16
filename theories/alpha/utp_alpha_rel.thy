@@ -354,7 +354,7 @@ theorem VarAE_WF_REL_EXPR [closure]:
   by (auto intro:closure simp add:WF_REL_EXPR_def alphabet)
 
 theorem LitAE_WF_REL_EXPR [closure]:
-"LitAE t v \<in> WF_REL_EXPR"
+"LitAE v \<in> WF_REL_EXPR"
   by (simp add:WF_REL_EXPR_def alphabet closure)
 
 theorem SkipA_closure [closure] :

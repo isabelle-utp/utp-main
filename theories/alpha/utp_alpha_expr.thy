@@ -151,6 +151,11 @@ lift_definition LitAE ::
 "\<lambda> v. (\<lbrace>\<rbrace>, LitE v)"
   by (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
 
+lift_definition CoerceAE ::
+  "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE UTYPE \<Rightarrow> 'VALUE WF_ALPHA_EXPRESSION" is
+"\<lambda> e t. (\<alpha> e, CoerceE (\<epsilon> e) t)"
+  by (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
+
 definition AppAE ::
   "'VALUE::FUNCTION_SORT WF_ALPHA_EXPRESSION \<Rightarrow> 
    'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
@@ -321,6 +326,15 @@ theorem LitAE_alphabet [alphabet]:
 "\<alpha> (LitAE v) = \<lbrace>\<rbrace>"
   by (simp add:LitAE.rep_eq)
 
+theorem CoerceAE_alphabet [alphabet]:
+"\<alpha> (CoerceAE e t) = \<alpha> e"
+  by (simp add:CoerceAE.rep_eq)
+
+theorem AppAE_alphabet [alphabet]:
+"\<lbrakk> f :\<^sub>\<alpha> FuncType a b; v :\<^sub>\<alpha> a; \<D> f \<rbrakk> \<Longrightarrow> 
+ \<alpha> (AppAE f v) = \<alpha> f \<union>\<^sub>f \<alpha> v"
+  by (simp add:AppAE_rep_eq)
+
 theorem ExprA_alphabet [alphabet]:
 "e :\<^sub>\<alpha> BoolType \<Longrightarrow> \<alpha> (ExprA e) = \<alpha> e"
   by (simp add:ExprA_rep_eq)
@@ -368,6 +382,15 @@ theorem LitAE_type [typing]:
 "v : t \<Longrightarrow> LitAE v :\<^sub>\<alpha> t"
   by (simp add:LitAE.rep_eq eatype_rel_def typing)
 
+theorem CoerceAE_type [typing]:
+"CoerceAE e t :\<^sub>\<alpha> t"
+  by (simp add:eatype_rel_def CoerceAE.rep_eq typing)
+
+theorem AppAE_type [typing]:
+"\<lbrakk> f :\<^sub>\<alpha> FuncType a b; v :\<^sub>\<alpha> a; \<D> f \<rbrakk> \<Longrightarrow>
+   AppAE f v :\<^sub>\<alpha> b" 
+  by (simp add:eatype_rel_def AppAE_rep_eq typing Defined_WF_ALPHA_EXPRESSION_def)
+
 theorem VarAE_type [typing]:
 "t = vtype x \<Longrightarrow> VarAE x :\<^sub>\<alpha> t"
   by (simp add:VarAE.rep_eq eatype_rel_def typing)
@@ -381,8 +404,11 @@ theorem alpha_expr_type [typing]: "\<exists> t. e :\<^sub>\<alpha> t"
 
 subsubsection {* Definedness Theorems *}
 
-theorem LitAE_defined [defined]: "\<lbrakk> \<D> v; v :t \<rbrakk> \<Longrightarrow> \<D> (LitAE v)"
+theorem LitAE_defined [defined]: "\<D> v \<Longrightarrow> \<D> (LitAE v)"
   by (auto simp add:LitAE.rep_eq Defined_WF_ALPHA_EXPRESSION_def defined)
+
+theorem CoerceAE_defined [defined]: "\<D> e \<Longrightarrow> \<D> (CoerceAE e t)"
+  by (auto simp add:CoerceAE.rep_eq Defined_WF_ALPHA_EXPRESSION_def defined)
 
 theorem TrueAE_defined [defined]: "\<D> TrueAE"
   by (auto simp add:TrueAE.rep_eq Defined_WF_ALPHA_EXPRESSION_def defined)

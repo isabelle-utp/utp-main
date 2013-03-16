@@ -69,6 +69,10 @@ theorem EvalE_LitAE [evala] :
 "\<lbrakk>LitAE v\<rbrakk>\<alpha>\<epsilon> = LitE v"
   by (simp add: LitAE.rep_eq EvalAE_def)
 
+theorem EvalE_CoerceAE_1 [evala] :
+"\<lbrakk>CoerceAE e t\<rbrakk>\<alpha>\<epsilon> = CoerceE \<lbrakk>e\<rbrakk>\<alpha>\<epsilon> t"
+  by (simp add:CoerceAE.rep_eq EvalAE_def)
+
 theorem EvalE_AppAE [evala] :
 "\<lbrakk> f :\<^sub>\<alpha> FuncType a b; v :\<^sub>\<alpha> a; \<D> f \<rbrakk> \<Longrightarrow> \<lbrakk>AppAE f v\<rbrakk>\<alpha>\<epsilon> = AppE \<lbrakk>f\<rbrakk>\<alpha>\<epsilon> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon>"
   by (simp add:EvalAE_def AppAE_rep_eq)

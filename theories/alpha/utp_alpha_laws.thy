@@ -249,7 +249,7 @@ theorem RenameAE_id [urename]:
   by (utp_alpha_tac, utp_expr_tac, auto)
 
 theorem RenameAE_LitAE [urename]:
-"v : t \<Longrightarrow> (LitAE t v)[ss]\<alpha>\<epsilon> = LitAE t v"
+"v : t \<Longrightarrow> (LitAE v)[ss]\<alpha>\<epsilon> = LitAE v"
   by (utp_alpha_tac, utp_expr_tac)
 
 theorem RenameAE_VarAE [urename]:
@@ -823,9 +823,11 @@ lemma ClosureA_intro: "\<lbrakk> \<alpha> p = \<alpha> q; [p \<Leftrightarrow> q
 done
 
 lemma EvalAE_SubstA_LitAE [evala]: 
-  "v \<rhd> x \<Longrightarrow> \<lbrakk>\<lbrakk>p[LitAE (vtype x) v|x]\<alpha>\<rbrakk>\<pi>\<rbrakk>b = \<lbrakk>\<lbrakk>p\<rbrakk>\<pi>\<rbrakk>(b(x :=\<^sub>b v))"
-  apply (subgoal_tac "LitAE (vtype x) v \<rhd>\<^sub>\<alpha> x")
-  apply (simp add:evala evale closure typing defined alphabet)
+  "v \<rhd> x \<Longrightarrow> \<lbrakk>\<lbrakk>p[LitAE v|x]\<alpha>\<rbrakk>\<pi>\<rbrakk>b = \<lbrakk>\<lbrakk>p\<rbrakk>\<pi>\<rbrakk>(b(x :=\<^sub>b v))"
+  apply (subgoal_tac "LitAE v \<rhd>\<^sub>\<alpha> x")
+  apply (subgoal_tac "v : vtype x")
+  apply (simp add:evala evale closure defined alphabet)
+  apply (simp add:typing)
   apply (metis (lifting) LitAE_defined LitAE_type eavar_compat_intros(1) eavar_compat_intros(2) var_compat_def)
 done
 
@@ -850,7 +852,7 @@ done
 
 (* A tautology can be proven by proven it for any substitution of a variable *)
 lemma taut_cases:
-  "\<lbrakk> x \<in>\<^sub>f \<alpha> p; \<And> v. v \<rhd> x \<Longrightarrow> taut (p[LitAE (vtype x) v|x]\<alpha>) \<rbrakk> \<Longrightarrow> taut p"
+  "\<lbrakk> x \<in>\<^sub>f \<alpha> p; \<And> v. v \<rhd> x \<Longrightarrow> taut (p[LitAE v|x]\<alpha>) \<rbrakk> \<Longrightarrow> taut p"
   apply (utp_alpha_tac)
   apply (utp_pred_tac)
   apply (metis EvalAE_SubstA_LitAE binding_compat binding_upd_triv)

@@ -100,6 +100,9 @@ definition LitE :: "'VALUE \<Rightarrow> 'VALUE WF_EXPRESSION" where
 definition DefaultE :: "'VALUE UTYPE \<Rightarrow> 'VALUE WF_EXPRESSION" where
 "DefaultE t \<equiv> LitE (default t)"
 
+definition CoerceE :: "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE UTYPE \<Rightarrow> 'VALUE WF_EXPRESSION" where
+"CoerceE e t \<equiv> if (e :\<^sub>e t) then e else DefaultE t"
+
 lift_definition VarE :: "'VALUE VAR \<Rightarrow> 'VALUE WF_EXPRESSION" is "\<lambda> x. (\<lambda> b. \<langle>b\<rangle>\<^sub>b x)"
   by (auto simp add:WF_EXPRESSION_def)
 
@@ -239,6 +242,10 @@ theorem DefaultE_type [typing]:
 "DefaultE t :\<^sub>e t"
   by (simp add:DefaultE_def typing)
 
+theorem CoerceE_type [typing]:
+"CoerceE e t :\<^sub>e t"
+  by (simp add: CoerceE_def typing)
+
 theorem RenameE_type [typing]:
   "e :\<^sub>e t \<Longrightarrow> e[ss]\<epsilon> :\<^sub>e t" 
   by (simp add:etype_rel_def RenameE.rep_eq)
@@ -250,8 +257,14 @@ theorem SubstE_type [typing]:
 
 subsubsection {* Definedness Theorems *}
 
-theorem LitE_defined [defined]: "\<lbrakk> \<D> v; v : t \<rbrakk> \<Longrightarrow> \<D> (LitE v)"
-  by (auto simp add:LitE_def Defined_WF_EXPRESSION_def)
+theorem LitE_defined [defined]: "\<D> v \<Longrightarrow> \<D> (LitE v)"
+  by (auto simp add:LitE_rep_eq Defined_WF_EXPRESSION_def defined)
+
+theorem DefaultE_defined [defined]: "\<D> (DefaultE t)"
+  by (auto intro:defined typing simp add: DefaultE_def)
+
+theorem CoerceE_defined [defined]: "\<D> e \<Longrightarrow> \<D> (CoerceE e t)"
+  by (auto simp add:CoerceE_def defined)
 
 theorem VarE_defined [defined]: "aux x \<Longrightarrow> \<D> (VarE x)"
   by (simp add:VarE.rep_eq Defined_WF_EXPRESSION_def defined)
@@ -319,6 +332,14 @@ theorem UNREST_EXPR_LitE [unrest] :
 theorem UNREST_EXPR_AppE [unrest] :
 "\<lbrakk> f :\<^sub>e FuncType a b; v :\<^sub>e a; \<D> f; UNREST_EXPR vs f; UNREST_EXPR vs v \<rbrakk> \<Longrightarrow> UNREST_EXPR vs (AppE f v)"
   by (simp add:AppE_rep_eq UNREST_EXPR_def)
+
+theorem UNREST_EXPR_DefaultE [unrest] :
+"UNREST_EXPR vs (DefaultE t)"
+  by (simp add:DefaultE_def unrest)
+
+theorem UNREST_EXPR_CoerceE [unrest] :
+"UNREST_EXPR vs e \<Longrightarrow> UNREST_EXPR vs (CoerceE e t)"
+  by (auto intro:unrest simp add:CoerceE_def)
 
 theorem UNREST_EXPR_RenameE [unrest] :
 "UNREST_EXPR vs p \<Longrightarrow>

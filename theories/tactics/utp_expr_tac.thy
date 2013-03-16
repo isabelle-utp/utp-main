@@ -62,6 +62,18 @@ theorem EvalE_LitE [evale] :
 "v : t \<Longrightarrow> \<lbrakk>LitE v\<rbrakk>\<epsilon>b = v"
   by (auto simp add: LitE_rep_eq EvalE_def)
 
+theorem EvalE_DefaultE [evale] :
+"\<lbrakk>DefaultE t\<rbrakk>\<epsilon>b = default t"
+  by (auto simp add: DefaultE_def EvalE_def LitE_rep_eq)
+
+theorem EvalE_CoerceE_LitE [evale] :
+"v : t \<Longrightarrow> \<lbrakk>CoerceE (LitE v) t\<rbrakk>\<epsilon>b = v"
+  by (auto simp add:CoerceE_def typing evale)
+
+theorem EvalE_CoerceE_ntype [evale] :
+"\<not> e :\<^sub>e t \<Longrightarrow> \<lbrakk>CoerceE e t\<rbrakk>\<epsilon>b = default t"
+  by (simp add:CoerceE_def evale)
+
 theorem EvalE_AppE [evale] :
 "\<lbrakk> f :\<^sub>e FuncType s t; v :\<^sub>e s; \<D> f \<rbrakk> \<Longrightarrow> \<lbrakk>AppE f v\<rbrakk>\<epsilon>b = DestFunc (\<lbrakk>f\<rbrakk>\<epsilon>b) (\<lbrakk>v\<rbrakk>\<epsilon>b)"
   by (simp add:EvalE_def AppE_rep_eq)

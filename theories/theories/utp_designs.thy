@@ -240,7 +240,7 @@ proof -
                    (\<exists>-\<alpha> dash `\<^sub>f out\<^sub>\<alpha> (\<alpha> P) \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> Q) .
                     P[SS1_MapR (\<alpha> P -\<^sub>f \<lbrace>okay\<rbrace>)]\<alpha>[MapR [okay' \<mapsto> okay'']]\<alpha> \<and>\<alpha> 
                     Q[SS2_MapR (\<alpha> Q -\<^sub>f \<lbrace>okay\<rbrace>)]\<alpha>[MapR [okay \<mapsto> okay'']]\<alpha>)"
-
+    oops
 
 
 
@@ -385,13 +385,13 @@ lemma MkBool_False: "\<lbrakk> \<D> p; p : BoolType; \<not> DestBool p \<rbrakk>
   by (auto)
 
 lemma aux_eq_true: 
-  "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> \<Longrightarrow> `$x = true` = `$x`"
+  "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> \<Longrightarrow> `$x = true` = VarA x"
   apply (utp_alpha_tac2, utp_pred_tac, utp_expr_tac)
   apply (force intro:defined typing MkBool_True)
 done
 
 lemma aux_eq_false: 
-  "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> \<Longrightarrow> `$x = false` = `\<not> $x`"
+  "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> \<Longrightarrow> `$x = false` = \<not>\<alpha> VarA x"
   apply (utp_alpha_tac2, utp_pred_tac, utp_expr_tac)
   apply (force intro:defined typing MkBool_False)
 done
@@ -456,7 +456,8 @@ proof -
         apply (simp_all add:alphabet)
         apply (unfold DESIGN_ALPHABET_def)
         apply (force)
-        apply (simp add: aux_eq_false[THEN sym])
+        thm aux_eq_false
+        apply (simp add: aux_eq_false)
       done
 
       ultimately show ?thesis by simp
@@ -638,8 +639,6 @@ lemma H2_DesignD:
   apply (utp_pred_auto_tac)
 done
 
-lemma "P \<in> WF_RELATION \<Longrightarrow> `\<not> (\<not> P ; true\<^bsub>\<alpha> P\<^esub>)` = P"
-
 
 lemma H1_H2_DesignD:
   assumes cl: "p \<in> WF_RELATION" 
@@ -656,7 +655,7 @@ proof -
     by (metis H2 H2_def calculation is_healthy_def)
 
   also have "... = ok \<Rightarrow>\<alpha> ((p\<^sup>f) \<or>\<alpha> (p\<^sup>t \<and>\<alpha> ok'))"
-    apply (insert J_split[of p "homr (\<alpha> p)"])
+    apply (insert J_split[of p])
     apply (simp add:closure cl alpha)
   done
 

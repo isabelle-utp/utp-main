@@ -12,7 +12,7 @@ text {* To make injecting values into the domain easy, we introduce a type class
   representing HOL values which can be injected into the domain. It consists of
   an injection, projection and a function which gives a vtype equivalent for the 
   given HOL type. When we introduce subtypes this type will be the most general
-  type. It follows that injecting any value gives a vdmval of the correct vtype.
+  type. It follows that injecting any value gives a vdmv of the correct vtype.
 
   Perhaps the most important thing this class allows us to do is to inject arbitrary
   HOL functions over basic values into the value space.
@@ -20,7 +20,7 @@ text {* To make injecting values into the domain easy, we introduce a type class
 
 class vbasic = 
   fixes Inject  :: "'a \<Rightarrow> vbasic"
-  and   Type    :: "'a itself \<Rightarrow> vdmtype"
+  and   Type    :: "'a itself \<Rightarrow> vdmt"
   assumes Inject_inj [simp]: "Inject x = Inject y \<Longrightarrow> x = y"
   and     Inject_range [simp]: "range Inject = {x. x :\<^sub>b Type (TYPE('a)) \<and> \<D>\<^sub>b x}"
 
@@ -80,7 +80,7 @@ subsection {* Naturals are injectable *}
 instantiation nat :: vbasic
 begin
 definition "Inject_nat \<equiv> NatI"
-definition Type_nat :: "nat itself \<Rightarrow> vdmtype" where
+definition Type_nat :: "nat itself \<Rightarrow> vdmt" where
 "Type_nat x \<equiv> NatT"
 
 declare Type_nat_def [simp]
@@ -97,7 +97,7 @@ subsection {* Integers are injectable *}
 instantiation int :: vbasic
 begin
 definition "Inject_int \<equiv> IntI"
-definition Type_int :: "int itself \<Rightarrow> vdmtype" where
+definition Type_int :: "int itself \<Rightarrow> vdmt" where
 "Type_int x \<equiv> IntT"
 
 declare Type_int_def [simp]
@@ -172,7 +172,7 @@ begin
 definition Inject_prod :: "'a \<times> 'b \<Rightarrow> vbasic" where
 "Inject_prod \<equiv> \<lambda> x. PairI (Inject (fst x)) (Inject (snd x))"
                 
-definition Type_prod :: "('a \<times> 'b) itself \<Rightarrow> vdmtype" where
+definition Type_prod :: "('a \<times> 'b) itself \<Rightarrow> vdmt" where
 "Type_prod x = PairT (Type (TYPE('a))) (Type (TYPE('b)))"
 
 instance
@@ -212,7 +212,7 @@ begin
 definition Inject_list :: "'a list \<Rightarrow> vbasic" where
 "Inject_list xs = ListI (map Inject xs)"
 
-definition Type_list :: "'a list itself \<Rightarrow> vdmtype" where
+definition Type_list :: "'a list itself \<Rightarrow> vdmt" where
 "Type_list xs \<equiv> ListT (Type (TYPE('a)))"
 
 instance 
@@ -268,7 +268,7 @@ definition Project_fset :: "vbasic \<Rightarrow> 'a fset option" where
 "Project_fset xs = (ProjFSetI xs >>= (\<lambda> x. option_set (Project ` Rep_fset x))) >>= Some \<circ> Abs_fset"
 *)
 
-definition Type_fset :: "'a fset itself \<Rightarrow> vdmtype" where
+definition Type_fset :: "'a fset itself \<Rightarrow> vdmt" where
 "Type_fset x = FSetT (Type (TYPE('a)))"
 
 instance 
@@ -352,7 +352,7 @@ begin
 definition Inject_fmap :: "('a::{vbasic,linorder}, 'b::{vbasic,linorder}) fmap \<Rightarrow> vbasic" where
 "Inject_fmap f = FinMapI (Abs_fmap (vbasic_map f))"
 
-definition Type_fmap :: "('a, 'b) fmap itself => vdmtype" where
+definition Type_fmap :: "('a, 'b) fmap itself => vdmt" where
 "Type_fmap x = MapT (Type (TYPE('a))) (Type (TYPE('b)))"
 
 instance proof
@@ -418,14 +418,14 @@ end
   
 subsection {* Injecting functions over basic values *}
 
-definition vfun1 :: "('a::vbasic \<Rightarrow> 'b::vbasic) \<Rightarrow> ('a set) \<Rightarrow> vdmval" where
+definition vfun1 :: "('a::vbasic \<Rightarrow> 'b::vbasic) \<Rightarrow> ('a set) \<Rightarrow> vdmv" where
 "vfun1 \<equiv> \<lambda> f P. FuncV (\<lambda> x. case (Project x) of 
                               None \<Rightarrow> BotV 
                             | Some v \<Rightarrow> if (v \<in> P) then BasicV (Inject (f v)) else BotV)"
 
 definition vfun2 :: 
   "('a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic) \<Rightarrow>
-   'a set \<Rightarrow> 'b set \<Rightarrow> vdmval" where
+   'a set \<Rightarrow> 'b set \<Rightarrow> vdmv" where
 "vfun2 \<equiv> \<lambda> f P Q. FuncV (\<lambda> x. case (Project x) of
                                 None \<Rightarrow> BotV
                               | Some v \<Rightarrow> if (v \<in> P) then vfun1 (f v) Q else BotV)"
@@ -435,7 +435,6 @@ lemma vfun1_type [typing]:
   shows "vfun1 f P :\<^sub>v Type TYPE('a) → Type TYPE('b)"
   apply (simp add:vfun1_def)
   apply (rule FuncV_type)
-  apply (auto)
   apply (case_tac "Project x :: 'a option")
   apply (auto)
   apply (smt Inject_defined Project_Some not_None_eq option.simps(4) vbdefined.simps(1))
@@ -446,7 +445,6 @@ lemma vfun2_type [typing]:
   shows "vfun2 f P Q :\<^sub>v Type TYPE('a) → Type TYPE('b) → Type TYPE('c)"
   apply (simp add:vfun2_def)
   apply (rule FuncV_type)
-  apply (auto)
   apply (case_tac "Project x :: 'a option")
   apply (auto intro:typing)
   apply (metis (mono_tags) Inject_defined Project_Some bind_runit not_None_eq option.simps(4) vbdefined.simps(1))
