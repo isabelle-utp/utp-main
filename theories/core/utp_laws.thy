@@ -324,8 +324,6 @@ proof -
     by simp
 qed
 
-
-
 (* Note that assumption assumption 2 is automatic under a homogeneous alphabet.
     The following proof is performed by application of existential lifting.
  *)
@@ -869,6 +867,15 @@ lemma SubstP_RenameP:
   apply (metis VarE_defined VarE_type evar_compat_intros(1) evar_compat_intros(2))
 done  
 *)
+
+lemma demorgan1: "\<not>p(x \<or>p y) = (\<not>p x)\<and>p(\<not>p y)"
+  by (utp_pred_auto_tac)
+
+lemma demorgan2: "\<not>p(x \<and>p y) = (\<not>p x)\<or>p(\<not>p y)"
+  by (utp_pred_auto_tac)
+
+lemma demorgan3: "x \<or>p y = \<not>p((\<not>p x)\<and>p(\<not>p y))"
+  by (utp_pred_auto_tac)
 
 lemma utp_pred_simps [simp]:
   "\<not>p false = true"

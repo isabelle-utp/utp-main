@@ -132,7 +132,7 @@ lemma AppE_rep_eq:
   apply (auto intro:typing simp add:etype_rel_def Defined_WF_EXPRESSION_def)
 done
 
-definition DefinedP :: "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_PREDICATE" ("\<D>") where
+definition DefinedP :: "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_PREDICATE" ("\<D>\<^sub>p") where
 "DefinedP e \<equiv> LiftP (\<D> \<circ> \<langle>e\<rangle>\<^sub>e)"
 
 definition VarDefinedP :: "'VALUE VAR \<Rightarrow> 'VALUE WF_PREDICATE" ("\<V>") where

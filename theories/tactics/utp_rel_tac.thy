@@ -534,14 +534,17 @@ theorem SemiP_FalseP :
 "p ; false = false"
   by (utp_rel_auto_tac)
 
-theorem SemiP_OrP_distr :
+theorem SemiP_OrP_distl :
 "p1 ; (p2 \<or>p p3) = (p1 ; p2) \<or>p (p1 ; p3)"
+  by (utp_rel_auto_tac)
+
+theorem SemiP_OrP_distr :
+"(p1 \<or>p p2) ; p3 = (p1 ; p3) \<or>p (p2 ; p3)"
   by (utp_rel_auto_tac)
 
 theorem SemiP_IffP_comm :
 "p1 \<Leftrightarrow>p p2 = p2 \<Leftrightarrow>p p1"
   by (utp_rel_auto_tac)
-
 
 theorem SemiP_SkipR_left :
 "II ; p = p"
@@ -549,6 +552,14 @@ theorem SemiP_SkipR_left :
 
 theorem SemiP_SkipR_right :
 "p ; II = p"
+  by (utp_rel_auto_tac)
+
+theorem SemiR_FalseP_left :
+"false ; p = false"
+  by (utp_rel_auto_tac)
+
+theorem SemiR_FalseP_right :
+"p ; false = false"
   by (utp_rel_auto_tac)
 
 theorem SemiP_assoc :

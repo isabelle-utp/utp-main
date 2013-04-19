@@ -170,6 +170,8 @@ definition Tautology ::
   "'VALUE WF_PREDICATE \<Rightarrow> bool" where
 "Tautology p \<longleftrightarrow> [p]p = true"
 
+declare [[coercion Tautology]]
+
 notation Tautology ("taut _" [50] 50)
 
 definition Contradiction ::

@@ -7,7 +7,12 @@
 header {* Predicate Lattice *}
 
 theory utp_lattice
-imports utp_pred utp_rel utp_unrest "../tactics/utp_pred_tac" "../tactics/utp_rel_tac"
+imports 
+  utp_pred 
+  utp_rel 
+  utp_unrest 
+  "../tactics/utp_pred_tac" 
+  "../tactics/utp_rel_tac"
 begin
 
 notation
@@ -138,36 +143,6 @@ instance
 done
 end
 
-subsection {* Fixed Points *}
-
-abbreviation WFP ::
-  "'VALUE WF_FUNCTION \<Rightarrow>
-   'VALUE WF_PREDICATE" ("\<mu>") where
-"WFP \<equiv> lfp"
-
-syntax
-  "_WFP" :: "pttrn => 'VALUE WF_PREDICATE => 'VALUE WF_PREDICATE" ("(3MU _./ _)" [0, 10] 10)
-
-syntax (xsymbols)
-  "_WFP" :: "pttrn => 'VALUE WF_PREDICATE => 'VALUE WF_PREDICATE" ("(3\<mu>_\<bullet>/ _)" [0, 10] 10)
-
-translations
-  "MU x. P" == "CONST WFP (%x. P)"
-
-abbreviation SFP ::
-  "'VALUE WF_FUNCTION \<Rightarrow>
-   'VALUE WF_PREDICATE" ("\<nu>") where
-"SFP \<equiv> gfp"
-
-syntax
-  "_SFP" :: "pttrn => 'VALUE WF_PREDICATE => 'VALUE WF_PREDICATE" ("(3NU _./ _)" [0, 10] 10)
-
-syntax (xsymbols)
-  "_SFP" :: "pttrn => 'VALUE WF_PREDICATE => 'VALUE WF_PREDICATE" ("(3\<nu>_\<bullet>/ _)" [0, 10] 10)
-
-translations
-  "NU x. P" == "CONST SFP (%x. P)"
-
 lemma Lattice_L1:
   fixes P :: "'VALUE WF_PREDICATE"
   shows "P \<sqsubseteq> \<Sqinter> S \<longleftrightarrow> (\<forall> X\<in>S. P \<sqsubseteq> X)"
@@ -236,14 +211,17 @@ lemma EvalR_InfP [evalr]:
   apply (smt BindR_inject EvalR_def INT_I image_iff)
 oops
   
-lemma L4_rel: "(\<Union> S) O Q = \<Union>{ P O Q | P. P \<in> S}"
+lemma rel_Sup_comp_distl: "(\<Union> S) O Q = \<Union>{ P O Q | P. P \<in> S}"
+  by (auto)
+
+lemma rel_Sup_comp_distr: "P O (\<Union> S) = \<Union>{ P O Q | Q. Q \<in> S}"
   by (auto)
 
 lemma Lattice_L4:
   fixes Q :: "'VALUE WF_PREDICATE"
   shows "(\<Sqinter> S) ; Q = \<Sqinter>{ P ; Q | P. P \<in> S}"
   apply (utp_rel_tac)
-  apply (auto simp add:L4_rel)
+  apply (auto simp add:rel_Sup_comp_distl)
   apply (metis (hide_lams, no_types) EvalR_SemiR relcomp.intros)
 done
 
@@ -279,28 +257,53 @@ theorem UNREST_Inf [unrest]:
   apply (auto simp add: UNREST_def)
 done
 
-lemma weakest_fixed_point: "F(Y) \<sqsubseteq> Y \<Longrightarrow> \<mu> F \<sqsubseteq> Y"
-  by (metis lfp_lowerbound)
-
-lemma fixed_point: "mono F \<Longrightarrow> \<mu> F = F(\<mu> F)"
-  by (metis lfp_unfold)
-
-lemma wfp_id: "(\<mu> X \<bullet> X) = true"
-  by (metis bot_WF_PREDICATE_def bot_unique weakest_fixed_point)
-
-text {* Relational Iteration (Kleene Star) *}
-
-instantiation WF_PREDICATE :: (VALUE) times
+instantiation WF_PREDICATE :: (VALUE) monoid_mult
 begin
 
-definition times_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a  WF_PREDICATE" where
-"b * P \<equiv> \<mu> X \<bullet> ((P ; X) \<triangleleft> b \<triangleright> II)"
+definition 
+  times_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+  "P * Q = P ; Q"
 
-instance ..
+definition one_WF_PREDICATE :: "'a WF_PREDICATE" where
+"1 = II"
 
+instance 
+  apply (intro_classes)
+  apply (simp_all add:times_WF_PREDICATE_def one_WF_PREDICATE_def)
+  apply (metis SemiP_assoc)
+  apply (metis SemiP_SkipR_left)
+  apply (metis SemiP_SkipR_right)
+done
 end
 
-abbreviation IterR :: "'a::VALUE WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a  WF_PREDICATE" where
-"IterR b P \<equiv> b * P"
+instantiation WF_PREDICATE :: (VALUE) comm_monoid_add
+begin
+
+definition 
+  plus_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+  "plus_WF_PREDICATE p q = p \<or>p q"
+
+definition 
+  zero_WF_PREDICATE :: "'a WF_PREDICATE" where
+  "0 = false"
+
+instance 
+  apply (intro_classes)
+  apply (simp_all add: plus_WF_PREDICATE_def zero_WF_PREDICATE_def)
+  apply (utp_pred_auto_tac)+
+done
+end
+
+instantiation WF_PREDICATE :: (VALUE) semiring_1
+begin
+
+instance
+  apply (intro_classes)
+  apply (simp_all add:plus_WF_PREDICATE_def times_WF_PREDICATE_def 
+                      zero_WF_PREDICATE_def one_WF_PREDICATE_def)
+  apply (utp_rel_tac)+
+  apply (auto simp add:Id_on_def WF_REL_BINDING_def)
+done
+end
 
 end
