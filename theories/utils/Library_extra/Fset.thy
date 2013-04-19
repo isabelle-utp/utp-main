@@ -1,5 +1,8 @@
 theory Fset
-imports HOLCF "~~/src/HOL/Library/List_lexord" "~~/src/HOL/Library/Countable"
+imports Main 
+  "~~/src/HOL/Library/List_lexord" 
+  "~~/src/HOL/Library/Countable"
+  List_extra
 begin
 
 default_sort type
@@ -56,6 +59,8 @@ notation (xsymbols)
   fnmember      ("op \<notin>\<^sub>f") and
   fnmember      ("(_/ \<notin>\<^sub>f _)" [50, 51] 50)
 
+definition fcard :: "'a fset \<Rightarrow> nat" where 
+"fcard xs = card \<langle>xs\<rangle>\<^sub>f" 
 
 lift_definition funion :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" (infixl "\<union>\<^sub>f" 65) is "op \<union>"
   by (simp add:fsets_def)
@@ -82,14 +87,38 @@ lift_definition finsert :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is "
 
 declare finsert.rep_eq [simp]
 
-lift_definition fsubset_eq :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" is "subset_eq"
+instantiation fset :: (type) ord
+begin
+
+lift_definition less_eq_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" is "subset_eq"
   by (simp add:fsets_def)
 
-declare fsubset_eq.rep_eq [simp]
+lift_definition less_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" is "subset"
+  by (simp add:fsets_def)
+
+instance ..
+
+end
+
+abbreviation fsubset_eq :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" where
+"fsubset_eq \<equiv> op \<le>"
+
+abbreviation fsubset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" where
+"fsubset \<equiv> op <"
+
+(*
+lift_definition fsubset_eq :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" is "subset_eq"
+  by (simp add:fsets_def)
+*)
+
+declare less_eq_fset.rep_eq [simp]
+declare less_fset.rep_eq [simp]
 
 notation
-  fsubset_eq  ("op \<subseteq>\<^sub>f") and
-  fsubset_eq  ("(_/ \<subseteq>\<^sub>f _)" [50, 51] 50)
+  fsubset_eq ("op \<subseteq>\<^sub>f") and
+  fsubset_eq ("(_/ \<subseteq>\<^sub>f _)" [50, 51] 50) and
+  fsubset ("op \<subset>\<^sub>f") and
+  fsubset ("(_/ \<subset>\<^sub>f _)" [50, 51] 50)
 
 syntax
   "_FinFset" :: "args => 'a fset"    ("\<lbrace>(_)\<rbrace>")
@@ -177,7 +206,33 @@ lemma fset_empty [simp]: "fset [] = \<lbrace>\<rbrace>"
 lemma fset_cons [simp]: "fset (x # xs) = finsert x (fset xs)"
   by (simp add:fset_def finsert_def)
 
+lemma fcard_flist:
+  "fcard xs = length (flist xs)"
+  apply (simp add:fcard_def)
+  apply (fold flist_set)
+  apply (unfold distinct_card[OF flist_props(2)])
+  apply (rule refl)
+done
+
+definition fmax :: "'a fset \<Rightarrow> 'a" where
+"fmax xs = (if (xs = \<lbrace>\<rbrace>) then undefined else last (flist xs))"
+
 end
+
+lemma fmax_greatest [simp]:
+  fixes x :: "'a::linorder"
+  assumes "x \<in>\<^sub>f xs"
+  shows "x \<le> fmax xs"
+proof -
+  obtain xs' where "xs = fset xs'" "sorted xs'" "distinct xs'"
+    by (metis flist_inv flist_props)
+
+  with assms show ?thesis
+    apply (unfold fmax_def)
+    apply (case_tac "xs = \<lbrace>\<rbrace>")
+    apply (auto)
+  done
+qed
 
 instantiation fset :: ("{linorder,countable}") countable
 begin
@@ -189,6 +244,7 @@ instance
 done
 end
 
+(*
 instantiation fset :: (linorder) linorder
 begin
 
@@ -202,6 +258,13 @@ instance
   apply (blast dest:injD[OF flist_inj])
   apply (metis linorder_linear)
 done
+end
+*)
+
+instantiation fset :: (linorder) order
+begin
+
+instance by (intro_classes, auto)
 end
 
 instantiation fset :: ("{equal,linorder}") equal
@@ -218,6 +281,7 @@ instance
 done
 end
 
+(*
 instantiation fset :: (type) discrete_cpo
 begin
 
@@ -229,8 +293,6 @@ qed (rule below_fset_def)
 
 end
 
-
-(*
 lemma fsetE: 
   assumes "s = fempty \<Longrightarrow> P"
     and "\<And>(x::'a) xs. s = finsert x xs \<Longrightarrow> P"

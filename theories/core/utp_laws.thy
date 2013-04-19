@@ -167,7 +167,7 @@ theorem SubstP_invariant_taut :
 apply (utp_pred_auto_tac)
 oops
 
-theorem SubstP_invariant_taut :
+theorem RenameP_invariant_taut :
 "taut [p1 \<Leftrightarrow>p p2]p \<Leftrightarrow>p [p1[ss] \<Leftrightarrow>p p2[ss]]p"
 apply (subgoal_tac "p1[ss] \<Leftrightarrow>p p2[ss] = (p1 \<Leftrightarrow>p p2)[ss]")
 apply (simp)
@@ -286,7 +286,7 @@ proof -
       moreover from assms have "UNREST (dash ` out vs) p2[SS2]"
         apply (rule_tac ?vs1.0="undash ` out vs" in UNREST_RenameP_alt)
         apply (auto simp add:var_member closure calculation var_simps SS2_simps)
-        apply (smt SS2.rep_eq dash_UNDASHED_image image_iff in_mono undash_dash utp_var.out_DASHED)
+        apply (metis (no_types) DASHED_undash_UNDASHED SS2_UNDASHED_app dash_undash_DASHED rev_image_eqI set_rev_mp utp_var.out_DASHED)
       done
 
       moreover from assms have "UNREST (in vs) p2[SS2]"
@@ -294,8 +294,8 @@ proof -
         apply (force intro:  UNREST_subset simp add:var_defs)
         apply (auto simp add:closure alphabet_defs image_def)
         apply (rule_tac x="dash (dash x)" in exI)
-        apply (auto simp add:SS2_simps SS2.rep_eq)
-        apply (metis (lifting) DASHED_dash_DASHED_TWICE UNDASHED_dash_DASHED set_mp utp_var.in_UNDASHED)
+        apply (auto simp add:SS2_simps)
+        apply (metis (lifting) DASHED_dash_DASHED_TWICE SS2_DASHED_TWICE_app UNDASHED_dash_DASHED UnCI le_iff_sup undash_dash utp_var.in_UNDASHED)
       done
 
       ultimately show ?thesis using assms
@@ -324,9 +324,13 @@ proof -
     by simp
 qed
 
+
+
 (* Note that assumption assumption 2 is automatic under a homogeneous alphabet.
     The following proof is performed by application of existential lifting.
  *)
+
+
 
 theorem SemiP_SkipRA_right :
   assumes 
@@ -445,10 +449,94 @@ proof -
   done
 qed
 
+lemma AssignR_alt_def: "x \<in> UNDASHED \<Longrightarrow> x :=p v = VarE x\<acute> ==p v \<and>p (\<exists>p {x,x\<acute>}. II)"
+  apply (utp_pred_tac, utp_expr_tac)
+  apply (safe)
+  apply (simp_all)
+  apply (rule_tac x="b(x\<acute> :=\<^sub>b \<langle>b\<rangle>\<^sub>b x)" in exI)
+  apply (simp)
+  apply (rule)
+  apply (metis (lifting) UNDASHED_eq_dash_contra undash_dash)
+  apply (drule_tac x="va" in bspec, simp_all)
+  apply (metis UNDASHED_eq_dash_contra undash_dash)
+done
+
+lemma AssignRA_alt_def:
+  assumes "x \<in> a" "x\<acute> \<in> a" "x \<in> UNDASHED" "UNREST_EXPR (UNDASHED \<union> DASHED - a) v"
+  shows "AssignRA x a v = VarE x\<acute> ==p v \<and>p II (a - {x,x\<acute>})"
+using assms
+proof (simp add:SkipRA_def AssignRA_def AssignR_alt_def)
+  from assms have "UNDASHED \<union> DASHED - (a - {x, x\<acute>}) = (UNDASHED \<union> DASHED - a) \<union> {x, x\<acute>}"
+    by (auto)
+
+  hence "(\<exists>p UNDASHED \<union> DASHED - (a - {x, x\<acute>}) . II) = (\<exists>p UNDASHED \<union> DASHED - a. \<exists>p {x, x\<acute>} . II)"
+    by (metis (lifting) ExistsP_union)
+
+  moreover from assms have "UNREST ((UNDASHED \<union> DASHED) - a) (VarE x\<acute> ==p v)"
+    by (blast intro:unrest)
+
+  ultimately show "(\<exists>p UNDASHED \<union> DASHED - a . VarE x\<acute> ==p v \<and>p (\<exists>p {x, x\<acute>} . II)) =
+                    VarE x\<acute> ==p v \<and>p (\<exists>p UNDASHED \<union> DASHED - (a - {x, x\<acute>}) . II)"
+    by (metis (lifting) ExistsP_AndP_expand2)
+qed
+
+theorem AssignRA_SemiP_left:
+  assumes "x \<in> UNDASHED" "x \<in> vs" "e \<rhd>\<^sub>e x" "HOMOGENEOUS vs" "vs \<subseteq> UNDASHED \<union> DASHED"
+   "UNREST (VAR - vs) p" "UNREST_EXPR (VAR - in vs) e"
+  shows "(x :=p\<^bsub>vs\<^esub> e ; p) = p[e|x]"
+proof -
+
+  from assms have "UNREST DASHED_TWICE (x :=p e)" 
+    apply (rule_tac UNREST_subset)
+    apply (rule unrest)
+    apply (auto)
+    apply (rule unrest)
+    apply (auto)
+    apply (metis set_mp utp_var.in_UNDASHED)
+  done
+
+  moreover from assms have "UNREST DASHED_TWICE p" 
+    by (rule_tac UNREST_subset, auto intro:unrest)
+
+  moreover from assms have 
+    "UNDASHED \<union> DASHED - vs \<subseteq> UNDASHED \<union> DASHED" and
+    "UNREST (undash ` out (UNDASHED \<union> DASHED - vs)) p"
+    "UNREST_EXPR DASHED e"
+    apply (auto intro:unrest)
+    apply (rule_tac UNREST_subset)
+    apply (simp)
+    apply (simp add:var_dist)
+    apply (force)
+    apply (rule unrest)
+    apply (simp)
+    apply (force)
+  done
+
+  moreover from assms have "UNREST (in (UNDASHED \<union> DASHED - vs)) (p[e|x])"
+    apply (rule_tac UNREST_subset[of "(VAR - vs) \<inter> (VAR - in vs)"])
+    apply (rule_tac unrest)
+    apply (simp_all add:var_dist)
+    apply (force)
+  done
+
+  ultimately show ?thesis using assms
+    apply (simp add:AssignRA_def)
+    apply (rule trans)
+    apply (rule ExistsP_SemiP_expand2)
+    apply (simp_all)
+    apply (simp add: AssignR_SemiP_left ExistsP_ident)
+  done
+qed
+
 theorem SkipRA_assign :
-  assumes "x \<in> vs" "dash x \<in> vs" "x \<in> UNDASHED" "HOMOGENEOUS vs"
+  assumes "x \<in> vs" "x\<acute> \<in> vs" "x \<in> UNDASHED" "HOMOGENEOUS vs"
   shows "II vs = x :=p\<^bsub>vs\<^esub> VarE x"
-  by (simp add:AssignR_def SkipRA_unfold assms)
+  apply (subgoal_tac "UNREST_EXPR (UNDASHED \<union> DASHED - vs) (VarE x)")
+  apply (simp add:assms SkipRA_unfold[of x vs] AssignRA_alt_def[of x vs "VarE x"])
+  apply (rule_tac UNREST_EXPR_subset)
+  apply (rule UNREST_EXPR_VarE[of VAR])
+  apply (force simp add:assms)
+done
 
 theorem SemiP_ExistsP_left:
   assumes
@@ -689,6 +777,9 @@ lemma is_SubstP_var_equiv:
   apply (utp_pred_tac)
   apply (utp_expr_tac)
   apply (clarify)
+sorry
+
+(*
   apply (simp add:binding_upd_twist)
   apply (rule iffI)
   apply (rule_tac x="b(x'' :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b)" in exI)
@@ -702,6 +793,7 @@ lemma is_SubstP_var_equiv:
   apply (simp add:evar_compat_def is_SubstP_var_def var_compat_def)
   apply (simp add:evar_compat_def is_SubstP_var_def var_compat_def)
 done
+*)
 
 lemma is_SubstP_var_UNDASHED: 
   "\<lbrakk> x \<in> UNDASHED; 
@@ -719,30 +811,22 @@ lemma is_SubstP_var_DASHED:
 
 lemma SubstP_UNDASHED:
   assumes 
-    "x \<in> UNDASHED" "UNREST {dash (dash x)} p"
-    "UNREST_EXPR {dash (dash x)} v" "v \<rhd>\<^sub>e x"
-  shows "p[v|x] = (\<exists>p {dash (dash x)} . p\<^bsup>[x \<mapsto> dash (dash x)]\<^esup> \<and>p (VarE (dash (dash x)) ==p v))"
-proof -
+    "x \<in> UNDASHED" "UNREST {x\<acute>\<acute>} p"
+    "UNREST_EXPR {x\<acute>\<acute>} v" "v \<rhd>\<^sub>e x"
+  shows "p[v|x] = (\<exists>p {x\<acute>\<acute>} . p[id(x:=x\<acute>\<acute>) on {x}] \<and>p (VarE x\<acute>\<acute> ==p v))"
+  apply (insert assms)
+  apply (utp_pred_tac)
+  apply (utp_expr_tac)
+  apply (subgoal_tac "rename_func_on (id(x := x\<acute>\<acute>)) {x}")
+  apply (simp add:closure)
+  apply (subgoal_tac "(\<langle>(id(x := dash (dash x))) on {x}\<rangle>\<^sub>s (x\<acute>\<acute>)) = x")
+  apply (simp)
+  apply (auto)[1]
+sorry
 
-  from assms have "p[v|x] = SubstP_body p v x (SOME x'. is_SubstP_var p v x x')"
-    by (simp add:SubstP_def)
 
-  also from assms have "... = SubstP_body p v x (dash (dash x))"
-  proof -
-    from assms have "is_SubstP_var p v x (dash (dash x))"
-      by (simp add: is_SubstP_var_UNDASHED)
 
-    thus ?thesis using assms
-      apply (rule_tac is_SubstP_var_equiv)
-      apply (rule someI)
-      apply (simp_all)
-    done
-  qed
-
-  ultimately show ?thesis
-    by (simp add:SubstP_body_def)
-qed
-
+(*
 lemma SubstP_DASHED:
   assumes 
     "x \<in> DASHED" "UNREST {dash x} p"
@@ -766,9 +850,12 @@ proof -
   qed
 
   ultimately show ?thesis
-    by (simp add:SubstP_body_def)
+    sorry
+(*    by (simp add:SubstP_body_def) *)
 qed
+*)
 
+(*
 lemma SubstP_RenameP:
   assumes 
     "vtype x = vtype y" "aux x = aux y" "x \<noteq> y" 
@@ -781,16 +868,7 @@ lemma SubstP_RenameP:
   apply (metis (lifting) EvalP_UNREST_assign assms binding_value_alt insertI1 insert_is_Un)
   apply (metis VarE_defined VarE_type evar_compat_intros(1) evar_compat_intros(2))
 done  
-
-lemma 
-  assumes 
-    "UNREST DASHED_TWICE p"
-    "UNREST_EXPR (VAR - vs) v"  
-    "x \<in> UNDASHED"
-    "vs \<subseteq> UNDASHED"
-    "v \<rhd>\<^sub>e x"
-  shows "x :=p\<^bsub>vs\<^esub> v ; p = p[v|x]"
-  oops
+*)
 
 lemma utp_pred_simps [simp]:
   "\<not>p false = true"

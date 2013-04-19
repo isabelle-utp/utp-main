@@ -10,7 +10,6 @@ imports
   "~~/src/HOL/Library/Monad_Syntax" 
   "../../core/utp_var"
   "../../utils/Library_extra"
-
 begin
 
 declare split_paired_All [simp del]
@@ -53,7 +52,9 @@ instance sorry
 
 end
 
-fun vtsubst :: "(nat \<Rightarrow> vdmt) \<Rightarrow> vdmt \<Rightarrow> vdmt" where
+type_synonym tyctx = "(nat, vdmt) fmap"
+
+fun vtsubst :: "tyctx \<Rightarrow> vdmt \<Rightarrow> vdmt" where
 "vtsubst f (FSetT t)  = FSetT (vtsubst f t)" | 
 "vtsubst f (MapT s t) = MapT (vtsubst f s) (vtsubst f t)" |
 "vtsubst f (ListT t)  = ListT (vtsubst f t)" | 
@@ -62,11 +63,115 @@ fun vtsubst :: "(nat \<Rightarrow> vdmt) \<Rightarrow> vdmt \<Rightarrow> vdmt" 
 "vtsubst f (FuncT s t) = FuncT (vtsubst f s) (vtsubst f t)" |
 "vtsubst f (SetT t) = SetT (vtsubst f t)" |
 "vtsubst f (RecordT ts) = RecordT (map (vtsubst f) ts)" |
-"vtsubst f (TVarT x) = f x" |
+"vtsubst f (TVarT x) = (if (x \<in>\<^sub>f fdom f) then (the (\<langle>f\<rangle>\<^sub>m x)) else (TVarT x))" |
 "vtsubst f t = t"
 
-definition vunifies_under :: "vdmt \<Rightarrow> vdmt \<Rightarrow> (nat \<Rightarrow> vdmt) \<Rightarrow> bool" where
-"vunifies_under s t f = (vtsubst f s = vtsubst f t)"
+definition vunifies_under :: "tyctx \<Rightarrow> (vdmt * vdmt) \<Rightarrow> bool" (infix "unifies" 50) where
+"\<rho> unifies v = (vtsubst \<rho> (fst v) = vtsubst \<rho> (snd v))"
+
+fun tyvars :: "vdmt \<Rightarrow> nat fset" where
+"tyvars (FSetT t)  = tyvars t" | 
+"tyvars (MapT s t) = (tyvars s) \<union>\<^sub>f (tyvars t)" |
+"tyvars (ListT t)  = tyvars t" | 
+"tyvars (OptionT t) = tyvars t" |
+"tyvars (PairT s t) = (tyvars s) \<union>\<^sub>f (tyvars t)" |
+"tyvars (FuncT s t) = (tyvars s) \<union>\<^sub>f (tyvars t)" |
+"tyvars (SetT t) = (tyvars t)" |
+"tyvars (RecordT ts) = (foldr (\<lambda> x. op \<union>\<^sub>f (tyvars x)) ts \<lbrace>\<rbrace>) " |
+"tyvars (TVarT x) = \<lbrace>x\<rbrace>" |
+"tyvars t = \<lbrace>\<rbrace>"
+
+lemma unifies_refl [intro]: "\<Delta> unifies (x,x)"
+  by (simp add:vunifies_under_def)
+
+lemma unifies_sym: "\<Delta> unifies (x,y) \<Longrightarrow> \<Delta> unifies (y,x)"
+  by (simp add:vunifies_under_def)
+
+lemma unifies_trans:
+  "\<lbrakk> \<Delta> unifies (x,y); \<Delta> unifies (y,z) \<rbrakk> \<Longrightarrow> \<Delta> unifies (x,z)"
+  by (simp add:vunifies_under_def)
+
+lemma vtsubst_nfree [simp]: "tyvars t = \<lbrace>\<rbrace> \<Longrightarrow> vtsubst \<Delta> t = t"
+  and "foldr (\<lambda>t. op \<union>\<^sub>f (tyvars t)) ts \<lbrace>\<rbrace> = \<lbrace>\<rbrace> \<Longrightarrow> map (vtsubst \<Delta>) ts = ts"
+  by (induct t and ts, (force)+)
+
+lemma vtsubst_disj_vars [simp]: 
+  "tyvars t \<inter>\<^sub>f fdom \<Delta> = \<lbrace>\<rbrace> \<Longrightarrow> vtsubst \<Delta> t = t"
+  and "foldr (\<lambda>t. op \<union>\<^sub>f (tyvars t)) ts \<lbrace>\<rbrace> \<inter>\<^sub>f fdom \<Delta> = \<lbrace>\<rbrace> 
+       \<Longrightarrow> map (vtsubst \<Delta>) ts = ts"
+  by (induct t and ts, (force)+)
+
+lemma unifies_TVarT_simple [intro!]:
+  "\<lbrakk> tyvars a \<inter>\<^sub>f fdom \<Delta> = \<lbrace>\<rbrace>; \<langle>\<Delta>\<rangle>\<^sub>m x = Some a \<rbrakk> \<Longrightarrow> \<Delta> unifies (a, TVarT x)"
+  "\<lbrakk> tyvars a \<inter>\<^sub>f fdom \<Delta> = \<lbrace>\<rbrace>; \<langle>\<Delta>\<rangle>\<^sub>m x = Some a \<rbrakk> \<Longrightarrow> \<Delta> unifies (TVarT x, a)"
+  by (auto simp add:vunifies_under_def fdom.rep_eq)
+
+lemma unifies_FSetT [intro!]: 
+  "\<Delta> unifies (a,b) \<Longrightarrow> \<Delta> unifies (FSetT a, FSetT b)"
+  by (simp add:vunifies_under_def)
+
+lemma unifies_MapT [intro!]: 
+  "\<lbrakk> \<Delta> unifies (a1,b1); \<Delta> unifies (a2,b2) \<rbrakk> 
+  \<Longrightarrow> \<Delta> unifies (MapT a1 a2, MapT b1 b2)"
+  by (simp add:vunifies_under_def)
+
+lemma unifies_ListT [intro!]: 
+  "\<Delta> unifies (a,b) \<Longrightarrow> \<Delta> unifies (ListT a, ListT b)"
+  by (simp add:vunifies_under_def)
+
+lemma unifies_OptionT [intro!]: 
+  "\<Delta> unifies (a,b) \<Longrightarrow> \<Delta> unifies (OptionT a, OptionT b)"
+  by (simp add:vunifies_under_def)
+
+lemma unifies_PairT [intro!]: 
+  "\<lbrakk> \<Delta> unifies (a1,b1); \<Delta> unifies (a2,b2) \<rbrakk> 
+  \<Longrightarrow> \<Delta> unifies (PairT a1 a2, PairT b1 b2)"
+  by (simp add:vunifies_under_def)
+
+lemma unifies_FuncT [intro!]: 
+  "\<lbrakk> \<Delta> unifies (a1,b1); \<Delta> unifies (a2,b2) \<rbrakk> 
+  \<Longrightarrow> \<Delta> unifies (FuncT a1 a2, FuncT b1 b2)"
+  by (simp add:vunifies_under_def)
+
+lemma unifies_SetT [intro!]: 
+  "\<Delta> unifies (a,b) \<Longrightarrow> \<Delta> unifies (SetT a, SetT b)"
+  by (simp add:vunifies_under_def)
+
+lemma unifies_NatT_cases [elim]:
+  "\<lbrakk> \<Delta> unifies (t, \<nat>)
+   ; t = \<nat> \<Longrightarrow> P
+   ; \<And> x. \<lbrakk> t = TVarT x; \<langle>\<Delta>\<rangle>\<^sub>m x = Some \<nat> \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  apply (case_tac t, auto simp add:vunifies_under_def)
+  apply (case_tac "nat \<in>\<^sub>f fdom \<Delta>", auto simp add:fdom.rep_eq)
+done
+
+lemma unifies_IntT_cases [elim]:
+  "\<lbrakk> \<Delta> unifies (t, \<int>)
+   ; t = \<int> \<Longrightarrow> P
+   ; \<And> x. \<lbrakk> t = TVarT x; \<langle>\<Delta>\<rangle>\<^sub>m x = Some \<int> \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  apply (case_tac t, auto simp add:vunifies_under_def)
+  apply (case_tac "nat \<in>\<^sub>f fdom \<Delta>", auto simp add:fdom.rep_eq)
+done
+
+lemma unifies_ListT_cases [elim]:
+  "\<lbrakk> \<Delta> unifies (t, ListT a)
+   ; \<And> a'. \<lbrakk> t = ListT a'
+            ; \<Delta> unifies (a, a') \<rbrakk> \<Longrightarrow> P
+   ; \<And> x. \<lbrakk> t = TVarT x; \<langle>\<Delta>\<rangle>\<^sub>m x = Some (ListT (vtsubst \<Delta> a)) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  apply (case_tac t, auto simp add:vunifies_under_def)
+  apply (case_tac "nat \<in>\<^sub>f fdom \<Delta>", auto simp add:fdom.rep_eq)
+done
+
+lemma unifies_FuncT_cases [elim]:
+  "\<lbrakk> \<Delta> unifies (t, FuncT a b)
+   ; \<And> a' b'. \<lbrakk> t = FuncT a' b'
+               ; \<Delta> unifies (a, a')
+               ; \<Delta> unifies (b, b') \<rbrakk> \<Longrightarrow> P
+   ; \<And> x. \<lbrakk> t = TVarT x; \<langle>\<Delta>\<rangle>\<^sub>m x = Some (vtsubst \<Delta> a → vtsubst \<Delta> b) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  apply (case_tac t, auto simp add:vunifies_under_def)
+  apply (case_tac "nat \<in>\<^sub>f fdom \<Delta>", auto simp add:fdom.rep_eq)
+  apply (force)
+done
 
 subsection {* Basic (countable) values *}
 
@@ -199,6 +304,77 @@ section {* The type-system *}
 
 subsection {* Basic value typing relation *}
 
+inductive vbasic_type_rel :: "tyctx \<Rightarrow> vbasic \<Rightarrow> vdmt \<Rightarrow> bool" ("_ \<turnstile> _ :\<^sub>b _") 
+and vbasic_type_list_rel :: "tyctx \<Rightarrow> vbasic list \<Rightarrow> vdmt list \<Rightarrow> bool" ("_ \<turnstile> _ :\<^sub>r _") where
+unifies_type[intro]: 
+  "\<lbrakk> \<Delta> \<turnstile> x :\<^sub>b a'; \<Delta> unifies (a, a') \<rbrakk> \<Longrightarrow> \<Delta> \<turnstile> x :\<^sub>b a" |
+BoolI_type[intro!]: "\<Delta> \<turnstile> BoolI x :\<^sub>b BoolT" |
+NatI_type[intro!]: "\<Delta> \<turnstile> NatI x :\<^sub>b NatT" |
+IntI_type[intro!]: "\<Delta> \<turnstile> IntI x :\<^sub>b IntT" |
+RatI_type[intro!]: "\<Delta> \<turnstile> RatI x :\<^sub>b RatT" |
+RealI_type[intro!]: "\<Delta> \<turnstile> RealI x :\<^sub>b RealT" |
+CharI_type[intro!]: "\<Delta> \<turnstile> CharI x :\<^sub>b CharT" |
+TokenI_type[intro!]: "\<Delta> \<turnstile> TokenI x :\<^sub>b TokenT" |
+QuoteI_type[intro!]: "\<Delta> \<turnstile> QuoteI x :\<^sub>b QuoteT" |
+ListI_type[intro!]: "\<lbrakk> \<forall>x\<in>set xs. \<Delta> \<turnstile> x :\<^sub>b a \<rbrakk> \<Longrightarrow> \<Delta> \<turnstile> ListI xs :\<^sub>b ListT a" |
+OptionI_Some_type[intro]: "\<lbrakk> \<Delta> \<turnstile> x :\<^sub>b a \<rbrakk> \<Longrightarrow> \<Delta> \<turnstile> OptionI (Some x) :\<^sub>b OptionT a" |
+OptionI_None_type[intro]: "\<Delta> \<turnstile> OptionI None :\<^sub>b OptionT a" |
+FinI_type[intro]: "\<lbrakk> \<forall>x\<in>set xs. \<Delta> \<turnstile> x :\<^sub>b a; sorted xs; distinct xs \<rbrakk> \<Longrightarrow> \<Delta> \<turnstile> FinI xs :\<^sub>b FSetT a" |
+PairI_type[intro!]: "\<lbrakk> \<Delta> \<turnstile> x :\<^sub>b a; \<Delta> \<turnstile> y :\<^sub>b b \<rbrakk> \<Longrightarrow> \<Delta> \<turnstile> PairI x y :\<^sub>b PairT a b" |
+MapI_type[intro]: "\<lbrakk> \<forall>(x,y)\<in>set xs. \<Delta> \<turnstile> x :\<^sub>b a \<and> \<Delta> \<turnstile> y :\<^sub>b b; sorted (map fst xs); distinct (map fst xs) \<rbrakk> \<Longrightarrow> \<Delta> \<turnstile> MapI xs :\<^sub>b MapT a b" |
+RecI_type[intro]: "\<lbrakk> \<Delta> \<turnstile> xs :\<^sub>r ts \<rbrakk>  \<Longrightarrow> \<Delta> \<turnstile> RecI xs :\<^sub>b RecordT ts" |
+NameI_type[intro]: "\<Delta> \<turnstile> NameI n :\<^sub>b NameT" |
+TypeI_type[intro]: "\<Delta> \<turnstile> TypeI t :\<^sub>b TypeT" |
+BotI_type[intro]: "\<Delta> \<turnstile> BotI :\<^sub>b TVarT n" |
+Cons_type[intro]: "\<lbrakk> \<Delta> \<turnstile> x :\<^sub>b t; \<Delta> \<turnstile> xs :\<^sub>r ts \<rbrakk> \<Longrightarrow> \<Delta> \<turnstile> (x # xs) :\<^sub>r (t # ts)" |
+Nil_type[intro]: "\<Delta> \<turnstile> [] :\<^sub>r []"
+
+abbreviation vbasic_type_rel_nctx :: "vbasic \<Rightarrow> vdmt \<Rightarrow> bool" (infix ":\<^sub>b" 50) where
+"v :\<^sub>b t  \<equiv> (\<exists> \<Delta>. \<Delta> \<turnstile> v :\<^sub>b t)"
+
+lemma fdom_fmempty [simp]: "fdom fmempty = \<lbrace>\<rbrace>"
+  by (auto simp add:fdom.rep_eq fmempty.rep_eq)
+
+lemma vtsubst_fempty [simp]: "vtsubst fmempty t = t"
+  and "map (vtsubst fmempty) ts = ts"
+  apply (induct t and ts)
+  apply (simp_all)
+  apply (metis fdom_fmempty fset_simps(3) vdmt.simps(6) vtsubst.simps(8) vtsubst_disj_vars)
+done
+
+lemma vtsubst_fmap_upd [simp]: "x \<notin>\<^sub>f tyvars t \<Longrightarrow> vtsubst (\<Delta>(x:=\<^sub>mSome a)) t = vtsubst \<Delta> t"
+  and "x \<notin>\<^sub>f foldr (\<lambda>t. op \<union>\<^sub>f (tyvars t)) ts \<lbrace>\<rbrace> 
+       \<Longrightarrow> map (vtsubst (\<Delta>(x:=\<^sub>mSome a))) ts = map (vtsubst \<Delta>) ts"
+  by (induct t and ts, simp_all)
+
+lemma unifies_TVarT_simple' [intro]:
+  "\<lbrakk> x \<notin>\<^sub>f tyvars t \<rbrakk> \<Longrightarrow> fmempty(x:=\<^sub>mSome t) unifies (TVarT x, t)"
+  by (simp add: vunifies_under_def)
+
+lemma fmap_eq_intros[intro]: 
+  "\<langle>\<Delta>(x :=\<^sub>m Some t)\<rangle>\<^sub>m x = Some t"
+  "\<lbrakk> a \<noteq> b; x \<noteq> y; \<langle>\<Delta>\<rangle>\<^sub>m y = Some b \<rbrakk> 
+   \<Longrightarrow> \<langle>\<Delta>(x :=\<^sub>m Some a)\<rangle>\<^sub>m y = Some b"
+  by (simp_all)
+
+lemma fdom_femptyE: "x \<in> \<langle>fdom fmempty\<rangle>\<^sub>f \<Longrightarrow> False"
+  by (simp)
+
+lemma "ListI [ListI []] :\<^sub>b ListT (ListT (TVarT 0))"
+  by (force)
+
+lemma "ListI [] :\<^sub>b ListT (ListT NatT)"
+  by (force)
+
+lemma "ListI [ListI []] :\<^sub>b ListT (ListT \<nat>)"
+  by (force)
+
+lemma "ListI [ListI [], ListI [NatI 0], ListI [], BotI] :\<^sub>b ListT (ListT NatT)"
+  by (force)
+
+
+(* Typing relation without parametric polymorphism *)
+(*
 inductive vbasic_type_rel :: "vbasic \<Rightarrow> vdmt \<Rightarrow> bool" (infix ":\<^sub>b" 50) 
   and vbasic_type_list_rel :: "vbasic list \<Rightarrow> vdmt list \<Rightarrow> bool" (infix ":\<^sub>r" 50) where
 BoolI_type[intro]: "BoolI x :\<^sub>b BoolT" |
@@ -221,39 +397,40 @@ TypeI_type[intro]: "TypeI t :\<^sub>b TypeT" |
 BotI_type[intro]: "BotI :\<^sub>b a" |
 Cons_type[intro]: "\<lbrakk> x :\<^sub>b t; xs :\<^sub>r ts \<rbrakk> \<Longrightarrow> (x # xs) :\<^sub>r (t # ts)" |
 Nil_type[intro]: "[] :\<^sub>r []"
+*)
 
 inductive_cases 
-  BoolI_type_cases [elim]: "BoolI x :\<^sub>b t" and
-  BoolT_type_cases [elim!]: "x :\<^sub>b BoolT" and
-  NatI_type_cases [elim]: "NatI x :\<^sub>b t" and
-  NatT_type_cases [elim!]: "x :\<^sub>b NatT" and
-  IntI_type_cases [elim]: "IntI x :\<^sub>b t" and
-  IntT_type_cases [elim!]: "x :\<^sub>b IntT" and
-  RatI_type_cases [elim]: "RatI x :\<^sub>b t" and
-  RatT_type_cases [elim!]: "x :\<^sub>b RatT" and
-  CharI_type_cases [elim]: "CharI x :\<^sub>b t" and
-  CharT_type_cases [elim!]: "x :\<^sub>b CharT" and
-  TokenI_type_cases [elim]: "TokenI x :\<^sub>b t" and
-  TokenT_type_cases [elim!]: "x :\<^sub>b TokenT" and
-  QuoteI_type_cases [elim]: "QuoteI x :\<^sub>b t" and
-  QuoteT_type_cases [elim!]: "x :\<^sub>b QuoteT" and
-  ListI_type_cases [elim]: "ListI xs :\<^sub>b t" and
-  ListT_type_cases [elim!]: "x :\<^sub>b ListT a" and
-  OptionI_type_cases [elim]: "OptionI x :\<^sub>b t" and
-  OptionT_type_cases [elim]: "x :\<^sub>b OptionT a" and
-  FinI_type_cases [elim]: "FinI x :\<^sub>b t" and
-  FinT_type_cases: "x :\<^sub>b FSetT a" and
-  PairI_type_cases [elim]: "PairI x y :\<^sub>b t" and
-  PairT_type_cases [elim!]: "x :\<^sub>b PairT a b" and
-  MapI_type_cases [elim]: "MapI xs :\<^sub>b t" and
-  MapT_type_cases [elim!]: "x :\<^sub>b MapT a b" and
-  RecI_type_cases [elim]: "RecI xs :\<^sub>b t" and
-  RecT_type_cases [elim!]: "x :\<^sub>b RecordT fs" and
-  Cons_type_cases [elim!]: "x :\<^sub>r f # fs" and
-  Nil_type_cases [elim!]: "x :\<^sub>r []" and
-  FuncT_type_casesB [elim!]: "x :\<^sub>b a → b" and
-  SetT_type_casesB [elim!]: "x :\<^sub>b SetT a" and
-  BotI_type_cases[elim]: "BotI :\<^sub>b a"
+  BoolI_type_cases [elim]: "\<Delta> \<turnstile> BoolI x :\<^sub>b t" and
+  BoolT_type_cases [elim!]: "\<Delta> \<turnstile> x :\<^sub>b BoolT" and
+  NatI_type_cases [elim]: "\<Delta> \<turnstile> NatI x :\<^sub>b t" and
+  NatT_type_cases [elim!]: "\<Delta> \<turnstile> x :\<^sub>b NatT" and
+  IntI_type_cases [elim]: "\<Delta> \<turnstile> IntI x :\<^sub>b t" and
+  IntT_type_cases [elim!]: "\<Delta> \<turnstile> x :\<^sub>b IntT" and
+  RatI_type_cases [elim]: "\<Delta> \<turnstile> RatI x :\<^sub>b t" and
+  RatT_type_cases [elim!]: "\<Delta> \<turnstile> x :\<^sub>b RatT" and
+  CharI_type_cases [elim]: "\<Delta> \<turnstile> CharI x :\<^sub>b t" and
+  CharT_type_cases [elim!]: "\<Delta> \<turnstile> x :\<^sub>b CharT" and
+  TokenI_type_cases [elim]: "\<Delta> \<turnstile> TokenI x :\<^sub>b t" and
+  TokenT_type_cases [elim!]: "\<Delta> \<turnstile> x :\<^sub>b TokenT" and
+  QuoteI_type_cases [elim]: "\<Delta> \<turnstile> QuoteI x :\<^sub>b t" and
+  QuoteT_type_cases [elim!]: "\<Delta> \<turnstile> x :\<^sub>b QuoteT" and
+  ListI_type_cases [elim]: "\<Delta> \<turnstile> ListI xs :\<^sub>b t" and
+  ListT_type_cases [elim!]: "\<Delta> \<turnstile> x :\<^sub>b ListT a" and
+  OptionI_type_cases [elim]: "\<Delta> \<turnstile> OptionI x :\<^sub>b t" and
+  OptionT_type_cases [elim]: "\<Delta> \<turnstile> x :\<^sub>b OptionT a" and
+  FinI_type_cases [elim]: "\<Delta> \<turnstile> FinI x :\<^sub>b t" and
+  FinT_type_cases: "\<Delta> \<turnstile> x :\<^sub>b FSetT a" and
+  PairI_type_cases [elim]: "\<Delta> \<turnstile> PairI x y :\<^sub>b t" and
+  PairT_type_cases [elim!]: "\<Delta> \<turnstile> x :\<^sub>b PairT a b" and
+  MapI_type_cases [elim]: "\<Delta> \<turnstile> MapI xs :\<^sub>b t" and
+  MapT_type_cases [elim!]: "\<Delta> \<turnstile> x :\<^sub>b MapT a b" and
+  RecI_type_cases [elim]: "\<Delta> \<turnstile> RecI xs :\<^sub>b t" and
+  RecT_type_cases [elim!]: "\<Delta> \<turnstile> x :\<^sub>b RecordT fs" and
+  Cons_type_cases [elim!]: "\<Delta> \<turnstile> x :\<^sub>r f # fs" and
+  Nil_type_cases [elim!]: "\<Delta> \<turnstile> x :\<^sub>r []" and
+  FuncT_type_casesB [elim!]: "\<Delta> \<turnstile> x :\<^sub>b a → b" and
+  SetT_type_casesB [elim!]: "\<Delta> \<turnstile> x :\<^sub>b SetT a" and
+  BotI_type_cases[elim]: "\<Delta> \<turnstile> BotI :\<^sub>b a"
 
 definition bcarrier :: "vdmt \<Rightarrow> vbasic set" where
 "bcarrier t = {x. x :\<^sub>b t}"
@@ -302,15 +479,41 @@ lemma vbtypes_simps [simp]:
  apply (force simp add:FSetI_def)
  apply (rule_tac x="ListI []" in exI)
  apply (force)
-done
+sorry
 
 text {* We introduce a couple of derived typing rules *}
 
-lemma NilI_type[intro]: "ListI [] :\<^sub>b ListT a"
+lemma NilI_type[intro]: "\<Delta> \<turnstile> ListI [] :\<^sub>b ListT a"
   by auto
 
 lemma ConsI_type[intro]: 
-  "\<lbrakk> x :\<^sub>b a; ListI xs :\<^sub>b ListT a \<rbrakk> \<Longrightarrow> ListI (x # xs) :\<^sub>b ListT a"
+  "\<lbrakk> \<Delta> \<turnstile> x :\<^sub>b a; \<Delta> \<turnstile> ListI xs :\<^sub>b ListT a \<rbrakk> 
+   \<Longrightarrow> \<Delta> \<turnstile> ListI (x # xs) :\<^sub>b ListT a"
+  apply (erule ListI_type_cases)
+  apply (auto)
+  apply (drule unifies_sym)
+  apply (erule unifies_ListT_cases)
+  apply (auto)
+  apply (drule unifies_sym) back
+  apply (erule unifies_ListT_cases)
+  apply (auto)
+  apply (rule)
+  apply (auto)
+  apply (erule ListI_type_cases)
+  apply (force)
+  apply (rule)
+  apply (rule)
+  apply (auto)
+  apply (simp)
+  apply (drule unifies_sym)
+  apply (erule unifies_ListT_cases)
+  apply (auto)
+  apply (rule ListI_type)
+  apply (auto)
+  apply (simp)
+  apply (rule)
+  apply (force)
+  apply (auto intro!: ListI_type)
   by (force intro!: ListI_type)
 
 lemma FSetI_type[intro]:

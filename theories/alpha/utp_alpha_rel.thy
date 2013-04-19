@@ -31,6 +31,8 @@ definition hom_right ::
    'VALUE ALPHABET" ("homr") where
 "homr a = undash `\<^sub>f out\<^sub>\<alpha> a \<union>\<^sub>f out\<^sub>\<alpha> a"
 
+abbreviation "homa a \<equiv> homl a \<union>\<^sub>f homr a"
+
 definition WF_RELATION :: "'VALUE WF_ALPHA_PREDICATE set" where
 "WF_RELATION = {p . (\<alpha> p) \<in> REL_ALPHABET}"
 
@@ -63,7 +65,7 @@ definition AssignA ::
  'VALUE WF_ALPHA_EXPRESSION \<Rightarrow>
  'VALUE WF_ALPHA_PREDICATE" where
 "a \<in> REL_ALPHABET \<Longrightarrow>
- AssignA x a v \<equiv> Abs_WF_ALPHA_PREDICATE (a, AssignR x \<langle>a\<rangle>\<^sub>f (\<epsilon> v))"
+ AssignA x a v \<equiv> Abs_WF_ALPHA_PREDICATE (a, AssignRA x \<langle>a\<rangle>\<^sub>f (\<epsilon> v))"
 
 notation AssignA ("_ :=\<^bsub>_ \<^esub>_" [190] 190)
 
@@ -364,7 +366,8 @@ theorem SkipA_closure [closure] :
 
 theorem AssignA_rep_eq:
   "\<lbrakk> a \<in> REL_ALPHABET; x \<in>\<^sub>f a; dash x \<in>\<^sub>f a; \<alpha> v \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow> 
-   Rep_WF_ALPHA_PREDICATE (x :=\<^bsub>a\<^esub> v) = (a, AssignR x \<langle>a\<rangle>\<^sub>f (\<epsilon> v))"
+   Rep_WF_ALPHA_PREDICATE (x :=\<^bsub>a\<^esub> v) = (a, AssignRA x \<langle>a\<rangle>\<^sub>f (\<epsilon> v))"
+  apply (subgoal_tac "x \<in> UNDASHED")
   apply (subgoal_tac "(a, x :=p\<^bsub>\<langle>a\<rangle>\<^sub>f \<^esub>\<epsilon> v) \<in> WF_ALPHA_PREDICATE")
   apply (simp add:AssignA_def)
   apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
@@ -372,14 +375,18 @@ theorem AssignA_rep_eq:
   apply (subgoal_tac "\<langle>a\<rangle>\<^sub>f = {dash x} \<union> (\<langle>a\<rangle>\<^sub>f - {dash x})")
   apply (force)
   apply (force)
-  apply (force intro:unrest)
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (simp)
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (auto simp add:REL_ALPHABET_def)
 done
 
 theorem AssignA_closure [closure] :
   assumes 
    "a \<in> REL_ALPHABET"
    "x \<in>\<^sub>f a" "dash x \<in>\<^sub>f a"
-   "x \<in> UNDASHED"
    "\<alpha> v \<subseteq>\<^sub>f a"
   shows "x :=\<^bsub>a\<^esub> v \<in> WF_RELATION"
 proof
@@ -571,7 +578,12 @@ theorem SemiA_SkipA_left:
 proof -
 
   from assms have ina:"in \<langle>a\<rangle>\<^sub>f = in \<langle>\<alpha> r\<rangle>\<^sub>f"
-    by (force elim!:Rep_fset_elim intro!:Rep_fset_intro simp add:WF_RELATION_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def HOM_ALPHA_unfold)
+    apply (simp add:HOM_ALPHABET_def HOM_ALPHA_HOMOGENEOUS)
+    apply (erule Rep_fset_elim)
+    apply (clarsimp)
+    apply (unfold HOMOGENEOUS_dash_in[THEN sym])
+    apply (simp only: inj_on_Un_image_eq_iff[of dash, OF dash_inj])
+  done
 
   moreover with assms(1) have "in\<^sub>\<alpha> a \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r) = \<alpha> r"
     by (auto simp add:WF_RELATION_def REL_ALPHABET_def in_out_union)
@@ -615,7 +627,7 @@ proof -
   moreover from assms have "(\<pi> r) ; II \<langle>a\<rangle>\<^sub>f = (\<pi> r)"
   proof -
     have "dash ` (UNDASHED - undash ` out \<langle>\<alpha> r\<rangle>\<^sub>f) = DASHED - out \<langle>\<alpha> r\<rangle>\<^sub>f"
-      by (simp add: inj_on_image_set_diff[OF dash_inj] dash_UNDASHED_image dash_undash_image out_DASHED)
+      by (metis dash_UNDASHED_image dash_image_minus dash_undash_image utp_var.out_DASHED)
 
     with assms show ?thesis
       apply (simp add:WF_RELATION_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def)
@@ -743,12 +755,14 @@ proof -
 qed
 
 theorem SkipA_unfold :
-  assumes "a \<in> REL_ALPHABET" "x \<in> \<langle>a\<rangle>\<^sub>f" "dash x \<in> \<langle>a\<rangle>\<^sub>f" "x \<in> UNDASHED" "HOM_ALPHA a"
+  assumes "a \<in> REL_ALPHABET" "x \<in> \<langle>a\<rangle>\<^sub>f" "dash x \<in> \<langle>a\<rangle>\<^sub>f" "HOM_ALPHA a"
   shows "II\<alpha> a = (VarAE (dash x) ==\<alpha> VarAE x) \<and>\<alpha> II\<alpha> (a -\<^sub>f \<lbrace>x,dash x\<rbrace>)"
   apply (insert assms)
   apply (utp_alpha_tac2)
   apply (simp add:HOM_ALPHA_HOMOGENEOUS)
+  apply (subgoal_tac "x \<in> UNDASHED")
   apply (simp add:SkipRA_unfold)
+  apply (auto simp add:REL_ALPHABET_def)
 done
 
 end

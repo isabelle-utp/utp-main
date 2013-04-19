@@ -187,6 +187,9 @@ text {* Ad-hoc overloading allows the binding of symbols to multiple
 consts
   alphabet  :: "'r \<Rightarrow> 'a" ("\<alpha>")
 
+notation
+  Some ("\<lfloor>_\<rfloor>")
+
 setup {*
   Adhoc_Overloading.add_overloaded @{const_name alphabet}
 *}

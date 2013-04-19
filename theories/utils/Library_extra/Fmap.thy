@@ -59,6 +59,17 @@ lift_definition fran :: "('a, 'b) fmap \<Rightarrow> 'b fset" is ran
 lift_definition fmempty :: "('a, 'b) fmap" is "Map.empty"
   by (simp add:fmaps_def)
 
+definition "fmap_list f = map (\<lambda> x. (x, the (\<langle>f\<rangle>\<^sub>m x))) (flist (fdom f))"
+lift_definition list_fmap :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) fmap" is "map_of"
+  by (simp add:fmaps_def finite_dom_map_of)
+
+lift_definition fmap_graph :: "('a, 'b) fmap \<Rightarrow> ('a * 'b) fset" is "map_graph"
+  by (simp add: fmaps_def fsets_def finite_dom_graph)
+
+
+lift_definition fmap_upd :: "('a, 'b) fmap \<Rightarrow> 'a \<Rightarrow> 'b option \<Rightarrow> ('a, 'b) fmap" is "fun_upd"
+  by (auto simp add:fmaps_def)
+
 lemma fdom_empty [simp]: 
   "fdom f = \<lbrace>\<rbrace> \<Longrightarrow> f = fmempty"
   by (auto simp add:fdom.rep_eq fmempty.rep_eq)
@@ -69,11 +80,11 @@ lemma fran_empty [simp]:
   apply (metis empty_iff option.exhaust ranI)
 done
 
-definition "fmap_list f = map (\<lambda> x. (x, the (Rep_fmap f x))) (flist (fdom f))"
-lift_definition list_fmap :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) fmap" is "map_of"
-  by (simp add:fmaps_def finite_dom_map_of)
+lemma fmap_list_empty [simp]:
+  "fmap_list fmempty = []"
+  by (simp add:fmap_list_def flist_def fdom.rep_eq fmempty.rep_eq)
 
-lemma fmap_list_inv[simp]: 
+lemma fmap_list_inv [simp]: 
   "list_fmap (fmap_list f) = f"
   apply (auto simp add:list_fmap.rep_eq fmap_list_def)
   apply (metis fdom.rep_eq flist_inv fset_rep_eq map_of_map_keys)
@@ -133,6 +144,78 @@ lemma fdomD: "a \<in>\<^sub>f fdom m \<Longrightarrow> \<exists>b. \<langle>m\<r
 
 lemma fdomIff [iff, simp del]: "(a \<in>\<^sub>f fdom m) = (\<langle>m\<rangle>\<^sub>m a ~= None)"
   by (auto simp add:fdom_def fmember.rep_eq)
+
+nonterminal mupdbinds and mupdbind
+
+syntax
+  "_mupdbind" :: "['a, 'a] => mupdbind"               ("(2_ :=\<^sub>m/ _)")
+  ""          :: "mupdbind => mupdbinds"               ("_")
+  "_mupdbinds":: "[mupdbind, mupdbinds] => mupdbinds" ("_,/ _")
+  "_MUpdate"  :: "['a, mupdbinds] => 'a"              ("_/'((_)')" [1000, 0] 900)
+
+translations
+  "_MUpdate f (_mupdbinds b bs)" == "_MUpdate (_MUpdate f b) bs"
+  "f(x:=\<^sub>my)" == "CONST fmap_upd f x y"
+
+instantiation fmap :: (linorder,linorder) order
+begin
+
+definition less_eq_fmap :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> bool" where
+"less_eq_fmap m1 m2 \<longleftrightarrow> fdom m1 \<subseteq>\<^sub>f fdom m2 \<and> (\<forall>x\<in>\<^sub>ffdom m1. the (\<langle>m1\<rangle>\<^sub>m x) \<le> the (\<langle>m2\<rangle>\<^sub>m x))"
+
+definition less_fmap :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> bool" where
+"less_fmap x y \<longleftrightarrow> x \<le> y \<and> \<not> (y \<le> x)"
+
+instance 
+  apply (intro_classes)
+  apply (force simp add:less_fmap_def less_eq_fmap_def)
+  apply (force simp add:less_fmap_def less_eq_fmap_def)
+  apply (force simp add:less_fmap_def less_eq_fmap_def)
+  apply (auto simp add:less_fmap_def less_eq_fmap_def fdom.rep_eq)
+  apply (metis (lifting) domD domIff fmext order_antisym the.simps)
+done
+end
+
+lemma fdom_less_eq [simp]:
+  "m1 \<le> m2 \<Longrightarrow> fdom m1 \<subseteq>\<^sub>f fdom m2"
+  by (simp add:less_eq_fmap_def)
+
+lemma fmap_values_less_eq [simp]:
+  "\<lbrakk> m1 \<le> m2; x \<in>\<^sub>f fdom m1 \<rbrakk> \<Longrightarrow> the (\<langle>m1\<rangle>\<^sub>m x) \<le> the (\<langle>m2\<rangle>\<^sub>m x)"
+  by (simp add:less_eq_fmap_def)
+
+lemma fmempty_least [simp]:
+  "fmempty \<le> x"
+  by (simp add:less_eq_fmap_def fdom.rep_eq fmempty.rep_eq)
+
+lemma fmap_upd_less [intro]:
+  "k \<notin>\<^sub>f fdom f \<Longrightarrow> f \<le> fmap_upd f k v"
+  by (auto simp add:less_eq_fmap_def fmap_graph.rep_eq fmap_upd.rep_eq fdom.rep_eq map_graph_def)
+
+lemma fmap_fset_fmempty [simp]:
+  "fmap_graph fmempty = \<lbrace>\<rbrace>"
+  by (auto simp add: fmap_graph.rep_eq fmempty.rep_eq map_graph_def)
+
+lemma fdom_map_upd [simp]: 
+  "fdom (f(k :=\<^sub>m Some v)) = finsert k (fdom f)"
+  by (auto simp add:fdom.rep_eq fmap_upd.rep_eq)
+
+lemma fmap_graph_upd [simp]:
+  "k \<notin>\<^sub>f fdom f \<Longrightarrow> fmap_graph (fmap_upd f k (Some v)) = finsert (k, v) (fmap_graph f)"
+  apply (rule)
+  apply (auto simp add: finsert.rep_eq fmap_graph.rep_eq fmap_upd.rep_eq fdom.rep_eq dom_def map_graph_def)
+  apply (metis)
+  apply (metis option.inject)
+done
+
+lemma fmap_upd_apply [simp]: "\<langle>f(x:=\<^sub>my)\<rangle>\<^sub>m z = (if z=x then y else \<langle>f\<rangle>\<^sub>m z)"
+  by (simp add:fmap_upd.rep_eq)
+
+lemma fmap_upd_upd [simp]: "f(x:=\<^sub>my,x:=\<^sub>mz) = f(x:=\<^sub>mz)"
+  by (auto)
+
+lemma fempty_upd_None [simp]: "fmempty(x:=\<^sub>mNone) = fmempty"
+  by (auto simp add:fmempty.rep_eq)
 
 default_sort type
 

@@ -115,9 +115,12 @@ theorem EvalE_RenameE [evale] :
   by (simp add: EvalE_def RenameE.rep_eq)
 
 theorem EvalE_SubstP [eval] :
-  assumes "v \<rhd>\<^sub>e x"
-          "\<exists> z. is_SubstP_var p v x z"
-  shows "\<lbrakk>SubstP p v x\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b))"
+  "\<lbrakk>p[v|x]\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b))"
+  by (simp add:SubstP_def EvalP_def EvalE_def)
+
+(*
+
+
 proof -
 
   from assms(1) have "\<And> x'. is_SubstP_var p v x x' \<Longrightarrow> 
@@ -136,6 +139,8 @@ proof -
     apply (drule_tac x="b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b, x' :=\<^sub>b \<langle>b\<rangle>\<^sub>b x)" in bspec)
     apply (simp add:EvalP_def EvalE_def)
     apply (simp add:binding_upd_twist)
+  sorry
+(*
     apply (simp add:EvalP_def EvalE_def)
     apply (drule_tac x="b" in spec)
     apply (simp add:binding_upd_twist)
@@ -153,6 +158,7 @@ proof -
     apply (simp add:is_SubstP_var_def eval evale closure binding_upd_twist)
     apply (metis (lifting) binding_compat binding_upd_simps(2) binding_upd_twist evar_compat_def)
   done
+*)
 
   with assms show ?thesis
     apply (simp add:SubstP_def)
@@ -163,6 +169,7 @@ proof -
   done
 
 qed
+*)
 
 lemma EvalE_UNREST_binding_upd [evale]:
   "\<lbrakk> v \<rhd> x; UNREST_EXPR {x} e \<rbrakk> \<Longrightarrow> \<lbrakk>e\<rbrakk>\<epsilon>(b(x :=\<^sub>b v)) = \<lbrakk>e\<rbrakk>\<epsilon>b"
@@ -205,13 +212,14 @@ theorem VarE_subst: "\<lbrakk> v :\<^sub>e vtype x; \<not> aux x \<rbrakk> \<Lon
   by utp_expr_tac
 
 theorem SubstP_one_point:
-  "\<lbrakk> e \<rhd>\<^sub>e x; \<exists> z. is_SubstP_var p e x z; UNREST_EXPR {x} e \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> e \<rhd>\<^sub>e x; UNREST_EXPR {x} e \<rbrakk> \<Longrightarrow>
   (\<exists>p {x}. p \<and>p (VarE x ==p e)) = p[e|x]"
   apply (utp_pred_tac)
   apply (utp_expr_tac)
   apply (auto)
   apply (metis EvalE_compat binding_upd_apply)
 done
+
 
 (*
   apply (auto)

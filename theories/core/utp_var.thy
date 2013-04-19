@@ -13,6 +13,53 @@ begin
 text {* A variable constists of a name, type and a flag denoting if it is a auxiliary
 variable or not. *}
 
+
+(* datatype 'VALUE VAR = MkVar NAME "'VALUE UTYPE" bool *)
+
+(*
+primrec var_name :: "'VALUE VAR \<Rightarrow> NAME" ("name") where
+"var_name (MkVar n t d) = n"
+
+primrec var_type :: "'VALUE VAR \<Rightarrow> 'VALUE UTYPE" ("vtype") where
+"var_type (MkVar n t d) = t"
+
+primrec var_aux :: "'VALUE VAR \<Rightarrow> bool" ("aux") where
+"var_aux (MkVar n t d) = d"
+
+lemma MkVar_inverse [simp]: 
+  "MkVar (name x) (vtype x) (aux x) = x"
+  by (case_tac x, simp)
+
+lemma VAR_eq_intro [intro]:
+  "\<lbrakk> name x = name y; vtype x = vtype y; aux x = aux y \<rbrakk> \<Longrightarrow> x = y"
+  by (case_tac x, case_tac y, simp)
+
+lemma VAR_elim [elim]:
+  "\<lbrakk> \<And> n t d. a = MkVar n t d \<Longrightarrow> P a \<rbrakk> \<Longrightarrow> P a"
+  by (case_tac a, simp)
+*)
+
+(*
+instantiation VAR :: (VALUE) linorder
+begin
+
+definition less_eq_VAR :: "'a VAR \<Rightarrow> 'a VAR \<Rightarrow> bool" where
+"x \<le> y \<longleftrightarrow> name x < name y \<or>
+           (name x = name y \<and> to_nat (vtype x) < to_nat (vtype y)) \<or>
+           (name x = name y \<and> to_nat (vtype x) = to_nat (vtype y) \<and> aux x \<le> aux y)"
+
+definition less_VAR :: "'a VAR \<Rightarrow> 'a VAR \<Rightarrow> bool" where
+"less_VAR x y \<longleftrightarrow> (x \<le> y \<and> \<not> y \<le> x)"
+
+instance 
+  apply (intro_classes)
+  apply (simp add:less_VAR_def)
+  apply (simp_all add:less_eq_VAR_def)
+  apply (auto)
+done
+end
+*)
+
 type_synonym 'VALUE VAR =
   "NAME \<times> 'VALUE UTYPE \<times> bool"
 
@@ -40,14 +87,12 @@ definition MkPlain :: "string \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool \<Ri
 subsection {* Operators *}
 
 definition dash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" ("_\<acute>") where
-"dash \<equiv> \<lambda> x. ( MkName (name_str (name x)) (dashes (fst x) + 1) (subscript (name x))
-             , vtype x
-             , aux x)"
+"dash \<equiv> \<lambda> x. MkVar (MkName (name_str (name x)) (dashes (name x) + 1) (subscript (name x)))
+                   (vtype x) (aux x)"
 
 definition undash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" where
-"undash \<equiv> \<lambda> x. ( MkName (name_str (name x)) (dashes (fst x)- 1) (subscript (name x))
-               , fst (snd x)
-               , snd (snd x))"
+"undash \<equiv> \<lambda> x. MkVar (MkName (name_str (name x)) (dashes (name x)- 1) (subscript (name x)))
+                     (vtype x) (aux x)"
 
 subsection {* Recontrolions *}
 
@@ -109,7 +154,7 @@ theorem VAR_member [simp] :
   by (simp add: VAR_def)
 
 theorem MkVar_name [simp]: 
-  "name (MkVar n t s) = n" 
+  "name (MkVar n t s) = n"
   by (simp add:var_defs)
 
 theorem MkVar_vtype [simp]: 
@@ -122,7 +167,7 @@ theorem MkVar_aux [simp]:
 
 lemma MkVar_eq_iff[simp]: 
   "MkVar n t s = MkVar n' t' s' \<longleftrightarrow> n = n' \<and> t = t' \<and> s = s'"
-  by (simp add:MkVar_def)
+  by (auto simp add:var_defs)
 
 subsubsection {* Names and Types *}
 
@@ -206,11 +251,18 @@ theorem not_dash_dash_member_out :
 
 lemma undash_image_member :
   "dash x \<in> xs \<Longrightarrow> x \<in> undash ` xs"
-  by (force simp add: var_defs)
+  apply (auto simp add:var_defs)
+  apply (rule)
+  apply (auto)
+done
 
 lemma dash_image_member :
   "\<lbrakk> x \<in> DASHED; undash x \<in> xs \<rbrakk> \<Longrightarrow> x \<in> dash ` xs"
-  by (case_tac x, force simp add: var_defs)
+  apply (case_tac x)
+  apply (auto simp add:var_defs image_iff)
+  apply (rule)
+  apply (auto)
+done
 
 lemma out_member : 
   "\<lbrakk> x \<in> DASHED; x \<in> vs \<rbrakk> \<Longrightarrow> x \<in> out vs"
@@ -414,11 +466,28 @@ theorem in_out_union [intro] :
  (in vs) \<union> (out vs) = vs"
   by (auto simp add: var_defs)
 
+theorem HOMOGENEOUS_undash_out:
+  "HOMOGENEOUS vs \<Longrightarrow> undash ` out vs = in vs"
+  by (simp add: HOMOGENEOUS_def COMPOSABLE_def undash_dash_image)
+
+theorem HOMOGENEOUS_dash_in:
+  "HOMOGENEOUS vs \<Longrightarrow> dash ` in vs = out vs"
+  by (simp add: HOMOGENEOUS_def COMPOSABLE_def)
+
 theorem in_out_UNDASHED_DASHED:
   "in UNDASHED = UNDASHED"
   "out UNDASHED = {}"
   "in DASHED = {}"
   "out DASHED = DASHED"
+  by (auto simp add:var_defs)
+
+theorem UNDASHED_DASHED_inter:
+  "UNDASHED \<inter> DASHED = {}"
+  "DASHED \<inter> UNDASHED = {}"
+  "UNDASHED \<inter> DASHED_TWICE = {}"
+  "DASHED_TWICE \<inter> UNDASHED = {}"
+  "DASHED \<inter> DASHED_TWICE = {}"
+  "DASHED_TWICE \<inter> DASHED = {}"
   by (auto simp add:var_defs)
 
 theorems var_simps =
@@ -444,14 +513,17 @@ theorems var_simps =
   in_out_disj
   in_out_union
   in_out_UNDASHED_DASHED
+  UNDASHED_DASHED_inter
+  HOMOGENEOUS_undash_out
+  HOMOGENEOUS_dash_in
 
 declare var_simps [simp]
 
 subsubsection {* Injectivity Theorems *}
 
-theorem dash_inj :
-"inj dash"
-apply (rule injI)
+theorem dash_inj [simp]:
+"inj_on dash vs"
+apply (rule inj_onI)
 apply (force simp add: prod_eq_iff var_defs)
 done
 
@@ -459,29 +531,29 @@ theorem dash_elim [elim] :
   "\<lbrakk>dash x = dash y; x = y \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
  by (metis undash_dash)
 
-theorem undash_inj_on :
+theorem undash_inj_on [simp]:
 "inj_on undash (- UNDASHED)"
 apply (rule inj_onI)
 apply (force simp add: var_defs prod_eq_iff)
 done
 
-theorem undash_inj_on_DASHED :
+theorem undash_inj_on_DASHED [simp]:
 "inj_on undash DASHED"
 apply (rule inj_onI)
 apply (force simp add: var_defs prod_eq_iff)
 done
 
-theorem undash_inj_on_DASHED_TWICE :
+theorem undash_inj_on_DASHED_TWICE [simp]:
 "inj_on undash DASHED_TWICE"
 apply (rule inj_onI)
 apply (force simp add: var_defs prod_eq_iff)
 done
 
-theorem dash_strict_mono :
+theorem dash_strict_mono [simp]:
 "strict_mono dash"
   apply (auto simp add:strict_mono_def)
   apply (simp add: NAME_less_iff prod_less_def dash_name_str dash_subscript dash_dashes)
-  apply (smt NAME_eq_intro dash_dashes dash_name_str dash_subscript dashes_mono linorder_not_less name_str_mono order_antisym_conv order_eq_refl subscript_mono)
+  apply (metis (hide_lams, no_types) MkVar_name NAME_less_iff dash_def order_eq_iff order_less_le)
 done
 
 subsubsection {* Distribution Theorems *}
@@ -612,7 +684,7 @@ proof -
   with assms show ?thesis
     apply (rule_tac x="MkVar n t s" in exI)
     apply (simp)
-    apply (metis (lifting) MkVar_name assms image_iff)
+    apply (metis MkVar_name imageI)
   done
 qed
 

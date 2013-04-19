@@ -70,7 +70,7 @@ definition MapRename ::
   "('VALUE VAR \<rightharpoonup> 'VALUE VAR) \<Rightarrow>
     'VALUE VAR \<Rightarrow> 'VALUE VAR" where
 "MapRename f = the \<circ> (Some ++ (map_inv f ++ f))"
-
+  
 subsection {* Theorems *}
 
 subsubsection {* Auxiliary Theorems *}
@@ -450,6 +450,89 @@ lemma rename_equiv_trans :
  ss1 \<cong>\<^sub>s ss3 on vs"
   by (simp add: rename_equiv_def)
 
+definition rename_func_on :: "('VALUE VAR \<Rightarrow> 'VALUE VAR) \<Rightarrow> 'VALUE VAR set \<Rightarrow> bool" where
+"rename_func_on f vs \<longleftrightarrow> (inj_on f vs \<and> f ` vs \<inter> vs = {} \<and> (\<forall> x. vtype x = vtype (f x)) \<and> (\<forall> x. aux x = aux (f x)))"
+
+lemma rename_func_onE [elim]:
+  "\<lbrakk> rename_func_on f vs; \<lbrakk> inj_on f vs; f ` vs \<inter> vs = {}; \<forall> x. vtype x = vtype (f x); \<forall> x. aux x = aux (f x) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (auto simp add:rename_func_on_def)
+
+lemma dash_UNDASHED_rename_func [closure]:
+  "xs \<subseteq> UNDASHED \<Longrightarrow> rename_func_on dash xs"
+  by (auto simp add:rename_func_on_def)
+
+lemma comp_rename_func [closure]:
+  "\<lbrakk> rename_func_on f vs; rename_func_on g (f ` vs); vs \<inter> g ` f ` vs = {} \<rbrakk> 
+   \<Longrightarrow> rename_func_on (g \<circ> f) vs"
+  by (auto intro: comp_inj_on simp add:rename_func_on_def)
+
+lemma dash_DASHED_rename_func [closure]:
+  "xs \<subseteq> DASHED \<Longrightarrow> rename_func_on dash xs"
+  by (auto simp add:rename_func_on_def)
+
+lemma undash_DASHED_rename_func [closure]:
+  "xs \<subseteq> DASHED \<Longrightarrow> rename_func_on undash xs"
+  apply (auto simp add:rename_func_on_def)
+  apply (metis subset_inj_on undash_inj_on_DASHED)
+done
+
+lemma undash_DASHED_TWICE_rename_func [closure]:
+  "xs \<subseteq> DASHED_TWICE \<Longrightarrow> rename_func_on undash xs"
+  apply (auto simp add:rename_func_on_def)
+  apply (metis subset_inj_on undash_inj_on_DASHED_TWICE)
+done
+
+lemma dash_dash_UNDASHED_rename_func [closure]:
+  "xs \<subseteq> UNDASHED \<Longrightarrow> rename_func_on (dash \<circ> dash) xs"
+  by (auto intro: closure)
+
+definition rename_on ::
+  "('VALUE VAR \<Rightarrow> 'VALUE VAR) 
+   \<Rightarrow> ('VALUE VAR) set
+   \<Rightarrow> 'VALUE VAR_RENAME" (infix "on" 100) where
+"rename_on f vs = Abs_VAR_RENAME (complete_inj f vs)"
+
+lemma rename_on_VAR_RENAME [closure]:
+  "rename_func_on f vs \<Longrightarrow>
+   complete_inj f vs \<in> VAR_RENAME"
+  apply (erule rename_func_onE)
+  apply (simp add:VAR_RENAME_def)
+  apply (rule)
+  apply (metis bij_complete_inj)
+  apply (rule)
+  apply (case_tac "v \<in> vs")
+  apply (simp_all)
+  apply (case_tac "v \<in> f ` vs")
+  apply (simp_all)
+  apply (metis f_inv_into_f)
+done
+
+lemma rename_on_rep_eq:
+  "rename_func_on f vs \<Longrightarrow>
+     \<langle>rename_on f vs\<rangle>\<^sub>s = complete_inj f vs"
+  by (metis Abs_VAR_RENAME_inverse rename_on_VAR_RENAME rename_on_def)
+
+lemma rename_on_split:
+  "\<lbrakk> rename_func_on f vs; vs = vs1 \<union> vs2; vs1 \<inter> vs2 = {} \<rbrakk> \<Longrightarrow>
+     f on vs1 \<circ>\<^sub>s f on vs2 = f on vs"
+  apply (rule)
+  apply (subgoal_tac "rename_func_on f vs1")
+  apply (subgoal_tac "rename_func_on f vs2")
+  apply (simp add:rename_on_rep_eq)
+  apply (auto)
+  apply (auto simp add:rename_func_on_def)
+  apply (metis inj_on_Un)+
+done
+
+lemma rename_on_image:
+  "rename_func_on f vs1 \<Longrightarrow> 
+     f on vs1 `\<^sub>s vs2 = 
+     f ` (vs2 \<inter> vs1) \<union> inv_into vs1 f ` (vs2 \<inter> f ` vs1) \<union> (vs2 \<inter> -(vs1 \<union> f ` vs1))"
+  apply (simp add:rename_on_rep_eq)
+  apply (erule rename_func_onE)
+  apply (simp)
+done
+
 text {* More theorems about @{term "VAR_RENAME"} *}
 
 lemma VAR_RENAME_MapRename [closure]:
@@ -614,6 +697,11 @@ apply (simp add: VAR_RENAME_ON_app_member)
 apply (auto)
 done
 
+theorem VAR_RENAME_ON_rename_on [closure]:
+  "rename_func_on f vs \<Longrightarrow>
+   rename_on f vs \<in> VAR_RENAME_ON (vs \<union> f ` vs)"
+  by (simp add:VAR_RENAME_ON_def rename_on_rep_eq)
+
 text {* Theorems about @{term "VAR_RENAME_INV"} *}
 
 theorem VAR_RENAME_INV_inv_closure [closure] :
@@ -625,15 +713,20 @@ text {* Should the following theorem be a default simplifications? *}
 
 text {* This causes a loop though when simplifying @{term VAR_RENAME_INV}. *}
 
-theorem VAR_RENAME_INV_inv :
+theorem VAR_RENAME_INV_inv [simp]:
 "ss \<in> VAR_RENAME_INV \<Longrightarrow> (inv\<^sub>s ss) = ss"
 apply (simp add: VAR_RENAME_INV_def)
 done
 
+theorem VAR_RENAME_INV_inv' [simp]:
+"ss \<in> VAR_RENAME_INV \<Longrightarrow> (inv \<langle>ss\<rangle>\<^sub>s) = \<langle>ss\<rangle>\<^sub>s"
+  by (metis VAR_RENAME_INV_inv rename_inv_rep_eq)
+
 theorem VAR_RENAME_INV_comp [simp] :
 "ss \<in> VAR_RENAME_INV \<Longrightarrow> (ss \<circ>\<^sub>s ss) = id\<^sub>s"
-apply (simp add: VAR_RENAME_INV_def)
 apply (rule Rep_VAR_RENAME_intro)
+apply (simp)
+apply (unfold VAR_RENAME_INV_def)
 apply (simp)
 apply (erule Rep_VAR_RENAME_elim)
 apply (erule ssubst) back
@@ -643,6 +736,11 @@ done
 theorem VAR_RENAME_INV_app [simp] :
 "ss \<in> VAR_RENAME_INV \<Longrightarrow> \<langle>ss\<rangle>\<^sub>s (\<langle>ss\<rangle>\<^sub>s x) = x"
   by (metis VAR_RENAME_INV_comp id_apply o_eq_dest_lhs rename_comp_rep_eq rename_id_rep_eq)
+
+theorem VAR_RENAME_INV_rename_on [closure]:
+  "\<lbrakk> rename_func_on f vs \<rbrakk> \<Longrightarrow>
+   rename_on f vs \<in> VAR_RENAME_INV"
+  unfolding VAR_RENAME_INV_def by (force simp add: rename_on_rep_eq)
 
 subsection {* Binding Renaming *}
 
@@ -661,6 +759,10 @@ definition RenameB ::
    'VALUE WF_BINDING \<Rightarrow>
    'VALUE WF_BINDING" where
 "RenameB ss b = CompB b (inv\<^sub>s ss)"
+
+lemma RenameB_rep_eq:
+  "\<langle>RenameB ss b\<rangle>\<^sub>b = \<langle>b\<rangle>\<^sub>b \<circ> inv \<langle>ss\<rangle>\<^sub>s"
+  by (simp add:RenameB_def)
 
 subsection {* Predicate Renaming *}
 
@@ -823,6 +925,14 @@ apply (subgoal_tac "ss \<circ>\<^sub>s ss = id\<^sub>s")
 apply (simp add: RenameB_compose)
 apply (force simp add:closure)
 done
+
+lemma var_compat_rename [typing]: 
+  "v \<rhd> x \<Longrightarrow> v \<rhd> \<langle>ss\<rangle>\<^sub>s x"
+  by (metis (lifting) Rep_VAR_RENAME_aux Rep_VAR_RENAME_type var_compat_def)
+
+lemma RenameB_binding_upd [simp]:
+  "v \<rhd> x \<Longrightarrow> RenameB ss (b(x :=\<^sub>b v)) = (RenameB ss b)(\<langle>ss\<rangle>\<^sub>s x :=\<^sub>b v)"
+  by (force simp add:RenameB_rep_eq typing)
 
 subsubsection {* Predicate Renaming *}
 

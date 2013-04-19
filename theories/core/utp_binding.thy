@@ -39,6 +39,10 @@ lemma var_compat_default [typing]:
   "default (vtype x) \<rhd> x"
   by (auto intro:typing defined)
 
+lemma var_comp_dash [typing]:
+  "v \<rhd> x \<Longrightarrow> v \<rhd> x\<acute>"
+  by (simp add:var_compat_def)
+
 subsection {* Bindings *}
 
 text {* We require bindings to be well-typed. *}
@@ -198,7 +202,7 @@ lemma binding_value_alt [simp, intro]:
   by (auto simp add:var_compat_def intro: defined)
 
 lemma binding_eq_iff: "f = g = (\<forall>x. \<langle>f\<rangle>\<^sub>b x = \<langle>g\<rangle>\<^sub>b x)"
-  by (auto)
+  by (force)
 
 text {* Binding update *}
 
@@ -355,7 +359,7 @@ theorem binding_equiv_total :
 "b1 \<cong> b2 on VAR \<longleftrightarrow> b1 = b2"
 apply (simp add: binding_equiv_def)
 apply (simp add: VAR_def)
-apply (auto)
+apply (force)
 done
 
 text {* The default binding *}

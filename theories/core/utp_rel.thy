@@ -25,6 +25,11 @@ subsection {* Renamings *}
 
 text {* The renaming @{term "SS"} swaps dashed and undashed variables. *}
 
+abbreviation "SS \<equiv> rename_on dash UNDASHED"
+abbreviation "SS1 \<equiv> rename_on dash DASHED"
+abbreviation "SS2 \<equiv> rename_on (dash \<circ> dash) UNDASHED"
+
+(*
 lift_definition SS :: "'VALUE VAR_RENAME" is
 "(\<lambda> v .
    if v \<in> UNDASHED then (dash v) else
@@ -51,6 +56,7 @@ lift_definition SS2 :: "'VALUE VAR_RENAME" is
   apply (auto)
   apply (metis (lifting) DASHED_TWICE_undash_DASHED DASHED_undash_UNDASHED dash_undash_DASHED dash_undash_DASHED_TWICE)
 done
+*)
 
 subsection {* Operators *}
 
@@ -100,14 +106,32 @@ notation SemiR (infixr ";" 140)
 
 subsubsection {* Assignment *}
 
+lift_definition AssignR ::
+"'VALUE VAR \<Rightarrow>
+ 'VALUE WF_EXPRESSION \<Rightarrow>
+ 'VALUE WF_PREDICATE"
+is "\<lambda> x e. {b. \<forall> v \<in> UNDASHED . if (v = x) then \<langle>b\<rangle>\<^sub>b (dash v) = \<langle>e\<rangle>\<^sub>e b 
+                                           else \<langle>b\<rangle>\<^sub>b (dash v) = \<langle>b\<rangle>\<^sub>b v}" .
+
+notation AssignR (infix ":=p" 190)
+
+lift_definition AssignRA ::
+"'VALUE VAR \<Rightarrow>
+ 'VALUE VAR set \<Rightarrow>
+ 'VALUE WF_EXPRESSION \<Rightarrow>
+ 'VALUE WF_PREDICATE" is "\<lambda> x vs v. (\<exists>p ((UNDASHED \<union> DASHED) - vs). x :=p v)" .
+
+notation AssignRA (infix ":=p\<^bsub>_\<^esub>" 190)
+
+
+(*
 definition AssignR ::
 "'VALUE VAR \<Rightarrow>
  'VALUE VAR set \<Rightarrow>
  'VALUE WF_EXPRESSION \<Rightarrow>
  'VALUE WF_PREDICATE" where
-"AssignR x a v \<equiv> VarE (dash x) ==p v \<and>p II (a - {x,dash x})"
-
-notation AssignR ("_ :=p\<^bsub>_ \<^esub>_" [190] 190)
+"AssignR x v \<equiv> VarE (dash x) ==p v \<and>p II (a - {x,dash x})"
+*)
 
 subsection {* Theorems *}
 
@@ -115,47 +139,47 @@ subsubsection {* Renaming Theorems *}
 
 text {* Theorems for @{term SS} *}
 
-theorem SS_UNDASHED_app :
+theorem SS_UNDASHED_app [urename]:
 "\<lbrakk>x \<in> UNDASHED\<rbrakk> \<Longrightarrow> \<langle>SS\<rangle>\<^sub>s x = dash x"
-apply (simp add: SS.rep_eq)
-done
+  by (simp add: rename_on_rep_eq closure)
 
-theorem SS_DASHED_app :
+lemma dash_inv_into [simp]: "x \<in> DASHED \<Longrightarrow> inv_into UNDASHED dash x = undash x"
+  by (metis (lifting) dash_UNDASHED_image f_inv_into_f undash_dash)
+
+theorem SS_DASHED_app [urename]:
 "\<lbrakk>x \<in> DASHED\<rbrakk> \<Longrightarrow> \<langle>SS\<rangle>\<^sub>s x = undash x"
+  apply (simp add:rename_on_rep_eq closure)
+  apply (subgoal_tac "x \<notin> UNDASHED")
+  apply (auto simp add:var_contra)
+(*
 apply (simp add: SS.rep_eq)
 apply (simp add: var_defs)
+*)
 done
 
-theorem SS_DASHED_TWICE_app :
+theorem SS_DASHED_TWICE_app [urename]:
 "\<lbrakk>x \<in> DASHED_TWICE\<rbrakk> \<Longrightarrow> \<langle>SS\<rangle>\<^sub>s x = x"
-apply (simp add: SS.rep_eq)
-apply (simp add: var_defs)
+  apply (simp add:rename_on_rep_eq closure)
+  apply (subgoal_tac "x \<notin> UNDASHED")
+  apply (subgoal_tac "x \<notin> dash ` UNDASHED")
+  apply (auto simp add:var_contra)
 done
 
-theorem SS_ident_app :
+theorem SS_ident_app [urename]:
 "\<lbrakk>\<not> x \<in> UNDASHED; \<not> x \<in> DASHED\<rbrakk> \<Longrightarrow> \<langle>SS\<rangle>\<^sub>s x = x"
-apply (simp add: SS.rep_eq)
-done
+  by (simp add:rename_on_rep_eq closure)
 
 theorem SS_VAR_RENAME_ON [closure] :
 "SS \<in> VAR_RENAME_ON (UNDASHED \<union> DASHED)"
-  by (simp add: VAR_RENAME_ON_def SS.rep_eq)
+  by (simp add: VAR_RENAME_ON_rename_on[of dash UNDASHED, simplified] closure)
 
 theorem SS_VAR_RENAME_INV [closure] :
 "SS \<in> VAR_RENAME_INV"
-apply (simp add: VAR_RENAME_INV_def)
-apply (rule Rep_VAR_RENAME_intro)
-apply (simp add:SS.rep_eq)
-apply (rule sym [OF inv_equality])
-apply (auto)
-done
+  by (simp add: VAR_RENAME_INV_rename_on[of dash UNDASHED, simplified] closure)
 
 theorem SS_inv [simp] :
 "inv\<^sub>s SS = SS"
-apply (insert SS_VAR_RENAME_INV)
-apply (simp add: VAR_RENAME_INV_def VAR_RENAME_def)
-apply (metis (lifting) SS_VAR_RENAME_INV VAR_RENAME_INV_inv)
-done
+  by (simp add:closure)
 
 theorem SS_inv' [simp] :
 "inv \<langle>SS\<rangle>\<^sub>s = \<langle>SS\<rangle>\<^sub>s"
@@ -164,16 +188,29 @@ theorem SS_inv' [simp] :
   apply (simp only: rename_inv_rep_eq)
 done
 
+lemma dash_inv_into_image [simp]: 
+  "xs \<subseteq> DASHED \<Longrightarrow> inv_into UNDASHED dash ` xs = undash ` xs"
+  by (metis dash_UNDASHED_image image_inv_into_cancel undash_dash_image)
+
+ 
 theorem SS_UNDASHED_DASHED_image [urename]:
 "\<lbrakk>vs \<subseteq> UNDASHED \<union> DASHED\<rbrakk> \<Longrightarrow>
  SS `\<^sub>s vs = dash ` (in vs) \<union> undash ` (out vs)"
-  by (auto simp add: image_def var_defs SS.rep_eq)
+  apply (simp only: rename_on_image closure)
+  apply (auto simp add:in_vars_def out_vars_def)
+done
 
 theorem SS_DASHED_member :
 "x \<in> DASHED \<Longrightarrow> \<not> \<langle>SS\<rangle>\<^sub>s x \<in> DASHED"
-apply (simp add: SS.rep_eq)
-apply (simp add: var_defs)
-done
+  by (metis DASHED_dash_elim SS_DASHED_app dash_eq_undash_contra1)
+
+theorem SS_UNDASHED_image :
+"\<langle>SS\<rangle>\<^sub>s ` UNDASHED = DASHED"
+  by (metis (lifting) SS_UNDASHED_app dash_UNDASHED_image image_cong)
+
+theorem SS_DASHED_image :
+"\<langle>SS\<rangle>\<^sub>s ` DASHED = UNDASHED"
+  by (metis (lifting) SS_DASHED_app image_cong undash_DASHED_image)
 
 theorems SS_simps =
   SS_UNDASHED_app
@@ -182,50 +219,42 @@ theorems SS_simps =
   SS_ident_app
   SS_inv
   SS_UNDASHED_DASHED_image
+  SS_UNDASHED_image
+  SS_DASHED_image
 
 text {* Theorems for @{term SS1} *}
 
 theorem SS1_UNDASHED_app [urename]:
 "\<lbrakk>x \<in> UNDASHED\<rbrakk> \<Longrightarrow> \<langle>SS1\<rangle>\<^sub>s x = x"
-  by (simp add: SS1.rep_eq)
+  by (simp add:rename_on_rep_eq closure)
 
 theorem SS1_DASHED_app [urename]:
 "\<lbrakk>x \<in> DASHED\<rbrakk> \<Longrightarrow> \<langle>SS1\<rangle>\<^sub>s x = dash x"
-apply (simp add: SS1.rep_eq)
-done
+  by (simp add:rename_on_rep_eq closure)
 
 theorem SS1_DASHED_TWICE_app [urename]:
 "\<lbrakk>x \<in> DASHED_TWICE\<rbrakk> \<Longrightarrow> \<langle>SS1\<rangle>\<^sub>s x = undash x"
-apply (simp add: SS1.rep_eq)
-apply (simp add: var_defs)
+  apply (simp add:rename_on_rep_eq closure)
+  apply (subgoal_tac "x \<notin> DASHED")
+  apply (subgoal_tac "x \<in> dash ` DASHED")
+  apply (auto simp add:var_contra)
 done
 
 theorem SS1_ident_app [urename]:
 "\<lbrakk>\<not> x \<in> DASHED; \<not> x \<in> DASHED_TWICE\<rbrakk> \<Longrightarrow> \<langle>SS1\<rangle>\<^sub>s x = x"
-apply (simp add: SS1.rep_eq)
-done
+  by (simp add:rename_on_rep_eq closure)
 
 theorem SS1_VAR_RENAME_ON [closure] :
 "SS1 \<in> VAR_RENAME_ON (DASHED \<union> DASHED_TWICE)"
-apply (simp add: VAR_RENAME_ON_def)
-apply (simp add: SS1.rep_eq)
-done
+  by (simp add: VAR_RENAME_ON_rename_on[of dash DASHED, simplified] closure)
 
 theorem SS1_VAR_RENAME_INV [closure] :
 "SS1 \<in> VAR_RENAME_INV"
-apply (simp add: VAR_RENAME_INV_def)
-apply (rule Rep_VAR_RENAME_intro)
-apply (simp add:SS1.rep_eq)
-apply (rule sym [OF inv_equality])
-apply (auto)
-done
+  by (simp add: VAR_RENAME_INV_rename_on[of dash DASHED, simplified] closure)
 
 theorem SS1_inv [simp] :
 "inv\<^sub>s SS1 = SS1"
-apply (insert SS1_VAR_RENAME_INV)
-apply (simp add: VAR_RENAME_INV_def VAR_RENAME_def)
-apply (metis (lifting) SS1_VAR_RENAME_INV VAR_RENAME_INV_inv)
-done
+  by (simp add:closure)
 
 theorem SS1_inv' [simp] :
 "inv \<langle>SS1\<rangle>\<^sub>s = \<langle>SS1\<rangle>\<^sub>s"
@@ -237,7 +266,9 @@ done
 theorem SS1_UNDASHED_DASHED_image [urename] :
 "\<lbrakk>vs \<subseteq> UNDASHED \<union> DASHED\<rbrakk> \<Longrightarrow>
  SS1 `\<^sub>s vs = (in vs) \<union> dash ` (out vs)"
-  by (auto simp add: image_def var_defs SS1.rep_eq)
+  apply (simp only: rename_on_image closure)
+  apply (auto simp add:in_vars_def out_vars_def)
+done
 
 theorems SS1_simps =
   SS1_UNDASHED_app
@@ -250,45 +281,44 @@ text {* Theorems for @{term SS2} *}
 
 theorem SS2_DASHED_app [urename]:
 "x \<in> DASHED \<Longrightarrow> \<langle>SS2\<rangle>\<^sub>s x = x"
-apply (simp add: SS2.rep_eq)
-apply (simp add: var_defs)
+  apply (simp add:rename_on_rep_eq closure)
+  apply (subgoal_tac "x \<notin> UNDASHED")
+  apply (subgoal_tac "x \<notin> (dash \<circ> dash) ` UNDASHED")
+  apply (auto simp add:var_contra)
 done
 
 theorem SS2_UNDASHED_app [urename]:
 "x \<in> UNDASHED \<Longrightarrow> \<langle>SS2\<rangle>\<^sub>s x = dash (dash x)"
-apply (simp add: SS2.rep_eq)
-done
+  by (simp add:rename_on_rep_eq closure)
 
 theorem SS2_DASHED_TWICE_app [urename]:
 "\<lbrakk>x \<in> DASHED_TWICE\<rbrakk> \<Longrightarrow> \<langle>SS2\<rangle>\<^sub>s x =  undash (undash x)"
-apply (simp add: SS2.rep_eq)
-apply (simp add: var_defs)
+  apply (simp add:rename_on_rep_eq closure)
+  apply (subgoal_tac "x \<notin> UNDASHED")
+  apply (subgoal_tac "x \<in> (dash \<circ> dash) ` UNDASHED")
+  apply (simp)
+  apply (smt DASHED_TWICE_dash_elim dash_elim dash_undash_DASHED dash_undash_DASHED_TWICE f_inv_into_f o_def)
+  apply (auto simp add:var_contra)
+  apply (metis dash_DASHED_image dash_UNDASHED_image image_compose)
 done
 
 theorem SS2_ident_app [urename]:
 "\<lbrakk>\<not> x \<in> UNDASHED; \<not> x \<in> DASHED_TWICE\<rbrakk> \<Longrightarrow> \<langle>SS2\<rangle>\<^sub>s x = x"
-apply (simp add: SS2.rep_eq)
+  apply (simp add:rename_on_rep_eq closure)
+  apply (metis (lifting, full_types) complete_inj_none dash_DASHED_image dash_UNDASHED_image image_compose)
 done
 
 theorem SS2_VAR_RENAME_ON [closure] :
 "SS2 \<in> VAR_RENAME_ON (UNDASHED \<union> DASHED_TWICE)"
-  by (simp add: VAR_RENAME_ON_def SS2.rep_eq)
+  by (insert VAR_RENAME_ON_rename_on[of "dash \<circ> dash" UNDASHED, simplified], simp add:image_compose closure)
 
 theorem SS2_VAR_RENAME_INV [closure] :
 "SS2 \<in> VAR_RENAME_INV"
-  apply (simp add: VAR_RENAME_INV_def)
-  apply (rule Rep_VAR_RENAME_intro)
-  apply (simp add:SS2.rep_eq)
-  apply (rule sym [OF inv_equality])
-  apply (auto)
-done
+  by (metis VAR_RENAME_INV_rename_on dash_dash_UNDASHED_rename_func subset_refl)
 
 theorem SS2_inv [simp] :
 "inv\<^sub>s SS2 = SS2"
-apply (insert SS2_VAR_RENAME_INV)
-apply (simp add: VAR_RENAME_INV_def VAR_RENAME_def)
-apply (metis (lifting) SS2_VAR_RENAME_INV VAR_RENAME_INV_inv)
-done
+  by (simp add:closure)
 
 theorem SS2_inv' [simp] :
 "inv \<langle>SS2\<rangle>\<^sub>s = \<langle>SS2\<rangle>\<^sub>s"
@@ -300,7 +330,9 @@ done
 theorem SS2_UNDASHED_DASHED_image [urename]:
 "\<lbrakk>vs \<subseteq> UNDASHED \<union> DASHED\<rbrakk> \<Longrightarrow>
  SS2 `\<^sub>s vs = dash ` dash ` (in vs) \<union> (out vs)"
-  by (auto simp add: image_def var_defs SS2.rep_eq)
+  apply (simp only: rename_on_image closure)
+  apply (auto simp add:in_vars_def out_vars_def image_compose)
+done
 
 theorems SS2_simps =
   SS2_UNDASHED_app
@@ -312,16 +344,16 @@ theorems SS2_simps =
 subsubsection {* Renamings Equalities *}
 
 lemma SS1_SS_eq_SS2: "SS1 \<circ>\<^sub>s SS \<cong>\<^sub>s SS2 on UNDASHED"
-  by (auto simp add:rename_equiv_def SS1.rep_eq SS.rep_eq SS2.rep_eq)
+  by (auto simp add:rename_equiv_def urename)
 
 lemma SS2_SS_eq_SS1: "SS2 \<circ>\<^sub>s SS \<cong>\<^sub>s SS1 on DASHED"
-  by (auto simp add:rename_equiv_def SS1.rep_eq SS.rep_eq SS2.rep_eq)
+  by (auto simp add:rename_equiv_def urename)
 
 lemma SS1_eq_id: "SS1 \<cong>\<^sub>s id\<^sub>s on UNDASHED"
-  by (auto simp add:rename_equiv_def SS1.rep_eq)
+  by (auto simp add:rename_equiv_def urename)
 
 lemma SS2_eq_id: "SS2 \<cong>\<^sub>s id\<^sub>s on DASHED"
-  by (auto simp add:rename_equiv_def SS2.rep_eq)
+  by (auto simp add:rename_equiv_def urename)
 
 subsubsection {* Theorems for @{term "COMPOSABLE_BINDINGS"} *}
 
@@ -386,6 +418,24 @@ theorem UNREST_SkipRA [unrest]:
   by (auto intro:closure unrest simp add:SkipRA_def)
 
 theorem UNREST_AssignR [unrest]:
+"\<lbrakk> x \<in> UNDASHED; UNREST_EXPR (-(UNDASHED \<union> DASHED)) v \<rbrakk> \<Longrightarrow> UNREST (-(UNDASHED \<union> DASHED)) (x :=p v)"
+  by (simp add:AssignR_def UNREST_def UNREST_EXPR_def WF_BINDING_def override_on_def)
+
+theorem UNREST_AssignRA [unrest]:
+"\<lbrakk> x \<in> UNDASHED; UNREST_EXPR (VAR - vs) v; vs \<subseteq> UNDASHED \<union> DASHED \<rbrakk> \<Longrightarrow>
+ UNREST (VAR - vs) (x :=p\<^bsub>vs\<^esub> v)"
+  apply (simp add:AssignRA_def)
+  apply (rule unrest) back
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (simp)
+  apply (rule unrest)
+  apply (auto)
+done
+
+
+(*
+theorem UNREST_AssignR [unrest]:
 "\<lbrakk> UNREST_EXPR (VAR - vs1) v \<rbrakk> \<Longrightarrow> 
  UNREST (VAR - ({dash x} \<union> (vs1 \<union> vs2))) (x :=p\<^bsub>vs2\<^esub> v)"
   apply (simp add:AssignR_def)
@@ -393,6 +443,7 @@ theorem UNREST_AssignR [unrest]:
   apply (force intro :unrest)
   apply (force intro :unrest)
 done
+*)
 
 (*
 theorem UNREST_AssignR [unrest]:

@@ -94,20 +94,22 @@ theorem EvalA_RenameAE [evala] :
   by (simp add:RenameAE.rep_eq EvalAE_def)
  
 theorem EvalA_SubstA :
-"\<lbrakk> v \<rhd>\<^sub>\<alpha> x; x \<notin>\<^sub>f \<alpha> v \<rbrakk> \<Longrightarrow> \<lbrakk>SubstA p v x\<rbrakk>\<pi> = \<lbrakk>p\<rbrakk>\<pi>[\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>|x]"
+"v \<rhd>\<^sub>\<alpha> x \<Longrightarrow> \<lbrakk>SubstA p v x\<rbrakk>\<pi> = \<lbrakk>p\<rbrakk>\<pi>[\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>|x]"
   by (simp add:SubstA_rep_eq EvalA_def EvalAE_def)
 
 theorem EvalA_SubstAE [evala] :
 "v \<rhd>\<^sub>\<alpha> x \<Longrightarrow> \<lbrakk>SubstAE f v x\<rbrakk>\<alpha>\<epsilon> = \<lbrakk>f\<rbrakk>\<alpha>\<epsilon>[\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>|x]"
   by (simp add:SubstAE_rep_eq EvalAE_def)
 
+(*
 theorem EvalA_is_SubstP_var [evala]:
   "\<exists> x'. is_SubstP_var \<lbrakk>p\<rbrakk>\<pi> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon> x x'"
   by (simp add:EvalA_def WF_ALPHA_EXPRESSION_is_SubstP_var EvalAE_def)
+*)
 
 theorem EvalP_EvalA_SubstA [evala]: 
-  "\<lbrakk> v \<rhd>\<^sub>\<alpha> x; x \<notin>\<^sub>f \<alpha> v \<rbrakk> \<Longrightarrow> \<lbrakk>\<lbrakk>p[v|x]\<alpha>\<rbrakk>\<pi>\<rbrakk>b = \<lbrakk>\<lbrakk>p\<rbrakk>\<pi>\<rbrakk>(b(x :=\<^sub>b \<lbrakk>\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>\<rbrakk>\<epsilon>b))"
-  by (metis (full_types) EvalAE_expr EvalA_SubstA EvalA_def EvalE_SubstP WF_ALPHA_EXPRESSION_is_SubstP_var eavar_compat_def)
+  "\<lbrakk> v \<rhd>\<^sub>\<alpha> x \<rbrakk> \<Longrightarrow> \<lbrakk>\<lbrakk>p[v|x]\<alpha>\<rbrakk>\<pi>\<rbrakk>b = \<lbrakk>\<lbrakk>p\<rbrakk>\<pi>\<rbrakk>(b(x :=\<^sub>b \<lbrakk>\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>\<rbrakk>\<epsilon>b))"
+  by (metis (full_types) EvalAE_expr EvalA_SubstA EvalA_def EvalE_SubstP eavar_compat_def)
 
 subsection {* Proof Experiements *}
 

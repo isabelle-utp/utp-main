@@ -79,6 +79,61 @@ lemma Rep_UTYPE_elim [elim]:
   apply (auto simp add:UTYPES_def)
 done
 
+instantiation UTYPE :: (VALUE) countable
+begin
+instance
+  apply (intro_classes)
+  apply (rule_tac x="Rep_UTYPE" in exI)
+  apply (metis Rep_UTYPE_inverse injI)
+done
+end
+
+(*  
+class VALUE_SUBTYPES = VALUE +
+  fixes   usubtype_lattice :: "'a itself \<Rightarrow> nat lattice" 
+  assumes carrier_UTYPES: "carrier (Rep_lattice (usubtype_lattice TYPE('a))) = UTYPES TYPE('a)"
+
+instantiation UTYPE :: (VALUE_SUBTYPES) order
+begin
+
+definition less_eq_UTYPE :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> bool" where
+"less_eq_UTYPE s t \<longleftrightarrow> le (Rep_lattice (usubtype_lattice TYPE('a))) (Rep_UTYPE s) (Rep_UTYPE t)"
+
+definition less_UTYPE :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> bool" where
+"less_UTYPE x y \<longleftrightarrow> (x \<le> y \<and> \<not> y \<le> x)"
+
+instance
+  apply (intro_classes)
+  apply (simp add:less_UTYPE_def)
+  apply (simp_all add: less_eq_UTYPE_def)
+  apply (metis Rep_UTYPE carrier_UTYPES ltype.le_refl)
+  apply (metis (no_types) Rep_UTYPE carrier_UTYPES ltype.le_trans)
+  apply (metis Rep_UTYPE Rep_UTYPE_intro carrier_UTYPES ltype.le_antisym)
+done
+end
+
+instantiation UTYPE :: (VALUE_SUBTYPES) lattice
+begin
+
+definition sup_UTYPE :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> 'a UTYPE" where
+"sup_UTYPE s t = Abs_UTYPE (join (Rep_lattice (usubtype_lattice TYPE('a))) (Rep_UTYPE s) (Rep_UTYPE t))"
+
+definition inf_UTYPE :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> 'a UTYPE" where
+"inf_UTYPE s t = Abs_UTYPE (meet (Rep_lattice (usubtype_lattice TYPE('a))) (Rep_UTYPE s) (Rep_UTYPE t))"
+
+instance
+  apply (intro_classes)
+  apply (simp_all add:inf_UTYPE_def less_eq_UTYPE_def)
+  apply (smt Abs_UTYPE_inverse Rep_UTYPE carrier_UTYPES ltype.meet_closed ltype.meet_left)
+  apply (smt Abs_UTYPE_inverse Rep_UTYPE carrier_UTYPES ltype.meet_closed ltype.meet_right)
+  apply (smt Abs_UTYPE_inverse Rep_UTYPE carrier_UTYPES ltype.meet_closed ltype.meet_le)
+  apply (smt Abs_UTYPE_inverse Rep_UTYPE carrier_UTYPES ltype.join_closed ltype.join_left utp_value.sup_UTYPE_def)
+  apply (metis (no_types) Abs_UTYPE_inverse Rep_UTYPE carrier_UTYPES ltype.join_closed ltype.join_right utp_value.sup_UTYPE_def)
+  apply (metis (no_types) Abs_UTYPE_inverse Rep_UTYPE carrier_UTYPES ltype.join_closed ltype.join_le utp_value.sup_UTYPE_def)
+done
+end
+*)
+
 instantiation UTYPE :: (VALUE) linorder 
 begin
 
@@ -93,6 +148,7 @@ instance
   apply (auto simp add:less_eq_UTYPE_def less_UTYPE_def)
 done
 end
+
 
 text {* We derive a typing relation using @{term "UTYPE"}, which has more 
 useful properties than the underlying @{term "utype_rel"}. *}

@@ -51,6 +51,9 @@ done
 definition etype_rel :: "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool" (infix ":\<^sub>e" 50) where
 "etype_rel e t \<equiv> \<forall>b. \<langle>e\<rangle>\<^sub>e b : t"
 
+definition expr_type :: "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE UTYPE" where
+"expr_type e \<equiv> THE t. e :\<^sub>e t"
+
 definition evar_compat :: "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE VAR \<Rightarrow> bool" (infix "\<rhd>\<^sub>e" 50) where
 "evar_compat e x \<equiv> \<forall>b. \<langle>e\<rangle>\<^sub>e b \<rhd> x"
 
@@ -73,6 +76,10 @@ lemma evar_compat_cases [elim]:
   "\<lbrakk> v \<rhd>\<^sub>e x; \<lbrakk> v :\<^sub>e vtype x; \<D> v \<rbrakk> \<Longrightarrow> P
            ; \<lbrakk> v :\<^sub>e vtype x; \<not> aux x \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (auto simp add:evar_compat_def etype_rel_def Defined_WF_EXPRESSION_def)
+
+lemma evar_comp_dash [typing]:
+  "v \<rhd>\<^sub>e x \<Longrightarrow> v \<rhd>\<^sub>e x\<acute>"
+  by (simp add:evar_compat_def typing)
 
 definition UNREST_EXPR :: "('VALUE VAR) set \<Rightarrow> 'VALUE WF_EXPRESSION \<Rightarrow> bool" where
 "UNREST_EXPR vs e \<equiv> (\<forall> b1 b2. \<langle>e\<rangle>\<^sub>e(b1 \<oplus>\<^sub>b b2 on vs) = \<langle>e\<rangle>\<^sub>e b1)" 
@@ -162,7 +169,7 @@ definition SubstP_body ::
  'VALUE VAR \<Rightarrow> 
  'VALUE VAR \<Rightarrow>
  'VALUE WF_PREDICATE" where
-"SubstP_body p v x x' \<equiv> \<exists>p {x'} . p\<^bsup>[x \<mapsto> x']\<^esup> \<and>p (VarE x' ==p v)"
+"SubstP_body p v x x' \<equiv> \<exists>p {x'} . p[id(x:=x') on {x}] \<and>p (VarE x' ==p v)"
 
 definition is_SubstP_var ::
 "'VALUE WF_PREDICATE \<Rightarrow> 
@@ -178,7 +185,16 @@ definition SubstP ::
  'VALUE WF_EXPRESSION \<Rightarrow> 
  'VALUE VAR \<Rightarrow> 
  'VALUE WF_PREDICATE" ("_[_|_]" [200]) where
-"p[v|x] \<equiv> SubstP_body p v x (SOME x'. is_SubstP_var p v x x')"
+"p[v|x] \<equiv> mkPRED {b. b(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b) \<in> destPRED p}"
+
+lemma SubstP_no_var: "\<lbrakk> UNREST {x} p; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[v|x] = p"
+  apply (simp add:SubstP_def)
+  apply (auto simp add:UNREST_def)
+  apply (metis (lifting) binding_compat binding_upd_simps binding_upd_upd evar_compat_def)
+  apply (metis binding_upd_apply evar_compat_def)
+done
+
+(* SubstP_body p v x (SOME x'. is_SubstP_var p v x x')" *)
 
 subsection {* Theorems *}
 
@@ -354,8 +370,31 @@ theorem UNREST_EXPR_SubstE [unrest] :
   apply (smt Rep_WF_BINDING_rep_eq binding_override_simps(3) binding_override_simps(5) binding_override_simps(6) binding_override_simps(7) binding_override_singleton etype_rel_def fun_upd_same inf.commute)
 done
 
+lemma dash_single_rename_func_on [closure]: "rename_func_on dash {x}"
+  by (simp add:rename_func_on_def)
+
 (* This is not quite right; if x is unrestricted in v (and restricted in p) then
    x should be unrestricted in the whole, but it never can be. *)
+
+theorem UNREST_SubstP [unrest] :  
+"\<lbrakk> v \<rhd>\<^sub>e x; UNREST vs1 p; UNREST_EXPR vs2 v; x \<notin> vs1; vs = (vs1 \<inter> vs2) \<rbrakk> \<Longrightarrow>
+      UNREST vs p[v|x]"
+  apply (auto simp add:SubstP_def UNREST_def UNREST_EXPR_def)
+  apply (drule_tac x="b1(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b1)" in bspec, simp)
+  apply (drule_tac x="b1" in spec)
+  apply (drule_tac x="b1 \<oplus>\<^sub>b b2 on vs1" in spec) back
+  apply (simp)
+  apply (drule_tac x="b1(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b1) \<oplus>\<^sub>b b2 on vs2" in spec)
+  apply (simp)
+  apply (subgoal_tac "x \<notin> vs1 \<inter> vs2")
+  apply (subgoal_tac "\<langle>v\<rangle>\<^sub>e b1 \<rhd> x")
+  apply (simp)
+  apply (metis inf_commute)
+  apply (auto)
+  apply (metis evar_compat_def)
+done
+
+(*
 theorem UNREST_SubstP [unrest] :
   assumes 
    "v \<rhd>\<^sub>e x"
@@ -363,7 +402,7 @@ theorem UNREST_SubstP [unrest] :
    "\<exists> x'. is_SubstP_var p v x x'"
   shows "UNREST (vs1 \<inter> vs2) p[v|x]"
 proof -
-  have "\<And> x'. is_SubstP_var p v x x' \<Longrightarrow> UNREST (vs1 \<inter> vs2) (\<exists>p {x'} . p\<^bsup>[x \<mapsto> x']\<^esup> \<and>p VarE x' ==p v)"
+  have "\<And> x'. is_SubstP_var p v x x' \<Longrightarrow> UNREST (vs1 \<inter> vs2) (\<exists>p {x'} . p[id(x:=x') on {x}] \<and>p VarE x' ==p v)"
   proof -
     fix x'
     assume assms':"is_SubstP_var p v x x'"
@@ -373,21 +412,19 @@ proof -
       apply (rule VAR_RENAME_MapRename)
       apply (simp_all)
     done
-    moreover from subst assms assms' have ur1:"UNREST (vs1 - {x'}) (p\<^bsup>[x \<mapsto> x']\<^esup>)"
+    moreover from subst assms assms' have ur1:"UNREST (vs1 - {x'}) (p[id(x:=x') on {x}])"
         apply (simp add:RenamePMap_def closure)
         apply (rule_tac unrest)
         apply (force)
-        apply (simp add: is_SubstP_var_def)
+        thm rename_on_rep_eq[of dash "{x}"]
+        apply (simp add: is_SubstP_var_def rename_on_rep_eq closure)
         apply (erule conjE)
-        apply (simp add:MapRename_image[of "[x]" "[x']" "vs1", simplified])
-        apply (force)
-    done
+    sorry
 
     moreover from assms have ur2:"UNREST ((vs2 - {x'}) \<inter> vs2) (VarE x' ==p v)"
       by (simp add:unrest closure)
 
-
-    from assms assms' have "UNREST ((vs1 - {x'}) \<inter> (vs2 - {x'})) (p\<^bsup>[x \<mapsto> x']\<^esup> \<and>p VarE x' ==p v)"
+    from assms assms' have "UNREST ((vs1 - {x'}) \<inter> (vs2 - {x'})) (p[id(x:=x') on {x}] \<and>p VarE x' ==p v)"
       apply (rule_tac UNREST_AndP_alt)
       apply (simp add:is_SubstP_var_def closure)
       apply (simp add:ur1)
@@ -396,7 +433,7 @@ proof -
       apply (simp)
       apply (force)
     done
-    with assms assms' show "UNREST (vs1 \<inter> vs2) (\<exists>p {x'} . p\<^bsup>[x \<mapsto> x']\<^esup> \<and>p VarE x' ==p v)"
+    with assms assms' show "UNREST (vs1 \<inter> vs2) (\<exists>p {x'} . p[id(x:=x') on {x}] \<and>p VarE x' ==p v)"
       apply (rule_tac UNREST_ExistsP_minus)
       apply (subgoal_tac "(vs1 \<inter> vs2 - {x'}) = (vs1 - {x'}) \<inter> (vs2 - {x'})")
       apply (simp)
@@ -411,9 +448,10 @@ proof -
     apply (rule someI2)
     apply (force)
     apply (simp del:fun_upd_apply)
-  done
+  sorry
 
 qed
+*)
 
 
 (*
@@ -454,7 +492,14 @@ proof -
     apply (force intro:unrest)
 *)
 
+theorem UNREST_SubstP_var [unrest] :  
+   "\<lbrakk> v \<rhd>\<^sub>e x; UNREST vs1 p; UNREST_EXPR vs2 v; x \<notin> vs1; x \<in> vs2 \<rbrakk> \<Longrightarrow>
+      UNREST {x} p[v|x]"
+  apply (auto simp add:SubstP_def UNREST_def UNREST_EXPR_def)
+  apply (metis binding_compat binding_upd_override binding_upd_upd evar_compat_def)
+done
 
+(*
 theorem UNREST_SubstP_var [unrest] :
   assumes 
    "v \<rhd>\<^sub>e x"
@@ -462,7 +507,7 @@ theorem UNREST_SubstP_var [unrest] :
    "\<exists> x'. is_SubstP_var p v x x'"
   shows "UNREST {x} p[v|x]" 
 proof -
-  have "\<And> x'. is_SubstP_var p v x x' \<Longrightarrow> UNREST {x} (\<exists>p {x'} . p\<^bsup>[x \<mapsto> x']\<^esup> \<and>p VarE x' ==p v)"
+  have "\<And> x'. is_SubstP_var p v x x' \<Longrightarrow> UNREST {x} (\<exists>p {x'} . p[id(x:=x') on {x}] \<and>p VarE x' ==p v)"
   proof -
     fix x'
     assume assms':"is_SubstP_var p v x x'"
@@ -472,11 +517,10 @@ proof -
       apply (rule VAR_RENAME_MapRename)
       apply (simp_all)
     done
-    moreover from subst assms assms' have ur1:"UNREST {x} (p\<^bsup>[x \<mapsto> x']\<^esup>)"
-      apply (rule_tac UNREST_RenameP_single)
-      apply (simp_all add:is_SubstP_var_def)
-      apply (auto)
-    done
+    moreover from subst assms assms' have ur1:"UNREST {x} (p[id(x:=x') on {x}])"
+      apply (insert UNREST_RenameP[of "{dash x}" p "dash on {x}", simplified] assms)
+      apply (auto simp add:closure rename_on_rep_eq is_SubstP_var_def)
+   sorry
 
     moreover from assms assms' have ur2:"UNREST {x} (VarE x' ==p v)"
       apply (rule_tac UNREST_EqualP_alt [of "{x}" _ "{x}",simplified])
@@ -484,8 +528,7 @@ proof -
       apply (insert UNREST_EXPR_VarE[of "{x}" x', simplified], simp)
       apply (auto intro:unrest)
     done
-
-    ultimately show "UNREST {x} (\<exists>p {x'} . p\<^bsup>[x \<mapsto> x']\<^esup> \<and>p VarE x' ==p v)"
+    ultimately show "UNREST {x} (\<exists>p {x'} . p[id(x:=x') on {x}] \<and>p VarE x' ==p v)"
       by (auto intro:unrest)
   qed
 
@@ -495,8 +538,9 @@ proof -
     apply (rule someI2)
     apply (force)
     apply (simp del:fun_upd_apply)
-  done
+  sorry
 qed
+*)
 
 subsection {* Boolean Expressions *}
 

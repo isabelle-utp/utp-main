@@ -509,14 +509,13 @@ lemma SubstA_var [usubst]: "\<lbrakk> vtype x = BoolType; v \<rhd>\<^sub>\<alpha
   apply (auto simp add:evala eval closure typing)
 done
 
-lemma SubstA_no_var [usubst]: "\<lbrakk> v \<rhd>\<^sub>\<alpha> x ; x \<notin> \<langle>\<alpha> p\<rangle>\<^sub>f; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> 
+lemma SubstA_no_var [usubst]: "\<lbrakk> v \<rhd>\<^sub>\<alpha> x ; x \<notin> \<langle>\<alpha> p\<rangle>\<^sub>f \<rbrakk> 
   \<Longrightarrow> p[v|x]\<alpha> = p"
   apply (utp_alpha_tac2)
   apply (simp add:EvalA_SubstA)
-  apply (rule SubstP_no_var)
-  apply (metis EvalAE_compat)
-  apply (metis EvalA_is_SubstP_var)
+  apply (rule utp_expr.SubstP_no_var)
   apply (auto intro:unrest)
+  apply (metis EvalAE_compat)
 done
 
 lemma SubstA_PROGRAM_ALPHABET [usubst]: 
@@ -862,7 +861,13 @@ lemma AssignA_unfold:
   "\<lbrakk> a \<in> REL_ALPHABET; x \<in>\<^sub>f a; dash x \<in>\<^sub>f a; \<alpha> v \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow>
    `x :=\<^bsub>a\<^esub> v` = ((VarAE (dash x) ==\<alpha> v) \<and>\<alpha> II\<alpha> (a -\<^sub>f \<lbrace>x,dash x\<rbrace>)) \<oplus>\<alpha> \<lbrace>x\<rbrace>"
   apply (utp_alpha_tac2)
-  apply (simp add:AssignR_def)
+  apply (subgoal_tac "x \<in> UNDASHED")
+  apply (rule AssignRA_alt_def)
+  apply (auto)
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (auto)
+  apply (auto simp add:REL_ALPHABET_def)
 done
 
 lemma SubstA_ident_twice:
@@ -970,31 +975,32 @@ lemma EqualA_WF_RELATION [closure]:
   by (auto intro:closure simp add:WF_RELATION_def alphabet)
 
 lemma AssignA_SubstA: 
-  assumes "p \<in> WF_RELATION" "v \<in> WF_REL_EXPR"
-   "x \<in> UNDASHED" "x \<in>\<^sub>f \<alpha> p" "\<alpha> v \<subseteq>\<^sub>f in\<^sub>\<alpha> (\<alpha> p)" 
-  shows "`(x :=\<^bsub>homl (\<alpha> p)\<^esub> v) ; p` = `p[v/x]`"
+  assumes "p \<in> WF_RELATION" "v \<in> WF_REL_EXPR" "v \<rhd>\<^sub>\<alpha> x"
+   "x \<in> UNDASHED" "x \<in>\<^sub>f \<alpha> p" "\<alpha> v \<subseteq>\<^sub>f in\<^sub>\<alpha> (\<alpha> p)" "HOM_ALPHA (\<alpha> p)"
+  shows "`x :=\<^bsub>\<alpha> p\<^esub> v ; p` = `p[v/x] \<oplus> \<lbrace>x\<rbrace>`"
 proof -
  
   let ?A = "(dash `\<^sub>f out\<^sub>\<alpha> (\<alpha> v) \<union>\<^sub>f (dash `\<^sub>f (dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> p) -\<^sub>f \<lbrace>x\<acute>\<rbrace>) \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> p)))"
 
-  from assms have "\<alpha> v \<subseteq>\<^sub>f homl (\<alpha> p)"
-    by (auto simp add:hom_left_def)
-
-  with assms have "`(x :=\<^bsub>homl (\<alpha> p)\<^esub> v) ; p` = `(($x\<acute> = v \<and> II\<^bsub>homl (\<alpha> p) -\<^sub>f \<lbrace>x, x\<acute>\<rbrace>\<^esub>) \<oplus> \<lbrace>x\<rbrace>) ; p`"
-    by (smt AssignA_unfold REL_ALPHABET_hom_left UNDASHED_dash_DASHED hom_simps undash_dash)
-
-  also from assms 
-  have "... = (\<exists>-\<alpha> finsert x\<acute>\<acute> ?A. ((VarAE x\<acute>\<acute> ==\<alpha> v) \<and>\<alpha> (II\<alpha> (homl (\<alpha> p) -\<^sub>f \<lbrace>x, x\<acute>\<rbrace>))[SS1]\<alpha>) 
-                       \<and>\<alpha> p[SS2]\<alpha> \<oplus>\<alpha> \<lbrace>x\<rbrace>)"
-    apply (subgoal_tac "\<langle>\<alpha> v\<rangle>\<^sub>f \<subseteq> UNDASHED")
-    apply (simp add:SemiA_algebraic closure alphabet alphabet_dist alphabet_simps urename)
-    apply (auto)
-    apply (smt set_mp utp_var.in_UNDASHED)
+  from assms have "\<alpha> v \<subseteq>\<^sub>f \<alpha> p" and "x\<acute> \<in>\<^sub>f \<alpha> p"
+    apply (simp add:var_defs)
+    apply (metis HOM_ALPHA_HOMOGENEOUS assms fmember.rep_eq hom_alphabet_undash)
   done
 
-  have "... = (\<exists>-\<alpha> ?A. ((II\<alpha> (homl (\<alpha> p) -\<^sub>f \<lbrace>x, x\<acute>\<rbrace>))[SS1]\<alpha>) \<and>\<alpha> (p[SS2]\<alpha> \<oplus>\<alpha> \<lbrace>x\<rbrace>)[v|x\<acute>\<acute>]\<alpha>)"
-    sorry
-
-oops
+  with assms show ?thesis
+    apply (utp_alpha_tac)
+    apply (rule)
+    apply (force)
+    apply (simp add:EvalA_SubstA)
+    apply (rule AssignRA_SemiP_left)
+    apply (simp_all add:typing)
+    apply (simp add:HOM_ALPHA_HOMOGENEOUS)
+    apply (simp add:closure)
+    apply (force intro:unrest)
+    apply (rule unrest)
+    apply (rule unrest)
+    apply (auto)
+  done
+qed
 
 end
