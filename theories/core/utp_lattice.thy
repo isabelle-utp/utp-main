@@ -7,7 +7,7 @@
 header {* Predicate Lattice *}
 
 theory utp_lattice
-imports utp_pred utp_unrest "../tactics/utp_pred_tac"
+imports utp_pred utp_rel utp_unrest "../tactics/utp_pred_tac" "../tactics/utp_rel_tac"
 begin
 
 notation
@@ -32,8 +32,8 @@ instance
 done
 end
 
-declare sup_WF_PREDICATE_def [eval]
-declare inf_WF_PREDICATE_def [eval]
+declare sup_WF_PREDICATE_def [eval,evalr]
+declare inf_WF_PREDICATE_def [eval,evalr]
 
 instantiation WF_PREDICATE :: (VALUE) bounded_lattice
 begin
@@ -59,8 +59,8 @@ instance proof
 qed
 end
 
-declare bot_WF_PREDICATE_def [eval]
-declare top_WF_PREDICATE_def [eval]
+declare bot_WF_PREDICATE_def [eval,evalr]
+declare top_WF_PREDICATE_def [eval,evalr]
 
 instantiation WF_PREDICATE :: (VALUE) Sup
 begin
@@ -149,7 +149,7 @@ syntax
   "_WFP" :: "pttrn => 'VALUE WF_PREDICATE => 'VALUE WF_PREDICATE" ("(3MU _./ _)" [0, 10] 10)
 
 syntax (xsymbols)
-  "_WFP" :: "pttrn => 'VALUE WF_PREDICATE => 'VALUE WF_PREDICATE" ("(3\<mu>_./ _)" [0, 10] 10)
+  "_WFP" :: "pttrn => 'VALUE WF_PREDICATE => 'VALUE WF_PREDICATE" ("(3\<mu>_\<bullet>/ _)" [0, 10] 10)
 
 translations
   "MU x. P" == "CONST WFP (%x. P)"
@@ -158,6 +158,15 @@ abbreviation SFP ::
   "'VALUE WF_FUNCTION \<Rightarrow>
    'VALUE WF_PREDICATE" ("\<nu>") where
 "SFP \<equiv> gfp"
+
+syntax
+  "_SFP" :: "pttrn => 'VALUE WF_PREDICATE => 'VALUE WF_PREDICATE" ("(3NU _./ _)" [0, 10] 10)
+
+syntax (xsymbols)
+  "_SFP" :: "pttrn => 'VALUE WF_PREDICATE => 'VALUE WF_PREDICATE" ("(3\<nu>_\<bullet>/ _)" [0, 10] 10)
+
+translations
+  "NU x. P" == "CONST SFP (%x. P)"
 
 lemma Lattice_L1:
   fixes P :: "'VALUE WF_PREDICATE"
@@ -196,6 +205,48 @@ proof -
 
 qed
   
+lemma Lattice_L3:
+  fixes Q :: "'VALUE WF_PREDICATE"
+  shows "(\<Sqinter> S) \<squnion> Q = \<Sqinter>{ P \<squnion> Q | P. P \<in> S}"
+proof -
+
+  have "(\<Sqinter> S) \<squnion> Q = (INF P:S. P \<squnion> Q)"
+    by (metis Inf_sup)
+
+  also have "... = \<Sqinter> { P \<squnion> Q | P. P \<in> S}"
+    apply (simp add:INF_def image_def)
+    apply (subgoal_tac "{y. \<exists>x\<in>S. y = x \<squnion> Q} = {P \<squnion> Q |P. P \<in> S}")
+    apply (simp)
+    apply (auto)
+  done
+
+  ultimately show ?thesis by simp
+
+qed
+
+lemma EvalR_SupP [evalr]:
+  "\<lbrakk>\<Sqinter> ps\<rbrakk>R = \<Union> {\<lbrakk>p\<rbrakk>R | p . p \<in> ps}"
+  by (auto simp add:EvalR_def Inf_WF_PREDICATE_def top_WF_PREDICATE_def FalseP_def)
+
+lemma EvalR_InfP [evalr]:
+  "\<lbrakk>\<Squnion> ps\<rbrakk>R = \<Inter> {\<lbrakk>p\<rbrakk>R | p . p \<in> ps}"
+  apply (auto simp add:EvalR_def Sup_WF_PREDICATE_def bot_WF_PREDICATE_def TrueP_def)
+  apply (simp add:image_def)
+  defer
+  apply (smt BindR_inject EvalR_def INT_I image_iff)
+oops
+  
+lemma L4_rel: "(\<Union> S) O Q = \<Union>{ P O Q | P. P \<in> S}"
+  by (auto)
+
+lemma Lattice_L4:
+  fixes Q :: "'VALUE WF_PREDICATE"
+  shows "(\<Sqinter> S) ; Q = \<Sqinter>{ P ; Q | P. P \<in> S}"
+  apply (utp_rel_tac)
+  apply (auto simp add:L4_rel)
+  apply (metis (hide_lams, no_types) EvalR_SemiR relcomp.intros)
+done
+
 subsection {* @{term UNREST} Theorems *}
 
 theorem UNREST_BotP [unrest]: "UNREST vs bot"
@@ -227,5 +278,29 @@ theorem UNREST_Inf [unrest]:
   apply (simp add: Inf_WF_PREDICATE_def UNREST_TopP)
   apply (auto simp add: UNREST_def)
 done
+
+lemma weakest_fixed_point: "F(Y) \<sqsubseteq> Y \<Longrightarrow> \<mu> F \<sqsubseteq> Y"
+  by (metis lfp_lowerbound)
+
+lemma fixed_point: "mono F \<Longrightarrow> \<mu> F = F(\<mu> F)"
+  by (metis lfp_unfold)
+
+lemma wfp_id: "(\<mu> X \<bullet> X) = true"
+  by (metis bot_WF_PREDICATE_def bot_unique weakest_fixed_point)
+
+text {* Relational Iteration (Kleene Star) *}
+
+instantiation WF_PREDICATE :: (VALUE) times
+begin
+
+definition times_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a  WF_PREDICATE" where
+"b * P \<equiv> \<mu> X \<bullet> ((P ; X) \<triangleleft> b \<triangleright> II)"
+
+instance ..
+
+end
+
+abbreviation IterR :: "'a::VALUE WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a  WF_PREDICATE" where
+"IterR b P \<equiv> b * P"
 
 end
