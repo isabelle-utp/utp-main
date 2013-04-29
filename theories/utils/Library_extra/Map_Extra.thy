@@ -1,5 +1,5 @@
 theory Map_Extra
-imports Main "~~/src/HOL/Library/Char_ord"
+imports Main "~~/src/HOL/Library/Char_ord" "~~/src/HOL/Library/Product_ord"
 begin
 
 definition functional :: "('a * 'b) set \<Rightarrow> bool" where

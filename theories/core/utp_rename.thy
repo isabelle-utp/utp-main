@@ -24,7 +24,7 @@ text {* Renamings are total bijections that respect typing. *}
 definition VAR_RENAME :: "('VALUE VAR \<Rightarrow> 'VALUE VAR) set" where
 "VAR_RENAME = {ss . bij ss \<and> (\<forall> v . vtype (ss v) = vtype v \<and> aux (ss v) = aux v)}"
 
-typedef (open) 'VALUE VAR_RENAME = "VAR_RENAME :: ('VALUE VAR \<Rightarrow> 'VALUE VAR) set"
+typedef 'VALUE VAR_RENAME = "VAR_RENAME :: ('VALUE VAR \<Rightarrow> 'VALUE VAR) set"
   by (auto simp add:VAR_RENAME_def)
 
 declare Rep_VAR_RENAME [simp]

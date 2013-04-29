@@ -10,7 +10,7 @@ default_sort type
 definition fsets :: "'a set set" 
 where "fsets = Collect finite"
 
-typedef (open) 'a fset = "fsets :: 'a set set"
+typedef 'a fset = "fsets :: 'a set set"
   by (auto simp add:fsets_def)
 
 notation Rep_fset ("\<langle>_\<rangle>\<^sub>f")
@@ -130,7 +130,7 @@ translations
 definition fset_elem :: "('a * 'a fset) set" 
 where "fset_elem = {(x,xs) | x xs. x \<notin> Rep_fset xs}"
 
-typedef (open) 'a fset_elem = "fset_elem :: ('a * 'a fset) set"
+typedef 'a fset_elem = "fset_elem :: ('a * 'a fset) set"
   apply (auto simp add:fset_elem_def)
   apply (rule_tac x="undefined" in exI)
   apply (rule_tac x="fempty" in exI)

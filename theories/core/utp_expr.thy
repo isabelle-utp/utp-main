@@ -19,7 +19,7 @@ text {* A well-formed expression must produce a well-typed value for every bindi
 definition WF_EXPRESSION :: "'VALUE EXPRESSION set" where
 "WF_EXPRESSION = {f. \<exists> t. \<forall>b. f b : t}"
 
-typedef (open) 'VALUE WF_EXPRESSION = "WF_EXPRESSION :: 'VALUE EXPRESSION set"
+typedef 'VALUE WF_EXPRESSION = "WF_EXPRESSION :: 'VALUE EXPRESSION set"
   apply (simp add:WF_EXPRESSION_def)
   apply (rule_tac x="(\<lambda> x. default someType)" in exI)
   apply (rule_tac x="someType" in exI)

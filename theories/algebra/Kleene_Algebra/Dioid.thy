@@ -156,7 +156,7 @@ class ab_near_semiring = ab_semigroup_add + semigroup_mult +
   assumes right_distrib': "(x + y) \<cdot> z = x \<cdot> z + y \<cdot> z"
 
 subclass (in semiring) ab_near_semiring
-  by (unfold_locales, metis left_distrib)
+  by (unfold_locales, metis distrib_right)
 
 
 subsection {* Variants of Dioids *}
@@ -262,8 +262,7 @@ idempotent semirings. *}
 class dioid = near_dioid + semiring
 
 subclass (in dioid) pre_dioid
-  by (unfold_locales, metis order_prop right_distrib)
-
+  by (unfold_locales, metis distrib_left order_prop)
 
 subsection {* Families of Nearsemirings with a Multiplicative Unit *}
 
@@ -371,11 +370,11 @@ definition (in times) opp_mult (infixl "\<odot>" 70)
 
 lemma (in semiring_1) dual_semiring_1:
   "class.semiring_1 1 (op \<odot>) (op +) 0"
-by unfold_locales (auto simp add: opp_mult_def mult_assoc left_distrib right_distrib)
+by unfold_locales (auto simp add: opp_mult_def mult_assoc distrib_right distrib_left)
 
 lemma (in dioid_one_zero) dual_dioid_one_zero:
   "class.dioid_one_zero (op +) (op \<odot>) 1 0 (op \<le>) (op <)"
-by unfold_locales (auto simp add: opp_mult_def mult_assoc left_distrib right_distrib)
+by unfold_locales (auto simp add: opp_mult_def mult_assoc distrib_right distrib_left)
 
 subsection {* Selective Near Semirings *}
 

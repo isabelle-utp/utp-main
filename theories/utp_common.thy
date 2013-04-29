@@ -21,8 +21,8 @@ default_sort type
 text {* We are going to use the colon for type membership in our model. *}
 
 no_notation
-  Set.member ("op :") and
-  Set.member ("(_/ : _)" [50, 51] 50)
+  Set.member  ("op :") and
+  Set.member  ("(_/ : _)" [51, 51] 50)
 
 text {* This prevents Isabelle from automatically splitting pairs. *}
 

@@ -135,7 +135,7 @@ theorem WF_BINDING_aux_defined [defined]:
 
 subsubsection {* Binding type *}
 
-typedef (open) 'VALUE WF_BINDING = "WF_BINDING :: 'VALUE BINDING set"
+typedef 'VALUE WF_BINDING = "WF_BINDING :: 'VALUE BINDING set"
   by (simp add: WF_BINDING_exists)
 
 declare Rep_WF_BINDING [simp]

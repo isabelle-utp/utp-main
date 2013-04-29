@@ -24,7 +24,7 @@ definition WF_BINDING_PRED ::
 definition WF_PREDICATE :: "'VALUE PREDICATE set" where
 "WF_PREDICATE = Pow WF_BINDING"
 
-typedef (open) 'VALUE WF_PREDICATE = "UNIV :: 'VALUE WF_BINDING set set"
+typedef 'VALUE WF_PREDICATE = "UNIV :: 'VALUE WF_BINDING set set"
 morphisms destPRED mkPRED
   by (auto)
 

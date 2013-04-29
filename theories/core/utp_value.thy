@@ -60,7 +60,7 @@ model. *}
 
 definition "UTYPES (x::'a itself) = {t. \<exists> v :: 'a. v :\<^sub>u t \<and> \<D> v}"
 
-typedef (open) 'VALUE UTYPE = "UTYPES TYPE('VALUE)"
+typedef 'VALUE UTYPE = "UTYPES TYPE('VALUE)"
   apply (insert utype_nonempty)
   apply (auto simp add:UTYPES_def)
 done

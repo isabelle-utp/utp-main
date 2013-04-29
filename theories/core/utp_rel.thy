@@ -125,8 +125,10 @@ notation SemiR (infixr ";" 140)
 
 subsubsection {* Assignment *}
 
-typedef 'a AssignF = "{f :: 'a VAR \<Rightarrow> 'a WF_EXPRESSION. \<forall> x. f x \<rhd>\<^sub>e x}"
-  by (auto, metis EvalE_VarE EvalE_def binding_compat evar_compat_def)
+definition "AssignF = {f :: 'a VAR \<Rightarrow> 'a WF_EXPRESSION. \<forall> x. f x \<rhd>\<^sub>e x}"
+
+typedef 'a AssignF = "AssignF :: ('a VAR \<Rightarrow> 'a WF_EXPRESSION) set"
+  by (auto simp add:AssignF_def, metis EvalE_VarE EvalE_def binding_compat evar_compat_def)
 
 declare Rep_AssignF [simp]
 declare Rep_AssignF_inverse [simp]
@@ -145,7 +147,7 @@ lift_definition AssignsR ::
 is "\<lambda> f. {b. \<forall> v \<in> UNDASHED. \<langle>b\<rangle>\<^sub>b v\<acute> = \<langle>Rep_AssignF f v\<rangle>\<^sub>e b}" .
 
 lift_definition IdA :: "'VALUE AssignF" is "VarE" 
-  by (simp add: AssignF_def typing)
+  by (simp add: typing AssignF_def)
 
 definition AssignF_upd :: "'a AssignF \<Rightarrow> 'a VAR \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a AssignF" where
 "AssignF_upd f x v = Abs_AssignF ((Rep_AssignF f)(x := v))"
@@ -154,7 +156,7 @@ lemma AssignF_upd_rep_eq:
   "v \<rhd>\<^sub>e x \<Longrightarrow> Rep_AssignF (AssignF_upd f x v) = (Rep_AssignF f)(x := v)"
   apply (subgoal_tac "(Rep_AssignF f)(x := v) \<in> AssignF")
   apply (simp add:AssignF_upd_def)
-  apply (auto simp add:AssignF_def typing)
+  apply (auto simp add:typing AssignF_def)
 done
 
 

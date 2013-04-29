@@ -47,10 +47,10 @@ definition WF_REL_BINDING :: "'VALUE WF_BINDING set" where
 
 abbreviation "WF_REL \<equiv> WF_REL_BINDING \<times> WF_REL_BINDING"
 
-typedef (open) 'VALUE WF_REL_BINDING = "WF_REL_BINDING :: 'VALUE WF_BINDING set"
+typedef 'VALUE WF_REL_BINDING = "WF_REL_BINDING :: 'VALUE WF_BINDING set"
   morphisms DestRelB MkRelB
   by (auto simp add:WF_REL_BINDING_def)
-  
+
 declare DestRelB [simp]
 declare DestRelB_inverse [simp]
 declare MkRelB_inverse [simp]

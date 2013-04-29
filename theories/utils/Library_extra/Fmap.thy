@@ -8,7 +8,7 @@ text {* Ideally, this should only require a linear order on the domain type
 definition fmaps :: "('a \<rightharpoonup> 'b) set" 
 where "fmaps = Collect (finite \<circ> dom)"
 
-typedef (open) ('a, 'b) fmap = "fmaps :: ('a \<rightharpoonup> 'b) set" 
+typedef ('a, 'b) fmap = "fmaps :: ('a \<rightharpoonup> 'b) set" 
   by (rule_tac x="empty" in exI, simp add:fmaps_def)
 
 notation Rep_fmap ("\<langle>_\<rangle>\<^sub>m")

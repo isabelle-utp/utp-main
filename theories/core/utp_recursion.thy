@@ -10,7 +10,7 @@ theory utp_recursion
 imports 
   utp_laws
   utp_lattice
-  "../algebra/Kleene_Algebra/Kleene_Algebra"
+  "../algebra/Kleene_Algebra/Kleene_Algebra2"
 begin
 
 subsection {* Fixed Points *}
