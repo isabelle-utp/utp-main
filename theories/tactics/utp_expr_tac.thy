@@ -30,6 +30,10 @@ theorem EvalE_type [typing, simp]:
 "e :\<^sub>e t \<Longrightarrow> \<lbrakk>e\<rbrakk>\<epsilon>b : t"
   by (simp add:EvalE_def etype_rel_def)
 
+lemma EvalE_defined [defined]:
+  "\<D> v \<Longrightarrow> \<D> (\<lbrakk>v\<rbrakk>\<epsilon>b)"
+  by (simp add:EvalE_def Defined_WF_EXPRESSION_def)
+
 theorem EvalE_compat [typing, simp]:
 "e \<rhd>\<^sub>e t \<Longrightarrow> \<lbrakk>e\<rbrakk>\<epsilon>b \<rhd> t"
   by (simp add:EvalE_def evar_compat_def)
@@ -54,9 +58,13 @@ theorem EvalE_VarE [evale] :
 "\<lbrakk>VarE x\<rbrakk>\<epsilon>b = \<langle>b\<rangle>\<^sub>b x"
   by (simp add:VarE.rep_eq EvalE_def)
 
+theorem EvalP_ExprP [eval] :
+"\<lbrakk>ExprP e\<rbrakk>b = DestBool (\<lbrakk>e\<rbrakk>\<epsilon>b)"
+  by (simp add:ExprP_def eval EvalE_def)
+
 theorem EvalP_VarP [eval] :
 "\<lbrakk>VarP x\<rbrakk>b = DestBool (\<langle>b\<rangle>\<^sub>b x)"
-  by (simp add:VarP_def VarE.rep_eq eval)
+  by (simp add:eval evale)
 
 theorem EvalE_LitE [evale] :
 "v : t \<Longrightarrow> \<lbrakk>LitE v\<rbrakk>\<epsilon>b = v"
@@ -77,10 +85,6 @@ theorem EvalE_CoerceE_ntype [evale] :
 theorem EvalE_AppE [evale] :
 "\<lbrakk> f :\<^sub>e FuncType s t; v :\<^sub>e s; \<D> f \<rbrakk> \<Longrightarrow> \<lbrakk>AppE f v\<rbrakk>\<epsilon>b = DestFunc (\<lbrakk>f\<rbrakk>\<epsilon>b) (\<lbrakk>v\<rbrakk>\<epsilon>b)"
   by (simp add:EvalE_def AppE_rep_eq)
-
-theorem EvalP_ExprP [eval] :
-"\<lbrakk>ExprP e\<rbrakk>b = DestBool (\<lbrakk>e\<rbrakk>\<epsilon>b)"
-  by (simp add:ExprP_def eval EvalE_def)
 
 theorem EvalE_SubstE [evale] :
 "\<lbrakk>SubstE f v x\<rbrakk>\<epsilon>b = \<lbrakk>f\<rbrakk>\<epsilon>(b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b))"
@@ -114,7 +118,7 @@ theorem EvalE_RenameE [evale] :
 "\<lbrakk>e[ss]\<epsilon>\<rbrakk>\<epsilon>b = \<lbrakk>e\<rbrakk>\<epsilon>(RenameB (inv\<^sub>s ss) b)"
   by (simp add: EvalE_def RenameE.rep_eq)
 
-theorem EvalE_SubstP [eval] :
+theorem EvalP_SubstP [eval] :
   "\<lbrakk>p[v|x]\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b))"
   by (simp add:SubstP_def EvalP_def EvalE_def)
 

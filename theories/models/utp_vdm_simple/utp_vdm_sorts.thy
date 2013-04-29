@@ -207,7 +207,7 @@ lemma ProjBasicV_not_basic [simp]: "\<not> IsBasicV x \<Longrightarrow> ProjBasi
   by (case_tac x, auto)
 
 lemma embTYPE_inv_FuncT:
-  "prjTYPE (embTYPE (a → b) :: vdmv UTYPE) = (a → b)"
+  "prjTYPE (embTYPE (a \<rightarrow> b) :: vdmv UTYPE) = (a \<rightarrow> b)"
   apply (rule_tac embTYPE_inv[of "FuncV (\<lambda> x. BotV)"])
   apply (auto simp add: utype_rel_vdmv_def Defined_vdmv_def)
 done
@@ -250,82 +250,9 @@ instance
   apply (smt ProjBasicV_not_basic UNIV_I image_iff mem_Collect_eq subsetI utp_vdm_values.ProjBasicV_inv)
   apply (force)
   apply (simp_all add:FuncType_vdmv_def)
-  apply (metis (lifting) embTYPE_inv_FuncT prjTYPE_inv_vdm vdmt.simps(9))+
+  apply (metis embTYPE_inv_FuncT prjTYPE_inv_vdm vdmt.simps(8))+
 done
 
 end
-
-
-(*
-instantiation vdmv :: FUNCTION_SORT
-begin
-
-definition MkFunc_vdmv where "MkFunc_vdmv f = FuncV\<cdot>(\<Lambda>! x. f x)"
-definition DestFunc_vdmv where "DestFunc_vdmv f \<equiv> \<lambda> x. (sfun_rep\<cdot>(ProjFuncV\<cdot>f))\<cdot>x"
-definition IsFunc_vdmv :: "(vdmv \<Rightarrow> vdmv) \<Rightarrow> bool" where
-"IsFunc_vdmv f \<equiv> cont f \<and> f \<bottom> = \<bottom> \<and> (\<exists>x. x \<noteq> \<bottom> \<and> f x \<noteq> \<bottom>)"
-definition FuncType_vdmv :: "vdmv UTYPE \<Rightarrow> vdmv UTYPE \<Rightarrow> vdmv UTYPE" where
-"FuncType_vdmv a b \<equiv>
-  case (prj\<cdot>(Rep_UTYPE a), prj\<cdot>(Rep_UTYPE b)) of
-    (Def a', Def b') \<Rightarrow> embTYPE (FuncT a' b') |
-    _ \<Rightarrow> Abs_UTYPE (emb\<cdot>(\<bottom> :: vdmt lift))"
-
-instance proof
-  fix f :: "vdmv \<Rightarrow> vdmv"
-
-  assume isFunc: "IsFunc f"
-  from isFunc show "DestFunc (MkFunc f) = f"
-    by (simp add:MkFunc_vdmv_def DestFunc_vdmv_def IsFunc_vdmv_def)
-
-  from isFunc show "\<D> (MkFunc f)"
-    apply (auto simp add:Defined_vdmv_def IsFunc_vdmv_def MkFunc_vdmv_def FuncType_vdmv_def sfun_eq_iff)
-    apply (metis Abs_cfun_inverse2 Rep_cfun_strict1)
-  done
-
-  fix a b :: "vdmv UTYPE"
-  assume funcRange: "\<forall>x. x : a \<longrightarrow> f x : b"
-  from isFunc funcRange show "MkFunc f : FuncType a b"
-    apply (auto simp add: MkFunc_vdmv_def type_rel_def utype_rel_vdmv_def IsFunc_vdmv_def)
-    apply (simp add:FuncType_vdmv_def)
-    apply (insert vdmv_UTYPE_Def[of "a"])
-    apply (erule exE)
-    apply (simp)
-    apply (insert vdmv_UTYPE_Def[of "b"])
-    apply (erule exE)
-    apply (simp add:embTYPE_def)
-
-    apply (rule FuncV_type)
-    apply (auto)
-    apply (metis (lifting) BasicV_type Rep_UTYPE_elim emb_inverse lift.inject utype_rel_vdmv_def)
-  done
-qed
-end
-
-lemma carrier_vcarrier [simp]: "carrier t = vcarrier (prjTYPE t)"
-  by (simp add:carrier_def vcarrier_def)
-
-lemma prjTYPE_vdmv_IntT [simp]: 
-  "prjTYPE (IntType :: vdmv UTYPE) = IntT"
-  by (auto intro!: embTYPE_inv simp add:utype_rel_vdmv_def IntType_vdmv_def)
-
-lemma prjTYPE_vdmv_BoolT [simp]: 
-  "prjTYPE (BoolType :: vdmv UTYPE) = BoolT"
-  by (auto intro!: embTYPE_inv simp add:utype_rel_vdmv_def BoolType_vdmv_def)
-
-lemma prjTYPE_vdmv_FuncT [simp]:
-  "prjTYPE (FuncType a b :: vdmv UTYPE) = prjTYPE a → prjTYPE b"
-  apply (case_tac a)
-  apply (simp)
-  apply (simp add:FuncType_vdmv_def)
-  apply (insert vdmv_UTYPE_Def[of a])
-  apply (insert vdmv_UTYPE_Def[of b])
-  apply (erule exE)
-  apply (erule exE)
-  apply (simp)
-  apply (auto)
-  apply (metis Abs_UTYPE_inverse Undef.simps embTYPE_def emb_inverse prjTYPE_def vdmt_UTYPE)
-done
-*)
-
 
 end

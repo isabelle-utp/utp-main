@@ -450,6 +450,12 @@ lemma rename_equiv_trans :
  ss1 \<cong>\<^sub>s ss3 on vs"
   by (simp add: rename_equiv_def)
 
+lemma rename_equiv_union :
+"\<lbrakk>ss1 \<cong>\<^sub>s ss2 on vs1;
+ ss1 \<cong>\<^sub>s ss2 on vs2\<rbrakk> \<Longrightarrow>
+ ss1 \<cong>\<^sub>s ss2 on (vs1 \<union> vs2)"
+  by (auto simp add: rename_equiv_def)
+
 definition rename_func_on :: "('VALUE VAR \<Rightarrow> 'VALUE VAR) \<Rightarrow> 'VALUE VAR set \<Rightarrow> bool" where
 "rename_func_on f vs \<longleftrightarrow> (inj_on f vs \<and> f ` vs \<inter> vs = {} \<and> (\<forall> x. vtype x = vtype (f x)) \<and> (\<forall> x. aux x = aux (f x)))"
 
@@ -735,6 +741,10 @@ done
 
 theorem VAR_RENAME_INV_app [simp] :
 "ss \<in> VAR_RENAME_INV \<Longrightarrow> \<langle>ss\<rangle>\<^sub>s (\<langle>ss\<rangle>\<^sub>s x) = x"
+  by (metis VAR_RENAME_INV_comp id_apply o_eq_dest_lhs rename_comp_rep_eq rename_id_rep_eq)
+
+theorem VAR_RENAME_INV_comp' [simp] :
+"ss \<in> VAR_RENAME_INV \<Longrightarrow> \<langle>ss\<rangle>\<^sub>s \<circ> \<langle>ss\<rangle>\<^sub>s = id"
   by (metis VAR_RENAME_INV_comp id_apply o_eq_dest_lhs rename_comp_rep_eq rename_id_rep_eq)
 
 theorem VAR_RENAME_INV_rename_on [closure]:
@@ -1041,6 +1051,8 @@ theorems rename_simps =
   RenameP_involution
   RenameP_VAR
 
+declare rename_simps [urename]
+
 subsection {* Distribution theorems *}
 
 theorem RenameP_image_union [urename]:
@@ -1054,10 +1066,15 @@ theorem RenameP_image_inter [urename]:
 theorem RenameP_image_minus [urename]:
   "\<langle>ss\<rangle>\<^sub>s ` (vs1 - vs2) = \<langle>ss\<rangle>\<^sub>s ` vs1 - \<langle>ss\<rangle>\<^sub>s ` vs2"
   by (metis Rep_VAR_RENAME_inj image_set_diff)
-  
+ 
+lemma RenameP_image_uminus [urename]: 
+  "\<langle>ss\<rangle>\<^sub>s ` (- vs) = - (\<langle>ss\<rangle>\<^sub>s ` vs)"
+  by (metis (lifting) Rep_VAR_RENAME_bij bij_image_Compl_eq) 
+
 theorems rename_dist =
   RenameP_image_union
   RenameP_image_inter
   RenameP_image_minus
+  RenameP_image_uminus
 
 end

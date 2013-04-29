@@ -69,6 +69,7 @@ apply (insert Rep_WF_ALPHA_PREDICATE[of p])
 apply (auto simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def pred_alphabet_def)
 done
 
+
 subsection {* Operators *}
 
 subsubsection {* Shallow Lifting *}
@@ -276,15 +277,17 @@ begin
 
 definition less_eq_WF_ALPHA_PREDICATE :: 
   "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> bool" where
-"less_eq_WF_ALPHA_PREDICATE p1 p2 \<longleftrightarrow> \<alpha> p1 = \<alpha> p2 \<and> taut (p1 \<sqsubseteq>\<alpha> p2)"
+"less_eq_WF_ALPHA_PREDICATE p2 p1 \<longleftrightarrow> \<alpha> p1 = \<alpha> p2 \<and> taut (p1 \<sqsubseteq>\<alpha> p2)"
 
 definition less_WF_ALPHA_PREDICATE :: 
   "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> bool" where
-"less_WF_ALPHA_PREDICATE p1 p2 \<longleftrightarrow> \<alpha> p1 = \<alpha> p2 \<and> taut (p1 \<sqsubseteq>\<alpha> p2) \<and> \<not> taut (p2 \<sqsubseteq>\<alpha> p1)"
+"less_WF_ALPHA_PREDICATE p2 p1 \<longleftrightarrow> \<alpha> p1 = \<alpha> p2 \<and> taut (p1 \<sqsubseteq>\<alpha> p2) \<and> \<not> taut (p2 \<sqsubseteq>\<alpha> p1)"
 
 instance ..
 
 end
+
+instantiation WF_ALPHA_PREDICATE :: (VALUE) refines begin instance .. end
 
 subsection {* Theorems *}
 
@@ -481,7 +484,7 @@ theorem TrueA_noteq_FalseA :
 declare pred_alphabet_def [simp del]
 
 lemma WF_ALPHA_PREDICATE_neq_elim [elim]: 
-  "\<lbrakk> p \<noteq> q; \<alpha> p \<noteq> \<alpha> q \<Longrightarrow> P; \<pi> p \<noteq> \<pi> q \<Longrightarrow> P \<rbrakk>  \<Longrightarrow> P "
+  "\<lbrakk> p \<noteq> q; \<alpha> p \<noteq> \<alpha> q \<Longrightarrow> P; (\<pi> p \<noteq> \<pi> q) \<Longrightarrow> P \<rbrakk>  \<Longrightarrow> P "
   by (auto)
 
 theorem WF_ALPHA_PREDICATE_empty_true_false:
@@ -508,5 +511,23 @@ lemma WF_ALPHA_PREDICATE_binding_equiv:
   apply (auto simp add:UNREST_def)
   apply (smt binding_equiv_comm binding_override_equiv binding_override_simps(10) binding_override_simps(5))
 done
+
+lemma WF_ALPHA_PREDICATE_OVER_intro [intro]:
+  "\<alpha> p = a \<Longrightarrow> p \<in> WF_ALPHA_PREDICATE_OVER a"
+  by (simp add:WF_ALPHA_PREDICATE_OVER_def)
+
+lemma WF_ALPHA_PREDICATE_OVER_alphabet [alphabet]:
+  "p \<in> WF_ALPHA_PREDICATE_OVER a \<Longrightarrow> \<alpha> p = a"
+  by (auto simp add:WF_ALPHA_PREDICATE_OVER_def)
+
+lemma AndA_WF_ALPHA_PREDICATE_OVER [closure]:
+  "\<lbrakk> p \<in> WF_ALPHA_PREDICATE_OVER a; q \<in> WF_ALPHA_PREDICATE_OVER a \<rbrakk> \<Longrightarrow>
+   p \<and>\<alpha> q \<in> WF_ALPHA_PREDICATE_OVER a"
+  by (auto simp add:alphabet)
+
+lemma OrA_WF_ALPHA_PREDICATE_OVER [closure]:
+  "\<lbrakk> p \<in> WF_ALPHA_PREDICATE_OVER a; q \<in> WF_ALPHA_PREDICATE_OVER a \<rbrakk> \<Longrightarrow>
+   p \<or>\<alpha> q \<in> WF_ALPHA_PREDICATE_OVER a"
+  by (auto simp add:alphabet)
 
 end

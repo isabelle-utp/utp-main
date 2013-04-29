@@ -1,0 +1,47 @@
+## configurables
+
+SESSION-NAME = Kleene_Algebra
+BASE-IMAGE = HOL
+
+## targets
+
+default: $(SESSION-NAME)
+test: $(SESSION-NAME)
+# usually empty:
+images:
+
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
+OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+
+# turn image into absolute path according to ISABELLE_IMAGE_PATH or OUT
+ifeq ($(ISABELLE_IMAGE_PATH),)
+IMAGE=$(OUT)/$(BASE-IMAGE)
+else
+IMAGE=$(ISABELLE_IMAGE_PATH)$(BASE-IMAGE)
+endif
+
+
+USEDIR = $(ISABELLE_TOOL) usedir -v true -i true -V outline=/proof,/ML -d pdf -P "http://isabelle.in.tum.de/library/" # -D generated
+
+# time limit (in sec)
+MAXTIME = 600
+
+
+## dependencies
+
+$(SESSION-NAME): $(LOG)/$(BASE-IMAGE)-$(SESSION-NAME).gz
+
+$(LOG)/$(BASE-IMAGE)-$(SESSION-NAME).gz: $(IMAGE) ROOT.ML *.thy document/*.tex document/*.bib
+	cd ..; ulimit -t $(MAXTIME); $(USEDIR) $(IMAGE) $(SESSION-NAME)
+
+
+## clean
+
+clean:
+	@rm -f $(LOG)/$(BASE-IMAGE)-$(SESSION-NAME).gz

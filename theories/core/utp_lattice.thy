@@ -11,24 +11,25 @@ imports
   utp_pred 
   utp_rel 
   utp_unrest 
+  utp_laws
   "../tactics/utp_pred_tac" 
   "../tactics/utp_rel_tac"
 begin
 
 notation
-  Inf ("\<Sqinter>_" [900] 900) and
-  Sup ("\<Squnion>_" [900] 900) and
-  inf  (infixl "\<sqinter>" 70) and
-  sup  (infixl "\<squnion>" 65)
+  Sup ("\<Sqinter>_" [900] 900) and
+  Inf ("\<Squnion>_" [900] 900) and
+  sup  (infixl "\<sqinter>" 65) and
+  inf  (infixl "\<squnion>" 70)
 
 instantiation WF_PREDICATE :: (VALUE) lattice
 begin
 
 definition sup_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"sup_WF_PREDICATE = AndP"
+"sup_WF_PREDICATE = OrP"
 
 definition inf_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"inf_WF_PREDICATE = OrP"
+"inf_WF_PREDICATE = AndP"
 
 instance
   apply (intro_classes)
@@ -40,14 +41,18 @@ end
 declare sup_WF_PREDICATE_def [eval,evalr]
 declare inf_WF_PREDICATE_def [eval,evalr]
 
+notation
+  bot ("\<top>") and
+  top ("\<bottom>")
+
 instantiation WF_PREDICATE :: (VALUE) bounded_lattice
 begin
 
 definition top_WF_PREDICATE :: "'a WF_PREDICATE" where
-"top_WF_PREDICATE = FalseP"
+"top_WF_PREDICATE = TrueP"
 
 definition bot_WF_PREDICATE :: "'a WF_PREDICATE" where
-"bot_WF_PREDICATE = TrueP"
+"bot_WF_PREDICATE = FalseP"
 
 instance proof
 
@@ -67,24 +72,24 @@ end
 declare bot_WF_PREDICATE_def [eval,evalr]
 declare top_WF_PREDICATE_def [eval,evalr]
 
-instantiation WF_PREDICATE :: (VALUE) Sup
-begin
-
-definition Sup_WF_PREDICATE ::
-  "'VALUE WF_PREDICATE set \<Rightarrow>
-   'VALUE WF_PREDICATE" where
-"Sup_WF_PREDICATE ps = (if ps = {} then bot else mkPRED (\<Inter> (destPRED ` ps)))"
-
-instance ..
-end
-
 instantiation WF_PREDICATE :: (VALUE) Inf
 begin
 
 definition Inf_WF_PREDICATE ::
   "'VALUE WF_PREDICATE set \<Rightarrow>
    'VALUE WF_PREDICATE" where
-"Inf_WF_PREDICATE ps = (if ps = {} then top else mkPRED (\<Union> (destPRED ` ps)))"
+"Inf_WF_PREDICATE ps = (if ps = {} then top else mkPRED (\<Inter> (destPRED ` ps)))"
+
+instance ..
+end
+
+instantiation WF_PREDICATE :: (VALUE) Sup
+begin
+
+definition Sup_WF_PREDICATE ::
+  "'VALUE WF_PREDICATE set \<Rightarrow>
+   'VALUE WF_PREDICATE" where
+"Sup_WF_PREDICATE ps = (if ps = {} then bot else mkPRED (\<Union> (destPRED ` ps)))"
 
 instance ..
 end
@@ -92,17 +97,17 @@ end
 theorem EvalP_Inf [eval] :
 "\<lbrakk>\<Sqinter> ps\<rbrakk>b = (\<exists> p \<in> ps . \<lbrakk>p\<rbrakk>b)"
 apply (simp add: EvalP_def closure)
-apply (simp add: Inf_WF_PREDICATE_def)
+apply (simp add: Sup_WF_PREDICATE_def)
 apply (clarify)
-apply (simp add: top_WF_PREDICATE_def FalseP_def)
+apply (simp add: bot_WF_PREDICATE_def FalseP_def)
 done
 
 theorem EvalP_Sup [eval] :
 "\<lbrakk>\<Squnion> ps\<rbrakk>b = (\<forall> p \<in> ps . \<lbrakk>p\<rbrakk>b)"
 apply (simp add: EvalP_def closure)
-apply (simp add: Sup_WF_PREDICATE_def)
+apply (simp add: Inf_WF_PREDICATE_def)
 apply (clarify)
-apply (simp add: bot_WF_PREDICATE_def TrueP_def)
+apply (simp add: top_WF_PREDICATE_def TrueP_def)
 done
 
 instantiation WF_PREDICATE :: (VALUE) complete_lattice
@@ -134,7 +139,7 @@ definition uminus_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE
 "uminus_WF_PREDICATE p = \<not>p p"
 
 definition minus_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"minus_WF_PREDICATE p q = (p \<or>p \<not>p q)"
+"minus_WF_PREDICATE p q = (p \<and>p \<not>p q)"
 
 instance 
   apply (intro_classes)
@@ -146,12 +151,12 @@ end
 lemma Lattice_L1:
   fixes P :: "'VALUE WF_PREDICATE"
   shows "P \<sqsubseteq> \<Sqinter> S \<longleftrightarrow> (\<forall> X\<in>S. P \<sqsubseteq> X)"
-  by (metis le_Inf_iff)
+  by (metis Sup_le_iff)
 
 lemma Lattice_L1A:
   fixes X :: "'VALUE WF_PREDICATE"
   shows "X \<in> S \<Longrightarrow> \<Sqinter> S \<sqsubseteq> X"
-  by (metis Inf_lower)
+  by (metis Sup_upper)
 
 lemma Lattice_L1B:
   fixes P :: "'VALUE WF_PREDICATE"
@@ -164,13 +169,13 @@ lemma Lattice_L2:
 proof -
 
   have "(\<Squnion> S) \<sqinter> Q = Q \<sqinter> (\<Squnion> S)"
-    by (metis inf.commute)
+    by (metis sup.commute)
 
-  also have "... = (SUP P:S. P \<sqinter> Q)"
-    by (metis Sup_inf inf_commute)
+  also have "... = (INF P:S. P \<sqinter> Q)"
+    by (metis Inf_sup sup_commute)
 
   also have "... = \<Squnion> { P \<sqinter> Q | P. P \<in> S}"
-    apply (simp add:SUP_def image_def)
+    apply (simp add:INF_def image_def)
     apply (subgoal_tac "{y. \<exists>x\<in>S. y = x \<sqinter> Q} = {P \<sqinter> Q |P. P \<in> S}")
     apply (simp)
     apply (auto)
@@ -185,11 +190,11 @@ lemma Lattice_L3:
   shows "(\<Sqinter> S) \<squnion> Q = \<Sqinter>{ P \<squnion> Q | P. P \<in> S}"
 proof -
 
-  have "(\<Sqinter> S) \<squnion> Q = (INF P:S. P \<squnion> Q)"
-    by (metis Inf_sup)
+  have "(\<Sqinter> S) \<squnion> Q = (SUP P:S. P \<squnion> Q)"
+    by (metis Sup_inf)
 
   also have "... = \<Sqinter> { P \<squnion> Q | P. P \<in> S}"
-    apply (simp add:INF_def image_def)
+    apply (simp add:SUP_def image_def)
     apply (subgoal_tac "{y. \<exists>x\<in>S. y = x \<squnion> Q} = {P \<squnion> Q |P. P \<in> S}")
     apply (simp)
     apply (auto)
@@ -201,16 +206,38 @@ qed
 
 lemma EvalR_SupP [evalr]:
   "\<lbrakk>\<Sqinter> ps\<rbrakk>R = \<Union> {\<lbrakk>p\<rbrakk>R | p . p \<in> ps}"
-  by (auto simp add:EvalR_def Inf_WF_PREDICATE_def top_WF_PREDICATE_def FalseP_def)
+  by (auto simp add:EvalR_def Sup_WF_PREDICATE_def bot_WF_PREDICATE_def FalseP_def)
+
+lemma EvalRR_SupP [evalrr]:
+  "\<lbrakk>\<Sqinter> ps\<rbrakk>\<R> = \<Union> {\<lbrakk>p\<rbrakk>\<R> | p . p \<in> ps}"
+  by (auto simp add:evalr MkRel_def)
+
+lemma image_Inter: "\<lbrakk> inj_on f (\<Union>S); S \<noteq> {} \<rbrakk> \<Longrightarrow> f ` \<Inter>S = (\<Inter>x\<in>S. f ` x)"
+  apply (auto simp add:image_def)
+  apply (smt InterI UnionI inj_on_contraD)
+done
 
 lemma EvalR_InfP [evalr]:
-  "\<lbrakk>\<Squnion> ps\<rbrakk>R = \<Inter> {\<lbrakk>p\<rbrakk>R | p . p \<in> ps}"
-  apply (auto simp add:EvalR_def Sup_WF_PREDICATE_def bot_WF_PREDICATE_def TrueP_def)
-  apply (simp add:image_def)
-  defer
+  "ps \<noteq> {} \<Longrightarrow> \<lbrakk>\<Squnion> ps\<rbrakk>R = \<Inter> {\<lbrakk>p\<rbrakk>R | p . p \<in> ps}"
+  apply (simp add: Inf_WF_PREDICATE_def EvalR_def)
+  apply (simp add:EvalR_def Inf_WF_PREDICATE_def top_WF_PREDICATE_def TrueP_def)
+  apply (auto)
   apply (smt BindR_inject EvalR_def INT_I image_iff)
-oops
-  
+done
+
+lemma EvalRR_InfP [evalrr]:
+  "ps \<noteq> {} \<Longrightarrow> \<lbrakk>\<Squnion> ps\<rbrakk>\<R> = \<Inter> {\<lbrakk>p\<rbrakk>\<R> | p . p \<in> ps}"
+  apply (simp add:evalr MkRel_def)
+  apply (rule trans)
+  apply (rule image_Inter)
+  apply (rule subset_inj_on)
+  apply (rule map_pair_inj_on)
+  apply (rule MkRelB_inj)
+  apply (rule MkRelB_inj)
+  apply (smt EvalR_range Sup_le_iff mem_Collect_eq)
+  apply (auto)
+done
+
 lemma rel_Sup_comp_distl: "(\<Union> S) O Q = \<Union>{ P O Q | P. P \<in> S}"
   by (auto)
 
@@ -225,35 +252,44 @@ lemma Lattice_L4:
   apply (metis (hide_lams, no_types) EvalR_SemiR relcomp.intros)
 done
 
+lemma Lattice_L5:
+  fixes P :: "'VALUE WF_PREDICATE"
+  shows "P ; (\<Sqinter> S) = \<Sqinter>{ P ; Q | Q. Q \<in> S}"
+  apply (utp_rel_tac)
+  apply (simp add:rel_Sup_comp_distr)
+  apply (auto)
+  apply (metis (hide_lams, no_types) EvalR_SemiR relcomp.intros)
+done
+
 subsection {* @{term UNREST} Theorems *}
 
-theorem UNREST_BotP [unrest]: "UNREST vs bot"
-  by (simp add:bot_WF_PREDICATE_def unrest)
-
-theorem UNREST_TopP [unrest]: "UNREST vs top"
+theorem UNREST_BotP [unrest]: "UNREST vs \<bottom>"
   by (simp add:top_WF_PREDICATE_def unrest)
+
+theorem UNREST_TopP [unrest]: "UNREST vs \<top>"
+  by (simp add:bot_WF_PREDICATE_def unrest)
 
 theorem UNREST_sup :
 "\<lbrakk>UNREST vs p1;
  UNREST vs p2\<rbrakk> \<Longrightarrow>
  UNREST vs (p1 \<squnion> p2)"
-  by (simp add: sup_WF_PREDICATE_def UNREST_AndP)
+  by (simp add: inf_WF_PREDICATE_def UNREST_AndP)
 
 theorem UNREST_inf [unrest]:
 "\<lbrakk>UNREST vs p1;
  UNREST vs p2\<rbrakk> \<Longrightarrow>
  UNREST vs (p1 \<sqinter> p2)"
-  by (auto simp add: inf_WF_PREDICATE_def UNREST_OrP)
+  by (auto simp add: sup_WF_PREDICATE_def UNREST_OrP)
 
 theorem UNREST_Sup [unrest]:
 "\<forall> p \<in> ps. UNREST vs p \<Longrightarrow> UNREST vs (\<Squnion> ps)"
-  apply (simp add: Sup_WF_PREDICATE_def UNREST_BotP)
+  apply (simp add: Inf_WF_PREDICATE_def UNREST_BotP)
   apply (simp add: UNREST_def)
 done
 
 theorem UNREST_Inf [unrest]:
 "\<forall> p \<in> ps. UNREST vs p \<Longrightarrow> UNREST vs (\<Sqinter> ps)"
-  apply (simp add: Inf_WF_PREDICATE_def UNREST_TopP)
+  apply (simp add: Sup_WF_PREDICATE_def UNREST_TopP)
   apply (auto simp add: UNREST_def)
 done
 
@@ -269,12 +305,12 @@ definition one_WF_PREDICATE :: "'a WF_PREDICATE" where
 
 instance 
   apply (intro_classes)
-  apply (simp_all add:times_WF_PREDICATE_def one_WF_PREDICATE_def)
-  apply (metis SemiP_assoc)
-  apply (metis SemiP_SkipR_left)
-  apply (metis SemiP_SkipR_right)
+  apply (simp_all add:times_WF_PREDICATE_def one_WF_PREDICATE_def SemiP_assoc)
 done
 end
+
+declare times_WF_PREDICATE_def [eval, evalr, evalrr]
+declare one_WF_PREDICATE_def [eval, evalr, evalrr]
 
 instantiation WF_PREDICATE :: (VALUE) comm_monoid_add
 begin
@@ -294,6 +330,9 @@ instance
 done
 end
 
+declare plus_WF_PREDICATE_def [eval, evalr, evalrr]
+declare zero_WF_PREDICATE_def [eval, evalr, evalrr]
+
 instantiation WF_PREDICATE :: (VALUE) semiring_1
 begin
 
@@ -305,5 +344,50 @@ instance
   apply (auto simp add:Id_on_def WF_REL_BINDING_def)
 done
 end
+
+definition AssumeR ::
+"'VALUE WF_PREDICATE \<Rightarrow>
+ 'VALUE WF_PREDICATE" ("_\<^sup>\<top>" [200] 200) where
+"c\<^sup>\<top> \<equiv> II \<triangleleft> c \<triangleright> \<top>"
+
+definition AssertR ::
+"'VALUE WF_PREDICATE \<Rightarrow>
+ 'VALUE WF_PREDICATE" ("_\<^sub>\<bottom>" [200] 200) where
+"c\<^sub>\<bottom> \<equiv> II \<triangleleft> c \<triangleright> \<bottom>"
+
+lemma UNREST_AssumeR_DASHED_TWICE [unrest]:
+  "UNREST DASHED_TWICE c \<Longrightarrow> UNREST DASHED_TWICE (c\<^sup>\<top>)"
+  by (force intro:unrest simp add: AssumeR_def)
+
+lemma UNREST_AssertR_DASHED_TWICE [unrest]:
+  "UNREST DASHED_TWICE c \<Longrightarrow> UNREST DASHED_TWICE (c\<^sub>\<bottom>)"
+  by (force intro:unrest simp add: AssertR_def)
+
+declare AssumeR_def [eval, evalr, evalrr]
+declare AssertR_def [eval, evalr, evalrr]
+
+lemma 
+  assumes "UNREST (VAR - UNDASHED) b" "UNREST (VAR - UNDASHED) c"
+  shows "b\<^sub>\<bottom> ; c\<^sub>\<bottom> = (b \<and>p c)\<^sub>\<bottom>"
+proof -
+
+  from assms have mur: "UNREST DASHED_TWICE (c\<^sub>\<bottom>)"
+    apply (rule_tac unrest)
+    apply (force intro: unrest)
+  done
+   
+  have "b\<^sub>\<bottom> ; c\<^sub>\<bottom> = (II \<triangleleft> b \<triangleright> \<bottom>) ; c\<^sub>\<bottom>"
+    by (simp add:AssertR_def)
+
+  also from mur assms have "... = (II ; c\<^sub>\<bottom>) \<triangleleft> b \<triangleright> (\<bottom> ; c\<^sub>\<bottom>)"
+    apply (rule_tac SemiR_CondR_distr)
+    apply (force intro: unrest)+
+  done
+
+  also from assms have "... = c\<^sub>\<bottom> \<triangleleft> b \<triangleright> (\<bottom> ; c\<^sub>\<bottom>)"
+    by (metis SemiP_SkipR_left)
+
+  also from assms have "... = c\<^sub>\<bottom> \<triangleleft> b \<triangleright> \<bottom>"
+    oops
 
 end

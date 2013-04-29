@@ -41,10 +41,10 @@ lemma OrP_wp [wp]:
 
 lemma ChoiceP_wp [wp]:
   "(P \<sqinter> Q) wp r = (P wp r) \<and>p (Q wp r)"
-  by (simp add:inf_WF_PREDICATE_def wp)
+  by (simp add:sup_WF_PREDICATE_def wp)
 
 lemma ImpliesP_precond_wp: "[r \<Rightarrow>p s]p \<Longrightarrow> [(Q wp r) \<Rightarrow>p (Q wp s)]p"
-  by (metis ConjP_wp RefP_def le_iff_sup less_eq_WF_PREDICATE_def sup_WF_PREDICATE_def)
+  by (metis ConjP_wp RefP_AndP RefP_def less_eq_WF_PREDICATE_def)
 
 lemma ImpliesP_pred_wp: "[Q \<Rightarrow>p S]p \<Longrightarrow> [(S wp r) \<Rightarrow>p (Q wp r)]p"
   by (metis OrP_comm OrP_wp RefP_def inf_WF_PREDICATE_def le_iff_inf le_iff_sup less_eq_WF_PREDICATE_def sup_WF_PREDICATE_def)
@@ -53,7 +53,7 @@ lemma RefineP_precond_wp: "[r \<Rightarrow>p s]p \<Longrightarrow> Q wp s \<sqsu
   by (metis ImpliesP_precond_wp RefP_def less_eq_WF_PREDICATE_def)
 
 lemma RefineP_pred_wp: "S \<sqsubseteq> Q \<Longrightarrow> Q wp r \<sqsubseteq> S wp r"
-  by (metis ChoiceP_wp inf_absorb2 le_iff_sup sup_WF_PREDICATE_def)
+  by (metis OrP_wp RefP_AndP le_iff_sup sup_WF_PREDICATE_def)
 
 lemma FalseP_wp: "Q ; true = true \<Longrightarrow> Q wp false = false"
   by (simp add:WeakPrecondP_def)

@@ -115,9 +115,17 @@ apply (drule_tac x = "RenameB ss x" in spec)
 apply (simp_all)
 done
 
+theorem RenameP_TrueP [urename]:
+  "true[ss] = true"
+  by (utp_pred_tac)
+
+theorem RenameP_FalseP [urename]:
+  "false[ss] = false"
+  by (utp_pred_tac)
+
 theorem RenameP_VarP [urename]:
 "(VarP x)[ss] = VarP (\<langle>ss\<rangle>\<^sub>s x)"
-  apply (utp_pred_tac)
+  apply (utp_pred_tac, utp_expr_tac)
   apply (simp add:RenameB_def)
 done
 
@@ -153,6 +161,88 @@ theorem RenameP_UNREST [simp]:
   apply (simp)
   apply (force simp add:override_on_def) 
 done
+
+lemma WF_PREDICATE_binding_equiv:
+  "\<lbrakk> UNREST (VAR - vs) p; b1 \<in> destPRED p; b1 \<cong> b2 on vs \<rbrakk> \<Longrightarrow> b2 \<in> destPRED p"
+  apply (auto simp add:UNREST_def)
+  apply (smt binding_equiv_comm binding_override_equiv binding_override_simps(10) binding_override_simps(5))
+done
+
+lemma RenameP_equiv:
+  "\<lbrakk> UNREST (VAR - vs) p; ss1 \<cong>\<^sub>s ss2 on vs \<rbrakk> \<Longrightarrow> p[ss1] = p[ss2]"
+  apply (utp_pred_tac)
+  apply (simp add: EvalP_def rename_equiv_def rename_equiv_def RenameB_def)
+  apply (clarify)
+  apply (subgoal_tac "CompB b ss1 \<cong> CompB b ss2 on vs")
+  apply (simp add:UNREST_def)
+  apply (auto)
+  apply (drule_tac x="CompB b ss1" in bspec,simp)
+  apply (smt binding_override_equiv binding_override_simps(10) binding_override_simps(2) binding_override_simps(4) binding_override_simps(5) binding_override_subset)
+  apply (drule_tac x="CompB b ss2" in bspec,simp)
+  apply (metis binding_override_equiv binding_override_simps(10) binding_override_simps(5) binding_override_subset)
+  apply (simp add:binding_equiv_def)
+done
+
+subsubsection {* Converse Laws *}
+
+lemma ConvR_invol [simp]: "(p\<^sup>\<smile>)\<^sup>\<smile> = p"
+  by (utp_rel_tac)
+
+lemma ConvR_TrueP [simp]: "true\<^sup>\<smile> = true"
+  by (simp add:ConvR_def urename)
+
+lemma ConvR_FalseP [simp]: "false\<^sup>\<smile> = false"
+  by (simp add:ConvR_def urename)
+
+lemma ConvR_SkipR [simp]: "II\<^sup>\<smile> = II"
+  by (utp_rel_tac)
+
+lemma ConvR_SemiR: "(p;q)\<^sup>\<smile> = q\<^sup>\<smile> ; p\<^sup>\<smile>"
+  by (utp_rel_auto_tac)
+
+lemma ConvR_OrP: "(p \<or>p q)\<^sup>\<smile> = q\<^sup>\<smile> \<or>p p\<^sup>\<smile>"
+  by (utp_rel_auto_tac)
+
+lemma ConvR_AndP: "(p \<and>p q)\<^sup>\<smile> = q\<^sup>\<smile> \<and>p p\<^sup>\<smile>"
+  by (utp_rel_auto_tac)
+
+subsection {* Substitution Laws *}
+
+ML {*
+  structure usubst =
+    Named_Thms (val name = @{binding usubst} val description = "substitution theorems")
+*}
+
+setup usubst.setup
+
+lemma SubstP_TrueP [usubst]: "true[v|x] = true"
+  by (utp_pred_tac)
+
+lemma SubstP_FalseP [usubst]: "false[v|x] = false"
+  by (utp_pred_tac)
+
+lemma SubstP_AndP [usubst]: "(p \<and>p q)[v|x] = p[v|x] \<and>p q[v|x]"
+  by (utp_pred_tac)
+
+lemma SubstP_OrP [usubst]: "(p \<or>p q)[v|x] = p[v|x] \<or>p q[v|x]"
+  by (utp_pred_tac)
+
+lemma SubstP_VarP [usubst]: "v \<rhd>\<^sub>e x \<Longrightarrow> VarP x[v|x] = ExprP v"
+  by (utp_pred_tac, utp_expr_tac)
+
+lemma SubstP_SemiR_left [usubst]: 
+  "\<lbrakk> x \<in> UNDASHED; v \<rhd>\<^sub>e x; UNREST_EXPR DASHED v \<rbrakk> \<Longrightarrow> (p ; q)[v|x] = p[v|x] ; q"
+  by (utp_rel_auto_tac)
+
+lemma SubstP_SkipR [usubst]:
+  "\<lbrakk> x \<in> UNDASHED; UNREST_EXPR DASHED v \<rbrakk> \<Longrightarrow> v \<rhd>\<^sub>e x \<Longrightarrow> II[v|x] = II"
+  apply (utp_rel_tac)
+oops
+
+lemma SubstP_AssignR_1 [usubst]:
+  "\<lbrakk> x \<in> UNDASHED; y \<in> UNDASHED; e \<rhd>\<^sub>e y; v \<rhd>\<^sub>e x; x \<noteq> y\<acute>; UNREST_EXPR DASHED e; UNREST_EXPR DASHED v \<rbrakk> \<Longrightarrow> (y :=p e)[v|x] = y :=p (e[v|x])"
+  apply (simp add:AssignR_alt_def usubst)
+  oops
 
 subsection {* Proof Experiments *}
 
@@ -447,20 +537,8 @@ proof -
   done
 qed
 
-lemma AssignR_alt_def: "x \<in> UNDASHED \<Longrightarrow> x :=p v = VarE x\<acute> ==p v \<and>p (\<exists>p {x,x\<acute>}. II)"
-  apply (utp_pred_tac, utp_expr_tac)
-  apply (safe)
-  apply (simp_all)
-  apply (rule_tac x="b(x\<acute> :=\<^sub>b \<langle>b\<rangle>\<^sub>b x)" in exI)
-  apply (simp)
-  apply (rule)
-  apply (metis (lifting) UNDASHED_eq_dash_contra undash_dash)
-  apply (drule_tac x="va" in bspec, simp_all)
-  apply (metis UNDASHED_eq_dash_contra undash_dash)
-done
-
 lemma AssignRA_alt_def:
-  assumes "x \<in> a" "x\<acute> \<in> a" "x \<in> UNDASHED" "UNREST_EXPR (UNDASHED \<union> DASHED - a) v"
+  assumes "x \<in> a" "x\<acute> \<in> a" "x \<in> UNDASHED" "UNREST_EXPR (UNDASHED \<union> DASHED - a) v" "v \<rhd>\<^sub>e x"
   shows "AssignRA x a v = VarE x\<acute> ==p v \<and>p II (a - {x,x\<acute>})"
 using assms
 proof (simp add:SkipRA_def AssignRA_def AssignR_alt_def)
@@ -490,7 +568,6 @@ proof -
     apply (auto)
     apply (rule unrest)
     apply (auto)
-    apply (metis set_mp utp_var.in_UNDASHED)
   done
 
   moreover from assms have "UNREST DASHED_TWICE p" 
@@ -526,11 +603,14 @@ proof -
   done
 qed
 
+
 theorem SkipRA_assign :
   assumes "x \<in> vs" "x\<acute> \<in> vs" "x \<in> UNDASHED" "HOMOGENEOUS vs"
   shows "II vs = x :=p\<^bsub>vs\<^esub> VarE x"
   apply (subgoal_tac "UNREST_EXPR (UNDASHED \<union> DASHED - vs) (VarE x)")
+  apply (subgoal_tac "VarE x \<rhd>\<^sub>e x")
   apply (simp add:assms SkipRA_unfold[of x vs] AssignRA_alt_def[of x vs "VarE x"])
+  apply (rule typing)
   apply (rule_tac UNREST_EXPR_subset)
   apply (rule UNREST_EXPR_VarE[of VAR])
   apply (force simp add:assms)
@@ -708,6 +788,70 @@ proof -
 
 qed
 
+theorem SemiR_TrueP_precond: 
+  "UNREST (-UNDASHED) p \<Longrightarrow> p ; true = p"
+  apply (auto simp add:SemiR_def COMPOSABLE_BINDINGS_def TrueP_def UNREST_def)
+  apply (drule_tac x="b1" in bspec, simp)
+  apply (drule_tac x="b2 \<oplus>\<^sub>b b1 on -(UNDASHED\<union>DASHED)" in spec)
+  apply (simp)
+  apply (metis (hide_lams, no_types) Diff_Int2 Diff_eq Diff_triv double_compl inf_assoc inf_commute inf_left_idem var_simps(32))
+  apply (rule_tac x="x" in exI)
+  apply (rule_tac x="(RenameB SS x) \<oplus>\<^sub>b x on DASHED" in exI)
+  apply (auto simp add:RenameB_rep_eq urename binding_equiv_def)
+  apply (smt Compl_eq_Diff_UNIV Diff_iff NON_REL_VAR_def SS_ident_app UnCI o_apply override_on_def)
+done
+
+theorem SemiR_AndP_right_precond: 
+  assumes "UNREST (-UNDASHED) c"
+  shows "p ; (c \<and>p q) = (p \<and>p c\<^sup>\<smile>) ; q"
+proof -
+
+  from assms have "(p \<and>p c\<^sup>\<smile>) ; q = (p \<and>p (c ; true)\<^sup>\<smile>) ; q"
+    by (metis SemiR_TrueP_precond)
+
+  also have "... = p ; (c \<and>p q)"
+    apply (simp add:ConvR_SemiR)
+    apply (utp_rel_auto_tac)
+    oops
+
+theorem SemiR_AndP_right_precond: 
+  "\<lbrakk> UNREST DASHED_TWICE p
+   ; UNREST DASHED_TWICE q
+   ; UNREST (VAR - UNDASHED) c \<rbrakk>
+     \<Longrightarrow> p ; (c \<and>p q) = (p \<and>p c[SS]) ; q"
+  apply (subgoal_tac "UNREST DASHED_TWICE c")
+  apply (subgoal_tac "UNREST DASHED_TWICE (c \<and>p q)")
+  apply (subgoal_tac "UNREST DASHED_TWICE (p \<and>p c[SS])")
+  apply (subgoal_tac "c[SS1 \<circ>\<^sub>s SS] = c[SS2]")
+  apply (simp add:SemiR_algebraic urename rename_simps)
+  apply (metis (no_types) AndP_assoc)
+  apply (metis (lifting) RenameP_equiv SS1_SS_eq_SS2)
+  apply (rule unrest, simp)
+  apply (rule unrest, simp)
+  apply (force simp add:urename SS_simps)
+  apply (force intro:unrest)
+  apply (force intro:unrest)
+done
+
+theorem SemiR_AndP_left_postcond: 
+  "\<lbrakk> UNREST DASHED_TWICE p
+   ; UNREST DASHED_TWICE q
+   ; UNREST (VAR - DASHED) c \<rbrakk>
+     \<Longrightarrow> (p \<and>p c) ; q = p ; (c[SS] \<and>p q)"
+  apply (subgoal_tac "UNREST DASHED_TWICE c")
+  apply (subgoal_tac "UNREST DASHED_TWICE (p \<and>p c)")
+  apply (subgoal_tac "UNREST DASHED_TWICE (c[SS] \<and>p q)")
+  apply (subgoal_tac "c[SS2 \<circ>\<^sub>s SS] = c[SS1]")
+  apply (simp add:SemiR_algebraic urename rename_simps)
+  apply (metis (no_types) AndP_assoc)
+  apply (metis (lifting) RenameP_equiv SS2_SS_eq_SS1)
+  apply (rule unrest, rule unrest, simp)
+  apply (force simp add:urename)
+  apply (simp)
+  apply (force intro:unrest)
+  apply (force intro:unrest)
+done
+
 text {* Expressions renaming *}
 
 theorem RenameE_id :
@@ -753,60 +897,6 @@ theorems erename_simps =
 
 text {* Expression substitution *}
 
-theorem SubstP_no_var:
-  "\<lbrakk> e \<rhd>\<^sub>e x; \<exists> z. is_SubstP_var p e x z; UNREST_EXPR {x} e; UNREST {x} p \<rbrakk> \<Longrightarrow>
-  p[e|x] = p"
-  apply (unfold SubstP_one_point[THEN sym])
-  apply (unfold ExistsP_AndP_expand2[THEN sym])
-  apply (utp_pred_tac)
-  apply (utp_expr_tac)
-  apply (auto)
-  apply (metis EvalE_UNREST_assign EvalE_compat binding_upd_apply insertI1)
-done
-
-lemma is_SubstP_var_equiv:
-  "\<lbrakk> is_SubstP_var p v x x'; 
-     is_SubstP_var p v x x''; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> 
-     SubstP_body p v x x' = SubstP_body p v x x''" 
-  apply (subgoal_tac "v \<rhd>\<^sub>e x'")
-  apply (subgoal_tac "v \<rhd>\<^sub>e x''")
-  apply (simp add:SubstP_def SubstP_body_def is_SubstP_var_def)
-  apply (erule conjE)+
-  apply (utp_pred_tac)
-  apply (utp_expr_tac)
-  apply (clarify)
-sorry
-
-(*
-  apply (simp add:binding_upd_twist)
-  apply (rule iffI)
-  apply (rule_tac x="b(x'' :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b)" in exI)
-  apply (erule exE, erule conjE)
-  apply (simp add:binding_upd_twist)
-  apply (metis EvalP_ExistsP_singleton EvalP_ForallP_singleton ExistsP_ident ForallP_ident binding_value_alt)
-  apply (rule_tac x="b(x' :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b)" in exI)
-  apply (erule exE, erule conjE)
-  apply (simp add:binding_upd_twist)
-  apply (metis EvalP_ExistsP_singleton EvalP_ForallP_singleton ExistsP_ident ForallP_ident binding_value_alt)
-  apply (simp add:evar_compat_def is_SubstP_var_def var_compat_def)
-  apply (simp add:evar_compat_def is_SubstP_var_def var_compat_def)
-done
-*)
-
-lemma is_SubstP_var_UNDASHED: 
-  "\<lbrakk> x \<in> UNDASHED; 
-     UNREST {dash (dash x)} p; 
-     UNREST_EXPR {dash (dash x)} v \<rbrakk> \<Longrightarrow> 
-   is_SubstP_var p v x (dash (dash x))"
-  by (simp add:is_SubstP_var_def)
-
-lemma is_SubstP_var_DASHED: 
-  "\<lbrakk> x \<in> DASHED; 
-     UNREST {dash x} p; 
-     UNREST_EXPR {dash x} v \<rbrakk> \<Longrightarrow> 
-   is_SubstP_var p v x (dash x)"
-  by (simp add:is_SubstP_var_def)
-
 lemma SubstP_UNDASHED:
   assumes 
     "x \<in> UNDASHED" "UNREST {x\<acute>\<acute>} p"
@@ -821,8 +911,6 @@ lemma SubstP_UNDASHED:
   apply (simp)
   apply (auto)[1]
 sorry
-
-
 
 (*
 lemma SubstP_DASHED:
@@ -877,6 +965,12 @@ lemma demorgan2: "\<not>p(x \<and>p y) = (\<not>p x)\<or>p(\<not>p y)"
 lemma demorgan3: "x \<or>p y = \<not>p((\<not>p x)\<and>p(\<not>p y))"
   by (utp_pred_auto_tac)
 
+lemma RefP_OrP: "p \<sqsubseteq> q \<longleftrightarrow> p = p \<or>p q"
+  by (utp_pred_auto_tac)
+
+lemma RefP_AndP: "p \<sqsubseteq> q \<longleftrightarrow> q = p \<and>p q"
+  by (utp_pred_auto_tac)
+
 lemma utp_pred_simps [simp]:
   "\<not>p false = true"
   "\<not>p true  = false"
@@ -906,5 +1000,6 @@ lemma EvalP_UNREST_binding_upd [eval]:
   apply (drule_tac x="b(x :=\<^sub>b v)" in spec)
   apply (simp add:override_on_def binding_equiv_def)
 done
+
 
 end

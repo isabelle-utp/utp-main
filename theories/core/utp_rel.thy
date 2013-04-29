@@ -76,6 +76,25 @@ done
 
 notation SkipRA ("II")
 
+lemma SkipRA_rep_eq_alt:
+  "HOMOGENEOUS vs \<Longrightarrow> destPRED (II vs) = {b. \<forall> v \<in> in vs . \<langle>b\<rangle>\<^sub>b v = \<langle>b\<rangle>\<^sub>b (dash v)}"
+  apply (auto simp add:SkipRA.rep_eq ExistsP.rep_eq SkipR.rep_eq)
+  apply (metis Int_iff hom_alphabet_undash in_vars_def override_on_minus)
+  apply (rule_tac x="x \<oplus>\<^sub>b \<B> on UNDASHED \<union> DASHED - vs" in exI)
+  apply (safe)
+  apply (rule_tac x="x" in exI)
+  apply (force)
+  apply (case_tac "v \<in> vs")
+  apply (simp)
+  apply (subgoal_tac "v\<acute> \<in> vs")
+  apply (simp)
+  apply (metis (lifting) hom_alphabet_undash)
+  apply (simp)
+  apply (subgoal_tac "v\<acute> \<notin> vs")
+  apply (simp add:default_binding.rep_eq)
+  apply (metis hom_alphabet_dash)
+done
+
 subsubsection {* Conditional *}
 
 text {* Should we impose a constraint on b for it to be a condition? *}
@@ -106,14 +125,86 @@ notation SemiR (infixr ";" 140)
 
 subsubsection {* Assignment *}
 
+typedef 'a AssignF = "{f :: 'a VAR \<Rightarrow> 'a WF_EXPRESSION. \<forall> x. f x \<rhd>\<^sub>e x}"
+  by (auto, metis EvalE_VarE EvalE_def binding_compat evar_compat_def)
+
+declare Rep_AssignF [simp]
+declare Rep_AssignF_inverse [simp]
+declare Abs_AssignF_inverse [simp]
+
+setup_lifting type_definition_AssignF
+
+lemma Rep_AssignF_compat [typing]:
+  "Rep_AssignF f x \<rhd>\<^sub>e x"
+  apply (insert Rep_AssignF[of f])
+  apply (simp add:AssignF_def)
+done
+
+lift_definition AssignsR ::
+"'VALUE AssignF \<Rightarrow> 'VALUE WF_PREDICATE"
+is "\<lambda> f. {b. \<forall> v \<in> UNDASHED. \<langle>b\<rangle>\<^sub>b v\<acute> = \<langle>Rep_AssignF f v\<rangle>\<^sub>e b}" .
+
+lift_definition IdA :: "'VALUE AssignF" is "VarE" 
+  by (simp add: AssignF_def typing)
+
+definition AssignF_upd :: "'a AssignF \<Rightarrow> 'a VAR \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a AssignF" where
+"AssignF_upd f x v = Abs_AssignF ((Rep_AssignF f)(x := v))"
+
+lemma AssignF_upd_rep_eq:
+  "v \<rhd>\<^sub>e x \<Longrightarrow> Rep_AssignF (AssignF_upd f x v) = (Rep_AssignF f)(x := v)"
+  apply (subgoal_tac "(Rep_AssignF f)(x := v) \<in> AssignF")
+  apply (simp add:AssignF_upd_def)
+  apply (auto simp add:AssignF_def typing)
+done
+
+
+(*
+abbreviation "AssignR x v \<equiv> AssignsR (IdA(x := v))"
+*)
+
+nonterminal avar and avars and aexpr and aexprs and assignment
+
+syntax
+  "_avar"    :: "'a VAR \<Rightarrow> avar" ("_")
+  ""         :: "avar \<Rightarrow> avars" ("_")
+  "_avars"   :: "[avar, avars] \<Rightarrow> avars" ("_,/ _")
+  "_aexpr"   :: "'a WF_EXPRESSION \<Rightarrow> aexpr" ("_")
+  ""         :: "aexpr \<Rightarrow> aexprs" ("_")
+  "_aexprs"  :: "[aexpr, aexprs] \<Rightarrow> aexprs" ("_,/ _")
+  "_assign"  :: "['a AssignF, avars, aexprs] \<Rightarrow> 'a AssignF" ("(1[_])")
+  "_Assignment" :: "avars \<Rightarrow> aexprs \<Rightarrow> 'a WF_PREDICATE" ("(_ /:=p/ _)")   
+
+translations
+  "_assign m (_avar x) (_aexpr v)" == "CONST AssignF_upd m x v"
+  "_assign m (_avars x xs) (_aexprs v vs)" == "_assign (_assign m x v) xs vs"
+  "_Assignment xs vs" == "CONST AssignsR (_assign (CONST IdA) xs vs)"
+
+lemma AssignsR_SkipR: "AssignsR IdA = II"
+  by (auto simp add:SkipR.rep_eq AssignsR.rep_eq IdA.rep_eq VarE.rep_eq)
+
+(*
+lemma AssignsR_L1: "x \<noteq> y \<Longrightarrow> (x :=p e) = (x,y :=p e,VarE y)"
+  apply (auto simp add:AssignsR.rep_eq VarE.rep_eq IdA.rep_eq AssignF_upd_rep_eq)
+
+lemma AssignsR_L2: "x \<noteq> y \<Longrightarrow> x, y :=p e, f = y,x :=p f,e"
+  by (auto simp add:AssignsR.rep_eq VarE.rep_eq IdA_def)
+*)
+
+(*
 lift_definition AssignR ::
 "'VALUE VAR \<Rightarrow>
  'VALUE WF_EXPRESSION \<Rightarrow>
  'VALUE WF_PREDICATE"
-is "\<lambda> x e. {b. \<forall> v \<in> UNDASHED . if (v = x) then \<langle>b\<rangle>\<^sub>b (dash v) = \<langle>e\<rangle>\<^sub>e b 
-                                           else \<langle>b\<rangle>\<^sub>b (dash v) = \<langle>b\<rangle>\<^sub>b v}" .
+is "\<lambda> x e. {b. \<forall> v \<in> UNDASHED . if (v = x) then \<langle>b\<rangle>\<^sub>b v\<acute> = \<langle>e\<rangle>\<^sub>e b 
+                                           else \<langle>b\<rangle>\<^sub>b v\<acute> = \<langle>b\<rangle>\<^sub>b v}" .
 
 notation AssignR (infix ":=p" 190)
+
+
+
+lemma "AssignRS (IdA(x := v)) = AssignR x v"
+  apply (auto simp add:AssignRS.rep_eq AssignR.rep_eq IdA_def VarE.rep_eq)
+*)
 
 lift_definition AssignRA ::
 "'VALUE VAR \<Rightarrow>
@@ -123,17 +214,18 @@ lift_definition AssignRA ::
 
 notation AssignRA (infix ":=p\<^bsub>_\<^esub>" 190)
 
-
-(*
-definition AssignR ::
-"'VALUE VAR \<Rightarrow>
- 'VALUE VAR set \<Rightarrow>
- 'VALUE WF_EXPRESSION \<Rightarrow>
+definition ConvR ::
+"'VALUE WF_PREDICATE \<Rightarrow>
  'VALUE WF_PREDICATE" where
-"AssignR x v \<equiv> VarE (dash x) ==p v \<and>p II (a - {x,dash x})"
-*)
+"ConvR p = p[SS]"
+
+notation ConvR ("(_\<^sup>\<smile>)" [1000] 999)
 
 subsection {* Theorems *}
+
+theorem DASHED_TWICE_NON_REL_VAR [simp]:
+  "DASHED_TWICE \<subseteq> NON_REL_VAR"
+  by (auto simp add: NON_REL_VAR_def DASHED_TWICE_def)
 
 subsubsection {* Renaming Theorems *}
 
@@ -212,6 +304,18 @@ theorem SS_DASHED_image :
 "\<langle>SS\<rangle>\<^sub>s ` DASHED = UNDASHED"
   by (metis (lifting) SS_DASHED_app image_cong undash_DASHED_image)
 
+theorem SS_NON_REL_VAR_image :
+"\<langle>SS\<rangle>\<^sub>s ` NON_REL_VAR = NON_REL_VAR"
+  by (metis (no_types) Compl_eq_Diff_UNIV NON_REL_VAR_def RenameP_image_minus Rep_VAR_RENAME_surj SS_DASHED_image SS_UNDASHED_image image_Un sup_commute)
+
+theorem SS_HOMOGENEOUS_image :
+"HOMOGENEOUS vs \<Longrightarrow> \<langle>SS\<rangle>\<^sub>s ` vs = vs"
+  apply (auto)
+  apply (auto simp add:rename_on_rep_eq closure)
+  apply (smt DASHED_dash_elim HOMOGENEOUS_def comp_alphabet_dash comp_vars_undash complete_inj_dom complete_inj_none complete_inj_ran dash_UNDASHED_image dash_elim dash_inv_into dash_undash_DASHED)
+  apply (metis HOMOGENEOUS_dash_in in_vars_def out_member)
+done
+
 theorems SS_simps =
   SS_UNDASHED_app
   SS_DASHED_app
@@ -221,6 +325,10 @@ theorems SS_simps =
   SS_UNDASHED_DASHED_image
   SS_UNDASHED_image
   SS_DASHED_image
+  SS_NON_REL_VAR_image
+  SS_HOMOGENEOUS_image
+
+declare SS_simps [urename]
 
 text {* Theorems for @{term SS1} *}
 
@@ -270,12 +378,35 @@ theorem SS1_UNDASHED_DASHED_image [urename] :
   apply (auto simp add:in_vars_def out_vars_def)
 done
 
+theorem SS1_UNDASHED_image [urename] :
+"\<langle>SS1\<rangle>\<^sub>s ` UNDASHED = UNDASHED"
+  apply (auto simp add:urename)
+  apply (metis SS1_UNDASHED_app image_iff)
+done
+
+theorem SS1_DASHED_image [urename] :
+"\<langle>SS1\<rangle>\<^sub>s ` DASHED = DASHED_TWICE"
+  by (metis (lifting) SS1_DASHED_app dash_DASHED_image image_cong)
+
+theorem SS1_DASHED_TWICE_image [urename] :
+"\<langle>SS1\<rangle>\<^sub>s ` DASHED_TWICE = DASHED"
+  by (metis (lifting) SS1_DASHED_TWICE_app image_cong undash_DASHED_TWICE_image)
+
+theorem SS1_NON_REL_VAR_image [urename]:
+"\<langle>SS1\<rangle>\<^sub>s ` NON_REL_VAR = (NON_REL_VAR - DASHED_TWICE) \<union> DASHED"
+  apply (simp add:NON_REL_VAR_def urename)
+  apply (auto)
+done
+
 theorems SS1_simps =
   SS1_UNDASHED_app
   SS1_DASHED_app
   SS1_DASHED_TWICE_app
   SS1_ident_app
   SS1_UNDASHED_DASHED_image
+  SS1_UNDASHED_image
+  SS1_DASHED_image
+  SS1_DASHED_TWICE_image
 
 text {* Theorems for @{term SS2} *}
 
@@ -332,6 +463,28 @@ theorem SS2_UNDASHED_DASHED_image [urename]:
  SS2 `\<^sub>s vs = dash ` dash ` (in vs) \<union> (out vs)"
   apply (simp only: rename_on_image closure)
   apply (auto simp add:in_vars_def out_vars_def image_compose)
+done
+
+theorem SS2_UNDASHED_image [urename] :
+"\<langle>SS2\<rangle>\<^sub>s ` UNDASHED = DASHED_TWICE"
+  apply (auto simp add:urename)
+  apply (metis DASHED_TWICE_dash_elim DASHED_dash_elim SS2_UNDASHED_app imageI)
+done
+
+theorem SS2_DASHED_image [urename] :
+"\<langle>SS2\<rangle>\<^sub>s ` DASHED = DASHED"
+  apply (auto simp add:urename)
+  apply (metis SS2_DASHED_app imageI)
+done
+
+theorem SS2_DASHED_TWICE_image [urename] :
+"\<langle>SS2\<rangle>\<^sub>s ` DASHED_TWICE = UNDASHED"
+  by (metis (hide_lams, no_types) SS2_UNDASHED_image SS2_VAR_RENAME_INV VAR_RENAME_INV_comp' id_apply image_compose image_id)
+
+theorem SS2_NON_REL_VAR_image [urename]:
+"\<langle>SS2\<rangle>\<^sub>s ` NON_REL_VAR = (NON_REL_VAR - DASHED_TWICE) \<union> UNDASHED"
+  apply (simp add:NON_REL_VAR_def urename)
+  apply (auto)
 done
 
 theorems SS2_simps =
@@ -413,26 +566,37 @@ theorem UNREST_SkipR [unrest]:
 "UNREST (VAR - (UNDASHED \<union> DASHED)) II"
   by (simp add:SkipR_def UNREST_def WF_BINDING_def override_on_def)
 
+theorem UNREST_SkipR_DASHED_TWICE [unrest]:
+"UNREST DASHED_TWICE II"
+  by (auto intro:unrest)
+
 theorem UNREST_SkipRA [unrest]:
 "UNREST (VAR - vs) (II vs)"
   by (auto intro:closure unrest simp add:SkipRA_def)
 
+theorem UNREST_SkipRA_DASHED_TWICE [unrest]:
+"UNREST DASHED_TWICE (II vs)"
+  by (auto intro:closure unrest simp add:SkipRA_def)
+
 theorem UNREST_AssignR [unrest]:
-"\<lbrakk> x \<in> UNDASHED; UNREST_EXPR (-(UNDASHED \<union> DASHED)) v \<rbrakk> \<Longrightarrow> UNREST (-(UNDASHED \<union> DASHED)) (x :=p v)"
-  by (simp add:AssignR_def UNREST_def UNREST_EXPR_def WF_BINDING_def override_on_def)
+"\<lbrakk> x \<in> UNDASHED; UNREST_EXPR (-(UNDASHED \<union> DASHED)) v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> UNREST (-(UNDASHED \<union> DASHED)) (x :=p v)"
+  by (simp add:AssignsR.rep_eq UNREST_def UNREST_EXPR_def WF_BINDING_def override_on_def IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq typing)
+
+theorem UNREST_AssignR_DASHED_TWICE [unrest]:
+"\<lbrakk> x \<in> UNDASHED; UNREST_EXPR DASHED_TWICE v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> UNREST DASHED_TWICE (x :=p v)"
+  by (simp add:AssignsR.rep_eq UNREST_def UNREST_EXPR_def WF_BINDING_def override_on_def IdA.rep_eq VarE.rep_eq  AssignF_upd_rep_eq)
 
 theorem UNREST_AssignRA [unrest]:
-"\<lbrakk> x \<in> UNDASHED; UNREST_EXPR (VAR - vs) v; vs \<subseteq> UNDASHED \<union> DASHED \<rbrakk> \<Longrightarrow>
+"\<lbrakk> x \<in> UNDASHED; UNREST_EXPR (VAR - vs) v; vs \<subseteq> UNDASHED \<union> DASHED; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow>
  UNREST (VAR - vs) (x :=p\<^bsub>vs\<^esub> v)"
   apply (simp add:AssignRA_def)
   apply (rule unrest) back
-  apply (rule unrest)
-  apply (rule unrest)
+  apply (rule unrest) 
+  apply (rule unrest) back
   apply (simp)
   apply (rule unrest)
   apply (auto)
 done
-
 
 (*
 theorem UNREST_AssignR [unrest]:
@@ -580,6 +744,31 @@ lemma UNREST_SemiR:
   apply (auto)
   apply (rule_tac ?vs1.0="VAR - vs1" in UNREST_subset)
   apply (auto)
+done
+
+lemma UNREST_SemiR_DASHED_TWICE [unrest]:
+  "\<lbrakk> UNREST DASHED_TWICE p; UNREST DASHED_TWICE q \<rbrakk> \<Longrightarrow> UNREST DASHED_TWICE (p ; q)"
+  apply (simp add:SemiR_algebraic)
+  apply (force intro:unrest)
+done
+
+lemma UNREST_SemiR_NON_REL_VAR [unrest]:
+  "\<lbrakk> UNREST NON_REL_VAR p; UNREST NON_REL_VAR q \<rbrakk> \<Longrightarrow> UNREST NON_REL_VAR (p ; q)"
+  apply (subgoal_tac "UNREST DASHED_TWICE p")
+  apply (subgoal_tac "UNREST DASHED_TWICE q")
+  apply (simp add:SemiR_algebraic)
+  apply (rule unrest) back
+  apply (rule unrest)
+  apply (rule UNREST_RenameP_alt[of "NON_REL_VAR - DASHED_TWICE"])
+  apply (force intro: unrest)
+  apply (simp add:urename)
+  apply (force simp add:NON_REL_VAR_def)
+  apply (rule UNREST_RenameP_alt[of "NON_REL_VAR - DASHED_TWICE"])
+  apply (force intro: unrest)
+  apply (simp add:urename)
+  apply (force simp add:NON_REL_VAR_def)
+  apply (force intro:unrest simp add:NON_REL_VAR_def)
+  apply (force intro:unrest simp add:NON_REL_VAR_def)
 done
 
 subsubsection {* Evaluation Theorems *}

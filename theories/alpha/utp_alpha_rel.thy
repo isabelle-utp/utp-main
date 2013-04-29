@@ -36,6 +36,9 @@ abbreviation "homa a \<equiv> homl a \<union>\<^sub>f homr a"
 definition WF_RELATION :: "'VALUE WF_ALPHA_PREDICATE set" where
 "WF_RELATION = {p . (\<alpha> p) \<in> REL_ALPHABET}"
 
+definition HOM_RELATION :: "'VALUE WF_ALPHA_PREDICATE set" where
+"HOM_RELATION = {p . (\<alpha> p) \<in> HOM_ALPHABET}"
+
 definition WF_REL_EXPR :: "'VALUE WF_ALPHA_EXPRESSION set" where
 "WF_REL_EXPR = {e . (\<alpha> e) \<in> REL_ALPHABET}"
 
@@ -133,15 +136,25 @@ theorem HOM_ALPHABET_REL_ALPHABET [closure] :
 apply (simp add: HOM_ALPHABET_def)
 done
 
+theorem HOM_RELATION_WF_RELATION [closure] :
+"r \<in> HOM_RELATION \<Longrightarrow> r \<in> WF_RELATION"
+  by (simp add:HOM_RELATION_def WF_RELATION_def HOM_ALPHABET_def)
+
+theorem HOM_RELATION_HOM_ALPHABET [closure] :
+"r \<in> HOM_RELATION \<Longrightarrow> (\<alpha> r) \<in> HOM_ALPHABET"
+  by (simp add:HOM_RELATION_def HOM_ALPHABET_def)
+
 theorem WF_RELATION_REL_ALPHABET [closure] :
 "r \<in> WF_RELATION \<Longrightarrow> (\<alpha> r) \<in> REL_ALPHABET"
   by (simp add: WF_RELATION_def)
 
-theorem WF_RELATION_UNDASHED_DASHED [closure]:
-"r \<in> WF_RELATION \<Longrightarrow> \<langle>\<alpha> r\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED"
-apply (simp add: WF_RELATION_def)
-apply (simp add: REL_ALPHABET_def)
-done
+theorem REL_ALPHABET_UNDASHED_DASHED [closure]:
+"a \<in> REL_ALPHABET \<Longrightarrow> \<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED"
+  by (simp add: REL_ALPHABET_def)
+
+lemma NON_REL_VAR_REL_ALPHABET [closure]: 
+  "a \<in> REL_ALPHABET \<Longrightarrow> NON_REL_VAR \<subseteq> VAR - \<langle>a\<rangle>\<^sub>f"
+  by (auto simp add: REL_ALPHABET_def NON_REL_VAR_def)
 
 theorem WF_RELATION_UNREST_UNDASHED [unrest]:
   "r \<in> WF_RELATION \<Longrightarrow> UNREST DASHED_TWICE (\<pi> r)"
@@ -149,6 +162,14 @@ theorem WF_RELATION_UNREST_UNDASHED [unrest]:
   apply (rule_tac ?vs1.0="VAR - \<langle>\<alpha> r\<rangle>\<^sub>f" in UNREST_subset)
   apply (auto intro:unrest)
 done
+
+lemma HOM_ALPHABET_dash_in [simp]:
+  "a \<in> HOM_ALPHABET \<Longrightarrow> dash ` in \<langle>a\<rangle>\<^sub>f = out \<langle>a\<rangle>\<^sub>f"
+  by (auto simp add:HOM_ALPHABET_def HOM_ALPHA_unfold)
+
+lemma HOM_ALPHABET_undash_out [simp]: 
+  "a \<in> HOM_ALPHABET \<Longrightarrow> undash ` out \<langle>a\<rangle>\<^sub>f = in \<langle>a\<rangle>\<^sub>f"
+  by (metis HOM_ALPHABET_dash_in undash_dash_image)
 
 subsubsection {* Closure Theorems *}
 
@@ -176,7 +197,7 @@ theorem REL_ALPHABET_minus [closure]:
 
 theorem HOM_ALPHABET_empty [closure]:
   "\<lbrace>\<rbrace> \<in> HOM_ALPHABET"
-  apply (simp add:HOM_ALPHABET_def HOM_ALPHA_def COMP_ALPHAS_def COMPOSABLE_def)
+  apply (simp add:HOM_ALPHABET_def HOM_ALPHA_unfold)
   apply (simp add:closure)
 done
 
@@ -435,8 +456,7 @@ theorem SemiA_rep_eq:
   apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
   apply (rule UNREST_SemiR)
   apply (auto)
-  apply (metis (no_types) UnE WF_RELATION_unfold set_rev_mp)
-  apply (metis (hide_lams, no_types) Un_iff WF_RELATION_UNDASHED_DASHED set_rev_mp)
+  apply (metis (hide_lams, no_types) Un_iff WF_RELATION_unfold set_mp)+
 done
 
 theorem SemiA_closure [closure] :
@@ -446,7 +466,6 @@ apply (simp add: WF_RELATION_unfold pred_alphabet_def)
 apply (simp add: SemiA_rep_eq assms)
 apply (metis in_vars_def inf_sup_ord(2) le_supI1 le_supI2 out_vars_def)
 done
-
 
 
 subsection {* Alphabet Theorems *}
@@ -503,6 +522,14 @@ done
 theorem EvalA_UNREST_DASHED_TWICE [unrest]:
   "r \<in> WF_RELATION \<Longrightarrow> UNREST DASHED_TWICE \<lbrakk>r\<rbrakk>\<pi>"
   by (simp add:EvalA_def unrest)
+
+theorem EvalA_UNREST_NON_REL_VAR [unrest]:
+  "r \<in> WF_RELATION \<Longrightarrow> UNREST NON_REL_VAR (\<pi> r)"
+  apply (rule unrest) 
+  apply (rule unrest) back
+  apply (simp add:WF_RELATION_def REL_ALPHABET_def NON_REL_VAR_def)
+  apply (auto)
+done
 
 theorem EvalA_UNREST_out [unrest]:
   "p \<in> WF_RELATION \<Longrightarrow> UNREST (DASHED - out \<langle>\<alpha> p\<rangle>\<^sub>f) \<lbrakk>p\<rbrakk>\<pi>"

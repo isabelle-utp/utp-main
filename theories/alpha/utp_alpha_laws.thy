@@ -452,13 +452,6 @@ theorem SubstAE_alphabet_alt [alphabet]:
 
 subsection {* Substitution Laws *}
 
-ML {*
-  structure usubst =
-    Named_Thms (val name = @{binding usubst} val description = "substitution theorems")
-*}
-
-setup usubst.setup
-
 lemma SubstA_AndA [usubst]: 
   "\<lbrakk> v \<rhd>\<^sub>\<alpha> x ; x \<notin> \<langle>\<alpha> v\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> (p \<and>\<alpha> q)[v|x]\<alpha> = p[v|x]\<alpha> \<and>\<alpha> q[v|x]\<alpha>"
   apply (rule EvalA_intro)
@@ -513,7 +506,7 @@ lemma SubstA_no_var [usubst]: "\<lbrakk> v \<rhd>\<^sub>\<alpha> x ; x \<notin> 
   \<Longrightarrow> p[v|x]\<alpha> = p"
   apply (utp_alpha_tac2)
   apply (simp add:EvalA_SubstA)
-  apply (rule utp_expr.SubstP_no_var)
+  apply (rule SubstP_no_var)
   apply (auto intro:unrest)
   apply (metis EvalAE_compat)
 done
@@ -808,12 +801,12 @@ done
 
 lemma HOM_ALPHABET_homr  [simp]: "a \<in> HOM_ALPHABET \<Longrightarrow> homr a = a"
   apply (simp add:HOM_ALPHABET_def hom_right_def HOM_ALPHA_unfold alphabet_dist alphabet_simps)
-  apply (metis SkipA_alphabet SkipA_closure WF_RELATION_UNDASHED_DASHED alphabet_simps(14))
+  apply (metis REL_ALPHABET_in_out)
 done
 
 lemma HOM_ALPHABET_homl [simp]: "a \<in> HOM_ALPHABET \<Longrightarrow> homl a = a"
   apply (simp add:HOM_ALPHABET_def hom_left_def HOM_ALPHA_unfold alphabet_dist alphabet_simps)
-  apply (metis SkipA_alphabet SkipA_closure WF_RELATION_UNDASHED_DASHED alphabet_simps(14))
+  apply (metis REL_ALPHABET_in_out)
 done
 
 lemma ClosureA_intro: "\<lbrakk> \<alpha> p = \<alpha> q; [p \<Leftrightarrow> q] \<rbrakk> \<Longrightarrow> p = q"

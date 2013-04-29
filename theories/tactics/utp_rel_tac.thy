@@ -19,11 +19,15 @@ ML {*
 
 setup evalr.setup
 
+ML {*
+  structure evalrr =
+    Named_Thms (val name = @{binding evalrr} val description = "evalrr theorems")
+*}
+
+setup evalrr.setup
+
 subsection {* Type Synonyms *}
 
-type_synonym 'VALUE RELATION =
-  "('VALUE WF_BINDING \<times>
-    'VALUE WF_BINDING) set"
 
 subsection {* Relational Model *}
 
@@ -38,17 +42,32 @@ text {*
 definition bc :: "'VALUE WF_BINDING" where
 "bc = (SOME b . b \<in> UNIV)"
 
-(*
-theorem bc_WF_BINDING [closure] :
-"bc \<in> WF_BINDING"
-apply (simp add: bc_def)
-apply (rule_tac P = "\<lambda> b . b \<in> WF_BINDING" in someI_ex)
-apply (simp add: WF_BINDING_exists)
-done
-*)
-
 definition WF_REL_BINDING :: "'VALUE WF_BINDING set" where
 "WF_REL_BINDING = {b \<oplus>\<^sub>b bc on DASHED | b . b \<in> UNIV}"
+
+abbreviation "WF_REL \<equiv> WF_REL_BINDING \<times> WF_REL_BINDING"
+
+typedef (open) 'VALUE WF_REL_BINDING = "WF_REL_BINDING :: 'VALUE WF_BINDING set"
+  morphisms DestRelB MkRelB
+  by (auto simp add:WF_REL_BINDING_def)
+  
+declare DestRelB [simp]
+declare DestRelB_inverse [simp]
+declare MkRelB_inverse [simp]
+
+lemma DestRelB_intro [intro]:
+  "DestRelB x = DestRelB y \<Longrightarrow> x = y"
+  by (simp add:DestRelB_inject)
+
+lemma DestRelB_elim [elim]:
+  "\<lbrakk> x = y; DestRelB x = DestRelB y \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (auto)
+
+notation DestRelB ("\<langle>_\<rangle>\<^sub>r")
+
+type_synonym 'VALUE RELATION =
+  "('VALUE WF_BINDING \<times>
+    'VALUE WF_BINDING) set"
 
 subsection {* Interpretation Function *}
 
@@ -57,6 +76,10 @@ definition BindR ::
    'VALUE WF_BINDING \<times>
    'VALUE WF_BINDING" where
 "BindR b = (b \<oplus>\<^sub>b bc on DASHED, (RenameB SS b) \<oplus>\<^sub>b bc on DASHED)"
+
+lemma BindR_range: 
+  "BindR b \<in> WF_REL_BINDING \<times> WF_REL_BINDING"
+  by (auto simp add:BindR_def WF_REL_BINDING_def)
 
 definition BindP ::
   "'VALUE WF_BINDING \<times>
@@ -78,16 +101,7 @@ subsection {* Auxilary Theorems *}
 
 theorem EvalR_range :
 "\<lbrakk>p\<rbrakk>R \<subseteq> WF_REL_BINDING \<times> WF_REL_BINDING"
-apply (simp add: EvalR_def)
-apply (simp add: image_def)
-apply (simp add: BindR_def)
-apply (simp add: WF_REL_BINDING_def)
-apply (safe)
-apply (rule_tac x = "xa" in exI)
-apply (simp)
-apply (rule_tac x = "RenameB SS xa" in exI)
-apply (simp add: closure)
-done
+  by (auto simp add: EvalR_def BindR_range)
 
 theorem WF_REL_BINDING_member1 [simp, intro] :
 "\<lbrakk>(rb1, rb2) \<in> \<lbrakk>p\<rbrakk>R\<rbrakk> \<Longrightarrow>
@@ -308,16 +322,33 @@ apply (auto simp add:override_on_eq urename)
 apply (metis (no_types) SS_DASHED_app SS_UNDASHED_app SS_ident_app UNDASHED_dash_DASHED o_def override_on_def undash_dash)
 done
 
-lemma EvalP_AssignR [eval]:
-  "\<lbrakk>x :=p e\<rbrakk>b = (\<forall> v \<in> UNDASHED. if (v = x) then \<langle>b\<rangle>\<^sub>b v\<acute> = \<lbrakk>e\<rbrakk>\<epsilon>b else \<langle>b\<rangle>\<^sub>b v\<acute> = \<langle>b\<rangle>\<^sub>b v)"
-  by (simp add:EvalP_def EvalE_def AssignR.rep_eq)
+theorem EvalR_SkipRA [evalr] :
+"\<lbrakk> vs \<subseteq> UNDASHED \<union> DASHED; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow>
+ \<lbrakk>II vs\<rbrakk>R = { (b \<oplus>\<^sub>b bc on DASHED, RenameB SS b \<oplus>\<^sub>b bc on DASHED) 
+            | b. \<forall>v\<in>in vs. \<langle>b\<rangle>\<^sub>b v = \<langle>b\<rangle>\<^sub>b v\<acute>}"
+  by (simp add:EvalR_def SkipRA_rep_eq_alt image_Collect BindR_def)
 
-thm "Id_on_def"
+lemma EvalP_AssignR1 [eval]:
+  "e \<rhd>\<^sub>e x \<Longrightarrow> \<lbrakk>x :=p e\<rbrakk>b = (\<forall> v \<in> UNDASHED. if (v = x) then \<langle>b\<rangle>\<^sub>b v\<acute> = \<lbrakk>e\<rbrakk>\<epsilon>b else \<langle>b\<rangle>\<^sub>b v\<acute> = \<langle>b\<rangle>\<^sub>b v)"
+  by (simp add:EvalP_def EvalE_def AssignsR.rep_eq IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq)
+
+lemma EvalP_AssignR2 [eval]:
+  "\<lbrakk> e \<rhd>\<^sub>e x; f \<rhd>\<^sub>e y \<rbrakk> \<Longrightarrow>
+   \<lbrakk>x,y :=p e,f\<rbrakk>b = (\<forall> v \<in> UNDASHED. if (v = y) 
+                                     then \<langle>b\<rangle>\<^sub>b v\<acute> = \<lbrakk>f\<rbrakk>\<epsilon>b 
+                                     else if (v = x) 
+                                          then \<langle>b\<rangle>\<^sub>b v\<acute> = \<lbrakk>e\<rbrakk>\<epsilon>b 
+                                          else \<langle>b\<rangle>\<^sub>b v\<acute> = \<langle>b\<rangle>\<^sub>b v)"
+  by (simp add:EvalP_def EvalE_def AssignsR.rep_eq IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq)
+lemma EvalP_AssignsR [eval]:
+  "\<lbrakk>AssignsR f\<rbrakk>b = (\<forall> v \<in> UNDASHED. \<langle>b\<rangle>\<^sub>b v\<acute> = \<langle>Rep_AssignF f v\<rangle>\<^sub>e b)"
+  by (simp add:EvalP_def AssignsR.rep_eq)
 
 theorem EvalR_AssignR [evalr] :
-"\<lbrakk> x \<in> UNDASHED; e \<rhd>\<^sub>e x; UNREST_EXPR DASHED e \<rbrakk> \<Longrightarrow> \<lbrakk>x :=p e\<rbrakk>R = {(b, b(x:=\<^sub>b (\<lbrakk>e\<rbrakk>\<epsilon> b))) | b. b \<in> WF_REL_BINDING}"
+"\<lbrakk> x \<in> UNDASHED; e \<rhd>\<^sub>e x; UNREST_EXPR DASHED e \<rbrakk> \<Longrightarrow> 
+  \<lbrakk>x :=p e\<rbrakk>R = {(b, b(x:=\<^sub>b (\<lbrakk>e\<rbrakk>\<epsilon> b))) | b. b \<in> WF_REL_BINDING}"
 apply (simp add: EvalR_def EvalE_def)
-apply (simp add: AssignR_def)
+apply (simp add: AssignsR.rep_eq IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq)
 apply (simp add: WF_REL_BINDING_def)
 apply (simp add: set_eq_iff)
 apply (safe)
@@ -367,6 +398,17 @@ apply (metis evar_compat_def)
 apply (metis UNREST_EXPR_member)
 done
 
+theorem EvalR_ExprR [evalr]: 
+  "\<lbrakk>ExprP e\<rbrakk>R = {(b \<oplus>\<^sub>b bc on DASHED, RenameB SS b \<oplus>\<^sub>b bc on DASHED)|b. DestBool (\<lbrakk>e\<rbrakk>\<epsilon> b)}"
+  by (simp add:ExprP_def LiftP_def EvalR_def BindR_def EvalE_def UNREST_EXPR_member[THEN sym] etype_rel_def Defined_WF_EXPRESSION_def image_Collect)
+
+lemma EvalR_ConvR [evalr]:
+  "\<lbrakk>p\<^sup>\<smile>\<rbrakk>R = \<lbrakk>p\<rbrakk>R\<inverse>"
+  apply (auto simp add: EvalR_def ConvR_def RenameP.rep_eq BindR_def urename closure)
+  apply (metis BindR_def image_iff)
+  apply (metis (lifting) BindR_def RenameB_involution SS_VAR_RENAME_INV image_eqI)
+done
+
 theorem SubstP_rel_UNDASHED [evalr] :
 "\<lbrakk> x \<in> UNDASHED; e \<rhd>\<^sub>e x; UNREST_EXPR DASHED e \<rbrakk> \<Longrightarrow> \<lbrakk>p[e|x]\<rbrakk>R = {(b1, b2) | b1 b2. (b1(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<epsilon>b1), b2) \<in> \<lbrakk>p\<rbrakk>R}"
 apply (auto simp add: EvalR_def EvalE_def BindR_def SubstP_def image_def)
@@ -409,12 +451,6 @@ apply (metis binding_override_on_eq binding_override_simps(2) binding_upd_overri
 apply (metis evar_compat_def)
 apply (metis (lifting) UNREST_EXPR_member)
 done
-
-
-
-
-
-  
 
 theorem RenameB_SS_COMPOSABLE_BINDINGS_1 :
 "\<lbrakk>(b1, b2) \<in> COMPOSABLE_BINDINGS\<rbrakk> \<Longrightarrow>
@@ -474,7 +510,92 @@ apply (simp add: BindR_COMPOSABLE_BINDINGS)
 apply (metis BindR_override)
 done
 
-declare CondR_def [evalr]
+declare CondR_def [evalr,evalrr]
+
+lemma EvalR_as_EvalP [eval]: "\<lbrakk>p\<rbrakk>R = {BindR b | b. \<lbrakk>p\<rbrakk>b}"
+  by (auto simp add:EvalR_def EvalP_def)
+
+lemma EvalR_refinement [evalr]: "p \<sqsubseteq> q \<longleftrightarrow> \<lbrakk>q\<rbrakk>R \<subseteq> \<lbrakk>p\<rbrakk>R"
+  by (auto simp add:EvalR_as_EvalP less_eq_WF_PREDICATE_def eval)
+
+definition MkRel :: "'VALUE RELATION \<Rightarrow> ('VALUE WF_REL_BINDING) rel" where
+"MkRel R = map_pair MkRelB MkRelB ` R"
+
+lemma MkRelB_inj: "inj_on MkRelB WF_REL_BINDING"
+  by (rule inj_onI, metis MkRelB_inverse)
+
+lemma MkRel_inj: "\<lbrakk> P \<subseteq> WF_REL; Q \<subseteq> WF_REL; MkRel P = MkRel Q \<rbrakk> \<Longrightarrow> P = Q"
+  apply (subgoal_tac "inj_on (map_pair MkRelB MkRelB) (P \<union> Q)")
+  apply (drule inj_on_Un_image_eq_iff)
+  apply (simp add:MkRel_def)
+  apply (rule subset_inj_on)
+  apply (rule map_pair_inj_on)
+  apply (rule MkRelB_inj)
+  apply (rule MkRelB_inj)
+  apply (auto)
+done
+
+theorem MkRel_EvalR_simp :
+"p1 = p2 \<longleftrightarrow> MkRel \<lbrakk>p1\<rbrakk>R = MkRel \<lbrakk>p2\<rbrakk>R"
+  apply (simp add:evalr)
+  apply (rule)
+  apply (force)
+  apply (rule MkRel_inj)
+  apply (simp_all add:EvalR_range)
+done
+
+lemma MkRel_subset:
+  "\<lbrakk> p \<subseteq> WF_REL; q \<subseteq> WF_REL \<rbrakk> \<Longrightarrow> p \<subseteq> q \<longleftrightarrow> MkRel p \<subseteq> MkRel q"
+  apply (simp add:MkRel_def)
+  apply (smt MkRel_def MkRel_inj subset_image_iff subset_trans)
+done
+
+theorem MkRel_EvalR_intro :
+"MkRel \<lbrakk>p1\<rbrakk>R = MkRel \<lbrakk>p2\<rbrakk>R \<Longrightarrow> p1 = p2"
+  by (simp add:MkRel_EvalR_simp)
+
+abbreviation EvalRR ::
+  "'VALUE WF_PREDICATE \<Rightarrow>
+   ('VALUE WF_REL_BINDING) rel" ("\<lbrakk>_\<rbrakk>\<R>") where
+"EvalRR p \<equiv> MkRel \<lbrakk>p\<rbrakk>R"
+
+lemma EvalRR_simp [evalrr] :
+"p1 = p2 \<longleftrightarrow> \<lbrakk>p1\<rbrakk>\<R> = \<lbrakk>p2\<rbrakk>\<R>"
+  by (simp add: MkRel_EvalR_simp)
+
+lemma EvalRR_intro :
+"\<lbrakk>p1\<rbrakk>\<R> = \<lbrakk>p2\<rbrakk>\<R> \<Longrightarrow> p1 = p2"
+  by (simp add:evalrr)
+
+lemma EvalRR_SkipR [evalrr]: "\<lbrakk>II\<rbrakk>\<R> = Id"
+  apply (simp add:evalr)
+  apply (auto simp add:MkRel_def Id_on_def image_def)
+  apply (metis DestRelB DestRelB_inverse)
+done
+
+theorem EvalRR_FalseP [evalrr] :
+"\<lbrakk>false\<rbrakk>\<R> = {}"
+  by (simp add: evalr MkRel_def)
+
+theorem EvalRR_AndP [evalrr] :
+"\<lbrakk>p1 \<and>p p2\<rbrakk>\<R> = \<lbrakk>p1\<rbrakk>\<R> \<inter> \<lbrakk>p2\<rbrakk>\<R>"
+  by (force simp add: evalr MkRel_def)
+
+theorem EvalRR_OrP [evalrr] :
+"\<lbrakk>p1 \<or>p p2\<rbrakk>\<R> = \<lbrakk>p1\<rbrakk>\<R> \<union> \<lbrakk>p2\<rbrakk>\<R>"
+  by (force simp add: evalr MkRel_def)
+
+theorem EvalRR_SemiR [evalrr] :
+"\<lbrakk>p1 ; p2\<rbrakk>\<R> = \<lbrakk>p1\<rbrakk>\<R> O \<lbrakk>p2\<rbrakk>\<R>"
+  by (force simp add: evalr MkRel_def)
+
+lemma EvalRR_ConvR [evalrr]:
+  "\<lbrakk>p\<^sup>\<smile>\<rbrakk>\<R> = \<lbrakk>p\<rbrakk>\<R>\<inverse>"
+  by (force simp add:evalr MkRel_def)
+
+lemma EvalRR_refinement [evalrr]: "p \<sqsubseteq> q \<longleftrightarrow> \<lbrakk>q\<rbrakk>\<R> \<subseteq> \<lbrakk>p\<rbrakk>\<R>"
+  by (simp add:evalr evalrr MkRel_subset[THEN sym] EvalR_range)
+
 
 (* The following are useless since quantifications are not supported yet. *)
 
@@ -546,19 +667,19 @@ theorem SemiP_IffP_comm :
 "p1 \<Leftrightarrow>p p2 = p2 \<Leftrightarrow>p p1"
   by (utp_rel_auto_tac)
 
-theorem SemiP_SkipR_left :
+theorem SemiP_SkipR_left [simp]:
 "II ; p = p"
   by (utp_rel_auto_tac)
 
-theorem SemiP_SkipR_right :
+theorem SemiP_SkipR_right [simp]:
 "p ; II = p"
   by (utp_rel_auto_tac)
 
-theorem SemiR_FalseP_left :
+theorem SemiR_FalseP_left [simp]:
 "false ; p = false"
   by (utp_rel_auto_tac)
 
-theorem SemiR_FalseP_right :
+theorem SemiR_FalseP_right [simp]:
 "p ; false = false"
   by (utp_rel_auto_tac)
 
@@ -577,5 +698,21 @@ theorem AssignR_SemiP_left:
   apply (drule sym)
   apply (simp_all add:typing)
 done
+
+lemma AssignR_alt_def: "\<lbrakk>v \<rhd>\<^sub>e x ; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> x :=p v = VarE x\<acute> ==p v \<and>p (\<exists>p {x,x\<acute>}. II)"
+  apply (utp_pred_tac, utp_expr_tac)
+  apply (safe)
+  apply (simp_all add:IdA.rep_eq AssignF_upd_rep_eq evale VarE.rep_eq EvalE_def)
+  apply (rule_tac x="b(x\<acute> :=\<^sub>b \<langle>b\<rangle>\<^sub>b x)" in exI)
+  apply (simp_all)
+  apply (rule)
+  apply (metis (lifting) UNDASHED_eq_dash_contra undash_dash)
+  apply (drule_tac x="va" in bspec, simp_all)
+  apply (metis UNDASHED_eq_dash_contra undash_dash)
+done
+
+lemma "x \<noteq> y \<Longrightarrow> x :=p e; y :=p f = x,y :=p e,f"
+  apply (utp_rel_tac)
+oops
 
 end

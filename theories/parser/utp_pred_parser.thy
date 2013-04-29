@@ -30,10 +30,15 @@ syntax
   "_upred_all1"     :: "pttrn \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<forall> _./ _)" [0, 10] 10) 
   "_upred_exists1"  :: "pttrn \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<exists> _./ _)" [0, 10] 10) 
   "_upred_equal"    :: "uexpr \<Rightarrow> uexpr \<Rightarrow> upred" (infixl "=" 50)
-  "_upred_skip"     :: "upred" ("\<Pi>")
+  "_upred_skip"     :: "upred" ("II")
   "_upred_seq"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr ";" 50)
   "_upred_cond"     :: "upred \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("_ \<triangleleft> _ \<triangleright> _")
-  "_upred_assign"   :: "'a VAR \<Rightarrow> 'a VAR set \<Rightarrow> uexpr \<Rightarrow> upred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
+  "_upred_assigna"  :: "'a VAR \<Rightarrow> 'a VAR set \<Rightarrow> uexpr \<Rightarrow> upred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
+  "_upred_assign"   :: "'a VAR \<Rightarrow> uexpr \<Rightarrow> upred" ("_ := _" [100] 100)
+  "_upred_assigns"  :: "string \<Rightarrow> uexpr \<Rightarrow> upred" ("_ := _" [100] 100)
+
+abbreviation AssignS :: "string \<Rightarrow> 'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_PREDICATE" where
+"AssignS x e \<equiv> AssignR (MkPlain x (expr_type e) False) e"
 
 translations
   "_upred_brack p"     => "p"
@@ -56,7 +61,9 @@ translations
   "_upred_skip"        == "CONST SkipR"
   "_upred_seq p q"     => "CONST SemiR p q"
   "_upred_cond p q r"  == "CONST CondR p q r"
-  "_upred_assign x xs e" == "CONST AssignR x xs e"
+  "_upred_assign x e" == "CONST AssignR x e"
+  "_upred_assigns x e" == "CONST AssignS x e"
+  "_upred_assigna x xs e" == "CONST AssignRA x xs e"
 
 (* Expression Parser *)
 
@@ -72,8 +79,7 @@ translations
   "_uexpr_false"        == "CONST FalseE"
   "_uexpr_var x"        => "x" 
   "_uexpr_evar x"       == "CONST VarE x"
-  "_uexpr_substp p e x" == "CONST SubstPE p e x"
-
+(*  "_uexpr_substp p e x" == "CONST SubstPE p e x" *)
 
 
 end

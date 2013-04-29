@@ -9,7 +9,6 @@ header {* Default Values *}
 theory utp_default_value
 imports
   "../utp_common"
-  "../utp_global"
   "../core/utp_sorts"
   "../core/utp_value"
 begin

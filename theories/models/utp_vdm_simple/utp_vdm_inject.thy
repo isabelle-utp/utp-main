@@ -45,6 +45,10 @@ lemma Project_Inject [simp]:
   "\<And> x. \<lbrakk> x :\<^sub>b Type TYPE('a); \<D>\<^sub>b x \<rbrakk> \<Longrightarrow> Inject (the (Project x)) = x"
   by (auto intro:f_inv_into_f simp add:Project_def)
 
+lemma Project_bot [simp]:
+  "Project BotI = None"
+  by (simp add:Project_def)
+
 lemma Project_dom [simp]: "\<And> x y. Project x = Some y \<Longrightarrow> x :\<^sub>b Type TYPE('a)"
   by (case_tac "x :\<^sub>b Type TYPE('a)", auto simp add:Project_def)
 
@@ -124,17 +128,6 @@ lemma Type_bool: "BoolT = Type TYPE(bool)"
   by (simp add:Type_bool_def)
 
 subsection {* Rationals are injectable *}
-
-instantiation rat :: discrete_cpo
-begin
-
-definition below_rat_def:
-  "(x::rat) \<sqsubseteq> y \<longleftrightarrow> x = y"
-
-instance proof
-qed (rule below_rat_def)
-
-end
 
 instantiation rat :: vbasic
 begin
@@ -219,8 +212,7 @@ instance
   apply (intro_classes)
   apply (simp add:Inject_list_def)
   apply (metis Inject_Project_comp map_map option.inject option_list_map)
-  apply (auto simp add:Inject_list_def Type_list_def)
-  apply (rule ListI_type)
+  apply (auto simp add:Type_list_def Inject_list_def)
   apply (auto simp add:image_def Inject_list_def)
   apply (induct_tac xa, auto)
   apply (rule_tac x="map (the \<circ> Project :: vbasic \<Rightarrow> 'a) xs" in exI)
@@ -415,6 +407,96 @@ next
   qed
 qed
 end
+
+class vdmv = 
+  fixes InjectV  :: "'a \<Rightarrow> vdmv"
+  and   TypeV    :: "'a itself \<Rightarrow> vdmt"
+  assumes InjectV_inj [simp]: "InjectV x = InjectV y \<Longrightarrow> x = y"
+  and     InjectV_range [simp]: "range InjectV = {x. x :\<^sub>v TypeV (TYPE('a)) \<and> \<D>\<^sub>v x}"
+
+context vdmv
+begin
+
+definition ProjectV :: "vdmv \<Rightarrow> 'a option" where
+"ProjectV x \<equiv> if (x :\<^sub>v TypeV (TYPE('a)) \<and> \<D>\<^sub>v x) then Some (inv InjectV x) else None"
+
+lemma InjectV_type[simp]: "InjectV x :\<^sub>v TypeV (TYPE('a))"
+  by (insert InjectV_range, auto simp add:image_def)
+
+lemma InjectV_ProjectV [simp]: "ProjectV (InjectV x) = Some x"
+  apply (auto simp add:ProjectV_def)
+  apply (metis InjectV_inj injI inv_f_f)
+  apply (metis (mono_tags) InjectV_range mem_Collect_eq rangeI)
+done
+
+lemma ProjectV_InjectV [simp]: 
+  "\<And> x. \<lbrakk> x :\<^sub>v TypeV TYPE('a); \<D>\<^sub>v x \<rbrakk> \<Longrightarrow> InjectV (the (ProjectV x)) = x"
+  by (auto intro:f_inv_into_f simp add:ProjectV_def)
+
+lemma ProjectV_dom [simp]: "\<And> x y. ProjectV x = Some y \<Longrightarrow> x :\<^sub>v TypeV TYPE('a)"
+  by (case_tac "x :\<^sub>v TypeV TYPE('a)", auto simp add:ProjectV_def)
+
+lemma InjectV_ProjectV_comp [simp]:
+  "ProjectV \<circ> InjectV = Some" 
+  by (simp add:comp_def)
+
+lemma Inject_defined [simp]:
+  "\<D>\<^sub>v (InjectV x)"
+  by (metis InjectV_ProjectV ProjectV_def option.simps(2))
+  
+lemma ProjectV_defined [dest]: 
+  "\<lbrakk> x :\<^sub>v TypeV TYPE('a); \<D>\<^sub>v x \<rbrakk> \<Longrightarrow> ProjectV x \<noteq> None"
+  by (metis ProjectV_def option.simps(3))
+
+lemma ProjectV_Some [dest,simp]: 
+  "\<And> x. ProjectV x = Some y \<Longrightarrow> x = InjectV y"
+  apply (frule ProjectV_dom)
+  apply (drule ProjectV_InjectV)
+  apply (metis ProjectV_def option.simps(3))
+  apply (simp)
+done
+
+lemma InjectV_ProjectV_list [simp]:
+  assumes "foldr (op \<and> \<circ> \<D>\<^sub>v) xs True" "\<forall>x\<in>set xs. x :\<^sub>v TypeV TYPE('a)"
+  shows "xs = map InjectV (map (the \<circ> ProjectV) xs)"
+using assms by (induct xs, auto)
+
+end
+
+instantiation "fun" :: (vbasic,vdmv) vdmv
+begin
+
+definition InjectV_fun :: "('a \<Rightarrow> 'b) \<Rightarrow> vdmv" where
+"InjectV_fun f = FuncV (\<lambda> x. case (Project x) of Some v \<Rightarrow> InjectV (f v) | None \<Rightarrow> BotV)"
+
+definition TypeV_fun :: "('a \<Rightarrow> 'b) itself \<Rightarrow> vdmt" where
+"TypeV_fun f = (Type (TYPE('a))) \<rightarrow> (TypeV (TYPE('b)))"
+
+instance 
+  apply (intro_classes)
+  apply (rule_tac ext)
+  apply (simp add:InjectV_fun_def fun_eq_iff)
+  apply (drule_tac x="Inject xa" in spec)
+  apply (force)
+  apply (auto)
+  apply (simp add:InjectV_fun_def TypeV_fun_def)
+  apply (rule)
+  apply (case_tac "Project x :: 'a option")
+  apply (force)
+  apply (simp)
+  apply (simp)
+  apply (simp add:InjectV_fun_def)
+  apply (simp add:InjectV_fun_def TypeV_fun_def)
+  apply (erule FuncT_type_cases')
+  apply (auto)
+  apply (simp add:image_def)
+  apply (rule_tac x="the \<circ> ProjectV \<circ> f \<circ> Inject" in exI)
+  apply (simp add:InjectV_fun_def)
+  apply (rule ext)
+  apply (case_tac "Project x :: 'a option")
+  apply (simp_all)
+sorry
+end
   
 subsection {* Injecting functions over basic values *}
 
@@ -432,22 +514,20 @@ definition vfun2 ::
 
 lemma vfun1_type [typing]:
   fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic"
-  shows "vfun1 f P :\<^sub>v Type TYPE('a) → Type TYPE('b)"
+  shows "vfun1 f P :\<^sub>v Type TYPE('a) \<rightarrow> Type TYPE('b)"
   apply (simp add:vfun1_def)
   apply (rule FuncV_type)
   apply (case_tac "Project x :: 'a option")
   apply (auto)
-  apply (smt Inject_defined Project_Some not_None_eq option.simps(4) vbdefined.simps(1))
 done
 
 lemma vfun2_type [typing]:
   fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic"
-  shows "vfun2 f P Q :\<^sub>v Type TYPE('a) → Type TYPE('b) → Type TYPE('c)"
+  shows "vfun2 f P Q :\<^sub>v Type TYPE('a) \<rightarrow> Type TYPE('b) \<rightarrow> Type TYPE('c)"
   apply (simp add:vfun2_def)
   apply (rule FuncV_type)
   apply (case_tac "Project x :: 'a option")
   apply (auto intro:typing)
-  apply (metis (mono_tags) Inject_defined Project_Some bind_runit not_None_eq option.simps(4) vbdefined.simps(1))
 done
 
 definition "InjVB  x \<equiv> BasicV (Inject x)"

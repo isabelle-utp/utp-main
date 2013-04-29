@@ -1,0 +1,11 @@
+# -*- shell-script -*-
+
+
+
+# Get email when automated build fails. May be empty.
+# values: "email1 email2 .. emailn"
+NOTIFY="g.struth@sheffield.ac.uk tjark.weber@it.uu.se"
+
+# Participate in frequent (nightly) build (only for small submissions)
+# values: "yes" "no"
+FREQUENT="yes"

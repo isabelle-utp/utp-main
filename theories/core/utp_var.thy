@@ -169,6 +169,22 @@ lemma MkVar_eq_iff[simp]:
   "MkVar n t s = MkVar n' t' s' \<longleftrightarrow> n = n' \<and> t = t' \<and> s = s'"
   by (auto simp add:var_defs)
 
+lemma MkPlain_name [simp]: "name (MkPlain n t a) = bName n"
+  by (simp add:var_defs)
+
+lemma MkPlain_vtype [simp]: "vtype (MkPlain n t a) = t"
+  by (simp add:var_defs)
+
+lemma MkPlain_aux [simp]: "aux (MkPlain n t a) = a"
+  by (simp add:var_defs)
+
+lemma MkPlain_UNDASHED [simp]: "MkPlain n t a \<in> UNDASHED"
+  by (simp add:var_defs)
+
+lemma MkPlain_eq_iff[simp]: 
+  "MkPlain n t a = MkPlain n' t' a' \<longleftrightarrow> n = n' \<and> t = t' \<and> a = a'"
+  by (auto simp add:var_defs)
+
 subsubsection {* Names and Types *}
 
 theorem vtype_dash [simp] :

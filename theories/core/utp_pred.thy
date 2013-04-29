@@ -192,16 +192,23 @@ instantiation WF_PREDICATE :: (VALUE) ord
 begin
 
 definition less_eq_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> bool" where
-"less_eq_WF_PREDICATE p1 p2 \<longleftrightarrow> taut (p1 \<sqsubseteq>p p2)"
+"less_eq_WF_PREDICATE p1 p2 \<longleftrightarrow> taut (p2 \<sqsubseteq>p p1)"
 
 definition less_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> bool" where
-"less_WF_PREDICATE p1 p2 \<longleftrightarrow> taut (p1 \<sqsubseteq>p p2) \<and> \<not> taut (p2 \<sqsubseteq>p p1)"
+"less_WF_PREDICATE p1 p2 \<longleftrightarrow> taut (p2 \<sqsubseteq>p p1) \<and> \<not> taut (p1 \<sqsubseteq>p p2)"
 
 instance ..
 
 end
 
-notation less_eq (infix "\<sqsubseteq>" 50)
+class refines = ord 
+
+instantiation WF_PREDICATE :: (VALUE) refines begin instance .. end
+
+abbreviation RefinesP :: "'a::refines \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<sqsubseteq>" 50) where
+"p \<sqsubseteq> q \<equiv> q \<le> p"
+
+(* notation less_eq (infix "\<sqsubseteq>" 50) *)
 
 subsection {* Theorems *}
 
