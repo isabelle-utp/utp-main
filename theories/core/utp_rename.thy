@@ -432,11 +432,11 @@ definition rename_equiv ::
 
 notation rename_equiv ("_ \<cong>\<^sub>s _ on _")
 
-lemma rename_equiv_empty:
+lemma rename_equiv_empty [intro]:
   "ss1 \<cong>\<^sub>s ss2 on {}"
   by (simp add: rename_equiv_def)
 
-lemma rename_equiv_refl:
+lemma rename_equiv_refl [intro]:
   "ss \<cong>\<^sub>s ss on vs"
   by (simp add: rename_equiv_def)
 
@@ -450,7 +450,7 @@ lemma rename_equiv_trans :
  ss1 \<cong>\<^sub>s ss3 on vs"
   by (simp add: rename_equiv_def)
 
-lemma rename_equiv_union :
+lemma rename_equiv_union [intro]:
 "\<lbrakk>ss1 \<cong>\<^sub>s ss2 on vs1;
  ss1 \<cong>\<^sub>s ss2 on vs2\<rbrakk> \<Longrightarrow>
  ss1 \<cong>\<^sub>s ss2 on (vs1 \<union> vs2)"
@@ -770,7 +770,7 @@ definition RenameB ::
    'VALUE WF_BINDING" where
 "RenameB ss b = CompB b (inv\<^sub>s ss)"
 
-lemma RenameB_rep_eq:
+lemma RenameB_rep_eq [simp]:
   "\<langle>RenameB ss b\<rangle>\<^sub>b = \<langle>b\<rangle>\<^sub>b \<circ> inv \<langle>ss\<rangle>\<^sub>s"
   by (simp add:RenameB_def)
 
@@ -928,6 +928,16 @@ theorem RenameB_override_distr4 :
 apply (simp add: RenameB_override_distr3)
 done
 
+lemma binding_override_RENAME_ON_overshadow [simp]:
+  "\<lbrakk> ss \<in> VAR_RENAME_ON vs \<rbrakk> \<Longrightarrow> RenameB ss b1 \<oplus>\<^sub>b b2 on vs = b1 \<oplus>\<^sub>b b2 on vs"
+  apply (auto simp add:VAR_RENAME_ON_def)
+  apply (rule, rule)
+  apply (auto)
+  apply (case_tac "x \<in> vs")
+  apply (auto)
+  apply (metis Rep_VAR_RENAME_inj in_mono inv_f_eq)
+done
+
 theorem RenameB_involution [simp] :
 "ss \<in> VAR_RENAME_INV \<Longrightarrow>
  RenameB ss (RenameB ss b) = b"
@@ -940,9 +950,35 @@ lemma var_compat_rename [typing]:
   "v \<rhd> x \<Longrightarrow> v \<rhd> \<langle>ss\<rangle>\<^sub>s x"
   by (metis (lifting) Rep_VAR_RENAME_aux Rep_VAR_RENAME_type var_compat_def)
 
-lemma RenameB_binding_upd [simp]:
+lemma RenameB_binding_upd_1 :
   "v \<rhd> x \<Longrightarrow> RenameB ss (b(x :=\<^sub>b v)) = (RenameB ss b)(\<langle>ss\<rangle>\<^sub>s x :=\<^sub>b v)"
   by (force simp add:RenameB_rep_eq typing)
+
+lemma RenameB_binding_upd_2 [simp]:
+  "\<lbrakk> v \<rhd> x \<rbrakk> \<Longrightarrow> (RenameB ss b)(x :=\<^sub>b v) = RenameB ss (b(inv \<langle>ss\<rangle>\<^sub>s x :=\<^sub>b v))"
+  apply (rule)
+  apply (simp add:typing fun_upd_def)
+  apply (rule)
+  apply (auto)
+  apply (metis Rep_WF_BINDING_rep_eq fun_upd_def rename_inv_rep_eq var_compat_rename)
+  apply (metis (mono_tags) Rep_VAR_RENAME_surj binding_upd_apply rename_inv_rep_eq surj_iff_all var_compat_rename)
+done
+
+lemma RenameB_override_VAR_RENAME_ON:
+  "ss \<in> VAR_RENAME_ON vs \<Longrightarrow> RenameB ss b = RenameB ss b \<oplus>\<^sub>b b on - vs"
+  apply (rule, rule ext)
+  apply (case_tac "x \<in> vs")
+  apply (auto simp add:VAR_RENAME_ON_def)
+  apply (metis Rep_VAR_RENAME_inj inv_f_eq)
+done
+
+lemma RenameB_equiv_VAR_RENAME_ON_1 [intro]:
+  "ss \<in> VAR_RENAME_ON (- vs) \<Longrightarrow> RenameB ss b \<cong> b on vs"
+  by (metis RenameB_override_VAR_RENAME_ON binding_override_equiv1 binding_override_minus)
+
+lemma RenameB_equiv_VAR_RENAME_ON_2 [intro]:
+  "ss \<in> VAR_RENAME_ON (- vs) \<Longrightarrow> b \<cong> RenameB ss b on vs"
+  by (metis RenameB_equiv_VAR_RENAME_ON_1 binding_equiv_comm)
 
 subsubsection {* Predicate Renaming *}
 

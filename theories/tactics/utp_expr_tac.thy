@@ -114,6 +114,11 @@ theorem EvalE_UNREST_assign [evale] :
   apply (metis binding_override_simps(2) binding_override_simps(8))
 done
 
+theorem EvalP_UNREST_binding_equiv [evale] :
+"\<lbrakk> UNREST_EXPR (VAR - vs) e; b1 \<cong> b2 on vs \<rbrakk> 
+ \<Longrightarrow> \<lbrakk>e\<rbrakk>\<epsilon>b1 = \<lbrakk>e\<rbrakk>\<epsilon>b2"
+  by (metis (mono_tags) Compl_eq_Diff_UNIV EvalE_def UNREST_EXPR_member VAR_def binding_override_equiv binding_override_minus)
+  
 theorem EvalE_RenameE [evale] :
 "\<lbrakk>e[ss]\<epsilon>\<rbrakk>\<epsilon>b = \<lbrakk>e\<rbrakk>\<epsilon>(RenameB (inv\<^sub>s ss) b)"
   by (simp add: EvalE_def RenameE.rep_eq)
@@ -215,15 +220,26 @@ theorem EqualP_sym:
 theorem VarE_subst: "\<lbrakk> v :\<^sub>e vtype x; \<not> aux x \<rbrakk> \<Longrightarrow> VarE x[v|x] = v"
   by utp_expr_tac
 
-theorem SubstP_one_point:
-  "\<lbrakk> e \<rhd>\<^sub>e x; UNREST_EXPR {x} e \<rbrakk> \<Longrightarrow>
-  (\<exists>p {x}. p \<and>p (VarE x ==p e)) = p[e|x]"
-  apply (utp_pred_tac)
-  apply (utp_expr_tac)
+theorem EvalP_UNREST_assign_1 [eval] :
+"\<lbrakk> UNREST {x} p; v \<rhd> x \<rbrakk> \<Longrightarrow> 
+  \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b v)) = \<lbrakk>p\<rbrakk>b"
+  apply (rule EvalP_UNREST_assign)
   apply (auto)
-  apply (metis EvalE_compat binding_upd_apply)
 done
 
+lemma ExistsP_SubstP:
+  "\<lbrakk> vtype x = vtype y; aux x = aux y; UNREST {x} p \<rbrakk> \<Longrightarrow> (\<exists>p {y}. p) = (\<exists>p {x}. p[VarE x|y])"
+  apply (simp add:eval evale typing defined unrest binding_upd_twist)
+  apply (clarify)
+  apply (rule, erule exE)
+  apply (rule_tac x="b(x :=\<^sub>b \<langle>b'\<rangle>\<^sub>b y)" in exI)
+  apply (simp add:typing eval defined binding_upd_twist)
+  apply (metis EvalP_UNREST_assign_1 binding_upd_twist binding_value_alt)
+  apply (erule exE)
+  apply (rule_tac x="b(y :=\<^sub>b \<langle>b'\<rangle>\<^sub>b x)" in exI)
+  apply (simp add:typing eval defined binding_upd_twist)
+  apply (metis EvalP_UNREST_assign_1 binding_upd_twist binding_value_alt)
+done
 
 (*
   apply (auto)

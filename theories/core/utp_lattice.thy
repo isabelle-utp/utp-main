@@ -11,9 +11,10 @@ imports
   utp_pred 
   utp_rel 
   utp_unrest 
-  utp_laws
+  "../laws/utp_rel_laws"
   "../tactics/utp_pred_tac" 
   "../tactics/utp_rel_tac"
+  "../tactics/utp_rel_tac2"
 begin
 
 notation
@@ -38,8 +39,8 @@ instance
 done
 end
 
-declare sup_WF_PREDICATE_def [eval,evalr]
-declare inf_WF_PREDICATE_def [eval,evalr]
+declare sup_WF_PREDICATE_def [eval,evalr,evalrx]
+declare inf_WF_PREDICATE_def [eval,evalr,evalrx]
 
 notation
   bot ("\<top>") and
@@ -69,8 +70,8 @@ instance proof
 qed
 end
 
-declare bot_WF_PREDICATE_def [eval,evalr]
-declare top_WF_PREDICATE_def [eval,evalr]
+declare bot_WF_PREDICATE_def [eval,evalr,evalrx]
+declare top_WF_PREDICATE_def [eval,evalr,evalrx]
 
 instantiation WF_PREDICATE :: (VALUE) Inf
 begin
@@ -212,6 +213,10 @@ lemma EvalRR_SupP [evalrr]:
   "\<lbrakk>\<Sqinter> ps\<rbrakk>\<R> = \<Union> {\<lbrakk>p\<rbrakk>\<R> | p . p \<in> ps}"
   by (auto simp add:evalr MkRel_def)
 
+lemma EvalRX_SupP [evalrx]:
+  "\<lbrakk>\<Sqinter> ps\<rbrakk>RX = \<Union> {\<lbrakk>p\<rbrakk>RX | p . p \<in> ps}"
+  by (auto simp add:EvalRX_def Sup_WF_PREDICATE_def bot_WF_PREDICATE_def FalseP_def)
+
 lemma image_Inter: "\<lbrakk> inj_on f (\<Union>S); S \<noteq> {} \<rbrakk> \<Longrightarrow> f ` \<Inter>S = (\<Inter>x\<in>S. f ` x)"
   apply (auto simp add:image_def)
   apply (smt InterI UnionI inj_on_contraD)
@@ -293,6 +298,18 @@ theorem UNREST_Inf [unrest]:
   apply (auto simp add: UNREST_def)
 done
 
+theorem Sup_rel_closure [closure]:
+  "\<forall> p \<in> ps. p \<in> WF_RELATION \<Longrightarrow> \<Squnion> ps \<in> WF_RELATION"
+  apply (simp add:WF_RELATION_def)
+  apply (auto intro:unrest)
+done
+
+theorem Inf_rel_closure [closure]:
+  "\<forall> p \<in> ps. p \<in> WF_RELATION \<Longrightarrow> \<Sqinter> ps \<in> WF_RELATION"
+  apply (simp add:WF_RELATION_def)
+  apply (auto intro:unrest)
+done
+
 instantiation WF_PREDICATE :: (VALUE) monoid_mult
 begin
 
@@ -305,7 +322,7 @@ definition one_WF_PREDICATE :: "'a WF_PREDICATE" where
 
 instance 
   apply (intro_classes)
-  apply (simp_all add:times_WF_PREDICATE_def one_WF_PREDICATE_def SemiP_assoc)
+  apply (simp_all add:times_WF_PREDICATE_def one_WF_PREDICATE_def SemiR_assoc)
 done
 end
 
@@ -345,6 +362,18 @@ instance
 done
 end
 
+lemma SkipR_SupP_def: 
+  "II = \<Squnion> { `$x\<acute> = $x` | x. x \<in> UNDASHED}"
+  apply (auto simp add:SkipR_def Inf_WF_PREDICATE_def UNDASHED_nempty EqualP_def VarE.rep_eq)
+  apply (metis (lifting, full_types) LiftP.rep_eq destPRED_inverse mem_Collect_eq)
+done
+
+lemma SkipRA_SupP_def: 
+  "\<lbrakk> vs \<subseteq> REL_VAR; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow> II vs = \<Squnion> { `$x\<acute> = $x` | x. x \<in> in vs}"
+  apply (auto simp add:SkipRA_rep_eq_alt Inf_WF_PREDICATE_def UNDASHED_nempty EqualP_def VarE.rep_eq top_WF_PREDICATE_def TrueP_def)
+  apply (metis (lifting, full_types) LiftP.rep_eq destPRED_inverse mem_Collect_eq)
+done
+
 definition AssumeR ::
 "'VALUE WF_PREDICATE \<Rightarrow>
  'VALUE WF_PREDICATE" ("_\<^sup>\<top>" [200] 200) where
@@ -363,31 +392,14 @@ lemma UNREST_AssertR_DASHED_TWICE [unrest]:
   "UNREST DASHED_TWICE c \<Longrightarrow> UNREST DASHED_TWICE (c\<^sub>\<bottom>)"
   by (force intro:unrest simp add: AssertR_def)
 
-declare AssumeR_def [eval, evalr, evalrr]
-declare AssertR_def [eval, evalr, evalrr]
+declare AssumeR_def [eval, evalr, evalrr, evalrx]
+declare AssertR_def [eval, evalr, evalrr, evalrx]
 
-lemma 
-  assumes "UNREST (VAR - UNDASHED) b" "UNREST (VAR - UNDASHED) c"
-  shows "b\<^sub>\<bottom> ; c\<^sub>\<bottom> = (b \<and>p c)\<^sub>\<bottom>"
-proof -
-
-  from assms have mur: "UNREST DASHED_TWICE (c\<^sub>\<bottom>)"
-    apply (rule_tac unrest)
-    apply (force intro: unrest)
-  done
-   
-  have "b\<^sub>\<bottom> ; c\<^sub>\<bottom> = (II \<triangleleft> b \<triangleright> \<bottom>) ; c\<^sub>\<bottom>"
-    by (simp add:AssertR_def)
-
-  also from mur assms have "... = (II ; c\<^sub>\<bottom>) \<triangleleft> b \<triangleright> (\<bottom> ; c\<^sub>\<bottom>)"
-    apply (rule_tac SemiR_CondR_distr)
-    apply (force intro: unrest)+
-  done
-
-  also from assms have "... = c\<^sub>\<bottom> \<triangleleft> b \<triangleright> (\<bottom> ; c\<^sub>\<bottom>)"
-    by (metis SemiP_SkipR_left)
-
-  also from assms have "... = c\<^sub>\<bottom> \<triangleleft> b \<triangleright> \<bottom>"
-    oops
+lemma AssertR_SemiR:
+  "\<lbrakk> b \<in> WF_CONDITION; c \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> b\<^sub>\<bottom> ; c\<^sub>\<bottom> = (b \<and>p c)\<^sub>\<bottom>"
+  apply (frule SemiR_TrueP_precond, frule SemiR_TrueP_precond) back
+  apply (simp add:evalrx closure relcomp_unfold)
+  apply (auto)
+done
 
 end

@@ -190,7 +190,7 @@ lemma binding_type [simp, typing, intro]: "t = vtype x \<Longrightarrow> \<langl
   apply (auto simp add:WF_BINDING_def)
 done
 
-lemma binding_compat [simp, intro]: "\<langle>b\<rangle>\<^sub>bx \<rhd> x"
+lemma binding_compat [simp, intro, typing]: "\<langle>b\<rangle>\<^sub>bx \<rhd> x"
   by auto
 
 lemma aux_defined [defined]:
@@ -362,6 +362,42 @@ apply (simp add: VAR_def)
 apply (force)
 done
 
+lemma binding_override_minus:
+  "b1 \<oplus>\<^sub>b b2 on vs = b2 \<oplus>\<^sub>b b1 on - vs"
+  by (force simp add:override_on_def)
+
+lemma binding_override_overshadow:
+  "(b1 \<oplus>\<^sub>b b2 on vs1 \<union> vs2) \<oplus>\<^sub>b b3 on vs1 = (b1 \<oplus>\<^sub>b b2 on vs2) \<oplus>\<^sub>b b3 on vs1"
+  by (force simp add:override_on_def)
+
+lemma binding_override_equiv1 [simp]:
+  "b1 \<oplus>\<^sub>b b2 on vs \<cong> b2 on vs"
+  by (force simp add:override_on_def binding_equiv_def)
+
+lemma binding_override_equiv2 [simp]:
+  "b1 \<oplus>\<^sub>b b2 on vs \<cong> b1 on - vs"
+  by (force simp add:override_on_def binding_equiv_def)
+
+lemma binding_equiv_override:
+  "b1 \<cong> b2 on vs \<Longrightarrow> b1 \<oplus>\<^sub>b b3 on - vs = b2 \<oplus>\<^sub>b b3 on - vs"
+  by (force simp add:override_on_def binding_equiv_def)
+
+lemma binding_equiv_upd: 
+  "v \<rhd> x \<Longrightarrow> b1(x :=\<^sub>b v) \<cong> b1 on vs - {x}"
+  by (auto simp add:binding_equiv_def)
+
+lemma binding_equiv_minus: 
+  "b1 \<cong> b2 on vs1 \<Longrightarrow> b1 \<cong> b2 on (vs1 - vs2)"
+  by (auto simp add:binding_equiv_def)
+
+lemma binding_equiv_override_right_intro [intro]:
+  "\<lbrakk> b1 \<cong> b2 on (- vs1 \<inter> vs2); b1 \<cong> b3 on (vs1 \<inter> vs2) \<rbrakk> \<Longrightarrow> 
+         b1 \<cong> (b2 \<oplus>\<^sub>b b3 on vs1) on vs2"
+  apply (auto simp add:binding_equiv_def)
+  apply (case_tac "x \<in> vs1")
+  apply (auto)
+done
+
 text {* The default binding *}
 
 lift_definition default_binding :: 
@@ -372,6 +408,8 @@ lift_definition default_binding ::
   apply (auto)
 done
 
-
+lemma default_binding_dash [simp]:
+  "\<langle>\<B>\<rangle>\<^sub>b (x\<acute>) = \<langle>\<B>\<rangle>\<^sub>b x"
+  by (simp add:default_binding.rep_eq)
 
 end

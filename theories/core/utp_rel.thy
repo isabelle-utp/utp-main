@@ -7,13 +7,24 @@
 header {* Relations *}
 
 theory utp_rel
-imports utp_pred utp_expr utp_rename utp_unrest "../tactics/utp_expr_tac"
+imports 
+  utp_pred 
+  utp_expr 
+  utp_rename 
+  utp_unrest 
+  "../tactics/utp_expr_tac"
 begin
 
 subsection {* Composable Bindings *}
 
-definition NON_REL_VAR :: "'VALUE VAR set" where
-"NON_REL_VAR = - (UNDASHED \<union> DASHED)"
+definition WF_RELATION :: "'VALUE WF_PREDICATE set" where
+"WF_RELATION = {p. UNREST NON_REL_VAR p}"
+
+definition WF_CONDITION :: "'VALUE WF_PREDICATE set" where
+"WF_CONDITION = {p \<in> WF_RELATION. UNREST DASHED p}"
+
+definition WF_POSTCOND :: "'VALUE WF_PREDICATE set" where
+"WF_POSTCOND = {p \<in> WF_RELATION. UNREST UNDASHED p}"
 
 definition COMPOSABLE_BINDINGS ::
   "('VALUE WF_BINDING \<times>
@@ -144,7 +155,7 @@ done
 
 lift_definition AssignsR ::
 "'VALUE AssignF \<Rightarrow> 'VALUE WF_PREDICATE"
-is "\<lambda> f. {b. \<forall> v \<in> UNDASHED. \<langle>b\<rangle>\<^sub>b v\<acute> = \<langle>Rep_AssignF f v\<rangle>\<^sub>e b}" .
+is "\<lambda> f. {b. \<forall> v \<in> UNDASHED. \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>Rep_AssignF f v\<rangle>\<^sub>e b}" .
 
 lift_definition IdA :: "'VALUE AssignF" is "VarE" 
   by (simp add: typing AssignF_def)
@@ -158,6 +169,8 @@ lemma AssignF_upd_rep_eq:
   apply (simp add:AssignF_upd_def)
   apply (auto simp add:typing AssignF_def)
 done
+
+abbreviation "AssignR x v \<equiv> AssignsR (AssignF_upd IdA x v)"
 
 
 (*
@@ -225,7 +238,7 @@ notation ConvR ("(_\<^sup>\<smile>)" [1000] 999)
 
 subsection {* Theorems *}
 
-theorem DASHED_TWICE_NON_REL_VAR [simp]:
+theorem DASHED_TWICE_NON_REL_VAR [simp,unrest]:
   "DASHED_TWICE \<subseteq> NON_REL_VAR"
   by (auto simp add: NON_REL_VAR_def DASHED_TWICE_def)
 
@@ -262,6 +275,10 @@ done
 theorem SS_ident_app [urename]:
 "\<lbrakk>\<not> x \<in> UNDASHED; \<not> x \<in> DASHED\<rbrakk> \<Longrightarrow> \<langle>SS\<rangle>\<^sub>s x = x"
   by (simp add:rename_on_rep_eq closure)
+
+theorem SS_NON_REL_VAR [urename]:
+"x \<in> NON_REL_VAR \<Longrightarrow> \<langle>SS\<rangle>\<^sub>s x = x"
+  by (simp add:rename_on_rep_eq closure NON_REL_VAR_def)
 
 theorem SS_VAR_RENAME_ON [closure] :
 "SS \<in> VAR_RENAME_ON (UNDASHED \<union> DASHED)"
@@ -524,56 +541,34 @@ apply (simp add: NON_REL_VAR_def)
 apply (simp add: binding_equiv_def)
 done
 
-(*
-subsubsection {* Closure Theorems *}
-
-theorem SkipR_closure [closure] :
-"II \<in> WF_PREDICATE"
-apply (simp add: SkipR_def)
-apply (simp add: WF_PREDICATE_def)
-apply (auto)
-done
-
-theorem SkipRA_closure [closure] :
-"II a \<in> WF_PREDICATE"
-  by (simp add: SkipRA_def closure)
-
-theorem CondR_closure [closure] :
-"p1 \<in> WF_PREDICATE \<and>
- p2 \<in> WF_PREDICATE \<and>
- b \<in> WF_PREDICATE \<longrightarrow>
- p1 \<triangleleft> b \<triangleright> p2 \<in> WF_PREDICATE"
-apply (simp add: CondR_def)
-apply (simp add: closure)
-done
-
-theorem SemiR_closure [closure] :
-"\<lbrakk>p1 \<in> WF_PREDICATE;
- p2 \<in> WF_PREDICATE\<rbrakk> \<Longrightarrow>
- p1 ; p2 \<in> WF_PREDICATE"
-apply (simp add: SemiR_def)
-apply (simp add: WF_PREDICATE_def)
-apply (auto intro!: closure)
-done
-
-theorem AssignR_closure [closure] :
-"v \<in> WF_EXPRESSION \<Longrightarrow>
-x :=p\<^bsub>vs\<^esub> v \<in> WF_PREDICATE"
-  by (simp add:AssignR_def closure)
-*)
-
 subsubsection {* @{term UNREST} theorems *}
 
 theorem UNREST_SkipR [unrest]:
-"UNREST (VAR - (UNDASHED \<union> DASHED)) II"
-  by (simp add:SkipR_def UNREST_def WF_BINDING_def override_on_def)
+"vs \<subseteq> NON_REL_VAR \<Longrightarrow> UNREST vs II"
+  by (auto intro: UNREST_subset simp add:SkipR_def UNREST_def WF_BINDING_def override_on_def NON_REL_VAR_def)
+
 
 theorem UNREST_SkipR_DASHED_TWICE [unrest]:
 "UNREST DASHED_TWICE II"
-  by (auto intro:unrest)
+  by (blast intro!:unrest intro:UNREST_subset)
+
+lemma [dest]: "x \<notin> NON_REL_VAR \<Longrightarrow> x \<in> REL_VAR"
+  by (simp add:NON_REL_VAR_def)
+
+lemma [dest]: "\<lbrakk> x \<in> REL_VAR; x \<in> NON_REL_VAR \<rbrakk> \<Longrightarrow> False"
+  by (simp add:NON_REL_VAR_def)
+
+lemma [dest]: "\<lbrakk> x \<in> NON_REL_VAR; x \<in> REL_VAR \<rbrakk> \<Longrightarrow> False"
+  by (simp add:NON_REL_VAR_def)
 
 theorem UNREST_SkipRA [unrest]:
 "UNREST (VAR - vs) (II vs)"
+  apply (simp add:SkipRA_def)
+  apply (force intro:unrest)
+done
+
+theorem UNREST_SkipRA_NON_REL_VAR [unrest]:
+"UNREST NON_REL_VAR (II vs)"
   by (auto intro:closure unrest simp add:SkipRA_def)
 
 theorem UNREST_SkipRA_DASHED_TWICE [unrest]:
@@ -581,22 +576,23 @@ theorem UNREST_SkipRA_DASHED_TWICE [unrest]:
   by (auto intro:closure unrest simp add:SkipRA_def)
 
 theorem UNREST_AssignR [unrest]:
-"\<lbrakk> x \<in> UNDASHED; UNREST_EXPR (-(UNDASHED \<union> DASHED)) v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> UNREST (-(UNDASHED \<union> DASHED)) (x :=p v)"
-  by (simp add:AssignsR.rep_eq UNREST_def UNREST_EXPR_def WF_BINDING_def override_on_def IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq typing)
+"\<lbrakk> x \<in> UNDASHED; UNREST_EXPR NON_REL_VAR v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> UNREST NON_REL_VAR (x :=p v)"
+  by (simp add:AssignsR.rep_eq UNREST_def UNREST_EXPR_def WF_BINDING_def override_on_def IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq typing NON_REL_VAR_def)
 
 theorem UNREST_AssignR_DASHED_TWICE [unrest]:
 "\<lbrakk> x \<in> UNDASHED; UNREST_EXPR DASHED_TWICE v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> UNREST DASHED_TWICE (x :=p v)"
   by (simp add:AssignsR.rep_eq UNREST_def UNREST_EXPR_def WF_BINDING_def override_on_def IdA.rep_eq VarE.rep_eq  AssignF_upd_rep_eq)
+
+(* FIXME: Add complete set of UNREST rules for n-ary assignments (AssignF) *)
 
 theorem UNREST_AssignRA [unrest]:
 "\<lbrakk> x \<in> UNDASHED; UNREST_EXPR (VAR - vs) v; vs \<subseteq> UNDASHED \<union> DASHED; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow>
  UNREST (VAR - vs) (x :=p\<^bsub>vs\<^esub> v)"
   apply (simp add:AssignRA_def)
   apply (rule unrest) back
-  apply (rule unrest) 
   apply (rule unrest) back
-  apply (simp)
-  apply (rule unrest)
+  apply (auto)
+  apply (rule UNREST_EXPR_subset)
   apply (auto)
 done
 
@@ -626,6 +622,115 @@ theorem UNREST_CondR [unrest]:
   "\<lbrakk>UNREST vs p1; UNREST vs p2; UNREST vs b\<rbrakk> \<Longrightarrow>
    UNREST vs (p1 \<triangleleft> b \<triangleright> p2)"
   by (auto intro:unrest simp add:CondR_def)
+
+subsubsection {* Closure Theorems *}
+
+theorem WF_CONDITION_WF_RELATION [closure]:
+"p \<in> WF_CONDITION \<Longrightarrow> p \<in> WF_RELATION"
+  by (auto simp add:WF_CONDITION_def)
+
+theorem WF_POSTCOND_WF_RELATION [closure]:
+"p \<in> WF_POSTCOND \<Longrightarrow> p \<in> WF_RELATION"
+  by (auto simp add:WF_POSTCOND_def)
+
+theorem UNREST_DASHED_TWICE_WF_RELATION [closure]:
+"p \<in> WF_RELATION \<Longrightarrow> UNREST DASHED_TWICE p"
+  by (auto intro:unrest UNREST_subset simp add:WF_RELATION_def)
+
+theorem UNREST_NON_REL_VAR_WF_RELATION [closure]:
+"p \<in> WF_RELATION \<Longrightarrow> UNREST NON_REL_VAR p"
+  by (simp add:WF_RELATION_def)
+
+theorem TrueP_rel_closure [closure]:
+"true \<in> WF_RELATION"
+  by (simp add:WF_RELATION_def unrest)
+
+theorem TrueP_cond_closure [closure]:
+"true \<in> WF_CONDITION"
+  by (auto intro:closure unrest simp add:WF_CONDITION_def)
+
+theorem FalseP_rel_closure [closure]:
+"false \<in> WF_RELATION"
+  by (simp add:WF_RELATION_def unrest)
+
+theorem FalseP_cond_closure [closure]:
+"false \<in> WF_CONDITION"
+  by (auto intro:closure unrest simp add:WF_CONDITION_def)
+
+theorem OrP_rel_closure [closure]:
+  "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> p \<or>p q \<in> WF_RELATION"
+  by (auto simp add:WF_RELATION_def intro:unrest)
+
+theorem OrP_cond_closure [closure]:
+  "\<lbrakk> p \<in> WF_CONDITION; q \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> p \<or>p q \<in> WF_CONDITION"
+  by (auto simp add:WF_CONDITION_def intro:unrest closure)
+
+theorem AndP_rel_closure [closure]:
+  "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> p \<and>p q \<in> WF_RELATION"
+  by (auto simp add:WF_RELATION_def intro:unrest)
+
+theorem AndP_cond_closure [closure]:
+  "\<lbrakk> p \<in> WF_CONDITION; q \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> p \<and>p q \<in> WF_CONDITION"
+  by (auto simp add:WF_CONDITION_def intro:unrest closure)
+
+theorem NotP_rel_closure [closure]:
+  "\<lbrakk> p \<in> WF_RELATION \<rbrakk> \<Longrightarrow> \<not>p p \<in> WF_RELATION"
+  by (auto simp add:WF_RELATION_def intro:unrest)
+
+theorem NotP_cond_closure [closure]:
+  "\<lbrakk> p \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> \<not>p p \<in> WF_CONDITION"
+  by (auto simp add:WF_CONDITION_def intro:unrest closure)
+
+lemma ImpliesP_rel_closure [closure]:
+  "\<lbrakk>p \<in> WF_RELATION; q \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
+   p \<Rightarrow>p q \<in> WF_RELATION"
+  by (auto intro:unrest simp add:WF_RELATION_def)
+
+lemma ImpliesP_cond_closure [closure]:
+  "\<lbrakk>p \<in> WF_CONDITION; q \<in> WF_CONDITION\<rbrakk> \<Longrightarrow>
+   p \<Rightarrow>p q \<in> WF_CONDITION"
+  by (auto intro:unrest closure simp add:WF_CONDITION_def)
+
+theorem SkipR_closure [closure] :
+"II \<in> WF_RELATION"
+  by (simp add:WF_RELATION_def unrest)
+
+theorem SkipRA_closure [closure] :
+"vs \<subseteq> UNDASHED \<union> DASHED \<Longrightarrow> II vs \<in> WF_RELATION"
+  by (simp add:WF_RELATION_def unrest)
+
+theorem CondR_rel_closure [closure] :
+"\<lbrakk> p1 \<in> WF_RELATION; p2 \<in> WF_RELATION; b \<in> WF_RELATION \<rbrakk> \<Longrightarrow>
+   p1 \<triangleleft> b \<triangleright> p2 \<in> WF_RELATION"
+  by (simp add: CondR_def closure)
+
+theorem ConvR_rel_closure [closure] :
+"\<lbrakk> p \<in> WF_RELATION \<rbrakk> \<Longrightarrow> p\<^sup>\<smile> \<in> WF_RELATION"
+  by (auto intro:unrest simp add:ConvR_def WF_RELATION_def urename)
+
+lemma VarP_rel_closure [closure]:
+  "x \<in> REL_VAR \<Longrightarrow> VarP x \<in> WF_RELATION"
+  by (auto intro:unrest simp add:WF_RELATION_def)
+
+lemma VarP_cond_closure [closure]:
+  "x \<in> UNDASHED \<Longrightarrow> VarP x \<in> WF_CONDITION"
+  by (auto intro:unrest simp add:WF_RELATION_def WF_CONDITION_def NON_REL_VAR_def)
+
+lemma VarP_precond_closure [closure]:
+  "x \<in> DASHED \<Longrightarrow> VarP x \<in> WF_POSTCOND"
+  by (auto intro:unrest simp add:WF_RELATION_def WF_POSTCOND_def NON_REL_VAR_def)
+
+lemma EqualP_rel_closure [closure]:
+  "\<lbrakk> UNREST_EXPR NON_REL_VAR e; UNREST_EXPR NON_REL_VAR f \<rbrakk> \<Longrightarrow> (e ==p f) \<in> WF_RELATION"
+  apply (simp add:WF_CONDITION_def WF_RELATION_def NON_REL_VAR_def)
+  apply (auto intro:unrest)
+done
+
+lemma EqualP_cond_closure [closure]:
+  "\<lbrakk> UNREST_EXPR (-UNDASHED) e; UNREST_EXPR (-UNDASHED) f \<rbrakk> \<Longrightarrow> (e ==p f) \<in> WF_CONDITION"
+  apply (simp add:WF_CONDITION_def WF_RELATION_def NON_REL_VAR_def)
+  apply (auto intro:unrest UNREST_EXPR_subset)
+done
 
 subsection {* Validation of Soundness *}
 
@@ -686,11 +791,9 @@ apply (rule Rep_WF_BINDING_intro)
 apply (rule ext)
 apply (case_tac "x \<in> DASHED")
 apply (simp add: SS1_simps SS2_simps)
-apply (simp add: RenameB_def)
-apply (simp add: SS1_simps SS2_simps)
 apply (case_tac "x \<in> DASHED_TWICE")
 apply (simp add: SS1_simps SS2_simps)
-apply (simp add: SS1_simps SS2_simps RenameB_def)
+apply (simp add: SS1_simps SS2_simps)
 -- {* Subgoal 1.2 *}
 apply (auto intro: UNREST_binding_override) [1]
 -- {* Subgoal 1.3 *}
@@ -717,6 +820,14 @@ apply (auto intro: UNREST_binding_override simp: closure) [1]
 -- {* Subgoal 2.2 *}
 apply (simp add: SemiR_algebraic_lemma2)
 apply (auto intro: UNREST_binding_override simp: closure) [1]
+done
+
+theorem SemiR_algebraic_rel :
+"\<lbrakk> p1 \<in> WF_RELATION; p2 \<in> WF_RELATION \<rbrakk> 
+  \<Longrightarrow> SemiR p1 p2 = (\<exists>p DASHED_TWICE . p1[SS1] \<and>p p2[SS2])"
+  apply (rule SemiR_algebraic)
+  apply (simp_all add:WF_RELATION_def)
+  apply (simp_all add:unrest UNREST_subset)
 done
 
 lemma UNREST_SemiR:
@@ -759,8 +870,8 @@ lemma UNREST_SemiR_NON_REL_VAR [unrest]:
   apply (subgoal_tac "UNREST DASHED_TWICE p")
   apply (subgoal_tac "UNREST DASHED_TWICE q")
   apply (simp add:SemiR_algebraic)
-  apply (rule unrest) back
-  apply (rule unrest)
+  apply (rule unrest) 
+  apply (rule unrest) 
   apply (rule UNREST_RenameP_alt[of "NON_REL_VAR - DASHED_TWICE"])
   apply (force intro: unrest)
   apply (simp add:urename)
@@ -769,8 +880,23 @@ lemma UNREST_SemiR_NON_REL_VAR [unrest]:
   apply (force intro: unrest)
   apply (simp add:urename)
   apply (force simp add:NON_REL_VAR_def)
-  apply (force intro:unrest simp add:NON_REL_VAR_def)
-  apply (force intro:unrest simp add:NON_REL_VAR_def)
+  apply (simp add:unrest UNREST_subset)
+  apply (simp add:unrest UNREST_subset)
+done
+
+theorem SemiR_closure [closure] :
+"\<lbrakk>p1 \<in> WF_RELATION;
+ p2 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
+ p1 ; p2 \<in> WF_RELATION"
+  apply (simp add:WF_RELATION_def)
+  apply (blast intro:unrest)
+done
+
+theorem AssignR_rel_closure [closure] :
+"\<lbrakk> x \<in> UNDASHED; UNREST_EXPR NON_REL_VAR v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow>
+   x :=p v \<in> WF_RELATION"
+  apply (simp add:WF_RELATION_def)
+  apply (simp add:unrest)
 done
 
 subsubsection {* Evaluation Theorems *}
@@ -780,6 +906,10 @@ theorem EvalP_SkipR [eval] :
 apply (simp add: EvalP_def)
 apply (simp add: SkipR_def)
 done
+
+theorem EvalP_SkipRA [eval] :
+"HOMOGENEOUS vs \<Longrightarrow> \<lbrakk>II vs\<rbrakk>b \<longleftrightarrow> (\<forall> v \<in> in vs . \<langle>b\<rangle>\<^sub>b v = \<langle>b\<rangle>\<^sub>b (dash v))"
+  by (auto simp add: EvalP_def SkipRA_rep_eq_alt)
 
 declare CondR_def [eval]
 
@@ -797,4 +927,47 @@ apply (subgoal_tac "UNREST DASHED_TWICE (p1 ; p2)")
 apply (utp_pred_tac)
 apply (auto)
 oops
+
+lemma SkipR_ExistsP_in:
+  "HOMOGENEOUS vs \<Longrightarrow> (\<exists>p vs. II) = (\<exists>p (in vs). II)"
+  apply (utp_pred_auto_tac)
+  apply (rule_tac x="RenameB SS b" in exI)
+  apply (auto)
+  apply (case_tac "v \<in> in vs")
+  apply (auto simp add:urename RenameB_rep_eq)
+  apply (metis (hide_lams, no_types) IntI hom_alphabet_dash in_vars_def override_on_def)
+  apply (rule_tac x="\<B>" in exI)
+  apply (auto)
+  apply (case_tac "v \<in> vs")
+  apply (auto)
+  apply (subgoal_tac "v\<acute> \<notin> vs")
+  apply (auto)
+  apply (metis (hide_lams, no_types) Int_iff in_vars_def override_on_def)
+done
+
+lemma SkipR_ExistsP_out:
+  "HOMOGENEOUS vs \<Longrightarrow> (\<exists>p vs. II) = (\<exists>p (out vs). II)"
+  apply (utp_pred_auto_tac)
+  apply (rule_tac x="RenameB SS b" in exI)
+  apply (auto)
+  apply (case_tac "v\<acute> \<in> out vs")
+  apply (subgoal_tac "v \<notin> out vs")
+  apply (simp add:urename RenameB_rep_eq)
+  apply (metis Int_iff UNDASHED_not_DASHED out_vars_def)
+  apply (case_tac "v\<acute> \<in> out vs")
+  apply (simp_all)
+  apply (subgoal_tac "v \<notin> out vs")
+  apply (simp_all)
+  apply (metis (mono_tags) UNDASHED_dash_DASHED hom_alphabet_undash out_member override_on_def)
+  apply (metis Int_iff UNDASHED_not_DASHED out_vars_def)
+  
+  apply (rule_tac x="\<B>" in exI)
+  apply (rule)
+  apply (case_tac "v \<in> vs")
+  apply (subgoal_tac "v\<acute> \<in> vs")
+  apply (auto)
+  apply (subgoal_tac "v\<acute> \<notin> vs")
+  apply (auto)
+  apply (smt Int_commute out_vars_def override_on_apply_notin override_on_cancel5)
+done
 end

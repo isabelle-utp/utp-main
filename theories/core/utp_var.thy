@@ -86,7 +86,7 @@ definition MkPlain :: "string \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool \<Ri
 
 subsection {* Operators *}
 
-definition dash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" ("_\<acute>") where
+definition dash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" ("_\<acute>" [1000] 1000) where
 "dash \<equiv> \<lambda> x. MkVar (MkName (name_str (name x)) (dashes (name x) + 1) (subscript (name x)))
                    (vtype x) (aux x)"
 
@@ -108,11 +108,16 @@ definition DASHED_TWICE :: "'VALUE VAR set" where
 definition PLAIN :: "'VALUE VAR set" where
 "PLAIN = {v . v \<in> UNDASHED \<and> subscript (name v) = NoSub}"
 
-definition AUX_VARS :: "'VALUE VAR set" where
-"AUX_VARS = {v . aux v}"
+definition AUX_VAR :: "'VALUE VAR set" where
+"AUX_VAR = {v . aux v}"
 
-definition PROGRAM_VARS :: "'VALUE VAR set" where
-"PROGRAM_VARS = {v . \<not> aux v}"
+definition PROGRAM_VAR :: "'VALUE VAR set" where
+"PROGRAM_VAR = {v . \<not> aux v}"
+
+abbreviation "REL_VAR \<equiv> UNDASHED \<union> DASHED"
+
+definition NON_REL_VAR :: "'VALUE VAR set" where
+"NON_REL_VAR = - (UNDASHED \<union> DASHED)"
 
 definition in_vars ::
   "'VALUE VAR set \<Rightarrow>
@@ -136,6 +141,9 @@ subsection {* Theorems *}
 
 theorems var_defs =
   VAR_def
+  PROGRAM_VAR_def
+  AUX_VAR_def
+  NON_REL_VAR_def
   UNDASHED_def
   DASHED_def
   DASHED_TWICE_def
@@ -152,6 +160,18 @@ theorems var_defs =
 theorem VAR_member [simp] :
 "x \<in> VAR"
   by (simp add: VAR_def)
+
+theorem AUX_VAR_member [simp] :
+"aux x \<Longrightarrow> x \<in> AUX_VAR"
+  by (simp add:AUX_VAR_def)
+
+theorem PROGRAM_VAR_member [simp] :
+"\<not> aux x \<Longrightarrow> x \<in> PROGRAM_VAR"
+  by (simp add:PROGRAM_VAR_def)
+
+theorem VAR_subset [simp]:
+"vs \<subseteq> VAR"
+  by (simp add:VAR_def)
 
 theorem MkVar_name [simp]: 
   "name (MkVar n t s) = n"
@@ -221,16 +241,32 @@ theorem UNDASHED_dash_DASHED :
 "x \<in> UNDASHED \<Longrightarrow> dash x \<in> DASHED"
   by (simp add: var_defs)
 
+theorem UNDASHED_dash_not_UNDASHED :
+"x \<in> UNDASHED \<Longrightarrow> x\<acute> \<notin> UNDASHED"
+  by (simp add: var_defs)
+
 theorem DASHED_undash_UNDASHED :
 "x \<in> DASHED \<Longrightarrow> undash x \<in> UNDASHED"
+  by (simp add: var_defs)
+
+theorem DASHED_undash_not_DASHED :
+"x \<in> UNDASHED \<Longrightarrow> undash x \<notin> DASHED"
   by (simp add: var_defs)
 
 theorem DASHED_dash_DASHED_TWICE :
 "x \<in> DASHED \<Longrightarrow> dash x \<in> DASHED_TWICE"
   by (simp add: var_defs)
 
+theorem DASHED_dash_not_DASHED :
+"x \<in> DASHED \<Longrightarrow> x\<acute> \<notin> DASHED"
+  by (simp add: var_defs)
+
 theorem DASHED_TWICE_undash_DASHED :
 "x \<in> DASHED_TWICE \<Longrightarrow> undash x \<in> DASHED"
+  by (simp add: var_defs)
+
+theorem DASHED_TWICE_undash_not_DASHED_TWICE :
+"x \<in> DASHED_TWICE \<Longrightarrow> undash x \<notin> DASHED_TWICE"
   by (simp add: var_defs)
 
 theorem in_UNDASHED :
@@ -293,9 +329,12 @@ theorems var_member =
   UNDASHED_not_DASHED_TWICE
   DASHED_not_DASHED_TWICE
   UNDASHED_dash_DASHED
+  UNDASHED_dash_not_UNDASHED
   DASHED_undash_UNDASHED
+  DASHED_undash_not_DASHED
   DASHED_dash_DASHED_TWICE
   DASHED_TWICE_undash_DASHED
+  DASHED_TWICE_undash_not_DASHED_TWICE
   in_UNDASHED
   out_DASHED
   in_of_UNDASHED
@@ -362,6 +401,24 @@ theorems var_contra =
 declare var_contra [dest]
 
 subsubsection {* Simplification Theorems *}
+
+lemma UNDASHED_nempty: "UNDASHED \<noteq> {}"
+  apply (auto simp add:var_defs)
+  apply (rule_tac x="MkVar (MkName ''x'' 0 NoSub) someType False" in exI)
+  apply (simp)
+done
+
+lemma DASHED_nempty: "DASHED \<noteq> {}"
+  apply (auto simp add:var_defs)
+  apply (rule_tac x="MkVar (MkName ''x'' 1 NoSub) someType False" in exI)
+  apply (simp)
+done
+
+lemma DASHED_TWICE_nempty: "DASHED_TWICE \<noteq> {}"
+  apply (auto simp add:var_defs)
+  apply (rule_tac x="MkVar (MkName ''x'' 2 NoSub) someType False" in exI)
+  apply (simp)
+done
 
 theorem dash_uniqs:
 "x \<noteq> dash x" "dash x \<noteq> x"
@@ -504,12 +561,27 @@ theorem UNDASHED_DASHED_inter:
   "DASHED_TWICE \<inter> UNDASHED = {}"
   "DASHED \<inter> DASHED_TWICE = {}"
   "DASHED_TWICE \<inter> DASHED = {}"
+  "DASHED \<inter> NON_REL_VAR = {}"
+  "NON_REL_VAR \<inter> DASHED = {}"
+  "UNDASHED \<inter> NON_REL_VAR = {}"
+  "NON_REL_VAR \<inter> UNDASHED = {}"
+   "(- DASHED) \<inter> NON_REL_VAR = NON_REL_VAR"
+   "NON_REL_VAR \<inter> - DASHED = NON_REL_VAR"
+  "(- UNDASHED) \<inter> NON_REL_VAR = NON_REL_VAR"
+  "NON_REL_VAR \<inter> (- UNDASHED) = NON_REL_VAR"
+  "- NON_REL_VAR = REL_VAR"
   by (auto simp add:var_defs)
 
 theorems var_simps =
+  UNDASHED_nempty
+  DASHED_nempty
+  DASHED_TWICE_nempty
   dash_uniqs
   dash_undash_DASHED
   dash_undash_DASHED_TWICE
+  dash_dashes  
+  dash_name_str
+  dash_subscript
   undash_dash
   dash_UNDASHED_image
   dash_DASHED_image
@@ -685,6 +757,36 @@ lemma hom_alphabet_dash [elim]:
   "\<lbrakk> HOMOGENEOUS vs; dash v \<in> vs; v \<in> UNDASHED; v \<in> vs \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (auto simp add:HOMOGENEOUS_def)
 
+subsubsection {* HOMOGENEOUS variable sets *}
+
+theorem HOMOGENEOUS_empty [simp]:
+  "HOMOGENEOUS {}"
+  by (simp add: HOMOGENEOUS_def COMPOSABLE_def)
+
+lemma HOMOGENEOUS_REL_VAR [simp]:
+  "HOMOGENEOUS (UNDASHED \<union> DASHED)"
+  by (simp add:HOMOGENEOUS_def COMPOSABLE_def var_dist)
+
+lemma HOMOGENEOUS_insert [simp]:
+  "\<lbrakk>x \<in> UNDASHED; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow> HOMOGENEOUS (insert x (insert (x\<acute>) vs))"
+  by (simp add: HOMOGENEOUS_def COMPOSABLE_def var_defs)
+
+lemma HOMOGENEOUS_union [simp]:
+  "\<lbrakk>HOMOGENEOUS vs1; HOMOGENEOUS vs2\<rbrakk> \<Longrightarrow> HOMOGENEOUS (vs1 \<union> vs2)"
+  by (auto simp add: HOMOGENEOUS_def COMPOSABLE_def var_defs)
+
+lemma HOMOGENEOUS_inter [simp]:
+  "\<lbrakk>HOMOGENEOUS vs1; HOMOGENEOUS vs2\<rbrakk> \<Longrightarrow> HOMOGENEOUS (vs1 \<inter> vs2)"
+  apply (simp add: HOMOGENEOUS_def COMPOSABLE_def)
+  apply (simp add: var_dist)
+done
+
+lemma HOMOGENEOUS_minus [simp]:
+  "\<lbrakk> HOMOGENEOUS vs1; HOMOGENEOUS vs2 \<rbrakk> \<Longrightarrow> HOMOGENEOUS (vs1 - vs2)"
+   apply (unfold HOMOGENEOUS_def COMPOSABLE_def)
+   apply (simp add:var_dist)
+done
+
 subsubsection {* Fresh variables *}
 
 text {* This proof uses the infinitness of @{term "NAME"} proof to demonstrate
@@ -703,6 +805,8 @@ proof -
     apply (metis MkVar_name imageI)
   done
 qed
+
+
 
 end
 

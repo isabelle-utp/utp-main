@@ -81,6 +81,10 @@ lemma evar_comp_dash [typing]:
   "v \<rhd>\<^sub>e x \<Longrightarrow> v \<rhd>\<^sub>e x\<acute>"
   by (simp add:evar_compat_def typing)
 
+lemma evar_compat [typing]:
+  "e \<rhd>\<^sub>e x \<Longrightarrow> \<langle>e\<rangle>\<^sub>e b \<rhd> x"
+  by (simp add:evar_compat_def)
+
 definition UNREST_EXPR :: "('VALUE VAR) set \<Rightarrow> 'VALUE WF_EXPRESSION \<Rightarrow> bool" where
 "UNREST_EXPR vs e \<equiv> (\<forall> b1 b2. \<langle>e\<rangle>\<^sub>e(b1 \<oplus>\<^sub>b b2 on vs) = \<langle>e\<rangle>\<^sub>e b1)" 
 
@@ -246,6 +250,10 @@ theorem RenameE_type [typing]:
   "e :\<^sub>e t \<Longrightarrow> e[ss]\<epsilon> :\<^sub>e t" 
   by (simp add:etype_rel_def RenameE.rep_eq)
 
+theorem RenameE_ecompat [typing]:
+  "v \<rhd>\<^sub>e x \<Longrightarrow> v[SS]\<epsilon> \<rhd>\<^sub>e x"
+  by (simp add:evar_compat_def RenameE.rep_eq)
+
 theorem SubstE_type [typing]:
 "\<lbrakk> v :\<^sub>e vtype x; e :\<^sub>e t \<rbrakk> \<Longrightarrow>
  e[v|x] :\<^sub>e t"
@@ -265,8 +273,8 @@ theorem CoerceE_defined [defined]: "\<D> e \<Longrightarrow> \<D> (CoerceE e t)"
 theorem VarE_defined [defined]: "aux x \<Longrightarrow> \<D> (VarE x)"
   by (simp add:VarE.rep_eq Defined_WF_EXPRESSION_def defined)
 
-theorem VarE_ecompat [typing]: "VarE x \<rhd>\<^sub>e x"
-  by (case_tac "aux x", simp_all add:typing defined)
+theorem VarE_ecompat [typing]: "\<lbrakk> vtype x = vtype y; aux x = aux y \<rbrakk> \<Longrightarrow> VarE y \<rhd>\<^sub>e x"
+  by (force intro:typing defined)
 
 subsubsection {* bfun theorems *}
 
@@ -275,15 +283,15 @@ lemma LitE_bfun [simp]: "a : t \<Longrightarrow> \<langle>LitE a\<rangle>\<^sub>
 
 subsubsection {* @{term UNREST_EXPR} Theorems *}
 
-theorem UNREST_EXPR_member [unrest] :
-"UNREST_EXPR vs f \<Longrightarrow> \<langle>f\<rangle>\<^sub>e b = \<langle>f\<rangle>\<^sub>e (b \<oplus>\<^sub>b b' on vs)"
+theorem UNREST_EXPR_member [simp] :
+"UNREST_EXPR vs f \<Longrightarrow> \<langle>f\<rangle>\<^sub>e (b \<oplus>\<^sub>b b' on vs) = \<langle>f\<rangle>\<^sub>e b "
   by (auto simp add:UNREST_EXPR_def)
 
 theorem UNREST_EXPR_empty [unrest] :
 "UNREST_EXPR {} e"
   by (simp add: UNREST_EXPR_def)
 
-theorem UNREST_EXPR_subset [unrest] :
+theorem UNREST_EXPR_subset :
 "\<lbrakk>UNREST_EXPR vs1 e;
  vs2 \<subseteq> vs1\<rbrakk> \<Longrightarrow>
  UNREST_EXPR vs2 e"
@@ -321,7 +329,7 @@ theorem UNREST_EXPR_wfexpr [unrest]:
 *)
 
 theorem UNREST_EXPR_VarE [unrest] :
-"UNREST_EXPR (vs - {x}) (VarE x)"
+"x \<notin> vs \<Longrightarrow> UNREST_EXPR vs (VarE x)"
   by (simp add:VarE.rep_eq UNREST_EXPR_def)
 
 theorem UNREST_EXPR_LitE [unrest] :
@@ -394,7 +402,7 @@ theorem UNREST_SubstP [unrest] :
 done
 
 theorem UNREST_SubstP_var [unrest] :  
-   "\<lbrakk> v \<rhd>\<^sub>e x; UNREST vs1 p; UNREST_EXPR vs2 v; x \<notin> vs1; x \<in> vs2 \<rbrakk> \<Longrightarrow>
+   "\<lbrakk> v \<rhd>\<^sub>e x; UNREST_EXPR {x} v \<rbrakk> \<Longrightarrow>
       UNREST {x} p[v|x]"
   apply (auto simp add:SubstP_def UNREST_def UNREST_EXPR_def)
   apply (metis binding_compat binding_upd_override binding_upd_upd evar_compat_def)
@@ -470,8 +478,8 @@ theorem UNREST_EXPR_PredE [unrest]:
   apply (metis (full_types) binding_override_simps(2) binding_override_simps(3))
 done
   
-theorem UNREST_VarP [unrest]:
-"UNREST (vs - {x}) (VarP x)"
+lemma UNREST_VarP [unrest]:
+  "x \<notin> vs \<Longrightarrow> UNREST vs (VarP x)"
   by (auto intro:unrest)
 
 end

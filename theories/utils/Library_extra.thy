@@ -123,4 +123,9 @@ lemma complete_inj_image [simp]:
   apply (metis complete_inj_none image_iff)
 done
 
+subsection {* Some additional simplifications *}
+
+lemma set_minus_subset [simp]: "vs1 - vs2 \<subseteq> vs1"
+  by auto
+
 end

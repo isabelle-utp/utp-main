@@ -27,8 +27,8 @@ syntax
   "_upred_ref"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<sqsubseteq>" 25)
   "_upred_clos"     :: "upred \<Rightarrow> upred" ("[_]")
   "_upred_not"      :: "upred \<Rightarrow> upred" ("\<not> _" [40] 40)
-  "_upred_all1"     :: "pttrn \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<forall> _./ _)" [0, 10] 10) 
-  "_upred_exists1"  :: "pttrn \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<exists> _./ _)" [0, 10] 10) 
+  "_upred_all1"     :: "'a VAR \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<forall> _./ _)" [0, 10] 10) 
+  "_upred_exists1"  :: "'a VAR \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<exists> _./ _)" [0, 10] 10) 
   "_upred_equal"    :: "uexpr \<Rightarrow> uexpr \<Rightarrow> upred" (infixl "=" 50)
   "_upred_skip"     :: "upred" ("II")
   "_upred_seq"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr ";" 50)
@@ -36,9 +36,10 @@ syntax
   "_upred_assigna"  :: "'a VAR \<Rightarrow> 'a VAR set \<Rightarrow> uexpr \<Rightarrow> upred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
   "_upred_assign"   :: "'a VAR \<Rightarrow> uexpr \<Rightarrow> upred" ("_ := _" [100] 100)
   "_upred_assigns"  :: "string \<Rightarrow> uexpr \<Rightarrow> upred" ("_ := _" [100] 100)
+  "_upred_conv"    :: "upred \<Rightarrow> upred" ("(_\<^sup>\<smile>)" [1000] 999)
 
 abbreviation AssignS :: "string \<Rightarrow> 'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_PREDICATE" where
-"AssignS x e \<equiv> AssignR (MkPlain x (expr_type e) False) e"
+"AssignS x e \<equiv> (MkPlain x (expr_type e) False) :=p e"
 
 translations
   "_upred_brack p"     => "p"
@@ -64,6 +65,7 @@ translations
   "_upred_assign x e" == "CONST AssignR x e"
   "_upred_assigns x e" == "CONST AssignS x e"
   "_upred_assigna x xs e" == "CONST AssignRA x xs e"
+  "_upred_conv x" == "CONST ConvR x"
 
 (* Expression Parser *)
 
@@ -72,14 +74,14 @@ syntax
   "_uexpr_false"    :: "uexpr" ("false")
   "_uexpr_var"      :: "pttrn \<Rightarrow> uexpr" ("_")
   "_uexpr_evar"     :: "'a VAR \<Rightarrow> uexpr" ("$_")
-  "_uexpr_substp"   :: "upred \<Rightarrow> uexpr \<Rightarrow> pttrn \<Rightarrow> upred" ("(_[_'/_])")
+  "_uexpr_substp"   :: "upred \<Rightarrow> uexpr \<Rightarrow> 'a VAR \<Rightarrow> upred" ("(_[_'/_])" [1000,1000] 1000)
 
 translations
   "_uexpr_true"         == "CONST TrueE"
   "_uexpr_false"        == "CONST FalseE"
   "_uexpr_var x"        => "x" 
   "_uexpr_evar x"       == "CONST VarE x"
-(*  "_uexpr_substp p e x" == "CONST SubstPE p e x" *)
+  "_uexpr_substp p e x" == "CONST SubstP p e x"
 
 
 end
