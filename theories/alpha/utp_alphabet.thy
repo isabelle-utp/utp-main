@@ -7,7 +7,9 @@
 header {* Alphabets *}
 
 theory utp_alphabet
-imports "../core/utp_var" "../core/utp_synonyms"
+imports 
+  "../core/utp_var" 
+  "../core/utp_synonyms"
 begin
 
 subsection {* Operators *}
@@ -43,7 +45,7 @@ lemma HOM_ALPHA_unfold:
 subsection {* Restrictions *}
 
 definition PROGRAM_ALPHABET :: "'VALUE ALPHABET set" where
-"PROGRAM_ALPHABET \<equiv> {a. \<langle>a\<rangle>\<^sub>f \<subseteq> PROGRAM_VARS}"
+"PROGRAM_ALPHABET \<equiv> {a. \<langle>a\<rangle>\<^sub>f \<subseteq> PROGRAM_VAR}"
 
 subsection {* Proof Support *}
 

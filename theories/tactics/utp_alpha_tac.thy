@@ -230,9 +230,7 @@ subsection {* Proof Experiments *}
 
 theorem EvalA_test :
 "\<not>\<alpha> (\<not>\<alpha> p) = p"
-  apply (utp_alpha_tac2)
-  apply (utp_pred_auto_tac)
-done
+  by (utp_alpha_tac2)
 
 (*
 apply (utp_alpha_tac)

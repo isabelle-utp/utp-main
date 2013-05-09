@@ -7,7 +7,11 @@
 header {* Proof Tactic for Relations *}
 
 theory utp_rel_tac
-imports "../core/utp_pred" "../core/utp_rel" "utp_expr_tac"
+imports 
+  "../core/utp_pred" 
+  "../core/utp_rel" 
+  "../parser/utp_pred_parser"
+  "utp_expr_tac"
 begin
 
 text {* Theorem Attribute *}
@@ -721,7 +725,9 @@ lemma "VarP ok \<Rightarrow>p VarP ok\<acute> ; VarP ok \<Rightarrow>p VarP ok\<
   apply (simp add:evalr)
 *)
 
-lemma AssignR_alt_def: "\<lbrakk>v \<rhd>\<^sub>e x ; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> x :=p v = VarE (x\<acute>) ==p v \<and>p (\<exists>p {x,x\<acute>}. II)"
+lemma AssignR_alt_def: 
+  "\<lbrakk>v \<rhd>\<^sub>e x ; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> `x := v` = `$x\<acute> = v \<and> II\<^bsub>REL_VAR - {x,x\<acute>}\<^esub>`"
+  apply (simp add:SkipRA_def)
   apply (utp_pred_tac, utp_expr_tac)
   apply (safe)
   apply (simp_all add:IdA.rep_eq AssignF_upd_rep_eq evale VarE.rep_eq EvalE_def)

@@ -106,6 +106,7 @@ lemma SkipRA_rep_eq_alt:
   apply (metis hom_alphabet_dash)
 done
 
+
 subsubsection {* Conditional *}
 
 text {* Should we impose a constraint on b for it to be a condition? *}
@@ -235,6 +236,14 @@ definition ConvR ::
 "ConvR p = p[SS]"
 
 notation ConvR ("(_\<^sup>\<smile>)" [1000] 999)
+
+definition VarOpenP ::
+"'VALUE VAR \<Rightarrow> 'VALUE WF_PREDICATE" where
+"VarOpenP x = (\<exists>p {x}. II)"
+
+definition VarCloseP ::
+"'VALUE VAR \<Rightarrow> 'VALUE WF_PREDICATE" where
+"VarCloseP x = (\<exists>p {x\<acute>}. II)"
 
 subsection {* Theorems *}
 
@@ -397,10 +406,18 @@ theorem SS1_UNDASHED_DASHED_image [urename] :
   apply (auto simp add:in_vars_def out_vars_def)
 done
 
+(*
 theorem SS1_UNDASHED_image [urename] :
 "\<langle>SS1\<rangle>\<^sub>s ` UNDASHED = UNDASHED"
   apply (auto simp add:urename)
   apply (metis SS1_UNDASHED_app image_iff)
+done
+*)
+
+theorem SS1_UNDASHED_image [urename] :
+"vs \<subseteq> UNDASHED \<Longrightarrow> \<langle>SS1\<rangle>\<^sub>s ` vs = vs"
+  apply (auto simp add:urename)
+  apply (metis SS1_UNDASHED_app image_iff set_mp)
 done
 
 theorem SS1_DASHED_image [urename] :
@@ -491,9 +508,9 @@ theorem SS2_UNDASHED_image [urename] :
 done
 
 theorem SS2_DASHED_image [urename] :
-"\<langle>SS2\<rangle>\<^sub>s ` DASHED = DASHED"
+"vs \<subseteq> DASHED \<Longrightarrow> \<langle>SS2\<rangle>\<^sub>s ` vs = vs"
   apply (auto simp add:urename)
-  apply (metis SS2_DASHED_app imageI)
+  apply (metis (hide_lams, no_types) SS2_DASHED_app image_iff set_mp)
 done
 
 theorem SS2_DASHED_TWICE_image [urename] :
@@ -641,6 +658,10 @@ theorem UNREST_NON_REL_VAR_WF_RELATION [closure]:
 "p \<in> WF_RELATION \<Longrightarrow> UNREST NON_REL_VAR p"
   by (simp add:WF_RELATION_def)
 
+lemma WF_RELATION_UNREST_elim [elim]:
+  "\<lbrakk> p \<in> WF_RELATION; UNREST NON_REL_VAR p \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (simp add:WF_RELATION_def)
+
 theorem TrueP_rel_closure [closure]:
 "true \<in> WF_RELATION"
   by (simp add:WF_RELATION_def unrest)
@@ -690,6 +711,12 @@ lemma ImpliesP_cond_closure [closure]:
   "\<lbrakk>p \<in> WF_CONDITION; q \<in> WF_CONDITION\<rbrakk> \<Longrightarrow>
    p \<Rightarrow>p q \<in> WF_CONDITION"
   by (auto intro:unrest closure simp add:WF_CONDITION_def)
+
+lemma ExistsP_rel_closure [closure]:
+  "p \<in> WF_RELATION \<Longrightarrow> (\<exists>p vs. p) \<in> WF_RELATION"
+  apply (simp add:WF_RELATION_def)
+  apply (simp add:unrest)
+done
 
 theorem SkipR_closure [closure] :
 "II \<in> WF_RELATION"
@@ -928,6 +955,11 @@ apply (utp_pred_tac)
 apply (auto)
 oops
 
+lemma SkipR_as_SkipRA: "II = II REL_VAR"
+  apply (utp_pred_auto_tac)
+  apply (simp add:var_dist)
+done
+
 lemma SkipR_ExistsP_in:
   "HOMOGENEOUS vs \<Longrightarrow> (\<exists>p vs. II) = (\<exists>p (in vs). II)"
   apply (utp_pred_auto_tac)
@@ -970,4 +1002,8 @@ lemma SkipR_ExistsP_out:
   apply (auto)
   apply (smt Int_commute out_vars_def override_on_apply_notin override_on_cancel5)
 done
+
+definition SkipD :: "int" where
+"SkipD = 7"
+
 end

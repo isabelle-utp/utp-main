@@ -7,7 +7,10 @@
 header {* Alphabetised Predicates *}
 
 theory utp_alpha_pred
-imports "../core/utp_pred" "../core/utp_laws" utp_alphabet
+imports 
+  "../core/utp_pred" 
+  "../laws/utp_pred_laws" 
+  utp_alphabet
 begin
 
 subsection {* Wellformed alphabetised predicates *}
@@ -20,7 +23,7 @@ definition WF_ALPHA_PREDICATE ::
 "WF_ALPHA_PREDICATE =
  {(a,p) | a p . p \<in> WF_PREDICATE_OVER \<langle>a\<rangle>\<^sub>f}"
 
-typedef (open) 'VALUE WF_ALPHA_PREDICATE = "WF_ALPHA_PREDICATE :: 'VALUE ALPHA_PREDICATE set"
+typedef 'VALUE WF_ALPHA_PREDICATE = "WF_ALPHA_PREDICATE :: 'VALUE ALPHA_PREDICATE set"
   apply (auto simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
   apply (metis UNREST_FalseP prod_caseI)
 done

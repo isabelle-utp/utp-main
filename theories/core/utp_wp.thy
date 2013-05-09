@@ -1,5 +1,9 @@
 theory utp_wp
-  imports utp_laws utp_lattice utp_recursion
+imports 
+  utp_lattice 
+  utp_recursion
+  "../laws/utp_pred_laws"
+  "../laws/utp_rel_laws"
 begin
 
 ML {*
@@ -13,54 +17,81 @@ definition WeakPrecondP ::
   "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" (infixr "wp" 150) where
 "Q wp r \<equiv> \<not>p (Q ; (\<not>p r))"
 
-declare WeakPrecondP_def [eval,evalr]
+declare WeakPrecondP_def [eval,evalr,evalrx]
+
+syntax
+  "_upred_wp" :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "wp" 50)
+
+translations
+  "_upred_wp p q"  == "CONST WeakPrecondP p q"
 
 lemma ConjP_wp [wp]:
-  "P wp (q \<and>p r) = (P wp q) \<and>p (P wp r)"
-  by (metis (no_types) SemiP_OrP_distl WeakPrecondP_def demorgan1 demorgan2)
+  "`P wp (q \<and> r)` = `(P wp q) \<and> (P wp r)`"
+  by (metis (hide_lams, no_types) SemiR_OrP_distl WeakPrecondP_def demorgan1 demorgan2)
 
 lemma SemiR_wp [wp]: 
   "(P ; Q) wp r = P wp (Q wp r)"
   apply (simp add: WeakPrecondP_def)
-  apply (metis NotP_NotP SemiP_assoc)
+  apply (metis SemiR_assoc)
 done
 
+lemma AssignR_wp [wp]:
+  "\<lbrakk> x \<in> UNDASHED; v \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<union> NON_REL_VAR) v; r \<in> WF_RELATION \<rbrakk> 
+     \<Longrightarrow> `(x := v) wp r` = `r[v/x]`"
+  apply (subgoal_tac "UNREST_EXPR NON_REL_VAR v")
+  apply (simp add: WeakPrecondP_def)
+oops
+
 lemma CondP_wp [wp]:
-  "\<lbrakk> UNREST DASHED_TWICE P; UNREST DASHED b;  UNREST DASHED_TWICE b;
-     UNREST DASHED_TWICE Q; UNREST DASHED_TWICE r \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION; b \<in> WF_CONDITION; r \<in> WF_RELATION \<rbrakk> \<Longrightarrow>
   (P \<triangleleft> b \<triangleright> Q) wp r = (P wp r) \<triangleleft> b \<triangleright> (Q wp r)"
-  apply (subgoal_tac "UNREST DASHED_TWICE (\<not>p r)")
-  apply (simp add: WeakPrecondP_def SemiR_CondR_distr)
+  apply (simp add: WeakPrecondP_def)
+  apply (simp add:SemiR_CondR_distr closure)
   apply (utp_pred_auto_tac)
-  apply (blast intro:unrest)
 done
 
 lemma OrP_wp [wp]:
-  "(P \<or>p Q) wp r = (P wp r) \<and>p (Q wp r)"
-  by (metis (no_types) SemiP_OrP_distr WeakPrecondP_def demorgan1)
+  "`(P \<or> Q) wp r` = `(P wp r) \<and> (Q wp r)`"
+  by (metis (no_types) SemiR_OrP_distr WeakPrecondP_def demorgan1)
 
 lemma ChoiceP_wp [wp]:
   "(P \<sqinter> Q) wp r = (P wp r) \<and>p (Q wp r)"
   by (simp add:sup_WF_PREDICATE_def wp)
 
-lemma ImpliesP_precond_wp: "[r \<Rightarrow>p s]p \<Longrightarrow> [(Q wp r) \<Rightarrow>p (Q wp s)]p"
+lemma ImpliesP_precond_wp: "`[r \<Rightarrow> s]` \<Longrightarrow> `[(Q wp r) \<Rightarrow> (Q wp s)]`"
   by (metis ConjP_wp RefP_AndP RefP_def less_eq_WF_PREDICATE_def)
 
-lemma ImpliesP_pred_wp: "[Q \<Rightarrow>p S]p \<Longrightarrow> [(S wp r) \<Rightarrow>p (Q wp r)]p"
+lemma ImpliesP_pred_wp: "`[Q \<Rightarrow> S]` \<Longrightarrow> `[(S wp r) \<Rightarrow> (Q wp r)]`"
   by (metis OrP_comm OrP_wp RefP_def inf_WF_PREDICATE_def le_iff_inf le_iff_sup less_eq_WF_PREDICATE_def sup_WF_PREDICATE_def)
 
-lemma RefineP_precond_wp: "[r \<Rightarrow>p s]p \<Longrightarrow> Q wp s \<sqsubseteq> Q wp r"
+lemma RefineP_precond_wp: "`[r \<Rightarrow> s]` \<Longrightarrow> Q wp s \<sqsubseteq> Q wp r"
   by (metis ImpliesP_precond_wp RefP_def less_eq_WF_PREDICATE_def)
 
 lemma RefineP_pred_wp: "S \<sqsubseteq> Q \<Longrightarrow> Q wp r \<sqsubseteq> S wp r"
   by (metis OrP_wp RefP_AndP le_iff_sup sup_WF_PREDICATE_def)
 
-lemma FalseP_wp: "Q ; true = true \<Longrightarrow> Q wp false = false"
+lemma FalseP_wp [wp]: "Q ; true = true \<Longrightarrow> Q wp false = false"
   by (simp add:WeakPrecondP_def)
 
+lemma VarOpenP_wp: "\<lbrakk> x \<in> UNDASHED; r \<in> WF_RELATION \<rbrakk> 
+  \<Longrightarrow> `(var x) wp r` = `\<forall> x. r`"
+  apply (simp add:WeakPrecondP_def VarOpenP_def ExistsP_UNDASHED_expand_SemiR closure)
+  apply (utp_pred_tac)
+done
+
+text {* I don't think the following statement is provable... *}
+
+
 lemma weakest_prespec:
-  "(P ; Q) \<Rightarrow>p S = P \<Rightarrow>p (Q wp S)"
-  apply (simp add:WeakPrecondP_def)
+  "\<lbrakk>P \<in> WF_RELATION; Q \<in> WF_RELATION; S \<in> WF_RELATION \<rbrakk> \<Longrightarrow>
+  `(P ; Q) \<Rightarrow> S` \<longleftrightarrow> `P \<Rightarrow> (Q wp S)`"
 oops
+
+(* Counterexample:
+
+lemma "P \<subseteq> -(Q O -S) \<Longrightarrow> (P O Q) \<subseteq> S"
+  nitpick
+
+*)
 
 end

@@ -14,7 +14,7 @@ imports
   "../laws/utp_rel_laws"
   "../tactics/utp_pred_tac" 
   "../tactics/utp_rel_tac"
-  "../tactics/utp_rel_tac2"
+  "../tactics/utp_xrel_tac"
 begin
 
 notation

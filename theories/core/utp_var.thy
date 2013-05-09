@@ -424,6 +424,9 @@ theorem dash_uniqs:
 "x \<noteq> dash x" "dash x \<noteq> x"
 "x \<noteq> dash (dash x)" "dash (dash x) \<noteq> x"
 "dash x \<noteq> dash (dash x)" "dash (dash x) \<noteq> dash x"
+"x \<noteq> x\<acute>\<acute>\<acute>" "x\<acute>\<acute>\<acute> \<noteq> x" 
+"x\<acute> \<noteq> x\<acute>\<acute>\<acute>" "x\<acute>\<acute>\<acute> \<noteq> x\<acute>"
+"x\<acute>\<acute> \<noteq> x\<acute>\<acute>\<acute>" "x\<acute>\<acute>\<acute> \<noteq> x\<acute>\<acute>"
   by (case_tac x, case_tac a, simp add:var_defs)+
 
 theorem dash_name_str:

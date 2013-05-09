@@ -210,6 +210,10 @@ apply (simp add: UNREST_empty)
 apply (auto intro: UNREST_subset closure)
 done
 
+theorem UNREST_ExistsP_simple' [unrest]:
+  "UNREST vs1 p \<Longrightarrow> UNREST vs1 (\<exists>p vs2. p)"
+  by (metis UNREST_ExistsP UNREST_subset sup_ge1)
+
 theorem UNREST_ForallP_simple [unrest]:
 "\<lbrakk>vs1 \<subseteq> vs2\<rbrakk> \<Longrightarrow>
  UNREST vs1 (\<forall>p vs2 . p)"

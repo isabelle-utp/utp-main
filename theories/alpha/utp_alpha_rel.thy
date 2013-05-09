@@ -33,8 +33,8 @@ definition hom_right ::
 
 abbreviation "homa a \<equiv> homl a \<union>\<^sub>f homr a"
 
-definition WF_RELATION :: "'VALUE WF_ALPHA_PREDICATE set" where
-"WF_RELATION = {p . (\<alpha> p) \<in> REL_ALPHABET}"
+definition WF_ALPHA_REL :: "'VALUE WF_ALPHA_PREDICATE set" where
+"WF_ALPHA_REL = {p . (\<alpha> p) \<in> REL_ALPHABET}"
 
 definition HOM_RELATION :: "'VALUE WF_ALPHA_PREDICATE set" where
 "HOM_RELATION = {p . (\<alpha> p) \<in> HOM_ALPHABET}"
@@ -42,13 +42,13 @@ definition HOM_RELATION :: "'VALUE WF_ALPHA_PREDICATE set" where
 definition WF_REL_EXPR :: "'VALUE WF_ALPHA_EXPRESSION set" where
 "WF_REL_EXPR = {e . (\<alpha> e) \<in> REL_ALPHABET}"
 
-typedef (open) 'VALUE WF_RELATION = "WF_RELATION :: 'VALUE WF_ALPHA_PREDICATE set"
-  apply (auto simp add:WF_RELATION_def REL_ALPHABET_def)
+typedef (open) 'VALUE WF_ALPHA_REL = "WF_ALPHA_REL :: 'VALUE WF_ALPHA_PREDICATE set"
+  apply (auto simp add:WF_ALPHA_REL_def REL_ALPHABET_def)
   apply (metis ClosureA_alphabet bot_least fempty.rep_eq pred_alphabet_def)
 done
 
 definition WF_CONDITION :: "'VALUE WF_ALPHA_PREDICATE set" where
-"WF_CONDITION = {p . p \<in> WF_RELATION \<and> UNREST DASHED (\<pi> p)}"
+"WF_CONDITION = {p . p \<in> WF_ALPHA_REL \<and> UNREST DASHED (\<pi> p)}"
 
 subsection {* Operators *}
 
@@ -81,8 +81,8 @@ definition CondA ::
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" where
-"r1 \<in> WF_RELATION \<and>
- r2 \<in> WF_RELATION \<and>
+"r1 \<in> WF_ALPHA_REL \<and>
+ r2 \<in> WF_ALPHA_REL \<and>
  b \<in> WF_CONDITION \<and>
  (\<alpha> r1) = (\<alpha> r2) \<and>
  (\<alpha> b) \<subseteq>\<^sub>f (\<alpha> r1) \<longrightarrow>
@@ -96,18 +96,18 @@ definition SemiA ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" where
-"r1 \<in> WF_RELATION \<and>
- r2 \<in> WF_RELATION \<longrightarrow>
+"r1 \<in> WF_ALPHA_REL \<and>
+ r2 \<in> WF_ALPHA_REL \<longrightarrow>
  SemiA r1 r2 = Abs_WF_ALPHA_PREDICATE (in\<^sub>\<alpha> (\<alpha> r1) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r2), (\<pi> r1) ; (\<pi> r2))"
 
 notation SemiA (infixr ";\<alpha>" 140)
 
 subsection {* Theorems *}
 
-theorem WF_RELATION_unfold :
-"r \<in> WF_RELATION \<longleftrightarrow>
+theorem WF_ALPHA_REL_unfold :
+"r \<in> WF_ALPHA_REL \<longleftrightarrow>
  \<langle>\<alpha> r\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED"
-apply (simp add: WF_RELATION_def)
+apply (simp add: WF_ALPHA_REL_def)
 apply (simp add: REL_ALPHABET_def)
 done
 
@@ -115,19 +115,19 @@ done
 theorem WF_CONDITION_unfold :
 "r \<in> WF_CONDITION \<longleftrightarrow>
  \<langle>\<alpha> r\<rangle>\<^sub>f \<subseteq> UNDASHED"
-apply (simp add: WF_CONDITION_def WF_RELATION_def REL_ALPHABET_def)
+apply (simp add: WF_CONDITION_def WF_ALPHA_REL_def REL_ALPHABET_def)
 apply (insert WF_ALPHA_PREDICATE_UNREST[of r])
 apply (auto)
 done
 *)
 
-theorem WF_RELATION_intro [intro] :
+theorem WF_ALPHA_REL_intro [intro] :
   "\<langle>\<alpha> r\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED \<Longrightarrow>
-   r \<in> WF_RELATION"
-  by (simp add:WF_RELATION_unfold assms)
+   r \<in> WF_ALPHA_REL"
+  by (simp add:WF_ALPHA_REL_unfold assms)
 
-theorem WF_CONDITION_WF_RELATION [closure] :
-"r \<in> WF_CONDITION \<Longrightarrow> r \<in> WF_RELATION"
+theorem WF_CONDITION_WF_ALPHA_REL [closure] :
+"r \<in> WF_CONDITION \<Longrightarrow> r \<in> WF_ALPHA_REL"
 apply (simp add: WF_CONDITION_def)
 done
 
@@ -136,17 +136,17 @@ theorem HOM_ALPHABET_REL_ALPHABET [closure] :
 apply (simp add: HOM_ALPHABET_def)
 done
 
-theorem HOM_RELATION_WF_RELATION [closure] :
-"r \<in> HOM_RELATION \<Longrightarrow> r \<in> WF_RELATION"
-  by (simp add:HOM_RELATION_def WF_RELATION_def HOM_ALPHABET_def)
+theorem HOM_RELATION_WF_ALPHA_REL [closure] :
+"r \<in> HOM_RELATION \<Longrightarrow> r \<in> WF_ALPHA_REL"
+  by (simp add:HOM_RELATION_def WF_ALPHA_REL_def HOM_ALPHABET_def)
 
 theorem HOM_RELATION_HOM_ALPHABET [closure] :
 "r \<in> HOM_RELATION \<Longrightarrow> (\<alpha> r) \<in> HOM_ALPHABET"
   by (simp add:HOM_RELATION_def HOM_ALPHABET_def)
 
-theorem WF_RELATION_REL_ALPHABET [closure] :
-"r \<in> WF_RELATION \<Longrightarrow> (\<alpha> r) \<in> REL_ALPHABET"
-  by (simp add: WF_RELATION_def)
+theorem WF_ALPHA_REL_REL_ALPHABET [closure] :
+"r \<in> WF_ALPHA_REL \<Longrightarrow> (\<alpha> r) \<in> REL_ALPHABET"
+  by (simp add: WF_ALPHA_REL_def)
 
 theorem REL_ALPHABET_UNDASHED_DASHED [closure]:
 "a \<in> REL_ALPHABET \<Longrightarrow> \<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED"
@@ -156,9 +156,9 @@ lemma NON_REL_VAR_REL_ALPHABET [closure]:
   "a \<in> REL_ALPHABET \<Longrightarrow> NON_REL_VAR \<subseteq> VAR - \<langle>a\<rangle>\<^sub>f"
   by (auto simp add: REL_ALPHABET_def NON_REL_VAR_def)
 
-theorem WF_RELATION_UNREST_UNDASHED [unrest]:
-  "r \<in> WF_RELATION \<Longrightarrow> UNREST DASHED_TWICE (\<pi> r)"
-  apply (simp add:WF_RELATION_def REL_ALPHABET_def)
+theorem WF_ALPHA_REL_UNREST_UNDASHED [unrest]:
+  "r \<in> WF_ALPHA_REL \<Longrightarrow> UNREST DASHED_TWICE (\<pi> r)"
+  apply (simp add:WF_ALPHA_REL_def REL_ALPHABET_def)
   apply (rule_tac ?vs1.0="VAR - \<langle>\<alpha> r\<rangle>\<^sub>f" in UNREST_subset)
   apply (auto intro:unrest)
 done
@@ -243,10 +243,10 @@ theorem HOM_ALPHABET_hom_left [closure]:
   apply (simp add:HOM_ALPHA_unfold hom_left_def alphabet_dist)
 done
 
-theorem NotA_WF_RELATION [closure] :
-"\<lbrakk>r \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
- \<not>\<alpha> r \<in> WF_RELATION"
-  by (simp add: WF_RELATION_unfold alphabet)
+theorem NotA_WF_ALPHA_REL [closure] :
+"\<lbrakk>r \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
+ \<not>\<alpha> r \<in> WF_ALPHA_REL"
+  by (simp add: WF_ALPHA_REL_unfold alphabet)
 
 theorem NotA_WF_CONDITION [closure] :
 "\<lbrakk>r \<in> WF_CONDITION\<rbrakk> \<Longrightarrow>
@@ -257,11 +257,11 @@ apply (simp add:NotA.rep_eq)
 apply (auto intro: unrest)
 done
 
-theorem AndA_WF_RELATION [closure] :
-"\<lbrakk>r1 \<in> WF_RELATION;
- r2 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
- r1 \<and>\<alpha> r2 \<in> WF_RELATION"
-  by (simp add: WF_RELATION_unfold alphabet)
+theorem AndA_WF_ALPHA_REL [closure] :
+"\<lbrakk>r1 \<in> WF_ALPHA_REL;
+ r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
+ r1 \<and>\<alpha> r2 \<in> WF_ALPHA_REL"
+  by (simp add: WF_ALPHA_REL_unfold alphabet)
 
 theorem AndA_WF_CONDITION [closure] :
 "\<lbrakk>r1 \<in> WF_CONDITION;
@@ -272,11 +272,11 @@ apply (simp add:AndA.rep_eq closure)
 apply (auto intro:unrest)
 done
 
-theorem OrA_WF_RELATION [closure] :
-"\<lbrakk>r1 \<in> WF_RELATION;
- r2 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
- r1 \<or>\<alpha> r2 \<in> WF_RELATION"
-  by (simp add: WF_RELATION_unfold alphabet)
+theorem OrA_WF_ALPHA_REL [closure] :
+"\<lbrakk>r1 \<in> WF_ALPHA_REL;
+ r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
+ r1 \<or>\<alpha> r2 \<in> WF_ALPHA_REL"
+  by (simp add: WF_ALPHA_REL_unfold alphabet)
 
 theorem OrA_WF_CONDITION [closure] :
 "\<lbrakk>r1 \<in> WF_CONDITION;
@@ -287,11 +287,11 @@ apply (simp add:OrA.rep_eq closure)
 apply (auto intro:unrest)
 done
 
-theorem ImpliesA_WF_RELATION [closure] :
-"\<lbrakk>r1 \<in> WF_RELATION;
- r2 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
- r1 \<Rightarrow>\<alpha> r2 \<in> WF_RELATION"
-  by (simp add: WF_RELATION_unfold alphabet)
+theorem ImpliesA_WF_ALPHA_REL [closure] :
+"\<lbrakk>r1 \<in> WF_ALPHA_REL;
+ r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
+ r1 \<Rightarrow>\<alpha> r2 \<in> WF_ALPHA_REL"
+  by (simp add: WF_ALPHA_REL_unfold alphabet)
 
 theorem ImpliesA_WF_CONDITION [closure] :
 "\<lbrakk>r1 \<in> WF_CONDITION;
@@ -302,10 +302,10 @@ apply (simp add:ImpliesA.rep_eq closure)
 apply (auto intro:unrest)
 done
 
-theorem TrueA_WF_RELATION [closure] :
+theorem TrueA_WF_ALPHA_REL [closure] :
 "a \<in> REL_ALPHABET \<Longrightarrow>
- true a \<in> WF_RELATION"
-apply (simp add:WF_RELATION_def)
+ true a \<in> WF_ALPHA_REL"
+apply (simp add:WF_ALPHA_REL_def)
 apply (simp add:closure alphabet)
 done
 
@@ -317,10 +317,10 @@ apply (simp add:TrueA_rep_eq closure)
 apply (auto intro:unrest)
 done
 
-theorem FalseA_WF_RELATION [closure] :
+theorem FalseA_WF_ALPHA_REL [closure] :
 "a \<in> REL_ALPHABET \<Longrightarrow>
- false a \<in> WF_RELATION"
-apply (simp add:WF_RELATION_def)
+ false a \<in> WF_ALPHA_REL"
+apply (simp add:WF_ALPHA_REL_def)
 apply (simp add:closure alphabet)
 done
 
@@ -332,10 +332,10 @@ apply (simp add:FalseA_rep_eq closure)
 apply (auto intro:unrest)
 done
 
-theorem ExtA_WF_RELATION [closure] :
-"\<lbrakk> a \<in> REL_ALPHABET; p \<in> WF_RELATION \<rbrakk> \<Longrightarrow>
- p \<oplus>\<alpha> a \<in> WF_RELATION"
-  by (auto intro:closure simp add:ExtA.rep_eq WF_RELATION_def alphabet)
+theorem ExtA_WF_ALPHA_REL [closure] :
+"\<lbrakk> a \<in> REL_ALPHABET; p \<in> WF_ALPHA_REL \<rbrakk> \<Longrightarrow>
+ p \<oplus>\<alpha> a \<in> WF_ALPHA_REL"
+  by (auto intro:closure simp add:ExtA.rep_eq WF_ALPHA_REL_def alphabet)
 
 theorem ExtA_WF_CONDITION [closure] :
 "\<lbrakk> \<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED; p \<in> WF_CONDITION \<rbrakk> \<Longrightarrow>
@@ -346,30 +346,30 @@ theorem ExtA_WF_CONDITION [closure] :
   apply (simp)
 done
 
-theorem ExistsResA_WF_RELATION [closure]:
-"p \<in> WF_RELATION \<Longrightarrow>
- (\<exists>-\<alpha> a. p) \<in> WF_RELATION"
-  by (auto intro:closure simp add:WF_RELATION_def alphabet)
+theorem ExistsResA_WF_ALPHA_REL [closure]:
+"p \<in> WF_ALPHA_REL \<Longrightarrow>
+ (\<exists>-\<alpha> a. p) \<in> WF_ALPHA_REL"
+  by (auto intro:closure simp add:WF_ALPHA_REL_def alphabet)
 
 theorem ExistsResA_WF_CONDITION [closure]:
 "p \<in> WF_CONDITION \<Longrightarrow>
  (\<exists>-\<alpha> a. p) \<in> WF_CONDITION"
   by (auto intro:closure unrest simp add:WF_CONDITION_def alphabet ExistsResA.rep_eq)
 
-theorem ExistsA_WF_RELATION [closure]:
-"p \<in> WF_RELATION \<Longrightarrow>
- (\<exists>\<alpha> a. p) \<in> WF_RELATION"
-  by (auto intro:closure simp add:WF_RELATION_def alphabet)
+theorem ExistsA_WF_ALPHA_REL [closure]:
+"p \<in> WF_ALPHA_REL \<Longrightarrow>
+ (\<exists>\<alpha> a. p) \<in> WF_ALPHA_REL"
+  by (auto intro:closure simp add:WF_ALPHA_REL_def alphabet)
 
 theorem ExistsA_WF_CONDITION [closure]:
 "p \<in> WF_CONDITION \<Longrightarrow>
  (\<exists>\<alpha> a. p) \<in> WF_CONDITION"
   by (auto intro:closure unrest simp add:WF_CONDITION_def alphabet ExistsA.rep_eq)
 
-theorem EqualA_WF_RELATION [closure]:
+theorem EqualA_WF_ALPHA_REL [closure]:
 "\<lbrakk> e \<in> WF_REL_EXPR; f \<in> WF_REL_EXPR \<rbrakk> \<Longrightarrow>
- e ==\<alpha> f \<in> WF_RELATION"
-  by (auto intro:closure simp add:WF_RELATION_def WF_REL_EXPR_def alphabet)
+ e ==\<alpha> f \<in> WF_ALPHA_REL"
+  by (auto intro:closure simp add:WF_ALPHA_REL_def WF_REL_EXPR_def alphabet)
 
 theorem VarAE_WF_REL_EXPR [closure]:
 "x \<in> UNDASHED \<union> DASHED \<Longrightarrow>
@@ -382,8 +382,8 @@ theorem LitAE_WF_REL_EXPR [closure]:
 
 theorem SkipA_closure [closure] :
 "a \<in> REL_ALPHABET \<Longrightarrow>
- II\<alpha> a \<in> WF_RELATION"
-  by (simp add: WF_RELATION_def REL_ALPHABET_def pred_alphabet_def SkipA.rep_eq)
+ II\<alpha> a \<in> WF_ALPHA_REL"
+  by (simp add: WF_ALPHA_REL_def REL_ALPHABET_def pred_alphabet_def SkipA.rep_eq)
 
 theorem AssignA_rep_eq:
   "\<lbrakk> a \<in> REL_ALPHABET; x \<in>\<^sub>f a; dash x \<in>\<^sub>f a; \<alpha> v \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow> 
@@ -409,7 +409,7 @@ theorem AssignA_closure [closure] :
    "a \<in> REL_ALPHABET"
    "x \<in>\<^sub>f a" "dash x \<in>\<^sub>f a"
    "\<alpha> v \<subseteq>\<^sub>f a"
-  shows "x :=\<^bsub>a\<^esub> v \<in> WF_RELATION"
+  shows "x :=\<^bsub>a\<^esub> v \<in> WF_ALPHA_REL"
 proof
   from assms show "\<langle>\<alpha> (x :=\<^bsub>a \<^esub>v)\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED"
     apply (simp add:AssignA_rep_eq pred_alphabet_def)
@@ -418,14 +418,14 @@ proof
 qed
 
 theorem RenameA_SS_closure [closure]:
-  "p \<in> WF_RELATION \<Longrightarrow> p[SS]\<alpha> \<in> WF_RELATION"
-  apply (auto simp add:WF_RELATION_def REL_ALPHABET_def alphabet)
+  "p \<in> WF_ALPHA_REL \<Longrightarrow> p[SS]\<alpha> \<in> WF_ALPHA_REL"
+  apply (auto simp add:WF_ALPHA_REL_def REL_ALPHABET_def alphabet)
   apply (metis (lifting) SS_VAR_RENAME_INV SS_ident_app UnE VAR_RENAME_INV_app set_rev_mp)
 done
 
 theorem CondA_rep_eq :
-"\<lbrakk>r1 \<in> WF_RELATION;
- r2 \<in> WF_RELATION;
+"\<lbrakk>r1 \<in> WF_ALPHA_REL;
+ r2 \<in> WF_ALPHA_REL;
  b \<in> WF_CONDITION;
  (\<alpha> r1) = (\<alpha> r2);
  (\<alpha> b) \<subseteq>\<^sub>f (\<alpha> r1)\<rbrakk> \<Longrightarrow>
@@ -437,32 +437,32 @@ theorem CondA_rep_eq :
 done
 
 theorem CondA_closure [closure] :
-  assumes "r1 \<in> WF_RELATION" "r2 \<in> WF_RELATION"
+  assumes "r1 \<in> WF_ALPHA_REL" "r2 \<in> WF_ALPHA_REL"
     "b \<in> WF_CONDITION" "(\<alpha> r1) = (\<alpha> r2)" "(\<alpha> b) \<subseteq>\<^sub>f (\<alpha> r1)"
- shows "(r1 \<triangleleft>\<alpha> b \<alpha>\<triangleright> r2) \<in> WF_RELATION"
+ shows "(r1 \<triangleleft>\<alpha> b \<alpha>\<triangleright> r2) \<in> WF_ALPHA_REL"
 proof 
   from assms show "\<langle>\<alpha> r1 \<triangleleft>\<alpha> b \<alpha>\<triangleright> r2\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED"
-    by (simp add: CondA_rep_eq pred_alphabet_def WF_RELATION_def REL_ALPHABET_def)
+    by (simp add: CondA_rep_eq pred_alphabet_def WF_ALPHA_REL_def REL_ALPHABET_def)
 qed
 
 theorem SemiA_rep_eq:
-"\<lbrakk>r1 \<in> WF_RELATION;
- r2 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
+"\<lbrakk>r1 \<in> WF_ALPHA_REL;
+ r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
  Rep_WF_ALPHA_PREDICATE (r1 ;\<alpha> r2) = (in\<^sub>\<alpha> (\<alpha> r1) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r2), (\<pi> r1) ; (\<pi> r2))"
   apply (subgoal_tac "(in\<^sub>\<alpha> (\<alpha> r1) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r2), (\<pi> r1) ; (\<pi> r2)) \<in> WF_ALPHA_PREDICATE")
   apply (simp add:SemiA_def)
-  apply (frule WF_RELATION_UNREST_UNDASHED)
-  apply (frule WF_RELATION_UNREST_UNDASHED) back
+  apply (frule WF_ALPHA_REL_UNREST_UNDASHED)
+  apply (frule WF_ALPHA_REL_UNREST_UNDASHED) back
   apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
   apply (rule UNREST_SemiR)
   apply (auto)
-  apply (metis (hide_lams, no_types) Un_iff WF_RELATION_unfold set_mp)+
+  apply (metis (hide_lams, no_types) Un_iff WF_ALPHA_REL_unfold set_mp)+
 done
 
 theorem SemiA_closure [closure] :
-  assumes "r1 \<in> WF_RELATION" "r2 \<in> WF_RELATION"
-  shows "r1 ;\<alpha> r2 \<in> WF_RELATION"
-apply (simp add: WF_RELATION_unfold pred_alphabet_def)
+  assumes "r1 \<in> WF_ALPHA_REL" "r2 \<in> WF_ALPHA_REL"
+  shows "r1 ;\<alpha> r2 \<in> WF_ALPHA_REL"
+apply (simp add: WF_ALPHA_REL_unfold pred_alphabet_def)
 apply (simp add: SemiA_rep_eq assms)
 apply (metis in_vars_def inf_sup_ord(2) le_supI1 le_supI2 out_vars_def)
 done
@@ -483,8 +483,8 @@ theorem AssignA_alphabet [alphabet] :
   by (simp add: AssignA_rep_eq)
 
 theorem CondA_alphabet [alphabet] :
-"\<lbrakk>r1 \<in> WF_RELATION;
- r2 \<in> WF_RELATION;
+"\<lbrakk>r1 \<in> WF_ALPHA_REL;
+ r2 \<in> WF_ALPHA_REL;
  b \<in> WF_CONDITION;
  (\<alpha> r1) = (\<alpha> r2);
  (\<alpha> b) \<subseteq>\<^sub>f (\<alpha> r1)\<rbrakk> \<Longrightarrow>
@@ -492,8 +492,8 @@ theorem CondA_alphabet [alphabet] :
   by (simp add: CondA_rep_eq)
 
 theorem SemiA_alphabet [alphabet] :
-"\<lbrakk>r1 \<in> WF_RELATION;
- r2 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
+"\<lbrakk>r1 \<in> WF_ALPHA_REL;
+ r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
  \<alpha> (r1 ;\<alpha> r2) = in\<^sub>\<alpha> (\<alpha> r1) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r2)"
   by (simp add: SemiA_rep_eq)
 
@@ -520,23 +520,23 @@ apply (auto simp: NON_REL_VAR_def) [1]
 done
 
 theorem EvalA_UNREST_DASHED_TWICE [unrest]:
-  "r \<in> WF_RELATION \<Longrightarrow> UNREST DASHED_TWICE \<lbrakk>r\<rbrakk>\<pi>"
+  "r \<in> WF_ALPHA_REL \<Longrightarrow> UNREST DASHED_TWICE \<lbrakk>r\<rbrakk>\<pi>"
   by (simp add:EvalA_def unrest)
 
 theorem EvalA_UNREST_NON_REL_VAR [unrest]:
-  "r \<in> WF_RELATION \<Longrightarrow> UNREST NON_REL_VAR (\<pi> r)"
+  "r \<in> WF_ALPHA_REL \<Longrightarrow> UNREST NON_REL_VAR (\<pi> r)"
   apply (rule unrest) 
   apply (rule unrest) back
-  apply (simp add:WF_RELATION_def REL_ALPHABET_def NON_REL_VAR_def)
+  apply (simp add:WF_ALPHA_REL_def REL_ALPHABET_def NON_REL_VAR_def)
   apply (auto)
 done
 
 theorem EvalA_UNREST_out [unrest]:
-  "p \<in> WF_RELATION \<Longrightarrow> UNREST (DASHED - out \<langle>\<alpha> p\<rangle>\<^sub>f) \<lbrakk>p\<rbrakk>\<pi>"
+  "p \<in> WF_ALPHA_REL \<Longrightarrow> UNREST (DASHED - out \<langle>\<alpha> p\<rangle>\<^sub>f) \<lbrakk>p\<rbrakk>\<pi>"
   by (auto intro:unrest simp add:var_defs)
 
 theorem EvalA_UNREST_in [unrest]:
-  "p \<in> WF_RELATION \<Longrightarrow> UNREST (UNDASHED - in \<langle>\<alpha> p\<rangle>\<^sub>f) \<lbrakk>p\<rbrakk>\<pi>"
+  "p \<in> WF_ALPHA_REL \<Longrightarrow> UNREST (UNDASHED - in \<langle>\<alpha> p\<rangle>\<^sub>f) \<lbrakk>p\<rbrakk>\<pi>"
   by (auto intro:unrest simp add:var_defs)
 
 theorem EvalA_SkipA [evala] :
@@ -544,8 +544,8 @@ theorem EvalA_SkipA [evala] :
   by (simp add:EvalA_def SkipA.rep_eq)
 
 theorem EvalA_CondA [evala] :
-"\<lbrakk>r1 \<in> WF_RELATION;
- r2 \<in> WF_RELATION;
+"\<lbrakk>r1 \<in> WF_ALPHA_REL;
+ r2 \<in> WF_ALPHA_REL;
  b \<in> WF_CONDITION;
  (\<alpha> r1) = (\<alpha> r2);
  (\<alpha> b) \<subseteq>\<^sub>f (\<alpha> r1)\<rbrakk> \<Longrightarrow>
@@ -555,8 +555,8 @@ apply (simp add: CondA_rep_eq)
 done
 
 theorem EvalA_SemiA [evala] :
-"\<lbrakk>r1 \<in> WF_RELATION;
- r2 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
+"\<lbrakk>r1 \<in> WF_ALPHA_REL;
+ r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
  \<lbrakk>r1 ;\<alpha> r2\<rbrakk>\<pi> = \<lbrakk>r1\<rbrakk>\<pi> ; \<lbrakk>r2\<rbrakk>\<pi>"
 apply (simp add: EvalA_def)
 apply (simp add: SemiA_rep_eq)
@@ -572,9 +572,9 @@ declare pred_alphabet_def [simp del]
 subsubsection {* Proof Experiments *}
 
 theorem SemiA_assoc :
-"\<lbrakk>r1 \<in> WF_RELATION;
- r2 \<in> WF_RELATION;
- r3 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
+"\<lbrakk>r1 \<in> WF_ALPHA_REL;
+ r2 \<in> WF_ALPHA_REL;
+ r3 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
  (r1 ;\<alpha> r2) ;\<alpha> r3 = r1 ;\<alpha> (r2 ;\<alpha> r3)"
 apply (utp_alpha_tac2)
 apply (utp_rel_tac)
@@ -582,25 +582,25 @@ apply (auto)
 done
 
 theorem SemiA_OrA_distl :
-"\<lbrakk>r1 \<in> WF_RELATION;
- r2 \<in> WF_RELATION;
- r3 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
+"\<lbrakk>r1 \<in> WF_ALPHA_REL;
+ r2 \<in> WF_ALPHA_REL;
+ r3 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
  r1 ;\<alpha> (r2 \<or>\<alpha> r3) = (r1 ;\<alpha> r2) \<or>\<alpha> (r1 ;\<alpha> r3)"
 apply (utp_alpha_tac2)
 apply (utp_rel_auto_tac)
 done
 
 theorem SemiA_OrA_distr :
-"\<lbrakk>r1 \<in> WF_RELATION;
- r2 \<in> WF_RELATION;
- r3 \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
+"\<lbrakk>r1 \<in> WF_ALPHA_REL;
+ r2 \<in> WF_ALPHA_REL;
+ r3 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
  (r1 \<or>\<alpha> r2) ;\<alpha> r3 = (r1 ;\<alpha> r3) \<or>\<alpha> (r2 ;\<alpha> r3)"
 apply (utp_alpha_tac2)
 apply (utp_rel_auto_tac)
 done
 
 theorem SemiA_SkipA_left:
-  assumes "r \<in> WF_RELATION" "a \<in> HOM_ALPHABET" "out\<^sub>\<alpha> a = dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> r)"
+  assumes "r \<in> WF_ALPHA_REL" "a \<in> HOM_ALPHABET" "out\<^sub>\<alpha> a = dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> r)"
   shows "II\<alpha> a ;\<alpha> r = r"
 proof -
 
@@ -613,7 +613,7 @@ proof -
   done
 
   moreover with assms(1) have "in\<^sub>\<alpha> a \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r) = \<alpha> r"
-    by (auto simp add:WF_RELATION_def REL_ALPHABET_def in_out_union)
+    by (auto simp add:WF_ALPHA_REL_def REL_ALPHABET_def in_out_union)
 
   moreover from assms have "II \<langle>a\<rangle>\<^sub>f ; (\<pi> r) = (\<pi> r)"
   proof -
@@ -627,7 +627,7 @@ proof -
     qed
 
     with assms show ?thesis
-      apply (simp add:WF_RELATION_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def)
+      apply (simp add:WF_ALPHA_REL_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def)
       apply (rule_tac SemiP_SkipRA_left)
       apply (simp_all add:ina)
       apply (insert WF_ALPHA_PREDICATE_UNREST[of r])
@@ -642,14 +642,14 @@ proof -
 qed
 
 theorem SemiA_SkipA_right:
-  assumes "r \<in> WF_RELATION" "a \<in> HOM_ALPHABET" "in\<^sub>\<alpha> a = undash `\<^sub>f out\<^sub>\<alpha> (\<alpha> r)"
+  assumes "r \<in> WF_ALPHA_REL" "a \<in> HOM_ALPHABET" "in\<^sub>\<alpha> a = undash `\<^sub>f out\<^sub>\<alpha> (\<alpha> r)"
   shows "r ;\<alpha> II\<alpha> a = r"
 proof -
   from assms have ina:"out \<langle>a\<rangle>\<^sub>f = out \<langle>\<alpha> r\<rangle>\<^sub>f"
-    by (force elim!:Rep_fset_elim intro!:Rep_fset_intro simp add:WF_RELATION_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def HOM_ALPHA_unfold)
+    by (force elim!:Rep_fset_elim intro!:Rep_fset_intro simp add:WF_ALPHA_REL_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def HOM_ALPHA_unfold)
     
   moreover with assms(1) have alpha:"in\<^sub>\<alpha> (\<alpha> r) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r) = \<alpha> r"
-    by (auto simp add:WF_RELATION_def REL_ALPHABET_def in_out_union)
+    by (auto simp add:WF_ALPHA_REL_def REL_ALPHABET_def in_out_union)
 
   moreover from assms have "(\<pi> r) ; II \<langle>a\<rangle>\<^sub>f = (\<pi> r)"
   proof -
@@ -657,7 +657,7 @@ proof -
       by (metis dash_UNDASHED_image dash_image_minus dash_undash_image utp_var.out_DASHED)
 
     with assms show ?thesis
-      apply (simp add:WF_RELATION_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def)
+      apply (simp add:WF_ALPHA_REL_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def)
       apply (rule_tac SemiP_SkipRA_right)
       apply (simp_all add:closure ina)
       apply (force elim!:Rep_fset_elim intro:UNREST_subset simp add:closure var_defs)
@@ -674,15 +674,15 @@ proof -
 qed
 
 theorem ClosureA_rel_closure [closure] :
-  "[p]\<alpha> \<in> WF_RELATION"
-  apply (simp add:WF_RELATION_def REL_ALPHABET_def)
+  "[p]\<alpha> \<in> WF_ALPHA_REL"
+  apply (simp add:WF_ALPHA_REL_def REL_ALPHABET_def)
   apply (simp add:alphabet closure)
 done
 
 theorem VarA_rel_closure [closure] :
 "x \<in> UNDASHED \<union> DASHED \<Longrightarrow>
-VarA x \<in> WF_RELATION"
-apply (simp add:WF_RELATION_def REL_ALPHABET_def)
+VarA x \<in> WF_ALPHA_REL"
+apply (simp add:WF_ALPHA_REL_def REL_ALPHABET_def)
 apply (simp add:alphabet closure)
 done
 
@@ -715,7 +715,7 @@ done
 
 
 theorem SemiA_algebraic:
-  assumes "p \<in> WF_RELATION" "q \<in> WF_RELATION"
+  assumes "p \<in> WF_ALPHA_REL" "q \<in> WF_ALPHA_REL"
   shows "p ;\<alpha> q = (\<exists>-\<alpha> dash `\<^sub>f out\<^sub>\<alpha>(\<alpha> p) \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha>(\<alpha> q). p[SS1]\<alpha> \<and>\<alpha> q[SS2]\<alpha>)"
 proof -
 

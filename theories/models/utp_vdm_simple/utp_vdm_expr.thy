@@ -2,12 +2,13 @@ theory utp_vdm_expr
 imports 
   "../../core/utp_expr"
   "../../parser/utp_pred_parser"
+  "../../laws/utp_rel_laws"
   utp_vdm_sorts 
 begin
 
 default_sort vbasic
 
-typedef (open) 'a vdme = "UNIV :: (vdmv WF_BINDING \<Rightarrow> 'a::vbasic) set" ..
+typedef 'a vdme = "UNIV :: (vdmv WF_BINDING \<Rightarrow> 'a::vbasic) set" ..
 
 declare Rep_vdme [simp]
 declare Rep_vdme_inverse [simp]
@@ -260,7 +261,7 @@ instance vdme :: ("{comm_monoid_mult,vbasic}") comm_monoid_mult
 *)  
 
 instance vdme :: ("{semiring,vbasic}") semiring
-  by (intro_classes, auto simp add:plus_vdme_def times_vdme_def BOpE_def left_distrib right_distrib)
+  by (intro_classes, auto simp add:plus_vdme_def times_vdme_def BOpE_def distrib_right distrib_left)
 
 instance vdme :: ("{comm_semiring,vbasic}") comm_semiring
   by (intro_classes, auto simp add:plus_vdme_def times_vdme_def BOpE_def distrib)
@@ -378,19 +379,20 @@ done
 
 abbreviation "x \<equiv> MkPlain ''x'' (embTYPE IntT) False"
 
-lemma "`''x'' := (7::int vdme) \<and> ''x'' := (1::int vdme)` = false"
+lemma "`''x'' := 7::int vdme \<and> ''x'' := 1::int vdme` = false"
   apply (auto simp add:evalr typing defined unrest binding_upd_apply)
   apply (simp add:evale)
 done
 
-lemma "`''x'' := (7::int vdme) ; ''x'' := ($''x'' + (1::int vdme))` = `''x'' := (8::int vdme)`"
+lemma "`''x'' := 7::int vdme ; ''x'' := $''x'' + 1::int vdme` = `''x'' := 8::int vdme`"
   apply (simp)
   apply (rule trans)
-  apply (rule AssignR_SemiP_left)
+  apply (rule AssignR_SemiR_left)
   apply (simp)
   apply (simp add:typing)
   apply (simp add:unrest)
-  apply (simp add:usubst)
+  apply (simp add:evalr typing defined unrest closure)
+  apply (simp add:usubst closure typing defined)
   thm AssignR_SemiP_left
   apply (simp add:AssignR_SemiP_left)
 

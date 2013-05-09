@@ -1,12 +1,12 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming                                  *)
-(* File: utp_rel_tac.thy                                                      *)
-(* Author: Frank Zeyda, University of York (UK)                               *)
+(* File: utp_xrel_tac.thy                                                      *)
+(* Author: Simon Foster, University of York (UK)                              *)
 (******************************************************************************)
 
-header {* Proof Tactic for Relations *}
+header {* Proof Tactic for Wellformed Relations *}
 
-theory utp_rel_tac2
+theory utp_xrel_tac
 imports utp_rel_tac
 begin
 
@@ -61,6 +61,12 @@ lemma DestXRelB_NON_REL_VAR [simp]:
 lemma DestXRelB_NOT_UNDASHED [simp]:
   "x \<notin> UNDASHED \<Longrightarrow> \<langle>\<langle>b\<rangle>\<^sub>x\<rangle>\<^sub>b x = \<langle>bc\<rangle>\<^sub>b x"
   by (metis Compl_iff DestXRelB_DASHED DestXRelB_NON_REL_VAR NON_REL_VAR_def Un_iff)
+
+lemma DestXRelB_binding_equiv:
+  "\<langle>b1\<rangle>\<^sub>x \<cong> bc on DASHED \<union> NON_REL_VAR"
+  apply (insert DestXRelB[of b1])
+  apply (auto simp add:WF_XREL_BINDING_def)
+done
 
 lift_definition xbinding_override_on ::
   "'VALUE WF_XREL_BINDING \<Rightarrow>
@@ -399,29 +405,135 @@ theorem EvalRX_AssignR_alt [evalrx] :
   apply (case_tac "xb \<in> UNDASHED")
   apply (auto)
 done
+
+lemma EvalRX_ExprP_UNDASHED [evalrx]:
+  "UNREST_EXPR (DASHED \<union> NON_REL_VAR) e \<Longrightarrow> \<lbrakk>ExprP e\<rbrakk>RX = {(b1, b2) | b1 b2. DestBool (\<lbrakk>e\<rbrakk>\<epsilon>\<langle>b1\<rangle>\<^sub>x) }"
+  apply (auto simp add:EvalRX_def ExprP_def LiftP_def BindRX_def EvalE_def image_def)
+  apply (rule_tac x="\<langle>b1\<rangle>\<^sub>x \<oplus>\<^sub>b RenameB SS \<langle>b2\<rangle>\<^sub>x on DASHED" in exI)
+  apply (auto)
+  apply (metis (mono_tags) UNREST_EXPR_def binding_override_simps(6) inf_sup_absorb)
+  apply (rule, simp)
+  apply (metis DestXRelB_binding_equiv binding_override_equiv binding_override_simps(1) binding_override_simps(3))
+  apply (rule, simp add:RenameB_override_distr1 urename closure)
+  apply (rule, rule)
+  apply (auto)
+  apply (case_tac "x \<in> DASHED \<union> NON_REL_VAR")
+  apply (auto)
+done
+
+lemma EvalRX_ExprP_DASHED [evalrx]:
+  "UNREST_EXPR (UNDASHED \<union> NON_REL_VAR) e \<Longrightarrow> \<lbrakk>ExprP e\<rbrakk>RX = {(b1, b2) | b1 b2. DestBool (\<lbrakk>e\<rbrakk>\<epsilon>(RenameB SS \<langle>b2\<rangle>\<^sub>x)) }"
+  apply (auto simp add:EvalRX_def ExprP_def LiftP_def BindRX_def EvalE_def closure RenameB_override_distr1 urename)
+  apply (auto simp add:image_def BindRX_def)
+  apply (rule_tac x="\<langle>xa\<rangle>\<^sub>x \<oplus>\<^sub>b RenameB SS \<langle>y\<rangle>\<^sub>x on DASHED" in exI)
+  apply (auto)
+  apply (smt RenameB_def SS_inv UNDASHED_DASHED_NON_REL_VAR UNREST_EXPR_def Un_assoc Un_commute binding_override_assoc binding_override_minus binding_override_simps(2))
+  apply (rule, simp)
+  apply (metis DestXRelB_binding_equiv binding_override_equiv binding_override_simps(1) binding_override_simps(3))
+  apply (rule, simp add:RenameB_override_distr1 urename closure)
+  apply (rule, rule)
+  apply (auto)
+  apply (case_tac "x \<in> DASHED \<union> NON_REL_VAR")
+  apply (auto)
+done
+
+lemma EvalRX_VarP_UNDASHED [evalrx]:
+  "\<lbrakk> vtype x = BoolType; aux x; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> \<lbrakk>VarP x\<rbrakk>RX = {(b1, b2) | b1 b2. \<langle>\<langle>b1\<rangle>\<^sub>x\<rangle>\<^sub>b x = TrueV}"
+  apply (rule trans)
+  apply (rule EvalRX_ExprP_UNDASHED)
+  apply (rule unrest)
+  apply (auto intro: unrest)[1]
+  apply (simp add:evale)
+  apply (rule)
+  apply (auto)
+  apply (metis BOOL_SORT_class.Inverse FalseV_def MkBool_cases Rep_WF_BINDING TrueV_def WF_BINDING_app_type WF_BINDING_aux_defined)
+done
+
+lemma EvalRX_VarP_DASHED [evalrx]:
+  "\<lbrakk> vtype x = BoolType; aux x; x \<in> DASHED \<rbrakk> \<Longrightarrow> \<lbrakk>VarP x\<rbrakk>RX = {(b1, b2) | b1 b2. \<langle>\<langle>b2\<rangle>\<^sub>x\<rangle>\<^sub>b (undash x) = TrueV}"
+  apply (rule trans)
+  apply (rule EvalRX_ExprP_DASHED)
+  apply (auto intro: unrest)[1]
+  apply (simp add:evale)
+  apply (rule)
+  apply (auto simp add:urename)
+  apply (metis BOOL_SORT_class.Inverse FalseV_def MkBool_cases Rep_WF_BINDING TrueV_def WF_BINDING_app_type aux_defined aux_undash vtype_undash)
+done
+
+lemma EvalRX_Tautology [evalrx]:
+  "p \<in> WF_RELATION \<Longrightarrow> taut p \<longleftrightarrow> \<lbrakk>p\<rbrakk>RX = UNIV"
+  apply (utp_pred_tac)
+  apply (simp add:EvalP_def)
+  apply (rule iffI)
+  apply (metis EvalRX_TrueP TrueP_def UNIV_eq_I destPRED_inverse)
+  apply (metis EvalRX_TrueP EvalRX_intro TrueP.rep_eq TrueP_rel_closure UNIV_I)
+done
   
 declare ImpliesP_def [evalrx]
 declare IffP_def [evalrx]
 declare CondR_def [evalrx]
+
+subsection {* Proof Tactics *}
+
+ML {*
+  fun utp_xrel_simpset ctxt =
+    (simpset_of ctxt)
+      addsimps (evalrx.get ctxt)
+      addsimps (typing.get ctxt)
+      addsimps (defined.get ctxt)
+      addsimps (closure.get ctxt);
+*}
+
+ML {*
+  fun utp_xrel_auto_simpset ctxt =
+    (simpset_of ctxt)
+      addsimps @{thms "relcomp_unfold"}
+*}
+
+ML {*
+  fun utp_xrel_tac thms ctxt i =
+    CHANGED (asm_full_simp_tac (utp_xrel_simpset ctxt) i)
+*}
+
+ML {*
+  fun utp_rel_deep_auto_tac thms ctxt i =
+    TRY (asm_full_simp_tac (utp_xrel_simpset ctxt) i) THEN
+    TRY (asm_full_simp_tac (utp_xrel_auto_simpset ctxt) i) THEN
+    (auto_tac ctxt)
+*}
+
+method_setup utp_xrel_tac = {*
+  Attrib.thms >>
+  (fn thms => fn ctxt =>
+    SIMPLE_METHOD' (utp_xrel_tac thms ctxt))
+*} "proof tactic for deep relations"
+
+method_setup utp_xrel_auto_tac = {*
+  Attrib.thms >>
+  (fn thms => fn ctxt =>
+    SIMPLE_METHOD' (utp_rel_deep_auto_tac thms ctxt))
+*} "proof tactic for relations with auto"
+
 
 (* Tests *)
 
 lemma 
   "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; c \<in> WF_RELATION; (c ; true = c) \<rbrakk> 
     \<Longrightarrow> p ; (c \<and>p q) = (p \<and>p c\<^sup>\<smile>) ; q"
-  by (auto simp add:evalrx closure)
+  by (utp_xrel_auto_tac)
 
 lemma 
   "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; c \<in> WF_RELATION; (true ; c = c) \<rbrakk> \<Longrightarrow>
   (p \<and>p c) ; q = p ; (c\<^sup>\<smile> \<and>p q)"
-  by (auto simp add:evalrx closure)
+  by (utp_xrel_auto_tac)
 
 (* De Morgan *)
 
 
 lemma
   "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> (p\<^sup>\<smile> ; \<not>p (p ; q)) \<or>p \<not>p q = \<not>p q"
-  by (auto simp add:evalrx closure)
+  by (utp_xrel_auto_tac)
+
 
 lemma "\<lbrakk> x \<in> UNDASHED; x \<in> xs; xs \<subseteq> UNDASHED \<union> DASHED; HOMOGENEOUS xs; v \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<union> NON_REL_VAR) v \<rbrakk> \<Longrightarrow> x :=p v ; II xs = x :=p v"
   oops

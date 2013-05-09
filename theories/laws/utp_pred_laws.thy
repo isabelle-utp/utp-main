@@ -14,6 +14,7 @@ imports
   "../tactics/utp_pred_tac"
   "../tactics/utp_expr_tac"
   "../parser/utp_pred_parser"
+  utp_subst_laws
 begin
 
 subsubsection {* Boolean Algebra laws *}
@@ -82,6 +83,7 @@ lemma demorgan3: "`x \<or> y` = `\<not>(\<not>x \<and> \<not>y)`"
 lemma utp_pred_simps [simp]:
   "`\<not> false`    = true"
   "`\<not> true`     = false"
+  "`\<not> \<not> p` = p"
   "`false \<and> x`  = false" 
   "`x \<and> false`  = false"
   "`true \<and> x`   = x"
@@ -115,6 +117,10 @@ lemma RefP_AndP_intro [intro]:
 lemma IffP_eq_intro [intro]:
   "`p \<Leftrightarrow> q` \<Longrightarrow> p = q"
   by (utp_pred_auto_tac)
+
+lemma ClosureP_intro: 
+  "`[p]` \<Longrightarrow> taut p"
+  by (utp_pred_tac)
 
 subsection {* Quantifier Laws *}
 
@@ -161,6 +167,14 @@ theorem ExistsP_one_point:
   `\<exists> x. (p \<and> $x = e)` = `p[e/x]`"
   apply (auto simp add:eval evale typing defined)
   apply (rule_tac x="b(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<epsilon>b)" in exI)
+  apply (simp)
+done
+
+lemma ExistsP_has_value:
+  "\<lbrakk> UNREST_EXPR {x} v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> `\<exists> x. $x = v` = `true`"
+  apply (utp_pred_tac, utp_expr_tac)
+  apply (auto)
+  apply (rule_tac x="b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>b)" in exI)
   apply (simp)
 done
 
@@ -226,6 +240,18 @@ lemma BoolType_aux_var_split_exists [ucases]:
   apply (metis FalseV_def MkBool_cases Rep_WF_BINDING TrueV_def WF_BINDING_app_type aux_defined)
   apply (metis BOOL_SORT_class.Defined MkBool_type binding_upd_apply var_compat_def)
   apply (metis BOOL_SORT_class.Defined MkBool_type binding_upd_apply var_compat_def)
+done
+
+lemma BoolType_aux_var_split_eq_intro [ucases]:
+  assumes "vtype x = BoolType" "aux x" 
+          "`p[false/x]` = `q[false/x]`"
+          "`p[true/x]` = `q[true/x]`"
+  shows "p = q"
+  apply (rule IffP_eq_intro)
+  apply (rule ClosureP_intro)
+  apply (unfold BoolType_aux_var_split_taut[OF assms(1) assms(2), of "`p \<Leftrightarrow> q`"])
+  apply (simp add:usubst assms)
+  apply (utp_pred_tac)
 done
 
 end

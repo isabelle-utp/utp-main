@@ -8,8 +8,8 @@ header {* Predicate Lattice *}
 
 theory utp_recursion
 imports 
-  utp_laws
   utp_lattice
+  "../laws/utp_rel_laws"
   "../algebra/Kleene_Algebra/Kleene_Algebra2"
 begin
 
@@ -162,8 +162,6 @@ done
 lemma UNREST_PowerP [unrest]: "UNREST NON_REL_VAR p \<Longrightarrow> UNREST NON_REL_VAR (p ^ n)"
   apply (induct n)
   apply (simp add:unrest one_WF_PREDICATE_def)
-  apply (simp add:NON_REL_VAR_def)
-  apply (force intro:unrest)
   apply (simp add:times_WF_PREDICATE_def)
   apply (force intro:unrest)
 done

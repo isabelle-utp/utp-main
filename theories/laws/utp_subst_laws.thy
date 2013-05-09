@@ -54,6 +54,10 @@ lemma SubstP_ExistsP [usubst]:
   "\<lbrakk> UNREST_EXPR vs e; x \<notin> vs; e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> (\<exists>p vs. p)[e|x] = (\<exists>p vs. p[e|x])"
   by (utp_pred_tac, utp_expr_tac)
 
+lemma SubstP_UNREST [usubst]:
+  "\<lbrakk> UNREST NON_REL_VAR p; x \<in> NON_REL_VAR; e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[e|x] = p"
+  by (utp_pred_tac)
+
 lemma SubstP_twice_1 [usubst]:
   "\<lbrakk> e \<rhd>\<^sub>e x; f \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[e|x][f|x] = SubstP p (SubstE e f x) x"
   by (utp_pred_tac, utp_expr_tac)
@@ -124,10 +128,6 @@ lemma SubstP_SkipR [usubst]:
   apply (utp_rel_tac)
 oops
 
-lemma SubstP_AssignR_1 [usubst]:
-  "\<lbrakk> x \<in> UNDASHED; y \<in> UNDASHED; e \<rhd>\<^sub>e y; v \<rhd>\<^sub>e x; x \<noteq> y\<acute>; UNREST_EXPR DASHED e; UNREST_EXPR DASHED v \<rbrakk> \<Longrightarrow> (y :=p e)[v|x] = y :=p (e[v|x])"
-  apply (simp add:AssignR_alt_def usubst)
-  oops
 
 (*
 lemma SubstP_UNDASHED:
@@ -204,6 +204,20 @@ lemma SubstE_FalseE [usubst]:
 lemma SubstE_VarE [usubst]: 
   "v \<rhd>\<^sub>e x \<Longrightarrow> VarE x[v|x] = v"
   by (utp_expr_tac)
+
+lemma SubstE_VarE_other [usubst]: 
+  "\<lbrakk> v \<rhd>\<^sub>e x; x \<noteq> y \<rbrakk> \<Longrightarrow> VarE y[v|x] = VarE y"
+  by (utp_expr_tac)
+
+lemma SubstP_AssignR_1 [usubst]:
+  "\<lbrakk> x \<in> UNDASHED; y \<in> UNDASHED; e \<rhd>\<^sub>e y; v \<rhd>\<^sub>e x; x \<noteq> y; 
+     UNREST_EXPR DASHED e; UNREST_EXPR DASHED v \<rbrakk> 
+     \<Longrightarrow> (y :=p e)[v|x] = y,x :=p (e[v|x]),v"
+  apply (subgoal_tac "y\<acute> \<noteq> x")
+  apply (subgoal_tac "x \<notin> {y,y\<acute>}")
+  apply (simp add:AssignR_alt_def usubst unrest typing defined)
+  oops
+
 
 end
 

@@ -178,6 +178,19 @@ apply (subst RenameB_commute [of "(inv\<^sub>s ss1)" "vs1" "(inv\<^sub>s ss2)" "
 apply (simp_all add: closure)
 done
 
+lemma RenameE_equiv:
+  "\<lbrakk> UNREST_EXPR (VAR - vs) e; ss1 \<cong>\<^sub>s ss2 on vs \<rbrakk> \<Longrightarrow> e[ss1]\<epsilon> = e[ss2]\<epsilon>"
+  apply (utp_expr_tac)
+  apply (simp add: EvalE_def rename_equiv_def rename_equiv_def RenameB_def)
+  apply (clarify)
+  apply (subgoal_tac "CompB b ss1 \<cong> CompB b ss2 on vs")
+  apply (simp add:UNREST_EXPR_def)
+  apply (drule_tac x="CompB b ss1" in spec)
+  apply (drule_tac x="CompB b ss2" in spec)
+  apply (smt binding_override_equiv binding_override_simps(10) binding_override_simps(2) binding_override_simps(4) binding_override_simps(5) binding_override_subset)
+  apply (simp add:binding_equiv_def)
+done
+
 theorem RenameE_involution [simp] :
 "\<lbrakk>ss \<in> VAR_RENAME_INV\<rbrakk> \<Longrightarrow>
  p[ss]\<epsilon>[ss]\<epsilon> = p"

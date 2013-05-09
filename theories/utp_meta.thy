@@ -16,6 +16,5 @@ imports
   "tactics/utp_pred_tac"
   "tactics/utp_rel_tac"
   "tactics/utp_alpha_tac"
-  "utils/utp_sets"
 begin
 end

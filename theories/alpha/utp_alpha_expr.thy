@@ -10,7 +10,7 @@ theory utp_alpha_expr
 imports 
   "../core/utp_pred" 
   "../core/utp_expr" 
-  "../core/utp_laws" 
+  "../laws/utp_pred_laws" 
   "../core/utp_synonyms" 
   utp_alphabet 
   utp_alpha_pred 
@@ -26,7 +26,7 @@ definition WF_ALPHA_EXPRESSION ::
 "WF_ALPHA_EXPRESSION =
  {e . snd e \<in> WF_EXPRESSION_OVER \<langle>fst e\<rangle>\<^sub>f}"
 
-typedef (open) 'VALUE WF_ALPHA_EXPRESSION = "WF_ALPHA_EXPRESSION :: 'VALUE ALPHA_EXPRESSION set"
+typedef 'VALUE WF_ALPHA_EXPRESSION = "WF_ALPHA_EXPRESSION :: 'VALUE ALPHA_EXPRESSION set"
   apply (auto simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
   apply (rule_tac x="(\<lbrace>\<rbrace>, DefaultE someType)" in exI)
   apply (auto intro:unrest simp add:DefaultE_def)
@@ -168,9 +168,8 @@ lemma AppAE_rep_eq:
   "\<lbrakk> f :\<^sub>\<alpha> FuncType a b; v :\<^sub>\<alpha> a; \<D> f \<rbrakk> \<Longrightarrow> Rep_WF_ALPHA_EXPRESSION (AppAE f v) = (\<alpha> f \<union>\<^sub>f \<alpha> v, AppE (\<epsilon> f) (\<epsilon> v))"
   apply (subgoal_tac "(\<alpha> f \<union>\<^sub>f \<alpha> v, AppE (\<epsilon> f) (\<epsilon> v)) \<in> WF_ALPHA_EXPRESSION")
   apply (simp add:AppAE_def)
-  apply (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def eatype_rel_def Defined_WF_ALPHA_EXPRESSION_def)
+  apply (auto intro:unrest UNREST_EXPR_subset simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def eatype_rel_def Defined_WF_ALPHA_EXPRESSION_def)
 done
-
 
 definition ExprA ::
   "'VALUE::BOOL_SORT WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" where
@@ -188,6 +187,7 @@ lift_definition RenameAE ::
    'VALUE WF_ALPHA_EXPRESSION" ("_[_]\<alpha>\<epsilon>" [200]) is
 "\<lambda> e ss. (\<langle>ss\<rangle>\<^sub>s `\<^sub>f \<alpha> e, (\<epsilon> e)[ss]\<epsilon>)"
   apply (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
+  apply (rule UNREST_EXPR_subset)
   apply (rule unrest)+
   apply (auto)
   apply (metis Diff_iff RenameP_VAR RenameP_image_minus VAR_member)
@@ -274,9 +274,11 @@ lemma SubstA_closure [closure]:
     apply (subgoal_tac "UNREST {x} \<pi> p[\<epsilon> v|x]")
     apply (subgoal_tac "UNREST ((VAR - \<langle>\<alpha> p\<rangle>\<^sub>f) \<inter> (VAR - \<langle>\<alpha> v\<rangle>\<^sub>f)) (\<pi> p[\<epsilon> v|x])")
     apply (subgoal_tac "(VAR - (\<langle>\<alpha> p\<rangle>\<^sub>f - {x} \<union> \<langle>\<alpha> v\<rangle>\<^sub>f)) = ((VAR - \<langle>\<alpha> p\<rangle>\<^sub>f) \<inter> (VAR - \<langle>\<alpha> v\<rangle>\<^sub>f)) \<union> {x}")
-    apply (simp only:)
-    apply (rule UNREST_union)
     apply (simp)
+    apply (rule unrest)
+    apply (simp)
+    apply (rule unrest)
+    apply (rule unrest)
     apply (simp)
     apply (auto)[1]
     apply (rule unrest)
