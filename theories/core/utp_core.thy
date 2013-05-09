@@ -16,8 +16,8 @@ imports
   utp_pred
   utp_rename
   utp_lattice
+  utp_recursion
   utp_unrest
   utp_rel
-  utp_laws
 begin
 end

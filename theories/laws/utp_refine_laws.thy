@@ -1,12 +1,12 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
-(* File: utp_rel_laws.thy                                                     *)
+(* File: utp_refine_laws.thy                                                  *)
 (* Author: Simon Foster and Frank Zeyda, University of York (UK)              *)
 (******************************************************************************)
 
-header {* Relation Laws *}
+header {* Basic Refinement Laws *}
 
-theory utp_rel_laws
+theory utp_refine_laws
 imports 
   "../core/utp_pred" 
   "../core/utp_rename"

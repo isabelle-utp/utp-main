@@ -10,11 +10,14 @@ theory utp_meta
 imports
   utp_common
   "core/utp_core"
-  "alpha/utp_alpha"
-(*  "models/utp_models"
-  "models/utp_std_pred" *)
+  "alpha/utp_alpha_pred"
   "tactics/utp_pred_tac"
   "tactics/utp_rel_tac"
-  "tactics/utp_alpha_tac"
+  "tactics/utp_xrel_tac"
+  "laws/utp_pred_laws"
+  "laws/utp_rel_laws"
+  "laws/utp_subst_laws"
+  "laws/utp_rename_laws"
+  "laws/utp_refine_laws"
 begin
 end
