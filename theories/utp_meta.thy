@@ -19,5 +19,6 @@ imports
   "laws/utp_subst_laws"
   "laws/utp_rename_laws"
   "laws/utp_refine_laws"
+  "theories/utp_designs"
 begin
 end

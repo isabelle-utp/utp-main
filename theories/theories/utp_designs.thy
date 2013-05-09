@@ -167,7 +167,7 @@ lemma DesignD_choice:
   by (utp_pred_auto_tac)
 
 lemma DesignD_cond:
-  "(P1 \<turnstile> Q1) \<triangleleft> b \<triangleright> (P2 \<turnstile> Q2) = `((P1 \<triangleleft> b \<triangleright> P2) \<turnstile> (Q1 \<triangleleft> b \<triangleright> Q2))`"
+  "`(P1 \<turnstile> Q1) \<lhd> b \<rhd> (P2 \<turnstile> Q2)` = `((P1 \<lhd> b \<rhd> P2) \<turnstile> (Q1 \<lhd> b \<rhd> Q2))`"
   by (utp_pred_auto_tac)
 
 lemma DesignD_composition:
@@ -299,14 +299,12 @@ abbreviation ok_false ::
 syntax
   "_upred_ok_true"  :: "upred \<Rightarrow> upred" ("_\<^sup>t" [1000] 1000)
   "_upred_ok_false" :: "upred \<Rightarrow> upred" ("_\<^sup>f" [1000] 1000)
-  "_upred_SkipRA"   :: "'VALUE VAR set \<Rightarrow> upred" ("II\<^bsub>_\<^esub>")
   "_upred_SkipD"    :: "upred" ("II\<^sub>D")
   "_upred_J"        :: "upred" ("J")
 
 translations
   "_upred_ok_true p"  == "CONST ok_true p"
   "_upred_ok_false p" == "CONST ok_false p"
-  "_upred_SkipRA vs"     == "CONST SkipRA vs"
   "_upred_SkipD"      == "CONST SkipD"
   "_upred_J"          == "CONST J_pred"
 

@@ -46,7 +46,7 @@ lemma CondP_wp [wp]:
   "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION; b \<in> WF_CONDITION; r \<in> WF_RELATION \<rbrakk> \<Longrightarrow>
   (P \<triangleleft> b \<triangleright> Q) wp r = (P wp r) \<triangleleft> b \<triangleright> (Q wp r)"
   apply (simp add: WeakPrecondP_def)
-  apply (simp add:SemiR_CondR_distr closure)
+  apply (simp add:CondR_SemiR_distr closure)
   apply (utp_pred_auto_tac)
 done
 

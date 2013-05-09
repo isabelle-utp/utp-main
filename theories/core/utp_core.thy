@@ -19,5 +19,6 @@ imports
   utp_recursion
   utp_unrest
   utp_rel
+  utp_wp
 begin
 end
