@@ -4,10 +4,14 @@
 (* Author: Simon Foster and Frank Zeyda, University of York (UK)              *)
 (******************************************************************************)
 
-header {* Bindings *}
+header {* Variable Bindings *}
 
 theory utp_binding
-imports utp_synonyms utp_value utp_sorts utp_var
+imports 
+  utp_synonyms 
+  utp_value 
+  utp_sorts 
+  utp_var
 begin
 
 subsection {* Value Compatibility *}
@@ -398,7 +402,7 @@ lemma binding_equiv_override_right_intro [intro]:
   apply (auto)
 done
 
-text {* The default binding *}
+text {* The default binding. Every variable maps to the default value. *}
 
 lift_definition default_binding :: 
   "'VALUE WF_BINDING" ("\<B>") is "(\<lambda> v . SOME x . x : (vtype v) \<and> \<D> x)" 

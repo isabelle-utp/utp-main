@@ -4,7 +4,7 @@
 (* Author: Simon Foster and Frank Zeyda, University of York (UK)              *)
 (******************************************************************************)
 
-header {* Predicate Lattice *}
+header {* Constructs for Recursion and Iteration *}
 
 theory utp_recursion
 imports 

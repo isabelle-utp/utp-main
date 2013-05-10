@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Project: Mechanisation of the UTP                                          *)
 (* File: utp/theories/utp_theory.thy                                          *)
-(* Author: Frank Zeyda, University of York                                    *)
+(* Author: Simon Foster and Frank Zeyda, University of York                   *)
 (******************************************************************************)
 
 header {* UTP Theories *}

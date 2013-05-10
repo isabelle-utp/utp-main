@@ -632,9 +632,6 @@ theorem VAR_RENAME_ON_app_member :
 "\<lbrakk>ss \<in> VAR_RENAME_ON vs; x \<in> vs\<rbrakk> \<Longrightarrow> \<langle>ss\<rangle>\<^sub>s x \<in> vs"
 apply (simp only: VAR_RENAME_ON_def)
 apply (auto)
-(*apply (drule VAR_RENAME_bij)
-apply (simp add: bij_def)
-apply (clarify) *)
 apply (case_tac "\<langle>ss\<rangle>\<^sub>s x \<in> vs")
 apply (assumption)
 apply (drule_tac x = "\<langle>ss\<rangle>\<^sub>s x" in spec)
@@ -981,28 +978,6 @@ lemma RenameB_equiv_VAR_RENAME_ON_2 [intro]:
   by (metis RenameB_equiv_VAR_RENAME_ON_1 binding_equiv_comm)
 
 subsubsection {* Predicate Renaming *}
-
-(*
-theorem RenameP_closure [closure] :
-"\<lbrakk>p \<in> WF_PREDICATE;
- ss \<in> VAR_RENAME\<rbrakk> \<Longrightarrow>
- p[ss] \<in> WF_PREDICATE"
-apply (simp add: RenameP_def)
-apply (simp add: WF_PREDICATE_def)
-apply (safe)
-apply (subgoal_tac "xa \<in> WF_BINDING")
-apply (simp add: closure)
-apply (auto)
-done
-
-theorem RenamePMap_single_closure [closure]:
-  "\<lbrakk> p \<in> WF_PREDICATE; x \<noteq> y; vtype x = vtype y \<rbrakk> \<Longrightarrow> p\<^bsup>[x \<mapsto> y] \<^esup>\<in> WF_PREDICATE"
-  apply (simp add:RenamePMap_def)
-  apply (rule closure, simp)
-  apply (rule VAR_RENAME_MapRename[of "[x]" "[y]",simplified])
-  apply (auto)
-done
-*)
 
 theorem EvalP_RenameP [eval] :
 "\<lbrakk>p[ss]\<rbrakk>b = \<lbrakk>p\<rbrakk>(RenameB (inv\<^sub>s ss) b)"

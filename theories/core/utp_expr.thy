@@ -10,12 +10,10 @@ theory utp_expr
 imports utp_pred utp_unrest utp_sorts utp_rename
 begin
 
-text {* The type which an expression holds should be the maximal type, if such a notion exists *}
 type_synonym 'VALUE EXPRESSION = "('VALUE WF_BINDING_FUN)"
 
-
-text {* A well-formed expression must produce a well-typed value for every binding, and non well-formed bindings yield an fixed arbitrary well-typed value *}
-
+text {* Well-formed expression is a binding function which must yield the
+        same type for any binding it is applied to. *}
 definition WF_EXPRESSION :: "'VALUE EXPRESSION set" where
 "WF_EXPRESSION = {f. \<exists> t. \<forall>b. f b : t}"
 
@@ -84,6 +82,8 @@ lemma evar_comp_dash [typing]:
 lemma evar_compat [typing]:
   "e \<rhd>\<^sub>e x \<Longrightarrow> \<langle>e\<rangle>\<^sub>e b \<rhd> x"
   by (simp add:evar_compat_def)
+
+text {* Unrestriction on expressions is equivalent to that of predicates. *}
 
 definition UNREST_EXPR :: "('VALUE VAR) set \<Rightarrow> 'VALUE WF_EXPRESSION \<Rightarrow> bool" where
 "UNREST_EXPR vs e \<equiv> (\<forall> b1 b2. \<langle>e\<rangle>\<^sub>e(b1 \<oplus>\<^sub>b b2 on vs) = \<langle>e\<rangle>\<^sub>e b1)" 
@@ -192,20 +192,10 @@ lemma EXPRESSION_eqI [intro]:
   apply (auto)
 done
 
-(* It would be nice to have this as a typing rule, but it
-   confuses the HO unifier... *)
-
 theorem WF_EXPRESSION_type: 
 "e :\<^sub>e t \<Longrightarrow>
 \<langle>e\<rangle>\<^sub>e b : t"
   by (simp add:WF_EXPRESSION_def etype_rel_def)
-
-(*
-theorem WF_EXPRESSION_type: 
-"e :e: t \<Longrightarrow>
-\<langle>e\<rangle>\<^sub>e b : t"
-  by (simp add:WF_EXPRESSION_def etype_rel_def)
-*)
 
 theorem WF_EXPRESSION_has_type [typing]: 
 "\<exists> t. e :\<^sub>e t"
@@ -321,13 +311,6 @@ theorem UNREST_EqualP_alt [unrest] :
   apply (simp add:UNREST_EXPR_def UNREST_def)
 done
 
-
-(*
-theorem UNREST_EXPR_wfexpr [unrest]:
-"UNREST_EXPR vs e \<Longrightarrow> UNREST_EXPR vs (wfexpr e)"
-  by (simp add:wfexpr_def UNREST_EXPR_def closure)
-*)
-
 theorem UNREST_EXPR_VarE [unrest] :
 "x \<notin> vs \<Longrightarrow> UNREST_EXPR vs (VarE x)"
   by (simp add:VarE.rep_eq UNREST_EXPR_def)
@@ -367,21 +350,8 @@ theorem UNREST_SubstE_var [unrest] :
   apply (metis binding_compat binding_upd_override binding_upd_upd evar_compat_def)
 done
 
-
-(*
-theorem UNREST_EXPR_SubstE [unrest] :
-"\<lbrakk> v \<rhd>\<^sub>e x; UNREST_EXPR vs1 f; UNREST_EXPR vs2 v \<rbrakk> \<Longrightarrow>
- UNREST_EXPR ((vs1 \<union> {x}) \<inter> vs2) (f[v|x])"
-  apply (auto simp add:UNREST_EXPR_def SubstE.rep_eq evar_compat_def)
-  apply (smt Rep_WF_BINDING_rep_eq binding_override_simps(3) binding_override_simps(5) binding_override_simps(6) binding_override_simps(7) binding_override_singleton etype_rel_def fun_upd_same inf.commute)
-done
-*)
-
 lemma dash_single_rename_func_on [closure]: "rename_func_on dash {x}"
   by (simp add:rename_func_on_def)
-
-(* This is not quite right; if x is unrestricted in v (and restricted in p) then
-   x should be unrestricted in the whole, but it never can be. *)
 
 theorem UNREST_SubstP [unrest] :  
 "\<lbrakk> v \<rhd>\<^sub>e x; UNREST vs1 p; UNREST_EXPR vs2 v; x \<notin> vs1; vs = (vs1 \<inter> vs2) \<rbrakk> \<Longrightarrow>

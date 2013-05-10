@@ -1,3 +1,11 @@
+(******************************************************************************)
+(* Project: Unifying Theories of Programming in HOL                           *)
+(* File: utp_wp.thy                                                           *)
+(* Author: Simon Foster and Frank Zeyda, University of York (UK)              *)
+(******************************************************************************)
+
+header {* Weakest Precondition Calculus *}
+
 theory utp_wp
 imports 
   utp_lattice 

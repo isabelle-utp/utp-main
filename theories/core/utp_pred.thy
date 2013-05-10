@@ -201,14 +201,16 @@ instance ..
 
 end
 
+text {* Since we want the refinement operator for several types but don't
+        want to conflate it with any partial order, we create a vacuous subclass
+        which adds the correct syntax. *}
+
 class refines = ord 
 
 instantiation WF_PREDICATE :: (VALUE) refines begin instance .. end
 
 abbreviation RefinesP :: "'a::refines \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<sqsubseteq>" 50) where
 "p \<sqsubseteq> q \<equiv> q \<le> p"
-
-(* notation less_eq (infix "\<sqsubseteq>" 50) *)
 
 subsection {* Theorems *}
 
