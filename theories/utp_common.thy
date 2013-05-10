@@ -7,7 +7,7 @@
 header {* Common Definitions *}
 
 theory utp_common
-imports Main Real Derive
+imports Main Real
   "~~/src/HOL/Library/Countable"
 (*  "~~/src/HOL/Library/Kleene_Algebra" *)
   "~~/src/Tools/Adhoc_Overloading"

@@ -16,8 +16,33 @@ text {* Subscripts are encoded by virtue of a datatype. *}
 
 datatype SUBSCRIPT = Sub "nat" | NoSub
 
-derive countable SUBSCRIPT
-derive linorder SUBSCRIPT
+primrec to_nat_SUBSCRIPT :: "SUBSCRIPT \<Rightarrow> nat" where
+"to_nat_SUBSCRIPT (Sub n) = Suc n" |
+"to_nat_SUBSCRIPT (NoSub) = 0" 
+
+instance SUBSCRIPT :: countable 
+  apply (intro_classes)
+  apply (rule_tac x="to_nat_SUBSCRIPT" in exI)
+  apply (rule injI)
+  apply (case_tac x, case_tac[!] y)
+  apply (auto)
+done
+
+instantiation SUBSCRIPT :: linorder
+begin
+
+definition less_eq_SUBSCRIPT :: "SUBSCRIPT \<Rightarrow> SUBSCRIPT \<Rightarrow> bool" where
+"less_eq_SUBSCRIPT x y = (to_nat_SUBSCRIPT x \<le> to_nat_SUBSCRIPT y)"
+
+definition less_SUBSCRIPT :: "SUBSCRIPT \<Rightarrow> SUBSCRIPT \<Rightarrow> bool" where
+"less_SUBSCRIPT x y = (x \<le> y \<and> \<not> y \<le> x)"
+
+instance
+  apply (intro_classes, auto simp add:less_eq_SUBSCRIPT_def less_SUBSCRIPT_def)
+  apply (case_tac x, case_tac[!] y)
+  apply (auto)
+done
+end
 
 subsection {* Names *}
 
@@ -30,17 +55,47 @@ usual record theorems manually.
 datatype NAME =
   MkName string nat SUBSCRIPT
 
-derive countable NAME
-derive linorder NAME
+primrec to_nat_NAME :: "NAME \<Rightarrow> nat" where
+"to_nat_NAME (MkName n d s) = to_nat (n, d, s)"
+
+instance NAME :: countable
+  apply (intro_classes)
+  apply (rule_tac x="to_nat_NAME" in exI)
+  apply (rule injI)
+  apply (case_tac x, case_tac[!] y)
+  apply (auto)
+done
+
+instantiation NAME :: linorder
+begin
+
+fun less_eq_NAME :: "NAME \<Rightarrow> NAME \<Rightarrow> bool" where
+"(MkName n1 d1 s1) \<le> (MkName n2 d2 s2) = ((n1,d1,s1) \<le> (n2,d2,s2))"
+
+fun less_NAME :: "NAME \<Rightarrow> NAME \<Rightarrow> bool" where
+"(MkName n1 d1 s1) < (MkName n2 d2 s2) = ((n1,d1,s1) < (n2,d2,s2))"
+
+instance
+  apply (intro_classes, auto)
+  apply (case_tac x, case_tac y, auto)
+  apply (case_tac x, case_tac y, auto)
+  apply (case_tac x, case_tac y, simp, metis less_le prod.inject)
+  apply (case_tac x, auto)
+  apply (case_tac x, case_tac y, case_tac z, auto)
+  apply (case_tac x, case_tac y, auto)
+  apply (case_tac x, case_tac y, auto)
+done
+end
 
 lemma MkName_name_mono: "n1 < n2 \<Longrightarrow> MkName n1 d1 s1 < MkName n2 d2 s2"
-  by (simp add: less_NAME_def)
+  by (auto simp add:prod_less_eq)
 
 lemma MkName_dash_mono: "d1 < d2 \<Longrightarrow> MkName n d1 s1 < MkName n d2 s2"
-  by (simp add: less_NAME_def)
+  by (auto simp add:prod_less_eq)
+
 
 lemma MkName_subscript_mono: "s1 < s2 \<Longrightarrow> MkName n d s1 < MkName n d s2"
-  by (simp add: less_NAME_def)
+  by (auto simp add:prod_less_eq)
 
 primrec name_str :: "NAME \<Rightarrow> string" where
 "name_str (MkName n d s) = n"
@@ -72,21 +127,17 @@ lemma NAME_less_iff:
     name_str n1 < name_str n2 \<or> 
     (name_str n1 = name_str n2 \<and> dashes n1 < dashes n2) \<or>
     (name_str n1 = name_str n2 \<and> dashes n1 = dashes n2 \<and> subscript n1 < subscript n2)"
-  by (case_tac n1, case_tac n2, auto simp add:less_NAME_def)
+  by (case_tac n1, case_tac n2, auto simp add:prod_less_eq)
 
 lemma name_str_mono: "name_str x < name_str y \<Longrightarrow> x < y"
-  by (case_tac x, case_tac y, auto intro: MkName_name_mono)
+  by (case_tac x, case_tac y, auto simp add:prod_less_eq)
 
 lemma dashes_mono: "\<lbrakk> name_str x \<le> name_str y; dashes x < dashes y \<rbrakk> \<Longrightarrow> x < y"
-  apply (case_tac x, case_tac y, auto)
-  apply (metis MkName_dash_mono MkName_name_mono order_less_le)
-done
+  by (case_tac x, case_tac y, auto simp add:prod_less_eq)
 
 lemma subscript_mono: 
   "\<lbrakk> name_str x \<le> name_str y; dashes x \<le> dashes y; subscript x < subscript y \<rbrakk> \<Longrightarrow> x < y"
-  apply (case_tac x, case_tac y, auto)
-  apply (metis MkName_dash_mono MkName_name_mono MkName_subscript_mono linorder_not_le order_antisym)
-done
+  by (case_tac x, case_tac y, auto simp add:prod_less_eq)
 
 subsection {* There are infinite names *}
 

@@ -491,6 +491,25 @@ lemma H1_false:
   apply (simp add:typing defined)
 done
 
+lemma H1_ImpliesP_SemiR:
+  assumes "p \<in> WF_CONDITION" "Q \<in> WF_RELATION" "R \<in> WF_RELATION" "R is H1"
+  shows "`p \<Rightarrow> (Q ; R)` = `(p \<Rightarrow> Q) ; R`"
+proof -
+
+  have "`(p \<Rightarrow> Q) ; R` = `\<not> p ; R \<or> (Q ; R)`"
+    by (metis ImpliesP_def SemiR_OrP_distr)
+
+  also have "... = `(\<not> p ; true) ; R \<or> (Q ; R)`"
+    by (metis NotP_cond_closure SemiR_TrueP_precond assms(1))
+
+  also have "... = `\<not> p \<or> (Q ; R)`"
+    by (metis H1_left_zero SemiR_assoc assms condition_comp utp_pred_simps(3))
+
+  ultimately show ?thesis
+    by (metis ImpliesP_def)
+
+qed
+
 lemma H1_idempotent:
   "H1 (H1 p) = H1 p"
   by (rule, simp add:H1_def eval)

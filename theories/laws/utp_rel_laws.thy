@@ -939,7 +939,7 @@ theorem CondR_true:
   by (utp_pred_tac)
 
 theorem CondR_false:
-  "`P \<lhd> true \<rhd> Q` = P"
+  "`P \<lhd> false \<rhd> Q` = Q"
   by (utp_pred_tac)
 
 theorem CondR_idem:
