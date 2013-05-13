@@ -452,4 +452,11 @@ lemma UNREST_VarP [unrest]:
   "x \<notin> vs \<Longrightarrow> UNREST vs (VarP x)"
   by (auto intro:unrest)
 
+theorem WF_EXPRESSION_UNREST_binding_equiv :
+"\<lbrakk> UNREST_EXPR (VAR - vs) e; b1 \<cong> b2 on vs \<rbrakk> 
+ \<Longrightarrow> \<langle>e\<rangle>\<^sub>eb1 = \<langle>e\<rangle>\<^sub>eb2"
+  by (smt UNREST_EXPR_member binding_override_equiv binding_override_simps(10) binding_override_simps(5))
+
+
+
 end

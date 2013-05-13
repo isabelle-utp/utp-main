@@ -122,6 +122,19 @@ lemma ClosureP_intro:
   "`[p]` \<Longrightarrow> taut p"
   by (utp_pred_tac)
 
+subsection {* Implication Laws *}
+
+lemma ImpliesP_export:
+  "`p \<Rightarrow> q` = `p \<Rightarrow> (p \<and> q)`"
+  by (utp_pred_tac)
+
+lemma ImpliesP_eq_subst:
+  "v \<rhd>\<^sub>e x \<Longrightarrow> `$x = v \<Rightarrow> p` = `$x = v \<Rightarrow> p[v/x]`"
+  apply (utp_pred_tac, utp_expr_tac)
+  apply (auto simp add:evale eval typing)
+  apply (metis binding_upd_simps(2))+
+done
+
 subsection {* Quantifier Laws *}
 
 theorem ExistsP_ident :

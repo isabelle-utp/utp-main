@@ -977,6 +977,10 @@ lemma RenameB_equiv_VAR_RENAME_ON_2 [intro]:
   "ss \<in> VAR_RENAME_ON (- vs) \<Longrightarrow> b \<cong> RenameB ss b on vs"
   by (metis RenameB_equiv_VAR_RENAME_ON_1 binding_equiv_comm)
 
+lemma RenameB_equiv_cong: 
+  "b1 \<cong> b2 on vs \<Longrightarrow> RenameB ss b1 \<cong> RenameB ss b2 on (ss `\<^sub>s vs)"
+  by (auto simp add: binding_equiv_def)
+
 subsubsection {* Predicate Renaming *}
 
 theorem EvalP_RenameP [eval] :

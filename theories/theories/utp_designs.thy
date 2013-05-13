@@ -352,9 +352,6 @@ proof -
   ultimately show ?thesis by simp
 qed
 
-lemma ImpliesP_export:
-  "`p \<Rightarrow> q` = `p \<Rightarrow> (p \<and> q)`"
-  by (utp_pred_tac)
 
 (*
 lemma "\<lbrakk> P \<in> WF_RELATION; e \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<union> NON_REL_VAR) e; Q \<in> WF_RELATION; x \<in> UNDASHED \<rbrakk> 
@@ -375,15 +372,6 @@ lemma "\<lbrakk> P \<in> WF_RELATION; e \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<
   apply (rule unrest)
   
   apply (simp add:SemiR_algebraic_rel closure unrest typing defined)
-*)
-
-(*
-lemma ImpliesP_SemiR_precond:
-  "\<lbrakk> p \<in> WF_CONDITION; Q \<in> WF_RELATION; R \<in> WF_RELATION \<rbrakk> 
-  \<Longrightarrow> `(p \<Rightarrow> Q) ; R` = `p \<Rightarrow> (Q ; R)`"
-  apply (subgoal_tac "p ; true = p")
-  apply (simp add:evalrx closure)
-  apply (auto)
 *)
 
 lemma H1_algebraic_intro:
@@ -423,7 +411,7 @@ proof -
     apply (simp add:SemiR_TrueP_precond closure ImpliesP_def)
   done
 
-  ultimately show ?thesis by (simp add:is_healthy_def H1_def)
+  finally show ?thesis by (simp add:is_healthy_def H1_def)
 qed
 
 lemma H1_left_zero:
@@ -451,32 +439,29 @@ proof -
   also have "... = `(ok \<Rightarrow> ok' \<and> II\<^bsub>?vs\<^esub>) ; P`"
     by (simp add:DesignD_def)
 
-  also have "... = `(\<not> ok ; P) \<or> (ok \<and> P)`"
-    apply (rule BoolType_aux_var_split_eq_intro[of okay])
-    apply (simp_all add: usubst closure typing defined assms unrest)
-    apply (simp add:VarP_EqualP_aux)
-    apply (subgoal_tac "`($okay\<acute> = true \<and> II\<^bsub>REL_VAR - {okay, okay\<acute>}\<^esub>)` = `(okay :: 'a VAR) := true`")
-    apply (simp add: AssignR_SemiR_left typing defined unrest SkipRA_def)
-    apply (simp add: AssignR_alt_def typing unrest defined SkipRA_def)
-  done
+  also have "... = `(ok \<Rightarrow> ok \<and> ok' \<and> II\<^bsub>?vs\<^esub>) ; P`"
+    by (smt ImpliesP_export)
 
-  also have "... = `((\<not> ok \<and> true) ; P) \<or> (ok \<and> P)`"
-    by (metis AndP_comm utp_pred_simps(6))
+  also from assms have "... = `(ok \<Rightarrow> ok \<and> $okay\<acute> = $okay \<and> II\<^bsub>?vs\<^esub>) ; P`"
+    by (simp add:VarP_EqualP_aux, utp_rel_auto_tac)
 
-  also from assms have "... = `(\<not> ok \<and> (true ; P)) \<or> (ok \<and> P)`"
-    by (simp add:SemiR_AndP_left_precond closure unrest typing defined del:utp_pred_simps)
+  also have "... = `(ok \<Rightarrow> II) ; P`"
+    by (simp add: SkipR_as_SkipRA SkipRA_unfold[of okay] ImpliesP_export[THEN sym])
 
-  also have "... = `(\<not> ok ; true) \<or> (ok \<and> P)`"
-    by (simp add: assms H1_left_zero closure SemiR_TrueP_precond)
+  also have "... = `((\<not> ok) ; P \<or> P)`"
+    by (simp add:ImpliesP_def SemiR_OrP_distr)
 
-  also have "... = `\<not> ok \<or> (ok \<and> P)`"
-    by (simp add:closure SemiR_TrueP_precond)
+  also have "... = `(((\<not> ok) ; true) ; P \<or> P)`"
+    by (metis MkPlain_UNDASHED NotP_cond_closure SemiR_TrueP_precond VarP_cond_closure)
 
-    also have "... = `(ok \<Rightarrow> P)`"
-      by (utp_pred_tac)
+  also have "... = `((\<not> ok) ; (true ; P) \<or> P)`"
+    by (metis SemiR_assoc)
 
-    ultimately show ?thesis using assms
-      by (simp add:H1_def is_healthy_def)
+  also from assms have "... = `(ok \<Rightarrow> P)`"
+    by (simp add:H1_left_zero ImpliesP_def SemiR_TrueP_precond closure)
+
+  finally show ?thesis using assms
+    by (simp add:H1_def is_healthy_def)
 qed
 
 lemma H1_algebraic:

@@ -495,6 +495,12 @@ qed
 
 text {* This property allows conversion of an alphabetised identity into an existential *} 
 
+lemma [simp]: "UNDASHED - DASHED = UNDASHED"
+  by (auto)
+
+lemma [simp]: "DASHED - UNDASHED = DASHED"
+  by (auto)
+
 lemma SemiR_right_ExistsP:
   "\<lbrakk> p \<in> WF_RELATION; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> 
     p ; II (REL_VAR - {x,x\<acute>}) = (\<exists>p {x\<acute>}. p)"
@@ -515,158 +521,87 @@ lemma SubstP_rel_closure [closure]:
   \<Longrightarrow> p[v|x] \<in> WF_RELATION"
   by (auto intro:unrest simp add:WF_RELATION_def unrest typing)
 
+lemma UNREST_NON_REL_VAR_SS [unrest]:
+  "UNREST_EXPR NON_REL_VAR v \<Longrightarrow> UNREST_EXPR NON_REL_VAR (RenameE v SS)"
+  by (auto intro:unrest UNREST_EXPR_subset simp add:urename)
+
+lemma UNREST_NON_REL_VAR_DASHED [unrest]:
+  "x \<in> DASHED \<Longrightarrow> UNREST_EXPR NON_REL_VAR (VarE x)"
+  by (auto intro:unrest)
+
+lemma [simp]: "x \<in> UNDASHED \<Longrightarrow> x \<notin> NON_REL_VAR"
+  by (auto)
+
+lemma [simp]: "x \<in> DASHED \<Longrightarrow> x \<notin> NON_REL_VAR"
+  by (auto)
+
 lemma SemiR_left_one_point:
   assumes "x \<in> UNDASHED" "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "v \<rhd>\<^sub>e x"
           "UNREST_EXPR (DASHED \<union> NON_REL_VAR) v" "UNREST_EXPR {x} v"
   shows "`P ; ($x = v \<and> Q)` = `P[v\<acute>/x\<acute>] ; Q[v/x]`"
-proof -
+  using assms
+  apply (simp add:unrest urename closure typing defined UNREST_EXPR_subset evalrx evale relcomp_unfold)
+  apply (auto)
+  apply (metis DestXRelB_inverse binding_upd_triv xbinding_upd_def)
+  apply (rule_tac x="ya(x :=\<^sub>x \<lbrakk>v\<rbrakk>\<epsilon>\<langle>ya\<rangle>\<^sub>x)" in exI)
+  apply (simp add:evale)
+done
 
-  let ?vs = DASHED_TWICE
+lemma xbinding_upd_refl [simp]: 
+  "x \<in> UNDASHED \<Longrightarrow> b(x :=\<^sub>x \<langle>\<langle>b\<rangle>\<^sub>x\<rangle>\<^sub>b x) = b"
+  by (auto simp add:typing defined)
 
-  from assms 
-  have "`P ; (($x = v) \<and> Q)` = (\<exists>p DASHED_TWICE. P[SS1] \<and>p `(($x = v) \<and> Q)`[SS2])"
-    apply (rule_tac SemiR_algebraic_rel)
-    apply (auto intro: closure unrest UNREST_EXPR_subset)
-  done
-
-  also from assms 
-  have "... = (\<exists>p ?vs . P[SS1] \<and>p ((VarE x\<acute>\<acute>) ==p v[SS2]\<epsilon>) \<and>p Q[SS2])"
-    by (simp add:urename)
-
-  also
-  have "... = (\<exists>p ?vs - {x\<acute>\<acute>} . \<exists>p {x\<acute>\<acute>} . P[SS1] \<and>p ((VarE x\<acute>\<acute>) ==p v[SS2]\<epsilon>) \<and>p Q[SS2])"
-    by (smt DASHED_dash_DASHED_TWICE ExistsP_union UNDASHED_dash_DASHED assms(1) insert_Diff_single insert_absorb insert_is_Un sup_commute)
-
-  also
-  have "... = (\<exists>p ?vs - {x\<acute>\<acute>} . (\<exists>p {x\<acute>\<acute>} . (P[SS1] \<and>p Q[SS2]) \<and>p ((VarE x\<acute>\<acute>) ==p v[SS2]\<epsilon>)))"
-    by (smt AndP_assoc AndP_comm)
-
-  also from assms
-  have "... = (\<exists>p ?vs - {x\<acute>\<acute>} . (P[SS1] \<and>p Q[SS2])[v[SS2]\<epsilon>|x\<acute>\<acute>])"
-    apply (subgoal_tac "v[SS2]\<epsilon> \<rhd>\<^sub>e x")
-    apply (subgoal_tac "UNREST_EXPR {x\<acute>\<acute>} (v[SS2]\<epsilon>)")
-    apply (simp add: ExistsP_one_point typing defined)
-    apply (rule UNREST_EXPR_subset)
-    apply (rule unrest)
-    apply (simp) back
-    apply (simp add:urename)
-    apply (simp add:typing)
-  done
-
-  also from assms
-  have "... = (\<exists>p DASHED_TWICE - {x\<acute>\<acute>} . ((P[v[SS]\<epsilon>|x\<acute>])[SS1]) \<and>p ((Q[v|x])[SS2]))"
-  proof -
-
-    from assms have "(P[v[SS]\<epsilon>|x\<acute>])[SS1] = P[SS1][v[SS2]\<epsilon>|x\<acute>\<acute>]"
-      apply (simp add:urename typing closure unrest defined)
-      apply (subgoal_tac "UNREST_EXPR (VAR - UNDASHED) v")
-      apply (drule RenameE_equiv[of UNDASHED v])
-      apply (rule SS1_SS_eq_SS2)
-      apply (simp)
-      apply (auto intro:unrest UNREST_EXPR_subset)
-    done
-
-    moreover 
-    from assms have "((Q[v|x])[SS2]) = (Q[SS2])[v[SS2]\<epsilon>|x\<acute>\<acute>]"
-      by (simp add:urename typing closure unrest defined)
-
-    ultimately show ?thesis by (simp add:usubst)
-
-  qed
-
-  also
-  have "... = (\<exists>p DASHED_TWICE - {x\<acute>\<acute>}. \<exists>p {x\<acute>\<acute>} . (`P[v\<acute>/x\<acute>]`[SS1]) \<and>p (`Q[v/x]`[SS2]))"
-  proof -
-    from assms have "UNREST {x\<acute>\<acute>} (`P[v\<acute>/x\<acute>]`[SS1])"
-      apply (rule_tac unrest)
-      apply (rule_tac unrest)
-      apply (simp add:typing)
-      apply (rule UNREST_EXPR_subset)
-      apply (rule unrest)
-      apply (simp) back
-      apply (simp_all add:urename)
-    done
-
-    moreover from assms have "UNREST {x\<acute>\<acute>} (`Q[v/x]`[SS2])"
-      apply (rule_tac unrest)
-      apply (rule_tac unrest)
-      apply (simp add:typing)
-      apply (simp_all add:urename)
-    done
-
-    ultimately show ?thesis
-      by (metis (hide_lams, no_types) ExistsP_ident UNREST_AndP)
-  qed
-
-  also from assms 
-  have "... = (\<exists>p DASHED_TWICE. (`P[v\<acute>/x\<acute>]`[SS1]) \<and>p (`Q[v/x]`[SS2]))"
-    by (smt DASHED_dash_DASHED_TWICE ExistsP_union UNDASHED_dash_DASHED Un_commute Un_empty_left Un_insert_right insert_Diff_single insert_absorb)
-
-  also from assms
-  have "... = `P[v\<acute>/x\<acute>] ; Q[v/x]`"
-    apply (rule_tac SemiR_algebraic_rel[THEN sym])
-    apply (auto intro: closure unrest UNREST_EXPR_subset simp add:typing defined urename)
-    apply (rule closure)
-    apply (simp_all add:typing)
-    apply (rule UNREST_EXPR_subset)
-    apply (rule unrest)
-    apply (simp)
-    apply (simp add:urename)
-  done
-
-  ultimately show ?thesis by simp
-qed
-
-(*
-lemma SemiR_left_one_point:
-  assumes "x \<in> UNDASHED" "P \<in> WF_RELATION" "v \<rhd>\<^sub>e x" 
+lemma SemiR_right_one_point:
+  assumes "x \<in> UNDASHED" "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "v \<rhd>\<^sub>e x"
           "UNREST_EXPR (DASHED \<union> NON_REL_VAR) v" "UNREST_EXPR {x} v"
-  shows "P ; (VarE x ==p v \<and>p II (REL_VAR - {x,x\<acute>})) = P[v[SS]\<epsilon>|x\<acute>]"
+  shows "`(P \<and> $x\<acute> = v\<acute>) ; Q` = `P[v\<acute>/x\<acute>] ; Q[v/x]`"
+  using assms
+  apply (simp add:unrest urename closure typing defined UNREST_EXPR_subset evalrx evale)
+  apply (subgoal_tac "`$x\<acute> = v\<acute>` = `($x)\<acute> = v\<acute>`")
+  apply (simp add:unrest closure typing defined UNREST_EXPR_subset evalrx evale relcomp_unfold)
+  defer
+  apply (simp add:urename)
+  apply (auto)
+  apply (rule_tac x="ya" in exI)
+  apply (drule sym) back
+  apply (simp add:evale typing)
+  apply (rule_tac x="ya(x :=\<^sub>x \<lbrakk>v\<rbrakk>\<epsilon>\<langle>ya\<rangle>\<^sub>x)" in exI)
+  apply (simp add:evale)
+done
+
+lemma var_compat_undash [typing]:
+  "v \<rhd> x \<Longrightarrow> v \<rhd> undash x"
+  by (simp add:var_compat_def)
+
+lemma evar_compat_undash [typing]:
+  "v \<rhd>\<^sub>e x \<Longrightarrow> v \<rhd>\<^sub>e undash x"
+  by (auto intro:typing simp add:evar_compat_def)
+
+lemma SemiR_right_one_point_alt:
+  assumes "x \<in> DASHED" "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "v \<rhd>\<^sub>e x"
+          "UNREST_EXPR (UNDASHED \<union> NON_REL_VAR) v" "UNREST_EXPR {x} v"
+  shows "`(P \<and> $x = v) ; Q` = `P[v/x] ; Q[v\<acute>/undash x]`"
 proof -
-  
-  from assms 
-  have "P ; (VarE x ==p v \<and>p II (REL_VAR - {x,x\<acute>})) 
-       = P \<and>p (VarE x\<acute> ==p v[SS]\<epsilon>) ; II (REL_VAR - {x,x\<acute>})"
-    apply (subgoal_tac "REL_VAR - (REL_VAR - {x, x\<acute>}) = {x,x\<acute>}")
-    apply (rule_tac trans)
-    apply (rule SemiR_AndP_right_precond)
-    apply (simp add:closure unrest)
-    apply (force intro:closure)
-    apply (rule closure)
-    apply (rule unrest)
-    apply (force)
-    apply (subgoal_tac "(- UNDASHED :: 'a VAR set) = DASHED \<union> NON_REL_VAR")
+
+  from assms have u1:"UNREST_EXPR (DASHED \<union> NON_REL_VAR) (RenameE v SS)"
+    apply (rule_tac UNREST_EXPR_subset)
+    apply (rule unrest) back
     apply (simp)
-    apply (auto)[1]
-    apply (simp add:ConvR_def urename)
-    apply (force)
+    apply (simp add:urename closure)
   done
 
-  also from assms
-  have "... = (\<exists>p {x\<acute>}. P \<and>p (VarE x\<acute> ==p v[SS]\<epsilon>))"
-    apply (rule_tac SemiR_right_ExistsP)
-    apply (rule closure)
-    apply (simp)
-    apply (rule closure)
-    apply (rule unrest)
-    apply (auto intro:unrest simp add:urename)
-    apply (rule UNREST_EXPR_subset)
-    apply (rule unrest)
-    apply (auto simp add:urename)
-  done
-
-  also from assms have "... = P[v[SS]\<epsilon>|x\<acute>]"
-    apply (rule_tac ExistsP_one_point)
-    apply (simp add:typing)
-    apply (rule UNREST_EXPR_subset)
-    apply (rule unrest)
+  from assms have u2:"UNREST_EXPR {undash x} (RenameE v SS)"
+    apply (rule_tac UNREST_EXPR_subset)
+    apply (rule unrest) back 
     apply (simp) back
-    apply (simp add:urename)
+    apply (simp add:urename closure)
   done
 
-  ultimately show ?thesis by simp
+  thus ?thesis
+    apply (insert SemiR_right_one_point[of "undash x" P Q "v[SS]\<epsilon>"])
+    apply (simp add:urename closure assms unrest typing u1 u2)
+  done
 qed
-*)
 
 subsubsection {* Alphabetised Skip laws *}
 
@@ -833,7 +768,7 @@ proof (simp add:SkipRA_def AssignRA_def AssignR_alt_def)
 
   ultimately show "(\<exists>p REL_VAR - a . VarE x\<acute> ==p v \<and>p (\<exists>p {x, x\<acute>} . II)) =
                     VarE x\<acute> ==p v \<and>p (\<exists>p insert x (insert x\<acute> (REL_VAR - a)) . II)"
-    by (metis (hide_lams, no_types) ExistsP_AndP_expand2 ExistsP_union Un_insert_right sup_bot_right)
+    by (smt ExistsP_AndP_expand2 ExistsP_union Un_empty_right Un_insert_right union_minus)
 qed
 
 theorem AssignRA_SemiR_left:
