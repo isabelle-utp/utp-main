@@ -142,6 +142,42 @@ theorem SemiR_AndP_left_precond:
      \<Longrightarrow> (c \<and>p p) ; q = c \<and>p (p ; q)"
   by (frule SemiR_TrueP_precond, utp_xrel_auto_tac)
 
+theorem SemiR_precond_left_zero : 
+  assumes "p \<in> WF_CONDITION" "p \<noteq> `false`"
+  shows "true ; p = true"
+proof -
+  have "`true ; p` = `true ; (p ; true)`"
+    by (metis SemiR_TrueP_precond assms)
+
+  also from assms have "... = true"
+    apply (utp_xrel_tac)
+    apply (auto simp add:relcomp_unfold)
+    apply (rule_tac x="fst x" in exI)
+    apply (rule_tac x="snd x" in exI)
+    apply (simp)
+  done
+
+  finally show ?thesis .
+qed
+
+theorem SemiR_postcond_right_zero : 
+  assumes "p \<in> WF_POSTCOND" "p \<noteq> `false`"
+  shows "p ; true = true"
+proof -
+  have "`p ; true` = `(true ; p) ; true`"
+    by (metis SemiR_TrueP_postcond assms(1))
+
+  also from assms have "... = true"
+    apply (utp_xrel_tac)
+    apply (auto simp add:relcomp_unfold)
+    apply (rule_tac x="snd x" in exI)
+    apply (rule_tac x="fst x" in exI)
+    apply (simp)
+  done
+
+  finally show ?thesis .
+qed
+
 text {* A single variable can be extracted from a sequential composition and captured
         in an existential *}
 
