@@ -267,4 +267,31 @@ lemma BoolType_aux_var_split_eq_intro [ucases]:
   apply (utp_pred_tac)
 done
 
+subsection {* Typing theorems *}
+
+lemma MkBool_True_compat [typing]: 
+  "vtype x = BoolType \<Longrightarrow> MkBool True \<rhd> x"
+  by (metis BOOL_SORT_class.Defined MkBool_type var_compat_intros(1))
+
+lemma MkBool_False_compat [typing]: 
+  "vtype x = BoolType \<Longrightarrow> MkBool False \<rhd> x"
+ by (metis BOOL_SORT_class.Defined MkBool_type var_compat_intros(1))
+
+subsection {* Uniqueness Theorems *}
+
+lemma VarP_not_false [simp]:
+  "vtype x = BoolType \<Longrightarrow> `$x` \<noteq> `false`"
+  "vtype x = BoolType \<Longrightarrow>  `false` \<noteq> `$x`"
+  by (utp_pred_tac, utp_expr_tac, rule_tac x="\<B>(x :=\<^sub>b MkBool True)" in exI, simp add:typing)+
+
+lemma VarP_not_true [simp]:
+  "vtype x = BoolType \<Longrightarrow> `$x` \<noteq> `true`"
+  "vtype x = BoolType \<Longrightarrow>  `true` \<noteq> `$x`"
+  by (utp_pred_tac, utp_expr_tac, rule_tac x="\<B>(x :=\<^sub>b MkBool False)" in exI, simp add:typing)+
+
+lemma NotP_not_false [simp]:
+  "x \<noteq> `true` \<Longrightarrow> `\<not> x` \<noteq> `false`"
+  "x \<noteq> `false` \<Longrightarrow> `\<not> x` \<noteq> `true`"
+  by (utp_pred_tac)+
+
 end

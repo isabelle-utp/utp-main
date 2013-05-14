@@ -985,5 +985,20 @@ lemma ConvR_VarP_2 [urename]:
   "x \<in> UNDASHED \<Longrightarrow> (VarP x\<acute>)\<^sup>\<smile> = VarP x"
   by (simp add:ConvR_def urename)
 
+subsection {* Additional UNREST theorems *}
+
+lemma WF_RELATION_UNREST_dash2 [unrest]: 
+  "P \<in> WF_RELATION \<Longrightarrow> UNREST {x\<acute>\<acute>} P"
+  apply (simp add:WF_RELATION_def)
+  apply (rule UNREST_subset)
+  apply (auto simp add:NON_REL_VAR_def)
+done
+
+lemma WF_RELATION_UNREST_dash3 [unrest]:
+  "P \<in> WF_RELATION \<Longrightarrow> UNREST {x\<acute>\<acute>\<acute>} P"
+  apply (simp add:WF_RELATION_def)
+  apply (rule UNREST_subset)
+  apply (auto simp add:NON_REL_VAR_def)
+done
 
 end

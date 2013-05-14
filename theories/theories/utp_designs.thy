@@ -78,7 +78,7 @@ lemma DesignD_extreme_point_true:
   by (utp_pred_tac)
 
 lemma DesignD_extreme_point_nok:
-  "true \<turnstile> false = \<not>p ok"
+  "`true \<turnstile> false` = `\<not> ok`"
   by (utp_pred_tac)
 
 lemma DesignD_export_precondition:
@@ -124,20 +124,6 @@ qed
 lemma DesignD_diverge:
   "`(P \<turnstile> Q)[false/okay]` = true"
   by (simp add:DesignD_def usubst typing defined)
-
-lemma WF_RELATION_UNREST_dash2 [unrest]: 
-  "P \<in> WF_RELATION \<Longrightarrow> UNREST {x\<acute>\<acute>} P"
-  apply (simp add:WF_RELATION_def)
-  apply (rule UNREST_subset)
-  apply (auto simp add:NON_REL_VAR_def)
-done
-
-lemma WF_RELATION_UNREST_dash3 [unrest]:
-  "P \<in> WF_RELATION \<Longrightarrow> UNREST {x\<acute>\<acute>\<acute>} P"
-  apply (simp add:WF_RELATION_def)
-  apply (rule UNREST_subset)
-  apply (auto simp add:NON_REL_VAR_def)
-done
 
 lemma DesignD_left_zero:
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
@@ -330,14 +316,6 @@ lemma H1_AndP: "H1 (p \<and>p q) = H1(p) \<and>p H1(q)"
 
 lemma H1_OrP: "H1 (p\<or>p q) = H1(p) \<or>p H1(q)"
   by (utp_pred_auto_tac)
-
-lemma MkBool_True_compat [typing]: 
-  "vtype x = BoolType \<Longrightarrow> MkBool True \<rhd> x"
-  by (metis BOOL_SORT_class.Defined MkBool_type var_compat_intros(1))
-
-lemma MkBool_False_compat [typing]: 
-  "vtype x = BoolType \<Longrightarrow> MkBool False \<rhd> x"
- by (metis BOOL_SORT_class.Defined MkBool_type var_compat_intros(1))
 
 lemma SemiR_TrueP_right_precond:
   assumes "P \<in> WF_CONDITION"

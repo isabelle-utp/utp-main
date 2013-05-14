@@ -349,6 +349,17 @@ lemma finsert_idem [simp]:
   "finsert x (finsert x xs) = finsert x xs"
   by (auto)
 
+lemma finsert_comm_ord [simp]:
+  "x < y \<Longrightarrow> finsert y (finsert x xs) = finsert x (finsert y xs)"
+  by (auto)
+
+lemma fset_transfer_eq: "xs = ys \<longleftrightarrow> flist xs = flist ys"
+  by (metis flist_inv)
+
+lemma fset_transfer_neq: "xs \<noteq> ys \<longleftrightarrow> flist xs \<noteq> flist ys"
+  by (metis flist_inv)
+
+
 lemma fset_simps [simp]:
   "x \<union>\<^sub>f \<lbrace>\<rbrace> = x"
   "\<lbrace>\<rbrace> \<union>\<^sub>f x = x"
@@ -438,6 +449,7 @@ proof -
 
   thus ?thesis by (simp add:xs_def)
 qed
+
 
 end
 
