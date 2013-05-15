@@ -71,15 +71,15 @@ datatype vbasic
   | CharI "char"
   | QuoteI "string" 
   | TokenI vbasic
-  | ListI "vbasic list" 
-  | OptionI "vbasic option"
-  | FinI "vbasic list"
+  | ListI vdmt "vbasic list" 
+  | OptionI vdmt "vbasic option"
+  | FinI vdmt "vbasic list"
   | BoolI bool
   | RecI "vbasic list"
   | MapI "(vbasic * vbasic) list" 
   | NameI "NAME"
   | TypeI "vdmt"
-  | BotI
+  | BotI "vdmt"
 
 (* Deriving the linear order necessarily takes a while *)
 
@@ -107,7 +107,8 @@ datatype vdmv = SetD "vbasic set"
                 | FuncD "vbasic \<Rightarrow> vdmv"
                 | BasicD "vbasic"
 
-abbreviation "BotD \<equiv> BasicD BotI"
+abbreviation BotD :: "vdmt \<Rightarrow> vdmv" ("\<bottom>\<^bsub>_\<^esub>") where
+"BotD t \<equiv> BasicD (BotI t)"
 abbreviation "TrueD \<equiv> BasicD (BoolI True)"
 abbreviation "FalseD \<equiv> BasicD (BoolI False)"
 
@@ -116,8 +117,8 @@ subsection {* Injections *}
 text {* We create interface constructors for finite sets, maps and records which
   use derived subtypes as inputs and therefore preserve canonicity of vbasic *}
 
-definition FSetI :: "vbasic fset \<Rightarrow> vbasic" where
-"FSetI vs = FinI (flist vs)"
+definition FSetI :: "vdmt \<Rightarrow> vbasic fset \<Rightarrow> vbasic" where
+"FSetI t vs = FinI t (flist vs)"
 
 definition FinMapI :: "(vbasic, vbasic) fmap \<Rightarrow> vbasic" where
 "FinMapI f = MapI (fmap_list f)"
@@ -133,11 +134,11 @@ text {* Projections functions produce Some value for a correctly formed values,
   and None otherwise *}
 
 fun ProjFSetI :: "vbasic \<Rightarrow> (vbasic fset) option" where
-"ProjFSetI (FinI xs) = Some (fset xs)" |
+"ProjFSetI (FinI t xs) = Some (fset xs)" |
 "ProjFSetI x = None"
 
 lemma FSetI_inv [simp]:
-  "ProjFSetI (FSetI xs) = Some xs"
+  "ProjFSetI (FSetI t xs) = Some xs"
   by (simp add:FSetI_def)
 
 declare ProjFSetI.simps [simp del]
@@ -158,10 +159,10 @@ fun ProjBoolI :: "vbasic \<Rightarrow> bool option" where
 "ProjBoolI (BoolI x) = Some x" | "ProjBoolI x = None"
 
 fun ProjListI :: "vbasic \<Rightarrow> (vbasic list) option" where
-"ProjListI (ListI xs) = Some xs" | "ProjListI xs = None"
+"ProjListI (ListI t xs) = Some xs" | "ProjListI xs = None"
 
 fun ProjOptionI :: "vbasic \<Rightarrow> (vbasic option) option" where
-"ProjOptionI (OptionI x) = Some x" | "ProjOptionI x = None"
+"ProjOptionI (OptionI t x) = Some x" | "ProjOptionI x = None"
 
 fun ProjRecI :: "vbasic \<Rightarrow> (vbasic list) option" where
 "ProjRecI (RecI r) = Some r" | "ProjRecI xs = None"
@@ -197,16 +198,16 @@ RealI_type[intro!]: "RealI x :\<^sub>b RealT" |
 CharI_type[intro!]: "CharI x :\<^sub>b CharT" |
 TokenI_type[intro!]: "TokenI x :\<^sub>b TokenT" |
 QuoteI_type[intro!]: "QuoteI x :\<^sub>b QuoteT" |
-ListI_type[intro!]: "\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>b a \<rbrakk> \<Longrightarrow> ListI xs :\<^sub>b ListT a" |
-OptionI_Some_type[intro]: "\<lbrakk> x :\<^sub>b a \<rbrakk> \<Longrightarrow> OptionI (Some x) :\<^sub>b OptionT a" |
-OptionI_None_type[intro]: "OptionI None :\<^sub>b OptionT a" |
-FinI_type[intro]: "\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>b a; sorted xs; distinct xs \<rbrakk> \<Longrightarrow> FinI xs :\<^sub>b FSetT a" |
+ListI_type[intro!]: "\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>b a \<rbrakk> \<Longrightarrow> ListI a xs :\<^sub>b ListT a" |
+OptionI_Some_type[intro]: "\<lbrakk> x :\<^sub>b a \<rbrakk> \<Longrightarrow> OptionI a (Some x) :\<^sub>b OptionT a" |
+OptionI_None_type[intro]: "OptionI a None :\<^sub>b OptionT a" |
+FinI_type[intro]: "\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>b a; sorted xs; distinct xs \<rbrakk> \<Longrightarrow> FinI a xs :\<^sub>b FSetT a" |
 PairI_type[intro!]: "\<lbrakk> x :\<^sub>b a; y :\<^sub>b b \<rbrakk> \<Longrightarrow> PairI x y :\<^sub>b PairT a b" |
 MapI_type[intro]: "\<lbrakk> \<forall>(x,y)\<in>set xs. x :\<^sub>b a \<and> y :\<^sub>b b; sorted (map fst xs); distinct (map fst xs) \<rbrakk> \<Longrightarrow> MapI xs :\<^sub>b MapT a b" |
 RecI_type[intro]: "\<lbrakk> xs :\<^sub>r ts \<rbrakk>  \<Longrightarrow> RecI xs :\<^sub>b RecordT ts" |
 NameI_type[intro]: "NameI n :\<^sub>b NameT" |
 TypeI_type[intro]: "TypeI t :\<^sub>b TypeT" |
-BotI_type[intro]: "BotI :\<^sub>b a" |
+BotI_type[intro]: "BotI a :\<^sub>b a" |
 Cons_type[intro]: "\<lbrakk> x :\<^sub>b t; xs :\<^sub>r ts \<rbrakk> \<Longrightarrow> (x # xs) :\<^sub>r (t # ts)" |
 Nil_type[intro]: "[] :\<^sub>r []"
 
@@ -229,11 +230,11 @@ inductive_cases
   TokenT_type_cases [elim!]: "x :\<^sub>b TokenT" and
   QuoteI_type_cases [elim]: "QuoteI x :\<^sub>b t" and
   QuoteT_type_cases [elim!]: "x :\<^sub>b QuoteT" and
-  ListI_type_cases [elim]: "ListI xs :\<^sub>b t" and
+  ListI_type_cases [elim]: "ListI a xs :\<^sub>b b" and
   ListT_type_cases [elim!]: "x :\<^sub>b ListT a" and
-  OptionI_type_cases [elim]: "OptionI x :\<^sub>b t" and
+  OptionI_type_cases [elim]: "OptionI a x :\<^sub>b b" and
   OptionT_type_cases [elim]: "x :\<^sub>b OptionT a" and
-  FinI_type_cases [elim]: "FinI x :\<^sub>b t" and
+  FinI_type_cases [elim]: "FinI a x :\<^sub>b b" and
   FinT_type_cases: "x :\<^sub>b FSetT a" and
   PairI_type_cases [elim]: "PairI x y :\<^sub>b t" and
   PairT_type_cases [elim!]: "x :\<^sub>b PairT a b" and
@@ -245,13 +246,13 @@ inductive_cases
   Nil_type_cases [elim!]: "x :\<^sub>r []" and
   FuncT_type_casesB [elim!]: "x :\<^sub>b a \<rightarrow> b" and
   SetT_type_casesB [elim!]: "x :\<^sub>b SetT a" and
-  BotI_type_cases[elim]: "BotI :\<^sub>b a"
+  BotI_type_cases[elim]: "BotI a :\<^sub>b b"
 
 definition bcarrier :: "vdmt \<Rightarrow> vbasic set" where
 "bcarrier t = {x. x :\<^sub>b t}"
 
 fun vbdefined :: "vbasic \<Rightarrow> bool" ("\<D>\<^sub>b") where
-"\<D>\<^sub>b BotI = False" |
+"\<D>\<^sub>b (BotI a) = False" |
 "\<D>\<^sub>b (PairI x y) = (\<D>\<^sub>b x \<and> \<D>\<^sub>b y)" |
 "\<D>\<^sub>b (BoolI x) = True" |
 "\<D>\<^sub>b (NatI n) = True" |
@@ -261,10 +262,10 @@ fun vbdefined :: "vbasic \<Rightarrow> bool" ("\<D>\<^sub>b") where
 "\<D>\<^sub>b (CharI x) = True" |
 "\<D>\<^sub>b (QuoteI x) = True" |
 "\<D>\<^sub>b (TokenI x) = \<D>\<^sub>b x" |
-"\<D>\<^sub>b (ListI xs) = foldr (op \<and> \<circ> \<D>\<^sub>b) xs True" |
-"\<D>\<^sub>b (OptionI None) = True" |
-"\<D>\<^sub>b (OptionI (Some x)) = \<D>\<^sub>b x" |
-"\<D>\<^sub>b (FinI xs) = foldr (op \<and> \<circ> \<D>\<^sub>b) xs True" |
+"\<D>\<^sub>b (ListI a xs) = foldr (op \<and> \<circ> \<D>\<^sub>b) xs True" |
+"\<D>\<^sub>b (OptionI a None) = True" |
+"\<D>\<^sub>b (OptionI a (Some x)) = \<D>\<^sub>b x" |
+"\<D>\<^sub>b (FinI a xs) = foldr (op \<and> \<circ> \<D>\<^sub>b) xs True" |
 "\<D>\<^sub>b (RecI xs) = foldr (op \<and> \<circ> \<D>\<^sub>b) xs True" |
 "\<D>\<^sub>b (MapI xs) = foldr (op \<and> \<circ> (\<lambda> x. \<D>\<^sub>b (fst x) \<and> \<D>\<^sub>b (snd x))) xs True" | 
 "\<D>\<^sub>b (NameI n) = True" |
@@ -290,36 +291,36 @@ lemma vbtypes_simps [simp]:
  apply (auto simp add:vbtypes_def)
  apply (rule_tac x="TokenI (NatI 0)" in exI)
  apply (force)
- apply (rule_tac x="FSetI \<lbrace>\<rbrace>" in exI)
+ apply (rule_tac x="FSetI a \<lbrace>\<rbrace>" in exI)
  apply (force simp add:FSetI_def)
- apply (rule_tac x="ListI []" in exI)
+ apply (rule_tac x="ListI a []" in exI)
  apply (force)
 sorry
 
 text {* We introduce a couple of derived typing rules *}
 
-lemma NilI_type[intro]: "ListI [] :\<^sub>b ListT a"
+lemma NilI_type[intro]: "ListI a [] :\<^sub>b ListT a"
   by auto
 
 lemma ConsI_type[intro]: 
-  "\<lbrakk> x :\<^sub>b a; ListI xs :\<^sub>b ListT a \<rbrakk> 
-   \<Longrightarrow> ListI (x # xs) :\<^sub>b ListT a"
+  "\<lbrakk> x :\<^sub>b a; ListI a xs :\<^sub>b ListT a \<rbrakk> 
+   \<Longrightarrow> ListI a (x # xs) :\<^sub>b ListT a"
   by (auto)
 
 lemma FSetI_type[intro]:
   assumes sty: "\<forall>x\<in>\<^sub>fxs. x :\<^sub>b a" 
-  shows "FSetI xs :\<^sub>b FSetT a"
+  shows "FSetI a xs :\<^sub>b FSetT a"
   by (auto simp add:FSetI_def sty)
 
 lemma FSetT_type_cases [elim!]: 
-  "\<lbrakk> x :\<^sub>b FSetT t; \<And> xs. \<lbrakk> x = FSetI xs; \<forall>x\<in>\<^sub>fxs. x :\<^sub>b t \<rbrakk> \<Longrightarrow> P; x = BotI \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk> x :\<^sub>b FSetT t; \<And> xs. \<lbrakk> x = FSetI t xs; \<forall>x\<in>\<^sub>fxs. x :\<^sub>b t \<rbrakk> \<Longrightarrow> P; x = BotI (\<fin> t) \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   apply (erule FinT_type_cases)
   apply (auto simp add:FSetI_def)
   apply (metis fset_inv)
 done
 
 lemma FSetI_type_cases [elim]:
-  "\<lbrakk>FSetI xs :\<^sub>b t; \<And>a. \<lbrakk>t = FSetT a; \<forall>x\<in>\<^sub>fxs. x :\<^sub>b a\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk>FSetI a xs :\<^sub>b t; \<And>a. \<lbrakk>t = FSetT a; \<forall>x\<in>\<^sub>fxs. x :\<^sub>b a\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   by (auto simp add:FSetI_def)
 
 lemma FinMapI_type[intro]: 
@@ -333,7 +334,7 @@ lemma ran_map_of: "y \<in> ran (map_of xs) \<Longrightarrow> \<exists> x. (x,y) 
   by (auto dest:map_of_SomeD simp add:ran_def)
 
 lemma FinMapI_type_cases [elim!]:
-  "\<lbrakk>x :\<^sub>b MapT a b; x \<noteq> BotI; \<And>f. \<lbrakk>x = FinMapI f; \<forall> x\<in>Rep_fset(fdom f). x :\<^sub>b a; \<forall> y\<in>Rep_fset(fran f). y :\<^sub>b b \<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk>x :\<^sub>b MapT a b; x \<noteq> BotI (MapT a b); \<And>f. \<lbrakk>x = FinMapI f; \<forall> x\<in>Rep_fset(fdom f). x :\<^sub>b a; \<forall> y\<in>Rep_fset(fran f). y :\<^sub>b b \<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   apply (case_tac x, auto elim!:MapI_type_cases)
   apply (simp add:FinMapI_def fdom_def fran_def)
   apply (subgoal_tac "list = fmap_list (list_fmap list)")
@@ -357,7 +358,7 @@ subsection {* Full value typing relation *}
 inductive vdmt_rel :: "vdmv \<Rightarrow> vdmt \<Rightarrow> bool" (infix ":\<^sub>v" 50) where
 SetD_type[intro]: "\<lbrakk> \<forall> x\<in>xs. x :\<^sub>b a \<rbrakk> \<Longrightarrow> SetD xs :\<^sub>v SetT a" |
 BasicD_type[intro]: "x :\<^sub>b a \<Longrightarrow> BasicD x :\<^sub>v a" |
-FuncD_type[intro]: "\<lbrakk> \<And> x. x :\<^sub>b a \<Longrightarrow> f x :\<^sub>v b; f BotI = BotD \<rbrakk> \<Longrightarrow> FuncD f :\<^sub>v a \<rightarrow> b"
+FuncD_type[intro]: "\<lbrakk> \<And> x. x :\<^sub>b a \<Longrightarrow> f x :\<^sub>v b; f (BotI a) = BotD b \<rbrakk> \<Longrightarrow> FuncD f :\<^sub>v a \<rightarrow> b"
 
 inductive_cases
   SetT_type_cases': "x :\<^sub>v SetT a" and
@@ -367,14 +368,14 @@ inductive_cases
   BasicD_type_cases[elim]: "BasicD x :\<^sub>v t"
 
 lemma SetT_type_cases [elim]: 
-  "\<lbrakk> x :\<^sub>v SetT a; \<And> xs. \<lbrakk> x = SetD xs; \<forall>x\<in>xs. x :\<^sub>b a \<rbrakk> \<Longrightarrow> P; x = BotD \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk> x :\<^sub>v SetT a; \<And> xs. \<lbrakk> x = SetD xs; \<forall>x\<in>xs. x :\<^sub>b a \<rbrakk> \<Longrightarrow> P; x = BotD (SetT a) \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   apply (erule SetT_type_cases')
   apply (auto)
 done
 
 lemma FuncT_type_cases [elim]: 
-  "\<lbrakk> x :\<^sub>v a \<rightarrow> b; \<And> f. \<lbrakk> x = FuncD f; \<forall> x. x :\<^sub>b a \<longrightarrow> f x :\<^sub>v b; f BotI = BotD \<rbrakk> \<Longrightarrow> P
-   ; x = BotD \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk> x :\<^sub>v a \<rightarrow> b; \<And> f. \<lbrakk> x = FuncD f; \<forall> x. x :\<^sub>b a \<longrightarrow> f x :\<^sub>v b; f (BotI a) = BotD b \<rbrakk> \<Longrightarrow> P
+   ; x = BotD (a \<rightarrow> b) \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   apply (erule FuncT_type_cases')
   apply (auto)
 done
@@ -396,10 +397,10 @@ lemma vcarrier [simp]: "x :\<^sub>v t \<Longrightarrow> x \<in> vcarrier t"
   by (simp add:vcarrier_def)
 
 lemma vcarrier_simps [simp]:
-  "vcarrier \<nat> = {BotD} \<union> {BasicD (NatI x) | x . True}"
-  "vcarrier \<int> = {BotD} \<union> {BasicD (IntI x) | x . True}"
-  "vcarrier \<rat> = {BotD} \<union> {BasicD (RatI x) | x . True}"
-  "vcarrier \<bool> = {BotD} \<union> {BasicD (BoolI x) | x . True}"
+  "vcarrier \<nat> = {BotD \<nat>} \<union> {BasicD (NatI x) | x . True}"
+  "vcarrier \<int> = {BotD \<int>} \<union> {BasicD (IntI x) | x . True}"
+  "vcarrier \<rat> = {BotD \<rat>} \<union> {BasicD (RatI x) | x . True}"
+  "vcarrier \<bool> = {BotD \<bool>} \<union> {BasicD (BoolI x) | x . True}"
   by (auto simp add:vcarrier_def)
 
 (*
@@ -414,7 +415,7 @@ subsection {* Injecting basic values into vdmv *}
 
 fun ProjBasicD :: "vdmv \<Rightarrow> vbasic" where
 "ProjBasicD (BasicD x) = x" |
-"ProjBasicD _ = BotI"
+"ProjBasicD _ = BotI NatT"
 
 fun IsBasicD :: "vdmv \<Rightarrow> bool" where
 "IsBasicD (BasicD x) = True" |
@@ -424,6 +425,7 @@ lemma ProjBasicD_inv [simp] :
   "IsBasicD x \<Longrightarrow> BasicD (ProjBasicD x) = x"
   by (case_tac x, simp_all)
 
+(*
 definition vstrictify :: "(vbasic \<Rightarrow> vdmv) \<Rightarrow> (vbasic \<Rightarrow> vdmv)" where
 "vstrictify f = (\<lambda> x. if (x = BotI) then BotD else f x)"
 
@@ -447,6 +449,7 @@ definition vbasic_fun1 :: "(vbasic \<Rightarrow> vbasic) \<Rightarrow> vdmv" whe
 
 definition vbasic_fun2 :: "(vbasic \<Rightarrow> vbasic \<Rightarrow> vbasic) \<Rightarrow> vdmv" where
 "vbasic_fun2 f \<equiv> SFuncD (\<lambda> x. SFuncD (\<lambda> y. BasicD (f x y)))"
+*)
 
 primrec ProjFuncD :: "vdmv \<Rightarrow> (vbasic \<Rightarrow> vdmv)" where
 "ProjFuncD (FuncD f) = f"

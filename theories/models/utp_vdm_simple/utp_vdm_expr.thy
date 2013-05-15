@@ -24,13 +24,13 @@ notation Rep_vdme ("\<langle>_\<rangle>\<^sub>v")
 definition UNREST_VDME :: "(vdmv VAR) set \<Rightarrow> 'a vdme \<Rightarrow> bool" where
 "UNREST_VDME vs e \<equiv> (\<forall> b1 b2. \<langle>e\<rangle>\<^sub>v(b1 \<oplus>\<^sub>b b2 on vs) = \<langle>e\<rangle>\<^sub>v b1)" 
 
-abbreviation MkVVar :: "char list \<Rightarrow> 'a::vbasic itself \<Rightarrow> vdmv VAR" where
-"MkVVar n t \<equiv> (MkPlain n (embTYPE (Type t)) False)"
+abbreviation MkVDVar :: "char list \<Rightarrow> 'a::vbasic itself \<Rightarrow> vdmv VAR" where
+"MkVDVar n t \<equiv> (MkPlain n (embTYPE (Type t)) False)"
 
 definition VarE :: "string \<Rightarrow> 'a::vbasic vdme" ("$_") where
-"VarE n = Abs_vdme (\<lambda> b. the (Project (ProjBasicD (\<langle>b\<rangle>\<^sub>b (MkVVar n TYPE('a))))))"
+"VarE n = Abs_vdme (\<lambda> b. the (Project (ProjBasicD (\<langle>b\<rangle>\<^sub>b (MkVDVar n TYPE('a))))))"
 
-lemma UNREST_VDME_VarE [unrest]: "UNREST_VDME (VAR - {MkVVar n TYPE('a)}) ($n :: 'a vdme) "
+lemma UNREST_VDME_VarE [unrest]: "UNREST_VDME (VAR - {MkVDVar n TYPE('a)}) ($n :: 'a vdme) "
   by (simp add: UNREST_VDME_def VarE_def)
 
 declare [[coercion VarE]]
@@ -91,6 +91,29 @@ done
 lemma UNREST_EXPR_SemE [unrest]:
   "UNREST_VDME vs e \<Longrightarrow> UNREST_EXPR vs (SemE e)"
   by (simp add:UNREST_EXPR_def UNREST_VDME_def SemE_rep_eq)
+
+
+lemma embTYPE_inv_vdm [simp]: 
+  "prjTYPE (embTYPE VTYPE('a) :: vdmv UTYPE) = VTYPE('a)"
+  apply (rule_tac embTYPE_inv[of "BasicD (Inject undefined)"])
+  apply (auto simp add:utype_rel_vdmv_def Defined_vdmv_def)
+  apply (rule)
+  apply (rule Inject_type)
+done
+
+(* Need this *)
+lemma "\<lbrakk> x :\<^sub>b a; x :\<^sub>b b \<rbrakk> \<Longrightarrow> a = b"
+  apply (induct x arbitrary: a b)
+  apply (auto)
+apply (metis PairI_type_cases)
+
+
+lemma SemE_expr_type [simp]: 
+  "expr_type (SemE (v::'a vdme)) = embTYPE VTYPE('a)"
+  apply (simp add:expr_type_def etype_rel_def SemE_rep_eq type_rel_vdmt)
+  apply (rule the_equality)
+  apply (auto)
+  apply (rule BasicD_type)
 
 lemma SemE_type_nat [simp]: "expr_type (SemE (v::nat vdme)) = embTYPE NatT"
   apply (simp add:expr_type_def etype_rel_def SemE_rep_eq)
@@ -383,10 +406,19 @@ done
 
 abbreviation "x \<equiv> MkPlain ''x'' (embTYPE IntT) False"
 
+lemma "`''x'' := 7 \<and> ''x'' := 1` = false"
+  apply (auto simp add:evalr typing defined unrest binding_upd_apply)
+
+  apply (simp add:evale)
+done
+
+
 lemma "`''x'' := 7::int vdme \<and> ''x'' := 1::int vdme` = false"
   apply (auto simp add:evalr typing defined unrest binding_upd_apply)
   apply (simp add:evale)
 done
+
+
 
 lemma "`''x'' := 7::int vdme ; ''x'' := $''x'' + 1::int vdme` = `''x'' := 8::int vdme`"
   apply (simp)

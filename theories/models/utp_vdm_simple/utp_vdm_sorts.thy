@@ -12,7 +12,7 @@ definition utype_rel_vval :: "vval \<Rightarrow> nat \<Rightarrow> bool" where
 "utype_rel_vval x u = \<exists> t :: vdmt. u = emb\<cdot>(Def t) \<and> x :\<^sub>v t)"
 *)
 
-lemma Defined_nbot [simp]: "\<D>\<^sub>v x \<Longrightarrow> x \<noteq> BotD"
+lemma Defined_nbot [simp]: "\<D>\<^sub>v x \<Longrightarrow> \<forall> a. x \<noteq> BotD a"
   by (auto)
 
 definition utype_rel_vdmv :: "vdmv \<Rightarrow> nat \<Rightarrow> bool" where
@@ -60,7 +60,7 @@ lemma type_rel_vdmt_elim [elim]:
   "\<lbrakk>(x::vdmv) : a; \<And> t. \<lbrakk> a = embTYPE t; x :\<^sub>v t \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (metis type_rel_vdmt_exists)
 
-lemma BotD_type: "BotD :\<^sub>v a"
+lemma BotD_type: "BotD a :\<^sub>v a"
   by (auto)
 
 lemma type_rel_vdmt: 
@@ -69,6 +69,7 @@ lemma type_rel_vdmt:
   apply (metis Rep_UTYPE_elim from_nat_to_nat utype_rel_vdmv_def)
 done
 
+(*
 instantiation vdmv :: BOT_SORT
 begin
 
@@ -86,6 +87,7 @@ lemma Defined_bot [simp]: "\<D> (BotD :: vdmv) \<longleftrightarrow> False"
 
 lemma Defined_ubot [simp]: "\<D> \<bottom>v \<longleftrightarrow> False"
   by (simp add:Defined_vdmv_def)
+*)
 
 (*
 lemma vdmv_UTYPE_nbot [simp]: 
@@ -203,15 +205,18 @@ lemma ProjBasicD_inv [simp]:
   "x \<in> vbvalues \<Longrightarrow> BasicD (ProjBasicD x) = x"
   by (auto simp add:vbvalues_def)
 
-lemma ProjBasicD_not_basic [simp]: "\<not> IsBasicD x \<Longrightarrow> ProjBasicD x = BotI"
-  by (case_tac x, auto)
+(*
+lemma ProjBasicD_not_basic [simp]: "\<lbrakk> x :\<^sub>v a;  \<not> IsBasicD x \<rbrakk> \<Longrightarrow> ProjBasicD x = BotI a"
+  apply (case_tac x, auto)
+*)
 
 lemma embTYPE_inv_FuncT:
   "prjTYPE (embTYPE (a \<rightarrow> b) :: vdmv UTYPE) = (a \<rightarrow> b)"
-  apply (rule_tac embTYPE_inv[of "FuncD (\<lambda> x. BotD)"])
+  apply (rule_tac embTYPE_inv[of "FuncD (\<lambda> x. BotD b)"])
   apply (auto simp add: utype_rel_vdmv_def Defined_vdmv_def)
 done
 
+(*
 instantiation vdmv :: FUNCTION_SORT
 begin
 
@@ -254,5 +259,6 @@ instance
 done
 
 end
+*)
 
 end

@@ -24,6 +24,12 @@ class vbasic =
   assumes Inject_inj [simp]: "Inject x = Inject y \<Longrightarrow> x = y"
   and     Inject_range [simp]: "range Inject = {x. x :\<^sub>b Type (TYPE('a)) \<and> \<D>\<^sub>b x}"
 
+syntax
+  "_VTYPE" :: "type => logic"  ("(1VTYPE/(1'(_')))")
+
+translations "VTYPE('a)" == "CONST Type TYPE('a)"
+
+
 text {* InjB and ProjB lift the Inject and Project functions up to domain level. *}
 
 context vbasic
@@ -42,15 +48,15 @@ lemma Inject_Project [simp]: "Project (Inject x) = Some x"
 done
 
 lemma Project_Inject [simp]: 
-  "\<And> x. \<lbrakk> x :\<^sub>b Type TYPE('a); \<D>\<^sub>b x \<rbrakk> \<Longrightarrow> Inject (the (Project x)) = x"
+  "\<And> x. \<lbrakk> x :\<^sub>b VTYPE('a); \<D>\<^sub>b x \<rbrakk> \<Longrightarrow> Inject (the (Project x)) = x"
   by (auto intro:f_inv_into_f simp add:Project_def)
 
 lemma Project_bot [simp]:
-  "Project BotI = None"
+  "Project (BotI a) = None"
   by (simp add:Project_def)
 
-lemma Project_dom [simp]: "\<And> x y. Project x = Some y \<Longrightarrow> x :\<^sub>b Type TYPE('a)"
-  by (case_tac "x :\<^sub>b Type TYPE('a)", auto simp add:Project_def)
+lemma Project_dom [simp]: "\<And> x y. Project x = Some y \<Longrightarrow> x :\<^sub>b VTYPE('a)"
+  by (case_tac "x :\<^sub>b VTYPE('a)", auto simp add:Project_def)
 
 lemma Inject_Project_comp [simp]:
   "Project \<circ> Inject = Some" 
@@ -61,7 +67,7 @@ lemma Inject_defined [simp]:
   by (metis Inject_Project Project_def option.simps(2))
   
 lemma Project_defined [dest]: 
-  "\<lbrakk> x :\<^sub>b Type TYPE('a); \<D>\<^sub>b x \<rbrakk> \<Longrightarrow> Project x \<noteq> None"
+  "\<lbrakk> x :\<^sub>b VTYPE('a); \<D>\<^sub>b x \<rbrakk> \<Longrightarrow> Project x \<noteq> None"
   by (metis Project_def option.simps(3))
 
 lemma Project_Some [dest,simp]: 
@@ -73,7 +79,7 @@ lemma Project_Some [dest,simp]:
 done
 
 lemma Inject_Project_list [simp]:
-  assumes "foldr (op \<and> \<circ> \<D>\<^sub>b) xs True" "\<forall>x\<in>set xs. x :\<^sub>b Type TYPE('a)"
+  assumes "foldr (op \<and> \<circ> \<D>\<^sub>b) xs True" "\<forall>x\<in>set xs. x :\<^sub>b VTYPE('a)"
   shows "xs = map Inject (map (the \<circ> Project) xs)"
 using assms by (induct xs, auto)
 
@@ -93,7 +99,7 @@ instance
   by (intro_classes, auto simp add:Inject_nat_def) 
 end
 
-lemma Type_nat: "NatT = Type TYPE(nat)"
+lemma Type_nat: "NatT = VTYPE(nat)"
   by (simp add:Type_nat_def)
 
 subsection {* Integers are injectable *}
@@ -109,7 +115,7 @@ declare Type_int_def [simp]
 instance by (intro_classes, auto simp add:Inject_int_def) 
 end
 
-lemma Type_int: "IntT = Type TYPE(int)"
+lemma Type_int: "IntT = VTYPE(int)"
   by (simp add:Type_int_def)
 
 subsection {* Bools are injectable *}
@@ -124,7 +130,7 @@ declare Type_bool_def [simp]
 instance by (intro_classes, auto simp add:Inject_bool_def) 
 end
 
-lemma Type_bool: "BoolT = Type TYPE(bool)"
+lemma Type_bool: "BoolT = VTYPE(bool)"
   by (simp add:Type_bool_def)
 
 subsection {* Rationals are injectable *}
@@ -140,7 +146,7 @@ declare Type_rat_def [simp]
 instance by (intro_classes, auto simp add:Inject_rat_def)
 end
 
-lemma Type_rat: "RatT = Type TYPE(rat)"
+lemma Type_rat: "RatT = VTYPE(rat)"
   by (simp add:Type_rat_def)
 
 subsection {* Characters are injectable *}
@@ -154,7 +160,7 @@ definition "Type_char (x::char itself) \<equiv> CharT"
 instance by (intro_classes, auto simp add:Inject_char_def Type_char_def)
 end
 
-lemma Type_char: "CharT = Type TYPE(char)"
+lemma Type_char: "CharT = VTYPE(char)"
   by (simp add:Type_char_def)
 
 subsection {* Pairs are injectable *}
@@ -203,7 +209,7 @@ instantiation list :: (vbasic) vbasic
 begin
 
 definition Inject_list :: "'a list \<Rightarrow> vbasic" where
-"Inject_list xs = ListI (map Inject xs)"
+"Inject_list xs = ListI (Type (TYPE('a))) (map Inject xs)"
 
 definition Type_list :: "'a list itself \<Rightarrow> vdmt" where
 "Type_list xs \<equiv> ListT (Type (TYPE('a)))"
@@ -226,7 +232,7 @@ end
 
 (* Unfortunately the injections only work for monomorphically typed function, at the moment
    which is no surprise as we need explicit machinery to build polymorphic versions *)
-lemma Type_list: "ListT (Type TYPE('a)) = Type(TYPE(('a::vbasic) list))"
+lemma Type_list: "ListT (VTYPE('a)) = Type(TYPE(('a::vbasic) list))"
   by (simp add:Type_list_def)
 
 subsection {* Finite sets are injectable *}
@@ -244,7 +250,7 @@ lemma option_set_insert:
 lemma option_set_image [simp]: "option_set (Some ` xs) = Some xs"
   by (auto simp add:option_set_def image_def)
 
-lemma FSetI_inj: "FSetI f = FSetI g \<Longrightarrow> f = g"
+lemma FSetI_inj: "FSetI a f = FSetI b g \<Longrightarrow> f = g"
   apply (simp add:FSetI_def flist_def)
   apply (metis Rep_fset_finite Rep_fset_inject sorted_list_of_set_inj)
 done
@@ -253,7 +259,7 @@ instantiation fset :: (vbasic) vbasic
 begin
 
 definition Inject_fset :: "'a fset \<Rightarrow> vbasic" where
-"Inject_fset xs = FSetI (Abs_fset (Inject ` Rep_fset xs))"
+"Inject_fset xs = FSetI (Type (TYPE('a))) (Abs_fset (Inject ` Rep_fset xs))"
 
 (*
 definition Project_fset :: "vbasic \<Rightarrow> 'a fset option" where 
@@ -355,10 +361,10 @@ instance proof
 
 next
   
-  show "range (Inject :: ('a,'b) fmap \<Rightarrow> vbasic) = {x. x :\<^sub>b Type TYPE(('a,'b) fmap) \<and> \<D>\<^sub>b x}"
+  show "range (Inject :: ('a,'b) fmap \<Rightarrow> vbasic) = {x. x :\<^sub>b VTYPE(('a,'b) fmap) \<and> \<D>\<^sub>b x}"
   proof (auto simp add:Inject_fmap_def Type_fmap_def)
     fix x :: "('a,'b) fmap"
-    show "FinMapI (Abs_fmap (vbasic_map x)) :\<^sub>b MapT (Type TYPE('a)) (Type TYPE('b))"      
+    show "FinMapI (Abs_fmap (vbasic_map x)) :\<^sub>b MapT (VTYPE('a)) (VTYPE('b))"      
       by (auto intro!:FinMapI_type simp add:fdom_def fran_def Rep_fmap_inverse
          ,force simp add:ran_def)
 
@@ -371,8 +377,8 @@ next
   next
     fix f :: "(vbasic, vbasic) fmap"
     assume tyassm:
-      "\<forall>x\<in>Rep_fset (Fmap.fdom f). x :\<^sub>b Type TYPE('a)"
-      "\<forall>y\<in>Rep_fset (Fmap.fran f). y :\<^sub>b Type TYPE('b)"
+      "\<forall>x\<in>Rep_fset (Fmap.fdom f). x :\<^sub>b VTYPE('a)"
+      "\<forall>y\<in>Rep_fset (Fmap.fran f). y :\<^sub>b VTYPE('b)"
 
     thus "FinMapI f \<in> range (Inject :: ('a,'b) fmap \<Rightarrow> vbasic)" 
     proof -
@@ -408,6 +414,7 @@ next
 qed
 end
 
+(*
 class vdmv = 
   fixes InjectV  :: "'a \<Rightarrow> vdmv"
   and   TypeV    :: "'a itself \<Rightarrow> vdmt"
@@ -497,24 +504,27 @@ instance
   apply (simp_all)
 sorry
 end
+*)
   
 subsection {* Injecting functions over basic values *}
 
 definition vfun1 :: "('a::vbasic \<Rightarrow> 'b::vbasic) \<Rightarrow> ('a set) \<Rightarrow> vdmv" where
 "vfun1 \<equiv> \<lambda> f P. FuncD (\<lambda> x. case (Project x) of 
-                              None \<Rightarrow> BotD 
-                            | Some v \<Rightarrow> if (v \<in> P) then BasicD (Inject (f v)) else BotD)"
+                              None \<Rightarrow> BotD (VTYPE('b))
+                            | Some v \<Rightarrow> if (v \<in> P) then BasicD (Inject (f v)) 
+                                                   else BotD (VTYPE('b)) )"
 
 definition vfun2 :: 
   "('a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic) \<Rightarrow>
    'a set \<Rightarrow> 'b set \<Rightarrow> vdmv" where
 "vfun2 \<equiv> \<lambda> f P Q. FuncD (\<lambda> x. case (Project x) of
-                                None \<Rightarrow> BotD
-                              | Some v \<Rightarrow> if (v \<in> P) then vfun1 (f v) Q else BotD)"
+                                None \<Rightarrow> BotD (VTYPE('b) \<rightarrow> VTYPE('c))
+                              | Some v \<Rightarrow> if (v \<in> P) then vfun1 (f v) Q 
+                                                     else BotD (VTYPE('b) \<rightarrow> VTYPE('c)))"
 
 lemma vfun1_type [typing]:
   fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic"
-  shows "vfun1 f P :\<^sub>v Type TYPE('a) \<rightarrow> Type TYPE('b)"
+  shows "vfun1 f P :\<^sub>v VTYPE('a) \<rightarrow> VTYPE('b)"
   apply (simp add:vfun1_def)
   apply (rule FuncD_type)
   apply (case_tac "Project x :: 'a option")
@@ -523,7 +533,7 @@ done
 
 lemma vfun2_type [typing]:
   fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic"
-  shows "vfun2 f P Q :\<^sub>v Type TYPE('a) \<rightarrow> Type TYPE('b) \<rightarrow> Type TYPE('c)"
+  shows "vfun2 f P Q :\<^sub>v VTYPE('a) \<rightarrow> VTYPE('b) \<rightarrow> VTYPE('c)"
   apply (simp add:vfun2_def)
   apply (rule FuncD_type)
   apply (case_tac "Project x :: 'a option")
