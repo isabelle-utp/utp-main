@@ -1,4 +1,4 @@
-session "HOL-UTP" (main) = "HOL" +
+session "HOL-UTP" = "Kleene_Algebra" +
   options [document = pdf, document_output = "output"]
   theories [document = false]
   theories 
@@ -31,3 +31,31 @@ session "isabelle-utp-tutorial" in "papers/isabelle-utp-tutorial" = "HOL-UTP" +
     "proof_h1_left_unit"
   files "document/root.tex"
 
+session Datatype_Order_Generator (AFP) in "contrib/Datatype_Order_Generator" 
+  = "HOL-Library" +
+  options [timeout = 300]
+  theories [document=false]
+    "../HashCode"
+  theories
+    Derive
+    Derive_Examples
+  files
+    "document/root.bib"
+    "document/root.tex"
+
+session Kleene_Algebra (AFP) in "contrib/Kleene_Algebra"
+  = "Datatype_Order_Generator" +
+  options [timeout = 300]
+  theories
+    Action_Algebra
+    Action_Algebra_Models
+    Dioid
+    Dioid_Models
+    Kleene_Algebra
+    Kleene_Algebra_Models
+    Matrix
+    Omega_Algebra
+    Signatures
+  files
+    "document/root.bib"
+    "document/root.tex"

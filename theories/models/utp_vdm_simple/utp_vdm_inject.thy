@@ -467,7 +467,7 @@ instantiation "fun" :: (vbasic,vdmv) vdmv
 begin
 
 definition InjectV_fun :: "('a \<Rightarrow> 'b) \<Rightarrow> vdmv" where
-"InjectV_fun f = FuncV (\<lambda> x. case (Project x) of Some v \<Rightarrow> InjectV (f v) | None \<Rightarrow> BotV)"
+"InjectV_fun f = FuncD (\<lambda> x. case (Project x) of Some v \<Rightarrow> InjectV (f v) | None \<Rightarrow> BotD)"
 
 definition TypeV_fun :: "('a \<Rightarrow> 'b) itself \<Rightarrow> vdmt" where
 "TypeV_fun f = (Type (TYPE('a))) \<rightarrow> (TypeV (TYPE('b)))"
@@ -501,22 +501,22 @@ end
 subsection {* Injecting functions over basic values *}
 
 definition vfun1 :: "('a::vbasic \<Rightarrow> 'b::vbasic) \<Rightarrow> ('a set) \<Rightarrow> vdmv" where
-"vfun1 \<equiv> \<lambda> f P. FuncV (\<lambda> x. case (Project x) of 
-                              None \<Rightarrow> BotV 
-                            | Some v \<Rightarrow> if (v \<in> P) then BasicV (Inject (f v)) else BotV)"
+"vfun1 \<equiv> \<lambda> f P. FuncD (\<lambda> x. case (Project x) of 
+                              None \<Rightarrow> BotD 
+                            | Some v \<Rightarrow> if (v \<in> P) then BasicD (Inject (f v)) else BotD)"
 
 definition vfun2 :: 
   "('a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic) \<Rightarrow>
    'a set \<Rightarrow> 'b set \<Rightarrow> vdmv" where
-"vfun2 \<equiv> \<lambda> f P Q. FuncV (\<lambda> x. case (Project x) of
-                                None \<Rightarrow> BotV
-                              | Some v \<Rightarrow> if (v \<in> P) then vfun1 (f v) Q else BotV)"
+"vfun2 \<equiv> \<lambda> f P Q. FuncD (\<lambda> x. case (Project x) of
+                                None \<Rightarrow> BotD
+                              | Some v \<Rightarrow> if (v \<in> P) then vfun1 (f v) Q else BotD)"
 
 lemma vfun1_type [typing]:
   fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic"
   shows "vfun1 f P :\<^sub>v Type TYPE('a) \<rightarrow> Type TYPE('b)"
   apply (simp add:vfun1_def)
-  apply (rule FuncV_type)
+  apply (rule FuncD_type)
   apply (case_tac "Project x :: 'a option")
   apply (auto)
 done
@@ -525,13 +525,13 @@ lemma vfun2_type [typing]:
   fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic"
   shows "vfun2 f P Q :\<^sub>v Type TYPE('a) \<rightarrow> Type TYPE('b) \<rightarrow> Type TYPE('c)"
   apply (simp add:vfun2_def)
-  apply (rule FuncV_type)
+  apply (rule FuncD_type)
   apply (case_tac "Project x :: 'a option")
   apply (auto intro:typing)
 done
 
-definition "InjVB  x \<equiv> BasicV (Inject x)"
-definition "ProjVB x \<equiv> the (Project (ProjBasicV x))"
+definition "InjVB  x \<equiv> BasicD (Inject x)"
+definition "ProjVB x \<equiv> the (Project (ProjBasicD x))"
 
 lemma InjVB_inv[simp]: "ProjVB (InjVB x) = x"
   by (simp add:ProjVB_def InjVB_def)

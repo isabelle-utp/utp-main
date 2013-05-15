@@ -1,8 +1,5 @@
 theory utp_vdm_expr
 imports 
-  "../../core/utp_expr"
-  "../../parser/utp_pred_parser"
-  "../../laws/utp_rel_laws"
   utp_vdm_sorts 
 begin
 
@@ -31,7 +28,7 @@ abbreviation MkVVar :: "char list \<Rightarrow> 'a::vbasic itself \<Rightarrow> 
 "MkVVar n t \<equiv> (MkPlain n (embTYPE (Type t)) False)"
 
 definition VarE :: "string \<Rightarrow> 'a::vbasic vdme" ("$_") where
-"VarE n = Abs_vdme (\<lambda> b. the (Project (ProjBasicV (\<langle>b\<rangle>\<^sub>b (MkVVar n TYPE('a))))))"
+"VarE n = Abs_vdme (\<lambda> b. the (Project (ProjBasicD (\<langle>b\<rangle>\<^sub>b (MkVVar n TYPE('a))))))"
 
 lemma UNREST_VDME_VarE [unrest]: "UNREST_VDME (VAR - {MkVVar n TYPE('a)}) ($n :: 'a vdme) "
   by (simp add: UNREST_VDME_def VarE_def)
@@ -79,16 +76,16 @@ lemma UNREST_VDME_FSetE [unrest]: "\<lbrakk> \<forall> x \<in>\<^sub>f xs. UNRES
 done
 
 definition SemE :: "'a::vbasic vdme \<Rightarrow> vdmv WF_EXPRESSION" where 
-"SemE f = Abs_WF_EXPRESSION (\<lambda> b. BasicV (Inject (Rep_vdme f b)))"
+"SemE f = Abs_WF_EXPRESSION (\<lambda> b. BasicD (Inject (Rep_vdme f b)))"
 
-lemma SemE_rep_eq: "\<langle>SemE f\<rangle>\<^sub>e = (\<lambda> b. BasicV (Inject (Rep_vdme f b)))"
-  apply (subgoal_tac "(\<lambda> b. BasicV (Inject (Rep_vdme f b))) \<in> WF_EXPRESSION")
+lemma SemE_rep_eq: "\<langle>SemE f\<rangle>\<^sub>e = (\<lambda> b. BasicD (Inject (Rep_vdme f b)))"
+  apply (subgoal_tac "(\<lambda> b. BasicD (Inject (Rep_vdme f b))) \<in> WF_EXPRESSION")
   apply (simp add:SemE_def)
   apply (simp add:WF_EXPRESSION_def)
   apply (rule_tac x="embTYPE (Type TYPE('a))" in exI)
   apply (rule)
   apply (simp add:type_rel_vdmt)
-  apply (metis Abs_UTYPE_inverse BasicV_type Defined_vdmv_def InjVB_def InjVB_nbot Inject_type embTYPE_def from_nat_to_nat prjTYPE_def vdmt_UTYPE)
+  apply (metis Abs_UTYPE_inverse BasicD_type Defined_vdmv_def InjVB_def InjVB_nbot Inject_type embTYPE_def from_nat_to_nat prjTYPE_def vdmt_UTYPE)
 done
 
 lemma UNREST_EXPR_SemE [unrest]:
@@ -98,15 +95,15 @@ lemma UNREST_EXPR_SemE [unrest]:
 lemma SemE_type_nat [simp]: "expr_type (SemE (v::nat vdme)) = embTYPE NatT"
   apply (simp add:expr_type_def etype_rel_def SemE_rep_eq)
   apply (rule the_equality)
-  apply (metis Abs_UTYPE_type BasicV_type Defined_vdmv_def InjVB_def InjVB_nbot Inject_nat_def NatI_type embTYPE_def utype_rel_vdmv_def)
-  apply (metis BasicV_type_cases Inject_nat_def NatI_type_cases prjTYPE_inv_vdm type_rel_vdmt)
+  apply (metis Abs_UTYPE_type BasicD_type Defined_vdmv_def InjVB_def InjVB_nbot Inject_nat_def NatI_type embTYPE_def utype_rel_vdmv_def)
+  apply (metis BasicD_type_cases Inject_nat_def NatI_type_cases prjTYPE_inv_vdm type_rel_vdmt)
 done
 
 lemma SemE_type_int [simp]: "expr_type (SemE (v::int vdme)) = embTYPE IntT"
   apply (simp add:expr_type_def etype_rel_def SemE_rep_eq)
   apply (rule the_equality)
-  apply (metis Abs_UTYPE_type BasicV_type Defined_vdmv_def InjVB_def InjVB_nbot Inject_int_def IntI_type embTYPE_def utype_rel_vdmv_def)
-  apply (metis BasicV_type_cases Inject_int_def IntI_type_cases prjTYPE_inv_vdm type_rel_vdmt)
+  apply (metis Abs_UTYPE_type BasicD_type Defined_vdmv_def InjVB_def InjVB_nbot Inject_int_def IntI_type embTYPE_def utype_rel_vdmv_def)
+  apply (metis BasicD_type_cases Inject_int_def IntI_type_cases prjTYPE_inv_vdm type_rel_vdmt)
 done
 
 (* FIXME: The following two proofs can't be completed as the current representation of
@@ -125,7 +122,7 @@ oops
 lemma SemE_type: "expr_type (SemE (v::('a::vbasic) vdme)) = embTYPE (Type TYPE('a))"
   apply (simp add:expr_type_def etype_rel_def SemE_rep_eq)
   apply (rule the_equality)
-  apply (metis Abs_UTYPE_type BasicV_type Defined_vdmv_def InjVB_def InjVB_nbot Inject_type embTYPE_def utype_rel_vdmv_def)
+  apply (metis Abs_UTYPE_type BasicD_type Defined_vdmv_def InjVB_def InjVB_nbot Inject_type embTYPE_def utype_rel_vdmv_def)
   apply (auto)
 oops
 
@@ -241,8 +238,15 @@ definition less_vdme :: "'a vdme \<Rightarrow> 'a vdme \<Rightarrow> bool" where
 instance ..
 end
 
+thm add_comm
+
+thm ab_semigroup_add.add_commute
+
 instance vdme :: ("{semigroup_add,vbasic}") semigroup_add
-  by (intro_classes, auto simp add:plus_vdme_def BOpE_def add_assoc)
+  apply (intro_classes, auto simp add:plus_vdme_def BOpE_def add_assoc)
+  thm add_assoc
+  thm semigroup_add.add_assoc
+sorry
 
 instance vdme :: ("{ab_semigroup_add,vbasic}") ab_semigroup_add
   apply (intro_classes)
@@ -325,7 +329,7 @@ done
 lemma SemE_type [typing]: 
   "SemE (v :: 'a vdme) :\<^sub>e embTYPE (Type TYPE('a))"
   apply (simp add:etype_rel_def SemE_rep_eq)
-  apply (metis Abs_UTYPE_type BasicV_type Defined_vdmv_def InjVB_def InjVB_nbot Inject_type embTYPE_def utype_rel_vdmv_def)
+  apply (metis Abs_UTYPE_type BasicD_type Defined_vdmv_def InjVB_def InjVB_nbot Inject_type embTYPE_def utype_rel_vdmv_def)
 done
 
 
@@ -343,12 +347,12 @@ lemma SemE_expr_compat [typing]:
   apply (force intro:defined)
 done
 
-definition EvalV :: "'a vdme \<Rightarrow> vdmv WF_BINDING \<Rightarrow> 'a" ("\<lbrakk>_\<rbrakk>\<^sub>v_") where
+definition EvalD :: "'a vdme \<Rightarrow> vdmv WF_BINDING \<Rightarrow> 'a" ("\<lbrakk>_\<rbrakk>\<^sub>v_") where
 "\<lbrakk>v\<rbrakk>\<^sub>vb = \<langle>v\<rangle>\<^sub>v b"
 
 lemma EvalE_SemE [evale]:
-  "\<lbrakk>SemE v\<rbrakk>\<epsilon>b = BasicV (Inject (\<lbrakk>v\<rbrakk>\<^sub>vb))"
-  by (simp add:EvalE_def SemE_rep_eq EvalV_def)
+  "\<lbrakk>SemE v\<rbrakk>\<epsilon>b = BasicD (Inject (\<lbrakk>v\<rbrakk>\<^sub>vb))"
+  by (simp add:EvalE_def SemE_rep_eq EvalD_def)
 
 lemma Inject_simp [simp]: "Inject x = Inject y \<longleftrightarrow> x = y"
   by (metis InjVB_def InjVB_inv)
@@ -360,17 +364,17 @@ term "1.1"
 
 term "2"
 
-lemma EvalV_zero [evale]: "\<lbrakk>0\<rbrakk>\<^sub>v b = 0"
-  by (simp add:EvalV_def zero_vdme_def LitE_def)
+lemma EvalD_zero [evale]: "\<lbrakk>0\<rbrakk>\<^sub>v b = 0"
+  by (simp add:EvalD_def zero_vdme_def LitE_def)
 
-lemma EvalV_one [evale]: "\<lbrakk>1\<rbrakk>\<^sub>v b = 1"
-  by (simp add:EvalV_def one_vdme_def LitE_def)
+lemma EvalD_one [evale]: "\<lbrakk>1\<rbrakk>\<^sub>v b = 1"
+  by (simp add:EvalD_def one_vdme_def LitE_def)
 
-lemma EvalV_plus [evale]: "\<lbrakk>x + y\<rbrakk>\<^sub>vb = \<lbrakk>x\<rbrakk>\<^sub>vb + \<lbrakk>y\<rbrakk>\<^sub>vb"
-  by (simp add:EvalV_def plus_vdme_def BOpE_def)
+lemma EvalD_plus [evale]: "\<lbrakk>x + y\<rbrakk>\<^sub>vb = \<lbrakk>x\<rbrakk>\<^sub>vb + \<lbrakk>y\<rbrakk>\<^sub>vb"
+  by (simp add:EvalD_def plus_vdme_def BOpE_def)
 
-lemma EvalV_numeral [evale]: "\<lbrakk>numeral x\<rbrakk>\<^sub>v b = numeral x"
-  apply (simp add:EvalV_def)
+lemma EvalD_numeral [evale]: "\<lbrakk>numeral x\<rbrakk>\<^sub>v b = numeral x"
+  apply (simp add:EvalD_def)
   apply (induct x)
   apply (simp add:one_vdme_def LitE_def)
   apply (simp add:numeral.simps plus_vdme_def BOpE_def)

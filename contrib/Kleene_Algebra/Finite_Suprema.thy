@@ -158,7 +158,7 @@ lemma setsum_flatten1:
   assumes "finite (A :: 'a set)"
   and "finite (B :: 'a set)"
   shows "\<Sum>{\<Sum>{f x y |y. y \<in> B} |x. x \<in> A} = \<Sum>{f x y |x y. x \<in> A \<and> y \<in> B}"
-  by  (simp add: fset_to_im assms flatten1_im, simp add: fset_to_im[symmetric])
+  by (simp add: fset_to_im assms flatten1_im, simp add: fset_to_im[symmetric])
 
 
 lemma setsum_flatten2:

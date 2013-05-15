@@ -7,7 +7,7 @@
 header {* Signatures *}
 
 theory Signatures
-imports "../../utp_common"
+imports Main
 begin
 
 text {*

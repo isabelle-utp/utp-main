@@ -7,7 +7,7 @@
 header {* Action Algebras *}
 
 theory Action_Algebra
-imports Kleene_Algebra
+imports Kleene_Algebras
 begin
 
 text {* Action algebras have been defined and discussed in Vaughan

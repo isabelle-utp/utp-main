@@ -8,12 +8,14 @@ imports
    Derive
   "~~/src/HOL/Library/Char_ord" 
   "~~/src/HOL/Library/Monad_Syntax" 
-  "../../core/utp_var"
-  "../../utils/Library_extra"
+  utp_base
 begin
 
 declare split_paired_All [simp del]
 declare split_paired_Ex [simp del]
+
+no_notation
+  residual_r (infixr "\<rightarrow>" 60)
 
 section {* Main domain types *}
 
@@ -44,6 +46,7 @@ datatype vdmt =
 
 derive countable vdmt
 (* derive linorder vdmt *)
+
 instantiation vdmt :: linorder
 begin
 
@@ -81,6 +84,7 @@ datatype vbasic
 (* Deriving the linear order necessarily takes a while *)
 
 
+
 (* derive linorder vbasic *)
 
 instantiation vbasic :: linorder
@@ -99,13 +103,13 @@ text {* Full values are represented using a domain, which adds functions,
   any function whose domain is vbasic is automatically continuous.
 *}
 
-datatype vdmv = SetV "vbasic set"
-                | FuncV "vbasic \<Rightarrow> vdmv"
-                | BasicV "vbasic"
+datatype vdmv = SetD "vbasic set"
+                | FuncD "vbasic \<Rightarrow> vdmv"
+                | BasicD "vbasic"
 
-abbreviation "BotV \<equiv> BasicV BotI"
-abbreviation "TrueV \<equiv> BasicV (BoolI True)"
-abbreviation "FalseV \<equiv> BasicV (BoolI False)"
+abbreviation "BotD \<equiv> BasicD BotI"
+abbreviation "TrueD \<equiv> BasicD (BoolI True)"
+abbreviation "FalseD \<equiv> BasicD (BoolI False)"
 
 subsection {* Injections *}
 
@@ -267,15 +271,15 @@ fun vbdefined :: "vbasic \<Rightarrow> bool" ("\<D>\<^sub>b") where
 "\<D>\<^sub>b (TypeI t) = True"
 
 fun vdefined :: "vdmv \<Rightarrow> bool" ("\<D>\<^sub>v") where
-"\<D>\<^sub>v (BasicV x) = \<D>\<^sub>b x" |
-"\<D>\<^sub>v (SetV xs) = (\<forall>x\<in>xs. \<D>\<^sub>b x)" |
-"\<D>\<^sub>v (FuncV f) = True"
+"\<D>\<^sub>v (BasicD x) = \<D>\<^sub>b x" |
+"\<D>\<^sub>v (SetD xs) = (\<forall>x\<in>xs. \<D>\<^sub>b x)" |
+"\<D>\<^sub>v (FuncD f) = True"
 
 definition vbtypes :: "vdmt set" where
 "vbtypes = {t. \<exists> x. x :\<^sub>b t \<and> \<D>\<^sub>b x}"
 
 definition vbvalues :: "vdmv set" where
-"vbvalues = {BasicV x | x t. x :\<^sub>b t}"
+"vbvalues = {BasicD x | x t. x :\<^sub>b t}"
 
 lemma vbtypes_simps [simp]:
   "\<nat> \<in> vbtypes" "\<int> \<in> vbtypes" "\<rat> \<in> vbtypes"
@@ -351,34 +355,34 @@ subsection {* Full value typing relation *}
    Treatment of higher-order functions needs more work *)
 
 inductive vdmt_rel :: "vdmv \<Rightarrow> vdmt \<Rightarrow> bool" (infix ":\<^sub>v" 50) where
-SetV_type[intro]: "\<lbrakk> \<forall> x\<in>xs. x :\<^sub>b a \<rbrakk> \<Longrightarrow> SetV xs :\<^sub>v SetT a" |
-BasicV_type[intro]: "x :\<^sub>b a \<Longrightarrow> BasicV x :\<^sub>v a" |
-FuncV_type[intro]: "\<lbrakk> \<And> x. x :\<^sub>b a \<Longrightarrow> f x :\<^sub>v b; f BotI = BotV \<rbrakk> \<Longrightarrow> FuncV f :\<^sub>v a \<rightarrow> b"
+SetD_type[intro]: "\<lbrakk> \<forall> x\<in>xs. x :\<^sub>b a \<rbrakk> \<Longrightarrow> SetD xs :\<^sub>v SetT a" |
+BasicD_type[intro]: "x :\<^sub>b a \<Longrightarrow> BasicD x :\<^sub>v a" |
+FuncD_type[intro]: "\<lbrakk> \<And> x. x :\<^sub>b a \<Longrightarrow> f x :\<^sub>v b; f BotI = BotD \<rbrakk> \<Longrightarrow> FuncD f :\<^sub>v a \<rightarrow> b"
 
 inductive_cases
   SetT_type_cases': "x :\<^sub>v SetT a" and
-  SetV_type_cases[elim!]: "SetV x :\<^sub>v t" and
+  SetD_type_cases[elim!]: "SetD x :\<^sub>v t" and
   FuncT_type_cases': "x :\<^sub>v a \<rightarrow> b" and
-  FuncI_type_cases[elim!]: "FuncV f :\<^sub>v t" and
-  BasicV_type_cases[elim]: "BasicV x :\<^sub>v t"
+  FuncI_type_cases[elim!]: "FuncD f :\<^sub>v t" and
+  BasicD_type_cases[elim]: "BasicD x :\<^sub>v t"
 
 lemma SetT_type_cases [elim]: 
-  "\<lbrakk> x :\<^sub>v SetT a; \<And> xs. \<lbrakk> x = SetV xs; \<forall>x\<in>xs. x :\<^sub>b a \<rbrakk> \<Longrightarrow> P; x = BotV \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk> x :\<^sub>v SetT a; \<And> xs. \<lbrakk> x = SetD xs; \<forall>x\<in>xs. x :\<^sub>b a \<rbrakk> \<Longrightarrow> P; x = BotD \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   apply (erule SetT_type_cases')
   apply (auto)
 done
 
 lemma FuncT_type_cases [elim]: 
-  "\<lbrakk> x :\<^sub>v a \<rightarrow> b; \<And> f. \<lbrakk> x = FuncV f; \<forall> x. x :\<^sub>b a \<longrightarrow> f x :\<^sub>v b; f BotI = BotV \<rbrakk> \<Longrightarrow> P
-   ; x = BotV \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk> x :\<^sub>v a \<rightarrow> b; \<And> f. \<lbrakk> x = FuncD f; \<forall> x. x :\<^sub>b a \<longrightarrow> f x :\<^sub>v b; f BotI = BotD \<rbrakk> \<Longrightarrow> P
+   ; x = BotD \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   apply (erule FuncT_type_cases')
   apply (auto)
 done
 
 lemma vbtypes_type_cases [elim]: 
-  "\<lbrakk> a :\<^sub>v t; t \<in> vbtypes; \<And> x. \<lbrakk> a = BasicV x; x :\<^sub>b t \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk> a :\<^sub>v t; t \<in> vbtypes; \<And> x. \<lbrakk> a = BasicD x; x :\<^sub>b t \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   apply (case_tac a)
-  apply (auto elim:BasicV_type_cases simp add:vbtypes_def)
+  apply (auto elim:BasicD_type_cases simp add:vbtypes_def)
 done
 
 lemma vbvalues_vbtype:
@@ -392,10 +396,10 @@ lemma vcarrier [simp]: "x :\<^sub>v t \<Longrightarrow> x \<in> vcarrier t"
   by (simp add:vcarrier_def)
 
 lemma vcarrier_simps [simp]:
-  "vcarrier \<nat> = {BotV} \<union> {BasicV (NatI x) | x . True}"
-  "vcarrier \<int> = {BotV} \<union> {BasicV (IntI x) | x . True}"
-  "vcarrier \<rat> = {BotV} \<union> {BasicV (RatI x) | x . True}"
-  "vcarrier \<bool> = {BotV} \<union> {BasicV (BoolI x) | x . True}"
+  "vcarrier \<nat> = {BotD} \<union> {BasicD (NatI x) | x . True}"
+  "vcarrier \<int> = {BotD} \<union> {BasicD (IntI x) | x . True}"
+  "vcarrier \<rat> = {BotD} \<union> {BasicD (RatI x) | x . True}"
+  "vcarrier \<bool> = {BotD} \<union> {BasicD (BoolI x) | x . True}"
   by (auto simp add:vcarrier_def)
 
 (*
@@ -408,55 +412,54 @@ lemma vbvalues_vbtypes [simp]:
 
 subsection {* Injecting basic values into vdmv *}
 
-fun ProjBasicV :: "vdmv \<Rightarrow> vbasic" where
-"ProjBasicV (BasicV x) = x" |
-"ProjBasicV _ = BotI"
+fun ProjBasicD :: "vdmv \<Rightarrow> vbasic" where
+"ProjBasicD (BasicD x) = x" |
+"ProjBasicD _ = BotI"
 
-fun IsBasicV :: "vdmv \<Rightarrow> bool" where
-"IsBasicV (BasicV x) = True" |
-"IsBasicV _ = False"
+fun IsBasicD :: "vdmv \<Rightarrow> bool" where
+"IsBasicD (BasicD x) = True" |
+"IsBasicD _ = False"
 
-lemma ProjBasicV_inv [simp] :
-  "IsBasicV x \<Longrightarrow> BasicV (ProjBasicV x) = x"
+lemma ProjBasicD_inv [simp] :
+  "IsBasicD x \<Longrightarrow> BasicD (ProjBasicD x) = x"
   by (case_tac x, simp_all)
 
 definition vstrictify :: "(vbasic \<Rightarrow> vdmv) \<Rightarrow> (vbasic \<Rightarrow> vdmv)" where
-"vstrictify f = (\<lambda> x. if (x = BotI) then BotV else f x)"
+"vstrictify f = (\<lambda> x. if (x = BotI) then BotD else f x)"
 
 lemma vstrictify_idem [simp]: 
   "vstrictify (vstrictify f) = vstrictify f"
   by (auto simp add:vstrictify_def)
 
 lemma vstrictify_bot [simp]:
-  "vstrictify f BotI = BotV"
+  "vstrictify f BotI = BotD"
   by (simp add:vstrictify_def)
 
 lemma vstrictify_type [intro]:
   "f x :\<^sub>v t \<Longrightarrow> vstrictify f x :\<^sub>v t"
   by (auto simp add:vstrictify_def)
 
-abbreviation SFuncV :: "(vbasic \<Rightarrow> vdmv) \<Rightarrow> vdmv" where
-"SFuncV f \<equiv> FuncV (vstrictify f)"
+abbreviation SFuncD :: "(vbasic \<Rightarrow> vdmv) \<Rightarrow> vdmv" where
+"SFuncD f \<equiv> FuncD (vstrictify f)"
 
 definition vbasic_fun1 :: "(vbasic \<Rightarrow> vbasic) \<Rightarrow> vdmv" where
-"vbasic_fun1 f \<equiv> SFuncV (BasicV \<circ> f)"
+"vbasic_fun1 f \<equiv> SFuncD (BasicD \<circ> f)"
 
 definition vbasic_fun2 :: "(vbasic \<Rightarrow> vbasic \<Rightarrow> vbasic) \<Rightarrow> vdmv" where
-"vbasic_fun2 f \<equiv> SFuncV (\<lambda> x. SFuncV (\<lambda> y. BasicV (f x y)))"
+"vbasic_fun2 f \<equiv> SFuncD (\<lambda> x. SFuncD (\<lambda> y. BasicD (f x y)))"
 
-primrec ProjFuncV :: "vdmv \<Rightarrow> (vbasic \<Rightarrow> vdmv)" where
-"ProjFuncV (FuncV f) = f"
+primrec ProjFuncD :: "vdmv \<Rightarrow> (vbasic \<Rightarrow> vdmv)" where
+"ProjFuncD (FuncD f) = f"
 
-fun IsFuncV :: "vdmv \<Rightarrow> bool" where
-"IsFuncV (FuncV f) = True" |
-"IsFuncV _ = False"
+fun IsFuncD :: "vdmv \<Rightarrow> bool" where
+"IsFuncD (FuncD f) = True" |
+"IsFuncD _ = False"
 
-primrec ProjSetV :: "vdmv \<Rightarrow> vbasic set" where
-"ProjSetV (SetV x) = x"
+primrec ProjSetD :: "vdmv \<Rightarrow> vbasic set" where
+"ProjSetD (SetD x) = x"
 
-fun IsSetV :: "vdmv \<Rightarrow> bool" where
-"IsSetV (SetV x) = True" |
-"IsSetV _ = False"
-
+fun IsSetD :: "vdmv \<Rightarrow> bool" where
+"IsSetD (SetD x) = True" |
+"IsSetD _ = False"
 
 end

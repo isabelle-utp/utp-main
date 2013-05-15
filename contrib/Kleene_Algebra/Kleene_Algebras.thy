@@ -6,7 +6,7 @@
 
 header {* Kleene Algebras *}
 
-theory Kleene_Algebra2
+theory Kleene_Algebras
 imports Dioid
 begin
 

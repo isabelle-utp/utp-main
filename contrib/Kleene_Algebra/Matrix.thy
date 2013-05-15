@@ -17,7 +17,7 @@ algebra~\cite{conway71regular}. *}
 
 subsection {* Type Definition *}
 
-typedef (open) 'a atMost = "{..<len_of TYPE('a::len)}"
+typedef 'a atMost = "{..<len_of TYPE('a::len)}"
 by auto
 
 declare Rep_atMost_inject [simp]
@@ -248,11 +248,11 @@ done
 
 lemma matrix_mult_distrib_left:
   "(A::('a::{comm_monoid_add,semiring},'m,'n::len) matrix) *\<^isub>M (B + C) = A *\<^isub>M B + A *\<^isub>M C"
-  by (cases A, cases B, cases C, simp add: right_distrib setsum.distrib)
+  by (cases A, cases B, cases C, simp add: distrib_left setsum.distrib)
 
 lemma matrix_mult_distrib_right:
   "((A::('a::{comm_monoid_add,semiring},'m,'n::len) matrix) + B) *\<^isub>M C = A *\<^isub>M C + B *\<^isub>M C"
-  by (cases A, cases B, cases C, simp add: left_distrib setsum.distrib)
+  by (cases A, cases B, cases C, simp add: distrib_right setsum.distrib)
 
 lemma sqmatrix_mult_0_right [simp]:
   "(A::('a::{comm_monoid_add,mult_zero},'m) sqmatrix) * 0 = 0"
@@ -282,11 +282,11 @@ done
 
 lemma sqmatrix_mult_distrib_left:
   "(A::('a::{comm_monoid_add,semiring},'m::len) sqmatrix) * (B + C) = A * B + A * C"
-  by (cases A, cases B, cases C, simp add: right_distrib setsum.distrib)
+  by (cases A, cases B, cases C, simp add: distrib_left setsum.distrib)
 
 lemma sqmatrix_mult_distrib_right:
   "((A::('a::{comm_monoid_add,semiring},'m::len) sqmatrix) + B) * C = A * C + B * C"
-  by (cases A, cases B, cases C, simp add: left_distrib setsum.distrib)
+  by (cases A, cases B, cases C, simp add: distrib_right setsum.distrib)
 
 
 subsection {* Square-Matrix Model of Dioids *}

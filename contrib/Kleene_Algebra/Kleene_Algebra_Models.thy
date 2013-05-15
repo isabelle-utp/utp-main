@@ -7,7 +7,7 @@
 header {* Models of Kleene Algebras *}
 
 theory Kleene_Algebra_Models
-imports Kleene_Algebra Dioid_Models
+imports Kleene_Algebras Dioid_Models
 begin
 
 text {* We now show that most of the models considered for dioids are
@@ -144,7 +144,7 @@ fun lang :: "'a rexp \<Rightarrow> 'a lan" where
 | "lang (Times x y) = lang x \<cdot> lang y"
 | "lang (Star x) = (lang x)\<^sup>\<star>"
 
-typedef (open) 'a reg_lan = "range lang :: 'a lan set"
+typedef 'a reg_lan = "range lang :: 'a lan set"
   by auto
 
 setup_lifting type_definition_reg_lan
@@ -190,7 +190,7 @@ begin
     show "x \<cdot> y \<cdot> z = x \<cdot> (y \<cdot> z)"
       by transfer (metis semigroup_mult_class.mult.assoc)
     show "(x + y) \<cdot> z = x \<cdot> z + y \<cdot> z"
-      by transfer (metis semiring_class.left_distrib)
+      by transfer (metis semiring_class.distrib_right)
     show "1 \<cdot> x = x"
       by transfer (metis monoid_mult_class.mult_1_left)
     show "x \<cdot> 1 = x"
@@ -208,7 +208,7 @@ begin
     show "x + x = x"
       by transfer (metis join_semilattice_class.add_idem)
     show "x \<cdot> (y + z) = x \<cdot> y + x \<cdot> z"
-      by transfer (metis semiring_class.right_distrib)
+      by transfer (metis semiring_class.distrib_left)
     show "z \<cdot> x \<le> z \<cdot> (x + y)"
       by transfer (metis pre_dioid_class.subdistl)
     show "1 + x \<cdot> x\<^sup>\<star> \<le> x\<^sup>\<star>"
@@ -387,6 +387,7 @@ all elements to to the maximal element. *}
 definition (in bounded_distributive_lattice) bdl_star :: "'a \<Rightarrow> 'a" where
   "bdl_star x = top"
 
+(*
 sublocale bounded_distributive_lattice \<subseteq> kleene_algebra sup inf top bot less_eq less bdl_star
 proof
   fix x y z :: 'a
@@ -397,7 +398,7 @@ proof
   show "sup z (inf y x) \<le> y \<longrightarrow> inf z (bdl_star x) \<le> y"
     by (simp add: bdl_star_def)
 qed
-
+*)
 
 subsection {* The Min-Plus Kleene Algebra *}
 
