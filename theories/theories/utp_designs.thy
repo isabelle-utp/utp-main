@@ -371,9 +371,7 @@ proof -
     by (smt ImpliesP_export)
 
   also have "... = `(ok \<Rightarrow> (ok \<and> $okay\<acute> = $okay \<and> II\<^bsub>?vs\<^esub>)) ; P`"
-    apply (simp add:VarP_EqualP_aux typing defined)
-    apply (utp_rel_auto_tac)
-  done
+    by (simp add:VarP_EqualP_aux typing defined, utp_rel_auto_tac)
 
   also have "... = `(ok \<Rightarrow> II) ; P`"
     by (simp add:SkipRA_unfold[THEN sym] SkipR_as_SkipRA ImpliesP_export[THEN sym])
@@ -385,7 +383,7 @@ proof -
     by (simp add:SemiR_TrueP_precond closure)
 
   also have "... = `ok \<Rightarrow> P`"
-    apply (simp add:SemiR_assoc[THEN sym] assms(2))
+    apply (simp add:SemiR_assoc[THEN sym] assms)
     apply (simp add:SemiR_TrueP_precond closure ImpliesP_def)
   done
 
@@ -396,48 +394,43 @@ lemma H1_left_zero:
   assumes "P \<in> WF_RELATION" "P is H1"
   shows "true ; P = true"
 proof -
-
   from assms have "`true ; P` = `true ; (ok \<Rightarrow> P)`"
     by (simp add:is_healthy_def H1_def)
 
-  thus ?thesis
-    by (metis DesignD_left_zero FalseP_rel_closure H1_def ImpliesP_def SemiR_OrP_distl TrueP_rel_closure DesignD_extreme_point_nok is_healthy_def assms utp_pred_simps(8))
+  also have "... = `true ; (\<not> ok \<or> P)`"
+    by (simp add:ImpliesP_def)
+
+  also have "... = `(true ; \<not> ok) \<or> (true ; P)`"
+    by (simp add:SemiR_OrP_distl)
+
+  also from assms have "... = `true \<or> (true ; P)`"
+    by (simp add:SemiR_precond_left_zero closure)
+
+  finally show ?thesis by simp
 qed
 
 lemma H1_left_unit:
   assumes "P \<in> WF_RELATION" "P is H1"
   shows "II\<^sub>D ; P = P"
 proof -
-
   let ?vs = "REL_VAR - {okay,okay\<acute>}"
-
-  have "II\<^sub>D ; P = `(true \<turnstile> II\<^bsub>?vs\<^esub>) ; P`"
-    by (simp add:SkipD_def)
-
-  also have "... = `(ok \<Rightarrow> ok' \<and> II\<^bsub>?vs\<^esub>) ; P`"
+  have "II\<^sub>D ; P = `(true \<turnstile> II\<^bsub>?vs\<^esub>) ; P`" by (simp add:SkipD_def)
+  also have "... = `(ok \<Rightarrow> ok' \<and> II\<^bsub>?vs\<^esub>) ; P`" 
     by (simp add:DesignD_def)
-
-  also have "... = `(ok \<Rightarrow> ok \<and> ok' \<and> II\<^bsub>?vs\<^esub>) ; P`"
+  also have "... = `(ok \<Rightarrow> ok \<and> ok' \<and> II\<^bsub>?vs\<^esub>) ; P`" 
     by (smt ImpliesP_export)
-
-  also from assms have "... = `(ok \<Rightarrow> ok \<and> $okay\<acute> = $okay \<and> II\<^bsub>?vs\<^esub>) ; P`"
+  also have "... = `(ok \<Rightarrow> ok \<and> $okay\<acute> = $okay \<and> II\<^bsub>?vs\<^esub>) ; P`"
     by (simp add:VarP_EqualP_aux, utp_rel_auto_tac)
-
   also have "... = `(ok \<Rightarrow> II) ; P`"
     by (simp add: SkipR_as_SkipRA SkipRA_unfold[of okay] ImpliesP_export[THEN sym])
-
   also have "... = `((\<not> ok) ; P \<or> P)`"
     by (simp add:ImpliesP_def SemiR_OrP_distr)
-
   also have "... = `(((\<not> ok) ; true) ; P \<or> P)`"
     by (metis MkPlain_UNDASHED NotP_cond_closure SemiR_TrueP_precond VarP_cond_closure)
-
   also have "... = `((\<not> ok) ; (true ; P) \<or> P)`"
     by (metis SemiR_assoc)
-
   also from assms have "... = `(ok \<Rightarrow> P)`"
     by (simp add:H1_left_zero ImpliesP_def SemiR_TrueP_precond closure)
-
   finally show ?thesis using assms
     by (simp add:H1_def is_healthy_def)
 qed
@@ -476,6 +469,10 @@ qed
 lemma H1_idempotent:
   "H1 (H1 p) = H1 p"
   by (rule, simp add:H1_def eval)
+
+lemma H1_monotone:
+  "p \<sqsubseteq> q \<Longrightarrow> H1 p \<sqsubseteq> H1 q"
+  by (utp_pred_tac)
 
 lemma J_split:
   assumes "P \<in> WF_RELATION"
@@ -575,6 +572,10 @@ lemma H2_idempotent:
   apply (metis J_idempotent SemiR_assoc)
 done
 
+lemma H2_monotone:
+  "p \<sqsubseteq> q \<Longrightarrow> H2 p \<sqsubseteq> H2 q"
+  by (utp_rel_auto_tac)
+
 lemma DesignD_is_H2:
   "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION; UNREST AUX_VAR P; UNREST AUX_VAR Q \<rbrakk> \<Longrightarrow> P \<turnstile> Q is H2"
   apply (simp add:H2_equivalence closure)
@@ -635,6 +636,10 @@ done
 lemma H3_idempotent:
   "H3 (H3 p) = H3 p"
   by (metis H3_def SemiR_assoc SkipD_idempotent)
+
+lemma H3_monotone:
+  "p \<sqsubseteq> q \<Longrightarrow> H3 p \<sqsubseteq> H3 q"
+  by (utp_rel_auto_tac)
 
 (* Theory of Designs *)
 lift_definition DESIGNS :: "'VALUE WF_THEORY" is "({vs. vs \<subseteq> REL_VAR \<and> {okay,okay\<acute>} \<subseteq> vs}, {H1,H2})"

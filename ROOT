@@ -2,8 +2,8 @@ session "HOL-UTP" = "Kleene_Algebra" +
   options [document = pdf, document_output = "output"]
   theories [document = false]
   theories 
-    "theories/utp_meta"
-    "theories/utp_base"
+  "theories/utp_base"
+  "theories/utp_meta"
   files "document/root.tex"
 
 session "utp-hjf-summer-school" in "papers/utp-hjf-summer-school" = "HOL-UTP" +
