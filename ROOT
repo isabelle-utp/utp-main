@@ -11,7 +11,9 @@ session "utp-hjf-summer-school" in "papers/utp-hjf-summer-school" = "HOL-UTP" +
   theories [document = false]
   theories 
     "theory_mechanisation"
+    "proof_basic_laws"
     "proof_h1_algebraic"
+    "proof_h1_equiv"
     "proof_h1_h2_design"
     "proof_h1_left_unit"
     "proof_h1_left_zero"
@@ -21,6 +23,7 @@ session "utp-hjf-summer-school" in "papers/utp-hjf-summer-school" = "HOL-UTP" +
     "proof_j_split"
     "proof_refinement_conditional"
     "proof_unreachable_branch"
+    "proof_wp"
   files "document/root.tex"
 
 session "isabelle-utp-tutorial" in "papers/isabelle-utp-tutorial" = "HOL-UTP" +
