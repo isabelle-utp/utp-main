@@ -12,6 +12,7 @@ session "utp-hjf-summer-school" in "papers/utp-hjf-summer-school" = "HOL-UTP" +
   theories 
     "theory_mechanisation"
     "proof_basic_laws"
+    "proof_design_comp"
     "proof_h1_algebraic"
     "proof_h1_equiv"
     "proof_h1_h2_design"
