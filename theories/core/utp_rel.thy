@@ -358,6 +358,10 @@ theorems SS_simps =
 
 declare SS_simps [urename]
 
+lemma UNREST_NON_REL_VAR_SS [unrest]:
+  "UNREST_EXPR NON_REL_VAR v \<Longrightarrow> UNREST_EXPR NON_REL_VAR (RenameE v SS)"
+  by (auto intro:unrest UNREST_EXPR_subset simp add:urename)
+
 text {* Theorems for @{term SS1} *}
 
 theorem SS1_UNDASHED_app [urename]:

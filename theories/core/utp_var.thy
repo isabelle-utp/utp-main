@@ -269,6 +269,22 @@ theorem DASHED_TWICE_undash_not_DASHED_TWICE :
 "x \<in> DASHED_TWICE \<Longrightarrow> undash x \<notin> DASHED_TWICE"
   by (simp add: var_defs)
 
+lemma DASHED_TWICE_NON_REL_VAR:
+  "x \<in> DASHED_TWICE \<Longrightarrow> x \<in> NON_REL_VAR"
+  by (simp add:var_defs)
+
+lemma NON_REL_VAR_dash_NON_REL_VAR: 
+  "x \<in> NON_REL_VAR \<Longrightarrow> x\<acute> \<in> NON_REL_VAR" 
+  by (simp add:var_defs)
+
+lemma UNDASHED_not_NON_REL_VAR: 
+  "x \<in> UNDASHED \<Longrightarrow> x \<notin> NON_REL_VAR"
+  by (simp add:var_defs)
+
+lemma DASHED_not_NON_REL_VAR: 
+  "x \<in> DASHED \<Longrightarrow> x \<notin> NON_REL_VAR"
+  by (simp add:var_defs)
+
 theorem in_UNDASHED :
 "in vs \<subseteq> UNDASHED"
   by (simp add: in_vars_def)
@@ -335,6 +351,10 @@ theorems var_member =
   DASHED_dash_DASHED_TWICE
   DASHED_TWICE_undash_DASHED
   DASHED_TWICE_undash_not_DASHED_TWICE
+  DASHED_TWICE_NON_REL_VAR
+  NON_REL_VAR_dash_NON_REL_VAR
+  UNDASHED_not_NON_REL_VAR
+  DASHED_not_NON_REL_VAR
   in_UNDASHED
   out_DASHED
   in_of_UNDASHED
@@ -473,6 +493,9 @@ lemma DASHED_TWICE_dash_elim [elim]:
   "\<lbrakk> x \<in> DASHED_TWICE; \<And> y. \<lbrakk> x = dash y; y \<in> DASHED \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (metis DASHED_TWICE_undash_DASHED dash_undash_DASHED_TWICE)
 
+lemma dash_DASHED_TWICE_elim [elim]: "\<lbrakk> x\<acute> \<in> DASHED_TWICE; x \<in> DASHED \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (simp add:var_defs)
+
 lemma dash_UNDASHED_image: 
 "dash ` UNDASHED = DASHED"
   by auto
@@ -575,6 +598,15 @@ theorem UNDASHED_DASHED_inter:
   "- NON_REL_VAR = REL_VAR"
   by (auto simp add:var_defs)
 
+theorem UNDASHED_DASHED_minus:
+  "UNDASHED - DASHED       = UNDASHED"
+  "DASHED - UNDASHED       = DASHED"
+  "DASHED_TWICE - UNDASHED = DASHED_TWICE"
+  "UNDASHED - DASHED_TWICE = UNDASHED"
+  "DASHED_TWICE - DASHED   = DASHED_TWICE"
+  "DASHED - DASHED_TWICE   = DASHED"
+  by (auto simp add:var_defs)
+
 theorems var_simps =
   UNDASHED_nempty
   DASHED_nempty
@@ -605,6 +637,7 @@ theorems var_simps =
   in_out_union
   in_out_UNDASHED_DASHED
   UNDASHED_DASHED_inter
+  UNDASHED_DASHED_minus
   HOMOGENEOUS_undash_out
   HOMOGENEOUS_dash_in
 

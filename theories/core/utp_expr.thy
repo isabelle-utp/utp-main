@@ -75,9 +75,13 @@ lemma evar_compat_cases [elim]:
            ; \<lbrakk> v :\<^sub>e vtype x; \<not> aux x \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (auto simp add:evar_compat_def etype_rel_def Defined_WF_EXPRESSION_def)
 
-lemma evar_comp_dash [typing]:
+lemma evar_compat_dash [typing]:
   "v \<rhd>\<^sub>e x \<Longrightarrow> v \<rhd>\<^sub>e x\<acute>"
   by (simp add:evar_compat_def typing)
+
+lemma evar_compat_undash [typing]:
+  "v \<rhd>\<^sub>e x \<Longrightarrow> v \<rhd>\<^sub>e undash x"
+  by (auto intro:typing simp add:evar_compat_def)
 
 lemma evar_compat [typing]:
   "e \<rhd>\<^sub>e x \<Longrightarrow> \<langle>e\<rangle>\<^sub>e b \<rhd> x"
@@ -289,6 +293,10 @@ theorem UNREST_EXPR_subset :
   apply (metis binding_override_simps(5) double_diff order_refl)
 done
 
+theorem UNREST_EXPR_unionE [elim]: 
+  "\<lbrakk> UNREST_EXPR (xs \<union> ys) p; \<lbrakk> UNREST_EXPR xs p; UNREST_EXPR ys p \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+by (metis UNREST_EXPR_subset inf_sup_ord(4) sup_ge1)
+
 theorem UNREST_EqualP [unrest] :
 "\<lbrakk>UNREST_EXPR vs e; UNREST_EXPR vs f \<rbrakk> \<Longrightarrow>
  UNREST vs (e ==p f)"
@@ -377,6 +385,12 @@ theorem UNREST_SubstP_var [unrest] :
   apply (auto simp add:SubstP_def UNREST_def UNREST_EXPR_def)
   apply (metis binding_compat binding_upd_override binding_upd_upd evar_compat_def)
 done
+
+text {* Some unrestriction laws relating to variable classes *}
+
+lemma UNREST_NON_REL_VAR_DASHED [unrest]:
+  "x \<in> DASHED \<Longrightarrow> UNREST_EXPR NON_REL_VAR (VarE x)"
+  by (auto intro:unrest)
 
 subsection {* Boolean Expressions *}
 

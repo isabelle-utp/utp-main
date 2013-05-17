@@ -181,18 +181,9 @@ qed
 text {* A single variable can be extracted from a sequential composition and captured
         in an existential *}
 
-lemma [simp] :"x \<in> DASHED_TWICE \<Longrightarrow> x \<in> NON_REL_VAR"
-  by (simp add:var_defs)
-
-lemma [simp] : "x \<in> NON_REL_VAR \<Longrightarrow> x\<acute> \<in> NON_REL_VAR" 
-  by (simp add:var_defs)
-
-lemma [elim]: "\<lbrakk> x\<acute> \<in> DASHED_TWICE; x \<in> DASHED \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (simp add:var_defs)
-
 lemma SemiR_extract_variable:
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "x \<in> UNDASHED"
-  shows "P ; Q = (\<exists>p {x\<acute>\<acute>\<acute>}. P[VarE x\<acute>\<acute>\<acute>|x\<acute>] ; Q[VarE x\<acute>\<acute>\<acute>|x])"
+  shows "P ; Q = `\<exists> x\<acute>\<acute>\<acute>. P[$x\<acute>\<acute>\<acute>/x\<acute>] ; Q[$x\<acute>\<acute>\<acute>/x]`"
 proof -
   have "P ; Q = (\<exists>p DASHED_TWICE . P[SS1] \<and>p Q[SS2])"
     by (simp add:assms SemiR_algebraic_rel)
@@ -205,7 +196,7 @@ proof -
     apply (rule_tac trans)
     apply (rule ExistsP_SubstP[of "x\<acute>\<acute>\<acute>"])
     apply (simp_all)
-    apply (rule unrest)
+    apply (rule unrest) back
     apply (rule unrest)
     apply (auto intro: unrest closure simp add:urename)
   done
@@ -220,7 +211,8 @@ proof -
     apply (subgoal_tac "UNREST {x\<acute>\<acute>} ((SubstP (P[SS1]) (VarE x\<acute>\<acute>\<acute>) (x\<acute>\<acute>)) \<and>p (SubstP (Q[SS2]) (VarE x\<acute>\<acute>\<acute>) (x\<acute>\<acute>)))")
     apply (subgoal_tac "(DASHED_TWICE - {x\<acute>\<acute>}) \<union> {x\<acute>\<acute>} = DASHED_TWICE")
     apply (smt ExistsP_union ExistsP_ident)
-    apply (auto intro!:unrest typing simp add:usubst)
+    apply (force)
+    apply (simp add:unrest typing usubst)
   done
 
   ultimately show ?thesis using assms
@@ -531,12 +523,6 @@ qed
 
 text {* This property allows conversion of an alphabetised identity into an existential *} 
 
-lemma [simp]: "UNDASHED - DASHED = UNDASHED"
-  by (auto)
-
-lemma [simp]: "DASHED - UNDASHED = DASHED"
-  by (auto)
-
 lemma SemiR_right_ExistsP:
   "\<lbrakk> p \<in> WF_RELATION; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> 
     p ; II (REL_VAR - {x,x\<acute>}) = (\<exists>p {x\<acute>}. p)"
@@ -544,32 +530,10 @@ lemma SemiR_right_ExistsP:
   apply (auto simp add:SkipRA_def closure unrest ExistsP_SemiR_expand1 var_dist SkipR_ExistsP_out)
 done
 
-lemma UNREST_unionE [elim]: 
-  "\<lbrakk> UNREST (xs \<union> ys) p; \<lbrakk> UNREST xs p; UNREST ys p \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (metis UNREST_subset sup_ge1 sup_ge2)
-
-lemma UNREST_EXPR_unionE [elim]: 
-  "\<lbrakk> UNREST_EXPR (xs \<union> ys) p; \<lbrakk> UNREST_EXPR xs p; UNREST_EXPR ys p \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-by (metis UNREST_EXPR_subset inf_sup_ord(4) sup_ge1)
-
 lemma SubstP_rel_closure [closure]:
   "\<lbrakk> p \<in> WF_RELATION; UNREST_EXPR NON_REL_VAR v; x \<in> REL_VAR; v \<rhd>\<^sub>e x \<rbrakk> 
   \<Longrightarrow> p[v|x] \<in> WF_RELATION"
   by (auto intro:unrest simp add:WF_RELATION_def unrest typing)
-
-lemma UNREST_NON_REL_VAR_SS [unrest]:
-  "UNREST_EXPR NON_REL_VAR v \<Longrightarrow> UNREST_EXPR NON_REL_VAR (RenameE v SS)"
-  by (auto intro:unrest UNREST_EXPR_subset simp add:urename)
-
-lemma UNREST_NON_REL_VAR_DASHED [unrest]:
-  "x \<in> DASHED \<Longrightarrow> UNREST_EXPR NON_REL_VAR (VarE x)"
-  by (auto intro:unrest)
-
-lemma [simp]: "x \<in> UNDASHED \<Longrightarrow> x \<notin> NON_REL_VAR"
-  by (auto)
-
-lemma [simp]: "x \<in> DASHED \<Longrightarrow> x \<notin> NON_REL_VAR"
-  by (auto)
 
 lemma SemiR_left_one_point:
   assumes "x \<in> UNDASHED" "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "v \<rhd>\<^sub>e x"
@@ -604,14 +568,6 @@ lemma SemiR_right_one_point:
   apply (rule_tac x="ya(x :=\<^sub>x \<lbrakk>v\<rbrakk>\<epsilon>\<langle>ya\<rangle>\<^sub>x)" in exI)
   apply (simp add:evale)
 done
-
-lemma var_compat_undash [typing]:
-  "v \<rhd> x \<Longrightarrow> v \<rhd> undash x"
-  by (simp add:var_compat_def)
-
-lemma evar_compat_undash [typing]:
-  "v \<rhd>\<^sub>e x \<Longrightarrow> v \<rhd>\<^sub>e undash x"
-  by (auto intro:typing simp add:evar_compat_def)
 
 lemma SemiR_right_one_point_alt:
   assumes "x \<in> DASHED" "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "v \<rhd>\<^sub>e x"
@@ -900,6 +856,8 @@ lemma AssignR_VarCloseP:
   apply (subgoal_tac "UNREST {x\<acute>} (II (REL_VAR - {x, x\<acute>}))")
   apply (simp add: ExistsP_AndP_expand1[THEN sym])
   apply (simp add:ExistsP_has_value typing defined unrest)
+  apply (rule UNREST_subset)
+  apply (rule unrest) back back
   apply (auto intro:unrest UNREST_subset UNREST_EXPR_subset)
 done
 

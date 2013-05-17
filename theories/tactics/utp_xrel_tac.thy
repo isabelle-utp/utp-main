@@ -94,8 +94,6 @@ lemma DestXRelB_rep_eq [simp]:
   apply (simp add:WF_XREL_BINDING_def)
   apply (rule_tac x="\<langle>b\<rangle>\<^sub>x(x :=\<^sub>b v)" in exI)
   apply (auto)
-  apply (subgoal_tac "DASHED \<union> NON_REL_VAR - {x} \<union> (DASHED \<union> NON_REL_VAR) = DASHED \<union> NON_REL_VAR - {x}")
-  apply (auto simp add:NON_REL_VAR_def)
 done
 
 nonterminal xbupdbinds and xbupdbind
@@ -378,20 +376,11 @@ theorem EvalRX_AssignR [evalrx] :
   apply (rule)
   apply (case_tac "xa \<in> DASHED \<union> NON_REL_VAR")
   apply (simp)
-  apply (subgoal_tac "xa \<noteq> x")
-  apply (simp)
-  apply (safe)
-  apply (simp add:var_contra)
-  apply (simp add:var_contra NON_REL_VAR_def)
-  apply (case_tac "xa \<in> UNDASHED")
-  apply (simp)
-  apply (case_tac "xa = x")
-  apply (simp_all add:urename RenameB_rep_eq EvalE_def unrest)
-  apply (simp add:NON_REL_VAR_def var_contra)
+  apply (simp add:var_contra NON_REL_VAR_def urename)
+  apply (safe, simp add:var_contra NON_REL_VAR_def urename evale EvalE_def)
   apply (rule_tac x="BindPX (b, b(x :=\<^sub>x \<langle>e\<rangle>\<^sub>e \<langle>b\<rangle>\<^sub>x))" in exI)
   apply (auto)
-  apply (auto simp add:BindPX_def RenameB_rep_eq urename typing defined)
-  apply (metis (hide_lams, no_types) EvalE_UNREST_override EvalE_compat EvalE_def UNDASHED_dash_DASHED binding_override_assoc binding_override_simps(2) binding_override_upd evar_comp_dash)
+  apply (auto simp add:BindPX_def RenameB_rep_eq urename typing defined EvalE_def)
 done
 
 theorem EvalRX_AssignR_alt [evalrx] :
@@ -411,7 +400,7 @@ lemma EvalRX_ExprP_UNDASHED [evalrx]:
   apply (auto simp add:EvalRX_def ExprP_def LiftP_def BindRX_def EvalE_def image_def)
   apply (rule_tac x="\<langle>b1\<rangle>\<^sub>x \<oplus>\<^sub>b RenameB SS \<langle>b2\<rangle>\<^sub>x on DASHED" in exI)
   apply (auto)
-  apply (metis (mono_tags) UNREST_EXPR_def binding_override_simps(6) inf_sup_absorb)
+(*  apply (metis (mono_tags) UNREST_EXPR_def binding_override_simps(6) inf_sup_absorb) *)
   apply (rule, simp)
   apply (metis DestXRelB_binding_equiv binding_override_equiv binding_override_simps(1) binding_override_simps(3))
   apply (rule, simp add:RenameB_override_distr1 urename closure)
@@ -517,7 +506,6 @@ theorem EvalRX_SubstP_UNDASHED [evalrx] :
   apply (subgoal_tac "(ba(x :=\<^sub>b \<langle>e\<rangle>\<^sub>e ba) \<oplus>\<^sub>b bc on NON_REL_VAR - {x}) \<oplus>\<^sub>b ba on DASHED =
                       ba(x :=\<^sub>b \<langle>e\<rangle>\<^sub>e ba) \<oplus>\<^sub>b bc on NON_REL_VAR - {x}")
   apply (simp add:WF_RELATION_def UNREST_def)
-  apply (metis (hide_lams, full_types) binding_override_simps(5))
   apply (subgoal_tac "(NON_REL_VAR - {x}) \<inter> DASHED = {}")
   apply (simp add:binding_override_commute typing)
   apply (auto)
@@ -543,7 +531,7 @@ theorem EvalRX_SubstP_DASHED [evalrx] :
   apply (auto simp add:BindPX_def BindRX_def typing defined RenameB_override_distr1 urename closure)[1]
   apply (simp add:binding_override_overshadow)
   apply (subgoal_tac "DASHED \<union> NON_REL_VAR = - (UNDASHED :: 'a VAR set)")
-  apply (simp add:binding_override_overshadow)
+  apply (simp add:binding_override_overshadow unrest)
 sorry
 
 lemma EvalRX_Tautology [evalrx]:

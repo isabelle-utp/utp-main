@@ -80,6 +80,10 @@ apply (clarify)
 apply (metis binding_override_simps(1))
 done
 
+lemma UNREST_unionE [elim]: 
+  "\<lbrakk> UNREST (xs \<union> ys) p; \<lbrakk> UNREST xs p; UNREST ys p \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (metis UNREST_subset sup_ge1 sup_ge2)
+
 theorem UNREST_minus [unrest]:
 "UNREST vs1 p \<Longrightarrow>
  UNREST (vs1 - vs2) p"

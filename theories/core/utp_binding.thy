@@ -43,8 +43,12 @@ lemma var_compat_default [typing]:
   "default (vtype x) \<rhd> x"
   by (auto intro:typing defined)
 
-lemma var_comp_dash [typing]:
+lemma var_compat_dash [typing]:
   "v \<rhd> x \<Longrightarrow> v \<rhd> x\<acute>"
+  by (simp add:var_compat_def)
+
+lemma var_compat_undash [typing]:
+  "v \<rhd> x \<Longrightarrow> v \<rhd> undash x"
   by (simp add:var_compat_def)
 
 subsection {* Bindings *}

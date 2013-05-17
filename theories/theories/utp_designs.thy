@@ -89,8 +89,8 @@ lemma DesignD_export_precondition:
 text {* Design refinement law *}
 
 lemma DesignD_refinement:
-  assumes "UNREST AUX_VAR P1" "UNREST AUX_VAR P2"
-          "UNREST AUX_VAR Q1" "UNREST AUX_VAR Q2"
+  assumes "UNREST OKAY P1" "UNREST OKAY P2"
+          "UNREST OKAY Q1" "UNREST OKAY Q2"
   shows "P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2 = `[P1 \<Rightarrow> P2] \<and> [P1 \<and> Q2 \<Rightarrow> Q1]`"
 proof -
   have "`(P1 \<turnstile> Q1) \<sqsubseteq> (P2 \<turnstile> Q2)` = `[P2 \<turnstile> Q2 \<Rightarrow> P1 \<turnstile> Q1]`"
@@ -157,90 +157,66 @@ lemma DesignD_cond:
   "`(P1 \<turnstile> Q1) \<lhd> b \<rhd> (P2 \<turnstile> Q2)` = `((P1 \<lhd> b \<rhd> P2) \<turnstile> (Q1 \<lhd> b \<rhd> Q2))`"
   by (utp_pred_auto_tac)
 
-lemma DesignD_composition:
-  assumes "P1 \<in> WF_RELATION" "P2 \<in> WF_RELATION" "Q1 \<in> WF_RELATION" "Q2 \<in> WF_RELATION"
-          "UNREST AUX_VAR P1" "UNREST AUX_VAR P2" "UNREST AUX_VAR Q1" "UNREST AUX_VAR Q2"
+theorem DesignD_composition:
+  assumes 
+  "(P1 \<in> WF_RELATION)" "(P2 \<in> WF_RELATION)" 
+  "(Q1 \<in> WF_RELATION)" "(Q2 \<in> WF_RELATION)" 
+  "UNREST OKAY P1" "UNREST OKAY P2" "UNREST OKAY Q1" "UNREST OKAY Q2"
   shows "`(P1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `((\<not> ((\<not> P1) ; true)) \<and> \<not> (Q1 ; (\<not> P2))) \<turnstile> (Q1 ; Q2)`"
 proof -
-  from assms have "`(P1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `\<exists> okay\<acute>\<acute>\<acute> . ((P1 \<turnstile> Q1)[$okay\<acute>\<acute>\<acute>/okay\<acute>] ; (P2 \<turnstile> Q2)[$okay\<acute>\<acute>\<acute>/okay])`"
-    by (smt DesignD_rel_closure MkPlain_UNDASHED SemiR_extract_variable)
+  have " `(P1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` 
+        = `\<exists> okay\<acute>\<acute>\<acute> . ((P1 \<turnstile> Q1)[$okay\<acute>\<acute>\<acute>/okay\<acute>] ; (P2 \<turnstile> Q2)[$okay\<acute>\<acute>\<acute>/okay])`"
+    by (smt DesignD_rel_closure MkPlain_UNDASHED SemiR_extract_variable assms)
 
-  also from assms 
-  have "... = `((P1 \<turnstile> Q1)[false/okay\<acute>] ; (P2 \<turnstile> Q2)[false/okay]) \<or> ((P1 \<turnstile> Q1)[true/okay\<acute>] ; (P2 \<turnstile> Q2)[true/okay])`"
-    by (simp add:ucases typing usubst defined closure unrest DesignD_def)
+  also have "... = ` ((P1 \<turnstile> Q1)[false/okay\<acute>] ; (P2 \<turnstile> Q2)[false/okay]) 
+                      \<or> ((P1 \<turnstile> Q1)[true/okay\<acute>] ; (P2 \<turnstile> Q2)[true/okay])`"
+    by (simp add:ucases typing usubst defined closure unrest DesignD_def assms)
 
-  also from assms 
-  have "... = `((ok \<and> P1 \<Rightarrow> Q1) ; (P2 \<Rightarrow> ok' \<and> Q2)) \<or> ((\<not> (ok \<and> P1)) ; true)`"
-    by (simp add: typing usubst defined unrest DesignD_def OrP_comm)
+  also have "... = `((ok \<and> P1 \<Rightarrow> Q1) ; (P2 \<Rightarrow> ok' \<and> Q2)) \<or> ((\<not> (ok \<and> P1)) ; true)`"
+    by (simp add: typing usubst defined unrest DesignD_def OrP_comm assms)
 
-  also from assms
-  have "... = `((\<not> (ok \<and> P1) \<or> Q1) ; (P2 \<Rightarrow> ok' \<and> Q2)) \<or> ((\<not> (ok \<and> P1)) ; true)`" 
-    by (simp add:ImpliesP_def)
+  also have "... = `((\<not> (ok \<and> P1) ; (P2 \<Rightarrow> ok' \<and> Q2)) \<or> \<not> (ok \<and> P1) ; true) 
+                       \<or> Q1 ; (P2 \<Rightarrow> ok' \<and> Q2)`"
+    by (smt OrP_assoc OrP_comm SemiR_OrP_distr ImpliesP_def)
 
-  also from assms
-  have "... = `(((\<not> (ok \<and> P1)) ; (P2 \<Rightarrow> ok' \<and> Q2)) \<or> (Q1 ; (P2 \<Rightarrow> ok' \<and> Q2))) \<or> (\<not> (ok \<and> P1)) ; true`"
-    by (metis (lifting, no_types) SemiR_OrP_distr)
-
-  also have "... = `(((\<not> (ok \<and> P1)) ; (P2 \<Rightarrow> ok' \<and> Q2)) \<or> (\<not> (ok \<and> P1)) ; true) \<or> (Q1 ; (P2 \<Rightarrow> ok' \<and> Q2))`"
-    by (metis (lifting, no_types) OrP_assoc OrP_comm)
-
-  also have "... = `((\<not> (ok \<and> P1)) ; true) \<or> (Q1 ; (P2 \<Rightarrow> ok' \<and> Q2))`"
+  also have "... = `(\<not> (ok \<and> P1) ; true) \<or> Q1 ; (P2 \<Rightarrow> ok' \<and> Q2)`"
     by (smt SemiR_OrP_distl utp_pred_simps(9))
 
-  also have "... = `((\<not> ok) ; true) \<or> ((\<not> P1) ; true) \<or> (Q1 ; (\<not> P2)) \<or> (ok' \<and> (Q1 ; Q2))`" 
+  also have "... = `(\<not>ok ; true) \<or> (\<not>P1 ; true) \<or> (Q1 ; \<not>P2) \<or> (ok' \<and> (Q1 ; Q2))`"
   proof -
-    have "`((\<not> (ok \<and> P1)) ; true)` = `((\<not> ok) ; true) \<or> ((\<not> P1) ; true)`"
-      by (simp add: demorgan2 SemiR_OrP_distr)
-
-    moreover from assms
-    have "`(Q1 ; (P2 \<Rightarrow> ok' \<and> Q2))` = `(Q1 ; (\<not> P2)) \<or> (ok' \<and> (Q1 ; Q2))`"
-      apply (simp add:ImpliesP_def SemiR_OrP_distl)
-      apply (metis (no_types) AndP_comm MkPlain_UNDASHED SemiR_AndP_right_postcond UNDASHED_dash_DASHED VarP_precond_closure)
-    done
+    from assms have "`Q1 ; (P2 \<Rightarrow> ok' \<and> Q2)` = `(Q1 ; \<not>P2) \<or> (ok' \<and> (Q1 ; Q2))`"
+      by (smt AndP_comm (*<*)MkPlain_UNDASHED(*>*) SemiR_AndP_right_postcond (*<*)UNDASHED_dash_DASHED VarP_precond_closure(*>*) ImpliesP_def SemiR_OrP_distl)
   
-    ultimately show ?thesis
-      by (metis (lifting, no_types) OrP_assoc)
+    thus ?thesis by (smt OrP_assoc SemiR_OrP_distr demorgan2)
   qed
 
-  also from assms
-  have "... = `((\<not> ((\<not> P1) ; true)) \<and> \<not> (Q1 ; (\<not> P2))) \<turnstile> (Q1 ; Q2)`"
+  also have "... = `(\<not> (\<not> P1 ; true) \<and> \<not> (Q1 ; \<not> P2)) \<turnstile> (Q1 ; Q2)`"
   proof -
     have "`(\<not> ok) ; true \<or> (\<not> P1) ; true` = `\<not> ok \<or> (\<not> P1) ; true`"
       by (simp add: SemiR_TrueP_precond closure)
 
     thus ?thesis
-      apply (simp add: DesignD_def ImpliesP_def demorgan1)
-      apply (smt OrP_assoc demorgan2 demorgan3)
-    done
-
+      by (smt DesignD_def ImpliesP_def OrP_assoc demorgan2 demorgan3)
   qed
 
-  ultimately show ?thesis
-    by (simp)
-qed
-
-
-lemma DesignD_composition_cond:
-  assumes "p1 \<in> WF_CONDITION" "P2 \<in> WF_RELATION" "Q1 \<in> WF_RELATION" "Q2 \<in> WF_RELATION"
-          "UNREST AUX_VAR p1" "UNREST AUX_VAR P2" "UNREST AUX_VAR Q1" "UNREST AUX_VAR Q2"
-  shows "`(p1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `(p1 \<and> \<not> (Q1 ; \<not> P2)) \<turnstile> (Q1 ; Q2)`"
-proof -
-  have "`\<not> (\<not> p1 ; true)` = p1"
-    by (metis NotP_NotP NotP_cond_closure SemiR_TrueP_precond assms(1))
-
-  with assms show ?thesis
-    by (metis DesignD_composition WF_CONDITION_WF_RELATION)
+  finally show ?thesis .
 qed
 
 lemma condition_comp [simp]:
   "p1 \<in> WF_CONDITION \<Longrightarrow> `\<not> (\<not> p1 ; true)` = p1"
   by (metis NotP_NotP NotP_cond_closure SemiR_TrueP_precond)
 
+lemma DesignD_composition_cond:
+  assumes "p1 \<in> WF_CONDITION" "P2 \<in> WF_RELATION" "Q1 \<in> WF_RELATION" "Q2 \<in> WF_RELATION"
+          "UNREST OKAY p1" "UNREST OKAY P2" "UNREST OKAY Q1" "UNREST OKAY Q2"
+  shows "`(p1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `(p1 \<and> \<not> (Q1 ; \<not> P2)) \<turnstile> (Q1 ; Q2)`"
+  by (simp add:DesignD_composition closure assms)
+
 lemma DesignD_composition_wp:
   assumes "p1 \<in> WF_CONDITION" "P2 \<in> WF_RELATION" "Q1 \<in> WF_RELATION" "Q2 \<in> WF_RELATION"
-          "UNREST AUX_VAR p1" "UNREST AUX_VAR P2" "UNREST AUX_VAR Q1" "UNREST AUX_VAR Q2"
+          "UNREST OKAY p1" "UNREST OKAY P2" "UNREST OKAY Q1" "UNREST OKAY Q2"
   shows "`(p1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `(p1 \<and> (Q1 wp P2)) \<turnstile> (Q1 ; Q2)`"
-  by (metis (hide_lams, no_types) DesignD_composition_cond WeakPrecondP_def assms)
+  by (simp add: DesignD_composition_cond closure WeakPrecondP_def assms)
 
 lemma minus_intersect [simp]:
   "vs1 - (vs1 - vs2) = vs1 \<inter> vs2"
@@ -353,40 +329,43 @@ lemma "\<lbrakk> P \<in> WF_RELATION; e \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<
   apply (simp add:SemiR_algebraic_rel closure unrest typing defined)
 *)
 
-lemma H1_algebraic_intro:
-  assumes "P \<in> WF_RELATION" "(true ; P = true)" "(II\<^sub>D ; P = P)"
-  shows "P is H1"
+theorem H1_algebraic_intro:
+  assumes 
+    "R \<in> WF_RELATION"  
+    "(true ; R = true)" 
+    "(II\<^sub>D ; R = R)"
+  shows "R is H1"
 proof -
-
   let ?vs = "REL_VAR - {okay,okay\<acute>}"
+  have "R = II\<^sub>D ; R" by (simp add: assms)
 
-  have "P = II\<^sub>D ; P" by (simp add: assms)
-
-  also have "... = `(true \<turnstile> II\<^bsub>?vs\<^esub>) ; P`"
+  also have "... = `(true \<turnstile> II\<^bsub>?vs\<^esub>) ; R`"
     by (simp add:SkipD_def)
 
-  also have "... = `(ok \<Rightarrow> (ok' \<and> II\<^bsub>?vs\<^esub>)) ; P`"
+  also have "... = `(ok \<Rightarrow> (ok' \<and> II\<^bsub>?vs\<^esub>)) ; R`"
     by (simp add:DesignD_def)
 
-  also have "... = `(ok \<Rightarrow> (ok \<and> ok' \<and> II\<^bsub>?vs\<^esub>)) ; P`"
+  also have "... = `(ok \<Rightarrow> (ok \<and> ok' \<and> II\<^bsub>?vs\<^esub>)) ; R`"
     by (smt ImpliesP_export)
 
-  also have "... = `(ok \<Rightarrow> (ok \<and> $okay\<acute> = $okay \<and> II\<^bsub>?vs\<^esub>)) ; P`"
+  also have "... = `(ok \<Rightarrow> (ok \<and> $okay\<acute> = $okay \<and> II\<^bsub>?vs\<^esub>)) ; R`"
     by (simp add:VarP_EqualP_aux typing defined, utp_rel_auto_tac)
 
-  also have "... = `(ok \<Rightarrow> II) ; P`"
-    by (simp add:SkipRA_unfold[THEN sym] SkipR_as_SkipRA ImpliesP_export[THEN sym])
+  also have "... = `(ok \<Rightarrow> II) ; R`"
+    by (simp add:SkipRA_unfold[THEN sym] 
+        SkipR_as_SkipRA ImpliesP_export[THEN sym])
 
-  also have "... = `((\<not> ok) ; P \<or> P)`"
+  also have "... = `((\<not> ok) ; R \<or> R)`"
     by (simp add:ImpliesP_def SemiR_OrP_distr)
 
-  also have "... = `(((\<not> ok) ; true) ; P \<or> P)`"
+  also have "... = `(((\<not> ok) ; true) ; R \<or> R)`"
     by (simp add:SemiR_TrueP_precond closure)
 
-  also have "... = `ok \<Rightarrow> P`"
-    apply (simp add:SemiR_assoc[THEN sym] assms)
-    apply (simp add:SemiR_TrueP_precond closure ImpliesP_def)
-  done
+  also have "... = `((\<not> ok) ; true \<or> R)`"
+    by (simp add:SemiR_assoc[THEN sym] assms)
+
+  also have "... = `ok \<Rightarrow> R`"
+    by (simp add:SemiR_TrueP_precond closure ImpliesP_def)
 
   finally show ?thesis by (simp add:is_healthy_def H1_def)
 qed
@@ -661,9 +640,12 @@ lemma DESIGNS_H2 [closure]:
   by (auto simp add:THEORY_PRED_def DESIGNS.rep_eq healthconds_def WF_RELATION_def)
 
 lemma DESIGNS_intro:
-  "\<lbrakk> P is H1; P is H2; P \<in> WF_RELATION \<rbrakk> \<Longrightarrow> P \<in> THEORY_PRED DESIGNS"
+  "\<lbrakk> P is H1; P is H2; P \<in> WF_RELATION
+   ; UNREST (VAR - vs) P; OKAY \<subseteq> vs; vs \<subseteq> REL_VAR \<rbrakk> \<Longrightarrow> P \<in> THEORY_PRED DESIGNS"
   apply (simp add:THEORY_PRED_def utp_alphabets_def healthconds_def DESIGNS.rep_eq)
-  sorry
+  apply (rule_tac x="vs" in exI, auto)
+done
+
    
 (*
 lemma "(d1 = d2) \<longleftrightarrow> (\<forall> r. d1 wp r = d2 wp r)"
