@@ -102,10 +102,6 @@ lemma embTYPE_inv_vdm [simp]:
 done
 
 (* Need this *)
-lemma "\<lbrakk> x :\<^sub>b a; x :\<^sub>b b \<rbrakk> \<Longrightarrow> a = b"
-  apply (induct x arbitrary: a b)
-  apply (auto)
-apply (metis PairI_type_cases)
 
 
 lemma SemE_expr_type [simp]: 
@@ -113,28 +109,12 @@ lemma SemE_expr_type [simp]:
   apply (simp add:expr_type_def etype_rel_def SemE_rep_eq type_rel_vdmt)
   apply (rule the_equality)
   apply (auto)
-  apply (rule BasicD_type)
-
-lemma SemE_type_nat [simp]: "expr_type (SemE (v::nat vdme)) = embTYPE NatT"
-  apply (simp add:expr_type_def etype_rel_def SemE_rep_eq)
-  apply (rule the_equality)
-  apply (metis Abs_UTYPE_type BasicD_type Defined_vdmv_def InjVB_def InjVB_nbot Inject_nat_def NatI_type embTYPE_def utype_rel_vdmv_def)
-  apply (metis BasicD_type_cases Inject_nat_def NatI_type_cases prjTYPE_inv_vdm type_rel_vdmt)
+  apply (metis BasicD_type_cases Inject_type prjTYPE_inv_vdm vbasic_type_rel_uniq)
 done
 
-lemma SemE_type_int [simp]: "expr_type (SemE (v::int vdme)) = embTYPE IntT"
-  apply (simp add:expr_type_def etype_rel_def SemE_rep_eq)
-  apply (rule the_equality)
-  apply (metis Abs_UTYPE_type BasicD_type Defined_vdmv_def InjVB_def InjVB_nbot Inject_int_def IntI_type embTYPE_def utype_rel_vdmv_def)
-  apply (metis BasicD_type_cases Inject_int_def IntI_type_cases prjTYPE_inv_vdm type_rel_vdmt)
-done
-
-(* FIXME: The following two proofs can't be completed as the current representation of
-          values is, perhaps, too polymorphic. I think we probably want to store
-          type data in values which can possess multiple types, e.g. empty list, empty set
-*)
-
+(*
 lemma SemE_type_string [simp]: "expr_type (SemE (v::string vdme)) = embTYPE StringT"
+  apply (simp)
   apply (simp add:expr_type_def etype_rel_def SemE_rep_eq)
   apply (rule the_equality)
   apply (simp add:type_rel_vdmt)
@@ -148,6 +128,7 @@ lemma SemE_type: "expr_type (SemE (v::('a::vbasic) vdme)) = embTYPE (Type TYPE('
   apply (metis Abs_UTYPE_type BasicD_type Defined_vdmv_def InjVB_def InjVB_nbot Inject_type embTYPE_def utype_rel_vdmv_def)
   apply (auto)
 oops
+*)
 
 instantiation vdme :: ("{one,vbasic}") one
 begin
@@ -329,6 +310,14 @@ lemma UNREST_VDME_ring1 [unrest]: "is_num x \<Longrightarrow> UNREST_VDME vs x"
   apply (simp_all add:unrest) 
 done
 
+lemma UNREST_VDME_numeral [unrest]:
+  "UNREST_VDME vs (numeral x)"
+  apply (induct x)
+  apply (simp_all add:unrest numeral.simps)
+  apply (simp only:numeral_plus_numeral[symmetric] unrest)
+  apply (simp only:numeral_plus_numeral[symmetric] numeral_One unrest)
+done
+
 definition dom :: "('a::{linorder,vbasic},'b::{linorder,vbasic}) fmap vdme \<Rightarrow> 'a fset vdme" where
 "dom \<equiv> UOpE fdom"
 
@@ -350,21 +339,20 @@ lemma SemE_defined [defined]: "\<D> (SemE v)"
 done
 
 lemma SemE_type [typing]: 
-  "SemE (v :: 'a vdme) :\<^sub>e embTYPE (Type TYPE('a))"
+  "SemE (v :: 'a vdme) :\<^sub>e embTYPE VTYPE('a)"
   apply (simp add:etype_rel_def SemE_rep_eq)
   apply (metis Abs_UTYPE_type BasicD_type Defined_vdmv_def InjVB_def InjVB_nbot Inject_type embTYPE_def utype_rel_vdmv_def)
 done
 
-
 lemma SemE_EvalE_compat [typing]:
-  "vtype x = embTYPE (Type TYPE('a::vbasic)) \<Longrightarrow> \<lbrakk>SemE (v :: 'a vdme)\<rbrakk>\<epsilon>b \<rhd> x"
+  "vtype x = embTYPE VTYPE('a) \<Longrightarrow> \<lbrakk>SemE (v :: 'a vdme)\<rbrakk>\<epsilon>b \<rhd> x"
   apply (rule) back back
   apply (force intro:typing defined)
   apply (force intro:defined)
 done
 
 lemma SemE_expr_compat [typing]:
-  "vtype x = embTYPE (Type TYPE('a::vbasic)) \<Longrightarrow> SemE (v :: 'a vdme) \<rhd>\<^sub>e x"
+  "vtype x = embTYPE VTYPE('a) \<Longrightarrow> SemE (v :: 'a vdme) \<rhd>\<^sub>e x"
   apply (rule) back
   apply (force intro:typing defined)
   apply (force intro:defined)
@@ -404,12 +392,26 @@ lemma EvalD_numeral [evale]: "\<lbrakk>numeral x\<rbrakk>\<^sub>v b = numeral x"
   apply (simp add:numeral.simps plus_vdme_def one_vdme_def BOpE_def LitE_def)
 done
 
+lemma EvalD_LitE [evale]:
+  "\<lbrakk><x>\<rbrakk>\<^sub>vb = x"
+  by (simp add:LitE_def EvalD_def)
+
 abbreviation "x \<equiv> MkPlain ''x'' (embTYPE IntT) False"
 
-lemma "`''x'' := 7 \<and> ''x'' := 1` = false"
-  apply (auto simp add:evalr typing defined unrest binding_upd_apply)
+(*
+lemma "\<lbrakk> v1 \<rhd>\<^sub>e x; v2 \<rhd>\<^sub>e x; UNREST_EXPR DASHED v1; UNREST_EXPR DASHED v2; UNREST_EXPR {x} v2 \<rbrakk> \<Longrightarrow> `x := v1; x := v2` = `x := v2`"
+  apply (utp_rel_auto_tac)
+  apply (simp add:evale typing defined)
+  apply (simp add:evale typing defined)
+  apply (simp add:evale typing defined)
+  apply (utp_expr_tac)
+*)
 
-  apply (simp add:evale)
+lemma "`''x'' := 6::nat vdme ; ''x'' := 7::nat vdme` = `''x'' := 7::nat vdme`"
+  apply (simp add:evalr typing defined unrest binding_upd_apply relcomp_unfold)
+  apply (simp add:evale relcomp_unfold typing defined)
+
+  apply (auto)
 done
 
 

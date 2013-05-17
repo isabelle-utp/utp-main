@@ -76,7 +76,7 @@ datatype vbasic
   | FinI vdmt "vbasic list"
   | BoolI bool
   | RecI "vbasic list"
-  | MapI "(vbasic * vbasic) list" 
+  | MapI vdmt vdmt "(vbasic * vbasic) list" 
   | NameI "NAME"
   | TypeI "vdmt"
   | BotI "vdmt"
@@ -120,8 +120,8 @@ text {* We create interface constructors for finite sets, maps and records which
 definition FSetI :: "vdmt \<Rightarrow> vbasic fset \<Rightarrow> vbasic" where
 "FSetI t vs = FinI t (flist vs)"
 
-definition FinMapI :: "(vbasic, vbasic) fmap \<Rightarrow> vbasic" where
-"FinMapI f = MapI (fmap_list f)"
+definition FinMapI :: "vdmt \<Rightarrow> vdmt \<Rightarrow> (vbasic, vbasic) fmap \<Rightarrow> vbasic" where
+"FinMapI a b f = MapI a b (fmap_list f)"
 
 (*
 definition RecordI :: "(string \<rightharpoonup> vbasic) \<Rightarrow> vbasic" where
@@ -140,6 +140,11 @@ fun ProjFSetI :: "vbasic \<Rightarrow> (vbasic fset) option" where
 lemma FSetI_inv [simp]:
   "ProjFSetI (FSetI t xs) = Some xs"
   by (simp add:FSetI_def)
+
+lemma FSetI_inj: "FSetI a f = FSetI b g \<Longrightarrow> f = g"
+  apply (simp add:FSetI_def flist_def)
+  apply (metis Rep_fset_finite Rep_fset_inject sorted_list_of_set_inj)
+done
 
 declare ProjFSetI.simps [simp del]
 
@@ -168,12 +173,12 @@ fun ProjRecI :: "vbasic \<Rightarrow> (vbasic list) option" where
 "ProjRecI (RecI r) = Some r" | "ProjRecI xs = None"
 
 fun ProjMapI :: "vbasic \<Rightarrow> ((vbasic* vbasic) list) option" where
-"ProjMapI (MapI f) = Some f" | "ProjMapI x = None"
+"ProjMapI (MapI a b f) = Some f" | "ProjMapI x = None"
 
 fun ProjFinMapI :: "vbasic \<Rightarrow> ((vbasic, vbasic) fmap) option" where
-"ProjFinMapI (MapI xs) = Some (list_fmap xs)" | "ProjFinMapI x = None"
+"ProjFinMapI (MapI a b xs) = Some (list_fmap xs)" | "ProjFinMapI x = None"
 
-lemma FinMapI_inj [simp]: "FinMapI f = FinMapI g \<Longrightarrow> f = g"
+lemma FinMapI_inj [simp]: "FinMapI a b f = FinMapI a b g \<Longrightarrow> f = g"
   apply (auto simp add: FinMapI_def)
   apply (metis fmap_list_inv)
 done
@@ -203,7 +208,7 @@ OptionI_Some_type[intro]: "\<lbrakk> x :\<^sub>b a \<rbrakk> \<Longrightarrow> O
 OptionI_None_type[intro]: "OptionI a None :\<^sub>b OptionT a" |
 FinI_type[intro]: "\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>b a; sorted xs; distinct xs \<rbrakk> \<Longrightarrow> FinI a xs :\<^sub>b FSetT a" |
 PairI_type[intro!]: "\<lbrakk> x :\<^sub>b a; y :\<^sub>b b \<rbrakk> \<Longrightarrow> PairI x y :\<^sub>b PairT a b" |
-MapI_type[intro]: "\<lbrakk> \<forall>(x,y)\<in>set xs. x :\<^sub>b a \<and> y :\<^sub>b b; sorted (map fst xs); distinct (map fst xs) \<rbrakk> \<Longrightarrow> MapI xs :\<^sub>b MapT a b" |
+MapI_type[intro]: "\<lbrakk> \<forall>(x,y)\<in>set xs. x :\<^sub>b a \<and> y :\<^sub>b b; sorted (map fst xs); distinct (map fst xs) \<rbrakk> \<Longrightarrow> MapI a b xs :\<^sub>b MapT a b" |
 RecI_type[intro]: "\<lbrakk> xs :\<^sub>r ts \<rbrakk>  \<Longrightarrow> RecI xs :\<^sub>b RecordT ts" |
 NameI_type[intro]: "NameI n :\<^sub>b NameT" |
 TypeI_type[intro]: "TypeI t :\<^sub>b TypeT" |
@@ -224,6 +229,8 @@ inductive_cases
   IntT_type_cases [elim!]: "x :\<^sub>b IntT" and
   RatI_type_cases [elim]: "RatI x :\<^sub>b t" and
   RatT_type_cases [elim!]: "x :\<^sub>b RatT" and
+  RealI_type_cases [elim]: "RealI x :\<^sub>b t" and
+  RealT_type_cases [elim!]: "x :\<^sub>b RealT" and
   CharI_type_cases [elim]: "CharI x :\<^sub>b t" and
   CharT_type_cases [elim!]: "x :\<^sub>b CharT" and
   TokenI_type_cases [elim]: "TokenI x :\<^sub>b t" and
@@ -238,15 +245,21 @@ inductive_cases
   FinT_type_cases: "x :\<^sub>b FSetT a" and
   PairI_type_cases [elim]: "PairI x y :\<^sub>b t" and
   PairT_type_cases [elim!]: "x :\<^sub>b PairT a b" and
-  MapI_type_cases [elim]: "MapI xs :\<^sub>b t" and
+  MapI_type_cases [elim]: "MapI a b xs :\<^sub>b t" and
   MapT_type_cases [elim!]: "x :\<^sub>b MapT a b" and
   RecI_type_cases [elim]: "RecI xs :\<^sub>b t" and
   RecT_type_cases [elim!]: "x :\<^sub>b RecordT fs" and
   Cons_type_cases [elim!]: "x :\<^sub>r f # fs" and
+  Cons_value_cases [elim!]: "x # xs :\<^sub>r ts" and
   Nil_type_cases [elim!]: "x :\<^sub>r []" and
+  Nil_value_cases [elim!]: "[] :\<^sub>r ts" and
   FuncT_type_casesB [elim!]: "x :\<^sub>b a \<rightarrow> b" and
   SetT_type_casesB [elim!]: "x :\<^sub>b SetT a" and
-  BotI_type_cases[elim]: "BotI a :\<^sub>b b"
+  BotI_type_cases[elim]: "BotI a :\<^sub>b b" and
+  NameI_type_cases [elim]: "NameI x :\<^sub>b t" and
+  NameT_type_cases [elim!]: "x :\<^sub>b NameT" and
+  TypeI_type_cases [elim]: "TypeI x :\<^sub>b t" and
+  TypeT_type_cases [elim!]: "x :\<^sub>b TypeT"
 
 definition bcarrier :: "vdmt \<Rightarrow> vbasic set" where
 "bcarrier t = {x. x :\<^sub>b t}"
@@ -267,9 +280,26 @@ fun vbdefined :: "vbasic \<Rightarrow> bool" ("\<D>\<^sub>b") where
 "\<D>\<^sub>b (OptionI a (Some x)) = \<D>\<^sub>b x" |
 "\<D>\<^sub>b (FinI a xs) = foldr (op \<and> \<circ> \<D>\<^sub>b) xs True" |
 "\<D>\<^sub>b (RecI xs) = foldr (op \<and> \<circ> \<D>\<^sub>b) xs True" |
-"\<D>\<^sub>b (MapI xs) = foldr (op \<and> \<circ> (\<lambda> x. \<D>\<^sub>b (fst x) \<and> \<D>\<^sub>b (snd x))) xs True" | 
+"\<D>\<^sub>b (MapI a b xs) = foldr (op \<and> \<circ> (\<lambda> x. \<D>\<^sub>b (fst x) \<and> \<D>\<^sub>b (snd x))) xs True" | 
 "\<D>\<^sub>b (NameI n) = True" |
 "\<D>\<^sub>b (TypeI t) = True"
+
+lemma vbdefined_FSetI [simp]:
+  "\<D>\<^sub>b (FSetI a xs) = (\<forall>x\<in>\<^sub>fxs. \<D>\<^sub>b x)"
+proof -
+  obtain ys where xsys: "xs = fset ys" and sys:"sorted ys" and dys:"distinct ys"
+    by (metis flist_inv flist_props(1) flist_props(2))
+
+  from sys dys have "\<D>\<^sub>b (FSetI a (fset ys)) = (\<forall>x\<in>\<^sub>ffset ys. \<D>\<^sub>b x)"
+    apply (induct ys)
+    apply (simp_all add:FSetI_def)
+    apply (subgoal_tac "\<forall>x'\<in>\<^sub>ffset xs. x < x'")
+    apply (auto)
+    apply (metis less_le)
+  done
+
+  with xsys show ?thesis by simp
+qed
 
 fun vdefined :: "vdmv \<Rightarrow> bool" ("\<D>\<^sub>v") where
 "\<D>\<^sub>v (BasicD x) = \<D>\<^sub>b x" |
@@ -295,7 +325,7 @@ lemma vbtypes_simps [simp]:
  apply (force simp add:FSetI_def)
  apply (rule_tac x="ListI a []" in exI)
  apply (force)
-sorry
+done
 
 text {* We introduce a couple of derived typing rules *}
 
@@ -324,7 +354,7 @@ lemma FSetI_type_cases [elim]:
   by (auto simp add:FSetI_def)
 
 lemma FinMapI_type[intro]: 
-  "\<lbrakk> \<forall> x\<in>Rep_fset(fdom f). x :\<^sub>b a; \<forall> y\<in>Rep_fset(fran f). y :\<^sub>b b \<rbrakk> \<Longrightarrow> FinMapI f :\<^sub>b MapT a b"
+  "\<lbrakk> \<forall> x\<in>Rep_fset(fdom f). x :\<^sub>b a; \<forall> y\<in>Rep_fset(fran f). y :\<^sub>b b \<rbrakk> \<Longrightarrow> FinMapI a b f :\<^sub>b MapT a b"
   by (auto intro!:MapI_type simp add:fdom_list fran_list FinMapI_def)
 
 lemma dom_map_of: "x \<in> dom (map_of xs) \<Longrightarrow> \<exists> y. (x,y) \<in> set xs"
@@ -334,7 +364,7 @@ lemma ran_map_of: "y \<in> ran (map_of xs) \<Longrightarrow> \<exists> x. (x,y) 
   by (auto dest:map_of_SomeD simp add:ran_def)
 
 lemma FinMapI_type_cases [elim!]:
-  "\<lbrakk>x :\<^sub>b MapT a b; x \<noteq> BotI (MapT a b); \<And>f. \<lbrakk>x = FinMapI f; \<forall> x\<in>Rep_fset(fdom f). x :\<^sub>b a; \<forall> y\<in>Rep_fset(fran f). y :\<^sub>b b \<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk>x :\<^sub>b MapT a b; x \<noteq> BotI (MapT a b); \<And>f. \<lbrakk>x = FinMapI a b f; \<forall> x\<in>Rep_fset(fdom f). x :\<^sub>b a; \<forall> y\<in>Rep_fset(fran f). y :\<^sub>b b \<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   apply (case_tac x, auto elim!:MapI_type_cases)
   apply (simp add:FinMapI_def fdom_def fran_def)
   apply (subgoal_tac "list = fmap_list (list_fmap list)")
@@ -464,5 +494,15 @@ primrec ProjSetD :: "vdmv \<Rightarrow> vbasic set" where
 fun IsSetD :: "vdmv \<Rightarrow> bool" where
 "IsSetD (SetD x) = True" |
 "IsSetD _ = False"
+
+lemma vbasic_type_rel_uniq: "\<lbrakk> x :\<^sub>b a; x :\<^sub>b b \<rbrakk> \<Longrightarrow> a = b"
+  and "\<lbrakk> xs :\<^sub>r as; xs :\<^sub>r bs \<rbrakk> \<Longrightarrow> as = bs"
+  apply (induct x and xs arbitrary: a b and as bs)
+  apply (auto)
+  apply (metis PairI_type_cases)
+  apply (force)
+done
+
+thm vbasic_type_rel_uniq
 
 end

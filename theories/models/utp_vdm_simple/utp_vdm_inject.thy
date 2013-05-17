@@ -36,9 +36,9 @@ context vbasic
 begin
 
 definition Project :: "vbasic \<Rightarrow> 'a option" where
-"Project x \<equiv> if (x :\<^sub>b Type (TYPE('a)) \<and> \<D>\<^sub>b x) then Some (inv Inject x) else None"
+"Project x \<equiv> if (x :\<^sub>b VTYPE('a) \<and> \<D>\<^sub>b x) then Some (inv Inject x) else None"
 
-lemma Inject_type[simp]: "Inject x :\<^sub>b Type (TYPE('a))"
+lemma Inject_type[simp]: "Inject x :\<^sub>b VTYPE('a)"
   by (insert Inject_range, auto simp add:image_def)
 
 lemma Inject_Project [simp]: "Project (Inject x) = Some x"
@@ -172,7 +172,7 @@ definition Inject_prod :: "'a \<times> 'b \<Rightarrow> vbasic" where
 "Inject_prod \<equiv> \<lambda> x. PairI (Inject (fst x)) (Inject (snd x))"
                 
 definition Type_prod :: "('a \<times> 'b) itself \<Rightarrow> vdmt" where
-"Type_prod x = PairT (Type (TYPE('a))) (Type (TYPE('b)))"
+"Type_prod x = PairT VTYPE('a) VTYPE('b)"
 
 instance
   apply (intro_classes)
@@ -209,10 +209,10 @@ instantiation list :: (vbasic) vbasic
 begin
 
 definition Inject_list :: "'a list \<Rightarrow> vbasic" where
-"Inject_list xs = ListI (Type (TYPE('a))) (map Inject xs)"
+"Inject_list xs = ListI VTYPE('a) (map Inject xs)"
 
 definition Type_list :: "'a list itself \<Rightarrow> vdmt" where
-"Type_list xs \<equiv> ListT (Type (TYPE('a)))"
+"Type_list xs \<equiv> ListT VTYPE('a)"
 
 instance 
   apply (intro_classes)
@@ -250,16 +250,21 @@ lemma option_set_insert:
 lemma option_set_image [simp]: "option_set (Some ` xs) = Some xs"
   by (auto simp add:option_set_def image_def)
 
-lemma FSetI_inj: "FSetI a f = FSetI b g \<Longrightarrow> f = g"
-  apply (simp add:FSetI_def flist_def)
-  apply (metis Rep_fset_finite Rep_fset_inject sorted_list_of_set_inj)
+(*
+lemma flist_finsert_sorted [simp]:
+  "\<lbrakk> sorted (x # xs); distinct (x # xs) \<rbrakk> \<Longrightarrow> flist (finsert x (fset xs)) = x # xs"
+  apply (subgoal_tac "\<forall>x'. x'\<in>\<^sub>ffset xs \<longrightarrow> x < x'")
+  apply (auto)
+  apply (metis fset_inv sorted_Cons)
+  apply (metis le_neq_trans sorted_Cons)
 done
+*)
 
 instantiation fset :: (vbasic) vbasic
 begin
 
 definition Inject_fset :: "'a fset \<Rightarrow> vbasic" where
-"Inject_fset xs = FSetI (Type (TYPE('a))) (Abs_fset (Inject ` Rep_fset xs))"
+"Inject_fset xs = FSetI VTYPE('a) (Abs_fset (Inject ` Rep_fset xs))"
 
 (*
 definition Project_fset :: "vbasic \<Rightarrow> 'a fset option" where 
@@ -267,30 +272,41 @@ definition Project_fset :: "vbasic \<Rightarrow> 'a fset option" where
 *)
 
 definition Type_fset :: "'a fset itself \<Rightarrow> vdmt" where
-"Type_fset x = FSetT (Type (TYPE('a)))"
+"Type_fset x = FSetT VTYPE('a)"
 
-instance 
-  apply (intro_classes)
-  apply (simp add: Inject_fset_def)
-  apply (drule FSetI_inj)
-  apply (subgoal_tac "Inject ` Rep_fset x = Inject ` Rep_fset y")
-  apply (simp)
-  apply (metis Inject_Project_comp Rep_fset_inject inj_Some inj_on_Un_image_eq_iff inj_on_imageI2)
-  apply (metis Rep_fset_finite Rep_fset_inv finite_imageI)
-  apply (simp add:Type_fset_def Inject_fset_def image_def)
-  apply (auto)
-  apply (rule FSetI_type)
-  apply (auto simp add:flist_def)
-  apply (auto simp add:FSetI_def flist_def)
+instance proof
+  fix x y :: "'a fset"
+  assume "Inject x = Inject y"
+  thus "x = y"
+      apply (simp add: Inject_fset_def)
+      apply (drule FSetI_inj)
+      apply (subgoal_tac "Inject ` \<langle>x\<rangle>\<^sub>f = Inject ` \<langle>y\<rangle>\<^sub>f")
+      apply (simp)
+      apply (metis Inject_Project_comp Rep_fset_inverse image_compose these_image_Some_eq)
+      apply (metis Rep_fset_finite Rep_fset_inv finite_imageI)
+  done
 
-(*
-  apply (induct_tac xa)
-  apply (rule_tac x="Abs_fset ((the \<circ> Project) ` (set xs))" in exI)
-  apply (simp)
-  apply (metis finite_set sorted_distinct_set_unique sorted_list_of_set)
-done
-*)
-sorry
+next
+
+  show "range (Inject :: 'a fset \<Rightarrow> vbasic) = {x. x :\<^sub>b VTYPE('a fset) \<and> \<D>\<^sub>b x}"
+  proof (auto)
+    fix x :: "'a fset"
+    show "Inject x :\<^sub>b VTYPE('a fset)"
+      by (force simp add:Type_fset_def Inject_fset_def image_def flist_def)
+  next
+    fix x :: "'a fset"
+    show "\<D>\<^sub>b (Inject x)"
+      by (auto simp add:Inject_fset_def)
+  next
+    fix x
+    assume "x :\<^sub>b VTYPE('a fset)" "\<D>\<^sub>b x"
+    thus "x \<in> range (Inject :: 'a fset \<Rightarrow> vbasic)"
+      apply (auto simp add:Type_fset_def Inject_fset_def image_def)
+      apply (rule_tac x="((the \<circ> Project) `\<^sub>f xs)" in exI)
+      apply (simp)
+    done
+  qed
+qed
 end
 
 subsection {* Finite maps are injectable *}
@@ -344,14 +360,18 @@ lemma finite_dom_vbasic_map[simp]: "finite (dom (vbasic_map f))"
 lemma finite_dom_map_vbasic[simp]: "finite (dom (map_vbasic f))"
   by (auto intro: finite_subset[OF map_vbasic_dom])
   
+lemma list_fmap_fmempty [simp]: 
+  "list_fmap [] = fmempty"
+  by (auto simp add:list_fmap.rep_eq fmempty.rep_eq)
+
 instantiation fmap :: ("{vbasic,linorder}", "{vbasic,linorder}") vbasic
 begin
 
 definition Inject_fmap :: "('a::{vbasic,linorder}, 'b::{vbasic,linorder}) fmap \<Rightarrow> vbasic" where
-"Inject_fmap f = FinMapI (Abs_fmap (vbasic_map f))"
+"Inject_fmap f = FinMapI VTYPE('a) VTYPE('b) (Abs_fmap (vbasic_map f))"
 
 definition Type_fmap :: "('a, 'b) fmap itself => vdmt" where
-"Type_fmap x = MapT (Type (TYPE('a))) (Type (TYPE('b)))"
+"Type_fmap x = MapT VTYPE('a) VTYPE('b)"
 
 instance proof
   fix x y :: "('a, 'b) fmap"
@@ -364,23 +384,27 @@ next
   show "range (Inject :: ('a,'b) fmap \<Rightarrow> vbasic) = {x. x :\<^sub>b VTYPE(('a,'b) fmap) \<and> \<D>\<^sub>b x}"
   proof (auto simp add:Inject_fmap_def Type_fmap_def)
     fix x :: "('a,'b) fmap"
-    show "FinMapI (Abs_fmap (vbasic_map x)) :\<^sub>b MapT (VTYPE('a)) (VTYPE('b))"      
+    show "FinMapI VTYPE('a) VTYPE('b) (Abs_fmap (vbasic_map x)) :\<^sub>b MapT (VTYPE('a)) (VTYPE('b))"      
       by (auto intro!:FinMapI_type simp add:fdom_def fran_def Rep_fmap_inverse
          ,force simp add:ran_def)
 
-
   next
     fix x :: "('a,'b) fmap"
-    show "\<D>\<^sub>b (FinMapI (Abs_fmap (vbasic_map x)))"
-      sorry
+(*
+    obtain xs where "x = list_fmap xs" "distinct (map fst xs)" "sorted (map fst xs)"
+      by (metis fmap_list_inv fmap_list_props(1) fmap_list_props(2))
+*)
 
+    show "\<D>\<^sub>b (FinMapI VTYPE('a) VTYPE('b) (Abs_fmap (vbasic_map x)))"
+      apply (simp add:FinMapI_def vbasic_map_def)
+    sorry
   next
     fix f :: "(vbasic, vbasic) fmap"
     assume tyassm:
       "\<forall>x\<in>Rep_fset (Fmap.fdom f). x :\<^sub>b VTYPE('a)"
       "\<forall>y\<in>Rep_fset (Fmap.fran f). y :\<^sub>b VTYPE('b)"
 
-    thus "FinMapI f \<in> range (Inject :: ('a,'b) fmap \<Rightarrow> vbasic)" 
+    thus "FinMapI VTYPE('a) VTYPE('b) f \<in> range (Inject :: ('a,'b) fmap \<Rightarrow> vbasic)" 
     proof -
       have "Abs_fmap (vbasic_map (Abs_fmap (map_vbasic f :: 'a \<rightharpoonup> 'b))) = f"
         apply (rule fmext)
@@ -406,7 +430,7 @@ next
       thus ?thesis
         apply (simp add:image_def Inject_fmap_def) 
         apply (rule_tac x="(Abs_fmap (map_vbasic f))" in exI)
-        apply (rule_tac f="FinMapI" in cong, simp)
+        apply (rule_tac f="FinMapI VTYPE('a) VTYPE('b)" in cong, simp)
         apply (force)
       done
     qed
@@ -477,7 +501,7 @@ definition InjectV_fun :: "('a \<Rightarrow> 'b) \<Rightarrow> vdmv" where
 "InjectV_fun f = FuncD (\<lambda> x. case (Project x) of Some v \<Rightarrow> InjectV (f v) | None \<Rightarrow> BotD)"
 
 definition TypeV_fun :: "('a \<Rightarrow> 'b) itself \<Rightarrow> vdmt" where
-"TypeV_fun f = (Type (TYPE('a))) \<rightarrow> (TypeV (TYPE('b)))"
+"TypeV_fun f = VTYPE('a)) \<rightarrow> (TypeV (TYPE('b)))"
 
 instance 
   apply (intro_classes)
