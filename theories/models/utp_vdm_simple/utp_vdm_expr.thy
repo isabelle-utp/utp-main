@@ -371,10 +371,6 @@ lemma Inject_simp [simp]: "Inject x = Inject y \<longleftrightarrow> x = y"
 lemma [simp]: "\<lbrakk> v1 \<rhd> x; v2 \<rhd> x \<rbrakk> \<Longrightarrow> b(x :=\<^sub>b v1) = b(x :=\<^sub>b v2) \<longleftrightarrow> v1 = v2"
 by (metis binding_upd_apply)
 
-term "1.1"
-
-term "2"
-
 lemma EvalD_zero [evale]: "\<lbrakk>0\<rbrakk>\<^sub>v b = 0"
   by (simp add:EvalD_def zero_vdme_def LitE_def)
 
