@@ -321,6 +321,10 @@ theorem UNREST_fresh_var [unrest]:
   apply (smt someI_ex)
 done
 
+lemma UNREST_aux [unrest]:
+  "\<lbrakk> aux x; UNREST AUX_VAR p \<rbrakk> \<Longrightarrow> UNREST {x} p"
+  by (rule UNREST_subset, auto)
+
 text {* A predicate unrestricted on all variables is either true or false *}
 
 theorem UNREST_true_false: 

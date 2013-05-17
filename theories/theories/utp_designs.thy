@@ -30,6 +30,7 @@ abbreviation "ok  \<equiv> VarP okay"
 abbreviation "ok' \<equiv> VarP okay\<acute>"
 abbreviation "ok'' \<equiv> VarP okay\<acute>\<acute>"
 abbreviation "ok''' \<equiv> VarP okay\<acute>\<acute>\<acute>"
+abbreviation "OKAY \<equiv> {okay,okay\<acute>}"
 
 definition DesignD :: 
 "'VALUE WF_PREDICATE \<Rightarrow>
@@ -59,9 +60,9 @@ lemma UNREST_SkipD_NON_REL_VAR [unrest]:
   apply (force intro: unrest)
 done
 
-lemma UNREST_aux [unrest]:
-  "\<lbrakk> aux x; UNREST AUX_VAR p \<rbrakk> \<Longrightarrow> UNREST {x} p"
-  by (rule UNREST_subset, auto)
+lemma SubstP_UNREST_OKAY [usubst]:
+  "\<lbrakk> x \<in> OKAY; UNREST OKAY p; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> `p[v/x]` = p"
+  by (utp_pred_tac)
 
 lemma DesignD_rel_closure [closure]:
   "\<lbrakk>P \<in> WF_RELATION; Q \<in> WF_RELATION\<rbrakk> \<Longrightarrow> P \<turnstile> Q \<in> WF_RELATION"

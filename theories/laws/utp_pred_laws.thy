@@ -160,7 +160,15 @@ theorem ForallP_union :
 "(\<forall>p vs1 \<union> vs2 . p) = (\<forall>p vs1 . \<forall>p vs2 . p)"
   by (simp add: ForallP_def ExistsP_union UNREST_NotP NotP_NotP)
 
-theorem ExistsP_OrP_expand:
+lemma ForallP_AndP_dist: 
+  "(\<forall>p vs. p \<and>p q) = (\<forall>p vs. p) \<and>p (\<forall>p vs. q)"
+  by (utp_pred_auto_tac)
+
+lemma ClosureP_AndP_dist:
+  "`[p \<and> q]` = `[p] \<and> [q]`"
+  by (utp_pred_auto_tac)
+
+theorem ExistsP_OrP_dist:
 "(\<exists>p vs. p1 \<or>p p2) = (\<exists>p vs. p1) \<or>p (\<exists>p vs. p2)"
   by (utp_pred_auto_tac)
 
