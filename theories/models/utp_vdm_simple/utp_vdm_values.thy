@@ -71,7 +71,7 @@ datatype vbasic
   | CharI "char"
   | QuoteI "string" 
   | TokenI vbasic
-  | ListI vdmt "vbasic list" 
+  | ListI vdmt "vbasic list"
   | OptionI vdmt "vbasic option"
   | FinI vdmt "vbasic list"
   | BoolI bool
@@ -82,8 +82,6 @@ datatype vbasic
   | BotI "vdmt"
 
 (* Deriving the linear order necessarily takes a while *)
-
-
 
 (* derive linorder vbasic *)
 

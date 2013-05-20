@@ -18,7 +18,7 @@ text {* To make injecting values into the domain easy, we introduce a type class
   HOL functions over basic values into the value space.
 *}
 
-class vbasic = 
+class vbasic =
   fixes Inject  :: "'a \<Rightarrow> vbasic"
   and   Type    :: "'a itself \<Rightarrow> vdmt"
   assumes Inject_inj [simp]: "Inject x = Inject y \<Longrightarrow> x = y"
