@@ -10,7 +10,7 @@ theory utp_vdm_functions
 imports utp_vdm_expr
 begin
 
-abbreviation "vexpr_defined   \<equiv> UOpD' \<D>"
+abbreviation "vexpr_defined   \<equiv> (DefinedD :: 'a vdme \<Rightarrow> bool vdme)"
 abbreviation "vexpr_in_set    \<equiv> BOpD' (op \<in>\<^sub>f)"
 abbreviation "vexpr_dom       \<equiv> UOpD' fdom"
 abbreviation "vexpr_ran       \<equiv> UOpD' fran"
@@ -29,14 +29,17 @@ abbreviation "vexpr_and       \<equiv> BOpD' conj"
 abbreviation "vexpr_or        \<equiv> BOpD' disj"
 abbreviation "vexpr_implies   \<equiv> BOpD' implies"
 
-text {* We remove the generic syntax for true and false in favour of our own *}
+text {* We remove some of the generic syntax in favour of our own *}
 
 no_syntax
   "_uexpr_true"     :: "uexpr" ("true")
   "_uexpr_false"    :: "uexpr" ("false")
+  "_uexpr_var"      :: "pttrn \<Rightarrow> uexpr" ("_")
+  "_uexpr_brack"    :: "uexpr \<Rightarrow> uexpr" ("'(_')")
+  "_uexpr_evar"     :: "'a VAR \<Rightarrow> uexpr" ("$_" [999] 999)
 
 syntax
-  "_vexpr_num"     :: "int \<Rightarrow> vexpr" ("_")
+  "_vexpr_num"     :: "num \<Rightarrow> vexpr" ("_")
   "_vexpr_bot"     :: "vexpr" ("undefined")
   "_vexpr_defined" :: "vexpr \<Rightarrow> vexpr" ("defn _")
   "_vexpr_plus"    :: "vexpr \<Rightarrow> vexpr \<Rightarrow> vexpr" (infix "+" 30)
@@ -62,7 +65,7 @@ translations
   "_vexpr_num x"       == "CONST LitD x"
   "_vexpr_bot"         == "CONST BotDE"
   "_vexpr_defined x"   == "CONST vexpr_defined x"
-  "_vexpr_brack x"     => "x"
+(*  "_vexpr_brack x"     => "x" *)
   "_vexpr_plus x y"    == "CONST BOpD' CONST plus x y"
   "_vexpr_le x y"      == "CONST vexpr_le x y"
   "_vexpr_less x y"    == "CONST vexpr_less x y"
@@ -81,13 +84,26 @@ translations
   "_vexpr_or x y"      == "CONST vexpr_or x y"
   "_vexpr_implies x y" == "CONST vexpr_implies x y"
 
-lemma "^forall x :: int. x in set {<x>}^ = ^true^"
+lemma "\<lbrakk> \<D> <x::int>; \<D> <y> \<rbrakk> \<Longrightarrow> ^<x> + <y>^ = ^<y> + <x>^"
+  by (utp_expr_tac)
+
+lemma "^defn defn ($''x'')^ = ^true^"
+  by (utp_expr_tac)
+
+lemma "^forall x :: int. <x> in set {<x>}^ = ^true^"
+  by (utp_expr_tac)
+
+lemma [evale]:"\<lbrakk>BOpD f BotDE y\<rbrakk>\<^sub>vb = None"
+  by (simp add:BOpD_def evale)
+
+
+lemma "^undefined in set {undefined}^ = ^undefined : TYPE(bool)^"
   by (utp_expr_tac)
 
 lemma "^true => false^ = ^false^"
   by (utp_expr_tac)
 
-term "`''x'' := {1,2,3,4,5,6,7} union {8,9}`"
+term "`''x'' := ({1,2,3,4,5,6,7} union {8,9})`"
 
 lemma "^{2::int} union {3}^ = ^{2::int,3}^"
   by (utp_expr_tac)

@@ -109,7 +109,6 @@ definition ForallD :: "('a \<Rightarrow> bool vdme) \<Rightarrow> bool vdme" whe
 definition ExistsD :: "('a \<Rightarrow> bool vdme) \<Rightarrow> bool vdme" where
 "ExistsD f = Abs_vdme (\<lambda> b. (Some (\<exists> x. \<lbrakk>f x\<rbrakk>\<^sub>v b = Some True)))"
 
-
 instantiation option :: (type) DEFINED
 begin
 
@@ -130,6 +129,9 @@ instance ..
 
 end
 
+abbreviation DefinedD :: "'a vdme \<Rightarrow> bool vdme" where
+"DefinedD v \<equiv> LitD (\<D> v)"
+
 subsection {* Extend the UTP parser for VDM expressions *}
 
 nonterminal vexpr and vexprs
@@ -141,18 +143,18 @@ syntax
   ""              :: "vexpr => vexprs" ("_")
   "_vexpr_var"    :: "string \<Rightarrow> vexpr" ("$_")
   "_vexpr_lit"    :: "'a::vbasic \<Rightarrow> vexpr" ("<_>")
-  "_vexpr_mvar"   :: "pttrn \<Rightarrow> vexpr" ("@_")
   "_vexpr_forall" :: "pttrn \<Rightarrow> vexpr \<Rightarrow> vexpr" ("(3forall _./ _)" [0, 10] 10)
   "_vexpr_exists" :: "pttrn \<Rightarrow> vexpr \<Rightarrow> vexpr" ("(3exists _./ _)" [0, 10] 10)
+  "_vexpr_coerce"  :: "vexpr \<Rightarrow> 'a itself \<Rightarrow> vexpr" (infix ":" 50)
 
 translations
   "_uexpr_vdme e"      == "CONST LiftD e"
   "_vexpr_var x"       == "CONST VarD x"
   "_vexpr_lit v"       == "CONST LitD v"
-  "_vexpr_mvar x"      => "CONST LitD x"
   "_vexpr_brack e"     => "e"
   "_vexpr_forall x e"  == "CONST ForallD (\<lambda>x. e)"
   "_vexpr_exists x e"  == "CONST ExistsD (\<lambda>x. e)"
+  "_vexpr_coerce e TYPE('a)" => "e :: 'a vdme"
 
 subsection {* @{term UNREST_VDME} theorems *}
 
@@ -289,6 +291,10 @@ subsection {* Evaluation theorems *}
 lemma EvalE_LiftD [evale]:
   "\<D> (\<lbrakk>v\<rbrakk>\<^sub>vb) \<Longrightarrow> \<lbrakk>LiftD v\<rbrakk>\<epsilon>b = BasicD (Inject (the (\<lbrakk>v\<rbrakk>\<^sub>vb)))"
   by (auto simp add:EvalE_def LiftD.rep_eq Defined_option_def)
+
+lemma EvalE_LiftD_ndefined [evale]:
+  "\<not> \<D> (\<lbrakk>v :: 'a vdme\<rbrakk>\<^sub>vb) \<Longrightarrow> \<lbrakk>LiftD v\<rbrakk>\<epsilon>b = \<bottom>\<^bsub>VTYPE('a)\<^esub>"
+  by (simp add:EvalE_def LiftD.rep_eq Defined_option_def)
 
 lemma EvalD_LitD [evale]:
   "\<lbrakk><x>\<rbrakk>\<^sub>vb = Some x"
