@@ -324,6 +324,10 @@ lemma binding_upd_simps [simp]:
   "b(x :=\<^sub>b \<langle>b\<rangle>\<^sub>b x) = b"
   by (auto)
 
+lemma binding_value_eq [simp]: 
+  "\<lbrakk> v1 \<rhd> x; v2 \<rhd> x \<rbrakk> \<Longrightarrow> b(x :=\<^sub>b v1) = b(x :=\<^sub>b v2) \<longleftrightarrow> v1 = v2"
+  by (metis binding_upd_apply)
+
 subsubsection {* Binding Equivalence *}
 
 theorem binding_equiv_empty [simp] :

@@ -191,6 +191,7 @@ ML {*
     (simpset_of ctxt)
       addsimps (evale.get ctxt)
       addsimps (closure.get ctxt)
+      addsimps (defined.get ctxt)
       addsimps (typing.get ctxt);
 *}
 

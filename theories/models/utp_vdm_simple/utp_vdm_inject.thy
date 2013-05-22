@@ -1,3 +1,9 @@
+(******************************************************************************)
+(* Project: VDM model for Isabelle/UTP                                        *)
+(* File: utp_vdm_inject.thy                                                   *)
+(* Author: Simon Foster, University of York (UK)                              *)
+(******************************************************************************)
+
 theory utp_vdm_inject
 imports utp_vdm_values
 begin
@@ -46,6 +52,9 @@ lemma Inject_Project [simp]: "Project (Inject x) = Some x"
   apply (metis Inject_inj injI inv_f_f)
   apply (metis (mono_tags) Inject_range mem_Collect_eq rangeI)
 done
+
+lemma Inject_simp [simp]: "Inject x = Inject y \<longleftrightarrow> x = y"
+  by (metis Inject_inj)
 
 lemma Project_Inject [simp]: 
   "\<And> x. \<lbrakk> x :\<^sub>b VTYPE('a); \<D>\<^sub>b x \<rbrakk> \<Longrightarrow> Inject (the (Project x)) = x"

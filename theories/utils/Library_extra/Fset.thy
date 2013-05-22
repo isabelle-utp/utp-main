@@ -214,6 +214,14 @@ lemma fcard_flist:
   apply (rule refl)
 done
 
+lemma fcard_empty [simp]:
+  "fcard \<lbrace>\<rbrace> = 0"
+  by (auto simp add:fcard_def)
+
+lemma fcard_insert [simp]:
+  "x \<notin>\<^sub>f xs \<Longrightarrow> fcard (finsert x xs) = Suc (fcard xs)"
+  by (auto simp add:fcard_def)
+
 definition fmax :: "'a fset \<Rightarrow> 'a" where
 "fmax xs = (if (xs = \<lbrace>\<rbrace>) then undefined else last (flist xs))"
 
@@ -450,6 +458,12 @@ proof -
   thus ?thesis by (simp add:xs_def)
 qed
 
+definition fset_option :: "'a option fset \<Rightarrow> 'a fset option" where
+"fset_option xs = (if (None \<in>\<^sub>f xs) then None else Some (the `\<^sub>f xs))"
+
+lemma fset_option_empty: 
+  "fset_option \<lbrace>\<rbrace> = Some \<lbrace>\<rbrace>"
+  by (simp add:fset_option_def)
 
 end
 

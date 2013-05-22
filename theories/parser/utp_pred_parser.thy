@@ -78,6 +78,7 @@ term "`x \<Rightarrow> $y\<acute>`"
 
 syntax
   "_uexpr_brack"    :: "uexpr \<Rightarrow> uexpr" ("'(_')")
+  "_uexpr_quote"    :: "uexpr \<Rightarrow> 'a WF_EXPRESSION" ("(1^_^)")
   "_uexpr_true"     :: "uexpr" ("true")
   "_uexpr_false"    :: "uexpr" ("false")
   "_uexpr_var"      :: "pttrn \<Rightarrow> uexpr" ("_")
@@ -87,6 +88,7 @@ syntax
 
 translations
   "_uexpr_brack e"      => "e"
+  "_uexpr_quote e"      => "e"
   "_uexpr_true"         == "CONST TrueE"
   "_uexpr_false"        == "CONST FalseE"
   "_uexpr_var x"        => "x" 

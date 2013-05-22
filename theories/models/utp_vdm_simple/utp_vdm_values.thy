@@ -6,8 +6,9 @@
 theory utp_vdm_values
 imports 
    Derive
-  "~~/src/HOL/Library/Char_ord" 
-  "~~/src/HOL/Library/Monad_Syntax" 
+  "~~/src/HOL/Library/Char_ord"
+  "~~/src/HOL/Library/Option_ord"
+  "~~/src/HOL/Library/Monad_Syntax"
   utp_base
 begin
 
@@ -303,6 +304,9 @@ fun vdefined :: "vdmv \<Rightarrow> bool" ("\<D>\<^sub>v") where
 "\<D>\<^sub>v (BasicD x) = \<D>\<^sub>b x" |
 "\<D>\<^sub>v (SetD xs) = (\<forall>x\<in>xs. \<D>\<^sub>b x)" |
 "\<D>\<^sub>v (FuncD f) = True"
+
+lemma Defined_nbot [simp]: "\<D>\<^sub>v x \<Longrightarrow> \<forall> a. x \<noteq> BotD a"
+  by (auto)
 
 definition vbtypes :: "vdmt set" where
 "vbtypes = {t. \<exists> x. x :\<^sub>b t \<and> \<D>\<^sub>b x}"

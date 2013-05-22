@@ -1,19 +1,19 @@
+(******************************************************************************)
+(* Project: VDM model for Isabelle/UTP                                        *)
+(* File: utp_vdm_sorts.thy                                                    *)
+(* Author: Simon Foster, University of York (UK)                              *)
+(******************************************************************************)
+
 theory utp_vdm_sorts
 imports 
   "../../core/utp_sorts"
   utp_vdm_inject 
 begin
 
+section {* Instantiation of various UTP sorts *}
+
 instantiation vdmv :: VALUE
 begin
-
-(*
-definition utype_rel_vval :: "vval \<Rightarrow> nat \<Rightarrow> bool" where
-"utype_rel_vval x u = \<exists> t :: vdmt. u = emb\<cdot>(Def t) \<and> x :\<^sub>v t)"
-*)
-
-lemma Defined_nbot [simp]: "\<D>\<^sub>v x \<Longrightarrow> \<forall> a. x \<noteq> BotD a"
-  by (auto)
 
 definition utype_rel_vdmv :: "vdmv \<Rightarrow> nat \<Rightarrow> bool" where
 "utype_rel_vdmv x u = (\<exists> t :: vdmt. u = to_nat t \<and> x :\<^sub>v t)"
@@ -37,6 +37,14 @@ lemma prjTYPE_inv_vdm [simp]
   apply (simp add:prjTYPE_def embTYPE_def)
   apply (case_tac t)
   apply (auto simp add: utype_rel_vdmv_def UTYPES_def)
+done
+
+lemma embTYPE_inv_vdm [simp]: 
+  "prjTYPE (embTYPE VTYPE('a::vbasic) :: vdmv UTYPE) = VTYPE('a)"
+  apply (rule_tac embTYPE_inv[of "BasicD (Inject undefined)"])
+  apply (auto simp add:utype_rel_vdmv_def Defined_vdmv_def)
+  apply (rule)
+  apply (rule Inject_type)
 done
 
 lemma embTYPE_inv_vbtypes [simp]:
@@ -133,8 +141,8 @@ subsection {* Bool sort instantiation *}
 instantiation vdmv :: BOOL_SORT
 begin
 
-definition MkBool_vdmv where "MkBool_vdmv (x::bool) = InjVB x"
-definition DestBool_vdmv where "DestBool_vdmv x = (ProjVB x :: bool)"
+definition MkBool_vdmv where "MkBool_vdmv (x::bool) = BasicD (BoolI x)"
+definition DestBool_vdmv where "DestBool_vdmv x = the (ProjBoolI (ProjBasicD x))"
 definition BoolUType_vdmv :: "vdmv itself \<Rightarrow> nat" where 
 "BoolUType_vdmv = (\<lambda>x. to_nat BoolT)"
 
@@ -147,6 +155,10 @@ instance
   apply (auto)
 done
 end
+
+lemma MkBool_vdmv [simp]: 
+  "MkBool x = BasicD (Inject x)"
+  by (simp add:MkBool_vdmv_def Inject_bool_def)
 
 subsection {* Set sort instantiation *}
 
