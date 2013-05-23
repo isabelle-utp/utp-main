@@ -132,9 +132,14 @@ end
 abbreviation DefinedD :: "'a vdme \<Rightarrow> bool vdme" where
 "DefinedD v \<equiv> LitD (\<D> v)"
 
+definition CoerceD :: "'a vdme \<Rightarrow> 'a set \<Rightarrow> 'a vdme" where
+"CoerceD e t \<equiv> Abs_vdme (\<lambda> b. if (\<D> (\<lbrakk>e\<rbrakk>\<^sub>v b) \<and> the (\<lbrakk>e\<rbrakk>\<^sub>v b) \<in> t)
+                              then \<lbrakk>e\<rbrakk>\<^sub>v b 
+                              else None)"
+
 subsection {* Extend the UTP parser for VDM expressions *}
 
-nonterminal vexpr and vexprs
+nonterminal vexpr and vexprs and vty
 
 syntax
   "_uexpr_vdme"   :: "vexpr \<Rightarrow> uexpr" ("_")
@@ -142,10 +147,10 @@ syntax
   "_vexprs"       :: "[vexpr, vexprs] => vexprs" ("_,/ _")
   ""              :: "vexpr => vexprs" ("_")
   "_vexpr_var"    :: "string \<Rightarrow> vexpr" ("$_")
-  "_vexpr_lit"    :: "'a::vbasic \<Rightarrow> vexpr" ("<_>")
+  "_vexpr_lit"    :: "'a::vbasic \<Rightarrow> vexpr" ("!_!")
   "_vexpr_forall" :: "pttrn \<Rightarrow> vexpr \<Rightarrow> vexpr" ("(3forall _./ _)" [0, 10] 10)
   "_vexpr_exists" :: "pttrn \<Rightarrow> vexpr \<Rightarrow> vexpr" ("(3exists _./ _)" [0, 10] 10)
-  "_vexpr_coerce"  :: "vexpr \<Rightarrow> 'a itself \<Rightarrow> vexpr" (infix ":" 50)
+  "_vexpr_coerce"  :: "vexpr \<Rightarrow> vty \<Rightarrow> vexpr" (infix ":" 50)
 
 translations
   "_uexpr_vdme e"      == "CONST LiftD e"
@@ -154,7 +159,7 @@ translations
   "_vexpr_brack e"     => "e"
   "_vexpr_forall x e"  == "CONST ForallD (\<lambda>x. e)"
   "_vexpr_exists x e"  == "CONST ExistsD (\<lambda>x. e)"
-  "_vexpr_coerce e TYPE('a)" => "e :: 'a vdme"
+  "_vexpr_coerce e t"  == "CONST CoerceD e t"
 
 subsection {* @{term UNREST_VDME} theorems *}
 
@@ -199,6 +204,10 @@ lemma UNREST_VDME_FSetE [unrest]:
   apply (simp add:fimage.rep_eq fset_option_def)
   apply (safe)
 oops
+
+lemma UNREST_VDME_CoerceD [unrest]:
+  "\<lbrakk> UNREST_VDME vs x \<rbrakk> \<Longrightarrow> UNREST_VDME vs (CoerceD x t)"
+  by (auto simp add:UNREST_VDME_def CoerceD_def)
 
 lemma UNREST_EXPR_LiftD [unrest]:
   "UNREST_VDME vs e \<Longrightarrow> UNREST_EXPR vs (LiftD e)"
@@ -315,6 +324,10 @@ lemma EvalD_UOpD [evale]:
 lemma EvalD_BOpD [evale]:
   "\<lbrakk> \<D> (\<lbrakk>x\<rbrakk>\<^sub>vb); \<D> (\<lbrakk>y\<rbrakk>\<^sub>vb) \<rbrakk> \<Longrightarrow> \<lbrakk>BOpD f x y\<rbrakk>\<^sub>vb = f (the (\<lbrakk>x\<rbrakk>\<^sub>vb), the (\<lbrakk>y\<rbrakk>\<^sub>vb))"
   by (auto simp add:BOpD_def Defined_option_def)
+
+lemma EvalD_CoerceD [evale]:
+  "\<lbrakk> \<D> (\<lbrakk>x\<rbrakk>\<^sub>v b); the (\<lbrakk>x\<rbrakk>\<^sub>v b) \<in> t \<rbrakk> \<Longrightarrow> \<lbrakk>CoerceD x t\<rbrakk>\<^sub>vb = \<lbrakk>x\<rbrakk>\<^sub>vb"
+  by (simp add:CoerceD_def)
 
 lemma upfun_apply [simp]:
   "upfun f x = Some (f x)"

@@ -329,6 +329,35 @@ lemma vbtypes_simps [simp]:
  apply (force)
 done
 
+text {* Coercion *}
+
+fun CoerceI :: "vbasic \<Rightarrow> vdmt \<Rightarrow> vbasic" where
+"CoerceI (NatI x) IntT  = (IntI (of_nat x))" |
+"CoerceI (NatI x) RatT  = (RatI (of_nat x))" |
+"CoerceI (NatI x) RealT = (RealI (of_nat x))" |
+"CoerceI (IntI x) RatT  = (RatI (of_int x))" |
+"CoerceI (IntI x) RealT = (RealI (of_int x))" |
+"CoerceI (RatI x) RealT = (RealI (of_rat x))" |
+"CoerceI x t = (if (x :\<^sub>b t) then x else BotI t)" 
+
+lemma CoerceI_refl [simp]:
+  "x :\<^sub>b t \<Longrightarrow> CoerceI x t = x"
+  apply (case_tac x, case_tac[!] t)
+  apply (auto)
+done
+
+lemma CoerceI_idem [simp]:
+  "CoerceI (CoerceI x t) t = CoerceI x t"
+  apply (case_tac x, case_tac[!] t)
+  apply (auto)
+done
+
+lemma CoerceI_type [intro]:
+  "CoerceI x t :\<^sub>b t"
+  apply (case_tac x, case_tac[!] t)
+  apply (auto)
+done
+
 text {* We introduce a couple of derived typing rules *}
 
 lemma NilI_type[intro]: "ListI a [] :\<^sub>b ListT a"
@@ -390,7 +419,8 @@ subsection {* Full value typing relation *}
 inductive vdmt_rel :: "vdmv \<Rightarrow> vdmt \<Rightarrow> bool" (infix ":\<^sub>v" 50) where
 SetD_type[intro]: "\<lbrakk> \<forall> x\<in>xs. x :\<^sub>b a \<rbrakk> \<Longrightarrow> SetD xs :\<^sub>v SetT a" |
 BasicD_type[intro]: "x :\<^sub>b a \<Longrightarrow> BasicD x :\<^sub>v a" |
-FuncD_type[intro]: "\<lbrakk> \<And> x. x :\<^sub>b a \<Longrightarrow> f x :\<^sub>v b; f (BotI a) = BotD b \<rbrakk> \<Longrightarrow> FuncD f :\<^sub>v a \<rightarrow> b"
+FuncD_type[intro]: "\<lbrakk> \<And> x. \<lbrakk> x :\<^sub>b a; \<D>\<^sub>b x \<rbrakk> \<Longrightarrow> f x :\<^sub>v b 
+                    ; \<And> x. \<not> \<D>\<^sub>b x \<Longrightarrow> f x = BotD b \<rbrakk> \<Longrightarrow> FuncD f :\<^sub>v a \<rightarrow> b"
 
 inductive_cases
   SetT_type_cases': "x :\<^sub>v SetT a" and
@@ -406,7 +436,7 @@ lemma SetT_type_cases [elim]:
 done
 
 lemma FuncT_type_cases [elim]: 
-  "\<lbrakk> x :\<^sub>v a \<rightarrow> b; \<And> f. \<lbrakk> x = FuncD f; \<forall> x. x :\<^sub>b a \<longrightarrow> f x :\<^sub>v b; f (BotI a) = BotD b \<rbrakk> \<Longrightarrow> P
+  "\<lbrakk> x :\<^sub>v a \<rightarrow> b; \<And> f. \<lbrakk> x = FuncD f; \<And> x. \<lbrakk> x :\<^sub>b a; \<D>\<^sub>b x \<rbrakk> \<Longrightarrow> f x :\<^sub>v b ; \<And> x. \<not> \<D>\<^sub>b x \<Longrightarrow> f x = BotD b \<rbrakk> \<Longrightarrow> P
    ; x = BotD (a \<rightarrow> b) \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   apply (erule FuncT_type_cases')
   apply (auto)

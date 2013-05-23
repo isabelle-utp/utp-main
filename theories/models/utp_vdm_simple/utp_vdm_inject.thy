@@ -60,12 +60,18 @@ lemma Project_Inject [simp]:
   "\<And> x. \<lbrakk> x :\<^sub>b VTYPE('a); \<D>\<^sub>b x \<rbrakk> \<Longrightarrow> Inject (the (Project x)) = x"
   by (auto intro:f_inv_into_f simp add:Project_def)
 
-lemma Project_bot [simp]:
-  "Project (BotI a) = None"
+lemma Project_ndefined [simp]:
+  "\<not> \<D>\<^sub>b x \<Longrightarrow> Project x = None"
   by (simp add:Project_def)
 
 lemma Project_dom [simp]: "\<And> x y. Project x = Some y \<Longrightarrow> x :\<^sub>b VTYPE('a)"
   by (case_tac "x :\<^sub>b VTYPE('a)", auto simp add:Project_def)
+
+lemma Project_ndom [simp]: "\<And> x. \<lbrakk> Project x = None \<rbrakk> \<Longrightarrow> \<not> \<D>\<^sub>b x \<or> \<not> x :\<^sub>b VTYPE('a)"
+  apply (simp only:Project_def)
+  apply (case_tac "x :\<^sub>b VTYPE('a)")
+  apply (auto)
+done
 
 lemma Inject_Project_comp [simp]:
   "Project \<circ> Inject = Some" 
@@ -447,12 +453,19 @@ next
 qed
 end
 
+
 (*
 class vdmv = 
   fixes InjectV  :: "'a \<Rightarrow> vdmv"
   and   TypeV    :: "'a itself \<Rightarrow> vdmt"
   assumes InjectV_inj [simp]: "InjectV x = InjectV y \<Longrightarrow> x = y"
   and     InjectV_range [simp]: "range InjectV = {x. x :\<^sub>v TypeV (TYPE('a)) \<and> \<D>\<^sub>v x}"
+
+syntax
+  "_VVTYPE" :: "type => logic"  ("(1VVTYPE/(1'(_')))")
+
+translations "VVTYPE('a)" == "CONST TypeV TYPE('a)"
+
 
 context vdmv
 begin
@@ -507,10 +520,10 @@ instantiation "fun" :: (vbasic,vdmv) vdmv
 begin
 
 definition InjectV_fun :: "('a \<Rightarrow> 'b) \<Rightarrow> vdmv" where
-"InjectV_fun f = FuncD (\<lambda> x. case (Project x) of Some v \<Rightarrow> InjectV (f v) | None \<Rightarrow> BotD)"
+"InjectV_fun f = FuncD (\<lambda> x. case (Project x) of Some v \<Rightarrow> InjectV (f v) | None \<Rightarrow> BotD VVTYPE('b))"
 
 definition TypeV_fun :: "('a \<Rightarrow> 'b) itself \<Rightarrow> vdmt" where
-"TypeV_fun f = VTYPE('a)) \<rightarrow> (TypeV (TYPE('b)))"
+"TypeV_fun f = VTYPE('a) \<rightarrow> VVTYPE('b)"
 
 instance 
   apply (intro_classes)
@@ -535,6 +548,10 @@ instance
   apply (rule ext)
   apply (case_tac "Project x :: 'a option")
   apply (simp_all)
+  apply (drule Project_ndom)
+  apply (auto)[1]
+  defer
+  apply (simp)
 sorry
 end
 *)

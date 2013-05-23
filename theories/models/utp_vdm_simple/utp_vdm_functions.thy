@@ -7,7 +7,9 @@
 header {* VDM Function Library *}
 
 theory utp_vdm_functions
-imports utp_vdm_expr
+imports 
+  utp_vdm_types
+  utp_vdm_expr
 begin
 
 abbreviation "vexpr_defined   \<equiv> (DefinedD :: 'a vdme \<Rightarrow> bool vdme)"
@@ -39,7 +41,7 @@ no_syntax
   "_uexpr_evar"     :: "'a VAR \<Rightarrow> uexpr" ("$_" [999] 999)
 
 syntax
-  "_vexpr_num"     :: "num \<Rightarrow> vexpr" ("_")
+(*  "_vexpr_num"     :: "num \<Rightarrow> vexpr" ("_") *)
   "_vexpr_bot"     :: "vexpr" ("undefined")
   "_vexpr_defined" :: "vexpr \<Rightarrow> vexpr" ("defn _")
   "_vexpr_plus"    :: "vexpr \<Rightarrow> vexpr \<Rightarrow> vexpr" (infix "+" 30)
@@ -62,7 +64,7 @@ syntax
 
 translations
   "_vexpr_in_set x xs" == "CONST vexpr_in_set x xs"
-  "_vexpr_num x"       == "CONST LitD x"
+(*  "_vexpr_num x"       == "CONST LitD x" *)
   "_vexpr_bot"         == "CONST BotDE"
   "_vexpr_defined x"   == "CONST vexpr_defined x"
 (*  "_vexpr_brack x"     => "x" *)
@@ -84,27 +86,38 @@ translations
   "_vexpr_or x y"      == "CONST vexpr_or x y"
   "_vexpr_implies x y" == "CONST vexpr_implies x y"
 
-lemma "\<lbrakk> \<D> <x::int>; \<D> <y> \<rbrakk> \<Longrightarrow> ^<x> + <y>^ = ^<y> + <x>^"
+lemma "^!2! : @nat inv x == (!x! < !5!)^ = ^!2 :: nat!^"
+  apply (simp add:evale defined typing)
+  apply (simp add:CoerceD_def defined evale typing InvS_def)
+done
+
+
+lemma "^{!1!} : @set of @nat^ = ^{!1 :: nat!}^"
+  by (simp add:evale defined typing)
+
+lemma "\<lbrakk> \<D> <x::int>; \<D> <y> \<rbrakk> \<Longrightarrow> ^!x! + !y!^ = ^!y! + !x!^"
   by (utp_expr_tac)
 
 lemma "^defn defn ($''x'')^ = ^true^"
   by (utp_expr_tac)
 
-lemma "^forall x :: int. <x> in set {<x>}^ = ^true^"
+lemma "^forall x :: int. !x! in set {!x!}^ = ^true^"
   by (utp_expr_tac)
 
 lemma [evale]:"\<lbrakk>BOpD f BotDE y\<rbrakk>\<^sub>vb = None"
   by (simp add:BOpD_def evale)
 
 
-lemma "^undefined in set {undefined}^ = ^undefined : TYPE(bool)^"
-  by (utp_expr_tac)
+lemma "^undefined in set {undefined}^ = ^undefined : @bool^"
+  apply (utp_expr_tac)
+oops
 
 lemma "^true => false^ = ^false^"
   by (utp_expr_tac)
 
-term "`''x'' := ({1,2,3,4,5,6,7} union {8,9})`"
+(* term "`''x'' := ({1,2,3,4,5,6,7} union {8,9})`" *)
 
+(*
 lemma "^{2::int} union {3}^ = ^{2::int,3}^"
   by (utp_expr_tac)
 
@@ -116,5 +129,6 @@ lemma "^2 in set {2,2}^ = ^true^"
 
 lemma "^5::int <= 6::int^ = ^true^"
   by (utp_expr_tac)
+*)
 
 end
