@@ -143,7 +143,7 @@ nonterminal vexpr and vexprs and vty
 
 syntax
   "_uexpr_vdme"   :: "vexpr \<Rightarrow> uexpr" ("_")
-  "_vexpr_brack"  :: "vexpr \<Rightarrow> vexpr" ("'(_')")
+(*  "_vexpr_brack"  :: "vexpr \<Rightarrow> vexpr" ("'(_')") *)
   "_vexprs"       :: "[vexpr, vexprs] => vexprs" ("_,/ _")
   ""              :: "vexpr => vexprs" ("_")
   "_vexpr_var"    :: "string \<Rightarrow> vexpr" ("$_")
@@ -156,7 +156,7 @@ translations
   "_uexpr_vdme e"      == "CONST LiftD e"
   "_vexpr_var x"       == "CONST VarD x"
   "_vexpr_lit v"       == "CONST LitD v"
-  "_vexpr_brack e"     => "e"
+(*  "_vexpr_brack e"     => "e" *)
   "_vexpr_forall x e"  == "CONST ForallD (\<lambda>x. e)"
   "_vexpr_exists x e"  == "CONST ExistsD (\<lambda>x. e)"
   "_vexpr_coerce e t"  == "CONST CoerceD e t"

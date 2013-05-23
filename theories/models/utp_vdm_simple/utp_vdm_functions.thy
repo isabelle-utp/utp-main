@@ -30,6 +30,7 @@ abbreviation "vexpr_not       \<equiv> UOpD' Not"
 abbreviation "vexpr_and       \<equiv> BOpD' conj"
 abbreviation "vexpr_or        \<equiv> BOpD' disj"
 abbreviation "vexpr_implies   \<equiv> BOpD' implies"
+abbreviation "vexpr_prod      \<equiv> BOpD' (\<lambda> x y. (x,y))"
 
 text {* We remove some of the generic syntax in favour of our own *}
 
@@ -42,6 +43,8 @@ no_syntax
 
 syntax
 (*  "_vexpr_num"     :: "num \<Rightarrow> vexpr" ("_") *)
+  "_vexpr_quotev"  :: "string \<Rightarrow> vexpr" ("<_>")
+  "_vexpr_quote"   :: "vexpr \<Rightarrow> 'a vdme" ("(1*_*)")
   "_vexpr_bot"     :: "vexpr" ("undefined")
   "_vexpr_defined" :: "vexpr \<Rightarrow> vexpr" ("defn _")
   "_vexpr_plus"    :: "vexpr \<Rightarrow> vexpr \<Rightarrow> vexpr" (infix "+" 30)
@@ -61,8 +64,11 @@ syntax
   "_vexpr_and"     :: "vexpr \<Rightarrow> vexpr \<Rightarrow> vexpr" (infix "and" 35)
   "_vexpr_or"      :: "vexpr \<Rightarrow> vexpr \<Rightarrow> vexpr" (infix "or" 30)
   "_vexpr_implies" :: "vexpr \<Rightarrow> vexpr \<Rightarrow> vexpr" (infix "=>" 25)
+  "_vexpr_prod"    :: "vexprs \<Rightarrow> vexpr"    ("'(_')")
 
 translations
+  "_vexpr_quote x"     => "x"
+  "_vexpr_quotev x"    == "CONST LitD (CONST Q x)"
   "_vexpr_in_set x xs" == "CONST vexpr_in_set x xs"
 (*  "_vexpr_num x"       == "CONST LitD x" *)
   "_vexpr_bot"         == "CONST BotDE"
@@ -85,6 +91,8 @@ translations
   "_vexpr_and x y"     == "CONST vexpr_and x y"
   "_vexpr_or x y"      == "CONST vexpr_or x y"
   "_vexpr_implies x y" == "CONST vexpr_implies x y"
+  "_vexpr_prod (_vexprs x xs)" == "CONST vexpr_prod x (_vexpr_prod xs)"
+  "_vexpr_prod x" => "x"
 
 lemma "^!2! : @nat inv x == (!x! < !5!)^ = ^!2 :: nat!^"
   apply (simp add:evale defined typing)
