@@ -85,7 +85,8 @@ translations
   "_vexpr_hd xs"       == "CONST vexpr_hd xs"
   "_vexpr_tl xs"       == "CONST vexpr_tl xs"
 
-term "real"
+term "|\<langle>x\<rangle> > \<langle>5 :: int\<rangle>|"
+term "\<parallel>@int inv x == \<langle>x\<rangle> > \<langle>5\<rangle>\<parallel>"
 
 lemma "^\<langle>2\<rangle> : @nat inv x == (\<langle>x\<rangle> < \<langle>5\<rangle>)^ = ^\<langle>2\<rangle> : @nat^"
   apply (simp add:evale defined typing)

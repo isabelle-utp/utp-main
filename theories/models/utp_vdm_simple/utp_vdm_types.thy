@@ -38,9 +38,11 @@ abbreviation "QuoteS x \<equiv> {Q x}"
 
 abbreviation "vty_bool \<equiv> (UNIV :: bool set)"
 abbreviation "vty_nat  \<equiv> (UNIV :: nat set)"
+abbreviation "vty_nat1 \<equiv> {x::nat. x > 1}"
 abbreviation "vty_int  \<equiv> (UNIV :: int set)"
 abbreviation "vty_rat  \<equiv> (UNIV :: rat set)"
 abbreviation "vty_real \<equiv> (UNIV :: real set)"
+abbreviation "vty_char \<equiv> (UNIV :: char set)"
 abbreviation "vty_prod \<equiv> op \<times>"
 abbreviation "vty_seq_of A  \<equiv> {xs. set xs \<subseteq> A}" 
 abbreviation "vty_seq1_of A \<equiv> {xs. set xs \<subseteq> A \<and> length xs > 0}" 
@@ -66,8 +68,10 @@ syntax
   "_vty_set"     :: "'a set \<Rightarrow> vty" ("@_")
   "_vty_bool"    :: "vty" ("@bool")
   "_vty_nat"     :: "vty" ("@nat")
+  "_vty_nat1"     :: "vty" ("@nat1")
   "_vty_int"     :: "vty" ("@int")
   "_vty_rat"     :: "vty" ("@rat")
+  "_vty_char"    :: "vty" ("@char")
   "_vty_real"    :: "vty" ("@real")
   "_vty_set_of"  :: "vty \<Rightarrow> vty" ("@set of _")
   "_vty_seq_of"  :: "vty \<Rightarrow> vty" ("@seq of _")
@@ -83,9 +87,11 @@ translations
   "_vty_brack x"   => "x"
   "_vty_bool"      == "CONST vty_bool"
   "_vty_nat"       == "CONST vty_nat"
+  "_vty_nat1"      == "CONST vty_nat1"
   "_vty_int"       == "CONST vty_int"
   "_vty_rat"       == "CONST vty_rat"
   "_vty_real"      == "CONST vty_real"
+  "_vty_char"      == "CONST vty_char"
   "_vty_prod x y"  == "CONST vty_prod x y"
   "_vty_set_of A"  == "CONST Fow A"
   "_vty_seq_of A"  == "CONST vty_seq_of A"
@@ -93,8 +99,10 @@ translations
   "_vty_quo x"     => "x"
   "_vty_inv A x P" == "CONST InvS A (\<lambda>x. P)"
 
+term "\<parallel>@seq1 of @char\<parallel>"
+
 term "|[\<langle>1\<rangle>]|"
 
-term "`''x'' := [\<langle>1\<rangle>] : @seq1 of @nat`"
+term "`''x'' := [\<langle>1\<rangle>] : @seq1 of @nat1`"
 
 end
