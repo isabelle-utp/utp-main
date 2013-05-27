@@ -141,25 +141,47 @@ subsection {* Extend the UTP parser for VDM expressions *}
 
 nonterminal vexpr and vexprs and vty
 
+abbreviation "vexpr_prod      \<equiv> BOpD' (\<lambda> x y. (x,y))"
+abbreviation "vexpr_nil       \<equiv> LitD []"
+abbreviation "vexpr_cons      \<equiv> BOpD' list.Cons"
+abbreviation "vexpr_empty     \<equiv> LitD \<lbrace>\<rbrace>"
+abbreviation "vexpr_insert    \<equiv> BOpD' finsert"
+
 syntax
   "_uexpr_vdme"   :: "vexpr \<Rightarrow> uexpr" ("_")
-(*  "_vexpr_brack"  :: "vexpr \<Rightarrow> vexpr" ("'(_')") *)
-  "_vexprs"       :: "[vexpr, vexprs] => vexprs" ("_,/ _")
-  ""              :: "vexpr => vexprs" ("_")
-  "_vexpr_var"    :: "string \<Rightarrow> vexpr" ("$_")
-  "_vexpr_lit"    :: "'a::vbasic \<Rightarrow> vexpr" ("!_!")
-  "_vexpr_forall" :: "pttrn \<Rightarrow> vexpr \<Rightarrow> vexpr" ("(3forall _./ _)" [0, 10] 10)
-  "_vexpr_exists" :: "pttrn \<Rightarrow> vexpr \<Rightarrow> vexpr" ("(3exists _./ _)" [0, 10] 10)
+  "_vexpr_quote"   :: "vexpr \<Rightarrow> 'a vdme" ("|_|")
+  "_vexprs"        :: "[vexpr, vexprs] => vexprs" ("_,/ _")
+  ""               :: "vexpr => vexprs" ("_")
+  "_vexpr_num"     :: "num_const \<Rightarrow> vexpr" ("_")
+  "_vexpr_var"     :: "string \<Rightarrow> vexpr" ("$_")
+  "_vexpr_bot"     :: "vexpr" ("undefined")
+  "_vexpr_lit"     :: "'a::vbasic \<Rightarrow> vexpr" ("\<langle>_\<rangle>")
+  "_vexpr_forall"  :: "pttrn \<Rightarrow> vexpr \<Rightarrow> vexpr" ("(3forall _./ _)" [0, 10] 10)
+  "_vexpr_exists"  :: "pttrn \<Rightarrow> vexpr \<Rightarrow> vexpr" ("(3exists _./ _)" [0, 10] 10)
   "_vexpr_coerce"  :: "vexpr \<Rightarrow> vty \<Rightarrow> vexpr" (infix ":" 50)
+  "_vexpr_prod"    :: "vexprs \<Rightarrow> vexpr"    ("'(_')")
+  "_vexpr_nil"     :: "vexpr" ("[]")
+  "_vexpr_list"    :: "vexprs => vexpr"    ("[(_)]")
+  "_vexpr_empty"   :: "vexpr" ("{}")
+  "_vexpr_fset"    :: "vexprs => vexpr"    ("{(_)}")
 
 translations
-  "_uexpr_vdme e"      == "CONST LiftD e"
-  "_vexpr_var x"       == "CONST VarD x"
-  "_vexpr_lit v"       == "CONST LitD v"
-(*  "_vexpr_brack e"     => "e" *)
-  "_vexpr_forall x e"  == "CONST ForallD (\<lambda>x. e)"
-  "_vexpr_exists x e"  == "CONST ExistsD (\<lambda>x. e)"
-  "_vexpr_coerce e t"  == "CONST CoerceD e t"
+  "_vexpr_quote x"             => "x"
+  "_uexpr_vdme e"              == "CONST LiftD e"
+  "_vexpr_var x"               == "CONST VarD x"
+  "_vexpr_bot"                 == "CONST BotDE"
+  "_vexpr_lit v"               == "CONST LitD v"
+  "_vexpr_forall x e"          == "CONST ForallD (\<lambda>x. e)"
+  "_vexpr_exists x e"          == "CONST ExistsD (\<lambda>x. e)"
+  "_vexpr_coerce e t"          == "CONST CoerceD e t"
+  "_vexpr_prod (_vexprs x xs)" == "CONST vexpr_prod x (_vexpr_prod xs)"
+  "_vexpr_prod x"              => "x"
+  "_vexpr_nil"                 == "CONST vexpr_nil"
+  "_vexpr_list (_vexprs x xs)" == "CONST vexpr_cons x (_vexpr_list xs)"
+  "_vexpr_list x"              == "CONST vexpr_cons x CONST vexpr_nil"
+  "_vexpr_empty"               == "CONST vexpr_empty"
+  "_vexpr_fset (_vexprs x xs)" == "CONST vexpr_insert x (_vexpr_fset xs)"
+  "_vexpr_fset x"              == "CONST vexpr_insert x CONST vexpr_empty"
 
 subsection {* @{term UNREST_VDME} theorems *}
 
