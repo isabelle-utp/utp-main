@@ -130,21 +130,47 @@ lemma AndT_left_unit:
   "P is DH \<Longrightarrow> `true\<^sub>T \<and>\<^sub>T P` = `P`"
   by (utp_pred_tac, utp_expr_tac)
 
+lemma AndT_right_unit:
+  "P is DH \<Longrightarrow> `P \<and>\<^sub>T true\<^sub>T` = `P`"
+  by (utp_pred_tac, utp_expr_tac)
+
 lemma OrT_left_anhil:
   "`true\<^sub>T \<or>\<^sub>T P` = `$def \<Leftrightarrow> \<D> P`"
-  apply (simp add:usubst typing defined OrT_def TrueT_def DefinedT_def)
-  apply (utp_pred_tac, utp_expr_tac, auto)
-done
+  by (utp_pred_tac, utp_expr_tac, auto)
+
+lemma OrT_right_anhil:
+  "`P \<or>\<^sub>T true\<^sub>T` = `$def \<Leftrightarrow> \<D> P`"
+  by (utp_pred_tac, utp_expr_tac, auto)
+
+lemma AndT_assoc:
+  "`(P \<and>\<^sub>T Q) \<and>\<^sub>T R` = `P \<and>\<^sub>T Q \<and>\<^sub>T R`"
+  by (utp_pred_tac, utp_expr_tac, auto)
 
 lemma AndT_commute: 
   "`P \<and>\<^sub>T Q` = `Q \<and>\<^sub>T P`"
+  by (utp_pred_tac, utp_expr_tac, auto)
+
+lemma OrT_assoc:
+  "`(P \<or>\<^sub>T Q) \<or>\<^sub>T R` = `P \<or>\<^sub>T Q \<or>\<^sub>T R`"
   by (utp_pred_tac, utp_expr_tac, auto)
 
 lemma OrT_commute:
   "`P \<or>\<^sub>T Q` = `Q \<or>\<^sub>T P`"
   by (utp_pred_tac, utp_expr_tac, auto)
 
+lemma NotT_double: "P is DH \<Longrightarrow> `\<not>\<^sub>T \<not>\<^sub>T P` = `P`"
+  by (utp_pred_tac, utp_expr_tac, auto)
+
 lemma NotT_TrueT: "`\<not>\<^sub>T true\<^sub>T` = `false\<^sub>T`"
+  by (utp_pred_tac, utp_expr_tac)
+
+lemma AndT_BotT_left: "`\<bottom>\<^sub>T \<and>\<^sub>T P` = `\<bottom>\<^sub>T`"
+  by (utp_pred_tac, utp_expr_tac)
+
+lemma AndT_BotT_right: "`P \<and>\<^sub>T \<bottom>\<^sub>T` = `\<bottom>\<^sub>T`"
+  by (utp_pred_tac, utp_expr_tac)
+
+lemma NotT_BotT: "`\<not>\<^sub>T \<bottom>\<^sub>T` = `\<bottom>\<^sub>T`"
   by (utp_pred_tac, utp_expr_tac)
 
 end
