@@ -295,6 +295,25 @@ lemma MkBool_unq [simp]:
 
 end
 
+subsection {* Countable Subsorts *}
+
+class COUNTABLE = VALUE +
+  fixes   Countable :: "'a set"
+  and     count     :: "'a \<Rightarrow> nat"
+  assumes count_inj: "inj_on count Countable"
+
+subsection {* Sets of countable values *}
+
+class SET_COUNTABLE = COUNTABLE +
+  fixes   MkSetC   :: "'a set \<Rightarrow> 'a"
+  and     DestSetC :: "'a \<Rightarrow> 'a set"
+  and     SetCType :: "'a UTYPE \<Rightarrow> 'a UTYPE"
+  assumes Inverse: "xs \<subseteq> Countable \<Longrightarrow> DestCSet (MkCSet vs) = vs"
+  and     MkSetC_range: "range MkSetC = {xs. xs : SetCType t 
+                                           \<and> (\<forall>x\<in>DestSetC xs. x : t)
+                                        }"
+
+
 subsection {* Set Sort *}
 
 class SET_SORT_PRE = VALUE +

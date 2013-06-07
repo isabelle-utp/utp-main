@@ -54,7 +54,7 @@ abbreviation MkVarD :: "char list \<Rightarrow> 'a::vbasic itself \<Rightarrow> 
 definition VarD :: "string \<Rightarrow> 'a::vbasic vdme" ("$_") where
 "VarD n = Abs_vdme (\<lambda> b. Project (ProjBasicD (\<langle>b\<rangle>\<^sub>b (MkVarD n TYPE('a)))))"
 
-(* declare [[coercion VarD]] *)
+(* declare [[coercion VarD]] *) 
 
 definition BotDE :: "'a vdme" ("\<bottom>\<^sub>v") where
 "BotDE = Abs_vdme (\<lambda> b. None)"

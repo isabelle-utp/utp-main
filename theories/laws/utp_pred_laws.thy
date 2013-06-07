@@ -96,6 +96,10 @@ lemma utp_pred_simps [simp]:
   "`true \<Rightarrow> x`  = x" 
   "`p \<Rightarrow> true` = true" 
   "`p \<Rightarrow> false` = `\<not> p`"
+  "`P \<Leftrightarrow> true` = `P`" 
+  "`true \<Leftrightarrow> P` = `P`" 
+  "`P \<Leftrightarrow> false` = `\<not> P`" 
+  "`false \<Leftrightarrow> P` = `\<not> P`" 
   by (utp_pred_tac)+
 
 subsection {* Introduction rules *}

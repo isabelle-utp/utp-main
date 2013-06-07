@@ -452,7 +452,56 @@ next
   qed
 qed
 end
+  
+subsection {* Injecting functions over basic values *}
 
+definition vfun1 :: "('a::vbasic \<Rightarrow> 'b::vbasic) \<Rightarrow> ('a set) \<Rightarrow> vdmv" where
+"vfun1 \<equiv> \<lambda> f P. FuncD (\<lambda> x. case (Project x) of 
+                              None \<Rightarrow> BotD (VTYPE('b))
+                            | Some v \<Rightarrow> if (v \<in> P) then BasicD (Inject (f v)) 
+                                                   else BotD (VTYPE('b)) )"
+
+definition vfun2 :: 
+  "('a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic) \<Rightarrow>
+   'a set \<Rightarrow> 'b set \<Rightarrow> vdmv" where
+"vfun2 \<equiv> \<lambda> f P Q. FuncD (\<lambda> x. case (Project x) of
+                                None \<Rightarrow> BotD (VTYPE('b) \<rightarrow> VTYPE('c))
+                              | Some v \<Rightarrow> if (v \<in> P) then vfun1 (f v) Q 
+                                                     else BotD (VTYPE('b) \<rightarrow> VTYPE('c)))"
+
+lemma vfun1_type [typing]:
+  fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic"
+  shows "vfun1 f P :\<^sub>v VTYPE('a) \<rightarrow> VTYPE('b)"
+  apply (simp add:vfun1_def)
+  apply (rule FuncD_type)
+  apply (case_tac "Project x :: 'a option")
+  apply (auto)
+done
+
+lemma vfun2_type [typing]:
+  fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic"
+  shows "vfun2 f P Q :\<^sub>v VTYPE('a) \<rightarrow> VTYPE('b) \<rightarrow> VTYPE('c)"
+  apply (simp add:vfun2_def)
+  apply (rule FuncD_type)
+  apply (case_tac "Project x :: 'a option")
+  apply (auto intro:typing)
+done
+
+definition "InjVB  x \<equiv> BasicD (Inject x)"
+definition "ProjVB x \<equiv> the (Project (ProjBasicD x))"
+
+lemma InjVB_inv[simp]: "ProjVB (InjVB x) = x"
+  by (simp add:ProjVB_def InjVB_def)
+
+lemma InjVB_nbot [simp]: "\<D>\<^sub>v (InjVB x)"
+  by (simp add:InjVB_def)
+
+lemma InjVB_vbvalues [simp]: "InjVB x \<in> vbvalues"
+  apply (auto simp add:vbvalues_def InjVB_def)
+  apply (metis Inject_type)
+done
+
+end
 
 (*
 class vdmv = 
@@ -555,53 +604,3 @@ instance
 sorry
 end
 *)
-  
-subsection {* Injecting functions over basic values *}
-
-definition vfun1 :: "('a::vbasic \<Rightarrow> 'b::vbasic) \<Rightarrow> ('a set) \<Rightarrow> vdmv" where
-"vfun1 \<equiv> \<lambda> f P. FuncD (\<lambda> x. case (Project x) of 
-                              None \<Rightarrow> BotD (VTYPE('b))
-                            | Some v \<Rightarrow> if (v \<in> P) then BasicD (Inject (f v)) 
-                                                   else BotD (VTYPE('b)) )"
-
-definition vfun2 :: 
-  "('a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic) \<Rightarrow>
-   'a set \<Rightarrow> 'b set \<Rightarrow> vdmv" where
-"vfun2 \<equiv> \<lambda> f P Q. FuncD (\<lambda> x. case (Project x) of
-                                None \<Rightarrow> BotD (VTYPE('b) \<rightarrow> VTYPE('c))
-                              | Some v \<Rightarrow> if (v \<in> P) then vfun1 (f v) Q 
-                                                     else BotD (VTYPE('b) \<rightarrow> VTYPE('c)))"
-
-lemma vfun1_type [typing]:
-  fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic"
-  shows "vfun1 f P :\<^sub>v VTYPE('a) \<rightarrow> VTYPE('b)"
-  apply (simp add:vfun1_def)
-  apply (rule FuncD_type)
-  apply (case_tac "Project x :: 'a option")
-  apply (auto)
-done
-
-lemma vfun2_type [typing]:
-  fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic"
-  shows "vfun2 f P Q :\<^sub>v VTYPE('a) \<rightarrow> VTYPE('b) \<rightarrow> VTYPE('c)"
-  apply (simp add:vfun2_def)
-  apply (rule FuncD_type)
-  apply (case_tac "Project x :: 'a option")
-  apply (auto intro:typing)
-done
-
-definition "InjVB  x \<equiv> BasicD (Inject x)"
-definition "ProjVB x \<equiv> the (Project (ProjBasicD x))"
-
-lemma InjVB_inv[simp]: "ProjVB (InjVB x) = x"
-  by (simp add:ProjVB_def InjVB_def)
-
-lemma InjVB_nbot [simp]: "\<D>\<^sub>v (InjVB x)"
-  by (simp add:InjVB_def)
-
-lemma InjVB_vbvalues [simp]: "InjVB x \<in> vbvalues"
-  apply (auto simp add:vbvalues_def InjVB_def)
-  apply (metis Inject_type)
-done
-
-end

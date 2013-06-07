@@ -76,6 +76,10 @@ lemma SubstP_VarP_aux [usubst]:
   "\<lbrakk> UNREST AUX_VAR p; e \<rhd>\<^sub>e x; aux x \<rbrakk> \<Longrightarrow> p[e|x] = p"
   by (utp_pred_tac)
 
+lemma SubstP_VarP_single_UNREST [usubst]:
+  "\<lbrakk> UNREST {x} p; e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[e|x] = p"
+  by (utp_pred_tac)
+
 lemma SubstP_VarP [usubst]: "v \<rhd>\<^sub>e x \<Longrightarrow> VarP x[v|x] = ExprP v"
   by (utp_pred_tac, utp_expr_tac)
 
