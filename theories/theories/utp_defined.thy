@@ -21,34 +21,39 @@ default_sort BOOL_SORT
 
 abbreviation "def  \<equiv> MkPlain ''def'' BoolType True"
 
+(* Add a blackboard three *)
 definition TVL :: "('a WF_PREDICATE * 'a WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" where
-"TVL \<equiv> \<lambda> (P,Q). `($def \<Rightarrow> P) \<and> (Q \<Leftrightarrow> $def)`"
+(* "TVL \<equiv> \<lambda> (P,Q). `($def \<Rightarrow> P) \<and> (Q \<Leftrightarrow> $def)`" *)
+"TVL = (\<lambda> (P,Q). `P \<lhd> $def \<rhd> \<not> Q`)"
 
 declare TVL_def [eval]
 
 syntax
-  "_upred_tvl"     :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("TVL[_, _]")
+  "_upred_tvl"     :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("\<three>'(_, _')")
 
 translations
   "_upred_tvl p q"     == "CONST TVL (p, q)"
 
 definition TrueT :: "'a WF_PREDICATE" where
-"TrueT = `TVL[TrueP, TrueP]`"
+"TrueT = `\<three>(true, true)`"
 
 definition FalseT :: "'a WF_PREDICATE" where
-"FalseT = `TVL[FalseP, TrueP]`"
+"FalseT = `\<three>(false, true)`"
 
 definition BotT :: "'a WF_PREDICATE" where
 "BotT = `\<not> $def`"
 
 definition NotT :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"NotT P = `TVL[\<not> P[true/def], \<not> P[false/def]]`"
+"NotT P = `\<three>(\<not> P[true/def], \<not> P[false/def])`"
 
 definition OrT :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"OrT P Q = `TVL[P[true/def] \<or> Q[true/def], \<not> P[false/def] \<and> \<not> Q[false/def]]`"
+"OrT P Q = `\<three>(P[true/def] \<or> Q[true/def], \<not> P[false/def] \<and> \<not> Q[false/def])`"
 
 definition AndT :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"AndT P Q = `TVL[P[true/def] \<and> Q[true/def], \<not> P[false/def] \<and> \<not> Q[false/def]]`"
+"AndT P Q = `\<three>(P[true/def] \<and> Q[true/def], \<not> P[false/def] \<and> \<not> Q[false/def])`"
+
+definition PredicateT :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+"PredicateT P = `P[true/def]`"
 
 definition DefinedT :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 "DefinedT P = `\<not> P[false/def]`"
@@ -59,6 +64,7 @@ declare BotT_def [eval]
 declare NotT_def [eval]
 declare OrT_def [eval]
 declare AndT_def [eval]
+declare PredicateT_def [eval]
 declare DefinedT_def [eval]
 
 syntax
@@ -68,7 +74,8 @@ syntax
   "_upred_nott"     :: "upred \<Rightarrow> upred" ("\<not>\<^sub>T _" [40] 40)
   "_upred_andt"     :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<and>\<^sub>T" 35)
   "_upred_ort"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<or>\<^sub>T" 35)
-  "_upred_definedt" :: "upred \<Rightarrow> upred" ("\<D> _")
+  "_upred_definedt" :: "upred \<Rightarrow> upred" ("\<D>'(_')")
+  "_upred_predicatet" :: "upred \<Rightarrow> upred" ("\<P>'(_')")
 
 translations
   "_upred_truet"    == "CONST TrueT"
@@ -78,6 +85,7 @@ translations
   "_upred_andt p q" == "CONST AndT p q"
   "_upred_ort p q"  == "CONST OrT p q"
   "_upred_definedt p" == "CONST DefinedT p"
+  "_upred_predicatet p" == "CONST PredicateT p"
 
 lemma TrueT_unfold:
   "`true\<^sub>T` = `$def`"
@@ -88,54 +96,105 @@ lemma FalseT_unfold:
   by (utp_pred_tac)
 
 definition DH :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"DH(P) = `TVL[P[true/def], \<not> P[false/def]]`"
+"DH(P) = `P \<and> (\<D>(P) \<sqsubseteq> \<P>(P))`"
 
 declare DH_def [eval]
 
+lemma DH_idem: "DH (DH P) = DH P"
+  by (utp_pred_auto_tac)
+
+lemma DH_refine: "P is DH \<Longrightarrow> `\<D>(P) \<sqsubseteq> \<P>(P)`"
+  by (utp_pred_auto_tac)
+
+lemma DH_defined_anhil: "P is DH \<Longrightarrow> `\<D>(P) \<and> \<P>(P)` = `\<P>(P)`"
+  by (utp_pred_auto_tac)
+
+lemma TVL_inject: "`\<three>(\<P>(P), \<D>(P))` = P"
+  apply (simp add:TVL_def PredicateT_def DefinedT_def)
+  apply (rule BoolType_aux_var_split_eq_intro[of "def"])
+  apply (simp_all add:TrueT_def TVL_def AndT_def usubst typing defined CondR_true CondR_false DH_def is_healthy_def)
+done
+
+lemma TVL_left:
+  "`\<P>(\<three>(P, Q))` = `P[true/def]`"
+  by (simp add:TVL_def PredicateT_def usubst typing defined CondR_true)
+
+lemma TVL_right:
+  "`\<D>(\<three>(P, Q))` = `Q[false/def]`"
+  by (simp add:TVL_def usubst typing defined unrest closure CondR_false DefinedT_def)
+
+(*
+definition DH :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+(* "DH(P) = `\<three>(P[true/def], \<not> P[false/def])`" *)
+"DH(P) = `($def \<Leftrightarrow> \<D> P) \<and> P`"
+
+declare DH_def [eval]
+*)
+
+
+lemma TVL_DH:
+  "\<lbrakk> UNREST {def} P; UNREST {def} Q; Q \<sqsubseteq> P \<rbrakk> \<Longrightarrow> `\<three>(P, Q)` is DH"
+  apply (simp add:is_healthy_def DH_def TVL_right PredicateT_def)
+  apply (simp add:TVL_def)
+  apply (rule_tac BoolType_aux_var_split_eq_intro[of "def"])
+  apply (simp_all add:typing defined usubst CondR_true CondR_false)
+  apply (utp_pred_auto_tac)
+  apply (utp_pred_auto_tac)
+done
+
 lemma DefinedT_BotT:
-  "`\<not> \<D> \<bottom>\<^sub>T`"
+  "`\<not> \<D>(\<bottom>\<^sub>T)`"
   by (utp_pred_tac, utp_expr_tac)
 
 lemma DefinedT_TrueT:
-  "`\<D> true\<^sub>T`"
+  "`\<D>(true\<^sub>T)`"
   by (utp_pred_tac, utp_expr_tac)
 
 lemma DefinedT_FalseT:
-  "`\<D> false\<^sub>T`"
+  "`\<D>(false\<^sub>T)`"
   by (utp_pred_tac)
 
 lemma TVL_extreme_point1:
-  "`TVL[true, false]` = `\<not> $def`"
+  "`\<three>(true, false)` = `true`"
   by (utp_pred_tac)
 
 lemma TVL_extreme_point2:
-  "`TVL[false, false]` = `\<not> $def`"
+  "`\<three>(false, false)` = `\<not> $def`"
   by (utp_pred_tac)
 
+(*
 lemma TVL_trade:
-  "`TVL[P \<and> Q, Q]` = `TVL[P, Q]`"
-  by (utp_pred_auto_tac)
-
-lemma TVL_def_true:
-  "\<lbrakk> UNREST {def} P; UNREST {def} Q \<rbrakk> \<Longrightarrow> 
-  `TVL[P, Q][true/def]` = `P \<and> Q`"
-  by (simp add:TVL_def usubst typing defined unrest closure)
-
-lemma TVL_def_false:
-  "\<lbrakk> UNREST {def} P; UNREST {def} Q \<rbrakk> \<Longrightarrow> 
-  `TVL[P, Q][false/def]` = `\<not> Q`"
-  by (simp add:TVL_def usubst typing defined unrest closure)
+  "`\<three>(P \<and> Q, Q)` = `\<three>(P, Q)`"
+  apply (utp_pred_auto_tac)
+*)
 
 lemma AndT_left_unit:
-  "P is DH \<Longrightarrow> `true\<^sub>T \<and>\<^sub>T P` = `P`"
-  by (utp_pred_tac, utp_expr_tac)
+  "`true\<^sub>T \<and>\<^sub>T P` = `P`"
+  apply (rule BoolType_aux_var_split_eq_intro[of "def"])
+  apply (simp_all add:TrueT_def TVL_def AndT_def usubst typing defined CondR_true CondR_false)
+done
 
 lemma AndT_right_unit:
-  "P is DH \<Longrightarrow> `P \<and>\<^sub>T true\<^sub>T` = `P`"
-  by (utp_pred_tac, utp_expr_tac)
+  "`P \<and>\<^sub>T true\<^sub>T` = `P`"
+  apply (rule BoolType_aux_var_split_eq_intro[of "def"])
+  apply (simp_all add:TrueT_def TVL_def AndT_def usubst typing defined CondR_true CondR_false)
+done
+
+lemma "`true\<^sub>T` is DH"
+  apply (simp add:is_healthy_def DH_def TrueT_def TVL_def usubst typing defined CondR_false DefinedT_def)
+  apply (utp_pred_tac)
+done
+
+lemma "`false\<^sub>T` is DH"
+  apply (simp add:is_healthy_def DH_def FalseT_def TVL_def usubst typing defined CondR_false DefinedT_def)
+  apply (utp_pred_tac)
+done
 
 lemma OrT_left_anhil:
-  "`true\<^sub>T \<or>\<^sub>T P` = `$def \<Leftrightarrow> \<D> P`"
+  "P is DH \<Longrightarrow> `true\<^sub>T \<or>\<^sub>T P` = `true`"
+  apply (simp_all add:TrueT_def TVL_def OrT_def DefinedT_def usubst typing defined CondR_true CondR_false)
+  apply (simp add: DH_def is_healthy_def)
+  apply (simp add: OrT_def)
   by (utp_pred_tac, utp_expr_tac, auto)
 
 lemma OrT_right_anhil:

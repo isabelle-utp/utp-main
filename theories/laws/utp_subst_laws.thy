@@ -42,6 +42,10 @@ lemma SubstP_AndP [usubst]: "(p \<and>p q)[v|x] = p[v|x] \<and>p q[v|x]"
 lemma SubstP_OrP [usubst]: "(p \<or>p q)[v|x] = p[v|x] \<or>p q[v|x]"
   by (utp_pred_tac)
 
+lemma SubstP_CondR [usubst]: 
+  "`(P \<lhd> c \<rhd> Q)[v/x]` = `(P[v/x]) \<lhd> (c[v/x]) \<rhd> (Q[v/x])`"
+  by (utp_pred_tac)
+
 lemma SubstP_ImpliesP [usubst]: 
   "(p \<Rightarrow>p q)[v|x] = p[v|x] \<Rightarrow>p q[v|x]"
   by (utp_pred_tac)
@@ -53,6 +57,14 @@ lemma SubstP_IffP [usubst]:
 lemma SubstP_ExistsP [usubst]:
   "\<lbrakk> UNREST_EXPR vs e; x \<notin> vs; e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> (\<exists>p vs. p)[e|x] = (\<exists>p vs. p[e|x])"
   by (utp_pred_tac, utp_expr_tac)
+
+lemma SubstP_ClosureP [usubst]:
+  "`[P][v/x]` = `[P]`"
+  by (utp_pred_tac)
+
+lemma SubstP_RefineP [usubst]:
+  "`(P \<sqsubseteq> Q)[v/x]` = `(P \<sqsubseteq> Q)`"
+  by (utp_pred_tac)
 
 lemma SubstP_UNREST [usubst]:
   "\<lbrakk> UNREST NON_REL_VAR p; x \<in> NON_REL_VAR; e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[e|x] = p"

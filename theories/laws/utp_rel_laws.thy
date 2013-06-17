@@ -908,6 +908,11 @@ proof -
     by utp_xrel_auto_tac
 qed
 
+lemma CondR_VarP_aux:
+  "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> \<Longrightarrow> `P \<lhd> $x \<rhd> Q` = `(P[true/x]) \<lhd> $x \<rhd> (Q[false/x])`"
+  apply (rule_tac BoolType_aux_var_split_eq_intro[of x])
+  apply (simp_all add:usubst typing defined CondR_false CondR_true)
+done
 
 subsubsection {* Converse Laws *}
 
