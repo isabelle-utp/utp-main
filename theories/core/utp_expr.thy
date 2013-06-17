@@ -112,6 +112,13 @@ notation EqualP (infixr "==p" 200)
 definition LitE :: "'VALUE \<Rightarrow> 'VALUE WF_EXPRESSION" where 
 "LitE v = Abs_WF_EXPRESSION (if (\<exists> t. v : t) then (\<lambda> b. v) else (\<lambda> b. default someType))"
 
+definition Op1E :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
+"Op1E f v = Abs_WF_EXPRESSION (\<lambda> b. f (\<langle>v\<rangle>\<^sub>e b))"
+
+definition Op2E :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 
+                    'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
+"Op2E f v1 v2 = Abs_WF_EXPRESSION (\<lambda> b. f (\<langle>v1\<rangle>\<^sub>e b) (\<langle>v2\<rangle>\<^sub>e b))"
+
 definition DefaultE :: "'VALUE UTYPE \<Rightarrow> 'VALUE WF_EXPRESSION" where
 "DefaultE t \<equiv> LitE (default t)"
 

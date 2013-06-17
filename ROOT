@@ -69,7 +69,13 @@ session "isabelle-utp-tutorial" in "papers/isabelle-utp-tutorial" = "HOL-UTP-VDM
     "proof_h1_left_unit"
   files "document/root.tex"
 
-
+session "avocs2013" in "papers/avocs2013" = "HOL-UTP" +
+  options [document = pdf, document_output = "output"]
+  theories [document = false]
+  theories 
+    "proof_unreachable_branch"
+    "proof_refinement_conditional"
+  files "document/root.tex"
 
 session Datatype_Order_Generator (AFP) in "contrib/Datatype_Order_Generator" 
   = "HOL-Library" +

@@ -5,7 +5,7 @@ theory utp_pred_parser
   "../core/utp_expr"
 begin
 
-nonterminal upred and uexpr
+nonterminal upred and upreds and uexpr and uexprs
 
 (* Predicate Parser *)
 
@@ -27,6 +27,7 @@ syntax
   "_upred_all1"     :: "'a VAR \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<forall> _./ _)" [0, 10] 10) 
   "_upred_exists1"  :: "'a VAR \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<exists> _./ _)" [0, 10] 10) 
   "_upred_equal"    :: "uexpr \<Rightarrow> uexpr \<Rightarrow> upred" (infixl "=" 50)
+  "_upred_uexpr"    :: "uexpr \<Rightarrow> upred" ("\<lparr>_\<rparr>")
   "_upred_skip"     :: "upred" ("II")
   "_upred_skipa"    :: "'VALUE VAR set \<Rightarrow> upred" ("II\<^bsub>_\<^esub>")
   "_upred_seq"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr ";" 36)
@@ -60,6 +61,7 @@ translations
   "_upred_all1 x p"    == "CONST ForallP {x} p"
   "_upred_exists1 x p" == "CONST ExistsP {x} p"
   "_upred_equal e f"   == "CONST EqualP e f"
+  "_upred_uexpr e"     == "CONST ExprP e"
   "_upred_skip"        == "CONST SkipR"
   "_upred_skipa vs"    == "CONST SkipRA vs"
   "_upred_seq p q"     => "CONST SemiR p q"
@@ -77,14 +79,22 @@ term "`x \<Rightarrow> $y\<acute>`"
 (* Expression Parser *)
 
 syntax
-  "_uexpr_brack"    :: "uexpr \<Rightarrow> uexpr" ("'(_')")
-  "_uexpr_quote"    :: "uexpr \<Rightarrow> 'a WF_EXPRESSION" ("(1^_^)")
-  "_uexpr_true"     :: "uexpr" ("true")
-  "_uexpr_false"    :: "uexpr" ("false")
-  "_uexpr_var"      :: "pttrn \<Rightarrow> uexpr" ("_")
-  "_uexpr_evar"     :: "'a VAR \<Rightarrow> uexpr" ("$_" [999] 999)
-  "_uexpr_substp"   :: "upred \<Rightarrow> uexpr \<Rightarrow> 'a VAR \<Rightarrow> upred" ("(_[_'/_])" [999,999] 1000)
-  "_uexpr_prime"    :: "uexpr \<Rightarrow> uexpr" ("_\<acute>" [1000] 1000)
+  "_uexprs"             :: "[uexpr, uexprs] => uexprs" ("_,/ _")
+  ""                    :: "uexpr => uexprs" ("_")
+  "_uexpr_brack"        :: "uexpr \<Rightarrow> uexpr" ("'(_')")
+  "_uexpr_quote"        :: "uexpr \<Rightarrow> 'a WF_EXPRESSION" ("(1^_^)")
+  "_uexpr_true"         :: "uexpr" ("true")
+  "_uexpr_false"        :: "uexpr" ("false")
+  "_uexpr_var"          :: "pttrn \<Rightarrow> uexpr" ("_")
+  "_uexpr_evar"         :: "'a VAR \<Rightarrow> uexpr" ("$_" [999] 999)
+  "_uexpr_substp"       :: "upred \<Rightarrow> uexpr \<Rightarrow> 'a VAR \<Rightarrow> upred" ("(_[_'/_])" [999,999] 1000)
+  "_uexpr_prime"        :: "uexpr \<Rightarrow> uexpr" ("_\<acute>" [1000] 1000)
+  "_uexpr_minus"        :: "uexpr \<Rightarrow> uexpr \<Rightarrow> uexpr" (infixl "-" 65) 
+  "_uexpr_lesseq"       :: "uexpr \<Rightarrow> uexpr \<Rightarrow> uexpr" (infixr "\<le>" 25)
+  "_upred_lesseq"       :: "uexpr \<Rightarrow> uexpr \<Rightarrow> upred" (infixr "\<le>" 25)
+  "_uexpr_list_nil"     :: "uexpr" ("\<langle>\<rangle>")
+  "_uexpr_list_append"  :: "uexpr \<Rightarrow> uexpr \<Rightarrow> uexpr" (infixr "^" 65)
+  "_uexpr_list"         :: "uexprs \<Rightarrow> uexpr" ("\<langle>_\<rangle>")
 
 translations
   "_uexpr_brack e"      => "e"
@@ -95,9 +105,18 @@ translations
   "_uexpr_evar x"       == "CONST VarE x"
   "_uexpr_substp p e x" == "CONST SubstP p e x"
   "_uexpr_prime e"      == "CONST RenameE e (CONST SS)"
+  "_uexpr_minus e f"   == "CONST Op2E CONST utminus e f"
+  "_uexpr_lesseq e f"  == "CONST Op2E CONST ulesseq e f"
+  "_upred_lesseq e f"  == "CONST ExprP (CONST Op2E CONST ulesseq e f)"
+  "_uexpr_list_nil"    == "CONST LitE (CONST MkList CONST Nil)"
+  "_uexpr_list_append e f" == "CONST Op2E (CONST ConcatV) e f"
+  "_uexpr_list (_uexprs x xs)" == "CONST Op2E (CONST ConsV) x (_uexpr_list xs)"
+  "_uexpr_list x" == "CONST Op2E (CONST ConsV) x (CONST LitE (CONST NilV))"
 
 term "`($x)\<acute> = $y\<acute>`"
 term "`p[($x)\<acute>/y\<acute>]`"
+term "`\<lparr>true\<rparr>`"
+term "`a = \<langle>$x, true\<rangle> ^ \<langle>false, $y\<rangle>`"
 
 end
 

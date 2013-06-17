@@ -295,6 +295,17 @@ lemma MkBool_unq [simp]:
 
 end
 
+subsection {* Order operation class *}
+
+class LESS_EQ_SORT = VALUE + BOOL_SORT +
+  fixes ulesseq :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+  assumes ulesseq_type: "ulesseq x y : BoolType"
+
+subsection {* Minus operation class *}
+
+class MINUS_SORT = VALUE +
+  fixes utminus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+
 subsection {* Countable Subsorts *}
 
 class COUNTABLE = VALUE +
@@ -313,6 +324,14 @@ class SET_COUNTABLE = COUNTABLE +
                                            \<and> (\<forall>x\<in>DestSetC xs. x : t)
                                         }"
 
+subsection {* Finite set sort *}
+
+class FSET_SORT = VALUE +
+  fixes   MkFSet   :: "'a fset \<Rightarrow> 'a"
+  and     DestFSet :: "'a \<Rightarrow> 'a fset"
+  and     FSetType :: "'a UTYPE \<Rightarrow> 'a UTYPE"
+
+(* FIXME: Add assumptions *)
 
 subsection {* Set Sort *}
 
