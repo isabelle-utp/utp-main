@@ -3,10 +3,15 @@ session "HOL-UTP" = "Kleene_Algebra" +
   theories [document = false]
   theories 
   "theories/utp_base"
-  "theories/utp_meta"
   files "document/root.tex"
 
-session "HOL-UTP-VDM" in "theories/models/utp_vdm_simple" = "HOL-UTP" +
+session "HOL-UTP-THY" in "theories/theories" = "HOL-UTP" +
+  options [document = pdf, document_output = "output", quick_and_dirty = true]
+  theories
+  "utp_designs"
+  "utp_definedness"
+  
+session "HOL-UTP-VDM" in "theories/models/utp_vdm_simple" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
   theories [document = false]
   "utp_vdm_values"
@@ -17,7 +22,7 @@ session "HOL-UTP-VDM" in "theories/models/utp_vdm_simple" = "HOL-UTP" +
   "utp_vdm_functions"
   "utp_vdm"
 
-session "utp-hjf-summer-school" in "papers/utp-hjf-summer-school" = "HOL-UTP" +
+session "utp-hjf-summer-school" in "papers/utp-hjf-summer-school" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output"]
   theories [document = false]
   theories 
@@ -64,13 +69,6 @@ session "isabelle-utp-tutorial" in "papers/isabelle-utp-tutorial" = "HOL-UTP-VDM
     "proof_h1_left_unit"
   files "document/root.tex"
 
-session "avocs2013" in "papers/avocs2013" = "HOL-UTP" +
-  options [document = pdf, document_output = "output"]
-  theories [document = false]
-  theories 
-    "proof_unreachable_branch"
-    "proof_refinement_conditional"
-  files "document/root.tex"
 
 
 session Datatype_Order_Generator (AFP) in "contrib/Datatype_Order_Generator" 

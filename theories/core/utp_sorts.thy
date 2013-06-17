@@ -454,17 +454,10 @@ class PAIR_SORT = VALUE +
 
 subsection {* List Sort *}
 
-class LIST_SORT = VALUE +
+class LIST_SIG = 
   fixes MkList :: "'a list \<Rightarrow> 'a"
-  fixes DestList :: "'a \<Rightarrow> 'a list"
-  fixes IsList :: "'a list \<Rightarrow> bool"
-  fixes ListType :: "'a UTYPE \<Rightarrow> 'a UTYPE"
-  assumes Inverse [simp] :
-    "IsList l \<Longrightarrow> DestList (MkList l) = l"
-  assumes Defined [simp] :
-    "IsList l \<Longrightarrow> Defined (MkList l)"
-  assumes MkList_type [typing]: 
-    "\<forall> x \<in> set xs. x : t \<longrightarrow> MkList xs : ListType t"
+  and   DestList :: "'a \<Rightarrow> 'a list"
+  and   ListType :: "'a UTYPE \<Rightarrow> 'a UTYPE"
 begin
 
 subsubsection {* List Operators *}
@@ -487,6 +480,15 @@ declare NilV_def [simp]
 declare ConsV_def [simp]
 declare ConcatV_def [simp]
 end
+
+class LIST_SORT = VALUE + LIST_SIG +
+  assumes Inverse [simp] :
+    "\<lbrakk> \<forall> x\<in>set xs. x : a; \<D> (MkList xs) \<rbrakk> \<Longrightarrow> DestList (MkList xs) = xs"
+  and ListType_cases:
+    "\<And> xs. \<lbrakk> xs : ListType a; \<D> xs \<rbrakk> 
+           \<Longrightarrow> (xs = NilV) \<or> (\<exists> y ys. y : a \<and> ys : ListType a \<and> xs = ConsV y ys)"
+  and MkList_type [typing]:
+    "\<lbrakk> \<forall> x \<in> set xs. x : a \<rbrakk> \<Longrightarrow> MkList xs : ListType a"
 
 subsection {* Function Sort *}
 
