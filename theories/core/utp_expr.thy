@@ -112,12 +112,33 @@ notation EqualP (infixr "==p" 200)
 definition LitE :: "'VALUE \<Rightarrow> 'VALUE WF_EXPRESSION" where 
 "LitE v = Abs_WF_EXPRESSION (if (\<exists> t. v : t) then (\<lambda> b. v) else (\<lambda> b. default someType))"
 
+lemma LitE_rep_eq: 
+  "\<langle>LitE v\<rangle>\<^sub>e = (if (\<exists> t. v : t) then (\<lambda> b. v) else (\<lambda> b. default someType))"
+  apply (subgoal_tac "(if (\<exists> t. v : t) then (\<lambda> b. v) else (\<lambda> b. default someType)) \<in> WF_EXPRESSION")
+  apply (auto simp add:LitE_def WF_EXPRESSION_def)
+done
+
 definition Op1E :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
 "Op1E f v = Abs_WF_EXPRESSION (\<lambda> b. f (\<langle>v\<rangle>\<^sub>e b))"
+
+definition "FUNC1 a b   = {f. \<forall>x:a. f x : b}"
+definition "FUNC2 a b c = {f. \<forall>x:a. \<forall>y:b. f x y : c}"
+
+lemma Op1E_rep_eq:
+  "\<lbrakk> v :\<^sub>e a; f \<in> FUNC1 a b \<rbrakk> \<Longrightarrow> \<langle>Op1E f v\<rangle>\<^sub>e = (\<lambda> b. f (\<langle>v\<rangle>\<^sub>e b))"
+  apply (subgoal_tac "(\<lambda> b. f (\<langle>v\<rangle>\<^sub>e b)) \<in> WF_EXPRESSION")
+  apply (auto simp add:Op1E_def WF_EXPRESSION_def FUNC1_def etype_rel_def)
+done
 
 definition Op2E :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 
                     'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
 "Op2E f v1 v2 = Abs_WF_EXPRESSION (\<lambda> b. f (\<langle>v1\<rangle>\<^sub>e b) (\<langle>v2\<rangle>\<^sub>e b))"
+
+lemma Op2E_rep_eq:
+  "\<lbrakk> x :\<^sub>e a; y :\<^sub>e b; f \<in> FUNC2 a b c \<rbrakk> \<Longrightarrow> \<langle>Op2E f x y\<rangle>\<^sub>e = (\<lambda> b1. f (\<langle>x\<rangle>\<^sub>e b1) (\<langle>y\<rangle>\<^sub>e b1))"
+  apply (subgoal_tac "(\<lambda> b1. f (\<langle>x\<rangle>\<^sub>e b1) (\<langle>y\<rangle>\<^sub>e b1)) \<in> WF_EXPRESSION")
+  apply (force simp add:Op2E_def WF_EXPRESSION_def FUNC2_def etype_rel_def)+
+done
 
 definition DefaultE :: "'VALUE UTYPE \<Rightarrow> 'VALUE WF_EXPRESSION" where
 "DefaultE t \<equiv> LitE (default t)"
@@ -127,12 +148,6 @@ definition CoerceE :: "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE UTYPE \<Rightar
 
 lift_definition VarE :: "'VALUE VAR \<Rightarrow> 'VALUE WF_EXPRESSION" is "\<lambda> x. (\<lambda> b. \<langle>b\<rangle>\<^sub>b x)"
   by (auto simp add:WF_EXPRESSION_def)
-
-lemma LitE_rep_eq: 
-  "\<langle>LitE v\<rangle>\<^sub>e = (if (\<exists> t. v : t) then (\<lambda> b. v) else (\<lambda> b. default someType))"
-  apply (subgoal_tac "(if (\<exists> t. v : t) then (\<lambda> b. v) else (\<lambda> b. default someType)) \<in> WF_EXPRESSION")
-  apply (auto simp add:LitE_def WF_EXPRESSION_def)
-done
 
 definition AppE :: 
   "'VALUE::FUNCTION_SORT WF_EXPRESSION \<Rightarrow> 'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_EXPRESSION" where
@@ -228,12 +243,20 @@ lemma WF_EXPRESSION_bindings [simp,intro]:
 
 subsubsection {* Typing Theorems *}
 
-theorem VarE_type [typing]: "VarE x :\<^sub>e vtype x"
+theorem VarE_type [typing]: "t = vtype x \<Longrightarrow> VarE x :\<^sub>e t"
   by (simp add:VarE.rep_eq WF_BINDING_def typing etype_rel_def)
 
 theorem LitE_type [typing]: 
 "v : t \<Longrightarrow> LitE v :\<^sub>e t"
   by (auto simp add:LitE_rep_eq etype_rel_def typing)
+
+theorem Op1E_type [typing]:
+  "\<lbrakk> x :\<^sub>e a; f \<in> FUNC1 a b \<rbrakk> \<Longrightarrow> Op1E f x :\<^sub>e b"
+  by (auto simp add:Op1E_rep_eq etype_rel_def typing FUNC1_def)
+
+theorem Op2E_type [typing]:
+  "\<lbrakk> x :\<^sub>e a; y :\<^sub>e b; f \<in> FUNC2 a b c \<rbrakk> \<Longrightarrow> Op2E f x y :\<^sub>e c"
+  by (auto simp add:Op2E_rep_eq etype_rel_def typing FUNC2_def)
 
 theorem AppE_type [typing]:
 "\<lbrakk> f :\<^sub>e FuncType a b; \<D> f; v :\<^sub>e a \<rbrakk> \<Longrightarrow> AppE f v :\<^sub>e b"
@@ -333,6 +356,15 @@ theorem UNREST_EXPR_VarE [unrest] :
 theorem UNREST_EXPR_LitE [unrest] :
 "UNREST_EXPR vs (LitE v)"
   by (simp add:LitE_rep_eq UNREST_EXPR_def)
+
+theorem UNREST_EXPR_Op1E [unrest] :
+"\<lbrakk> x :\<^sub>e a; f \<in> FUNC1 a b; UNREST_EXPR vs x \<rbrakk> \<Longrightarrow> UNREST_EXPR vs (Op1E f x)"
+  by (simp add:Op1E_rep_eq UNREST_EXPR_def)
+
+theorem UNREST_EXPR_Op2E [unrest] :
+"\<lbrakk> x :\<^sub>e a; y :\<^sub>e b; f \<in> FUNC2 a b c; 
+   UNREST_EXPR vs x; UNREST_EXPR vs y \<rbrakk> \<Longrightarrow> UNREST_EXPR vs (Op2E f x y)"
+  by (auto simp add:Op2E_rep_eq UNREST_EXPR_def)
 
 theorem UNREST_EXPR_AppE [unrest] :
 "\<lbrakk> f :\<^sub>e FuncType a b; v :\<^sub>e a; \<D> f; UNREST_EXPR vs f; UNREST_EXPR vs v \<rbrakk> \<Longrightarrow> UNREST_EXPR vs (AppE f v)"
@@ -477,7 +509,5 @@ theorem WF_EXPRESSION_UNREST_binding_equiv :
 "\<lbrakk> UNREST_EXPR (VAR - vs) e; b1 \<cong> b2 on vs \<rbrakk> 
  \<Longrightarrow> \<langle>e\<rangle>\<^sub>eb1 = \<langle>e\<rangle>\<^sub>eb2"
   by (smt UNREST_EXPR_member binding_override_equiv binding_override_simps(10) binding_override_simps(5))
-
-
 
 end

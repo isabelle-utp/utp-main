@@ -408,6 +408,57 @@ declare SubsetEqV_def [simp]
 declare SubsetV_def [simp]
 end
 
+subsection {* Pair Sort *}
+
+class PAIR_SORT = VALUE +
+  fixes MkPair :: "('a \<times> 'a) \<Rightarrow> 'a"
+  fixes DestPair :: "'a \<Rightarrow> ('a \<times> 'a)"
+  fixes PairType :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> 'a UTYPE"
+  fixes InjTypes :: "'a UTYPE set"
+  assumes Inverse [simp] :
+    "Defined (MkPair v1_v2) \<Longrightarrow> DestPair (MkPair v1_v2) = v1_v2"
+  assumes MkPair_range: "MkPair ` Collect IsPair = {x. (\<exists> a b. x : PairType a b) \<and> \<D> x}"
+
+subsection {* List Sort *}
+
+class LIST_SIG = 
+  fixes MkList :: "'a list \<Rightarrow> 'a"
+  and   DestList :: "'a \<Rightarrow> 'a list"
+  and   ListType :: "'a UTYPE \<Rightarrow> 'a UTYPE"
+  and   ListElTypes :: "'a UTYPE set"
+begin
+
+subsubsection {* List Operators *}
+
+definition NilV :: "'a" where
+"NilV = MkList []"
+notation NilV ("[]v")
+
+definition ConsV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+"ConsV x l = MkList (x # DestList(l))"
+notation ConsV (infixr "#" 65)
+
+definition ConcatV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+"ConcatV l1 l2 = MkList (DestList(l1) @ DestList (l2))"
+notation ConcatV (infixr "@" 65)
+
+subsubsection {* Default Simplifications *}
+
+declare NilV_def [simp]
+declare ConsV_def [simp]
+declare ConcatV_def [simp]
+end
+
+class LIST_SORT = VALUE + LIST_SIG + LESS_EQ_SORT +
+  assumes Inverse [simp] :
+    "\<lbrakk> \<forall> x\<in>set xs. x : a; a \<in> ListElTypes; \<D> (MkList xs) \<rbrakk> \<Longrightarrow> DestList (MkList xs) = xs"
+  and ListType_cases:
+    "\<And> xs. \<lbrakk> a \<in> ListElTypes; xs : ListType a; \<D> xs \<rbrakk> 
+           \<Longrightarrow> (xs = NilV) \<or> (\<exists> y ys. y : a \<and> ys : ListType a \<and> xs = ConsV y ys)"
+  and MkList_type [typing]:
+    "\<lbrakk> a \<in> ListElTypes; \<forall> x \<in> set xs. x : a \<rbrakk> \<Longrightarrow> MkList xs : ListType a"
+  and ulesseq_LIST_FUNC2 [closure]:
+    "a \<in> ListElTypes \<Longrightarrow> ulesseq \<in> FUNC2 (ListType a) (ListType a) BoolType"
 
 subsection {* Character Sort *}
 
@@ -436,7 +487,7 @@ class STRING_SORT = VALUE +
   fixes DestStr :: "'a \<Rightarrow> string"
   fixes StringType :: "'a UTYPE"
   assumes Inverse [simp] : "DestStr (MkStr s) = s"
-  assumes MkString_range: "range MkString = {x. x : StringType \<and> \<D> x}"
+  and     MkString_range: "range MkString = {x. x : StringType \<and> \<D> x}"
 begin
 
 subsubsection {* Derived theorems *}
@@ -449,6 +500,9 @@ lemma MkStr_type [typing] : "MkStr s : StringType"
 
 end
 
+class STRING_LIST_SORT = STRING_SORT + LIST_SORT +
+  assumes StringType_ListElTypes [closure]: "StringType \<in> ListElTypes"
+
 subsection {* Real Sort *}
 
 class REAL_SORT = VALUE +
@@ -459,55 +513,6 @@ class REAL_SORT = VALUE +
   assumes Defined [simp] : "Defined (MkReal r)"
   assumes Inverse [simp] : "DestReal (MkReal r) = r"
   assumes MkReal_type [typing] : "MkReal r : \<real>"
-
-subsection {* Pair Sort *}
-
-class PAIR_SORT = VALUE +
-  fixes MkPair :: "('a \<times> 'a) \<Rightarrow> 'a"
-  fixes DestPair :: "'a \<Rightarrow> ('a \<times> 'a)"
-  fixes PairType :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> 'a UTYPE"
-  fixes InjTypes :: "'a UTYPE set"
-  assumes Inverse [simp] :
-    "Defined (MkPair v1_v2) \<Longrightarrow> DestPair (MkPair v1_v2) = v1_v2"
-  assumes MkPair_range: "MkPair ` Collect IsPair = {x. (\<exists> a b. x : PairType a b) \<and> \<D> x}"
-
-subsection {* List Sort *}
-
-class LIST_SIG = 
-  fixes MkList :: "'a list \<Rightarrow> 'a"
-  and   DestList :: "'a \<Rightarrow> 'a list"
-  and   ListType :: "'a UTYPE \<Rightarrow> 'a UTYPE"
-begin
-
-subsubsection {* List Operators *}
-
-definition NilV :: "'a" where
-"NilV = MkList []"
-notation NilV ("[]v")
-
-definition ConsV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"ConsV x l = MkList (x # DestList(l))"
-notation ConsV (infixr "#" 65)
-
-definition ConcatV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"ConcatV l1 l2 = MkList (DestList(l1) @ DestList (l2))"
-notation ConcatV (infixr "@" 65)
-
-subsubsection {* Default Simplifications *}
-
-declare NilV_def [simp]
-declare ConsV_def [simp]
-declare ConcatV_def [simp]
-end
-
-class LIST_SORT = VALUE + LIST_SIG +
-  assumes Inverse [simp] :
-    "\<lbrakk> \<forall> x\<in>set xs. x : a; \<D> (MkList xs) \<rbrakk> \<Longrightarrow> DestList (MkList xs) = xs"
-  and ListType_cases:
-    "\<And> xs. \<lbrakk> xs : ListType a; \<D> xs \<rbrakk> 
-           \<Longrightarrow> (xs = NilV) \<or> (\<exists> y ys. y : a \<and> ys : ListType a \<and> xs = ConsV y ys)"
-  and MkList_type [typing]:
-    "\<lbrakk> \<forall> x \<in> set xs. x : a \<rbrakk> \<Longrightarrow> MkList xs : ListType a"
 
 subsection {* Function Sort *}
 
