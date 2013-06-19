@@ -213,27 +213,25 @@ lemma SubstE_LitE [usubst]:
   "v : a \<Longrightarrow> LitE v[e|x] = LitE v"
   by (utp_expr_tac)
 
+lemma [typing]: "x :! a \<Longrightarrow> x : a"
+  by (auto)
+
+
 (* Hmmmm, why does this proof take so much effort? It should just go through by
    utp_expr_tac but I have to explicitly guide application of EvalE_Op1E. I think
    there may be too much non-determinism. *)
 lemma SubstE_Op1E [usubst]:
-  "\<lbrakk> v :\<^sub>e a; f \<in> FUNC1 a b; e :\<^sub>e vtype x \<rbrakk> \<Longrightarrow> (Op1E f v)[e|x] = Op1E f (v[e|x])"
+  "\<lbrakk> v :!\<^sub>e a; f \<in> FUNC1 a b; e :\<^sub>e vtype x \<rbrakk> \<Longrightarrow> (Op1E f v)[e|x] = Op1E f (v[e|x])"
   apply (auto simp add:evale typing defined)
   apply (insert SubstE_type[of e x v a])
-  apply (simp)
-  apply (drule_tac ?b1.0="ba" and f="f" in EvalE_Op1E) back back
-  apply (simp_all)
-  apply (utp_expr_tac)
+  apply (metis EvalE_SubstE EvalE_def Op1E_rep_eq edtype_rel_def)
 done
 
 lemma SubstE_Op2E [usubst]:
-  "\<lbrakk> v1 :\<^sub>e a; v2 :\<^sub>e b; f \<in> FUNC2 a b c; e :\<^sub>e vtype x \<rbrakk> \<Longrightarrow> 
+  "\<lbrakk> v1 :!\<^sub>e a; v2 :!\<^sub>e b; f \<in> FUNC2 a b c; e :\<^sub>e vtype x \<rbrakk> \<Longrightarrow> 
      (Op2E f v1 v2)[e|x] = Op2E f (v1[e|x]) (v2[e|x])"
   apply (auto simp add:evale typing defined)
-  apply (insert SubstE_type[of e x v1 a])
-  apply (insert SubstE_type[of e x v2 b])
-  apply (simp_all)
-  apply (metis EvalE_def Op2E_rep_eq SubstE.rep_eq)
+  apply (metis EvalE_SubstE EvalE_def Op2E_rep_eq edtype_rel_def)
 done
 
 lemma SubstE_TrueE [usubst]:

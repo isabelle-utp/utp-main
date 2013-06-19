@@ -273,4 +273,14 @@ done
 end
 *)
 
+
+(*
+instantiation vdmv :: LIST_SORT
+begin
+
+definition MkList_vdmv :: "vdmv list \<Rightarrow> vdmv" where
+"MkList_vdmv xs = BasicV (ListI (map ProjBasicV xs))"
+*)
+
+
 end

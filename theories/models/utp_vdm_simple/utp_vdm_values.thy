@@ -5,11 +5,11 @@
 (******************************************************************************)
 theory utp_vdm_values
 imports 
-   Derive
-  "~~/src/HOL/Library/Char_ord"
-  "~~/src/HOL/Library/Option_ord"
-  "~~/src/HOL/Library/Monad_Syntax"
-  utp_base
+  Derive
+  Char_ord
+  Option_ord
+  Monad_Syntax
+  "../../utp_base"
 begin
 
 declare split_paired_All [simp del]

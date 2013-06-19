@@ -156,6 +156,9 @@ useful properties than the underlying @{term "utype_rel"}. *}
 definition type_rel :: "'VALUE \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool" (infix ":" 50) where
 "x : t \<longleftrightarrow> x :\<^sub>u Rep_UTYPE t"
 
+definition dtype_rel :: "'VALUE \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool" (infix ":!" 50) where
+"x :! t \<longleftrightarrow> x : t \<and> \<D> x"
+
 definition default :: "'VALUE UTYPE \<Rightarrow> 'VALUE" where
 "default t \<equiv> SOME x. x : t \<and> \<D> x"
 
@@ -170,6 +173,12 @@ done
 
 lemma type_non_empty_defined: "\<exists> x. x : t \<and> \<D> x"
   apply (auto simp add:type_rel_def)
+  apply (rule_tac Rep_UTYPE_elim)
+  apply (auto)
+done
+
+lemma dtype_non_empty: "\<exists> x. x :! t"
+  apply (auto simp add:dtype_rel_def type_rel_def)
   apply (rule_tac Rep_UTYPE_elim)
   apply (auto)
 done
@@ -200,6 +209,12 @@ lemma Abs_UTYPE_type [typing,intro]:
   "\<lbrakk> x :\<^sub>u t; \<D> x \<rbrakk> \<Longrightarrow> x : Abs_UTYPE t"
   by (metis (lifting) Rep_UTYPE_cases Rep_UTYPE_inverse UTYPES_def mem_Collect_eq type_rel_def)
 
+lemma dtype_relI [intro]: "\<lbrakk> x : t; \<D> x \<rbrakk> \<Longrightarrow> x :! t"
+  by (simp add:dtype_rel_def)
+
+lemma dtype_relE [elim]: "\<lbrakk> x :! t; \<lbrakk> x : t; \<D> x \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (simp add:dtype_rel_def)
+
 definition embTYPE :: "'b::countable \<Rightarrow> 'a::VALUE UTYPE" where
 "embTYPE t \<equiv> Abs_UTYPE (to_nat t)"
 
@@ -226,13 +241,25 @@ abbreviation Tall :: "'a UTYPE \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarro
 abbreviation Tex :: "'a UTYPE \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
   "Tex t P \<equiv> (\<exists>x. x : t \<and> P x)"
 
+abbreviation DTex :: "'a UTYPE \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "DTex t P \<equiv> (\<exists>x. x :! t \<and> P x)"
+
+abbreviation DTall :: "'a UTYPE \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "DTall t P \<equiv> (\<forall>x. x :! t \<longrightarrow> P x)"
+
 syntax
   "_Tall" :: "pttrn => 'a UTYPE => bool => bool" ("(3\<forall> _:_./ _)" [0, 0, 10] 10)
   "_Tex"  :: "pttrn => 'a UTYPE => bool => bool" ("(3\<exists> _:_./ _)" [0, 0, 10] 10)
+  "_DTall" :: "pttrn => 'a UTYPE => bool => bool" ("(3\<forall> _:!_./ _)" [0, 0, 10] 10)
+  "_DTex"  :: "pttrn => 'a UTYPE => bool => bool" ("(3\<exists> _:!_./ _)" [0, 0, 10] 10)
+
   
 translations
   "\<forall> x:A. P" == "CONST Tall A (%x. P)"
   "\<exists> x:A. P" == "CONST Tex A (%x. P)"
+  "\<forall> x:!A. P" == "CONST DTall A (%x. P)"
+  "\<exists> x:!A. P" == "CONST DTex A (%x. P)"
+
 
 instantiation UTYPE :: (VALUE) DEFINED
 begin
@@ -296,5 +323,46 @@ done
 
 definition dcarrier :: "'VALUE UTYPE \<Rightarrow> 'VALUE set" where
 "dcarrier t = {x . x : t \<and> \<D> x}"
+
+lemma dcarrierI [intro]: 
+  "\<lbrakk> x : a; \<D> x \<rbrakk> \<Longrightarrow> x \<in> dcarrier a"
+  by (simp add:dcarrier_def)
+
+lemma dcarrier_carrier:
+  "dcarrier a \<subseteq> carrier a"
+  by (auto simp add:carrier_def dcarrier_def)
+
+lemma dcarrier_dtype [typing]:
+  "x \<in> dcarrier a \<Longrightarrow> x :! a"
+  by (auto simp add:dcarrier_def)
+
+lemma dtype_as_dcarrier:
+  "x :! a \<longleftrightarrow> x \<in> dcarrier a"
+  by (auto simp add:dcarrier_def dtype_rel_def)
+
+lemma dcarrier_type [typing]:
+  "x \<in> dcarrier a \<Longrightarrow> x : a"
+  by (auto simp add:dcarrier_def)
+
+lemma dcarrier_defined [defined]:
+  "x \<in> dcarrier a \<Longrightarrow> \<D> x"
+  by (auto simp add:dcarrier_def)
+
+subsection {* Function type sets *}
+
+text {* In several models we don't necessarily want to give a complete account to functions
+        so these two sets give an account to unary and binary HOL functions in the UTP *}
+
+definition "FUNC1 a b   = {f. \<forall>x:!a. f x :! b}"
+
+lemma FUNC11I [intro, typing]: 
+  "\<lbrakk> \<And> x. x :! a \<Longrightarrow> f x :! b \<rbrakk> \<Longrightarrow> f \<in> FUNC1 a b"
+  by (simp add:FUNC1_def)
+
+definition "FUNC2 a b c = {f. \<forall>x:!a. \<forall>y:!b. f x y :! c}"
+
+lemma FUNC2I [intro, typing]: 
+  "\<lbrakk> \<And> x y. \<lbrakk> x :! a; y :! b \<rbrakk> \<Longrightarrow> f x y :! c \<rbrakk> \<Longrightarrow> f \<in> FUNC2 a b c"
+  by (simp add:FUNC2_def)
 
 end

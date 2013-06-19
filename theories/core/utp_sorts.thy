@@ -421,44 +421,125 @@ class PAIR_SORT = VALUE +
 
 subsection {* List Sort *}
 
-class LIST_SIG = 
+class LIST_SIG = BOOL_SORT +
   fixes MkList :: "'a list \<Rightarrow> 'a"
   and   DestList :: "'a \<Rightarrow> 'a list"
   and   ListType :: "'a UTYPE \<Rightarrow> 'a UTYPE"
-  and   ListElTypes :: "'a UTYPE set"
+  (* The permissible element types of a list *)
+  and   ListPerm :: "'a UTYPE set"
 begin
 
 subsubsection {* List Operators *}
 
 definition NilV :: "'a" where
 "NilV = MkList []"
-notation NilV ("[]v")
+notation NilV ("[]\<^sub>u")
 
 definition ConsV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"ConsV x l = MkList (x # DestList(l))"
-notation ConsV (infixr "#" 65)
+"ConsV x xs = MkList (x # DestList xs)"
+notation ConsV (infixr "#\<^sub>u" 65)
 
 definition ConcatV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"ConcatV l1 l2 = MkList (DestList(l1) @ DestList (l2))"
-notation ConcatV (infixr "@" 65)
+"ConcatV xs ys = MkList (DestList xs @ DestList ys)"
+notation ConcatV (infixr "@\<^sub>u" 65)
 
-subsubsection {* Default Simplifications *}
+definition PrefixV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+"PrefixV xs ys = MkBool (prefixeq (DestList xs) (DestList ys))"
 
-declare NilV_def [simp]
-declare ConsV_def [simp]
-declare ConcatV_def [simp]
 end
 
 class LIST_SORT = VALUE + LIST_SIG + LESS_EQ_SORT +
   assumes Inverse [simp] :
-    "\<lbrakk> \<forall> x\<in>set xs. x : a; a \<in> ListElTypes; \<D> (MkList xs) \<rbrakk> \<Longrightarrow> DestList (MkList xs) = xs"
+    "\<lbrakk> a \<in> ListPerm; set xs \<subseteq> dcarrier a \<rbrakk> \<Longrightarrow> DestList (MkList xs) = xs"
+  and MkList_range: 
+        "a \<in> ListPerm \<Longrightarrow> MkList ` {xs. set xs \<subseteq> dcarrier a} = dcarrier (ListType a)"
+(*
   and ListType_cases:
-    "\<And> xs. \<lbrakk> a \<in> ListElTypes; xs : ListType a; \<D> xs \<rbrakk> 
+    "\<And> xs. \<lbrakk> a \<in> ListPerm; xs : ListType a; \<D> xs \<rbrakk> 
            \<Longrightarrow> (xs = NilV) \<or> (\<exists> y ys. y : a \<and> ys : ListType a \<and> xs = ConsV y ys)"
   and MkList_type [typing]:
-    "\<lbrakk> a \<in> ListElTypes; \<forall> x \<in> set xs. x : a \<rbrakk> \<Longrightarrow> MkList xs : ListType a"
+    "\<lbrakk> a \<in> ListPerm; \<forall> x \<in> set xs. x : a \<rbrakk> \<Longrightarrow> MkList xs : ListType a"
   and ulesseq_LIST_FUNC2 [closure]:
-    "a \<in> ListElTypes \<Longrightarrow> ulesseq \<in> FUNC2 (ListType a) (ListType a) BoolType"
+    "a \<in> ListPerm \<Longrightarrow> ulesseq \<in> FUNC2 (ListType a) (ListType a) BoolType"
+*)
+begin
+
+lemma Defined [simp] : "\<lbrakk> a \<in> ListPerm; set xs \<subseteq> dcarrier a \<rbrakk> \<Longrightarrow> \<D> (MkList xs)"
+  by (metis (lifting, full_types) MkList_range dcarrier_defined imageI mem_Collect_eq)
+
+lemma MkList_type [typing]:
+  "\<lbrakk> a \<in> ListPerm; set xs \<subseteq> dcarrier a \<rbrakk> \<Longrightarrow> MkList xs :! ListType a"
+  by (metis (lifting) MkList_range dcarrier_dtype imageI mem_Collect_eq)
+
+lemma ListType_witness [elim]:
+  "\<lbrakk> a \<in> ListPerm; xs :! ListType a \<rbrakk> \<Longrightarrow> \<exists> ys. set ys \<subseteq> dcarrier a \<and> xs = MkList ys"
+  apply (unfold dtype_as_dcarrier)
+  apply (unfold MkList_range[THEN sym])
+  apply (auto)
+done
+
+lemma ListType_elim [elim]:
+  "\<lbrakk> xs :! ListType a; a \<in> ListPerm
+   ; \<And> ys. \<lbrakk> xs = MkList ys; set ys \<subseteq> dcarrier a \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (metis ListType_witness)
+
+lemma NilV_type [typing]:
+  "a \<in> ListPerm \<Longrightarrow> NilV :! ListType a"
+  by (auto intro:typing simp add:NilV_def)
+
+lemma ConsV_type [typing]:
+  "\<lbrakk> a \<in> ListPerm; x :! a; xs :! ListType a \<rbrakk> 
+     \<Longrightarrow> ConsV x xs :! ListType a"
+  by (force intro:typing simp add:ConsV_def)
+
+lemma ConcatV_type [typing]:
+  "\<lbrakk> a \<in> ListPerm; xs :! ListType a; ys :! ListType a \<rbrakk>
+     \<Longrightarrow> ConcatV xs ys :! ListType a" 
+  by (force intro:typing simp add:ConcatV_def)
+
+lemma PrefixV_type [typing]:
+  "\<lbrakk> a \<in> ListPerm; xs :! ListType a; ys :! ListType a \<rbrakk>
+     \<Longrightarrow> PrefixV xs ys :! BoolType" 
+  by (force intro:typing simp add:PrefixV_def)
+
+text {* This lemma is sort of a lifting on the induction rule for lists *}
+lemma ListType_cases:
+  assumes "a \<in> ListPerm" "xs :! ListType a"
+  shows "(xs = NilV) \<or> (\<exists> y ys. y :! a \<and> ys :! ListType a \<and> xs = ConsV y ys)"
+proof -
+  from assms have "xs \<in> MkList ` {xs. set xs \<subseteq> dcarrier a}"
+    apply (unfold MkList_range)
+    apply (unfold dcarrier_def)
+    apply (auto)
+  done
+
+  then obtain ys where xsys: "xs = MkList ys" and yscarrier: "set ys \<subseteq> dcarrier a"
+    by (auto)
+
+  from assms(1) yscarrier
+  have "MkList ys = NilV \<or> (\<exists>z zs. z :! a \<and> zs :! ListType a \<and> MkList ys = ConsV z zs)"
+  proof (induct ys)
+    case Nil thus ?case
+      by (simp add:NilV_def)
+  next
+    case (Cons y ys) thus ?case
+      apply (rule_tac disjI2)
+      apply (rule_tac x="y" in exI)
+      apply (rule_tac x="MkList ys" in exI)
+      apply (auto intro:typing)
+      apply (metis ConsV_def Inverse)
+      apply (metis ConsV_def Inverse)
+    done
+  qed
+
+  with xsys show ?thesis
+    by (simp)
+qed
+
+lemma ConsV_FUNC2: "a \<in> ListPerm \<Longrightarrow> ConsV \<in> FUNC2 a (ListType a) (ListType a)"
+  by (auto intro:typing simp add:FUNC2_def)
+
+end
 
 subsection {* Character Sort *}
 

@@ -7,10 +7,13 @@
 header {* Common Definitions *}
 
 theory utp_common
-imports Main Real Kleene_Algebra_Models
-  "~~/src/HOL/Library/Countable"
-(*  "~~/src/HOL/Library/Kleene_Algebra" *)
-  "~~/src/Tools/Adhoc_Overloading"
+imports 
+  Main 
+  Real 
+  Kleene_Algebra_Models
+  Countable
+  Adhoc_Overloading
+  Sublist
   "utils/Library_extra"
 begin
 

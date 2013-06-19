@@ -71,11 +71,11 @@ theorem EvalE_LitE [evale] :
   by (auto simp add: LitE_rep_eq EvalE_def)
 
 theorem EvalE_Op1E [evale] :
-"\<lbrakk> x :\<^sub>e a; f \<in> FUNC1 a b \<rbrakk> \<Longrightarrow> \<lbrakk>Op1E f x\<rbrakk>\<epsilon>b1 = f (\<lbrakk>x\<rbrakk>\<epsilon>b1)"
+"\<lbrakk> x :!\<^sub>e a; f \<in> FUNC1 a b \<rbrakk> \<Longrightarrow> \<lbrakk>Op1E f x\<rbrakk>\<epsilon>b1 = f (\<lbrakk>x\<rbrakk>\<epsilon>b1)"
   by (auto simp add: Op1E_rep_eq EvalE_def)
 
 theorem EvalE_Op2E [evale] :
-"\<lbrakk> x :\<^sub>e a; y :\<^sub>e b; f \<in> FUNC2 a b c \<rbrakk> \<Longrightarrow> \<lbrakk>Op2E f x y\<rbrakk>\<epsilon>b1 = f (\<lbrakk>x\<rbrakk>\<epsilon>b1) (\<lbrakk>y\<rbrakk>\<epsilon>b1)"
+"\<lbrakk> x :!\<^sub>e a; y :!\<^sub>e b; f \<in> FUNC2 a b c \<rbrakk> \<Longrightarrow> \<lbrakk>Op2E f x y\<rbrakk>\<epsilon>b1 = f (\<lbrakk>x\<rbrakk>\<epsilon>b1) (\<lbrakk>y\<rbrakk>\<epsilon>b1)"
   by (auto simp add: Op2E_rep_eq EvalE_def)
 
 theorem EvalE_DefaultE [evale] :
