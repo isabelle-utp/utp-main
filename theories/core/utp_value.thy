@@ -165,6 +165,12 @@ definition default :: "'VALUE UTYPE \<Rightarrow> 'VALUE" where
 definition someType :: "'VALUE UTYPE" where
 "someType \<equiv> SOME t. \<exists>x. x : t"
 
+definition monotype :: "'VALUE UTYPE \<Rightarrow> bool" where
+"monotype t \<longleftrightarrow> (\<forall> x a. x :! t \<and> x :! a \<longrightarrow> a = t)"
+
+definition type_of :: "'VALUE \<Rightarrow> 'VALUE UTYPE" ("\<tau>") where
+"type_of x = (THE t. x : t)"
+
 lemma type_non_empty: "\<exists> x. x : t"
   apply (auto simp add:type_rel_def)
   apply (rule_tac Rep_UTYPE_elim)
@@ -203,6 +209,12 @@ done
 lemma someType_value: "\<exists> v. v : someType"
   apply (simp add:someType_def)
   apply (metis (lifting) Rep_UTYPE_elim type_rel_def)
+done
+
+lemma type_of_monotype: "\<lbrakk> x :! t; monotype t \<rbrakk> \<Longrightarrow> \<tau> x = t"
+  apply (unfold type_of_def monotype_def)
+  apply (rule the_equality)
+  apply (auto simp add:dtype_rel_def)
 done
 
 lemma Abs_UTYPE_type [typing,intro]: 

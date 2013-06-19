@@ -205,13 +205,17 @@ subsection {* Boolean Sort *}
 class BOOL_SORT = VALUE +
   fixes MkBool :: "bool \<Rightarrow> 'a"
   fixes DestBool :: "'a \<Rightarrow> bool"
-  fixes BoolUType :: "'a itself \<Rightarrow> nat"
+(*  fixes BoolUType :: "'a itself \<Rightarrow> nat" *)
+  fixes BoolType  :: "'a UTYPE"
   assumes Inverse [simp] : "DestBool (MkBool b) = b"
-  assumes MkBool_range: "range MkBool = {x. x :\<^sub>u BoolUType TYPE('a) \<and> \<D> x}"
+(*  assumes MkBool_range: "range MkBool = {x. x :\<^sub>u BoolUType TYPE('a) \<and> \<D> x}" *)
+  and     MkBool_range: "range MkBool = {x. x :! BoolType}"
+  and     MkBool_monotype: "monotype BoolType"
 begin
 
 subsubsection {* Derived theorems *}
 
+(*
 definition BoolType :: "'a UTYPE" where
 "BoolType = Abs_UTYPE (BoolUType TYPE('a))"
 
@@ -219,14 +223,13 @@ lemma BoolUType_UTYPES [simp]: "BoolUType TYPE('a) \<in> UTYPES TYPE('a)"
   apply (simp add:UTYPES_def)
   apply (metis (lifting) CollectD MkBool_range rangeI)
 done
+*)
 
 lemma Defined [simp] : "\<D> (MkBool b)"
-  by (metis (lifting) CollectE MkBool_range rangeI)
+  by (metis (lifting) MkBool_range dtype_relE mem_Collect_eq rangeI)
 
 lemma MkBool_type [typing]: "MkBool b : BoolType"
-  apply (simp add:type_rel_def BoolType_def)
-  apply (metis (lifting) CollectD MkBool_range rangeI)
-done
+  by (metis MkBool_range dtype_relE mem_Collect_eq rangeI)
 
 lemma DestBool_inj: "inj_on DestBool (range MkBool)"
   by (simp add:inj_on_def)
@@ -279,14 +282,18 @@ declare IffV_def [simp]
 
 lemma MkBool_cases [elim]: 
   "\<lbrakk> x : BoolType; \<not> \<D> x \<Longrightarrow> P; x = TrueV \<Longrightarrow> P; x = FalseV \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  apply (auto simp add:BoolType_def type_rel_def)
+(*  apply (auto simp add:BoolType_def type_rel_def) *)
   apply (case_tac "\<D> x")
   apply (simp)
   apply (subgoal_tac "x \<in> range MkBool")
   apply (auto)
   apply (metis (lifting) CollectI MkInt_range)
-  apply (metis (lifting) CollectI MkBool_range)
-done  
+  apply (metis MkBool_range dtype_relI mem_Collect_eq)
+done
+
+lemma MkBool_cases_defined [elim]:
+  "\<lbrakk> x :! BoolType; x = TrueV \<Longrightarrow> P; x = FalseV \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (metis MkBool_cases dtype_relE)
 
 lemma MkBool_unq [simp]: 
   "MkBool True \<noteq> MkBool False"

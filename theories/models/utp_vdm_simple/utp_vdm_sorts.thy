@@ -143,16 +143,22 @@ begin
 
 definition MkBool_vdmv where "MkBool_vdmv (x::bool) = BasicD (BoolI x)"
 definition DestBool_vdmv where "DestBool_vdmv x = the (ProjBoolI (ProjBasicD x))"
-definition BoolUType_vdmv :: "vdmv itself \<Rightarrow> nat" where 
-"BoolUType_vdmv = (\<lambda>x. to_nat BoolT)"
+definition BoolType_vdmv :: "vdmv UTYPE" where 
+"BoolType_vdmv = embTYPE BoolT"
 
 instance 
-  apply (intro_classes, simp_all add:MkBool_vdmv_def DestBool_vdmv_def BoolUType_vdmv_def type_rel_def utype_rel_vdmv_def embTYPE_def)
+  apply (intro_classes)
+  apply (simp add:MkBool_vdmv_def DestBool_vdmv_def)
+  apply (auto simp add:MkBool_vdmv_def image_def dtype_rel_def type_rel_def utype_rel_vdmv_def Defined_vdmv_def)
+  apply (smt BasicD_type BoolI_type BoolType_vdmv_def Rep_UTYPE_elim embTYPE_def embTYPE_inv_vbtypes from_nat_to_nat prjTYPE_def utype_rel_vdmv_def vbtypes_simps(4))
+  apply (smt BoolT_type_cases BoolType_vdmv_def Defined_nbot embTYPE_def embTYPE_inv_vbtypes from_nat_to_nat prjTYPE_def vbtypes_simps(4) vbtypes_type_cases)
+  apply (simp add:monotype_def dtype_rel_def type_rel_vdmt BoolType_vdmv_def Defined_vdmv_def)
   apply (auto)
-  apply (simp_all add:InjVB_def Inject_bool_def Defined_vdmv_def MkBool_vdmv_def image_def)
-  apply (force)
   apply (erule vbtypes_type_cases)
+  apply (simp)
+  apply (erule BoolT_type_cases)
   apply (auto)
+  apply (metis BasicD_type_cases BoolI_type_cases prjTYPE_inv_vdm)
 done
 end
 
