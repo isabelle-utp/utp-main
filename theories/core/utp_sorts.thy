@@ -40,45 +40,27 @@ injection @{term "MkInt"}, a projection @{term "DestInt"}, and
 a type. *}
 
 class INT_SORT = VALUE +
-  fixes MkInt    :: "int \<Rightarrow> 'a"
-  fixes DestInt  :: "'a \<Rightarrow> int"
-  fixes IntUType :: "'a itself \<Rightarrow> nat"
+  fixes MkInt   :: "int \<Rightarrow> 'a"
+  fixes DestInt :: "'a \<Rightarrow> int"
+  fixes IntType :: "'a UTYPE"
   -- {* The injection can always be reversed. *}
   assumes Inverse [simp] : "DestInt (MkInt i) = i"
   -- {* The values produced by the injection are precisely the well typed 
         and defined integer values. *}
-  assumes MkInt_range: "range MkInt = {x. x :\<^sub>u IntUType TYPE('a) \<and> \<D> x}"
+  assumes IntType_dcarrier: "dcarrier IntType = range MkInt"
 begin
-
-subsubsection {* Derived theorems *}
-
-definition IntType :: "'a UTYPE" where
-"IntType = Abs_UTYPE (IntUType TYPE('a))"
-
-lemma IntUType_UTYPES [simp]: "IntUType TYPE('a) \<in> UTYPES TYPE('a)"
-  apply (simp add:UTYPES_def)
-  apply (metis (lifting) CollectD MkInt_range rangeI)
-done
 
 text {* The results of the injection are always defined. *}
 
-lemma Defined [simp]: "\<D> (MkInt i)"
-  by (metis (lifting) CollectD MkInt_range rangeI)
+lemma Defined [defined]: "\<D> (MkInt i)"
+  by (metis IntType_dcarrier dcarrier_defined rangeI)
 
 lemma MkInt_type [typing]: "MkInt n : IntType"
-  apply (simp add:type_rel_def IntType_def)
-  apply (metis (lifting) CollectD MkInt_range rangeI)
-done
+  by (metis IntType_dcarrier dcarrier_type rangeI)
 
 lemma MkInt_cases [elim]: 
-  "\<lbrakk> x : IntType; \<not> \<D> x \<Longrightarrow> P; \<And> i. x = MkInt i \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  apply (case_tac "\<D> x")
-  apply (simp)
-  apply (subgoal_tac "x \<in> range MkInt")
-  apply (auto)
-  apply (simp add:IntType_def type_rel_def)
-  apply (metis (lifting) CollectI MkInt_range)
-done
+  "\<lbrakk> x :! IntType; \<And> i. x = MkInt i \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (metis IntType_dcarrier dtype_as_dcarrier image_iff)
 
 subsubsection {* Integer Operators *}
 
@@ -144,17 +126,20 @@ class BOOL_SORT = VALUE +
   fixes DestBool :: "'a \<Rightarrow> bool"
   fixes BoolType  :: "'a UTYPE"
   assumes Inverse [simp] : "DestBool (MkBool b) = b"
-  and     MkBool_range: "range MkBool = {x. x :! BoolType}"
+  and     BoolType_dcarrier: "dcarrier BoolType = range MkBool"
   and     BoolType_monotype: "monotype BoolType"
 begin
 
 subsubsection {* Derived theorems *}
 
-lemma Defined [simp] : "\<D> (MkBool b)"
-  by (metis (lifting) MkBool_range dtype_relE mem_Collect_eq rangeI)
+lemma Defined [defined] : "\<D> (MkBool b)"
+  by (metis BoolType_dcarrier dcarrier_defined rangeI)
 
 lemma MkBool_type [typing]: "MkBool b : BoolType"
-  by (metis MkBool_range dtype_relE mem_Collect_eq rangeI)
+  by (metis BoolType_dcarrier dcarrier_type rangeI)
+
+lemma MkBool_dtype [typing]: "MkBool b :! BoolType"
+  by (metis Defined MkBool_type dtype_relI)
 
 lemma DestBool_inj: "inj_on DestBool (range MkBool)"
   by (simp add:inj_on_def)
@@ -211,8 +196,8 @@ lemma MkBool_cases [elim]:
   apply (simp)
   apply (subgoal_tac "x \<in> range MkBool")
   apply (auto)
-  apply (metis (lifting) CollectI MkInt_range)
-  apply (metis MkBool_range dtype_relI mem_Collect_eq)
+  apply (metis)
+  apply (metis BoolType_dcarrier dcarrierI)
 done
 
 lemma MkBool_cases_defined [elim]:
