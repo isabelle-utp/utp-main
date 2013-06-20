@@ -20,16 +20,21 @@ abbreviation "wait \<equiv> MkPlain ''wait'' (BoolType) True"
 abbreviation tr :: "'a UTYPE \<Rightarrow> 'a::REACTIVE_SORT VAR" where
 "tr a \<equiv> MkPlain ''tr'' (ListType a) True"
 
+abbreviation ref :: "'a UTYPE \<Rightarrow> 'a::REACTIVE_SORT VAR" where
+"ref a \<equiv> MkPlain ''ref'' (FSetType a) True"
+
 definition SkipREA :: "'a UTYPE \<Rightarrow> 'a WF_PREDICATE" where
 "SkipREA a = `(\<not> ok \<and> ($tr a \<le> $(tr a)\<acute>)) \<or> (ok\<acute> \<and> II\<^bsub>REL_VAR - OKAY\<^esub>)`"
 
 syntax 
   "_upred_skiprea" :: "'a UTYPE \<Rightarrow> upred" ("II\<^bsub>rea'(_')\<^esub>")
   "_upred_tr"      :: "'a UTYPE \<Rightarrow> uexpr" ("tr\<^bsub>_\<^esub>")
+  "_upred_ref"     :: "'a UTYPE \<Rightarrow> uexpr" ("ref\<^bsub>_\<^esub>")
 
 translations
   "_upred_skiprea a" == "CONST SkipREA a"
   "_upred_tr a" == "CONST VarE (CONST tr a)"
+  "_upred_ref a" == "CONST VarE (CONST ref a)"
 
 text {* R1 ensures that the trace only gets longer *}
 
