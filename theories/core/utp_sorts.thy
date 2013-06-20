@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
 (* File: utp_sorts.thy                                                        *)
-(* Author: Mrank Zeyda and Simon Foster, University of York (UK)              *)
+(* Author: Frank Zeyda and Simon Foster, University of York (UK)              *)
 (******************************************************************************)
 
 header {* Value Sorts *}
@@ -27,93 +27,6 @@ subsubsection {* Theorems *}
 theorem Defined_not_eq_bot [simp] :
 "\<D> v \<Longrightarrow> v \<noteq> \<bottom>v"
   by (metis not_Defined_ubot)
-
-subsubsection {* Partial Functions (Simon) *}
-
-context BOT_SORT
-begin
-
-definition to_map :: "('b \<Rightarrow> 'a) \<Rightarrow> ('b \<rightharpoonup> 'a)" where
-"to_map f = (\<lambda> x . if (f x = \<bottom>v) then None else Some (f x))"
-
-definition from_map :: "('b \<rightharpoonup> 'a) \<Rightarrow> ('b \<Rightarrow> 'a)" where
-"from_map m = (\<lambda> x . case (m x) of Some y \<Rightarrow> y | None \<Rightarrow> \<bottom>v)"
-
-definition mdom :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set" where
-"mdom f = dom (to_map f)"
-
-definition mran :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a set" where
-"mran f = ran (to_map f)"
-
-definition fempty :: "'b \<Rightarrow> 'a" where
-"fempty = from_map Map.empty"
-
-subsubsection {* Graph of Functions *}
-
-text {* Since we can only inject certain kinds of data, to allow the injection
-  of functions we must first strip out part of the domain before graphing. *}
-
-definition to_graph_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<times> 'a) set" where
-"to_graph_on a f = {(x, f x) | x . x \<in> a}"
-
-abbreviation to_graph :: "('a \<Rightarrow> 'a) \<Rightarrow> ('a \<times> 'a) set" where
-"to_graph f \<equiv> to_graph_on (mdom f) f"
-
-definition from_graph :: "('a \<times> 'a) set \<Rightarrow> ('a \<Rightarrow> 'a)" where
-"from_graph s =
- (\<lambda> x . if (\<exists> y . (x, y) \<in> s) then (SOME y . (x, y) \<in> s) else \<bottom>v)"
-
-text {* A function with a domain restriction. *}
-
-definition func_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a)" where
-"func_on a f = (\<lambda> x . if (x \<in> a) then (f x) else \<bottom>v)"
-
-subsubsection {* Simon's Theorems *}
-
-theorem to_map_inv [simp] :
-"from_map (to_map x) = x"
-  by (auto simp: to_map_def from_map_def)
-
-theorem from_map_inv [simp] :
-"\<bottom>v \<notin> ran m \<Longrightarrow> to_map (from_map m) = m"
-apply (auto simp: to_map_def from_map_def ran_def dom_def)
-apply (rule ext)
-(* The following step is a little slow. *)
-apply (metis not_Some_eq option.simps)
-done
-
-theorem mdom_mran [dest] :
-"x \<in> mdom f \<Longrightarrow> f x \<in> mran f"
-apply (simp add: mdom_def mran_def to_map_def)
-apply (case_tac "f x = \<bottom>v")
-apply (auto simp: ran_def)
-done
-
-theorem mdom_elseBot [simp] :
-"mdom (\<lambda> x . if (P x) then (f x) else \<bottom>v) = {x . (P x) \<and> x \<in> mdom f}"
-  by (auto simp: mdom_def to_map_def dom_def)
-
-theorem mran_elseBot [simp] :
-"mran (\<lambda> x. if (P x) then (f x) else \<bottom>v) = {f x | x . (P x) \<and> f x \<noteq> \<bottom>v}"
-  by (auto simp: mran_def to_map_def ran_def)
-
-theorem to_graph_on_inv [simp] :
-"from_graph (to_graph_on a f) = func_on a f"
-  by (auto simp: to_graph_on_def from_graph_def func_on_def)
-
-theorem func_on_mdom [simp] :
-"func_on (mdom f) f = f"
-apply (simp add: func_on_def)
-apply (rule ext)
-apply (case_tac "x \<in> mdom f")
-apply (force)
-apply (force simp: mdom_def to_map_def)
-done
-
-theorem to_graph_inv [simp] :
-"from_graph (to_graph f) = f"
-  by (simp)
-end
 
 subsection {* Integer Sort *}
 
@@ -215,16 +128,6 @@ begin
 
 subsubsection {* Derived theorems *}
 
-(*
-definition BoolType :: "'a UTYPE" where
-"BoolType = Abs_UTYPE (BoolUType TYPE('a))"
-
-lemma BoolUType_UTYPES [simp]: "BoolUType TYPE('a) \<in> UTYPES TYPE('a)"
-  apply (simp add:UTYPES_def)
-  apply (metis (lifting) CollectD MkBool_range rangeI)
-done
-*)
-
 lemma Defined [simp] : "\<D> (MkBool b)"
   by (metis (lifting) MkBool_range dtype_relE mem_Collect_eq rangeI)
 
@@ -282,7 +185,6 @@ declare IffV_def [simp]
 
 lemma MkBool_cases [elim]: 
   "\<lbrakk> x : BoolType; \<not> \<D> x \<Longrightarrow> P; x = TrueV \<Longrightarrow> P; x = FalseV \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-(*  apply (auto simp add:BoolType_def type_rel_def) *)
   apply (case_tac "\<D> x")
   apply (simp)
   apply (subgoal_tac "x \<in> range MkBool")
@@ -361,7 +263,6 @@ definition FNMemberV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "FNMemberV x xs = MkBool (x \<notin>\<^sub>f DestFSet xs)"
 
 end
-
 
 (* FIXME: Add assumptions *)
 
@@ -485,15 +386,6 @@ class LIST_SORT = VALUE + LIST_SIG + LESS_EQ_SORT +
     "\<lbrakk> a \<in> ListPerm; set xs \<subseteq> dcarrier a \<rbrakk> \<Longrightarrow> DestList (MkList xs) = xs"
   and MkList_range: 
         "a \<in> ListPerm \<Longrightarrow> MkList ` {xs. set xs \<subseteq> dcarrier a} = dcarrier (ListType a)"
-(*
-  and ListType_cases:
-    "\<And> xs. \<lbrakk> a \<in> ListPerm; xs : ListType a; \<D> xs \<rbrakk> 
-           \<Longrightarrow> (xs = NilV) \<or> (\<exists> y ys. y : a \<and> ys : ListType a \<and> xs = ConsV y ys)"
-  and MkList_type [typing]:
-    "\<lbrakk> a \<in> ListPerm; \<forall> x \<in> set xs. x : a \<rbrakk> \<Longrightarrow> MkList xs : ListType a"
-  and ulesseq_LIST_FUNC2 [closure]:
-    "a \<in> ListPerm \<Longrightarrow> ulesseq \<in> FUNC2 (ListType a) (ListType a) BoolType"
-*)
 begin
 
 lemma Defined [simp] : "\<lbrakk> a \<in> ListPerm; set xs \<subseteq> dcarrier a \<rbrakk> \<Longrightarrow> \<D> (MkList xs)"
@@ -535,6 +427,7 @@ lemma PrefixV_type [typing]:
   by (force intro:typing simp add:PrefixV_def)
 
 text {* This lemma is sort of a lifting on the induction rule for lists *}
+
 lemma ListType_cases:
   assumes "a \<in> ListPerm" "xs :! ListType a"
   shows "(xs = NilV) \<or> (\<exists> y ys. y :! a \<and> ys :! ListType a \<and> xs = ConsV y ys)"
@@ -675,13 +568,6 @@ lemma func_out_type [simp]:
   apply (auto dest: FuncType_inj2)
 done
 
-subsubsection {* Function Type *}
-
-definition FuncBetw :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool" where
-"FuncBetw a b f \<equiv> f \<in> MkFunc ` Collect IsFunc
-                \<and> (mdom (DestFunc f) \<subseteq> a)
-                \<and> (mran (DestFunc f) \<subseteq> b)"
-
 subsubsection {* Function Operators *}
 
 definition AppV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
@@ -690,15 +576,11 @@ definition AppV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 definition CompV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "CompV f g = MkFunc (DestFunc f \<circ> DestFunc g)"
 
-definition IdV_on :: "'a set \<Rightarrow> 'a" where
-"IdV_on a = MkFunc (func_on a id)"
-
 subsubsection {* Default Simplifications *}
 
-declare AppV_def [simp] CompV_def [simp] IdV_on_def [simp]
+declare AppV_def [simp] CompV_def [simp]
 
 end
-
 
 class BASIC_SORT =
   INT_SORT + BOOL_SORT + STRING_SORT + REAL_SORT

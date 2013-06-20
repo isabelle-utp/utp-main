@@ -1,3 +1,11 @@
+(******************************************************************************)
+(* Project: Unifying Theories of Programming in HOL                           *)
+(* File: utp_pred_parser.thy                                                  *)
+(* Author: Frank Zeyda and Simon Foster, University of York (UK)              *)
+(******************************************************************************)
+
+header {* Predicate Parser *}
+
 theory utp_pred_parser
   imports
   "../core/utp_pred"
@@ -6,8 +14,6 @@ theory utp_pred_parser
 begin
 
 nonterminal upred and upreds and uexpr and uexprs
-
-(* Predicate Parser *)
 
 syntax
   "_upred_top_clos" :: "upred \<Rightarrow> bool" ("(1[_])")
@@ -126,6 +132,7 @@ translations
   "_uexpr_fset_member x xs"  == "CONST ExprP (CONST Op2E (CONST FMemberV) x xs)"
   "_uexpr_fset_nmember x xs" == "CONST ExprP (CONST Op2E (CONST FNMemberV) x xs)"
 
+(* Some regression tests *)
 term"`x \<in> {true,false} \<union> {false,true}`"
 term "`($x)\<acute> = $y\<acute>`"
 term "`p[($x)\<acute>/y\<acute>]`"
