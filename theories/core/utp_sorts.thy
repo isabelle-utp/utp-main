@@ -333,10 +333,35 @@ class SET_COUNTABLE = COUNTABLE +
 
 subsection {* Finite set sort *}
 
-class FSET_SORT = VALUE +
+class FSET_SORT = BOOL_SORT +
   fixes   MkFSet   :: "'a fset \<Rightarrow> 'a"
   and     DestFSet :: "'a \<Rightarrow> 'a fset"
   and     FSetType :: "'a UTYPE \<Rightarrow> 'a UTYPE"
+begin
+
+definition FEmptyV  :: "'a" where
+"FEmptyV = MkFSet \<lbrace>\<rbrace>"
+
+definition FInsertV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+"FInsertV x xs = MkFSet (finsert x (DestFSet xs))"
+
+definition FUnionV  :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+"FUnionV xs ys = MkFSet (DestFSet xs \<union>\<^sub>f DestFSet ys)"
+
+definition FInterV  :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+"FInterV xs ys = MkFSet (DestFSet xs \<inter>\<^sub>f DestFSet ys)"
+
+definition FSubsetV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+"FSubsetV xs ys = MkBool (DestFSet xs \<subseteq>\<^sub>f DestFSet ys)"
+
+definition FMemberV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+"FMemberV x xs = MkBool (x \<in>\<^sub>f DestFSet xs)"
+
+definition FNMemberV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+"FNMemberV x xs = MkBool (x \<notin>\<^sub>f DestFSet xs)"
+
+end
+
 
 (* FIXME: Add assumptions *)
 

@@ -92,9 +92,15 @@ syntax
   "_uexpr_minus"        :: "uexpr \<Rightarrow> uexpr \<Rightarrow> uexpr" (infixl "-" 65) 
   "_uexpr_lesseq"       :: "uexpr \<Rightarrow> uexpr \<Rightarrow> uexpr" (infixr "\<le>" 25)
   "_upred_lesseq"       :: "uexpr \<Rightarrow> uexpr \<Rightarrow> upred" (infixr "\<le>" 25)
+  "_uexpr_list"         :: "uexprs \<Rightarrow> uexpr" ("\<langle>_\<rangle>")
   "_uexpr_list_nil"     :: "uexpr" ("\<langle>\<rangle>")
   "_uexpr_list_append"  :: "uexpr \<Rightarrow> uexpr \<Rightarrow> uexpr" (infixr "^" 65)
-  "_uexpr_list"         :: "uexprs \<Rightarrow> uexpr" ("\<langle>_\<rangle>")
+  "_uexpr_fset"         :: "uexprs \<Rightarrow> uexpr" ("{_}")
+  "_uexpr_fset_empty"   :: "uexpr" ("{}")
+  "_uexpr_fset_union"   :: "uexpr \<Rightarrow> uexpr \<Rightarrow> uexpr" (infixl "\<union>" 65)
+  "_uexpr_fset_inter"   :: "uexpr \<Rightarrow> uexpr \<Rightarrow> uexpr" (infixl "\<inter>" 70)
+  "_uexpr_fset_member"  :: "uexpr \<Rightarrow> uexpr \<Rightarrow> upred" ("(_/ \<in> _)" [51, 51] 50)
+  "_uexpr_fset_nmember" :: "uexpr \<Rightarrow> uexpr \<Rightarrow> upred" ("(_/ \<notin> _)" [51, 51] 50)
 
 translations
   "_uexpr_brack e"      => "e"
@@ -112,7 +118,15 @@ translations
   "_uexpr_list_append e f" == "CONST Op2E (CONST ConcatV) e f"
   "_uexpr_list (_uexprs x xs)" == "CONST Op2E (CONST ConsV) x (_uexpr_list xs)"
   "_uexpr_list x" == "CONST Op2E (CONST ConsV) x (CONST LitE (CONST NilV))"
+  "_uexpr_fset (_uexprs x xs)" == "CONST Op2E (CONST FInsertV) x (_uexpr_list xs)"
+  "_uexpr_fset x" == "CONST Op2E (CONST FInsertV) x (CONST LitE (CONST FEmptyV))"
+  "_uexpr_fset_empty" == "CONST LitE (CONST FEmptyV)"
+  "_uexpr_fset_union xs ys" == "CONST Op2E (CONST FUnionV) xs ys"
+  "_uexpr_fset_inter xs ys" == "CONST Op2E (CONST FInterV) xs ys"
+  "_uexpr_fset_member x xs"  == "CONST ExprP (CONST Op2E (CONST FMemberV) x xs)"
+  "_uexpr_fset_nmember x xs" == "CONST ExprP (CONST Op2E (CONST FNMemberV) x xs)"
 
+term"`x \<in> {true,false} \<union> {false,true}`"
 term "`($x)\<acute> = $y\<acute>`"
 term "`p[($x)\<acute>/y\<acute>]`"
 term "`\<lparr>true\<rparr>`"
