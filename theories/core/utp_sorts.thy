@@ -7,7 +7,11 @@
 header {* Value Sorts *}
 
 theory utp_sorts
-imports "../utp_common" utp_value
+imports 
+  "../utp_common" 
+  utp_names
+  utp_event
+  utp_value
 begin
 
 text {* Some sorts still need to be developed in terms of their operators. *}
@@ -113,17 +117,35 @@ declare ModulusV_def [simp]
 
 end
 
+subsection {* Name Sort *}
+
+class NAME_SORT = VALUE +
+  fixes MkName :: "NAME \<Rightarrow> 'a"
+  fixes DestName :: "'a \<Rightarrow> NAME"
+  fixes NameType  :: "'a UTYPE"
+  assumes Inverse [simp] : "DestName (MkName b) = b"
+  and     MkName_dcarrier: "dcarrier NameType = range MkName"
+  and     NameType_monotype: "monotype NameType"
+
+subsection {* Event Sort *}
+
+class EVENT_SORT = VALUE +
+  fixes MkEvent :: "'a EVENT \<Rightarrow> 'a"
+  and   DestEvent :: "'a \<Rightarrow> 'a EVENT"
+  and   EventType :: "'a UTYPE"
+  assumes Inverse [simp] : "DestEvent (MkEvent b) = b"
+  and     MkEvent_dcarrier: "dcarrier EventType = range MkEvent"
+  and     EventType_monotype: "monotype EventType"
+
 subsection {* Boolean Sort *}
 
 class BOOL_SORT = VALUE +
   fixes MkBool :: "bool \<Rightarrow> 'a"
   fixes DestBool :: "'a \<Rightarrow> bool"
-(*  fixes BoolUType :: "'a itself \<Rightarrow> nat" *)
   fixes BoolType  :: "'a UTYPE"
   assumes Inverse [simp] : "DestBool (MkBool b) = b"
-(*  assumes MkBool_range: "range MkBool = {x. x :\<^sub>u BoolUType TYPE('a) \<and> \<D> x}" *)
   and     MkBool_range: "range MkBool = {x. x :! BoolType}"
-  and     MkBool_monotype: "monotype BoolType"
+  and     BoolType_monotype: "monotype BoolType"
 begin
 
 subsubsection {* Derived theorems *}
@@ -345,12 +367,27 @@ subsection {* Pair Sort *}
 
 class PAIR_SORT = VALUE +
   fixes MkPair :: "('a \<times> 'a) \<Rightarrow> 'a"
-  fixes DestPair :: "'a \<Rightarrow> ('a \<times> 'a)"
-  fixes PairType :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> 'a UTYPE"
-  fixes InjTypes :: "'a UTYPE set"
+  and   DestPair :: "'a \<Rightarrow> ('a \<times> 'a)"
+  and   PairType :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> 'a UTYPE"
+  and   PairPerm :: "'a UTYPE set"
+
   assumes Inverse [simp] :
-    "Defined (MkPair v1_v2) \<Longrightarrow> DestPair (MkPair v1_v2) = v1_v2"
-  assumes MkPair_range: "MkPair ` Collect IsPair = {x. (\<exists> a b. x : PairType a b) \<and> \<D> x}"
+    "\<lbrakk> a \<in> PairPerm; b \<in> PairPerm; x :! a; y :! b \<rbrakk> \<Longrightarrow> DestPair (MkPair (x, y)) = (x, y)"
+  and PairType_dcarrier: 
+    "\<lbrakk> a \<in> PairPerm; b \<in> PairPerm \<rbrakk> \<Longrightarrow> 
+       dcarrier (PairType a b) = MkPair ` (dcarrier a \<times> dcarrier b)"
+begin
+
+definition PairV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+"PairV x y = MkPair (x, y)"
+
+definition FstV :: "'a \<Rightarrow> 'a" where
+"FstV x = fst (DestPair x)"
+
+definition SndV :: "'a \<Rightarrow> 'a" where
+"SndV x = snd (DestPair x)"
+
+end
 
 subsection {* List Sort *}
 
@@ -582,11 +619,11 @@ declare AppV_def [simp] CompV_def [simp]
 
 end
 
+
 class BASIC_SORT =
   INT_SORT + BOOL_SORT + STRING_SORT + REAL_SORT
 
 class COMPOSITE_SORT =
   BASIC_SORT + PAIR_SORT + SET_SORT + FUNCTION_SORT
-
 
 end

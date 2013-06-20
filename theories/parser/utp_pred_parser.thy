@@ -107,6 +107,10 @@ syntax
   "_uexpr_fset_inter"   :: "uexpr \<Rightarrow> uexpr \<Rightarrow> uexpr" (infixl "\<inter>" 70)
   "_uexpr_fset_member"  :: "uexpr \<Rightarrow> uexpr \<Rightarrow> upred" ("(_/ \<in> _)" [51, 51] 50)
   "_uexpr_fset_nmember" :: "uexpr \<Rightarrow> uexpr \<Rightarrow> upred" ("(_/ \<notin> _)" [51, 51] 50)
+  "_uexpr_pair"         :: "uexpr \<Rightarrow> uexpr \<Rightarrow> uexpr" ("'(_, _')")
+  "_uexpr_pair_fst"     :: "uexpr \<Rightarrow> uexpr" ("\<pi>\<^sub>1 _")
+  "_uexpr_pair_snd"     :: "uexpr \<Rightarrow> uexpr" ("\<pi>\<^sub>2 _")
+  "_uexpr_name"         :: "NAME \<Rightarrow> uexpr" ("&_" [999] 999)
 
 translations
   "_uexpr_brack e"      => "e"
@@ -131,14 +135,18 @@ translations
   "_uexpr_fset_inter xs ys" == "CONST Op2E (CONST FInterV) xs ys"
   "_uexpr_fset_member x xs"  == "CONST ExprP (CONST Op2E (CONST FMemberV) x xs)"
   "_uexpr_fset_nmember x xs" == "CONST ExprP (CONST Op2E (CONST FNMemberV) x xs)"
+  "_uexpr_pair x y"         == "CONST Op2E (CONST PairV) x y"
+  "_uexpr_pair_fst x"       == "CONST Op1E (CONST FstV) x"
+  "_uexpr_pair_snd x"       == "CONST Op1E (CONST SndV) x"
+  "_uexpr_name x"           == "CONST LitE (CONST MkName) x"
 
 (* Some regression tests *)
-term"`x \<in> {true,false} \<union> {false,true}`"
+term "`x \<in> {true,false} \<union> {false,true}`"
 term "`($x)\<acute> = $y\<acute>`"
 term "`p[($x)\<acute>/y\<acute>]`"
 term "`\<lparr>true\<rparr>`"
 term "`a = \<langle>$x, true\<rangle> ^ \<langle>false, $y\<rangle>`"
+term "`a = \<pi>\<^sub>1 (true, false)`"
 
 end
-
 
