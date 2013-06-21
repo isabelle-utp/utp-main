@@ -211,7 +211,8 @@ lemma someType_value: "\<exists> v. v : someType"
   apply (metis (lifting) Rep_UTYPE_elim type_rel_def)
 done
 
-lemma type_of_monotype: "\<lbrakk> x :! t; monotype t \<rbrakk> \<Longrightarrow> \<tau> x = t"
+lemma type_of_monotype [simp]: 
+  "\<lbrakk> x :! t; monotype t \<rbrakk> \<Longrightarrow> \<tau> x = t"
   apply (unfold type_of_def monotype_def)
   apply (rule the_equality)
   apply (auto simp add:dtype_rel_def)

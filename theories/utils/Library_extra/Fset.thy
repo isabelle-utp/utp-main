@@ -1,7 +1,15 @@
+(******************************************************************************)
+(* Project: Unifying Theories of Programming in HOL                           *)
+(* File: Fset.thy                                                             *)
+(* Author: Simon Foster, University of York (UK)                              *)
+(******************************************************************************)
+
+header {* Finite set type *}
+
 theory Fset
 imports Main 
-  "~~/src/HOL/Library/List_lexord" 
-  "~~/src/HOL/Library/Countable"
+  List_lexord
+  Countable
   List_extra
 begin
 
@@ -464,6 +472,66 @@ definition fset_option :: "'a option fset \<Rightarrow> 'a fset option" where
 lemma fset_option_empty: 
   "fset_option \<lbrace>\<rbrace> = Some \<lbrace>\<rbrace>"
   by (simp add:fset_option_def)
+
+fun interleave :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list fset" where
+"interleave [] ys = \<lbrace>ys\<rbrace>" |
+"interleave (x # xs) (y # ys) = (Cons x) `\<^sub>f (interleave xs (y # ys)) 
+                              \<union>\<^sub>f (Cons y) `\<^sub>f (interleave (x # xs) ys)" |
+"interleave xs [] = \<lbrace>xs\<rbrace>"
+
+lemma interleave_right_nil [simp]:
+  "interleave xs [] = \<lbrace>xs\<rbrace>"
+  by (induct xs, auto)
+
+lemma interleave_headE [elim!]:
+  "\<lbrakk> z # zs \<in> \<langle>interleave xs ys\<rangle>\<^sub>f
+   ; \<And> xs'. xs = z # xs' \<Longrightarrow> P
+   ; \<And> ys'. ys = z # ys' \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  apply (induct xs)
+  apply (auto)
+  apply (induct ys)
+  apply (auto)
+done
+
+lemma interleave_member:
+  "\<lbrakk> zs \<in>\<^sub>f interleave xs ys; z \<in> set zs \<rbrakk> \<Longrightarrow> z \<in> set xs \<or> z \<in> set ys"
+  apply (induct xs)
+  apply (auto)
+  apply (induct ys)
+  apply (auto)
+oops
+
+
+(* FIXME: What happens if no progress can be made? *)
+fun intersync :: "'a fset \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list fset" where
+"intersync s (x # xs) (y # ys) 
+  = (case (x = y , x \<in>\<^sub>f s , y \<in>\<^sub>f s) of
+          (True  , True   , _      ) \<Rightarrow> Cons x `\<^sub>f intersync s xs ys |
+          (True  , False  , _      ) \<Rightarrow> ((Cons x `\<^sub>f intersync s xs (y # ys))
+                                         \<union>\<^sub>f (Cons y `\<^sub>f intersync s (x # xs) ys)) |
+          (False , True   , True   ) \<Rightarrow> \<lbrace>[]\<rbrace> |
+          (False , True   , False  ) \<Rightarrow> Cons y `\<^sub>f intersync s (x # xs) ys |
+          (False , False  , True   ) \<Rightarrow> Cons x `\<^sub>f intersync s xs (y # ys) |
+          (False , False  , False  ) \<Rightarrow> ((Cons x `\<^sub>f intersync s xs (y # ys))
+                                         \<union>\<^sub>f (Cons y `\<^sub>f intersync s (x # xs) ys)))" |
+"intersync s [] (y # ys) = 
+   (if (y \<in>\<^sub>f s) then \<lbrace>[]\<rbrace> else Cons y `\<^sub>f intersync s [] ys)" |
+"intersync s (x # xs) [] = 
+   (if (x \<in>\<^sub>f s) then \<lbrace>[]\<rbrace> else Cons x `\<^sub>f intersync s xs [])" |
+"intersync s [] [] = \<lbrace>[]\<rbrace>"
+
+(* FIXME: We should be able to prove this property... *)
+lemma intersync_empty_interleave:
+  "intersync \<lbrace>\<rbrace> xs ys = interleave xs ys"
+  apply (induct xs)
+  apply (simp_all)
+  apply (induct ys)
+  apply (simp_all)
+  apply (induct ys arbitrary: a xs)
+  apply (simp_all)
+  apply (case_tac "aa = a")
+  apply (simp_all)
+oops
 
 end
 

@@ -511,4 +511,28 @@ theorem WF_EXPRESSION_UNREST_binding_equiv :
  \<Longrightarrow> \<langle>e\<rangle>\<^sub>eb1 = \<langle>e\<rangle>\<^sub>eb2"
   by (smt UNREST_EXPR_member binding_override_equiv binding_override_simps(10) binding_override_simps(5))
 
+subsection {* List Expressions *}
+
+abbreviation NilE :: "'a::LIST_SORT UTYPE \<Rightarrow> 'a WF_EXPRESSION" where
+"NilE a \<equiv> LitE (NilV a)"
+
+abbreviation ConsE :: 
+  "'a::LIST_SORT UTYPE \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
+"ConsE a x xs \<equiv> Op2E (ConsV a) x xs"
+
+fun ListE :: "'a::LIST_SORT UTYPE \<Rightarrow> ('a WF_EXPRESSION) list \<Rightarrow> 'a WF_EXPRESSION" where
+"ListE a [] = NilE a" |
+"ListE a (x # xs) = ConsE a x (ListE a xs)"
+
+abbreviation ConcatE ::
+  "'a::LIST_SORT UTYPE \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
+"ConcatE a xs ys \<equiv> Op2E (ConcatV a) xs ys"
+
+abbreviation PrefixE ::
+  "'a::LIST_SORT WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
+"PrefixE xs ys \<equiv> Op2E PrefixV xs ys"
+
+value "List.n_lists 0 []"
+
+
 end

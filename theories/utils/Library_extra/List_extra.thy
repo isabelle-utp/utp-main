@@ -9,7 +9,7 @@ header {* Extra list functions and lemmas *}
 theory List_extra
   imports 
     Main 
-    "~~/src/HOL/Library/Monad_Syntax"
+    Monad_Syntax
 begin
 
 subsection {* List functions *}
@@ -52,7 +52,5 @@ lemma sorted_last [simp]: "\<lbrakk> x \<in> set xs; sorted xs \<rbrakk> \<Longr
   apply (auto)
   apply (metis last_in_set sorted_Cons)+
 done
-
-
 
 end
