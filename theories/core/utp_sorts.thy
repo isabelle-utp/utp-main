@@ -41,10 +41,23 @@ locale UTP_PARM_TYPE =
   and     TypeU_dcarrier: 
             "a \<in> PermU \<Longrightarrow> dcarrier (TypeU a) = AbsU a ` {xs . elemU xs \<subseteq> dcarrier a}"
   and     TypeU_inj: "inj TypeU"
+  and     PermU_exists: "\<exists>x. x \<in> PermU"
 begin
+
+definition isTypeU :: "'UTP_VALUE UTYPE \<Rightarrow> bool" where
+"isTypeU a = (\<exists> b. a = TypeU b)"
 
 definition TypeU_param :: "'UTP_VALUE UTYPE \<Rightarrow> 'UTP_VALUE UTYPE" where
 "TypeU_param t = (THE a. t = TypeU a)"
+
+definition DefaultPermU :: "'UTP_VALUE UTYPE" where
+"DefaultPermU = (SOME x. x \<in> PermU)"
+
+lemma isTypeU: "isTypeU (TypeU a)"
+  by (auto simp add:isTypeU_def)
+
+lemma isTypeU_elim: "\<lbrakk> isTypeU a; \<And> b. \<lbrakk> a = TypeU b \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (auto simp add: isTypeU_def)
 
 lemma TypeU_param: "TypeU_param (TypeU a) = a"
   apply (simp add:TypeU_param_def)
@@ -52,6 +65,9 @@ lemma TypeU_param: "TypeU_param (TypeU a) = a"
   apply (simp)
   apply (metis TypeU_inj injD)
 done
+
+lemma DefaultPermU: "DefaultPermU \<in> PermU"
+  by (metis (full_types) PermU_exists someI_ex DefaultPermU_def)
 
 lemma Defined: 
   "\<lbrakk> a \<in> PermU; elemU x \<subseteq> dcarrier a \<rbrakk> \<Longrightarrow> \<D> (AbsU a x)"
@@ -75,23 +91,18 @@ lemma TypeU_elim:
 
 end
 
-
-
 subsection {* Bottom Element Sort *}
 
 class BOT_SORT = VALUE +
-  fixes ubot :: "'a"
-  assumes not_Defined_ubot [simp] : "\<not> \<D> ubot"
-
-subsubsection {* Notations *}
-
-notation ubot ("\<bottom>v")
+  fixes ubot :: "'a UTYPE \<Rightarrow> 'a" ("\<bottom>v\<^bsub>_\<^esub>")
+  assumes ubot_ndefined [defined] : "\<D> (\<bottom>v\<^bsub>a\<^esub>) = False"
+  and     ubot_type [typing]: "\<bottom>v\<^bsub>a\<^esub> : a"
 
 subsubsection {* Theorems *}
 
 theorem Defined_not_eq_bot [simp] :
-"\<D> v \<Longrightarrow> v \<noteq> \<bottom>v"
-  by (metis not_Defined_ubot)
+"\<D> v \<Longrightarrow> v \<noteq> \<bottom>v\<^bsub>a\<^esub>"
+  by (metis ubot_ndefined)
 
 subsection {* Coercision Sort *}
 class COERCE_SORT = VALUE +
@@ -378,8 +389,16 @@ class LIST_SORT = BOOL_SORT +
   assumes List_UTP_TYPE: "UTP_PARM_TYPE MkList DestList ListType ListPerm set"
 begin
 
+abbreviation "isListType \<equiv> UTP_PARM_TYPE.isTypeU ListType"
+abbreviation "ListParam \<equiv> UTP_PARM_TYPE.TypeU_param ListType"
+abbreviation "ListDefaultPerm \<equiv> UTP_PARM_TYPE.DefaultPermU ListPerm"
+
 theorems 
+  isListType                = UTP_PARM_TYPE.isTypeU[OF List_UTP_TYPE] and
+  isListType_elim [elim]    = UTP_PARM_TYPE.isTypeU_elim[OF List_UTP_TYPE] and
+  ListParam [simp]          = UTP_PARM_TYPE.TypeU_param[OF List_UTP_TYPE] and
   ListType_dcarrier         = UTP_PARM_TYPE.TypeU_dcarrier[OF List_UTP_TYPE] and
+  ListDefaultPerm           = UTP_PARM_TYPE.DefaultPermU[OF List_UTP_TYPE] and
   MkList_defined [defined]  = UTP_PARM_TYPE.Defined[OF List_UTP_TYPE] and
   MkList_inv [simp]         = UTP_PARM_TYPE.RepU[OF List_UTP_TYPE] and
   MkList_type [typing]      = UTP_PARM_TYPE.AbsU_type[OF List_UTP_TYPE] and

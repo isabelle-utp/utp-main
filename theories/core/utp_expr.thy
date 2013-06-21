@@ -46,7 +46,7 @@ lemma Rep_WF_EXPRESSION_typed [typing]:
   apply (auto simp add:WF_EXPRESSION_def)
 done
 
-definition etype_rel :: "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool" (infix ":\<^sub>e" 50) where
+definition etype_rel :: "'a WF_EXPRESSION \<Rightarrow> 'a UTYPE \<Rightarrow> bool" (infix ":\<^sub>e" 50) where
 "etype_rel e t \<equiv> \<forall>b. \<langle>e\<rangle>\<^sub>e b : t"
 
 definition expr_type :: "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE UTYPE" where
@@ -68,6 +68,18 @@ end
 definition edtype_rel :: 
   "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool" (infix ":!\<^sub>e" 50) where
 "edtype_rel e t \<equiv> \<forall>b. \<langle>e\<rangle>\<^sub>e b :! t"
+
+lemma edtype_intro [intro]:
+  "\<lbrakk> x :\<^sub>e a; \<D> x \<rbrakk> \<Longrightarrow> x :!\<^sub>e a" 
+  by (auto simp add:edtype_rel_def etype_rel_def Defined_WF_EXPRESSION_def)
+
+lemma edtype_etype [typing]:
+  "x :!\<^sub>e a \<Longrightarrow> x :\<^sub>e a"
+  by (auto simp add:edtype_rel_def etype_rel_def)
+
+lemma edtype_defined [defined]:
+  "x :!\<^sub>e a \<Longrightarrow> \<D> x"
+  by (auto simp add:edtype_rel_def Defined_WF_EXPRESSION_def defined)
 
 lemma evar_compat_intros [simp,intro]:
   "\<lbrakk> v :\<^sub>e vtype x; \<D> v \<rbrakk> \<Longrightarrow> v \<rhd>\<^sub>e x"
@@ -141,8 +153,25 @@ lemma Op2E_rep_eq:
   apply (force simp add:Op2E_def WF_EXPRESSION_def FUNC2_def edtype_rel_def)+
 done
 
+definition Op3E :: "('a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 
+                    'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 
+                    'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
+"Op3E f v1 v2 v3 = Abs_WF_EXPRESSION (\<lambda> b. f (\<langle>v1\<rangle>\<^sub>e b) (\<langle>v2\<rangle>\<^sub>e b) (\<langle>v3\<rangle>\<^sub>e b))"
+
+lemma Op3E_rep_eq:
+  "\<lbrakk> x :!\<^sub>e a; y :!\<^sub>e b; z :!\<^sub>e c; f \<in> FUNC3 a b c d \<rbrakk> \<Longrightarrow> 
+     \<langle>Op3E f x y z\<rangle>\<^sub>e = (\<lambda> b1. f (\<langle>x\<rangle>\<^sub>e b1) (\<langle>y\<rangle>\<^sub>e b1) (\<langle>z\<rangle>\<^sub>e b1))"
+  apply (subgoal_tac "(\<lambda> b1. f (\<langle>x\<rangle>\<^sub>e b1) (\<langle>y\<rangle>\<^sub>e b1) (\<langle>z\<rangle>\<^sub>e b1)) \<in> WF_EXPRESSION")
+  apply (auto intro:typing simp add:Op3E_def WF_EXPRESSION_def FUNC3_def edtype_rel_def)
+  apply (rule_tac x="d" in exI)
+  apply (auto intro:typing)
+done
+
 definition DefaultE :: "'VALUE UTYPE \<Rightarrow> 'VALUE WF_EXPRESSION" where
 "DefaultE t \<equiv> LitE (default t)"
+
+definition BotE :: "'VALUE::BOT_SORT UTYPE \<Rightarrow> 'VALUE WF_EXPRESSION" where
+"BotE a = LitE (ubot a)"
 
 definition CoerceE :: "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE UTYPE \<Rightarrow> 'VALUE WF_EXPRESSION" where
 "CoerceE e t \<equiv> if (e :\<^sub>e t) then e else DefaultE t"
@@ -251,6 +280,10 @@ theorem LitE_type [typing]:
 "v : t \<Longrightarrow> LitE v :\<^sub>e t"
   by (auto simp add:LitE_rep_eq etype_rel_def typing)
 
+theorem BotE_type [typing]:
+"BotE a :\<^sub>e a"
+  by (simp add:BotE_def typing)
+
 theorem Op1E_type [typing]:
   "\<lbrakk> x :!\<^sub>e a; f \<in> FUNC1 a b \<rbrakk> \<Longrightarrow> Op1E f x :!\<^sub>e b"
   by (auto simp add:Op1E_rep_eq edtype_rel_def typing FUNC1_def)
@@ -288,6 +321,11 @@ subsubsection {* Definedness Theorems *}
 
 theorem LitE_defined [defined]: "\<D> v \<Longrightarrow> \<D> (LitE v)"
   by (auto simp add:LitE_rep_eq Defined_WF_EXPRESSION_def defined)
+
+theorem BotE_defined [defined]: "\<not> \<D> (BotE a)"
+  apply (auto simp add:BotE_def LitE_rep_eq Defined_WF_EXPRESSION_def defined)
+  apply (metis ubot_type)
+done
 
 theorem DefaultE_defined [defined]: "\<D> (DefaultE t)"
   by (auto intro:defined typing simp add: DefaultE_def)
@@ -532,7 +570,26 @@ abbreviation PrefixE ::
   "'a::LIST_SORT WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
 "PrefixE xs ys \<equiv> Op2E PrefixV xs ys"
 
-value "List.n_lists 0 []"
+abbreviation IntersyncE ::
+  "'a::REACTIVE_SORT UTYPE \<Rightarrow>
+   'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
+"IntersyncE a s xs ys \<equiv> Op3E (IntersyncV a) s xs ys"
 
+subsubsection {* Typing Theorems *}
+
+lemma NilE_type [typing]: 
+  "a \<in> ListPerm \<Longrightarrow> NilE a :!\<^sub>e ListType a"
+  by (auto intro:typing simp add:edtype_rel_def LitE_rep_eq)
+
+lemma ConsE_type [typing]:
+  "\<lbrakk> a \<in> ListPerm; x :!\<^sub>e a; xs :!\<^sub>e ListType a \<rbrakk> \<Longrightarrow> ConsE a x xs :!\<^sub>e ListType a"
+  by (auto intro:typing closure simp add: Op2E_rep_eq)
+
+lemma ConcatE_type [typing]:
+  "\<lbrakk> a \<in> ListPerm; xs :!\<^sub>e ListType a; ys :!\<^sub>e ListType a \<rbrakk> 
+    \<Longrightarrow> ConcatE a xs ys :!\<^sub>e ListType a"
+  by (auto intro:typing closure simp add: Op2E_rep_eq)
+
+subsection {* Finite Set Expressions *}
 
 end

@@ -228,6 +228,12 @@ lemma dtype_relI [intro]: "\<lbrakk> x : t; \<D> x \<rbrakk> \<Longrightarrow> x
 lemma dtype_relE [elim]: "\<lbrakk> x :! t; \<lbrakk> x : t; \<D> x \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (simp add:dtype_rel_def)
 
+lemma dtype_type [typing]: "x :! a \<Longrightarrow> x : a"
+  by (simp add:dtype_rel_def)
+
+lemma dtype_defined [defined]: "x :! a \<Longrightarrow> \<D> x"
+  by (simp add:dtype_rel_def)
+
 definition embTYPE :: "'b::countable \<Rightarrow> 'a::VALUE UTYPE" where
 "embTYPE t \<equiv> Abs_UTYPE (to_nat t)"
 
@@ -364,7 +370,8 @@ lemma dcarrier_defined [defined]:
 subsection {* Function type sets *}
 
 text {* In several models we don't necessarily want to give a complete account to functions
-        so these two sets give an account to unary and binary HOL functions in the UTP *}
+        so these two sets give an account to unary, binary and ternary HOL functions 
+        in the UTP *}
 
 definition "FUNC1 a b   = {f. \<forall>x:!a. f x :! b}"
 
@@ -377,5 +384,11 @@ definition "FUNC2 a b c = {f. \<forall>x:!a. \<forall>y:!b. f x y :! c}"
 lemma FUNC2I [intro, typing]: 
   "\<lbrakk> \<And> x y. \<lbrakk> x :! a; y :! b \<rbrakk> \<Longrightarrow> f x y :! c \<rbrakk> \<Longrightarrow> f \<in> FUNC2 a b c"
   by (simp add:FUNC2_def)
+
+definition "FUNC3 a b c d = {f. \<forall>x:!a. \<forall>y:!b. \<forall>z:!c. f x y z:! d}"
+
+lemma FUNC3I [intro, typing]: 
+  "\<lbrakk> \<And> x y z. \<lbrakk> x :! a; y :! b; z :! c \<rbrakk> \<Longrightarrow> f x y z :! d \<rbrakk> \<Longrightarrow> f \<in> FUNC3 a b c d"
+  by (simp add:FUNC3_def)
 
 end
