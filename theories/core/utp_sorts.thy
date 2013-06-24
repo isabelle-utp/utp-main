@@ -639,7 +639,7 @@ declare AppV_def [simp] CompV_def [simp]
 
 end
 
-class REACTIVE_SORT = BOOL_SORT + LIST_SORT + FSET_SORT +
+class REACTIVE_SORT = BOOL_SORT + LIST_SORT + FSET_SORT + STRING_LIST_SORT + MINUS_SORT + EVENT_SORT + EVENT_LIST_SORT
   assumes FSetPerm_ListPerm [closure]: "a \<in> ListPerm \<Longrightarrow> ListType a \<in> FSetPerm"
 begin
 
