@@ -248,7 +248,7 @@ lemma EXPRESSION_eqI [intro]:
   apply (auto)
 done
 
-theorem WF_EXPRESSION_type: 
+theorem WF_EXPRESSION_type [typing]: 
 "e :\<^sub>e t \<Longrightarrow>
 \<langle>e\<rangle>\<^sub>e b : t"
   by (simp add:WF_EXPRESSION_def etype_rel_def)
@@ -590,6 +590,21 @@ lemma ConcatE_type [typing]:
     \<Longrightarrow> ConcatE a xs ys :!\<^sub>e ListType a"
   by (auto intro:typing closure simp add: Op2E_rep_eq)
 
+subsubsection {* Definedness Theorems *}
+
+lemma NilE_defined [defined]:
+  "a \<in> ListPerm \<Longrightarrow> \<D> (NilE a)"
+  by (auto intro:typing defined simp add:Defined_WF_EXPRESSION_def LitE_rep_eq edtype_rel_def)
+
+lemma ConsE_defined [defined]:
+  "\<lbrakk> a \<in> ListPerm; x :!\<^sub>e a; xs :!\<^sub>e ListType a \<rbrakk> \<Longrightarrow> \<D> (ConsE a x xs)"
+  by (metis ConsE_type edtype_defined)
+
+lemma ConcatE_defined [defined]:
+  "\<lbrakk> a \<in> ListPerm; xs :!\<^sub>e ListType a; ys :!\<^sub>e ListType a \<rbrakk> 
+    \<Longrightarrow> \<D> (ConcatE a xs ys)"
+  by (metis ConcatE_type edtype_defined)
+  
 subsection {* Finite Set Expressions *}
 
 end

@@ -184,7 +184,7 @@ class NAME_SORT = VALUE +
   fixes NameType  :: "'a UTYPE"
   assumes Inverse [simp] : "DestName (MkName b) = b"
   and     MkName_dcarrier: "dcarrier NameType = range MkName"
-  and     NameType_monotype: "monotype NameType"
+  and     NameType_monotype [typing]: "monotype NameType"
 
 subsection {* Event Sort *}
 
@@ -194,7 +194,7 @@ class EVENT_SORT = VALUE +
   and   EventType :: "'a UTYPE"
   assumes Inverse [simp] : "DestEvent (MkEvent b) = b"
   and     MkEvent_dcarrier: "dcarrier EventType = range MkEvent"
-  and     EventType_monotype: "monotype EventType"
+  and     EventType_monotype [typing]: "monotype EventType"
 
 subsection {* Boolean Sort *}
 
@@ -204,7 +204,7 @@ class BOOL_SORT = VALUE +
   fixes BoolType  :: "'a UTYPE"
   assumes Inverse [simp] : "DestBool (MkBool b) = b"
   and     BoolType_dcarrier: "dcarrier BoolType = range MkBool"
-  and     BoolType_monotype: "monotype BoolType"
+  and     BoolType_monotype [typing]: "monotype BoolType"
 begin
 
 subsubsection {* Derived theorems *}
@@ -394,7 +394,7 @@ abbreviation "ListParam \<equiv> UTP_PARM_TYPE.TypeU_param ListType"
 abbreviation "ListDefaultPerm \<equiv> UTP_PARM_TYPE.DefaultPermU ListPerm"
 
 theorems 
-  isListType                = UTP_PARM_TYPE.isTypeU[OF List_UTP_TYPE] and
+  isListType [simp]         = UTP_PARM_TYPE.isTypeU[OF List_UTP_TYPE] and
   isListType_elim [elim]    = UTP_PARM_TYPE.isTypeU_elim[OF List_UTP_TYPE] and
   ListParam [simp]          = UTP_PARM_TYPE.TypeU_param[OF List_UTP_TYPE] and
   ListType_dcarrier         = UTP_PARM_TYPE.TypeU_dcarrier[OF List_UTP_TYPE] and

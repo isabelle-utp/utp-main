@@ -166,7 +166,10 @@ definition someType :: "'VALUE UTYPE" where
 "someType \<equiv> SOME t. \<exists>x. x : t"
 
 definition monotype :: "'VALUE UTYPE \<Rightarrow> bool" where
-"monotype t \<longleftrightarrow> (\<forall> x a. x :! t \<and> x :! a \<longrightarrow> a = t)"
+"monotype t \<longleftrightarrow> (\<forall> x a. x : t \<and> x : a \<and> \<D> x \<longrightarrow> a = t)"
+
+definition monovalue :: "'a::VALUE \<Rightarrow> bool" where
+"monovalue x = (\<D> x \<and> (\<forall> t t'. x : t \<and> x : t' \<longrightarrow> t = t'))"
 
 definition type_of :: "'VALUE \<Rightarrow> 'VALUE UTYPE" ("\<tau>") where
 "type_of x = (THE t. x : t)"
@@ -217,6 +220,14 @@ lemma type_of_monotype [simp]:
   apply (rule the_equality)
   apply (auto simp add:dtype_rel_def)
 done
+
+lemma type_of_monovalue [simp]:
+  "\<lbrakk> monovalue x; x : a; x : b \<rbrakk> \<Longrightarrow> a = b"
+  by (auto simp add:monovalue_def)
+
+lemma monovalue_monotype [typing]:
+  "\<lbrakk> monotype t; x :! t \<rbrakk> \<Longrightarrow> monovalue x"
+  by (auto simp add:monovalue_def monotype_def dtype_rel_def)
 
 lemma Abs_UTYPE_type [typing,intro]: 
   "\<lbrakk> x :\<^sub>u t; \<D> x \<rbrakk> \<Longrightarrow> x : Abs_UTYPE t"
