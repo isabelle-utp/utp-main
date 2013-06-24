@@ -551,29 +551,33 @@ theorem WF_EXPRESSION_UNREST_binding_equiv :
 
 subsection {* List Expressions *}
 
-abbreviation NilE :: "'a::LIST_SORT UTYPE \<Rightarrow> 'a WF_EXPRESSION" where
+default_sort LIST_SORT
+
+abbreviation NilE :: "'a UTYPE \<Rightarrow> 'a WF_EXPRESSION" where
 "NilE a \<equiv> LitE (NilV a)"
 
 abbreviation ConsE :: 
-  "'a::LIST_SORT UTYPE \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
+  "'a UTYPE \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
 "ConsE a x xs \<equiv> Op2E (ConsV a) x xs"
 
-fun ListE :: "'a::LIST_SORT UTYPE \<Rightarrow> ('a WF_EXPRESSION) list \<Rightarrow> 'a WF_EXPRESSION" where
+fun ListE :: "'a UTYPE \<Rightarrow> ('a WF_EXPRESSION) list \<Rightarrow> 'a WF_EXPRESSION" where
 "ListE a [] = NilE a" |
 "ListE a (x # xs) = ConsE a x (ListE a xs)"
 
 abbreviation ConcatE ::
-  "'a::LIST_SORT UTYPE \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
+  "'a UTYPE \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
 "ConcatE a xs ys \<equiv> Op2E (ConcatV a) xs ys"
 
 abbreviation PrefixE ::
-  "'a::LIST_SORT WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
+  "'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
 "PrefixE xs ys \<equiv> Op2E PrefixV xs ys"
 
 abbreviation IntersyncE ::
   "'a::REACTIVE_SORT UTYPE \<Rightarrow>
    'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
 "IntersyncE a s xs ys \<equiv> Op3E (IntersyncV a) s xs ys"
+
+default_sort VALUE
 
 subsubsection {* Typing Theorems *}
 
@@ -606,5 +610,27 @@ lemma ConcatE_defined [defined]:
   by (metis ConcatE_type edtype_defined)
   
 subsection {* Finite Set Expressions *}
+
+abbreviation "FEmptyE a \<equiv> LitE (FEmptyV a)"
+abbreviation "FInsertE a \<equiv> Op2E (FInsertV a)"
+abbreviation "FUnionE a \<equiv> Op2E (FUnionV a)"
+abbreviation "FInterE a \<equiv> Op2E (FUnionV a)"
+abbreviation "FMemberE  \<equiv> Op2E FMemberV"
+abbreviation "FNMemberE  \<equiv> Op2E FNMemberV"
+
+subsection {* Event List / Set Hack *}
+
+(* FIXME: Until polymorphic expressions are implemented, we supply type-specific constructs
+   for event lists and sets *)
+
+abbreviation "EvNilE       \<equiv> NilE EventType"
+abbreviation "EvConsE      \<equiv> ConsE EventType"
+abbreviation "EvConcatE    \<equiv> ConcatE EventType"
+abbreviation "EvIntersyncE \<equiv> IntersyncE EventType"
+
+abbreviation "EvFEmptyE \<equiv> FEmptyE EventType"
+abbreviation "EvFInsertE \<equiv> FInsertE EventType"
+abbreviation "EvFUnionE \<equiv> FUnionE EventType"
+abbreviation "EvFInterE \<equiv> FInterE EventType"
 
 end
