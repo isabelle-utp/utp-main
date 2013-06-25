@@ -40,6 +40,7 @@ locale UTP_PARM_TYPE =
   assumes RepU: "\<lbrakk> a \<in> PermU; elemU x \<subseteq> dcarrier a \<rbrakk> \<Longrightarrow> RepU (AbsU a x) = x"
   and     TypeU_dcarrier: 
             "a \<in> PermU \<Longrightarrow> dcarrier (TypeU a) = AbsU a ` {xs . elemU xs \<subseteq> dcarrier a}"
+  (* and     AbsU_type: "a \<in> PermU \<Longrightarrow> AbsU a xs : a" *)
   and     TypeU_inj: "inj TypeU"
   and     PermU_exists: "\<exists>x. x \<in> PermU"
 begin
@@ -134,6 +135,9 @@ lemma Defined [defined]: "\<D> (MkInt i)"
 
 lemma MkInt_type [typing]: "MkInt n : IntType"
   by (metis IntType_dcarrier dcarrier_type rangeI)
+
+lemma MkInt_dtype [typing]: "MkInt n :! IntType"
+  by (metis Defined MkInt_type dtype_relI)
 
 lemma MkInt_cases [elim]: 
   "\<lbrakk> x :! IntType; \<And> i. x = MkInt i \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"

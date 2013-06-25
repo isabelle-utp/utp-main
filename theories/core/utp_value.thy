@@ -79,6 +79,12 @@ lemma Rep_UTYPE_elim [elim]:
   apply (auto simp add:UTYPES_def)
 done
 
+lemma Abs_UTYPE_inv [simp]:
+  "\<lbrakk> (v :: 'a :: VALUE) :\<^sub>u t; \<D> v \<rbrakk> \<Longrightarrow> Rep_UTYPE (Abs_UTYPE t :: 'a UTYPE) = t"
+  apply (rule Abs_UTYPE_inverse)
+  apply (auto simp add:UTYPES_def)
+done
+
 instantiation UTYPE :: (VALUE) countable
 begin
 instance
