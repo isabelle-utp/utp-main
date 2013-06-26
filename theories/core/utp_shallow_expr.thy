@@ -29,11 +29,13 @@ syntax
 
 translations "TYPEU('a)" == "CONST TypeU TYPE('a)"
 
+(*
 definition MkPEvent :: "'a PEvent \<Rightarrow> 'm :: EVENT_SORT" where
 "MkPEvent e = MkEvent (Abs_EVENT ((fst e, TypeU TYPE('a)), InjU (snd e)))"
 
 definition DestPEvent :: "'m :: EVENT_SORT \<Rightarrow> 'a PEvent" where
 "DestPEvent x = (fst (EVENT_channel (DestEvent x)), ProjU (EVENT_value (DestEvent x)))"
+*)
 
 defs (overloaded)
   InjU_bool [simp]:  "InjU (x :: bool) \<equiv> MkBool x"
@@ -44,9 +46,10 @@ defs (overloaded)
   ProjU_int [simp]: "ProjU (x :: ('a :: INT_SORT)) \<equiv> DestInt x"
   TypeU_int [simp]: "TypeU (x :: int itself) \<equiv> IntType"
 
-  InjU_event [simp]:  "InjU (x :: 'a PEvent) \<equiv> MkPEvent x"
-  ProjU_event [simp]: "ProjU (x :: ('a :: EVENT_SORT)) \<equiv> DestPEvent x"
-  TypeU_event [simp]: "TypeU (x :: 'a PEvent itself) \<equiv> EventType"
+  InjU_event [simp]:  "InjU (x :: ('m :: EVENT_SORT) EVENT) \<equiv> (MkEvent x :: 'm)"
+  ProjU_event [simp]: "ProjU (x :: ('m :: EVENT_SORT)) \<equiv> DestEvent x"
+  TypeU_event [simp]: "TypeU (x :: ('m :: EVENT_SORT) EVENT itself) \<equiv> EventType :: 'm UTYPE"
+
 
   InjU_list [simp]: "InjU (xs :: 'a list) \<equiv> MkList (TypeU (TYPE('a))) (map InjU xs)"
   ProjU_list [simp]: "ProjU (xs :: ('a :: LIST_SORT)) \<equiv> map ProjU (DestList xs)"
@@ -122,10 +125,9 @@ lemma TypeUSound_fset [typing]:
   apply (auto simp add:image_def)
 done
 
-lemma TypeUSound_PEvent [typing]:
-  "\<lbrakk> (TYPEU('a) :: 'm UTYPE) \<in> EventPerm; TYPEUSOUND('a, 'm) \<rbrakk>
-     \<Longrightarrow> TYPEUSOUND('a PEvent, 'm :: EVENT_SORT)"
-  by (auto simp add:MkPEvent_def typing DestPEvent_def)
+lemma TypeUSound_Event [typing]:
+  "TYPEUSOUND('m EVENT, 'm :: EVENT_SORT)"
+  by (auto simp add:typing)
 
 subsection {* Polymorphic Expression Basic Syntax *}
 
@@ -287,6 +289,10 @@ lemma PExprE_type [typing]:
   apply (metis TypeUSound_def assms dtype_type)
 done
 
+definition PExprP :: 
+  "(bool, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" where
+"PExprP e = mkPRED {b. \<lbrakk>e\<rbrakk>\<^sub>* b}"
+
 subsection {* Boolean Expressions *}
 
 abbreviation TruePE :: "(bool, 'm :: BOOL_SORT) WF_PEXPRESSION" where
@@ -377,10 +383,13 @@ lemma FUnionPE_type:
 
 subsection {* Action Expressions *}
 
+definition PEV :: "NAME \<Rightarrow> 'a \<Rightarrow> ('m :: EVENT_SORT) EVENT" where
+"PEV n v = EV n TYPEU('a) (InjU v)"
+
 abbreviation EventPE ::
   "NAME \<Rightarrow> ('a, 'm :: EVENT_SORT) WF_PEXPRESSION 
-        \<Rightarrow> ('a PEvent, 'm) WF_PEXPRESSION" where
-"EventPE n v \<equiv> Op1PE (\<lambda> v. (n, v)) v"
+        \<Rightarrow> ('m EVENT, 'm) WF_PEXPRESSION" where
+"EventPE n v \<equiv> Op1PE (PEV n) v"
 
 subsection {* Renaming *}
 
@@ -492,7 +501,6 @@ lemma [closure]: "PVAR_VAR okay \<in> UNDASHED"
   apply (metis MkPlain_UNDASHED MkPlain_def)
 done
 
-
 nonterminal pexpr and pexprs
 
 syntax
@@ -512,6 +520,7 @@ syntax
   "_pexpr_fset_empty"   :: "pexpr" ("{}")
   "_pexpr_fset_union"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "\<union>" 65)
   "_pexpr_fset_inter"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "\<inter>" 70)
+  "_pexpr_event"        :: "NAME \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "?" 50)
 
 translations
   "_pexpr_brack e"             => "e"
@@ -530,6 +539,9 @@ translations
   "_pexpr_fset_empty" == "CONST FEmptyPE"
   "_pexpr_fset_union xs ys" == "CONST FUnionPE xs ys"
   "_pexpr_fset_inter xs ys" == "CONST FInterPE xs ys"
+  "_pexpr_event n v" == "CONST EventPE n v"
+
+term "\<parallel>\<langle>n?5, m?{1}\<rangle> ^ \<langle>\<rangle>\<parallel>"
 
 class MY_SORT = LIST_SORT + INT_SORT + BOOL_SORT +
   assumes IntType_ListPerm [typing]: "IntType \<in> ListPerm"

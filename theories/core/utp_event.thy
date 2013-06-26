@@ -20,8 +20,22 @@ abbreviation chan_name :: "'a CHANNEL \<Rightarrow> NAME" where
 abbreviation chan_type :: "'a CHANNEL \<Rightarrow> 'a UTYPE" where
 "chan_type c \<equiv> snd c"
 
-typedef 'a EVENT = "{(c::'a CHANNEL, v :: 'a). v : chan_type c}"
-  by (auto)
+subsection {* Event Sort *}
+
+text {* Events carry values, and therefore before we can introduce the
+        type we need to define the permissible types which can event
+        can contain in class EVENT_PERM. We then use this to constrain 
+        the EVENT typedef *}
+
+class EVENT_PERM = VALUE +
+  fixes   EventPerm :: "'a UTYPE set"
+  assumes EventPerm_exists: "\<exists> x. x \<in> EventPerm"
+
+typedef 'm::EVENT_PERM EVENT = 
+  "{(c::'m CHANNEL, v :: 'm). chan_type c \<in> EventPerm \<and> v :! chan_type c}"
+  apply (auto)
+  apply (metis (mono_tags) EventPerm_exists dtype_non_empty snd_def split_conv)
+done
 
 declare Rep_EVENT [simp]
 declare Rep_EVENT_inverse [simp]
@@ -31,25 +45,44 @@ lemma Rep_EVENT_intro [intro]:
   "Rep_EVENT x = Rep_EVENT y \<Longrightarrow> x = y"
   by (auto simp add: Rep_EVENT_inject[THEN sym])
 
-abbreviation EV :: "NAME \<Rightarrow> 'a UTYPE \<Rightarrow> 'a \<Rightarrow> 'a EVENT" where
-"EV n t v \<equiv> Abs_EVENT ((n, t), v)"
-
-type_synonym 'a PEvent = "(NAME * 'a)"
-
 setup_lifting type_definition_EVENT
 
-lift_definition EVENT_channel :: "'a EVENT \<Rightarrow> 'a CHANNEL" is "fst"
+abbreviation EV :: "NAME \<Rightarrow> ('a::EVENT_PERM) UTYPE \<Rightarrow> 'a \<Rightarrow> 'a EVENT" where
+"EV n t v \<equiv> Abs_EVENT ((n, t), v)"
+
+class EVENT_SORT = EVENT_PERM +
+  fixes MkEvent   :: "'a EVENT \<Rightarrow> 'a"
+  and   DestEvent :: "'a \<Rightarrow> 'a EVENT"
+  and   EventType :: "'a UTYPE"
+
+  assumes Inverse [simp] : 
+    "DestEvent (MkEvent v) = v"
+  and     MkEvent_dcarrier: 
+    "dcarrier EventType = range MkEvent"
+  and     EventType_monotype [typing]: "monotype EventType"
+begin
+
+lemma MkEvent_defined [defined] : 
+  "\<D> (MkEvent e)"
+  by (metis MkEvent_dcarrier dcarrier_defined rangeI)
+
+lemma MkEvent_dtype [typing]: 
+  "MkEvent e :! EventType"
+  by (metis MkEvent_dcarrier dcarrier_dtype rangeI)
+end
+
+lift_definition EVENT_channel :: "'a::EVENT_PERM EVENT \<Rightarrow> 'a CHANNEL" is "fst"
   by simp
 
-lift_definition EVENT_value :: "'a EVENT \<Rightarrow> 'a" is "snd"
+lift_definition EVENT_value :: "'a::EVENT_PERM EVENT \<Rightarrow> 'a" is "snd"
   by simp
 
 lemma EVENT_channel_EV [simp]: 
-  "v : t \<Longrightarrow> EVENT_channel (EV n t v) = (n, t)"
+  "\<lbrakk> v :! t; t \<in> EventPerm \<rbrakk> \<Longrightarrow> EVENT_channel (EV n t v) = (n, t)"
   by (auto simp add:EVENT_channel_def)
 
 lemma EVENT_value_EV [simp]:
-  "v : t \<Longrightarrow> EVENT_value (EV n t v) = v"
+  "\<lbrakk> v :! t; t \<in> EventPerm \<rbrakk> \<Longrightarrow> EVENT_value (EV n t v) = v"
   by (auto simp add:EVENT_value_def)
 
 end

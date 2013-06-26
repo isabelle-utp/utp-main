@@ -190,31 +190,6 @@ class NAME_SORT = VALUE +
   and     MkNm_dcarrier: "dcarrier NmType = range MkNm"
   and     NmType_monotype [typing]: "monotype NmType"
 
-subsection {* Event Sort *}
-
-class EVENT_SORT = VALUE +
-  fixes MkEvent :: "'a EVENT \<Rightarrow> 'a"
-  and   DestEvent :: "'a \<Rightarrow> 'a EVENT"
-  and   EventType :: "'a UTYPE"
-  and   EventPerm :: "'a UTYPE set"
-
-  assumes Inverse [simp] : 
-    "\<lbrakk> a \<in> EventPerm; EVENT_value v : a \<rbrakk> \<Longrightarrow> DestEvent (MkEvent v) = v"
-  and     MkEvent_dcarrier: 
-    "dcarrier EventType = MkEvent ` {EV n t v | n t v. t \<in> EventPerm \<and> v :! t} "
-  and     EventType_monotype [typing]: "monotype EventType"
-begin
-
-lemma MkEvent_defined [defined] : 
-  "\<lbrakk> t \<in> EventPerm; v :! t \<rbrakk> \<Longrightarrow> \<D> (MkEvent (EV n t v))"
-  by (metis (lifting, mono_tags) MkEvent_dcarrier dcarrier_defined imageI mem_Collect_eq)
-
-lemma MkEvent_dtype [typing]: 
-  "\<lbrakk> t \<in> EventPerm; v :! t \<rbrakk> \<Longrightarrow> MkEvent (EV n t v) :! EventType"
-  by (metis (lifting, mono_tags) MkEvent_dcarrier dcarrier_dtype imageI mem_Collect_eq)
-
-end
-
 subsection {* Boolean Sort *}
 
 class BOOL_SORT = VALUE +
