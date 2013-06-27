@@ -20,13 +20,6 @@ begin
 
 subsection {* Predicate Substitution Laws *}
 
-ML {*
-  structure usubst =
-    Named_Thms (val name = @{binding usubst} val description = "substitution theorems")
-*}
-
-setup usubst.setup
-
 lemma SubstP_NotP [usubst]: "`(\<not> p)[v/x]` = `\<not> p[v/x]`"
   by (utp_pred_tac)
 

@@ -7,7 +7,10 @@
 header {* Unrestricted Variables *}
 
 theory utp_unrest
-imports utp_pred utp_rename
+imports 
+  utp_pred 
+  utp_rename
+  "../tactics/utp_pred_tac"
 begin
 
 subsection {* Theorem Attributes *}
@@ -360,5 +363,6 @@ lemma "rv false = {}"
 
 lemma "rv true = {}"
   by (simp add:rv_def unrest)
+
 end
 

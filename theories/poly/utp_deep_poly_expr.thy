@@ -1,14 +1,18 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
-(* File: utp_poly_expr.thy                                                    *)
+(* File: utp_deep_poly_expr.thy                                               *)
 (* Author: Simon Foster and Frank Zeyda, University of York (UK)              *)
 (******************************************************************************)
 
-header {* Somewhat Polymorphic Expressions *}
+header {* Deeply Polymorphic Expressions *}
 
-theory utp_poly_expr
+theory utp_deep_poly_expr
 imports utp_expr
 begin
+
+text {* This was an expriment in creating a mechanism for performing type inference
+        directly on UTP types. It turned out to be too hard so for the time
+        being this is mothballed *}
 
 type_synonym 'a PEXPRESSION = "'a UTYPE \<Rightarrow> 'a WF_EXPRESSION"
 

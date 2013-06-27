@@ -51,6 +51,20 @@ ML {*
 
 setup closure.setup
 
+ML {*
+  structure urename =
+    Named_Thms (val name = @{binding urename} val description = "renaming theorems")
+*}
+
+setup urename.setup
+
+ML {*
+  structure usubst =
+    Named_Thms (val name = @{binding usubst} val description = "substitution theorems")
+*}
+
+setup usubst.setup
+
 text {* Type Definitions *}
 
 lemma (in type_definition) Rep_inject_sym [simp, intro!] :

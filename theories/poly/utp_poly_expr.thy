@@ -6,128 +6,33 @@
 
 header {* Shallowly Embedded Polymorphic Expressions *}
 
-theory utp_shallow_expr
+theory utp_poly_expr
 imports 
-  utp_expr
+(*
+  "../core/utp_expr"
   "../tactics/utp_expr_tac"
-  "../laws/utp_subst_laws"
-  utp_event
-  utp_rel
+*)
+  utp_poly_value
+  utp_poly_var
 begin
 
+text {* Theorem Attribute *}
+
+ML {*
+  structure evale =
+    Named_Thms (val name = @{binding evale} val description = "evale theorems")
+*}
+
+setup evale.setup
+
+ML {*
+  structure unrest =
+    Named_Thms (val name = @{binding unrest} val description = "unrest theorems")
+*}
+
+setup unrest.setup
+
 default_sort type
-
-subsection {* Polymorphic constants *}
-
-consts 
-  TypeU :: "'a itself \<Rightarrow> ('m :: VALUE) UTYPE"
-  InjU  :: "'a \<Rightarrow> 'm :: VALUE"
-  ProjU :: "'m :: VALUE \<Rightarrow> 'a"
-
-syntax
-  "_TYPEU" :: "type => logic"  ("(1TYPEU/(1'(_')))")
-
-translations "TYPEU('a)" == "CONST TypeU TYPE('a)"
-
-(*
-definition MkPEvent :: "'a PEvent \<Rightarrow> 'm :: EVENT_SORT" where
-"MkPEvent e = MkEvent (Abs_EVENT ((fst e, TypeU TYPE('a)), InjU (snd e)))"
-
-definition DestPEvent :: "'m :: EVENT_SORT \<Rightarrow> 'a PEvent" where
-"DestPEvent x = (fst (EVENT_channel (DestEvent x)), ProjU (EVENT_value (DestEvent x)))"
-*)
-
-defs (overloaded)
-  InjU_bool [simp]:  "InjU (x :: bool) \<equiv> MkBool x"
-  ProjU_bool [simp]: "ProjU (x :: ('a :: BOOL_SORT)) \<equiv> DestBool x"
-  TypeU_bool [simp]: "TypeU (x :: bool itself) \<equiv> BoolType"
-
-  InjU_int [simp]:  "InjU (x :: int) \<equiv> MkInt x"
-  ProjU_int [simp]: "ProjU (x :: ('a :: INT_SORT)) \<equiv> DestInt x"
-  TypeU_int [simp]: "TypeU (x :: int itself) \<equiv> IntType"
-
-  InjU_event [simp]:  "InjU (x :: ('m :: EVENT_SORT) EVENT) \<equiv> (MkEvent x :: 'm)"
-  ProjU_event [simp]: "ProjU (x :: ('m :: EVENT_SORT)) \<equiv> DestEvent x"
-  TypeU_event [simp]: "TypeU (x :: ('m :: EVENT_SORT) EVENT itself) \<equiv> EventType :: 'm UTYPE"
-
-
-  InjU_list [simp]: "InjU (xs :: 'a list) \<equiv> MkList (TypeU (TYPE('a))) (map InjU xs)"
-  ProjU_list [simp]: "ProjU (xs :: ('a :: LIST_SORT)) \<equiv> map ProjU (DestList xs)"
-  TypeU_list [simp]: "TypeU (x :: ('a list) itself) \<equiv> ListType (TypeU TYPE('a))"
-
-  InjU_fset [simp]: "InjU (xs :: 'a fset) \<equiv> MkFSet (TypeU (TYPE('a))) (InjU `\<^sub>f xs)"
-  ProjU_fset [simp]: "ProjU (xs :: ('a :: FSET_SORT)) \<equiv> ProjU `\<^sub>f (DestFSet xs)"
-  TypeU_fset [simp]: "TypeU (x :: ('a fset) itself) \<equiv> FSetType (TypeU TYPE('a))"  
-
-text {* TypeUSound can be thought of as a two-parameter type class which stores
-        the properties of the above polymorphic constants, namely that the
-        given Isabelle type can be constructed under the given sort constraints *}
-
-definition TypeUSound :: "'a itself \<Rightarrow> 'm::VALUE itself \<Rightarrow> bool" where
-"TypeUSound a m \<longleftrightarrow> (\<forall> (x :: 'a). (InjU x :: 'm) :! TypeU a) \<and>
-                    (\<forall> (x :: 'a). (ProjU (InjU x :: 'm) = x))"
-
-syntax
-  "_TYPEUSOUND" :: "type \<Rightarrow> type => logic"  ("(1TYPEUSOUND/(1'(_, _')))")
-
-translations "TYPEUSOUND('a, 'm)" == "CONST TypeUSound TYPE('a) TYPE('m)"
-
-lemma TypeUSound_intro [intro]:
-  "\<lbrakk> \<And> (x :: 'a). (InjU x :: 'm) :! TYPEU('a)
-   ; \<And> (x :: 'a). (ProjU (InjU x :: 'm) = x) \<rbrakk> \<Longrightarrow>
-   TYPEUSOUND('a, 'm :: VALUE)"
-  by (simp add:TypeUSound_def)
-
-lemma TypeUSound_InjU_type [typing]:
-  fixes x :: "'a"
-  assumes "TYPEUSOUND('a, 'm :: VALUE)"
-  shows "(InjU x :: 'm) :! TYPEU('a)"
-  using assms by (auto simp add:TypeUSound_def)
-
-lemma TypeUSound_InjU_defined [defined]:
-  fixes x :: "'a"
-  assumes "TYPEUSOUND('a, 'm :: VALUE)"
-  shows "\<D> (InjU x :: 'm)"
-  by (auto intro:assms typing defined)
-
-lemma TypeUSound_InjU_inv [simp]:
-  fixes x :: "'a"
-  assumes "TYPEUSOUND('a, 'm :: VALUE)"
-  shows "ProjU (InjU x :: 'm) = x"
-  using assms by (auto simp add:TypeUSound_def)
-
-lemma TypeUSound_bool [typing]: "TYPEUSOUND(bool, 'm :: BOOL_SORT)"
-  by (simp add:TypeUSound_def typing)
-
-lemma TypeUSound_int [typing]: "TYPEUSOUND(int, 'm :: INT_SORT)"
-  by (simp add:TypeUSound_def typing)
-
-lemma TypeUSound_list [typing]: 
-  "\<lbrakk> (TYPEU('a) :: 'm UTYPE) \<in> ListPerm; TYPEUSOUND('a, 'm) \<rbrakk> 
-     \<Longrightarrow> TYPEUSOUND('a list, 'm :: LIST_SORT)"
-  apply (auto simp add:dcarrier_def TypeUSound_def)
-  apply (rule typing, auto)
-  apply (subgoal_tac "set (map InjU x) \<subseteq> dcarrier (TYPEU('a) :: 'm UTYPE)")
-  apply (auto simp add:comp_def)
-done
-
-lemma TypeUSound_fset [typing]: 
-  "\<lbrakk> (TYPEU('a) :: 'm UTYPE) \<in> FSetPerm; TYPEUSOUND('a, 'm) \<rbrakk> 
-     \<Longrightarrow> TYPEUSOUND('a fset, 'm :: FSET_SORT)"
-  apply (simp add:dcarrier_def TypeUSound_def)
-  apply (rule)
-  apply (clarify)
-  apply (rule typing)
-  apply (force)
-  apply (force)
-  apply (clarify)
-  apply (subgoal_tac "\<langle>InjU `\<^sub>f x\<rangle>\<^sub>f \<subseteq> dcarrier (TYPEU('a) :: 'm UTYPE)")
-  apply (auto simp add:image_def)
-done
-
-lemma TypeUSound_Event [typing]:
-  "TYPEUSOUND('m EVENT, 'm :: EVENT_SORT)"
-  by (auto simp add:typing)
 
 subsection {* Polymorphic Expression Basic Syntax *}
 
@@ -147,12 +52,19 @@ definition WF_PEXPRESSION_type ::
   "('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm UTYPE" ("\<tau>\<^sub>*") where
 "WF_PEXPRESSION_type e = TypeU(TYPE('a))"
 
+definition UNREST_PEXPR :: "('m VAR) set \<Rightarrow> ('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> bool" where
+"UNREST_PEXPR vs e \<equiv> (\<forall> b1 b2. \<lbrakk>e\<rbrakk>\<^sub>*(b1 \<oplus>\<^sub>b b2 on vs) = \<lbrakk>e\<rbrakk>\<^sub>* b1)" 
+
 definition LitPE :: "'a \<Rightarrow> ('a, 'm :: VALUE) WF_PEXPRESSION" where
 "LitPE v = Abs_WF_PEXPRESSION (\<lambda> b. v)"
 
 lemma EvalPE_LitPE [evale]:
   "\<lbrakk>LitPE v\<rbrakk>\<^sub>*b = v"
   by (simp add:LitPE_def)
+
+lemma UNREST_LitPE [unrest]:
+  "UNREST_PEXPR vs (LitPE v)"
+  by (simp add:UNREST_PEXPR_def LitPE_def)
 
 lemma WF_PEXPRESSION_tau [typing]:
   fixes v :: "('a, 'm :: VALUE) WF_PEXPRESSION"
@@ -163,95 +75,63 @@ definition pevar_compat ::
   "('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm VAR \<Rightarrow> bool" (infix "\<rhd>\<^sub>*" 50) where
 "pevar_compat e x \<equiv> \<forall>b. InjU (\<lbrakk>e\<rbrakk>\<^sub>* b) \<rhd> x"
 
-typedef ('a, 'm :: VALUE) PVAR = "UNIV :: (NAME * bool) set"
-  by auto
-
-declare Rep_PVAR [simp]
-declare Rep_PVAR_inverse [simp]
-declare Abs_PVAR_inverse [simp]
-
-definition MkPVAR :: "NAME \<Rightarrow> bool \<Rightarrow> 'a itself \<Rightarrow> 'm itself \<Rightarrow> ('a, 'm :: VALUE) PVAR" where
-"MkPVAR n s a t = Abs_PVAR (n, s)"
-
-abbreviation pvname :: "('a, 'm :: VALUE) PVAR \<Rightarrow> NAME" where
-"pvname x \<equiv> fst (Rep_PVAR x)"
-
-abbreviation pvaux :: "('a, 'm :: VALUE) PVAR \<Rightarrow> bool" where
-"pvaux x \<equiv> snd (Rep_PVAR x)"
-
-lemma pvname_MkPVAR [simp]:
-  "pvname (MkPVAR n s a m) = n"
-  by (simp add:MkPVAR_def)
-
-lemma pvaux_MkPVAR [simp]:
-  "pvaux (MkPVAR n s a m) = s"
-  by (simp add:MkPVAR_def)
-
-definition pvundash :: "('a, 'm :: VALUE) PVAR \<Rightarrow> ('a, 'm :: VALUE) PVAR" where
-"pvundash v = Abs_PVAR (MkName (name_str (pvname v)) (dashes (pvname v) - 1) (subscript (pvname v)), pvaux v)"
-
-definition pvdash :: "('a, 'm :: VALUE) PVAR \<Rightarrow> ('a, 'm :: VALUE) PVAR" where
-"pvdash v = Abs_PVAR (MkName (name_str (pvname v)) (dashes (pvname v) + 1) (subscript (pvname v)), pvaux v)"
-
-definition PVAR_VAR :: "('a, 'm) PVAR \<Rightarrow> ('m :: VALUE) VAR" where
-"PVAR_VAR v = MkVar (pvname v) (TypeU TYPE('a)) (pvaux v)"
-
-definition VAR_PVAR :: "('m :: VALUE) VAR \<Rightarrow> ('a, 'm) PVAR" where
-"VAR_PVAR v = Abs_PVAR (name v, aux v)"
-
-lemma PVAR_VAR_inv [simp]: 
-  "VAR_PVAR (PVAR_VAR v) = v"
-  by (simp add:PVAR_VAR_def VAR_PVAR_def)
-
-lemma VAR_PVAR_inv [simp]: 
-  "vtype x = TYPEU('a) \<Longrightarrow> PVAR_VAR (VAR_PVAR x :: ('a, 'm :: VALUE) PVAR) = x"
-  apply (case_tac x)
-  apply (auto simp add:PVAR_VAR_def VAR_PVAR_def MkVar_def)
-done
-
-lemma PVAR_VAR_pvdash [simp]:
-  "PVAR_VAR (pvdash x) = dash (PVAR_VAR x)"
-  by (auto simp add:PVAR_VAR_def dash_def pvdash_def)
-
 lemma PVAR_VAR_compat [typing]:
   fixes e :: "('a, 'm :: VALUE) WF_PEXPRESSION" 
   and   x :: "('a, 'm) PVAR"
   assumes "TYPEUSOUND('a, 'm)"
-  shows "e \<rhd>\<^sub>* PVAR_VAR x"
+  shows "e \<rhd>\<^sub>* [x]\<^sub>*"
   apply (auto simp add:pevar_compat_def PVAR_VAR_def assms typing var_compat_def)
   apply (simp add:assms defined)
 done
 
-abbreviation "PUNDASHED     \<equiv> {x. PVAR_VAR x \<in> UNDASHED}"
-abbreviation "PDASHED       \<equiv> {x. PVAR_VAR x \<in> DASHED}"
-abbreviation "PDASHED_TWICE \<equiv> {x. PVAR_VAR x \<in> DASHED_TWICE}"
-
-definition "VarPE x = Abs_WF_PEXPRESSION (\<lambda> b. ProjU (\<langle>b\<rangle>\<^sub>b x))"
-
-abbreviation PVarPE :: "('a, 'm :: VALUE) PVAR \<Rightarrow> ('a, 'm) WF_PEXPRESSION" where
-"PVarPE x \<equiv> VarPE (PVAR_VAR x)"
+definition VarPE :: "'m VAR \<Rightarrow> ('a, 'm :: VALUE) WF_PEXPRESSION" where
+"VarPE x = Abs_WF_PEXPRESSION (\<lambda> b. ProjU (\<langle>b\<rangle>\<^sub>b x))"
 
 lemma EvalPE_VarPE [evale]:
   "\<lbrakk>VarPE x\<rbrakk>\<^sub>*b = ProjU (\<langle>b\<rangle>\<^sub>b x)"
   by (simp add:VarPE_def)
 
+lemma UNREST_VarPE [unrest]:
+  "x \<notin> vs \<Longrightarrow> UNREST_PEXPR vs (VarPE x)"
+  by (simp add:VarPE_def UNREST_PEXPR_def)
+
+abbreviation PVarPE :: "('a, 'm :: VALUE) PVAR \<Rightarrow> ('a, 'm) WF_PEXPRESSION" where
+"PVarPE x \<equiv> VarPE [x]\<^sub>*"
+
 lemma EvalPE_PVarPE [evale]:
   "\<lbrakk>PVarPE x\<rbrakk>\<^sub>*b = ProjU (\<langle>b\<rangle>\<^sub>b (PVAR_VAR x))"
   by (simp add:VarPE_def)
 
-definition "Op1PE f u = Abs_WF_PEXPRESSION (\<lambda> b. f (Rep_WF_PEXPRESSION u b))"
+definition Op1PE :: 
+  "('a \<Rightarrow> 'b) \<Rightarrow> ('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> ('b, 'm) WF_PEXPRESSION" where
+"Op1PE f u = Abs_WF_PEXPRESSION (\<lambda> b. f (\<lbrakk>u\<rbrakk>\<^sub>*b))"
 
 lemma EvalPE_Op1PE [evale]:
   "\<lbrakk>Op1PE f u\<rbrakk>\<^sub>*b = f (\<lbrakk>u\<rbrakk>\<^sub>*b)"
   by (simp add:Op1PE_def)
 
-definition "Op2PE f u v = Abs_WF_PEXPRESSION (\<lambda> b. f (Rep_WF_PEXPRESSION u b) (Rep_WF_PEXPRESSION v b))"
+lemma UNREST_Op1PE [unrest]:
+  "UNREST_PEXPR vs u \<Longrightarrow> UNREST_PEXPR vs (Op1PE f u)"
+  by (simp add:UNREST_PEXPR_def Op1PE_def)
+
+definition 
+  Op2PE :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 
+            ('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 
+            ('b, 'm) WF_PEXPRESSION \<Rightarrow> 
+            ('c, 'm) WF_PEXPRESSION" where
+"Op2PE f u v = Abs_WF_PEXPRESSION (\<lambda> b. f (\<lbrakk>u\<rbrakk>\<^sub>*b) (\<lbrakk>v\<rbrakk>\<^sub>*b))"
 
 lemma EvalPE_Op2PE [evale]:
   "\<lbrakk>Op2PE f u v\<rbrakk>\<^sub>*b = f (\<lbrakk>u\<rbrakk>\<^sub>*b) (\<lbrakk>v\<rbrakk>\<^sub>*b)"
   by (simp add:Op2PE_def)
 
-definition "Op3PE f u v w = Abs_WF_PEXPRESSION (\<lambda> b. f (Rep_WF_PEXPRESSION u b) (Rep_WF_PEXPRESSION v b) (Rep_WF_PEXPRESSION w b))"
+definition 
+  Op3PE :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 
+            ('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 
+            ('b, 'm) WF_PEXPRESSION \<Rightarrow> 
+            ('c, 'm) WF_PEXPRESSION \<Rightarrow>
+            ('d, 'm) WF_PEXPRESSION" where
+"Op3PE f u v w = Abs_WF_PEXPRESSION (\<lambda> b. f (\<lbrakk>u\<rbrakk>\<^sub>*b) (\<lbrakk>v\<rbrakk>\<^sub>*b) (\<lbrakk>w\<rbrakk>\<^sub>*b))"
 
 lemma EvalPE_Op3PE [evale]:
   "\<lbrakk>Op3PE f u v w\<rbrakk>\<^sub>*b = f (\<lbrakk>u\<rbrakk>\<^sub>*b) (\<lbrakk>v\<rbrakk>\<^sub>*b) (\<lbrakk>w\<rbrakk>\<^sub>*b)"
@@ -259,6 +139,7 @@ lemma EvalPE_Op3PE [evale]:
 
 abbreviation "EqualPE \<equiv> Op2PE (op =)"
 
+(*
 definition PExprE :: "('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm WF_EXPRESSION" where
 "PExprE f = Abs_WF_EXPRESSION (InjU \<circ> Rep_WF_PEXPRESSION f)"
 
@@ -292,6 +173,7 @@ done
 definition PExprP :: 
   "(bool, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" where
 "PExprP e = mkPRED {b. \<lbrakk>e\<rbrakk>\<^sub>* b}"
+*)
 
 subsection {* Boolean Expressions *}
 
@@ -403,20 +285,6 @@ lemma EvalPE_RenamePE [evale]:
   "\<lbrakk>RenamePE e ss\<rbrakk>\<^sub>* = \<lbrakk>e\<rbrakk>\<^sub>* \<circ> (RenameB (inv\<^sub>s ss))"
   by (simp add:RenamePE_def)
 
-definition Rep_VAR_RENAME_poly :: 
-  "'m VAR_RENAME \<Rightarrow> ('a, 'm :: VALUE) PVAR \<Rightarrow> ('a, 'm) PVAR" where
-"Rep_VAR_RENAME_poly ss x \<equiv> VAR_PVAR (Rep_VAR_RENAME ss (PVAR_VAR x))"
-
-notation Rep_VAR_RENAME_poly ("\<langle>_\<rangle>\<^sub>s\<^sub>*")
-
-lemma PVAR_VAR_vtype [simp]:
-  "vtype (PVAR_VAR (x :: ('a, 'm :: VALUE) PVAR)) = TYPEU('a)"
-  by (simp add:PVAR_VAR_def)
-
-lemma PVAR_VAR_RENAME [simp]: 
-  "PVAR_VAR (\<langle>ss\<rangle>\<^sub>s\<^sub>* x) = \<langle>ss\<rangle>\<^sub>s (PVAR_VAR x)"
-  by (simp add:Rep_VAR_RENAME_poly_def)
-
 lemma RenamePE_PVarPE [urename]:
   "RenamePE (VarPE x) ss = VarPE (\<langle>ss\<rangle>\<^sub>s x)"
   by (auto simp add:evale)
@@ -507,8 +375,9 @@ syntax
   "_pexprs"             :: "[pexpr, pexprs] => pexprs" ("_,/ _")
   ""                    :: "pexpr => pexprs" ("_")
   "_pexpr_brack"        :: "pexpr \<Rightarrow> pexpr" ("'(_')")
-  "_expr_quote"         :: "pexpr \<Rightarrow> 'a WF_EXPRESSION" ("(1|_|)")
+(*  "_expr_quote"         :: "pexpr \<Rightarrow> 'a WF_EXPRESSION" ("(1|_|)") *)
   "_pexpr_quote"        :: "pexpr \<Rightarrow> ('a, 'm) WF_PEXPRESSION" ("(1\<parallel>_\<parallel>)")
+  "_pexpr_equal"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "=" 50)
   "_pexpr_true"         :: "pexpr" ("true")
   "_pexpr_false"        :: "pexpr" ("false")
   "_pexpr_int"          :: "int \<Rightarrow> pexpr" ("_")
@@ -520,12 +389,13 @@ syntax
   "_pexpr_fset_empty"   :: "pexpr" ("{}")
   "_pexpr_fset_union"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "\<union>" 65)
   "_pexpr_fset_inter"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "\<inter>" 70)
-  "_pexpr_event"        :: "NAME \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "?" 50)
+  "_pexpr_event"        :: "NAME \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_?_" 50)
 
 translations
   "_pexpr_brack e"             => "e"
-  "_expr_quote e"              => "CONST PExprE e"
+(*  "_expr_quote e"              => "CONST PExprE e" *)
   "_pexpr_quote e"             => "e"
+  "_pexpr_equal e f"           == "CONST EqualPE e f"
   "_pexpr_true"                == "CONST TruePE"
   "_pexpr_false"               == "CONST FalsePE"
   "_pexpr_int x"               == "CONST IntPE x"
@@ -541,6 +411,9 @@ translations
   "_pexpr_fset_inter xs ys" == "CONST FInterPE xs ys"
   "_pexpr_event n v" == "CONST EventPE n v"
 
+lemma "\<parallel>6 = 7\<parallel> = \<parallel>false\<parallel>"
+  by (auto simp add:evale)
+
 term "\<parallel>\<langle>n?5, m?{1}\<rangle> ^ \<langle>\<rangle>\<parallel>"
 
 class MY_SORT = LIST_SORT + INT_SORT + BOOL_SORT +
@@ -548,9 +421,9 @@ class MY_SORT = LIST_SORT + INT_SORT + BOOL_SORT +
 
 abbreviation "tr \<equiv> MkPVAR (bName ''tr'') True TYPE(int list) TYPE('m :: MY_SORT)"
 
-lemma "|\<langle>1,2\<rangle> ^ \<langle>3,4\<rangle> ^ $tr| = |\<langle>1,2,3,4\<rangle> ^ $tr|"
-  by (simp add:evale typing)
+lemma "\<parallel>\<langle>1,2\<rangle> ^ \<langle>3,4\<rangle> ^ $tr\<parallel> = \<parallel>\<langle>1,2,3,4\<rangle> ^ $tr\<parallel>"
+  by (auto simp add:evale typing)
  
-term "|{1,3} \<union> {1,2}|"
+term "\<parallel>{1,3} \<union> {1,2}\<parallel>"
 
 end

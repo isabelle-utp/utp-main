@@ -7,15 +7,12 @@
 header {* Renaming *}
 
 theory utp_rename
-imports utp_pred "../tactics/utp_pred_tac"
+imports 
+  utp_value
+  utp_var
+  utp_binding
+(* utp_pred "../tactics/utp_pred_tac" *)
 begin
-
-ML {*
-  structure urename =
-    Named_Thms (val name = @{binding urename} val description = "renaming theorems")
-*}
-
-setup urename.setup
 
 subsection {* Variable Renaming *}
 
@@ -63,6 +60,10 @@ lemma Rep_VAR_RENAME_aux [simp]: "aux (\<langle>ss\<rangle>\<^sub>s x) = aux x"
   apply (insert Rep_VAR_RENAME[of ss])
   apply (simp add:VAR_RENAME_def)
 done
+
+theorem Rep_VAR_RENAME_VAR [simp]:
+  "\<langle>ss\<rangle>\<^sub>s ` VAR = VAR"
+  by (auto simp add:VAR_def)
 
 subsection {* Renaming builder *}
 
@@ -771,19 +772,12 @@ lemma RenameB_rep_eq [simp]:
   "\<langle>RenameB ss b\<rangle>\<^sub>b = \<langle>b\<rangle>\<^sub>b \<circ> inv \<langle>ss\<rangle>\<^sub>s"
   by (simp add:RenameB_def)
 
-subsection {* Predicate Renaming *}
-
-lift_definition RenameP ::
-  "'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE VAR_RENAME \<Rightarrow>
-   'VALUE WF_PREDICATE" ("_[_]" [200]) is
-"\<lambda> p ss. (RenameB ss) ` p" done
+subsection {* Building renamings from a partial map *}
 
 definition MapR ::
   "('VALUE VAR \<rightharpoonup> 'VALUE VAR) \<Rightarrow>
    'VALUE VAR_RENAME" where
 "MapR f = Abs_VAR_RENAME (MapRename f)"
-
 
 lemma MapR_rep_eq [simp]:
   assumes "length xs = length ys" "distinct xs" "distinct ys" 
@@ -840,14 +834,7 @@ proof -
   sorry
 qed
 
-
-definition RenamePMap :: 
-  "'VALUE  WF_PREDICATE \<Rightarrow> 
-   ('VALUE VAR \<rightharpoonup> 'VALUE VAR) \<Rightarrow> 
-   'VALUE WF_PREDICATE" ("_\<^bsup>_\<^esup>" [200]) where
-"RenamePMap p ss \<equiv> RenameP p (MapR ss)"
-
-subsubsection {* Binding Renaming *}
+subsubsection {* Binding Renaming Laws *}
 
 (*
 theorem RenameB_closure [closure] :
@@ -980,116 +967,5 @@ lemma RenameB_equiv_VAR_RENAME_ON_2 [intro]:
 lemma RenameB_equiv_cong: 
   "b1 \<cong> b2 on vs \<Longrightarrow> RenameB ss b1 \<cong> RenameB ss b2 on (ss `\<^sub>s vs)"
   by (auto simp add: binding_equiv_def)
-
-subsubsection {* Predicate Renaming *}
-
-theorem EvalP_RenameP [eval] :
-"\<lbrakk>p[ss]\<rbrakk>b = \<lbrakk>p\<rbrakk>(RenameB (inv\<^sub>s ss) b)"
-apply (simp add: EvalP_def)
-apply (simp add: RenameP_def)
-apply (simp add: image_def)
-apply (safe)
-apply (simp)
-apply (rule_tac x = "RenameB (inv\<^sub>s ss) b" in bexI)
-apply (simp)
-apply (assumption)
-done
-
-theorem EvalP_RenamePMap_one [eval] :
-"\<lbrakk> x \<noteq> x'; vtype x' = vtype x; aux x' = aux x \<rbrakk> \<Longrightarrow>
- \<lbrakk>p\<^bsup>[x \<mapsto> x']\<^esup>\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b \<langle>b\<rangle>\<^sub>b x', x' :=\<^sub>b \<langle>b\<rangle>\<^sub>b x))"
-apply (simp add: RenamePMap_def)
-apply (simp add: eval closure)
-apply (simp add: EvalP_def)
-apply (simp add: RenameP_def RenameB_def image_def closure)
-apply (simp add: MapR_rep_eq[of "[x]" "[x']",simplified] CompB_def)
-apply (subgoal_tac "Abs_WF_BINDING (\<langle>b\<rangle>\<^sub>b \<circ> MapRename [x \<mapsto> x']) = b(x :=\<^sub>b \<langle>b\<rangle>\<^sub>b x', x' :=\<^sub>b \<langle>b\<rangle>\<^sub>b x)")
-apply (simp add: closure)
-apply (rule Rep_WF_BINDING_intro)
-apply (simp add:closure)
-apply (subgoal_tac "\<langle>b\<rangle>\<^sub>b x \<rhd> x'")
-apply (simp)
-apply (rule ext)
-apply (simp add: MapRename_def closure)
-apply (auto)
-done
-
-subsection {* Simplification theorems *}
-
-theorem RenameP_id :
-"p[id\<^sub>s] = p"
-apply (utp_pred_auto_tac)
-done
-
-theorem RenameP_inverse1 :
-"p[ss][inv\<^sub>s ss] = p"
-apply (utp_pred_auto_tac)
-done
-
-theorem RenameP_inverse2 :
-"p[inv\<^sub>s ss][ss] = p"
-apply (utp_pred_auto_tac)
-done
-
-theorem RenameP_compose :
-"p[ss1][ss2] = RenameP p (ss2 \<circ>\<^sub>s ss1)"
-apply (utp_pred_tac)
-apply (simp add: RenameB_compose closure)
-done
-
-theorem RenameP_commute :
-"\<lbrakk>ss1 \<in> VAR_RENAME_ON vs1;
- ss2 \<in> VAR_RENAME_ON vs2;
- vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
- (p::'VALUE WF_PREDICATE)[ss1][ss2] = p[ss2][ss1]"
-apply (utp_pred_tac)
-apply (clarify)
-apply (subst RenameB_commute [of "(inv\<^sub>s ss1)" "vs1" "(inv\<^sub>s ss2)" "vs2" "b"])
-apply (simp_all add: closure)
-done
-
-theorem RenameP_involution [simp] :
-"\<lbrakk>ss \<in> VAR_RENAME_INV\<rbrakk> \<Longrightarrow>
- p[ss][ss] = p"
-apply (utp_pred_auto_tac)
-done
-
-theorem RenameP_VAR:
-  "\<langle>ss\<rangle>\<^sub>s ` VAR = VAR"
-  by (auto simp add:VAR_def)
-
-theorems rename_simps =
-  RenameP_id
-  RenameP_inverse1
-  RenameP_inverse2
-  RenameP_compose
-  RenameP_involution
-  RenameP_VAR
-
-declare rename_simps [urename]
-
-subsection {* Distribution theorems *}
-
-theorem RenameP_image_union [urename]:
-  "\<langle>ss\<rangle>\<^sub>s ` (vs1 \<union> vs2) = \<langle>ss\<rangle>\<^sub>s ` vs1 \<union> \<langle>ss\<rangle>\<^sub>s ` vs2"
-  by auto
-
-theorem RenameP_image_inter [urename]:
-  "\<langle>ss\<rangle>\<^sub>s ` (vs1 \<inter> vs2) = \<langle>ss\<rangle>\<^sub>s ` vs1 \<inter> \<langle>ss\<rangle>\<^sub>s ` vs2"
-  by (auto, metis Rep_VAR_RENAME VAR_RENAME_in_image)
-
-theorem RenameP_image_minus [urename]:
-  "\<langle>ss\<rangle>\<^sub>s ` (vs1 - vs2) = \<langle>ss\<rangle>\<^sub>s ` vs1 - \<langle>ss\<rangle>\<^sub>s ` vs2"
-  by (metis Rep_VAR_RENAME_inj image_set_diff)
- 
-lemma RenameP_image_uminus [urename]: 
-  "\<langle>ss\<rangle>\<^sub>s ` (- vs) = - (\<langle>ss\<rangle>\<^sub>s ` vs)"
-  by (metis (lifting) Rep_VAR_RENAME_bij bij_image_Compl_eq) 
-
-theorems rename_dist =
-  RenameP_image_union
-  RenameP_image_inter
-  RenameP_image_minus
-  RenameP_image_uminus
 
 end

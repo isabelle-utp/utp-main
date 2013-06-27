@@ -7,7 +7,9 @@
 header {* Predicates *}
 
 theory utp_pred
-imports utp_binding
+imports 
+  utp_binding 
+  utp_rename
 begin
 
 subsection {* Predicates *}
@@ -161,6 +163,20 @@ definition RefP ::
 "RefP p1 p2 = [p2 \<Rightarrow>p p1]p"
 
 notation RefP (infix "\<sqsubseteq>p" 100)
+
+subsubsection {* Predicate Renaming *}
+
+lift_definition RenameP ::
+  "'VALUE WF_PREDICATE \<Rightarrow>
+   'VALUE VAR_RENAME \<Rightarrow>
+   'VALUE WF_PREDICATE" ("_[_]" [200]) is
+"\<lambda> p ss. (RenameB ss) ` p" done
+
+definition RenamePMap :: 
+  "'VALUE  WF_PREDICATE \<Rightarrow> 
+   ('VALUE VAR \<rightharpoonup> 'VALUE VAR) \<Rightarrow> 
+   'VALUE WF_PREDICATE" ("_\<^bsup>_\<^esup>" [200]) where
+"RenamePMap p ss \<equiv> RenameP p (MapR ss)"
 
 subsection {* Meta-logical Operators *}
 
