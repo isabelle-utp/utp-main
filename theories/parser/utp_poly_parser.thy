@@ -16,6 +16,10 @@ begin
 
 nonterminal pexpr and pexprs
 
+text {* Several of these operators come in both strongly and weakly typed varieties,
+        indicated by a w subscript. Those which are strong must match the type exactly,
+        whilst those which are weak just work directly on model values *}
+
 syntax
   (* Core Expression Syntax *)
   "_pexpr_quote"        :: "pexpr \<Rightarrow> ('a, 'm) WF_PEXPRESSION" ("(1\<parallel>_\<parallel>)")
@@ -24,7 +28,9 @@ syntax
   ""                    :: "pexpr => pexprs" ("_")
   "_pexpr_brack"        :: "pexpr \<Rightarrow> pexpr" ("'(_')")
   "_pexpr_pred_var"     :: "idt \<Rightarrow> pexpr" ("(_)")
+  "_pexpr_expr_var"     :: "idt \<Rightarrow> pexpr" ("@_")
   "_pexpr_evar"         :: "('a, 'm) PVAR \<Rightarrow> pexpr" ("$_")
+  "_pexpr_wvar"         :: "('a, 'm) PVAR \<Rightarrow> pexpr" ("$_\<^sub>w")
   "_pexpr_subst"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> ('a, 'm) PVAR \<Rightarrow> pexpr" ("(_[_'/_])" [999,999] 1000)
   "_pexpr_prime"        :: "pexpr \<Rightarrow> pexpr" ("_\<acute>" [999] 999)
 
@@ -51,6 +57,7 @@ syntax
   "_pexpr_seq"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr ";" 36)
   "_pexpr_cond"         :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_ \<lhd> _ \<rhd> _")
   "_pexpr_assign"       :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_ := _" [100] 100)
+  "_pexpr_wassign"      :: "'m VAR \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_ :=\<^sub>w _" [100] 100)
   "_pexpr_conv"         :: "pexpr \<Rightarrow> pexpr" ("(_\<^sup>\<smile>)" [1000] 999)
   "_pexpr_varopen"      :: "('a, 'm) PVAR \<Rightarrow> pexpr" ("var _")
   "_pexpr_varclose"     :: "('a, 'm) PVAR \<Rightarrow> pexpr" ("end _")
@@ -75,7 +82,9 @@ translations
   "_pexpr_quote e"             => "e"
   "_pexpr_pred_quote e"        == "CONST PExprP e"
   "_pexpr_pred_var p"          == "CONST PredPE p"
+  "_pexpr_expr_var v"          => "v"
   "_pexpr_evar x"              == "CONST PVarPE x"
+  "_pexpr_wvar x"              == "CONST WVarPE x"
   "_pexpr_brack e"             => "e"
   "_pexpr_subst e v x"         == "CONST PSubstPE e v x"
   "_pexpr_prime e"             == "CONST RenamePE e (CONST SS)"
@@ -102,6 +111,7 @@ translations
   "_pexpr_seq p q"             == "CONST PredOp2PE (CONST SemiR) p q"
   "_pexpr_cond p q r"          == "CONST PredOp3PE (CONST CondR) p q r"
   "_pexpr_assign x v"          == "CONST AssignRPE x v"
+  "_pexpr_wassign x v"         == "CONST WAssignRPE x v"
   "_pexpr_conv p"              == "CONST PredOp1PE (CONST ConvR) p"
   "_pexpr_varopen x"           == "CONST PredPE (CONST VarOpenP [x]\<^sub>*)"
   "_pexpr_varclose x"          == "CONST PredPE (CONST VarCloseP [x]\<^sub>*)"
@@ -164,6 +174,11 @@ lemma "x \<in> PUNDASHED \<Longrightarrow> `x := <1> ; x := $x + <1>` = `x := <2
   apply (rule)
   apply (simp add:typing defined)
 *)
+
+term "`x :=\<^sub>w $x\<^sub>w`"
+term "WAssignRPE x k"
+term "\<parallel>x :=\<^sub>w @y\<parallel>"
+term "`($x\<^sub>w\<acute> = @v) \<and> II\<^bsub>REL_VAR - {x,x\<acute>}\<^esub>`"
 
 lemma "`<1> + <1> = <2>`"
   by (utp_pred_tac)

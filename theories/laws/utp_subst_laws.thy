@@ -249,7 +249,7 @@ lemma SubstP_AssignR_1 [usubst]:
      \<Longrightarrow> (y :=p e)[v|x] = y,x :=p (e[v|x]),v"
   apply (subgoal_tac "y\<acute> \<noteq> x")
   apply (subgoal_tac "x \<notin> {y,y\<acute>}")
-  apply (simp add:AssignR_alt_def usubst unrest typing defined)
+(*  apply (simp add:AssignR_alt_def usubst unrest typing defined) *)
   oops
 
 

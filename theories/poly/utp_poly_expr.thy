@@ -13,7 +13,6 @@ imports
   "../core/utp_expr"
   "../tactics/utp_expr_tac"
   "../core/utp_rel"
-  "../tactics/utp_rel_tac"
   utp_poly_value
   utp_poly_var
 begin
@@ -81,6 +80,13 @@ lemma PVAR_VAR_compat [typing]:
   apply (auto simp add:pevar_compat_def PVAR_VAR_def assms typing var_compat_def)
   apply (simp add:assms defined)
 done
+
+definition WVarPE :: "'m VAR \<Rightarrow> ('m, 'm :: VALUE) WF_PEXPRESSION" where
+"WVarPE x = Abs_WF_PEXPRESSION (\<lambda> b. \<langle>b\<rangle>\<^sub>b x)"
+
+lemma EvalPE_WVarPE [eval]:
+  "\<lbrakk>WVarPE x\<rbrakk>\<^sub>*b = \<langle>b\<rangle>\<^sub>b x"
+  by (simp add:WVarPE_def)
 
 definition VarPE :: "'m VAR \<Rightarrow> ('a, 'm :: VALUE) WF_PEXPRESSION" where
 "VarPE x = Abs_WF_PEXPRESSION (\<lambda> b. ProjU (\<langle>b\<rangle>\<^sub>b x))"
@@ -182,7 +188,7 @@ definition PExprP ::
   "(bool, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" where
 "PExprP e = mkPRED {b. \<lbrakk>e\<rbrakk>\<^sub>* b}"
 
-declare [[coercion PExprP]]
+(* declare [[coercion PExprP]] *)
 
 lemma EvalP_PExprP [eval]:
   "\<lbrakk>PExprP e\<rbrakk>b = \<lbrakk>e\<rbrakk>\<^sub>* b"
@@ -212,7 +218,7 @@ abbreviation PredOp2PE ::
    (bool, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 
    (bool, 'm) WF_PEXPRESSION \<Rightarrow> 
    (bool, 'm) WF_PEXPRESSION" where
-"PredOp2PE f u v \<equiv> PredPE (f u v)"
+"PredOp2PE f u v \<equiv> PredPE (f (PExprP u) (PExprP v))"
 
 abbreviation PredOp3PE :: 
   "('m WF_PREDICATE \<Rightarrow> 'm WF_PREDICATE \<Rightarrow> 'm WF_PREDICATE \<Rightarrow> 'm WF_PREDICATE) \<Rightarrow>
@@ -220,13 +226,17 @@ abbreviation PredOp3PE ::
    (bool, 'm) WF_PEXPRESSION \<Rightarrow> 
    (bool, 'm) WF_PEXPRESSION \<Rightarrow>
    (bool, 'm) WF_PEXPRESSION" where
-"PredOp3PE f u v w \<equiv> PredPE (f u v w)"
+"PredOp3PE f u v w \<equiv> PredPE (f (PExprP u) (PExprP v) (PExprP w))"
 
 subsection {* Polymorphic Relational Operators *}
 
 abbreviation AssignRPE ::
   "('a, 'm :: VALUE) PVAR \<Rightarrow> ('a, 'm) WF_PEXPRESSION \<Rightarrow> (bool, 'm) WF_PEXPRESSION" where
 "AssignRPE x v \<equiv> PredPE (AssignR [x]\<^sub>* (PExprE v))"
+
+abbreviation WAssignRPE ::
+  "('m :: VALUE) VAR \<Rightarrow> ('m, 'm) WF_PEXPRESSION \<Rightarrow> (bool, 'm) WF_PEXPRESSION" where
+"WAssignRPE x v \<equiv> PredPE (AssignR x (PExprE v))"
 
 lemma PExprE_compat [typing]:
 fixes x :: "('a, 'm :: VALUE) PVAR" and e :: "('a, 'm) WF_PEXPRESSION"

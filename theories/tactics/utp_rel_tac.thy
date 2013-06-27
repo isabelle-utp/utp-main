@@ -10,9 +10,11 @@ theory utp_rel_tac
 imports 
   "../core/utp_pred" 
   "../core/utp_rel" 
-(*  "../parser/utp_pred_parser" *)
+  "../parser/utp_pred_parser"
   "utp_expr_tac"
 begin
+
+default_sort VALUE
 
 text {* Theorem Attribute *}
 
@@ -48,8 +50,6 @@ definition bc :: "'VALUE WF_BINDING" where
 
 definition WF_REL_BINDING :: "'VALUE WF_BINDING set" where
 "WF_REL_BINDING = {b \<oplus>\<^sub>b bc on DASHED | b . b \<in> UNIV}"
-
-
 abbreviation "WF_REL \<equiv> WF_REL_BINDING \<times> WF_REL_BINDING"
 
 typedef 'VALUE WF_REL_BINDING = "WF_REL_BINDING :: 'VALUE WF_BINDING set"
@@ -786,13 +786,12 @@ lemma "VarP ok \<Rightarrow>p VarP ok\<acute> ; VarP ok \<Rightarrow>p VarP ok\<
   apply (simp add:evalr)
 *)
 
-(*
 lemma AssignR_alt_def: 
-  "\<lbrakk>v \<rhd>\<^sub>e x ; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> `x := v` = `$x\<acute> = v \<and> II\<^bsub>REL_VAR - {x,x\<acute>}\<^esub>`"
+  "\<lbrakk>v \<rhd>\<^sub>e x ; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> `x := v` = `($x\<acute> = v) \<and> II\<^bsub>REL_VAR - {x,x\<acute>}\<^esub>`"
   apply (simp add:SkipRA_def)
   apply (utp_pred_tac, utp_expr_tac)
   apply (safe)
-  apply (simp_all add:IdA.rep_eq AssignF_upd_rep_eq evale VarE.rep_eq EvalE_def)
+  apply (simp_all add:IdA.rep_eq AssignF_upd_rep_eq evale VarE.rep_eq EvalE_def urename)
   apply (rule_tac x="b(x\<acute> :=\<^sub>b \<langle>b\<rangle>\<^sub>b x)" in exI)
   apply (simp_all)
   apply (rule)
@@ -800,6 +799,5 @@ lemma AssignR_alt_def:
   apply (drule_tac x="va" in bspec, simp_all)
   apply (metis UNDASHED_eq_dash_contra undash_dash)
 done
-*)
 
 end
