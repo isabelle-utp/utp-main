@@ -13,6 +13,7 @@ imports
   utp_rename 
   utp_unrest 
   "../tactics/utp_expr_tac"
+  "../laws/utp_rename_laws"
 begin
 
 subsection {* Composable Bindings *}

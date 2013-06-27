@@ -10,7 +10,7 @@ theory utp_rel_tac
 imports 
   "../core/utp_pred" 
   "../core/utp_rel" 
-  "../parser/utp_pred_parser"
+(*  "../parser/utp_pred_parser" *)
   "utp_expr_tac"
 begin
 
@@ -470,7 +470,7 @@ done
 
 theorem SubstP_rel_DASHED [evalr] :
 "\<lbrakk> x \<in> UNDASHED; e \<rhd>\<^sub>e x; UNREST_EXPR DASHED e \<rbrakk> \<Longrightarrow> 
-  \<lbrakk>`p[e\<acute>/x\<acute>]`\<rbrakk>R = {(b1, b2) | b1 b2. (b1, b2(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<epsilon>b2)) \<in> \<lbrakk>p\<rbrakk>R}"
+  \<lbrakk>SubstP p e[SS]\<epsilon> x\<acute>\<rbrakk>R = {(b1, b2) | b1 b2. (b1, b2(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<epsilon>b2)) \<in> \<lbrakk>p\<rbrakk>R}"
   apply (auto simp add: EvalR_def EvalE_def BindR_def SubstP_def image_def typing defined urename)
   apply (rule_tac x="xa(x\<acute> :=\<^sub>b \<langle>RenameE e SS\<rangle>\<^sub>e xa)" in bexI)
   apply (auto simp add:typing defined urename)
@@ -786,6 +786,7 @@ lemma "VarP ok \<Rightarrow>p VarP ok\<acute> ; VarP ok \<Rightarrow>p VarP ok\<
   apply (simp add:evalr)
 *)
 
+(*
 lemma AssignR_alt_def: 
   "\<lbrakk>v \<rhd>\<^sub>e x ; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> `x := v` = `$x\<acute> = v \<and> II\<^bsub>REL_VAR - {x,x\<acute>}\<^esub>`"
   apply (simp add:SkipRA_def)
@@ -799,5 +800,6 @@ lemma AssignR_alt_def:
   apply (drule_tac x="va" in bspec, simp_all)
   apply (metis UNDASHED_eq_dash_contra undash_dash)
 done
+*)
 
 end

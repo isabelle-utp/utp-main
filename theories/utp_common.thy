@@ -204,12 +204,17 @@ text {* Ad-hoc overloading allows the binding of symbols to multiple
 
 consts
   alphabet  :: "'r \<Rightarrow> 'a" ("\<alpha>")
+  prime     :: "'a \<Rightarrow> 'a" ("_\<acute>" [1000] 1000)
 
 notation
   Some ("\<lfloor>_\<rfloor>")
 
 setup {*
   Adhoc_Overloading.add_overloaded @{const_name alphabet}
+*}
+
+setup {*
+  Adhoc_Overloading.add_overloaded @{const_name prime}
 *}
 
 end

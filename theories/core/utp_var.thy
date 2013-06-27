@@ -86,9 +86,13 @@ definition MkPlain :: "string \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool \<Ri
 
 subsection {* Operators *}
 
-definition dash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" ("_\<acute>" [1000] 1000) where
+definition dash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" where
 "dash \<equiv> \<lambda> x. MkVar (MkName (name_str (name x)) (dashes (name x) + 1) (subscript (name x)))
                    (vtype x) (aux x)"
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name prime} @{const_name dash}
+*}
 
 definition undash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" where
 "undash \<equiv> \<lambda> x. MkVar (MkName (name_str (name x)) (dashes (name x)- 1) (subscript (name x)))

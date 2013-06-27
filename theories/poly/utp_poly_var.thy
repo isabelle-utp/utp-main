@@ -60,6 +60,10 @@ definition pvundash :: "('a, 'm :: VALUE) PVAR \<Rightarrow> ('a, 'm :: VALUE) P
 definition pvdash :: "('a, 'm :: VALUE) PVAR \<Rightarrow> ('a, 'm :: VALUE) PVAR" where
 "pvdash v = Abs_PVAR (MkName (name_str (pvname v)) (dashes (pvname v) + 1) (subscript (pvname v)), pvaux v)"
 
+setup {*
+Adhoc_Overloading.add_variant @{const_name prime} @{const_name pvdash}
+*}
+
 text {* This function performs a type erasure on the variable. *}
 
 definition PVAR_VAR :: "('a, 'm) PVAR \<Rightarrow> ('m :: VALUE) VAR" ("[_]\<^sub>*") where
