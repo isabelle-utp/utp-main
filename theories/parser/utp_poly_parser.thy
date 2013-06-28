@@ -11,6 +11,7 @@ imports
   "../core/utp_pred"
   "../core/utp_expr"
   "../core/utp_rel"
+  utp_pred_parser
   "../poly/utp_poly_expr"
 begin
 
@@ -23,20 +24,23 @@ text {* Several of these operators come in both strongly and weakly typed variet
 syntax
   (* Core Expression Syntax *)
   "_pexpr_quote"        :: "pexpr \<Rightarrow> ('a, 'm) WF_PEXPRESSION" ("(1\<parallel>_\<parallel>)")
-  "_pexpr_pred_quote"   :: "pexpr \<Rightarrow> 'a WF_PREDICATE" ("(1`_`)")
+  "_pexpr_pred_quote"   :: "pexpr \<Rightarrow> 'a WF_PREDICATE" ("(1``_``)")
   "_pexprs"             :: "[pexpr, pexprs] => pexprs" ("_,/ _")
   ""                    :: "pexpr => pexprs" ("_")
   "_pexpr_brack"        :: "pexpr \<Rightarrow> pexpr" ("'(_')")
-  "_pexpr_pred_var"     :: "idt \<Rightarrow> pexpr" ("(_)")
-  "_pexpr_expr_var"     :: "idt \<Rightarrow> pexpr" ("@_")
-  "_pexpr_evar"         :: "('a, 'm) PVAR \<Rightarrow> pexpr" ("$_")
+  "_pexpr_pred_var"     :: "idt \<Rightarrow> pexpr" ("@(_)")
+  "_pexpr_expr_var"     :: "idt \<Rightarrow> pexpr" ("(_)")
+  "_pexpr_evar"         :: "('a, 'm) PVAR \<Rightarrow> pexpr" ("$_" [900] 900)
   "_pexpr_wvar"         :: "('a, 'm) PVAR \<Rightarrow> pexpr" ("$_\<^sub>w")
   "_pexpr_subst"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> ('a, 'm) PVAR \<Rightarrow> pexpr" ("(_[_'/_])" [999,999] 1000)
-  "_pexpr_prime"        :: "pexpr \<Rightarrow> pexpr" ("_\<acute>" [999] 999)
+  "_pexpr_wsubst"       :: "uexpr \<Rightarrow> uexpr \<Rightarrow> 'm VAR \<Rightarrow> pexpr" ("(_[_'/_]\<^sub>w)" [999,999] 1000)
+  "_pexpr_prime"        :: "pexpr \<Rightarrow> pexpr" ("_\<acute>" [1000] 1000)
+  "_pexpr_erase"        :: "pexpr \<Rightarrow> pexpr" ("[_]\<^sub>*")
 
 syntax
   (* Basic logical operators *)
   "_pexpr_equal"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "=" 50)
+  "_pexpr_wequal"       :: "uexpr \<Rightarrow> uexpr \<Rightarrow> pexpr" (infixl "\<equiv>" 50)
   "_pexpr_true"         :: "pexpr" ("true")
   "_pexpr_false"        :: "pexpr" ("false")
   "_pexpr_and"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<and>" 35)
@@ -57,7 +61,7 @@ syntax
   "_pexpr_seq"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr ";" 36)
   "_pexpr_cond"         :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_ \<lhd> _ \<rhd> _")
   "_pexpr_assign"       :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_ := _" [100] 100)
-  "_pexpr_wassign"      :: "'m VAR \<Rightarrow> 'm WF_EXPRESSION \<Rightarrow> pexpr" ("_ :=\<^sub>w _" [100] 100)
+  "_pexpr_wassign"      :: "'m VAR \<Rightarrow> uexpr \<Rightarrow> pexpr" ("_ :\<equiv> _" [100] 100)
   "_pexpr_conv"         :: "pexpr \<Rightarrow> pexpr" ("(_\<^sup>\<smile>)" [1000] 999)
   "_pexpr_varopen"      :: "('a, 'm) PVAR \<Rightarrow> pexpr" ("var _")
   "_pexpr_varclose"     :: "('a, 'm) PVAR \<Rightarrow> pexpr" ("end _")
@@ -66,6 +70,9 @@ syntax
   (* Data Structures *)
   "_pexpr_int"          :: "int \<Rightarrow> pexpr" ("<_>")
   "_pexpr_plus"         :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "+" 65)
+  "_pexpr_minus"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "-" 65)
+  "_pexpr_less"         :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "<" 25)
+  "_pexpr_less_eq"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<le>" 25)
   "_pexpr_list"         :: "pexprs \<Rightarrow> pexpr" ("\<langle>_\<rangle>")
   "_pexpr_list_nil"     :: "pexpr" ("\<langle>\<rangle>")
   "_pexpr_list_append"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "^" 65)
@@ -88,21 +95,23 @@ translations
   "_pexpr_brack e"             => "e"
   "_pexpr_subst e v x"         == "CONST PSubstPE e v x"
   "_pexpr_prime e"             == "CONST RenamePE e (CONST SS)"
+  "_pexpr_erase e"             == "CONST ErasePE e" 
 
 translations
   (* Basic logical operators *)
   "_pexpr_equal e f"           == "CONST EqualPE e f"
+  "_pexpr_wequal e f"          == "CONST PredPE (CONST EqualP e f)"
   "_pexpr_true"                == "CONST TruePE"
   "_pexpr_false"               == "CONST FalsePE"
-  "_pexpr_and p q"             == "CONST PredOp2PE (CONST AndP) p q"
-  "_pexpr_or p q"              == "CONST PredOp2PE (CONST OrP) p q"
-  "_pexpr_imp p q"             == "CONST PredOp2PE (CONST ImpliesP) p q"
-  "_pexpr_iff p q"             == "CONST PredOp2PE (CONST IffP) p q"
-  "_pexpr_ref p q"             == "CONST PredOp2PE (CONST RefP) p q"
-  "_pexpr_clos p"              == "CONST PredOp1PE (CONST ClosureP) p"
-  "_pexpr_not p"               == "CONST PredOp1PE (CONST NotP) p"
-  "_pexpr_all1 x p"            == "CONST PredOp1PE (CONST ForallP {[x]\<^sub>*}) p"
-  "_pexpr_exists1 x p"         == "CONST PredOp1PE (CONST ExistsP {[x]\<^sub>*}) p"
+  "_pexpr_and p q"             == "CONST AndPE p q"
+  "_pexpr_or p q"              == "CONST OrPE p q"
+  "_pexpr_imp p q"             == "CONST ImpliesPE p q"
+  "_pexpr_iff p q"             == "CONST IffPE p q"
+  "_pexpr_ref p q"             == "CONST RefPE p q"
+  "_pexpr_clos p"              == "CONST ClosurePE p"
+  "_pexpr_not p"               == "CONST NotPE p"
+  "_pexpr_all1 x p"            == "CONST ForallPE {[x]\<^sub>*} p"
+  "_pexpr_exists1 x p"         == "CONST ExistsPE {[x]\<^sub>*} p"
 
 translations
   (* Relational operators *)
@@ -120,6 +129,9 @@ translations
   (* Data Structures *)
   "_pexpr_int x"               == "CONST IntPE x"
   "_pexpr_plus x y"            == "CONST PlusPE x y"
+  "_pexpr_minus x y"           == "CONST MinusPE x y"
+  "_pexpr_less x y"            == "CONST LessPE x y"
+  "_pexpr_less_eq x y"         == "CONST LessEqPE x y"
   "_pexpr_list_nil"            == "CONST NilPE"
   "_pexpr_list_append e f"     == "CONST ConcatPE e f"
   "_pexpr_list (_pexprs x xs)" == "CONST ConsPE x (_pexpr_list xs)"
@@ -134,24 +146,29 @@ translations
   "_pexpr_event n v"           == "CONST EventPE n v"
 
 (* Some regression tests *)
-term "`x \<in> {true,false} \<union> {false,true}`"
-term "`($x)\<acute> = $(y\<acute>)`"
-term "`p[($x)\<acute>/y\<acute>]`"
+term "``x \<in> {true,false} \<union> {false,true}``"
+term "``$x``"
+term "``$x\<acute> = ($y)\<acute>``"
+term "``p[($x)\<acute>/y\<acute>]``"
+term "``\<langle>\<rangle> \<le> $xs``"
 
-lemma "`<2> \<in> {<1>,<2>,<3>}`"
+lemma "``\<langle>\<rangle> \<le> $xs``"
+  by (utp_pred_tac)
+
+lemma "``<2> \<in> {<1>,<2>,<3>}``"
   by (utp_pred_tac)
 
 (* w00t! refinementz rool! *)
-lemma "`($x \<in> {<1>,<2>,<3>}) \<sqsubseteq> ($x = <2>)`"
+lemma "``($x \<in> {<1>,<2>,<3>}) \<sqsubseteq> ($x = <2>)``"
   by (utp_pred_tac)
 
-lemma "`p \<Leftrightarrow> q` = `p = q`"
+lemma "``p \<Leftrightarrow> q`` = ``p = q``"
   by (utp_pred_tac)
 
-lemma "`(x = false) = (\<not> x)`"
+lemma "``(x = false) = (\<not> x)``"
   by (utp_pred_tac)
 
-lemma "`\<exists> x. $x = true`"
+lemma "``\<exists> x. $x = true``"
   apply (utp_pred_auto_tac)
   apply (rule_tac x="\<B>([x]\<^sub>* :=\<^sub>b MkBool True)" in exI)
   apply (simp add:typing defined)
@@ -175,16 +192,18 @@ lemma "x \<in> PUNDASHED \<Longrightarrow> `x := <1> ; x := $x + <1>` = `x := <2
   apply (simp add:typing defined)
 *)
 
-term "`x :=\<^sub>w v`"
-term "WAssignRPE x k"
-term "`($x\<^sub>w\<acute> = @v) \<and> II\<^bsub>REL_VAR - {x,x\<acute>}\<^esub>`"
+term "``x :\<equiv> v``"
+term "``($x\<^sub>w\<acute> = v) \<and> II\<^bsub>REL_VAR - {x,x\<acute>}\<^esub>``"
 
-lemma "`<1> + <1> = <2>`"
+lemma "``<1> + <1> = <2>``"
   by (utp_pred_tac)
 
-lemma "\<not> `<6> = <7>`"
+lemma "\<not> ``<6> = <7>``"
   by (utp_pred_tac)
 
 term "\<parallel>\<langle>n?<5>, m?{<1>}\<rangle> ^ \<langle>\<rangle>\<parallel>"
+
+term "``x :\<equiv> v``"
+term "``($x \<equiv> v)``"
 
 end

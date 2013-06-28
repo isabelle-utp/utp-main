@@ -10,7 +10,7 @@ theory utp_rel_tac
 imports 
   "../core/utp_pred" 
   "../core/utp_rel" 
-  "../parser/utp_pred_parser"
+  "../parser/utp_poly_parser"
   "utp_expr_tac"
 begin
 

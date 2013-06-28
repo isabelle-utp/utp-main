@@ -228,6 +228,10 @@ lemma PExprP_inv [simp]: "PredPE (PExprP p) = p"
 lemma PredPE_inv [simp]: "PExprP (PredPE e) = e"
   by (simp add: PExprP_def PredPE_def)
 
+lemma PredPE_VarPE [simp]: 
+  "PExprP (VarPE x) = VarP x"
+  by (utp_pred_tac, utp_expr_tac)
+
 abbreviation PredOp1PE :: 
   "('m WF_PREDICATE \<Rightarrow> 'm WF_PREDICATE) \<Rightarrow>
    (bool, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> (bool, 'm) WF_PEXPRESSION" where
@@ -269,6 +273,21 @@ done
 
 subsection {* Boolean Expressions *}
 
+text {* Boolean values are the only values for which we do not postulate the
+        existence of BOOL_SORT. This is so that the predicate model depends
+        only on VALUE. We defined them by simply lifting the associated
+        predicate operators. *}
+
+abbreviation "NotPE       \<equiv> PredOp1PE NotP"
+abbreviation "AndPE       \<equiv> PredOp2PE AndP"
+abbreviation "OrPE        \<equiv> PredOp2PE OrP"
+abbreviation "ImpliesPE   \<equiv> PredOp2PE ImpliesP"
+abbreviation "IffPE       \<equiv> PredOp2PE IffP"
+abbreviation "RefPE       \<equiv> PredOp2PE RefP"
+abbreviation "ClosurePE   \<equiv> PredOp1PE ClosureP"
+abbreviation "ExistsPE xs \<equiv> PredOp1PE (CONST ExistsP xs)"
+abbreviation "ForallPE xs \<equiv> PredOp1PE (CONST ForallP xs)"
+
 abbreviation TruePE :: "(bool, 'm :: BOOL_SORT) WF_PEXPRESSION" where
 "TruePE \<equiv> LitPE True"
 
@@ -280,6 +299,30 @@ lemma TruePE_tau: "\<tau>\<^sub>* TruePE = BoolType"
 
 lemma FalsePE_tau: "\<tau>\<^sub>* FalsePE = BoolType"
   by (simp add:WF_PEXPRESSION_type_def)
+
+lemma PExprP_TruePE [simp]: 
+  "PExprP TruePE = TrueP"
+  by (utp_pred_tac)
+
+lemma PExprP_FalsePE [simp]: 
+  "PExprP FalsePE = FalseP"
+  by (utp_pred_tac)
+
+subsection {* Less than class *}
+
+class LESS_THAN =
+  fixes uless    :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+  and   uless_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+
+abbreviation "LessPE \<equiv> Op2PE uless"
+abbreviation "LessEqPE \<equiv> Op2PE uless_eq"
+
+subsection {* Minus class *}
+
+class MINUS =
+  fixes utminus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+
+abbreviation "MinusPE \<equiv> Op2PE utminus"
 
 subsection {* Integer Expressions *}
 
@@ -312,6 +355,32 @@ abbreviation PrefixPE::
   "('a list, 'm :: {BOOL_SORT, LIST_SORT}) WF_PEXPRESSION \<Rightarrow> 
    ('a list, 'm) WF_PEXPRESSION \<Rightarrow> (bool, 'm) WF_PEXPRESSION" where
 "PrefixPE \<equiv> Op2PE prefixeq"
+
+instantiation list :: (type) LESS_THAN
+begin
+
+definition uless_list :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
+"uless_list xs ys = prefix xs ys"
+
+definition uless_eq_list :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
+"uless_eq_list xs ys = prefixeq xs ys"
+
+instance ..
+end
+
+declare uless_list_def [simp]
+declare uless_eq_list_def [simp]
+
+instantiation list :: (type) MINUS
+begin
+
+definition utminus_list :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"utminus_list xs ys = drop (length ys) xs"
+
+instance ..
+end
+
+declare utminus_list_def [simp]
 
 subsection {* Finite Set Expressions *}
 
@@ -457,14 +526,7 @@ lemma SubstPE_Op3PE [usubst]:
   "SubstPE (Op3PE f u v w) e x= Op3PE f (SubstPE u e x) (SubstPE v e x) (SubstPE w e x)"
   by (auto simp add:eval)
 
-subsection {* Parser *}
-
-abbreviation "okay \<equiv> MkPVAR (bName ''okay'') True TYPE(bool) TYPE('m :: BOOL_SORT)"
-
-lemma [closure]: "PVAR_VAR okay \<in> UNDASHED"
-  apply (simp add:PVAR_VAR_def)
-  apply (metis MkPlain_UNDASHED MkPlain_def)
-done
+subsection {* Anciliary Laws *}
 
 lemma MkBool_compat_bool [typing]:
   "MkBool v \<rhd> [x :: (bool, 'm :: BOOL_SORT) PVAR]\<^sub>*"
