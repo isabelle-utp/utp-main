@@ -90,6 +90,13 @@ lemma PVAR_VAR_pvdash [simp]:
   "[pvdash x]\<^sub>* = dash [x]\<^sub>*"
   by (auto simp add:PVAR_VAR_def dash_def pvdash_def)
 
+term "MkVar"
+
+lemma PVAR_VAR_MkPVAR:
+  " [MkPVAR n s (a :: 'a itself) (m :: ('m::VALUE) itself)]\<^sub>* 
+  = MkVar n (TYPEU('a)  :: 'm UTYPE) s"
+  by (simp add:MkPVAR_def PVAR_VAR_def)
+
 abbreviation "PUNDASHED     \<equiv> {x. PVAR_VAR x \<in> UNDASHED}"
 abbreviation "PDASHED       \<equiv> {x. PVAR_VAR x \<in> DASHED}"
 abbreviation "PDASHED_TWICE \<equiv> {x. PVAR_VAR x \<in> DASHED_TWICE}"

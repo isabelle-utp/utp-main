@@ -12,12 +12,17 @@ imports
   utp_value
 begin
 
-type_synonym 'a CHANNEL = "NAME * 'a UTYPE"
+type_synonym 'a CHANNEL  = "NAME * 'a itself"
 
-abbreviation chan_name :: "'a CHANNEL \<Rightarrow> NAME" where
+abbreviation MkCHAN :: "NAME \<Rightarrow> 'a itself \<Rightarrow> 'a CHANNEL" where
+"MkCHAN n t \<equiv> (n, t)"
+
+type_synonym 'a UCHANNEL = "NAME * 'a UTYPE"
+
+abbreviation chan_name :: "'a UCHANNEL \<Rightarrow> NAME" where
 "chan_name c \<equiv> fst c"
 
-abbreviation chan_type :: "'a CHANNEL \<Rightarrow> 'a UTYPE" where
+abbreviation chan_type :: "'a UCHANNEL \<Rightarrow> 'a UTYPE" where
 "chan_type c \<equiv> snd c"
 
 subsection {* Event Sort *}
@@ -32,7 +37,7 @@ class EVENT_PERM = VALUE +
   assumes EventPerm_exists: "\<exists> x. x \<in> EventPerm"
 
 typedef 'm::EVENT_PERM EVENT = 
-  "{(c::'m CHANNEL, v :: 'm). chan_type c \<in> EventPerm \<and> v :! chan_type c}"
+  "{(c::'m UCHANNEL, v :: 'm). chan_type c \<in> EventPerm \<and> v :! chan_type c}"
   apply (auto)
   apply (metis (mono_tags) EventPerm_exists dtype_non_empty snd_def split_conv)
 done
@@ -71,7 +76,7 @@ lemma MkEvent_dtype [typing]:
   by (metis MkEvent_dcarrier dcarrier_dtype rangeI)
 end
 
-lift_definition EVENT_channel :: "'a::EVENT_PERM EVENT \<Rightarrow> 'a CHANNEL" is "fst"
+lift_definition EVENT_channel :: "'a::EVENT_PERM EVENT \<Rightarrow> 'a UCHANNEL" is "fst"
   by simp
 
 lift_definition EVENT_value :: "'a::EVENT_PERM EVENT \<Rightarrow> 'a" is "snd"

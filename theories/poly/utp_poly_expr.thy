@@ -17,6 +17,14 @@ imports
   utp_poly_var
 begin
 
+ML {*
+  structure evalp =
+    Named_Thms (val name = @{binding evalp} val description = "evalp theorems")
+*}
+
+setup evalp.setup
+
+
 text {* In theory we could have a single unified type for both predicates and expressions.
         This might have some advantages, but a big disadvantage is that we would no longer
         be able to give specific class instances for predicates, such as showing that
@@ -205,13 +213,13 @@ text {* The following functions and rules mechanise marshalling between predicat
         and boolean valued expressions *}
 
 definition PExprP :: 
-  "(bool, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" where
+  "(bool, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" ("\<lbrakk>_\<rbrakk>\<down>") where
 "PExprP e = mkPRED {b. \<lbrakk>e\<rbrakk>\<^sub>* b}"
 
 declare [[coercion PExprP]]
 
 lemma EvalP_PExprP [eval]:
-  "\<lbrakk>PExprP e\<rbrakk>b = \<lbrakk>e\<rbrakk>\<^sub>* b"
+  "\<lbrakk>\<lbrakk>e\<rbrakk>\<down>\<rbrakk>b = \<lbrakk>e\<rbrakk>\<^sub>* b"
   by (simp add:PExprP_def EvalP_def)
 
 definition PredPE ::
@@ -222,14 +230,14 @@ lemma EvalPE_PExprP [eval]:
   "\<lbrakk>PredPE p\<rbrakk>\<^sub>*b = \<lbrakk>p\<rbrakk>b"
   by (simp add:PredPE_def EvalP_def)
 
-lemma PExprP_inv [simp]: "PredPE (PExprP p) = p"
+lemma PExprP_inv [evalp]: "PredPE (PExprP p) = p"
   by (simp add: PExprP_def PredPE_def)
 
-lemma PredPE_inv [simp]: "PExprP (PredPE e) = e"
+lemma PredPE_inv [evalp]: "\<lbrakk>PredPE e\<rbrakk>\<down> = e"
   by (simp add: PExprP_def PredPE_def)
 
-lemma PredPE_VarPE [simp]: 
-  "PExprP (VarPE x) = VarP x"
+lemma PExprP_VarPE [evalp]: 
+  "\<lbrakk>VarPE x\<rbrakk>\<down> = VarP x"
   by (utp_pred_tac, utp_expr_tac)
 
 abbreviation PredOp1PE :: 
@@ -300,12 +308,12 @@ lemma TruePE_tau: "\<tau>\<^sub>* TruePE = BoolType"
 lemma FalsePE_tau: "\<tau>\<^sub>* FalsePE = BoolType"
   by (simp add:WF_PEXPRESSION_type_def)
 
-lemma PExprP_TruePE [simp]: 
-  "PExprP TruePE = TrueP"
+lemma PExprP_TruePE [evalp]: 
+  "\<lbrakk>TruePE\<rbrakk>\<down> = TrueP"
   by (utp_pred_tac)
 
-lemma PExprP_FalsePE [simp]: 
-  "PExprP FalsePE = FalseP"
+lemma PExprP_FalsePE [evalp]: 
+  "\<lbrakk>FalsePE\<rbrakk>\<down> = FalseP"
   by (utp_pred_tac)
 
 subsection {* Less than class *}
@@ -431,12 +439,12 @@ lemma FUnionPE_type:
 
 subsection {* Action Expressions *}
 
-definition PEV :: "NAME \<Rightarrow> 'a \<Rightarrow> ('m :: EVENT_SORT) EVENT" where
-"PEV n v = EV n TYPEU('a) (InjU v)"
+definition PEV :: "'a CHANNEL \<Rightarrow> 'a \<Rightarrow> ('m :: EVENT_SORT) EVENT" where
+"PEV c v = EV (fst c) TYPEU('a) (InjU v)"
 
 abbreviation EventPE ::
-  "NAME \<Rightarrow> ('a, 'm :: EVENT_SORT) WF_PEXPRESSION 
-        \<Rightarrow> ('m EVENT, 'm) WF_PEXPRESSION" where
+  "'a CHANNEL \<Rightarrow> ('a, 'm :: EVENT_SORT) WF_PEXPRESSION 
+              \<Rightarrow> ('m EVENT, 'm) WF_PEXPRESSION" where
 "EventPE n v \<equiv> Op1PE (PEV n) v"
 
 subsection {* Renaming *}

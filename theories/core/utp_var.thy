@@ -81,8 +81,8 @@ definition MkVar ::
   "NAME \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool \<Rightarrow> 'VALUE VAR" where
 "MkVar n t d = (n, t, d)"
 
-definition MkPlain :: "string \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool \<Rightarrow> 'VALUE VAR" where
-"MkPlain s t d = MkVar (MkName s 0 NoSub) t d"
+abbreviation MkPlain :: "string \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool \<Rightarrow> 'VALUE VAR" where
+"MkPlain s t d \<equiv> MkVar (bName s) t d"
 
 subsection {* Operators *}
 
@@ -153,7 +153,6 @@ theorems var_defs =
   DASHED_TWICE_def
   PLAIN_def
   MkVar_def
-  MkPlain_def
   undash_def
   dash_def
   in_vars_def
