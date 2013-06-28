@@ -57,7 +57,7 @@ syntax
   "_pexpr_seq"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr ";" 36)
   "_pexpr_cond"         :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_ \<lhd> _ \<rhd> _")
   "_pexpr_assign"       :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_ := _" [100] 100)
-  "_pexpr_wassign"      :: "'m VAR \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_ :=\<^sub>w _" [100] 100)
+  "_pexpr_wassign"      :: "'m VAR \<Rightarrow> 'm WF_EXPRESSION \<Rightarrow> pexpr" ("_ :=\<^sub>w _" [100] 100)
   "_pexpr_conv"         :: "pexpr \<Rightarrow> pexpr" ("(_\<^sup>\<smile>)" [1000] 999)
   "_pexpr_varopen"      :: "('a, 'm) PVAR \<Rightarrow> pexpr" ("var _")
   "_pexpr_varclose"     :: "('a, 'm) PVAR \<Rightarrow> pexpr" ("end _")
@@ -175,9 +175,8 @@ lemma "x \<in> PUNDASHED \<Longrightarrow> `x := <1> ; x := $x + <1>` = `x := <2
   apply (simp add:typing defined)
 *)
 
-term "`x :=\<^sub>w $x\<^sub>w`"
+term "`x :=\<^sub>w v`"
 term "WAssignRPE x k"
-term "\<parallel>x :=\<^sub>w @y\<parallel>"
 term "`($x\<^sub>w\<acute> = @v) \<and> II\<^bsub>REL_VAR - {x,x\<acute>}\<^esub>`"
 
 lemma "`<1> + <1> = <2>`"

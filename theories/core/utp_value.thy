@@ -178,7 +178,7 @@ definition monovalue :: "'a::VALUE \<Rightarrow> bool" where
 "monovalue x = (\<D> x \<and> (\<forall> t t'. x : t \<and> x : t' \<longrightarrow> t = t'))"
 
 definition type_of :: "'VALUE \<Rightarrow> 'VALUE UTYPE" ("\<tau>") where
-"type_of x = (THE t. x : t)"
+"type_of x = (SOME t. x : t)"
 
 lemma type_non_empty: "\<exists> x. x : t"
   apply (auto simp add:type_rel_def)
@@ -220,10 +220,14 @@ lemma someType_value: "\<exists> v. v : someType"
   apply (metis (lifting) Rep_UTYPE_elim type_rel_def)
 done
 
+lemma type_of_type [typing]:
+  "x : t \<Longrightarrow> x : \<tau> x"
+  by (metis tfl_some type_of_def)
+
 lemma type_of_monotype [simp]: 
   "\<lbrakk> x :! t; monotype t \<rbrakk> \<Longrightarrow> \<tau> x = t"
   apply (unfold type_of_def monotype_def)
-  apply (rule the_equality)
+  apply (rule some_equality)
   apply (auto simp add:dtype_rel_def)
 done
 
@@ -407,5 +411,45 @@ definition "FUNC3 a b c d = {f. \<forall>x:!a. \<forall>y:!b. \<forall>z:!c. f x
 lemma FUNC3I [intro, typing]: 
   "\<lbrakk> \<And> x y z. \<lbrakk> x :! a; y :! b; z :! c \<rbrakk> \<Longrightarrow> f x y z :! d \<rbrakk> \<Longrightarrow> f \<in> FUNC3 a b c d"
   by (simp add:FUNC3_def)
+
+subsection {* Sigma types *}
+
+typedef 'm SIGTYPE = "{(t, v :: 'm :: VALUE). v : t}"
+  by (auto)
+
+abbreviation Abs_SIGTYPE_syn :: 
+  "'a \<Rightarrow> 'a UTYPE \<Rightarrow> 'a SIGTYPE" ("(\<Sigma> _ : _)" [50] 50) where
+"\<Sigma> x : t \<equiv> Abs_SIGTYPE (t, x)"
+
+declare Rep_SIGTYPE [simp]
+declare Abs_SIGTYPE_inverse [simp]
+declare Rep_SIGTYPE_inverse [simp]
+
+lemma Rep_SIGTYPE_intro [intro!]:
+  "Rep_SIGTYPE x = Rep_SIGTYPE y \<Longrightarrow> x = y"
+  by (simp add:Rep_SIGTYPE_inject)
+
+definition sigtype :: "'m SIGTYPE \<Rightarrow> 'm UTYPE" where
+"sigtype s = fst (Rep_SIGTYPE s)"
+
+definition sigvalue :: "'m SIGTYPE \<Rightarrow> 'm" where
+"sigvalue s = snd (Rep_SIGTYPE s)"
+
+lemma sigtype [simp]: 
+  "x : t \<Longrightarrow> sigtype (\<Sigma> x : t) = t"
+  apply (insert Rep_SIGTYPE[of "(\<Sigma> x : t)"])
+  apply (auto simp add:sigtype_def)
+done
+  
+lemma sigvalue [simp]: 
+  "x : t \<Longrightarrow> sigvalue (\<Sigma> x : t) = x"
+  apply (insert Rep_SIGTYPE[of "(\<Sigma> x : t)"])
+  apply (auto simp add:sigvalue_def)
+done
+
+lemma sigvalue_type: "sigvalue x : sigtype x"
+  apply (insert Rep_SIGTYPE[of x])
+  apply (auto simp add:sigvalue_def sigtype_def)
+done
 
 end

@@ -81,12 +81,16 @@ lemma PVAR_VAR_compat [typing]:
   apply (simp add:assms defined)
 done
 
-definition WVarPE :: "'m VAR \<Rightarrow> ('m, 'm :: VALUE) WF_PEXPRESSION" where
-"WVarPE x = Abs_WF_PEXPRESSION (\<lambda> b. \<langle>b\<rangle>\<^sub>b x)"
+definition WVarPE :: "'m VAR \<Rightarrow> ('m SIGTYPE, 'm :: VALUE) WF_PEXPRESSION" where
+"WVarPE x = Abs_WF_PEXPRESSION (\<lambda> b. \<Sigma> \<langle>b\<rangle>\<^sub>b x : vtype x)"
 
 lemma EvalPE_WVarPE [eval]:
-  "\<lbrakk>WVarPE x\<rbrakk>\<^sub>*b = \<langle>b\<rangle>\<^sub>b x"
+  "\<lbrakk>WVarPE x\<rbrakk>\<^sub>*b = (\<Sigma> \<langle>b\<rangle>\<^sub>b x : vtype x)"
   by (simp add:WVarPE_def)
+
+lemma UNREST_WVarPE [unrest]:
+  "x \<notin> vs \<Longrightarrow> UNREST_PEXPR vs (WVarPE x)"
+  by (simp add:WVarPE_def UNREST_PEXPR_def)
 
 definition VarPE :: "'m VAR \<Rightarrow> ('a, 'm :: VALUE) WF_PEXPRESSION" where
 "VarPE x = Abs_WF_PEXPRESSION (\<lambda> b. ProjU (\<langle>b\<rangle>\<^sub>b x))"
@@ -105,6 +109,21 @@ abbreviation PVarPE :: "('a, 'm :: VALUE) PVAR \<Rightarrow> ('a, 'm) WF_PEXPRES
 lemma EvalPE_PVarPE [eval]:
   "\<lbrakk>PVarPE x\<rbrakk>\<^sub>*b = ProjU (\<langle>b\<rangle>\<^sub>b (PVAR_VAR x))"
   by (simp add:VarPE_def)
+
+definition ErasePE :: 
+  "('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> ('m SIGTYPE, 'm) WF_PEXPRESSION" where
+"ErasePE v = Abs_WF_PEXPRESSION (\<lambda> b. \<Sigma> (InjU (\<lbrakk>v\<rbrakk>\<^sub>*b)) : TYPEU('a))"
+
+(*  *)
+
+lemma EvalPE_ErasePE [eval]:
+  fixes v :: "('a, 'm :: VALUE) WF_PEXPRESSION"
+  shows "\<lbrakk>ErasePE v\<rbrakk>\<^sub>*b = (\<Sigma> (InjU (\<lbrakk>v\<rbrakk>\<^sub>*b)) : TYPEU('a))"
+  by (simp add:ErasePE_def)
+
+lemma UNREST_ErasePE [unrest]:
+  "UNREST_PEXPR vs v \<Longrightarrow> UNREST_PEXPR vs (ErasePE v)"
+  by (simp add:UNREST_PEXPR_def ErasePE_def)
 
 definition Op1PE :: 
   "('a \<Rightarrow> 'b) \<Rightarrow> ('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> ('b, 'm) WF_PEXPRESSION" where
@@ -143,7 +162,8 @@ lemma EvalPE_Op3PE [eval]:
 
 abbreviation "EqualPE \<equiv> Op2PE (op =)"
 
-definition PExprE :: "('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm WF_EXPRESSION" where
+definition PExprE :: 
+"('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm WF_EXPRESSION" where
 "PExprE f = Abs_WF_EXPRESSION (InjU \<circ> Rep_WF_PEXPRESSION f)"
 
 lemma PExprE_rep_eq:
@@ -153,7 +173,7 @@ lemma PExprE_rep_eq:
   apply (subgoal_tac "(InjU \<circ> Rep_WF_PEXPRESSION e) \<in> WF_EXPRESSION")
   apply (simp add:PExprE_def)
   apply (auto simp add:WF_EXPRESSION_def)
-  apply (rule_tac x="TypeU TYPE('a)" in exI)
+  apply (rule_tac x="TYPEU('a)" in exI)
   apply (insert assms)
   apply (auto simp add:TypeUSound_def)
 done
@@ -188,7 +208,7 @@ definition PExprP ::
   "(bool, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" where
 "PExprP e = mkPRED {b. \<lbrakk>e\<rbrakk>\<^sub>* b}"
 
-(* declare [[coercion PExprP]] *)
+declare [[coercion PExprP]]
 
 lemma EvalP_PExprP [eval]:
   "\<lbrakk>PExprP e\<rbrakk>b = \<lbrakk>e\<rbrakk>\<^sub>* b"
@@ -235,8 +255,8 @@ abbreviation AssignRPE ::
 "AssignRPE x v \<equiv> PredPE (AssignR [x]\<^sub>* (PExprE v))"
 
 abbreviation WAssignRPE ::
-  "('m :: VALUE) VAR \<Rightarrow> ('m, 'm) WF_PEXPRESSION \<Rightarrow> (bool, 'm) WF_PEXPRESSION" where
-"WAssignRPE x v \<equiv> PredPE (AssignR x (PExprE v))"
+  "('m :: VALUE) VAR \<Rightarrow> 'm WF_EXPRESSION \<Rightarrow> (bool, 'm) WF_PEXPRESSION" where
+"WAssignRPE x v \<equiv> PredPE (AssignR x v)"
 
 lemma PExprE_compat [typing]:
 fixes x :: "('a, 'm :: VALUE) PVAR" and e :: "('a, 'm) WF_PEXPRESSION"
