@@ -49,6 +49,12 @@ definition SkipD :: "(bool, 'a) WF_PEXPRESSION" where
 
 notation SkipD ("II\<^sub>D")
 
+syntax
+  "_upred_skipd" :: "pexpr" ("II\<^sub>D")
+
+translations
+  "_upred_skipd"  == "CONST SkipD"
+
 declare DesignD_def [eval,evalr,evalrx]
 declare SkipD_def [eval,evalr,evalrx]
 
@@ -72,15 +78,13 @@ lemma UNREST_SkipD_NON_REL_VAR [unrest]:
   apply (force intro: unrest)
 done
 
-
 lemma DesignD_rel_closure [closure]:
   "\<lbrakk>``P`` \<in> WF_RELATION; ``Q`` \<in> WF_RELATION\<rbrakk> \<Longrightarrow> ``P \<turnstile> Q`` \<in> WF_RELATION"
   by (simp add:DesignD_def closure evalp)
 
 lemma SkipD_rel_closure [closure]:
   "``II\<^sub>D`` \<in> WF_RELATION"
-  apply (auto intro:closure simp add:SkipD_def evalp)
-  apply (rule closure)
+  by (force intro:closure simp add:SkipD_def evalp)
 
 subsection {* Design Laws *}
 
@@ -145,6 +149,7 @@ qed
 
 lemma SubstPE_AndPE [usubst]:
   "``(P \<and> Q)[v/x]`` = ``P[v/x] \<and> Q[v/x]``"
+  apply (simp add:evalp)
   by (utp_pred_tac)
 
 lemma SubstPE_ImpliesPE [usubst]:

@@ -145,6 +145,24 @@ translations
   "_pexpr_fset_nmember x xs"   == "CONST FNotMemberPE x xs"
   "_pexpr_event n v"           == "CONST EventPE n v"
 
+(* Linking the predicate parser to the poly parser *)
+
+syntax
+  "_upred_lesseq"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "\<le>" 25)
+  "_upred_fset_member"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" ("(_/ \<in> _)" [51, 51] 50)
+  "_upred_fset_nmember" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" ("(_/ \<notin> _)" [51, 51] 50)
+  "_upred_poly_subst"   :: "upred \<Rightarrow> pexpr \<Rightarrow> ('a, 'm) PVAR \<Rightarrow> upred" ("(_[_'/_]\<^sub>*)" [999,999] 1000)
+  "_upred_poly_equal"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixl "=\<^sub>*" 50)
+  "_upred_poly_var"     :: "('a, 'm) PVAR \<Rightarrow> upred" ("$\<^sub>*_")
+
+translations
+  "_upred_lesseq e f"        == "CONST PExprP (_pexpr_less_eq e f)"
+  "_upred_fset_member x xs"  == "CONST PExprP (_pexpr_fset_member x xs)"
+  "_upred_fset_nmember x xs" == "CONST PExprP (_pexpr_fset_nmember x xs)"
+  "_upred_poly_subst p v x"  == "CONST PExprP (_pexpr_subst (CONST PredPE p) v x)"
+  "_upred_poly_equal e f"    == "CONST PExprP (_pexpr_equal e f)"
+  "_upred_poly_var x"        == "CONST PVarP x"
+
 (* Some regression tests *)
 term "``x \<in> {true,false} \<union> {false,true}``"
 term "``$x``"
@@ -153,6 +171,9 @@ term "``p[($x)\<acute>/y\<acute>]``"
 term "``\<langle>\<rangle> \<le> $xs``"
 
 lemma "``\<langle>\<rangle> \<le> $xs``"
+  by (utp_pred_tac)
+
+lemma "`\<langle>\<rangle> \<le> $xs`"
   by (utp_pred_tac)
 
 lemma "``<2> \<in> {<1>,<2>,<3>}``"

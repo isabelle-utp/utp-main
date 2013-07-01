@@ -95,6 +95,7 @@ syntax
   "_uexpr_evar"         :: "'a VAR \<Rightarrow> uexpr" ("$_" [999] 999)
   "_uexpr_substp"       :: "upred \<Rightarrow> uexpr \<Rightarrow> 'a VAR \<Rightarrow> upred" ("(_[_'/_])" [999,999] 1000)
   "_uexpr_prime"        :: "uexpr \<Rightarrow> uexpr" ("_\<acute>" [1000] 1000)
+(*
   "_uexpr_minus"        :: "uexpr \<Rightarrow> uexpr \<Rightarrow> uexpr" (infixl "-" 65) 
   "_uexpr_lesseq"       :: "uexpr \<Rightarrow> uexpr \<Rightarrow> uexpr" (infixr "\<le>" 25)
   "_upred_lesseq"       :: "uexpr \<Rightarrow> uexpr \<Rightarrow> upred" (infixr "\<le>" 25)
@@ -111,6 +112,7 @@ syntax
   "_uexpr_pair_fst"     :: "uexpr \<Rightarrow> uexpr" ("\<pi>\<^sub>1 _")
   "_uexpr_pair_snd"     :: "uexpr \<Rightarrow> uexpr" ("\<pi>\<^sub>2 _")
   "_uexpr_name"         :: "NAME \<Rightarrow> uexpr" ("&_" [999] 999)
+*)
 
 translations
   "_uexpr_brack e"      => "e"
@@ -121,6 +123,7 @@ translations
   "_uexpr_evar x"       == "CONST VarE x"
   "_uexpr_substp p e x" == "CONST SubstP p e x"
   "_uexpr_prime e"      == "CONST RenameE e (CONST SS)"
+(*
   "_uexpr_minus e f"   == "CONST Op2E CONST utminus e f"
   "_uexpr_lesseq e f"  == "CONST Op2E CONST ulesseq e f"
   "_upred_lesseq e f"  == "CONST ExprP (CONST Op2E CONST ulesseq e f)"
@@ -139,14 +142,13 @@ translations
   "_uexpr_pair_fst x"       == "CONST Op1E (CONST FstV) x"
   "_uexpr_pair_snd x"       == "CONST Op1E (CONST SndV) x"
   "_uexpr_name x"           == "CONST LitE (CONST MkName) x"
+*)
 
 (* Some regression tests *)
-term "`x \<in> {true,false} \<union> {false,true}`"
+
 term "`($x)\<acute> = $y\<acute>`"
 term "`p[($x)\<acute>/y\<acute>]`"
 term "`\<lparr>true\<rparr>`"
-term "`a = \<langle>$x, true\<rangle> ^ \<langle>false, $y\<rangle>`"
-term "`a = \<pi>\<^sub>1 (true, false)`"
 
 end
 

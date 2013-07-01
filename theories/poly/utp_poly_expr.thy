@@ -171,7 +171,7 @@ lemma EvalPE_Op3PE [eval]:
 abbreviation "EqualPE \<equiv> Op2PE (op =)"
 
 definition PExprE :: 
-"('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm WF_EXPRESSION" where
+"('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm WF_EXPRESSION" ("\<lbrakk>_\<rbrakk>\<down>\<^sub>e") where
 "PExprE f = Abs_WF_EXPRESSION (InjU \<circ> Rep_WF_PEXPRESSION f)"
 
 lemma PExprE_rep_eq:
@@ -222,6 +222,10 @@ lemma EvalP_PExprP [eval]:
   "\<lbrakk>\<lbrakk>e\<rbrakk>\<down>\<rbrakk>b = \<lbrakk>e\<rbrakk>\<^sub>* b"
   by (simp add:PExprP_def EvalP_def)
 
+abbreviation PVarP ::
+  "(bool, 'm :: BOOL_SORT) PVAR \<Rightarrow> 'm WF_PREDICATE" where
+"PVarP x \<equiv> PExprP (PVarPE x)" 
+
 definition PredPE ::
   "'m WF_PREDICATE \<Rightarrow> (bool, 'm :: VALUE) WF_PEXPRESSION" where
 "PredPE p = Abs_WF_PEXPRESSION (\<lambda> b. b \<in> destPRED p)"
@@ -239,6 +243,8 @@ lemma PredPE_inv [evalp]: "\<lbrakk>PredPE e\<rbrakk>\<down> = e"
 lemma PExprP_VarPE [evalp]: 
   "\<lbrakk>VarPE x\<rbrakk>\<down> = VarP x"
   by (utp_pred_tac, utp_expr_tac)
+
+
 
 abbreviation PredOp1PE :: 
   "('m WF_PREDICATE \<Rightarrow> 'm WF_PREDICATE) \<Rightarrow>
@@ -505,6 +511,12 @@ abbreviation PSubstPE ::
 lemma EvalPE_SubstPE [eval]:
   "\<lbrakk>SubstPE e v x\<rbrakk>\<^sub>*b = \<lbrakk>e\<rbrakk>\<^sub>* (b(x :=\<^sub>b InjU (\<lbrakk>v\<rbrakk>\<^sub>* b)))"
   by (simp add:SubstPE_def)
+
+lemma PExprP_SubstPE [evalp]:
+  fixes v :: "('a, 'm :: VALUE) WF_PEXPRESSION"
+  assumes "v \<rhd>\<^sub>* x" "TYPEUSOUND('a, 'm)"
+  shows "\<lbrakk>SubstPE e v x\<rbrakk>\<down> = SubstP \<lbrakk>e\<rbrakk>\<down> \<lbrakk>v\<rbrakk>\<down>\<^sub>e x"
+  by (simp add:SubstPE_def PExprP_def SubstP_def PExprE_rep_eq assms)
 
 lemma SubstPE_VarPE [usubst]:
   fixes v :: "('a, 'm :: VALUE) WF_PEXPRESSION"

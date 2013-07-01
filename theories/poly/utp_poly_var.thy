@@ -40,6 +40,10 @@ definition MkPVAR ::
   "NAME \<Rightarrow> bool \<Rightarrow> 'a itself \<Rightarrow> 'm itself \<Rightarrow> ('a, 'm :: VALUE) PVAR" where
 "MkPVAR n s a t = Abs_PVAR (n, s)"
 
+abbreviation MkPlainP ::
+  "string \<Rightarrow> bool \<Rightarrow> 'a itself \<Rightarrow> 'm itself \<Rightarrow> ('a, 'm :: VALUE) PVAR" where
+"MkPlainP n s a t \<equiv> MkPVAR (bName n) s a t"
+
 abbreviation pvname :: "('a, 'm :: VALUE) PVAR \<Rightarrow> NAME" where
 "pvname x \<equiv> fst (Rep_PVAR x)"
 
@@ -100,6 +104,10 @@ lemma PVAR_VAR_MkPVAR:
 abbreviation "PUNDASHED     \<equiv> {x. PVAR_VAR x \<in> UNDASHED}"
 abbreviation "PDASHED       \<equiv> {x. PVAR_VAR x \<in> DASHED}"
 abbreviation "PDASHED_TWICE \<equiv> {x. PVAR_VAR x \<in> DASHED_TWICE}"
+
+lemma MkPlainP_UNDASHED [simp]:
+  "MkPlainP n a t m \<in> PUNDASHED"
+  by (simp add: PVAR_VAR_MkPVAR)
 
 subsection {* Adapting Renaming *}
 

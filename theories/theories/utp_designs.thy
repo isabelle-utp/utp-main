@@ -16,6 +16,7 @@ imports
   "../laws/utp_rename_laws"
   "../laws/utp_subst_laws"
   "../laws/utp_rel_laws"
+  "../poly/utp_poly_expr"
   utp_theory
 begin
 
@@ -57,7 +58,7 @@ subsection {* Closure / UNREST theorems *}
 lemma UNREST_SkipD_NON_REL_VAR [unrest]:
   "UNREST NON_REL_VAR II\<^sub>D"
   apply (simp add:SkipD_def DesignD_def)
-  apply (force intro: unrest)
+  apply (force simp add:PVAR_VAR_MkPVAR intro: unrest)
 done
 
 lemma SubstP_UNREST_OKAY [usubst]:
@@ -67,6 +68,7 @@ lemma SubstP_UNREST_OKAY [usubst]:
 lemma DesignD_rel_closure [closure]:
   "\<lbrakk>P \<in> WF_RELATION; Q \<in> WF_RELATION\<rbrakk> \<Longrightarrow> P \<turnstile> Q \<in> WF_RELATION"
   by (simp add:DesignD_def closure)
+
 
 lemma SkipD_rel_closure [closure]:
   "II\<^sub>D \<in> WF_RELATION"

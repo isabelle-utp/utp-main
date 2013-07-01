@@ -14,13 +14,13 @@ imports
 begin
 
 definition ACP1 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"ACP1 P = `P \<and> (($tr = $tr\<acute>) \<Rightarrow> $wait)` "
+"ACP1 P = `P \<and> (($tr =\<^sub>* $tr\<acute>) \<Rightarrow> $\<^sub>*wait)` "
 
 definition \<delta> :: "'a WF_PREDICATE" where
-"\<delta> = `R3($tr = $tr\<acute> \<and> $wait\<acute>)`"
+"\<delta> = `R3($tr =\<^sub>* $tr\<acute> \<and> ($\<^sub>*wait)\<acute>)`"
 
 definition B :: "'a WF_PREDICATE" where
-"B = `($tr = $tr\<acute> \<and> $wait\<acute>) \<or> ($tr \<le> $tr\<acute>)`"
+"B = `($tr =\<^sub>* $tr\<acute> \<and> ($\<^sub>*wait)\<acute>) \<or> ($tr \<le> $tr\<acute>)`"
 
 definition \<Phi> :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 "\<Phi>(P) = `R(B \<and> P)`"
@@ -31,8 +31,8 @@ syntax
 translations
   "_upred_Phi P" == "CONST \<Phi> P"
 
-definition doA :: "'a WF_EXPRESSION \<Rightarrow> 'a WF_PREDICATE" where
-"doA(a) = `\<Phi>(a \<notin> $ref\<acute>\<lhd> $wait \<rhd> ($tr^\<langle>a\<rangle> = $tr\<acute>))`"
+definition doA :: "('m EVENT, 'm) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" where
+"doA(a) = `\<Phi>(a \<notin> $ref\<acute> \<lhd> $\<^sub>*wait \<rhd> ($tr^\<langle>a\<rangle> =\<^sub>* $tr\<acute>))`"
 
 syntax 
   "_upred_doA" :: "uexpr \<Rightarrow> upred" ("doA'(_')")

@@ -12,16 +12,11 @@ imports
   utp_theory
 begin
 
-class REACTIVE_SORT = BOOL_SORT + LIST_SORT + FSET_SORT + STRING_LIST_SORT + MINUS_SORT + EVENT_SORT
-
 default_sort REACTIVE_SORT
 
-abbreviation "wait \<equiv> MkPlain ''wait'' (BoolType) True"
-abbreviation tr :: "'a::REACTIVE_SORT VAR" where
-"tr \<equiv> MkPlain ''tr'' (ListType EventType) True"
-
-abbreviation ref :: "'a::REACTIVE_SORT VAR" where
-"ref \<equiv> MkPlain ''ref'' (FSetType EventType) True"
+abbreviation "wait \<equiv> MkPlainP ''wait'' True TYPE(bool) TYPE('m)"
+abbreviation "tr   \<equiv> MkPlainP ''tr'' True TYPE('m EVENT list) TYPE('m)"
+abbreviation "ref  \<equiv> MkPlainP ''ref'' True TYPE('m EVENT fset) TYPE('m)"
 
 definition SkipREA :: "'a WF_PREDICATE" where
 "SkipREA = `(\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok\<acute> \<and> II\<^bsub>REL_VAR - OKAY\<^esub>)`"
@@ -32,6 +27,8 @@ syntax
 translations
   "_upred_skiprea" == "CONST SkipREA"
 
+declare SkipREA_def [eval, evalr]
+
 text {* R1 ensures that the trace only gets longer *}
 
 definition R1 :: " 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
@@ -40,10 +37,10 @@ definition R1 :: " 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 text {* R2 ensures that the trace only gets longer *}
 
 definition R2 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"R2 P = `P[\<langle>\<rangle> / tr][($tr\<acute> - $tr) / tr\<acute>]`"
+"R2 P = `P[\<langle>\<rangle> / tr]\<^sub>*[($tr\<acute> - $tr) / tr\<acute>]\<^sub>*`"
 
 definition R3 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"R3 P = `II\<^bsub>rea\<^esub> \<lhd> $wait \<rhd> P`"
+"R3 P = `II\<^bsub>rea\<^esub> \<lhd> $[wait]\<^sub>* \<rhd> P`"
 
 definition R :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where 
 "R P = (R1 \<circ> R2 \<circ> R3)P"
@@ -60,15 +57,6 @@ translations
   "_upred_R3 P" == "CONST R3 P"
   "_upred_R P" == "CONST R P"
 
-syntax
-  "_uexpr_subste"       :: "uexpr \<Rightarrow> uexpr \<Rightarrow> 'a VAR \<Rightarrow> uexpr" ("(_[_'/_])" [999,999] 1000)
-
-translations
-  "_uexpr_subste e v x" == "CONST SubstE e v x"
-
-lemma SubstP_ExprP [usubst]:
-  "(ExprP e)[v|x] = ExprP (e[v|x])"
-  by (utp_pred_tac, utp_expr_tac)
 
 lemma SkipREA_CondR_SkipR: 
   "`II\<^bsub>rea\<^esub>` = `II \<lhd> ok \<rhd> ($tr \<le> $tr\<acute>)`"

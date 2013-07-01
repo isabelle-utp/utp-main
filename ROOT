@@ -51,11 +51,10 @@ session "isabelle-basics-tutorial" in "papers/isabelle-basics-tutorial" = "HOL" 
     "Deduction"
     "Trees"
 
-session "isabelle-utp-tutorial" in "papers/isabelle-utp-tutorial" = "HOL-UTP-VDM" +
+session "isabelle-utp-tutorial" in "papers/isabelle-utp-tutorial" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
   theories [document = false]
   theories 
-    "vdm_expressions"
     "value_class"
     "bindings"
     "predicates"
