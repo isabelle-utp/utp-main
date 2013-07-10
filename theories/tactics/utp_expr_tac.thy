@@ -70,6 +70,12 @@ theorem EvalE_LitE [eval,evale] :
 "v : t \<Longrightarrow> \<lbrakk>LitE v\<rbrakk>\<^sub>eb = v"
   by (auto simp add: LitE_rep_eq EvalE_def)
 
+theorem EvalE_LitE_alt [eval,evale] :
+"v \<rhd> x \<Longrightarrow> \<lbrakk>LitE v\<rbrakk>\<^sub>eb = v"
+  apply (rule EvalE_LitE)
+  apply (auto intro:typing)
+done
+
 theorem EvalE_Op1E [eval,evale] :
 "\<lbrakk> x :!\<^sub>e a; f \<in> FUNC1 a b \<rbrakk> \<Longrightarrow> \<lbrakk>Op1E f x\<rbrakk>\<^sub>eb1 = f (\<lbrakk>x\<rbrakk>\<^sub>eb1)"
   by (auto simp add: Op1E_rep_eq EvalE_def)

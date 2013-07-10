@@ -15,6 +15,65 @@ begin
 
 default_sort type
 
+text {* We first provided definedness instances for injectable types *}
+
+typedef 'a::DEFINED ULIST = "{xs :: 'a list. \<forall>x\<in>set xs. \<D> x}"
+  apply (rule_tac x="[]" in exI)
+  apply (auto)
+done
+
+setup_lifting type_definition_ULIST
+
+typedef 'a::DEFINED UFSET = "{xs :: 'a fset. \<forall>x\<in>\<^sub>fxs. \<D> x}"
+  apply (rule_tac x="\<lbrace>\<rbrace>" in exI)
+  apply (auto)
+done
+
+instantiation bool :: DEFINED
+begin
+definition "Defined_bool (x::bool) = True"
+instance ..
+end
+
+lemma Defined_bool [defined]: "\<D> (x :: bool)" by (simp add:Defined_bool_def)
+
+instantiation int :: DEFINED
+begin
+definition "Defined_int (x::int) = True"
+instance ..
+end
+
+lemma Defined_int [defined]: "\<D> (x :: int)" by (simp add:Defined_int_def)
+
+instantiation ULIST :: (DEFINED) DEFINED
+begin
+definition "Defined_ULIST (xs :: 'a ULIST) = True"
+instance ..
+end
+
+lemma Defined_ULIST [defined]: "\<D> (xs :: ('a::DEFINED) ULIST)"
+  by (simp add:Defined_ULIST_def)
+
+instantiation list :: (DEFINED) DEFINED
+begin
+definition "Defined_list (xs :: 'a list) = (\<forall>x\<in>set xs. \<D> x)"
+instance ..
+end
+
+lemma Defined_list [defined]: 
+  "\<D> (xs :: ('a::DEFINED) list) = (\<forall>x\<in>set xs. \<D> x)"
+  by (simp add:Defined_list_def)
+
+instantiation UFSET :: (DEFINED) DEFINED
+begin
+definition "Defined_UFSET (xs :: 'a UFSET) = True"
+instance ..
+end
+
+lemma Defined_UFET [defined]: 
+  "\<D> (xs :: ('a::DEFINED UFSET))"
+  by (simp add:Defined_UFSET_def)
+
 subsection {* Polymorphic constants *}
 
 text {* The following global constants serve to link the (polymorphic)
@@ -47,9 +106,12 @@ text {* At this point we could add axioms about our consts, but since
         to be added as assumptions to proofs about definitions which use these 
         constants. Without this we know nothing about the behaviour of constants. *}
 
-definition TypeUSound :: "'a itself \<Rightarrow> 'm::VALUE itself \<Rightarrow> bool" where
-"TypeUSound a m \<longleftrightarrow> (\<forall> (x :: 'a). (InjU x :: 'm) :! TypeU a) \<and>
-                    (\<forall> (x :: 'a). (ProjU (InjU x :: 'm) = x))"
+definition TypeUSound :: "'a::DEFINED itself \<Rightarrow> 'm::VALUE itself \<Rightarrow> bool" where
+"TypeUSound a m \<longleftrightarrow> (\<forall> x::'a. (InjU x :: 'm) :! TypeU a) 
+                 \<and> (\<forall> x::'a. \<D> x \<longrightarrow> \<D> (InjU x :: 'm))
+                 \<and> (\<forall> x::'a. ProjU (InjU x :: 'm) = x)"
+
+(* Can we deal without: (\<forall> x :! TypeU a. (InjU (ProjU x :: 'a) :: 'm) = x) *)
 
 syntax
   "_TYPEU"      :: "type => logic"  ("(1TYPEU/(1'(_')))")
@@ -93,6 +155,13 @@ defs (overloaded)
   ProjU_event [simp]: "ProjU (x::('m::EVENT_SORT)) \<equiv> DestEvent x"
   TypeU_event [simp]: "TypeU (x::('m::EVENT_SORT) EVENT itself) \<equiv> EventType::'m UTYPE"
 
+  InjU_ULIST [simp]: 
+    "InjU (xs::'a::DEFINED ULIST) \<equiv> MkList TYPEU('a) (map InjU (Rep_ULIST xs))"
+  ProjU_ULIST [simp]:
+    "ProjU (xs::('a::LIST_SORT)) \<equiv> Abs_ULIST (map ProjU (DestList xs))"
+  TypeU_ULIST [simp]:
+    "TypeU (x::('a ULIST) itself) \<equiv> ListType (TypeU TYPE('a))"
+
   InjU_list [simp]: "InjU (xs::'a list) \<equiv> MkList (TypeU (TYPE('a))) (map InjU xs)"
   ProjU_list [simp]: "ProjU (xs::('a::LIST_SORT)) \<equiv> map ProjU (DestList xs)"
   TypeU_list [simp]: "TypeU (x::('a list) itself) \<equiv> ListType (TypeU TYPE('a))"
@@ -104,28 +173,45 @@ defs (overloaded)
 subsection {* @{const TypeUSound} rules *}
 
 lemma TypeUSound_intro [intro]:
-  "\<lbrakk> \<And> (x :: 'a). (InjU x :: 'm) :! TYPEU('a)
-   ; \<And> (x :: 'a). (ProjU (InjU x :: 'm) = x) \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> \<And> (x :: 'a :: DEFINED). (InjU x :: 'm) :! TYPEU('a)
+   ; \<And> (x :: 'a). (ProjU (InjU x :: 'm) = x) 
+   ; \<And> x::'a. \<D> x \<Longrightarrow> \<D> (InjU x :: 'm) \<rbrakk> \<Longrightarrow>
    TYPEUSOUND('a, 'm :: VALUE)"
   by (simp add:TypeUSound_def)
 
 lemma TypeUSound_InjU_type [typing]:
-  fixes x :: "'a"
+  fixes x :: "'a :: DEFINED"
   assumes "TYPEUSOUND('a, 'm :: VALUE)"
-  shows "(InjU x :: 'm) :! TYPEU('a)"
+  shows "(InjU x :: 'm) : TYPEU('a)"
   using assms by (auto simp add:TypeUSound_def)
 
 lemma TypeUSound_InjU_defined [defined]:
-  fixes x :: "'a"
-  assumes "TYPEUSOUND('a, 'm :: VALUE)"
+  fixes x :: "'a :: DEFINED"
+  assumes "TYPEUSOUND('a, 'm :: VALUE)" "\<D> x"
   shows "\<D> (InjU x :: 'm)"
-  by (auto intro:assms typing defined)
+  using assms by (auto simp add:TypeUSound_def)
 
 lemma TypeUSound_InjU_inv [simp]:
-  fixes x :: "'a"
+  fixes x :: "'a :: DEFINED"
   assumes "TYPEUSOUND('a, 'm :: VALUE)"
   shows "ProjU (InjU x :: 'm) = x"
   using assms by (auto simp add:TypeUSound_def)
+
+lemma TypeUSound_InjU_inj [intro]:
+  fixes x y :: "'a :: DEFINED"
+  assumes "TYPEUSOUND('a, 'm :: VALUE)" "(InjU x :: 'm) = InjU y"
+  shows "x = y"
+  using assms
+  by (simp add:TypeUSound_def, metis)
+
+
+(*
+lemma TypeUSound_ProjU_inv [simp]:
+  fixes x :: "'m :: VALUE"
+  assumes "TYPEUSOUND('a :: DEFINED, 'm :: VALUE)" "x :! TYPEU('a)"
+  shows "(InjU (ProjU x :: 'a) :: 'm) = x"
+  using assms by (auto simp add:TypeUSound_def)
+*)
 
 subsection {* Some basic instantiations *}
 
@@ -133,15 +219,28 @@ text {* The following instantiations make use of the sort constraints
         to discharge the requirements of @{const TypeUSound}. *}
 
 lemma TypeUSound_bool [typing]: "TYPEUSOUND(bool, 'm :: BOOL_SORT)"
-  by (simp add:TypeUSound_def typing)
+  by (auto simp add:TypeUSound_def typing defined)
 
 lemma TypeUSound_int [typing]: "TYPEUSOUND(int, 'm :: INT_SORT)"
-  by (simp add:TypeUSound_def typing)
+  by (auto simp add:TypeUSound_def typing defined)
 
+(*
+lemma TypeUSound_ULIST [typing]: 
+  "\<lbrakk> (TYPEU('a :: DEFINED) :: 'm UTYPE) \<in> ListPerm; TYPEUSOUND('a, 'm) \<rbrakk> 
+     \<Longrightarrow> TYPEUSOUND('a ULIST, 'm :: LIST_SORT)"
+  apply (rule)
+  apply (simp_all)
+*)
+
+(*
 lemma TypeUSound_list [typing]: 
-  "\<lbrakk> (TYPEU('a) :: 'm UTYPE) \<in> ListPerm; TYPEUSOUND('a, 'm) \<rbrakk> 
+  "\<lbrakk> (TYPEU('a :: DEFINED) :: 'm UTYPE) \<in> ListPerm; TYPEUSOUND('a, 'm) \<rbrakk> 
      \<Longrightarrow> TYPEUSOUND('a list, 'm :: LIST_SORT)"
-  apply (auto simp add:dcarrier_def TypeUSound_def)
+  apply (rule)
+  apply (simp_all)
+  apply (rule MkList_type)
+  apply (simp)
+  apply (auto simp add:dcarrier_def TypeUSound_def)[1]
   apply (rule typing, auto)
   apply (subgoal_tac "set (map InjU x) \<subseteq> dcarrier (TYPEU('a) :: 'm UTYPE)")
   apply (auto simp add:comp_def)
@@ -164,5 +263,6 @@ done
 lemma TypeUSound_Event [typing]:
   "TYPEUSOUND('m EVENT, 'm :: EVENT_SORT)"
   by (auto simp add:typing)
+*)
 
 end

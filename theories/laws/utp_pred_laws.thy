@@ -249,6 +249,18 @@ ML {*
 
 setup ucases.setup
 
+text {* A generic law for case splitting a variables *}
+
+lemma utp_case_split_eq:
+  "\<lbrakk> \<And> v. v \<rhd> x \<Longrightarrow> P[LitE v/\<^sub>px] = Q[LitE v/\<^sub>px] \<rbrakk> \<Longrightarrow> P = Q"
+  apply (utp_pred_tac)
+  apply (metis (full_types) binding_compat binding_upd_triv)
+done
+
+lemma BoolType_aux_cases:
+  "(v :! BoolType) \<longleftrightarrow> v \<in> {TrueV, FalseV}"
+  by (auto intro:typing)
+
 lemma BoolType_aux_var_split_taut [ucases]:
   "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> \<Longrightarrow> 
   [p]\<^sub>p = [p[FalseE/\<^sub>px] \<and>\<^sub>p p[TrueE/\<^sub>px]]\<^sub>p"

@@ -143,6 +143,10 @@ lemma MkInt_cases [elim]:
   "\<lbrakk> x :! IntType; \<And> i. x = MkInt i \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (metis IntType_dcarrier dtype_as_dcarrier image_iff)
 
+lemma MkInt_inj_simp [simp]: 
+  "(MkInt x = MkInt y) \<longleftrightarrow> x = y"
+  by (metis Inverse)
+
 subsubsection {* Integer Operators *}
 
 definition UMinusV :: "'a \<Rightarrow> 'a" where

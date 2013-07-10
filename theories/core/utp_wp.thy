@@ -12,6 +12,7 @@ imports
   utp_recursion
   "../laws/utp_pred_laws"
   "../laws/utp_rel_laws"
+  "../parser/utp_pred_parser"
 begin
 
 ML {*
@@ -23,7 +24,7 @@ setup wp.setup
 
 definition WeakPrecondP :: 
   "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" (infixr "wp" 150) where
-"Q wp r \<equiv> \<not>p (Q ; (\<not>p r))"
+"Q wp r \<equiv> \<not>\<^sub>p (Q ; (\<not>\<^sub>p r))"
 
 declare WeakPrecondP_def [eval,evalr,evalrx]
 
@@ -45,14 +46,14 @@ done
 
 lemma AssignR_wp [wp]:
   "\<lbrakk> x \<in> UNDASHED; v \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<union> NON_REL_VAR) v; r \<in> WF_RELATION \<rbrakk> 
-     \<Longrightarrow> `(x := v) wp r` = `r[v/x]`"
+     \<Longrightarrow> (x :=\<^sub>R v) wp r = r[v/\<^sub>px]"
   apply (subgoal_tac "UNREST_EXPR NON_REL_VAR v")
   apply (simp add: WeakPrecondP_def)
 oops
 
 lemma CondP_wp [wp]:
   "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION; b \<in> WF_CONDITION; r \<in> WF_RELATION \<rbrakk> \<Longrightarrow>
-  (P \<triangleleft> b \<triangleright> Q) wp r = (P wp r) \<triangleleft> b \<triangleright> (Q wp r)"
+  (P \<lhd> b \<rhd> Q) wp r = (P wp r) \<lhd> b \<rhd> (Q wp r)"
   apply (simp add: WeakPrecondP_def)
   apply (simp add:CondR_SemiR_distr closure)
   apply (utp_pred_auto_tac)
@@ -63,7 +64,7 @@ lemma OrP_wp [wp]:
   by (metis (no_types) SemiR_OrP_distr WeakPrecondP_def demorgan1)
 
 lemma ChoiceP_wp [wp]:
-  "(P \<sqinter> Q) wp r = (P wp r) \<and>p (Q wp r)"
+  "(P \<sqinter> Q) wp r = (P wp r) \<and>\<^sub>p (Q wp r)"
   by (simp add:sup_WF_PREDICATE_def wp)
 
 lemma ImpliesP_precond_wp: "`[r \<Rightarrow> s]` \<Longrightarrow> `[(Q wp r) \<Rightarrow> (Q wp s)]`"
@@ -82,7 +83,7 @@ lemma FalseP_wp [wp]: "Q ; true = true \<Longrightarrow> Q wp false = false"
   by (simp add:WeakPrecondP_def)
 
 lemma VarOpenP_wp: "\<lbrakk> x \<in> UNDASHED; r \<in> WF_RELATION \<rbrakk> 
-  \<Longrightarrow> `(var x) wp r` = `\<forall> x. r`"
+  \<Longrightarrow> (var x) wp r = (\<forall>\<^sub>p {x}. r)"
   apply (simp add:WeakPrecondP_def VarOpenP_def ExistsP_UNDASHED_expand_SemiR closure)
   apply (utp_pred_tac)
 done

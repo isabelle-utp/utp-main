@@ -221,7 +221,9 @@ ML {*
   fun utp_pred_simpset ctxt =
     (simpset_of ctxt)
       addsimps (eval.get ctxt)
-      addsimps (closure.get ctxt);
+      addsimps (closure.get ctxt)
+      addsimps (typing.get ctxt)
+      addsimps (defined.get ctxt);
 *}
 
 ML {*

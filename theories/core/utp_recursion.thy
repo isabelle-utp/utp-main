@@ -75,25 +75,25 @@ lemma chainI: "\<lbrakk> Y 0 = false; \<And>i. Y (Suc i) \<sqsubseteq> Y i \<rbr
 lemma chainE: "\<lbrakk> chain Y; \<And> i. \<lbrakk> Y 0 = false; Y (Suc i) \<sqsubseteq> Y i \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   unfolding chain_def by fast
 
-lemma L274: "\<forall> n. (E n \<and>p X = E n \<and>p Y) \<Longrightarrow> \<Sqinter> (range E) \<and>p X = \<Sqinter> (range E) \<and>p Y"
+lemma L274: "\<forall> n. (E n \<and>\<^sub>p X = E n \<and>\<^sub>p Y) \<Longrightarrow> \<Sqinter> (range E) \<and>\<^sub>p X = \<Sqinter> (range E) \<and>\<^sub>p Y"
   by (utp_pred_auto_tac)
 
 definition constr :: 
   " ('a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE) 
   \<Rightarrow> 'a WF_PRED_CHAIN \<Rightarrow> bool" where
-"constr F E \<longleftrightarrow> (\<forall> X n. (F(X) \<and>p E (n + 1) = F(X \<and>p E n) \<and>p E (n + 1)))"
+"constr F E \<longleftrightarrow> (\<forall> X n. (F(X) \<and>\<^sub>p E (n + 1) = F(X \<and>\<^sub>p E n) \<and>\<^sub>p E (n + 1)))"
 
 text {* This lemma gives a way of showing that there is a unique fixed-point when
         the predicate function can be built using a constructive function F
         over an approximation chain E *}
 lemma chain_pred_terminates: 
   assumes "constr F E" "chain E" "mono F"
-  shows "\<Sqinter> (range E) \<and>p \<mu> F  = \<Sqinter> (range E) \<and>p \<nu> F"
+  shows "\<Sqinter> (range E) \<and>\<^sub>p \<mu> F  = \<Sqinter> (range E) \<and>\<^sub>p \<nu> F"
 proof -
-  from assms have "\<forall> n. E n \<and>p \<mu> F = E n \<and>p \<nu> F"
+  from assms have "\<forall> n. E n \<and>\<^sub>p \<mu> F = E n \<and>\<^sub>p \<nu> F"
   proof (rule_tac allI)
     fix n
-    from assms show "E n \<and>p \<mu> F = E n \<and>p \<nu> F"
+    from assms show "E n \<and>\<^sub>p \<mu> F = E n \<and>\<^sub>p \<nu> F"
     proof (induct n)
       case 0 thus ?case by (simp add:eval)
     next
@@ -101,17 +101,16 @@ proof -
       note hyp = this
       thus ?case
       proof -
-        thm hyp
-        have "E (n + 1) \<and>p \<mu> F = E (n + 1) \<and>p F (\<mu> F)"
+        have "E (n + 1) \<and>\<^sub>p \<mu> F = E (n + 1) \<and>\<^sub>p F (\<mu> F)"
           by (metis WFP_unfold assms(3))
         
-        also from hyp have "... = E (n + 1) \<and>p F (E n \<and>p \<mu> F)"
+        also from hyp have "... = E (n + 1) \<and>\<^sub>p F (E n \<and>\<^sub>p \<mu> F)"
           by (metis (no_types) AndP_comm constr_def)
         
-        also from hyp have "... = E (n + 1) \<and>p F (E n \<and>p \<nu> F)"
+        also from hyp have "... = E (n + 1) \<and>\<^sub>p F (E n \<and>\<^sub>p \<nu> F)"
           by simp
         
-        also from hyp have "... = E (n + 1) \<and>p \<nu> F"
+        also from hyp have "... = E (n + 1) \<and>\<^sub>p \<nu> F"
           by (smt AndP_comm SFP_unfold constr_def)
         
         ultimately show ?thesis
@@ -127,11 +126,11 @@ proof -
 qed
 
 lemma WFP_rec: 
-  assumes "(C \<Rightarrow>p S) \<sqsubseteq> F (C \<Rightarrow>p S)" "[C \<Rightarrow>p (\<mu> F \<Leftrightarrow>p \<nu> F)]p" 
-  shows "(C \<Rightarrow>p S) \<sqsubseteq> \<mu> F"
+  assumes "(C \<Rightarrow>\<^sub>p S) \<sqsubseteq> F (C \<Rightarrow>\<^sub>p S)" "[C \<Rightarrow>\<^sub>p (\<mu> F \<Leftrightarrow>\<^sub>p \<nu> F)]\<^sub>p" 
+  shows "(C \<Rightarrow>\<^sub>p S) \<sqsubseteq> \<mu> F"
 proof -
 
-  from assms have "(C \<Rightarrow>p S) \<sqsubseteq> \<nu> F"
+  from assms have "(C \<Rightarrow>\<^sub>p S) \<sqsubseteq> \<nu> F"
     by (auto intro:SFP)
 
   with assms show ?thesis
@@ -228,16 +227,16 @@ next
 qed (simp_all add: evalrr)
 end
 
-lemma StarP_mono: "mono (\<lambda> x. (II \<or>p (p ; x)))"
+lemma StarP_mono: "mono (\<lambda> x. (II \<or>\<^sub>p (p ; x)))"
   apply (rule)
   apply (utp_rel_auto_tac)
 done
-lemma StarP_WFP1: "(\<mu> X \<bullet> II \<or>p (P ; X)) \<sqsubseteq> P\<^sup>\<star>"
+lemma StarP_WFP1: "(\<mu> X \<bullet> II \<or>\<^sub>p (P ; X)) \<sqsubseteq> P\<^sup>\<star>"
   apply (auto simp add:evalrr EvalRR_StarP gfp_def)
   apply (metis EvalRR_StarP rel_kleene_algebra.star_unfoldl_eq subset_refl)
 done
 
-lemma StarP_WFP2: "P\<^sup>\<star> \<sqsubseteq> (\<mu> X \<bullet> II \<or>p (P ; X))"
+lemma StarP_WFP2: "P\<^sup>\<star> \<sqsubseteq> (\<mu> X \<bullet> II \<or>\<^sub>p (P ; X))"
   apply (auto simp add:evalrr EvalRR_StarP_Union gfp_def)
 oops
 
@@ -245,7 +244,7 @@ definition
   IterP :: " 'a WF_PREDICATE 
            \<Rightarrow> 'a WF_PREDICATE 
            \<Rightarrow> 'a WF_PREDICATE" ("while _ do _ od") where
-"IterP b P \<equiv> (P \<triangleleft> b \<triangleright> II)\<^sup>\<star>"
+"IterP b P \<equiv> (P \<lhd> b \<rhd> II)\<^sup>\<star>"
 
 declare EvalRR_StarP [evalrr]
 declare IterP_def [eval, evalr, evalrr]

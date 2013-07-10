@@ -17,8 +17,10 @@ imports
   "../laws/utp_subst_laws"
   "../laws/utp_rel_laws"
   "../poly/utp_poly_expr"
+  "../parser/utp_pred_parser"
   utp_theory
 begin
+
 
 text {* Most predicates need a boolean type, so we here set the appropriate sort constraint *}
 
@@ -26,12 +28,12 @@ default_sort BOOL_SORT
 
 subsection {* Design Constructs *}
 
-abbreviation "okay  \<equiv> MkPlain ''okay'' BoolType True"
-abbreviation "ok  \<equiv> VarP okay"
-abbreviation "ok' \<equiv> VarP okay\<acute>"
-abbreviation "ok'' \<equiv> VarP okay\<acute>\<acute>"
-abbreviation "ok''' \<equiv> VarP okay\<acute>\<acute>\<acute>"
-abbreviation "OKAY \<equiv> {okay,okay\<acute>}"
+abbreviation "okay  \<equiv> MkPlainP ''okay'' True TYPE(bool) TYPE('m :: BOOL_SORT)"
+abbreviation "ok  \<equiv> VarP okay\<down>"
+abbreviation "ok' \<equiv> VarP okay\<acute>\<down>"
+abbreviation "ok'' \<equiv> VarP okay\<acute>\<acute>\<down>"
+abbreviation "ok''' \<equiv> VarP okay\<acute>\<acute>\<acute>\<down>"
+abbreviation "OKAY \<equiv> {okay\<down>,okay\<acute>\<down>}"
 
 definition DesignD :: 
 "'VALUE WF_PREDICATE \<Rightarrow>
@@ -40,7 +42,7 @@ definition DesignD ::
 "p \<turnstile> q = `ok \<and> p \<Rightarrow> ok' \<and> q`"
 
 definition SkipD :: "'VALUE WF_PREDICATE" where
-"SkipD = true \<turnstile> II (REL_VAR - {okay,okay\<acute>})"
+"SkipD = true \<turnstile> II\<^bsub>(REL_VAR - {okay\<down>,okay\<acute>\<down>})\<^esub>"
 
 notation SkipD ("II\<^sub>D")
 
@@ -62,13 +64,12 @@ lemma UNREST_SkipD_NON_REL_VAR [unrest]:
 done
 
 lemma SubstP_UNREST_OKAY [usubst]:
-  "\<lbrakk> x \<in> OKAY; UNREST OKAY p; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> `p[v/x]` = p"
+  "\<lbrakk> x \<in> OKAY; UNREST OKAY p; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[v/\<^sub>px] = p"
   by (utp_pred_tac)
 
 lemma DesignD_rel_closure [closure]:
   "\<lbrakk>P \<in> WF_RELATION; Q \<in> WF_RELATION\<rbrakk> \<Longrightarrow> P \<turnstile> Q \<in> WF_RELATION"
-  by (simp add:DesignD_def closure)
-
+  apply (simp add:DesignD_def closure)
 
 lemma SkipD_rel_closure [closure]:
   "II\<^sub>D \<in> WF_RELATION"
@@ -81,7 +82,7 @@ lemma DesignD_extreme_point_true:
   by (utp_pred_tac)
 
 lemma DesignD_extreme_point_nok:
-  "`true \<turnstile> false` = `\<not> ok`"
+  "true \<turnstile> false = \<not>\<^sub>p ok"
   by (utp_pred_tac)
 
 lemma DesignD_export_precondition:

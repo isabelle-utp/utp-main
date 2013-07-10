@@ -68,36 +68,47 @@ setup {*
 Adhoc_Overloading.add_variant @{const_name prime} @{const_name pvdash}
 *}
 
+text {* Set up syntax for operators which perform type erasure *}
+
+consts
+  erase :: "'r \<Rightarrow> 'a" ("(_)\<down>" [1000] 1000)
+
+setup {*
+  Adhoc_Overloading.add_overloaded @{const_name erase}
+*}
+
 text {* This function performs a type erasure on the variable. *}
 
-definition PVAR_VAR :: "('a, 'm) PVAR \<Rightarrow> ('m :: VALUE) VAR" ("[_]\<^sub>*") where
+definition PVAR_VAR :: "('a, 'm) PVAR \<Rightarrow> ('m :: VALUE) VAR" where
 "PVAR_VAR v = MkVar (pvname v) (TypeU TYPE('a)) (pvaux v)"
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name erase} @{const_name PVAR_VAR}
+*}
 
 definition VAR_PVAR :: "('m :: VALUE) VAR \<Rightarrow> ('a, 'm) PVAR" where
 "VAR_PVAR v = Abs_PVAR (name v, aux v)"
 
 lemma PVAR_VAR_inv [simp]: 
-  "VAR_PVAR [v]\<^sub>* = v"
+  "VAR_PVAR v\<down> = v"
   by (simp add:PVAR_VAR_def VAR_PVAR_def)
 
 lemma VAR_PVAR_inv [simp]: 
-  "vtype x = TYPEU('a) \<Longrightarrow> [VAR_PVAR x :: ('a, 'm :: VALUE) PVAR]\<^sub>* = x"
+  "vtype x = TYPEU('a) \<Longrightarrow> (VAR_PVAR x :: ('a, 'm :: VALUE) PVAR)\<down> = x"
   apply (case_tac x)
   apply (auto simp add:PVAR_VAR_def VAR_PVAR_def MkVar_def)
 done
 
 lemma PVAR_VAR_pvundash [simp]:
-  "[pvundash x]\<^sub>* = undash [x]\<^sub>*"
+  "(pvundash x)\<down> = undash x\<down>"
   by (auto simp add:PVAR_VAR_def undash_def pvundash_def)
 
 lemma PVAR_VAR_pvdash [simp]:
-  "[pvdash x]\<^sub>* = dash [x]\<^sub>*"
+  "(pvdash x)\<down> = dash x\<down>"
   by (auto simp add:PVAR_VAR_def dash_def pvdash_def)
 
-term "MkVar"
-
 lemma PVAR_VAR_MkPVAR:
-  " [MkPVAR n s (a :: 'a itself) (m :: ('m::VALUE) itself)]\<^sub>* 
+  "(MkPVAR n s (a :: 'a itself) (m :: ('m::VALUE) itself))\<down> 
   = MkVar n (TYPEU('a)  :: 'm UTYPE) s"
   by (simp add:MkPVAR_def PVAR_VAR_def)
 
@@ -113,16 +124,16 @@ subsection {* Adapting Renaming *}
 
 definition Rep_VAR_RENAME_poly :: 
   "'m VAR_RENAME \<Rightarrow> ('a, 'm :: VALUE) PVAR \<Rightarrow> ('a, 'm) PVAR" where
-"Rep_VAR_RENAME_poly ss x \<equiv> VAR_PVAR (\<langle>ss\<rangle>\<^sub>s [x]\<^sub>*)"
+"Rep_VAR_RENAME_poly ss x \<equiv> VAR_PVAR (\<langle>ss\<rangle>\<^sub>s x\<down>)"
 
 notation Rep_VAR_RENAME_poly ("\<langle>_\<rangle>\<^sub>s\<^sub>*")
 
 lemma PVAR_VAR_vtype [simp]:
-  "vtype [x :: ('a, 'm :: VALUE) PVAR]\<^sub>* = TYPEU('a)"
+  "vtype (x :: ('a, 'm :: VALUE) PVAR)\<down> = TYPEU('a)"
   by (simp add:PVAR_VAR_def)
 
 lemma PVAR_VAR_RENAME [simp]: 
-  "[\<langle>ss\<rangle>\<^sub>s\<^sub>* x]\<^sub>* = \<langle>ss\<rangle>\<^sub>s [x]\<^sub>*"
+  "(\<langle>ss\<rangle>\<^sub>s\<^sub>* x)\<down> = \<langle>ss\<rangle>\<^sub>s x\<down>"
   by (simp add:Rep_VAR_RENAME_poly_def)
 
 end

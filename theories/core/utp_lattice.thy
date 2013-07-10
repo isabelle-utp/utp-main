@@ -137,10 +137,10 @@ instantiation WF_PREDICATE :: (VALUE) boolean_algebra
 begin
 
 definition uminus_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"uminus_WF_PREDICATE p = \<not>p p"
+"uminus_WF_PREDICATE p = \<not>\<^sub>p p"
 
 definition minus_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"minus_WF_PREDICATE p q = (p \<and>p \<not>p q)"
+"minus_WF_PREDICATE p q = (p \<and>\<^sub>p \<not>\<^sub>p q)"
 
 instance 
   apply (intro_classes)
@@ -334,7 +334,7 @@ begin
 
 definition 
   plus_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-  "plus_WF_PREDICATE p q = p \<or>p q"
+  "plus_WF_PREDICATE p q = p \<or>\<^sub>p q"
 
 definition 
   zero_WF_PREDICATE :: "'a WF_PREDICATE" where
@@ -363,13 +363,14 @@ done
 end
 
 lemma SkipR_SupP_def: 
-  "II = \<Squnion> { `$x\<acute> = $x` | x. x \<in> UNDASHED}"
+  "II = \<Squnion> { $\<^sub>ex\<acute> ==\<^sub>p $\<^sub>ex | x. x \<in> UNDASHED}"
   apply (auto simp add:SkipR_def Inf_WF_PREDICATE_def UNDASHED_nempty EqualP_def VarE.rep_eq)
   apply (metis (lifting, full_types) LiftP.rep_eq destPRED_inverse mem_Collect_eq)
 done
 
 lemma SkipRA_SupP_def: 
-  "\<lbrakk> vs \<subseteq> REL_VAR; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow> II vs = \<Squnion> { `$x\<acute> = $x` | x. x \<in> in vs}"
+  "\<lbrakk> vs \<subseteq> REL_VAR; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow> 
+     II\<^bsub>vs\<^esub> = \<Squnion> { $\<^sub>ex\<acute> ==\<^sub>p $\<^sub>ex | x. x \<in> in vs}"
   apply (auto simp add:SkipRA_rep_eq_alt Inf_WF_PREDICATE_def UNDASHED_nempty EqualP_def VarE.rep_eq top_WF_PREDICATE_def TrueP_def)
   apply (metis (lifting, full_types) LiftP.rep_eq destPRED_inverse mem_Collect_eq)
 done
@@ -377,12 +378,12 @@ done
 definition AssumeR ::
 "'VALUE WF_PREDICATE \<Rightarrow>
  'VALUE WF_PREDICATE" ("_\<^sup>\<top>" [200] 200) where
-"c\<^sup>\<top> \<equiv> II \<triangleleft> c \<triangleright> \<top>"
+"c\<^sup>\<top> \<equiv> II \<lhd> c \<rhd> \<top>"
 
 definition AssertR ::
 "'VALUE WF_PREDICATE \<Rightarrow>
  'VALUE WF_PREDICATE" ("_\<^sub>\<bottom>" [200] 200) where
-"c\<^sub>\<bottom> \<equiv> II \<triangleleft> c \<triangleright> \<bottom>"
+"c\<^sub>\<bottom> \<equiv> II \<lhd> c \<rhd> \<bottom>"
 
 lemma UNREST_AssumeR_DASHED_TWICE [unrest]:
   "UNREST DASHED_TWICE c \<Longrightarrow> UNREST DASHED_TWICE (c\<^sup>\<top>)"
@@ -396,7 +397,7 @@ declare AssumeR_def [eval, evalr, evalrr, evalrx]
 declare AssertR_def [eval, evalr, evalrr, evalrx]
 
 lemma AssertR_SemiR:
-  "\<lbrakk> b \<in> WF_CONDITION; c \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> b\<^sub>\<bottom> ; c\<^sub>\<bottom> = (b \<and>p c)\<^sub>\<bottom>"
+  "\<lbrakk> b \<in> WF_CONDITION; c \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> b\<^sub>\<bottom> ; c\<^sub>\<bottom> = (b \<and>\<^sub>p c)\<^sub>\<bottom>"
   apply (frule SemiR_TrueP_precond, frule SemiR_TrueP_precond) back
   apply (simp add:evalrx closure relcomp_unfold)
   apply (auto)
