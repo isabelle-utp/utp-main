@@ -17,18 +17,7 @@ begin
 
 subsubsection {* Predicate Laws *}
 
-theorem EvalP_RenameP [eval] :
-"\<lbrakk>p[ss]\<rbrakk>b = \<lbrakk>p\<rbrakk>(RenameB (inv\<^sub>s ss) b)"
-apply (simp add: EvalP_def)
-apply (simp add: RenameP_def)
-apply (simp add: image_def)
-apply (safe)
-apply (simp)
-apply (rule_tac x = "RenameB (inv\<^sub>s ss) b" in bexI)
-apply (simp)
-apply (assumption)
-done
-
+(*
 theorem EvalP_RenamePMap_one [eval] :
 "\<lbrakk> x \<noteq> x'; vtype x' = vtype x; aux x' = aux x \<rbrakk> \<Longrightarrow>
  \<lbrakk>p\<^bsup>[x \<mapsto> x']\<^esup>\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b \<langle>b\<rangle>\<^sub>b x', x' :=\<^sub>b \<langle>b\<rangle>\<^sub>b x))"
@@ -47,24 +36,26 @@ apply (rule ext)
 apply (simp add: MapRename_def closure)
 apply (auto)
 done
+*)
 
 theorem RenameP_id :
-"p[id\<^sub>s] = p"
-apply (utp_pred_auto_tac)
-done
+  fixes p :: "'a WF_PREDICATE"
+  shows "id\<^sub>s\<bullet>p = p"
+  by (utp_pred_auto_tac)
 
 theorem RenameP_inverse1 :
-"p[ss][inv\<^sub>s ss] = p"
-apply (utp_pred_auto_tac)
-done
+  fixes p :: "'a WF_PREDICATE"
+  shows "inv\<^sub>s ss \<bullet> ss \<bullet> p = p"
+  by (utp_pred_auto_tac)
 
 theorem RenameP_inverse2 :
-"p[inv\<^sub>s ss][ss] = p"
-apply (utp_pred_auto_tac)
-done
+  fixes p :: "'a WF_PREDICATE"
+  shows "ss \<bullet> inv\<^sub>s ss \<bullet> p = p"
+  by (utp_pred_auto_tac)
 
 theorem RenameP_compose :
-"p[ss1][ss2] = RenameP p (ss2 \<circ>\<^sub>s ss1)"
+  fixes p :: "'a WF_PREDICATE"
+  shows "ss1 \<bullet> ss2 \<bullet> p = (ss1 \<circ>\<^sub>s ss2) \<bullet> p"
 apply (utp_pred_tac)
 apply (simp add: RenameB_compose closure)
 done
@@ -73,7 +64,7 @@ theorem RenameP_commute :
 "\<lbrakk>ss1 \<in> VAR_RENAME_ON vs1;
  ss2 \<in> VAR_RENAME_ON vs2;
  vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
- (p::'VALUE WF_PREDICATE)[ss1][ss2] = p[ss2][ss1]"
+ ss2\<bullet>ss1\<bullet>(p :: 'a WF_PREDICATE) = ss1\<bullet>ss2\<bullet>p"
 apply (utp_pred_tac)
 apply (clarify)
 apply (subst RenameB_commute [of "(inv\<^sub>s ss1)" "vs1" "(inv\<^sub>s ss2)" "vs2" "b"])
@@ -82,9 +73,8 @@ done
 
 theorem RenameP_involution [simp] :
 "\<lbrakk>ss \<in> VAR_RENAME_INV\<rbrakk> \<Longrightarrow>
- p[ss][ss] = p"
-apply (utp_pred_auto_tac)
-done
+ ss\<bullet>ss\<bullet>(p :: 'a WF_PREDICATE) = p"
+  by (utp_pred_auto_tac)
 
 theorems rename_simps =
   RenameP_id
@@ -122,33 +112,33 @@ theorems rename_dist =
 subsubsection {* Predicate Renaming Theorems *}
 
 theorem RenameP_NotP_distr [urename]:
-"(\<not>p p)[ss] = \<not>p p[ss]"
+"ss \<bullet> (\<not>\<^sub>p p) = \<not>\<^sub>p (ss \<bullet> p)"
   by (utp_pred_auto_tac)
 
 theorem RenameP_AndP_distr [urename]:
-"(p1 \<and>p p2)[ss] = p1[ss] \<and>p p2[ss]"
+"ss \<bullet> (p1 \<and>\<^sub>p p2) = (ss \<bullet> p1) \<and>\<^sub>p (ss \<bullet> p2)"
   by (utp_pred_auto_tac)
 
 theorem RenameP_OrP_distr [urename]:
-"(p1 \<or>p p2)[ss] = p1[ss] \<or>p p2[ss]"
+"ss \<bullet> (p1 \<or>\<^sub>p p2) = (ss \<bullet> p1) \<or>\<^sub>p (ss \<bullet> p2)"
   by (utp_pred_auto_tac)
 
 theorem RenameP_ImpliesP_distr [urename]:
-"(p1 \<Rightarrow>p p2)[ss] = p1[ss] \<Rightarrow>p p2[ss]"
+"ss \<bullet> (p1 \<Rightarrow>\<^sub>p p2) = (ss \<bullet> p1) \<Rightarrow>\<^sub>p (ss \<bullet> p2)"
   by (utp_pred_auto_tac)
 
 theorem RenameP_IffP_distr [urename]:
-"(p1 \<Leftrightarrow>p p2)[ss] = p1[ss] \<Leftrightarrow>p p2[ss]"
+"ss \<bullet> (p1 \<Leftrightarrow>\<^sub>p p2) = (ss\<bullet>p1) \<Leftrightarrow>\<^sub>p (ss\<bullet>p2)"
   by (utp_pred_auto_tac)
 
 theorem RenameP_RefP_distr [urename]:
-"(p1 \<sqsubseteq>p p2)[ss] = p1[ss] \<sqsubseteq>p p2[ss]"
+"ss\<bullet>(p1 \<sqsubseteq>\<^sub>p p2) = (ss\<bullet>p1) \<sqsubseteq>\<^sub>p (ss\<bullet>p2)"
   apply (utp_pred_auto_tac)
   apply (metis RenameB_inv_cancel1)
 done
 
 theorem RenameP_ExistsP_distr1 [urename]:
-"(\<exists>p vs . p)[ss] = (\<exists>p ss `\<^sub>s vs . p[ss])"
+"ss\<bullet>(\<exists>\<^sub>p vs . p) = (\<exists>\<^sub>p ss `\<^sub>s vs . (ss\<bullet>p))"
 apply (utp_pred_auto_tac)
 apply (rule_tac x="RenameB ss b'" in exI)
 apply (simp add:RenameB_override_distr1 closure)
@@ -159,7 +149,7 @@ done
 theorem RenameP_ExistsP_distr2 [urename]:
 "\<lbrakk>ss \<in> VAR_RENAME_ON vs1;
  vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
- (\<exists>p vs2 . p)[ss] = (\<exists>p vs2 . p[ss])"
+ ss\<bullet>(\<exists>\<^sub>p vs2 . p) = (\<exists>\<^sub>p vs2 . ss\<bullet>p)"
   apply (simp add:RenameP_ExistsP_distr1)
   apply (metis VAR_RENAME_ON_disj_image rename_image_def)
 done
@@ -167,13 +157,11 @@ done
 theorem RenameP_ForallP_distr [urename]:
 "\<lbrakk>ss \<in> VAR_RENAME_ON vs1;
  vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
- (\<forall>p vs2 . p)[ss] = (\<forall>p vs2 . p[ss])"
-apply (simp add: ForallP_def closure)
-apply (simp add: RenameP_ExistsP_distr2 RenameP_NotP_distr closure)
-done
+ ss\<bullet>(\<forall>\<^sub>p vs2 . p) = (\<forall>\<^sub>p vs2 . ss\<bullet>p)"
+  by (simp add: ForallP_def RenameP_ExistsP_distr2 RenameP_NotP_distr closure)
 
 theorem RenameP_ClosureP_1 [urename]:
-"[p[ss]]p = [p]p"
+"[ss\<bullet>p]\<^sub>p = [p]\<^sub>p"
 apply (utp_pred_tac)
 apply (safe)
 apply (drule_tac x = "RenameB ss x" in spec)
@@ -181,35 +169,35 @@ apply (simp_all)
 done
 
 theorem RenameP_ClosureP_2 [urename]:
-"[p]p[ss] = [p]p"
+"ss\<bullet>[p]\<^sub>p = [p]\<^sub>p"
   by (utp_pred_tac)
 
 theorem RenameP_TrueP [urename]:
-  "true[ss] = true"
+  "ss\<bullet>true = true"
   by (utp_pred_tac)
 
 theorem RenameP_FalseP [urename]:
-  "false[ss] = false"
+  "ss\<bullet>false = false"
   by (utp_pred_tac)
 
 theorem RenameP_VarP [urename]:
-"(VarP x)[ss] = VarP (\<langle>ss\<rangle>\<^sub>s x)"
-  by (utp_pred_tac, utp_expr_tac)
+"ss\<bullet>($\<^sub>px) = $\<^sub>p(\<langle>ss\<rangle>\<^sub>s x)"
+  by (utp_pred_tac)
 
 theorem RenameP_EqualP [urename]:
-"(e ==p f)[ss] = e[ss]\<epsilon> ==p f[ss]\<epsilon>"
-  by (utp_pred_tac, utp_expr_tac)
+"ss\<bullet>(e ==\<^sub>p f) = (ss\<bullet>e) ==\<^sub>p (ss\<bullet>f)"
+  by (utp_pred_tac)
 
 theorem RenameP_ExprP [urename]:
-"(ExprP e)[ss] = ExprP (e[ss]\<epsilon>)"
-  by (utp_pred_tac, utp_expr_tac)
+"ss\<bullet>(ExprP e) = ExprP (ss\<bullet>e)"
+  by (utp_pred_tac)
 
 lemma RenameP_SubstP [urename]:
-  "\<lbrakk> ss \<in> VAR_RENAME_INV; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[v|x][ss] = p[ss][v[ss]\<epsilon>|\<langle>ss\<rangle>\<^sub>s x]"
-  by (utp_pred_tac, utp_expr_tac)
+  "\<lbrakk> ss \<in> VAR_RENAME_INV; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> ss\<bullet>(p[v/\<^sub>px]) = (ss\<bullet>p)[ss\<bullet>v/\<^sub>pss\<bullet>x]"
+  by (utp_pred_tac)
 
 theorem RenameP_UNREST [simp]:
-"\<lbrakk> UNREST vs p; ss \<in> VAR_RENAME_ON vs \<rbrakk> \<Longrightarrow> p[ss] = p"
+"\<lbrakk> UNREST vs p; ss \<in> VAR_RENAME_ON vs \<rbrakk> \<Longrightarrow> ss\<bullet>p = p"
   apply (utp_pred_tac)
   apply (rule allI)
   apply (frule VAR_RENAME_ON_inv)
@@ -228,7 +216,7 @@ theorem RenameP_UNREST [simp]:
 done
 
 lemma RenameP_equiv:
-  "\<lbrakk> UNREST (VAR - vs) p; ss1 \<cong>\<^sub>s ss2 on vs \<rbrakk> \<Longrightarrow> p[ss1] = p[ss2]"
+  "\<lbrakk> UNREST (VAR - vs) p; ss1 \<cong>\<^sub>s ss2 on vs \<rbrakk> \<Longrightarrow> ss1\<bullet>p = ss2\<bullet>p"
   apply (utp_pred_tac)
   apply (simp add: EvalP_def rename_equiv_def rename_equiv_def RenameB_def)
   apply (clarify)
@@ -243,8 +231,8 @@ lemma RenameP_equiv:
 done
 
 theorem RenameP_invariant_taut :
-"taut [p1 \<Leftrightarrow>p p2]p \<Leftrightarrow>p [p1[ss] \<Leftrightarrow>p p2[ss]]p"
-apply (subgoal_tac "p1[ss] \<Leftrightarrow>p p2[ss] = (p1 \<Leftrightarrow>p p2)[ss]")
+"taut [p1 \<Leftrightarrow>\<^sub>p p2]\<^sub>p \<Leftrightarrow>\<^sub>p [(ss\<bullet>p1) \<Leftrightarrow>\<^sub>p (ss\<bullet>p2)]\<^sub>p"
+apply (subgoal_tac "(ss\<bullet>p1) \<Leftrightarrow>\<^sub>p (ss\<bullet>p2) = ss\<bullet>(p1 \<Leftrightarrow>\<^sub>p p2)")
 apply (simp)
 apply (simp add: RenameP_ClosureP_1 closure)
 apply (utp_pred_tac)
@@ -254,28 +242,37 @@ done
 subsubsection {* Expression Renaming Theorems *}
 
 theorem RenameE_id [urename]:
-"p[id\<^sub>s]\<epsilon> = p"
+  fixes e :: "'a WF_EXPRESSION"
+  shows "id\<^sub>s\<bullet>e = e"
   by (utp_expr_tac)
 
 theorem RenameE_inverse1 [urename]:
-"e[ss]\<epsilon>[inv\<^sub>s ss]\<epsilon> = e"
+  fixes e :: "'a WF_EXPRESSION"
+  shows "(inv\<^sub>s ss)\<bullet>ss\<bullet>e = e"
   by (utp_expr_tac)
 
 theorem RenameE_inverse2 [urename]:
-"e[inv\<^sub>s ss]\<epsilon>[ss]\<epsilon> = e"
+  fixes e :: "'a WF_EXPRESSION"
+  shows "ss\<bullet>(inv\<^sub>s ss)\<bullet>e = e"
   by (utp_expr_tac)
 
 theorem RenameE_compose [urename]:
-"e[ss1]\<epsilon>[ss2]\<epsilon> = e[ss2 \<circ>\<^sub>s ss1]\<epsilon>"
+  fixes e :: "'a WF_EXPRESSION"
+  shows "ss1\<bullet>ss2\<bullet>e = (ss1 \<circ>\<^sub>s ss2)\<bullet>e"
 apply (utp_expr_tac)
 apply (simp add: RenameB_compose closure)
 done
+
+theorem RenameE_involution [simp] :
+"\<lbrakk>ss \<in> VAR_RENAME_INV\<rbrakk> \<Longrightarrow>
+ ss\<bullet>ss\<bullet>e = (e :: 'a WF_EXPRESSION)"
+  by (utp_expr_tac)
 
 theorem RenameE_commute :
 "\<lbrakk>ss1 \<in> VAR_RENAME_ON vs1;
  ss2 \<in> VAR_RENAME_ON vs2;
  vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
- (e::'VALUE WF_EXPRESSION)[ss1]\<epsilon>[ss2]\<epsilon> = e[ss2]\<epsilon>[ss1]\<epsilon>"
+ ss2 \<bullet> ss1 \<bullet> (e::'VALUE WF_EXPRESSION) = ss1 \<bullet> ss2 \<bullet> e"
 apply (utp_expr_tac)
 apply (clarify)
 apply (subst RenameB_commute [of "(inv\<^sub>s ss1)" "vs1" "(inv\<^sub>s ss2)" "vs2" "b"])
@@ -283,7 +280,7 @@ apply (simp_all add: closure)
 done
 
 lemma RenameE_equiv:
-  "\<lbrakk> UNREST_EXPR (VAR - vs) e; ss1 \<cong>\<^sub>s ss2 on vs \<rbrakk> \<Longrightarrow> e[ss1]\<epsilon> = e[ss2]\<epsilon>"
+  "\<lbrakk> UNREST_EXPR (VAR - vs) e; ss1 \<cong>\<^sub>s ss2 on vs \<rbrakk> \<Longrightarrow> ss1\<bullet>e = ss2\<bullet>e"
   apply (utp_expr_tac)
   apply (simp add: EvalE_def rename_equiv_def rename_equiv_def RenameB_def)
   apply (clarify)
@@ -295,25 +292,43 @@ lemma RenameE_equiv:
   apply (simp add:binding_equiv_def)
 done
 
-theorem RenameE_involution [simp] :
-"\<lbrakk>ss \<in> VAR_RENAME_INV\<rbrakk> \<Longrightarrow>
- p[ss]\<epsilon>[ss]\<epsilon> = p"
-  by (utp_expr_tac)
-
 theorem RenameE_VarE [urename]:
-"(VarE x)[ss]\<epsilon> = VarE (\<langle>ss\<rangle>\<^sub>s x)"
+  "ss \<bullet> $\<^sub>ex = $\<^sub>e(ss \<bullet> x)"
   by (utp_expr_tac)
 
 theorem RenameE_LitE [urename]:
-  "v : t \<Longrightarrow> (LitE v)[ss]\<epsilon> = LitE v"
+  "v : t \<Longrightarrow> ss\<bullet>(LitE v) = LitE v"
   by (utp_expr_tac)
 
 theorem RenameE_TrueE [urename]:
-  "(TrueE[ss]\<epsilon>) = TrueE"
+  "(ss\<bullet>TrueE) = TrueE"
   by (utp_expr_tac)
 
 theorem RenameE_FalseE [urename]:
-  "(FalseE[ss]\<epsilon>) = FalseE"
+  "(ss\<bullet>FalseE) = FalseE"
   by (utp_expr_tac)
+
+subsubsection {* Expression Prime Theorems *}
+
+theorem PrimeE_double [urename]:
+  fixes v :: "'a WF_EXPRESSION"
+  shows "v\<acute>\<acute> = v"
+  by (utp_expr_tac)
+
+theorem PrimeE_TrueE [urename]:
+  "TrueE\<acute> = TrueE"
+  by (utp_expr_tac)
+
+theorem PrimeE_FalseE [urename]:
+  "FalseE\<acute> = FalseE"
+  by (utp_expr_tac)
+
+theorem PrimeE_LitE [urename]:
+  "v : t \<Longrightarrow> (LitE v)\<acute> = LitE v"
+  by (utp_expr_tac)
+
+theorem PrimeE_VarE [urename]:
+  "x \<in> UNDASHED \<Longrightarrow> ($\<^sub>ex)\<acute> = $\<^sub>ex\<acute>"
+  by (simp add:PrimeE_def urename closure rename_on_perm1)
 
 end

@@ -523,6 +523,10 @@ lemma undash_dash_image:
 "undash ` dash ` vs = vs"
   by (auto simp add: image_def undash_dash)
 
+lemma dash_inv_into [simp]: 
+  "x \<in> DASHED \<Longrightarrow> inv_into UNDASHED dash x = undash x"
+  by (metis (lifting) dash_UNDASHED_image f_inv_into_f undash_dash)
+
 theorem in_empty :
 "in {} = {}"
   by (simp add:var_defs)
@@ -844,8 +848,6 @@ proof -
     apply (metis MkVar_name imageI)
   done
 qed
-
-
 
 end
 

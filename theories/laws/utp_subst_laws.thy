@@ -15,88 +15,89 @@ imports
   "../tactics/utp_pred_tac"
   "../tactics/utp_expr_tac"
   "../tactics/utp_rel_tac"
-  "../parser/utp_pred_parser"
 begin
 
 subsection {* Predicate Substitution Laws *}
 
-lemma SubstP_NotP [usubst]: "`(\<not> p)[v/x]` = `\<not> p[v/x]`"
+lemma SubstP_NotP [usubst]: "(\<not>\<^sub>p p)[v/\<^sub>px] = \<not>\<^sub>p p[v/\<^sub>px]"
   by (utp_pred_tac)
 
-lemma SubstP_TrueP [usubst]: "true[v|x] = true"
+lemma SubstP_TrueP [usubst]: "true[v/\<^sub>px] = true"
   by (utp_pred_tac)
 
-lemma SubstP_FalseP [usubst]: "false[v|x] = false"
+lemma SubstP_FalseP [usubst]: "false[v/\<^sub>px] = false"
   by (utp_pred_tac)
 
-lemma SubstP_AndP [usubst]: "(p \<and>p q)[v|x] = p[v|x] \<and>p q[v|x]"
+lemma SubstP_AndP [usubst]: "(p \<and>\<^sub>p q)[v/\<^sub>px] = p[v/\<^sub>px] \<and>\<^sub>p q[v/\<^sub>px]"
   by (utp_pred_tac)
 
-lemma SubstP_OrP [usubst]: "(p \<or>p q)[v|x] = p[v|x] \<or>p q[v|x]"
+lemma SubstP_OrP [usubst]: "(p \<or>\<^sub>p q)[v/\<^sub>px] = p[v/\<^sub>px] \<or>\<^sub>p q[v/\<^sub>px]"
   by (utp_pred_tac)
 
 lemma SubstP_CondR [usubst]: 
-  "`(P \<lhd> c \<rhd> Q)[v/x]` = `(P[v/x]) \<lhd> (c[v/x]) \<rhd> (Q[v/x])`"
+  "(P \<lhd> c \<rhd> Q)[v/\<^sub>px] = (P[v/\<^sub>px]) \<lhd> (c[v/\<^sub>px]) \<rhd> (Q[v/\<^sub>px])"
   by (utp_pred_tac)
 
 lemma SubstP_ImpliesP [usubst]: 
-  "(p \<Rightarrow>p q)[v|x] = p[v|x] \<Rightarrow>p q[v|x]"
+  "(p \<Rightarrow>\<^sub>p q)[v/\<^sub>px] = p[v/\<^sub>px] \<Rightarrow>\<^sub>p q[v/\<^sub>px]"
   by (utp_pred_tac)
 
 lemma SubstP_IffP [usubst]: 
-  "(p \<Leftrightarrow>p q)[v|x] = p[v|x] \<Leftrightarrow>p q[v|x]"
+  "(p \<Leftrightarrow>\<^sub>p q)[v/\<^sub>px] = p[v/\<^sub>px] \<Leftrightarrow>\<^sub>p q[v/\<^sub>px]"
   by (utp_pred_tac)
 
 lemma SubstP_ExistsP [usubst]:
-  "\<lbrakk> UNREST_EXPR vs e; x \<notin> vs; e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> (\<exists>p vs. p)[e|x] = (\<exists>p vs. p[e|x])"
-  by (utp_pred_tac, utp_expr_tac)
+  "\<lbrakk> UNREST_EXPR vs e; x \<notin> vs; e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> (\<exists>\<^sub>p vs. p)[e/\<^sub>px] = (\<exists>\<^sub>p vs. p[e/\<^sub>px])"
+  by (utp_pred_tac)
 
 lemma SubstP_ClosureP [usubst]:
-  "`[P][v/x]` = `[P]`"
+  "[P]\<^sub>p[v/\<^sub>px] = [P]\<^sub>p"
   by (utp_pred_tac)
 
 lemma SubstP_RefineP [usubst]:
-  "`(P \<sqsubseteq> Q)[v/x]` = `(P \<sqsubseteq> Q)`"
+  "(P \<sqsubseteq>\<^sub>p Q)[v/\<^sub>px] = (P \<sqsubseteq>\<^sub>p Q)"
   by (utp_pred_tac)
 
 lemma SubstP_UNREST [usubst]:
-  "\<lbrakk> UNREST NON_REL_VAR p; x \<in> NON_REL_VAR; e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[e|x] = p"
+  "\<lbrakk> UNREST NON_REL_VAR p; x \<in> NON_REL_VAR; e \<rhd>\<^sub>e x \<rbrakk> 
+  \<Longrightarrow> p[e/\<^sub>px] = p"
   by (utp_pred_tac)
 
 lemma SubstP_twice_1 [usubst]:
-  "\<lbrakk> e \<rhd>\<^sub>e x; f \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[e|x][f|x] = SubstP p (SubstE e f x) x"
-  by (utp_pred_tac, utp_expr_tac)
+  "\<lbrakk> e \<rhd>\<^sub>e x; f \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[e/\<^sub>px][f/\<^sub>px] = p[(e[f/\<^sub>ex])/\<^sub>px]"
+  by (utp_pred_tac)
 
 lemma SubstP_twice_2 [usubst]:
-  "\<lbrakk> e \<rhd>\<^sub>e x; f \<rhd>\<^sub>e y; UNREST {y} p \<rbrakk> \<Longrightarrow> p[e|x][f|y] = SubstP p (SubstE e f y) x"
+  "\<lbrakk> e \<rhd>\<^sub>e x; f \<rhd>\<^sub>e y; UNREST {y} p \<rbrakk> \<Longrightarrow> p[e/\<^sub>px][f/\<^sub>py] = SubstP p (SubstE e f y) x"
   apply (simp add:eval evale typing closure defined)
   apply (metis EvalE_compat EvalP_UNREST_assign_1 binding_upd_twist)
 done
 
+
 lemma SubstP_VarP_diff [usubst]:
-  "\<lbrakk> x \<noteq> y; e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> VarP y[e|x] = VarP y"
-  by (utp_pred_tac, utp_expr_tac)
+  "\<lbrakk> x \<noteq> y; e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> $\<^sub>py[e/\<^sub>px] = $\<^sub>py"
+  by (utp_pred_tac)
 
 lemma SubstP_VarP_aux [usubst]:
-  "\<lbrakk> UNREST AUX_VAR p; e \<rhd>\<^sub>e x; aux x \<rbrakk> \<Longrightarrow> p[e|x] = p"
+  "\<lbrakk> UNREST AUX_VAR p; e \<rhd>\<^sub>e x; aux x \<rbrakk> \<Longrightarrow> p[e/\<^sub>px] = p"
   by (utp_pred_tac)
 
 lemma SubstP_VarP_single_UNREST [usubst]:
-  "\<lbrakk> UNREST {x} p; e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[e|x] = p"
+  "\<lbrakk> UNREST {x} p; e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[e/\<^sub>px] = p"
   by (utp_pred_tac)
 
-lemma SubstP_VarP [usubst]: "v \<rhd>\<^sub>e x \<Longrightarrow> VarP x[v|x] = ExprP v"
-  by (utp_pred_tac, utp_expr_tac)
+lemma SubstP_VarP [usubst]: "v \<rhd>\<^sub>e x \<Longrightarrow> $\<^sub>px[v/\<^sub>px] = ExprP v"
+  by (utp_pred_tac)
 
-lemma SubstP_EqualP [usubst]: "(e ==p f)[v|x] = (SubstE e v x ==p SubstE f v x)"
-  by (utp_pred_tac, utp_expr_tac)
+lemma SubstP_EqualP [usubst]: "(e ==\<^sub>p f)[v/\<^sub>px] = (e[v/\<^sub>ex]) ==\<^sub>p (f[v/\<^sub>ex])"
+  by (utp_pred_tac)
 
 lemma SubstP_SemiR_left [usubst]: 
-  "\<lbrakk> x \<in> UNDASHED; v \<rhd>\<^sub>e x; UNREST_EXPR DASHED v \<rbrakk> \<Longrightarrow> (p ; q)[v|x] = p[v|x] ; q"
+  "\<lbrakk> x \<in> UNDASHED; v \<rhd>\<^sub>e x; UNREST_EXPR DASHED v \<rbrakk> \<Longrightarrow> (p ; q)[v/\<^sub>px] = p[v/\<^sub>px] ; q"
   by (utp_rel_auto_tac)
 
 lemma SubstP_SemiR_right [usubst]: 
-  "\<lbrakk> x \<in> DASHED; v \<rhd>\<^sub>e x; UNREST_EXPR UNDASHED v \<rbrakk> \<Longrightarrow> (p ; q)[v|x] = p ; q[v|x]"
+  "\<lbrakk> x \<in> DASHED; v \<rhd>\<^sub>e x; UNREST_EXPR UNDASHED v \<rbrakk> \<Longrightarrow> (p ; q)[v/\<^sub>px] = p ; q[v/\<^sub>px]"
   apply (utp_rel_tac)
   sorry
 
@@ -113,13 +114,13 @@ lemma binding_equiv_upd_drop:
   by (auto simp add:binding_equiv_def, metis)
 
 lemma SubstP_NON_REL_VAR [usubst]:
-  "\<lbrakk> x \<in> NON_REL_VAR; v \<rhd>\<^sub>e x; UNREST_EXPR REL_VAR v \<rbrakk> \<Longrightarrow> (p ; q)[v|x] = p[v|x] ; q[v|x]"
+  "\<lbrakk> x \<in> NON_REL_VAR; v \<rhd>\<^sub>e x; UNREST_EXPR REL_VAR v \<rbrakk> \<Longrightarrow> (p ; q)[v/\<^sub>px] = p[v/\<^sub>px] ; q[v/\<^sub>px]"
   apply (utp_rel_auto_tac)
   apply (rule_tac x="ya \<oplus>\<^sub>b xa on NON_REL_VAR" in exI)
   apply (simp add:typing)
-  apply (subgoal_tac "\<lbrakk>v\<rbrakk>\<epsilon>(ya \<oplus>\<^sub>b xa on NON_REL_VAR) = \<lbrakk>v\<rbrakk>\<epsilon>xa")
-  apply (subgoal_tac "ya(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>xa) \<oplus>\<^sub>b xa on NON_REL_VAR - {x} = ya(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>xa)")
-  apply (subgoal_tac "ya(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<epsilon>xa) = ya")
+  apply (subgoal_tac "\<lbrakk>v\<rbrakk>\<^sub>e(ya \<oplus>\<^sub>b xa on NON_REL_VAR) = \<lbrakk>v\<rbrakk>\<^sub>exa")
+  apply (subgoal_tac "ya(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>exa) \<oplus>\<^sub>b xa on NON_REL_VAR - {x} = ya(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>exa)")
+  apply (subgoal_tac "ya(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>exa) = ya")
   apply (simp)
   apply (metis EvalE_compat EvalR_NON_REL_VAR binding_equiv_upd_cat)
   apply (metis (hide_lams, no_types) EvalE_compat EvalR_NON_REL_VAR binding_equiv_upd_cat binding_override_equiv binding_override_simps(4) binding_override_upd)
@@ -127,13 +128,13 @@ lemma SubstP_NON_REL_VAR [usubst]:
 done
 
 lemma SubstP_SkipRA [usubst]: 
-  "\<lbrakk> HOMOGENEOUS vs; x \<notin> vs; e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> II vs[e|x] = II vs"
+  "\<lbrakk> HOMOGENEOUS vs; x \<notin> vs; e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> II\<^bsub>vs\<^esub>[e/\<^sub>px] = II\<^bsub>vs\<^esub>"
   apply (utp_pred_tac)
   apply (metis (full_types) Int_iff hom_alphabet_undash in_vars_def)
 done
 
 lemma SubstP_SkipR [usubst]:
-  "\<lbrakk> x \<in> UNDASHED; UNREST_EXPR DASHED v \<rbrakk> \<Longrightarrow> v \<rhd>\<^sub>e x \<Longrightarrow> II[v|x] = II"
+  "\<lbrakk> x \<in> UNDASHED; UNREST_EXPR DASHED v \<rbrakk> \<Longrightarrow> v \<rhd>\<^sub>e x \<Longrightarrow> II[v/\<^sub>px] = II"
   apply (utp_rel_tac)
 oops
 
@@ -203,7 +204,7 @@ done
 subsection {* Expression Substitution Laws *}
 
 lemma SubstE_LitE [usubst]:
-  "v : a \<Longrightarrow> LitE v[e|x] = LitE v"
+  "v : a \<Longrightarrow> LitE v[e/\<^sub>ex] = LitE v"
   by (utp_expr_tac)
 
 lemma [typing]: "x :! a \<Longrightarrow> x : a"
@@ -214,7 +215,7 @@ lemma [typing]: "x :! a \<Longrightarrow> x : a"
    utp_expr_tac but I have to explicitly guide application of EvalE_Op1E. I think
    there may be too much non-determinism. *)
 lemma SubstE_Op1E [usubst]:
-  "\<lbrakk> v :!\<^sub>e a; f \<in> FUNC1 a b; e :\<^sub>e vtype x \<rbrakk> \<Longrightarrow> (Op1E f v)[e|x] = Op1E f (v[e|x])"
+  "\<lbrakk> v :!\<^sub>e a; f \<in> FUNC1 a b; e :\<^sub>e vtype x \<rbrakk> \<Longrightarrow> (Op1E f v)[e/\<^sub>ex] = Op1E f (v[e/\<^sub>ex])"
   apply (auto simp add:evale typing defined)
   apply (insert SubstE_type[of e x v a])
   apply (metis EvalE_SubstE EvalE_def Op1E_rep_eq edtype_rel_def)
@@ -222,31 +223,31 @@ done
 
 lemma SubstE_Op2E [usubst]:
   "\<lbrakk> v1 :!\<^sub>e a; v2 :!\<^sub>e b; f \<in> FUNC2 a b c; e :\<^sub>e vtype x \<rbrakk> \<Longrightarrow> 
-     (Op2E f v1 v2)[e|x] = Op2E f (v1[e|x]) (v2[e|x])"
+     (Op2E f v1 v2)[e/\<^sub>ex] = Op2E f (v1[e/\<^sub>ex]) (v2[e/\<^sub>ex])"
   apply (auto simp add:evale typing defined)
   apply (metis EvalE_SubstE EvalE_def Op2E_rep_eq edtype_rel_def)
 done
 
 lemma SubstE_TrueE [usubst]:
-  "TrueE[e|x] = TrueE"
+  "TrueE[e/\<^sub>ex] = TrueE"
   by (utp_expr_tac)
 
 lemma SubstE_FalseE [usubst]:
-  "FalseE[e|x] = FalseE"
+  "FalseE[e/\<^sub>ex] = FalseE"
   by (utp_expr_tac)
 
 lemma SubstE_VarE [usubst]: 
-  "v \<rhd>\<^sub>e x \<Longrightarrow> VarE x[v|x] = v"
+  "v \<rhd>\<^sub>e x \<Longrightarrow> VarE x[v/\<^sub>ex] = v"
   by (utp_expr_tac)
 
 lemma SubstE_VarE_other [usubst]: 
-  "\<lbrakk> v \<rhd>\<^sub>e x; x \<noteq> y \<rbrakk> \<Longrightarrow> VarE y[v|x] = VarE y"
+  "\<lbrakk> v \<rhd>\<^sub>e x; x \<noteq> y \<rbrakk> \<Longrightarrow> VarE y[v/\<^sub>ex] = VarE y"
   by (utp_expr_tac)
 
 lemma SubstP_AssignR_1 [usubst]:
   "\<lbrakk> x \<in> UNDASHED; y \<in> UNDASHED; e \<rhd>\<^sub>e y; v \<rhd>\<^sub>e x; x \<noteq> y; 
      UNREST_EXPR DASHED e; UNREST_EXPR DASHED v \<rbrakk> 
-     \<Longrightarrow> (y :=p e)[v|x] = y,x :=p (e[v|x]),v"
+     \<Longrightarrow> (y :=\<^sub>R e)[v/\<^sub>px] = y,x :=\<^sub>R (e[v/\<^sub>ex]),v"
   apply (subgoal_tac "y\<acute> \<noteq> x")
   apply (subgoal_tac "x \<notin> {y,y\<acute>}")
   apply (simp add:AssignR_alt_def usubst unrest typing defined)

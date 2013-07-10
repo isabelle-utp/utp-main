@@ -7,7 +7,11 @@
 header {* Basic Expressions *}
 
 theory utp_expr
-imports utp_pred utp_unrest utp_sorts utp_rename
+imports 
+  utp_pred 
+  utp_unrest 
+  utp_sorts 
+  utp_rename
 begin
 
 type_synonym 'VALUE EXPRESSION = "('VALUE WF_BINDING_FUN)"
@@ -123,7 +127,7 @@ definition EqualP ::
  'VALUE WF_PREDICATE" where
 "EqualP e f = mkPRED {b. \<langle>e\<rangle>\<^sub>e b = \<langle>f\<rangle>\<^sub>e b}"
 
-notation EqualP (infixr "==p" 200)
+notation EqualP (infixr "==\<^sub>p" 200)
 
 definition LitE :: "'VALUE \<Rightarrow> 'VALUE WF_EXPRESSION" where 
 "LitE v = Abs_WF_EXPRESSION (if (\<exists> t. v : t) then (\<lambda> b. v) else (\<lambda> b. default someType))"
@@ -176,7 +180,8 @@ definition BotE :: "'VALUE::BOT_SORT UTYPE \<Rightarrow> 'VALUE WF_EXPRESSION" w
 definition CoerceE :: "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE UTYPE \<Rightarrow> 'VALUE WF_EXPRESSION" where
 "CoerceE e t \<equiv> if (e :\<^sub>e t) then e else DefaultE t"
 
-lift_definition VarE :: "'VALUE VAR \<Rightarrow> 'VALUE WF_EXPRESSION" is "\<lambda> x. (\<lambda> b. \<langle>b\<rangle>\<^sub>b x)"
+lift_definition VarE :: "'VALUE VAR \<Rightarrow> 'VALUE WF_EXPRESSION" ("$\<^sub>e_" [999] 999)
+is "\<lambda> x. (\<lambda> b. \<langle>b\<rangle>\<^sub>b x)"
   by (auto simp add:WF_EXPRESSION_def)
 
 definition AppE :: 
@@ -198,11 +203,11 @@ definition DefinedP :: "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_PREDICATE" 
 definition VarDefinedP :: "'VALUE VAR \<Rightarrow> 'VALUE WF_PREDICATE" ("\<V>") where
 "\<V> x \<equiv> DefinedP (VarE x)"
 
-lift_definition RenameE ::
-  "'VALUE WF_EXPRESSION \<Rightarrow>
-   'VALUE VAR_RENAME \<Rightarrow>
-   'VALUE WF_EXPRESSION" ("_[_]\<epsilon>" [200]) is
-"\<lambda> e ss. (\<langle>e\<rangle>\<^sub>e \<circ> (RenameB (inv\<^sub>s ss)))"
+lift_definition PermE ::
+  "'VALUE VAR_RENAME \<Rightarrow>
+   'VALUE WF_EXPRESSION \<Rightarrow>
+   'VALUE WF_EXPRESSION" is
+"\<lambda> ss e. (\<langle>e\<rangle>\<^sub>e \<circ> (RenameB (inv\<^sub>s ss)))"
 proof -
   fix e ss
   show "\<langle>e\<rangle>\<^sub>e \<circ> RenameB (inv\<^sub>s ss) \<in> WF_EXPRESSION"
@@ -212,11 +217,30 @@ proof -
   done
 qed
 
+abbreviation RenameE ::
+  "'VALUE WF_EXPRESSION \<Rightarrow>
+   'VALUE VAR_RENAME \<Rightarrow>
+   'VALUE WF_EXPRESSION" ("_[_]\<^sub>e" [200] 200) where
+"RenameE e ss \<equiv> PermE ss e"
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name permute} @{const_name PermE}
+*}
+
+definition PrimeE ::
+  "'VALUE WF_EXPRESSION \<Rightarrow>
+   'VALUE WF_EXPRESSION" where
+"PrimeE e = PermE (dash on UNDASHED) e"
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name prime} @{const_name PrimeE}
+*}
+
 lift_definition SubstE :: 
 "'VALUE WF_EXPRESSION \<Rightarrow> 
  'VALUE WF_EXPRESSION \<Rightarrow> 
  'VALUE VAR \<Rightarrow> 
- 'VALUE WF_EXPRESSION" ("_[_|_]" [200]) is
+ 'VALUE WF_EXPRESSION" ("_[_'/\<^sub>e_]" [200] 200) is
 "\<lambda> f v x. (\<lambda> b. \<langle>f\<rangle>\<^sub>e (b(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b)))"
   apply (simp add: WF_EXPRESSION_def)
   apply (metis Rep_WF_EXPRESSION_typed)
@@ -226,10 +250,10 @@ definition SubstP ::
 "'VALUE WF_PREDICATE \<Rightarrow> 
  'VALUE WF_EXPRESSION \<Rightarrow> 
  'VALUE VAR \<Rightarrow> 
- 'VALUE WF_PREDICATE" ("_[_|_]" [200]) where
-"p[v|x] \<equiv> mkPRED {b. b(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b) \<in> destPRED p}"
+ 'VALUE WF_PREDICATE" ("_[_'/\<^sub>p_]" [200] 200) where
+"SubstP p v x \<equiv> mkPRED {b. b(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b) \<in> destPRED p}"
 
-lemma SubstP_no_var: "\<lbrakk> UNREST {x} p; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[v|x] = p"
+lemma SubstP_no_var: "\<lbrakk> UNREST {x} p; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[v/\<^sub>px] = p"
   apply (simp add:SubstP_def)
   apply (auto simp add:UNREST_def)
   apply (metis (lifting) binding_compat binding_upd_simps binding_upd_upd evar_compat_def)
@@ -305,16 +329,24 @@ theorem CoerceE_type [typing]:
   by (simp add: CoerceE_def typing)
 
 theorem RenameE_type [typing]:
-  "e :\<^sub>e t \<Longrightarrow> e[ss]\<epsilon> :\<^sub>e t" 
-  by (simp add:etype_rel_def RenameE.rep_eq)
+  "e :\<^sub>e t \<Longrightarrow> (ss\<bullet>e) :\<^sub>e t" 
+  by (simp add:etype_rel_def PermE.rep_eq)
 
 theorem RenameE_ecompat [typing]:
-  "v \<rhd>\<^sub>e x \<Longrightarrow> v[SS]\<epsilon> \<rhd>\<^sub>e x"
-  by (simp add:evar_compat_def RenameE.rep_eq)
+  "v \<rhd>\<^sub>e x \<Longrightarrow> ss\<bullet>v \<rhd>\<^sub>e x"
+  by (simp add:evar_compat_def PermE.rep_eq)
+
+theorem PrimeE_type [typing]:
+  "e :\<^sub>e t \<Longrightarrow> e\<acute> :\<^sub>e t"
+  by (simp add:etype_rel_def PermE.rep_eq PrimeE_def)
+
+theorem PrimeE_ecompat [typing]:
+  "e \<rhd>\<^sub>e x \<Longrightarrow> e\<acute> \<rhd>\<^sub>e x"
+  by (simp add:evar_compat_def PermE.rep_eq PrimeE_def)
 
 theorem SubstE_type [typing]:
 "\<lbrakk> v :\<^sub>e vtype x; e :\<^sub>e t \<rbrakk> \<Longrightarrow>
- e[v|x] :\<^sub>e t"
+ e[v/\<^sub>ex] :\<^sub>e t"
   by (simp add:SubstE.rep_eq etype_rel_def WF_BINDING_update1)
 
 subsubsection {* Definedness Theorems *}
@@ -368,7 +400,7 @@ by (metis UNREST_EXPR_subset inf_sup_ord(4) sup_ge1)
 
 theorem UNREST_EqualP [unrest] :
 "\<lbrakk>UNREST_EXPR vs e; UNREST_EXPR vs f \<rbrakk> \<Longrightarrow>
- UNREST vs (e ==p f)"
+ UNREST vs (e ==\<^sub>p f)"
   apply (auto simp add:EqualP_def)
   apply (drule_tac ?vs2.0="vs" in UNREST_EXPR_subset)
   apply (simp_all)
@@ -379,7 +411,7 @@ done
 
 theorem UNREST_EqualP_alt [unrest] :
 "\<lbrakk>UNREST_EXPR vs1 e; UNREST_EXPR vs2 f \<rbrakk> \<Longrightarrow>
- UNREST (vs1 \<inter> vs2) (e ==p f)"
+ UNREST (vs1 \<inter> vs2) (e ==\<^sub>p f)"
   apply (auto simp add:EqualP_def)
   apply (drule_tac ?vs2.0="vs1 \<inter> vs2" in UNREST_EXPR_subset)
   apply (simp_all)
@@ -419,19 +451,34 @@ theorem UNREST_EXPR_CoerceE [unrest] :
 
 theorem UNREST_EXPR_RenameE [unrest] :
 "UNREST_EXPR vs p \<Longrightarrow>
- UNREST_EXPR (\<langle>ss\<rangle>\<^sub>s ` vs) p[ss]\<epsilon>"
-  by (auto simp add: UNREST_EXPR_def RenameE.rep_eq RenameB_override_distr1 closure)
+ UNREST_EXPR (\<langle>ss\<rangle>\<^sub>s ` vs) (ss\<bullet>p)"
+  by (auto simp add: UNREST_EXPR_def PermE.rep_eq RenameB_override_distr1 closure)
+
+theorem UNREST_EXPR_RenameE_alt [unrest] :
+"\<lbrakk> UNREST_EXPR (inv\<^sub>s ss `\<^sub>s vs) p \<rbrakk>   \<Longrightarrow>
+   UNREST_EXPR vs (ss\<bullet>p)"
+  by (auto simp add: UNREST_EXPR_def PermE.rep_eq RenameB_override_distr1 closure)
+
+theorem UNREST_EXPR_PrimeE [unrest] :
+"UNREST_EXPR vs e \<Longrightarrow>
+ UNREST_EXPR (\<langle>dash on UNDASHED\<rangle>\<^sub>s ` vs) e\<acute>"
+  by (auto intro:unrest simp add:PrimeE_def)
+
+theorem UNREST_EXPR_PrimeE_alt [unrest] :
+"UNREST_EXPR (\<langle>dash on UNDASHED\<rangle>\<^sub>s ` vs) e \<Longrightarrow>
+ UNREST_EXPR vs e\<acute>"
+  by (simp add:PrimeE_def urename closure unrest)
 
 theorem UNREST_EXPR_SubstE [unrest] :  
 "\<lbrakk> v \<rhd>\<^sub>e x; UNREST_EXPR vs1 e; UNREST_EXPR vs2 v; x \<notin> vs1; vs = (vs1 \<inter> vs2) \<rbrakk> \<Longrightarrow>
-      UNREST_EXPR vs e[v|x]"
+      UNREST_EXPR vs (e[v/\<^sub>ex])"
   apply (auto simp add:UNREST_EXPR_def SubstE.rep_eq evar_compat_def)
   apply (metis binding_override_simps(6) inf_commute)
 done
 
 theorem UNREST_SubstE_var [unrest] :  
    "\<lbrakk> v \<rhd>\<^sub>e x; UNREST_EXPR vs1 e; UNREST_EXPR vs2 v; x \<notin> vs1; x \<in> vs2 \<rbrakk> \<Longrightarrow>
-      UNREST_EXPR {x} e[v|x]"
+      UNREST_EXPR {x} (e[v/\<^sub>ex])"
   apply (auto simp add:SubstE.rep_eq UNREST_def UNREST_EXPR_def)
   apply (metis binding_compat binding_upd_override binding_upd_upd evar_compat_def)
 done
@@ -441,7 +488,7 @@ lemma dash_single_rename_func_on [closure]: "rename_func_on dash {x}"
 
 theorem UNREST_SubstP [unrest] :  
 "\<lbrakk> v \<rhd>\<^sub>e x; UNREST vs1 p; UNREST_EXPR vs2 v; x \<notin> vs1; vs = (vs1 \<inter> vs2) \<rbrakk> \<Longrightarrow>
-      UNREST vs p[v|x]"
+      UNREST vs (p[v/\<^sub>px])"
   apply (auto simp add:SubstP_def UNREST_def UNREST_EXPR_def)
   apply (drule_tac x="b1(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b1)" in bspec, simp)
   apply (drule_tac x="b1" in spec)
@@ -459,7 +506,7 @@ done
 
 theorem UNREST_SubstP_var [unrest] :  
    "\<lbrakk> v \<rhd>\<^sub>e x; UNREST_EXPR {x} v \<rbrakk> \<Longrightarrow>
-      UNREST {x} p[v|x]"
+      UNREST {x} (p[v/\<^sub>px])"
   apply (auto simp add:SubstP_def UNREST_def UNREST_EXPR_def)
   apply (metis binding_compat binding_upd_override binding_upd_upd evar_compat_def)
 done
@@ -475,7 +522,8 @@ subsection {* Boolean Expressions *}
 definition "TrueE \<equiv> LitE (MkBool True)"
 definition "FalseE \<equiv> LitE (MkBool False)"
 definition "ExprP e = LiftP (DestBool \<circ> \<langle>e\<rangle>\<^sub>e)"
-abbreviation "VarP x \<equiv> ExprP (VarE x)"
+abbreviation VarP :: "'a::BOOL_SORT VAR \<Rightarrow> 'a WF_PREDICATE" ("$\<^sub>p_" [999] 999) where
+"VarP x \<equiv> ExprP (VarE x)"
 
 lift_definition PredE :: "'VALUE::BOOL_SORT WF_PREDICATE \<Rightarrow> 'VALUE WF_EXPRESSION" is "\<lambda> p. \<lambda> b. MkBool (b \<in> destPRED p)"
   by (auto intro:typing simp add:WF_EXPRESSION_def)

@@ -14,6 +14,19 @@ imports
 (* utp_pred "../tactics/utp_pred_tac" *)
 begin
 
+subsection {* Permutation Polymorphic Constant *}
+
+default_sort type
+
+consts
+  permute  :: "'r \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "\<bullet>" 80)
+
+setup {*
+  Adhoc_Overloading.add_overloaded @{const_name permute}
+*}
+
+default_sort VALUE
+
 subsection {* Variable Renaming *}
 
 text {* Renamings are total bijections that respect typing. *}
@@ -39,6 +52,10 @@ lemma Rep_VAR_RENAME_elim [elim]:
 setup_lifting type_definition_VAR_RENAME
 
 notation Rep_VAR_RENAME ("\<langle>_\<rangle>\<^sub>s")
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name permute} @{const_name Rep_VAR_RENAME}
+*}
 
 lemma Rep_VAR_RENAME_bij [simp]: "bij \<langle>ss\<rangle>\<^sub>s"
   apply (insert Rep_VAR_RENAME[of ss])
@@ -540,6 +557,18 @@ lemma rename_on_image:
   apply (simp)
 done
 
+lemma rename_on_perm1:
+  fixes x :: "'a VAR"
+  assumes "rename_func_on f vs" "x \<in> vs"
+  shows "(f on vs)\<bullet>x = f x"
+  by (simp add:rename_on_rep_eq assms)
+
+lemma rename_on_perm2:
+  fixes x :: "'a VAR"
+  assumes "rename_func_on f vs" "x \<notin> vs" "x \<in> f ` vs"
+  shows "(f on vs)\<bullet>x = inv_into vs f x"
+  by (simp add:rename_on_rep_eq assms)
+
 text {* More theorems about @{term "VAR_RENAME"} *}
 
 lemma VAR_RENAME_MapRename [closure]:
@@ -768,8 +797,12 @@ definition RenameB ::
    'VALUE WF_BINDING" where
 "RenameB ss b = CompB b (inv\<^sub>s ss)"
 
+setup {*
+Adhoc_Overloading.add_variant @{const_name permute} @{const_name RenameB}
+*}
+
 lemma RenameB_rep_eq [simp]:
-  "\<langle>RenameB ss b\<rangle>\<^sub>b = \<langle>b\<rangle>\<^sub>b \<circ> inv \<langle>ss\<rangle>\<^sub>s"
+  "\<langle>ss \<bullet> b\<rangle>\<^sub>b = \<langle>b\<rangle>\<^sub>b \<circ> inv \<langle>ss\<rangle>\<^sub>s"
   by (simp add:RenameB_def)
 
 subsection {* Building renamings from a partial map *}
@@ -849,22 +882,25 @@ lemma WF_BINDING_VAR_RENAME [closure]: "\<langle>b\<rangle>\<^sub>b \<circ> inv 
   by (metis Rep_VAR_RENAME Rep_WF_BINDING VAR_RENAME_WF_BINDING VAR_RENAME_inv)
 
 theorem RenameB_inject [simp]:
-  "(RenameB ss b1 = RenameB ss b2) = (b1 = b2)"
+  fixes b1 :: "'a WF_BINDING" 
+  shows "(ss\<bullet>b1 = ss\<bullet>b2) = (b1 = b2)"
   by (force simp add:RenameB_def CompB_rep_eq)
 
 theorem RenameB_id [simp] :
-"RenameB id\<^sub>s b = b"
+  fixes b :: "'a WF_BINDING" 
+  shows "id\<^sub>s\<bullet>b = b"
   by (auto simp add: RenameB_def CompB_rep_eq closure)
 
 theorem RenameB_compose :
-"RenameB ss1 (RenameB ss2 b) = RenameB (ss1 \<circ>\<^sub>s ss2) b"
+  fixes b :: "'a WF_BINDING" 
+  shows "ss1\<bullet>(ss2\<bullet>b) = (ss1 \<circ>\<^sub>s ss2)\<bullet>b"
   by (auto simp add: RenameB_def closure o_assoc CompB_rep_eq)
 
 theorem RenameB_commute :
 "\<lbrakk>ss1 \<in> VAR_RENAME_ON vs1;
  ss2 \<in> VAR_RENAME_ON vs2;
  vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
- RenameB ss1 (RenameB ss2 b) = RenameB ss2 (RenameB ss1 b)"
+ ss1\<bullet>ss2\<bullet>(b :: 'a WF_BINDING) = ss2\<bullet>ss1\<bullet>b"
 apply (simp add: RenameB_compose)
 apply (subgoal_tac "ss1 \<circ>\<^sub>s ss2 = ss2 \<circ>\<^sub>s ss1")
 apply (simp)
@@ -872,15 +908,17 @@ apply (metis Rep_VAR_RENAME_inverse VAR_RENAME_ON_commute rename_comp_rep_eq)
 done
 
 theorem RenameB_inv_cancel1 [simp] :
-"RenameB (inv\<^sub>s ss) (RenameB ss b) = b"
+  fixes b :: "'a WF_BINDING" 
+  shows "(inv\<^sub>s ss)\<bullet>ss\<bullet>b = b"
   by (force simp add: RenameB_def closure CompB_rep_eq)
 
 theorem RenameB_inv_cancel2 [simp] :
-"RenameB ss (RenameB (inv\<^sub>s ss) b) = b"
+  fixes b :: "'a WF_BINDING" 
+  shows "ss\<bullet>(inv\<^sub>s ss)\<bullet>b = b"
   by (force simp add: RenameB_def closure CompB_rep_eq)
 
 theorem RenameB_override_distr1 :
-"RenameB ss (b1 \<oplus>\<^sub>b b2 on vs) = (RenameB ss b1) \<oplus>\<^sub>b (RenameB ss b2) on (\<langle>ss\<rangle>\<^sub>s ` vs)"
+"ss\<bullet>(b1 \<oplus>\<^sub>b b2 on vs) = (ss\<bullet>b1) \<oplus>\<^sub>b (ss\<bullet>b2) on (\<langle>ss\<rangle>\<^sub>s ` vs)"
 apply (simp add: RenameB_def closure)
 apply (rule Rep_WF_BINDING_intro)
 apply (simp add: closure CompB_rep_eq)
@@ -893,14 +931,13 @@ apply (simp_all)
 done
 
 theorem RenameB_override_distr2 :
-"(RenameB ss b1) \<oplus>\<^sub>b (RenameB ss b2) on (\<langle>ss\<rangle>\<^sub>s ` vs) = RenameB ss (b1 \<oplus>\<^sub>b b2 on vs)"
-apply (simp add: RenameB_override_distr1)
-done
+"(ss\<bullet>b1) \<oplus>\<^sub>b (ss\<bullet>b2) on (\<langle>ss\<rangle>\<^sub>s ` vs) = ss\<bullet>(b1 \<oplus>\<^sub>b b2 on vs)"
+  by (simp add: RenameB_override_distr1)
 
 theorem RenameB_override_distr3 :
 "\<lbrakk>ss \<in> VAR_RENAME_ON vs1;
  vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
- RenameB ss (b1 \<oplus>\<^sub>b b2 on vs2) = (RenameB ss b1) \<oplus>\<^sub>b (RenameB ss b2) on vs2"
+ ss\<bullet>(b1 \<oplus>\<^sub>b b2 on vs2) = (RenameB ss b1) \<oplus>\<^sub>b (RenameB ss b2) on vs2"
 apply (subst RenameB_override_distr1 [of ss b1 b2 vs2])
 apply (metis VAR_RENAME_ON_disj_image rename_image_def)
 done

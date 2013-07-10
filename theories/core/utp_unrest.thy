@@ -130,7 +130,7 @@ done
 
 theorem UNREST_EqualsP [unrest]:
 "v \<notin> vs \<Longrightarrow>
- UNREST vs (v =p x)"
+ UNREST vs (v =\<^sub>p x)"
 apply (simp add: EqualsP_def)
 apply (rule UNREST_LiftP_2[of _ "{v}"])
 apply (auto simp add: WF_BINDING_PRED_def)
@@ -146,7 +146,7 @@ theorem UNREST_FalseP [unrest]:
 
 theorem UNREST_NotP [unrest]:
 "\<lbrakk>UNREST vs p\<rbrakk> \<Longrightarrow>
- UNREST vs (\<not>p p)"
+ UNREST vs (\<not>\<^sub>p p)"
 apply (simp add: UNREST_def NotP.rep_eq)
 apply (auto)
 apply (drule_tac x = "b1 \<oplus>\<^sub>b b2 on vs" in bspec)
@@ -158,25 +158,25 @@ done
 theorem UNREST_AndP [unrest]:
 "\<lbrakk>UNREST vs p1;
  UNREST vs p2\<rbrakk> \<Longrightarrow>
- UNREST vs (p1 \<and>p p2)"
+ UNREST vs (p1 \<and>\<^sub>p p2)"
   by (simp add: UNREST_def AndP_def)
 
 theorem UNREST_AndP_alt [unrest]:
 "\<lbrakk>UNREST vs1 p1;
  UNREST vs2 p2\<rbrakk> \<Longrightarrow>
- UNREST (vs1 \<inter> vs2) (p1 \<and>p p2)"
+ UNREST (vs1 \<inter> vs2) (p1 \<and>\<^sub>p p2)"
 by (simp add: unrest)
 
 theorem UNREST_OrP [unrest]:
 "\<lbrakk>UNREST vs p1;
  UNREST vs p2\<rbrakk> \<Longrightarrow>
- UNREST vs (p1 \<or>p p2)"
+ UNREST vs (p1 \<or>\<^sub>p p2)"
   by (auto simp add: UNREST_def OrP_def)
 
 theorem UNREST_ImpliesP [unrest]:
 "\<lbrakk>UNREST vs p1;
  UNREST vs p2\<rbrakk> \<Longrightarrow>
- UNREST vs (p1 \<Rightarrow>p p2)"
+ UNREST vs (p1 \<Rightarrow>\<^sub>p p2)"
 apply (simp add: ImpliesP_def)
 apply (auto intro: UNREST_OrP UNREST_NotP closure)
 done
@@ -184,14 +184,14 @@ done
 theorem UNREST_IffP [unrest]:
 "\<lbrakk>UNREST vs p1;
  UNREST vs p2\<rbrakk> \<Longrightarrow>
- UNREST vs (p1 \<Leftrightarrow>p p2)"
+ UNREST vs (p1 \<Leftrightarrow>\<^sub>p p2)"
 apply (simp add: IffP_def)
 apply (auto intro: UNREST_ImpliesP UNREST_AndP closure)
 done
 
 theorem UNREST_ExistsP [unrest]:
 "\<lbrakk>UNREST vs1 p; vs = vs1 \<union> vs2\<rbrakk> \<Longrightarrow>
- UNREST vs (\<exists>p vs2 . p)"
+ UNREST vs (\<exists>\<^sub>p vs2 . p)"
 apply (simp add: UNREST_def ExistsP_def)
 apply (clarify)
 apply (simp)
@@ -204,48 +204,48 @@ done
 
 theorem UNREST_ForallP [unrest]:
 "\<lbrakk>UNREST vs1 p; vs = vs1 \<union> vs2\<rbrakk> \<Longrightarrow>
- UNREST vs (\<forall>p vs2 . p)"
+ UNREST vs (\<forall>\<^sub>p vs2 . p)"
 apply (simp add: ForallP_def)
 apply (auto intro: UNREST_ExistsP UNREST_NotP closure)
 done
 
 theorem UNREST_ExistsP_simple [unrest]:
 "\<lbrakk>vs1 \<subseteq> vs2\<rbrakk> \<Longrightarrow>
- UNREST vs1 (\<exists>p vs2 . p)"
+ UNREST vs1 (\<exists>\<^sub>p vs2 . p)"
 apply (insert UNREST_ExistsP [of "{}" "p" "vs2"])
 apply (simp add: UNREST_empty)
 apply (auto intro: UNREST_subset closure)
 done
 
 theorem UNREST_ExistsP_simple' [unrest]:
-  "UNREST vs1 p \<Longrightarrow> UNREST vs1 (\<exists>p vs2. p)"
+  "UNREST vs1 p \<Longrightarrow> UNREST vs1 (\<exists>\<^sub>p vs2. p)"
   by (metis UNREST_ExistsP UNREST_subset sup_ge1)
 
 theorem UNREST_ForallP_simple [unrest]:
 "\<lbrakk>vs1 \<subseteq> vs2\<rbrakk> \<Longrightarrow>
- UNREST vs1 (\<forall>p vs2 . p)"
+ UNREST vs1 (\<forall>\<^sub>p vs2 . p)"
 apply (insert UNREST_ForallP [of "{}" "p" "vs2"])
 apply (simp add: UNREST_empty)
 apply (auto intro: UNREST_subset closure)
 done
 
 theorem UNREST_ClosureP [unrest]:
-"UNREST vs [p]p"
+"UNREST vs [p]\<^sub>p"
 apply (simp add: ClosureP_def)
 apply (metis UNREST_ForallP_simple VAR_subset)
 done
 
 theorem UNREST_RefP [unrest]:
-"UNREST vs (p1 \<sqsubseteq>p p2)"
+"UNREST vs (p1 \<sqsubseteq>\<^sub>p p2)"
 apply (simp add: RefP_def)
 apply (auto intro: UNREST_ClosureP closure)
 done
 
 theorem UNREST_RenameP [unrest]:
 "\<lbrakk> UNREST vs1 p; vs2 = \<langle>ss\<rangle>\<^sub>s ` vs1 \<rbrakk> \<Longrightarrow>
- UNREST vs2 p[ss]"
+ UNREST vs2 (p[ss]\<^sub>p)"
 apply (simp add: UNREST_def)
-apply (simp add: RenameP_def)
+apply (simp add: PermP.rep_eq)
 apply (safe)
 apply (drule_tac x = "b1" in bspec)
 apply (assumption)
@@ -273,29 +273,25 @@ done
 theorem UNREST_ExistsP_alt [unrest]:
 "\<lbrakk>UNREST vs1 p;
  vs3 \<subseteq> vs1 \<union> vs2\<rbrakk> \<Longrightarrow>
- UNREST vs3 (\<exists>p vs2 . p)"
-apply (auto intro: UNREST_ExistsP UNREST_subset simp: closure)
-done
+ UNREST vs3 (\<exists>\<^sub>p vs2 . p)"
+  by (auto intro: UNREST_ExistsP UNREST_subset simp: closure)
 
 theorem UNREST_ExistsP_minus [unrest]:
 "\<lbrakk>UNREST (vs1 - vs2) p\<rbrakk> \<Longrightarrow>
- UNREST vs1 (\<exists>p vs2 . p)"
-apply (auto intro: UNREST_ExistsP UNREST_subset simp: closure)
-done
+ UNREST vs1 (\<exists>\<^sub>p vs2 . p)"
+  by (auto intro: UNREST_ExistsP UNREST_subset simp: closure)
 
 theorem UNREST_ForallP_alt [unrest]:
 "\<lbrakk>UNREST vs1 p;
  vs3 \<subseteq> vs1 \<union> vs2\<rbrakk> \<Longrightarrow>
- UNREST vs3 (\<forall>p vs2 . p)"
-apply (auto intro: UNREST_ForallP UNREST_subset simp: closure)
-done
+ UNREST vs3 (\<forall>\<^sub>p vs2 . p)"
+  by (auto intro: UNREST_ForallP UNREST_subset simp: closure)
 
 theorem UNREST_RenameP_alt [unrest]:
 "\<lbrakk>UNREST vs1 p;
  vs2 \<subseteq> (\<langle>ss\<rangle>\<^sub>s ` vs1)\<rbrakk> \<Longrightarrow>
- UNREST vs2 p[ss]"
-apply (auto intro: UNREST_RenameP UNREST_subset simp: closure)
-done
+ UNREST vs2 (p[ss]\<^sub>p)"
+  by (auto intro: UNREST_RenameP UNREST_subset simp: closure)
 
 (*
 theorem UNREST_RenameP_single :

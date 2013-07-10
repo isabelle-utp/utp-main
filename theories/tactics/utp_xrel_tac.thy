@@ -255,18 +255,18 @@ lemma EvalRX_FalseP [evalrx]: "\<lbrakk>false\<rbrakk>RX = {}"
   by (auto simp add:EvalRX_def image_def FalseP.rep_eq)
 
 lemma EvalRX_AndP [evalrx]: 
-  "\<lbrakk>p \<in> WF_RELATION; q \<in> WF_RELATION\<rbrakk> \<Longrightarrow> \<lbrakk>p \<and>p q\<rbrakk>RX = \<lbrakk>p\<rbrakk>RX \<inter> \<lbrakk>q\<rbrakk>RX"
+  "\<lbrakk>p \<in> WF_RELATION; q \<in> WF_RELATION\<rbrakk> \<Longrightarrow> \<lbrakk>p \<and>\<^sub>p q\<rbrakk>RX = \<lbrakk>p\<rbrakk>RX \<inter> \<lbrakk>q\<rbrakk>RX"
   apply (auto simp add:EvalRX_def AndP.rep_eq image_def WF_RELATION_def UNREST_def)
   apply (drule BindRX_inj)
   apply (metis Int_iff UNDASHED_DASHED_NON_REL_VAR binding_override_equiv binding_override_minus binding_override_simps(2) binding_override_simps(3))
 done
 
 lemma EvalRX_OrP [evalrx]: 
-  "\<lbrakk>p \<or>p q\<rbrakk>RX = \<lbrakk>p\<rbrakk>RX \<union> \<lbrakk>q\<rbrakk>RX"
+  "\<lbrakk>p \<or>\<^sub>p q\<rbrakk>RX = \<lbrakk>p\<rbrakk>RX \<union> \<lbrakk>q\<rbrakk>RX"
   by (auto simp add:EvalRX_def OrP.rep_eq image_def WF_RELATION_def UNREST_def)
 
 lemma EvalRX_NotP [evalrx]:
-  "p \<in> WF_RELATION \<Longrightarrow> \<lbrakk>\<not>p p\<rbrakk>RX = - \<lbrakk>p\<rbrakk>RX"
+  "p \<in> WF_RELATION \<Longrightarrow> \<lbrakk>\<not>\<^sub>p p\<rbrakk>RX = - \<lbrakk>p\<rbrakk>RX"
   apply (auto simp add:EvalRX_def NotP.rep_eq image_def BindRX_def WF_RELATION_def UNREST_def)
   apply (metis (hide_lams, no_types) BindRX_def BindRX_inverse UNDASHED_DASHED_NON_REL_VAR binding_equiv_override binding_override_minus binding_override_simps(2))
   apply (metis BindPX_inverse BindRX_def Compl_iff)
@@ -288,7 +288,7 @@ done
 
 lemma EvalRX_SkipRA [evalrx]: 
   "\<lbrakk> vs \<subseteq> UNDASHED \<union> DASHED; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow>
-     \<lbrakk>II vs\<rbrakk>RX = {(b1,b2) | b1 b2. \<forall> x \<in> vs. \<langle>\<langle>b1\<rangle>\<^sub>x\<rangle>\<^sub>b x = \<langle>\<langle>b2\<rangle>\<^sub>x\<rangle>\<^sub>b x}"
+     \<lbrakk>II\<^bsub>vs\<^esub>\<rbrakk>RX = {(b1,b2) | b1 b2. \<forall> x \<in> vs. \<langle>\<langle>b1\<rangle>\<^sub>x\<rangle>\<^sub>b x = \<langle>\<langle>b2\<rangle>\<^sub>x\<rangle>\<^sub>b x}"
   apply (auto)
   apply (auto simp add:EvalRX_def SkipRA_rep_eq_alt image_Collect BindRX_def RenameB_rep_eq)[1]
   apply (smt SS_UNDASHED_app Un_iff comp_apply in_member in_mono override_on_def)
@@ -357,7 +357,7 @@ done
 
 lemma EvalRX_ConvR [evalrx]:
 "\<lbrakk>p\<^sup>\<smile>\<rbrakk>RX = \<lbrakk>p\<rbrakk>RX\<inverse>"
-  by (auto simp add: EvalRX_def ConvR_def RenameP.rep_eq BindRX_def urename closure image_def)
+  by (auto simp add: EvalRX_def ConvR_def PermP.rep_eq BindRX_def urename closure image_def)
 
 lemma Rep_WF_EXPRESSION_compat [typing]: 
   "v \<rhd>\<^sub>e x \<Longrightarrow> \<langle>v\<rangle>\<^sub>e b \<rhd> x"
@@ -365,7 +365,7 @@ lemma Rep_WF_EXPRESSION_compat [typing]:
 
 theorem EvalRX_AssignR [evalrx] :
 "\<lbrakk> x \<in> UNDASHED; e \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<union> NON_REL_VAR) e \<rbrakk> \<Longrightarrow> 
-  \<lbrakk>x :=p e\<rbrakk>RX = {(b, b(x:=\<^sub>x(\<lbrakk>e\<rbrakk>\<epsilon> \<langle>b\<rangle>\<^sub>x))) | b. True}"
+  \<lbrakk>x :=\<^sub>R e\<rbrakk>RX = {(b, b(x:=\<^sub>x(\<lbrakk>e\<rbrakk>\<^sub>e \<langle>b\<rangle>\<^sub>x))) | b. True}"
   apply (simp add:EvalRX_def AssignsR.rep_eq IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq image_Collect)
   apply (simp add: set_eq_iff)
   apply (safe)
@@ -385,7 +385,7 @@ done
 
 theorem EvalRX_AssignR_alt [evalrx] :
 "\<lbrakk> x \<in> UNDASHED; e \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<union> NON_REL_VAR) e \<rbrakk> \<Longrightarrow> 
-  \<lbrakk>x :=p e\<rbrakk>RX = {(b1, b2). \<forall> v \<in> UNDASHED. if (v = x) then (\<langle>\<langle>b2\<rangle>\<^sub>x\<rangle>\<^sub>b v = \<lbrakk>e\<rbrakk>\<epsilon> \<langle>b1\<rangle>\<^sub>x) 
+  \<lbrakk>x :=\<^sub>R e\<rbrakk>RX = {(b1, b2). \<forall> v \<in> UNDASHED. if (v = x) then (\<langle>\<langle>b2\<rangle>\<^sub>x\<rangle>\<^sub>b v = \<lbrakk>e\<rbrakk>\<^sub>e \<langle>b1\<rangle>\<^sub>x) 
                                                       else \<langle>\<langle>b2\<rangle>\<^sub>x\<rangle>\<^sub>b v = \<langle>\<langle>b1\<rangle>\<^sub>x\<rangle>\<^sub>b v}"
   apply (simp add:evalrx typing)
   apply (safe)
@@ -396,7 +396,7 @@ theorem EvalRX_AssignR_alt [evalrx] :
 done
 
 lemma EvalRX_ExprP_UNDASHED [evalrx]:
-  "UNREST_EXPR (DASHED \<union> NON_REL_VAR) e \<Longrightarrow> \<lbrakk>ExprP e\<rbrakk>RX = {(b1, b2) | b1 b2. DestBool (\<lbrakk>e\<rbrakk>\<epsilon>\<langle>b1\<rangle>\<^sub>x) }"
+  "UNREST_EXPR (DASHED \<union> NON_REL_VAR) e \<Longrightarrow> \<lbrakk>ExprP e\<rbrakk>RX = {(b1, b2) | b1 b2. DestBool (\<lbrakk>e\<rbrakk>\<^sub>e\<langle>b1\<rangle>\<^sub>x) }"
   apply (auto simp add:EvalRX_def ExprP_def LiftP_def BindRX_def EvalE_def image_def)
   apply (rule_tac x="\<langle>b1\<rangle>\<^sub>x \<oplus>\<^sub>b RenameB SS \<langle>b2\<rangle>\<^sub>x on DASHED" in exI)
   apply (auto)
@@ -411,10 +411,11 @@ lemma EvalRX_ExprP_UNDASHED [evalrx]:
 done
 
 lemma EvalRX_ExprP_DASHED [evalrx]:
-  "UNREST_EXPR (UNDASHED \<union> NON_REL_VAR) e \<Longrightarrow> \<lbrakk>ExprP e\<rbrakk>RX = {(b1, b2) | b1 b2. DestBool (\<lbrakk>e\<rbrakk>\<epsilon>(RenameB SS \<langle>b2\<rangle>\<^sub>x)) }"
+  "UNREST_EXPR (UNDASHED \<union> NON_REL_VAR) e \<Longrightarrow> 
+   \<lbrakk>ExprP e\<rbrakk>RX = {(b1, b2) | b1 b2. DestBool (\<lbrakk>e\<rbrakk>\<^sub>e(SS\<bullet>\<langle>b2\<rangle>\<^sub>x)) }"
   apply (auto simp add:EvalRX_def ExprP_def LiftP_def BindRX_def EvalE_def closure RenameB_override_distr1 urename)
   apply (auto simp add:image_def BindRX_def)
-  apply (rule_tac x="\<langle>xa\<rangle>\<^sub>x \<oplus>\<^sub>b RenameB SS \<langle>y\<rangle>\<^sub>x on DASHED" in exI)
+  apply (rule_tac x="\<langle>xa\<rangle>\<^sub>x \<oplus>\<^sub>b (SS\<bullet>\<langle>y\<rangle>\<^sub>x) on DASHED" in exI)
   apply (auto)
   apply (smt RenameB_def SS_inv UNDASHED_DASHED_NON_REL_VAR UNREST_EXPR_def Un_assoc Un_commute binding_override_assoc binding_override_minus binding_override_simps(2))
   apply (rule, simp)
@@ -427,7 +428,8 @@ lemma EvalRX_ExprP_DASHED [evalrx]:
 done
 
 lemma EvalRX_VarP_UNDASHED [evalrx]:
-  "\<lbrakk> vtype x = BoolType; aux x; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> \<lbrakk>VarP x\<rbrakk>RX = {(b1, b2) | b1 b2. \<langle>\<langle>b1\<rangle>\<^sub>x\<rangle>\<^sub>b x = TrueV}"
+  "\<lbrakk> vtype x = BoolType; aux x; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> 
+    \<lbrakk>$\<^sub>px\<rbrakk>RX = {(b1, b2) | b1 b2. \<langle>\<langle>b1\<rangle>\<^sub>x\<rangle>\<^sub>b x = TrueV}"
   apply (rule trans)
   apply (rule EvalRX_ExprP_UNDASHED)
   apply (rule unrest)
@@ -439,7 +441,8 @@ lemma EvalRX_VarP_UNDASHED [evalrx]:
 done
 
 lemma EvalRX_VarP_DASHED [evalrx]:
-  "\<lbrakk> vtype x = BoolType; aux x; x \<in> DASHED \<rbrakk> \<Longrightarrow> \<lbrakk>VarP x\<rbrakk>RX = {(b1, b2) | b1 b2. \<langle>\<langle>b2\<rangle>\<^sub>x\<rangle>\<^sub>b (undash x) = TrueV}"
+  "\<lbrakk> vtype x = BoolType; aux x; x \<in> DASHED \<rbrakk> \<Longrightarrow> 
+    \<lbrakk>$\<^sub>px\<rbrakk>RX = {(b1, b2) | b1 b2. \<langle>\<langle>b2\<rangle>\<^sub>x\<rangle>\<^sub>b (undash x) = TrueV}"
   apply (rule trans)
   apply (rule EvalRX_ExprP_DASHED)
   apply (auto intro: unrest)[1]
@@ -451,7 +454,7 @@ done
 
 theorem EvalR_EqualP_UNDASHED [evalrx]:
   "\<lbrakk> UNREST_EXPR (DASHED \<union> NON_REL_VAR) e; UNREST_EXPR (DASHED \<union> NON_REL_VAR) f \<rbrakk> \<Longrightarrow>
-     \<lbrakk>EqualP e f\<rbrakk>RX = {(b1, b2) |b1 b2. (\<lbrakk>e\<rbrakk>\<epsilon> \<langle>b1\<rangle>\<^sub>x = \<lbrakk>f\<rbrakk>\<epsilon> \<langle>b1\<rangle>\<^sub>x)}"
+     \<lbrakk>e ==\<^sub>p f\<rbrakk>RX = {(b1, b2) |b1 b2. (\<lbrakk>e\<rbrakk>\<^sub>e \<langle>b1\<rangle>\<^sub>x = \<lbrakk>f\<rbrakk>\<^sub>e \<langle>b1\<rangle>\<^sub>x)}"
   apply (auto simp add:EvalRX_def EqualP_def EvalE_def)
   apply (metis BindRX_def BindRX_left_XREL MkXRelB_inverse UNREST_EXPR_def)
   apply (simp add:image_Collect)
@@ -463,14 +466,14 @@ done
 
 theorem EvalR_EqualP_DASHED [evalrx]:
   "\<lbrakk> UNREST_EXPR (DASHED \<union> NON_REL_VAR) e; UNREST_EXPR (DASHED \<union> NON_REL_VAR) f \<rbrakk> \<Longrightarrow>
-     \<lbrakk>`e\<acute> = f\<acute>`\<rbrakk>RX = {(b1, b2) |b1 b2. (\<lbrakk>e\<rbrakk>\<epsilon> \<langle>b2\<rangle>\<^sub>x = \<lbrakk>f\<rbrakk>\<epsilon> \<langle>b2\<rangle>\<^sub>x)}"
+     \<lbrakk>e\<acute> ==\<^sub>p f\<acute>\<rbrakk>RX = {(b1, b2) |b1 b2. (\<lbrakk>e\<rbrakk>\<^sub>e \<langle>b2\<rangle>\<^sub>x = \<lbrakk>f\<rbrakk>\<^sub>e \<langle>b2\<rangle>\<^sub>x)}"
   apply (auto simp add:EvalRX_def EqualP_def EvalE_def)
   apply (auto simp add:BindRX_def)
-  apply (metis (hide_lams, no_types) RenameE.rep_eq SS_inv comp_apply)
+  apply (metis (hide_lams, no_types) PermE.rep_eq PrimeE_def SS_inv comp_apply)
   apply (simp add:image_Collect)
   apply (rule_tac x="BindPX (xa, y)" in exI)
   apply (simp)
-  apply (simp add: BindPX_def UNREST_EXPR_def RenameE.rep_eq RenameB_override_distr1 urename RenameB_compose closure)
+  apply (simp add: BindPX_def UNREST_EXPR_def PermE.rep_eq PrimeE_def RenameB_override_distr1 urename RenameB_compose closure)
   apply (metis UNDASHED_DASHED_inter(15) binding_override_assoc binding_override_minus binding_override_simps(1) binding_override_simps(2))
 done
 
@@ -495,7 +498,7 @@ lemma union_minus: "(x \<union> y) - z = (x - z) \<union> (y - z)"
 
 theorem EvalRX_SubstP_UNDASHED [evalrx] :
 "\<lbrakk> p \<in> WF_RELATION; x \<in> UNDASHED; e \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<union> NON_REL_VAR) e \<rbrakk> \<Longrightarrow> 
-  \<lbrakk>p[e|x]\<rbrakk>RX = {(b1, b2) | b1 b2. (b1(x :=\<^sub>x \<lbrakk>e\<rbrakk>\<epsilon>\<langle>b1\<rangle>\<^sub>x), b2) \<in> \<lbrakk>p\<rbrakk>RX}"
+  \<lbrakk>p[e/\<^sub>px]\<rbrakk>RX = {(b1, b2) | b1 b2. (b1(x :=\<^sub>x \<lbrakk>e\<rbrakk>\<^sub>e\<langle>b1\<rangle>\<^sub>x), b2) \<in> \<lbrakk>p\<rbrakk>RX}"
   apply (simp add: EvalRX_def EvalE_def SubstP_def image_Collect union_minus)
   apply (auto simp add:image_def)
   apply (rule_tac x="BindPX (a(x :=\<^sub>x \<langle>e\<rangle>\<^sub>e \<langle>a\<rangle>\<^sub>x), b)" in bexI)
@@ -523,7 +526,7 @@ done
 
 theorem EvalRX_SubstP_DASHED [evalrx] :
 "\<lbrakk> p \<in> WF_RELATION; x \<in> UNDASHED; e \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<union> NON_REL_VAR) e \<rbrakk> \<Longrightarrow> 
-  \<lbrakk>`p[e\<acute>/x\<acute>]`\<rbrakk>RX = {(b1, b2) | b1 b2. (b1, b2(x :=\<^sub>x \<lbrakk>e\<rbrakk>\<epsilon>\<langle>b2\<rangle>\<^sub>x)) \<in> \<lbrakk>p\<rbrakk>RX}"
+  \<lbrakk>p[e\<acute>/\<^sub>px\<acute>]\<rbrakk>RX = {(b1, b2) | b1 b2. (b1, b2(x :=\<^sub>x \<lbrakk>e\<rbrakk>\<^sub>e\<langle>b2\<rangle>\<^sub>x)) \<in> \<lbrakk>p\<rbrakk>RX}"
   apply (simp add: EvalRX_def EvalE_def SubstP_def image_Collect)
   apply (auto simp add:image_def)
   apply (rule_tac x="BindPX (a, b(x :=\<^sub>x \<langle>e\<rangle>\<^sub>e \<langle>b\<rangle>\<^sub>x))" in bexI)
@@ -593,23 +596,22 @@ method_setup utp_xrel_auto_tac = {*
 
 lemma 
   "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; c \<in> WF_RELATION; (c ; true = c) \<rbrakk> 
-    \<Longrightarrow> p ; (c \<and>p q) = (p \<and>p c\<^sup>\<smile>) ; q"
+    \<Longrightarrow> p ; (c \<and>\<^sub>p q) = (p \<and>\<^sub>p c\<^sup>\<smile>) ; q"
   by (utp_xrel_auto_tac)
 
 lemma 
   "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; c \<in> WF_RELATION; (true ; c = c) \<rbrakk> \<Longrightarrow>
-  (p \<and>p c) ; q = p ; (c\<^sup>\<smile> \<and>p q)"
+  (p \<and>\<^sub>p c) ; q = p ; (c\<^sup>\<smile> \<and>\<^sub>p q)"
   by (utp_xrel_auto_tac)
 
 (* De Morgan *)
 
-
 lemma
-  "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> (p\<^sup>\<smile> ; \<not>p (p ; q)) \<or>p \<not>p q = \<not>p q"
+  "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> (p\<^sup>\<smile> ; \<not>\<^sub>p (p ; q)) \<or>\<^sub>p \<not>\<^sub>p q = \<not>\<^sub>p q"
   by (utp_xrel_auto_tac)
 
 
-lemma "\<lbrakk> x \<in> UNDASHED; x \<in> xs; xs \<subseteq> UNDASHED \<union> DASHED; HOMOGENEOUS xs; v \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<union> NON_REL_VAR) v \<rbrakk> \<Longrightarrow> x :=p v ; II xs = x :=p v"
+lemma "\<lbrakk> x \<in> UNDASHED; x \<in> xs; xs \<subseteq> UNDASHED \<union> DASHED; HOMOGENEOUS xs; v \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<union> NON_REL_VAR) v \<rbrakk> \<Longrightarrow> x :=\<^sub>R v ; II\<^bsub>xs\<^esub> = x :=\<^sub>R v"
   oops
 
 end

@@ -19,7 +19,7 @@ definition J_pred_rea :: "'VALUE WF_PREDICATE" ("J\<^bsub>rea\<^esub>") where
 
 abbreviation wait_false :: 
   "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" ("_\<^sub>f"[150]) where
-"p\<^sub>f \<equiv> `p[false/wait]`"
+"p\<^sub>f \<equiv> `p[false/wait]\<^sub>*`"
 
 syntax
   "_upred_J_rea"        :: "upred" ("J\<^bsub>rea\<^esub>")
@@ -55,18 +55,18 @@ definition assignment :: "'a VAR \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a
 definition deadlock :: "'a WF_PREDICATE" ("STOP") where
 "STOP = `CSP1( ok\<acute> \<and> \<delta>)`"
 
-definition prefix :: "'a WF_EXPRESSION \<Rightarrow>  'a WF_PREDICATE" ("_\<rightarrow>SKIP") where
+definition prefix :: "('m EVENT, 'm) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" ("_\<rightarrow>SKIP") where
 "a\<rightarrow>SKIP = `CSP1(ok\<acute> \<and> doA(a))`"
 
 definition SkipCSP :: "'a WF_PREDICATE" ("SKIP") where 
-"SKIP = `R(true \<turnstile> (\<exists> ref . II\<^bsub>rea\<^esub>))`"
+"SKIP = `R(true \<turnstile> (\<exists> [ref]\<^sub>* . II\<^bsub>rea\<^esub>))`"
 
 definition ChaosCSP :: "'a WF_PREDICATE" ("CHAOS") where
 "CHAOS = `R(true)`"
 
 syntax
   "_upred_deadlock" :: "upred" ("STOP")
-  "_upred_prefix" :: "uexpr \<Rightarrow> upred" ("_\<rightarrow>SKIP")
+  "_upred_prefix" :: "uexpr \<Rightarrow> upred" ("@_")
   "_upred_skip" :: "upred" ("SKIP")
   "_upred_chaos" :: "upred" ("CHAOS")
   
@@ -82,14 +82,14 @@ oops
 lemma L2 : "`STOP ; P` = `STOP`"
 oops
 
-definition prefixed :: "'a WF_EXPRESSION \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<rightarrow>_") where
-"a\<rightarrow>P = `a\<rightarrow>SKIP ; P`"
+definition prefixed :: "('a EVENT, 'a) WF_PEXPRESSION \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<rightarrow>_") where
+"a\<rightarrow>P = `@a ; P`"
 
 definition extchoice :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<box>_") where
-"P\<box>Q = `CSP2((P \<and> Q)\<lhd> (($tr = $tr\<acute>) \<and> $wait\<acute>) \<rhd>(P \<or> Q))`"
+"P\<box>Q = `CSP2((P \<and> Q)\<lhd> (($tr =\<^sub>* $tr\<acute>) \<and> ($\<^sub>*wait)\<acute>) \<rhd>(P \<or> Q))`"
 
 syntax
-  "_upred_prefixed" :: "uexpr \<Rightarrow> upred \<Rightarrow> upred" ("_\<rightarrow>_")
+  "_upred_prefixed" :: "pexpr \<Rightarrow> upred \<Rightarrow> upred" ("_\<rightarrow>_")
   "_upred_extchoice" :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("_\<box>_")
   
 translations

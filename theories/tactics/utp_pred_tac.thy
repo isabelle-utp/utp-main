@@ -40,61 +40,42 @@ subsection {* Distribution Theorems *}
 
 theorem EvalP_LiftP [eval] :
 "\<lbrakk>LiftP f\<rbrakk>b = f b"
-apply (simp add: EvalP_def)
-apply (simp add: LiftP_def)
-done 
-
+  by (simp add: EvalP_def LiftP_def)
+ 
 theorem EvalP_EqualsP [eval] :
-"\<lbrakk>v =p x\<rbrakk>b = (\<langle>b\<rangle>\<^sub>bv = x)"
-apply (simp add: EqualsP_def)
-apply (simp add: EvalP_LiftP)
-done
+"\<lbrakk>v =\<^sub>p x\<rbrakk>b = (\<langle>b\<rangle>\<^sub>bv = x)"
+  by (simp add: EqualsP_def EvalP_LiftP)
 
 theorem EvalP_TrueP [eval] :
 "\<lbrakk>true\<rbrakk>b = True"
-apply (simp add: EvalP_def)
-apply (simp add: TrueP_def)
-done
+  by (simp add: EvalP_def TrueP_def)
 
 theorem EvalP_FalseP [eval] :
 "\<lbrakk>false\<rbrakk>b = False"
-apply (simp add: EvalP_def)
-apply (simp add: FalseP_def)
-done
+  by (simp add: EvalP_def FalseP_def)
 
 theorem EvalP_NotP [eval] :
-"\<lbrakk>\<not>p p\<rbrakk>b = (\<not>\<lbrakk>p\<rbrakk>b)"
-apply (simp add: EvalP_def)
-apply (simp add: NotP_def)
-done
+"\<lbrakk>\<not>\<^sub>p p\<rbrakk>b = (\<not>\<lbrakk>p\<rbrakk>b)"
+  by (simp add: EvalP_def NotP_def)
 
 theorem EvalP_AndP [eval] :
-"\<lbrakk>p1 \<and>p p2\<rbrakk>b = (\<lbrakk>p1\<rbrakk>b \<and> \<lbrakk>p2\<rbrakk>b)"
-apply (simp add: EvalP_def)
-apply (simp add: AndP_def)
-done
+"\<lbrakk>p1 \<and>\<^sub>p p2\<rbrakk>b = (\<lbrakk>p1\<rbrakk>b \<and> \<lbrakk>p2\<rbrakk>b)"
+  by (simp add: EvalP_def AndP_def)
 
 theorem EvalP_OrP [eval] :
-"\<lbrakk>p1 \<or>p p2\<rbrakk>b = (\<lbrakk>p1\<rbrakk>b \<or> \<lbrakk>p2\<rbrakk>b)"
-apply (simp add: EvalP_def)
-apply (simp add: OrP_def)
-done
+"\<lbrakk>p1 \<or>\<^sub>p p2\<rbrakk>b = (\<lbrakk>p1\<rbrakk>b \<or> \<lbrakk>p2\<rbrakk>b)"
+  by (simp add: EvalP_def OrP_def)
 
 theorem EvalP_ImpliesP [eval] :
-"\<lbrakk>p1 \<Rightarrow>p p2\<rbrakk>b = (\<lbrakk>p1\<rbrakk>b \<longrightarrow> \<lbrakk>p2\<rbrakk>b)"
-apply (simp add: ImpliesP_def)
-apply (simp add: EvalP_OrP EvalP_NotP closure)
-done
+"\<lbrakk>p1 \<Rightarrow>\<^sub>p p2\<rbrakk>b = (\<lbrakk>p1\<rbrakk>b \<longrightarrow> \<lbrakk>p2\<rbrakk>b)"
+  by (simp add: ImpliesP_def EvalP_OrP EvalP_NotP closure)
 
 theorem EvalP_IffP [eval] :
-"\<lbrakk>p1 \<Leftrightarrow>p p2\<rbrakk>b = (\<lbrakk>p1\<rbrakk>b \<longleftrightarrow> \<lbrakk>p2\<rbrakk>b)"
-apply (simp add: IffP_def)
-apply (simp add: EvalP_AndP EvalP_ImpliesP closure)
-apply (auto)
-done
+"\<lbrakk>p1 \<Leftrightarrow>\<^sub>p p2\<rbrakk>b = (\<lbrakk>p1\<rbrakk>b \<longleftrightarrow> \<lbrakk>p2\<rbrakk>b)"
+  by (auto simp add: IffP_def EvalP_AndP EvalP_ImpliesP closure)
 
 theorem EvalP_ExistsP [eval] :
-"\<lbrakk>\<exists>p vs . p\<rbrakk>b = (\<exists> b'. \<lbrakk>p\<rbrakk>(b \<oplus>\<^sub>b b' on vs))"
+"\<lbrakk>\<exists>\<^sub>p vs . p\<rbrakk>b = (\<exists> b'. \<lbrakk>p\<rbrakk>(b \<oplus>\<^sub>b b' on vs))"
 apply (simp add: ExistsP_def)
 apply (simp add: EvalP_def)
 apply (safe)
@@ -109,36 +90,39 @@ apply (simp)
 done
 
 theorem EvalP_ForallP [eval] :
-"\<lbrakk>\<forall>p vs . p\<rbrakk>b = (\<forall> b'. \<lbrakk>p\<rbrakk>(b \<oplus>\<^sub>b b' on vs))"
-apply (simp add: ForallP_def)
-apply (simp add: EvalP_NotP EvalP_ExistsP closure)
-done
+"\<lbrakk>\<forall>\<^sub>p vs . p\<rbrakk>b = (\<forall> b'. \<lbrakk>p\<rbrakk>(b \<oplus>\<^sub>b b' on vs))"
+  by (simp add: ForallP_def EvalP_NotP EvalP_ExistsP closure)
 
 theorems EvalP_QuantP =
   EvalP_ExistsP
   EvalP_ForallP
 
 theorem EvalP_ClosureP [eval] :
-"\<lbrakk>[p]p\<rbrakk>b = (\<forall> b. \<lbrakk>p\<rbrakk>b)"
-apply (simp add: ClosureP_def)
-apply (simp add: EvalP_ForallP)
-done
+"\<lbrakk>[p]\<^sub>p\<rbrakk>b = (\<forall> b. \<lbrakk>p\<rbrakk>b)"
+  by (simp add: ClosureP_def EvalP_ForallP)
 
 theorem EvalP_RefP [eval] :
-"\<lbrakk>p1 \<sqsubseteq>p p2\<rbrakk>b = (\<forall> b. \<lbrakk>p2\<rbrakk>b \<longrightarrow> \<lbrakk>p1\<rbrakk>b)"
-apply (simp add: RefP_def)
-apply (simp add: EvalP_ClosureP EvalP_ImpliesP closure)
+"\<lbrakk>p1 \<sqsubseteq>\<^sub>p p2\<rbrakk>b = (\<forall> b. \<lbrakk>p2\<rbrakk>b \<longrightarrow> \<lbrakk>p1\<rbrakk>b)"
+  by (simp add: RefP_def EvalP_ClosureP EvalP_ImpliesP closure)
+
+theorem EvalP_RenameP [eval] :
+"\<lbrakk>ss\<bullet>p\<rbrakk>b = \<lbrakk>p\<rbrakk>((inv\<^sub>s ss)\<bullet>b)"
+apply (auto simp add: EvalP_def PermP.rep_eq image_def)
+apply (rule_tac x = "RenameB (inv\<^sub>s ss) b" in bexI)
+apply (simp)
+apply (assumption)
 done
 
 declare Tautology_def [eval]
 declare Contradiction_def [eval]
 (* declare Refinement_def [eval] *)
 declare less_eq_WF_PREDICATE_def [eval]
+(* declare PrimeP_def [eval] *)
 
 subsection {* Support Theorems *}
 
 theorem EvalP_ExistsP_singleton :
-"\<lbrakk>\<exists>p {x} . p\<rbrakk>b = (\<exists> v . v \<rhd> x \<and> \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b v)))"
+"\<lbrakk>\<exists>\<^sub>p {x} . p\<rbrakk>b = (\<exists> v . v \<rhd> x \<and> \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b v)))"
 apply (simp add: ExistsP_def)
 apply (simp add: EvalP_def)
 apply (safe)
@@ -153,10 +137,8 @@ apply (simp add: carrier_def)
 done
 
 theorem EvalP_ForallP_singleton :
-"\<lbrakk>\<forall>p {x} . p\<rbrakk>b = (\<forall> v. v \<rhd> x \<longrightarrow> \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b v)))"
-apply (simp add: ForallP_def)
-apply (simp add: EvalP_NotP EvalP_ExistsP_singleton closure)
-done
+"\<lbrakk>\<forall>\<^sub>p {x} . p\<rbrakk>b = (\<forall> v. v \<rhd> x \<longrightarrow> \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b v)))"
+  by (simp add: ForallP_def EvalP_NotP EvalP_ExistsP_singleton closure)
 
 theorems EvalP_QuantP_singleton =
   EvalP_ExistsP_singleton
@@ -165,23 +147,19 @@ theorems EvalP_QuantP_singleton =
 subsection {* Normalisation *}
 
 theorem NotP_NotP :
-"\<not>p \<not>p p = p"
-apply (auto simp: NotP_def)
-done
+"\<not>\<^sub>p \<not>\<^sub>p p = p"
+  by (auto simp: NotP_def)
 
 theorem ExistsP_empty :
-"(\<exists>p {} . p) = p"
+"(\<exists>\<^sub>p {} . p) = p"
   by (simp add: ExistsP_def)
 
 theorem ForallP_empty :
-"(\<forall>p {} . p) = p"
-apply (simp add: ForallP_def)
-apply (simp add: ExistsP_empty closure)
-apply (simp add: NotP_NotP)
-done
+"(\<forall>\<^sub>p {} . p) = p"
+  by (simp add: ForallP_def ExistsP_empty closure NotP_NotP)
 
 theorem ExistsP_insert :
-"(\<exists>p (insert v vs) . p) = (\<exists>p {v} . (\<exists>p vs . p))"
+"(\<exists>\<^sub>p (insert v vs) . p) = (\<exists>\<^sub>p {v} . (\<exists>\<^sub>p vs . p))"
 apply (rule destPRED_intro)
 apply (simp add: ExistsP.rep_eq)
 apply (auto)
@@ -197,7 +175,7 @@ apply (metis (no_types) binding_override_simps(3,5) binding_override_singleton)
 done
 
 theorem ForallP_insert :
-"(\<forall>p (insert v vs) . p) = (\<forall>p {v} . (\<forall>p vs . p))"
+"(\<forall>\<^sub>p (insert v vs) . p) = (\<forall>\<^sub>p {v} . (\<forall>\<^sub>p vs . p))"
 apply (simp add: ForallP_def closure)
 apply (simp add: NotP_NotP closure)
 apply (subst ExistsP_insert)
@@ -205,32 +183,28 @@ apply (simp_all add: closure)
 done
 
 theorem ExistsP_atomise :
-"(\<exists>p {x} . (\<exists>p (insert y vs) . p)) =
- (\<exists>p (insert x (insert y vs)) . p)"
-apply (auto intro!: sym [OF ExistsP_insert])
-done
+"(\<exists>\<^sub>p {x} . (\<exists>\<^sub>p (insert y vs) . p)) =
+ (\<exists>\<^sub>p (insert x (insert y vs)) . p)"
+  by (auto intro!: sym [OF ExistsP_insert])
 
 theorem ForallP_atomise :
-"(\<forall>p {x} . (\<forall>p (insert y vs) . p)) =
- (\<forall>p (insert x (insert y vs)) . p)"
-apply (auto intro!: sym [OF ForallP_insert])
-done
+"(\<forall>\<^sub>p {x} . (\<forall>\<^sub>p (insert y vs) . p)) =
+ (\<forall>\<^sub>p (insert x (insert y vs)) . p)"
+  by (auto intro!: sym [OF ForallP_insert])
 
 theorems QuantP_atomise =
   ExistsP_atomise
   ForallP_atomise
 
 theorem ExistsP_deatomise :
-"(\<exists>p (insert x (insert y vs)) . p) =
- (\<exists>p {x} . (\<exists>p (insert y vs) . p))"
-apply (auto intro!: ExistsP_insert)
-done
+"(\<exists>\<^sub>p (insert x (insert y vs)) . p) =
+ (\<exists>\<^sub>p {x} . (\<exists>\<^sub>p (insert y vs) . p))"
+  by (auto intro!: ExistsP_insert)
 
 theorem ForallP_deatomise :
-"(\<forall>p (insert x (insert y vs)) . p) =
- (\<forall>p {x} . (\<forall>p (insert y vs) . p))"
-apply (auto intro!: ForallP_insert)
-done
+"(\<forall>\<^sub>p (insert x (insert y vs)) . p) =
+ (\<forall>\<^sub>p {x} . (\<forall>\<^sub>p (insert y vs) . p))"
+  by (auto intro!: ForallP_insert)
 
 theorems QuantP_deatomise =
   ExistsP_deatomise
@@ -336,7 +310,7 @@ subsection {* Proof Experiments *}
 
 
 theorem ExistsP_norm_test :
-"(\<exists>p {x} . \<exists>p {y} . p) = (\<exists>p {y} . \<exists>p {x} . p)"
+"(\<exists>\<^sub>p {x} . \<exists>\<^sub>p {y} . p) = (\<exists>\<^sub>p {y} . \<exists>\<^sub>p {x} . p)"
 apply (simp add:QuantP_atomise)
 apply (subgoal_tac "{x, y} = {y, x}")
 apply (simp)
@@ -346,7 +320,7 @@ done
 text {* The theorem below would be tedious to prove by mere rewriting. *}
 
 lemma AndP_reorder_test :
-"p1 \<and>p p2 \<and>p p3 \<and>p p4 \<and>p p5 = (p1 \<and>p p5) \<and>p p3 \<and>p (p4 \<and>p p2)"
+"p1 \<and>\<^sub>p p2 \<and>\<^sub>p p3 \<and>\<^sub>p p4 \<and>\<^sub>p p5 = (p1 \<and>\<^sub>p p5) \<and>\<^sub>p p3 \<and>\<^sub>p (p4 \<and>\<^sub>p p2)"
   by (utp_pred_auto_tac)
 
 end

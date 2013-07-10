@@ -10,7 +10,6 @@ theory utp_rel_tac
 imports 
   "../core/utp_pred" 
   "../core/utp_rel" 
-  "../parser/utp_poly_parser"
   "utp_expr_tac"
 begin
 
@@ -275,21 +274,21 @@ apply (simp add: FalseP_def)
 done
 
 theorem EvalR_NotP [evalr] :
-"\<lbrakk>\<not>p p\<rbrakk>R = \<lbrakk>true\<rbrakk>R - \<lbrakk>p\<rbrakk>R"
+"\<lbrakk>\<not>\<^sub>p p\<rbrakk>R = \<lbrakk>true\<rbrakk>R - \<lbrakk>p\<rbrakk>R"
 apply (simp add: EvalR_def)
 apply (simp add: NotP_def TrueP_def)
 apply (auto)
 done
 
 theorem EvalR_AndP [evalr] :
-"\<lbrakk>p1 \<and>p p2\<rbrakk>R = \<lbrakk>p1\<rbrakk>R \<inter> \<lbrakk>p2\<rbrakk>R"
+"\<lbrakk>p1 \<and>\<^sub>p p2\<rbrakk>R = \<lbrakk>p1\<rbrakk>R \<inter> \<lbrakk>p2\<rbrakk>R"
 apply (simp add: EvalR_def)
 apply (simp add: AndP_def)
 apply (auto)
 done
 
 theorem EvalR_OrP [evalr] :
-"\<lbrakk>p1 \<or>p p2\<rbrakk>R = \<lbrakk>p1\<rbrakk>R \<union> \<lbrakk>p2\<rbrakk>R"
+"\<lbrakk>p1 \<or>\<^sub>p p2\<rbrakk>R = \<lbrakk>p1\<rbrakk>R \<union> \<lbrakk>p2\<rbrakk>R"
 apply (simp add: EvalR_def)
 apply (simp add: OrP_def)
 apply (auto)
@@ -338,19 +337,19 @@ done
 
 theorem EvalR_SkipRA [evalr] :
 "\<lbrakk> vs \<subseteq> UNDASHED \<union> DASHED; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow>
- \<lbrakk>II vs\<rbrakk>R = { BindR b | b. \<forall>v\<in>in vs. \<langle>b\<rangle>\<^sub>b v = \<langle>b\<rangle>\<^sub>b (v\<acute>)}"
+ \<lbrakk>II\<^bsub>vs\<^esub>\<rbrakk>R = { BindR b | b. \<forall>v\<in>in vs. \<langle>b\<rangle>\<^sub>b v = \<langle>b\<rangle>\<^sub>b (v\<acute>)}"
   by (simp add:EvalR_def SkipRA_rep_eq_alt image_Collect BindR_def)
 
 lemma EvalP_AssignR1 [eval]:
-  "e \<rhd>\<^sub>e x \<Longrightarrow> \<lbrakk>x :=p e\<rbrakk>b = (\<forall> v \<in> UNDASHED. if (v = x) then \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<lbrakk>e\<rbrakk>\<epsilon>b else \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>b\<rangle>\<^sub>b v)"
+  "e \<rhd>\<^sub>e x \<Longrightarrow> \<lbrakk>x :=\<^sub>R e\<rbrakk>b = (\<forall> v \<in> UNDASHED. if (v = x) then \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<lbrakk>e\<rbrakk>\<^sub>eb else \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>b\<rangle>\<^sub>b v)"
   by (simp add:EvalP_def EvalE_def AssignsR.rep_eq IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq)
 
 lemma EvalP_AssignR2 [eval]:
   "\<lbrakk> e \<rhd>\<^sub>e x; f \<rhd>\<^sub>e y \<rbrakk> \<Longrightarrow>
-   \<lbrakk>x,y :=p e,f\<rbrakk>b = (\<forall> v \<in> UNDASHED. if (v = y) 
-                                     then \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<lbrakk>f\<rbrakk>\<epsilon>b 
+   \<lbrakk>x,y :=\<^sub>R e,f\<rbrakk>b = (\<forall> v \<in> UNDASHED. if (v = y) 
+                                     then \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<lbrakk>f\<rbrakk>\<^sub>eb 
                                      else if (v = x) 
-                                          then \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<lbrakk>e\<rbrakk>\<epsilon>b 
+                                          then \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<lbrakk>e\<rbrakk>\<^sub>eb 
                                           else \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>b\<rangle>\<^sub>b v)"
   by (simp add:EvalP_def EvalE_def AssignsR.rep_eq IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq)
 
@@ -360,7 +359,7 @@ lemma EvalP_AssignsR [eval]:
 
 theorem EvalR_AssignR [evalr] :
 "\<lbrakk> x \<in> UNDASHED; e \<rhd>\<^sub>e x; UNREST_EXPR DASHED e \<rbrakk> \<Longrightarrow> 
-  \<lbrakk>x :=p e\<rbrakk>R = {(b, b(x:=\<^sub>b (\<lbrakk>e\<rbrakk>\<epsilon> b))) | b. b \<in> WF_REL_BINDING}"
+  \<lbrakk>x :=\<^sub>R e\<rbrakk>R = {(b, b(x:=\<^sub>b (\<lbrakk>e\<rbrakk>\<^sub>e b))) | b. b \<in> WF_REL_BINDING}"
 apply (simp add: EvalR_def EvalE_def)
 apply (simp add: AssignsR.rep_eq IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq)
 apply (simp add: WF_REL_BINDING_def)
@@ -411,23 +410,23 @@ apply (metis evar_compat_def)
 done
 
 theorem EvalR_ExprR [evalr]: 
-  "\<lbrakk>ExprP e\<rbrakk>R = {BindR b |b. DestBool (\<lbrakk>e\<rbrakk>\<epsilon> b)}"
+  "\<lbrakk>ExprP e\<rbrakk>R = {BindR b |b. DestBool (\<lbrakk>e\<rbrakk>\<^sub>e b)}"
   by (simp add:ExprP_def LiftP_def EvalR_def BindR_def EvalE_def UNREST_EXPR_member[THEN sym] etype_rel_def Defined_WF_EXPRESSION_def image_Collect)
 
 theorem EvalR_EqualP [evalr]:
-  "\<lbrakk>EqualP e f\<rbrakk>R = {BindR b |b. (\<lbrakk>e\<rbrakk>\<epsilon> b = \<lbrakk>f\<rbrakk>\<epsilon> b)}"
+  "\<lbrakk>EqualP e f\<rbrakk>R = {BindR b |b. (\<lbrakk>e\<rbrakk>\<^sub>e b = \<lbrakk>f\<rbrakk>\<^sub>e b)}"
   by (auto simp add:EvalR_def EqualP_def EvalE_def)
 
 lemma EvalR_ConvR [evalr]:
   "\<lbrakk>p\<^sup>\<smile>\<rbrakk>R = \<lbrakk>p\<rbrakk>R\<inverse>"
-  apply (auto simp add: EvalR_def ConvR_def RenameP.rep_eq BindR_def urename closure)
+  apply (auto simp add: EvalR_def ConvR_def PermP.rep_eq BindR_def urename closure)
   apply (metis BindR_def image_iff)
   apply (metis (lifting) BindR_def RenameB_involution SS_VAR_RENAME_INV image_eqI)
 done
 
 theorem SubstP_rel_UNDASHED [evalr] :
 "\<lbrakk> x \<in> UNDASHED; e \<rhd>\<^sub>e x; UNREST_EXPR DASHED e \<rbrakk> \<Longrightarrow> 
-  \<lbrakk>p[e|x]\<rbrakk>R = {(b1, b2) | b1 b2. (b1(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<epsilon>b1), b2) \<in> \<lbrakk>p\<rbrakk>R}"
+  \<lbrakk>p[e/\<^sub>px]\<rbrakk>R = {(b1, b2) | b1 b2. (b1(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>eb1), b2) \<in> \<lbrakk>p\<rbrakk>R}"
 apply (auto simp add: EvalR_def EvalE_def BindR_def SubstP_def image_def)
 apply (rule_tac x="xa(x :=\<^sub>b \<langle>e\<rangle>\<^sub>e xa)" in bexI)
 apply (auto)
@@ -470,7 +469,7 @@ done
 
 theorem SubstP_rel_DASHED [evalr] :
 "\<lbrakk> x \<in> UNDASHED; e \<rhd>\<^sub>e x; UNREST_EXPR DASHED e \<rbrakk> \<Longrightarrow> 
-  \<lbrakk>SubstP p e[SS]\<epsilon> x\<acute>\<rbrakk>R = {(b1, b2) | b1 b2. (b1, b2(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<epsilon>b2)) \<in> \<lbrakk>p\<rbrakk>R}"
+  \<lbrakk>p[(SS\<bullet>e)/\<^sub>px\<acute>]\<rbrakk>R = {(b1, b2) | b1 b2. (b1, b2(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>eb2)) \<in> \<lbrakk>p\<rbrakk>R}"
   apply (auto simp add: EvalR_def EvalE_def BindR_def SubstP_def image_def typing defined urename)
   apply (rule_tac x="xa(x\<acute> :=\<^sub>b \<langle>RenameE e SS\<rangle>\<^sub>e xa)" in bexI)
   apply (auto simp add:typing defined urename)
@@ -497,13 +496,13 @@ theorem SubstP_rel_DASHED [evalr] :
   apply (subgoal_tac "\<langle>xb\<rangle>\<^sub>b x\<acute> = \<langle>e\<rangle>\<^sub>e y")
   apply (auto simp add:typing defined urename)
   apply (subgoal_tac "\<langle>RenameE e SS\<rangle>\<^sub>e (xb \<oplus>\<^sub>b RenameB SS y on DASHED) = \<langle>RenameE e SS\<rangle>\<^sub>e (RenameB SS y)")
-  apply (metis (hide_lams, no_types) RenameB_inv_cancel1 RenameE.rep_eq comp_apply)
+  apply (metis (hide_lams, no_types) PermE.rep_eq RenameB_inv_cancel1 comp_def)
   apply (rule WF_EXPRESSION_UNREST_binding_equiv[of "DASHED \<union> NON_REL_VAR"])
   apply (simp add:unrest UNREST_EXPR_subset urename closure)
   apply (rule UNREST_EXPR_subset)
-  apply (rule unrest) back
+  apply (rule unrest) back back
   apply (simp)
-  apply (simp add:urename)
+  apply (simp add:urename) 
   apply (force)
   apply (subgoal_tac "xb \<cong> RenameB SS y on  NON_REL_VAR")
   apply (smt Compl_iff Int_iff Un_iff binding_equiv_comm binding_equiv_def binding_equiv_override_right_intro sup.commute)
@@ -537,10 +536,10 @@ theorem SubstP_rel_DASHED [evalr] :
 
 lemma EvalE_RenameB_VAR_RENAME_ON [evale]:
   assumes "ss \<in> VAR_RENAME_ON vs" "UNREST_EXPR vs e"
-  shows "\<lbrakk>e\<rbrakk>\<epsilon> (RenameB ss b) = \<lbrakk>e\<rbrakk>\<epsilon> b"
+  shows "\<lbrakk>e\<rbrakk>\<^sub>e (ss\<bullet>b) = \<lbrakk>e\<rbrakk>\<^sub>e b"
 proof -
 
-  have "RenameB ss b = RenameB ss b \<oplus>\<^sub>b b on - vs"
+  have "ss\<bullet>b = (ss\<bullet>b) \<oplus>\<^sub>b b on - vs"
     by (fact RenameB_override_VAR_RENAME_ON[OF assms(1)])
 
   with assms(2) show ?thesis
@@ -550,14 +549,14 @@ qed
 
 theorem SubstP_rel_NON_REL_VAR [evalr] :
 "\<lbrakk> x \<in> NON_REL_VAR; e \<rhd>\<^sub>e x; UNREST_EXPR REL_VAR e \<rbrakk> \<Longrightarrow> 
-  \<lbrakk>p[e|x]\<rbrakk>R = {(b1, b2) | b1 b2. (b1(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<epsilon>b1), b2(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<epsilon>b2)) \<in> \<lbrakk>p\<rbrakk>R}"
+  \<lbrakk>p[e/\<^sub>px]\<rbrakk>R = {(b1, b2) | b1 b2. (b1(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>eb1), b2(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>eb2)) \<in> \<lbrakk>p\<rbrakk>R}"
 apply (subgoal_tac "x \<notin> DASHED")
 apply (subgoal_tac "UNREST_EXPR DASHED e")
 apply (auto simp add: EvalR_def BindR_def SubstP_def image_def typing urename evale closure)
 apply (metis EvalE_RenameB_VAR_RENAME_ON EvalE_def SS_VAR_RENAME_ON)
 apply (simp add:EvalE_def[THEN sym])
-apply (subgoal_tac "\<langle>xb\<rangle>\<^sub>b x = \<lbrakk>e\<rbrakk>\<epsilon>xa") (* Verified by sledgehammer *)
-apply (subgoal_tac "\<langle>xb\<rangle>\<^sub>b x = \<lbrakk>e\<rbrakk>\<epsilon>y") (* Verified by sledgehammer *)
+apply (subgoal_tac "\<langle>xb\<rangle>\<^sub>b x = \<lbrakk>e\<rbrakk>\<^sub>exa") (* Verified by sledgehammer *)
+apply (subgoal_tac "\<langle>xb\<rangle>\<^sub>b x = \<lbrakk>e\<rbrakk>\<^sub>ey") (* Verified by sledgehammer *)
 apply (subgoal_tac "xb \<oplus>\<^sub>b RenameB SS y on DASHED = xb")
 apply (rule_tac x="xa \<oplus>\<^sub>b RenameB SS y on DASHED" in exI)
 apply (simp add:typing defined urename evale)
@@ -695,11 +694,11 @@ theorem EvalRR_FalseP [evalrr] :
   by (simp add: evalr MkRel_def)
 
 theorem EvalRR_AndP [evalrr] :
-"\<lbrakk>p1 \<and>p p2\<rbrakk>\<R> = \<lbrakk>p1\<rbrakk>\<R> \<inter> \<lbrakk>p2\<rbrakk>\<R>"
+"\<lbrakk>p1 \<and>\<^sub>p p2\<rbrakk>\<R> = \<lbrakk>p1\<rbrakk>\<R> \<inter> \<lbrakk>p2\<rbrakk>\<R>"
   by (force simp add: evalr MkRel_def)
 
 theorem EvalRR_OrP [evalrr] :
-"\<lbrakk>p1 \<or>p p2\<rbrakk>\<R> = \<lbrakk>p1\<rbrakk>\<R> \<union> \<lbrakk>p2\<rbrakk>\<R>"
+"\<lbrakk>p1 \<or>\<^sub>p p2\<rbrakk>\<R> = \<lbrakk>p1\<rbrakk>\<R> \<union> \<lbrakk>p2\<rbrakk>\<R>"
   by (force simp add: evalr MkRel_def)
 
 theorem EvalRR_SemiR [evalrr] :
@@ -768,7 +767,7 @@ method_setup utp_rel_auto_tac = {*
 
 subsection {* Algebraic Laws *}
 
-lemma "x \<noteq> y \<Longrightarrow> x :=p e; y :=p f = x,y :=p e,f"
+lemma "\<lbrakk> x \<in> UNDASHED; y \<in> UNDASHED; UNREST_EXPR DASHED e; UNREST_EXPR DASHED f; e \<rhd>\<^sub>e x; f \<rhd>\<^sub>e y; x \<noteq> y \<rbrakk> \<Longrightarrow> x :=\<^sub>R e; y :=\<^sub>R f = x,y :=\<^sub>R e,f"
   apply (utp_rel_tac)
 oops
 
@@ -787,9 +786,9 @@ lemma "VarP ok \<Rightarrow>p VarP ok\<acute> ; VarP ok \<Rightarrow>p VarP ok\<
 *)
 
 lemma AssignR_alt_def: 
-  "\<lbrakk>v \<rhd>\<^sub>e x ; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> `x := v` = `($x\<acute> = v) \<and> II\<^bsub>REL_VAR - {x,x\<acute>}\<^esub>`"
+  "\<lbrakk>v \<rhd>\<^sub>e x ; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> x :=\<^sub>R v = ($\<^sub>ex\<acute> ==\<^sub>p v) \<and>\<^sub>p II\<^bsub>REL_VAR - {x,x\<acute>}\<^esub>"
   apply (simp add:SkipRA_def)
-  apply (utp_pred_tac, utp_expr_tac)
+  apply (utp_pred_tac)
   apply (safe)
   apply (simp_all add:IdA.rep_eq AssignF_upd_rep_eq evale VarE.rep_eq EvalE_def urename)
   apply (rule_tac x="b(x\<acute> :=\<^sub>b \<langle>b\<rangle>\<^sub>b x)" in exI)

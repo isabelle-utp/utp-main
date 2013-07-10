@@ -47,7 +47,7 @@ syntax
   "_upred_varclose" :: "'a VAR \<Rightarrow> upred" ("end _")
 
 abbreviation AssignS :: "string \<Rightarrow> 'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_PREDICATE" where
-"AssignS x e \<equiv> (MkPlain x (expr_type e) False) :=p e"
+"AssignS x e \<equiv> (MkPlain x (expr_type e) False) :=\<^sub>R e"
 
 translations
   "_upred_brack p"     => "p"
@@ -72,7 +72,7 @@ translations
   "_upred_skipa vs"    == "CONST SkipRA vs"
   "_upred_seq p q"     => "CONST SemiR p q"
   "_upred_cond p q r"  == "CONST CondR p q r"
-  "_upred_assign x e"  == "CONST AssignR x e"
+  "_upred_assign x e"  == "x :=\<^sub>R e"
   "_upred_assigns x e" == "CONST AssignS x e"
   "_upred_assigna x xs e" == "CONST AssignRA x xs e"
   "_upred_conv x"      => "CONST ConvR x"
