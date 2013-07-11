@@ -29,7 +29,7 @@ syntax
   "_pexpr_brack"        :: "pexpr \<Rightarrow> pexpr" ("'(_')")
   "_pexpr_pred_var"     :: "idt \<Rightarrow> pexpr" ("@(_)")
   "_pexpr_expr_var"     :: "idt \<Rightarrow> pexpr" ("(_)")
-  "_pexpr_evar"         :: "('a, 'm) PVAR \<Rightarrow> pexpr" ("$_" [900] 900)
+  "_pexpr_evar"         :: "('a, 'm) PVAR \<Rightarrow> pexpr" ("$_" [999] 999)
   "_pexpr_subst"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> ('a, 'm) PVAR \<Rightarrow> pexpr" ("(_[_'/_])" [999,999] 1000)
   "_pexpr_prime"        :: "pexpr \<Rightarrow> pexpr" ("_\<acute>" [1000] 1000)
   "_pexpr_erase"        :: "pexpr \<Rightarrow> pexpr" ("_\<down>" [1000] 1000)
@@ -42,7 +42,7 @@ translations
   "_pexpr_evar x"              == "CONST PVarPE x"
   "_pexpr_brack e"             => "e"
   "_pexpr_subst e v x"         == "CONST PSubstPE e v x"
-  "_pexpr_prime e"             == "CONST RenamePE e (CONST SS)"
+  "_pexpr_prime e"             == "CONST PermPE (CONST SS) e"
   "_pexpr_erase e"             == "CONST ErasePE e" 
 
 section {* Predicate Parser *}
@@ -116,6 +116,7 @@ translations
   "_upred_substp p e x" == "CONST PSubstP p e x"
 
 term "`p[x/v]`"
+term "`p[$x/y]`"
 term "`x \<Rightarrow> $y\<acute>`"
 
 section {* Core Expression Parser *}

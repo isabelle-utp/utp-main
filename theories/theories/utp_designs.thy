@@ -21,7 +21,6 @@ imports
   utp_theory
 begin
 
-
 text {* Most predicates need a boolean type, so we here set the appropriate sort constraint *}
 
 default_sort BOOL_SORT
@@ -67,9 +66,10 @@ lemma SubstP_UNREST_OKAY [usubst]:
   "\<lbrakk> x \<in> OKAY; UNREST OKAY p; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[v/\<^sub>px] = p"
   by (utp_pred_tac)
 
+
 lemma DesignD_rel_closure [closure]:
   "\<lbrakk>P \<in> WF_RELATION; Q \<in> WF_RELATION\<rbrakk> \<Longrightarrow> P \<turnstile> Q \<in> WF_RELATION"
-  apply (simp add:DesignD_def closure)
+  by (simp add:DesignD_def closure)
 
 lemma SkipD_rel_closure [closure]:
   "II\<^sub>D \<in> WF_RELATION"
@@ -86,7 +86,7 @@ lemma DesignD_extreme_point_nok:
   by (utp_pred_tac)
 
 lemma DesignD_export_precondition:
-  "`(P \<turnstile> Q)` = `(P \<turnstile> P \<and> Q)`"
+  "(P \<turnstile> Q) = (P \<turnstile> P \<and>\<^sub>p Q)"
   by (utp_pred_tac)
 
 text {* Design refinement law *}
@@ -104,13 +104,13 @@ proof -
 
   also with assms have "... = `[(P2 \<Rightarrow> ok' \<and> Q2) \<Rightarrow> (P1 \<Rightarrow> ok' \<and> Q1)]`"
     apply (rule_tac trans)
-    apply (rule_tac x="okay" in BoolType_aux_var_split_taut)
+    apply (rule_tac x="okay\<down>" in BoolType_aux_var_split_taut)
     apply (simp_all add:usubst typing defined)
   done
 
   also from assms have "... = `[(\<not> P2 \<Rightarrow> \<not> P1) \<and> ((P2 \<Rightarrow> Q2) \<Rightarrow> (P1 \<Rightarrow> Q1))]`"
     apply (rule_tac trans)
-    apply (rule_tac x="okay\<acute>" in BoolType_aux_var_split_taut)
+    apply (rule_tac x="okay\<acute>\<down>" in BoolType_aux_var_split_taut)
     apply (simp_all add:usubst typing defined)
   done
 
@@ -122,24 +122,42 @@ proof -
 
   ultimately show ?thesis
     by (metis less_eq_WF_PREDICATE_def)
-
 qed
 
 lemma DesignD_diverge:
   "`(P \<turnstile> Q)[false/okay]` = true"
-  by (simp add:DesignD_def usubst typing defined)
+  by (simp add:DesignD_def usubst typing defined evalp erasure) 
+
+lemma PVarPE_erasure [erasure]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR" 
+  assumes "TYPEUSOUND('a, 'm :: VALUE)" "pvaux x"
+  shows "(PVarPE x)\<down> = VarE (x\<down>)"
+  using assms
+  apply (auto simp add:evale defined typing evalp)
+  apply (metis MkVar_def PVAR_VAR_def TypeUSound_ProjU_inv aux_defined binding_type dtype_relI fst_conv snd_conv)
+done
+
+lemma pvaux_pvdash [simp]: 
+  "pvaux (x\<acute>) = pvaux x"
+  by (simp add:pvdash_def)
+
+lemma pvaux_pvundash [simp]: 
+  "pvaux (pvundash x) = pvaux x"
+  by (simp add:pvundash_def)
 
 lemma DesignD_left_zero:
+  fixes P :: "'m WF_PREDICATE"
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
   shows "true ; (P \<turnstile> Q) = true"
 proof -
 
-  from assms have "`true ; (P \<turnstile> Q)` = `\<exists> okay\<acute>\<acute>\<acute>. true[$okay\<acute>\<acute>\<acute>/okay\<acute>] ; (P \<turnstile> Q)[$okay\<acute>\<acute>\<acute>/okay]`"
-    by (simp add: SemiR_extract_variable closure)
+  from assms have "true ; (P \<turnstile> Q) = `\<exists> okay\<acute>\<acute>\<acute>. true[$okay\<acute>\<acute>\<acute>/okay\<acute>] ; (P \<turnstile> Q)[$okay\<acute>\<acute>\<acute>/okay]`"
+    by (simp add: SemiR_extract_variable[where x="okay\<down>"] closure erasure typing)
 
   also from assms have "... = `(true[false/okay\<acute>] ; (P \<turnstile> Q)[false/okay]) \<or> (true[true/okay\<acute>] ; (P \<turnstile> Q)[true/okay])`"
     apply (rule_tac trans)
     apply (rule BoolType_aux_var_split_exists, simp_all)
+    apply (simp add:erasure typing)
     apply (simp add:usubst typing assms closure defined unrest)
   done
 
@@ -167,16 +185,19 @@ theorem DesignD_composition:
   "UNREST OKAY P1" "UNREST OKAY P2" "UNREST OKAY Q1" "UNREST OKAY Q2"
   shows "`(P1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `((\<not> ((\<not> P1) ; true)) \<and> \<not> (Q1 ; (\<not> P2))) \<turnstile> (Q1 ; Q2)`"
 proof -
+
+  from assms
   have " `(P1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` 
         = `\<exists> okay\<acute>\<acute>\<acute> . ((P1 \<turnstile> Q1)[$okay\<acute>\<acute>\<acute>/okay\<acute>] ; (P2 \<turnstile> Q2)[$okay\<acute>\<acute>\<acute>/okay])`"
-    by (smt DesignD_rel_closure MkPlain_UNDASHED SemiR_extract_variable assms)
+    by (simp add: SemiR_extract_variable[where x="okay\<down>"] closure erasure typing)    
 
   also have "... = ` ((P1 \<turnstile> Q1)[false/okay\<acute>] ; (P2 \<turnstile> Q2)[false/okay]) 
                       \<or> ((P1 \<turnstile> Q1)[true/okay\<acute>] ; (P2 \<turnstile> Q2)[true/okay])`"
-    by (simp add:ucases typing usubst defined closure unrest DesignD_def assms)
+    by (simp add:ucases typing usubst defined closure unrest DesignD_def assms erasure)
 
-  also have "... = `((ok \<and> P1 \<Rightarrow> Q1) ; (P2 \<Rightarrow> ok' \<and> Q2)) \<or> ((\<not> (ok \<and> P1)) ; true)`"
-    by (simp add: typing usubst defined unrest DesignD_def OrP_comm assms)
+  also from assms
+  have "... = `((ok \<and> P1 \<Rightarrow> Q1) ; (P2 \<Rightarrow> ok' \<and> Q2)) \<or> ((\<not> (ok \<and> P1)) ; true)`"
+    by (simp add: typing usubst defined unrest DesignD_def OrP_comm erasure)
 
   also have "... = `((\<not> (ok \<and> P1) ; (P2 \<Rightarrow> ok' \<and> Q2)) \<or> \<not> (ok \<and> P1) ; true) 
                        \<or> Q1 ; (P2 \<Rightarrow> ok' \<and> Q2)`"
@@ -188,8 +209,12 @@ proof -
   also have "... = `(\<not>ok ; true) \<or> (\<not>P1 ; true) \<or> (Q1 ; \<not>P2) \<or> (ok' \<and> (Q1 ; Q2))`"
   proof -
     from assms have "`Q1 ; (P2 \<Rightarrow> ok' \<and> Q2)` = `(Q1 ; \<not>P2) \<or> (ok' \<and> (Q1 ; Q2))`"
-      by (smt AndP_comm (*<*)MkPlain_UNDASHED(*>*) SemiR_AndP_right_postcond (*<*)UNDASHED_dash_DASHED VarP_precond_closure(*>*) ImpliesP_def SemiR_OrP_distl)
-  
+      apply (simp add:erasure typing)
+    sorry
+(*
+      by (smt AndP_comm (*<*)MkPlainP_UNDASHED(*>*) SemiR_AndP_right_postcond (*<*)UNDASHED_dash_DASHED VarP_precond_closure(*>*) ImpliesP_def SemiR_OrP_distl)
+*)  
+
     thus ?thesis by (smt OrP_assoc SemiR_OrP_distr demorgan2)
   qed
 
@@ -209,11 +234,12 @@ lemma condition_comp [simp]:
   "p1 \<in> WF_CONDITION \<Longrightarrow> `\<not> (\<not> p1 ; true)` = p1"
   by (metis NotP_NotP NotP_cond_closure SemiR_TrueP_precond)
 
+(*
 lemma DesignD_composition_cond:
   assumes "p1 \<in> WF_CONDITION" "P2 \<in> WF_RELATION" "Q1 \<in> WF_RELATION" "Q2 \<in> WF_RELATION"
           "UNREST OKAY p1" "UNREST OKAY P2" "UNREST OKAY Q1" "UNREST OKAY Q2"
   shows "`(p1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `(p1 \<and> \<not> (Q1 ; \<not> P2)) \<turnstile> (Q1 ; Q2)`"
-  by (simp add:DesignD_composition closure assms)
+  apply (simp add:DesignD_composition closure assms erasure)
 
 lemma DesignD_composition_wp:
   assumes "p1 \<in> WF_CONDITION" "P2 \<in> WF_RELATION" "Q1 \<in> WF_RELATION" "Q2 \<in> WF_RELATION"
@@ -648,7 +674,7 @@ lemma DESIGNS_intro:
   apply (simp add:THEORY_PRED_def utp_alphabets_def healthconds_def DESIGNS.rep_eq)
   apply (rule_tac x="vs" in exI, auto)
 done
-
+*)
    
 (*
 lemma "(d1 = d2) \<longleftrightarrow> (\<forall> r. d1 wp r = d2 wp r)"

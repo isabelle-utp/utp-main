@@ -35,6 +35,16 @@ all values are. *}
 class DEFINED =
   fixes Defined   :: "'a \<Rightarrow> bool" ("\<D>")
 
+class DEFINED_NE = DEFINED +
+  assumes Defined_nonempty: "\<exists> x. \<D> x"
+
+definition "DEFINED = {x. \<D> x}"
+definition "UNDEFINED = {x. \<not> \<D> x}"
+
+lemma DEFINED_UNDEFINED: 
+  "DEFINED \<union> UNDEFINED = UNIV"
+  by (auto simp add:DEFINED_def UNDEFINED_def)
+
 text {* The @{term "VALUE"} class introduces the typing relation with an arbitrary
 value sort, and the type sort given by @{term "udom"}, the Universal Domain from
 HOLCF. Specifically the type sort must be injectable into udom, which has the
@@ -213,6 +223,12 @@ done
 lemma default_defined [defined]: "\<D> (default t)"
   apply (simp add:default_def)
   apply (metis (lifting) some_eq_ex type_non_empty_defined)
+done
+
+instance VALUE \<subseteq> DEFINED_NE
+  apply (intro_classes)
+  apply (rule_tac x="default someType" in exI)
+  apply (simp add:defined)
 done
 
 lemma someType_value: "\<exists> v. v : someType"

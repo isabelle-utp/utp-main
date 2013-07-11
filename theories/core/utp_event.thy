@@ -52,6 +52,15 @@ lemma Rep_EVENT_intro [intro]:
 
 setup_lifting type_definition_EVENT
 
+instantiation EVENT :: (VALUE) DEFINED_NE
+begin
+
+definition "Defined_EVENT (x::'a EVENT) = True"
+
+instance
+  by (intro_classes, auto simp add:Defined_EVENT_def)
+end
+
 abbreviation EV :: "NAME \<Rightarrow> ('a::EVENT_PERM) UTYPE \<Rightarrow> 'a \<Rightarrow> 'a EVENT" where
 "EV n t v \<equiv> Abs_EVENT ((n, t), v)"
 

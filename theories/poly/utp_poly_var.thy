@@ -112,29 +112,54 @@ lemma PVAR_VAR_MkPVAR:
   = MkVar n (TYPEU('a)  :: 'm UTYPE) s"
   by (simp add:MkPVAR_def PVAR_VAR_def)
 
-abbreviation "PUNDASHED     \<equiv> {x. PVAR_VAR x \<in> UNDASHED}"
-abbreviation "PDASHED       \<equiv> {x. PVAR_VAR x \<in> DASHED}"
-abbreviation "PDASHED_TWICE \<equiv> {x. PVAR_VAR x \<in> DASHED_TWICE}"
+lemma MkPVAR_VAR_name [simp]:
+  "name (MkPVAR n s a t)\<down> = n"
+  by (simp add:PVAR_VAR_MkPVAR)
 
-lemma MkPlainP_UNDASHED [simp]:
+lemma MkPVAR_VAR_aux [simp]:
+  "aux (MkPVAR n s a t)\<down> = s"
+  by (simp add:PVAR_VAR_MkPVAR)
+
+definition "PUNDASHED     \<equiv> {x. PVAR_VAR x \<in> UNDASHED}"
+definition "PDASHED       \<equiv> {x. PVAR_VAR x \<in> DASHED}"
+definition "PDASHED_TWICE \<equiv> {x. PVAR_VAR x \<in> DASHED_TWICE}"
+
+lemma PVAR_VAR_PUNDASHED_UNDASHED [closure]:
+  "x \<in> PUNDASHED \<Longrightarrow> x\<down> \<in> UNDASHED"
+  by (simp add:PUNDASHED_def)
+
+lemma PVAR_VAR_PDASHED_DASHED [closure]:
+  "x \<in> PDASHED \<Longrightarrow> x\<down> \<in> DASHED"
+  by (simp add:PDASHED_def)
+
+lemma PVAR_VAR_PDASHED_DASHED_TWICE [closure]:
+  "x \<in> PDASHED_TWICE \<Longrightarrow> x\<down> \<in> DASHED_TWICE"
+  by (simp add:PDASHED_TWICE_def)
+
+lemma MkPlainP_UNDASHED [closure]:
   "MkPlainP n a t m \<in> PUNDASHED"
-  by (simp add: PVAR_VAR_MkPVAR)
+  by (simp add: PVAR_VAR_MkPVAR PUNDASHED_def)
 
-subsection {* Adapting Renaming *}
+subsection {* Adapting Permutation *}
 
-definition Rep_VAR_RENAME_poly :: 
+definition PermPV :: 
   "'m VAR_RENAME \<Rightarrow> ('a, 'm :: VALUE) PVAR \<Rightarrow> ('a, 'm) PVAR" where
-"Rep_VAR_RENAME_poly ss x \<equiv> VAR_PVAR (\<langle>ss\<rangle>\<^sub>s x\<down>)"
+"PermPV ss x \<equiv> VAR_PVAR (\<langle>ss\<rangle>\<^sub>s x\<down>)"
 
-notation Rep_VAR_RENAME_poly ("\<langle>_\<rangle>\<^sub>s\<^sub>*")
+notation PermPV ("\<langle>_\<rangle>\<^sub>s\<^sub>*")
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name permute} @{const_name PermPV}
+*}
+
 
 lemma PVAR_VAR_vtype [simp]:
   "vtype (x :: ('a, 'm :: VALUE) PVAR)\<down> = TYPEU('a)"
   by (simp add:PVAR_VAR_def)
 
 lemma PVAR_VAR_RENAME [simp]: 
-  "(\<langle>ss\<rangle>\<^sub>s\<^sub>* x)\<down> = \<langle>ss\<rangle>\<^sub>s x\<down>"
-  by (simp add:Rep_VAR_RENAME_poly_def)
+  "(ss\<bullet>x)\<down> = ss\<bullet>(x\<down>)"
+  by (simp add:PermPV_def)
 
 end
 
