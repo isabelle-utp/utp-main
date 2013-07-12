@@ -93,6 +93,12 @@ lemma PVAR_VAR_inv [simp]:
   "VAR_PVAR v\<down> = v"
   by (simp add:PVAR_VAR_def VAR_PVAR_def)
 
+lemma PVAR_VAR_inj [dest]:
+  fixes x y :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "x\<down> = y\<down>"
+  shows "x = y"
+   by (metis PVAR_VAR_inv assms)
+
 lemma VAR_PVAR_inv [simp]: 
   "vtype x = TYPEU('a) \<Longrightarrow> (VAR_PVAR x :: ('a, 'm :: VALUE) PVAR)\<down> = x"
   apply (case_tac x)

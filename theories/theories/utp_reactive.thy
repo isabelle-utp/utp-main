@@ -57,46 +57,6 @@ translations
   "_upred_R3 P" == "CONST R3 P"
   "_upred_R P" == "CONST R P"
 
-lemma PVAR_VAR_inj [dest]:
-  fixes x y :: "('a :: DEFINED, 'm :: VALUE) PVAR"
-  assumes "x\<down> = y\<down>"
-  shows "x = y"
-   by (metis PVAR_VAR_inv assms)
-
-lemma PSubstPE_PVarPE_neq [usubst]:
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
-  and   x :: "('b :: DEFINED, 'm :: VALUE) PVAR"
-  assumes "TYPEUSOUND('a, 'm)" "x\<down> \<noteq> y\<down>" "v \<rhd>\<^sub>* y"
-  shows "PSubstPE (PVarPE x) v y = PVarPE x"
-  using assms by (auto simp add:eval typing defined pevar_compat_def)
-
-lemma var_name_uniq [simp]: 
-  "name x \<noteq> name y \<Longrightarrow> x \<noteq> y"
-  by (auto)
-
-lemma name_str_uniq [simp]: 
-  "name_str x \<noteq> name_str y \<Longrightarrow> x \<noteq> y"
-  by (auto)
-
-declare EvalPE_PSubstPE [evalp]
-
-lemma SubstP_PSubstPE [usubst]:
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
-  and   e :: "('b :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
-  assumes "TYPEUSOUND('a, 'm)" "TYPEUSOUND('b, 'm)" "v \<rhd>\<^sub>* x"
-  shows "e\<down>[v\<down>/\<^sub>ex\<down>] = (PSubstPE e v x)\<down>"
-  using assms by (auto simp add:evale typing defined evalp)
-
-term "(PVarPE x)"
-
-lemma PVarPE_VarP [simp]:
-  fixes x :: "(bool, 'm::BOOL_SORT) PVAR"
-  shows "((PVarPE x)\<down> ==\<^sub>p (TruePE\<down>)) = VarP (x\<down>)"
-  apply (utp_pred_auto_tac)
-  apply (metis BOOL_SORT_class.Inverse)
-done
-
-
 lemma SkipREA_CondR_SkipR: 
   "`II\<^bsub>rea\<^esub>` = `II \<lhd> ok \<rhd> ($tr \<le> $tr\<acute>)`"
 proof -
@@ -119,8 +79,11 @@ proof -
   also have "... = `II\<^bsub>rea\<^esub>`"
     apply (simp add:SkipREA_def)
     apply (rule_tac x="okay\<down>" in BoolType_aux_var_split_eq_intro)
-    apply (simp_all add:usubst closure typing defined)
-  sorry
+    apply (simp_all add:usubst closure typing defined urename)
+    apply (utp_pred_auto_tac)
+    apply (drule_tac x="tr\<down>" in bspec)
+    apply (simp_all add:var_dist closure)
+  done
 
   finally show ?thesis ..
 qed

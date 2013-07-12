@@ -139,6 +139,18 @@ lemma subscript_mono:
   "\<lbrakk> name_str x \<le> name_str y; dashes x \<le> dashes y; subscript x < subscript y \<rbrakk> \<Longrightarrow> x < y"
   by (case_tac x, case_tac y, auto simp add:prod_less_eq)
 
+lemma name_str_uniq [simp]: 
+  "name_str x \<noteq> name_str y \<Longrightarrow> x \<noteq> y"
+  by (auto)
+
+lemma dashes_uniq [simp]: 
+  "dashes x \<noteq> dashes y \<Longrightarrow> x \<noteq> y"
+  by (auto)
+
+lemma subscript_uniq [simp]: 
+  "subscript x \<noteq> subscript y \<Longrightarrow> x \<noteq> y"
+  by (auto)
+
 subsection {* There are infinite names *}
 
 text {* It is useful to know that given a finite number of names that a fresh name

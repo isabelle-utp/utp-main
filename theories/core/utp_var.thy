@@ -614,6 +614,18 @@ theorem UNDASHED_DASHED_minus:
   "DASHED - DASHED_TWICE   = DASHED"
   by (auto simp add:var_defs)
 
+lemma var_name_uniq [simp]: 
+  "name x \<noteq> name y \<Longrightarrow> x \<noteq> y"
+  by (auto)
+
+lemma var_type_uniq [simp]:
+  "vtype x \<noteq> vtype y \<Longrightarrow> x \<noteq> y"
+  by auto
+
+lemma var_aux_uniq [simp]:
+  "aux x \<noteq> aux y \<Longrightarrow> x \<noteq> y"
+  by auto
+
 theorems var_simps =
   UNDASHED_nempty
   DASHED_nempty

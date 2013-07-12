@@ -72,7 +72,7 @@ definition UNREST_PEXPR :: "('m VAR) set \<Rightarrow> ('a, 'm :: VALUE) WF_PEXP
 definition LitPE :: "'a \<Rightarrow> ('a, 'm :: VALUE) WF_PEXPRESSION" where
 "LitPE v = Abs_WF_PEXPRESSION (\<lambda> b. v)"
 
-lemma EvalPE_LitPE [eval]:
+lemma EvalPE_LitPE [eval,evalp]:
   "\<lbrakk>LitPE v\<rbrakk>\<^sub>*b = v"
   by (simp add:LitPE_def)
 
@@ -113,7 +113,7 @@ done
 definition WVarPE :: "'m VAR \<Rightarrow> ('m SIGTYPE, 'm :: VALUE) WF_PEXPRESSION" where
 "WVarPE x = Abs_WF_PEXPRESSION (\<lambda> b. \<Sigma> \<langle>b\<rangle>\<^sub>b x : vtype x)"
 
-lemma EvalPE_WVarPE [eval]:
+lemma EvalPE_WVarPE [eval,evalp]:
   "\<lbrakk>WVarPE x\<rbrakk>\<^sub>*b = (\<Sigma> \<langle>b\<rangle>\<^sub>b x : vtype x)"
   by (simp add:WVarPE_def)
 
@@ -124,7 +124,7 @@ lemma UNREST_WVarPE [unrest]:
 definition VarPE :: "'m VAR \<Rightarrow> ('a, 'm :: VALUE) WF_PEXPRESSION" where
 "VarPE x = Abs_WF_PEXPRESSION (\<lambda> b. ProjU (\<langle>b\<rangle>\<^sub>b x))"
 
-lemma EvalPE_VarPE [eval]:
+lemma EvalPE_VarPE [eval,evalp]:
   "\<lbrakk>VarPE x\<rbrakk>\<^sub>*b = ProjU (\<langle>b\<rangle>\<^sub>b x)"
   by (simp add:VarPE_def)
 
@@ -603,11 +603,11 @@ abbreviation PSubstP ::
  'm WF_PREDICATE" where
 "PSubstP p e x \<equiv> SubstP p e\<down> x\<down>"
 
-lemma EvalPE_SubstPE [eval]:
+lemma EvalPE_SubstPE [eval,evalp]:
   "\<lbrakk>SubstPE e v x\<rbrakk>\<^sub>*b = \<lbrakk>e\<rbrakk>\<^sub>* (b(x :=\<^sub>b InjU (\<lbrakk>v\<rbrakk>\<^sub>* b)))"
   by (simp add:SubstPE_def)
 
-lemma EvalPE_PSubstPE [eval]:
+lemma EvalPE_PSubstPE [eval,evalp]:
   "\<lbrakk>PSubstPE e v x\<rbrakk>\<^sub>*b = \<lbrakk>e\<rbrakk>\<^sub>* (b(x\<down> :=\<^sub>b InjU (\<lbrakk>v\<rbrakk>\<^sub>* b)))"
   by (simp add:PSubstPE_def SubstPE_def)
 
@@ -644,6 +644,40 @@ lemma SubstP_PSubstPE [usubst]:
   assumes "TYPEUSOUND('a, 'm)"
   shows "e\<down>[v\<down>/\<^sub>px\<down>] = (PSubstPE e v x)\<down>"
   using assms by (utp_pred_tac)
+
+lemma PSubstPE_PVarPE_neq [usubst]:
+  fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  and   x :: "('b :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "x\<down> \<noteq> y\<down>" "v \<rhd>\<^sub>* y"
+  shows "PSubstPE (PVarPE x) v y = PVarPE x"
+  using assms by (auto simp add:eval typing defined pevar_compat_def)
+
+lemma SubstE_PSubstPE [usubst]:
+  fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  and   e :: "('b :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  assumes "TYPEUSOUND('a, 'm)" "TYPEUSOUND('b, 'm)" "v \<rhd>\<^sub>* x"
+  shows "e\<down>[v\<down>/\<^sub>ex\<down>] = (PSubstPE e v x)\<down>"
+  using assms by (auto simp add:evale typing defined evalp)
+
+lemma SubstP_PSubstPE_TrueE [usubst]:
+  fixes e :: "(bool, 'm :: BOOL_SORT) WF_PEXPRESSION"
+  and   x :: "(bool, 'm) PVAR"
+  shows "e\<down>[TrueE/\<^sub>px\<down>] = (PSubstPE e TruePE x)\<down>"
+  using assms by utp_pred_tac
+
+lemma SubstP_PSubstPE_FalseE [usubst]:
+  fixes e :: "(bool, 'm :: BOOL_SORT) WF_PEXPRESSION"
+  and   x :: "(bool, 'm) PVAR"
+  shows "e\<down>[FalseE/\<^sub>px\<down>] = (PSubstPE e FalsePE x)\<down>"
+  using assms by utp_pred_tac
+
+lemma PVarPE_VarP [simp]:
+  fixes x :: "(bool, 'm::BOOL_SORT) PVAR"
+  shows "((PVarPE x)\<down> ==\<^sub>p (TruePE\<down>)) = VarP (x\<down>)"
+  apply (utp_pred_auto_tac)
+  apply (metis BOOL_SORT_class.Inverse)
+done
+
 
 (*
 subsection {* Anciliary Laws *}
