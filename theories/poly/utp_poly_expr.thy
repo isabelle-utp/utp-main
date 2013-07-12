@@ -482,50 +482,52 @@ declare utminus_ULIST_def [simp]
 
 subsection {* Finite Set Expressions *}
 
-abbreviation FEmptyPE :: "('a fset, 'm :: FSET_SORT) WF_PEXPRESSION" where
-"FEmptyPE \<equiv> LitPE \<lbrace>\<rbrace>"
+abbreviation FEmptyPE :: "('a::DEFINED UFSET, 'm :: FSET_SORT) WF_PEXPRESSION" where
+"FEmptyPE \<equiv> LitPE EmptyUF"
 
 abbreviation FInsertPE :: 
-  "('a, 'm :: FSET_SORT) WF_PEXPRESSION \<Rightarrow> 
-   ('a fset, 'm) WF_PEXPRESSION \<Rightarrow> 
-   ('a fset, 'm) WF_PEXPRESSION" where
-"FInsertPE \<equiv> Op2PE finsert"
+  "('a :: DEFINED, 'm :: FSET_SORT) WF_PEXPRESSION \<Rightarrow> 
+   ('a UFSET, 'm) WF_PEXPRESSION \<Rightarrow> 
+   ('a UFSET, 'm) WF_PEXPRESSION" where
+"FInsertPE \<equiv> Op2PE InsertUF"
 
 abbreviation FUnionPE ::
-  "('a fset, 'm :: FSET_SORT) WF_PEXPRESSION \<Rightarrow> 
-   ('a fset, 'm) WF_PEXPRESSION \<Rightarrow> 
-   ('a fset, 'm) WF_PEXPRESSION" where
-"FUnionPE \<equiv> Op2PE funion"
+  "('a :: DEFINED UFSET, 'm :: FSET_SORT) WF_PEXPRESSION \<Rightarrow> 
+   ('a UFSET, 'm) WF_PEXPRESSION \<Rightarrow> 
+   ('a UFSET, 'm) WF_PEXPRESSION" where
+"FUnionPE \<equiv> Op2PE UnionUF"
 
 abbreviation FInterPE ::
-  "('a fset, 'm :: FSET_SORT) WF_PEXPRESSION \<Rightarrow> 
-   ('a fset, 'm) WF_PEXPRESSION \<Rightarrow> 
-   ('a fset, 'm) WF_PEXPRESSION" where
-"FInterPE \<equiv> Op2PE finter"
+  "('a :: DEFINED UFSET, 'm :: FSET_SORT) WF_PEXPRESSION \<Rightarrow> 
+   ('a UFSET, 'm) WF_PEXPRESSION \<Rightarrow> 
+   ('a UFSET, 'm) WF_PEXPRESSION" where
+"FInterPE \<equiv> Op2PE InterUF"
 
 abbreviation FMemberPE ::
-  "('a, 'm :: {BOOL_SORT, FSET_SORT}) WF_PEXPRESSION \<Rightarrow> 
-   ('a fset, 'm) WF_PEXPRESSION \<Rightarrow> 
+  "('a :: DEFINED, 'm :: {BOOL_SORT, FSET_SORT}) WF_PEXPRESSION \<Rightarrow> 
+   ('a UFSET, 'm) WF_PEXPRESSION \<Rightarrow> 
    (bool, 'm) WF_PEXPRESSION" where
-"FMemberPE \<equiv> Op2PE fmember"
+"FMemberPE \<equiv> Op2PE MemberUF"
 
 abbreviation FNotMemberPE ::
-  "('a, 'm :: {BOOL_SORT, FSET_SORT}) WF_PEXPRESSION \<Rightarrow> 
-   ('a fset, 'm) WF_PEXPRESSION \<Rightarrow> 
+  "('a :: DEFINED, 'm :: {BOOL_SORT, FSET_SORT}) WF_PEXPRESSION \<Rightarrow> 
+   ('a UFSET, 'm) WF_PEXPRESSION \<Rightarrow> 
    (bool, 'm) WF_PEXPRESSION" where
-"FNotMemberPE \<equiv> Op2PE fnmember"
+"FNotMemberPE \<equiv> Op2PE NMemberUF"
 
 abbreviation IntersyncPE ::
-  "('a fset, 'm :: {FSET_SORT, LIST_SORT}) WF_PEXPRESSION \<Rightarrow>
-   ('a list, 'm) WF_PEXPRESSION \<Rightarrow> 
-   ('a list, 'm) WF_PEXPRESSION \<Rightarrow> 
-   ('a list fset, 'm) WF_PEXPRESSION" where
-"IntersyncPE \<equiv> Op3PE intersync"
+  "('a :: DEFINED UFSET, 'm :: {FSET_SORT, LIST_SORT}) WF_PEXPRESSION \<Rightarrow>
+   ('a ULIST, 'm) WF_PEXPRESSION \<Rightarrow> 
+   ('a ULIST, 'm) WF_PEXPRESSION \<Rightarrow> 
+   ('a ULIST UFSET, 'm) WF_PEXPRESSION" where
+"IntersyncPE \<equiv> Op3PE IntersyncUF"
 
+(*
 lemma FUnionPE_type: 
-  "\<tau>\<^sub>* (FUnionPE (xs :: ('a fset, 'm :: FSET_SORT) WF_PEXPRESSION) ys) 
+  "\<tau>\<^sub>* (FUnionPE (xs :: ('a :: DEFINED UFSET , 'm :: FSET_SORT) WF_PEXPRESSION) ys) 
    = FSetType TYPEU('a)"
   by (simp add: WF_PEXPRESSION_type_def)
+*)
 
 subsection {* Action Expressions *}
 
@@ -690,5 +692,5 @@ lemma MkInt_compat_int [typing]:
   "MkInt v \<rhd> [x :: (int, 'm :: INT_SORT) PVAR]\<^sub>*"
   by (simp add:var_compat_def typing defined)
 *)
-
+ 
 end

@@ -64,6 +64,17 @@ end
 abbreviation EV :: "NAME \<Rightarrow> ('a::EVENT_PERM) UTYPE \<Rightarrow> 'a \<Rightarrow> 'a EVENT" where
 "EV n t v \<equiv> Abs_EVENT ((n, t), v)"
 
+(*
+definition MkEVENT :: "NAME \<Rightarrow> ('a::EVENT_PERM) UTYPE \<Rightarrow> 'a \<Rightarrow> 'a EVENT" where
+"MkEVENT n t v = (if (t \<in> EventPerm \<and> v :! t) 
+                  then (Abs_EVENT ((n, t), v))
+                  else (Abs_EVENT ((n, (SOME t. t \<in> EventPerm)), default (SOME t. t \<in> EventPerm))))"
+
+rep_datatype "MkEVENT"
+  apply (auto simp add:MkEVENT_def)
+apply (metis Rep_EVENT_inverse pair_collapse)
+*)
+
 class EVENT_SORT = EVENT_PERM +
   fixes MkEvent   :: "'a EVENT \<Rightarrow> 'a"
   and   DestEvent :: "'a \<Rightarrow> 'a EVENT"

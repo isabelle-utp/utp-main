@@ -40,6 +40,7 @@ datatype vdmt =
   | CharT
   | QuoteT
   | TokenT
+  | EventT
   | SetT vdmt ("\<pow>")
   | FuncT vdmt vdmt (infixr "\<rightarrow>" 60)
   | NameT
@@ -63,6 +64,7 @@ text {* We introduce countable values using a normal datatype. This representati
   is not fully canonical, as we use lists to represents sets, maps and records.
   However, we later introduce constructors for these which use the correct types
   and thus ensure canonicity. *}
+
 datatype vbasic 
   = PairI vbasic vbasic
   | NatI "nat"
@@ -72,6 +74,7 @@ datatype vbasic
   | CharI "char"
   | QuoteI "string" 
   | TokenI vbasic
+  | EvI NAME "vdmt" "vbasic"
   | ListI vdmt "vbasic list"
   | OptionI vdmt "vbasic option"
   | FinI vdmt "vbasic list"
@@ -81,6 +84,7 @@ datatype vbasic
   | NameI "NAME"
   | TypeI "vdmt"
   | BotI "vdmt"
+
 
 (* Deriving the linear order necessarily takes a while *)
 
@@ -201,6 +205,7 @@ RatI_type[intro!]: "RatI x :\<^sub>b RatT" |
 RealI_type[intro!]: "RealI x :\<^sub>b RealT" |
 CharI_type[intro!]: "CharI x :\<^sub>b CharT" |
 TokenI_type[intro!]: "TokenI x :\<^sub>b TokenT" |
+EvI_type[intro!]: "v :\<^sub>b t \<Longrightarrow> EvI n t v :\<^sub>b EventT" |
 QuoteI_type[intro!]: "QuoteI x :\<^sub>b QuoteT" |
 ListI_type[intro!]: "\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>b a \<rbrakk> \<Longrightarrow> ListI a xs :\<^sub>b ListT a" |
 OptionI_Some_type[intro]: "\<lbrakk> x :\<^sub>b a \<rbrakk> \<Longrightarrow> OptionI a (Some x) :\<^sub>b OptionT a" |
@@ -234,6 +239,8 @@ inductive_cases
   CharT_type_cases [elim!]: "x :\<^sub>b CharT" and
   TokenI_type_cases [elim]: "TokenI x :\<^sub>b t" and
   TokenT_type_cases [elim!]: "x :\<^sub>b TokenT" and
+  EvI_type_cases [elim]: "EvI n t v :\<^sub>b a" and
+  EventT_type_cases [elim!]: "x :\<^sub>b EventT" and
   QuoteI_type_cases [elim]: "QuoteI x :\<^sub>b t" and
   QuoteT_type_cases [elim!]: "x :\<^sub>b QuoteT" and
   ListI_type_cases [elim]: "ListI a xs :\<^sub>b b" and
@@ -274,6 +281,7 @@ fun vbdefined :: "vbasic \<Rightarrow> bool" ("\<D>\<^sub>b") where
 "\<D>\<^sub>b (CharI x) = True" |
 "\<D>\<^sub>b (QuoteI x) = True" |
 "\<D>\<^sub>b (TokenI x) = \<D>\<^sub>b x" |
+"\<D>\<^sub>b (EvI n t v) = True" |
 "\<D>\<^sub>b (ListI a xs) = foldr (op \<and> \<circ> \<D>\<^sub>b) xs True" |
 "\<D>\<^sub>b (OptionI a None) = True" |
 "\<D>\<^sub>b (OptionI a (Some x)) = \<D>\<^sub>b x" |
@@ -317,7 +325,7 @@ definition vbvalues :: "vdmv set" where
 lemma vbtypes_simps [simp]:
   "\<nat> \<in> vbtypes" "\<int> \<in> vbtypes" "\<rat> \<in> vbtypes"
   "\<bool> \<in> vbtypes" "CharT \<in> vbtypes" "TokenT \<in> vbtypes"
-  "FSetT a \<in> vbtypes" "ListT a \<in> vbtypes"
+  "FSetT a \<in> vbtypes" "ListT a \<in> vbtypes" "EventT \<in> vbtypes"
   "a \<rightarrow> b \<notin> vbtypes"
   "SetT a \<notin> vbtypes"
  apply (auto simp add:vbtypes_def)
@@ -527,6 +535,8 @@ fun IsSetD :: "vdmv \<Rightarrow> bool" where
 "IsSetD (SetD x) = True" |
 "IsSetD _ = False"
 
+thm EvI_type_cases
+
 lemma vbasic_type_rel_uniq: "\<lbrakk> x :\<^sub>b a; x :\<^sub>b b \<rbrakk> \<Longrightarrow> a = b"
   and "\<lbrakk> xs :\<^sub>r as; xs :\<^sub>r bs \<rbrakk> \<Longrightarrow> as = bs"
   apply (induct x and xs arbitrary: a b and as bs)
@@ -534,7 +544,5 @@ lemma vbasic_type_rel_uniq: "\<lbrakk> x :\<^sub>b a; x :\<^sub>b b \<rbrakk> \<
   apply (metis PairI_type_cases)
   apply (force)
 done
-
-thm vbasic_type_rel_uniq
 
 end

@@ -12,6 +12,7 @@ imports
   "core/utp_core"
   "alpha/utp_alpha_pred"
   "tactics/utp_pred_tac"
+  "tactics/utp_expr_tac"
   "tactics/utp_rel_tac"
   "tactics/utp_xrel_tac"
   "laws/utp_pred_laws"
@@ -19,6 +20,8 @@ imports
   "laws/utp_subst_laws"
   "laws/utp_rename_laws"
   "laws/utp_refine_laws"
+  "poly/utp_poly"
+  "parser/utp_pred_parser"
   "theories/utp_theory"
 begin
 end

@@ -379,6 +379,7 @@ lemma list_fmap_fmempty [simp]:
   "list_fmap [] = fmempty"
   by (auto simp add:list_fmap.rep_eq fmempty.rep_eq)
 
+(*
 instantiation fmap :: ("{vbasic,linorder}", "{vbasic,linorder}") vbasic
 begin
 
@@ -452,7 +453,7 @@ next
   qed
 qed
 end
-  
+*)  
 subsection {* Injecting functions over basic values *}
 
 definition vfun1 :: "('a::vbasic \<Rightarrow> 'b::vbasic) \<Rightarrow> ('a set) \<Rightarrow> vdmv" where
