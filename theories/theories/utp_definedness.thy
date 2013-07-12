@@ -19,7 +19,7 @@ begin
 
 default_sort BOOL_SORT
 
-abbreviation "def  \<equiv> MkPlain ''def'' BoolType True"
+abbreviation "def  \<equiv> MkPlainP ''def'' True TYPE(bool) TYPE('m :: BOOL_SORT)"
 
 definition TVL :: "('a WF_PREDICATE * 'a WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" where
 "TVL \<equiv> \<lambda> (P,Q). `($def \<Rightarrow> P) \<and> (Q \<Leftrightarrow> $def)`"
@@ -68,17 +68,17 @@ definition AllDefinedT :: "'a VAR set \<Rightarrow> 'a WF_PREDICATE" where
 "AllDefinedT xs = mkPRED {b. \<forall>x\<in>xs. \<D> (\<langle>b\<rangle>\<^sub>b x)}"
 
 definition ExistsT :: "'a VAR set \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"ExistsT xs p = (\<exists>p xs. AllDefinedT xs \<and>p p)"
+"ExistsT xs p = (\<exists>\<^sub>p xs. AllDefinedT xs \<and>\<^sub>p p)"
 
-notation ExistsT ("(\<exists>t _ ./ _)" [0, 10] 10)
+notation ExistsT ("(\<exists>\<^sub>t _ ./ _)" [0, 10] 10)
 
 definition ForallT :: "'a VAR set \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"ForallT xs p = (\<forall>p xs. AllDefinedT xs \<Rightarrow>p p)"
+"ForallT xs p = (\<forall>\<^sub>p xs. AllDefinedT xs \<Rightarrow>\<^sub>p p)"
 
-notation ForallT ("(\<forall>t _ ./ _)" [0, 10] 10)
+notation ForallT ("(\<forall>\<^sub>t _ ./ _)" [0, 10] 10)
 
 definition ClosureT :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"ClosureT p = (\<forall>t VAR. p)"
+"ClosureT p = (\<forall>\<^sub>t VAR. p)"
 
 declare TrueT_def  [eval]
 declare FalseT_def [eval]
@@ -135,21 +135,21 @@ lemma DH_defined_anhil: "P is DH \<Longrightarrow> `\<D>(P) \<and> \<P>(P)` = `\
 
 lemma TVL_inject: "P is DH \<Longrightarrow> `\<three>(\<P>(P), \<D>(P))` = P"
   apply (simp add:DH_def is_healthy_def TVL_def DefinedT_def PredicateT_def)
-  apply (rule BoolType_aux_var_split_eq_intro[of "def"])
-  apply (simp_all add:typing defined usubst CondR_true CondR_false)
+  apply (rule BoolType_aux_var_split_eq_intro[of "def\<down>"])
+  apply (simp_all add:typing defined usubst CondR_true CondR_false erasure)
   apply (utp_pred_auto_tac)
 done
 
-lemma DH_TVL: "UNREST {def} Q \<Longrightarrow> `\<three>(P, Q)` is DH"
+lemma DH_TVL: "UNREST {def\<down>} Q \<Longrightarrow> `\<three>(P, Q)` is DH"
   apply (simp add:TVL_def DH_def is_healthy_def DefinedT_def PredicateT_def usubst typing defined)
   apply (utp_pred_auto_tac)
 done
 
 lemma DH_BotT: "`\<bottom>\<^sub>T` is DH"
-  by (utp_pred_tac, utp_expr_tac)
+  by (utp_pred_tac)
 
 lemma DH_TrueT: "`true\<^sub>T` is DH"
-  by (utp_pred_tac, utp_expr_tac)
+  by (utp_pred_tac)
 
 lemma DH_FalseT: "`false\<^sub>T` is DH"
   by (utp_pred_tac)
@@ -162,19 +162,19 @@ done
 
 lemma TVL_left:
   "`\<P>(\<three>(P, Q))` = `(P \<and> Q)[true/def]`"
-  by (simp add:TVL_def PredicateT_def usubst typing defined)
+  by (simp add:TVL_def PredicateT_def usubst typing defined erasure)
 
 lemma TVL_right:
   "`\<D>(\<three>(P, Q))` = `Q[false/def]`"
-  by (utp_pred_tac, utp_expr_tac)
+  by (utp_pred_tac)
 
 lemma DefinedT_BotT:
   "[\<not> \<D>(\<bottom>\<^sub>T)]"
-  by (utp_pred_tac, utp_expr_tac)
+  by (utp_pred_tac)
 
 lemma DefinedT_TrueT:
   "`\<D>(true\<^sub>T)`"
-  by (utp_pred_tac, utp_expr_tac)
+  by (utp_pred_tac)
 
 lemma DefinedT_FalseT:
   "`\<D>(false\<^sub>T)`"
@@ -191,53 +191,52 @@ lemma TVL_extreme_point2:
 lemma AndT_left_unit:
   "P is DH \<Longrightarrow> `true\<^sub>T \<and>\<^sub>T P` = `P`"
   apply (simp add:TVL_def AndT_def DefinedT_def TrueT_def PredicateT_def)
-  apply (rule BoolType_aux_var_split_eq_intro[of "def"])
-  apply (simp_all add:typing defined usubst)
-  apply (metis AndP_comm DH_defined_anhil DefinedT_def PredicateT_def)
+  apply (rule BoolType_aux_var_split_eq_intro[of "def\<down>"])
+  apply (simp_all add:typing defined usubst erasure)
+  apply (utp_pred_auto_tac)
 done
 
 lemma AndT_right_unit:
   "P is DH \<Longrightarrow> `P \<and>\<^sub>T true\<^sub>T` = `P`"
   apply (simp add:TVL_def AndT_def DefinedT_def TrueT_def PredicateT_def)
-  apply (rule BoolType_aux_var_split_eq_intro[of "def"])
-  apply (simp_all add:typing defined usubst)
-  apply (metis AndP_comm DH_defined_anhil DefinedT_def PredicateT_def)
+  apply (rule BoolType_aux_var_split_eq_intro[of "def\<down>"])
+  apply (simp_all add:typing defined usubst erasure)
+  apply (utp_pred_auto_tac)
 done
-
 
 lemma AndT_assoc:
   "`(P \<and>\<^sub>T Q) \<and>\<^sub>T R` = `P \<and>\<^sub>T Q \<and>\<^sub>T R`"
-  by (utp_pred_tac, utp_expr_tac, auto)
+  by (utp_pred_auto_tac)
 
 lemma AndT_commute: 
   "`P \<and>\<^sub>T Q` = `Q \<and>\<^sub>T P`"
-  by (utp_pred_tac, utp_expr_tac, auto)
+  by (utp_pred_auto_tac)
 
 lemma OrT_assoc:
   "`(P \<or>\<^sub>T Q) \<or>\<^sub>T R` = `P \<or>\<^sub>T Q \<or>\<^sub>T R`"
-  by (utp_pred_tac, utp_expr_tac, auto)
+  by (utp_pred_auto_tac)
 
 lemma OrT_commute:
   "`P \<or>\<^sub>T Q` = `Q \<or>\<^sub>T P`"
-  by (utp_pred_tac, utp_expr_tac, auto)
+  by (utp_pred_auto_tac)
 
 lemma NotT_double: "P is DH \<Longrightarrow> `\<not>\<^sub>T \<not>\<^sub>T P` = `P`"
   apply (simp add:NotT_def TVL_def PredicateT_def DefinedT_def)
-  apply (rule BoolType_aux_var_split_eq_intro[of "def"])
-  apply (simp_all add:typing defined usubst)
+  apply (rule BoolType_aux_var_split_eq_intro[of "def\<down>"])
+  apply (simp_all add:typing defined usubst erasure)
   apply (utp_pred_auto_tac)
 done
 
 lemma NotT_TrueT: "`\<not>\<^sub>T true\<^sub>T` = `false\<^sub>T`"
-  by (utp_pred_tac, utp_expr_tac)
+  by (utp_pred_tac)
 
 lemma AndT_BotT_left: "`\<bottom>\<^sub>T \<and>\<^sub>T P` = `\<bottom>\<^sub>T`"
-  by (utp_pred_tac, utp_expr_tac)
+  by (utp_pred_tac)
 
 lemma AndT_BotT_right: "`P \<and>\<^sub>T \<bottom>\<^sub>T` = `\<bottom>\<^sub>T`"
-  by (utp_pred_tac, utp_expr_tac)
+  by (utp_pred_tac)
 
 lemma NotT_BotT: "`\<not>\<^sub>T \<bottom>\<^sub>T` = `\<bottom>\<^sub>T`"
-  by (utp_pred_tac, utp_expr_tac)
+  by (utp_pred_tac)
 
 end
