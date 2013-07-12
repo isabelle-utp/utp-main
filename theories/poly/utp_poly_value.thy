@@ -227,17 +227,9 @@ lemma TypeUSound_bool [typing]: "TYPEUSOUND(bool, 'm :: BOOL_SORT)"
 lemma TypeUSound_int [typing]: "TYPEUSOUND(int, 'm :: INT_SORT)"
   by (force simp add: typing defined)
 
-(*
-lemma "a \<in> ListPerm \<Longrightarrow> \<D> (MkList a xs) \<longleftrightarrow> (\<forall>x\<in>set xs. \<D> x \<and> x : a)"
-  apply (auto)
-*)
-
-(*
-thm map_eq_conv
-
-lemma "\<forall> x\<in>set xs. f x = g x \<Longrightarrow> map f xs = map g xs"
-  by (auto)
-*)
+lemma TypeUSound_Event [typing]:
+  "TYPEUSOUND('m EVENT, 'm :: EVENT_SORT)"
+  by (auto simp add:typing defined)
 
 lemma TypeUSound_ULIST [typing]: 
   assumes 

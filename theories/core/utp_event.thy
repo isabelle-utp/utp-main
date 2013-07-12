@@ -61,6 +61,10 @@ instance
   by (intro_classes, auto simp add:Defined_EVENT_def)
 end
 
+lemma Defined_EVENT [defined]:
+  "\<D> (x :: 'a EVENT) = True"
+  by (simp add:Defined_EVENT_def)
+
 abbreviation EV :: "NAME \<Rightarrow> ('a::EVENT_PERM) UTYPE \<Rightarrow> 'a \<Rightarrow> 'a EVENT" where
 "EV n t v \<equiv> Abs_EVENT ((n, t), v)"
 
@@ -82,18 +86,28 @@ class EVENT_SORT = EVENT_PERM +
 
   assumes Inverse [simp] : 
     "DestEvent (MkEvent v) = v"
-  and     MkEvent_dcarrier: 
+  and     EventType_dcarrier: 
     "dcarrier EventType = range MkEvent"
   and     EventType_monotype [typing]: "monotype EventType"
 begin
 
 lemma MkEvent_defined [defined] : 
   "\<D> (MkEvent e)"
-  by (metis MkEvent_dcarrier dcarrier_defined rangeI)
+  by (metis EventType_dcarrier dcarrier_defined rangeI)
+
+lemma MkEvent_type [typing]: "MkEvent b : EventType"
+  by (metis EventType_dcarrier dcarrier_type rangeI)
 
 lemma MkEvent_dtype [typing]: 
   "MkEvent e :! EventType"
-  by (metis MkEvent_dcarrier dcarrier_dtype rangeI)
+  by (metis EventType_dcarrier dcarrier_dtype rangeI)
+
+lemma MkEvent_inj: "inj MkEvent"
+  by (metis Inverse injI)
+
+lemma DestEvent_inv [simp]: "x :! EventType \<Longrightarrow> MkEvent (DestEvent x) = x"
+  by (smt EventType_dcarrier Inverse dtype_as_dcarrier image_iff)
+
 end
 
 lift_definition EVENT_channel :: "'a::EVENT_PERM EVENT \<Rightarrow> 'a UCHANNEL" is "fst"
