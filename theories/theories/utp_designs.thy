@@ -274,12 +274,12 @@ proof -
   ultimately show ?thesis
     by (simp)
 qed
-
 definition J_pred :: "'VALUE WF_PREDICATE" ("J") where
 "J \<equiv> (ok \<Rightarrow>p ok') \<and>p II ((UNDASHED \<union> DASHED) - {okay,okay\<acute>})"
 
 declare J_pred_def [eval,evalr]
 
+ *)
 abbreviation ok_true :: 
   "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" ("_\<^sup>t" [150]) where
 "p\<^sup>t \<equiv> `p[true/okay\<acute>]`"
@@ -292,14 +292,15 @@ syntax
   "_upred_ok_true"  :: "upred \<Rightarrow> upred" ("_\<^sup>t" [1000] 1000)
   "_upred_ok_false" :: "upred \<Rightarrow> upred" ("_\<^sup>f" [1000] 1000)
   "_upred_SkipD"    :: "upred" ("II\<^sub>D")
-  "_upred_J"        :: "upred" ("J")
+  (*"_upred_J"        :: "upred" ("J")*)
 
 translations
   "_upred_ok_true p"  == "CONST ok_true p"
   "_upred_ok_false p" == "CONST ok_false p"
   "_upred_SkipD"      == "CONST SkipD"
-  "_upred_J"          == "CONST J_pred"
+  (*"_upred_J"          == "CONST J_pred"*)
 
+(*
 definition H1 :: "'a WF_FUNCTION" where "H1(P) = `ok \<Rightarrow> P`"
 definition H2 :: "'a WF_FUNCTION" where "H2(P) = `P ; J`"
 definition H3 :: "'a WF_FUNCTION" where "H3(P) = `P ; II\<^sub>D`"
