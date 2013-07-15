@@ -29,10 +29,10 @@ subsection {* Design Constructs *}
 
 abbreviation "okay  \<equiv> MkPlainP ''okay'' True TYPE(bool) TYPE('m :: BOOL_SORT)"
 abbreviation "ok  \<equiv> VarP okay\<down>"
-abbreviation "ok' \<equiv> VarP okay\<acute>\<down>"
-abbreviation "ok'' \<equiv> VarP okay\<acute>\<acute>\<down>"
-abbreviation "ok''' \<equiv> VarP okay\<acute>\<acute>\<acute>\<down>"
-abbreviation "OKAY \<equiv> {okay\<down>,okay\<acute>\<down>}"
+abbreviation "ok' \<equiv> VarP okay\<down>\<acute>"
+abbreviation "ok'' \<equiv> VarP okay\<down>\<acute>\<acute>"
+abbreviation "ok''' \<equiv> VarP okay\<down>\<acute>\<acute>\<acute>"
+abbreviation "OKAY \<equiv> {okay\<down>,okay\<down>\<acute>}"
 
 definition DesignD :: 
 "'VALUE WF_PREDICATE \<Rightarrow>
@@ -41,7 +41,7 @@ definition DesignD ::
 "p \<turnstile> q = `ok \<and> p \<Rightarrow> ok' \<and> q`"
 
 definition SkipD :: "'VALUE WF_PREDICATE" where
-"SkipD = true \<turnstile> II\<^bsub>(REL_VAR - {okay\<down>,okay\<acute>\<down>})\<^esub>"
+"SkipD = true \<turnstile> II\<^bsub>(REL_VAR - OKAY)\<^esub>"
 
 notation SkipD ("II\<^sub>D")
 
@@ -209,12 +209,8 @@ proof -
   also have "... = `(\<not>ok ; true) \<or> (\<not>P1 ; true) \<or> (Q1 ; \<not>P2) \<or> (ok' \<and> (Q1 ; Q2))`"
   proof -
     from assms have "`Q1 ; (P2 \<Rightarrow> ok' \<and> Q2)` = `(Q1 ; \<not>P2) \<or> (ok' \<and> (Q1 ; Q2))`"
-      apply (simp add:erasure typing)
-    sorry
-(*
-      by (smt AndP_comm (*<*)MkPlainP_UNDASHED(*>*) SemiR_AndP_right_postcond (*<*)UNDASHED_dash_DASHED VarP_precond_closure(*>*) ImpliesP_def SemiR_OrP_distl)
-*)  
-
+      by (simp add:ImpliesP_def SemiR_OrP_distl AndP_comm SemiR_AndP_right_postcond closure)
+    
     thus ?thesis by (smt OrP_assoc SemiR_OrP_distr demorgan2)
   qed
 
@@ -234,18 +230,20 @@ lemma condition_comp [simp]:
   "p1 \<in> WF_CONDITION \<Longrightarrow> `\<not> (\<not> p1 ; true)` = p1"
   by (metis NotP_NotP NotP_cond_closure SemiR_TrueP_precond)
 
-(*
+
 lemma DesignD_composition_cond:
   assumes "p1 \<in> WF_CONDITION" "P2 \<in> WF_RELATION" "Q1 \<in> WF_RELATION" "Q2 \<in> WF_RELATION"
           "UNREST OKAY p1" "UNREST OKAY P2" "UNREST OKAY Q1" "UNREST OKAY Q2"
   shows "`(p1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `(p1 \<and> \<not> (Q1 ; \<not> P2)) \<turnstile> (Q1 ; Q2)`"
-  apply (simp add:DesignD_composition closure assms erasure)
+  by (simp add:DesignD_composition closure assms unrest)
+
 
 lemma DesignD_composition_wp:
   assumes "p1 \<in> WF_CONDITION" "P2 \<in> WF_RELATION" "Q1 \<in> WF_RELATION" "Q2 \<in> WF_RELATION"
           "UNREST OKAY p1" "UNREST OKAY P2" "UNREST OKAY Q1" "UNREST OKAY Q2"
   shows "`(p1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `(p1 \<and> (Q1 wp P2)) \<turnstile> (Q1 ; Q2)`"
   by (simp add: DesignD_composition_cond closure WeakPrecondP_def assms)
+
 
 lemma minus_intersect [simp]:
   "vs1 - (vs1 - vs2) = vs1 \<inter> vs2"
@@ -255,15 +253,15 @@ lemma SkipD_left_unit:
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "UNREST AUX_VAR P" "UNREST AUX_VAR Q"
   shows "II\<^sub>D ; (P \<turnstile> Q) = P \<turnstile> Q"
 proof -
-  have "II\<^sub>D ; (P \<turnstile> Q) = (\<exists>p {okay\<acute>\<acute>\<acute>}. II\<^sub>D[VarE okay\<acute>\<acute>\<acute>|okay\<acute>] ; (P \<turnstile> Q)[VarE okay\<acute>\<acute>\<acute>|okay])"
-    by (metis DesignD_rel_closure MkPlain_UNDASHED SemiR_extract_variable SkipD_rel_closure assms(1) assms(2))
+  have "II\<^sub>D ; (P \<turnstile> Q) = (\<exists>\<^sub>p {okay\<down>\<acute>\<acute>\<acute>}. II\<^sub>D[VarE okay\<down>\<acute>\<acute>\<acute>/\<^sub>pokay\<down>\<acute>] ; (P \<turnstile> Q)[VarE okay\<down>\<acute>\<acute>\<acute>/\<^sub>pokay\<down>])"
+    by (metis (hide_lams, no_types) DesignD_rel_closure MkPlain_UNDASHED PVAR_VAR_MkPVAR SemiR_extract_variable SkipD_def SkipD_rel_closure assms(1) assms(2) insert_compr)
 
   also from assms
   have "... = P \<turnstile> Q"
     apply (simp add:ucases typing)
     apply (simp add:DesignD_def SkipD_def usubst closure typing defined unrest assms)
     apply (simp add:SemiR_TrueP_precond closure)
-    apply (rule BoolType_aux_var_split_eq_intro[of okay])
+    apply (rule BoolType_aux_var_split_eq_intro[of "okay\<down>"])
     apply (simp_all)
     apply (simp add:usubst typing defined)
     apply (simp add:usubst typing defined assms closure unrest)
@@ -274,12 +272,12 @@ proof -
   ultimately show ?thesis
     by (simp)
 qed
+
 definition J_pred :: "'VALUE WF_PREDICATE" ("J") where
-"J \<equiv> (ok \<Rightarrow>p ok') \<and>p II ((UNDASHED \<union> DASHED) - {okay,okay\<acute>})"
+"J \<equiv> (ok \<Rightarrow>\<^sub>p ok') \<and>\<^sub>p II\<^bsub>REL_VAR - OKAY\<^esub>"
 
 declare J_pred_def [eval,evalr]
 
- *)
 abbreviation ok_true :: 
   "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" ("_\<^sup>t" [150]) where
 "p\<^sup>t \<equiv> `p[true/okay\<acute>]`"
@@ -292,15 +290,15 @@ syntax
   "_upred_ok_true"  :: "upred \<Rightarrow> upred" ("_\<^sup>t" [1000] 1000)
   "_upred_ok_false" :: "upred \<Rightarrow> upred" ("_\<^sup>f" [1000] 1000)
   "_upred_SkipD"    :: "upred" ("II\<^sub>D")
-  (*"_upred_J"        :: "upred" ("J")*)
+  "_upred_J"        :: "upred" ("J")
 
 translations
   "_upred_ok_true p"  == "CONST ok_true p"
   "_upred_ok_false p" == "CONST ok_false p"
   "_upred_SkipD"      == "CONST SkipD"
-  (*"_upred_J"          == "CONST J_pred"*)
+  "_upred_J"          == "CONST J_pred"
 
-(*
+
 definition H1 :: "'a WF_FUNCTION" where "H1(P) = `ok \<Rightarrow> P`"
 definition H2 :: "'a WF_FUNCTION" where "H2(P) = `P ; J`"
 definition H3 :: "'a WF_FUNCTION" where "H3(P) = `P ; II\<^sub>D`"
@@ -318,10 +316,10 @@ lemma DesignD_is_H1 :
   "P \<turnstile> Q is H1"
   by (utp_pred_auto_tac)
 
-lemma H1_AndP: "H1 (p \<and>p q) = H1(p) \<and>p H1(q)"
+lemma H1_AndP: "H1 (p \<and>\<^sub>p q) = H1(p) \<and>\<^sub>p H1(q)"
   by (utp_pred_auto_tac)
 
-lemma H1_OrP: "H1 (p\<or>p q) = H1(p) \<or>p H1(q)"
+lemma H1_OrP: "H1 (p \<or>\<^sub>p q) = H1(p) \<or>\<^sub>p H1(q)"
   by (utp_pred_auto_tac)
 
 lemma SemiR_TrueP_right_precond:
@@ -359,6 +357,7 @@ lemma "\<lbrakk> P \<in> WF_RELATION; e \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<
   apply (simp add:SemiR_algebraic_rel closure unrest typing defined)
 *)
 
+(*
 theorem H1_algebraic_intro:
   assumes 
     "R \<in> WF_RELATION"  
@@ -366,7 +365,7 @@ theorem H1_algebraic_intro:
     "(II\<^sub>D ; R = R)"
   shows "R is H1"
 proof -
-  let ?vs = "REL_VAR - {okay,okay\<acute>}"
+  let ?vs = "REL_VAR - OKAY"
   have "R = II\<^sub>D ; R" by (simp add: assms)
 
   also have "... = `(true \<turnstile> II\<^bsub>?vs\<^esub>) ; R`"
@@ -379,7 +378,7 @@ proof -
     by (smt ImpliesP_export)
 
   also have "... = `(ok \<Rightarrow> (ok \<and> $okay\<acute> = $okay \<and> II\<^bsub>?vs\<^esub>)) ; R`"
-    by (simp add:VarP_EqualP_aux typing defined, utp_rel_auto_tac)
+    by (simp add:VarP_EqualP_aux typing defined erasure, utp_rel_auto_tac)
 
   also have "... = `(ok \<Rightarrow> II) ; R`"
     by (simp add:SkipRA_unfold[THEN sym] 
