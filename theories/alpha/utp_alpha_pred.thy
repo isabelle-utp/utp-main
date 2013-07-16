@@ -13,6 +13,15 @@ imports
   utp_alphabet
 begin
 
+text {* Theorem Attribute *}
+
+ML {*
+  structure evala =
+    Named_Thms (val name = @{binding evala} val description = "evala theorems")
+*}
+
+setup evala.setup
+
 subsection {* Wellformed alphabetised predicates *}
 
 type_synonym 'VALUE ALPHA_PREDICATE =
@@ -24,24 +33,24 @@ definition WF_ALPHA_PREDICATE ::
  {(a,p) | a p . p \<in> WF_PREDICATE_OVER \<langle>a\<rangle>\<^sub>f}"
 
 typedef 'VALUE WF_ALPHA_PREDICATE = "WF_ALPHA_PREDICATE :: 'VALUE ALPHA_PREDICATE set"
+morphisms DestPredA MkPredA
   apply (auto simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
   apply (metis UNREST_FalseP prod_caseI)
 done
 
-declare Rep_WF_ALPHA_PREDICATE [simp]
-declare Rep_WF_ALPHA_PREDICATE_inverse [simp]
-declare Abs_WF_ALPHA_PREDICATE_inverse [simp]
+declare DestPredA [simp]
+declare DestPredA_inverse [simp]
+declare MkPredA_inverse [simp]
 
-lemma Rep_WF_ALPHA_PREDICATE_intro [intro]:
-  "Rep_WF_ALPHA_PREDICATE x = Rep_WF_ALPHA_PREDICATE y \<Longrightarrow> x = y"
-  by (simp add:Rep_WF_ALPHA_PREDICATE_inject)
+lemma DestPredA_intro [intro]:
+  "DestPredA x = DestPredA y \<Longrightarrow> x = y"
+  by (simp add:DestPredA_inject)
 
-lemma Rep_WF_ALPHA_PREDICATE_elim [elim]:
-  "\<lbrakk> x = y; Rep_WF_ALPHA_PREDICATE x = Rep_WF_ALPHA_PREDICATE y \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+lemma DestPredA_elim [elim]:
+  "\<lbrakk> x = y; DestPredA x = DestPredA y \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (auto)
 
-notation Rep_WF_ALPHA_PREDICATE ("\<langle>_\<rangle>\<^sub>\<alpha>")
-
+notation DestPredA ("\<langle>_\<rangle>\<^sub>\<alpha>")
 
 setup_lifting type_definition_WF_ALPHA_PREDICATE
 
@@ -71,7 +80,7 @@ definition WF_ALPHA_PREDICATE_OVER ::
 
 theorem WF_ALPHA_PREDICATE_UNREST [unrest] (* [dest] *) :
 "UNREST (VAR - \<langle>\<alpha> p\<rangle>\<^sub>f) (\<pi> p)"
-apply (insert Rep_WF_ALPHA_PREDICATE[of p])
+apply (insert DestPredA[of p])
 apply (auto simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def pred_alphabet_def)
 done
 
@@ -84,7 +93,7 @@ definition LiftA ::
    ('VALUE WF_BINDING \<Rightarrow> bool) \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" where
 "f \<in> WF_BINDING_PRED \<langle>a\<rangle>\<^sub>f \<longrightarrow>
- LiftA a f = Abs_WF_ALPHA_PREDICATE (a, LiftP f)"
+ LiftA a f = MkPredA (a, LiftP f)"
 
 subsubsection {* Equality *}
 
@@ -123,13 +132,13 @@ subsubsection {* True and False *}
 
 definition TrueA ::
   "'VALUE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" where
-"TrueA a = Abs_WF_ALPHA_PREDICATE (a, true)"
+"TrueA a = MkPredA (a, true)"
 
 notation TrueA ("true\<^bsub>_\<^esub>")
 
 definition FalseA ::
   "'VALUE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" where
-"FalseA a = Abs_WF_ALPHA_PREDICATE (a, false)"
+"FalseA a = MkPredA (a, false)"
 
 notation FalseA ("false\<^bsub>_\<^esub>")
 
@@ -319,7 +328,7 @@ subsubsection {* Closure Theorems *}
 
 theorem LiftA_rep_eq:
   "f \<in> WF_BINDING_PRED \<langle>a\<rangle>\<^sub>f \<Longrightarrow>
-   Rep_WF_ALPHA_PREDICATE (LiftA a f) = (a, LiftP f)"
+   DestPredA (LiftA a f) = (a, LiftP f)"
   apply (subgoal_tac "(a, LiftP f) \<in> WF_ALPHA_PREDICATE")
   apply (simp add:LiftA_def)
   apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
@@ -327,14 +336,14 @@ theorem LiftA_rep_eq:
 done
 
 theorem TrueA_rep_eq:
-  "Rep_WF_ALPHA_PREDICATE (TrueA a) = (a, TrueP)"
+  "DestPredA (TrueA a) = (a, TrueP)"
   apply (subgoal_tac "(a, true) \<in> WF_ALPHA_PREDICATE")
   apply (simp add:TrueA_def)
   apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
 done
 
 theorem FalseA_rep_eq:
-  "Rep_WF_ALPHA_PREDICATE (FalseA a) = (a, FalseP)"
+  "DestPredA (FalseA a) = (a, FalseP)"
   apply (subgoal_tac "(a, false) \<in> WF_ALPHA_PREDICATE")
   apply (simp add:FalseA_def)
   apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
@@ -421,14 +430,14 @@ subsubsection {* Validation of Soundness *}
 
 theorem ImpliesA_lemma :
 "p1 \<Rightarrow>\<^sub>\<alpha> p2 = \<not>\<^sub>\<alpha> p1 \<or>\<^sub>\<alpha> p2"
-apply (rule Rep_WF_ALPHA_PREDICATE_intro)
+apply (rule DestPredA_intro)
 apply (simp add: ImpliesA.rep_eq OrA.rep_eq NotA.rep_eq)
 apply (utp_pred_tac)
 done
 
 theorem IffA_lemma :
 "p1 \<Leftrightarrow>\<^sub>\<alpha> p2 = (p1 \<Rightarrow>\<^sub>\<alpha> p2) \<and>\<^sub>\<alpha> (p2 \<Rightarrow>\<^sub>\<alpha> p1)"
-apply (rule Rep_WF_ALPHA_PREDICATE_intro)
+apply (rule DestPredA_intro)
 apply (simp add: IffA.rep_eq AndA.rep_eq NotA.rep_eq ImpliesA.rep_eq)
 apply (rule conjI)
 apply (force)
@@ -437,27 +446,27 @@ done
 
 theorem ExistsA_lemma :
 "(\<exists>\<^sub>\<alpha> a . p) = (p \<ominus>\<^sub>\<alpha> a) \<oplus>\<^sub>\<alpha> (\<alpha> p)"
-apply (rule Rep_WF_ALPHA_PREDICATE_intro)
+apply (rule DestPredA_intro)
 apply (simp add: ExistsA.rep_eq ExtA.rep_eq ResA.rep_eq)
 apply (auto)
 done
 
 theorem ForallA_lemma :
 "(\<forall>\<^sub>\<alpha> a . p) = \<not>\<^sub>\<alpha> (\<exists>\<^sub>\<alpha> a . \<not>\<^sub>\<alpha> p)"
-apply (rule Rep_WF_ALPHA_PREDICATE_intro)
+apply (rule DestPredA_intro)
 apply (simp add: ForallA.rep_eq NotA.rep_eq ExistsA.rep_eq)
 apply (utp_pred_auto_tac)
 done
 
 theorem ExistsResA_lemma :
 "(\<exists>-\<^sub>\<alpha> a . p) = p \<ominus>\<^sub>\<alpha> a"
-apply (rule Rep_WF_ALPHA_PREDICATE_intro)
+apply (rule DestPredA_intro)
 apply (simp add: ExistsResA.rep_eq ResA.rep_eq)
 done
 
 theorem ForallResA_lemma :
 "(\<forall>-\<^sub>\<alpha> a . p) = \<not>\<^sub>\<alpha> (\<exists>-\<^sub>\<alpha> a . \<not>\<^sub>\<alpha> p)"
-apply (rule Rep_WF_ALPHA_PREDICATE_intro)
+apply (rule DestPredA_intro)
 apply (simp add: ForallResA.rep_eq ExistsResA.rep_eq ResA.rep_eq NotA.rep_eq)
 apply (utp_pred_auto_tac)
 done
@@ -469,7 +478,7 @@ done
 
 theorem ClosureA_lemma :
 "[p]\<^sub>\<alpha> = (\<forall>-\<^sub>\<alpha> (\<alpha> p) . p)"
-apply (rule Rep_WF_ALPHA_PREDICATE_intro)
+apply (rule DestPredA_intro)
 apply (simp add:ClosureA.rep_eq ForallResA.rep_eq)
 apply (simp add:ClosureP_def)
 apply (subst VAR_decomp [of "\<langle>\<alpha> p\<rangle>\<^sub>f"])
@@ -480,7 +489,7 @@ done
 
 theorem RefA_lemma :
 "p1 \<sqsubseteq>\<^sub>\<alpha> p2 = [p2 \<Rightarrow>\<^sub>\<alpha> p1]\<^sub>\<alpha>"
-apply (rule Rep_WF_ALPHA_PREDICATE_intro)
+apply (rule DestPredA_intro)
 apply (simp add: RefA.rep_eq ClosureA.rep_eq ImpliesA.rep_eq)
 apply (utp_pred_auto_tac)
 done

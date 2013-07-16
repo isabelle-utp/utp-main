@@ -27,32 +27,33 @@ definition WF_ALPHA_EXPRESSION ::
  {e . snd e \<in> WF_EXPRESSION_OVER \<langle>fst e\<rangle>\<^sub>f}"
 
 typedef 'VALUE WF_ALPHA_EXPRESSION = "WF_ALPHA_EXPRESSION :: 'VALUE ALPHA_EXPRESSION set"
+  morphisms DestExprA MkExprA
   apply (auto simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
   apply (rule_tac x="(\<lbrace>\<rbrace>, DefaultE someType)" in exI)
   apply (auto intro:unrest simp add:DefaultE_def)
 done
 
-declare Rep_WF_ALPHA_EXPRESSION [simp]
-declare Rep_WF_ALPHA_EXPRESSION_inverse [simp]
-declare Abs_WF_ALPHA_EXPRESSION_inverse [simp]
+declare DestExprA [simp]
+declare DestExprA_inverse [simp]
+declare MkExprA_inverse [simp]
 
-lemma Rep_WF_ALPHA_EXPRESSION_intro [intro]:
-  "Rep_WF_ALPHA_EXPRESSION x = Rep_WF_ALPHA_EXPRESSION y \<Longrightarrow> x = y"
-  by (simp add:Rep_WF_ALPHA_EXPRESSION_inject)
+lemma DestExprA_intro [intro]:
+  "DestExprA x = DestExprA y \<Longrightarrow> x = y"
+  by (simp add:DestExprA_inject)
 
-lemma Rep_WF_ALPHA_EXPRESSION_elim [elim]:
-  "\<lbrakk> x = y; Rep_WF_ALPHA_EXPRESSION x = Rep_WF_ALPHA_EXPRESSION y \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+lemma DestExprA_elim [elim]:
+  "\<lbrakk> x = y; DestExprA x = DestExprA y \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (auto)
 
 setup_lifting type_definition_WF_ALPHA_EXPRESSION
 
 definition expr_alpha ::
   "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE ALPHABET" where
-"expr_alpha e = fst (Rep_WF_ALPHA_EXPRESSION e)"
+"expr_alpha e = fst (DestExprA e)"
 
 abbreviation expression ::
   "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE WF_EXPRESSION" ("\<epsilon>") where
-"expression e \<equiv> snd (Rep_WF_ALPHA_EXPRESSION e)"
+"expression e \<equiv> snd (DestExprA e)"
 
 (*
 definition alpha_expr_type ::
@@ -100,7 +101,7 @@ done
 
 theorem WF_ALPHA_EXPRESSION_UNREST_EXPR [unrest] :
 "UNREST_EXPR (VAR - \<langle>\<alpha> e\<rangle>\<^sub>f) (\<epsilon> e)"
-apply (insert Rep_WF_ALPHA_EXPRESSION[of e])
+apply (insert DestExprA[of e])
 apply (simp add:WF_ALPHA_EXPRESSION_def expr_alpha_def WF_EXPRESSION_OVER_def)
 done
 
@@ -163,10 +164,10 @@ definition AppAE ::
   "'VALUE::FUNCTION_SORT WF_ALPHA_EXPRESSION \<Rightarrow> 
    'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
    'VALUE WF_ALPHA_EXPRESSION" where
-"AppAE f v = Abs_WF_ALPHA_EXPRESSION (\<alpha> f \<union>\<^sub>f \<alpha> v, AppE (\<epsilon> f) (\<epsilon> v))"
+"AppAE f v = MkExprA (\<alpha> f \<union>\<^sub>f \<alpha> v, AppE (\<epsilon> f) (\<epsilon> v))"
 
 lemma AppAE_rep_eq:
-  "\<lbrakk> f :\<^sub>\<alpha> FuncType a b; v :\<^sub>\<alpha> a; \<D> f \<rbrakk> \<Longrightarrow> Rep_WF_ALPHA_EXPRESSION (AppAE f v) = (\<alpha> f \<union>\<^sub>f \<alpha> v, AppE (\<epsilon> f) (\<epsilon> v))"
+  "\<lbrakk> f :\<^sub>\<alpha> FuncType a b; v :\<^sub>\<alpha> a; \<D> f \<rbrakk> \<Longrightarrow> DestExprA (AppAE f v) = (\<alpha> f \<union>\<^sub>f \<alpha> v, AppE (\<epsilon> f) (\<epsilon> v))"
   apply (subgoal_tac "(\<alpha> f \<union>\<^sub>f \<alpha> v, AppE (\<epsilon> f) (\<epsilon> v)) \<in> WF_ALPHA_EXPRESSION")
   apply (simp add:AppAE_def)
   apply (auto intro:unrest UNREST_EXPR_subset simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def eatype_rel_def Defined_WF_ALPHA_EXPRESSION_def)
@@ -175,10 +176,10 @@ done
 
 definition ExprA ::
   "'VALUE::BOOL_SORT WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" where
-"ExprA e = Abs_WF_ALPHA_PREDICATE (\<alpha> e, ExprP (\<epsilon> e))"
+"ExprA e = MkPredA (\<alpha> e, ExprP (\<epsilon> e))"
 
 lemma ExprA_rep_eq:
-  "e :\<^sub>\<alpha> BoolType \<Longrightarrow> Rep_WF_ALPHA_PREDICATE (ExprA e) = (\<alpha> e, ExprP (\<epsilon> e))"
+  "e :\<^sub>\<alpha> BoolType \<Longrightarrow> DestPredA (ExprA e) = (\<alpha> e, ExprP (\<epsilon> e))"
   apply (subgoal_tac "(\<alpha> e, ExprP (\<epsilon> e)) \<in> WF_ALPHA_PREDICATE")
   apply (auto intro: unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def ExprA_def eatype_rel_def)
 done
@@ -219,7 +220,7 @@ definition SubstA ::
  'VALUE VAR \<Rightarrow> 
  'VALUE WF_ALPHA_PREDICATE" ("_[_/\<^sub>\<alpha>_]" [200] 200) where
 "SubstA p v x \<equiv> 
-  Abs_WF_ALPHA_PREDICATE 
+  MkPredA
     (if (x \<in>\<^sub>f \<alpha> p) then (\<alpha> p -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
                    else \<alpha> p
     , (\<pi> p)[\<epsilon> v/\<^sub>px])"
@@ -230,7 +231,7 @@ definition SubstAE ::
  'VALUE VAR \<Rightarrow> 
  'VALUE WF_ALPHA_EXPRESSION" ("_[_/\<^sub>\<epsilon>_]" [200] 200) where
 "SubstAE f v x \<equiv> 
-  Abs_WF_ALPHA_EXPRESSION 
+  MkExprA 
     ( (\<alpha> f -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
     , SubstE (\<epsilon> f) (\<epsilon> v) x)"
 
@@ -298,7 +299,7 @@ lemma SubstA_closure [closure]:
     apply (force)
     apply (subgoal_tac "UNREST {x} (\<pi> p)")
     apply (simp add: utp_expr.SubstP_no_var[of "x" "\<pi> p" "\<epsilon> v"] closure)
-    apply (metis Rep_WF_ALPHA_PREDICATE pred_alphabet_def surjective_pairing)
+    apply (metis DestPredA pred_alphabet_def surjective_pairing)
     apply (metis (full_types) Diff_iff VAR_member WF_ALPHA_PREDICATE_UNREST_intro bot_least insert_subset)
 done
 
@@ -323,7 +324,7 @@ done
 
 lemma SubstAE_rep_eq:
   "\<lbrakk> v \<rhd>\<^sub>\<alpha> x \<rbrakk> \<Longrightarrow>
-   Rep_WF_ALPHA_EXPRESSION (f[v|x]\<alpha>\<epsilon>) = ((\<alpha> f -\<^sub>f finsert x \<lbrace>\<rbrace>) \<union>\<^sub>f \<alpha> v, SubstE (\<epsilon> f) (\<epsilon> v) x)"
+   DestExprA (f[v|x]\<alpha>\<epsilon>) = ((\<alpha> f -\<^sub>f finsert x \<lbrace>\<rbrace>) \<union>\<^sub>f \<alpha> v, SubstE (\<epsilon> f) (\<epsilon> v) x)"
   by (simp add:SubstAE_def SubstAE_closure)
 *)
 

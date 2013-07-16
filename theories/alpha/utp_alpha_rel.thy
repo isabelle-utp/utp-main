@@ -68,7 +68,7 @@ definition AssignA ::
  'VALUE WF_ALPHA_EXPRESSION \<Rightarrow>
  'VALUE WF_ALPHA_PREDICATE" where
 "a \<in> REL_ALPHABET \<Longrightarrow>
- AssignA x a v \<equiv> Abs_WF_ALPHA_PREDICATE (a, AssignRA x \<langle>a\<rangle>\<^sub>f (\<epsilon> v))"
+ AssignA x a v \<equiv> MkPredA (a, AssignRA x \<langle>a\<rangle>\<^sub>f (\<epsilon> v))"
 
 notation AssignA ("_ :=\<^bsub>_ \<^esub>_" [190] 190)
 
@@ -76,12 +76,13 @@ subsubsection {* Conditional *}
 
 text {* Should we impose a constraint on b for it to be a condition? *}
 
-definition CondA ::
+lift_definition CondA ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" where
-"CondA r1 b r2 = Abs_WF_ALPHA_PREDICATE (\<alpha> r1, (\<pi> r1) \<lhd> (\<pi> b) \<rhd> (\<pi> r2))"
+   'VALUE WF_ALPHA_PREDICATE" 
+is "\<lambda> r1 b r2. (\<alpha> r1 \<union>\<^sub>f \<alpha> b \<union>\<^sub>f \<alpha> r2, (\<pi> r1) \<lhd> (\<pi> b) \<rhd> (\<pi> r2))"
+  by (auto intro: unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation CondA ("_ \<lhd> _ \<rhd>\<^sub>\<alpha> _")
 
@@ -91,7 +92,7 @@ definition SemiA ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" where
-"SemiA r1 r2 = Abs_WF_ALPHA_PREDICATE (in\<^sub>\<alpha> (\<alpha> r1) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r2), (\<pi> r1) ; (\<pi> r2))"
+"SemiA r1 r2 = MkPredA (in\<^sub>\<alpha> (\<alpha> r1) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r2), (\<pi> r1) ; (\<pi> r2))"
 
 notation SemiA (infixr ";\<^sub>\<alpha>" 140)
 
@@ -418,32 +419,19 @@ theorem RenameA_SS_closure [closure]:
   apply (metis (lifting) SS_VAR_RENAME_INV SS_ident_app UnE VAR_RENAME_INV_app set_rev_mp)
 done
 
-theorem CondA_rep_eq :
-"\<lbrakk>r1 \<in> WF_ALPHA_REL;
- r2 \<in> WF_ALPHA_REL;
- b \<in> WF_CONDITION;
- (\<alpha> r1) = (\<alpha> r2);
- (\<alpha> b) \<subseteq>\<^sub>f (\<alpha> r1)\<rbrakk> \<Longrightarrow>
-  Rep_WF_ALPHA_PREDICATE (r1 \<lhd> b \<rhd>\<^sub>\<alpha> r2) = (\<alpha> r1, (\<pi> r1) \<lhd> (\<pi> b) \<rhd> (\<pi> r2))"
-  apply (subgoal_tac "(\<alpha> r1, (\<pi> r1) \<triangleleft> (\<pi> b) \<triangleright> (\<pi> r2)) \<in> WF_ALPHA_PREDICATE")
-  apply (simp add:CondA_def)
-  apply (simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
-  apply (auto intro:unrest)
-done
-
 theorem CondA_closure [closure] :
   assumes "r1 \<in> WF_ALPHA_REL" "r2 \<in> WF_ALPHA_REL"
     "b \<in> WF_CONDITION" "(\<alpha> r1) = (\<alpha> r2)" "(\<alpha> b) \<subseteq>\<^sub>f (\<alpha> r1)"
- shows "(r1 \<triangleleft>\<alpha> b \<alpha>\<triangleright> r2) \<in> WF_ALPHA_REL"
+ shows "(r1 \<lhd> b \<rhd>\<^sub>\<alpha> r2) \<in> WF_ALPHA_REL"
 proof 
-  from assms show "\<langle>\<alpha> r1 \<triangleleft>\<alpha> b \<alpha>\<triangleright> r2\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED"
-    by (simp add: CondA_rep_eq pred_alphabet_def WF_ALPHA_REL_def REL_ALPHABET_def)
+  from assms show "\<langle>\<alpha> r1 \<lhd> b \<rhd>\<^sub>\<alpha> r2\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED"
+    by (simp add: CondA.rep_eq pred_alphabet_def WF_ALPHA_REL_def REL_ALPHABET_def)
 qed
 
 theorem SemiA_rep_eq:
 "\<lbrakk>r1 \<in> WF_ALPHA_REL;
  r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
- Rep_WF_ALPHA_PREDICATE (r1 ;\<alpha> r2) = (in\<^sub>\<alpha> (\<alpha> r1) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r2), (\<pi> r1) ; (\<pi> r2))"
+ DestPredA (r1 ;\<^sub>\<alpha> r2) = (in\<^sub>\<alpha> (\<alpha> r1) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r2), (\<pi> r1) ; (\<pi> r2))"
   apply (subgoal_tac "(in\<^sub>\<alpha> (\<alpha> r1) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r2), (\<pi> r1) ; (\<pi> r2)) \<in> WF_ALPHA_PREDICATE")
   apply (simp add:SemiA_def)
   apply (frule WF_ALPHA_REL_UNREST_UNDASHED)
@@ -456,12 +444,11 @@ done
 
 theorem SemiA_closure [closure] :
   assumes "r1 \<in> WF_ALPHA_REL" "r2 \<in> WF_ALPHA_REL"
-  shows "r1 ;\<alpha> r2 \<in> WF_ALPHA_REL"
+  shows "r1 ;\<^sub>\<alpha> r2 \<in> WF_ALPHA_REL"
 apply (simp add: WF_ALPHA_REL_unfold pred_alphabet_def)
 apply (simp add: SemiA_rep_eq assms)
 apply (metis in_vars_def inf_sup_ord(2) le_supI1 le_supI2 out_vars_def)
 done
-
 
 subsection {* Alphabet Theorems *}
 
@@ -469,27 +456,24 @@ declare pred_alphabet_def [simp]
 
 theorem SkipA_alphabet [alphabet] :
 "a \<in> REL_ALPHABET \<Longrightarrow>
- \<alpha> (II\<alpha> a) = a"
+ \<alpha> (II\<alpha>\<^bsub>a\<^esub>) = a"
   by (simp add: SkipA.rep_eq)
 
+(*
 theorem AssignA_alphabet [alphabet] :
 "\<lbrakk> a \<in> REL_ALPHABET; x \<in>\<^sub>f a; dash x \<in>\<^sub>f a; \<alpha> v \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow>
  \<alpha> (x :=\<^bsub>a\<^esub> v) = a"
   by (simp add: AssignA_rep_eq)
+*)
 
 theorem CondA_alphabet [alphabet] :
-"\<lbrakk>r1 \<in> WF_ALPHA_REL;
- r2 \<in> WF_ALPHA_REL;
- b \<in> WF_CONDITION;
- (\<alpha> r1) = (\<alpha> r2);
- (\<alpha> b) \<subseteq>\<^sub>f (\<alpha> r1)\<rbrakk> \<Longrightarrow>
- \<alpha> (r1 \<triangleleft>\<alpha> b \<alpha>\<triangleright> r2) = (\<alpha> r1)"
-  by (simp add: CondA_rep_eq)
+"\<alpha> (r1 \<lhd> b \<rhd>\<^sub>\<alpha> r2) = (\<alpha> r1 \<union>\<^sub>f \<alpha> b \<union>\<^sub>f \<alpha> r2)"
+  by (simp add: CondA.rep_eq)
 
 theorem SemiA_alphabet [alphabet] :
 "\<lbrakk>r1 \<in> WF_ALPHA_REL;
  r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
- \<alpha> (r1 ;\<alpha> r2) = in\<^sub>\<alpha> (\<alpha> r1) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r2)"
+ \<alpha> (r1 ;\<^sub>\<alpha> r2) = in\<^sub>\<alpha> (\<alpha> r1) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r2)"
   by (simp add: SemiA_rep_eq)
 
 subsection {* Evaluation Theorems *}
@@ -518,9 +502,9 @@ theorem EvalA_UNREST_DASHED_TWICE [unrest]:
   "r \<in> WF_ALPHA_REL \<Longrightarrow> UNREST DASHED_TWICE \<lbrakk>r\<rbrakk>\<pi>"
   by (simp add:EvalA_def unrest)
 
-theorem EvalA_UNREST_NON_REL_VAR [unrest]:
+theorem WF_ALPHA_REL_UNREST_NON_REL_VAR [unrest]:
   "r \<in> WF_ALPHA_REL \<Longrightarrow> UNREST NON_REL_VAR (\<pi> r)"
-  apply (rule unrest) 
+  apply (rule UNREST_subset)
   apply (rule unrest) back
   apply (simp add:WF_ALPHA_REL_def REL_ALPHABET_def NON_REL_VAR_def)
   apply (auto)
@@ -528,38 +512,29 @@ done
 
 theorem EvalA_UNREST_out [unrest]:
   "p \<in> WF_ALPHA_REL \<Longrightarrow> UNREST (DASHED - out \<langle>\<alpha> p\<rangle>\<^sub>f) \<lbrakk>p\<rbrakk>\<pi>"
-  by (auto intro:unrest simp add:var_defs)
+  by (auto intro:unrest UNREST_subset simp add:var_defs)
 
 theorem EvalA_UNREST_in [unrest]:
   "p \<in> WF_ALPHA_REL \<Longrightarrow> UNREST (UNDASHED - in \<langle>\<alpha> p\<rangle>\<^sub>f) \<lbrakk>p\<rbrakk>\<pi>"
-  by (auto intro:unrest simp add:var_defs)
+  by (auto intro:unrest UNREST_subset simp add:var_defs)
 
 theorem EvalA_SkipA [evala] :
-"a \<in> REL_ALPHABET \<Longrightarrow> \<lbrakk>II\<alpha> a\<rbrakk>\<pi> = II \<langle>a\<rangle>\<^sub>f"
+"a \<in> REL_ALPHABET \<Longrightarrow> \<lbrakk>II\<alpha>\<^bsub>a\<^esub>\<rbrakk>\<pi> = II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub>"
   by (simp add:EvalA_def SkipA.rep_eq)
 
 theorem EvalA_CondA [evala] :
-"\<lbrakk>r1 \<in> WF_ALPHA_REL;
- r2 \<in> WF_ALPHA_REL;
- b \<in> WF_CONDITION;
- (\<alpha> r1) = (\<alpha> r2);
- (\<alpha> b) \<subseteq>\<^sub>f (\<alpha> r1)\<rbrakk> \<Longrightarrow>
- \<lbrakk>r1 \<triangleleft>\<alpha> b \<alpha>\<triangleright> r2\<rbrakk>\<pi> = \<lbrakk>r1\<rbrakk>\<pi> \<triangleleft> \<lbrakk>b\<rbrakk>\<pi> \<triangleright> \<lbrakk>r2\<rbrakk>\<pi>"
-apply (simp add: EvalA_def)
-apply (simp add: CondA_rep_eq)
-done
+"\<lbrakk>r1 \<lhd> b \<rhd>\<^sub>\<alpha> r2\<rbrakk>\<pi> = \<lbrakk>r1\<rbrakk>\<pi> \<lhd> \<lbrakk>b\<rbrakk>\<pi> \<rhd> \<lbrakk>r2\<rbrakk>\<pi>"
+  by (simp add: EvalA_def CondA.rep_eq)
 
 theorem EvalA_SemiA [evala] :
 "\<lbrakk>r1 \<in> WF_ALPHA_REL;
  r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
- \<lbrakk>r1 ;\<alpha> r2\<rbrakk>\<pi> = \<lbrakk>r1\<rbrakk>\<pi> ; \<lbrakk>r2\<rbrakk>\<pi>"
-apply (simp add: EvalA_def)
-apply (simp add: SemiA_rep_eq)
-done
+ \<lbrakk>r1 ;\<^sub>\<alpha> r2\<rbrakk>\<pi> = \<lbrakk>r1\<rbrakk>\<pi> ; \<lbrakk>r2\<rbrakk>\<pi>"
+  by (simp add: EvalA_def SemiA_rep_eq)
 
 theorem EvalA_AssignA [evala] :
 "\<lbrakk> a \<in> REL_ALPHABET; x \<in>\<^sub>f a; dash x \<in>\<^sub>f a; \<alpha> v \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow> 
- \<lbrakk>x :=\<^bsub>a\<^esub> v\<rbrakk>\<pi> = x :=p\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon>"
+ \<lbrakk>x :=\<^bsub>a\<^esub> v\<rbrakk>\<pi> = x :=\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> \<lbrakk>v\<rbrakk>\<epsilon>"
   by (simp add:AssignA_rep_eq EvalA_def EvalAE_def)
 
 declare pred_alphabet_def [simp del]
