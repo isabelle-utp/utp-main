@@ -498,6 +498,11 @@ abbreviation ConcatPE ::
    ('a ULIST, 'm :: LIST_SORT) WF_PEXPRESSION" where
 "ConcatPE \<equiv> Op2PE (op @\<^sub>u)"
 
+abbreviation FSetPE ::
+  "('a ::DEFINED ULIST, 'm :: LIST_SORT) WF_PEXPRESSION \<Rightarrow> 
+   ('a UFSET, 'm :: LIST_SORT) WF_PEXPRESSION" where
+"FSetPE \<equiv> Op1PE FSetUF"
+
 abbreviation PrefixPE::
   "('a ::DEFINED ULIST, 'm :: {BOOL_SORT, LIST_SORT}) WF_PEXPRESSION \<Rightarrow> 
    ('a ULIST, 'm) WF_PEXPRESSION \<Rightarrow> (bool, 'm) WF_PEXPRESSION" where
@@ -592,6 +597,16 @@ abbreviation EventPE ::
   "'a CHANNEL \<Rightarrow> ('a, 'm :: EVENT_SORT) WF_PEXPRESSION 
               \<Rightarrow> ('m EVENT, 'm) WF_PEXPRESSION" where
 "EventPE n v \<equiv> Op1PE (PEV n) v"
+
+(*
+abbreviation ReceivePE ::
+  "'a CHANNEL \<Rightarrow> ('a \<Rightarrow> ('b, 'm :: EVENT_SORT) WF_PEXPRESSION)
+*)
+
+abbreviation ChannelPE ::
+  "('m::EVENT_SORT EVENT, 'm) WF_PEXPRESSION \<Rightarrow> 
+   ('m UCHANNEL, 'm) WF_PEXPRESSION" where
+"ChannelPE \<equiv> Op1PE EVENT_channel"
 
 subsection {* Permutation *}
 

@@ -72,6 +72,9 @@ lift_definition UnionUF :: "'a::DEFINED UFSET \<Rightarrow> 'a UFSET \<Rightarro
 lift_definition InterUF :: "'a::DEFINED UFSET \<Rightarrow> 'a UFSET \<Rightarrow> 'a UFSET" is "finter"
   by (auto)
 
+lift_definition FSetUF :: "'a::DEFINED ULIST \<Rightarrow> 'a UFSET" is "fset"
+  by (auto)
+
 definition IntersyncUF :: 
   "'a::DEFINED UFSET \<Rightarrow> 'a ULIST \<Rightarrow> 'a ULIST \<Rightarrow> ('a ULIST) UFSET"  where
 "IntersyncUF xs ys zs = Abs_UFSET (Abs_ULIST `\<^sub>f (intersync (Rep_UFSET xs) (Rep_ULIST ys) (Rep_ULIST zs)))"

@@ -156,7 +156,19 @@ lemma fs_elem_set [simp]: "fs_elem fx \<notin> fs_set fx"
   apply (case_tac fx)
   apply (auto simp add:fset_elem_def Abs_fset_elem_inverse)
 done 
-  
+
+definition fset :: "'a list \<Rightarrow> 'a fset" where
+"fset xs = Abs_fset (set xs)"
+
+lemma fset_rep_eq [simp]: "\<langle>fset xs\<rangle>\<^sub>f = set xs"
+  by (simp add:fset_def)
+
+lemma fset_empty [simp]: "fset [] = \<lbrace>\<rbrace>"
+  by (simp add:fset_def fempty_def)
+
+lemma fset_cons [simp]: "fset (x # xs) = finsert x (fset xs)"
+  by (simp add:fset_def finsert_def)
+
 context linorder
 begin
 
@@ -191,12 +203,6 @@ lemma flist_empty [simp]:
   "flist \<lbrace>\<rbrace> = []"
   by (simp add:flist_def)
 
-definition fset :: "'a list \<Rightarrow> 'a fset" where
-"fset xs = Abs_fset (set xs)"
-
-lemma fset_rep_eq [simp]: "\<langle>fset xs\<rangle>\<^sub>f = set xs"
-  by (simp add:fset_def)
-
 lemma flist_inv [simp]: "fset (flist xs) = xs"
   by (simp add:fset_def flist_def Rep_fset_inverse)
 
@@ -208,11 +214,6 @@ lemma fset_inv [simp]: "\<lbrakk> sorted xs; distinct xs \<rbrakk> \<Longrightar
   apply (metis finite_set sorted_distinct_set_unique sorted_list_of_set)
 done
 
-lemma fset_empty [simp]: "fset [] = \<lbrace>\<rbrace>"
-  by (simp add:fset_def fempty_def)
-
-lemma fset_cons [simp]: "fset (x # xs) = finsert x (fset xs)"
-  by (simp add:fset_def finsert_def)
 
 lemma fcard_flist:
   "fcard xs = length (flist xs)"

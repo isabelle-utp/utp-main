@@ -190,8 +190,10 @@ syntax
   "_pexpr_fset_inter"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "\<inter>" 70)
   "_pexpr_fset_member"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(_/ \<in> _)" [51, 51] 50)
   "_pexpr_fset_nmember" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(_/ \<notin> _)" [51, 51] 50)
+  "_pexpr_fset_list"    :: "pexpr \<Rightarrow> pexpr" ("set _")
   "_pexpr_intersync"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<parallel>\<^bsub>_\<^esub>" 75)
   "_pexpr_event"        :: "NAME \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_?_" 50)
+  "_pexpr_event_chan"   :: "pexpr \<Rightarrow> pexpr" ("chan _")
 
 translations
   (* Basic logical operators *)
@@ -239,18 +241,22 @@ translations
   "_pexpr_fset_inter xs ys"    == "CONST FInterPE xs ys"
   "_pexpr_fset_member x xs"    == "CONST FMemberPE x xs"
   "_pexpr_fset_nmember x xs"   == "CONST FNotMemberPE x xs"
+  "_pexpr_fset_list xs"        == "CONST FSetPE xs"
   "_pexpr_intersync p xs q"    == "CONST IntersyncPE xs p q"
   "_pexpr_event n v"           == "CONST EventPE n v"
+  "_pexpr_event_chan e"        == "CONST ChannelPE e"
 
 (* Linking the predicate parser to the poly parser *)
 
 syntax
   "_upred_lesseq"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "\<le>" 25)
+  "_upred_less"         :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "<" 25)
   "_upred_fset_member"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" ("(_/ \<in> _)" [51, 51] 50)
   "_upred_fset_nmember" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" ("(_/ \<notin> _)" [51, 51] 50)
 
 translations
   "_upred_lesseq e f"        == "CONST PExprP (_pexpr_less_eq e f)"
+  "_upred_less e f"          == "CONST PExprP (_pexpr_less e f)"
   "_upred_fset_member x xs"  == "CONST PExprP (_pexpr_fset_member x xs)"
   "_upred_fset_nmember x xs" == "CONST PExprP (_pexpr_fset_nmember x xs)"
 
