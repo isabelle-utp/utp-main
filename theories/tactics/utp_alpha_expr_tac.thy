@@ -7,33 +7,37 @@
 header {* Proof Tactic for Alphabetised Expressions *}
 
 theory utp_alpha_expr_tac
-imports "../alpha/utp_alpha_expr" utp_pred_tac utp_expr_tac utp_alpha_tac
+imports 
+  "../alpha/utp_alpha_expr" 
+  utp_pred_tac 
+  utp_expr_tac 
+  utp_alpha_tac
 begin
 
 subsection {* Interpretation Function *}
 
 definition EvalAE ::
   "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow>
-   'VALUE WF_EXPRESSION" ("\<lbrakk>_\<rbrakk>\<alpha>\<epsilon>") where
+   'VALUE WF_EXPRESSION" ("\<lbrakk>_\<rbrakk>\<epsilon>") where
 "EvalAE e = \<epsilon> e"
 
 subsection {* Transfer Theorems *}
 
 theorem EvalAE_simp [evala] :
-"e1 = e2 \<longleftrightarrow> (\<alpha> e1) = (\<alpha> e2) \<and> \<lbrakk>e1\<rbrakk>\<alpha>\<epsilon> = \<lbrakk>e2\<rbrakk>\<alpha>\<epsilon>"
+"e1 = e2 \<longleftrightarrow> (\<alpha> e1) = (\<alpha> e2) \<and> \<lbrakk>e1\<rbrakk>\<epsilon> = \<lbrakk>e2\<rbrakk>\<epsilon>"
   by (auto simp add: EvalAE_def)
 
 theorem EvalAE_intro :
 "\<lbrakk>\<alpha> e1 = \<alpha> e2;
- \<lbrakk>e1\<rbrakk>\<alpha>\<epsilon> = \<lbrakk>e2\<rbrakk>\<alpha>\<epsilon> \<rbrakk> \<Longrightarrow> e1 = e2"
+ \<lbrakk>e1\<rbrakk>\<epsilon> = \<lbrakk>e2\<rbrakk>\<epsilon> \<rbrakk> \<Longrightarrow> e1 = e2"
   by (auto simp add: EvalAE_def)
 
 theorem EvalAE_type [typing] :
-"\<lbrakk>e :\<^sub>\<alpha> t\<rbrakk> \<Longrightarrow> \<lbrakk>e\<rbrakk>\<alpha>\<epsilon> :\<^sub>e t"
+"\<lbrakk>e :\<^sub>\<alpha> t\<rbrakk> \<Longrightarrow> \<lbrakk>e\<rbrakk>\<epsilon> :\<^sub>e t"
   by (simp add:EvalAE_def eatype_rel_def)
 
 theorem EvalAE_compat [typing] :
-"\<lbrakk>e \<rhd>\<^sub>\<alpha> x\<rbrakk> \<Longrightarrow> \<lbrakk>e\<rbrakk>\<alpha>\<epsilon> \<rhd>\<^sub>e x"
+"\<lbrakk>e \<rhd>\<^sub>\<alpha> x\<rbrakk> \<Longrightarrow> \<lbrakk>e\<rbrakk>\<epsilon> \<rhd>\<^sub>e x"
   by (simp add: EvalAE_def eavar_compat_def)
 
 (*
@@ -43,18 +47,17 @@ theorem EvalAE_tau:
 *)
 
 theorem EvalAE_expr [evala]:
-  "\<epsilon> e = \<lbrakk>e\<rbrakk>\<alpha>\<epsilon>"
+  "\<epsilon> e = \<lbrakk>e\<rbrakk>\<epsilon>"
   by (simp add:EvalAE_def)
 
 theorem EvalAE_UNREST_EXPR [unrest] :
-"UNREST_EXPR (VAR - \<langle>\<alpha> e\<rangle>\<^sub>f) \<lbrakk>e\<rbrakk>\<alpha>\<epsilon>"
+"UNREST_EXPR (VAR - \<langle>\<alpha> e\<rangle>\<^sub>f) \<lbrakk>e\<rbrakk>\<epsilon>"
   by (simp add: EvalAE_def unrest)
-
 
 subsection {* Distribution Theorems *}
 
 theorem EvalAE_VarAE [evala] :
-"\<lbrakk>VarAE x\<rbrakk>\<alpha>\<epsilon> = VarE x"
+"\<lbrakk>VarAE x\<rbrakk>\<epsilon> = VarE x"
   by (auto simp add:VarAE.rep_eq EvalAE_def)
 
 theorem EvalAE_VarA [evala] :
@@ -62,37 +65,40 @@ theorem EvalAE_VarA [evala] :
   by (auto simp add:VarA.rep_eq EvalA_def)
 
 theorem EvalA_EqualA [evala] :
-"\<lbrakk>e1 ==\<alpha> e2\<rbrakk>\<pi> = (\<lbrakk>e1\<rbrakk>\<alpha>\<epsilon> ==p \<lbrakk>e2\<rbrakk>\<alpha>\<epsilon>)"
+"\<lbrakk>e1 ==\<^sub>\<alpha> e2\<rbrakk>\<pi> = (\<lbrakk>e1\<rbrakk>\<epsilon> ==\<^sub>p \<lbrakk>e2\<rbrakk>\<epsilon>)"
   by (simp add:EqualA.rep_eq EvalA_def EvalAE_def)
 
 theorem EvalE_LitAE [evala] :
-"\<lbrakk>LitAE v\<rbrakk>\<alpha>\<epsilon> = LitE v"
+"\<lbrakk>LitAE v\<rbrakk>\<epsilon> = LitE v"
   by (simp add: LitAE.rep_eq EvalAE_def)
 
 theorem EvalE_CoerceAE_1 [evala] :
-"\<lbrakk>CoerceAE e t\<rbrakk>\<alpha>\<epsilon> = CoerceE \<lbrakk>e\<rbrakk>\<alpha>\<epsilon> t"
+"\<lbrakk>CoerceAE e t\<rbrakk>\<epsilon> = CoerceE \<lbrakk>e\<rbrakk>\<epsilon> t"
   by (simp add:CoerceAE.rep_eq EvalAE_def)
 
+(*
 theorem EvalE_AppAE [evala] :
 "\<lbrakk> f :\<^sub>\<alpha> FuncType a b; v :\<^sub>\<alpha> a; \<D> f \<rbrakk> \<Longrightarrow> \<lbrakk>AppAE f v\<rbrakk>\<alpha>\<epsilon> = AppE \<lbrakk>f\<rbrakk>\<alpha>\<epsilon> \<lbrakk>v\<rbrakk>\<alpha>\<epsilon>"
   by (simp add:EvalAE_def AppAE_rep_eq)
+*)
 
 theorem EvalE_TrueAE [evala] :
-"\<lbrakk>TrueAE\<rbrakk>\<alpha>\<epsilon> = TrueE"
+"\<lbrakk>TrueAE\<rbrakk>\<epsilon> = TrueE"
   by (simp add:TrueAE.rep_eq EvalAE_def)
 
 theorem EvalE_FalseAE [evala] :
-"\<lbrakk>FalseAE\<rbrakk>\<alpha>\<epsilon> = FalseE"
+"\<lbrakk>FalseAE\<rbrakk>\<epsilon> = FalseE"
   by (simp add:FalseAE.rep_eq EvalAE_def)
 
 theorem EvalA_ExprA [evala] :
-"e :\<^sub>\<alpha> BoolType \<Longrightarrow> \<lbrakk>ExprA e\<rbrakk>\<pi> = ExprP \<lbrakk>e\<rbrakk>\<alpha>\<epsilon>"
+"e :\<^sub>\<alpha> BoolType \<Longrightarrow> \<lbrakk>ExprA e\<rbrakk>\<pi> = ExprP \<lbrakk>e\<rbrakk>\<epsilon>"
   by (simp add:ExprA_rep_eq EvalA_def EvalAE_def)
 
-theorem EvalA_RenameAE [evala] :
-"\<lbrakk>e[ss]\<alpha>\<epsilon>\<rbrakk>\<alpha>\<epsilon> = \<lbrakk>e\<rbrakk>\<alpha>\<epsilon>[ss]\<epsilon>"
-  by (simp add:RenameAE.rep_eq EvalAE_def)
+theorem EvalA_PermAE [evala] :
+"\<lbrakk>ss\<bullet>e\<rbrakk>\<epsilon> = ss\<bullet>\<lbrakk>e\<rbrakk>\<epsilon>"
+  by (simp add:PermAE.rep_eq EvalAE_def)
  
+(*
 theorem EvalA_SubstA :
 "v \<rhd>\<^sub>\<alpha> x \<Longrightarrow> \<lbrakk>SubstA p v x\<rbrakk>\<pi> = \<lbrakk>p\<rbrakk>\<pi>[\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>|x]"
   by (simp add:SubstA_rep_eq EvalA_def EvalAE_def)
@@ -100,6 +106,7 @@ theorem EvalA_SubstA :
 theorem EvalA_SubstAE [evala] :
 "v \<rhd>\<^sub>\<alpha> x \<Longrightarrow> \<lbrakk>SubstAE f v x\<rbrakk>\<alpha>\<epsilon> = \<lbrakk>f\<rbrakk>\<alpha>\<epsilon>[\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>|x]"
   by (simp add:SubstAE_rep_eq EvalAE_def)
+*)
 
 (*
 theorem EvalA_is_SubstP_var [evala]:
@@ -107,9 +114,11 @@ theorem EvalA_is_SubstP_var [evala]:
   by (simp add:EvalA_def WF_ALPHA_EXPRESSION_is_SubstP_var EvalAE_def)
 *)
 
+(*
 theorem EvalP_EvalA_SubstA [evala]: 
   "\<lbrakk> v \<rhd>\<^sub>\<alpha> x \<rbrakk> \<Longrightarrow> \<lbrakk>\<lbrakk>p[v|x]\<alpha>\<rbrakk>\<pi>\<rbrakk>b = \<lbrakk>\<lbrakk>p\<rbrakk>\<pi>\<rbrakk>(b(x :=\<^sub>b \<lbrakk>\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>\<rbrakk>\<epsilon>b))"
   by (metis (full_types) EvalAE_expr EvalA_SubstA EvalA_def EvalE_SubstP eavar_compat_def)
+*)
 
 subsection {* Proof Experiements *}
 
@@ -129,9 +138,9 @@ done
 subsubsection {* Simplifications *}
 
 theorem ExprA_true [simp]: "ExprA TrueAE = TRUE"
-  by (utp_alpha_tac2)
+  by (utp_alpha_tac)
 
 theorem ExprA_false [simp]: "ExprA FalseAE = FALSE"
-  by (utp_alpha_tac2)
+  by (utp_alpha_tac)
 
 end

@@ -42,7 +42,7 @@ definition HOM_RELATION :: "'VALUE WF_ALPHA_PREDICATE set" where
 definition WF_REL_EXPR :: "'VALUE WF_ALPHA_EXPRESSION set" where
 "WF_REL_EXPR = {e . (\<alpha> e) \<in> REL_ALPHABET}"
 
-typedef (open) 'VALUE WF_ALPHA_REL = "WF_ALPHA_REL :: 'VALUE WF_ALPHA_PREDICATE set"
+typedef 'VALUE WF_ALPHA_REL = "WF_ALPHA_REL :: 'VALUE WF_ALPHA_PREDICATE set"
   apply (auto simp add:WF_ALPHA_REL_def REL_ALPHABET_def)
   apply (metis ClosureA_alphabet bot_least fempty.rep_eq pred_alphabet_def)
 done
@@ -58,7 +58,7 @@ lift_definition SkipA :: "'VALUE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICAT
 "\<lambda> a. (a, SkipRA \<langle>a\<rangle>\<^sub>f)"
   by (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
 
-notation SkipA ("II\<alpha>")
+notation SkipA ("II\<alpha>\<^bsub>_\<^esub>")
 
 subsubsection {* Assignment *}
 
@@ -81,14 +81,9 @@ definition CondA ::
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" where
-"r1 \<in> WF_ALPHA_REL \<and>
- r2 \<in> WF_ALPHA_REL \<and>
- b \<in> WF_CONDITION \<and>
- (\<alpha> r1) = (\<alpha> r2) \<and>
- (\<alpha> b) \<subseteq>\<^sub>f (\<alpha> r1) \<longrightarrow>
- CondA r1 b r2 = Abs_WF_ALPHA_PREDICATE (\<alpha> r1, (\<pi> r1) \<triangleleft> (\<pi> b) \<triangleright> (\<pi> r2))"
+"CondA r1 b r2 = Abs_WF_ALPHA_PREDICATE (\<alpha> r1, (\<pi> r1) \<lhd> (\<pi> b) \<rhd> (\<pi> r2))"
 
-notation CondA ("_ \<triangleleft>\<alpha> _ \<alpha>\<triangleright> _")
+notation CondA ("_ \<lhd> _ \<rhd>\<^sub>\<alpha> _")
 
 subsubsection {* Sequential Composition *}
 
@@ -96,20 +91,16 @@ definition SemiA ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" where
-"r1 \<in> WF_ALPHA_REL \<and>
- r2 \<in> WF_ALPHA_REL \<longrightarrow>
- SemiA r1 r2 = Abs_WF_ALPHA_PREDICATE (in\<^sub>\<alpha> (\<alpha> r1) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r2), (\<pi> r1) ; (\<pi> r2))"
+"SemiA r1 r2 = Abs_WF_ALPHA_PREDICATE (in\<^sub>\<alpha> (\<alpha> r1) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r2), (\<pi> r1) ; (\<pi> r2))"
 
-notation SemiA (infixr ";\<alpha>" 140)
+notation SemiA (infixr ";\<^sub>\<alpha>" 140)
 
 subsection {* Theorems *}
 
 theorem WF_ALPHA_REL_unfold :
 "r \<in> WF_ALPHA_REL \<longleftrightarrow>
  \<langle>\<alpha> r\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED"
-apply (simp add: WF_ALPHA_REL_def)
-apply (simp add: REL_ALPHABET_def)
-done
+  by (simp add: WF_ALPHA_REL_def REL_ALPHABET_def)
 
 (*
 theorem WF_CONDITION_unfold :
@@ -128,13 +119,11 @@ theorem WF_ALPHA_REL_intro [intro] :
 
 theorem WF_CONDITION_WF_ALPHA_REL [closure] :
 "r \<in> WF_CONDITION \<Longrightarrow> r \<in> WF_ALPHA_REL"
-apply (simp add: WF_CONDITION_def)
-done
+  by (simp add: WF_CONDITION_def)
 
 theorem HOM_ALPHABET_REL_ALPHABET [closure] :
 "a \<in> HOM_ALPHABET \<Longrightarrow> a \<in> REL_ALPHABET"
-apply (simp add: HOM_ALPHABET_def)
-done
+  by (simp add: HOM_ALPHABET_def)
 
 theorem HOM_RELATION_WF_ALPHA_REL [closure] :
 "r \<in> HOM_RELATION \<Longrightarrow> r \<in> WF_ALPHA_REL"
@@ -245,12 +234,12 @@ done
 
 theorem NotA_WF_ALPHA_REL [closure] :
 "\<lbrakk>r \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
- \<not>\<alpha> r \<in> WF_ALPHA_REL"
+ \<not>\<^sub>\<alpha> r \<in> WF_ALPHA_REL"
   by (simp add: WF_ALPHA_REL_unfold alphabet)
 
 theorem NotA_WF_CONDITION [closure] :
 "\<lbrakk>r \<in> WF_CONDITION\<rbrakk> \<Longrightarrow>
- \<not>\<alpha> r \<in> WF_CONDITION"
+ \<not>\<^sub>\<alpha> r \<in> WF_CONDITION"
 apply (simp add:WF_CONDITION_def)
 apply (simp add:closure)
 apply (simp add:NotA.rep_eq)
@@ -260,13 +249,13 @@ done
 theorem AndA_WF_ALPHA_REL [closure] :
 "\<lbrakk>r1 \<in> WF_ALPHA_REL;
  r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
- r1 \<and>\<alpha> r2 \<in> WF_ALPHA_REL"
+ r1 \<and>\<^sub>\<alpha> r2 \<in> WF_ALPHA_REL"
   by (simp add: WF_ALPHA_REL_unfold alphabet)
 
 theorem AndA_WF_CONDITION [closure] :
 "\<lbrakk>r1 \<in> WF_CONDITION;
  r2 \<in> WF_CONDITION\<rbrakk> \<Longrightarrow>
- r1 \<and>\<alpha> r2 \<in> WF_CONDITION"
+ r1 \<and>\<^sub>\<alpha> r2 \<in> WF_CONDITION"
 apply (simp add:WF_CONDITION_def)
 apply (simp add:AndA.rep_eq closure)
 apply (auto intro:unrest)
@@ -275,13 +264,13 @@ done
 theorem OrA_WF_ALPHA_REL [closure] :
 "\<lbrakk>r1 \<in> WF_ALPHA_REL;
  r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
- r1 \<or>\<alpha> r2 \<in> WF_ALPHA_REL"
+ r1 \<or>\<^sub>\<alpha> r2 \<in> WF_ALPHA_REL"
   by (simp add: WF_ALPHA_REL_unfold alphabet)
 
 theorem OrA_WF_CONDITION [closure] :
 "\<lbrakk>r1 \<in> WF_CONDITION;
  r2 \<in> WF_CONDITION\<rbrakk> \<Longrightarrow>
- r1 \<or>\<alpha> r2 \<in> WF_CONDITION"
+ r1 \<or>\<^sub>\<alpha> r2 \<in> WF_CONDITION"
 apply (simp add:WF_CONDITION_def)
 apply (simp add:OrA.rep_eq closure)
 apply (auto intro:unrest)
@@ -290,13 +279,13 @@ done
 theorem ImpliesA_WF_ALPHA_REL [closure] :
 "\<lbrakk>r1 \<in> WF_ALPHA_REL;
  r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
- r1 \<Rightarrow>\<alpha> r2 \<in> WF_ALPHA_REL"
+ r1 \<Rightarrow>\<^sub>\<alpha> r2 \<in> WF_ALPHA_REL"
   by (simp add: WF_ALPHA_REL_unfold alphabet)
 
 theorem ImpliesA_WF_CONDITION [closure] :
 "\<lbrakk>r1 \<in> WF_CONDITION;
  r2 \<in> WF_CONDITION\<rbrakk> \<Longrightarrow>
- r1 \<Rightarrow>\<alpha> r2 \<in> WF_CONDITION"
+ r1 \<Rightarrow>\<^sub>\<alpha> r2 \<in> WF_CONDITION"
 apply (simp add:WF_CONDITION_def)
 apply (simp add:ImpliesA.rep_eq closure)
 apply (auto intro:unrest)
@@ -304,14 +293,14 @@ done
 
 theorem TrueA_WF_ALPHA_REL [closure] :
 "a \<in> REL_ALPHABET \<Longrightarrow>
- true a \<in> WF_ALPHA_REL"
+ true\<^bsub>a\<^esub> \<in> WF_ALPHA_REL"
 apply (simp add:WF_ALPHA_REL_def)
 apply (simp add:closure alphabet)
 done
 
 theorem TrueA_WF_CONDITION [closure] :
 "a \<in> REL_ALPHABET \<Longrightarrow>
- true a \<in> WF_CONDITION"
+ true\<^bsub>a\<^esub> \<in> WF_CONDITION"
 apply (simp add:WF_CONDITION_def)
 apply (simp add:TrueA_rep_eq closure)
 apply (auto intro:unrest)
@@ -319,14 +308,14 @@ done
 
 theorem FalseA_WF_ALPHA_REL [closure] :
 "a \<in> REL_ALPHABET \<Longrightarrow>
- false a \<in> WF_ALPHA_REL"
+ false\<^bsub>a\<^esub> \<in> WF_ALPHA_REL"
 apply (simp add:WF_ALPHA_REL_def)
 apply (simp add:closure alphabet)
 done
 
 theorem FalseA_WF_CONDITION [closure] :
 "a \<in> REL_ALPHABET \<Longrightarrow>
- false a \<in> WF_CONDITION"
+ false\<^bsub>a\<^esub> \<in> WF_CONDITION"
 apply (simp add:WF_CONDITION_def)
 apply (simp add:FalseA_rep_eq closure)
 apply (auto intro:unrest)
@@ -334,12 +323,12 @@ done
 
 theorem ExtA_WF_ALPHA_REL [closure] :
 "\<lbrakk> a \<in> REL_ALPHABET; p \<in> WF_ALPHA_REL \<rbrakk> \<Longrightarrow>
- p \<oplus>\<alpha> a \<in> WF_ALPHA_REL"
+ p \<oplus>\<^sub>\<alpha> a \<in> WF_ALPHA_REL"
   by (auto intro:closure simp add:ExtA.rep_eq WF_ALPHA_REL_def alphabet)
 
 theorem ExtA_WF_CONDITION [closure] :
 "\<lbrakk> \<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED; p \<in> WF_CONDITION \<rbrakk> \<Longrightarrow>
- p \<oplus>\<alpha> a \<in> WF_CONDITION"
+ p \<oplus>\<^sub>\<alpha> a \<in> WF_CONDITION"
   apply (auto intro:closure simp add:ExtA.rep_eq WF_CONDITION_def alphabet)
   apply (rule closure)
   apply (force simp add:REL_ALPHABET_def)
@@ -348,27 +337,27 @@ done
 
 theorem ExistsResA_WF_ALPHA_REL [closure]:
 "p \<in> WF_ALPHA_REL \<Longrightarrow>
- (\<exists>-\<alpha> a. p) \<in> WF_ALPHA_REL"
+ (\<exists>-\<^sub>\<alpha> a. p) \<in> WF_ALPHA_REL"
   by (auto intro:closure simp add:WF_ALPHA_REL_def alphabet)
 
 theorem ExistsResA_WF_CONDITION [closure]:
 "p \<in> WF_CONDITION \<Longrightarrow>
- (\<exists>-\<alpha> a. p) \<in> WF_CONDITION"
+ (\<exists>-\<^sub>\<alpha> a. p) \<in> WF_CONDITION"
   by (auto intro:closure unrest simp add:WF_CONDITION_def alphabet ExistsResA.rep_eq)
 
 theorem ExistsA_WF_ALPHA_REL [closure]:
 "p \<in> WF_ALPHA_REL \<Longrightarrow>
- (\<exists>\<alpha> a. p) \<in> WF_ALPHA_REL"
+ (\<exists>\<^sub>\<alpha> a. p) \<in> WF_ALPHA_REL"
   by (auto intro:closure simp add:WF_ALPHA_REL_def alphabet)
 
 theorem ExistsA_WF_CONDITION [closure]:
 "p \<in> WF_CONDITION \<Longrightarrow>
- (\<exists>\<alpha> a. p) \<in> WF_CONDITION"
+ (\<exists>\<^sub>\<alpha> a. p) \<in> WF_CONDITION"
   by (auto intro:closure unrest simp add:WF_CONDITION_def alphabet ExistsA.rep_eq)
 
 theorem EqualA_WF_ALPHA_REL [closure]:
 "\<lbrakk> e \<in> WF_REL_EXPR; f \<in> WF_REL_EXPR \<rbrakk> \<Longrightarrow>
- e ==\<alpha> f \<in> WF_ALPHA_REL"
+ e ==\<^sub>\<alpha> f \<in> WF_ALPHA_REL"
   by (auto intro:closure simp add:WF_ALPHA_REL_def WF_REL_EXPR_def alphabet)
 
 theorem VarAE_WF_REL_EXPR [closure]:
@@ -382,20 +371,23 @@ theorem LitAE_WF_REL_EXPR [closure]:
 
 theorem SkipA_closure [closure] :
 "a \<in> REL_ALPHABET \<Longrightarrow>
- II\<alpha> a \<in> WF_ALPHA_REL"
+ II\<alpha>\<^bsub>a\<^esub> \<in> WF_ALPHA_REL"
   by (simp add: WF_ALPHA_REL_def REL_ALPHABET_def pred_alphabet_def SkipA.rep_eq)
 
+(*
 theorem AssignA_rep_eq:
   "\<lbrakk> a \<in> REL_ALPHABET; x \<in>\<^sub>f a; dash x \<in>\<^sub>f a; \<alpha> v \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow> 
    Rep_WF_ALPHA_PREDICATE (x :=\<^bsub>a\<^esub> v) = (a, AssignRA x \<langle>a\<rangle>\<^sub>f (\<epsilon> v))"
   apply (subgoal_tac "x \<in> UNDASHED")
-  apply (subgoal_tac "(a, x :=p\<^bsub>\<langle>a\<rangle>\<^sub>f \<^esub>\<epsilon> v) \<in> WF_ALPHA_PREDICATE")
+  apply (subgoal_tac "(a, x :=\<^bsub>\<langle>a\<rangle>\<^sub>f \<^esub>\<epsilon> v) \<in> WF_ALPHA_PREDICATE")
   apply (simp add:AssignA_def)
   apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
-  apply (subgoal_tac "UNREST (VAR - ({dash x} \<union> \<langle>a\<rangle>\<^sub>f)) (x :=p\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub>\<epsilon> v)")
+  apply (subgoal_tac "UNREST (VAR - ({dash x} \<union> \<langle>a\<rangle>\<^sub>f)) (x :=\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub>\<epsilon> v)")
   apply (subgoal_tac "\<langle>a\<rangle>\<^sub>f = {dash x} \<union> (\<langle>a\<rangle>\<^sub>f - {dash x})")
   apply (force)
   apply (force)
+  apply (rule unrest) back
+  apply (force intro:unrest)
   apply (rule unrest)
   apply (rule unrest)
   apply (simp)
@@ -403,7 +395,9 @@ theorem AssignA_rep_eq:
   apply (rule unrest)
   apply (auto simp add:REL_ALPHABET_def)
 done
+*)
 
+(*
 theorem AssignA_closure [closure] :
   assumes 
    "a \<in> REL_ALPHABET"
@@ -416,9 +410,10 @@ proof
     apply (simp add:REL_ALPHABET_def)
   done
 qed
+*)
 
 theorem RenameA_SS_closure [closure]:
-  "p \<in> WF_ALPHA_REL \<Longrightarrow> p[SS]\<alpha> \<in> WF_ALPHA_REL"
+  "p \<in> WF_ALPHA_REL \<Longrightarrow> SS\<bullet>p \<in> WF_ALPHA_REL"
   apply (auto simp add:WF_ALPHA_REL_def REL_ALPHABET_def alphabet)
   apply (metis (lifting) SS_VAR_RENAME_INV SS_ident_app UnE VAR_RENAME_INV_app set_rev_mp)
 done
@@ -429,7 +424,7 @@ theorem CondA_rep_eq :
  b \<in> WF_CONDITION;
  (\<alpha> r1) = (\<alpha> r2);
  (\<alpha> b) \<subseteq>\<^sub>f (\<alpha> r1)\<rbrakk> \<Longrightarrow>
-  Rep_WF_ALPHA_PREDICATE (r1 \<triangleleft>\<alpha> b \<alpha>\<triangleright> r2) = (\<alpha> r1, (\<pi> r1) \<triangleleft> (\<pi> b) \<triangleright> (\<pi> r2))"
+  Rep_WF_ALPHA_PREDICATE (r1 \<lhd> b \<rhd>\<^sub>\<alpha> r2) = (\<alpha> r1, (\<pi> r1) \<lhd> (\<pi> b) \<rhd> (\<pi> r2))"
   apply (subgoal_tac "(\<alpha> r1, (\<pi> r1) \<triangleleft> (\<pi> b) \<triangleright> (\<pi> r2)) \<in> WF_ALPHA_PREDICATE")
   apply (simp add:CondA_def)
   apply (simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)

@@ -130,17 +130,17 @@ lift_definition EqualA ::
 "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
  'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
  'VALUE WF_ALPHA_PREDICATE" is
-"\<lambda> e f. (\<alpha> e \<union>\<^sub>f \<alpha> f, EqualP (\<epsilon> e) (\<epsilon> f))"
+"\<lambda> e f. (\<alpha> e \<union>\<^sub>f \<alpha> f, (\<epsilon> e) ==\<^sub>p (\<epsilon> f))"
 proof -
   fix e1 e2
-  show "(\<alpha> e1 \<union>\<^sub>f \<alpha> e2, \<epsilon> e1 ==p \<epsilon> e2) \<in> WF_ALPHA_PREDICATE"
+  show "(\<alpha> e1 \<union>\<^sub>f \<alpha> e2, \<epsilon> e1 ==\<^sub>p \<epsilon> e2) \<in> WF_ALPHA_PREDICATE"
     apply (insert WF_ALPHA_EXPRESSION_UNREST_EXPR[of e1])
     apply (insert WF_ALPHA_EXPRESSION_UNREST_EXPR[of e2])
     apply (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def WF_EXPRESSION_def)
   done
 qed
 
-notation EqualA (infixr "==\<alpha>" 150)
+notation EqualA (infixr "==\<^sub>\<alpha>" 150)
 
 lift_definition VarAE ::
 "'VALUE VAR \<Rightarrow>
@@ -158,6 +158,7 @@ lift_definition CoerceAE ::
 "\<lambda> e t. (\<alpha> e, CoerceE (\<epsilon> e) t)"
   by (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
 
+(*
 definition AppAE ::
   "'VALUE::FUNCTION_SORT WF_ALPHA_EXPRESSION \<Rightarrow> 
    'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
@@ -170,6 +171,7 @@ lemma AppAE_rep_eq:
   apply (simp add:AppAE_def)
   apply (auto intro:unrest UNREST_EXPR_subset simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def eatype_rel_def Defined_WF_ALPHA_EXPRESSION_def)
 done
+*)
 
 definition ExprA ::
   "'VALUE::BOOL_SORT WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" where
@@ -181,18 +183,20 @@ lemma ExprA_rep_eq:
   apply (auto intro: unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def ExprA_def eatype_rel_def)
 done
 
-lift_definition RenameAE ::
-  "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow>
-   'VALUE VAR_RENAME \<Rightarrow>
-   'VALUE WF_ALPHA_EXPRESSION" ("_[_]\<alpha>\<epsilon>" [200]) is
-"\<lambda> e ss. (\<langle>ss\<rangle>\<^sub>s `\<^sub>f \<alpha> e, (\<epsilon> e)[ss]\<epsilon>)"
+lift_definition PermAE ::
+  "'VALUE VAR_RENAME \<Rightarrow>
+   'VALUE WF_ALPHA_EXPRESSION \<Rightarrow>
+   'VALUE WF_ALPHA_EXPRESSION" is
+"\<lambda> ss e. (\<langle>ss\<rangle>\<^sub>s `\<^sub>f \<alpha> e, ss\<bullet>(\<epsilon> e))"
   apply (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
-  apply (rule UNREST_EXPR_subset)
-  apply (rule unrest)+
+  apply (rule UNREST_EXPR_RenameE_alt)
   apply (auto)
-  apply (metis Diff_iff RenameP_VAR RenameP_image_minus VAR_member)
+  apply (metis (mono_tags) RenameP_image_minus Rep_VAR_RENAME_VAR Rep_VAR_RENAME_inj WF_ALPHA_EXPRESSION_UNREST_EXPR image_inv_f_f)
 done
 
+setup {*
+Adhoc_Overloading.add_variant @{const_name permute} @{const_name PermAE}
+*}
 
 (*
 lift_definition SubstA ::
@@ -213,21 +217,21 @@ definition SubstA ::
 "'VALUE WF_ALPHA_PREDICATE \<Rightarrow> 
  'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
  'VALUE VAR \<Rightarrow> 
- 'VALUE WF_ALPHA_PREDICATE" ("_[_|_]\<alpha>" [200]) where
-"p[v|x]\<alpha> \<equiv> 
+ 'VALUE WF_ALPHA_PREDICATE" ("_[_/\<^sub>\<alpha>_]" [200] 200) where
+"SubstA p v x \<equiv> 
   Abs_WF_ALPHA_PREDICATE 
-    (if (x \<in>\<^sub>f \<alpha> p) then (\<alpha> p -\<^sub>f finsert x \<lbrace>\<rbrace>) \<union>\<^sub>f \<alpha> v
-                 else \<alpha> p
-    , (\<pi> p)[\<epsilon> v|x])"
+    (if (x \<in>\<^sub>f \<alpha> p) then (\<alpha> p -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
+                   else \<alpha> p
+    , (\<pi> p)[\<epsilon> v/\<^sub>px])"
 
 definition SubstAE ::
 "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
  'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
  'VALUE VAR \<Rightarrow> 
- 'VALUE WF_ALPHA_EXPRESSION" ("_[_|_]\<alpha>\<epsilon>" [200]) where
-"f[v|x]\<alpha>\<epsilon> \<equiv> 
+ 'VALUE WF_ALPHA_EXPRESSION" ("_[_/\<^sub>\<epsilon>_]" [200] 200) where
+"SubstAE f v x \<equiv> 
   Abs_WF_ALPHA_EXPRESSION 
-    ( (\<alpha> f -\<^sub>f finsert x \<lbrace>\<rbrace>) \<union>\<^sub>f \<alpha> v
+    ( (\<alpha> f -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
     , SubstE (\<epsilon> f) (\<epsilon> v) x)"
 
 lift_definition TrueAE :: 
@@ -245,7 +249,7 @@ lift_definition PredAE ::
 
 lift_definition VarA :: 
 "('VALUE::BOOL_SORT) VAR \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" ("&_") is
-"\<lambda> x. (finsert x \<lbrace>\<rbrace>, VarP x)"
+"\<lambda> x. (\<lbrace>x\<rbrace>, VarP x)"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 subsection {* Theorems *}
@@ -256,11 +260,12 @@ lemma WF_ALPHA_EXPRESSION_OVER [closure]:
   "\<epsilon> f \<in> WF_EXPRESSION_OVER \<langle>\<alpha> f\<rangle>\<^sub>f"
   by (simp add:WF_EXPRESSION_OVER_def unrest)
 
+(*
 lemma SubstA_closure [closure]: 
   "\<lbrakk> v \<rhd>\<^sub>\<alpha> x \<rbrakk> \<Longrightarrow> 
   (if (x \<in>\<^sub>f \<alpha> p) then (\<alpha> p -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
                  else \<alpha> p
-  , (\<pi> p)[\<epsilon> v|x]) \<in> WF_ALPHA_PREDICATE"
+  , (\<pi> p)[\<epsilon> v/\<^sub>px]) \<in> WF_ALPHA_PREDICATE"
     apply (simp add: eavar_compat_def)
     apply (case_tac "x \<in>\<^sub>f \<alpha> p")
     apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
@@ -271,8 +276,8 @@ lemma SubstA_closure [closure]:
     apply (rule unrest)
     apply (force)
     apply (force)
-    apply (subgoal_tac "UNREST {x} \<pi> p[\<epsilon> v|x]")
-    apply (subgoal_tac "UNREST ((VAR - \<langle>\<alpha> p\<rangle>\<^sub>f) \<inter> (VAR - \<langle>\<alpha> v\<rangle>\<^sub>f)) (\<pi> p[\<epsilon> v|x])")
+    apply (subgoal_tac "UNREST {x} ((\<pi> p)[\<epsilon> v/\<^sub>px])")
+    apply (subgoal_tac "UNREST ((VAR - \<langle>\<alpha> p\<rangle>\<^sub>f) \<inter> (VAR - \<langle>\<alpha> v\<rangle>\<^sub>f)) (\<pi> p[\<epsilon> v/\<^sub>px])")
     apply (subgoal_tac "(VAR - (\<langle>\<alpha> p\<rangle>\<^sub>f - {x} \<union> \<langle>\<alpha> v\<rangle>\<^sub>f)) = ((VAR - \<langle>\<alpha> p\<rangle>\<^sub>f) \<inter> (VAR - \<langle>\<alpha> v\<rangle>\<^sub>f)) \<union> {x}")
     apply (simp)
     apply (rule unrest)
@@ -320,6 +325,7 @@ lemma SubstAE_rep_eq:
   "\<lbrakk> v \<rhd>\<^sub>\<alpha> x \<rbrakk> \<Longrightarrow>
    Rep_WF_ALPHA_EXPRESSION (f[v|x]\<alpha>\<epsilon>) = ((\<alpha> f -\<^sub>f finsert x \<lbrace>\<rbrace>) \<union>\<^sub>f \<alpha> v, SubstE (\<epsilon> f) (\<epsilon> v) x)"
   by (simp add:SubstAE_def SubstAE_closure)
+*)
 
 subsubsection {* Alphabet Theorems *}
 
@@ -327,11 +333,11 @@ declare expr_alpha_def [simp]
 declare pred_alphabet_def [simp]
 
 theorem EqualA_alphabet [alphabet]:
-"\<alpha> (e ==\<alpha> f) = \<alpha> e \<union>\<^sub>f \<alpha> f"
+"\<alpha> (e ==\<^sub>\<alpha> f) = \<alpha> e \<union>\<^sub>f \<alpha> f"
   by (simp add:EqualA.rep_eq)
 
 theorem VarAE_alphabet [alphabet]:
-"\<alpha> (VarAE x) = finsert x \<lbrace>\<rbrace>"
+"\<alpha> (VarAE x) = \<lbrace>x\<rbrace>"
   by (simp add:VarAE.rep_eq)
 
 theorem LitAE_alphabet [alphabet]:
@@ -342,19 +348,23 @@ theorem CoerceAE_alphabet [alphabet]:
 "\<alpha> (CoerceAE e t) = \<alpha> e"
   by (simp add:CoerceAE.rep_eq)
 
+(*
 theorem AppAE_alphabet [alphabet]:
 "\<lbrakk> f :\<^sub>\<alpha> FuncType a b; v :\<^sub>\<alpha> a; \<D> f \<rbrakk> \<Longrightarrow> 
  \<alpha> (AppAE f v) = \<alpha> f \<union>\<^sub>f \<alpha> v"
   by (simp add:AppAE_rep_eq)
+*)
 
 theorem ExprA_alphabet [alphabet]:
 "e :\<^sub>\<alpha> BoolType \<Longrightarrow> \<alpha> (ExprA e) = \<alpha> e"
   by (simp add:ExprA_rep_eq)
 
-theorem RenameAE_alphabet [alphabet]:
-"\<alpha> e[ss]\<alpha>\<epsilon> = \<langle>ss\<rangle>\<^sub>s `\<^sub>f \<alpha> e"
-  by (simp add:RenameAE.rep_eq)
+theorem PermAE_alphabet [alphabet]:
+  fixes e :: "'a WF_ALPHA_EXPRESSION" 
+  shows "\<alpha> (ss\<bullet>e) = \<langle>ss\<rangle>\<^sub>s `\<^sub>f \<alpha> e"
+  by (simp add:PermAE.rep_eq)
 
+(*
 theorem SubstA_alphabet [alphabet]:
 "\<lbrakk> v \<rhd>\<^sub>\<alpha> x \<rbrakk> 
   \<Longrightarrow>  \<alpha>(p[v|x]\<alpha>) = (if (x \<in>\<^sub>f \<alpha> p) then (\<alpha> p -\<^sub>f finsert x \<lbrace>\<rbrace>) \<union>\<^sub>f \<alpha> v
@@ -364,6 +374,7 @@ theorem SubstA_alphabet [alphabet]:
 theorem SubstAE_alphabet [alphabet]:
 "v \<rhd>\<^sub>\<alpha> x \<Longrightarrow> \<alpha>(f[v|x]\<alpha>\<epsilon>) = (\<alpha> f -\<^sub>f finsert x \<lbrace>\<rbrace>) \<union>\<^sub>f \<alpha> v"
   by (simp add:SubstAE_rep_eq)
+*)
 
 theorem TrueAE_alphabet [alphabet]: "\<alpha> TrueAE = \<lbrace>\<rbrace>"
   by (simp add:TrueAE.rep_eq)
@@ -398,18 +409,20 @@ theorem CoerceAE_type [typing]:
 "CoerceAE e t :\<^sub>\<alpha> t"
   by (simp add:eatype_rel_def CoerceAE.rep_eq typing)
 
+(*
 theorem AppAE_type [typing]:
 "\<lbrakk> f :\<^sub>\<alpha> FuncType a b; v :\<^sub>\<alpha> a; \<D> f \<rbrakk> \<Longrightarrow>
    AppAE f v :\<^sub>\<alpha> b" 
   by (simp add:eatype_rel_def AppAE_rep_eq typing Defined_WF_ALPHA_EXPRESSION_def)
+*)
 
 theorem VarAE_type [typing]:
 "t = vtype x \<Longrightarrow> VarAE x :\<^sub>\<alpha> t"
   by (simp add:VarAE.rep_eq eatype_rel_def typing)
 
 theorem RenameAE_type:
-  "e :\<^sub>\<alpha> t \<Longrightarrow> e[ss]\<alpha>\<epsilon> :\<^sub>\<alpha> t" 
-  by (simp add:RenameAE.rep_eq eatype_rel_def typing)
+  "e :\<^sub>\<alpha> t \<Longrightarrow> (ss\<bullet>e) :\<^sub>\<alpha> t" 
+  by (simp add:PermAE.rep_eq eatype_rel_def typing)
 
 theorem alpha_expr_type [typing]: "\<exists> t. e :\<^sub>\<alpha> t"
   by (simp add:typing eatype_rel_def)

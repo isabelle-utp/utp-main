@@ -40,12 +40,15 @@ lemma Rep_WF_ALPHA_PREDICATE_elim [elim]:
   "\<lbrakk> x = y; Rep_WF_ALPHA_PREDICATE x = Rep_WF_ALPHA_PREDICATE y \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (auto)
 
+notation Rep_WF_ALPHA_PREDICATE ("\<langle>_\<rangle>\<^sub>\<alpha>")
+
+
 setup_lifting type_definition_WF_ALPHA_PREDICATE
 
 definition pred_alphabet ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE ALPHABET" where
-"pred_alphabet p \<equiv> fst (Rep_WF_ALPHA_PREDICATE p)"
+"pred_alphabet p \<equiv> fst \<langle>p\<rangle>\<^sub>\<alpha>"
 
 setup {*
 Adhoc_Overloading.add_variant @{const_name alphabet} @{const_name pred_alphabet}
@@ -54,7 +57,7 @@ Adhoc_Overloading.add_variant @{const_name alphabet} @{const_name pred_alphabet}
 abbreviation predicate ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_PREDICATE" where
-"predicate p \<equiv> snd (Rep_WF_ALPHA_PREDICATE p)"
+"predicate p \<equiv> snd \<langle>p\<rangle>\<^sub>\<alpha>"
 
 notation predicate ("\<pi>")
 
@@ -71,7 +74,6 @@ theorem WF_ALPHA_PREDICATE_UNREST [unrest] (* [dest] *) :
 apply (insert Rep_WF_ALPHA_PREDICATE[of p])
 apply (auto simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def pred_alphabet_def)
 done
-
 
 subsection {* Operators *}
 
@@ -91,7 +93,7 @@ lift_definition EqualsA ::
    'VALUE WF_ALPHA_PREDICATE" is "\<lambda> v x. (\<lbrace>v\<rbrace>, v =\<^sub>p x)"
   by (simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
   
-notation EqualsA (infix "=\<alpha>" 210)
+notation EqualsA (infix "=\<^sub>\<alpha>" 210)
 
 subsubsection {* Extension and Restriction *}
 
@@ -123,19 +125,19 @@ definition TrueA ::
   "'VALUE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" where
 "TrueA a = Abs_WF_ALPHA_PREDICATE (a, true)"
 
-notation TrueA ("true")
+notation TrueA ("true\<^bsub>_\<^esub>")
 
 definition FalseA ::
   "'VALUE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" where
 "FalseA a = Abs_WF_ALPHA_PREDICATE (a, false)"
 
-notation FalseA ("false")
+notation FalseA ("false\<^bsub>_\<^esub>")
 
 abbreviation TRUE :: "'VALUE WF_ALPHA_PREDICATE" where
-"TRUE \<equiv> true \<lbrace>\<rbrace>"
+"TRUE \<equiv> true\<^bsub>\<lbrace>\<rbrace>\<^esub>"
 
 abbreviation FALSE :: "'VALUE WF_ALPHA_PREDICATE" where
-"FALSE \<equiv> false \<lbrace>\<rbrace>"
+"FALSE \<equiv> false\<^bsub>\<lbrace>\<rbrace>\<^esub>"
 
 subsubsection {* Logical Connectives *}
 
@@ -269,13 +271,13 @@ subsection {* Meta-logical Operators *}
 
 definition TautologyA ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow> bool" where
-"TautologyA p = (p = true (\<alpha> p))"
+"TautologyA p = (p = true\<^bsub>\<alpha> p\<^esub>)"
 
 notation TautologyA ("taut\<^sub>\<alpha> _" [50] 50)
 
 definition ContradictionA ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow> bool" where
-"ContradictionA p = (p = false (\<alpha> p))"
+"ContradictionA p = (p = false\<^bsub>\<alpha> p\<^esub>)"
 
 notation ContradictionA ("contra\<^sub>\<alpha> _" [50] 50)
 
@@ -348,15 +350,15 @@ theorem LiftA_alphabet [alphabet] :
   by (simp add: LiftA_rep_eq)
 
 theorem EqualsA_alphabet [alphabet] :
-"\<alpha> (v =\<alpha> x) = \<lbrace>v\<rbrace>"
+"\<alpha> (v =\<^sub>\<alpha> x) = \<lbrace>v\<rbrace>"
   by (simp add: EqualsA.rep_eq)
 
 theorem TrueA_alphabet [alphabet] :
-"\<alpha> (true a) = a"
+"\<alpha> (true\<^bsub>a\<^esub>) = a"
   by (simp add: TrueA_rep_eq)
 
 theorem FalseA_alphabet [alphabet] :
-"\<alpha> (false a) = a"
+"\<alpha> (false\<^bsub>a\<^esub>) = a"
   by (simp add: FalseA_rep_eq)
 
 theorem ExtA_alphabet [alphabet] :
@@ -484,7 +486,7 @@ apply (utp_pred_auto_tac)
 done
 
 theorem TrueA_noteq_FalseA :
-"true a \<noteq> false a"
+"true\<^bsub>a\<^esub> \<noteq> false\<^bsub>a\<^esub>"
   by (auto simp add: TrueA_rep_eq FalseA_rep_eq TrueP_noteq_FalseP )
 
 (* This lines make many later proofs easier *)
