@@ -392,8 +392,8 @@ lemma dcarrier_dtype [typing]:
   "x \<in> dcarrier a \<Longrightarrow> x :! a"
   by (auto simp add:dcarrier_def)
 
-lemma dtype_as_dcarrier:
-  "x :! a \<longleftrightarrow> x \<in> dcarrier a"
+lemma dtype_as_dcarrier [simp]:
+  "x \<in> dcarrier a \<longleftrightarrow> x :! a"
   by (auto simp add:dcarrier_def dtype_rel_def)
 
 lemma dcarrier_type [typing]:

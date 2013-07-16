@@ -231,6 +231,13 @@ lemma TypeUSound_Event [typing]:
   "TYPEUSOUND('m EVENT, 'm :: EVENT_SORT)"
   by (auto simp add:typing defined)
 
+lemma map_InjU_ProjU [simp]:
+  assumes "TYPEUSOUND('a :: DEFINED, 'm::VALUE)" "set xs \<subseteq> dcarrier TYPEU('a)"
+  shows "map ((InjU :: 'a \<Rightarrow> 'm) \<circ> ProjU) xs = xs"
+  apply (simp add:map_eq_conv[where g="id",simplified])
+  apply (metis TypeUSound_ProjU_inv assms dtype_as_dcarrier set_mp)
+done
+
 lemma TypeUSound_ULIST [typing]: 
   assumes 
     "(TYPEU('a :: DEFINED) :: 'm UTYPE) \<in> ListPerm" "TYPEUSOUND('a, 'm)"

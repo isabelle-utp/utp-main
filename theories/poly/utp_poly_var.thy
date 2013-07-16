@@ -167,5 +167,26 @@ lemma PVAR_VAR_RENAME [simp]:
   "(ss\<bullet>x)\<down> = ss\<bullet>(x\<down>)"
   by (simp add:PermPV_def)
 
+text {* A list produced from a polymorphic auxiliary variable is within the carrier of
+        the list elements *}
+
+lemma PVAR_list_aux [typing]:
+  fixes x :: "('a::DEFINED ULIST, 'm :: LIST_SORT) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "aux (x\<down>)" "(TYPEU('a) :: 'm UTYPE) \<in> ListPerm" 
+          "t = TYPEU('a)"
+  shows "set (DestList (\<langle>b\<rangle>\<^sub>b x\<down>)) \<subseteq> dcarrier t"
+  apply (rule DestList_elem_type)
+  apply (auto simp add:closure typing defined assms)
+done
+
+lemma PVAR_dash_list_aux [typing]:
+  fixes x :: "('a::DEFINED ULIST, 'm :: LIST_SORT) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "aux (x\<down>)" "(TYPEU('a) :: 'm UTYPE) \<in> ListPerm" 
+          "t = TYPEU('a)"
+  shows "set (DestList (\<langle>b\<rangle>\<^sub>b (x\<down>\<acute>))) \<subseteq> dcarrier t"
+  apply (rule DestList_elem_type)
+  apply (auto simp add:closure typing defined assms)
+done
+
 end
 

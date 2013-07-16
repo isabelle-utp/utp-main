@@ -98,6 +98,18 @@ definition undash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" where
 "undash \<equiv> \<lambda> x. MkVar (MkName (name_str (name x)) (dashes (name x)- 1) (subscript (name x)))
                      (vtype x) (aux x)"
 
+abbreviation "MAX_SUB_DEPTH \<equiv> 65535 :: nat"
+
+fun add_sub :: "nat \<Rightarrow> 'a VAR \<Rightarrow> 'a VAR" where
+"add_sub n (MkName s d i, t, a) =
+  (if (length i < MAX_SUB_DEPTH) 
+      then (MkName s d (n#i), t, a)
+      else (if (length i = MAX_SUB_DEPTH) 
+               then (MkName s d [], t, a) else (MkName s d i, t, a)))"
+
+abbreviation vsub :: "'a VAR \<Rightarrow> nat \<Rightarrow> 'a VAR" ("_\<^bsub>_\<^esub>") where
+"vsub v n \<equiv> add_sub n v"
+
 subsection {* Recontrolions *}
 
 definition UNDASHED :: "'VALUE VAR set" where

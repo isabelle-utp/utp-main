@@ -80,7 +80,7 @@ lemma AbsU_type:
 
 lemma TypeU_witness:
   "\<lbrakk> a \<in> PermU; xs :! TypeU a \<rbrakk> \<Longrightarrow> \<exists> ys. elemU ys \<subseteq> dcarrier a \<and> xs = AbsU a ys"
-  apply (unfold dtype_as_dcarrier)
+  apply (unfold dtype_as_dcarrier[THEN sym])
   apply (unfold TypeU_dcarrier)
   apply (auto)
 done
@@ -423,15 +423,23 @@ abbreviation ConcatV_syn :: "'a \<Rightarrow> 'a UTYPE \<Rightarrow> 'a \<Righta
 
 definition PrefixV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "PrefixV xs ys = MkBool (prefixeq (DestList xs) (DestList ys))"
-
+  
 lemma NilV_type [typing]:
   "a \<in> ListPerm \<Longrightarrow> NilV a :! ListType a"
   by (auto intro:typing simp add:NilV_def)
 
+(*
 lemma ConsV_type [typing]:
   "\<lbrakk> a \<in> ListPerm; x :! a; xs :! ListType a \<rbrakk> 
      \<Longrightarrow> x #\<^bsub>a\<^esub> xs :! ListType a"
-  by (force intro:typing simp add:ConsV_def)
+  apply (auto intro:typing simp add:ConsV_def)
+  apply (rule typing) back
+  apply (auto)
+  apply (rule typing)
+  apply (force intro:typing)
+  apply (auto)
+  apply (force)
+by (metis ListType_witness MkList_inv dtype_as_dcarrier subset_code(1))
 
 lemma ConsV_FUNC2 [closure]: 
   "a \<in> ListPerm \<Longrightarrow> ConsV a \<in> FUNC2 a (ListType a) (ListType a)"
@@ -454,6 +462,7 @@ lemma PrefixV_type [typing]:
 lemma PrefixV_FUNC [closure]:
   "a \<in> ListPerm \<Longrightarrow> PrefixV \<in> FUNC2 (ListType a) (ListType a) BoolType"
   by (auto intro:typing simp add:FUNC2_def)
+*)
 
 text {* This lemma is sort of a lifting on the induction rule for lists *}
 
@@ -488,6 +497,15 @@ proof -
   with xsys show ?thesis
     by (simp)
 qed
+
+lemma DestList_elem_type:
+  "\<lbrakk> a \<in> ListPerm; x :! ListType a \<rbrakk> \<Longrightarrow> set (DestList x) \<subseteq> dcarrier a"
+  by (metis ListType_elim MkList_inv)
+
+lemma MkList_inj_simp [simp]:
+  assumes "t \<in> ListPerm" "set xs \<subseteq> dcarrier t" "set ys \<subseteq> dcarrier t"
+  shows "(MkList t xs = MkList t ys) \<longleftrightarrow> xs = ys"
+  by (metis MkList_inv assms)
 
 end
 
@@ -557,6 +575,12 @@ lemma MkStr_type [typing] : "MkStr s : StringType"
   by (metis (lifting) CollectD MkString_range UNIV_I image_ident)
 
 end
+
+class BOOL_LIST_SORT = BOOL_SORT + LIST_SORT +
+  assumes BoolType_ListPerm [closure]: "BoolType \<in> ListPerm"
+
+class INT_LIST_SORT = INT_SORT + LIST_SORT +
+  assumes IntType_ListPerm [closure]: "IntType \<in> ListPerm"
 
 class EVENT_LIST_SORT = EVENT_SORT + LIST_SORT +
   assumes EventType_ListPerm [closure]: "EventType \<in> ListPerm"
@@ -647,6 +671,7 @@ definition InterleaveV :: "'a UTYPE \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarr
 definition IntersyncV :: "'a UTYPE \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "IntersyncV a s xs ys = MkFSet (ListType a) (MkList a `\<^sub>f (intersync (DestFSet s) (DestList xs) (DestList ys)))"
 
+(*
 lemma InterleaveV_type [typing]:
   "\<lbrakk> a \<in> ListPerm; xs :! ListType a; ys :! ListType a \<rbrakk> 
      \<Longrightarrow> InterleaveV a xs ys :! FSetType (ListType a)"
@@ -658,6 +683,7 @@ lemma InterleaveV_type [typing]:
   apply (unfold ListType_dcarrier)
   apply (rule, auto)
 oops
+*)
 
 (* FIXME: Need more theorems about interleave + intersync to prove typing laws *)
 

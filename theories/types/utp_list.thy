@@ -86,6 +86,7 @@ lemma ULIST_transfer [eval, evale]:
 declare NilUL.rep_eq [eval, evale]
 declare ConsUL_rep_eq [eval, evale]
 declare AppendUL.rep_eq [eval, evale]
+declare MinusUL.rep_eq [eval, evale]
 declare PrefixUL.rep_eq [eval, evale]
 declare PrefixeqUL.rep_eq [eval, evale]
 

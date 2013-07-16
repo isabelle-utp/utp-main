@@ -633,6 +633,7 @@ lemma NilE_type [typing]:
   "a \<in> ListPerm \<Longrightarrow> NilE a :!\<^sub>e ListType a"
   by (auto intro:typing simp add:edtype_rel_def LitE_rep_eq)
 
+(*
 lemma ConsE_type [typing]:
   "\<lbrakk> a \<in> ListPerm; x :!\<^sub>e a; xs :!\<^sub>e ListType a \<rbrakk> \<Longrightarrow> ConsE a x xs :!\<^sub>e ListType a"
   by (auto intro:typing closure simp add: Op2E_rep_eq)
@@ -641,6 +642,7 @@ lemma ConcatE_type [typing]:
   "\<lbrakk> a \<in> ListPerm; xs :!\<^sub>e ListType a; ys :!\<^sub>e ListType a \<rbrakk> 
     \<Longrightarrow> ConcatE a xs ys :!\<^sub>e ListType a"
   by (auto intro:typing closure simp add: Op2E_rep_eq)
+*)
 
 subsubsection {* Definedness Theorems *}
 
@@ -648,6 +650,7 @@ lemma NilE_defined [defined]:
   "a \<in> ListPerm \<Longrightarrow> \<D> (NilE a)"
   by (auto intro:typing defined simp add:Defined_WF_EXPRESSION_def LitE_rep_eq edtype_rel_def)
 
+(*
 lemma ConsE_defined [defined]:
   "\<lbrakk> a \<in> ListPerm; x :!\<^sub>e a; xs :!\<^sub>e ListType a \<rbrakk> \<Longrightarrow> \<D> (ConsE a x xs)"
   by (metis ConsE_type edtype_defined)
@@ -656,7 +659,8 @@ lemma ConcatE_defined [defined]:
   "\<lbrakk> a \<in> ListPerm; xs :!\<^sub>e ListType a; ys :!\<^sub>e ListType a \<rbrakk> 
     \<Longrightarrow> \<D> (ConcatE a xs ys)"
   by (metis ConcatE_type edtype_defined)
-  
+*)  
+
 subsection {* Finite Set Expressions *}
 
 abbreviation "FEmptyE a \<equiv> LitE (FEmptyV a)"

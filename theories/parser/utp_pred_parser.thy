@@ -260,7 +260,5 @@ term "`\<lparr>true\<rparr>`"
 lemma "`$x \<in> {<1>,<2>,<3>,<4>,<5>} \<sqsubseteq> $x = <1>`"
   by (utp_pred_tac)
 
-term "`\<lparr>$x \<inter> $y = {}\<rparr>`"
-
 end
 

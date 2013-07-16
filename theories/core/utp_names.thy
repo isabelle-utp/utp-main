@@ -14,6 +14,13 @@ subsection {* Subscripts *}
 
 text {* Subscripts are encoded by virtue of a datatype. *}
 
+type_synonym SUBSCRIPT = "nat list"
+
+
+abbreviation "NoSub \<equiv> [] :: SUBSCRIPT"
+abbreviation "Sub n \<equiv> [n] :: SUBSCRIPT"
+
+(*
 datatype SUBSCRIPT = Sub "nat" | NoSub
 
 primrec to_nat_SUBSCRIPT :: "SUBSCRIPT \<Rightarrow> nat" where
@@ -43,6 +50,7 @@ instance
   apply (auto)
 done
 end
+*)
 
 subsection {* Names *}
 
