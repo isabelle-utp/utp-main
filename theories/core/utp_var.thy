@@ -72,6 +72,9 @@ abbreviation var_name :: "'VALUE VAR \<Rightarrow> NAME" ("name") where
 abbreviation var_subscript :: "'VALUE VAR \<Rightarrow> SUBSCRIPT" ("vsub") where
 "var_subscript x \<equiv> subscript (var_name x)"
 
+abbreviation var_dashes :: "'VALUE VAR \<Rightarrow> nat" ("vdashes") where
+"var_dashes x \<equiv> dashes (name x)"
+
 abbreviation var_type :: "'VALUE VAR \<Rightarrow> 'VALUE UTYPE" ("vtype") where 
 "var_type x \<equiv> fst (snd x)"
 
@@ -884,6 +887,10 @@ subsubsection {* Subscript Properties *}
 
 lemma vchsub_vtype [simp]: 
   "vtype x\<^bsub>n\<^esub> = vtype x"
+  by (case_tac x, case_tac a, simp)
+
+lemma vchsub_vdashes [simp]:
+  "vdashes x\<^bsub>n\<^esub> = vdashes x"
   by (case_tac x, case_tac a, simp)
 
 lemma vsub_aux [simp]: 

@@ -166,28 +166,28 @@ lemma UNREST_ErasePE [unrest]:
 definition ProdPE ::
   "('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 
    ('b, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow>
-   (('a * 'b), 'm) WF_PEXPRESSION" where
+   (('a * 'b), 'm) WF_PEXPRESSION" ("'(_, _')\<^sub>*") where
 "ProdPE x y = MkPExpr (\<lambda> b. (\<lbrakk>x\<rbrakk>\<^sub>* b, \<lbrakk>y\<rbrakk>\<^sub>* b))"
 
 lemma EvalPE_ProdPE [eval]:
-  "\<lbrakk>ProdPE x y\<rbrakk>\<^sub>*b = (\<lbrakk>x\<rbrakk>\<^sub>* b, \<lbrakk>y\<rbrakk>\<^sub>* b)"
+  "\<lbrakk>(x,y)\<^sub>*\<rbrakk>\<^sub>*b = (\<lbrakk>x\<rbrakk>\<^sub>* b, \<lbrakk>y\<rbrakk>\<^sub>* b)"
   by (simp add:ProdPE_def)
 
 lemma UNREST_ProdPE [unrest]:
-  "\<lbrakk> UNREST_PEXPR vs x; UNREST_PEXPR vs y \<rbrakk> \<Longrightarrow> UNREST_PEXPR vs (ProdPE x y)"
+  "\<lbrakk> UNREST_PEXPR vs x; UNREST_PEXPR vs y \<rbrakk> \<Longrightarrow> UNREST_PEXPR vs (x, y)\<^sub>*"
   by (simp add:UNREST_PEXPR_def EvalPE_ProdPE)
 
 lemma ProdPE_defined [defined]:
-  "\<lbrakk> \<D> x; \<D> y \<rbrakk> \<Longrightarrow> \<D> (ProdPE x y)"
+  "\<lbrakk> \<D> x; \<D> y \<rbrakk> \<Longrightarrow> \<D> (x, y)\<^sub>*"
   by (simp add:Defined_WF_PEXPRESSION_def EvalPE_ProdPE defined)
 
 lemma ProdPE_range:
-  "range \<lbrakk>ProdPE x y\<rbrakk>\<^sub>* = {(\<lbrakk>x\<rbrakk>\<^sub>*b, \<lbrakk>y\<rbrakk>\<^sub>*b)|b. True}"
+  "range \<lbrakk>(x, y)\<^sub>*\<rbrakk>\<^sub>* = {(\<lbrakk>x\<rbrakk>\<^sub>*b, \<lbrakk>y\<rbrakk>\<^sub>*b)|b. True}"
   by (simp add:image_def EvalPE_ProdPE)
 
 lemma ProdPE_Dom_uncurry [defined]:
   "\<lbrakk> \<And>b. \<D> (f (\<lbrakk>x\<rbrakk>\<^sub>* b) (\<lbrakk>y\<rbrakk>\<^sub>* b)) \<rbrakk> \<Longrightarrow>
-   range \<lbrakk>ProdPE x y\<rbrakk>\<^sub>* \<subseteq> Dom (uncurry f)"
+   range \<lbrakk>(x, y)\<^sub>*\<rbrakk>\<^sub>* \<subseteq> Dom (uncurry f)"
   by (auto simp add:Dom_def EvalPE_ProdPE)
 
 definition Op1PE :: 
@@ -206,20 +206,42 @@ lemma Op1PE_defined [defined]:
   "\<lbrakk> \<D> x; range \<lbrakk>x\<rbrakk>\<^sub>* \<subseteq> Dom f \<rbrakk> \<Longrightarrow> \<D> (Op1PE f x)"
   by (auto simp add:Defined_WF_PEXPRESSION_def EvalPE_Op1PE Dom_def)
 
-abbreviation 
+definition 
   Op2PE :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 
             ('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 
             ('b, 'm) WF_PEXPRESSION \<Rightarrow> 
             ('c, 'm) WF_PEXPRESSION" where
-"Op2PE f u v \<equiv> Op1PE (uncurry f) (ProdPE u v)"
+"Op2PE f u v \<equiv> Op1PE (uncurry f) (u, v)\<^sub>*"
 
-abbreviation 
+declare Op2PE_def [eval, evale, evalp]
+
+lemma UNREST_Op2PE [unrest]:
+  "\<lbrakk> UNREST_PEXPR vs u; UNREST_PEXPR vs v \<rbrakk> \<Longrightarrow> UNREST_PEXPR vs (Op2PE f u v)"
+  by (simp add:Op2PE_def unrest)
+
+lemma Op2PE_defined [defined]:
+  "\<lbrakk> \<D> x; \<D> y; range \<lbrakk>(x, y)\<^sub>*\<rbrakk>\<^sub>* \<subseteq> Dom (uncurry f) \<rbrakk> \<Longrightarrow> \<D> (Op2PE f x y)"
+  by (simp add:Op2PE_def defined)
+
+definition
   Op3PE :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 
             ('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 
             ('b, 'm) WF_PEXPRESSION \<Rightarrow> 
             ('c, 'm) WF_PEXPRESSION \<Rightarrow>
             ('d, 'm) WF_PEXPRESSION" where
 "Op3PE f u v w \<equiv> Op1PE (uncurry (uncurry f)) (ProdPE (ProdPE u v) w)"
+
+declare Op3PE_def [eval, evalp]
+
+lemma UNREST_Op3PE [unrest]:
+  "\<lbrakk> UNREST_PEXPR vs u; UNREST_PEXPR vs v; UNREST_PEXPR vs w \<rbrakk> 
+   \<Longrightarrow> UNREST_PEXPR vs (Op3PE f u v w)"
+  by (simp add:Op3PE_def unrest)
+
+lemma Op3PE_defined [defined]:
+  "\<lbrakk> \<D> x; \<D> y; \<D> z; range \<lbrakk>((x, y)\<^sub>*,z)\<^sub>*\<rbrakk>\<^sub>* \<subseteq> Dom (uncurry (uncurry f)) \<rbrakk> 
+   \<Longrightarrow> \<D> (Op3PE f x y z)"
+  by (simp add:Op3PE_def defined)
 
 abbreviation "EqualPE \<equiv> Op2PE (op =)"
 
@@ -656,6 +678,10 @@ lemma PSubstPE_PVarPE [usubst]:
   assumes "v \<rhd>\<^sub>* x" "TYPEUSOUND('a, 'm)"
   shows "PSubstPE (PVarPE x) v x = v"
   using assms by (auto simp add:eval pevar_compat_def PSubstPE_def)
+
+lemma PSubstPE_ProdPE [usubst]:
+  "ProdPE u v[e/\<^sub>*x] = ProdPE (u[e/\<^sub>*x]) (v[e/\<^sub>*x])"
+  by (auto simp add:eval)
 
 lemma PSubstPE_LitPE [usubst]:
   "PSubstPE (LitPE v) x e = LitPE v"

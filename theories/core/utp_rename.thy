@@ -569,6 +569,12 @@ lemma rename_on_perm2:
   shows "(f on vs)\<bullet>x = inv_into vs f x"
   by (simp add:rename_on_rep_eq assms)
 
+lemma rename_on_perm3:
+  fixes x :: "'a VAR"
+  assumes "rename_func_on f vs" "x \<notin> vs" "x \<notin> f ` vs"
+  shows "(f on vs)\<bullet>x = x"
+  by (simp add:rename_on_rep_eq assms)
+
 text {* More theorems about @{term "VAR_RENAME"} *}
 
 lemma VAR_RENAME_MapRename [closure]:
@@ -1014,5 +1020,49 @@ lemma SUB_var [urename]:
   fixes x :: "'m VAR"
   shows "SUB n\<bullet>x = x\<^bsub>n\<^esub>"
   by (simp add:SUB.rep_eq)
+
+definition "USUB n \<equiv> (add_sub n) on (UNDASHED \<inter> NOSUB)"
+
+lemma USUB_rename_func_on [closure]:
+  "rename_func_on (add_sub n) (UNDASHED \<inter> NOSUB)"
+  apply (auto simp add:rename_func_on_def)
+  apply (metis add_sub_inv inj_onI)
+  apply (metis (mono_tags) NOSUB_def SUBSCRIPT.distinct(1) mem_Collect_eq vsub_NOSUB)
+done
+
+lemma USUB_UNDASHED_NOSUB [urename]:
+  assumes "x \<in> UNDASHED" "x \<in> NOSUB"
+  shows "USUB n\<bullet>x = x\<^bsub>n\<^esub>"
+  by (simp add:USUB_def closure rename_on_perm1 assms)
+
+lemma USUB_DASHED [urename]:
+  "x \<in> DASHED \<Longrightarrow> USUB n\<bullet>x = x"
+  apply (subgoal_tac "x \<notin> (UNDASHED \<inter> NOSUB)")
+  apply (subgoal_tac "x \<notin> add_sub n ` (UNDASHED \<inter> NOSUB)")
+  apply (simp add:USUB_def closure rename_on_perm3 assms)
+  apply (auto simp add:var_defs)
+done
+
+definition "DSUB n \<equiv> (add_sub n) on (DASHED \<inter> NOSUB)"
+
+lemma DSUB_rename_func_on [closure]:
+  "rename_func_on (add_sub n) (DASHED \<inter> NOSUB)"
+  apply (auto simp add:rename_func_on_def)
+  apply (metis add_sub_inv inj_onI)
+  apply (metis (mono_tags) NOSUB_def SUBSCRIPT.distinct(1) mem_Collect_eq vsub_NOSUB)
+done
+
+lemma DSUB_DASHED_NOSUB [urename]:
+  assumes "x \<in> DASHED" "x \<in> NOSUB"
+  shows "DSUB n\<bullet>x = x\<^bsub>n\<^esub>"
+  by (simp add:DSUB_def closure rename_on_perm1 assms)
+
+lemma DSUB_UNDASHED [urename]:
+  "x \<in> UNDASHED \<Longrightarrow> DSUB n\<bullet>x = x"
+  apply (subgoal_tac "x \<notin> (DASHED \<inter> NOSUB)")
+  apply (subgoal_tac "x \<notin> add_sub n ` (DASHED \<inter> NOSUB)")
+  apply (simp add:DSUB_def closure rename_on_perm3)
+  apply (auto simp add:var_defs)
+done
 
 end
