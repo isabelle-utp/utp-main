@@ -79,7 +79,9 @@ text {* Isabelle provides a currying operator but it seems none for uncurrying. 
 definition uncurry :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a \<times> 'b \<Rightarrow> 'c)" where
 "uncurry f = (\<lambda> p . f (fst p) (snd p))"
 
-declare uncurry [simp]
+lemma uncurry_unfold [simp]:
+  "uncurry f (x, y) = f x y"
+  by (simp add:uncurry_def)
 
 subsection {* Function Override *}
 

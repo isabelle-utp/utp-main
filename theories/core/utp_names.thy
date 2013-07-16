@@ -14,13 +14,6 @@ subsection {* Subscripts *}
 
 text {* Subscripts are encoded by virtue of a datatype. *}
 
-type_synonym SUBSCRIPT = "nat list"
-
-
-abbreviation "NoSub \<equiv> [] :: SUBSCRIPT"
-abbreviation "Sub n \<equiv> [n] :: SUBSCRIPT"
-
-(*
 datatype SUBSCRIPT = Sub "nat" | NoSub
 
 primrec to_nat_SUBSCRIPT :: "SUBSCRIPT \<Rightarrow> nat" where
@@ -50,7 +43,28 @@ instance
   apply (auto)
 done
 end
-*)
+
+fun chsub :: "nat \<Rightarrow> SUBSCRIPT \<Rightarrow> SUBSCRIPT" where
+"chsub n NoSub = Sub n" |
+"chsub n (Sub n') = (if (n = n') then NoSub else Sub n')"
+
+lemma chsub_inv [simp]: 
+  "chsub n (chsub n x) = x"
+  by (case_tac x, simp_all)
+
+lemma chsub_inj:
+  "inj (chsub n)"
+  apply (rule injI)
+  apply (metis chsub_inv)
+done
+
+lemma chsub_surj:
+  "surj (chsub n)"
+  by (metis chsub_inv surj_def)
+
+lemma chsub_bij [closure]:
+  "bij (chsub n)"
+  by (rule bijI, fact chsub_inj, fact chsub_surj)  
 
 subsection {* Names *}
 

@@ -126,6 +126,18 @@ lemma MkPVAR_VAR_aux [simp]:
   "aux (MkPVAR n s a t)\<down> = s"
   by (simp add:PVAR_VAR_MkPVAR)
 
+lemma pvaux_aux:
+  "pvaux x = aux x\<down>"
+  apply (case_tac x)
+  apply (simp add:PVAR_VAR_def)
+done
+
+lemma pvname_name:
+  "pvname x = name x\<down>"
+  apply (case_tac x)
+  apply (simp add:PVAR_VAR_def)
+done
+
 definition "PUNDASHED     \<equiv> {x. PVAR_VAR x \<in> UNDASHED}"
 definition "PDASHED       \<equiv> {x. PVAR_VAR x \<in> DASHED}"
 definition "PDASHED_TWICE \<equiv> {x. PVAR_VAR x \<in> DASHED_TWICE}"
@@ -161,7 +173,7 @@ Adhoc_Overloading.add_variant @{const_name permute} @{const_name PermPV}
 
 lemma PVAR_VAR_vtype [simp]:
   "vtype (x :: ('a, 'm :: VALUE) PVAR)\<down> = TYPEU('a)"
-  by (simp add:PVAR_VAR_def)
+  by (metis MkVar_vtype PVAR_VAR_def)
 
 lemma PVAR_VAR_RENAME [simp]: 
   "(ss\<bullet>x)\<down> = ss\<bullet>(x\<down>)"
@@ -187,6 +199,18 @@ lemma PVAR_dash_list_aux [typing]:
   apply (rule DestList_elem_type)
   apply (auto simp add:closure typing defined assms)
 done
+
+lemma PVAR_binding_type [typing]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "t = TYPEU('a)"
+  shows "\<langle>b\<rangle>\<^sub>b x\<down> : t"
+  by (simp add:assms typing)
+
+lemma PVAR_binding_defined_aux [defined]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "pvaux x"
+  shows "\<D> (\<langle>b\<rangle>\<^sub>b x\<down>)"
+  by (metis assms aux_defined pvaux_aux)
 
 end
 

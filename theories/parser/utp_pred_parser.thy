@@ -78,6 +78,7 @@ syntax
   "_upred_varopen"  :: "('a, 'm) PVAR \<Rightarrow> upred" ("var _")
   "_upred_varclose" :: "('a, 'm) PVAR \<Rightarrow> upred" ("end _")
   "_upred_substp"   :: "upred \<Rightarrow> pexpr \<Rightarrow> ('a, 'm) PVAR \<Rightarrow> upred" ("(_[_'/_])" [999,999] 1000)
+  "_upred_perm"     :: "'m VAR_RENAME \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<bullet>" 80)
 
 (*
 abbreviation AssignS :: "string \<Rightarrow> 'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_PREDICATE" where
@@ -114,10 +115,12 @@ translations
   "_upred_varopen x"   == "CONST VarOpenP x"
   "_upred_varclose x"  == "CONST VarCloseP x"
   "_upred_substp p e x" == "CONST PSubstP p e x"
+  "_upred_perm ss p"   == "CONST PermP ss p"
 
 term "`p[x/v]`"
 term "`p[$x/y]`"
 term "`x \<Rightarrow> $y\<acute>`"
+term "`SS\<bullet>p`"
 
 section {* Core Expression Parser *}
 

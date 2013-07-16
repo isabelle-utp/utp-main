@@ -56,6 +56,17 @@ lemma Defined_list [defined]:
   "\<D> (xs :: ('a::DEFINED) list) = (\<forall>x\<in>set xs. \<D> x)"
   by (simp add:Defined_list_def)
 
+instantiation prod :: (DEFINED, DEFINED) DEFINED
+begin
+
+definition "Defined_prod = (\<lambda>(x, y). \<D> x \<and> \<D> y)"
+
+instance ..
+end
+
+lemma Defined_prod [defined]:
+  "\<D> (x, y) \<longleftrightarrow> \<D> x \<and> \<D> y"
+  by (auto simp add:Defined_prod_def)
 
 subsection {* Polymorphic constants *}
 

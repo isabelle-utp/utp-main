@@ -1005,4 +1005,14 @@ lemma RenameB_equiv_cong:
   "b1 \<cong> b2 on vs \<Longrightarrow> RenameB ss b1 \<cong> RenameB ss b2 on (ss `\<^sub>s vs)"
   by (auto simp add: binding_equiv_def)
 
+text {* Subscript addition permutation *}
+
+lift_definition SUB :: "nat \<Rightarrow> 'a VAR_RENAME" is "add_sub"
+  by (simp add:VAR_RENAME_def add_sub_bij)
+
+lemma SUB_var [urename]:
+  fixes x :: "'m VAR"
+  shows "SUB n\<bullet>x = x\<^bsub>n\<^esub>"
+  by (simp add:SUB.rep_eq)
+
 end

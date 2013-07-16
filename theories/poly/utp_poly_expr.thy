@@ -35,17 +35,18 @@ default_sort type
 
 subsection {* Polymorphic Expression Basic Syntax *}
 
-typedef ('a, 'm) WF_PEXPRESSION = "UNIV :: ('m WF_BINDING \<Rightarrow> 'a) set" ..
+typedef ('a, 'm) WF_PEXPRESSION = "UNIV :: ('m WF_BINDING \<Rightarrow> 'a) set" 
+morphisms DestPExpr MkPExpr ..
 
-declare Rep_WF_PEXPRESSION [simp]
-declare Rep_WF_PEXPRESSION_inverse [simp]
-declare Abs_WF_PEXPRESSION_inverse [simp]
+declare DestPExpr [simp]
+declare DestPExpr_inverse [simp]
+declare MkPExpr_inverse [simp]
 
-notation Rep_WF_PEXPRESSION ("\<lbrakk>_\<rbrakk>\<^sub>*")
+notation DestPExpr ("\<lbrakk>_\<rbrakk>\<^sub>*")
 
-lemma Rep_WF_PEXPRESSION_intro [intro]:
+lemma DestPExpr_intro [intro]:
   "(\<And> b. \<lbrakk>x\<rbrakk>\<^sub>*b = \<lbrakk>y\<rbrakk>\<^sub>*b) \<Longrightarrow> x = y"
-  by (auto simp add: Rep_WF_PEXPRESSION_inject[THEN sym])
+  by (auto simp add: DestPExpr_inject[THEN sym])
 
 definition WF_PEXPRESSION_type :: 
   "('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm UTYPE" ("\<tau>\<^sub>*") where
@@ -70,11 +71,15 @@ definition UNREST_PEXPR :: "('m VAR) set \<Rightarrow> ('a, 'm :: VALUE) WF_PEXP
 "UNREST_PEXPR vs e \<equiv> (\<forall> b1 b2. \<lbrakk>e\<rbrakk>\<^sub>*(b1 \<oplus>\<^sub>b b2 on vs) = \<lbrakk>e\<rbrakk>\<^sub>* b1)" 
 
 definition LitPE :: "'a \<Rightarrow> ('a, 'm :: VALUE) WF_PEXPRESSION" where
-"LitPE v = Abs_WF_PEXPRESSION (\<lambda> b. v)"
+"LitPE v = MkPExpr (\<lambda> b. v)"
 
 lemma EvalPE_LitPE [eval,evalp]:
   "\<lbrakk>LitPE v\<rbrakk>\<^sub>*b = v"
   by (simp add:LitPE_def)
+
+lemma LitPE_range [simp]:
+  "range \<lbrakk>LitPE v\<rbrakk>\<^sub>* = {v}"
+  by (auto simp add:eval)
 
 lemma LitPE_defined [defined]:
   "\<D> x \<Longrightarrow> \<D> (LitPE x)"
@@ -111,7 +116,7 @@ lemma PVAR_VAR_compat [typing]:
 done
 
 definition WVarPE :: "'m VAR \<Rightarrow> ('m SIGTYPE, 'm :: VALUE) WF_PEXPRESSION" where
-"WVarPE x = Abs_WF_PEXPRESSION (\<lambda> b. \<Sigma> \<langle>b\<rangle>\<^sub>b x : vtype x)"
+"WVarPE x = MkPExpr (\<lambda> b. \<Sigma> \<langle>b\<rangle>\<^sub>b x : vtype x)"
 
 lemma EvalPE_WVarPE [eval,evalp]:
   "\<lbrakk>WVarPE x\<rbrakk>\<^sub>*b = (\<Sigma> \<langle>b\<rangle>\<^sub>b x : vtype x)"
@@ -122,7 +127,7 @@ lemma UNREST_WVarPE [unrest]:
   by (simp add:WVarPE_def UNREST_PEXPR_def)
 
 definition VarPE :: "'m VAR \<Rightarrow> ('a, 'm :: VALUE) WF_PEXPRESSION" where
-"VarPE x = Abs_WF_PEXPRESSION (\<lambda> b. ProjU (\<langle>b\<rangle>\<^sub>b x))"
+"VarPE x = MkPExpr (\<lambda> b. ProjU (\<langle>b\<rangle>\<^sub>b x))"
 
 lemma EvalPE_VarPE [eval,evalp]:
   "\<lbrakk>VarPE x\<rbrakk>\<^sub>*b = ProjU (\<langle>b\<rangle>\<^sub>b x)"
@@ -139,9 +144,15 @@ lemma EvalPE_PVarPE [eval,evalp]:
   "\<lbrakk>PVarPE x\<rbrakk>\<^sub>*b = ProjU (\<langle>b\<rangle>\<^sub>b x\<down>)"
   by (simp add:VarPE_def PVarPE_def)
 
+lemma PVarPE_defined_aux [defined]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "pvaux x"
+  shows "\<D> (PVarPE x)"
+  using assms by (auto intro:defined typing simp add:Defined_WF_PEXPRESSION_def eval)
+
 definition ErasePE :: 
   "('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> ('m SIGTYPE, 'm) WF_PEXPRESSION" where
-"ErasePE v = Abs_WF_PEXPRESSION (\<lambda> b. \<Sigma> (InjU (\<lbrakk>v\<rbrakk>\<^sub>*b)) : TYPEU('a))"
+"ErasePE v = MkPExpr (\<lambda> b. \<Sigma> (InjU (\<lbrakk>v\<rbrakk>\<^sub>*b)) : TYPEU('a))"
 
 lemma EvalPE_ErasePE [eval]:
   fixes v :: "('a, 'm :: VALUE) WF_PEXPRESSION"
@@ -152,9 +163,36 @@ lemma UNREST_ErasePE [unrest]:
   "UNREST_PEXPR vs v \<Longrightarrow> UNREST_PEXPR vs (ErasePE v)"
   by (simp add:UNREST_PEXPR_def ErasePE_def)
 
+definition ProdPE ::
+  "('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 
+   ('b, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow>
+   (('a * 'b), 'm) WF_PEXPRESSION" where
+"ProdPE x y = MkPExpr (\<lambda> b. (\<lbrakk>x\<rbrakk>\<^sub>* b, \<lbrakk>y\<rbrakk>\<^sub>* b))"
+
+lemma EvalPE_ProdPE [eval]:
+  "\<lbrakk>ProdPE x y\<rbrakk>\<^sub>*b = (\<lbrakk>x\<rbrakk>\<^sub>* b, \<lbrakk>y\<rbrakk>\<^sub>* b)"
+  by (simp add:ProdPE_def)
+
+lemma UNREST_ProdPE [unrest]:
+  "\<lbrakk> UNREST_PEXPR vs x; UNREST_PEXPR vs y \<rbrakk> \<Longrightarrow> UNREST_PEXPR vs (ProdPE x y)"
+  by (simp add:UNREST_PEXPR_def EvalPE_ProdPE)
+
+lemma ProdPE_defined [defined]:
+  "\<lbrakk> \<D> x; \<D> y \<rbrakk> \<Longrightarrow> \<D> (ProdPE x y)"
+  by (simp add:Defined_WF_PEXPRESSION_def EvalPE_ProdPE defined)
+
+lemma ProdPE_range:
+  "range \<lbrakk>ProdPE x y\<rbrakk>\<^sub>* = {(\<lbrakk>x\<rbrakk>\<^sub>*b, \<lbrakk>y\<rbrakk>\<^sub>*b)|b. True}"
+  by (simp add:image_def EvalPE_ProdPE)
+
+lemma ProdPE_Dom_uncurry [defined]:
+  "\<lbrakk> \<And>b. \<D> (f (\<lbrakk>x\<rbrakk>\<^sub>* b) (\<lbrakk>y\<rbrakk>\<^sub>* b)) \<rbrakk> \<Longrightarrow>
+   range \<lbrakk>ProdPE x y\<rbrakk>\<^sub>* \<subseteq> Dom (uncurry f)"
+  by (auto simp add:Dom_def EvalPE_ProdPE)
+
 definition Op1PE :: 
   "('a \<Rightarrow> 'b) \<Rightarrow> ('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> ('b, 'm) WF_PEXPRESSION" where
-"Op1PE f u = Abs_WF_PEXPRESSION (\<lambda> b. f (\<lbrakk>u\<rbrakk>\<^sub>*b))"
+"Op1PE f u = MkPExpr (\<lambda> b. f (\<lbrakk>u\<rbrakk>\<^sub>*b))"
 
 lemma EvalPE_Op1PE [eval]:
   "\<lbrakk>Op1PE f u\<rbrakk>\<^sub>*b = f (\<lbrakk>u\<rbrakk>\<^sub>*b)"
@@ -164,34 +202,30 @@ lemma UNREST_Op1PE [unrest]:
   "UNREST_PEXPR vs u \<Longrightarrow> UNREST_PEXPR vs (Op1PE f u)"
   by (simp add:UNREST_PEXPR_def Op1PE_def)
 
-definition 
+lemma Op1PE_defined [defined]:
+  "\<lbrakk> \<D> x; range \<lbrakk>x\<rbrakk>\<^sub>* \<subseteq> Dom f \<rbrakk> \<Longrightarrow> \<D> (Op1PE f x)"
+  by (auto simp add:Defined_WF_PEXPRESSION_def EvalPE_Op1PE Dom_def)
+
+abbreviation 
   Op2PE :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 
             ('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 
             ('b, 'm) WF_PEXPRESSION \<Rightarrow> 
             ('c, 'm) WF_PEXPRESSION" where
-"Op2PE f u v = Abs_WF_PEXPRESSION (\<lambda> b. f (\<lbrakk>u\<rbrakk>\<^sub>*b) (\<lbrakk>v\<rbrakk>\<^sub>*b))"
+"Op2PE f u v \<equiv> Op1PE (uncurry f) (ProdPE u v)"
 
-lemma EvalPE_Op2PE [eval]:
-  "\<lbrakk>Op2PE f u v\<rbrakk>\<^sub>*b = f (\<lbrakk>u\<rbrakk>\<^sub>*b) (\<lbrakk>v\<rbrakk>\<^sub>*b)"
-  by (simp add:Op2PE_def)
-
-definition 
+abbreviation 
   Op3PE :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 
             ('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 
             ('b, 'm) WF_PEXPRESSION \<Rightarrow> 
             ('c, 'm) WF_PEXPRESSION \<Rightarrow>
             ('d, 'm) WF_PEXPRESSION" where
-"Op3PE f u v w = Abs_WF_PEXPRESSION (\<lambda> b. f (\<lbrakk>u\<rbrakk>\<^sub>*b) (\<lbrakk>v\<rbrakk>\<^sub>*b) (\<lbrakk>w\<rbrakk>\<^sub>*b))"
-
-lemma EvalPE_Op3PE [eval]:
-  "\<lbrakk>Op3PE f u v w\<rbrakk>\<^sub>*b = f (\<lbrakk>u\<rbrakk>\<^sub>*b) (\<lbrakk>v\<rbrakk>\<^sub>*b) (\<lbrakk>w\<rbrakk>\<^sub>*b)"
-  by (simp add:Op3PE_def)
+"Op3PE f u v w \<equiv> Op1PE (uncurry (uncurry f)) (ProdPE (ProdPE u v) w)"
 
 abbreviation "EqualPE \<equiv> Op2PE (op =)"
 
 definition PExprE :: 
 "('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm WF_EXPRESSION" where
-"PExprE f = Abs_WF_EXPRESSION (InjU \<circ> Rep_WF_PEXPRESSION f)"
+"PExprE f = Abs_WF_EXPRESSION (InjU \<circ> DestPExpr f)"
 
 setup {*
 Adhoc_Overloading.add_variant @{const_name erase} @{const_name PExprE}
@@ -200,8 +234,8 @@ Adhoc_Overloading.add_variant @{const_name erase} @{const_name PExprE}
 lemma PExprE_rep_eq:
   fixes e :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION" 
   assumes "TYPEUSOUND('a, 'm)"
-  shows "\<langle>PExprE e\<rangle>\<^sub>e b = InjU (Rep_WF_PEXPRESSION e b)"
-  apply (subgoal_tac "(InjU \<circ> Rep_WF_PEXPRESSION e) \<in> WF_EXPRESSION")
+  shows "\<langle>PExprE e\<rangle>\<^sub>e b = InjU (DestPExpr e b)"
+  apply (subgoal_tac "(InjU \<circ> DestPExpr e) \<in> WF_EXPRESSION")
   apply (simp add:PExprE_def)
   apply (auto simp add:WF_EXPRESSION_def)
   apply (rule_tac x="TYPEU('a)" in exI)
@@ -266,7 +300,7 @@ abbreviation PVarP ::
 
 definition PredPE ::
   "'m WF_PREDICATE \<Rightarrow> (bool, 'm :: VALUE) WF_PEXPRESSION" where
-"PredPE p = Abs_WF_PEXPRESSION (\<lambda> b. b \<in> destPRED p)"
+"PredPE p = MkPExpr (\<lambda> b. b \<in> destPRED p)"
 
 lemma EvalPE_PExprP [eval]:
   "\<lbrakk>PredPE p\<rbrakk>\<^sub>*b = \<lbrakk>p\<rbrakk>b"
@@ -398,8 +432,6 @@ lemma PExprP_TruePE [evalp]:
 lemma PExprP_FalsePE [evalp]: 
   "FalsePE\<down> = FalseP"
   by (utp_pred_tac)
-
-
 
 subsection {* Less than class *}
 
@@ -545,7 +577,7 @@ definition PermPE ::
   "('m :: VALUE) VAR_RENAME \<Rightarrow>
    ('a, 'm) WF_PEXPRESSION \<Rightarrow>   
    ('a, 'm) WF_PEXPRESSION" where
-"PermPE ss e = Abs_WF_PEXPRESSION (\<lbrakk>e\<rbrakk>\<^sub>* \<circ> (RenameB (inv\<^sub>s ss)))"
+"PermPE ss e = MkPExpr (\<lbrakk>e\<rbrakk>\<^sub>* \<circ> (RenameB (inv\<^sub>s ss)))"
 
 setup {*
 Adhoc_Overloading.add_variant @{const_name permute} @{const_name PermPE}
@@ -589,7 +621,7 @@ definition SubstPE ::
  ('b, 'm) WF_PEXPRESSION \<Rightarrow> 
  'm VAR \<Rightarrow> 
  ('a, 'm) WF_PEXPRESSION" where
-"SubstPE f v x = Abs_WF_PEXPRESSION (\<lambda> b. \<lbrakk>f\<rbrakk>\<^sub>* (b(x :=\<^sub>b InjU (\<lbrakk>v\<rbrakk>\<^sub>* b))))"
+"SubstPE f v x = MkPExpr (\<lambda> b. \<lbrakk>f\<rbrakk>\<^sub>* (b(x :=\<^sub>b InjU (\<lbrakk>v\<rbrakk>\<^sub>* b))))"
 
 definition PSubstPE :: 
 "('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 
@@ -645,6 +677,18 @@ lemma SubstP_PSubstPE [usubst]:
   fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
   assumes "TYPEUSOUND('a, 'm)"
   shows "e\<down>[v\<down>/\<^sub>px\<down>] = (PSubstPE e v x)\<down>"
+  using assms by (utp_pred_tac)
+
+lemma SubstP_PSubstPE_dash [usubst]:
+  fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  assumes "TYPEUSOUND('a, 'm)"
+  shows "e\<down>[v\<down>/\<^sub>px\<down>\<acute>] = (PSubstPE e v x\<acute>)\<down>"
+  using assms by (utp_pred_tac)
+
+lemma SubstP_PSubstPE_dash_dash [usubst]:
+  fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  assumes "TYPEUSOUND('a, 'm)"
+  shows "e\<down>[v\<down>/\<^sub>px\<down>\<acute>\<acute>] = (PSubstPE e v x\<acute>\<acute>)\<down>"
   using assms by (utp_pred_tac)
 
 lemma PSubstPE_PVarPE_neq [usubst]:

@@ -45,6 +45,16 @@ lemma DEFINED_UNDEFINED:
   "DEFINED \<union> UNDEFINED = UNIV"
   by (auto simp add:DEFINED_def UNDEFINED_def)
 
+definition Dom :: "('a \<Rightarrow> 'b::DEFINED) \<Rightarrow> 'a set" where
+"Dom f = {x. \<D> (f x)}"
+
+definition Ran :: "('a \<Rightarrow> 'b::DEFINED) \<Rightarrow> 'b set" where
+"Ran f = {f x |x. \<D> (f x)}"
+
+lemma Dom_defined [defined]: 
+  "x \<in> Dom f \<Longrightarrow> \<D> (f x)"
+  by (simp add:Dom_def)
+
 text {* The @{term "VALUE"} class introduces the typing relation with an arbitrary
 value sort, and the type sort given by @{term "udom"}, the Universal Domain from
 HOLCF. Specifically the type sort must be injectable into udom, which has the

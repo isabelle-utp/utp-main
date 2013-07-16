@@ -69,6 +69,9 @@ definition VAR :: "'VALUE VAR set" where
 abbreviation var_name :: "'VALUE VAR \<Rightarrow> NAME" ("name") where
 "var_name x \<equiv> fst x"
 
+abbreviation var_subscript :: "'VALUE VAR \<Rightarrow> SUBSCRIPT" ("vsub") where
+"var_subscript x \<equiv> subscript (var_name x)"
+
 abbreviation var_type :: "'VALUE VAR \<Rightarrow> 'VALUE UTYPE" ("vtype") where 
 "var_type x \<equiv> fst (snd x)"
 
@@ -98,17 +101,19 @@ definition undash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" where
 "undash \<equiv> \<lambda> x. MkVar (MkName (name_str (name x)) (dashes (name x)- 1) (subscript (name x)))
                      (vtype x) (aux x)"
 
-abbreviation "MAX_SUB_DEPTH \<equiv> 65535 :: nat"
-
 fun add_sub :: "nat \<Rightarrow> 'a VAR \<Rightarrow> 'a VAR" where
-"add_sub n (MkName s d i, t, a) =
-  (if (length i < MAX_SUB_DEPTH) 
-      then (MkName s d (n#i), t, a)
-      else (if (length i = MAX_SUB_DEPTH) 
-               then (MkName s d [], t, a) else (MkName s d i, t, a)))"
+"add_sub n (MkName s d b, t, a) = (MkName s d (chsub n b), t, a)"
 
-abbreviation vsub :: "'a VAR \<Rightarrow> nat \<Rightarrow> 'a VAR" ("_\<^bsub>_\<^esub>") where
-"vsub v n \<equiv> add_sub n v"
+lemma add_sub_inv [simp]:
+  "add_sub n (add_sub n x) = x"
+  by (case_tac x, case_tac a, auto)
+
+lemma add_sub_bij:
+  "bij (add_sub n)"
+  by (metis add_sub_inv bij_betw_def inj_on_inverseI surjI)
+
+abbreviation vchsub :: "'a VAR \<Rightarrow> nat \<Rightarrow> 'a VAR" ("_\<^bsub>_\<^esub>") where
+"vchsub v n \<equiv> add_sub n v"
 
 subsection {* Recontrolions *}
 
@@ -120,6 +125,12 @@ definition DASHED :: "'VALUE VAR set" where
 
 definition DASHED_TWICE :: "'VALUE VAR set" where
 "DASHED_TWICE = {v . dashes (name v) = 2}"
+
+definition NOSUB :: "'VALUE VAR set" where
+"NOSUB = {v. subscript (name v) = NoSub}"
+
+definition WITHSUB :: "nat \<Rightarrow> 'VALUE VAR set" where
+"WITHSUB n = {v. subscript (name v) = Sub n}"
 
 definition PLAIN :: "'VALUE VAR set" where
 "PLAIN = {v . v \<in> UNDASHED \<and> subscript (name v) = NoSub}"
@@ -163,6 +174,7 @@ theorems var_defs =
   UNDASHED_def
   DASHED_def
   DASHED_TWICE_def
+  NOSUB_def
   PLAIN_def
   MkVar_def
   undash_def
@@ -210,10 +222,16 @@ lemma MkPlain_name [simp]: "name (MkPlain n t a) = bName n"
 lemma MkPlain_vtype [simp]: "vtype (MkPlain n t a) = t"
   by (simp add:var_defs)
 
+lemma MkPlain_vsub [simp]: "vsub (MkPlain n t a) = NoSub"
+  by (simp add:var_defs)
+
 lemma MkPlain_aux [simp]: "aux (MkPlain n t a) = a"
   by (simp add:var_defs)
 
 lemma MkPlain_UNDASHED [simp]: "MkPlain n t a \<in> UNDASHED"
+  by (simp add:var_defs)
+
+lemma MkPlain_NOSUB [simp]: "MkPlain n t a \<in> NOSUB"
   by (simp add:var_defs)
 
 lemma MkPlain_eq_iff[simp]: 
@@ -228,6 +246,14 @@ theorem vtype_dash [simp] :
 
 theorem vtype_undash [simp] :
 "vtype (undash x) = vtype x"
+  by (simp add: var_defs)
+
+theorem vsub_dash [simp] :
+"vsub (dash x) = vsub x"
+  by (simp add: var_defs)
+
+theorem vsub_undash [simp] :
+"vsub (undash x) = vsub x"
   by (simp add: var_defs)
 
 theorem aux_dash [simp] :
@@ -852,6 +878,23 @@ lemma HOMOGENEOUS_minus [simp]:
   "\<lbrakk> HOMOGENEOUS vs1; HOMOGENEOUS vs2 \<rbrakk> \<Longrightarrow> HOMOGENEOUS (vs1 - vs2)"
    apply (unfold HOMOGENEOUS_def COMPOSABLE_def)
    apply (simp add:var_dist)
+done
+
+subsubsection {* Subscript Properties *}
+
+lemma vchsub_vtype [simp]: 
+  "vtype x\<^bsub>n\<^esub> = vtype x"
+  by (case_tac x, case_tac a, simp)
+
+lemma vsub_aux [simp]: 
+  "aux x\<^bsub>n\<^esub> = aux x"
+  by (case_tac x, case_tac a, simp)
+
+lemma vsub_NOSUB [simp]:
+  "x \<in> NOSUB \<Longrightarrow> vsub x\<^bsub>n\<^esub> = Sub n"
+  apply (simp add:NOSUB_def)
+  apply (case_tac x, case_tac a)
+  apply (simp)
 done
 
 subsubsection {* Fresh variables *}
