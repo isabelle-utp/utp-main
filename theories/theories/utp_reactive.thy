@@ -84,8 +84,7 @@ lemma R1_R2_commute : "R1 (R2 P) = R2 (R1 P)"
 proof -
   have "R2 (R1 P) = `(P \<and> ($tr \<le> $tr\<acute>))[\<langle>\<rangle>/tr][($tr\<acute> - $tr)/tr\<acute>]`" by (utp_rel_tac)
   also have "... = `P[\<langle>\<rangle>/tr][($tr\<acute> - $tr)/tr\<acute>] \<and> ($tr \<le> $tr\<acute>)`" 
-    apply (simp add:usubst closure typing defined)
-sorry(*by (simp add:usubst erasure typing defined closure R1_true_is_R2)*)
+    sorry(*by (simp add:usubst erasure typing defined closure R1_true_is_R2)*)
   ultimately show ?thesis by (utp_rel_tac)
 qed
 lemma R2_R3_commute : "R2 (R3 P) = R3 (R2 P)" 
