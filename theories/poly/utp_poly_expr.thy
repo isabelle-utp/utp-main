@@ -571,6 +571,12 @@ abbreviation FInterPE ::
    ('a UFSET, 'm) WF_PEXPRESSION" where
 "FInterPE \<equiv> Op2PE InterUF"
 
+abbreviation FMinusPE ::
+  "('a :: DEFINED UFSET, 'm :: FSET_SORT) WF_PEXPRESSION \<Rightarrow> 
+   ('a UFSET, 'm) WF_PEXPRESSION \<Rightarrow> 
+   ('a UFSET, 'm) WF_PEXPRESSION" where
+"FMinusPE \<equiv> Op2PE MinusUF"
+
 abbreviation FMemberPE ::
   "('a :: DEFINED, 'm :: {BOOL_SORT, FSET_SORT}) WF_PEXPRESSION \<Rightarrow> 
    ('a UFSET, 'm) WF_PEXPRESSION \<Rightarrow> 
@@ -583,12 +589,36 @@ abbreviation FNotMemberPE ::
    (bool, 'm) WF_PEXPRESSION" where
 "FNotMemberPE \<equiv> Op2PE NMemberUF"
 
+abbreviation FSubsetPE ::
+  "('a :: DEFINED UFSET, 'm :: {BOOL_SORT, FSET_SORT}) WF_PEXPRESSION \<Rightarrow> 
+   ('a UFSET, 'm) WF_PEXPRESSION \<Rightarrow> 
+   (bool, 'm) WF_PEXPRESSION" where
+"FSubsetPE \<equiv> Op2PE SubsetUF"
+
+abbreviation FSubseteqPE ::
+  "('a :: DEFINED UFSET, 'm :: {BOOL_SORT, FSET_SORT}) WF_PEXPRESSION \<Rightarrow> 
+   ('a UFSET, 'm) WF_PEXPRESSION \<Rightarrow> 
+   (bool, 'm) WF_PEXPRESSION" where
+"FSubseteqPE \<equiv> Op2PE SubseteqUF"
+
 abbreviation IntersyncPE ::
   "('a :: DEFINED UFSET, 'm :: {FSET_SORT, LIST_SORT}) WF_PEXPRESSION \<Rightarrow>
    ('a ULIST, 'm) WF_PEXPRESSION \<Rightarrow> 
    ('a ULIST, 'm) WF_PEXPRESSION \<Rightarrow> 
    ('a ULIST UFSET, 'm) WF_PEXPRESSION" where
 "IntersyncPE \<equiv> Op3PE IntersyncUF"
+
+instantiation UFSET :: (DEFINED) MINUS
+begin
+
+definition utminus_UFSET :: "'a UFSET \<Rightarrow> 'a UFSET \<Rightarrow> 'a UFSET" where
+"utminus_UFSET xs ys = MinusUF xs ys"
+
+instance ..
+end
+
+declare utminus_UFSET_def [simp]
+
 
 (*
 lemma FUnionPE_type: 

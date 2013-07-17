@@ -72,6 +72,15 @@ lift_definition UnionUF :: "'a::DEFINED UFSET \<Rightarrow> 'a UFSET \<Rightarro
 lift_definition InterUF :: "'a::DEFINED UFSET \<Rightarrow> 'a UFSET \<Rightarrow> 'a UFSET" is "finter"
   by (auto)
 
+lift_definition MinusUF :: "'a::DEFINED UFSET \<Rightarrow> 'a UFSET \<Rightarrow> 'a UFSET" is "fminus"
+  by (auto)
+
+lift_definition SubsetUF :: "'a::DEFINED UFSET \<Rightarrow> 'a UFSET \<Rightarrow> bool" is "fsubset"
+  by (auto)
+
+lift_definition SubseteqUF :: "'a::DEFINED UFSET \<Rightarrow> 'a UFSET \<Rightarrow> bool" is "fsubset_eq"
+  by (auto)
+
 lift_definition FSetUF :: "'a::DEFINED ULIST \<Rightarrow> 'a UFSET" is "fset"
   by (auto)
 
@@ -95,8 +104,11 @@ declare EmptyUF.rep_eq [eval, evale]
 declare InsertUF_rep_eq [eval, evale]
 declare UnionUF.rep_eq [eval, evale]
 declare InterUF.rep_eq [eval, evale]
+declare MinusUF.rep_eq [eval, evale]
 declare MemberUF.rep_eq [eval, evale]
 declare NMemberUF.rep_eq [eval, evale]
+declare SubsetUF.rep_eq [eval, evale]
+declare SubseteqUF.rep_eq [eval, evale]
 declare FSetUF.rep_eq [eval, evale]
 declare IntersyncUF_def [eval, evale]
 

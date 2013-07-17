@@ -26,14 +26,17 @@ text {* To make injecting values into the domain easy, we introduce a type class
 
 class vbasic =
   fixes Inject  :: "'a \<Rightarrow> vbasic"
-  and   Type    :: "'a itself \<Rightarrow> vdmt"
+  and   Type    :: "'a itself \<Rightarrow> vbasict"
   assumes Inject_inj [simp]: "Inject x = Inject y \<Longrightarrow> x = y"
-  and     Inject_range [simp]: "range Inject = {x. x :\<^sub>b Type (TYPE('a)) \<and> \<D>\<^sub>b x}"
+  and     Inject_range [simp]: "range Inject = {x. x :\<^sub>b Type (TYPE('a)) \<and> \<D> x}"
 
 syntax
+  "_BTYPE" :: "type => logic"  ("(1BTYPE/(1'(_')))")
   "_VTYPE" :: "type => logic"  ("(1VTYPE/(1'(_')))")
 
-translations "VTYPE('a)" == "CONST Type TYPE('a)"
+translations 
+  "BTYPE('a)" == "CONST Type TYPE('a)"
+  "VTYPE('a)" == "CONST BasicT (CONST Type TYPE('a))"
 
 
 text {* InjB and ProjB lift the Inject and Project functions up to domain level. *}
@@ -42,9 +45,9 @@ context vbasic
 begin
 
 definition Project :: "vbasic \<Rightarrow> 'a option" where
-"Project x \<equiv> if (x :\<^sub>b VTYPE('a) \<and> \<D>\<^sub>b x) then Some (inv Inject x) else None"
+"Project x \<equiv> if (x :\<^sub>b BTYPE('a) \<and> \<D> x) then Some (inv Inject x) else None"
 
-lemma Inject_type[simp]: "Inject x :\<^sub>b VTYPE('a)"
+lemma Inject_type[simp]: "Inject x :\<^sub>b BTYPE('a)"
   by (insert Inject_range, auto simp add:image_def)
 
 lemma Inject_Project [simp]: "Project (Inject x) = Some x"
@@ -57,19 +60,19 @@ lemma Inject_simp [simp]: "Inject x = Inject y \<longleftrightarrow> x = y"
   by (metis Inject_inj)
 
 lemma Project_Inject [simp]: 
-  "\<And> x. \<lbrakk> x :\<^sub>b VTYPE('a); \<D>\<^sub>b x \<rbrakk> \<Longrightarrow> Inject (the (Project x)) = x"
+  "\<And> x. \<lbrakk> x :\<^sub>b BTYPE('a); \<D> x \<rbrakk> \<Longrightarrow> Inject (the (Project x)) = x"
   by (auto intro:f_inv_into_f simp add:Project_def)
 
 lemma Project_ndefined [simp]:
-  "\<not> \<D>\<^sub>b x \<Longrightarrow> Project x = None"
+  "\<not> \<D> x \<Longrightarrow> Project x = None"
   by (simp add:Project_def)
 
-lemma Project_dom [simp]: "\<And> x y. Project x = Some y \<Longrightarrow> x :\<^sub>b VTYPE('a)"
-  by (case_tac "x :\<^sub>b VTYPE('a)", auto simp add:Project_def)
+lemma Project_dom [simp]: "\<And> x y. Project x = Some y \<Longrightarrow> x :\<^sub>b BTYPE('a)"
+  by (case_tac "x :\<^sub>b BTYPE('a)", auto simp add:Project_def)
 
-lemma Project_ndom [simp]: "\<And> x. \<lbrakk> Project x = None \<rbrakk> \<Longrightarrow> \<not> \<D>\<^sub>b x \<or> \<not> x :\<^sub>b VTYPE('a)"
+lemma Project_ndom [simp]: "\<And> x. \<lbrakk> Project x = None \<rbrakk> \<Longrightarrow> \<not> \<D> x \<or> \<not> x :\<^sub>b BTYPE('a)"
   apply (simp only:Project_def)
-  apply (case_tac "x :\<^sub>b VTYPE('a)")
+  apply (case_tac "x :\<^sub>b BTYPE('a)")
   apply (auto)
 done
 
@@ -78,11 +81,11 @@ lemma Inject_Project_comp [simp]:
   by (simp add:comp_def)
 
 lemma Inject_defined [simp]:
-  "\<D>\<^sub>b (Inject x)"
+  "\<D> (Inject x)"
   by (metis Inject_Project Project_def option.simps(2))
   
 lemma Project_defined [dest]: 
-  "\<lbrakk> x :\<^sub>b VTYPE('a); \<D>\<^sub>b x \<rbrakk> \<Longrightarrow> Project x \<noteq> None"
+  "\<lbrakk> x :\<^sub>b BTYPE('a); \<D> x \<rbrakk> \<Longrightarrow> Project x \<noteq> None"
   by (metis Project_def option.simps(3))
 
 lemma Project_Some [dest,simp]: 
@@ -94,7 +97,7 @@ lemma Project_Some [dest,simp]:
 done
 
 lemma Inject_Project_list [simp]:
-  assumes "foldr (op \<and> \<circ> \<D>\<^sub>b) xs True" "\<forall>x\<in>set xs. x :\<^sub>b VTYPE('a)"
+  assumes "\<forall>x\<in>set xs. x :\<^sub>b BTYPE('a) \<and> \<D> x"
   shows "xs = map Inject (map (the \<circ> Project) xs)"
 using assms by (induct xs, auto)
 
@@ -105,8 +108,8 @@ subsection {* Naturals are injectable *}
 instantiation nat :: vbasic
 begin
 definition "Inject_nat \<equiv> NatI"
-definition Type_nat :: "nat itself \<Rightarrow> vdmt" where
-"Type_nat x \<equiv> NatT"
+definition Type_nat :: "nat itself \<Rightarrow> vbasict" where
+"Type_nat x \<equiv> NatBT"
 
 declare Type_nat_def [simp]
 
@@ -114,7 +117,7 @@ instance
   by (intro_classes, auto simp add:Inject_nat_def) 
 end
 
-lemma Type_nat: "NatT = VTYPE(nat)"
+lemma BTYPE_nat: "NatBT = BTYPE(nat)"
   by (simp add:Type_nat_def)
 
 subsection {* Integers are injectable *}
@@ -122,15 +125,15 @@ subsection {* Integers are injectable *}
 instantiation int :: vbasic
 begin
 definition "Inject_int \<equiv> IntI"
-definition Type_int :: "int itself \<Rightarrow> vdmt" where
-"Type_int x \<equiv> IntT"
+definition Type_int :: "int itself \<Rightarrow> vbasict" where
+"Type_int x \<equiv> IntBT"
 
 declare Type_int_def [simp]
 
 instance by (intro_classes, auto simp add:Inject_int_def) 
 end
 
-lemma Type_int: "IntT = VTYPE(int)"
+lemma BTYPE_int: "IntBT = BTYPE(int)"
   by (simp add:Type_int_def)
 
 subsection {* Bools are injectable *}
@@ -138,14 +141,14 @@ subsection {* Bools are injectable *}
 instantiation bool :: vbasic
 begin
 definition "Inject_bool \<equiv> BoolI"
-definition "Type_bool (x::bool itself) \<equiv> BoolT"
+definition "Type_bool (x::bool itself) \<equiv> BoolBT"
 
 declare Type_bool_def [simp]
 
 instance by (intro_classes, auto simp add:Inject_bool_def) 
 end
 
-lemma Type_bool: "BoolT = VTYPE(bool)"
+lemma BTYPE_bool: "BoolBT = BTYPE(bool)"
   by (simp add:Type_bool_def)
 
 subsection {* Rationals are injectable *}
@@ -154,14 +157,14 @@ instantiation rat :: vbasic
 begin
 
 definition "Inject_rat \<equiv> RatI"
-definition "Type_rat (x::rat itself) = RatT"
+definition "Type_rat (x::rat itself) = RatBT"
 
 declare Type_rat_def [simp]
 
 instance by (intro_classes, auto simp add:Inject_rat_def)
 end
 
-lemma Type_rat: "RatT = VTYPE(rat)"
+lemma BTYPE_rat: "RatBT = BTYPE(rat)"
   by (simp add:Type_rat_def)
 
 subsection {* Characters are injectable *}
@@ -170,12 +173,12 @@ instantiation char :: vbasic
 begin
 
 definition "Inject_char \<equiv> CharI"
-definition "Type_char (x::char itself) \<equiv> CharT"
+definition "Type_char (x::char itself) \<equiv> CharBT"
 
 instance by (intro_classes, auto simp add:Inject_char_def Type_char_def)
 end
 
-lemma Type_char: "CharT = VTYPE(char)"
+lemma BTYPE_char: "CharBT = BTYPE(char)"
   by (simp add:Type_char_def)
 
 subsection {* Pairs are injectable *}
@@ -186,8 +189,8 @@ begin
 definition Inject_prod :: "'a \<times> 'b \<Rightarrow> vbasic" where
 "Inject_prod \<equiv> \<lambda> x. PairI (Inject (fst x)) (Inject (snd x))"
                 
-definition Type_prod :: "('a \<times> 'b) itself \<Rightarrow> vdmt" where
-"Type_prod x = PairT VTYPE('a) VTYPE('b)"
+definition Type_prod :: "('a \<times> 'b) itself \<Rightarrow> vbasict" where
+"Type_prod x = PairBT BTYPE('a) BTYPE('b)"
 
 instance
   apply (intro_classes)
@@ -224,10 +227,10 @@ instantiation list :: (vbasic) vbasic
 begin
 
 definition Inject_list :: "'a list \<Rightarrow> vbasic" where
-"Inject_list xs = ListI VTYPE('a) (map Inject xs)"
+"Inject_list xs = ListI BTYPE('a) (map Inject xs)"
 
-definition Type_list :: "'a list itself \<Rightarrow> vdmt" where
-"Type_list xs \<equiv> ListT VTYPE('a)"
+definition Type_list :: "'a list itself \<Rightarrow> vbasict" where
+"Type_list xs \<equiv> ListBT BTYPE('a)"
 
 instance 
   apply (intro_classes)
@@ -235,7 +238,6 @@ instance
   apply (metis Inject_Project_comp map_map option.inject option_list_map)
   apply (auto simp add:Type_list_def Inject_list_def)
   apply (auto simp add:image_def Inject_list_def)
-  apply (induct_tac xa, auto)
   apply (rule_tac x="map (the \<circ> Project :: vbasic \<Rightarrow> 'a) xs" in exI)
   apply (simp)
   apply (metis Inject_Project_list map_map)
@@ -247,7 +249,7 @@ end
 
 (* Unfortunately the injections only work for monomorphically typed function, at the moment
    which is no surprise as we need explicit machinery to build polymorphic versions *)
-lemma Type_list: "ListT (VTYPE('a)) = Type(TYPE(('a::vbasic) list))"
+lemma Type_list: "ListBT (BTYPE('a)) = BTYPE(('a::vbasic) list)"
   by (simp add:Type_list_def)
 
 subsection {* Finite sets are injectable *}
@@ -279,15 +281,15 @@ instantiation fset :: (vbasic) vbasic
 begin
 
 definition Inject_fset :: "'a fset \<Rightarrow> vbasic" where
-"Inject_fset xs = FSetI VTYPE('a) (Abs_fset (Inject ` Rep_fset xs))"
+"Inject_fset xs = FSetI BTYPE('a) (Abs_fset (Inject ` Rep_fset xs))"
 
 (*
 definition Project_fset :: "vbasic \<Rightarrow> 'a fset option" where 
 "Project_fset xs = (ProjFSetI xs >>= (\<lambda> x. option_set (Project ` Rep_fset x))) >>= Some \<circ> Abs_fset"
 *)
 
-definition Type_fset :: "'a fset itself \<Rightarrow> vdmt" where
-"Type_fset x = FSetT VTYPE('a)"
+definition Type_fset :: "'a fset itself \<Rightarrow> vbasict" where
+"Type_fset x = FSetBT BTYPE('a)"
 
 instance proof
   fix x y :: "'a fset"
@@ -303,18 +305,18 @@ instance proof
 
 next
 
-  show "range (Inject :: 'a fset \<Rightarrow> vbasic) = {x. x :\<^sub>b VTYPE('a fset) \<and> \<D>\<^sub>b x}"
+  show "range (Inject :: 'a fset \<Rightarrow> vbasic) = {x. x :\<^sub>b BTYPE('a fset) \<and> \<D> x}"
   proof (auto)
     fix x :: "'a fset"
-    show "Inject x :\<^sub>b VTYPE('a fset)"
+    show "Inject x :\<^sub>b BTYPE('a fset)"
       by (force simp add:Type_fset_def Inject_fset_def image_def flist_def)
   next
     fix x :: "'a fset"
-    show "\<D>\<^sub>b (Inject x)"
+    show "\<D> (Inject x)"
       by (auto simp add:Inject_fset_def)
   next
     fix x
-    assume "x :\<^sub>b VTYPE('a fset)" "\<D>\<^sub>b x"
+    assume "x :\<^sub>b BTYPE('a fset)" "\<D> x"
     thus "x \<in> range (Inject :: 'a fset \<Rightarrow> vbasic)"
       apply (auto simp add:Type_fset_def Inject_fset_def image_def)
       apply (rule_tac x="((the \<circ> Project) `\<^sub>f xs)" in exI)
@@ -386,7 +388,7 @@ begin
 definition Inject_fmap :: "('a::{vbasic,linorder}, 'b::{vbasic,linorder}) fmap \<Rightarrow> vbasic" where
 "Inject_fmap f = FinMapI VTYPE('a) VTYPE('b) (Abs_fmap (vbasic_map f))"
 
-definition Type_fmap :: "('a, 'b) fmap itself => vdmt" where
+definition Type_fmap :: "('a, 'b) fmap itself => vbasict" where
 "Type_fmap x = MapT VTYPE('a) VTYPE('b)"
 
 instance proof
@@ -397,7 +399,7 @@ instance proof
 
 next
   
-  show "range (Inject :: ('a,'b) fmap \<Rightarrow> vbasic) = {x. x :\<^sub>b VTYPE(('a,'b) fmap) \<and> \<D>\<^sub>b x}"
+  show "range (Inject :: ('a,'b) fmap \<Rightarrow> vbasic) = {x. x :\<^sub>b VTYPE(('a,'b) fmap) \<and> \<D> x}"
   proof (auto simp add:Inject_fmap_def Type_fmap_def)
     fix x :: "('a,'b) fmap"
     show "FinMapI VTYPE('a) VTYPE('b) (Abs_fmap (vbasic_map x)) :\<^sub>b MapT (VTYPE('a)) (VTYPE('b))"      
@@ -411,7 +413,7 @@ next
       by (metis fmap_list_inv fmap_list_props(1) fmap_list_props(2))
 *)
 
-    show "\<D>\<^sub>b (FinMapI VTYPE('a) VTYPE('b) (Abs_fmap (vbasic_map x)))"
+    show "\<D> (FinMapI VTYPE('a) VTYPE('b) (Abs_fmap (vbasic_map x)))"
       apply (simp add:FinMapI_def vbasic_map_def)
     sorry
   next
@@ -457,22 +459,24 @@ end
 subsection {* Injecting functions over basic values *}
 
 definition vfun1 :: "('a::vbasic \<Rightarrow> 'b::vbasic) \<Rightarrow> ('a set) \<Rightarrow> vdmv" where
-"vfun1 \<equiv> \<lambda> f P. FuncD (\<lambda> x. case (Project x) of 
+"vfun1 \<equiv> \<lambda> f P. FuncD BTYPE('a) VTYPE('b) 
+                      (\<lambda> x. case (Project x) of 
                               None \<Rightarrow> BotD (VTYPE('b))
                             | Some v \<Rightarrow> if (v \<in> P) then BasicD (Inject (f v)) 
-                                                   else BotD (VTYPE('b)) )"
+                                                   else BotD (VTYPE('b)))"
 
 definition vfun2 :: 
   "('a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic) \<Rightarrow>
    'a set \<Rightarrow> 'b set \<Rightarrow> vdmv" where
-"vfun2 \<equiv> \<lambda> f P Q. FuncD (\<lambda> x. case (Project x) of
-                                None \<Rightarrow> BotD (VTYPE('b) \<rightarrow> VTYPE('c))
+"vfun2 \<equiv> \<lambda> f P Q. FuncD BTYPE('a) (BTYPE('b) \<rightarrow> VTYPE('c))
+                        (\<lambda> x. case (Project x) of
+                                None \<Rightarrow> BotD (BTYPE('b) \<rightarrow> VTYPE('c))
                               | Some v \<Rightarrow> if (v \<in> P) then vfun1 (f v) Q 
-                                                     else BotD (VTYPE('b) \<rightarrow> VTYPE('c)))"
+                                                     else BotD (BTYPE('b) \<rightarrow> VTYPE('c)))"
 
 lemma vfun1_type [typing]:
   fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic"
-  shows "vfun1 f P :\<^sub>v VTYPE('a) \<rightarrow> VTYPE('b)"
+  shows "vfun1 f P :\<^sub>v BTYPE('a) \<rightarrow> VTYPE('b)"
   apply (simp add:vfun1_def)
   apply (rule FuncD_type)
   apply (case_tac "Project x :: 'a option")
@@ -481,7 +485,7 @@ done
 
 lemma vfun2_type [typing]:
   fixes f :: "'a::vbasic \<Rightarrow> 'b::vbasic \<Rightarrow> 'c::vbasic"
-  shows "vfun2 f P Q :\<^sub>v VTYPE('a) \<rightarrow> VTYPE('b) \<rightarrow> VTYPE('c)"
+  shows "vfun2 f P Q :\<^sub>v BTYPE('a) \<rightarrow> BTYPE('b) \<rightarrow> VTYPE('c)"
   apply (simp add:vfun2_def)
   apply (rule FuncD_type)
   apply (case_tac "Project x :: 'a option")
@@ -494,7 +498,7 @@ definition "ProjVB x \<equiv> the (Project (ProjBasicD x))"
 lemma InjVB_inv[simp]: "ProjVB (InjVB x) = x"
   by (simp add:ProjVB_def InjVB_def)
 
-lemma InjVB_nbot [simp]: "\<D>\<^sub>v (InjVB x)"
+lemma InjVB_nbot [simp]: "\<D> (InjVB x)"
   by (simp add:InjVB_def)
 
 lemma InjVB_vbvalues [simp]: "InjVB x \<in> vbvalues"
