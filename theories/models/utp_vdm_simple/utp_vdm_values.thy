@@ -496,6 +496,10 @@ lemma BotD_type [intro]:
   "BotD t :\<^sub>v t"
   by (case_tac t, auto)
 
+lemma BotD_defined [simp]:
+  "\<not> \<D> (BotD t)"
+  by (case_tac t, simp_all)
+
 lemma SetT_type_cases [elim]: 
   "\<lbrakk> x :\<^sub>v SetT a; \<And> xs. \<lbrakk> x = SetD a xs; \<forall>x\<in>xs. x :\<^sub>b a \<rbrakk> \<Longrightarrow> P; x = BotD (SetT a) \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   apply (erule SetT_type_cases')
@@ -671,7 +675,6 @@ lemma default_vdmtt_defined:
   by (induct t, auto intro:defined)
 
 declare default_vdmtt_defined(1) [defined]
-
 
 lemma vdmt_total: 
   "\<exists> v. v :\<^sub>v t \<and> \<D> v"

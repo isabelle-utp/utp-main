@@ -41,7 +41,7 @@ locale UTP_PARM_TYPE =
   and     TypeU_dcarrier: 
             "a \<in> PermU \<Longrightarrow> dcarrier (TypeU a) = AbsU a ` {xs . elemU xs \<subseteq> dcarrier a}"
   (* and     AbsU_type: "a \<in> PermU \<Longrightarrow> AbsU a xs : a" *)
-  and     TypeU_inj: "inj TypeU"
+  and     TypeU_inj: "inj_on TypeU PermU"
   and     PermU_exists: "\<exists>x. x \<in> PermU"
 begin
 

@@ -12,81 +12,82 @@ imports
   utp_vdm_expr
 begin
 
-abbreviation "vexpr_defined   \<equiv> (DefinedD :: 'a vdme \<Rightarrow> bool vdme)"
-abbreviation "vexpr_in_set    \<equiv> BOpD' (op \<in>\<^sub>f)"
-abbreviation "vexpr_dom       \<equiv> UOpD' fdom"
-abbreviation "vexpr_ran       \<equiv> UOpD' fran"
-abbreviation "vexpr_card      \<equiv> UOpD' fcard"
-abbreviation "vexpr_lookup    \<equiv> BOpD (\<lambda> (x, m). \<langle>m\<rangle>\<^sub>m x)"
-abbreviation "vexpr_le        \<equiv> BOpD' (op \<le>)"
-abbreviation "vexpr_less      \<equiv> BOpD' (op <)"
-abbreviation "vexpr_ge        \<equiv> BOpD' (\<lambda> x y. y \<le> x)"
-abbreviation "vexpr_greater   \<equiv> BOpD' (\<lambda> x y. y < x)"
+abbreviation "vexpr_defined   \<equiv> (DefinedD :: 'a::DEFINED vdme \<Rightarrow> bool vdme)"
+abbreviation "vexpr_in_set    \<equiv> Op2D' (op \<in>\<^sub>f)"
+(*
+abbreviation "vexpr_dom       \<equiv> Op1D' fdom"
+abbreviation "vexpr_ran       \<equiv> Op1D' fran"
+*)
+abbreviation "vexpr_card      \<equiv> Op1D' fcard"
+(*
+abbreviation "vexpr_lookup    \<equiv> Op2D (\<lambda> (x, m). \<langle>m\<rangle>\<^sub>m x)"
+*)
+abbreviation "vexpr_le        \<equiv> Op2D' (op \<le>)"
+abbreviation "vexpr_less      \<equiv> Op2D' (op <)"
+abbreviation "vexpr_ge        \<equiv> Op2D' (\<lambda> x y. y \<le> x)"
+abbreviation "vexpr_greater   \<equiv> Op2D' (\<lambda> x y. y < x)"
 abbreviation "vexpr_true      \<equiv> LitD True"
 abbreviation "vexpr_false     \<equiv> LitD False"
-abbreviation "vexpr_not       \<equiv> UOpD' Not"
-abbreviation "vexpr_and       \<equiv> BOpD' conj"
-abbreviation "vexpr_or        \<equiv> BOpD' disj"
-abbreviation "vexpr_implies   \<equiv> BOpD' implies"
-abbreviation "vexpr_hd        \<equiv> UOpD' hd"
-abbreviation "vexpr_tl        \<equiv> UOpD' tl"
+abbreviation "vexpr_not       \<equiv> Op1D' Not"
+abbreviation "vexpr_and       \<equiv> Op2D' conj"
+abbreviation "vexpr_or        \<equiv> Op2D' disj"
+abbreviation "vexpr_implies   \<equiv> Op2D' implies"
+abbreviation "vexpr_hd        \<equiv> Op1D' hd"
+abbreviation "vexpr_tl        \<equiv> Op1D' tl"
 
 text {* We remove some of the generic syntax in favour of our own *}
 
 no_syntax
-  "_uexpr_true"     :: "uexpr" ("true")
-  "_uexpr_false"    :: "uexpr" ("false")
-  "_uexpr_var"      :: "pttrn \<Rightarrow> uexpr" ("_")
-  "_uexpr_brack"    :: "uexpr \<Rightarrow> uexpr" ("'(_')")
-  "_uexpr_evar"     :: "'a VAR \<Rightarrow> uexpr" ("$_" [999] 999)
+  "_pexpr_true"     :: "pexpr" ("true")
+  "_pexpr_false"    :: "pexpr" ("false")
 
 syntax
-(*  "_vexpr_num"     :: "num \<Rightarrow> vexpr" ("_") *)
-  "_vexpr_quotev"  :: "string \<Rightarrow> vexpr" ("<_>")
-  "_vexpr_defined" :: "vexpr \<Rightarrow> vexpr" ("defn _")
-  "_vexpr_plus"    :: "vexpr \<Rightarrow> vexpr \<Rightarrow> vexpr" (infix "+" 30)
-  "_vexpr_le"      :: "vexpr \<Rightarrow> vexpr \<Rightarrow> vexpr" (infix "<=" 50)
-  "_vexpr_less"    :: "vexpr \<Rightarrow> vexpr \<Rightarrow> vexpr" (infix "<" 50)
-  "_vexpr_ge"      :: "vexpr \<Rightarrow> vexpr \<Rightarrow> vexpr" (infix ">=" 50)
-  "_vexpr_greater" :: "vexpr \<Rightarrow> vexpr \<Rightarrow> vexpr" (infix ">" 50)
-  "_vexpr_in_set"  :: "vexpr \<Rightarrow> vexpr \<Rightarrow> vexpr" (infix "in set" 50)
-  "_vexpr_union"   :: "vexpr \<Rightarrow> vexpr \<Rightarrow> vexpr" (infix "union" 65)
-  "_vexpr_inter"   :: "vexpr \<Rightarrow> vexpr \<Rightarrow> vexpr" (infix "inter" 70)
-  "_vexpr_card"    :: "vexpr \<Rightarrow> vexpr" ("card _")
-  "_vexpr_true"    :: "vexpr" ("true")
-  "_vexpr_false"   :: "vexpr" ("false")
-  "_vexpr_not"     :: "vexpr \<Rightarrow> vexpr" ("not _" [40] 40)
-  "_vexpr_and"     :: "vexpr \<Rightarrow> vexpr \<Rightarrow> vexpr" (infix "and" 35)
-  "_vexpr_or"      :: "vexpr \<Rightarrow> vexpr \<Rightarrow> vexpr" (infix "or" 30)
-  "_vexpr_implies" :: "vexpr \<Rightarrow> vexpr \<Rightarrow> vexpr" (infix "=>" 25)
-  "_vexpr_hd"      :: "vexpr \<Rightarrow> vexpr" ("hd _")
-  "_vexpr_tl"      :: "vexpr \<Rightarrow> vexpr" ("tl _")
+(*  "_pexpr_num"     :: "num \<Rightarrow> pexpr" ("_") *)
+  "_pexpr_quotev"  :: "string \<Rightarrow> pexpr" ("<_>")
+  "_pexpr_defined" :: "pexpr \<Rightarrow> pexpr" ("defn _")
+  "_pexpr_plus"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "+" 30)
+  "_pexpr_le"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "<=" 50)
+  "_pexpr_less"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "<" 50)
+  "_pexpr_ge"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix ">=" 50)
+  "_pexpr_greater" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix ">" 50)
+  "_pexpr_in_set"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "in set" 50)
+  "_pexpr_union"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "union" 65)
+  "_pexpr_inter"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "inter" 70)
+  "_pexpr_card"    :: "pexpr \<Rightarrow> pexpr" ("card _")
+  "_pexpr_true"    :: "pexpr" ("true")
+  "_pexpr_false"   :: "pexpr" ("false")
+  "_pexpr_not"     :: "pexpr \<Rightarrow> pexpr" ("not _" [40] 40)
+  "_pexpr_and"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "and" 35)
+  "_pexpr_or"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "or" 30)
+  "_pexpr_implies" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "=>" 25)
+  "_pexpr_hd"      :: "pexpr \<Rightarrow> pexpr" ("hd _")
+  "_pexpr_tl"      :: "pexpr \<Rightarrow> pexpr" ("tl _")
 
 translations
-  "_vexpr_quotev x"    == "CONST LitD (CONST Q x)"
-  "_vexpr_in_set x xs" == "CONST vexpr_in_set x xs"
-(*  "_vexpr_num x"       == "CONST LitD x" *)
-  "_vexpr_defined x"   == "CONST vexpr_defined x"
-(*  "_vexpr_brack x"     => "x" *)
-  "_vexpr_plus x y"    == "CONST BOpD' CONST plus x y"
-  "_vexpr_le x y"      == "CONST vexpr_le x y"
-  "_vexpr_less x y"    == "CONST vexpr_less x y"
-  "_vexpr_ge x y"      == "CONST vexpr_ge x y"
-  "_vexpr_greater x y" == "CONST vexpr_greater x y"
-  "_vexpr_union x y"   == "CONST BOpD' CONST funion x y"
-  "_vexpr_inter x y"   == "CONST BOpD' CONST finter x y"
-  "_vexpr_card x"      == "CONST UOpD' CONST fcard x"
-  "_vexpr_true"        == "CONST vexpr_true"
-  "_vexpr_false"       == "CONST vexpr_false"
-  "_vexpr_not x"       == "CONST vexpr_not x"
-  "_vexpr_and x y"     == "CONST vexpr_and x y"
-  "_vexpr_or x y"      == "CONST vexpr_or x y"
-  "_vexpr_implies x y" == "CONST vexpr_implies x y"
-  "_vexpr_hd xs"       == "CONST vexpr_hd xs"
-  "_vexpr_tl xs"       == "CONST vexpr_tl xs"
+  "_pexpr_quotev x"    == "CONST LitD (CONST Q x)"
+  "_pexpr_in_set x xs" == "CONST vexpr_in_set x xs"
+(*  "_pexpr_num x"       == "CONST LitD x" *)
+  "_pexpr_defined x"   == "CONST vexpr_defined x"
+(*  "_pexpr_brack x"     => "x" *)
+  "_pexpr_plus x y"    == "CONST Op2D' CONST plus x y"
+  "_pexpr_le x y"      == "CONST vexpr_le x y"
+  "_pexpr_less x y"    == "CONST vexpr_less x y"
+  "_pexpr_ge x y"      == "CONST vexpr_ge x y"
+  "_pexpr_greater x y" == "CONST vexpr_greater x y"
+  "_pexpr_union x y"   == "CONST Op2D' CONST funion x y"
+  "_pexpr_inter x y"   == "CONST Op2D' CONST finter x y"
+  "_pexpr_card x"      == "CONST Op2D' CONST fcard x"
+  "_pexpr_true"        == "CONST vexpr_true"
+  "_pexpr_false"       == "CONST vexpr_false"
+  "_pexpr_not x"       == "CONST vexpr_not x"
+  "_pexpr_and x y"     == "CONST vexpr_and x y"
+  "_pexpr_or x y"      == "CONST vexpr_or x y"
+  "_pexpr_implies x y" == "CONST vexpr_implies x y"
+  "_pexpr_hd xs"       == "CONST vexpr_hd xs"
+  "_pexpr_tl xs"       == "CONST vexpr_tl xs"
 
-term "|\<langle>x\<rangle> > \<langle>5 :: int\<rangle>|"
-term "\<parallel>@int inv x == \<langle>x\<rangle> > \<langle>5\<rangle>\<parallel>"
+(* term "|\<langle>x\<rangle> > \<langle>5 :: int\<rangle>|" *)
+term "\<parallel>@int inv x == \<langle>x\<rangle> > <5>\<parallel>"
 
 lemma "^\<langle>2\<rangle> : @nat inv x == (\<langle>x\<rangle> < \<langle>5\<rangle>)^ = ^\<langle>2\<rangle> : @nat^"
   apply (simp add:evale defined typing)

@@ -36,24 +36,19 @@ lemma prjTYPE_inv_vdmt [simp]
   apply (auto simp add: utype_rel_vdmv_def UTYPES_def)
 done
 
-(*
-lemma embTYPE_inv_vdm [simp]: 
-  "prjTYPE (embTYPE VTYPE('a::vbasic) :: vdmv UTYPE) = VTYPE('a)"
-  apply (rule_tac embTYPE_inv[of "BasicD (Inject undefined)"])
-  apply (auto simp add:utype_rel_vdmv_def)
-  apply (rule)
-  apply (rule Inject_type)
-done
-*)
-
-(* To prove this we need to know that for every type in vdmt there exists a defined
-   value. This is desirable because it makes proof a lot easier. *)
+lemma prjTYPE_vdmt_inj:
+  "(prjTYPE (x :: vdmv UTYPE) :: vdmt) = prjTYPE y \<Longrightarrow> x = y"
+  by (metis prjTYPE_inv_vdmt)
 
 lemma embTYPE_inv_vdmt [simp]:
   "prjTYPE (embTYPE (t :: vdmt) :: vdmv UTYPE) = t"
   apply (rule embTYPE_inv[of "default_vdmt t"])
   apply (simp_all add:utype_rel_vdmv_def typing defined embTYPE_inv)
 done
+
+lemma embTYPE_vdmt_inj:
+  "(embTYPE (x :: vdmt) :: vdmv UTYPE) = embTYPE y \<Longrightarrow> x = y"
+  by (metis embTYPE_inv_vdmt)
 
 lemma type_rel_vdmt_exists: 
   "(x::vdmv) : a \<Longrightarrow> \<exists> t. a = embTYPE t \<and> x :\<^sub>v t" 
@@ -69,56 +64,24 @@ lemma type_rel_vdmt_elim [elim]:
   "\<lbrakk>(x::vdmv) : a; \<And> t. \<lbrakk> a = embTYPE t; x :\<^sub>v t \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (metis type_rel_vdmt_exists)
 
-lemma BotD_type: "BotD a :\<^sub>v a"
-  by (auto)
-
 lemma type_rel_vdmt: 
   "x : t \<longleftrightarrow> x :\<^sub>v prjTYPE t"
   apply (auto simp add: type_rel_def utype_rel_vdmv_def prjTYPE_def)
   apply (metis Rep_UTYPE_elim from_nat_to_nat utype_rel_vdmv_def)
 done
 
-(*
 instantiation vdmv :: BOT_SORT
 begin
 
-definition ubot_vdmv :: "vdmv" where
-"ubot_vdmv = BotD"
+definition ubot_vdmv :: "vdmv UTYPE \<Rightarrow> vdmv" where
+"ubot_vdmv = BotD \<circ> prjTYPE"
 
 instance
   apply (intro_classes)
-  apply (simp add:ubot_vdmv_def Defined_vdmv_def)
+  apply (auto simp add:ubot_vdmv_def type_rel_vdmt)
 done
 end
 
-lemma Defined_bot [simp]: "\<D> (BotD :: vdmv) \<longleftrightarrow> False"
-  by (simp add:Defined_vdmv_def)
-
-lemma Defined_ubot [simp]: "\<D> \<bottom>v \<longleftrightarrow> False"
-  by (simp add:Defined_vdmv_def)
-*)
-
-(*
-lemma vdmv_UTYPE_nbot [simp]: 
-  "(from_nat (Rep_UTYPE (t :: vdmv UTYPE)) :: vdmt lift) \<noteq> \<bottom>"
-  apply (case_tac t)
-  apply (auto simp add: UTYPES_def utype_rel_vdmv_def)
-  apply (auto)
-done
-
-lemma vdmv_UTYPE_Def [simp]: 
-  "\<exists> x. (prj\<cdot>(Rep_UTYPE (a :: vdmv UTYPE)) :: vdmt lift) = Def x"
-  apply (case_tac a)
-  apply (simp add: UTYPES_def)
-  apply (simp add: utype_rel_vdmv_def)
-  apply (auto)
-done
-
-lemma vdmv_UTYPE_elim [elim]:
-  assumes "\<And> x. (prj\<cdot>(Rep_UTYPE (a :: vdmv UTYPE)) :: vdmt lift) = Def x \<Longrightarrow> P" 
-  shows "P"
-  by (metis assms vdmv_UTYPE_Def)
-*)
 subsection {* Int sort instantiation *}
 
 instantiation vdmv :: INT_SORT
@@ -162,13 +125,13 @@ instantiation vdmv :: LIST_SORT
 begin
 
 definition MkList_vdmv :: "vdmv UTYPE \<Rightarrow> vdmv list \<Rightarrow> vdmv" where
-"MkList_vdmv a xs = BasicD (ListI (prjTYPE a) (map ProjBasicD xs))"
+"MkList_vdmv a xs = BasicD (ListI (ProjBasicT (prjTYPE a)) (map ProjBasicD xs))"
 
 definition DestList_vdmv :: "vdmv \<Rightarrow> vdmv list" where
 "DestList_vdmv x = map BasicD (the (ProjListI (ProjBasicD x)))"
 
 definition ListType_vdmv :: "vdmv UTYPE \<Rightarrow> vdmv UTYPE" where
-"ListType_vdmv a = embTYPE (ListT (prjTYPE a))"
+"ListType_vdmv a = (if (prjTYPE a \<in> vbtypes) then embTYPE (ListT (prjTYPE a)) else a)"
 
 definition ListPerm_vdmv :: "vdmv UTYPE set" where
 "ListPerm_vdmv = embTYPE ` vbtypes"
@@ -186,18 +149,14 @@ instance
   apply (unfold map_eq_conv)
   apply (force)
   apply (rule_tac x="map BasicD xs" in exI)
-  apply (simp)
-  apply (unfold embTYPE_inv_vdmt)
-  thm embTYPE_inv_vdmt[of "BasicT xa"]
-  apply (unfold prjTYPE_inv_vdm)
-  apply (force simp add:foldr_over_prop)
+  apply (auto)
   apply (force)
-  apply (force simp add:foldr_over_prop)
   apply (rule injI)
   apply (simp add:ListType_vdmv_def)
-  apply (metis embTYPE_inv_vbtypes prjTYPE_inv_vdm vbtypes_simps(8) vdmt.inject(3))
-  apply (rule_tac x="embTYPE NatT" in exI)
-  apply (force)
+  apply (case_tac "prjTYPE x \<in> vbtypes")
+  apply (case_tac[!] "prjTYPE y \<in> vbtypes")
+  apply (auto simp add:vbtypes_def)
+  apply (metis ProjBasicT.simps embTYPE_inv_vdmt prjTYPE_inv_vdmt vbasict.inject(3))
 done
 end
 
@@ -213,18 +172,18 @@ instance
   apply (intro_classes)
   apply (auto simp add:EventPerm_vdmv_def)
   apply (rule_tac x="embTYPE IntT" in exI)
-  apply (auto)
+  apply (auto simp add:vbtypes_def)
 done
 
 end
 
 definition EventI :: "vdmv EVENT \<Rightarrow> vbasic" where
 "EventI e = EvI (chan_name (EVENT_channel e)) 
-                (prjTYPE (chan_type (EVENT_channel e))) 
+                (ProjBasicT (prjTYPE (chan_type (EVENT_channel e))))
                 (ProjBasicD (EVENT_value e))"
 
 primrec ProjEventI :: "vbasic \<Rightarrow> vdmv EVENT" where
-"ProjEventI (EvI n t v) = EV n (embTYPE t) (BasicD v)"
+"ProjEventI (EvI n t v) = EV n (embTYPE (BasicT t)) (BasicD v)"
 
 lemma EVENT_type_vbtypes:
   fixes e :: "vdmv EVENT"
@@ -232,21 +191,19 @@ lemma EVENT_type_vbtypes:
   by (case_tac e, auto simp add:EventPerm_vdmv_def)
 
 lemma EventI_type [typing,intro]:
-  "EventI e :\<^sub>b EventT"
+  "EventI e :\<^sub>b EventBT"
   apply (case_tac e)
-  apply (auto simp add:EventI_def dtype_rel_def type_rel_vdmt EventPerm_vdmv_def)
-  apply (metis ProjBasicD.simps(1) vbtypes_type_cases)
+  apply (auto simp add:EventI_def dtype_rel_def type_rel_vdmt EventPerm_vdmv_def vbtypes_def)
 done
 
 lemma EventI_defined [simp]:
-  "\<D>\<^sub>b (EventI e) = True"
+  "\<D> (EventI e)"
   by (simp add:EventI_def)
 
 lemma EventI_inv [simp]:
   "ProjEventI (EventI e) = e"
   apply (case_tac e)
-  apply (auto simp add:EventI_def ProjEventI_def EventPerm_vdmv_def dtype_rel_def type_rel_vdmt)
-  apply (metis ProjBasicD.simps(1) vbtypes_type_cases)
+  apply (auto simp add:EventI_def ProjEventI_def EventPerm_vdmv_def dtype_rel_def type_rel_vdmt vbtypes_def)
 done
 
 instantiation vdmv :: EVENT_SORT
@@ -264,22 +221,17 @@ definition EventType_vdmv :: "vdmv UTYPE" where
 instance
   apply (intro_classes)
   apply (auto simp add:DestEvent_vdmv_def MkEvent_vdmv_def EventType_vdmv_def dcarrier_def type_rel_vdmt image_def)
-  apply (erule vbtypes_type_cases)
-  apply (auto)
-  apply (rule_tac x="EV n (embTYPE t) (BasicD v)" in exI)
-  apply (subgoal_tac "BasicD v :! embTYPE t")
-  apply (subgoal_tac "(embTYPE t :: vdmv UTYPE) \<in> EventPerm")
+  apply (rule_tac x="EV n (embTYPE (BasicT  t)) (BasicD v)" in exI)
+  apply (subgoal_tac "BasicD v :! embTYPE (BasicT t)")
+  apply (subgoal_tac "(embTYPE (BasicT t) :: vdmv UTYPE) \<in> EventPerm")
   apply (simp add:EventI_def)
-
-
-  apply (simp add:EventI_def)
-  apply (simp add:EventPerm_vdmv_def)
-  
-  apply 
-
+  apply (simp add:EventPerm_vdmv_def vbtypes_def)
+sorry
+end
 
 subsection {* Set sort instantiation *}
 
+(*
 instantiation vdmv :: SET_SORT_PRE
 begin
 
@@ -345,60 +297,17 @@ lemma embTYPE_inv_FuncT:
   apply (rule_tac embTYPE_inv[of "FuncD (\<lambda> x. BotD b)"])
   apply (auto simp add: utype_rel_vdmv_def Defined_vdmv_def)
 done
+*)
 
-(*
-instantiation vdmv :: FUNCTION_SORT
+instantiation option :: (DEFINED) DEFINED
 begin
 
-definition "MkFunc_vdmv f = FuncD (f \<circ> BasicD)"
-definition "DestFunc_vdmv f = (\<lambda> x. (ProjFuncD f) (ProjBasicD x))"
-definition "IsFunc_vdmv f = ({x. f x \<noteq> BotD} \<subseteq> range BasicD \<and> f BotD = BotD)"
-definition FuncType_vdmv :: "vdmv UTYPE \<Rightarrow> vdmv UTYPE \<Rightarrow> vdmv UTYPE" where
-"FuncType_vdmv a b = embTYPE (FuncT (prjTYPE a) (prjTYPE b))"
+primrec Defined_option :: "'a option \<Rightarrow> bool" where
+"Defined_option None = False" |
+"Defined_option (Some x) = \<D> x"
 
-instance 
-  apply (intro_classes)
-  apply (rule ext)
-  apply (simp add:DestFunc_vdmv_def MkFunc_vdmv_def IsFunc_vdmv_def FuncType_vdmv_def type_rel_vdmt)
-  apply (clarify)
-  apply (case_tac "IsBasicD x")
-  apply (simp)
-  apply (simp add: subset_iff)
-  apply (metis IsBasicD.simps(1) image_iff)
-  apply (metis Defined_vdmv_def MkFunc_vdmv_def vdefined.simps(3))
-  apply (simp add:MkFunc_vdmv_def IsFunc_vdmv_def dcarrier_def FuncType_vdmv_def embTYPE_inv_FuncT Defined_vdmv_def type_rel_vdmt)
-  apply (auto)
-  apply (rule)
-  apply (force)
-  apply (force)
-  apply (erule FuncT_type_cases)
-  apply (rule_tac x="f \<circ> ProjBasicD" in exI)
-  apply (clarify)
-  apply (rule)
-  apply (force)
-  apply (rule)
-  apply (rule)
-  apply (rule)
-  apply (auto)[1]
-  apply (metis (lifting) BasicD_type_cases BotI_type ProjBasicD_not_basic utp_vdm_values.ProjBasicD_inv)
-  apply (simp)
-  apply (smt ProjBasicD_not_basic UNIV_I image_iff mem_Collect_eq subsetI utp_vdm_values.ProjBasicD_inv)
-  apply (force)
-  apply (simp_all add:FuncType_vdmv_def)
-  apply (metis embTYPE_inv_FuncT prjTYPE_inv_vdm vdmt.simps(8))+
-done
+instance ..
 
 end
-*)
-
-
-(*
-instantiation vdmv :: LIST_SORT
-begin
-
-definition MkList_vdmv :: "vdmv list \<Rightarrow> vdmv" where
-"MkList_vdmv xs = BasicV (ListI (map ProjBasicV xs))"
-*)
-
 
 end

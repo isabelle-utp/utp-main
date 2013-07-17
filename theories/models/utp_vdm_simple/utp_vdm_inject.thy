@@ -492,6 +492,27 @@ lemma vfun2_type [typing]:
   apply (auto intro:typing)
 done
 
+fun InjVB :: "'a::vbasic option \<Rightarrow> vdmv" where
+"InjVB None = BotD VTYPE('a)" |
+"InjVB (Some x) = BasicD (Inject x)"
+
+definition ProjVB :: "vdmv \<Rightarrow> 'a::vbasic option" where
+"ProjVB x = (if (\<D> x \<and> x \<in> range BasicD) then Project (ProjBasicD x) else None)"
+
+lemma InjVB_inv[simp]: "ProjVB (InjVB x) = x"
+  by (case_tac x, auto simp add:ProjVB_def)
+
+lemma InjVB_nbot [defined]: "\<D> (InjVB (Some x))"
+  by (simp)
+
+lemma InjVB_vbvalues [simp]: "InjVB x \<in> vbvalues"
+  apply (case_tac x)
+  apply (auto simp add:vbvalues_def)
+  apply (metis Inject_type)
+done
+
+
+(*
 definition "InjVB  x \<equiv> BasicD (Inject x)"
 definition "ProjVB x \<equiv> the (Project (ProjBasicD x))"
 
@@ -505,6 +526,7 @@ lemma InjVB_vbvalues [simp]: "InjVB x \<in> vbvalues"
   apply (auto simp add:vbvalues_def InjVB_def)
   apply (metis Inject_type)
 done
+*)
 
 end
 

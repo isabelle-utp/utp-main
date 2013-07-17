@@ -23,66 +23,54 @@ default_sort vbasic
 
 subsection {* VDM expresssion type *}
 
-typedef 'a vdme = "UNIV :: (vdmv WF_BINDING \<rightharpoonup> 'a::vbasic) set" ..
+defs (overloaded)
+  InjU_vdm [simp]:  "InjU (x::'a::vbasic option) \<equiv> InjVB x"
+  ProjU_vdm [simp]: "ProjU (x::vdmv) \<equiv> ProjVB x"
+  TypeU_vdm [simp]: "TypeU (x::('a::vbasic option) itself) \<equiv> embTYPE (VTYPE('a))"
 
-declare Rep_vdme [simp]
-declare Rep_vdme_inverse [simp]
-declare Abs_vdme_inverse [simp]
-
-lemma Rep_vdme_intro [intro]:
-  "Rep_vdme x = Rep_vdme y \<Longrightarrow> x = y"
-  by (simp add:Rep_vdme_inject)
-
-lemma Rep_vdme_elim [elim]:
-  "\<lbrakk> x = y; Rep_vdme x = Rep_vdme y \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (auto)
-
-setup_lifting type_definition_vdme
-
-abbreviation "EvalD \<equiv> Rep_vdme"
-
-notation EvalD ("\<lbrakk>_\<rbrakk>\<^sub>v")
-
-subsection {* Constants *}
-
-definition UNREST_VDME :: "(vdmv VAR) set \<Rightarrow> 'a vdme \<Rightarrow> bool" where
-"UNREST_VDME vs e \<equiv> (\<forall> b1 b2. \<lbrakk>e\<rbrakk>\<^sub>v(b1 \<oplus>\<^sub>b b2 on vs) = \<lbrakk>e\<rbrakk>\<^sub>v b1)" 
-
-abbreviation MkVarD :: "char list \<Rightarrow> 'a::vbasic itself \<Rightarrow> vdmv VAR" where
-"MkVarD n t \<equiv> (MkPlain n (embTYPE (Type t)) False)"
-
-definition VarD :: "string \<Rightarrow> 'a::vbasic vdme" ("$_") where
-"VarD n = Abs_vdme (\<lambda> b. Project (ProjBasicD (\<langle>b\<rangle>\<^sub>b (MkVarD n TYPE('a)))))"
-
-(* declare [[coercion VarD]] *) 
+type_synonym 'a vdme = "('a option, vdmv) WF_PEXPRESSION"
 
 definition BotDE :: "'a vdme" ("\<bottom>\<^sub>v") where
-"BotDE = Abs_vdme (\<lambda> b. None)"
+"BotDE = LitPE None"
 
-definition LitD :: "'a::vbasic \<Rightarrow> 'a vdme" ("<_>") where
-"LitD x = Abs_vdme (\<lambda> b. Some x)"
+abbreviation LitD :: "'a \<Rightarrow> 'a vdme" where
+"LitD x \<equiv> LitPE (Some x)"
 
-definition UOpD :: "('a::vbasic \<rightharpoonup> 'b::vbasic) \<Rightarrow> 'a vdme \<Rightarrow> 'b vdme" where
-"UOpD f v = Abs_vdme (\<lambda> b. (Rep_vdme v b) >>= f)"
+definition Op1D :: "('a::vbasic \<rightharpoonup> 'b::vbasic) \<Rightarrow> 'a vdme \<Rightarrow> 'b vdme" where
+"Op1D f v = Op1PE (\<lambda> x. x >>= f) v"
+
+declare Op1D_def [eval, evale]
 
 text {* Build a unary partial function from a normal binary HOL function *}
 
 definition upfun :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b option)" where
 "upfun f = (\<lambda> v. Some (f v))"
 
-abbreviation "UOpD' f \<equiv> UOpD (upfun f)"
+abbreviation "Op1D' f \<equiv> Op1D (upfun f)"
 
-definition BOpD :: "('a::vbasic * 'b::vbasic \<rightharpoonup> 'c::vbasic) 
+definition Op2D :: "('a::vbasic * 'b::vbasic \<rightharpoonup> 'c::vbasic) 
                    \<Rightarrow> 'a vdme \<Rightarrow> 'b vdme \<Rightarrow> 'c vdme" where
-"BOpD f v1 v2 = Abs_vdme (\<lambda> b. do { x <- \<lbrakk>v1\<rbrakk>\<^sub>v b; y <- \<lbrakk>v2\<rbrakk>\<^sub>v b; f (x, y) })"
+"Op2D f u v = Op2PE (\<lambda> v1 v2. do { x <- v1; y <- v2; f (x, y) }) u v"
+
+declare Op2D_def [eval, evale]
 
 text {* Build a binary partial function from a normal binary HOL function *}
 
 definition bpfun :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a * 'b \<Rightarrow> 'c option)" where
 "bpfun f \<equiv> (\<lambda> (v1, v2). Some (f v1 v2))"
 
-abbreviation "BOpD' f \<equiv> BOpD (bpfun f)"
+abbreviation "Op2D' f \<equiv> Op2D (bpfun f)"
 
+abbreviation DefinedD :: "'a::DEFINED vdme \<Rightarrow> bool vdme" where
+"DefinedD v \<equiv> LitD (\<D> v)"
+
+definition CoerceD :: "'a::DEFINED vdme \<Rightarrow> 'a set \<Rightarrow> 'a vdme" where
+"CoerceD e t \<equiv> MkPExpr (\<lambda> b. if (\<D> (\<lbrakk>e\<rbrakk>\<^sub>* b) \<and> the (\<lbrakk>e\<rbrakk>\<^sub>* b) \<in> t)
+                             then \<lbrakk>e\<rbrakk>\<^sub>* b 
+                             else None)"
+
+
+(*
 definition ListD :: "'a::vbasic vdme list \<Rightarrow> 'a list vdme" where
 "ListD xs = Abs_vdme (\<lambda> b. mapM (\<lambda> v. \<lbrakk>v\<rbrakk>\<^sub>v b) xs)"
 
@@ -360,5 +348,7 @@ lemma bpfun_apply [simp]:
   apply (case_tac x)
   apply (auto simp add:bpfun_def)
 done
+*)
+
 
 end

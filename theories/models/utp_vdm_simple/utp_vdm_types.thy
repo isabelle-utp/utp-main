@@ -19,8 +19,8 @@ begin
 primrec Inject_quote :: "quote \<Rightarrow> vbasic" where
 "Inject (Q x) = QuoteI x"
 
-definition Type_quote :: "quote itself \<Rightarrow> vdmt" where
-"Type_quote x = QuoteT"
+definition Type_quote :: "quote itself \<Rightarrow> vbasict" where
+"Type_quote x = QuoteBT"
 
 instance
   apply (intro_classes)
@@ -59,7 +59,9 @@ done
 (* FIXME: It may be that VDM types need to be binding dependent
    as they can potentially depend on UTP variables. *)
 definition InvS :: "'a set \<Rightarrow> ('a \<Rightarrow> bool vdme) \<Rightarrow> 'a set" where
-"InvS A P = {x. x \<in> A \<and> (\<forall> b. \<lbrakk>P x\<rbrakk>\<^sub>v b = Some True)}"
+"InvS A P = {x. x \<in> A \<and> (\<forall> b. \<lbrakk>P x\<rbrakk>\<^sub>* b = Some True)}"
+
+nonterminal vty
 
 syntax 
   "_vty_quote"   :: "string \<Rightarrow> vty" ("<_>")
@@ -78,7 +80,7 @@ syntax
   "_vty_seq1_of" :: "vty \<Rightarrow> vty" ("@seq1 of _")
   "_vty_prod"    :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixl "\<times>" 20)
   "_vty_quo"     :: "vty \<Rightarrow> 'a set" ("\<parallel>_\<parallel>")
-  "_vty_inv"     :: "vty \<Rightarrow> pttrn \<Rightarrow> vexpr \<Rightarrow> vty" ("_ inv _ == _")
+  "_vty_inv"     :: "vty \<Rightarrow> pttrn \<Rightarrow> pexpr \<Rightarrow> vty" ("_ inv _ == _")
 
 translations
   "_vty_quote x"   == "CONST QuoteS x"
@@ -101,8 +103,6 @@ translations
 
 term "\<parallel>@seq1 of @char\<parallel>"
 
-term "|[\<langle>1\<rangle>]|"
-
-term "`''x'' := [\<langle>1\<rangle>] : @seq1 of @nat1`"
+(* term "`x := \<langle><1>\<rangle> : @seq1 of @nat1`" *)
 
 end
