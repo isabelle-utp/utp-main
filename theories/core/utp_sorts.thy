@@ -49,7 +49,7 @@ definition isTypeU :: "'UTP_VALUE UTYPE \<Rightarrow> bool" where
 "isTypeU a = (\<exists> b. a = TypeU b)"
 
 definition TypeU_param :: "'UTP_VALUE UTYPE \<Rightarrow> 'UTP_VALUE UTYPE" where
-"TypeU_param t = (THE a. t = TypeU a)"
+"TypeU_param t = (THE a. t = TypeU a \<and> a \<in> PermU)"
 
 definition DefaultPermU :: "'UTP_VALUE UTYPE" where
 "DefaultPermU = (SOME x. x \<in> PermU)"
@@ -60,11 +60,11 @@ lemma isTypeU: "isTypeU (TypeU a)"
 lemma isTypeU_elim: "\<lbrakk> isTypeU a; \<And> b. \<lbrakk> a = TypeU b \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (auto simp add: isTypeU_def)
 
-lemma TypeU_param: "TypeU_param (TypeU a) = a"
+lemma TypeU_param: "a \<in> PermU \<Longrightarrow> TypeU_param (TypeU a) = a"
   apply (simp add:TypeU_param_def)
   apply (rule the_equality)
   apply (simp)
-  apply (metis TypeU_inj injD)
+  apply (metis TypeU_inj inj_on_eval_simp)
 done
 
 lemma DefaultPermU: "DefaultPermU \<in> PermU"

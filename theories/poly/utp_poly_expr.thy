@@ -169,7 +169,7 @@ definition ProdPE ::
    (('a * 'b), 'm) WF_PEXPRESSION" ("'(_, _')\<^sub>*") where
 "ProdPE x y = MkPExpr (\<lambda> b. (\<lbrakk>x\<rbrakk>\<^sub>* b, \<lbrakk>y\<rbrakk>\<^sub>* b))"
 
-lemma EvalPE_ProdPE [eval]:
+lemma EvalPE_ProdPE [eval,evale,evalp]:
   "\<lbrakk>(x,y)\<^sub>*\<rbrakk>\<^sub>*b = (\<lbrakk>x\<rbrakk>\<^sub>* b, \<lbrakk>y\<rbrakk>\<^sub>* b)"
   by (simp add:ProdPE_def)
 
@@ -194,7 +194,7 @@ definition Op1PE ::
   "('a \<Rightarrow> 'b) \<Rightarrow> ('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> ('b, 'm) WF_PEXPRESSION" where
 "Op1PE f u = MkPExpr (\<lambda> b. f (\<lbrakk>u\<rbrakk>\<^sub>*b))"
 
-lemma EvalPE_Op1PE [eval]:
+lemma EvalPE_Op1PE [eval,evale,evalp]:
   "\<lbrakk>Op1PE f u\<rbrakk>\<^sub>*b = f (\<lbrakk>u\<rbrakk>\<^sub>*b)"
   by (simp add:Op1PE_def)
 
@@ -231,7 +231,7 @@ definition
             ('d, 'm) WF_PEXPRESSION" where
 "Op3PE f u v w \<equiv> Op1PE (uncurry (uncurry f)) (ProdPE (ProdPE u v) w)"
 
-declare Op3PE_def [eval, evalp]
+declare Op3PE_def [eval, evale, evalp]
 
 lemma UNREST_Op3PE [unrest]:
   "\<lbrakk> UNREST_PEXPR vs u; UNREST_PEXPR vs v; UNREST_PEXPR vs w \<rbrakk> 
@@ -333,7 +333,7 @@ definition PredPE ::
   "'m WF_PREDICATE \<Rightarrow> (bool, 'm :: VALUE) WF_PEXPRESSION" where
 "PredPE p = MkPExpr (\<lambda> b. b \<in> destPRED p)"
 
-lemma EvalPE_PExprP [eval]:
+lemma EvalPE_PExprP [eval, evalp]:
   "\<lbrakk>PredPE p\<rbrakk>\<^sub>*b = \<lbrakk>p\<rbrakk>b"
   by (simp add:PredPE_def EvalP_def)
 
@@ -659,7 +659,7 @@ setup {*
 Adhoc_Overloading.add_variant @{const_name permute} @{const_name PermPE}
 *}
 
-lemma EvalPE_RenamePE [eval]:
+lemma EvalPE_RenamePE [eval,evale,evalp]:
   "\<lbrakk>ss\<bullet>e\<rbrakk>\<^sub>*b = \<lbrakk>e\<rbrakk>\<^sub>*((inv\<^sub>s ss)\<bullet>b)"
   by (simp add:PermPE_def)
 
@@ -713,11 +713,11 @@ abbreviation PSubstP ::
  'm WF_PREDICATE" where
 "PSubstP p e x \<equiv> SubstP p e\<down> x\<down>"
 
-lemma EvalPE_SubstPE [eval,evalp]:
+lemma EvalPE_SubstPE [eval,evale,evalp]:
   "\<lbrakk>SubstPE e v x\<rbrakk>\<^sub>*b = \<lbrakk>e\<rbrakk>\<^sub>* (b(x :=\<^sub>b InjU (\<lbrakk>v\<rbrakk>\<^sub>* b)))"
   by (simp add:SubstPE_def)
 
-lemma EvalPE_PSubstPE [eval,evalp]:
+lemma EvalPE_PSubstPE [eval,evale,evalp]:
   "\<lbrakk>PSubstPE e v x\<rbrakk>\<^sub>*b = \<lbrakk>e\<rbrakk>\<^sub>* (b(x\<down> :=\<^sub>b InjU (\<lbrakk>v\<rbrakk>\<^sub>* b)))"
   by (simp add:PSubstPE_def SubstPE_def)
 

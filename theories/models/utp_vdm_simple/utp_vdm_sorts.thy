@@ -151,7 +151,7 @@ instance
   apply (rule_tac x="map BasicD xs" in exI)
   apply (auto)
   apply (force)
-  apply (rule injI)
+  apply (rule inj_onI)
   apply (simp add:ListType_vdmv_def)
   apply (case_tac "prjTYPE x \<in> vbtypes")
   apply (case_tac[!] "prjTYPE y \<in> vbtypes")
@@ -299,12 +299,12 @@ lemma embTYPE_inv_FuncT:
 done
 *)
 
-instantiation option :: (DEFINED) DEFINED
+instantiation option :: (type) DEFINED
 begin
 
 primrec Defined_option :: "'a option \<Rightarrow> bool" where
 "Defined_option None = False" |
-"Defined_option (Some x) = \<D> x"
+"Defined_option (Some x) = True"
 
 instance ..
 
