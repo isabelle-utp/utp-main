@@ -190,7 +190,7 @@ syntax
   "_pexpr_fset_inter"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "\<inter>" 70)
   "_pexpr_fset_member"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(_/ \<in> _)" [51, 51] 50)
   "_pexpr_fset_nmember" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(_/ \<notin> _)" [51, 51] 50)
-  "_pexpr_fset_list"    :: "pexpr \<Rightarrow> pexpr" ("set _")
+  "_pexpr_fset_list"    :: "pexpr \<Rightarrow> pexpr" ("elems _")
   "_pexpr_intersync"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<parallel>\<^bsub>_\<^esub>" 75)
   "_pexpr_event"        :: "NAME \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_?_" 50)
   "_pexpr_event_chan"   :: "pexpr \<Rightarrow> pexpr" ("chan _")
@@ -267,6 +267,9 @@ term "`p[($x)\<acute>/y\<acute>]`"
 term "`\<lparr>true\<rparr>`"
 
 lemma "`$x \<in> {<1>,<2>,<3>,<4>,<5>} \<sqsubseteq> $x = <1>`"
+  by (utp_pred_tac)
+
+lemma "`<1> \<in> elems \<langle><4>,<7>,<1>,<9>\<rangle>`"
   by (utp_pred_tac)
 
 end

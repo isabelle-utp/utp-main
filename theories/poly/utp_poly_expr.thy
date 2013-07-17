@@ -299,6 +299,15 @@ lemma LitPE_erasure [erasure]:
   apply (simp add:typing)
 done
 
+lemma PVarPE_erasure [erasure]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR" 
+  assumes "TYPEUSOUND('a, 'm :: VALUE)" "pvaux x"
+  shows "(PVarPE x)\<down> = VarE (x\<down>)"
+  using assms
+  apply (auto simp add:evale defined typing evalp)
+  apply (metis MkVar_def PVAR_VAR_def TypeUSound_ProjU_inv aux_defined binding_type dtype_relI fst_conv snd_conv)
+done
+
 text {* The following functions and rules mechanise marshalling between predicates
         and boolean valued expressions *}
 

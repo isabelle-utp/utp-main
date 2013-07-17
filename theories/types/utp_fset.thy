@@ -97,6 +97,7 @@ declare UnionUF.rep_eq [eval, evale]
 declare InterUF.rep_eq [eval, evale]
 declare MemberUF.rep_eq [eval, evale]
 declare NMemberUF.rep_eq [eval, evale]
+declare FSetUF.rep_eq [eval, evale]
 declare IntersyncUF_def [eval, evale]
 
 end

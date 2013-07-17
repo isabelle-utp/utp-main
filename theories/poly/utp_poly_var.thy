@@ -138,6 +138,14 @@ lemma pvname_name:
   apply (simp add:PVAR_VAR_def)
 done
 
+lemma pvaux_pvdash [simp]: 
+  "pvaux (x\<acute>) = pvaux x"
+  by (simp add:pvdash_def)
+
+lemma pvaux_pvundash [simp]: 
+  "pvaux (pvundash x) = pvaux x"
+  by (simp add:pvundash_def)
+
 definition "PUNDASHED     \<equiv> {x. PVAR_VAR x \<in> UNDASHED}"
 definition "PDASHED       \<equiv> {x. PVAR_VAR x \<in> DASHED}"
 definition "PDASHED_TWICE \<equiv> {x. PVAR_VAR x \<in> DASHED_TWICE}"

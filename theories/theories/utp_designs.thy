@@ -128,23 +128,6 @@ lemma DesignD_diverge:
   "`(P \<turnstile> Q)[false/okay]` = true"
   by (simp add:DesignD_def usubst typing defined evalp erasure) 
 
-lemma PVarPE_erasure [erasure]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR" 
-  assumes "TYPEUSOUND('a, 'm :: VALUE)" "pvaux x"
-  shows "(PVarPE x)\<down> = VarE (x\<down>)"
-  using assms
-  apply (auto simp add:evale defined typing evalp)
-  apply (metis MkVar_def PVAR_VAR_def TypeUSound_ProjU_inv aux_defined binding_type dtype_relI fst_conv snd_conv)
-done
-
-lemma pvaux_pvdash [simp]: 
-  "pvaux (x\<acute>) = pvaux x"
-  by (simp add:pvdash_def)
-
-lemma pvaux_pvundash [simp]: 
-  "pvaux (pvundash x) = pvaux x"
-  by (simp add:pvundash_def)
-
 lemma DesignD_left_zero:
   fixes P :: "'m WF_PREDICATE"
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
@@ -357,7 +340,7 @@ lemma "\<lbrakk> P \<in> WF_RELATION; e \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<
   apply (simp add:SemiR_algebraic_rel closure unrest typing defined)
 *)
 
-(*
+
 theorem H1_algebraic_intro:
   assumes 
     "R \<in> WF_RELATION"  
@@ -382,7 +365,7 @@ proof -
 
   also have "... = `(ok \<Rightarrow> II) ; R`"
     by (simp add:SkipRA_unfold[THEN sym] 
-        SkipR_as_SkipRA ImpliesP_export[THEN sym])
+        SkipR_as_SkipRA ImpliesP_export[THEN sym] erasure closure typing)
 
   also have "... = `((\<not> ok) ; R \<or> R)`"
     by (simp add:ImpliesP_def SemiR_OrP_distr)
@@ -422,20 +405,21 @@ lemma H1_left_unit:
   assumes "P \<in> WF_RELATION" "P is H1"
   shows "II\<^sub>D ; P = P"
 proof -
-  let ?vs = "REL_VAR - {okay,okay\<acute>}"
+  let ?vs = "REL_VAR - OKAY"
   have "II\<^sub>D ; P = `(true \<turnstile> II\<^bsub>?vs\<^esub>) ; P`" by (simp add:SkipD_def)
   also have "... = `(ok \<Rightarrow> ok' \<and> II\<^bsub>?vs\<^esub>) ; P`" 
     by (simp add:DesignD_def)
   also have "... = `(ok \<Rightarrow> ok \<and> ok' \<and> II\<^bsub>?vs\<^esub>) ; P`" 
     by (smt ImpliesP_export)
   also have "... = `(ok \<Rightarrow> ok \<and> $okay\<acute> = $okay \<and> II\<^bsub>?vs\<^esub>) ; P`"
-    by (simp add:VarP_EqualP_aux, utp_rel_auto_tac)
+    by (simp add:VarP_EqualP_aux erasure typing closure, utp_rel_auto_tac)
   also have "... = `(ok \<Rightarrow> II) ; P`"
-    by (simp add: SkipR_as_SkipRA SkipRA_unfold[of okay] ImpliesP_export[THEN sym])
+    by (simp add: SkipR_as_SkipRA SkipRA_unfold[of "okay\<down>"] ImpliesP_export[THEN sym]
+                  erasure typing closure)
   also have "... = `((\<not> ok) ; P \<or> P)`"
     by (simp add:ImpliesP_def SemiR_OrP_distr)
   also have "... = `(((\<not> ok) ; true) ; P \<or> P)`"
-    by (metis MkPlain_UNDASHED NotP_cond_closure SemiR_TrueP_precond VarP_cond_closure)
+    by (simp add: SemiR_TrueP_precond closure)
   also have "... = `((\<not> ok) ; (true ; P) \<or> P)`"
     by (metis SemiR_assoc)
   also from assms have "... = `(ok \<Rightarrow> P)`"
@@ -452,7 +436,7 @@ lemma H1_algebraic:
 lemma H1_false:
   "H1 false \<noteq> false"
   apply (auto simp add:H1_def eval evale)
-  apply (rule_tac x="\<B>(okay :=\<^sub>b FalseV)" in exI)
+  apply (rule_tac x="\<B>(okay\<down> :=\<^sub>b FalseV)" in exI)
   apply (simp add:typing defined)
 done
 
@@ -488,65 +472,62 @@ lemma J_split:
   shows "P ; J = `P\<^sup>f \<or> (P\<^sup>t \<and> ok')`"
 proof -
 
-  let ?vs = "((UNDASHED \<union> DASHED) - {okay,okay\<acute>}) :: 'a VAR set"
+  let ?vs = "(REL_VAR - OKAY) :: 'a VAR set"
 
   have "P ; J = `P ; ((ok \<Rightarrow> ok') \<and> II\<^bsub>?vs\<^esub>)`"
     by (simp add:J_pred_def)
 
-  also have "... = P ; (ok \<Rightarrow>p ok \<and>p ok') \<and>p II ?vs"
-    apply (utp_rel_auto_tac)
-    apply (auto simp add:BindR_def)
-  done
+  also have "... = `P ; ((ok \<Rightarrow> ok \<and> ok') \<and> II\<^bsub>?vs\<^esub>)`"
+    by (metis ImpliesP_export)
 
-  also have "... = P ; ((\<not>p ok \<or>p (ok \<and>p ok')) \<and>p II ?vs)"
+  also have "... = `P ; ((\<not> ok \<or> (ok \<and> ok')) \<and> II\<^bsub>?vs\<^esub>)`"
     by (utp_rel_auto_tac)
 
-  also have "... = (P ; (\<not>p ok \<and>p II ?vs)) \<or>p (P ; (ok \<and>p (II ?vs \<and>p ok')))"
+  also have "... = `(P ; (\<not> ok \<and> II\<^bsub>?vs\<^esub>)) \<or> (P ; (ok \<and> (II\<^bsub>?vs\<^esub> \<and> ok')))`"
     by (smt AndP_OrP_distr AndP_assoc AndP_comm SemiR_OrP_distl)
     
   also have "... = `P\<^sup>f \<or> (P\<^sup>t \<and> ok')`"
   proof -
-    from assms have "(P ; (\<not>p ok \<and>p II ?vs)) = P\<^sup>f"
-      by (simp add: VarP_NotP_EqualP_aux SemiR_left_one_point closure typing defined unrest urename usubst SkipRA_right_unit var_dist)
+    from assms have "`(P ; (\<not> ok \<and> II\<^bsub>?vs\<^esub>))` = `P\<^sup>f`"
+      by (simp add: VarP_NotP_EqualP_aux SemiR_left_one_point closure typing defined unrest urename usubst SkipRA_right_unit var_dist erasure)
 
-    moreover have "(P ; (ok \<and>p (II ?vs \<and>p ok'))) = (P\<^sup>t \<and>p ok')"
+    moreover have "`(P ; (ok \<and> (II\<^bsub>?vs\<^esub> \<and> ok')))` = `(P\<^sup>t \<and> ok')`"
     proof -
-      have "(P ; (ok \<and>p (II ?vs \<and>p ok'))) = (P ; (ok \<and>p II ?vs)) \<and>p ok'"
-        apply (insert SemiR_TrueP_postcond[OF VarP_precond_closure[of "okay\<acute>",simplified]])
+      have "`(P ; (ok \<and> (II\<^bsub>?vs\<^esub> \<and> ok')))` = `(P ; (ok \<and> II\<^bsub>?vs\<^esub>)) \<and> ok'`"
+        apply (insert SemiR_TrueP_postcond[OF VarP_precond_closure[of "okay\<down>\<acute>",simplified]])
         apply (auto simp add:evalrx closure assms)
       done
 
-      moreover from assms have "(P ; (ok \<and>p II ?vs)) =  P\<^sup>t"
-        by (simp add: VarP_EqualP_aux SemiR_left_one_point closure typing defined unrest urename usubst SkipRA_right_unit var_dist)
+      moreover from assms have "`(P ; (ok \<and> II\<^bsub>?vs\<^esub>))` =  `P\<^sup>t`"
+        by (simp add: VarP_EqualP_aux SemiR_left_one_point closure typing defined unrest urename usubst SkipRA_right_unit var_dist erasure)
      
-      ultimately show ?thesis by simp
+      finally show ?thesis .
     qed
 
     ultimately show ?thesis by (simp)
   qed
 
-  ultimately show ?thesis by simp
+  finally show ?thesis .
 qed
 
 lemma H2_equivalence:
   assumes "P \<in> WF_RELATION"
-  shows "P is H2 \<longleftrightarrow> [P\<^sup>f \<Rightarrow>p (P\<^sup>t)]p"
+  shows "P is H2 \<longleftrightarrow> `P\<^sup>f \<Rightarrow> P\<^sup>t`"
 proof -
   from assms have "`[P \<Leftrightarrow> (P ; J)]` = `[P \<Leftrightarrow> (P\<^sup>f \<or> (P\<^sup>t \<and> ok'))]`"
     by (simp add:J_split)
 
   also have "... = `[(P \<Leftrightarrow> P\<^sup>f \<or> P\<^sup>t \<and> ok')\<^sup>f \<and> (P \<Leftrightarrow> P\<^sup>f \<or> P\<^sup>t \<and> ok')\<^sup>t]`"
-    by (simp add: ucases)
+    by (simp add: ucases erasure)
 
   also have "... = `[(P\<^sup>f \<Leftrightarrow> P\<^sup>f) \<and> (P\<^sup>t \<Leftrightarrow> P\<^sup>f \<or> P\<^sup>t)]`"
-    by (simp add:usubst closure typing defined)
+    by (simp add:usubst closure typing defined erasure)
 
   also have "... = `[P\<^sup>t \<Leftrightarrow> (P\<^sup>f \<or> P\<^sup>t)]`"
     by (utp_pred_tac)
 
   ultimately show ?thesis
     by (utp_pred_auto_tac)
-
 qed
 
 lemma J_closure [closure]:
@@ -556,16 +537,16 @@ lemma J_closure [closure]:
 lemma J_is_H2:
   "H2(J) = J"
 proof -
-  have "H2(J) = J\<^sup>f \<or>p (J\<^sup>t \<and>p ok')"
+  have "H2(J) = `J\<^sup>f \<or> (J\<^sup>t \<and> ok')`"
     by (simp add:H2_def closure J_split)
 
-  also have "... = ((\<not>p ok \<and>p II (REL_VAR - {okay, okay\<acute>})) \<or>p II (REL_VAR - {okay, okay\<acute>}) \<and>p ok')"
-    by (simp add:J_pred_def usubst typing defined closure)
+  also have "... = `((\<not> ok \<and> II\<^bsub>(REL_VAR - OKAY)\<^esub>) \<or> II\<^bsub>(REL_VAR - OKAY)\<^esub> \<and> ok')`"
+    by (simp add:J_pred_def usubst typing defined closure erasure)
 
-  also have "... = (\<not>p ok \<or>p ok') \<and>p II (REL_VAR - {okay, okay\<acute>})"
+  also have "... = `(\<not> ok \<or> ok') \<and> II\<^bsub>REL_VAR - OKAY\<^esub>`"
     by (utp_pred_auto_tac)
 
-  also have "... = (ok \<Rightarrow>p ok') \<and>p II (REL_VAR - {okay, okay\<acute>})"
+  also have "... = `(ok \<Rightarrow> ok') \<and> II\<^bsub>REL_VAR - OKAY\<^esub>`"
     by (utp_pred_tac)
 
   ultimately show ?thesis
@@ -616,29 +597,18 @@ proof -
   also have "... = `(\<not> P\<^sup>f) \<turnstile> P\<^sup>t`"
     by (metis DesignD_def)
 
-  ultimately show ?thesis by simp
+  finally show ?thesis .
 qed
-
-lemma SkipRA_compose [simp]:
-  "\<lbrakk> HOMOGENEOUS vs1; HOMOGENEOUS vs2; vs1 \<subseteq> REL_VAR; vs2 \<subseteq> REL_VAR \<rbrakk> 
-  \<Longrightarrow> II vs1 ; II vs2 = II (vs1 \<inter> vs2)"
-  apply (subgoal_tac "vs1 \<inter> vs2 \<subseteq> REL_VAR")
-  apply (auto simp add:evalrx closure relcomp_unfold var_dist)
-  apply (rule_tac x="y \<oplus>\<^sub>x xa on (vs1 - vs2)" in exI)
-  apply (auto)
-  apply (case_tac "x \<in> vs2")
-  apply (auto)
-done
 
 lemma SkipD_idempotent:
   "`II\<^sub>D ; II\<^sub>D` = `II\<^sub>D`"
   apply (simp add: SkipD_def DesignD_def)
-  apply (simp add: SemiR_extract_variable[of _ _ okay] closure usubst typing defined)
+  apply (simp add: SemiR_extract_variable[of _ _ "okay\<down>"] closure usubst typing defined)
   apply (simp add: BoolType_aux_var_split_exists closure usubst typing defined unrest)
-  apply (rule BoolType_aux_var_split_eq_intro[of okay])
+  apply (rule BoolType_aux_var_split_eq_intro[of "okay\<down>"])
   apply (simp_all add: usubst typing defined closure unrest SemiR_TrueP_precond)
 
-  apply (rule BoolType_aux_var_split_eq_intro[of "okay\<acute>"])
+  apply (rule BoolType_aux_var_split_eq_intro[of "okay\<down>\<acute>"])
   apply (simp_all add: usubst typing defined closure unrest)
 done
 
@@ -651,7 +621,7 @@ lemma H3_monotone:
   by (utp_rel_auto_tac)
 
 (* Theory of Designs *)
-lift_definition DESIGNS :: "'VALUE WF_THEORY" is "({vs. vs \<subseteq> REL_VAR \<and> {okay,okay\<acute>} \<subseteq> vs}, {H1,H2})"
+lift_definition DESIGNS :: "'VALUE WF_THEORY" is "({vs. vs \<subseteq> REL_VAR \<and> OKAY \<subseteq> vs}, {H1,H2})"
   by (simp add:WF_THEORY_def IDEMPOTENT_OVER_def H1_idempotent H2_idempotent)
 
 lemma DESIGNS_WF_RELATION [closure]:
@@ -674,7 +644,7 @@ lemma DESIGNS_intro:
   apply (simp add:THEORY_PRED_def utp_alphabets_def healthconds_def DESIGNS.rep_eq)
   apply (rule_tac x="vs" in exI, auto)
 done
-*)
+
    
 (*
 lemma "(d1 = d2) \<longleftrightarrow> (\<forall> r. d1 wp r = d2 wp r)"

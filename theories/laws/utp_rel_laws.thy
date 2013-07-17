@@ -736,6 +736,17 @@ proof -
   done
 qed
 
+lemma SkipRA_compose [simp]:
+  "\<lbrakk> HOMOGENEOUS vs1; HOMOGENEOUS vs2; vs1 \<subseteq> REL_VAR; vs2 \<subseteq> REL_VAR \<rbrakk> 
+  \<Longrightarrow> II\<^bsub>vs1\<^esub> ; II\<^bsub>vs2\<^esub> = II\<^bsub>vs1 \<inter> vs2\<^esub>"
+  apply (subgoal_tac "vs1 \<inter> vs2 \<subseteq> REL_VAR")
+  apply (auto simp add:evalrx closure relcomp_unfold var_dist)
+  apply (rule_tac x="y \<oplus>\<^sub>x xa on (vs1 - vs2)" in exI)
+  apply (auto)
+  apply (case_tac "x \<in> vs2")
+  apply (auto)
+done
+
 subsection {* Assignment Laws *}
 
 theorem AssignR_SemiR_left:
