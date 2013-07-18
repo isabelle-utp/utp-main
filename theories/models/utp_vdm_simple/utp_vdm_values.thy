@@ -321,7 +321,7 @@ fun Defined_vbasic :: "vbasic \<Rightarrow> bool" where
 "Defined_vbasic (OptionI a (Some x)) = Defined_vbasic x" |
 "Defined_vbasic (FinI a xs) = (\<forall> x \<in> set xs. Defined_vbasic x)" |
 "Defined_vbasic (RecI xs) = (\<forall> x \<in> set xs. Defined_vbasic x)" |
-"Defined_vbasic (MapI a b xs) = (\<forall> (x,y) \<in> set xs. Defined_vbasic x \<and> Defined_vbasic x)" | 
+"Defined_vbasic (MapI a b xs) = (\<forall> (x,y) \<in> set xs. Defined_vbasic x \<and> Defined_vbasic y)" | 
 "Defined_vbasic (NameI n) = True" |
 "Defined_vbasic (TypeI t) = True"
 
@@ -445,9 +445,22 @@ lemma FSetI_type_cases [elim]:
   by (auto simp add:FSetI_def)
 
 lemma FinMapI_type[intro]: 
-  "\<lbrakk> \<forall> x\<in>Rep_fset(fdom f). x :\<^sub>b a; \<forall> y\<in>Rep_fset(fran f). y :\<^sub>b b \<rbrakk> \<Longrightarrow> FinMapI a b f :\<^sub>b MapBT a b"
+  "\<lbrakk> \<forall> x\<in>\<^sub>ffdom f. x :\<^sub>b a; \<forall> y\<in>\<^sub>ffran f. y :\<^sub>b b \<rbrakk> \<Longrightarrow> FinMapI a b f :\<^sub>b MapBT a b"
   by (auto intro!:MapI_type simp add:fdom_list fran_list FinMapI_def)
 
+lemma FinMapI_defined [defined]:
+  "\<D> (FinMapI a b f) = (\<langle>fdom f\<rangle>\<^sub>f \<subseteq> DEFINED \<and> \<langle>fran f\<rangle>\<^sub>f \<subseteq> DEFINED)"
+  apply (auto simp add:FinMapI_def fdom.rep_eq fran.rep_eq)
+  apply (drule_tac x="(x, y)" in bspec)
+  apply (metis fmap_list_inv list_fmap.rep_eq map_of_SomeD)
+  apply (simp add:DEFINED_def)
+  apply (auto simp add:ran_def)[1]
+  apply (drule_tac x="(a, x)" in bspec)
+  apply (metis fmap_list_inv list_fmap.rep_eq map_of_SomeD)
+  apply (simp add:DEFINED_def)
+  apply (force dest:fmap_list_fdom_fran simp add:fdom.rep_eq fran.rep_eq DEFINED_def)+
+done
+  
 lemma dom_map_of: "x \<in> dom (map_of xs) \<Longrightarrow> \<exists> y. (x,y) \<in> set xs"
   by (auto dest:map_of_SomeD simp add:dom_def)
 
@@ -455,7 +468,8 @@ lemma ran_map_of: "y \<in> ran (map_of xs) \<Longrightarrow> \<exists> x. (x,y) 
   by (auto dest:map_of_SomeD simp add:ran_def)
 
 lemma FinMapI_type_cases [elim!]:
-  "\<lbrakk>x :\<^sub>b MapBT a b; x \<noteq> BotI (MapBT a b); \<And>f. \<lbrakk>x = FinMapI a b f; \<forall> x\<in>Rep_fset(fdom f). x :\<^sub>b a; \<forall> y\<in>Rep_fset(fran f). y :\<^sub>b b \<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk> x :\<^sub>b MapBT a b; x \<noteq> BotI (MapBT a b); 
+    \<And>f. \<lbrakk>x = FinMapI a b f; \<forall> x\<in>\<^sub>ffdom f. x :\<^sub>b a; \<forall> y\<in>\<^sub>ffran f. y :\<^sub>b b \<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   apply (case_tac x, auto elim!:MapI_type_cases)
   apply (simp add:FinMapI_def fdom_def fran_def)
   apply (subgoal_tac "list = fmap_list (list_fmap list)")

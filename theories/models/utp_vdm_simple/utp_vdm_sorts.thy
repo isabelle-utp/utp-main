@@ -310,4 +310,22 @@ instance ..
 
 end
 
+lemma InjVB_defined [defined]:
+  "\<D> x \<Longrightarrow> \<D> (InjVB x)"
+   by (case_tac x, auto)
+
+lemma InjVB_type [typing]:
+  "InjVB (x :: ('a::vbasic option)) :\<^sub>v VTYPE('a)"
+  by (case_tac x, auto)
+
+lemma ProjVB_defined [defined]: 
+  "\<lbrakk> \<D> x; x :\<^sub>v VTYPE('a::vbasic) \<rbrakk> \<Longrightarrow> \<D> (ProjVB x :: 'a option)"
+  by (auto simp add:ProjVB_def)
+
+lemma ProjVB_inv [simp]: 
+  "\<lbrakk> \<D> x; x :\<^sub>v VTYPE('a::vbasic) \<rbrakk> \<Longrightarrow> InjVB (ProjVB x :: 'a option) = x"
+  apply (auto simp add:ProjVB_def)
+  apply (metis InjVB.simps(2) Inject_Project Project_Inject)
+done
+
 end

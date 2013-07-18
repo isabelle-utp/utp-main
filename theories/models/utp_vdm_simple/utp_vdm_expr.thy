@@ -28,6 +28,9 @@ defs (overloaded)
   ProjU_vdm [simp]: "ProjU (x::vdmv) \<equiv> ProjVB x"
   TypeU_vdm [simp]: "TypeU (x::('a::vbasic option) itself) \<equiv> embTYPE (VTYPE('a))"
 
+lemma TypeUSound_vdm [typing]: "TYPEUSOUND('a::vbasic option, vdmv)"
+  by (force simp add: type_rel_vdmt typing defined)
+
 type_synonym 'a vdme = "('a option, vdmv) WF_PEXPRESSION"
 
 definition BotDE :: "'a vdme" ("\<bottom>\<^sub>v") where
@@ -44,7 +47,7 @@ abbreviation "FalseDE \<equiv> LitD False"
 definition Op1D :: "('a::vbasic \<rightharpoonup> 'b::vbasic) \<Rightarrow> 'a vdme \<Rightarrow> 'b vdme" where
 "Op1D f v = Op1PE (\<lambda> x. x >>= f) v"
 
-declare Op1D_def [eval, evale, evalp]
+(* declare Op1D_def [eval, evale, evalp] *)
 
 text {* Build a unary partial function from a normal binary HOL function *}
 
@@ -57,7 +60,7 @@ definition Op2D :: "('a::vbasic * 'b::vbasic \<rightharpoonup> 'c::vbasic)
                    \<Rightarrow> 'a vdme \<Rightarrow> 'b vdme \<Rightarrow> 'c vdme" where
 "Op2D f u v = Op2PE (\<lambda> v1 v2. do { x <- v1; y <- v2; f (x, y) }) u v"
 
-declare Op2D_def [eval, evale, evalp]
+(* declare Op2D_def [eval, evale, evalp] *)
 
 text {* Build a binary partial function from a normal binary HOL function *}
 
@@ -78,16 +81,23 @@ definition ForallD :: "('a \<Rightarrow> bool vdme) \<Rightarrow> bool vdme" whe
 definition ExistsD :: "('a \<Rightarrow> bool vdme) \<Rightarrow> bool vdme" where
 "ExistsD f = MkPExpr (\<lambda> b. (Some (\<exists> x. \<lbrakk>f x\<rbrakk>\<^sub>* b = Some True)))"
 
-abbreviation DefinedD :: "'a::DEFINED vdme \<Rightarrow> bool vdme" where
+abbreviation DefinedD :: "'a vdme \<Rightarrow> bool vdme" where
 "DefinedD v \<equiv> LitD (\<D> v)"
 
-definition CoerceD :: "'a::DEFINED vdme \<Rightarrow> 'a set \<Rightarrow> 'a vdme" where
+definition CoerceD :: "'a vdme \<Rightarrow> 'a set \<Rightarrow> 'a vdme" where
 "CoerceD e t \<equiv> MkPExpr (\<lambda> b. if (\<D> (\<lbrakk>e\<rbrakk>\<^sub>* b) \<and> the (\<lbrakk>e\<rbrakk>\<^sub>* b) \<in> t)
                              then \<lbrakk>e\<rbrakk>\<^sub>* b 
                              else None)"
 
+definition CollectD :: "'a::vbasic vdme \<Rightarrow> bool vdme \<Rightarrow> 'a set" where
+"CollectD v p = {the (\<lbrakk>v\<rbrakk>\<^sub>*b) | b. \<D> (\<lbrakk>v\<rbrakk>\<^sub>*b) \<and> \<lbrakk>p\<rbrakk>\<^sub>*b = Some True}"
+
+declare CollectD_def [eval,evale,evalp]
+
 subsection {* Extend the UTP parser for VDM expressions *}
 
+abbreviation "vexpr_equal     \<equiv> Op2D' (op =)"
+abbreviation "vexpr_nequal    \<equiv> Op2D' (op \<noteq>)"
 abbreviation "vexpr_prod      \<equiv> Op2D' (\<lambda> x y. (x,y))"
 abbreviation "vexpr_nil       \<equiv> LitD []"
 abbreviation "vexpr_cons      \<equiv> Op2D' list.Cons"
@@ -99,9 +109,10 @@ nonterminal vty
 text {* We remove some of the generic syntax in favour of our own *}
 
 no_syntax
+  "_pexpr_equal"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "=" 50)
   "_pexpr_true"        :: "pexpr" ("true")
   "_pexpr_false"       :: "pexpr" ("false")
-  "_pexpr_brack"        :: "pexpr \<Rightarrow> pexpr" ("'(_')")
+  "_pexpr_brack"       :: "pexpr \<Rightarrow> pexpr" ("'(_')")
   "_pexpr_plus"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "+" 65)
   "_pexpr_minus"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "-" 65)
   "_pexpr_less"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "<" 25)
@@ -112,6 +123,8 @@ no_syntax
   "_pexpr_list_nil"    :: "pexpr" ("\<langle>\<rangle>")
 
 syntax
+  "_vexpr_equal"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "=" 50)
+  "_vexpr_nequal"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "<>" 50)
   "_vexpr_true"    :: "pexpr" ("true")
   "_vexpr_false"   :: "pexpr" ("false")
   "_vexpr_num"     :: "num_const \<Rightarrow> pexpr" ("_")
@@ -125,8 +138,11 @@ syntax
   "_vexpr_list"    :: "pexprs => pexpr"    ("[(_)]")
   "_vexpr_empty"   :: "pexpr" ("{}")
   "_vexpr_fset"    :: "pexprs => pexpr"    ("{(_)}")
+  "_vexpr_rproj"   :: "pexpr \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> pexpr" ("_._")
 
 translations
+  "_vexpr_equal"               == "CONST vexpr_equal"
+  "_vexpr_nequal"              == "CONST vexpr_nequal"
   "_vexpr_true"                == "CONST TrueDE"
   "_vexpr_false"               == "CONST FalseDE"
   "_vexpr_bot"                 == "CONST BotDE"
@@ -142,6 +158,7 @@ translations
   "_vexpr_empty"               == "CONST vexpr_empty"
   "_vexpr_fset (_pexprs x xs)" == "CONST vexpr_insert x (_vexpr_fset xs)"
   "_vexpr_fset x"              == "CONST vexpr_insert x CONST vexpr_empty"
+  "_vexpr_rproj r f"           == "f r"
 
 subsection {* @{term UNREST_PEXPR} theorems *}
 
@@ -161,7 +178,7 @@ lemma UNREST_PEXPR_Op1D [unrest]:
   "UNREST_PEXPR vs v \<Longrightarrow> UNREST_PEXPR vs (Op1D f v)"
   by (simp add:UNREST_PEXPR_def Op1D_def evalp)
 
-lemma UNREST_PEXPR_BOpD [unrest]: 
+lemma UNREST_PEXPR_Op2D [unrest]: 
   "\<lbrakk> UNREST_PEXPR vs v1; UNREST_PEXPR vs v2 \<rbrakk> \<Longrightarrow> UNREST_PEXPR vs (Op2D f v1 v2)"
   by (simp add:UNREST_PEXPR_def Op2D_def evalp EvalPE_ProdPE)
 
@@ -247,11 +264,11 @@ lemma EvalD_ForallD [eval,evalp,evale]:
   "\<lbrakk>ForallD f\<rbrakk>\<^sub>*b = \<lfloor>\<forall>x. \<lbrakk>f x\<rbrakk>\<^sub>*b = \<lfloor>True\<rfloor>\<rfloor>"
   by (simp add:ForallD_def)
 
-lemma EvalD_UOpD [eval,evalp,evale]:
+lemma EvalD_Op1D [eval,evalp,evale]:
   "\<D> (\<lbrakk>x\<rbrakk>\<^sub>*b) \<Longrightarrow> \<lbrakk>Op1D f x\<rbrakk>\<^sub>*b = f (the (\<lbrakk>x\<rbrakk>\<^sub>*b))"
   by (auto simp add:Op1D_def evalp)
 
-lemma EvalD_BOpD [eval,evalp,evale]:
+lemma EvalD_Op2D [eval,evalp,evale]:
   "\<lbrakk> \<D> (\<lbrakk>x\<rbrakk>\<^sub>*b); \<D> (\<lbrakk>y\<rbrakk>\<^sub>*b) \<rbrakk> \<Longrightarrow> \<lbrakk>Op2D f x y\<rbrakk>\<^sub>*b = f (the (\<lbrakk>x\<rbrakk>\<^sub>*b), the (\<lbrakk>y\<rbrakk>\<^sub>*b))"
   by (force simp add:Op2D_def evalp EvalPE_ProdPE)
 

@@ -12,16 +12,12 @@ imports
   utp_vdm_expr
 begin
 
-abbreviation "vexpr_defined   \<equiv> (DefinedD :: 'a::DEFINED vdme \<Rightarrow> bool vdme)"
+abbreviation "vexpr_defined   \<equiv> (DefinedD :: 'a vdme \<Rightarrow> bool vdme)"
 abbreviation "vexpr_in_set    \<equiv> Op2D' (op \<in>\<^sub>f)"
-(*
 abbreviation "vexpr_dom       \<equiv> Op1D' fdom"
-abbreviation "vexpr_ran       \<equiv> Op1D' fran"
-*)
+abbreviation "vexpr_rng       \<equiv> Op1D' fran"
 abbreviation "vexpr_card      \<equiv> Op1D' fcard"
-(*
 abbreviation "vexpr_lookup    \<equiv> Op2D (\<lambda> (x, m). \<langle>m\<rangle>\<^sub>m x)"
-*)
 abbreviation "vexpr_le        \<equiv> Op2D' (op \<le>)"
 abbreviation "vexpr_less      \<equiv> Op2D' (op <)"
 abbreviation "vexpr_ge        \<equiv> Op2D' (\<lambda> x y. y \<le> x)"
@@ -42,10 +38,12 @@ syntax
   "_vexpr_less"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "<" 50)
   "_vexpr_ge"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix ">=" 50)
   "_vexpr_greater" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix ">" 50)
-  "_vexpr_in_set"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "in set" 50)
+  "_vexpr_in_set"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "in @set" 50)
   "_vexpr_union"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "union" 65)
   "_vexpr_inter"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "inter" 70)
   "_vexpr_card"    :: "pexpr \<Rightarrow> pexpr" ("card _")
+  "_vexpr_dom"     :: "pexpr \<Rightarrow> pexpr" ("dom _")
+  "_vexpr_rng"     :: "pexpr \<Rightarrow> pexpr" ("rng _")
   "_vexpr_not"     :: "pexpr \<Rightarrow> pexpr" ("not _" [40] 40)
   "_vexpr_and"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "and" 35)
   "_vexpr_or"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "or" 30)
@@ -67,6 +65,8 @@ translations
   "_vexpr_union x y"   == "CONST Op2D' CONST funion x y"
   "_vexpr_inter x y"   == "CONST Op2D' CONST finter x y"
   "_vexpr_card x"      == "CONST Op2D' CONST fcard x"
+  "_vexpr_dom x"       == "CONST vexpr_dom x"
+  "_vexpr_rng x"       == "CONST vexpr_rng x"
   "_vexpr_not x"       == "CONST vexpr_not x"
   "_vexpr_and x y"     == "CONST vexpr_and x y"
   "_vexpr_or x y"      == "CONST vexpr_or x y"
@@ -79,6 +79,9 @@ term "\<parallel>@int inv x == \<langle>x\<rangle> > \<langle>5\<rangle>\<parall
 
 lemma "\<parallel>\<langle>2\<rangle> : @int inv x == (\<langle>x\<rangle> < \<langle>5\<rangle>)\<parallel> = \<parallel>\<langle>2\<rangle> : @int\<parallel>"
   by (auto simp add:evalp defined typing)
+
+lemma "\<parallel>(true,true) : {($x,$y) | $x = $y}\<parallel> = \<parallel>(true,true)\<parallel>"
+  apply (utp_pred_tac)
 
 instantiation fset :: (DEFINED) DEFINED
 begin

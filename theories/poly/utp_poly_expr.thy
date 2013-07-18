@@ -548,6 +548,18 @@ end
 
 declare utminus_ULIST_def [simp]
 
+lemma MinusUL_left_nil [simp]: 
+  fixes x :: "('a::DEFINED ULIST, 'm::LIST_SORT) WF_PEXPRESSION"
+  assumes "TYPEUSOUND('a, 'm)"
+  shows "MinusPE NilPE x = NilPE"
+  using assms by (auto simp add:eval)
+
+lemma MinusUL_right_nil [simp]: 
+  fixes x :: "('a::DEFINED ULIST, 'm::LIST_SORT) WF_PEXPRESSION"
+  assumes "TYPEUSOUND('a, 'm)"
+  shows "MinusPE x NilPE = x"
+  using assms by (auto simp add:eval)
+
 subsection {* Finite Set Expressions *}
 
 abbreviation FEmptyPE :: "('a::DEFINED UFSET, 'm :: FSET_SORT) WF_PEXPRESSION" where
@@ -783,6 +795,20 @@ lemma SubstE_PSubstPE [usubst]:
   and   e :: "('b :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
   assumes "TYPEUSOUND('a, 'm)" "TYPEUSOUND('b, 'm)" "v \<rhd>\<^sub>* x"
   shows "e\<down>[v\<down>/\<^sub>ex\<down>] = (PSubstPE e v x)\<down>"
+  using assms by (auto simp add:evale typing defined evalp)
+
+lemma SubstE_PSubstPE_dash [usubst]:
+  fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  and   e :: "('b :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  assumes "TYPEUSOUND('a, 'm)" "TYPEUSOUND('b, 'm)" "v \<rhd>\<^sub>* x\<acute>"
+  shows "e\<down>[v\<down>/\<^sub>ex\<down>\<acute>] = (PSubstPE e v x\<acute>)\<down>"
+  using assms by (auto simp add:evale typing defined evalp)
+
+lemma SubstE_PSubstPE_dash_dash [usubst]:
+  fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  and   e :: "('b :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  assumes "TYPEUSOUND('a, 'm)" "TYPEUSOUND('b, 'm)" "v \<rhd>\<^sub>* x\<acute>\<acute>"
+  shows "e\<down>[v\<down>/\<^sub>ex\<down>\<acute>\<acute>] = (PSubstPE e v x\<acute>\<acute>)\<down>"
   using assms by (auto simp add:evale typing defined evalp)
 
 lemma SubstP_PSubstPE_TrueE [usubst]:

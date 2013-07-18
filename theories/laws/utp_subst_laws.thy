@@ -73,6 +73,9 @@ lemma SubstP_twice_2 [usubst]:
   apply (metis EvalE_compat EvalP_UNREST_assign_1 binding_upd_twist)
 done
 
+lemma SubstP_twice_3 [usubst]:
+  "\<lbrakk> e \<rhd>\<^sub>e x; f \<rhd>\<^sub>e y; x \<noteq> y; UNREST_EXPR {x} f \<rbrakk> \<Longrightarrow> p[e/\<^sub>px][f/\<^sub>py] = p[f/\<^sub>py][e[f/\<^sub>ey]/\<^sub>px]"
+  by (utp_pred_tac, metis EvalE_UNREST_binding_upd EvalE_compat binding_upd_twist)
 
 lemma SubstP_VarP_diff [usubst]:
   "\<lbrakk> x \<noteq> y; e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> $\<^sub>py[e/\<^sub>px] = $\<^sub>py"

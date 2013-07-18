@@ -60,7 +60,8 @@ declare SkipREA_def [eval, evalr, evalrr, evalrx]
 
 lemma R1_idempotent : "`R1(R1(P))` = `R1(P)`" by (utp_rel_tac)
 
-lemma R2_idempotent : "`R2(R2(P))` = `R2(P)`" sorry
+lemma R2_idempotent : "`R2(R2(P))` = `R2(P)`"
+  by (simp add:R2_def, simp add:usubst typing defined closure unrest)
 
 lemma R3_idempotent : "`R3(R3(P))` = `R3(P)`" by (utp_pred_auto_tac)
 

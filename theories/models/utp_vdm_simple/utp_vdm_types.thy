@@ -63,6 +63,8 @@ definition InvS :: "'a set \<Rightarrow> ('a \<Rightarrow> bool vdme) \<Rightarr
 
 declare InvS_def [eval,evale,evalp]
 
+nonterminal vty_decl and vty_decls
+
 syntax 
   "_vty_quote"   :: "string \<Rightarrow> vty" ("<_>")
   "_vty_brack"   :: "vty \<Rightarrow> vty" ("'(_')")
@@ -81,6 +83,11 @@ syntax
   "_vty_prod"    :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixl "\<times>" 20)
   "_vty_quo"     :: "vty \<Rightarrow> 'a set" ("\<parallel>_\<parallel>\<^sub>t")
   "_vty_inv"     :: "vty \<Rightarrow> pttrn \<Rightarrow> pexpr \<Rightarrow> vty" ("_ inv _ == _")
+  "_vty_collect" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> vty" ("(1{_|/ _})")
+  "_vty_decl"    :: "('a, 'm) PVAR \<Rightarrow> vty \<Rightarrow> vty_decl" (infix ":" 50)
+  "_vty_decls"   :: "[vty_decl, vty_decls] => vty_decls" ("_,/ _")
+  ""             :: "vty_decl => vty_decls" ("_")
+  "_vty_schema"  :: "vty_decls \<Rightarrow> pexpr \<Rightarrow> vty" ("(1[_|/ _])")
 
 translations
   "_vty_quote x"   == "CONST QuoteS x"
@@ -100,10 +107,14 @@ translations
   "_vty_seq1_of A" == "CONST vty_seq1_of A"
   "_vty_quo x"     => "x"
   "_vty_inv A x P" == "CONST InvS A (\<lambda>x. P)"
+  "_vty_collect v P" == "CONST CollectD v P"
+
 
 term "\<parallel>@seq1 of @char\<parallel>\<^sub>t"
 
 (* term "`x := \<langle><1>\<rangle> : @seq1 of @nat1`" *)
+
+term "\<parallel>{($x : @int,$y : @int) | $x = $y}\<parallel>\<^sub>t"
 
 term "\<parallel>[\<langle>1\<rangle>] : @seq1 of @int\<parallel>"
 

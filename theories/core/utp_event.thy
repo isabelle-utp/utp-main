@@ -37,9 +37,9 @@ class EVENT_PERM = VALUE +
   assumes EventPerm_exists: "\<exists> x. x \<in> EventPerm"
 
 typedef 'm::EVENT_PERM EVENT = 
-  "{(c::'m UCHANNEL, v :: 'm). chan_type c \<in> EventPerm \<and> v :! chan_type c}"
+  "{(c::'m UCHANNEL, v :: 'm). chan_type c \<in> EventPerm \<and> v : chan_type c}"
   apply (auto)
-  apply (metis (mono_tags) EventPerm_exists dtype_non_empty snd_def split_conv)
+  apply (metis (lifting) EventPerm_exists fst_eqD prod_caseI2 snd_eqD type_non_empty_defined)
 done
 
 declare Rep_EVENT [simp]
@@ -117,11 +117,11 @@ lift_definition EVENT_value :: "'a::EVENT_PERM EVENT \<Rightarrow> 'a" is "snd"
   by simp
 
 lemma EVENT_channel_EV [simp]: 
-  "\<lbrakk> v :! t; t \<in> EventPerm \<rbrakk> \<Longrightarrow> EVENT_channel (EV n t v) = (n, t)"
+  "\<lbrakk> v : t; t \<in> EventPerm \<rbrakk> \<Longrightarrow> EVENT_channel (EV n t v) = (n, t)"
   by (auto simp add:EVENT_channel_def)
 
 lemma EVENT_value_EV [simp]:
-  "\<lbrakk> v :! t; t \<in> EventPerm \<rbrakk> \<Longrightarrow> EVENT_value (EV n t v) = v"
+  "\<lbrakk> v : t; t \<in> EventPerm \<rbrakk> \<Longrightarrow> EVENT_value (EV n t v) = v"
   by (auto simp add:EVENT_value_def)
 
 end

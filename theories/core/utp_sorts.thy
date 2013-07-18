@@ -286,6 +286,46 @@ lemma MkBool_unq [simp]:
 
 end
 
+subsection {* Character Sort *}
+
+class CHAR_SORT = VALUE +
+  fixes MkChar :: "char \<Rightarrow> 'a"
+  fixes DestChar :: "'a \<Rightarrow> char"
+  fixes CharType :: "'a UTYPE"
+  assumes Inverse [simp] : "DestChar (MkChar c) = c"
+  assumes MkChar_range: "range MkChar = {x. x : CharType \<and> \<D> x}"
+begin
+
+subsubsection {* Derived theorems *}
+
+lemma Defined [simp] : "Defined (MkChar c)"
+  by (metis (lifting) CollectD MkChar_range rangeI)
+
+lemma MkChar_type [typing] : "MkChar x : CharType"
+  by (metis (lifting) CollectD MkChar_range rangeI)
+
+end
+
+subsection {* String Sort *}
+
+class STRING_SORT = VALUE +
+  fixes MkStr :: "string \<Rightarrow> 'a"
+  fixes DestStr :: "'a \<Rightarrow> string"
+  fixes StringType :: "'a UTYPE"
+  assumes Inverse [simp] : "DestStr (MkStr s) = s"
+  and     MkString_range: "range MkString = {x. x : StringType \<and> \<D> x}"
+begin
+
+subsubsection {* Derived theorems *}
+
+lemma Defined [simp] : "\<D> (MkStr s)"
+  by (metis (lifting) CollectD MkString_range image_ident iso_tuple_UNIV_I)
+
+lemma MkStr_type [typing] : "MkStr s : StringType"
+  by (metis (lifting) CollectD MkString_range UNIV_I image_ident)
+
+end
+
 subsection {* Order operation class *}
 
 class LESS_EQ_SORT = VALUE + BOOL_SORT +
@@ -336,6 +376,18 @@ definition FNMemberV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "FNMemberV x xs = MkBool (x \<notin>\<^sub>f DestFSet xs)"
 
 end
+
+class BOOL_FSET_SORT = BOOL_SORT + FSET_SORT +
+  assumes BoolType_FSetPerm [closure]: "BoolType \<in> FSetPerm"
+
+class INT_FSET_SORT = INT_SORT + FSET_SORT +
+  assumes IntType_FSetPerm [closure]: "IntType \<in> FSetPerm"
+
+class EVENT_FSET_SORT = EVENT_SORT + FSET_SORT +
+  assumes EventType_FSetPerm [closure]: "EventType \<in> FSetPerm"
+
+class STRING_FSET_SORT = STRING_SORT + FSET_SORT +
+  assumes StringType_FSetPerm [closure]: "StringType \<in> FSetPerm"
 
 subsection {* Set sort *}
 
@@ -535,47 +587,6 @@ definition SndV :: "'a \<Rightarrow> 'a" where
 
 end
 
-
-subsection {* Character Sort *}
-
-class CHAR_SORT = VALUE +
-  fixes MkChar :: "char \<Rightarrow> 'a"
-  fixes DestChar :: "'a \<Rightarrow> char"
-  fixes CharType :: "'a UTYPE"
-  assumes Inverse [simp] : "DestChar (MkChar c) = c"
-  assumes MkChar_range: "range MkChar = {x. x : CharType \<and> \<D> x}"
-begin
-
-subsubsection {* Derived theorems *}
-
-lemma Defined [simp] : "Defined (MkChar c)"
-  by (metis (lifting) CollectD MkChar_range rangeI)
-
-lemma MkChar_type [typing] : "MkChar x : CharType"
-  by (metis (lifting) CollectD MkChar_range rangeI)
-
-end
-
-subsection {* String Sort *}
-
-class STRING_SORT = VALUE +
-  fixes MkStr :: "string \<Rightarrow> 'a"
-  fixes DestStr :: "'a \<Rightarrow> string"
-  fixes StringType :: "'a UTYPE"
-  assumes Inverse [simp] : "DestStr (MkStr s) = s"
-  and     MkString_range: "range MkString = {x. x : StringType \<and> \<D> x}"
-begin
-
-subsubsection {* Derived theorems *}
-
-lemma Defined [simp] : "\<D> (MkStr s)"
-  by (metis (lifting) CollectD MkString_range image_ident iso_tuple_UNIV_I)
-
-lemma MkStr_type [typing] : "MkStr s : StringType"
-  by (metis (lifting) CollectD MkString_range UNIV_I image_ident)
-
-end
-
 class BOOL_LIST_SORT = BOOL_SORT + LIST_SORT +
   assumes BoolType_ListPerm [closure]: "BoolType \<in> ListPerm"
 
@@ -661,7 +672,16 @@ declare AppV_def [simp] CompV_def [simp]
 
 end
 
-class REACTIVE_SORT = BOOL_SORT + LIST_SORT + FSET_SORT + STRING_LIST_SORT + MINUS_SORT + EVENT_SORT + EVENT_LIST_SORT + LESS_EQ_SORT +
+class REACTIVE_SORT = 
+  BOOL_SORT + 
+  LIST_SORT + 
+  FSET_SORT + 
+  STRING_LIST_SORT + 
+  MINUS_SORT + 
+  EVENT_SORT + 
+  EVENT_LIST_SORT + 
+  EVENT_FSET_SORT + 
+  LESS_EQ_SORT +
   assumes FSetPerm_ListPerm [closure]: "a \<in> ListPerm \<Longrightarrow> ListType a \<in> FSetPerm"
 begin
 

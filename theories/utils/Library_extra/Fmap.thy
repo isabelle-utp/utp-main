@@ -145,6 +145,19 @@ lemma fdomD: "a \<in>\<^sub>f fdom m \<Longrightarrow> \<exists>b. \<langle>m\<r
 lemma fdomIff [iff, simp del]: "(a \<in>\<^sub>f fdom m) = (\<langle>m\<rangle>\<^sub>m a ~= None)"
   by (auto simp add:fdom_def fmember.rep_eq)
 
+lemma fmap_list_fdom_fran:
+  assumes "(x, y) \<in> set (fmap_list f)" 
+  shows "x \<in>\<^sub>f fdom f" "y \<in>\<^sub>f fran f"
+proof -
+
+  obtain xs where 
+    "f = list_fmap xs" "distinct (map fst xs)" "sorted (map fst xs)"
+    by (metis fmap_list_inv fmap_list_props)
+
+  with assms show "x \<in>\<^sub>f fdom f" "y \<in>\<^sub>f fran f"
+    by (simp_all add:fran.rep_eq list_fmap.rep_eq, metis fst_conv imageI, metis map_of_is_SomeI ranI)
+qed
+
 nonterminal mupdbinds and mupdbind
 
 syntax
@@ -156,6 +169,7 @@ syntax
 translations
   "_MUpdate f (_mupdbinds b bs)" == "_MUpdate (_MUpdate f b) bs"
   "f(x:=\<^sub>my)" == "CONST fmap_upd f x y"
+
 
 instantiation fmap :: (linorder,linorder) order
 begin
