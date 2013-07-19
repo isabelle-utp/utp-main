@@ -480,6 +480,15 @@ class MINUS =
 
 abbreviation "MinusPE \<equiv> Op2PE utminus"
 
+subsection {* Restriction Operator *}
+
+consts
+  restrict  :: "'a \<Rightarrow> 'b \<Rightarrow> 'a" 
+
+setup {*
+  Adhoc_Overloading.add_overloaded @{const_name restrict}
+*}
+
 subsection {* Integer Expressions *}
 
 abbreviation IntPE :: "int \<Rightarrow> (int, 'a :: INT_SORT) WF_PEXPRESSION" where
@@ -522,6 +531,12 @@ abbreviation PrefixeqPE::
    ('a ULIST, 'm) WF_PEXPRESSION \<Rightarrow> (bool, 'm) WF_PEXPRESSION" where
 "PrefixeqPE \<equiv> Op2PE PrefixeqUL"
 
+definition RestrictPE :: 
+  "('a ::DEFINED ULIST, 'm :: {BOOL_SORT, LIST_SORT}) WF_PEXPRESSION \<Rightarrow> 
+   ('a UFSET, 'm) WF_PEXPRESSION \<Rightarrow>
+   ('a ULIST, 'm) WF_PEXPRESSION" where
+"RestrictPE \<equiv> Op2PE RestrictUL"
+
 instantiation ULIST :: (DEFINED) LESS_THAN
 begin
 
@@ -547,6 +562,12 @@ instance ..
 end
 
 declare utminus_ULIST_def [simp]
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name restrict} @{const_name RestrictPE}
+*}
+
+declare RestrictPE_def [simp]
 
 lemma MinusUL_left_nil [simp]: 
   fixes x :: "('a::DEFINED ULIST, 'm::LIST_SORT) WF_PEXPRESSION"
@@ -745,6 +766,12 @@ lemma PSubstPE_PVarPE [usubst]:
   shows "PSubstPE (PVarPE x) v x = v"
   using assms by (auto simp add:eval pevar_compat_def PSubstPE_def)
 
+lemma PSubstPE_PVarPE_different [usubst]:
+  fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  assumes "v \<rhd>\<^sub>* x" "TYPEUSOUND('a, 'm)" "x\<down> \<noteq> y\<down>"
+  shows "PSubstPE (PVarPE y) v x = PVarPE y"
+  using assms by (force simp add:evalp typing defined pevar_compat_def)
+
 lemma PSubstPE_ProdPE [usubst]:
   "ProdPE u v[e/\<^sub>*x] = ProdPE (u[e/\<^sub>*x]) (v[e/\<^sub>*x])"
   by (auto simp add:eval)
@@ -802,14 +829,14 @@ lemma SubstE_PSubstPE_dash [usubst]:
   and   e :: "('b :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
   assumes "TYPEUSOUND('a, 'm)" "TYPEUSOUND('b, 'm)" "v \<rhd>\<^sub>* x\<acute>"
   shows "e\<down>[v\<down>/\<^sub>ex\<down>\<acute>] = (PSubstPE e v x\<acute>)\<down>"
-  using assms by (auto simp add:evale typing defined evalp)
+  using assms by (auto simp add:evale typing defined evalp erasure)
 
 lemma SubstE_PSubstPE_dash_dash [usubst]:
   fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
   and   e :: "('b :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
   assumes "TYPEUSOUND('a, 'm)" "TYPEUSOUND('b, 'm)" "v \<rhd>\<^sub>* x\<acute>\<acute>"
   shows "e\<down>[v\<down>/\<^sub>ex\<down>\<acute>\<acute>] = (PSubstPE e v x\<acute>\<acute>)\<down>"
-  using assms by (auto simp add:evale typing defined evalp)
+  using assms by (auto simp add:evale typing defined evalp erasure)
 
 lemma SubstP_PSubstPE_TrueE [usubst]:
   fixes e :: "(bool, 'm :: BOOL_SORT) WF_PEXPRESSION"

@@ -1013,7 +1013,7 @@ lemma RenameB_equiv_cong:
 
 text {* Subscript addition permutation *}
 
-lift_definition SUB :: "nat \<Rightarrow> 'a VAR_RENAME" is "add_sub"
+lift_definition SUB :: "nat \<Rightarrow> 'a VAR_RENAME" is "(\<lambda> x y. vchsub y x)"
   by (simp add:VAR_RENAME_def add_sub_bij)
 
 lemma SUB_var [urename]:
@@ -1026,7 +1026,7 @@ definition "USUB n \<equiv> (add_sub n) on (UNDASHED \<inter> NOSUB)"
 lemma USUB_rename_func_on [closure]:
   "rename_func_on (add_sub n) (UNDASHED \<inter> NOSUB)"
   apply (auto simp add:rename_func_on_def)
-  apply (metis add_sub_inv inj_onI)
+  apply (metis (full_types) add_sub_inv inj_on_inverseI)
   apply (metis (mono_tags) NOSUB_def SUBSCRIPT.distinct(1) mem_Collect_eq vsub_NOSUB)
 done
 
@@ -1048,7 +1048,7 @@ definition "DSUB n \<equiv> (add_sub n) on (DASHED \<inter> NOSUB)"
 lemma DSUB_rename_func_on [closure]:
   "rename_func_on (add_sub n) (DASHED \<inter> NOSUB)"
   apply (auto simp add:rename_func_on_def)
-  apply (metis add_sub_inv inj_onI)
+  apply (metis (full_types) add_sub_inv inj_on_inverseI)
   apply (metis (mono_tags) NOSUB_def SUBSCRIPT.distinct(1) mem_Collect_eq vsub_NOSUB)
 done
 

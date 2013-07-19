@@ -64,8 +64,15 @@ definition pvundash :: "('a, 'm :: VALUE) PVAR \<Rightarrow> ('a, 'm :: VALUE) P
 definition pvdash :: "('a, 'm :: VALUE) PVAR \<Rightarrow> ('a, 'm :: VALUE) PVAR" where
 "pvdash v = Abs_PVAR (MkName (name_str (pvname v)) (dashes (pvname v) + 1) (subscript (pvname v)), pvaux v)"
 
+definition pvchsub :: "('a, 'm::VALUE) PVAR \<Rightarrow> nat \<Rightarrow> ('a, 'm) PVAR" where
+"pvchsub v n = Abs_PVAR (MkName (name_str (pvname v)) (dashes (pvname v)) (chsub n (subscript (pvname v))), pvaux v)"
+
 setup {*
 Adhoc_Overloading.add_variant @{const_name prime} @{const_name pvdash}
+*}
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name subscr} @{const_name pvchsub}
 *}
 
 text {* Set up syntax for operators which perform type erasure *}
@@ -99,7 +106,7 @@ lemma PVAR_VAR_inj [dest]:
   shows "x = y"
    by (metis PVAR_VAR_inv assms)
 
-lemma VAR_PVAR_inv [simp]: 
+lemma VAR_PVAR_inv [erasure]: 
   "vtype x = TYPEU('a) \<Longrightarrow> (VAR_PVAR x :: ('a, 'm :: VALUE) PVAR)\<down> = x"
   apply (case_tac x)
   apply (auto simp add:PVAR_VAR_def VAR_PVAR_def MkVar_def)
@@ -112,6 +119,12 @@ lemma PVAR_VAR_pvundash [simp]:
 lemma PVAR_VAR_pvdash [simp]:
   "(pvdash x)\<down> = dash x\<down>"
   by (auto simp add:PVAR_VAR_def dash_def pvdash_def)
+
+lemma PVAR_VAR_pvchsub [simp]:
+  "(pvchsub x n)\<down> = vchsub (x\<down>) n"
+  apply (case_tac x, case_tac y, case_tac a)
+  apply (auto simp add:PVAR_VAR_def pvchsub_def MkVar_def)
+done
 
 lemma PVAR_VAR_MkPVAR:
   "(MkPVAR n s (a :: 'a itself) (m :: ('m::VALUE) itself))\<down> 
@@ -185,7 +198,7 @@ lemma PVAR_VAR_vtype [simp]:
 
 lemma PVAR_VAR_RENAME [simp]: 
   "(ss\<bullet>x)\<down> = ss\<bullet>(x\<down>)"
-  by (simp add:PermPV_def)
+  by (simp add:PermPV_def erasure)
 
 text {* A list produced from a polymorphic auxiliary variable is within the carrier of
         the list elements *}

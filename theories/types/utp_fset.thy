@@ -84,6 +84,10 @@ lift_definition SubseteqUF :: "'a::DEFINED UFSET \<Rightarrow> 'a UFSET \<Righta
 lift_definition FSetUF :: "'a::DEFINED ULIST \<Rightarrow> 'a UFSET" is "fset"
   by (auto)
 
+lift_definition RestrictUL :: "'a::DEFINED ULIST \<Rightarrow> 'a UFSET \<Rightarrow> 'a ULIST"
+is "\<lambda> xs v. filter (\<lambda> x. x \<notin>\<^sub>f v) xs"
+  by (auto)
+
 definition IntersyncUF :: 
   "'a::DEFINED UFSET \<Rightarrow> 'a ULIST \<Rightarrow> 'a ULIST \<Rightarrow> ('a ULIST) UFSET"  where
 "IntersyncUF xs ys zs = Abs_UFSET (Abs_ULIST `\<^sub>f (intersync (Rep_UFSET xs) (Rep_ULIST ys) (Rep_ULIST zs)))"
@@ -111,5 +115,6 @@ declare SubsetUF.rep_eq [eval, evale]
 declare SubseteqUF.rep_eq [eval, evale]
 declare FSetUF.rep_eq [eval, evale]
 declare IntersyncUF_def [eval, evale]
+declare RestrictUL.rep_eq [eval, evale]
 
 end

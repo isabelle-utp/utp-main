@@ -111,7 +111,7 @@ proof -
   also from assms have "... = `[(\<not> P2 \<Rightarrow> \<not> P1) \<and> ((P2 \<Rightarrow> Q2) \<Rightarrow> (P1 \<Rightarrow> Q1))]`"
     apply (rule_tac trans)
     apply (rule_tac x="okay\<acute>\<down>" in BoolType_aux_var_split_taut)
-    apply (simp_all add:usubst typing defined)
+    apply (simp_all add:usubst typing defined erasure)
   done
 
   also have "... = `[(P1 \<Rightarrow> P2) \<and> ((P2 \<Rightarrow> Q2) \<Rightarrow> (P1 \<Rightarrow> Q1))]`"
@@ -141,7 +141,7 @@ proof -
     apply (rule_tac trans)
     apply (rule BoolType_aux_var_split_exists, simp_all)
     apply (simp add:erasure typing)
-    apply (simp add:usubst typing assms closure defined unrest)
+    apply (simp add:usubst typing assms closure defined unrest erasure)
   done
 
   also have "... = `((true ; true) \<or> (true ; ((P \<turnstile> Q)[true/okay])))`"
@@ -569,7 +569,7 @@ lemma H2_monotone:
 lemma DesignD_is_H2:
   "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION; UNREST AUX_VAR P; UNREST AUX_VAR Q \<rbrakk> \<Longrightarrow> P \<turnstile> Q is H2"
   apply (simp add:H2_equivalence closure)
-  apply (simp add:DesignD_def usubst closure typing defined)
+  apply (simp add:DesignD_def usubst closure typing defined erasure)
   apply (utp_pred_auto_tac)
 done
 
@@ -620,8 +620,10 @@ lemma H3_monotone:
   "p \<sqsubseteq> q \<Longrightarrow> H3 p \<sqsubseteq> H3 q"
   by (utp_rel_auto_tac)
 
-(* Theory of Designs *)
-lift_definition DESIGNS :: "'VALUE WF_THEORY" is "({vs. vs \<subseteq> REL_VAR \<and> OKAY \<subseteq> vs}, {H1,H2})"
+subsection {* The theory of Designs *}
+
+lift_definition DESIGNS :: "'VALUE WF_THEORY" 
+is "({vs. vs \<subseteq> REL_VAR \<and> OKAY \<subseteq> vs}, {H1,H2})"
   by (simp add:WF_THEORY_def IDEMPOTENT_OVER_def H1_idempotent H2_idempotent)
 
 lemma DESIGNS_WF_RELATION [closure]:
@@ -645,6 +647,11 @@ lemma DESIGNS_intro:
   apply (rule_tac x="vs" in exI, auto)
 done
 
+subsection {* The theory of Normal Designs *}
+
+lift_definition NORMAL_DESIGNS :: "'VALUE WF_THEORY" 
+is "({vs. vs \<subseteq> REL_VAR \<and> OKAY \<subseteq> vs}, {H1,H2,H3})"
+  by (simp add:WF_THEORY_def IDEMPOTENT_OVER_def H1_idempotent H2_idempotent H3_idempotent)
    
 (*
 lemma "(d1 = d2) \<longleftrightarrow> (\<forall> r. d1 wp r = d2 wp r)"

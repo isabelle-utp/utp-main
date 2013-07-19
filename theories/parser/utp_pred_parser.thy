@@ -176,6 +176,7 @@ syntax
 
 syntax
   (* Data Structures *)
+  "_pexpr_lit"           :: "'a \<Rightarrow> pexpr" ("\<guillemotleft>_\<guillemotright>")
   "_pexpr_int"           :: "int \<Rightarrow> pexpr" ("<_>")
   "_pexpr_plus"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "+" 65)
   "_pexpr_minus"         :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "-" 65)
@@ -196,6 +197,7 @@ syntax
   "_pexpr_intersync"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<parallel>\<^bsub>_\<^esub>" 75)
   "_pexpr_event"         :: "NAME \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_._" 50)
   "_pexpr_event_chan"    :: "pexpr \<Rightarrow> pexpr" ("chan _")
+  "_pexpr_restrict"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "\\" 70)
 
 translations
   (* Basic logical operators *)
@@ -227,6 +229,7 @@ translations
 
 translations
   (* Data Structures *)
+  "_pexpr_lit x"               == "CONST LitPE x"
   "_pexpr_int x"               == "CONST IntPE x"
   "_pexpr_plus x y"            == "CONST PlusPE x y"
   "_pexpr_minus x y"           == "CONST MinusPE x y"
@@ -249,6 +252,7 @@ translations
   "_pexpr_intersync p xs q"    == "CONST IntersyncPE xs p q"
   "_pexpr_event n v"           == "CONST EventPE n v"
   "_pexpr_event_chan e"        == "CONST ChannelPE e"
+  "_pexpr_restrict e f"        == "CONST RestrictPE e f"
 
 (* Linking the predicate parser to the poly parser *)
 
@@ -275,7 +279,7 @@ term "`($x)\<acute> = $y\<acute>`"
 term "`p[($x)\<acute>/y\<acute>]`"
 term "`\<lparr>true\<rparr>`"
 
-lemma "`$x \<in> {<1>,<2>,<3>,<4>,<5>} \<sqsubseteq> $x = <1>`"
+lemma "`$x \<in> {<1>,\<guillemotleft>2\<guillemotright>,<3>,<4>,<5>} \<sqsubseteq> $x = <1>`"
   by (utp_pred_tac)
 
 lemma "`{} \<subseteq> {<1>}`"
@@ -287,5 +291,10 @@ lemma "`({<1>,<2>} - {<1>}) \<subseteq> {<2>}`"
 lemma "`<1> \<in> elems \<langle><4>,<7>,<1>,<9>\<rangle>`"
   by (utp_pred_tac)
 
-end
+term "\<parallel>$x\<^bsub>0\<^esub>\<parallel>"
 
+lemma "\<parallel>\<langle><1>,<2>,<3>\<rangle> \\ {\<guillemotleft>2\<guillemotright>}\<parallel> = \<parallel>\<langle><1>,<3>\<rangle>\<parallel>"
+  apply (auto simp add:evalp evale defined)
+done
+
+end

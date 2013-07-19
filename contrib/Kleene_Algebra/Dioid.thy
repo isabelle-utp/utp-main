@@ -410,4 +410,10 @@ subclass dioid_one_zero ..
 
 end (* selective_semiring *)
 
+class semilattice_inf_join = join_semilattice + sup +
+  assumes inf_as_plus: "sup x y = x + y"
+
+instance semilattice_inf_join \<subseteq> semilattice_sup
+  by (intro_classes, simp_all add:inf_as_plus add_lub)
+
 end

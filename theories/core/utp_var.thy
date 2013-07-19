@@ -104,8 +104,10 @@ definition undash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" where
 "undash \<equiv> \<lambda> x. MkVar (MkName (name_str (name x)) (dashes (name x)- 1) (subscript (name x)))
                      (vtype x) (aux x)"
 
-fun add_sub :: "nat \<Rightarrow> 'a VAR \<Rightarrow> 'a VAR" where
-"add_sub n (MkName s d b, t, a) = (MkName s d (chsub n b), t, a)"
+fun vchsub :: "'a VAR \<Rightarrow> nat \<Rightarrow> 'a VAR" where
+"vchsub (MkName s d b, t, a) n = (MkName s d (chsub n b), t, a)"
+
+abbreviation "add_sub n i \<equiv> vchsub i n"
 
 lemma add_sub_inv [simp]:
   "add_sub n (add_sub n x) = x"
@@ -113,10 +115,11 @@ lemma add_sub_inv [simp]:
 
 lemma add_sub_bij:
   "bij (add_sub n)"
-  by (metis add_sub_inv bij_betw_def inj_on_inverseI surjI)
+  by (metis (mono_tags) add_sub_inv inj_on_def inj_on_imp_bij_betw surjI)
 
-abbreviation vchsub :: "'a VAR \<Rightarrow> nat \<Rightarrow> 'a VAR" ("_\<^bsub>_\<^esub>") where
-"vchsub v n \<equiv> add_sub n v"
+setup {*
+Adhoc_Overloading.add_variant @{const_name subscr} @{const_name vchsub}
+*}
 
 subsection {* Recontrolions *}
 

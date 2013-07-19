@@ -18,6 +18,8 @@ abbreviation "wait \<equiv> MkPlainP ''wait'' True TYPE(bool) TYPE('m)"
 abbreviation "tr   \<equiv> MkPlainP ''tr'' True TYPE('m EVENT ULIST) TYPE('m)"
 abbreviation "ref  \<equiv> MkPlainP ''ref'' True TYPE('m EVENT UFSET) TYPE('m)"
 
+abbreviation "REA \<equiv> OKAY \<union> {wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}"
+
 definition SkipREA :: "'a WF_PREDICATE" where
 "SkipREA = `(\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok' \<and> II\<^bsub>REL_VAR - OKAY\<^esub>)`"
 
@@ -60,8 +62,9 @@ declare SkipREA_def [eval, evalr, evalrr, evalrx]
 
 lemma R1_idempotent : "`R1(R1(P))` = `R1(P)`" by (utp_rel_tac)
 
+
 lemma R2_idempotent : "`R2(R2(P))` = `R2(P)`"
-  by (simp add:R2_def, simp add:usubst typing defined closure unrest)
+  by (simp add:R2_def, simp add:usubst typing closure defined unrest)
 
 lemma R3_idempotent : "`R3(R3(P))` = `R3(P)`" by (utp_pred_auto_tac)
 
@@ -69,8 +72,10 @@ lemma R1_monotonic : "[P \<Rightarrow> Q] \<Longrightarrow> [R1(P) \<Rightarrow>
 lemma R2_monotonic : "[P \<Rightarrow> Q] \<Longrightarrow> [R2(P) \<Rightarrow> R2(Q)]" by(utp_pred_tac)
 lemma R3_monotonic : "[P \<Rightarrow> Q] \<Longrightarrow> [R3(P) \<Rightarrow> R3(Q)]" by(utp_pred_tac)
 
-lemma SkipREA_is_R1: "`II\<^bsub>rea\<^esub> \<and> ($tr \<le> $tr\<acute>)`= `II\<^bsub>rea\<^esub>`" sorry
-lemma R1_true_is_R2 : "`($tr \<le> $tr\<acute>)[($tr\<acute> - $tr)/tr\<acute>][\<langle>\<rangle>/tr]` = `($tr \<le> $tr\<acute>)`"sorry
+lemma SkipREA_is_R1: "`II\<^bsub>rea\<^esub> \<and> ($tr \<le> $tr\<acute>)`= `II\<^bsub>rea\<^esub>`" 
+  by (auto simp add:eval closure typing defined)
+
+lemma R1_true_is_R2 : "`($tr \<le> $tr\<acute>)[($tr\<acute> - $tr)/tr\<acute>][\<langle>\<rangle>/tr]` = `($tr \<le> $tr\<acute>)`" sorry
 lemma SkipREA_is_R2 : "`II\<^bsub>rea\<^esub>[($tr\<acute> - $tr)/tr\<acute>][\<langle>\<rangle>/tr]` = `II\<^bsub>rea\<^esub>`" sorry
 lemma wait_is_R2 : "`$wait[($tr\<acute> - $tr)/tr\<acute>][\<langle>\<rangle>/tr]` = `$wait`" sorry
 
@@ -88,6 +93,7 @@ proof -
     sorry(*by (simp add:usubst erasure typing defined closure R1_true_is_R2)*)
   ultimately show ?thesis by (utp_rel_tac)
 qed
+
 lemma R2_R3_commute : "R2 (R3 P) = R3 (R2 P)" 
 proof - 
   have "R2 (R3 P) = `(II\<^bsub>rea\<^esub> \<lhd> $wait \<rhd> P)[\<langle>\<rangle>/tr][($tr\<acute> - $tr)/tr\<acute>]`" by (utp_rel_tac)
@@ -134,5 +140,11 @@ proof -
   done
   finally show ?thesis ..
 qed
+
+subsection {* The theory of Reactive Processes *}
+
+lift_definition REACTIVE :: "'VALUE WF_THEORY" 
+is "({vs. vs \<subseteq> REL_VAR \<and> REA \<subseteq> vs}, {R1,R2,R3})"
+  by (simp add:WF_THEORY_def IDEMPOTENT_OVER_def R1_idempotent R2_idempotent R3_idempotent)
 
 end
