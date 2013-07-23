@@ -19,11 +19,31 @@ definition is_healthy ::
   \<Rightarrow> bool" ("_ is _") where
 "is_healthy p H \<equiv> H p = p"
 
-declare is_healthy_def [eval]
-
 definition IDEMPOTENT_OVER ::
   "'a VAR set \<Rightarrow> 'a WF_FUNCTION set" where
 "IDEMPOTENT_OVER vs = {f . \<forall> p \<in> WF_PREDICATE_OVER vs . f (f p) = f p}"
+
+declare is_healthy_def [eval]
+
+lemma Healthy_intro [intro]:
+  "H(P) = P \<Longrightarrow> P is H"
+  by (simp add: is_healthy_def)
+
+lemma Healthy_elim [elim]:
+  "\<lbrakk> Q is H; \<lbrakk> H(Q) = Q \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (simp add: is_healthy_def)
+
+lemma Healthy_comp [closure]:
+  "\<lbrakk> H2(P) is H1; P is H2 \<rbrakk> \<Longrightarrow> P is (H1 \<circ> H2)"
+  by (simp add:is_healthy_def)
+
+lemma Healthy_simp:
+  "P is H \<Longrightarrow> H(P) = P"
+  by (simp add:is_healthy_def)
+
+lemma Healthy_apply [closure]:
+  "\<lbrakk> H \<in> IDEMPOTENT_OVER vs; P \<in> WF_PREDICATE_OVER vs \<rbrakk> \<Longrightarrow> H(P) is H"
+  by (simp add:is_healthy_def IDEMPOTENT_OVER_def)
 
 type_synonym 'a THEORY = "('a VAR set set * 'a WF_FUNCTION set)"
 

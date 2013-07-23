@@ -9,6 +9,7 @@ header {* VDM expressions *}
 theory utp_vdm_expr
 imports 
   utp_vdm_sorts 
+  "../../theories/utp_definedness"
 begin
 
 text {* Getting an accurate representation of VDM expressions is hard,
@@ -80,11 +81,11 @@ definition ListD :: "'a::vbasic vdme list \<Rightarrow> 'a list vdme" where
 definition FSetD :: "'a::vbasic vdme fset \<Rightarrow> 'a fset vdme" where
 "FSetD xs = MkPExpr (\<lambda> b. fset_option ((\<lambda> v. \<lbrakk>v\<rbrakk>\<^sub>* b) `\<^sub>f xs))"
 
-definition ForallD :: "('a \<Rightarrow> bool vdme) \<Rightarrow> bool vdme" where
-"ForallD f = MkPExpr (\<lambda> b. (Some (\<forall> x. \<lbrakk>f x\<rbrakk>\<^sub>* b = Some True)))"
+definition ForallD :: "'a set \<Rightarrow> ('a \<Rightarrow> bool vdme) \<Rightarrow> bool vdme" where
+"ForallD xs f = MkPExpr (\<lambda> b. (Some (\<forall> x \<in> xs. \<lbrakk>f x\<rbrakk>\<^sub>* b = Some True)))"
 
-definition ExistsD :: "('a \<Rightarrow> bool vdme) \<Rightarrow> bool vdme" where
-"ExistsD f = MkPExpr (\<lambda> b. (Some (\<exists> x. \<lbrakk>f x\<rbrakk>\<^sub>* b = Some True)))"
+definition ExistsD :: "'a set \<Rightarrow> ('a \<Rightarrow> bool vdme) \<Rightarrow> bool vdme" where
+"ExistsD xs f = MkPExpr (\<lambda> b. (Some (\<exists> x \<in> xs. \<lbrakk>f x\<rbrakk>\<^sub>* b = Some True)))"
 
 abbreviation DefinedD :: "'a vdme \<Rightarrow> bool vdme" where
 "DefinedD v \<equiv> LitD (\<D> v)"
@@ -122,6 +123,7 @@ no_syntax
   "_pexpr_minus"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "-" 65)
   "_pexpr_less"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "<" 25)
   "_pexpr_less_eq"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<le>" 25)
+  "_pexpr_int"         :: "int \<Rightarrow> pexpr" ("<_>")
   "_pexpr_fset_empty"  :: "pexpr" ("{}")
   "_pexpr_fset"        :: "pexprs \<Rightarrow> pexpr" ("{_}")
   "_pexpr_list"        :: "pexprs \<Rightarrow> pexpr" ("\<langle>_\<rangle>")
@@ -135,8 +137,8 @@ syntax
   "_vexpr_num"     :: "num_const \<Rightarrow> pexpr" ("_")
   "_vexpr_bot"     :: "pexpr" ("undefined")
   "_vexpr_lit"     :: "'a::vbasic \<Rightarrow> pexpr" ("\<langle>_\<rangle>")
-  "_vexpr_forall"  :: "pttrn \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ &/ _)" [0, 10] 10)
-  "_vexpr_exists"  :: "pttrn \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3exists _ &/ _)" [0, 10] 10)
+  "_vexpr_forall"  :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ : _ &/ _)" [0, 0, 10] 10)
+  "_vexpr_exists"  :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3exists _ : _ &/ _)" [0, 0, 10] 10)
   "_vexpr_coerce"  :: "pexpr \<Rightarrow> vty \<Rightarrow> pexpr" (infix ":" 50)
   "_vexpr_prod"    :: "pexprs \<Rightarrow> pexpr"    ("'(_')")
   "_vexpr_nil"     :: "pexpr" ("[]")
@@ -151,8 +153,8 @@ translations
   "_vexpr_false"               == "CONST FalseDE"
   "_vexpr_bot"                 == "CONST BotDE"
   "_vexpr_lit v"               == "CONST LitD v"
-  "_vexpr_forall x e"          == "CONST ForallD (\<lambda>x. e)"
-  "_vexpr_exists x e"          == "CONST ExistsD (\<lambda>x. e)"
+  "_vexpr_forall x xs e"       == "CONST ForallD xs (\<lambda>x. e)"
+  "_vexpr_exists x xs e"       == "CONST ExistsD xs (\<lambda>x. e)"
   "_vexpr_coerce e t"          == "CONST CoerceD e t"
   "_vexpr_prod (_pexprs x xs)" == "CONST vexpr_prod x (_vexpr_prod xs)"
   "_vexpr_prod x"              == "CONST SingleD x"
@@ -163,6 +165,17 @@ translations
   "_vexpr_fset (_pexprs x xs)" == "CONST vexpr_insert x (_vexpr_fset xs)"
   "_vexpr_fset x"              == "CONST vexpr_insert x CONST vexpr_empty"
 
+subsection {* Tautologies *}
+
+definition VExprTrueT :: "bool vdme \<Rightarrow> vdmv WF_PREDICATE" where
+"VExprTrueT e = `e = true`"
+
+definition VExprDefinedT :: "bool vdme \<Rightarrow> vdmv WF_PREDICATE" where
+"VExprDefinedT e = `\<not> (e = undefined)`"
+
+abbreviation VTautT :: "bool vdme \<Rightarrow> vdmv WF_PREDICATE" where
+"VTautT e \<equiv> TVL (VExprTrueT e, VExprDefinedT e)"
+
 subsection {* @{term UNREST_PEXPR} theorems *}
 
 lemma UNREST_PEXPR_BotDE [unrest]: 
@@ -171,11 +184,11 @@ lemma UNREST_PEXPR_BotDE [unrest]:
 
 
 lemma UNREST_PEXPR_ForallD [unrest]:
-  "\<forall> e. UNREST_PEXPR vs (f e) \<Longrightarrow> UNREST_PEXPR vs (ForallD f)"
+  "\<forall> e. UNREST_PEXPR vs (f e) \<Longrightarrow> UNREST_PEXPR vs (ForallD xs f)"
   by (simp add:UNREST_PEXPR_def ForallD_def)
 
 lemma UNREST_PEXPR_ExistsD [unrest]:
-  "\<forall> e. UNREST_PEXPR vs (f e) \<Longrightarrow> UNREST_PEXPR vs (ExistsD f)"
+  "\<forall> e. UNREST_PEXPR vs (f e) \<Longrightarrow> UNREST_PEXPR vs (ExistsD xs f)"
   by (simp add:UNREST_PEXPR_def ExistsD_def)
 
 lemma UNREST_PEXPR_Op1D [unrest]: 
@@ -265,7 +278,7 @@ lemma EvalD_BotDE [eval,evalp,evale]:
   by (simp add:BotDE_def evalp)
 
 lemma EvalD_ForallD [eval,evalp,evale]:
-  "\<lbrakk>ForallD f\<rbrakk>\<^sub>*b = \<lfloor>\<forall>x. \<lbrakk>f x\<rbrakk>\<^sub>*b = \<lfloor>True\<rfloor>\<rfloor>"
+  "\<lbrakk>ForallD xs f\<rbrakk>\<^sub>*b = \<lfloor>\<forall>x\<in>xs. \<lbrakk>f x\<rbrakk>\<^sub>*b = \<lfloor>True\<rfloor>\<rfloor>"
   by (simp add:ForallD_def)
 
 lemma EvalD_Op1D [eval,evalp,evale]:

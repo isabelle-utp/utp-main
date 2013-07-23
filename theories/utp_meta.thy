@@ -14,12 +14,11 @@ imports
   "tactics/utp_pred_tac"
   "tactics/utp_rel_tac"
   "tactics/utp_xrel_tac"
+  "tactics/utp_subst_tac"
   "laws/utp_pred_laws"
   "laws/utp_rel_laws"
   "laws/utp_subst_laws"
   "laws/utp_rename_laws"
   "laws/utp_refine_laws"
   "theories/utp_designs"
-begin
-
-end
+begin end

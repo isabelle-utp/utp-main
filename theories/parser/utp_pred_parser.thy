@@ -22,7 +22,7 @@ nonterminal
 section {* Core Polymorphic Expression Syntax *}
 
 syntax
-  "_pexpr_quote"        :: "pexpr \<Rightarrow> ('a, 'm) WF_PEXPRESSION" ("(1\<parallel>_\<parallel>)")
+  "_pexpr_quote"        :: "pexpr \<Rightarrow> ('a, 'm) WF_PEXPRESSION" ("(1|_|)")
   "_pexpr_pred_quote"   :: "pexpr \<Rightarrow> 'a WF_PREDICATE" ("(1``_``)")
   "_pexprs"             :: "[pexpr, pexprs] => pexprs" ("_,/ _")
   ""                    :: "pexpr => pexprs" ("_")
@@ -291,10 +291,9 @@ lemma "`({<1>,<2>} - {<1>}) \<subseteq> {<2>}`"
 lemma "`<1> \<in> elems \<langle><4>,<7>,<1>,<9>\<rangle>`"
   by (utp_pred_tac)
 
-term "\<parallel>$x\<^bsub>0\<^esub>\<parallel>"
+term "|$x\<^bsub>0\<^esub>|"
 
-lemma "\<parallel>\<langle><1>,<2>,<3>\<rangle> \\ {\<guillemotleft>2\<guillemotright>}\<parallel> = \<parallel>\<langle><1>,<3>\<rangle>\<parallel>"
-  apply (auto simp add:evalp evale defined)
-done
+lemma "|\<langle><1>,<2>,<3>\<rangle> \\ {\<guillemotleft>2\<guillemotright>}| = |\<langle><1>,<3>\<rangle>|"
+  by (simp add:evalp evale defined)
 
 end

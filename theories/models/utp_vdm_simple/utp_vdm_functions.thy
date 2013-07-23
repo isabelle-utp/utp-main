@@ -30,7 +30,7 @@ abbreviation "vexpr_hd        \<equiv> Op1D' hd"
 abbreviation "vexpr_tl        \<equiv> Op1D' tl"
 
 definition ForallSetD :: "'a fset vdme \<Rightarrow> ('a \<Rightarrow> bool vdme) \<Rightarrow> bool vdme" where
-"ForallSetD xs p = ForallD (\<lambda> x. vexpr_implies (vexpr_in_set (LitD x) xs) (p x))"
+"ForallSetD xs f = MkPExpr (\<lambda> b. (Some (\<forall> x \<in> \<langle>the (\<lbrakk>xs\<rbrakk>\<^sub>* b)\<rangle>\<^sub>f. \<lbrakk>f x\<rbrakk>\<^sub>* b = Some True)))"
 
 syntax
 (*  "_vexpr_num"     :: "num \<Rightarrow> pexpr" ("_") *)
@@ -79,22 +79,26 @@ translations
   "_vexpr_tl xs"       == "CONST vexpr_tl xs"
   "_vexpr_all_set x xs p" == "CONST ForallSetD xs (\<lambda>x. p)"
 
-thm ForallSetD_def
+term "|$x in @set {<1>}|"
 
-term "\<parallel>$x in @set {<1>}\<parallel>"
+term "|forall x:@nat1 & \<langle>x\<rangle> > \<langle>1\<rangle>|"
+term "|forall x in @set {\<langle>1\<rangle>} & (\<langle>x\<rangle> > \<langle>5\<rangle>)|"
 
-term "\<parallel>forall x in @set {<1>} & (<x> > <5>)\<parallel>"
-
-
+lemma "|forall x:@nat1 & \<langle>x\<rangle> > \<langle>1\<rangle>| = |true|"
+  apply (rule DestPExpr_intro)
+  apply (simp add:evalp)
+done
 
 (* term "|\<langle>x\<rangle> > \<langle>5 :: int\<rangle>|" *)
-term "\<parallel>@int inv x == \<langle>x\<rangle> > \<langle>5\<rangle>\<parallel>\<^sub>t"
+term "\<parallel>@int inv x == \<langle>x\<rangle> > \<langle>5\<rangle>\<parallel>"
 
-lemma "\<parallel>\<langle>2\<rangle> : @int inv x == (\<langle>x\<rangle> < \<langle>5\<rangle>)\<parallel> = \<parallel>\<langle>2\<rangle> : @int\<parallel>"
+lemma "|\<langle>2\<rangle> : @int inv x == (\<langle>x\<rangle> < \<langle>5\<rangle>)| = |\<langle>2\<rangle> : @int|"
   by (auto simp add:evalp defined typing)
 
+(*
 lemma "\<parallel>(true,true) : {($x,$y) | $x = $y}\<parallel> = \<parallel>(true,true)\<parallel>"
-  apply (utp_pred_tac)
+  by (utp_pred_tac)
+*)
 
 instantiation fset :: (DEFINED) DEFINED
 begin
@@ -105,7 +109,7 @@ instance ..
 
 end
 
-lemma "\<parallel>{\<langle>1\<rangle>} : @set of @int\<parallel> = \<parallel>{\<langle>1\<rangle>}\<parallel>"
+lemma "|{\<langle>1\<rangle>} : @set of @int| = |{\<langle>1\<rangle>}|"
   by (auto simp add:evalp defined typing)
 
 (*

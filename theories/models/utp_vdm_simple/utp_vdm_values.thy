@@ -51,15 +51,9 @@ datatype vdmt =
   | FuncT vbasict vdmt (infixr "\<rightarrow>" 60)
 
 derive countable vbasict
+derive linorder vbasict
 derive countable vdmt
-(* derive linorder vdmt *)
-
-instantiation vdmt :: linorder
-begin
-
-instance sorry
-
-end
+derive linorder vdmt
 
 primrec ProjBasicT :: "vdmt \<Rightarrow> vbasict" where
 "ProjBasicT (BasicT t) = t"
@@ -67,7 +61,6 @@ primrec ProjBasicT :: "vdmt \<Rightarrow> vbasict" where
 (* declare [[coercion BasicT]] *)
 
 abbreviation "LiftT f t \<equiv> BasicT (f (ProjBasicT t))"
-
 abbreviation "BoolT  \<equiv> BasicT BoolBT"
 abbreviation "NatT   \<equiv> BasicT NatBT"
 abbreviation "IntT   \<equiv> BasicT IntBT"
@@ -79,10 +72,8 @@ abbreviation "TokenT \<equiv> BasicT TokenBT"
 abbreviation "EventT \<equiv> BasicT EventBT"
 abbreviation "NameT  \<equiv> BasicT NameBT"
 abbreviation "TypeT  \<equiv> BasicT TypeBT"
-
 abbreviation "FSetT \<equiv> LiftT FSetBT"
 abbreviation "ListT \<equiv> LiftT ListBT"
-
 abbreviation "StringT \<equiv> ListT CharT"
 
 subsection {* Basic (countable) values *}
@@ -116,14 +107,16 @@ datatype vbasic
 
 (* Deriving the linear order necessarily takes a while *)
 
-(* derive linorder vbasic *)
+derive linorder vbasic
 
+(*
 instantiation vbasic :: linorder
 begin
 
 instance sorry
 
 end
+*)
 
 subsection {* Full values *}
 

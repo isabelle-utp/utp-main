@@ -15,6 +15,7 @@ imports
   "tactics/utp_expr_tac"
   "tactics/utp_rel_tac"
   "tactics/utp_xrel_tac"
+  "tactics/utp_subst_tac"
   "laws/utp_pred_laws"
   "laws/utp_rel_laws"
   "laws/utp_subst_laws"
@@ -23,5 +24,4 @@ imports
   "poly/utp_poly"
   "parser/utp_pred_parser"
   "theories/utp_theory"
-begin
-end
+begin end

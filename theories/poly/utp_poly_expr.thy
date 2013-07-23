@@ -1,6 +1,6 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
-(* File: utp_shallow_expr.thy                                                 *)
+(* File: utp_poly_expr.thy                                                    *)
 (* Author: Simon Foster and Frank Zeyda, University of York (UK)              *)
 (******************************************************************************)
 
@@ -24,7 +24,6 @@ ML {*
 
 setup evalp.setup
 
-
 text {* In theory we could have a single unified type for both predicates and expressions.
         This might have some advantages, but a big disadvantage is that we would no longer
         be able to give specific class instances for predicates, such as showing that
@@ -47,6 +46,10 @@ notation DestPExpr ("\<lbrakk>_\<rbrakk>\<^sub>*")
 lemma DestPExpr_intro [intro]:
   "(\<And> b. \<lbrakk>x\<rbrakk>\<^sub>*b = \<lbrakk>y\<rbrakk>\<^sub>*b) \<Longrightarrow> x = y"
   by (auto simp add: DestPExpr_inject[THEN sym])
+
+lemma DestPExpr_transfer [evalp]:
+  "x = y \<longleftrightarrow> (\<forall> b. \<lbrakk>x\<rbrakk>\<^sub>*b = \<lbrakk>y\<rbrakk>\<^sub>*b)"
+  by (auto)
 
 definition WF_PEXPRESSION_type :: 
   "('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm UTYPE" ("\<tau>\<^sub>*") where

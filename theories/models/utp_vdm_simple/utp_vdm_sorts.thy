@@ -222,11 +222,15 @@ instance
   apply (intro_classes)
   apply (auto simp add:DestEvent_vdmv_def MkEvent_vdmv_def EventType_vdmv_def dcarrier_def type_rel_vdmt image_def)
   apply (rule_tac x="EV n (embTYPE (BasicT  t)) (BasicD v)" in exI)
-  apply (subgoal_tac "BasicD v :! embTYPE (BasicT t)")
+  apply (subgoal_tac "BasicD v : embTYPE (BasicT t)")
   apply (subgoal_tac "(embTYPE (BasicT t) :: vdmv UTYPE) \<in> EventPerm")
   apply (simp add:EventI_def)
   apply (simp add:EventPerm_vdmv_def vbtypes_def)
-sorry
+  apply (force simp add:type_rel_vdmt)
+  apply (simp add:monotype_def type_rel_vdmt)
+  apply (auto)
+  apply (metis BasicD_type_cases EvI_type_cases prjTYPE_inv_vdmt)
+done
 end
 
 subsection {* Set sort instantiation *}

@@ -147,6 +147,8 @@ lemma DesignD_extreme_point_nok:
   "true \<turnstile> false = \<not>\<^sub>p ok"
   by (utp_pred_tac)
 
+declare Healthy_simp [simp del]
+
 lemma DesignD_export_precondition:
   "(P \<turnstile> Q) = (P \<turnstile> P \<and>\<^sub>p Q)"
   by (utp_pred_tac)
@@ -234,7 +236,7 @@ proof -
   from assms
   have " `(P1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` 
         = `\<exists> okay\<acute>\<acute>\<acute> . ((P1 \<turnstile> Q1)[$okay\<acute>\<acute>\<acute>/okay\<acute>] ; (P2 \<turnstile> Q2)[$okay\<acute>\<acute>\<acute>/okay])`"
-    by (simp add: SemiR_extract_variable[where x="okay\<down>"] closure erasure typing)    
+    by (simp add: SemiR_extract_variable[where x="okay\<down>"] closure erasure typing)
 
   also have "... = ` ((P1 \<turnstile> Q1)[false/okay\<acute>] ; (P2 \<turnstile> Q2)[false/okay]) 
                       \<or> ((P1 \<turnstile> Q1)[true/okay\<acute>] ; (P2 \<turnstile> Q2)[true/okay])`"
@@ -281,43 +283,11 @@ lemma DesignD_composition_cond:
   shows "`(p1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `(p1 \<and> \<not> (Q1 ; \<not> P2)) \<turnstile> (Q1 ; Q2)`"
   by (simp add:DesignD_composition closure assms unrest)
 
-
 lemma DesignD_composition_wp:
   assumes "p1 \<in> WF_CONDITION" "P2 \<in> WF_RELATION" "Q1 \<in> WF_RELATION" "Q2 \<in> WF_RELATION"
           "UNREST OKAY p1" "UNREST OKAY P2" "UNREST OKAY Q1" "UNREST OKAY Q2"
   shows "`(p1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `(p1 \<and> (Q1 wp P2)) \<turnstile> (Q1 ; Q2)`"
   by (simp add: DesignD_composition_cond closure WeakPrecondP_def assms)
-
-
-(*
-lemma minus_intersect [simp]:
-  "vs1 - (vs1 - vs2) = vs1 \<inter> vs2"
-  by (auto)
-*)
-
-lemma SkipD_left_unit:
-  assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "UNREST AUX_VAR P" "UNREST AUX_VAR Q"
-  shows "II\<^sub>D ; (P \<turnstile> Q) = P \<turnstile> Q"
-proof -
-  have "II\<^sub>D ; (P \<turnstile> Q) = (\<exists>\<^sub>p {okay\<down>\<acute>\<acute>\<acute>}. II\<^sub>D[VarE okay\<down>\<acute>\<acute>\<acute>/\<^sub>pokay\<down>\<acute>] ; (P \<turnstile> Q)[VarE okay\<down>\<acute>\<acute>\<acute>/\<^sub>pokay\<down>])"
-    by (metis (hide_lams, no_types) DesignD_rel_closure MkPlain_UNDASHED PVAR_VAR_MkPVAR SemiR_extract_variable SkipD_def SkipD_rel_closure assms(1) assms(2) insert_compr)
-
-  also from assms
-  have "... = P \<turnstile> Q"
-    apply (simp add:ucases typing)
-    apply (simp add:DesignD_def SkipD_def usubst closure typing defined unrest assms)
-    apply (simp add:SemiR_TrueP_precond closure)
-    apply (rule BoolType_aux_var_split_eq_intro[of "okay\<down>"])
-    apply (simp_all)
-    apply (simp add:usubst typing defined)
-    apply (simp add:usubst typing defined assms closure unrest)
-    apply (rule SemiR_SkipRA_left)
-    apply (simp_all add:assms unrest closure var_dist)
-  done
-
-  ultimately show ?thesis
-    by (simp)
-qed
 
 lemma ParallelD_DesignD:
   "\<lbrakk>UNREST OKAY P1; UNREST OKAY P2; UNREST OKAY Q1; UNREST OKAY Q2 \<rbrakk> \<Longrightarrow>
@@ -344,11 +314,11 @@ declare H1_def [eval,evalr,evalrx]
 declare H2_def [eval,evalr,evalrx]
 declare H3_def [eval,evalr,evalrx]
 
-lemma H1_true:
+lemma H1_true [closure]:
   "true is H1"
   by (utp_pred_tac)
 
-lemma DesignD_is_H1 :
+lemma DesignD_is_H1 [closure]:
   "P \<turnstile> Q is H1"
   by (utp_pred_auto_tac)
 
@@ -457,6 +427,11 @@ proof -
   finally show ?thesis using assms
     by (simp add:H1_def is_healthy_def)
 qed
+
+lemma SkipD_left_unit:
+  assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
+  shows "II\<^sub>D ; (P \<turnstile> Q) = P \<turnstile> Q"
+  by (simp add: DesignD_is_H1 DesignD_rel_closure H1_left_unit assms)
 
 lemma H1_algebraic:
   assumes "P \<in> WF_RELATION"
@@ -596,8 +571,8 @@ lemma H2_monotone:
   "p \<sqsubseteq> q \<Longrightarrow> H2 p \<sqsubseteq> H2 q"
   by (utp_rel_auto_tac)
 
-lemma DesignD_is_H2:
-  "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION; UNREST AUX_VAR P; UNREST AUX_VAR Q \<rbrakk> \<Longrightarrow> P \<turnstile> Q is H2"
+lemma DesignD_is_H2 [closure]:
+  "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION; UNREST OKAY P; UNREST OKAY Q \<rbrakk> \<Longrightarrow> P \<turnstile> Q is H2"
   apply (simp add:H2_equivalence closure)
   apply (simp add:DesignD_def usubst closure typing defined erasure)
   apply (utp_pred_auto_tac)
@@ -610,7 +585,7 @@ done
 
 lemma H1_H2_is_DesignD:
   assumes "P \<in> WF_RELATION" "P is H1" "P is H2"
-  shows "P = `(\<not> P\<^sup>f) \<turnstile> P\<^sup>t`"
+  shows "P = `\<not>P\<^sup>f \<turnstile> P\<^sup>t`"
 proof -
   have "P = `ok \<Rightarrow> P`"
     by (metis H1_def assms(2) is_healthy_def) 
@@ -656,8 +631,10 @@ lift_definition DESIGNS :: "'VALUE WF_THEORY"
 is "({vs. vs \<subseteq> REL_VAR \<and> OKAY \<subseteq> vs}, {H1,H2})"
   by (simp add:WF_THEORY_def IDEMPOTENT_OVER_def H1_idempotent H2_idempotent)
 
+abbreviation "WF_DESIGN \<equiv> THEORY_PRED DESIGNS"
+
 lemma DESIGNS_WF_RELATION [closure]:
-  "p \<in> THEORY_PRED DESIGNS \<Longrightarrow> p \<in> WF_RELATION"
+  "p \<in> WF_DESIGN \<Longrightarrow> p \<in> WF_RELATION"
   apply (auto simp add:THEORY_PRED_def DESIGNS.rep_eq utp_alphabets_def WF_RELATION_def)
   apply (metis (mono_tags) Compl_Diff_eq UNDASHED_DASHED_inter(15) UNREST_subset Un_empty_left VAR_subset compl_le_swap1 double_compl subset_empty)
 done
@@ -672,9 +649,48 @@ lemma DESIGNS_H2 [closure]:
 
 lemma DESIGNS_intro:
   "\<lbrakk> P is H1; P is H2; P \<in> WF_RELATION
-   ; UNREST (VAR - vs) P; OKAY \<subseteq> vs; vs \<subseteq> REL_VAR \<rbrakk> \<Longrightarrow> P \<in> THEORY_PRED DESIGNS"
+   ; UNREST (VAR - vs) P; OKAY \<subseteq> vs; vs \<subseteq> REL_VAR \<rbrakk> \<Longrightarrow> P \<in> WF_DESIGN"
   apply (simp add:THEORY_PRED_def utp_alphabets_def healthconds_def DESIGNS.rep_eq)
   apply (rule_tac x="vs" in exI, auto)
+done
+
+lemma [simp]: "(VAR - UNDASHED) \<inter> (VAR - DASHED) = NON_REL_VAR"
+  by auto
+
+lemma DESIGNS_intro_witness:
+  "\<lbrakk> P = R1 \<turnstile> R2; R1 \<in> WF_RELATION; R2 \<in> WF_RELATION; UNREST OKAY R1; UNREST OKAY R2 \<rbrakk> 
+   \<Longrightarrow> P \<in> WF_DESIGN"
+  apply (rule_tac vs="REL_VAR" in DESIGNS_intro)
+  apply (auto simp add:unrest closure)
+done
+
+lemma TrueP_design_closure [closure]:
+  "TrueP \<in> WF_DESIGN"
+  apply (rule_tac DESIGNS_intro_witness[of _ "FalseP" "TrueP"])
+  apply (utp_pred_tac)
+  apply (simp_all add:closure unrest)
+done
+
+lemma BotD_design_closure [closure]:
+  "\<bottom>\<^sub>D \<in> WF_DESIGN"
+  apply (rule_tac DESIGNS_intro_witness[of _ "TrueP" "FalseP"])
+  apply (utp_pred_tac, simp_all add:closure unrest)
+done
+
+lemma ChoiceR_design_closure [closure]:
+  "\<lbrakk> P \<in> WF_DESIGN; Q \<in> WF_DESIGN \<rbrakk> \<Longrightarrow> P \<sqinter> Q \<in> WF_DESIGN"
+  apply (rule_tac vs="REL_VAR" in DESIGNS_intro)
+  apply (metis DESIGNS_H1 H1_OrP is_healthy_def sup_WF_PREDICATE_def)
+  apply (metis DESIGNS_H2 H2_def Healthy_intro Healthy_simp SemiR_OrP_distr sup_WF_PREDICATE_def)
+  apply (simp_all add:closure unrest sup_WF_PREDICATE_def)
+done
+  
+lemma SemiR_design_closure [closure]:
+  "\<lbrakk> P \<in> WF_DESIGN; Q \<in> WF_DESIGN \<rbrakk> \<Longrightarrow> P ; Q \<in> WF_DESIGN"
+  apply (rule_tac vs="REL_VAR" in DESIGNS_intro)
+  apply (smt DESIGNS_H1 DESIGNS_WF_RELATION H1_algebraic SemiR_assoc SemiR_closure)
+  apply (metis DESIGNS_H2 H2_def SemiR_assoc is_healthy_def)
+  apply (simp_all add:closure unrest)
 done
 
 subsection {* The theory of Normal Designs *}
