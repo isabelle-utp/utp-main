@@ -34,6 +34,9 @@ abbreviation "ok'' \<equiv> VarP okay\<down>\<acute>\<acute>"
 abbreviation "ok''' \<equiv> VarP okay\<down>\<acute>\<acute>\<acute>"
 abbreviation "OKAY \<equiv> {okay\<down>,okay\<down>\<acute>}"
 
+definition BotD :: "'VALUE WF_PREDICATE" ("\<bottom>\<^sub>D") where
+"BotD = (\<not>\<^sub>p ok)"
+
 definition DesignD :: 
 "'VALUE WF_PREDICATE \<Rightarrow>
  'VALUE WF_PREDICATE \<Rightarrow>
@@ -45,16 +48,58 @@ definition SkipD :: "'VALUE WF_PREDICATE" where
 
 notation SkipD ("II\<^sub>D")
 
+definition J_pred :: "'VALUE WF_PREDICATE" ("J") where
+"J \<equiv> (ok \<Rightarrow>\<^sub>p ok') \<and>\<^sub>p II\<^bsub>REL_VAR - OKAY\<^esub>"
+
+declare J_pred_def [eval,evalr]
+
+abbreviation ok_true :: 
+  "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" ("_\<^sup>t" [1000] 1000) where
+"p\<^sup>t \<equiv> `p[true/okay\<acute>]`"
+
+abbreviation ok_false :: 
+  "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" ("_\<^sup>f" [1000] 1000) where
+"p\<^sup>f \<equiv> `p[false/okay\<acute>]`"
+
+definition ParallelD :: 
+  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infixr "\<parallel>" 100) where 
+"P \<parallel> Q = (\<not>\<^sub>p P\<^sup>f \<and>\<^sub>p \<not>\<^sub>p Q\<^sup>f) \<turnstile> (P\<^sup>t \<and>\<^sub>p Q\<^sup>t)"
+
+definition WF_VALID_MERGE :: "('a VAR set * 'a WF_PREDICATE) set" where
+"WF_VALID_MERGE = UNIV"
+
+definition ParallelMergeD :: 
+  "'a WF_PREDICATE => ('a VAR set * 'a WF_PREDICATE) => 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infix "\<parallel>\<^bsub>_\<^esub>" 100) where
+"P \<parallel>\<^bsub>M\<^esub> Q =  ((add_sub 0 on fst M \<bullet> P) \<parallel> (add_sub 1 on fst M \<bullet> Q)) ; snd M"
+
+declare BotD_def [eval,evalr,evalrx]
 declare DesignD_def [eval,evalr,evalrx]
 declare SkipD_def [eval,evalr,evalrx]
+declare ParallelD_def [eval,evalr,evalrx]
 
 syntax
-  "_upred_design" :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<turnstile>" 30)
+  "_upred_desbot"   :: "upred" ("\<bottom>\<^sub>D")
+  "_upred_design"   :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<turnstile>" 30)
+  "_upred_ok_true"  :: "upred \<Rightarrow> upred" ("_\<^sup>t" [1000] 1000)
+  "_upred_ok_false" :: "upred \<Rightarrow> upred" ("_\<^sup>f" [1000] 1000)
+  "_upred_SkipD"    :: "upred" ("II\<^sub>D")
+  "_upred_J"        :: "upred" ("J")
+  "_upred_parallel" :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infix "\<parallel>" 50)
 
 translations
-  "_upred_design p q"  == "CONST DesignD p q"
+  "_upred_desbot"       == "CONST BotD"
+  "_upred_design p q"   == "CONST DesignD p q"
+  "_upred_ok_true p"    == "CONST ok_true p"
+  "_upred_ok_false p"   == "CONST ok_false p"
+  "_upred_SkipD"        == "CONST SkipD"
+  "_upred_J"            == "CONST J_pred"
+  "_upred_parallel P Q" == "CONST ParallelD P Q"
 
 subsection {* Closure / UNREST theorems *}
+
+lemma UNREST_BotD [unrest]:
+  "okay\<down> \<notin> vs \<Longrightarrow> UNREST vs \<bottom>\<^sub>D"
+  by (simp add:BotD_def unrest)
 
 lemma UNREST_SkipD_NON_REL_VAR [unrest]:
   "UNREST NON_REL_VAR II\<^sub>D"
@@ -62,10 +107,23 @@ lemma UNREST_SkipD_NON_REL_VAR [unrest]:
   apply (force simp add:PVAR_VAR_MkPVAR intro: unrest)
 done
 
+lemma UNREST_DesignD [unrest]:
+  "\<lbrakk> UNREST vs p; UNREST vs q; okay\<down> \<notin> vs; okay\<down>\<acute> \<notin> vs \<rbrakk>
+   \<Longrightarrow> UNREST vs (p \<turnstile> q)"
+  by (simp add:DesignD_def unrest)
+
+lemma UNREST_ParallelD [unrest]:
+  "\<lbrakk> UNREST vs p; UNREST vs q; okay\<down> \<notin> vs; okay\<down>\<acute> \<notin> vs \<rbrakk>
+   \<Longrightarrow> UNREST vs (p \<parallel> q)"
+  by (auto intro!:unrest closure simp add:typing defined closure ParallelD_def)
+
 lemma SubstP_UNREST_OKAY [usubst]:
   "\<lbrakk> x \<in> OKAY; UNREST OKAY p; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[v/\<^sub>px] = p"
   by (utp_pred_tac)
 
+lemma BotD_rel_closure [closure]:
+  "\<bottom>\<^sub>D \<in> WF_RELATION"
+  by (simp add:BotD_def closure)
 
 lemma DesignD_rel_closure [closure]:
   "\<lbrakk>P \<in> WF_RELATION; Q \<in> WF_RELATION\<rbrakk> \<Longrightarrow> P \<turnstile> Q \<in> WF_RELATION"
@@ -74,6 +132,10 @@ lemma DesignD_rel_closure [closure]:
 lemma SkipD_rel_closure [closure]:
   "II\<^sub>D \<in> WF_RELATION"
   by (auto intro:closure simp add:SkipD_def)
+
+lemma ParallelD_rel_closure [closure]:
+  "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> P \<parallel> Q \<in> WF_RELATION"
+  by (simp add:ParallelD_def unrest typing closure defined)
 
 subsection {* Design Laws *}
 
@@ -213,7 +275,6 @@ lemma condition_comp [simp]:
   "p1 \<in> WF_CONDITION \<Longrightarrow> `\<not> (\<not> p1 ; true)` = p1"
   by (metis NotP_NotP NotP_cond_closure SemiR_TrueP_precond)
 
-
 lemma DesignD_composition_cond:
   assumes "p1 \<in> WF_CONDITION" "P2 \<in> WF_RELATION" "Q1 \<in> WF_RELATION" "Q2 \<in> WF_RELATION"
           "UNREST OKAY p1" "UNREST OKAY P2" "UNREST OKAY Q1" "UNREST OKAY Q2"
@@ -228,9 +289,11 @@ lemma DesignD_composition_wp:
   by (simp add: DesignD_composition_cond closure WeakPrecondP_def assms)
 
 
+(*
 lemma minus_intersect [simp]:
   "vs1 - (vs1 - vs2) = vs1 \<inter> vs2"
   by (auto)
+*)
 
 lemma SkipD_left_unit:
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "UNREST AUX_VAR P" "UNREST AUX_VAR Q"
@@ -256,31 +319,21 @@ proof -
     by (simp)
 qed
 
-definition J_pred :: "'VALUE WF_PREDICATE" ("J") where
-"J \<equiv> (ok \<Rightarrow>\<^sub>p ok') \<and>\<^sub>p II\<^bsub>REL_VAR - OKAY\<^esub>"
+lemma ParallelD_DesignD:
+  "\<lbrakk>UNREST OKAY P1; UNREST OKAY P2; UNREST OKAY Q1; UNREST OKAY Q2 \<rbrakk> \<Longrightarrow>
+   `(P1 \<turnstile> P2) \<parallel> (Q1 \<turnstile> Q2)` = `(P1 \<and> Q1) \<turnstile> (P2 \<and> Q2)`"
+  by (utp_pred_auto_tac)
 
-declare J_pred_def [eval,evalr]
+lemma ParallelD_comm:
+  "P \<parallel> Q = Q \<parallel> P"
+  by (utp_pred_auto_tac)
 
-abbreviation ok_true :: 
-  "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" ("_\<^sup>t" [150]) where
-"p\<^sup>t \<equiv> `p[true/okay\<acute>]`"
+lemma ParallelD_assoc:
+  fixes P :: "'a WF_PREDICATE"
+  shows "P \<parallel> Q \<parallel> R = (P \<parallel> Q) \<parallel> R"
+  by (utp_pred_auto_tac)
 
-abbreviation ok_false :: 
-  "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" ("_\<^sup>f" [150]) where
-"p\<^sup>f \<equiv> `p[false/okay\<acute>]`"
-
-syntax
-  "_upred_ok_true"  :: "upred \<Rightarrow> upred" ("_\<^sup>t" [1000] 1000)
-  "_upred_ok_false" :: "upred \<Rightarrow> upred" ("_\<^sup>f" [1000] 1000)
-  "_upred_SkipD"    :: "upred" ("II\<^sub>D")
-  "_upred_J"        :: "upred" ("J")
-
-translations
-  "_upred_ok_true p"  == "CONST ok_true p"
-  "_upred_ok_false p" == "CONST ok_false p"
-  "_upred_SkipD"      == "CONST SkipD"
-  "_upred_J"          == "CONST J_pred"
-
+subsection {* Design Healthiness Conditions *}
 
 definition H1 :: "'a WF_FUNCTION" where "H1(P) = `ok \<Rightarrow> P`"
 definition H2 :: "'a WF_FUNCTION" where "H2(P) = `P ; J`"
@@ -317,29 +370,6 @@ proof -
 
   ultimately show ?thesis by simp
 qed
-
-
-(*
-lemma "\<lbrakk> P \<in> WF_RELATION; e \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<union> NON_REL_VAR) e; Q \<in> WF_RELATION; x \<in> UNDASHED \<rbrakk> 
-       \<Longrightarrow> `P ; (($x = e) \<and> Q)` = `P[e\<acute>/x\<acute>] ; Q[e/x]`"
-  apply (rule trans)
-  apply (rule SemiR_algebraic_rel)
-  apply (simp add:closure unrest NON_REL_VAR_def)
-  apply (rule closure)
-  apply (rule closure)
-  apply (rule unrest)
-  apply (simp add: NON_REL_VAR_def)
-  apply (auto intro:closure unrest)[1]
-  apply (auto intro:closure unrest)[1]
-  apply (simp add:urename typing defined closure)
-  apply (simp)
-  apply (rule closure)
-  apply (rule closure)
-  apply (rule unrest)
-  
-  apply (simp add:SemiR_algebraic_rel closure unrest typing defined)
-*)
-
 
 theorem H1_algebraic_intro:
   assumes 

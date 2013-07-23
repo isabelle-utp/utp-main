@@ -38,6 +38,11 @@ definition BotDE :: "'a vdme" ("\<bottom>\<^sub>v") where
 
 declare BotDE_def [eval,evale,evalp]
 
+definition SingleD :: "'a vdme \<Rightarrow> 'a vdme" where
+"SingleD x = x"
+
+declare SingleD_def [eval,evale,evalp]
+
 abbreviation LitD :: "'a \<Rightarrow> 'a vdme" where
 "LitD x \<equiv> LitPE (Some x)"
 
@@ -130,15 +135,14 @@ syntax
   "_vexpr_num"     :: "num_const \<Rightarrow> pexpr" ("_")
   "_vexpr_bot"     :: "pexpr" ("undefined")
   "_vexpr_lit"     :: "'a::vbasic \<Rightarrow> pexpr" ("\<langle>_\<rangle>")
-  "_vexpr_forall"  :: "pttrn \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _./ _)" [0, 10] 10)
-  "_vexpr_exists"  :: "pttrn \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3exists _./ _)" [0, 10] 10)
+  "_vexpr_forall"  :: "pttrn \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ &/ _)" [0, 10] 10)
+  "_vexpr_exists"  :: "pttrn \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3exists _ &/ _)" [0, 10] 10)
   "_vexpr_coerce"  :: "pexpr \<Rightarrow> vty \<Rightarrow> pexpr" (infix ":" 50)
   "_vexpr_prod"    :: "pexprs \<Rightarrow> pexpr"    ("'(_')")
   "_vexpr_nil"     :: "pexpr" ("[]")
   "_vexpr_list"    :: "pexprs => pexpr"    ("[(_)]")
   "_vexpr_empty"   :: "pexpr" ("{}")
   "_vexpr_fset"    :: "pexprs => pexpr"    ("{(_)}")
-  "_vexpr_rproj"   :: "pexpr \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> pexpr" ("_._")
 
 translations
   "_vexpr_equal"               == "CONST vexpr_equal"
@@ -151,20 +155,20 @@ translations
   "_vexpr_exists x e"          == "CONST ExistsD (\<lambda>x. e)"
   "_vexpr_coerce e t"          == "CONST CoerceD e t"
   "_vexpr_prod (_pexprs x xs)" == "CONST vexpr_prod x (_vexpr_prod xs)"
-  "_vexpr_prod x"              => "x"
+  "_vexpr_prod x"              == "CONST SingleD x"
   "_vexpr_nil"                 == "CONST vexpr_nil"
   "_vexpr_list (_pexprs x xs)" == "CONST vexpr_cons x (_vexpr_list xs)"
   "_vexpr_list x"              == "CONST vexpr_cons x CONST vexpr_nil"
   "_vexpr_empty"               == "CONST vexpr_empty"
   "_vexpr_fset (_pexprs x xs)" == "CONST vexpr_insert x (_vexpr_fset xs)"
   "_vexpr_fset x"              == "CONST vexpr_insert x CONST vexpr_empty"
-  "_vexpr_rproj r f"           == "f r"
 
 subsection {* @{term UNREST_PEXPR} theorems *}
 
 lemma UNREST_PEXPR_BotDE [unrest]: 
   "UNREST_PEXPR vs \<bottom>\<^sub>v"
   by (simp add:UNREST_PEXPR_def evalp)
+
 
 lemma UNREST_PEXPR_ForallD [unrest]:
   "\<forall> e. UNREST_PEXPR vs (f e) \<Longrightarrow> UNREST_PEXPR vs (ForallD f)"

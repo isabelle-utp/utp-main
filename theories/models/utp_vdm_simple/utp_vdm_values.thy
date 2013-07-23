@@ -31,7 +31,8 @@ datatype vbasict =
   | ListBT vbasict
   | OptionBT vbasict
   | PairBT vbasict vbasict 
-  | RecordBT "vbasict list"
+  | TagBT "string" "vbasict"
+  | UnitBT
   | BoolBT ("\<bool>")
   | NatBT ("\<nat>")
   | IntBT ("\<int>")
@@ -93,6 +94,7 @@ text {* We introduce countable values using a normal datatype. This representati
 
 datatype vbasic 
   = PairI vbasic vbasic
+  | UnitI
   | NatI "nat"
   | IntI "int" 
   | RatI "rat" 
@@ -105,7 +107,7 @@ datatype vbasic
   | OptionI vbasict "vbasic option"
   | FinI vbasict "vbasic list"
   | BoolI bool
-  | RecI "vbasic list"
+  | TagI "string" "vbasic"
   | MapI vbasict vbasict "(vbasic * vbasic) list" 
   | NameI "NAME"
   | TypeI "vbasict"
@@ -201,8 +203,8 @@ fun ProjListI :: "vbasic \<Rightarrow> (vbasic list) option" where
 fun ProjOptionI :: "vbasic \<Rightarrow> (vbasic option) option" where
 "ProjOptionI (OptionI t x) = Some x" | "ProjOptionI x = None"
 
-fun ProjRecI :: "vbasic \<Rightarrow> (vbasic list) option" where
-"ProjRecI (RecI r) = Some r" | "ProjRecI xs = None"
+fun ProjTagI :: "vbasic \<Rightarrow> (string * vbasic) option" where
+"ProjTagI (TagI n r) = Some (n,r)" | "ProjTagI xs = None"
 
 fun ProjMapI :: "vbasic \<Rightarrow> ((vbasic* vbasic) list) option" where
 "ProjMapI (MapI a b f) = Some f" | "ProjMapI x = None"
@@ -226,7 +228,8 @@ section {* The type-system *}
 subsection {* Basic value typing relation *}
 
 inductive vbasic_type_rel :: "vbasic \<Rightarrow> vbasict \<Rightarrow> bool" (infix ":\<^sub>b" 50) 
-and vbasic_type_list_rel :: "vbasic list \<Rightarrow> vbasict list \<Rightarrow> bool" (infix ":\<^sub>r" 50) where
+(* and vbasic_type_list_rel :: "vbasic list \<Rightarrow> vbasict list \<Rightarrow> bool" (infix ":\<^sub>r" 50) *) where
+UnitI_type[intro!]: "UnitI :\<^sub>b UnitBT" |
 BoolI_type[intro!]: "BoolI x :\<^sub>b BoolBT" |
 NatI_type[intro!]: "NatI x :\<^sub>b NatBT" |
 IntI_type[intro!]: "IntI x :\<^sub>b IntBT" |
@@ -242,17 +245,23 @@ OptionI_None_type[intro]: "OptionI a None :\<^sub>b OptionBT a" |
 FinI_type[intro]: "\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>b a; sorted xs; distinct xs \<rbrakk> \<Longrightarrow> FinI a xs :\<^sub>b FSetBT a" |
 PairI_type[intro!]: "\<lbrakk> x :\<^sub>b a; y :\<^sub>b b \<rbrakk> \<Longrightarrow> PairI x y :\<^sub>b PairBT a b" |
 MapI_type[intro]: "\<lbrakk> \<forall>(x,y)\<in>set xs. x :\<^sub>b a \<and> y :\<^sub>b b; sorted (map fst xs); distinct (map fst xs) \<rbrakk> \<Longrightarrow> MapI a b xs :\<^sub>b MapBT a b" |
-RecI_type[intro]: "\<lbrakk> xs :\<^sub>r ts \<rbrakk>  \<Longrightarrow> RecI xs :\<^sub>b RecordBT ts" |
+TagI_type[intro]: "x :\<^sub>b t \<Longrightarrow> TagI n x :\<^sub>b TagBT n t" |
 NameI_type[intro]: "NameI n :\<^sub>b NameBT" |
 TypeI_type[intro]: "TypeI t :\<^sub>b TypeBT" |
-BotI_type[intro]: "BotI a :\<^sub>b a" |
+BotI_type[intro]: "BotI a :\<^sub>b a" 
+
+(*
+|
 Cons_type[intro]: "\<lbrakk> x :\<^sub>b t; xs :\<^sub>r ts \<rbrakk> \<Longrightarrow> (x # xs) :\<^sub>r (t # ts)" |
 Nil_type[intro]: "[] :\<^sub>r []"
+*)
 
 lemma fdom_fmempty [simp]: "fdom fmempty = \<lbrace>\<rbrace>"
   by (auto simp add:fdom.rep_eq fmempty.rep_eq)
 
 inductive_cases 
+  UnitI_type_cases [elim]: "UnitI :\<^sub>b t" and
+  UnitT_type_cases [elim!]: "x :\<^sub>b UnitBT" and
   BoolI_type_cases [elim]: "BoolI x :\<^sub>b t" and
   BoolT_type_cases [elim!]: "x :\<^sub>b BoolBT" and
   NatI_type_cases [elim]: "NatI x :\<^sub>b t" and
@@ -281,12 +290,12 @@ inductive_cases
   PairT_type_cases [elim!]: "x :\<^sub>b PairBT a b" and
   MapI_type_cases [elim]: "MapI a b xs :\<^sub>b t" and
   MapT_type_cases [elim!]: "x :\<^sub>b MapBT a b" and
-  RecI_type_cases [elim]: "RecI xs :\<^sub>b t" and
-  RecT_type_cases [elim!]: "x :\<^sub>b RecordBT fs" and
-  Cons_type_cases [elim!]: "x :\<^sub>r f # fs" and
+  TagI_type_cases [elim]: "TagI n x :\<^sub>b t" and
+  TagT_type_cases [elim!]: "x :\<^sub>b TagBT n t" and
+(*  Cons_type_cases [elim!]: "x :\<^sub>r f # fs" and
   Cons_value_cases [elim!]: "x # xs :\<^sub>r ts" and
   Nil_type_cases [elim!]: "x :\<^sub>r []" and
-  Nil_value_cases [elim!]: "[] :\<^sub>r ts" and
+  Nil_value_cases [elim!]: "[] :\<^sub>r ts" and *)
 (*
 and
   FuncT_type_casesB [elim!]: "x :\<^sub>b a \<rightarrow> b" and
@@ -307,6 +316,7 @@ begin
 fun Defined_vbasic :: "vbasic \<Rightarrow> bool" where
 "Defined_vbasic (BotI a) = False" |
 "Defined_vbasic (PairI x y) = (Defined_vbasic x \<and> Defined_vbasic y)" |
+"Defined_vbasic UnitI = True" |
 "Defined_vbasic (BoolI x) = True" |
 "Defined_vbasic (NatI n) = True" |
 "Defined_vbasic (IntI n) = True" |
@@ -320,7 +330,7 @@ fun Defined_vbasic :: "vbasic \<Rightarrow> bool" where
 "Defined_vbasic (OptionI a None) = True" |
 "Defined_vbasic (OptionI a (Some x)) = Defined_vbasic x" |
 "Defined_vbasic (FinI a xs) = (\<forall> x \<in> set xs. Defined_vbasic x)" |
-"Defined_vbasic (RecI xs) = (\<forall> x \<in> set xs. Defined_vbasic x)" |
+"Defined_vbasic (TagI n x) = \<D> x" |
 "Defined_vbasic (MapI a b xs) = (\<forall> (x,y) \<in> set xs. Defined_vbasic x \<and> Defined_vbasic y)" | 
 "Defined_vbasic (NameI n) = True" |
 "Defined_vbasic (TypeI t) = True"
@@ -625,14 +635,15 @@ fun IsSetD :: "vdmv \<Rightarrow> bool" where
 thm EvI_type_cases
 
 lemma vbasic_type_rel_uniq: "\<lbrakk> x :\<^sub>b a; x :\<^sub>b b \<rbrakk> \<Longrightarrow> a = b"
-  and "\<lbrakk> xs :\<^sub>r as; xs :\<^sub>r bs \<rbrakk> \<Longrightarrow> as = bs"
-  apply (induct x and xs arbitrary: a b and as bs)
+(*  and "\<lbrakk> xs :\<^sub>r as; xs :\<^sub>r bs \<rbrakk> \<Longrightarrow> as = bs" *)
+  apply (induct x arbitrary: a b)
   apply (auto)
   apply (metis PairI_type_cases)
   apply (force)
 done
 
 fun default_vbasict :: "vbasict \<Rightarrow> vbasic" where
+"default_vbasict UnitBT        = UnitI" |
 "default_vbasict BoolBT        = BoolI False" |
 "default_vbasict NatBT         = NatI 0" |
 "default_vbasict IntBT         = IntI 0" |
@@ -649,21 +660,19 @@ fun default_vbasict :: "vbasict \<Rightarrow> vbasic" where
 "default_vbasict (FSetBT t)    = FSetI t \<lbrace>\<rbrace>" |
 "default_vbasict (ListBT t)    = ListI t []" |
 "default_vbasict (MapBT s t)   = MapI s t []" |
-"default_vbasict (RecordBT ts) = RecI (map default_vbasict ts)"
+"default_vbasict (TagBT n t)   = TagI n (default_vbasict t)"
 
 lemma default_vbasict_type: 
-  "default_vbasict t :\<^sub>b t" and
-  "map default_vbasict ts :\<^sub>r ts"
-  by (induct t and ts, auto)
+  "default_vbasict t :\<^sub>b t"
+  by (induct t, auto)
 
-declare default_vbasict_type(1) [typing]
+declare default_vbasict_type [typing]
 
 lemma default_vbasict_defined: 
-  "\<D> (default_vbasict t)" and
-  "(\<forall> x \<in> set (map default_vbasict ts). \<D> x)"
-  by (induct t and ts, auto)
+  "\<D> (default_vbasict t)"
+  by (induct t, auto)
 
-declare default_vbasict_defined(1) [defined]
+declare default_vbasict_defined [defined]
 
 lemma vbasict_total: 
   "\<exists> v. v :\<^sub>b t \<and> \<D> v"

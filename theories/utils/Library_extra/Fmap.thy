@@ -80,6 +80,9 @@ lemma fran_empty [simp]:
   apply (metis empty_iff option.exhaust ranI)
 done
 
+lemma fdom_fmempty [simp]: "fdom fmempty = \<lbrace>\<rbrace>"
+  by (auto simp add:fdom.rep_eq fmempty.rep_eq)
+
 lemma fmap_list_empty [simp]:
   "fmap_list fmempty = []"
   by (simp add:fmap_list_def flist_def fdom.rep_eq fmempty.rep_eq)

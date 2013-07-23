@@ -857,6 +857,13 @@ lemma PVarPE_VarP [simp]:
   apply (metis BOOL_SORT_class.Inverse)
 done
 
+lemma ExprP_TruePE [simp]:
+  "ExprP (TruePE\<down>) = TrueP"
+  by (utp_pred_tac)
+
+lemma ExprP_FalsePE [simp]:
+  "ExprP (FalsePE\<down>) = FalseP"
+  by (utp_pred_tac)
 
 (*
 subsection {* Anciliary Laws *}

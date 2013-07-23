@@ -12,4 +12,5 @@ imports
   utp_vdm_expr
   utp_vdm_types
   utp_vdm_functions
+  utp_vdm_records
 begin end

@@ -29,6 +29,9 @@ abbreviation "vexpr_implies   \<equiv> Op2D' implies"
 abbreviation "vexpr_hd        \<equiv> Op1D' hd"
 abbreviation "vexpr_tl        \<equiv> Op1D' tl"
 
+definition ForallSetD :: "'a fset vdme \<Rightarrow> ('a \<Rightarrow> bool vdme) \<Rightarrow> bool vdme" where
+"ForallSetD xs p = ForallD (\<lambda> x. vexpr_implies (vexpr_in_set (LitD x) xs) (p x))"
+
 syntax
 (*  "_vexpr_num"     :: "num \<Rightarrow> pexpr" ("_") *)
   "_vexpr_quotev"  :: "string \<Rightarrow> pexpr" ("<_>")
@@ -50,6 +53,7 @@ syntax
   "_vexpr_implies" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "=>" 25)
   "_vexpr_hd"      :: "pexpr \<Rightarrow> pexpr" ("hd _")
   "_vexpr_tl"      :: "pexpr \<Rightarrow> pexpr" ("tl _")
+  "_vexpr_all_set" :: "pttrn \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ in @set _ &/ _)" [0, 0, 10] 10)
 
 translations
   "_vexpr_quotev x"    == "CONST LitD (CONST Q x)"
@@ -73,6 +77,15 @@ translations
   "_vexpr_implies x y" == "CONST vexpr_implies x y"
   "_vexpr_hd xs"       == "CONST vexpr_hd xs"
   "_vexpr_tl xs"       == "CONST vexpr_tl xs"
+  "_vexpr_all_set x xs p" == "CONST ForallSetD xs (\<lambda>x. p)"
+
+thm ForallSetD_def
+
+term "\<parallel>$x in @set {<1>}\<parallel>"
+
+term "\<parallel>forall x in @set {<1>} & (<x> > <5>)\<parallel>"
+
+
 
 (* term "|\<langle>x\<rangle> > \<langle>5 :: int\<rangle>|" *)
 term "\<parallel>@int inv x == \<langle>x\<rangle> > \<langle>5\<rangle>\<parallel>\<^sub>t"

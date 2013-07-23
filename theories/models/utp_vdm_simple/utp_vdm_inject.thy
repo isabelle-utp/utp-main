@@ -38,7 +38,6 @@ translations
   "BTYPE('a)" == "CONST Type TYPE('a)"
   "VTYPE('a)" == "CONST BasicT (CONST Type TYPE('a))"
 
-
 text {* InjB and ProjB lift the Inject and Project functions up to domain level. *}
 
 context vbasic
@@ -108,6 +107,18 @@ lemma Inject_Project_list [simp]:
   shows "xs = map Inject (map (the \<circ> Project) xs)"
 using assms by (induct xs, auto)
 
+end
+
+subsection {* Units are injectable *}
+
+instantiation unit :: vbasic
+begin
+
+definition "Inject_unit (x::unit) = UnitI"
+definition "Type_unit (t::unit itself) = UnitBT"
+
+instance 
+  by (intro_classes, auto simp add:Inject_unit_def Type_unit_def)
 end
 
 subsection {* Naturals are injectable *}

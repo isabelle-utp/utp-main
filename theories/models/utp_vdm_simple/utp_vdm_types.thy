@@ -46,6 +46,7 @@ abbreviation "vty_char \<equiv> (UNIV :: char set)"
 abbreviation "vty_prod \<equiv> op \<times>"
 abbreviation "vty_seq_of A  \<equiv> {xs. set xs \<subseteq> A}" 
 abbreviation "vty_seq1_of A \<equiv> {xs. set xs \<subseteq> A \<and> length xs > 0}" 
+abbreviation "vty_map_to A B \<equiv> {f. \<langle>fdom f\<rangle>\<^sub>f \<subseteq> A \<and> \<langle>fran f\<rangle>\<^sub>f \<subseteq> B}"
 
 definition Fow :: "'a set \<Rightarrow> 'a fset set" where
 "Fow A = {Abs_fset x | x. x \<subseteq> A \<and> finite x}"
@@ -79,6 +80,7 @@ syntax
   "_vty_real"    :: "vty" ("@real")
   "_vty_set_of"  :: "vty \<Rightarrow> vty" ("@set of _")
   "_vty_seq_of"  :: "vty \<Rightarrow> vty" ("@seq of _")
+  "_vty_map_to"  :: "vty \<Rightarrow> vty \<Rightarrow> vty" ("@map _ to _")
   "_vty_seq1_of" :: "vty \<Rightarrow> vty" ("@seq1 of _")
   "_vty_prod"    :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixl "\<times>" 20)
   "_vty_quo"     :: "vty \<Rightarrow> 'a set" ("\<parallel>_\<parallel>\<^sub>t")
@@ -105,12 +107,15 @@ translations
   "_vty_set_of A"  == "CONST Fow A"
   "_vty_seq_of A"  == "CONST vty_seq_of A"
   "_vty_seq1_of A" == "CONST vty_seq1_of A"
+  "_vty_map_to A B" == "CONST vty_map_to A B"
   "_vty_quo x"     => "x"
   "_vty_inv A x P" == "CONST InvS A (\<lambda>x. P)"
   "_vty_collect v P" == "CONST CollectD v P"
 
 
 term "\<parallel>@seq1 of @char\<parallel>\<^sub>t"
+
+term "\<parallel>@map @char to @int\<parallel>\<^sub>t"
 
 (* term "`x := \<langle><1>\<rangle> : @seq1 of @nat1`" *)
 
