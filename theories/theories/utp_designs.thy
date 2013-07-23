@@ -51,8 +51,6 @@ notation SkipD ("II\<^sub>D")
 definition J_pred :: "'VALUE WF_PREDICATE" ("J") where
 "J \<equiv> (ok \<Rightarrow>\<^sub>p ok') \<and>\<^sub>p II\<^bsub>REL_VAR - OKAY\<^esub>"
 
-declare J_pred_def [eval,evalr]
-
 abbreviation ok_true :: 
   "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" ("_\<^sup>t" [1000] 1000) where
 "p\<^sup>t \<equiv> `p[true/okay\<acute>]`"
@@ -74,6 +72,7 @@ definition ParallelMergeD ::
 
 declare BotD_def [eval,evalr,evalrx]
 declare DesignD_def [eval,evalr,evalrx]
+declare J_pred_def [eval,evalr,evalrx]
 declare SkipD_def [eval,evalr,evalrx]
 declare ParallelD_def [eval,evalr,evalrx]
 
@@ -141,13 +140,21 @@ subsection {* Design Laws *}
 
 lemma DesignD_extreme_point_true:
   "false \<turnstile> false = false \<turnstile> true"
-  by (utp_pred_tac)
+  "false \<turnstile> true = true"
+  by (utp_pred_tac+)
 
 lemma DesignD_extreme_point_nok:
   "true \<turnstile> false = \<not>\<^sub>p ok"
-  by (utp_pred_tac)
+  "\<not>\<^sub>p ok = \<bottom>\<^sub>D"
+  by (utp_pred_tac+)
 
-declare Healthy_simp [simp del]
+lemma DesignD_assumption:
+  "UNREST OKAY P \<Longrightarrow> `\<not> (P \<turnstile> Q)\<^sup>f` = `P \<and> ok`"
+  by (utp_pred_auto_tac)
+
+lemma DesignD_commitment:
+  "\<lbrakk> UNREST OKAY P; UNREST OKAY Q \<rbrakk> \<Longrightarrow> `(P \<turnstile> Q)\<^sup>t` = `(ok \<and> P \<Rightarrow> Q)`"
+  by (utp_pred_auto_tac)
 
 lemma DesignD_export_precondition:
   "(P \<turnstile> Q) = (P \<turnstile> P \<and>\<^sub>p Q)"

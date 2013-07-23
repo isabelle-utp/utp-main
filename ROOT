@@ -1,5 +1,5 @@
 session "HOL-UTP" = "Kleene_Algebra" +
-  options [document = pdf, document_output = "output"]
+  options [browser_info = true, document = pdf, document_output = "output", document_graph = true]
   theories [document = false]
   theories 
   "theories/utp_base"

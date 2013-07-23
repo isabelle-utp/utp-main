@@ -137,7 +137,7 @@ instance ..
 
 end
 
-term "\<parallel>$x\<cdot>tr1f2\<parallel>"
-term "\<parallel>($x,$y)\<parallel>"
+term "|$x\<cdot>tr1f2|"
+term "|($x,$y)|"
 
 end
