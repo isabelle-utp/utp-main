@@ -26,18 +26,20 @@ text {* We only introduce a single datatype for types, as the move between vdmv 
   vbasic should be transparent *}
 
 datatype vbasict =
-    FSetBT vbasict ("\<fin>")
+    FSetBT vbasict 
   | MapBT vbasict vbasict 
   | ListBT vbasict
   | OptionBT vbasict
   | PairBT vbasict vbasict 
   | TagBT "string" "vbasict"
   | UnitBT
-  | BoolBT ("\<bool>")
+  | BoolBT (* ("\<bool>") *)
+(*
   | NatBT ("\<nat>")
   | IntBT ("\<int>")
   | RatBT ("\<rat>")
-  | RealBT ("\<real>")
+*)
+  | NumberBT
   | CharBT
   | QuoteBT
   | TokenBT
@@ -62,18 +64,20 @@ primrec ProjBasicT :: "vdmt \<Rightarrow> vbasict" where
 
 abbreviation "LiftT f t \<equiv> BasicT (f (ProjBasicT t))"
 abbreviation "BoolT  \<equiv> BasicT BoolBT"
+(*
 abbreviation "NatT   \<equiv> BasicT NatBT"
 abbreviation "IntT   \<equiv> BasicT IntBT"
 abbreviation "RatT   \<equiv> BasicT RatBT"
-abbreviation "RealT  \<equiv> BasicT RealBT"
-abbreviation "CharT  \<equiv> BasicT CharBT"
-abbreviation "QuoteT \<equiv> BasicT QuoteBT"
-abbreviation "TokenT \<equiv> BasicT TokenBT"
-abbreviation "EventT \<equiv> BasicT EventBT"
-abbreviation "NameT  \<equiv> BasicT NameBT"
-abbreviation "TypeT  \<equiv> BasicT TypeBT"
-abbreviation "FSetT \<equiv> LiftT FSetBT"
-abbreviation "ListT \<equiv> LiftT ListBT"
+*)
+abbreviation "NumberT \<equiv> BasicT NumberBT"
+abbreviation "CharT   \<equiv> BasicT CharBT"
+abbreviation "QuoteT  \<equiv> BasicT QuoteBT"
+abbreviation "TokenT  \<equiv> BasicT TokenBT"
+abbreviation "EventT  \<equiv> BasicT EventBT"
+abbreviation "NameT   \<equiv> BasicT NameBT"
+abbreviation "TypeT   \<equiv> BasicT TypeBT"
+abbreviation "FSetT   \<equiv> LiftT FSetBT"
+abbreviation "ListT   \<equiv> LiftT ListBT"
 abbreviation "StringT \<equiv> ListT CharT"
 
 subsection {* Basic (countable) values *}
@@ -86,10 +90,12 @@ text {* We introduce countable values using a normal datatype. This representati
 datatype vbasic 
   = PairI vbasic vbasic
   | UnitI
+(*
   | NatI "nat"
   | IntI "int" 
   | RatI "rat" 
-  | RealI "real"
+*)
+  | NumberI "real"
   | CharI "char"
   | QuoteI "string" 
   | TokenI vbasic
@@ -178,11 +184,13 @@ declare ProjFSetI.simps [simp del]
 fun ProjPairI :: "vbasic \<Rightarrow> (vbasic * vbasic) option" where
 "ProjPairI (PairI x y) = Some (x,y)" | "ProjPairI x = None"
 
+(*
 fun ProjRatI :: "vbasic \<Rightarrow> rat option" where
 "ProjRatI (RatI x) = Some x" | "ProjRatI x = None"
 
 fun ProjIntI :: "vbasic \<Rightarrow> int option" where
 "ProjIntI (IntI x) = Some x" | "ProjIntI x = None"
+*)
 
 fun ProjCharI :: "vbasic \<Rightarrow> char option" where
 "ProjCharI (CharI x) = Some x" | "ProjCharI x = None"
@@ -224,10 +232,12 @@ inductive vbasic_type_rel :: "vbasic \<Rightarrow> vbasict \<Rightarrow> bool" (
 (* and vbasic_type_list_rel :: "vbasic list \<Rightarrow> vbasict list \<Rightarrow> bool" (infix ":\<^sub>r" 50) *) where
 UnitI_type[intro!]: "UnitI :\<^sub>b UnitBT" |
 BoolI_type[intro!]: "BoolI x :\<^sub>b BoolBT" |
+(*
 NatI_type[intro!]: "NatI x :\<^sub>b NatBT" |
 IntI_type[intro!]: "IntI x :\<^sub>b IntBT" |
 RatI_type[intro!]: "RatI x :\<^sub>b RatBT" |
-RealI_type[intro!]: "RealI x :\<^sub>b RealBT" |
+*)
+NumberI_type[intro!]: "NumberI x :\<^sub>b NumberBT" |
 CharI_type[intro!]: "CharI x :\<^sub>b CharBT" |
 TokenI_type[intro!]: "TokenI x :\<^sub>b TokenBT" |
 EvI_type[intro!]: "v :\<^sub>b t \<Longrightarrow> EvI n t v :\<^sub>b EventBT" |
@@ -257,14 +267,16 @@ inductive_cases
   UnitT_type_cases [elim!]: "x :\<^sub>b UnitBT" and
   BoolI_type_cases [elim]: "BoolI x :\<^sub>b t" and
   BoolT_type_cases [elim!]: "x :\<^sub>b BoolBT" and
+(*
   NatI_type_cases [elim]: "NatI x :\<^sub>b t" and
   NatT_type_cases [elim!]: "x :\<^sub>b NatBT" and
   IntI_type_cases [elim]: "IntI x :\<^sub>b t" and
   IntT_type_cases [elim!]: "x :\<^sub>b IntBT" and
   RatI_type_cases [elim]: "RatI x :\<^sub>b t" and
   RatT_type_cases [elim!]: "x :\<^sub>b RatBT" and
-  RealI_type_cases [elim]: "RealI x :\<^sub>b t" and
-  RealT_type_cases [elim!]: "x :\<^sub>b RealBT" and
+*)
+  NumberI_type_cases [elim]: "NumberI x :\<^sub>b t" and
+  NumberT_type_cases [elim!]: "x :\<^sub>b NumberBT" and
   CharI_type_cases [elim]: "CharI x :\<^sub>b t" and
   CharT_type_cases [elim!]: "x :\<^sub>b CharBT" and
   TokenI_type_cases [elim]: "TokenI x :\<^sub>b t" and
@@ -311,10 +323,12 @@ fun Defined_vbasic :: "vbasic \<Rightarrow> bool" where
 "Defined_vbasic (PairI x y) = (Defined_vbasic x \<and> Defined_vbasic y)" |
 "Defined_vbasic UnitI = True" |
 "Defined_vbasic (BoolI x) = True" |
+(*
 "Defined_vbasic (NatI n) = True" |
 "Defined_vbasic (IntI n) = True" |
 "Defined_vbasic (RatI n) = True" |
-"Defined_vbasic (RealI n) = True" |
+*)
+"Defined_vbasic (NumberI n) = True" |
 "Defined_vbasic (CharI x) = True" |
 "Defined_vbasic (QuoteI x) = True" |
 "Defined_vbasic (TokenI x) = Defined_vbasic x" |
@@ -329,7 +343,7 @@ fun Defined_vbasic :: "vbasic \<Rightarrow> bool" where
 "Defined_vbasic (TypeI t) = True"
 
 instance 
-  by (intro_classes, rule_tac x="NatI 0" in exI, simp)
+  by (intro_classes, rule_tac x="NumberI 0" in exI, simp)
 
 end
 
@@ -360,7 +374,7 @@ fun Defined_vdmv :: "vdmv \<Rightarrow> bool" where
 "Defined_vdmv (BotD' s) = False"
 
 instance 
-  by (intro_classes, rule_tac x="BasicD (IntI 0)" in exI, simp)
+  by (intro_classes, rule_tac x="BasicD (NumberI 0)" in exI, simp)
 
 end
 
@@ -394,6 +408,7 @@ done
 
 text {* Coercion *}
 
+(*
 fun CoerceI :: "vbasic \<Rightarrow> vbasict \<Rightarrow> vbasic" where
 "CoerceI (NatI x) IntBT  = (IntI (of_nat x))" |
 "CoerceI (NatI x) RatBT  = (RatI (of_nat x))" |
@@ -420,6 +435,7 @@ lemma CoerceI_type [intro]:
   apply (case_tac x, case_tac[!] t)
   apply (auto)
 done
+*)
 
 text {* We introduce a couple of derived typing rules *}
 
@@ -437,7 +453,7 @@ lemma FSetI_type[intro]:
   by (auto simp add:FSetI_def sty)
 
 lemma FSetT_type_cases [elim!]: 
-  "\<lbrakk> x :\<^sub>b FSetBT t; \<And> xs. \<lbrakk> x = FSetI t xs; \<forall>x\<in>\<^sub>fxs. x :\<^sub>b t \<rbrakk> \<Longrightarrow> P; x = BotI (\<fin> t) \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk> x :\<^sub>b FSetBT t; \<And> xs. \<lbrakk> x = FSetI t xs; \<forall>x\<in>\<^sub>fxs. x :\<^sub>b t \<rbrakk> \<Longrightarrow> P; x = BotI (FSetBT t) \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   apply (erule FinT_type_cases)
   apply (auto simp add:FSetI_def)
   apply (metis fset_inv)
@@ -550,9 +566,11 @@ lemma vcarrier [simp]: "x :\<^sub>v t \<Longrightarrow> x \<in> vcarrier t"
   by (simp add:vcarrier_def)
 
 lemma vcarrier_simps [simp]:
+(*
   "vcarrier NatT  = {BotD NatT} \<union> {BasicD (NatI x) | x . True}"
   "vcarrier IntT  = {BotD IntT} \<union> {BasicD (IntI x) | x . True}"
   "vcarrier RatT  = {BotD RatT} \<union> {BasicD (RatI x) | x . True}"
+*)
   "vcarrier BoolT = {BotD BoolT} \<union> {BasicD (BoolI x) | x . True}"
   apply (simp_all add:vcarrier_def)
   apply (force)+
@@ -570,7 +588,7 @@ subsection {* Injecting basic values into vdmv *}
 
 fun ProjBasicD :: "vdmv \<Rightarrow> vbasic" where
 "ProjBasicD (BasicD x) = x" |
-"ProjBasicD _ = BotI NatBT"
+"ProjBasicD _ = BotI NumberBT"
 
 fun IsBasicD :: "vdmv \<Rightarrow> bool" where
 "IsBasicD (BasicD x) = True" |
@@ -638,10 +656,12 @@ done
 fun default_vbasict :: "vbasict \<Rightarrow> vbasic" where
 "default_vbasict UnitBT        = UnitI" |
 "default_vbasict BoolBT        = BoolI False" |
+(*
 "default_vbasict NatBT         = NatI 0" |
 "default_vbasict IntBT         = IntI 0" |
 "default_vbasict RatBT         = RatI 0" |
-"default_vbasict RealBT        = RealI 0" |
+*)
+"default_vbasict NumberBT      = NumberI 0" |
 "default_vbasict CharBT        = CharI (CHR ''x'')" |
 "default_vbasict QuoteBT       = QuoteI ''x''" |
 "default_vbasict TokenBT       = TokenI (BoolI False)" |

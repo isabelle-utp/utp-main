@@ -39,11 +39,6 @@ definition BotDE :: "'a vdme" ("\<bottom>\<^sub>v") where
 
 declare BotDE_def [eval,evale,evalp]
 
-definition SingleD :: "'a vdme \<Rightarrow> 'a vdme" where
-"SingleD x = x"
-
-declare SingleD_def [eval,evale,evalp]
-
 abbreviation LitD :: "'a \<Rightarrow> 'a vdme" where
 "LitD x \<equiv> LitPE (Some x)"
 
@@ -74,6 +69,11 @@ definition bpfun :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a * 
 "bpfun f \<equiv> (\<lambda> (v1, v2). Some (f v1 v2))"
 
 abbreviation "Op2D' f \<equiv> Op2D (bpfun f)"
+
+definition SingleD :: "'a vdme \<Rightarrow> ('a*unit) vdme" where
+"SingleD x = Op1D' (\<lambda> x. (x, ())) x"
+
+declare SingleD_def [eval,evale,evalp]
 
 definition ListD :: "'a::vbasic vdme list \<Rightarrow> 'a list vdme" where
 "ListD xs = MkPExpr (\<lambda> b. mapM (\<lambda> v. \<lbrakk>v\<rbrakk>\<^sub>* b) xs)"
@@ -118,7 +118,7 @@ no_syntax
   "_pexpr_equal"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "=" 50)
   "_pexpr_true"        :: "pexpr" ("true")
   "_pexpr_false"       :: "pexpr" ("false")
-  "_pexpr_brack"       :: "pexpr \<Rightarrow> pexpr" ("'(_')")
+(*  "_pexpr_brack"       :: "pexpr \<Rightarrow> pexpr" ("'(_')") *)
   "_pexpr_plus"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "+" 65)
   "_pexpr_minus"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "-" 65)
   "_pexpr_less"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "<" 25)
@@ -128,29 +128,37 @@ no_syntax
   "_pexpr_fset"        :: "pexprs \<Rightarrow> pexpr" ("{_}")
   "_pexpr_list"        :: "pexprs \<Rightarrow> pexpr" ("\<langle>_\<rangle>")
   "_pexpr_list_nil"    :: "pexpr" ("\<langle>\<rangle>")
+  "_pexpr_expr_var"     :: "idt \<Rightarrow> pexpr" ("(_)")
+  "_uexpr_quote"        :: "uexpr \<Rightarrow> 'a WF_EXPRESSION" ("(1^_^)")
 
 syntax
-  "_vexpr_equal"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "=" 50)
-  "_vexpr_nequal"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "<>" 50)
-  "_vexpr_true"    :: "pexpr" ("true")
-  "_vexpr_false"   :: "pexpr" ("false")
-  "_vexpr_num"     :: "num_const \<Rightarrow> pexpr" ("_")
-  "_vexpr_bot"     :: "pexpr" ("undefined")
-  "_vexpr_lit"     :: "'a::vbasic \<Rightarrow> pexpr" ("\<langle>_\<rangle>")
-  "_vexpr_forall"  :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ : _ &/ _)" [0, 0, 10] 10)
-  "_vexpr_exists"  :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3exists _ : _ &/ _)" [0, 0, 10] 10)
-  "_vexpr_coerce"  :: "pexpr \<Rightarrow> vty \<Rightarrow> pexpr" (infix ":" 50)
-  "_vexpr_prod"    :: "pexprs \<Rightarrow> pexpr"    ("'(_')")
-  "_vexpr_nil"     :: "pexpr" ("[]")
-  "_vexpr_list"    :: "pexprs => pexpr"    ("[(_)]")
-  "_vexpr_empty"   :: "pexpr" ("{}")
-  "_vexpr_fset"    :: "pexprs => pexpr"    ("{(_)}")
+  "_vexpr_expr_var" :: "idt \<Rightarrow> pexpr" ("@_" [999] 999)
+  "_vexpr_equal"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "=" 50)
+  "_vexpr_nequal"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "<>" 50)
+  "_vexpr_true"     :: "pexpr" ("true")
+  "_vexpr_false"    :: "pexpr" ("false")
+  "_vexpr_num"      :: "real \<Rightarrow> pexpr" ("_")
+  "_vexpr_bot"      :: "pexpr" ("undefined")
+  "_vexpr_lit"      :: "'a::vbasic \<Rightarrow> pexpr" ("(1^_^)")
+  "_vexpr_forall"   :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ : _ &/ _)" [0, 0, 10] 10)
+  "_vexpr_exists"   :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3exists _ : _ &/ _)" [0, 0, 10] 10)
+  "_vexpr_coerce"   :: "pexpr \<Rightarrow> vty \<Rightarrow> pexpr" (infix ":" 50)
+  "_vexpr_prod"     :: "pexprs \<Rightarrow> pexpr"    ("mk'_'(_')")
+  "_vexpr_nil"      :: "pexpr" ("[]")
+  "_vexpr_list"     :: "pexprs => pexpr"    ("[(_)]")
+  "_vexpr_empty"    :: "pexpr" ("{}")
+  "_vexpr_fset"     :: "pexprs => pexpr"    ("{(_)}")
+
+syntax (xsymbols)
+  "_vexpr_bot"     :: "pexpr" ("\<bottom>")
 
 translations
+  "_vexpr_expr_var x"          => "x"
   "_vexpr_equal"               == "CONST vexpr_equal"
   "_vexpr_nequal"              == "CONST vexpr_nequal"
   "_vexpr_true"                == "CONST TrueDE"
   "_vexpr_false"               == "CONST FalseDE"
+  "_vexpr_num n"               == "CONST LitD (n :: real)"
   "_vexpr_bot"                 == "CONST BotDE"
   "_vexpr_lit v"               == "CONST LitD v"
   "_vexpr_forall x xs e"       == "CONST ForallD xs (\<lambda>x. e)"
@@ -165,13 +173,18 @@ translations
   "_vexpr_fset (_pexprs x xs)" == "CONST vexpr_insert x (_vexpr_fset xs)"
   "_vexpr_fset x"              == "CONST vexpr_insert x CONST vexpr_empty"
 
+term "LitD (1 :: real)"
+
+term "|x = 1.1|"
+term "|(mk_(1,2,3,4))|"
+
 subsection {* Tautologies *}
 
 definition VExprTrueT :: "bool vdme \<Rightarrow> vdmv WF_PREDICATE" where
-"VExprTrueT e = `e = true`"
+"VExprTrueT e = `@e = true`"
 
 definition VExprDefinedT :: "bool vdme \<Rightarrow> vdmv WF_PREDICATE" where
-"VExprDefinedT e = `\<not> (e = undefined)`"
+"VExprDefinedT e = `\<not> (@e = \<bottom>)`"
 
 abbreviation VTautT :: "bool vdme \<Rightarrow> vdmv WF_PREDICATE" where
 "VTautT e \<equiv> TVL (VExprTrueT e, VExprDefinedT e)"

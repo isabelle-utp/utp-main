@@ -84,6 +84,7 @@ end
 
 subsection {* Int sort instantiation *}
 
+(*
 instantiation vdmv :: INT_SORT
 begin
 
@@ -97,6 +98,7 @@ instance
   apply (auto simp add:dcarrier_def type_rel_vdmt image_def MkInt_vdmv_def)
 done
 end
+*)
 
 subsection {* Bool sort instantiation *}
 
@@ -171,7 +173,7 @@ definition EventPerm_vdmv :: "vdmv UTYPE set" where
 instance
   apply (intro_classes)
   apply (auto simp add:EventPerm_vdmv_def)
-  apply (rule_tac x="embTYPE IntT" in exI)
+  apply (rule_tac x="embTYPE NumberT" in exI)
   apply (auto simp add:vbtypes_def)
 done
 

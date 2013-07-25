@@ -65,6 +65,7 @@ syntax
   "_upred_all1"     :: "('a, 'm) PVAR \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<forall> _./ _)" [0, 10] 10) 
   "_upred_exists1"  :: "('a, 'm) PVAR \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<exists> _./ _)" [0, 10] 10) 
   "_upred_equal"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixl "=" 50)
+  "_upred_nequal"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixl "\<noteq>" 50)
   "_upred_pexpr"    :: "pexpr \<Rightarrow> upred" ("\<lparr>_\<rparr>")
   "_upred_skip"     :: "upred" ("II")
   "_upred_skipa"    :: "'VALUE VAR set \<Rightarrow> upred" ("II\<^bsub>_\<^esub>")
@@ -103,6 +104,7 @@ translations
   "_upred_all1 x p"    == "CONST ForallP {x\<down>} p"
   "_upred_exists1 x p" == "CONST ExistsP {x\<down>} p"
   "_upred_equal e f"   == "CONST PEqualP e f"
+  "_upred_nequal e f"  == "CONST NotP (CONST PEqualP e f)"
   "_upred_pexpr e"     == "CONST PExprP e"
   "_upred_skip"        == "CONST SkipR"
   "_upred_skipa vs"    == "CONST SkipRA vs"

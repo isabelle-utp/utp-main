@@ -37,16 +37,36 @@ end
 abbreviation "QuoteS x \<equiv> {Q x}"
 
 abbreviation "vty_bool \<equiv> (UNIV :: bool set)"
-abbreviation "vty_nat  \<equiv> (UNIV :: nat set)"
-abbreviation "vty_nat1 \<equiv> {x::nat. x > 1}"
-abbreviation "vty_int  \<equiv> (UNIV :: int set)"
-abbreviation "vty_rat  \<equiv> (UNIV :: rat set)"
+abbreviation "vty_nat  \<equiv> Nats :: real set"
+abbreviation "vty_nat1 \<equiv> {x\<in>vty_nat. x > 0}"
+abbreviation "vty_int  \<equiv> Ints :: real set"
+abbreviation "vty_rat  \<equiv> Rats :: real set"
 abbreviation "vty_real \<equiv> (UNIV :: real set)"
 abbreviation "vty_char \<equiv> (UNIV :: char set)"
 abbreviation "vty_prod \<equiv> op \<times>"
 abbreviation "vty_seq_of A  \<equiv> {xs. set xs \<subseteq> A}" 
 abbreviation "vty_seq1_of A \<equiv> {xs. set xs \<subseteq> A \<and> length xs > 0}" 
 abbreviation "vty_map_to A B \<equiv> {f. \<langle>fdom f\<rangle>\<^sub>f \<subseteq> A \<and> \<langle>fran f\<rangle>\<^sub>f \<subseteq> B}"
+
+lemma vty_subtypes [simp]:
+  "vty_nat1 \<subseteq> vty_nat"
+  "vty_nat  \<subseteq> vty_int"
+  "vty_int  \<subseteq> vty_rat"
+  "vty_rat  \<subseteq> vty_real"
+  apply (auto)
+  apply (metis Ints_of_nat Nats_cases)
+  apply (auto simp add:Ints_def Rats_def image_def)
+  apply (rule_tac x="of_int xa" in exI)
+  apply (simp add:of_int_def real_of_int_def)
+done
+
+lemma vty_int_members [simp]:
+  "0 \<in> vty_int" "1 \<in> vty_int" "numeral n \<in> vty_int" "neg_numeral n \<in> vty_int"
+  apply (auto simp add:Ints_def image_def)
+  apply (rule_tac x="1" in exI, simp)
+  apply (rule_tac x="numeral n" in exI, simp)
+  apply (rule_tac x="neg_numeral n" in exI, simp)
+done
 
 definition Fow :: "'a set \<Rightarrow> 'a fset set" where
 "Fow A = {Abs_fset x | x. x \<subseteq> A \<and> finite x}"
@@ -119,8 +139,8 @@ term "\<parallel>@map @char to @int\<parallel>"
 
 (* term "`x := \<langle><1>\<rangle> : @seq1 of @nat1`" *)
 
-term "\<parallel>{($x : @int,$y : @int) | $x = $y}\<parallel>"
+term "\<parallel>{mk_($x : @int,$y : @int) | $x = $y}\<parallel>"
 
-term "|[\<langle>1\<rangle>] : @seq1 of @int|"
+term "|[1] : @seq1 of @int|"
 
 end

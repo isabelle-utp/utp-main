@@ -13,7 +13,7 @@ record Alarm_raw =
 definition "Alarm = (UNIV :: Alarm_raw set)"
 
 record Expert_raw =
-  expertid :: nat
+  expertid :: real
   quali    :: "quote fset"
 
 instantiation Expert_raw_ext :: (vbasic) vbasic

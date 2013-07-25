@@ -27,7 +27,7 @@ text {* To make injecting values into the domain easy, we introduce a type class
 class vbasic =
   fixes Inject  :: "'a \<Rightarrow> vbasic"
   and   Type    :: "'a itself \<Rightarrow> vbasict"
-  assumes Inject_inj [simp]: "Inject x = Inject y \<Longrightarrow> x = y"
+  assumes Inject_inj: "Inject x = Inject y \<Longrightarrow> x = y"
   and     Inject_range [simp]: "range Inject = {x. x :\<^sub>b Type (TYPE('a)) \<and> \<D> x}"
 
 syntax
@@ -121,6 +121,7 @@ instance
   by (intro_classes, auto simp add:Inject_unit_def Type_unit_def)
 end
 
+(*
 subsection {* Naturals are injectable *}
 
 instantiation nat :: vbasic
@@ -153,6 +154,7 @@ end
 
 lemma BTYPE_int: "IntBT = BTYPE(int)"
   by (simp add:Type_int_def)
+*)
 
 subsection {* Bools are injectable *}
 
@@ -169,6 +171,7 @@ end
 lemma BTYPE_bool: "BoolBT = BTYPE(bool)"
   by (simp add:Type_bool_def)
 
+(*
 subsection {* Rationals are injectable *}
 
 instantiation rat :: vbasic
@@ -184,6 +187,23 @@ end
 
 lemma BTYPE_rat: "RatBT = BTYPE(rat)"
   by (simp add:Type_rat_def)
+*)
+
+subsection {* Rationals are injectable *}
+
+instantiation real :: vbasic
+begin
+
+definition "Inject_real \<equiv> NumberI"
+definition "Type_real (x::real itself) = NumberBT"
+
+declare Type_real_def [simp]
+
+instance by (intro_classes, auto simp add:Inject_real_def)
+end
+
+lemma BTYPE_real: "NumberBT = BTYPE(real)"
+  by (simp add:Type_real_def)
 
 subsection {* Characters are injectable *}
 
