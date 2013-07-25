@@ -280,10 +280,6 @@ proof -
   finally show ?thesis .
 qed
 
-lemma condition_comp [simp]:
-  "p1 \<in> WF_CONDITION \<Longrightarrow> `\<not> (\<not> p1 ; true)` = p1"
-  by (metis NotP_NotP NotP_cond_closure SemiR_TrueP_precond)
-
 lemma DesignD_composition_cond:
   assumes "p1 \<in> WF_CONDITION" "P2 \<in> WF_RELATION" "Q1 \<in> WF_RELATION" "Q2 \<in> WF_RELATION"
           "UNREST OKAY p1" "UNREST OKAY P2" "UNREST OKAY Q1" "UNREST OKAY Q2"
@@ -334,19 +330,6 @@ lemma H1_AndP: "H1 (p \<and>\<^sub>p q) = H1(p) \<and>\<^sub>p H1(q)"
 
 lemma H1_OrP: "H1 (p \<or>\<^sub>p q) = H1(p) \<or>\<^sub>p H1(q)"
   by (utp_pred_auto_tac)
-
-lemma SemiR_TrueP_right_precond:
-  assumes "P \<in> WF_CONDITION"
-  shows "true ; P = P\<^sup>\<smile> ; true"
-proof -
-  have "true ; P = `true ; (P \<and> true)`"
-    by simp
-
-  also from assms have "... = P\<^sup>\<smile> ; true"
-    by (simp only: SemiR_AndP_right_precond closure, simp)
-
-  ultimately show ?thesis by simp
-qed
 
 theorem H1_algebraic_intro:
   assumes 
@@ -464,7 +447,7 @@ proof -
     by (metis NotP_cond_closure SemiR_TrueP_precond assms(1))
 
   also have "... = `\<not> p \<or> (Q ; R)`"
-    by (metis H1_left_zero SemiR_assoc assms condition_comp utp_pred_simps(3))
+    by (metis H1_left_zero SemiR_assoc assms SemiR_condition_comp utp_pred_simps(3))
 
   ultimately show ?thesis
     by (metis ImpliesP_def)
