@@ -205,6 +205,26 @@ lemma SemiR_condition_comp [simp]:
   "p1 \<in> WF_CONDITION \<Longrightarrow> \<not>\<^sub>p (\<not>\<^sub>p p1 ; true) = p1"
   by (metis NotP_NotP NotP_cond_closure SemiR_TrueP_precond)
 
+lemma SemiR_TrueP_TrueP [simp]: 
+  "true ; true = true"
+  by (metis SemiR_TrueP_precond TrueP_cond_closure)
+
+lemma SemiR_cond_idem [simp]:
+  "\<lbrakk> P \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> P ; P = P"
+  by (metis SemiR_FalseP_left SemiR_TrueP_precond SemiR_assoc SemiR_precond_left_zero)
+
+lemma SemiR_postcond_idem [simp]:
+  "\<lbrakk> P \<in> WF_POSTCOND \<rbrakk> \<Longrightarrow> P ; P = P"
+  by (metis SemiR_FalseP_right SemiR_TrueP_postcond SemiR_assoc SemiR_postcond_right_zero)
+
+lemma TrueP_left_annihilator_unique:
+  "P \<in> WF_RELATION \<Longrightarrow> P ; true = false \<Longrightarrow> P = false"
+  by (utp_xrel_auto_tac, metis (lifting) prod_caseI2)
+
+lemma TrueP_right_annihilator_unique:
+  "P \<in> WF_RELATION \<Longrightarrow> true ; P = false \<Longrightarrow> P = false"
+  by (utp_xrel_auto_tac, metis (lifting) prod_caseI2)
+
 text {* A single variable can be extracted from a sequential composition and captured
         in an existential *}
 

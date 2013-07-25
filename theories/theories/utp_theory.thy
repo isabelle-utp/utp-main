@@ -11,6 +11,8 @@ imports
   "../core/utp_pred"
   "../core/utp_unrest"
   "../tactics/utp_pred_tac"
+  "../tactics/utp_rel_tac"
+  "../tactics/utp_xrel_tac"
 begin
 
 definition is_healthy :: 
@@ -23,7 +25,7 @@ definition IDEMPOTENT_OVER ::
   "'a VAR set \<Rightarrow> 'a WF_FUNCTION set" where
 "IDEMPOTENT_OVER vs = {f . \<forall> p \<in> WF_PREDICATE_OVER vs . f (f p) = f p}"
 
-declare is_healthy_def [eval]
+declare is_healthy_def [eval,evalr,evalrx]
 
 lemma Healthy_intro [intro]:
   "H(P) = P \<Longrightarrow> P is H"
@@ -33,8 +35,10 @@ lemma Healthy_elim [elim]:
   "\<lbrakk> Q is H; \<lbrakk> H(Q) = Q \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (simp add: is_healthy_def)
 
+term "P is (H1 \<circ> H2)"
+
 lemma Healthy_comp [closure]:
-  "\<lbrakk> H2(P) is H1; P is H2 \<rbrakk> \<Longrightarrow> P is (H1 \<circ> H2)"
+  "H2(P) is H1 \<Longrightarrow> P is H2 \<Longrightarrow> P is (H1 \<circ> H2)"
   by (simp add:is_healthy_def)
 
 lemma Healthy_simp:

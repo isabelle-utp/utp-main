@@ -95,10 +95,13 @@ lemma utp_pred_simps [simp]:
   "true \<Rightarrow>\<^sub>p x  = x" 
   "p \<Rightarrow>\<^sub>p true = true" 
   "p \<Rightarrow>\<^sub>p false = \<not>\<^sub>p p"
+  "p \<Rightarrow>\<^sub>p p = true"
   "P \<Leftrightarrow>\<^sub>p true = P" 
   "true \<Leftrightarrow>\<^sub>p P = P" 
   "P \<Leftrightarrow>\<^sub>p false = \<not>\<^sub>p P" 
   "false \<Leftrightarrow>\<^sub>p P = \<not>\<^sub>p P" 
+  "[true]\<^sub>p = true"
+  "[false]\<^sub>p = false"
   by (utp_pred_tac)+
 
 subsection {* Introduction rules *}
@@ -166,6 +169,10 @@ theorem ForallP_union :
 lemma ForallP_AndP_dist: 
   "(\<forall>\<^sub>p vs. p \<and>\<^sub>p q) = (\<forall>\<^sub>p vs. p) \<and>\<^sub>p (\<forall>\<^sub>p vs. q)"
   by (utp_pred_auto_tac)
+
+lemma TrueP_eq_ClosureP: 
+  "(P = true) \<longleftrightarrow> [P]\<^sub>p"
+  by (utp_pred_tac)
 
 lemma ClosureP_cases: 
   "\<lbrakk> ([P]\<^sub>p = true \<Longrightarrow> Q); [P]\<^sub>p = false \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> Q"

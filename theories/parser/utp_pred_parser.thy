@@ -9,6 +9,7 @@ header {* Predicate Parser *}
 theory utp_pred_parser
   imports
   "../core/utp_pred"
+  "../core/utp_lattice"
   "../core/utp_rel"
   "../core/utp_expr"
   "../poly/utp_poly_expr"
@@ -70,6 +71,7 @@ syntax
   "_upred_skip"     :: "upred" ("II")
   "_upred_skipa"    :: "'VALUE VAR set \<Rightarrow> upred" ("II\<^bsub>_\<^esub>")
   "_upred_seq"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr ";" 36)
+  "_upred_choice"   :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "\<sqinter>" 65)
   "_upred_cond"     :: "upred \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("_ \<lhd> _ \<rhd> _")
   "_upred_assigna"  :: "'a VAR \<Rightarrow> 'a VAR set \<Rightarrow> uexpr \<Rightarrow> upred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
   "_upred_assign"   :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> upred" ("_ := _" [100] 100)
@@ -109,6 +111,7 @@ translations
   "_upred_skip"        == "CONST SkipR"
   "_upred_skipa vs"    == "CONST SkipRA vs"
   "_upred_seq p q"     => "CONST SemiR p q"
+  "_upred_choice p q"  == "CONST sup p q"
   "_upred_cond p q r"  == "CONST CondR p q r"
   "_upred_assign x e"  == "CONST PAssignR x e"
   "_upred_assigna x xs e" == "CONST AssignRA x xs e"

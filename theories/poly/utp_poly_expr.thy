@@ -868,6 +868,10 @@ lemma ExprP_FalsePE [simp]:
   "ExprP (FalsePE\<down>) = FalseP"
   by (utp_pred_tac)
 
+lemma PUNDASHED_WF_CONDITION[closure]: 
+  "x \<in> PUNDASHED \<Longrightarrow> VarP (x\<down>) \<in> WF_CONDITION"
+  by (metis PVAR_VAR_PUNDASHED_UNDASHED VarP_cond_closure)
+
 (*
 subsection {* Anciliary Laws *}
 
