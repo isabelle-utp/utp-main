@@ -167,6 +167,10 @@ lemma ForallP_AndP_dist:
   "(\<forall>\<^sub>p vs. p \<and>\<^sub>p q) = (\<forall>\<^sub>p vs. p) \<and>\<^sub>p (\<forall>\<^sub>p vs. q)"
   by (utp_pred_auto_tac)
 
+lemma ClosureP_cases: 
+  "\<lbrakk> ([P]\<^sub>p = true \<Longrightarrow> Q); [P]\<^sub>p = false \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> Q"
+  by (utp_pred_auto_tac)
+
 lemma ClosureP_AndP_dist:
   "[p \<and>\<^sub>p q]\<^sub>p = [p]\<^sub>p \<and>\<^sub>p [q]\<^sub>p"
   by (utp_pred_auto_tac)

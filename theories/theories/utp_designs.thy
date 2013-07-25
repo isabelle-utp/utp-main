@@ -8,34 +8,27 @@ header {* UTP Designs *}
 
 theory utp_designs
 imports 
-  "../tactics/utp_rel_tac"
-  "../tactics/utp_xrel_tac"
-  "../tactics/utp_expr_tac"
-  "../core/utp_wp"
-  "../laws/utp_pred_laws"
-  "../laws/utp_rename_laws"
-  "../laws/utp_subst_laws"
-  "../laws/utp_rel_laws"
-  "../poly/utp_poly_expr"
-  "../parser/utp_pred_parser"
-  utp_theory
+  utp_base
 begin
 
 text {* Most predicates need a boolean type, so we here set the appropriate sort constraint *}
 
 default_sort BOOL_SORT
 
-subsection {* Design Constructs *}
+subsection {* Design Alphabet *}
 
 abbreviation "okay  \<equiv> MkPlainP ''okay'' True TYPE(bool) TYPE('m :: BOOL_SORT)"
-abbreviation "ok  \<equiv> VarP okay\<down>"
-abbreviation "ok' \<equiv> VarP okay\<down>\<acute>"
-abbreviation "ok'' \<equiv> VarP okay\<down>\<acute>\<acute>"
-abbreviation "ok''' \<equiv> VarP okay\<down>\<acute>\<acute>\<acute>"
+
+subsection {* Design Signature *}
+
+abbreviation "ok  \<equiv> `$okay`"
+abbreviation "ok' \<equiv> `$okay\<acute>`"
+abbreviation "ok'' \<equiv> `$okay\<acute>\<acute>`"
+abbreviation "ok''' \<equiv> `$okay\<acute>\<acute>\<acute>`"
 abbreviation "OKAY \<equiv> {okay\<down>,okay\<down>\<acute>}"
 
-definition BotD :: "'VALUE WF_PREDICATE" ("\<bottom>\<^sub>D") where
-"BotD = (\<not>\<^sub>p ok)"
+definition TopD :: "'VALUE WF_PREDICATE" ("\<top>\<^sub>D") where
+"TopD = (\<not>\<^sub>p ok)"
 
 definition DesignD :: 
 "'VALUE WF_PREDICATE \<Rightarrow>
@@ -70,14 +63,14 @@ definition ParallelMergeD ::
   "'a WF_PREDICATE => ('a VAR set * 'a WF_PREDICATE) => 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infix "\<parallel>\<^bsub>_\<^esub>" 100) where
 "P \<parallel>\<^bsub>M\<^esub> Q =  ((add_sub 0 on fst M \<bullet> P) \<parallel> (add_sub 1 on fst M \<bullet> Q)) ; snd M"
 
-declare BotD_def [eval,evalr,evalrx]
+declare TopD_def [eval,evalr,evalrx]
 declare DesignD_def [eval,evalr,evalrx]
 declare J_pred_def [eval,evalr,evalrx]
 declare SkipD_def [eval,evalr,evalrx]
 declare ParallelD_def [eval,evalr,evalrx]
 
 syntax
-  "_upred_desbot"   :: "upred" ("\<bottom>\<^sub>D")
+  "_upred_desbot"   :: "upred" ("\<top>\<^sub>D")
   "_upred_design"   :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<turnstile>" 30)
   "_upred_ok_true"  :: "upred \<Rightarrow> upred" ("_\<^sup>t" [1000] 1000)
   "_upred_ok_false" :: "upred \<Rightarrow> upred" ("_\<^sup>f" [1000] 1000)
@@ -86,7 +79,7 @@ syntax
   "_upred_parallel" :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infix "\<parallel>" 50)
 
 translations
-  "_upred_desbot"       == "CONST BotD"
+  "_upred_desbot"       == "CONST TopD"
   "_upred_design p q"   == "CONST DesignD p q"
   "_upred_ok_true p"    == "CONST ok_true p"
   "_upred_ok_false p"   == "CONST ok_false p"
@@ -96,9 +89,9 @@ translations
 
 subsection {* Closure / UNREST theorems *}
 
-lemma UNREST_BotD [unrest]:
-  "okay\<down> \<notin> vs \<Longrightarrow> UNREST vs \<bottom>\<^sub>D"
-  by (simp add:BotD_def unrest)
+lemma UNREST_TopD [unrest]:
+  "okay\<down> \<notin> vs \<Longrightarrow> UNREST vs \<top>\<^sub>D"
+  by (simp add:TopD_def unrest)
 
 lemma UNREST_SkipD_NON_REL_VAR [unrest]:
   "UNREST NON_REL_VAR II\<^sub>D"
@@ -120,9 +113,9 @@ lemma SubstP_UNREST_OKAY [usubst]:
   "\<lbrakk> x \<in> OKAY; UNREST OKAY p; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[v/\<^sub>px] = p"
   by (utp_pred_tac)
 
-lemma BotD_rel_closure [closure]:
-  "\<bottom>\<^sub>D \<in> WF_RELATION"
-  by (simp add:BotD_def closure)
+lemma TopD_rel_closure [closure]:
+  "\<top>\<^sub>D \<in> WF_RELATION"
+  by (simp add:TopD_def closure)
 
 lemma DesignD_rel_closure [closure]:
   "\<lbrakk>P \<in> WF_RELATION; Q \<in> WF_RELATION\<rbrakk> \<Longrightarrow> P \<turnstile> Q \<in> WF_RELATION"
@@ -145,7 +138,7 @@ lemma DesignD_extreme_point_true:
 
 lemma DesignD_extreme_point_nok:
   "true \<turnstile> false = \<not>\<^sub>p ok"
-  "\<not>\<^sub>p ok = \<bottom>\<^sub>D"
+  "\<not>\<^sub>p ok = \<top>\<^sub>D"
   by (utp_pred_tac+)
 
 lemma DesignD_assumption:
@@ -311,11 +304,14 @@ subsection {* Design Healthiness Conditions *}
 definition H1 :: "'a WF_FUNCTION" where "H1(P) = `ok \<Rightarrow> P`"
 definition H2 :: "'a WF_FUNCTION" where "H2(P) = `P ; J`"
 definition H3 :: "'a WF_FUNCTION" where "H3(P) = `P ; II\<^sub>D`"
+definition H4 :: "'a WF_FUNCTION" where "H4(P) = `[P ; true] \<Rightarrow> P`"
+
 definition "isH4(P) \<equiv> `P ; true` = `true`"
 
 declare H1_def [eval,evalr,evalrx]
 declare H2_def [eval,evalr,evalrx]
 declare H3_def [eval,evalr,evalrx]
+declare H4_def [eval,evalr,evalrx]
 
 lemma H1_true [closure]:
   "true is H1"
@@ -615,6 +611,76 @@ lemma H3_monotone:
   "p \<sqsubseteq> q \<Longrightarrow> H3 p \<sqsubseteq> H3 q"
   by (utp_rel_auto_tac)
 
+lemma ClosureP_TrueP [simp]: "[true]\<^sub>p = true"
+  by (utp_pred_tac)
+
+lemma ClosureP_FalseP [simp]: "[false]\<^sub>p = false"
+  by (utp_pred_tac)
+
+lemma TrueP_eq_ClosureP: 
+  "(P = true) \<longleftrightarrow> [P]\<^sub>p"
+  by (utp_pred_tac)
+
+lemma ClosureP_cases: 
+  "\<lbrakk> ([P]\<^sub>p = true \<Longrightarrow> Q); [P]\<^sub>p = false \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> Q"
+  by (utp_pred_auto_tac)
+
+lemma SemiR_TrueP_TrueP [simp]: "true ; true = true"
+  by (metis SemiR_TrueP_precond TrueP_cond_closure)
+
+lemma TrueP_left_annihilator_unique:
+  "P \<in> WF_RELATION \<Longrightarrow> P ; true = false \<Longrightarrow> P = false"
+  by (utp_xrel_auto_tac, metis (lifting) prod_caseI2)
+
+lemma TrueP_right_annihilator_unique:
+  "P \<in> WF_RELATION \<Longrightarrow> true ; P = false \<Longrightarrow> P = false"
+  by (utp_xrel_auto_tac, metis (lifting) prod_caseI2)
+
+lemma PUNDASHED_WF_CONDITION[closure]: "x \<in> PUNDASHED \<Longrightarrow> `$x` \<in> WF_CONDITION"
+  by (metis PVAR_VAR_PUNDASHED_UNDASHED VarP_cond_closure)
+
+lemma 
+  assumes "P \<in> WF_RELATION" "P is H1"
+  shows "H4 (H4 P) = P"
+
+(*
+proof -
+  have "([P ; true]\<^sub>p = false) \<Longrightarrow> False"
+  proof -
+    from assms have "`[P ; true]` = `[(ok \<Rightarrow> P) ; true]`"
+      by (simp add:H1_def is_healthy_def)
+
+    also have "... = `[(\<not>ok;true) \<or> (P;true)]`"
+      by (metis ImpliesP_def SemiR_OrP_distr)
+
+    also have "... = `[\<not>ok \<or> (P;true)]`"
+      by (simp add:SemiR_TrueP_precond closure)
+
+    also have "... \<noteq> false"
+
+
+    
+
+      apply (simp add:ImpliesP_def)
+
+  apply (simp add:H4_def)
+  apply (cases "P ; true" rule: ClosureP_cases)
+  apply (simp)
+  
+  apply (utp_xrel_auto_tac)
+  apply (utp_rel_auto_tac)
+
+lemma "P is H4 \<longleftrightarrow> isH4(P)"
+  apply (simp add:is_healthy_def isH4_def H4_def)
+  apply (rule)
+  defer
+  apply (simp)
+  apply (simp add: TrueP_eq_ClosureP)
+  apply (cases "P ; true" rule:ClosureP_cases)
+  apply (simp_all)
+  apply (utp_pred_tac)
+*)
+
 subsection {* The theory of Designs *}
 
 lift_definition DESIGNS :: "'VALUE WF_THEORY" 
@@ -661,8 +727,8 @@ lemma TrueP_design_closure [closure]:
   apply (simp_all add:closure unrest)
 done
 
-lemma BotD_design_closure [closure]:
-  "\<bottom>\<^sub>D \<in> WF_DESIGN"
+lemma TopD_design_closure [closure]:
+  "\<top>\<^sub>D \<in> WF_DESIGN"
   apply (rule_tac DESIGNS_intro_witness[of _ "TrueP" "FalseP"])
   apply (utp_pred_tac, simp_all add:closure unrest)
 done
