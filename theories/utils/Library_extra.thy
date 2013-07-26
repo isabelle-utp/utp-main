@@ -4,6 +4,7 @@ imports
   "Library_extra/Fset"
   "Library_extra/Map_Extra"
   "Library_extra/Fmap"
+  "Library_extra/Multi_Elem"
 begin
 
 definition complete_inj ::

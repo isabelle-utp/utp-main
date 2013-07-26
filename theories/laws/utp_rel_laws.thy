@@ -16,7 +16,6 @@ imports
   "../tactics/utp_expr_tac"
   "../tactics/utp_rel_tac"
   "../tactics/utp_xrel_tac"
-(*  "../parser/utp_pred_parser" *)
   utp_pred_laws
   utp_rename_laws
   utp_subst_laws
@@ -783,6 +782,37 @@ lemma SkipRA_compose [simp]:
   apply (case_tac "x \<in> vs2")
   apply (auto)
 done
+
+lemma SkipR_neq_FalseP [simp]:
+  "II \<noteq> false" "false \<noteq> II"
+  by (utp_xrel_auto_tac, utp_xrel_auto_tac)
+
+text {* This lemma needs to be proved in the context of the BOOL SORT 
+        (or any sort with at least two elements) *}
+
+lemma SkipR_neq_TrueP_BOOL_SORT [simp]:
+  "(II :: ('a::BOOL_SORT) WF_PREDICATE) \<noteq> true"
+proof -
+  let ?x = "MkPlain ''x'' BoolType True"
+
+  let ?b1 = "\<B>(?x :=\<^sub>b MkBool True) \<oplus>\<^sub>b bc on DASHED \<union> NON_REL_VAR"
+  and ?b2 = "\<B>(?x :=\<^sub>b MkBool False) \<oplus>\<^sub>b bc on DASHED \<union> NON_REL_VAR"
+
+  have "?b1 \<noteq> ?b2"
+    apply (auto elim!:Rep_WF_BINDING_elim simp add:typing defined closure fun_eq_iff)
+    apply (drule_tac x="?x" in spec)
+    apply (simp add:typing defined closure)
+  done
+
+  thus ?thesis
+    apply (utp_xrel_auto_tac)
+    apply (simp add:set_eq_iff)
+    apply (drule_tac x="(MkXRelB ?b1, MkXRelB ?b2)" in spec)
+    apply (auto)
+  done
+qed
+
+lemmas TrueP_neq_SkipR_BOOL_SORT [simp] = SkipR_neq_TrueP_BOOL_SORT[THEN not_sym]
 
 subsection {* Assignment Laws *}
 

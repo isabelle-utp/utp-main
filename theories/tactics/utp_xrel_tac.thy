@@ -228,6 +228,20 @@ lemma EvalRX_intro:
   apply (metis NON_REL_VAR_def binding_override_minus)
 done
 
+lemma EvalRX_as_EvalP [eval]: "\<lbrakk>p\<rbrakk>RX = {BindRX b | b. \<lbrakk>p\<rbrakk>b}"
+  by (auto simp add:EvalRX_def EvalP_def)
+
+lemma EvalRX_refinement_intro:
+  "\<lbrakk>p1 \<in> WF_RELATION; p2 \<in> WF_RELATION; \<lbrakk>p2\<rbrakk>RX \<subseteq> \<lbrakk>p1\<rbrakk>RX \<rbrakk> \<Longrightarrow> p1 \<sqsubseteq> p2"
+  apply (auto simp add:EvalR_as_EvalP less_eq_WF_PREDICATE_def eval)
+  apply (drule_tac c="BindRX b" in subsetD)
+  apply (force)
+  apply (auto)
+  apply (drule BindRX_inj)
+  apply (metis EvalP_WF_RELATION binding_equiv_comm)
+done
+
+
 lemma EvalRX_inverse [simp]:
   "p \<in> WF_RELATION \<Longrightarrow> IEvalRX (EvalRX p) = p"
   apply (auto simp add: EvalRX_def IEvalRX_def WF_RELATION_def UNREST_def)
@@ -243,8 +257,13 @@ lemma EvalRX_inverse [simp]:
   apply (simp)
 done
 
-lemma EvalRX_simp [evalrx]: "\<lbrakk>p1 \<in> WF_RELATION; p2 \<in> WF_RELATION \<rbrakk> \<Longrightarrow> p1 = p2 \<longleftrightarrow> \<lbrakk>p1\<rbrakk>RX = \<lbrakk>p2\<rbrakk>RX"
+lemma EvalRX_simp [evalrx]: 
+  "\<lbrakk>p1 \<in> WF_RELATION; p2 \<in> WF_RELATION \<rbrakk> \<Longrightarrow> p1 = p2 \<longleftrightarrow> \<lbrakk>p1\<rbrakk>RX = \<lbrakk>p2\<rbrakk>RX"
   by (rule, simp, rule EvalRX_intro, simp_all)
+
+lemma EvalRX_refinement [evalrx]: 
+  "\<lbrakk>p1 \<in> WF_RELATION; p2 \<in> WF_RELATION \<rbrakk> \<Longrightarrow> p \<sqsubseteq> q \<longleftrightarrow> \<lbrakk>q\<rbrakk>R \<subseteq> \<lbrakk>p\<rbrakk>R"
+  by (metis EvalR_refinement)
 
 lemma EvalRX_TrueP [evalrx]: "\<lbrakk>true\<rbrakk>RX = UNIV"
   apply (auto simp add:EvalRX_def image_def TrueP.rep_eq)
@@ -542,8 +561,9 @@ lemma EvalRX_Tautology [evalrx]:
   apply (utp_pred_tac)
   apply (simp add:EvalP_def)
   apply (rule iffI)
-  apply (metis EvalRX_TrueP TrueP_def UNIV_eq_I destPRED_inverse)
-  apply (metis EvalRX_TrueP EvalRX_intro TrueP.rep_eq TrueP_rel_closure UNIV_I)
+  apply (metis (lifting, mono_tags) BindPX_inverse UNIV_eq_I mem_Collect_eq)
+  apply (auto simp add:set_eq_iff)
+  apply (metis (lifting) Collect_empty_eq ComplD Compl_eq EvalRX_NotP EvalRX_def NotP.rep_eq equals0I image_eqI)
 done
   
 declare ImpliesP_def [evalrx]

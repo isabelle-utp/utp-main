@@ -203,6 +203,13 @@ apply (auto simp add: urename)
 apply (metis SS_UNDASHED_app SS_ident_app UNDASHED_dash_DASHED override_on_def)
 done
 
+lemma EvalP_WF_RELATION: "\<lbrakk> p \<in> WF_RELATION; \<lbrakk>p\<rbrakk>b1; b1 \<cong> b2 on REL_VAR \<rbrakk> \<Longrightarrow> \<lbrakk>p\<rbrakk>b2"
+  apply (simp add:WF_RELATION_def UNREST_def EvalP_def)
+  apply (drule_tac x="b1" in bspec, simp)
+  apply (drule_tac x="b2" in spec)
+  apply (metis NON_REL_VAR_def binding_equiv_override binding_override_simps(2))
+done
+
 subsection {* Transfer Theorems *}
 
 theorem EvalR_inj_on :

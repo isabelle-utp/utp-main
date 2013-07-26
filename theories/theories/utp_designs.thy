@@ -665,7 +665,6 @@ proof -
     by (metis H3_def Healthy_intro SemiR_TrueP_precond assms)
 qed
 
-
 lemma DesignD_precondition_H3 [closure]:
   assumes 
     "UNREST OKAY p" "UNREST OKAY Q"
@@ -684,7 +683,6 @@ proof -
   finally show ?thesis
     by (simp add:H3_def is_healthy_def)
 qed
-
 
 lemma J_SkipD_commute: 
   "J ; II\<^sub>D = II\<^sub>D ; J"
@@ -708,11 +706,39 @@ lemma H4_idempotent: "H4 (H4 P) = H4 P"
 lemma H4_equiv: "P \<in> WF_RELATION \<Longrightarrow> P is H4 \<longleftrightarrow> isH4(P)"
   by (utp_xrel_auto_tac)
 
+lemma SkipR_is_H4 [closure]:
+  "II is H4"
+  by (utp_rel_tac)
+ 
+lemma SkipR_not_H1: 
+  "\<not> (II is H1)"
+proof -
+  have "`ok \<Rightarrow> II` = (`II` :: 'a WF_PREDICATE) \<longleftrightarrow> (`true` :: 'a WF_PREDICATE) = `II[false/okay]`"
+    by (unfold BoolType_pvaux_cases[of "okay" "`ok \<Rightarrow> II`" "II", simplified], utp_subst_tac)
+
+  moreover have "`II[false/okay]` = `($okay\<acute> = $okay \<and> II\<^bsub>REL_VAR - OKAY\<^esub>)[false/okay]`"
+    by (simp add: SkipR_as_SkipRA SkipRA_unfold[of "okay\<down>"] typing defined closure erasure)
+    
+  also have "... = `$okay\<acute> = false \<and> II\<^bsub>REL_VAR - OKAY\<^esub>`"
+    by (utp_subst_tac)
+
+  also have "... \<noteq> true"
+    apply (auto)
+    apply (unfold BoolType_pvaux_cases[of "okay\<acute>" "`$okay\<acute> = false \<and> II\<^bsub>REL_VAR - OKAY\<^esub>`" "true", simplified])
+    apply (utp_subst_tac)
+    apply (utp_pred_tac)
+  done
+
+  ultimately show ?thesis
+    by (simp add:is_healthy_def H1_def, metis)
+qed
+
 lemma SkipD_is_H4 [closure]:
   "II\<^sub>D is H4"
   by (utp_xrel_auto_tac)
 
 text {* No condition other than true is feasible *}
+
 lemma H4_condition:
   "p \<in> WF_CONDITION \<Longrightarrow> H4(p) = true"
   by (simp add:H4_def SemiR_TrueP_precond)
@@ -731,6 +757,9 @@ lemma H1_H4_commute:
 
 lemma H2_H4_commute:
   "P \<in> WF_RELATION \<Longrightarrow> H2(H4(P)) = H4(H2(P))"
+  by (utp_xrel_auto_tac)
+
+lemma H4_top: "true \<turnstile> true is H4"
   by (utp_xrel_auto_tac)
 
 subsection {* The theory of Designs *}

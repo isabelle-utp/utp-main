@@ -358,7 +358,6 @@ instance
   apply (simp_all add:plus_WF_PREDICATE_def times_WF_PREDICATE_def 
                       zero_WF_PREDICATE_def one_WF_PREDICATE_def)
   apply (utp_rel_tac)+
-  apply (auto simp add:Id_on_def WF_REL_BINDING_def)
 done
 end
 

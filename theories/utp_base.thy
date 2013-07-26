@@ -21,6 +21,7 @@ imports
   "laws/utp_subst_laws"
   "laws/utp_rename_laws"
   "laws/utp_refine_laws"
+  "laws/utp_poly_laws"
   "poly/utp_poly"
   "parser/utp_pred_parser"
   "theories/utp_theory"
