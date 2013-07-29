@@ -6,7 +6,7 @@ session "HOL-UTP" = "Kleene_Algebra" +
   files "document/root.tex"
 
 session "HOL-UTP-THY" in "theories/theories" = "HOL-UTP" +
-  options [document = pdf, document_output = "output", quick_and_dirty = true]
+  options [browser_info = true, document = pdf, document_output = "output", quick_and_dirty = true]
   theories
   "utp_designs"
   "utp_definedness"
