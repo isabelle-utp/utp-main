@@ -6,10 +6,11 @@ session "HOL-UTP" = "Kleene_Algebra" +
   files "document/root.tex"
 
 session "HOL-UTP-THY" in "theories/theories" = "HOL-UTP" +
-  options [browser_info = true, document = pdf, document_output = "output", quick_and_dirty = true]
+  options [browser_info = true, document = pdf, document_output = "output", quick_and_dirty = true, document_variants="document:outline=/proof,/ML"]
   theories
   "utp_designs"
   "utp_definedness"
+  files "document/root.tex"
   
 session "HOL-UTP-VDM" in "theories/models/utp_vdm_simple" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
