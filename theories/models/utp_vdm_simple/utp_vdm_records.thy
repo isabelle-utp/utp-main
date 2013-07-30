@@ -14,6 +14,8 @@ begin
 
 default_sort type
 
+text {* VDM records are formalised as tagged types, unit types which carry a string. *}
+
 class tag =
   fixes tagName :: "'a \<Rightarrow> string"
   assumes tagUnit: "(x::'a) = y"
@@ -24,50 +26,84 @@ definition tag :: "'a" where
 
 end
 
+text {* A VDM field over a given tag, field type and record type consists of
+        an accessor function and VDM type. The VDM type must not be empty. *}
+
 typedef ('t::tag, 'a::vbasic, 'r) field =
-  "{(f :: 'r \<Rightarrow> 'a, t :: 'a set). \<exists> x. x \<in> t}"
+  "UNIV :: (('r \<Rightarrow> 'a) * 'a set) set"
   by (auto)
+
+declare Abs_field_inverse [simp]
 
 setup_lifting type_definition_field
 
 lift_definition FieldProj :: 
-  "('t::tag, 'a::vbasic, 'r) field \<Rightarrow> ('r \<Rightarrow> 'a)" is "fst"
-  by (simp)
+  "('t::tag, 'a::vbasic, 'r) field \<Rightarrow> ('r \<Rightarrow> 'a)" is "fst" .
 
 lift_definition FieldType ::
-  "('t::tag, 'a::vbasic, 'r) field \<Rightarrow> 'a set" is "snd"
-  by (simp)
+  "('t::tag, 'a::vbasic, 'r) field \<Rightarrow> 'a set" is "snd" .
 
 definition MkField :: "'t::tag itself \<Rightarrow> ('r \<Rightarrow> 'a) \<Rightarrow> 'a::vbasic set \<Rightarrow> ('t,'a,'r) field" where
 "MkField t f x = Abs_field (f, x)"
 
-type_synonym ('t, 'a, 'r) tagged = "('t itself * 'a set * 'r itself)"
+declare MkField_def [eval,evalp]
+
+typedef ('t, 'a, 'r) tagged = "{xs :: 'a set. \<exists> x. x \<in> xs}"
+  by (auto)
+
+typedef ('t, 'r) rec = "UNIV :: 'r set"
+  by (auto)
+
+declare Abs_rec_inverse [simp]
+
+instantiation rec :: (tag, vbasic) vbasic
+begin
+
+definition Inject_rec :: "('a, 'b) rec \<Rightarrow> vbasic" where
+"Inject_rec r = TagI (tagName (tag :: 'a)) (Inject (Rep_rec r))"
+
+definition Type_rec :: "('a, 'b) rec itself \<Rightarrow> vbasict" where
+"Type_rec rt = TagBT (tagName (tag :: 'a)) BTYPE('b)"
+
+instance 
+  apply (intro_classes)
+  apply (auto simp add:Inject_rec_def Type_rec_def Rep_rec_inject image_def)
+  apply (metis Project_Inject Rep_rec_cases UNIV_I)
+done
+end
 
 definition UnitField :: "('t::tag, 'a::vbasic, 'r) field \<Rightarrow> ('t, ('a * unit), 'r) tagged" where
-"UnitField f = (TYPE('t), (FieldType f \<times> UNIV), TYPE('r))"
+"UnitField f = Abs_tagged (FieldType f \<times> UNIV)"
+
+declare UnitField_def [eval,evalp]
 
 definition ConsField :: 
-  "('t::tag, 'a::vbasic, 'r) field \<Rightarrow> ('t, 'b, 'r) tagged \<Rightarrow>  ('t, ('a*'b), 'r) tagged" where
-"ConsField f t = (TYPE('t), FieldType f \<times> fst (snd t), TYPE('r))"
+  "('t::tag, 'a::vbasic, 'r) field \<Rightarrow> 
+   ('t, 'b, 'r) tagged \<Rightarrow>  
+   ('t, ('a * 'b), 'r) tagged" where
+"ConsField f t = Abs_tagged (FieldType f \<times> Rep_tagged t)"
 
-definition FinishField :: "('t, 'r, 'r) tagged \<Rightarrow> 'r set" where
-"FinishField \<equiv> fst \<circ> snd"
+declare ConsField_def [eval,evalp]
 
-abbreviation "field1  \<equiv> fst"
-abbreviation "field2  \<equiv> fst \<circ> snd"
-abbreviation "field3  \<equiv> fst \<circ> snd \<circ> snd"
-abbreviation "field4  \<equiv> fst \<circ> snd \<circ> snd \<circ> snd"
-abbreviation "field5  \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
-abbreviation "field6  \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
-abbreviation "field7  \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
-abbreviation "field8  \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
-abbreviation "field9  \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
-abbreviation "field10 \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
-abbreviation "field11 \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
-abbreviation "field12 \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
+definition MkTagRec :: "('t::tag, 'r::vbasic, 'r) tagged \<Rightarrow> 'r \<Rightarrow> ('t, 'r) rec" where
+"MkTagRec t = Abs_rec"
 
-definition MkRec :: "('t, 'a, 'r) tagged \<Rightarrow> 'r vdme \<Rightarrow> 'r vdme" where
-"MkRec t r = r"
+declare MkTagRec_def [eval,evalp]
+
+definition FinishField :: "('t::tag, 'r::vbasic, 'r) tagged \<Rightarrow> ('t, 'r) rec set" where
+"FinishField t \<equiv> MkTagRec t ` Rep_tagged t"
+
+declare FinishField_def [eval,evalp]
+
+definition MkRec :: "('t, 'r) rec set \<Rightarrow> 'r \<Rightarrow> ('t, 'r) rec" where
+"MkRec t = Abs_rec"
+
+definition SelectRec :: 
+  "('t::tag, 'a::vbasic, 'r) field \<Rightarrow> 
+   ('t, 'r) rec \<Rightarrow> 'a" where
+"SelectRec f r = (fst (Rep_field f)) (Rep_rec r)"
+
+declare SelectRec_def [eval,evalp]
 
 nonterminal vty_fields and vrec
 
@@ -75,15 +111,11 @@ syntax
   "_vty_fields"    :: "('t, 'a, 'r) field \<Rightarrow> vty_fields => vty_fields" ("_,/ _")
   "_vty_field"     :: "('t, 'a, 'r) field \<Rightarrow> vty_fields" ("_")
   "_vty_record"    :: "vty_fields => vty"    ("[(_)]")
-  "_vexpr_rproj"   :: "pexpr \<Rightarrow> ('t, 'a, 'r) field \<Rightarrow> pexpr" ("_\<cdot>_")
-  "_vexpr_mk_rec"  :: "('t, 'a, 'r) tagged \<Rightarrow> pexprs \<Rightarrow> pexpr" ("mk~_'(_')") 
 
 translations
   "_vty_fields x xs" == "CONST ConsField x xs"
   "_vty_field x" == "CONST UnitField x"
   "_vty_record x" == "CONST FinishField x"
-  "_vexpr_rproj r f" == "CONST Op1D' (CONST FieldProj f) r"
-  "_vexpr_mk_rec t e" == "CONST MkRec t (_vexpr_prod e)"
 
 abbreviation "Period   \<equiv> \<parallel>@nat\<parallel>"
 abbreviation "ExpertId \<equiv> \<parallel>@nat\<parallel>"
@@ -99,16 +131,24 @@ instance
   by (intro_classes, metis (full_types) Abs_Expert_Tag_cases singleton_iff)
 end
 
-abbreviation "expertid \<equiv> MkField TYPE(Expert_Tag) field1 \<parallel>@ExpertId\<parallel>"
-abbreviation "quali    \<equiv> MkField TYPE(Expert_Tag) field2 \<parallel>@set of @Qualification\<parallel>"
-abbreviation "Expert \<equiv> ConsField expertid (UnitField quali)"
+abbreviation "expertid_field \<equiv> MkField TYPE(Expert_Tag) #1 \<parallel>@ExpertId\<parallel>"
+abbreviation "expertid       \<equiv> SelectRec expertid_field"
+abbreviation "quali_field    \<equiv> MkField TYPE(Expert_Tag) #2 \<parallel>@set of @Qualification\<parallel>"
+abbreviation "quali          \<equiv> SelectRec quali_field"
+abbreviation "Expert         \<equiv> \<parallel>[expertid_field, quali_field]\<parallel>"
+abbreviation "mk_Expert      \<equiv> MkRec Expert"
 
-term "MkRec Expert"
+term "|mk_Expert(1,{}).expertid|"
 
-term "|mk~Expert(1,{})|"
+(*
+lemma "|mk_Expert(1,{}).expertid|= |1|"
+  apply (auto simp add:evalp)
+*)
 
-term "|(mk_(1, {}) : [expertid,quali])|"
 
+(*
+term "|(mk_Expert(1, {}) : [expertid,quali])|"
 term "\<parallel>[expertid, quali]\<parallel>"
+*)
 
 end

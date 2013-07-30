@@ -34,6 +34,9 @@ lemma TypeUSound_vdm [typing]: "TYPEUSOUND('a::vbasic option, vdmv)"
 
 type_synonym 'a vdme = "('a option, vdmv) WF_PEXPRESSION"
 
+translations
+  (type) "'a vdme" <= (type) "('a option, vdmv) WF_PEXPRESSION"
+
 definition BotDE :: "'a vdme" ("\<bottom>\<^sub>v") where
 "BotDE = LitPE None"
 
@@ -44,6 +47,9 @@ abbreviation LitD :: "'a \<Rightarrow> 'a vdme" where
 
 abbreviation "TrueDE  \<equiv> LitD True"
 abbreviation "FalseDE \<equiv> LitD False"
+
+abbreviation MkVarD :: "string \<Rightarrow> 'a set \<Rightarrow> ('a option, vdmv) PVAR" where
+"MkVarD n t \<equiv> MkPlainP n False TYPE('a option) TYPE(vdmv)"
 
 definition Op1D :: "('a::vbasic \<rightharpoonup> 'b::vbasic) \<Rightarrow> 'a vdme \<Rightarrow> 'b vdme" where
 "Op1D f v = Op1PE (\<lambda> x. x >>= f) v"
@@ -107,10 +113,68 @@ abbreviation "vexpr_nequal    \<equiv> Op2D' (op \<noteq>)"
 abbreviation "vexpr_prod      \<equiv> Op2D' (\<lambda> x y. (x,y))"
 abbreviation "vexpr_nil       \<equiv> LitD []"
 abbreviation "vexpr_cons      \<equiv> Op2D' list.Cons"
-abbreviation "vexpr_empty     \<equiv> LitD \<lbrace>\<rbrace>"
-abbreviation "vexpr_insert    \<equiv> Op2D' finsert"
+definition "vexpr_empty     \<equiv> LitD \<lbrace>\<rbrace>"
+definition "vexpr_insert    \<equiv> Op2D' finsert"
 
-nonterminal vty
+declare vexpr_empty_def [eval,evalp]
+declare vexpr_insert_def [eval,evalp]
+
+nonterminal vty and vprod
+
+subsection {* Product Projections *}
+
+abbreviation "vproj1  \<equiv> fst"
+abbreviation "vproj2  \<equiv> fst \<circ> snd"
+abbreviation "vproj3  \<equiv> fst \<circ> snd \<circ> snd"
+abbreviation "vproj4  \<equiv> fst \<circ> snd \<circ> snd \<circ> snd"
+abbreviation "vproj5  \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
+abbreviation "vproj6  \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
+abbreviation "vproj7  \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
+abbreviation "vproj8  \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
+abbreviation "vproj9  \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
+abbreviation "vproj10 \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
+abbreviation "vproj11 \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
+abbreviation "vproj12 \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
+abbreviation "vproj13 \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd 
+                       \<circ> snd"
+abbreviation "vproj14 \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd 
+                       \<circ> snd \<circ> snd"
+abbreviation "vproj15 \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd 
+                       \<circ> snd \<circ> snd \<circ> snd"
+abbreviation "vproj16 \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd 
+                       \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
+
+notation vproj1  ("#1")
+notation vproj2  ("#2")
+notation vproj3  ("#3")
+notation vproj4  ("#4")
+notation vproj5  ("#5")
+notation vproj6  ("#6")
+notation vproj7  ("#7")
+notation vproj8  ("#8")
+notation vproj9  ("#9")
+notation vproj10 ("#10")
+notation vproj11 ("#11")
+notation vproj12 ("#12")
+notation vproj13 ("#13")
+notation vproj14 ("#14")
+notation vproj15 ("#15")
+notation vproj16 ("#16")
+
+(* These seemingly vacuous definitions are there to help the pretty printer *)
+
+definition "NumD (x :: real) = LitD x"
+declare NumD_def [simp]
+
+definition "ApplyD f  = Op1D' f"
+declare ApplyD_def [simp]
+
+definition "SelectD f = Op1D' f"
+declare SelectD_def [simp]
+
+definition VExprD :: 
+  "'a vdme \<Rightarrow> 'a vdme" where
+"VExprD = id"
 
 text {* We remove some of the generic syntax in favour of our own *}
 
@@ -128,8 +192,9 @@ no_syntax
   "_pexpr_fset"        :: "pexprs \<Rightarrow> pexpr" ("{_}")
   "_pexpr_list"        :: "pexprs \<Rightarrow> pexpr" ("\<langle>_\<rangle>")
   "_pexpr_list_nil"    :: "pexpr" ("\<langle>\<rangle>")
-  "_pexpr_expr_var"     :: "idt \<Rightarrow> pexpr" ("(_)")
-  "_uexpr_quote"        :: "uexpr \<Rightarrow> 'a WF_EXPRESSION" ("(1^_^)")
+  "_pexpr_expr_var"    :: "idt \<Rightarrow> pexpr" ("(_)")
+  "_uexpr_quote"       :: "uexpr \<Rightarrow> 'a WF_EXPRESSION" ("(1^_^)")
+  "_upred_pexpr"       :: "pexpr \<Rightarrow> upred" ("\<lparr>_\<rparr>")
 
 syntax
   "_vexpr_expr_var" :: "idt \<Rightarrow> pexpr" ("@_" [999] 999)
@@ -143,11 +208,19 @@ syntax
   "_vexpr_forall"   :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ : _ &/ _)" [0, 0, 10] 10)
   "_vexpr_exists"   :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3exists _ : _ &/ _)" [0, 0, 10] 10)
   "_vexpr_coerce"   :: "pexpr \<Rightarrow> vty \<Rightarrow> pexpr" (infix ":" 50)
-  "_vexpr_prod"     :: "pexprs \<Rightarrow> pexpr"    ("mk'_'(_')")
+  "_vexpr_apply"    :: "('a \<Rightarrow> 'b) \<Rightarrow> pexprs \<Rightarrow> pexpr"    ("_'(_')")
+  "_vexpr_prod"     :: "pexprs \<Rightarrow> vprod" ("_")
+  "_vexpr_select"   :: "pexpr \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> pexpr" ("_._")
   "_vexpr_nil"      :: "pexpr" ("[]")
   "_vexpr_list"     :: "pexprs => pexpr"    ("[(_)]")
   "_vexpr_empty"    :: "pexpr" ("{}")
   "_vexpr_fset"     :: "pexprs => pexpr"    ("{(_)}")
+
+(*
+  "_vexpr_vexpr"  :: "'a vdme \<Rightarrow> pexpr" ("_")
+
+  "_vexpr_vexpr x" == "CONST vexpr_vexpr x"
+*)
 
 syntax (xsymbols)
   "_vexpr_bot"     :: "pexpr" ("\<bottom>")
@@ -158,14 +231,16 @@ translations
   "_vexpr_nequal"              == "CONST vexpr_nequal"
   "_vexpr_true"                == "CONST TrueDE"
   "_vexpr_false"               == "CONST FalseDE"
-  "_vexpr_num n"               == "CONST LitD (n :: real)"
+  "_vexpr_num n"               == "CONST NumD n"
   "_vexpr_bot"                 == "CONST BotDE"
   "_vexpr_lit v"               == "CONST LitD v"
   "_vexpr_forall x xs e"       == "CONST ForallD xs (\<lambda>x. e)"
   "_vexpr_exists x xs e"       == "CONST ExistsD xs (\<lambda>x. e)"
   "_vexpr_coerce e t"          == "CONST CoerceD e t"
+  "_vexpr_apply f x"           == "CONST ApplyD f (_vexpr_prod x)"
   "_vexpr_prod (_pexprs x xs)" == "CONST vexpr_prod x (_vexpr_prod xs)"
   "_vexpr_prod x"              == "CONST SingleD x"
+  "_vexpr_select e f"          == "CONST SelectD f e"
   "_vexpr_nil"                 == "CONST vexpr_nil"
   "_vexpr_list (_pexprs x xs)" == "CONST vexpr_cons x (_vexpr_list xs)"
   "_vexpr_list x"              == "CONST vexpr_cons x CONST vexpr_nil"
@@ -173,10 +248,19 @@ translations
   "_vexpr_fset (_pexprs x xs)" == "CONST vexpr_insert x (_vexpr_fset xs)"
   "_vexpr_fset x"              == "CONST vexpr_insert x CONST vexpr_empty"
 
+abbreviation mk_prod :: "'a \<Rightarrow> 'a" where
+"mk_prod \<equiv> id"
+
+term "Op1D' id (vexpr_prod TrueDE (SingleD FalseDE))"
+
+term "|mk_prod(true, false, 1).#1|"
+term "|mk_prod($x,2,5)|"
+
+
 term "LitD (1 :: real)"
 
 term "|x = 1.1|"
-term "|(mk_(1,2,3,4))|"
+term "|mk_prod(1,2,3,4).#3|"
 
 subsection {* Tautologies *}
 
@@ -188,6 +272,12 @@ definition VExprDefinedT :: "bool vdme \<Rightarrow> vdmv WF_PREDICATE" where
 
 abbreviation VTautT :: "bool vdme \<Rightarrow> vdmv WF_PREDICATE" where
 "VTautT e \<equiv> TVL (VExprTrueT e, VExprDefinedT e)"
+
+syntax
+  "_upred_vexpr"       :: "pexpr \<Rightarrow> upred" ("\<lparr>_\<rparr>")
+
+translations
+  "_upred_vexpr e" == "CONST VTautT e"
 
 subsection {* @{term UNREST_PEXPR} theorems *}
 

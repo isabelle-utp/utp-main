@@ -95,6 +95,7 @@ syntax
   "_vexpr_in_set"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "in @set" 50)
   "_vexpr_union"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "union" 65)
   "_vexpr_inter"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "inter" 70)
+  "_vexpr_sminus"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "setminus" 70)
   "_vexpr_card"    :: "pexpr \<Rightarrow> pexpr" ("card _")
   "_vexpr_dom"     :: "pexpr \<Rightarrow> pexpr" ("dom _")
   "_vexpr_rng"     :: "pexpr \<Rightarrow> pexpr" ("rng _")
@@ -114,6 +115,7 @@ translations
 (*  "_vexpr_brack x"     => "x" *)
   "_vexpr_union x y"   == "CONST Op2D' CONST funion x y"
   "_vexpr_inter x y"   == "CONST Op2D' CONST finter x y"
+  "_vexpr_sminus x y"  == "CONST Op2D' CONST fminus x y"
   "_vexpr_card x"      == "CONST Op2D' CONST fcard x"
   "_vexpr_dom x"       == "CONST vexpr_dom x"
   "_vexpr_rng x"       == "CONST vexpr_rng x"
@@ -131,7 +133,7 @@ term "|$x in @set {<1>}|"
 
 term "|^x^|"
 
-term "|mk_(1, {})|"
+term "|mk_prod(1, {})|"
 
 term "|forall x:@nat1 & ^x^ > 1|"
 term "|forall x in @set {1} & ^x^ > 5|"

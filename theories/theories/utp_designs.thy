@@ -708,7 +708,7 @@ lemma H4_equiv: "P \<in> WF_RELATION \<Longrightarrow> P is H4 \<longleftrightar
 
 lemma SkipR_is_H4 [closure]:
   "II is H4"
-  by (utp_rel_tac)
+  by (simp add:is_healthy_def H4_def)
  
 lemma SkipR_not_H1: 
   "\<not> (II is H1)"

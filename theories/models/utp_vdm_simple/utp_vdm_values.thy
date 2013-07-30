@@ -9,7 +9,9 @@ imports
   Char_ord
   Option_ord
   Monad_Syntax
-  "../../utp_base"
+  utp_base
+  utp_designs
+  utp_definedness
 begin
 
 declare split_paired_All [simp del]

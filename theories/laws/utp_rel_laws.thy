@@ -151,7 +151,7 @@ theorem SemiR_AndP_left_precond:
      \<Longrightarrow> (c \<and>\<^sub>p p) ; q = c \<and>\<^sub>p (p ; q)"
   by (frule SemiR_TrueP_precond, utp_xrel_auto_tac)
 
-lemma SemiR_TrueP_right_precond:
+theorem SemiR_TrueP_right_precond:
   assumes "P \<in> WF_CONDITION"
   shows "true ; P = P\<acute> ; true"
 proof -
@@ -200,41 +200,41 @@ proof -
   finally show ?thesis .
 qed
 
-lemma SemiR_condition_comp [simp]:
+theorem SemiR_condition_comp [simp]:
   "p1 \<in> WF_CONDITION \<Longrightarrow> \<not>\<^sub>p (\<not>\<^sub>p p1 ; true) = p1"
   by (metis NotP_NotP NotP_cond_closure SemiR_TrueP_precond)
 
-lemma SemiR_TrueP_TrueP [simp]: 
+theorem SemiR_TrueP_TrueP [simp]: 
   "true ; true = true"
   by (metis SemiR_TrueP_precond TrueP_cond_closure)
 
-lemma SemiR_cond_idem [simp]:
+theorem SemiR_cond_idem [simp]:
   "\<lbrakk> P \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> P ; P = P"
   by (metis SemiR_FalseP_left SemiR_TrueP_precond SemiR_assoc SemiR_precond_left_zero)
 
-lemma SemiR_postcond_idem [simp]:
+theorem SemiR_postcond_idem [simp]:
   "\<lbrakk> P \<in> WF_POSTCOND \<rbrakk> \<Longrightarrow> P ; P = P"
   by (metis SemiR_FalseP_right SemiR_TrueP_postcond SemiR_assoc SemiR_postcond_right_zero)
 
-lemma TrueP_left_annihilator_unique:
+theorem TrueP_left_annihilator_unique:
   "P \<in> WF_RELATION \<Longrightarrow> P ; true = false \<Longrightarrow> P = false"
   by (utp_xrel_auto_tac, metis (lifting) prod_caseI2)
 
-lemma TrueP_right_annihilator_unique:
+theorem TrueP_right_annihilator_unique:
   "P \<in> WF_RELATION \<Longrightarrow> true ; P = false \<Longrightarrow> P = false"
   by (utp_xrel_auto_tac, metis (lifting) prod_caseI2)
 
 text {* This somewhat odd looking property derives from Relation Algebra. It is used,
         for instance, in the theory of designs. *}
 
-lemma SemiR_TrueP_compl [simp]:
-  "P \<in> WF_RELATION \<Longrightarrow> `\<not> (P ; true) ; true` = `\<not> (P ; true)`"
+theorem SemiR_TrueP_compl [simp]:
+  "P \<in> WF_RELATION \<Longrightarrow> \<not>\<^sub>p (P ; true) ; true = \<not>\<^sub>p (P ; true)"
   by (utp_xrel_auto_tac)
 
 text {* A single variable can be extracted from a sequential composition and captured
         in an existential *}
 
-lemma SemiR_extract_variable:
+theorem SemiR_extract_variable:
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "x \<in> UNDASHED"
   shows "P ; Q = (\<exists>\<^sub>p {x\<acute>\<acute>\<acute>}. P[$\<^sub>ex\<acute>\<acute>\<acute>/\<^sub>px\<acute>] ; Q[$\<^sub>ex\<acute>\<acute>\<acute>/\<^sub>px])"
 proof -
@@ -429,7 +429,7 @@ proof -
     by simp
 qed
 
-lemma ExistsP_UNDASHED_expand_SemiR:
+theorem ExistsP_UNDASHED_expand_SemiR:
   "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; vs \<subseteq> UNDASHED \<rbrakk> \<Longrightarrow> 
   (\<exists>\<^sub>p vs. p) ; q = (\<exists>\<^sub>p vs. (p ; q))"
   apply (simp add: SemiR_algebraic_rel closure urename)
@@ -440,7 +440,7 @@ lemma ExistsP_UNDASHED_expand_SemiR:
   apply (auto intro:closure simp add:urename)
 done
 
-lemma ExistsP_DASHED_expand_SemiR:
+theorem ExistsP_DASHED_expand_SemiR:
   "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; vs \<subseteq> DASHED \<rbrakk> \<Longrightarrow> 
   p ; (\<exists>\<^sub>p vs. q) = (\<exists>\<^sub>p vs. (p ; q))"
   apply (simp add: SemiR_algebraic_rel closure urename)
@@ -578,7 +578,7 @@ qed
 
 text {* This property allows conversion of an alphabetised identity into an existential *} 
 
-lemma SemiR_right_ExistsP:
+theorem SemiR_right_ExistsP:
   "\<lbrakk> p \<in> WF_RELATION; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> 
     p ; II\<^bsub>(REL_VAR - {x,x\<acute>})\<^esub> = (\<exists>\<^sub>p {x\<acute>}. p)"
   apply (subgoal_tac "REL_VAR - (REL_VAR - {x, x\<acute>}) = {x,x\<acute>}")
@@ -590,7 +590,7 @@ lemma SubstP_rel_closure [closure]:
   \<Longrightarrow> p[v/\<^sub>px] \<in> WF_RELATION"
   by (auto intro:unrest simp add:WF_RELATION_def unrest typing)
 
-lemma SemiR_left_one_point:
+theorem SemiR_left_one_point:
   assumes "x \<in> UNDASHED" "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "v \<rhd>\<^sub>e x"
           "UNREST_EXPR (DASHED \<union> NON_REL_VAR) v" "UNREST_EXPR {x} v"
   shows "P ; ($\<^sub>ex ==\<^sub>p v \<and>\<^sub>p Q) = P[v\<acute>/\<^sub>px\<acute>] ; Q[v/\<^sub>px]"
@@ -608,7 +608,7 @@ lemma xbinding_upd_refl [simp]:
   "x \<in> UNDASHED \<Longrightarrow> b(x :=\<^sub>x \<langle>\<langle>b\<rangle>\<^sub>x\<rangle>\<^sub>b x) = b"
   by (auto simp add:typing defined)
 
-lemma SemiR_right_one_point:
+theorem SemiR_right_one_point:
   assumes "x \<in> UNDASHED" "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "v \<rhd>\<^sub>e x"
           "UNREST_EXPR (DASHED \<union> NON_REL_VAR) v" "UNREST_EXPR {x} v"
   shows "(P \<and>\<^sub>p $\<^sub>ex\<acute> ==\<^sub>p v\<acute>) ; Q = P[v\<acute>/\<^sub>px\<acute>] ; Q[v/\<^sub>px]"
@@ -626,7 +626,7 @@ lemma SemiR_right_one_point:
   apply (simp add:evale)
 done
 
-lemma SemiR_right_one_point_alt:
+theorem SemiR_right_one_point_alt:
   assumes "x \<in> DASHED" "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "v \<rhd>\<^sub>e x"
           "UNREST_EXPR (UNDASHED \<union> NON_REL_VAR) v" "UNREST_EXPR {x} v"
   shows "(P \<and>\<^sub>p $\<^sub>ex ==\<^sub>p v) ; Q = P[v/\<^sub>px] ; Q[v\<acute>/\<^sub>pundash x]"
@@ -702,7 +702,7 @@ proof -
     by (metis (lifting) ExistsP_SemiR_expand2 ExistsP_ident SkipRA.rep_eq)
 qed
 
-lemma SkipRA_left_unit:
+theorem SkipRA_left_unit:
   assumes "P \<in> WF_RELATION" "vs \<subseteq> REL_VAR" "UNREST (UNDASHED - in vs) P"
           "HOMOGENEOUS vs"
   shows "II\<^bsub>vs\<^esub> ; P = P"
@@ -710,7 +710,7 @@ lemma SkipRA_left_unit:
   apply (simp_all add:assms unrest closure var_dist)
 done
 
-lemma SkipRA_right_unit:
+theorem SkipRA_right_unit:
   assumes "P \<in> WF_RELATION" "vs \<subseteq> REL_VAR" "UNREST (DASHED - out vs) P"
           "HOMOGENEOUS vs"
   shows "P ; II\<^bsub>vs\<^esub> = P"
@@ -779,7 +779,7 @@ proof -
   done
 qed
 
-lemma SkipRA_compose [simp]:
+theorem SkipRA_compose [simp]:
   "\<lbrakk> HOMOGENEOUS vs1; HOMOGENEOUS vs2; vs1 \<subseteq> REL_VAR; vs2 \<subseteq> REL_VAR \<rbrakk> 
   \<Longrightarrow> II\<^bsub>vs1\<^esub> ; II\<^bsub>vs2\<^esub> = II\<^bsub>vs1 \<inter> vs2\<^esub>"
   apply (subgoal_tac "vs1 \<inter> vs2 \<subseteq> REL_VAR")
@@ -790,7 +790,7 @@ lemma SkipRA_compose [simp]:
   apply (auto)
 done
 
-lemma SkipR_neq_FalseP [simp]:
+theorem SkipR_neq_FalseP [simp]:
   "II \<noteq> false" "false \<noteq> II"
   by (utp_xrel_auto_tac, utp_xrel_auto_tac)
 
@@ -915,14 +915,14 @@ done
 
 subsubsection {* Variable Laws *}
 
-lemma VarOpenP_commute:
+theorem VarOpenP_commute:
   "\<lbrakk> x \<in> UNDASHED; y \<in> UNDASHED \<rbrakk> \<Longrightarrow> var x; var y = var y; var x"
     apply (simp add:VarOpenP_def)
     apply (simp add:assms ExistsP_UNDASHED_expand_SemiR closure)
     apply (metis (hide_lams, no_types) ExistsP_insert insert_commute)
 done
 
-lemma VarCloseP_commute:
+theorem VarCloseP_commute:
   "\<lbrakk> x \<in> UNDASHED; y \<in> UNDASHED \<rbrakk> \<Longrightarrow> end x; end y = end y; end x"
     apply (simp add:VarCloseP_def)
     apply (simp add:assms ExistsP_DASHED_expand_SemiR closure)
@@ -932,7 +932,7 @@ done
 lemma [simp]: "REL_VAR - VAR = {}"
   by (simp add:var_simps)
 
-lemma VarOpenP_VarCloseP:
+theorem VarOpenP_VarCloseP:
   "x \<in> UNDASHED \<Longrightarrow> var x; end x = II\<^bsub>VAR - {x,x\<acute>}\<^esub>"
   apply (simp add:VarOpenP_def VarCloseP_def)
   apply (simp add:ExistsP_UNDASHED_expand_SemiR ExistsP_DASHED_expand_SemiR closure)
@@ -940,7 +940,7 @@ lemma VarOpenP_VarCloseP:
   apply (metis ExistsP_deatomise doubleton_eq_iff)
 done
 
-lemma AssignR_VarCloseP:
+theorem AssignR_VarCloseP:
   "\<lbrakk> x \<in> UNDASHED; v \<rhd>\<^sub>e x; UNREST_EXPR DASHED v \<rbrakk> \<Longrightarrow> x :=\<^sub>R v; end x = end x"
   apply (simp add:AssignR_SemiR_left VarCloseP_def SkipR_as_SkipRA)
   apply (subgoal_tac "UNREST_EXPR {x\<acute>} v")
@@ -1008,35 +1008,35 @@ done
 
 subsubsection {* Converse Laws *}
 
-lemma ConvR_invol [simp]: "(p\<^sup>\<smile>)\<^sup>\<smile> = p"
+theorem ConvR_invol [simp]: "(p\<^sup>\<smile>)\<^sup>\<smile> = p"
   by (utp_rel_tac)
 
-lemma ConvR_TrueP [simp]: "true\<^sup>\<smile> = true"
+theorem ConvR_TrueP [simp]: "true\<^sup>\<smile> = true"
   by (simp add:ConvR_def urename)
 
-lemma ConvR_FalseP [simp]: "false\<^sup>\<smile> = false"
+theorem ConvR_FalseP [simp]: "false\<^sup>\<smile> = false"
   by (simp add:ConvR_def urename)
 
-lemma ConvR_SkipR [simp]: "II\<^sup>\<smile> = II"
+theorem ConvR_SkipR [simp]: "II\<^sup>\<smile> = II"
   by (utp_rel_tac)
 
-lemma ConvR_SemiR [urename]: "(p;q)\<^sup>\<smile> = q\<^sup>\<smile> ; p\<^sup>\<smile>"
+theorem ConvR_SemiR [urename]: "(p;q)\<^sup>\<smile> = q\<^sup>\<smile> ; p\<^sup>\<smile>"
   by (utp_rel_auto_tac)
 
-lemma ConvR_OrP [urename]: "(p \<or>\<^sub>p q)\<^sup>\<smile> = p\<^sup>\<smile> \<or>\<^sub>p q\<^sup>\<smile>"
+theorem ConvR_OrP [urename]: "(p \<or>\<^sub>p q)\<^sup>\<smile> = p\<^sup>\<smile> \<or>\<^sub>p q\<^sup>\<smile>"
   by (utp_rel_auto_tac)
 
-lemma ConvR_AndP [urename]: "(p \<and>\<^sub>p q)\<^sup>\<smile> = p\<^sup>\<smile> \<and>\<^sub>p q\<^sup>\<smile>"
+theorem ConvR_AndP [urename]: "(p \<and>\<^sub>p q)\<^sup>\<smile> = p\<^sup>\<smile> \<and>\<^sub>p q\<^sup>\<smile>"
   by (utp_rel_auto_tac)
 
-lemma ConvR_NotP [urename]: "(\<not>\<^sub>p p)\<^sup>\<smile> = \<not>\<^sub>p(p\<^sup>\<smile>)"
+theorem ConvR_NotP [urename]: "(\<not>\<^sub>p p)\<^sup>\<smile> = \<not>\<^sub>p(p\<^sup>\<smile>)"
   by (simp add:ConvR_def urename)
 
-lemma ConvR_VarP_1 [urename]: 
+theorem ConvR_VarP_1 [urename]: 
   "x \<in> UNDASHED \<Longrightarrow> (VarP x)\<^sup>\<smile> = VarP x\<acute>"
   by (simp add:ConvR_def urename)
 
-lemma ConvR_VarP_2 [urename]: 
+theorem ConvR_VarP_2 [urename]: 
   "x \<in> UNDASHED \<Longrightarrow> (VarP x\<acute>)\<^sup>\<smile> = VarP x"
   by (simp add:ConvR_def urename)
 

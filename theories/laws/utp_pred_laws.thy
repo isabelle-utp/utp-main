@@ -70,13 +70,13 @@ theorem OrP_ref :
 "p1 \<or>\<^sub>p p2 \<sqsubseteq> p1"
   by (utp_pred_auto_tac)
 
-lemma demorgan1: "\<not>\<^sub>p(x \<or>\<^sub>p y) = \<not>\<^sub>px \<and>\<^sub>p \<not>\<^sub>py"
+theorem demorgan1: "\<not>\<^sub>p(x \<or>\<^sub>p y) = \<not>\<^sub>px \<and>\<^sub>p \<not>\<^sub>py"
   by (utp_pred_auto_tac)
 
-lemma demorgan2: "\<not>\<^sub>p(x \<and>\<^sub>p y) = \<not>\<^sub>px \<or>\<^sub>p \<not>\<^sub>py"
+theorem demorgan2: "\<not>\<^sub>p(x \<and>\<^sub>p y) = \<not>\<^sub>px \<or>\<^sub>p \<not>\<^sub>py"
   by (utp_pred_auto_tac)
 
-lemma demorgan3: "x \<or>\<^sub>p y = \<not>\<^sub>p(\<not>\<^sub>px \<and>\<^sub>p \<not>\<^sub>py)"
+theorem demorgan3: "x \<or>\<^sub>p y = \<not>\<^sub>p(\<not>\<^sub>px \<and>\<^sub>p \<not>\<^sub>py)"
   by (utp_pred_auto_tac)
 
 lemma utp_pred_simps [simp]:
@@ -106,35 +106,35 @@ lemma utp_pred_simps [simp]:
 
 subsection {* Introduction rules *}
 
-lemma RefP_OrP: "p \<sqsubseteq> q \<longleftrightarrow> p = p \<or>\<^sub>p q"
+theorem RefP_OrP: "p \<sqsubseteq> q \<longleftrightarrow> p = p \<or>\<^sub>p q"
   by (utp_pred_auto_tac)
 
-lemma RefP_OrP_intro [intro]:
+theorem RefP_OrP_intro [intro]:
   "p \<or>\<^sub>p q = p \<Longrightarrow> p \<sqsubseteq> q"
   by (utp_pred_auto_tac)
 
-lemma RefP_AndP: "p \<sqsubseteq> q \<longleftrightarrow> q = p \<and>\<^sub>p q"
+theorem RefP_AndP: "p \<sqsubseteq> q \<longleftrightarrow> q = p \<and>\<^sub>p q"
   by (utp_pred_auto_tac)
 
-lemma RefP_AndP_intro [intro]:
+theorem RefP_AndP_intro [intro]:
   "p \<and>\<^sub>p q = q \<Longrightarrow> p \<sqsubseteq> q"
   by (utp_pred_auto_tac)
 
-lemma IffP_eq_intro [intro]:
+theorem IffP_eq_intro [intro]:
   "p \<Leftrightarrow>\<^sub>p q \<Longrightarrow> p = q"
   by (utp_pred_auto_tac)
 
-lemma ClosureP_intro: 
+theorem ClosureP_intro: 
   "[p]\<^sub>p \<Longrightarrow> taut p"
   by (utp_pred_tac)
 
 subsection {* Implication Laws *}
 
-lemma ImpliesP_export:
+theorem ImpliesP_export:
   "p \<Rightarrow>\<^sub>p q = p \<Rightarrow>\<^sub>p (p \<and>\<^sub>p q)"
   by (utp_pred_tac)
 
-lemma ImpliesP_eq_subst:
+theorem ImpliesP_eq_subst:
   "v \<rhd>\<^sub>e x \<Longrightarrow> ($\<^sub>ex ==\<^sub>p v \<Rightarrow>\<^sub>p p) = ($\<^sub>ex ==\<^sub>p v \<Rightarrow>\<^sub>p p[v/\<^sub>px])"
   apply (utp_pred_tac)
   apply (auto simp add:evale eval typing)
@@ -170,15 +170,15 @@ lemma ForallP_AndP_dist:
   "(\<forall>\<^sub>p vs. p \<and>\<^sub>p q) = (\<forall>\<^sub>p vs. p) \<and>\<^sub>p (\<forall>\<^sub>p vs. q)"
   by (utp_pred_auto_tac)
 
-lemma TrueP_eq_ClosureP: 
+theorem TrueP_eq_ClosureP: 
   "(P = true) \<longleftrightarrow> [P]\<^sub>p"
   by (utp_pred_tac)
 
-lemma ClosureP_cases: 
+theorem ClosureP_cases: 
   "\<lbrakk> ([P]\<^sub>p = true \<Longrightarrow> Q); [P]\<^sub>p = false \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> Q"
   by (utp_pred_auto_tac)
 
-lemma ClosureP_AndP_dist:
+theorem ClosureP_AndP_dist:
   "[p \<and>\<^sub>p q]\<^sub>p = [p]\<^sub>p \<and>\<^sub>p [q]\<^sub>p"
   by (utp_pred_auto_tac)
 
@@ -205,7 +205,7 @@ theorem ExistsP_one_point:
   apply (simp)
 done
 
-lemma ExistsP_has_value:
+theorem ExistsP_has_value:
   "\<lbrakk> UNREST_EXPR {x} v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> (\<exists>\<^sub>p {x}. $\<^sub>ex ==\<^sub>p v) = true"
   apply (utp_pred_tac, utp_expr_tac)
   apply (auto)

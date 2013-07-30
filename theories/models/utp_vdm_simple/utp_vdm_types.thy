@@ -139,7 +139,7 @@ term "\<parallel>@map @char to @int\<parallel>"
 
 (* term "`x := \<langle><1>\<rangle> : @seq1 of @nat1`" *)
 
-term "\<parallel>{mk_($x : @int,$y : @int) | $x = $y}\<parallel>"
+term "\<parallel>{mk_prod($x : @int,$y : @int) | $x = $y}\<parallel>"
 
 term "|[1] : @seq1 of @int|"
 
