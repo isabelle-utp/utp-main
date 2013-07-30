@@ -759,6 +759,35 @@ lemma H2_H4_commute:
   "P \<in> WF_RELATION \<Longrightarrow> H2(H4(P)) = H4(H2(P))"
   by (utp_xrel_auto_tac)
 
+lemma H3_H4_commute:
+  assumes "P \<in> WF_RELATION"
+  shows "H3(H4(P)) = H4(H3(P))"
+proof -
+  have "H4(H3(P)) = `((P ; II\<^sub>D) ; true \<Rightarrow> P ; II\<^sub>D)`" 
+    by (simp add:H3_def H4_def)
+
+  also have "... = `(P ; true) \<Rightarrow> P ; II\<^sub>D`"
+    by (metis H1_left_unit H1_true SemiR_assoc TrueP_rel_closure)
+
+  also have "... = `\<not> (P ; true) \<or> P ; II\<^sub>D`"
+    by (metis ImpliesP_def)
+    
+  also have "... = `\<not> (P ; true) ; true \<or> P ; II\<^sub>D`"
+    by (metis SemiR_TrueP_compl assms)
+
+  also have "... = `\<not> (P ; true) ; (true ; II\<^sub>D) \<or> P ; II\<^sub>D`"
+    by (metis H1_left_zero SkipD_is_H1 SkipD_rel_closure)
+
+  also have "... = `\<not> (P ; true) ; II\<^sub>D \<or> P ; II\<^sub>D`"
+    by (metis SemiR_TrueP_compl SemiR_assoc assms)
+
+  also have "... = `(\<not> (P ; true) \<or> P) ; II\<^sub>D`"
+    by (metis SemiR_OrP_distr)
+
+  finally show ?thesis
+    by (metis H3_def H4_def ImpliesP_def)
+qed
+    
 lemma H4_top: "true \<turnstile> true is H4"
   by (utp_xrel_auto_tac)
 

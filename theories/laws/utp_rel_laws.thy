@@ -224,6 +224,13 @@ lemma TrueP_right_annihilator_unique:
   "P \<in> WF_RELATION \<Longrightarrow> true ; P = false \<Longrightarrow> P = false"
   by (utp_xrel_auto_tac, metis (lifting) prod_caseI2)
 
+text {* This somewhat odd looking property derives from Relation Algebra. It is used,
+        for instance, in the theory of designs. *}
+
+lemma SemiR_TrueP_compl [simp]:
+  "P \<in> WF_RELATION \<Longrightarrow> `\<not> (P ; true) ; true` = `\<not> (P ; true)`"
+  by (utp_xrel_auto_tac)
+
 text {* A single variable can be extracted from a sequential composition and captured
         in an existential *}
 
