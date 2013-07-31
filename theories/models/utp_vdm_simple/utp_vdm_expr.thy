@@ -96,6 +96,11 @@ definition ExistsD :: "'a set \<Rightarrow> ('a \<Rightarrow> bool vdme) \<Right
 abbreviation DefinedD :: "'a vdme \<Rightarrow> bool vdme" where
 "DefinedD v \<equiv> LitD (\<D> v)"
 
+definition HasTypeD :: "'a vdme \<Rightarrow> 'a set \<Rightarrow> bool vdme" where
+"HasTypeD e t \<equiv> MkPExpr (\<lambda> b. if (\<D> (\<lbrakk>e\<rbrakk>\<^sub>* b) \<and> the (\<lbrakk>e\<rbrakk>\<^sub>* b) \<in> t)
+                              then Some True 
+                              else Some False)"
+
 definition CoerceD :: "'a vdme \<Rightarrow> 'a set \<Rightarrow> 'a vdme" where
 "CoerceD e t \<equiv> MkPExpr (\<lambda> b. if (\<D> (\<lbrakk>e\<rbrakk>\<^sub>* b) \<and> the (\<lbrakk>e\<rbrakk>\<^sub>* b) \<in> t)
                              then \<lbrakk>e\<rbrakk>\<^sub>* b 
@@ -208,6 +213,7 @@ syntax
   "_vexpr_forall"   :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ : _ &/ _)" [0, 0, 10] 10)
   "_vexpr_exists"   :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3exists _ : _ &/ _)" [0, 0, 10] 10)
   "_vexpr_coerce"   :: "pexpr \<Rightarrow> vty \<Rightarrow> pexpr" (infix ":" 50)
+  "_vexpr_hasType"  :: "pexpr \<Rightarrow> vty \<Rightarrow> pexpr" (infix "hasType" 50)
   "_vexpr_apply"    :: "('a \<Rightarrow> 'b) \<Rightarrow> pexprs \<Rightarrow> pexpr"    ("_'(_')")
   "_vexpr_prod"     :: "pexprs \<Rightarrow> vprod" ("_")
   "_vexpr_select"   :: "pexpr \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> pexpr" ("_._")
@@ -237,6 +243,7 @@ translations
   "_vexpr_forall x xs e"       == "CONST ForallD xs (\<lambda>x. e)"
   "_vexpr_exists x xs e"       == "CONST ExistsD xs (\<lambda>x. e)"
   "_vexpr_coerce e t"          == "CONST CoerceD e t"
+  "_vexpr_hasType e t"         == "CONST HasTypeD e t"
   "_vexpr_apply f x"           == "CONST ApplyD f (_vexpr_prod x)"
   "_vexpr_prod (_pexprs x xs)" == "CONST vexpr_prod x (_vexpr_prod xs)"
   "_vexpr_prod x"              == "CONST SingleD x"

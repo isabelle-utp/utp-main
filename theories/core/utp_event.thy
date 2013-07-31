@@ -14,7 +14,7 @@ begin
 
 type_synonym 'a CHANNEL  = "NAME * 'a itself"
 
-abbreviation MkCHAN :: "NAME \<Rightarrow> 'a itself \<Rightarrow> 'a CHANNEL" where
+abbreviation MkCHAN :: "NAME \<Rightarrow> ('a::type) itself \<Rightarrow> 'a CHANNEL" where
 "MkCHAN n t \<equiv> (n, t)"
 
 type_synonym 'a UCHANNEL = "NAME * 'a UTYPE"

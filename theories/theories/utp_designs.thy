@@ -209,6 +209,17 @@ proof -
     by (metis less_eq_WF_PREDICATE_def)
 qed
 
+theorem DesignD_refinement_intro [intro]:
+  assumes "UNREST OKAY P1" "UNREST OKAY P2"
+          "UNREST OKAY Q1" "UNREST OKAY Q2"
+          "P2 \<sqsubseteq> P1" "Q1 \<sqsubseteq> P1 \<and>\<^sub>p Q2" 
+  shows "P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2"
+  using assms
+  apply (simp add:DesignD_refinement)
+  apply (simp add:less_eq_WF_PREDICATE_def RefP_def)
+  apply (metis AndP_idem TrueP_eq_ClosureP)
+done
+
 theorem DesignD_diverge:
   "`(P \<turnstile> Q)[false/okay]` = true"
   by (simp add:DesignD_def usubst typing defined evalp erasure) 

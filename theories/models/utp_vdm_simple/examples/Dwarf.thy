@@ -61,7 +61,7 @@ abbreviation "currentstate       \<equiv> SelectRec currentstate_fld"
 text {* Finally we create the actual type by giving the list of fields and the associated
         invariant. We also create a record constructor, mk_DwarfType. *}
 
-abbreviation 
+definition 
   "DwarfType \<equiv> \<parallel>[ lastproperstate_fld
                 , desiredproperstate_fld
                 , turnoff_fld
@@ -80,13 +80,24 @@ text {* The Dwarf Signal has a single state variable which gives
 
 definition "dw \<equiv> MkVarD ''dw'' DwarfType"
 
+definition "DwarfInv \<equiv> `\<lparr> $dw hasType @DwarfType \<rparr> \<turnstile> \<lparr> $dw\<acute> hasType @DwarfType \<rparr>`"
+
 text {* Next we create the different operations for the Dwarf signal 
         as UTP designs. Probably these should be reactive designs. *}
 
-definition "Init = `true \<turnstile> dw := mk_DwarfType(@stop, {}, {}, @stop, @stop, @stop)`"
+definition "Init = `true \<turnstile> (dw := mk_DwarfType(@stop, {}, {}, @stop, @stop, @stop))`"
 
+lemma "DwarfInv \<sqsubseteq> Init"
+  apply (unfold Init_def DwarfInv_def)
+  apply (rule_tac DesignD_refinement_intro)
+  apply (simp_all add:unrest)
+
+done
+
+(*
 lemma "`Init ; Init` = `Init`"
   apply (unfold Init_def)
+*)
 
 definition 
   "SetNewProperState st = 
