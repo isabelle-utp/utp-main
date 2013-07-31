@@ -36,8 +36,14 @@ definition rv ::
 
 subsubsection {* Fresh variables *}
 
-definition fresh_var :: "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE UTYPE \<Rightarrow> 'VALUE VAR" where
-"fresh_var p t \<equiv> SOME x. UNREST {x} p \<and> vtype x = t"
+definition fresh :: "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool \<Rightarrow> 'VALUE VAR" where
+"fresh p t a = (SOME x. UNREST {x} p \<and> vtype x = t \<and> aux x = a)"
+
+(*
+definition ExistsFP :: 
+  "'a UTYPE \<Rightarrow> bool \<Rightarrow> ('a VAR \<Rightarrow> 'a WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" where
+"ExistsFP t a P = P (fresh t a)"
+*)
 
 subsubsection {* Restricted Predicates *}
 
@@ -318,11 +324,15 @@ theorem UNREST_RenameP_single :
 done
 *)
 
-theorem UNREST_fresh_var [unrest]: 
-  "\<exists> v. UNREST {v} p \<and> vtype v = t \<Longrightarrow> UNREST {fresh_var p t} p"
-  apply (auto simp add:fresh_var_def)
+theorem UNREST_fresh [unrest]: 
+  "\<exists> v. UNREST {v} p \<and> vtype v = t \<and> aux v = a \<Longrightarrow> UNREST {fresh p t a} p"
+  apply (auto simp add:fresh_def)
   apply (smt someI_ex)
 done
+
+theorem UNREST_fresh' [unrest]:
+  "\<lbrakk> UNREST {v} p; vtype v = t; aux v = a \<rbrakk> \<Longrightarrow> UNREST {fresh p t a} p"
+  by (metis UNREST_fresh)
 
 lemma UNREST_aux [unrest]:
   "\<lbrakk> aux x; UNREST AUX_VAR p \<rbrakk> \<Longrightarrow> UNREST {x} p"
