@@ -12,6 +12,7 @@ imports
   utp_base
   utp_designs
   utp_definedness
+  utp_csp
 begin
 
 declare split_paired_All [simp del]

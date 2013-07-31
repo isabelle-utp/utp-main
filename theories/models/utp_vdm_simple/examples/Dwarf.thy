@@ -78,6 +78,9 @@ definition "mk_DwarfType \<equiv> MkRec DwarfType"
 text {* The Dwarf Signal has a single state variable which gives 
         the state of the signal. *}
 
+locale DwarfProcess
+begin
+
 definition "dw \<equiv> MkVarD ''dw'' DwarfType"
 
 definition "DwarfInv \<equiv> `\<lparr> $dw hasType @DwarfType \<rparr> \<turnstile> \<lparr> $dw\<acute> hasType @DwarfType \<rparr>`"
@@ -122,11 +125,21 @@ definition
                           , ($dw).currentstate setminus {^l^}
                           , ($dw).desiredproperstate)`"
 
-(*
-abbreviation MkChanD :: "string \<Rightarrow> 'a set \<Rightarrow> ('a option) CHANNEL" where
-"MkChanD n xs = MkCHAN (bName n) TYPE('a option)"
+text {* Dwarf Channels *}
 
-definition "init = MkCHAN
-*)
+definition "init = MkChanD ''init'' \<parallel>()\<parallel>"
+definition "light = MkChanD ''light'' \<parallel>@LampId\<parallel>"
+definition "extinguish = MkChanD ''extinguish'' \<parallel>@LampId\<parallel>"
+definition "setPS = MkChanD ''setPS'' \<parallel>@ProperState\<parallel>"
+definition "shine = MkChanD ''shine'' \<parallel>@Signal\<parallel>"
+
+term "EventPE init UnitD"
+
+term "|setPS.({<L1>,<L2>})|"
+
+
+term "`setPS.({}) \<rightarrow> SKIP`"
+
+end
 
 end

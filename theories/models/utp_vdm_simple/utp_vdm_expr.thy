@@ -51,6 +51,12 @@ abbreviation "FalseDE \<equiv> LitD False"
 abbreviation MkVarD :: "string \<Rightarrow> 'a set \<Rightarrow> ('a option, vdmv) PVAR" where
 "MkVarD n t \<equiv> MkPlainP n False TYPE('a option) TYPE(vdmv)"
 
+abbreviation MkChanD :: "string \<Rightarrow> 'a set \<Rightarrow> ('a option) CHANNEL" where
+"MkChanD n xs \<equiv> MkCHAN (bName n) TYPE('a option)"
+
+abbreviation UnitD :: "unit vdme" where
+"UnitD \<equiv> LitD ()"
+
 definition Op1D :: "('a::vbasic \<rightharpoonup> 'b::vbasic) \<Rightarrow> 'a vdme \<Rightarrow> 'b vdme" where
 "Op1D f v = Op1PE (\<lambda> x. x >>= f) v"
 
@@ -205,6 +211,7 @@ syntax
   "_vexpr_expr_var" :: "idt \<Rightarrow> pexpr" ("@_" [999] 999)
   "_vexpr_equal"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "=" 50)
   "_vexpr_nequal"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "<>" 50)
+  "_vexpr_unit"     :: "pexpr" ("'(')")
   "_vexpr_true"     :: "pexpr" ("true")
   "_vexpr_false"    :: "pexpr" ("false")
   "_vexpr_num"      :: "real \<Rightarrow> pexpr" ("_")
@@ -235,6 +242,7 @@ translations
   "_vexpr_expr_var x"          => "x"
   "_vexpr_equal"               == "CONST vexpr_equal"
   "_vexpr_nequal"              == "CONST vexpr_nequal"
+  "_vexpr_unit"                == "CONST UnitD"
   "_vexpr_true"                == "CONST TrueDE"
   "_vexpr_false"               == "CONST FalseDE"
   "_vexpr_num n"               == "CONST NumD n"

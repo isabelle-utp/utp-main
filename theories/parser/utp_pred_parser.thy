@@ -200,7 +200,7 @@ syntax
   "_pexpr_fset_subseteq" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<subseteq>" 50)
   "_pexpr_fset_list"     :: "pexpr \<Rightarrow> pexpr" ("elems _")
   "_pexpr_intersync"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<parallel>\<^bsub>_\<^esub>" 75)
-  "_pexpr_event"         :: "NAME \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_._" 50)
+  "_pexpr_event"         :: "NAME \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_.'(_')" 50)
   "_pexpr_event_chan"    :: "pexpr \<Rightarrow> pexpr" ("chan _")
   "_pexpr_restrict"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "\\" 70)
 

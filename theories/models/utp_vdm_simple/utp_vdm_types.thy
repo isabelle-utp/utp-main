@@ -36,6 +36,7 @@ end
 
 abbreviation "QuoteS x \<equiv> {Q x}"
 
+abbreviation "vty_unit \<equiv> (UNIV :: unit set)"
 abbreviation "vty_bool \<equiv> (UNIV :: bool set)"
 abbreviation "vty_nat  \<equiv> Nats :: real set"
 abbreviation "vty_nat1 \<equiv> {x\<in>vty_nat. x > 0}"
@@ -46,7 +47,7 @@ abbreviation "vty_char \<equiv> (UNIV :: char set)"
 abbreviation "vty_prod \<equiv> op \<times>"
 abbreviation "vty_seq_of A  \<equiv> {xs. set xs \<subseteq> A}" 
 abbreviation "vty_seq1_of A \<equiv> {xs. set xs \<subseteq> A \<and> length xs > 0}" 
-abbreviation "vty_map_to A B \<equiv> {f. \<langle>fdom f\<rangle>\<^sub>f \<subseteq> A \<and> \<langle>fran f\<rangle>\<^sub>f \<subseteq> B}"
+abbreviation "vty_map_to X Y \<equiv> {f. \<langle>fdom f\<rangle>\<^sub>f \<subseteq> X \<and> \<langle>fran f\<rangle>\<^sub>f \<subseteq> Y}"
 
 lemma vty_subtypes [simp]:
   "vty_nat1 \<subseteq> vty_nat"
@@ -87,6 +88,7 @@ declare InvS_def [eval,evale,evalp]
 nonterminal vty_decl and vty_decls
 
 syntax 
+  "_vty_unit"    :: "vty" ("'(')")
   "_vty_quote"   :: "string \<Rightarrow> vty" ("<_>")
   "_vty_brack"   :: "vty \<Rightarrow> vty" ("'(_')")
   "_vty_union"   :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixr "|" 65)
@@ -112,6 +114,7 @@ syntax
   "_vty_schema"  :: "vty_decls \<Rightarrow> pexpr \<Rightarrow> vty" ("(1[_|/ _])")
 
 translations
+  "_vty_unit"      == "CONST vty_unit"
   "_vty_quote x"   == "CONST QuoteS x"
   "_vty_union x y" == "CONST union x y"
   "_vty_set x"     => "x"

@@ -334,4 +334,11 @@ lemma ProjVB_inv [simp]:
   apply (metis InjVB.simps(2) Inject_Project Project_Inject)
 done
 
+instantiation vdmv :: REACTIVE_SORT
+begin
+
+instance sorry
+
+end
+
 end
