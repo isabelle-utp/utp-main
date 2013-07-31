@@ -87,13 +87,6 @@ text {* Next we create the different operations for the Dwarf signal
 
 definition "Init = `true \<turnstile> (dw := mk_DwarfType(@stop, {}, {}, @stop, @stop, @stop))`"
 
-lemma "DwarfInv \<sqsubseteq> Init"
-  apply (unfold Init_def DwarfInv_def)
-  apply (rule_tac DesignD_refinement_intro)
-  apply (simp_all add:unrest)
-
-done
-
 (*
 lemma "`Init ; Init` = `Init`"
   apply (unfold Init_def)
@@ -128,5 +121,12 @@ definition
                           , ($dw).currentstate
                           , ($dw).currentstate setminus {^l^}
                           , ($dw).desiredproperstate)`"
+
+(*
+abbreviation MkChanD :: "string \<Rightarrow> 'a set \<Rightarrow> ('a option) CHANNEL" where
+"MkChanD n xs = MkCHAN (bName n) TYPE('a option)"
+
+definition "init = MkCHAN
+*)
 
 end
