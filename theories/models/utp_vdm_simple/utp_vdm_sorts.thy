@@ -50,6 +50,10 @@ lemma embTYPE_vdmt_inj:
   "(embTYPE (x :: vdmt) :: vdmv UTYPE) = embTYPE y \<Longrightarrow> x = y"
   by (metis embTYPE_inv_vdmt)
 
+lemma embTYPE_vdmt_inj' [simp]:
+  "inj (embTYPE :: vdmt \<Rightarrow> vdmv UTYPE)"
+  by (metis embTYPE_inv_vdmt injI)
+
 lemma type_rel_vdmt_exists: 
   "(x::vdmv) : a \<Longrightarrow> \<exists> t. a = embTYPE t \<and> x :\<^sub>v t" 
   apply (simp add:type_rel_def)
@@ -69,6 +73,14 @@ lemma type_rel_vdmt:
   apply (auto simp add: type_rel_def utype_rel_vdmv_def prjTYPE_def)
   apply (metis Rep_UTYPE_elim from_nat_to_nat utype_rel_vdmv_def)
 done
+
+lemma carrier_embTYPE:
+  "carrier (embTYPE t) = vcarrier t"
+  by (simp add:carrier_def type_rel_vdmt vcarrier_def)
+
+lemma dcarrier_embTYPE:
+  "dcarrier (embTYPE t) = {x. x :\<^sub>v t \<and> \<D> x}"
+  by (simp add:dcarrier_def type_rel_vdmt vcarrier_def)
 
 instantiation vdmv :: BOT_SORT
 begin
@@ -121,6 +133,35 @@ lemma MkBool_vdmv [simp]:
   "MkBool x = BasicD (Inject x)"
   by (simp add:MkBool_vdmv_def Inject_bool_def)
 
+abbreviation "StringBT \<equiv> ListBT CharBT"
+abbreviation "StringI xs \<equiv> ListI CharBT (map CharI xs)"
+abbreviation "ProjStringI xs \<equiv> map (the \<circ> ProjCharI) (the (ProjListI xs))"
+
+lemma StringI_type [typing]:
+  "StringI xs :\<^sub>b StringBT"
+  by (auto)
+
+lemma ProjCharI_comp_CharI [simp]:
+  "ProjCharI \<circ> CharI = Some"
+  by (auto)
+
+instantiation vdmv :: STRING_SORT
+begin
+
+definition MkStr_vdmv where "MkStr_vdmv (x::string) = BasicD (StringI x)"
+definition DestStr_vdmv where "DestStr_vdmv x = ProjStringI (ProjBasicD x)"
+definition StringType_vdmv :: "vdmv UTYPE" where 
+"StringType_vdmv = embTYPE StringT"
+
+instance
+  apply (intro_classes)
+  apply (auto simp add:MkStr_vdmv_def DestStr_vdmv_def StringType_vdmv_def 
+                       type_rel_vdmt image_def)
+  apply (metis ProjCharI_comp_CharI comp_apply map_idI map_map the.simps the_Some)
+  apply (metis CharT_type_cases Defined_vbasic.simps(1) ex_map_conv)
+done
+end
+
 subsection {* List sort instantiation *}
 
 instantiation vdmv :: LIST_SORT
@@ -159,6 +200,57 @@ instance
   apply (case_tac[!] "prjTYPE y \<in> vbtypes")
   apply (auto simp add:vbtypes_def)
   apply (metis ProjBasicT.simps embTYPE_inv_vdmt prjTYPE_inv_vdmt vbasict.inject(3))
+done
+end
+
+subsection {* Finite set instantiation *}
+
+instantiation vdmv :: FSET_SORT
+begin
+
+definition MkFSet_vdmv :: "vdmv UTYPE \<Rightarrow> vdmv fset \<Rightarrow> vdmv" where
+"MkFSet_vdmv a xs = BasicD (FSetI (ProjBasicT (prjTYPE a)) (ProjBasicD `\<^sub>f xs))"
+
+definition DestFSet_vdmv :: "vdmv \<Rightarrow> vdmv fset" where
+"DestFSet_vdmv x = BasicD `\<^sub>f (the (ProjFSetI (ProjBasicD x)))"
+
+definition FSetType_vdmv :: "vdmv UTYPE \<Rightarrow> vdmv UTYPE" where
+"FSetType_vdmv a = (if (prjTYPE a \<in> vbtypes) then embTYPE (FSetT (prjTYPE a)) else a)"
+
+definition FSetPerm_vdmv :: "vdmv UTYPE set" where
+"FSetPerm_vdmv = embTYPE ` vbtypes"
+
+(*
+lemma Rep_fset_eq: 
+  "xs = ys \<longleftrightarrow> \<langle>xs\<rangle>\<^sub>f = \<langle>ys\<rangle>\<^sub>f"
+  by (auto)
+
+lemma fimage_eq_conv: 
+  "inj_on f \<langle>xs\<rangle>\<^sub>f \<Longrightarrow> f `\<^sub>f xs = g `\<^sub>f xs \<longleftrightarrow> (\<forall>x\<in>\<langle>xs\<rangle>\<^sub>f. f x = g x)"
+  apply (auto simp add:Rep_fset_eq)
+  thm inj_on_Un_image_eq_iff
+  
+  apply (auto simp add:fimage_def)
+*)
+
+instance
+  apply (intro_classes)
+  apply (unfold_locales)
+  apply (auto simp add:MkFSet_vdmv_def DestFSet_vdmv_def FSetType_vdmv_def FSetPerm_vdmv_def type_rel_vdmt dcarrier_embTYPE)
+  apply (force simp add:vbtypes_def)
+  apply (auto simp add:vbtypes_def)
+  apply (frule subsetD, simp)
+  apply (auto)
+  apply (metis ProjBasicD.simps(1) imageI)
+  apply (simp add:image_def MkFSet_vdmv_def)
+  apply (rule_tac x="BasicD `\<^sub>f xs" in exI)
+  apply (auto)
+  apply (rule_tac f="FSetI xa" and g="FSetI xa" in cong, simp)
+  apply (auto)
+  apply (metis ProjBasicD.simps(1) image_eqI)
+  apply (rule, rule, force)
+  apply (auto simp add:inj_on_def)
+  apply (metis (mono_tags) FSetType_vdmv_def ProjBasicT.simps embTYPE_inv_vdmt rangeI vbasict.inject(1) vbtypes_def)
 done
 end
 
@@ -337,7 +429,11 @@ done
 instantiation vdmv :: REACTIVE_SORT
 begin
 
-instance sorry
+instance
+  apply (intro_classes)
+  apply (auto simp add:EventType_vdmv_def FSetPerm_vdmv_def ListPerm_vdmv_def 
+                       ListType_vdmv_def inj_image_mem_iff vbtypes_def)
+done
 
 end
 

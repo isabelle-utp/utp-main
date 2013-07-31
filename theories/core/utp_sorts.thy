@@ -313,19 +313,20 @@ class STRING_SORT = VALUE +
   fixes DestStr :: "'a \<Rightarrow> string"
   fixes StringType :: "'a UTYPE"
   assumes Inverse [simp] : "DestStr (MkStr s) = s"
-  and     MkString_range: "range MkString = {x. x : StringType \<and> \<D> x}"
+  and     MkStr_range: "range MkStr = {x. x : StringType \<and> \<D> x}"
 begin
 
 subsubsection {* Derived theorems *}
 
 lemma Defined [simp] : "\<D> (MkStr s)"
-  by (metis (lifting) CollectD MkString_range image_ident iso_tuple_UNIV_I)
+  by (metis (lifting) MkStr_range mem_Collect_eq rangeI)
 
 lemma MkStr_type [typing] : "MkStr s : StringType"
-  by (metis (lifting) CollectD MkString_range UNIV_I image_ident)
+  by (metis MkStr_range dcarrier_def dcarrier_type rangeI)
 
 end
 
+(*
 subsection {* Order operation class *}
 
 class LESS_EQ_SORT = VALUE + BOOL_SORT +
@@ -336,6 +337,7 @@ subsection {* Minus operation class *}
 
 class MINUS_SORT = VALUE +
   fixes utminus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+*)
 
 subsection {* Finite set sort *}
 
@@ -676,12 +678,9 @@ class REACTIVE_SORT =
   BOOL_SORT + 
   LIST_SORT + 
   FSET_SORT + 
-  STRING_LIST_SORT + 
-  MINUS_SORT + 
   EVENT_SORT + 
   EVENT_LIST_SORT + 
   EVENT_FSET_SORT + 
-  LESS_EQ_SORT +
   assumes FSetPerm_ListPerm [closure]: "a \<in> ListPerm \<Longrightarrow> ListType a \<in> FSetPerm"
 begin
 
