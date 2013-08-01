@@ -65,6 +65,8 @@ syntax
   "_upred_not"      :: "upred \<Rightarrow> upred" ("\<not> _" [40] 40)
   "_upred_all1"     :: "('a, 'm) PVAR \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<forall> _./ _)" [0, 10] 10) 
   "_upred_exists1"  :: "('a, 'm) PVAR \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<exists> _./ _)" [0, 10] 10) 
+  "_upred_all_sh"   :: "idt \<Rightarrow> upred \<Rightarrow> upred"  ("(4\<forall>\<^sub>s _./ _)" [0, 10] 10) 
+  "_upred_exists_sh":: "idt \<Rightarrow> upred \<Rightarrow> upred"  ("(4\<exists>\<^sub>s _./ _)" [0, 10] 10) 
   "_upred_equal"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixl "=" 50)
   "_upred_nequal"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixl "\<noteq>" 50)
   "_upred_pexpr"    :: "pexpr \<Rightarrow> upred" ("\<lparr>_\<rparr>")
@@ -83,10 +85,6 @@ syntax
   "_upred_substp"   :: "upred \<Rightarrow> pexpr \<Rightarrow> ('a, 'm) PVAR \<Rightarrow> upred" ("(_[_'/_])" [999,999] 1000)
   "_upred_perm"     :: "'m VAR_RENAME \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<bullet>" 80)
 
-(*
-abbreviation AssignS :: "string \<Rightarrow> 'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE WF_PREDICATE" where
-"AssignS x e \<equiv> (MkPlain x (expr_type e) False) :=p e"
-*)
 
 translations
   "_upred_brack p"     => "p"
@@ -105,6 +103,8 @@ translations
   "_upred_not p"       == "CONST NotP p"
   "_upred_all1 x p"    == "CONST ForallP {x\<down>} p"
   "_upred_exists1 x p" == "CONST ExistsP {x\<down>} p"
+  "_upred_all_sh x p"  == "\<forall>\<^sub>s x. p"
+  "_upred_exists_sh x p"  == "\<exists>\<^sub>s x. p"
   "_upred_equal e f"   == "CONST PEqualP e f"
   "_upred_nequal e f"  == "CONST NotP (CONST PEqualP e f)"
   "_upred_pexpr e"     == "CONST PExprP e"

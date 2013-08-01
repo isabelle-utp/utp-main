@@ -93,9 +93,19 @@ theorem EvalP_ForallP [eval] :
 "\<lbrakk>\<forall>\<^sub>p vs . p\<rbrakk>b = (\<forall> b'. \<lbrakk>p\<rbrakk>(b \<oplus>\<^sub>b b' on vs))"
   by (simp add: ForallP_def EvalP_NotP EvalP_ExistsP closure)
 
+theorem EvalP_ExistsShP [eval] :
+"\<lbrakk>ExistsShP P\<rbrakk>b = (\<exists> x. \<lbrakk>P x\<rbrakk>b)"
+  by (auto simp add:EvalP_def ExistsShP.rep_eq)
+
+theorem EvalP_ForallShP [eval] :
+"\<lbrakk>ForallShP P\<rbrakk>b = (\<forall> x. \<lbrakk>P x\<rbrakk>b)"
+  by (auto simp add:EvalP_def ForallShP.rep_eq)
+
 theorems EvalP_QuantP =
   EvalP_ExistsP
   EvalP_ForallP
+  EvalP_ExistsShP
+  EvalP_ForallShP
 
 theorem EvalP_ClosureP [eval] :
 "\<lbrakk>[p]\<^sub>p\<rbrakk>b = (\<forall> b. \<lbrakk>p\<rbrakk>b)"

@@ -145,6 +145,20 @@ definition ForallP ::
 
 notation ForallP ("(\<forall>\<^sub>p _ ./ _)" [0, 10] 10)
 
+text {* Shallow versions of the quantifiers *}
+
+lift_definition ExistsShP :: 
+  "('b::type \<Rightarrow> 'a WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" is
+"\<lambda> P. {b :: 'a WF_BINDING. (\<exists> x. b \<in> P x)}" .
+
+notation ExistsShP (binder "\<exists>\<^sub>s" 10)
+
+lift_definition ForallShP :: 
+  "('b::type \<Rightarrow> 'a WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" is
+"\<lambda> P. {b :: 'a WF_BINDING. (\<forall> x. b \<in> P x)}" .
+
+notation ForallShP (binder "\<forall>\<^sub>s" 10)
+
 subsubsection {* Universal Closure *}
 
 definition ClosureP ::

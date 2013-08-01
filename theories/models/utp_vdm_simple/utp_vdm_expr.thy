@@ -117,6 +117,13 @@ definition CollectD :: "'a::vbasic vdme \<Rightarrow> bool vdme \<Rightarrow> 'a
 
 declare CollectD_def [eval,evale,evalp]
 
+definition ParallelD :: 
+  "vdmv WF_PREDICATE \<Rightarrow> 
+   (vdmv EVENT fset option, vdmv) WF_PEXPRESSION \<Rightarrow> 
+   vdmv WF_PREDICATE \<Rightarrow> 
+   vdmv WF_PREDICATE" where
+"ParallelD p vs q = ParallelCSP p (Op1PE (Abs_UFSET \<circ> the) vs) q"
+
 subsection {* Extend the UTP parser for VDM expressions *}
 
 abbreviation "vexpr_equal     \<equiv> Op2D' (op =)"
@@ -204,11 +211,13 @@ no_syntax
   "_pexpr_list"        :: "pexprs \<Rightarrow> pexpr" ("\<langle>_\<rangle>")
   "_pexpr_list_nil"    :: "pexpr" ("\<langle>\<rangle>")
   "_pexpr_expr_var"    :: "idt \<Rightarrow> pexpr" ("(_)")
+  "_pexpr_pred_var"     :: "idt \<Rightarrow> pexpr" ("@(_)")
   "_uexpr_quote"       :: "uexpr \<Rightarrow> 'a WF_EXPRESSION" ("(1^_^)")
   "_upred_pexpr"       :: "pexpr \<Rightarrow> upred" ("\<lparr>_\<rparr>")
 
 syntax
   "_vexpr_expr_var" :: "idt \<Rightarrow> pexpr" ("@_" [999] 999)
+  "_vexpr_val_var"  :: "idt \<Rightarrow> pexpr" ("&_" [999] 999)
   "_vexpr_equal"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "=" 50)
   "_vexpr_nequal"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "<>" 50)
   "_vexpr_unit"     :: "pexpr" ("'(')")
@@ -228,6 +237,7 @@ syntax
   "_vexpr_list"     :: "pexprs => pexpr"    ("[(_)]")
   "_vexpr_empty"    :: "pexpr" ("{}")
   "_vexpr_fset"     :: "pexprs => pexpr"    ("{(_)}")
+  "_upred_parcml"   :: "upred \<Rightarrow> pexpr \<Rightarrow> upred \<Rightarrow> upred" (infixl "[|_|]" 50)
 
 (*
   "_vexpr_vexpr"  :: "'a vdme \<Rightarrow> pexpr" ("_")
@@ -240,6 +250,7 @@ syntax (xsymbols)
 
 translations
   "_vexpr_expr_var x"          => "x"
+  "_vexpr_val_var x"           == "CONST LitPE x"
   "_vexpr_equal"               == "CONST vexpr_equal"
   "_vexpr_nequal"              == "CONST vexpr_nequal"
   "_vexpr_unit"                == "CONST UnitD"
@@ -262,6 +273,7 @@ translations
   "_vexpr_empty"               == "CONST vexpr_empty"
   "_vexpr_fset (_pexprs x xs)" == "CONST vexpr_insert x (_vexpr_fset xs)"
   "_vexpr_fset x"              == "CONST vexpr_insert x CONST vexpr_empty"
+  "_upred_parcml p vs q"       == "CONST ParallelD p vs q"
 
 abbreviation mk_prod :: "'a \<Rightarrow> 'a" where
 "mk_prod \<equiv> id"

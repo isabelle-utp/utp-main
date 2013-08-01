@@ -42,7 +42,12 @@ definition fresh :: "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE UTYPE \<Rightarrow
 (*
 definition ExistsFP :: 
   "'a UTYPE \<Rightarrow> bool \<Rightarrow> ('a VAR \<Rightarrow> 'a WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" where
-"ExistsFP t a P = P (fresh t a)"
+"ExistsFP t a P = 
+  (let x = (SOME x. (\<forall> y. x \<noteq> y \<longrightarrow> UNREST {x} (P y)) \<and> vtype x = t \<and> aux x = a)
+   in ExistsP {x} (P x))"
+
+
+lemma "\<forall> y. UNREST {x}
 *)
 
 subsubsection {* Restricted Predicates *}

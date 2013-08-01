@@ -11,10 +11,15 @@ begin
 
 abbreviation "v \<equiv> MkVarD ''v'' \<parallel>@int\<parallel>"
 
-definition ExistsWP :: "('a::VALUE VAR \<Rightarrow> 'a WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" where
-"ExistsWP P = (let v = SOME x. UNREST {x} (P x) in ExistsP {v} (P v))"
+term "|@x|"
 
-definition "ACT1 = `\<exists> v. a.($v) \<rightarrow> b.($v * 2) \<rightarrow> SKIP`"
-definition "ACT2 = `a.(5) \<rightarrow> SKIP`"
+definition "ACT1 = `a?(v) \<rightarrow> b!(&v * 2) \<rightarrow> SKIP`"
+definition "ACT2 = `a!5 \<rightarrow> SKIP`"
+
+(* Need to add channels as a separate type to the CML model to make this parse *)
+
+(* definition "MainAction = `ACT1 [|{a}|] ACT2`" *)
+
+end
 
 end
