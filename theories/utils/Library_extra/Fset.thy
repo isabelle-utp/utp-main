@@ -504,9 +504,9 @@ oops
 
 
 (* FIXME: What happens if no progress can be made? *)
-fun intersync :: "'a fset \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list fset" where
+fun intersync :: "'a set \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list fset" where
 "intersync s (x # xs) (y # ys) 
-  = (case (x = y , x \<in>\<^sub>f s , y \<in>\<^sub>f s) of
+  = (case (x = y , x \<in> s , y \<in> s) of
           (True  , True   , _      ) \<Rightarrow> Cons x `\<^sub>f intersync s xs ys |
           (True  , False  , _      ) \<Rightarrow> ((Cons x `\<^sub>f intersync s xs (y # ys))
                                          \<union>\<^sub>f (Cons y `\<^sub>f intersync s (x # xs) ys)) |
@@ -516,14 +516,14 @@ fun intersync :: "'a fset \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarr
           (False , False  , False  ) \<Rightarrow> ((Cons x `\<^sub>f intersync s xs (y # ys))
                                          \<union>\<^sub>f (Cons y `\<^sub>f intersync s (x # xs) ys)))" |
 "intersync s [] (y # ys) = 
-   (if (y \<in>\<^sub>f s) then \<lbrace>[]\<rbrace> else Cons y `\<^sub>f intersync s [] ys)" |
+   (if (y \<in> s) then \<lbrace>[]\<rbrace> else Cons y `\<^sub>f intersync s [] ys)" |
 "intersync s (x # xs) [] = 
-   (if (x \<in>\<^sub>f s) then \<lbrace>[]\<rbrace> else Cons x `\<^sub>f intersync s xs [])" |
+   (if (x \<in> s) then \<lbrace>[]\<rbrace> else Cons x `\<^sub>f intersync s xs [])" |
 "intersync s [] [] = \<lbrace>[]\<rbrace>"
 
 (* FIXME: We should be able to prove this property... *)
 lemma intersync_empty_interleave:
-  "intersync \<lbrace>\<rbrace> xs ys = interleave xs ys"
+  "intersync {} xs ys = interleave xs ys"
   apply (induct xs)
   apply (simp_all)
   apply (induct ys)

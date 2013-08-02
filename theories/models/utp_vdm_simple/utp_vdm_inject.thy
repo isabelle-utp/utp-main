@@ -205,6 +205,57 @@ end
 lemma BTYPE_real: "NumberBT = BTYPE(real)"
   by (simp add:Type_real_def)
 
+subsection {* Names are injectable *}
+
+instantiation NAME :: vbasic
+begin
+
+definition "Inject_NAME = NameI"
+definition "Type_NAME (x::NAME itself) = NameBT"
+
+declare Type_NAME_def [simp]
+
+instance by (intro_classes, auto simp add:Inject_NAME_def)
+end
+
+subsection {* Tokens are injectable *}
+
+typedef token = "{x::vbasic. \<D> x}"
+  by (rule_tac x="BoolI True" in exI, simp)
+
+declare Abs_token_inverse [simp]
+declare Rep_token_inverse [simp]
+declare Rep_token_inject [simp]
+
+instantiation token :: vbasic
+begin
+
+definition "Inject_token = TokenI \<circ> Rep_token"
+definition "Type_token (t::token itself) = TokenBT"
+
+instance
+  apply (intro_classes)
+  apply (auto simp add: Inject_token_def Type_token_def)
+  apply (metis Rep_token mem_Collect_eq)
+  apply (simp add:image_def)
+  apply (rule_tac x="Abs_token xa" in exI)
+  apply (simp)
+done
+end
+
+
+(*
+subsection {* Channels are injectable *}
+
+typedef chan = "UNIV :: (NAME * vbasict) set"
+  by auto
+
+instantiation chan :: vbasic
+begin
+
+definition "Inject_chan c = ChanI (fst (Rep_chan c)) (snd (Rep_chan c))"
+*)
+
 subsection {* Characters are injectable *}
 
 instantiation char :: vbasic

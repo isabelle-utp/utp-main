@@ -638,7 +638,7 @@ abbreviation FSubseteqPE ::
 "FSubseteqPE \<equiv> Op2PE SubseteqUF"
 
 abbreviation IntersyncPE ::
-  "('a :: DEFINED UFSET, 'm :: {FSET_SORT, LIST_SORT}) WF_PEXPRESSION \<Rightarrow>
+  "('a :: DEFINED set, 'm :: {FSET_SORT, LIST_SORT, SET_SORT}) WF_PEXPRESSION \<Rightarrow>
    ('a ULIST, 'm) WF_PEXPRESSION \<Rightarrow> 
    ('a ULIST, 'm) WF_PEXPRESSION \<Rightarrow> 
    ('a ULIST UFSET, 'm) WF_PEXPRESSION" where
@@ -665,12 +665,12 @@ lemma FUnionPE_type:
 
 subsection {* Action Expressions *}
 
-definition PEV :: "'a CHANNEL \<Rightarrow> 'a \<Rightarrow> ('m :: EVENT_SORT) EVENT" where
-"PEV c v = EV (fst c) TYPEU('a) (InjU v)"
+definition PEV :: "'a CHAN \<Rightarrow> 'a \<Rightarrow> ('m :: EVENT_SORT) EVENT" where
+"PEV c v = EV (chan_name c) TYPEU('a) (InjU v)"
 
 abbreviation EventPE ::
-  "'a CHANNEL \<Rightarrow> ('a, 'm :: EVENT_SORT) WF_PEXPRESSION 
-              \<Rightarrow> ('m EVENT, 'm) WF_PEXPRESSION" where
+  "'a CHAN \<Rightarrow> ('a, 'm :: EVENT_SORT) WF_PEXPRESSION 
+           \<Rightarrow> ('m EVENT, 'm) WF_PEXPRESSION" where
 "EventPE n v \<equiv> Op1PE (PEV n) v"
 
 (*
@@ -680,8 +680,17 @@ abbreviation ReceivePE ::
 
 abbreviation ChannelPE ::
   "('m::EVENT_SORT EVENT, 'm) WF_PEXPRESSION \<Rightarrow> 
-   ('m UCHANNEL, 'm) WF_PEXPRESSION" where
-"ChannelPE \<equiv> Op1PE EVENT_channel"
+   ('m UCHAN, 'm) WF_PEXPRESSION" where
+"ChannelPE \<equiv> Op1PE EVENT_chan"
+
+text {* Channel type erasure *}
+
+definition CHAN_UCHAN :: "'a::type CHAN \<Rightarrow> ('m :: VALUE) UCHAN" where
+"CHAN_UCHAN c = MkUCHAN ((chan_name c), TYPEU('a))"
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name erase} @{const_name CHAN_UCHAN}
+*}
 
 subsection {* Permutation *}
 

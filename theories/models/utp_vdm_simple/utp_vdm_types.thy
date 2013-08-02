@@ -38,6 +38,7 @@ abbreviation "QuoteS x \<equiv> {Q x}"
 
 abbreviation "vty_unit \<equiv> (UNIV :: unit set)"
 abbreviation "vty_bool \<equiv> (UNIV :: bool set)"
+abbreviation "vty_token \<equiv> (UNIV :: token set)"
 abbreviation "vty_nat  \<equiv> Nats :: real set"
 abbreviation "vty_nat1 \<equiv> {x\<in>vty_nat. x > 0}"
 abbreviation "vty_int  \<equiv> Ints :: real set"
@@ -94,6 +95,7 @@ syntax
   "_vty_union"   :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixr "|" 65)
   "_vty_set"     :: "'a set \<Rightarrow> vty" ("@_")
   "_vty_bool"    :: "vty" ("@bool")
+  "_vty_token"   :: "vty" ("@token")
   "_vty_nat"     :: "vty" ("@nat")
   "_vty_nat1"     :: "vty" ("@nat1")
   "_vty_int"     :: "vty" ("@int")
@@ -120,6 +122,7 @@ translations
   "_vty_set x"     => "x"
   "_vty_brack x"   => "x"
   "_vty_bool"      == "CONST vty_bool"
+  "_vty_token"     == "CONST vty_token"
   "_vty_nat"       == "CONST vty_nat"
   "_vty_nat1"      == "CONST vty_nat1"
   "_vty_int"       == "CONST vty_int"

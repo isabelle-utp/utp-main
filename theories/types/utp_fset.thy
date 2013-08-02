@@ -89,8 +89,8 @@ is "\<lambda> xs v. filter (\<lambda> x. x \<notin>\<^sub>f v) xs"
   by (auto)
 
 definition IntersyncUF :: 
-  "'a::DEFINED UFSET \<Rightarrow> 'a ULIST \<Rightarrow> 'a ULIST \<Rightarrow> ('a ULIST) UFSET"  where
-"IntersyncUF xs ys zs = Abs_UFSET (Abs_ULIST `\<^sub>f (intersync (Rep_UFSET xs) (Rep_ULIST ys) (Rep_ULIST zs)))"
+  "'a::DEFINED set \<Rightarrow> 'a ULIST \<Rightarrow> 'a ULIST \<Rightarrow> ('a ULIST) UFSET"  where
+"IntersyncUF xs ys zs = Abs_UFSET (Abs_ULIST `\<^sub>f (intersync xs (Rep_ULIST ys) (Rep_ULIST zs)))"
 
 lemma UFSET_elems_defined [defined]:
   "x \<in>\<^sub>f (Rep_UFSET xs) \<Longrightarrow> \<D> x"

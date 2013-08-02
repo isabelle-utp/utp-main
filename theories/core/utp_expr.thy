@@ -620,10 +620,12 @@ abbreviation PrefixE ::
   "'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
 "PrefixE xs ys \<equiv> Op2E PrefixV xs ys"
 
+(*
 abbreviation IntersyncE ::
   "'a::REACTIVE_SORT UTYPE \<Rightarrow>
    'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_EXPRESSION" where
 "IntersyncE a s xs ys \<equiv> Op3E (IntersyncV a) s xs ys"
+*)
 
 default_sort VALUE
 
@@ -678,7 +680,7 @@ subsection {* Event List / Set Hack *}
 abbreviation "EvNilE       \<equiv> NilE EventType"
 abbreviation "EvConsE      \<equiv> ConsE EventType"
 abbreviation "EvConcatE    \<equiv> ConcatE EventType"
-abbreviation "EvIntersyncE \<equiv> IntersyncE EventType"
+(* abbreviation "EvIntersyncE \<equiv> IntersyncE EventType" *)
 
 abbreviation "EvFEmptyE \<equiv> FEmptyE EventType"
 abbreviation "EvFInsertE \<equiv> FInsertE EventType"

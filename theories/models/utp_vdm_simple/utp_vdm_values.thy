@@ -46,6 +46,7 @@ datatype vbasict =
   | CharBT
   | QuoteBT
   | TokenBT
+  | ChanBT
   | EventBT
   | NameBT
   | TypeBT
@@ -76,6 +77,7 @@ abbreviation "NumberT \<equiv> BasicT NumberBT"
 abbreviation "CharT   \<equiv> BasicT CharBT"
 abbreviation "QuoteT  \<equiv> BasicT QuoteBT"
 abbreviation "TokenT  \<equiv> BasicT TokenBT"
+abbreviation "ChanT   \<equiv> BasicT ChanBT"
 abbreviation "EventT  \<equiv> BasicT EventBT"
 abbreviation "NameT   \<equiv> BasicT NameBT"
 abbreviation "TypeT   \<equiv> BasicT TypeBT"
@@ -102,6 +104,7 @@ datatype vbasic
   | CharI "char"
   | QuoteI "string" 
   | TokenI vbasic
+  | ChanI NAME "vbasict"
   | EvI NAME "vbasict" "vbasic"
   | ListI vbasict "vbasic list"
   | OptionI vbasict "vbasic option"
@@ -243,6 +246,7 @@ RatI_type[intro!]: "RatI x :\<^sub>b RatBT" |
 NumberI_type[intro!]: "NumberI x :\<^sub>b NumberBT" |
 CharI_type[intro!]: "CharI x :\<^sub>b CharBT" |
 TokenI_type[intro!]: "TokenI x :\<^sub>b TokenBT" |
+ChanI_type[intro!]: "ChanI n t :\<^sub>b ChanBT" |
 EvI_type[intro!]: "v :\<^sub>b t \<Longrightarrow> EvI n t v :\<^sub>b EventBT" |
 QuoteI_type[intro!]: "QuoteI x :\<^sub>b QuoteBT" |
 ListI_type[intro!]: "\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>b a \<rbrakk> \<Longrightarrow> ListI a xs :\<^sub>b ListBT a" |
@@ -284,6 +288,8 @@ inductive_cases
   CharT_type_cases [elim!]: "x :\<^sub>b CharBT" and
   TokenI_type_cases [elim]: "TokenI x :\<^sub>b t" and
   TokenT_type_cases [elim!]: "x :\<^sub>b TokenBT" and
+  ChanI_type_cases [elim]: "ChanI n t :\<^sub>b a" and
+  ChanT_type_cases [elim!]: "x :\<^sub>b ChanBT" and
   EvI_type_cases [elim]: "EvI n t v :\<^sub>b a" and
   EventT_type_cases [elim!]: "x :\<^sub>b EventBT" and
   QuoteI_type_cases [elim]: "QuoteI x :\<^sub>b t" and
@@ -335,6 +341,7 @@ fun Defined_vbasic :: "vbasic \<Rightarrow> bool" where
 "Defined_vbasic (CharI x) = True" |
 "Defined_vbasic (QuoteI x) = True" |
 "Defined_vbasic (TokenI x) = Defined_vbasic x" |
+"Defined_vbasic (ChanI n t) = True" |
 "Defined_vbasic (EvI n t v) = True" |
 "Defined_vbasic (ListI a xs) = (\<forall> x \<in> set xs. Defined_vbasic x)" |
 "Defined_vbasic (OptionI a None) = True" |
@@ -385,6 +392,10 @@ lemma Defined_nbot [simp]: "\<D> x \<Longrightarrow> x \<noteq> BotD a"
   by (case_tac a, auto)
 
 definition "vbtypes = (BasicT ` UNIV)"
+
+lemma ProjBasicT_inv [simp]: 
+  "t \<in> vbtypes \<Longrightarrow> BasicT (ProjBasicT t) = t"
+  by (auto simp add:vbtypes_def)
 
 (*
 definition vbtypes :: "vdmt set" where
@@ -520,10 +531,10 @@ FuncD_type[intro]: "\<lbrakk> \<And> x. \<lbrakk> x :\<^sub>b a; \<D> x \<rbrakk
 BotD'_type[intro]: "a \<notin> range BasicT \<Longrightarrow> BotD' a :\<^sub>v a"
 
 inductive_cases
-  SetT_type_cases': "x :\<^sub>v SetT a" and
-  SetD_type_cases[elim!]: "SetD a x :\<^sub>v t" and
-  FuncT_type_cases': "x :\<^sub>v a \<rightarrow> b" and
-  FuncI_type_cases[elim!]: "FuncD a b f :\<^sub>v t" and
+  SetT_type_cases'[elim!]: "x :\<^sub>v SetT a" and
+  SetD_type_cases[elim]: "SetD a x :\<^sub>v t" and
+  FuncT_type_cases'[elim!]: "x :\<^sub>v a \<rightarrow> b" and
+  FuncI_type_cases[elim]: "FuncD a b f :\<^sub>v t" and
   BasicD_type_cases[elim]: "BasicD x :\<^sub>v t" and
   BasicT_type_cases[elim!]: "x :\<^sub>v BasicT t" and
   BotD'_type_cases[elim]: "BotD' a :\<^sub>v t"
@@ -668,6 +679,7 @@ fun default_vbasict :: "vbasict \<Rightarrow> vbasic" where
 "default_vbasict CharBT        = CharI (CHR ''x'')" |
 "default_vbasict QuoteBT       = QuoteI ''x''" |
 "default_vbasict TokenBT       = TokenI (BoolI False)" |
+"default_vbasict ChanBT        = ChanI (MkName ''x'' 0 NoSub) BoolBT" |
 "default_vbasict EventBT       = EvI (MkName ''x'' 0 NoSub) BoolBT (BoolI False)" |
 "default_vbasict NameBT        = NameI (MkName ''x'' 0 NoSub)" |
 "default_vbasict TypeBT        = TypeI BoolBT" |

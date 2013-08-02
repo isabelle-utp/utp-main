@@ -254,6 +254,69 @@ instance
 done
 end
 
+subsection {* Set instantiation *}
+
+instantiation vdmv :: SET_SORT
+begin
+
+definition MkSet_vdmv :: "vdmv UTYPE \<Rightarrow> vdmv set \<Rightarrow> vdmv" where
+"MkSet_vdmv a xs = SetD (ProjBasicT (prjTYPE a)) (ProjBasicD ` xs)"
+
+definition DestSet_vdmv :: "vdmv \<Rightarrow> vdmv set" where
+"DestSet_vdmv x = BasicD ` ProjSetD x"
+
+definition SetType_vdmv :: "vdmv UTYPE \<Rightarrow> vdmv UTYPE" where
+"SetType_vdmv a = (if (prjTYPE a \<in> vbtypes) then embTYPE (SetT (ProjBasicT (prjTYPE a))) else a)"
+
+definition SetPerm_vdmv :: "vdmv UTYPE set" where
+"SetPerm_vdmv = ((embTYPE :: vdmt \<Rightarrow> vdmv UTYPE) ` vbtypes)"
+
+(*
+lemma Rep_fset_eq: 
+  "xs = ys \<longleftrightarrow> \<langle>xs\<rangle>\<^sub>f = \<langle>ys\<rangle>\<^sub>f"
+  by (auto)
+
+lemma fimage_eq_conv: 
+  "inj_on f \<langle>xs\<rangle>\<^sub>f \<Longrightarrow> f `\<^sub>f xs = g `\<^sub>f xs \<longleftrightarrow> (\<forall>x\<in>\<langle>xs\<rangle>\<^sub>f. f x = g x)"
+  apply (auto simp add:Rep_fset_eq)
+  thm inj_on_Un_image_eq_iff
+  
+  apply (auto simp add:fimage_def)
+*)
+
+
+(*
+
+proof (intro_classes, unfold_locales)
+  fix a::"vdmv UTYPE"
+  assume "a \<in> SetPerm"
+  show "dcarrier (SetType a) = MkSet a ` {xs. id xs \<subseteq> dcarrier a}"
+    apply (auto simp add:MkSet_vdmv_def DestSet_vdmv_def SetType_vdmv_def SetPerm_vdmv_def type_rel_vdmt dcarrier_embTYPE)
+    apply (simp add:image_def MkSet_vdmv_def)
+    apply (rule_tac x="BasicD ` xs" in exI)
+    apply (auto)
+
+
+    apply (auto)
+
+*)
+instance 
+  apply (intro_classes)
+  apply (unfold_locales)
+  apply (auto simp add:MkSet_vdmv_def DestSet_vdmv_def SetType_vdmv_def SetPerm_vdmv_def type_rel_vdmt dcarrier_embTYPE)
+  apply (force simp add:vbtypes_def)
+  apply (auto simp add:vbtypes_def)
+  apply (frule subsetD, simp)
+  apply (auto)
+  apply (metis ProjBasicD.simps(1) imageI)
+  apply (simp add:image_def MkSet_vdmv_def)
+  apply (rule_tac x="BasicD ` xs" in exI)
+  apply (auto intro!:SetD_type)
+  apply (auto simp add:inj_on_def)
+  apply (metis (mono_tags) ProjBasicT.simps SetType_vdmv_def embTYPE_inv_vdmt rangeI vbtypes_def vdmt.inject(2))
+done
+end
+
 subsection {* Events and Event Sort Instantiation *}
 
 instantiation vdmv :: EVENT_PERM
@@ -271,18 +334,22 @@ done
 
 end
 
+lemma EVENT_value_IsBasicD: 
+  "IsBasicD (EVENT_value x)"
+  by (case_tac x, auto simp add:EventPerm_vdmv_def type_rel_vdmt vbtypes_def)
+
+lemma EVENT_type_vbtypes:
+  fixes e :: "vdmv EVENT"
+  shows "prjTYPE (uchan_type (EVENT_chan e)) \<in> vbtypes"
+  by (case_tac e, auto simp add:EventPerm_vdmv_def)
+
 definition EventI :: "vdmv EVENT \<Rightarrow> vbasic" where
-"EventI e = EvI (chan_name (EVENT_channel e)) 
-                (ProjBasicT (prjTYPE (chan_type (EVENT_channel e))))
+"EventI e = EvI (uchan_name (EVENT_chan e)) 
+                (ProjBasicT (prjTYPE (uchan_type (EVENT_chan e))))
                 (ProjBasicD (EVENT_value e))"
 
 primrec ProjEventI :: "vbasic \<Rightarrow> vdmv EVENT" where
 "ProjEventI (EvI n t v) = EV n (embTYPE (BasicT t)) (BasicD v)"
-
-lemma EVENT_type_vbtypes:
-  fixes e :: "vdmv EVENT"
-  shows "prjTYPE (chan_type (EVENT_channel e)) \<in> vbtypes"
-  by (case_tac e, auto simp add:EventPerm_vdmv_def)
 
 lemma EventI_type [typing,intro]:
   "EventI e :\<^sub>b EventBT"
@@ -296,9 +363,7 @@ lemma EventI_defined [simp]:
 
 lemma EventI_inv [simp]:
   "ProjEventI (EventI e) = e"
-  apply (case_tac e)
-  apply (auto simp add:EventI_def ProjEventI_def EventPerm_vdmv_def dtype_rel_def type_rel_vdmt vbtypes_def)
-done
+  by (simp add:EventI_def EVENT_value_IsBasicD EVENT_type_vbtypes)
 
 instantiation vdmv :: EVENT_SORT
 begin
@@ -431,8 +496,8 @@ begin
 
 instance
   apply (intro_classes)
-  apply (auto simp add:EventType_vdmv_def FSetPerm_vdmv_def ListPerm_vdmv_def 
-                       ListType_vdmv_def inj_image_mem_iff vbtypes_def)
+  apply (auto simp add:EventType_vdmv_def FSetPerm_vdmv_def ListPerm_vdmv_def  
+                       SetPerm_vdmv_def ListType_vdmv_def inj_image_mem_iff vbtypes_def)
 done
 
 end

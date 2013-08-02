@@ -132,11 +132,11 @@ definition PrefixCSP ::
   "('a EVENT, 'a) WF_PEXPRESSION \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<rightarrow>_") where
 "a\<rightarrow>P = `@a ; P`"
 
-definition InputCSP :: "'b::type CHANNEL \<Rightarrow> ('b \<Rightarrow> 'a WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" where
+definition InputCSP :: "'b::type CHAN \<Rightarrow> ('b \<Rightarrow> 'a WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" where
 "InputCSP n P = ExistsShP (\<lambda> v. PrefixCSP (LitPE (PEV n v)) (P v))"
 
 definition OutputCSP :: 
-  "'b::type CHANNEL \<Rightarrow> ('b, 'a) WF_PEXPRESSION \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+  "'b::type CHAN \<Rightarrow> ('b, 'a) WF_PEXPRESSION \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 "OutputCSP n v P = PrefixCSP (EventPE n v) P"
 
 definition ExtChoiceCSP :: 
@@ -144,16 +144,25 @@ definition ExtChoiceCSP ::
 "P\<box>Q = `CSP2((P \<and> Q)\<lhd> STOP \<rhd>(P \<or> Q))`"
 
 
-definition N :: "('a EVENT UFSET, 'a) WF_PEXPRESSION \<Rightarrow> ('a VAR set * 'a WF_PREDICATE)" where
-"N A = ({okay\<down>\<acute>, wait\<down>\<acute>, ref\<down>\<acute>, tr\<down>\<acute>}, `(($okay\<acute> = $okay\<^bsub>0\<^esub>\<acute> \<and> $okay\<^bsub>1\<^esub>\<acute>) \<and> ($wait\<acute> = $wait\<^bsub>0\<^esub>\<acute> \<or> $wait\<^bsub>1\<^esub>\<acute>) \<and> ($ref\<acute> = $ref\<^bsub>0\<^esub>\<acute> \<union> $ref\<^bsub>1\<^esub>\<acute>) \<and> (($tr\<acute> - $tr)\<in>($tr\<^bsub>0\<^esub> - $tr)\<parallel>\<^bsub>A\<^esub>($tr\<^bsub>1\<^esub>-$tr))); SKIP`)"
+definition N :: 
+  "('a EVENT set, 'a) WF_PEXPRESSION \<Rightarrow> ('a VAR set * 'a WF_PREDICATE)" where
+  "N A = ( {okay\<down>\<acute>, wait\<down>\<acute>, ref\<down>\<acute>, tr\<down>\<acute>}
+         , `(($okay\<acute> = $okay\<^bsub>0\<^esub>\<acute> \<and> $okay\<^bsub>1\<^esub>\<acute>) \<and> 
+             ($wait\<acute> = $wait\<^bsub>0\<^esub>\<acute> \<or> $wait\<^bsub>1\<^esub>\<acute>) \<and> 
+             ($ref\<acute> = $ref\<^bsub>0\<^esub>\<acute> \<union> $ref\<^bsub>1\<^esub>\<acute>) \<and> 
+             (($tr\<acute> - $tr) \<in> ($tr\<^bsub>0\<^esub> - $tr) \<parallel>\<^bsub>A \<^esub>($tr\<^bsub>1 \<^esub>- $tr))) ; SKIP`)"
 
-definition ParallelCSP :: "'a WF_PREDICATE \<Rightarrow> ('a EVENT UFSET, 'a) WF_PEXPRESSION \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infix "\<parallel>\<^bsub>CSP'(_')\<^esub>" 100) where
+definition ParallelCSP :: 
+  "'a WF_PREDICATE \<Rightarrow> 
+   ('a EVENT set, 'a) WF_PEXPRESSION \<Rightarrow> 
+   'a WF_PREDICATE \<Rightarrow> 
+   'a WF_PREDICATE" (infix "\<parallel>\<^bsub>CSP'(_')\<^esub>" 100) where
 "P \<parallel>\<^bsub>CSP(A)\<^esub> Q = P \<parallel>\<^bsub>N A\<^esub> Q"
 
 syntax
   "_upred_prefixed"  :: "pexpr \<Rightarrow> upred \<Rightarrow> upred" ("_\<rightarrow>_")
-  "_upred_input"     :: "'a CHANNEL \<Rightarrow> pttrn \<Rightarrow> upred \<Rightarrow> upred" ("_?_\<rightarrow>_")
-  "_upred_output"    :: "'a CHANNEL \<Rightarrow> pexpr \<Rightarrow> upred \<Rightarrow> upred" ("_!_\<rightarrow>_")
+  "_upred_input"     :: "'a CHAN \<Rightarrow> pttrn \<Rightarrow> upred \<Rightarrow> upred" ("_?_\<rightarrow>_")
+  "_upred_output"    :: "'a CHAN \<Rightarrow> pexpr \<Rightarrow> upred \<Rightarrow> upred" ("_!_\<rightarrow>_")
   "_upred_extchoice" :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("_\<box>_")
   "_upred_parallel"  :: "upred \<Rightarrow> pexpr \<Rightarrow> upred \<Rightarrow> upred" ("_\<parallel>\<^bsub>_\<^esub>_")
   
@@ -164,8 +173,9 @@ translations
   "_upred_extchoice P Q"  == "CONST ExtChoiceCSP P Q"
   "_upred_parallel P A Q" == "CONST ParallelCSP P A Q"
 
-definition InterleaveCSP :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infix "|||\<^bsub>CSP\<^esub>" 100) where
-"P |||\<^bsub>CSP\<^esub> Q = `P \<parallel>\<^bsub> {} \<^esub> Q`"
+definition InterleaveCSP 
+  :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infix "|||\<^bsub>CSP\<^esub>" 100) where
+"P |||\<^bsub>CSP\<^esub> Q = ParallelCSP P (LitPE {}) Q"
 
 syntax
   "_upred_interleave" :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("_|||_")

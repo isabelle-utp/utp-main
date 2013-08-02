@@ -117,28 +117,6 @@ translations
   "_vty_field x" == "CONST UnitField x"
   "_vty_record x" == "CONST FinishField x"
 
-abbreviation "Period   \<equiv> \<parallel>@nat\<parallel>"
-abbreviation "ExpertId \<equiv> \<parallel>@nat\<parallel>"
-abbreviation "Qualification \<equiv> \<parallel><''Elec''> | <''Mech''> | <''Bio''> | <''Chem''>\<parallel>"
-
-typedef Expert_Tag = "{True}" by auto
-instantiation Expert_Tag :: tag
-begin
-
-definition "tagName_Expert_Tag (x::Expert_Tag) = ''Expert''"
-
-instance 
-  by (intro_classes, metis (full_types) Abs_Expert_Tag_cases singleton_iff)
-end
-
-abbreviation "expertid_field \<equiv> MkField TYPE(Expert_Tag) #1 \<parallel>@ExpertId\<parallel>"
-abbreviation "expertid       \<equiv> SelectRec expertid_field"
-abbreviation "quali_field    \<equiv> MkField TYPE(Expert_Tag) #2 \<parallel>@set of @Qualification\<parallel>"
-abbreviation "quali          \<equiv> SelectRec quali_field"
-abbreviation "Expert         \<equiv> \<parallel>[expertid_field, quali_field]\<parallel>"
-abbreviation "mk_Expert      \<equiv> MkRec Expert"
-
-term "|mk_Expert(1,{}).expertid|"
 
 (*
 lemma "|mk_Expert(1,{}).expertid|= |1|"

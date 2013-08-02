@@ -431,6 +431,9 @@ definition NotMemberV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 
 end
 
+class EVENT_SET_SORT = EVENT_SORT + SET_SORT +
+  assumes EventType_SetPerm [closure]: "EventType \<in> SetPerm"
+
 subsection {* List Sort *}
 
 class LIST_SORT = BOOL_SORT +
@@ -674,44 +677,21 @@ declare AppV_def [simp] CompV_def [simp]
 
 end
 
-class REACTIVE_SORT = 
-  BOOL_SORT + 
-  LIST_SORT + 
-  FSET_SORT + 
-  EVENT_SORT + 
-  EVENT_LIST_SORT + 
-  EVENT_FSET_SORT + 
-  assumes FSetPerm_ListPerm [closure]: "a \<in> ListPerm \<Longrightarrow> ListType a \<in> FSetPerm"
-begin
-
-definition InterleaveV :: "'a UTYPE \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"InterleaveV a xs ys = MkFSet (ListType a) (MkList a `\<^sub>f (interleave (DestList xs) (DestList ys)))"
-
-definition IntersyncV :: "'a UTYPE \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"IntersyncV a s xs ys = MkFSet (ListType a) (MkList a `\<^sub>f (intersync (DestFSet s) (DestList xs) (DestList ys)))"
-
-(*
-lemma InterleaveV_type [typing]:
-  "\<lbrakk> a \<in> ListPerm; xs :! ListType a; ys :! ListType a \<rbrakk> 
-     \<Longrightarrow> InterleaveV a xs ys :! FSetType (ListType a)"
-  apply (simp add:InterleaveV_def)
-  apply (rule MkFSet_type)
-  apply (rule closure)
-  apply (simp)
-  apply (auto)
-  apply (unfold ListType_dcarrier)
-  apply (rule, auto)
-oops
-*)
-
-(* FIXME: Need more theorems about interleave + intersync to prove typing laws *)
-
-end
-
 class BASIC_SORT =
   INT_SORT + BOOL_SORT + STRING_SORT + REAL_SORT
 
 class COMPOSITE_SORT =
   BASIC_SORT + PAIR_SORT + SET_SORT + FUNCTION_SORT
+
+class REACTIVE_SORT = 
+  BOOL_SORT + 
+  LIST_SORT + 
+  FSET_SORT + 
+  SET_SORT +
+  EVENT_SORT + 
+  EVENT_LIST_SORT + 
+  EVENT_FSET_SORT +
+  EVENT_SET_SORT +
+  assumes FSetPerm_ListPerm [closure]: "a \<in> ListPerm \<Longrightarrow> ListType a \<in> FSetPerm"
 
 end

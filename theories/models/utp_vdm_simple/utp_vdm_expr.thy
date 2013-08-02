@@ -51,8 +51,8 @@ abbreviation "FalseDE \<equiv> LitD False"
 abbreviation MkVarD :: "string \<Rightarrow> 'a set \<Rightarrow> ('a option, vdmv) PVAR" where
 "MkVarD n t \<equiv> MkPlainP n False TYPE('a option) TYPE(vdmv)"
 
-abbreviation MkChanD :: "string \<Rightarrow> 'a set \<Rightarrow> ('a option) CHANNEL" where
-"MkChanD n xs \<equiv> MkCHAN (bName n) TYPE('a option)"
+abbreviation MkChanD :: "string \<Rightarrow> 'a set \<Rightarrow> ('a option) CHAN" where
+"MkChanD n xs \<equiv> MkCHAN (bName n, TYPE('a option))"
 
 abbreviation UnitD :: "unit vdme" where
 "UnitD \<equiv> LitD ()"
@@ -87,6 +87,9 @@ definition SingleD :: "'a vdme \<Rightarrow> ('a*unit) vdme" where
 
 declare SingleD_def [eval,evale,evalp]
 
+abbreviation TokenD :: "'a::vbasic vdme \<Rightarrow> token vdme" where
+"TokenD v \<equiv> Op1D' (Abs_token \<circ> Inject) v"
+
 definition ListD :: "'a::vbasic vdme list \<Rightarrow> 'a list vdme" where
 "ListD xs = MkPExpr (\<lambda> b. mapM (\<lambda> v. \<lbrakk>v\<rbrakk>\<^sub>* b) xs)"
 
@@ -119,10 +122,10 @@ declare CollectD_def [eval,evale,evalp]
 
 definition ParallelD :: 
   "vdmv WF_PREDICATE \<Rightarrow> 
-   (vdmv EVENT fset option, vdmv) WF_PEXPRESSION \<Rightarrow> 
+   vdmv UCHAN set \<Rightarrow> 
    vdmv WF_PREDICATE \<Rightarrow> 
    vdmv WF_PREDICATE" where
-"ParallelD p vs q = ParallelCSP p (Op1PE (Abs_UFSET \<circ> the) vs) q"
+"ParallelD p cs q = ParallelCSP p (LitPE (MkEvents cs)) q"
 
 subsection {* Extend the UTP parser for VDM expressions *}
 
@@ -223,6 +226,7 @@ syntax
   "_vexpr_unit"     :: "pexpr" ("'(')")
   "_vexpr_true"     :: "pexpr" ("true")
   "_vexpr_false"    :: "pexpr" ("false")
+  "_vexpr_token"    :: "pexpr \<Rightarrow> pexpr" ("mk'_token'(_')")
   "_vexpr_num"      :: "real \<Rightarrow> pexpr" ("_")
   "_vexpr_bot"      :: "pexpr" ("undefined")
   "_vexpr_lit"      :: "'a::vbasic \<Rightarrow> pexpr" ("(1^_^)")
@@ -237,7 +241,7 @@ syntax
   "_vexpr_list"     :: "pexprs => pexpr"    ("[(_)]")
   "_vexpr_empty"    :: "pexpr" ("{}")
   "_vexpr_fset"     :: "pexprs => pexpr"    ("{(_)}")
-  "_upred_parcml"   :: "upred \<Rightarrow> pexpr \<Rightarrow> upred \<Rightarrow> upred" (infixl "[|_|]" 50)
+  "_upred_parcml"   :: "upred \<Rightarrow> vdmv UCHAN set \<Rightarrow> upred \<Rightarrow> upred" (infixl "[|_|]" 50)
 
 (*
   "_vexpr_vexpr"  :: "'a vdme \<Rightarrow> pexpr" ("_")
@@ -256,6 +260,7 @@ translations
   "_vexpr_unit"                == "CONST UnitD"
   "_vexpr_true"                == "CONST TrueDE"
   "_vexpr_false"               == "CONST FalseDE"
+  "_vexpr_token x"             == "CONST TokenD x"
   "_vexpr_num n"               == "CONST NumD n"
   "_vexpr_bot"                 == "CONST BotDE"
   "_vexpr_lit v"               == "CONST LitD v"
@@ -275,6 +280,10 @@ translations
   "_vexpr_fset x"              == "CONST vexpr_insert x CONST vexpr_empty"
   "_upred_parcml p vs q"       == "CONST ParallelD p vs q"
 
+term "`P [|{x,y,z}|] Q`"
+
+term "MkChanD"
+
 abbreviation mk_prod :: "'a \<Rightarrow> 'a" where
 "mk_prod \<equiv> id"
 
@@ -282,7 +291,6 @@ term "Op1D' id (vexpr_prod TrueDE (SingleD FalseDE))"
 
 term "|mk_prod(true, false, 1).#1|"
 term "|mk_prod($x,2,5)|"
-
 
 term "LitD (1 :: real)"
 

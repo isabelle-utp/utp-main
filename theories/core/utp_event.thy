@@ -12,18 +12,31 @@ imports
   utp_value
 begin
 
-type_synonym 'a CHANNEL  = "NAME * 'a itself"
+typedef 'a::type CHAN  = "UNIV :: (NAME * 'a itself) set"
+  morphisms DestCHAN MkCHAN
+  by simp
 
-abbreviation MkCHAN :: "NAME \<Rightarrow> ('a::type) itself \<Rightarrow> 'a CHANNEL" where
-"MkCHAN n t \<equiv> (n, t)"
+declare DestCHAN_inverse [simp]
+declare MkCHAN_inverse[simplified,simp]
 
-type_synonym 'a UCHANNEL = "NAME * 'a UTYPE"
+abbreviation chan_name :: "'a::type CHAN \<Rightarrow> NAME" where
+"chan_name c \<equiv> fst (DestCHAN c)"
 
-abbreviation chan_name :: "'a UCHANNEL \<Rightarrow> NAME" where
-"chan_name c \<equiv> fst c"
+abbreviation chan_type :: "'a::type CHAN \<Rightarrow> 'a itself" where
+"chan_type c \<equiv> snd (DestCHAN c)"
 
-abbreviation chan_type :: "'a UCHANNEL \<Rightarrow> 'a UTYPE" where
-"chan_type c \<equiv> snd c"
+typedef 'a UCHAN = "UNIV :: (NAME * 'a UTYPE) set"
+  morphisms DestUCHAN MkUCHAN
+  by (simp)
+
+declare DestUCHAN_inverse [simp]
+declare MkUCHAN_inverse[simplified,simp]
+
+abbreviation uchan_name :: "'a UCHAN \<Rightarrow> NAME" where
+"uchan_name c \<equiv> fst (DestUCHAN c)"
+
+abbreviation uchan_type :: "'a UCHAN \<Rightarrow> 'a UTYPE" where
+"uchan_type c \<equiv> snd (DestUCHAN c)"
 
 subsection {* Event Sort *}
 
@@ -37,18 +50,19 @@ class EVENT_PERM = VALUE +
   assumes EventPerm_exists: "\<exists> x. x \<in> EventPerm"
 
 typedef 'm::EVENT_PERM EVENT = 
-  "{(c::'m UCHANNEL, v :: 'm). chan_type c \<in> EventPerm \<and> v : chan_type c}"
+  "{(c, v :: 'm). uchan_type c \<in> EventPerm \<and> v : uchan_type c}"
+  morphisms DestEVENT MkEVENT
   apply (auto)
-  apply (metis (lifting) EventPerm_exists fst_eqD prod_caseI2 snd_eqD type_non_empty_defined)
+  apply (metis (mono_tags) DestUCHAN_cases EventPerm_exists UNIV_I default_type snd_def split_conv)
 done
 
-declare Rep_EVENT [simp]
-declare Rep_EVENT_inverse [simp]
-declare Abs_EVENT_inverse [simp]
+declare DestEVENT [simp]
+declare DestEVENT_inverse [simp]
+declare MkEVENT_inverse [simp]
 
-lemma Rep_EVENT_intro [intro]:
-  "Rep_EVENT x = Rep_EVENT y \<Longrightarrow> x = y"
-  by (auto simp add: Rep_EVENT_inject[THEN sym])
+lemma DestEVENT_intro [intro]:
+  "DestEVENT x = DestEVENT y \<Longrightarrow> x = y"
+  by (auto simp add: DestEVENT_inject[THEN sym])
 
 setup_lifting type_definition_EVENT
 
@@ -66,7 +80,12 @@ lemma Defined_EVENT [defined]:
   by (simp add:Defined_EVENT_def)
 
 abbreviation EV :: "NAME \<Rightarrow> ('a::EVENT_PERM) UTYPE \<Rightarrow> 'a \<Rightarrow> 'a EVENT" where
-"EV n t v \<equiv> Abs_EVENT ((n, t), v)"
+"EV n t v \<equiv> MkEVENT (MkUCHAN (n, t), v)"
+
+text {* Make all possible events over a set of channels *}
+
+abbreviation MkEvents :: "'a::EVENT_PERM UCHAN set \<Rightarrow> 'a EVENT set" where
+"MkEvents cs \<equiv> {MkEVENT (c,v) | c v. c \<in> cs}"
 
 (*
 definition MkEVENT :: "NAME \<Rightarrow> ('a::EVENT_PERM) UTYPE \<Rightarrow> 'a \<Rightarrow> 'a EVENT" where
@@ -110,15 +129,31 @@ lemma DestEvent_inv [simp]: "x :! EventType \<Longrightarrow> MkEvent (DestEvent
 
 end
 
-lift_definition EVENT_channel :: "'a::EVENT_PERM EVENT \<Rightarrow> 'a UCHANNEL" is "fst"
+lift_definition EVENT_chan :: "'a::EVENT_PERM EVENT \<Rightarrow> 'a UCHAN" is "fst"
   by simp
 
 lift_definition EVENT_value :: "'a::EVENT_PERM EVENT \<Rightarrow> 'a" is "snd"
   by simp
 
-lemma EVENT_channel_EV [simp]: 
-  "\<lbrakk> v : t; t \<in> EventPerm \<rbrakk> \<Longrightarrow> EVENT_channel (EV n t v) = (n, t)"
-  by (auto simp add:EVENT_channel_def)
+lemma MkEVENT_inv [simp]:
+  "\<lbrakk> v : uchan_type c; uchan_type c \<in> EventPerm \<rbrakk> \<Longrightarrow> DestEVENT (MkEVENT (c, v)) = (c, v)"
+  by (metis (lifting) MkEVENT_inverse mem_Collect_eq splitI)
+
+lemma EVENT_chan_MkEVENT [simp]: 
+  "\<lbrakk> v : uchan_type c; uchan_type c \<in> EventPerm \<rbrakk> \<Longrightarrow> EVENT_chan (MkEVENT (c, v)) = c"
+  by (simp add:EVENT_chan_def)
+
+lemma EVENT_value_MkEVENT [simp]:
+  "\<lbrakk> v : uchan_type c; uchan_type c \<in> EventPerm \<rbrakk> \<Longrightarrow> EVENT_value (MkEVENT (c, v)) = v"
+  by (simp add:EVENT_value_def)
+
+lemma MkEVENT_eta [simp]: 
+  "MkEVENT (EVENT_chan e, EVENT_value e) = e"
+  by (case_tac e, auto)
+
+lemma EVENT_chan_EV [simp]: 
+  "\<lbrakk> v : t; t \<in> EventPerm \<rbrakk> \<Longrightarrow> EVENT_chan (EV n t v) = MkUCHAN (n, t)"
+  by (auto simp add:EVENT_chan_def)
 
 lemma EVENT_value_EV [simp]:
   "\<lbrakk> v : t; t \<in> EventPerm \<rbrakk> \<Longrightarrow> EVENT_value (EV n t v) = v"
