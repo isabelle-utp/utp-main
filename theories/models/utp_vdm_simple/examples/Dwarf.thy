@@ -78,6 +78,14 @@ definition "mk_DwarfType \<equiv> MkRec DwarfType"
 text {* The Dwarf Signal has a single state variable which gives 
         the state of the signal. *}
 
+text {* Dwarf Channels *}
+
+definition "init = MkChanD ''init'' \<parallel>()\<parallel>"
+definition "light = MkChanD ''light'' \<parallel>@LampId\<parallel>"
+definition "extinguish = MkChanD ''extinguish'' \<parallel>@LampId\<parallel>"
+definition "setPS = MkChanD ''setPS'' \<parallel>@ProperState\<parallel>"
+definition "shine = MkChanD ''shine'' \<parallel>@Signal\<parallel>"
+
 locale DwarfProcess
 begin
 
@@ -124,14 +132,6 @@ definition
                           , ($dw).currentstate
                           , ($dw).currentstate setminus {^l^}
                           , ($dw).desiredproperstate)`"
-
-text {* Dwarf Channels *}
-
-definition "init = MkChanD ''init'' \<parallel>()\<parallel>"
-definition "light = MkChanD ''light'' \<parallel>@LampId\<parallel>"
-definition "extinguish = MkChanD ''extinguish'' \<parallel>@LampId\<parallel>"
-definition "setPS = MkChanD ''setPS'' \<parallel>@ProperState\<parallel>"
-definition "shine = MkChanD ''shine'' \<parallel>@Signal\<parallel>"
 
 term "EventPE init UnitD"
 

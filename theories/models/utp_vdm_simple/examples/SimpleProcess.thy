@@ -9,10 +9,6 @@ definition "b = MkChanD ''b'' \<parallel>@int\<parallel>"
 locale Simple
 begin
 
-abbreviation "v \<equiv> MkVarD ''v'' \<parallel>@int\<parallel>"
-
-term "|@x|"
-
 definition "ACT1 = `a?(v) \<rightarrow> b!(&v * 2) \<rightarrow> SKIP`"
 definition "ACT2 = `a!5 \<rightarrow> SKIP`"
 
