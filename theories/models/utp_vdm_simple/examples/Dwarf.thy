@@ -96,24 +96,21 @@ syntax
   "_cml_exec1" :: "idt \<Rightarrow> pexpr \<Rightarrow> upred" ("_'(_')")
 
 translations
-  "_cml_exec1 f s" == "CONST Exec1D f s"
+  "_cml_exec1 f s" == "CONST R (CONST Exec1D f s)"
 
 locale DwarfProcess
 begin
+
+text {* State *}
 
 definition "dw \<equiv> MkVarD ''dw'' DwarfType"
 
 definition "DwarfInv \<equiv> `\<lparr> $dw hasType @DwarfType \<rparr> \<turnstile> \<lparr> $dw\<acute> hasType @DwarfType \<rparr>`"
 
-text {* Next we create the different operations for the Dwarf signal 
-        as UTP designs. Probably these should be reactive designs. *}
+text {* Operations *}
 
 definition "Init = `true \<turnstile> (dw := mk_DwarfType(@stop, {}, {}, @stop, @stop, @stop))`"
 
-(*
-lemma "`Init ; Init` = `Init`"
-  apply (unfold Init_def)
-*)
 
 definition 
   "SetNewProperState st = 
@@ -146,12 +143,22 @@ definition
                           , ($dw).desiredproperstate)`"
 
 
+text {* Actions *}
+
 definition 
-  "DWAFT = `\<mu> DWARF. 
+  "DWARF = `\<mu> DWARF. 
           (((light?(l) -> TurnOn(&l)) ; DWARF) 
        [] ((extinguish?(l) -> TurnOff(&l)); DWARF)
        [] ((setPS?(s) -> SetNewProperState(&s)); DWARF)
        [] (shine!(($dw).currentstate) -> DWARF))`"
+
+definition
+  "TEST1 = `setPS!@warning -> extinguish!<L2> -> light!<L3> 
+           -> setPS!@drive -> extinguish!<L1> -> light!<L2> -> STOP`"
+
+
+definition 
+  "MainAction = DWARF"
 
 end
 
