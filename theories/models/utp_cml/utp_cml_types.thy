@@ -1,0 +1,152 @@
+(******************************************************************************)
+(* Project: CML model for Isabelle/UTP                                        *)
+(* File: utp_cml_types.thy                                                    *)
+(* Author: Simon Foster, University of York (UK)                              *)
+(******************************************************************************)
+
+header {* CML expressions *}
+
+theory utp_cml_types
+imports 
+  utp_cml_expr
+begin
+
+datatype quote = QuoteD string
+
+instantiation quote :: vbasic
+begin
+
+primrec Inject_quote :: "quote \<Rightarrow> vbasic" where
+"Inject (QuoteD x) = QuoteI x"
+
+definition Type_quote :: "quote itself \<Rightarrow> vbasict" where
+"Type_quote x = QuoteBT"
+
+instance
+  apply (intro_classes)
+  apply (case_tac x, case_tac y, simp)
+  apply (auto)
+  apply (case_tac xa, auto simp add:Type_quote_def)
+  apply (case_tac xa, auto simp add:Type_quote_def)
+  apply (simp add:image_def)
+  apply (rule_tac x="QuoteD xa" in exI)
+  apply (auto)
+done
+end
+
+abbreviation "QuoteS x \<equiv> {QuoteD x}"
+
+abbreviation "vty_unit \<equiv> (UNIV :: unit set)"
+abbreviation "vty_bool \<equiv> (UNIV :: bool set)"
+abbreviation "vty_token \<equiv> (UNIV :: token set)"
+abbreviation "vty_nat  \<equiv> Nats :: real set"
+abbreviation "vty_nat1 \<equiv> {x\<in>vty_nat. x > 0}"
+abbreviation "vty_int  \<equiv> Ints :: real set"
+abbreviation "vty_rat  \<equiv> Rats :: real set"
+abbreviation "vty_real \<equiv> (UNIV :: real set)"
+abbreviation "vty_char \<equiv> (UNIV :: char set)"
+abbreviation "vty_prod \<equiv> op \<times>"
+abbreviation "vty_seq_of A  \<equiv> {xs. set xs \<subseteq> A}" 
+abbreviation "vty_seq1_of A \<equiv> {xs. set xs \<subseteq> A \<and> length xs > 0}" 
+abbreviation "vty_map_to X Y \<equiv> {f. \<langle>fdom f\<rangle>\<^sub>f \<subseteq> X \<and> \<langle>fran f\<rangle>\<^sub>f \<subseteq> Y}"
+
+lemma vty_subtypes [simp]:
+  "vty_nat1 \<subseteq> vty_nat"
+  "vty_nat  \<subseteq> vty_int"
+  "vty_int  \<subseteq> vty_rat"
+  "vty_rat  \<subseteq> vty_real"
+  apply (auto)
+  apply (metis Ints_of_nat Nats_cases)
+  apply (auto simp add:Ints_def Rats_def image_def)
+  apply (rule_tac x="of_int xa" in exI)
+  apply (simp add:of_int_def real_of_int_def)
+done
+
+lemma vty_int_members [simp]:
+  "0 \<in> vty_int" "1 \<in> vty_int" "numeral n \<in> vty_int" "neg_numeral n \<in> vty_int"
+  apply (auto simp add:Ints_def image_def)
+  apply (rule_tac x="1" in exI, simp)
+  apply (rule_tac x="numeral n" in exI, simp)
+  apply (rule_tac x="neg_numeral n" in exI, simp)
+done
+
+definition Fow :: "'a set \<Rightarrow> 'a fset set" where
+"Fow A = {Abs_fset x | x. x \<subseteq> A \<and> finite x}"
+
+lemma Fow_mem [iff]: "x \<in> Fow A \<longleftrightarrow> \<langle>x\<rangle>\<^sub>f \<subseteq> A"
+  apply (auto simp add:Fow_def)
+  apply (rule_tac x="\<langle>x\<rangle>\<^sub>f" in exI)
+  apply (simp)
+done
+
+(* FIXME: It may be that CML types need to be binding dependent
+   as they can potentially depend on UTP variables. *)
+definition InvS :: "'a set \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> 'a set" where
+"InvS A P = {x. x \<in> A \<and> (\<forall> b. \<lbrakk>P x\<rbrakk>\<^sub>* b = Some True)}"
+
+declare InvS_def [eval,evale,evalp]
+
+nonterminal vty_decl and vty_decls
+
+syntax 
+  "_vty_unit"    :: "vty" ("'(')")
+  "_vty_quote"   :: "string \<Rightarrow> vty" ("<_>")
+  "_vty_brack"   :: "vty \<Rightarrow> vty" ("'(_')")
+  "_vty_union"   :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixr "|" 65)
+  "_vty_set"     :: "'a set \<Rightarrow> vty" ("@_")
+  "_vty_bool"    :: "vty" ("@bool")
+  "_vty_token"   :: "vty" ("@token")
+  "_vty_nat"     :: "vty" ("@nat")
+  "_vty_nat1"     :: "vty" ("@nat1")
+  "_vty_int"     :: "vty" ("@int")
+  "_vty_rat"     :: "vty" ("@rat")
+  "_vty_char"    :: "vty" ("@char")
+  "_vty_real"    :: "vty" ("@real")
+  "_vty_set_of"  :: "vty \<Rightarrow> vty" ("@set of _")
+  "_vty_seq_of"  :: "vty \<Rightarrow> vty" ("@seq of _")
+  "_vty_map_to"  :: "vty \<Rightarrow> vty \<Rightarrow> vty" ("@map _ to _")
+  "_vty_seq1_of" :: "vty \<Rightarrow> vty" ("@seq1 of _")
+  "_vty_prod"    :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixl "\<times>" 20)
+  "_vty_quo"     :: "vty \<Rightarrow> 'a set" ("\<parallel>_\<parallel>")
+  "_vty_inv"     :: "vty \<Rightarrow> pttrn \<Rightarrow> pexpr \<Rightarrow> vty" ("_ inv _ == _")
+  "_vty_collect" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> vty" ("(1{_|/ _})")
+  "_vty_decl"    :: "('a, 'm) PVAR \<Rightarrow> vty \<Rightarrow> vty_decl" (infix ":" 50)
+  "_vty_decls"   :: "[vty_decl, vty_decls] => vty_decls" ("_,/ _")
+  ""             :: "vty_decl => vty_decls" ("_")
+  "_vty_schema"  :: "vty_decls \<Rightarrow> pexpr \<Rightarrow> vty" ("(1[_|/ _])")
+
+translations
+  "_vty_unit"      == "CONST vty_unit"
+  "_vty_quote x"   == "CONST QuoteS x"
+  "_vty_union x y" == "CONST union x y"
+  "_vty_set x"     => "x"
+  "_vty_brack x"   => "x"
+  "_vty_bool"      == "CONST vty_bool"
+  "_vty_token"     == "CONST vty_token"
+  "_vty_nat"       == "CONST vty_nat"
+  "_vty_nat1"      == "CONST vty_nat1"
+  "_vty_int"       == "CONST vty_int"
+  "_vty_rat"       == "CONST vty_rat"
+  "_vty_real"      == "CONST vty_real"
+  "_vty_char"      == "CONST vty_char"
+  "_vty_prod x y"  == "CONST vty_prod x y"
+  "_vty_set_of A"  == "CONST Fow A"
+  "_vty_seq_of A"  == "CONST vty_seq_of A"
+  "_vty_seq1_of A" == "CONST vty_seq1_of A"
+  "_vty_map_to A B" == "CONST vty_map_to A B"
+  "_vty_quo x"     => "x"
+  "_vty_inv A x P" == "CONST InvS A (\<lambda>x. P)"
+  "_vty_collect v P" == "CONST CollectD v P"
+
+
+term "\<parallel>@seq1 of @char\<parallel>"
+
+term "\<parallel>@map @char to @int\<parallel>"
+
+(* term "`x := \<langle><1>\<rangle> : @seq1 of @nat1`" *)
+
+term "\<parallel>{mk_prod($x : @int,$y : @int) | $x = $y}\<parallel>"
+
+term "|[1] : @seq1 of @int|"
+
+end
