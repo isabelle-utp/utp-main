@@ -96,7 +96,10 @@ lemma UNREST_OKAY [unrest]:
 
 lemma UNREST_SkipRA_OKAY [unrest]: 
   "UNREST OKAY II\<^bsub>REL_VAR - OKAY\<^esub>"
-  by (auto intro: UNREST_subset unrest)
+  apply (rule UNREST_subset)
+  apply (rule UNREST_SkipRA)
+  apply (simp)
+done
 
 lemma UNREST_TopD [unrest]:
   "okay\<down> \<notin> vs \<Longrightarrow> UNREST vs \<top>\<^sub>D"

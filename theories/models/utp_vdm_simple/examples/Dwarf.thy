@@ -86,9 +86,6 @@ definition "extinguish = MkChanD ''extinguish'' \<parallel>@LampId\<parallel>"
 definition "setPS = MkChanD ''setPS'' \<parallel>@ProperState\<parallel>"
 definition "shine = MkChanD ''shine'' \<parallel>@Signal\<parallel>"
 
-locale DwarfProcess
-begin
-
 definition "dw \<equiv> MkVarD ''dw'' DwarfType"
 
 definition "DwarfInv \<equiv> `\<lparr> $dw hasType @DwarfType \<rparr> \<turnstile> \<lparr> $dw\<acute> hasType @DwarfType \<rparr>`"
@@ -132,6 +129,28 @@ definition
                           , ($dw).currentstate
                           , ($dw).currentstate setminus {^l^}
                           , ($dw).desiredproperstate)`"
+
+(* FIXME: Execution of CML operations needs to take care of undefinedness *)
+
+lift_definition Exec1D :: 
+  "('a \<Rightarrow> vdmv WF_PREDICATE) \<Rightarrow> 'a vdme \<Rightarrow> vdmv WF_PREDICATE" 
+  is "\<lambda> P e. {b :: vdmv WF_BINDING. b \<in> P (the (e b))}" .
+
+syntax
+  "_dwarf_turnon" :: "pexpr \<Rightarrow> upred" ("TurnOn'(_')")
+
+translations
+  "_dwarf_turnon l" == "CONST Exec1D CONST TurnOn l"
+
+term "`(light?(l) \<rightarrow> TurnOn(&l)) ; DWARF`"
+
+definition 
+  "DWARF =
+    (  (light?l -> TurnOn(l); DWARF) 
+    [] (extinguish?l -> TurnOff(l); DWARF)
+    [] (setPS?l -> SetNewProperState(l); DWARF)
+    [] (shine!(dw.currentstate) -> DWARF))"
+
 
 term "EventPE init UnitD"
 
