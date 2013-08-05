@@ -107,8 +107,8 @@ qed
 definition deadlock :: "'a WF_PREDICATE" ("STOP") where
 "STOP = `CSP1( ok' \<and> \<delta>)`"
 
-definition prefix :: "('m EVENT, 'm) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" ("_\<rightarrow>SKIP") where
-"a\<rightarrow>SKIP = `CSP1(ok' \<and> do\<A>(a))`"
+definition prefix :: "('m EVENT, 'm) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" ("_ \<rightarrow> SKIP") where
+"a \<rightarrow> SKIP = `CSP1(ok' \<and> do\<A>(a))`"
 
 definition SkipCSP :: "'a WF_PREDICATE" ("SKIP") where 
 "SKIP = `CSP1(R3(ok' \<and> (\<exists> ref . II\<^bsub>rea\<^esub>)))`"
@@ -140,32 +140,38 @@ definition OutputCSP ::
 "OutputCSP n v P = PrefixCSP (EventPE n v) P"
 
 definition ExtChoiceCSP :: 
-  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<box>_") where
-"P\<box>Q = `CSP2((P \<and> Q)\<lhd> STOP \<rhd>(P \<or> Q))`"
+  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infixl "\<box>" 65) where
+"P \<box> Q = `CSP2((P \<and> Q)\<lhd> STOP \<rhd>(P \<or> Q))`"
 
-
-definition N :: 
+definition MergeCSP :: 
   "('a EVENT set, 'a) WF_PEXPRESSION \<Rightarrow> ('a VAR set * 'a WF_PREDICATE)" where
-  "N A = ( {okay\<down>\<acute>, wait\<down>\<acute>, ref\<down>\<acute>, tr\<down>\<acute>}
-         , `(($okay\<acute> = $okay\<^bsub>0\<^esub>\<acute> \<and> $okay\<^bsub>1\<^esub>\<acute>) \<and> 
-             ($wait\<acute> = $wait\<^bsub>0\<^esub>\<acute> \<or> $wait\<^bsub>1\<^esub>\<acute>) \<and> 
-             ($ref\<acute> = $ref\<^bsub>0\<^esub>\<acute> \<union> $ref\<^bsub>1\<^esub>\<acute>) \<and> 
-             (($tr\<acute> - $tr) \<in> ($tr\<^bsub>0\<^esub> - $tr) \<parallel>\<^bsub>A \<^esub>($tr\<^bsub>1 \<^esub>- $tr))) ; SKIP`)"
+  "MergeCSP A = ( {okay\<down>\<acute>, wait\<down>\<acute>, ref\<down>\<acute>, tr\<down>\<acute>}
+              , `(($okay\<acute> = $okay\<^bsub>0\<^esub>\<acute> \<and> $okay\<^bsub>1\<^esub>\<acute>) \<and> 
+                 ($wait\<acute> = $wait\<^bsub>0\<^esub>\<acute> \<or> $wait\<^bsub>1\<^esub>\<acute>) \<and> 
+                 ($ref\<acute> = $ref\<^bsub>0\<^esub>\<acute> \<union> $ref\<^bsub>1\<^esub>\<acute>) \<and> 
+                 (($tr\<acute> - $tr) \<in> ($tr\<^bsub>0\<^esub> - $tr) \<parallel>\<^bsub>A \<^esub>($tr\<^bsub>1 \<^esub>- $tr))) ; SKIP`)"
 
 definition ParallelCSP :: 
   "'a WF_PREDICATE \<Rightarrow> 
    ('a EVENT set, 'a) WF_PEXPRESSION \<Rightarrow> 
    'a WF_PREDICATE \<Rightarrow> 
    'a WF_PREDICATE" (infix "\<parallel>\<^bsub>CSP'(_')\<^esub>" 100) where
-"P \<parallel>\<^bsub>CSP(A)\<^esub> Q = P \<parallel>\<^bsub>N A\<^esub> Q"
+"P \<parallel>\<^bsub>CSP(A)\<^esub> Q = P \<parallel>\<^bsub>MergeCSP A\<^esub> Q"
 
 syntax
-  "_upred_prefixed"  :: "pexpr \<Rightarrow> upred \<Rightarrow> upred" ("_\<rightarrow>_")
-  "_upred_input"     :: "'a CHAN \<Rightarrow> pttrn \<Rightarrow> upred \<Rightarrow> upred" ("_?_\<rightarrow>_")
-  "_upred_output"    :: "'a CHAN \<Rightarrow> pexpr \<Rightarrow> upred \<Rightarrow> upred" ("_!_\<rightarrow>_")
-  "_upred_extchoice" :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("_\<box>_")
-  "_upred_parallel"  :: "upred \<Rightarrow> pexpr \<Rightarrow> upred \<Rightarrow> upred" ("_\<parallel>\<^bsub>_\<^esub>_")
-  
+  "_upred_prefixed"  :: "pexpr \<Rightarrow> upred \<Rightarrow> upred" ("_ -> _")
+  "_upred_input"     :: "'a CHAN \<Rightarrow> pttrn \<Rightarrow> upred \<Rightarrow> upred" ("_?_ -> _")
+  "_upred_output"    :: "'a CHAN \<Rightarrow> pexpr \<Rightarrow> upred \<Rightarrow> upred" ("_!_ -> _")
+  "_upred_extchoice" :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "[]" 65)
+  "_upred_parallel"  :: "upred \<Rightarrow> pexpr \<Rightarrow> upred \<Rightarrow> upred" (infixr "||\<^bsub>_\<^esub>" 100)
+
+syntax (xsymbols)
+  "_upred_prefixed"  :: "pexpr \<Rightarrow> upred \<Rightarrow> upred" ("_ \<rightarrow> _")
+  "_upred_input"     :: "'a CHAN \<Rightarrow> pttrn \<Rightarrow> upred \<Rightarrow> upred" ("_?_ \<rightarrow> _")
+  "_upred_output"    :: "'a CHAN \<Rightarrow> pexpr \<Rightarrow> upred \<Rightarrow> upred" ("_!_ \<rightarrow> _")
+  "_upred_extchoice" :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "\<box>" 65)
+  "_upred_parallel"  :: "upred \<Rightarrow> pexpr \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<parallel>\<^bsub>_\<^esub>" 100)
+
 translations
   "_upred_prefixed a P"   == "CONST PrefixCSP a P"
   "_upred_input n v p"    == "CONST InputCSP n (\<lambda> v. p)"
@@ -178,7 +184,7 @@ definition InterleaveCSP
 "P |||\<^bsub>CSP\<^esub> Q = ParallelCSP P (LitPE {}) Q"
 
 syntax
-  "_upred_interleave" :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("_|||_")
+  "_upred_interleave" :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infix "|||" 100)
  
 translations
   "_upred_interleave P Q" == "CONST InterleaveCSP P Q"
@@ -189,7 +195,7 @@ declare SkipCSP_def [eval, evalr, evalrr, evalrx]
 declare ChaosCSP_def [eval, evalr, evalrr, evalrx]
 declare PrefixCSP_def [eval, evalr, evalrr, evalrx]
 declare ExtChoiceCSP_def [eval, evalr, evalrr, evalrx]
-declare N_def [eval, evalr, evalrr, evalrx]
+declare MergeCSP_def [eval, evalr, evalrr, evalrx]
 declare ParallelCSP_def [eval, evalr, evalrr, evalrx]
 declare InterleaveCSP_def [eval, evalr, evalrr, evalrx]
 

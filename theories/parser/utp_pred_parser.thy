@@ -10,6 +10,7 @@ theory utp_pred_parser
   imports
   "../core/utp_pred"
   "../core/utp_lattice"
+  "../core/utp_recursion"
   "../core/utp_rel"
   "../core/utp_expr"
   "../poly/utp_poly_expr"
@@ -49,6 +50,9 @@ translations
 section {* Predicate Parser *}
 
 syntax
+  "_upred_inf"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "|~|" 65)
+
+syntax (xsymbols)
   "_upred_top_clos" :: "upred \<Rightarrow> bool" ("(1[_])")
   "_upred_quote"    :: "upred \<Rightarrow> 'a WF_PREDICATE" ("(1`_`)")
   "_upred_brack"    :: "upred \<Rightarrow> upred" ("'(_')")
@@ -73,7 +77,12 @@ syntax
   "_upred_skip"     :: "upred" ("II")
   "_upred_skipa"    :: "'VALUE VAR set \<Rightarrow> upred" ("II\<^bsub>_\<^esub>")
   "_upred_seq"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr ";" 36)
-  "_upred_choice"   :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "\<sqinter>" 65)
+  "_upred_inf"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "\<sqinter>" 65)
+  "_upred_sup"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "\<squnion>" 70)
+  "_upred_Inf"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("\<Sqinter>_" [900] 900)
+  "_upred_Sup"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("\<Squnion>_" [900] 900)
+  "_upred_wfp"      :: "pttrn \<Rightarrow> upred \<Rightarrow> upred" ("(3\<mu>_./ _)" [0, 10] 10)
+  "_upred_sfp"      :: "pttrn \<Rightarrow> upred \<Rightarrow> upred" ("(3\<nu>_./ _)" [0, 10] 10)
   "_upred_cond"     :: "upred \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("_ \<lhd> _ \<rhd> _")
   "_upred_assigna"  :: "'a VAR \<Rightarrow> 'a VAR set \<Rightarrow> uexpr \<Rightarrow> upred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
   "_upred_assign"   :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> upred" ("_ := _" [100] 100)
@@ -84,7 +93,6 @@ syntax
   "_upred_varclose" :: "('a, 'm) PVAR \<Rightarrow> upred" ("end _")
   "_upred_substp"   :: "upred \<Rightarrow> pexpr \<Rightarrow> ('a, 'm) PVAR \<Rightarrow> upred" ("(_[_'/_])" [999,999] 1000)
   "_upred_perm"     :: "'m VAR_RENAME \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<bullet>" 80)
-
 
 translations
   "_upred_brack p"     => "p"
@@ -111,7 +119,12 @@ translations
   "_upred_skip"        == "CONST SkipR"
   "_upred_skipa vs"    == "CONST SkipRA vs"
   "_upred_seq p q"     => "CONST SemiR p q"
-  "_upred_choice p q"  == "CONST sup p q"
+  "_upred_inf p q"  == "CONST sup p q"
+  "_upred_sup p q"  == "CONST inf p q"
+  "_upred_Inf p q"  == "CONST Sup p q"
+  "_upred_Sup p q"  == "CONST Inf p q"
+  "_upred_wfp x p"  == "CONST WFP (\<lambda>x. p)"
+  "_upred_sfp x p"  == "CONST SFP (\<lambda>x. p)"
   "_upred_cond p q r"  == "CONST CondR p q r"
   "_upred_assign x e"  == "CONST PAssignR x e"
   "_upred_assigna x xs e" == "CONST AssignRA x xs e"
