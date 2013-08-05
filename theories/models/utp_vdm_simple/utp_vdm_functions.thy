@@ -116,7 +116,7 @@ translations
   "_vexpr_union x y"   == "CONST Op2D' CONST funion x y"
   "_vexpr_inter x y"   == "CONST Op2D' CONST finter x y"
   "_vexpr_sminus x y"  == "CONST Op2D' CONST fminus x y"
-  "_vexpr_card x"      == "CONST Op2D' CONST fcard x"
+  "_vexpr_card x"      == "CONST vexpr_card x"
   "_vexpr_dom x"       == "CONST vexpr_dom x"
   "_vexpr_rng x"       == "CONST vexpr_rng x"
   "_vexpr_not x"       == "CONST vexpr_not x"

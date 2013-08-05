@@ -75,10 +75,31 @@ definition
 
 definition "mk_DwarfType \<equiv> MkRec DwarfType"
 
+text {* Safety Properties *}
+
+definition 
+  "NeverShowAll(t) = |^t^.currentstate <> {<L1>,<L2>,<L3>}|"
+
+definition 
+  "MaxOneLampChange(d) = |card ((^d^.currentstate setminus ^d^.laststate) 
+                                union (^d^.laststate \ ^d^.currentstate)) 
+                                <= 1|"
+
+definition
+  "ForbidStopToDrive(d) = |(^d^.lastproperstate = stop) => ^d^.desiredproperstate <> drive|"
+  
+definition
+  "DarkOnlyToStop(d) = ((^d^.lastproperstate = dark) => ^d^.desiredproperstate in @set {dark,stop})" 
+  
+  DarkOnlyFromStop: DwarfType -> bool
+  DarkOnlyFromStop(d) == ((d.desiredproperstate = dark) => d.lastproperstate in set {dark,stop})
+
+
+
 text {* The Dwarf Signal has a single state variable which gives 
         the state of the signal. *}
 
-text {* Dwarf Channels *}
+text {* Channels *}
 
 definition "init = MkChanD ''init'' \<parallel>()\<parallel>"
 definition "light = MkChanD ''light'' \<parallel>@LampId\<parallel>"
