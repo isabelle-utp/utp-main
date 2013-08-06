@@ -166,12 +166,16 @@ theorem DesignD_extreme_point_nok:
   by (utp_pred_tac+)
 
 theorem DesignD_assumption:
-  "UNREST OKAY P \<Longrightarrow> `\<not> (P \<turnstile> Q)\<^sup>f` = `P \<and> ok`"
-  by (utp_pred_auto_tac)
+  assumes "UNREST OKAY P"
+  shows "`\<not> (P \<turnstile> Q)\<^sup>f` = `P \<and> ok`"
+  using assms by (utp_pred_auto_tac)
 
 theorem DesignD_commitment:
-  "\<lbrakk> UNREST OKAY P; UNREST OKAY Q \<rbrakk> \<Longrightarrow> `(P \<turnstile> Q)\<^sup>t` = `(ok \<and> P \<Rightarrow> Q)`"
-  by (utp_pred_auto_tac)
+  assumes
+    "UNREST OKAY P" 
+    "UNREST OKAY Q" 
+  shows "`(P \<turnstile> Q)\<^sup>t` = `(ok \<and> P \<Rightarrow> Q)`"
+  using assms by (utp_pred_auto_tac)
 
 theorem DesignD_export_precondition:
   "(P \<turnstile> Q) = (P \<turnstile> P \<and>\<^sub>p Q)"
@@ -180,8 +184,11 @@ theorem DesignD_export_precondition:
 text {* Design refinement law *}
 
 theorem DesignD_refinement:
-  assumes "UNREST OKAY P1" "UNREST OKAY P2"
-          "UNREST OKAY Q1" "UNREST OKAY Q2"
+  assumes 
+    "UNREST OKAY P1" 
+    "UNREST OKAY P2"
+    "UNREST OKAY Q1" 
+    "UNREST OKAY Q2"
   shows "P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2 = `[P1 \<Rightarrow> P2] \<and> [P1 \<and> Q2 \<Rightarrow> Q1]`"
 proof -
   have "`(P1 \<turnstile> Q1) \<sqsubseteq> (P2 \<turnstile> Q2)` = `[P2 \<turnstile> Q2 \<Rightarrow> P1 \<turnstile> Q1]`"
@@ -213,9 +220,13 @@ proof -
 qed
 
 theorem DesignD_refine [refine]:
-  assumes "UNREST OKAY P1" "UNREST OKAY P2"
-          "UNREST OKAY Q1" "UNREST OKAY Q2"
-          "P2 \<sqsubseteq> P1" "Q1 \<sqsubseteq> P1 \<and>\<^sub>p Q2" 
+  assumes 
+    "UNREST OKAY P1"
+    "UNREST OKAY P2"
+    "UNREST OKAY Q1"
+    "UNREST OKAY Q2"
+    "P2 \<sqsubseteq> P1" 
+    "Q1 \<sqsubseteq> P1 \<and>\<^sub>p Q2" 
   shows "P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2"
   using assms
   apply (simp add:DesignD_refinement)
@@ -229,7 +240,9 @@ theorem DesignD_diverge:
 
 theorem DesignD_left_zero:
   fixes P :: "'m WF_PREDICATE"
-  assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
+  assumes 
+    "P \<in> WF_RELATION"
+    "Q \<in> WF_RELATION"
   shows "true ; (P \<turnstile> Q) = true"
 proof -
 
@@ -309,8 +322,15 @@ proof -
 qed
 
 theorem DesignD_composition_cond:
-  assumes "p1 \<in> WF_CONDITION" "P2 \<in> WF_RELATION" "Q1 \<in> WF_RELATION" "Q2 \<in> WF_RELATION"
-          "UNREST OKAY p1" "UNREST OKAY P2" "UNREST OKAY Q1" "UNREST OKAY Q2"
+  assumes 
+    "p1 \<in> WF_CONDITION" 
+    "P2 \<in> WF_RELATION" 
+    "Q1 \<in> WF_RELATION" 
+    "Q2 \<in> WF_RELATION"
+    "UNREST OKAY p1" 
+    "UNREST OKAY P2" 
+    "UNREST OKAY Q1" 
+    "UNREST OKAY Q2"
   shows "`(p1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `(p1 \<and> \<not> (Q1 ; \<not> P2)) \<turnstile> (Q1 ; Q2)`"
   by (simp add:DesignD_composition closure assms unrest)
 

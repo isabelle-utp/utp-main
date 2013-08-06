@@ -229,41 +229,60 @@ proof -
 qed
 
 theorem SemiR_condition_comp [simp]:
-  "p1 \<in> WF_CONDITION \<Longrightarrow> \<not>\<^sub>p (\<not>\<^sub>p p1 ; true) = p1"
+  assumes 
+    "p1 \<in> WF_CONDITION"
+  shows "\<not>\<^sub>p (\<not>\<^sub>p p1 ; true) = p1"
+  using assms
   by (metis NotP_NotP NotP_cond_closure SemiR_TrueP_precond)
 
 theorem SemiR_TrueP_TrueP [simp]: 
   "true ; true = true"
+  using assms
   by (metis SemiR_TrueP_precond TrueP_cond_closure)
 
 theorem SemiR_cond_idem [simp]:
-  "\<lbrakk> P \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> P ; P = P"
+  assumes "P \<in> WF_CONDITION" 
+  shows "P ; P = P"
+  using assms
   by (metis SemiR_FalseP_left SemiR_TrueP_precond SemiR_assoc SemiR_precond_left_zero)
 
 theorem SemiR_postcond_idem [simp]:
-  "\<lbrakk> P \<in> WF_POSTCOND \<rbrakk> \<Longrightarrow> P ; P = P"
+  assumes "P \<in> WF_POSTCOND"
+  shows "P ; P = P"
+  using assms
   by (metis SemiR_FalseP_right SemiR_TrueP_postcond SemiR_assoc SemiR_postcond_right_zero)
 
 theorem TrueP_left_annihilator_unique:
-  "P \<in> WF_RELATION \<Longrightarrow> P ; true = false \<Longrightarrow> P = false"
+  assumes 
+    "P \<in> WF_RELATION"
+    "P ; true = false"
+  shows "P = false"
+  using assms
   by (utp_xrel_auto_tac, metis (lifting) prod_caseI2)
 
 theorem TrueP_right_annihilator_unique:
-  "P \<in> WF_RELATION \<Longrightarrow> true ; P = false \<Longrightarrow> P = false"
+  assumes "P \<in> WF_RELATION"
+  shows "true ; P = false \<Longrightarrow> P = false"
+  using assms
   by (utp_xrel_auto_tac, metis (lifting) prod_caseI2)
 
 text {* This somewhat odd looking property derives from Relation Algebra. It is used,
         for instance, in the theory of designs. *}
 
 theorem SemiR_TrueP_compl [simp]:
-  "P \<in> WF_RELATION \<Longrightarrow> \<not>\<^sub>p (P ; true) ; true = \<not>\<^sub>p (P ; true)"
+  assumes "P \<in> WF_RELATION"
+  shows "\<not>\<^sub>p (P ; true) ; true = \<not>\<^sub>p (P ; true)"
+  using assms
   by (utp_xrel_auto_tac)
 
 text {* A single variable can be extracted from a sequential composition and captured
         in an existential *}
 
 theorem SemiR_extract_variable:
-  assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "x \<in> UNDASHED"
+  assumes 
+    "P \<in> WF_RELATION" 
+    "Q \<in> WF_RELATION" 
+    "x \<in> UNDASHED"
   shows "P ; Q = (\<exists>\<^sub>p {x\<acute>\<acute>\<acute>}. P[$\<^sub>ex\<acute>\<acute>\<acute>/\<^sub>px\<acute>] ; Q[$\<^sub>ex\<acute>\<acute>\<acute>/\<^sub>px])"
 proof -
   have "P ; Q = (\<exists>\<^sub>p DASHED_TWICE . (SS1\<bullet>P) \<and>\<^sub>p (SS2\<bullet>Q))"
@@ -458,8 +477,12 @@ proof -
 qed
 
 theorem ExistsP_UNDASHED_expand_SemiR:
-  "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; vs \<subseteq> UNDASHED \<rbrakk> \<Longrightarrow> 
-  (\<exists>\<^sub>p vs. p) ; q = (\<exists>\<^sub>p vs. (p ; q))"
+  assumes
+    "p \<in> WF_RELATION" 
+    "q \<in> WF_RELATION" 
+    "vs \<subseteq> UNDASHED"
+  shows "(\<exists>\<^sub>p vs. p) ; q = (\<exists>\<^sub>p vs. (p ; q))"
+  using assms
   apply (simp add: SemiR_algebraic_rel closure urename)
   apply (subgoal_tac "UNREST vs (SS2\<bullet>q)")
   apply (simp add:ExistsP_AndP_expand1)
@@ -469,8 +492,12 @@ theorem ExistsP_UNDASHED_expand_SemiR:
 done
 
 theorem ExistsP_DASHED_expand_SemiR:
-  "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; vs \<subseteq> DASHED \<rbrakk> \<Longrightarrow> 
-  p ; (\<exists>\<^sub>p vs. q) = (\<exists>\<^sub>p vs. (p ; q))"
+  assumes
+    "p \<in> WF_RELATION" 
+    "q \<in> WF_RELATION" 
+    "vs \<subseteq> DASHED"
+  shows "p ; (\<exists>\<^sub>p vs. q) = (\<exists>\<^sub>p vs. (p ; q))"
+  using assms
   apply (simp add: SemiR_algebraic_rel closure urename)
   apply (subgoal_tac "UNREST vs (SS1\<bullet>p)")
   apply (simp add:ExistsP_AndP_expand2)
@@ -492,10 +519,13 @@ text {* The following theorems show that an existential may be inserted or
 
 theorem SemiR_ExistsP_left:
   assumes
-  "UNREST DASHED_TWICE p" "UNREST DASHED_TWICE q"
-  "UNREST (DASHED - vs1) p" "UNREST (UNDASHED - vs2) q"
-  "vs1 \<subseteq> DASHED" "vs2 \<subseteq> UNDASHED"
-  "dash ` vs2 \<subseteq> vs1"
+    "UNREST DASHED_TWICE p" 
+    "UNREST DASHED_TWICE q"
+    "UNREST (DASHED - vs1) p" 
+    "UNREST (UNDASHED - vs2) q"
+    "vs1 \<subseteq> DASHED" 
+    "vs2 \<subseteq> UNDASHED"
+    "dash ` vs2 \<subseteq> vs1"
   shows "(\<exists>\<^sub>p (vs1 - dash ` vs2). p) ; q = p ; q"
 proof -
 
@@ -547,10 +577,13 @@ qed
 
 theorem SemiR_ExistsP_right:
   assumes
-  "UNREST DASHED_TWICE p" "UNREST DASHED_TWICE q"
-  "UNREST (DASHED - vs1) p" "UNREST (UNDASHED - vs2) q"
-  "vs1 \<subseteq> DASHED" "vs2 \<subseteq> UNDASHED"
-  "vs1 \<subseteq> dash ` vs2"
+    "UNREST DASHED_TWICE p" 
+    "UNREST DASHED_TWICE q"
+    "UNREST (DASHED - vs1) p" 
+    "UNREST (UNDASHED - vs2) q"
+    "vs1 \<subseteq> DASHED" 
+    "vs2 \<subseteq> UNDASHED"
+    "vs1 \<subseteq> dash ` vs2"
   shows "p ; (\<exists>\<^sub>p (vs2 - undash ` vs1). q) = p ; q"
 proof -
 
@@ -607,8 +640,11 @@ qed
 text {* This property allows conversion of an alphabetised identity into an existential *} 
 
 theorem SemiR_right_ExistsP:
-  "\<lbrakk> p \<in> WF_RELATION; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> 
-    p ; II\<^bsub>(REL_VAR - {x,x\<acute>})\<^esub> = (\<exists>\<^sub>p {x\<acute>}. p)"
+  assumes 
+    "p \<in> WF_RELATION" 
+    "x \<in> UNDASHED"
+  shows "p ; II\<^bsub>(REL_VAR - {x,x\<acute>})\<^esub> = (\<exists>\<^sub>p {x\<acute>}. p)"
+  using assms
   apply (subgoal_tac "REL_VAR - (REL_VAR - {x, x\<acute>}) = {x,x\<acute>}")
   apply (auto simp add:SkipRA_def closure unrest ExistsP_SemiR_expand1 var_dist SkipR_ExistsP_out)
 done
@@ -619,8 +655,13 @@ lemma SubstP_rel_closure [closure]:
   by (auto intro:unrest simp add:WF_RELATION_def unrest typing)
 
 theorem SemiR_left_one_point:
-  assumes "x \<in> UNDASHED" "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "v \<rhd>\<^sub>e x"
-          "UNREST_EXPR (DASHED \<union> NON_REL_VAR) v" "UNREST_EXPR {x} v"
+  assumes 
+    "x \<in> UNDASHED" 
+    "P \<in> WF_RELATION" 
+    "Q \<in> WF_RELATION" 
+    "v \<rhd>\<^sub>e x"
+    "UNREST_EXPR (DASHED \<union> NON_REL_VAR) v" 
+    "UNREST_EXPR {x} v"
   shows "P ; ($\<^sub>ex ==\<^sub>p v \<and>\<^sub>p Q) = P[v\<acute>/\<^sub>px\<acute>] ; Q[v/\<^sub>px]"
   using assms
   (* This command takes over 15 seconds to complete, really should be optimised.
@@ -637,8 +678,13 @@ lemma xbinding_upd_refl [simp]:
   by (auto simp add:typing defined)
 
 theorem SemiR_right_one_point:
-  assumes "x \<in> UNDASHED" "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "v \<rhd>\<^sub>e x"
-          "UNREST_EXPR (DASHED \<union> NON_REL_VAR) v" "UNREST_EXPR {x} v"
+  assumes 
+    "x \<in> UNDASHED" 
+    "P \<in> WF_RELATION" 
+    "Q \<in> WF_RELATION" 
+    "v \<rhd>\<^sub>e x"
+    "UNREST_EXPR (DASHED \<union> NON_REL_VAR) v" 
+    "UNREST_EXPR {x} v"
   shows "(P \<and>\<^sub>p $\<^sub>ex\<acute> ==\<^sub>p v\<acute>) ; Q = P[v\<acute>/\<^sub>px\<acute>] ; Q[v/\<^sub>px]"
   using assms
   apply (simp add:unrest urename closure typing defined UNREST_EXPR_subset evalrx evale)
@@ -655,8 +701,13 @@ theorem SemiR_right_one_point:
 done
 
 theorem SemiR_right_one_point_alt:
-  assumes "x \<in> DASHED" "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "v \<rhd>\<^sub>e x"
-          "UNREST_EXPR (UNDASHED \<union> NON_REL_VAR) v" "UNREST_EXPR {x} v"
+  assumes 
+    "x \<in> DASHED" 
+    "P \<in> WF_RELATION" 
+    "Q \<in> WF_RELATION" 
+    "v \<rhd>\<^sub>e x"
+    "UNREST_EXPR (UNDASHED \<union> NON_REL_VAR) v" 
+    "UNREST_EXPR {x} v"
   shows "(P \<and>\<^sub>p $\<^sub>ex ==\<^sub>p v) ; Q = P[v/\<^sub>px] ; Q[v\<acute>/\<^sub>pundash x]"
 proof -
 
@@ -731,23 +782,29 @@ proof -
 qed
 
 theorem SkipRA_left_unit:
-  assumes "P \<in> WF_RELATION" "vs \<subseteq> REL_VAR" "UNREST (UNDASHED - in vs) P"
-          "HOMOGENEOUS vs"
+  assumes 
+    "P \<in> WF_RELATION" 
+    "vs \<subseteq> REL_VAR" 
+    "UNREST (UNDASHED - in vs) P"
+    "HOMOGENEOUS vs"
   shows "II\<^bsub>vs\<^esub> ; P = P"
   apply (rule_tac SemiR_SkipRA_left)
   apply (simp_all add:assms unrest closure var_dist)
 done
 
 theorem SkipRA_right_unit:
-  assumes "P \<in> WF_RELATION" "vs \<subseteq> REL_VAR" "UNREST (DASHED - out vs) P"
-          "HOMOGENEOUS vs"
+  assumes 
+    "P \<in> WF_RELATION" 
+    "vs \<subseteq> REL_VAR" 
+    "UNREST (DASHED - out vs) P"
+    "HOMOGENEOUS vs"
   shows "P ; II\<^bsub>vs\<^esub> = P"
   apply (rule_tac SemiR_SkipRA_right)
   apply (simp_all add:assms unrest closure var_dist)
 done
 
 theorem SkipRA_empty :
-  shows "II\<^bsub>{}\<^esub> = true"
+  "II\<^bsub>{}\<^esub> = true"
   apply (simp add:SkipRA_def)
   apply (utp_pred_tac)
   apply (rule_tac x="\<B>" in exI)
@@ -755,7 +812,11 @@ theorem SkipRA_empty :
 done
 
 theorem SkipRA_unfold :
-  assumes "x \<in> vs" "dash x \<in> vs" "x \<in> UNDASHED" "HOMOGENEOUS vs"
+  assumes 
+    "x \<in> vs" 
+    "x\<acute> \<in> vs" 
+    "x \<in> UNDASHED" 
+    "HOMOGENEOUS vs"
   shows "II\<^bsub>vs\<^esub> = $\<^sub>ex\<acute> ==\<^sub>p $\<^sub>ex \<and>\<^sub>p II\<^bsub>(vs - {x,x\<acute>})\<^esub>"
 proof -
 
@@ -808,8 +869,13 @@ proof -
 qed
 
 theorem SkipRA_compose [simp]:
-  "\<lbrakk> HOMOGENEOUS vs1; HOMOGENEOUS vs2; vs1 \<subseteq> REL_VAR; vs2 \<subseteq> REL_VAR \<rbrakk> 
-  \<Longrightarrow> II\<^bsub>vs1\<^esub> ; II\<^bsub>vs2\<^esub> = II\<^bsub>vs1 \<inter> vs2\<^esub>"
+  assumes 
+    "HOMOGENEOUS vs1"
+    "HOMOGENEOUS vs2" 
+    "vs1 \<subseteq> REL_VAR" 
+    "vs2 \<subseteq> REL_VAR"
+  shows "II\<^bsub>vs1\<^esub> ; II\<^bsub>vs2\<^esub> = II\<^bsub>vs1 \<inter> vs2\<^esub>"
+  using assms
   apply (subgoal_tac "vs1 \<inter> vs2 \<subseteq> REL_VAR")
   apply (auto simp add:evalrx closure relcomp_unfold var_dist)
   apply (rule_tac x="y \<oplus>\<^sub>x xa on (vs1 - vs2)" in exI)
@@ -819,7 +885,8 @@ theorem SkipRA_compose [simp]:
 done
 
 theorem SkipR_neq_FalseP [simp]:
-  "II \<noteq> false" "false \<noteq> II"
+  "II \<noteq> false" 
+  "false \<noteq> II"
   by (utp_xrel_auto_tac, utp_xrel_auto_tac)
 
 text {* This lemma needs to be proved in the context of the BOOL SORT 
@@ -852,7 +919,12 @@ lemmas TrueP_neq_SkipR_BOOL_SORT [simp] = SkipR_neq_TrueP_BOOL_SORT[THEN not_sym
 subsection {* Assignment Laws *}
 
 theorem AssignR_SemiR_left:
-  "\<lbrakk> x \<in> UNDASHED; e \<rhd>\<^sub>e x; UNREST_EXPR DASHED e \<rbrakk> \<Longrightarrow> x :=\<^sub>R e ; p = p[e/\<^sub>px]"
+  assumes
+    "x \<in> UNDASHED" 
+    "e \<rhd>\<^sub>e x" 
+    "UNREST_EXPR DASHED e"
+  shows "x :=\<^sub>R e ; p = p[e/\<^sub>px]"
+  using assms
   apply (utp_rel_auto_tac)
   apply (subgoal_tac "xa(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>exa) \<in> WF_REL_BINDING")
   apply (simp add:WF_REL_BINDING_def)
@@ -864,8 +936,12 @@ theorem AssignR_SemiR_left:
 done
 
 lemma AssignRA_alt_def:
-  assumes "x \<in> vs" "x\<acute> \<in> vs" "x \<in> UNDASHED" 
-          "UNREST_EXPR (UNDASHED \<union> DASHED - vs) v" "v \<rhd>\<^sub>e x"
+  assumes 
+    "x \<in> vs" 
+    "x\<acute> \<in> vs" 
+    "x \<in> UNDASHED" 
+    "UNREST_EXPR (UNDASHED \<union> DASHED - vs) v" 
+    "v \<rhd>\<^sub>e x"
   shows "x :=\<^bsub>vs\<^esub> v = $\<^sub>ex\<acute> ==\<^sub>p v \<and>\<^sub>p II\<^bsub>(vs - {x,x\<acute>})\<^esub>"
 using assms
 proof (simp add:SkipRA_def AssignRA_def AssignR_alt_def)
@@ -884,8 +960,14 @@ proof (simp add:SkipRA_def AssignRA_def AssignR_alt_def)
 qed
 
 theorem AssignRA_SemiR_left:
-  assumes "x \<in> UNDASHED" "x \<in> vs" "e \<rhd>\<^sub>e x" "HOMOGENEOUS vs" "vs \<subseteq> UNDASHED \<union> DASHED"
-   "UNREST (VAR - vs) p" "UNREST_EXPR (VAR - in vs) e"
+  assumes 
+    "x \<in> UNDASHED" 
+    "x \<in> vs" 
+    "e \<rhd>\<^sub>e x" 
+    "HOMOGENEOUS vs" 
+    "vs \<subseteq> UNDASHED \<union> DASHED"
+    "UNREST (VAR - vs) p" 
+    "UNREST_EXPR (VAR - in vs) e"
   shows "(x :=\<^bsub>vs\<^esub> e ; p) = p[e/\<^sub>px]"
 proof -
 
@@ -931,7 +1013,11 @@ proof -
 qed
 
 theorem SkipRA_assign :
-  assumes "x \<in> vs" "x\<acute> \<in> vs" "x \<in> UNDASHED" "HOMOGENEOUS vs"
+  assumes 
+    "x \<in> vs" 
+    "x\<acute> \<in> vs" 
+    "x \<in> UNDASHED" 
+    "HOMOGENEOUS vs"
   shows "II\<^bsub>vs\<^esub> = x :=\<^bsub>vs\<^esub> $\<^sub>ex"
   apply (subgoal_tac "UNREST_EXPR (UNDASHED \<union> DASHED - vs) (VarE x)")
   apply (subgoal_tac "VarE x \<rhd>\<^sub>e x")
@@ -944,14 +1030,21 @@ done
 subsubsection {* Variable Laws *}
 
 theorem VarOpenP_commute:
-  "\<lbrakk> x \<in> UNDASHED; y \<in> UNDASHED \<rbrakk> \<Longrightarrow> var x; var y = var y; var x"
+  assumes 
+    "x \<in> UNDASHED" 
+    "y \<in> UNDASHED"
+  shows "var x; var y = var y; var x"
+  using assms
     apply (simp add:VarOpenP_def)
     apply (simp add:assms ExistsP_UNDASHED_expand_SemiR closure)
     apply (metis (hide_lams, no_types) ExistsP_insert insert_commute)
 done
 
 theorem VarCloseP_commute:
-  "\<lbrakk> x \<in> UNDASHED; y \<in> UNDASHED \<rbrakk> \<Longrightarrow> end x; end y = end y; end x"
+  assumes
+    "x \<in> UNDASHED" "y \<in> UNDASHED" 
+  shows "end x; end y = end y; end x"
+  using assms
     apply (simp add:VarCloseP_def)
     apply (simp add:assms ExistsP_DASHED_expand_SemiR closure)
     apply (metis (hide_lams, no_types) ExistsP_insert insert_commute)
@@ -961,7 +1054,10 @@ lemma [simp]: "REL_VAR - VAR = {}"
   by (simp add:var_simps)
 
 theorem VarOpenP_VarCloseP:
-  "x \<in> UNDASHED \<Longrightarrow> var x; end x = II\<^bsub>VAR - {x,x\<acute>}\<^esub>"
+  assumes 
+    "x \<in> UNDASHED"
+  shows "var x; end x = II\<^bsub>VAR - {x,x\<acute>}\<^esub>"
+  using assms
   apply (simp add:VarOpenP_def VarCloseP_def)
   apply (simp add:ExistsP_UNDASHED_expand_SemiR ExistsP_DASHED_expand_SemiR closure)
   apply (simp add: SkipRA_def)
@@ -969,7 +1065,12 @@ theorem VarOpenP_VarCloseP:
 done
 
 theorem AssignR_VarCloseP:
-  "\<lbrakk> x \<in> UNDASHED; v \<rhd>\<^sub>e x; UNREST_EXPR DASHED v \<rbrakk> \<Longrightarrow> x :=\<^sub>R v; end x = end x"
+  assumes
+    "x \<in> UNDASHED" 
+    "v \<rhd>\<^sub>e x" 
+    "UNREST_EXPR DASHED v"
+  shows "x :=\<^sub>R v; end x = end x"
+  using assms
   apply (simp add:AssignR_SemiR_left VarCloseP_def SkipR_as_SkipRA)
   apply (subgoal_tac "UNREST_EXPR {x\<acute>} v")
   apply (simp add: SkipRA_unfold[of x REL_VAR, simplified] usubst closure unrest typing defined)
@@ -1016,7 +1117,11 @@ theorem CondR_disj:
   by (utp_pred_auto_tac)
 
 theorem CondR_SemiR_distr: 
-  assumes "p \<in> WF_RELATION" "q \<in> WF_RELATION" "r \<in> WF_RELATION" "b \<in> WF_CONDITION"
+  assumes 
+    "p \<in> WF_RELATION" 
+    "q \<in> WF_RELATION" 
+    "r \<in> WF_RELATION" 
+    "b \<in> WF_CONDITION"
   shows "(p \<lhd> b \<rhd> q) ; r = (p ; r) \<lhd> b \<rhd> (q ; r)"
   using assms
 proof -
@@ -1061,12 +1166,14 @@ theorem ConvR_NotP [urename]: "(\<not>\<^sub>p p)\<^sup>\<smile> = \<not>\<^sub>
   by (simp add:ConvR_def urename)
 
 theorem ConvR_VarP_1 [urename]: 
-  "x \<in> UNDASHED \<Longrightarrow> (VarP x)\<^sup>\<smile> = VarP x\<acute>"
-  by (simp add:ConvR_def urename)
+  assumes "x \<in> UNDASHED"
+  shows "(VarP x)\<^sup>\<smile> = VarP x\<acute>"
+  by (simp add:ConvR_def urename assms)
 
 theorem ConvR_VarP_2 [urename]: 
-  "x \<in> UNDASHED \<Longrightarrow> (VarP x\<acute>)\<^sup>\<smile> = VarP x"
-  by (simp add:ConvR_def urename)
+  assumes "x \<in> UNDASHED"
+  shows "(VarP x\<acute>)\<^sup>\<smile> = VarP x"
+  by (simp add:ConvR_def urename assms)
 
 subsection {* Additional UNREST theorems *}
 

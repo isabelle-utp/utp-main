@@ -79,16 +79,12 @@ subsubsection {* True and False *}
 lift_definition TrueP :: "'VALUE WF_PREDICATE" 
   is "UNIV :: 'VALUE WF_BINDING set" .
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name true} @{const_name TrueP}
-*}
+notation TrueP ("true")
 
 lift_definition FalseP :: "'VALUE WF_PREDICATE" 
 is "{} :: 'VALUE WF_BINDING set" .
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name false} @{const_name FalseP}
-*}
+notation FalseP ("false")
 
 subsubsection {* Logical Connectives *}
 

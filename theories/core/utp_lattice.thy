@@ -338,7 +338,7 @@ definition
 
 definition 
   zero_WF_PREDICATE :: "'a WF_PREDICATE" where
-  "0 = false"
+  "0 = FalseP"
 
 instance 
   apply (intro_classes)
