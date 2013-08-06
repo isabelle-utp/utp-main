@@ -103,6 +103,9 @@ definition ForallD :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) 
 definition ExistsD :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
 "ExistsD xs f = MkPExpr (\<lambda> b. (Some (\<exists> x \<in> xs. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)))"
 
+definition FunD :: "'a set \<Rightarrow> ('a option \<Rightarrow> 'b cmle) \<Rightarrow> 'a \<Rightarrow> 'b option" where
+"FunD t P = (\<lambda> x. \<lbrakk>P (Some x)\<rbrakk>\<^sub>*\<B>)"
+
 abbreviation DefinedD :: "'a cmle \<Rightarrow> bool cmle" where
 "DefinedD v \<equiv> LitD (\<D> v)"
 
@@ -228,6 +231,8 @@ syntax
   "_vexpr_num"      :: "real \<Rightarrow> pexpr" ("_")
   "_vexpr_bot"      :: "pexpr" ("undefined")
   "_vexpr_lit"      :: "'a::vbasic \<Rightarrow> pexpr" ("(1^_^)")
+  "_vexpr_lambda"    :: "idt \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3lambda _ &/ _)" [0, 10] 10)
+  "_vexpr_lambda_ty" :: "idt \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3lambda _ : _ &/ _)" [0, 0, 10] 10)
   "_vexpr_forall"   :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ : _ &/ _)" [0, 0, 10] 10)
   "_vexpr_exists"   :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3exists _ : _ &/ _)" [0, 0, 10] 10)
   "_vexpr_coerce"   :: "pexpr \<Rightarrow> vty \<Rightarrow> pexpr" (infix ":" 50)
@@ -262,6 +267,8 @@ translations
   "_vexpr_num n"               == "CONST NumD n"
   "_vexpr_bot"                 == "CONST BotDE"
   "_vexpr_lit v"               == "CONST LitPE v"
+  "_vexpr_lambda x e"          == "CONST FunD CONST UNIV (\<lambda> x. e)"
+  "_vexpr_lambda_ty x t e"     == "CONST FunD t (\<lambda> x. e)"
   "_vexpr_forall x xs e"       == "CONST ForallD xs (\<lambda>x. e)"
   "_vexpr_exists x xs e"       == "CONST ExistsD xs (\<lambda>x. e)"
   "_vexpr_coerce e t"          == "CONST CoerceD e t"

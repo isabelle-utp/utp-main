@@ -94,16 +94,6 @@ declare mk_DwarfType_def [dwarf_simps]
 
 text {* Safety Properties *}
 
-definition FunD :: "'a set \<Rightarrow> ('a option \<Rightarrow> 'b cmle) \<Rightarrow> 'a \<Rightarrow> 'b option" where
-"FunD t P = (\<lambda> x. \<lbrakk>P (Some x)\<rbrakk>\<^sub>*\<B>)"
-
-syntax
-  "_vexpr_lambda"    :: "idt \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3lambda _ &/ _)" [0, 10] 10)
-  "_vexpr_lambda_ty" :: "idt \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3lambda _ : _ &/ _)" [0, 0, 10] 10)
-
-translations
-  "_vexpr_lambda x e" == "CONST FunD CONST UNIV (\<lambda> x. e)"
-  "_vexpr_lambda_ty x t e" == "CONST FunD t (\<lambda> x. e)"
 
 term "|mk_DwarfType(&stop, {}, {}, &stop, &stop, &stop)|"
 
