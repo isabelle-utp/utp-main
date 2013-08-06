@@ -216,6 +216,8 @@ consts
   alphabet  :: "'r \<Rightarrow> 'a" ("\<alpha>")
   prime     :: "'a \<Rightarrow> 'a" ("_\<acute>" [1000] 1000)
   subscr    :: "'a \<Rightarrow> nat \<Rightarrow> 'a" ("_\<^bsub>_\<^esub>")
+  true      :: "'a"
+  false     :: "'a"
 
 notation
   Some ("\<lfloor>_\<rfloor>")
@@ -231,5 +233,14 @@ setup {*
 setup {*
   Adhoc_Overloading.add_overloaded @{const_name subscr}
 *}
+
+setup {*
+  Adhoc_Overloading.add_overloaded @{const_name true}
+*}
+
+setup {*
+  Adhoc_Overloading.add_overloaded @{const_name false}
+*}
+
 
 end

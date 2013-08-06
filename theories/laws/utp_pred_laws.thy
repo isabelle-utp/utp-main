@@ -110,23 +110,27 @@ theorem RefP_OrP: "p \<sqsubseteq> q \<longleftrightarrow> p = p \<or>\<^sub>p q
   by (utp_pred_auto_tac)
 
 theorem RefP_OrP_intro [intro]:
-  "p \<or>\<^sub>p q = p \<Longrightarrow> p \<sqsubseteq> q"
-  by (utp_pred_auto_tac)
+  assumes "p \<or>\<^sub>p q = p"
+  shows "p \<sqsubseteq> q"
+  using assms by (utp_pred_auto_tac)
 
 theorem RefP_AndP: "p \<sqsubseteq> q \<longleftrightarrow> q = p \<and>\<^sub>p q"
   by (utp_pred_auto_tac)
 
 theorem RefP_AndP_intro [intro]:
-  "p \<and>\<^sub>p q = q \<Longrightarrow> p \<sqsubseteq> q"
-  by (utp_pred_auto_tac)
+  assumes "p \<and>\<^sub>p q = q"
+  shows "p \<sqsubseteq> q"
+  using assms by (utp_pred_auto_tac)
 
 theorem IffP_eq_intro [intro]:
-  "p \<Leftrightarrow>\<^sub>p q \<Longrightarrow> p = q"
-  by (utp_pred_auto_tac)
+  assumes "p \<Leftrightarrow>\<^sub>p q"
+  shows "p = q"
+  using assms by (utp_pred_auto_tac)
 
 theorem ClosureP_intro: 
-  "[p]\<^sub>p \<Longrightarrow> taut p"
-  by (utp_pred_tac)
+  assumes "[p]\<^sub>p"
+  shows "taut p"
+  using assms by (utp_pred_tac)
 
 subsection {* Implication Laws *}
 
@@ -135,7 +139,7 @@ theorem ImpliesP_export:
   by (utp_pred_tac)
 
 theorem ImpliesP_eq_subst:
-  "v \<rhd>\<^sub>e x \<Longrightarrow> ($\<^sub>ex ==\<^sub>p v \<Rightarrow>\<^sub>p p) = ($\<^sub>ex ==\<^sub>p v \<Rightarrow>\<^sub>p p[v/\<^sub>px])"
+  "($\<^sub>ex ==\<^sub>p v \<Rightarrow>\<^sub>p p) = ($\<^sub>ex ==\<^sub>p v \<Rightarrow>\<^sub>p p[v/\<^sub>px])"
   apply (utp_pred_tac)
   apply (auto simp add:evale eval typing)
   apply (metis binding_upd_simps(2))+
@@ -144,12 +148,14 @@ done
 subsection {* Quantifier Laws *}
 
 theorem ExistsP_ident :
-"\<lbrakk>UNREST vs p\<rbrakk> \<Longrightarrow> (\<exists>\<^sub>p vs . p) = p"
-  by (utp_pred_tac)
+  assumes "UNREST vs p"
+  shows "(\<exists>\<^sub>p vs . p) = p"
+  using assms by (utp_pred_tac)
 
 theorem ForallP_ident :
-"\<lbrakk>UNREST vs p\<rbrakk> \<Longrightarrow> (\<forall>\<^sub>p vs . p) = p"
-  by (utp_pred_tac)
+  assumes "UNREST vs p"
+  shows "(\<forall>\<^sub>p vs . p) = p"
+  using assms by (utp_pred_tac)
 
 theorem ExistsP_union :
 "(\<exists>\<^sub>p vs1 \<union> vs2 . p) = (\<exists>\<^sub>p vs1 . \<exists>\<^sub>p vs2 . p)"
@@ -187,26 +193,34 @@ theorem ExistsP_OrP_dist:
   by (utp_pred_auto_tac)
 
 theorem ExistsP_AndP_expand1:
-"\<lbrakk>UNREST vs p2\<rbrakk> \<Longrightarrow>
- (\<exists>\<^sub>p vs. p1) \<and>\<^sub>p p2 = (\<exists>\<^sub>p vs. (p1 \<and>\<^sub>p p2))"
-  by (utp_pred_tac)
+  assumes "UNREST vs p2"
+  shows "(\<exists>\<^sub>p vs. p1) \<and>\<^sub>p p2 = (\<exists>\<^sub>p vs. (p1 \<and>\<^sub>p p2))"
+  using assms by (utp_pred_tac)
 
 theorem ExistsP_AndP_expand2:
-"\<lbrakk>UNREST vs p1\<rbrakk> \<Longrightarrow>
- p1 \<and>\<^sub>p (\<exists>\<^sub>p vs. p2) = (\<exists>\<^sub>p vs. (p1 \<and>\<^sub>p p2))"
-  by (utp_pred_tac)
+  assumes "UNREST vs p1"
+  shows "p1 \<and>\<^sub>p (\<exists>\<^sub>p vs. p2) = (\<exists>\<^sub>p vs. (p1 \<and>\<^sub>p p2))"
+  using assms by (utp_pred_tac)
 
 text {* The one point rule *}
+
 theorem ExistsP_one_point:
-  "\<lbrakk> e \<rhd>\<^sub>e x; UNREST_EXPR {x} e \<rbrakk> \<Longrightarrow>
-  (\<exists>\<^sub>p {x}. p \<and>\<^sub>p $\<^sub>ex ==\<^sub>p e) = p[e/\<^sub>px]"
+  assumes 
+    "e \<rhd>\<^sub>e x" 
+    "UNREST_EXPR {x} e"
+  shows "(\<exists>\<^sub>p {x}. p \<and>\<^sub>p $\<^sub>ex ==\<^sub>p e) = p[e/\<^sub>px]"
+  using assms
   apply (auto simp add:eval evale typing defined)
   apply (rule_tac x="b(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>eb)" in exI)
   apply (simp)
 done
 
 theorem ExistsP_has_value:
-  "\<lbrakk> UNREST_EXPR {x} v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> (\<exists>\<^sub>p {x}. $\<^sub>ex ==\<^sub>p v) = true"
+  assumes
+    "v \<rhd>\<^sub>e x"
+    "UNREST_EXPR {x} v"
+  shows "(\<exists>\<^sub>p {x}. $\<^sub>ex ==\<^sub>p v) = true"
+  using assms
   apply (utp_pred_tac, utp_expr_tac)
   apply (auto)
   apply (rule_tac x="b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eb)" in exI)
@@ -214,8 +228,12 @@ theorem ExistsP_has_value:
 done
 
 theorem ExistsP_SubstP_rename :
-  "\<lbrakk> vtype x = vtype y; aux x = aux y; UNREST {x} p \<rbrakk> 
-   \<Longrightarrow> (\<exists>\<^sub>p {y}. p) = (\<exists>\<^sub>p {x}. p[$\<^sub>ex/\<^sub>py])"
+  assumes 
+    "vtype x = vtype y" 
+    "aux x = aux y" 
+    "UNREST {x} p"
+  shows "(\<exists>\<^sub>p {y}. p) = (\<exists>\<^sub>p {x}. p[$\<^sub>ex/\<^sub>py])"
+  using assms
   apply (simp add:eval evale typing defined unrest binding_upd_twist)
   apply (clarify)
   apply (rule, erule exE)
@@ -231,16 +249,22 @@ done
 subsection {* Expression theorems *}
 
 lemma VarP_EqualP_aux:
-  "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> \<Longrightarrow> 
-   ($\<^sub>px) = ($\<^sub>ex ==\<^sub>p TrueE)"
+  assumes 
+    "vtype x = BoolType" 
+    "aux x"
+  shows "$\<^sub>px = $\<^sub>ex ==\<^sub>p TrueE"
+  using assms
   apply (utp_pred_tac)
   apply (auto)
   apply (metis BOOL_SORT_class.Inverse FalseV_def MkBool_cases TrueV_def aux_defined binding_type)
 done
 
 lemma VarP_NotP_EqualP_aux:
-  "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> \<Longrightarrow> 
-   (\<not>\<^sub>p $\<^sub>px) = $\<^sub>ex ==\<^sub>p FalseE"
+  assumes
+    "vtype x = BoolType" 
+    "aux x"
+   shows "(\<not>\<^sub>p $\<^sub>px) = $\<^sub>ex ==\<^sub>p FalseE"
+  using assms
   apply (utp_pred_tac)
   apply (auto)
   apply (metis BOOL_SORT_class.Inverse FalseV_def MkBool_cases TrueV_def aux_defined binding_type)

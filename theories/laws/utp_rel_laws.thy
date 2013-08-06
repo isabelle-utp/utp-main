@@ -55,7 +55,11 @@ text {* A sequential composition which doesn't mention undashed or dashed variab
         is the same as a conjunction *}
 
 theorem SemiR_equiv_AndP_NON_REL_VAR:
-  "\<lbrakk> UNREST REL_VAR p ; UNREST REL_VAR q \<rbrakk> \<Longrightarrow> p ; q = p \<and>\<^sub>p q"
+  assumes
+    "UNREST REL_VAR p"
+    "UNREST REL_VAR q" 
+  shows "p ; q = p \<and>\<^sub>p q"
+  using assms
   apply (auto simp add:SemiR_def AndP.rep_eq COMPOSABLE_BINDINGS_def)
   apply (rule UNREST_binding_override, simp, simp add:unrest UNREST_subset)
   apply (subgoal_tac "b1 \<oplus>\<^sub>b b2 on NON_REL_VAR = b1")
@@ -83,7 +87,9 @@ done
 text {* A condition has true as right identity *}
 
 theorem SemiR_TrueP_precond : 
-  "p \<in> WF_CONDITION \<Longrightarrow> p ; true = p"
+  assumes "p \<in> WF_CONDITION"
+  shows "p ; true = p"
+  using assms
   apply (auto simp add:SemiR_def COMPOSABLE_BINDINGS_def TrueP_def UNREST_def WF_CONDITION_def)
   apply (rule_tac x="x" in exI)
   apply (rule_tac x="(RenameB SS x) \<oplus>\<^sub>b x on DASHED" in exI)
@@ -94,7 +100,9 @@ done
 text {* A postcondition has true as left identity *}
 
 theorem SemiR_TrueP_postcond :
-  "p \<in> WF_POSTCOND \<Longrightarrow> true ; p = p"
+  assumes "p \<in> WF_POSTCOND"
+  shows "true ; p = p"
+  using assms
   apply (auto simp add:SemiR_def COMPOSABLE_BINDINGS_def TrueP_def UNREST_def WF_POSTCOND_def)
   apply (drule_tac x="b2" in bspec)
   apply (simp)
@@ -132,24 +140,40 @@ done
 *)
 
 theorem SemiR_AndP_right_precond: 
-  "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; c \<in> WF_CONDITION \<rbrakk>
-     \<Longrightarrow> p ; (c \<and>\<^sub>p q) = (p \<and>\<^sub>p c\<acute>) ; q"
-  by (frule SemiR_TrueP_precond, utp_xrel_auto_tac)
+  assumes 
+    "p \<in> WF_RELATION" 
+    "q \<in> WF_RELATION" 
+    "c \<in> WF_CONDITION"
+  shows "p ; (c \<and>\<^sub>p q) = (p \<and>\<^sub>p c\<acute>) ; q"
+  using assms
+  by (frule_tac SemiR_TrueP_precond, utp_xrel_auto_tac)
 
 theorem SemiR_AndP_right_postcond: 
-  "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; c \<in> WF_POSTCOND \<rbrakk>
-     \<Longrightarrow> p ; (q \<and>\<^sub>p c) = (p ; q) \<and>\<^sub>p c"
-  by (frule SemiR_TrueP_postcond, utp_xrel_auto_tac)
+  assumes
+    "p \<in> WF_RELATION" 
+    "q \<in> WF_RELATION" 
+    "c \<in> WF_POSTCOND"
+  shows "p ; (q \<and>\<^sub>p c) = (p ; q) \<and>\<^sub>p c"
+  using assms
+  by (frule_tac SemiR_TrueP_postcond, utp_xrel_auto_tac)
 
 theorem SemiR_AndP_left_postcond: 
-  "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; c \<in> WF_POSTCOND \<rbrakk>
-     \<Longrightarrow> (p \<and>\<^sub>p c) ; q = p ; (c\<^sup>\<smile> \<and>\<^sub>p q)"
-  by (frule SemiR_TrueP_postcond, utp_xrel_auto_tac)
+  assumes
+    "p \<in> WF_RELATION" 
+    "q \<in> WF_RELATION" 
+    "c \<in> WF_POSTCOND"
+  shows "(p \<and>\<^sub>p c) ; q = p ; (c\<acute> \<and>\<^sub>p q)"
+  using assms
+  by (frule_tac SemiR_TrueP_postcond, utp_xrel_auto_tac)
 
 theorem SemiR_AndP_left_precond: 
-  "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; c \<in> WF_CONDITION \<rbrakk>
-     \<Longrightarrow> (c \<and>\<^sub>p p) ; q = c \<and>\<^sub>p (p ; q)"
-  by (frule SemiR_TrueP_precond, utp_xrel_auto_tac)
+  assumes
+    "p \<in> WF_RELATION" 
+    "q \<in> WF_RELATION"  
+    "c \<in> WF_CONDITION"
+  shows "(c \<and>\<^sub>p p) ; q = c \<and>\<^sub>p (p ; q)"
+  using assms
+  by (frule_tac SemiR_TrueP_precond, utp_xrel_auto_tac)
 
 theorem SemiR_TrueP_right_precond:
   assumes "P \<in> WF_CONDITION"
@@ -165,7 +189,9 @@ proof -
 qed
 
 theorem SemiR_precond_left_zero : 
-  assumes "p \<in> WF_CONDITION" "p \<noteq> false"
+  assumes 
+   "p \<in> WF_CONDITION" 
+   "p \<noteq> false"
   shows "true ; p = true"
 proof -
   have "true ; p = true ; (p ; true)"
@@ -183,7 +209,9 @@ proof -
 qed
 
 theorem SemiR_postcond_right_zero : 
-  assumes "p \<in> WF_POSTCOND" "p \<noteq> false"
+  assumes 
+    "p \<in> WF_POSTCOND" 
+    "p \<noteq> false"
   shows "p ; true = true"
 proof -
   have "p ; true = (true ; p) ; true"

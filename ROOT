@@ -64,6 +64,7 @@ session "isabelle-utp-tutorial" in "papers/isabelle-utp-tutorial" = "HOL-UTP-THY
     "proof_refinement_conditional"
     "proof_h1_left_zero"
     "proof_h1_left_unit"
+    "utp_types"
   files "document/root.tex"
 
 session "avocs2013" in "papers/avocs2013" = "HOL-UTP" +
