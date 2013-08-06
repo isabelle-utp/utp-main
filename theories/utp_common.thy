@@ -52,6 +52,14 @@ ML {*
 setup closure.setup
 
 ML {*
+  structure refine =
+    Named_Thms (val name = @{binding refine} val description = "refinement theorems")
+*}
+
+setup refine.setup
+
+
+ML {*
   structure urename =
     Named_Thms (val name = @{binding urename} val description = "renaming theorems")
 *}

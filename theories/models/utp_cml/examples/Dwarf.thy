@@ -3,6 +3,14 @@ imports
   "../utp_cml"
 begin
 
+ML {*
+  structure dwarf_simps =
+    Named_Thms (val name = @{binding dwarf_simps} val description = "dwarf simps")
+*}
+
+setup dwarf_simps.setup
+
+
 abbreviation "L1 \<equiv> ''L1''"
 abbreviation "L2 \<equiv> ''L2''"
 abbreviation "L3 \<equiv> ''L3''"
@@ -18,6 +26,11 @@ definition "dark     \<equiv> +|{}|+"
 definition "stop     \<equiv> +|{<L1>, <L2>}|+"
 definition "warning  \<equiv> +|{<L1>, <L3>}|+"
 definition "drive    \<equiv> +|{<L2>, <L3>}|+"
+
+declare dark_def [dwarf_simps]
+declare stop_def [dwarf_simps]
+declare warning_def [dwarf_simps]
+declare drive_def [dwarf_simps]
 
 text {* A proper state is a signal which falls within this set *}
 
@@ -73,40 +86,54 @@ definition
                          and 
                          (^d^.turnon inter ^d^.turnoff = {})\<parallel>"
 
+declare DwarfType_def [dwarf_simps]
+
 definition "mk_DwarfType \<equiv> MkRec DwarfType"
+
+declare mk_DwarfType_def [dwarf_simps]
 
 text {* Safety Properties *}
 
-definition 
-  "NeverShowAll(t) = +|^t^.currentstate <> {<L1>,<L2>,<L3>}|+"
+definition FunD :: "'a set \<Rightarrow> ('a option \<Rightarrow> 'b cmle) \<Rightarrow> 'a \<Rightarrow> 'b option" where
+"FunD t P = (\<lambda> x. \<lbrakk>P (Some x)\<rbrakk>\<^sub>*\<B>)"
+
+syntax
+  "_vexpr_lambda"    :: "idt \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3lambda _ &/ _)" [0, 10] 10)
+  "_vexpr_lambda_ty" :: "idt \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3lambda _ : _ &/ _)" [0, 0, 10] 10)
+
+translations
+  "_vexpr_lambda x e" == "CONST FunD CONST UNIV (\<lambda> x. e)"
+  "_vexpr_lambda_ty x t e" == "CONST FunD t (\<lambda> x. e)"
+
+term "|mk_DwarfType(&stop, {}, {}, &stop, &stop, &stop)|"
 
 definition 
-  "MaxOneLampChange(d) = +|card ((^d^.currentstate setminus ^d^.laststate) 
-                                 union (^d^.laststate setminus ^d^.currentstate)) 
-                                 <= 1|+"
+  "NeverShowAll = |lambda d & ^d^.#1.currentstate <> {<L1>,<L2>,<L3>}|"
+
+definition 
+  "MaxOneLampChange = 
+    |lambda d & card ((^d^.#1.currentstate setminus ^d^.#1.laststate) 
+                      union (^d^.#1.laststate setminus ^d^.#1.currentstate)) 
+                      <= 1|"
 
 definition
-  "ForbidStopToDrive(d) = +|(^d^.lastproperstate = &stop) => ^d^.desiredproperstate <> &drive|+"
+  "ForbidStopToDrive = 
+     |lambda d & (^d^.#1.lastproperstate = &stop) => ^d^.#1.desiredproperstate <> &drive|"
   
 definition
-  "DarkOnlyToStop(d) = +|(^d^.lastproperstate = &dark) => ^d^.desiredproperstate in @set {&dark,&stop}|+" 
+  "DarkOnlyToStop = 
+     |lambda d & (^d^.#1.lastproperstate = &dark) => ^d^.#1.desiredproperstate in @set {&dark,&stop}|" 
   
 definition
-  "DarkOnlyFromStop(d) = +|(^d^.desiredproperstate = &dark) => ^d^.lastproperstate in @set {&dark,&stop}|+"
+  "DarkOnlyFromStop = 
+     |lambda d & (^d^.#1.desiredproperstate = &dark) => ^d^.#1.lastproperstate in @set {&dark,&stop}|"
 
-term "(the\<circ>NeverShowAll) (mk_DwarfType z)"
-term "mk_DwarfType"
-
-abbreviation "NSA \<equiv> (the \<circ> NeverShowAll)"
-
-term "ApplyD NSA |mk_DwarfType(&stop, {}, {}, &stop, &stop, &stop)|"
-
-term "the\<circ>NeverShowAll"
-
-term "|(the\<circ>NeverShowAll)({})|"
-
-definition "DwarfSignal = \<parallel>@DwarfType inv d == NeverShowAll(d)\<parallel>"
-
+definition 
+  "DwarfSignal = \<parallel>@DwarfType inv d == NeverShowAll(^d^) 
+                                   and MaxOneLampChange(^d^)
+                                   and ForbidStopToDrive(^d^)
+                                   and DarkOnlyToStop(^d^)
+                                   and DarkOnlyFromStop(^d^)\<parallel>"
 
 text {* The Dwarf Signal has a single state variable which gives 
         the state of the signal. *}
@@ -130,8 +157,21 @@ definition "DwarfInv \<equiv> `\<lparr> $dw hasType @DwarfType \<rparr> \<turnst
 
 text {* Operations *}
 
-definition "Init = `true \<turnstile> (dw := mk_DwarfType(@stop, {}, {}, @stop, @stop, @stop))`"
+definition "Init = `true \<turnstile> (dw := mk_DwarfType(&stop, {}, {}, &stop, &stop, &stop))`"
 
+(*
+lemma "|mk_DwarfType(&stop, {}, {}, &stop, &stop, &stop) hasType @DwarfType| = |true|"
+  apply (simp add:evalp dwarf_simps)
+  apply (simp add:EvalD_Op1D)
+
+
+lemma "DwarfInv \<sqsubseteq> Init"
+  apply (unfold DwarfInv_def Init_def)
+  apply (rule refine)
+  prefer 6
+  apply (rule_tac RefineP_seperation_refine)
+  apply (auto intro!: refine unrest)
+*)
 
 definition 
   "SetNewProperState st = 
@@ -173,10 +213,29 @@ definition
        [] ((setPS?(s) -> SetNewProperState(&s)); DWARF)
        [] (shine!(($dw).currentstate) -> DWARF))`"
 
+(* Working test *)
 definition
-  "TEST1 = `setPS!@warning -> extinguish!<L2> -> light!<L3> 
-           -> setPS!@drive -> extinguish!<L1> -> light!<L2> -> STOP`"
+  "TEST1 = `setPS!&warning -> extinguish!<L2> -> light!<L3> 
+           -> setPS!&drive -> extinguish!<L1> -> light!<L2> -> STOP`"
 
+(* Tries to turn on 3 lights simulaneously *)
+definition
+  "TEST2 = `setPS!&warning -> light!<L3> -> extinguish!<L2> 
+           -> setPS!&drive -> extinguish!<L1> -> light!<L2> -> STOP`"
+
+(* Tries to go from dark to warning *)
+definition
+  "TEST3 = `setPS!&dark -> extinguish!<L1> -> extinguish!<L2> -> setPS!&warning -> 
+            light!<L1> -> light!<L2> -> STOP`"
+
+(* Tries to go from stop to drive *)
+definition
+  "TEST4 = `setPS!&drive -> extinguish!<L1> -> light!<L3> -> STOP`"
+
+definition "DWARF_TEST1 = `DWARF [|{setPS\<down>,light\<down>,extinguish\<down>}|] TEST1`"
+definition "DWARF_TEST2 = `DWARF [|{setPS\<down>,light\<down>,extinguish\<down>}|] TEST2`"
+definition "DWARF_TEST3 = `DWARF [|{setPS\<down>,light\<down>,extinguish\<down>}|] TEST3`"
+definition "DWARF_TEST4 = `DWARF [|{setPS\<down>,light\<down>,extinguish\<down>}|] TEST4`"
 
 definition 
   "MainAction = DWARF"

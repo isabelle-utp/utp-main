@@ -24,8 +24,20 @@ imports
   utp_rel_laws
 begin
 
+lemma RefineP_TrueP_refine [refine]:
+  "true \<sqsubseteq> P"
+  by (utp_pred_tac)
+
+lemma RefineP_FalseP_refine [refine]:
+  "P \<sqsubseteq> false"
+  by (utp_pred_tac)
+
 lemma RefineP_CondR:
-  "P \<sqsubseteq> `Q \<lhd> b \<rhd> R` \<longleftrightarrow> (P \<sqsubseteq> `b \<and> Q`) \<and>  (P \<sqsubseteq> `\<not> b \<and> R`)"
+  "P \<sqsubseteq> Q \<lhd> b \<rhd> R \<longleftrightarrow> `P \<sqsubseteq> b \<and> Q` \<and> `P \<sqsubseteq> \<not> b \<and> R`"
+  by (utp_pred_auto_tac)
+
+lemma RefineP_CondR_refine [refine]:
+  "\<lbrakk> P \<sqsubseteq> `b \<and> Q`; P \<sqsubseteq> `\<not> b \<and> R` \<rbrakk> \<Longrightarrow> P \<sqsubseteq> Q \<lhd> b \<rhd> R"
   by (utp_pred_auto_tac)
 
 lemma RefineP_choice1:
@@ -38,6 +50,10 @@ lemma RefineP_choice2:
 
 lemma RefineP_seperation:
   "`P \<and> Q` \<sqsubseteq> R \<longleftrightarrow> (P \<sqsubseteq> R) \<and> (Q \<sqsubseteq> R)"
+  by (utp_pred_auto_tac)
+
+lemma RefineP_seperation_refine [refine]:
+  "\<lbrakk> P \<sqsubseteq> R; Q \<sqsubseteq> R \<rbrakk> \<Longrightarrow> `P \<and> Q` \<sqsubseteq> R"
   by (utp_pred_auto_tac)
 
 end

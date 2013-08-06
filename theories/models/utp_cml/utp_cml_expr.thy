@@ -97,14 +97,17 @@ definition ListD :: "'a::vbasic cmle list \<Rightarrow> 'a list cmle" where
 definition FSetD :: "'a::vbasic cmle fset \<Rightarrow> 'a fset cmle" where
 "FSetD xs = MkPExpr (\<lambda> b. fset_option ((\<lambda> v. \<lbrakk>v\<rbrakk>\<^sub>* b) `\<^sub>f xs))"
 
-definition ForallD :: "'a set \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
-"ForallD xs f = MkPExpr (\<lambda> b. (Some (\<forall> x \<in> xs. \<lbrakk>f x\<rbrakk>\<^sub>* b = Some True)))"
+definition ForallD :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
+"ForallD xs f = MkPExpr (\<lambda> b. (Some (\<forall> x \<in> xs. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)))"
 
-definition ExistsD :: "'a set \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
-"ExistsD xs f = MkPExpr (\<lambda> b. (Some (\<exists> x \<in> xs. \<lbrakk>f x\<rbrakk>\<^sub>* b = Some True)))"
+definition ExistsD :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
+"ExistsD xs f = MkPExpr (\<lambda> b. (Some (\<exists> x \<in> xs. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)))"
 
 abbreviation DefinedD :: "'a cmle \<Rightarrow> bool cmle" where
 "DefinedD v \<equiv> LitD (\<D> v)"
+
+definition HasType :: "'a cmle \<Rightarrow> 'a set \<Rightarrow> bool" (infix ":\<^sub>d" 50) where
+"HasType e t = (\<forall> b. \<D> (\<lbrakk>e\<rbrakk>\<^sub>* b) \<longrightarrow> the (\<lbrakk>e\<rbrakk>\<^sub>*b) \<in> t)"
 
 definition HasTypeD :: "'a cmle \<Rightarrow> 'a set \<Rightarrow> bool cmle" where
 "HasTypeD e t \<equiv> MkPExpr (\<lambda> b. if (\<D> (\<lbrakk>e\<rbrakk>\<^sub>* b) \<and> the (\<lbrakk>e\<rbrakk>\<^sub>* b) \<in> t)
@@ -181,7 +184,7 @@ notation vproj16 ("#16")
 definition "NumD (x :: real) = LitD x"
 declare NumD_def [simp]
 
-definition "ApplyD f  = Op1D' f"
+definition "ApplyD f  = Op1D f"
 declare ApplyD_def [simp]
 
 definition "SelectD f = Op1D' f"
@@ -229,7 +232,7 @@ syntax
   "_vexpr_exists"   :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3exists _ : _ &/ _)" [0, 0, 10] 10)
   "_vexpr_coerce"   :: "pexpr \<Rightarrow> vty \<Rightarrow> pexpr" (infix ":" 50)
   "_vexpr_hasType"  :: "pexpr \<Rightarrow> vty \<Rightarrow> pexpr" (infix "hasType" 50)
-  "_vexpr_apply"    :: "('a \<Rightarrow> 'b) \<Rightarrow> pexprs \<Rightarrow> pexpr"    ("_'(_')")
+  "_vexpr_apply"    :: "('a \<Rightarrow> 'b) \<Rightarrow> pexprs \<Rightarrow> pexpr"    ("_'(_')" [998,0] 998)
   "_vexpr_prod"     :: "pexprs \<Rightarrow> vprod" ("_")
   "_vexpr_select"   :: "pexpr \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> pexpr" ("_._")
   "_vexpr_nil"      :: "pexpr" ("[]")
@@ -258,7 +261,7 @@ translations
   "_vexpr_token x"             == "CONST TokenD x"
   "_vexpr_num n"               == "CONST NumD n"
   "_vexpr_bot"                 == "CONST BotDE"
-  "_vexpr_lit v"               == "CONST LitD v"
+  "_vexpr_lit v"               == "CONST LitPE v"
   "_vexpr_forall x xs e"       == "CONST ForallD xs (\<lambda>x. e)"
   "_vexpr_exists x xs e"       == "CONST ExistsD xs (\<lambda>x. e)"
   "_vexpr_coerce e t"          == "CONST CoerceD e t"
@@ -274,10 +277,12 @@ translations
   "_vexpr_fset (_pexprs x xs)" == "CONST vexpr_insert x (_vexpr_fset xs)"
   "_vexpr_fset x"              == "CONST vexpr_insert x CONST vexpr_empty"
 
-abbreviation mk_prod :: "'a \<Rightarrow> 'a" where
-"mk_prod \<equiv> id"
+abbreviation mk_prod :: "'a \<Rightarrow> 'a option" where
+"mk_prod \<equiv> Some"
 
 term "Op1D' id (vexpr_prod TrueDE (SingleD FalseDE))"
+
+term "|mk_prod(true, false, 1)|"
 
 term "|mk_prod(true, false, 1).#1|"
 term "|mk_prod($x,2,5)|"
@@ -297,6 +302,8 @@ definition VExprDefinedT :: "bool cmle \<Rightarrow> cmlp" where
 
 abbreviation VTautT :: "bool cmle \<Rightarrow> cmlp" where
 "VTautT e \<equiv> TVL (VExprTrueT e, VExprDefinedT e)"
+
+declare [[coercion VTautT]]
 
 syntax
   "_upred_vexpr"       :: "pexpr \<Rightarrow> upred" ("\<lparr>_\<rparr>")
@@ -405,17 +412,36 @@ lemma EvalD_BotDE [eval,evalp,evale]:
   "\<lbrakk>\<bottom>\<^sub>v\<rbrakk>\<^sub>*b = None"
   by (simp add:BotDE_def evalp)
 
+term "\<lbrakk>ForallD xs f\<rbrakk>\<^sub>*b"
+
 lemma EvalD_ForallD [eval,evalp,evale]:
-  "\<lbrakk>ForallD xs f\<rbrakk>\<^sub>*b = \<lfloor>\<forall>x\<in>xs. \<lbrakk>f x\<rbrakk>\<^sub>*b = \<lfloor>True\<rfloor>\<rfloor>"
+  "\<lbrakk>ForallD xs f\<rbrakk>\<^sub>*b = \<lfloor>\<forall>x\<in>xs. \<lbrakk>f (Some x)\<rbrakk>\<^sub>*b = \<lfloor>True\<rfloor>\<rfloor>"
   by (simp add:ForallD_def)
 
 lemma EvalD_Op1D [eval,evalp,evale]:
+  "\<lbrakk>Op1D f x\<rbrakk>\<^sub>*b = (\<lbrakk>x\<rbrakk>\<^sub>*b >>= f)"
+  by (simp add:Op1D_def evalp)
+
+(*
+lemma EvalD_Op1D_defd [eval,evalp,evale]:
   "\<D> (\<lbrakk>x\<rbrakk>\<^sub>*b) \<Longrightarrow> \<lbrakk>Op1D f x\<rbrakk>\<^sub>*b = f (the (\<lbrakk>x\<rbrakk>\<^sub>*b))"
   by (auto simp add:Op1D_def evalp)
+*)
 
+lemma EvalD_Op2D [eval,evalp,evale]:
+  "\<lbrakk>Op2D f x y\<rbrakk>\<^sub>*b = do { v1 <- \<lbrakk>x\<rbrakk>\<^sub>*b; v2 <- \<lbrakk>y\<rbrakk>\<^sub>*b; f (v1, v2) }"
+  by (simp add:Op2D_def evalp)
+
+
+(*
 lemma EvalD_Op2D [eval,evalp,evale]:
   "\<lbrakk> \<D> (\<lbrakk>x\<rbrakk>\<^sub>*b); \<D> (\<lbrakk>y\<rbrakk>\<^sub>*b) \<rbrakk> \<Longrightarrow> \<lbrakk>Op2D f x y\<rbrakk>\<^sub>*b = f (the (\<lbrakk>x\<rbrakk>\<^sub>*b), the (\<lbrakk>y\<rbrakk>\<^sub>*b))"
   by (force simp add:Op2D_def evalp EvalPE_ProdPE)
+*)
+
+lemma EvalD_HasTypeD [eval,evalp,evale]:
+  "\<lbrakk>HasTypeD e t\<rbrakk>\<^sub>*b = (if (\<D> (\<lbrakk>e\<rbrakk>\<^sub>* b) \<and> the (\<lbrakk>e\<rbrakk>\<^sub>* b) \<in> t) then \<lfloor>True\<rfloor> else \<lfloor>False\<rfloor>)"
+  by (simp add:HasTypeD_def)
 
 lemma EvalD_CoerceD [eval,evalp,evale]:
   "\<lbrakk> \<D> (\<lbrakk>x\<rbrakk>\<^sub>*b); the (\<lbrakk>x\<rbrakk>\<^sub>*b) \<in> t \<rbrakk> \<Longrightarrow> \<lbrakk>CoerceD x t\<rbrakk>\<^sub>*b = \<lbrakk>x\<rbrakk>\<^sub>*b"

@@ -85,24 +85,24 @@ abbreviation "vexpr_implies   \<equiv> Op2D' implies"
 abbreviation "vexpr_hd        \<equiv> Op1D' hd"
 abbreviation "vexpr_tl        \<equiv> Op1D' tl"
 
-definition ForallSetD :: "'a fset cmle \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
-"ForallSetD xs f = MkPExpr (\<lambda> b. (Some (\<forall> x \<in> \<langle>the (\<lbrakk>xs\<rbrakk>\<^sub>* b)\<rangle>\<^sub>f. \<lbrakk>f x\<rbrakk>\<^sub>* b = Some True)))"
+definition ForallSetD :: "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
+"ForallSetD xs f = MkPExpr (\<lambda> b. (Some (\<forall> x \<in> \<langle>the (\<lbrakk>xs\<rbrakk>\<^sub>* b)\<rangle>\<^sub>f. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)))"
 
 syntax
 (*  "_vexpr_num"     :: "num \<Rightarrow> pexpr" ("_") *)
   "_vexpr_quotev"  :: "string \<Rightarrow> pexpr" ("<_>")
   "_vexpr_defined" :: "pexpr \<Rightarrow> pexpr" ("defn _")
   "_vexpr_in_set"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "in @set" 50)
-  "_vexpr_union"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "union" 65)
-  "_vexpr_inter"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "inter" 70)
+  "_vexpr_union"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "union" 65)
+  "_vexpr_inter"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "inter" 70)
   "_vexpr_sminus"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "setminus" 70)
   "_vexpr_card"    :: "pexpr \<Rightarrow> pexpr" ("card _")
   "_vexpr_dom"     :: "pexpr \<Rightarrow> pexpr" ("dom _")
   "_vexpr_rng"     :: "pexpr \<Rightarrow> pexpr" ("rng _")
   "_vexpr_not"     :: "pexpr \<Rightarrow> pexpr" ("not _" [40] 40)
-  "_vexpr_and"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "and" 35)
-  "_vexpr_or"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "or" 30)
-  "_vexpr_implies" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "=>" 25)
+  "_vexpr_and"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "and" 35)
+  "_vexpr_or"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "or" 30)
+  "_vexpr_implies" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "=>" 25)
   "_vexpr_hd"      :: "pexpr \<Rightarrow> pexpr" ("hd _")
   "_vexpr_tl"      :: "pexpr \<Rightarrow> pexpr" ("tl _")
   "_vexpr_all_set" :: "pttrn \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ in @set _ &/ _)" [0, 0, 10] 10)
@@ -144,8 +144,11 @@ lemma "|forall x:@nat1 & ^x^ > 0| = |true|"
 (* term "|\<langle>x\<rangle> > \<langle>5 :: int\<rangle>|" *)
 term "\<parallel>@int inv x == ^x^ > 5\<parallel>"
 
-lemma "|2 : @int inv x == (^x^ < 5)| = |^2^ : @int|"
+lemma "|2 : (@int inv x == (^x^ < 5))| = |2 : @int|"
   by (simp add:evalp typing defined)
+
+lemma "|card {1,2,3}| = |3|"
+  by (simp add:evalp)
 
 (*
 lemma "\<parallel>(true,true) : {($x,$y) | $x = $y}\<parallel> = \<parallel>(true,true)\<parallel>"
@@ -164,10 +167,10 @@ end
 lemma "|{1} : @set of @int| = |{1}|"
   by (simp add:evalp defined typing)
 
-(*
-lemma "\<lbrakk> \<D> <x::int>; \<D> <y> \<rbrakk> \<Longrightarrow> \<parallel>\<langle>x\<rangle> + \<langle>y\<rangle>\<parallel> = \<parallel>\<langle>y\<rangle> + \<langle>x\<rangle>\<parallel>"
-  by (utp_expr_tac)
+lemma "|{1,2,3} hasType @set of @nat| = |true|"
+  by (simp add:evalp)
 
+(*
 lemma "^defn defn ($''x'')^ = ^true^"
   by (utp_expr_tac)
 

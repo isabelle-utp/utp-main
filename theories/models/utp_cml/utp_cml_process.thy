@@ -22,12 +22,12 @@ abbreviation MkChanD :: "string \<Rightarrow> 'a set \<Rightarrow> ('a option) C
 (* FIXME: Execution of CML operations needs to take care of undefinedness *)
 
 lift_definition Exec1D :: 
-  "('a \<Rightarrow> cmlp) \<Rightarrow> 'a cmle \<Rightarrow> cmlp" 
-  is "\<lambda> P e. {b :: cmlv WF_BINDING. b \<in> P (the (e b))}" .
+  "('a option \<Rightarrow> cmlp) \<Rightarrow> 'a cmle \<Rightarrow> cmlp" 
+  is "\<lambda> P e. {b :: cmlv WF_BINDING. b \<in> P (e b)}" .
 
 lift_definition Exec2D :: 
-  "('a \<Rightarrow> 'b \<Rightarrow> cmlp) \<Rightarrow> 'a cmle \<Rightarrow> 'b cmle \<Rightarrow> cmlp" 
-  is "\<lambda> P e f. {b :: cmlv WF_BINDING. b \<in> P (the (e b)) (the (f b))}" .
+  "('a option \<Rightarrow> 'b option \<Rightarrow> cmlp) \<Rightarrow> 'a cmle \<Rightarrow> 'b cmle \<Rightarrow> cmlp" 
+  is "\<lambda> P e f. {b :: cmlv WF_BINDING. b \<in> P (e b) (f b)}" .
 
 syntax
   "_upred_parcml"    :: "upred \<Rightarrow> cmlv UCHAN set \<Rightarrow> upred \<Rightarrow> upred" (infixl "[|_|]" 50)

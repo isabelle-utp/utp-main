@@ -81,8 +81,8 @@ done
 
 (* FIXME: It may be that CML types need to be binding dependent
    as they can potentially depend on UTP variables. *)
-definition InvS :: "'a set \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> 'a set" where
-"InvS A P = {x. x \<in> A \<and> (\<forall> b. \<lbrakk>P x\<rbrakk>\<^sub>* b = Some True)}"
+definition InvS :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> 'a set" where
+"InvS A P = {x. x \<in> A \<and> (\<forall> b. \<lbrakk>P (Some x)\<rbrakk>\<^sub>* b = Some True)}"
 
 declare InvS_def [eval,evale,evalp]
 

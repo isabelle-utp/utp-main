@@ -15,16 +15,10 @@ session "HOL-UTP-THY" in "theories/theories" = "HOL-UTP" +
   "utp_reactive"
   files "document/root.tex"
   
-session "HOL-UTP-VDM" in "theories/models/utp_vdm_simple" = "HOL-UTP-THY" +
+session "HOL-UTP-CML" in "theories/models/utp_cml" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
   theories [document = false]
-  "utp_vdm_values"
-  "utp_vdm_inject"
-  "utp_vdm_sorts"
-  "utp_vdm_expr"
-  "utp_vdm_types"
-  "utp_vdm_functions"
-  "utp_vdm"
+  "utp_cml"
 
 session "utp-hjf-summer-school" in "papers/utp-hjf-summer-school" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output"]

@@ -243,7 +243,6 @@ instance
 done
 end
 
-
 (*
 subsection {* Channels are injectable *}
 

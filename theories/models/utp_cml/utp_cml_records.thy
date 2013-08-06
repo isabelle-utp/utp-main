@@ -40,21 +40,31 @@ setup_lifting type_definition_field
 lift_definition FieldProj :: 
   "('t::tag, 'a::vbasic, 'r) field \<Rightarrow> ('r \<Rightarrow> 'a)" is "fst" .
 
+declare FieldProj.rep_eq [simp]
+
 lift_definition FieldType ::
   "('t::tag, 'a::vbasic, 'r) field \<Rightarrow> 'a set" is "snd" .
+
+declare FieldType.rep_eq [simp]
 
 definition MkField :: "'t::tag itself \<Rightarrow> ('r \<Rightarrow> 'a) \<Rightarrow> 'a::vbasic set \<Rightarrow> ('t,'a,'r) field" where
 "MkField t f x = Abs_field (f, x)"
 
 declare MkField_def [eval,evalp]
 
-typedef ('t, 'a, 'r) tagged = "{xs :: 'a set. \<exists> x. x \<in> xs}"
+typedef ('t, 'a, 'r) tagged = "UNIV :: 'a set set"
   by (auto)
+
+declare Rep_tagged [simp]
+declare Abs_tagged_inverse [simp]
+declare Rep_tagged_inverse [simp]
 
 typedef ('t, 'r) rec = "UNIV :: 'r set"
   by (auto)
 
+declare Rep_rec [simp]
 declare Abs_rec_inverse [simp]
+declare Rep_rec_inverse [simp]
 
 instantiation rec :: (tag, vbasic) vbasic
 begin
@@ -95,8 +105,8 @@ definition FinishField :: "('t::tag, 'r::vbasic, 'r) tagged \<Rightarrow> ('t, '
 
 declare FinishField_def [eval,evalp]
 
-definition MkRec :: "('t, 'r) rec set \<Rightarrow> 'r \<Rightarrow> ('t, 'r) rec" where
-"MkRec t = Abs_rec"
+definition MkRec :: "('t, 'r) rec set \<Rightarrow> 'r \<Rightarrow> ('t, 'r) rec option" where
+"MkRec t = Some \<circ> Abs_rec"
 
 definition SelectRec :: 
   "('t::tag, 'a::vbasic, 'r) field \<Rightarrow> 

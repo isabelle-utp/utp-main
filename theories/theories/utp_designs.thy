@@ -212,7 +212,7 @@ proof -
     by (metis less_eq_WF_PREDICATE_def)
 qed
 
-theorem DesignD_refinement_intro [intro]:
+theorem DesignD_refine [refine]:
   assumes "UNREST OKAY P1" "UNREST OKAY P2"
           "UNREST OKAY Q1" "UNREST OKAY Q2"
           "P2 \<sqsubseteq> P1" "Q1 \<sqsubseteq> P1 \<and>\<^sub>p Q2" 
