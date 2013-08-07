@@ -46,6 +46,7 @@ abbreviation "vty_rat  \<equiv> Rats :: real set"
 abbreviation "vty_real \<equiv> (UNIV :: real set)"
 abbreviation "vty_char \<equiv> (UNIV :: char set)"
 abbreviation "vty_prod \<equiv> op \<times>"
+abbreviation "vty_option A \<equiv> {Some x | x. x \<in> A} \<union> {None}"
 abbreviation "vty_seq_of A  \<equiv> {xs. set xs \<subseteq> A}" 
 abbreviation "vty_seq1_of A \<equiv> {xs. set xs \<subseteq> A \<and> length xs > 0}" 
 abbreviation "vty_map_to X Y \<equiv> {f. \<langle>fdom f\<rangle>\<^sub>f \<subseteq> X \<and> \<langle>fran f\<rangle>\<^sub>f \<subseteq> Y}"
@@ -102,6 +103,7 @@ syntax
   "_vty_rat"     :: "vty" ("@rat")
   "_vty_char"    :: "vty" ("@char")
   "_vty_real"    :: "vty" ("@real")
+  "_vty_option"  :: "vty \<Rightarrow> vty" ("[_]")
   "_vty_set_of"  :: "vty \<Rightarrow> vty" ("@set of _")
   "_vty_seq_of"  :: "vty \<Rightarrow> vty" ("@seq of _")
   "_vty_map_to"  :: "vty \<Rightarrow> vty \<Rightarrow> vty" ("@map _ to _")
@@ -131,13 +133,13 @@ translations
   "_vty_char"      == "CONST vty_char"
   "_vty_prod x y"  == "CONST vty_prod x y"
   "_vty_set_of A"  == "CONST Fow A"
+  "_vty_option A"  == "CONST vty_option A"
   "_vty_seq_of A"  == "CONST vty_seq_of A"
   "_vty_seq1_of A" == "CONST vty_seq1_of A"
   "_vty_map_to A B" == "CONST vty_map_to A B"
   "_vty_quo x"     => "x"
   "_vty_inv A x P" == "CONST InvS A (\<lambda>x. P)"
   "_vty_collect v P" == "CONST CollectD v P"
-
 
 term "\<parallel>@seq1 of @char\<parallel>"
 

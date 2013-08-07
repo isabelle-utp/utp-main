@@ -269,6 +269,37 @@ end
 lemma BTYPE_char: "CharBT = BTYPE(char)"
   by (simp add:Type_char_def)
 
+subsection {* Option types are injectable *}
+
+instantiation option :: (vbasic) vbasic
+begin
+
+definition Inject_option :: "'a option \<Rightarrow> vbasic" where
+"Inject_option x = OptionI BTYPE('a) (x >>= Some \<circ> Inject)"
+
+definition Type_option :: "'a option itself \<Rightarrow> vbasict" where
+"Type_option t = OptionBT BTYPE('a)"
+
+instance
+  apply (intro_classes)
+  apply (case_tac x)
+  apply (case_tac y)
+  apply (auto simp add:Inject_option_def Type_option_def)
+  apply (case_tac y)
+  apply (auto simp add:Inject_option_def)
+  apply (case_tac xa)
+  apply (auto)
+  apply (case_tac xa)
+  apply (auto simp add:image_def)
+  apply (erule OptionT_type_cases)
+  apply (auto)
+  apply (rule_tac x="Project xa" in exI)
+  apply (auto simp add:Inject_option_def)
+  apply (rule_tac x="None" in exI)
+  apply (simp)
+done
+end
+
 subsection {* Pairs are injectable *}
 
 instantiation prod :: (vbasic, vbasic) vbasic
