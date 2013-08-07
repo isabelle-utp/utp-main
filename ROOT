@@ -67,6 +67,12 @@ session "isabelle-utp-tutorial" in "papers/isabelle-utp-tutorial" = "HOL-UTP-THY
     "utp_types"
   files "document/root.tex"
 
+session "designs-tutorial" in "papers/designs-tutorial" = "HOL-UTP" +
+  options [document = pdf, document_output = "output"]
+  theories 
+    "utp_designs"
+  files "document/root.tex"
+
 session "avocs2013" in "papers/avocs2013" = "HOL-UTP" +
   options [document = pdf, document_output = "output"]
   theories [document = false]
