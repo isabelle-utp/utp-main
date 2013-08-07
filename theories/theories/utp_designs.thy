@@ -27,29 +27,32 @@ abbreviation "ok'' \<equiv> `$okay\<acute>\<acute>`"
 abbreviation "ok''' \<equiv> `$okay\<acute>\<acute>\<acute>`"
 abbreviation "OKAY \<equiv> {okay\<down>,okay\<down>\<acute>}"
 
-definition TopD :: "'VALUE WF_PREDICATE" ("\<top>\<^sub>D") where
-"TopD = (\<not>\<^sub>p ok)"
-
 definition DesignD :: 
-"'VALUE WF_PREDICATE \<Rightarrow>
- 'VALUE WF_PREDICATE \<Rightarrow>
- 'VALUE WF_PREDICATE" (infixr "\<turnstile>" 60) where
+"'a WF_PREDICATE \<Rightarrow>
+ 'a WF_PREDICATE \<Rightarrow>
+ 'a WF_PREDICATE" (infixr "\<turnstile>" 60) where
 "p \<turnstile> q = `ok \<and> p \<Rightarrow> ok' \<and> q`"
 
-definition SkipD :: "'VALUE WF_PREDICATE" where
+definition SkipD :: "'a WF_PREDICATE" where
 "SkipD = true \<turnstile> II\<^bsub>(REL_VAR - OKAY)\<^esub>"
 
 notation SkipD ("II\<^sub>D")
 
-definition J_pred :: "'VALUE WF_PREDICATE" ("J") where
+definition BotD :: "'a WF_PREDICATE" ("\<bottom>\<^sub>D") where
+"BotD = true"
+
+definition TopD :: "'a WF_PREDICATE" ("\<top>\<^sub>D") where
+"TopD = (\<not>\<^sub>p ok)"
+
+definition J_pred :: "'a WF_PREDICATE" ("J") where
 "J \<equiv> (ok \<Rightarrow>\<^sub>p ok') \<and>\<^sub>p II\<^bsub>REL_VAR - OKAY\<^esub>"
 
 abbreviation ok_true :: 
-  "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" ("_\<^sup>t" [1000] 1000) where
+  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<^sup>t" [1000] 1000) where
 "p\<^sup>t \<equiv> `p[true/okay\<acute>]`"
 
 abbreviation ok_false :: 
-  "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" ("_\<^sup>f" [1000] 1000) where
+  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<^sup>f" [1000] 1000) where
 "p\<^sup>f \<equiv> `p[false/okay\<acute>]`"
 
 definition ParallelD :: 
@@ -63,6 +66,7 @@ definition ParallelMergeD ::
   "'a WF_PREDICATE => ('a VAR set * 'a WF_PREDICATE) => 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infix "\<parallel>\<^bsub>_\<^esub>" 100) where
 "P \<parallel>\<^bsub>M\<^esub> Q =  ((add_sub 0 on fst M \<bullet> P) \<parallel> (add_sub 1 on fst M \<bullet> Q)) ; snd M"
 
+declare BotD_def [eval,evalr,evalrx]
 declare TopD_def [eval,evalr,evalrx]
 declare DesignD_def [eval,evalr,evalrx]
 declare J_pred_def [eval,evalr,evalrx]
@@ -70,7 +74,8 @@ declare SkipD_def [eval,evalr,evalrx]
 declare ParallelD_def [eval,evalr,evalrx]
 
 syntax
-  "_upred_desbot"   :: "upred" ("\<top>\<^sub>D")
+  "_upred_desbot"   :: "upred" ("\<bottom>\<^sub>D")
+  "_upred_destop"   :: "upred" ("\<top>\<^sub>D")
   "_upred_design"   :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<turnstile>" 30)
   "_upred_ok_true"  :: "upred \<Rightarrow> upred" ("_\<^sup>t" [1000] 1000)
   "_upred_ok_false" :: "upred \<Rightarrow> upred" ("_\<^sup>f" [1000] 1000)
@@ -79,7 +84,8 @@ syntax
   "_upred_parallel" :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infix "\<parallel>" 50)
 
 translations
-  "_upred_desbot"       == "CONST TopD"
+  "_upred_desbot"       == "CONST BotD"
+  "_upred_destop"       == "CONST TopD"
   "_upred_design p q"   == "CONST DesignD p q"
   "_upred_ok_true p"    == "CONST ok_true p"
   "_upred_ok_false p"   == "CONST ok_false p"
@@ -335,14 +341,24 @@ theorem DesignD_composition_cond:
   by (simp add:DesignD_composition closure assms unrest)
 
 theorem DesignD_composition_wp:
-  assumes "p1 \<in> WF_CONDITION" "P2 \<in> WF_RELATION" "Q1 \<in> WF_RELATION" "Q2 \<in> WF_RELATION"
-          "UNREST OKAY p1" "UNREST OKAY P2" "UNREST OKAY Q1" "UNREST OKAY Q2"
+  assumes 
+    "p1 \<in> WF_CONDITION" 
+    "P2 \<in> WF_RELATION" 
+    "Q1 \<in> WF_RELATION" 
+    "Q2 \<in> WF_RELATION"
+    "UNREST OKAY p1" "UNREST OKAY P2" 
+    "UNREST OKAY Q1" "UNREST OKAY Q2"
   shows "`(p1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `(p1 \<and> (Q1 wp P2)) \<turnstile> (Q1 ; Q2)`"
   by (simp add: DesignD_composition_cond closure WeakPrecondP_def assms)
 
 theorem ParallelD_DesignD:
-  "\<lbrakk>UNREST OKAY P1; UNREST OKAY P2; UNREST OKAY Q1; UNREST OKAY Q2 \<rbrakk> \<Longrightarrow>
-   `(P1 \<turnstile> P2) \<parallel> (Q1 \<turnstile> Q2)` = `(P1 \<and> Q1) \<turnstile> (P2 \<and> Q2)`"
+  assumes 
+    "UNREST OKAY P1" 
+    "UNREST OKAY P2" 
+    "UNREST OKAY Q1" 
+    "UNREST OKAY Q2"
+  shows "`(P1 \<turnstile> P2) \<parallel> (Q1 \<turnstile> Q2)` = `(P1 \<and> Q1) \<turnstile> (P2 \<and> Q2)`"
+  using assms 
   by (utp_pred_auto_tac)
 
 theorem ParallelD_comm:
@@ -356,21 +372,11 @@ theorem ParallelD_assoc:
 
 subsection {* Design Healthiness Conditions *}
 
-definition H1 :: "'a WF_FUNCTION" where "H1(P) = `ok \<Rightarrow> P`"
-definition H2 :: "'a WF_FUNCTION" where "H2(P) = `P ; J`"
-definition H3 :: "'a WF_FUNCTION" where "H3(P) = `P ; II\<^sub>D`"
-definition H4 :: "'a WF_FUNCTION" where "H4(P) = `(P ; true) \<Rightarrow> P`"
+subsubsection {* H1: Only observation after starting *}
 
-definition "isH4(P) \<equiv> `P ; true` = `true`"
+definition "H1(P) = `ok \<Rightarrow> P`"
 
 declare H1_def [eval,evalr,evalrx]
-declare H2_def [eval,evalr,evalrx]
-declare H3_def [eval,evalr,evalrx]
-declare H4_def [eval,evalr,evalrx]
-declare is_healthy_def [evalr,evalrx]
-declare isH4_def [eval,evalr,evalrx]
-
-subsubsection {* H1: Only observation after starting *}
 
 theorem H1_true [closure]:
   "true is H1"
@@ -523,6 +529,10 @@ theorem H1_monotone:
 
 subsubsection {* H2: No requirement of non-termination *}
 
+definition "H2(P) = `P ; J`"
+
+declare H2_def [eval,evalr,evalrx]
+
 theorem J_split:
   assumes "P \<in> WF_RELATION"
   shows "P ; J = `P\<^sup>f \<or> (P\<^sup>t \<and> ok')`"
@@ -673,6 +683,9 @@ done
 
 subsubsection {* H3: Assumption is a condition *}
 
+definition "H3(P) = `P ; II\<^sub>D`"
+declare H3_def [eval,evalr,evalrx]
+
 theorem SkipD_idempotent:
   "`II\<^sub>D ; II\<^sub>D` = `II\<^sub>D`"
   by (utp_xrel_auto_tac)
@@ -733,6 +746,14 @@ theorem H2_H3_commute: "H2 (H3 P) = H3 (H2 P)"
   by (metis H2_def H3_def J_SkipD_commute SemiR_assoc)
 
 subsubsection {* H4: Feasibility *}
+
+definition "H4(P) = `(P ; true) \<Rightarrow> P`"
+
+definition "isH4(P) \<equiv> `P ; true` = `true`"
+
+declare H4_def [eval,evalr,evalrx]
+declare isH4_def [eval,evalr,evalrx]
+
 
 theorem H4_idempotent: "H4 (H4 P) = H4 P"
   by (utp_rel_tac)
@@ -827,7 +848,7 @@ theorem H4_top: "true \<turnstile> true is H4"
 
 subsection {* The theory of Designs *}
 
-lift_definition DESIGNS :: "'VALUE WF_THEORY" 
+lift_definition DESIGNS :: "'a WF_THEORY" 
 is "({vs. vs \<subseteq> REL_VAR \<and> OKAY \<subseteq> vs}, {H1,H2})"
   by (simp add:WF_THEORY_def IDEMPOTENT_OVER_def H1_idempotent H2_idempotent)
 
@@ -895,13 +916,13 @@ done
 
 subsection {* The theory of Normal Designs *}
 
-lift_definition NORMAL_DESIGNS :: "'VALUE WF_THEORY" 
+lift_definition NORMAL_DESIGNS :: "'a WF_THEORY" 
 is "({vs. vs \<subseteq> REL_VAR \<and> OKAY \<subseteq> vs}, {H1,H2,H3})"
   by (simp add:WF_THEORY_def IDEMPOTENT_OVER_def H1_idempotent H2_idempotent H3_idempotent)
    
 subsection {* The theory of Feasible Designs *}
 
-lift_definition FEASIBLE_DESIGNS :: "'VALUE WF_THEORY" 
+lift_definition FEASIBLE_DESIGNS :: "'a WF_THEORY" 
 is "({vs. vs \<subseteq> REL_VAR \<and> OKAY \<subseteq> vs}, {H1,H2,H3,H4})"
   by (simp add:WF_THEORY_def IDEMPOTENT_OVER_def H1_idempotent H2_idempotent H3_idempotent H4_idempotent)
 
