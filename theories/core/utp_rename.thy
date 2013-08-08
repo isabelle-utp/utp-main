@@ -575,6 +575,14 @@ lemma rename_on_perm3:
   shows "(f on vs)\<bullet>x = x"
   by (simp add:rename_on_rep_eq assms)
 
+lemma rename_on_image1 [simp]: 
+  "rename_func_on f vs \<Longrightarrow> \<langle>f on vs\<rangle>\<^sub>s ` vs = f ` vs" 
+  by (metis image_cong rename_on_perm1)
+
+lemma rename_on_image2 [simp]: 
+  "rename_func_on f vs \<Longrightarrow> \<langle>f on vs\<rangle>\<^sub>s ` f ` vs = vs"
+  by (metis (hide_lams, no_types) Rep_VAR_RENAME_inj image_inv_f_f inv_complete_inj rename_func_on_def rename_inv_rep_eq rename_on_image1 rename_on_rep_eq)
+
 text {* More theorems about @{term "VAR_RENAME"} *}
 
 lemma VAR_RENAME_MapRename [closure]:

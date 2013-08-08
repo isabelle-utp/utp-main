@@ -761,6 +761,29 @@ theorem H4_idempotent: "H4 (H4 P) = H4 P"
 theorem H4_equiv: "P \<in> WF_RELATION \<Longrightarrow> P is H4 \<longleftrightarrow> isH4(P)"
   by (utp_xrel_auto_tac)
 
+text {* This lemma shows intuitively what H4 means: there exists an output
+        for every input. *}
+
+lemma H4_soundness:
+  assumes "P \<in> WF_RELATION"
+  shows "P is H4 \<longleftrightarrow> (\<exists>\<^sub>p DASHED. P)" 
+proof -
+  have "P is H4 \<longleftrightarrow> (P ; true = true)"
+    by (simp add:H4_equiv assms isH4_def)
+
+  moreover have "P ; true = (\<exists>\<^sub>p DASHED_TWICE. SS1\<bullet>P)"
+    by (simp add:assms closure SemiR_algebraic_rel urename)
+
+  also have "... = (\<exists>\<^sub>p DASHED. P)"
+    apply (rule sym)
+    apply (rule trans)
+    apply (rule ExistsP_alpha_convert[where f="prime"])
+    apply (auto intro:ExistsP_alpha_convert simp add:closure assms)
+  done
+
+  finally show ?thesis by (utp_pred_tac)
+qed
+
 theorem SkipR_is_H4 [closure]:
   "II is H4"
   by (simp add:is_healthy_def H4_def)

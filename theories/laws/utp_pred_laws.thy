@@ -13,6 +13,7 @@ imports
   "../core/utp_expr"
   "../tactics/utp_pred_tac"
   "../tactics/utp_expr_tac"
+  utp_rename_laws
   utp_subst_laws
 begin
 
@@ -245,6 +246,50 @@ theorem ExistsP_SubstP_rename :
   apply (simp add:typing eval defined binding_upd_twist)
   apply (metis EvalP_UNREST_assign_1 binding_upd_twist binding_value_alt)
 done
+
+text {* An existential can be alpha renamed provided the variables being renamed
+        to are not used by the predicate *}
+
+theorem ExistsP_alpha_convert:
+  assumes "rename_func_on f vs" "UNREST (f`vs) P"
+  shows "(\<exists>\<^sub>p vs. P) = (\<exists>\<^sub>p (f`vs). f on vs \<bullet> P)"
+using assms proof (utp_pred_auto_tac)
+  fix b b'
+  assume peval:"\<lbrakk>P\<rbrakk>(b \<oplus>\<^sub>b b' on vs)"
+  thus "\<exists>b'. \<lbrakk>P\<rbrakk>(f on vs \<bullet> (b \<oplus>\<^sub>b b' on f ` vs))"
+  proof -
+    have "(\<exists>b'. \<lbrakk>P\<rbrakk>(f on vs \<bullet> (b \<oplus>\<^sub>b b' on f ` vs)))
+         = (\<exists>b'. \<lbrakk>P\<rbrakk>(f on vs \<bullet> ((b \<oplus>\<^sub>b b' on f ` vs) \<oplus>\<^sub>b f on vs \<bullet> b on vs)))"
+      by (metis EvalP_rename_on_expand_binding assms(1) assms(2))
+
+    moreover from peval assms
+    have "(\<lbrakk>P\<rbrakk>(f on vs \<bullet> ((b \<oplus>\<^sub>b (f on vs \<bullet> b') on f ` vs) \<oplus>\<^sub>b f on vs \<bullet> b on vs)))"
+      apply (auto simp add:RenameB_override_distr1 closure binding_override_assoc urename)
+      apply (metis EvalP_UNREST_override binding_override_assoc binding_override_simps(5))
+    done
+
+    ultimately show ?thesis
+      by (auto)
+  qed
+next
+  fix b b'
+  assume peval: "\<lbrakk>P\<rbrakk>(f on vs \<bullet> (b \<oplus>\<^sub>b b' on f ` vs))"
+  thus "\<exists>b'. \<lbrakk>P\<rbrakk>(b \<oplus>\<^sub>b b' on vs)"
+  proof -
+    have "\<lbrakk>P\<rbrakk>(f on vs \<bullet> (b \<oplus>\<^sub>b b' on f ` vs))
+         = \<lbrakk>P\<rbrakk>(f on vs \<bullet> ((b \<oplus>\<^sub>b b' on f ` vs) \<oplus>\<^sub>b f on vs \<bullet> b on vs))"
+      by (metis EvalP_rename_on_expand_binding assms(1) assms(2))
+
+    also have "... = \<lbrakk>P\<rbrakk>(b \<oplus>\<^sub>b f on vs \<bullet> b' on vs)"
+      apply (simp add:RenameB_override_distr1 urename closure assms binding_override_assoc)
+      apply (metis EvalP_UNREST_override assms(2) binding_override_assoc binding_override_simps(5))
+    done
+
+    finally show ?thesis using peval
+      by (auto)
+  qed
+qed
+
 
 subsection {* Expression theorems *}
 
