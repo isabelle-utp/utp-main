@@ -127,6 +127,11 @@ definition CollectD :: "'a::vbasic cmle \<Rightarrow> bool cmle \<Rightarrow> 'a
 
 declare CollectD_def [eval,evale,evalp]
 
+definition IfThenElseD :: "bool cmle \<Rightarrow> 'a::vbasic cmle \<Rightarrow> 'a cmle \<Rightarrow> 'a cmle" where
+"IfThenElseD = Op3PE (\<lambda> b v1 v2. do { c <- b; if c then v1 else v2 })"
+
+declare IfThenElseD_def [eval,evale,evalp]
+
 subsection {* Extend the UTP parser for CML expressions *}
 
 abbreviation "vexpr_equal     \<equiv> Op2D' (op =)"
@@ -231,11 +236,12 @@ syntax
   "_vexpr_num"      :: "real \<Rightarrow> pexpr" ("_")
   "_vexpr_bot"      :: "pexpr" ("undefined")
   "_vexpr_lit"      :: "'a::vbasic \<Rightarrow> pexpr" ("(1^_^)")
-  "_vexpr_lambda"    :: "idt \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3lambda _ &/ _)" [0, 10] 10)
-  "_vexpr_lambda_ty" :: "idt \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3lambda _ : _ &/ _)" [0, 0, 10] 10)
-  "_vexpr_forall"   :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ : _ &/ _)" [0, 0, 10] 10)
-  "_vexpr_exists"   :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3exists _ : _ &/ _)" [0, 0, 10] 10)
+  "_vexpr_lambda"    :: "idt \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3lambda _ @/ _)" [0, 10] 10)
+  "_vexpr_lambda_ty" :: "idt \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3lambda _ : _ @/ _)" [0, 0, 10] 10)
+  "_vexpr_forall"   :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ : _ @/ _)" [0, 0, 10] 10)
+  "_vexpr_exists"   :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3exists _ : _ @/ _)" [0, 0, 10] 10)
   "_vexpr_coerce"   :: "pexpr \<Rightarrow> vty \<Rightarrow> pexpr" (infix ":" 50)
+  "_vexpr_ifthen"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("if _ then _ else _")
   "_vexpr_hasType"  :: "pexpr \<Rightarrow> vty \<Rightarrow> pexpr" (infix "hasType" 50)
   "_vexpr_apply"    :: "('a \<Rightarrow> 'b) \<Rightarrow> pexprs \<Rightarrow> pexpr"    ("_'(_')" [998,0] 998)
   "_vexpr_prod"     :: "pexprs \<Rightarrow> vprod" ("_")
@@ -250,6 +256,7 @@ syntax
 
   "_vexpr_vexpr x" == "CONST vexpr_vexpr x"
 *)
+
 
 syntax (xsymbols)
   "_vexpr_bot"     :: "pexpr" ("\<bottom>")
@@ -272,6 +279,7 @@ translations
   "_vexpr_forall x xs e"       == "CONST ForallD xs (\<lambda>x. e)"
   "_vexpr_exists x xs e"       == "CONST ExistsD xs (\<lambda>x. e)"
   "_vexpr_coerce e t"          == "CONST CoerceD e t"
+  "_vexpr_ifthen b x y"        == "CONST IfThenElseD b x y"
   "_vexpr_hasType e t"         == "CONST HasTypeD e t"
   "_vexpr_apply f x"           == "CONST ApplyD f (_vexpr_prod x)"
   "_vexpr_prod (_pexprs x xs)" == "CONST vexpr_prod x (_vexpr_prod xs)"

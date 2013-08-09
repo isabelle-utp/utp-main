@@ -147,6 +147,10 @@ lemma SkipD_rel_closure [closure]:
   "II\<^sub>D \<in> WF_RELATION"
   by (auto intro:closure simp add:SkipD_def)
 
+theorem J_closure [closure]:
+  "J \<in> WF_RELATION"
+  by (simp add:J_pred_def closure)
+
 lemma ParallelD_rel_closure [closure]:
   "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> P \<parallel> Q \<in> WF_RELATION"
   by (simp add:ParallelD_def unrest typing closure defined)
@@ -595,10 +599,6 @@ proof -
   ultimately show ?thesis
     by (utp_pred_auto_tac)
 qed
-
-theorem J_closure [closure]:
-  "J \<in> WF_RELATION"
-  by (simp add:J_pred_def closure)
 
 theorem J_is_H2:
   "H2(J) = J"

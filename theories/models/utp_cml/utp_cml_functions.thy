@@ -105,7 +105,7 @@ syntax
   "_vexpr_implies" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "=>" 25)
   "_vexpr_hd"      :: "pexpr \<Rightarrow> pexpr" ("hd _")
   "_vexpr_tl"      :: "pexpr \<Rightarrow> pexpr" ("tl _")
-  "_vexpr_all_set" :: "pttrn \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ in @set _ &/ _)" [0, 0, 10] 10)
+  "_vexpr_all_set" :: "pttrn \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ in @set _ @/ _)" [0, 0, 10] 10)
 
 translations
   "_vexpr_quotev x"    == "CONST LitD (CONST QuoteD x)"
@@ -135,10 +135,10 @@ term "|^x^|"
 
 term "|mk_prod(1, {})|"
 
-term "|forall x:@nat1 & ^x^ > 1|"
-term "|forall x in @set {1} & ^x^ > 5|"
+term "|forall x:@nat1 @ ^x^ > 1|"
+term "|forall x in @set {1} @ ^x^ > 5|"
 
-lemma "|forall x:@nat1 & ^x^ > 0| = |true|"
+lemma "|forall x:@nat1 @ ^x^ > 0| = |true|"
   by (simp add:evalp)
 
 (* term "|\<langle>x\<rangle> > \<langle>5 :: int\<rangle>|" *)

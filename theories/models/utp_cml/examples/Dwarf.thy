@@ -10,7 +10,6 @@ ML {*
 
 setup dwarf_simps.setup
 
-
 abbreviation "L1 \<equiv> ''L1''"
 abbreviation "L2 \<equiv> ''L2''"
 abbreviation "L3 \<equiv> ''L3''"
@@ -98,25 +97,25 @@ text {* Safety Properties *}
 term "|mk_DwarfType(&stop, {}, {}, &stop, &stop, &stop)|"
 
 definition 
-  "NeverShowAll = |lambda d & ^d^.#1.currentstate <> {<L1>,<L2>,<L3>}|"
+  "NeverShowAll = |lambda d @ ^d^.#1.currentstate <> {<L1>,<L2>,<L3>}|"
 
 definition 
   "MaxOneLampChange = 
-    |lambda d & card ((^d^.#1.currentstate setminus ^d^.#1.laststate) 
+    |lambda d @ card ((^d^.#1.currentstate setminus ^d^.#1.laststate) 
                       union (^d^.#1.laststate setminus ^d^.#1.currentstate)) 
                       <= 1|"
 
 definition
   "ForbidStopToDrive = 
-     |lambda d & (^d^.#1.lastproperstate = &stop) => ^d^.#1.desiredproperstate <> &drive|"
+     |lambda d @ (^d^.#1.lastproperstate = &stop) => ^d^.#1.desiredproperstate <> &drive|"
   
 definition
   "DarkOnlyToStop = 
-     |lambda d & (^d^.#1.lastproperstate = &dark) => ^d^.#1.desiredproperstate in @set {&dark,&stop}|" 
+     |lambda d @ (^d^.#1.lastproperstate = &dark) => ^d^.#1.desiredproperstate in @set {&dark,&stop}|" 
   
 definition
   "DarkOnlyFromStop = 
-     |lambda d & (^d^.#1.desiredproperstate = &dark) => ^d^.#1.lastproperstate in @set {&dark,&stop}|"
+     |lambda d @ (^d^.#1.desiredproperstate = &dark) => ^d^.#1.lastproperstate in @set {&dark,&stop}|"
 
 definition 
   "DwarfSignal = \<parallel>@DwarfType inv d == NeverShowAll(^d^) 
