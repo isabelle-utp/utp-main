@@ -143,6 +143,10 @@ translations
 
 term "\<parallel>@seq1 of @char\<parallel>"
 
+term "CHR ''x''"
+
+term "\<parallel>@seq1 of @char inv x == if (^x^ = <<CHR ''x''>>) then true else false\<parallel>"
+
 term "\<parallel>@map @char to @int\<parallel>"
 
 (* term "`x := \<langle><1>\<rangle> : @seq1 of @nat1`" *)
