@@ -731,19 +731,35 @@ proof -
     by (simp add:H3_def is_healthy_def)
 qed
 
-theorem J_SkipD_commute: 
-  "J ; II\<^sub>D = II\<^sub>D ; J"
-  apply (utp_xrel_tac)
-  apply (auto simp add:relcomp_unfold)
-done
-
 theorem H1_H3_commute: "H1 (H3 P) = H3 (H1 P)"
   apply (simp add:H1_def H3_def ImpliesP_def SemiR_OrP_distr TopD_def[THEN sym])
   apply (metis H3_WF_CONDITION H3_def Healthy_simp TopD_cond_closure)
 done
 
+theorem SkipD_absorbs_J_1 [simp]: 
+  "II\<^sub>D ; J = II\<^sub>D"
+  by (utp_xrel_auto_tac)
+
+theorem H3_absorbs_H2_1:
+  "H2 (H3 P) = H3 P"
+  by (metis H2_def H3_def SemiR_assoc SkipD_absorbs_J_1)
+
+theorem SkipD_absorbs_J_2 [simp]:
+  "J ; II\<^sub>D = II\<^sub>D"
+  by (utp_xrel_auto_tac)
+
+theorem H3_absorbs_H2_2:
+  "H3 (H2 P) = H3 P"
+  by (metis H2_def H3_def SemiR_assoc SkipD_absorbs_J_2)
+
+theorem H3_implies_H2:
+  "P is H3 \<Longrightarrow> P is H2"
+  by (metis H3_absorbs_H2_1 is_healthy_def)
+
+text {* H2-H3 commutivity is vacuously true *}
+
 theorem H2_H3_commute: "H2 (H3 P) = H3 (H2 P)"
-  by (metis H2_def H3_def J_SkipD_commute SemiR_assoc)
+  by (metis H3_absorbs_H2_1 H3_absorbs_H2_2)
 
 subsubsection {* H4: Feasibility *}
 
@@ -753,7 +769,6 @@ definition "isH4(P) \<equiv> `P ; true` = `true`"
 
 declare H4_def [eval,evalr,evalrx]
 declare isH4_def [eval,evalr,evalrx]
-
 
 theorem H4_idempotent: "H4 (H4 P) = H4 P"
   by (utp_rel_tac)
@@ -940,21 +955,21 @@ done
 subsection {* The theory of Normal Designs *}
 
 lift_definition NORMAL_DESIGNS :: "'a WF_THEORY" 
-is "({vs. vs \<subseteq> REL_VAR \<and> OKAY \<subseteq> vs}, {H1,H2,H3})"
-  by (simp add:WF_THEORY_def IDEMPOTENT_OVER_def H1_idempotent H2_idempotent H3_idempotent)
+is "({vs. vs \<subseteq> REL_VAR \<and> OKAY \<subseteq> vs}, {H1,H3})"
+  by (simp add:WF_THEORY_def IDEMPOTENT_OVER_def H1_idempotent H3_idempotent)
    
+abbreviation "WF_NORM_DESIGN \<equiv> THEORY_PRED NORMAL_DESIGNS"
+
+lemma WF_NORM_DESIGN_WF_DESIGN:
+  "p \<in> WF_NORM_DESIGN \<Longrightarrow> p \<in> WF_DESIGN"
+  by (simp add:THEORY_PRED_def DESIGNS.rep_eq NORMAL_DESIGNS.rep_eq 
+      utp_alphabets_def healthconds_def H3_implies_H2)
+
 subsection {* The theory of Feasible Designs *}
 
 lift_definition FEASIBLE_DESIGNS :: "'a WF_THEORY" 
-is "({vs. vs \<subseteq> REL_VAR \<and> OKAY \<subseteq> vs}, {H1,H2,H3,H4})"
+is "({vs. vs \<subseteq> REL_VAR \<and> OKAY \<subseteq> vs}, {H1,H3,H4})"
   by (simp add:WF_THEORY_def IDEMPOTENT_OVER_def H1_idempotent H2_idempotent H3_idempotent H4_idempotent)
 
-
-(*
-lemma "(d1 = d2) \<longleftrightarrow> (\<forall> r. d1 wp r = d2 wp r)"
-  apply (simp add:WeakPrecondA_def)
-  apply (utp_alpha_tac)
-  apply (utp_pred_tac)
-*)
 
 end

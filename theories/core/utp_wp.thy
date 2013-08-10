@@ -103,4 +103,8 @@ lemma "P \<subseteq> -(Q O -S) \<Longrightarrow> (P O Q) \<subseteq> S"
 
 *)
 
+theorem WeakPrecondP_transfer: 
+  "(P = Q) \<longleftrightarrow> (\<forall> r. P wp r = Q wp r)"
+  by (metis SemiR_SkipR_right WeakPrecondP_def NotP_NotP)
+
 end
