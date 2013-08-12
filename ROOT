@@ -55,6 +55,7 @@ session "isabelle-utp-tutorial" in "papers/isabelle-utp-tutorial" = "HOL-UTP-THY
   theories 
     "value_class"
     "bindings"
+    "cantor_isar"
     "predicates"
     "unrest"
     "designs_basics"
