@@ -10,6 +10,7 @@ theory utp_wp
 imports 
   utp_lattice 
   utp_recursion
+  utp_hoare
   "../laws/utp_pred_laws"
   "../laws/utp_rel_laws"
   "../parser/utp_pred_parser"
@@ -88,8 +89,17 @@ lemma VarOpenP_wp: "\<lbrakk> x \<in> UNDASHED; r \<in> WF_RELATION \<rbrakk>
   apply (utp_pred_tac)
 done
 
-text {* I don't think the following statement is provable... *}
+text {* wp gives a solution to a Hoare triple *}
 
+theorem HoareP_WeakPrecondP:
+  assumes "Q \<in> WF_RELATION" "r \<in> WF_CONDITION"
+  shows "(Q wp r\<acute>){Q}\<^sub>pr"
+  using assms
+  apply (frule_tac SemiR_TrueP_precond)
+  apply (utp_xrel_auto_tac)
+done
+
+text {* I don't think the following statement is provable... *}
 
 lemma weakest_prespec:
   "\<lbrakk>P \<in> WF_RELATION; Q \<in> WF_RELATION; S \<in> WF_RELATION \<rbrakk> \<Longrightarrow>

@@ -266,6 +266,19 @@ theorem TrueP_right_annihilator_unique:
   using assms
   by (utp_xrel_auto_tac, metis (lifting) prod_caseI2)
 
+text {* A precondition followed by a postcondition is a conjunction *}
+
+theorem SemiR_COND_POSTCOND:
+  assumes 
+    "p \<in> WF_CONDITION" "q \<in> WF_POSTCOND"
+  shows "p ; q = p \<and>\<^sub>p q"
+proof -
+  from assms have "p ; true = p" "true ; q = q"
+    by (auto dest:SemiR_TrueP_precond SemiR_TrueP_postcond)
+  with assms show ?thesis
+    by (utp_xrel_auto_tac)
+qed
+
 text {* This somewhat odd looking property derives from Relation Algebra. It is used,
         for instance, in the theory of designs. *}
 

@@ -744,6 +744,13 @@ theorem ConvR_rel_closure [closure] :
 "\<lbrakk> p \<in> WF_RELATION \<rbrakk> \<Longrightarrow> p\<^sup>\<smile> \<in> WF_RELATION"
   by (auto intro:unrest simp add:ConvR_def WF_RELATION_def urename)
 
+lemma PrimeP_WF_CONDITION_WF_POSTCOND [closure]:
+  "p \<in> WF_CONDITION \<Longrightarrow> p\<acute> \<in> WF_POSTCOND"
+  apply (simp add:WF_CONDITION_def WF_POSTCOND_def)
+  apply (simp add:closure)
+  apply (auto simp add:ConvR_def unrest urename)
+done
+
 lemma VarP_rel_closure [closure]:
   "x \<in> REL_VAR \<Longrightarrow> $\<^sub>px \<in> WF_RELATION"
   by (auto intro:unrest simp add:WF_RELATION_def)

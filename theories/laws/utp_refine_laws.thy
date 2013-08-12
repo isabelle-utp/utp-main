@@ -24,36 +24,50 @@ imports
   utp_rel_laws
 begin
 
-lemma RefineP_TrueP_refine [refine]:
+theorem RefineP_TrueP_refine [refine]:
   "true \<sqsubseteq> P"
   by (utp_pred_tac)
 
-lemma RefineP_FalseP_refine [refine]:
+theorem RefineP_FalseP_refine [refine]:
   "P \<sqsubseteq> false"
   by (utp_pred_tac)
 
-lemma RefineP_CondR:
+theorem RefineP_CondR:
   "P \<sqsubseteq> Q \<lhd> b \<rhd> R \<longleftrightarrow> `P \<sqsubseteq> b \<and> Q` \<and> `P \<sqsubseteq> \<not> b \<and> R`"
   by (utp_pred_auto_tac)
 
-lemma RefineP_CondR_refine [refine]:
+theorem RefineP_CondR_refine [refine]:
   "\<lbrakk> P \<sqsubseteq> `b \<and> Q`; P \<sqsubseteq> `\<not> b \<and> R` \<rbrakk> \<Longrightarrow> P \<sqsubseteq> Q \<lhd> b \<rhd> R"
   by (utp_pred_auto_tac)
 
-lemma RefineP_choice1:
+theorem RefineP_choice1:
   "(P \<sqinter> Q) \<sqsubseteq> (P :: 'a WF_PREDICATE)"
   by (utp_pred_tac)
 
-lemma RefineP_choice2:
+theorem RefineP_choice2:
   "(P \<sqinter> Q) \<sqsubseteq> (Q :: 'a WF_PREDICATE)"
   by (utp_pred_tac)
 
-lemma RefineP_seperation:
+theorem RefineP_seperation:
   "`P \<and> Q` \<sqsubseteq> R \<longleftrightarrow> (P \<sqsubseteq> R) \<and> (Q \<sqsubseteq> R)"
   by (utp_pred_auto_tac)
 
-lemma RefineP_seperation_refine [refine]:
+theorem RefineP_seperation_refine [refine]:
   "\<lbrakk> P \<sqsubseteq> R; Q \<sqsubseteq> R \<rbrakk> \<Longrightarrow> `P \<and> Q` \<sqsubseteq> R"
   by (utp_pred_auto_tac)
+
+theorem SemiR_step_refine [refine]:
+  "\<lbrakk> P1 \<sqsubseteq> P2; Q1 \<sqsubseteq> Q2 \<rbrakk> \<Longrightarrow> P1 ; Q1 \<sqsubseteq> P2 ; Q2"
+  by (utp_rel_auto_tac)
+
+theorem SemiR_spec_inter_refine:
+  assumes "p \<in> WF_CONDITION" "q \<in> WF_CONDITION" "r \<in> WF_CONDITION"
+  shows "`p \<Rightarrow> r\<acute>` \<sqsubseteq> `(p \<Rightarrow> q\<acute>) ; (q \<Rightarrow> r\<acute>)`"
+proof -
+  from assms have "p ; true = p" "q ; true = q" "r ; true = r"
+    by (auto dest:SemiR_TrueP_precond)
+  with assms show ?thesis
+    by (utp_xrel_auto_tac)
+qed
 
 end

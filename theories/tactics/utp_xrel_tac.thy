@@ -241,7 +241,6 @@ lemma EvalRX_refinement_intro:
   apply (metis EvalP_WF_RELATION binding_equiv_comm)
 done
 
-
 lemma EvalRX_inverse [simp]:
   "p \<in> WF_RELATION \<Longrightarrow> IEvalRX (EvalRX p) = p"
   apply (auto simp add: EvalRX_def IEvalRX_def WF_RELATION_def UNREST_def)
@@ -262,8 +261,19 @@ lemma EvalRX_simp [evalrx]:
   by (rule, simp, rule EvalRX_intro, simp_all)
 
 lemma EvalRX_refinement [evalrx]: 
-  "\<lbrakk>p1 \<in> WF_RELATION; p2 \<in> WF_RELATION \<rbrakk> \<Longrightarrow> p \<sqsubseteq> q \<longleftrightarrow> \<lbrakk>q\<rbrakk>R \<subseteq> \<lbrakk>p\<rbrakk>R"
-  by (metis EvalR_refinement)
+  "\<lbrakk>p1 \<in> WF_RELATION; p2 \<in> WF_RELATION \<rbrakk> \<Longrightarrow> p1 \<sqsubseteq> p2 \<longleftrightarrow> \<lbrakk>p2\<rbrakk>RX \<subseteq> \<lbrakk>p1\<rbrakk>RX"
+  apply (auto)
+  apply (force simp add:EvalR_as_EvalP less_eq_WF_PREDICATE_def eval)
+  apply (force intro:EvalRX_refinement_intro)
+done
+
+lemma EvalRX_refp [evalrx]: 
+  "\<lbrakk>p1 \<in> WF_RELATION; p2 \<in> WF_RELATION \<rbrakk> \<Longrightarrow> p1 \<sqsubseteq>\<^sub>p p2 \<longleftrightarrow> \<lbrakk>p2\<rbrakk>RX \<subseteq> \<lbrakk>p1\<rbrakk>RX"
+  by (metis EvalRX_refinement less_eq_WF_PREDICATE_def)
+
+lemma EvalRX_implies [evalrx]: 
+  "\<lbrakk>p1 \<in> WF_RELATION; p2 \<in> WF_RELATION \<rbrakk> \<Longrightarrow> [p2 \<Rightarrow>\<^sub>p p1]\<^sub>p \<longleftrightarrow> \<lbrakk>p2\<rbrakk>RX \<subseteq> \<lbrakk>p1\<rbrakk>RX"
+  by (metis EvalRX_refp RefP_def)
 
 lemma EvalRX_TrueP [evalrx]: "\<lbrakk>true\<rbrakk>RX = UNIV"
   apply (auto simp add:EvalRX_def image_def TrueP.rep_eq)
