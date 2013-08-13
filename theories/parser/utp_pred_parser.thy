@@ -83,6 +83,8 @@ syntax (xsymbols)
   "_upred_Sup"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("\<Squnion>_" [900] 900)
   "_upred_wfp"      :: "pttrn \<Rightarrow> upred \<Rightarrow> upred" ("(3\<mu>_./ _)" [0, 10] 10)
   "_upred_sfp"      :: "pttrn \<Rightarrow> upred \<Rightarrow> upred" ("(3\<nu>_./ _)" [0, 10] 10)
+  "_upred_star"     :: "upred \<Rightarrow> upred" ("_\<^sup>\<star>" [101] 100)
+  "_upred_while"    :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("while _ do _ od")
   "_upred_cond"     :: "upred \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("_ \<lhd> _ \<rhd> _")
   "_upred_assigna"  :: "'a VAR \<Rightarrow> 'a VAR set \<Rightarrow> uexpr \<Rightarrow> upred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
   "_upred_assign"   :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> upred" ("_ := _" [100] 100)
@@ -125,6 +127,8 @@ translations
   "_upred_Sup p q"  == "CONST Inf p q"
   "_upred_wfp x p"  == "CONST WFP (\<lambda>x. p)"
   "_upred_sfp x p"  == "CONST SFP (\<lambda>x. p)"
+  "_upred_star p"   == "p\<^sup>\<star>"
+  "_upred_while b p"   == "CONST IterP b p"
   "_upred_cond p q r"  == "CONST CondR p q r"
   "_upred_assign x e"  == "CONST PAssignR x e"
   "_upred_assigna x xs e" == "CONST AssignRA x xs e"

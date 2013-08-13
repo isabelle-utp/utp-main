@@ -47,6 +47,15 @@ theorem HoareP_OrP:
   apply (simp add:HoareP_def urename)
   apply (utp_pred_auto_tac)
 done
+
+theorem HoareP_TrueR:
+  "`p{Q}true`"
+  by (metis ConvR_TrueP HoareP_intro RefineP_TrueP_refine utp_pred_simps(14))
+
+theorem HoareP_SkipR:
+  assumes "p \<in> WF_CONDITION"
+  shows "`p{II}p`"
+  using assms by (utp_xrel_auto_tac)
   
 theorem HoareP_SemiR:
   assumes 
@@ -68,5 +77,17 @@ proof
     apply (simp_all add:assms)
   done
 qed
+
+theorem HoareP_IterP:
+  assumes "p \<in> WF_CONDITION" "b \<in> WF_CONDITION" "S \<in> WF_RELATION"
+    "`(p \<and> b){S}p`"
+  shows "`p{while b do S od}(\<not>b \<and> p)`"
+  using assms
+    apply (rule_tac HoareP_intro)
+    apply (frule_tac SemiR_TrueP_precond)
+    apply (frule_tac SemiR_TrueP_precond) back
+    apply (simp add:IterP_def)
+    apply (utp_xrel_auto_tac)
+oops
 
 end

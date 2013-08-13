@@ -151,11 +151,32 @@ lemma "\<lbrakk>\<mu> F\<rbrakk>R = gfp (\<lambda>x. \<lbrakk>F (IEvalR x)\<rbra
   apply (auto simp add:EvalR_def)
 *)
 
+lemma OneP_closure [closure]:
+  "1 \<in> WF_RELATION"
+  by (simp add:one_WF_PREDICATE_def closure)
+
+lemma TimesP_closure [closure]:
+  "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> P\<cdot>Q \<in> WF_RELATION"
+  by (simp add:times_WF_PREDICATE_def closure)
+
+lemma PowerP_closure [closure]:
+  fixes P :: "'a WF_PREDICATE"
+  assumes "P \<in> WF_RELATION"
+  shows "P^n \<in> WF_RELATION"
+  by (induct n, simp_all add:closure assms)
+  
 lemma EvalRR_power [evalrr]:
   "\<lbrakk>P^n\<rbrakk>\<R> = \<lbrakk>P\<rbrakk>\<R> ^^ n"
   apply (induct n)
   apply (simp add:one_WF_PREDICATE_def evalrr)
   apply (simp add:times_WF_PREDICATE_def evalrr relpow_commute)
+done
+
+lemma EvalRX_power [evalrx]:
+  "P \<in> WF_RELATION \<Longrightarrow> \<lbrakk>P^n\<rbrakk>RX = \<lbrakk>P\<rbrakk>RX ^^ n"
+  apply (induct n)
+  apply (simp add:one_WF_PREDICATE_def evalrx)
+  apply (simp add:times_WF_PREDICATE_def evalrx closure relpow_commute)
 done
 
 lemma UNREST_PowerP [unrest]: "UNREST NON_REL_VAR p \<Longrightarrow> UNREST NON_REL_VAR (p ^ n)"
@@ -175,13 +196,30 @@ instance ..
 
 end
 
+lemma StarP_closure [closure]:
+  "P \<in> WF_RELATION \<Longrightarrow> P\<^sup>\<star> \<in> WF_RELATION"
+  by (auto intro:closure simp add:star_WF_PREDICATE_def)
+
 lemma EvalRR_StarP: "\<lbrakk>P\<^sup>\<star>\<rbrakk>\<R> = \<lbrakk>P\<rbrakk>\<R>\<^sup>*"
   apply (auto simp add: rtrancl_is_UN_relpow star_WF_PREDICATE_def evalrr)
   apply (metis EvalRR_power)
 done
+
+lemma EvalRX_StarP [evalrx]: 
+  "P \<in> WF_RELATION \<Longrightarrow> \<lbrakk>P\<^sup>\<star>\<rbrakk>RX = \<lbrakk>P\<rbrakk>RX\<^sup>*"
+  apply (auto simp add: rtrancl_is_UN_relpow star_WF_PREDICATE_def evalrx closure)
+  apply (metis EvalRX_power)
+done
+
 lemma EvalRR_StarP_Union: "\<lbrakk>P\<^sup>\<star>\<rbrakk>\<R> = (\<Union>n. (\<lbrakk>P\<rbrakk>\<R> ^^ n))"
   apply (auto simp add: rtrancl_is_UN_relpow star_WF_PREDICATE_def evalrr)
   apply (metis EvalRR_power)
+done
+
+lemma EvalRX_StarP_Union: 
+  "P \<in> WF_RELATION \<Longrightarrow> \<lbrakk>P\<^sup>\<star>\<rbrakk>RX = (\<Union>n. (\<lbrakk>P\<rbrakk>RX ^^ n))"
+  apply (auto simp add: rtrancl_is_UN_relpow star_WF_PREDICATE_def evalrx closure)
+  apply (metis EvalRX_power)
 done
 
 lemma UNREST_StarP [unrest]: "UNREST NON_REL_VAR p \<Longrightarrow> UNREST NON_REL_VAR (p\<^sup>\<star>)"
@@ -247,7 +285,7 @@ definition
 "IterP b P \<equiv> (P \<lhd> b \<rhd> II)\<^sup>\<star>"
 
 declare EvalRR_StarP [evalrr]
-declare IterP_def [eval, evalr, evalrr]
+declare IterP_def [eval, evalr, evalrr, evalrx]
 
 lemma IterP_false: "while false do P od = II"
   by (simp add:evalrr)
