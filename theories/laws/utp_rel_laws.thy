@@ -1146,6 +1146,14 @@ proof -
     by utp_xrel_auto_tac
 qed
 
+theorem CondR_true_cond:
+  "b \<and>\<^sub>p (P \<lhd> b \<rhd> Q) = b \<and>\<^sub>p P"
+  by (utp_pred_auto_tac)
+
+theorem CondR_false_cond:
+  "\<not>\<^sub>p b \<and>\<^sub>p (P \<lhd> b \<rhd> Q) = \<not>\<^sub>p b \<and>\<^sub>p Q"
+  by (utp_pred_auto_tac)
+
 lemma CondR_VarP_aux:
   "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> \<Longrightarrow> P \<lhd> $\<^sub>px \<rhd> Q = (P[TrueE/\<^sub>px]) \<lhd> $\<^sub>px \<rhd> (Q[FalseE/\<^sub>px])"
   apply (rule_tac BoolType_aux_var_split_eq_intro[of x])

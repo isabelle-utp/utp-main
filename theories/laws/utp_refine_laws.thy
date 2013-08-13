@@ -56,7 +56,15 @@ theorem RefineP_seperation_refine [refine]:
   "\<lbrakk> P \<sqsubseteq> R; Q \<sqsubseteq> R \<rbrakk> \<Longrightarrow> `P \<and> Q` \<sqsubseteq> R"
   by (utp_pred_auto_tac)
 
-theorem SemiR_step_refine [refine]:
+theorem AndP_mono_refine [refine]:
+  "\<lbrakk> P1 \<sqsubseteq> P2; Q1 \<sqsubseteq> Q2 \<rbrakk> \<Longrightarrow> P1 \<and>\<^sub>p Q1 \<sqsubseteq> P2 \<and>\<^sub>p Q2"
+  by (utp_pred_tac)
+
+theorem OrP_mono_refine [refine]:
+  "\<lbrakk> P1 \<sqsubseteq> P2; Q1 \<sqsubseteq> Q2 \<rbrakk> \<Longrightarrow> P1 \<or>\<^sub>p Q1 \<sqsubseteq> P2 \<or>\<^sub>p Q2"
+  by (utp_pred_tac)
+
+theorem SemiR_mono_refine [refine]:
   "\<lbrakk> P1 \<sqsubseteq> P2; Q1 \<sqsubseteq> Q2 \<rbrakk> \<Longrightarrow> P1 ; Q1 \<sqsubseteq> P2 ; Q2"
   by (utp_rel_auto_tac)
 

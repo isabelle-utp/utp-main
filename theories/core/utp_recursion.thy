@@ -4,13 +4,12 @@
 (* Author: Simon Foster and Frank Zeyda, University of York (UK)              *)
 (******************************************************************************)
 
-header {* Constructs for Recursion and Iteration *}
+header {* Constructs for Recursion *}
 
 theory utp_recursion
 imports 
   utp_lattice
   "../laws/utp_rel_laws"
-(*  "../algebra/Kleene_Algebra/Kleene_Algebras" *)
 begin
 
 subsection {* Fixed Points *}
@@ -42,6 +41,14 @@ syntax (xsymbols)
 
 translations
   "NU x. P" == "CONST SFP (%x. P)"
+
+syntax
+  "_upred_wfp"      :: "pttrn \<Rightarrow> upred \<Rightarrow> upred" ("(3\<mu>_./ _)" [0, 10] 10)
+  "_upred_sfp"      :: "pttrn \<Rightarrow> upred \<Rightarrow> upred" ("(3\<nu>_./ _)" [0, 10] 10)
+
+translations
+  "_upred_wfp x p"  == "CONST WFP (\<lambda>x. p)"
+  "_upred_sfp x p"  == "CONST SFP (\<lambda>x. p)"
 
 lemma WFP: "F(Y) \<sqsubseteq> Y \<Longrightarrow> \<mu> F \<sqsubseteq> Y"
   by (metis gfp_upperbound)
@@ -136,160 +143,5 @@ proof -
   with assms show ?thesis
     by (utp_pred_auto_tac)
 qed
-
-text {* Relational Iteration (Kleene Star) *}
-
-(*
-lemma "\<lbrakk>\<mu> F\<rbrakk>R = gfp (\<lambda>x. \<lbrakk>F (IEvalR x)\<rbrakk>R)"
-  apply (simp add:gfp_def evalr)
-  apply (force)
-  apply (rule_tac f="Union" in cong)
-  apply (auto)
-  apply (metis (lifting) IEvalR_inverse set_rev_mp)
-  apply (rule_tac x="IEvalR x" in exI)
-  apply (rule)
-  apply (auto simp add:EvalR_def)
-*)
-
-lemma OneP_closure [closure]:
-  "1 \<in> WF_RELATION"
-  by (simp add:one_WF_PREDICATE_def closure)
-
-lemma TimesP_closure [closure]:
-  "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> P\<cdot>Q \<in> WF_RELATION"
-  by (simp add:times_WF_PREDICATE_def closure)
-
-lemma PowerP_closure [closure]:
-  fixes P :: "'a WF_PREDICATE"
-  assumes "P \<in> WF_RELATION"
-  shows "P^n \<in> WF_RELATION"
-  by (induct n, simp_all add:closure assms)
-  
-lemma EvalRR_power [evalrr]:
-  "\<lbrakk>P^n\<rbrakk>\<R> = \<lbrakk>P\<rbrakk>\<R> ^^ n"
-  apply (induct n)
-  apply (simp add:one_WF_PREDICATE_def evalrr)
-  apply (simp add:times_WF_PREDICATE_def evalrr relpow_commute)
-done
-
-lemma EvalRX_power [evalrx]:
-  "P \<in> WF_RELATION \<Longrightarrow> \<lbrakk>P^n\<rbrakk>RX = \<lbrakk>P\<rbrakk>RX ^^ n"
-  apply (induct n)
-  apply (simp add:one_WF_PREDICATE_def evalrx)
-  apply (simp add:times_WF_PREDICATE_def evalrx closure relpow_commute)
-done
-
-lemma UNREST_PowerP [unrest]: "UNREST NON_REL_VAR p \<Longrightarrow> UNREST NON_REL_VAR (p ^ n)"
-  apply (induct n)
-  apply (simp add:unrest one_WF_PREDICATE_def)
-  apply (simp add:times_WF_PREDICATE_def)
-  apply (force intro:unrest)
-done
-
-instantiation WF_PREDICATE :: (VALUE) star_op
-begin
-
-definition star_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"star_WF_PREDICATE p \<equiv> (\<Sqinter> { p ^ n | n. n \<in> UNIV})"
-
-instance ..
-
-end
-
-lemma StarP_closure [closure]:
-  "P \<in> WF_RELATION \<Longrightarrow> P\<^sup>\<star> \<in> WF_RELATION"
-  by (auto intro:closure simp add:star_WF_PREDICATE_def)
-
-lemma EvalRR_StarP: "\<lbrakk>P\<^sup>\<star>\<rbrakk>\<R> = \<lbrakk>P\<rbrakk>\<R>\<^sup>*"
-  apply (auto simp add: rtrancl_is_UN_relpow star_WF_PREDICATE_def evalrr)
-  apply (metis EvalRR_power)
-done
-
-lemma EvalRX_StarP [evalrx]: 
-  "P \<in> WF_RELATION \<Longrightarrow> \<lbrakk>P\<^sup>\<star>\<rbrakk>RX = \<lbrakk>P\<rbrakk>RX\<^sup>*"
-  apply (auto simp add: rtrancl_is_UN_relpow star_WF_PREDICATE_def evalrx closure)
-  apply (metis EvalRX_power)
-done
-
-lemma EvalRR_StarP_Union: "\<lbrakk>P\<^sup>\<star>\<rbrakk>\<R> = (\<Union>n. (\<lbrakk>P\<rbrakk>\<R> ^^ n))"
-  apply (auto simp add: rtrancl_is_UN_relpow star_WF_PREDICATE_def evalrr)
-  apply (metis EvalRR_power)
-done
-
-lemma EvalRX_StarP_Union: 
-  "P \<in> WF_RELATION \<Longrightarrow> \<lbrakk>P\<^sup>\<star>\<rbrakk>RX = (\<Union>n. (\<lbrakk>P\<rbrakk>RX ^^ n))"
-  apply (auto simp add: rtrancl_is_UN_relpow star_WF_PREDICATE_def evalrx closure)
-  apply (metis EvalRX_power)
-done
-
-lemma UNREST_StarP [unrest]: "UNREST NON_REL_VAR p \<Longrightarrow> UNREST NON_REL_VAR (p\<^sup>\<star>)"
-  by (auto intro:unrest simp add:star_WF_PREDICATE_def)
-
-instantiation WF_PREDICATE :: (VALUE) dioid
-begin
-
-instance
-  apply (intro_classes)
-  apply (simp_all add:plus_WF_PREDICATE_def times_WF_PREDICATE_def 
-                      zero_WF_PREDICATE_def one_WF_PREDICATE_def
-                      less_WF_PREDICATE_def)
-  apply (utp_pred_auto_tac)+
-done
-end
-
-instantiation WF_PREDICATE :: (VALUE) kleene_algebra
-begin
-
-instance proof
-
-  fix x :: "'a WF_PREDICATE"
-  show "x\<^sup>\<star> \<sqsubseteq> 1 + x \<cdot> x\<^sup>\<star>"
-    by (auto simp add: evalrr EvalRR_StarP)
-
-next
-
-  fix x y z :: "'a WF_PREDICATE"
-  show "y \<sqsubseteq> z + x \<cdot> y \<longrightarrow> y \<sqsubseteq> x\<^sup>\<star> \<cdot> z"
-    apply (simp add: evalrr EvalRR_StarP)
-    apply (metis rel_dioid.add_lub rel_kleene_algebra.star_inductl)
-  done
-
-next
-
-  fix x y z :: "'a WF_PREDICATE"
-  show "y \<sqsubseteq> z + y \<cdot> x \<longrightarrow> y \<sqsubseteq> z \<cdot> x\<^sup>\<star>"
-    apply (simp add: evalrr EvalRR_StarP)
-    apply (metis Un_least rel_kleene_algebra.star_inductr)
-  done
-
-qed (simp_all add: evalrr)
-end
-
-lemma StarP_mono: "mono (\<lambda> x. (II \<or>\<^sub>p (p ; x)))"
-  apply (rule)
-  apply (utp_rel_auto_tac)
-done
-lemma StarP_WFP1: "(\<mu> X \<bullet> II \<or>\<^sub>p (P ; X)) \<sqsubseteq> P\<^sup>\<star>"
-  apply (auto simp add:evalrr EvalRR_StarP gfp_def)
-  apply (metis EvalRR_StarP rel_kleene_algebra.star_unfoldl_eq subset_refl)
-done
-
-lemma StarP_WFP2: "P\<^sup>\<star> \<sqsubseteq> (\<mu> X \<bullet> II \<or>\<^sub>p (P ; X))"
-  apply (auto simp add:evalrr EvalRR_StarP_Union gfp_def)
-oops
-
-definition 
-  IterP :: " 'a WF_PREDICATE 
-           \<Rightarrow> 'a WF_PREDICATE 
-           \<Rightarrow> 'a WF_PREDICATE" ("while _ do _ od") where
-"IterP b P \<equiv> (P \<lhd> b \<rhd> II)\<^sup>\<star>"
-
-declare EvalRR_StarP [evalrr]
-declare IterP_def [eval, evalr, evalrr, evalrx]
-
-lemma IterP_false: "while false do P od = II"
-  by (simp add:evalrr)
-lemma IterP_true: "while true do P od = P\<^sup>\<star>"
-  by (simp add:evalrr)
 
 end

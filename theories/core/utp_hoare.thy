@@ -10,6 +10,7 @@ theory utp_hoare
 imports 
   utp_lattice 
   utp_recursion
+  utp_iteration
   "../laws/utp_pred_laws"
   "../laws/utp_rel_laws"
   "../laws/utp_refine_laws"
@@ -70,7 +71,7 @@ proof
 
   thus "`(p \<Rightarrow> r\<acute>)` \<sqsubseteq> `Q1 ; Q2`"
     apply (rule_tac order_trans)
-    apply (rule SemiR_step_refine)
+    apply (rule SemiR_mono_refine)
     apply (assumption)
     apply (assumption)
     apply (rule SemiR_spec_inter_refine)

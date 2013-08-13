@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
 (* File: utp_lattice.thy                                                      *)
-(* Author: Frank Zeyda, University of York (UK)                               *)
+(* Author: Simon Foster, University of York (UK)                              *)
 (******************************************************************************)
 
 header {* Predicate Lattice *}
@@ -15,6 +15,7 @@ imports
   "../tactics/utp_pred_tac" 
   "../tactics/utp_rel_tac"
   "../tactics/utp_xrel_tac"
+  "../parser/utp_pred_parser"
 begin
 
 notation
@@ -45,6 +46,18 @@ declare inf_WF_PREDICATE_def [eval,evalr,evalrx]
 notation
   bot ("\<top>") and
   top ("\<bottom>")
+
+syntax
+  "_upred_inf"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "\<sqinter>" 65)
+  "_upred_sup"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "\<squnion>" 70)
+  "_upred_Inf"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("\<Sqinter>_" [900] 900)
+  "_upred_Sup"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("\<Squnion>_" [900] 900)
+
+translations
+  "_upred_inf p q"  == "CONST sup p q"
+  "_upred_sup p q"  == "CONST inf p q"
+  "_upred_Inf p q"  == "CONST Sup p q"
+  "_upred_Sup p q"  == "CONST Inf p q"
 
 instantiation WF_PREDICATE :: (VALUE) bounded_lattice
 begin
@@ -372,34 +385,6 @@ lemma SkipRA_SupP_def:
      II\<^bsub>vs\<^esub> = \<Squnion> { $\<^sub>ex\<acute> ==\<^sub>p $\<^sub>ex | x. x \<in> in vs}"
   apply (auto simp add:SkipRA_rep_eq_alt Inf_WF_PREDICATE_def UNDASHED_nempty EqualP_def VarE.rep_eq top_WF_PREDICATE_def TrueP_def)
   apply (metis (lifting, full_types) LiftP.rep_eq destPRED_inverse mem_Collect_eq)
-done
-
-definition AssumeR ::
-"'VALUE WF_PREDICATE \<Rightarrow>
- 'VALUE WF_PREDICATE" ("_\<^sup>\<top>" [200] 200) where
-"c\<^sup>\<top> \<equiv> II \<lhd> c \<rhd> \<top>"
-
-definition AssertR ::
-"'VALUE WF_PREDICATE \<Rightarrow>
- 'VALUE WF_PREDICATE" ("_\<^sub>\<bottom>" [200] 200) where
-"c\<^sub>\<bottom> \<equiv> II \<lhd> c \<rhd> \<bottom>"
-
-lemma UNREST_AssumeR_DASHED_TWICE [unrest]:
-  "UNREST DASHED_TWICE c \<Longrightarrow> UNREST DASHED_TWICE (c\<^sup>\<top>)"
-  by (force intro:unrest simp add: AssumeR_def)
-
-lemma UNREST_AssertR_DASHED_TWICE [unrest]:
-  "UNREST DASHED_TWICE c \<Longrightarrow> UNREST DASHED_TWICE (c\<^sub>\<bottom>)"
-  by (force intro:unrest simp add: AssertR_def)
-
-declare AssumeR_def [eval, evalr, evalrr, evalrx]
-declare AssertR_def [eval, evalr, evalrr, evalrx]
-
-lemma AssertR_SemiR:
-  "\<lbrakk> b \<in> WF_CONDITION; c \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> b\<^sub>\<bottom> ; c\<^sub>\<bottom> = (b \<and>\<^sub>p c)\<^sub>\<bottom>"
-  apply (frule SemiR_TrueP_precond, frule SemiR_TrueP_precond) back
-  apply (simp add:evalrx closure relcomp_unfold)
-  apply (auto)
 done
 
 end

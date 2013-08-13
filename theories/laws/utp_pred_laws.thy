@@ -329,6 +329,10 @@ ML {*
 
 setup ucases.setup
 
+theorem WF_PREDICATE_cases:
+  "P = (b \<and>\<^sub>p P) \<or>\<^sub>p (\<not>\<^sub>pb \<and>\<^sub>p P)"
+  by (utp_pred_auto_tac)
+
 text {* A generic law for case splitting a variables *}
 
 lemma utp_case_split_eq:
