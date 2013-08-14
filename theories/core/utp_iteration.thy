@@ -59,6 +59,17 @@ instance ..
 
 end
 
+context kleene_algebra
+begin
+
+definition star1 :: "'a \<Rightarrow> 'a" ("_\<^sup>+" [101] 100) where
+"star1 p = p\<cdot>p\<^sup>\<star>"
+
+end
+
+
+declare star1_def [eval,evalr,evalrr,evalrx]
+
 syntax
   "_upred_star"     :: "upred \<Rightarrow> upred" ("_\<^sup>\<star>" [101] 100)
 
@@ -134,18 +145,25 @@ next
 qed (simp_all add: evalrr)
 end
 
+lemma Star1P_closure [closure]:
+  "P \<in> WF_RELATION \<Longrightarrow> P\<^sup>+ \<in> WF_RELATION"
+  by (auto intro:closure simp add:star1_def)
+
 lemma StarP_mono: "mono (\<lambda> x. (II \<or>\<^sub>p (p ; x)))"
   apply (rule)
   apply (utp_rel_auto_tac)
 done
-lemma StarP_WFP1: "(\<mu> X \<bullet> II \<or>\<^sub>p (P ; X)) \<sqsubseteq> P\<^sup>\<star>"
+lemma StarP_WFP: "(\<mu> X \<bullet> II \<or>\<^sub>p (P ; X)) \<sqsubseteq> P\<^sup>\<star>"
   apply (auto simp add:evalrr EvalRR_StarP gfp_def)
   apply (metis EvalRR_StarP rel_kleene_algebra.star_unfoldl_eq subset_refl)
 done
-
-lemma StarP_WFP2: "P\<^sup>\<star> \<sqsubseteq> (\<mu> X \<bullet> II \<or>\<^sub>p (P ; X))"
-  apply (auto simp add:evalrr EvalRR_StarP_Union gfp_def)
-oops
+lemma StarP_SFP: "P\<^sup>\<star> \<sqsubseteq> (\<nu> X \<bullet> II \<or>\<^sub>p (P ; X))"
+  apply (subgoal_tac "{u. Id \<subseteq> \<lbrakk>u\<rbrakk>\<R> \<and> \<lbrakk>P\<rbrakk>\<R> O \<lbrakk>u\<rbrakk>\<R> \<subseteq> \<lbrakk>u\<rbrakk>\<R>} \<noteq> {}")
+  apply (auto simp add:evalrr EvalRR_StarP lfp_def)
+  apply (metis EvalRR_StarP rel_kleene_algebra.star_1l rel_kleene_algebra.star_ref)
+  apply (rule_tac x="true" in exI)
+  apply (metis EvalRR_SemiR EvalRR_SkipR EvalRR_refinement RefineP_TrueP_refine)
+done
 
 definition 
   IterP :: " 'a WF_PREDICATE 

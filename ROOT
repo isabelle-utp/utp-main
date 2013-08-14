@@ -13,6 +13,7 @@ session "HOL-UTP-THY" in "theories/theories" = "HOL-UTP" +
   "utp_designs"
   "utp_definedness"
   "utp_reactive"
+  "utp_relations"
   files "document/root.tex"
   
 session "HOL-UTP-CML" in "theories/models/utp_cml" = "HOL-UTP-THY" +
@@ -65,6 +66,8 @@ session "isabelle-utp-tutorial" in "papers/isabelle-utp-tutorial" = "HOL-UTP-THY
     "proof_refinement_conditional"
     "proof_h1_left_zero"
     "proof_h1_left_unit"
+    "utp_pred_tac_proofs"
+    "utp_rel_tac_proofs"
     "utp_types"
   files "document/root.tex"
 
