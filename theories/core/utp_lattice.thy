@@ -339,8 +339,8 @@ instance
 done
 end
 
-declare times_WF_PREDICATE_def [eval, evalr, evalrr]
-declare one_WF_PREDICATE_def [eval, evalr, evalrr]
+declare times_WF_PREDICATE_def [eval, evalr, evalrr, evalrx]
+declare one_WF_PREDICATE_def [eval, evalr, evalrr, evalrx]
 
 instantiation WF_PREDICATE :: (VALUE) comm_monoid_add
 begin
@@ -360,8 +360,8 @@ instance
 done
 end
 
-declare plus_WF_PREDICATE_def [eval, evalr, evalrr]
-declare zero_WF_PREDICATE_def [eval, evalr, evalrr]
+declare plus_WF_PREDICATE_def [eval, evalr, evalrr, evalrx]
+declare zero_WF_PREDICATE_def [eval, evalr, evalrr, evalrx]
 
 instantiation WF_PREDICATE :: (VALUE) semiring_1
 begin

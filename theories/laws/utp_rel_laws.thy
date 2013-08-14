@@ -1212,4 +1212,24 @@ lemma WF_RELATION_UNREST_dash3 [unrest]:
   apply (auto simp add:NON_REL_VAR_def)
 done
 
+lemma EvalP_WF_RELATION_binding_equiv:
+  "\<lbrakk> p \<in> WF_RELATION; b1 \<cong> b2 on REL_VAR; \<lbrakk>p\<rbrakk>b1 \<rbrakk> 
+    \<Longrightarrow> \<lbrakk>p\<rbrakk>b2"
+  apply (auto simp add: WF_RELATION_def)
+  apply (rule utp_unrest.EvalP_UNREST_binding_equiv[of "REL_VAR"])
+  apply (auto intro:unrest)
+  apply (subgoal_tac "((VAR - REL_VAR) :: 'a VAR set) = (NON_REL_VAR)")
+  apply (auto intro:unrest)
+done
+
+lemma EvalP_WF_CONDITION_binding_equiv:
+  "\<lbrakk> p \<in> WF_CONDITION; b1 \<cong> b2 on UNDASHED; \<lbrakk>p\<rbrakk>b1 \<rbrakk> 
+    \<Longrightarrow> \<lbrakk>p\<rbrakk>b2"
+  apply (auto simp add: WF_CONDITION_def WF_RELATION_def)
+  apply (rule utp_unrest.EvalP_UNREST_binding_equiv[of "UNDASHED"])
+  apply (auto intro:unrest)
+  apply (subgoal_tac "((VAR - UNDASHED) :: 'a VAR set) = (NON_REL_VAR \<union> DASHED)")
+  apply (auto intro:unrest)
+done
+
 end

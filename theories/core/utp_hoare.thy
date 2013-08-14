@@ -57,6 +57,11 @@ theorem HoareP_SkipR:
   assumes "p \<in> WF_CONDITION"
   shows "`p{II}p`"
   using assms by (utp_xrel_auto_tac)
+
+theorem HoareP_CondR:
+  assumes "`(b \<and> p){S}q`" "`(\<not>b \<and> p){T}q`"
+  shows "`p{S \<lhd> b \<rhd> T}q`"
+  using assms by (utp_pred_auto_tac)
   
 theorem HoareP_SemiR:
   assumes 
@@ -79,70 +84,78 @@ proof
   done
 qed
 
-lemma (in left_near_kleene_algebra) star_rtc_least_intro:
-  "1 + x + y \<cdot> y \<le> y \<Longrightarrow> x\<^sup>\<star> \<le> y"
-  by (metis add_lub less_eq_def star_inductl_one star_subdist)
+theorem HoareP_AssignR:
+  assumes "p \<in> WF_CONDITION"
+   "x \<in> UNDASHED" "UNREST_EXPR DASHED v" "v \<rhd>\<^sub>e x"
+  shows "p[v/\<^sub>px]{x :=\<^sub>R v}\<^sub>pp"
+  using assms
+  apply (rule_tac HoareP_intro)
+  apply (utp_pred_auto_tac)
+  apply (simp add:ConvR_def eval urename)
+  apply (subgoal_tac "(SS\<bullet>b) \<cong> (b(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b)) on UNDASHED")
+  apply (drule_tac x="x" in bspec, simp)
+  apply (simp add:AssignF_upd_rep_eq EvalE_def)
 
-lemma IterP_unfold:
-  assumes "b \<in> WF_CONDITION" "S \<in> WF_RELATION"
-  shows "while b do S od = (S ; while b do S od) \<lhd> b \<rhd> II"
-proof -
-  have "`while b do S od` = `(while b do S od \<and> b) \<or> (while b do S od \<and> \<not>b)`"
-    by (metis AndP_comm WF_PREDICATE_cases)
+  apply (metis EvalP_WF_CONDITION_binding_equiv binding_equiv_comm)
+  apply (auto simp add:binding_equiv_def)
+  apply (case_tac "xa = x")
+  apply (simp add:typing urename AssignF_upd_rep_eq)
+  apply (drule_tac x="xa" in bspec, simp)
+  apply (simp add:typing urename AssignF_upd_rep_eq IdA.rep_eq VarE.rep_eq)
+done
 
-  also have "... = `((S \<and> b) ; while b do S od) \<or> (II \<and> \<not>b)`"
-    by (metis IterP_cond_false IterP_cond_true assms)
-
-  also have "... = (S ; while b do S od) \<lhd> b \<rhd> II"
-    by (metis AndP_comm CondR_def IterP_closure SemiR_AndP_left_precond WF_CONDITION_WF_RELATION assms)
-
-  finally show ?thesis .
-qed
-
-lemma SemiR_ImpliesP_idem:
-  "p \<in> WF_CONDITION \<Longrightarrow> `(p \<Rightarrow> p\<acute>) ; (p \<Rightarrow> p\<acute>)` = `(p \<Rightarrow> p\<acute>)`"
-  by (frule SemiR_TrueP_precond, utp_xrel_auto_tac)
+lemma (in left_near_kleene_algebra) 
+  star_inductl_one_intro: "1 + x \<cdot> y \<le> y \<Longrightarrow> x\<^sup>\<star> \<le> y"
+  by (metis star_inductl_one)
 
 theorem HoareP_IterP:
-  assumes "p \<in> WF_CONDITION" "b \<in> WF_CONDITION" "S \<in> WF_RELATION"
+  assumes 
+    "p \<in> WF_CONDITION" "b \<in> WF_CONDITION" "S \<in> WF_RELATION"
     "`(p \<and> b){S}p`"
   shows "`p{while b do S od}(\<not>b \<and> p)`"
-using assms
-    apply (rule_tac HoareP_intro)
-    apply (erule_tac HoareP_elim)
-    apply (simp add:IterP_def urename)
 proof -
-  from assms have "`p \<Rightarrow> p\<acute>` \<sqsubseteq> `(b \<and> S)\<^sup>\<star>`"
-    apply (rule_tac star_rtc_least_intro)
-    apply (simp add:one_WF_PREDICATE_def plus_WF_PREDICATE_def times_WF_PREDICATE_def)
-    apply (simp add:SemiR_ImpliesP_idem)
-    apply (utp_xrel_auto_tac)
-  done
+  from assms have S_ref: "`p \<and> b \<Rightarrow> p\<acute>` \<sqsubseteq> S"
+    by (force elim: HoareP_elim)
 
+  moreover have "`p \<Rightarrow> p\<acute>` \<sqsubseteq> `(b \<and> S)\<^sup>\<star>`"
+  proof -
+    have "`p \<and> (b \<and> S) ; (p \<Rightarrow> p\<acute>)` = `(p \<and> b \<and> S) ; (p \<Rightarrow> p\<acute>)`"
+      by (metis AndP_rel_closure ConvR_rel_closure ImpliesP_rel_closure SemiR_AndP_left_precond WF_CONDITION_WF_RELATION assms)
 
-proof 
-  have "while b do S od = (S ; while b do S od) \<lhd> b \<rhd> II"
-    by (metis IterP_unfold assms)
+    also from S_ref
+    have "... = `(p \<and> b \<and> S \<and> p\<acute>) ; (p \<Rightarrow> p\<acute>)`"
+      by (utp_rel_auto_tac)
 
-  also have "`p \<Rightarrow> (\<not> b \<and> p)\<acute>` \<sqsubseteq> ..."
-    apply (rule refine)
-    defer
-    using assms apply (utp_xrel_auto_tac)
-    thm star_rtc_least
-    using assms apply (utp_xrel_auto_tac)
+    also have "... = `(p \<and> b \<and> S) ; (p \<and> (p \<Rightarrow> p\<acute>))`"
+      by (metis (lifting, no_types) AndP_rel_closure ConvR_rel_closure ImpliesP_rel_closure SemiR_AndP_left_precond SemiR_AndP_right_precond WF_CONDITION_WF_RELATION assms(1) assms(2) assms(3))
 
-using assms
+    also have "... = `((p \<and> b \<and> S) ; (p \<and> p\<acute>))`"
+      by (utp_rel_auto_tac)
+
+    also have "... = `((p \<and> b \<and> S) ; p) \<and> p\<acute>`"
+      by (metis AndP_rel_closure PrimeP_WF_CONDITION_WF_POSTCOND SemiR_AndP_right_postcond WF_CONDITION_WF_RELATION assms)
+
+    also have "p\<acute> \<sqsubseteq> ..."
+      by (utp_pred_tac)
+
+    finally show ?thesis using assms
+      apply (rule_tac star_inductl_one_intro)
+      apply (simp add:plus_WF_PREDICATE_def times_WF_PREDICATE_def one_WF_PREDICATE_def)
+      apply (rule OrP_refine)
+      apply (utp_xrel_auto_tac)
+      apply (rule SemiR_spec_refine)
+      apply (simp)
+    done
+  qed
+
+  thus ?thesis
     apply (rule_tac HoareP_intro)
-    apply (erule_tac HoareP_elim)
-    apply (simp add:IterP_def)
-    apply (rule star_rtc_least_intro)
-    apply (simp add:plus_WF_PREDICATE_def times_WF_PREDICATE_def one_WF_PREDICATE_def)
-    thm star_rtc_least[of "S \<lhd> b \<rhd> II"]
-    thm star_inductl[of p]
-    apply (frule_tac SemiR_TrueP_precond)
-    apply (frule_tac SemiR_TrueP_precond) back
-    apply (simp add:IterP_def)
-    apply (utp_xrel_auto_tac)
-oops
+    apply (rule_tac SemiR_spec_refine)
+    apply (simp add:IterP_def urename)
+    apply (rule RefineP_seperation_refine)
+    apply (utp_pred_tac)
+    apply (utp_pred_tac)
+  done
+qed
 
 end
