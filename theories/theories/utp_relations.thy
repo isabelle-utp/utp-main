@@ -16,9 +16,15 @@ subsection {* Relational Healthiness Condition *}
 definition RELH :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 "RELH(P) = (\<exists>\<^sub>p NON_REL_VAR. P)"
 
+declare RELH_def [eval,evalr,evalrx]
+
 lemma RELH_idem:
   "RELH (RELH P) = RELH P"
   by (simp add:RELH_def eval)
+
+lemma RELH_mono:
+  "p \<sqsubseteq> q \<Longrightarrow> RELH p \<sqsubseteq> RELH q"
+  by (utp_pred_auto_tac)
 
 lemma RELH_WF_RELATION [closure]:
   "RELH P \<in> WF_RELATION"

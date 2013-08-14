@@ -155,4 +155,6 @@ term "\<parallel>{mk_prod($x : @int,$y : @int) | $x = $y}\<parallel>"
 
 term "|[1] : @seq1 of @int|"
 
+term "|iota x : @real @ ^x^ = 1|"
+
 end

@@ -106,6 +106,16 @@ definition ExistsD :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) 
 definition Exists1D :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
 "Exists1D xs f = MkPExpr (\<lambda> b. (Some (\<exists>! x \<in> xs. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)))"
 
+definition IotaD :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> 'a cmle" where 
+"IotaD xs f = MkPExpr (\<lambda> b. (if (\<exists>! x \<in> xs. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)
+                                then Some (THE x. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)
+                                else None))"
+
+definition EpsD :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> 'a cmle" where 
+"EpsD xs f = MkPExpr (\<lambda> b. (if (\<exists> x \<in> xs. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)
+                                then Some (SOME x. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)
+                                else None))"
+
 definition FunD :: "'a set \<Rightarrow> ('a option \<Rightarrow> 'b cmle) \<Rightarrow> 'a \<Rightarrow> 'b option" where
 "FunD t P = (\<lambda> x. \<lbrakk>P (Some x)\<rbrakk>\<^sub>*\<B>)"
 
@@ -245,6 +255,8 @@ syntax
   "_vexpr_forall"   :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ : _ @/ _)" [0, 0, 10] 10)
   "_vexpr_exists"   :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3exists _ : _ @/ _)" [0, 0, 10] 10)
   "_vexpr_exists1"  :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3exists1 _ : _ @/ _)" [0, 0, 10] 10)
+  "_vexpr_iota"     :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3iota _ : _ @/ _)" [0, 0, 10] 10)
+  "_vexpr_eps"      :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3eps _ : _ @/ _)" [0, 0, 10] 10)
   "_vexpr_coerce"   :: "pexpr \<Rightarrow> vty \<Rightarrow> pexpr" (infix ":" 50)
   "_vexpr_ifthen"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("if _ then _ else _")
   "_vexpr_hasType"  :: "pexpr \<Rightarrow> vty \<Rightarrow> pexpr" (infix "hasType" 50)
@@ -285,6 +297,8 @@ translations
   "_vexpr_forall x xs e"       == "CONST ForallD xs (\<lambda>x. e)"
   "_vexpr_exists x xs e"       == "CONST ExistsD xs (\<lambda>x. e)"
   "_vexpr_exists1 x xs e"      == "CONST Exists1D xs (\<lambda>x. e)"
+  "_vexpr_iota x xs e"         == "CONST IotaD xs (\<lambda>x. e)"
+  "_vexpr_eps x xs e"          == "CONST EpsD xs (\<lambda>x. e)"
   "_vexpr_coerce e t"          == "CONST CoerceD e t"
   "_vexpr_ifthen b x y"        == "CONST IfThenElseD b x y"
   "_vexpr_hasType e t"         == "CONST HasTypeD e t"

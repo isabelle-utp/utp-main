@@ -13,7 +13,7 @@ begin
 text {* This theory defines type synonyms for the various semantic domains. *}
 
 type_synonym 'VALUE ALPHABET =
-  "('VALUE VAR) fset"
+  "('VALUE VAR) set"
 
 type_synonym 'VALUE BINDING =
   "('VALUE VAR) \<Rightarrow> 'VALUE"
