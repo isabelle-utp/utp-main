@@ -79,12 +79,66 @@ proof
   done
 qed
 
+lemma (in left_near_kleene_algebra) star_rtc_least_intro:
+  "1 + x + y \<cdot> y \<le> y \<Longrightarrow> x\<^sup>\<star> \<le> y"
+  by (metis add_lub less_eq_def star_inductl_one star_subdist)
+
+lemma IterP_unfold:
+  assumes "b \<in> WF_CONDITION" "S \<in> WF_RELATION"
+  shows "while b do S od = (S ; while b do S od) \<lhd> b \<rhd> II"
+proof -
+  have "`while b do S od` = `(while b do S od \<and> b) \<or> (while b do S od \<and> \<not>b)`"
+    by (metis AndP_comm WF_PREDICATE_cases)
+
+  also have "... = `((S \<and> b) ; while b do S od) \<or> (II \<and> \<not>b)`"
+    by (metis IterP_cond_false IterP_cond_true assms)
+
+  also have "... = (S ; while b do S od) \<lhd> b \<rhd> II"
+    by (metis AndP_comm CondR_def IterP_closure SemiR_AndP_left_precond WF_CONDITION_WF_RELATION assms)
+
+  finally show ?thesis .
+qed
+
+lemma SemiR_ImpliesP_idem:
+  "p \<in> WF_CONDITION \<Longrightarrow> `(p \<Rightarrow> p\<acute>) ; (p \<Rightarrow> p\<acute>)` = `(p \<Rightarrow> p\<acute>)`"
+  by (frule SemiR_TrueP_precond, utp_xrel_auto_tac)
+
 theorem HoareP_IterP:
   assumes "p \<in> WF_CONDITION" "b \<in> WF_CONDITION" "S \<in> WF_RELATION"
     "`(p \<and> b){S}p`"
   shows "`p{while b do S od}(\<not>b \<and> p)`"
-  using assms
+using assms
     apply (rule_tac HoareP_intro)
+    apply (erule_tac HoareP_elim)
+    apply (simp add:IterP_def urename)
+proof -
+  from assms have "`p \<Rightarrow> p\<acute>` \<sqsubseteq> `(b \<and> S)\<^sup>\<star>`"
+    apply (rule_tac star_rtc_least_intro)
+    apply (simp add:one_WF_PREDICATE_def plus_WF_PREDICATE_def times_WF_PREDICATE_def)
+    apply (simp add:SemiR_ImpliesP_idem)
+    apply (utp_xrel_auto_tac)
+  done
+
+
+proof 
+  have "while b do S od = (S ; while b do S od) \<lhd> b \<rhd> II"
+    by (metis IterP_unfold assms)
+
+  also have "`p \<Rightarrow> (\<not> b \<and> p)\<acute>` \<sqsubseteq> ..."
+    apply (rule refine)
+    defer
+    using assms apply (utp_xrel_auto_tac)
+    thm star_rtc_least
+    using assms apply (utp_xrel_auto_tac)
+
+using assms
+    apply (rule_tac HoareP_intro)
+    apply (erule_tac HoareP_elim)
+    apply (simp add:IterP_def)
+    apply (rule star_rtc_least_intro)
+    apply (simp add:plus_WF_PREDICATE_def times_WF_PREDICATE_def one_WF_PREDICATE_def)
+    thm star_rtc_least[of "S \<lhd> b \<rhd> II"]
+    thm star_inductl[of p]
     apply (frule_tac SemiR_TrueP_precond)
     apply (frule_tac SemiR_TrueP_precond) back
     apply (simp add:IterP_def)

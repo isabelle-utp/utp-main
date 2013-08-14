@@ -62,7 +62,7 @@ end
 context kleene_algebra
 begin
 
-definition star1 :: "'a \<Rightarrow> 'a" ("_\<^sup>+" [101] 100) where
+definition star1 :: "'a \<Rightarrow> 'a" ("_\<^sup>+" [201] 200) where
 "star1 p = p\<cdot>p\<^sup>\<star>"
 
 end
@@ -71,7 +71,7 @@ end
 declare star1_def [eval,evalr,evalrr,evalrx]
 
 syntax
-  "_upred_star"     :: "upred \<Rightarrow> upred" ("_\<^sup>\<star>" [101] 100)
+  "_upred_star"     :: "upred \<Rightarrow> upred" ("_\<^sup>\<star>" [900] 900)
 
 translations
   "_upred_star p"   == "p\<^sup>\<star>"
@@ -169,7 +169,7 @@ definition
   IterP :: " 'a WF_PREDICATE 
            \<Rightarrow> 'a WF_PREDICATE 
            \<Rightarrow> 'a WF_PREDICATE" ("while _ do _ od") where
-"IterP b P \<equiv> (P \<lhd> b \<rhd> II)\<^sup>\<star>"
+"IterP b P \<equiv> ((b \<and>\<^sub>p P)\<^sup>\<star>) \<and>\<^sub>p (\<not>\<^sub>p b\<acute>)"
 
 syntax
   "_upred_while"    :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("while _ do _ od")
@@ -185,39 +185,65 @@ lemma IterP_closure [closure]:
      while b do P od \<in> WF_RELATION"
   by (simp add:IterP_def closure)
 
-theorem IterP_refine [refine]:
-  "while b do P od \<sqsubseteq> (P \<lhd> b \<rhd> II) ; (while b do P od)"
-  by (metis IterP_def star_1l times_WF_PREDICATE_def)
-  
 theorem IterP_false: "while false do P od = II"
   by (simp add:evalrr)
-theorem IterP_true: "while true do P od = P\<^sup>\<star>"
+
+theorem IterP_true: "while true do P od = false"
   by (simp add:evalrr)
 
-theorem IterP_cond_true_refine [refine]:
+theorem IterP_cond_true:
   assumes "b \<in> WF_CONDITION" "P \<in> WF_RELATION"
-  shows "`(while b do P od) \<and> b` \<sqsubseteq> `(P \<and> b) ; while b do P od`"
+  shows "`(while b do P od) \<and> b` = `(P \<and> b) ; while b do P od`"
 proof -
+  have "`while b do P od \<and> b` = `((b \<and> P)\<^sup>\<star> \<and> \<not>b\<acute>) \<and> b`"
+    by (simp add:IterP_def)
 
-  have "`while b do P od \<and> b` \<sqsubseteq> `((P \<lhd> b \<rhd> II) ; (while b do P od)) \<and> b`" (is "?l \<sqsubseteq> ?r")
-    by (metis AndP_mono_refine IterP_refine order_refl)
+  also have "... = `((II \<or> ((b \<and> P) ; (b \<and> P)\<^sup>\<star>)) \<and> \<not>b\<acute>) \<and> b`"
+    by (metis star_unfoldl_eq one_WF_PREDICATE_def plus_WF_PREDICATE_def times_WF_PREDICATE_def)
 
-  also have "?r = `b \<and> ((P \<lhd> b \<rhd> II) ; while b do P od)`"
-    by (metis AndP_comm)
+  also have "... = `((b \<and> (II \<or> ((b \<and> P) ; (b \<and> P)\<^sup>\<star>))) \<and> \<not>b\<acute>)`"
+    by (metis AndP_assoc AndP_comm)
 
-  also have "... = `((P \<and> b) ; while b do P od)`"
-    by (metis AndP_comm CondR_rel_closure CondR_true_cond IterP_closure SemiR_AndP_left_precond SkipR_closure WF_CONDITION_WF_RELATION assms)
+  also have "... = `((((b \<and> II) \<or> ((b \<and> P) ; (b \<and> P)\<^sup>\<star>))) \<and> \<not>b\<acute>)`"
+    by (smt AndP_OrP_distl AndP_rel_closure OrP_AndP_distr SemiR_AndP_left_precond StarP_closure WF_CONDITION_WF_RELATION assms utp_pred_simps(7) utp_pred_simps(8))
 
-  finally show ?thesis ..
+  also have "... = `(((II \<and> b\<acute>) \<or> ((b \<and> P) ; (b \<and> P)\<^sup>\<star>))) \<and> \<not>b\<acute>`"
+    by (utp_rel_auto_tac)
+
+  also have "... = `((b \<and> P) ; (b \<and> P)\<^sup>\<star>) \<and> \<not>b\<acute>`"
+    by (metis (hide_lams, no_types) AndP_assoc AndP_comm AndP_contra SemiR_SkipR_left calculation utp_pred_simps(10) utp_pred_simps(5))
+
+  also have "... = `(P \<and> b) ; while b do P od`"
+    by (metis AndP_comm IterP_def SemiR_assoc)
+
+  finally show ?thesis .
 qed
 
-theorem IterP_cond_false_refine [refine]:
-  assumes "b \<in> WF_CONDITION" "P \<in> WF_RELATION"
-  shows "`(while b do P od) \<and> \<not>b` \<sqsubseteq> `II \<and> \<not>b`"
-  using assms
-  apply (simp add:IterP_def)
-  apply (frule SemiR_TrueP_precond)
-  apply (utp_xrel_auto_tac)
-done
 
+theorem IterP_cond_false:
+  assumes "b \<in> WF_CONDITION" "P \<in> WF_RELATION"
+  shows "`while b do P od \<and> \<not>b` = `II \<and> \<not>b`"
+proof -
+  have "`while b do P od \<and> \<not>b` = `((b \<and> P)\<^sup>\<star> ; (\<not>b \<and> II)) \<and> \<not>b`"
+    by (simp add:IterP_def)
+
+  also have "... = `((II \<or> ((b \<and> P) ; (b \<and> P)\<^sup>\<star>)) ; (\<not>b \<and> II)) \<and> \<not>b`"
+    by (metis star_unfoldl_eq one_WF_PREDICATE_def plus_WF_PREDICATE_def times_WF_PREDICATE_def)
+
+  also have "... = `((\<not>b \<and> (II \<or> ((b \<and> P) ; (b \<and> P)\<^sup>\<star>))) ; (\<not>b \<and> II))`"
+    by (metis AndP_comm AndP_rel_closure NotP_cond_closure OrP_rel_closure SemiR_AndP_left_precond SkipR_closure Star1P_closure WF_CONDITION_WF_RELATION assms(1) assms(2) calculation star1_def times_WF_PREDICATE_def)
+
+  also have "... = `((((\<not>b \<and> II) \<or> ((\<not>b \<and> (b \<and> P)) ; (b \<and> P)\<^sup>\<star>))) ; (\<not>b \<and> II))`"
+    by (metis (hide_lams, no_types) AndP_OrP_distl AndP_rel_closure NotP_cond_closure SemiR_AndP_left_precond StarP_closure WF_CONDITION_WF_RELATION assms(1) assms(2))
+
+  also have "... = `(\<not>b \<and> II) ; (\<not>b \<and> II)`"
+    by (metis (hide_lams, no_types) AndP_assoc AndP_comm AndP_contra OrP_comm SemiR_FalseP_left calculation utp_pred_simps(10) utp_pred_simps(5))
+
+  also have "... = `(\<not>b \<and> II)`"
+  using assms by (utp_xrel_auto_tac)
+
+  finally show ?thesis
+    by (metis AndP_comm) 
+qed
+    
 end
