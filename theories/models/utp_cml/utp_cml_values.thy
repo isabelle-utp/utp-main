@@ -21,35 +21,25 @@ declare split_paired_Ex [simp del]
 no_notation
   residual_r (infixr "\<rightarrow>" 60)
 
-section {* Main domain types *}
-
-subsection {* Types *}
-
-text {* We only introduce a single datatype for types, as the move between cmlv and
-  vbasic should be transparent *}
+subsection {* CML types *}
 
 datatype vbasict =
-    FSetBT vbasict 
-  | MapBT vbasict vbasict 
+    BoolBT
+  | ChanBT
+  | CharBT
+  | EventBT
+  | FSetBT vbasict 
   | ListBT vbasict
+  | MapBT vbasict vbasict 
+  | NameBT
+  | NumberBT
   | OptionBT vbasict
   | PairBT vbasict vbasict 
-  | TagBT "string" "vbasict"
-  | UnitBT
-  | BoolBT (* ("\<bool>") *)
-(*
-  | NatBT ("\<nat>")
-  | IntBT ("\<int>")
-  | RatBT ("\<rat>")
-*)
-  | NumberBT
-  | CharBT
   | QuoteBT
+  | TagBT "string" "vbasict"
   | TokenBT
-  | ChanBT
-  | EventBT
-  | NameBT
   | TypeBT
+  | UnitBT
 
 datatype cmlt =
     BasicT vbasict
@@ -61,31 +51,7 @@ derive linorder vbasict
 derive countable cmlt
 derive linorder cmlt
 
-primrec ProjBasicT :: "cmlt \<Rightarrow> vbasict" where
-"ProjBasicT (BasicT t) = t"
-
-(* declare [[coercion BasicT]] *)
-
-abbreviation "LiftT f t \<equiv> BasicT (f (ProjBasicT t))"
-abbreviation "BoolT  \<equiv> BasicT BoolBT"
-(*
-abbreviation "NatT   \<equiv> BasicT NatBT"
-abbreviation "IntT   \<equiv> BasicT IntBT"
-abbreviation "RatT   \<equiv> BasicT RatBT"
-*)
-abbreviation "NumberT \<equiv> BasicT NumberBT"
-abbreviation "CharT   \<equiv> BasicT CharBT"
-abbreviation "QuoteT  \<equiv> BasicT QuoteBT"
-abbreviation "TokenT  \<equiv> BasicT TokenBT"
-abbreviation "ChanT   \<equiv> BasicT ChanBT"
-abbreviation "EventT  \<equiv> BasicT EventBT"
-abbreviation "NameT   \<equiv> BasicT NameBT"
-abbreviation "TypeT   \<equiv> BasicT TypeBT"
-abbreviation "FSetT   \<equiv> LiftT FSetBT"
-abbreviation "ListT   \<equiv> LiftT ListBT"
-abbreviation "StringT \<equiv> ListT CharT"
-
-subsection {* Basic (countable) values *}
+subsection {* CML domain types *}
 
 text {* We introduce countable values using a normal datatype. This representation
   is not fully canonical, as we use lists to represents sets, maps and records.
@@ -93,56 +59,35 @@ text {* We introduce countable values using a normal datatype. This representati
   and thus ensure canonicity. *}
 
 datatype vbasic 
-  = PairI vbasic vbasic
-  | UnitI
-(*
-  | NatI "nat"
-  | IntI "int" 
-  | RatI "rat" 
-*)
-  | NumberI "real"
-  | CharI "char"
-  | QuoteI "string" 
-  | TokenI vbasic
-  | ChanI NAME "vbasict"
-  | EvI NAME "vbasict" "vbasic"
-  | ListI vbasict "vbasic list"
-  | OptionI vbasict "vbasic option"
-  | FinI vbasict "vbasic list"
-  | BoolI bool
-  | TagI "string" "vbasic"
-  | MapI vbasict vbasict "(vbasic * vbasic) list" 
-  | NameI "NAME"
-  | TypeI "vbasict"
+  = BoolI bool
   | BotI "vbasict"
+  | ChanI NAME "vbasict"
+  | CharI "char"
+  | EvI NAME "vbasict" "vbasic"
+  | FinI vbasict "vbasic list"
+  | ListI vbasict "vbasic list"
+  | MapI vbasict vbasict 
+         "(vbasic * vbasic) list" 
+  | NameI "NAME"
+  | NumberI "real"
+  | OptionI vbasict "vbasic option"
+  | PairI vbasic vbasic
+  | QuoteI "string" 
+  | TagI "string" "vbasic"
+  | TokenI vbasic
+  | TypeI "vbasict"
+  | UnitI
 
+datatype cmlv 
+  = SetD vbasict "vbasic set"
+  | FuncD vbasict cmlt 
+          "vbasic \<Rightarrow> cmlv"
+  | BasicD vbasic
+  | BotD' cmlt
 
-(* Deriving the linear order necessarily takes a while *)
+text {* Deriving the linear order necessarily takes a while *}
 
 derive linorder vbasic
-
-(*
-instantiation vbasic :: linorder
-begin
-
-instance sorry
-
-end
-*)
-
-subsection {* Full values *}
-
-text {* Full values are represented using a domain, which adds functions, 
-  uncountable sets, reals etc. to what we already have. Domains are harder to
-  manipulate than datatypes so we only use them where necessary. Functions
-  and sets must have a continuous representation, but since vbasic is "flat"
-  any function whose domain is vbasic is automatically continuous.
-*}
-
-datatype cmlv = SetD vbasict "vbasic set"
-                | FuncD  vbasict cmlt "vbasic \<Rightarrow> cmlv"
-                | BasicD "vbasic"
-                | BotD' "cmlt"
 
 fun BotD :: "cmlt \<Rightarrow> cmlv" ("\<bottom>\<^bsub>_\<^esub>") where
 "BotD (BasicT t) = BasicD (BotI t)" |
@@ -156,16 +101,28 @@ subsection {* Injections *}
 text {* We create interface constructors for finite sets, maps and records which
   use derived subtypes as inputs and therefore preserve canonicity of vbasic *}
 
+primrec ProjBasicT :: "cmlt \<Rightarrow> vbasict" where
+"ProjBasicT (BasicT t) = t"
+
+abbreviation "LiftT f t \<equiv> BasicT (f (ProjBasicT t))"
+abbreviation "BoolT  \<equiv> BasicT BoolBT"
+abbreviation "NumberT \<equiv> BasicT NumberBT"
+abbreviation "CharT   \<equiv> BasicT CharBT"
+abbreviation "QuoteT  \<equiv> BasicT QuoteBT"
+abbreviation "TokenT  \<equiv> BasicT TokenBT"
+abbreviation "ChanT   \<equiv> BasicT ChanBT"
+abbreviation "EventT  \<equiv> BasicT EventBT"
+abbreviation "NameT   \<equiv> BasicT NameBT"
+abbreviation "TypeT   \<equiv> BasicT TypeBT"
+abbreviation "FSetT   \<equiv> LiftT FSetBT"
+abbreviation "ListT   \<equiv> LiftT ListBT"
+abbreviation "StringT \<equiv> ListT CharT"
+
 definition FSetI :: "vbasict \<Rightarrow> vbasic fset \<Rightarrow> vbasic" where
 "FSetI t vs = FinI t (flist vs)"
 
 definition FinMapI :: "vbasict \<Rightarrow> vbasict \<Rightarrow> (vbasic, vbasic) fmap \<Rightarrow> vbasic" where
 "FinMapI a b f = MapI a b (fmap_list f)"
-
-(*
-definition RecordI :: "(string \<rightharpoonup> vbasic) \<Rightarrow> vbasic" where
-"RecordI f = RecI (sorted_list_of_set (map_graph f))"
-*)
 
 subsection {* Projections *}
 
@@ -189,14 +146,6 @@ declare ProjFSetI.simps [simp del]
 
 fun ProjPairI :: "vbasic \<Rightarrow> (vbasic * vbasic) option" where
 "ProjPairI (PairI x y) = Some (x,y)" | "ProjPairI x = None"
-
-(*
-fun ProjRatI :: "vbasic \<Rightarrow> rat option" where
-"ProjRatI (RatI x) = Some x" | "ProjRatI x = None"
-
-fun ProjIntI :: "vbasic \<Rightarrow> int option" where
-"ProjIntI (IntI x) = Some x" | "ProjIntI x = None"
-*)
 
 fun ProjCharI :: "vbasic \<Rightarrow> char option" where
 "ProjCharI (CharI x) = Some x" | "ProjCharI x = None"
@@ -230,127 +179,193 @@ fun ProjNameI :: "vbasic \<Rightarrow> NAME option" where
 fun ProjTypeI :: "vbasic \<Rightarrow> vbasict option" where
 "ProjTypeI (TypeI t) = Some t" | "ProjTypeI _ = None"
 
-section {* The type-system *}
+fun ProjBasicD :: "cmlv \<Rightarrow> vbasic" where
+"ProjBasicD (BasicD x) = x" |
+"ProjBasicD _ = BotI NumberBT"
 
-subsection {* Basic value typing relation *}
+fun IsBasicD :: "cmlv \<Rightarrow> bool" where
+"IsBasicD (BasicD x) = True" |
+"IsBasicD _ = False"
 
-inductive vbasic_type_rel :: "vbasic \<Rightarrow> vbasict \<Rightarrow> bool" (infix ":\<^sub>b" 50) 
-(* and vbasic_type_list_rel :: "vbasic list \<Rightarrow> vbasict list \<Rightarrow> bool" (infix ":\<^sub>r" 50) *) where
-UnitI_type[intro!]: "UnitI :\<^sub>b UnitBT" |
+lemma ProjBasicD_inv [simp] :
+  "IsBasicD x \<Longrightarrow> BasicD (ProjBasicD x) = x"
+  by (case_tac x, simp_all)
+
+lemma ProjBasicD_o_BasicD [simp]: 
+  "ProjBasicD \<circ> BasicD = id"
+  by (auto)
+
+primrec ProjFuncD :: "cmlv \<Rightarrow> (vbasic \<Rightarrow> cmlv)" where
+"ProjFuncD (FuncD a b f) = f"
+
+fun IsFuncD :: "cmlv \<Rightarrow> bool" where
+"IsFuncD (FuncD a b f) = True" |
+"IsFuncD _ = False"
+
+primrec ProjSetD :: "cmlv \<Rightarrow> vbasic set" where
+"ProjSetD (SetD a x) = x"
+
+fun IsSetD :: "cmlv \<Rightarrow> bool" where
+"IsSetD (SetD a x) = True" |
+"IsSetD _ = False"
+
+subsection {* CML basic type-system *}
+
+inductive vbasic_type_rel :: 
+  "vbasic \<Rightarrow> vbasict \<Rightarrow> bool" (infix ":\<^sub>b" 50) where
 BoolI_type[intro!]: "BoolI x :\<^sub>b BoolBT" |
-(*
-NatI_type[intro!]: "NatI x :\<^sub>b NatBT" |
-IntI_type[intro!]: "IntI x :\<^sub>b IntBT" |
-RatI_type[intro!]: "RatI x :\<^sub>b RatBT" |
-*)
-NumberI_type[intro!]: "NumberI x :\<^sub>b NumberBT" |
-CharI_type[intro!]: "CharI x :\<^sub>b CharBT" |
-TokenI_type[intro!]: "TokenI x :\<^sub>b TokenBT" |
+BotI_type[intro]: "BotI a :\<^sub>b a" |
 ChanI_type[intro!]: "ChanI n t :\<^sub>b ChanBT" |
+CharI_type[intro!]: "CharI x :\<^sub>b CharBT" |
 EvI_type[intro!]: "v :\<^sub>b t \<Longrightarrow> EvI n t v :\<^sub>b EventBT" |
-QuoteI_type[intro!]: "QuoteI x :\<^sub>b QuoteBT" |
-ListI_type[intro!]: "\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>b a \<rbrakk> \<Longrightarrow> ListI a xs :\<^sub>b ListBT a" |
-OptionI_Some_type[intro]: "\<lbrakk> x :\<^sub>b a \<rbrakk> \<Longrightarrow> OptionI a (Some x) :\<^sub>b OptionBT a" |
-OptionI_None_type[intro]: "OptionI a None :\<^sub>b OptionBT a" |
-FinI_type[intro]: "\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>b a; sorted xs; distinct xs \<rbrakk> \<Longrightarrow> FinI a xs :\<^sub>b FSetBT a" |
-PairI_type[intro!]: "\<lbrakk> x :\<^sub>b a; y :\<^sub>b b \<rbrakk> \<Longrightarrow> PairI x y :\<^sub>b PairBT a b" |
-MapI_type[intro]: "\<lbrakk> \<forall>(x,y)\<in>set xs. x :\<^sub>b a \<and> y :\<^sub>b b; sorted (map fst xs); distinct (map fst xs) \<rbrakk> \<Longrightarrow> MapI a b xs :\<^sub>b MapBT a b" |
-TagI_type[intro]: "x :\<^sub>b t \<Longrightarrow> TagI n x :\<^sub>b TagBT n t" |
+FinI_type[intro]: 
+  "\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>b a; sorted xs; distinct xs \<rbrakk> 
+   \<Longrightarrow> FinI a xs :\<^sub>b FSetBT a" |
+ListI_type[intro!]: 
+  "\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>b a \<rbrakk> 
+   \<Longrightarrow> ListI a xs :\<^sub>b ListBT a" |
+MapI_type[intro]: 
+  "\<lbrakk> \<forall>(x,y)\<in>set xs. x :\<^sub>b a \<and> y :\<^sub>b b
+   ; sorted (map fst xs)
+   ; distinct (map fst xs) \<rbrakk> 
+   \<Longrightarrow> MapI a b xs :\<^sub>b MapBT a b" |
 NameI_type[intro]: "NameI n :\<^sub>b NameBT" |
+NumberI_type[intro!]: "NumberI x :\<^sub>b NumberBT" |
+OptionI_None_type[intro]: 
+  "OptionI a None :\<^sub>b OptionBT a" |
+OptionI_Some_type[intro]: 
+  "\<lbrakk> x :\<^sub>b a \<rbrakk> 
+   \<Longrightarrow> OptionI a (Some x) :\<^sub>b OptionBT a" |
+PairI_type[intro!]: 
+  "\<lbrakk> x :\<^sub>b a; y :\<^sub>b b \<rbrakk> 
+  \<Longrightarrow> PairI x y :\<^sub>b PairBT a b" |
+QuoteI_type[intro!]: "QuoteI x :\<^sub>b QuoteBT" |
+TagI_type[intro]: 
+  "x :\<^sub>b t \<Longrightarrow> TagI n x :\<^sub>b TagBT n t" |
+TokenI_type[intro!]: "TokenI x :\<^sub>b TokenBT" |
 TypeI_type[intro]: "TypeI t :\<^sub>b TypeBT" |
-BotI_type[intro]: "BotI a :\<^sub>b a" 
-
-(*
-|
-Cons_type[intro]: "\<lbrakk> x :\<^sub>b t; xs :\<^sub>r ts \<rbrakk> \<Longrightarrow> (x # xs) :\<^sub>r (t # ts)" |
-Nil_type[intro]: "[] :\<^sub>r []"
-*)
-
-lemma fdom_fmempty [simp]: "fdom fmempty = \<lbrace>\<rbrace>"
-  by (auto simp add:fdom.rep_eq fmempty.rep_eq)
+UnitI_type[intro!]: "UnitI :\<^sub>b UnitBT" 
 
 inductive_cases 
-  UnitI_type_cases [elim]: "UnitI :\<^sub>b t" and
-  UnitT_type_cases [elim!]: "x :\<^sub>b UnitBT" and
   BoolI_type_cases [elim]: "BoolI x :\<^sub>b t" and
   BoolT_type_cases [elim!]: "x :\<^sub>b BoolBT" and
-(*
-  NatI_type_cases [elim]: "NatI x :\<^sub>b t" and
-  NatT_type_cases [elim!]: "x :\<^sub>b NatBT" and
-  IntI_type_cases [elim]: "IntI x :\<^sub>b t" and
-  IntT_type_cases [elim!]: "x :\<^sub>b IntBT" and
-  RatI_type_cases [elim]: "RatI x :\<^sub>b t" and
-  RatT_type_cases [elim!]: "x :\<^sub>b RatBT" and
-*)
-  NumberI_type_cases [elim]: "NumberI x :\<^sub>b t" and
-  NumberT_type_cases [elim!]: "x :\<^sub>b NumberBT" and
-  CharI_type_cases [elim]: "CharI x :\<^sub>b t" and
-  CharT_type_cases [elim!]: "x :\<^sub>b CharBT" and
-  TokenI_type_cases [elim]: "TokenI x :\<^sub>b t" and
-  TokenT_type_cases [elim!]: "x :\<^sub>b TokenBT" and
+  BotI_type_cases[elim]: "BotI a :\<^sub>b b" and
   ChanI_type_cases [elim]: "ChanI n t :\<^sub>b a" and
   ChanT_type_cases [elim!]: "x :\<^sub>b ChanBT" and
+  CharI_type_cases [elim]: "CharI x :\<^sub>b t" and
+  CharT_type_cases [elim!]: "x :\<^sub>b CharBT" and
   EvI_type_cases [elim]: "EvI n t v :\<^sub>b a" and
   EventT_type_cases [elim!]: "x :\<^sub>b EventBT" and
-  QuoteI_type_cases [elim]: "QuoteI x :\<^sub>b t" and
-  QuoteT_type_cases [elim!]: "x :\<^sub>b QuoteBT" and
-  ListI_type_cases [elim]: "ListI a xs :\<^sub>b b" and
-  ListT_type_cases [elim!]: "x :\<^sub>b ListBT a" and
-  OptionI_type_cases [elim]: "OptionI a x :\<^sub>b b" and
-  OptionT_type_cases [elim]: "x :\<^sub>b OptionBT a" and
   FinI_type_cases [elim]: "FinI a x :\<^sub>b b" and
   FinT_type_cases: "x :\<^sub>b FSetBT a" and
-  PairI_type_cases [elim]: "PairI x y :\<^sub>b t" and
-  PairT_type_cases [elim!]: "x :\<^sub>b PairBT a b" and
+  ListI_type_cases [elim]: "ListI a xs :\<^sub>b b" and
+  ListT_type_cases [elim!]: "x :\<^sub>b ListBT a" and
   MapI_type_cases [elim]: "MapI a b xs :\<^sub>b t" and
   MapT_type_cases [elim!]: "x :\<^sub>b MapBT a b" and
-  TagI_type_cases [elim]: "TagI n x :\<^sub>b t" and
-  TagT_type_cases [elim!]: "x :\<^sub>b TagBT n t" and
-(*  Cons_type_cases [elim!]: "x :\<^sub>r f # fs" and
-  Cons_value_cases [elim!]: "x # xs :\<^sub>r ts" and
-  Nil_type_cases [elim!]: "x :\<^sub>r []" and
-  Nil_value_cases [elim!]: "[] :\<^sub>r ts" and *)
-(*
-and
-  FuncT_type_casesB [elim!]: "x :\<^sub>b a \<rightarrow> b" and
-  SetT_type_casesB [elim!]: "x :\<^sub>b SetT a" and
-*)
-  BotI_type_cases[elim]: "BotI a :\<^sub>b b" and
   NameI_type_cases [elim]: "NameI x :\<^sub>b t" and
   NameT_type_cases [elim!]: "x :\<^sub>b NameBT" and
+  NumberI_type_cases [elim]: "NumberI x :\<^sub>b t" and
+  NumberT_type_cases [elim!]: "x :\<^sub>b NumberBT" and
+  OptionI_type_cases [elim]: "OptionI a x :\<^sub>b b" and
+  OptionT_type_cases [elim]: "x :\<^sub>b OptionBT a" and
+  PairI_type_cases [elim]: "PairI x y :\<^sub>b t" and
+  PairT_type_cases [elim!]: "x :\<^sub>b PairBT a b" and
+  QuoteI_type_cases [elim]: "QuoteI x :\<^sub>b t" and
+  QuoteT_type_cases [elim!]: "x :\<^sub>b QuoteBT" and
+  TagI_type_cases [elim]: "TagI n x :\<^sub>b t" and
+  TagT_type_cases [elim!]: "x :\<^sub>b TagBT n t" and
+  TokenI_type_cases [elim]: "TokenI x :\<^sub>b t" and
+  TokenT_type_cases [elim!]: "x :\<^sub>b TokenBT" and
   TypeI_type_cases [elim]: "TypeI x :\<^sub>b t" and
-  TypeT_type_cases [elim!]: "x :\<^sub>b TypeBT"
+  TypeT_type_cases [elim!]: "x :\<^sub>b TypeBT" and
+  UnitI_type_cases [elim]: "UnitI :\<^sub>b t" and
+  UnitT_type_cases [elim!]: "x :\<^sub>b UnitBT"
 
 definition bcarrier :: "vbasict \<Rightarrow> vbasic set" where
 "bcarrier t = {x. x :\<^sub>b t}"
+
+subsubsection {* Derived Typing Rules *}
+
+lemma NilI_type[intro]: "ListI a [] :\<^sub>b ListBT a"
+  by auto
+
+lemma ConsI_type[intro]: 
+  "\<lbrakk> x :\<^sub>b a; ListI a xs :\<^sub>b ListBT a \<rbrakk> 
+   \<Longrightarrow> ListI a (x # xs) :\<^sub>b ListBT a"
+  by (auto)
+
+lemma FSetI_type[intro]:
+  assumes sty: "\<forall>x\<in>\<^sub>fxs. x :\<^sub>b a" 
+  shows "FSetI a xs :\<^sub>b FSetBT a"
+  by (auto simp add:FSetI_def sty)
+
+lemma FSetT_type_cases [elim!]: 
+  "\<lbrakk> x :\<^sub>b FSetBT t 
+   ; \<And> xs. \<lbrakk> x = FSetI t xs; \<forall>x\<in>\<^sub>fxs. x :\<^sub>b t \<rbrakk> \<Longrightarrow> P
+   ; x = BotI (FSetBT t) \<Longrightarrow> P\<rbrakk> 
+   \<Longrightarrow> P"
+  apply (erule FinT_type_cases)
+  apply (auto simp add:FSetI_def)
+  apply (metis fset_inv)
+done
+
+lemma FSetI_type_cases [elim]:
+  "\<lbrakk>FSetI a xs :\<^sub>b t; \<And>a. \<lbrakk>t = FSetBT a; \<forall>x\<in>\<^sub>fxs. x :\<^sub>b a\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  by (auto simp add:FSetI_def)
+
+lemma FinMapI_type[intro]: 
+  "\<lbrakk> \<forall> x\<in>\<^sub>ffdom f. x :\<^sub>b a; \<forall> y\<in>\<^sub>ffran f. y :\<^sub>b b \<rbrakk> \<Longrightarrow> FinMapI a b f :\<^sub>b MapBT a b"
+  by (auto intro!:MapI_type simp add:fdom_list fran_list FinMapI_def)
+
+  lemma dom_map_of: "x \<in> dom (map_of xs) \<Longrightarrow> \<exists> y. (x,y) \<in> set xs"
+  by (auto dest:map_of_SomeD simp add:dom_def)
+
+lemma ran_map_of: "y \<in> ran (map_of xs) \<Longrightarrow> \<exists> x. (x,y) \<in> set xs"
+  by (auto dest:map_of_SomeD simp add:ran_def)
+
+lemma FinMapI_type_cases [elim!]:
+  "\<lbrakk> x :\<^sub>b MapBT a b; x \<noteq> BotI (MapBT a b); 
+    \<And>f. \<lbrakk>x = FinMapI a b f; \<forall> x\<in>\<^sub>ffdom f. x :\<^sub>b a; \<forall> y\<in>\<^sub>ffran f. y :\<^sub>b b \<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  apply (case_tac x, auto elim!:MapI_type_cases)
+  apply (simp add:FinMapI_def fdom_def fran_def)
+  apply (subgoal_tac "list = fmap_list (list_fmap list)")
+  apply (subgoal_tac "\<forall>x\<in>dom (Rep_fmap (list_fmap list)). x :\<^sub>b a")
+  apply (subgoal_tac "\<forall>y\<in>ran (Rep_fmap (list_fmap list)). y :\<^sub>b b")
+  apply (metis)
+  apply (simp add: list_fmap_def finite_dom_map_of)
+  apply (force dest: ran_map_of)
+  apply (simp add: list_fmap_def finite_dom_map_of)
+  apply (rule ballI)
+  apply (drule dom_map_of)
+  apply (force)
+  apply (simp)
+done
+
+subsection {* Definedness of CML values *}
 
 instantiation vbasic :: DEFINED_NE
 begin
 
 fun Defined_vbasic :: "vbasic \<Rightarrow> bool" where
-"Defined_vbasic (BotI a) = False" |
-"Defined_vbasic (PairI x y) = (Defined_vbasic x \<and> Defined_vbasic y)" |
-"Defined_vbasic UnitI = True" |
-"Defined_vbasic (BoolI x) = True" |
-(*
-"Defined_vbasic (NatI n) = True" |
-"Defined_vbasic (IntI n) = True" |
-"Defined_vbasic (RatI n) = True" |
-*)
-"Defined_vbasic (NumberI n) = True" |
-"Defined_vbasic (CharI x) = True" |
-"Defined_vbasic (QuoteI x) = True" |
-"Defined_vbasic (TokenI x) = Defined_vbasic x" |
-"Defined_vbasic (ChanI n t) = True" |
-"Defined_vbasic (EvI n t v) = True" |
-"Defined_vbasic (ListI a xs) = (\<forall> x \<in> set xs. Defined_vbasic x)" |
-"Defined_vbasic (OptionI a None) = True" |
-"Defined_vbasic (OptionI a (Some x)) = Defined_vbasic x" |
-"Defined_vbasic (FinI a xs) = (\<forall> x \<in> set xs. Defined_vbasic x)" |
-"Defined_vbasic (TagI n x) = \<D> x" |
-"Defined_vbasic (MapI a b xs) = (\<forall> (x,y) \<in> set xs. Defined_vbasic x \<and> Defined_vbasic y)" | 
-"Defined_vbasic (NameI n) = True" |
-"Defined_vbasic (TypeI t) = True"
+"\<D> (BoolI x) = True" |
+"\<D> (BotI a) = False" |
+"\<D> (ChanI n t) = True" |
+"\<D> (CharI x) = True" |
+"\<D> (EvI n t v) = True" |
+"\<D> (FinI a xs) = (\<forall> x \<in> set xs. \<D> x)" |
+"\<D> (ListI a xs) = (\<forall> x \<in> set xs. \<D> x)" |
+"\<D> (MapI a b xs) = 
+  (\<forall> (x,y) \<in> set xs. \<D> x \<and> \<D> y)" | 
+"\<D> (NameI n) = True" |
+"\<D> (NumberI n) = True" |
+"\<D> (OptionI a None) = True" |
+"\<D> (OptionI a (Some x)) = \<D> x" |
+"\<D> (PairI x y) = (\<D> x \<and> \<D> y)" |
+"\<D> (QuoteI x) = True" |
+"\<D> (TagI n x) = \<D> x" |
+"\<D> (TokenI x) = \<D> x" |
+"\<D> (TypeI t) = True" |
+"\<D> UnitI = True"
 
 instance 
   by (intro_classes, rule_tac x="NumberI 0" in exI, simp)
@@ -378,14 +393,13 @@ instantiation cmlv :: DEFINED_NE
 begin
 
 fun Defined_cmlv :: "cmlv \<Rightarrow> bool" where
-"Defined_cmlv (BasicD x) = \<D> x" |
-"Defined_cmlv (SetD t xs) = (\<forall>x\<in>xs. \<D> x)" |
-"Defined_cmlv (FuncD s t f) = True" |
-"Defined_cmlv (BotD' s) = False"
+"\<D> (BasicD x) = \<D> x" |
+"\<D> (SetD t xs) = (\<forall>x\<in>xs. \<D> x)" |
+"\<D> (FuncD s t f) = True" |
+"\<D> (BotD' s) = False"
 
 instance 
   by (intro_classes, rule_tac x="BasicD (NumberI 0)" in exI, simp)
-
 end
 
 lemma Defined_nbot [simp]: "\<D> x \<Longrightarrow> x \<noteq> BotD a"
@@ -397,89 +411,8 @@ lemma ProjBasicT_inv [simp]:
   "t \<in> vbtypes \<Longrightarrow> BasicT (ProjBasicT t) = t"
   by (auto simp add:vbtypes_def)
 
-(*
-definition vbtypes :: "cmlt set" where
-"vbtypes = {t. \<exists> x. x :\<^sub>b t \<and> \<D>\<^sub>b x}"
-*)
-
 definition vbvalues :: "cmlv set" where
 "vbvalues = {BasicD x | x t. x :\<^sub>b t}"
-
-(*
-lemma vbtypes_simps [simp]:
-  "\<nat> \<in> vbtypes" "\<int> \<in> vbtypes" "\<rat> \<in> vbtypes"
-  "\<bool> \<in> vbtypes" "CharT \<in> vbtypes" "TokenT \<in> vbtypes"
-  "FSetBT a \<in> vbtypes" "ListBT a \<in> vbtypes" "EventBT \<in> vbtypes"
- apply (auto simp add:vbtypes_def)
- apply (rule_tac x="TokenI (NatI 0)" in exI)
- apply (force)
- apply (rule_tac x="FSetI a \<lbrace>\<rbrace>" in exI)
- apply (force simp add:FSetI_def)
- apply (rule_tac x="ListI a []" in exI)
- apply (force)
-done
-*)
-
-text {* Coercion *}
-
-(*
-fun CoerceI :: "vbasic \<Rightarrow> vbasict \<Rightarrow> vbasic" where
-"CoerceI (NatI x) IntBT  = (IntI (of_nat x))" |
-"CoerceI (NatI x) RatBT  = (RatI (of_nat x))" |
-"CoerceI (NatI x) RealBT = (RealI (of_nat x))" |
-"CoerceI (IntI x) RatBT  = (RatI (of_int x))" |
-"CoerceI (IntI x) RealBT = (RealI (of_int x))" |
-"CoerceI (RatI x) RealBT = (RealI (of_rat x))" |
-"CoerceI x t = (if (x :\<^sub>b t) then x else BotI t)" 
-
-lemma CoerceI_refl [simp]:
-  "x :\<^sub>b t \<Longrightarrow> CoerceI x t = x"
-  apply (case_tac x, case_tac[!] t)
-  apply (auto)
-done
-
-lemma CoerceI_idem [simp]:
-  "CoerceI (CoerceI x t) t = CoerceI x t"
-  apply (case_tac x, case_tac[!] t)
-  apply (auto)
-done
-
-lemma CoerceI_type [intro]:
-  "CoerceI x t :\<^sub>b t"
-  apply (case_tac x, case_tac[!] t)
-  apply (auto)
-done
-*)
-
-text {* We introduce a couple of derived typing rules *}
-
-lemma NilI_type[intro]: "ListI a [] :\<^sub>b ListBT a"
-  by auto
-
-lemma ConsI_type[intro]: 
-  "\<lbrakk> x :\<^sub>b a; ListI a xs :\<^sub>b ListBT a \<rbrakk> 
-   \<Longrightarrow> ListI a (x # xs) :\<^sub>b ListBT a"
-  by (auto)
-
-lemma FSetI_type[intro]:
-  assumes sty: "\<forall>x\<in>\<^sub>fxs. x :\<^sub>b a" 
-  shows "FSetI a xs :\<^sub>b FSetBT a"
-  by (auto simp add:FSetI_def sty)
-
-lemma FSetT_type_cases [elim!]: 
-  "\<lbrakk> x :\<^sub>b FSetBT t; \<And> xs. \<lbrakk> x = FSetI t xs; \<forall>x\<in>\<^sub>fxs. x :\<^sub>b t \<rbrakk> \<Longrightarrow> P; x = BotI (FSetBT t) \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
-  apply (erule FinT_type_cases)
-  apply (auto simp add:FSetI_def)
-  apply (metis fset_inv)
-done
-
-lemma FSetI_type_cases [elim]:
-  "\<lbrakk>FSetI a xs :\<^sub>b t; \<And>a. \<lbrakk>t = FSetBT a; \<forall>x\<in>\<^sub>fxs. x :\<^sub>b a\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
-  by (auto simp add:FSetI_def)
-
-lemma FinMapI_type[intro]: 
-  "\<lbrakk> \<forall> x\<in>\<^sub>ffdom f. x :\<^sub>b a; \<forall> y\<in>\<^sub>ffran f. y :\<^sub>b b \<rbrakk> \<Longrightarrow> FinMapI a b f :\<^sub>b MapBT a b"
-  by (auto intro!:MapI_type simp add:fdom_list fran_list FinMapI_def)
 
 lemma FinMapI_defined [defined]:
   "\<D> (FinMapI a b f) = (\<langle>fdom f\<rangle>\<^sub>f \<subseteq> DEFINED \<and> \<langle>fran f\<rangle>\<^sub>f \<subseteq> DEFINED)"
@@ -494,31 +427,7 @@ lemma FinMapI_defined [defined]:
   apply (force dest:fmap_list_fdom_fran simp add:fdom.rep_eq fran.rep_eq DEFINED_def)+
 done
   
-lemma dom_map_of: "x \<in> dom (map_of xs) \<Longrightarrow> \<exists> y. (x,y) \<in> set xs"
-  by (auto dest:map_of_SomeD simp add:dom_def)
-
-lemma ran_map_of: "y \<in> ran (map_of xs) \<Longrightarrow> \<exists> x. (x,y) \<in> set xs"
-  by (auto dest:map_of_SomeD simp add:ran_def)
-
-lemma FinMapI_type_cases [elim!]:
-  "\<lbrakk> x :\<^sub>b MapBT a b; x \<noteq> BotI (MapBT a b); 
-    \<And>f. \<lbrakk>x = FinMapI a b f; \<forall> x\<in>\<^sub>ffdom f. x :\<^sub>b a; \<forall> y\<in>\<^sub>ffran f. y :\<^sub>b b \<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
-  apply (case_tac x, auto elim!:MapI_type_cases)
-  apply (simp add:FinMapI_def fdom_def fran_def)
-  apply (subgoal_tac "list = fmap_list (list_fmap list)")
-  apply (subgoal_tac "\<forall>x\<in>dom (Rep_fmap (list_fmap list)). x :\<^sub>b a")
-  apply (subgoal_tac "\<forall>y\<in>ran (Rep_fmap (list_fmap list)). y :\<^sub>b b")
-  apply (metis)
-  apply (simp add: list_fmap_def finite_dom_map_of)
-  apply (force dest: ran_map_of)
-  apply (simp add: list_fmap_def finite_dom_map_of)
-  apply (rule ballI)
-  apply (drule dom_map_of)
-  apply (force)
-  apply (simp)
-done
-  
-subsection {* Full value typing relation *}
+subsection {* CML full typing relation *}
 
 (* At the moment the type-system only supports functions of type vbtype \<Rightarrow> cmlt.
    Treatment of higher-order functions needs more work *)
@@ -561,18 +470,6 @@ lemma FuncT_type_cases [elim]:
   apply (auto)
 done
 
-(*
-lemma vbtypes_type_cases [elim]: 
-  "\<lbrakk> a :\<^sub>v t; \<And> x. \<lbrakk> a = BasicD x; x :\<^sub>b t \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  apply (case_tac a)
-  apply (auto elim:BasicD_type_cases simp add:vbtypes_def)
-done
-
-lemma vbvalues_vbtype:
-  "\<lbrakk> a :\<^sub>v t; t \<in> vbtypes \<rbrakk> \<Longrightarrow> a \<in> vbvalues"
-  by (auto simp add:vbvalues_def)
-*)
-
 definition vcarrier :: "cmlt \<Rightarrow> cmlv set" where
 "vcarrier t = {x. x :\<^sub>v t}"
 
@@ -580,84 +477,14 @@ lemma vcarrier [simp]: "x :\<^sub>v t \<Longrightarrow> x \<in> vcarrier t"
   by (simp add:vcarrier_def)
 
 lemma vcarrier_simps [simp]:
-(*
-  "vcarrier NatT  = {BotD NatT} \<union> {BasicD (NatI x) | x . True}"
-  "vcarrier IntT  = {BotD IntT} \<union> {BasicD (IntI x) | x . True}"
-  "vcarrier RatT  = {BotD RatT} \<union> {BasicD (RatI x) | x . True}"
-*)
   "vcarrier BoolT = {BotD BoolT} \<union> {BasicD (BoolI x) | x . True}"
   apply (simp_all add:vcarrier_def)
   apply (force)+
 done
 
-(*
-lemma vbvalues_vbtypes [simp]: 
-  "\<lbrakk> x \<in> vbvalues; x :\<^sub>v t \<rbrakk> \<Longrightarrow> t \<in> vbtypes"
-  by (auto simp add:vbvalues_def vbtypes_def)
-*)
-
 (* Flatness of vbasic values *)
 
 subsection {* Injecting basic values into cmlv *}
-
-fun ProjBasicD :: "cmlv \<Rightarrow> vbasic" where
-"ProjBasicD (BasicD x) = x" |
-"ProjBasicD _ = BotI NumberBT"
-
-fun IsBasicD :: "cmlv \<Rightarrow> bool" where
-"IsBasicD (BasicD x) = True" |
-"IsBasicD _ = False"
-
-lemma ProjBasicD_inv [simp] :
-  "IsBasicD x \<Longrightarrow> BasicD (ProjBasicD x) = x"
-  by (case_tac x, simp_all)
-
-lemma ProjBasicD_o_BasicD [simp]: 
-  "ProjBasicD \<circ> BasicD = id"
-  by (auto)
-
-
-(*
-definition vstrictify :: "(vbasic \<Rightarrow> cmlv) \<Rightarrow> (vbasic \<Rightarrow> cmlv)" where
-"vstrictify f = (\<lambda> x. if (x = BotI) then BotD else f x)"
-
-lemma vstrictify_idem [simp]: 
-  "vstrictify (vstrictify f) = vstrictify f"
-  by (auto simp add:vstrictify_def)
-
-lemma vstrictify_bot [simp]:
-  "vstrictify f BotI = BotD"
-  by (simp add:vstrictify_def)
-
-lemma vstrictify_type [intro]:
-  "f x :\<^sub>v t \<Longrightarrow> vstrictify f x :\<^sub>v t"
-  by (auto simp add:vstrictify_def)
-
-abbreviation SFuncD :: "(vbasic \<Rightarrow> cmlv) \<Rightarrow> cmlv" where
-"SFuncD f \<equiv> FuncD (vstrictify f)"
-
-definition vbasic_fun1 :: "(vbasic \<Rightarrow> vbasic) \<Rightarrow> cmlv" where
-"vbasic_fun1 f \<equiv> SFuncD (BasicD \<circ> f)"
-
-definition vbasic_fun2 :: "(vbasic \<Rightarrow> vbasic \<Rightarrow> vbasic) \<Rightarrow> cmlv" where
-"vbasic_fun2 f \<equiv> SFuncD (\<lambda> x. SFuncD (\<lambda> y. BasicD (f x y)))"
-*)
-
-primrec ProjFuncD :: "cmlv \<Rightarrow> (vbasic \<Rightarrow> cmlv)" where
-"ProjFuncD (FuncD a b f) = f"
-
-fun IsFuncD :: "cmlv \<Rightarrow> bool" where
-"IsFuncD (FuncD a b f) = True" |
-"IsFuncD _ = False"
-
-primrec ProjSetD :: "cmlv \<Rightarrow> vbasic set" where
-"ProjSetD (SetD a x) = x"
-
-fun IsSetD :: "cmlv \<Rightarrow> bool" where
-"IsSetD (SetD a x) = True" |
-"IsSetD _ = False"
-
-thm EvI_type_cases
 
 lemma vbasic_type_rel_uniq: "\<lbrakk> x :\<^sub>b a; x :\<^sub>b b \<rbrakk> \<Longrightarrow> a = b"
 (*  and "\<lbrakk> xs :\<^sub>r as; xs :\<^sub>r bs \<rbrakk> \<Longrightarrow> as = bs" *)
@@ -670,11 +497,6 @@ done
 fun default_vbasict :: "vbasict \<Rightarrow> vbasic" where
 "default_vbasict UnitBT        = UnitI" |
 "default_vbasict BoolBT        = BoolI False" |
-(*
-"default_vbasict NatBT         = NatI 0" |
-"default_vbasict IntBT         = IntI 0" |
-"default_vbasict RatBT         = RatI 0" |
-*)
 "default_vbasict NumberBT      = NumberI 0" |
 "default_vbasict CharBT        = CharI (CHR ''x'')" |
 "default_vbasict QuoteBT       = QuoteI ''x''" |
@@ -715,9 +537,7 @@ fun default_cmlt :: "cmlt \<Rightarrow> cmlv" where
 
 lemma default_cmlt_type: 
   "default_cmlt t :\<^sub>v t"
-  apply (induct t)
-  apply (auto intro:typing)
-done
+  by (induct t, auto intro:typing)
 
 declare default_cmlt_type(1) [typing]
 

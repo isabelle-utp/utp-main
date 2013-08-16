@@ -18,8 +18,9 @@ session "HOL-UTP-THY" in "theories/theories" = "HOL-UTP" +
   
 session "HOL-UTP-CML" in "theories/models/utp_cml" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
-  theories [document = false]
-  "utp_cml"
+  theories
+    "utp_cml"
+  files "document/root.tex"
 
 session "utp-hjf-summer-school" in "papers/utp-hjf-summer-school" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output"]

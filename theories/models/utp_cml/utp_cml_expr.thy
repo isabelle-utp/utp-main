@@ -221,7 +221,6 @@ no_syntax
   "_pexpr_equal"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "=" 50)
   "_pexpr_true"        :: "pexpr" ("true")
   "_pexpr_false"       :: "pexpr" ("false")
-(*  "_pexpr_brack"       :: "pexpr \<Rightarrow> pexpr" ("'(_')") *)
   "_pexpr_plus"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "+" 65)
   "_pexpr_minus"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "-" 65)
   "_pexpr_less"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "<" 25)
@@ -267,13 +266,6 @@ syntax
   "_vexpr_list"     :: "pexprs => pexpr"    ("[(_)]")
   "_vexpr_empty"    :: "pexpr" ("{}")
   "_vexpr_fset"     :: "pexprs => pexpr"    ("{(_)}")
-
-(*
-  "_vexpr_vexpr"  :: "'a cmle \<Rightarrow> pexpr" ("_")
-
-  "_vexpr_vexpr x" == "CONST vexpr_vexpr x"
-*)
-
 
 syntax (xsymbols)
   "_vexpr_bot"     :: "pexpr" ("\<bottom>")
@@ -340,6 +332,9 @@ abbreviation VTautT :: "bool cmle \<Rightarrow> cmlp" where
 "VTautT e \<equiv> TVL (VExprTrueT e, VExprDefinedT e)"
 
 declare [[coercion VTautT]]
+
+declare VExprTrueT_def [eval, evale, evalp]
+declare VExprDefinedT_def [eval, evale, evalp]
 
 syntax
   "_upred_vexpr"       :: "pexpr \<Rightarrow> upred" ("\<lparr>_\<rparr>")
@@ -440,6 +435,11 @@ lemma None_not_defined [defined]: "\<not> \<D> None"
 
 subsection {* Evaluation theorems *}
 
+lemma EvalE_cmle [evale, evalp, eval]:
+  fixes e :: "'a::vbasic cmle"
+  shows "\<lbrakk>e\<down>\<rbrakk>\<^sub>eb = InjVB (\<lbrakk>e\<rbrakk>\<^sub>*b)"
+  by (simp add:evale typing)
+
 lemma EvalD_LitD [eval,evalp,evale]:
   "\<lbrakk>LitD x\<rbrakk>\<^sub>*b = Some x"
   by (simp add:evalp)
@@ -458,22 +458,9 @@ lemma EvalD_Op1D [eval,evalp,evale]:
   "\<lbrakk>Op1D f x\<rbrakk>\<^sub>*b = (\<lbrakk>x\<rbrakk>\<^sub>*b >>= f)"
   by (simp add:Op1D_def evalp)
 
-(*
-lemma EvalD_Op1D_defd [eval,evalp,evale]:
-  "\<D> (\<lbrakk>x\<rbrakk>\<^sub>*b) \<Longrightarrow> \<lbrakk>Op1D f x\<rbrakk>\<^sub>*b = f (the (\<lbrakk>x\<rbrakk>\<^sub>*b))"
-  by (auto simp add:Op1D_def evalp)
-*)
-
 lemma EvalD_Op2D [eval,evalp,evale]:
   "\<lbrakk>Op2D f x y\<rbrakk>\<^sub>*b = do { v1 <- \<lbrakk>x\<rbrakk>\<^sub>*b; v2 <- \<lbrakk>y\<rbrakk>\<^sub>*b; f (v1, v2) }"
   by (simp add:Op2D_def evalp)
-
-
-(*
-lemma EvalD_Op2D [eval,evalp,evale]:
-  "\<lbrakk> \<D> (\<lbrakk>x\<rbrakk>\<^sub>*b); \<D> (\<lbrakk>y\<rbrakk>\<^sub>*b) \<rbrakk> \<Longrightarrow> \<lbrakk>Op2D f x y\<rbrakk>\<^sub>*b = f (the (\<lbrakk>x\<rbrakk>\<^sub>*b), the (\<lbrakk>y\<rbrakk>\<^sub>*b))"
-  by (force simp add:Op2D_def evalp EvalPE_ProdPE)
-*)
 
 lemma EvalD_HasTypeD [eval,evalp,evale]:
   "\<lbrakk>HasTypeD e t\<rbrakk>\<^sub>*b = (if (\<D> (\<lbrakk>e\<rbrakk>\<^sub>* b) \<and> the (\<lbrakk>e\<rbrakk>\<^sub>* b) \<in> t) then \<lfloor>True\<rfloor> else \<lfloor>False\<rfloor>)"
@@ -492,5 +479,15 @@ lemma bpfun_apply [simp]:
   apply (case_tac x)
   apply (auto simp add:bpfun_def)
 done
+
+declare Inject_bool_def [eval,evale,evalp]
+
+lemma VTaut_TrueD [simp]:
+  "`\<lparr>true\<rparr>` = `true\<^sub>T`"
+  by (utp_pred_tac)
+
+lemma VTaut_FalseD [simp]:
+  "`\<lparr>false\<rparr>` = `false\<^sub>T`"
+  by (utp_pred_tac)
 
 end

@@ -26,7 +26,8 @@ instance
 done
 end
 
-lemma cmlt_UTYPE [simp]: "\<lbrakk> v :\<^sub>v t; \<D> v \<rbrakk> \<Longrightarrow> to_nat t \<in> UTYPES (TYPE(cmlv))"
+lemma cmlt_UTYPE [simp]: 
+  "\<lbrakk> v :\<^sub>v t; \<D> v \<rbrakk> \<Longrightarrow> to_nat t \<in> UTYPES (TYPE(cmlv))"
   by (auto simp add:UTYPES_def utype_rel_cmlv_def)
 
 lemma prjTYPE_inv_cmlt [simp]
@@ -94,24 +95,6 @@ instance
 done
 end
 
-subsection {* Int sort instantiation *}
-
-(*
-instantiation cmlv :: INT_SORT
-begin
-
-definition MkInt_cmlv where "MkInt_cmlv (x::int) = BasicD (IntI x)"
-definition DestInt_cmlv where "DestInt_cmlv x = the (ProjIntI (ProjBasicD x))"
-definition IntType_cmlv :: "cmlv UTYPE" where 
-"IntType_cmlv = embTYPE IntT"
-
-instance 
-  apply (intro_classes, simp_all add:MkInt_cmlv_def DestInt_cmlv_def IntType_cmlv_def type_rel_def utype_rel_cmlv_def)
-  apply (auto simp add:dcarrier_def type_rel_cmlt image_def MkInt_cmlv_def)
-done
-end
-*)
-
 subsection {* Bool sort instantiation *}
 
 instantiation cmlv :: BOOL_SORT
@@ -132,6 +115,22 @@ end
 lemma MkBool_cmlv [simp]: 
   "MkBool x = BasicD (Inject x)"
   by (simp add:MkBool_cmlv_def Inject_bool_def)
+
+lemma DestBool_TrueD [simp]: 
+  "DestBool TrueD = True"
+  by (metis BOOL_SORT_class.Inverse MkBool_cmlv_def)
+
+lemma DestBool_FalseD [simp]: 
+  "DestBool FalseD = False"
+  by (metis BOOL_SORT_class.Inverse MkBool_cmlv_def)
+
+lemma TrueD_compat [typing]:
+  "vtype x = BoolType \<Longrightarrow> TrueD \<rhd> x"
+  by (metis MkBool_True_compat MkBool_cmlv_def)
+
+lemma FalseD_compat [typing]:
+  "vtype x = BoolType \<Longrightarrow> FalseD \<rhd> x"
+  by (metis MkBool_False_compat MkBool_cmlv_def)
 
 abbreviation "StringBT \<equiv> ListBT CharBT"
 abbreviation "StringI xs \<equiv> ListI CharBT (map CharI xs)"
@@ -158,7 +157,7 @@ instance
   apply (auto simp add:MkStr_cmlv_def DestStr_cmlv_def StringType_cmlv_def 
                        type_rel_cmlt image_def)
   apply (metis ProjCharI_comp_CharI comp_apply map_idI map_map the.simps the_Some)
-  apply (metis CharT_type_cases Defined_vbasic.simps(1) ex_map_conv)
+  apply (metis CharT_type_cases Defined_vbasic.simps(2) ex_map_conv)
 done
 end
 
@@ -179,10 +178,6 @@ definition ListType_cmlv :: "cmlv UTYPE \<Rightarrow> cmlv UTYPE" where
 definition ListPerm_cmlv :: "cmlv UTYPE set" where
 "ListPerm_cmlv = embTYPE ` vbtypes"
 
-lemma foldr_over_prop:
-  "foldr (op \<and> \<circ> P) xs True = (\<forall> x \<in> set xs. P x)"
-  by (induct xs, auto)
-
 instance
   apply (intro_classes)
   apply (unfold_locales)
@@ -199,7 +194,7 @@ instance
   apply (case_tac "prjTYPE x \<in> vbtypes")
   apply (case_tac[!] "prjTYPE y \<in> vbtypes")
   apply (auto simp add:vbtypes_def)
-  apply (metis ProjBasicT.simps embTYPE_inv_cmlt prjTYPE_inv_cmlt vbasict.inject(3))
+  apply (metis ProjBasicT.simps embTYPE_inv_cmlt prjTYPE_inv_cmlt vbasict.inject(2))
 done
 end
 
@@ -219,19 +214,6 @@ definition FSetType_cmlv :: "cmlv UTYPE \<Rightarrow> cmlv UTYPE" where
 
 definition FSetPerm_cmlv :: "cmlv UTYPE set" where
 "FSetPerm_cmlv = embTYPE ` vbtypes"
-
-(*
-lemma Rep_fset_eq: 
-  "xs = ys \<longleftrightarrow> \<langle>xs\<rangle>\<^sub>f = \<langle>ys\<rangle>\<^sub>f"
-  by (auto)
-
-lemma fimage_eq_conv: 
-  "inj_on f \<langle>xs\<rangle>\<^sub>f \<Longrightarrow> f `\<^sub>f xs = g `\<^sub>f xs \<longleftrightarrow> (\<forall>x\<in>\<langle>xs\<rangle>\<^sub>f. f x = g x)"
-  apply (auto simp add:Rep_fset_eq)
-  thm inj_on_Un_image_eq_iff
-  
-  apply (auto simp add:fimage_def)
-*)
 
 instance
   apply (intro_classes)
@@ -254,7 +236,7 @@ instance
 done
 end
 
-subsection {* Set instantiation *}
+subsection {* Set Sort instantiation *}
 
 instantiation cmlv :: SET_SORT
 begin
@@ -271,35 +253,6 @@ definition SetType_cmlv :: "cmlv UTYPE \<Rightarrow> cmlv UTYPE" where
 definition SetPerm_cmlv :: "cmlv UTYPE set" where
 "SetPerm_cmlv = ((embTYPE :: cmlt \<Rightarrow> cmlv UTYPE) ` vbtypes)"
 
-(*
-lemma Rep_fset_eq: 
-  "xs = ys \<longleftrightarrow> \<langle>xs\<rangle>\<^sub>f = \<langle>ys\<rangle>\<^sub>f"
-  by (auto)
-
-lemma fimage_eq_conv: 
-  "inj_on f \<langle>xs\<rangle>\<^sub>f \<Longrightarrow> f `\<^sub>f xs = g `\<^sub>f xs \<longleftrightarrow> (\<forall>x\<in>\<langle>xs\<rangle>\<^sub>f. f x = g x)"
-  apply (auto simp add:Rep_fset_eq)
-  thm inj_on_Un_image_eq_iff
-  
-  apply (auto simp add:fimage_def)
-*)
-
-
-(*
-
-proof (intro_classes, unfold_locales)
-  fix a::"cmlv UTYPE"
-  assume "a \<in> SetPerm"
-  show "dcarrier (SetType a) = MkSet a ` {xs. id xs \<subseteq> dcarrier a}"
-    apply (auto simp add:MkSet_cmlv_def DestSet_cmlv_def SetType_cmlv_def SetPerm_cmlv_def type_rel_cmlt dcarrier_embTYPE)
-    apply (simp add:image_def MkSet_cmlv_def)
-    apply (rule_tac x="BasicD ` xs" in exI)
-    apply (auto)
-
-
-    apply (auto)
-
-*)
 instance 
   apply (intro_classes)
   apply (unfold_locales)
@@ -331,7 +284,6 @@ instance
   apply (rule_tac x="embTYPE NumberT" in exI)
   apply (auto simp add:vbtypes_def)
 done
-
 end
 
 lemma EVENT_value_IsBasicD: 
@@ -392,76 +344,6 @@ instance
 done
 end
 
-subsection {* Set sort instantiation *}
-
-(*
-instantiation cmlv :: SET_SORT_PRE
-begin
-
-  definition MkSet_cmlv :: "cmlv set \<Rightarrow> cmlv" where
-  "MkSet_cmlv xs = SetD (ProjBasicD ` xs)"
-  
-  definition DestSet_cmlv :: "cmlv \<Rightarrow> cmlv set" where
-  "DestSet_cmlv v = BasicD ` ProjSetD v"
-
-  definition IsSetElemType_cmlv :: "cmlv UTYPE \<Rightarrow> bool" where
-  "IsSetElemType_cmlv t = (prjTYPE t \<in> vbtypes)"
-
-  definition SetType_cmlv :: "cmlv UTYPE \<Rightarrow> cmlv UTYPE" where
-  "SetType_cmlv t = embTYPE (SetT (prjTYPE t))"
-
-instance ..
-
-end
-
-lemma embTYPE_inv_SetT:
-  "prjTYPE (embTYPE (SetT t) :: cmlv UTYPE) = SetT t"
-  apply (rule_tac embTYPE_inv[of "SetD {}"])
-  apply (auto simp add: utype_rel_cmlv_def Defined_cmlv_def)
-done
-
-instantiation cmlv :: SET_SORT
-begin
-
-instance
-  apply (intro_classes)
-  apply (auto simp add:DestSet_cmlv_def MkSet_cmlv_def SetType_cmlv_def IsSetElemType_cmlv_def type_rel_cmlt)
-  apply (drule_tac x="xb" in bspec)
-  apply (simp)
-  apply (force)
-  apply (force)
-  apply (simp_all add:dcarrier_def type_rel_cmlt)
-  apply (auto)
-  apply (subgoal_tac "\<exists> v::cmlv. v :\<^sub>u to_nat (SetT (prjTYPE t)) \<and> \<D> v")
-  apply (force)
-  apply (rule_tac x="SetD {}" in exI)
-  apply (auto simp add:utype_rel_cmlv_def Defined_cmlv_def embTYPE_inv_SetT)
-  apply (metis (lifting) CollectD IsBasicD.simps(1) ProjBasicD_inv set_mp vbtypes_type_cases vdefined.simps(1))
-  apply (simp add:image_def MkSet_cmlv_def)
-  apply (erule SetT_type_cases)
-  apply (auto)
-  apply (rule_tac x="BasicD ` xs" in bexI)
-  apply (auto)
-done
-
-end
-
-lemma ProjBasicD_inv [simp]: 
-  "x \<in> vbvalues \<Longrightarrow> BasicD (ProjBasicD x) = x"
-  by (auto simp add:vbvalues_def)
-
-(*
-lemma ProjBasicD_not_basic [simp]: "\<lbrakk> x :\<^sub>v a;  \<not> IsBasicD x \<rbrakk> \<Longrightarrow> ProjBasicD x = BotI a"
-  apply (case_tac x, auto)
-*)
-
-lemma embTYPE_inv_FuncT:
-  "prjTYPE (embTYPE (a \<rightarrow> b) :: cmlv UTYPE) = (a \<rightarrow> b)"
-  apply (rule_tac embTYPE_inv[of "FuncD (\<lambda> x. BotD b)"])
-  apply (auto simp add: utype_rel_cmlv_def Defined_cmlv_def)
-done
-*)
-
 instantiation option :: (type) DEFINED
 begin
 
@@ -490,6 +372,8 @@ lemma ProjVB_inv [simp]:
   apply (auto simp add:ProjVB_def)
   apply (metis InjVB.simps(2) Inject_Project Project_Inject)
 done
+
+subsection {* Reactive Sort instantiation *}
 
 instantiation cmlv :: REACTIVE_SORT
 begin

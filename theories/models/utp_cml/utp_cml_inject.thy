@@ -28,7 +28,8 @@ class vbasic =
   fixes Inject  :: "'a \<Rightarrow> vbasic"
   and   Type    :: "'a itself \<Rightarrow> vbasict"
   assumes Inject_inj: "Inject x = Inject y \<Longrightarrow> x = y"
-  and     Inject_range [simp]: "range Inject = {x. x :\<^sub>b Type (TYPE('a)) \<and> \<D> x}"
+  and Inject_range [simp]: 
+        "range Inject = {x. x :\<^sub>b Type TYPE('a) \<and> \<D> x}"
 
 syntax
   "_BTYPE" :: "type => logic"  ("(1BTYPE/(1'(_')))")
@@ -121,41 +122,6 @@ instance
   by (intro_classes, auto simp add:Inject_unit_def Type_unit_def)
 end
 
-(*
-subsection {* Naturals are injectable *}
-
-instantiation nat :: vbasic
-begin
-definition "Inject_nat \<equiv> NatI"
-definition Type_nat :: "nat itself \<Rightarrow> vbasict" where
-"Type_nat x \<equiv> NatBT"
-
-declare Type_nat_def [simp]
-
-instance
-  by (intro_classes, auto simp add:Inject_nat_def) 
-end
-
-lemma BTYPE_nat: "NatBT = BTYPE(nat)"
-  by (simp add:Type_nat_def)
-
-subsection {* Integers are injectable *}
-
-instantiation int :: vbasic
-begin
-definition "Inject_int \<equiv> IntI"
-definition Type_int :: "int itself \<Rightarrow> vbasict" where
-"Type_int x \<equiv> IntBT"
-
-declare Type_int_def [simp]
-
-instance by (intro_classes, auto simp add:Inject_int_def) 
-end
-
-lemma BTYPE_int: "IntBT = BTYPE(int)"
-  by (simp add:Type_int_def)
-*)
-
 subsection {* Bools are injectable *}
 
 instantiation bool :: vbasic
@@ -171,25 +137,7 @@ end
 lemma BTYPE_bool: "BoolBT = BTYPE(bool)"
   by (simp add:Type_bool_def)
 
-(*
-subsection {* Rationals are injectable *}
-
-instantiation rat :: vbasic
-begin
-
-definition "Inject_rat \<equiv> RatI"
-definition "Type_rat (x::rat itself) = RatBT"
-
-declare Type_rat_def [simp]
-
-instance by (intro_classes, auto simp add:Inject_rat_def)
-end
-
-lemma BTYPE_rat: "RatBT = BTYPE(rat)"
-  by (simp add:Type_rat_def)
-*)
-
-subsection {* Rationals are injectable *}
+subsection {* Real numbers are injectable *}
 
 instantiation real :: vbasic
 begin
@@ -243,18 +191,6 @@ instance
 done
 end
 
-(*
-subsection {* Channels are injectable *}
-
-typedef chan = "UNIV :: (NAME * vbasict) set"
-  by auto
-
-instantiation chan :: vbasic
-begin
-
-definition "Inject_chan c = ChanI (fst (Rep_chan c)) (snd (Rep_chan c))"
-*)
-
 subsection {* Characters are injectable *}
 
 instantiation char :: vbasic
@@ -293,10 +229,10 @@ instance
   apply (auto simp add:image_def)
   apply (erule OptionT_type_cases)
   apply (auto)
+  apply (rule_tac x="None" in exI)
+  apply (simp add:Inject_option_def)
   apply (rule_tac x="Project xa" in exI)
   apply (auto simp add:Inject_option_def)
-  apply (rule_tac x="None" in exI)
-  apply (simp)
 done
 end
 
@@ -363,11 +299,6 @@ instance
 done
 end
 
-(*
-*)
-
-(* Unfortunately the injections only work for monomorphically typed function, at the moment
-   which is no surprise as we need explicit machinery to build polymorphic versions *)
 lemma Type_list: "ListBT (BTYPE('a)) = BTYPE(('a::vbasic) list)"
   by (simp add:Type_list_def)
 
@@ -386,26 +317,11 @@ lemma option_set_insert:
 lemma option_set_image [simp]: "option_set (Some ` xs) = Some xs"
   by (auto simp add:option_set_def image_def)
 
-(*
-lemma flist_finsert_sorted [simp]:
-  "\<lbrakk> sorted (x # xs); distinct (x # xs) \<rbrakk> \<Longrightarrow> flist (finsert x (fset xs)) = x # xs"
-  apply (subgoal_tac "\<forall>x'. x'\<in>\<^sub>ffset xs \<longrightarrow> x < x'")
-  apply (auto)
-  apply (metis fset_inv sorted_Cons)
-  apply (metis le_neq_trans sorted_Cons)
-done
-*)
-
 instantiation fset :: (vbasic) vbasic
 begin
 
 definition Inject_fset :: "'a fset \<Rightarrow> vbasic" where
 "Inject_fset xs = FSetI BTYPE('a) (Abs_fset (Inject ` Rep_fset xs))"
-
-(*
-definition Project_fset :: "vbasic \<Rightarrow> 'a fset option" where 
-"Project_fset xs = (ProjFSetI xs >>= (\<lambda> x. option_set (Project ` Rep_fset x))) >>= Some \<circ> Abs_fset"
-*)
 
 definition Type_fset :: "'a fset itself \<Rightarrow> vbasict" where
 "Type_fset x = FSetBT BTYPE('a)"
@@ -502,12 +418,6 @@ lemma vbasic_map_ran: "ran (vbasic_map f) = Inject ` ran f"
   apply (auto)
 done
 
-
-(*
-lemma vbasic_map_ran: "ran (vbasic_map f) = Inject ` ran f"
-  apply (force simp add:vbasic_map_def ran_def image_def)
-*)
-
 lemma map_vbasic_dom: "dom (map_vbasic f) \<subseteq> (the\<circ>Project) ` dom f"
   apply (auto simp add:map_vbasic_def)
   apply (metis Inject_Project bind_lzero domIff image_compose image_iff option.distinct(1) the.simps)
@@ -531,12 +441,6 @@ lemma vbasic_fmap_inj:
   "inj vbasic_fmap"
   by (metis injI vbasic_fmap_inv)
 
-(*
-lemma vbasic_fmap_inv:
-  "vbasic_fmap (fmap_vbasic x) = x"
-  apply (auto simp add:fmap_vbasic.rep_eq vbasic_fmap.rep_eq vbasic_map_inv)
-*)
-
 lemma vbasic_map_dest: "vbasic_map f x = Some y \<Longrightarrow> \<exists> a b. x = Inject a \<and> f a = Some b \<and> Project y = Some b"
   apply (simp add:vbasic_map_def)
   apply (case_tac "Project x :: 'a option", simp_all)
@@ -552,58 +456,6 @@ lemma vbasic_mapE [elim!]:
   shows "P"
   by (insert assms, auto dest!:vbasic_map_dest)
 
-
-(*
-definition vbasic_map :: "('a::vbasic, 'b::vbasic) fmap \<Rightarrow> vbasic \<Rightarrow> vbasic option" where
-"vbasic_map f \<equiv> (\<lambda> x. ((Project x :: 'a option) >>= Rep_fmap f) >>= Some \<circ> Inject)"
-
-definition map_vbasic :: "(vbasic, vbasic) fmap \<Rightarrow> ('a::vbasic \<Rightarrow> 'b::vbasic option)" where
-"map_vbasic f \<equiv> (\<lambda> x::'a. \<langle>f\<rangle>\<^sub>m (Inject x) >>= Project)"
-
-lemma vbasic_map_dest: "vbasic_map f x = Some y \<Longrightarrow> \<exists> a b. x = Inject a \<and> \<langle>f\<rangle>\<^sub>m a = Some b \<and> Project y = Some b"
-  apply (simp add:vbasic_map_def)
-  apply (case_tac "Project x :: 'a option", simp_all)
-  apply (case_tac "Rep_fmap f a", simp_all)
-  apply (rule_tac x="a" in exI)
-  apply (auto)
-done
-
-lemma vbasic_mapE [elim!]: 
-  assumes 
-    "vbasic_map f x = Some y" 
-    "\<And> a b. \<lbrakk>x = Inject a; \<langle>f\<rangle>\<^sub>m a = Some b; Project y = Some b\<rbrakk> \<Longrightarrow> P"
-  shows "P"
-  by (insert assms, auto dest!:vbasic_map_dest)
-
-lemma vbasic_map_dom: "dom (vbasic_map f) = Inject ` dom (Rep_fmap f)"
-  apply (auto simp add:vbasic_map_def)
-  apply (case_tac "Project x :: 'a option", simp_all, case_tac "Rep_fmap f a", auto)
-done
-
-lemma map_vbasic_dom: "dom (map_vbasic f) \<subseteq> (the \<circ> Project) ` dom (Rep_fmap f)"
-  apply (auto)
-  apply (case_tac "Rep_fmap f (Inject x)", simp add:map_vbasic_def)
-  apply (simp add:dom_def image_def)
-  apply (metis Inject_Project the.simps)
-done
-
-lemma vbasic_map_inj [simp]: "vbasic_map f = vbasic_map g \<Longrightarrow> f = g"
-  apply (rule fmext)
-  apply (auto simp add:vbasic_map_def)
-  apply (drule_tac x="Inject x" and y="Inject x" in cong, simp)
-  apply (simp)
-  apply (case_tac "Rep_fmap f x")
-  apply (case_tac[!] "Rep_fmap g x")
-  apply (simp_all)
-done
-
-lemma finite_dom_vbasic_map[simp]: "finite (dom (vbasic_map f))"
-  by (simp add:vbasic_map_dom)
-
-lemma finite_dom_map_vbasic[simp]: "finite (dom (map_vbasic f))"
-  by (auto intro: finite_subset[OF map_vbasic_dom])
-*)
-  
 instantiation fmap :: (vbasic, vbasic) vbasic
 begin
 
@@ -629,10 +481,6 @@ next
 
   next
     fix x :: "('a,'b) fmap"
-(*
-    obtain xs where "x = list_fmap xs" "distinct (map fst xs)" "sorted (map fst xs)"
-      by (metis fmap_list_inv fmap_list_props(1) fmap_list_props(2))
-*)
 
     show "\<D> (FinMapI BTYPE('a) BTYPE('b) (vbasic_fmap x))"
       by (auto simp add:defined fdom.rep_eq fran.rep_eq vbasic_fmap.rep_eq DEFINED_def vbasic_map_dom vbasic_map_ran)

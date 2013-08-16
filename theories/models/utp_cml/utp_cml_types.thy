@@ -71,15 +71,6 @@ lemma vty_int_members [simp]:
   apply (rule_tac x="neg_numeral n" in exI, simp)
 done
 
-definition Fow :: "'a set \<Rightarrow> 'a fset set" where
-"Fow A = {Abs_fset x | x. x \<subseteq> A \<and> finite x}"
-
-lemma Fow_mem [iff]: "x \<in> Fow A \<longleftrightarrow> \<langle>x\<rangle>\<^sub>f \<subseteq> A"
-  apply (auto simp add:Fow_def)
-  apply (rule_tac x="\<langle>x\<rangle>\<^sub>f" in exI)
-  apply (simp)
-done
-
 (* FIXME: It may be that CML types need to be binding dependent
    as they can potentially depend on UTP variables. *)
 definition InvS :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> 'a set" where
@@ -149,7 +140,7 @@ term "\<parallel>@seq1 of @char inv x == if (^x^ = <<CHR ''x''>>) then true else
 
 term "\<parallel>@map @char to @int\<parallel>"
 
-(* term "`x := \<langle><1>\<rangle> : @seq1 of @nat1`" *)
+term "`x := [3,1,4,2] : @seq1 of @nat1`"
 
 term "\<parallel>{mk_prod($x : @int,$y : @int) | $x = $y}\<parallel>"
 

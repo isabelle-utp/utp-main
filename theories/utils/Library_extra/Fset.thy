@@ -122,6 +122,22 @@ lift_definition fsubset_eq :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool"
 declare less_eq_fset.rep_eq [simp]
 declare less_fset.rep_eq [simp]
 
+definition FUnion :: "'a fset fset \<Rightarrow> 'a fset" ("\<Union>\<^sub>f_" [90] 90) where
+"FUnion xs = Abs_fset (\<Union>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)"
+
+definition FInter :: "'a fset fset \<Rightarrow> 'a fset" ("\<Inter>\<^sub>f_" [90] 90) where
+"FInter xs = Abs_fset (\<Inter>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)"
+
+text {* Finite power set *}
+
+definition FinPow :: "'a fset \<Rightarrow> 'a fset fset" where
+"FinPow xs = Abs_fset (Abs_fset ` Pow \<langle>xs\<rangle>\<^sub>f)"
+
+text {* Set of all finite subsets of a set *}
+
+definition Fow :: "'a set \<Rightarrow> 'a fset set" where
+"Fow A = {Abs_fset x | x. x \<subseteq> A \<and> finite x}"
+
 notation
   fsubset_eq ("op \<subseteq>\<^sub>f") and
   fsubset_eq ("(_/ \<subseteq>\<^sub>f _)" [50, 51] 50) and
@@ -137,25 +153,6 @@ translations
 
 definition fset_elem :: "('a * 'a fset) set" 
 where "fset_elem = {(x,xs) | x xs. x \<notin> Rep_fset xs}"
-
-typedef 'a fset_elem = "fset_elem :: ('a * 'a fset) set"
-  apply (auto simp add:fset_elem_def)
-  apply (rule_tac x="undefined" in exI)
-  apply (rule_tac x="fempty" in exI)
-  apply (simp add:fempty_def Abs_fset_inverse fsets_def)
-done
-
-definition fs_elem :: "'a fset_elem \<Rightarrow> 'a" where
-"fs_elem x = fst (Rep_fset_elem x)"
-
-definition fs_set :: "'a fset_elem \<Rightarrow> 'a set" where
-"fs_set x = Rep_fset (snd (Rep_fset_elem x))"
-
-lemma fs_elem_set [simp]: "fs_elem fx \<notin> fs_set fx"
-  apply (simp add:fs_elem_def fs_set_def)
-  apply (case_tac fx)
-  apply (auto simp add:fset_elem_def Abs_fset_elem_inverse)
-done 
 
 definition fset :: "'a list \<Rightarrow> 'a fset" where
 "fset xs = Abs_fset (set xs)"
@@ -425,6 +422,47 @@ proof -
   with Alist sorted distinct show ?thesis by (simp)
 
 qed
+
+lemma FinPow_rep_eq [simp]: 
+  "Rep_fset (FinPow xs) = {ys. ys \<subseteq>\<^sub>f xs}"
+  apply (subgoal_tac "finite (Abs_fset ` Pow \<langle>xs\<rangle>\<^sub>f)")
+  apply (auto simp add:FinPow_def)
+  apply (subgoal_tac "finite xa")
+  apply (force)
+  apply (metis Rep_fset_finite rev_finite_subset)
+  apply (metis Pow_def Rep_fset_inverse image_iff mem_Collect_eq)
+done
+
+lemma FUnion_rep_eq [simp]: 
+  "\<langle>\<Union>\<^sub>f xs\<rangle>\<^sub>f = (\<Union>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)"
+  by (simp add:FUnion_def)
+
+
+lemma FInter_rep_eq [simp]: 
+  "xs \<noteq> \<lbrace>\<rbrace> \<Longrightarrow> \<langle>\<Inter>\<^sub>f xs\<rangle>\<^sub>f = (\<Inter>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)"
+  apply (simp add:FInter_def)
+  apply (subgoal_tac "finite (\<Inter>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)")
+  apply (simp)
+  apply (force)
+done
+
+lemma FUnion_empty [simp]:
+  "\<Union>\<^sub>f \<lbrace>\<rbrace> = \<lbrace>\<rbrace>"
+  by (auto)
+
+lemma FinPow_member [simp]:
+  "xs \<in>\<^sub>f FinPow xs"
+  by (auto)
+
+lemma FUnion_FinPow [simp]:
+  "\<Union>\<^sub>f (FinPow x) = x"
+  by (auto)
+
+lemma Fow_mem [iff]: "x \<in> Fow A \<longleftrightarrow> \<langle>x\<rangle>\<^sub>f \<subseteq> A"
+  apply (auto simp add:Fow_def)
+  apply (rule_tac x="\<langle>x\<rangle>\<^sub>f" in exI)
+  apply (simp)
+done
 
 subsection {* Finite set binders *}
 
