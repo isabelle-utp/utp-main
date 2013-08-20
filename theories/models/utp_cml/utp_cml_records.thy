@@ -10,6 +10,7 @@ theory utp_cml_records
 imports 
   utp_cml_expr
   utp_cml_types
+  utp_cml_functions
 begin
 
 default_sort type
@@ -50,21 +51,25 @@ declare FieldType.rep_eq [simp]
 definition MkField :: "'t::tag itself \<Rightarrow> ('r \<Rightarrow> 'a) \<Rightarrow> 'a::vbasic set \<Rightarrow> ('t,'a,'r) field" where
 "MkField t f x = Abs_field (f, x)"
 
-declare MkField_def [eval,evalp]
+(* declare MkField_def [eval,evalp] *)
 
 typedef ('t, 'a, 'r) tagged = "UNIV :: 'a set set"
   by (auto)
 
 declare Rep_tagged [simp]
 declare Abs_tagged_inverse [simp]
+declare Abs_tagged_inject [simp]
 declare Rep_tagged_inverse [simp]
+declare Rep_tagged_inject [simp]
 
 typedef ('t, 'r) rec = "UNIV :: 'r set"
   by (auto)
 
 declare Rep_rec [simp]
 declare Abs_rec_inverse [simp]
+declare Abs_rec_inject [simp]
 declare Rep_rec_inverse [simp]
+declare Rep_rec_inject [simp]
 
 instantiation rec :: (tag, vbasic) vbasic
 begin
@@ -85,7 +90,7 @@ end
 definition UnitField :: "('t::tag, 'a::vbasic, 'r) field \<Rightarrow> ('t, ('a * unit), 'r) tagged" where
 "UnitField f = Abs_tagged (FieldType f \<times> UNIV)"
 
-declare UnitField_def [eval,evalp]
+(* declare UnitField_def [eval,evalp] *)
 
 definition ConsField :: 
   "('t::tag, 'a::vbasic, 'r) field \<Rightarrow> 
@@ -93,27 +98,37 @@ definition ConsField ::
    ('t, ('a * 'b), 'r) tagged" where
 "ConsField f t = Abs_tagged (FieldType f \<times> Rep_tagged t)"
 
-declare ConsField_def [eval,evalp]
+(* declare ConsField_def [eval,evalp] *)
 
 definition MkTagRec :: "('t::tag, 'r::vbasic, 'r) tagged \<Rightarrow> 'r \<Rightarrow> ('t, 'r) rec" where
 "MkTagRec t = Abs_rec"
 
-declare MkTagRec_def [eval,evalp]
+(* declare MkTagRec_def [eval,evalp] *)
 
+definition TermField :: "('t::tag, 'r::vbasic, 's) tagged \<Rightarrow> ('t, 'r) rec set" where
+"TermField t \<equiv> Abs_rec ` Rep_tagged t"
+
+abbreviation FinishField :: "('t::tag, 'r::vbasic, 'r) tagged \<Rightarrow> ('t, 'r) rec set" where
+"FinishField \<equiv> TermField"
+
+(*
 definition FinishField :: "('t::tag, 'r::vbasic, 'r) tagged \<Rightarrow> ('t, 'r) rec set" where
 "FinishField t \<equiv> MkTagRec t ` Rep_tagged t"
+*)
 
-declare FinishField_def [eval,evalp]
+(* declare FinishField_def [eval,evalp] *)
 
 definition MkRec :: "('t, 'r) rec set \<Rightarrow> 'r \<Rightarrow> ('t, 'r) rec option" where
 "MkRec t = Some \<circ> Abs_rec"
+
+declare MkRec_def [eval, evalp]
 
 definition SelectRec :: 
   "('t::tag, 'a::vbasic, 'r) field \<Rightarrow> 
    ('t, 'r) rec \<Rightarrow> 'a" where
 "SelectRec f r = (fst (Rep_field f)) (Rep_rec r)"
 
-declare SelectRec_def [eval,evalp]
+(* declare SelectRec_def [eval,evalp] *)
 
 nonterminal vty_fields and vrec
 
@@ -127,16 +142,76 @@ translations
   "_vty_field x" == "CONST UnitField x"
   "_vty_record x" == "CONST FinishField x"
 
+lemma Abs_rec_cons_type [simp]:
+  "Abs_rec (x, y) \<in> TermField (ConsField a b)
+   \<longleftrightarrow> (x \<in> FieldType a \<and> Abs_rec y \<in> TermField b)"
+  by (auto simp add:TermField_def MkTagRec_def ConsField_def UnitField_def)
 
-(*
-lemma "|mk_Expert(1,{}).expertid|= |1|"
-  apply (auto simp add:evalp)
-*)
+lemma Abs_rec_unit_type [simp]:
+  "Abs_rec (x, y) \<in> TermField (UnitField a)
+   \<longleftrightarrow> x \<in> FieldType a"
+  by (auto simp add:TermField_def MkTagRec_def ConsField_def UnitField_def)
 
+lemma [simp]: "Rep_field (MkField t f x) = (f, x)"
+  by (simp add:MkField_def)
 
-(*
-term "|(mk_Expert(1, {}) : [expertid,quali])|"
-term "\<parallel>[expertid, quali]\<parallel>"
-*)
+lemma SelectRec_1 [simp]: 
+  "SelectRec (MkField g #1 t) (Abs_rec (v1, r)) = v1"
+  by (simp add:SelectRec_def)
+
+lemma SelectRec_2 [simp]: 
+  "SelectRec (MkField g #2 t) (Abs_rec (v1, v2, r)) = v2"
+  by (simp add:SelectRec_def)
+
+lemma SelectRec_3 [simp]: 
+  "SelectRec (MkField g #3 t) (Abs_rec (v1, v2, v3, r)) = v3"
+  by (simp add:SelectRec_def)
+
+lemma SelectRec_4 [simp]: 
+  "SelectRec (MkField g #4 t) (Abs_rec (v1, v2, v3, v4, r)) = v4"
+  by (simp add:SelectRec_def)
+
+lemma SelectRec_5 [simp]: 
+  "SelectRec (MkField g #5 t) (Abs_rec (v1, v2, v3, v4, v5, r)) = v5"
+  by (simp add:SelectRec_def)
+
+lemma SelectRec_6 [simp]: 
+  "SelectRec (MkField g #6 t) (Abs_rec (v1, v2, v3, v4, v5, v6, r)) = v6"
+  by (simp add:SelectRec_def)
+
+lemma SelectRec_7 [simp]: 
+  "SelectRec (MkField g #7 t) (Abs_rec (v1, v2, v3, v4, v5, v6, v7, r)) = v7"
+  by (simp add:SelectRec_def)
+
+lemma SelectRec_8 [simp]: 
+  "SelectRec (MkField g #8 t) (Abs_rec (v1, v2, v3, v4, v5, v6, v7, v8, r)) = v8"
+  by (simp add:SelectRec_def)
+
+typedef MyRec_Tag = "{True}" by auto
+instantiation MyRec_Tag :: tag
+begin
+definition "tagName_MyRec_Tag (x::MyRec_Tag) = ''MyRec''"
+instance 
+  by (intro_classes, metis (full_types) Abs_MyRec_Tag_cases singleton_iff)
+end
+
+text {* Next we create a collection of fields associated with the tag, and give each
+        the position in record and its VDM type. *}
+
+abbreviation "higher_fld \<equiv> MkField TYPE(MyRec_Tag) #1 \<parallel>@nat\<parallel>"
+abbreviation "lower_fld \<equiv> MkField TYPE(MyRec_Tag) #2 \<parallel>@nat\<parallel>"
+
+abbreviation "higher \<equiv> SelectRec higher_fld"
+abbreviation "lower  \<equiv> SelectRec lower_fld"
+
+definition "MyType = \<parallel>[ higher_fld, lower_fld] inv x == ^x^.higher > ^x^.lower\<parallel>"
+
+definition "mk_MyType \<equiv> MkRec MyType"
+
+lemma "|mk_MyType(2,1) hasType @MyType| = |true|"
+  by (simp add:evalp mk_MyType_def MyType_def)
+
+lemma "|forall x:@nat @ mk_MyType(^x^,0) hasType @MyType| = |false|"
+  by (auto simp add:evalp mk_MyType_def MyType_def)
 
 end

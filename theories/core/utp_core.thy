@@ -8,6 +8,7 @@ header {* Meta-Theory for the Core Predicate Model *}
 
 theory utp_core
 imports
+  utp_event
   utp_names
   utp_synonyms
   utp_sorts

@@ -1,9 +1,9 @@
+(*<*)
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
 (* File: utp_definedness.thy                                                  *)
 (* Author: Victor Bandur and Simon Foster, University of York (UK)            *)
 (******************************************************************************)
-
 header {* A theory of definedness in the UTP *}
 
 theory utp_definedness
@@ -20,10 +20,20 @@ begin
 default_sort BOOL_SORT
 
 abbreviation "def  \<equiv> MkPlainP ''def'' True TYPE(bool) TYPE('m :: BOOL_SORT)"
+(*>*)
 
-definition TVL :: "('a WF_PREDICATE * 'a WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" where
-"TVL \<equiv> \<lambda> (P,Q). `($def \<Rightarrow> P) \<and> (Q \<Leftrightarrow> $def)`"
-(* "TVL = (\<lambda> (P,Q). `P \<lhd> $def \<rhd> \<not> Q`)" *)
+text {* A TVL pair (Three-Valued Logic) consists of a pair of
+predicates, the first of which give the true valued region of the
+predicate, and second gives the defined region of the predicate. *}
+
+definition TVL :: 
+  "('a WF_PREDICATE * 'a WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" 
+where "TVL \<equiv> \<lambda> (P,Q). `($def \<Rightarrow> P) \<and> (Q \<Leftrightarrow> $def)`"
+
+text {* We then define functions to extract the first and second
+elements of the TVL pair, by substituting @{term def} for
+\textsf{true}, substituting @{term def} for false and negating,
+respectively. *}
 
 definition PredicateT :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 "PredicateT P = `P[true/def]`"
@@ -31,6 +41,7 @@ definition PredicateT :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 definition DefinedT :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 "DefinedT P = `\<not> P[false/def]`"
 
+(*<*)
 declare TVL_def [eval]
 declare PredicateT_def [eval]
 declare DefinedT_def [eval]
@@ -44,7 +55,13 @@ translations
   "_upred_tvl p q"     == "CONST TVL (p, q)"
   "_upred_definedt p" == "CONST DefinedT p"
   "_upred_predicatet p" == "CONST PredicateT p"
+(*>*)
 
+text {* We also extend the parser with suitable syntax so that a
+TVL-pair can be written as @{term "`\<three>(P, Q)`"}, the truth valuation of a
+predicate can be extracted with @{term "`\<P>(P)`"} and the definedness of
+a predicate can be extracted with @{term "`\<D>(P)`"}. This then allows us
+to define some of the common syntax of three-valued logic. *}
 
 definition TrueT :: "'a WF_PREDICATE" where
 "TrueT = `\<three>(true, true)`"
@@ -52,18 +69,34 @@ definition TrueT :: "'a WF_PREDICATE" where
 definition FalseT :: "'a WF_PREDICATE" where
 "FalseT = `\<three>(false, true)`"
 
+text {* Predicates $\textsf{true}_T$ and $\textsf{false}_T$ are
+both defined, and exhibit their respective truth values. *}
+
 definition BotT :: "'a WF_PREDICATE" where
 "BotT = `\<not> $def`"
+
+text {* Bottom (undefined) is the predicate which is never defined. *}
 
 definition NotT :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 "NotT P = `\<three>(\<not> \<P>(P), \<D>(P))`"
 
-definition OrT :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"OrT P Q = `\<three>(\<P>(P) \<or> \<P>(Q), \<D>(P) \<and> \<D>(Q))`"
+text {* Boolean not ($\neg_T P$) negates the truth valuation and
+leaves the definedness as is. *}
 
-definition AndT :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+definition AndT :: 
+  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 "AndT P Q = `\<three>(\<P>(P) \<and> \<P>(Q), \<D>(P) \<and> \<D>(Q))`"
 
+definition OrT :: 
+  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+"OrT P Q = `\<three>(\<P>(P) \<or> \<P>(Q), \<D>(P) \<and> \<D>(Q))`"
+
+text {* Conjunction ($\wedge_T$) and disjunction $\vee_T$,
+respectively, conjoin and disjoin the truth valuations of the
+respective predicates, and both conjoin the definedness regions, as
+both sides must be defined. *}
+
+(*<*)
 definition AllDefinedT :: "'a VAR set \<Rightarrow> 'a WF_PREDICATE" where
 "AllDefinedT xs = mkPRED {b. \<forall>x\<in>xs. \<D> (\<langle>b\<rangle>\<^sub>b x)}"
 
@@ -203,6 +236,11 @@ lemma AndT_right_unit:
   apply (simp_all add:typing defined usubst erasure)
   apply (utp_pred_auto_tac)
 done
+(*>*)
+
+text {* We can then prove some simple properties about the new
+operators which we've defined, such as as that both conjunction and
+disjunction are commutative and associative. *}
 
 lemma AndT_assoc:
   "`(P \<and>\<^sub>T Q) \<and>\<^sub>T R` = `P \<and>\<^sub>T Q \<and>\<^sub>T R`"
@@ -220,12 +258,14 @@ lemma OrT_commute:
   "`P \<or>\<^sub>T Q` = `Q \<or>\<^sub>T P`"
   by (utp_pred_auto_tac)
 
+(*<*)
 lemma NotT_double: "P is DH \<Longrightarrow> `\<not>\<^sub>T \<not>\<^sub>T P` = `P`"
   apply (simp add:NotT_def TVL_def PredicateT_def DefinedT_def)
   apply (rule BoolType_aux_var_split_eq_intro[of "def\<down>"])
   apply (simp_all add:typing defined usubst erasure)
   apply (utp_pred_auto_tac)
 done
+(*>*)
 
 lemma NotT_TrueT: "`\<not>\<^sub>T true\<^sub>T` = `false\<^sub>T`"
   by (utp_pred_tac)
@@ -239,4 +279,6 @@ lemma AndT_BotT_right: "`P \<and>\<^sub>T \<bottom>\<^sub>T` = `\<bottom>\<^sub>
 lemma NotT_BotT: "`\<not>\<^sub>T \<bottom>\<^sub>T` = `\<bottom>\<^sub>T`"
   by (utp_pred_tac)
 
+(*<*)
 end
+(*>*)

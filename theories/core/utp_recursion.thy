@@ -12,12 +12,47 @@ imports
   "../laws/utp_rel_laws"
 begin
 
+definition UNRH :: 
+  "'a VAR set \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("UH\<^bsub>_\<^esub>") where
+"UNRH vs p = (\<exists>\<^sub>p (VAR - vs). p)"
+
+lemma UNRH_idem:
+  "UH\<^bsub>vs\<^esub> (UH\<^bsub>vs\<^esub> p) = UH\<^bsub>vs\<^esub> p"
+  apply (simp add:UNRH_def)
+  apply (utp_pred_tac)
+done
+
+lemma UNRH_mono [intro]:
+  "mono UH\<^bsub>vs\<^esub>"
+  apply (rule monoI)
+  apply (simp add:UNRH_def)
+  apply (utp_pred_auto_tac)
+done
+
+lemma UNREST_UNRH [unrest]:
+  "UNREST (VAR - vs) (UH\<^bsub>vs\<^esub> p)"
+  by (simp add:UNRH_def unrest)
+
+lemma UNRH_UNREST [simp]:
+  "UNREST (VAR - vs) p \<Longrightarrow> UH\<^bsub>vs\<^esub> p = p"
+  by (metis ExistsP_ident UNRH_def)
+
+lemma mono_comp [intro]: 
+  "\<lbrakk> mono F; mono G \<rbrakk> \<Longrightarrow> mono (F \<circ> G)"
+  by (simp add:mono_def)
+  
 subsection {* Fixed Points *}
 
 abbreviation WFP ::
   "'VALUE WF_FUNCTION \<Rightarrow>
    'VALUE WF_PREDICATE" ("\<mu>") where
 "WFP \<equiv> gfp"
+
+abbreviation WFP_alpha ::
+  "'a VAR set \<Rightarrow>
+   'a WF_FUNCTION \<Rightarrow>
+   'a WF_PREDICATE" ("\<mu>\<^bsub>_\<^esub>") where
+"WFP_alpha vs f \<equiv> WFP (f \<circ> UH\<^bsub>vs\<^esub>)"
 
 syntax
   "_WFP" :: "pttrn => 'VALUE WF_PREDICATE => 'VALUE WF_PREDICATE" ("(3MU _./ _)" [0, 10] 10)
@@ -50,6 +85,7 @@ translations
   "_upred_wfp x p"  == "CONST WFP (\<lambda>x. p)"
   "_upred_sfp x p"  == "CONST SFP (\<lambda>x. p)"
 
+
 lemma WFP: "F(Y) \<sqsubseteq> Y \<Longrightarrow> \<mu> F \<sqsubseteq> Y"
   by (metis gfp_upperbound)
 
@@ -67,6 +103,31 @@ lemma SFP_unfold: "mono F \<Longrightarrow> F (\<nu> F) = \<nu> F"
 
 lemma SFP_id: "(\<nu> X \<bullet> X) = false"
   by (metis SFP bot_WF_PREDICATE_def bot_unique)
+
+lemma UNREST_WFP:
+  "\<lbrakk> \<And> x. UNREST vs (F x); mono F \<rbrakk> \<Longrightarrow> UNREST vs (\<mu> F)"
+  by (metis WFP_unfold)
+
+lemma UNREST_SFP:
+  "\<lbrakk> \<And> x. UNREST vs (F x); mono F \<rbrakk> \<Longrightarrow> UNREST vs (\<nu> F)"
+  by (metis SFP_unfold)
+
+lemma UNREST_WFP_alpha [unrest]:
+  "\<lbrakk> \<And> x. UNREST (VAR - vs) x \<Longrightarrow> UNREST (VAR - vs) (F x); mono F \<rbrakk>
+     \<Longrightarrow> UNREST (VAR - vs) (\<mu>\<^bsub>vs\<^esub> F)"
+  apply (subgoal_tac "mono (F \<circ> UH\<^bsub>vs\<^esub>)")
+  apply (metis (mono_tags) UNREST_UNRH WFP_unfold comp_def)
+  apply (force)
+done
+
+lemma WFP_alpha_unfold:
+  "\<lbrakk> \<And> x. UNREST (VAR - vs) x \<Longrightarrow> UNREST (VAR - vs) (F x); mono F \<rbrakk>
+     \<Longrightarrow> \<mu>\<^bsub>vs \<^esub>F = F (\<mu>\<^bsub>vs\<^esub> F)"
+  apply (rule trans)
+  apply (rule WFP_unfold)
+  apply (blast intro:assms)
+  apply (simp add:unrest assms)
+done
 
 type_synonym 'a WF_PRED_CHAIN = "nat \<Rightarrow> 'a WF_PREDICATE"
 

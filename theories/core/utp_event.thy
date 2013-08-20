@@ -49,11 +49,13 @@ class EVENT_PERM = VALUE +
   fixes   EventPerm :: "'a UTYPE set"
   assumes EventPerm_exists: "\<exists> x. x \<in> EventPerm"
 
-typedef 'm::EVENT_PERM EVENT = 
-  "{(c, v :: 'm). uchan_type c \<in> EventPerm \<and> v : uchan_type c}"
+typedef ('m::EVENT_PERM) EVENT = 
+  "{(c :: 'm UCHAN, v :: 'm). uchan_type c \<in> EventPerm 
+                            \<and> v : uchan_type c}"
   morphisms DestEVENT MkEVENT
   apply (auto)
-  apply (metis (mono_tags) DestUCHAN_cases EventPerm_exists UNIV_I default_type snd_def split_conv)
+  apply (metis (mono_tags) DestUCHAN_cases EventPerm_exists 
+               UNIV_I default_type snd_def split_conv)
 done
 
 declare DestEVENT [simp]

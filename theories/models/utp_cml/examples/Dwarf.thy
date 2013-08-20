@@ -91,10 +91,10 @@ definition "mk_DwarfType \<equiv> MkRec DwarfType"
 
 declare mk_DwarfType_def [dwarf_simps]
 
+lemma mkd: "`\<lparr>mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop) hasType @DwarfType\<rparr>` = `true\<^sub>T`"
+  by (simp add:eval dwarf_simps)
+
 text {* Safety Properties *}
-
-
-term "|mk_DwarfType(&stop, {}, {}, &stop, &stop, &stop)|"
 
 definition 
   "NeverShowAll = |lambda d @ ^d^.#1.currentstate <> {<L1>,<L2>,<L3>}|"
@@ -146,21 +146,14 @@ definition "DwarfInv \<equiv> `\<lparr> $dw hasType @DwarfType \<rparr> \<turnst
 
 text {* Operations *}
 
-definition "Init = `true \<turnstile> (dw := mk_DwarfType(&stop, {}, {}, &stop, &stop, &stop))`"
-
-(*
-lemma "|mk_DwarfType(&stop, {}, {}, &stop, &stop, &stop) hasType @DwarfType| = |true|"
-  apply (simp add:evalp dwarf_simps)
-  apply (simp add:EvalD_Op1D)
-
+definition "Init = `true \<turnstile> (dw := mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop))`"
 
 lemma "DwarfInv \<sqsubseteq> Init"
   apply (unfold DwarfInv_def Init_def)
   apply (rule refine)
   prefer 6
-  apply (rule_tac RefineP_seperation_refine)
-  apply (auto intro!: refine unrest)
-*)
+  thm RefineP_seperation_refine
+oops
 
 definition 
   "SetNewProperState st = 
