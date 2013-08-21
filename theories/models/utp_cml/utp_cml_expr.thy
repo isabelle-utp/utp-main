@@ -12,6 +12,10 @@ imports
   "../../theories/utp_definedness"
 begin
 
+lemma EqualP_refine [refine]:
+  "P[v/\<^sub>px] \<Longrightarrow> P \<sqsubseteq> $\<^sub>ex ==\<^sub>p v"
+  by (metis ImpliesP_eq_subst RefP_def Tautology_def TrueP_eq_ClosureP less_eq_WF_PREDICATE_def utp_pred_simps(14) utp_pred_simps(21))
+  
 text {* Getting an accurate representation of CML expressions is hard,
 in as much as Isabelle's type-system limits our ability to do proper
 type-inference. Although we can infer the type of an expression, the
@@ -34,12 +38,14 @@ lemma TypeUSound_cml [typing]: "TYPEUSOUND('a::vbasic option, cmlv)"
 
 (* CML expressions and CML predicates *)
 
-type_synonym 'a cmle = "('a option, cmlv) WF_PEXPRESSION"
-type_synonym cmlp    = "cmlv WF_PREDICATE" 
+type_synonym 'a cmle   = "('a option, cmlv) WF_PEXPRESSION"
+type_synonym cmlp      = "cmlv WF_PREDICATE" 
+type_synonym 'a cmlvar = "('a option, cmlv) PVAR"
 
 translations
   (type) "'a cmle" <= (type) "('a option, cmlv) WF_PEXPRESSION"
   (type) "cmlp" <= (type) "cmlv WF_PREDICATE"
+  (type) "'a cmlvar" <= (type) "('a option, cmlv) PVAR"
 
 definition BotDE :: "'a cmle" ("\<bottom>\<^sub>v") where
 "BotDE = LitPE None"
@@ -52,7 +58,7 @@ abbreviation LitD :: "'a \<Rightarrow> 'a cmle" where
 abbreviation "TrueDE  \<equiv> LitD True"
 abbreviation "FalseDE \<equiv> LitD False"
 
-abbreviation MkVarD :: "string \<Rightarrow> 'a set \<Rightarrow> ('a option, cmlv) PVAR" where
+definition MkVarD :: "string \<Rightarrow> 'a set \<Rightarrow> 'a cmlvar" where
 "MkVarD n t \<equiv> MkPlainP n False TYPE('a option) TYPE(cmlv)"
 
 abbreviation UnitD :: "unit cmle" where
@@ -118,6 +124,8 @@ definition EpsD :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<R
 
 definition FunD :: "'a set \<Rightarrow> ('a option \<Rightarrow> 'b cmle) \<Rightarrow> 'a \<Rightarrow> 'b option" where
 "FunD t P = (\<lambda> x. \<lbrakk>P (Some x)\<rbrakk>\<^sub>*\<B>)"
+
+declare FunD_def [evalp]
 
 abbreviation DefinedD :: "'a cmle \<Rightarrow> bool cmle" where
 "DefinedD v \<equiv> LitD (\<D> v)"
@@ -203,13 +211,10 @@ notation vproj16 ("#16")
 (* These seemingly vacuous definitions are there to help the pretty printer *)
 
 definition "NumD (x :: real) = LitD x"
-declare NumD_def [simp]
 
 definition "ApplyD f  = Op1D f"
-declare ApplyD_def [simp]
 
 definition "SelectD f = Op1D' f"
-declare SelectD_def [simp]
 
 definition VExprD :: 
   "'a cmle \<Rightarrow> 'a cmle" where
@@ -331,16 +336,79 @@ definition VExprDefinedT :: "bool cmle \<Rightarrow> cmlp" where
 abbreviation VTautT :: "bool cmle \<Rightarrow> cmlp" where
 "VTautT e \<equiv> TVL (VExprTrueT e, VExprDefinedT e)"
 
-declare [[coercion VTautT]]
+definition VTautHideT :: "bool cmle \<Rightarrow> cmlp" where
+"VTautHideT e \<equiv> (\<exists>\<^sub>p {def\<down>}. VTautT e \<Leftrightarrow>\<^sub>p TrueT)"
+
+declare [[coercion VTautHideT]]
 
 declare VExprTrueT_def [eval, evale, evalp]
 declare VExprDefinedT_def [eval, evale, evalp]
+declare VTautHideT_def [eval, evale, evalp]
 
 syntax
   "_upred_vexpr"       :: "pexpr \<Rightarrow> upred" ("\<lparr>_\<rparr>")
 
 translations
-  "_upred_vexpr e" == "CONST VTautT e"
+  "_upred_vexpr e" == "CONST VTautHideT e"
+
+subsection {* Evaluation theorems *}
+
+lemma EvalE_cmle [evale, evalp, eval]:
+  fixes e :: "'a::vbasic cmle"
+  shows "\<lbrakk>e\<down>\<rbrakk>\<^sub>eb = InjVB (\<lbrakk>e\<rbrakk>\<^sub>*b)"
+  by (simp add:evale typing)
+
+lemma EvalD_LitD [eval,evalp,evale]:
+  "\<lbrakk>LitD x\<rbrakk>\<^sub>*b = Some x"
+  by (simp add:evalp)
+
+lemma EvalD_NumD [eval,evalp,evale]:
+  "\<lbrakk>NumD x\<rbrakk>\<^sub>*b = Some x"
+  by (simp add:NumD_def evalp)
+
+lemma EvalD_BotDE [eval,evalp,evale]:
+  "\<lbrakk>\<bottom>\<^sub>v\<rbrakk>\<^sub>*b = None"
+  by (simp add:BotDE_def evalp)
+
+lemma EvalD_ForallD [eval,evalp,evale]:
+  "\<lbrakk>ForallD xs f\<rbrakk>\<^sub>*b = \<lfloor>\<forall>x\<in>xs. \<lbrakk>f (Some x)\<rbrakk>\<^sub>*b = \<lfloor>True\<rfloor>\<rfloor>"
+  by (simp add:ForallD_def)
+
+lemma EvalD_Op1D [eval,evalp,evale]:
+  "\<lbrakk>Op1D f x\<rbrakk>\<^sub>*b = (\<lbrakk>x\<rbrakk>\<^sub>*b >>= f)"
+  by (simp add:Op1D_def evalp)
+
+lemma EvalD_ApplyD [eval,evalp,evale]:
+  "\<lbrakk>ApplyD f x\<rbrakk>\<^sub>*b = (\<lbrakk>x\<rbrakk>\<^sub>*b >>= f)"
+  by (simp add:ApplyD_def evalp)
+
+lemma EvalD_SelectD [eval,evalp,evale]:
+  "\<lbrakk>SelectD f x\<rbrakk>\<^sub>*b = \<lbrakk>x\<rbrakk>\<^sub>* b \<guillemotright>= upfun f"
+  by (simp add:SelectD_def evalp)
+
+lemma EvalD_Op2D [eval,evalp,evale]:
+  "\<lbrakk>Op2D f x y\<rbrakk>\<^sub>*b = do { v1 <- \<lbrakk>x\<rbrakk>\<^sub>*b; v2 <- \<lbrakk>y\<rbrakk>\<^sub>*b; f (v1, v2) }"
+  by (simp add:Op2D_def evalp)
+
+lemma EvalD_HasTypeD [eval,evalp,evale]:
+  "\<lbrakk>HasTypeD e t\<rbrakk>\<^sub>*b = (if (\<D> (\<lbrakk>e\<rbrakk>\<^sub>* b) \<and> the (\<lbrakk>e\<rbrakk>\<^sub>* b) \<in> t) then \<lfloor>True\<rfloor> else \<lfloor>False\<rfloor>)"
+  by (simp add:HasTypeD_def)
+
+lemma EvalD_CoerceD [eval,evalp,evale]:
+  "\<lbrakk> \<D> (\<lbrakk>x\<rbrakk>\<^sub>*b); the (\<lbrakk>x\<rbrakk>\<^sub>*b) \<in> t \<rbrakk> \<Longrightarrow> \<lbrakk>CoerceD x t\<rbrakk>\<^sub>*b = \<lbrakk>x\<rbrakk>\<^sub>*b"
+  by (simp add:CoerceD_def)
+
+lemma upfun_apply [simp]:
+  "upfun f x = Some (f x)"
+  by (simp add:upfun_def)
+
+lemma bpfun_apply [simp]:
+  "bpfun f x = Some (f (fst x) (snd x))"
+  apply (case_tac x)
+  apply (auto simp add:bpfun_def)
+done
+
+declare Inject_bool_def [eval,evale,evalp]
 
 subsection {* @{term UNREST_PEXPR} theorems *}
 
@@ -360,6 +428,10 @@ lemma UNREST_PEXPR_ExistsD [unrest]:
 lemma UNREST_PEXPR_Op1D [unrest]: 
   "UNREST_PEXPR vs v \<Longrightarrow> UNREST_PEXPR vs (Op1D f v)"
   by (simp add:UNREST_PEXPR_def Op1D_def evalp)
+
+lemma UNREST_PEXPR_ApplyD [unrest]: 
+  "UNREST_PEXPR vs v \<Longrightarrow> UNREST_PEXPR vs (ApplyD f v)"
+  by (simp add:UNREST_PEXPR_def ApplyD_def evalp Op1D_def)
 
 lemma UNREST_PEXPR_Op2D [unrest]: 
   "\<lbrakk> UNREST_PEXPR vs v1; UNREST_PEXPR vs v2 \<rbrakk> \<Longrightarrow> UNREST_PEXPR vs (Op2D f v1 v2)"
@@ -383,6 +455,53 @@ lemma UNREST_PEXPR_CoerceD [unrest]:
   "\<lbrakk> UNREST_PEXPR vs x \<rbrakk> \<Longrightarrow> UNREST_PEXPR vs (CoerceD x t)"
   by (auto simp add:UNREST_PEXPR_def CoerceD_def)
 
+subsection {* Substitution theorems *}
+
+lemma LitD_subst [usubst]:
+  "LitD v[e/\<^sub>*x] = LitD v"
+  by (simp add:usubst)
+
+lemma Op1D_subst [usubst]:
+  "(Op1D f v)[e/\<^sub>*x] = Op1D f (v[e/\<^sub>*x])"
+  by (simp add:Op1D_def usubst)
+
+lemma Op2D_subst [usubst]:
+  "(Op2D f v1 v2)[e/\<^sub>*x] = Op2D f (v1[e/\<^sub>*x]) (v2[e/\<^sub>*x])"
+  by (simp add:Op2D_def usubst)
+
+lemma BotDE_subst [usubst]:
+  fixes x :: "('a::vbasic) cmlvar"
+  shows "(BotDE :: 'b cmle)[e/\<^sub>*x] = BotDE"
+  by (simp add:evalp)
+
+lemma VTautT_subst [usubst]:
+  fixes e :: "('a::vbasic) cmle"
+  assumes "x\<down> \<noteq> def\<down>" "e \<rhd>\<^sub>* x"
+  shows "(VTautT v)[e\<down>/\<^sub>px\<down>] = VTautT (v[e/\<^sub>*x])"
+  by (simp add:TVL_def usubst VExprDefinedT_def VExprTrueT_def typing defined unrest assms)
+
+lemma VTautHideT_subst [usubst]:
+  fixes e :: "('a::vbasic) cmle"
+  assumes "x\<down> \<noteq> def\<down>" "e \<rhd>\<^sub>* x" "UNREST_PEXPR {def\<down>} e"
+  shows "(VTautHideT v)[e\<down>/\<^sub>px\<down>] = VTautHideT (v[e/\<^sub>*x])"
+  by (simp add:TVL_def usubst VExprDefinedT_def VExprTrueT_def typing defined unrest assms TrueT_def VTautHideT_def)
+
+lemma VTautT_dash_subst [usubst]:
+  fixes e :: "('a::vbasic) cmle"
+  assumes "e \<rhd>\<^sub>* x\<acute>"
+  shows "(VTautT v)[e\<down>/\<^sub>px\<down>\<acute>] = VTautT (v[e/\<^sub>*x\<acute>])"
+  by (simp add:TVL_def usubst VExprDefinedT_def VExprTrueT_def typing defined unrest assms VTautHideT_def)
+
+lemma VTautHideT_dash_subst [usubst]:
+  fixes e :: "('a::vbasic) cmle"
+  assumes "e \<rhd>\<^sub>* x\<acute>" "UNREST_PEXPR {def\<down>} e"
+  shows "(VTautHideT v)[e\<down>/\<^sub>px\<down>\<acute>] = VTautHideT (v[e/\<^sub>*x\<acute>])"
+  by (simp add:TVL_def usubst VExprDefinedT_def VExprTrueT_def typing defined unrest assms TrueT_def VTautHideT_def)
+
+lemma HasTypeD_subst [usubst]:
+  "(HasTypeD e t)[v/\<^sub>*x] = HasTypeD (e[v/\<^sub>*x]) t"
+  by (simp add:evalp)
+ 
 subsection {* Definedness theorems *}
 
 lemma LitD_defined [defined]:
@@ -424,6 +543,22 @@ lemma bpfun_dom [defined]:
   "dom (bpfun f) = UNIV"
   by (auto simp add:bpfun_def)
 
+lemma mk_prod_dom [defined]: 
+  "dom (mk_prod \<circ> f) = UNIV"
+  by (auto)
+
+lemma ApplyD_defined [defined]:
+  "\<lbrakk> \<D> v; \<forall> b. the (\<lbrakk>v\<rbrakk>\<^sub>* b) \<in> dom f \<rbrakk> \<Longrightarrow> \<D> (ApplyD f v)"
+  by (simp add:ApplyD_def defined)
+
+lemma vexpr_insert_defined [defined]:
+  "\<lbrakk> \<D> x; \<D> xs \<rbrakk> \<Longrightarrow> \<D> (vexpr_insert x xs)"
+  by (auto intro:defined simp add:bpfun_def vexpr_insert_def)
+
+lemma vexpr_empty_defined [defined]:
+  "\<D> vexpr_empty"
+  by (simp add:vexpr_empty_def defined)
+
 lemma EvalD_defined [defined]: "\<D> v \<Longrightarrow> \<D> (\<lbrakk>v\<rbrakk>\<^sub>*b)"
   by (simp add:Defined_option_def Defined_WF_PEXPRESSION_def)
 
@@ -433,61 +568,18 @@ lemma Some_defined [defined]: "\<D> (Some x)"
 lemma None_not_defined [defined]: "\<not> \<D> None"
   by (simp add:Defined_option_def)
 
-subsection {* Evaluation theorems *}
-
-lemma EvalE_cmle [evale, evalp, eval]:
-  fixes e :: "'a::vbasic cmle"
-  shows "\<lbrakk>e\<down>\<rbrakk>\<^sub>eb = InjVB (\<lbrakk>e\<rbrakk>\<^sub>*b)"
-  by (simp add:evale typing)
-
-lemma EvalD_LitD [eval,evalp,evale]:
-  "\<lbrakk>LitD x\<rbrakk>\<^sub>*b = Some x"
-  by (simp add:evalp)
-
-lemma EvalD_BotDE [eval,evalp,evale]:
-  "\<lbrakk>\<bottom>\<^sub>v\<rbrakk>\<^sub>*b = None"
-  by (simp add:BotDE_def evalp)
-
-term "\<lbrakk>ForallD xs f\<rbrakk>\<^sub>*b"
-
-lemma EvalD_ForallD [eval,evalp,evale]:
-  "\<lbrakk>ForallD xs f\<rbrakk>\<^sub>*b = \<lfloor>\<forall>x\<in>xs. \<lbrakk>f (Some x)\<rbrakk>\<^sub>*b = \<lfloor>True\<rfloor>\<rfloor>"
-  by (simp add:ForallD_def)
-
-lemma EvalD_Op1D [eval,evalp,evale]:
-  "\<lbrakk>Op1D f x\<rbrakk>\<^sub>*b = (\<lbrakk>x\<rbrakk>\<^sub>*b >>= f)"
-  by (simp add:Op1D_def evalp)
-
-lemma EvalD_Op2D [eval,evalp,evale]:
-  "\<lbrakk>Op2D f x y\<rbrakk>\<^sub>*b = do { v1 <- \<lbrakk>x\<rbrakk>\<^sub>*b; v2 <- \<lbrakk>y\<rbrakk>\<^sub>*b; f (v1, v2) }"
-  by (simp add:Op2D_def evalp)
-
-lemma EvalD_HasTypeD [eval,evalp,evale]:
-  "\<lbrakk>HasTypeD e t\<rbrakk>\<^sub>*b = (if (\<D> (\<lbrakk>e\<rbrakk>\<^sub>* b) \<and> the (\<lbrakk>e\<rbrakk>\<^sub>* b) \<in> t) then \<lfloor>True\<rfloor> else \<lfloor>False\<rfloor>)"
-  by (simp add:HasTypeD_def)
-
-lemma EvalD_CoerceD [eval,evalp,evale]:
-  "\<lbrakk> \<D> (\<lbrakk>x\<rbrakk>\<^sub>*b); the (\<lbrakk>x\<rbrakk>\<^sub>*b) \<in> t \<rbrakk> \<Longrightarrow> \<lbrakk>CoerceD x t\<rbrakk>\<^sub>*b = \<lbrakk>x\<rbrakk>\<^sub>*b"
-  by (simp add:CoerceD_def)
-
-lemma upfun_apply [simp]:
-  "upfun f x = Some (f x)"
-  by (simp add:upfun_def)
-
-lemma bpfun_apply [simp]:
-  "bpfun f x = Some (f (fst x) (snd x))"
-  apply (case_tac x)
-  apply (auto simp add:bpfun_def)
-done
-
-declare Inject_bool_def [eval,evale,evalp]
 
 lemma VTaut_TrueD [simp]:
-  "`\<lparr>true\<rparr>` = `true\<^sub>T`"
+  "`\<lparr>true\<rparr>` = `true`"
   by (utp_pred_tac)
 
+(*
 lemma VTaut_FalseD [simp]:
-  "`\<lparr>false\<rparr>` = `false\<^sub>T`"
-  by (utp_pred_tac)
+  "`\<lparr>false\<rparr>` = `false`"
+  apply (utp_pred_tac)
+  apply (rule_tac x="\<B>(def\<down> :=\<^sub>b TrueV)" in exI) 
+  apply (simp del: MkBool_cmlv add:typing defined closure)
+done  
+*)
 
 end

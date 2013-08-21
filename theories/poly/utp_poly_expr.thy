@@ -404,6 +404,20 @@ lemma PExprE_compat [typing]:
   shows "e\<down> \<rhd>\<^sub>e x\<down>"
   using assms by (simp add: pevar_compat_def evar_compat_def PExprE_rep_eq)
 
+lemma PExprE_compat_dash [typing]:
+  fixes e :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION" 
+  and   x :: "('a, 'm) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "e \<rhd>\<^sub>* x\<acute>"
+  shows "e\<down> \<rhd>\<^sub>e x\<down>\<acute>"
+  using assms by (simp add: pevar_compat_def evar_compat_def PExprE_rep_eq)
+
+lemma PExprE_compat_dash_dash [typing]:
+  fixes e :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION" 
+  and   x :: "('a, 'm) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "e \<rhd>\<^sub>* x\<acute>\<acute>"
+  shows "e\<down> \<rhd>\<^sub>e x\<down>\<acute>\<acute>"
+  using assms by (simp add: pevar_compat_def evar_compat_def PExprE_rep_eq)
+
 lemma PExprE_compat_naux [typing]:
 fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR" and e :: "('a, 'm) WF_PEXPRESSION"
 assumes "TYPEUSOUND('a, 'm)" "\<not> pvaux x"

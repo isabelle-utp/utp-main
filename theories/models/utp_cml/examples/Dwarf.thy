@@ -26,10 +26,10 @@ definition "stop     \<equiv> +|{<L1>, <L2>}|+"
 definition "warning  \<equiv> +|{<L1>, <L3>}|+"
 definition "drive    \<equiv> +|{<L2>, <L3>}|+"
 
-declare dark_def [dwarf_simps]
-declare stop_def [dwarf_simps]
-declare warning_def [dwarf_simps]
-declare drive_def [dwarf_simps]
+declare dark_def [eval,evalp]
+declare stop_def [eval,evalp]
+declare warning_def [eval,evalp]
+declare drive_def [eval,evalp]
 
 text {* A proper state is a signal which falls within this set *}
 
@@ -85,19 +85,21 @@ definition
                          and 
                          (^d^.turnon inter ^d^.turnoff = {})\<parallel>"
 
-declare DwarfType_def [dwarf_simps]
+declare DwarfType_def [eval,evalp]
 
 definition "mk_DwarfType \<equiv> MkRec DwarfType"
 
-declare mk_DwarfType_def [dwarf_simps]
+declare mk_DwarfType_def [eval,evalp]
 
-lemma mkd: "`\<lparr>mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop) hasType @DwarfType\<rparr>` = `true\<^sub>T`"
-  by (simp add:eval dwarf_simps)
+lemma mkd: "|mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop) hasType @DwarfType| = |true|"
+  by (cml_tac)
 
 text {* Safety Properties *}
 
 definition 
   "NeverShowAll = |lambda d @ ^d^.#1.currentstate <> {<L1>,<L2>,<L3>}|"
+
+declare NeverShowAll_def [eval,evalp]
 
 definition 
   "MaxOneLampChange = 
@@ -105,17 +107,25 @@ definition
                       union (^d^.#1.laststate setminus ^d^.#1.currentstate)) 
                       <= 1|"
 
+declare MaxOneLampChange_def [eval,evalp]
+
 definition
   "ForbidStopToDrive = 
      |lambda d @ (^d^.#1.lastproperstate = &stop) => ^d^.#1.desiredproperstate <> &drive|"
   
+declare ForbidStopToDrive_def [eval,evalp]
+
 definition
   "DarkOnlyToStop = 
      |lambda d @ (^d^.#1.lastproperstate = &dark) => ^d^.#1.desiredproperstate in @set {&dark,&stop}|" 
   
+declare DarkOnlyToStop_def [eval,evalp]
+
 definition
   "DarkOnlyFromStop = 
      |lambda d @ (^d^.#1.desiredproperstate = &dark) => ^d^.#1.lastproperstate in @set {&dark,&stop}|"
+
+declare DarkOnlyFromStop_def [eval,evalp]
 
 definition 
   "DwarfSignal = \<parallel>@DwarfType inv d == NeverShowAll(^d^) 
@@ -123,6 +133,26 @@ definition
                                    and ForbidStopToDrive(^d^)
                                    and DarkOnlyToStop(^d^)
                                    and DarkOnlyFromStop(^d^)\<parallel>"
+
+declare DwarfSignal_def [eval,evalp]
+
+lemma "|NeverShowAll(mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop))| = |true|"
+  by (cml_tac)
+
+lemma "|MaxOneLampChange(mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop))| = |true|"
+  by (cml_tac)
+
+lemma "|ForbidStopToDrive(mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop))| = |true|"
+  by (cml_tac)
+
+lemma "|DarkOnlyToStop(mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop))| = |true|"
+  by (cml_tac)
+
+lemma "|DarkOnlyFromStop(mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop))| = |true|"
+  by (cml_tac)
+
+lemma sdty: "|mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop) hasType @DwarfSignal| = |true|"
+  by (cml_tac)
 
 text {* The Dwarf Signal has a single state variable which gives 
         the state of the signal. *}
@@ -140,7 +170,7 @@ begin
 
 text {* State *}
 
-definition "dw \<equiv> MkVarD ''dw'' DwarfType"
+abbreviation "dw \<equiv> MkVarD ''dw'' DwarfType"
 
 definition "DwarfInv \<equiv> `\<lparr> $dw hasType @DwarfType \<rparr> \<turnstile> \<lparr> $dw\<acute> hasType @DwarfType \<rparr>`"
 
@@ -148,11 +178,42 @@ text {* Operations *}
 
 definition "Init = `true \<turnstile> (dw := mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop))`"
 
+lemma UNREST_vexpr_empty [unrest]: 
+  "UNREST_PEXPR vs vexpr_empty"
+  by (simp add:UNREST_PEXPR_def vexpr_empty_def evalp)
+
 lemma "DwarfInv \<sqsubseteq> Init"
   apply (unfold DwarfInv_def Init_def)
   apply (rule refine)
   prefer 6
-  thm RefineP_seperation_refine
+  apply (rule AndP_refines_2)
+  apply (rule RefineP_equal_right_trans)
+  defer
+  apply (rule sym)
+  apply (rule AssignR_alt_def)
+  apply (rule typing)
+  apply (simp add:typing)
+  apply (simp add:defined evalp)
+  apply (simp add:closure MkVarD_def)
+  prefer 6
+  apply (rule AndP_refines_1)
+  apply (rule refine)
+  apply (subgoal_tac "|mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop)| \<rhd>\<^sub>* dw\<acute>")
+  apply (subgoal_tac "UNREST_PEXPR {def\<down>} |mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop)|")
+  apply (simp add:usubst typing defined closure unrest)
+  apply (simp add:mkd)
+  apply (utp_pred_tac)
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (rule unrest)
 oops
 
 definition 

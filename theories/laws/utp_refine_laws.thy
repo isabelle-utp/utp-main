@@ -90,4 +90,20 @@ proof -
     by (utp_xrel_auto_tac)
 qed
 
+lemma AndP_refines_1 [refine]:
+  "X \<sqsubseteq> Y \<Longrightarrow> X \<sqsubseteq> `Y \<and> Z`"
+  by (utp_pred_tac)
+
+lemma AndP_refines_2 [refine]:
+  "X \<sqsubseteq> Z \<Longrightarrow> X \<sqsubseteq> `Y \<and> Z`"
+  by (utp_pred_tac)
+
+lemma RefineP_equal_right_trans:
+  "\<lbrakk> X \<sqsubseteq> Y; Y = Z \<rbrakk> \<Longrightarrow> X \<sqsubseteq> Z"
+  by (simp)
+
+lemma RefineP_equal_left_trans:
+  "\<lbrakk> X = Y; Y \<sqsubseteq> Z \<rbrakk> \<Longrightarrow> X \<sqsubseteq> Z"
+  by (simp)
+
 end

@@ -34,6 +34,17 @@ instance
 done
 end
 
+derive countable quote
+derive linorder quote
+
+lemma QuoteD_less_eq [simp]: 
+  "QuoteD x \<le> QuoteD y \<longleftrightarrow> x \<le> y"
+  by (auto simp add:less_eq_quote_def)
+
+lemma QuoteD_less [simp]: 
+  "QuoteD x < QuoteD y \<longleftrightarrow> x < y"
+  by (simp add:less_quote_def)
+
 abbreviation "QuoteS x \<equiv> {QuoteD x}"
 
 abbreviation "vty_unit \<equiv> (UNIV :: unit set)"

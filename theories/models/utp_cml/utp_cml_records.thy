@@ -9,8 +9,8 @@ header {* CML records *}
 theory utp_cml_records
 imports 
   utp_cml_expr
-  utp_cml_types
   utp_cml_functions
+  utp_cml_types
 begin
 
 default_sort type
@@ -71,6 +71,8 @@ declare Abs_rec_inject [simp]
 declare Rep_rec_inverse [simp]
 declare Rep_rec_inject [simp]
 
+setup_lifting type_definition_rec
+
 instantiation rec :: (tag, vbasic) vbasic
 begin
 
@@ -84,6 +86,22 @@ instance
   apply (intro_classes)
   apply (auto simp add:Inject_rec_def Type_rec_def Rep_rec_inject image_def)
   apply (metis Project_Inject Rep_rec_cases UNIV_I)
+done
+end
+
+instantiation rec :: (type, linorder) linorder
+begin
+
+definition less_eq_rec :: "('a, 'b) rec \<Rightarrow> ('a, 'b) rec \<Rightarrow> bool" where
+"r1 \<le> r2 = (Rep_rec r1 \<le> Rep_rec r2)"
+
+definition less_rec :: "('a, 'b) rec \<Rightarrow> ('a, 'b) rec \<Rightarrow> bool" where
+"r1 < r2 = (Rep_rec r1 < Rep_rec r2)"
+
+instance
+  apply (intro_classes)
+  apply (auto simp add:less_eq_rec_def less_rec_def)
+  apply (metis Rep_rec_inject less_le)
 done
 end
 
@@ -213,5 +231,7 @@ lemma "|mk_MyType(2,1) hasType @MyType| = |true|"
 
 lemma "|forall x:@nat @ mk_MyType(^x^,0) hasType @MyType| = |false|"
   by (auto simp add:evalp mk_MyType_def MyType_def)
+
+
 
 end

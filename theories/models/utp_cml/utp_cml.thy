@@ -10,6 +10,7 @@ imports
   utp_cml_inject
   utp_cml_sorts
   utp_cml_expr
+  utp_cml_tac
   utp_cml_types
   utp_cml_functions
   utp_cml_records
