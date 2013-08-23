@@ -281,7 +281,15 @@ translations
 
 (* Some regression tests *)
 
-term "`($x)\<acute> = $y\<acute>`"
+term "`(P \<and> Q) \<Rightarrow> P`"
+
+term "`(P \<lhd> b \<rhd> Q) \<sqsubseteq> (b \<and> P)`"
+
+term "`$x \<in> {\<guillemotleft>1\<guillemotright>,\<guillemotleft>2\<guillemotright>,\<guillemotleft>3\<guillemotright>} \<sqsubseteq> $x = \<guillemotleft>2\<guillemotright>`"
+
+term "`x := (\<guillemotleft>7\<guillemotright> * $z) ; ((y := $x + \<guillemotleft>1\<guillemotright>) \<lhd> ($x < \<guillemotleft>10\<guillemotright>) \<rhd> P)`"
+
+term "`$x\<acute> = $y\<acute>`"
 term "`p[($x)\<acute>/y\<acute>]`"
 term "`\<lparr>true\<rparr>`"
 
