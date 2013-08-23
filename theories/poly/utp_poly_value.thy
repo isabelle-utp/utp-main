@@ -46,6 +46,15 @@ end
 
 lemma Defined_int [defined]: "\<D> (x :: int)" by (simp add:Defined_int_def)
 
+instantiation real :: DEFINED_NE
+begin
+definition "Defined_real (x::real) = True"
+instance
+  by (intro_classes, auto simp add:Defined_real_def)
+end
+
+lemma Defined_real [defined]: "\<D> (x :: real)" by (simp add:Defined_real_def)
+
 instantiation list :: (DEFINED) DEFINED
 begin
 definition "Defined_list (xs :: 'a list) = (\<forall>x\<in>set xs. \<D> x)"
@@ -147,6 +156,10 @@ defs (overloaded)
   ProjU_int [simp]: "ProjU (x::('a::INT_SORT)) \<equiv> DestInt x"
   TypeU_int [simp]: "TypeU (x::int itself) \<equiv> IntType"
 
+  InjU_real [simp]:  "InjU (x::real) \<equiv> MkReal x"
+  ProjU_real [simp]: "ProjU (x::('a::REAL_SORT)) \<equiv> DestReal x"
+  TypeU_real [simp]: "TypeU (x::real itself) \<equiv> RealType"
+
   InjU_event [simp]:  "InjU (x::('m::EVENT_SORT) EVENT) \<equiv> (MkEvent x::'m)"
   ProjU_event [simp]: "ProjU (x::('m::EVENT_SORT)) \<equiv> DestEvent x"
   TypeU_event [simp]: "TypeU (x::('m::EVENT_SORT) EVENT itself) \<equiv> EventType::'m UTYPE"
@@ -236,6 +249,9 @@ lemma TypeUSound_bool [typing]: "TYPEUSOUND(bool, 'm :: BOOL_SORT)"
   by (force simp add: typing defined)
 
 lemma TypeUSound_int [typing]: "TYPEUSOUND(int, 'm :: INT_SORT)"
+  by (force simp add: typing defined)
+
+lemma TypeUSound_real [typing]: "TYPEUSOUND(real, 'm :: REAL_SORT)"
   by (force simp add: typing defined)
 
 lemma TypeUSound_Event [typing]:

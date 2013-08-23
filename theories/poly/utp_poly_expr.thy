@@ -506,15 +506,16 @@ setup {*
   Adhoc_Overloading.add_overloaded @{const_name restrict}
 *}
 
-subsection {* Integer Expressions *}
+subsection {* Numeric Expressions *}
 
 abbreviation IntPE :: "int \<Rightarrow> (int, 'a :: INT_SORT) WF_PEXPRESSION" where
 "IntPE \<equiv> LitPE"
 
-abbreviation PlusPE :: "(int, 'm :: INT_SORT) WF_PEXPRESSION \<Rightarrow>
-                        (int, 'm) WF_PEXPRESSION \<Rightarrow>
-                        (int, 'm) WF_PEXPRESSION" where
-"PlusPE u v \<equiv> Op2PE (op +) u v"
+abbreviation RealPE :: "int \<Rightarrow> (int, 'a :: REAL_SORT) WF_PEXPRESSION" where
+"RealPE \<equiv> LitPE"
+
+abbreviation "PlusPE u v \<equiv> Op2PE (op +) u v"
+abbreviation "MultPE u v \<equiv> Op2PE (op *) u v"
 
 subsection {* List Expressions *}
 

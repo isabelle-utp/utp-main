@@ -611,9 +611,30 @@ class REAL_SORT = VALUE +
   fixes DestReal :: "'a \<Rightarrow> real"
   fixes IsReal :: "'a \<Rightarrow> bool"
   fixes RealType :: "'a UTYPE" ("\<real>")
-  assumes Defined [simp] : "Defined (MkReal r)"
   assumes Inverse [simp] : "DestReal (MkReal r) = r"
-  assumes MkReal_type [typing] : "MkReal r : \<real>"
+  assumes RealType_dcarrier: "dcarrier RealType = range MkReal"
+begin
+
+text {* The results of the injection are always defined. *}
+
+lemma Defined [defined]: "\<D> (MkReal i)"
+  by (metis RealType_dcarrier dcarrier_defined rangeI)
+
+lemma MkReal_type [typing]: "MkReal n : RealType"
+  by (metis RealType_dcarrier dcarrier_type rangeI)
+
+lemma MkReal_dtype [typing]: "MkReal n :! RealType"
+  by (metis Defined MkReal_type dtype_relI)
+
+lemma MkReal_cases [elim]: 
+  "\<lbrakk> x :! RealType; \<And> i. x = MkReal i \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (metis RealType_dcarrier dtype_as_dcarrier image_iff)
+
+lemma MkReal_inj_simp [simp]: 
+  "(MkReal x = MkReal y) \<longleftrightarrow> x = y"
+  by (metis Inverse)
+
+end
 
 subsection {* Function Sort *}
 

@@ -71,16 +71,35 @@ theorem HoareP_SemiR:
   shows "`p{Q1 ; Q2}r`"
 proof
   from assms 
+
+
   have refs: "(p \<Rightarrow>\<^sub>p s\<acute>) \<sqsubseteq> Q1" "(s \<Rightarrow>\<^sub>p r\<acute>) \<sqsubseteq> Q2"
     by (auto elim!:HoareP_elim)
 
-  thus "`(p \<Rightarrow> r\<acute>)` \<sqsubseteq> `Q1 ; Q2`"
+  have "`(p \<and> (p \<Rightarrow> s\<acute>) ; (s \<Rightarrow> r\<acute>))` = `((p \<and> (p \<Rightarrow> s\<acute>)) ; (s \<Rightarrow> r\<acute>))`"
+    by (metis ConvR_rel_closure ImpliesP_rel_closure SemiR_AndP_left_precond WF_CONDITION_WF_RELATION assms(1) assms(2) assms(3))
+
+  also have "... = `(p \<and> s\<acute>) ; (s \<Rightarrow> r\<acute>)`"
+    by (metis (hide_lams, no_types) AndP_OrP_distl ImpliesP_def OrP_comm inf_WF_PREDICATE_def inf_compl_bot uminus_WF_PREDICATE_def utp_pred_simps(11) utp_pred_simps(2) utp_pred_simps(6))
+
+  also have "... = `p ; (s \<and> (s \<Rightarrow> r\<acute>))`"
+    by (metis ConvR_rel_closure ImpliesP_rel_closure SemiR_AndP_right_precond WF_CONDITION_WF_RELATION assms(1) assms(2) assms(3))
+
+  also have "... = `p ; (s \<and> r\<acute>)`"
+    by (metis AndP_OrP_distl AndP_contra ImpliesP_def utp_pred_simps(13) utp_pred_simps(2))
+
+  also have "... = `(p ; s) \<and> r\<acute>`"
+    by (metis PrimeP_WF_CONDITION_WF_POSTCOND SemiR_AndP_right_postcond WF_CONDITION_WF_RELATION assms(1) assms(2) assms(3))
+
+  finally show "`(p \<Rightarrow> r\<acute>)` \<sqsubseteq> `Q1 ; Q2`"
+  using refs
     apply (rule_tac order_trans)
     apply (rule SemiR_mono_refine)
     apply (assumption)
     apply (assumption)
-    apply (rule SemiR_spec_inter_refine)
-    apply (simp_all add:assms)
+    apply (rule SemiR_spec_refine)
+    apply (simp)
+    apply (metis RefineP_seperation order_refl)
   done
 qed
 

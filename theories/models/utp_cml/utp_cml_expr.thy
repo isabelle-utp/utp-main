@@ -383,7 +383,7 @@ lemma EvalD_ApplyD [eval,evalp,evale]:
   by (simp add:ApplyD_def evalp)
 
 lemma EvalD_SelectD [eval,evalp,evale]:
-  "\<lbrakk>SelectD f x\<rbrakk>\<^sub>*b = \<lbrakk>x\<rbrakk>\<^sub>* b \<guillemotright>= upfun f"
+  "\<lbrakk>SelectD f x\<rbrakk>\<^sub>*b = \<lbrakk>x\<rbrakk>\<^sub>* b >>= upfun f"
   by (simp add:SelectD_def evalp)
 
 lemma EvalD_Op2D [eval,evalp,evale]:
