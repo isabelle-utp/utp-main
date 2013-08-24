@@ -24,6 +24,15 @@ imports
   utp_rel_laws
 begin
 
+
+lemma SeqR_disjunctive2: 
+  "disjunctive2 (op ;)"
+  apply (simp add: disjunctive2_def)
+  apply (utp_rel_auto_tac)
+done
+
+
+
 theorem RefineP_TrueP_refine [refine]:
   "true \<sqsubseteq> P"
   by (utp_pred_tac)

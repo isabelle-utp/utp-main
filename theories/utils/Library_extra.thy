@@ -5,6 +5,7 @@ imports
   "Library_extra/Map_Extra"
   "Library_extra/Fmap"
   "Library_extra/Multi_Elem"
+  "Library_extra/Lattices_extra"
 begin
 
 definition complete_inj ::

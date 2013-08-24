@@ -18,12 +18,6 @@ imports
   "../parser/utp_pred_parser"
 begin
 
-notation
-  Sup ("\<Sqinter>_" [900] 900) and
-  Inf ("\<Squnion>_" [900] 900) and
-  sup  (infixl "\<sqinter>" 65) and
-  inf  (infixl "\<squnion>" 70)
-
 instantiation WF_PREDICATE :: (VALUE) lattice
 begin
 
@@ -386,5 +380,37 @@ lemma SkipRA_SupP_def:
   apply (auto simp add:SkipRA_rep_eq_alt Inf_WF_PREDICATE_def UNDASHED_nempty EqualP_def VarE.rep_eq top_WF_PREDICATE_def TrueP_def)
   apply (metis (lifting, full_types) LiftP.rep_eq destPRED_inverse mem_Collect_eq)
 done
+
+subsection {* Disjunctive / Monotonicity properties *}
+
+lemma OrP_disjunctive2:
+  "disjunctive2 (op \<or>\<^sub>p)"
+  apply (simp add:disjunctive2_def)
+  apply (utp_pred_auto_tac)
+done
+
+lemma OrP_mono2:
+  "mono2 (op \<or>\<^sub>p)"
+  by (metis OrP_disjunctive2 disjunctive2_mono2)
+
+lemma AndP_disjunctive2:
+  "disjunctive2 (op \<and>\<^sub>p)"
+  apply (simp add:disjunctive2_def)
+  apply (utp_pred_auto_tac)
+done
+
+lemma AndP_mono2:
+  "mono2 (op \<and>\<^sub>p)"
+  by (metis AndP_disjunctive2 disjunctive2_mono2)
+
+lemma SemiR_disjunctive2:
+  "disjunctive2 (op ;)"
+  apply (simp add:disjunctive2_def)
+  apply (utp_rel_auto_tac)
+done
+
+lemma SemiR_mono2:
+  "mono2 (op ;)"
+  by (metis SemiR_disjunctive2 disjunctive2_mono2)
 
 end
