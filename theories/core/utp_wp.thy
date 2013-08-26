@@ -46,11 +46,9 @@ lemma SemiR_wp [wp]:
 done
 
 lemma AssignR_wp [wp]:
-  "\<lbrakk> x \<in> UNDASHED; v \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<union> NON_REL_VAR) v; r \<in> WF_RELATION \<rbrakk> 
-     \<Longrightarrow> (x :=\<^sub>R v) wp r = r[v/\<^sub>px]"
-  apply (subgoal_tac "UNREST_EXPR NON_REL_VAR v")
-  apply (simp add: WeakPrecondP_def)
-oops
+  "\<lbrakk> x \<in> UNDASHED; v \<rhd>\<^sub>e x; UNREST_EXPR DASHED v; R \<in> WF_RELATION \<rbrakk> 
+     \<Longrightarrow> (x :=\<^sub>R v) wp R = R[v/\<^sub>px]"
+  by (simp add: WeakPrecondP_def AssignR_SemiR_left usubst)
 
 lemma CondP_wp [wp]:
   "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION; b \<in> WF_CONDITION; r \<in> WF_RELATION \<rbrakk> \<Longrightarrow>
@@ -89,11 +87,50 @@ lemma VarOpenP_wp: "\<lbrakk> x \<in> UNDASHED; r \<in> WF_RELATION \<rbrakk>
   apply (utp_pred_tac)
 done
 
-text {* wp gives a solution to a Hoare triple *}
+text {* wp gives the weakest solution to a Hoare triple *}
+
+theorem HoareP_extreme_solution:
+  assumes "p \<in> WF_CONDITION" "Q \<in> WF_RELATION" "r \<in> WF_CONDITION"
+  shows "`p{Q}r` = `[p \<Rightarrow> \<not> (Q ; \<not> r)]`"
+proof -
+  have "`p{Q}r` = `[Q \<Rightarrow> (p \<Rightarrow> r\<acute>)]`"
+    by (utp_pred_tac)
+
+  also have "... = `[p \<Rightarrow> (Q \<Rightarrow> r\<acute>)]`"
+    by (utp_pred_auto_tac)
+
+  also from assms have "... = [p \<Rightarrow>\<^sub>p (\<forall>\<^sub>p DASHED. (Q \<Rightarrow>\<^sub>p r\<acute>))]\<^sub>p"
+    apply (utp_pred_auto_tac)
+    apply (metis (lifting, no_types) EvalP_UNREST_override WF_CONDITION_def mem_Collect_eq)
+    apply (metis binding_override_simps(2))
+  done
+
+  also from assms have "... = [p \<Rightarrow>\<^sub>p \<not>\<^sub>p (\<exists>\<^sub>p DASHED. (Q \<and>\<^sub>p \<not>\<^sub>p r\<acute>))]\<^sub>p"
+    by (utp_pred_tac)
+
+  also from assms have "... = [p \<Rightarrow>\<^sub>p \<not>\<^sub>p (\<exists>\<^sub>p DASHED_TWICE. ((SS1\<bullet>Q) \<and>\<^sub>p \<not>\<^sub>p (SS2\<bullet>r)))]\<^sub>p"
+    apply (simp add: ExistsP_alpha_convert[OF dash_DASHED_rename_func[where xs="DASHED"], where P = "(Q \<and>\<^sub>p \<not>\<^sub>p r\<acute>)", simplified] unrest closure urename)
+    apply (subgoal_tac "prime on DASHED \<bullet> r\<acute> = (prime \<circ> prime) on UNDASHED \<bullet> r")
+    apply (auto simp add:ConvR_def RenameP_compose intro:RenameP_equiv UNREST_WF_CONDITION SS1_SS_eq_SS2)
+  done
+
+  also from assms have "... = `[p \<Rightarrow> \<not> (Q ; \<not> r)]`"
+    by (simp add:SemiR_algebraic assms closure urename)
+
+  finally show ?thesis .
+qed
+
+theorem HoareP_weakest_precondition [refine]:
+  assumes 
+    "p \<in> WF_CONDITION" 
+    "Q \<in> WF_RELATION" 
+    "r \<in> WF_CONDITION"
+  shows "`p{Q}r` \<Longrightarrow> Q wp r \<sqsubseteq> p"
+  by (simp add:HoareP_extreme_solution assms WeakPrecondP_def RefP_def less_eq_WF_PREDICATE_def)
 
 theorem HoareP_WeakPrecondP:
   assumes "Q \<in> WF_RELATION" "r \<in> WF_CONDITION"
-  shows "(Q wp r\<acute>){Q}\<^sub>pr"
+  shows "(Q wp r){Q}\<^sub>pr"
   using assms
   apply (frule_tac SemiR_TrueP_precond)
   apply (utp_xrel_auto_tac)

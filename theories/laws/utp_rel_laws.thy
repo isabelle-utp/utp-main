@@ -60,7 +60,7 @@ theorem SemiR_equiv_AndP_NON_REL_VAR:
     "UNREST REL_VAR q" 
   shows "p ; q = p \<and>\<^sub>p q"
   using assms
-  apply (auto simp add:SemiR_def AndP.rep_eq COMPOSABLE_BINDINGS_def)
+  apply (auto intro!:destPRED_intro simp add:SemiR_def AndP.rep_eq COMPOSABLE_BINDINGS_def)
   apply (rule UNREST_binding_override, simp, simp add:unrest UNREST_subset)
   apply (subgoal_tac "b1 \<oplus>\<^sub>b b2 on NON_REL_VAR = b1")
   apply (rule UNREST_binding_override)
@@ -90,7 +90,7 @@ theorem SemiR_TrueP_precond :
   assumes "p \<in> WF_CONDITION"
   shows "p ; true = p"
   using assms
-  apply (auto simp add:SemiR_def COMPOSABLE_BINDINGS_def TrueP_def UNREST_def WF_CONDITION_def)
+  apply (auto intro!:destPRED_intro simp add:SemiR_def COMPOSABLE_BINDINGS_def TrueP_def UNREST_def WF_CONDITION_def)
   apply (rule_tac x="x" in exI)
   apply (rule_tac x="(RenameB SS x) \<oplus>\<^sub>b x on DASHED" in exI)
   apply (auto simp add:RenameB_rep_eq urename binding_equiv_def)
@@ -103,7 +103,7 @@ theorem SemiR_TrueP_postcond :
   assumes "p \<in> WF_POSTCOND"
   shows "true ; p = p"
   using assms
-  apply (auto simp add:SemiR_def COMPOSABLE_BINDINGS_def TrueP_def UNREST_def WF_POSTCOND_def)
+  apply (auto intro!:destPRED_intro simp add:SemiR_def COMPOSABLE_BINDINGS_def TrueP_def UNREST_def WF_POSTCOND_def)
   apply (drule_tac x="b2" in bspec)
   apply (simp)
   apply (drule_tac x="b1" in spec)
@@ -341,7 +341,7 @@ proof -
     apply (metis SS1_ident_app UNDASHED_dash_DASHED in_out_UNDASHED_DASHED(4) not_dash_dash_member_out undash_dash undash_eq_dash_contra2)
     apply (rule unrest)
     apply (simp add:typing)
-    apply (rule closure, simp)
+    apply (rule UNREST_DASHED_TWICE_WF_RELATION, simp)
     apply (rule UNREST_EXPR_VarE[of _ DASHED_TWICE])
     apply (auto)
     apply (rule unrest)

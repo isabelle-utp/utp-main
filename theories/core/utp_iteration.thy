@@ -153,24 +153,34 @@ lemma StarP_mono: "mono (\<lambda> x. (II \<or>\<^sub>p (p ; x)))"
   apply (rule)
   apply (utp_rel_auto_tac)
 done
-lemma StarP_WFP: "(\<mu> X \<bullet> II \<or>\<^sub>p (P ; X)) \<sqsubseteq> P\<^sup>\<star>"
+
+text {* Kleene star talks about finite iteration only, and is therefore a strict subset of
+        the set of infinite recursions *}
+
+lemma StarP_refines_WFP: "(\<mu> X \<bullet> II \<or>\<^sub>p (P ; X)) \<sqsubseteq> P\<^sup>\<star>"
   apply (auto simp add:evalrr EvalRR_StarP gfp_def)
   apply (metis EvalRR_StarP rel_kleene_algebra.star_unfoldl_eq subset_refl)
 done
-lemma StarP_SFP: "P\<^sup>\<star> \<sqsubseteq> (\<nu> X \<bullet> II \<or>\<^sub>p (P ; X))"
-  apply (subgoal_tac "{u. Id \<subseteq> \<lbrakk>u\<rbrakk>\<R> \<and> \<lbrakk>P\<rbrakk>\<R> O \<lbrakk>u\<rbrakk>\<R> \<subseteq> \<lbrakk>u\<rbrakk>\<R>} \<noteq> {}")
-  apply (auto simp add:evalrr EvalRR_StarP lfp_def)
-  apply (metis EvalRR_StarP rel_kleene_algebra.star_1l rel_kleene_algebra.star_ref)
-  apply (rule_tac x="true" in exI)
-  apply (metis EvalRR_SemiR EvalRR_SkipR EvalRR_refinement RefineP_TrueP_refine)
+lemma SFP_refines_StarP: "P\<^sup>\<star> \<sqsubseteq> (\<nu> X \<bullet> II \<or>\<^sub>p (P ; X))"
+  apply (rule lfp_lowerbound)
+  apply (metis OrP_refine one_WF_PREDICATE_def star_1l star_ref times_WF_PREDICATE_def)
 done
+
+lemma StarP_refines_SFP: "(\<nu> X \<bullet> II \<or>\<^sub>p (P ; X)) \<sqsubseteq> P\<^sup>\<star>"
+  apply (rule lfp_greatest)
+  apply (metis one_WF_PREDICATE_def plus_WF_PREDICATE_def star_inductl_one times_WF_PREDICATE_def)
+done
+
+text {* The star is equivalent to the greatest fixed-point *}
+lemma StarP_as_SFP: "P\<^sup>\<star> = (\<nu> X \<bullet> II \<or>\<^sub>p (P ; X))"
+  by (metis SFP_refines_StarP StarP_refines_SFP antisym)
 
 definition 
   IterP :: " 'a WF_PREDICATE 
            \<Rightarrow> 'a WF_PREDICATE 
            \<Rightarrow> 'a WF_PREDICATE" ("while _ do _ od") where
-"IterP b P \<equiv> ((b \<and>\<^sub>p P)\<^sup>\<star>) \<and>\<^sub>p (\<not>\<^sub>p b\<acute>)"
-
+"IterP b P \<equiv> ((b \<and>\<^sub>p P)\<^sup>\<star>) \<and>\<^sub>p (\<not>\<^sub>p b\<acute>)"  
+  
 syntax
   "_upred_while"    :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("while _ do _ od")
 
@@ -267,5 +277,19 @@ qed
 lemma SemiR_ImpliesP_idem:
   "p \<in> WF_CONDITION \<Longrightarrow> `(p \<Rightarrow> p\<acute>) ; (p \<Rightarrow> p\<acute>)` = `(p \<Rightarrow> p\<acute>)`"
   by (frule SemiR_TrueP_precond, utp_xrel_auto_tac)
+
+lemma SFP_refines_IterP:
+  assumes "b \<in> WF_CONDITION" "P \<in> WF_RELATION"
+  shows "while b do P od \<sqsubseteq> (\<nu> X \<bullet> ((P ; X) \<lhd> b \<rhd> II))"
+  by (metis IterP_unfold assms(1) assms(2) lfp_lowerbound order_refl)
+
+(* Can't prove this yet, though I reckon it's true *)
+lemma IterP_refines_SFP:
+  assumes "b \<in> WF_CONDITION" "P \<in> WF_RELATION"
+shows "(\<nu> X \<bullet> ((P ; X) \<lhd> b \<rhd> II)) \<sqsubseteq> while b do P od"
+  apply (rule lfp_greatest)
+  apply (rule order_trans) defer
+  apply (simp)
+oops
  
 end

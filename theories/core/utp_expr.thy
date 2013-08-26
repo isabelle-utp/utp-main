@@ -255,7 +255,7 @@ definition SubstP ::
 
 lemma SubstP_no_var: "\<lbrakk> UNREST {x} p; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[v/\<^sub>px] = p"
   apply (simp add:SubstP_def)
-  apply (auto simp add:UNREST_def)
+  apply (auto intro!:destPRED_intro simp add:UNREST_def)
   apply (metis (lifting) binding_compat binding_upd_simps binding_upd_upd evar_compat_def)
   apply (metis binding_upd_apply evar_compat_def)
 done

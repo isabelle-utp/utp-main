@@ -187,6 +187,8 @@ syntax
   "_pexpr_minus"         :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "-" 65)
   "_pexpr_less"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "<" 25)
   "_pexpr_less_eq"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<le>" 25)
+  "_pexpr_greater"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr ">" 25)
+  "_pexpr_greater_eq"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<ge>" 25)
   "_pexpr_list"          :: "pexprs \<Rightarrow> pexpr" ("\<langle>_\<rangle>")
   "_pexpr_list_nil"      :: "pexpr" ("\<langle>\<rangle>")
   "_pexpr_list_append"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "^" 65)
@@ -241,6 +243,8 @@ translations
   "_pexpr_minus x y"           == "CONST MinusPE x y"
   "_pexpr_less x y"            == "CONST LessPE x y"
   "_pexpr_less_eq x y"         == "CONST LessEqPE x y"
+  "_pexpr_greater x y"         == "CONST LessPE y x"
+  "_pexpr_greater_eq x y"      == "CONST LessEqPE y x"
   "_pexpr_list_nil"            == "CONST NilPE"
   "_pexpr_list_append e f"     == "CONST ConcatPE e f"
   "_pexpr_list (_pexprs x xs)" == "CONST ConsPE x (_pexpr_list xs)"
@@ -265,6 +269,8 @@ translations
 syntax
   "_upred_lesseq"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "\<le>" 25)
   "_upred_less"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "<" 25)
+  "_upred_greater_eq"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "\<ge>" 25)
+  "_upred_greater"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr ">" 25)
   "_upred_fset_member"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" ("(_/ \<in> _)" [51, 51] 50)
   "_upred_fset_nmember"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" ("(_/ \<notin> _)" [51, 51] 50)
   "_upred_fset_subset"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "\<subset>" 50)
@@ -273,6 +279,8 @@ syntax
 translations
   "_upred_lesseq e f"        == "CONST PExprP (_pexpr_less_eq e f)"
   "_upred_less e f"          == "CONST PExprP (_pexpr_less e f)"
+  "_upred_greater_eq e f"    == "CONST PExprP (_pexpr_greater_eq e f)"
+  "_upred_greater e f"       == "CONST PExprP (_pexpr_greater e f)"
   "_upred_fset_member x xs"  == "CONST PExprP (_pexpr_fset_member x xs)"
   "_upred_fset_nmember x xs" == "CONST PExprP (_pexpr_fset_nmember x xs)"
   "_upred_fset_subset xs ys"  == "CONST PExprP (_pexpr_fset_subset xs ys)"

@@ -153,6 +153,10 @@ lemma PVarPE_defined_aux [defined]:
   shows "\<D> (PVarPE x)"
   using assms by (auto intro:defined typing simp add:Defined_WF_PEXPRESSION_def eval)
 
+lemma UNREST_PVarPE [unrest]:
+  "x\<down> \<notin> vs \<Longrightarrow> UNREST_PEXPR vs (PVarPE x)"
+  by (metis PVarPE_def UNREST_VarPE)
+
 definition ErasePE :: 
   "('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> ('m SIGTYPE, 'm) WF_PEXPRESSION" where
 "ErasePE v = MkPExpr (\<lambda> b. \<Sigma> (InjU (\<lbrakk>v\<rbrakk>\<^sub>*b)) : TYPEU('a))"
@@ -327,6 +331,14 @@ Adhoc_Overloading.add_variant @{const_name erase} @{const_name PExprP}
 lemma EvalP_PExprP [eval]:
   "\<lbrakk>e\<down>\<rbrakk>b = \<lbrakk>e\<rbrakk>\<^sub>* b"
   by (simp add:PExprP_def EvalP_def)
+
+lemma UNREST_PExprP [unrest]:
+  "UNREST_PEXPR vs v \<Longrightarrow> UNREST vs v\<down>"
+  by (auto simp add:UNREST_def UNREST_PEXPR_def PExprP_def)
+
+lemma WF_CONDITION_PExprP [closure]:
+  "UNREST_PEXPR (NON_REL_VAR \<union> DASHED) v \<Longrightarrow> PExprP v \<in> WF_CONDITION"
+  by (metis (lifting, no_types) UNREST_PExprP UNREST_unionE WF_CONDITION_def WF_RELATION_def mem_Collect_eq)
 
 abbreviation PVarP ::
   "(bool, 'm :: BOOL_SORT) PVAR \<Rightarrow> 'm WF_PREDICATE" where
@@ -516,6 +528,32 @@ abbreviation RealPE :: "int \<Rightarrow> (int, 'a :: REAL_SORT) WF_PEXPRESSION"
 
 abbreviation "PlusPE u v \<equiv> Op2PE (op +) u v"
 abbreviation "MultPE u v \<equiv> Op2PE (op *) u v"
+
+instantiation int :: LESS_THAN
+begin
+
+definition uless_int :: "int \<Rightarrow> int \<Rightarrow> bool" where
+"uless_int x y = (x < y)"
+
+definition uless_eq_int :: "int \<Rightarrow> int \<Rightarrow> bool" where
+"uless_eq_int x y = (x \<le> y)"
+
+instance ..
+end
+
+declare uless_int_def [eval,evalp]
+declare uless_eq_int_def [eval,evalp]
+
+instantiation int :: MINUS
+begin
+
+definition utminus_int :: "int \<Rightarrow> int \<Rightarrow> int" where
+"utminus_int x y = x - y"
+
+instance ..
+end
+
+declare utminus_int_def [eval,evalp]
 
 subsection {* List Expressions *}
 

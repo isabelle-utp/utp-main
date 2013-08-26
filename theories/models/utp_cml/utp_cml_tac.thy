@@ -7,7 +7,10 @@
 header {* Proof Tactic for CML *}
 
 theory utp_cml_tac
-imports utp_cml_expr
+imports 
+  utp_cml_expr
+  utp_cml_types
+  utp_cml_functions
 begin
 
 
@@ -52,5 +55,19 @@ declare nibble_less_eq_def [simp]
 declare nibble_less_def [simp]
 declare fset_transfer_eq [eval,evalp]
 declare fset_transfer_neq [eval,evalp]
+
+text {* Some examples *}
+
+lemma cml_goal1:
+  "|forall x : @bool @ &x => &x| = |true|"
+  by (cml_tac)
+
+lemma cml_goal2:
+  "|forall x : @nat1 @ &x > 0| = |true|"
+  by (cml_tac)
+
+lemma cml_goal3:
+  "|forall x : @nat @ (&x < 5) => &x in @set {0,1,2,3,4}| = |true|"
+  oops
 
 end

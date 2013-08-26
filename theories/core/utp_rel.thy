@@ -667,6 +667,16 @@ theorem UNREST_NON_REL_VAR_WF_RELATION [closure]:
 "p \<in> WF_RELATION \<Longrightarrow> UNREST NON_REL_VAR p"
   by (simp add:WF_RELATION_def)
 
+lemma UNREST_WF_CONDITION [closure]:
+  "p \<in> WF_CONDITION \<Longrightarrow> UNREST (VAR - UNDASHED) p"
+  apply (clarsimp simp add:WF_CONDITION_def WF_RELATION_def)
+  apply (rule UNREST_subset)
+  apply (rule UNREST_union)
+  apply (assumption)
+  apply (assumption) back
+  apply (auto)
+done
+
 lemma WF_RELATION_UNREST_elim [elim]:
   "\<lbrakk> p \<in> WF_RELATION; UNREST NON_REL_VAR p \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (simp add:WF_RELATION_def)

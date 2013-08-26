@@ -207,11 +207,11 @@ definition IEvalRX ::
 
 lemma EvalRX_intro:
   "\<lbrakk>p1 \<in> WF_RELATION; p2 \<in> WF_RELATION; \<lbrakk>p1\<rbrakk>RX = \<lbrakk>p2\<rbrakk>RX \<rbrakk> \<Longrightarrow> p1 = p2"
-  apply (auto simp add:EvalRX_def)
+  apply (auto intro!:destPRED_intro simp add:EvalRX_def)
   apply (subgoal_tac "BindRX x \<in> BindRX ` destPRED p2")
   apply (auto)
   apply (drule_tac "BindRX_inj")
-  apply (auto simp add: WF_RELATION_def UNREST_def)
+  apply (auto intro!:destPRED_intro simp add: WF_RELATION_def UNREST_def)
   apply (drule_tac x="xa" in bspec) back
   apply (simp_all)
   apply (drule_tac x="x" in spec)
@@ -243,7 +243,7 @@ done
 
 lemma EvalRX_inverse [simp]:
   "p \<in> WF_RELATION \<Longrightarrow> IEvalRX (EvalRX p) = p"
-  apply (auto simp add: EvalRX_def IEvalRX_def WF_RELATION_def UNREST_def)
+  apply (auto intro!:destPRED_intro simp add: EvalRX_def IEvalRX_def WF_RELATION_def UNREST_def)
   apply (drule_tac x="xa" in bspec, simp)
   apply (drule_tac x="b2" in spec)
   apply (metis binding_equiv_override BindRX_inverse NON_REL_VAR_UNDASHED_DASHED)

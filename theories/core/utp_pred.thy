@@ -34,7 +34,7 @@ declare destPRED [simp]
 declare destPRED_inverse [simp]
 declare mkPRED_inverse [simp]
 
-lemma destPRED_intro [intro!]:
+lemma destPRED_intro [intro]:
   "destPRED x = destPRED y \<Longrightarrow> x = y"
   by (simp add:destPRED_inject)
 
