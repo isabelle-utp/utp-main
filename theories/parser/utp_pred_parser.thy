@@ -54,6 +54,9 @@ syntax (xsymbols)
   "_upred_top_clos" :: "upred \<Rightarrow> bool" ("(1[_])")
   "_upred_quote"    :: "upred \<Rightarrow> 'a WF_PREDICATE" ("(1`_`)")
   "_upred_brack"    :: "upred \<Rightarrow> upred" ("'(_')")
+  "_upred_op1"      :: "idt \<Rightarrow> upred \<Rightarrow> upred" ("_'(_')")
+  "_upred_op2"      :: "idt \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("_'(_,_')")
+  "_upred_op3"      :: "idt \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("_'(_,_,_')")
   "_upred_true"     :: "upred" ("true")
   "_upred_false"    :: "upred" ("false")
   "_upred_var"      :: "pttrn \<Rightarrow> upred" ("(_)")
@@ -88,6 +91,9 @@ syntax (xsymbols)
 
 translations
   "_upred_brack p"     => "p"
+  "_upred_op1 f x"     => "f x"
+  "_upred_op2 f x y"   => "f x y"
+  "_upred_op3 f x y z" => "f x y z" 
   "_upred_quote p"     => "p"
   "_upred_top_clos p"  == "taut p"
   "_upred_true"        == "CONST TrueP"

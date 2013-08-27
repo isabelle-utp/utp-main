@@ -1,6 +1,6 @@
 (******************************************************************************)
 (* Project: Mechanisation of the UTP                                          *)
-(* File: utp_csp.thy                                                          *)
+(* File: utp_acp.thy                                                          *)
 (* Authors: Samuel Canham and Simon Foster, University of York                *)
 (******************************************************************************)
 
@@ -15,11 +15,6 @@ begin
 
 definition ACP1 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 "ACP1 P = `P \<and> ( ok \<and> ($tr =$tr\<acute>) \<Rightarrow> $wait\<acute>)` "
-
-syntax 
-  "_upred_ACP1" :: "upred \<Rightarrow> upred" ("ACP1'(_')")
-translations
-  "_upred_ACP1 P" == "CONST ACP1 P"
 
 lemma ACP1_idempotent : "ACP1 (ACP1 P) = ACP1 P" by (simp add:ACP1_def, utp_pred_tac)
 

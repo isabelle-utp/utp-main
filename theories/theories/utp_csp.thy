@@ -39,16 +39,6 @@ definition CSP :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 definition Skip :: "'a WF_PREDICATE" where
 "Skip = `R(\<exists> ref. II\<^bsub>rea\<^esub>)`"
 
-syntax
-  "_upred_CSP1"  :: "upred \<Rightarrow> upred" ("CSP1'(_')")
-  "_upred_CSP2"  :: "upred  \<Rightarrow> upred" ("CSP2'(_')")
-  "_upred_CSP"   :: "upred  \<Rightarrow> upred" ("CSP'(_')")
-
-translations
-  "_upred_CSP1 P"   == "CONST CSP1 P"
-  "_upred_CSP2 P"   == "CONST CSP2 P"
-  "_upred_CSP P"    == "CONST CSP P"
-
 declare CSP1_def [eval, evalr, evalrr, evalrx]
 declare CSP2_def [eval, evalr, evalrr, evalrx]
 declare CSP_def [eval, evalr, evalrr, evalrx]

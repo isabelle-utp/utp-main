@@ -44,6 +44,14 @@ abbreviation MkPlainP ::
   "string \<Rightarrow> bool \<Rightarrow> 'a itself \<Rightarrow> 'm itself \<Rightarrow> ('a, 'm :: VALUE) PVAR" where
 "MkPlainP n s a t \<equiv> MkPVAR (bName n) s a t"
 
+text {* Some default variables constructors *}
+
+abbreviation "MkBoolV n a \<equiv> MkPlainP n a TYPE(bool) TYPE('m :: BOOL_SORT)"
+
+abbreviation "MkIntV n a \<equiv> MkPlainP n a TYPE(int) TYPE('m :: INT_SORT)"
+
+abbreviation "MkRealV n a \<equiv> MkPlainP n a TYPE(real) TYPE('m :: REAL_SORT)"
+
 abbreviation pvname :: "('a, 'm :: VALUE) PVAR \<Rightarrow> NAME" where
 "pvname x \<equiv> fst (Rep_PVAR x)"
 

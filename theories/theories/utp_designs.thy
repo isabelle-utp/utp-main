@@ -971,5 +971,4 @@ lift_definition FEASIBLE_DESIGNS :: "'a WF_THEORY"
 is "({vs. vs \<subseteq> REL_VAR \<and> OKAY \<subseteq> vs}, {H1,H3,H4})"
   by (simp add:WF_THEORY_def IDEMPOTENT_OVER_def H1_idempotent H2_idempotent H3_idempotent H4_idempotent)
 
-
 end
