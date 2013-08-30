@@ -190,6 +190,7 @@ syntax
   "_pexpr_int"           :: "int \<Rightarrow> pexpr" ("<_>")
   "_pexpr_plus"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "+" 65)
   "_pexpr_mult"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "*" 70)
+  "_pexpr_div"           :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "'/" 70)
   "_pexpr_minus"         :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "-" 65)
   "_pexpr_less"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "<" 25)
   "_pexpr_less_eq"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<le>" 25)
@@ -246,6 +247,7 @@ translations
   "_pexpr_int x"               == "CONST IntPE x"
   "_pexpr_plus x y"            == "CONST PlusPE x y"
   "_pexpr_mult x y"            == "CONST MultPE x y"
+  "_pexpr_div x y"             == "CONST DivPE x y"
   "_pexpr_minus x y"           == "CONST MinusPE x y"
   "_pexpr_less x y"            == "CONST LessPE x y"
   "_pexpr_less_eq x y"         == "CONST LessEqPE x y"

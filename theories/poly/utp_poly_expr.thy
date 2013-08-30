@@ -528,6 +528,7 @@ abbreviation RealPE :: "int \<Rightarrow> (int, 'a :: REAL_SORT) WF_PEXPRESSION"
 
 abbreviation "PlusPE u v \<equiv> Op2PE (op +) u v"
 abbreviation "MultPE u v \<equiv> Op2PE (op *) u v"
+abbreviation "DivPE  u v \<equiv> Op2PE (op /) u v"
 
 instantiation int :: LESS_THAN
 begin
