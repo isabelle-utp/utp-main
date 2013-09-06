@@ -20,6 +20,7 @@ session "HOL-UTP-CML" in "theories/models/utp_cml" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
   theories
     "utp_cml"
+    "examples/utp_cml_examples"
   files "document/root.tex"
 
 session "utp-hjf-summer-school" in "papers/utp-hjf-summer-school" = "HOL-UTP-THY" +

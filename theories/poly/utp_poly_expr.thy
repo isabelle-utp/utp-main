@@ -73,6 +73,10 @@ end
 definition UNREST_PEXPR :: "('m VAR) set \<Rightarrow> ('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> bool" where
 "UNREST_PEXPR vs e \<equiv> (\<forall> b1 b2. \<lbrakk>e\<rbrakk>\<^sub>*(b1 \<oplus>\<^sub>b b2 on vs) = \<lbrakk>e\<rbrakk>\<^sub>* b1)" 
 
+setup {*
+Adhoc_Overloading.add_variant @{const_name unrest} @{const_name UNREST_PEXPR}
+*}
+
 definition LitPE :: "'a \<Rightarrow> ('a, 'm :: VALUE) WF_PEXPRESSION" where
 "LitPE v = MkPExpr (\<lambda> b. v)"
 

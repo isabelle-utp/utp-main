@@ -182,8 +182,8 @@ theorem DesignD_assumption:
 
 theorem DesignD_commitment:
   assumes
-    "UNREST OKAY P" 
-    "UNREST OKAY Q" 
+    "OKAY \<sharp> P" 
+    "OKAY \<sharp> Q" 
   shows "`(P \<turnstile> Q)\<^sup>t` = `(ok \<and> P \<Rightarrow> Q)`"
   using assms by (utp_pred_auto_tac)
 
@@ -195,10 +195,10 @@ text {* Design refinement law *}
 
 theorem DesignD_refinement:
   assumes 
-    "UNREST OKAY P1" 
-    "UNREST OKAY P2"
-    "UNREST OKAY Q1" 
-    "UNREST OKAY Q2"
+    "OKAY \<sharp> P1" 
+    "OKAY \<sharp> P2"
+    "OKAY \<sharp> Q1" 
+    "OKAY \<sharp> Q2"
   shows "P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2 = `[P1 \<Rightarrow> P2] \<and> [P1 \<and> Q2 \<Rightarrow> Q1]`"
 proof -
   have "`(P1 \<turnstile> Q1) \<sqsubseteq> (P2 \<turnstile> Q2)` = `[P2 \<turnstile> Q2 \<Rightarrow> P1 \<turnstile> Q1]`"

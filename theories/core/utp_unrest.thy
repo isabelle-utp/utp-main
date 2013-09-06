@@ -28,6 +28,17 @@ definition UNREST ::
   "('VALUE VAR) set \<Rightarrow> 'VALUE WF_PREDICATE \<Rightarrow> bool" where
 "UNREST vs p \<longleftrightarrow> (\<forall> b1 \<in> destPRED p . \<forall> b2. b1 \<oplus>\<^sub>b b2 on vs \<in> destPRED p)"
 
+consts
+  unrest :: "'v::type \<Rightarrow> 'a::type \<Rightarrow> bool" (infixr "\<sharp>" 50)
+
+setup {*
+  Adhoc_Overloading.add_overloaded @{const_name unrest}
+*}
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name unrest} @{const_name UNREST}
+*}
+
 subsubsection {* Restricted variables *}
 
 definition rv :: 

@@ -3,6 +3,9 @@
 (* File: utp_cml_values.thy                                                   *)
 (* Author: Simon Foster, University of York (UK)                              *)
 (******************************************************************************)
+
+header {* CML Value Domain *}
+
 theory utp_cml_values
 imports 
   Derive

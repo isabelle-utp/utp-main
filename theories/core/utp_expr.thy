@@ -112,6 +112,10 @@ text {* Unrestriction on expressions is equivalent to that of predicates. *}
 definition UNREST_EXPR :: "('VALUE VAR) set \<Rightarrow> 'VALUE WF_EXPRESSION \<Rightarrow> bool" where
 "UNREST_EXPR vs e \<equiv> (\<forall> b1 b2. \<langle>e\<rangle>\<^sub>e(b1 \<oplus>\<^sub>b b2 on vs) = \<langle>e\<rangle>\<^sub>e b1)" 
 
+setup {*
+Adhoc_Overloading.add_variant @{const_name unrest} @{const_name UNREST_EXPR}
+*}
+
 definition WF_EXPRESSION_OVER ::
   "('VALUE VAR) set \<Rightarrow>
    'VALUE WF_EXPRESSION set" where
