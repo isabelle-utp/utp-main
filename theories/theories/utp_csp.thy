@@ -141,6 +141,12 @@ definition MergeCSP ::
                  ($ref\<acute> = $ref\<^bsub>0\<^esub>\<acute> \<union> $ref\<^bsub>1\<^esub>\<acute>) \<and> 
                  (($tr\<acute> - $tr) \<in> ($tr\<^bsub>0\<^esub> - $tr) \<parallel>\<^bsub>A \<^esub>($tr\<^bsub>1 \<^esub>- $tr))) ; SKIP`)"
 
+definition GuardCSP ::
+  "'a WF_PREDICATE \<Rightarrow>
+   'a WF_PREDICATE \<Rightarrow>
+   'a WF_PREDICATE" where
+"GuardCSP g P = P \<lhd> g \<rhd> STOP"
+
 definition ParallelCSP :: 
   "'a WF_PREDICATE \<Rightarrow> 
    ('a EVENT set, 'a) WF_PEXPRESSION \<Rightarrow> 
@@ -153,6 +159,7 @@ syntax
   "_upred_input"     :: "'a CHAN \<Rightarrow> pttrn \<Rightarrow> upred \<Rightarrow> upred" ("_?_ -> _")
   "_upred_output"    :: "'a CHAN \<Rightarrow> pexpr \<Rightarrow> upred \<Rightarrow> upred" ("_!_ -> _")
   "_upred_extchoice" :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "[]" 65)
+  "_upred_guardcsp"  :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("[_] & _" [0, 100] 100)
   "_upred_parallel"  :: "upred \<Rightarrow> pexpr \<Rightarrow> upred \<Rightarrow> upred" (infixr "||\<^bsub>_\<^esub>" 100)
 
 syntax (xsymbols)
@@ -167,6 +174,7 @@ translations
   "_upred_input n v p"    == "CONST InputCSP n (\<lambda> v. p)"
   "_upred_output n v p"   == "CONST OutputCSP n v p"
   "_upred_extchoice P Q"  == "CONST ExtChoiceCSP P Q"
+  "_upred_guardcsp b P"   == "CONST GuardCSP b P"
   "_upred_parallel P A Q" == "CONST ParallelCSP P A Q"
 
 definition InterleaveCSP 

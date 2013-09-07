@@ -66,9 +66,10 @@ an invariant. *}
 
 abbreviation 
   "ProperState \<equiv> 
-     \<parallel>@Signal inv ps == (^ps^ in @set {&dark, &stop, &warning, &drive})\<parallel>"
+     \<parallel>@Signal 
+      inv ps == (&ps in @set {&dark, &stop, &warning, &drive})\<parallel>"
 
-text {* Next we create a datatype to represent the state of the entire
+text {* We then create a datatype to represent the state of the entire
 Dwarf Signal, which we specify as a CML record. Setting up a record
 type is currently a little complicated, though the CML tool
 automatically generates them. First we create a new unit type to act
@@ -81,11 +82,14 @@ instantiation DwarfType_Tag :: tag
 begin
 definition "tagName_DwarfType_Tag (x::DwarfType_Tag) = ''DwarfType''"
 instance 
-  by (intro_classes, metis (full_types) Abs_DwarfType_Tag_cases singleton_iff)
+  by ( intro_classes
+     , metis (full_types) Abs_DwarfType_Tag_cases singleton_iff)
 end
 
-text {* Next we create a collection of fields associated with the tag, and give each
-        the position in record and its CML type. *}
+text {* Next we create a collection of fields associated with the
+        tag. The @{term MkField} function constructs a record field
+        from a record tag, position in the field and a CML type. There
+        are six fields in \texttt{DwarfType}. *}
 
 abbreviation "lastproperstate_fld \<equiv> 
   MkField TYPE(DwarfType_Tag) #1 \<parallel>@ProperState\<parallel>"
@@ -106,17 +110,18 @@ abbreviation "currentstate_fld \<equiv>
   MkField TYPE(DwarfType_Tag) #6 \<parallel>@Signal\<parallel>"
 
 text {* Then we use these fields to create selector functions for the record, which
-        can be used directly in UTP/CML predicates *}
+        can be used directly in UTP/CML predicates. *}
 
 abbreviation "lastproperstate \<equiv> SelectRec lastproperstate_fld"
-abbreviation "desiredproperstate \<equiv> SelectRec desiredproperstate_fld"
+abbreviation "desiredproperstate\<equiv> SelectRec desiredproperstate_fld"
 abbreviation "turnoff \<equiv> SelectRec turnoff_fld"
 abbreviation "turnon \<equiv> SelectRec turnon_fld"
 abbreviation "laststate \<equiv> SelectRec laststate_fld"
 abbreviation "currentstate \<equiv> SelectRec currentstate_fld"
 
-text {* Finally we create the actual type by giving the list of fields and the associated
-        invariant. We also create a record constructor, \texttt{mk\_DwarfType}. *}
+text {* Finally we create the actual type by giving the list of fields
+        and the associated invariant. We also create a record
+        constructor, \texttt{mk\_DwarfType}. *}
 
 definition 
   "DwarfType \<equiv> 
@@ -126,7 +131,8 @@ definition
       , turnon_fld
       , laststate_fld
       , currentstate_fld] 
-     inv d == ((^d^.currentstate setminus ^d^.turnoff) union ^d^.turnon 
+     inv d == ((^d^.currentstate setminus ^d^.turnoff) 
+                  union ^d^.turnon 
                = ^d^.desiredproperstate)
               and 
               (^d^.turnon inter ^d^.turnoff = {})\<parallel>"
@@ -146,7 +152,8 @@ subsubsection {* Safety Properties *}
 
 text {* We specify the safety properties of the Dwarf signal. These
 are specified by use of CML functions from the Dwarf Signal type to a
-boolean. *}
+boolean. There are five proper states. The first property ensure that
+all three lights are never enabled simulaneously. *}
 
 definition 
   "NeverShowAll = 
@@ -154,13 +161,21 @@ definition
 
 declare NeverShowAll_def [eval,evalp]
 
+text {* The second ensure that only one lamp can change in any given
+transition, either from lit to dark \emph{or} dark to lit. *}
+
 definition 
   "MaxOneLampChange = 
-    |lambda d @ card ((^d^.#1.currentstate setminus ^d^.#1.laststate) 
-                      union (^d^.#1.laststate setminus ^d^.#1.currentstate)) 
-                      <= 1|"
+  |lambda d @ card ((^d^.#1.currentstate setminus ^d^.#1.laststate)
+                    union 
+                    (^d^.#1.laststate setminus ^d^.#1.currentstate)) 
+                    <= 1|"
 
 declare MaxOneLampChange_def [eval,evalp]
+
+text {* The third ensures that the signal cannot transition directly
+from the stop state the drive state -- it must transition via the
+\textsf{warning} state. *}
 
 definition
   "ForbidStopToDrive = 
@@ -169,6 +184,10 @@ definition
   
 declare ForbidStopToDrive_def [eval,evalp]
 
+text {* The fourth ensures that the signal can only transition from
+\textsf{dark} to \textsf{stop} -- it cannot transition directly to any
+other proper state. *}
+
 definition
   "DarkOnlyToStop = 
      |lambda d @ (^d^.#1.lastproperstate = &dark) 
@@ -176,12 +195,18 @@ definition
   
 declare DarkOnlyToStop_def [eval,evalp]
 
+text {* The fifth and final property ensures that the previous proper
+state before \textsf{dark} can only be \textsf{stop}. *}
+
 definition
   "DarkOnlyFromStop = 
      |lambda d @ (^d^.#1.desiredproperstate = &dark) 
                => ^d^.#1.lastproperstate in @set {&dark,&stop}|"
 
 declare DarkOnlyFromStop_def [eval,evalp]
+
+text {* We then create the \texttt{DwarfSignal} type to the subset of
+\texttt{DwarfType} where all the safety properties are true. *}
 
 definition 
   "DwarfSignal = \<parallel>@DwarfType inv d == NeverShowAll(^d^) 
@@ -192,39 +217,12 @@ definition
 
 declare DwarfSignal_def [eval,evalp]
 
-text {* To exemplify CML proof goals, we show that an initialised
-state of the signal satisfies the safety invariants. *}
-
-lemma NeverShowAll_Init:
-  "|NeverShowAll(mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop))| = |true|"
-  by (cml_tac)
-
-lemma MaxOneLampChange_Init:
-  "|MaxOneLampChange(mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop))| = |true|"
-  by (cml_tac)
-
-lemma ForbidStopToDrive_Init:
-  "|ForbidStopToDrive(mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop))| = |true|"
-  by (cml_tac)
-
-lemma DarkOnlyToStop_Init:
-  "|DarkOnlyToStop(mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop))| = |true|"
-  by (cml_tac)
-
-lemma DarkOnlyFromStop_Init:
-  "|DarkOnlyFromStop(mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop))| = |true|"
-  by (cml_tac)
-
-(*<*)
-lemma sdty: "|mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop) hasType @DwarfSignal| = |true|"
-  by (cml_tac)
-(*>*)
-
 subsubsection {* Reactive Behaviour *}
 
-text {* We first define the channels with to specify the interaction
-of the Dwarf signal. Channels can carry data so they all take a CML
-type to specify this. *}
+text {* We first define the five channels with which to specify the
+interaction of the Dwarf signal. Channels can carry data so they all
+take a CML type to specify this. Channels which carry no data simply
+carry the unit type \texttt{()}. *}
 
 definition "init = MkChanD ''init'' \<parallel>()\<parallel>"
 definition "light = MkChanD ''light'' \<parallel>@LampId\<parallel>"
@@ -245,15 +243,21 @@ text {* The Dwarf Signal has a single state variable which gives
 abbreviation "dw \<equiv> MkVarD ''dw'' DwarfType"
 
 text {* We also specify the invariant of the Dwarf Signal as a UTP
-design. *}
+design. It states that if the previous state was within the
+\texttt{DwarfSignal} type then the operation must ensure it remains in
+the \texttt{DwarfSignal} type afterwards. *}
 
 definition "DwarfInv \<equiv> 
-  `\<lparr> $dw hasType @DwarfType \<rparr> \<turnstile> \<lparr> $dw\<acute> hasType @DwarfType \<rparr>`"
+  `\<lparr> $dw hasType @DwarfSignal \<rparr> \<turnstile> \<lparr> $dw\<acute> hasType @DwarfSignal \<rparr>`"
 
-text {* Next we specify the operations for the Dwarf Signal process. *}
+text {* Next we specify the operations for the Dwarf Signal process,
+all of which are specified use UTP designs to specify the pre- and
+post-conditions. The first operation, \texttt{Init}, initialises the
+dwarf signal in a stable \textsf{stop} state. It has a \texttt{true}
+precondition because it can always be executed. *}
 
 definition "Init = 
-  `true \<turnstile> (dw := mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop))`"
+ `true \<turnstile> (dw := mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop))`"
 
 (*<*)
 lemma UNREST_vexpr_empty [unrest]: 
@@ -279,21 +283,15 @@ lemma "DwarfInv \<sqsubseteq> Init"
   apply (subgoal_tac "|mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop)| \<rhd>\<^sub>* dw\<acute>")
   apply (subgoal_tac "UNREST_PEXPR {def\<down>} |mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop)|")
   apply (simp add:usubst typing defined closure unrest)
-  apply (simp add:mkd)
-  apply (utp_pred_tac)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (rule unrest)
 oops
 (*>*)
+
+text {* \texttt{SetNewProperState} sets a new proper state for the
+signal to transition to. The precondition states that the signal must
+be stable -- the current state must be the desired proper state -- and
+that the desired state is not the current state. The postcondition
+sets the desired properstate to the new state and calculates the lamps
+which must be lit and extinguished to reach this state. *}
 
 definition 
   "SetNewProperState st = 
@@ -306,6 +304,9 @@ definition
                            , ($dw).currentstate
                            , ^st^)`"
 
+text {* \texttt{TurnOn} turns a given lamp on, under the precondition
+that the lamp needs to be turned on to reached the desired proper state. *}
+
 definition
   "TurnOn l =
      `\<lparr> ^l^ in @set ($dw).turnon \<rparr> 
@@ -315,6 +316,9 @@ definition
                           , ($dw).currentstate
                           , ($dw).currentstate union {^l^}
                           , ($dw).desiredproperstate)`"
+
+text {* \texttt{TurnOff} turns a given lamp off, under the precondition
+that the lamp needs to be turned off to reached the desired proper state. *}
 
 definition
   "TurnOff l =
@@ -326,44 +330,116 @@ definition
                           , ($dw).currentstate setminus {^l^}
                           , ($dw).desiredproperstate)`"
 
+subsubsection {* Actions *}
 
-text {* Actions *}
+text {* With the state and operations for the Dwarf signal specified
+we can proceed to define the reactive components of the the Dwarf
+process. We first create an action called \texttt{DWARF}, which can
+perform several behaviours. If a message is received on channel
+\texttt{light}, the \texttt{TurnOn} operation is executed with the
+given lamp, and the action then recurses. If a message is received on
+the \texttt{extinguish} channel, the given lamp is extinguished. If a
+message is received on \texttt{setPS}, a new proper state is
+selected. Additionally the Dwarf signal is always capable of
+communicating its current state on the \texttt{shine} channel -- this
+can be seen as observing the signal. *}
+
+
 
 definition 
-  "DWARF = `\<mu> DWARF. 
+  "DWARF = `init -> (Init() ; 
+       (\<mu> DWARF. 
           (((light?(l) -> TurnOn(&l)) ; DWARF) 
        [] ((extinguish?(l) -> TurnOff(&l)); DWARF)
        [] ((setPS?(s) -> SetNewProperState(&s)); DWARF)
-       [] (shine!(($dw).currentstate) -> DWARF))`"
+       [] (shine!(($dw).currentstate) -> DWARF))))`"
+
+text {* Next we define some simple test actions for the Dwarf
+signal. The first is a working test which, when composed with the
+\texttt{DWARF} action, will cause the signal to transition, first to
+\texttt{warning}, and then to \texttt{drive}, turning appropriate
+lights on and off on the way. This is a valid behaviour. *}
 
 text {* Working test *}
 definition
   "TEST1 = `setPS!&warning -> extinguish!<L2> -> light!<L3> 
-           -> setPS!&drive -> extinguish!<L1> -> light!<L2> -> STOP`"
+         -> setPS!&drive -> extinguish!<L1> -> light!<L2> -> STOP`"
 
-text {* Tries to turn on 3 lights simulaneously *}
+text {* The second test tries to turn on 3 lights simulaneously. This
+violates the \texttt{NeverShowAll} invariant. *}
+
 definition
   "TEST2 = `setPS!&warning -> light!<L3> -> extinguish!<L2> 
-           -> setPS!&drive -> extinguish!<L1> -> light!<L2> -> STOP`"
+         -> setPS!&drive -> extinguish!<L1> -> light!<L2> -> STOP`"
 
-text {* Tries to go from dark to warning *}
+text {* The third test tries to go straight from \textsf{dark} to \textsf{warning}, which
+violates the \texttt{DarkOnlyToStop} variant. *}
+
 definition
-  "TEST3 = `setPS!&dark -> extinguish!<L1> -> extinguish!<L2> -> setPS!&warning -> 
-            light!<L1> -> light!<L2> -> STOP`"
+  "TEST3 = `setPS!&dark -> extinguish!<L1> -> extinguish!<L2> 
+           -> setPS!&warning -> light!<L1> -> light!<L2> -> STOP`"
 
-text {* Tries to go from stop to drive *}
+text {* The fourth test action tries to go from stop to drive, which violates the
+\texttt{ForbidStopToDrive} invariant. *}
+
 definition
   "TEST4 = `setPS!&drive -> extinguish!<L1> -> light!<L3> -> STOP`"
 
-definition "DWARF_TEST1 = `DWARF [|{setPS\<down>,light\<down>,extinguish\<down>}|] TEST1`"
-definition "DWARF_TEST2 = `DWARF [|{setPS\<down>,light\<down>,extinguish\<down>}|] TEST2`"
-definition "DWARF_TEST3 = `DWARF [|{setPS\<down>,light\<down>,extinguish\<down>}|] TEST3`"
-definition "DWARF_TEST4 = `DWARF [|{setPS\<down>,light\<down>,extinguish\<down>}|] TEST4`"
+text {* We could execute these tests by composing them with the
+\texttt{DWARF} action, which is done below: *}
 
-text {* The main action of the process. *}
-definition 
-  "MainAction = DWARF"
+definition "DWARF_CHAN = {setPS\<down>,light\<down>,extinguish\<down>}"
+
+definition "DWARF_TEST1 = `DWARF [|DWARF_CHAN|] TEST1`"
+definition "DWARF_TEST2 = `DWARF [|DWARF_CHAN|] TEST2`"
+definition "DWARF_TEST3 = `DWARF [|DWARF_CHAN|] TEST3`"
+definition "DWARF_TEST4 = `DWARF [|DWARF_CHAN|] TEST4`"
+
+text {* Finally we specify the main action of this process. It waits
+for an initialisation signal, sets the initial state for the Dwarf
+signal and then enters the main event loop. \texttt{DWARF} could also
+be substituted with one of the tests above, to explore a particular
+behaviour of the system. *}
+
+definition
+  "MainAction = `init -> (Init() ; DWARF)`"
 
 end
 
+subsubsection {* Proof Goals *}
+
+text {* To exemplify CML proof goals, we show that an initialised
+state of the signal satisfies the safety invariants. All of these
+are discharged by application of the \textsf{cml-tac} proof tactic. *}
+
+lemma NeverShowAll_Init:
+"|NeverShowAll(mk_DwarfType(&stop,&stop,{},{},&stop,&stop))| 
+ = |true|"
+  by (cml_tac)
+
+lemma MaxOneLampChange_Init:
+"|MaxOneLampChange(mk_DwarfType(&stop,&stop,{},{},&stop,&stop))| 
+ = |true|"
+  by (cml_tac)
+
+lemma ForbidStopToDrive_Init:
+"|ForbidStopToDrive(mk_DwarfType(&stop,&stop,{},{},&stop,&stop))| 
+ = |true|"
+  by (cml_tac)
+
+lemma DarkOnlyToStop_Init:
+"|DarkOnlyToStop(mk_DwarfType(&stop,&stop,{},{},&stop,&stop))| 
+ = |true|"
+  by (cml_tac)
+
+lemma DarkOnlyFromStop_Init:
+"|DarkOnlyFromStop(mk_DwarfType(&stop,&stop,{},{},&stop,&stop))| 
+ = |true|"
+  by (cml_tac)
+
+(*<*)
+lemma sdty: "|mk_DwarfType(&stop, &stop, {}, {}, &stop, &stop) hasType @DwarfSignal| = |true|"
+  by (cml_tac)
+
 end
+(*>*)
