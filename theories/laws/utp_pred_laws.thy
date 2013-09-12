@@ -149,12 +149,12 @@ done
 subsection {* Quantifier Laws *}
 
 theorem ExistsP_ident :
-  assumes "UNREST vs p"
+  assumes "vs \<sharp> p"
   shows "(\<exists>\<^sub>p vs . p) = p"
   using assms by (utp_pred_tac)
 
 theorem ForallP_ident :
-  assumes "UNREST vs p"
+  assumes "vs \<sharp> p"
   shows "(\<forall>\<^sub>p vs . p) = p"
   using assms by (utp_pred_tac)
 
@@ -194,12 +194,12 @@ theorem ExistsP_OrP_dist:
   by (utp_pred_auto_tac)
 
 theorem ExistsP_AndP_expand1:
-  assumes "UNREST vs p2"
+  assumes "vs \<sharp> p2"
   shows "(\<exists>\<^sub>p vs. p1) \<and>\<^sub>p p2 = (\<exists>\<^sub>p vs. (p1 \<and>\<^sub>p p2))"
   using assms by (utp_pred_tac)
 
 theorem ExistsP_AndP_expand2:
-  assumes "UNREST vs p1"
+  assumes "vs \<sharp> p1"
   shows "p1 \<and>\<^sub>p (\<exists>\<^sub>p vs. p2) = (\<exists>\<^sub>p vs. (p1 \<and>\<^sub>p p2))"
   using assms by (utp_pred_tac)
 
@@ -208,7 +208,7 @@ text {* The one point rule *}
 theorem ExistsP_one_point:
   assumes 
     "e \<rhd>\<^sub>e x" 
-    "UNREST_EXPR {x} e"
+    "{x} \<sharp> e"
   shows "(\<exists>\<^sub>p {x}. p \<and>\<^sub>p $\<^sub>ex ==\<^sub>p e) = p[e/\<^sub>px]"
   using assms
   apply (auto simp add:eval evale typing defined)
@@ -219,7 +219,7 @@ done
 theorem ExistsP_has_value:
   assumes
     "v \<rhd>\<^sub>e x"
-    "UNREST_EXPR {x} v"
+    "{x} \<sharp> v"
   shows "(\<exists>\<^sub>p {x}. $\<^sub>ex ==\<^sub>p v) = true"
   using assms
   apply (utp_pred_tac, utp_expr_tac)
@@ -232,7 +232,7 @@ theorem ExistsP_SubstP_rename :
   assumes 
     "vtype x = vtype y" 
     "aux x = aux y" 
-    "UNREST {x} p"
+    "{x} \<sharp> p"
   shows "(\<exists>\<^sub>p {y}. p) = (\<exists>\<^sub>p {x}. p[$\<^sub>ex/\<^sub>py])"
   using assms
   apply (simp add:eval evale typing defined unrest binding_upd_twist)
@@ -251,7 +251,7 @@ text {* An existential can be alpha renamed provided the variables being renamed
         to are not used by the predicate *}
 
 theorem ExistsP_alpha_convert:
-  assumes "rename_func_on f vs" "UNREST (f`vs) P"
+  assumes "rename_func_on f vs" "(f`vs) \<sharp> P"
   shows "(\<exists>\<^sub>p vs. P) = (\<exists>\<^sub>p (f`vs). f on vs \<bullet> P)"
 using assms proof (utp_pred_auto_tac)
   fix b b'

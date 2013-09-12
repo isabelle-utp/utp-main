@@ -122,8 +122,8 @@ translations
   "_upred_assigna x xs e" == "CONST AssignRA x xs e"
   "_upred_conv x"      => "CONST ConvR x"
   "_upred_prime x"     == "CONST ConvR x"
-  "_upred_varopen x"   == "CONST VarOpenP x"
-  "_upred_varclose x"  == "CONST VarCloseP x"
+  "_upred_varopen x"   == "CONST VarOpenP x\<down>"
+  "_upred_varclose x"  == "CONST VarCloseP x\<down>"
   "_upred_substp p e x" == "CONST PSubstP p e x"
   "_upred_perm ss p"   == "CONST PermP ss p"
 
@@ -304,6 +304,8 @@ term "`(P \<lhd> b \<rhd> Q) \<sqsubseteq> (b \<and> P)`"
 term "`$x \<in> {\<guillemotleft>1\<guillemotright>,\<guillemotleft>2\<guillemotright>,\<guillemotleft>3\<guillemotright>} \<sqsubseteq> $x = \<guillemotleft>2\<guillemotright>`"
 
 term "`x := (\<guillemotleft>7\<guillemotright> * $z) ; ((y := $x + \<guillemotleft>1\<guillemotright>) \<lhd> ($x < \<guillemotleft>10\<guillemotright>) \<rhd> P)`"
+
+term "`var x; x := \<guillemotleft>5::int\<guillemotright>; end x`"
 
 term "`$x\<acute> = $y\<acute>`"
 term "`p[($x)\<acute>/y\<acute>]`"

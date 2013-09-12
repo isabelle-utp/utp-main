@@ -203,7 +203,7 @@ translations
   "_assign m (_avars x xs) (_aexprs v vs)" == "_assign (_assign m x v) xs vs"
   "_Assignment xs vs" == "CONST AssignsR (_assign (CONST IdA) xs vs)"
 
-term "x,y :=\<^sub>R $\<^sub>ey,$\<^sub>ex"
+term "x,y,z :=\<^sub>R $\<^sub>ey,$\<^sub>ex,$\<^sub>ez"
 
 lemma AssignsR_SkipR: "AssignsR IdA = II"
   by (auto simp add:SkipR.rep_eq AssignsR.rep_eq IdA.rep_eq VarE.rep_eq)

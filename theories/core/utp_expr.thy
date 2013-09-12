@@ -257,7 +257,7 @@ definition SubstP ::
  'VALUE WF_PREDICATE" ("_[_'/\<^sub>p_]" [200] 200) where
 "SubstP p v x \<equiv> mkPRED {b. b(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b) \<in> destPRED p}"
 
-lemma SubstP_no_var: "\<lbrakk> UNREST {x} p; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[v/\<^sub>px] = p"
+lemma SubstP_no_var: "\<lbrakk> {x} \<sharp> p; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[v/\<^sub>px] = p"
   apply (simp add:SubstP_def)
   apply (auto intro!:destPRED_intro simp add:UNREST_def)
   apply (metis (lifting) binding_compat binding_upd_simps binding_upd_upd evar_compat_def)
@@ -383,7 +383,7 @@ lemma LitE_bfun [simp]: "a : t \<Longrightarrow> \<langle>LitE a\<rangle>\<^sub>
 subsubsection {* @{term UNREST_EXPR} Theorems *}
 
 theorem UNREST_EXPR_member [simp] :
-"UNREST_EXPR vs f \<Longrightarrow> \<langle>f\<rangle>\<^sub>e (b \<oplus>\<^sub>b b' on vs) = \<langle>f\<rangle>\<^sub>e b "
+"vs \<sharp> f \<Longrightarrow> \<langle>f\<rangle>\<^sub>e (b \<oplus>\<^sub>b b' on vs) = \<langle>f\<rangle>\<^sub>e b "
   by (auto simp add:UNREST_EXPR_def)
 
 theorem UNREST_EXPR_empty [unrest] :
@@ -391,7 +391,7 @@ theorem UNREST_EXPR_empty [unrest] :
   by (simp add: UNREST_EXPR_def)
 
 theorem UNREST_EXPR_subset :
-"\<lbrakk>UNREST_EXPR vs1 e;
+"\<lbrakk>vs1 \<sharp> e;
  vs2 \<subseteq> vs1\<rbrakk> \<Longrightarrow>
  UNREST_EXPR vs2 e"
   apply (auto simp add:UNREST_EXPR_def)
@@ -403,8 +403,8 @@ theorem UNREST_EXPR_unionE [elim]:
 by (metis UNREST_EXPR_subset inf_sup_ord(4) sup_ge1)
 
 theorem UNREST_EqualP [unrest] :
-"\<lbrakk>UNREST_EXPR vs e; UNREST_EXPR vs f \<rbrakk> \<Longrightarrow>
- UNREST vs (e ==\<^sub>p f)"
+"\<lbrakk> vs \<sharp> e; vs \<sharp> f \<rbrakk> \<Longrightarrow>
+ vs \<sharp> (e ==\<^sub>p f)"
   apply (auto simp add:EqualP_def)
   apply (drule_tac ?vs2.0="vs" in UNREST_EXPR_subset)
   apply (simp_all)
@@ -414,8 +414,8 @@ theorem UNREST_EqualP [unrest] :
 done
 
 theorem UNREST_EqualP_alt [unrest] :
-"\<lbrakk>UNREST_EXPR vs1 e; UNREST_EXPR vs2 f \<rbrakk> \<Longrightarrow>
- UNREST (vs1 \<inter> vs2) (e ==\<^sub>p f)"
+"\<lbrakk> vs1 \<sharp> e; vs2 \<sharp> f \<rbrakk> \<Longrightarrow>
+ (vs1 \<inter> vs2) \<sharp> (e ==\<^sub>p f)"
   apply (auto simp add:EqualP_def)
   apply (drule_tac ?vs2.0="vs1 \<inter> vs2" in UNREST_EXPR_subset)
   apply (simp_all)
@@ -425,36 +425,36 @@ theorem UNREST_EqualP_alt [unrest] :
 done
 
 theorem UNREST_EXPR_VarE [unrest] :
-"x \<notin> vs \<Longrightarrow> UNREST_EXPR vs (VarE x)"
+"x \<notin> vs \<Longrightarrow> vs \<sharp> (VarE x)"
   by (simp add:VarE.rep_eq UNREST_EXPR_def)
 
 theorem UNREST_EXPR_LitE [unrest] :
-"UNREST_EXPR vs (LitE v)"
+"vs \<sharp> (LitE v)"
   by (simp add:LitE_rep_eq UNREST_EXPR_def)
 
 theorem UNREST_EXPR_Op1E [unrest] :
-"\<lbrakk> x :!\<^sub>e a; f \<in> FUNC1 a b; UNREST_EXPR vs x \<rbrakk> \<Longrightarrow> UNREST_EXPR vs (Op1E f x)"
+"\<lbrakk> x :!\<^sub>e a; f \<in> FUNC1 a b; vs \<sharp> x \<rbrakk> \<Longrightarrow> vs \<sharp> (Op1E f x)"
   by (simp add:Op1E_rep_eq UNREST_EXPR_def)
 
 theorem UNREST_EXPR_Op2E [unrest] :
 "\<lbrakk> x :!\<^sub>e a; y :!\<^sub>e b; f \<in> FUNC2 a b c; 
-   UNREST_EXPR vs x; UNREST_EXPR vs y \<rbrakk> \<Longrightarrow> UNREST_EXPR vs (Op2E f x y)"
+   vs \<sharp> x; vs \<sharp> y \<rbrakk> \<Longrightarrow> vs \<sharp> (Op2E f x y)"
   by (auto simp add:Op2E_rep_eq UNREST_EXPR_def)
 
 theorem UNREST_EXPR_AppE [unrest] :
-"\<lbrakk> f :\<^sub>e FuncType a b; v :\<^sub>e a; \<D> f; UNREST_EXPR vs f; UNREST_EXPR vs v \<rbrakk> \<Longrightarrow> UNREST_EXPR vs (AppE f v)"
+"\<lbrakk> f :\<^sub>e FuncType a b; v :\<^sub>e a; \<D> f; vs \<sharp> f; vs \<sharp> v \<rbrakk> \<Longrightarrow> vs \<sharp> (AppE f v)"
   by (simp add:AppE_rep_eq UNREST_EXPR_def)
 
 theorem UNREST_EXPR_DefaultE [unrest] :
-"UNREST_EXPR vs (DefaultE t)"
+"vs \<sharp> (DefaultE t)"
   by (simp add:DefaultE_def unrest)
 
 theorem UNREST_EXPR_CoerceE [unrest] :
-"UNREST_EXPR vs e \<Longrightarrow> UNREST_EXPR vs (CoerceE e t)"
+"vs \<sharp> e \<Longrightarrow> vs \<sharp> (CoerceE e t)"
   by (auto intro:unrest simp add:CoerceE_def)
 
 theorem UNREST_EXPR_RenameE [unrest] :
-"UNREST_EXPR vs p \<Longrightarrow>
+"vs \<sharp> p \<Longrightarrow>
  UNREST_EXPR (\<langle>ss\<rangle>\<^sub>s ` vs) (ss\<bullet>p)"
   by (auto simp add: UNREST_EXPR_def PermE.rep_eq RenameB_override_distr1 closure)
 
@@ -474,15 +474,15 @@ theorem UNREST_EXPR_PrimeE_alt [unrest] :
   by (simp add:PrimeE_def urename closure unrest)
 
 theorem UNREST_EXPR_SubstE [unrest] :  
-"\<lbrakk> v \<rhd>\<^sub>e x; UNREST_EXPR vs1 e; UNREST_EXPR vs2 v; x \<notin> vs1; vs = (vs1 \<inter> vs2) \<rbrakk> \<Longrightarrow>
-      UNREST_EXPR vs (e[v/\<^sub>ex])"
+"\<lbrakk> v \<rhd>\<^sub>e x; vs1 \<sharp> e; vs2 \<sharp> v; x \<notin> vs1; vs = (vs1 \<inter> vs2) \<rbrakk> \<Longrightarrow>
+ vs \<sharp> (e[v/\<^sub>ex])"
   apply (auto simp add:UNREST_EXPR_def SubstE.rep_eq evar_compat_def)
   apply (metis binding_override_simps(6) inf_commute)
 done
 
 theorem UNREST_SubstE_var [unrest] :  
-   "\<lbrakk> v \<rhd>\<^sub>e x; UNREST_EXPR vs1 e; UNREST_EXPR vs2 v; x \<notin> vs1; x \<in> vs2 \<rbrakk> \<Longrightarrow>
-      UNREST_EXPR {x} (e[v/\<^sub>ex])"
+  "\<lbrakk> v \<rhd>\<^sub>e x; vs1 \<sharp> e; vs2 \<sharp> v; x \<notin> vs1; x \<in> vs2 \<rbrakk> \<Longrightarrow>
+   {x} \<sharp> (e[v/\<^sub>ex])"
   apply (auto simp add:SubstE.rep_eq UNREST_def UNREST_EXPR_def)
   apply (metis binding_compat binding_upd_override binding_upd_upd evar_compat_def)
 done
@@ -491,8 +491,8 @@ lemma dash_single_rename_func_on [closure]: "rename_func_on dash {x}"
   by (simp add:rename_func_on_def)
 
 theorem UNREST_SubstP [unrest] :  
-"\<lbrakk> v \<rhd>\<^sub>e x; UNREST vs1 p; UNREST_EXPR vs2 v; x \<notin> vs1; vs = (vs1 \<inter> vs2) \<rbrakk> \<Longrightarrow>
-      UNREST vs (p[v/\<^sub>px])"
+  "\<lbrakk> v \<rhd>\<^sub>e x; vs1 \<sharp> p; vs2 \<sharp> v; x \<notin> vs1; vs = (vs1 \<inter> vs2) \<rbrakk> \<Longrightarrow>
+   vs \<sharp> (p[v/\<^sub>px])"
   apply (auto simp add:SubstP_def UNREST_def UNREST_EXPR_def)
   apply (drule_tac x="b1(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b1)" in bspec, simp)
   apply (drule_tac x="b1" in spec)
@@ -509,8 +509,8 @@ theorem UNREST_SubstP [unrest] :
 done
 
 theorem UNREST_SubstP_var [unrest] :  
-   "\<lbrakk> v \<rhd>\<^sub>e x; UNREST_EXPR {x} v \<rbrakk> \<Longrightarrow>
-      UNREST {x} (p[v/\<^sub>px])"
+   "\<lbrakk> v \<rhd>\<^sub>e x; {x} \<sharp> v \<rbrakk> \<Longrightarrow>
+    {x} \<sharp> (p[v/\<^sub>px])"
   apply (auto simp add:SubstP_def UNREST_def UNREST_EXPR_def)
   apply (metis binding_compat binding_upd_override binding_upd_upd evar_compat_def)
 done
@@ -518,7 +518,7 @@ done
 text {* Some unrestriction laws relating to variable classes *}
 
 lemma UNREST_NON_REL_VAR_DASHED [unrest]:
-  "x \<in> DASHED \<Longrightarrow> UNREST_EXPR NON_REL_VAR (VarE x)"
+  "x \<in> DASHED \<Longrightarrow> NON_REL_VAR \<sharp> (VarE x)"
   by (auto intro:unrest)
 
 subsection {* Boolean Expressions *}
@@ -566,14 +566,14 @@ lemma ExprP_FalseE [simp]: "ExprP FalseE = false"
 
 subsubsection {* @{term UNREST_EXPR} Theorems *}
 
-theorem UNREST_EXPR_TrueE [unrest]: "UNREST_EXPR vs TrueE"
+theorem UNREST_EXPR_TrueE [unrest]: "vs \<sharp> TrueE"
   by (simp add:TrueE_def unrest)
 
-theorem UNREST_EXPR_FalseE [unrest]: "UNREST_EXPR vs FalseE"
+theorem UNREST_EXPR_FalseE [unrest]: "vs \<sharp> FalseE"
   by (simp add:FalseE_def unrest)
 
 theorem UNREST_ExprP [unrest]:
-"\<lbrakk> UNREST_EXPR vs e \<rbrakk> \<Longrightarrow> UNREST vs (ExprP e)"
+"\<lbrakk> vs \<sharp> e \<rbrakk> \<Longrightarrow> vs \<sharp> (ExprP e)"
   apply (simp add:ExprP_def)
   apply (rule_tac ?vs1.0="VAR - vs" in UNREST_LiftP_alt)
   apply (simp add:WF_BINDING_PRED_def UNREST_EXPR_def)
@@ -586,18 +586,18 @@ theorem UNREST_ExprP [unrest]:
 done
 
 theorem UNREST_EXPR_PredE [unrest]: 
-"UNREST vs p \<Longrightarrow> UNREST_EXPR vs (PredE p)"
+"vs \<sharp> p \<Longrightarrow> vs \<sharp> (PredE p)"
   apply (auto simp add:UNREST_EXPR_def UNREST_def MkBool_type PredE.rep_eq)
   apply (rule_tac f="MkBool" and g="MkBool" in cong, simp)
   apply (metis (full_types) binding_override_simps(2) binding_override_simps(3))
 done
   
 lemma UNREST_VarP [unrest]:
-  "x \<notin> vs \<Longrightarrow> UNREST vs (VarP x)"
+  "x \<notin> vs \<Longrightarrow> vs \<sharp> (VarP x)"
   by (auto intro:unrest)
 
 theorem WF_EXPRESSION_UNREST_binding_equiv :
-"\<lbrakk> UNREST_EXPR (VAR - vs) e; b1 \<cong> b2 on vs \<rbrakk> 
+"\<lbrakk> (VAR - vs) \<sharp> e; b1 \<cong> b2 on vs \<rbrakk> 
  \<Longrightarrow> \<langle>e\<rangle>\<^sub>eb1 = \<langle>e\<rangle>\<^sub>eb2"
   by (smt UNREST_EXPR_member binding_override_equiv binding_override_simps(10) binding_override_simps(5))
 

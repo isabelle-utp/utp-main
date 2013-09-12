@@ -56,8 +56,8 @@ text {* A sequential composition which doesn't mention undashed or dashed variab
 
 theorem SemiR_equiv_AndP_NON_REL_VAR:
   assumes
-    "UNREST REL_VAR p"
-    "UNREST REL_VAR q" 
+    "REL_VAR \<sharp> p"
+    "REL_VAR \<sharp> q" 
   shows "p ; q = p \<and>\<^sub>p q"
   using assms
   apply (auto intro!:destPRED_intro simp add:SemiR_def AndP.rep_eq COMPOSABLE_BINDINGS_def)
@@ -317,13 +317,13 @@ proof -
 
   also from assms 
   have "... = (\<exists>\<^sub>p {x\<acute>\<acute>\<acute>}. (\<exists>\<^sub>p (DASHED_TWICE - {x\<acute>\<acute>}) . ((SubstP (SS1\<bullet>P) ($\<^sub>ex\<acute>\<acute>\<acute>) (x\<acute>\<acute>)) \<and>\<^sub>p (SubstP (SS2\<bullet>Q) ($\<^sub>ex\<acute>\<acute>\<acute>) (x\<acute>\<acute>)))))"
-    apply (subgoal_tac "UNREST_EXPR (DASHED_TWICE - {x\<acute>\<acute>}) (VarE x\<acute>\<acute>\<acute>)")
+    apply (subgoal_tac "(DASHED_TWICE - {x\<acute>\<acute>}) \<sharp> (VarE x\<acute>\<acute>\<acute>)")
     apply (simp add:usubst closure typing)
     apply (blast intro:unrest)
   done
 
   also from assms have "... = (\<exists>\<^sub>p {x\<acute>\<acute>\<acute>}. (\<exists>\<^sub>p DASHED_TWICE . ((SubstP (SS1\<bullet>P) (VarE x\<acute>\<acute>\<acute>) (x\<acute>\<acute>)) \<and>\<^sub>p (SubstP (SS2\<bullet>Q) (VarE x\<acute>\<acute>\<acute>) (x\<acute>\<acute>)))))"
-    apply (subgoal_tac "UNREST {x\<acute>\<acute>} ((SubstP (SS1\<bullet>P) (VarE x\<acute>\<acute>\<acute>) (x\<acute>\<acute>)) \<and>\<^sub>p (SubstP (SS2\<bullet>Q) (VarE x\<acute>\<acute>\<acute>) (x\<acute>\<acute>)))")
+    apply (subgoal_tac "{x\<acute>\<acute>} \<sharp> ((SubstP (SS1\<bullet>P) (VarE x\<acute>\<acute>\<acute>) (x\<acute>\<acute>)) \<and>\<^sub>p (SubstP (SS2\<bullet>Q) (VarE x\<acute>\<acute>\<acute>) (x\<acute>\<acute>)))")
     apply (subgoal_tac "(DASHED_TWICE - {x\<acute>\<acute>}) \<union> {x\<acute>\<acute>} = DASHED_TWICE")
     apply (smt ExistsP_union ExistsP_ident)
     apply (force)
@@ -331,8 +331,8 @@ proof -
   done
 
   ultimately show ?thesis using assms
-    apply (subgoal_tac "UNREST DASHED_TWICE (SubstP P (VarE (x\<acute>\<acute>\<acute>)) (x\<acute>))")
-    apply (subgoal_tac "UNREST DASHED_TWICE (SubstP Q (VarE (x\<acute>\<acute>\<acute>)) (x))")
+    apply (subgoal_tac "DASHED_TWICE \<sharp> (SubstP P (VarE (x\<acute>\<acute>\<acute>)) (x\<acute>))")
+    apply (subgoal_tac "DASHED_TWICE \<sharp> (SubstP Q (VarE (x\<acute>\<acute>\<acute>)) (x))")
     apply (subgoal_tac "\<langle>SS1\<rangle>\<^sub>s (x\<acute>\<acute>\<acute>) = x\<acute>\<acute>\<acute>")
     apply (subgoal_tac "\<langle>SS2\<rangle>\<^sub>s (x\<acute>\<acute>\<acute>) = x\<acute>\<acute>\<acute>")
     apply (simp add:SemiR_algebraic urename closure typing defined)
@@ -358,13 +358,13 @@ text {* Lifting of exists around sequential composition requires that p1 and p2 
         relations and that p1 does use any of the inputs hidden by vs as inputs *}
 
 theorem ExistsP_SemiR_expand1:
-  assumes unrests: "UNREST DASHED_TWICE p1" "UNREST DASHED_TWICE p2"
-  and     noconn:"UNREST (dash ` in vs) p1"
+  assumes unrests: "DASHED_TWICE \<sharp> p1" "DASHED_TWICE \<sharp> p2"
+  and     noconn:"(dash ` in vs) \<sharp> p1"
   and     "vs \<subseteq> UNDASHED \<union> DASHED"
   shows "p1 ; (\<exists>\<^sub>p vs. p2) = (\<exists>\<^sub>p out vs. (p1 ; p2))"
 proof -
 
-  from unrests have "UNREST DASHED_TWICE (\<exists>\<^sub>p vs . p2)"
+  from unrests have "DASHED_TWICE \<sharp> (\<exists>\<^sub>p vs . p2)"
     by (blast intro:unrest)
 
   with unrests
@@ -376,7 +376,7 @@ proof -
 
   also have "... = (\<exists>\<^sub>p DASHED_TWICE . \<exists>\<^sub>p (SS2 `\<^sub>s vs) . ((SS1\<bullet>p1) \<and>\<^sub>p (SS2\<bullet>p2)))"
   proof -
-    from unrests have "UNREST (SS2 `\<^sub>s vs) (SS1\<bullet>p1)"
+    from unrests have "(SS2 `\<^sub>s vs) \<sharp> (SS1\<bullet>p1)"
     proof -
 
       have "dash ` (in vs) \<subseteq> UNDASHED \<union> DASHED"
@@ -385,10 +385,10 @@ proof -
       moreover have "dash ` out vs \<subseteq> DASHED_TWICE"
         by (force simp add:var_defs)
 
-      moreover from assms have "UNREST (dash ` dash ` in vs) (SS1\<bullet>p1)"
+      moreover from assms have "(dash ` dash ` in vs) \<sharp> (SS1\<bullet>p1)"
         by (smt SS1_UNDASHED_DASHED_image UNREST_RenameP_alt Un_empty_left calculation(1) in_dash in_in le_iff_sup out_dash rename_image_def sup.idem)
 
-      moreover from assms have "UNREST (out vs) (SS1\<bullet>p1)"
+      moreover from assms have "(out vs) \<sharp> (SS1\<bullet>p1)"
         apply (rule_tac ?vs1.0="dash ` out vs" in UNREST_RenameP_alt)
         apply (force intro:  UNREST_subset simp add:var_defs)
         apply (auto simp add:image_def SS1_simps closure out_vars_def)
@@ -421,13 +421,13 @@ proof -
 qed
 
 theorem ExistsP_SemiR_expand2:
-  assumes unrests: "UNREST DASHED_TWICE p1" "UNREST DASHED_TWICE p2"
+  assumes unrests: "DASHED_TWICE \<sharp> p1" "DASHED_TWICE \<sharp> p2"
   and     "vs \<subseteq> UNDASHED \<union> DASHED"
-  and     noconn:"UNREST (undash ` out vs) p2"
+  and     noconn:"(undash ` out vs) \<sharp> p2"
   shows "(\<exists>\<^sub>p vs. p1) ; p2 = (\<exists>\<^sub>p in vs. (p1 ; p2))"
 proof -
 
-  from unrests have "UNREST DASHED_TWICE (\<exists>\<^sub>p vs . p1)"
+  from unrests have "DASHED_TWICE \<sharp> (\<exists>\<^sub>p vs . p1)"
     by (blast intro:unrest)
 
   with unrests
@@ -439,7 +439,7 @@ proof -
 
   also have "... = (\<exists>\<^sub>p DASHED_TWICE . \<exists>\<^sub>p (SS1 `\<^sub>s vs) . ((SS1\<bullet>p1) \<and>\<^sub>p (SS2\<bullet>p2)))"
   proof -
-    from unrests have "UNREST (SS1 `\<^sub>s vs) (SS2\<bullet>p2)"
+    from unrests have "(SS1 `\<^sub>s vs) \<sharp> (SS2\<bullet>p2)"
     proof -
 
       have "undash ` (out vs) \<subseteq> UNDASHED \<union> DASHED"
@@ -448,13 +448,13 @@ proof -
       moreover have "dash ` out vs \<subseteq> DASHED_TWICE"
         by (force simp add:var_defs)
 
-      moreover from assms have "UNREST (dash ` out vs) (SS2\<bullet>p2)"
+      moreover from assms have "(dash ` out vs) \<sharp> (SS2\<bullet>p2)"
         apply (rule_tac ?vs1.0="undash ` out vs" in UNREST_RenameP_alt)
         apply (auto simp add:var_member closure calculation var_simps SS2_simps)
         apply (metis (no_types) DASHED_undash_UNDASHED SS2_UNDASHED_app dash_undash_DASHED rev_image_eqI set_rev_mp utp_var.out_DASHED)
       done
 
-      moreover from assms have "UNREST (in vs) (SS2\<bullet>p2)"
+      moreover from assms have "(in vs) \<sharp> (SS2\<bullet>p2)"
         apply (rule_tac ?vs1.0="dash ` dash ` in vs" in UNREST_RenameP_alt)
         apply (force intro:  UNREST_subset simp add:var_defs)
         apply (auto simp add:closure image_def)
@@ -532,10 +532,10 @@ text {* The following theorems show that an existential may be inserted or
 
 theorem SemiR_ExistsP_left:
   assumes
-    "UNREST DASHED_TWICE p" 
-    "UNREST DASHED_TWICE q"
-    "UNREST (DASHED - vs1) p" 
-    "UNREST (UNDASHED - vs2) q"
+    "DASHED_TWICE \<sharp> p" 
+    "DASHED_TWICE \<sharp> q"
+    "(DASHED - vs1) \<sharp> p" 
+    "(UNDASHED - vs2) \<sharp> q"
     "vs1 \<subseteq> DASHED" 
     "vs2 \<subseteq> UNDASHED"
     "dash ` vs2 \<subseteq> vs1"
@@ -544,7 +544,7 @@ proof -
 
   let ?A = "dash ` out vs1 - dash ` dash ` in vs2"
 
-  from assms have UNREST: "UNREST DASHED_TWICE (\<exists>\<^sub>p vs1 - dash ` vs2 . p)"
+  from assms have UNREST: "DASHED_TWICE \<sharp> (\<exists>\<^sub>p vs1 - dash ` vs2 . p)"
     by (auto intro:unrest)
 
   hence "(\<exists>\<^sub>p (vs1 - dash ` vs2). p) ; q = 
@@ -590,10 +590,10 @@ qed
 
 theorem SemiR_ExistsP_right:
   assumes
-    "UNREST DASHED_TWICE p" 
-    "UNREST DASHED_TWICE q"
-    "UNREST (DASHED - vs1) p" 
-    "UNREST (UNDASHED - vs2) q"
+    "DASHED_TWICE \<sharp> p" 
+    "DASHED_TWICE \<sharp> q"
+    "(DASHED - vs1) \<sharp> p" 
+    "(UNDASHED - vs2) \<sharp> q"
     "vs1 \<subseteq> DASHED" 
     "vs2 \<subseteq> UNDASHED"
     "vs1 \<subseteq> dash ` vs2"
@@ -602,7 +602,7 @@ proof -
 
   let ?A = "dash ` dash ` in vs2 - (dash ` dash ` in (undash ` vs1) \<union> out (undash ` vs1))"
 
-  from assms have UNREST: "UNREST DASHED_TWICE (\<exists>\<^sub>p vs2 - undash ` vs1 . q)"
+  from assms have UNREST: "DASHED_TWICE \<sharp> (\<exists>\<^sub>p vs2 - undash ` vs1 . q)"
     by (auto intro:unrest)
 
   hence "p ; (\<exists>\<^sub>p (vs2 - undash ` vs1). q) = 
@@ -624,7 +624,7 @@ proof -
 
   also have "... = (\<exists>\<^sub>p DASHED_TWICE . (\<exists>\<^sub>p ?A . (SS1\<bullet>p) \<and>\<^sub>p (SS2\<bullet>q)))"
   proof -
-    from assms(3) have "UNREST ?A (SS1\<bullet>p)"
+    from assms(3) have "?A \<sharp> (SS1\<bullet>p)"
       apply (rule unrest)
       apply (subgoal_tac "DASHED - vs1 \<subseteq> UNDASHED \<union> DASHED")
       apply (simp add: SS1_UNDASHED_DASHED_image[simplified] var_simps var_dist closure)
@@ -663,7 +663,7 @@ theorem SemiR_right_ExistsP:
 done
 
 lemma SubstP_rel_closure [closure]:
-  "\<lbrakk> p \<in> WF_RELATION; UNREST_EXPR NON_REL_VAR v; x \<in> REL_VAR; v \<rhd>\<^sub>e x \<rbrakk> 
+  "\<lbrakk> p \<in> WF_RELATION; NON_REL_VAR \<sharp> v; x \<in> REL_VAR; v \<rhd>\<^sub>e x \<rbrakk> 
   \<Longrightarrow> p[v/\<^sub>px] \<in> WF_RELATION"
   by (auto intro:unrest simp add:WF_RELATION_def unrest typing)
 
@@ -673,8 +673,8 @@ theorem SemiR_left_one_point:
     "P \<in> WF_RELATION" 
     "Q \<in> WF_RELATION" 
     "v \<rhd>\<^sub>e x"
-    "UNREST_EXPR (DASHED \<union> NON_REL_VAR) v" 
-    "UNREST_EXPR {x} v"
+    "(DASHED \<union> NON_REL_VAR) \<sharp> v" 
+    "{x} \<sharp> v"
   shows "P ; ($\<^sub>ex ==\<^sub>p v \<and>\<^sub>p Q) = P[v\<acute>/\<^sub>px\<acute>] ; Q[v/\<^sub>px]"
   using assms
   (* This command takes over 15 seconds to complete, really should be optimised.
@@ -696,8 +696,8 @@ theorem SemiR_right_one_point:
     "P \<in> WF_RELATION" 
     "Q \<in> WF_RELATION" 
     "v \<rhd>\<^sub>e x"
-    "UNREST_EXPR (DASHED \<union> NON_REL_VAR) v" 
-    "UNREST_EXPR {x} v"
+    "(DASHED \<union> NON_REL_VAR) \<sharp> v" 
+    "{x} \<sharp> v"
   shows "(P \<and>\<^sub>p $\<^sub>ex\<acute> ==\<^sub>p v\<acute>) ; Q = P[v\<acute>/\<^sub>px\<acute>] ; Q[v/\<^sub>px]"
   using assms
   apply (simp add:unrest urename closure typing defined UNREST_EXPR_subset evalrx evale)
@@ -719,15 +719,15 @@ theorem SemiR_right_one_point_alt:
     "P \<in> WF_RELATION" 
     "Q \<in> WF_RELATION" 
     "v \<rhd>\<^sub>e x"
-    "UNREST_EXPR (UNDASHED \<union> NON_REL_VAR) v" 
-    "UNREST_EXPR {x} v"
+    "(UNDASHED \<union> NON_REL_VAR) \<sharp> v" 
+    "{x} \<sharp> v"
   shows "(P \<and>\<^sub>p $\<^sub>ex ==\<^sub>p v) ; Q = P[v/\<^sub>px] ; Q[v\<acute>/\<^sub>pundash x]"
 proof -
 
-  from assms have u1:"UNREST_EXPR (DASHED \<union> NON_REL_VAR) (v\<acute>)"
+  from assms have u1: "(DASHED \<union> NON_REL_VAR) \<sharp> v\<acute>"
     by (simp add:urename unrest)
 
-  from assms have u2:"UNREST_EXPR {undash x} (v\<acute>)"
+  from assms have u2: "{undash x} \<sharp> v\<acute>"
     by (simp add:urename unrest)
 
   thus ?thesis
@@ -740,14 +740,14 @@ subsubsection {* Alphabetised Skip laws *}
 
 theorem SemiR_SkipRA_right :
   assumes 
-  "UNREST (DASHED - out vs) p"
-  "UNREST (dash ` (UNDASHED - in vs)) p"
-  "UNREST DASHED_TWICE p" 
+  "(DASHED - out vs) \<sharp> p"
+  "(dash ` (UNDASHED - in vs)) \<sharp> p"
+  "DASHED_TWICE \<sharp> p" 
   "vs \<subseteq> UNDASHED \<union> DASHED"
   shows 
   "p ; II\<^bsub>vs\<^esub> = p"
 proof -
-  have "UNREST DASHED_TWICE II"
+  have "DASHED_TWICE \<sharp> II"
     by (auto simp add:SkipR_def closure UNREST_def)
 
   moreover from assms have "UNDASHED - in vs =  in (UNDASHED \<union> DASHED - vs)"
@@ -768,14 +768,14 @@ qed
 
 theorem SemiR_SkipRA_left :
   assumes 
-  "UNREST (UNDASHED - in vs) p"
-  "UNREST (undash ` (DASHED - out vs)) p"
-  "UNREST DASHED_TWICE p" 
+  "(UNDASHED - in vs) \<sharp> p"
+  "(undash ` (DASHED - out vs)) \<sharp> p"
+  "DASHED_TWICE \<sharp> p" 
   "vs \<subseteq> UNDASHED \<union> DASHED"
   shows 
   "II\<^bsub>vs\<^esub> ; p = p"
 proof -
-  have "UNREST DASHED_TWICE II"
+  have "DASHED_TWICE \<sharp> II"
     by (auto simp add:SkipR_def closure UNREST_def)
 
   moreover have "(UNDASHED \<union> DASHED) - vs \<subseteq> (UNDASHED \<union> DASHED)"
@@ -798,7 +798,7 @@ theorem SkipRA_left_unit:
   assumes 
     "P \<in> WF_RELATION" 
     "vs \<subseteq> REL_VAR" 
-    "UNREST (UNDASHED - in vs) P"
+    "(UNDASHED - in vs) \<sharp> P"
     "HOMOGENEOUS vs"
   shows "II\<^bsub>vs\<^esub> ; P = P"
   apply (rule_tac SemiR_SkipRA_left)
@@ -809,7 +809,7 @@ theorem SkipRA_right_unit:
   assumes 
     "P \<in> WF_RELATION" 
     "vs \<subseteq> REL_VAR" 
-    "UNREST (DASHED - out vs) P"
+    "(DASHED - out vs) \<sharp> P"
     "HOMOGENEOUS vs"
   shows "P ; II\<^bsub>vs\<^esub> = P"
   apply (rule_tac SemiR_SkipRA_right)
@@ -935,7 +935,7 @@ theorem AssignR_SemiR_left:
   assumes
     "x \<in> UNDASHED" 
     "e \<rhd>\<^sub>e x" 
-    "UNREST_EXPR DASHED e"
+    "DASHED \<sharp> e"
   shows "x :=\<^sub>R e ; p = p[e/\<^sub>px]"
   using assms
   apply (utp_rel_auto_tac)
@@ -953,7 +953,7 @@ lemma AssignRA_alt_def:
     "x \<in> vs" 
     "x\<acute> \<in> vs" 
     "x \<in> UNDASHED" 
-    "UNREST_EXPR (UNDASHED \<union> DASHED - vs) v" 
+    "(UNDASHED \<union> DASHED - vs) \<sharp> v" 
     "v \<rhd>\<^sub>e x"
   shows "x :=\<^bsub>vs\<^esub> v = $\<^sub>ex\<acute> ==\<^sub>p v \<and>\<^sub>p II\<^bsub>(vs - {x,x\<acute>})\<^esub>"
 using assms
@@ -964,7 +964,7 @@ proof (simp add:SkipRA_def AssignRA_def AssignR_alt_def)
   hence "(\<exists>\<^sub>p REL_VAR - (vs - {x, x\<acute>}) . II) = (\<exists>\<^sub>p REL_VAR - vs. \<exists>\<^sub>p {x, x\<acute>} . II)"
     by (metis (lifting) ExistsP_union)
 
-  moreover from assms have "UNREST (REL_VAR - vs) ($\<^sub>ex\<acute> ==\<^sub>p v)"
+  moreover from assms have "(REL_VAR - vs) \<sharp> ($\<^sub>ex\<acute> ==\<^sub>p v)"
     by (rule_tac unrest, auto intro:unrest)
 
   ultimately show "(\<exists>\<^sub>p REL_VAR - vs . $\<^sub>ex\<acute> ==\<^sub>p v \<and>\<^sub>p (\<exists>\<^sub>p {x, x\<acute>} . II)) =
@@ -979,12 +979,12 @@ theorem AssignRA_SemiR_left:
     "e \<rhd>\<^sub>e x" 
     "HOMOGENEOUS vs" 
     "vs \<subseteq> UNDASHED \<union> DASHED"
-    "UNREST (VAR - vs) p" 
-    "UNREST_EXPR (VAR - in vs) e"
+    "(VAR - vs) \<sharp> p" 
+    "(VAR - in vs) \<sharp> e"
   shows "(x :=\<^bsub>vs\<^esub> e ; p) = p[e/\<^sub>px]"
 proof -
 
-  from assms have "UNREST DASHED_TWICE (x :=\<^sub>R e)" 
+  from assms have "DASHED_TWICE \<sharp> (x :=\<^sub>R e)" 
     apply (rule_tac UNREST_subset)
     apply (rule unrest)
     apply (auto)
@@ -992,13 +992,13 @@ proof -
     apply (auto)
   done
 
-  moreover from assms have "UNREST DASHED_TWICE p" 
+  moreover from assms have "DASHED_TWICE \<sharp> p" 
     by (rule_tac UNREST_subset, auto intro:unrest)
 
   moreover from assms have 
     "UNDASHED \<union> DASHED - vs \<subseteq> UNDASHED \<union> DASHED" and
-    "UNREST (undash ` out (UNDASHED \<union> DASHED - vs)) p"
-    "UNREST_EXPR DASHED e"
+    "(undash ` out (UNDASHED \<union> DASHED - vs)) \<sharp> p"
+    "DASHED \<sharp> e"
     apply (auto intro:unrest)
     apply (rule_tac UNREST_subset)
     apply (simp)
@@ -1009,7 +1009,7 @@ proof -
     apply (force)
   done
 
-  moreover from assms have "UNREST (in (UNDASHED \<union> DASHED - vs)) (p[e/\<^sub>px])"
+  moreover from assms have "(in (UNDASHED \<union> DASHED - vs)) \<sharp> (p[e/\<^sub>px])"
     apply (rule_tac UNREST_subset[of "(VAR - vs) \<inter> (VAR - in vs)"])
     apply (rule_tac unrest)
     apply (simp_all add:var_dist)
@@ -1081,7 +1081,7 @@ theorem AssignR_VarCloseP:
   assumes
     "x \<in> UNDASHED" 
     "v \<rhd>\<^sub>e x" 
-    "UNREST_EXPR DASHED v"
+    "DASHED \<sharp> v"
   shows "x :=\<^sub>R v; end x = end x"
   using assms
   apply (simp add:AssignR_SemiR_left VarCloseP_def SkipR_as_SkipRA)
@@ -1199,14 +1199,14 @@ theorem ConvR_VarP_2 [urename]:
 subsection {* Additional UNREST theorems *}
 
 lemma WF_RELATION_UNREST_dash2 [unrest]: 
-  "P \<in> WF_RELATION \<Longrightarrow> UNREST {x\<acute>\<acute>} P"
+  "P \<in> WF_RELATION \<Longrightarrow> {x\<acute>\<acute>} \<sharp> P"
   apply (simp add:WF_RELATION_def)
   apply (rule UNREST_subset)
   apply (auto simp add:NON_REL_VAR_def)
 done
 
 lemma WF_RELATION_UNREST_dash3 [unrest]:
-  "P \<in> WF_RELATION \<Longrightarrow> UNREST {x\<acute>\<acute>\<acute>} P"
+  "P \<in> WF_RELATION \<Longrightarrow> {x\<acute>\<acute>\<acute>} \<sharp> P"
   apply (simp add:WF_RELATION_def)
   apply (rule UNREST_subset)
   apply (auto simp add:NON_REL_VAR_def)

@@ -46,4 +46,28 @@ lemma AssertR_SemiR:
   apply (utp_xrel_auto_tac)
 done
 
+theorem AssertR_AndP:
+  assumes "b \<in> WF_CONDITION" "P \<in> WF_RELATION"
+  shows "`b\<^sup>\<top> ; P` = `b\<^sup>\<top> ; (P \<and> b)`"
+  using assms
+  apply (frule_tac SemiR_TrueP_precond)
+  apply (utp_xrel_auto_tac)
+done
+
+theorem AssertR_CondR:
+  assumes "b \<in> WF_CONDITION" "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
+  shows "b\<^sup>\<top> ; (P \<lhd> b \<rhd> Q) = b\<^sup>\<top> ; P"
+proof -
+  have "`b\<^sup>\<top> ; (P \<lhd> b \<rhd> Q)` = `b\<^sup>\<top> ; (b \<and> (P \<lhd> b \<rhd> Q))`"
+    by (metis AndP_comm AssertR_AndP CondR_rel_closure WF_CONDITION_WF_RELATION assms)
+
+  also have "... = `b\<^sup>\<top> ; (b \<and> P)`"
+    by (metis CondR_true_cond)
+
+  also have "... = `b\<^sup>\<top> ; P`"
+    by (metis AndP_comm AssertR_AndP assms)
+
+  finally show ?thesis .
+qed
+
 end

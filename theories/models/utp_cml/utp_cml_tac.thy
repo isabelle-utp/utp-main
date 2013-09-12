@@ -70,4 +70,7 @@ lemma cml_goal3:
   "|forall x : @nat @ (&x < 5) => &x in @set {0,1,2,3,4}| = |true|"
   oops
 
+lemma cml_goal4: "|iota x : @nat @ &x = 5| = |5|"
+  by (cml_auto_tac)
+
 end

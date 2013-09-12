@@ -265,6 +265,7 @@ syntax
   "_vexpr_ifthen"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("if _ then _ else _")
   "_vexpr_hasType"  :: "pexpr \<Rightarrow> vty \<Rightarrow> pexpr" (infix "hasType" 50)
   "_vexpr_apply"    :: "('a \<Rightarrow> 'b) \<Rightarrow> pexprs \<Rightarrow> pexpr"    ("_'(_')" [998,0] 998)
+  "_vexpr_vapply"   :: "'a \<Rightarrow> pexpr"    ("_'(')" [998] 998)
   "_vexpr_prod"     :: "pexprs \<Rightarrow> vprod" ("_")
   "_vexpr_select"   :: "pexpr \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> pexpr" ("_._")
   "_vexpr_nil"      :: "pexpr" ("[]")
@@ -300,6 +301,7 @@ translations
   "_vexpr_ifthen b x y"        == "CONST IfThenElseD b x y"
   "_vexpr_hasType e t"         == "CONST HasTypeD e t"
   "_vexpr_apply f x"           == "CONST ApplyD f (_vexpr_prod x)"
+  "_vexpr_vapply f"            => "CONST ApplyD f (CONST LitD ())"
   "_vexpr_prod (_pexprs x xs)" == "CONST vexpr_prod x (_vexpr_prod xs)"
   "_vexpr_prod x"              == "CONST SingleD x"
   "_vexpr_select e f"          == "CONST SelectD f e"
@@ -322,7 +324,7 @@ term "|mk_prod($x,2,5)|"
 
 term "LitD (1 :: real)"
 
-term "|x = 1.1|"
+term "|1.1|"
 term "|mk_prod(1,2,3,4).#3|"
 
 subsection {* Tautologies *}
@@ -397,6 +399,9 @@ lemma EvalD_HasTypeD [eval,evalp,evale]:
 lemma EvalD_CoerceD [eval,evalp,evale]:
   "\<lbrakk> \<D> (\<lbrakk>x\<rbrakk>\<^sub>*b); the (\<lbrakk>x\<rbrakk>\<^sub>*b) \<in> t \<rbrakk> \<Longrightarrow> \<lbrakk>CoerceD x t\<rbrakk>\<^sub>*b = \<lbrakk>x\<rbrakk>\<^sub>*b"
   by (simp add:CoerceD_def)
+
+declare IotaD_def [evalp]
+declare EpsD_def [evalp]
 
 lemma upfun_apply [simp]:
   "upfun f x = Some (f x)"

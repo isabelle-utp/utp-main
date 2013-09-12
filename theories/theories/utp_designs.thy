@@ -96,39 +96,39 @@ translations
 subsection {* Closure / UNREST theorems *}
 
 lemma UNREST_OKAY [unrest]:
-  "UNREST OKAY p \<Longrightarrow> UNREST {okay\<down>} p"
-  "UNREST OKAY p \<Longrightarrow> UNREST {okay\<down>\<acute>} p"
+  "OKAY \<sharp> p \<Longrightarrow> UNREST {okay\<down>} p"
+  "OKAY \<sharp> p \<Longrightarrow> UNREST {okay\<down>\<acute>} p"
   by (auto intro:unrest UNREST_subset)
 
 lemma UNREST_SkipRA_OKAY [unrest]: 
-  "UNREST OKAY II\<^bsub>REL_VAR - OKAY\<^esub>"
+  "OKAY \<sharp> II\<^bsub>REL_VAR - OKAY\<^esub>"
   apply (rule UNREST_subset)
   apply (rule UNREST_SkipRA)
   apply (simp)
 done
 
 lemma UNREST_TopD [unrest]:
-  "okay\<down> \<notin> vs \<Longrightarrow> UNREST vs \<top>\<^sub>D"
+  "okay\<down> \<notin> vs \<Longrightarrow> vs \<sharp> \<top>\<^sub>D"
   by (simp add:TopD_def unrest)
 
 lemma UNREST_SkipD_NON_REL_VAR [unrest]:
-  "UNREST NON_REL_VAR II\<^sub>D"
+  "NON_REL_VAR \<sharp> II\<^sub>D"
   apply (simp add:SkipD_def DesignD_def)
   apply (force simp add:PVAR_VAR_MkPVAR intro: unrest)
 done
 
 lemma UNREST_DesignD [unrest]:
-  "\<lbrakk> UNREST vs p; UNREST vs q; okay\<down> \<notin> vs; okay\<down>\<acute> \<notin> vs \<rbrakk>
-   \<Longrightarrow> UNREST vs (p \<turnstile> q)"
+  "\<lbrakk> vs \<sharp> p; vs \<sharp> q; okay\<down> \<notin> vs; okay\<down>\<acute> \<notin> vs \<rbrakk>
+   \<Longrightarrow> vs \<sharp> (p \<turnstile> q)"
   by (simp add:DesignD_def unrest)
 
 lemma UNREST_ParallelD [unrest]:
-  "\<lbrakk> UNREST vs p; UNREST vs q; okay\<down> \<notin> vs; okay\<down>\<acute> \<notin> vs \<rbrakk>
-   \<Longrightarrow> UNREST vs (p \<parallel> q)"
+  "\<lbrakk> vs \<sharp> p; vs \<sharp> q; okay\<down> \<notin> vs; okay\<down>\<acute> \<notin> vs \<rbrakk>
+   \<Longrightarrow> vs \<sharp> (p \<parallel> q)"
   by (auto intro!:unrest closure simp add:typing defined closure ParallelD_def)
 
 lemma SubstP_UNREST_OKAY [usubst]:
-  "\<lbrakk> x \<in> OKAY; UNREST OKAY p; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[v/\<^sub>px] = p"
+  "\<lbrakk> x \<in> OKAY; OKAY \<sharp> p; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[v/\<^sub>px] = p"
   by (utp_pred_tac)
 
 lemma TopD_rel_closure [closure]:
@@ -176,7 +176,7 @@ theorem DesignD_extreme_point_nok:
   by (utp_pred_tac+)
 
 theorem DesignD_assumption:
-  assumes "UNREST OKAY P"
+  assumes "OKAY \<sharp> P"
   shows "`\<not> (P \<turnstile> Q)\<^sup>f` = `P \<and> ok`"
   using assms by (utp_pred_auto_tac)
 
@@ -231,10 +231,10 @@ qed
 
 theorem DesignD_refine [refine]:
   assumes 
-    "UNREST OKAY P1"
-    "UNREST OKAY P2"
-    "UNREST OKAY Q1"
-    "UNREST OKAY Q2"
+    "OKAY \<sharp> P1"
+    "OKAY \<sharp> P2"
+    "OKAY \<sharp> Q1"
+    "OKAY \<sharp> Q2"
     "P2 \<sqsubseteq> P1" 
     "Q1 \<sqsubseteq> P1 \<and>\<^sub>p Q2" 
   shows "P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2"
@@ -287,7 +287,7 @@ theorem DesignD_composition:
   assumes 
   "(P1 \<in> WF_RELATION)" "(P2 \<in> WF_RELATION)" 
   "(Q1 \<in> WF_RELATION)" "(Q2 \<in> WF_RELATION)" 
-  "UNREST OKAY P1" "UNREST OKAY P2" "UNREST OKAY Q1" "UNREST OKAY Q2"
+  "OKAY \<sharp> P1" "OKAY \<sharp> P2" "OKAY \<sharp> Q1" "OKAY \<sharp> Q2"
   shows "`(P1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `((\<not> ((\<not> P1) ; true)) \<and> \<not> (Q1 ; (\<not> P2))) \<turnstile> (Q1 ; Q2)`"
 proof -
 
@@ -337,10 +337,10 @@ theorem DesignD_composition_cond:
     "P2 \<in> WF_RELATION" 
     "Q1 \<in> WF_RELATION" 
     "Q2 \<in> WF_RELATION"
-    "UNREST OKAY p1" 
-    "UNREST OKAY P2" 
-    "UNREST OKAY Q1" 
-    "UNREST OKAY Q2"
+    "OKAY \<sharp> p1" 
+    "OKAY \<sharp> P2" 
+    "OKAY \<sharp> Q1" 
+    "OKAY \<sharp> Q2"
   shows "`(p1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `(p1 \<and> \<not> (Q1 ; \<not> P2)) \<turnstile> (Q1 ; Q2)`"
   by (simp add:DesignD_composition closure assms unrest)
 
@@ -350,17 +350,17 @@ theorem DesignD_composition_wp:
     "P2 \<in> WF_RELATION" 
     "Q1 \<in> WF_RELATION" 
     "Q2 \<in> WF_RELATION"
-    "UNREST OKAY p1" "UNREST OKAY P2" 
-    "UNREST OKAY Q1" "UNREST OKAY Q2"
+    "OKAY \<sharp> p1" "OKAY \<sharp> P2" 
+    "OKAY \<sharp> Q1" "OKAY \<sharp> Q2"
   shows "`(p1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `(p1 \<and> (Q1 wp P2)) \<turnstile> (Q1 ; Q2)`"
   by (simp add: DesignD_composition_cond closure WeakPrecondP_def assms)
 
 theorem ParallelD_DesignD:
   assumes 
-    "UNREST OKAY P1" 
-    "UNREST OKAY P2" 
-    "UNREST OKAY Q1" 
-    "UNREST OKAY Q2"
+    "OKAY \<sharp> P1" 
+    "OKAY \<sharp> P2" 
+    "OKAY \<sharp> Q1" 
+    "OKAY \<sharp> Q2"
   shows "`(P1 \<turnstile> P2) \<parallel> (Q1 \<turnstile> Q2)` = `(P1 \<and> Q1) \<turnstile> (P2 \<and> Q2)`"
   using assms 
   by (utp_pred_auto_tac)
@@ -633,7 +633,7 @@ theorem H2_monotone:
   by (utp_rel_auto_tac)
 
 theorem DesignD_is_H2 [closure]:
-  "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION; UNREST OKAY P; UNREST OKAY Q \<rbrakk> \<Longrightarrow> P \<turnstile> Q is H2"
+  "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION; OKAY \<sharp> P; OKAY \<sharp> Q \<rbrakk> \<Longrightarrow> P \<turnstile> Q is H2"
   apply (simp add:H2_equivalence closure)
   apply (simp add:DesignD_def usubst closure typing defined erasure)
   apply (utp_pred_auto_tac)
@@ -714,7 +714,7 @@ qed
 
 theorem DesignD_precondition_H3 [closure]:
   assumes 
-    "UNREST OKAY p" "UNREST OKAY Q"
+    "OKAY \<sharp> p" "OKAY \<sharp> Q"
     "p \<in> WF_CONDITION" "Q \<in> WF_RELATION"
   shows "(p \<turnstile> Q) is H3"
 proof -
@@ -908,7 +908,7 @@ lemma DESIGNS_H2 [closure]:
 
 lemma DESIGNS_intro:
   "\<lbrakk> P is H1; P is H2; P \<in> WF_RELATION
-   ; UNREST (VAR - vs) P; OKAY \<subseteq> vs; vs \<subseteq> REL_VAR \<rbrakk> \<Longrightarrow> P \<in> WF_DESIGN"
+   ; (VAR - vs) \<sharp> P; OKAY \<subseteq> vs; vs \<subseteq> REL_VAR \<rbrakk> \<Longrightarrow> P \<in> WF_DESIGN"
   apply (simp add:THEORY_PRED_def utp_alphabets_def healthconds_def DESIGNS.rep_eq)
   apply (rule_tac x="vs" in exI, auto)
 done
@@ -917,7 +917,7 @@ lemma [simp]: "(VAR - UNDASHED) \<inter> (VAR - DASHED) = NON_REL_VAR"
   by auto
 
 lemma DESIGNS_intro_witness:
-  "\<lbrakk> P = R1 \<turnstile> R2; R1 \<in> WF_RELATION; R2 \<in> WF_RELATION; UNREST OKAY R1; UNREST OKAY R2 \<rbrakk> 
+  "\<lbrakk> P = R1 \<turnstile> R2; R1 \<in> WF_RELATION; R2 \<in> WF_RELATION; OKAY \<sharp> R1; OKAY \<sharp> R2 \<rbrakk> 
    \<Longrightarrow> P \<in> WF_DESIGN"
   apply (rule_tac vs="REL_VAR" in DESIGNS_intro)
   apply (auto simp add:unrest closure)

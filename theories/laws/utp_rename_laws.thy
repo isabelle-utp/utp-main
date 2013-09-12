@@ -42,7 +42,7 @@ text {* A renamed binding can be overriden with an arbitrary binding on the
         variables being renamed. *}
 
 lemma EvalP_rename_on_expand_binding:
-  "\<lbrakk> rename_func_on f vs; UNREST (f`vs) P \<rbrakk> 
+  "\<lbrakk> rename_func_on f vs; (f`vs) \<sharp> P \<rbrakk> 
      \<Longrightarrow> \<lbrakk>P\<rbrakk>(f on vs \<bullet> b) = \<lbrakk>P\<rbrakk>(f on vs \<bullet> (b \<oplus>\<^sub>b b' on vs))"
   apply (auto simp add: EvalP_def UNREST_def RenameB_override_distr1)
   apply (drule_tac x="f on vs \<bullet> b \<oplus>\<^sub>b f on vs \<bullet> b' on f ` vs" in bspec, simp)
