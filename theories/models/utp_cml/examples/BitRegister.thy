@@ -24,7 +24,7 @@ abbreviation
 
 text {* The bit-register has two functions: \texttt{oflow} for
 detecting overflow caused by a summation, and \texttt{uflow} for
-detecting overflow caused by a substraction. Both take a pair of
+detecting underflow caused by a substraction. Both take a pair of
 integers and return a boolean if over/underflow occurs. Functions 
 in CML are desugared to lambda terms . *}
 
@@ -35,12 +35,15 @@ definition
   "uflow = |lambda d @ (^d^.#1 - ^d^.#2) < 0|"
 
 text {* Next we declare the channels for the bit-register, of which
-there are seven. \texttt{init} is used to signal that the bit-register
-should initialise. \texttt{overflow} and \texttt{underflow} are used
-to communicate errors during a calculation. \texttt{read} and
-\texttt{load} are used to read the contents of the state and write a
-new values, respectively. \texttt{add} and \texttt{sub} are used to
-signal an addition or subtraction should be executed. *}
+there are seven. Channels in CML can carry data so they all take a
+type to specify this. Channels which carry no data simply carry the
+unit type \texttt{()}. \texttt{init} is used to signal that the
+bit-register should initialise. \texttt{overflow} and
+\texttt{underflow} are used to communicate errors during a
+calculation. \texttt{read} and \texttt{load} are used to read the
+contents of the state and write a new values,
+respectively. \texttt{add} and \texttt{sub} are used to signal an
+addition or subtraction should be executed. *}
 
 definition "init = MkChanD ''init'' \<parallel>()\<parallel>"
 definition "overflow = MkChanD ''overflow'' \<parallel>()\<parallel>"
@@ -56,7 +59,7 @@ text {* We use an Isabelle locale to create a new namespace for the
 locale RegisterProc
 begin
 
-text {* This single state variable, \texttt{reg}, holds the current
+text {* The single state variable, \texttt{reg}, holds the current
 value of the calculation. *}
 
 abbreviation "reg \<equiv> MkVarD ''reg'' \<parallel>@Byte\<parallel>"
@@ -75,13 +78,13 @@ definition "LOAD(i) =
 (* Can't implement the READ operation -- what is the semantics of return? *)
 
 text {* \texttt{ADD} adds the given value to the register, under the
-assumption that a overflow will not occur. *}
+assumption that an overflow will not occur. *}
 
 definition "ADD(i) =
   `\<lparr> not oflow($reg, ^i^) \<rparr> \<turnstile> reg := $reg + ^i^`"
 
-text {* \texttt{ADD} subtracts the given value from the register,
-under the assumption that a underflow will not occur. *}
+text {* \texttt{SUBTR} subtracts the given value from the register,
+under the assumption that an underflow will not occur. *}
 
 definition "SUBTR(i) =
   `\<lparr> not uflow($reg, ^i^) \<rparr> \<turnstile> reg := ($reg - ^i^)`"

@@ -16,7 +16,7 @@ begin
 subsubsection {* Dwarf Signal Types *}
 
 text {* A \emph{Dwarf Signal} is a kind of railway signal which is
-used at the side of track when space is limited. An illustration is
+used at the side of a track when space is limited. An illustration is
 shown in Figure \ref{fig:dwarfsignal}. It has three lamps which are
 displayed in different configurations to give instructions to train
 drivers. The signal's three lamps are named L1--L3, as illustrated,
@@ -74,8 +74,9 @@ Dwarf Signal, which we specify as a CML record. Setting up a record
 type is currently a little complicated, though the CML tool
 automatically generates them. First we create a new unit type to act
 as the "tag" for this record so that it can be distinguished from
-others. We create an instance of the tag class which proves its a unit
-type and associates a string with it (the name of the type). *}
+others. We create an instance of the tag class which requires that we
+prove it's a unit type and associate a string with it (the name of the
+type). *}
 
 typedef DwarfType_Tag = "{True}" by auto
 instantiation DwarfType_Tag :: tag
@@ -161,7 +162,7 @@ definition
 
 declare NeverShowAll_def [eval,evalp]
 
-text {* The second ensure that only one lamp can change in any given
+text {* The second ensures that only one lamp can change in any given
 transition, either from lit to dark \emph{or} dark to lit. *}
 
 definition 
@@ -174,7 +175,7 @@ definition
 declare MaxOneLampChange_def [eval,evalp]
 
 text {* The third ensures that the signal cannot transition directly
-from the stop state the drive state -- it must transition via the
+from the stop state to the drive state -- it must transition via the
 \textsf{warning} state. *}
 
 definition
@@ -205,8 +206,8 @@ definition
 
 declare DarkOnlyFromStop_def [eval,evalp]
 
-text {* We then create the \texttt{DwarfSignal} type to the subset of
-\texttt{DwarfType} where all the safety properties are true. *}
+text {* We then create the \texttt{DwarfSignal} type to be the subset
+of \texttt{DwarfType} where all the safety properties are satisfied. *}
 
 definition 
   "DwarfSignal = \<parallel>@DwarfType inv d == NeverShowAll(^d^) 
@@ -220,9 +221,7 @@ declare DwarfSignal_def [eval,evalp]
 subsubsection {* Reactive Behaviour *}
 
 text {* We first define the five channels with which to specify the
-interaction of the Dwarf signal. Channels can carry data so they all
-take a CML type to specify this. Channels which carry no data simply
-carry the unit type \texttt{()}. *}
+interaction of the Dwarf signal. *}
 
 definition "init = MkChanD ''init'' \<parallel>()\<parallel>"
 definition "light = MkChanD ''light'' \<parallel>@LampId\<parallel>"
@@ -250,8 +249,8 @@ the \texttt{DwarfSignal} type afterwards. *}
 definition "DwarfInv \<equiv> 
   `\<lparr> $dw hasType @DwarfSignal \<rparr> \<turnstile> \<lparr> $dw\<acute> hasType @DwarfSignal \<rparr>`"
 
-text {* Next we specify the operations for the Dwarf Signal process,
-all of which are specified use UTP designs to specify the pre- and
+text {* Next we model the operations for the Dwarf Signal process,
+all of which are defined using UTP designs to specify the pre- and
 post-conditions. The first operation, \texttt{Init}, initialises the
 dwarf signal in a stable \textsf{stop} state. It has a \texttt{true}
 precondition because it can always be executed. *}
@@ -305,7 +304,7 @@ definition
                            , ^st^)`"
 
 text {* \texttt{TurnOn} turns a given lamp on, under the precondition
-that the lamp needs to be turned on to reached the desired proper state. *}
+that the lamp needs to be turned on to reach the desired proper state. *}
 
 definition
   "TurnOn l =
@@ -318,7 +317,7 @@ definition
                           , ($dw).desiredproperstate)`"
 
 text {* \texttt{TurnOff} turns a given lamp off, under the precondition
-that the lamp needs to be turned off to reached the desired proper state. *}
+that the lamp needs to be turned off to reach the desired proper state. *}
 
 definition
   "TurnOff l =
@@ -385,7 +384,7 @@ text {* The fourth test action tries to go from stop to drive, which violates th
 definition
   "TEST4 = `setPS!&drive -> extinguish!<L1> -> light!<L3> -> STOP`"
 
-text {* We could execute these tests by composing them with the
+text {* We can execute these tests by composing them with the
 \texttt{DWARF} action, which is done below: *}
 
 definition "DWARF_CHAN = {setPS\<down>,light\<down>,extinguish\<down>}"
