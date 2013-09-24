@@ -86,22 +86,22 @@ translations
   "_upred_sfp x p"  == "CONST SFP (\<lambda>x. p)"
 
 
-lemma WFP: "F(Y) \<sqsubseteq> Y \<Longrightarrow> \<mu> F \<sqsubseteq> Y"
+theorem WFP: "F(Y) \<sqsubseteq> Y \<Longrightarrow> \<mu> F \<sqsubseteq> Y"
   by (metis gfp_upperbound)
 
-lemma WFP_unfold: "mono F \<Longrightarrow> \<mu> F = F(\<mu> F)"
+theorem WFP_unfold: "mono F \<Longrightarrow> \<mu> F = F(\<mu> F)"
   by (metis gfp_unfold)
 
-lemma WFP_id: "(\<mu> X \<bullet> X) = true"
+theorem WFP_id: "(\<mu> X \<bullet> X) = true"
   by (metis WFP top_WF_PREDICATE_def top_unique)
 
-lemma SFP: "S \<sqsubseteq> F(S) \<Longrightarrow> S \<sqsubseteq> \<nu> F"
+theorem SFP: "S \<sqsubseteq> F(S) \<Longrightarrow> S \<sqsubseteq> \<nu> F"
   by (metis lfp_lowerbound)
 
-lemma SFP_unfold: "mono F \<Longrightarrow> F (\<nu> F) = \<nu> F"
+theorem SFP_unfold: "mono F \<Longrightarrow> F (\<nu> F) = \<nu> F"
   by (metis lfp_unfold)
 
-lemma SFP_id: "(\<nu> X \<bullet> X) = false"
+theorem SFP_id: "(\<nu> X \<bullet> X) = false"
   by (metis SFP bot_WF_PREDICATE_def bot_unique)
 
 lemma UNREST_WFP:
@@ -193,7 +193,7 @@ proof -
   done
 qed
 
-lemma WFP_rec: 
+theorem WFP_rec: 
   assumes "(C \<Rightarrow>\<^sub>p S) \<sqsubseteq> F (C \<Rightarrow>\<^sub>p S)" "[C \<Rightarrow>\<^sub>p (\<mu> F \<Leftrightarrow>\<^sub>p \<nu> F)]\<^sub>p" 
   shows "(C \<Rightarrow>\<^sub>p S) \<sqsubseteq> \<mu> F"
 proof -

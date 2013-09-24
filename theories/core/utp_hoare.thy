@@ -36,7 +36,7 @@ syntax
 translations
   "_upred_hoare p Q r"  == "CONST HoareP p Q r"
 
-lemma HoareP_intro [intro]:
+theorem HoareP_intro [intro]:
   "(p \<Rightarrow>\<^sub>p r\<acute>) \<sqsubseteq> Q \<Longrightarrow> `p{Q}r`"
   by (metis HoareP_def less_eq_WF_PREDICATE_def)
 

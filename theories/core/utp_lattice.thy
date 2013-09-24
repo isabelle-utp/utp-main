@@ -102,7 +102,7 @@ definition Sup_WF_PREDICATE ::
 instance ..
 end
 
-theorem EvalP_Inf [eval] :
+lemma EvalP_Inf [eval] :
 "\<lbrakk>\<Sqinter> ps\<rbrakk>b = (\<exists> p \<in> ps . \<lbrakk>p\<rbrakk>b)"
 apply (simp add: EvalP_def closure)
 apply (simp add: Sup_WF_PREDICATE_def)
@@ -110,7 +110,7 @@ apply (clarify)
 apply (simp add: bot_WF_PREDICATE_def FalseP_def)
 done
 
-theorem EvalP_Sup [eval] :
+lemma EvalP_Sup [eval] :
 "\<lbrakk>\<Squnion> ps\<rbrakk>b = (\<forall> p \<in> ps . \<lbrakk>p\<rbrakk>b)"
 apply (simp add: EvalP_def closure)
 apply (simp add: Inf_WF_PREDICATE_def)
@@ -156,22 +156,22 @@ instance
 done
 end
 
-lemma Lattice_L1:
+theorem Lattice_L1:
   fixes P :: "'VALUE WF_PREDICATE"
   shows "P \<sqsubseteq> \<Sqinter> S \<longleftrightarrow> (\<forall> X\<in>S. P \<sqsubseteq> X)"
   by (metis Sup_le_iff)
 
-lemma Lattice_L1A:
+theorem Lattice_L1A:
   fixes X :: "'VALUE WF_PREDICATE"
   shows "X \<in> S \<Longrightarrow> \<Sqinter> S \<sqsubseteq> X"
   by (metis Sup_upper)
 
-lemma Lattice_L1B:
+theorem Lattice_L1B:
   fixes P :: "'VALUE WF_PREDICATE"
   shows "\<forall> X \<in> S. P \<sqsubseteq> X \<Longrightarrow> P \<sqsubseteq> \<Sqinter> S"
   by (metis Lattice_L1)
 
-lemma Lattice_L2:
+theorem Lattice_L2:
   fixes Q :: "'VALUE WF_PREDICATE"
   shows "(\<Squnion> S) \<sqinter> Q = \<Squnion> { P \<sqinter> Q | P. P \<in> S}"
 proof -
@@ -193,7 +193,7 @@ proof -
 
 qed
   
-lemma Lattice_L3:
+theorem Lattice_L3:
   fixes Q :: "'VALUE WF_PREDICATE"
   shows "(\<Sqinter> S) \<squnion> Q = \<Sqinter>{ P \<squnion> Q | P. P \<in> S}"
 proof -
@@ -256,7 +256,7 @@ lemma rel_Sup_comp_distl: "(\<Union> S) O Q = \<Union>{ P O Q | P. P \<in> S}"
 lemma rel_Sup_comp_distr: "P O (\<Union> S) = \<Union>{ P O Q | Q. Q \<in> S}"
   by (auto)
 
-lemma Lattice_L4:
+theorem Lattice_L4:
   fixes Q :: "'VALUE WF_PREDICATE"
   shows "(\<Sqinter> S) ; Q = \<Sqinter>{ P ; Q | P. P \<in> S}"
   apply (utp_rel_tac)
@@ -264,7 +264,7 @@ lemma Lattice_L4:
   apply (metis (hide_lams, no_types) EvalR_SemiR relcomp.intros)
 done
 
-lemma Lattice_L5:
+theorem Lattice_L5:
   fixes P :: "'VALUE WF_PREDICATE"
   shows "P ; (\<Sqinter> S) = \<Sqinter>{ P ; Q | Q. Q \<in> S}"
   apply (utp_rel_tac)
@@ -275,43 +275,43 @@ done
 
 subsection {* @{term UNREST} Theorems *}
 
-theorem UNREST_BotP [unrest]: "UNREST vs \<bottom>"
+lemma UNREST_BotP [unrest]: "UNREST vs \<bottom>"
   by (simp add:top_WF_PREDICATE_def unrest)
 
-theorem UNREST_TopP [unrest]: "UNREST vs \<top>"
+lemma UNREST_TopP [unrest]: "UNREST vs \<top>"
   by (simp add:bot_WF_PREDICATE_def unrest)
 
-theorem UNREST_sup :
+lemma UNREST_sup :
 "\<lbrakk>UNREST vs p1;
  UNREST vs p2\<rbrakk> \<Longrightarrow>
  UNREST vs (p1 \<squnion> p2)"
   by (simp add: inf_WF_PREDICATE_def UNREST_AndP)
 
-theorem UNREST_inf [unrest]:
+lemma UNREST_inf [unrest]:
 "\<lbrakk>UNREST vs p1;
  UNREST vs p2\<rbrakk> \<Longrightarrow>
  UNREST vs (p1 \<sqinter> p2)"
   by (auto simp add: sup_WF_PREDICATE_def UNREST_OrP)
 
-theorem UNREST_Sup [unrest]:
+lemma UNREST_Sup [unrest]:
 "\<forall> p \<in> ps. UNREST vs p \<Longrightarrow> UNREST vs (\<Squnion> ps)"
   apply (simp add: Inf_WF_PREDICATE_def UNREST_BotP)
   apply (simp add: UNREST_def)
 done
 
-theorem UNREST_Inf [unrest]:
+lemma UNREST_Inf [unrest]:
 "\<forall> p \<in> ps. UNREST vs p \<Longrightarrow> UNREST vs (\<Sqinter> ps)"
   apply (simp add: Sup_WF_PREDICATE_def UNREST_TopP)
   apply (auto simp add: UNREST_def)
 done
 
-theorem Sup_rel_closure [closure]:
+lemma Sup_rel_closure [closure]:
   "\<forall> p \<in> ps. p \<in> WF_RELATION \<Longrightarrow> \<Squnion> ps \<in> WF_RELATION"
   apply (simp add:WF_RELATION_def)
   apply (auto intro:unrest)
 done
 
-theorem Inf_rel_closure [closure]:
+lemma Inf_rel_closure [closure]:
   "\<forall> p \<in> ps. p \<in> WF_RELATION \<Longrightarrow> \<Sqinter> ps \<in> WF_RELATION"
   apply (simp add:WF_RELATION_def)
   apply (auto intro:unrest)
@@ -368,13 +368,13 @@ instance
 done
 end
 
-lemma SkipR_SupP_def: 
+theorem SkipR_SupP_def: 
   "II = \<Squnion> { $\<^sub>ex\<acute> ==\<^sub>p $\<^sub>ex | x. x \<in> UNDASHED}"
   apply (auto intro!:destPRED_intro simp add:SkipR_def Inf_WF_PREDICATE_def UNDASHED_nempty EqualP_def VarE.rep_eq)
   apply (metis (lifting, full_types) LiftP.rep_eq destPRED_inverse mem_Collect_eq)
 done
 
-lemma SkipRA_SupP_def: 
+theorem SkipRA_SupP_def: 
   "\<lbrakk> vs \<subseteq> REL_VAR; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow> 
      II\<^bsub>vs\<^esub> = \<Squnion> { $\<^sub>ex\<acute> ==\<^sub>p $\<^sub>ex | x. x \<in> in vs}"
   apply (auto intro!:destPRED_intro simp add:SkipRA_rep_eq_alt Inf_WF_PREDICATE_def UNDASHED_nempty EqualP_def VarE.rep_eq top_WF_PREDICATE_def TrueP_def)

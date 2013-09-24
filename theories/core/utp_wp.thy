@@ -35,17 +35,17 @@ syntax
 translations
   "_upred_wp p q"  == "CONST WeakPrecondP p q"
 
-lemma ConjP_wp [wp]:
+theorem ConjP_wp [wp]:
   "`P wp (q \<and> r)` = `(P wp q) \<and> (P wp r)`"
   by (metis (hide_lams, no_types) SemiR_OrP_distl WeakPrecondP_def demorgan1 demorgan2)
 
-lemma SemiR_wp [wp]: 
+theorem SemiR_wp [wp]: 
   "(P ; Q) wp r = P wp (Q wp r)"
   apply (simp add: WeakPrecondP_def)
   apply (metis SemiR_assoc)
 done
 
-lemma AssignR_wp [wp]:
+theorem AssignR_wp [wp]:
   "\<lbrakk> x \<in> UNDASHED; v \<rhd>\<^sub>e x; UNREST_EXPR DASHED v; R \<in> WF_RELATION \<rbrakk> 
      \<Longrightarrow> (x :=\<^sub>R v) wp R = R[v/\<^sub>px]"
   by (simp add: WeakPrecondP_def AssignR_SemiR_left usubst)
@@ -58,30 +58,30 @@ lemma CondP_wp [wp]:
   apply (utp_pred_auto_tac)
 done
 
-lemma OrP_wp [wp]:
+theorem OrP_wp [wp]:
   "`(P \<or> Q) wp r` = `(P wp r) \<and> (Q wp r)`"
   by (metis (no_types) SemiR_OrP_distr WeakPrecondP_def demorgan1)
 
-lemma ChoiceP_wp [wp]:
+theorem ChoiceP_wp [wp]:
   "(P \<sqinter> Q) wp r = (P wp r) \<and>\<^sub>p (Q wp r)"
   by (simp add:sup_WF_PREDICATE_def wp)
 
-lemma ImpliesP_precond_wp: "`[r \<Rightarrow> s]` \<Longrightarrow> `[(Q wp r) \<Rightarrow> (Q wp s)]`"
+theorem ImpliesP_precond_wp: "`[r \<Rightarrow> s]` \<Longrightarrow> `[(Q wp r) \<Rightarrow> (Q wp s)]`"
   by (metis ConjP_wp RefP_AndP RefP_def less_eq_WF_PREDICATE_def)
 
-lemma ImpliesP_pred_wp: "`[Q \<Rightarrow> S]` \<Longrightarrow> `[(S wp r) \<Rightarrow> (Q wp r)]`"
+theorem ImpliesP_pred_wp: "`[Q \<Rightarrow> S]` \<Longrightarrow> `[(S wp r) \<Rightarrow> (Q wp r)]`"
   by (metis OrP_comm OrP_wp RefP_def inf_WF_PREDICATE_def le_iff_inf le_iff_sup less_eq_WF_PREDICATE_def sup_WF_PREDICATE_def)
 
-lemma RefineP_precond_wp: "`[r \<Rightarrow> s]` \<Longrightarrow> Q wp s \<sqsubseteq> Q wp r"
+theorem RefineP_precond_wp: "`[r \<Rightarrow> s]` \<Longrightarrow> Q wp s \<sqsubseteq> Q wp r"
   by (metis ImpliesP_precond_wp RefP_def less_eq_WF_PREDICATE_def)
 
-lemma RefineP_pred_wp: "S \<sqsubseteq> Q \<Longrightarrow> Q wp r \<sqsubseteq> S wp r"
+theorem RefineP_pred_wp: "S \<sqsubseteq> Q \<Longrightarrow> Q wp r \<sqsubseteq> S wp r"
   by (metis OrP_wp RefP_AndP le_iff_sup sup_WF_PREDICATE_def)
 
-lemma FalseP_wp [wp]: "Q ; true = true \<Longrightarrow> Q wp false = false"
+theorem FalseP_wp [wp]: "Q ; true = true \<Longrightarrow> Q wp false = false"
   by (simp add:WeakPrecondP_def)
 
-lemma VarOpenP_wp: "\<lbrakk> x \<in> UNDASHED; r \<in> WF_RELATION \<rbrakk> 
+theorem VarOpenP_wp: "\<lbrakk> x \<in> UNDASHED; r \<in> WF_RELATION \<rbrakk> 
   \<Longrightarrow> (var x) wp r = (\<forall>\<^sub>p {x}. r)"
   apply (simp add:WeakPrecondP_def VarOpenP_def ExistsP_UNDASHED_expand_SemiR closure)
   apply (utp_pred_tac)

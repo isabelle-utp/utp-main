@@ -92,6 +92,14 @@ session "avocs2013" in "papers/avocs2013" = "HOL-UTP" +
     "proof_refinement_conditional"
   files "document/root.tex"
 
+session "nfm2014" in "papers/nfm2014" = "HOL-UTP" +
+  options [document = pdf, document_output = "output", quick_and_dirty = true]
+  theories [document = false]
+  theories 
+    "deep_shallow"
+    "param_pred"
+  files "document/root.tex"
+
 session Datatype_Order_Generator (AFP) in "contrib/Datatype_Order_Generator" 
   = "HOL-Library" +
   options [timeout = 300]

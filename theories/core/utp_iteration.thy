@@ -172,7 +172,7 @@ lemma StarP_refines_SFP: "(\<nu> X \<bullet> II \<or>\<^sub>p (P ; X)) \<sqsubse
 done
 
 text {* The star is equivalent to the greatest fixed-point *}
-lemma StarP_as_SFP: "P\<^sup>\<star> = (\<nu> X \<bullet> II \<or>\<^sub>p (P ; X))"
+theorem StarP_as_SFP: "P\<^sup>\<star> = (\<nu> X \<bullet> II \<or>\<^sub>p (P ; X))"
   by (metis SFP_refines_StarP StarP_refines_SFP antisym)
 
 definition 
@@ -274,7 +274,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma SemiR_ImpliesP_idem:
+theorem SemiR_ImpliesP_idem:
   "p \<in> WF_CONDITION \<Longrightarrow> `(p \<Rightarrow> p\<acute>) ; (p \<Rightarrow> p\<acute>)` = `(p \<Rightarrow> p\<acute>)`"
   by (frule SemiR_TrueP_precond, utp_xrel_auto_tac)
 
