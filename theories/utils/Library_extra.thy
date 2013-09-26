@@ -131,6 +131,10 @@ lemma set_extra_simps [simp]:
   "vs1 - vs2 \<subseteq> vs1"
   "xs - (ys - zs) = (zs \<inter> xs) \<union> (xs - ys)"
   "xs - (ys \<union> zs) = (xs - ys) \<inter> (xs - zs)"
+  "(xs \<union> ys) \<inter> ys = ys"
+  "xs \<inter> (xs \<union> ys) = xs"
+  "ys \<inter> (xs \<union> ys) = ys"
+  "(xs \<union> (ys - zs)) - ys = (xs - ys)"
   by (auto)
 
 end

@@ -58,10 +58,12 @@ declare is_healthy_def [eval, evalr, evalrr, evalrx]
 declare SkipREA_def [eval, evalr, evalrr, evalrx]
 declare R_def [eval, evalr, evalrr, evalrx]
 
-thm SkipRA_unfold [of "tr\<down>"]
+lemma Skip_is_R1 : "`R1(II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>)` = `II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>`"
+  sorry
 
-lemma Skip_is_R2s : "`R2s(II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>)` = `II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>`"sorry
-lemma Skip_is_R1 : "`R1(II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>)` = `II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>`"sorry
+lemma Skip_is_R2s : "`R2s(II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>)` = `II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>`"
+  sorry
+
 lemma tr_conserved_is_R2 : "`R2s($tr = $tr\<acute>)` = `($tr = $tr\<acute>)`"apply(simp add:R2s_def usubst typing defined closure, utp_pred_auto_tac)sorry
 lemma helper1 : "`$wait \<and> II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>` = `$wait \<and> $wait\<acute> \<and> II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>`"sorry
 lemma helper2 : "`($wait\<acute> \<and> Q) ; R3(P)` = `$wait\<acute> \<and> Q`"sorry

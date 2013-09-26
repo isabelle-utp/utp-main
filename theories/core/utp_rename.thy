@@ -821,6 +821,7 @@ lemma RenameB_rep_eq [simp]:
 
 subsection {* Building renamings from a partial map *}
 
+
 definition MapR ::
   "('VALUE VAR \<rightharpoonup> 'VALUE VAR) \<Rightarrow>
    'VALUE VAR_RENAME" where
@@ -846,6 +847,7 @@ lemma VAR_RENAME_ON_MapR:
   using assms
   by (simp add:VAR_RENAME_ON_def MapR_rep_eq)
 
+(*
 lemma MapR_split: 
   assumes "length xs = length ys" "distinct xs" "distinct ys" 
           "set xs \<inter> set ys = {}" 
@@ -880,6 +882,7 @@ proof -
     apply (simp)
   sorry
 qed
+*)
 
 subsubsection {* Binding Renaming Laws *}
 

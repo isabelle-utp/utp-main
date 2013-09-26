@@ -250,16 +250,12 @@ lift_definition SubstE ::
   apply (metis Rep_WF_EXPRESSION_typed)
 done
 
-definition SubstP ::
-"'VALUE WF_PREDICATE \<Rightarrow> 
- 'VALUE WF_EXPRESSION \<Rightarrow> 
- 'VALUE VAR \<Rightarrow> 
- 'VALUE WF_PREDICATE" ("_[_'/\<^sub>p_]" [200] 200) where
-"SubstP p v x \<equiv> mkPRED {b. b(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b) \<in> destPRED p}"
+lift_definition SubstP ::
+  "'a WF_PREDICATE \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a VAR \<Rightarrow> 'a WF_PREDICATE" ("_[_'/\<^sub>p_]" [200] 200)
+is "\<lambda> p v x. {b. b(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b) \<in> p}" .
 
 lemma SubstP_no_var: "\<lbrakk> {x} \<sharp> p; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[v/\<^sub>px] = p"
-  apply (simp add:SubstP_def)
-  apply (auto intro!:destPRED_intro simp add:UNREST_def)
+  apply (auto intro!:destPRED_intro simp add:UNREST_def SubstP.rep_eq)
   apply (metis (lifting) binding_compat binding_upd_simps binding_upd_upd evar_compat_def)
   apply (metis binding_upd_apply evar_compat_def)
 done
@@ -306,7 +302,7 @@ theorem VarE_type [typing]: "t = vtype x \<Longrightarrow> VarE x :\<^sub>e t"
 
 theorem LitE_type [typing]: 
 "v : t \<Longrightarrow> LitE v :\<^sub>e t"
-  by (auto simp add:LitE_rep_eq etype_rel_def typing)
+  by (auto simp add:etype_rel_def LitE_rep_eq)
 
 theorem BotE_type [typing]:
 "BotE a :\<^sub>e a"
@@ -515,6 +511,14 @@ theorem UNREST_SubstP_var [unrest] :
   apply (metis binding_compat binding_upd_override binding_upd_upd evar_compat_def)
 done
 
+lemma UNREST_UNDASHED_PrimeE [unrest]:
+  "UNREST_EXPR DASHED e \<Longrightarrow> UNREST_EXPR UNDASHED e\<acute>"
+  by (metis (full_types) UNREST_EXPR_PrimeE_alt dash_UNDASHED_image dash_UNDASHED_rename_func rename_on_image1 subset_refl)
+
+lemma UNREST_DASHED_PrimeE [unrest]:
+  "UNREST_EXPR UNDASHED e \<Longrightarrow> UNREST_EXPR DASHED e\<acute>"
+  by (metis (full_types) UNREST_EXPR_PrimeE_alt dash_UNDASHED_image dash_UNDASHED_rename_func rename_on_image2 subset_refl)
+
 text {* Some unrestriction laws relating to variable classes *}
 
 lemma UNREST_NON_REL_VAR_DASHED [unrest]:
@@ -595,6 +599,7 @@ done
 lemma UNREST_VarP [unrest]:
   "x \<notin> vs \<Longrightarrow> vs \<sharp> (VarP x)"
   by (auto intro:unrest)
+
 
 theorem WF_EXPRESSION_UNREST_binding_equiv :
 "\<lbrakk> (VAR - vs) \<sharp> e; b1 \<cong> b2 on vs \<rbrakk> 

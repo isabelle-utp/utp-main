@@ -104,6 +104,8 @@ lemma UFSET_transfer [eval, evale]:
   "xs = ys \<longleftrightarrow> Rep_UFSET xs = Rep_UFSET ys"
   by (auto)
 
+
+
 declare EmptyUF.rep_eq [eval, evale]
 declare InsertUF_rep_eq [eval, evale]
 declare UnionUF.rep_eq [eval, evale]

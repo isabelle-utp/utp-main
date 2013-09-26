@@ -196,11 +196,13 @@ setup {*
 Adhoc_Overloading.add_variant @{const_name permute} @{const_name PermP}
 *}
 
+(*
 definition RenamePMap :: 
   "'VALUE  WF_PREDICATE \<Rightarrow> 
    ('VALUE VAR \<rightharpoonup> 'VALUE VAR) \<Rightarrow> 
    'VALUE WF_PREDICATE" ("_\<^bsup>_\<^esup>" [200]) where
 "RenamePMap p ss \<equiv> p[MapR ss]\<^sub>p"
+*)
 
 subsection {* Meta-logical Operators *}
 

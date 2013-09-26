@@ -553,6 +553,63 @@ theorem EvalRX_SubstP_UNDASHED [evalrx] :
   apply (auto intro:UNREST_EXPR_subset)
 done
 
+
+lemma binding_override_subsume1 [simp]: 
+  "(b1 \<oplus>\<^sub>b b2 on vs2) \<oplus>\<^sub>b b3 on vs1 \<union> vs2 = b1 \<oplus>\<^sub>b b3 on vs1 \<union> vs2"
+  by (metis binding_override_simps(1) binding_override_simps(3) sup_commute)
+
+lemma binding_override_assoc':
+  "b1 \<oplus>\<^sub>b (b2 \<oplus>\<^sub>b b3 on vs1) on vs2 = (b1 \<oplus>\<^sub>b b2 on vs2 - vs1) \<oplus>\<^sub>b b3 on vs1 \<inter> vs2"
+  by (force simp add:binding_override_on.rep_eq override_on_def)
+
+lemma binding_override_subsume2 [simp]: 
+  "(b1 \<oplus>\<^sub>b b2 on vs1 \<union> vs2) \<oplus>\<^sub>b b3 on vs1 = (b1 \<oplus>\<^sub>b b2 on vs2) \<oplus>\<^sub>b b3 on vs1"
+  by (force simp add:binding_override_on.rep_eq override_on_def)
+
+lemma mDASHED_inter_NON_REL_VAR [simp]: 
+  "(- DASHED) \<inter> (NON_REL_VAR \<union> DASHED) = NON_REL_VAR"
+  by (auto)
+
+lemma mUNDASHED_inter_NON_REL_VAR [simp]: 
+  "(- UNDASHED) \<inter> (NON_REL_VAR \<union> UNDASHED) = NON_REL_VAR"
+  by (auto)
+
+lemma NON_REL_VAR_minus_DASHED [simp]: 
+  "NON_REL_VAR - DASHED = NON_REL_VAR"
+  by auto
+
+lemma minus_DASHED_NON_REL_VAR [simp]:
+  "- (DASHED \<union> NON_REL_VAR) = UNDASHED"
+  by auto
+
+lemma minus_UNDASHED_NON_REL_VAR [simp]:
+  "- (UNDASHED \<union> NON_REL_VAR) = DASHED"
+  by auto
+
+lemma WF_RELATION_binding_override_NON_REL_VAR [simp]:
+  "p \<in> WF_RELATION \<Longrightarrow> b1 \<oplus>\<^sub>b b2 on NON_REL_VAR \<in> destPRED p \<longleftrightarrow> b1 \<in> destPRED p"
+  by (metis EvalP_UNREST_override EvalP_def WF_RELATION_UNREST_elim)
+
+lemma WF_REL_EXPR_binding_override_NON_REL_VAR [simp]:
+  "DASHED \<union> NON_REL_VAR \<sharp> e \<Longrightarrow> \<langle>e\<rangle>\<^sub>e (b1 \<oplus>\<^sub>b b2 on NON_REL_VAR) = \<langle>e\<rangle>\<^sub>e b1"
+  by (metis UNREST_EXPR_member UNREST_EXPR_unionE)
+
+lemma WF_REL_EXPR_binding_override_mUNDASHED [simp]:
+  "DASHED \<union> NON_REL_VAR \<sharp> e \<Longrightarrow> \<langle>e\<rangle>\<^sub>e (b1 \<oplus>\<^sub>b b2 on -UNDASHED) = \<langle>e\<rangle>\<^sub>e b1"
+  by (metis NON_REL_VAR_def UNREST_EXPR_member UNREST_EXPR_unionE WF_REL_EXPR_binding_override_NON_REL_VAR binding_override_minus binding_override_simps(1) binding_override_simps(2))
+
+lemma binding_upd_override' [simp]:
+  "\<lbrakk> x \<in> vs; v \<rhd> x \<rbrakk> \<Longrightarrow> b \<oplus>\<^sub>b b(x :=\<^sub>b v) on vs = b(x :=\<^sub>b v)"
+  by (metis binding_override_simps(2) binding_upd_override)
+
+lemma binding_equiv_SS_UNDASHED:
+  "p \<cong> SS\<bullet>q on UNDASHED \<Longrightarrow> q \<cong> SS\<bullet>p on DASHED"
+  by (metis RenameB_equiv_cong RenameB_inv_cancel1 SS_UNDASHED_image SS_inv binding_equiv_comm rename_image_def)
+
+lemma binding_equiv_SS_DASHED:
+  "p \<cong> SS\<bullet>q on DASHED \<Longrightarrow> q \<cong> SS\<bullet>p on UNDASHED"
+  by (metis (hide_lams, no_types) RenameB_equiv_cong RenameB_inv_cancel1 SS_DASHED_image SS_inv binding_equiv_comm rename_image_def)
+
 theorem EvalRX_SubstP_DASHED [evalrx] :
 "\<lbrakk> p \<in> WF_RELATION; x \<in> UNDASHED; e \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<union> NON_REL_VAR) e \<rbrakk> \<Longrightarrow> 
   \<lbrakk>p[e\<acute>/\<^sub>px\<acute>]\<rbrakk>RX = {(b1, b2) | b1 b2. (b1, b2(x :=\<^sub>x \<lbrakk>e\<rbrakk>\<^sub>e\<langle>b2\<rangle>\<^sub>x)) \<in> \<lbrakk>p\<rbrakk>RX}"
@@ -561,10 +618,47 @@ theorem EvalRX_SubstP_DASHED [evalrx] :
   apply (rule_tac x="BindPX (a, b(x :=\<^sub>x \<langle>e\<rangle>\<^sub>e \<langle>b\<rangle>\<^sub>x))" in bexI)
   apply (simp)
   apply (auto simp add:BindPX_def BindRX_def typing defined RenameB_override_distr1 urename closure)[1]
-  apply (simp add:binding_override_overshadow)
-  apply (subgoal_tac "DASHED \<union> NON_REL_VAR = - (UNDASHED :: 'a VAR set)")
-  apply (simp add:binding_override_overshadow unrest)
-sorry
+  apply (subgoal_tac "UNDASHED \<union> NON_REL_VAR = - (DASHED :: 'a VAR set)")
+  apply (simp add: binding_override_overshadow unrest binding_override_assoc)
+  apply (simp add: binding_override_minus[of bc] binding_override_assoc' closure typing)
+  apply (metis EvalE_PrimeE EvalE_def SS_inv)
+  apply (force)
+  apply (rule_tac x="BindPX (xa, y)" in exI, simp)
+  apply (auto simp add:BindPX_def BindRX_def)
+  apply (erule DestXRelB_elim)
+  apply (simp add:typing PrimeE_def urename defined closure PermE.rep_eq RenameB_override_distr1)
+  apply (subgoal_tac "\<langle>y\<rangle>\<^sub>x(x :=\<^sub>b \<langle>e\<rangle>\<^sub>e \<langle>y\<rangle>\<^sub>x) \<cong> SS\<bullet>xb on UNDASHED")
+  defer
+  apply (metis binding_override_equiv2 minus_DASHED_NON_REL_VAR)
+  apply (subgoal_tac "\<langle>xb\<rangle>\<^sub>b x\<acute> = \<langle>e\<rangle>\<^sub>e \<langle>y\<rangle>\<^sub>x")
+  defer
+  apply (drule binding_equiv_SS_UNDASHED)
+  apply (drule sym)
+  apply (simp only:typing RenameB_binding_upd_1)
+  apply (simp add:urename)
+  apply (simp add:binding_equiv_def)
+  apply (drule_tac x="x\<acute>" in bspec, simp)
+  apply (simp add:typing)
+  apply (subgoal_tac "xb \<cong> SS\<bullet>\<langle>y\<rangle>\<^sub>x on DASHED - {x\<acute>}")
+  defer
+  apply (drule binding_equiv_SS_UNDASHED)
+  apply (drule sym)
+  apply (simp only:typing RenameB_binding_upd_1)
+  apply (simp add:urename)
+  apply (metis (hide_lams, no_types) Diff_empty binding_compat binding_equiv_update_drop binding_upd_triv)
+  apply (simp add:binding_override_assoc)
+  apply (simp add:binding_override_minus[of "SS\<bullet>bc" _ UNDASHED])
+  apply (simp add:binding_override_assoc')
+  apply (simp add:binding_override_minus[of _ _ UNDASHED])
+  apply (simp add:binding_override_assoc)
+  apply (simp only:binding_override_minus[of "bc" _ _])
+  apply (simp only:binding_override_assoc')
+  apply (subgoal_tac "- DASHED \<inter> (NON_REL_VAR \<union> (DASHED - {x\<acute>})) = NON_REL_VAR")
+  apply (subgoal_tac "(NON_REL_VAR \<union> (DASHED - {x\<acute>})) \<inter> DASHED = (DASHED - {x\<acute>})")
+  apply (simp)
+  apply (metis binding_override_equiv binding_upd_triv)
+  apply (auto)
+done
 
 lemma EvalRX_Tautology [evalrx]:
   "p \<in> WF_RELATION \<Longrightarrow> taut p \<longleftrightarrow> \<lbrakk>p\<rbrakk>RX = UNIV"

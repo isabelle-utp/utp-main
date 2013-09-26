@@ -101,8 +101,7 @@ lemma SubstP_SemiR_left [usubst]:
 
 lemma SubstP_SemiR_right [usubst]: 
   "\<lbrakk> x \<in> DASHED; v \<rhd>\<^sub>e x; UNDASHED \<sharp> v \<rbrakk> \<Longrightarrow> (p ; q)[v/\<^sub>px] = p ; q[v/\<^sub>px]"
-  apply (utp_rel_tac)
-  sorry
+  by (utp_rel_auto_tac)
 
 lemma binding_equiv_upd_match:
   "\<lbrakk> b1(x :=\<^sub>b e) \<cong> b2(x :=\<^sub>b f) on vs; e \<rhd> x; f \<rhd> x; x \<in> vs \<rbrakk> \<Longrightarrow> e = f"

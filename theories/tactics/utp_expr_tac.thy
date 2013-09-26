@@ -7,7 +7,9 @@
 header {* Proof Tactic for Expressions *}
 
 theory utp_expr_tac
-imports "../core/utp_expr" utp_pred_tac
+imports 
+  "../core/utp_expr" 
+  utp_pred_tac
 begin
 
 text {* Theorem Attribute *}
@@ -143,7 +145,7 @@ theorem EvalE_PrimeE [eval,evale] :
 
 theorem EvalP_SubstP [eval,eval] :
   "\<lbrakk>p[v/\<^sub>px]\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eb))"
-  by (simp add:SubstP_def EvalP_def EvalE_def)
+  by (simp add:SubstP.rep_eq EvalP_def EvalE_def)
 
 (*
 
