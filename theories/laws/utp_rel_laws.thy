@@ -952,7 +952,7 @@ lemma AssignRA_alt_def:
     "x \<in> vs" 
     "x\<acute> \<in> vs" 
     "x \<in> UNDASHED" 
-    "(UNDASHED \<union> DASHED - vs) \<sharp> v" 
+    "REL_VAR - vs \<sharp> v" 
     "v \<rhd>\<^sub>e x"
   shows "x :=\<^bsub>vs\<^esub> v = $\<^sub>ex\<acute> ==\<^sub>p v \<and>\<^sub>p II\<^bsub>(vs - {x,x\<acute>})\<^esub>"
 using assms
@@ -971,43 +971,79 @@ proof (simp add:SkipRA_def AssignRA_def AssignR_alt_def)
     by (smt ExistsP_AndP_expand2 ExistsP_union Un_empty_right Un_insert_right union_minus)
 qed
 
-lemma EvalR_AssignRA:
-  assumes 
-    "x \<in> vs" 
-    "x\<acute> \<in> vs" 
-    "x \<in> UNDASHED"
-    "vs \<subseteq> UNDASHED \<union> DASHED" 
-    "HOMOGENEOUS vs"
-    "DASHED \<union> NON_REL_VAR \<sharp> v" 
-    "(REL_VAR - vs) \<sharp> v" 
-    "v \<rhd>\<^sub>e x"
-  shows "\<lbrakk>x :=\<^bsub>vs\<^esub> v\<rbrakk>R = { (b1 \<oplus>\<^sub>b bc on DASHED, b2 \<oplus>\<^sub>b bc on DASHED) 
-                       | b1 b2. b1 \<cong> b2 on (in vs - {x}) 
-                              \<and> b1 \<cong> b2 on NON_REL_VAR 
-                              \<and> \<langle>b2\<rangle>\<^sub>b x = \<lbrakk>v\<rbrakk>\<^sub>eb1}"
-proof -
-  have "(vs - {x,x\<acute>}) \<subseteq> REL_VAR"
-    by (metis Diff_subset assms(4) subset_trans)
+lemma WF_REL_BINDING_bc_DASHED:
+  "b \<in> WF_REL_BINDING \<Longrightarrow> b \<cong> bc on DASHED"
+  by (auto simp add:WF_REL_BINDING_def)
 
-  with assms show ?thesis
-    apply (simp add: AssignRA_alt_def EvalR_AndP EvalR_SkipRA' EvalR_EqualP_alt evale BindR_def)
-    apply (auto)
-    apply (rule_tac x="b" in exI)
-    apply (simp)
-    apply (rule_tac x="b'" in exI)
-    apply (simp add:var_dist)
-    apply (metis (hide_lams, mono_tags) EvalE_def UNDASHED_DASHED_minus(1) UNREST_EXPR_member binding_equiv_def binding_override_equiv1 binding_override_minus binding_override_simps(2) binding_override_simps(3) binding_override_simps(5) minus_DASHED_NON_REL_VAR)
-    apply (rule_tac x="b1" in exI)
-    apply (simp)
-    apply (rule_tac x="b2" in exI)
-    apply (simp add:var_dist)
-  done
-qed
+lemma WF_REL_BINDING_override_closure [closure]:
+  "b \<oplus>\<^sub>b bc on DASHED \<in> WF_REL_BINDING"
+  by (auto simp add:WF_REL_BINDING_def)
+
+lemma EvalR_EqualP_alt':
+  "\<lbrakk> x \<in> UNDASHED; (DASHED \<union> NON_REL_VAR) \<sharp> v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow>
+   \<lbrakk>$\<^sub>ex\<acute> ==\<^sub>p v\<rbrakk>R = { (b1, b2). \<langle>b2\<rangle>\<^sub>b x = \<lbrakk>v\<rbrakk>\<^sub>eb1 \<and> b1 \<cong> b2 on NON_REL_VAR 
+                            \<and> b1 \<in> WF_REL_BINDING \<and> b2 \<in> WF_REL_BINDING }"
+  apply (auto simp add:EvalR_EqualP_alt closure)
+  apply (metis EvalE_UNREST_override UNREST_EXPR_unionE)
+  apply (metis binding_equiv_override_subsume binding_override_equiv binding_override_equiv1 binding_override_minus binding_override_simps(1) minus_UNDASHED_NON_REL_VAR)
+  apply (metis WF_REL_BINDING_bc_DASHED binding_override_equiv)
+done
 
 lemma binding_override_left_eq: 
   "b1 \<cong> b2 on vs2 \<Longrightarrow> b1 \<oplus>\<^sub>b b3 on vs1 \<cong> b2 \<oplus>\<^sub>b b3 on vs1 on vs2"
   by (auto simp add:binding_equiv_def override_on_def)
 
+lemma EvalR_SkipRA'' :
+"\<lbrakk> vs \<subseteq> UNDASHED \<union> DASHED; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow>
+ \<lbrakk>II\<^bsub>vs\<^esub>\<rbrakk>R = { (b, b') 
+           . b \<cong> b' on in vs \<and> b \<cong> b' on NON_REL_VAR
+           \<and> b \<in> WF_REL_BINDING \<and> b' \<in> WF_REL_BINDING}"
+  apply (auto intro: binding_override_left_eq simp add:EvalR_SkipRA' closure)
+  apply (metis WF_REL_BINDING_bc_DASHED binding_override_equiv)
+done
+
+lemma Collect_eq_pair_intro:
+  "\<lbrakk> \<And> x y. P x y \<longleftrightarrow> Q x y \<rbrakk> \<Longrightarrow> {(x, y). P x y} = {(x, y) . Q x y}"
+  by simp
+
+lemma Collect_conj_pair_eq: 
+  "{(x, y). P x y} \<inter> {(x, y). Q x y} = {(x, y). P x y & Q x y}"
+  by auto
+
+lemma EvalR_AssignRA [evalr]:
+  assumes 
+    "x \<in> vs" "x\<acute> \<in> vs" 
+    "x \<in> UNDASHED"
+    "vs \<subseteq> UNDASHED \<union> DASHED" 
+    "HOMOGENEOUS vs"
+    "(VAR - in vs) \<sharp> v" 
+    "v \<rhd>\<^sub>e x"
+  shows "\<lbrakk>x :=\<^bsub>vs\<^esub> v\<rbrakk>R = { (b1, b2) 
+                       . b1 \<cong> b2 on (in vs - {x}) \<and> b1 \<cong> b2 on NON_REL_VAR 
+                       \<and> \<langle>b2\<rangle>\<^sub>b x = \<lbrakk>v\<rbrakk>\<^sub>eb1 \<and> b1 \<in> WF_REL_BINDING \<and> b2 \<in> WF_REL_BINDING}"
+proof -
+
+  have "(vs - {x,x\<acute>}) \<subseteq> REL_VAR"
+    by (metis Diff_subset assms(4) subset_trans)
+
+  moreover from assms(6) have "REL_VAR - vs \<sharp> v"
+    by (auto intro: UNREST_EXPR_subset simp add:var_defs)
+
+  moreover from assms(6) have "DASHED \<union> NON_REL_VAR \<sharp> v"
+    apply (rule UNREST_EXPR_subset)
+    apply (auto simp add:var_defs)
+  done
+
+  ultimately show ?thesis using assms
+    thm EvalR_EqualP_alt
+    apply (simp add: AssignRA_alt_def EvalR_AndP EvalR_SkipRA'' EvalR_EqualP_alt' evale BindR_def Collect_conj_pair_eq)
+    apply (rule Collect_eq_pair_intro)
+    apply (simp add:var_dist)
+    apply (safe)
+ done
+qed
+
+(*
 lemma EvalR_AssignRA_alt [evalr]:
   assumes 
     "x \<in> vs" 
@@ -1031,6 +1067,7 @@ lemma EvalR_AssignRA_alt [evalr]:
   apply (metis EvalE_UNREST_override UNDASHED_not_DASHED UNREST_EXPR_unionE assms(3) assms(6) override_on_def)
   apply (metis binding_override_equiv)
 done
+*)
 
 theorem AssignRA_SemiR_left:
   assumes 
@@ -1120,74 +1157,25 @@ theorem AssignRA_idem :
     "x \<in> UNDASHED"
     "vs \<subseteq> UNDASHED \<union> DASHED" 
     "HOMOGENEOUS vs"
-    "DASHED \<union> NON_REL_VAR \<sharp> v" 
-    "(REL_VAR - vs) \<sharp> v" 
-    "{x} \<sharp> v"
+    "(VAR - (in vs - {x})) \<sharp> v" 
     "v \<rhd>\<^sub>e x"
   shows "x :=\<^bsub>vs\<^esub> v ; x :=\<^bsub>vs\<^esub> v = x :=\<^bsub>vs\<^esub> v"
-  using assms
-  apply (utp_rel_tac)
-  apply (simp add:relcomp_unfold)
-  apply (safe)
-  apply (metis binding_equiv_trans)
-  apply (metis binding_equiv_trans)
-  apply (simp)
-oops
-
-(*
-theorem AssignRA_idem :
-  assumes
-    "x \<in> vs" 
-    "x\<acute> \<in> vs" 
-    "x \<in> UNDASHED" 
-    "DASHED \<sharp> v"
-    "(VAR - (vs - {x,x\<acute>})) \<sharp> v" 
-    "vs \<subseteq> UNDASHED \<union> DASHED" 
-    "HOMOGENEOUS vs"
-    "v \<rhd>\<^sub>e x"
-  shows "(x :=\<^bsub>vs\<^esub> v ; x :=\<^bsub>vs\<^esub> v) = x :=\<^bsub>vs\<^esub> v"
 proof -
+  from assms(6) have "(VAR - in vs) \<sharp> v" 
+    by (auto intro:UNREST_EXPR_subset simp add:in_vars_def)
 
-  from assms have "($\<^sub>ex\<acute> ==\<^sub>p v \<and>\<^sub>p II\<^bsub>vs - {x, x\<acute>}\<^esub>) = II\<^bsub>vs - {x, x\<acute>}\<^esub> \<and>\<^sub>p $\<^sub>ex\<acute> ==\<^sub>p v\<acute>"
-    apply (utp_pred_tac)
-    apply (safe, simp)
-    apply (subgoal_tac "b \<cong> SS\<bullet>b on (VAR - (VAR - (vs - {x,x\<acute>})))")
+  with assms show ?thesis
+    apply (utp_rel_tac)
+    apply (simp add:relcomp_unfold)
+    apply (rule Collect_eq_pair_intro)
+    apply (safe)
+    apply (metis binding_equiv_trans)
+    apply (metis binding_equiv_trans)
     apply (simp)
-    apply (metis (hide_lams, no_types) VAR_subset double_diff utp_expr_tac.EvalP_UNREST_binding_equiv)
-    apply (simp)
-    apply (simp add:binding_equiv_def)
-    apply (safe)
-    apply (case_tac "xa \<in> UNDASHED")
-    apply (drule_tac x="xa" in bspec)
-    apply (simp add:var_dist)
-    apply (metis SS_UNDASHED_app)
-    apply (subgoal_tac "xa \<in> DASHED")
-    apply (frule_tac x="xa~" in bspec)
-    apply (simp add:var_dist)
-    apply (safe)
-    apply (metis (full_types) HOMOGENEOUS_undash_out imageI out_member)
-    apply (metis dash_undash_DASHED)
-    apply (metis SS_DASHED_app dash_undash_DASHED)
-    apply (metis SS_ident_app)
-    apply (subgoal_tac "b \<cong> SS\<bullet>b on (VAR - (VAR - (vs - {x,x\<acute>})))")
-    apply (simp)
-    apply (metis (hide_lams, no_types) VAR_subset double_diff utp_expr_tac.EvalP_UNREST_binding_equiv)
-    apply (simp add:binding_equiv_def)
-    apply (safe)
-    apply (case_tac "xa \<in> UNDASHED")
-    apply (drule_tac x="xa" in bspec)
-    apply (simp add:var_dist)
-    apply (metis SS_UNDASHED_app)
-    apply (subgoal_tac "xa \<in> DASHED")
-    apply (frule_tac x="xa~" in bspec)
-    apply (simp add:var_dist)
-    apply (safe)
-    apply (metis (full_types) HOMOGENEOUS_undash_out imageI out_member)
-    apply (metis dash_undash_DASHED)
-    apply (metis SS_DASHED_app dash_undash_DASHED)
-    apply (metis SS_ident_app)
+    apply (metis assms(6) utp_expr_tac.EvalP_UNREST_binding_equiv)
+    apply (metis assms(6) binding_equiv_idem EvalP_UNREST_binding_equiv)
   done
-*)
+qed
 
 subsubsection {* Variable Laws *}
 

@@ -215,6 +215,10 @@ theorem DesignD_AssignD_right:
   "P \<turnstile> (x :=\<^sub>D v) = P \<turnstile> x :=\<^bsub>(REL_VAR - OKAY) \<^esub>v"
   by (simp add:AssignD_def DesignD_embed_right)
 
+theorem DesignD_AssignD_true [simp]:
+  "true \<turnstile> x :=\<^sub>D v = x :=\<^sub>D v"
+  by (simp add:AssignD_def DesignD_embed_right)
+
 text {* Design refinement law *}
 
 theorem DesignD_refinement:
@@ -379,12 +383,11 @@ theorem DesignD_composition_wp:
   shows "`(p1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `(p1 \<and> (Q1 wp P2)) \<turnstile> (Q1 ; Q2)`"
   by (simp add: DesignD_composition_cond closure WeakPrecondP_def assms)
 
-(*
 theorem AssignD_idem :
   assumes 
     "x \<in> UNDASHED" 
     "x \<notin> OKAY"
-    "OKAY \<union> NON_REL_VAR \<union> DASHED \<union> {x} \<sharp> v"
+    "OKAY \<union> (VAR - (in vs - {x})) \<sharp> v"
     "v \<rhd>\<^sub>e x"
   shows "(x :=\<^sub>D v ; x :=\<^sub>D v) = x :=\<^sub>D v"
   using assms
@@ -396,25 +399,20 @@ theorem AssignD_idem :
   apply (rule UNREST_EXPR_subset)
   apply (simp)
   apply (auto)[1]
+  apply (metis (full_types) UNDASHED_not_NON_REL_VAR in_UNDASHED set_mp)
   apply (rule unrest)
   apply (simp_all)
   apply (rule UNREST_EXPR_subset)
   apply (simp)
   apply (auto)[1]
+  apply (metis (full_types) UNDASHED_not_NON_REL_VAR in_UNDASHED set_mp)
   apply (subst AssignRA_idem)
-  apply (simp_all)
+  apply (simp_all add:var_dist closure)
   apply (metis dash_elim)
   apply (rule UNREST_EXPR_subset)
-  apply (simp)
-  apply (auto)[1]
-  apply (rule UNREST_EXPR_subset)
-  apply (simp)
-  apply (auto)[1]
-  apply (rule HOMOGENEOUS_minus)
-  apply (simp_all)
-  apply (smt HOMOGENEOUS_empty HOMOGENEOUS_insert MkPlainP_UNDASHED PVAR_VAR_PUNDASHED_UNDASHED)
+  apply (auto)
+  apply (metis (full_types) in_UNDASHED set_mp)
 done
-*)
 
 theorem ParallelD_DesignD:
   assumes 

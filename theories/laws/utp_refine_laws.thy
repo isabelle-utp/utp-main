@@ -41,6 +41,10 @@ theorem RefineP_FalseP_refine [refine]:
   "P \<sqsubseteq> false"
   by (utp_pred_tac)
 
+theorem RefineP_by_TrueP_refine [refine]:
+  "[P] \<Longrightarrow> P \<sqsubseteq> true"
+  by (utp_pred_tac)
+
 theorem RefineP_CondR:
   "P \<sqsubseteq> Q \<lhd> b \<rhd> R \<longleftrightarrow> `P \<sqsubseteq> b \<and> Q` \<and> `P \<sqsubseteq> \<not> b \<and> R`"
   by (utp_pred_auto_tac)
@@ -114,5 +118,16 @@ lemma RefineP_equal_right_trans:
 lemma RefineP_equal_left_trans:
   "\<lbrakk> X = Y; Y \<sqsubseteq> Z \<rbrakk> \<Longrightarrow> X \<sqsubseteq> Z"
   by (simp)
+
+lemma AssignR_refinement [refine]:
+  assumes
+    "p \<in> WF_CONDITION" "q \<in> WF_POSTCOND"
+    "x \<in> UNDASHED" "v \<rhd>\<^sub>e x" "DASHED \<sharp> v" "q[v/\<^sub>px\<acute>] \<sqsubseteq> p"
+  shows "(p \<Rightarrow>\<^sub>p q) \<sqsubseteq> x :=\<^sub>R v"
+  using assms
+    apply (utp_pred_auto_tac)
+    apply (auto simp add:AssignF_upd_rep_eq EvalE_def)
+    apply (metis (full_types) binding_upd_simps(2))
+done
 
 end
