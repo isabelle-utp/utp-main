@@ -503,7 +503,7 @@ theorem EvalR_EqualP_DASHED [evalrx]:
   apply (rule_tac x="BindPX (xa, y)" in exI)
   apply (simp)
   apply (simp add: BindPX_def UNREST_EXPR_def PermE.rep_eq PrimeE_def RenameB_override_distr1 urename RenameB_compose closure)
-  apply (metis UNDASHED_DASHED_inter(15) binding_override_assoc binding_override_minus binding_override_simps(1) binding_override_simps(2))
+  apply (metis (hide_lams, no_types) Compl_Diff_eq Compl_eq_Diff_UNIV MkXRelB_inverse UNDASHED_DASHED_inter(16) UNDASHED_DASHED_minus(1) Un_Diff_cancel binding_override_minus set_extra_simps(7) sup.commute)
 done
 
 lemma binding_override_overshadow2 [simp]:

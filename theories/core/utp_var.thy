@@ -649,6 +649,7 @@ theorem UNDASHED_DASHED_inter:
    "NON_REL_VAR \<inter> - DASHED = NON_REL_VAR"
   "(- UNDASHED) \<inter> NON_REL_VAR = NON_REL_VAR"
   "NON_REL_VAR \<inter> (- UNDASHED) = NON_REL_VAR"
+  "((VAR - UNDASHED) \<inter> (VAR - DASHED)) = NON_REL_VAR"
   "- NON_REL_VAR = REL_VAR"
   by (auto simp add:var_defs)
 

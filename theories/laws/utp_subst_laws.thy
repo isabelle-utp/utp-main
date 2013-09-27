@@ -245,6 +245,10 @@ lemma SubstE_VarE_other [usubst]:
   "\<lbrakk> v \<rhd>\<^sub>e x; x \<noteq> y \<rbrakk> \<Longrightarrow> VarE y[v/\<^sub>ex] = VarE y"
   by (utp_expr_tac)
 
+lemma SubstE_VarE_single_UNREST [usubst]:
+  "\<lbrakk> {x} \<sharp> f; e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> f[e/\<^sub>ex] = f"
+  by (utp_expr_tac)
+
 lemma SubstP_AssignR_1 [usubst]:
   "\<lbrakk> x \<in> UNDASHED; y \<in> UNDASHED; e \<rhd>\<^sub>e y; v \<rhd>\<^sub>e x; x \<noteq> y; 
      DASHED \<sharp> e; DASHED \<sharp> v \<rbrakk> 

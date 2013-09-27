@@ -702,7 +702,7 @@ theorem SemiR_right_one_point:
   using assms
   apply (simp add:unrest urename closure typing defined UNREST_EXPR_subset evalrx evale)
   apply (subgoal_tac "$\<^sub>ex\<acute> ==\<^sub>p v\<acute> = ($\<^sub>ex)\<acute> ==\<^sub>p v\<acute>")
-  apply (simp add:unrest closure typing defined UNREST_EXPR_subset evalrx evale relcomp_unfold)
+  apply (simp add:relcomp_unfold evale evalrx closure unrest)
   defer
   apply (utp_pred_tac, simp add:urename)
   apply (auto)
@@ -1040,6 +1040,111 @@ theorem SkipRA_assign :
   apply (force simp add:assms)
 done
 
+theorem AssignR_idem :
+  assumes 
+    "x \<in> UNDASHED" 
+    "{x} \<sharp> v" 
+    "DASHED \<sharp> v" 
+    "v \<rhd>\<^sub>e x"
+  shows "(x :=\<^sub>R v ; x :=\<^sub>R v) = x :=\<^sub>R v"
+using assms
+  apply (utp_rel_auto_tac)
+  apply (simp_all add: EvalE_UNREST_assign[of _ "{x}"])
+  apply (auto simp add:WF_REL_BINDING_def)
+done
+
+theorem AssignRA_idem :
+  assumes
+    "x \<in> vs" 
+    "x\<acute> \<in> vs" 
+    "x \<in> UNDASHED" 
+    "DASHED \<sharp> v"
+    "(VAR - (vs - {x,x\<acute>})) \<sharp> v" 
+    "vs \<subseteq> UNDASHED \<union> DASHED" 
+    "HOMOGENEOUS vs"
+    "v \<rhd>\<^sub>e x"
+  shows "(x :=\<^bsub>vs\<^esub> v ; x :=\<^bsub>vs\<^esub> v) = x :=\<^bsub>vs\<^esub> v"
+proof -
+
+  from assms have "($\<^sub>ex\<acute> ==\<^sub>p v \<and>\<^sub>p II\<^bsub>vs - {x, x\<acute>}\<^esub>) = II\<^bsub>vs - {x, x\<acute>}\<^esub> \<and>\<^sub>p $\<^sub>ex\<acute> ==\<^sub>p v\<acute>"
+    apply (utp_pred_tac)
+    apply (safe, simp)
+    apply (subgoal_tac "b \<cong> SS\<bullet>b on (VAR - (VAR - (vs - {x,x\<acute>})))")
+    apply (simp)
+    apply (metis (hide_lams, no_types) VAR_subset double_diff utp_expr_tac.EvalP_UNREST_binding_equiv)
+    apply (simp)
+    apply (simp add:binding_equiv_def)
+    apply (safe)
+    apply (case_tac "xa \<in> UNDASHED")
+    apply (drule_tac x="xa" in bspec)
+    apply (simp add:var_dist)
+    apply (metis SS_UNDASHED_app)
+    apply (subgoal_tac "xa \<in> DASHED")
+    apply (frule_tac x="xa~" in bspec)
+    apply (simp add:var_dist)
+    apply (safe)
+    apply (metis (full_types) HOMOGENEOUS_undash_out imageI out_member)
+    apply (metis dash_undash_DASHED)
+    apply (metis SS_DASHED_app dash_undash_DASHED)
+    apply (metis SS_ident_app)
+    apply (subgoal_tac "b \<cong> SS\<bullet>b on (VAR - (VAR - (vs - {x,x\<acute>})))")
+    apply (simp)
+    apply (metis (hide_lams, no_types) VAR_subset double_diff utp_expr_tac.EvalP_UNREST_binding_equiv)
+    apply (simp add:binding_equiv_def)
+    apply (safe)
+    apply (case_tac "xa \<in> UNDASHED")
+    apply (drule_tac x="xa" in bspec)
+    apply (simp add:var_dist)
+    apply (metis SS_UNDASHED_app)
+    apply (subgoal_tac "xa \<in> DASHED")
+    apply (frule_tac x="xa~" in bspec)
+    apply (simp add:var_dist)
+    apply (safe)
+    apply (metis (full_types) HOMOGENEOUS_undash_out imageI out_member)
+    apply (metis dash_undash_DASHED)
+    apply (metis SS_DASHED_app dash_undash_DASHED)
+    apply (metis SS_ident_app)
+  done
+
+  moreover from assms have "NON_REL_VAR \<sharp> v"
+    apply (rule_tac UNREST_EXPR_subset)
+    apply (simp) back
+    apply (safe, auto)
+  done
+
+  ultimately show ?thesis using assms
+    apply (subgoal_tac "REL_VAR - vs \<sharp> v")
+    apply (simp add: AssignRA_alt_def)
+    apply (subst SemiR_right_one_point)
+    apply (simp_all add:closure typing)
+    apply (rule closure)
+    apply (auto)[1]
+    apply (rule closure)
+    apply (rule closure)
+    apply (auto)[1]
+    apply (rule closure)
+    apply (simp add:unrest)
+    apply (simp add:unrest)
+    apply (simp add:unrest)
+    apply (metis (full_types) Diff_cancel UNREST_EXPR_subset diff_single_insert empty_subsetI)
+    apply (subgoal_tac "{x} \<sharp> v\<acute>")
+    apply (simp add:usubst typing defined) 
+    apply (subst SemiR_SkipRA_left)
+    apply (rule unrest)
+    apply (metis (hide_lams, no_types) Diff_Int Diff_cancel SkipRA.rep_eq UNREST_ExistsP_simple Un_empty_left Un_upper1 in_vars_def inf_commute union_minus)
+    apply (rule unrest) back
+    apply (metis UNDASHED_dash_not_UNDASHED UNREST_EXPR_VarE UNREST_EqualP UNREST_UNDASHED_PrimeE)
+    apply (simp add:var_dist)
+    apply (rule unrest)
+    apply (simp_all add:unrest)
+    apply (rule UNREST_subset)
+    apply (rule unrest) back back back back
+    apply (safe)
+  sorry
+
+qed
+
+
 subsubsection {* Variable Laws *}
 
 theorem VarOpenP_commute:
@@ -1217,8 +1322,6 @@ lemma EvalP_WF_RELATION_binding_equiv:
     \<Longrightarrow> \<lbrakk>p\<rbrakk>b2"
   apply (auto simp add: WF_RELATION_def)
   apply (rule utp_unrest.EvalP_UNREST_binding_equiv[of "REL_VAR"])
-  apply (auto intro:unrest)
-  apply (subgoal_tac "((VAR - REL_VAR) :: 'a VAR set) = (NON_REL_VAR)")
   apply (auto intro:unrest)
 done
 

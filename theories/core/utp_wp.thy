@@ -78,7 +78,12 @@ theorem RefineP_precond_wp: "`[r \<Rightarrow> s]` \<Longrightarrow> Q wp s \<sq
 theorem RefineP_pred_wp: "S \<sqsubseteq> Q \<Longrightarrow> Q wp r \<sqsubseteq> S wp r"
   by (metis OrP_wp RefP_AndP le_iff_sup sup_WF_PREDICATE_def)
 
-theorem FalseP_wp [wp]: "Q ; true = true \<Longrightarrow> Q wp false = false"
+theorem TrueP_wp [wp]:
+  "Q wp true = true"
+  by (simp add:WeakPrecondP_def)
+
+theorem FalseP_wp [wp]: 
+  "Q ; true = true \<Longrightarrow> Q wp false = false"
   by (simp add:WeakPrecondP_def)
 
 theorem VarOpenP_wp: "\<lbrakk> x \<in> UNDASHED; r \<in> WF_RELATION \<rbrakk> 

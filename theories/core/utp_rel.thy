@@ -622,6 +622,16 @@ theorem UNREST_AssignRA [unrest]:
   apply (auto)
 done
 
+theorem UNREST_AssignRA' [unrest]:
+"\<lbrakk> x \<in> UNDASHED; (VAR - vs2) \<sharp> v; vs2 \<subseteq> UNDASHED \<union> DASHED; v \<rhd>\<^sub>e x; vs1 \<subseteq> (VAR - vs2) \<rbrakk> \<Longrightarrow>
+ UNREST vs1 (x :=\<^bsub>vs2\<^esub> v)"
+  by (metis UNREST_AssignRA UNREST_subset)
+
+lemma UNREST_EXPR_NON_REL_VAR_PrimeE [unrest]:
+  "UNREST_EXPR NON_REL_VAR v \<Longrightarrow> UNREST_EXPR NON_REL_VAR v\<acute>"
+  by (metis PrimeE_def UNREST_NON_REL_VAR_SS)
+
+
 (*
 theorem UNREST_AssignR [unrest]:
 "\<lbrakk> UNREST_EXPR (VAR - vs1) v \<rbrakk> \<Longrightarrow> 
@@ -744,6 +754,15 @@ theorem SkipR_closure [closure] :
 theorem SkipRA_closure [closure] :
 "vs \<subseteq> UNDASHED \<union> DASHED \<Longrightarrow> (II\<^bsub>vs\<^esub>) \<in> WF_RELATION"
   by (simp add:WF_RELATION_def unrest)
+
+lemma AssignRA_rel_closure [closure]:
+  "\<lbrakk> x \<in> UNDASHED; (VAR - vs) \<sharp> v; vs \<subseteq> UNDASHED \<union> DASHED; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow>
+     x :=\<^bsub>vs\<^esub> v \<in> WF_RELATION"
+  apply (simp add:WF_RELATION_def)
+  apply (subgoal_tac "NON_REL_VAR = (VAR - REL_VAR :: 'a VAR set)")
+  apply (metis (hide_lams, no_types) Diff_mono UNREST_AssignRA UNREST_subset VAR_subset)
+  apply (auto)
+done
 
 theorem CondR_rel_closure [closure] :
 "\<lbrakk> p1 \<in> WF_RELATION; p2 \<in> WF_RELATION; b \<in> WF_RELATION \<rbrakk> \<Longrightarrow>

@@ -386,6 +386,15 @@ theorem UNREST_EXPR_empty [unrest] :
 "UNREST_EXPR {} e"
   by (simp add: UNREST_EXPR_def)
 
+lemma UNREST_EXPR_union [unrest]:
+"\<lbrakk>UNREST_EXPR vs1 p;
+ UNREST_EXPR vs2 p\<rbrakk> \<Longrightarrow>
+ UNREST_EXPR (vs1 \<union> vs2) p"
+  apply (simp add: UNREST_EXPR_def)
+  apply (clarify)
+  apply (metis binding_override_simps(1))
+done
+
 theorem UNREST_EXPR_subset :
 "\<lbrakk>vs1 \<sharp> e;
  vs2 \<subseteq> vs1\<rbrakk> \<Longrightarrow>

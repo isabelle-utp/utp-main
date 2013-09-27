@@ -38,6 +38,10 @@ definition SkipD :: "'a WF_PREDICATE" where
 
 notation SkipD ("II\<^sub>D")
 
+definition AssignD ::
+  "'a VAR \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_PREDICATE" ("(_ /:=\<^sub>D/ _)") where
+"AssignD x v = (true \<turnstile> x :=\<^bsub>(REL_VAR - OKAY)\<^esub> v)"
+
 definition BotD :: "'a WF_PREDICATE" ("\<bottom>\<^sub>D") where
 "BotD = true"
 
@@ -71,6 +75,7 @@ declare TopD_def [eval,evalr,evalrx]
 declare DesignD_def [eval,evalr,evalrx]
 declare J_pred_def [eval,evalr,evalrx]
 declare SkipD_def [eval,evalr,evalrx]
+declare AssignD_def [eval,evalr,evalrx]
 declare ParallelD_def [eval,evalr,evalrx]
 
 syntax
@@ -80,6 +85,7 @@ syntax
   "_upred_ok_true"  :: "upred \<Rightarrow> upred" ("_\<^sup>t" [1000] 1000)
   "_upred_ok_false" :: "upred \<Rightarrow> upred" ("_\<^sup>f" [1000] 1000)
   "_upred_SkipD"    :: "upred" ("II\<^sub>D")
+  "_upred_assignd"  :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> upred" ("_ :=\<^sub>D _" [100] 100)
   "_upred_J"        :: "upred" ("J")
   "_upred_parallel" :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infix "\<parallel>" 50)
 
@@ -90,6 +96,7 @@ translations
   "_upred_ok_true p"    == "CONST ok_true p"
   "_upred_ok_false p"   == "CONST ok_false p"
   "_upred_SkipD"        == "CONST SkipD"
+  "_upred_assignd x v"  == "CONST AssignD x\<down> v\<down>"
   "_upred_J"            == "CONST J_pred"
   "_upred_parallel P Q" == "CONST ParallelD P Q"
 
@@ -147,6 +154,11 @@ lemma SkipD_rel_closure [closure]:
   "II\<^sub>D \<in> WF_RELATION"
   by (auto intro:closure simp add:SkipD_def)
 
+lemma AssignD_rel_closure [closure]:
+  "\<lbrakk> x \<in> UNDASHED; NON_REL_VAR \<union> OKAY \<sharp> v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow>
+     x :=\<^sub>D v \<in> WF_RELATION"
+  by (auto intro!:DesignD_rel_closure intro:closure simp add:AssignD_def)
+
 theorem J_closure [closure]:
   "J \<in> WF_RELATION"
   by (simp add:J_pred_def closure)
@@ -190,6 +202,18 @@ theorem DesignD_commitment:
 theorem DesignD_export_precondition:
   "(P \<turnstile> Q) = (P \<turnstile> P \<and>\<^sub>p Q)"
   by (utp_pred_tac)
+
+theorem DesignD_embed_right: 
+  "`P \<turnstile> (Q \<turnstile> R)` = `P \<turnstile> (Q \<Rightarrow> R)`"
+  by (utp_pred_auto_tac)
+
+theorem DesignD_SkipD_right:
+  "`P \<turnstile> II\<^sub>D` = `P \<turnstile> II\<^bsub>REL_VAR - OKAY\<^esub>`"
+  by (simp add:SkipD_def DesignD_embed_right)
+
+theorem DesignD_AssignD_right:
+  "P \<turnstile> (x :=\<^sub>D v) = P \<turnstile> x :=\<^bsub>(REL_VAR - OKAY) \<^esub>v"
+  by (simp add:AssignD_def DesignD_embed_right)
 
 text {* Design refinement law *}
 
@@ -355,6 +379,41 @@ theorem DesignD_composition_wp:
   shows "`(p1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `(p1 \<and> (Q1 wp P2)) \<turnstile> (Q1 ; Q2)`"
   by (simp add: DesignD_composition_cond closure WeakPrecondP_def assms)
 
+theorem AssignD_idem :
+  assumes 
+    "x \<in> UNDASHED" 
+    "x \<notin> OKAY"
+    "OKAY \<union> NON_REL_VAR \<union> DASHED \<union> {x} \<sharp> v"
+    "v \<rhd>\<^sub>e x"
+  shows "(x :=\<^sub>D v ; x :=\<^sub>D v) = x :=\<^sub>D v"
+  using assms
+  apply (simp add:AssignD_def)
+  apply (subst DesignD_composition_wp)
+  apply (simp_all add:closure unrest wp typing defined UNREST_EXPR_subset)
+  apply (rule closure)
+  apply (simp_all)
+  apply (rule UNREST_EXPR_subset)
+  apply (simp)
+  apply (auto)[1]
+  apply (rule unrest)
+  apply (simp_all)
+  apply (rule UNREST_EXPR_subset)
+  apply (simp)
+  apply (auto)[1]
+  apply (subst AssignRA_idem)
+  apply (simp_all)
+  apply (metis dash_elim)
+  apply (rule UNREST_EXPR_subset)
+  apply (simp)
+  apply (auto)[1]
+  apply (rule UNREST_EXPR_subset)
+  apply (simp)
+  apply (auto)[1]
+  apply (rule HOMOGENEOUS_minus)
+  apply (simp_all)
+  apply (smt HOMOGENEOUS_empty HOMOGENEOUS_insert MkPlainP_UNDASHED PVAR_VAR_PUNDASHED_UNDASHED)
+done
+  
 theorem ParallelD_DesignD:
   assumes 
     "OKAY \<sharp> P1" 

@@ -68,7 +68,7 @@ text {* Now we declare the operations of the
 bit-register. \texttt{INIT} initialises the state variables to 0. *}
 
 definition "INIT = 
-  `true \<turnstile> (reg := 0)`"
+  `true \<turnstile> (reg :=\<^sub>D 0)`"
 
 text {* \texttt{LOAD} sets the register to a particular value. *}
 
@@ -116,6 +116,53 @@ begins the recursive behaviour described by \texttt{REG}. *}
 
 definition
   "MainAction = `init -> (INIT() ; REG)`"
+
+lemma MkVarD_PUNDASHED [closure]:
+  "MkVarD n a \<in> PUNDASHED"
+  by (simp add:MkVarD_def PUNDASHED_def PVAR_VAR_MkPVAR)
+
+lemma NumD_defined [defined]:
+  "\<D> (NumD n)"
+  by (simp add:NumD_def defined)
+
+lemma UNREST_PEXPR_NumD [unrest]:
+  "vs \<sharp> NumD n"
+  by (metis NumD_def UNREST_LitPE)
+
+(*
+lemma "\<lbrakk> x \<in> UNDASHED; v \<rhd>\<^sub>e x; x \<notin> vs; x\<acute> \<notin> vs; vs \<sharp> v; vs \<sharp> v\<acute> \<rbrakk> \<Longrightarrow> vs \<sharp> (x :=\<^sub>R v)"
+  apply (simp add:AssignR_alt_def)
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (simp_all)
+  apply (rule unrest)
+  apply (simp ad
+*)
+
+
+
+lemma INIT_idem:
+  "INIT ; INIT = INIT"
+  apply (simp add:INIT_def)
+  apply (subst DesignD_composition_wp)
+  apply (simp_all add:closure unrest wp)
+  apply (simp add:closure defined typing unrest)
+  defer
+  apply (simp add: AssignR_idem_simple closure unrest typing defined)
+  apply (simp add:closure)
+  apply (simp add:unrest typing)
+  apply (simp add:unrest typing)
+  apply (simp add:unrest typing defined)
+  apply (simp)
+  nitpick
+  apply (rule unrest)
+
+
+
+  thm DesignD_composi
+  apply (rule DesignD_composition)
+  apply (utp_rel_auto_tac)
 
 (*<*)
 end
