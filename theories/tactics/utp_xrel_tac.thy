@@ -424,6 +424,12 @@ theorem EvalRX_AssignR_alt [evalrx] :
   apply (auto)
 done
 
+(*
+theorem EvalRX_AssignRA [evalrx] :
+"\<lbrakk> x \<in> UNDASHED; e \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<union> NON_REL_VAR) e \<rbrakk> \<Longrightarrow> 
+  \<lbrakk>x :=\<^bsub>vs\<^esub> e\<rbrakk>RX = {(b, b(x:=\<^sub>x(\<lbrakk>e\<rbrakk>\<^sub>e \<langle>b\<rangle>\<^sub>x))) | b. True}"
+*)
+
 lemma EvalRX_ExprP_UNDASHED [evalrx]:
   "UNREST_EXPR (DASHED \<union> NON_REL_VAR) e \<Longrightarrow> \<lbrakk>ExprP e\<rbrakk>RX = {(b1, b2) | b1 b2. DestBool (\<lbrakk>e\<rbrakk>\<^sub>e\<langle>b1\<rangle>\<^sub>x) }"
   apply (auto simp add:EvalRX_def ExprP_def LiftP_def BindRX_def EvalE_def image_def)

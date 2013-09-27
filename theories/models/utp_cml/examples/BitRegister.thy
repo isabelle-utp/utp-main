@@ -17,10 +17,35 @@ text {* The ``bit-register'' is a simple process which performs
 arithmetic calculations on a byte state variable. It detects overflow
 and underflow if and when it occurs and informs the user. A byte is
 represented as a integer with the invariant that the value must be
-between 0 and 255. *}
+between 0 and 255.*}
 
 abbreviation 
   "Byte \<equiv> \<parallel>@int inv n == (^n^ >= 0) and (^n^ <= 255)\<parallel>"
+
+text {* We can now prove some simple membership theorems for
+\texttt{Byte}. For instance the following lemma states that 1 is 
+a \texttt{Byte}: *}
+
+lemma Byte_1: 
+  "|1 hasType @Byte| = |true|"
+  by (cml_tac)
+
+text {* We discharge this theorem by application of \textsf{cml\_tac},
+a tactic for solving logical tautologies over CML
+expressions. Internally this compiles the expression down to a HOL
+expression and then uses standard Isabelle rules to discharge
+it. Likewise we can show that 64 is a \texttt{Byte}: *}
+
+lemma Byte_64: 
+  "|64 hasType @Byte| = |true|"
+  by (cml_tac)
+
+text {* In contrast, 512 is not a \texttt{Byte} as it is over 255, as
+shown below: *}
+
+lemma not_Byte_512:
+  "|512 hasType @Byte| = |false|"
+  by (cml_tac)
 
 text {* The bit-register has two functions: \texttt{oflow} for
 detecting overflow caused by a summation, and \texttt{uflow} for
@@ -31,8 +56,25 @@ in CML are desugared to lambda terms . *}
 definition 
   "oflow = |lambda d @ (^d^.#1 + ^d^.#2) > 255|"
 
+(*<*)declare oflow_def [evalp](*>*)
+
 definition 
   "uflow = |lambda d @ (^d^.#1 - ^d^.#2) < 0|"
+
+(*<*)declare uflow_def [evalp](*>*)
+
+text {* For example an overflow can occur if we try to add together
+200 and 100, as proved below: *}
+
+lemma oflow_ex1:
+  "|oflow(200,100)| = |true|"
+  by (cml_tac)
+
+text {* On the other hand it is fine to add 150 and 100: *}
+
+lemma oflow_ex2:
+  "|oflow(150,100)| = |false|"
+  by (cml_tac)
 
 text {* Next we declare the channels for the bit-register, of which
 there are seven. Channels in CML can carry data so they all take a
@@ -68,7 +110,7 @@ text {* Now we declare the operations of the
 bit-register. \texttt{INIT} initialises the state variables to 0. *}
 
 definition "INIT = 
-  `true \<turnstile> (reg :=\<^sub>D 0)`"
+  `true \<turnstile> (reg := 0)`"
 
 text {* \texttt{LOAD} sets the register to a particular value. *}
 
@@ -116,53 +158,6 @@ begins the recursive behaviour described by \texttt{REG}. *}
 
 definition
   "MainAction = `init -> (INIT() ; REG)`"
-
-lemma MkVarD_PUNDASHED [closure]:
-  "MkVarD n a \<in> PUNDASHED"
-  by (simp add:MkVarD_def PUNDASHED_def PVAR_VAR_MkPVAR)
-
-lemma NumD_defined [defined]:
-  "\<D> (NumD n)"
-  by (simp add:NumD_def defined)
-
-lemma UNREST_PEXPR_NumD [unrest]:
-  "vs \<sharp> NumD n"
-  by (metis NumD_def UNREST_LitPE)
-
-(*
-lemma "\<lbrakk> x \<in> UNDASHED; v \<rhd>\<^sub>e x; x \<notin> vs; x\<acute> \<notin> vs; vs \<sharp> v; vs \<sharp> v\<acute> \<rbrakk> \<Longrightarrow> vs \<sharp> (x :=\<^sub>R v)"
-  apply (simp add:AssignR_alt_def)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (simp_all)
-  apply (rule unrest)
-  apply (simp ad
-*)
-
-
-
-lemma INIT_idem:
-  "INIT ; INIT = INIT"
-  apply (simp add:INIT_def)
-  apply (subst DesignD_composition_wp)
-  apply (simp_all add:closure unrest wp)
-  apply (simp add:closure defined typing unrest)
-  defer
-  apply (simp add: AssignR_idem_simple closure unrest typing defined)
-  apply (simp add:closure)
-  apply (simp add:unrest typing)
-  apply (simp add:unrest typing)
-  apply (simp add:unrest typing defined)
-  apply (simp)
-  nitpick
-  apply (rule unrest)
-
-
-
-  thm DesignD_composi
-  apply (rule DesignD_composition)
-  apply (utp_rel_auto_tac)
 
 (*<*)
 end

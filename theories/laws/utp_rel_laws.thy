@@ -529,7 +529,6 @@ text {* The following theorems show that an existential may be inserted or
    FIXME: The new tactics probably make these proofs much easier and cleaner...
  *)
 
-
 theorem SemiR_ExistsP_left:
   assumes
     "DASHED_TWICE \<sharp> p" 
@@ -972,6 +971,67 @@ proof (simp add:SkipRA_def AssignRA_def AssignR_alt_def)
     by (smt ExistsP_AndP_expand2 ExistsP_union Un_empty_right Un_insert_right union_minus)
 qed
 
+lemma EvalR_AssignRA:
+  assumes 
+    "x \<in> vs" 
+    "x\<acute> \<in> vs" 
+    "x \<in> UNDASHED"
+    "vs \<subseteq> UNDASHED \<union> DASHED" 
+    "HOMOGENEOUS vs"
+    "DASHED \<union> NON_REL_VAR \<sharp> v" 
+    "(REL_VAR - vs) \<sharp> v" 
+    "v \<rhd>\<^sub>e x"
+  shows "\<lbrakk>x :=\<^bsub>vs\<^esub> v\<rbrakk>R = { (b1 \<oplus>\<^sub>b bc on DASHED, b2 \<oplus>\<^sub>b bc on DASHED) 
+                       | b1 b2. b1 \<cong> b2 on (in vs - {x}) 
+                              \<and> b1 \<cong> b2 on NON_REL_VAR 
+                              \<and> \<langle>b2\<rangle>\<^sub>b x = \<lbrakk>v\<rbrakk>\<^sub>eb1}"
+proof -
+  have "(vs - {x,x\<acute>}) \<subseteq> REL_VAR"
+    by (metis Diff_subset assms(4) subset_trans)
+
+  with assms show ?thesis
+    apply (simp add: AssignRA_alt_def EvalR_AndP EvalR_SkipRA' EvalR_EqualP_alt evale BindR_def)
+    apply (auto)
+    apply (rule_tac x="b" in exI)
+    apply (simp)
+    apply (rule_tac x="b'" in exI)
+    apply (simp add:var_dist)
+    apply (metis (hide_lams, mono_tags) EvalE_def UNDASHED_DASHED_minus(1) UNREST_EXPR_member binding_equiv_def binding_override_equiv1 binding_override_minus binding_override_simps(2) binding_override_simps(3) binding_override_simps(5) minus_DASHED_NON_REL_VAR)
+    apply (rule_tac x="b1" in exI)
+    apply (simp)
+    apply (rule_tac x="b2" in exI)
+    apply (simp add:var_dist)
+  done
+qed
+
+lemma binding_override_left_eq: 
+  "b1 \<cong> b2 on vs2 \<Longrightarrow> b1 \<oplus>\<^sub>b b3 on vs1 \<cong> b2 \<oplus>\<^sub>b b3 on vs1 on vs2"
+  by (auto simp add:binding_equiv_def override_on_def)
+
+lemma EvalR_AssignRA_alt [evalr]:
+  assumes 
+    "x \<in> vs" 
+    "x\<acute> \<in> vs" 
+    "x \<in> UNDASHED"
+    "vs \<subseteq> UNDASHED \<union> DASHED" 
+    "HOMOGENEOUS vs"
+    "DASHED \<union> NON_REL_VAR \<sharp> v" 
+    "(REL_VAR - vs) \<sharp> v" 
+    "v \<rhd>\<^sub>e x"
+  shows "\<lbrakk>x :=\<^bsub>vs\<^esub> v\<rbrakk>R = { (b1, b2) 
+                       . b1 \<cong> b2 on (in vs - {x}) 
+                       \<and> b1 \<cong> b2 on NON_REL_VAR 
+                       \<and> b1 \<cong> bc on DASHED
+                       \<and> b2 \<cong> bc on DASHED
+                       \<and> \<langle>b2\<rangle>\<^sub>b x = \<lbrakk>v\<rbrakk>\<^sub>eb1}"
+  apply (simp add: EvalR_AssignRA assms)
+  apply (auto)
+  apply (rule binding_override_left_eq, simp)
+  apply (rule binding_override_left_eq, simp add:assms)
+  apply (metis EvalE_UNREST_override UNDASHED_not_DASHED UNREST_EXPR_unionE assms(3) assms(6) override_on_def)
+  apply (metis binding_override_equiv)
+done
+
 theorem AssignRA_SemiR_left:
   assumes 
     "x \<in> UNDASHED" 
@@ -1054,6 +1114,28 @@ using assms
 done
 
 theorem AssignRA_idem :
+  assumes 
+    "x \<in> vs" 
+    "x\<acute> \<in> vs" 
+    "x \<in> UNDASHED"
+    "vs \<subseteq> UNDASHED \<union> DASHED" 
+    "HOMOGENEOUS vs"
+    "DASHED \<union> NON_REL_VAR \<sharp> v" 
+    "(REL_VAR - vs) \<sharp> v" 
+    "{x} \<sharp> v"
+    "v \<rhd>\<^sub>e x"
+  shows "x :=\<^bsub>vs\<^esub> v ; x :=\<^bsub>vs\<^esub> v = x :=\<^bsub>vs\<^esub> v"
+  using assms
+  apply (utp_rel_tac)
+  apply (simp add:relcomp_unfold)
+  apply (safe)
+  apply (metis binding_equiv_trans)
+  apply (metis binding_equiv_trans)
+  apply (simp)
+oops
+
+(*
+theorem AssignRA_idem :
   assumes
     "x \<in> vs" 
     "x\<acute> \<in> vs" 
@@ -1105,45 +1187,7 @@ proof -
     apply (metis SS_DASHED_app dash_undash_DASHED)
     apply (metis SS_ident_app)
   done
-
-  moreover from assms have "NON_REL_VAR \<sharp> v"
-    apply (rule_tac UNREST_EXPR_subset)
-    apply (simp) back
-    apply (safe, auto)
-  done
-
-  ultimately show ?thesis using assms
-    apply (subgoal_tac "REL_VAR - vs \<sharp> v")
-    apply (simp add: AssignRA_alt_def)
-    apply (subst SemiR_right_one_point)
-    apply (simp_all add:closure typing)
-    apply (rule closure)
-    apply (auto)[1]
-    apply (rule closure)
-    apply (rule closure)
-    apply (auto)[1]
-    apply (rule closure)
-    apply (simp add:unrest)
-    apply (simp add:unrest)
-    apply (simp add:unrest)
-    apply (metis (full_types) Diff_cancel UNREST_EXPR_subset diff_single_insert empty_subsetI)
-    apply (subgoal_tac "{x} \<sharp> v\<acute>")
-    apply (simp add:usubst typing defined) 
-    apply (subst SemiR_SkipRA_left)
-    apply (rule unrest)
-    apply (metis (hide_lams, no_types) Diff_Int Diff_cancel SkipRA.rep_eq UNREST_ExistsP_simple Un_empty_left Un_upper1 in_vars_def inf_commute union_minus)
-    apply (rule unrest) back
-    apply (metis UNDASHED_dash_not_UNDASHED UNREST_EXPR_VarE UNREST_EqualP UNREST_UNDASHED_PrimeE)
-    apply (simp add:var_dist)
-    apply (rule unrest)
-    apply (simp_all add:unrest)
-    apply (rule UNREST_subset)
-    apply (rule unrest) back back back back
-    apply (safe)
-  sorry
-
-qed
-
+*)
 
 subsubsection {* Variable Laws *}
 

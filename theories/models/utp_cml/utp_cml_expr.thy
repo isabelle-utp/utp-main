@@ -417,10 +417,13 @@ declare Inject_bool_def [eval,evale,evalp]
 
 subsection {* @{term UNREST_PEXPR} theorems *}
 
+lemma MkVarD_PUNDASHED [closure]:
+  "MkVarD n a \<in> PUNDASHED"
+  by (simp add:MkVarD_def PUNDASHED_def PVAR_VAR_MkPVAR)
+
 lemma UNREST_PEXPR_BotDE [unrest]: 
   "UNREST_PEXPR vs \<bottom>\<^sub>v"
   by (simp add:UNREST_PEXPR_def evalp)
-
 
 lemma UNREST_PEXPR_ForallD [unrest]:
   "\<forall> e. UNREST_PEXPR vs (f e) \<Longrightarrow> UNREST_PEXPR vs (ForallD xs f)"
@@ -459,6 +462,10 @@ done
 lemma UNREST_PEXPR_CoerceD [unrest]:
   "\<lbrakk> UNREST_PEXPR vs x \<rbrakk> \<Longrightarrow> UNREST_PEXPR vs (CoerceD x t)"
   by (auto simp add:UNREST_PEXPR_def CoerceD_def)
+
+lemma UNREST_PEXPR_NumD [unrest]:
+  "vs \<sharp> NumD n"
+  by (metis NumD_def UNREST_LitPE)
 
 subsection {* Substitution theorems *}
 
@@ -512,6 +519,10 @@ subsection {* Definedness theorems *}
 lemma LitD_defined [defined]:
   "\<D> (LitD v)"
   by (simp add:Defined_option_def Defined_WF_PEXPRESSION_def evalp)
+
+lemma NumD_defined [defined]:
+  "\<D> (NumD n)"
+  by (simp add:NumD_def defined)
 
 lemma BotDE_not_defined [defined]:
   "\<D> \<bottom>\<^sub>v = False"

@@ -347,6 +347,51 @@ theorem EvalR_SkipRA [evalr] :
  \<lbrakk>II\<^bsub>vs\<^esub>\<rbrakk>R = { BindR b | b. \<forall>v\<in>in vs. \<langle>b\<rangle>\<^sub>b v = \<langle>b\<rangle>\<^sub>b (v\<acute>)}"
   by (simp add:EvalR_def SkipRA_rep_eq_alt image_Collect BindR_def)
 
+lemma binding_override_eq_intro:
+  "\<lbrakk> b1 \<cong> b3 on - vs
+   ; b2 \<cong> b4 on vs \<rbrakk> \<Longrightarrow>
+  b1 \<oplus>\<^sub>b b2 on vs = b3 \<oplus>\<^sub>b b4 on vs"
+  by (metis binding_equiv_override binding_override_minus)
+
+lemma binding_equiv_union_intro:
+  "\<lbrakk> b1 \<cong> b2 on vs1; b1 \<cong> b2 on vs2 \<rbrakk> \<Longrightarrow>
+     b1 \<cong> b2 on vs1 \<union> vs2" 
+  by (auto simp add:binding_equiv_def)
+
+lemma binding_equiv_UNDASHED_overshadow:
+  "b1 \<cong> b2 \<oplus>\<^sub>b b3 on UNDASHED on NON_REL_VAR = b1 \<cong> b2 on NON_REL_VAR"
+  by (auto simp add:binding_equiv_def override_on_def)
+
+theorem EvalR_SkipRA' :
+"\<lbrakk> vs \<subseteq> UNDASHED \<union> DASHED; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow>
+ \<lbrakk>II\<^bsub>vs\<^esub>\<rbrakk>R = { (b \<oplus>\<^sub>b bc on DASHED, b' \<oplus>\<^sub>b bc on DASHED) 
+           | b b'. b \<cong> b' on in vs \<and> b \<cong> b' on NON_REL_VAR}"
+  apply (auto simp add:EvalR_SkipRA BindR_def)
+  apply (rule_tac x="b" in exI)
+  apply (simp)
+  apply (rule_tac x="SS\<bullet>b" in exI)
+  apply (auto)
+  apply (auto simp add:binding_equiv_def)[1]
+  apply (metis SS_UNDASHED_app in_UNDASHED in_mono)
+  apply (auto simp add:binding_equiv_def)[1]
+  apply (metis SS_NON_REL_VAR)
+  apply (rule_tac x="b \<oplus>\<^sub>b SS\<bullet>b' on DASHED" in exI)
+  apply (simp add: RenameB_override_distr1 urename closure)
+  apply (auto)
+  apply (rule binding_override_eq_intro)
+  apply (subgoal_tac "(- DASHED :: 'a VAR set) = UNDASHED \<union> NON_REL_VAR")
+  apply (simp)
+  apply (rule binding_equiv_union_intro)
+  apply (metis binding_equiv_comm binding_override_equiv1)
+  apply (simp add: binding_equiv_UNDASHED_overshadow)
+  apply (metis NON_REL_VAR_def RenameB_equiv_VAR_RENAME_ON_2 SS_VAR_RENAME_ON binding_equiv_comm binding_equiv_trans double_compl)
+  apply (auto)[1]
+  apply (simp)
+  apply (auto simp add:override_on_def)
+  apply (metis SS_DASHED_app binding_equiv_def undash_dash)
+  apply (metis UNDASHED_dash_DASHED in_UNDASHED in_mono)
+done
+
 lemma EvalP_AssignR1 [eval]:
   "e \<rhd>\<^sub>e x \<Longrightarrow> \<lbrakk>x :=\<^sub>R e\<rbrakk>b = (\<forall> v \<in> UNDASHED. if (v = x) then \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<lbrakk>e\<rbrakk>\<^sub>eb else \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>b\<rangle>\<^sub>b v)"
   by (simp add:EvalP_def EvalE_def AssignsR.rep_eq IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq)
@@ -864,6 +909,21 @@ lemma "VarP ok \<Rightarrow>p VarP ok\<acute> ; VarP ok \<Rightarrow>p VarP ok\<
   apply (simp add:evalr)
 *)
 
+lemma EvalR_EqualP_alt:
+  "\<lbrakk> x \<in> UNDASHED; (DASHED \<union> NON_REL_VAR) \<sharp> v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow>
+   \<lbrakk>($\<^sub>ex\<acute> ==\<^sub>p v)\<rbrakk>R = { (b1 \<oplus>\<^sub>b bc on DASHED, b2 \<oplus>\<^sub>b bc on DASHED) 
+                     | b1 b2. \<langle>b2\<rangle>\<^sub>b x = \<lbrakk>v\<rbrakk>\<^sub>eb1 \<and> b1 \<cong> b2 on NON_REL_VAR }"
+  apply (auto simp add:EvalR_EqualP evale BindR_def)
+
+  apply (auto simp add:EvalR_def EqualP_def BindR_def image_def EvalE_def VarE.rep_eq)
+  apply (metis (hide_lams, mono_tags) CompB_def CompB_rep_eq NON_REL_VAR_def RenameB_def SS_REL_VAR_overshadow SS_UNDASHED_app SS_inv binding_override_equiv2 binding_override_simps(2) comp_apply)
+  apply (rule_tac x="b1 \<oplus>\<^sub>b (SS\<bullet>b2) on DASHED" in exI)
+  apply (auto simp add:urename RenameB_override_distr1 closure)
+  apply (rule binding_override_eq_intro)
+  apply (metis NON_REL_VAR_def SS_REL_VAR_overshadow binding_equiv_override binding_equiv_trans binding_override_equiv1 binding_override_minus binding_override_simps(1) binding_override_simps(2))
+  apply (simp)
+done
+
 lemma AssignR_alt_def: 
   "\<lbrakk>v \<rhd>\<^sub>e x ; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> x :=\<^sub>R v = ($\<^sub>ex\<acute> ==\<^sub>p v) \<and>\<^sub>p II\<^bsub>REL_VAR - {x,x\<acute>}\<^esub>"
   apply (simp add:SkipRA_def)
@@ -877,5 +937,7 @@ lemma AssignR_alt_def:
   apply (drule_tac x="va" in bspec, simp_all)
   apply (metis UNDASHED_eq_dash_contra undash_dash)
 done
+
+
 
 end

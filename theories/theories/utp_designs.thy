@@ -8,7 +8,7 @@ header {* UTP Designs *}
 
 theory utp_designs
 imports 
-  utp_base
+  "../utp_base"
 begin
 
 text {* Most predicates need a boolean type, so we here set the appropriate sort constraint *}
@@ -379,6 +379,7 @@ theorem DesignD_composition_wp:
   shows "`(p1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `(p1 \<and> (Q1 wp P2)) \<turnstile> (Q1 ; Q2)`"
   by (simp add: DesignD_composition_cond closure WeakPrecondP_def assms)
 
+(*
 theorem AssignD_idem :
   assumes 
     "x \<in> UNDASHED" 
@@ -413,7 +414,8 @@ theorem AssignD_idem :
   apply (simp_all)
   apply (smt HOMOGENEOUS_empty HOMOGENEOUS_insert MkPlainP_UNDASHED PVAR_VAR_PUNDASHED_UNDASHED)
 done
-  
+*)
+
 theorem ParallelD_DesignD:
   assumes 
     "OKAY \<sharp> P1" 
@@ -954,7 +956,7 @@ abbreviation "WF_DESIGN \<equiv> THEORY_PRED DESIGNS"
 lemma DESIGNS_WF_RELATION [closure]:
   "p \<in> WF_DESIGN \<Longrightarrow> p \<in> WF_RELATION"
   apply (auto simp add:THEORY_PRED_def DESIGNS.rep_eq utp_alphabets_def WF_RELATION_def)
-  apply (metis (mono_tags) Compl_Diff_eq UNDASHED_DASHED_inter(15) UNREST_subset Un_empty_left VAR_subset compl_le_swap1 double_compl subset_empty)
+  apply (rule UNREST_subset, auto)
 done
 
 lemma DESIGNS_H1 [closure]:
