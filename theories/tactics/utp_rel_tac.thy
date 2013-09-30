@@ -51,6 +51,14 @@ definition WF_REL_BINDING :: "'VALUE WF_BINDING set" where
 "WF_REL_BINDING = {b \<oplus>\<^sub>b bc on DASHED | b . b \<in> UNIV}"
 abbreviation "WF_REL \<equiv> WF_REL_BINDING \<times> WF_REL_BINDING"
 
+lemma WF_REL_BINDING_bc_DASHED:
+  "b \<in> WF_REL_BINDING \<Longrightarrow> b \<cong> bc on DASHED"
+  by (auto simp add:WF_REL_BINDING_def)
+
+lemma WF_REL_BINDING_override_closure [closure]:
+  "b \<oplus>\<^sub>b bc on DASHED \<in> WF_REL_BINDING"
+  by (auto simp add:WF_REL_BINDING_def)
+
 typedef 'VALUE WF_REL_BINDING = "WF_REL_BINDING :: 'VALUE WF_BINDING set"
   morphisms DestRelB MkRelB
   by (auto simp add:WF_REL_BINDING_def)

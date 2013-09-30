@@ -14,18 +14,31 @@ imports
 begin
 
 definition ACP1 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"ACP1 P = `P \<and> ( ok \<and> ($tr =$tr\<acute>) \<Rightarrow> $wait\<acute>)` "
+"ACP1 P = `P \<and> (ok \<and> ($tr = $tr\<acute>) \<Rightarrow> $wait\<acute>)` "
 
-lemma ACP1_idempotent : "ACP1 (ACP1 P) = ACP1 P" by (simp add:ACP1_def, utp_pred_tac)
+lemma ACP1_idempotent: "ACP1(ACP1(P)) = ACP1(P)" 
+  by (simp add:ACP1_def, utp_pred_tac)
 
-lemma ACP1_monotonic : "[P \<Rightarrow> Q] \<Longrightarrow> [ACP1(P) \<Rightarrow> ACP1(Q)]" by(simp add:ACP1_def, utp_pred_auto_tac)
+lemma ACP1_monotonic: 
+  "[P \<Rightarrow> Q] \<Longrightarrow> [ACP1(P) \<Rightarrow> ACP1(Q)]" 
+  by (simp add:ACP1_def, utp_pred_auto_tac)
 
-lemma ACP1_R1_commute : "ACP1 (R1 P) = R1 (ACP1 P)" by (simp add:ACP1_def, utp_pred_auto_tac)
-lemma ACP1_R2_commute : "ACP1 (R2 P) = R2 (ACP1 P)" 
+lemma ACP1_R1_commute: 
+  "ACP1(R1(P)) = R1(ACP1(P))" 
+  by (simp add:ACP1_def, utp_pred_auto_tac)
+
+lemma ACP1_R2_commute : "ACP1(R2(P)) = R2(ACP1(P))" 
 proof -
-have "R2 (ACP1 P) = `R2(P) \<and> (ok \<and> \<langle>\<rangle> = ($tr\<acute> - $tr) \<Rightarrow> $wait\<acute>)`"by(simp add:ACP1_def R2_def R2s_def usubst typing defined closure, utp_pred_auto_tac)
-also have "... = `R2(P) \<and> (ok \<and> ($tr = $tr\<acute>) \<Rightarrow> $wait\<acute>)`"by(simp add: helper4, utp_pred_auto_tac)
-finally show ?thesis by(simp add:ACP1_def) 
+  have "R2(ACP1(P)) = `R2(P) \<and> (ok \<and> \<langle>\<rangle> = ($tr\<acute> - $tr) \<Rightarrow> $wait\<acute>)`"
+    by (simp add:ACP1_def R2_def R2s_def usubst typing defined closure, utp_pred_auto_tac)
+
+  also have "... = `R2(P) \<and> (ok \<and> ($tr = $tr\<acute>) \<Rightarrow> $wait\<acute>)`"
+    apply (simp add:helper4)
+    apply (utp_pred_auto_tac)
+  done
+
+  finally show ?thesis 
+    by (simp add:ACP1_def) 
 qed
 
 lemma ACP1_R3_commute : "ACP1 (R3 P) = R3 (ACP1 P)" 

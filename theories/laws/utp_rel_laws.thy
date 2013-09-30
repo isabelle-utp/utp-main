@@ -971,14 +971,6 @@ proof (simp add:SkipRA_def AssignRA_def AssignR_alt_def)
     by (smt ExistsP_AndP_expand2 ExistsP_union Un_empty_right Un_insert_right union_minus)
 qed
 
-lemma WF_REL_BINDING_bc_DASHED:
-  "b \<in> WF_REL_BINDING \<Longrightarrow> b \<cong> bc on DASHED"
-  by (auto simp add:WF_REL_BINDING_def)
-
-lemma WF_REL_BINDING_override_closure [closure]:
-  "b \<oplus>\<^sub>b bc on DASHED \<in> WF_REL_BINDING"
-  by (auto simp add:WF_REL_BINDING_def)
-
 lemma EvalR_EqualP_alt':
   "\<lbrakk> x \<in> UNDASHED; (DASHED \<union> NON_REL_VAR) \<sharp> v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow>
    \<lbrakk>$\<^sub>ex\<acute> ==\<^sub>p v\<rbrakk>R = { (b1, b2). \<langle>b2\<rangle>\<^sub>b x = \<lbrakk>v\<rbrakk>\<^sub>eb1 \<and> b1 \<cong> b2 on NON_REL_VAR 
@@ -988,10 +980,6 @@ lemma EvalR_EqualP_alt':
   apply (metis binding_equiv_override_subsume binding_override_equiv binding_override_equiv1 binding_override_minus binding_override_simps(1) minus_UNDASHED_NON_REL_VAR)
   apply (metis WF_REL_BINDING_bc_DASHED binding_override_equiv)
 done
-
-lemma binding_override_left_eq: 
-  "b1 \<cong> b2 on vs2 \<Longrightarrow> b1 \<oplus>\<^sub>b b3 on vs1 \<cong> b2 \<oplus>\<^sub>b b3 on vs1 on vs2"
-  by (auto simp add:binding_equiv_def override_on_def)
 
 lemma EvalR_SkipRA'' :
 "\<lbrakk> vs \<subseteq> UNDASHED \<union> DASHED; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow>

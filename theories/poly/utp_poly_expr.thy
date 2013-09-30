@@ -13,6 +13,8 @@ imports
   "../core/utp_expr"
   "../tactics/utp_expr_tac"
   "../core/utp_rel"
+  "../tactics/utp_rel_tac"
+  "../tactics/utp_xrel_tac"
   utp_poly_value
   utp_poly_var
 begin
@@ -939,6 +941,20 @@ lemma PUNDASHED_WF_CONDITION[closure]:
   "x \<in> PUNDASHED \<Longrightarrow> VarP (x\<down>) \<in> WF_CONDITION"
   by (metis PVAR_VAR_PUNDASHED_UNDASHED VarP_cond_closure)
 
+(* Add support for polymorphic expressions to the relational tactic *)
+
+lemma EvalR_PExprP [evalr]: 
+  "NON_REL_VAR \<sharp> e \<Longrightarrow>
+   \<lbrakk>e\<down>\<rbrakk>R = {(b, b'). \<lbrakk>e\<rbrakk>\<^sub>* (b \<oplus>\<^sub>b SS\<bullet>b' on DASHED) \<and> b \<in> WF_REL_BINDING \<and> b' \<in> WF_REL_BINDING \<and> b \<cong> b' on NON_REL_VAR}"
+  apply (simp add:EvalR_as_EvalP EvalP_PExprP)
+  apply (auto simp add:BindR_def urename typing defined closure RenameB_override_distr1)
+  apply (metis RenameB_equiv_VAR_RENAME_ON_2 SS_VAR_RENAME_ON UNDASHED_DASHED_inter(16) binding_override_left_eq)
+  apply (rule_tac x="xa \<oplus>\<^sub>b SS\<bullet>y on DASHED" in exI)
+  apply (auto simp add:BindR_def urename typing defined closure RenameB_override_distr1)
+  apply (metis WF_REL_BINDING_bc_DASHED binding_override_equiv)
+  apply (metis (lifting, no_types) NON_REL_VAR_def SS_REL_VAR_overshadow WF_REL_BINDING_bc_DASHED binding_override_assoc binding_override_equiv binding_override_overshadow2 binding_override_simps(2))
+done
+
 (*
 subsection {* Anciliary Laws *}
 
@@ -951,4 +967,11 @@ lemma MkInt_compat_int [typing]:
   by (simp add:var_compat_def typing defined)
 *)
  
+declare NilUL.rep_eq [evalp]
+declare ConsUL_rep_eq [evalp]
+declare AppendUL.rep_eq [evalp]
+declare MinusUL.rep_eq [evalp]
+declare PrefixUL.rep_eq [evalp]
+declare PrefixeqUL.rep_eq [evalp]
+
 end

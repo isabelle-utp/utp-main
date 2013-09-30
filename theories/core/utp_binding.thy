@@ -267,6 +267,10 @@ theorem binding_override_on_eq :
  (\<forall> x . x \<notin> a \<longrightarrow> \<langle>f1\<rangle>\<^sub>bx = \<langle>f2\<rangle>\<^sub>bx)"
   by (simp add:binding_override_on_def Abs_WF_BINDING_inject closure override_on_eq)
 
+lemma binding_override_left_eq: 
+  "b1 \<cong> b2 on vs2 \<Longrightarrow> b1 \<oplus>\<^sub>b b3 on vs1 \<cong> b2 \<oplus>\<^sub>b b3 on vs1 on vs2"
+  by (auto simp add:binding_equiv_def override_on_def)
+
 text {* Transfer override theorems *}
 
 lemma binding_override_simps [simp]:
