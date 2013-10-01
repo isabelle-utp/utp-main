@@ -141,6 +141,14 @@ definition MergeCSP ::
                  ($ref\<acute> = $ref\<^bsub>0\<^esub>\<acute> \<union> $ref\<^bsub>1\<^esub>\<acute>) \<and> 
                  (($tr\<acute> - $tr) \<in> ($tr\<^bsub>0\<^esub> - $tr) \<parallel>\<^bsub>A \<^esub>($tr\<^bsub>1 \<^esub>- $tr))) ; SKIP`)"
 
+(*
+definition HideCSP ::
+  "'a WF_PREDICATE \<Rightarrow>
+   ('a EVENT set, 'a) WF_PEXPRESSION \<Rightarrow>
+   'a WF_PREDICATE" where
+"HideCSP P A = `R(\<exists> tr\<acute>\<acute>. P[$tr\<acute>\<acute>/tr\<acute>][$ref\<acute> \<union> A 
+*)  
+
 definition GuardCSP ::
   "'a WF_PREDICATE \<Rightarrow>
    'a WF_PREDICATE \<Rightarrow>

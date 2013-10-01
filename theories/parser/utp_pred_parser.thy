@@ -209,6 +209,7 @@ syntax
   "_pexpr_fset_subseteq" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<subseteq>" 50)
   "_pexpr_fset_list"     :: "pexpr \<Rightarrow> pexpr" ("elems _")
   "_pexpr_intersync"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<parallel>\<^bsub>_\<^esub>" 75)
+  "_pexpr_filter"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<upharpoonright>" 70)
   "_pexpr_event"         :: "NAME \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_.'(_')" 50)
   "_pexpr_event_chan"    :: "pexpr \<Rightarrow> pexpr" ("chan _")
   "_pexpr_restrict"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "\\" 70)
@@ -268,6 +269,7 @@ translations
   "_pexpr_fset_nmember x xs"   == "CONST FNotMemberPE x xs"
   "_pexpr_fset_list xs"        == "CONST FSetPE xs"
   "_pexpr_intersync p xs q"    == "CONST IntersyncPE xs p q"
+  "_pexpr_filter xs A"         == "CONST FilterPE xs A"
   "_pexpr_event n v"           == "CONST EventPE n v"
   "_pexpr_event_chan e"        == "CONST ChannelPE e"
   "_pexpr_restrict e f"        == "CONST RestrictPE e f"
@@ -293,7 +295,6 @@ translations
   "_upred_fset_nmember x xs" == "CONST PExprP (_pexpr_fset_nmember x xs)"
   "_upred_fset_subset xs ys"  == "CONST PExprP (_pexpr_fset_subset xs ys)"
   "_upred_fset_subseteq xs ys" == "CONST PExprP (_pexpr_fset_subseteq xs ys)"
-
 
 (* Some regression tests *)
 

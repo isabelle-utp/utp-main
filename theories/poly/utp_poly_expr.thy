@@ -704,6 +704,13 @@ abbreviation IntersyncPE ::
    ('a ULIST UFSET, 'm) WF_PEXPRESSION" where
 "IntersyncPE \<equiv> Op3PE IntersyncUF"
 
+abbreviation FilterPE ::
+  "('a ULIST, 'm :: {FSET_SORT, LIST_SORT, SET_SORT}) WF_PEXPRESSION \<Rightarrow> 
+   ('a :: DEFINED set, 'm) WF_PEXPRESSION \<Rightarrow>
+
+   ('a ULIST, 'm) WF_PEXPRESSION" where
+"FilterPE \<equiv> Op2PE FilterUL"
+
 instantiation UFSET :: (DEFINED) MINUS
 begin
 
