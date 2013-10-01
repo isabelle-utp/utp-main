@@ -134,20 +134,20 @@ definition ExtChoiceCSP ::
 "P \<box> Q = `CSP2((P \<and> Q)\<lhd> STOP \<rhd>(P \<or> Q))`"
 
 definition MergeCSP :: 
-  "('a EVENT set, 'a) WF_PEXPRESSION \<Rightarrow> ('a VAR set * 'a WF_PREDICATE)" where
+  "('a EVENT USET, 'a) WF_PEXPRESSION \<Rightarrow> 
+   ('a VAR set * 'a WF_PREDICATE)" where
   "MergeCSP A = ( {okay\<down>\<acute>, wait\<down>\<acute>, ref\<down>\<acute>, tr\<down>\<acute>}
               , `(($okay\<acute> = $okay\<^bsub>0\<^esub>\<acute> \<and> $okay\<^bsub>1\<^esub>\<acute>) \<and> 
                  ($wait\<acute> = $wait\<^bsub>0\<^esub>\<acute> \<or> $wait\<^bsub>1\<^esub>\<acute>) \<and> 
                  ($ref\<acute> = $ref\<^bsub>0\<^esub>\<acute> \<union> $ref\<^bsub>1\<^esub>\<acute>) \<and> 
                  (($tr\<acute> - $tr) \<in> ($tr\<^bsub>0\<^esub> - $tr) \<parallel>\<^bsub>A \<^esub>($tr\<^bsub>1 \<^esub>- $tr))) ; SKIP`)"
 
-(*
 definition HideCSP ::
-  "'a WF_PREDICATE \<Rightarrow>
-   ('a EVENT set, 'a) WF_PEXPRESSION \<Rightarrow>
-   'a WF_PREDICATE" where
-"HideCSP P A = `R(\<exists> tr\<acute>\<acute>. P[$tr\<acute>\<acute>/tr\<acute>][$ref\<acute> \<union> A 
-*)  
+  "'m WF_PREDICATE \<Rightarrow>
+   ('m EVENT USET, 'm) WF_PEXPRESSION \<Rightarrow>
+   'm WF_PREDICATE" where
+"HideCSP P A = `R(\<exists> tr\<acute>\<acute>. P[$tr\<acute>\<acute>/tr\<acute>][($ref\<acute> \<union> A)/ref\<acute>] 
+                  \<and> $tr\<acute> = $tr ^ (($tr\<acute>\<acute> - $tr)\<upharpoonright>A)) ; SKIP`"
 
 definition GuardCSP ::
   "'a WF_PREDICATE \<Rightarrow>
@@ -157,7 +157,7 @@ definition GuardCSP ::
 
 definition ParallelCSP :: 
   "'a WF_PREDICATE \<Rightarrow> 
-   ('a EVENT set, 'a) WF_PEXPRESSION \<Rightarrow> 
+   ('a EVENT USET, 'a) WF_PEXPRESSION \<Rightarrow> 
    'a WF_PREDICATE \<Rightarrow> 
    'a WF_PREDICATE" (infix "\<parallel>\<^bsub>CSP'(_')\<^esub>" 100) where
 "P \<parallel>\<^bsub>CSP(A)\<^esub> Q = P \<parallel>\<^bsub>MergeCSP A\<^esub> Q"
@@ -187,7 +187,7 @@ translations
 
 definition InterleaveCSP 
   :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infix "|||\<^bsub>CSP\<^esub>" 100) where
-"P |||\<^bsub>CSP\<^esub> Q = ParallelCSP P (LitPE {}) Q"
+"P |||\<^bsub>CSP\<^esub> Q = ParallelCSP P |{}| Q"
 
 syntax
   "_upred_interleave" :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infix "|||" 100)

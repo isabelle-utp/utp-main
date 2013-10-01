@@ -13,6 +13,7 @@ imports
   "../core/utp_event"
   "../types/utp_list"
   "../types/utp_fset"
+  "../types/utp_uset"
 begin
 
 default_sort type
@@ -178,6 +179,13 @@ defs (overloaded)
   TypeU_UFSET [simp]:
     "TypeU (x::('a UFSET) itself) \<equiv> FSetType (TypeU TYPE('a))"
 
+  InjU_USET [simp]: 
+    "InjU (xs::'a::DEFINED USET) \<equiv> MkSet TYPEU('a) (InjU ` (Rep_USET xs))"
+  ProjU_USET [simp]:
+    "ProjU (xs::('a::SET_SORT)) \<equiv> Abs_USET (ProjU ` (DestSet xs))"
+  TypeU_USET [simp]:
+    "TypeU (x::('a USET) itself) \<equiv> SetType (TypeU TYPE('a))"
+
   InjU_list [simp]: "InjU (xs::'a list) \<equiv> MkList (TypeU (TYPE('a))) (map InjU xs)"
   ProjU_list [simp]: "ProjU (xs::('a::LIST_SORT)) \<equiv> map ProjU (DestList xs)"
   TypeU_list [simp]: "TypeU (x::('a list) itself) \<equiv> ListType (TypeU TYPE('a))"
@@ -335,8 +343,6 @@ lemma fimage_InjU_ProjU [simp]:
   apply (metis (full_types) TypeUSound_ProjU_inv assms(1) assms(2) dcarrier_dtype imageI in_mono)
 done
 
-thm Abs_UFSET_inverse'
-
 lemma Abs_UFSET_inverse'': "(\<forall>x \<in> \<langle>xs\<rangle>\<^sub>f. \<D> x) \<Longrightarrow> Rep_UFSET (Abs_UFSET xs) = xs"
   by (metis Abs_UFSET_inverse')
 
@@ -381,6 +387,62 @@ proof -
     apply (auto)
   done
 qed
+
+lemma image_InjU_ProjU [simp]:
+  assumes "TYPEUSOUND('a :: DEFINED, 'm::VALUE)" "xs \<subseteq> dcarrier TYPEU('a)"
+  shows "(InjU :: 'a \<Rightarrow> 'm) ` ProjU ` xs = xs"
+  apply (auto)
+  apply (metis TypeUSound_ProjU_inv assms(1) assms(2) dtype_as_dcarrier set_mp)
+  apply (metis TypeUSound_ProjU_inv assms(1) assms(2) dtype_as_dcarrier image_iff in_mono)
+done
+
+lemma TypeUSound_USET [typing]: 
+  assumes 
+    "(TYPEU('a :: DEFINED) :: 'm UTYPE) \<in> SetPerm" "TYPEUSOUND('a, 'm)"
+  shows "TYPEUSOUND('a USET, 'm :: SET_SORT)"
+proof -
+
+  from assms
+  have "\<And> x::'a USET. MkSet TYPEU('a) (InjU ` (Rep_USET x)) :! (SetType TYPEU('a) :: 'm UTYPE)"
+    apply (rule_tac typing)
+    apply (simp)
+    apply (auto simp add:dcarrier_def intro:typing)
+    apply (metis Rep_USET' TypeUSound_InjU_defined)
+  done
+
+  with assms show ?thesis
+    apply (rule_tac TypeUSound_intro)
+    apply (auto)
+    apply (subgoal_tac "InjU ` (Rep_USET x) \<subseteq> (dcarrier TYPEU('a) :: 'm set)")
+    apply (simp)
+    apply (subgoal_tac "InjU ` (Rep_USET x) \<subseteq> (dcarrier TYPEU('a) :: 'm set)")
+    apply (auto)
+    apply (metis Rep_USET' TypeUSound_InjU_dtype)
+    apply (auto simp add:defined)
+    apply (subgoal_tac "InjU ` (Rep_USET x) \<subseteq> (dcarrier TYPEU('a) :: 'm set)")
+    apply (auto simp add:defined)
+    apply (metis (full_types) TypeUSound_InjU_inv imageI)
+    apply (metis TypeUSound_InjU_dtype USET_elems_defined)
+    apply (subgoal_tac "\<forall>y::'a \<in> (ProjU ` DestSet x). \<D> y")
+    apply (auto)
+    apply (erule SetType_elim)
+    apply (auto)
+    apply (metis TypeUSound_ProjU_defined dcarrier_defined dcarrier_type dtype_relI set_mp)
+  done
+qed
+
+(*
+    apply (auto)
+
+    apply (subgoal_tac "\<forall> y::'a \<in> \<langle>ProjU `\<^sub>f (DestFSet x)\<rangle>\<^sub>f. \<D> y")
+    defer
+    apply (auto simp add:defined)[1]
+    apply (rule defined)
+    apply (simp)
+    apply (metis FSetType_elim MkFSet_inv dcarrier_defined dcarrier_type dtype_relI in_mono)
+    apply (drule Abs_UFSET_inverse'')
+    apply (simp)
+*)
 
 (*
 lemma TypeUSound_list [typing]: 

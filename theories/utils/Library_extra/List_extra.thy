@@ -58,4 +58,71 @@ lemma prefix_length_eq:
   "\<lbrakk> length xs = length ys; prefixeq xs ys \<rbrakk> \<Longrightarrow> xs = ys"
   by (metis not_equal_is_parallel parallel_def)
 
+fun interleave :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list set" where
+"interleave [] ys = {ys}" |
+"interleave (x # xs) (y # ys) = (Cons x) ` (interleave xs (y # ys)) 
+                              \<union> (Cons y) ` (interleave (x # xs) ys)" |
+"interleave xs [] = {xs}"
+
+lemma interleave_finite [simp]:
+  "finite (interleave xs ys)"
+  apply (induct xs arbitrary: ys)
+  apply (simp)
+  apply (induct_tac ys)
+  apply (auto)
+done
+
+lemma interleave_right_nil [simp]:
+  "interleave xs [] = {xs}"
+  by (induct xs, auto)
+
+lemma interleave_headE [elim!]:
+  "\<lbrakk> z # zs \<in> interleave xs ys
+   ; \<And> xs'. xs = z # xs' \<Longrightarrow> P
+   ; \<And> ys'. ys = z # ys' \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  apply (induct xs)
+  apply (auto)
+  apply (induct ys)
+  apply (auto)
+done
+
+lemma interleave_member:
+  "\<lbrakk> zs \<in> interleave xs ys; z \<in> set zs \<rbrakk> \<Longrightarrow> z \<in> set xs \<or> z \<in> set ys"
+  apply (induct xs arbitrary: zs)
+  apply (auto)
+  apply (induct ys)
+  apply (auto)
+oops
+
+(* FIXME: What happens if no progress can be made? *)
+fun intersync :: "'a set \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list set" where
+"intersync s (x # xs) (y # ys) 
+  = (case (x = y , x \<in> s , y \<in> s) of
+          (True  , True   , _      ) \<Rightarrow> Cons x ` intersync s xs ys |
+          (True  , False  , _      ) \<Rightarrow> ((Cons x ` intersync s xs (y # ys))
+                                         \<union> (Cons y ` intersync s (x # xs) ys)) |
+          (False , True   , True   ) \<Rightarrow> {[]} |
+          (False , True   , False  ) \<Rightarrow> Cons y ` intersync s (x # xs) ys |
+          (False , False  , True   ) \<Rightarrow> Cons x ` intersync s xs (y # ys) |
+          (False , False  , False  ) \<Rightarrow> ((Cons x ` intersync s xs (y # ys))
+                                         \<union> (Cons y ` intersync s (x # xs) ys)))" |
+"intersync s [] (y # ys) = 
+   (if (y \<in> s) then {[]} else Cons y ` intersync s [] ys)" |
+"intersync s (x # xs) [] = 
+   (if (x \<in> s) then {[]} else Cons x ` intersync s xs [])" |
+"intersync s [] [] = {[]}"
+
+(* FIXME: We should be able to prove this property... *)
+lemma intersync_empty_interleave:
+  "intersync {} xs ys = interleave xs ys"
+  apply (induct xs)
+  apply (simp_all)
+  apply (induct ys)
+  apply (simp_all)
+  apply (induct ys arbitrary: a xs)
+  apply (simp_all)
+  apply (case_tac "aa = a")
+  apply (simp_all)
+oops
+
 end

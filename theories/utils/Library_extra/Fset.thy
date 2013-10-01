@@ -512,6 +512,7 @@ lemma fset_option_empty:
   "fset_option \<lbrace>\<rbrace> = Some \<lbrace>\<rbrace>"
   by (simp add:fset_option_def)
 
+(*
 fun interleave :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list fset" where
 "interleave [] ys = \<lbrace>ys\<rbrace>" |
 "interleave (x # xs) (y # ys) = (Cons x) `\<^sub>f (interleave xs (y # ys)) 
@@ -571,6 +572,7 @@ lemma intersync_empty_interleave:
   apply (case_tac "aa = a")
   apply (simp_all)
 oops
+*)
 
 end
 

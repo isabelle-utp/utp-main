@@ -580,9 +580,14 @@ abbreviation ConcatPE ::
 "ConcatPE \<equiv> Op2PE (op @\<^sub>u)"
 
 abbreviation FSetPE ::
-  "('a ::DEFINED ULIST, 'm :: LIST_SORT) WF_PEXPRESSION \<Rightarrow> 
-   ('a UFSET, 'm :: LIST_SORT) WF_PEXPRESSION" where
+  "('a ::DEFINED ULIST, 'm :: {FSET_SORT, LIST_SORT}) WF_PEXPRESSION \<Rightarrow> 
+   ('a UFSET, 'm) WF_PEXPRESSION" where
 "FSetPE \<equiv> Op1PE FSetUF"
+
+abbreviation SetPE ::
+  "('a ::DEFINED ULIST, 'm :: {SET_SORT, LIST_SORT}) WF_PEXPRESSION \<Rightarrow> 
+   ('a USET, 'm) WF_PEXPRESSION" where
+"SetPE \<equiv> Op1PE SetUS"
 
 abbreviation PrefixPE::
   "('a ::DEFINED ULIST, 'm :: {BOOL_SORT, LIST_SORT}) WF_PEXPRESSION \<Rightarrow> 
@@ -596,9 +601,9 @@ abbreviation PrefixeqPE::
 
 definition RestrictPE :: 
   "('a ::DEFINED ULIST, 'm :: {BOOL_SORT, LIST_SORT}) WF_PEXPRESSION \<Rightarrow> 
-   ('a UFSET, 'm) WF_PEXPRESSION \<Rightarrow>
+   ('a USET, 'm) WF_PEXPRESSION \<Rightarrow>
    ('a ULIST, 'm) WF_PEXPRESSION" where
-"RestrictPE \<equiv> Op2PE RestrictUL"
+"RestrictPE \<equiv> Op2PE RestrictUS"
 
 instantiation ULIST :: (DEFINED) LESS_THAN
 begin
@@ -643,6 +648,77 @@ lemma MinusUL_right_nil [simp]:
   assumes "TYPEUSOUND('a, 'm)"
   shows "MinusPE x NilPE = x"
   using assms by (auto simp add:eval)
+
+subsection {* Set Expressions *}
+
+abbreviation EmptyPE :: "('a::DEFINED USET, 'm :: SET_SORT) WF_PEXPRESSION" where
+"EmptyPE \<equiv> LitPE EmptyUS"
+
+abbreviation InsertPE :: 
+  "('a :: DEFINED, 'm :: FSET_SORT) WF_PEXPRESSION \<Rightarrow> 
+   ('a USET, 'm) WF_PEXPRESSION \<Rightarrow> 
+   ('a USET, 'm) WF_PEXPRESSION" where
+"InsertPE \<equiv> Op2PE InsertUS"
+
+abbreviation UnionPE ::
+  "('a :: DEFINED USET, 'm :: SET_SORT) WF_PEXPRESSION \<Rightarrow> 
+   ('a USET, 'm) WF_PEXPRESSION \<Rightarrow> 
+   ('a USET, 'm) WF_PEXPRESSION" where
+"UnionPE \<equiv> Op2PE UnionUS"
+
+abbreviation InterPE ::
+  "('a :: DEFINED USET, 'm :: SET_SORT) WF_PEXPRESSION \<Rightarrow> 
+   ('a USET, 'm) WF_PEXPRESSION \<Rightarrow> 
+   ('a USET, 'm) WF_PEXPRESSION" where
+"InterPE \<equiv> Op2PE InterUS"
+
+abbreviation SMinusPE ::
+  "('a :: DEFINED USET, 'm :: SET_SORT) WF_PEXPRESSION \<Rightarrow> 
+   ('a USET, 'm) WF_PEXPRESSION \<Rightarrow> 
+   ('a USET, 'm) WF_PEXPRESSION" where
+"SMinusPE \<equiv> Op2PE MinusUS"
+
+abbreviation MemberPE ::
+  "('a :: DEFINED, 'm :: {BOOL_SORT, SET_SORT}) WF_PEXPRESSION \<Rightarrow> 
+   ('a USET, 'm) WF_PEXPRESSION \<Rightarrow> 
+   (bool, 'm) WF_PEXPRESSION" where
+"MemberPE \<equiv> Op2PE MemberUS"
+
+abbreviation NotMemberPE ::
+  "('a :: DEFINED, 'm :: {BOOL_SORT, SET_SORT}) WF_PEXPRESSION \<Rightarrow> 
+   ('a USET, 'm) WF_PEXPRESSION \<Rightarrow> 
+   (bool, 'm) WF_PEXPRESSION" where
+"NotMemberPE \<equiv> Op2PE NMemberUS"
+
+abbreviation SubsetPE ::
+  "('a :: DEFINED USET, 'm :: {BOOL_SORT, SET_SORT}) WF_PEXPRESSION \<Rightarrow> 
+   ('a USET, 'm) WF_PEXPRESSION \<Rightarrow> 
+   (bool, 'm) WF_PEXPRESSION" where
+"SubsetPE \<equiv> Op2PE SubsetUS"
+
+abbreviation SubseteqPE ::
+  "('a :: DEFINED USET, 'm :: {BOOL_SORT, SET_SORT}) WF_PEXPRESSION \<Rightarrow> 
+   ('a USET, 'm) WF_PEXPRESSION \<Rightarrow> 
+   (bool, 'm) WF_PEXPRESSION" where
+"SubseteqPE \<equiv> Op2PE SubseteqUS"
+
+abbreviation IntersyncPE ::
+  "('a :: DEFINED USET, 'm :: {LIST_SORT, SET_SORT}) WF_PEXPRESSION \<Rightarrow>
+   ('a ULIST, 'm) WF_PEXPRESSION \<Rightarrow> 
+   ('a ULIST, 'm) WF_PEXPRESSION \<Rightarrow> 
+   ('a ULIST USET, 'm) WF_PEXPRESSION" where
+"IntersyncPE \<equiv> Op3PE IntersyncUS"
+
+instantiation USET :: (DEFINED) MINUS
+begin
+
+definition utminus_USET :: "'a USET \<Rightarrow> 'a USET \<Rightarrow> 'a USET" where
+"utminus_USET xs ys = MinusUS xs ys"
+
+instance ..
+end
+
+declare utminus_USET_def [simp]
 
 subsection {* Finite Set Expressions *}
 
@@ -697,6 +773,7 @@ abbreviation FSubseteqPE ::
    (bool, 'm) WF_PEXPRESSION" where
 "FSubseteqPE \<equiv> Op2PE SubseteqUF"
 
+(*
 abbreviation IntersyncPE ::
   "('a :: DEFINED set, 'm :: {FSET_SORT, LIST_SORT, SET_SORT}) WF_PEXPRESSION \<Rightarrow>
    ('a ULIST, 'm) WF_PEXPRESSION \<Rightarrow> 
@@ -710,6 +787,7 @@ abbreviation FilterPE ::
 
    ('a ULIST, 'm) WF_PEXPRESSION" where
 "FilterPE \<equiv> Op2PE FilterUL"
+*)
 
 instantiation UFSET :: (DEFINED) MINUS
 begin

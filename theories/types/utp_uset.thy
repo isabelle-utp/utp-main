@@ -84,8 +84,37 @@ lift_definition SubseteqUS :: "'a::DEFINED USET \<Rightarrow> 'a USET \<Rightarr
 lift_definition SetUS :: "'a::DEFINED ULIST \<Rightarrow> 'a USET" is "set"
   by (auto)
 
-lift_definition RestrictUL :: "'a::DEFINED ULIST \<Rightarrow> 'a USET \<Rightarrow> 'a ULIST"
-is "\<lambda> xs v. filter (\<lambda> x. x \<notin> v) xs"
+lift_definition RestrictUS :: "'a::DEFINED ULIST \<Rightarrow> 'a USET \<Rightarrow> 'a ULIST"
+is "\<lambda> xs A. filter (\<lambda> x. x \<notin> A) xs"
   by (auto)
+
+definition IntersyncUS :: 
+  "'a::DEFINED USET \<Rightarrow> 'a ULIST \<Rightarrow> 'a ULIST \<Rightarrow> ('a ULIST) USET"  where
+"IntersyncUS xs ys zs = Abs_USET (Abs_ULIST ` (intersync (Rep_USET xs) (Rep_ULIST ys) (Rep_ULIST zs)))"
+
+lemma USET_elems_defined [defined]:
+  "x \<in> (Rep_USET xs) \<Longrightarrow> \<D> x"
+  apply (insert Rep_USET[of xs])
+  apply (auto)
+done
+
+text {* Set up the predicate and expression tactics to evaluate lists *}
+
+lemma USET_transfer [eval, evale]: 
+  "xs = ys \<longleftrightarrow> Rep_USET xs = Rep_USET ys"
+  by (auto)
+
+declare EmptyUS.rep_eq [eval, evale]
+declare InsertUS_rep_eq [eval, evale]
+declare UnionUS.rep_eq [eval, evale]
+declare InterUS.rep_eq [eval, evale]
+declare MinusUS.rep_eq [eval, evale]
+declare MemberUS.rep_eq [eval, evale]
+declare NMemberUS.rep_eq [eval, evale]
+declare SubsetUS.rep_eq [eval, evale]
+declare SubseteqUS.rep_eq [eval, evale]
+declare SetUS.rep_eq [eval, evale]
+declare IntersyncUS_def [eval, evale]
+declare RestrictUS.rep_eq [eval, evale]
 
 end

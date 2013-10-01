@@ -199,20 +199,19 @@ syntax
   "_pexpr_list"          :: "pexprs \<Rightarrow> pexpr" ("\<langle>_\<rangle>")
   "_pexpr_list_nil"      :: "pexpr" ("\<langle>\<rangle>")
   "_pexpr_list_append"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "^" 65)
-  "_pexpr_fset"          :: "pexprs \<Rightarrow> pexpr" ("{_}")
-  "_pexpr_fset_empty"    :: "pexpr" ("{}")
-  "_pexpr_fset_union"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "\<union>" 65)
-  "_pexpr_fset_inter"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "\<inter>" 70)
-  "_pexpr_fset_member"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(_/ \<in> _)" [51, 51] 50)
-  "_pexpr_fset_nmember"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(_/ \<notin> _)" [51, 51] 50)
-  "_pexpr_fset_subset"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<subset>" 50)
-  "_pexpr_fset_subseteq" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<subseteq>" 50)
-  "_pexpr_fset_list"     :: "pexpr \<Rightarrow> pexpr" ("elems _")
+  "_pexpr_set"           :: "pexprs \<Rightarrow> pexpr" ("{_}")
+  "_pexpr_set_empty"     :: "pexpr" ("{}")
+  "_pexpr_set_union"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "\<union>" 65)
+  "_pexpr_set_inter"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "\<inter>" 70)
+  "_pexpr_set_member"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(_/ \<in> _)" [51, 51] 50)
+  "_pexpr_set_nmember"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(_/ \<notin> _)" [51, 51] 50)
+  "_pexpr_set_subset"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<subset>" 50)
+  "_pexpr_set_subseteq"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<subseteq>" 50)
+  "_pexpr_set_list"      :: "pexpr \<Rightarrow> pexpr" ("elems _")
   "_pexpr_intersync"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<parallel>\<^bsub>_\<^esub>" 75)
-  "_pexpr_filter"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<upharpoonright>" 70)
+  "_pexpr_restrict"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<upharpoonright>" 70)
   "_pexpr_event"         :: "NAME \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_.'(_')" 50)
   "_pexpr_event_chan"    :: "pexpr \<Rightarrow> pexpr" ("chan _")
-  "_pexpr_restrict"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "\\" 70)
 
 translations
   (* Basic logical operators *)
@@ -258,21 +257,20 @@ translations
   "_pexpr_list_append e f"     == "CONST ConcatPE e f"
   "_pexpr_list (_pexprs x xs)" == "CONST ConsPE x (_pexpr_list xs)"
   "_pexpr_list x"              == "CONST ConsPE x (CONST NilPE)"
-  "_pexpr_fset (_pexprs x xs)" == "CONST FInsertPE x (_pexpr_fset xs)"
-  "_pexpr_fset x"              == "CONST FInsertPE x CONST FEmptyPE"
-  "_pexpr_fset_empty"          == "CONST FEmptyPE"
-  "_pexpr_fset_union xs ys"    == "CONST FUnionPE xs ys"
-  "_pexpr_fset_inter xs ys"    == "CONST FInterPE xs ys"
-  "_pexpr_fset_member x xs"    == "CONST FMemberPE x xs"
-  "_pexpr_fset_subset xs ys"   == "CONST FSubsetPE xs ys"
-  "_pexpr_fset_subseteq xs ys" == "CONST FSubseteqPE xs ys"
-  "_pexpr_fset_nmember x xs"   == "CONST FNotMemberPE x xs"
-  "_pexpr_fset_list xs"        == "CONST FSetPE xs"
+  "_pexpr_set (_pexprs x xs)"  == "CONST InsertPE x (_pexpr_set xs)"
+  "_pexpr_set x"               == "CONST InsertPE x CONST EmptyPE"
+  "_pexpr_set_empty"           == "CONST EmptyPE"
+  "_pexpr_set_union xs ys"     == "CONST UnionPE xs ys"
+  "_pexpr_set_inter xs ys"     == "CONST InterPE xs ys"
+  "_pexpr_set_member x xs"     == "CONST MemberPE x xs"
+  "_pexpr_set_subset xs ys"    == "CONST SubsetPE xs ys"
+  "_pexpr_set_subseteq xs ys"  == "CONST SubseteqPE xs ys"
+  "_pexpr_set_nmember x xs"    == "CONST NotMemberPE x xs"
+  "_pexpr_set_list xs"         == "CONST SetPE xs"
   "_pexpr_intersync p xs q"    == "CONST IntersyncPE xs p q"
-  "_pexpr_filter xs A"         == "CONST FilterPE xs A"
+  "_pexpr_restrict xs A"       == "CONST RestrictPE xs A"
   "_pexpr_event n v"           == "CONST EventPE n v"
   "_pexpr_event_chan e"        == "CONST ChannelPE e"
-  "_pexpr_restrict e f"        == "CONST RestrictPE e f"
 
 (* Linking the predicate parser to the poly parser *)
 
@@ -281,20 +279,20 @@ syntax
   "_upred_less"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "<" 25)
   "_upred_greater_eq"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "\<ge>" 25)
   "_upred_greater"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr ">" 25)
-  "_upred_fset_member"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" ("(_/ \<in> _)" [51, 51] 50)
-  "_upred_fset_nmember"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" ("(_/ \<notin> _)" [51, 51] 50)
-  "_upred_fset_subset"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "\<subset>" 50)
-  "_upred_fset_subseteq" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "\<subseteq>" 50)
+  "_upred_set_member"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" ("(_/ \<in> _)" [51, 51] 50)
+  "_upred_set_nmember"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" ("(_/ \<notin> _)" [51, 51] 50)
+  "_upred_set_subset"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "\<subset>" 50)
+  "_upred_set_subseteq"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "\<subseteq>" 50)
 
 translations
   "_upred_lesseq e f"        == "CONST PExprP (_pexpr_less_eq e f)"
   "_upred_less e f"          == "CONST PExprP (_pexpr_less e f)"
   "_upred_greater_eq e f"    == "CONST PExprP (_pexpr_greater_eq e f)"
   "_upred_greater e f"       == "CONST PExprP (_pexpr_greater e f)"
-  "_upred_fset_member x xs"  == "CONST PExprP (_pexpr_fset_member x xs)"
-  "_upred_fset_nmember x xs" == "CONST PExprP (_pexpr_fset_nmember x xs)"
-  "_upred_fset_subset xs ys"  == "CONST PExprP (_pexpr_fset_subset xs ys)"
-  "_upred_fset_subseteq xs ys" == "CONST PExprP (_pexpr_fset_subseteq xs ys)"
+  "_upred_set_member x xs"   == "CONST PExprP (_pexpr_set_member x xs)"
+  "_upred_set_nmember x xs"  == "CONST PExprP (_pexpr_set_nmember x xs)"
+  "_upred_set_subset xs ys"  == "CONST PExprP (_pexpr_set_subset xs ys)"
+  "_upred_set_subseteq xs ys" == "CONST PExprP (_pexpr_set_subseteq xs ys)"
 
 (* Some regression tests *)
 
@@ -326,7 +324,7 @@ lemma "`<1> \<in> elems \<langle><4>,<7>,<1>,<9>\<rangle>`"
 
 term "|$x\<^bsub>0\<^esub>|"
 
-lemma "|\<langle><1>,<2>,<3>\<rangle> \\ {\<guillemotleft>2\<guillemotright>}| = |\<langle><1>,<3>\<rangle>|"
+lemma "|\<langle><1>,<2>,<3>\<rangle> \<upharpoonright> {\<guillemotleft>2\<guillemotright>}| = |\<langle><1>,<3>\<rangle>|"
   by (simp add:evalp evale defined)
 
 end
