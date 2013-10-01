@@ -10,6 +10,7 @@ theory List_extra
   imports 
     Main 
     Monad_Syntax
+    Sublist
 begin
 
 subsection {* List functions *}
@@ -52,5 +53,9 @@ lemma sorted_last [simp]: "\<lbrakk> x \<in> set xs; sorted xs \<rbrakk> \<Longr
   apply (auto)
   apply (metis last_in_set sorted_Cons)+
 done
+
+lemma prefix_length_eq:
+  "\<lbrakk> length xs = length ys; prefixeq xs ys \<rbrakk> \<Longrightarrow> xs = ys"
+  by (metis not_equal_is_parallel parallel_def)
 
 end

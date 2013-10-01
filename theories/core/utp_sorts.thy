@@ -556,8 +556,12 @@ proof -
 qed
 
 lemma DestList_elem_type:
-  "\<lbrakk> a \<in> ListPerm; x :! ListType a \<rbrakk> \<Longrightarrow> set (DestList x) \<subseteq> dcarrier a"
+  "\<lbrakk> a \<in> ListPerm; xs :! ListType a \<rbrakk> \<Longrightarrow> set (DestList xs) \<subseteq> dcarrier a"
   by (metis ListType_elim MkList_inv)
+
+lemma DestList_elem_stype:
+  "\<lbrakk> x \<in> set (DestList xs); xs :! ListType t; t \<in> ListPerm \<rbrakk> \<Longrightarrow> x :! t"
+  by (metis DestList_elem_type dcarrier_dtype set_rev_mp)
 
 lemma MkList_inj_simp [simp]:
   assumes "t \<in> ListPerm" "set xs \<subseteq> dcarrier t" "set ys \<subseteq> dcarrier t"

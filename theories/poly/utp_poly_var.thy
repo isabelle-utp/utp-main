@@ -241,5 +241,11 @@ lemma PVAR_binding_defined_aux [defined]:
   shows "\<D> (\<langle>b\<rangle>\<^sub>b x\<down>)"
   by (metis assms aux_defined pvaux_aux)
 
+lemma PVAR_binding_aux_stype [typing]:
+  fixes x :: "('a::DEFINED, 'm::REACTIVE_SORT) PVAR"
+  assumes "pvaux x" "t = TYPEU('a)"
+  shows "\<langle>b\<rangle>\<^sub>b x\<down> :! t"
+    by (metis PVAR_binding_defined_aux PVAR_binding_type assms dtype_rel_def)
+
 end
 

@@ -280,6 +280,12 @@ lemma map_InjU_ProjU [simp]:
   apply (metis TypeUSound_ProjU_inv assms dtype_as_dcarrier set_mp)
 done
 
+lemma InjU_MkEvent [simp]: "InjU = MkEvent"
+  by (auto)
+
+lemma ProjU_DestEvent [simp]: "ProjU = DestEvent"
+  by (auto)
+
 lemma TypeUSound_ULIST [typing]: 
   assumes 
     "(TYPEU('a :: DEFINED) :: 'm UTYPE) \<in> ListPerm" "TYPEUSOUND('a, 'm)"

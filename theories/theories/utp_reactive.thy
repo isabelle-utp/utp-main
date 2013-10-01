@@ -18,6 +18,7 @@ abbreviation "wait \<equiv> MkPlainP ''wait'' True TYPE(bool) TYPE('m)"
 abbreviation "tr   \<equiv> MkPlainP ''tr'' True TYPE('m EVENT ULIST) TYPE('m)"
 abbreviation "ref  \<equiv> MkPlainP ''ref'' True TYPE('m EVENT UFSET) TYPE('m)"
 
+abbreviation "TR \<equiv> {tr\<down>, tr\<down>\<acute>}"
 abbreviation "REA \<equiv> OKAY \<union> {wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}"
 
 definition SkipREA :: "'a WF_PREDICATE" where
@@ -185,7 +186,8 @@ theorem R1_SemiR [closure]:
   apply (unfold R1_by_refinement)
   apply (rule order_trans)
   apply (rule SemiR_mono_refine)
-  apply (simp_all, simp add:tr_leq_trans)
+  apply (simp_all)
+  apply (simp add:tr_leq_trans)
 done
 
 lemma R1_tr_leq_tr':
@@ -194,7 +196,7 @@ lemma R1_tr_leq_tr':
 
 lemma R1_H2_commute:
   "P \<in> WF_RELATION \<Longrightarrow> H2(R1(P)) = R1(H2(P))"
-  apply (simp add: H2_def J_split usubst unrest closure)
+  apply (simp add: H2_def J_split unrest closure)
   apply (simp add: R1_def usubst typing defined)
   apply (utp_pred_auto_tac)
 done
@@ -203,11 +205,70 @@ lemma SkipRA_is_R1 :
   "`R1(II\<^bsub>REL_VAR - OKAY\<^esub>)` = `II\<^bsub>REL_VAR - OKAY\<^esub>`"
   by (auto simp add:var_dist closure eval)
 
-lemma SkipRA_is_R2 : "`R2(II\<^bsub>REL_VAR - OKAY\<^esub>)` = `II\<^bsub>REL_VAR - OKAY\<^esub>`"
+lemma map_EventList_tr [simp]:
+  "map (MkEvent \<circ> DestEvent) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>)) = (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))"
+proof -
+  have "map (MkEvent \<circ> DestEvent) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>)) = map id (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))"
+    apply (subst map_eq_conv)
+    apply (auto)
+    apply (subgoal_tac "x :! EventType")
+    apply (metis DestEvent_inv)
+    apply (drule_tac t="EventType" in DestList_elem_stype)
+    apply (auto intro:typing simp add:closure)
+  done
+
+  thus ?thesis
+    by auto
+qed
+
+lemma map_EventList_tr' [simp]:
+  "map (MkEvent \<circ> DestEvent) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)) = (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>))"
+proof -
+  have "map (MkEvent \<circ> DestEvent) (DestList (\<langle>b\<rangle>\<^sub>b tr\<acute>\<down>)) = map id (DestList (\<langle>b\<rangle>\<^sub>b tr\<acute>\<down>))"
+    apply (subst map_eq_conv)
+    apply (auto)
+    apply (subgoal_tac "x :! EventType")
+    apply (metis DestEvent_inv)
+    apply (drule_tac t="EventType" in DestList_elem_stype)
+    apply (auto intro:typing simp add:closure erasure defined)
+  done
+
+  thus ?thesis
+    by auto
+qed
+
+lemma tr_prefix_as_nil:
+  "`($tr\<acute> - $tr) = \<langle>\<rangle> \<and> ($tr \<le> $tr\<acute>)` = `$tr = $tr\<acute>`"
   apply (utp_pred_auto_tac)
-  apply (drule_tac x="tr\<down>" in bspec)
-  apply (auto simp add:var_dist closure eval typing defined)
+  apply (subgoal_tac "(map (MkEvent \<circ> DestEvent) (drop (length (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)))) = 
+                      (drop (length (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)))")
+  apply (simp_all)
+  apply (subgoal_tac "set (drop (length (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>))) \<subseteq> dcarrier (EventType :: 'a UTYPE)")
+  apply (auto simp add: MkList_inj_simp closure)
 sorry
+
+lemma SkipRA_is_R2 : "`R2(II\<^bsub>REL_VAR - OKAY\<^esub>)` = `II\<^bsub>REL_VAR - OKAY\<^esub>`"
+proof -
+  have "`R2(II\<^bsub>REL_VAR - OKAY\<^esub>)` = `(($tr\<acute> - $tr) = \<langle>\<rangle> \<and> II\<^bsub>REL_VAR - OKAY - TR\<^esub>) \<and> ($tr \<le> $tr\<acute>)`"
+    apply (simp add:R1_def R2_def R2s_def)
+    apply (subst SkipRA_unfold[of "tr\<down>"])
+    apply (auto simp add:closure)
+    apply (simp add:usubst closure typing defined)
+  done
+
+  also have "... = `(($tr\<acute> - $tr) = \<langle>\<rangle> \<and> ($tr \<le> $tr\<acute>)) \<and> II\<^bsub>REL_VAR - OKAY - TR\<^esub>`"
+    by (metis (hide_lams, no_types) AndP_assoc AndP_comm)
+
+  also have "... = `$tr\<acute> = $tr \<and> II\<^bsub>REL_VAR - OKAY - TR\<^esub>`"
+    by (metis EqualP_sym tr_prefix_as_nil)
+
+  also have "... = `II\<^bsub>REL_VAR - OKAY\<^esub>`"
+    apply (subst SkipRA_unfold[of "tr\<down>"]) back
+    apply (auto simp add:closure erasure)
+  sorry
+
+  finally show ?thesis .
+qed
 
 lemma SkipREA_is_R1:
   "`R1(II\<^bsub>rea\<^esub>)` = `II\<^bsub>rea\<^esub>`"
@@ -298,14 +359,13 @@ proof -
   ultimately show ?thesis by utp_pred_auto_tac
 qed
 
-lemma R2_R3_commute : "R2 (R3 P) = R3 (R2 P)" 
+theorem R2_R3_commute: 
+  "R2 (R3 P) = R3 (R2 P)" 
 proof - 
   have "R2 (R3 P) = `R2(II\<^bsub>rea\<^esub>) \<lhd> R2s($wait) \<rhd> R2(P)`" by (simp add:R3_def R2_distributes_through_conditional)
   also have "... = `II\<^bsub>rea\<^esub> \<lhd> $wait \<rhd> R2(P)`" by(simp add: SkipREA_is_R2, simp add:R2s_def usubst closure typing defined)
   ultimately show ?thesis by utp_pred_tac
 qed
-
-
 
 subsection {* The theory of Reactive Processes *}
 

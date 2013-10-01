@@ -974,4 +974,6 @@ declare MinusUL.rep_eq [evalp]
 declare PrefixUL.rep_eq [evalp]
 declare PrefixeqUL.rep_eq [evalp]
 
+declare drop_map [eval,evalr,evalp]
+
 end
