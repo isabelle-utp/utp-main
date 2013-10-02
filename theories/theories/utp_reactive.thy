@@ -48,8 +48,8 @@ definition R2 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 definition R3 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 "R3(P) = `II\<^bsub>rea\<^esub> \<lhd> $wait \<rhd> P`"
 
-definition R :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where 
-"R P = (R1 \<circ> R2 \<circ> R3)P"
+definition RH :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where 
+"RH P = (R1 \<circ> R2 \<circ> R3)P"
 
 declare R1_def [eval, evalr, evalrr, evalrx]
 declare R2_def [eval, evalr, evalrr, evalrx]
@@ -57,7 +57,7 @@ declare R2s_def [eval, evalr, evalrr, evalrx]
 declare R3_def [eval, evalr, evalrr, evalrx]
 declare is_healthy_def [eval, evalr, evalrr, evalrx]
 declare SkipREA_def [eval, evalr, evalrr, evalrx]
-declare R_def [eval, evalr, evalrr, evalrx]
+declare RH_def [eval, evalr, evalrr, evalrx]
 
 subsection {* Closure Laws *}
 
@@ -219,6 +219,50 @@ lemma DestList_tr'_dcarrier [typing]:
   apply (auto intro:typing)[1]
 done
 
+lemma prefix_Cons_elim [elim]:
+  assumes "prefix (x # xs) ys"
+  obtains ys' where "ys = x # ys'" "prefix xs ys'"
+  using assms 
+  apply (auto elim!: prefixE)
+  apply (metis (full_types) prefix_order.le_less prefixeq_Cons_elim)
+done
+
+lemma prefix_map_inj:
+  "\<lbrakk> inj_on f (set xs \<union> set ys); prefix (map f xs) (map f ys) \<rbrakk> \<Longrightarrow>
+   prefix xs ys"
+  apply (induct xs arbitrary:ys)
+  apply (auto)
+  apply (metis map.simps(1) prefix_bot.bot_less)
+  apply (erule prefix_Cons_elim)
+  apply (auto)
+  apply (metis (hide_lams, full_types) image_insert insertI1 insert_Diff_if singletonE)
+done
+
+lemma prefix_map_inj_eq [simp]:
+  "inj_on f (set xs \<union> set ys) \<Longrightarrow>
+   prefix (map f xs) (map f ys) \<longleftrightarrow> prefix xs ys"
+  by (metis inj_on_map_eq_map map_prefixeqI prefix_map_inj prefix_order.less_le)
+
+lemma prefix_DestEvent_simp [simp]:
+  "prefix (map DestEvent (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))) (map DestEvent (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)))
+  = prefix (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>)) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>))"
+  apply (subgoal_tac "inj_on DestEvent (set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>)) \<union> set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)))")
+  apply (simp)
+  apply (rule subset_inj_on[of _ "dcarrier EventType"])
+  apply (simp)
+  apply (metis DestList_tr'_dcarrier DestList_tr_dcarrier le_sup_iff)
+done
+
+lemma prefixeq_DestEvent_simp [simp]:
+  "prefixeq (map DestEvent (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))) (map DestEvent (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)))
+  = prefixeq (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>)) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>))"
+  apply (subgoal_tac "inj_on DestEvent (set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>)) \<union> set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)))")
+  apply (simp)
+  apply (rule subset_inj_on[of _ "dcarrier EventType"])
+  apply (simp)
+  apply (metis DestList_tr'_dcarrier DestList_tr_dcarrier le_sup_iff)
+done
+
 lemma tr_prefix_as_nil:
   "`($tr\<acute> - $tr) = \<langle>\<rangle> \<and> ($tr \<le> $tr\<acute>)` = `$tr = $tr\<acute>`"
   apply (utp_pred_auto_tac)
@@ -226,12 +270,13 @@ lemma tr_prefix_as_nil:
   defer
   apply (rule subset_trans, rule set_drop_subset, rule DestList_tr'_dcarrier)
   apply (simp add:MkList_inj_simp typing closure)
-  apply (subgoal_tac "inj_on DestEvent (set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>)) \<union> set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)))")
-  apply (simp)
-  apply (metis (full_types) le_neq_implies_less not_less prefix_length_eq prefixeq_length_le)
-  apply (rule subset_inj_on[of _ "dcarrier EventType"])
-  apply (simp)
-  apply (metis DestList_tr'_dcarrier DestList_tr_dcarrier le_sup_iff)
+  apply (metis (full_types) le_antisym prefix_length_eq prefixeq_length_le)
+done
+
+lemma tr_prefix_app:
+  "`($tr ^ \<langle>a\<rangle> = $tr\<acute>) \<and> ($tr \<le> $tr\<acute>)` = `($tr ^ \<langle>a\<rangle> = $tr\<acute>)`"
+  apply (utp_pred_auto_tac)
+  apply (metis prefixeq_def)
 done
 
 lemma SkipRA_is_R2 : "`R2(II\<^bsub>REL_VAR - OKAY\<^esub>)` = `II\<^bsub>REL_VAR - OKAY\<^esub>`"
@@ -313,12 +358,8 @@ lemma R2_CondR:
   "`R2(P \<lhd> b \<rhd> Q)` =`R2(P) \<lhd> R2s(b) \<rhd> R2(Q)`" 
   by (utp_pred_auto_tac)
 
-lemma R3_OrP:
-  "`R3(P \<or> Q)` = `R3(P) \<or> R3(Q)`"
-  by (utp_pred_auto_tac)
-
-lemma R3_CondR:
-  "`R3(P \<lhd> b \<rhd> Q)` = `R3(P) \<lhd> R3(b) \<rhd> R3(Q)`"
+lemma R2_CondR_alt: 
+  "`R2(P \<lhd> b \<rhd> Q)` =`R2(P) \<lhd> R2(b) \<rhd> R2(Q)`" 
   by (utp_pred_auto_tac)
 
 lemma R2s_OrP: 
@@ -333,6 +374,23 @@ lemma R2s_not_ok: "`R2s(\<not> ok)` = `\<not> ok`"
 
 lemma R2_not_ok: "`R2(\<not> ok)` = `R1(\<not> ok)`"
   by (simp add:R2_def usubst typing defined closure R2s_not_ok) 
+
+lemma R2_AndP: "`R2(P \<and> Q)` = `R2(P) \<and> R2(Q)`"
+  by (utp_pred_auto_tac)
+
+lemma R2_OrP: "`R2(P \<or> Q)` = `R2(P) \<or> R2(Q)`"
+  by (utp_pred_auto_tac)
+
+lemma R3_AndP: "`R3(P \<and> Q)` = `R3(P) \<and> R3(Q)`"
+  by (utp_pred_auto_tac)
+
+lemma R3_OrP:
+  "`R3(P \<or> Q)` = `R3(P) \<or> R3(Q)`"
+  by (utp_pred_auto_tac)
+
+lemma R3_CondR:
+  "`R3(P \<lhd> b \<rhd> Q)` = `R3(P) \<lhd> R3(b) \<rhd> R3(Q)`"
+  by (utp_pred_auto_tac)
 
 lemma R3_idempotent: "`R3(R3(P))` = `R3(P)`" 
   by (utp_pred_auto_tac)
@@ -366,12 +424,28 @@ proof -
   have "R2 (R3 P) = `R2(II\<^bsub>rea\<^esub>) \<lhd> R2s($wait) \<rhd> R2(P)`" 
     by (simp add:R3_def R2_CondR)
   also have "... = `II\<^bsub>rea\<^esub> \<lhd> $wait \<rhd> R2(P)`" 
-    by (simp add: SkipREA_is_R2, simp add:R2s_def usubst closure typing defined)
-  ultimately show ?thesis by utp_pred_tac
+    by (simp add: SkipREA_is_R2 R2s_wait)
+  finally show ?thesis 
+    by (simp add: R3_def R2_def)
 qed
 
 lemma helper1 : "`$wait \<and> II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>` = `$wait \<and> $wait\<acute> \<and> II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>`"
   by (auto simp add:var_dist closure evalr evale)
+
+lemma RH_is_R1:
+  "P is RH \<Longrightarrow> P is R1"
+  by (metis Healthy_intro Healthy_simp R1_idempotent RH_def comp_apply)
+
+lemma RH_is_R2:
+  "P is RH \<Longrightarrow> P is R2"
+  by (metis Healthy_intro Healthy_simp R1_idempotent R2_R3_commute R2_def R3_idempotent RH_def comp_apply)
+
+lemma RH_is_R3:
+  "P is RH \<Longrightarrow> P is R3"
+  by (metis Healthy_intro Healthy_simp R1_R3_commute R1_idempotent R2_R3_commute R2_def R3_idempotent RH_def o_eq_dest_lhs)
+
+lemma R_intro: "\<lbrakk> P is R1; P is R2; P is R3 \<rbrakk> \<Longrightarrow> P is RH"
+  by (metis RH_def comp_apply is_healthy_def)
 
 (*
 lemma helper2: "`($wait\<acute> \<and> Q) ; R3(P)` = `$wait\<acute> \<and> Q`" sorry

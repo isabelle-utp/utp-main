@@ -12,55 +12,64 @@ imports
   utp_acp
 begin
 
-definition J_pred_rea :: "'VALUE WF_PREDICATE" ("J\<^bsub>rea\<^esub>") where
-"J\<^bsub>rea\<^esub> \<equiv> `(ok \<Rightarrow> ok') \<and> II\<^bsub>REL_VAR - OKAY\<^esub>`"
+abbreviation wait_true :: 
+  "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" ("_\<^sub>t"[150]) where
+"p\<^sub>t \<equiv> `p[true/wait]`"
 
 abbreviation wait_false :: 
   "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" ("_\<^sub>f"[150]) where
 "p\<^sub>f \<equiv> `p[false/wait]`"
 
 syntax
-  "_upred_J_rea"        :: "upred" ("J\<^bsub>rea\<^esub>")
+  "_upred_wait_true"    :: "upred \<Rightarrow> upred" ("_\<^sub>t" [1000] 1000)
   "_upred_wait_false"   :: "upred \<Rightarrow> upred" ("_\<^sub>f" [1000] 1000)
 
 translations
-  "_upred_J_rea"        == "CONST J_pred_rea"
+  "_upred_wait_true p"  == "CONST wait_true p"
   "_upred_wait_false p" == "CONST wait_false p"
 
 definition CSP1 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 "CSP1 P = `P \<or> (\<not> ok \<and> ($tr \<le> $tr\<acute>))`"
 
-definition CSP2 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"CSP2 P = `P ; J\<^bsub>rea\<^esub>`"
+abbreviation "CSP2 \<equiv> H2"
 
 definition CSP :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"CSP P = (CSP1 \<circ> CSP2 \<circ> R) P"
+"CSP P = (CSP1 \<circ> CSP2 \<circ> RH) P"
 
 definition Skip :: "'a WF_PREDICATE" where
-"Skip = `R(\<exists> ref. II\<^bsub>rea\<^esub>)`"
+"Skip = `RH(\<exists> ref. II\<^bsub>rea\<^esub>)`"
 
 declare CSP1_def [eval, evalr, evalrr, evalrx]
-declare CSP2_def [eval, evalr, evalrr, evalrx]
 declare CSP_def [eval, evalr, evalrr, evalrx]
-declare J_pred_rea_def [eval, evalr, evalrr, evalrx]
 declare \<delta>_def [eval, evalr, evalrr, evalrx]
 declare doA_def [eval, evalr, evalrr, evalrx]
 declare \<Phi>_def [eval, evalr, evalrr, evalrx]
 declare B_def [eval, evalr, evalrr, evalrx]
 
-lemma J_rea_is_CSP2 : "`J\<^bsub>rea\<^esub> ; J\<^bsub>rea\<^esub>` = `J\<^bsub>rea\<^esub>`"sorry
-lemma CSP1_false_is_CSP2 : "`(\<not> ok \<and> ($tr \<le> $tr\<acute>)) ; J\<^bsub>rea\<^esub>` = `(\<not> ok \<and> ($tr \<le> $tr\<acute>))`" sorry
-lemma \<delta>_and_SKIP_is_false : "`((ok\<acute> \<and> \<delta>) \<and> (\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<and> SKIP) ; J\<^bsub>rea\<^esub> \<or> Q` = `Q`" sorry
-lemma aid : "`((\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<and> (\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<and> SKIP) ; J\<^bsub>rea\<^esub>` =`(\<not> ok \<and> ($tr \<le> $tr\<acute>))`" oops
+lemma CSP1_idempotent: "`CSP1(CSP1(P))` = `CSP1(P)`" 
+  by (utp_pred_auto_tac)
+
+lemma CSP2_idempotent: "`CSP2(CSP2(P))` = `CSP2(P)`"
+  by (metis H2_idempotent)
+
+lemma CSP1_monotonic: 
+  "P \<sqsubseteq> Q \<Longrightarrow> CSP1(P) \<sqsubseteq> CSP1(Q)"
+  by (utp_pred_tac)
+
+lemma CSP2_monotonic:
+  "P \<sqsubseteq> Q \<Longrightarrow> CSP2(P) \<sqsubseteq> CSP2(Q)"
+  by (metis H2_monotone)
+
+lemma CSP1_CSP2_commute: "CSP1 (CSP2 P) = CSP2 (CSP1 P)" 
+  apply (simp add: CSP1_def usubst typing defined closure H2_def)
+
+
+lemma CSP1_false_is_CSP2 : "`(\<not> ok \<and> ($tr \<le> $tr\<acute>)) ; J` = `(\<not> ok \<and> ($tr \<le> $tr\<acute>))`" sorry
+lemma \<delta>_and_SKIP_is_false : "`((ok\<acute> \<and> \<delta>) \<and> (\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<and> SKIP) ; J \<or> Q` = `Q`" sorry
+lemma aid : "`((\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<and> (\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<and> SKIP) ; J` =`(\<not> ok \<and> ($tr \<le> $tr\<acute>))`" oops
 lemma CSP2_form: "`CSP2(P)` = `P\<^sup>f \<or> ok'\<and> P\<^sup>t`"sorry
 lemma SkipREA_is_CSP2 : "`CSP2(II\<^bsub>rea\<^esub>)` = `II\<^bsub>rea\<^esub>`"sorry
 lemma R3_form : "`R3(P)` = `II\<^bsub>rea\<^esub> \<lhd> $wait \<rhd> (P\<^sub>f)`"sorry
-
-lemma CSP1_idempotent: "`CSP1(CSP1(P))` = `CSP1(P)`" by(utp_pred_auto_tac)
-lemma CSP2_idempotent: "`CSP2(CSP2(P))` = `CSP2(P)`" by (simp add: CSP2_def SemiR_assoc[THEN sym] J_rea_is_CSP2)
-
-lemma CSP1_monotonic: "[P\<Rightarrow>Q] \<Longrightarrow> [CSP1(P) \<Rightarrow> CSP1(Q)]"by (utp_pred_tac)
-lemma CSP2_monotonic: "[P\<Rightarrow>Q] \<Longrightarrow> [CSP2(P) \<Rightarrow> CSP2(Q)]"by(simp add:CSP2_form, utp_pred_auto_tac)
 
 lemma CSP1_CSP2_commute: "CSP1 (CSP2 P) = CSP2 (CSP1 P)"by(simp add:CSP2_form CSP1_def usubst typing defined closure, utp_pred_auto_tac)
 lemma CSP1_R1_commute: "CSP1 (R1 P) = R1 (CSP1 (P))"by utp_pred_auto_tac
