@@ -57,7 +57,7 @@ lemma SkipREA_is_CSP2 : "`CSP2(II\<^bsub>rea\<^esub>)` = `II\<^bsub>rea\<^esub>`
 lemma R3_form : "`R3(P)` = `II\<^bsub>rea\<^esub> \<lhd> $wait \<rhd> (P\<^sub>f)`"sorry
 
 lemma CSP1_idempotent: "`CSP1(CSP1(P))` = `CSP1(P)`" by(utp_pred_auto_tac)
-lemma CSP2_idempotent: "`CSP2(CSP2(P))` = `CSP2(P)`" by(simp add: CSP2_def seq_comp_assoc J_rea_is_CSP2)
+lemma CSP2_idempotent: "`CSP2(CSP2(P))` = `CSP2(P)`" by (simp add: CSP2_def SemiR_assoc[THEN sym] J_rea_is_CSP2)
 
 lemma CSP1_monotonic: "[P\<Rightarrow>Q] \<Longrightarrow> [CSP1(P) \<Rightarrow> CSP1(Q)]"by (utp_pred_tac)
 lemma CSP2_monotonic: "[P\<Rightarrow>Q] \<Longrightarrow> [CSP2(P) \<Rightarrow> CSP2(Q)]"by(simp add:CSP2_form, utp_pred_auto_tac)
@@ -79,9 +79,11 @@ qed
 
 lemma commuting_substitutions : "`R2s(P)[false/wait]` = `R2s(P [false/wait])`" apply(simp add:R2s_def)  sorry
 
+lemma DesignD_form : "`(P \<turnstile> Q)` = `\<not>ok \<or> \<not>P \<or> (ok' \<and> Q)`" by(simp add:DesignD_def, utp_pred_auto_tac)
+
 lemma CSP_Closure : "P is CSP \<longleftrightarrow> `R(\<not> P\<^sup>f\<^sub>f \<turnstile> P\<^sup>t\<^sub>f)` = P"
 proof -
-have "`R(\<not> P\<^sup>f\<^sub>f \<turnstile> P\<^sup>t\<^sub>f)` = `R1(R3( \<not>ok \<or> R2s(P\<^sup>f\<^sub>f) \<or> R2s(ok'\<and>  P\<^sup>t\<^sub>f)))`" by(simp add:R_def R2_def R1_idempotent R2s_R3_commute DesignD_form R2s_distributes_through_disjunction not_ok_is_R2s)
+have "`R(\<not> P\<^sup>f\<^sub>f \<turnstile> P\<^sup>t\<^sub>f)` = `R1(R3( \<not>ok \<or> R2s(P\<^sup>f\<^sub>f) \<or> R2s(ok'\<and>  P\<^sup>t\<^sub>f)))`" apply(simp add:R_def R2_def R1_idempotent R2_R3_commute DesignD_form R2s_OrP R2s_not_ok)
 also have "... = `R1(($wait \<and> II\<^bsub>rea\<^esub>) \<or> (\<not>$wait \<and> \<not>ok) \<or> (\<not>$wait \<and> R2s(P\<^sup>f\<^sub>f)) \<or> (\<not>$wait\<and> ok'\<and> R2s(P\<^sup>t\<^sub>f)))`" sorry (* apply (simp add:R3_def CondR_def R2s_distributes_through_conjunction ok_dash_is_R2s, utp_pred_auto_tac) *)
 also have "... = `($wait \<and> \<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> ($wait \<and> ok' \<and> ($tr \<le> $tr\<acute>) \<and> II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>) \<or> (\<not>$wait \<and> ($tr \<le> $tr\<acute>) \<and> \<not>ok) \<or> (\<not>$wait \<and> ($tr \<le> $tr\<acute>) \<and> R2s(P\<^sup>f\<^sub>f)) \<or> (\<not>$wait\<and> ok'\<and> ($tr \<le> $tr\<acute>) \<and> R2s(P\<^sup>t\<^sub>f))`" by utp_pred_auto_tac
 also have "... = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> ($wait \<and> \<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> ($wait \<and> ok' \<and> ($tr \<le> $tr\<acute>) \<and> II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>) \<or> (\<not>$wait \<and> ($tr \<le> $tr\<acute>) \<and> R2(P\<^sup>f\<^sub>f)) \<or> (\<not>$wait\<and> ok'\<and> ($tr \<le> $tr\<acute>) \<and> R2s(P\<^sup>t\<^sub>f))`" by utp_pred_auto_tac

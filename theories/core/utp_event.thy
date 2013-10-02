@@ -129,6 +129,24 @@ lemma MkEvent_inj: "inj MkEvent"
 lemma DestEvent_inv [simp]: "x :! EventType \<Longrightarrow> MkEvent (DestEvent x) = x"
   by (smt EventType_dcarrier Inverse dtype_as_dcarrier image_iff)
 
+lemma map_EventList [simp]:
+  assumes "set xs \<subseteq> dcarrier EventType"
+  shows "map (MkEvent \<circ> DestEvent) xs = xs"
+proof -
+  have "map (MkEvent \<circ> DestEvent) xs = map id xs"
+    apply (subst map_eq_conv)
+    apply (auto)
+    apply (metis (full_types) DestEvent_inv assms dtype_as_dcarrier set_mp)
+  done
+
+  thus ?thesis
+    by auto
+qed
+
+lemma DestEvent_inj [simp]:
+  "inj_on DestEvent (dcarrier EventType)"
+  by (metis (hide_lams, no_types) DestEvent_inv dtype_as_dcarrier inj_on_def)
+
 end
 
 lift_definition EVENT_chan :: "'a::EVENT_PERM EVENT \<Rightarrow> 'a UCHAN" is "fst"

@@ -205,47 +205,34 @@ lemma SkipRA_is_R1 :
   "`R1(II\<^bsub>REL_VAR - OKAY\<^esub>)` = `II\<^bsub>REL_VAR - OKAY\<^esub>`"
   by (auto simp add:var_dist closure eval)
 
-lemma map_EventList_tr [simp]:
-  "map (MkEvent \<circ> DestEvent) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>)) = (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))"
-proof -
-  have "map (MkEvent \<circ> DestEvent) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>)) = map id (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))"
-    apply (subst map_eq_conv)
-    apply (auto)
-    apply (subgoal_tac "x :! EventType")
-    apply (metis DestEvent_inv)
-    apply (drule_tac t="EventType" in DestList_elem_stype)
-    apply (auto intro:typing simp add:closure)
-  done
+lemma DestList_tr_dcarrier [typing]: 
+  "set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>)) \<subseteq> dcarrier EventType"
+  apply (rule DestList_elem_type)
+  apply (simp add:closure)
+  apply (auto intro:typing)[1]
+done
 
-  thus ?thesis
-    by auto
-qed
-
-lemma map_EventList_tr' [simp]:
-  "map (MkEvent \<circ> DestEvent) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)) = (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>))"
-proof -
-  have "map (MkEvent \<circ> DestEvent) (DestList (\<langle>b\<rangle>\<^sub>b tr\<acute>\<down>)) = map id (DestList (\<langle>b\<rangle>\<^sub>b tr\<acute>\<down>))"
-    apply (subst map_eq_conv)
-    apply (auto)
-    apply (subgoal_tac "x :! EventType")
-    apply (metis DestEvent_inv)
-    apply (drule_tac t="EventType" in DestList_elem_stype)
-    apply (auto intro:typing simp add:closure erasure defined)
-  done
-
-  thus ?thesis
-    by auto
-qed
+lemma DestList_tr'_dcarrier [typing]: 
+  "set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)) \<subseteq> dcarrier EventType"
+  apply (rule DestList_elem_type)
+  apply (simp add:closure)
+  apply (auto intro:typing)[1]
+done
 
 lemma tr_prefix_as_nil:
   "`($tr\<acute> - $tr) = \<langle>\<rangle> \<and> ($tr \<le> $tr\<acute>)` = `$tr = $tr\<acute>`"
   apply (utp_pred_auto_tac)
-  apply (subgoal_tac "(map (MkEvent \<circ> DestEvent) (drop (length (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)))) = 
-                      (drop (length (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)))")
-  apply (simp_all)
   apply (subgoal_tac "set (drop (length (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>))) \<subseteq> dcarrier (EventType :: 'a UTYPE)")
-  apply (auto simp add: MkList_inj_simp closure)
-sorry
+  defer
+  apply (rule subset_trans, rule set_drop_subset, rule DestList_tr'_dcarrier)
+  apply (simp add:MkList_inj_simp typing closure)
+  apply (subgoal_tac "inj_on DestEvent (set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>)) \<union> set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)))")
+  apply (simp)
+  apply (metis (full_types) le_neq_implies_less not_less prefix_length_eq prefixeq_length_le)
+  apply (rule subset_inj_on[of _ "dcarrier EventType"])
+  apply (simp)
+  apply (metis DestList_tr'_dcarrier DestList_tr_dcarrier le_sup_iff)
+done
 
 lemma SkipRA_is_R2 : "`R2(II\<^bsub>REL_VAR - OKAY\<^esub>)` = `II\<^bsub>REL_VAR - OKAY\<^esub>`"
 proof -
@@ -264,8 +251,8 @@ proof -
 
   also have "... = `II\<^bsub>REL_VAR - OKAY\<^esub>`"
     apply (subst SkipRA_unfold[of "tr\<down>"]) back
-    apply (auto simp add:closure erasure)
-  sorry
+    apply (auto simp add:closure erasure typing)
+  done
 
   finally show ?thesis .
 qed
@@ -282,51 +269,121 @@ proof-
     by (simp add:SkipRA_is_R2 SkipREA_def)
 qed
 
-(*
-lemma Skip_is_R2s : "`R2s(II\<^bsub>REL_VAR - OKAY\<^esub>)` = `II\<^bsub>REL_VAR - OKAY\<^esub>`"
-  apply (utp_pred_auto_tac)
-  apply (drule_tac x="tr\<down>" in bspec)
-  apply (auto simp add:var_dist closure eval)[1]
-sorry
-*)
+lemma tr_conserved_is_R1 : "`R1($tr = $tr\<acute>)` = `($tr = $tr\<acute>)`" 
+  by (simp add:R1_def, utp_pred_auto_tac)
 
-lemma tr_conserved_is_R2 : "`R2s($tr = $tr\<acute>)` = `($tr = $tr\<acute>)`"
-  apply(simp add:R2s_def usubst typing defined closure, utp_pred_auto_tac)
-sorry
+lemma tr_conserved_is_R2 : "`R2($tr = $tr\<acute>)` = `($tr = $tr\<acute>)`"
+  apply(simp add:R2_def R2s_def R1_def usubst typing defined closure)
+  apply (metis EqualP_sym tr_prefix_as_nil)
+done
 
-(*
-lemma R3_wait: "`R3(P) \<and> $wait` = `II\<^bsub>rea\<^esub>`"
+lemma R3_wait: "`R3(P) \<and> $wait` = `II\<^bsub>rea\<^esub> \<and> $wait`"
   apply (simp add:R3_def)
   apply (subst AndP_comm)
   apply (subst CondR_true_cond)
-  apply (utp_pred_auto_tac)
-*)
+  apply (subst AndP_comm)
+  apply (rule refl)
+done
 
-lemma helper1 : "`$wait \<and> II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>` = `$wait \<and> $wait\<acute> \<and> II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>`"
-  by (auto simp add:var_dist closure evalr evale)
-lemma helper2: "`($wait\<acute> \<and> Q) ; R3(P)` = `$wait\<acute> \<and> Q`" sorry
-lemma helper3 : "`(\<not> ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)) ; P` = `(\<not> ok \<and> $wait \<and> ($tr \<le> $tr\<acute>))`"sorry
-lemma helper4 : "`\<langle>\<rangle> = ($tr\<acute> - $tr)` =`$tr\<acute> = $tr`" sorry
-lemma wait_then_P_equals_wait : "`(($wait \<and> II\<^bsub>rea\<^esub>) \<and> ($tr \<le> $tr\<acute>)) ; P` = `(($wait \<and> II\<^bsub>rea\<^esub>) \<and> ($tr \<le> $tr\<acute>))`" sorry
-lemma R2s_R3_commute : "R2s (R3 P) = R3 (R2s P)" sorry
-lemma Assist : "`P[false/okay\<acute>] \<or> P[true/okay\<acute>]` = `P`"sorry
-lemma Assist7 : "`(($tr < $tr\<acute>) \<and> ($tr^\<langle>a\<rangle> =$tr\<acute>))` = `($tr^\<langle>a\<rangle> =$tr\<acute>)`" sorry
-
-lemma tr_conserved_is_R1 : "`R1($tr = $tr\<acute>)` = `($tr = $tr\<acute>)`" by (simp add:R1_def, utp_pred_auto_tac)
-
-lemma R2s_idempotent : "`R2s(R2s(P))` = `R2s(P)`"
+lemma R2s_idempotent: "`R2s(R2s(P))` = `R2s(P)`"
   apply (simp add:R2s_def)
   apply (subst SubstP_twice_3) back
   apply (simp_all add:typing defined closure unrest)
   apply (simp add:usubst typing defined closure)
 done
 
-lemma wait_is_R2s : "`R2s($wait)` = `$wait`" by(simp add:R2s_def usubst closure typing defined)
-lemma R2s_destroys_R1 : "R2s (R1 P) = R2s P" by(simp add:R2s_def R1_def usubst closure typing defined, utp_pred_auto_tac)
+lemma R2s_wait: "`R2s($wait)` = `$wait`" 
+  by (simp add:R2s_def usubst closure typing defined)
+
+lemma R2s_destroys_R1: "R2s (R1 P) = R2s P" 
+  by (simp add:R2s_def R1_def usubst closure typing defined, utp_pred_auto_tac)
+
+lemma R2s_distributes_through_conjunction: 
+  "`R2s(P \<and> Q)` = `R2s(P) \<and> R2s(Q)`" 
+  by (utp_pred_auto_tac)
+
+lemma R2s_CondR: 
+  "`R2s(P \<lhd> b \<rhd> Q)` = `R2s(P) \<lhd> R2s(b) \<rhd> R2s(Q)`"
+  by (utp_pred_auto_tac)
+
+lemma R2_idempotent: "`R2(R2(P))` = `R2(P)`" 
+  by (simp add:R2_def R2s_destroys_R1 R2s_idempotent)
+
+lemma R2_CondR: 
+  "`R2(P \<lhd> b \<rhd> Q)` =`R2(P) \<lhd> R2s(b) \<rhd> R2(Q)`" 
+  by (utp_pred_auto_tac)
+
+lemma R3_OrP:
+  "`R3(P \<or> Q)` = `R3(P) \<or> R3(Q)`"
+  by (utp_pred_auto_tac)
+
+lemma R3_CondR:
+  "`R3(P \<lhd> b \<rhd> Q)` = `R3(P) \<lhd> R3(b) \<rhd> R3(Q)`"
+  by (utp_pred_auto_tac)
+
+lemma R2s_OrP: 
+  "`R2s(A \<or> C)` = `R2s(A) \<or> R2s(C)`" 
+  by (utp_pred_auto_tac)
+
+lemma R1_not_ok: "`R1(\<not> ok)` = `(\<not> ok \<and> ($tr \<le> $tr\<acute>))`" 
+  by (simp add:R1_def)
+
+lemma R2s_not_ok: "`R2s(\<not> ok)` = `\<not> ok`" 
+  by (simp add:R2s_def usubst typing defined closure) 
+
+lemma R2_not_ok: "`R2(\<not> ok)` = `R1(\<not> ok)`"
+  by (simp add:R2_def usubst typing defined closure R2s_not_ok) 
+
+lemma R3_idempotent: "`R3(R3(P))` = `R3(P)`" 
+  by (utp_pred_auto_tac)
+
+lemma R1_monotonic: "P \<sqsubseteq> Q \<Longrightarrow> R1(P) \<sqsubseteq> R1(Q)" 
+  by utp_pred_tac
+
+lemma R2_monotonic: "P \<sqsubseteq> Q \<Longrightarrow> R2(P) \<sqsubseteq> R2(Q)" 
+  by utp_pred_tac
+
+lemma R3_monotonic: "P \<sqsubseteq> Q \<Longrightarrow> R3(P) \<sqsubseteq> R3(Q)" 
+  by utp_pred_tac
+
+lemma R1_R2_commute: "R1 (R2 P) = R2 (R1 P)" 
+  by (simp add:R2_def R1_idempotent R2s_destroys_R1)
+
+lemma R1_R3_commute: "R1 (R3 P) = R3 (R1 P)" 
+proof - 
+  have "R1 (R3 P) = `(II\<^bsub>rea\<^esub> \<lhd> $wait \<rhd> P) \<and> ($tr \<le> $tr\<acute>)`" 
+    by utp_rel_tac
+  also have "... = `(II\<^bsub>rea\<^esub> \<and> ($tr \<le> $tr\<acute>)) \<lhd> $wait \<rhd> (P \<and> ($tr \<le> $tr\<acute>))`" 
+    by utp_pred_auto_tac
+  also have "... = `II\<^bsub>rea\<^esub> \<lhd> $wait \<rhd> (P \<and> ($tr \<le> $tr\<acute>))`" 
+    by (metis R1_def SkipREA_is_R1)
+  ultimately show ?thesis by utp_pred_auto_tac
+qed
+
+theorem R2_R3_commute: 
+  "R2 (R3 P) = R3 (R2 P)" 
+proof - 
+  have "R2 (R3 P) = `R2(II\<^bsub>rea\<^esub>) \<lhd> R2s($wait) \<rhd> R2(P)`" 
+    by (simp add:R3_def R2_CondR)
+  also have "... = `II\<^bsub>rea\<^esub> \<lhd> $wait \<rhd> R2(P)`" 
+    by (simp add: SkipREA_is_R2, simp add:R2s_def usubst closure typing defined)
+  ultimately show ?thesis by utp_pred_tac
+qed
+
+lemma helper1 : "`$wait \<and> II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>` = `$wait \<and> $wait\<acute> \<and> II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>`"
+  by (auto simp add:var_dist closure evalr evale)
+
+(*
+lemma helper2: "`($wait\<acute> \<and> Q) ; R3(P)` = `$wait\<acute> \<and> Q`" sorry
+lemma helper4 : "`\<langle>\<rangle> = ($tr\<acute> - $tr)` =`$tr\<acute> = $tr`" sorry
+lemma wait_then_P_equals_wait : "`(($wait \<and> II\<^bsub>rea\<^esub>) \<and> ($tr \<le> $tr\<acute>)) ; P` = `(($wait \<and> II\<^bsub>rea\<^esub>) \<and> ($tr \<le> $tr\<acute>))`" sorry
+lemma R2s_R3_commute : "R2s (R3 P) = R3 (R2s P)" sorry
+lemma Assist : "`P[false/okay\<acute>] \<or> P[true/okay\<acute>]` = `P`"sorry
+lemma Assist7 : "`(($tr < $tr\<acute>) \<and> ($tr^\<langle>a\<rangle> =$tr\<acute>))` = `($tr^\<langle>a\<rangle> =$tr\<acute>)`" sorry
+
 lemma conj_distributes_through_conditional : "`(P \<lhd> b \<rhd> Q) \<and> S` = `(P \<and> S)\<lhd> b \<rhd>(Q \<and> S)`"by utp_pred_auto_tac
 lemma R2s_distributes_through_conjunction : "`R2s(P \<and> Q)` = `R2s(P) \<and> R2s(Q)`" by utp_pred_auto_tac
 lemma R2s_distributes_through_conditional : "`R2s(P \<lhd> b \<rhd> Q)` = `R2s(P)\<lhd> R2s(b) \<rhd>R2s(Q)`"by utp_pred_auto_tac
-lemma R2_distributes_through_conditional : "`R2(P \<lhd> b \<rhd> Q)` =`R2(P) \<lhd> R2s(b) \<rhd> R2(Q)`" by utp_pred_auto_tac
 lemma R3_distributes_through_disjunction :"`R3(P \<or> Q)` = `R3(P) \<or> R3(Q)`"by utp_pred_auto_tac
 lemma R3_distributes_through_conditional :"`R3(P \<lhd> b \<rhd> Q)` = `R3(P) \<lhd> R3(b) \<rhd> R3(Q)`"by utp_pred_auto_tac
 lemma seq_comp_assoc : "`(P ; Q) ; S` = `P ; (Q ; S)`"by (metis SemiR_assoc)
@@ -339,33 +396,8 @@ lemma wait_is_R2 : "`$wait[($tr\<acute> - $tr)/tr\<acute>][\<langle>\<rangle>/tr
 lemma not_wait_is_R2 : "`(\<not> $wait)[($tr\<acute> - $tr)/tr\<acute>][\<langle>\<rangle>/tr]` = `\<not> $wait`" by(simp add:usubst typing defined closure)
 lemma conj_through_dist_2 : "`P \<and> Q \<or> S` = `(P \<and> Q) \<or> (P \<and> S)`" by utp_pred_auto_tac
 lemma negation_of_disjunction  : "`\<not>(P \<or> Q)` = `(\<not>P \<and> \<not>Q)`" by utp_pred_auto_tac
-lemma DesignD_form : "`(P \<turnstile> Q)` = `\<not>ok \<or> \<not>P \<or> (ok' \<and> Q)`" by(simp add:DesignD_def, utp_pred_auto_tac)
 lemma aider3 : "`$okay\<acute> \<and> II\<^bsub>rea\<^esub>[true/okay\<acute>]` = `$okay\<acute> \<and> II\<^bsub>rea\<^esub>`"by(simp add:SkipREA_def usubst typing defined closure, utp_pred_auto_tac)
-
-lemma R2_idempotent : "`R2(R2(P))` = `R2(P)`" by(simp add:R2_def R2s_destroys_R1 R2s_idempotent)
-lemma R3_idempotent : "`R3(R3(P))` = `R3(P)`" by (utp_pred_auto_tac)
-
-lemma R1_monotonic : "[P \<Rightarrow> Q] \<Longrightarrow> [R1(P) \<Rightarrow> R1(Q)]" by utp_pred_tac
-lemma R2_monotonic : "[P \<Rightarrow> Q] \<Longrightarrow> [R2(P) \<Rightarrow> R2(Q)]" by utp_pred_tac
-lemma R3_monotonic : "[P \<Rightarrow> Q] \<Longrightarrow> [R3(P) \<Rightarrow> R3(Q)]" by utp_pred_tac
-
-lemma R1_R2_commute : "R1 (R2 P) = R2 (R1 P)" by (simp add:R2_def R1_idempotent R2s_destroys_R1)
-
-lemma R1_R3_commute : "R1 (R3 P) = R3 (R1 P)" 
-proof - 
-  have "R1 (R3 P) = `(II\<^bsub>rea\<^esub> \<lhd> $wait \<rhd> P) \<and> ($tr \<le> $tr\<acute>)`" by utp_rel_tac
-  also have "... = `(II\<^bsub>rea\<^esub> \<and> ($tr \<le> $tr\<acute>)) \<lhd> $wait \<rhd> (P \<and> ($tr \<le> $tr\<acute>))`" by utp_pred_auto_tac
-  also have "... = `II\<^bsub>rea\<^esub> \<lhd> $wait \<rhd> (P \<and> ($tr \<le> $tr\<acute>))`" by (metis R1_def SkipREA_is_R1)
-  ultimately show ?thesis by utp_pred_auto_tac
-qed
-
-theorem R2_R3_commute: 
-  "R2 (R3 P) = R3 (R2 P)" 
-proof - 
-  have "R2 (R3 P) = `R2(II\<^bsub>rea\<^esub>) \<lhd> R2s($wait) \<rhd> R2(P)`" by (simp add:R3_def R2_distributes_through_conditional)
-  also have "... = `II\<^bsub>rea\<^esub> \<lhd> $wait \<rhd> R2(P)`" by(simp add: SkipREA_is_R2, simp add:R2s_def usubst closure typing defined)
-  ultimately show ?thesis by utp_pred_tac
-qed
+*)
 
 subsection {* The theory of Reactive Processes *}
 

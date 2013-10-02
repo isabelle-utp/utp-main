@@ -198,6 +198,10 @@ lemma binding_type [simp, typing, intro]: "t = vtype x \<Longrightarrow> \<langl
   apply (auto simp add:WF_BINDING_def)
 done
 
+lemma binding_stype [typing]:
+  "\<lbrakk> t = vtype x; aux x \<rbrakk> \<Longrightarrow> \<langle>b\<rangle>\<^sub>b x :! t"
+  by (auto intro:typing simp add:defined)
+
 lemma binding_compat [simp, intro, typing]: "\<langle>b\<rangle>\<^sub>bx \<rhd> x"
   by auto
 

@@ -58,6 +58,26 @@ lemma prefix_length_eq:
   "\<lbrakk> length xs = length ys; prefixeq xs ys \<rbrakk> \<Longrightarrow> xs = ys"
   by (metis not_equal_is_parallel parallel_def)
 
+lemma prefixeq_Cons_elim [elim]:
+  assumes "prefixeq (x # xs) ys"
+  obtains ys' where "ys = x # ys'" "prefixeq xs ys'"
+  using assms by (auto elim!: prefixeqE)
+
+lemma prefixeq_map_inj:
+  "\<lbrakk> inj_on f (set xs \<union> set ys); prefixeq (map f xs) (map f ys) \<rbrakk> \<Longrightarrow>
+   prefixeq xs ys"
+  apply (induct xs arbitrary:ys)
+  apply (simp_all)
+  apply (erule prefixeq_Cons_elim)
+  apply (auto)
+  apply (metis image_insert insertI1 insert_Diff_if singletonE)
+done
+
+lemma prefixeq_map_inj_eq [simp]:
+  "inj_on f (set xs \<union> set ys) \<Longrightarrow>
+   prefixeq (map f xs) (map f ys) \<longleftrightarrow> prefixeq xs ys"
+  by (metis map_prefixeqI prefixeq_map_inj)
+
 fun interleave :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list set" where
 "interleave [] ys = {ys}" |
 "interleave (x # xs) (y # ys) = (Cons x) ` (interleave xs (y # ys)) 
