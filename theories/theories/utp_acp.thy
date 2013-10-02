@@ -223,7 +223,7 @@ proof -
   also have "... = `R3(R1(R2s(((a \<notin> $ref\<acute>) \<and> ($tr \<le> $tr\<acute>)) \<lhd> $wait\<acute> \<rhd> (($tr ^ \<langle>a\<rangle> = $tr\<acute>) \<and> ($tr < $tr\<acute>)))))`" 
     by (simp add:RH_def R2_R3_commute R1_R3_commute, simp add:R2_def R1_idempotent)
 
-  also from assms have "... = `R3(R1((a \<notin> $ref\<acute>) \<lhd> $wait\<acute> \<rhd> ($tr ^ \<langle>a\<rangle> = $tr\<acute>)))`"
+  also from assms have "... = `R3(R1((a \<notin> $ref\<acute>) \<lhd> $wait\<acute> \<rhd> (\<langle>a\<rangle> = ($tr\<acute> - $tr))))`"
   proof -
     have "`(($tr ^ \<langle>a\<rangle> = $tr\<acute>) \<and> ($tr < $tr\<acute>))` = `($tr ^ \<langle>a\<rangle> = $tr\<acute>)`"
       apply (utp_pred_auto_tac)
@@ -236,11 +236,22 @@ proof -
       apply (subgoal_tac "{tr\<down>\<acute>} \<sharp> a")
       apply (simp add:R2s_def usubst typing defined closure unrest)
       apply (auto intro:UNREST_PEXPR_subset)
+    done
+  qed
+
+
+  also from assms have "... = `R3(R1((a \<notin> $ref\<acute>) \<lhd> $wait\<acute> \<rhd> ($tr ^ \<langle>a\<rangle> = $tr\<acute>)))`"
+  proof -
+    have "`\<langle>a\<rangle> = ($tr\<acute> - $tr) \<and> ($tr \<le> $tr\<acute>)` = `($tr ^ \<langle>a\<rangle>) = $tr\<acute> \<and> ($tr \<le> $tr\<acute>)`"
+      apply (utp_pred_auto_tac)
     sorry
+
+    thus ?thesis
+      sorry
   qed
 
   also have "... = `R3(((a \<notin> $ref\<acute>) \<and> ($tr \<le> $tr\<acute>)) \<lhd> $wait\<acute> \<rhd> (($tr ^ \<langle>a\<rangle> = $tr\<acute>) \<and> ($tr \<le> $tr\<acute>)))`" 
-    by(utp_pred_auto_tac)
+    by (utp_pred_auto_tac)
 
   finally show ?thesis
     by (metis tr_prefix_app)
