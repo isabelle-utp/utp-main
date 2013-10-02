@@ -381,6 +381,9 @@ lemma R2_AndP: "`R2(P \<and> Q)` = `R2(P) \<and> R2(Q)`"
 lemma R2_OrP: "`R2(P \<or> Q)` = `R2(P) \<or> R2(Q)`"
   by (utp_pred_auto_tac)
 
+lemma R3_SkipREA: "`R3(II\<^bsub>rea\<^esub>)` = `II\<^bsub>rea\<^esub>`"
+  by (simp add:R3_def CondR_idem)
+
 lemma R3_AndP: "`R3(P \<and> Q)` = `R3(P) \<and> R3(Q)`"
   by (utp_pred_auto_tac)
 
@@ -391,6 +394,31 @@ lemma R3_OrP:
 lemma R3_CondR:
   "`R3(P \<lhd> b \<rhd> Q)` = `R3(P) \<lhd> R3(b) \<rhd> R3(Q)`"
   by (utp_pred_auto_tac)
+
+(*
+theorem R3_SemiR [closure]:
+  assumes
+    "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
+    "P is R3"
+  shows "(P ; Q) is R3"
+proof -
+  have "`P ; Q` = `(II\<^bsub>rea\<^esub> \<lhd> $wait \<rhd> P) ; Q`"
+    by (metis Healthy_elim R3_def assms(3))
+
+  also have "... = `(II\<^bsub>rea\<^esub> ; Q) \<lhd> $wait \<rhd> (P ; Q)`"
+    by (metis CondR_SemiR_distr MkPlainP_UNDASHED PUNDASHED_WF_CONDITION SkipREA_rel_closure assms)
+
+  also have "... = `II\<^bsub>rea\<^esub> \<lhd> $wait \<rhd> (P ; Q)`"
+
+  also have "... = `R3(P ; Q)`"
+    by (metis R3_def)
+    
+    apply (simp add:CondR_SemiR_distl closure unrest assms)
+
+    apply (simp add:R3_def)
+    by (metis Healthy_elim assms(3))
+qed
+*)
 
 lemma R3_idempotent: "`R3(R3(P))` = `R3(P)`" 
   by (utp_pred_auto_tac)

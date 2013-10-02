@@ -202,13 +202,20 @@ lemma SubstP_VarP_single_UNREST [usubst]:
   apply (metis (mono_tags) binding_upd_apply pevar_compat_def)
 done
 
-
-
 lemma UNREST_PEXPR_subset:
   "\<lbrakk> UNREST_PEXPR vs1 v; vs2 \<subseteq> vs1 \<rbrakk> \<Longrightarrow> UNREST_PEXPR vs2 v"
   apply (auto simp add:UNREST_PEXPR_def)
   apply (metis Int_absorb2 binding_override_simps(6))
 done
+
+lemma prefixeq_drop:
+  "\<lbrakk> drop (length xs) ys = zs; prefixeq xs ys \<rbrakk> 
+   \<Longrightarrow> ys = xs @ zs"
+  by (metis append_eq_conv_conj prefixeq_def)
+
+lemma CondR_AndP_distl:
+  "`(P \<lhd> b \<rhd> Q) \<and> R` = `(P \<and> R) \<lhd> b \<rhd> (Q \<and> R)`"
+  by (utp_pred_auto_tac)
 
 lemma doA_form: 
   assumes "TR \<sharp> a"
@@ -239,15 +246,22 @@ proof -
     done
   qed
 
+  also have "... = `R3(R1((a \<notin> $ref\<acute>) \<lhd> $wait\<acute> \<rhd> ((\<langle>a\<rangle> = ($tr\<acute> - $tr)) \<and> ($tr \<le> $tr\<acute>))))`"
+    by (smt R1_CondR R1_def R1_idempotent)
 
   also from assms have "... = `R3(R1((a \<notin> $ref\<acute>) \<lhd> $wait\<acute> \<rhd> ($tr ^ \<langle>a\<rangle> = $tr\<acute>)))`"
   proof -
     have "`\<langle>a\<rangle> = ($tr\<acute> - $tr) \<and> ($tr \<le> $tr\<acute>)` = `($tr ^ \<langle>a\<rangle>) = $tr\<acute> \<and> ($tr \<le> $tr\<acute>)`"
-      apply (utp_pred_auto_tac)
-    sorry
+      apply (utp_pred_tac)
+      apply (rule)
+      apply (subgoal_tac "set (drop (length (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>))) \<subseteq> dcarrier (EventType :: 'a UTYPE)")
+      apply (simp add:typing defined closure)
+      apply (smt drop_Cons' drop_all drop_append prefixeq_drop self_append_conv2)
+      apply (rule subset_trans, rule set_drop_subset, rule DestList_tr'_dcarrier)
+    done
 
     thus ?thesis
-      sorry
+      by (metis tr_prefix_app)
   qed
 
   also have "... = `R3(((a \<notin> $ref\<acute>) \<and> ($tr \<le> $tr\<acute>)) \<lhd> $wait\<acute> \<rhd> (($tr ^ \<langle>a\<rangle> = $tr\<acute>) \<and> ($tr \<le> $tr\<acute>)))`" 
@@ -314,21 +328,15 @@ lemma alternative_is_ACP1 :
 using assms
   by (simp add:is_healthy_def alternative_def ACP1_CondR ACP1_OrP ACP1_AndP ACP1_\<delta>)
 
-lemma helper2: "`($wait\<acute> \<and> Q) ; R3(P)` = `$wait\<acute> \<and> Q`" sorry
+lemma helper2: "`($wait\<acute> \<and> Q) ; R3(P)` = `$wait\<acute> \<and> Q`"
+ sorry
 
 lemma helper3 : "`(\<not> ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)) ; P` = `(\<not> ok \<and> $wait \<and> ($tr \<le> $tr\<acute>))`"sorry
 
 lemma L1 :
   assumes "P is R3"
   shows "\<delta> ; P = \<delta>"
-proof -
-  from assms have "\<delta> ; P = `((\<not> ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)); P) \<or> ($wait\<acute> \<and> ((ok' \<and> $wait \<and> II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>) \<or> \<not>$wait \<and> ($tr = $tr\<acute>))) ; R3(P)`"by(simp add:is_healthy_def \<delta>_form SemiR_OrP_distr)
-  also have "... = `(\<not> ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)) \<or> ($wait\<acute> \<and>  ((ok' \<and> $wait \<and> II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>) \<or> \<not>$wait \<and> ($tr = $tr\<acute>))) ; R3(P)`" by(simp add:helper3)
-  also have "... = `(\<not> ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)) \<or> ($wait\<acute> \<and>  ((ok' \<and> $wait \<and> II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>) \<or> \<not>$wait \<and> ($tr = $tr\<acute>)))`" by(metis helper2)
-  also have "... = `(\<not> ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)) \<or> (ok' \<and> $wait \<and> II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>) \<or> \<not>$wait \<and> $wait\<acute> \<and> ($tr = $tr\<acute>)`" by(simp add:helper1, utp_pred_auto_tac)
-  also have "... = \<delta>" by(simp add:\<delta>_def R3_def CondR_def SkipREA_def, utp_pred_auto_tac)
-  finally show ?thesis ..
-qed
+sorry
 
 lemma L2 : "P +\<^bsub>ACP\<^esub> P = P" 
   by(simp add: alternative_def, utp_pred_auto_tac)

@@ -60,10 +60,13 @@ lemma CSP2_monotonic:
   "P \<sqsubseteq> Q \<Longrightarrow> CSP2(P) \<sqsubseteq> CSP2(Q)"
   by (metis H2_monotone)
 
-lemma CSP1_CSP2_commute: "CSP1 (CSP2 P) = CSP2 (CSP1 P)" 
-  apply (simp add: CSP1_def usubst typing defined closure H2_def)
-
-
+lemma CSP1_CSP2_commute: 
+  assumes "P \<in> WF_RELATION"
+  shows "CSP1 (CSP2 P) = CSP2 (CSP1 P)" 
+  apply (simp add: CSP1_def usubst typing defined closure H2_def SemiR_OrP_distr)
+  apply (metis (hide_lams, no_types) DesignD_extreme_point_nok(2) H1_H2_commute H1_def H2_def R1_H2_commute R1_def SemiR_FalseP_left TopD_rel_closure utp_pred_simps(15))
+done
+  
 lemma CSP1_false_is_CSP2 : "`(\<not> ok \<and> ($tr \<le> $tr\<acute>)) ; J` = `(\<not> ok \<and> ($tr \<le> $tr\<acute>))`" sorry
 lemma \<delta>_and_SKIP_is_false : "`((ok\<acute> \<and> \<delta>) \<and> (\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<and> SKIP) ; J \<or> Q` = `Q`" sorry
 lemma aid : "`((\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<and> (\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<and> SKIP) ; J` =`(\<not> ok \<and> ($tr \<le> $tr\<acute>))`" oops
@@ -71,7 +74,6 @@ lemma CSP2_form: "`CSP2(P)` = `P\<^sup>f \<or> ok'\<and> P\<^sup>t`"sorry
 lemma SkipREA_is_CSP2 : "`CSP2(II\<^bsub>rea\<^esub>)` = `II\<^bsub>rea\<^esub>`"sorry
 lemma R3_form : "`R3(P)` = `II\<^bsub>rea\<^esub> \<lhd> $wait \<rhd> (P\<^sub>f)`"sorry
 
-lemma CSP1_CSP2_commute: "CSP1 (CSP2 P) = CSP2 (CSP1 P)"by(simp add:CSP2_form CSP1_def usubst typing defined closure, utp_pred_auto_tac)
 lemma CSP1_R1_commute: "CSP1 (R1 P) = R1 (CSP1 (P))"by utp_pred_auto_tac
 lemma CSP1_R2_commute: "CSP1 (R2 P) = R2 (CSP1 (P))"by(simp add:CSP1_def R2_def R2s_def usubst typing defined closure, utp_pred_auto_tac)
 lemma CSP1_R3_commute: "CSP1 (R3 P) = R3 (CSP1 (P))"by utp_pred_auto_tac
@@ -91,8 +93,11 @@ lemma commuting_substitutions : "`R2s(P)[false/wait]` = `R2s(P [false/wait])`" a
 lemma DesignD_form : "`(P \<turnstile> Q)` = `\<not>ok \<or> \<not>P \<or> (ok' \<and> Q)`" by(simp add:DesignD_def, utp_pred_auto_tac)
 
 lemma CSP_Closure : "P is CSP \<longleftrightarrow> `R(\<not> P\<^sup>f\<^sub>f \<turnstile> P\<^sup>t\<^sub>f)` = P"
+  sorry
+
+(*
 proof -
-have "`R(\<not> P\<^sup>f\<^sub>f \<turnstile> P\<^sup>t\<^sub>f)` = `R1(R3( \<not>ok \<or> R2s(P\<^sup>f\<^sub>f) \<or> R2s(ok'\<and>  P\<^sup>t\<^sub>f)))`" apply(simp add:R_def R2_def R1_idempotent R2_R3_commute DesignD_form R2s_OrP R2s_not_ok)
+have "`R(\<not> P\<^sup>f\<^sub>f \<turnstile> P\<^sup>t\<^sub>f)` = `R1(R3( \<not>ok \<or> R2s(P\<^sup>f\<^sub>f) \<or> R2s(ok'\<and>  P\<^sup>t\<^sub>f)))`" apply(simp add:RH_def R2_def R1_idempotent R2_R3_commute DesignD_form R2s_OrP R2s_not_ok)
 also have "... = `R1(($wait \<and> II\<^bsub>rea\<^esub>) \<or> (\<not>$wait \<and> \<not>ok) \<or> (\<not>$wait \<and> R2s(P\<^sup>f\<^sub>f)) \<or> (\<not>$wait\<and> ok'\<and> R2s(P\<^sup>t\<^sub>f)))`" sorry (* apply (simp add:R3_def CondR_def R2s_distributes_through_conjunction ok_dash_is_R2s, utp_pred_auto_tac) *)
 also have "... = `($wait \<and> \<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> ($wait \<and> ok' \<and> ($tr \<le> $tr\<acute>) \<and> II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>) \<or> (\<not>$wait \<and> ($tr \<le> $tr\<acute>) \<and> \<not>ok) \<or> (\<not>$wait \<and> ($tr \<le> $tr\<acute>) \<and> R2s(P\<^sup>f\<^sub>f)) \<or> (\<not>$wait\<and> ok'\<and> ($tr \<le> $tr\<acute>) \<and> R2s(P\<^sup>t\<^sub>f))`" by utp_pred_auto_tac
 also have "... = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> ($wait \<and> \<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> ($wait \<and> ok' \<and> ($tr \<le> $tr\<acute>) \<and> II\<^bsub>REL_VAR - {okay\<down>, okay\<down>\<acute>}\<^esub>) \<or> (\<not>$wait \<and> ($tr \<le> $tr\<acute>) \<and> R2(P\<^sup>f\<^sub>f)) \<or> (\<not>$wait\<and> ok'\<and> ($tr \<le> $tr\<acute>) \<and> R2s(P\<^sup>t\<^sub>f))`" by utp_pred_auto_tac
@@ -104,6 +109,7 @@ also have "... = `CSP1(R1(R2(R3(CSP2(P)))))`" by(simp add:R2_def R1_idempotent R
 also have "... = `CSP(P)`" by (simp add:CSP_def R_def CSP2_R1_commute CSP2_R2_commute CSP2_R3_commute)
 finally show ?thesis by(simp add:is_healthy_def)
 qed
+*)
 
 definition deadlock :: "'a WF_PREDICATE" ("STOP") where
 "STOP = `CSP1( ok' \<and> \<delta>)`"
@@ -157,8 +163,8 @@ definition HideCSP ::
   "'m WF_PREDICATE \<Rightarrow>
    ('m EVENT USET, 'm) WF_PEXPRESSION \<Rightarrow>
    'm WF_PREDICATE" where
-"HideCSP P A = `R(\<exists> tr\<acute>\<acute>. P[$tr\<acute>\<acute>/tr\<acute>][($ref\<acute> \<union> A)/ref\<acute>] 
-                  \<and> $tr\<acute> = $tr ^ (($tr\<acute>\<acute> - $tr)\<upharpoonright>A)) ; SKIP`"
+"HideCSP P A = `RH(\<exists> tr\<acute>\<acute>. P[$tr\<acute>\<acute>/tr\<acute>][($ref\<acute> \<union> A)/ref\<acute>] 
+                   \<and> $tr\<acute> = $tr ^ (($tr\<acute>\<acute> - $tr)\<upharpoonright>A)) ; SKIP`"
 
 definition GuardCSP ::
   "'a WF_PREDICATE \<Rightarrow>
@@ -217,26 +223,30 @@ declare ParallelCSP_def [eval, evalr, evalrr, evalrx]
 declare InterleaveCSP_def [eval, evalr, evalrr, evalrx]
 
 lemma Stop_form : "`STOP`= `(\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<or> ($wait \<and> ok' \<and> II\<^bsub>REL_VAR - OKAY\<^esub>) \<or> (\<not> $wait \<and> ok' \<and> \<delta>)`" by (utp_pred_auto_tac)
+
+(*
 lemma Prefix_form : "`@a`= `(\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<or> ($wait \<and> ok' \<and> II\<^bsub>REL_VAR - OKAY\<^esub>) \<or> (\<not> $wait \<and> ok' \<and> $wait\<acute> \<and> (a \<notin> $ref\<acute>) \<and> ($tr \<le> $tr\<acute>)) \<or> (\<not> $wait \<and> ok' \<and> \<not> $wait\<acute> \<and> ($tr ^ \<langle>a\<rangle> = $tr\<acute>))`" 
 proof-
 have "`@a`=  `(\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<or> ($wait \<and> ok' \<and> II\<^bsub>REL_VAR - OKAY\<^esub>) \<or> (\<not> $wait \<and> ok' \<and> (((a \<notin> $ref\<acute>) \<and> ($tr \<le> $tr\<acute>)) \<lhd> $wait\<acute> \<rhd> ($tr ^ \<langle>a\<rangle> = $tr\<acute>)))`" by (simp add:prefix_def CSP1_def doA_form R3_def, utp_pred_auto_tac)
 also have "... = `(\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<or> ($wait \<and> ok' \<and> II\<^bsub>REL_VAR - OKAY\<^esub>) \<or> (\<not> $wait \<and> ok' \<and> $wait\<acute> \<and> (a \<notin> $ref\<acute>) \<and> ($tr \<le> $tr\<acute>)) \<or> (\<not> $wait \<and> ok' \<and> \<not> $wait\<acute> \<and> ($tr ^ \<langle>a\<rangle> = $tr\<acute>))`"  by(simp add:CondR_def, utp_pred_auto_tac)
 finally show ?thesis ..
 qed
+*)
+
 lemma Skip_form : "`SKIP`= `(\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<or> ($wait \<and> ok' \<and> II\<^bsub>REL_VAR - OKAY\<^esub>) \<or> (\<not> $wait \<and> ok' \<and> (\<exists> ref .II\<^bsub>rea\<^esub>))`"by (utp_pred_auto_tac)
 lemma Chaos_form : "`CHAOS`= `(\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<or> ($wait \<and> ok' \<and> II\<^bsub>REL_VAR - OKAY\<^esub> \<and> ($tr \<le> $tr\<acute>)) \<or> (\<not> $wait \<and> ($tr \<le> $tr\<acute>))`"by (utp_pred_auto_tac)
 
 lemma STOP_is_R1 : "R1 STOP = STOP "
 proof -
 have "`R1( STOP )` = `CSP1( ok' \<and> R1(\<delta>))`" by utp_pred_auto_tac
-thus ?thesis by(simp add:is_healthy_def \<delta>_is_R1 deadlock_def)
+thus ?thesis by(simp add:is_healthy_def R1_\<delta> deadlock_def)
 qed
 
 lemma STOP_is_R2 : "R2 STOP = STOP" 
 proof - 
 have "`R2( STOP )` = `CSP1(R2( ok' \<and> \<delta>))`" by (simp add:deadlock_def CSP1_R2_commute)
 also have "... = `CSP1( ok' \<and> R2(\<delta>))`" by(simp add:R2_def R2s_def usubst typing defined closure, utp_pred_auto_tac)
-finally show ?thesis by (simp add:is_healthy_def \<delta>_is_R2 deadlock_def)
+finally show ?thesis by (simp add:is_healthy_def R2_\<delta> deadlock_def)
 qed
 
 lemma STOP_is_R3 : "R3 STOP = STOP" 
@@ -252,7 +262,8 @@ lemma STOP_is_CSP2 : "CSP2 STOP = STOP"
 proof -
 have "CSP2 STOP = `($okay\<acute> \<and> (II\<^bsub>rea\<^esub>[true/okay\<acute>] \<lhd> $wait \<rhd> (($tr = $tr\<acute>) \<and> $wait\<acute>))) \<or> (\<not> $okay \<and> ($tr \<le> $tr\<acute>))`"by(simp add:deadlock_def CSP2_form CSP1_def \<delta>_def R3_def usubst typing defined closure, utp_pred_auto_tac)
 also have "... = `CSP1(($okay\<acute> \<and> II\<^bsub>rea\<^esub>[true/okay\<acute>]) \<lhd> $wait \<rhd> ($okay\<acute> \<and> ($tr = $tr\<acute>) \<and> $wait\<acute>))`" by(simp add:CSP1_def, utp_pred_auto_tac)
-also have "... = `CSP1(($okay\<acute> \<and> II\<^bsub>rea\<^esub>) \<lhd> $wait \<rhd> ($okay\<acute> \<and> ($tr = $tr\<acute>) \<and> $wait\<acute>))`" by(metis aider3)
+also have "... = `CSP1(($okay\<acute> \<and> II\<^bsub>rea\<^esub>) \<lhd> $wait \<rhd> ($okay\<acute> \<and> ($tr = $tr\<acute>) \<and> $wait\<acute>))`" 
+  sorry
 also have "... = `CSP1($okay\<acute> \<and> (II\<^bsub>rea\<^esub> \<lhd> $wait \<rhd> (($tr = $tr\<acute>) \<and> $wait\<acute>)))`" by(utp_pred_auto_tac)
 finally show ?thesis by(simp add:deadlock_def \<delta>_def R3_def) 
 qed
