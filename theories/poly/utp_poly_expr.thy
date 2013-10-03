@@ -94,6 +94,12 @@ lemma LitPE_defined [defined]:
   "\<D> x \<Longrightarrow> \<D> (LitPE x)"
   by (simp add:Defined_WF_PEXPRESSION_def LitPE_def)
 
+lemma UNREST_PEXPR_subset:
+  "\<lbrakk> UNREST_PEXPR vs1 v; vs2 \<subseteq> vs1 \<rbrakk> \<Longrightarrow> UNREST_PEXPR vs2 v"
+  apply (auto simp add:UNREST_PEXPR_def)
+  apply (metis Int_absorb2 binding_override_simps(6))
+done
+
 lemma UNREST_LitPE [unrest]:
   "UNREST_PEXPR vs (LitPE v)"
   by (simp add:UNREST_PEXPR_def LitPE_def)
@@ -973,6 +979,12 @@ lemma PSubstPE_PVarPE_neq [usubst]:
   assumes "TYPEUSOUND('a, 'm)" "x\<down> \<noteq> y\<down>" "v \<rhd>\<^sub>* y"
   shows "PSubstPE (PVarPE x) v y = PVarPE x"
   using assms by (auto simp add:eval typing defined pevar_compat_def)
+
+lemma PSubstPE_VarP_single_UNREST [usubst]:
+  "\<lbrakk> {x\<down>} \<sharp> v; e \<rhd>\<^sub>* x \<rbrakk> \<Longrightarrow> v[e/\<^sub>*x] = v"
+  apply (simp add:evalp unrest UNREST_PEXPR_def)
+  apply (metis (mono_tags) binding_upd_apply pevar_compat_def)
+done
 
 lemma SubstE_PSubstPE [usubst]:
   fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"

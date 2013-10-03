@@ -78,6 +78,35 @@ lemma prefixeq_map_inj_eq [simp]:
    prefixeq (map f xs) (map f ys) \<longleftrightarrow> prefixeq xs ys"
   by (metis map_prefixeqI prefixeq_map_inj)
 
+lemma prefix_Cons_elim [elim]:
+  assumes "prefix (x # xs) ys"
+  obtains ys' where "ys = x # ys'" "prefix xs ys'"
+  using assms 
+  apply (auto elim!: prefixE)
+  apply (metis (full_types) prefix_order.le_less prefixeq_Cons_elim)
+done
+
+lemma prefix_map_inj:
+  "\<lbrakk> inj_on f (set xs \<union> set ys); prefix (map f xs) (map f ys) \<rbrakk> \<Longrightarrow>
+   prefix xs ys"
+  apply (induct xs arbitrary:ys)
+  apply (auto)
+  apply (metis map.simps(1) prefix_bot.bot_less)
+  apply (erule prefix_Cons_elim)
+  apply (auto)
+  apply (metis (hide_lams, full_types) image_insert insertI1 insert_Diff_if singletonE)
+done
+
+lemma prefix_map_inj_eq [simp]:
+  "inj_on f (set xs \<union> set ys) \<Longrightarrow>
+   prefix (map f xs) (map f ys) \<longleftrightarrow> prefix xs ys"
+  by (metis inj_on_map_eq_map map_prefixeqI prefix_map_inj prefix_order.less_le)
+
+lemma prefixeq_drop:
+  "\<lbrakk> drop (length xs) ys = zs; prefixeq xs ys \<rbrakk> 
+   \<Longrightarrow> ys = xs @ zs"
+  by (metis append_eq_conv_conj prefixeq_def)
+
 fun interleave :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list set" where
 "interleave [] ys = {ys}" |
 "interleave (x # xs) (y # ys) = (Cons x) ` (interleave xs (y # ys)) 

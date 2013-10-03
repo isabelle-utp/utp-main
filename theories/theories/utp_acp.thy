@@ -29,10 +29,6 @@ lemma ACP1_R1_commute:
   "ACP1(R1(P)) = R1(ACP1(P))" 
   by (simp add:ACP1_def, utp_pred_auto_tac)
 
-lemma ImpliesP_AndP_pre:
-  "`X \<and> (Y \<Rightarrow> Z)` = `X \<and> ((X \<and> Y) \<Rightarrow> Z)`"
-  by (utp_pred_auto_tac)
-
 lemma ACP1_R2_commute: "ACP1(R2(P)) = R2(ACP1(P))" 
 proof -
   have "R2(ACP1(P)) = `R2(P) \<and> (ok \<and> \<langle>\<rangle> = ($tr\<acute> - $tr) \<Rightarrow> $wait\<acute>)`"
@@ -187,35 +183,6 @@ finally show ?thesis
   apply (utp_pred_tac)
 sorry qed
 *)
-
-lemma nil_prefixeq [simp]:
-  "`\<langle>\<rangle> \<le> x` = `true`"
-  by (utp_pred_auto_tac)
-
-lemma nil_append [simp]:
-  "|\<langle>\<rangle> ^ x| = |x|"
-  by (auto simp add:evalp)
-
-lemma SubstP_VarP_single_UNREST [usubst]:
-  "\<lbrakk> {x\<down>} \<sharp> v; e \<rhd>\<^sub>* x \<rbrakk> \<Longrightarrow> v[e/\<^sub>*x] = v"
-  apply (simp add:evalp unrest UNREST_PEXPR_def)
-  apply (metis (mono_tags) binding_upd_apply pevar_compat_def)
-done
-
-lemma UNREST_PEXPR_subset:
-  "\<lbrakk> UNREST_PEXPR vs1 v; vs2 \<subseteq> vs1 \<rbrakk> \<Longrightarrow> UNREST_PEXPR vs2 v"
-  apply (auto simp add:UNREST_PEXPR_def)
-  apply (metis Int_absorb2 binding_override_simps(6))
-done
-
-lemma prefixeq_drop:
-  "\<lbrakk> drop (length xs) ys = zs; prefixeq xs ys \<rbrakk> 
-   \<Longrightarrow> ys = xs @ zs"
-  by (metis append_eq_conv_conj prefixeq_def)
-
-lemma CondR_AndP_distl:
-  "`(P \<lhd> b \<rhd> Q) \<and> R` = `(P \<and> R) \<lhd> b \<rhd> (Q \<and> R)`"
-  by (utp_pred_auto_tac)
 
 lemma doA_form: 
   assumes "TR \<sharp> a"

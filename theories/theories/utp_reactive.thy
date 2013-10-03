@@ -10,15 +10,14 @@ theory utp_reactive
 imports 
   utp_designs
   utp_theory
+  "reactive/utp_reactive_lemmas"
 begin
 
 default_sort REACTIVE_SORT
 
 abbreviation "wait \<equiv> MkPlainP ''wait'' True TYPE(bool) TYPE('m)"
-abbreviation "tr   \<equiv> MkPlainP ''tr'' True TYPE('m EVENT ULIST) TYPE('m)"
 abbreviation "ref  \<equiv> MkPlainP ''ref'' True TYPE('m EVENT USET) TYPE('m)"
 
-abbreviation "TR \<equiv> {tr\<down>, tr\<down>\<acute>}"
 abbreviation "REA \<equiv> OKAY \<union> {wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}"
 
 definition SkipREA :: "'a WF_PREDICATE" where
@@ -173,10 +172,6 @@ lemma R1_by_refinement:
   "P is R1 \<longleftrightarrow> `$tr \<le> $tr\<acute>` \<sqsubseteq> P" 
   by (utp_pred_auto_tac)
 
-lemma tr_leq_trans:
-  "`($tr \<le> $tr\<acute>) ; ($tr \<le> $tr\<acute>)` = `($tr \<le> $tr\<acute>)`"
-  by (auto intro: binding_equiv_trans simp add:closure typing defined unrest closure evalr evalp relcomp_unfold urename)
-
 theorem R1_SemiR [closure]:
   assumes
     "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
@@ -204,80 +199,6 @@ done
 lemma SkipRA_is_R1 : 
   "`R1(II\<^bsub>REL_VAR - OKAY\<^esub>)` = `II\<^bsub>REL_VAR - OKAY\<^esub>`"
   by (auto simp add:var_dist closure eval)
-
-lemma DestList_tr_dcarrier [typing]: 
-  "set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>)) \<subseteq> dcarrier EventType"
-  apply (rule DestList_elem_type)
-  apply (simp add:closure)
-  apply (auto intro:typing)[1]
-done
-
-lemma DestList_tr'_dcarrier [typing]: 
-  "set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)) \<subseteq> dcarrier EventType"
-  apply (rule DestList_elem_type)
-  apply (simp add:closure)
-  apply (auto intro:typing)[1]
-done
-
-lemma prefix_Cons_elim [elim]:
-  assumes "prefix (x # xs) ys"
-  obtains ys' where "ys = x # ys'" "prefix xs ys'"
-  using assms 
-  apply (auto elim!: prefixE)
-  apply (metis (full_types) prefix_order.le_less prefixeq_Cons_elim)
-done
-
-lemma prefix_map_inj:
-  "\<lbrakk> inj_on f (set xs \<union> set ys); prefix (map f xs) (map f ys) \<rbrakk> \<Longrightarrow>
-   prefix xs ys"
-  apply (induct xs arbitrary:ys)
-  apply (auto)
-  apply (metis map.simps(1) prefix_bot.bot_less)
-  apply (erule prefix_Cons_elim)
-  apply (auto)
-  apply (metis (hide_lams, full_types) image_insert insertI1 insert_Diff_if singletonE)
-done
-
-lemma prefix_map_inj_eq [simp]:
-  "inj_on f (set xs \<union> set ys) \<Longrightarrow>
-   prefix (map f xs) (map f ys) \<longleftrightarrow> prefix xs ys"
-  by (metis inj_on_map_eq_map map_prefixeqI prefix_map_inj prefix_order.less_le)
-
-lemma prefix_DestEvent_simp [simp]:
-  "prefix (map DestEvent (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))) (map DestEvent (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)))
-  = prefix (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>)) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>))"
-  apply (subgoal_tac "inj_on DestEvent (set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>)) \<union> set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)))")
-  apply (simp)
-  apply (rule subset_inj_on[of _ "dcarrier EventType"])
-  apply (simp)
-  apply (metis DestList_tr'_dcarrier DestList_tr_dcarrier le_sup_iff)
-done
-
-lemma prefixeq_DestEvent_simp [simp]:
-  "prefixeq (map DestEvent (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))) (map DestEvent (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)))
-  = prefixeq (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>)) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>))"
-  apply (subgoal_tac "inj_on DestEvent (set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>)) \<union> set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)))")
-  apply (simp)
-  apply (rule subset_inj_on[of _ "dcarrier EventType"])
-  apply (simp)
-  apply (metis DestList_tr'_dcarrier DestList_tr_dcarrier le_sup_iff)
-done
-
-lemma tr_prefix_as_nil:
-  "`($tr\<acute> - $tr) = \<langle>\<rangle> \<and> ($tr \<le> $tr\<acute>)` = `$tr = $tr\<acute>`"
-  apply (utp_pred_auto_tac)
-  apply (subgoal_tac "set (drop (length (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>))) \<subseteq> dcarrier (EventType :: 'a UTYPE)")
-  defer
-  apply (rule subset_trans, rule set_drop_subset, rule DestList_tr'_dcarrier)
-  apply (simp add:MkList_inj_simp typing closure)
-  apply (metis (full_types) le_antisym prefix_length_eq prefixeq_length_le)
-done
-
-lemma tr_prefix_app:
-  "`($tr ^ \<langle>a\<rangle> = $tr\<acute>) \<and> ($tr \<le> $tr\<acute>)` = `($tr ^ \<langle>a\<rangle> = $tr\<acute>)`"
-  apply (utp_pred_auto_tac)
-  apply (metis prefixeq_def)
-done
 
 lemma SkipRA_is_R2 : "`R2(II\<^bsub>REL_VAR - OKAY\<^esub>)` = `II\<^bsub>REL_VAR - OKAY\<^esub>`"
 proof -
@@ -341,7 +262,7 @@ lemma R2s_wait: "`R2s($wait)` = `$wait`"
   by (simp add:R2s_def usubst closure typing defined)
 
 lemma R2s_destroys_R1: "R2s (R1 P) = R2s P" 
-  by (simp add:R2s_def R1_def usubst closure typing defined, utp_pred_auto_tac)
+  by (simp add:R2s_def R1_def usubst closure typing defined)
 
 lemma R2s_distributes_through_conjunction: 
   "`R2s(P \<and> Q)` = `R2s(P) \<and> R2s(Q)`" 

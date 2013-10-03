@@ -1279,6 +1279,10 @@ theorem CondR_false_cond:
   "\<not>\<^sub>p b \<and>\<^sub>p (P \<lhd> b \<rhd> Q) = \<not>\<^sub>p b \<and>\<^sub>p Q"
   by (utp_pred_auto_tac)
 
+lemma CondR_AndP_distr:
+  "(P \<lhd> b \<rhd> Q) \<and>\<^sub>p R = (P \<and>\<^sub>p R) \<lhd> b \<rhd> (Q \<and>\<^sub>p R)"
+  by (utp_pred_auto_tac)
+
 lemma CondR_VarP_aux:
   "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> \<Longrightarrow> P \<lhd> $\<^sub>px \<rhd> Q = (P[TrueE/\<^sub>px]) \<lhd> $\<^sub>px \<rhd> (Q[FalseE/\<^sub>px])"
   apply (rule_tac BoolType_aux_var_split_eq_intro[of x])

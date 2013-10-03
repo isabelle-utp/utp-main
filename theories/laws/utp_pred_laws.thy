@@ -135,6 +135,10 @@ theorem ClosureP_intro:
 
 subsection {* Implication Laws *}
 
+lemma ImpliesP_AndP_pre:
+  "p \<and>\<^sub>p (q \<Rightarrow>\<^sub>p r) = p \<and>\<^sub>p (p \<and>\<^sub>p q \<Rightarrow>\<^sub>p r)"
+  by (utp_pred_auto_tac)
+
 theorem ImpliesP_export:
   "p \<Rightarrow>\<^sub>p q = p \<Rightarrow>\<^sub>p (p \<and>\<^sub>p q)"
   by (utp_pred_tac)
