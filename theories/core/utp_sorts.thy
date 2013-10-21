@@ -222,6 +222,10 @@ lemma DestBool_inj: "inj_on DestBool (range MkBool)"
 lemma MkBool_inj: "inj MkBool"
   by (smt Inverse injI)
 
+lemma MkBool_inj_simp [simp]:
+  "MkBool x = MkBool y \<longleftrightarrow> x = y"
+  by (metis (full_types) MkBool_inj UNIV_def injD)
+
 lemma DestBool_inv: "x \<in> range MkBool \<Longrightarrow> MkBool (DestBool x) = x"
   by (smt DestBool_inj Inverse inj_on_iff rangeI)
 

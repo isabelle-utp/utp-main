@@ -15,7 +15,6 @@ begin
 
 default_sort REACTIVE_SORT
 
-abbreviation "wait \<equiv> MkPlainP ''wait'' True TYPE(bool) TYPE('m)"
 abbreviation "ref  \<equiv> MkPlainP ''ref'' True TYPE('m EVENT USET) TYPE('m)"
 
 abbreviation "REA \<equiv> OKAY \<union> {wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}"

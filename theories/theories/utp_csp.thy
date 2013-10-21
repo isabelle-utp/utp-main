@@ -12,22 +12,6 @@ imports
   utp_acp
 begin
 
-abbreviation wait_true :: 
-  "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" ("_\<^sub>t"[150]) where
-"p\<^sub>t \<equiv> `p[true/wait]`"
-
-abbreviation wait_false :: 
-  "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" ("_\<^sub>f"[150]) where
-"p\<^sub>f \<equiv> `p[false/wait]`"
-
-syntax
-  "_upred_wait_true"    :: "upred \<Rightarrow> upred" ("_\<^sub>t" [1000] 1000)
-  "_upred_wait_false"   :: "upred \<Rightarrow> upred" ("_\<^sub>f" [1000] 1000)
-
-translations
-  "_upred_wait_true p"  == "CONST wait_true p"
-  "_upred_wait_false p" == "CONST wait_false p"
-
 definition CSP1 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 "CSP1 P = `P \<or> (\<not> ok \<and> ($tr \<le> $tr\<acute>))`"
 

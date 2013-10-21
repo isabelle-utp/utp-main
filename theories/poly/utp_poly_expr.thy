@@ -1022,9 +1022,7 @@ lemma SubstP_PSubstPE_FalseE [usubst]:
 lemma PVarPE_VarP [simp]:
   fixes x :: "(bool, 'm::BOOL_SORT) PVAR"
   shows "((PVarPE x)\<down> ==\<^sub>p (TruePE\<down>)) = VarP (x\<down>)"
-  apply (utp_pred_auto_tac)
-  apply (metis BOOL_SORT_class.Inverse)
-done
+  by (utp_pred_auto_tac)
 
 lemma ExprP_TruePE [simp]:
   "ExprP (TruePE\<down>) = TrueP"

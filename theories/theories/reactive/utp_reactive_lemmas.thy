@@ -14,9 +14,56 @@ begin
 
 default_sort REACTIVE_SORT
 
+abbreviation "wait \<equiv> MkPlainP ''wait'' True TYPE(bool) TYPE('m)"
 abbreviation "tr   \<equiv> MkPlainP ''tr'' True TYPE('m EVENT ULIST) TYPE('m)"
 
 abbreviation "TR \<equiv> {tr\<down>, tr\<down>\<acute>}"
+abbreviation "WAIT \<equiv> {wait\<down>, wait\<down>\<acute>}"
+
+abbreviation wait_true :: 
+  "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" ("_\<^sub>t"[150]) where
+"p\<^sub>t \<equiv> `p[true/wait]`"
+
+abbreviation wait_false :: 
+  "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" ("_\<^sub>f"[150]) where
+"p\<^sub>f \<equiv> `p[false/wait]`"
+
+syntax
+  "_upred_wait_true"    :: "upred \<Rightarrow> upred" ("_\<^sub>t" [1000] 1000)
+  "_upred_wait_false"   :: "upred \<Rightarrow> upred" ("_\<^sub>f" [1000] 1000)
+
+translations
+  "_upred_wait_true p"  == "CONST wait_true p"
+  "_upred_wait_false p" == "CONST wait_false p"
+
+lemma ok_wait_commute_t_t: 
+  "`P\<^sup>t\<^sub>t` = `P\<^sub>t\<^sup>t`"
+  apply (subst SubstP_twice_3)
+  apply (simp_all add: typing defined unrest)
+  apply (simp add:usubst typing defined)
+done
+
+lemma ok_wait_commute_f_f: 
+  "`P\<^sup>f\<^sub>f` = `P\<^sub>f\<^sup>f`"
+  apply (subst SubstP_twice_3)
+  apply (simp_all add: typing defined unrest)
+  apply (simp add:usubst typing defined)
+done
+
+lemma ok_wait_commute_t_f: 
+  "`P\<^sup>t\<^sub>f` = `P\<^sub>f\<^sup>t`"
+  apply (subst SubstP_twice_3)
+  apply (simp_all add: typing defined unrest)
+  apply (simp add:usubst typing defined)
+done
+
+lemma ok_wait_commute_f_t: 
+  "`P\<^sup>f\<^sub>t` = `P\<^sub>t\<^sup>f`"
+  apply (subst SubstP_twice_3)
+  apply (simp_all add:typing defined unrest)
+  apply (simp add:usubst typing defined)
+done
+
 
 lemma tr_leq_trans:
   "`($tr \<le> $tr\<acute>) ; ($tr \<le> $tr\<acute>)` = `($tr \<le> $tr\<acute>)`"

@@ -601,14 +601,12 @@ done
 theorem UNREST_EXPR_PredE [unrest]: 
 "vs \<sharp> p \<Longrightarrow> vs \<sharp> (PredE p)"
   apply (auto simp add:UNREST_EXPR_def UNREST_def MkBool_type PredE.rep_eq)
-  apply (rule_tac f="MkBool" and g="MkBool" in cong, simp)
   apply (metis (full_types) binding_override_simps(2) binding_override_simps(3))
 done
   
 lemma UNREST_VarP [unrest]:
   "x \<notin> vs \<Longrightarrow> vs \<sharp> (VarP x)"
   by (auto intro:unrest)
-
 
 theorem WF_EXPRESSION_UNREST_binding_equiv :
 "\<lbrakk> (VAR - vs) \<sharp> e; b1 \<cong> b2 on vs \<rbrakk> 
