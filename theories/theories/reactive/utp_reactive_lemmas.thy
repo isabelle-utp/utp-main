@@ -64,6 +64,17 @@ lemma ok_wait_commute_f_t:
   apply (simp add:usubst typing defined)
 done
 
+lemma tr_eq_rel_closure: 
+  "`($tr\<acute> = $tr)` \<in> WF_RELATION"
+ by (simp add:closure unrest typing)
+
+lemma tr_eq_trans:
+  "`($tr\<acute> = $tr) ; ($tr\<acute> = $tr)` = `($tr\<acute> = $tr)`"
+sorry
+
+lemma tr_eq_tr_leq:
+  "`($tr\<acute> = $tr) ; ($tr \<le> $tr\<acute>)` = `($tr \<le> $tr\<acute>)`"
+sorry
 
 lemma tr_leq_trans:
   "`($tr \<le> $tr\<acute>) ; ($tr \<le> $tr\<acute>)` = `($tr \<le> $tr\<acute>)`"
@@ -112,7 +123,7 @@ lemma prefixeq_DestEvent_simp [simp]:
 done
 
 lemma tr_prefix_as_nil:
-  "`($tr\<acute> - $tr) = \<langle>\<rangle> \<and> ($tr \<le> $tr\<acute>)` = `$tr = $tr\<acute>`"
+  "`($tr\<acute> - $tr) = \<langle>\<rangle> \<and> ($tr \<le> $tr\<acute>)` = `$tr\<acute> = $tr`"
   apply (utp_pred_auto_tac)
   apply (subgoal_tac "set (drop (length (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>))) \<subseteq> dcarrier (EventType :: 'a UTYPE)")
   defer
