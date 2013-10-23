@@ -135,6 +135,11 @@ definition DASHED :: "'VALUE VAR set" where
 definition DASHED_TWICE :: "'VALUE VAR set" where
 "DASHED_TWICE = {v . dashes (name v) = 2}"
 
+notation 
+  UNDASHED     ("D\<^sub>0") and
+  DASHED       ("D\<^sub>1") and
+  DASHED_TWICE ("D\<^sub>2")
+
 definition NOSUB :: "'VALUE VAR set" where
 "NOSUB = {v. subscript (name v) = NoSub}"
 

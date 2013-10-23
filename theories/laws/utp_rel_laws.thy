@@ -649,6 +649,81 @@ proof -
     by (simp add:SemiR_algebraic)
 qed
 
+theorem SemiR_remove_middle_unrest1:
+  assumes 
+    "P \<in> WF_RELATION"
+    "R \<in> WF_RELATION"
+    "vs \<subseteq> UNDASHED"
+    "(VAR - vs) \<sharp> q"
+    "dash`vs \<sharp> P"
+    "vs \<sharp> R"
+    "q \<noteq> false"
+  shows "P ; (q \<and>\<^sub>p R) = P ; R"
+proof -
+
+  let ?vs'' = "dash`dash`vs"
+
+  from assms have "q \<in> WF_CONDITION"
+    apply (auto simp add:WF_CONDITION_def WF_RELATION_def)
+    apply (rule UNREST_subset, auto)+
+  done
+
+  with assms 
+  have "P ; (q \<and>\<^sub>p R) = (\<exists>\<^sub>p D\<^sub>2. (SS1\<bullet>P) \<and>\<^sub>p (SS2\<bullet>(q \<and>\<^sub>p R)))"
+    by (simp add:SemiR_algebraic_rel closure urename)
+
+  also from assms 
+  have "... = (\<exists>\<^sub>p D\<^sub>2. (SS1\<bullet>P) \<and>\<^sub>p ((SS2\<bullet>q) \<and>\<^sub>p (SS2\<bullet>R)))"
+    by (simp add:urename)
+
+  also from assms 
+  have "... = (\<exists>\<^sub>p D\<^sub>2. \<exists>\<^sub>p ?vs''. (SS1\<bullet>P) \<and>\<^sub>p ((SS2\<bullet>q) \<and>\<^sub>p (SS2\<bullet>R)))"
+  proof -
+    from assms have "D\<^sub>2 \<union> ?vs'' = D\<^sub>2"
+      by (auto)
+
+    thus ?thesis 
+      apply (rule_tac trans) defer
+      apply (rule ExistsP_union)
+      apply (simp)
+    done
+  qed
+
+  also from assms
+  have "... = (\<exists>\<^sub>p D\<^sub>2. (SS1\<bullet>P) \<and>\<^sub>p (\<exists>\<^sub>p ?vs''. ((SS2\<bullet>q) \<and>\<^sub>p (SS2\<bullet>R))))"
+    apply (subst ExistsP_AndP_expand2[THEN sym])
+    apply (simp_all)
+    apply (rule unrest)
+    apply (auto)
+    apply (metis (mono_tags) SS1_DASHED_app UNDASHED_dash_DASHED imageI in_mono)
+  done
+
+  also from assms
+  have "... = (\<exists>\<^sub>p D\<^sub>2. (SS1\<bullet>P) \<and>\<^sub>p (((\<exists>\<^sub>p ?vs''.(SS2\<bullet>q)) \<and>\<^sub>p (SS2\<bullet>R))))"
+    apply (subst ExistsP_AndP_expand1[THEN sym]) back
+    apply (simp_all)
+    apply (rule unrest)
+    apply (auto)
+    apply (metis (hide_lams, no_types) SS2_UNDASHED_app image_iff set_mp)
+  done
+
+  also from assms
+  have "... = (\<exists>\<^sub>p D\<^sub>2. (SS1\<bullet>P) \<and>\<^sub>p (SS2\<bullet>R))"
+    apply (subst ExistsP_rest_vars) back
+    apply (simp_all)
+    apply (rule unrest)
+    apply (auto)
+    apply (smt Diff_iff Rep_VAR_RENAME_VAR SS2_UNDASHED_app VAR_member image_iff set_mp)
+    apply (metis RenameP_FalseP RenameP_inverse1)
+  done
+
+  also from assms
+  have "... = P ; R"
+    by (metis SemiR_algebraic_rel)
+
+  finally show ?thesis .
+qed
+
 text {* This property allows conversion of an alphabetised identity into an existential *} 
 
 theorem SemiR_right_ExistsP:

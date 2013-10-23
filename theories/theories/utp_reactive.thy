@@ -90,36 +90,14 @@ lemma RH_rel_closure [closure]:
 subsection {* Sorried Laws *}
 
 (* Trace sequence relation *)
-lemma Aida : "`(($tr \<le> $tr\<acute>) ; (\<not>ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)))`=`($tr \<le> $tr\<acute>)`"
-proof- 
-  have "`(($tr \<le> $tr\<acute>) ; (\<not>ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)))`= `($tr \<le> $tr\<acute>) ; ($wait \<and> ($tr \<le> $tr\<acute>))`"
-    apply(subst SemiR_extract_variable[where x="okay \<down>"])
-    apply (metis R1_def R1_rel_closure TrueP_rel_closure utp_pred_simps(6))
-    apply (metis AndP_rel_closure DesignD_extreme_point_nok(2) MkPlainP_UNDASHED PUNDASHED_WF_CONDITION R1_def R1_rel_closure TopD_rel_closure WF_CONDITION_WF_RELATION)
-    apply (metis MkPlain_UNDASHED PVAR_VAR_MkPVAR)
-    apply(simp add:usubst typing closure defined unrest)
-    apply(subst BoolType_aux_var_split_exists)
-    apply(simp_all add:typing)
-    apply(simp add: usubst typing closure defined erasure unrest)
-    done
-  also have "... = `($tr \<le> $tr\<acute>) ; (($tr \<le> $tr\<acute>) \<and> $wait)`"
-    by (metis AndP_comm)
-  also have "... = `\<exists> wait\<acute>\<acute>\<acute> . ($tr \<le> $tr\<acute>) ; (($tr \<le> $tr\<acute>) \<and> $wait\<acute>\<acute>\<acute>)`"
-    apply(subst SemiR_extract_variable[where x="wait \<down>"])
-    apply (metis R1_def R1_rel_closure TrueP_rel_closure utp_pred_simps(6))
-    apply (smt AndP_comm MkPlainP_UNDASHED PUNDASHED_WF_CONDITION R1_def R1_rel_closure WF_CONDITION_WF_RELATION)
-    apply (metis MkPlain_UNDASHED PVAR_VAR_MkPVAR)
-    apply(simp add:usubst typing closure defined unrest)
-    done
-  also have "... = `\<exists> wait\<acute>\<acute>\<acute> . ( ($tr \<le> $tr\<acute>) ; ($tr \<le> $tr\<acute>) )\<and> $wait\<acute>\<acute>\<acute>`"
-    sorry
-  also have "... = `( ($tr \<le> $tr\<acute>) ; ($tr \<le> $tr\<acute>) )\<and> (\<exists> wait\<acute>\<acute>\<acute> . $wait\<acute>\<acute>\<acute>)`" 
-    sorry
-  also have "... = `($tr \<le> $tr\<acute>) ; ($tr \<le> $tr\<acute>)`"
-    sorry
-  finally show ?thesis 
-    by (metis tr_leq_trans)
-qed
+lemma Aida : "`(($tr \<le> $tr\<acute>) ; ((\<not>ok \<and> $wait) \<and> ($tr \<le> $tr\<acute>)))`=`($tr \<le> $tr\<acute>)`"
+  apply (subst SemiR_remove_middle_unrest1[of _ _ "{okay\<down>, wait\<down>}"])
+  apply (simp_all add: closure typing defined unrest WF_RELATION_UNREST)
+  apply (utp_pred_tac)
+  apply (rule_tac x="\<B>(okay\<down> :=\<^sub>b FalseV, wait\<down> :=\<^sub>b TrueV)" in exI)
+  apply (simp add:typing)
+  apply (metis tr_leq_trans)
+done
     
 lemma Aidb : "`$okay \<and> ($okay\<acute> = $okay)` = `$okay \<and> $okay\<acute>`" by (utp_pred_auto_tac)
 lemma Aidc : "`$wait \<and> ($wait\<acute> = $wait)` = `$wait \<and> $wait\<acute>`" by (utp_pred_auto_tac)
@@ -860,7 +838,7 @@ done
 lemma R3_form_2 : "`R3(P)` = `(\<not>ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait  \<and> II) \<or> (\<not>$wait \<and> P\<^sub>f )`"
 proof -
   have "`\<not>$wait \<and> P` = `\<not>$wait \<and> P\<^sub>f`"
-    sorry
+    by (subst NotP_PVarPE_PSubstPE, simp_all add:typing)
   thus ?thesis
     by(simp add:R3_form)
 qed
@@ -893,7 +871,7 @@ proof -
   moreover have "`($tr \<le> $tr\<acute>) ; Q ` = `($tr \<le> $tr\<acute>)`"
   proof-
     have 1: "`(($tr \<le> $tr\<acute>) ; (\<not>ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)))`=`($tr \<le> $tr\<acute>)`"
-      by (metis Aida)
+      by (metis (hide_lams, no_types) Aida AndP_assoc)
     have 2: "`(($tr \<le> $tr\<acute>);(ok \<and> $wait \<and> II))` is R1" 
       apply(subst R1_SemiR_closure)
       apply(simp_all)
@@ -1138,7 +1116,7 @@ lemma R1_true_left_zero:
   shows "`($tr \<le> $tr\<acute>) ; P` = `($tr \<le> $tr\<acute>)`"
 proof -
   have 1: "`(($tr \<le> $tr\<acute>) ; (\<not>ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)))`=`($tr \<le> $tr\<acute>)`"
-    by (metis Aida)
+    by (metis (hide_lams, no_types) Aida AndP_assoc)
   have 2: "`(($tr \<le> $tr\<acute>);(ok \<and> $wait \<and> II))` is R1" 
     apply(subst R1_SemiR_closure)
     apply(simp_all)

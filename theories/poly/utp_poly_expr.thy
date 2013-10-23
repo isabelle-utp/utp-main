@@ -15,6 +15,7 @@ imports
   "../core/utp_rel"
   "../tactics/utp_rel_tac"
   "../tactics/utp_xrel_tac"
+  "../laws/utp_pred_laws"
   utp_poly_value
   utp_poly_var
 begin
@@ -1023,6 +1024,33 @@ lemma PVarPE_VarP [simp]:
   fixes x :: "(bool, 'm::BOOL_SORT) PVAR"
   shows "((PVarPE x)\<down> ==\<^sub>p (TruePE\<down>)) = VarP (x\<down>)"
   by (utp_pred_auto_tac)
+
+lemma NotP_PVarPE_VarP [simp]:
+  fixes x :: "(bool, 'm::BOOL_SORT) PVAR"
+  shows "((PVarPE x)\<down> ==\<^sub>p (FalsePE\<down>)) = \<not>\<^sub>p $\<^sub>p(x\<down>)"
+  by (utp_pred_auto_tac)
+
+lemma PVarPE_PSubstPE:
+  fixes x :: "(bool, 'm :: BOOL_SORT) PVAR"
+  assumes "TYPEUSOUND(bool, 'm)" "pvaux x"
+  shows "($\<^sub>p(x\<down>) \<and>\<^sub>p P) = ($\<^sub>p(x\<down>) \<and>\<^sub>p (PSubstP P TruePE x))"
+  apply (subst PVarPE_VarP[THEN sym])
+  apply (subst PVarPE_VarP[THEN sym])
+  apply (simp add:erasure assms)
+  apply (subst EqualP_SubstP)
+  apply (simp_all add:typing defined)
+done
+
+lemma NotP_PVarPE_PSubstPE:
+  fixes x :: "(bool, 'm :: BOOL_SORT) PVAR"
+  assumes "TYPEUSOUND(bool, 'm)" "pvaux x"
+  shows "(\<not>\<^sub>p $\<^sub>p(x\<down>) \<and>\<^sub>p P) = (\<not>\<^sub>p $\<^sub>p(x\<down>) \<and>\<^sub>p (PSubstP P FalsePE x))"
+  apply (subst NotP_PVarPE_VarP[THEN sym])
+  apply (subst NotP_PVarPE_VarP[THEN sym])
+  apply (simp add:erasure assms)
+  apply (subst EqualP_SubstP)
+  apply (simp_all add:typing defined)
+done
 
 lemma ExprP_TruePE [simp]:
   "ExprP (TruePE\<down>) = TrueP"

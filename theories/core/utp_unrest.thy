@@ -369,6 +369,10 @@ theorem EvalP_UNREST_binding_equiv [eval] :
  \<Longrightarrow> \<lbrakk>p\<rbrakk>b2"
   by (simp add: EvalP_def WF_PREDICATE_binding_equiv)
 
+lemma UNREST_EvalP_def:
+  "vs \<sharp> P \<longleftrightarrow> (\<forall>b1. \<lbrakk>P\<rbrakk>b1 \<longrightarrow> (\<forall> b2. \<lbrakk>P\<rbrakk>(b1 \<oplus>\<^sub>b b2 on vs)))" 
+  by (auto simp add:UNREST_def EvalP_def)
+
 lemma "rv false = {}"
   by (simp add:rv_def unrest)
 

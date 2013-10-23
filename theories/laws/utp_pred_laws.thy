@@ -157,6 +157,10 @@ theorem ExistsP_ident :
   shows "(\<exists>\<^sub>p vs . p) = p"
   using assms by (utp_pred_tac)
 
+theorem UNREST_as_ExistsP:
+  "vs \<sharp> P \<longleftrightarrow> (\<exists>\<^sub>p vs. P) = P"
+  by (metis ExistsP_ident UNREST_ExistsP UNREST_empty Un_empty_left)
+
 theorem ForallP_ident :
   assumes "vs \<sharp> p"
   shows "(\<forall>\<^sub>p vs . p) = p"
@@ -171,6 +175,21 @@ apply (rule_tac x = "b'" in exI)
 apply (simp)+
 apply (rule_tac x = "b' \<oplus>\<^sub>b b'a on vs2" in exI)
 apply (simp add: binding_override_assoc)
+done
+
+theorem ExistsP_rest_vars:
+  "\<lbrakk> (VAR - vs) \<sharp> P; (P \<noteq> false) \<rbrakk> 
+   \<Longrightarrow> (\<exists>\<^sub>p vs. P) = true"
+  apply (utp_pred_auto_tac)
+  apply (rule_tac x="b" in exI)
+  apply (metis binding_equiv_comm binding_override_equiv1 utp_unrest.EvalP_UNREST_binding_equiv)
+done
+
+theorem ExistsP_witness:
+  "\<lbrakk> e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> P[e/\<^sub>px] \<Rightarrow>\<^sub>p (\<exists>\<^sub>p {x}. P)"
+  apply (utp_pred_auto_tac)
+  apply (rule_tac x="b(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>eb)" in exI)
+  apply (simp)
 done
 
 theorem ForallP_union :
@@ -323,6 +342,10 @@ lemma expr_simps [simp]:
   "ExprP TrueE = TrueP"
   "ExprP FalseE = FalseP"
   by (utp_pred_tac)+
+
+lemma EqualP_SubstP:
+  "v \<rhd>\<^sub>e x \<Longrightarrow> ($\<^sub>ex ==\<^sub>p v \<and>\<^sub>p P) = ($\<^sub>ex ==\<^sub>p v \<and>\<^sub>p P[v/\<^sub>px])"
+  by (metis (hide_lams, no_types) IffP_def ImpliesP_AndP_pre ImpliesP_eq_subst utp_pred_simps)
 
 subsection {* Case splitting *}
 
