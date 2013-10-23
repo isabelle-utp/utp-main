@@ -66,20 +66,15 @@ lemma \<delta>_rel_closure [closure]:
 
 lemma B_rel_closure [closure]:
   "`B` \<in> WF_RELATION"
-  apply(simp add:B_def)
-  apply(simp add:closure typing defined erasure unrest)
-  sorry
+  by (simp add:B_def closure typing defined unrest WF_RELATION_UNREST)
 
 lemma \<Phi>_rel_closure [closure]:
   "P \<in> WF_RELATION \<Longrightarrow> `\<Phi>(P)` \<in> WF_RELATION"
   by(simp add:\<Phi>_def closure)
 
 lemma doA_rel_closure [closure]:
-  "`doA(a)` \<in> WF_RELATION"
-  apply(simp add:doA_def)
-  apply(subst \<Phi>_rel_closure)
-  apply(subst CondR_rel_closure)
-  sorry
+  "NON_REL_VAR \<sharp> a \<Longrightarrow> `doA(a)` \<in> WF_RELATION"
+  by (simp add:doA_def closure typing defined unrest WF_RELATION_UNREST)
   
 lemma Alternative_rel_closure [closure]:
   "P \<in> WF_RELATION \<Longrightarrow> Q \<in> WF_RELATION \<Longrightarrow> (P +\<^bsub>ACP\<^esub> Q) \<in> WF_RELATION"
