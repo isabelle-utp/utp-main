@@ -100,6 +100,7 @@ session "nfm2014" in "papers/nfm2014" = "HOL-UTP" +
     "param_pred"
     "shallow_values"
   files "document/root.tex"
+        "document/deep-shallow.pdf"
 
 session Datatype_Order_Generator (AFP) in "contrib/Datatype_Order_Generator" 
   = "HOL-Library" +
