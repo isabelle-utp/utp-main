@@ -860,16 +860,13 @@ lemma EvalPE_RenamePE [eval,evale,evalp]:
   "\<lbrakk>ss\<bullet>e\<rbrakk>\<^sub>*b = \<lbrakk>e\<rbrakk>\<^sub>*((inv\<^sub>s ss)\<bullet>b)"
   by (simp add:PermPE_def)
 
-lemma RenamePE_PVarPE [urename]:
+lemma RenamePE_VarPE [urename]:
   "ss\<bullet>(VarPE x) = VarPE (ss\<bullet>x)"
   by (auto simp add:eval)
 
-(*
 lemma RenamePE_PVarPE [urename]:
-  "RenamePE (PVarPE x) ss = PVarPE (\<langle>ss\<rangle>\<^sub>s\<^sub>* x)"
-  apply (simp add:urename)
-  by (auto simp add:evale)
-*)
+  "ss\<bullet>(PVarPE x) = PVarPE (\<langle>ss\<rangle>\<^sub>s\<^sub>* x)"
+  by (simp add:evalp)
 
 lemma RenamePE_LitPE [urename]:
   "ss\<bullet>(LitPE v) = LitPE v"
@@ -886,6 +883,41 @@ lemma RenamePE_Op2PE [urename]:
 lemma RenamePE_Op3PE [urename]:
   "ss\<bullet>(Op3PE f u v w) = Op3PE f (ss\<bullet>u) (ss\<bullet>v) (ss\<bullet>w)"
   by (auto simp add:eval)
+
+lemma RenameE_RenamePE [urename]:
+  fixes e :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  assumes "TYPEUSOUND('a, 'm)"
+  shows "ss \<bullet> (e\<down>) = (ss \<bullet> e)\<down>"
+  by (simp add:evale evalp closure typing defined assms)
+
+lemma RenameP_RenamePE [urename]:
+  fixes e :: "(bool, 'm :: VALUE) WF_PEXPRESSION"
+  assumes "TYPEUSOUND(bool, 'm)"
+  shows "ss \<bullet> (PExprP e) = PExprP (ss \<bullet> e)"
+  by (utp_pred_tac)
+
+lemma RenamePE_PExprPE [urename]:
+  fixes e :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  assumes "TYPEUSOUND('a, 'm)"
+  shows "ss\<bullet>(PExprE e) = PExprE (ss\<bullet>e)"
+  by (auto simp add:evale assms)
+
+subsection {* Variable Priming *}
+
+definition PrimePE ::
+   "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow>   
+   ('a, 'm) WF_PEXPRESSION" where
+"PrimePE e = PermPE SS e"
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name prime} @{const_name PrimePE}
+*}
+
+lemma PrimePE_PExprE [urename]:  
+  fixes e :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  assumes "TYPEUSOUND('a, 'm)"
+  shows "(PExprE e)\<acute> = (PExprE e\<acute>)"
+  by (simp add:PrimePE_def PrimeE_def urename assms)
 
 subsection {* Substitution *}
 
@@ -974,6 +1006,12 @@ lemma SubstP_PSubstPE_dash_dash [usubst]:
   shows "e\<down>[v\<down>/\<^sub>px\<down>\<acute>\<acute>] = (PSubstPE e v x\<acute>\<acute>)\<down>"
   using assms by (utp_pred_tac)
 
+lemma SubstP_PSubstPE_dash_dash_dash [usubst]:
+  fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  assumes "TYPEUSOUND('a, 'm)"
+  shows "e\<down>[v\<down>/\<^sub>px\<down>\<acute>\<acute>\<acute>] = (PSubstPE e v x\<acute>\<acute>\<acute>)\<down>"
+  using assms by (utp_pred_tac)
+
 lemma PSubstPE_PVarPE_neq [usubst]:
   fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
   and   x :: "('b :: DEFINED, 'm :: VALUE) PVAR"
@@ -1006,6 +1044,13 @@ lemma SubstE_PSubstPE_dash_dash [usubst]:
   and   e :: "('b :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
   assumes "TYPEUSOUND('a, 'm)" "TYPEUSOUND('b, 'm)" "v \<rhd>\<^sub>* x\<acute>\<acute>"
   shows "e\<down>[v\<down>/\<^sub>ex\<down>\<acute>\<acute>] = (PSubstPE e v x\<acute>\<acute>)\<down>"
+  using assms by (auto simp add:evale typing defined evalp erasure)
+
+lemma SubstE_PSubstPE_dash_dash_dash [usubst]:
+  fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  and   e :: "('b :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  assumes "TYPEUSOUND('a, 'm)" "TYPEUSOUND('b, 'm)" "v \<rhd>\<^sub>* x\<acute>\<acute>\<acute>"
+  shows "e\<down>[v\<down>/\<^sub>ex\<down>\<acute>\<acute>\<acute>] = (PSubstPE e v x\<acute>\<acute>\<acute>)\<down>"
   using assms by (auto simp add:evale typing defined evalp erasure)
 
 lemma SubstP_PSubstPE_TrueE [usubst]:

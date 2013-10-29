@@ -128,6 +128,11 @@ theorem IffP_eq_intro [intro]:
   shows "p = q"
   using assms by (utp_pred_auto_tac)
 
+theorem ImpliesP_eq_intro:
+  assumes "p \<Rightarrow>\<^sub>p q" "q \<Rightarrow>\<^sub>p p"
+  shows "p = q"
+  using assms by (utp_pred_auto_tac)
+
 theorem ClosureP_intro: 
   assumes "[p]\<^sub>p"
   shows "taut p"
@@ -177,6 +182,10 @@ apply (rule_tac x = "b' \<oplus>\<^sub>b b'a on vs2" in exI)
 apply (simp add: binding_override_assoc)
 done
 
+theorem ExistsP_commute:
+"(\<exists>\<^sub>p vs1. \<exists>\<^sub>p vs2. p) = (\<exists>\<^sub>p vs2. \<exists>\<^sub>p vs1. p)"
+  by (metis ExistsP_union sup_commute)
+
 theorem ExistsP_rest_vars:
   "\<lbrakk> (VAR - vs) \<sharp> P; (P \<noteq> false) \<rbrakk> 
    \<Longrightarrow> (\<exists>\<^sub>p vs. P) = true"
@@ -187,6 +196,14 @@ done
 
 theorem ExistsP_witness:
   "\<lbrakk> e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> P[e/\<^sub>px] \<Rightarrow>\<^sub>p (\<exists>\<^sub>p {x}. P)"
+  apply (utp_pred_auto_tac)
+  apply (rule_tac x="b(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>eb)" in exI)
+  apply (simp)
+done
+
+theorem ExistsP_assm_witness:
+  "\<lbrakk> e \<rhd>\<^sub>e x; P \<Rightarrow>\<^sub>p Q[e/\<^sub>px] \<rbrakk> \<Longrightarrow> 
+     P \<Rightarrow>\<^sub>p (\<exists>\<^sub>p {x}. Q)"
   apply (utp_pred_auto_tac)
   apply (rule_tac x="b(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>eb)" in exI)
   apply (simp)

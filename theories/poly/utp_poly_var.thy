@@ -139,6 +139,16 @@ lemma PVAR_VAR_MkPVAR:
   = MkVar n (TYPEU('a)  :: 'm UTYPE) s"
   by (simp add:MkPVAR_def PVAR_VAR_def)
 
+lemma VAR_PVAR_erase_simps [simp]:
+  "VAR_PVAR (x\<down>) = x"
+  "VAR_PVAR (x\<down>)\<acute> = x\<acute>"
+  "VAR_PVAR (x\<down>)\<acute>\<acute> = x\<acute>\<acute>"
+  "VAR_PVAR (x\<down>)\<acute>\<acute>\<acute> = x\<acute>\<acute>\<acute>"
+  apply (metis PVAR_VAR_inv)
+  apply (metis PVAR_VAR_inv PVAR_VAR_pvdash)
+  apply (metis PVAR_VAR_inv PVAR_VAR_pvdash)
+  by (metis PVAR_VAR_inv PVAR_VAR_pvdash)
+
 lemma MkPVAR_VAR_name [simp]:
   "name (MkPVAR n s a t)\<down> = n"
   by (simp add:PVAR_VAR_MkPVAR)
@@ -207,6 +217,10 @@ lemma PVAR_VAR_vtype [simp]:
 lemma PVAR_VAR_RENAME [simp]: 
   "(ss\<bullet>x)\<down> = ss\<bullet>(x\<down>)"
   by (simp add:PermPV_def erasure)
+
+lemma PermPV_PVAR:
+  "ss\<bullet>x = VAR_PVAR (ss\<bullet>(x\<down>))"
+  by (metis PermPV_def)
 
 text {* A list produced from a polymorphic auxiliary variable is within the carrier of
         the list elements *}

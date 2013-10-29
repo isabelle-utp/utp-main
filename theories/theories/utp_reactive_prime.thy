@@ -283,57 +283,6 @@ by(subst R2_CondR_closure_2, simp_all add:assms, simp add:is_healthy_def tr_cons
 (* L9 R2-composition *)
 (*R2 *)
 
-lemma RenameE_RenamePE [urename]:
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
-  assumes "TYPEUSOUND('a, 'm)"
-  shows "ss \<bullet> (e\<down>) = (ss \<bullet> e)\<down>"
-  by (simp add:evale evalp closure typing defined assms)
-
-lemma RenameP_RenamePE [urename]:
-  fixes e :: "(bool, 'm :: VALUE) WF_PEXPRESSION"
-  assumes "TYPEUSOUND(bool, 'm)"
-  shows "ss \<bullet> (PExprP e) = PExprP (ss \<bullet> e)"
-  by (utp_pred_tac)  
-
-lemma RenamePE_PVarPE [urename]:
-  "ss\<bullet>(PVarPE x) = PVarPE (\<langle>ss\<rangle>\<^sub>s\<^sub>* x)"
-  by (simp add:evalp)
-
-lemma PermPV_PVAR [urename]:
-  "ss\<bullet>x = VAR_PVAR (ss\<bullet>x\<down>)"
-  by (metis PermPV_def)
-
-definition PrimePE ::
-   "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow>   
-   ('a, 'm) WF_PEXPRESSION" where
-"PrimePE e = PermPE (dash on UNDASHED) e"
-
-setup {*
-Adhoc_Overloading.add_variant @{const_name prime} @{const_name PrimePE}
-*}
-
-lemma RenamePE_PExprPE [urename]:
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
-  assumes "TYPEUSOUND('a, 'm)"
-  shows "ss\<bullet>(PExprE e) = PExprE (ss\<bullet>e)"
-  by (auto simp add:evale assms) 
-
-lemma PrimePE_PExprE [urename]:  
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
-  assumes "TYPEUSOUND('a, 'm)"
-  shows "(PExprE e)\<acute> = (PExprE e\<acute>)"
-  by (simp add:PrimePE_def PrimeE_def urename assms)
-
-lemma test1[simp]:
-  "VAR_PVAR (x\<down>) = x"
-  "VAR_PVAR (x\<down>)\<acute> = x\<acute>"
-  "VAR_PVAR (x\<down>)\<acute>\<acute> = x\<acute>\<acute>"
-  "VAR_PVAR (x\<down>)\<acute>\<acute>\<acute> = x\<acute>\<acute>\<acute>"
-  apply (metis PVAR_VAR_inv)
-  apply (metis PVAR_VAR_inv PVAR_VAR_pvdash)
-  apply (metis PVAR_VAR_inv PVAR_VAR_pvdash)
-  by (metis PVAR_VAR_inv PVAR_VAR_pvdash)
-
 abbreviation "tt1   \<equiv> MkPlainP ''tt1'' True TYPE('m EVENT ULIST) TYPE('m)"
 abbreviation "tt2   \<equiv> MkPlainP ''tt2'' True TYPE('m EVENT ULIST) TYPE('m)"
 abbreviation "tt   \<equiv> MkPlainP ''tt'' True TYPE('m EVENT ULIST) TYPE('m)"
@@ -343,8 +292,7 @@ lemma R2_form:
   shows "R2(P) = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>\<acute>} . `P[\<langle>\<rangle>/tr][$ttx\<acute>\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr ^ $ttx\<acute>\<acute>\<acute>)`)"
 proof -
 have "`$tr \<le> $tr\<acute>` = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>\<acute>} . `$tr\<acute> = $tr ^ $ttx\<acute>\<acute>\<acute>`)"
-  apply (utp_pred_auto_tac)
-  sorry
+  by (metis (hide_lams, no_types) PVAR_VAR_pvdash assms(2) tr_prefix_as_concat)
 hence "R2(P) = R2s(P) \<and>\<^sub>p (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>\<acute>} .  `$tr\<acute> = $tr ^ $ttx\<acute>\<acute>\<acute>`)"
   by(metis R2_def R1_def)
 also have "... = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>\<acute>} . R2s(P) \<and>\<^sub>p `$tr\<acute> = $tr ^ $ttx\<acute>\<acute>\<acute>`)"
@@ -370,6 +318,20 @@ finally show ?thesis
   by (metis assms(1))
 qed  
 
+thm SemiR_extract_variable
+
+theorem SemiR_extract_variable_poly:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
+          "x \<in> PUNDASHED" "pvaux x"
+          "TYPEUSOUND('a, 'm)"
+  shows "P ; Q = `\<exists> x\<acute>\<acute>\<acute>. P[$x\<acute>\<acute>\<acute>/x\<acute>] ; Q[$x\<acute>\<acute>\<acute>/x]`"
+  apply (subst SemiR_extract_variable[of _ _ "x\<down>"])
+  apply (simp_all add:assms)
+  apply (metis PVAR_VAR_PUNDASHED_UNDASHED assms(3))
+  apply (simp add:erasure assms typing defined closure)
+done
+
 lemma R2_SemiR_distribute:
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
   shows "R2(P);R2(Q) is R2"
@@ -378,8 +340,8 @@ proof-
       (\<exists> tt1\<acute>\<acute>\<acute> . (P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute>\<acute>\<acute> = $tr ^ $tt1\<acute>\<acute>\<acute>)));
       (\<exists> tt2\<acute>\<acute>\<acute> . (Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr\<acute>\<acute>\<acute> ^ $tt2\<acute>\<acute>\<acute>)))
      )`"
-        apply(subst SemiR_extract_variable[of _ _ "tr\<down>"])
-        apply(simp_all add:closure assms)
+        apply(subst SemiR_extract_variable_poly[of _ _ "tr"])
+        apply(simp_all add:closure assms typing)
         apply(subst R2_form[of _ "tt1"])
         apply(simp_all add:closure assms)
         apply(subst R2_form[of _ "tt2"])
@@ -388,17 +350,19 @@ proof-
         apply(simp_all add:closure typing defined unrest)
         apply(subst SubstP_ExistsP)
         apply(simp_all add:closure typing defined unrest)
-        apply(subst SubstP_AndP)
-        apply(subst SubstP_AndP)
-        apply(subst SubstP_EqualP)
-        apply(subst SubstP_EqualP)
-        apply(subst SubstP_twice_1)
-        apply(simp_all add:closure typing defined unrest)
-        apply(subst SubstP_twice_2) back back
-        apply(simp_all add:closure typing defined unrest)
-        apply(simp add:erasure typing defined closure)
+        apply(simp add:usubst typing defined)
+        apply(simp add: SubstE_PSubstPE SubstE_PSubstPE_dash PSubstPE_Op2PE PSubstPE_PVarPE PSubstPE_PVarPE_different closure typing defined)
         apply(simp add:usubst typing defined closure)
-        sorry (*subst triple prime... or is it erasure not going through ^ ? *)
+        apply(subst SubstP_twice_3) back
+        apply(simp_all add: typing defined closure unrest)
+        apply(subst SubstP_twice_1)
+        apply(simp_all add: typing defined closure unrest)
+        apply (simp add:typing usubst defined closure)
+        apply (simp add:typing usubst defined closure)
+        apply(subst SubstP_twice_3) back
+        apply (simp_all add:usubst typing defined closure)
+        apply (simp add:unrest typing defined closure)
+   done
    also have "... = `(  \<exists> tt1\<acute>\<acute>\<acute> . \<exists> tt2\<acute>\<acute>\<acute> . \<exists> tr \<acute>\<acute>\<acute> .  
       (P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute>\<acute>\<acute> = $tr ^ $tt1\<acute>\<acute>\<acute>));
       (Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr\<acute>\<acute>\<acute> ^ $tt2\<acute>\<acute>\<acute>))
@@ -421,6 +385,8 @@ proof-
     apply(subst AndP_assoc[THEN sym])
     apply(subst ExistsP_AndP_expand2[THEN sym])
     apply(simp_all add:unrest typing defined closure)
+    apply(rule UNREST_SemiR)
+    apply (rule unrest) 
     sorry (*unrest problem *)
   also have "... = `(\<exists> tt1\<acute>\<acute>\<acute>. \<exists> tt2\<acute>\<acute>\<acute>.  P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>\<acute>/tr\<acute>] ; Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr ^ $tt1\<acute>\<acute>\<acute> ^ $tt2\<acute>\<acute>\<acute>))`"
     proof -
@@ -485,7 +451,7 @@ proof-
    apply(auto intro!:unrest closure typing simp add:typing closure)[1]
    apply(subst SubstP_EqualP)
    apply(simp add:usubst typing defined closure)
-    sorry (*substituting triple dashed *)
+   done 
     also have "... = R2(P);R2(Q)" by(subst 1,simp)
     finally show ?thesis by(simp add:is_healthy_def)
 qed

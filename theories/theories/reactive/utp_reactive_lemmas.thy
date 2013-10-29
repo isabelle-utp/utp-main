@@ -68,25 +68,61 @@ lemma tr_eq_rel_closure:
   "`($tr\<acute> = $tr)` \<in> WF_RELATION"
  by (simp add:closure unrest typing)
 
-lemma tr_eq_trans:
-  "`($tr\<acute> = $tr) ; ($tr\<acute> = $tr)` = `($tr\<acute> = $tr)`"
-sorry
+lemma var_eq_trans:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "x \<in> PUNDASHED" "pvaux x"
+  shows "`($x\<acute> = $x) ; ($x\<acute> = $x)` = `($x\<acute> = $x)`"
+  apply (subst SemiR_algebraic)
+  apply (simp_all add:closure unrest typing assms urename PermPV_PVAR)
+  apply (simp add:eval evalp evale typing defined closure assms)
+  apply (subst TypeUSound_ProjU_inv)
+  apply (simp_all add:typing closure defined assms pvaux_aux[THEN sym])
+  apply (auto)
+  apply (rule_tac x="b(x\<down>\<acute>\<acute> :=\<^sub>b \<langle>b\<rangle>\<^sub>b x\<down>)" in exI)
+  apply (simp)
+done
 
-lemma tr_eq_tr_leq:
-  "`($tr\<acute> = $tr) ; ($tr \<le> $tr\<acute>)` = `($tr \<le> $tr\<acute>)`"
-sorry
+lemma DestList_event_dcarrier [typing]: 
+  fixes xs :: "('m EVENT ULIST, 'm :: REACTIVE_SORT) PVAR"
+  assumes "pvaux xs"
+  shows "set (DestList (\<langle>b\<rangle>\<^sub>b xs\<down>)) \<subseteq> dcarrier EventType"
+  apply (rule DestList_elem_type)
+  apply (simp add:closure)
+  apply (auto intro:typing assms)[1]
+done
 
-lemma tr_leq_trans:
-  "`($tr \<le> $tr\<acute>) ; ($tr \<le> $tr\<acute>)` = `($tr \<le> $tr\<acute>)`"
-  by (auto intro: binding_equiv_trans simp add:closure typing defined unrest closure evalr evalp relcomp_unfold urename)
+lemma DestList_event'_dcarrier [typing]: 
+  fixes xs :: "('m EVENT ULIST, 'm :: REACTIVE_SORT) PVAR"
+  assumes "pvaux xs"
+  shows "set (DestList (\<langle>b\<rangle>\<^sub>b xs\<down>\<acute>)) \<subseteq> dcarrier EventType"
+  apply (rule DestList_elem_type)
+  apply (simp add:closure)
+  apply (rule typing)
+  apply (auto intro:typing assms)[1]
+  apply (metis assms aux_dash pvaux_aux)
+done
 
-lemma nil_prefixeq [simp]:
-  "`\<langle>\<rangle> \<le> x` = `true`"
-  by (utp_pred_auto_tac)
+lemma DestList_event''_dcarrier [typing]: 
+  fixes xs :: "('m EVENT ULIST, 'm :: REACTIVE_SORT) PVAR"
+  assumes "pvaux xs"
+  shows "set (DestList (\<langle>b\<rangle>\<^sub>b xs\<down>\<acute>\<acute>)) \<subseteq> dcarrier EventType"
+  apply (rule DestList_elem_type)
+  apply (simp add:closure)
+  apply (rule typing)
+  apply (auto intro:typing assms)[1]
+  apply (metis assms aux_dash pvaux_aux)
+done
 
-lemma nil_append [simp]:
-  "|\<langle>\<rangle> ^ x| = |x|"
-  by (auto simp add:evalp)
+lemma DestList_event'''_dcarrier [typing]: 
+  fixes xs :: "('m EVENT ULIST, 'm :: REACTIVE_SORT) PVAR"
+  assumes "pvaux xs"
+  shows "set (DestList (\<langle>b\<rangle>\<^sub>b xs\<down>\<acute>\<acute>\<acute>)) \<subseteq> dcarrier EventType"
+  apply (rule DestList_elem_type)
+  apply (simp add:closure)
+  apply (rule typing)
+  apply (auto intro:typing assms)[1]
+  apply (metis assms aux_dash pvaux_aux)
+done
 
 lemma DestList_tr_dcarrier [typing]: 
   "set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>)) \<subseteq> dcarrier EventType"
@@ -121,6 +157,64 @@ lemma prefixeq_DestEvent_simp [simp]:
   apply (simp)
   apply (metis DestList_tr'_dcarrier DestList_tr_dcarrier le_sup_iff)
 done
+
+lemma tr_eq_trans:
+  "`($tr\<acute> = $tr) ; ($tr\<acute> = $tr)` = `($tr\<acute> = $tr)`"
+  by (simp add:var_eq_trans typing defined closure)
+
+(* () TYPE('m) *)
+
+definition Rep_binding_typed :: 
+  "'m WF_BINDING \<Rightarrow> ('a, 'm) PVAR \<Rightarrow> 'a" where
+"Rep_binding_typed b x = ProjU (\<langle>b\<rangle>\<^sub>b x\<down>)"
+
+lemma prefix_implies_concat_minus:
+  "`($tr \<le> $tr\<acute>) \<Rightarrow> $tr ^ ($tr\<acute> - $tr) = $tr\<acute>`"
+  apply (utp_pred_auto_tac)
+  apply (subgoal_tac "set (drop (length (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>))) \<subseteq> dcarrier (EventType :: 'a UTYPE)")
+  defer
+  apply (rule subset_trans, rule set_drop_subset, rule DestList_tr'_dcarrier)
+  apply (simp_all add:MkList_inj_simp typing closure prefixeq_drop)
+  apply (metis prefixeq_drop)
+done
+
+lemma tr_prefix_implies_concat:
+  assumes "pvaux ttx"
+  shows "`($tr \<le> $tr\<acute>) \<Rightarrow> (\<exists> ttx\<acute>\<acute>\<acute>. $tr\<acute> = $tr ^ $ttx\<acute>\<acute>\<acute>)`"
+  using assms
+  apply (rule_tac ExistsP_assm_witness[of "|($tr\<acute> - $tr)|\<down>"])
+  apply (simp add:typing defined closure)
+  apply (simp add:usubst typing defined closure)
+  apply (metis EqualP_sym prefix_implies_concat_minus)
+done
+
+lemma tr_prefix_as_concat:
+  assumes "pvaux ttx" 
+  shows "`($tr \<le> $tr\<acute>)` = `(\<exists> ttx\<acute>\<acute>\<acute>. $tr\<acute> = $tr ^ $ttx\<acute>\<acute>\<acute>)`"
+  apply (rule_tac ImpliesP_eq_intro)
+  apply (metis (hide_lams, no_types) assms tr_prefix_implies_concat)
+  apply (insert assms, utp_pred_auto_tac)
+done
+
+lemma tr_eq_tr_leq:
+  "`($tr\<acute> = $tr) ; ($tr \<le> $tr\<acute>)` = `($tr \<le> $tr\<acute>)`"
+  apply (subst tr_prefix_as_concat[of "tr"], simp)
+  apply (subst tr_prefix_as_concat[of "tr"], simp)
+  apply (subst SemiR_algebraic)
+  apply (simp_all add:closure unrest typing assms urename)
+sorry
+
+lemma tr_leq_trans:
+  "`($tr \<le> $tr\<acute>) ; ($tr \<le> $tr\<acute>)` = `($tr \<le> $tr\<acute>)`"
+  by (auto intro: binding_equiv_trans simp add:closure typing defined unrest closure evalr evalp relcomp_unfold urename)
+
+lemma nil_prefixeq [simp]:
+  "`\<langle>\<rangle> \<le> x` = `true`"
+  by (utp_pred_auto_tac)
+
+lemma nil_append [simp]:
+  "|\<langle>\<rangle> ^ x| = |x|"
+  by (auto simp add:evalp)
 
 lemma tr_prefix_as_nil:
   "`($tr\<acute> - $tr) = \<langle>\<rangle> \<and> ($tr \<le> $tr\<acute>)` = `$tr\<acute> = $tr`"
