@@ -955,6 +955,16 @@ proof -
   done
 qed
 
+lemma SubstP_SkipR_UNDASHED [usubst]:
+  assumes 
+    "x \<in> UNDASHED"
+    "v \<rhd>\<^sub>e x"
+  shows "(II[v/\<^sub>px]) = (x :=\<^sub>R v)"
+  apply (simp add: SkipR_as_SkipRA)
+  apply (subst SkipRA_unfold[of x])
+  apply (simp_all add:assms closure usubst typing defined AssignR_alt_def)
+done
+
 theorem SkipRA_compose [simp]:
   assumes 
     "HOMOGENEOUS vs1"

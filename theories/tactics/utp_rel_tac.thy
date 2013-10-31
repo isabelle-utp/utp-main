@@ -59,6 +59,20 @@ lemma WF_REL_BINDING_override_closure [closure]:
   "b \<oplus>\<^sub>b bc on DASHED \<in> WF_REL_BINDING"
   by (auto simp add:WF_REL_BINDING_def)
 
+lemma WF_REL_BINDING_binding_upd [closure]:
+  "\<lbrakk> x \<in> UNDASHED; b \<in> WF_REL_BINDING; v \<rhd> x \<rbrakk> \<Longrightarrow> b(x :=\<^sub>b v) \<in> WF_REL_BINDING"
+  by (auto simp add:WF_REL_BINDING_def)
+
+lemma WF_REL_BINDING_bc_DASHED_eq:
+  "b \<in> WF_REL_BINDING \<longleftrightarrow> b \<cong> bc on DASHED"
+  by (metis WF_REL_BINDING_bc_DASHED WF_REL_BINDING_override_closure binding_override_equiv)
+
+lemma WF_REL_BINDING_binding_upd_remove:
+  "\<lbrakk> b(x :=\<^sub>b v) \<in> WF_REL_BINDING; x \<in> UNDASHED; v \<rhd> x \<rbrakk> \<Longrightarrow> b \<in> WF_REL_BINDING"
+  apply (simp add:WF_REL_BINDING_bc_DASHED_eq)
+  apply (metis WF_REL_BINDING_bc_DASHED_eq WF_REL_BINDING_binding_upd binding_compat binding_upd_triv binding_upd_upd)
+done
+
 typedef 'VALUE WF_REL_BINDING = "WF_REL_BINDING :: 'VALUE WF_BINDING set"
   morphisms DestRelB MkRelB
   by (auto simp add:WF_REL_BINDING_def)
@@ -945,7 +959,5 @@ lemma AssignR_alt_def:
   apply (drule_tac x="va" in bspec, simp_all)
   apply (metis UNDASHED_eq_dash_contra undash_dash)
 done
-
-
 
 end

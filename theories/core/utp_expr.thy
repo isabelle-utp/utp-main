@@ -371,6 +371,14 @@ theorem VarE_defined [defined]: "aux x \<Longrightarrow> \<D> (VarE x)"
 theorem VarE_ecompat [typing]: "\<lbrakk> vtype x = vtype y; aux x = aux y \<rbrakk> \<Longrightarrow> VarE y \<rhd>\<^sub>e x"
   by (force intro:typing defined)
 
+lemma SubstE_defined [defined]:
+  "\<lbrakk> v \<rhd>\<^sub>e y; \<D> e \<rbrakk> \<Longrightarrow> \<D> (e[v/\<^sub>ey])"
+  by (auto simp add:SubstE.rep_eq Defined_WF_EXPRESSION_def)
+
+lemma SubstE_compat [typing]:
+  "\<lbrakk> e \<rhd>\<^sub>e x; v \<rhd>\<^sub>e y \<rbrakk> \<Longrightarrow> e[v/\<^sub>ey] \<rhd>\<^sub>e x"
+  by (auto simp add:SubstE.rep_eq Defined_WF_EXPRESSION_def evar_compat_def)
+
 subsubsection {* bfun theorems *}
 
 lemma LitE_bfun [simp]: "a : t \<Longrightarrow> \<langle>LitE a\<rangle>\<^sub>e = (\<lambda> x. a)"
@@ -491,6 +499,10 @@ theorem UNREST_SubstE_var [unrest] :
   apply (auto simp add:SubstE.rep_eq UNREST_def UNREST_EXPR_def)
   apply (metis binding_compat binding_upd_override binding_upd_upd evar_compat_def)
 done
+
+lemma UNREST_SubstE_simple [unrest]:
+  "\<lbrakk> vs \<sharp> e; vs \<sharp> v; v \<rhd>\<^sub>e y; y \<notin> vs \<rbrakk> \<Longrightarrow> vs \<sharp> e[v/\<^sub>ey]"
+  by (rule unrest, auto)
 
 lemma dash_single_rename_func_on [closure]: "rename_func_on dash {x}"
   by (simp add:rename_func_on_def)

@@ -261,5 +261,38 @@ lemma PVAR_binding_aux_stype [typing]:
   shows "\<langle>b\<rangle>\<^sub>b x\<down> :! t"
     by (metis PVAR_binding_defined_aux PVAR_binding_type assms dtype_rel_def)
 
+lemma TypeUSound_InjU_var_compat [typing]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  and   y :: "'a"
+  assumes "TYPEUSOUND('a, 'm)" "\<D> y"
+  shows "(InjU y :: 'm) \<rhd> x\<down>"
+  by (auto simp add:var_compat_def intro:typing defined assms)
+
+(* Compatibility *)
+
+definition pvar_compat :: 
+  "'a \<Rightarrow> ('a :: DEFINED, 'm :: VALUE) PVAR \<Rightarrow> bool" (infix "\<rhd>\<^sub>p" 50) where
+"pvar_compat v x \<equiv> (if (pvaux x) then \<D> v else True) \<and> TYPEUSOUND('a,'m)"
+
+lemma npvaux_pvar_compat [typing]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "TYPEUSOUND('a,'m)" "\<not> pvaux x"
+  shows "v \<rhd>\<^sub>p x"
+  by (simp add:pvar_compat_def assms)
+
+lemma pvaux_pvar_compat [typing]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "TYPEUSOUND('a,'m)" "\<D> v"
+  shows "v \<rhd>\<^sub>p x"
+  by (simp add:pvar_compat_def assms)
+
+lemma var_compat_pvar [typing]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  and   v :: "'a"
+  assumes "v \<rhd>\<^sub>p x"
+  shows "InjU v \<rhd> x\<down>"
+  using assms
+  by (auto simp add:var_compat_def typing pvar_compat_def TypeUSound_InjU_defined pvaux_aux)
+
 end
 

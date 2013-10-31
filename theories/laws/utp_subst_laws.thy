@@ -140,7 +140,6 @@ lemma SubstP_SkipR [usubst]:
   apply (utp_rel_auto_tac)
 oops
 
-
 (*
 lemma SubstP_UNDASHED:
   assumes 
@@ -248,6 +247,16 @@ lemma SubstE_VarE_other [usubst]:
 lemma SubstE_VarE_single_UNREST [usubst]:
   "\<lbrakk> {x} \<sharp> f; e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> f[e/\<^sub>ex] = f"
   by (utp_expr_tac)
+
+lemma SubstP_AssignR_simple [usubst]:
+  assumes 
+    "x \<in> UNDASHED"
+    "e \<rhd>\<^sub>e x"
+    "v \<rhd>\<^sub>e x"
+    "DASHED \<sharp> e"
+    "DASHED \<sharp> v"
+  shows "(x :=\<^sub>R e)[v/\<^sub>px] = (x :=\<^sub>R (e[v/\<^sub>ex]))"
+  using assms by (simp add: AssignR_alt_def typing defined usubst unrest)
 
 lemma SubstP_AssignR_1 [usubst]:
   "\<lbrakk> x \<in> UNDASHED; y \<in> UNDASHED; e \<rhd>\<^sub>e y; v \<rhd>\<^sub>e x; x \<noteq> y; 

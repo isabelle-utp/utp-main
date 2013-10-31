@@ -164,10 +164,6 @@ lemma tr_eq_trans:
 
 (* () TYPE('m) *)
 
-definition Rep_binding_typed :: 
-  "'m WF_BINDING \<Rightarrow> ('a, 'm) PVAR \<Rightarrow> 'a" where
-"Rep_binding_typed b x = ProjU (\<langle>b\<rangle>\<^sub>b x\<down>)"
-
 lemma prefix_implies_concat_minus:
   "`($tr \<le> $tr\<acute>) \<Rightarrow> $tr ^ ($tr\<acute> - $tr) = $tr\<acute>`"
   apply (utp_pred_auto_tac)
