@@ -18,6 +18,15 @@ begin
 
 subsection {* Composable Bindings *}
 
+
+definition COMPOSABLE_BINDINGS ::
+  "('VALUE WF_BINDING \<times>
+    'VALUE WF_BINDING) set" where
+"COMPOSABLE_BINDINGS =
+ {(b1, b2) . (\<forall> v \<in> UNDASHED . \<langle>b1\<rangle>\<^sub>b(dash v) = \<langle>b2\<rangle>\<^sub>b v) \<and> b1 \<cong> b2 on NON_REL_VAR}"
+
+subsection {* Classes of relation *}
+
 definition WF_RELATION :: "'VALUE WF_PREDICATE set" where
 "WF_RELATION = {p. UNREST NON_REL_VAR p}"
 
@@ -27,11 +36,14 @@ definition WF_CONDITION :: "'VALUE WF_PREDICATE set" where
 definition WF_POSTCOND :: "'VALUE WF_PREDICATE set" where
 "WF_POSTCOND = {p \<in> WF_RELATION. UNREST UNDASHED p}"
 
-definition COMPOSABLE_BINDINGS ::
-  "('VALUE WF_BINDING \<times>
-    'VALUE WF_BINDING) set" where
-"COMPOSABLE_BINDINGS =
- {(b1, b2) . (\<forall> v \<in> UNDASHED . \<langle>b1\<rangle>\<^sub>b(dash v) = \<langle>b2\<rangle>\<^sub>b v) \<and> b1 \<cong> b2 on NON_REL_VAR}"
+text {* An assignment is a special kind of predicate whose sole
+behaviour is to assign particular values to a particular set of
+variables. All other variables are unrestricted. *}
+
+definition WF_ASSIGN :: "'a VAR set \<Rightarrow> 'a WF_PREDICATE set" where
+"WF_ASSIGN xs = {P. (\<forall>x\<in>xs. \<forall> b1 \<in> destPRED P. \<forall> b2 \<in> destPRED P. \<langle>b1\<rangle>\<^sub>b x = \<langle>b2\<rangle>\<^sub>b x)
+                  \<and> (- xs) \<sharp> P
+                  \<and> xs \<subseteq> DASHED}"
 
 subsection {* Permutations *}
 
@@ -669,6 +681,14 @@ theorem WF_POSTCOND_WF_RELATION [closure]:
 "p \<in> WF_POSTCOND \<Longrightarrow> p \<in> WF_RELATION"
   by (auto simp add:WF_POSTCOND_def)
 
+lemma WF_ASSIGN_WF_POSTCOND [closure]:
+  "P \<in> WF_ASSIGN vs \<Longrightarrow> P \<in> WF_POSTCOND"
+  apply (auto simp add:WF_ASSIGN_def WF_POSTCOND_def WF_RELATION_def)
+  apply (force intro:UNREST_subset)
+  apply (rule UNREST_subset)
+  apply (auto)
+done
+
 theorem UNREST_DASHED_TWICE_WF_RELATION [closure]:
 "p \<in> WF_RELATION \<Longrightarrow> UNREST DASHED_TWICE p"
   by (auto intro:unrest UNREST_subset simp add:WF_RELATION_def)
@@ -804,6 +824,13 @@ lemma EqualP_cond_closure [closure]:
   apply (auto intro:unrest UNREST_EXPR_subset)
 done
 
+lemma EqualP_assign_closure[closure]:
+  "\<lbrakk> v : vtype x; x \<in> DASHED \<rbrakk> \<Longrightarrow> ($\<^sub>ex ==\<^sub>p LitE v) \<in> WF_ASSIGN {x}"
+  apply (auto simp add:WF_ASSIGN_def)
+  apply (simp add:EqualP_def LitE_rep_eq VarE.rep_eq)
+  apply (simp add:unrest)
+done
+
 subsection {* Validation of Soundness *}
 
 lemma SemiR_algebraic_lemma1 :
@@ -929,6 +956,32 @@ lemma UNREST_SemiR:
   apply (auto)
   apply (rule_tac ?vs1.0="VAR - vs1" in UNREST_subset)
   apply (auto)
+done
+
+lemma UNREST_SemiR_UNDASHED [unrest]:
+  "\<lbrakk> vs \<sharp> P; vs \<subseteq> UNDASHED; P \<in> WF_RELATION; Q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> vs \<sharp> (P ; Q)"
+  apply (simp add:SemiR_algebraic_rel)
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (simp)
+  apply (simp add:urename)
+  apply (rule unrest)
+  apply (simp add:WF_RELATION_def)
+  apply (auto simp add:urename)
+done
+
+lemma UNREST_SemiR_DASHED [unrest]:
+  "\<lbrakk> vs \<sharp> Q; vs \<subseteq> DASHED; P \<in> WF_RELATION; Q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> vs \<sharp> (P ; Q)"
+  apply (simp add:SemiR_algebraic_rel)
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (simp add:WF_RELATION_def)
+  apply (auto simp add:urename)
+  apply (rule unrest)
+  apply (simp)
+  apply (simp add:urename)
 done
 
 lemma UNREST_SemiR_DASHED_TWICE [unrest]:

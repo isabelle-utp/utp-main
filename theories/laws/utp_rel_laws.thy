@@ -279,6 +279,36 @@ proof -
     by (utp_xrel_auto_tac)
 qed
 
+lemma WF_RELATION_CONDITION_true: 
+  assumes "P \<in> WF_RELATION" "(P ; true) = P"
+  shows "P \<in> WF_CONDITION"
+proof -
+  have "D\<^sub>1 \<sharp> (P ; true)"
+    by (simp add:unrest closure assms(1))
+
+  thus ?thesis
+    by (simp add:WF_CONDITION_def assms)
+qed
+
+lemma WF_RELATION_POSTCOND_true: 
+  assumes "P \<in> WF_RELATION" "(true ; P) = P"
+  shows "P \<in> WF_POSTCOND"
+proof -
+  have "D\<^sub>0 \<sharp> (true ; P)"
+    by (simp add:unrest closure assms(1))
+
+  thus ?thesis
+    by (simp add:WF_POSTCOND_def assms)
+qed
+
+lemma SemiR_first_POSTCOND [closure]:
+  "\<lbrakk> p \<in> WF_POSTCOND; Q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> p ; Q \<in> WF_POSTCOND"
+  by (metis (full_types) SemiR_TrueP_postcond SemiR_assoc SemiR_closure WF_POSTCOND_WF_RELATION WF_RELATION_POSTCOND_true)
+
+lemma SemiR_second_CONDITION [closure]:
+  "\<lbrakk> P \<in> WF_RELATION; q \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> P ; q \<in> WF_CONDITION"
+  by (metis SemiR_TrueP_precond SemiR_assoc SemiR_closure WF_CONDITION_WF_RELATION WF_RELATION_CONDITION_true)
+
 text {* This somewhat odd looking property derives from Relation Algebra. It is used,
         for instance, in the theory of designs. *}
 
@@ -1307,15 +1337,15 @@ done
 
 subsubsection {* Conditional Laws *}
 
-theorem CondR_true:
+theorem CondR_true[simp]:
   "P \<lhd> true \<rhd> Q = P"
   by (utp_pred_tac)
 
-theorem CondR_false:
+theorem CondR_false[simp]:
   "P \<lhd> false \<rhd> Q = Q"
   by (utp_pred_tac)
 
-theorem CondR_idem:
+theorem CondR_idem[simp]:
   "P \<lhd> b \<rhd> P = P"
   by (utp_pred_auto_tac)
 

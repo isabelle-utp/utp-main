@@ -31,8 +31,6 @@ lemma SeqR_disjunctive2:
   apply (utp_rel_auto_tac)
 done
 
-
-
 theorem RefineP_TrueP_refine [refine]:
   "true \<sqsubseteq> P"
   by (utp_pred_tac)

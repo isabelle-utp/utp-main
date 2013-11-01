@@ -1192,6 +1192,18 @@ lemma EvalR_AssignR_typed [evalr]:
   apply (simp_all add: assms unrest binding_upd_ty_def evale)
 done
 
+theorem EvalR_SubstP_UNDASHED_ty [evalr] :
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes 
+    "TYPEUSOUND('a, 'm)"
+    "x \<in> PUNDASHED" 
+    "e \<rhd>\<^sub>* x" 
+    "DASHED \<sharp> e"
+  shows "\<lbrakk>p[e\<down>/\<^sub>px\<down>]\<rbrakk>R = {(b1, b2) | b1 b2. (b1(x :=\<^sub>* \<lbrakk>e\<rbrakk>\<^sub>*b1), b2) \<in> \<lbrakk>p\<rbrakk>R}"
+  apply (subst SubstP_rel_UNDASHED)
+  apply (simp_all add:evale typing closure defined assms unrest binding_upd_ty_def)
+done
+
 (*
 subsection {* Anciliary Laws *}
 

@@ -119,40 +119,6 @@ done
 abbreviation "nv1 \<equiv> MkPlainP ''nv1'' False TYPE(int) TYPE('m :: INT_SORT)"
 abbreviation "nv2 \<equiv> MkPlainP ''nv2'' False TYPE(int) TYPE('m :: INT_SORT)"
 
-theorem SubstP_rel_UNDASHED_ty [evalr] :
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
-  assumes 
-    "TYPEUSOUND('a, 'm)"
-    "x \<in> PUNDASHED" 
-    "e \<rhd>\<^sub>* x" 
-    "DASHED \<sharp> e"
-  shows "\<lbrakk>p[e\<down>/\<^sub>px\<down>]\<rbrakk>R = {(b1, b2) | b1 b2. (b1(x :=\<^sub>* \<lbrakk>e\<rbrakk>\<^sub>*b1), b2) \<in> \<lbrakk>p\<rbrakk>R}"
-  apply (subst SubstP_rel_UNDASHED)
-  apply (simp_all add:evale typing closure defined assms unrest binding_upd_ty_def)
-done
-
-theorem AssignR_SemiR_ty:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
-  assumes 
-    "TYPEUSOUND('a, 'm)"
-    "x \<in> PUNDASHED" 
-    "e \<rhd>\<^sub>* x" 
-    "DASHED \<sharp> e"
-  shows "`(x := e) ; p` = `p[e/x]`"
-  apply (utp_rel_tac)
-  apply (simp add: EvalR_AssignR_typed evalp closure typing defined unrest relcomp_unfold assms SubstP_rel_UNDASHED_ty)
-  apply (auto simp add: binding_upd_ty_def)
-  apply (metis InjU_EvalPE_compat PVAR_VAR_PUNDASHED_UNDASHED WF_REL_BINDING_binding_upd_remove WF_REL_BINDING_member1 assms(2) assms(3))
-done
-
-lemma [simp]: "(x::int) < y \<Longrightarrow> `<x> < <y>` = true"
-  by (simp add:eval)
-
-lemma [simp]: "\<not> (x::int) < y \<Longrightarrow> `<x> < <y>` = false"
-  by (simp add:eval)
-
-lemma [simp]: "|<x :: int> + <y>| = |<x + y>|"
-  by (simp add:evalp)
 
 abbreviation 
   "prog1 \<equiv> `while ($nv1 < \<guillemotleft>5\<guillemotright>) do 
@@ -162,92 +128,7 @@ abbreviation
 abbreviation "fv \<equiv> MkPlainP ''fact'' False TYPE(int) TYPE('m :: INT_SORT)"
 abbreviation "cv \<equiv> MkPlainP ''c'' False TYPE(int) TYPE('m :: INT_SORT)"
 
-type_synonym 'a WF_STATE = "('a WF_PREDICATE * 'a WF_PREDICATE)"
-
-fun StepP :: "'a WF_STATE \<Rightarrow> 'a WF_STATE \<Rightarrow> bool" (infix "~>" 50) where
-"(s,P) ~> (t,Q) \<longleftrightarrow> (s\<acute>;P) \<sqsubseteq> (t\<acute>;Q)"
-
-lemma SkipR_step:
-  "(s, II; P) ~> (s, P)"
-  by simp
-
-lemma SeqR_step:
-  "(s,P) ~> (t,P') \<Longrightarrow> (s, P;Q) ~> (t, P';Q)"
-  apply (simp)
-  apply (simp add:SemiR_assoc)
-  apply (rule refine)
-  apply (assumption)
-  apply (rule order_refl)
-done
-
-lemma ChoiceP_step1:
-  "(s, P \<sqinter> Q) ~> (s, P)"
-  apply (simp)
-  apply (metis RefineP_choice1 SemiR_mono_refine order_refl)
-done
-
-lemma ChoiceP_step2:
-  "(s, P \<sqinter> Q) ~> (s, Q)"
-  apply (simp)
-  apply (metis RefineP_choice2 SemiR_mono_refine order_refl)
-done
-
-lemma UNREST_SemiR_UNDASHED [unrest]:
-  "\<lbrakk> vs \<sharp> P; vs \<subseteq> UNDASHED; P \<in> WF_RELATION; Q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> vs \<sharp> (P ; Q)"
-  apply (simp add:SemiR_algebraic_rel)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (simp)
-  apply (simp add:urename)
-  apply (rule unrest)
-  apply (simp add:WF_RELATION_def)
-  apply (auto simp add:urename)
-done
-
-lemma UNREST_SemiR_DASHED [unrest]:
-  "\<lbrakk> vs \<sharp> Q; vs \<subseteq> DASHED; P \<in> WF_RELATION; Q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> vs \<sharp> (P ; Q)"
-  apply (simp add:SemiR_algebraic_rel)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (simp add:WF_RELATION_def)
-  apply (auto simp add:urename)
-  apply (rule unrest)
-  apply (simp)
-  apply (simp add:urename)
-done
-
-lemma WF_RELATION_CONDITION_true: 
-  assumes "P \<in> WF_RELATION" "(P ; true) = P"
-  shows "P \<in> WF_CONDITION"
-proof -
-  have "D\<^sub>1 \<sharp> (P ; true)"
-    by (simp add:unrest closure assms(1))
-
-  thus ?thesis
-    by (simp add:WF_CONDITION_def assms)
-qed
-
-lemma WF_RELATION_POSTCOND_true: 
-  assumes "P \<in> WF_RELATION" "(true ; P) = P"
-  shows "P \<in> WF_POSTCOND"
-proof -
-  have "D\<^sub>0 \<sharp> (true ; P)"
-    by (simp add:unrest closure assms(1))
-
-  thus ?thesis
-    by (simp add:WF_POSTCOND_def assms)
-qed
-
-lemma SemiR_first_POSTCOND [closure]:
-  "\<lbrakk> p \<in> WF_POSTCOND; Q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> p ; Q \<in> WF_POSTCOND"
-  by (metis (full_types) SemiR_TrueP_postcond SemiR_assoc SemiR_closure WF_POSTCOND_WF_RELATION WF_RELATION_POSTCOND_true)
-
-lemma SemiR_second_CONDITION [closure]:
-  "\<lbrakk> P \<in> WF_RELATION; q \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> P ; q \<in> WF_CONDITION"
-  by (metis SemiR_TrueP_precond SemiR_assoc SemiR_closure WF_CONDITION_WF_RELATION WF_RELATION_CONDITION_true)
-
+(*
 definition uv :: 
   "'a WF_PREDICATE \<Rightarrow> ('a VAR) set" where
 "uv p = \<Union> {vs. UNREST vs p}"
@@ -259,6 +140,11 @@ lemma UNREST_uv_upper:
 lemma UNREST_uv_least:
   "(\<And>xs. xs \<sharp> P \<Longrightarrow> xs \<subseteq> zs) \<Longrightarrow> uv P \<subseteq> zs"
   by (auto simp add:uv_def)
+
+fun enc_nat_set :: "nat set \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat" where
+"enc_nat_set xs lim n 0 = "
+
+lemma "\<exists> f :: nat \<Rightarrow> nat. range f = vs"
 
 lemma "\<lbrakk> \<forall> x \<in> xs. {x} \<sharp> P \<rbrakk> \<Longrightarrow> xs \<sharp> (P :: 'a WF_PREDICATE)"
   apply (subgoal_tac "(\<forall>x\<in>xs. \<forall>b1\<in>destPRED P. \<forall>b2. b1(x :=\<^sub>b \<langle>b2\<rangle>\<^sub>b x) \<in> destPRED P) 
@@ -281,6 +167,7 @@ lemma UNREST_uv_upper:
 
 
 done
+*)
 
 (*
 lemma 
@@ -294,45 +181,6 @@ lemma
   apply (drule bspec)
   defer
 *)
-
-lemma "uv P \<sharp> P"
-  apply (simp add:uv_def)
-
-
-
-
-lemma 
-  assumes 
-    "s \<in> WF_POSTCOND"
-    "P \<in> WF_RELATION"
-    "Q \<in> WF_RELATION"
-  shows "`s ; (P \<and> Q)` = `(s ; P) \<and> (s ; Q)`"
-  apply (simp add:closure SemiR_algebraic_rel assms urename)
-proof -
-  have "`s ; (P \<and> Q)` = `true ; (s\<acute> \<and> P \<and> Q)`"
-    by (metis AndP_rel_closure SemiR_AndP_left_postcond TrueP_rel_closure assms(1) assms(2) assms(3) utp_pred_simps(6))
-
-  have "... = `true ; ((s\<acute> \<and> P) \<and> (s\<acute> \<and> Q))`"
-    by (smt AndP_comm AndP_idem AndP_assoc)
-
-  using assms
-  
-
-  apply (frule_tac SemiR_TrueP_postcond)
-  apply (utp_xrel_auto_tac)
-  apply (utp_rel_auto_tac)
-
-lemma CondR_true_step:
-  "[s\<acute>;b] \<Longrightarrow> (s, P \<lhd> b \<rhd> Q) ~> (s, P)"
-  apply (simp add:CondR_def SemiR_OrP_distl)
-  apply (utp_rel_auto_tac)
-  apply (rule refine)
-
-  by (simp)
-
-lemma CondR_false_step:
-  "[\<not>(s\<acute>;b)] \<Longrightarrow> (s, P \<lhd> b \<rhd> Q) ~> (s, Q)"
-  by (simp)
 
 
 abbreviation 
