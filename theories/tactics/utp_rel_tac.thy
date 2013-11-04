@@ -428,8 +428,14 @@ lemma EvalP_AssignR2 [eval]:
   by (simp add:EvalP_def EvalE_def AssignsR.rep_eq IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq)
 
 lemma EvalP_AssignsR [eval]:
-  "\<lbrakk>AssignsR f\<rbrakk>b = (\<forall> v \<in> UNDASHED. \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>Rep_AssignF f v\<rangle>\<^sub>e b)"
+  "\<lbrakk>AssignsR f\<rbrakk>b = (\<forall> v \<in> UNDASHED. \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>\<langle>f\<rangle>\<^sub>a v\<rangle>\<^sub>e b)"
   by (simp add:EvalP_def AssignsR.rep_eq)
+
+(*
+lemma EvalR_AssignsR [eval]:
+  "\<lbrakk>AssignsR f\<rbrakk>R = {(b, b(x:=\<^sub>b \<lbrakk>\<langle>f\<rangle>\<^sub>a x\<rbrakk>\<^sub>e b)) | b. b \<in> WF_REL_BINDING}"
+  apply (auto simp add: EvalR_def EvalE_def AssignsR.rep_eq)
+*)
 
 theorem EvalR_AssignR [evalr] :
 "\<lbrakk> x \<in> UNDASHED; e \<rhd>\<^sub>e x; DASHED \<sharp> e \<rbrakk> \<Longrightarrow> 

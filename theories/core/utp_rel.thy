@@ -155,38 +155,52 @@ notation SemiR (infixr ";" 140)
 
 subsubsection {* Assignment *}
 
-definition "AssignF = {f :: 'a VAR \<Rightarrow> 'a WF_EXPRESSION. \<forall> x. f x \<rhd>\<^sub>e x}"
+definition 
+  "AssignF = {f :: 'a VAR \<Rightarrow> 'a WF_EXPRESSION. \<forall> x. f x \<rhd>\<^sub>e x}"
 
 typedef 'a AssignF = "AssignF :: ('a VAR \<Rightarrow> 'a WF_EXPRESSION) set"
-  by (auto simp add:AssignF_def, metis EvalE_VarE EvalE_def binding_compat evar_compat_def)
+  apply (rule_tac x="\<lambda> x. DefaultE (vtype x)" in exI)
+  apply (auto simp add:AssignF_def typing defined)
+done
 
 declare Rep_AssignF [simp]
 declare Rep_AssignF_inverse [simp]
 declare Abs_AssignF_inverse [simp]
 
+notation
+  Rep_AssignF ("\<langle>_\<rangle>\<^sub>a")
+
 setup_lifting type_definition_AssignF
 
-lemma Rep_AssignF_compat [typing]:
-  "Rep_AssignF f x \<rhd>\<^sub>e x"
-  apply (insert Rep_AssignF[of f])
-  apply (simp add:AssignF_def)
-done
-
 lift_definition AssignsR ::
-"'VALUE AssignF \<Rightarrow> 'VALUE WF_PREDICATE"
-is "\<lambda> f. {b. \<forall> v \<in> UNDASHED. \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>Rep_AssignF f v\<rangle>\<^sub>e b}" .
+"'m AssignF \<Rightarrow> 'm WF_PREDICATE"
+is "\<lambda> f. {b. \<forall> v \<in> UNDASHED. \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>(\<langle>f\<rangle>\<^sub>a v)\<rangle>\<^sub>e b}" .
 
-lift_definition IdA :: "'VALUE AssignF" is "VarE" 
-  by (simp add: typing AssignF_def)
+lift_definition IdA :: "'m AssignF" is "VarE"
+  by (auto simp add: typing AssignF_def unrest)
 
 definition AssignF_upd :: "'a AssignF \<Rightarrow> 'a VAR \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a AssignF" where
-"AssignF_upd f x v = Abs_AssignF ((Rep_AssignF f)(x := v))"
+"AssignF_upd f x v = Abs_AssignF (\<langle>f\<rangle>\<^sub>a(x := v))"
+
+nonterminal aupdbinds and aupdbind
+
+syntax
+  "_aupdbind" :: "['a, 'a] => aupdbind"               ("(2_ :=\<^sub>a/ _)")
+  ""          :: "aupdbind => aupdbinds"              ("_")
+  "_aupdbinds":: "[aupdbind, aupdbinds] => aupdbinds" ("_,/ _")
+  "_AUpdate"  :: "['a, aupdbinds] => 'a"              ("_/'((_)')" [1000, 0] 900)
+
+translations
+  "_AUpdate f (_aupdbinds b bs)" == "_AUpdate (_AUpdate f b) bs"
+  "f(x:=\<^sub>ay)" == "CONST AssignF_upd f x y"
 
 lemma AssignF_upd_rep_eq:
-  "v \<rhd>\<^sub>e x \<Longrightarrow> Rep_AssignF (AssignF_upd f x v) = (Rep_AssignF f)(x := v)"
-  apply (subgoal_tac "(Rep_AssignF f)(x := v) \<in> AssignF")
+  "\<lbrakk> v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> \<langle>f(x:=\<^sub>av)\<rangle>\<^sub>a = \<langle>f\<rangle>\<^sub>a(x := v)"
+  apply (subgoal_tac "\<langle>f\<rangle>\<^sub>a(x := v) \<in> AssignF")
   apply (simp add:AssignF_upd_def)
   apply (auto simp add:typing AssignF_def)
+  apply (insert Rep_AssignF[of f])
+  apply (simp add:AssignF_def)
 done
 
 (*
@@ -216,6 +230,8 @@ translations
   "_Assignment xs vs" == "CONST AssignsR (_assign (CONST IdA) xs vs)"
 
 term "x,y,z :=\<^sub>R $\<^sub>ey,$\<^sub>ex,$\<^sub>ez"
+
+term "AssignsR (AssignF_upd IdA x v)"
 
 lemma AssignsR_SkipR: "AssignsR IdA = II"
   by (auto simp add:SkipR.rep_eq AssignsR.rep_eq IdA.rep_eq VarE.rep_eq)
@@ -1102,3 +1118,88 @@ lemma SkipR_ExistsP_out:
 done
 
 end
+
+(* FIXME: This is way assignments *should* be implemented but its too horrifying
+to make all the changes need to implement it at the moment:
+
+definition 
+  "AssignF = {f :: 'a VAR \<rightharpoonup> 'a WF_EXPRESSION. (\<forall> x \<in> dom f. (the (f x) \<rhd>\<^sub>e x)) \<and> dom f \<subseteq> UNDASHED}"
+
+typedef 'a AssignF = "AssignF :: ('a VAR \<rightharpoonup> 'a WF_EXPRESSION) set"
+  by (auto simp add:AssignF_def)
+
+declare Rep_AssignF [simp]
+declare Rep_AssignF_inverse [simp]
+declare Abs_AssignF_inverse [simp]
+
+abbreviation Rep_AssignF_the :: "'a AssignF \<Rightarrow> 'a VAR \<Rightarrow> 'a WF_EXPRESSION" where
+"Rep_AssignF_the f \<equiv> the \<circ> (Rep_AssignF f)"
+
+notation
+  Rep_AssignF ("\<langle>_\<rangle>\<^sub>a")
+
+lemma AssignF_dom_DASHED:
+  "dom \<langle>f\<rangle>\<^sub>a \<subseteq> UNDASHED"
+  apply (insert Rep_AssignF[of "f"])
+  apply (simp add:AssignF_def)
+done
+
+lemma AssignF_dom_DASHED_var:
+  "x \<in> dom \<langle>f\<rangle>\<^sub>a \<Longrightarrow> x \<in> UNDASHED"
+  apply (insert Rep_AssignF[of "f"])
+  apply (auto simp add:AssignF_def)
+done
+
+(*
+lemma UNREST_AssignF [unrest]: 
+  "v \<in> ran \<langle>f\<rangle>\<^sub>a \<Longrightarrow> NON_REL_VAR \<sharp> v"
+  apply (insert Rep_AssignF[of "f"])
+  apply (auto simp add:AssignF_def ran_def)
+  apply (drule_tac x="a" in bspec)
+  apply (auto)
+done
+*)
+
+setup_lifting type_definition_AssignF
+
+lemma Rep_AssignF_compat [typing]:
+  "x \<in> dom \<langle>f\<rangle>\<^sub>a \<Longrightarrow> the (\<langle>f\<rangle>\<^sub>a x) \<rhd>\<^sub>e x"
+  apply (insert Rep_AssignF[of f])
+  apply (auto simp add:AssignF_def)
+done
+
+lift_definition AssignsR ::
+"'m AssignF \<Rightarrow> 'm WF_PREDICATE"
+is "\<lambda> f. {b. \<forall> v \<in> dom \<langle>f\<rangle>\<^sub>a. \<langle>b\<rangle>\<^sub>b v\<acute> = \<langle>the (\<langle>f\<rangle>\<^sub>a v)\<rangle>\<^sub>e b}" .
+
+lift_definition IdA :: "'m AssignF" 
+  is "\<lambda> x. if x \<in> D\<^sub>0 then \<lfloor>$\<^sub>ex\<rfloor> else None"
+  apply (auto simp add: typing AssignF_def unrest)
+  apply (metis option.distinct(1))
+done
+
+definition AssignF_upd :: "'a AssignF \<Rightarrow> 'a VAR \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a AssignF" where
+"AssignF_upd f x v = Abs_AssignF (\<langle>f\<rangle>\<^sub>a(x := Some v))"
+
+nonterminal aupdbinds and aupdbind
+
+syntax
+  "_aupdbind" :: "['a, 'a] => aupdbind"               ("(2_ :=\<^sub>a/ _)")
+  ""          :: "aupdbind => aupdbinds"              ("_")
+  "_aupdbinds":: "[aupdbind, aupdbinds] => aupdbinds" ("_,/ _")
+  "_AUpdate"  :: "['a, aupdbinds] => 'a"              ("_/'((_)')" [1000, 0] 900)
+
+translations
+  "_AUpdate f (_aupdbinds b bs)" == "_AUpdate (_AUpdate f b) bs"
+  "f(x:=\<^sub>ay)" == "CONST AssignF_upd f x y"
+
+lemma AssignF_upd_rep_eq:
+  "\<lbrakk> v \<rhd>\<^sub>e x; x \<in> D\<^sub>0 \<rbrakk> \<Longrightarrow> \<langle>f(x:=\<^sub>av)\<rangle>\<^sub>a = \<langle>f\<rangle>\<^sub>a(x := Some v)"
+  apply (subgoal_tac "\<langle>f\<rangle>\<^sub>a(x := Some v) \<in> AssignF")
+  apply (simp add:AssignF_upd_def)
+  apply (auto simp add:typing AssignF_def unrest)
+  apply (rule AssignF_dom_DASHED_var[of _ "f"])
+  apply (simp add:dom_def)
+done
+ 
+*)
