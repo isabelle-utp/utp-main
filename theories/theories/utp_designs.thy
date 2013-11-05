@@ -70,13 +70,13 @@ definition ParallelMergeD ::
   "'a WF_PREDICATE => ('a VAR set * 'a WF_PREDICATE) => 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infix "\<parallel>\<^bsub>_\<^esub>" 100) where
 "P \<parallel>\<^bsub>M\<^esub> Q =  ((add_sub 0 on fst M \<bullet> P) \<parallel> (add_sub 1 on fst M \<bullet> Q)) ; snd M"
 
-declare BotD_def [eval,evalr,evalrx]
-declare TopD_def [eval,evalr,evalrx]
-declare DesignD_def [eval,evalr,evalrx]
-declare J_pred_def [eval,evalr,evalrx]
-declare SkipD_def [eval,evalr,evalrx]
-declare AssignD_def [eval,evalr,evalrx]
-declare ParallelD_def [eval,evalr,evalrx]
+declare BotD_def [eval,evalr,evalrx,evalp]
+declare TopD_def [eval,evalr,evalrx,evalp]
+declare DesignD_def [eval,evalr,evalrx,evalp]
+declare J_pred_def [eval,evalr,evalrx,evalp]
+declare SkipD_def [eval,evalr,evalrx,evalp]
+declare AssignD_def [eval,evalr,evalrx,evalp]
+declare ParallelD_def [eval,evalr,evalrx,evalp]
 
 syntax
   "_upred_desbot"   :: "upred" ("\<bottom>\<^sub>D")
@@ -169,11 +169,11 @@ lemma ParallelD_rel_closure [closure]:
 
 lemma TopD_TrueP_uniqs [simp]:
   "true \<noteq> \<top>\<^sub>D" "\<top>\<^sub>D \<noteq> true"
-  by (utp_pred_tac, rule_tac x="\<B>(okay\<down> :=\<^sub>b TrueV)" in exI, simp add:typing)+
+  by (utp_pred_tac, rule_tac x="\<B>(okay\<down> :=\<^sub>b TrueV)" in exI, simp add:typing inju)+
 
 lemma TopD_FalseP_uniqs [simp]:
   "false \<noteq> \<top>\<^sub>D" "\<top>\<^sub>D \<noteq> false"
-  by (utp_pred_tac, rule_tac x="\<B>(okay\<down> :=\<^sub>b FalseV)" in exI, simp add:typing)+
+  by (utp_poly_tac, rule_tac x="\<B>(okay :=\<^sub>* False)" in exI, simp add:typing defined)+
 
 subsection {* Design Laws *}
 
@@ -187,17 +187,19 @@ theorem DesignD_extreme_point_nok:
   "\<not>\<^sub>p ok = \<top>\<^sub>D"
   by (utp_pred_tac+)
 
+
 theorem DesignD_assumption:
   assumes "OKAY \<sharp> P"
   shows "`\<not> (P \<turnstile> Q)\<^sup>f` = `P \<and> ok`"
-  using assms by (utp_pred_auto_tac)
+  using assms
+  by (utp_poly_auto_tac)
 
 theorem DesignD_commitment:
   assumes
     "OKAY \<sharp> P" 
     "OKAY \<sharp> Q" 
   shows "`(P \<turnstile> Q)\<^sup>t` = `(ok \<and> P \<Rightarrow> Q)`"
-  using assms by (utp_pred_auto_tac)
+  using assms by (utp_poly_auto_tac)
 
 theorem DesignD_export_precondition:
   "(P \<turnstile> Q) = (P \<turnstile> P \<and>\<^sub>p Q)"
@@ -244,7 +246,7 @@ proof -
   also from assms have "... = `[(\<not> P2 \<Rightarrow> \<not> P1) \<and> ((P2 \<Rightarrow> Q2) \<Rightarrow> (P1 \<Rightarrow> Q1))]`"
     apply (rule_tac trans)
     apply (rule_tac x="okay\<acute>\<down>" in BoolType_aux_var_split_taut)
-    apply (simp_all add:usubst typing defined erasure)
+    apply (simp_all add:usubst typing defined)
   done
 
   also have "... = `[(P1 \<Rightarrow> P2) \<and> ((P2 \<Rightarrow> Q2) \<Rightarrow> (P1 \<Rightarrow> Q1))]`"
@@ -274,7 +276,7 @@ done
 
 theorem DesignD_diverge:
   "`(P \<turnstile> Q)[false/okay]` = true"
-  by (simp add:DesignD_def usubst typing defined evalp erasure) 
+  by (simp add:DesignD_def usubst typing defined evalp)
 
 theorem DesignD_left_zero:
   fixes P :: "'m WF_PREDICATE"
@@ -290,8 +292,8 @@ proof -
   also from assms have "... = `(true[false/okay\<acute>] ; (P \<turnstile> Q)[false/okay]) \<or> (true[true/okay\<acute>] ; (P \<turnstile> Q)[true/okay])`"
     apply (rule_tac trans)
     apply (rule BoolType_aux_var_split_exists, simp_all)
-    apply (simp add:erasure typing)
-    apply (simp add:usubst typing assms closure defined unrest erasure)
+    apply (simp add:erasure typing inju)
+    apply (simp add:usubst typing assms closure defined unrest)
   done
 
   also have "... = `((true ; true) \<or> (true ; ((P \<turnstile> Q)[true/okay])))`"
@@ -326,7 +328,7 @@ proof -
 
   also have "... = ` ((P1 \<turnstile> Q1)[false/okay\<acute>] ; (P2 \<turnstile> Q2)[false/okay]) 
                       \<or> ((P1 \<turnstile> Q1)[true/okay\<acute>] ; (P2 \<turnstile> Q2)[true/okay])`"
-    by (simp add:ucases typing usubst defined closure unrest DesignD_def assms erasure)
+    by (simp add:ucases typing usubst defined closure unrest DesignD_def assms erasure inju)
 
   also from assms
   have "... = `((ok \<and> P1 \<Rightarrow> Q1) ; (P2 \<Rightarrow> ok' \<and> Q2)) \<or> ((\<not> (ok \<and> P1)) ; true)`"
@@ -422,7 +424,7 @@ theorem ParallelD_DesignD:
     "OKAY \<sharp> Q2"
   shows "`(P1 \<turnstile> P2) \<parallel> (Q1 \<turnstile> Q2)` = `(P1 \<and> Q1) \<turnstile> (P2 \<and> Q2)`"
   using assms 
-  by (utp_pred_auto_tac)
+  by (utp_poly_auto_tac)
 
 theorem ParallelD_comm:
   "P \<parallel> Q = Q \<parallel> P"
@@ -431,7 +433,7 @@ theorem ParallelD_comm:
 theorem ParallelD_assoc:
   fixes P :: "'a WF_PREDICATE"
   shows "P \<parallel> Q \<parallel> R = (P \<parallel> Q) \<parallel> R"
-  by (utp_pred_auto_tac)
+  by (utp_poly_auto_tac)
 
 subsection {* Design Healthiness Conditions *}
 

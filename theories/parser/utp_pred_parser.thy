@@ -95,7 +95,7 @@ translations
   "_upred_op2 f x y"   => "f x y"
   "_upred_op3 f x y z" => "f x y z" 
   "_upred_quote p"     => "p"
-  "_upred_top_clos p"  == "taut p"
+  "_upred_top_clos p"  == "CONST Tautology p"
   "_upred_true"        == "CONST TrueP"
   "_upred_false"       == "CONST FalseP"
   "_upred_var x"       => "x"
@@ -126,6 +126,8 @@ translations
   "_upred_varclose x"  == "CONST VarCloseP x\<down>"
   "_upred_substp p e x" == "CONST PSubstP p e x"
   "_upred_perm ss p"   == "CONST PermP ss p"
+
+
 
 term "`p[x/v]`"
 term "`p[$x/y]`"
@@ -311,20 +313,20 @@ term "`p[($x)\<acute>/y\<acute>]`"
 term "`\<lparr>true\<rparr>`"
 
 lemma "`$x \<in> {<1>,\<guillemotleft>2\<guillemotright>,<3>,<4>,<5>} \<sqsubseteq> $x = <1>`"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 lemma "`{} \<subseteq> {<1>}`"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 lemma "`({<1>,<2>} - {<1>}) \<subseteq> {<2>}`"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 lemma "`<1> \<in> elems \<langle><4>,<7>,<1>,<9>\<rangle>`"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 term "|$x\<^bsub>0\<^esub>|"
 
 lemma "|\<langle><1>,<2>,<3>\<rangle> \<upharpoonright> {\<guillemotleft>2\<guillemotright>}| = |\<langle><1>,<3>\<rangle>|"
-  by (simp add:evalp evale defined)
+  by (auto simp add:evalp typing defined)
 
 end

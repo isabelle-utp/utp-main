@@ -148,50 +148,57 @@ text {* The following defs are carefully crafted, there must no
         boolean in the model. Nevertheless these definitions
         \emph{are} extensible, but a great deal of care is required! *}
 
+ML {*
+  structure inju =
+    Named_Thms (val name = @{binding inju} val description = "inju theorems")
+*}
+
+setup inju.setup
+
 defs (overloaded)
-  InjU_bool [simp]:  "InjU (x::bool) \<equiv> MkBool x"
-  ProjU_bool [simp]: "ProjU (x::('a::BOOL_SORT)) \<equiv> DestBool x"
+  InjU_bool [inju]:  "InjU (x::bool) \<equiv> MkBool x"
+  ProjU_bool [inju]: "ProjU (x::('a::BOOL_SORT)) \<equiv> DestBool x"
   TypeU_bool [simp]: "TypeU (x::bool itself) \<equiv> BoolType"
 
-  InjU_int [simp]:  "InjU (x::int) \<equiv> MkInt x"
-  ProjU_int [simp]: "ProjU (x::('a::INT_SORT)) \<equiv> DestInt x"
+  InjU_int [inju]:  "InjU (x::int) \<equiv> MkInt x"
+  ProjU_int [inju]: "ProjU (x::('a::INT_SORT)) \<equiv> DestInt x"
   TypeU_int [simp]: "TypeU (x::int itself) \<equiv> IntType"
 
-  InjU_real [simp]:  "InjU (x::real) \<equiv> MkReal x"
-  ProjU_real [simp]: "ProjU (x::('a::REAL_SORT)) \<equiv> DestReal x"
+  InjU_real [inju]:  "InjU (x::real) \<equiv> MkReal x"
+  ProjU_real [inju]: "ProjU (x::('a::REAL_SORT)) \<equiv> DestReal x"
   TypeU_real [simp]: "TypeU (x::real itself) \<equiv> RealType"
 
-  InjU_event [simp]:  "InjU (x::('m::EVENT_SORT) EVENT) \<equiv> (MkEvent x::'m)"
-  ProjU_event [simp]: "ProjU (x::('m::EVENT_SORT)) \<equiv> DestEvent x"
+  InjU_event [inju]:  "InjU (x::('m::EVENT_SORT) EVENT) \<equiv> (MkEvent x::'m)"
+  ProjU_event [inju]: "ProjU (x::('m::EVENT_SORT)) \<equiv> DestEvent x"
   TypeU_event [simp]: "TypeU (x::('m::EVENT_SORT) EVENT itself) \<equiv> EventType::'m UTYPE"
 
-  InjU_ULIST [simp]: 
+  InjU_ULIST [inju]: 
     "InjU (xs::'a::DEFINED ULIST) \<equiv> MkList TYPEU('a) (map InjU (Rep_ULIST xs))"
-  ProjU_ULIST [simp]:
+  ProjU_ULIST [inju]:
     "ProjU (xs::('a::LIST_SORT)) \<equiv> Abs_ULIST (map ProjU (DestList xs))"
   TypeU_ULIST [simp]:
     "TypeU (x::('a ULIST) itself) \<equiv> ListType (TypeU TYPE('a))"
 
-  InjU_UFSET [simp]: 
+  InjU_UFSET [inju]: 
     "InjU (xs::'a::DEFINED UFSET) \<equiv> MkFSet TYPEU('a) (InjU `\<^sub>f (Rep_UFSET xs))"
-  ProjU_UFSET [simp]:
+  ProjU_UFSET [inju]:
     "ProjU (xs::('a::FSET_SORT)) \<equiv> Abs_UFSET (ProjU `\<^sub>f (DestFSet xs))"
   TypeU_UFSET [simp]:
     "TypeU (x::('a UFSET) itself) \<equiv> FSetType (TypeU TYPE('a))"
 
-  InjU_USET [simp]: 
+  InjU_USET [inju]: 
     "InjU (xs::'a::DEFINED USET) \<equiv> MkSet TYPEU('a) (InjU ` (Rep_USET xs))"
-  ProjU_USET [simp]:
+  ProjU_USET [inju]:
     "ProjU (xs::('a::SET_SORT)) \<equiv> Abs_USET (ProjU ` (DestSet xs))"
   TypeU_USET [simp]:
     "TypeU (x::('a USET) itself) \<equiv> SetType (TypeU TYPE('a))"
 
-  InjU_list [simp]: "InjU (xs::'a list) \<equiv> MkList (TypeU (TYPE('a))) (map InjU xs)"
-  ProjU_list [simp]: "ProjU (xs::('a::LIST_SORT)) \<equiv> map ProjU (DestList xs)"
+  InjU_list [inju]: "InjU (xs::'a list) \<equiv> MkList (TypeU (TYPE('a))) (map InjU xs)"
+  ProjU_list [inju]: "ProjU (xs::('a::LIST_SORT)) \<equiv> map ProjU (DestList xs)"
   TypeU_list [simp]: "TypeU (x::('a list) itself) \<equiv> ListType (TypeU TYPE('a))"
 
-  InjU_fset [simp]: "InjU (xs::'a fset) \<equiv> MkFSet (TypeU (TYPE('a))) (InjU `\<^sub>f xs)"
-  ProjU_fset [simp]: "ProjU (xs::('a::FSET_SORT)) \<equiv> ProjU `\<^sub>f (DestFSet xs)"
+  InjU_fset [inju]: "InjU (xs::'a fset) \<equiv> MkFSet (TypeU (TYPE('a))) (InjU `\<^sub>f xs)"
+  ProjU_fset [inju]: "ProjU (xs::('a::FSET_SORT)) \<equiv> ProjU `\<^sub>f (DestFSet xs)"
   TypeU_fset [simp]: "TypeU (x::('a fset) itself) \<equiv> FSetType (TypeU TYPE('a))"  
 
 subsection {* @{const TypeUSound} rules *}
@@ -269,17 +276,17 @@ text {* The following instantiations make use of the sort constraints
         to discharge the requirements of @{const TypeUSound}. *}
 
 lemma TypeUSound_bool [typing]: "TYPEUSOUND(bool, 'm :: BOOL_SORT)"
-  by (force simp add: typing defined)
+  by (force simp add: typing defined inju)
 
 lemma TypeUSound_int [typing]: "TYPEUSOUND(int, 'm :: INT_SORT)"
-  by (force simp add: typing defined)
+  by (force simp add: typing defined inju)
 
 lemma TypeUSound_real [typing]: "TYPEUSOUND(real, 'm :: REAL_SORT)"
-  by (force simp add: typing defined)
+  by (force simp add: typing defined inju)
 
 lemma TypeUSound_Event [typing]:
   "TYPEUSOUND('m EVENT, 'm :: EVENT_SORT)"
-  by (auto simp add:typing defined)
+  by (auto simp add:typing defined inju)
 
 lemma map_InjU_ProjU [simp]:
   assumes "TYPEUSOUND('a :: DEFINED, 'm::VALUE)" "set xs \<subseteq> dcarrier TYPEU('a)"
@@ -289,10 +296,10 @@ lemma map_InjU_ProjU [simp]:
 done
 
 lemma InjU_MkEvent [simp]: "InjU = MkEvent"
-  by (auto)
+  by (auto simp add:inju)
 
 lemma ProjU_DestEvent [simp]: "ProjU = DestEvent"
-  by (auto)
+  by (auto simp add:inju)
 
 lemma TypeUSound_ULIST [typing]: 
   assumes 
@@ -310,7 +317,7 @@ proof -
 
   with assms show ?thesis
     apply (rule_tac TypeUSound_intro)
-    apply (auto)
+    apply (auto simp add:inju)
     apply (subgoal_tac "set (map InjU (Rep_ULIST x)) \<subseteq> (dcarrier TYPEU('a) :: 'm set)")
     apply (simp)
     apply (auto)
@@ -355,14 +362,14 @@ proof -
   from assms
   have "\<And> x::'a UFSET. MkFSet TYPEU('a) (InjU `\<^sub>f (Rep_UFSET x)) :! (FSetType TYPEU('a) :: 'm UTYPE)"
     apply (rule_tac typing)
-    apply (simp)
+    apply (simp add: inju)
     apply (auto simp add:dcarrier_def intro:typing)
     apply (metis Rep_UFSET' TypeUSound_InjU_defined)
   done
 
   with assms show ?thesis
     apply (rule_tac TypeUSound_intro)
-    apply (auto)
+    apply (auto simp add:inju)
     apply (subgoal_tac "\<langle>InjU `\<^sub>f (Rep_UFSET x)\<rangle>\<^sub>f \<subseteq> (dcarrier TYPEU('a) :: 'm set)")
     apply (simp)
     apply (subgoal_tac "\<langle>InjU `\<^sub>f (Rep_UFSET x)\<rangle>\<^sub>f \<subseteq> (dcarrier TYPEU('a) :: 'm set)")
@@ -412,7 +419,7 @@ proof -
 
   with assms show ?thesis
     apply (rule_tac TypeUSound_intro)
-    apply (auto)
+    apply (auto simp add:inju)
     apply (subgoal_tac "InjU ` (Rep_USET x) \<subseteq> (dcarrier TYPEU('a) :: 'm set)")
     apply (simp)
     apply (subgoal_tac "InjU ` (Rep_USET x) \<subseteq> (dcarrier TYPEU('a) :: 'm set)")

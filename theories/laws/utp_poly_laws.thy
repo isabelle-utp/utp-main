@@ -23,7 +23,7 @@ lemma BoolType_pvaux_cases [ucases]:
   apply (rule_tac iffI)
   apply (utp_pred_tac)
   apply (rule BoolType_aux_var_split_eq_intro[of "x\<down>"])
-  apply (simp_all add:typing defined erasure pvaux_aux)
+  apply (simp_all add:typing defined erasure pvaux_aux inju)
 done
 
 theorem SemiR_extract_variable_ty:
@@ -55,12 +55,81 @@ done
 text {* Declare some useful simplications for polymorphic expressions *}
 
 lemma [simp]: "(x::int) < y \<Longrightarrow> `<x> < <y>` = true"
-  by (simp add:eval)
+  by (utp_poly_tac)
 
 lemma [simp]: "\<not> (x::int) < y \<Longrightarrow> `<x> < <y>` = false"
-  by (simp add:eval)
+  by (utp_poly_tac)
 
 lemma [simp]: "|<x :: int> + <y>| = |<x + y>|"
-  by (simp add:evalp)
+  by (utp_poly_tac)
+
+lemma prefix_implies_concat_minus:
+  fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  assumes "TYPEUSOUND('a ULIST, 'm)" "pvaux xs" "pvaux ys"
+  shows "`($xs \<le> $ys) \<Rightarrow> $xs ^ ($ys - $xs) = $ys`"
+  using assms
+  apply (utp_poly_auto_tac)
+  apply (metis prefixeq_drop)
+done
+
+lemma prefix_implies_diff:
+  fixes xs ys zs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  assumes "TYPEUSOUND('a ULIST, 'm)" "pvaux xs"  "pvaux ys" "pvaux zs" 
+          "zs\<down> \<noteq> xs\<down>" "zs\<down> \<noteq> ys\<down>"
+  shows "`($xs \<le> $ys) \<Rightarrow> (\<exists> zs. $ys = $xs ^ $zs)`"
+  using assms
+  apply (rule_tac ExistsP_assm_witness[of "|($ys - $xs)|\<down>"])
+  apply (simp add:typing defined closure)
+  apply (simp add:usubst typing defined closure)
+  apply (metis EqualP_sym prefix_implies_concat_minus)
+done
+
+lemma prefix_as_concat:
+  fixes xs ys zs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  assumes "TYPEUSOUND('a ULIST, 'm)" "pvaux xs"  "pvaux ys" "pvaux zs" 
+          "zs\<down> \<noteq> xs\<down>" "zs\<down> \<noteq> ys\<down>"
+  shows "`($xs \<le> $ys)` = `(\<exists> zs. $ys = $xs ^ $zs)`"
+  using assms
+  apply (rule_tac ImpliesP_eq_intro)
+  apply (simp add: prefix_implies_diff[of xs ys zs])
+  apply (auto simp add:evalp)
+done
+
+lemma var_eq_trans:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "x \<in> PUNDASHED" "pvaux x"
+  shows "`($x\<acute> = $x) ; ($x\<acute> = $x)` = `($x\<acute> = $x)`"
+  apply (subst SemiR_algebraic)
+  apply (simp_all add:closure unrest typing assms urename PermPV_PVAR)
+  apply (auto simp add:eval closure assms)
+  apply (rule_tac x="b(x\<acute>\<acute> :=\<^sub>* \<langle>b\<rangle>\<^sub>* x)" in exI)
+  apply (simp add:typing defined assms closure)
+done
+
+lemma nil_prefixeq [simp]:
+  "`\<langle>\<rangle> \<le> x` = `true`"
+  by (utp_poly_auto_tac)
+
+lemma nil_append [simp]:
+  "|\<langle>\<rangle> ^ x| = |x|"
+  by (utp_poly_auto_tac)
+
+lemma prefix_eq_nil:
+  fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  assumes "TYPEUSOUND('a ULIST, 'm)" 
+  shows "`($xs - $ys) = \<langle>\<rangle> \<and> ($ys \<le> $xs)` = `$ys = $xs`"
+  using assms
+  apply (utp_poly_auto_tac)
+  apply (metis antisym prefix_length_eq prefixeq_length_le)
+done
+
+lemma prefix_app:
+  fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  assumes "TYPEUSOUND('a ULIST, 'm)" 
+  shows "`($xs ^ \<langle>a\<rangle> = $ys) \<and> ($xs \<le> $ys)` = `($xs ^ \<langle>a\<rangle> = $ys)`"
+  using assms
+  apply (utp_poly_auto_tac)
+  apply (metis prefixeq_def)
+done
 
 end

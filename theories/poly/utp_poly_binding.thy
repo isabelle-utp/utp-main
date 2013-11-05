@@ -11,6 +11,7 @@ imports
   "../core/utp_binding"
   "../tactics/utp_rel_tac"
   utp_poly_var
+  utp_poly_tac
 begin
 
 definition Rep_binding_ty :: 
@@ -72,5 +73,38 @@ lemma Rep_WF_BINDING_ty_pvaux_defined [defined]:
   assumes "TYPEUSOUND('a, 'm)" "pvaux x"
   shows "\<D> (\<langle>b\<rangle>\<^sub>* x)"
   by (auto intro:defined typing assms simp add:Rep_binding_ty_def)
+
+(* Some useful simplifications *)
+
+lemma binding_override_ty_UNDASHED [simp]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "x \<in> PUNDASHED"
+  shows "\<langle>b \<oplus>\<^sub>b b' on D\<^sub>2\<rangle>\<^sub>* x = \<langle>b\<rangle>\<^sub>* x"
+  apply (simp add:Rep_binding_ty_def)
+  apply (metis DASHED_TWICE_dash_elim PVAR_VAR_PUNDASHED_UNDASHED UNDASHED_eq_dash_contra assms(2) override_on_def)
+done
+
+lemma binding_override_ty_dash [simp]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "x \<in> PUNDASHED"
+  shows "\<langle>b \<oplus>\<^sub>b b' on D\<^sub>2\<rangle>\<^sub>* x\<acute> = \<langle>b\<rangle>\<^sub>* x\<acute>"
+  apply (simp add:Rep_binding_ty_def)
+  apply (metis PVAR_VAR_PUNDASHED_UNDASHED UNDASHED_not_DASHED assms(2) dash_DASHED_TWICE_elim override_on_def)
+done
+
+lemma binding_override_ty_dash_dash [simp]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "x \<in> PUNDASHED"
+  shows "\<langle>b \<oplus>\<^sub>b b' on D\<^sub>2\<rangle>\<^sub>* x\<acute>\<acute> = \<langle>b'\<rangle>\<^sub>* x\<acute>\<acute>"
+  apply (simp add:Rep_binding_ty_def)
+  apply (metis (full_types) DASHED_dash_DASHED_TWICE PVAR_VAR_PUNDASHED_UNDASHED UNDASHED_dash_DASHED assms(2) override_on_def)
+done
+
+lemma EvalP_UNREST_binding_upd_ty [evalp]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "v \<rhd>\<^sub>p x" "vs \<sharp> P" "x\<down> \<in> vs"
+  shows "\<lbrakk>P\<rbrakk>(b(x :=\<^sub>* v)) = \<lbrakk>P\<rbrakk>b"
+  using assms
+  by (simp add: binding_upd_ty_def eval UNREST_subset typing defined)
 
 end

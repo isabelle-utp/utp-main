@@ -231,7 +231,7 @@ lemma PVAR_list_aux [typing]:
           "t = TYPEU('a)"
   shows "set (DestList (\<langle>b\<rangle>\<^sub>b x\<down>)) \<subseteq> dcarrier t"
   apply (rule DestList_elem_type)
-  apply (auto simp add:closure typing defined assms)
+  apply (auto simp add:closure typing defined assms inju)
 done
 
 lemma PVAR_dash_list_aux [typing]:
@@ -240,7 +240,7 @@ lemma PVAR_dash_list_aux [typing]:
           "t = TYPEU('a)"
   shows "set (DestList (\<langle>b\<rangle>\<^sub>b (x\<down>\<acute>))) \<subseteq> dcarrier t"
   apply (rule DestList_elem_type)
-  apply (auto simp add:closure typing defined assms)
+  apply (auto simp add:closure typing defined assms inju)
 done
 
 lemma PVAR_binding_type [typing]:

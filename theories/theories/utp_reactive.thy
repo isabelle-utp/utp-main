@@ -28,7 +28,7 @@ syntax
 translations
   "_upred_skiprea" == "CONST SkipREA"
 
-declare SkipREA_def [eval, evalr]
+declare SkipREA_def [eval, evalr, evalp]
 
 text {* R1 ensures that the trace only gets longer *}
 
@@ -49,13 +49,13 @@ definition R3 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 definition RH :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where 
 "RH P = (R1 \<circ> R2 \<circ> R3)P"
 
-declare R1_def [eval, evalr, evalrr, evalrx]
-declare R2_def [eval, evalr, evalrr, evalrx]
-declare R2s_def [eval, evalr, evalrr, evalrx]
-declare R3_def [eval, evalr, evalrr, evalrx]
-declare is_healthy_def [eval, evalr, evalrr, evalrx]
-declare SkipREA_def [eval, evalr, evalrr, evalrx]
-declare RH_def [eval, evalr, evalrr, evalrx]
+declare R1_def [eval, evalr, evalrr, evalrx, evalp]
+declare R2_def [eval, evalr, evalrr, evalrx, evalp]
+declare R2s_def [eval, evalr, evalrr, evalrx, evalp]
+declare R3_def [eval, evalr, evalrr, evalrx, evalp]
+declare is_healthy_def [eval, evalr, evalrr, evalrx, evalp]
+declare SkipREA_def [eval, evalr, evalrr, evalrx, evalp]
+declare RH_def [eval, evalr, evalrr, evalrx, evalp]
 
 subsection {* Closure Laws *}
 
@@ -99,8 +99,8 @@ lemma Aida : "`(($tr \<le> $tr\<acute>) ; ((\<not>ok \<and> $wait) \<and> ($tr \
   apply (metis tr_leq_trans)
 done
     
-lemma Aidb : "`$okay \<and> ($okay\<acute> = $okay)` = `$okay \<and> $okay\<acute>`" by (utp_pred_auto_tac)
-lemma Aidc : "`$wait \<and> ($wait\<acute> = $wait)` = `$wait \<and> $wait\<acute>`" by (utp_pred_auto_tac)
+lemma Aidb : "`$okay \<and> ($okay\<acute> = $okay)` = `$okay \<and> $okay\<acute>`" by (utp_poly_auto_tac)
+lemma Aidc : "`$wait \<and> ($wait\<acute> = $wait)` = `$wait \<and> $wait\<acute>`" by (utp_poly_auto_tac)
 lemma Aidd : "`II\<^bsub>REL_VAR - OKAY\<^esub>\<^sub>t`=`$wait\<acute> \<and> II\<^bsub>REL_VAR - OKAY - {wait\<down>, wait\<down>\<acute>}\<^esub>`"
   apply (subst SkipRA_unfold[of "wait \<down>"])
   apply (simp_all)
@@ -117,12 +117,49 @@ subsection {* SkipREA Laws *}
 
 (* Additional lemmas *)
 
+declare EvalP_SkipRA [evalp]
+
+thm EvalP_SkipRA
+
+lemma TypeUSound_ProjU_inj [simp]:
+  fixes x :: "'m :: VALUE"
+  assumes "(ProjU x :: 'a) = (ProjU y :: 'a)" "TYPEUSOUND('a :: DEFINED, 'm :: VALUE)" 
+          "x :! TYPEU('a)" "y :! TYPEU('a)"
+  shows "x = y"
+    by (metis TypeUSound_ProjU_inv assms)
+
+lemma binding_ty_transfer [evalp]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "pvaux x" "pvaux y"
+  shows "\<langle>b1\<rangle>\<^sub>b x\<down> = \<langle>b2\<rangle>\<^sub>b y\<down> \<longleftrightarrow> \<langle>b1\<rangle>\<^sub>* x = \<langle>b2\<rangle>\<^sub>* y"
+  apply (auto simp add:Rep_binding_ty_def typing assms)
+  apply (drule TypeUSound_ProjU_inj)
+  apply (simp_all add:assms typing defined)
+  apply (rule typing)
+  apply (simp_all)
+  apply (metis assms(2) pvaux_aux)
+  apply (rule typing)
+  apply (simp_all)
+  apply (metis assms(3) pvaux_aux)
+done
+
+lemma binding_ty_transfer_dl [evalp]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "pvaux x" "pvaux y"
+  shows "\<langle>b1\<rangle>\<^sub>b x\<down> = \<langle>b2\<rangle>\<^sub>b y\<down>\<acute> \<longleftrightarrow> \<langle>b1\<rangle>\<^sub>* x = \<langle>b2\<rangle>\<^sub>* y\<acute>"
+  apply (subst binding_ty_transfer[THEN sym])
+  apply (simp_all add:assms)
+done
+
 lemma SkipRA_is_R1 : 
   "`R1(II\<^bsub>REL_VAR - OKAY\<^esub>)` = `II\<^bsub>REL_VAR - OKAY\<^esub>`"
-  by (auto simp add:var_dist closure eval)
+  apply (auto simp add:evalp var_dist closure)
+  apply (drule_tac x="tr\<down>" in bspec)
+  apply (simp_all add:closure evalp typing defined)
+done
 
 lemma tr_conserved_is_R1 : "`R1($tr\<acute> = $tr)` = `($tr\<acute> = $tr)`" 
-  by (simp add:R1_def, utp_pred_auto_tac)
+  by (simp add:R1_def, utp_poly_auto_tac)
 
 lemma R1_monotonic: "P \<sqsubseteq> Q \<Longrightarrow> R1(P) \<sqsubseteq> R1(Q)" 
   by utp_pred_tac
@@ -169,9 +206,9 @@ proof -
     apply (simp add:SkipREA_def)
     apply (rule_tac x="okay\<down>" in BoolType_aux_var_split_eq_intro)
     apply (simp_all add:usubst closure typing defined urename)
-    apply (utp_pred_auto_tac)
+    apply (utp_poly_auto_tac)
     apply (drule_tac x="tr\<down>" in bspec)
-    apply (simp_all add:var_dist closure)
+    apply (simp_all add:var_dist closure evalp typing)
   done
   finally show ?thesis ..
 qed
@@ -198,7 +235,7 @@ proof -
       apply(utp_pred_auto_tac)
       done
     also have "... = `($tr\<acute> = $tr) \<and> II\<^bsub>REL_VAR - {tr\<down>,tr\<down>\<acute>}\<^esub>`"
-      by(utp_pred_auto_tac)
+      by(utp_poly_auto_tac)
     finally have "`($tr \<le> $tr\<acute>) \<and> II` = `II`" 
       apply(simp add: SkipR_as_SkipRA)
       apply(subst SkipRA_unfold[of "tr \<down>"]) back
@@ -330,31 +367,31 @@ lemma R1_negate_R1:
 
 lemma R1_wait_true: 
   "(R1(P))\<^sub>t = R1(P\<^sub>t)"
-by(utp_pred_auto_tac)
+by(utp_poly_auto_tac)
 
 lemma R1_wait_false: 
   "(R1(P))\<^sub>f = R1(P\<^sub>f)"
-by(utp_pred_auto_tac)
+by(utp_poly_auto_tac)
 
 lemma R1_okay'_true: 
   "(R1(P))\<^sup>t = R1(P\<^sup>t)"
-by(utp_pred_auto_tac)
+by(utp_poly_auto_tac)
 
 lemma R1_okay'_false: 
   "(R1(P))\<^sup>f = R1(P\<^sup>f)"
-by(utp_pred_auto_tac)
+by(utp_poly_auto_tac)
 
 (* L8 II_rel-R1 *)
 
 lemma R1_SkipR:
   "R1(II) = II"
-  by (auto simp add:eval closure)
+  by (auto simp add:eval evalp closure Rep_binding_ty_def)
 
 (* L9 II_rea-R1 *)
 
 lemma R1_SkipREA:
   "`R1(II\<^bsub>rea\<^esub>)` = `II\<^bsub>rea\<^esub>`"
-  by (auto simp add:eval closure)
+  by (auto simp add:eval evalp closure Rep_binding_ty_def)
 
 lemma R1_tr_leq_tr':
   "`R1($tr \<le> $tr\<acute>)` = `$tr \<le> $tr\<acute>`"
