@@ -37,12 +37,12 @@ definition R3 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 definition RH :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where 
 "RH P = (R1 \<circ> R2 \<circ> R3)P"
 
-declare R1_def [eval, evalr, evalrr, evalrx]
-declare R2_def [eval, evalr, evalrr, evalrx]
-declare R2s_def [eval, evalr, evalrr, evalrx]
-declare R3_def [eval, evalr, evalrr, evalrx]
-declare is_healthy_def [eval, evalr, evalrr, evalrx]
-declare RH_def [eval, evalr, evalrr, evalrx]
+declare R1_def [eval, evalr, evalrr, evalrx, evalp]
+declare R2_def [eval, evalr, evalrr, evalrx, evalp]
+declare R2s_def [eval, evalr, evalrr, evalrx, evalp]
+declare R3_def [eval, evalr, evalrr, evalrx, evalp]
+declare is_healthy_def [eval, evalr, evalrr, evalrx, evalp]
+declare RH_def [eval, evalr, evalrr, evalrx, evalp]
 
 subsection {* Closure Laws *}
 
@@ -82,10 +82,9 @@ lemma Aida : "`(($tr \<le> $tr\<acute>) ; ((\<not>ok \<and> $wait) \<and> ($tr \
   apply (metis tr_leq_trans)
 done
     
-lemma Aidc : "`$wait \<and> ($wait\<acute> = $wait)` = `$wait \<and> $wait\<acute>`" by (utp_pred_auto_tac)
+lemma Aidc : "`$wait \<and> ($wait\<acute> = $wait)` = `$wait \<and> $wait\<acute>`" by utp_poly_auto_tac
 
-lemma tr_conserved_is_R1 : "`R1($tr\<acute> = $tr)` = `($tr\<acute> = $tr)`" 
-  by (simp add:R1_def, utp_pred_auto_tac)
+lemma tr_conserved_is_R1 : "`R1($tr\<acute> = $tr)` = `($tr\<acute> = $tr)`" by(simp add:R1_def, utp_poly_auto_tac)
 
 lemma R1_monotonic: "P \<sqsubseteq> Q \<Longrightarrow> R1(P) \<sqsubseteq> R1(Q)" 
   by utp_pred_tac
@@ -132,17 +131,17 @@ lemma R1_negate_R1:
 
 lemma R1_wait_true: 
   "(R1(P))\<^sub>t = R1(P\<^sub>t)"
-by(utp_pred_auto_tac)
+by(simp add:R1_def, utp_poly_auto_tac)
 
 lemma R1_wait_false: 
   "(R1(P))\<^sub>f = R1(P\<^sub>f)"
-by(utp_pred_auto_tac)
+by(simp add:R1_def, utp_poly_auto_tac)
 
 (* L8 II_rel-R1 *)
 
 lemma R1_SkipR:
   "R1(II) = II"
-  by (auto simp add:eval closure)
+  by (auto simp add:eval evalp closure Rep_binding_ty_def)
 
 (* L9 II_rea-R1 *)
 
@@ -196,7 +195,9 @@ subsection {* R2 Laws *}
 
 lemma R2s_idempotent: "`R2s(R2s(P))` = `R2s(P)`"
   apply (simp add:R2s_def)
-  apply (subst SubstP_twice_3) back
+  apply (subst SubstP_twice_2) back
+  apply (simp_all add:typing defined closure unrest)
+  apply (subst SubstP_twice_1) 
   apply (simp_all add:typing defined closure unrest)
   apply (simp add:usubst typing defined closure)
 done
@@ -287,6 +288,13 @@ abbreviation "tt1   \<equiv> MkPlainP ''tt1'' True TYPE('m EVENT ULIST) TYPE('m)
 abbreviation "tt2   \<equiv> MkPlainP ''tt2'' True TYPE('m EVENT ULIST) TYPE('m)"
 abbreviation "tt   \<equiv> MkPlainP ''tt'' True TYPE('m EVENT ULIST) TYPE('m)"
 
+lemma app_minus:   
+  fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  assumes "TYPEUSOUND('a ULIST, 'm)" 
+  shows "|($xs ^ $ys) - $xs| = |$ys|"
+  using assms
+  by (utp_poly_tac)
+
 lemma R2_form:
   assumes "P \<in> WF_RELATION" "pvaux ttx" 
   shows "R2(P) = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>\<acute>} . `P[\<langle>\<rangle>/tr][$ttx\<acute>\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr ^ $ttx\<acute>\<acute>\<acute>)`)"
@@ -312,8 +320,9 @@ also have "... = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>\<acute>} . `P[\<
   apply(subst SubstP_twice_1)
   apply(simp_all add:typing defined closure assms)
   apply(simp add:usubst typing defined closure assms)
-  apply(utp_pred_auto_tac)
-  done
+  apply(subst app_minus)
+  apply(simp_all add:typing closure)
+  done 
 finally show ?thesis 
   by (metis assms(1))
 qed  
@@ -365,7 +374,6 @@ proof -
         apply(simp_all add: typing defined closure unrest)
         apply(subst SubstP_twice_1)
         apply(simp_all add: typing defined closure unrest)
-        apply (simp add:typing usubst defined closure)
         apply (simp add:typing usubst defined closure)
         apply(subst SubstP_twice_3) back
         apply (simp_all add:usubst typing defined closure)
@@ -430,8 +438,6 @@ proof -
      apply(simp_all add:typing defined closure unrest urename assms)
      apply(rule typing)
      apply(simp add:typing closure defined)
-     apply(rule typing)
-     apply(simp add:typing closure defined)
      apply(rule defined)
      apply(simp add:typing closure defined)
      
@@ -442,8 +448,6 @@ proof -
      apply(rule unrest) back back back
      apply(rule UNREST_SubstP[of _ _ "{tt2\<down>\<acute>\<acute>\<acute>}" _ "{tt2\<down>\<acute>\<acute>\<acute>}"])
      apply(simp_all add:typing closure defined unrest urename assms)
-     apply(rule typing)
-     apply(simp add:typing defined closure)
      apply(rule typing)
      apply(simp add:typing defined closure)
      apply(rule defined)
@@ -528,7 +532,7 @@ proof -
         apply(subst SubstP_EqualP)
         apply(simp add:usubst typing defined closure)
         apply(utp_pred_auto_tac)
-        done
+        sorry
       thus ?thesis 
         by metis
     qed
@@ -681,8 +685,6 @@ proof -
     apply(subst SubstP_AndP)
     apply(subst SubstP_twice_1)
     apply(simp_all add:typing closure unrest defined)
-    apply(simp add:erasure typing defined closure)
-    apply(simp add:usubst typing defined closure)
     apply(subst SubstP_EqualP)
     apply(subst SubstP_EqualP)
     apply(simp add:usubst typing defined closure)
@@ -731,8 +733,6 @@ proof -
      apply(subst ExistsP_AndP_expand2)
      apply(rule UNREST_SubstP[of _ _ "{tt2\<down>\<acute>\<acute>\<acute>}" _ "{tt2\<down>\<acute>\<acute>\<acute>}"])
      apply(simp_all add:typing defined closure unrest urename)
-     apply(rule typing)
-     apply(simp add:typing defined closure)
      apply(rule typing)
      apply(simp add:typing defined closure)
      apply(rule defined)
@@ -1049,10 +1049,12 @@ qed
 lemma R3_SkipREA: "`R3(II)` = `II`"
   by (simp add:R3_def CondR_idem)
 
-lemma R3_monotonic: "P \<sqsubseteq> Q \<Longrightarrow> R3(P) \<sqsubseteq> R3(Q)" 
-  apply(utp_pred_auto_tac)
-  by utp_pred_tac
+declare CondR_def [evalp]
+declare less_eq_WF_PREDICATE_def [evalp]
 
+lemma R3_monotonic: "P \<sqsubseteq> Q \<Longrightarrow> R3(P) \<sqsubseteq> R3(Q)"
+  by utp_poly_tac 
+  
 subsection {* RH Laws *}
 
 lemma RH_is_R1:

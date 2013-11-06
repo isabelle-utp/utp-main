@@ -419,8 +419,20 @@ by (metis (hide_lams, mono_tags) AndP_assoc)
     apply(utp_pred_auto_tac)
     apply(simp_all add:closure unrest typing)
     done
-  also have "... = `(($tr\<acute> = $tr) \<and> $wait\<acute> \<and> ok')  \<or> ($tr\<acute> = $tr) ; ($tr \<le> $tr\<acute>)`"
-    sorry (*throwing away intermediate data *)
+  also have "... = `
+        (($tr\<acute> = $tr) \<and> $wait\<acute> \<and> ok')  \<or>
+        ($tr\<acute> = $tr) ; ((\<not>ok \<and> $wait) \<and> ($tr \<le> $tr\<acute>))`"
+    apply(subst SemiR_AndP_right_precond)
+    apply(simp_all add:closure typing WF_RELATION_UNREST defined unrest urename AndP_comm)
+    done
+  also have "... = `(($tr\<acute> = $tr) \<and> $wait\<acute> \<and> ok')  \<or> 
+                      ($tr\<acute> = $tr) ; ($tr \<le> $tr\<acute>)`"
+    apply(subst SemiR_remove_middle_unrest1[of "`($tr \<acute>=$tr)`" "`($tr \<le> $tr \<acute>)`" "{wait \<down>,okay \<down>}" "`\<not>ok \<and> $wait`"])
+    apply(simp_all add:closure unrest typing defined WF_RELATION_UNREST)
+    apply(utp_pred_auto_tac)
+    apply(rule_tac x="\<B>(okay\<down> :=\<^sub>b FalseV, wait\<down> :=\<^sub>b TrueV)" in exI)
+    apply(simp add:typing defined)
+  done
   also have "... = `(($tr\<acute> = $tr) \<and> $wait\<acute> \<and> ok')  \<or> ($tr \<le> $tr\<acute>)`"
     by (metis tr_eq_tr_leq)
   finally have 4: "`(($tr\<acute> = $tr) \<and> $wait\<acute>) ; II\<^bsub>rea\<^esub>` = `($tr \<le> $tr\<acute>)`"

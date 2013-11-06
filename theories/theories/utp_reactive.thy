@@ -558,6 +558,8 @@ by(subst R2_CondR_closure_2, simp_all add:assms, simp add:is_healthy_def tr_cons
 
 (* L9 R2-composition *)
 (*R2 *)
+
+(*
 lemma R2_sequential_composition: 
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
   shows "`R2(P);R2(Q)` = `R2(P ; R2(Q))`"
@@ -618,7 +620,7 @@ lemma R2_composition:
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
   shows "R2(P ; R2(Q)) = R2(P) ; R2(Q)"
 by (metis R2_sequential_composition assms(1) assms(2))
-    
+   
 (* L8 R2-sequence-closure *)
 
 lemma R2_SemiR_closure: 
@@ -634,7 +636,7 @@ proof -
   finally show ?thesis 
     by (simp add:is_healthy_def)
 qed
-
+*)
 (* L10 R2-wait-okay' *)
 
 lemma R2_wait_true: "(R2(P))\<^sub>t = R2(P\<^sub>t)"
@@ -703,6 +705,40 @@ lemma R2_okay'_false: "(R2(P))\<^sup>f = R2(P\<^sup>f)"
   apply (metis (hide_lams, no_types) PVAR_VAR_pvdash R1_okay'_false)
   done
 
+lemma R2_okay_true: "`(R2(P))[true/okay]` = `R2(P[true/okay])`"  
+  apply(simp add:R2_def R1_def usubst typing defined closure)
+  apply(simp add:R2s_def)
+  apply(subst SubstP_twice_3) back
+  apply(simp_all)
+  apply(utp_pred_auto_tac)
+  apply(utp_pred_auto_tac)
+  apply(simp_all add:usubst typing defined closure)
+  apply(simp add:unrest closure typing defined)
+  apply(subst SubstP_twice_3) back back
+  apply(simp_all)
+  apply(utp_pred_auto_tac)
+  apply(utp_pred_auto_tac)
+  apply(simp_all add:usubst typing defined closure)
+  apply(simp add:unrest closure typing defined)
+  done
+
+lemma R2_okay_false: "`(R2(P))[false/okay]` = `R2(P[false/okay])`"  
+  apply(simp add:R2_def R1_def usubst typing defined closure)
+  apply(simp add:R2s_def)
+  apply(subst SubstP_twice_3) back
+  apply(simp_all)
+  apply(utp_pred_auto_tac)
+  apply(utp_pred_auto_tac)
+  apply(simp_all add:usubst typing defined closure)
+  apply(simp add:unrest closure typing defined)
+  apply(subst SubstP_twice_3) back back
+  apply(simp_all)
+  apply(utp_pred_auto_tac)
+  apply(utp_pred_auto_tac)
+  apply(simp_all add:usubst typing defined closure)
+  apply(simp add:unrest closure typing defined)
+  done
+
 (* L11 J-R2 *)
 
 lemma J_is_R2: 
@@ -745,7 +781,7 @@ lemma H1_R2s_commute: "H1 (R2s P) = R2s (H1 P)"
   by(simp add:H1_def R2s_def usubst typing defined closure)
 
 (* L13 commutativity R2-H2 *)
-
+(*
 lemma H2_R2_commute: 
   assumes "P \<in> WF_RELATION"
   shows "H2 (R2 P) = R2 (H2 P)" 
@@ -763,7 +799,7 @@ proof -
   finally show ?thesis 
     by(simp add:H2_def)
 qed
-
+*)
 (* L14 commutativity R2-R1 *)
 
 lemma R1_R2_commute: 
@@ -1317,7 +1353,7 @@ proof -
 qed
 
 (* L9 closure-sequence-R *)
-
+(*
 lemma RH_SemiR_closure:
   assumes "P \<in> WF_RELATION" "Q\<in> WF_RELATION" "P is RH" "Q is RH"
   shows "`P ; Q` is RH"
@@ -1330,6 +1366,14 @@ proof -
     by (metis R1_idempotent R2_def)
   thus ?thesis by(simp add:is_healthy_def RH_def)
 qed
+*)
+lemma RH_expansion:
+  "RH(P \<turnstile> Q) = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not>$wait \<and> R2(\<not>P)) \<or> (ok \<and> \<not>$wait \<and> ok' \<and> R2(Q))`"
+apply(simp add:RH_def DesignD_def R2_R3_commute)
+apply(simp add: R2_def R2s_def usubst typing defined closure R1_R3_commute R1_idempotent)
+apply(simp add:R3_form R1_def)
+apply(utp_pred_auto_tac)
+done
 
 lemma RH_form: 
   assumes "P \<in> WF_RELATION" "P is RH"

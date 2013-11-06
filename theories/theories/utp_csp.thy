@@ -117,6 +117,14 @@ translations
   "_upred_parallel P A Q" == "CONST ParallelCSP P A Q"
   "_upred_interleave P Q" == "CONST InterleaveCSP P Q"
 
+definition CSP_Pre
+  :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE " where
+"CSP_Pre P = `\<not>P\<^sup>f[true/okay]\<^sub>f`"
+
+definition CSP_Post
+  :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE " where
+"CSP_Post P = `P\<^sup>t[true/okay]\<^sub>f`"
+
 declare CSP1_def [eval, evalr, evalrr, evalrx]
 declare CSP_def [eval, evalr, evalrr, evalrx]
 declare StopCSP_def [eval, evalr, evalrr, evalrx]
@@ -177,13 +185,15 @@ proof -
 qed
 
 lemma ok_AndP:
-  "ok \<and> P = `ok \<and> P[true/okay]`"
-sorry
+  "`ok \<and> P` = `ok \<and> P[true/okay]`"
+apply(subst PVarPE_PSubstPE)
+apply(simp_all add:typing closure)
+done
 
 lemma CSP1_R1_form: 
   assumes "P is R1"
   shows "CSP1(P) = `CSP1(ok \<and> P[true/okay])`"
-by (metis ok_AndP)
+by (metis CSP1_R1_compose assms ok_AndP)
 
 lemma CSP1_R1_form_2: 
   assumes "P is R1"
@@ -242,10 +252,12 @@ lemma CSP2_R1_commute:
   assumes "P \<in> WF_RELATION"
   shows "CSP2 (R1 P) = R1 (CSP2 (P))"
 by (metis R1_H2_commute assms)
+(*
 lemma CSP2_R2_commute:
   assumes "P \<in> WF_RELATION"
   shows"CSP2 (R2 P) = R2 (CSP2 (P))"
-by (metis H2_R2_commute assms)
+by (metis H2_R2_commute assms) *)
+
 lemma CSP2_R3_commute: 
   assumes "P \<in> WF_RELATION"
   shows "CSP2 (R3 P) = R3 (CSP2 (P))" 
@@ -323,13 +335,14 @@ subsection {* CSP laws *}
   
 lemma CSP_form: 
 assumes "P is CSP" "P \<in> WF_RELATION"
-shows "P = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not>$wait \<and> ($tr \<le> $tr\<acute>) \<and> R2s(P)\<^sup>f[true/okay]\<^sub>f) \<or> (ok \<and> \<not>$wait \<and> ($tr \<le> $tr\<acute>) \<and> ok' \<and> R2s(P)\<^sup>t[true/okay]\<^sub>f)`"
+shows "P = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not>$wait \<and> R2(\<not>CSP_Pre(P))) \<or> (ok \<and> \<not>$wait \<and>  ok' \<and> R2(CSP_Post(P)))`"
 proof-
   have "P = CSP P" 
     by(metis assms(1) is_healthy_def)
   also have "... = `R3(CSP1(R1(CSP2(R2(P)))))`"
+  sorry (*
     by (metis CSP1_CSP2_commute CSP1_R2_commute CSP1_R3_commute CSP1_idempotent CSP_def H2_R2_commute H2_R3_commute R1_R3_commute R1_idempotent R2_R3_commute R2_def R2_rel_closure RH_def assms(2) calculation comp_apply)
-  also have "...  = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not>$wait \<and> ($tr \<le> $tr\<acute>) \<and> R2s(P)\<^sup>f[true/okay]\<^sub>f) \<or> (ok \<and> \<not>$wait \<and> ($tr \<le> $tr\<acute>) \<and> ok' \<and> R2s(P)\<^sup>t[true/okay]\<^sub>f)`" 
+  *) also have "...  = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not>$wait \<and> ($tr \<le> $tr\<acute>) \<and> R2s(P)\<^sup>f[true/okay]\<^sub>f) \<or> (ok \<and> \<not>$wait \<and> ($tr \<le> $tr\<acute>) \<and> ok' \<and> R2s(P)\<^sup>t[true/okay]\<^sub>f)`" 
     apply(subst CSP1_R1_R3_compose)
     apply (metis Healthy_intro R1_idempotent)
     apply(subst CSP2_form)
@@ -337,8 +350,13 @@ proof-
     apply(simp add:R1_def usubst typing defined closure)
     apply(utp_pred_auto_tac)
     done
+  also have "... =  `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not>$wait \<and>  R2(P)\<^sup>f[true/okay]\<^sub>f) \<or> (ok \<and> \<not>$wait \<and> ok' \<and> R2(P)\<^sup>t[true/okay]\<^sub>f)`" 
+    apply(simp add:R2_def R1_def usubst typing defined closure)
+    apply(utp_pred_auto_tac)
+    done
   finally show ?thesis 
-    ..
+  apply(simp add:CSP_Pre_def CSP_Post_def R2_wait_false[THEN sym] R2_okay_true[THEN sym])
+  by (smt PVAR_VAR_pvdash R2_okay'_false R2_okay'_true)
 qed
 
 lemma CSP_is_RH: 
@@ -350,7 +368,9 @@ proof -
   also have "... = CSP P"
     apply(simp add:CSP_def RH_def)
     apply(subst CSP2_R1_commute)
-    apply(metis assms(2) R2_rel_closure R3_rel_closure)
+    apply(metis assms(2) R2_rel_closure R3_rel_closure) 
+    sorry show ?thesis sorry qed 
+    (*
     apply(subst CSP2_R2_commute)
     apply(metis assms(2) R3_rel_closure)
     apply(subst CSP2_R3_commute)
@@ -366,16 +386,20 @@ proof -
     done
   finally show ?thesis
     by (metis Healthy_intro Healthy_simp assms(1))
-qed
+qed*)
 
 lemma CSP_Design: 
 assumes "P is CSP" "P \<in> WF_RELATION"
-shows "P = `RH ( \<not>P\<^sup>f[true/okay]\<^sub>f \<turnstile> P\<^sup>t[true/okay]\<^sub>f)`"
+shows "P = `RH ( CSP_Pre(P) \<turnstile> CSP_Post(P))`"
 apply(subst CSP_form)
 apply(metis assms(1))
 apply(metis assms(2))
-apply(subst RH_form[of "`RH(\<not>P\<^sup>f[true/okay]\<^sub>f \<turnstile> P\<^sup>t[true/okay]\<^sub>f)`"])
-sorry
+apply(simp add:RH_def R2_R3_commute R1_R3_commute)
+apply(simp add:R2_def R1_idempotent DesignD_def R2s_def)
+apply(simp add:usubst typing defined closure)
+apply(simp add:R3_form R1_def)
+apply(utp_pred_auto_tac)
+done
 
 subsection {* Stop laws *}
 
@@ -438,7 +462,7 @@ lemma Stop_Design_form:
   apply (subst Stop_expansion)
   apply (subst Stop_expansion)
   apply(simp add:usubst typing defined closure)
-  apply( simp add:DesignD_def)
+  apply( simp add:DesignD_def CSP_Pre_def CSP_Post_def)
   apply(utp_pred_auto_tac)
 done
 
@@ -453,12 +477,12 @@ lemma Stop_postcondition:
   done
 
 lemma Stop_precondition_2: 
-  "`\<not>STOP\<^sup>f[true/okay]\<^sub>f` = `true`"
-  by(simp add:Stop_expansion usubst typing defined closure CSP1_def)
+  "`CSP_Pre(STOP)` = `true`"
+  by(simp add:CSP_Pre_def Stop_expansion usubst typing defined closure CSP1_def)
 
 lemma Stop_postcondition_2: 
-  "`STOP\<^sup>t[true/okay]\<^sub>f` = `($tr\<acute> = $tr) \<and> $wait\<acute>`"
- by(simp add:Stop_expansion usubst typing defined closure)
+  "`CSP_Post(STOP)` = `($tr\<acute> = $tr) \<and> $wait\<acute>`"
+ by(simp add:CSP_Post_def Stop_expansion usubst typing defined closure)
 
 subsection {* Skip laws *}
 
@@ -548,6 +572,27 @@ apply(utp_pred_auto_tac)
 apply(utp_pred_auto_tac)
 done
 
+
+lemma Skip_expansion_2:
+  "SKIP = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> ok' \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> ($tr\<acute> = $tr) \<and> II\<^bsub>REL_VAR - REA\<^esub>)`"
+  apply(simp add:Skip_expansion)
+  apply(subst SkipRA_unfold[of "tr \<down>"])
+  apply(utp_pred_auto_tac)
+  apply(utp_pred_auto_tac)
+  apply(utp_pred_auto_tac)
+  apply(utp_pred_auto_tac)
+  apply(subst SkipRA_unfold[of "wait \<down>"])
+  apply(utp_pred_auto_tac)
+  apply(utp_pred_auto_tac)
+  apply(utp_pred_auto_tac)
+  apply(utp_pred_auto_tac)
+  apply(subst SkipRA_unfold[of "okay \<down>"])
+  apply(utp_pred_auto_tac)
+  apply(utp_pred_auto_tac)
+  apply(utp_pred_auto_tac)
+  apply(utp_pred_auto_tac)
+  sorry
+
 lemma Skip_is_R1: 
   "SKIP is R1"
 by(utp_pred_auto_tac)
@@ -603,33 +648,33 @@ lemma Skip_is_CSP1:
   "SKIP is CSP1"
 by(simp add:Skip_form is_healthy_def CSP1_idempotent)
 
-lemma Skip_is_CSP2: 
-  "SKIP is CSP2"
-sorry
-
 lemma Skip_rel_closure: 
   "SKIP \<in> WF_RELATION"
 sorry
 
-lemma Skip_expansion_2:
-  "SKIP = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> ok' \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> ($tr\<acute> = $tr) \<and> II\<^bsub>REL_VAR - REA\<^esub>)`"
-  apply(simp add:Skip_expansion)
-  apply(subst SkipRA_unfold[of "tr \<down>"])
-  apply(utp_pred_auto_tac)
-  apply(utp_pred_auto_tac)
-  apply(utp_pred_auto_tac)
-  apply(utp_pred_auto_tac)
-  apply(subst SkipRA_unfold[of "wait \<down>"])
-  apply(utp_pred_auto_tac)
-  apply(utp_pred_auto_tac)
-  apply(utp_pred_auto_tac)
-  apply(utp_pred_auto_tac)
-  apply(subst SkipRA_unfold[of "okay \<down>"])
-  apply(utp_pred_auto_tac)
-  apply(utp_pred_auto_tac)
-  apply(utp_pred_auto_tac)
-  apply(utp_pred_auto_tac)
-  sorry
+lemma Skip_is_CSP2: 
+  "SKIP is CSP2"
+proof -
+have "CSP2 SKIP = `CSP1((ok \<and> $wait \<and> II\<^bsub>REL_VAR - OKAY\<^esub>) \<or> (ok \<and> \<not>$wait \<and> ($tr\<acute>=$tr) \<and> ok' \<and> \<not>$wait\<acute> \<and> II\<^bsub>REL_VAR - REA\<^esub>))`"
+apply(simp add: CSP1_def H2_def)
+apply(subst J_split)
+apply(simp add:Skip_rel_closure)
+apply(simp add:Skip_expansion_2 usubst typing defined closure)
+apply(simp add:SkipR_as_SkipRA)
+apply(subst SkipRA_unfold[of "okay \<down>"])
+apply(utp_pred_auto_tac)
+apply(utp_pred_auto_tac)
+apply(utp_pred_auto_tac)
+apply(utp_pred_auto_tac)
+apply(subst SkipRA_unfold[of "okay \<down>"]) back
+apply(utp_pred_auto_tac)
+apply(utp_pred_auto_tac)
+apply(utp_pred_auto_tac)
+apply(utp_pred_auto_tac)
+apply(simp add:usubst typing defined closure erasure unrest urename)
+
+sorry
+thus ?thesis sorry qed
 
 lemma Skip_Design_form: 
   "SKIP = `RH( true \<turnstile> \<not>$wait\<acute> \<and> ($tr\<acute> = $tr) \<and> II\<^bsub>REL_VAR - REA\<^esub>)`"
@@ -638,8 +683,16 @@ lemma Skip_Design_form:
   apply (metis Skip_rel_closure)
   apply (subst Skip_expansion_2)
   apply (subst Skip_expansion_2)
-  apply(simp add:usubst typing defined closure)
+  apply(simp add:usubst typing defined closure CSP_Pre_def CSP_Post_def)
   done
+
+lemma Skip_precondition: 
+  "CSP_Pre(SKIP) = true"
+by(simp add:CSP_Pre_def Skip_expansion_2 usubst typing defined closure)
+
+lemma Skip_postcondition: 
+  "CSP_Post(SKIP) = `\<not>$wait\<acute> \<and> ($tr\<acute> = $tr) \<and> II\<^bsub>REL_VAR - REA\<^esub>`"
+by(simp add:CSP_Post_def Skip_expansion_2 usubst typing defined closure)
 
 subsection {* Chaos laws *}
 
@@ -690,12 +743,20 @@ apply(subst CSP_Design)
 apply (metis (full_types) CSP_def Chaos_is_CSP1 Chaos_is_CSP2 Chaos_is_R1 Chaos_is_R2 Chaos_is_R3 RH_def comp_def is_healthy_def)
 apply(metis Chaos_rel_closure)
 apply(simp add:Chaos_expansion)
-apply(simp add:usubst typing defined closure)
+apply(simp add:usubst typing defined closure CSP_Pre_def CSP_Post_def)
 apply(simp add:DesignD_def)
 apply(simp add:RH_def R2_R3_commute R1_R3_commute)
 apply(simp add:R2_def R1_idempotent R2s_def)
 apply(simp add:usubst typing defined closure)
 done
+
+lemma Chaos_precondition: 
+  "CSP_Pre(CHAOS) = `\<not> R1(true)`"
+by(simp add:CSP_Pre_def Chaos_expansion usubst typing defined closure R1_def)
+
+lemma Chaos_postcondition: 
+  "CSP_Post(CHAOS) = R1 true"
+by(simp add:CSP_Post_def Chaos_expansion usubst typing defined closure R1_def) 
 
 subsection {*Prefix laws *}
 
@@ -788,7 +849,7 @@ apply(metis assms)
 apply(subst Prefix_expansion)
 apply(metis assms)
 apply(simp add:usubst typing defined closure)
-done
+sorry
 also have "... = `RH (true \<turnstile> ($wait\<acute> \<and> (a \<notin> $ref\<acute>) \<and> ($tr \<le> $tr\<acute>)) \<or> (\<not> $wait\<acute> \<and> ($tr ^ \<langle>a\<rangle> = $tr\<acute>)))`"
   by (metis "2" "3")
 finally have 4: "`@a` =  `RH (true \<turnstile> (((a \<notin> $ref\<acute>) \<and> ($tr \<le> $tr\<acute>)) \<lhd> $wait\<acute> \<rhd> ($tr ^ \<langle>a\<rangle> = $tr\<acute>)))`"
@@ -796,6 +857,16 @@ finally have 4: "`@a` =  `RH (true \<turnstile> (((a \<notin> $ref\<acute>) \<an
 show ?thesis
   by(subst 4,simp)
 qed
+
+lemma Prefix_precondition: 
+assumes "TR \<sharp> a"
+shows "CSP_Pre `@a` = true"
+by(simp add:CSP_Pre_def Prefix_expansion assms usubst typing defined closure)
+
+lemma Prefix_postcondition: 
+assumes "TR \<sharp> a"
+shows "CSP_Post `@a` = `((a \<notin> $ref\<acute>) \<and> ($tr \<le> $tr\<acute>)) \<lhd> $wait\<acute> \<rhd> ($tr ^ \<langle>a\<rangle> = $tr\<acute>)`"
+sorry
 
 subsection {* Sequential composition *}
 
@@ -807,13 +878,148 @@ oops
 
 lemma Seq_comp_form: 
 assumes "P is CSP" "Q is CSP" "P \<in> WF_RELATION" "Q\<in> WF_RELATION"
-shows "(P ; Q) = `RH (\<not>(P\<^sup>f\<^sub>f;R1(true)) \<and> \<not>(P\<^sup>t\<^sub>f[false/wait\<acute>];(Q\<^sup>f\<^sub>f)) \<turnstile> P\<^sup>t\<^sub>f;(R3(Q\<^sup>t\<^sub>f)))`"
+shows "(P ; Q) = `RH (\<not>(\<not>CSP_Pre(P);R1(true)) \<and> \<not>(CSP_Post(P)[false/wait\<acute>];(\<not>CSP_Pre(Q))) \<turnstile> CSP_Post(P);(II\<^bsub>REL_VAR-OKAY\<^esub> \<lhd> $wait \<rhd> CSP_Post(Q)))`"
+ sorry (* proof -
+have 1: "`(\<not>ok \<and> ($tr \<le> $tr\<acute>));Q` = `(\<not>ok \<and> ($tr \<le> $tr\<acute>))`"
+proof-
+have "Q = CSP1(R1(Q))"
+  by (metis CSP1_idempotent CSP_def CSP_is_RH RH_is_R1 assms(2) assms(4) comp_apply is_healthy_def)
+hence "`(\<not>ok \<and> ($tr \<le> $tr\<acute>));Q` = `(\<not>ok \<and> ($tr \<le> $tr\<acute>));CSP1(R1(Q))`"
+  by metis
+also have "... = `(\<not>ok \<and> ($tr \<le> $tr\<acute>));(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (\<not>ok \<and> ($tr \<le> $tr\<acute>));(Q \<and> ($tr \<le> $tr\<acute>))`" 
+  by (metis (hide_lams, no_types) CSP1_R1_commute CSP1_def OrP_comm R1_def SemiR_OrP_distl)
+also have "... = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (\<not>ok \<and> ($tr \<le> $tr\<acute>));(Q \<and> ($tr \<le> $tr\<acute>))`" 
+  apply(subst SemiR_remove_middle_unrest1[of "`\<not>ok \<and> ($tr \<le> $tr\<acute>)`" "`($tr \<le> $tr\<acute>)`" "{okay \<down>}" "`\<not>ok`"])
+  apply(simp_all add:closure typing defined unrest)
+  apply (metis R1_def R1_rel_closure TopD_def TopD_rel_closure) 
+  apply (smt R1_def R1_rel_closure TrueP_rel_closure utp_pred_simps(6))
+  apply(subst SemiR_AndP_left_precond)
+  apply (smt R1_def R1_rel_closure TrueP_rel_closure utp_pred_simps(6)) sorry
+also have "... = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (\<not>ok \<and> ($tr \<le> $tr\<acute>);(Q \<and> ($tr \<le> $tr\<acute>)))`"
+  apply(subst SemiR_AndP_left_precond)
+  apply(simp_all add:closure)
+  defer
+  apply(subst AndP_rel_closure)
+  apply(simp_all add:assms)
+  by (metis (full_types) R1_def R1_rel_closure TrueP_rel_closure utp_pred_simps(6))
+also have "... = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (\<not>ok \<and> R1(true);R1(Q))`"
+  by(utp_pred_auto_tac)
+also have "... = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (\<not>ok \<and> R1(R1(true);R1(Q)))`"
+  proof - 
+    have "`R1(true);R1(Q)` is R1" 
+      apply(subst R1_SemiR_closure)
+      apply(simp_all add:closure assms is_healthy_def R1_idempotent)
+      done
+   thus ?thesis 
+      by(metis is_healthy_def)
+   qed
+also have "... = `(\<not>ok \<and> ($tr \<le> $tr\<acute>))`"
+  by(utp_pred_auto_tac)
+finally show ?thesis 
+  ..
+qed
+have 2: " `(ok \<and> $wait \<and> II);Q` = `ok \<and> $wait \<and> II`"
+proof -
+have "`(ok \<and> $wait \<and> II);Q` = `ok \<and> $wait \<and> R3(Q)`" 
+  apply(subst SemiR_AndP_left_precond)
+  apply(simp_all add:closure assms(4))
+  apply(subst SemiR_AndP_left_precond)
+  apply(simp_all add:closure assms(4))
+  apply (metis CSP_is_RH Healthy_simp RH_is_R3 assms(2) assms(4))
+  done
+also have "... = `ok \<and> $wait \<and> II`"
+  apply(simp add:R3_form)
+  apply(utp_pred_auto_tac)
+  done
+finally show ?thesis 
+  ..
+qed
+have 3: " `(ok \<and> \<not>$wait \<and> R2(\<not>CSP_Pre(P)));Q` = `ok \<and> \<not>$wait \<and> R2(\<not>CSP_Pre(P);R1(true))`"
+proof -
+have "`(ok \<and> \<not>$wait \<and> R2(\<not>CSP_Pre(P)));Q` = `(ok \<and> \<not>$wait \<and> R2(\<not>CSP_Pre(P)));CSP1(R1(Q))`" sorry
+also have "... = `(ok \<and> \<not>$wait \<and> R2(\<not>CSP_Pre(P)));(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> \<not>$wait \<and> R2(\<not>CSP_Pre(P)));(ok \<and> Q \<and> ($tr \<le> $tr \<acute>))`" sorry
+show ?thesis sorry qed
+have 4:  "`(ok \<and> \<not> $wait \<and> ok' \<and> R2 (CSP_Post(P))) ; (\<not>ok \<and> ($tr \<le> $tr\<acute>))`  = `false`"
+proof -
+have "`(ok \<and> \<not> $wait \<and> ok' \<and> R2 (CSP_Post(P))) ; (\<not>ok \<and> ($tr \<le> $tr\<acute>))`  = `(ok \<and> \<not> $wait \<and> R2 (CSP_Post(P)) \<and> ok') ; (\<not>ok \<and> ($tr \<le> $tr\<acute>))`"
+  by (metis AndP_comm)
+also have "... = `(ok \<and> \<not> $wait \<and> R2 (CSP_Post(P)) \<and> ok' \<and> \<not>ok') ; ($tr \<le> $tr\<acute>)`" 
+  apply(subst SemiR_AndP_right_precond)
+  apply(simp_all add:closure urename AndP_assoc)
+  apply(subst AndP_rel_closure)
+  apply(subst AndP_rel_closure)
+  apply(simp_all add:closure)
+  apply(subst R2_rel_closure)
+  apply(simp_all add:CSP_Post_def)
+  defer 
+  apply (smt R1_def R1_rel_closure TrueP_rel_closure utp_pred_simps(6))
+  apply(subst SubstP_rel_closure)
+  apply(subst SubstP_rel_closure)
+  apply(subst SubstP_rel_closure)
+  apply(simp_all add:closure assms typing defined)
+  apply (metis TruePE_erasure UNREST_EXPR_TrueE)
+  apply (metis FalsePE_erasure UNREST_EXPR_FalseE)
+  done
+also have "... = false" 
+  apply(subst AndP_contra)
+  apply(utp_pred_auto_tac)
+  done
+finally show ?thesis 
+  ..
+qed
+have 5: "`(ok \<and> \<not> $wait \<and> ok' \<and> R2 (CSP_Post(P))) ; (ok \<and> \<not> $wait \<and> R2 (\<not> CSP_Pre(Q)))` = `ok \<and> \<not>$wait \<and> R2(CSP_Post(P)[false/wait\<acute>];R2(\<not>CSP_Pre(Q)))`"
+proof - 
+have "`(ok \<and> \<not> $wait \<and> ok' \<and> R2 (CSP_Post(P))) ; (ok \<and> \<not> $wait \<and> R2 (\<not> CSP_Pre(Q)))` = `ok \<and> \<not> $wait \<and> R2(\<not>$wait\<acute> \<and> CSP_Post(P)) ; R2 (ok \<and> \<not> CSP_Pre(Q))`"
+  sorry
+also have "... = `ok \<and> \<not>$wait \<and> R2(CSP_Post(P)[false/wait\<acute>];R2(\<not>CSP_Pre(Q)))`" sorry (*
+  apply(subst R2_sequential_composition)
+  apply(simp_all add:CSP_Post_def CSP_Pre_def closure)
+  apply(subst AndP_rel_closure)
+  apply(simp_all add:closure)
+  apply(subst SubstP_rel_closure)
+  apply(subst SubstP_rel_closure)
+  apply(subst SubstP_rel_closure)
+  apply(simp_all add:closure assms typing defined)
+  apply (metis TruePE_erasure UNREST_EXPR_TrueE)
+  apply (metis FalsePE_erasure UNREST_EXPR_FalseE)
+  apply(subst AndP_rel_closure)
+  apply(simp_all add:closure)
+  apply(subst SubstP_rel_closure)
+  apply(subst SubstP_rel_closure)
+  apply(subst SubstP_rel_closure)
+  apply(simp_all add:closure assms typing defined)
+  apply (metis FalsePE_erasure UNREST_EXPR_FalseE)
+  apply (metis TruePE_erasure UNREST_EXPR_TrueE)
+  apply(subst NotP_PVarPE_PSubstPE[of "wait \<acute>"])
+sorry *)
+have 6: "`(ok \<and> \<not> $wait \<and> ok' \<and> R2 (CSP_Post(P))) ; (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not> $wait \<and> ok' \<and> R2 (CSP_Post(P))) ; (ok \<and> \<not> $wait \<and> ok' \<and> R2 (CSP_Post(Q)))` = `(ok \<and> \<not>$wait \<and> ok' \<and> R2(CSP_Post(P);(II\<^bsub>REL_VAR-OKAY\<^esub> \<lhd> $wait \<rhd> CSP_Post(Q))))`"
 sorry
-
-lemma Seq_comp_form_2: 
-assumes "P is CSP" "Q is CSP" "P \<in> WF_RELATION" "Q\<in> WF_RELATION"
-shows "(P ; Q) = `RH (\<not>(P\<^sup>f[true/okay]\<^sub>f;R1(true)) \<and> \<not>(P\<^sup>t[true/okay]\<^sub>f[false/wait\<acute>];(Q\<^sup>f[true/okay]\<^sub>f)) \<turnstile> P\<^sup>t[true/okay]\<^sub>f;(II\<^bsub>REL_VAR-OKAY\<^esub> \<lhd> $wait \<rhd> (Q\<^sup>t[true/okay]\<^sub>f)))`"
-sorry
+have "P ; Q = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not>$wait \<and> R2(\<not>CSP_Pre(P);R1(true))) \<or> ((ok \<and> \<not> $wait \<and> ok' \<and> R2 (CSP_Post(P))) ; (\<not>ok \<and> ($tr \<le> $tr\<acute>))) \<or> ((ok \<and> \<not> $wait \<and> ok' \<and> R2 (CSP_Post(P))) ; (ok \<and> \<not> $wait \<and> R2 (\<not> CSP_Pre(Q)))) \<or> ((ok \<and> \<not> $wait \<and> ok' \<and> R2 (CSP_Post(P))) ; (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not> $wait \<and> ok' \<and> R2 (CSP_Post(P))) ; (ok \<and> \<not> $wait \<and> ok' \<and> R2 (CSP_Post(Q))))`"
+apply(subst CSP_Design)
+apply(metis assms(1))
+apply(metis assms(3))
+apply(subst RH_expansion)
+apply(simp add:SemiR_OrP_distr)
+apply(simp add:1 2 3)
+apply(subst CSP_Design[of "Q"])
+apply(metis assms(2))
+apply(metis assms(4))
+apply(subst RH_expansion)
+apply(simp add:SemiR_OrP_distl)
+apply(utp_pred_auto_tac)
+done
+also have "... = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not>$wait \<and> R2(\<not>CSP_Pre(P);R1(true))) \<or> (ok \<and> \<not>$wait \<and> R2(CSP_Post(P)[false/wait\<acute>];\<not>CSP_Pre(Q))) \<or> (ok \<and> \<not>$wait \<and> ok' \<and> R2(CSP_Post(P);(II\<^bsub>REL_VAR-OKAY\<^esub> \<lhd> $wait \<rhd> CSP_Post(Q))))`"
+apply(subst 4)
+apply(subst 5)
+apply(subst 6)
+apply(utp_pred_auto_tac)
+done 
+also have "... = `RH (\<not>(\<not>CSP_Pre(P);R1(true)) \<and> \<not>(CSP_Post(P)[false/wait\<acute>];(\<not>CSP_Pre(Q))) \<turnstile> CSP_Post(P);(II\<^bsub>REL_VAR-OKAY\<^esub> \<lhd> $wait \<rhd> CSP_Post(Q)))`"
+apply(simp add:RH_expansion)
+apply(utp_pred_auto_tac)
+done
+finally show ?thesis ..
+qed*)
 
 subsection {* Prefixed laws *}
 
@@ -839,7 +1045,7 @@ apply(simp add:Skip_expansion_2)
 oops
 
 subsection {*CSP laws*}
-
+(*
 lemma L1 : 
   assumes "P is CSP" "P \<in> WF_RELATION"
   shows "`CHAOS ; P` = `CHAOS`"
@@ -931,4 +1137,137 @@ oops
 
 lemma L6sub : "`((a1\<rightarrow>P1) \<box> (a2\<rightarrow>P2)); Q` = `(a1\<rightarrow>(P1;Q)) \<box> (a2\<rightarrow>(P2;Q))`"
 oops
+*)
+lemma Prefixed_precondition: "`\<not>(a \<rightarrow> P)\<^sup>f[true/okay]\<^sub>f` = undefined"oops
+lemma Prefixed_postcondition: "`(a \<rightarrow> P)\<^sup>t[true/okay]\<^sub>f` = undefined"oops
+
+lemma External_precondition: 
+assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
+shows"`CSP_Pre(P \<box> Q)` = `CSP_Pre(P) \<and> CSP_Pre(Q)`"
+apply(simp add:ExternalChoiceCSP_def H2_def CSP_Pre_def)
+apply(subst J_split)
+apply(simp add:assms closure)
+apply(simp add:CondR_def Stop_expansion usubst typing defined closure)
+apply(utp_pred_auto_tac)
+done
+
+lemma External_postcondition:
+assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
+shows "`CSP_Post(P \<box> Q)` = `\<not>CSP_Pre(P) \<or> \<not>CSP_Pre(Q) \<or> (CSP_Post(P) \<and> CSP_Post(Q) \<and> ($tr\<acute>=$tr) \<and> $wait\<acute>) \<or> ((CSP_Post(P) \<or> CSP_Post(Q)) \<and> \<not>(($tr\<acute>=$tr) \<and> $wait\<acute>))`"
+apply(simp add:ExternalChoiceCSP_def H2_def CSP_Post_def CSP_Pre_def)
+apply(subst J_split)
+apply(simp add:assms closure)
+apply(simp add:CondR_def Stop_expansion)
+apply(simp add:usubst typing defined closure erasure)
+apply(utp_pred_auto_tac)
+done
+
+lemma External_is_R1: 
+assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "P is R1" "Q is R1"
+shows "P \<box> Q is R1"
+apply(simp add:is_healthy_def ExternalChoiceCSP_def)
+apply(subst CSP2_R1_commute[THEN sym])
+apply(simp add:closure assms)
+apply(simp add:R1_CondR R1_AndP R1_OrP)
+apply(metis assms is_healthy_def)
+done
+
+lemma External_is_R2: 
+assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "P is R2" "Q is R2"
+shows "P \<box> Q is R2"
+apply(simp add:is_healthy_def ExternalChoiceCSP_def) sorry (*
+apply(subst CSP2_R2_commute[THEN sym])
+apply(simp add:closure assms)
+apply(simp add:R2_CondR_alt R2_AndP R2_OrP)
+apply(metis assms is_healthy_def Stop_is_R2)
+done *)
+
+lemma External_is_R3: 
+assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "P is R3" "Q is R3"
+shows "P \<box> Q is R3"
+apply(simp add:is_healthy_def ExternalChoiceCSP_def)
+apply(subst CSP2_R3_commute[THEN sym])
+apply(simp add:closure assms)
+apply(simp add:R3_CondR R3_AndP R3_OrP)
+apply(metis assms is_healthy_def)
+done
+
+lemma External_is_CSP1: 
+assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "P is CSP1" "Q is CSP1"
+shows "P \<box> Q is CSP1"
+apply(simp add:is_healthy_def ExternalChoiceCSP_def)
+apply(subst CSP1_CSP2_commute)
+apply(simp add:closure assms)
+apply(simp add:CSP1_CondR CSP1_AndP CSP1_OrP)
+apply(metis assms is_healthy_def)
+done
+
+lemma External_is_CSP2: 
+  "P \<box> Q is CSP2"
+by(simp add:ExternalChoiceCSP_def is_healthy_def CSP2_idempotent)
+
+lemma External_rel_closure: 
+assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
+shows "P \<box> Q \<in> WF_RELATION"
+by(simp add:ExternalChoiceCSP_def closure assms)
+
+lemma External_is_CSP:
+assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "P is CSP" "Q is CSP" 
+shows  "P \<box> Q is CSP"
+proof -
+  have "CSP(P \<box> Q) = CSP1 (CSP2 (R1 (R2 (R3 (P \<box> Q)))))"
+    by(simp add:CSP_def RH_def)
+  also from External_is_R3[of "P" "Q"]  have "... =  CSP1 (CSP2 (R1 (R2 (P \<box> Q))))"
+    by(metis is_healthy_def assms CSP_is_RH RH_is_R3)
+  also from External_is_R2[of "P" "Q"]  have "... =  CSP1 (CSP2 (R1 (P \<box> Q)))"
+    by(metis is_healthy_def assms CSP_is_RH RH_is_R2)
+  also from External_is_R1[of "P" "Q"]  have "... =  CSP1 (CSP2 (P \<box> Q))"
+    by(metis is_healthy_def assms CSP_is_RH RH_is_R1)
+  also from External_is_CSP2[of "P" "Q"] have "... = CSP1 (P \<box> Q)"
+    by(simp add:is_healthy_def)
+  also from External_is_CSP1[of "P" "Q"] have "... = P \<box> Q"
+    by (metis CSP1_idempotent CSP_def assms comp_apply is_healthy_def)
+  finally show ?thesis
+    by(simp add:is_healthy_def)
+qed
+
+lemma External_form: 
+assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "P is CSP" "Q is CSP"
+shows "P \<box> Q = `RH((CSP_Pre(P) \<and> CSP_Pre(Q)) \<turnstile> ((CSP_Post(P) \<and> CSP_Post(Q)) \<lhd> ($tr\<acute>=$tr) \<and> $wait\<acute> \<rhd> (CSP_Post(P) \<or> CSP_Post(Q))))`"
+apply(subst CSP_Design[of "P \<box> Q"])
+apply(simp add: External_is_CSP assms)
+apply(simp add: External_rel_closure assms(1) assms(2))
+apply(subst External_precondition)
+apply(metis assms(1))
+apply(metis assms(2))
+apply(subst External_postcondition)
+apply(metis assms(1))
+apply(metis assms(2))
+apply(simp add:DesignD_def CSP_Pre_def CSP_Post_def)
+apply(utp_pred_auto_tac)
+done
+
+lemma Parallel_precondition: "`\<not>(P \<parallel>\<^bsub>vs\<^esub> Q)\<^sup>f[true/okay]\<^sub>f` = undefined"oops
+lemma Parallel_postcondition: "`(P \<parallel>\<^bsub>vs\<^esub> Q)\<^sup>t[true/okay]\<^sub>f` = undefined"oops
+
+lemma Law_1: 
+  assumes "`P \<box> Q` = `P`" 
+  shows "`P\<^sup>f[true/okay]\<^sub>f \<Rightarrow> Q\<^sup>f[true/okay]\<^sub>f \<and> (P\<^sup>t[true/okay]\<^sub>f \<and> STOP) \<Rightarrow> Q\<^sup>t[true/okay]\<^sub>f`" "`(Q\<^sup>t[true/okay]\<^sub>f \<and> \<not>STOP) \<Rightarrow> P\<^sup>t[true/okay]\<^sub>f`"
+oops
+
+lemma Law_2: 
+  assumes "`P\<^sup>f[true/okay]\<^sub>f \<Rightarrow> Q\<^sup>f[true/okay]\<^sub>f \<and> (P\<^sup>t[true/okay]\<^sub>f \<and> STOP) \<Rightarrow> Q\<^sup>t[true/okay]\<^sub>f \<and> (Q\<^sup>t[true/okay]\<^sub>f \<and> \<not>STOP) \<Rightarrow> P\<^sup>t[true/okay]\<^sub>f`"
+  shows "`P \<box> Q` = `P`" 
+sorry
+
+lemma Law_3: 
+  "`P \<box> Q` = `P` \<longleftrightarrow> `P\<^sup>f[true/okay]\<^sub>f \<Rightarrow> Q\<^sup>f[true/okay]\<^sub>f` \<and> `(P\<^sup>t[true/okay]\<^sub>f \<and> STOP) \<Rightarrow> Q\<^sup>t[true/okay]\<^sub>f` \<and> `(Q\<^sup>t[true/okay]\<^sub>f \<and> \<not>STOP) \<Rightarrow> P\<^sup>t[true/okay]\<^sub>f`"
+sorry
+
+lemma Law_4: 
+  assumes "`P` = `(a \<rightarrow> R) \<box> S`" "`[Q \<Rightarrow> a \<notin> elems ($tr\<acute>-$tr) \<union> $ref \<union> $ref\<acute>]`" "(VAR - aa) \<sharp> a" "aa \<sharp> P" "aa \<sharp> Q" 
+  shows "`P \<parallel>\<^bsub>vs\<^esub> Q` = `(P \<parallel>\<^bsub>vs\<^esub> Q) \<box> (a \<rightarrow> (R \<parallel>\<^bsub>vs\<^esub> Q)) `"
+apply(subst Law_2)
+sorry
+
 end
