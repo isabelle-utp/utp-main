@@ -97,7 +97,7 @@ session "nfm2014" in "papers/nfm2014" = "HOL-UTP" +
   theories [document = false]
   theories 
     "deep_shallow"
-    "param_pred"
+    "prog_model"
     "shallow_values"
   files "document/root.tex"
         "document/deep-shallow.pdf"
