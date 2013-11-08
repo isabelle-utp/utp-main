@@ -79,6 +79,7 @@ syntax (xsymbols)
   "_upred_skipa"    :: "'VALUE VAR set \<Rightarrow> upred" ("II\<^bsub>_\<^esub>")
   "_upred_seq"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr ";" 36)
   "_upred_cond"     :: "upred \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("_ \<lhd> _ \<rhd> _")
+  "_upred_ifthenelse" :: "upred \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("if _ then _ else _")
   "_upred_assigna"  :: "('a, 'm) PVAR \<Rightarrow> 'a VAR set \<Rightarrow> pexpr \<Rightarrow> upred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
   "_upred_assign"   :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> upred" ("_ := _" [100] 100)
   "_upred_assigns"  :: "string \<Rightarrow> uexpr \<Rightarrow> upred" ("_ := _" [100] 100)
@@ -118,6 +119,7 @@ translations
   "_upred_skipa vs"    == "CONST SkipRA vs"
   "_upred_seq p q"     => "CONST SemiR p q"
   "_upred_cond p q r"  == "CONST CondR p q r"
+  "_upred_ifthenelse b p q"  == "CONST CondR p b q"
   "_upred_assign x e"  == "CONST PAssignR x e"
   "_upred_assigna x xs e" == "CONST AssignRA x\<down> xs e\<down>"
   "_upred_conv x"      => "CONST ConvR x"

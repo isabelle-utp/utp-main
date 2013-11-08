@@ -99,6 +99,7 @@ session "nfm2014" in "papers/nfm2014" = "HOL-UTP" +
     "deep_shallow"
     "prog_model"
     "poly_expr"
+    "tactics"
     "shallow_values"
   files "document/root.tex"
         "document/deep-shallow.pdf"

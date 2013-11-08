@@ -92,13 +92,62 @@ lemma prefix_as_concat:
   using assms
   apply (rule_tac ImpliesP_eq_intro)
   apply (simp add: prefix_implies_diff[of xs ys zs])
-  apply (auto simp add:evalp)
+  apply (utp_poly_auto_tac)
 done
+
+lemma EqualP_as_EqualPE:
+  fixes e f :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  assumes "TYPEUSOUND('a, 'm)"
+  shows "EqualP e\<down> f\<down> = PExprP (EqualPE e f)"
+  using assms by (utp_poly_tac)
+
+lemma ExprP_as_PExprP:
+  "ExprP e\<down> = PExprP e"
+  by (utp_poly_tac)
+
+lemma EvalR_ExprR_ty [evalpr]: 
+  fixes e :: "(bool, 'm :: BOOL_SORT) WF_PEXPRESSION"
+  shows "\<lbrakk>ExprP e\<down>\<rbrakk>R = {(b1, b2). \<lbrakk>e\<rbrakk>\<^sub>* (b1 \<oplus>\<^sub>b SS\<bullet>b2 on D\<^sub>1) 
+                                \<and> b1 \<in> WF_REL_BINDING
+                                \<and> b2 \<in> WF_REL_BINDING
+                                \<and> b1 \<cong> b2 on NON_REL_VAR}"
+  apply (auto simp add:evalr BindR_def urename RenameB_override_distr1 closure typing defined)
+  apply (metis EvalP_ExprP EvalP_ExprP_ty)
+  apply (metis BindR_def BindR_right_eq_NON_REL_VAR NON_REL_VAR_minus_DASHED binding_equiv_override_subsume binding_override_simps(5))
+  apply (rule_tac x="xa \<oplus>\<^sub>b SS\<bullet>y on D\<^sub>1" in exI)
+  apply (auto)
+  apply (metis WF_REL_BINDING_bc_DASHED_eq binding_override_equiv)
+  apply (simp add:urename RenameB_override_distr1 closure)
+  apply (metis (hide_lams, no_types) NON_REL_VAR_UNDASHED_DASHED SS_REL_VAR_overshadow WF_REL_BINDING_bc_DASHED_eq binding_equiv_override binding_override_assoc binding_override_minus binding_override_simps(2))
+  apply (metis EvalP_ExprP EvalP_ExprP_ty)
+done
+
+lemma EvalR_EqualP_ty [evalpr]:
+  fixes e f :: "('a :: DEFINED, 'm :: BOOL_SORT) WF_PEXPRESSION"
+  assumes "TYPEUSOUND('a, 'm)"
+  shows "\<lbrakk>EqualP e\<down> f\<down>\<rbrakk>R = {(b1, b2). \<lbrakk>e\<rbrakk>\<^sub>* (b1 \<oplus>\<^sub>b SS\<bullet>b2 on D\<^sub>1) = \<lbrakk>f\<rbrakk>\<^sub>* (b1 \<oplus>\<^sub>b SS\<bullet>b2 on D\<^sub>1) 
+                                \<and> b1 \<in> WF_REL_BINDING
+                                \<and> b2 \<in> WF_REL_BINDING
+                                \<and> b1 \<cong> b2 on NON_REL_VAR}"
+  apply (subst EqualP_as_EqualPE)
+  apply (simp add:assms)
+  apply (subst ExprP_as_PExprP[THEN sym])
+  apply (simp add:evalpr evalp)
+done
+
+(*
+lemma EvalR_EqualP_ty [evalpr]:
+  fixes e f :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  assumes "TYPEUSOUND('a, 'm)"
+  shows "\<lbrakk>EqualP e\<down> f\<down>\<rbrakk>R = {BindR b |b. (\<lbrakk>e\<rbrakk>\<^sub>* b = \<lbrakk>f\<rbrakk>\<^sub>* b)}"
+  using assms by (auto simp add:evalr evale)
+*)
 
 lemma var_eq_trans:
   fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
   assumes "TYPEUSOUND('a, 'm)" "x \<in> PUNDASHED" "pvaux x"
   shows "`($x\<acute> = $x) ; ($x\<acute> = $x)` = `($x\<acute> = $x)`"
+  using assms
   apply (subst SemiR_algebraic)
   apply (simp_all add:closure unrest typing assms urename PermPV_PVAR)
   apply (auto simp add:eval closure assms)
@@ -106,13 +155,31 @@ lemma var_eq_trans:
   apply (simp add:typing defined assms closure)
 done
 
-lemma nil_prefixeq [simp]:
+theorem nil_prefixeq [simp]:
   "`\<langle>\<rangle> \<le> x` = `true`"
   by (utp_poly_auto_tac)
 
-lemma nil_append [simp]:
+theorem nil_append [simp]:
   "|\<langle>\<rangle> ^ x| = |x|"
   by (utp_poly_auto_tac)
+
+theorem SemiR_prefix_trans:
+  fixes xs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  assumes "TYPEUSOUND('a ULIST, 'm)" "xs \<in> PUNDASHED"
+  shows "`($xs \<le> $xs\<acute>) ; ($xs \<le> $xs\<acute>)` = `($xs \<le> $xs\<acute>)`"
+  using assms by (utp_prel_auto_tac)
+
+lemma SemiR_prefix_eq_trans:
+  fixes xs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  assumes "TYPEUSOUND('a ULIST, 'm)" "xs \<in> PUNDASHED"
+  shows "`($xs \<le> $xs\<acute>) ; ($xs = $xs\<acute>)` = `($xs \<le> $xs\<acute>)`"
+  using assms by (utp_prel_auto_tac)
+
+lemma SemiR_eq_prefix_trans:
+  fixes xs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  assumes "TYPEUSOUND('a ULIST, 'm)" "xs \<in> PUNDASHED"
+  shows "`($xs = $xs\<acute>) ; ($xs \<le> $xs\<acute>)` = `($xs \<le> $xs\<acute>)`"
+  using assms by (utp_prel_auto_tac)
 
 lemma prefix_eq_nil:
   fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"

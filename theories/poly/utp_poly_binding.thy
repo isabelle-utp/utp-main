@@ -100,6 +100,24 @@ lemma binding_override_ty_dash_dash [simp]:
   apply (metis (full_types) DASHED_dash_DASHED_TWICE PVAR_VAR_PUNDASHED_UNDASHED UNDASHED_dash_DASHED assms(2) override_on_def)
 done
 
+lemma binding_override_ty_left [simp]: 
+  "x\<down> \<notin> vs \<Longrightarrow> \<langle>b1 \<oplus>\<^sub>b b2 on vs\<rangle>\<^sub>* x = \<langle>b1\<rangle>\<^sub>* x"
+  by (simp add:Rep_binding_ty_def)
+
+lemma binding_override_ty_right [simp]: 
+  "x\<down> \<in> vs \<Longrightarrow> \<langle>b1 \<oplus>\<^sub>b b2 on vs\<rangle>\<^sub>* x = \<langle>b2\<rangle>\<^sub>* x"
+  by (simp add:Rep_binding_ty_def)
+
+lemma binding_equiv_ty_reduce_left [simp]:
+  "\<lbrakk> v \<rhd>\<^sub>p x; x\<down> \<notin> vs \<rbrakk> \<Longrightarrow> b1(x :=\<^sub>* v) \<cong> b2 on vs \<longleftrightarrow> b1 \<cong> b2 on vs"
+  by (simp add:binding_upd_ty_def typing defined)
+
+lemma binding_equiv_ty_reduce_right [simp]:
+  "\<lbrakk> v \<rhd>\<^sub>p x; x\<down> \<notin> vs \<rbrakk> \<Longrightarrow> b1 \<cong> b2(x :=\<^sub>* v) on vs \<longleftrightarrow> b1 \<cong> b2 on vs"
+  apply (auto simp add:binding_upd_ty_def typing defined)
+  apply (metis binding_equiv_comm binding_equiv_ty_reduce_left binding_upd_ty_def)+
+done
+
 lemma EvalP_UNREST_binding_upd_ty [evalp]:
   fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
   assumes "v \<rhd>\<^sub>p x" "vs \<sharp> P" "x\<down> \<in> vs"

@@ -762,15 +762,13 @@ declare RestrictPE_def [simp]
 
 lemma MinusUL_left_nil [simp]: 
   fixes x :: "('a::DEFINED ULIST, 'm::LIST_SORT) WF_PEXPRESSION"
-  assumes "TYPEUSOUND('a, 'm)"
   shows "MinusPE NilPE x = NilPE"
-  using assms by (auto simp add:eval)
+  by (utp_poly_auto_tac)
 
 lemma MinusUL_right_nil [simp]: 
   fixes x :: "('a::DEFINED ULIST, 'm::LIST_SORT) WF_PEXPRESSION"
-  assumes "TYPEUSOUND('a, 'm)"
   shows "MinusPE x NilPE = x"
-  using assms by (auto simp add:eval)
+  by (utp_poly_auto_tac)
 
 subsection {* Set Expressions *}
 
@@ -994,6 +992,20 @@ lemma PermPV_inv [simp]:
   apply (metis (hide_lams, no_types) PVAR_VAR_RENAME PVAR_VAR_inv Rep_VAR_RENAME_surj f_inv_into_f rangeI rename_inv_inv rename_inv_rep_eq surj_iff_all)
 done
   
+lemma PermPV_app_inv [urename]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "ss \<in> VAR_RENAME_INV"
+  shows "inv (op \<bullet> ss) x = ss\<bullet>x"
+  using assms by (metis PermPV_inv VAR_RENAME_INV_inv)
+
+lemma SS_PUNDASHED [urename]:
+  "x \<in> PUNDASHED \<Longrightarrow> SS\<bullet>x = x\<acute>"
+  by (simp add:PermPV_def urename closure)
+
+lemma SS_PDASHED [urename]:
+  "x \<in> PUNDASHED \<Longrightarrow> SS\<bullet>x\<acute> = x"
+  by (simp add:PermPV_def urename closure)
+
 lemma RenamePE_PVarPE [urename]:
   "ss\<bullet>(PVarPE x) = PVarPE (\<langle>ss\<rangle>\<^sub>s\<^sub>* x)"
   apply (auto simp add:evalp)
@@ -1170,7 +1182,7 @@ lemma PSubstPE_PVarPE_neq [usubst]:
   and   x :: "('b :: DEFINED, 'm :: VALUE) PVAR"
   assumes "x\<down> \<noteq> y\<down>" "v \<rhd>\<^sub>* y"
   shows "PSubstPE (PVarPE x) v y = PVarPE x"
-  using assms by (auto simp add: evalp defined typing)
+  using assms by (utp_poly_auto_tac)
 
 lemma PSubstPE_VarP_single_UNREST [usubst]:
   "\<lbrakk> {x\<down>} \<sharp> v; e \<rhd>\<^sub>* x \<rbrakk> \<Longrightarrow> v[e/\<^sub>*x] = v"
@@ -1246,17 +1258,19 @@ lemma binding_upd_drop_ty [simp]:
   apply (metis PVAR_binding_defined_aux PVAR_binding_type dtype_relI)
 done
 
+ML {* simp_tac *}
+
 lemma PVarPE_PSubstPE:
   fixes x :: "(bool, 'm :: BOOL_SORT) PVAR"
   assumes "pvaux x"
   shows "($\<^sub>p(x\<down>) \<and>\<^sub>p P) = ($\<^sub>p(x\<down>) \<and>\<^sub>p (PSubstP P TruePE x))"
-  by (auto simp add:evalp closure typing defined assms)
+  using assms by (utp_poly_auto_tac)
 
 lemma NotP_PVarPE_PSubstPE:
   fixes x :: "(bool, 'm :: BOOL_SORT) PVAR"
   assumes "TYPEUSOUND(bool, 'm)" "pvaux x"
   shows "(\<not>\<^sub>p $\<^sub>p(x\<down>) \<and>\<^sub>p P) = (\<not>\<^sub>p $\<^sub>p(x\<down>) \<and>\<^sub>p (PSubstP P FalsePE x))"
-  by (auto simp add:evalp closure typing defined assms)
+  using assms by (utp_poly_auto_tac)
 
 lemma ExprP_TruePE [simp]:
   "ExprP (TruePE\<down>) = TrueP"
@@ -1272,7 +1286,7 @@ lemma PUNDASHED_WF_CONDITION[closure]:
 
 (* Add support for polymorphic expressions to the relational tactic *)
 
-lemma EvalR_PExprP [evalr]: 
+lemma EvalR_PExprP [evalr,evalpr]: 
   "NON_REL_VAR \<sharp> e \<Longrightarrow>
    \<lbrakk>e\<down>\<rbrakk>R = {(b, b'). \<lbrakk>e\<rbrakk>\<^sub>* (b \<oplus>\<^sub>b SS\<bullet>b' on DASHED) \<and> b \<in> WF_REL_BINDING \<and> b' \<in> WF_REL_BINDING \<and> b \<cong> b' on NON_REL_VAR}"
   apply (simp add:EvalR_as_EvalP EvalP_PExprP)
@@ -1284,7 +1298,7 @@ lemma EvalR_PExprP [evalr]:
   apply (metis (lifting, no_types) NON_REL_VAR_def SS_REL_VAR_overshadow WF_REL_BINDING_bc_DASHED binding_override_assoc binding_override_equiv binding_override_overshadow2 binding_override_simps(2))
 done
 
-lemma EvalR_AssignR_typed [evalr]:
+lemma EvalR_AssignR_typed [evalpr]:
   fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
   assumes "TYPEUSOUND('a, 'm)" "x \<in> PUNDASHED" "e \<rhd>\<^sub>* x" "D\<^sub>1 \<sharp> e"
   shows "\<lbrakk>x\<down> :=\<^sub>R e\<down>\<rbrakk>R = {(b, b(x:=\<^sub>* (\<lbrakk>e\<rbrakk>\<^sub>* b))) | b. b \<in> WF_REL_BINDING}"
@@ -1294,7 +1308,7 @@ lemma EvalR_AssignR_typed [evalr]:
   apply (simp_all add: assms unrest binding_upd_ty_def evale)
 done
 
-theorem EvalR_SubstP_UNDASHED_ty [evalr] :
+theorem EvalR_SubstP_UNDASHED_ty [evalr, evalpr] :
   fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
   assumes 
     "TYPEUSOUND('a, 'm)"
