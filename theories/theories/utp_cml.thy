@@ -8,21 +8,14 @@ header {* CML Processes *}
 
 theory utp_cml
 imports 
-  utp_reactive_prime
+  utp_csp_prime
 begin
-
-
-definition CSP1 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"CSP1 P = `P \<or> (\<not> ok \<and> ($tr \<le> $tr\<acute>))`"
-
-abbreviation "CSP2 \<equiv> H2"
-
-definition CSP :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"CSP P = (CSP1 \<circ> CSP2 \<circ> RH) P"
-
 
 definition tock :: "('m EVENT USET) CHAN" where
 "tock = MkCHAN (bName ''tock'', TYPE(('m EVENT USET)))"
+
+definition SemiR_REA :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infix ";\<^bsub>REA\<^esub>" 50 ) where
+"P ;\<^bsub>REA\<^esub> Q = `\<exists> tt1\<acute>\<acute>\<acute> . (\<exists> tt2\<acute>\<acute>\<acute> . P[$tt1\<acute>\<acute>\<acute>/tt\<acute>\<acute>\<acute>];Q[$tt2\<acute>\<acute>\<acute>/tt\<acute>\<acute>\<acute>] \<and> ($tt\<acute>\<acute>\<acute> = $tt1\<acute>\<acute>\<acute>^$tt2\<acute>\<acute>\<acute>))`"
 
 definition DesignREA :: 
 "'a WF_PREDICATE \<Rightarrow>
@@ -31,197 +24,1157 @@ definition DesignREA ::
  'a WF_PREDICATE" (infixr "\<turnstile>_\<diamond>" 80) where
 "p \<turnstile> q \<diamond> r = `p \<turnstile> (q \<lhd> $wait\<acute> \<rhd> r)`"
 
-abbreviation "CML1 \<equiv> R2"
+definition CML1 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+"CML1 P = R1 `P[($tr\<acute>-$tr)/tt\<acute>\<acute>\<acute>]`"
 
 definition CML2 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 "CML2 P = `P \<lhd> ok \<rhd> ($tr \<le> $tr\<acute>)`"
 
 definition CML3 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"CML3 P = `II\<^bsub>REA\<^esub> \<lhd> ok \<and> $wait \<rhd> P`"
+"CML3 P = `II\<^bsub>REA \<union> OKAY\<^esub> \<lhd> ok \<and> $wait \<rhd> P`"
+
+definition RC :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+"RC = CML1 \<circ> CML2 \<circ> CML3"
 
 syntax
   "_upred_design_rea"   :: "upred \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<turnstile>_\<diamond>" 50)
-  "_upred_cml1"         :: "upred \<Rightarrow> upred"
-  "_upred_cml2"         :: "upred \<Rightarrow> upred"
-  "_upred_cml3"         :: "upred \<Rightarrow> upred"
+  "_upred_cml1"         :: "upred \<Rightarrow> upred" ("CML1'(_')")
+  "_upred_cml2"         :: "upred \<Rightarrow> upred" ("CML2'(_')")
+  "_upred_cml3"         :: "upred \<Rightarrow> upred" ("CML3'(_')")
+  "_upred_rc"           :: "upred \<Rightarrow> upred" ("RC'(_')")
+  "_upred_semir_rea"   :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infix ";\<^bsub>REA\<^esub>" 50)
 
 translations
   "_upred_design_rea p q r"   == "CONST DesignREA p q r"
   "_upred_cml1 p"   == "CONST CML1 p"
   "_upred_cml2 p"   == "CONST CML2 p"
   "_upred_cml3 p"   == "CONST CML3 p"
+  "_upred_rc p"     == "CONST RC p"
+  "_upred_semir_rea p q" == "CONST SemiR_REA p q"
 
-definition SKIP :: "'a WF_PREDICATE" where
-"SKIP = `CML1(true \<turnstile> false \<diamond> II\<^bsub>REL_VAR - REA\<^esub>)`"
+abbreviation "NON_CML_VAR \<equiv> REL_VAR - REA - OKAY"
 
-syntax
-  "_upred_skip"   :: "upred"
+definition Skip2CML :: "'a WF_PREDICATE" ("SKIP2") where
+"SKIP2 = `RC(true \<turnstile> false \<diamond> ($tt\<acute>\<acute>\<acute>= \<langle>\<rangle> \<and> II\<^bsub>NON_CML_VAR\<^esub>))`"
 
-translations
-  "_upred_skip"   == "CONST SKIP"
-
-definition CML4 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"CML4 P = `SKIP ; P`"
-
-definition CML5 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"CML5 P = `P ; SKIP`"
-
-
-syntax
-  "_upred_cml4"         :: "upred \<Rightarrow> upred"
-  "_upred_cml5"         :: "upred \<Rightarrow> upred"
-
-translations
-  "_upred_cml4 p"   == "CONST CML1 p"
-  "_upred_cml5 p"   == "CONST CML2 p"
-
-definition R2c :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"R2c P = `P[($tr\<acute> - $tr)/tt\<acute>]`"
-
-definition R3c :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"R3c P = `P \<or> ($wait \<and> ok \<and> II\<^bsub>REL_VAR - {ref\<down>,ref\<down>\<acute>,tt \<down>,tt \<down>\<acute>}\<^esub>)`"
-
-definition RC :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"RC P = (R1 \<circ> R2c \<circ> R3c) P"
-
-lemma tr_eq_is_R1: "`$tr \<acute> = $tr` = `R1($tr \<acute> = $tr)`" sorry
-
-lemma R1_R2c_commute: "R1(R2c(P)) = R2c(R1(P))" 
-  apply(simp add:R1_def R2c_def SubstP_AndP)
-  apply(subst SubstP_VarP_single_UNREST) back back
-  apply(simp_all add:typing unrest defined closure)
-  done
-
-lemma R1_R3c_commute: "R1(R3c(P)) = R3c(R1(P))" 
-proof -
-  from tr_eq_is_R1 have 1: "`$tr \<acute> = $tr` = `($tr \<acute> = $tr) \<and> ($tr \<le> $tr\<acute>)`" by(simp add:R1_def)
-  thus ?thesis
-  apply(simp add:R1_def R3c_def AndP_OrP_distr)
-  apply(subst SkipRA_unfold[of "tr \<down>"])
-  apply(simp_all add:typing closure defined)
-  apply(subst SkipRA_unfold[of "tr \<down>"]) back
-  apply(simp_all add:typing closure defined AndP_assoc[THEN sym])
-  apply(simp add:erasure typing defined closure)
-  apply(utp_pred_auto_tac)
-done  
-qed
-
-lemma R2c_R3c_commute: "R2c(R3c(P)) = R3c(R2c(P))"
-  apply(simp add:R2c_def R3c_def)
-  apply(simp add:usubst typing defined closure)
+lemma SkipRA_unfold_aux_ty: 
+  fixes v :: "('a :: DEFINED, 'm :: VALUE) PVAR" 
+  assumes "TYPEUSOUND('a, 'm)" "v\<down> \<in> vs" "v\<down> \<acute> \<in> vs" "v \<in> PUNDASHED" "HOMOGENEOUS vs" "pvaux v"
+  shows "II\<^bsub>vs\<^esub> = `($v\<acute> = $v) \<and> II\<^bsub>vs - {v \<down>, v \<down>\<acute>}\<^esub>`"
+apply(subst SkipRA_unfold[of "v \<down>"])
+apply(simp_all add:closure assms erasure typing defined)
 done
 
-lemma R3c_is_R3: "CSP1(R3c(P)) is (CSP1 \<circ> R3)" 
-apply(simp add:is_healthy_def)
-apply(simp add:R3_def CSP1_def CondR_def AndP_OrP_distl OrP_assoc[THEN sym] R3c_def)
-sorry
-
-lemma R2c_is_R2: 
-  assumes "TR \<sharp> P"
-  shows "R2c(P) is R2s"
-apply(simp add:is_healthy_def R2c_def R2s_def)
-apply(subst SubstP_twice_2)
-apply(simp_all add:typing closure defined)
-apply(rule UNREST_subset [of "TR" _ "{tr \<down>}"])
-apply(simp_all add:typing defined closure assms)
-apply(subst SubstP_twice_2)
-apply(simp_all add:typing closure defined)
-apply(rule UNREST_subset [of "TR" _ "{tr \<down>\<acute>}"])
-apply(simp_all add:typing defined closure assms)
-apply(simp add:usubst typing defined closure)
-done 
-
-lemma DesignREA_closure: 
-  assumes "REA \<union> out(REL_VAR) \<sharp> A" "REA \<union> out(REL_VAR) - {ref \<down>\<acute>} \<sharp> B" "REA \<sharp> C"
-  shows "`RC( A \<turnstile> B \<diamond> C )` is RH"
-proof -
-  have "`RH(RC( A \<turnstile> B \<diamond> C ))` = R1 (R2 (R3 (R3c (R2c (A \<turnstile>B\<diamond> C)))))"
-    by(simp add:is_healthy_def RH_def RC_def R1_R3_commute[THEN sym] R1_R2_commute[THEN sym] R1_idempotent R2c_R3c_commute)
-  also have "... = R1 (R2 (R3c (R2c (A \<turnstile>B\<diamond> C))))"
-    by(metis R3c_is_R3 is_healthy_def)
-  also have "... = RC (A \<turnstile>B\<diamond> C)"
-    apply(simp add:R2_def R1_idempotent R3c_def RC_def)
-    apply(subst SkipRA_unfold[of "tr \<down>"])
-    apply(simp_all add:typing defined closure)
-    apply(subst SkipRA_unfold[of "tr \<down>"]) back
-    apply(simp_all add:typing defined closure)
-    apply(simp add:R2s_def)
+lemma Skip2_form:
+ "SKIP2 = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>) \<or>
+     (ok \<and> \<not> $wait \<and> II\<^bsub>REL_VAR - {ref \<down>,ref \<down>\<acute>}\<^esub>) `" (is "?lhs = ?rhs")
+proof-
+  have  "SKIP2 =  `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> R1(II\<^bsub>REA \<union> OKAY\<^esub>)) \<or> (ok \<and> \<not>$wait \<and> ok' \<and> \<not>$wait\<acute> \<and> ($tr\<acute> = $tr) \<and> II\<^bsub>REL_VAR - REA - OKAY\<^esub>)`"
+    apply(simp add:Skip2CML_def RC_def CML3_def CML2_def CML1_def R1_def DesignREA_def DesignD_def CondR_def ImpliesP_def)
     apply(simp add:usubst typing defined closure)
-    apply(simp add:R2c_def)
-    apply(subst SubstP_twice_2)
-    apply(simp_all add:closure typing defined DesignREA_def)
-    apply(rule unrest)
-    apply(rule UNREST_subset [of "REA \<union> out(REL_VAR)" _ "{tr \<down>}"])
-    apply(subst assms)
-    apply(simp_all)
-    apply(rule unrest)
-    apply(simp_all add:closure typing defined unrest)
-    apply(rule UNREST_subset [of "REA \<union> out(REL_VAR) - {ref \<down>\<acute>}" _ "{tr \<down>}"])
-    apply(subst assms)
-    apply(simp_all)
-    apply(rule UNREST_subset [of "REA" _ "{tr \<down>}"])
-    apply(subst assms)
-    apply(simp_all)
-    apply(simp add:usubst typing defined closure)
-    apply(subst SubstP_twice_2)
-    apply(simp_all add:closure typing defined)
-    apply(rule unrest)
-    apply(rule UNREST_subset [of "REA \<union> out(REL_VAR)" _ "{tr \<down>\<acute>}"])
-    apply(subst assms)
-    apply(simp_all)
-    apply(rule unrest)
-    apply(simp_all add:closure typing defined unrest)
-    apply(rule UNREST_subset [of "REA \<union> out(REL_VAR) - {ref \<down>\<acute>}" _ "{tr \<down>\<acute>}"])
-    apply(subst assms)
-    apply(simp_all)
-    apply(rule UNREST_subset [of "REA" _ "{tr \<down>\<acute>}"])
-    apply(subst assms)
-    apply(simp_all)
-    apply(simp add:usubst typing defined closure)
-    apply(simp add:R1_def AndP_OrP_distr AndP_assoc[THEN sym])
-    apply(subst AndP_comm) back back back back
-    apply(subst AndP_assoc[of "`($tr\<acute> - $tr) = \<langle>\<rangle>`""`($tr \<le> $tr\<acute>)`"])
+    apply(simp add:AndP_OrP_distr AndP_OrP_distl AndP_assoc[THEN sym])
+    apply(subst AndP_assoc)
+    apply(subst AndP_idem)
+    apply(subst AndP_comm) back back back back back back back back back back back back back
+    apply(subst AndP_assoc) back back back back back back back back
     apply(subst tr_prefix_as_nil)
-    apply(subst tr_eq_is_R1)
-    apply(simp add:R1_def erasure typing defined closure AndP_assoc[THEN sym])
-    apply(subst AndP_comm) back back back back
-    apply(simp)
-    done 
-    finally show ?thesis by(simp add:is_healthy_def)
-qed
+    apply(utp_poly_auto_tac)
+  done
+  also have "... = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> ($tr\<acute> = $tr) \<and> II\<^bsub>REA \<union> OKAY - {tr \<down>,tr \<down>\<acute>}\<^esub> \<and> ($tr \<le> $tr\<acute>)) \<or>
+     (ok \<and> \<not> $wait \<and> ok' \<and> \<not> $wait\<acute> \<and> ($tr\<acute> = $tr) \<and> II\<^bsub>REL_VAR - REA - OKAY\<^esub>) `"
+    apply(simp add:R1_def)
+    apply(subst SkipRA_unfold_aux_ty[of "tr "])
+    apply(simp_all add:closure typing)
+    apply(utp_poly_auto_tac)
+    done
+  also have "... = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and>  II\<^bsub>REA \<union> OKAY\<^esub>) \<or> (ok \<and> \<not> $wait \<and>  II\<^bsub>REL_VAR - {ref \<down>,ref \<down>\<acute>}\<^esub>) `"  
+    proof - 
+      have 1: "REL_VAR - {wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>} - {okay\<down>, okay\<down>\<acute>} = REL_VAR - {ref\<down>, ref\<down>\<acute>} - {wait\<down>, wait\<down>\<acute>} - {tr\<down>, tr\<down>\<acute>} - {okay\<down>, okay\<down>\<acute>}"
+        by (auto)
+      show ?thesis
+        apply(subst AndP_comm) back back back back
+        apply(subst AndP_assoc) back back
+        apply(subst tr_eq_is_R1)
+        apply(subst SkipRA_unfold_aux_ty[of "tr"]) back back
+        apply(simp_all add:typing closure)
+        apply(subst SkipRA_unfold_aux_ty[of "wait"]) back back back
+        apply(simp_all add:typing closure)
+        apply(subst SkipRA_unfold_aux_ty[of "tr"]) back back back
+        apply(simp_all add:typing closure)
+        apply(subst SkipRA_unfold_aux_ty[of "okay"]) back back back
+        apply(simp_all add:typing closure)
+        apply(subst 1)
+        apply(utp_poly_auto_tac)
+        done
+    qed
+      finally show ?thesis
+      .
+    qed
+    
+syntax
+  "_upred_skip_cml"   :: "upred" ("SKIP2")
 
-definition StopCML :: "'a WF_PREDICATE" ("STOP") where
-"STOP = `RC( true \<turnstile> $tt\<acute> = \<langle>\<rangle> \<diamond> false )`"
+translations
+  "_upred_skip_cml"   == "CONST Skip2CML"
 
-definition SkipCML :: "'a WF_PREDICATE" ("SKIP") where 
-"SKIP = `RC( true \<turnstile> false \<diamond> ($tt\<acute>=\<langle>\<rangle> \<and> II\<^bsub>REL_VAR - REA\<^esub>))`"
 
-definition ChaosCML :: "'a WF_PREDICATE" ("CHAOS") where 
-"CHAOS = `RC( false \<turnstile> false \<diamond> false)`"
+definition CML4 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+"CML4 P = `SKIP2 ; P`"
 
-definition MiracleCML :: "'a WF_PREDICATE" ("MIRACLE") where 
-"MIRACLE = `RC( true \<turnstile> false \<diamond> false)`"
-
-definition PrefixSkipCML :: "('m EVENT, 'm) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" ("_ \<rightarrow> SKIP") where
-"a \<rightarrow> SKIP = `RC( true \<turnstile> ($tt \<acute> = \<langle>\<rangle> \<and> a \<notin> $ref\<acute>) \<diamond> ($tt \<acute> = \<langle>a\<rangle> \<and> II\<^bsub>REL_VAR - REA\<^esub>))`"
+definition CML5 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+"CML5 P = `P ; SKIP2`"
 
 syntax
-  "_upred_StopCML" :: "upred" ("STOP")
-  "_upred_SkipCML" :: "upred" ("SKIP")
-  "_upred_ChaosCML" :: "upred" ("CHAOS")
-  "_upred_MiracleCML" :: "upred" ("MIRACLE")
-  "_upred_PrefixSkipCML" :: "uexpr \<Rightarrow> upred" ("@_")
+  "_upred_cml4"         :: "upred \<Rightarrow> upred" ("CML4'(_')")
+  "_upred_cml5"         :: "upred \<Rightarrow> upred" ("CML5'(_')")
+
+translations
+  "_upred_cml4 p"   == "CONST CML4 p"
+  "_upred_cml5 p"   == "CONST CML5 p"
+
+
+definition CML :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+"CML = CML1 \<circ> CML2 \<circ> CML3 \<circ> CML4 \<circ> CML5"
+ 
+syntax
+  "_upred_cml"         :: "upred \<Rightarrow> upred"("CML'(_')")  
+translations
+  "_upred_cml p"   == "CONST CML p" 
+
+declare CML1_def [eval, evalr, evalrr, evalrx, evalp]
+declare CML2_def [eval, evalr, evalrr, evalrx, evalp]
+declare CML3_def [eval, evalr, evalrr, evalrx, evalp]
+declare CML4_def [eval, evalr, evalrr, evalrx, evalp]
+declare CML5_def [eval, evalr, evalrr, evalrx, evalp]
+declare CML_def [eval, evalr, evalrr, evalrx, evalp]
+declare RC_def [eval, evalr, evalrr, evalrx, evalp]
+declare Skip2CML_def [eval, evalr, evalrr, evalrx, evalp]
+
+lemma CML1_CML2_commute: "CML1 (CML2 P) = CML2 (CML1 P)" sorry
+lemma CML1_CML3_commute: "CML1 (CML3 P) = CML3 (CML1 P)" sorry
+lemma CML1_CML4_commute: "CML1 (CML4 P) = CML4 (CML1 P)" sorry
+lemma CML1_CML5_commute: "CML1 (CML5 P) = CML5 (CML1 P)" sorry
+lemma CML2_CML3_commute: "CML2 (CML3 P) = CML3 (CML2 P)" sorry
+lemma CML2_CML4_commute: "CML2 (CML4 P) = CML4 (CML2 P)" sorry
+lemma CML2_CML5_commute: "CML2 (CML5 P) = CML5 (CML2 P)" sorry
+lemma CML3_CML4_commute: "CML3 (CML4 P) = CML4 (CML3 P)" sorry
+lemma CML3_CML5_commute: "CML3 (CML5 P) = CML5 (CML3 P)" sorry
+lemma CML4_CML5_commute: "CML4 (CML5 P) = CML5 (CML4 P)" sorry
+
+lemma CML1_idempotent: "CML1 (CML1 P) = CML1 P" sorry
+lemma CML2_idempotent: "CML2 (CML2 P) = CML2 P" sorry
+lemma CML3_idempotent: "CML3 (CML3 P) = CML3 P" sorry
+lemma CML4_idempotent: "CML4 (CML4 P) = CML4 P" sorry
+lemma CML5_idempotent: "CML5 (CML5 P) = CML5 P" sorry
+
+lemma DesignREA_form: 
+  "`RC( A \<turnstile> B \<diamond> C )` = `(\<not>ok \<and> ($tr \<le> $tr \<acute>)) \<or> (ok \<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>) \<or> (ok \<and> \<not>$wait \<and> CML1(\<not>A)) \<or> (ok \<and> \<not>$wait \<and> ok' \<and> $wait\<acute> \<and> CML1(A \<and> B)) \<or> (ok \<and> \<not>$wait \<and> ok' \<and> \<not>$wait\<acute> \<and> CML1(A \<and> C))`" (is "?lhs = ?rhs")
+    apply(simp add:RC_def CML1_CML2_commute CML1_CML3_commute)
+    apply(simp add:CML2_def CML3_def CML1_def R1_def DesignREA_def DesignD_def)
+    apply(simp add:usubst typing defined closure)
+    apply(utp_poly_auto_tac)
+  done
+ 
+
+lemma DesignREA_form_2: 
+  "`RC( A \<turnstile> B \<diamond> C )` = `(\<not>ok \<and> ($tr \<le> $tr \<acute>)) \<or> (ok \<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>) \<or> (ok \<and> \<not>$wait \<and> CML1(\<not>A)) \<or> (ok \<and> \<not>$wait \<and> ok' \<and> $wait\<acute> \<and> CML1(B)) \<or> (ok \<and> \<not>$wait \<and> ok' \<and> \<not>$wait\<acute> \<and> CML1(C))`" (is "?lhs = ?rhs")
+    apply(simp add:RC_def CML1_CML2_commute CML1_CML3_commute)
+    apply(simp add:CML2_def CML3_def CML1_def R1_def DesignREA_def DesignD_def)
+    apply(simp add:usubst typing defined closure)
+    apply(utp_poly_auto_tac)
+  done
+
+lemma CML1_CML2_SemiR_left_zero: 
+  assumes "Q is CML1" "Q is CML2" "Q \<in> WF_RELATION"
+  shows "`(\<not>ok \<and> ($tr \<le> $tr\<acute>));Q` = `(\<not>ok \<and> ($tr \<le> $tr\<acute>))`"
+proof -
+  have "`(\<not>ok \<and> ($tr \<le> $tr\<acute>));Q` = `(\<not>ok \<and> ($tr \<le> $tr\<acute>) \<and> (ok' \<or> \<not> ok')) ;Q`"
+    by(subst OrP_excluded_middle,simp)
+  also have "... = `((\<not>ok\<and> ($tr \<le> $tr\<acute>)) ; (ok \<and> Q)) \<or> ((\<not>ok \<and> ($tr \<le> $tr\<acute>)) ;(\<not>ok \<and> CML2(Q)))`"
+    apply(simp add:AndP_OrP_distl SemiR_OrP_distr)
+    apply(subst SemiR_AndP_right_precond)
+    apply(simp_all add:closure typing defined assms urename)
+    apply (metis DesignD_extreme_point_nok(2) R1_def R1_rel_closure TopD_rel_closure)
+    apply(subst SemiR_AndP_right_precond)
+    apply(simp_all add:closure typing defined assms urename)
+    apply (metis DesignD_extreme_point_nok(2) R1_def R1_rel_closure TopD_rel_closure)
+    apply (metis Healthy_simp assms(2) assms(3))
+    apply (smt AndP_OrP_distl AndP_comm AndP_contra PVAR_VAR_pvdash R1_OrP R1_def R1_extend_AndP SemiR_OrP_distr TopD_def assms(1) assms(2) calculation demorgan3 is_healthy_def utp_pred_simps(1) utp_pred_simps(6))
+    done
+  also have "... = `R1((\<not>ok \<and> ($tr \<le> $tr\<acute>)) ; (ok \<and> Q)) \<or> ((\<not>ok \<and> ($tr \<le> $tr\<acute>)) ; (\<not>ok \<and> ($tr \<le> $tr\<acute>)))`" 
+  proof - 
+    have "`(\<not>ok \<and> ($tr \<le> $tr\<acute>)) ; (ok \<and> CML1(Q))` is R1"
+      apply(subst R1_SemiR_closure)
+      apply(simp_all add:closure typing defined assms is_healthy_def R1_def AndP_assoc[THEN sym])
+      apply (metis DesignD_extreme_point_nok(2) R1_def R1_rel_closure TopD_rel_closure)
+      apply(subst Healthy_simp[ of "Q" "CML1"])
+      apply(simp_all add:assms closure)
+      apply(simp add:CML1_def R1_def AndP_assoc[THEN sym])
+    done
+    hence  "`(\<not>ok \<and> ($tr \<le> $tr\<acute>)) ; (ok \<and> Q)` is R1"
+      by(metis assms is_healthy_def)
+    hence 1: "`R1((\<not>ok \<and> ($tr \<le> $tr\<acute>)) ; (ok \<and> Q))` = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) ; (ok \<and> Q)`"
+      apply(subst Healthy_simp[of _ "R1"])
+      apply(simp_all)
+      done
+    show ?thesis  
+      apply(simp add:CML2_def CondR_def AndP_OrP_distl AndP_assoc)
+      apply(subst AndP_comm) back back back
+      apply(subst AndP_contra)
+      apply(simp add:1)
+      done
+  qed
+  also have "... = `\<not>ok \<and> ($tr \<le> $tr\<acute>)`"
+    apply(subst SemiR_remove_middle_unrest1[of _ _ "{okay \<down>}"]) back    
+    apply(simp_all add:closure typing defined unrest)
+    apply (metis R1_def R1_rel_closure TopD_def TopD_rel_closure)
+    apply (smt AndP_idem PVAR_VAR_pvdash PVarPE_def R1_def R1_rel_closure R2_def R2s_def SubstP_TrueP TrueP_rel_closure VAR_PVAR_erase_simps(2) bot_list_def bot_nat_def utp_pred_simps(3) utp_pred_simps(6))
+    apply (subst SemiR_AndP_left_precond)
+    apply(simp_all add:closure typing defined)
+    apply (smt AndP_idem PVAR_VAR_pvdash PVarPE_def R1_def R1_rel_closure R2_def R2s_def SubstP_TrueP TrueP_rel_closure VAR_PVAR_erase_simps(2) bot_list_def bot_nat_def utp_pred_simps(3) utp_pred_simps(6))
+    apply (metis AndP_rel_closure NotP_rel_closure TopD_def TopD_rel_closure assms(3) utp_pred_simps(3))
+    apply (subst SemiR_AndP_left_precond)
+    apply(simp_all add:closure typing defined)
+    apply (smt AndP_idem PVAR_VAR_pvdash PVarPE_def R1_def R1_rel_closure R2_def R2s_def SubstP_TrueP TrueP_rel_closure VAR_PVAR_erase_simps(2) bot_list_def bot_nat_def utp_pred_simps(3) utp_pred_simps(6))
+    apply(subst tr_leq_trans)
+    apply(simp add:R1_def AndP_assoc[THEN sym])
+    apply(subst AndP_comm) back back
+    apply(subst AndP_assoc)
+    apply(utp_poly_auto_tac)
+    done
+finally show ?thesis ..
+qed  
+
+lemma CML3_SemiR_left_zero: 
+  assumes "Q is CML3" "Q \<in> WF_RELATION"
+  shows "`(ok \<and> $wait \<and> II\<^bsub>{okay \<down>,okay \<down>\<acute>,wait \<down>,wait \<down>\<acute>,tr \<down>,tr \<down>\<acute>,ref \<down>,ref \<down>\<acute>}\<^esub>);Q` = `ok \<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>`"
+proof -
+  have 1: "`ok \<and> $wait \<and> ($okay\<acute> = $okay) \<and> ($wait\<acute> = $wait) \<and> II\<^bsub>{tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub>` = `ok \<and> $wait \<and> II\<^bsub>{tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub> \<and> ok' \<and> $wait\<acute>`"
+    by(utp_poly_auto_tac)
+  have "`(ok \<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>);Q` =  `(ok \<and> $wait \<and> II\<^bsub>REA - {wait \<down>,wait \<down>\<acute>}\<^esub>);(ok \<and> $wait \<and> Q)`"
+    apply(subst SkipRA_unfold_aux_ty[of "okay"])
+    apply(simp_all add:closure typing)
+    apply(subst SkipRA_unfold_aux_ty[of "wait"])
+    apply(simp_all add:closure typing)
+    apply(subst SemiR_AndP_right_precond)
+    apply(simp_all add:closure typing)
+    apply (metis (full_types) AndP_rel_closure MkPlainP_UNDASHED PUNDASHED_WF_CONDITION WF_CONDITION_WF_RELATION assms(2))
+    apply(subst SemiR_AndP_right_precond)
+    apply(simp_all add:closure typing urename)
+    apply (metis assms(2))
+    apply(simp add:AndP_assoc[THEN sym])
+    apply(subst 1)
+    apply(simp)
+    done
+  also have "... = `(ok \<and> $wait \<and> II\<^bsub>REA - {wait \<down>,wait \<down>\<acute>}\<^esub>);(ok \<and> $wait \<and> CML3(Q))`"
+    by(metis assms Healthy_simp)
+  also have "... = `(ok \<and> $wait \<and> II\<^bsub>REA - {wait \<down>,wait \<down>\<acute>}\<^esub>);(ok \<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>)`"
+    apply(simp add:CML3_def CondR_def AndP_OrP_distl)
+    apply(subst AndP_assoc) back
+    apply(subst AndP_assoc) back
+    apply(subst AndP_idem)
+    apply(subst AndP_assoc) back
+    apply(subst AndP_assoc) back
+    apply(subst AndP_contra)
+    apply(simp)
+    apply(subst AndP_assoc[THEN sym])
+    apply(simp)
+    done
+  also have "... = `(ok \<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>);II\<^bsub>REA \<union> OKAY\<^esub>`"
+    proof -
+      have 1 : "{okay\<down>, okay\<down>\<acute>, wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>} - {wait\<down>, wait\<down>\<acute>} - {okay\<down>, okay\<down>\<acute>} = {tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}" 
+        by(auto)
+      have 2 : "`$okay \<and> $wait \<and> ($wait\<acute> = $wait) \<and> ($okay\<acute> = $okay) \<and> II\<^bsub>{tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub>` = `$okay \<and> $wait \<and> II\<^bsub>{tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub> \<and> $okay\<acute> \<and> $wait\<acute>`"
+        by(utp_poly_auto_tac)
+      show ?thesis
+        apply(subst SemiR_AndP_right_precond)
+        apply(simp_all add:closure typing)
+        apply(subst SemiR_AndP_right_precond)
+        apply(simp_all add:closure typing urename)
+        apply(subst SkipRA_unfold_aux_ty[of "wait "]) back back
+        apply(simp_all add:closure typing)
+        apply(subst SkipRA_unfold_aux_ty[of "okay "]) back back
+        apply(simp_all add:closure typing defined)
+        apply(subst 1)
+        apply(subst 2)
+        apply(simp add:AndP_assoc)
+        done
+    qed
+    also have "... = `ok \<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>`"
+      apply(subst SemiR_AndP_left_precond)
+      apply(simp_all add:closure typing)
+      apply(subst SemiR_AndP_left_precond)
+      apply(simp_all add:closure typing)
+      done
+    finally show ?thesis by (smt Un_commute Un_left_commute bot_set_def inf_sup_aci(5) inf_sup_aci(7) insert_commute insert_compr insert_is_Un sup.commute sup.left_commute sup_commute sup_left_commute)
+qed
+
+lemma CML4_form:
+  assumes "P \<in> WF_RELATION" "P is CML1" "P is CML2" "P is CML3" "{ref \<down>} \<sharp> P\<^sub>f"
+  shows "P is CML4"
+proof - 
+have "CML4 P = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>) \<or> (ok \<and> \<not> $wait \<and> (II\<^bsub>REL_VAR - {ref\<down>, ref\<down>\<acute>}\<^esub> ;  P))`"
+apply(simp add:CML4_def Skip2_form SemiR_OrP_distr)
+apply(subst CML1_CML2_SemiR_left_zero)
+apply(simp_all add:assms)
+apply(subst OrP_comm) back
+apply(simp add:OrP_assoc)
+apply(subst OrP_comm) back
+apply(subst CML3_SemiR_left_zero)
+apply(simp_all add:assms)
+apply(subst SemiR_AndP_left_precond)
+apply(simp_all add:assms closure typing)
+apply(subst SemiR_AndP_left_precond)
+apply(simp_all add:assms closure typing)
+apply(simp add: OrP_assoc[THEN sym])
+apply(subst OrP_comm)
+apply(simp add: OrP_assoc[THEN sym])
+apply(subst OrP_comm) back
+apply(simp)
+done
+also have "... = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>) \<or> (ok \<and> \<not> $wait \<and> (II\<^bsub>REL_VAR - {ref\<down>, ref\<down>\<acute>}\<^esub> ; (\<not>$wait \<and>  P\<^sub>f)))`"
+sorry (* utp_poly_laws / expr *)
+also have "... = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>) \<or> (ok \<and> \<not> $wait \<and> P\<^sub>f)`"
+proof -
+  have 1: " D\<^sub>0 - in (REL_VAR - {ref\<down>, ref\<down>\<acute>}) = {ref \<down>}" 
+    apply(auto)
+    apply(simp_all add:closure typing defined var_dist)
+    done
+  show ?thesis
+    apply(subst SkipRA_left_unit)
+    apply(simp_all add:closure typing defined assms unrest)
+    apply(rule unrest)
+    apply(simp add:typing defined closure unrest)
+    apply(subst 1)
+    apply(simp add:assms)
+    apply(simp add:AndP_assoc)
+    done
+qed
+also have "... = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>) \<or> (ok \<and> \<not> $wait \<and> P)`"
+sorry
+also have "... = `CML2 (CML3 (P))`"
+apply(simp add:CML2_def CML3_def CondR_def)
+apply(utp_poly_auto_tac)
+done
+finally have "CML4 P = P" 
+by (metis assms is_healthy_def)
+thus ?thesis 
+by(simp add:is_healthy_def)
+ qed   
+
+lemma SkipCML_rel_closure: 
+  "SKIP2 \<in> WF_RELATION"
+sorry
+
+lemma CML1_AndP: 
+  "`CML1(A \<and> B)` = `CML1(A) \<and> CML1(B)`"sorry
+
+lemma UNREST_CML1: 
+  assumes " vs \<sharp> P" " tr \<down> \<notin> vs" "tr \<down>\<acute> \<notin> vs"
+  shows "vs \<sharp> `CML1(P)`"
+sorry
+
+theorem AndP_post_closure [closure]:
+  "\<lbrakk> p \<in> WF_POSTCOND; q \<in> WF_POSTCOND \<rbrakk> \<Longrightarrow> p \<and>\<^sub>p q \<in> WF_POSTCOND"
+  by (auto simp add:WF_POSTCOND_def intro:unrest closure)
+
+theorem OrP_post_closure [closure]:
+  "\<lbrakk> p \<in> WF_POSTCOND; q \<in> WF_POSTCOND \<rbrakk> \<Longrightarrow> p \<or>\<^sub>p q \<in> WF_POSTCOND"
+  by (auto simp add:WF_POSTCOND_def intro:unrest closure)
+
+theorem NotP_post_closure [closure]:
+  "p \<in> WF_POSTCOND \<Longrightarrow> \<not>\<^sub>p p \<in> WF_POSTCOND"
+  by (auto simp add:WF_POSTCOND_def intro:unrest closure)
+
+lemma CML5_form: 
+  assumes "`RC(A \<turnstile> B \<diamond> C)` \<in> WF_RELATION" 
+          "D\<^sub>2 \<sharp> A"  "D\<^sub>2 \<sharp> B"  "D\<^sub>2 \<sharp> C" 
+          "`CML1(A)` \<in> WF_RELATION" "`CML1(\<not>A)` \<in> WF_RELATION" "`CML1(B)` \<in> WF_RELATION" "`CML1(C)` \<in> WF_RELATION" 
+          "D\<^sub>1 \<sharp> A" "D\<^sub>1 - out (REA \<union> OKAY) \<sharp> B" "{ref \<down>\<acute>} \<sharp> C"
+          "`CML1(\<not>A);($tr \<le> $tr\<acute>)` = `CML1(\<not>A)`"
+  shows "`RC(A \<turnstile> B \<diamond> C)` is CML5"
+proof -
+ have "`CML5 (RC(A \<turnstile> B \<diamond> C))` = ` (\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok\<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A) \<and> (ok' \<or> \<not>ok')) ; SKIP2 \<or> (ok \<and> \<not> $wait \<and> CML1(A \<and> B) \<and> $wait\<acute> \<and> ok' ) ; SKIP2 \<or> (ok \<and> \<not> $wait \<and> CML1(A \<and> C) \<and> \<not> $wait\<acute> \<and> ok') ; SKIP2`"
+ apply(simp add:CML5_def DesignREA_form SemiR_OrP_distr)
+ apply(subst CML1_CML2_SemiR_left_zero)
+ apply(simp add:Skip2CML_def is_healthy_def RC_def CML1_idempotent)
+ apply(simp add:Skip2CML_def is_healthy_def RC_def CML1_CML2_commute CML2_idempotent)
+ apply(simp add:SkipCML_rel_closure)
+ apply(subst CML3_SemiR_left_zero)
+ apply(simp add:Skip2CML_def is_healthy_def RC_def CML1_CML3_commute CML2_CML3_commute CML3_idempotent)
+ apply(simp add:SkipCML_rel_closure)
+ apply(subst OrP_excluded_middle)
+ apply(simp)
+apply(smt AndP_comm AndP_assoc)
+done
+  also have "... = ` (\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok\<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A)) ; (ok \<and> SKIP2 )\<or> 
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A)) ; (\<not>ok \<and> SKIP2 ) \<or> 
+     (ok \<and> \<not> $wait \<and> CML1(A \<and> B)) ;($wait \<and> ok \<and> SKIP2) \<or> 
+     (ok \<and> \<not> $wait \<and> CML1(A \<and> C)) ; (\<not>$wait \<and> ok \<and> SKIP2)`"
+    apply(simp add: AndP_OrP_distl)
+    apply(subst SemiR_OrP_distr)
+    apply(simp add:OrP_assoc[THEN sym])
+    apply(subst SemiR_algebraic)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp add:CML1_def R1_def)
+    apply(rule unrest)
+    apply(rule UNREST_SubstP[of _ _ "D\<^sub>2" _ "D\<^sub>2"])
+    apply(simp_all add:typing defined closure unrest)
+    apply(rule unrest)
+    apply(simp add:assms)
+    apply(simp add:Skip2_form)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp_all add:closure typing defined unrest)
+    apply(subst SemiR_algebraic)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp add:CML1_def R1_def)
+    apply(rule unrest)
+    apply(rule UNREST_SubstP[of _ _ "D\<^sub>2" _ "D\<^sub>2"])
+    apply(simp_all add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp add:assms)
+    apply(simp add:Skip2_form)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp_all add:closure typing defined unrest)
+    apply(subst SemiR_algebraic)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp add:CML1_def R1_def)
+    apply(rule unrest)
+    apply(rule UNREST_SubstP[of _ _ "D\<^sub>2" _ "D\<^sub>2"])
+    apply(simp_all add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp_all add:assms)
+    apply(simp add:Skip2_form)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp_all add:closure typing defined unrest)
+    apply(subst SemiR_algebraic)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp add:CML1_def R1_def)
+    apply(rule unrest)
+    apply(rule UNREST_SubstP[of _ _ "D\<^sub>2" _ "D\<^sub>2"])
+    apply(simp_all add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp_all add:assms)
+    apply(simp add:Skip2_form)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp_all add:closure typing defined unrest)
+    apply(subst SemiR_algebraic)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(simp add:CML1_def R1_def)
+    apply(rule unrest)
+    apply(rule UNREST_SubstP[of _ _ "D\<^sub>2" _ "D\<^sub>2"])
+    apply(simp_all add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp_all add:assms)
+    apply(simp add:Skip2_form)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp_all add:closure typing defined unrest)
+    apply(subst SemiR_algebraic)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(simp add:CML1_def R1_def)
+    apply(rule unrest)
+    apply(rule UNREST_SubstP[of _ _ "D\<^sub>2" _ "D\<^sub>2"])
+    apply(simp_all add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp_all add:assms)
+    apply(simp add:Skip2_form)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp_all add:closure typing defined unrest)
+    apply(subst SemiR_algebraic)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(simp add:CML1_def R1_def)
+    apply(rule unrest)
+    apply(rule UNREST_SubstP[of _ _ "D\<^sub>2" _ "D\<^sub>2"])
+    apply(simp_all add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp_all add:assms)
+    apply(simp add:Skip2_form)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp_all add:closure typing defined unrest)
+    apply(subst SemiR_algebraic)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(simp add:CML1_def R1_def)
+    apply(rule unrest)
+    apply(rule UNREST_SubstP[of _ _ "D\<^sub>2" _ "D\<^sub>2"])
+    apply(simp_all add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp_all add:assms)
+    apply(simp add:Skip2_form)
+    apply(rule unrest)
+    apply(simp add:closure typing defined unrest)
+    apply(rule unrest)
+    apply(simp_all add:closure typing defined unrest)
+    apply(simp add:urename closure typing defined AndP_assoc[THEN sym])
+    done
+also have "... = 
+    `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or>
+     (ok \<and> $wait \<and> II\<^bsub>{okay\<down>, okay\<down>\<acute>, wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub>) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A)) ; ($okay \<and> $wait \<and> II\<^bsub>{okay\<down>, okay\<down>\<acute>, wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub>) \<or> 
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A)) ; ($okay \<and> \<not> $wait \<and> II\<^bsub>REL_VAR - {ref\<down>, ref\<down>\<acute>}\<^esub>) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A)) ; (\<not> $okay \<and> ($tr \<le> $tr\<acute>)) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(A \<and> B) \<and> ok' \<and> $wait \<acute>) ; II\<^bsub>{okay\<down>, okay\<down>\<acute>, wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub> \<or> 
+     (ok \<and> \<not> $wait \<and> CML1(A \<and> C) \<and> ok' \<and> \<not> $wait \<acute>) ;  II\<^bsub>REL_VAR - {ref\<down>, ref\<down>\<acute>}\<^esub>`"
+  proof -
+    have 1: "`ok \<and> SKIP2` = `(ok \<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>) \<or> (ok \<and> \<not>$wait \<and> II\<^bsub>REL_VAR - {ref \<down>,ref \<down>\<acute>}\<^esub>)`" 
+      apply(simp add:Skip2_form)
+      apply(utp_poly_auto_tac)
+      done
+    have 2: "`\<not>ok \<and> SKIP2` = `\<not>ok \<and> ($tr \<le> $tr \<acute>)`"
+      apply(simp add:Skip2_form)
+      apply(utp_poly_auto_tac)
+      done
+    have 3: "`\<not>$wait \<and> ok \<and> SKIP2` = `(ok \<and> \<not>$wait \<and> II\<^bsub>REL_VAR - {ref \<down>,ref \<down>\<acute>}\<^esub>)`"
+      apply(simp add:Skip2_form)
+      apply(utp_poly_auto_tac)
+      done
+    have 4: "`$wait \<and> ok \<and> SKIP2` =  `(ok \<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>)`" 
+      apply(simp add:Skip2_form)
+      apply(utp_poly_auto_tac)
+      done
+    show ?thesis
+      apply(simp add:3 4)
+      apply(simp add:1 2 SemiR_OrP_distl OrP_assoc[THEN sym])
+      apply(subst SemiR_algebraic) back back back
+      defer 
+      defer 
+      apply(subst SemiR_algebraic) back back back
+      defer 
+      defer 
+      apply(subst SemiR_algebraic) back back back back back back
+      defer 
+      defer 
+      apply(subst SemiR_algebraic) back back back back back back
+      defer 
+      defer 
+      apply(simp add:urename closure typing defined AndP_assoc[THEN sym])
+      apply(simp_all add:typing defined closure unrest)
+      apply(rule unrest)
+      defer 
+      apply(rule unrest)
+      defer
+      apply(simp add:CML1_def R1_def)
+      apply(rule unrest)
+      defer
+      defer 
+      apply(rule unrest)
+      defer
+      apply(rule unrest)
+      defer 
+      apply(simp add:CML1_def R1_def)
+      apply(rule unrest)
+      defer
+      apply(rule unrest)
+      defer
+      apply(rule unrest)
+      defer 
+      apply(rule unrest)
+      defer
+      apply(simp add:CML1_def R1_def)
+      apply(rule unrest)
+      defer
+      defer 
+      apply(rule unrest)
+      defer
+      apply(rule unrest)
+      defer 
+      apply(simp add:CML1_def R1_def)
+      apply(rule unrest)
+      defer
+      apply(rule unrest)
+      defer
+      apply(simp_all add:typing defined closure unrest)
+      apply(subst UNREST_SubstP[of _ _ "D\<^sub>2" _ "D\<^sub>2"])    
+      apply(simp_all add:typing defined closure unrest)
+      apply(rule unrest)
+      apply(simp_all add:assms)
+      apply(subst UNREST_SubstP[of _ _ "D\<^sub>2" _ "D\<^sub>2"])    
+      apply(simp_all add:typing defined closure unrest)
+      apply(rule unrest)
+      apply(simp_all add:assms)
+      apply(rule unrest)
+      apply(subst UNREST_SubstP[of _ _ "D\<^sub>2" _ "D\<^sub>2"])    
+      apply(simp_all add:typing defined closure unrest)
+      apply(rule unrest)
+      apply(simp_all add:assms)
+      apply(rule unrest)
+      apply(subst UNREST_SubstP[of _ _ "D\<^sub>2" _ "D\<^sub>2"])    
+      apply(simp_all add:typing defined closure unrest)
+      apply(rule unrest)
+      apply(simp_all add:assms)
+      done
+qed
+also have "... = 
+    `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or>
+     (ok \<and> $wait \<and> II\<^bsub>{okay\<down>, okay\<down>\<acute>, wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub>) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A)) ; ($okay \<and> $wait \<and> II\<^bsub>{okay\<down>, okay\<down>\<acute>, wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub>) \<or> 
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A)) ; ($okay \<and> \<not> $wait \<and> II\<^bsub>REL_VAR - {ref\<down>, ref\<down>\<acute>}\<^esub>) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A)) ; (\<not> $okay \<and> ($tr \<le> $tr\<acute>)) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(A \<and> B) \<and> ok' \<and> $wait \<acute>) \<or> 
+     (ok \<and> \<not> $wait \<and> CML1(A \<and> C) \<and> ok' \<and> \<not> $wait \<acute>)`"
+apply(subst SkipRA_right_unit)
+apply(simp_all add:typing defined closure unrest assms CML1_AndP)
+apply(rule unrest)
+apply(simp add:typing defined closure unrest assms)
+apply(rule unrest)
+apply(simp add:typing defined closure unrest assms)
+apply(rule unrest)
+apply(rule unrest)
+apply(simp_all add:typing defined closure unrest assms CML1_AndP)
+defer 
+defer 
+apply(subst SkipRA_right_unit)
+apply(simp_all add:typing defined closure unrest assms CML1_AndP)
+apply(rule unrest)
+apply(simp add:typing defined closure unrest assms)
+apply(rule unrest)
+apply(simp add:typing defined closure unrest assms)
+apply(rule unrest)
+apply(rule unrest)
+apply(simp_all add:typing defined closure unrest assms CML1_AndP)
+apply(subst UNREST_CML1)
+apply(subst UNREST_subset[of "D\<^sub>1"] )
+apply(simp_all add:assms)
+apply(subst UNREST_CML1)
+apply(subst UNREST_subset[of "{ref \<down>\<acute>}"] )
+apply(simp_all add:assms)
+defer 
+apply(subst UNREST_CML1)
+apply(subst UNREST_subset[of "D\<^sub>1"] )
+apply(simp_all add:assms)
+apply(subst UNREST_CML1)
+apply(subst UNREST_subset[of "D\<^sub>1 - out(REA \<union> OKAY)"] )
+apply(subst assms)
+apply(simp_all add:assms var_dist closure)
+done
+also have "... = 
+    `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or>
+     (ok \<and> $wait \<and> II\<^bsub>{okay\<down>, okay\<down>\<acute>, wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub>) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A)) ; (ok \<and> $wait \<and> II\<^bsub>{ tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub> \<and> (ok' \<and> $wait\<acute>)) \<or> 
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A)) ; (ok \<and> \<not>$wait \<and> II\<^bsub>REL_VAR - {ref\<down>, ref\<down>\<acute>,okay \<down>,okay \<down>\<acute>,wait \<down>,wait \<down>\<acute>}\<^esub> \<and> (ok' \<and> \<not>$wait\<acute>)) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A)) ; ( \<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(A \<and> B) \<and> ok' \<and> $wait \<acute>) \<or> 
+     (ok \<and> \<not> $wait \<and> CML1(A \<and> C) \<and> ok' \<and> \<not> $wait \<acute>)`"
+proof -
+  have 1: "`(ok \<and> $wait \<and> II\<^bsub>{okay\<down>, okay\<down>\<acute>, wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub>) ` = `(ok \<and> $wait \<and> II\<^bsub>{tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub> \<and> ($okay\<acute> \<and> $wait\<acute>))`" 
+          apply(subst SkipRA_unfold_aux_ty[of "okay"])
+          apply(simp_all add:typing closure)
+          apply(subst SkipRA_unfold_aux_ty[of "wait"])
+          apply(simp_all add:typing closure)
+          apply(utp_poly_auto_tac)
+          done
+  have 2: " `($okay \<and> \<not> $wait \<and> II\<^bsub>REL_VAR - {ref\<down>, ref\<down>\<acute>}\<^esub>)` = `(ok \<and> \<not>$wait \<and> II\<^bsub>REL_VAR - {ref\<down>, ref\<down>\<acute>,okay \<down>,okay \<down>\<acute>,wait \<down>,wait \<down>\<acute>}\<^esub> \<and> (ok' \<and> \<not>$wait\<acute>))`"
+    apply(subst SkipRA_unfold_aux_ty[of "okay"])
+    apply(simp_all add:typing closure)
+    apply(subst SkipRA_unfold_aux_ty[of "wait"])
+    apply(simp_all add:typing closure)
+    apply(utp_poly_auto_tac)
+    sorry
+    show ?thesis by(simp add:1 2) qed
+also have "... = 
+    `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or>
+     (ok \<and> $wait \<and> II\<^bsub>{okay\<down>, okay\<down>\<acute>, wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub>) \<or>
+     (((ok \<and> \<not> $wait \<and> CML1(\<not> A)) ; II\<^bsub>{ tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub>) \<and> ok' \<and> $wait\<acute>) \<or> 
+     (((ok \<and> \<not> $wait \<and> CML1(\<not> A)) ; II\<^bsub>REL_VAR - {ref\<down>, ref\<down>\<acute>,okay \<down>,okay \<down>\<acute>,wait \<down>,wait \<down>\<acute>}\<^esub>) \<and> ok' \<and> \<not>$wait\<acute>) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A)) ; ($tr \<le> $tr\<acute>) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(A \<and> B) \<and> ok' \<and> $wait \<acute>) \<or> 
+     (ok \<and> \<not> $wait \<and> CML1(A \<and> C) \<and> ok' \<and> \<not> $wait \<acute>)`"
+apply(subst AndP_assoc) back back
+apply(subst SemiR_remove_middle_unrest1[of _ _ "{okay \<down>,wait \<down>}"])
+apply(simp_all add:typing defined closure unrest assms)
+apply(rule unrest) defer 
+apply(rule unrest) defer 
+apply(rule UNREST_CML1) 
+apply(rule unrest)
+apply(rule UNREST_subset[of "D\<^sub>1"])
+apply(simp_all add:typing defined closure assms unrest)
+apply(rule unrest)
+apply(rule UNREST_subset[of "VAR - {tr \<down>,tr \<down>\<acute>,ref \<down>,ref \<down>\<acute>}"])
+apply(simp_all add:typing defined closure assms unrest)
+apply(utp_poly_auto_tac)
+defer 
+apply(subst AndP_assoc) back back back back
+apply(subst SemiR_remove_middle_unrest1[of _ _ "{okay \<down>,wait \<down>}"]) back
+apply(simp_all add:typing defined closure unrest assms)
+apply(rule unrest) defer 
+apply(rule unrest) defer 
+apply(rule UNREST_CML1) 
+apply(rule unrest)
+apply(rule UNREST_subset[of "D\<^sub>1"])
+apply(simp_all add:typing defined closure assms unrest)
+apply(rule unrest)
+apply(rule UNREST_subset[of "VAR - (REL_VAR - {ref \<down>,ref \<down>\<acute>,okay \<down>,okay \<down>\<acute>,wait \<down>,wait \<down>\<acute>})"])
+apply(rule UNREST_SkipRA)
+apply(auto)[1]
+apply(simp_all add:typing defined closure assms unrest)
+apply(utp_poly_auto_tac)
+defer 
+apply(subst SemiR_remove_middle_unrest1[of _ _ "{okay \<down>}"]) back back
+apply(simp_all add:typing defined closure unrest assms)
+apply (smt AndP_idem PVAR_VAR_pvdash R1_def R1_rel_closure R2_def R2s_def SubstP_TrueP TrueP_rel_closure VAR_PVAR_erase_simps(2) bot_list_def bot_nat_def utp_pred_simps(3) utp_pred_simps(6))
+apply(rule unrest) back back
+apply(simp_all add:typing defined closure unrest assms)
+apply(rule unrest) back back
+apply(simp_all add:typing defined closure unrest assms)
+apply(rule UNREST_CML1)
+apply(rule unrest) back back
+apply(rule UNREST_subset[of "D\<^sub>1"])
+apply(simp_all add:typing defined closure unrest assms)
+apply(subst SemiR_AndP_right_postcond)
+apply(simp_all add:typing defined closure assms)
+apply(subst SemiR_AndP_right_postcond)
+apply(simp_all add:typing defined closure assms)
+apply(rule_tac x="\<B>(okay :=\<^sub>* True, wait :=\<^sub>* True)" in exI, simp add:typing defined closure)
+apply(rule_tac x="\<B>(okay :=\<^sub>* True, wait :=\<^sub>* False)" in exI, simp add:typing defined closure)
+done
+also have "... = 
+    `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or>
+     (ok \<and> $wait \<and> II\<^bsub>{okay\<down>, okay\<down>\<acute>, wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub>) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A) \<and> ok' ) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A)) ; ($tr \<le> $tr\<acute>) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(A \<and> B) \<and> ok' \<and> $wait \<acute>) \<or> 
+     (ok \<and> \<not> $wait \<and> CML1(A \<and> C) \<and> ok' \<and> \<not> $wait \<acute>)`"
+apply(subst SkipRA_right_unit)
+apply(simp_all add:closure typing defined assms unrest)
+apply(rule unrest) defer 
+apply(rule unrest) defer 
+apply(rule UNREST_CML1)
+apply(rule unrest)
+apply(rule UNREST_subset[of "D\<^sub>1"])
+apply(simp_all add:assms closure typing defined unrest)
+apply(subst SkipRA_right_unit)
+apply(simp_all add:closure typing defined assms unrest)
+apply(rule unrest) defer 
+apply(rule unrest) defer 
+apply(rule UNREST_CML1)
+apply(rule unrest)
+apply(rule UNREST_subset[of "D\<^sub>1"])
+apply(simp_all add:assms closure typing defined unrest)
+apply(utp_poly_auto_tac)
+done
+also have "... = 
+    `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or>
+     (ok \<and> $wait \<and> II\<^bsub>{okay\<down>, okay\<down>\<acute>, wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub>) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A)) ; ($tr \<le> $tr\<acute>) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(A \<and> B) \<and> ok' \<and> $wait \<acute>) \<or> 
+     (ok \<and> \<not> $wait \<and> CML1(A \<and> C) \<and> ok' \<and> \<not> $wait \<acute>)`"
+sorry
+also have "... = 
+    `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or>
+     (ok \<and> $wait \<and> II\<^bsub>{okay\<down>, okay\<down>\<acute>, wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub>) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A)) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(A \<and> B) \<and> ok' \<and> $wait \<acute>) \<or> 
+     (ok \<and> \<not> $wait \<and> CML1(A \<and> C) \<and> ok' \<and> \<not> $wait \<acute>)`"
+apply(subst AndP_assoc) back
+apply(subst SemiR_AndP_left_precond[of _ _ "`ok \<and> \<not>$wait`"])
+apply(simp_all add:closure typing defined assms)
+apply (smt AndP_idem PVAR_VAR_pvdash R1_def R1_rel_closure R2_def R2s_def SubstP_TrueP TrueP_rel_closure VAR_PVAR_erase_simps(2) bot_list_def bot_nat_def utp_pred_simps(3) utp_pred_simps(6))
+apply (simp add: AndP_assoc[THEN sym])
+done
+also have "... = `RC(A \<turnstile> B \<diamond> C)`" 
+apply(simp add:DesignREA_form) 
+apply(utp_poly_auto_tac) 
+done
+finally show ?thesis by(simp add:is_healthy_def) 
+qed
+
+
+lemma RC_DesignREA_rel_closure: 
+  assumes "`CML1(\<not>A)` \<in> WF_RELATION" "`CML1(A)` \<in> WF_RELATION" "`CML1(B)` \<in> WF_RELATION" "`CML1(C)` \<in> WF_RELATION"
+  shows " `RC( A \<turnstile> B \<diamond> C)` \<in> WF_RELATION"
+sorry
+
+lemma DesignREA_closure: 
+  assumes "REA \<union> D\<^sub>1 \<sharp> A" "REA \<union> D\<^sub>1 - {ref\<down>\<acute>} \<sharp> B" "REA \<sharp> C" "`RC( A \<turnstile> B \<diamond> C )` \<in> WF_RELATION" 
+      "`CML1(A)` \<in> WF_RELATION" "`CML1(\<not>A)` \<in> WF_RELATION" "`CML1(B)` \<in> WF_RELATION" "`CML1(C)` \<in> WF_RELATION"
+      "D\<^sub>2 \<sharp> A" "D\<^sub>2 \<sharp> B" "D\<^sub>2 \<sharp> C" "`CML1(\<not>A);($tr \<le> $tr\<acute>)` = `CML1(\<not>A)`"
+  shows "`RC( A \<turnstile> B \<diamond> C )` is CML"
+proof -
+  have 1: "`RC( A \<turnstile> B \<diamond> C )` is CML1" 
+    by(simp add:is_healthy_def RC_def CML1_idempotent)
+  have 2: "`RC( A \<turnstile> B \<diamond> C )` is CML2" 
+    by(simp add:is_healthy_def RC_def CML2_idempotent CML1_CML2_commute)
+  have 3: "`RC( A \<turnstile> B \<diamond> C )` is CML3" 
+    by(simp add:is_healthy_def RC_def CML3_idempotent CML1_CML3_commute CML2_CML3_commute)
+  have 4: "`RC( A \<turnstile> B \<diamond> C )` is CML4" 
+    apply(subst CML4_form)
+    apply(simp_all add:assms closure typing defined 1 2 3)
+    apply(simp add:RC_def CML1_def DesignREA_def DesignD_def ImpliesP_def CML2_def CML3_def  R1_def CondR_def usubst typing defined closure)
+    apply(simp add:AndP_OrP_distr AndP_OrP_distl)
+    apply(simp add:AndP_assoc[THEN sym])
+    apply(rule unrest) back
+    apply(rule unrest) back
+    apply(rule unrest) back
+    defer 
+    apply(rule unrest) back
+    apply(rule unrest) back
+    apply(rule unrest) back
+    defer 
+    apply(rule UNREST_SubstP[of _ _ "{ref \<down>}" _ "{ref \<down>}"])
+    apply(simp_all add:typing defined closure unrest)
+    apply(rule UNREST_SubstP[of _ _ "{ref \<down>}" _ "{ref \<down>}"])
+    apply(simp_all add:typing defined closure unrest)
+    apply(rule UNREST_subset[of "REA \<union> D\<^sub>1"])
+    apply (metis Un_commute assms(1))
+    apply(auto)
+    apply(rule unrest) back
+    apply(rule unrest) back
+    defer 
+    apply(rule unrest) back
+    defer 
+    apply(rule unrest) back
+    defer 
+    apply(rule unrest) back
+    apply(rule UNREST_SubstP[of _ _ "{ref \<down>}" _ "{ref \<down>}"])
+    apply(simp_all add:typing defined closure unrest)
+    apply(rule UNREST_SubstP[of _ _ "{ref \<down>}" _ "{ref \<down>}"])
+    apply(simp_all add:typing defined closure unrest)
+    apply(rule UNREST_subset[of "REA \<union> D\<^sub>1 - {ref \<down>\<acute>}"])
+    apply (metis Un_commute assms(2))
+    apply(auto)
+    apply(rule unrest) back
+    defer 
+    apply(rule unrest) back
+    defer 
+    apply(rule unrest) back
+    defer 
+    apply(rule unrest) back
+    apply(rule UNREST_SubstP[of _ _ "{ref \<down>}" _ "{ref \<down>}"])
+    apply(simp_all add:typing defined closure unrest)
+    apply(rule UNREST_SubstP[of _ _ "{ref \<down>}" _ "{ref \<down>}"])
+    apply(simp_all add:typing defined closure unrest)
+    apply(rule UNREST_subset[of "REA"])
+    apply (metis Un_commute assms(3))
+    apply(auto)
+  done
+  have 5: "`RC( A \<turnstile> B \<diamond> C )` is CML5"
+  apply(subst CML5_form)
+  apply(simp_all add:assms closure typing defined unrest)
+  apply(subst UNREST_subset[of "REA \<union> D\<^sub>1"])
+  apply(rule assms)
+  apply(auto)
+  apply(subst UNREST_subset[of "REA \<union> D\<^sub>1 - {ref \<down>\<acute>}"])
+  apply(rule assms)
+  apply(auto)
+  apply(subst UNREST_subset[of "REA"])
+  apply(rule assms)
+  apply(auto)
+  done
+  show ?thesis
+  by (metis (no_types) "3" "4" "5" "2" "1" CML_def Healthy_intro Healthy_simp RC_def o_eq_dest_lhs)
+qed
+
+lemma Precondition_SemiR: 
+  assumes "{okay \<down>\<acute>} \<sharp> P" "Q is RC" "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
+  shows "`P ; Q` = `P ; ($tr \<le> $tr\<acute>)`"
+proof -
+  have "`P ; Q` = `(P \<and> (ok' \<or> \<not>ok'));Q`" sorry
+  also have "... = `(P ; (ok \<and> Q)) \<or> (P ; (\<not>ok \<and> Q))`" 
+    apply(simp add:R1_def AndP_assoc[THEN sym])
+    apply(subst SemiR_AndP_right_precond)
+    apply(simp_all add:closure typing defined assms)
+    apply(subst SemiR_AndP_right_precond)
+    apply(simp_all add:closure typing defined assms)
+    apply(simp add:urename SemiR_OrP_distr AndP_OrP_distl typing defined closure)
+    done
+  also have "... = `(P ; (ok \<and> RC(Q))) \<or> (P ; (\<not>ok \<and> RC(Q)))`" 
+    by(metis assms is_healthy_def)
+  also have "... = `(P ; (ok \<and> R1(RC(Q)))) \<or> (P ; (\<not>ok \<and> CML2(RC(Q))))`" 
+    apply(simp add:RC_def CML1_CML2_commute CML2_idempotent)
+    apply(simp add:CML1_CML2_commute[THEN sym])
+    apply(simp add:CML1_def R1_idempotent)
+    done
+  also have "... = `(P ; (ok \<and> R1(Q))) \<or> (P ; (\<not>ok \<and> CML2(Q)))`" 
+    by(metis assms is_healthy_def)
+  also have "... = `P ; ($tr \<le> $tr\<acute>)`"
+    apply(simp add:CML2_def CondR_def AndP_OrP_distl AndP_assoc)
+    apply(subst AndP_comm) back
+    apply(simp add:AndP_contra)
+    apply(subst SemiR_remove_middle_unrest1[of _ _ "{okay \<down>}"]) back
+    apply(simp_all add:closure typing defined assms unrest)
+    apply (smt R1_def R1_rel_closure TrueP_rel_closure utp_pred_simps(6))
+    apply(subst AndP_comm)
+    apply(simp add: R1_extend_AndP SemiR_OrP_distl[THEN sym])
+    apply(simp add:R1_def)
+    apply (smt AndP_comm R1_OrP R1_def demorgan3 utp_pred_simps(12) utp_pred_simps(13) utp_pred_simps(15) utp_pred_simps(4) utp_pred_simps(7))
+    done
+  finally show ?thesis
+    ..
+qed
+
+lemma CML1_OrP: 
+  "`CML1(P \<or> Q)` = `CML1(P) \<or> CML1(Q)`" sorry
+
+lemma CML1_SemiR: 
+  "`CML1(P);CML1(Q)` = `CML1(\<exists> tt1\<acute>\<acute>\<acute> . \<exists> tt2\<acute>\<acute>\<acute> . P[$tt1\<acute>\<acute>\<acute>/tt\<acute>\<acute>\<acute>];Q[$tt2\<acute>\<acute>\<acute>/tt\<acute>\<acute>\<acute>] \<and> ($tt\<acute>\<acute>\<acute> = $tt1\<acute>\<acute>\<acute>^$tt2\<acute>\<acute>\<acute>))`"
+sorry
+
+lemma CML1_AndP_NotP: 
+  "`CML1(P) \<and> \<not>CML1(Q)` = `CML1(P \<and> \<not>Q)`" sorry
+
+lemma DesignREA_SemiR: 
+  assumes "`CML1(\<not>D)` \<in> WF_RELATION" "`CML1(D)` \<in> WF_RELATION" "`CML1(E)` \<in> WF_RELATION" "`CML1(F)` \<in> WF_RELATION" "`RC( D \<turnstile> E \<diamond> F)` \<in> WF_RELATION"
+          "`CML1(\<not>A)` \<in> WF_RELATION" "`CML1(A)` \<in> WF_RELATION" "`CML1(B)` \<in> WF_RELATION" "`CML1(C)` \<in> WF_RELATION" 
+      "{okay  \<down>\<acute>} \<sharp> `CML1(\<not>A)`"  "`CML1(\<not>A);($tr \<le> $tr\<acute>)` = `CML1(\<not>A)`" "{okay \<down>,wait \<down>} \<sharp> `CML1(\<not>D)`"  "{okay \<down>\<acute>,wait \<down>\<acute>} \<sharp> `CML1(C)`" "{okay \<down>,wait \<down>} \<sharp> `CML1(E)`" "{okay \<down>,wait \<down>} \<sharp> `CML1(F)`"
+       "D\<^sub>1 - {tr \<down>\<acute>} \<sharp> `CML1(A)`" "D\<^sub>1 - out(REA \<union> OKAY) \<sharp> `CML1(B)`"
+  shows  "`RC( A \<turnstile> B \<diamond> C ) ; RC( D \<turnstile> E \<diamond> F)` =  `RC( (A \<and> \<not>(C ;\<^bsub>REA\<^esub> (\<not>D) )) \<turnstile> (B \<or> (C ;\<^bsub>REA\<^esub> E)) \<diamond> ( C ;\<^bsub>REA\<^esub> F) )`" (is "?lhs = ?rhs")
+proof - have "?lhs = 
+    `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or>
+     (ok \<and> $wait \<and> II\<^bsub>{okay\<down>, okay\<down>\<acute>, wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}\<^esub>) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A)) \<or> 
+     (ok \<and> \<not> $wait \<and> CML1(B)) ; (ok \<and> $wait \<and> RC(D \<turnstile>E\<diamond> F)) \<or> 
+     (ok \<and> \<not> $wait \<and> CML1(C)) ; (ok \<and> \<not> $wait \<and>  RC(D \<turnstile>E\<diamond> F))`"
+  apply(subst DesignREA_form_2)
+  apply(simp add: SemiR_OrP_distr)
+  apply(subst CML1_CML2_SemiR_left_zero)
+  apply(simp add:RC_def is_healthy_def CML1_idempotent)
+  apply(simp add:RC_def is_healthy_def CML2_idempotent CML1_CML2_commute)
+  apply(subst RC_DesignREA_rel_closure)
+  apply(simp_all add:assms)
+  apply(subst CML3_SemiR_left_zero)
+  apply(simp add:RC_def is_healthy_def CML3_idempotent CML1_CML3_commute CML2_CML3_commute)
+  apply(subst RC_DesignREA_rel_closure)
+  apply(simp_all add:assms)
+  apply(subst Precondition_SemiR)
+  apply(simp_all add:assms closure typing defined unrest)
+  apply(simp add:RC_def is_healthy_def CML1_CML2_commute CML1_CML3_commute CML1_idempotent CML2_CML3_commute CML2_idempotent CML3_idempotent)
+  apply(subst AndP_assoc) back
+  apply(subst SemiR_AndP_left_precond)
+  apply(simp_all add:assms typing defined closure)
+  apply (smt R1_def R1_rel_closure TrueP_rel_closure utp_pred_simps(6))
+  apply(simp add:AndP_assoc[THEN sym])
+  apply(subst AndP_assoc)back back back back back back back back back back back
+  apply(subst SemiR_AndP_right_precond)
+  apply(simp_all add:typing closure defined assms CML1_AndP urename)
+  apply(subst AndP_assoc)back back back back
+  apply(subst AndP_comm) back back back back back back back back
+  apply(simp add:AndP_assoc[THEN sym])
+  apply(subst AndP_assoc)back back back back back back back back back back back back back back
+  apply(subst SemiR_AndP_right_precond)
+  apply(simp_all add:typing closure defined assms CML1_AndP urename)
+  apply(subst AndP_assoc)back back back back back back back 
+  apply(subst AndP_comm) back back back back back back back back back back back back
+  apply(simp add:AndP_assoc[THEN sym])
+done
+  also have "... = 
+    `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or>
+     (ok \<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(\<not> A)) \<or>
+     (ok \<and> \<not> $wait \<and> CML1(B) \<and> ok' \<and> $wait\<acute>) \<or> 
+     (ok \<and> \<not> $wait \<and> CML1(C) ; CML1(\<not> D)) \<or> 
+     (ok \<and> \<not> $wait \<and> CML1(C) ; CML1(E) \<and> ok' \<and> $wait\<acute>) \<or> 
+     (ok \<and> \<not> $wait \<and> CML1(C) ; CML1(F) \<and> ok' \<and> \<not> $wait\<acute>)`"
+  proof - 
+    have 1: "`ok \<and> $wait \<and> RC(D \<turnstile> E \<diamond> F)` = `(ok \<and> $wait) \<and> II\<^bsub>REA \<union> OKAY\<^esub>`" sorry
+    have 2: "`ok \<and> \<not>$wait \<and> RC(D \<turnstile> E \<diamond> F)` = `((ok \<and> \<not>$wait) \<and> CML1(\<not>D)) \<or> ((ok \<and> \<not>$wait) \<and> CML1(E) \<and> ok' \<and> $wait\<acute>) \<or> ((ok \<and> \<not>$wait) \<and> CML1(F) \<and> ok' \<and> \<not>$wait\<acute>)`" sorry
+    show ?thesis 
+      apply(simp add:1 2)
+      apply(simp add:SemiR_OrP_distl CML1_AndP)
+      apply(subst SemiR_AndP_right_precond)
+      apply(simp_all add:typing closure defined assms)
+      apply(subst SkipRA_right_unit)
+      apply(simp_all add:typing closure defined assms unrest)
+      apply(rule unrest)
+      apply(rule unrest) defer 
+      apply(rule unrest) defer defer
+      apply(simp_all add:closure typing defined assms unrest urename)
+      apply(simp add:AndP_assoc[THEN sym])
+      apply(subst AndP_assoc) back back back back back back
+      apply(subst SemiR_remove_middle_unrest1[of  _ _ "{okay \<down>,wait \<down>}"])
+      apply(simp_all add:typing closure defined unrest assms)
+      defer 
+      apply(subst AndP_assoc) back back back back back
+      apply(subst SemiR_AndP_left_precond)
+      apply(simp_all add:typing defined closure assms AndP_assoc[THEN sym])
+      apply(subst AndP_assoc) back back back back back back
+      apply(subst SemiR_AndP_left_precond)
+      apply(simp_all add:typing defined closure assms AndP_assoc[THEN sym])
+      apply(subst AndP_assoc) back back back back back back back
+      apply(subst SemiR_remove_middle_unrest1[of  _ _ "{okay \<down>,wait \<down>}"])
+      apply(simp_all add:typing closure defined unrest assms)
+      defer 
+      apply(subst SemiR_AndP_right_postcond)
+      apply(simp_all add:assms typing defined closure)
+      apply(subst AndP_assoc) back back back back back back back back back
+      apply(subst SemiR_AndP_left_precond)
+      apply(simp_all add:typing defined closure assms)
+      apply(subst AndP_assoc) back back back back back back back back back
+      apply(subst SemiR_remove_middle_unrest1[of _ _ "{okay \<down>,wait \<down>}"])
+      apply(simp_all add:typing defined closure assms unrest) defer 
+      apply(subst SemiR_AndP_right_postcond)
+      apply(simp_all add:typing defined closure assms)
+      apply(simp add:AndP_assoc[THEN sym])
+      sorry
+      qed
+      also have "... = 
+    `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or>
+     (ok \<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>) \<or>
+     (ok \<and> \<not> $wait \<and> (CML1(\<not> A) \<or> CML1(C) ; CML1(\<not> D))) \<or>
+     (ok \<and> \<not> $wait  \<and> ok' \<and> $wait\<acute>\<and> (CML1(B) \<or> CML1(C) ; CML1(E))) \<or>
+     (ok \<and> \<not> $wait \<and>  ok' \<and> \<not> $wait\<acute> \<and> CML1(C) ; CML1(F))`"
+     by(utp_poly_auto_tac)
+     also have "... = `RC( (A \<and> \<not>(\<exists> tt1\<acute>\<acute>\<acute>. \<exists> tt2\<acute>\<acute>\<acute>. C[$tt1\<acute>\<acute>\<acute>/tt\<acute>\<acute>\<acute>] ; (\<not> D)[$tt2\<acute>\<acute>\<acute>/tt\<acute>\<acute>\<acute>] \<and> ($tt\<acute>\<acute>\<acute> = $tt1\<acute>\<acute>\<acute> ^ $tt2\<acute>\<acute>\<acute>))) \<turnstile> (B \<or> (\<exists> tt1\<acute>\<acute>\<acute>. \<exists> tt2\<acute>\<acute>\<acute>. C[$tt1\<acute>\<acute>\<acute>/tt\<acute>\<acute>\<acute>] ; E[$tt2\<acute>\<acute>\<acute>/tt\<acute>\<acute>\<acute>] \<and> ($tt\<acute>\<acute>\<acute> =$tt1\<acute>\<acute>\<acute> ^ $tt2\<acute>\<acute>\<acute>))) \<diamond> (\<exists> tt1\<acute>\<acute>\<acute>. \<exists> tt2\<acute>\<acute>\<acute>. C[$tt1\<acute>\<acute>\<acute>/tt\<acute>\<acute>\<acute>] ; F[$tt2\<acute>\<acute>\<acute>/tt\<acute>\<acute>\<acute>] \<and> ($tt\<acute>\<acute>\<acute> =$tt1\<acute>\<acute>\<acute> ^ $tt2\<acute>\<acute>\<acute>)))`"
+     apply(subst CML1_SemiR)
+     apply(subst CML1_OrP[THEN sym])
+     apply(subst CML1_SemiR)
+     apply(subst CML1_OrP[THEN sym])
+     apply(subst CML1_SemiR)
+     apply(subst DesignREA_form_2)
+     apply(simp add:demorgan2)
+     done
+     also have "... = `RC( (A \<and> \<not>(C ;\<^bsub>REA\<^esub> (\<not>D) )) \<turnstile> (B \<or> (C ;\<^bsub>REA\<^esub> E)) \<diamond> ( C ;\<^bsub>REA\<^esub> F) )`"
+     by(simp add:SemiR_REA_def)
+     finally show ?thesis ..
+qed
+
+definition StopCML :: "'a WF_PREDICATE" ("STOP\<^bsub>CML\<^esub>") where
+"StopCML = `RC( true \<turnstile> $tt\<acute>\<acute>\<acute> = \<langle>\<rangle> \<diamond> false )`"
+
+definition ChaosCML :: "'a WF_PREDICATE" ("CHAOS\<^bsub>CML\<^esub>") where 
+"ChaosCML = `RC( false \<turnstile> false \<diamond> false)`"
+
+definition MiracleCML :: "'a WF_PREDICATE" ("MIRACLE\<^bsub>CML\<^esub>") where 
+"MiracleCML = `RC( true \<turnstile> false \<diamond> false)`"
+
+definition PrefixSkipCML :: "('m EVENT, 'm) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" ("@\<^bsub>CML\<^esub>_") where
+"PrefixSkipCML a = `RC( true \<turnstile> ($tt\<acute>\<acute>\<acute> = \<langle>\<rangle> \<and> a \<notin> $ref\<acute>) \<diamond> ($tt\<acute>\<acute>\<acute> = \<langle>a\<rangle> \<and> II\<^bsub>REL_VAR - REA\<^esub>))`"
+
+syntax
+  "_upred_StopCML" :: "upred" ("STOP\<^bsub>CML\<^esub>")
+  "_upred_ChaosCML" :: "upred" ("CHAOS\<^bsub>CML\<^esub>")
+  "_upred_MiracleCML" :: "upred" ("MIRACLE\<^bsub>CML\<^esub>")
+  "_upred_PrefixSkipCML" :: "uexpr \<Rightarrow> upred" ("@\<^bsub>CML\<^esub>_")
   
 translations
   "_upred_StopCML" == "CONST StopCML"
-  "_upred_SkipCML" == "CONST SkipCML"
   "_upred_ChaosCML" == "CONST ChaosCML"
   "_upred_MiracleCML" == "CONST MiracleCML"
   "_upred_PrefixSkipCML a" == "CONST PrefixSkipCML a"
 
+declare StopCML_def [eval, evalr, evalrr, evalrx, evalp]
+declare ChaosCML_def [eval, evalr, evalrr, evalrx, evalp]
+declare MiracleCML_def [eval, evalr, evalrr, evalrx, evalp]
+declare PrefixSkipCML_def [eval, evalr, evalrr, evalrx, evalp]
+
+lemma "`STOP\<^bsub>CML\<^esub> ; CHAOS\<^bsub>CML\<^esub>` = `STOP\<^bsub>CML\<^esub>`"
+  proof -
+    from UNREST_as_ExistsP[of "{tt1 \<down>\<acute>\<acute>\<acute>,tt2 \<down>\<acute>\<acute>\<acute>}" "false"]
+  have 1: "(\<exists>\<^sub>p {tt1\<down>\<acute>\<acute>\<acute>,tt2\<down>\<acute>\<acute>\<acute>} . false) = false" 
+  apply(subst UNREST_as_ExistsP[of "{tt1 \<down>\<acute>\<acute>\<acute>,tt2 \<down>\<acute>\<acute>\<acute>}" "false",THEN sym])
+  apply(simp add:unrest typing defined closure)
+  done
+  show ?thesis
+  apply(simp add:StopCML_def ChaosCML_def)
+  apply(subst DesignREA_SemiR)
+  apply(simp_all add:closure typing defined CML1_def usubst unrest R1_def)
+  apply (metis R1_def R1_rel_closure TrueP_rel_closure utp_pred_simps(6))
+  apply(subst RC_DesignREA_rel_closure)
+  apply(simp_all add:closure typing defined CML1_def usubst RC_DesignREA_rel_closure unrest R1_def tr_prefix_as_nil)
+  apply (metis R1_def R1_rel_closure TrueP_rel_closure utp_pred_simps(6))
+  apply (metis R1_def R1_rel_closure TrueP_rel_closure utp_pred_simps(6))
+  defer 
+  apply(simp add:SemiR_REA_def usubst typing defined closure)
+  apply(simp add: ExistsP_union[THEN sym])
+  apply (metis (hide_lams, no_types) "1" OrP_comm insert_commute utp_pred_simps(1) utp_pred_simps(10))
+  sorry
+
+lemma "SKIP2 is CML"
+apply(simp add:Skip2CML_def)
+apply(subst DesignREA_closure)
+apply(simp_all add:unrest closure typing defined)
+apply(rule unrest)
+apply(simp add:unrest closure typing defined)
+apply(subst UNREST_subset[of "VAR - (REL_VAR - REA - OKAY)" _ "REA"])
+apply(subst UNREST_SkipRA[of "REL_VAR - REA - OKAY"])
+apply(simp_all add:closure typing defined CML1_def usubst)
+apply(subst RC_DesignREA_rel_closure)
+apply(simp_all add:closure typing defined CML1_def usubst)
+apply(simp add:R1_extend_AndP[THEN sym])
+apply(simp add:R1_def tr_prefix_as_nil)
+apply(rule closure) back
+apply(simp add:tr_eq_rel_closure)
+apply (metis (hide_lams, no_types) UNREST_SkipRA_NON_REL_VAR Un_commute WF_RELATION_UNREST)
+apply(simp add:R1_extend_AndP[THEN sym])
+apply(simp add:R1_def tr_prefix_as_nil)
+apply(rule closure) back
+apply(simp add:tr_eq_rel_closure)
+apply (metis (hide_lams, no_types) UNREST_SkipRA_NON_REL_VAR Un_commute WF_RELATION_UNREST)
+apply(simp add:R1_def)
+done
+
+lemma "STOP\<^bsub>CML\<^esub> is CML"
+apply(simp add:StopCML_def)
+apply(subst DesignREA_closure)
+apply(simp_all add:unrest closure typing defined)
+apply(subst RC_DesignREA_rel_closure)
+apply(simp_all add:CML1_def typing defined closure usubst)
+apply(simp_all add:R1_def tr_prefix_as_nil tr_eq_rel_closure)
+done
+
+lemma "CHAOS\<^bsub>CML\<^esub> is CML"
+apply(simp add:ChaosCML_def)
+apply(subst DesignREA_closure)
+apply(simp_all add:unrest closure typing defined)
+apply(subst RC_DesignREA_rel_closure)
+apply(simp_all add:CML1_def typing defined closure usubst)
+apply(simp_all add:R1_def tr_leq_trans)
+done
+
+lemma "MIRACLE\<^bsub>CML\<^esub> is CML"
+apply(simp add:MiracleCML_def)
+apply(subst DesignREA_closure)
+apply(simp_all add:unrest closure typing defined)
+apply(subst RC_DesignREA_rel_closure)
+apply(simp_all add:CML1_def typing defined closure usubst)
+apply(simp add:R1_def)
+done
+
 definition PrefixCML :: 
-  "('a EVENT, 'a) WF_PEXPRESSION \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<rightarrow>_") where
-"a\<rightarrow>P = `@a ; P`"
+  "('a EVENT, 'a) WF_PEXPRESSION \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<rightarrow>\<^bsub>CML\<^esub>_") where
+"a\<rightarrow>\<^bsub>CML\<^esub>P = `@\<^bsub>CML\<^esub>a ; P`"
 
 (*
 definition InputCSP :: "'b::type CHAN \<Rightarrow> ('b \<Rightarrow> 'a WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" where
