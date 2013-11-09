@@ -367,18 +367,8 @@ proof -
     apply (subgoal_tac "\<langle>SS2\<rangle>\<^sub>s (x\<acute>\<acute>\<acute>) = x\<acute>\<acute>\<acute>")
     apply (simp add:SemiR_algebraic urename closure typing defined)
     apply (simp add:urename closure)
-    apply (metis SS1_DASHED_TWICE_app SS2_ident_app in_out_UNDASHED_DASHED(1) undash_dash utp_var.not_dash_member_in)
     apply (metis SS1_ident_app UNDASHED_dash_DASHED in_out_UNDASHED_DASHED(4) not_dash_dash_member_out undash_dash undash_eq_dash_contra2)
-    apply (rule unrest)
-    apply (simp add:typing)
-    apply (rule UNREST_DASHED_TWICE_WF_RELATION, simp)
-    apply (rule UNREST_EXPR_VarE[of _ DASHED_TWICE])
-    apply (auto)
-    apply (rule unrest)
-    apply (simp add:typing)
-    apply (rule closure, simp)
-    apply (rule UNREST_EXPR_VarE[of _ DASHED_TWICE])
-    apply (auto)
+    apply (simp_all add:typing unrest closure)
   done
 qed
 
@@ -1211,7 +1201,7 @@ proof -
 
   moreover from assms have "(in (UNDASHED \<union> DASHED - vs)) \<sharp> (p[e/\<^sub>px])"
     apply (rule_tac UNREST_subset[of "(VAR - vs) \<inter> (VAR - in vs)"])
-    apply (rule_tac unrest)
+    apply (rule_tac UNREST_SubstP)
     apply (simp_all add:var_dist)
     apply (force)
   done

@@ -188,6 +188,30 @@ apply (simp add: var_defs)
 apply (simp)
 done
 
+lemma BindR_image: 
+  "BindR ` {x. P x}  = {BindR x| x. P x}"
+  by (auto)
+
+lemma BindR_inverse:
+  "\<lbrakk> b1 \<in> WF_REL_BINDING; b2 \<in> WF_REL_BINDING; b1 \<cong> b2 on NON_REL_VAR \<rbrakk>
+           \<Longrightarrow> BindR (BindP (b1, b2)) = (b1, b2)"
+  apply (auto simp add:BindR_def BindP_def RenameB_override_distr1 urename closure)
+  apply (metis WF_REL_BINDING_bc_DASHED binding_override_equiv)
+  apply (metis (hide_lams, no_types) NON_REL_VAR_def SS_VAR_RENAME_ON WF_REL_BINDING_bc_DASHED_eq binding_equiv_override binding_override_RENAME_ON_overshadow binding_override_minus binding_override_simps(1) binding_override_simps(2))
+done
+
+lemma BindR_Collect_form:
+  "{BindR b | b. P b} = {(b1, b2). P (BindP (b1, b2)) 
+                                 \<and> b1 \<in> WF_REL_BINDING  
+                                 \<and> b2 \<in> WF_REL_BINDING 
+                                 \<and> b1 \<cong> b2 on NON_REL_VAR}"
+  apply (auto simp add: BindP_inverse)
+  apply (metis (full_types) EvalR_def UNIV_I WF_REL_BINDING_member1 imageI mkPRED_inverse)
+  apply (metis (full_types) EvalR_def UNIV_I WF_REL_BINDING_member2 imageI mkPRED_inverse)
+  apply (metis BindR_left_eq_NON_REL_VAR BindR_right_eq_NON_REL_VAR binding_equiv_comm binding_equiv_trans)
+  apply (metis BindR_inverse)
+done
+
 theorem BindR_COMPOSABLE_BINDINGS :
 "\<lbrakk>(rb1, rb3) = BindR b1;
  (rb3, rb2) = BindR b2\<rbrakk> \<Longrightarrow>
@@ -431,15 +455,31 @@ lemma EvalP_AssignsR [eval]:
   "\<lbrakk>AssignsR f\<rbrakk>b = (\<forall> v \<in> UNDASHED. \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>\<langle>f\<rangle>\<^sub>a v\<rangle>\<^sub>e b)"
   by (simp add:EvalP_def AssignsR.rep_eq)
 
-(*
-lemma EvalR_AssignsR [eval]:
-  "\<lbrakk>AssignsR f\<rbrakk>R = {(b, b(x:=\<^sub>b \<lbrakk>\<langle>f\<rangle>\<^sub>a x\<rbrakk>\<^sub>e b)) | b. b \<in> WF_REL_BINDING}"
-  apply (auto simp add: EvalR_def EvalE_def AssignsR.rep_eq)
-*)
+lemma EvalR_AssignsR: 
+  "\<lbrakk>AssignsR f\<rbrakk>R = {(b1, b2). (\<forall> x \<in> UNDASHED. \<langle>b2\<rangle>\<^sub>b x = \<lbrakk>\<langle>f\<rangle>\<^sub>a x\<rbrakk>\<^sub>e (BindP (b1, b2)))
+                            \<and> b1 \<in> WF_REL_BINDING
+                            \<and> b2 \<in> WF_REL_BINDING
+                            \<and> b1 \<cong> b2 on NON_REL_VAR}"
+  by (auto simp add:EvalR_def AssignsR_def BindR_image BindR_Collect_form BindP_def EvalE_def urename)
+
+lemma AssignF_upd_apply [simp]:
+  "v \<rhd>\<^sub>e x \<Longrightarrow> \<langle>f(x :=\<^sub>a v)\<rangle>\<^sub>a x = v"
+  apply (auto simp add:AssignF_upd_def)
+  apply (metis AssignF_upd_def AssignF_upd_rep_eq fun_upd_same)
+done
+
+lemma EvalE_BindP_UNDASHED [evale]:
+  "D\<^sub>1 \<sharp> e \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>e(BindP (b1, b2)) = \<lbrakk>e\<rbrakk>\<^sub>eb1"
+  by (simp add:BindP_def evale)
+
+lemma binding_eq_split_equiv:
+  "\<lbrakk> b1 \<cong> b2 on D\<^sub>0; b1 \<cong> b2 on D\<^sub>1; b1 \<cong> b2 on NON_REL_VAR \<rbrakk> \<Longrightarrow> b1 = b2"
+  by (metis (full_types) UNDASHED_DASHED_inter(16) binding_equiv_override binding_override_minus binding_override_simps(1) binding_override_simps(2))
 
 theorem EvalR_AssignR [evalr] :
 "\<lbrakk> x \<in> UNDASHED; e \<rhd>\<^sub>e x; DASHED \<sharp> e \<rbrakk> \<Longrightarrow> 
   \<lbrakk>x :=\<^sub>R e\<rbrakk>R = {(b, b(x:=\<^sub>b (\<lbrakk>e\<rbrakk>\<^sub>e b))) | b. b \<in> WF_REL_BINDING}"
+
 apply (simp add: EvalR_def EvalE_def)
 apply (simp add: AssignsR.rep_eq IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq)
 apply (simp add: WF_REL_BINDING_def)

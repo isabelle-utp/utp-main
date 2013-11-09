@@ -57,14 +57,6 @@ abbreviation "NON_CML_VAR \<equiv> REL_VAR - REA - OKAY"
 definition Skip2CML :: "'a WF_PREDICATE" ("SKIP2") where
 "SKIP2 = `RC(true \<turnstile> false \<diamond> ($tt\<acute>\<acute>\<acute>= \<langle>\<rangle> \<and> II\<^bsub>NON_CML_VAR\<^esub>))`"
 
-lemma SkipRA_unfold_aux_ty: 
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) PVAR" 
-  assumes "TYPEUSOUND('a, 'm)" "v\<down> \<in> vs" "v\<down> \<acute> \<in> vs" "v \<in> PUNDASHED" "HOMOGENEOUS vs" "pvaux v"
-  shows "II\<^bsub>vs\<^esub> = `($v\<acute> = $v) \<and> II\<^bsub>vs - {v \<down>, v \<down>\<acute>}\<^esub>`"
-apply(subst SkipRA_unfold[of "v \<down>"])
-apply(simp_all add:closure assms erasure typing defined)
-done
-
 lemma Skip2_form:
  "SKIP2 = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II\<^bsub>REA \<union> OKAY\<^esub>) \<or>
      (ok \<and> \<not> $wait \<and> II\<^bsub>REL_VAR - {ref \<down>,ref \<down>\<acute>}\<^esub>) `" (is "?lhs = ?rhs")

@@ -135,10 +135,14 @@ definition DASHED :: "'VALUE VAR set" where
 definition DASHED_TWICE :: "'VALUE VAR set" where
 "DASHED_TWICE = {v . dashes (name v) = 2}"
 
+definition DASHED_THRICE :: "'VALUE VAR set" where
+"DASHED_THRICE = {v . dashes (name v) = 3}"
+
 notation 
-  UNDASHED     ("D\<^sub>0") and
-  DASHED       ("D\<^sub>1") and
-  DASHED_TWICE ("D\<^sub>2")
+  UNDASHED      ("D\<^sub>0") and
+  DASHED        ("D\<^sub>1") and
+  DASHED_TWICE  ("D\<^sub>2") and
+  DASHED_THRICE ("D\<^sub>3")
 
 definition NOSUB :: "'VALUE VAR set" where
 "NOSUB = {v. subscript (name v) = NoSub}"
@@ -188,6 +192,7 @@ theorems var_defs =
   UNDASHED_def
   DASHED_def
   DASHED_TWICE_def
+  DASHED_THRICE_def
   NOSUB_def
   PLAIN_def
   MkVar_def
@@ -288,8 +293,16 @@ theorem UNDASHED_not_DASHED_TWICE :
 "x \<in> UNDASHED \<Longrightarrow> \<not> x \<in> DASHED_TWICE"
   by (simp add: var_defs)
 
+theorem UNDASHED_not_DASHED_THRICE :
+"x \<in> UNDASHED \<Longrightarrow> \<not> x \<in> DASHED_THRICE"
+  by (simp add: var_defs)
+
 theorem DASHED_not_DASHED_TWICE :
 "x \<in> DASHED \<Longrightarrow> \<not> x \<in> DASHED_TWICE"
+  by (simp add: var_defs)
+
+theorem DASHED_not_DASHED_THRICE :
+"x \<in> DASHED \<Longrightarrow> \<not> x \<in> DASHED_THRICE"
   by (simp add: var_defs)
 
 theorem UNDASHED_dash_DASHED :
@@ -312,6 +325,10 @@ theorem DASHED_dash_DASHED_TWICE :
 "x \<in> DASHED \<Longrightarrow> dash x \<in> DASHED_TWICE"
   by (simp add: var_defs)
 
+theorem DASHED_TWICE_dash_DASHED_THRICE :
+"x \<in> DASHED_TWICE \<Longrightarrow> dash x \<in> DASHED_THRICE"
+  by (simp add: var_defs)
+
 theorem DASHED_dash_not_DASHED :
 "x \<in> DASHED \<Longrightarrow> x\<acute> \<notin> DASHED"
   by (simp add: var_defs)
@@ -320,12 +337,24 @@ theorem DASHED_TWICE_undash_DASHED :
 "x \<in> DASHED_TWICE \<Longrightarrow> undash x \<in> DASHED"
   by (simp add: var_defs)
 
+theorem DASHED_THRICE_undash_DASHED_TWICE :
+"x \<in> DASHED_THRICE \<Longrightarrow> undash x \<in> DASHED_TWICE"
+  by (simp add: var_defs)
+
 theorem DASHED_TWICE_undash_not_DASHED_TWICE :
 "x \<in> DASHED_TWICE \<Longrightarrow> undash x \<notin> DASHED_TWICE"
   by (simp add: var_defs)
 
+theorem DASHED_THRICE_undash_not_DASHED_THRICE :
+"x \<in> DASHED_THRICE \<Longrightarrow> undash x \<notin> DASHED_THRICE"
+  by (simp add: var_defs)
+
 lemma DASHED_TWICE_NON_REL_VAR:
   "x \<in> DASHED_TWICE \<Longrightarrow> x \<in> NON_REL_VAR"
+  by (simp add:var_defs)
+
+lemma DASHED_THRICE_NON_REL_VAR:
+  "x \<in> DASHED_THRICE \<Longrightarrow> x \<in> NON_REL_VAR"
   by (simp add:var_defs)
 
 lemma NON_REL_VAR_dash_NON_REL_VAR: 
@@ -399,14 +428,20 @@ theorems var_member =
   UNDASHED_not_DASHED
   UNDASHED_not_DASHED_TWICE
   DASHED_not_DASHED_TWICE
+  DASHED_not_DASHED_THRICE
+  DASHED_not_DASHED_THRICE
   UNDASHED_dash_DASHED
   UNDASHED_dash_not_UNDASHED
   DASHED_undash_UNDASHED
   DASHED_undash_not_DASHED
   DASHED_dash_DASHED_TWICE
+  DASHED_TWICE_dash_DASHED_THRICE
   DASHED_TWICE_undash_DASHED
+  DASHED_THRICE_undash_DASHED_TWICE
   DASHED_TWICE_undash_not_DASHED_TWICE
+  DASHED_THRICE_undash_not_DASHED_THRICE
   DASHED_TWICE_NON_REL_VAR
+  DASHED_THRICE_NON_REL_VAR
   NON_REL_VAR_dash_NON_REL_VAR
   UNDASHED_not_NON_REL_VAR
   DASHED_not_NON_REL_VAR
@@ -442,6 +477,18 @@ theorem DASHED_DASHED_TWICE_contra :
 apply (simp add: var_defs)
 done
 
+theorem UNDASHED_DASHED_THRICE_contra :
+"\<lbrakk>x \<in> UNDASHED; x \<in> DASHED_THRICE\<rbrakk> \<Longrightarrow> False"
+  by (simp add: var_defs)
+
+theorem DASHED_DASHED_THRICE_contra :
+"\<lbrakk>x \<in> DASHED; x \<in> DASHED_THRICE\<rbrakk> \<Longrightarrow> False"
+  by (simp add: var_defs)
+
+theorem DASHED_TWICE_DASHED_THRICE_contra :
+"\<lbrakk>x \<in> DASHED_TWICE; x \<in> DASHED_THRICE\<rbrakk> \<Longrightarrow> False"
+  by (simp add: var_defs)
+
 theorem UNDASHED_eq_dash_contra :
 "\<lbrakk>x = dash y; x \<in> UNDASHED\<rbrakk> \<Longrightarrow> False"
 apply (simp add: var_defs)
@@ -463,10 +510,17 @@ theorem dash_eq_undash_contra2 :
 "\<lbrakk>dash x = undash y; x \<in> DASHED; y \<in> DASHED_TWICE\<rbrakk> \<Longrightarrow> False"
   by (auto simp add: var_defs)
 
+lemma dashed_thrice_contras [simp]: 
+  "x\<acute>\<acute>\<acute> \<notin> D\<^sub>0" "x\<acute>\<acute>\<acute> \<notin> D\<^sub>1" "x\<acute>\<acute>\<acute> \<notin> D\<^sub>2"
+  by (auto simp add:var_defs)
+
 theorems var_contra =
   UNDASHED_DASHED_contra
   UNDASHED_DASHED_TWICE_contra
   DASHED_DASHED_TWICE_contra
+  UNDASHED_DASHED_THRICE_contra
+  DASHED_DASHED_THRICE_contra
+  DASHED_TWICE_DASHED_THRICE_contra
   UNDASHED_eq_dash_contra
   undash_eq_dash_contra1
   undash_eq_dash_contra2

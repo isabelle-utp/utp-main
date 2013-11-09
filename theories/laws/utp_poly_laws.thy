@@ -199,4 +199,28 @@ lemma prefix_app:
   apply (metis prefixeq_def)
 done
 
+lemma app_minus:   
+  fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  assumes "TYPEUSOUND('a ULIST, 'm)" 
+  shows "|($xs ^ $ys) - $xs| = |$ys|"
+  using assms
+  by (utp_poly_tac)
+
+lemma prefix_antisym:
+  fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  assumes "TYPEUSOUND('a ULIST, 'm)" 
+  shows "`($xs \<le> $ys) \<and> ($ys \<le> $xs)` = `$xs = $ys`"
+  using assms 
+    apply (utp_poly_tac)
+    apply (metis prefix_order.eq_iff)
+done
+
+lemma SkipRA_unfold_aux_ty: 
+  fixes v :: "('a :: DEFINED, 'm :: VALUE) PVAR" 
+  assumes "TYPEUSOUND('a, 'm)" "v\<down> \<in> vs" "v\<down> \<acute> \<in> vs" "v \<in> PUNDASHED" "HOMOGENEOUS vs" "pvaux v"
+  shows "II\<^bsub>vs\<^esub> = `($v\<acute> = $v) \<and> II\<^bsub>vs - {v \<down>, v \<down>\<acute>}\<^esub>`"
+  apply(subst SkipRA_unfold[of "v \<down>"])
+  apply(simp_all add:closure assms erasure typing defined)
+done
+
 end

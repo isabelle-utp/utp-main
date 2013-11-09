@@ -18,7 +18,6 @@ begin
 
 subsection {* Composable Bindings *}
 
-
 definition COMPOSABLE_BINDINGS ::
   "('VALUE WF_BINDING \<times>
     'VALUE WF_BINDING) set" where
@@ -414,6 +413,13 @@ theorem SS1_DASHED_TWICE_app [urename]:
   apply (auto simp add:var_contra)
 done
 
+theorem SS1_DASHED_THRICE_app [urename]:
+"\<lbrakk>x \<in> DASHED_THRICE\<rbrakk> \<Longrightarrow> SS1\<bullet>x = x"
+  apply (auto simp add:rename_on_rep_eq closure urename)
+  apply (subst complete_inj_none)
+  apply (auto)
+done
+
 theorem SS1_ident_app [urename]:
 "\<lbrakk>\<not> x \<in> DASHED; \<not> x \<in> DASHED_TWICE\<rbrakk> \<Longrightarrow> SS1\<bullet>x = x"
   by (simp add:rename_on_rep_eq closure)
@@ -466,6 +472,10 @@ theorem SS1_DASHED_TWICE_image [urename] :
 "\<langle>SS1\<rangle>\<^sub>s ` DASHED_TWICE = DASHED"
   by (metis (lifting) SS1_DASHED_TWICE_app image_cong undash_DASHED_TWICE_image)
 
+theorem SS1_DASHED_THRICE_image [urename] :
+"\<langle>SS1\<rangle>\<^sub>s ` DASHED_THRICE = DASHED_THRICE"
+  by (auto simp add:rename_on_rep_eq closure urename)
+
 theorem SS1_NON_REL_VAR_image [urename]:
 "\<langle>SS1\<rangle>\<^sub>s ` NON_REL_VAR = (NON_REL_VAR - DASHED_TWICE) \<union> DASHED"
   apply (simp add:NON_REL_VAR_def urename)
@@ -476,11 +486,13 @@ theorems SS1_simps =
   SS1_UNDASHED_app
   SS1_DASHED_app
   SS1_DASHED_TWICE_app
+  SS1_DASHED_THRICE_app
   SS1_ident_app
   SS1_UNDASHED_DASHED_image
   SS1_UNDASHED_image
   SS1_DASHED_image
   SS1_DASHED_TWICE_image
+  SS1_DASHED_THRICE_image
 
 text {* Theorems for @{term SS2} *}
 
@@ -505,6 +517,13 @@ theorem SS2_DASHED_TWICE_app [urename]:
   apply (smt DASHED_TWICE_dash_elim dash_elim dash_undash_DASHED dash_undash_DASHED_TWICE f_inv_into_f o_def)
   apply (auto simp add:var_contra)
   apply (metis dash_DASHED_image dash_UNDASHED_image image_compose)
+done
+
+lemma SS2_DASHED_THRICE_app [urename]:
+  "\<lbrakk>x \<in> DASHED_THRICE\<rbrakk> \<Longrightarrow> SS2\<bullet>x = x"
+  apply (auto simp add:rename_on_rep_eq closure urename)
+  apply (subst complete_inj_none)
+  apply (auto simp add:var_defs)
 done
 
 theorem SS2_ident_app [urename]:
@@ -555,6 +574,15 @@ theorem SS2_DASHED_TWICE_image [urename] :
 "\<langle>SS2\<rangle>\<^sub>s ` DASHED_TWICE = UNDASHED"
   by (metis (hide_lams, no_types) SS2_UNDASHED_image SS2_VAR_RENAME_INV VAR_RENAME_INV_comp' id_apply image_compose image_id)
 
+theorem SS2_DASHED_THRICE_image [urename] :
+"\<langle>SS2\<rangle>\<^sub>s ` DASHED_THRICE = DASHED_THRICE"
+  apply (auto simp add:rename_on_rep_eq closure urename)
+  apply (subst complete_inj_none)
+  apply (auto)
+  apply (auto simp add:var_defs)[1]
+  apply (metis SS2_DASHED_THRICE_app dash_dash_UNDASHED_rename_func equalityE image_eqI rename_on_rep_eq)
+done
+
 theorem SS2_NON_REL_VAR_image [urename]:
 "\<langle>SS2\<rangle>\<^sub>s ` NON_REL_VAR = (NON_REL_VAR - DASHED_TWICE) \<union> UNDASHED"
   apply (simp add:NON_REL_VAR_def urename)
@@ -565,6 +593,7 @@ theorems SS2_simps =
   SS2_UNDASHED_app
   SS2_DASHED_app
   SS2_DASHED_TWICE_app
+  SS2_DASHED_THRICE_app
   SS2_ident_app
   SS2_UNDASHED_DASHED_image
 

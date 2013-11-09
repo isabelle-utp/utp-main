@@ -478,4 +478,21 @@ lemma sigvalue_type: "sigvalue x : sigtype x"
   apply (auto simp add:sigvalue_def sigtype_def)
 done
 
+subsection {* Coercision *}
+
+definition coerce :: "'a \<Rightarrow> 'a UTYPE \<Rightarrow> 'a" where
+"coerce x t = (if (x : t) then x else default t)"
+
+lemma coerce_type: 
+  "coerce x t : t"
+  by (auto simp add:coerce_def dtype_rel_def)
+
+lemma coerce_reduce1 [simp]:
+  "x : t \<Longrightarrow> coerce x t = x"
+  by (simp add:coerce_def)
+
+lemma coerce_reduce2 [simp]:
+  "\<not> x : t \<Longrightarrow> coerce x t = default t"
+  by (simp add:coerce_def)
+
 end

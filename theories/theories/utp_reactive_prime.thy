@@ -288,13 +288,6 @@ abbreviation "tt1   \<equiv> MkPlainP ''tt1'' True TYPE('m EVENT ULIST) TYPE('m)
 abbreviation "tt2   \<equiv> MkPlainP ''tt2'' True TYPE('m EVENT ULIST) TYPE('m)"
 abbreviation "tt   \<equiv> MkPlainP ''tt'' True TYPE('m EVENT ULIST) TYPE('m)"
 
-lemma app_minus:   
-  fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
-  assumes "TYPEUSOUND('a ULIST, 'm)" 
-  shows "|($xs ^ $ys) - $xs| = |$ys|"
-  using assms
-  by (utp_poly_tac)
-
 lemma R2_form:
   assumes "P \<in> WF_RELATION" "pvaux ttx" 
   shows "R2(P) = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>\<acute>} . `P[\<langle>\<rangle>/tr][$ttx\<acute>\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr ^ $ttx\<acute>\<acute>\<acute>)`)"
@@ -326,28 +319,6 @@ also have "... = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>\<acute>} . `P[\<
 finally show ?thesis 
   by (metis assms(1))
 qed  
-
-theorem SemiR_extract_variable_poly:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
-  assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
-          "x \<in> PUNDASHED" "pvaux x"
-          "TYPEUSOUND('a, 'm)"
-  shows "P ; Q = `\<exists> x\<acute>\<acute>\<acute>. P[$x\<acute>\<acute>\<acute>/x\<acute>] ; Q[$x\<acute>\<acute>\<acute>/x]`"
-  apply (subst SemiR_extract_variable[of _ _ "x\<down>"])
-  apply (simp_all add:assms)
-  apply (metis PVAR_VAR_PUNDASHED_UNDASHED assms(3))
-  apply (simp add:erasure assms typing defined closure)
-done
-
-theorem SS1_D3_app [urename]:
-"\<lbrakk>x \<in> UNDASHED\<rbrakk> \<Longrightarrow> SS1\<bullet>x\<acute>\<acute>\<acute> = x\<acute>\<acute>\<acute>"
-  apply (simp add:rename_on_rep_eq closure)
-  sorry
-
-theorem SS2_D3_app [urename]:
-"\<lbrakk>x \<in> UNDASHED\<rbrakk> \<Longrightarrow> SS2\<bullet>x\<acute>\<acute>\<acute> = x\<acute>\<acute>\<acute>"
-  apply (simp add:rename_on_rep_eq closure)
-  sorry
 
 lemma R2_SemiR_form: 
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"

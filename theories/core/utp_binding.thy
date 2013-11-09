@@ -51,6 +51,23 @@ lemma var_compat_undash [typing]:
   "v \<rhd> x \<Longrightarrow> v \<rhd> undash x"
   by (simp add:var_compat_def)
 
+subsection {* Variable coercison *}
+
+definition vcoerce :: "'a \<Rightarrow> 'a VAR \<Rightarrow> 'a" where
+"vcoerce v x = (if (v \<rhd> x) then v else default (vtype x))"
+
+lemma vcoerce_compat [typing]:
+  "vcoerce v x \<rhd> x"
+  by (simp add:vcoerce_def var_compat_default)
+
+lemma vcoerce_reduce1 [simp]:
+  "v \<rhd> x \<Longrightarrow> vcoerce v x = v"
+  by (simp add: vcoerce_def)
+
+lemma vcoerce_reduce2 [simp]:
+  "\<not> v \<rhd> x \<Longrightarrow> vcoerce v x = default (vtype x)"
+  by (simp add: vcoerce_def)
+
 subsection {* Bindings *}
 
 text {* We require bindings to be well-typed. *}

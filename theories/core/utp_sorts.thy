@@ -105,10 +105,12 @@ theorem Defined_not_eq_bot [simp] :
 "\<D> v \<Longrightarrow> v \<noteq> \<bottom>v\<^bsub>a\<^esub>"
   by (metis ubot_ndefined)
 
+(*
 subsection {* Coercision Sort *}
 class COERCE_SORT = VALUE +
   fixes coerce :: "'a \<Rightarrow> 'a UTYPE \<Rightarrow> 'a"
   assumes coerce_tau: "x :! t \<Longrightarrow> \<tau> (coerce x t) = t"
+*)
 
 subsection {* Integer Sort *}
 

@@ -119,14 +119,6 @@ proof -
     by (simp add:ACP1_def) 
 qed
 
-lemma EvalP_EqualP_ty [evalp]:
-  fixes e1 e2 :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION" 
-  assumes "TYPEUSOUND('a, 'm)"
-  shows "\<lbrakk>e1\<down> ==\<^sub>p e2\<down>\<rbrakk>b = (\<lbrakk>e1\<rbrakk>\<^sub>*b = \<lbrakk>e2\<rbrakk>\<^sub>*b)"
-  apply (auto simp add:eval evale evalp assms)
-  apply (drule TypeUSound_InjU_inj[OF assms(1)], simp)
-done
-
 lemma ACP1_R3_commute: "ACP1 (R3 P) = R3 (ACP1 P)" 
 proof -
   have "ACP1 (R3 P) = `($wait \<and> II \<and> (($tr\<acute> =$tr) \<Rightarrow> $wait\<acute>)) \<or> (\<not>$wait \<and> P \<and> (($tr\<acute> =$tr) \<Rightarrow> $wait\<acute>))`" 
@@ -526,30 +518,6 @@ theorem SemiR_AndP_right_postcond_unrest:
     apply(subst AndP_assoc[THEN sym])
     apply(simp)
     done
-
-lemma UNREST_SubstP_simple [unrest]: 
-  fixes P :: "'a WF_PREDICATE"
-  assumes "vs \<sharp> v" "vs - {x} \<sharp> P" "v \<rhd>\<^sub>e x"
-  shows "vs \<sharp> P[v/\<^sub>px]"
-  using assms
-  apply (auto simp add:UNREST_def SubstP.rep_eq)
-  apply (utp_pred_tac)
-done
-
-lemma [simp]: 
-  "x\<acute>\<acute>\<acute> \<notin> D\<^sub>0"
-  "x\<acute>\<acute>\<acute> \<notin> D\<^sub>1"
-  "x\<acute>\<acute>\<acute> \<notin> D\<^sub>2"
-  by (auto, metis dash_DASHED_TWICE_elim dash_eq_undash_contra1 undash_dash)
-
-lemma prefix_antisym:
-  fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
-  assumes "TYPEUSOUND('a ULIST, 'm)" 
-  shows "`($xs \<le> $ys) \<and> ($ys \<le> $xs)` = `$xs = $ys`"
-  using assms 
-    apply (utp_poly_tac)
-    apply (metis prefix_order.eq_iff)
-done
 
 lemma tr_eq_SemiR:
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "P is R1" "Q is R1" 

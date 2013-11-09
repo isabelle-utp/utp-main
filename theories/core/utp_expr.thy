@@ -532,6 +532,15 @@ theorem UNREST_SubstP_var [unrest] :
   apply (metis binding_compat binding_upd_override binding_upd_upd evar_compat_def)
 done
 
+lemma UNREST_SubstP_simple [unrest]: 
+  fixes P :: "'a WF_PREDICATE"
+  assumes "vs \<sharp> v" "vs - {x} \<sharp> P" "v \<rhd>\<^sub>e x"
+  shows "vs \<sharp> P[v/\<^sub>px]"
+  using assms
+  apply (auto simp add:UNREST_def SubstP.rep_eq)
+  apply (utp_pred_tac)
+done
+
 lemma UNREST_UNDASHED_PrimeE [unrest]:
   "UNREST_EXPR DASHED e \<Longrightarrow> UNREST_EXPR UNDASHED e\<acute>"
   by (metis (full_types) UNREST_EXPR_PrimeE_alt dash_UNDASHED_image dash_UNDASHED_rename_func rename_on_image1 subset_refl)
