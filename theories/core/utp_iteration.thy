@@ -283,13 +283,12 @@ lemma SFP_refines_IterP:
   shows "while b do P od \<sqsubseteq> (\<nu> X \<bullet> ((P ; X) \<lhd> b \<rhd> II))"
   by (metis IterP_unfold assms(1) assms(2) lfp_lowerbound order_refl)
 
+
 (* Can't prove this yet, though I reckon it's true *)
 lemma IterP_refines_SFP:
   assumes "b \<in> WF_CONDITION" "P \<in> WF_RELATION"
 shows "(\<nu> X \<bullet> ((P ; X) \<lhd> b \<rhd> II)) \<sqsubseteq> while b do P od"
-  apply (rule lfp_greatest)
-  apply (rule order_trans) defer
-  apply (simp)
+  apply (simp add:IterP_def StarP_as_SFP)
 oops
  
 end

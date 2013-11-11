@@ -273,6 +273,12 @@ theorem Lattice_L5:
   apply (metis (hide_lams, no_types) EvalR_SemiR relcomp.intros)
 done
 
+lemma Inter_inter_dist: "S \<noteq> {} \<Longrightarrow> (\<Inter> S) \<inter> P = \<Inter> {s \<inter> P | s. s \<in> S}"
+  by (auto)
+
+lemma "S \<noteq> {} \<Longrightarrow> (\<Squnion> S) \<and>\<^sub>p P = (\<Squnion> {s \<and>\<^sub>p P | s. s \<in> S})"
+  oops
+
 subsection {* @{term UNREST} Theorems *}
 
 lemma UNREST_BotP [unrest]: "UNREST vs \<bottom>"
