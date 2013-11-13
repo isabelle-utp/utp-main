@@ -1111,7 +1111,7 @@ lemma "`STOP\<^bsub>CML\<^esub> ; CHAOS\<^bsub>CML\<^esub>` = `STOP\<^bsub>CML\<
   apply(simp add:SemiR_REA_def usubst typing defined closure)
   apply(simp add: ExistsP_union[THEN sym])
   apply (metis (hide_lams, no_types) "1" OrP_comm insert_commute utp_pred_simps(1) utp_pred_simps(10))
-  sorry
+done
 
 lemma "SKIP2 is CML"
 apply(simp add:Skip2CML_def)

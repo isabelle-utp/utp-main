@@ -160,19 +160,15 @@ done
 
 lemma tr_eq_tr_leq:
   "`($tr\<acute> = $tr) ; ($tr \<le> $tr\<acute>)` = `($tr \<le> $tr\<acute>)`"
-  apply (subst tr_prefix_as_concat[of "tr"], simp)
-  apply (subst tr_prefix_as_concat[of "tr"], simp)
-  apply (subst SemiR_algebraic)
-  apply (simp_all add:closure unrest typing assms urename)
-sorry
+  by (utp_prel_auto_tac)
 
 lemma tr_leq_trans:
   "`($tr \<le> $tr\<acute>) ; ($tr \<le> $tr\<acute>)` = `($tr \<le> $tr\<acute>)`"
-  sorry
+  by (utp_prel_auto_tac)
 
 lemma tr_eq_is_R1:
   "`($tr\<acute>= $tr) \<and> ($tr \<le> $tr\<acute>)` = `$tr\<acute> = $tr` "
-  sorry
+  by (utp_prel_auto_tac)
 
 lemma tr_prefix_as_nil:
   "`($tr\<acute> - $tr) = \<langle>\<rangle> \<and> ($tr \<le> $tr\<acute>)` = `$tr\<acute> = $tr`"
