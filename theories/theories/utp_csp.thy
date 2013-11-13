@@ -8,7 +8,7 @@ header {* CSP Processes *}
 
 theory utp_csp
 imports 
-  utp_acp_prime
+  utp_acp
 begin
 
 definition CSP1 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
@@ -130,17 +130,17 @@ definition CSP_Post
   :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE " where
 "CSP_Post P = `P\<^sup>t[true/okay]\<^sub>f`"
 
-declare CSP1_def [eval, evalr, evalrr, evalrx]
-declare CSP_def [eval, evalr, evalrr, evalrx]
-declare StopCSP_def [eval, evalr, evalrr, evalrx]
-declare PrefixSkipCSP_def [eval, evalr, evalrr, evalrx]
-declare SkipCSP_def [eval, evalr, evalrr, evalrx]
-declare ChaosCSP_def [eval, evalr, evalrr, evalrx]
-declare PrefixCSP_def [eval, evalr, evalrr, evalrx]
-declare ExternalChoiceCSP_def [eval, evalr, evalrr, evalrx]
-declare MergeCSP_def [eval, evalr, evalrr, evalrx]
-declare ParallelCSP_def [eval, evalr, evalrr, evalrx]
-declare InterleaveCSP_def [eval, evalr, evalrr, evalrx]
+declare CSP1_def [eval, evalr, evalrr, evalrx, evalp]
+declare CSP_def [eval, evalr, evalrr, evalrx, evalp]
+declare StopCSP_def [eval, evalr, evalrr, evalrx, evalp]
+declare PrefixSkipCSP_def [eval, evalr, evalrr, evalrx, evalp]
+declare SkipCSP_def [eval, evalr, evalrr, evalrx, evalp]
+declare ChaosCSP_def [eval, evalr, evalrr, evalrx, evalp]
+declare PrefixCSP_def [eval, evalr, evalrr, evalrx, evalp]
+declare ExternalChoiceCSP_def [eval, evalr, evalrr, evalrx, evalp]
+declare MergeCSP_def [eval, evalr, evalrr, evalrx, evalp]
+declare ParallelCSP_def [eval, evalr, evalrr, evalrx, evalp]
+declare InterleaveCSP_def [eval, evalr, evalrr, evalrx, evalp]
 
 lemma CSP1_rel_closure[closure]:
   "P \<in> WF_RELATION \<Longrightarrow> CSP1(P) \<in> WF_RELATION"
@@ -195,12 +195,6 @@ apply(subst PVarPE_PSubstPE)
 apply(simp_all add:typing closure)
 done
 
-lemma R3c_form : "`R3c(P)` = `(\<not>ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait  \<and> II) \<or> (\<not>$wait \<and> P\<^sub>f)`"
-  sorry
-
-lemma R3c_form_2 : "`R3c(P)` = `(\<not>ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait  \<and> II) \<or> (\<not>$wait \<and> P)`"
-  sorry
-
 lemma CSP1_R1_form: 
   assumes "P is R1"
   shows "CSP1(P) = `CSP1(ok \<and> P[true/okay])`"
@@ -211,7 +205,18 @@ lemma CSP1_R1_form_2:
   shows "CSP1(P) = `CSP1(ok \<and> P)`"
 by (metis CSP1_R1_compose assms)
 
-lemma CSP1_R1_R3_compose: 
+
+lemma R3c_form : "`R3c(P)` = `(\<not>ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait  \<and> II) \<or> (\<not>$wait \<and> P\<^sub>f)`"
+  sorry
+
+lemma R3c_form_2 : "`R3c(P)` = `(\<not>ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait  \<and> II) \<or> (\<not>$wait \<and> P)`"
+  apply(simp add:R3c_def)
+  apply(subst CSP1_R1_form_2)
+  apply (metis Healthy_intro R1_SkipR)
+  apply(utp_poly_auto_tac)
+  done
+
+lemma CSP1_R1_R3c_compose: 
   assumes "P is R1"
   shows "R3c(CSP1(P)) = `(\<not>ok \<and> ($tr\<le>$tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not>$wait \<and> P[true/okay][false/wait])`"
   apply(subst CSP1_R1_form)
@@ -220,7 +225,7 @@ lemma CSP1_R1_R3_compose:
   apply(utp_poly_auto_tac)
 done
 
-lemma CSP1_R1_R3_compose_2: 
+lemma CSP1_R1_R3c_compose_2: 
   assumes "P is R1"
   shows "R3c(CSP1(P)) = `(\<not>ok \<and> ($tr\<le>$tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not>$wait \<and> P)`"
   apply(subst CSP1_R1_form_2)
@@ -289,7 +294,7 @@ proof-
   also have "... = `R3(CSP1(R1(CSP2(R2(P)))))`"
   sorry (*
     by (metis CSP1_CSP2_commute CSP1_R2_commute CSP1_R3_commute CSP1_idempotent CSP_def H2_R2_commute H2_R3_commute R1_R3_commute R1_idempotent R2_R3_commute R2_def R2_rel_closure RH_def assms(2) calculation comp_apply)
-  *) also have "...  = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not>$wait \<and> ($tr \<le> $tr\<acute>) \<and> R2s(P)\<^sup>f[true/okay]\<^sub>f) \<or> (ok \<and> \<not>$wait \<and> ($tr \<le> $tr\<acute>) \<and> ok' \<and> R2s(P)\<^sup>t[true/okay]\<^sub>f)`" 
+   also have "...  = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not>$wait \<and> ($tr \<le> $tr\<acute>) \<and> R2s(P)\<^sup>f[true/okay]\<^sub>f) \<or> (ok \<and> \<not>$wait \<and> ($tr \<le> $tr\<acute>) \<and> ok' \<and> R2s(P)\<^sup>t[true/okay]\<^sub>f)`" 
     apply(subst CSP1_R1_R3_compose)
     apply (metis Healthy_intro R1_idempotent)
     apply(subst CSP2_form)
@@ -304,11 +309,11 @@ proof-
   finally show ?thesis 
   apply(simp add:CSP_Pre_def CSP_Post_def R2_wait_false[THEN sym] R2_okay_true[THEN sym])
   by (smt PVAR_VAR_pvdash R2_okay'_false R2_okay'_true)
-qed
+qed *) show ?thesis sorry qed
 
 lemma CSP_is_RH: 
 assumes "P is CSP" "P \<in> WF_RELATION"
-shows "P is RH"
+shows "P is RH" sorry (*
 proof -
   have "RH (P) = RH (CSP (P))" 
     by (metis Healthy_simp assms(1))
@@ -333,25 +338,17 @@ proof -
     done
   finally show ?thesis
     by (metis Healthy_intro Healthy_simp assms(1))
-qed*)
+qed*) *)
 
 lemma CSP_Design: 
 assumes "P is CSP" "P \<in> WF_RELATION"
-shows "P = `RH ( CSP_Pre(P) \<turnstile> CSP_Post(P))`"
-apply(subst CSP_form)
-apply(metis assms(1))
-apply(metis assms(2))
-apply(simp add:RH_def R2_R3_commute R1_R3_commute)
-apply(simp add:R2_def R1_idempotent DesignD_def R2s_def)
-apply(simp add:usubst typing defined closure)
-apply(simp add:R3_form R1_def)
-apply(utp_pred_auto_tac)
-done
-
+shows "P = `RHc ( CSP_Pre(P) \<turnstile> CSP_Post(P))`"
+sorry
+(*
 subsection {* Stop laws *}
 
-lemma Stop_form : "`STOP`= `CSP1(R3(ok' \<and> ($tr\<acute> = $tr) \<and> $wait\<acute>))`" 
-  by(utp_pred_auto_tac)
+lemma Stop_form : "`STOP`= `CSP1(R3c(ok' \<and> ($tr\<acute> = $tr) \<and> $wait\<acute>))`" 
+  apply(simp add:StopCSP_def \<delta>_def)
 
 lemma Stop_expansion  :  "`STOP`= `(\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<or> ($wait \<and> ok \<and> II) \<or> (\<not> $wait \<and> ok \<and> ok' \<and> ($tr\<acute> = $tr) \<and> $wait\<acute>)`" 
   apply(simp add:Stop_form CSP1_R3_commute)
@@ -1216,5 +1213,5 @@ lemma Law_4:
   shows "`P \<parallel>\<^bsub>vs\<^esub> Q` = `(P \<parallel>\<^bsub>vs\<^esub> Q) \<box> (a \<rightarrow> (R \<parallel>\<^bsub>vs\<^esub> Q)) `"
 apply(subst Law_2)
 sorry
-
+*)
 end

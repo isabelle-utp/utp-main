@@ -42,9 +42,9 @@ definition DefinedT :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 "DefinedT P = `\<not> P[false/def]`"
 
 (*<*)
-declare TVL_def [eval]
-declare PredicateT_def [eval]
-declare DefinedT_def [eval]
+declare TVL_def [eval,evalp]
+declare PredicateT_def [eval,evalp]
+declare DefinedT_def [eval,evalp]
 
 syntax
   "_upred_tvl"     :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("\<three>'(_, _')")
@@ -113,12 +113,12 @@ notation ForallT ("(\<forall>\<^sub>t _ ./ _)" [0, 10] 10)
 definition ClosureT :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 "ClosureT p = (\<forall>\<^sub>t VAR. p)"
 
-declare TrueT_def  [eval]
-declare FalseT_def [eval]
-declare BotT_def [eval]
-declare NotT_def [eval]
-declare OrT_def [eval]
-declare AndT_def [eval]
+declare TrueT_def  [eval,evalp]
+declare FalseT_def [eval,evalp]
+declare BotT_def [eval,evalp]
+declare NotT_def [eval,evalp]
+declare OrT_def [eval,evalp]
+declare AndT_def [eval,evalp]
 
 text {* DH for a given TVL (P, Q) ensures that P is true only when Q is also true,
         i.e. a true valuation must also be a defined evaluation. *}
@@ -126,7 +126,7 @@ text {* DH for a given TVL (P, Q) ensures that P is true only when Q is also tru
 definition DH :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 "DH(P) = `P \<and> (\<D>(P) \<sqsubseteq> \<P>(P))`"
 
-declare DH_def [eval]
+declare DH_def [eval,evalp]
 
 syntax
   "_upred_truet"    :: "upred" ("true\<^sub>T")
@@ -150,11 +150,11 @@ translations
 
 lemma TrueT_unfold:
   "`true\<^sub>T` = `$def`"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 lemma FalseT_unfold:
   "`false\<^sub>T` = `false`"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 lemma DH_idem: 
   "DH (DH P) = DH P"
@@ -179,13 +179,13 @@ lemma DH_TVL: "UNREST {def\<down>} Q \<Longrightarrow> `\<three>(P, Q)` is DH"
 done
 
 lemma DH_BotT: "`\<bottom>\<^sub>T` is DH"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 lemma DH_TrueT: "`true\<^sub>T` is DH"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 lemma DH_FalseT: "`false\<^sub>T` is DH"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 lemma DH_AndT: "\<lbrakk> P is DH; Q is DH \<rbrakk> \<Longrightarrow> `P \<and>\<^sub>T Q` is DH"
   apply (simp add: AndT_def)
@@ -195,46 +195,42 @@ done
 
 lemma TVL_left:
   "`\<P>(\<three>(P, Q))` = `(P \<and> Q)[true/def]`"
-  by (simp add:TVL_def PredicateT_def usubst typing defined erasure)
+  by (utp_poly_tac)
 
 lemma TVL_right:
   "`\<D>(\<three>(P, Q))` = `Q[false/def]`"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 lemma DefinedT_BotT:
   "[\<not> \<D>(\<bottom>\<^sub>T)]"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 lemma DefinedT_TrueT:
   "`\<D>(true\<^sub>T)`"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 lemma DefinedT_FalseT:
   "`\<D>(false\<^sub>T)`"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 lemma TVL_extreme_point1:
   "`\<three>(true, false)` = `\<not> $def`"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 lemma TVL_extreme_point2:
   "`\<three>(false, false)` = `\<not> $def`"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 lemma AndT_left_unit:
   "P is DH \<Longrightarrow> `true\<^sub>T \<and>\<^sub>T P` = `P`"
-  apply (simp add:TVL_def AndT_def DefinedT_def TrueT_def PredicateT_def)
-  apply (rule BoolType_aux_var_split_eq_intro[of "def\<down>"])
-  apply (simp_all add:typing defined usubst erasure)
-  apply (utp_pred_auto_tac)
+  apply (utp_poly_tac)
+  apply (metis (full_types) TypeUSound_bool binding_upd_drop_ty pvaux_MkPVAR)
 done
 
 lemma AndT_right_unit:
   "P is DH \<Longrightarrow> `P \<and>\<^sub>T true\<^sub>T` = `P`"
-  apply (simp add:TVL_def AndT_def DefinedT_def TrueT_def PredicateT_def)
-  apply (rule BoolType_aux_var_split_eq_intro[of "def\<down>"])
-  apply (simp_all add:typing defined usubst erasure)
-  apply (utp_pred_auto_tac)
+  apply (utp_poly_tac)
+  apply (metis (full_types) TypeUSound_bool binding_upd_drop_ty pvaux_MkPVAR)
 done
 (*>*)
 
@@ -244,40 +240,38 @@ disjunction are commutative and associative. *}
 
 lemma AndT_assoc:
   "`(P \<and>\<^sub>T Q) \<and>\<^sub>T R` = `P \<and>\<^sub>T Q \<and>\<^sub>T R`"
-  by (utp_pred_auto_tac)
+  by (utp_poly_auto_tac)
 
 lemma AndT_commute: 
   "`P \<and>\<^sub>T Q` = `Q \<and>\<^sub>T P`"
-  by (utp_pred_auto_tac)
+  by (utp_poly_auto_tac)
 
 lemma OrT_assoc:
   "`(P \<or>\<^sub>T Q) \<or>\<^sub>T R` = `P \<or>\<^sub>T Q \<or>\<^sub>T R`"
-  by (utp_pred_auto_tac)
+  by (utp_poly_auto_tac)
 
 lemma OrT_commute:
   "`P \<or>\<^sub>T Q` = `Q \<or>\<^sub>T P`"
-  by (utp_pred_auto_tac)
+  by (utp_poly_auto_tac)
 
 (*<*)
 lemma NotT_double: "P is DH \<Longrightarrow> `\<not>\<^sub>T \<not>\<^sub>T P` = `P`"
-  apply (simp add:NotT_def TVL_def PredicateT_def DefinedT_def)
-  apply (rule BoolType_aux_var_split_eq_intro[of "def\<down>"])
-  apply (simp_all add:typing defined usubst erasure)
-  apply (utp_pred_auto_tac)
+  apply (utp_poly_tac)
+  apply (metis (full_types) TypeUSound_bool binding_upd_drop_ty pvaux_MkPVAR)
 done
 (*>*)
 
 lemma NotT_TrueT: "`\<not>\<^sub>T true\<^sub>T` = `false\<^sub>T`"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 lemma AndT_BotT_left: "`\<bottom>\<^sub>T \<and>\<^sub>T P` = `\<bottom>\<^sub>T`"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 lemma AndT_BotT_right: "`P \<and>\<^sub>T \<bottom>\<^sub>T` = `\<bottom>\<^sub>T`"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 lemma NotT_BotT: "`\<not>\<^sub>T \<bottom>\<^sub>T` = `\<bottom>\<^sub>T`"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 (*<*)
 end

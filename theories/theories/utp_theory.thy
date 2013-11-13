@@ -13,6 +13,7 @@ imports
   "../tactics/utp_pred_tac"
   "../tactics/utp_rel_tac"
   "../tactics/utp_xrel_tac"
+  "../poly/utp_poly_tac"
 begin
 
 definition is_healthy :: 
@@ -25,7 +26,7 @@ definition IDEMPOTENT_OVER ::
   "'a VAR set \<Rightarrow> 'a WF_FUNCTION set" where
 "IDEMPOTENT_OVER vs = {f . \<forall> p \<in> WF_PREDICATE_OVER vs . f (f p) = f p}"
 
-declare is_healthy_def [eval,evalr,evalrx]
+declare is_healthy_def [eval,evalr,evalrx,evalp]
 
 lemma Healthy_intro [intro]:
   "H(P) = P \<Longrightarrow> P is H"
