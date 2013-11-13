@@ -160,7 +160,7 @@ abbreviation "vexpr_nequal    \<equiv> Op2D' (op \<noteq>)"
 abbreviation "vexpr_prod      \<equiv> Op2D' (\<lambda> x y. (x,y))"
 abbreviation "vexpr_nil       \<equiv> LitD []"
 abbreviation "vexpr_cons      \<equiv> Op2D' list.Cons"
-definition "vexpr_empty     \<equiv> LitD \<lbrace>\<rbrace>"
+definition "vexpr_empty       \<equiv> LitD \<lbrace>\<rbrace>"
 definition "vexpr_insert    \<equiv> Op2D' finsert"
 
 declare vexpr_empty_def [eval,evalp]
