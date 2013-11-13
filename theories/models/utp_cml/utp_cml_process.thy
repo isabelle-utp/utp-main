@@ -14,7 +14,7 @@ begin
 
 definition ParallelD :: 
   "cmlp \<Rightarrow> cmlv UCHAN set \<Rightarrow> cmlp \<Rightarrow> cmlp" where
-"ParallelD p cs q = ParallelCSP p (LitPE (MkEvents cs)) q"
+"ParallelD p cs q = ParallelCSP p (LitPE (Abs_USET (MkEvents cs))) q"
 
 abbreviation MkChanD :: "string \<Rightarrow> 'a set \<Rightarrow> ('a option) CHAN" where
 "MkChanD n xs \<equiv> MkCHAN (bName n, TYPE('a option))"
@@ -80,13 +80,13 @@ syntax
 translations
   "_upred_parcml p vs q"        == "CONST ParallelD p vs q"
   "_upred_cml_prefix n p"       == "CONST CommD n p"
-  "_upred_cml_exec0 s"          == "CONST R (CONST Exec0D s)"
-  "_upred_cml_exec1 f s"        == "CONST R (CONST Exec1D f s)"
-  "_upred_cml_exec2 v1 v2 s"    == "CONST R (CONST Exec2D v1 v2 s)"
-  "_upred_cml_exec3 v1 v2 v3 s" == "CONST R (CONST Exec3D v1 v2 v3 s)"
-  "_upred_cml_exec3 v1 v2 v3 v4 s" == "CONST R (CONST Exec3D v1 v2 v3 v4 s)"
-  "_upred_cml_exec3 v1 v2 v3 v4 v5 s" == "CONST R (CONST Exec3D v1 v2 v3 v4 v5 s)"
-  "_upred_cml_exec3 v1 v2 v3 v4 v5 v6 s" == "CONST R (CONST Exec3D v1 v2 v3 v4 v5 v6 s)"
+  "_upred_cml_exec0 s"          == "CONST RH (CONST Exec0D s)"
+  "_upred_cml_exec1 f s"        == "CONST RH (CONST Exec1D f s)"
+  "_upred_cml_exec2 v1 v2 s"    == "CONST RH (CONST Exec2D v1 v2 s)"
+  "_upred_cml_exec3 v1 v2 v3 s" == "CONST RH (CONST Exec3D v1 v2 v3 s)"
+  "_upred_cml_exec3 v1 v2 v3 v4 s" == "CONST RH (CONST Exec3D v1 v2 v3 v4 s)"
+  "_upred_cml_exec3 v1 v2 v3 v4 v5 s" == "CONST RH (CONST Exec3D v1 v2 v3 v4 v5 s)"
+  "_upred_cml_exec3 v1 v2 v3 v4 v5 v6 s" == "CONST RH (CONST Exec3D v1 v2 v3 v4 v5 v6 s)"
 
 term "`P [|{x,y,z}|] Q`"
 term "`f()`"

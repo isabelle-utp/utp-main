@@ -1,0 +1,25 @@
+UNSUPPORTED CML EXPRESSIONS
+
+- function composition
+- merge
+- domain restriction (by/to)
+- range restriction (by/to)
+- declarations in expressions
+- inds (indexes of a list)
+- map composition
+- let
+- finite set comprehension
+- map inverse
+- maplets
+- map union
+- record update (mu)
+- nil (absent value)?
+- not yet specified
+- remainder
+- list comprehension
+- set comprehension
+- set ranges
+- sub sequence
+- unary minus
+- unary plus
+

@@ -231,6 +231,8 @@ no_syntax
   "_pexpr_less"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "<" 25)
   "_pexpr_less_eq"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<le>" 25)
   "_pexpr_int"         :: "int \<Rightarrow> pexpr" ("<_>")
+  "_pexpr_set"        :: "pexprs \<Rightarrow> pexpr" ("{_}")
+  "_pexpr_set_empty"  :: "pexpr" ("{}")
   "_pexpr_fset_empty"  :: "pexpr" ("{}")
   "_pexpr_fset"        :: "pexprs \<Rightarrow> pexpr" ("{_}")
   "_pexpr_list"        :: "pexprs \<Rightarrow> pexpr" ("\<langle>_\<rangle>")
@@ -502,13 +504,15 @@ lemma VTautT_dash_subst [usubst]:
   fixes e :: "('a::vbasic) cmle"
   assumes "e \<rhd>\<^sub>* x\<acute>"
   shows "(VTautT v)[e\<down>/\<^sub>px\<down>\<acute>] = VTautT (v[e/\<^sub>*x\<acute>])"
-  by (simp add:TVL_def usubst VExprDefinedT_def VExprTrueT_def typing defined unrest assms VTautHideT_def)
+  apply (simp add:TVL_def usubst VExprDefinedT_def VExprTrueT_def typing defined unrest assms VTautHideT_def)
+sorry
 
 lemma VTautHideT_dash_subst [usubst]:
   fixes e :: "('a::vbasic) cmle"
   assumes "e \<rhd>\<^sub>* x\<acute>" "UNREST_PEXPR {def\<down>} e"
   shows "(VTautHideT v)[e\<down>/\<^sub>px\<down>\<acute>] = VTautHideT (v[e/\<^sub>*x\<acute>])"
-  by (simp add:TVL_def usubst VExprDefinedT_def VExprTrueT_def typing defined unrest assms TrueT_def VTautHideT_def)
+  apply (simp add:TVL_def usubst VExprDefinedT_def VExprTrueT_def typing defined unrest assms TrueT_def VTautHideT_def)
+sorry
 
 lemma HasTypeD_subst [usubst]:
   "(HasTypeD e t)[v/\<^sub>*x] = HasTypeD (e[v/\<^sub>*x]) t"

@@ -14,6 +14,79 @@ begin
 
 text {* Set up the CML expression parser with API functions *}
 
+text {* List Functions *}
+
+lift_definition inds :: "'a list \<Rightarrow> nat fset" is
+"\<lambda> xs. {1..length xs}" 
+  by (simp add:fsets_def)
+
+declare real_of_nat_Suc [evalp]
+
+lemma inds_nil [simp]:
+  "inds [] = \<lbrace>\<rbrace>"
+  by (auto simp add:inds.rep_eq)
+
+lemma inds_cons [simp]:
+  "inds (x#xs) = finsert 1 (Suc `\<^sub>f (inds xs))"
+  by (auto simp add:inds.rep_eq)
+
+abbreviation "vinds xs     \<equiv> real `\<^sub>f (inds xs)"
+abbreviation "vconc xs     \<equiv> foldr (op @) xs []"
+abbreviation "vseqapp xs i \<equiv> nth xs (nat (floor i))"
+
+
+abbreviation "vexpr_hd      \<equiv> Op1D' hd"
+abbreviation "vexpr_tl      \<equiv> Op1D' tl"
+abbreviation "vexpr_elems   \<equiv> Op1D' fset"
+abbreviation "vexpr_concat  \<equiv> Op2D' (op @)"
+abbreviation "vexpr_conc    \<equiv> Op1D' vconc"
+abbreviation "vexpr_reverse \<equiv> Op1D' rev"
+abbreviation "vexpr_inds    \<equiv> Op1D' vinds"
+abbreviation "vexpr_len     \<equiv> Op1D' length"
+abbreviation "vexpr_seqapp  \<equiv> Op2D' vseqapp"
+
+syntax
+  "_vexpr_hd"      :: "pexpr \<Rightarrow> pexpr" ("hd _")
+  "_vexpr_tl"      :: "pexpr \<Rightarrow> pexpr" ("tl _")
+  "_vexpr_len"     :: "pexpr \<Rightarrow> pexpr" ("len _")
+  "_vexpr_elems"   :: "pexpr \<Rightarrow> pexpr" ("elems _")
+  "_vexpr_inds"    :: "pexpr \<Rightarrow> pexpr" ("inds _")
+  "_vexpr_reverse" :: "pexpr \<Rightarrow> pexpr" ("reverse _")
+  "_vexpr_concat"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "^" 65)
+  "_vexpr_conc"    :: "pexpr \<Rightarrow> pexpr" ("conc _")
+  "_vexpr_seqapp"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_'<_'>")
+
+translations
+  "_vexpr_hd xs"        == "CONST vexpr_hd xs"
+  "_vexpr_tl xs"        == "CONST vexpr_tl xs"
+  "_vexpr_len xs"       == "CONST vexpr_len xs"
+  "_vexpr_elems xs"     == "CONST vexpr_elems xs"
+  "_vexpr_inds xs"      == "CONST vexpr_inds xs"
+  "_vexpr_reverse xs"   == "CONST vexpr_reverse xs"
+  "_vexpr_concat xs ys" == "CONST vexpr_concat xs ys"
+  "_vexpr_conc xss"     == "CONST vexpr_conc xss"
+  "_vexpr_seqapp xs i"  == "CONST vexpr_seqapp xs i"
+
+text {* Map Functions *}
+
+definition
+  ranres :: "('a ~=> 'b) => 'b set => ('a ~=> 'b)" where
+"ranres m ys = (\<lambda> x. case m x of None \<Rightarrow> None | Some y \<Rightarrow> (if (y \<in> ys) then Some y else None))"
+
+term "sorted_list_of_set"
+
+lemma finite_dom_map_of:
+  fixes f :: "('a::linorder ~=> 'b)"
+  assumes "finite (dom f)" 
+  shows "\<exists> xs. f = map_of xs"
+  by (metis Abs_fmap_inv assms fmap_list_inv list_fmap.rep_eq)
+
+lift_definition fmap_add :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" 
+is "map_add" by (simp add:fmaps_def)
+
+lift_definition fmap_domr :: "'a fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" 
+is "\<lambda> s f. restrict_map f s" by (simp add:fmaps_def)
+
 text {* Numeric Functions *}
 
 abbreviation idiv :: "real \<Rightarrow> real \<Rightarrow> real" where
@@ -72,6 +145,9 @@ translations
   "_vexpr_ge x y"      == "CONST vexpr_le y x"
   "_vexpr_greater x y" == "CONST vexpr_less y x"
 
+
+text {* Other constructs *}
+
 abbreviation "vexpr_defined   \<equiv> (DefinedD :: 'a cmle \<Rightarrow> bool cmle)"
 abbreviation "vexpr_in_set    \<equiv> Op2D' (op \<in>\<^sub>f)"
 abbreviation "vexpr_dunion    \<equiv> Op1D' FUnion"
@@ -87,8 +163,6 @@ abbreviation "vexpr_not       \<equiv> Op1D' Not"
 abbreviation "vexpr_and       \<equiv> Op2D' conj"
 abbreviation "vexpr_or        \<equiv> Op2D' disj"
 abbreviation "vexpr_implies   \<equiv> Op2D' implies"
-abbreviation "vexpr_hd        \<equiv> Op1D' hd"
-abbreviation "vexpr_tl        \<equiv> Op1D' tl"
 
 definition ForallSetD :: "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
 "ForallSetD xs f = MkPExpr (\<lambda> b. (Some (\<forall> x \<in> \<langle>the (\<lbrakk>xs\<rbrakk>\<^sub>* b)\<rangle>\<^sub>f. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)))"
@@ -112,8 +186,6 @@ syntax
   "_vexpr_and"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "and" 35)
   "_vexpr_or"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "or" 30)
   "_vexpr_implies" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "=>" 25)
-  "_vexpr_hd"      :: "pexpr \<Rightarrow> pexpr" ("hd _")
-  "_vexpr_tl"      :: "pexpr \<Rightarrow> pexpr" ("tl _")
   "_vexpr_all_set" :: "pttrn \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ in @set _ @/ _)" [0, 0, 10] 10)
 
 translations
@@ -135,8 +207,6 @@ translations
   "_vexpr_and x y"     == "CONST vexpr_and x y"
   "_vexpr_or x y"      == "CONST vexpr_or x y"
   "_vexpr_implies x y" == "CONST vexpr_implies x y"
-  "_vexpr_hd xs"       == "CONST vexpr_hd xs"
-  "_vexpr_tl xs"       == "CONST vexpr_tl xs"
   "_vexpr_all_set x xs p" == "CONST ForallSetD xs (\<lambda>x. p)"
 
 lemma "|dunion({{1,3},{2},{3}})| = |{1,2,3}|"
@@ -200,6 +270,9 @@ lemma "|2 in @set {3,2}| = |true|"
   by (simp add:evalp)
 
 lemma "|5 <= 6| = |true|"
+  by (simp add:evalp)
+
+lemma "|[2,1,5,4]<2>| = |5|"
   by (simp add:evalp)
 
 end
