@@ -30,20 +30,29 @@ lemma inds_cons [simp]:
   "inds (x#xs) = finsert 1 (Suc `\<^sub>f (inds xs))"
   by (auto simp add:inds.rep_eq)
 
-abbreviation "vinds xs     \<equiv> real `\<^sub>f (inds xs)"
-abbreviation "vconc xs     \<equiv> foldr (op @) xs []"
-abbreviation "vseqapp xs i \<equiv> nth xs (nat (floor i))"
+definition "vhd xs       = (case xs of [] \<Rightarrow> None | (x#xs) \<Rightarrow> Some x)"
+definition "vtl xs       = (case xs of [] \<Rightarrow> None | (x#xs) \<Rightarrow> Some xs)"
+definition "vinds xs     \<equiv> real `\<^sub>f (inds xs)"
+definition "vconc xs     \<equiv> foldr (op @) xs []"
+definition "vseqapp      = (\<lambda> (xs, i::real). if (nat (floor i) < length xs)
+                                             then Some (nth xs (nat (floor i)))
+                                             else None)"
 
+declare vhd_def [eval,evalp]
+declare vtl_def [eval,evalp]
+declare vinds_def [eval,evalp]
+declare vconc_def [eval,evalp]
+declare vseqapp_def [eval,evalp]
 
-abbreviation "vexpr_hd      \<equiv> Op1D' hd"
-abbreviation "vexpr_tl      \<equiv> Op1D' tl"
+abbreviation "vexpr_hd      \<equiv> Op1D vhd"
+abbreviation "vexpr_tl      \<equiv> Op1D vtl"
 abbreviation "vexpr_elems   \<equiv> Op1D' fset"
 abbreviation "vexpr_concat  \<equiv> Op2D' (op @)"
 abbreviation "vexpr_conc    \<equiv> Op1D' vconc"
 abbreviation "vexpr_reverse \<equiv> Op1D' rev"
 abbreviation "vexpr_inds    \<equiv> Op1D' vinds"
 abbreviation "vexpr_len     \<equiv> Op1D' length"
-abbreviation "vexpr_seqapp  \<equiv> Op2D' vseqapp"
+abbreviation "vexpr_seqapp  \<equiv> Op2D  vseqapp"
 
 syntax
   "_vexpr_hd"      :: "pexpr \<Rightarrow> pexpr" ("hd _")
@@ -69,11 +78,27 @@ translations
 
 text {* Map Functions *}
 
+definition "vexpr_mapupd \<equiv> Op3D' (\<lambda> m x v. fmap_upd m x (Some v))"
+
+declare vexpr_mapupd_def [eval,evalp]
+
+nonterminal vmaplets and vmaplet
+
+syntax
+  "_vmaplet"  :: "[pexpr, pexpr] => vmaplet"       ("_ /|->/ _")
+  ""          :: "vmaplet => vmaplets"             ("_")
+  "_VMaplets" :: "[vmaplet, vmaplets] => vmaplets" ("_,/ _")
+  "_VMap"     :: "vmaplets => pexpr"               ("(1{_})")
+
+translations
+  "_VMap (_VMaplets (_vmaplet x v) ms2)" == "CONST vexpr_mapupd (_VMap ms2) x v"
+  "_VMap (_vmaplet x v)" == "CONST vexpr_mapupd (CONST LitD CONST fmempty) x v"
+
 definition
   ranres :: "('a ~=> 'b) => 'b set => ('a ~=> 'b)" where
 "ranres m ys = (\<lambda> x. case m x of None \<Rightarrow> None | Some y \<Rightarrow> (if (y \<in> ys) then Some y else None))"
 
-term "sorted_list_of_set"
+declare ranres_def [eval,evalp]
 
 lemma finite_dom_map_of:
   fixes f :: "('a::linorder ~=> 'b)"
@@ -81,11 +106,55 @@ lemma finite_dom_map_of:
   shows "\<exists> xs. f = map_of xs"
   by (metis Abs_fmap_inv assms fmap_list_inv list_fmap.rep_eq)
 
+lemma map_comp_dom: "dom (g \<circ>\<^sub>m f) \<subseteq> dom f"
+  by (metis (lifting, full_types) Collect_mono dom_def map_comp_simps(1))
+
+lift_definition fmap_comp :: "('b, 'c) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'c) fmap"
+is "map_comp" 
+  apply (auto simp add:fmaps_def)
+  apply (metis finite_subset map_comp_dom)
+done
+
 lift_definition fmap_add :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" 
 is "map_add" by (simp add:fmaps_def)
 
 lift_definition fmap_domr :: "'a fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" 
 is "\<lambda> s f. restrict_map f s" by (simp add:fmaps_def)
+
+lift_definition fmap_inv :: "('a, 'b) fmap \<Rightarrow> ('b, 'a) fmap" 
+is "map_inv" by (simp add:fmaps_def)
+
+definition fmap_domr' :: "'a fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" where
+"fmap_domr' s f = fmap_domr (fdom f -\<^sub>f s) f"
+
+abbreviation "vexpr_dom       \<equiv> Op1D' fdom"
+abbreviation "vexpr_rng       \<equiv> Op1D' fran"
+abbreviation "vexpr_mapcomp   \<equiv> Op2D' fmap_comp"
+abbreviation "vexpr_munion    \<equiv> Op2D' fmap_add"
+abbreviation "vexpr_moverride \<equiv> Op2D' fmap_add"
+abbreviation "vexpr_domresto  \<equiv> Op2D' fmap_domr"
+abbreviation "vexpr_domresfr  \<equiv> Op2D' fmap_domr'"
+abbreviation "vexpr_mapapp    \<equiv> Op2D (\<lambda> (m, k). Rep_fmap m k)"
+abbreviation "vexpr_mapinv    \<equiv> Op1D' fmap_inv"
+
+syntax
+  "_vexpr_dom"       :: "pexpr \<Rightarrow> pexpr" ("dom _")
+  "_vexpr_rng"       :: "pexpr \<Rightarrow> pexpr" ("rng _")
+  "_vexpr_moverride" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "++" 65)
+  "_vexpr_domresto"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "<:" 110)
+  "_vexpr_domresfr"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "<-:" 110)
+  "_vexpr_mapcomp"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "comp" 55)  
+  "_vexpr_mapinv"    :: "pexpr \<Rightarrow> pexpr" ("inverse _")
+  "_vexpr_mapapp"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_[_]")
+
+translations
+  "_vexpr_dom x"         == "CONST vexpr_dom x"
+  "_vexpr_rng x"         == "CONST vexpr_rng x"
+  "_vexpr_moverride f g" == "CONST vexpr_moverride f g"
+  "_vexpr_domresto s f"  == "CONST vexpr_domresto s f"
+  "_vexpr_domresfr s f"  == "CONST vexpr_domresfr s f"
+  "_vexpr_mapinv m"      == "CONST vexpr_mapinv m"
+  "_vexpr_mapapp m k"    == "CONST vexpr_mapapp m k"
 
 text {* Numeric Functions *}
 
@@ -155,8 +224,6 @@ abbreviation "vexpr_dinter    \<equiv> Op1D' FInter"
 abbreviation "vexpr_subset    \<equiv> Op2D' (op \<subseteq>\<^sub>f)"
 abbreviation "vexpr_psubset   \<equiv> Op2D' (op \<subset>\<^sub>f)"
 abbreviation "vexpr_fpower    \<equiv> Op1D' FinPow"
-abbreviation "vexpr_dom       \<equiv> Op1D' fdom"
-abbreviation "vexpr_rng       \<equiv> Op1D' fran"
 abbreviation "vexpr_card      \<equiv> Op1D' fcard"
 abbreviation "vexpr_lookup    \<equiv> Op2D (\<lambda> (x, m). \<langle>m\<rangle>\<^sub>m x)"
 abbreviation "vexpr_not       \<equiv> Op1D' Not"
@@ -180,8 +247,6 @@ syntax
   "_vexpr_psubset" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "psubset" 50)
   "_vexpr_fpower"  :: "pexpr \<Rightarrow> pexpr" ("power _")
   "_vexpr_card"    :: "pexpr \<Rightarrow> pexpr" ("card _")
-  "_vexpr_dom"     :: "pexpr \<Rightarrow> pexpr" ("dom _")
-  "_vexpr_rng"     :: "pexpr \<Rightarrow> pexpr" ("rng _")
   "_vexpr_not"     :: "pexpr \<Rightarrow> pexpr" ("not _" [40] 40)
   "_vexpr_and"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "and" 35)
   "_vexpr_or"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "or" 30)
@@ -201,8 +266,6 @@ translations
   "_vexpr_psubset x y" == "CONST vexpr_psubset x y"
   "_vexpr_fpower xs"   == "CONST vexpr_fpower xs"
   "_vexpr_card x"      == "CONST vexpr_card x"
-  "_vexpr_dom x"       == "CONST vexpr_dom x"
-  "_vexpr_rng x"       == "CONST vexpr_rng x"
   "_vexpr_not x"       == "CONST vexpr_not x"
   "_vexpr_and x y"     == "CONST vexpr_and x y"
   "_vexpr_or x y"      == "CONST vexpr_or x y"

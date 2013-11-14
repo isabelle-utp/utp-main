@@ -89,6 +89,15 @@ definition bpfun :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a * 
 
 abbreviation "Op2D' f \<equiv> Op2D (bpfun f)"
 
+definition Op3D :: "('a::vbasic * 'b::vbasic * 'c::vbasic \<rightharpoonup> 'd::vbasic) 
+                   \<Rightarrow> 'a cmle \<Rightarrow> 'b cmle \<Rightarrow> 'c cmle \<Rightarrow> 'd cmle" where
+"Op3D f u v w = Op3PE (\<lambda> v1 v2 v3. do { x <- v1; y <- v2; z <- v3; f (x, y, z) }) u v w"
+
+definition tpfun :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> ('a * 'b * 'c \<Rightarrow> 'd option)" where
+"tpfun f \<equiv> (\<lambda> (v1, v2, v3). Some (f v1 v2 v3))"
+
+abbreviation "Op3D' f \<equiv> Op3D (tpfun f)"
+
 definition SingleD :: "'a cmle \<Rightarrow> ('a*unit) cmle" where
 "SingleD x = Op1D' (\<lambda> x. (x, ())) x"
 
@@ -394,6 +403,10 @@ lemma EvalD_Op2D [eval,evalp,evale]:
   "\<lbrakk>Op2D f x y\<rbrakk>\<^sub>*b = do { v1 <- \<lbrakk>x\<rbrakk>\<^sub>*b; v2 <- \<lbrakk>y\<rbrakk>\<^sub>*b; f (v1, v2) }"
   by (simp add:Op2D_def evalp)
 
+lemma EvalD_Op3D [eval,evalp,evale]:
+  "\<lbrakk>Op3D f x y z\<rbrakk>\<^sub>*b = do { v1 <- \<lbrakk>x\<rbrakk>\<^sub>*b; v2 <- \<lbrakk>y\<rbrakk>\<^sub>*b; v3 <- \<lbrakk>z\<rbrakk>\<^sub>*b; f (v1, v2, v3) }"
+  by (simp add:Op3D_def evalp)
+
 lemma EvalD_HasTypeD [eval,evalp,evale]:
   "\<lbrakk>HasTypeD e t\<rbrakk>\<^sub>*b = (if (\<D> (\<lbrakk>e\<rbrakk>\<^sub>* b) \<and> the (\<lbrakk>e\<rbrakk>\<^sub>* b) \<in> t) then \<lfloor>True\<rfloor> else \<lfloor>False\<rfloor>)"
   by (simp add:HasTypeD_def)
@@ -413,6 +426,12 @@ lemma bpfun_apply [simp]:
   "bpfun f x = Some (f (fst x) (snd x))"
   apply (case_tac x)
   apply (auto simp add:bpfun_def)
+done
+
+lemma tpfun_apply [simp]:
+  "tpfun f x = Some (f (fst x) (fst (snd x)) (snd (snd x)))"
+  apply (case_tac x)
+  apply (auto simp add:tpfun_def)
 done
 
 declare Inject_bool_def [eval,evale,evalp]
@@ -504,15 +523,19 @@ lemma VTautT_dash_subst [usubst]:
   fixes e :: "('a::vbasic) cmle"
   assumes "e \<rhd>\<^sub>* x\<acute>"
   shows "(VTautT v)[e\<down>/\<^sub>px\<down>\<acute>] = VTautT (v[e/\<^sub>*x\<acute>])"
-  apply (simp add:TVL_def usubst VExprDefinedT_def VExprTrueT_def typing defined unrest assms VTautHideT_def)
-sorry
+  using assms
+  apply (simp add:TVL_def VExprDefinedT_def VExprTrueT_def VTautHideT_def)
+  apply (simp add:usubst typing defined unrest assms erasure)
+done
 
 lemma VTautHideT_dash_subst [usubst]:
   fixes e :: "('a::vbasic) cmle"
   assumes "e \<rhd>\<^sub>* x\<acute>" "UNREST_PEXPR {def\<down>} e"
   shows "(VTautHideT v)[e\<down>/\<^sub>px\<down>\<acute>] = VTautHideT (v[e/\<^sub>*x\<acute>])"
-  apply (simp add:TVL_def usubst VExprDefinedT_def VExprTrueT_def typing defined unrest assms TrueT_def VTautHideT_def)
-sorry
+  using assms
+  apply (simp add:TVL_def VExprDefinedT_def VExprTrueT_def VTautHideT_def TrueT_def)
+  apply (simp add:usubst typing defined unrest assms erasure)
+done
 
 lemma HasTypeD_subst [usubst]:
   "(HasTypeD e t)[v/\<^sub>*x] = HasTypeD (e[v/\<^sub>*x]) t"
