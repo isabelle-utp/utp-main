@@ -251,8 +251,11 @@ no_syntax
   "_uexpr_quote"       :: "uexpr \<Rightarrow> 'a WF_EXPRESSION" ("(1^_^)")
   "_upred_pexpr"       :: "pexpr \<Rightarrow> upred" ("\<lparr>_\<rparr>")
 
+abbreviation "vexpr_defined   \<equiv> (DefinedD :: 'a cmle \<Rightarrow> bool cmle)"
+
 syntax
   "_vexpr_eval"     :: "pexpr \<Rightarrow> 'a" ("+|_|+")
+  "_vexpr_defined"  :: "pexpr \<Rightarrow> pexpr" ("defn'(_')")
   "_vexpr_expr_var" :: "idt \<Rightarrow> pexpr" ("@_" [999] 999)
   "_vexpr_val_var"  :: "idt \<Rightarrow> pexpr" ("&_" [999] 999)
   "_vexpr_equal"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "=" 50)
@@ -289,6 +292,7 @@ syntax (xsymbols)
 
 translations
   "_vexpr_eval e"              == "\<lbrakk>e\<rbrakk>\<^sub>* \<B>"
+  "_vexpr_defined x"           == "CONST vexpr_defined x"
   "_vexpr_expr_var x"          => "x"
   "_vexpr_val_var x"           == "CONST LitPE x"
   "_vexpr_equal"               == "CONST vexpr_equal"
@@ -624,5 +628,11 @@ lemma VTaut_FalseD [simp]:
   apply (simp del: MkBool_cmlv add:typing defined closure)
 done  
 *)
+
+lemma BotD_defn: "|defn(undefined)| = |false|"
+  by (simp add:evalp Defined_WF_PEXPRESSION_def)
+
+lemma LitD_defn: "|defn(<<x>>)| = |true|"
+  by (simp add:evalp Defined_WF_PEXPRESSION_def)
 
 end

@@ -217,7 +217,6 @@ translations
 
 text {* Other constructs *}
 
-abbreviation "vexpr_defined   \<equiv> (DefinedD :: 'a cmle \<Rightarrow> bool cmle)"
 abbreviation "vexpr_in_set    \<equiv> Op2D' (op \<in>\<^sub>f)"
 abbreviation "vexpr_dunion    \<equiv> Op1D' FUnion"
 abbreviation "vexpr_dinter    \<equiv> Op1D' FInter"
@@ -226,17 +225,22 @@ abbreviation "vexpr_psubset   \<equiv> Op2D' (op \<subset>\<^sub>f)"
 abbreviation "vexpr_fpower    \<equiv> Op1D' FinPow"
 abbreviation "vexpr_card      \<equiv> Op1D' fcard"
 abbreviation "vexpr_lookup    \<equiv> Op2D (\<lambda> (x, m). \<langle>m\<rangle>\<^sub>m x)"
-abbreviation "vexpr_not       \<equiv> Op1D' Not"
+abbreviation "vexpr_not       \<equiv> (Op1PE mnot :: bool cmle \<Rightarrow> bool cmle)"
+abbreviation "vexpr_and       \<equiv> (Op2PE mconj :: bool cmle \<Rightarrow> bool cmle \<Rightarrow> bool cmle)"
+abbreviation "vexpr_or        \<equiv> (Op2PE mdisj :: bool cmle \<Rightarrow> bool cmle \<Rightarrow> bool cmle)"
+abbreviation "vexpr_implies   \<equiv> (Op2PE mimplies :: bool cmle \<Rightarrow> bool cmle \<Rightarrow> bool cmle)"
+
+(*
 abbreviation "vexpr_and       \<equiv> Op2D' conj"
 abbreviation "vexpr_or        \<equiv> Op2D' disj"
 abbreviation "vexpr_implies   \<equiv> Op2D' implies"
+*)
 
 definition ForallSetD :: "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
 "ForallSetD xs f = MkPExpr (\<lambda> b. (Some (\<forall> x \<in> \<langle>the (\<lbrakk>xs\<rbrakk>\<^sub>* b)\<rangle>\<^sub>f. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)))"
 
 syntax
   "_vexpr_quotev"  :: "string \<Rightarrow> pexpr" ("<_>")
-  "_vexpr_defined" :: "pexpr \<Rightarrow> pexpr" ("defn _")
   "_vexpr_in_set"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "in @set" 50)
   "_vexpr_union"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "union" 65)
   "_vexpr_inter"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "inter" 70)
@@ -256,7 +260,6 @@ syntax
 translations
   "_vexpr_quotev x"    == "CONST LitD (CONST QuoteD x)"
   "_vexpr_in_set x xs" == "CONST vexpr_in_set x xs"
-  "_vexpr_defined x"   == "CONST vexpr_defined x"
   "_vexpr_union x y"   == "CONST Op2D' CONST funion x y"
   "_vexpr_inter x y"   == "CONST Op2D' CONST finter x y"
   "_vexpr_dunion xs"   == "CONST vexpr_dunion xs"
@@ -337,5 +340,13 @@ lemma "|5 <= 6| = |true|"
 
 lemma "|[2,1,5,4]<2>| = |5|"
   by (simp add:evalp)
+
+lemma [simp]: "mconj (Some p) (Some q) = Some (p \<and> q)"
+  by (case_tac p, case_tac[!] q, simp_all add:mconj_def)
+
+lemma "|defn(@x[@i])| = |defn(@i) and defn(@x) and (@i in @set (dom @x))|"
+  apply (auto simp add:evalp Defined_WF_PEXPRESSION_def fdom.rep_eq)
+  apply (case_tac "\<lbrakk>i\<rbrakk>\<^sub>*b = None")
+oops
 
 end

@@ -6,6 +6,7 @@ imports
   "Library_extra/Fmap"
   "Library_extra/Multi_Elem"
   "Library_extra/Lattices_extra"
+  "Library_extra/McCarthy_Logic"
 begin
 
 definition complete_inj ::
