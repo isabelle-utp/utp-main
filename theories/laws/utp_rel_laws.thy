@@ -1230,6 +1230,20 @@ theorem SkipRA_assign :
   apply (force simp add:assms)
 done
 
+theorem AssignR_commute: 
+  assumes 
+    "x \<in> UNDASHED" "y \<in> UNDASHED"  
+    "DASHED \<sharp> e" "DASHED \<sharp> f"
+    "{x} \<sharp> f" "{y} \<sharp> e"
+    "e \<rhd>\<^sub>e x" "f \<rhd>\<^sub>e y"
+    "x \<noteq> y"
+  shows "(x :=\<^sub>R e; y :=\<^sub>R f) = (y :=\<^sub>R f; x :=\<^sub>R e)"
+  using assms
+  apply (utp_rel_tac, simp add:relcomp_unfold)
+  apply (utp_expr_tac)
+  apply (metis (hide_lams, no_types) EvalE_compat WF_REL_BINDING_binding_upd binding_upd_twist)
+done
+
 theorem AssignR_idem :
   assumes 
     "x \<in> UNDASHED" 
