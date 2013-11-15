@@ -96,6 +96,7 @@ session "nfm2014" in "papers/nfm2014" = "HOL-UTP" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
   theories [document = false]
   theories 
+    "prelim"
     "deep_shallow"
     "prog_model"
     "poly_expr"
