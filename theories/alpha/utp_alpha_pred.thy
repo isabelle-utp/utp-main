@@ -36,7 +36,7 @@ type_synonym 'VALUE ALPHA_PREDICATE =
 definition WF_ALPHA_PREDICATE ::
   "'VALUE ALPHA_PREDICATE set" where
 "WF_ALPHA_PREDICATE =
- {(a,p) | a p . p \<in> WF_PREDICATE_OVER a}"
+ {(a,p) | a p . p \<in> WF_PREDICATE_OVER \<langle>a\<rangle>\<^sub>f}"
 
 typedef 'a WF_ALPHA_PREDICATE = "WF_ALPHA_PREDICATE :: 'a ALPHA_PREDICATE set"
 morphisms DestPredA MkPredA
@@ -85,7 +85,7 @@ definition WF_ALPHA_PREDICATE_OVER ::
 "WF_ALPHA_PREDICATE_OVER a = {p . \<alpha> p = a}"
 
 theorem WF_ALPHA_PREDICATE_UNREST [unrest] (* [dest] *) :
-"UNREST (VAR - \<alpha> p) (\<pi> p)"
+"UNREST (VAR - \<langle>\<alpha> p\<rangle>\<^sub>f) (\<pi> p)"
 apply (insert DestPredA[of p])
 apply (auto simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def pred_alphabet_def)
 done
@@ -104,7 +104,7 @@ subsubsection {* Equality *}
 
 lift_definition EqualsA ::
   "'a VAR \<Rightarrow> 'a \<Rightarrow>
-   'a WF_ALPHA_PREDICATE" is "\<lambda> v x. ({v}, v =\<^sub>p x)"
+   'a WF_ALPHA_PREDICATE" is "\<lambda> v x. (\<lbrace>v\<rbrace>, v =\<^sub>p x)"
   by (simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
   
 notation EqualsA (infix "=\<^sub>\<alpha>" 210)
@@ -114,7 +114,7 @@ subsubsection {* Extension and Restriction *}
 lift_definition ExtA ::
   "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a ALPHABET \<Rightarrow>
    'a WF_ALPHA_PREDICATE" is
-"\<lambda> p a. ((\<alpha> p) \<union> a, \<pi> p)"
+"\<lambda> p a. ((\<alpha> p) \<union>\<^sub>f a, \<pi> p)"
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
 apply (auto intro: unrest)
@@ -125,7 +125,7 @@ notation ExtA (infix "\<oplus>\<^sub>\<alpha>" 200)
 lift_definition ResA ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow> 'VALUE ALPHABET \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" is
-"\<lambda> p a. ((\<alpha> p) - a, \<exists>\<^sub>p a . \<pi> p)"
+"\<lambda> p a. ((\<alpha> p) -\<^sub>f a, \<exists>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<pi> p)"
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
 apply (auto intro: unrest)  
@@ -148,10 +148,10 @@ definition FalseA ::
 notation FalseA ("false\<^bsub>_\<^esub>")
 
 abbreviation TRUE :: "'VALUE WF_ALPHA_PREDICATE" where
-"TRUE \<equiv> true\<^bsub>{}\<^esub>"
+"TRUE \<equiv> true\<^bsub>\<lbrace>\<rbrace>\<^esub>"
 
 abbreviation FALSE :: "'VALUE WF_ALPHA_PREDICATE" where
-"FALSE \<equiv> false\<^bsub>{}\<^esub>"
+"FALSE \<equiv> false\<^bsub>\<lbrace>\<rbrace>\<^esub>"
 
 subsubsection {* Logical Connectives *}
 
@@ -167,7 +167,7 @@ lift_definition AndA ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" is
-"\<lambda> p1 p2. ((\<alpha> p1) \<union> (\<alpha> p2), (\<pi> p1) \<and>\<^sub>p (\<pi> p2))"
+"\<lambda> p1 p2. ((\<alpha> p1) \<union>\<^sub>f (\<alpha> p2), (\<pi> p1) \<and>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation AndA (infixr "\<and>\<^sub>\<alpha>" 180)
@@ -176,7 +176,7 @@ lift_definition OrA ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" is
-"\<lambda> p1 p2 . ((\<alpha> p1) \<union> (\<alpha> p2), (\<pi> p1) \<or>\<^sub>p (\<pi> p2))"
+"\<lambda> p1 p2 . ((\<alpha> p1) \<union>\<^sub>f (\<alpha> p2), (\<pi> p1) \<or>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation OrA (infixr "\<or>\<^sub>\<alpha>" 170)
@@ -185,7 +185,7 @@ lift_definition ImpliesA ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" is
-"\<lambda> p1 p2 . ((\<alpha> p1) \<union> (\<alpha> p2), (\<pi> p1) \<Rightarrow>\<^sub>p (\<pi> p2))"
+"\<lambda> p1 p2 . ((\<alpha> p1) \<union>\<^sub>f (\<alpha> p2), (\<pi> p1) \<Rightarrow>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation ImpliesA (infixr "\<Rightarrow>\<^sub>\<alpha>" 160)
@@ -194,7 +194,7 @@ lift_definition IffA ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" is
-"\<lambda> p1 p2 . ((\<alpha> p1) \<union> (\<alpha> p2), (\<pi> p1) \<Leftrightarrow>\<^sub>p (\<pi> p2))"
+"\<lambda> p1 p2 . ((\<alpha> p1) \<union>\<^sub>f (\<alpha> p2), (\<pi> p1) \<Leftrightarrow>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation IffA (infixr "\<Leftrightarrow>\<^sub>\<alpha>" 150)
@@ -205,7 +205,7 @@ lift_definition ExistsA ::
   "'VALUE ALPHABET \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" is
-"\<lambda> a p . (\<alpha> p, \<exists>\<^sub>p a . \<pi> p)"
+"\<lambda> a p . (\<alpha> p, \<exists>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<pi> p)"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation ExistsA ("(\<exists>\<^sub>\<alpha> _ ./ _)" [0, 10] 10)
@@ -214,7 +214,7 @@ lift_definition ForallA ::
   "'VALUE ALPHABET \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" is
-"\<lambda> a p. (\<alpha> p, \<forall>\<^sub>p a . \<pi> p)"
+"\<lambda> a p. (\<alpha> p, \<forall>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<pi> p)"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation ForallA ("(\<forall>\<^sub>\<alpha> _ ./ _)" [0, 10] 10)
@@ -223,7 +223,7 @@ lift_definition ExistsResA ::
   "'VALUE ALPHABET \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" is
-"\<lambda> a p. ((\<alpha> p) - a, \<exists>\<^sub>p a . \<pi> p)"
+"\<lambda> a p. ((\<alpha> p) -\<^sub>f a, \<exists>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<pi> p)"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation ExistsResA ("(\<exists>-\<^sub>\<alpha> _ ./ _)" [0, 10] 10)
@@ -232,7 +232,7 @@ lift_definition ForallResA ::
   "'VALUE ALPHABET \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" is
-"\<lambda> a p. ((\<alpha> p) - a, \<forall>\<^sub>p a . \<pi> p)"
+"\<lambda> a p. ((\<alpha> p) -\<^sub>f a, \<forall>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<pi> p)"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation ForallResA ("(\<forall>-\<^sub>\<alpha> _ ./ _)" [0, 10] 10)
@@ -242,7 +242,7 @@ subsubsection {* Universal Closure *}
 lift_definition ClosureA ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" is
-"\<lambda> p. ({}, [\<pi> p]\<^sub>p)"
+"\<lambda> p. (\<lbrace>\<rbrace>, [\<pi> p]\<^sub>p)"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation ClosureA ("[_]\<^sub>\<alpha>")
@@ -253,7 +253,7 @@ lift_definition RefA ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" is
-"\<lambda> p1 p2. ({}, (\<pi> p1) \<sqsubseteq>\<^sub>p (\<pi> p2))"
+"\<lambda> p1 p2. (\<lbrace>\<rbrace>, (\<pi> p1) \<sqsubseteq>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation RefA (infix "\<sqsubseteq>\<^sub>\<alpha>" 100)
@@ -270,7 +270,7 @@ lift_definition PermA ::
   "'VALUE VAR_RENAME \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE" ("_[_]\<alpha>" [200]) is
-"\<lambda> ss p. (\<langle>ss\<rangle>\<^sub>s ` \<alpha> p, ss\<bullet>(\<pi> p))"
+"\<lambda> ss p. (\<langle>ss\<rangle>\<^sub>s `\<^sub>f \<alpha> p, ss\<bullet>(\<pi> p))"
   apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
   apply (rule UNREST_RenameP_alt)
   apply (rule WF_ALPHA_PREDICATE_UNREST)
@@ -300,11 +300,11 @@ begin
 
 definition less_eq_WF_ALPHA_PREDICATE :: 
   "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> bool" where
-"less_eq_WF_ALPHA_PREDICATE p2 p1 \<longleftrightarrow> \<alpha> p2 \<subseteq> \<alpha> p1 \<and> taut\<^sub>\<alpha> (p1 \<sqsubseteq>\<^sub>\<alpha> p2)"
+"less_eq_WF_ALPHA_PREDICATE p2 p1 \<longleftrightarrow> \<alpha> p2 \<subseteq>\<^sub>f \<alpha> p1 \<and> taut\<^sub>\<alpha> (p1 \<sqsubseteq>\<^sub>\<alpha> p2)"
 
 definition less_WF_ALPHA_PREDICATE :: 
   "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> bool" where
-"less_WF_ALPHA_PREDICATE p2 p1 \<longleftrightarrow> (\<alpha> p2 \<subseteq> \<alpha> p1 \<and> taut\<^sub>\<alpha> (p1 \<sqsubseteq>\<^sub>\<alpha> p2)) \<and> \<not> (\<alpha> p1 \<subseteq> \<alpha> p2 \<and> taut\<^sub>\<alpha> (p2 \<sqsubseteq>\<^sub>\<alpha> p1))"
+"less_WF_ALPHA_PREDICATE p2 p1 \<longleftrightarrow> (\<alpha> p2 \<subseteq>\<^sub>f \<alpha> p1 \<and> taut\<^sub>\<alpha> (p1 \<sqsubseteq>\<^sub>\<alpha> p2)) \<and> \<not> (\<alpha> p1 \<subseteq>\<^sub>f \<alpha> p2 \<and> taut\<^sub>\<alpha> (p2 \<sqsubseteq>\<^sub>\<alpha> p1))"
 
 instance ..
 
@@ -315,7 +315,7 @@ instantiation WF_ALPHA_PREDICATE :: (VALUE) refines begin instance .. end
 subsection {* Theorems *}
 
 theorem WF_ALPHA_PREDICATE_UNREST_intro [intro] :
-"a \<subseteq> VAR - \<alpha> p \<Longrightarrow> UNREST a (\<pi> p)"
+"a \<subseteq> VAR - \<langle>\<alpha> p\<rangle>\<^sub>f \<Longrightarrow> UNREST a (\<pi> p)"
 apply (insert WF_ALPHA_PREDICATE_UNREST [of "p"])
 apply (erule UNREST_subset)
 apply (assumption)
@@ -332,7 +332,7 @@ done
 subsubsection {* Closure Theorems *}
 
 theorem LiftA_rep_eq:
-  "f \<in> WF_BINDING_PRED a \<Longrightarrow>
+  "f \<in> WF_BINDING_PRED \<langle>a\<rangle>\<^sub>f \<Longrightarrow>
    DestPredA (LiftA a f) = (a, LiftP f)"
   apply (subgoal_tac "(a, LiftP f) \<in> WF_ALPHA_PREDICATE")
   apply (simp add:LiftA_def)
@@ -359,12 +359,12 @@ subsubsection {* Alphabet Theorems *}
 declare pred_alphabet_def [simp]
 
 theorem LiftA_alphabet [alphabet] :
-"\<lbrakk>f \<in> WF_BINDING_PRED a\<rbrakk> \<Longrightarrow>
+"\<lbrakk>f \<in> WF_BINDING_PRED \<langle>a\<rangle>\<^sub>f\<rbrakk> \<Longrightarrow>
  \<alpha> (LiftA a (\<lambda> b . f b)) = a"
   by (simp add: LiftA_rep_eq)
 
 theorem EqualsA_alphabet [alphabet] :
-"\<alpha> (v =\<^sub>\<alpha> x) = {v}"
+"\<alpha> (v =\<^sub>\<alpha> x) = \<lbrace>v\<rbrace>"
   by (simp add: EqualsA.rep_eq)
 
 theorem TrueA_alphabet [alphabet] :
@@ -376,11 +376,11 @@ theorem FalseA_alphabet [alphabet] :
   by (simp add: FalseA_rep_eq)
 
 theorem ExtA_alphabet [alphabet] :
-"\<alpha> (p \<oplus>\<^sub>\<alpha> a) = (\<alpha> p) \<union> a"
+"\<alpha> (p \<oplus>\<^sub>\<alpha> a) = (\<alpha> p) \<union>\<^sub>f a"
   by (simp add: ExtA.rep_eq)
 
 theorem ResA_alphabet [alphabet] :
-"\<alpha> (p \<ominus>\<^sub>\<alpha> a) = (\<alpha> p) - a"
+"\<alpha> (p \<ominus>\<^sub>\<alpha> a) = (\<alpha> p) -\<^sub>f a"
   by (simp add: ResA.rep_eq)
 
 theorem NotA_alphabet [alphabet] :
@@ -388,19 +388,19 @@ theorem NotA_alphabet [alphabet] :
   by (simp add: NotA.rep_eq)
 
 theorem AndA_alphabet [alphabet] :
-"\<alpha> (p1 \<and>\<^sub>\<alpha> p2) = (\<alpha> p1) \<union> (\<alpha> p2)"
+"\<alpha> (p1 \<and>\<^sub>\<alpha> p2) = (\<alpha> p1) \<union>\<^sub>f (\<alpha> p2)"
   by (simp add: AndA.rep_eq)
 
 theorem OrA_alphabet [alphabet] :
-"\<alpha> (p1 \<or>\<^sub>\<alpha> p2) = (\<alpha> p1) \<union> (\<alpha> p2)"
+"\<alpha> (p1 \<or>\<^sub>\<alpha> p2) = (\<alpha> p1) \<union>\<^sub>f (\<alpha> p2)"
   by (simp add: OrA.rep_eq)
 
 theorem ImpliesA_alphabet [alphabet] :
-"\<alpha> (p1 \<Rightarrow>\<^sub>\<alpha> p2) = (\<alpha> p1) \<union> (\<alpha> p2)"
+"\<alpha> (p1 \<Rightarrow>\<^sub>\<alpha> p2) = (\<alpha> p1) \<union>\<^sub>f (\<alpha> p2)"
   by (simp add: ImpliesA.rep_eq)
 
 theorem IffA_alphabet [alphabet] :
-"\<alpha> (p1 \<Leftrightarrow>\<^sub>\<alpha> p2) = (\<alpha> p1) \<union> (\<alpha> p2)"
+"\<alpha> (p1 \<Leftrightarrow>\<^sub>\<alpha> p2) = (\<alpha> p1) \<union>\<^sub>f (\<alpha> p2)"
   by (simp add: IffA.rep_eq)
 
 theorem ExistsA_alphabet [alphabet] :
@@ -412,23 +412,23 @@ theorem ForallA_alphabet [alphabet] :
   by (simp add: ForallA.rep_eq)
 
 theorem ExistsResA_alphabet [alphabet] :
-"\<alpha> (\<exists>-\<^sub>\<alpha> a . p) = (\<alpha> p) - a"
+"\<alpha> (\<exists>-\<^sub>\<alpha> a . p) = (\<alpha> p) -\<^sub>f a"
   by (simp add: ExistsResA.rep_eq)
 
 theorem ForallResA_alphabet [alphabet] :
-"\<alpha> (\<forall>-\<^sub>\<alpha> a . p) = (\<alpha> p) - a"
+"\<alpha> (\<forall>-\<^sub>\<alpha> a . p) = (\<alpha> p) -\<^sub>f a"
   by (simp add: ForallResA.rep_eq)
 
 theorem ClosureA_alphabet [alphabet] :
-"\<alpha> ([p]\<^sub>\<alpha>) = {}"
+"\<alpha> ([p]\<^sub>\<alpha>) = \<lbrace>\<rbrace>"
   by (simp add: ClosureA.rep_eq)
 
 theorem RefA_alphabet [alphabet] :
-"\<alpha> (p1 \<sqsubseteq>\<^sub>\<alpha> p2) = {}"
+"\<alpha> (p1 \<sqsubseteq>\<^sub>\<alpha> p2) = \<lbrace>\<rbrace>"
   by (simp add: RefA.rep_eq)
 
 theorem PermA_alphabet [alphabet] :
-"\<alpha> (ss\<bullet>p) = \<langle>ss\<rangle>\<^sub>s ` (\<alpha> p)"
+"\<alpha> (ss\<bullet>p) = \<langle>ss\<rangle>\<^sub>s `\<^sub>f (\<alpha> p)"
   by (simp add:PermA.rep_eq)
 
 subsubsection {* Validation of Soundness *}
@@ -486,9 +486,9 @@ theorem ClosureA_lemma :
 apply (rule DestPredA_intro)
 apply (simp add:ClosureA.rep_eq ForallResA.rep_eq)
 apply (simp add:ClosureP_def)
-apply (subst VAR_decomp [of "\<alpha> p"])
+apply (subst VAR_decomp [of "\<langle>\<alpha> p\<rangle>\<^sub>f"])
 apply (simp only: ForallP_union)
-apply (subgoal_tac "UNREST (VAR - \<alpha> p) (\<pi> p)")
+apply (subgoal_tac "UNREST (VAR - \<langle>\<alpha> p\<rangle>\<^sub>f) (\<pi> p)")
 apply (auto simp add: ForallP_ident)
 done
 
@@ -511,7 +511,7 @@ lemma WF_ALPHA_PREDICATE_neq_elim [elim]:
   by (auto)
 
 theorem WF_ALPHA_PREDICATE_empty_true_false:
-  "\<alpha> p = {} \<Longrightarrow> p = TRUE \<or> p = FALSE"
+  "\<alpha> p = \<lbrace>\<rbrace> \<Longrightarrow> p = TRUE \<or> p = FALSE"
   apply (auto)
   apply (rule WF_ALPHA_PREDICATE_intro)
   apply (simp add:alphabet)
@@ -525,11 +525,11 @@ theorem WF_ALPHA_PREDICATE_empty_true_false:
 done
 
 theorem WF_ALPHA_PREDICATE_empty_elim:
-  "\<lbrakk> \<alpha> p = {}; p = TRUE \<Longrightarrow> P; p = FALSE \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk> \<alpha> p = \<lbrace>\<rbrace>; p = TRUE \<Longrightarrow> P; p = FALSE \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (metis WF_ALPHA_PREDICATE_empty_true_false)
 
 lemma WF_ALPHA_PREDICATE_binding_equiv:
-  "\<lbrakk> b1 \<in> destPRED (\<pi> p); b1 \<cong> b2 on \<alpha> p \<rbrakk> \<Longrightarrow> b2 \<in> destPRED (\<pi> p)"
+  "\<lbrakk> b1 \<in> destPRED (\<pi> p); b1 \<cong> b2 on \<langle>\<alpha> p\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> b2 \<in> destPRED (\<pi> p)"
   apply (insert WF_ALPHA_PREDICATE_UNREST[of "p"])
   apply (auto simp add:UNREST_def)
   apply (smt binding_equiv_comm binding_override_equiv binding_override_simps(10) binding_override_simps(5))

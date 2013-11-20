@@ -49,24 +49,16 @@ lemma binding_upd_apply_ty [simp]:
 
 lemma binding_upd_upd_ty [simp]: 
   fixes x :: "('a :: DEFINED , 'm :: VALUE) PVAR"
-  assumes "TYPEUSOUND('a, 'm)" "y \<rhd>\<^sub>p x" "z \<rhd>\<^sub>p x"
+  assumes "y \<rhd>\<^sub>p x" "z \<rhd>\<^sub>p x"
   shows "f(x:=\<^sub>*y,x:=\<^sub>*z) = f(x:=\<^sub>*z)"
   apply (simp add:binding_upd_ty_def)
   apply (subst binding_upd_upd)
   apply (simp_all add:typing defined assms)
 done
 
-lemma WF_REL_BINDING_binding_upd_ty [closure]: 
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
-  assumes "TYPEUSOUND('a, 'm)" "x \<in> PUNDASHED" "v \<rhd>\<^sub>p x" "b \<in> WF_REL_BINDING"
-  shows "b(x :=\<^sub>* v) \<in> WF_REL_BINDING"
-  apply (simp add:binding_upd_ty_def closure assms)
-  apply (rule closure)
-  apply (metis PVAR_VAR_PUNDASHED_UNDASHED assms)
-  apply (simp_all add:assms)
-  apply (rule typing)
-  apply (simp_all add:assms)
-done
+lemma WF_REL_BINDING_binding_upd_ty [closure]:
+  "\<lbrakk> b \<in> WF_REL_BINDING; v \<rhd>\<^sub>p x; x \<in> PUNDASHED \<rbrakk> \<Longrightarrow> b(x :=\<^sub>* v) \<in> WF_REL_BINDING"
+  by (simp add:binding_upd_ty_def closure typing)
 
 lemma Rep_WF_BINDING_ty_pvaux_defined [defined]:
   fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
@@ -124,5 +116,7 @@ lemma EvalP_UNREST_binding_upd_ty [evalp]:
   shows "\<lbrakk>P\<rbrakk>(b(x :=\<^sub>* v)) = \<lbrakk>P\<rbrakk>b"
   using assms
   by (simp add: binding_upd_ty_def eval UNREST_subset typing defined)
+
+
 
 end

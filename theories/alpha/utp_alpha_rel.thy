@@ -7,7 +7,10 @@
 header {* Alphabetised Predicates *}
 
 theory utp_alpha_rel
-imports utp_alpha_pred utp_alpha_expr
+imports 
+  utp_alpha_pred 
+  utp_alpha_expr
+  "../laws/utp_rel_laws"
   "../tactics/utp_alpha_tac" 
   "../tactics/utp_alpha_expr_tac"
   "../tactics/utp_rel_tac"
@@ -375,10 +378,12 @@ theorem SkipA_closure [closure] :
  II\<alpha>\<^bsub>a\<^esub> \<in> WF_ALPHA_REL"
   by (simp add: WF_ALPHA_REL_def REL_ALPHABET_def pred_alphabet_def SkipA.rep_eq)
 
-(*
 theorem AssignA_rep_eq:
-  "\<lbrakk> a \<in> REL_ALPHABET; x \<in>\<^sub>f a; dash x \<in>\<^sub>f a; \<alpha> v \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow> 
-   Rep_WF_ALPHA_PREDICATE (x :=\<^bsub>a\<^esub> v) = (a, AssignRA x \<langle>a\<rangle>\<^sub>f (\<epsilon> v))"
+  "\<lbrakk> a \<in> REL_ALPHABET
+   ; x \<in>\<^sub>f a; dash x \<in>\<^sub>f a
+   ; \<alpha> v \<subseteq>\<^sub>f a
+   ; v \<rhd>\<^sub>\<alpha> x \<rbrakk> \<Longrightarrow> 
+   \<langle>x :=\<^bsub>a\<^esub> v\<rangle>\<^sub>\<alpha> = (a, AssignRA x \<langle>a\<rangle>\<^sub>f (\<epsilon> v))"
   apply (subgoal_tac "x \<in> UNDASHED")
   apply (subgoal_tac "(a, x :=\<^bsub>\<langle>a\<rangle>\<^sub>f \<^esub>\<epsilon> v) \<in> WF_ALPHA_PREDICATE")
   apply (simp add:AssignA_def)
@@ -387,23 +392,20 @@ theorem AssignA_rep_eq:
   apply (subgoal_tac "\<langle>a\<rangle>\<^sub>f = {dash x} \<union> (\<langle>a\<rangle>\<^sub>f - {dash x})")
   apply (force)
   apply (force)
-  apply (rule unrest) back
-  apply (force intro:unrest)
-  apply (rule unrest)
   apply (rule unrest)
   apply (simp)
+  apply (rule UNREST_EXPR_subset)
   apply (rule unrest)
-  apply (rule unrest)
-  apply (auto simp add:REL_ALPHABET_def)
+  apply (auto simp add:REL_ALPHABET_def intro:typing)
+  apply (metis eavar_compat_def)
 done
-*)
 
-(*
 theorem AssignA_closure [closure] :
   assumes 
    "a \<in> REL_ALPHABET"
    "x \<in>\<^sub>f a" "dash x \<in>\<^sub>f a"
    "\<alpha> v \<subseteq>\<^sub>f a"
+   "v \<rhd>\<^sub>\<alpha> x"
   shows "x :=\<^bsub>a\<^esub> v \<in> WF_ALPHA_REL"
 proof
   from assms show "\<langle>\<alpha> (x :=\<^bsub>a \<^esub>v)\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED"
@@ -411,7 +413,6 @@ proof
     apply (simp add:REL_ALPHABET_def)
   done
 qed
-*)
 
 theorem RenameA_SS_closure [closure]:
   "p \<in> WF_ALPHA_REL \<Longrightarrow> SS\<bullet>p \<in> WF_ALPHA_REL"
@@ -533,7 +534,7 @@ theorem EvalA_SemiA [evala] :
   by (simp add: EvalA_def SemiA_rep_eq)
 
 theorem EvalA_AssignA [evala] :
-"\<lbrakk> a \<in> REL_ALPHABET; x \<in>\<^sub>f a; dash x \<in>\<^sub>f a; \<alpha> v \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow> 
+"\<lbrakk> a \<in> REL_ALPHABET; x \<in>\<^sub>f a; dash x \<in>\<^sub>f a; \<alpha> v \<subseteq>\<^sub>f a; v \<rhd>\<^sub>\<alpha> x \<rbrakk> \<Longrightarrow> 
  \<lbrakk>x :=\<^bsub>a\<^esub> v\<rbrakk>\<pi> = x :=\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> \<lbrakk>v\<rbrakk>\<epsilon>"
   by (simp add:AssignA_rep_eq EvalA_def EvalAE_def)
 
@@ -545,33 +546,35 @@ theorem SemiA_assoc :
 "\<lbrakk>r1 \<in> WF_ALPHA_REL;
  r2 \<in> WF_ALPHA_REL;
  r3 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
- (r1 ;\<alpha> r2) ;\<alpha> r3 = r1 ;\<alpha> (r2 ;\<alpha> r3)"
-apply (utp_alpha_tac2)
+ (r1 ;\<^sub>\<alpha> r2) ;\<^sub>\<alpha> r3 = r1 ;\<^sub>\<alpha> (r2 ;\<^sub>\<alpha> r3)"
+apply (utp_alpha_tac)
 apply (utp_rel_tac)
-apply (auto)
+apply (auto simp add:var_dist)
 done
 
 theorem SemiA_OrA_distl :
 "\<lbrakk>r1 \<in> WF_ALPHA_REL;
  r2 \<in> WF_ALPHA_REL;
  r3 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
- r1 ;\<alpha> (r2 \<or>\<alpha> r3) = (r1 ;\<alpha> r2) \<or>\<alpha> (r1 ;\<alpha> r3)"
-apply (utp_alpha_tac2)
+ r1 ;\<^sub>\<alpha> (r2 \<or>\<^sub>\<alpha> r3) = (r1 ;\<^sub>\<alpha> r2) \<or>\<^sub>\<alpha> (r1 ;\<^sub>\<alpha> r3)"
+apply (utp_alpha_tac)
 apply (utp_rel_auto_tac)
+apply (simp_all add:var_dist)
 done
 
 theorem SemiA_OrA_distr :
 "\<lbrakk>r1 \<in> WF_ALPHA_REL;
  r2 \<in> WF_ALPHA_REL;
  r3 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
- (r1 \<or>\<alpha> r2) ;\<alpha> r3 = (r1 ;\<alpha> r3) \<or>\<alpha> (r2 ;\<alpha> r3)"
-apply (utp_alpha_tac2)
+ (r1 \<or>\<^sub>\<alpha> r2) ;\<^sub>\<alpha> r3 = (r1 ;\<^sub>\<alpha> r3) \<or>\<^sub>\<alpha> (r2 ;\<^sub>\<alpha> r3)"
+apply (utp_alpha_tac)
 apply (utp_rel_auto_tac)
+apply (simp_all add:var_dist)
 done
 
 theorem SemiA_SkipA_left:
   assumes "r \<in> WF_ALPHA_REL" "a \<in> HOM_ALPHABET" "out\<^sub>\<alpha> a = dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> r)"
-  shows "II\<alpha> a ;\<alpha> r = r"
+  shows "II\<alpha>\<^bsub>a\<^esub> ;\<^sub>\<alpha> r = r"
 proof -
 
   from assms have ina:"in \<langle>a\<rangle>\<^sub>f = in \<langle>\<alpha> r\<rangle>\<^sub>f"
@@ -585,7 +588,7 @@ proof -
   moreover with assms(1) have "in\<^sub>\<alpha> a \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r) = \<alpha> r"
     by (auto simp add:WF_ALPHA_REL_def REL_ALPHABET_def in_out_union)
 
-  moreover from assms have "II \<langle>a\<rangle>\<^sub>f ; (\<pi> r) = (\<pi> r)"
+  moreover from assms have "II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> ; (\<pi> r) = (\<pi> r)"
   proof -
     have "undash ` (DASHED - dash ` in \<langle>\<alpha> r\<rangle>\<^sub>f) = UNDASHED - in \<langle>\<alpha> r\<rangle>\<^sub>f"
     proof -  
@@ -598,7 +601,7 @@ proof -
 
     with assms show ?thesis
       apply (simp add:WF_ALPHA_REL_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def)
-      apply (rule_tac SemiP_SkipRA_left)
+      apply (rule_tac SemiR_SkipRA_left)
       apply (simp_all add:ina)
       apply (insert WF_ALPHA_PREDICATE_UNREST[of r])
       apply (force intro:unrest simp add:closure var_defs)
@@ -613,7 +616,7 @@ qed
 
 theorem SemiA_SkipA_right:
   assumes "r \<in> WF_ALPHA_REL" "a \<in> HOM_ALPHABET" "in\<^sub>\<alpha> a = undash `\<^sub>f out\<^sub>\<alpha> (\<alpha> r)"
-  shows "r ;\<alpha> II\<alpha> a = r"
+  shows "r ;\<^sub>\<alpha> II\<alpha>\<^bsub>a\<^esub> = r"
 proof -
   from assms have ina:"out \<langle>a\<rangle>\<^sub>f = out \<langle>\<alpha> r\<rangle>\<^sub>f"
     by (force elim!:Rep_fset_elim intro!:Rep_fset_intro simp add:WF_ALPHA_REL_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def HOM_ALPHA_unfold)
@@ -621,14 +624,14 @@ proof -
   moreover with assms(1) have alpha:"in\<^sub>\<alpha> (\<alpha> r) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r) = \<alpha> r"
     by (auto simp add:WF_ALPHA_REL_def REL_ALPHABET_def in_out_union)
 
-  moreover from assms have "(\<pi> r) ; II \<langle>a\<rangle>\<^sub>f = (\<pi> r)"
+  moreover from assms have "(\<pi> r) ; II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> = (\<pi> r)"
   proof -
     have "dash ` (UNDASHED - undash ` out \<langle>\<alpha> r\<rangle>\<^sub>f) = DASHED - out \<langle>\<alpha> r\<rangle>\<^sub>f"
       by (metis dash_UNDASHED_image dash_image_minus dash_undash_image utp_var.out_DASHED)
 
     with assms show ?thesis
       apply (simp add:WF_ALPHA_REL_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def)
-      apply (rule_tac SemiP_SkipRA_right)
+      apply (rule_tac SemiR_SkipRA_right)
       apply (simp_all add:closure ina)
       apply (force elim!:Rep_fset_elim intro:UNREST_subset simp add:closure var_defs)
       apply (force elim!:Rep_fset_elim intro:UNREST_subset simp add:closure var_defs)
@@ -644,7 +647,7 @@ proof -
 qed
 
 theorem ClosureA_rel_closure [closure] :
-  "[p]\<alpha> \<in> WF_ALPHA_REL"
+  "[p]\<^sub>\<alpha> \<in> WF_ALPHA_REL"
   apply (simp add:WF_ALPHA_REL_def REL_ALPHABET_def)
   apply (simp add:alphabet closure)
 done
@@ -683,13 +686,13 @@ lemma SS_alpha_image [urename]:
   apply (simp)
 done
 
-
+(*
 theorem SemiA_algebraic:
   assumes "p \<in> WF_ALPHA_REL" "q \<in> WF_ALPHA_REL"
-  shows "p ;\<alpha> q = (\<exists>-\<alpha> dash `\<^sub>f out\<^sub>\<alpha>(\<alpha> p) \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha>(\<alpha> q). p[SS1]\<alpha> \<and>\<alpha> q[SS2]\<alpha>)"
+  shows "p ;\<^sub>\<alpha> q = (\<exists>-\<^sub>\<alpha> dash `\<^sub>f out\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha>(\<alpha> q). (SS1\<bullet>p) \<and>\<^sub>\<alpha> (SS2\<bullet>q))"
 proof -
 
-  from assms have "\<alpha> (p ;\<alpha> q) = \<alpha> (\<exists>-\<alpha> dash `\<^sub>f out\<^sub>\<alpha>(\<alpha> p) \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha>(\<alpha> q). p[SS1]\<alpha> \<and>\<alpha> q[SS2]\<alpha>)"
+  from assms have "\<alpha> (p ;\<^sub>\<alpha> q) = \<alpha> (\<exists>-\<^sub>\<alpha> dash `\<^sub>f out\<^sub>\<alpha>(\<alpha> p) \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha>(\<alpha> q). (SS1\<bullet>p) \<and>\<^sub>\<alpha> (SS2\<bullet>q))"
     apply (simp add:alphabet SS1_alpha_image SS2_alpha_image closure)
     apply (clarsimp)
     apply (auto simp add:var_simps var_dist var_member var_contra)
@@ -697,21 +700,19 @@ proof -
   done
 
   moreover
-  have "\<lbrakk>p ;\<alpha> q\<rbrakk>\<pi> = \<lbrakk>(\<exists>-\<alpha> dash `\<^sub>f out\<^sub>\<alpha>(\<alpha> p) \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha>(\<alpha> q). p[SS1]\<alpha> \<and>\<alpha> q[SS2]\<alpha>)\<rbrakk>\<pi>"
+  have "\<lbrakk>p ;\<^sub>\<alpha> q\<rbrakk>\<pi> = \<lbrakk>(\<exists>-\<^sub>\<alpha> dash `\<^sub>f out\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha>(\<alpha> q). (SS1\<bullet>p) \<and>\<^sub>\<alpha> (SS2\<bullet>q))\<rbrakk>\<pi>"
   proof -
 
-    from assms have "\<lbrakk>p ;\<alpha> q\<rbrakk>\<pi> = \<pi> p ; \<pi> q"
+    from assms have "\<lbrakk>p ;\<^sub>\<alpha> q\<rbrakk>\<pi> = \<pi> p ; \<pi> q"
       apply (utp_alpha_tac)
       apply (simp add:EvalA_def)
     done
 
-    also from assms have "... = (\<exists>p DASHED_TWICE . (\<pi> p)[SS1] \<and>p (\<pi> q)[SS2])"
+    also from assms have "... = (\<exists>\<^sub>p DASHED_TWICE . (SS1\<bullet>\<pi> p) \<and>\<^sub>p (SS2\<bullet>\<pi> q))"
       by (simp add: SemiR_algebraic unrest)
 
-
-
-    also from assms have "... = (\<exists>p (DASHED_TWICE - dash ` out \<langle>\<alpha> p\<rangle>\<^sub>f \<union> dash ` dash ` in \<langle>\<alpha> q\<rangle>\<^sub>f)
-                              . \<exists>p (dash ` out \<langle>\<alpha> p\<rangle>\<^sub>f \<union> dash ` dash ` in \<langle>\<alpha> q\<rangle>\<^sub>f). (\<pi> p[SS1] \<and>p \<pi> q[SS2]))"
+    also from assms have "... = (\<exists>\<^sub>p (DASHED_TWICE - dash ` out \<langle>\<alpha> p\<rangle>\<^sub>f \<union> dash ` dash ` in \<langle>\<alpha> q\<rangle>\<^sub>f)
+                              . \<exists>\<^sub>p (dash ` out \<langle>\<alpha> p\<rangle>\<^sub>f \<union> dash ` dash ` in \<langle>\<alpha> q\<rangle>\<^sub>f). ((SS1\<bullet>\<pi> p) \<and>\<^sub>p (SS2\<bullet>\<pi> q)))"
     proof -
       have " (DASHED_TWICE - dash ` out \<langle>\<alpha> p\<rangle>\<^sub>f \<union> dash ` dash ` in \<langle>\<alpha> q\<rangle>\<^sub>f) \<union> (dash ` out \<langle>\<alpha> p\<rangle>\<^sub>f \<union> dash ` dash ` in \<langle>\<alpha> q\<rangle>\<^sub>f) 
            = DASHED_TWICE"
@@ -721,25 +722,27 @@ proof -
         by (metis (no_types) ExistsP_union)
     qed
 
-    also from assms have "... = (\<exists>p (dash ` out \<langle>\<alpha> p\<rangle>\<^sub>f \<union> dash ` dash ` in \<langle>\<alpha> q\<rangle>\<^sub>f) . \<pi> p[SS1] \<and>p \<pi> q[SS2])"
+    also from assms have "... = (\<exists>\<^sub>p (dash ` out \<langle>\<alpha> p\<rangle>\<^sub>f \<union> dash ` dash ` in \<langle>\<alpha> q\<rangle>\<^sub>f) . (SS1\<bullet>\<pi> p) \<and>\<^sub>p (SS2\<bullet> \<pi> q))"
     proof -
-      from assms have "UNREST (DASHED_TWICE - (dash ` out \<langle>\<alpha> p\<rangle>\<^sub>f \<union> dash ` dash ` in \<langle>\<alpha> q\<rangle>\<^sub>f)) (\<pi> p[SS1] \<and>p \<pi> q[SS2])"
+      from assms have "(D\<^sub>2 - (dash ` out \<langle>\<alpha> p\<rangle>\<^sub>f \<union> dash ` dash ` in \<langle>\<alpha> q\<rangle>\<^sub>f)) \<sharp> ((SS1\<bullet>\<pi> p) \<and>\<^sub>p \<pi> (SS2\<bullet>q))"
         apply (rule_tac unrest)
         apply (rule_tac unrest)
         apply (rule WF_ALPHA_PREDICATE_UNREST)
         apply (simp add:rename_dist rename_simps SS1_UNDASHED_DASHED_image[simplified] closure)
-        apply (auto)
-        apply (rule_tac unrest)
+        apply (auto intro:unrest)[1]
+        apply (rule UNREST_subset)
         apply (rule WF_ALPHA_PREDICATE_UNREST)
         apply (simp add:rename_dist rename_simps SS2_UNDASHED_DASHED_image[simplified] closure)
         apply (auto)[1]
-        apply (metis DASHED_not_DASHED_TWICE in_mono utp_var.out_DASHED)
+        apply (auto simp add:alphabet)
+        apply (metis (full_types) DASHED_TWICE_undash_DASHED DASHED_undash_UNDASHED Int_iff SS2_DASHED_TWICE_app SS2_UNDASHED_app SS2_ident_app UNDASHED_not_DASHED_TWICE imageI in_vars_def)
       done
 
       thus ?thesis
         apply (rule_tac ExistsP_ident)
-        apply (auto intro:unrest)
-      done
+        apply (rule unrest)
+        apply (rule unrest)
+        sorry
     qed
 
     ultimately show ?thesis
@@ -750,10 +753,11 @@ proof -
     by (rule EvalA_intro)
 
 qed
+*)
 
 theorem SkipA_unfold :
   assumes "a \<in> REL_ALPHABET" "x \<in> \<langle>a\<rangle>\<^sub>f" "dash x \<in> \<langle>a\<rangle>\<^sub>f" "HOM_ALPHA a"
-  shows "II\<alpha> a = (VarAE (dash x) ==\<alpha> VarAE x) \<and>\<alpha> II\<alpha> (a -\<^sub>f \<lbrace>x,dash x\<rbrace>)"
+  shows "II\<alpha>\<^bsub>a\<^esub> = (VarAE (dash x) ==\<^sub>\<alpha> VarAE x) \<and>\<^sub>\<alpha> II\<alpha>\<^bsub>(a -\<^sub>f \<lbrace>x,dash x\<rbrace>)\<^esub>"
   apply (insert assms)
   apply (utp_alpha_tac2)
   apply (simp add:HOM_ALPHA_HOMOGENEOUS)

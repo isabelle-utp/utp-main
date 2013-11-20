@@ -17,7 +17,7 @@ subsection {* Operators *}
 lift_definition in_alphabet ::
   "'VALUE ALPHABET \<Rightarrow>
    'VALUE ALPHABET" ("in\<^sub>\<alpha>") is "in"
-   (simp add:in_vars_def fsets_def)
+   by (simp add:in_vars_def fsets_def)
 
 declare in_alphabet.rep_eq [simp]
 

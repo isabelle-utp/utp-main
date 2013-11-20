@@ -39,13 +39,13 @@ theorem EvalA_intro :
   by (auto simp add: EvalA_def)
 
 theorem EvalA_UNREST [unrest] :
-"UNREST (VAR - \<alpha> p) \<lbrakk>p\<rbrakk>\<pi>"
+"UNREST (VAR - \<langle>\<alpha> p\<rangle>\<^sub>f) \<lbrakk>p\<rbrakk>\<pi>"
   by (simp add: EvalA_def unrest)
 
 subsection {* Distribution Theorems *}
 
 theorem EvalA_LiftA [evala] :
-"f \<in> WF_BINDING_PRED a \<Longrightarrow>
+"f \<in> WF_BINDING_PRED \<langle>a\<rangle>\<^sub>f \<Longrightarrow>
  \<lbrakk>LiftA a f\<rbrakk>\<pi> = LiftP f"
   by (simp add: EvalA_def LiftA_rep_eq)
 
@@ -66,7 +66,7 @@ theorem EvalA_ExtA [evala] :
   by (simp add: EvalA_def ExtA.rep_eq)
 
 theorem EvalA_ResA [evala] :
-"\<lbrakk>p \<ominus>\<^sub>\<alpha> a\<rbrakk>\<pi> = (\<exists>\<^sub>p a . \<lbrakk>p\<rbrakk>\<pi>)"
+"\<lbrakk>p \<ominus>\<^sub>\<alpha> a\<rbrakk>\<pi> = (\<exists>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<lbrakk>p\<rbrakk>\<pi>)"
   by (simp add: EvalA_def ResA.rep_eq)
 
 theorem EvalA_NotA [evala] :
@@ -90,11 +90,11 @@ theorem EvalA_IffA [evala] :
   by (simp add: EvalA_def IffA.rep_eq)
 
 theorem EvalA_ExistsA [evala] :
-"\<lbrakk>\<exists>\<^sub>\<alpha> a . p\<rbrakk>\<pi> = (\<exists>\<^sub>p a . \<lbrakk>p\<rbrakk>\<pi>)"
+"\<lbrakk>\<exists>\<^sub>\<alpha> a . p\<rbrakk>\<pi> = (\<exists>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<lbrakk>p\<rbrakk>\<pi>)"
   by (simp add: EvalA_def ExistsA.rep_eq)
 
 theorem EvalA_ForallA [evala] :
-"\<lbrakk>\<forall>\<^sub>\<alpha> a . p\<rbrakk>\<pi> = (\<forall>\<^sub>p a . \<lbrakk>p\<rbrakk>\<pi>)"
+"\<lbrakk>\<forall>\<^sub>\<alpha> a . p\<rbrakk>\<pi> = (\<forall>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<lbrakk>p\<rbrakk>\<pi>)"
   by (simp add: EvalA_def ForallA.rep_eq)
 
 theorem EvalA_ExistsResA [evala] :
@@ -122,7 +122,7 @@ declare ContradictionA_def [evala]
 declare less_eq_WF_ALPHA_PREDICATE_def [evala]
 declare less_WF_ALPHA_PREDICATE_def [evala]
 
-lemma EvalA_RefinementA: "p \<sqsubseteq> q \<longleftrightarrow> \<alpha> p \<supseteq> \<alpha> q \<and> \<lbrakk>p\<rbrakk>\<pi> \<sqsubseteq> \<lbrakk>q\<rbrakk>\<pi>"
+lemma EvalA_RefinementA: "p \<sqsubseteq> q \<longleftrightarrow> \<alpha> q \<subseteq>\<^sub>f \<alpha> p \<and> \<lbrakk>p\<rbrakk>\<pi> \<sqsubseteq> \<lbrakk>q\<rbrakk>\<pi>"
   by (simp add:less_eq_WF_ALPHA_PREDICATE_def less_eq_WF_PREDICATE_def evala eval alphabet)
 
 subsection {* Proof Tactics *}
@@ -219,7 +219,7 @@ done
 instantiation WF_ALPHA_PREDICATE :: (VALUE) lattice
 begin
 
-definition "inf_WF_ALPHA_PREDICATE p q = (\<forall>-\<^sub>\<alpha> (\<alpha> p - \<alpha> q). p) \<and>\<^sub>\<alpha> (\<forall>-\<^sub>\<alpha> (\<alpha> q - \<alpha> p). q)"
+definition "inf_WF_ALPHA_PREDICATE p q = (\<forall>-\<^sub>\<alpha> (\<alpha> p -\<^sub>f \<alpha> q). p) \<and>\<^sub>\<alpha> (\<forall>-\<^sub>\<alpha> (\<alpha> q -\<^sub>f \<alpha> p). q)"
 definition "sup_WF_ALPHA_PREDICATE = op \<or>\<^sub>\<alpha>"
 
 instance
@@ -234,10 +234,10 @@ instance
   apply (metis binding_override_simps(2))
   apply (utp_alpha_tac)
   apply (utp_pred_auto_tac)
-  apply (subgoal_tac "UNREST (\<alpha> y - \<alpha> z) \<lbrakk>x\<rbrakk>\<pi>")
+  apply (subgoal_tac "UNREST (\<langle>\<alpha> y\<rangle>\<^sub>f - \<langle>\<alpha> z\<rangle>\<^sub>f) \<lbrakk>x\<rbrakk>\<pi>")
   apply (metis EvalP_UNREST_override)
   apply (metis Diff_mono EvalA_UNREST UNREST_subset VAR_subset)
-  apply (subgoal_tac "UNREST (\<alpha> z - \<alpha> y) \<lbrakk>x\<rbrakk>\<pi>")
+  apply (subgoal_tac "UNREST (\<langle>\<alpha> z\<rangle>\<^sub>f - \<langle>\<alpha> y\<rangle>\<^sub>f) \<lbrakk>x\<rbrakk>\<pi>")
   apply (metis EvalP_UNREST_override)
   apply (metis Diff_mono EvalA_UNREST UNREST_subset VAR_subset)
   apply (utp_alpha_tac, utp_pred_auto_tac)
@@ -245,23 +245,6 @@ instance
   apply (utp_alpha_tac, utp_pred_auto_tac)
 done
 end
-
-instantiation WF_ALPHA_PREDICATE :: (VALUE) bounded_lattice
-begin
-
-definition "bot_WF_ALPHA_PREDICATE = FALSE"
-definition "top_WF_ALPHA_PREDICATE = TrueA UNIV"
-
-instance
-  apply (intro_classes)
-  apply (simp_all add:bot_WF_ALPHA_PREDICATE_def top_WF_ALPHA_PREDICATE_def less_eq_WF_ALPHA_PREDICATE_def)
-  apply (utp_alpha_tac)
-  apply (utp_pred_tac)
-  apply (utp_alpha_tac)
-  apply (utp_pred_tac)
-done
-end
-
 
 lemma "\<alpha> p = \<alpha> q \<Longrightarrow> inf p q = p \<and>\<^sub>\<alpha> q"
   by (simp add:inf_WF_ALPHA_PREDICATE_def, utp_alpha_tac, utp_pred_tac)
