@@ -10,7 +10,7 @@ theory utp_base
 imports
   utp_common
   "core/utp_core"
-  "alpha/utp_alpha_pred"
+  "alpha/utp_alpha"
   "tactics/utp_pred_tac"
   "tactics/utp_expr_tac"
   "tactics/utp_rel_tac"

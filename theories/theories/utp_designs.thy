@@ -401,19 +401,19 @@ theorem AssignD_idem :
   apply (rule UNREST_EXPR_subset)
   apply (simp)
   apply (auto)[1]
-  apply (metis (full_types) UNDASHED_not_NON_REL_VAR in_UNDASHED set_mp)
+  apply (metis (full_types) UNDASHED_not_NON_REL_VAR in_mono utp_var.in_UNDASHED)
   apply (rule unrest)
   apply (simp_all)
   apply (rule UNREST_EXPR_subset)
   apply (simp)
   apply (auto)[1]
-  apply (metis (full_types) UNDASHED_not_NON_REL_VAR in_UNDASHED set_mp)
+  apply (metis (full_types) UNDASHED_not_NON_REL_VAR utp_var.in_UNDASHED set_mp)
   apply (subst AssignRA_idem)
   apply (simp_all add:var_dist closure)
   apply (metis dash_elim)
   apply (rule UNREST_EXPR_subset)
   apply (auto)
-  apply (metis (full_types) in_UNDASHED set_mp)
+  apply (metis (full_types) utp_var.in_UNDASHED set_mp)
 done
 
 theorem ParallelD_DesignD:
@@ -878,7 +878,7 @@ proof -
 
   also have "... \<noteq> true"
     apply (auto)
-    apply (unfold BoolType_pvaux_cases[of "okay\<acute>" "`$okay\<acute> = false \<and> II\<^bsub>REL_VAR - OKAY\<^esub>`" "true", simplified])
+    apply (unfold BoolType_pvaux_cases[of "okay\<acute>" "`$okay\<acute> = false \<and> II\<^bsub>REL_VAR - OKAY\<^esub>`" "TrueP", simplified])
     apply (utp_subst_tac)
     apply (utp_pred_tac)
   done
