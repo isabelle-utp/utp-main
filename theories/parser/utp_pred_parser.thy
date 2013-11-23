@@ -23,7 +23,7 @@ section {* Core Polymorphic Expression Syntax *}
 
 syntax
   "_pexpr_quote"        :: "pexpr \<Rightarrow> ('a, 'm) WF_PEXPRESSION" ("(1|_|)")
-  "_pexpr_pred_quote"   :: "pexpr \<Rightarrow> 'a WF_PREDICATE" ("(1``_``)")
+(*  "_pexpr_pred_quote"   :: "pexpr \<Rightarrow> 'a WF_PREDICATE" ("(1``_``)") *)
   "_pexprs"             :: "[pexpr, pexprs] => pexprs" ("_,/ _")
   ""                    :: "pexpr => pexprs" ("_")
   "_pexpr_brack"        :: "pexpr \<Rightarrow> pexpr" ("'(_')")
@@ -36,7 +36,7 @@ syntax
 
 translations
   "_pexpr_quote e"             => "e"
-  "_pexpr_pred_quote e"        == "CONST PExprP e"
+(*  "_pexpr_pred_quote e"        == "CONST PExprP e" *)
   "_pexpr_pred_var p"          == "CONST PredPE p"
   "_pexpr_expr_var v"          => "v"
   "_pexpr_evar x"              == "CONST PVarPE x"

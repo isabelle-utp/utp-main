@@ -14,7 +14,7 @@ nonterminal uapred and uaexpr and uzdecls and uzdecl
 
 syntax
   "_uapred_top_clos" :: "uapred \<Rightarrow> bool" ("(1[_])")
-  "_uapred_quote"    :: "uapred \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("(1`_`)")
+  "_uapred_quote"    :: "uapred \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("(1``_``)")
   "_uapred_brack"    :: "uapred \<Rightarrow> uapred" ("'(_')" [0] 900)
   "_uapred_true"     :: "'a ALPHABET \<Rightarrow> uapred" ("true\<^bsub>_\<^esub>")
   "_uapred_false"    :: "'a ALPHABET \<Rightarrow> uapred" ("false\<^bsub>_\<^esub>")
@@ -43,10 +43,6 @@ syntax
   ""                 :: "uzdecl => uzdecls"             ("_")
   "_uzdecls"         :: "[uzdecl, uzdecls] => uzdecls" ("_,/ _")
 
-abbreviation InSet :: 
-  "('VALUE::SET_SORT) VAR \<Rightarrow> 'VALUE VAR \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" where
-"InSet x A \<equiv> LiftA \<lbrace>x,A\<rbrace> (\<lambda> b. \<langle>b\<rangle>\<^sub>b x \<in>v \<langle>b\<rangle>\<^sub>b A)"
-
 translations
   "_uapred_brack p"     => "p"
   "_uapred_quote p"     => "p"
@@ -74,8 +70,6 @@ translations
   "_uapred_cond p q r"  == "CONST CondA p q r"
   "_uapred_assign x a e" == "CONST AssignA x a e"
   "_uapred_zpara ds p"  == "CONST AndA ds p"
-  "_uzdecl_basic x A"   == "CONST InSet x A" 
-  "_uzdecls d ds"       == "CONST AndA d ds"
 
 (* Expression Parser *)
 
@@ -99,7 +93,7 @@ translations
   "_uaexpr_coerce e t"   == "CONST CoerceAE e t"
 
 (* Parser sanity check *)
-term "[[x : A, y : B | $x = false ] \<sqsubseteq> TRUE]"
-term "`$x = ($y) \<and> ($z)`"
+
+term "``p \<and> q``"
 
 end

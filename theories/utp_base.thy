@@ -24,6 +24,7 @@ imports
   "laws/utp_poly_laws"
   "poly/utp_poly"
   "parser/utp_pred_parser"
+  "parser/utp_alpha_pred_parser"
   "types/utp_list"
   "types/utp_fset"
   "types/utp_uset"
