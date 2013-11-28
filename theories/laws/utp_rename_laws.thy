@@ -17,27 +17,6 @@ begin
 
 subsubsection {* Predicate Laws *}
 
-(*
-theorem EvalP_RenamePMap_one [eval] :
-"\<lbrakk> x \<noteq> x'; vtype x' = vtype x; aux x' = aux x \<rbrakk> \<Longrightarrow>
- \<lbrakk>p\<^bsup>[x \<mapsto> x']\<^esup>\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b \<langle>b\<rangle>\<^sub>b x', x' :=\<^sub>b \<langle>b\<rangle>\<^sub>b x))"
-apply (simp add: RenamePMap_def)
-apply (simp add: eval closure)
-apply (simp add: EvalP_def)
-apply (simp add: RenameP_def RenameB_def image_def closure)
-apply (simp add: MapR_rep_eq[of "[x]" "[x']",simplified] CompB_def)
-apply (subgoal_tac "Abs_WF_BINDING (\<langle>b\<rangle>\<^sub>b \<circ> MapRename [x \<mapsto> x']) = b(x :=\<^sub>b \<langle>b\<rangle>\<^sub>b x', x' :=\<^sub>b \<langle>b\<rangle>\<^sub>b x)")
-apply (simp add: closure)
-apply (rule Rep_WF_BINDING_intro)
-apply (simp add:closure)
-apply (subgoal_tac "\<langle>b\<rangle>\<^sub>b x \<rhd> x'")
-apply (simp)
-apply (rule ext)
-apply (simp add: MapRename_def closure)
-apply (auto)
-done
-*)
-
 text {* A renamed binding can be overriden with an arbitrary binding on the 
         variables being renamed. *}
 
@@ -205,7 +184,7 @@ theorem RenameP_ExprP [urename]:
   by (utp_pred_tac)
 
 lemma RenameP_SubstP [urename]:
-  "\<lbrakk> ss \<in> VAR_RENAME_INV; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> ss\<bullet>(p[v/\<^sub>px]) = (ss\<bullet>p)[ss\<bullet>v/\<^sub>pss\<bullet>x]"
+  "ss\<bullet>(p[v/\<^sub>px]) = (ss\<bullet>p)[ss\<bullet>v/\<^sub>pss\<bullet>x]"
   by (utp_pred_tac)
 
 theorem RenameP_UNREST [simp]:

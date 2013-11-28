@@ -43,21 +43,16 @@ translations
 lemma binding_upd_apply_ty [simp]: 
   fixes x :: "('a :: DEFINED , 'm :: VALUE) PVAR"
   and   y :: "('b :: DEFINED, 'm) PVAR"
-  assumes "v \<rhd>\<^sub>p x"
-  shows "\<langle>f(x:=\<^sub>*v)\<rangle>\<^sub>* y = (if (x\<down>)=(y\<down>) then ProjU (InjU v :: 'm) else \<langle>f\<rangle>\<^sub>* y)"
+  shows "\<langle>f(x:=\<^sub>*v)\<rangle>\<^sub>* y = (if (x\<down>)=(y\<down>) then ProjU (vcoerce (InjU v :: 'm) x\<down>) else \<langle>f\<rangle>\<^sub>* y)"
   by (auto simp add:Rep_binding_ty_def binding_upd_ty_def typing assms)
 
 lemma binding_upd_upd_ty [simp]: 
   fixes x :: "('a :: DEFINED , 'm :: VALUE) PVAR"
-  assumes "y \<rhd>\<^sub>p x" "z \<rhd>\<^sub>p x"
   shows "f(x:=\<^sub>*y,x:=\<^sub>*z) = f(x:=\<^sub>*z)"
-  apply (simp add:binding_upd_ty_def)
-  apply (subst binding_upd_upd)
-  apply (simp_all add:typing defined assms)
-done
+  by (simp add:binding_upd_ty_def)
 
 lemma WF_REL_BINDING_binding_upd_ty [closure]:
-  "\<lbrakk> b \<in> WF_REL_BINDING; v \<rhd>\<^sub>p x; x \<in> PUNDASHED \<rbrakk> \<Longrightarrow> b(x :=\<^sub>* v) \<in> WF_REL_BINDING"
+  "\<lbrakk> b \<in> WF_REL_BINDING; x \<in> PUNDASHED \<rbrakk> \<Longrightarrow> b(x :=\<^sub>* v) \<in> WF_REL_BINDING"
   by (simp add:binding_upd_ty_def closure typing)
 
 lemma Rep_WF_BINDING_ty_pvaux_defined [defined]:
@@ -101,22 +96,23 @@ lemma binding_override_ty_right [simp]:
   by (simp add:Rep_binding_ty_def)
 
 lemma binding_equiv_ty_reduce_left [simp]:
-  "\<lbrakk> v \<rhd>\<^sub>p x; x\<down> \<notin> vs \<rbrakk> \<Longrightarrow> b1(x :=\<^sub>* v) \<cong> b2 on vs \<longleftrightarrow> b1 \<cong> b2 on vs"
+  "\<lbrakk> x\<down> \<notin> vs \<rbrakk> \<Longrightarrow> b1(x :=\<^sub>* v) \<cong> b2 on vs \<longleftrightarrow> b1 \<cong> b2 on vs"
   by (simp add:binding_upd_ty_def typing defined)
 
 lemma binding_equiv_ty_reduce_right [simp]:
-  "\<lbrakk> v \<rhd>\<^sub>p x; x\<down> \<notin> vs \<rbrakk> \<Longrightarrow> b1 \<cong> b2(x :=\<^sub>* v) on vs \<longleftrightarrow> b1 \<cong> b2 on vs"
-  apply (auto simp add:binding_upd_ty_def typing defined)
-  apply (metis binding_equiv_comm binding_equiv_ty_reduce_left binding_upd_ty_def)+
-done
+  "\<lbrakk> x\<down> \<notin> vs \<rbrakk> \<Longrightarrow> b1 \<cong> b2(x :=\<^sub>* v) on vs \<longleftrightarrow> b1 \<cong> b2 on vs"
+  by (auto simp add:binding_upd_ty_def typing defined)
 
 lemma EvalP_UNREST_binding_upd_ty [evalp]:
   fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
-  assumes "v \<rhd>\<^sub>p x" "vs \<sharp> P" "x\<down> \<in> vs"
+  assumes "vs \<sharp> P" "x\<down> \<in> vs"
   shows "\<lbrakk>P\<rbrakk>(b(x :=\<^sub>* v)) = \<lbrakk>P\<rbrakk>b"
   using assms
   by (simp add: binding_upd_ty_def eval UNREST_subset typing defined)
 
-
+lemma binding_upd_ty_twist [intro]:
+  assumes "x\<down> \<noteq> y\<down>"
+  shows "b(x :=\<^sub>* e, y :=\<^sub>* f) = b(y :=\<^sub>* f, x :=\<^sub>* e)"
+  using assms by (simp add:binding_upd_ty_def typing binding_upd_twist)
 
 end

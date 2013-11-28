@@ -41,11 +41,6 @@ declare MkPExpr_inverse [simp]
 
 notation DestPExpr ("\<lbrakk>_\<rbrakk>\<^sub>*")
 
-lemma binding_upd_ty_twist [intro]:
-  assumes "e \<rhd>\<^sub>p x" "f \<rhd>\<^sub>p y" "x\<down> \<noteq> y\<down>"
-  shows "b(x :=\<^sub>* e, y :=\<^sub>* f) = b(y :=\<^sub>* f, x :=\<^sub>* e)"
-  using assms by (simp add:binding_upd_ty_def typing binding_upd_twist)
-
 lemma DestPExpr_intro [intro]:
   "(\<And> b. \<lbrakk>x\<rbrakk>\<^sub>*b = \<lbrakk>y\<rbrakk>\<^sub>*b) \<Longrightarrow> x = y"
   by (auto simp add: DestPExpr_inject[THEN sym])
@@ -81,7 +76,7 @@ Adhoc_Overloading.add_variant @{const_name unrest} @{const_name UNREST_PEXPR}
 *}
 
 lemma EvalPE_UNREST_assign [evalp]:
-  "\<lbrakk> v \<rhd>\<^sub>p x; {x\<down>} \<sharp> e \<rbrakk> \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>*(b(x :=\<^sub>* v)) = \<lbrakk>e\<rbrakk>\<^sub>*b"
+  "{x\<down>} \<sharp> e \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>*(b(x :=\<^sub>* v)) = \<lbrakk>e\<rbrakk>\<^sub>*b"
   apply (simp add:UNREST_PEXPR_def binding_upd_ty_def)
   apply (drule_tac x="b" in spec)
   apply (drule_tac x="b(x\<down> :=\<^sub>b InjU v)" in spec)
@@ -471,7 +466,7 @@ lemma EvalP_ExistsP_singleton_pvaux_ty [evalp]:
   apply (simp_all add:typing defined assms)
   apply (rule typing)
   apply (simp_all add:typing defined assms pvaux_aux[THEN sym])
-  apply (metis binding_upd_apply binding_upd_ty_def var_compat_pvar)
+  apply (metis binding_upd_eq binding_upd_ty_def binding_upd_vcoerce)
 done
 
 lemma UNREST_PExprP [unrest]:
@@ -1198,13 +1193,8 @@ lemma PSubstPE_PVarPE_neq [usubst]:
   using assms by (utp_poly_auto_tac)
 
 lemma PSubstPE_VarP_single_UNREST [usubst]:
-  "\<lbrakk> {x\<down>} \<sharp> v; e \<rhd>\<^sub>* x \<rbrakk> \<Longrightarrow> v[e/\<^sub>*x] = v"
-  apply (auto simp add:evalp unrest UNREST_PEXPR_def)
-  apply (drule_tac x="b" in spec)
-  apply (drule_tac x="b(x\<down> :=\<^sub>b InjU (\<lbrakk>e\<rbrakk>\<^sub>* b))" in spec)
-  apply (simp add:typing defined closure)
-  apply (metis binding_upd_ty_def)
-done
+  "{x\<down>} \<sharp> v \<Longrightarrow> v[e/\<^sub>*x] = v"
+  by (auto simp add:evalp unrest UNREST_PEXPR_def)
 
 lemma SubstE_PSubstPE [usubst]:
   fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
@@ -1313,13 +1303,12 @@ done
 
 lemma EvalR_AssignR_typed [evalpr]:
   fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
-  assumes "x \<in> PUNDASHED" "e \<rhd>\<^sub>* x" "D\<^sub>1 \<sharp> e"
+  assumes "x \<in> PUNDASHED" "D\<^sub>1 \<sharp> e" "TYPEUSOUND('a, 'm)"
   shows "\<lbrakk>x\<down> :=\<^sub>R e\<down>\<rbrakk>R = {(b, b(x:=\<^sub>* (\<lbrakk>e\<rbrakk>\<^sub>* b))) | b. b \<in> WF_REL_BINDING}"
   using assms
-  apply (subgoal_tac "TYPEUSOUND('a, 'm)")
   apply (subst EvalR_AssignR)
   apply (simp add:closure typing unrest)
-  apply (rule PExprE_compat)
+  apply (metis UNREST_PExprE)
   apply (simp_all add: unrest binding_upd_ty_def evale pevar_compat_TYPEUSOUND)
 done
 
@@ -1328,7 +1317,6 @@ theorem EvalR_SubstP_UNDASHED_ty [evalr, evalpr] :
   assumes 
     "TYPEUSOUND('a, 'm)"
     "x \<in> PUNDASHED" 
-    "e \<rhd>\<^sub>* x" 
     "DASHED \<sharp> e"
   shows "\<lbrakk>p[e\<down>/\<^sub>px\<down>]\<rbrakk>R = {(b1, b2) | b1 b2. (b1(x :=\<^sub>* \<lbrakk>e\<rbrakk>\<^sub>*b1), b2) \<in> \<lbrakk>p\<rbrakk>R}"
   apply (subst SubstP_rel_UNDASHED)

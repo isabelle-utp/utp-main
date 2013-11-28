@@ -178,8 +178,9 @@ is "\<lambda> f. {b. \<forall> v \<in> UNDASHED. \<langle>b\<rangle>\<^sub>b (v\
 lift_definition IdA :: "'m AssignF" is "VarE"
   by (auto simp add: typing AssignF_def unrest)
 
-definition AssignF_upd :: "'a AssignF \<Rightarrow> 'a VAR \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a AssignF" where
-"AssignF_upd f x v = Abs_AssignF (\<langle>f\<rangle>\<^sub>a(x := v))"
+lift_definition AssignF_upd :: "'a AssignF \<Rightarrow> 'a VAR \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a AssignF" 
+is "\<lambda> f x v. f(x := ecoerce v x)"
+  by (simp add:AssignF_def typing)
 
 nonterminal aupdbinds and aupdbind
 
@@ -657,20 +658,19 @@ theorem UNREST_SkipRA_NON_REL_VAR [unrest]:
 theorem UNREST_SkipRA_DASHED_TWICE [unrest]:
 "UNREST DASHED_TWICE (II\<^bsub>vs\<^esub>)"
   by (auto intro:closure unrest simp add:SkipRA_def)
-
+  
 theorem UNREST_AssignR [unrest]:
-"\<lbrakk> x \<in> UNDASHED; UNREST_EXPR NON_REL_VAR v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> UNREST NON_REL_VAR (x :=\<^sub>R v)"
-  by (simp add:AssignsR.rep_eq UNREST_def UNREST_EXPR_def WF_BINDING_def override_on_def IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq typing NON_REL_VAR_def)
+"\<lbrakk> x \<in> UNDASHED; NON_REL_VAR \<sharp> v \<rbrakk> \<Longrightarrow> NON_REL_VAR \<sharp> (x :=\<^sub>R v)"
+  by (simp add:UNREST_def AssignsR.rep_eq AssignF_upd.rep_eq IdA.rep_eq unrest)
 
 theorem UNREST_AssignR_DASHED_TWICE [unrest]:
-"\<lbrakk> x \<in> UNDASHED; UNREST_EXPR DASHED_TWICE v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> UNREST DASHED_TWICE (x :=\<^sub>R v)"
-  by (simp add:AssignsR.rep_eq UNREST_def UNREST_EXPR_def WF_BINDING_def override_on_def IdA.rep_eq VarE.rep_eq  AssignF_upd_rep_eq)
+"\<lbrakk> x \<in> UNDASHED; UNREST_EXPR DASHED_TWICE v \<rbrakk> \<Longrightarrow> UNREST DASHED_TWICE (x :=\<^sub>R v)"
+  by (simp add:UNREST_def AssignsR.rep_eq AssignF_upd.rep_eq IdA.rep_eq unrest)
 
 (* FIXME: Add complete set of UNREST rules for n-ary assignments (AssignF) *)
 
 theorem UNREST_AssignRA [unrest]:
-"\<lbrakk> x \<in> UNDASHED; UNREST_EXPR (VAR - vs) v; vs \<subseteq> UNDASHED \<union> DASHED; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow>
- UNREST (VAR - vs) (x :=\<^bsub>vs\<^esub> v)"
+"\<lbrakk> x \<in> UNDASHED; (VAR - vs) \<sharp> v; vs \<subseteq> REL_VAR \<rbrakk> \<Longrightarrow> (VAR - vs) \<sharp> (x :=\<^bsub>vs\<^esub> v)"
   apply (simp add:AssignRA_def)
   apply (rule unrest) back
   apply (rule unrest) back
@@ -680,14 +680,13 @@ theorem UNREST_AssignRA [unrest]:
 done
 
 theorem UNREST_AssignRA' [unrest]:
-"\<lbrakk> x \<in> UNDASHED; (VAR - vs2) \<sharp> v; vs2 \<subseteq> UNDASHED \<union> DASHED; v \<rhd>\<^sub>e x; vs1 \<subseteq> (VAR - vs2) \<rbrakk> \<Longrightarrow>
- UNREST vs1 (x :=\<^bsub>vs2\<^esub> v)"
+"\<lbrakk> x \<in> UNDASHED; (VAR - vs2) \<sharp> v; vs2 \<subseteq> REL_VAR; vs1 \<subseteq> (VAR - vs2) \<rbrakk> \<Longrightarrow>
+  vs1 \<sharp> (x :=\<^bsub>vs2\<^esub> v)"
   by (metis UNREST_AssignRA UNREST_subset)
 
 lemma UNREST_EXPR_NON_REL_VAR_PrimeE [unrest]:
   "UNREST_EXPR NON_REL_VAR v \<Longrightarrow> UNREST_EXPR NON_REL_VAR v\<acute>"
   by (metis PrimeE_def UNREST_NON_REL_VAR_SS)
-
 
 (*
 theorem UNREST_AssignR [unrest]:
@@ -821,7 +820,7 @@ theorem SkipRA_closure [closure] :
   by (simp add:WF_RELATION_def unrest)
 
 lemma AssignRA_rel_closure [closure]:
-  "\<lbrakk> x \<in> UNDASHED; (VAR - vs) \<sharp> v; vs \<subseteq> UNDASHED \<union> DASHED; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> x \<in> UNDASHED; (VAR - vs) \<sharp> v; vs \<subseteq> REL_VAR \<rbrakk> \<Longrightarrow>
      x :=\<^bsub>vs\<^esub> v \<in> WF_RELATION"
   apply (simp add:WF_RELATION_def)
   apply (subgoal_tac "NON_REL_VAR = (VAR - REL_VAR :: 'a VAR set)")
@@ -1063,8 +1062,7 @@ theorem SemiR_closure [closure] :
 done
 
 theorem AssignR_rel_closure [closure] :
-"\<lbrakk> x \<in> UNDASHED; UNREST_EXPR NON_REL_VAR v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow>
-   x :=\<^sub>R v \<in> WF_RELATION"
+  "\<lbrakk> x \<in> UNDASHED; NON_REL_VAR \<sharp> v \<rbrakk> \<Longrightarrow> x :=\<^sub>R v \<in> WF_RELATION"
   apply (simp add:WF_RELATION_def)
   apply (simp add:unrest)
 done

@@ -400,7 +400,6 @@ theorem AssignA_rep_eq:
   apply (rule UNREST_EXPR_subset)
   apply (rule unrest)
   apply (auto simp add:REL_ALPHABET_def intro:typing)
-  apply (metis eavar_compat_def)
 done
 
 theorem AssignA_closure [closure] :
@@ -689,6 +688,20 @@ lemma SS_alpha_image [urename]:
   apply (simp)
 done
 
+theorem SkipA_unfold :
+  assumes "a \<in> REL_ALPHABET" "x \<in> \<langle>a\<rangle>\<^sub>f" "dash x \<in> \<langle>a\<rangle>\<^sub>f" "HOM_ALPHA a"
+  shows "II\<alpha>\<^bsub>a\<^esub> = (VarAE (dash x) ==\<^sub>\<alpha> VarAE x) \<and>\<^sub>\<alpha> II\<alpha>\<^bsub>(a -\<^sub>f \<lbrace>x,dash x\<rbrace>)\<^esub>"
+  apply (insert assms)
+  apply (utp_alpha_tac2)
+  apply (simp add:HOM_ALPHA_HOMOGENEOUS)
+  apply (subgoal_tac "x \<in> UNDASHED")
+  apply (simp add:SkipRA_unfold)
+  apply (auto simp add:REL_ALPHABET_def)
+done
+
+end
+
+
 (*
 theorem SemiA_algebraic:
   assumes "p \<in> WF_ALPHA_REL" "q \<in> WF_ALPHA_REL"
@@ -757,17 +770,3 @@ proof -
 
 qed
 *)
-
-theorem SkipA_unfold :
-  assumes "a \<in> REL_ALPHABET" "x \<in> \<langle>a\<rangle>\<^sub>f" "dash x \<in> \<langle>a\<rangle>\<^sub>f" "HOM_ALPHA a"
-  shows "II\<alpha>\<^bsub>a\<^esub> = (VarAE (dash x) ==\<^sub>\<alpha> VarAE x) \<and>\<^sub>\<alpha> II\<alpha>\<^bsub>(a -\<^sub>f \<lbrace>x,dash x\<rbrace>)\<^esub>"
-  apply (insert assms)
-  apply (utp_alpha_tac2)
-  apply (simp add:HOM_ALPHA_HOMOGENEOUS)
-  apply (subgoal_tac "x \<in> UNDASHED")
-  apply (simp add:SkipRA_unfold)
-  apply (auto simp add:REL_ALPHABET_def)
-done
-
-end
-

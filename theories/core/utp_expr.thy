@@ -184,6 +184,18 @@ definition BotE :: "'VALUE::BOT_SORT UTYPE \<Rightarrow> 'VALUE WF_EXPRESSION" w
 definition CoerceE :: "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE UTYPE \<Rightarrow> 'VALUE WF_EXPRESSION" where
 "CoerceE e t \<equiv> if (e :\<^sub>e t) then e else DefaultE t"
 
+definition ecoerce :: "'VALUE WF_EXPRESSION \<Rightarrow> 'VALUE VAR \<Rightarrow> 'VALUE WF_EXPRESSION" where  
+"ecoerce e x = Abs_WF_EXPRESSION (\<lambda> b. vcoerce (\<langle>e\<rangle>\<^sub>e b) x)"
+
+lemma ecoerce_rep_eq:
+  "\<langle>ecoerce v x\<rangle>\<^sub>eb = vcoerce (\<langle>v\<rangle>\<^sub>e b) x"
+  apply (simp add:ecoerce_def)
+  apply (subst Abs_WF_EXPRESSION_inverse)
+  apply (simp_all add:WF_EXPRESSION_def)
+  apply (rule_tac x="vtype x" in exI)
+  apply (auto simp add:vcoerce_def)
+done
+
 lift_definition VarE :: "'VALUE VAR \<Rightarrow> 'VALUE WF_EXPRESSION" ("$\<^sub>e_" [999] 999)
 is "\<lambda> x. (\<lambda> b. \<langle>b\<rangle>\<^sub>b x)"
   by (auto simp add:WF_EXPRESSION_def)
@@ -254,10 +266,10 @@ lift_definition SubstP ::
   "'a WF_PREDICATE \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a VAR \<Rightarrow> 'a WF_PREDICATE" ("_[_'/\<^sub>p_]" [200] 200)
 is "\<lambda> p v x. {b. b(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b) \<in> p}" .
 
-lemma SubstP_no_var: "\<lbrakk> {x} \<sharp> p; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[v/\<^sub>px] = p"
+lemma SubstP_no_var: "{x} \<sharp> p \<Longrightarrow> p[v/\<^sub>px] = p"
   apply (auto intro!:destPRED_intro simp add:UNREST_def SubstP.rep_eq)
   apply (metis (lifting) binding_compat binding_upd_simps binding_upd_upd evar_compat_def)
-  apply (metis binding_upd_apply evar_compat_def)
+  apply (metis (full_types) binding_upd_simps(1) binding_upd_triv)
 done
 
 subsection {* Theorems *}
@@ -328,6 +340,10 @@ theorem CoerceE_type [typing]:
 "CoerceE e t :\<^sub>e t"
   by (simp add: CoerceE_def typing)
 
+theorem ecoerce_compat [typing]:
+  "ecoerce v x \<rhd>\<^sub>e x"
+  by (simp add:evar_compat_def ecoerce_rep_eq typing)
+
 theorem RenameE_type [typing]:
   "e :\<^sub>e t \<Longrightarrow> (ss\<bullet>e) :\<^sub>e t" 
   by (simp add:etype_rel_def PermE.rep_eq)
@@ -372,17 +388,27 @@ theorem VarE_ecompat [typing]: "\<lbrakk> vtype x = vtype y; aux x = aux y \<rbr
   by (force intro:typing defined)
 
 lemma SubstE_defined [defined]:
-  "\<lbrakk> v \<rhd>\<^sub>e y; \<D> e \<rbrakk> \<Longrightarrow> \<D> (e[v/\<^sub>ey])"
+  "\<D> e \<Longrightarrow> \<D> (e[v/\<^sub>ey])"
   by (auto simp add:SubstE.rep_eq Defined_WF_EXPRESSION_def)
 
 lemma SubstE_compat [typing]:
-  "\<lbrakk> e \<rhd>\<^sub>e x; v \<rhd>\<^sub>e y \<rbrakk> \<Longrightarrow> e[v/\<^sub>ey] \<rhd>\<^sub>e x"
+  "e \<rhd>\<^sub>e x \<Longrightarrow> e[v/\<^sub>ey] \<rhd>\<^sub>e x"
   by (auto simp add:SubstE.rep_eq Defined_WF_EXPRESSION_def evar_compat_def)
 
 subsubsection {* bfun theorems *}
 
 lemma LitE_bfun [simp]: "a : t \<Longrightarrow> \<langle>LitE a\<rangle>\<^sub>e = (\<lambda> x. a)"
   by (auto simp add:LitE_def)
+
+lemma ecoerce_reduce1 [simp]:
+  "v \<rhd>\<^sub>e x \<Longrightarrow> ecoerce v x = v"
+  by (simp add:ecoerce_def typing)
+
+(*
+lemma ecoerce_reduce2 [simp]:
+  "\<not> (v \<rhd>\<^sub>e x) \<Longrightarrow> ecoerce v x = DefaultE (vtype x)"
+  by (simp add:ecoerce_def typing)
+*)
 
 subsubsection {* @{term UNREST_EXPR} Theorems *}
 
@@ -466,6 +492,10 @@ theorem UNREST_EXPR_CoerceE [unrest] :
 "vs \<sharp> e \<Longrightarrow> vs \<sharp> (CoerceE e t)"
   by (auto intro:unrest simp add:CoerceE_def)
 
+lemma UNREST_ecoerce [unrest]:
+  "xs \<sharp> e \<Longrightarrow> xs \<sharp> (ecoerce e x)"
+  by (simp add:ecoerce_rep_eq UNREST_EXPR_def)
+
 theorem UNREST_EXPR_RenameE [unrest] :
 "vs \<sharp> p \<Longrightarrow>
  UNREST_EXPR (\<langle>ss\<rangle>\<^sub>s ` vs) (ss\<bullet>p)"
@@ -487,28 +517,28 @@ theorem UNREST_EXPR_PrimeE_alt [unrest] :
   by (simp add:PrimeE_def urename closure unrest)
 
 theorem UNREST_EXPR_SubstE [unrest] :  
-"\<lbrakk> v \<rhd>\<^sub>e x; vs1 \<sharp> e; vs2 \<sharp> v; x \<notin> vs1; vs = (vs1 \<inter> vs2) \<rbrakk> \<Longrightarrow>
+"\<lbrakk> vs1 \<sharp> e; vs2 \<sharp> v; x \<notin> vs1; vs = (vs1 \<inter> vs2) \<rbrakk> \<Longrightarrow>
  vs \<sharp> (e[v/\<^sub>ex])"
   apply (auto simp add:UNREST_EXPR_def SubstE.rep_eq evar_compat_def)
   apply (metis binding_override_simps(6) inf_commute)
 done
 
 theorem UNREST_SubstE_var [unrest] :  
-  "\<lbrakk> v \<rhd>\<^sub>e x; vs1 \<sharp> e; vs2 \<sharp> v; x \<notin> vs1; x \<in> vs2 \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> vs1 \<sharp> e; vs2 \<sharp> v; x \<notin> vs1; x \<in> vs2 \<rbrakk> \<Longrightarrow>
    {x} \<sharp> (e[v/\<^sub>ex])"
   apply (auto simp add:SubstE.rep_eq UNREST_def UNREST_EXPR_def)
   apply (metis binding_compat binding_upd_override binding_upd_upd evar_compat_def)
 done
 
 lemma UNREST_SubstE_simple [unrest]:
-  "\<lbrakk> vs \<sharp> e; vs \<sharp> v; v \<rhd>\<^sub>e y; y \<notin> vs \<rbrakk> \<Longrightarrow> vs \<sharp> e[v/\<^sub>ey]"
+  "\<lbrakk> vs \<sharp> e; vs \<sharp> v; y \<notin> vs \<rbrakk> \<Longrightarrow> vs \<sharp> e[v/\<^sub>ey]"
   by (rule unrest, auto)
 
 lemma dash_single_rename_func_on [closure]: "rename_func_on dash {x}"
   by (simp add:rename_func_on_def)
 
 theorem UNREST_SubstP [unrest] :  
-  "\<lbrakk> v \<rhd>\<^sub>e x; vs1 \<sharp> p; vs2 \<sharp> v; x \<notin> vs1; vs = (vs1 \<inter> vs2) \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> vs1 \<sharp> p; vs2 \<sharp> v; x \<notin> vs1; vs = (vs1 \<inter> vs2) \<rbrakk> \<Longrightarrow>
    vs \<sharp> (p[v/\<^sub>px])"
   apply (auto simp add:SubstP_def UNREST_def UNREST_EXPR_def)
   apply (drule_tac x="b1(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b1)" in bspec, simp)
@@ -518,28 +548,21 @@ theorem UNREST_SubstP [unrest] :
   apply (drule_tac x="b1(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b1) \<oplus>\<^sub>b b2 on vs2" in spec)
   apply (simp)
   apply (subgoal_tac "x \<notin> vs1 \<inter> vs2")
-  apply (subgoal_tac "\<langle>v\<rangle>\<^sub>e b1 \<rhd> x")
   apply (simp)
   apply (metis inf_commute)
   apply (auto)
-  apply (metis evar_compat_def)
 done
 
 theorem UNREST_SubstP_var [unrest] :  
-   "\<lbrakk> v \<rhd>\<^sub>e x; {x} \<sharp> v \<rbrakk> \<Longrightarrow>
+   "{x} \<sharp> v \<Longrightarrow>
     {x} \<sharp> (p[v/\<^sub>px])"
-  apply (auto simp add:SubstP_def UNREST_def UNREST_EXPR_def)
-  apply (metis binding_compat binding_upd_override binding_upd_upd evar_compat_def)
-done
+  by (auto simp add:SubstP_def UNREST_def UNREST_EXPR_def)
 
 lemma UNREST_SubstP_simple [unrest]: 
   fixes P :: "'a WF_PREDICATE"
-  assumes "vs \<sharp> v" "vs - {x} \<sharp> P" "v \<rhd>\<^sub>e x"
+  assumes "vs \<sharp> v" "vs - {x} \<sharp> P"
   shows "vs \<sharp> P[v/\<^sub>px]"
-  using assms
-  apply (auto simp add:UNREST_def SubstP.rep_eq)
-  apply (utp_pred_tac)
-done
+  using assms by (auto simp add:UNREST_def SubstP.rep_eq)
 
 lemma UNREST_UNDASHED_PrimeE [unrest]:
   "UNREST_EXPR DASHED e \<Longrightarrow> UNREST_EXPR UNDASHED e\<acute>"

@@ -11,7 +11,6 @@ imports
   utp_value
   utp_var
   utp_binding
-(* utp_pred "../tactics/utp_pred_tac" *)
 begin
 
 subsection {* Permutation Polymorphic Constant *}
@@ -988,18 +987,21 @@ lemma var_compat_rename [typing]:
   "v \<rhd> x \<Longrightarrow> v \<rhd> \<langle>ss\<rangle>\<^sub>s x"
   by (metis (lifting) Rep_VAR_RENAME_aux Rep_VAR_RENAME_type var_compat_def)
 
+lemma vcoerce_perm [simp]:
+  "vcoerce v (ss\<bullet>x) = vcoerce v x"
+  by (auto simp add:vcoerce_def var_compat_def)
+
 lemma RenameB_binding_upd_1 :
-  "v \<rhd> x \<Longrightarrow> RenameB ss (b(x :=\<^sub>b v)) = (RenameB ss b)(\<langle>ss\<rangle>\<^sub>s x :=\<^sub>b v)"
-  by (force simp add:RenameB_rep_eq typing)
+  "RenameB ss (b(x :=\<^sub>b v)) = (RenameB ss b)(\<langle>ss\<rangle>\<^sub>s x :=\<^sub>b v)"
+  by (force simp add:RenameB_rep_eq binding_upd.rep_eq typing)
 
 lemma RenameB_binding_upd_2 [simp]:
-  "\<lbrakk> v \<rhd> x \<rbrakk> \<Longrightarrow> (RenameB ss b)(x :=\<^sub>b v) = RenameB ss (b(inv \<langle>ss\<rangle>\<^sub>s x :=\<^sub>b v))"
-  apply (rule)
-  apply (simp add:typing fun_upd_def)
-  apply (rule)
-  apply (auto)
-  apply (metis Rep_WF_BINDING_rep_eq fun_upd_def rename_inv_rep_eq var_compat_rename)
-  apply (metis (mono_tags) Rep_VAR_RENAME_surj binding_upd_apply rename_inv_rep_eq surj_iff_all var_compat_rename)
+  "(RenameB ss b)(x :=\<^sub>b v) = RenameB ss (b(inv \<langle>ss\<rangle>\<^sub>s x :=\<^sub>b v))"
+  apply (rule Rep_WF_BINDING_intro)
+  apply (auto simp add:binding_upd.rep_eq fun_upd_def)
+  apply (rule ext, auto)
+  apply (metis rename_inv_rep_eq vcoerce_perm)
+  apply (metis Rep_VAR_RENAME_surj UNIV_I inv_into_injective)
 done
 
 lemma RenameB_override_VAR_RENAME_ON:

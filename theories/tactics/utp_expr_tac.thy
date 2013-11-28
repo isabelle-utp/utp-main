@@ -115,23 +115,18 @@ theorem EvalE_FalseE [eval,evale] :
   by (simp add:FalseE_def EvalE_LitE[OF MkBool_type])
 
 theorem EvalE_UNREST_override [eval,evale] :
-"\<lbrakk> UNREST_EXPR vs e \<rbrakk> \<Longrightarrow> 
-  \<lbrakk>e\<rbrakk>\<^sub>e(b \<oplus>\<^sub>b b' on vs) = \<lbrakk>e\<rbrakk>\<^sub>eb"
+"vs \<sharp> e \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>e(b \<oplus>\<^sub>b b' on vs) = \<lbrakk>e\<rbrakk>\<^sub>eb"
   by (simp add:EvalE_def UNREST_EXPR_def)
 
 theorem EvalE_UNREST_assign [eval,evale] :
-"\<lbrakk> x \<in> vs; UNREST_EXPR vs e; v \<rhd> x \<rbrakk> \<Longrightarrow> 
+"\<lbrakk> x \<in> vs; vs \<sharp> e \<rbrakk> \<Longrightarrow> 
   \<lbrakk>e\<rbrakk>\<^sub>e(b(x :=\<^sub>b v)) = \<lbrakk>e\<rbrakk>\<^sub>eb"
   apply (auto simp add:EvalE_def UNREST_EXPR_def)
-  apply (drule_tac x="b" in spec)
-  apply (drule_tac x="b(x :=\<^sub>b v)" in spec)
-  apply (subgoal_tac "\<langle>e\<rangle>\<^sub>e (b \<oplus>\<^sub>b b(x :=\<^sub>b v) on vs) = \<langle>e\<rangle>\<^sub>e (b \<oplus>\<^sub>b b(x :=\<^sub>b v) on insert x vs)")
-  apply (simp_all)
-  apply (metis binding_override_simps(2) binding_override_simps(8))
+  apply (metis binding_upd_override)
 done
 
 theorem EvalP_UNREST_binding_equiv [eval,evale] :
-"\<lbrakk> UNREST_EXPR (VAR - vs) e; b1 \<cong> b2 on vs \<rbrakk> 
+"\<lbrakk> (VAR - vs) \<sharp> e; b1 \<cong> b2 on vs \<rbrakk> 
  \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>eb1 = \<lbrakk>e\<rbrakk>\<^sub>eb2"
   by (metis (mono_tags) Compl_eq_Diff_UNIV EvalE_def UNREST_EXPR_member VAR_def binding_override_equiv binding_override_minus)
   
@@ -147,62 +142,11 @@ theorem EvalP_SubstP [eval,eval] :
   "\<lbrakk>p[v/\<^sub>px]\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eb))"
   by (simp add:SubstP.rep_eq EvalP_def EvalE_def)
 
-(*
-
-
-proof -
-
-  from assms(1) have "\<And> x'. is_SubstP_var p v x x' \<Longrightarrow> 
-                       \<lbrakk>SubstP_body p v x x'\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eb))"
-    apply (subgoal_tac "b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eb, x' :=\<^sub>b \<langle>b\<rangle>\<^sub>b x) \<oplus>\<^sub>b b on {x'} = b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eb)")
-    apply (drule_tac b="b" in EvalE_compat)
-    apply (simp add:SubstP_body_def)
-(*    apply (simp add:is_SubstP_var_def, clarify) *)
-    apply (utp_pred_tac)
-    apply (auto)
-    apply (simp add:is_SubstP_var_def, clarify)
-    apply (simp add:eval evale closure)
-(*    apply (simp add:is_SubstP_var_def UNREST_def, clarify) *)
-    apply (subgoal_tac "\<lbrakk>v\<rbrakk>\<^sub>e (b(x' :=\<^sub>b \<langle>b'\<rangle>\<^sub>b x')) = \<langle>v\<rangle>\<^sub>e b")
-    apply (simp add:UNREST_def binding_upd_twist)
-    apply (drule_tac x="b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eb, x' :=\<^sub>b \<langle>b\<rangle>\<^sub>b x)" in bspec)
-    apply (simp add:EvalP_def EvalE_def)
-    apply (simp add:binding_upd_twist)
-  sorry
-(*
-    apply (simp add:EvalP_def EvalE_def)
-    apply (drule_tac x="b" in spec)
-    apply (simp add:binding_upd_twist)
-    apply (simp add:EvalE_def UNREST_EXPR_def)
-    apply (metis)
-    apply (rule_tac x="b(x' :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eb)" in exI)
-    apply (simp add:is_SubstP_var_def eval evale closure binding_upd_twist)
-    apply (rule conjI)
-    apply (simp_all add:EvalP_def EvalE_def UNREST_def var_compat_def)
-    apply (clarify)
-    apply (drule_tac x="b(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b)" in bspec)
-    apply (simp)
-    apply (metis (lifting) assms(1) binding_upd_apply binding_upd_twist binding_value_alt evar_compat_def)
-    apply (metis EvalE_UNREST_assign EvalE_def insertI1 var_compat_intros(1) var_compat_intros(2))
-    apply (simp add:is_SubstP_var_def eval evale closure binding_upd_twist)
-    apply (metis (lifting) binding_compat binding_upd_simps(2) binding_upd_twist evar_compat_def)
-  done
-*)
-
-  with assms show ?thesis
-    apply (simp add:SubstP_def)
-    apply (erule exE)
-    apply (rule someI2)
-    apply (force)
-    apply (simp del:fun_upd_apply)
-  done
-
-qed
-*)
-
 lemma EvalE_UNREST_binding_upd [evale]:
-  "\<lbrakk> v \<rhd> x; UNREST_EXPR {x} e \<rbrakk> \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>e(b(x :=\<^sub>b v)) = \<lbrakk>e\<rbrakk>\<^sub>eb"
-  by (auto simp add:EvalE_def UNREST_EXPR_def, smt binding_upd_apply)
+  "{x} \<sharp> e \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>e(b(x :=\<^sub>b v)) = \<lbrakk>e\<rbrakk>\<^sub>eb"
+  apply (auto simp add:EvalE_def UNREST_EXPR_def)
+  apply (metis binding_upd_upd)
+done
 
 subsection {* Proof Tactics *}
 
@@ -242,8 +186,7 @@ theorem VarE_subst: "\<lbrakk> v :\<^sub>e vtype x; \<not> aux x \<rbrakk> \<Lon
   by utp_expr_tac
 
 theorem EvalP_UNREST_assign_1 [eval] :
-"\<lbrakk> UNREST {x} p; v \<rhd> x \<rbrakk> \<Longrightarrow> 
-  \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b v)) = \<lbrakk>p\<rbrakk>b"
+"{x} \<sharp> p \<Longrightarrow> \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b v)) = \<lbrakk>p\<rbrakk>b"
   apply (rule EvalP_UNREST_assign)
   apply (auto)
 done

@@ -212,7 +212,6 @@ apply (rule_tac x = "b1a \<oplus>\<^sub>b b2 on vs1" in exI)
 apply (simp)
 apply (rule_tac x = "b2" in exI)
 apply (simp)
-apply (metis (hide_lams, no_types) binding_override_simps(1) binding_override_simps(3) sup.commute)
 done
 
 theorem UNREST_ForallP [unrest]:
@@ -352,7 +351,7 @@ theorem UNREST_true_false:
 text {* Evaluation Laws *}
 
 theorem EvalP_UNREST_assign [eval] :
-"\<lbrakk> vs \<sharp> p; x \<in> vs; v \<rhd> x \<rbrakk> \<Longrightarrow> 
+"\<lbrakk> vs \<sharp> p; x \<in> vs \<rbrakk> \<Longrightarrow> 
   \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b v)) = \<lbrakk>p\<rbrakk>b"
   apply (simp add:EvalP_def)
   apply (metis UNREST_binding_override binding_override_simps(2) binding_upd_override)

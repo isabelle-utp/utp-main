@@ -60,7 +60,7 @@ lemma WF_REL_BINDING_override_closure [closure]:
   by (auto simp add:WF_REL_BINDING_def)
 
 lemma WF_REL_BINDING_binding_upd [closure]:
-  "\<lbrakk> x \<in> UNDASHED; b \<in> WF_REL_BINDING; v \<rhd> x \<rbrakk> \<Longrightarrow> b(x :=\<^sub>b v) \<in> WF_REL_BINDING"
+  "\<lbrakk> x \<in> UNDASHED; b \<in> WF_REL_BINDING \<rbrakk> \<Longrightarrow> b(x :=\<^sub>b v) \<in> WF_REL_BINDING"
   by (auto simp add:WF_REL_BINDING_def)
 
 lemma WF_REL_BINDING_bc_DASHED_eq:
@@ -68,10 +68,8 @@ lemma WF_REL_BINDING_bc_DASHED_eq:
   by (metis WF_REL_BINDING_bc_DASHED WF_REL_BINDING_override_closure binding_override_equiv)
 
 lemma WF_REL_BINDING_binding_upd_remove:
-  "\<lbrakk> b(x :=\<^sub>b v) \<in> WF_REL_BINDING; x \<in> UNDASHED; v \<rhd> x \<rbrakk> \<Longrightarrow> b \<in> WF_REL_BINDING"
-  apply (simp add:WF_REL_BINDING_bc_DASHED_eq)
-  apply (metis WF_REL_BINDING_bc_DASHED_eq WF_REL_BINDING_binding_upd binding_compat binding_upd_triv binding_upd_upd)
-done
+  "\<lbrakk> b(x :=\<^sub>b v) \<in> WF_REL_BINDING; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> b \<in> WF_REL_BINDING"
+  by (simp add:WF_REL_BINDING_bc_DASHED_eq)
 
 typedef 'VALUE WF_REL_BINDING = "WF_REL_BINDING :: 'VALUE WF_BINDING set"
   morphisms DestRelB MkRelB
@@ -393,21 +391,6 @@ theorem EvalR_SkipRA [evalr] :
  \<lbrakk>II\<^bsub>vs\<^esub>\<rbrakk>R = { BindR b | b. \<forall>v\<in>in vs. \<langle>b\<rangle>\<^sub>b v = \<langle>b\<rangle>\<^sub>b (v\<acute>)}"
   by (simp add:EvalR_def SkipRA_rep_eq_alt image_Collect BindR_def)
 
-lemma binding_override_eq_intro:
-  "\<lbrakk> b1 \<cong> b3 on - vs
-   ; b2 \<cong> b4 on vs \<rbrakk> \<Longrightarrow>
-  b1 \<oplus>\<^sub>b b2 on vs = b3 \<oplus>\<^sub>b b4 on vs"
-  by (metis binding_equiv_override binding_override_minus)
-
-lemma binding_equiv_union_intro:
-  "\<lbrakk> b1 \<cong> b2 on vs1; b1 \<cong> b2 on vs2 \<rbrakk> \<Longrightarrow>
-     b1 \<cong> b2 on vs1 \<union> vs2" 
-  by (auto simp add:binding_equiv_def)
-
-lemma binding_equiv_UNDASHED_overshadow:
-  "b1 \<cong> b2 \<oplus>\<^sub>b b3 on UNDASHED on NON_REL_VAR = b1 \<cong> b2 on NON_REL_VAR"
-  by (auto simp add:binding_equiv_def override_on_def)
-
 theorem EvalR_SkipRA' :
 "\<lbrakk> vs \<subseteq> UNDASHED \<union> DASHED; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow>
  \<lbrakk>II\<^bsub>vs\<^esub>\<rbrakk>R = { (b \<oplus>\<^sub>b bc on DASHED, b' \<oplus>\<^sub>b bc on DASHED) 
@@ -439,8 +422,18 @@ theorem EvalR_SkipRA' :
 done
 
 lemma EvalP_AssignR1 [eval]:
-  "e \<rhd>\<^sub>e x \<Longrightarrow> \<lbrakk>x :=\<^sub>R e\<rbrakk>b = (\<forall> v \<in> UNDASHED. if (v = x) then \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<lbrakk>e\<rbrakk>\<^sub>eb else \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>b\<rangle>\<^sub>b v)"
-  by (simp add:EvalP_def EvalE_def AssignsR.rep_eq IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq)
+  "\<lbrakk>x :=\<^sub>R e\<rbrakk>b = (\<forall> v \<in> UNDASHED. if (v = x) then \<langle>b\<rangle>\<^sub>b (v\<acute>) = (vcoerce (\<lbrakk>e\<rbrakk>\<^sub>eb) x)
+                                            else \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>b\<rangle>\<^sub>b v)"
+  by (simp add:EvalP_def EvalE_def AssignsR.rep_eq IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq AssignF_upd.rep_eq ecoerce_rep_eq)
+
+(*
+lemma EvalP_AssignR1 [eval]:
+  "e \<rhd>\<^sub>e x \<Longrightarrow>
+   \<lbrakk>x :=\<^sub>R e\<rbrakk>b = (\<forall> v \<in> UNDASHED. if (v = x) then \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<lbrakk>e\<rbrakk>\<^sub>eb 
+                                            else \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>b\<rangle>\<^sub>b v)"
+  apply (simp add:eval typing)
+  by (simp add:EvalP_def EvalE_def AssignsR.rep_eq IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq AssignF_upd.rep_eq)
+*)
 
 lemma EvalP_AssignR2 [eval]:
   "\<lbrakk> e \<rhd>\<^sub>e x; f \<rhd>\<^sub>e y \<rbrakk> \<Longrightarrow>
@@ -465,75 +458,41 @@ lemma EvalR_AssignsR:
 lemma AssignF_upd_apply [simp]:
   "v \<rhd>\<^sub>e x \<Longrightarrow> \<langle>f(x :=\<^sub>a v)\<rangle>\<^sub>a x = v"
   apply (auto simp add:AssignF_upd_def)
-  apply (metis AssignF_upd_def AssignF_upd_rep_eq fun_upd_same)
+  apply (metis AssignF_upd_rep_eq Rep_AssignF_inverse fun_upd_same)
 done
 
 lemma EvalE_BindP_UNDASHED [evale]:
   "D\<^sub>1 \<sharp> e \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>e(BindP (b1, b2)) = \<lbrakk>e\<rbrakk>\<^sub>eb1"
   by (simp add:BindP_def evale)
 
-lemma binding_eq_split_equiv:
-  "\<lbrakk> b1 \<cong> b2 on D\<^sub>0; b1 \<cong> b2 on D\<^sub>1; b1 \<cong> b2 on NON_REL_VAR \<rbrakk> \<Longrightarrow> b1 = b2"
-  by (metis (full_types) UNDASHED_DASHED_inter(16) binding_equiv_override binding_override_minus binding_override_simps(1) binding_override_simps(2))
+lemma binding_upd_vcoerce [simp]:
+  "b(x :=\<^sub>b vcoerce v x) = b(x :=\<^sub>b v)"
+  by (auto simp add:binding_upd.rep_eq)
 
 theorem EvalR_AssignR [evalr] :
-"\<lbrakk> x \<in> UNDASHED; e \<rhd>\<^sub>e x; DASHED \<sharp> e \<rbrakk> \<Longrightarrow> 
-  \<lbrakk>x :=\<^sub>R e\<rbrakk>R = {(b, b(x:=\<^sub>b (\<lbrakk>e\<rbrakk>\<^sub>e b))) | b. b \<in> WF_REL_BINDING}"
-
-apply (simp add: EvalR_def EvalE_def)
-apply (simp add: AssignsR.rep_eq IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq)
-apply (simp add: WF_REL_BINDING_def)
-apply (simp add: set_eq_iff)
-apply (safe)
-apply (simp add:BindR_def)
-apply (safe)
-apply (frule_tac x="x" in bspec)
-apply (force)
-apply (simp)
-apply (subgoal_tac "\<langle>e\<rangle>\<^sub>e (xa \<oplus>\<^sub>b bc on DASHED) = \<langle>e\<rangle>\<^sub>e xa")
-apply (drule sym)
-apply (auto)[1]
-apply (subgoal_tac "\<langle>e\<rangle>\<^sub>e xa \<rhd> x")
-apply (simp)
-apply (rule)
-apply (simp add:RenameB_rep_eq)
-apply (rule)
-apply (case_tac "xb \<in> DASHED")
-apply (auto)
-apply (metis SS_UNDASHED_app)
-apply (metis SS_UNDASHED_app SS_ident_app)
-apply (simp add:image_def BindR_def)
-apply (rule_tac x="ba(x\<acute> :=\<^sub>b \<langle>e\<rangle>\<^sub>e ba) \<oplus>\<^sub>b RenameB SS ba on (DASHED - {x\<acute>})" in exI)
-apply (auto)
-apply (metis EvalE_compat EvalE_def UNDASHED_dash_DASHED UNREST_EXPR_member binding_override_upd binding_upd_apply var_compat_dash)
-apply (subgoal_tac "v\<acute> \<in> DASHED - {x\<acute>}")
-apply (simp add:RenameB_rep_eq urename)
-apply (subgoal_tac "\<langle>e\<rangle>\<^sub>e ba \<rhd> x\<acute>")
-apply (metis (lifting) UNDASHED_eq_dash_contra binding_upd_apply)
-apply (auto)
-apply (metis evar_compat_def var_compat_dash)
-apply (metis EvalE_compat EvalE_def UNDASHED_dash_DASHED binding_override_simps(3) binding_override_upd evar_compat_dash)
-apply (rule)
-apply (simp add:RenameB_rep_eq)
-apply (subgoal_tac "\<langle>e\<rangle>\<^sub>e (ba \<oplus>\<^sub>b bc on DASHED) = \<langle>e\<rangle>\<^sub>e ba")
-apply (simp)
-apply (subgoal_tac "\<langle>e\<rangle>\<^sub>e ba \<rhd> x")
-apply (simp)
-apply (rule)
-apply (case_tac "xa \<in> DASHED")
-apply (simp_all add:urename)
+"\<lbrakk> x \<in> UNDASHED; DASHED \<sharp> e \<rbrakk> \<Longrightarrow> 
+  \<lbrakk>x :=\<^sub>R e\<rbrakk>R = {(b, b(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>e b)) | b. b \<in> WF_REL_BINDING}"
+apply (simp add: EvalR_def EvalE_def AssignsR.rep_eq IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq BindR_image)
+apply (safe, simp_all add:urename closure AssignF_upd.rep_eq IdA.rep_eq)
+apply (simp add:BindR_def closure urename)
+apply (rule Rep_WF_BINDING_intro)
+apply (rule ext)
 apply (case_tac "xa = x")
-apply (simp_all)
-apply (metis binding_upd_apply var_compat_dash)
-apply (smt Rep_WF_BINDING_rep_eq SS_UNDASHED_app SS_VAR_RENAME_INV SS_ident_app UNDASHED_dash_DASHED VAR_RENAME_INV_app fun_upd_apply member_remove o_apply override_on_apply_in override_on_apply_notin remove_def var_compat_dash)
-apply (metis evar_compat_def)
+apply (drule_tac x="x" in bspec, simp_all add:ecoerce_rep_eq urename binding_upd.rep_eq)
+apply (case_tac "xa \<in> D\<^sub>0")
+apply (drule_tac x="xa" in bspec, simp_all add:ecoerce_rep_eq urename binding_upd.rep_eq VarE.rep_eq)
+apply (case_tac "xa \<in> D\<^sub>1")
+apply (simp_all add:urename)
+apply (rule_tac x="BindP (b, b(x :=\<^sub>b vcoerce (\<langle>e\<rangle>\<^sub>e b) x))" in exI)
+apply (simp add:BindR_inverse closure)
+apply (auto simp add:BindP_def urename)
 done
 
 theorem EvalR_ExprR [evalr]: 
   "\<lbrakk>ExprP e\<rbrakk>R = {BindR b |b. DestBool (\<lbrakk>e\<rbrakk>\<^sub>e b)}"
   by (simp add:ExprP_def LiftP_def EvalR_def BindR_def EvalE_def UNREST_EXPR_member[THEN sym] etype_rel_def Defined_WF_EXPRESSION_def image_Collect)
 
-theorem EvalR_EqualP [evalr]:
+theorem EvalR_EqualP:
   "\<lbrakk>EqualP e f\<rbrakk>R = {BindR b |b. (\<lbrakk>e\<rbrakk>\<^sub>e b = \<lbrakk>f\<rbrakk>\<^sub>e b)}"
   by (auto simp add:EvalR_def EqualP_def EvalE_def)
 
@@ -545,34 +504,15 @@ lemma EvalR_ConvR [evalr]:
 done
 
 theorem SubstP_rel_UNDASHED [evalr] :
-"\<lbrakk> x \<in> UNDASHED; e \<rhd>\<^sub>e x; DASHED \<sharp> e \<rbrakk> \<Longrightarrow> 
+"\<lbrakk> x \<in> UNDASHED; DASHED \<sharp> e \<rbrakk> \<Longrightarrow> 
   \<lbrakk>p[e/\<^sub>px]\<rbrakk>R = {(b1, b2) | b1 b2. (b1(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>eb1), b2) \<in> \<lbrakk>p\<rbrakk>R}"
 apply (auto simp add: EvalR_def EvalE_def BindR_def SubstP_def image_def)
 apply (rule_tac x="xa(x :=\<^sub>b \<langle>e\<rangle>\<^sub>e xa)" in bexI)
 apply (auto)
-apply (subgoal_tac "\<langle>e\<rangle>\<^sub>e (xa \<oplus>\<^sub>b bc on DASHED) = \<langle>e\<rangle>\<^sub>e xa")
-apply (simp)
-apply (subgoal_tac "\<langle>e\<rangle>\<^sub>e xa \<rhd> x")
-apply (simp)
-apply (metis (lifting) evar_compat_def)
-apply (metis (lifting) UNREST_EXPR_member)
-apply (rule)
-apply (rule)
-apply (simp add:RenameB_rep_eq)
-apply (case_tac "xb \<in> DASHED")
-apply (simp_all add:urename)
-apply (case_tac "xb \<in> UNDASHED")
-apply (simp_all add:urename)
-apply (subgoal_tac "\<langle>e\<rangle>\<^sub>e xa \<rhd> x")
-apply (metis UNDASHED_dash_DASHED UNDASHED_not_DASHED binding_upd_apply evar_compat_def)
-apply (metis binding_upd_apply evar_compat_def)
-apply (subgoal_tac "\<langle>e\<rangle>\<^sub>e xa \<rhd> x")
-apply (metis binding_upd_apply)
-apply (metis binding_upd_apply evar_compat_def)
+apply (metis RenameB_binding_upd_1 SS_UNDASHED_app UNDASHED_dash_DASHED binding_upd_override)
 apply (rule_tac x="xa \<oplus>\<^sub>b xb on DASHED" in exI)
 apply (simp)
 apply (subgoal_tac "\<langle>e\<rangle>\<^sub>e (xa \<oplus>\<^sub>b xb on DASHED) = \<langle>e\<rangle>\<^sub>e xa")
-apply (subgoal_tac "\<langle>e\<rangle>\<^sub>e xa \<rhd> x")
 apply (auto)
 apply (metis UNDASHED_DASHED_inter(2) binding_override_simps(11) binding_override_simps(4) binding_override_simps(6) binding_upd_override inf_commute)
 apply (rule)
@@ -584,71 +524,81 @@ apply (case_tac "xc \<in> DASHED")
 apply (simp)
 apply (simp add:SS_simps)
 apply (metis binding_override_on_eq binding_override_simps(2) binding_upd_override evar_compat_def)
-apply (metis evar_compat_def)
+done
+
+lemma binding_override_subsume1 [simp]: 
+  "(b1 \<oplus>\<^sub>b b2 on vs2) \<oplus>\<^sub>b b3 on vs1 \<union> vs2 = b1 \<oplus>\<^sub>b b3 on vs1 \<union> vs2"
+  by (metis binding_override_simps(1) binding_override_simps(3) sup_commute)
+
+lemma binding_override_assoc':
+  "b1 \<oplus>\<^sub>b (b2 \<oplus>\<^sub>b b3 on vs1) on vs2 = (b1 \<oplus>\<^sub>b b2 on vs2 - vs1) \<oplus>\<^sub>b b3 on vs1 \<inter> vs2"
+  by (force simp add:binding_override_on.rep_eq override_on_def)
+
+lemma binding_override_subsume2 [simp]: 
+  "(b1 \<oplus>\<^sub>b b2 on vs1 \<union> vs2) \<oplus>\<^sub>b b3 on vs1 = (b1 \<oplus>\<^sub>b b2 on vs2) \<oplus>\<^sub>b b3 on vs1"
+  by (force simp add:binding_override_on.rep_eq override_on_def)
+
+lemma binding_upd_eq: 
+  "b(x :=\<^sub>b v) = b' \<Longrightarrow> \<langle>b'\<rangle>\<^sub>b x = vcoerce v x"
+  by (metis binding_upd_apply)
+
+lemma vcoerce_dash [simp]:
+  "vcoerce e x\<acute> = vcoerce e x"
+  apply (auto simp add:vcoerce_def typing)
+  apply (metis undash_dash var_compat_undash)
 done
 
 theorem SubstP_rel_DASHED [evalr] :
-"\<lbrakk> x \<in> UNDASHED; e \<rhd>\<^sub>e x; UNREST_EXPR DASHED e \<rbrakk> \<Longrightarrow> 
+"\<lbrakk> x \<in> UNDASHED; DASHED \<sharp> e \<rbrakk> \<Longrightarrow> 
   \<lbrakk>p[(SS\<bullet>e)/\<^sub>px\<acute>]\<rbrakk>R = {(b1, b2) | b1 b2. (b1, b2(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>eb2)) \<in> \<lbrakk>p\<rbrakk>R}"
-  apply (auto simp add: EvalR_def EvalE_def BindR_def SubstP_def image_def typing defined urename)
-  apply (rule_tac x="xa(x\<acute> :=\<^sub>b \<langle>RenameE e SS\<rangle>\<^sub>e xa)" in bexI)
-  apply (auto simp add:typing defined urename)
-  apply (rule, rule)
-  apply (simp)
-  apply (case_tac "xb = x")
-  apply (simp add:urename typing defined)
-  apply (metis EvalE_RenameE EvalE_def SS_inv)
-  apply (case_tac "xb \<in> DASHED")
-  apply (simp add:urename typing defined)
-  apply (simp add:urename typing defined)
-  apply (metis SS_UNDASHED_app SS_ident_app UNDASHED_dash_DASHED dash_elim)
-  apply (rule_tac x="xb \<oplus>\<^sub>b RenameB SS y on DASHED" in exI)
-  apply (auto simp add:typing defined urename)
+  apply (auto simp add: EvalR_def SubstP_def BindR_image image_def)
+  apply (rule_tac x="BindP (a, b(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>e b))" in bexI)
+  apply (subst BindR_inverse)
+  apply (simp_all add: closure)
+  apply (metis BindR_def WF_REL_BINDING_override_closure prod.inject)
+  apply (metis EvalR_def UNIV_I WF_REL_BINDING_binding_upd WF_REL_BINDING_member2 destPRED_cases rangeI)
+  apply (metis BindR_left_eq_NON_REL_VAR BindR_right_eq_NON_REL_VAR binding_equiv_comm binding_equiv_trans)
+  apply (simp add:BindP_def BindR_def RenameB_override_distr1 urename closure binding_override_assoc' EvalE_def PermE.rep_eq)
+  apply (rule_tac x="BindP (xa, y)" in exI)
+  apply (subst BindR_inverse)
+  apply (simp_all add: closure)
+  apply (metis EvalR_def WF_REL_BINDING_member1 imageI)
+  apply (metis EvalR_def WF_REL_BINDING_binding_upd_remove WF_REL_BINDING_member2 image_eqI)
+  apply (metis EvalR_NON_REL_VAR EvalR_def UNDASHED_not_NON_REL_VAR binding_equiv_update_subsume' imageI)
+  apply (simp add:BindP_def BindR_def RenameB_override_distr1 urename closure PermE.rep_eq EvalE_def)
+  apply (auto)
   apply (subgoal_tac "xb(x\<acute> :=\<^sub>b \<langle>RenameE e SS\<rangle>\<^sub>e (xb \<oplus>\<^sub>b RenameB SS y on DASHED)) \<oplus>\<^sub>b RenameB SS y on DASHED - {x\<acute>} = xb")
-  apply (simp)
+  apply (simp add: RenameB_override_distr1 urename closure PermE.rep_eq EvalE_def)
   apply (rule, rule, simp)
   apply (case_tac "xa \<in> UNDASHED")
   apply (simp add:typing defined)
   apply (metis UNDASHED_dash_not_UNDASHED)
-  apply (simp add:typing defined)
   apply (case_tac "xa = x\<acute>")
   apply (simp_all add:typing defined)
-  apply (subgoal_tac "\<langle>xb\<rangle>\<^sub>b x\<acute> = \<langle>e\<rangle>\<^sub>e y")
+  apply (subgoal_tac "\<langle>xb\<rangle>\<^sub>b x\<acute> = vcoerce (\<langle>e\<rangle>\<^sub>e y) x")
   apply (auto simp add:typing defined urename)
   apply (subgoal_tac "\<langle>RenameE e SS\<rangle>\<^sub>e (xb \<oplus>\<^sub>b RenameB SS y on DASHED) = \<langle>RenameE e SS\<rangle>\<^sub>e (RenameB SS y)")
-  apply (metis (hide_lams, no_types) PermE.rep_eq RenameB_inv_cancel1 comp_def)
-  apply (rule WF_EXPRESSION_UNREST_binding_equiv[of "DASHED \<union> NON_REL_VAR"])
+  apply (simp_all add: RenameB_override_distr1 urename closure PermE.rep_eq EvalE_def)
+  apply (rule WF_EXPRESSION_UNREST_binding_equiv[of "UNDASHED \<union> NON_REL_VAR"])
   apply (simp add:unrest UNREST_EXPR_subset urename closure)
   apply (rule UNREST_EXPR_subset)
-  apply (rule unrest) back back
   apply (simp)
-  apply (simp add:urename) 
-  apply (force)
-  apply (subgoal_tac "xb \<cong> RenameB SS y on  NON_REL_VAR")
-  apply (smt Compl_iff Int_iff Un_iff binding_equiv_comm binding_equiv_def binding_equiv_override_right_intro sup.commute)
-  apply (auto simp add:binding_equiv_def urename)[1]
-  apply (erule Rep_WF_BINDING_elim)
-  apply (simp)
-  apply (drule_tac x="xa" and y="xa" in cong, simp)
-  apply (simp add:typing defined)
-  apply (metis SS_DASHED_member SS_NON_REL_VAR SS_UNDASHED_app comp_apply dash_uniqs(1) override_on_apply_notin)
-  apply (erule Rep_WF_BINDING_elim)
-  apply (simp)
-  apply (drule_tac x="x" and y="x" in cong, simp, simp add:typing defined urename)
-  apply (case_tac "xa \<in> DASHED")
+  apply (auto)[1]
+  apply (metis NON_REL_VAR_def binding_equiv_UNDASHED_overshadow binding_equiv_comm binding_equiv_union_intro binding_override_equiv1 binding_override_minus binding_override_simps(1) binding_upd_override sup.commute)
+  apply (drule binding_upd_eq)
+  apply (simp add:urename)
+  apply (case_tac "xa \<in> D\<^sub>1 - {x\<acute>}")
   apply (simp add:urename)
   apply (erule Rep_WF_BINDING_elim)
   apply (simp)
   apply (drule_tac x="undash xa" and y="undash xa" in cong, simp)
   apply (simp add:typing defined urename)
-  apply (auto)
   apply (metis dash_undash_DASHED)
   apply (simp add:RenameB_override_distr1 urename closure)
-  apply (metis UNDASHED_DASHED_inter(2) binding_override_reorder binding_override_simps(2) binding_upd_override evar_compat)
 done
 
 theorem SubstP_rel_DASHED_PrimeE [evalr] :
-"\<lbrakk> x \<in> UNDASHED; e \<rhd>\<^sub>e x; DASHED \<sharp> e \<rbrakk> \<Longrightarrow> 
+"\<lbrakk> x \<in> UNDASHED; DASHED \<sharp> e \<rbrakk> \<Longrightarrow> 
   \<lbrakk>p[e\<acute>/\<^sub>px\<acute>]\<rbrakk>R = {(b1, b2) | b1 b2. (b1, b2(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>eb2)) \<in> \<lbrakk>p\<rbrakk>R}"
   by (simp add:PrimeE_def evalr)
 
@@ -656,7 +606,7 @@ lemma SS_dash_DASHED: "x \<in> DASHED \<Longrightarrow> (SS\<bullet>x)\<acute> =
   by (metis SS_DASHED_app dash_undash_DASHED)
 
 theorem SubstP_rel_DASHED' [evalr] :
-"\<lbrakk> x \<in> DASHED; e \<rhd>\<^sub>e x; UNDASHED \<sharp> e \<rbrakk> \<Longrightarrow> 
+"\<lbrakk> x \<in> DASHED; UNDASHED \<sharp> e \<rbrakk> \<Longrightarrow> 
   \<lbrakk>p[e/\<^sub>px]\<rbrakk>R = {(b1, b2) | b1 b2. (b1, b2(x~ :=\<^sub>b \<lbrakk>e\<acute>\<rbrakk>\<^sub>eb2)) \<in> \<lbrakk>p\<rbrakk>R}"
   apply (subst PrimeE_double[of e, THEN sym])
   apply (subst SS_dash_DASHED[of x, THEN sym], simp)
@@ -706,36 +656,50 @@ lemma UNDASHED_minus_NON_REL_VAR [simp]:
 lemma DASHED_minus_NON_REL_VAR [simp]:
   "xs \<subseteq> NON_REL_VAR \<Longrightarrow> DASHED - xs = DASHED"
   by auto
-
-lemma binding_equiv_override_subsume [simp]:
-  "(b1 \<oplus>\<^sub>b b2 on vs) \<cong> b3 on vs \<longleftrightarrow> b2 \<cong> b3 on vs"
-  by (metis binding_equiv_comm binding_equiv_trans binding_override_equiv1)
-
-lemma binding_equiv_update_subsume [simp]:
-  "\<lbrakk> x \<notin> vs; v \<rhd> x \<rbrakk> \<Longrightarrow> b1(x :=\<^sub>b v) \<cong> b2 on vs \<longleftrightarrow> b1 \<cong> b2 on vs"
-  by (metis binding_equiv_def binding_equiv_trans binding_upd_apply)
-
-lemma binding_equiv_update_drop:
-  "\<lbrakk> v1 \<rhd> x; v2 \<rhd> x \<rbrakk> \<Longrightarrow> b1(x :=\<^sub>b v1) \<cong> b2(x :=\<^sub>b v2) on vs \<Longrightarrow> b1 \<cong> b2 on vs - {x}"
-  by (metis (hide_lams, no_types) binding_equiv_comm binding_equiv_minus binding_equiv_upd binding_equiv_update_subsume binding_override_equiv binding_override_upd)
   
+lemma WF_REL_BINDING_BindR_fst [closure]:
+  "(b1, b2) = BindR b \<Longrightarrow> b1 \<in> WF_REL_BINDING"
+  by (auto simp add:WF_REL_BINDING_def BindR_def)
+
+lemma WF_REL_BINDING_BindR_snd [closure]:
+  "(b1, b2) = BindR b \<Longrightarrow> b2 \<in> WF_REL_BINDING"
+  by (auto simp add:WF_REL_BINDING_def BindR_def)
+
+lemma WF_REL_BINDING_BindR_equiv:
+  "(b1, b2) = BindR b \<Longrightarrow> b1 \<cong> b2 on NON_REL_VAR"
+  by (metis EvalR_NON_REL_VAR EvalR_def TrueP.rep_eq rangeI)
+
+lemma WF_REL_BINDING_NON_REL_VAR_binding_upd [closure]:
+  "\<lbrakk> x \<in> NON_REL_VAR; b \<in> WF_REL_BINDING \<rbrakk> \<Longrightarrow> b(x :=\<^sub>b v) \<in> WF_REL_BINDING"
+  by (auto simp add:WF_REL_BINDING_def)
+
 theorem SubstP_rel_NON_REL_VAR [evalr] :
-"\<lbrakk> x \<in> NON_REL_VAR; e \<rhd>\<^sub>e x; REL_VAR \<sharp> e \<rbrakk> \<Longrightarrow> 
+"\<lbrakk> x \<in> NON_REL_VAR; REL_VAR \<sharp> e \<rbrakk> \<Longrightarrow> 
   \<lbrakk>p[e/\<^sub>px]\<rbrakk>R = {(b1, b2) | b1 b2. (b1(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>eb1), b2(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>eb2)) \<in> \<lbrakk>p\<rbrakk>R 
                                 \<and> \<langle>b1\<rangle>\<^sub>b x = \<langle>b2\<rangle>\<^sub>b x}"
-  apply (auto simp add:EvalR_def EvalE_def SubstP.rep_eq image_def BindR_def)
-  apply (rule_tac x="xa(x :=\<^sub>b \<langle>e\<rangle>\<^sub>e xa)" in bexI)
-  apply (auto simp add:urename unrest typing defined)
-  apply (metis SS_NON_REL_VAR comp_apply override_on_def)
-  apply (subgoal_tac "xa \<cong> y on NON_REL_VAR")
-  defer
-  apply (subgoal_tac "xa \<cong> y on NON_REL_VAR - {x}")
-  apply (metis (full_types) binding_override_equiv binding_override_equiv1 binding_override_simps(5) binding_override_singleton binding_upd_triv insert_Collect)
-  apply (smt BindR_def BindR_left_eq_NON_REL_VAR BindR_right_eq_NON_REL_VAR binding_equiv_comm binding_equiv_trans binding_equiv_update_drop evar_compat_def)
-  apply (subgoal_tac "\<langle>e\<rangle>\<^sub>e xa = \<langle>e\<rangle>\<^sub>e y")
-  defer
-  apply (metis NON_REL_VAR_def UNREST_EXPR_member binding_override_equiv binding_override_minus)
-  apply (simp)
+  apply (auto simp add: EvalR_def SubstP_def BindR_image image_def)
+  apply (rule_tac x="BindP (a(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>e b), b(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>e b))" in bexI)
+  apply (subst BindR_inverse)
+  apply (simp_all add: closure)
+  apply (metis (hide_lams, no_types) WF_REL_BINDING_BindR_equiv binding_equiv_minus binding_equiv_update_drop)
+  apply (subgoal_tac "a \<cong> b on (VAR - REL_VAR)")
+  apply (metis Compl_eq_Diff_UNIV EvalE_def NON_REL_VAR_def UNDASHED_DASHED_inter(16) VAR_def utp_expr_tac.EvalP_UNREST_binding_equiv)
+  apply (metis UNDASHED_DASHED_inter(15) Un_commute WF_REL_BINDING_BindR_equiv set_extra_simps(3))
+  apply (simp add:BindP_def BindR_def unrest urename)
+  apply (simp add: EvalE_UNREST_override UNREST_EXPR_REL_VAR_DASHED urename closure RenameB_override_distr1)
+  apply (metis EvalE_def SS_REL_VAR_expr)
+  apply (subgoal_tac "x \<notin> D\<^sub>1")
+  apply (auto simp add:BindR_def closure urename)[1]
+  apply (auto)[1]
+  apply (rule_tac x="BindP (xa, y)" in exI)
+  apply (subst BindR_inverse)
+  apply (metis WF_REL_BINDING_BindR_fst WF_REL_BINDING_NON_REL_VAR_binding_upd binding_upd_simps(1) binding_upd_triv)
+  apply (metis WF_REL_BINDING_BindR_snd WF_REL_BINDING_NON_REL_VAR_binding_upd binding_upd_simps(1) binding_upd_triv)
+  apply (metis (hide_lams, no_types) Diff_insert_absorb Set.set_insert WF_REL_BINDING_BindR_equiv binding_equiv_insert binding_equiv_update_drop2)
+  apply (auto simp add:BindR_def BindP_def urename)
+  apply (subst UNREST_EXPR_member)
+  apply (simp add:unrest)
+  apply (simp add:EvalE_def)
   apply (subgoal_tac "y \<cong> SS\<bullet>xb on UNDASHED")
   defer
   apply (subgoal_tac "y(x :=\<^sub>b \<langle>e\<rangle>\<^sub>e y) \<cong> SS\<bullet>xb on UNDASHED")
@@ -748,18 +712,10 @@ theorem SubstP_rel_NON_REL_VAR [evalr] :
   defer
   apply (simp add:binding_equiv_def)
   apply (auto)
-  apply (drule_tac x="SS\<bullet>xc" in bspec) back
+  apply (drule_tac x="SS\<bullet>xc" in bspec)
   apply (metis DASHED_undash_UNDASHED SS_DASHED_app)
   apply (metis SS_VAR_RENAME_INV VAR_RENAME_INV_app)
-  apply (rule_tac x="xa \<oplus>\<^sub>b SS\<bullet>y on DASHED" in exI)
-  apply (auto simp add:urename unrest typing defined)
   apply (metis binding_equiv_comm binding_override_equiv)
-  apply (metis DASHED_not_NON_REL_VAR binding_equiv_update_subsume binding_override_equiv binding_override_equiv1 evar_compat)
-  apply (simp add:RenameB_override_distr1 urename closure binding_override_assoc)
-  apply (subgoal_tac "y \<cong> bc on DASHED")
-  apply (simp add: binding_override_assoc urename unrest)
-  apply (metis NON_REL_VAR_def binding_equiv_override binding_override_minus binding_override_simps(2))
-  apply (metis DASHED_not_NON_REL_VAR binding_equiv_update_subsume binding_override_equiv1 evar_compat)
 done
 
 theorem RenameB_SS_COMPOSABLE_BINDINGS_1 :
@@ -904,6 +860,62 @@ lemma EvalRR_ConvR [evalrr]:
 lemma EvalRR_refinement [evalrr]: "p \<sqsubseteq> q \<longleftrightarrow> \<lbrakk>q\<rbrakk>\<R> \<subseteq> \<lbrakk>p\<rbrakk>\<R>"
   by (simp add:evalr evalrr MkRel_subset[THEN sym] EvalR_range)
 
+(* I opt for EvalR_TrueP_explicit because I think it's in general more useful *)
+
+declare EvalR_TrueP [evalr del]
+declare EvalR_TrueP_explicit [evalr]
+
+text {* Set up some introduction / elimination laws which facilitate proving binding 
+        equivalence laws needed by the relational tactic. *}
+
+lemma EvalR_UNREST_UNDASHED_intro [intro]:
+  "\<lbrakk> D\<^sub>0 \<sharp> p ; (b1, b2) \<in> \<lbrakk>p\<rbrakk>R
+   ; b1 \<cong> b1' on NON_REL_VAR 
+   ; b1 \<cong> b1' on DASHED \<rbrakk> \<Longrightarrow> (b1', b2) \<in> \<lbrakk>p\<rbrakk>R"
+  apply (auto simp add:EvalR_def BindR_def image_def urename unrest RenameB_override_distr1)
+  apply (rule_tac  x="x \<oplus>\<^sub>b b1' on D\<^sub>0" in bexI)
+  apply (simp add:binding_equiv_overshadow_left urename RenameB_override_distr1 closure)
+  apply (metis (hide_lams, no_types) UNDASHED_DASHED_inter(15) binding_override_equiv binding_override_simps(10) binding_override_simps(2) binding_override_simps(4) binding_override_simps(5) binding_override_simps(6))
+  apply (metis UNREST_binding_override)
+done
+
+lemma EvalR_UNREST_DASHED_intro [intro]:
+  "\<lbrakk> D\<^sub>1 \<sharp> p ; (b1, b2) \<in> \<lbrakk>p\<rbrakk>R
+   ; b2 \<cong> b2' on NON_REL_VAR 
+   ; b2 \<cong> b2' on DASHED \<rbrakk> \<Longrightarrow> (b1, b2') \<in> \<lbrakk>p\<rbrakk>R"
+  apply (auto simp add:EvalR_def BindR_def image_def urename unrest RenameB_override_distr1)
+  apply (rule_tac  x="x \<oplus>\<^sub>b (SS\<bullet>b2') on D\<^sub>1" in bexI)
+  apply (simp)
+  apply (subgoal_tac "D\<^sub>1 \<inter> NON_REL_VAR = {}")
+  apply (simp add:binding_equiv_overshadow_left urename RenameB_override_distr1 closure)
+  apply (metis (hide_lams, no_types) UNDASHED_DASHED_inter(16) binding_equiv_comm binding_override_assoc binding_override_equiv binding_override_minus)
+  apply (force)
+  apply (metis UNREST_binding_override)
+done
+
+lemma EvalR_binding_equiv_DASHED: "(b1, b2) \<in> \<lbrakk>p\<rbrakk>R \<Longrightarrow> b1 \<cong> b2 on D\<^sub>1"
+  by (metis WF_REL_BINDING_bc_DASHED WF_REL_BINDING_member1 WF_REL_BINDING_member2 binding_equiv_comm binding_equiv_trans)
+
+lemma EvalR_DASHED_elim [elim]: "\<lbrakk> (b1, b2) \<in> \<lbrakk>p\<rbrakk>R; b1 \<cong> b2 on D\<^sub>1 \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (metis EvalR_binding_equiv_DASHED)
+
+lemma EvalR_NON_REL_VAR_elim [elim]: "\<lbrakk> (b1, b2) \<in> \<lbrakk>p\<rbrakk>R; b1 \<cong> b2 on NON_REL_VAR \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (metis EvalR_NON_REL_VAR)
+
+lemma binding_equiv_sym_elim [elim]:
+  "\<lbrakk> b1 \<cong> b2 on vs; b2 \<cong> b1 on vs \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (metis binding_equiv_comm)
+
+lemma EvalR_WF_REL_BINDING_left [elim]:
+  "\<lbrakk> (b1, b2) \<in> \<lbrakk>p\<rbrakk>R; b1 \<in> WF_REL_BINDING \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (metis WF_REL_BINDING_member1)
+
+lemma EvalR_WF_REL_BINDING_right [elim]:
+  "\<lbrakk> (b1, b2) \<in> \<lbrakk>p\<rbrakk>R; b2 \<in> WF_REL_BINDING \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (metis WF_REL_BINDING_member2)
+
+declare binding_equiv_trans [intro]
+
 
 (* The following are useless since quantifications are not supported yet. *)
 
@@ -977,8 +989,9 @@ lemma "VarP ok \<Rightarrow>p VarP ok\<acute> ; VarP ok \<Rightarrow>p VarP ok\<
   apply (simp add:evalr)
 *)
 
+
 lemma EvalR_EqualP_alt:
-  "\<lbrakk> x \<in> UNDASHED; (DASHED \<union> NON_REL_VAR) \<sharp> v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> x \<in> UNDASHED; DASHED \<sharp> v \<rbrakk> \<Longrightarrow>
    \<lbrakk>($\<^sub>ex\<acute> ==\<^sub>p v)\<rbrakk>R = { (b1 \<oplus>\<^sub>b bc on DASHED, b2 \<oplus>\<^sub>b bc on DASHED) 
                      | b1 b2. \<langle>b2\<rangle>\<^sub>b x = \<lbrakk>v\<rbrakk>\<^sub>eb1 \<and> b1 \<cong> b2 on NON_REL_VAR }"
   apply (auto simp add:EvalR_EqualP evale BindR_def)
@@ -992,8 +1005,18 @@ lemma EvalR_EqualP_alt:
   apply (simp)
 done
 
+lemma EvalR_EqualP_alt' [evalr]:
+  "\<lbrakk> x \<in> UNDASHED; DASHED \<sharp> v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow>
+   \<lbrakk>$\<^sub>ex\<acute> ==\<^sub>p v\<rbrakk>R = { (b1, b2). \<langle>b2\<rangle>\<^sub>b x = \<lbrakk>v\<rbrakk>\<^sub>eb1 \<and> b1 \<cong> b2 on NON_REL_VAR 
+                            \<and> b1 \<in> WF_REL_BINDING \<and> b2 \<in> WF_REL_BINDING }"
+  apply (auto simp add:EvalR_EqualP_alt closure)
+  apply (metis EvalE_UNREST_override UNREST_EXPR_unionE)
+  apply (metis binding_override_left_eq)
+  apply (metis WF_REL_BINDING_bc_DASHED binding_override_equiv)
+done
+
 lemma AssignR_alt_def: 
-  "\<lbrakk>v \<rhd>\<^sub>e x ; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> x :=\<^sub>R v = ($\<^sub>ex\<acute> ==\<^sub>p v) \<and>\<^sub>p II\<^bsub>REL_VAR - {x,x\<acute>}\<^esub>"
+  "\<lbrakk>v \<rhd>\<^sub>e x; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> x :=\<^sub>R v = ($\<^sub>ex\<acute> ==\<^sub>p v) \<and>\<^sub>p II\<^bsub>REL_VAR - {x,x\<acute>}\<^esub>"
   apply (simp add:SkipRA_def)
   apply (utp_pred_tac)
   apply (safe)

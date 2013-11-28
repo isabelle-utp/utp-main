@@ -43,7 +43,6 @@ theorem AssignR_SemiR_ty:
   assumes 
     "TYPEUSOUND('a, 'm)"
     "x \<in> PUNDASHED" 
-    "e \<rhd>\<^sub>* x" 
     "DASHED \<sharp> e"
   shows "`(x := e) ; p` = `p[e/x]`"
   apply (utp_rel_tac)
@@ -78,8 +77,7 @@ lemma prefix_implies_diff:
           "zs\<down> \<noteq> xs\<down>" "zs\<down> \<noteq> ys\<down>"
   shows "`($xs \<le> $ys) \<Rightarrow> (\<exists> zs. $ys = $xs ^ $zs)`"
   using assms
-  apply (rule_tac ExistsP_assm_witness[of "|($ys - $xs)|\<down>"])
-  apply (simp add:typing defined closure)
+  apply (rule_tac ExistsP_assm_witness[of _ _ "|($ys - $xs)|\<down>"])
   apply (simp add:usubst typing defined closure)
   apply (metis EqualP_sym prefix_implies_concat_minus)
 done

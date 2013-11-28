@@ -195,14 +195,14 @@ theorem ExistsP_rest_vars:
 done
 
 theorem ExistsP_witness:
-  "\<lbrakk> e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> P[e/\<^sub>px] \<Rightarrow>\<^sub>p (\<exists>\<^sub>p {x}. P)"
+  "P[e/\<^sub>px] \<Rightarrow>\<^sub>p (\<exists>\<^sub>p {x}. P)"
   apply (utp_pred_auto_tac)
   apply (rule_tac x="b(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>eb)" in exI)
   apply (simp)
 done
 
 theorem ExistsP_assm_witness:
-  "\<lbrakk> e \<rhd>\<^sub>e x; P \<Rightarrow>\<^sub>p Q[e/\<^sub>px] \<rbrakk> \<Longrightarrow> 
+  "\<lbrakk> P \<Rightarrow>\<^sub>p Q[e/\<^sub>px] \<rbrakk> \<Longrightarrow> 
      P \<Rightarrow>\<^sub>p (\<exists>\<^sub>p {x}. Q)"
   apply (utp_pred_auto_tac)
   apply (rule_tac x="b(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>eb)" in exI)
@@ -361,7 +361,7 @@ lemma expr_simps [simp]:
   by (utp_pred_tac)+
 
 lemma EqualP_SubstP:
-  "v \<rhd>\<^sub>e x \<Longrightarrow> ($\<^sub>ex ==\<^sub>p v \<and>\<^sub>p P) = ($\<^sub>ex ==\<^sub>p v \<and>\<^sub>p P[v/\<^sub>px])"
+  "($\<^sub>ex ==\<^sub>p v \<and>\<^sub>p P) = ($\<^sub>ex ==\<^sub>p v \<and>\<^sub>p P[v/\<^sub>px])"
   by (metis (hide_lams, no_types) IffP_def ImpliesP_AndP_pre ImpliesP_eq_subst utp_pred_simps)
 
 subsection {* Case splitting *}
@@ -392,18 +392,17 @@ lemma BoolType_aux_cases:
 lemma BoolType_aux_var_split_taut [ucases]:
   "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> \<Longrightarrow> 
   [p]\<^sub>p = [p[FalseE/\<^sub>px] \<and>\<^sub>p p[TrueE/\<^sub>px]]\<^sub>p"
-  apply (utp_pred_tac) 
-  apply (metis FalseV_def MkBool_cases Rep_WF_BINDING_inverse TrueV_def aux_defined binding_type binding_upd_def fun_upd_idem_iff)
+  apply (utp_pred_auto_tac)
+  apply (metis FalseV_def MkBool_cases TrueV_def aux_defined binding_type binding_upd_triv) 
 done
 
 lemma BoolType_aux_var_split_exists [ucases]:
   "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> \<Longrightarrow> 
    (\<exists>\<^sub>p {x}. P) = P[FalseE/\<^sub>px] \<or>\<^sub>p P[TrueE/\<^sub>px]"
-  apply (utp_pred_tac)
-  apply (auto)
+  apply (utp_pred_auto_tac)
   apply (metis FalseV_def MkBool_cases Rep_WF_BINDING TrueV_def WF_BINDING_app_type aux_defined)
-  apply (metis BOOL_SORT_class.Defined MkBool_type binding_upd_apply var_compat_def)
-  apply (metis BOOL_SORT_class.Defined MkBool_type binding_upd_apply var_compat_def)
+  apply (metis binding_upd_apply binding_upd_vcoerce)
+  apply (metis binding_upd_apply binding_upd_vcoerce)
 done
 
 lemma BoolType_aux_var_split_eq_intro [ucases]:

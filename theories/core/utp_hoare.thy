@@ -142,7 +142,6 @@ theorem HoareP_AssignR [hoare]:
 
   apply (metis EvalP_WF_CONDITION_binding_equiv binding_equiv_comm)
   apply (auto simp add:binding_equiv_def)
-  apply (case_tac "xa = x")
   apply (simp add:typing urename AssignF_upd_rep_eq)
   apply (drule_tac x="xa" in bspec, simp)
   apply (simp add:typing urename AssignF_upd_rep_eq IdA.rep_eq VarE.rep_eq)

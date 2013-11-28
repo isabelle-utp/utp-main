@@ -68,6 +68,10 @@ lemma vcoerce_reduce2 [simp]:
   "\<not> v \<rhd> x \<Longrightarrow> vcoerce v x = default (vtype x)"
   by (simp add: vcoerce_def)
 
+lemma vcoerce_idem [simp]:
+  "vcoerce (vcoerce v x) x = vcoerce v x"
+  by (simp add:vcoerce_def)
+
 subsection {* Bindings *}
 
 text {* We require bindings to be well-typed. *}
@@ -235,12 +239,13 @@ lemma binding_eq_iff: "f = g = (\<forall>x. \<langle>f\<rangle>\<^sub>b x = \<la
 
 text {* Binding update *}
 
-definition binding_upd :: 
+lift_definition binding_upd :: 
   "'VALUE WF_BINDING \<Rightarrow>
    'VALUE VAR \<Rightarrow>
    'VALUE \<Rightarrow>
-   'VALUE WF_BINDING" where
-"binding_upd b x v = Abs_WF_BINDING (fun_upd \<langle>b\<rangle>\<^sub>b x v)"
+   'VALUE WF_BINDING" is
+"\<lambda> b x v. (fun_upd b x (vcoerce v x))"
+  by (simp add:WF_BINDING_def typing)
 
 nonterminal bupdbinds and bupdbind
 
@@ -256,11 +261,7 @@ translations
 
 lemma Rep_WF_BINDING_rep_eq [simp]:
   "\<lbrakk> v \<rhd> x \<rbrakk> \<Longrightarrow> \<langle>binding_upd b x v\<rangle>\<^sub>b = fun_upd \<langle>b\<rangle>\<^sub>b x v"
-  apply (simp add:var_compat_def)
-  apply (subgoal_tac "\<langle>b\<rangle>\<^sub>b(x := v) \<in> WF_BINDING")
-  apply (simp_all add: binding_upd_def WF_BINDING_def)
-  apply (auto intro:defined closure)
-done
+  by (simp_all add: binding_upd_def WF_BINDING_def)
 
 lemma binding_upd_idem_iff: "y \<rhd> x \<Longrightarrow> (f(x:=\<^sub>by) = f) = (\<langle>f\<rangle>\<^sub>b x = y)"
   by (force simp add: fun_upd_idem_iff var_compat_def)
@@ -271,16 +272,16 @@ lemma binding_upd_idem: "\<lbrakk> y \<rhd> x \<rbrakk> \<Longrightarrow> \<lang
 lemma binding_upd_triv [iff]: "f(x :=\<^sub>b \<langle>f\<rangle>\<^sub>b x) = f"
   by (simp add: binding_upd_idem)
 
-lemma binding_upd_apply [simp]: "y \<rhd> x \<Longrightarrow> \<langle>f(x:=\<^sub>by)\<rangle>\<^sub>b z = (if z=x then y else \<langle>f\<rangle>\<^sub>b z)"
-  by (simp)
+lemma binding_upd_apply [simp]: "\<langle>f(x:=\<^sub>by)\<rangle>\<^sub>b z = (if z=x then (vcoerce y x) else \<langle>f\<rangle>\<^sub>b z)"
+  by (auto simp add:binding_upd.rep_eq)
 
 lemma binding_upd_upd [simp]: 
-  "\<lbrakk> y \<rhd> x; z \<rhd> x \<rbrakk> \<Longrightarrow> f(x:=\<^sub>by,x:=\<^sub>bz) = f(x:=\<^sub>bz)"
-  by (simp add: binding_eq_iff)
+  "f(x:=\<^sub>by,x:=\<^sub>bz) = f(x:=\<^sub>bz)"
+  by (auto simp add:binding_upd.rep_eq)
 
 lemma binding_upd_twist: 
-  "\<lbrakk> b \<rhd> a; d \<rhd> c; a ~= c \<rbrakk> \<Longrightarrow> (m(a:=\<^sub>bb))(c:=\<^sub>bd) = (m(c:=\<^sub>bd))(a:=\<^sub>bb)"
-  by (force)
+  "\<lbrakk> a ~= c \<rbrakk> \<Longrightarrow> (m(a:=\<^sub>bb))(c:=\<^sub>bd) = (m(c:=\<^sub>bd))(a:=\<^sub>bb)"
+  by (force simp add:binding_upd.rep_eq)
 
 theorem binding_override_on_eq :
 "f1 \<oplus>\<^sub>b g1 on a = f2 \<oplus>\<^sub>b g2 on a \<longleftrightarrow>
@@ -302,12 +303,12 @@ lemma binding_override_simps [simp]:
   "f \<oplus>\<^sub>b (g \<oplus>\<^sub>b f on b) on a = f \<oplus>\<^sub>b g on a - b"
   "f \<oplus>\<^sub>b (f \<oplus>\<^sub>b g on a) on b = f \<oplus>\<^sub>b g on a \<inter> b"
   "f \<oplus>\<^sub>b g on (insert x xs) = f(x :=\<^sub>b \<langle>g\<rangle>\<^sub>bx) \<oplus>\<^sub>b g on xs - {x}"
-  "v \<rhd> x \<Longrightarrow> (f \<oplus>\<^sub>b g on a)(x :=\<^sub>b v) = f(x :=\<^sub>b v) \<oplus>\<^sub>b g on (a - {x})"
+  "(f \<oplus>\<^sub>b g on a)(x :=\<^sub>b v) = f(x :=\<^sub>b v) \<oplus>\<^sub>b g on (a - {x})"
   "x \<in> vs2 \<Longrightarrow> \<langle>f \<oplus>\<^sub>b g on vs1 - vs2\<rangle>\<^sub>bx = \<langle>f\<rangle>\<^sub>bx"
   "f \<oplus>\<^sub>b g on VAR = g"
   "f \<oplus>\<^sub>b g on {} = f"
   apply (auto simp add:override_on_assoc override_on_singleton override_on_chain)
-  apply (auto intro!: Rep_WF_BINDING_intro)
+  apply (auto intro!: Rep_WF_BINDING_intro simp add:binding_upd.rep_eq)
   apply (metis Un_empty_left Un_insert_left insert_Diff_single override_on_chain override_on_singleton)
 done
 
@@ -337,21 +338,21 @@ lemma binding_override_equiv [simp]:
   by (force simp add:override_on_def binding_equiv_def)
 
 lemma binding_override_upd [simp]:
-  "\<lbrakk> x \<in> vs; v \<rhd> x \<rbrakk> \<Longrightarrow> b1 \<oplus>\<^sub>b b2(x :=\<^sub>b v) on vs = b1(x :=\<^sub>b v) \<oplus>\<^sub>b b2 on (vs - {x})"
-  by (force simp add:override_on_def)
+  "\<lbrakk> x \<in> vs \<rbrakk> \<Longrightarrow> b1 \<oplus>\<^sub>b b2(x :=\<^sub>b v) on vs = b1(x :=\<^sub>b v) \<oplus>\<^sub>b b2 on (vs - {x})"
+  by (force simp add:binding_upd.rep_eq override_on_def)
 
 lemma binding_upd_override [simp]: 
-  "\<lbrakk> x \<in> vs; v \<rhd> x \<rbrakk> \<Longrightarrow> (b1(x :=\<^sub>b v)) \<oplus>\<^sub>b b2 on vs = b1 \<oplus>\<^sub>b b2 on vs"
-  by (force simp add:override_on_def binding_equiv_def)
+  "\<lbrakk> x \<in> vs \<rbrakk> \<Longrightarrow> (b1(x :=\<^sub>b v)) \<oplus>\<^sub>b b2 on vs = b1 \<oplus>\<^sub>b b2 on vs"
+  by (force simp add:override_on_def binding_equiv_def binding_upd.rep_eq)
 
 lemma binding_upd_simps [simp]:
-  "\<lbrakk> v1 \<rhd> x; v2 \<rhd> x \<rbrakk> \<Longrightarrow> b(x :=\<^sub>b v1, x :=\<^sub>b v2) = b(x :=\<^sub>b v2)"
+  "b(x :=\<^sub>b v1, x :=\<^sub>b v2) = b(x :=\<^sub>b v2)"
   "b(x :=\<^sub>b \<langle>b\<rangle>\<^sub>b x) = b"
   by (auto)
 
 lemma binding_value_eq [simp]: 
   "\<lbrakk> v1 \<rhd> x; v2 \<rhd> x \<rbrakk> \<Longrightarrow> b(x :=\<^sub>b v1) = b(x :=\<^sub>b v2) \<longleftrightarrow> v1 = v2"
-  by (metis binding_upd_apply)
+  by (metis binding_upd_apply vcoerce_reduce1)
 
 subsubsection {* Binding Equivalence *}
 
@@ -399,6 +400,11 @@ apply (simp add: VAR_def)
 apply (force)
 done
 
+lemma binding_equiv_update_drop:
+  "\<lbrakk> b1 \<cong> b2 on vs - {x}; vcoerce v1 x = vcoerce v2 x \<rbrakk> 
+   \<Longrightarrow> b1(x :=\<^sub>b v1) \<cong> b2(x :=\<^sub>b v2) on vs"
+  by (simp add:binding_equiv_def)
+
 lemma binding_override_minus:
   "b1 \<oplus>\<^sub>b b2 on vs = b2 \<oplus>\<^sub>b b1 on - vs"
   by (force simp add:override_on_def)
@@ -406,6 +412,39 @@ lemma binding_override_minus:
 lemma binding_override_overshadow:
   "(b1 \<oplus>\<^sub>b b2 on vs1 \<union> vs2) \<oplus>\<^sub>b b3 on vs1 = (b1 \<oplus>\<^sub>b b2 on vs2) \<oplus>\<^sub>b b3 on vs1"
   by (force simp add:override_on_def)
+
+lemma binding_override_overshadow2 [simp]:
+  "(b1 \<oplus>\<^sub>b b2 on - vs) \<oplus>\<^sub>b b3 on vs = b2 \<oplus>\<^sub>b b3 on vs"
+  by (force simp add:override_on_def)
+
+lemma binding_override_overshadow3 [simp]:
+  "b1 \<oplus>\<^sub>b (b2 \<oplus>\<^sub>b b3 on - vs) on vs = b1 \<oplus>\<^sub>b b2 on vs"
+  by (force simp add:override_on_def)
+
+lemma binding_override_right_subset:
+  "vs1 \<inter> vs2 = {} \<Longrightarrow> b1 \<oplus>\<^sub>b (b2 \<oplus>\<^sub>b b3 on vs1) on vs2 = b1 \<oplus>\<^sub>b b2 on vs2"
+  by (force simp add:override_on_def)
+
+lemma binding_override_commute:
+  "vs1 \<inter> vs2 = {} \<Longrightarrow> (b1 \<oplus>\<^sub>b b2 on vs1) \<oplus>\<^sub>b b3 on vs2 = (b1 \<oplus>\<^sub>b b3 on vs2) \<oplus>\<^sub>b b2 on vs1"
+  by (force simp add:override_on_def)
+
+lemma binding_upd_override2 [simp]:
+  "x \<notin> vs \<Longrightarrow> b(x :=\<^sub>b v) \<oplus>\<^sub>b b on vs = b(x :=\<^sub>b v)"
+  by (force simp add:override_on_def)
+
+lemma binding_override_subsume1 [simp]: 
+  "(b1 \<oplus>\<^sub>b b2 on vs2) \<oplus>\<^sub>b b3 on vs1 \<union> vs2 = b1 \<oplus>\<^sub>b b3 on vs1 \<union> vs2"
+  by (force simp add:override_on_def)
+
+lemma binding_override_assoc':
+  "b1 \<oplus>\<^sub>b (b2 \<oplus>\<^sub>b b3 on vs1) on vs2 = (b1 \<oplus>\<^sub>b b2 on vs2 - vs1) \<oplus>\<^sub>b b3 on vs1 \<inter> vs2"
+  by (force simp add:binding_override_on.rep_eq override_on_def)
+
+lemma binding_override_subsume2 [simp]: 
+  "(b1 \<oplus>\<^sub>b b2 on vs1 \<union> vs2) \<oplus>\<^sub>b b3 on vs1 = (b1 \<oplus>\<^sub>b b2 on vs2) \<oplus>\<^sub>b b3 on vs1"
+  by (force simp add:binding_override_on.rep_eq override_on_def)
+
 
 lemma binding_override_equiv1 [simp]:
   "b1 \<oplus>\<^sub>b b2 on vs \<cong> b2 on vs"
@@ -420,7 +459,7 @@ lemma binding_equiv_override:
   by (force simp add:override_on_def binding_equiv_def)
 
 lemma binding_equiv_upd: 
-  "v \<rhd> x \<Longrightarrow> b1(x :=\<^sub>b v) \<cong> b1 on vs - {x}"
+  "b1(x :=\<^sub>b v) \<cong> b1 on vs - {x}"
   by (auto simp add:binding_equiv_def)
 
 lemma binding_equiv_minus: 
@@ -434,6 +473,59 @@ lemma binding_equiv_override_right_intro [intro]:
   apply (case_tac "x \<in> vs1")
   apply (auto)
 done
+
+lemma binding_override_eq_intro:
+  "\<lbrakk> b1 \<cong> b3 on - vs
+   ; b2 \<cong> b4 on vs \<rbrakk> \<Longrightarrow>
+  b1 \<oplus>\<^sub>b b2 on vs = b3 \<oplus>\<^sub>b b4 on vs"
+  by (metis binding_equiv_override binding_override_minus)
+
+lemma binding_equiv_union_intro:
+  "\<lbrakk> b1 \<cong> b2 on vs1; b1 \<cong> b2 on vs2 \<rbrakk> \<Longrightarrow>
+     b1 \<cong> b2 on vs1 \<union> vs2" 
+  by (auto simp add:binding_equiv_def)
+
+lemma binding_equiv_UNDASHED_overshadow:
+  "b1 \<cong> b2 \<oplus>\<^sub>b b3 on UNDASHED on NON_REL_VAR = b1 \<cong> b2 on NON_REL_VAR"
+  apply (auto simp add:binding_equiv_def)
+  apply (auto simp add:override_on_def)
+done
+
+lemma binding_eq_split_equiv:
+  "\<lbrakk> b1 \<cong> b2 on D\<^sub>0; b1 \<cong> b2 on D\<^sub>1; b1 \<cong> b2 on NON_REL_VAR \<rbrakk> \<Longrightarrow> b1 = b2"
+  apply (auto simp add:binding_equiv_def)
+  apply (rule Rep_WF_BINDING_intro, rule ext)
+  apply (case_tac "x \<in> D\<^sub>0", simp_all)
+  apply (case_tac "x \<in> D\<^sub>1", simp_all)
+  apply (drule_tac x="x" in bspec) back back
+  apply (auto simp add:NON_REL_VAR_def)
+done
+
+lemma binding_equiv_override_subsume [simp]:
+  "(b1 \<oplus>\<^sub>b b2 on vs) \<cong> b3 on vs \<longleftrightarrow> b2 \<cong> b3 on vs"
+  by (auto simp add:binding_equiv_def binding_upd.rep_eq)
+
+lemma binding_equiv_update_subsume [simp]:
+  "x \<notin> vs \<Longrightarrow> b1(x :=\<^sub>b v) \<cong> b2 on vs \<longleftrightarrow> b1 \<cong> b2 on vs"
+  by (auto simp add:binding_equiv_def binding_upd.rep_eq)
+
+lemma binding_equiv_update_subsume' [simp]:
+  "x \<notin> vs \<Longrightarrow> b1 \<cong> b2(x :=\<^sub>b v) on vs \<longleftrightarrow> b1 \<cong> b2 on vs"
+  by (auto simp add:binding_equiv_def binding_upd.rep_eq)
+
+lemma binding_equiv_update_drop2:
+  "b1(x :=\<^sub>b v1) \<cong> b2(x :=\<^sub>b v2) on vs \<Longrightarrow> b1 \<cong> b2 on vs - {x}"
+  apply (auto simp add:binding_equiv_def binding_upd.rep_eq)
+  apply (drule_tac x="xa" in bspec, auto, metis)
+done
+
+lemma binding_equiv_overshadow_left:
+  "vs1 \<inter> vs2 = {} \<Longrightarrow> (b1 \<oplus>\<^sub>b b2 on vs1) \<cong> b3 on vs2 \<longleftrightarrow> b1 \<cong> b3 on vs2"
+  by (force simp add:override_on_def binding_equiv_def)
+
+lemma binding_equiv_overshadow_right:
+  "vs1 \<inter> vs2 = {} \<Longrightarrow> b1 \<cong> (b2 \<oplus>\<^sub>b b3 on vs1) on vs2 \<longleftrightarrow> b1 \<cong> b2 on vs2"
+  by (force simp add:override_on_def binding_equiv_def)
 
 text {* The default binding. Every variable maps to the default value. *}
 

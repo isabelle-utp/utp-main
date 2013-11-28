@@ -51,6 +51,35 @@ theorem SemiR_assoc :
 "p1 ; (p2 ; p3) = (p1 ; p2) ; p3"
   by (utp_rel_auto_tac)
 
+lemma EvalR_UNREST_DASHED_refl_intro:
+  "\<lbrakk> REL_VAR \<sharp> p ; (b1, b2) \<in> \<lbrakk>p\<rbrakk>R \<rbrakk> \<Longrightarrow> (b1, b1) \<in> \<lbrakk>p\<rbrakk>R"
+  apply (auto simp add:EvalR_def BindR_def image_def urename unrest RenameB_override_distr1)
+  apply (metis (hide_lams, no_types) BindR_COMPOSABLE_BINDINGS BindR_def RenameB_SS_COMPOSABLE_BINDINGS_2 RenameB_inv_cancel2 SS_inv UNREST_def UNREST_unionE binding_override_simps(3))
+done
+
+lemma EvalR_UNREST_DASHED_left_intro:
+  "\<lbrakk> REL_VAR \<sharp> p ; (b1, b2) \<in> \<lbrakk>p\<rbrakk>R
+   ; (b2 \<cong> b2' on NON_REL_VAR)
+   ; b2 \<cong> b2' on DASHED \<rbrakk> \<Longrightarrow> (b1, b2') \<in> \<lbrakk>p\<rbrakk>R"
+  apply (auto simp add:EvalR_def BindR_def image_def urename unrest RenameB_override_distr1)
+  apply (rule_tac  x="x \<oplus>\<^sub>b SS\<bullet>b2' on D\<^sub>1" in bexI)
+  apply (simp add:binding_equiv_overshadow_left urename RenameB_override_distr1 closure)
+  apply (metis (hide_lams, no_types) NON_REL_VAR_UNDASHED_DASHED binding_equiv_override binding_override_minus binding_override_simps(1) binding_override_simps(2))
+  apply (metis UNREST_binding_override UNREST_unionE)
+done
+
+lemma EvalR_UNREST_DASHED_right_intro:
+  "\<lbrakk> REL_VAR \<sharp> p ; (b1, b2) \<in> \<lbrakk>p\<rbrakk>R
+   ; (b1 \<cong> b1' on NON_REL_VAR)
+   ; b1 \<cong> b1' on DASHED \<rbrakk> \<Longrightarrow> (b1', b2) \<in> \<lbrakk>p\<rbrakk>R"
+  apply (auto simp add:EvalR_def BindR_def image_def urename unrest RenameB_override_distr1)
+  apply (rule_tac  x="x \<oplus>\<^sub>b b1' on D\<^sub>0" in bexI)
+  apply (simp add:binding_equiv_overshadow_left urename RenameB_override_distr1 closure)
+  apply (metis (hide_lams, no_types) NON_REL_VAR_UNDASHED_DASHED binding_equiv_override binding_override_minus binding_override_simps(1) binding_override_simps(2))
+  apply (metis UNREST_binding_override UNREST_unionE)
+done
+
+ 
 text {* A sequential composition which doesn't mention undashed or dashed variables
         is the same as a conjunction *}
 
@@ -60,74 +89,35 @@ theorem SemiR_equiv_AndP_NON_REL_VAR:
     "REL_VAR \<sharp> q" 
   shows "p ; q = p \<and>\<^sub>p q"
   using assms
-  apply (auto intro!:destPRED_intro simp add:SemiR_def AndP.rep_eq COMPOSABLE_BINDINGS_def)
-  apply (rule UNREST_binding_override, simp, simp add:unrest UNREST_subset)
-  apply (subgoal_tac "b1 \<oplus>\<^sub>b b2 on NON_REL_VAR = b1")
-  apply (rule UNREST_binding_override)
-  apply (metis UNDASHED_DASHED_NON_REL_VAR UNREST_binding_override binding_override_minus)
-  apply (metis UNREST_subset Un_commute inf_sup_ord(3))
-  apply (metis binding_override_equiv)
-  apply (rule_tac x="RenameB SS x \<oplus>\<^sub>b x on UNDASHED" in exI)
-  apply (rule_tac x="x" in exI)
-  apply (auto simp add:urename closure)
-  apply (simp add:UNREST_def)
-  apply (drule_tac x="x" in bspec, simp)
-  apply (drule_tac x="x \<oplus>\<^sub>b RenameB SS x on DASHED" in spec)
-  apply (subgoal_tac "x \<oplus>\<^sub>b (x \<oplus>\<^sub>b RenameB SS x on DASHED) on REL_VAR = RenameB SS x \<oplus>\<^sub>b x on UNDASHED")
-  apply (simp)
-  apply (rule, rule, simp)
-  apply (case_tac "xa \<in> UNDASHED")
-  apply (simp_all add:urename)
-  apply (case_tac "xa \<in> DASHED")
-  apply (simp)
-  apply (simp add:urename)
-  apply (auto simp add:binding_equiv_def urename NON_REL_VAR_def)
+  apply (utp_rel_auto_tac)
+  apply (auto intro: EvalR_UNREST_DASHED_right_intro EvalR_UNREST_DASHED_refl_intro)
+  apply (rule EvalR_UNREST_DASHED_right_intro)
+  apply (auto)
 done
 
 text {* A condition has true as right identity *}
 
+theorem SemiR_TrueP_DASHED : 
+  assumes "D\<^sub>1 \<sharp> p"
+  shows "p ; true = p"
+  using assms by (utp_rel_auto_tac)
+
 theorem SemiR_TrueP_precond : 
   assumes "p \<in> WF_CONDITION"
   shows "p ; true = p"
-  using assms
-  apply (auto intro!:destPRED_intro simp add:SemiR_def COMPOSABLE_BINDINGS_def TrueP_def UNREST_def WF_CONDITION_def)
-  apply (rule_tac x="x" in exI)
-  apply (rule_tac x="(RenameB SS x) \<oplus>\<^sub>b x on DASHED" in exI)
-  apply (auto simp add:RenameB_rep_eq urename binding_equiv_def)
-  apply (smt Compl_eq_Diff_UNIV Diff_iff NON_REL_VAR_def SS_ident_app UnCI o_apply override_on_def)
-done
+  by (metis (lifting) SemiR_TrueP_DASHED WF_CONDITION_def assms mem_Collect_eq)
 
 text {* A postcondition has true as left identity *}
+
+theorem SemiR_TrueP_UNDASHED :
+  assumes "D\<^sub>0 \<sharp> p"
+  shows "true ; p = p"
+  using assms by (utp_rel_auto_tac)
 
 theorem SemiR_TrueP_postcond :
   assumes "p \<in> WF_POSTCOND"
   shows "true ; p = p"
-  using assms
-  apply (auto intro!:destPRED_intro simp add:SemiR_def COMPOSABLE_BINDINGS_def TrueP_def UNREST_def WF_POSTCOND_def)
-  apply (drule_tac x="b2" in bspec)
-  apply (simp)
-  apply (drule_tac x="b1" in spec)
-  apply (subgoal_tac "b2 \<oplus>\<^sub>b b1 on UNDASHED = b1 \<oplus>\<^sub>b b2 on DASHED")
-  apply (simp)
-  apply (rule)
-  apply (simp add:binding_equiv_def)
-  apply (rule ext)
-  apply (case_tac "x \<in> UNDASHED")
-  apply (simp_all)
-  apply (case_tac "x \<in> DASHED")
-  apply (simp)
-  apply (subgoal_tac "x \<in> NON_REL_VAR")
-  apply (simp)
-  apply (auto simp add:NON_REL_VAR_def)[1]
-  apply (rule_tac x="(RenameB SS x) \<oplus>\<^sub>b x on UNDASHED" in exI)
-  apply (rule_tac x="x" in exI)
-  apply (auto)
-  apply (rule)
-  apply (rule)
-  apply (simp add:RenameB_rep_eq urename)
-  apply (case_tac "xa \<in> REL_VAR")
-  apply (auto simp add:binding_equiv_def urename NON_REL_VAR_def RenameB_rep_eq)
-done
+  by (metis (lifting) SemiR_TrueP_UNDASHED WF_POSTCOND_def assms mem_Collect_eq)
 
 (*
 lemma PrimeP_rel_closure [closure]:
@@ -139,32 +129,57 @@ lemma PrimeP_rel_closure [closure]:
 done
 *)
 
+(*
+declare binding_equiv_comm [intro]
+*)
+
+theorem SemiR_AndP_right_DASHED: 
+  assumes 
+    "DASHED \<sharp> c"
+  shows "p ; (c \<and>\<^sub>p q) = (p \<and>\<^sub>p c\<acute>) ; q"
+  using assms by (utp_rel_auto_tac, blast)
+
+
 theorem SemiR_AndP_right_precond: 
   assumes 
-    "p \<in> WF_RELATION" 
-    "q \<in> WF_RELATION" 
     "c \<in> WF_CONDITION"
   shows "p ; (c \<and>\<^sub>p q) = (p \<and>\<^sub>p c\<acute>) ; q"
+  by (metis (full_types) Diff_mono SemiR_AndP_right_DASHED UNDASHED_DASHED_minus(2) UNREST_WF_CONDITION UNREST_subset VAR_subset assms order_refl)
+
+theorem SemiR_AndP_right_UNDASHED: 
+  assumes
+    "UNDASHED \<sharp> c"
+  shows "p ; (q \<and>\<^sub>p c) = (p ; q) \<and>\<^sub>p c"
   using assms
-  by (frule_tac SemiR_TrueP_precond, utp_xrel_auto_tac)
+  by (utp_rel_auto_tac, blast, blast)
 
 theorem SemiR_AndP_right_postcond: 
   assumes
-    "p \<in> WF_RELATION" 
-    "q \<in> WF_RELATION" 
     "c \<in> WF_POSTCOND"
   shows "p ; (q \<and>\<^sub>p c) = (p ; q) \<and>\<^sub>p c"
   using assms
-  by (frule_tac SemiR_TrueP_postcond, utp_xrel_auto_tac)
+  by (auto intro: SemiR_AndP_right_UNDASHED simp add:WF_POSTCOND_def)
+
+theorem SemiR_AndP_left_UNDASHED: 
+  assumes
+    "UNDASHED \<sharp> c"
+  shows "(p \<and>\<^sub>p c) ; q = p ; (c\<acute> \<and>\<^sub>p q)"
+  using assms
+  by (utp_rel_auto_tac, blast)
 
 theorem SemiR_AndP_left_postcond: 
   assumes
-    "p \<in> WF_RELATION" 
-    "q \<in> WF_RELATION" 
     "c \<in> WF_POSTCOND"
   shows "(p \<and>\<^sub>p c) ; q = p ; (c\<acute> \<and>\<^sub>p q)"
   using assms
-  by (frule_tac SemiR_TrueP_postcond, utp_xrel_auto_tac)
+  by (auto intro: SemiR_AndP_left_UNDASHED simp add:WF_POSTCOND_def)
+
+theorem SemiR_AndP_left_DASHED: 
+  assumes
+    "DASHED \<sharp> c"
+  shows "(c \<and>\<^sub>p p) ; q = c \<and>\<^sub>p (p ; q)"
+  using assms
+  by (utp_rel_auto_tac, blast)
 
 theorem SemiR_AndP_left_precond: 
   assumes
@@ -173,7 +188,7 @@ theorem SemiR_AndP_left_precond:
     "c \<in> WF_CONDITION"
   shows "(c \<and>\<^sub>p p) ; q = c \<and>\<^sub>p (p ; q)"
   using assms
-  by (frule_tac SemiR_TrueP_precond, utp_xrel_auto_tac)
+  by (auto intro: SemiR_AndP_left_DASHED simp add:WF_CONDITION_def)
 
 theorem SemiR_TrueP_right_precond:
   assumes "P \<in> WF_CONDITION"
@@ -1076,16 +1091,6 @@ proof (simp add:SkipRA_def AssignRA_def AssignR_alt_def)
     by (smt ExistsP_AndP_expand2 ExistsP_union Un_empty_right Un_insert_right union_minus)
 qed
 
-lemma EvalR_EqualP_alt':
-  "\<lbrakk> x \<in> UNDASHED; (DASHED \<union> NON_REL_VAR) \<sharp> v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow>
-   \<lbrakk>$\<^sub>ex\<acute> ==\<^sub>p v\<rbrakk>R = { (b1, b2). \<langle>b2\<rangle>\<^sub>b x = \<lbrakk>v\<rbrakk>\<^sub>eb1 \<and> b1 \<cong> b2 on NON_REL_VAR 
-                            \<and> b1 \<in> WF_REL_BINDING \<and> b2 \<in> WF_REL_BINDING }"
-  apply (auto simp add:EvalR_EqualP_alt closure)
-  apply (metis EvalE_UNREST_override UNREST_EXPR_unionE)
-  apply (metis binding_equiv_override_subsume binding_override_equiv binding_override_equiv1 binding_override_minus binding_override_simps(1) minus_UNDASHED_NON_REL_VAR)
-  apply (metis WF_REL_BINDING_bc_DASHED binding_override_equiv)
-done
-
 lemma EvalR_SkipRA'' :
 "\<lbrakk> vs \<subseteq> UNDASHED \<union> DASHED; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow>
  \<lbrakk>II\<^bsub>vs\<^esub>\<rbrakk>R = { (b, b') 
@@ -1122,13 +1127,12 @@ proof -
   moreover from assms(6) have "REL_VAR - vs \<sharp> v"
     by (auto intro: UNREST_EXPR_subset simp add:var_defs)
 
-  moreover from assms(6) have "DASHED \<union> NON_REL_VAR \<sharp> v"
+  moreover from assms(6) have "DASHED \<sharp> v"
     apply (rule UNREST_EXPR_subset)
     apply (auto simp add:var_defs)
   done
 
   ultimately show ?thesis using assms
-    thm EvalR_EqualP_alt
     apply (simp add: AssignRA_alt_def EvalR_AndP EvalR_SkipRA'' EvalR_EqualP_alt' evale BindR_def Collect_conj_pair_eq)
     apply (rule Collect_eq_pair_intro)
     apply (simp add:var_dist)
