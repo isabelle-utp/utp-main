@@ -187,7 +187,6 @@ theorem DesignD_extreme_point_nok:
   "\<not>\<^sub>p ok = \<top>\<^sub>D"
   by (utp_pred_tac+)
 
-
 theorem DesignD_assumption:
   assumes "OKAY \<sharp> P"
   shows "`\<not> (P \<turnstile> Q)\<^sup>f` = `P \<and> ok`"
@@ -240,7 +239,7 @@ proof -
   also with assms have "... = `[(P2 \<Rightarrow> ok' \<and> Q2) \<Rightarrow> (P1 \<Rightarrow> ok' \<and> Q1)]`"
     apply (rule_tac trans)
     apply (rule_tac x="okay\<down>" in BoolType_aux_var_split_taut)
-    apply (simp_all add:usubst typing defined)
+    apply (simp_all add:usubst unrest typing defined)
   done
 
   also from assms have "... = `[(\<not> P2 \<Rightarrow> \<not> P1) \<and> ((P2 \<Rightarrow> Q2) \<Rightarrow> (P1 \<Rightarrow> Q1))]`"
@@ -293,7 +292,8 @@ proof -
     apply (rule_tac trans)
     apply (rule BoolType_aux_var_split_exists, simp_all)
     apply (simp add:erasure typing inju)
-    apply (simp add:usubst typing assms closure defined unrest)
+    apply (simp add:usubst)
+    apply (simp add:usubst closure unrest assms typing defined)
   done
 
   also have "... = `((true ; true) \<or> (true ; ((P \<turnstile> Q)[true/okay])))`"
@@ -481,7 +481,9 @@ proof -
     by (smt ImpliesP_export)
 
   also have "... = `(ok \<Rightarrow> (ok \<and> $okay\<acute> = $okay \<and> II\<^bsub>?vs\<^esub>)) ; R`"
-    by (simp add:VarP_EqualP_aux typing defined erasure, utp_rel_auto_tac)
+    apply (simp add:VarP_EqualP_aux typing defined erasure)
+    apply (auto simp add:evalr unrest closure evale relcomp_unfold)
+  done
 
   also have "... = `(ok \<Rightarrow> II) ; R`"
     by (simp add:SkipRA_unfold[THEN sym] 
@@ -532,7 +534,7 @@ proof -
   also have "... = `(ok \<Rightarrow> ok \<and> ok' \<and> II\<^bsub>?vs\<^esub>) ; P`" 
     by (smt ImpliesP_export)
   also have "... = `(ok \<Rightarrow> ok \<and> $okay\<acute> = $okay \<and> II\<^bsub>?vs\<^esub>) ; P`"
-    by (simp add:VarP_EqualP_aux erasure typing closure, utp_rel_auto_tac)
+    by (simp add:VarP_EqualP_aux erasure typing closure, utp_pred_tac)
   also have "... = `(ok \<Rightarrow> II) ; P`"
     by (simp add: SkipR_as_SkipRA SkipRA_unfold[of "okay\<down>"] ImpliesP_export[THEN sym]
                   erasure typing closure)

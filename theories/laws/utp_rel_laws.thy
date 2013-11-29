@@ -50,35 +50,6 @@ theorem SemiR_FalseP_right [simp]:
 theorem SemiR_assoc :
 "p1 ; (p2 ; p3) = (p1 ; p2) ; p3"
   by (utp_rel_auto_tac)
-
-lemma EvalR_UNREST_DASHED_refl_intro:
-  "\<lbrakk> REL_VAR \<sharp> p ; (b1, b2) \<in> \<lbrakk>p\<rbrakk>R \<rbrakk> \<Longrightarrow> (b1, b1) \<in> \<lbrakk>p\<rbrakk>R"
-  apply (auto simp add:EvalR_def BindR_def image_def urename unrest RenameB_override_distr1)
-  apply (metis (hide_lams, no_types) BindR_COMPOSABLE_BINDINGS BindR_def RenameB_SS_COMPOSABLE_BINDINGS_2 RenameB_inv_cancel2 SS_inv UNREST_def UNREST_unionE binding_override_simps(3))
-done
-
-lemma EvalR_UNREST_DASHED_left_intro:
-  "\<lbrakk> REL_VAR \<sharp> p ; (b1, b2) \<in> \<lbrakk>p\<rbrakk>R
-   ; (b2 \<cong> b2' on NON_REL_VAR)
-   ; b2 \<cong> b2' on DASHED \<rbrakk> \<Longrightarrow> (b1, b2') \<in> \<lbrakk>p\<rbrakk>R"
-  apply (auto simp add:EvalR_def BindR_def image_def urename unrest RenameB_override_distr1)
-  apply (rule_tac  x="x \<oplus>\<^sub>b SS\<bullet>b2' on D\<^sub>1" in bexI)
-  apply (simp add:binding_equiv_overshadow_left urename RenameB_override_distr1 closure)
-  apply (metis (hide_lams, no_types) NON_REL_VAR_UNDASHED_DASHED binding_equiv_override binding_override_minus binding_override_simps(1) binding_override_simps(2))
-  apply (metis UNREST_binding_override UNREST_unionE)
-done
-
-lemma EvalR_UNREST_DASHED_right_intro:
-  "\<lbrakk> REL_VAR \<sharp> p ; (b1, b2) \<in> \<lbrakk>p\<rbrakk>R
-   ; (b1 \<cong> b1' on NON_REL_VAR)
-   ; b1 \<cong> b1' on DASHED \<rbrakk> \<Longrightarrow> (b1', b2) \<in> \<lbrakk>p\<rbrakk>R"
-  apply (auto simp add:EvalR_def BindR_def image_def urename unrest RenameB_override_distr1)
-  apply (rule_tac  x="x \<oplus>\<^sub>b b1' on D\<^sub>0" in bexI)
-  apply (simp add:binding_equiv_overshadow_left urename RenameB_override_distr1 closure)
-  apply (metis (hide_lams, no_types) NON_REL_VAR_UNDASHED_DASHED binding_equiv_override binding_override_minus binding_override_simps(1) binding_override_simps(2))
-  apply (metis UNREST_binding_override UNREST_unionE)
-done
-
  
 text {* A sequential composition which doesn't mention undashed or dashed variables
         is the same as a conjunction *}
@@ -95,29 +66,57 @@ theorem SemiR_equiv_AndP_NON_REL_VAR:
   apply (auto)
 done
 
-text {* A condition has true as right identity *}
+text {* True as a right-identity equates to all dashed variables having values *}
 
-theorem SemiR_TrueP_DASHED : 
-  assumes "D\<^sub>1 \<sharp> p"
-  shows "p ; true = p"
-  using assms by (utp_rel_auto_tac)
+lemma TrueP_right_ExistsP:
+  "P ; true = (\<exists>\<^sub>p D\<^sub>1. P)"
+  apply (utp_pred_auto_tac)
+  apply (rule_tac x="b1" in exI, simp)
+  apply (rule_tac x="b \<oplus>\<^sub>b b' on D\<^sub>1" in exI)
+  apply (rule_tac x="SS\<bullet>b' \<oplus>\<^sub>b b on D\<^sub>1 \<union> NON_REL_VAR" in exI)
+  apply (auto simp add:COMPOSABLE_BINDINGS_def urename)
+  apply (subst binding_equiv_overshadow_left, force)
+  apply (metis binding_equiv_sym_elim binding_override_equiv1 binding_override_simps(1))
+done
+
+lemma TrueP_right_UNREST_DASHED:
+  "p ; true = p \<longleftrightarrow> D\<^sub>1 \<sharp> p"
+  by (metis TrueP_right_ExistsP UNREST_as_ExistsP)
+
+text {* A precondition has true as left identity *}
 
 theorem SemiR_TrueP_precond : 
   assumes "p \<in> WF_CONDITION"
   shows "p ; true = p"
-  by (metis (lifting) SemiR_TrueP_DASHED WF_CONDITION_def assms mem_Collect_eq)
+  by (metis TrueP_right_UNREST_DASHED WF_CONDITION_def assms mem_Collect_eq)
+
+text {* True as a left-identity equates to all undashed variables having values *}
+
+lemma TrueP_left_ExistsP:
+  "true ; P = (\<exists>\<^sub>p D\<^sub>0. P)"
+  apply (utp_rel_tac)
+  apply (subst EvalR_as_EvalP')
+  apply (subst EvalR_as_EvalP')
+  apply (simp add:EvalP_ExistsP relcomp_unfold)
+  apply (auto)
+  apply (rule_tac x="ya" in exI)
+  apply (smt UNDASHED_DASHED_inter(16) Un_commute binding_equiv_override binding_override_assoc binding_override_minus binding_override_simps(1) minus_UNDASHED_NON_REL_VAR)
+  apply (rule_tac x="xa \<oplus>\<^sub>b b' on D\<^sub>0" in exI)
+  apply (auto simp add:closure)
+  apply (metis UNDASHED_DASHED_inter(1) binding_override_commute)
+  apply (metis binding_equiv_UNDASHED_overshadow binding_equiv_sym_elim)
+done
+
+lemma TrueP_left_UNREST_UNDASHED:
+  "true ; p = p \<longleftrightarrow> D\<^sub>0 \<sharp> p"
+  by (metis TrueP_left_ExistsP UNREST_as_ExistsP)
 
 text {* A postcondition has true as left identity *}
-
-theorem SemiR_TrueP_UNDASHED :
-  assumes "D\<^sub>0 \<sharp> p"
-  shows "true ; p = p"
-  using assms by (utp_rel_auto_tac)
 
 theorem SemiR_TrueP_postcond :
   assumes "p \<in> WF_POSTCOND"
   shows "true ; p = p"
-  by (metis (lifting) SemiR_TrueP_UNDASHED WF_POSTCOND_def assms mem_Collect_eq)
+  by (metis TrueP_left_UNREST_UNDASHED WF_POSTCOND_def assms mem_Collect_eq)
 
 (*
 lemma PrimeP_rel_closure [closure]:

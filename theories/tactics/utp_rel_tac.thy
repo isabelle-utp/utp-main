@@ -71,6 +71,22 @@ lemma WF_REL_BINDING_binding_upd_remove:
   "\<lbrakk> b(x :=\<^sub>b v) \<in> WF_REL_BINDING; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> b \<in> WF_REL_BINDING"
   by (simp add:WF_REL_BINDING_bc_DASHED_eq)
 
+lemma WF_REL_BINDING_override_UNDASHED [closure]:
+  "b \<in> WF_REL_BINDING \<Longrightarrow> b \<oplus>\<^sub>b b' on D\<^sub>0 \<in> WF_REL_BINDING"
+  apply (auto simp add:WF_REL_BINDING_def)
+  apply (metis (hide_lams, no_types) UNDASHED_DASHED_minus(2) binding_equiv_override_subsume binding_override_equiv binding_override_equiv1 binding_override_simps(5))
+done
+
+lemma WF_REL_BINDING_override_DASHED [closure]:
+  "b' \<in> WF_REL_BINDING \<Longrightarrow> b \<oplus>\<^sub>b b' on D\<^sub>1 \<in> WF_REL_BINDING"
+  by (auto simp add:WF_REL_BINDING_def)
+
+lemma WF_REL_BINDING_override_DASHED_NON_REL_VAR [closure]:
+  "b' \<in> WF_REL_BINDING \<Longrightarrow> b \<oplus>\<^sub>b b' on NON_REL_VAR \<union> D\<^sub>1 \<in> WF_REL_BINDING"
+  apply (auto simp add:WF_REL_BINDING_def)
+  apply (metis binding_override_assoc)
+done
+
 typedef 'VALUE WF_REL_BINDING = "WF_REL_BINDING :: 'VALUE WF_BINDING set"
   morphisms DestRelB MkRelB
   by (auto simp add:WF_REL_BINDING_def)
@@ -774,10 +790,27 @@ apply (simp add: BindR_COMPOSABLE_BINDINGS)
 apply (metis BindR_override)
 done
 
+lemma EvalP_SemiR [eval]:
+  "\<lbrakk>p ; q\<rbrakk>b = (\<exists> b1 b2. b = b1 \<oplus>\<^sub>b b2 on D\<^sub>1 \<and> \<lbrakk>p\<rbrakk>b1 \<and> \<lbrakk>q\<rbrakk>b2 \<and> (b1, b2) \<in> COMPOSABLE_BINDINGS)"
+  by (simp add:EvalP_def SemiR.rep_eq)
+
 declare CondR_def [evalr,evalrr]
 
 lemma EvalR_as_EvalP [eval]: "\<lbrakk>p\<rbrakk>R = {BindR b | b. \<lbrakk>p\<rbrakk>b}"
   by (auto simp add:EvalR_def EvalP_def)
+
+lemma EvalR_as_EvalP':
+  "\<lbrakk>P\<rbrakk>R = {(b1, b2). \<lbrakk>P\<rbrakk>(b1 \<oplus>\<^sub>b SS\<bullet>b2 on D\<^sub>1)
+                   \<and> b1 \<in> WF_REL_BINDING
+                   \<and> b2 \<in> WF_REL_BINDING
+                   \<and> b1 \<cong> b2 on NON_REL_VAR}"
+  apply (auto simp add:EvalR_as_EvalP eval BindR_def RenameB_override_distr1 urename closure)
+  apply (metis BindR_def WF_REL_BINDING_BindR_equiv)
+  apply (rule_tac x="xa \<oplus>\<^sub>b SS\<bullet>y on D\<^sub>1" in exI)
+  apply (auto simp add:RenameB_override_distr1 urename closure)
+  apply (auto simp add:WF_REL_BINDING_def RenameB_override_distr1 urename closure)
+  apply (metis (hide_lams, no_types) SS_REL_VAR_overshadow binding_eq_split_equiv binding_equiv_UNDASHED_overshadow binding_equiv_idem binding_equiv_trans binding_override_equiv1 binding_override_simps(1) binding_override_simps(4) sup.commute)
+done
 
 lemma EvalR_refinement [evalr]: "p \<sqsubseteq> q \<longleftrightarrow> \<lbrakk>q\<rbrakk>R \<subseteq> \<lbrakk>p\<rbrakk>R"
   by (auto simp add:EvalR_as_EvalP less_eq_WF_PREDICATE_def eval)
@@ -914,6 +947,34 @@ lemma EvalR_WF_REL_BINDING_right [elim]:
   "\<lbrakk> (b1, b2) \<in> \<lbrakk>p\<rbrakk>R; b2 \<in> WF_REL_BINDING \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (metis WF_REL_BINDING_member2)
 
+lemma EvalR_UNREST_DASHED_refl_intro:
+  "\<lbrakk> REL_VAR \<sharp> p ; (b1, b2) \<in> \<lbrakk>p\<rbrakk>R \<rbrakk> \<Longrightarrow> (b1, b1) \<in> \<lbrakk>p\<rbrakk>R"
+  apply (auto simp add:EvalR_def BindR_def image_def urename unrest RenameB_override_distr1)
+  apply (metis (hide_lams, no_types) BindR_COMPOSABLE_BINDINGS BindR_def RenameB_SS_COMPOSABLE_BINDINGS_2 RenameB_inv_cancel2 SS_inv UNREST_def UNREST_unionE binding_override_simps(3))
+done
+
+lemma EvalR_UNREST_DASHED_left_intro:
+  "\<lbrakk> REL_VAR \<sharp> p ; (b1, b2) \<in> \<lbrakk>p\<rbrakk>R
+   ; (b2 \<cong> b2' on NON_REL_VAR)
+   ; b2 \<cong> b2' on DASHED \<rbrakk> \<Longrightarrow> (b1, b2') \<in> \<lbrakk>p\<rbrakk>R"
+  apply (auto simp add:EvalR_def BindR_def image_def urename unrest RenameB_override_distr1)
+  apply (rule_tac  x="x \<oplus>\<^sub>b SS\<bullet>b2' on D\<^sub>1" in bexI)
+  apply (simp add:binding_equiv_overshadow_left urename RenameB_override_distr1 closure)
+  apply (metis (hide_lams, no_types) UNDASHED_DASHED_inter(16) binding_equiv_comm binding_override_assoc binding_override_equiv binding_override_minus)
+  apply (metis UNREST_binding_override UNREST_unionE)
+done
+
+lemma EvalR_UNREST_DASHED_right_intro:
+  "\<lbrakk> REL_VAR \<sharp> p ; (b1, b2) \<in> \<lbrakk>p\<rbrakk>R
+   ; (b1 \<cong> b1' on NON_REL_VAR)
+   ; b1 \<cong> b1' on DASHED \<rbrakk> \<Longrightarrow> (b1', b2) \<in> \<lbrakk>p\<rbrakk>R"
+  apply (auto simp add:EvalR_def BindR_def image_def urename unrest RenameB_override_distr1)
+  apply (rule_tac  x="x \<oplus>\<^sub>b b1' on D\<^sub>0" in bexI)
+  apply (simp add:binding_equiv_overshadow_left urename RenameB_override_distr1 closure)
+  apply (metis NON_REL_VAR_def binding_equiv_comm binding_override_assoc binding_override_equiv binding_override_minus)
+  apply (metis UNREST_binding_override UNREST_unionE)
+done
+
 declare binding_equiv_trans [intro]
 
 
@@ -1006,13 +1067,22 @@ lemma EvalR_EqualP_alt:
 done
 
 lemma EvalR_EqualP_alt' [evalr]:
-  "\<lbrakk> x \<in> UNDASHED; DASHED \<sharp> v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> x \<in> UNDASHED; DASHED \<sharp> v \<rbrakk> \<Longrightarrow>
    \<lbrakk>$\<^sub>ex\<acute> ==\<^sub>p v\<rbrakk>R = { (b1, b2). \<langle>b2\<rangle>\<^sub>b x = \<lbrakk>v\<rbrakk>\<^sub>eb1 \<and> b1 \<cong> b2 on NON_REL_VAR 
                             \<and> b1 \<in> WF_REL_BINDING \<and> b2 \<in> WF_REL_BINDING }"
   apply (auto simp add:EvalR_EqualP_alt closure)
   apply (metis EvalE_UNREST_override UNREST_EXPR_unionE)
   apply (metis binding_override_left_eq)
   apply (metis WF_REL_BINDING_bc_DASHED binding_override_equiv)
+done
+
+lemma EvalR_EqualP_UNDASHED [evalr]:
+  "\<lbrakk> x \<in> UNDASHED; DASHED \<sharp> v \<rbrakk> \<Longrightarrow>
+   \<lbrakk>$\<^sub>ex ==\<^sub>p v\<rbrakk>R = { (b1, b2). \<langle>b1\<rangle>\<^sub>b x = \<lbrakk>v\<rbrakk>\<^sub>eb1 \<and> b1 \<cong> b2 on NON_REL_VAR 
+                            \<and> b1 \<in> WF_REL_BINDING \<and> b2 \<in> WF_REL_BINDING }"
+  apply (auto simp add:EvalR_EqualP evale BindR_def closure)
+  apply (metis RenameB_equiv_VAR_RENAME_ON_2 SS_VAR_RENAME_ON UNDASHED_DASHED_inter(16) binding_override_left_eq)
+  apply (smt BindR_def BindR_inverse EvalE_UNREST_override Pair_inject UNDASHED_DASHED_contra WF_REL_BINDING_bc_DASHED binding_override_equiv binding_override_on_eq)
 done
 
 lemma AssignR_alt_def: 
