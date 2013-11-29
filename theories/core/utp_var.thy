@@ -174,6 +174,11 @@ definition out_vars ::
    'VALUE VAR set" ("out") where
 "out vs = vs \<inter> DASHED"
 
+definition nrel_vars :: 
+  "'a VAR set \<Rightarrow> 
+   'a VAR set" ("nrel") where
+"nrel vs = vs \<inter> NON_REL_VAR"
+
 definition COMPOSABLE ::
   "'VALUE VAR set \<Rightarrow>
    'VALUE VAR set \<Rightarrow> bool" where
@@ -200,6 +205,7 @@ theorems var_defs =
   dash_def
   in_vars_def
   out_vars_def
+  nrel_vars_def
   COMPOSABLE_def
   HOMOGENEOUS_def
 
@@ -641,6 +647,10 @@ theorem out_empty :
 "out {} = {}"
   by (simp add:var_defs)
 
+lemma nrel_empty:
+  "nrel {} = {}"
+  by (auto simp add:var_defs)
+
 theorem in_in :
 "in (in vs) = in vs"
   by (auto simp add: var_defs)
@@ -649,6 +659,10 @@ theorem out_out :
 "out (out vs) = out vs"
   by (auto simp add: var_defs)
 
+lemma nrel_nrel:
+  "nrel (nrel vs) = nrel vs"
+  by (auto simp add:var_defs)
+
 theorem in_out :
 "in (out vs) = {}"
   by (auto simp add: var_defs)
@@ -656,6 +670,22 @@ theorem in_out :
 theorem out_in :
 "out (in vs) = {}"
   by (auto simp add: var_defs)
+
+lemma nrel_in:
+  "nrel (in vs) = {}"
+  by (auto simp add:var_defs)
+
+lemma nrel_out:
+  "nrel (out vs) = {}"
+  by (auto simp add:var_defs)
+
+lemma in_nrel:
+  "in (nrel vs) = {}"
+  by (auto simp add:var_defs)
+
+lemma out_nrel:
+  "out (nrel vs) = {}"
+  by (auto simp add:var_defs)
 
 lemma in_dash :
 "in (dash ` vs) = {}"
@@ -693,6 +723,30 @@ theorem in_out_UNDASHED_DASHED:
   "out DASHED = DASHED"
   by (auto simp add:var_defs)
 
+lemma in_VAR:
+  "in VAR = D\<^sub>0"
+  by (auto simp add:var_defs)
+
+lemma out_VAR:
+  "out VAR = D\<^sub>1"
+  by (auto simp add:var_defs)
+
+lemma nrel_VAR:
+  "nrel VAR = NON_REL_VAR"
+  by (auto simp add:var_defs)
+
+lemma in_NON_REL_VAR:
+  "in NON_REL_VAR = {}"
+  by (auto simp add:var_defs)
+
+lemma out_NON_REL_VAR:
+  "out NON_REL_VAR = {}"
+  by (auto simp add:var_defs)
+
+lemma nrel_NON_REL_VAR:
+  "nrel NON_REL_VAR = NON_REL_VAR"
+  by (auto simp add:var_defs)
+
 theorem UNDASHED_DASHED_inter:
   "UNDASHED \<inter> DASHED = {}"
   "DASHED \<inter> UNDASHED = {}"
@@ -719,6 +773,15 @@ theorem UNDASHED_DASHED_minus:
   "UNDASHED - DASHED_TWICE = UNDASHED"
   "DASHED_TWICE - DASHED   = DASHED_TWICE"
   "DASHED - DASHED_TWICE   = DASHED"
+  "UNDASHED - NON_REL_VAR  = UNDASHED"
+  "DASHED   - NON_REL_VAR  = DASHED"
+  "DASHED_TWICE - NON_REL_VAR  = {}"
+  "NON_REL_VAR - UNDASHED  = NON_REL_VAR"
+  "NON_REL_VAR - DASHED    = NON_REL_VAR"
+  "UNDASHED - VAR          = {}"
+  "DASHED - VAR            = {}"
+  "UNDASHED - VAR          = {}"
+  "NON_REL_VAR - VAR       = {}"
   by (auto simp add:var_defs)
 
 lemma var_name_uniq [simp]: 
@@ -752,10 +815,22 @@ theorems var_simps =
   undash_dash_image
   in_empty
   out_empty
+  nrel_empty
   in_in
   out_out
+  nrel_nrel
   in_out
   out_in
+  nrel_in
+  nrel_out
+  in_nrel
+  out_nrel
+  in_VAR
+  out_VAR
+  nrel_VAR
+  in_NON_REL_VAR
+  out_NON_REL_VAR
+  nrel_NON_REL_VAR
   in_dash
   in_undash
   out_dash
@@ -854,6 +929,22 @@ theorem out_vars_diff :
 "out (a1 - a2) = (out a1) - (out a2)"
   by (auto simp add: var_defs)
 
+lemma nrel_vars_uminus:
+  "nrel (- vs) = NON_REL_VAR - nrel vs"
+  by (auto simp add:var_defs)
+
+lemma nrel_vars_minus:
+  "nrel (vs1 - vs2) = nrel vs1 - nrel vs2"
+  by (auto simp add:var_defs)
+
+lemma nrel_vars_inter:
+  "nrel (vs1 \<inter> vs2) = nrel vs1 \<inter> nrel vs2"
+  by (auto simp add:nrel_vars_def)
+
+lemma nrel_vars_union:
+  "nrel (vs1 \<union> vs2) = nrel vs1 \<union> nrel vs2"
+  by (auto simp add:nrel_vars_def)
+
 theorem out_vars_insert1 :
 "v \<in> DASHED \<Longrightarrow> out (insert v vs) = insert v (out vs)"
   by (auto simp add: var_defs)
@@ -892,6 +983,10 @@ theorems var_dist =
   out_vars_diff
   out_vars_insert1
   out_vars_insert2
+  nrel_vars_union
+  nrel_vars_inter
+  nrel_vars_uminus
+  nrel_vars_minus
   dash_image_union
   undash_image_union
   dash_image_minus

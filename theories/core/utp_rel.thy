@@ -973,59 +973,61 @@ theorem SemiR_algebraic_rel :
   apply (simp_all add:unrest UNREST_subset)
 done
 
+lemma VAR_minus_inter: 
+  "(VAR - xs) \<inter> (VAR - ys) = (VAR - (xs \<union> ys))"
+  by (auto)
+
+lemma UNREST_SemiR_general:
+      "\<lbrakk> vs1 \<sharp> p1; vs2 \<sharp> p2
+       ; vs3 = (in vs1 \<union> out vs2 \<union> nrel (vs1 \<inter> vs2)) \<rbrakk> 
+       \<Longrightarrow> vs3 \<sharp> (p1 ; p2)"
+  apply (subst UNREST_def)
+  apply (auto simp add:SemiR.rep_eq)
+  apply (rule_tac x="b1a \<oplus>\<^sub>b b2a on in vs1 \<union> nrel (vs1 \<inter> vs2)" in exI)
+  apply (rule_tac x="b2 \<oplus>\<^sub>b b2a on out vs2 \<union> nrel (vs1 \<inter> vs2)" in exI)
+  apply (auto)
+  apply (rule)
+  apply (simp add:override_on_def)
+  apply (rule)
+  apply (auto simp add:var_defs nrel_vars_def)[1]
+  apply (metis UNREST_binding_override UNREST_inter_1 UNREST_union in_vars_def nrel_vars_def)
+  apply (metis UNREST_def UNREST_inter_1 UNREST_inter_2 UNREST_union nrel_vars_def out_vars_def)
+  apply (auto simp add:COMPOSABLE_BINDINGS_def)
+  apply (metis DASHED_not_NON_REL_VAR Int_iff UNDASHED_dash_DASHED UNDASHED_not_DASHED UNDASHED_not_NON_REL_VAR UnE nrel_vars_def out_vars_def override_on_apply_notin utp_var.not_dash_member_in)
+  apply (rule binding_equiv_override_right_intro)
+  apply (simp_all add: nrel_vars_def[THEN sym] var_dist)
+  apply (rule binding_equiv_comm)
+  apply (rule binding_equiv_override_right_intro)
+  apply (simp_all add: nrel_vars_def[THEN sym] var_dist)
+  apply (metis (hide_lams, no_types) Compl_eq_Diff_UNIV Diff_Int Int_Diff Int_UNIV_left binding_equiv_comm binding_equiv_minus in_vars_def inf.left_idem inf_commute)
+  apply (subst Int_commute) back back
+  apply (subst Int_assoc[THEN sym])
+  apply (simp add:nrel_vars_def[THEN sym] var_dist nrel_NON_REL_VAR)
+  apply (metis (hide_lams, no_types) Diff_Int Diff_Int_distrib Diff_cancel Int_left_commute binding_equiv_empty diff_eq inf_bot_right)
+  apply (metis binding_equiv_subset binding_override_equiv1 sup_ge2)
+done
+
 lemma UNREST_SemiR:
       "\<lbrakk> UNREST (VAR - vs1) p1; UNREST (VAR - vs2) p2
        ; vs1 \<subseteq> UNDASHED \<union> DASHED; vs2 \<subseteq> UNDASHED \<union> DASHED
        ; vs3 = (VAR - (in vs1 \<union> out vs2)) \<rbrakk> 
        \<Longrightarrow> UNREST vs3 (p1 ; p2)"
-  apply (subgoal_tac "UNREST DASHED_TWICE p1") 
-  apply (subgoal_tac "UNREST DASHED_TWICE p2")
-  apply (simp add:SemiR_algebraic)
-  apply (rule UNREST_ExistsP_alt)
-  apply (rule UNREST_AndP_alt)
-  apply (rule_tac ?vs1.0="VAR - vs1" in UNREST_RenameP_alt)
-  apply (blast intro:unrest)
-  apply (force)
-  apply (rule_tac ?vs1.0="VAR - vs2" in UNREST_RenameP_alt)
-  apply (blast intro:unrest)  
-  apply (force)
-  apply (simp add:inj_on_image_set_diff[OF Rep_VAR_RENAME_inj])
-  apply (simp add:SS1_UNDASHED_DASHED_image[simplified])
-  apply (simp add:SS2_UNDASHED_DASHED_image[simplified])
-  apply (simp add:VAR_def)
-  apply (auto)
-  apply (metis DASHED_dash_DASHED_TWICE set_mp out_DASHED)
-  apply (metis DASHED_dash_DASHED_TWICE Int_iff UNDASHED_dash_DASHED in_vars_def)
-  apply (rule_tac ?vs1.0="VAR - vs2" in UNREST_subset)
-  apply (auto)
-  apply (rule_tac ?vs1.0="VAR - vs1" in UNREST_subset)
-  apply (auto)
+  apply (rule UNREST_SemiR_general)
+  apply (auto simp add:var_defs)
 done
 
 lemma UNREST_SemiR_UNDASHED [unrest]:
-  "\<lbrakk> vs \<sharp> P; vs \<subseteq> UNDASHED; P \<in> WF_RELATION; Q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> vs \<sharp> (P ; Q)"
-  apply (simp add:SemiR_algebraic_rel)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (simp)
-  apply (simp add:urename)
-  apply (rule unrest)
-  apply (simp add:WF_RELATION_def)
-  apply (auto simp add:urename)
+  "\<lbrakk> vs \<sharp> P; vs \<subseteq> UNDASHED \<rbrakk> \<Longrightarrow> vs \<sharp> (P ; Q)"
+  apply (rule UNREST_SemiR_general[of _ _ "{}"])
+  apply (simp_all add:var_dist unrest)
+  apply (metis in_of_UNDASHED)
 done
 
 lemma UNREST_SemiR_DASHED [unrest]:
-  "\<lbrakk> vs \<sharp> Q; vs \<subseteq> DASHED; P \<in> WF_RELATION; Q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> vs \<sharp> (P ; Q)"
-  apply (simp add:SemiR_algebraic_rel)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (rule unrest)
-  apply (simp add:WF_RELATION_def)
-  apply (auto simp add:urename)
-  apply (rule unrest)
-  apply (simp)
-  apply (simp add:urename)
+  "\<lbrakk> vs \<sharp> Q; vs \<subseteq> DASHED \<rbrakk> \<Longrightarrow> vs \<sharp> (P ; Q)"
+  apply (rule UNREST_SemiR_general[of "{}"])
+  apply (simp_all add:var_dist unrest)
+  apply (metis out_of_DASHED)
 done
 
 lemma UNREST_SemiR_DASHED_TWICE [unrest]:
@@ -1033,24 +1035,12 @@ lemma UNREST_SemiR_DASHED_TWICE [unrest]:
   apply (simp add:SemiR_algebraic)
   apply (force intro:unrest)
 done
-
+ 
 lemma UNREST_SemiR_NON_REL_VAR [unrest]:
   "\<lbrakk> UNREST NON_REL_VAR p; UNREST NON_REL_VAR q \<rbrakk> \<Longrightarrow> UNREST NON_REL_VAR (p ; q)"
-  apply (subgoal_tac "UNREST DASHED_TWICE p")
-  apply (subgoal_tac "UNREST DASHED_TWICE q")
-  apply (simp add:SemiR_algebraic)
-  apply (rule unrest) 
-  apply (rule unrest) 
-  apply (rule UNREST_RenameP_alt[of "NON_REL_VAR - DASHED_TWICE"])
-  apply (force intro: unrest)
-  apply (simp add:urename)
-  apply (force simp add:NON_REL_VAR_def)
-  apply (rule UNREST_RenameP_alt[of "NON_REL_VAR - DASHED_TWICE"])
-  apply (force intro: unrest)
-  apply (simp add:urename)
-  apply (force simp add:NON_REL_VAR_def)
-  apply (simp add:unrest UNREST_subset)
-  apply (simp add:unrest UNREST_subset)
+  apply (rule UNREST_SemiR_general)
+  apply (simp_all)
+  apply (simp add:var_dist)
 done
 
 theorem SemiR_closure [closure] :

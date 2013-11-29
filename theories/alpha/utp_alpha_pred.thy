@@ -10,6 +10,7 @@ theory utp_alpha_pred
 imports 
   "../core/utp_pred" 
   "../laws/utp_pred_laws" 
+  "utp_alphabet"
 begin
 
 text {* Theorem Attribute *}
@@ -20,13 +21,6 @@ ML {*
 *}
 
 setup evala.setup
-
-ML {*
-  structure alphabet =
-    Named_Thms (val name = @{binding alphabet} val description = "alphabet theorems")
-*}
-
-setup alphabet.setup
 
 subsection {* Wellformed alphabetised predicates *}
 

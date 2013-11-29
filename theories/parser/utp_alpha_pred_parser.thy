@@ -79,8 +79,8 @@ syntax
   "_uaexpr_false"    :: "uaexpr" ("false")
   "_uaexpr_var"      :: "pttrn \<Rightarrow> uaexpr" ("_")
   "_uaexpr_evar"     :: "'a VAR \<Rightarrow> uaexpr" ("$_" [500] 500)
-  "_uaexpr_substp"   :: "uapred \<Rightarrow> uaexpr \<Rightarrow> pttrn \<Rightarrow> uapred" ("(_[_'/_])" [60,60,60] 60)
-   "_uaexpr_member"   :: "uaexpr \<Rightarrow> uaexpr \<Rightarrow> uaexpr" (infix ":" 45)
+  "_uaexpr_substp"   :: "uapred \<Rightarrow> uaexpr \<Rightarrow> pttrn \<Rightarrow> uapred" ("(_[_'/_])" [999,999] 1000)
+  "_uaexpr_member"   :: "uaexpr \<Rightarrow> uaexpr \<Rightarrow> uaexpr" (infix ":" 45)
   "_uaexpr_coerce"   :: "uaexpr \<Rightarrow> pttrn \<Rightarrow> uaexpr" ("_\<Colon>_" [60,60] 65)
 
 translations

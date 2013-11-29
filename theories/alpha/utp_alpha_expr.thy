@@ -218,7 +218,7 @@ definition SubstA ::
 "'VALUE WF_ALPHA_PREDICATE \<Rightarrow> 
  'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
  'VALUE VAR \<Rightarrow> 
- 'VALUE WF_ALPHA_PREDICATE" ("_[_/\<^sub>\<alpha>_]" [200] 200) where
+ 'VALUE WF_ALPHA_PREDICATE" ("_[_'/\<^sub>\<alpha>_]" [200] 200) where
 "SubstA p v x \<equiv> 
   MkPredA
     (if (x \<in>\<^sub>f \<alpha> p) then (\<alpha> p -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
@@ -229,7 +229,7 @@ definition SubstAE ::
 "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
  'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
  'VALUE VAR \<Rightarrow> 
- 'VALUE WF_ALPHA_EXPRESSION" ("_[_/\<^sub>\<epsilon>_]" [200] 200) where
+ 'VALUE WF_ALPHA_EXPRESSION" ("_[_'/\<^sub>\<epsilon>_]" [200] 200) where
 "SubstAE f v x \<equiv> 
   MkExprA 
     ( (\<alpha> f -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v

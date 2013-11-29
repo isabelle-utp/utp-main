@@ -8,6 +8,7 @@ header {* Proof Tactic for Alphabetised Predicates *}
 
 theory utp_alpha_tac
 imports 
+  "../alpha/utp_alphabet"
   "../alpha/utp_alpha_pred"
 begin
 
@@ -141,7 +142,8 @@ ML {*
       addsimps (alphabet.get ctxt)
       addsimps (typing.get ctxt)
       addsimps @{thms var_simps}
-      addsimps @{thms var_dist};
+      addsimps @{thms var_dist}
+      addsimps @{thms alphabet_dist};
 *}
 
 ML {*
@@ -151,7 +153,8 @@ ML {*
       addsimps (closure.get ctxt)
       addsimps (typing.get ctxt)
       addsimps @{thms var_simps}
-      addsimps @{thms var_dist};
+      addsimps @{thms var_dist}
+      addsimps @{thms alphabet_dist};
 *}
 
 ML {*

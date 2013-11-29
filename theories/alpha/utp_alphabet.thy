@@ -28,6 +28,13 @@ lift_definition out_alphabet ::
 
 declare out_alphabet.rep_eq [simp]
 
+lift_definition nrel_alpha :: 
+  "'a ALPHABET \<Rightarrow> 
+   'a ALPHABET" ("nrel\<^sub>\<alpha>") is nrel
+  by (simp add: fsets_def nrel_vars_def)
+
+declare nrel_alpha.rep_eq [simp]
+
 definition COMP_ALPHAS :: "'VALUE ALPHABET \<Rightarrow> 'VALUE ALPHABET \<Rightarrow> bool" where
 "COMP_ALPHAS a1 a2 = COMPOSABLE \<langle>a1\<rangle>\<^sub>f \<langle>a2\<rangle>\<^sub>f"
 
@@ -151,6 +158,22 @@ theorem out_alphabet_finsert2 :
   "x \<in> UNDASHED \<Longrightarrow> out\<^sub>\<alpha> (finsert x xs) = out\<^sub>\<alpha> xs"
   by (force simp add: var_dist)
 
+theorem nrel_alphabet_empty :
+  "nrel\<^sub>\<alpha> \<lbrace>\<rbrace> = \<lbrace>\<rbrace>"
+  by (force simp add:var_defs)
+
+theorem nrel_alphabet_union :
+"nrel\<^sub>\<alpha>(a1 \<union>\<^sub>f a2) = (nrel\<^sub>\<alpha>a1) \<union>\<^sub>f (nrel\<^sub>\<alpha>a2)"
+  by (force simp add: var_dist)
+
+theorem nrel_alphabet_inter :
+"nrel\<^sub>\<alpha>(a1 \<inter>\<^sub>f a2) = (nrel\<^sub>\<alpha>a1) \<inter>\<^sub>f (nrel\<^sub>\<alpha>a2)"
+  by (force simp add: var_dist)
+
+theorem nrel_alphabet_diff :
+"nrel\<^sub>\<alpha>(a1 -\<^sub>f a2) = (nrel\<^sub>\<alpha>a1) -\<^sub>f (nrel\<^sub>\<alpha>a2)"
+  by (force simp add: var_dist)
+
 theorems alphabet_dist =
   in_alphabet_empty
   in_alphabet_union
@@ -164,6 +187,10 @@ theorems alphabet_dist =
   out_alphabet_diff
   out_alphabet_finsert1
   out_alphabet_finsert2
+  nrel_alphabet_empty
+  nrel_alphabet_union
+  nrel_alphabet_inter
+  nrel_alphabet_diff
 
 end
 

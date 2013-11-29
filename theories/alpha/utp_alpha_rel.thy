@@ -91,14 +91,20 @@ is "\<lambda> r1 b r2. (\<alpha> r1 \<union>\<^sub>f \<alpha> b \<union>\<^sub>f
   by (auto intro: unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation CondA ("_ \<lhd> _ \<rhd>\<^sub>\<alpha> _")
-
 subsubsection {* Sequential Composition *}
 
-definition SemiA ::
+lift_definition SemiA ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" where
-"SemiA r1 r2 = MkPredA (in\<^sub>\<alpha> (\<alpha> r1) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r2), (\<pi> r1) ; (\<pi> r2))"
+   'VALUE WF_ALPHA_PREDICATE"
+is "\<lambda> p q. (in\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> q) \<union>\<^sub>f nrel\<^sub>\<alpha> (\<alpha> p \<union>\<^sub>f \<alpha> q), (\<pi> p) ; (\<pi> q))"
+  apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
+  apply (rule UNREST_SemiR_general)
+  apply (rule unrest)
+  apply (rule unrest) 
+  apply (simp add:var_dist)
+  apply (auto simp add:var_defs)
+done
 
 notation SemiA (infixr ";\<^sub>\<alpha>" 140)
 
@@ -431,6 +437,7 @@ proof
     by (simp add: CondA.rep_eq pred_alphabet_def WF_ALPHA_REL_def REL_ALPHABET_def)
 qed
 
+(*
 theorem SemiA_rep_eq:
 "\<lbrakk>r1 \<in> WF_ALPHA_REL;
  r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
@@ -444,13 +451,14 @@ theorem SemiA_rep_eq:
   apply (auto)
   apply (metis (hide_lams, no_types) Un_iff WF_ALPHA_REL_unfold set_mp)+
 done
+*)
 
 theorem SemiA_closure [closure] :
   assumes "r1 \<in> WF_ALPHA_REL" "r2 \<in> WF_ALPHA_REL"
   shows "r1 ;\<^sub>\<alpha> r2 \<in> WF_ALPHA_REL"
+using assms
 apply (simp add: WF_ALPHA_REL_unfold pred_alphabet_def)
-apply (simp add: SemiA_rep_eq assms)
-apply (metis in_vars_def inf_sup_ord(2) le_supI1 le_supI2 out_vars_def)
+apply (auto simp add:SemiA.rep_eq var_defs pred_alphabet_def)
 done
 
 subsection {* Alphabet Theorems *}
@@ -473,11 +481,17 @@ theorem CondA_alphabet [alphabet] :
 "\<alpha> (r1 \<lhd> b \<rhd>\<^sub>\<alpha> r2) = (\<alpha> r1 \<union>\<^sub>f \<alpha> b \<union>\<^sub>f \<alpha> r2)"
   by (simp add: CondA.rep_eq)
 
+lemma REL_ALPHABET_nrel_alpha [simp]:
+  "a \<in> REL_ALPHABET \<Longrightarrow> nrel\<^sub>\<alpha> a = \<lbrace>\<rbrace>"
+  by (auto simp add:REL_ALPHABET_def var_defs)
+
+lemma WF_ALPHA_REL_nrel_alpha [simp]:
+  "p \<in> WF_ALPHA_REL \<Longrightarrow> nrel\<^sub>\<alpha> (\<alpha> p) = \<lbrace>\<rbrace>"
+  by (auto simp add:WF_ALPHA_REL_def REL_ALPHABET_def var_defs)
+
 theorem SemiA_alphabet [alphabet] :
-"\<lbrakk>r1 \<in> WF_ALPHA_REL;
- r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
- \<alpha> (r1 ;\<^sub>\<alpha> r2) = in\<^sub>\<alpha> (\<alpha> r1) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r2)"
-  by (simp add: SemiA_rep_eq)
+  "\<alpha> (p ;\<^sub>\<alpha> q) = in\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> q) \<union>\<^sub>f nrel\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f nrel\<^sub>\<alpha> (\<alpha> q)"
+  by (force simp add: SemiA.rep_eq WF_ALPHA_REL_def REL_ALPHABET_def var_defs)
 
 subsection {* Evaluation Theorems *}
 
@@ -533,7 +547,7 @@ theorem EvalA_SemiA [evala] :
 "\<lbrakk>r1 \<in> WF_ALPHA_REL;
  r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
  \<lbrakk>r1 ;\<^sub>\<alpha> r2\<rbrakk>\<pi> = \<lbrakk>r1\<rbrakk>\<pi> ; \<lbrakk>r2\<rbrakk>\<pi>"
-  by (simp add: EvalA_def SemiA_rep_eq)
+  by (simp add: EvalA_def SemiA.rep_eq)
 
 theorem EvalA_AssignA [evala] :
 "\<lbrakk> a \<in> REL_ALPHABET; x \<in>\<^sub>f a; dash x \<in>\<^sub>f a; \<alpha> v \<subseteq>\<^sub>f a; v \<rhd>\<^sub>\<alpha> x \<rbrakk> \<Longrightarrow> 
@@ -561,7 +575,6 @@ theorem SemiA_OrA_distl :
  r1 ;\<^sub>\<alpha> (r2 \<or>\<^sub>\<alpha> r3) = (r1 ;\<^sub>\<alpha> r2) \<or>\<^sub>\<alpha> (r1 ;\<^sub>\<alpha> r3)"
 apply (utp_alpha_tac)
 apply (utp_rel_auto_tac)
-apply (simp_all add:var_dist)
 done
 
 theorem SemiA_OrA_distr :
@@ -571,7 +584,6 @@ theorem SemiA_OrA_distr :
  (r1 \<or>\<^sub>\<alpha> r2) ;\<^sub>\<alpha> r3 = (r1 ;\<^sub>\<alpha> r3) \<or>\<^sub>\<alpha> (r2 ;\<^sub>\<alpha> r3)"
 apply (utp_alpha_tac)
 apply (utp_rel_auto_tac)
-apply (simp_all add:var_dist)
 done
 
 theorem SemiA_SkipA_left:
@@ -613,7 +625,7 @@ proof -
   qed
 
   ultimately show ?thesis using assms
-    by (utp_alpha_tac, simp add: EvalA_def)
+    by (utp_alpha_tac, simp add:EvalA_def)
 qed
 
 theorem SemiA_SkipA_right:
