@@ -544,9 +544,7 @@ theorem EvalA_CondA [evala] :
   by (simp add: EvalA_def CondA.rep_eq)
 
 theorem EvalA_SemiA [evala] :
-"\<lbrakk>r1 \<in> WF_ALPHA_REL;
- r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
- \<lbrakk>r1 ;\<^sub>\<alpha> r2\<rbrakk>\<pi> = \<lbrakk>r1\<rbrakk>\<pi> ; \<lbrakk>r2\<rbrakk>\<pi>"
+"\<lbrakk>r1 ;\<^sub>\<alpha> r2\<rbrakk>\<pi> = \<lbrakk>r1\<rbrakk>\<pi> ; \<lbrakk>r2\<rbrakk>\<pi>"
   by (simp add: EvalA_def SemiA.rep_eq)
 
 theorem EvalA_AssignA [evala] :

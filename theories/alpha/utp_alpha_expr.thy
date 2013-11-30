@@ -145,7 +145,7 @@ notation EqualA (infixr "==\<^sub>\<alpha>" 150)
 
 lift_definition VarAE ::
 "'VALUE VAR \<Rightarrow>
- 'VALUE WF_ALPHA_EXPRESSION" is
+ 'VALUE WF_ALPHA_EXPRESSION" ("$\<^sub>\<alpha>_" [999] 999)  is
 "\<lambda> x. (finsert x \<lbrace>\<rbrace>, VarE x)"
   by (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
 
@@ -214,26 +214,56 @@ proof -
     apply (auto intro:unrest WF_ALPHA_EXPRESSION_is_SubstPE_var simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
  *) 
 
-definition SubstA ::
+lift_definition SubstA ::
 "'VALUE WF_ALPHA_PREDICATE \<Rightarrow> 
  'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
  'VALUE VAR \<Rightarrow> 
- 'VALUE WF_ALPHA_PREDICATE" ("_[_'/\<^sub>\<alpha>_]" [200] 200) where
-"SubstA p v x \<equiv> 
-  MkPredA
-    (if (x \<in>\<^sub>f \<alpha> p) then (\<alpha> p -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
-                   else \<alpha> p
-    , (\<pi> p)[\<epsilon> v/\<^sub>px])"
+ 'VALUE WF_ALPHA_PREDICATE" ("_[_'/\<^sub>\<alpha>_]" [200] 200) is
+"\<lambda> p v x. (if (x \<in>\<^sub>f \<alpha> p) 
+              then (\<alpha> p -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
+              else \<alpha> p , (\<pi> p)[\<epsilon> v/\<^sub>px])"
+  apply (auto simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
+  apply (rule UNREST_SubstP_simple)
+  apply (rule UNREST_EXPR_subset)
+  apply (rule unrest)
+  apply (auto)
+  apply (subst SubstP_VarP_single_UNREST)
+  apply (auto)
+done
 
-definition SubstAE ::
+lemma UNREST_SubstE_simple [unrest]: 
+  assumes "vs \<sharp> v" "vs - {x} \<sharp> e"
+  shows "vs \<sharp> e[v/\<^sub>ex]"
+  using assms by (auto simp add:UNREST_EXPR_def SubstE.rep_eq)
+
+lemma SubstE_VarE_single_UNREST [usubst]:
+  "{x} \<sharp> v \<Longrightarrow> v[e/\<^sub>ex] = v"
+  by (utp_expr_tac)
+
+lift_definition SubstAE ::
 "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
  'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
  'VALUE VAR \<Rightarrow> 
- 'VALUE WF_ALPHA_EXPRESSION" ("_[_'/\<^sub>\<epsilon>_]" [200] 200) where
-"SubstAE f v x \<equiv> 
-  MkExprA 
-    ( (\<alpha> f -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
-    , SubstE (\<epsilon> f) (\<epsilon> v) x)"
+ 'VALUE WF_ALPHA_EXPRESSION" ("_[_'/\<^sub>\<epsilon>_]" [200] 200) is
+"\<lambda> e v x. (if (x \<in>\<^sub>f \<alpha> e) 
+              then (\<alpha> e -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
+              else \<alpha> e , (\<epsilon> e)[\<epsilon> v/\<^sub>ex])"
+  apply (auto simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
+  apply (rule UNREST_SubstE_simple)
+  apply (rule UNREST_EXPR_subset)
+  apply (rule unrest)
+  apply (auto)
+  apply (rule UNREST_EXPR_subset)
+  apply (rule unrest)
+  apply (auto)
+  apply (subst SubstE_VarE_single_UNREST)
+  apply (rule UNREST_EXPR_subset)
+  apply (rule unrest)
+  apply (force)
+  apply (rule UNREST_EXPR_subset)
+  apply (rule unrest)
+  apply (force)
+done
 
 lift_definition TrueAE :: 
   "('VALUE :: BOOL_SORT) WF_ALPHA_EXPRESSION" ("true") is "(\<lbrace>\<rbrace>, TrueE)"
@@ -260,73 +290,6 @@ subsubsection {* Closure Theorems *}
 lemma WF_ALPHA_EXPRESSION_OVER [closure]: 
   "\<epsilon> f \<in> WF_EXPRESSION_OVER \<langle>\<alpha> f\<rangle>\<^sub>f"
   by (simp add:WF_EXPRESSION_OVER_def unrest)
-
-(*
-lemma SubstA_closure [closure]: 
-  "\<lbrakk> v \<rhd>\<^sub>\<alpha> x \<rbrakk> \<Longrightarrow> 
-  (if (x \<in>\<^sub>f \<alpha> p) then (\<alpha> p -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
-                 else \<alpha> p
-  , (\<pi> p)[\<epsilon> v/\<^sub>px]) \<in> WF_ALPHA_PREDICATE"
-    apply (simp add: eavar_compat_def)
-    apply (case_tac "x \<in>\<^sub>f \<alpha> p")
-    apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
-    apply (case_tac "x \<in> \<langle>\<alpha> v\<rangle>\<^sub>f")
-    apply (rule unrest)
-    apply (simp)
-    apply (rule unrest)
-    apply (rule unrest)
-    apply (force)
-    apply (force)
-    apply (subgoal_tac "UNREST {x} ((\<pi> p)[\<epsilon> v/\<^sub>px])")
-    apply (subgoal_tac "UNREST ((VAR - \<langle>\<alpha> p\<rangle>\<^sub>f) \<inter> (VAR - \<langle>\<alpha> v\<rangle>\<^sub>f)) (\<pi> p[\<epsilon> v/\<^sub>px])")
-    apply (subgoal_tac "(VAR - (\<langle>\<alpha> p\<rangle>\<^sub>f - {x} \<union> \<langle>\<alpha> v\<rangle>\<^sub>f)) = ((VAR - \<langle>\<alpha> p\<rangle>\<^sub>f) \<inter> (VAR - \<langle>\<alpha> v\<rangle>\<^sub>f)) \<union> {x}")
-    apply (simp)
-    apply (rule unrest)
-    apply (simp)
-    apply (rule unrest)
-    apply (rule unrest)
-    apply (simp)
-    apply (auto)[1]
-    apply (rule unrest)
-    apply (simp_all)
-    apply (rule unrest)
-    apply (rule unrest)
-    apply (rule unrest)
-    apply (simp)
-    apply (rule unrest)
-    apply (rule unrest)
-    apply (force)
-    apply (force)
-    apply (subgoal_tac "UNREST {x} (\<pi> p)")
-    apply (simp add: utp_expr.SubstP_no_var[of "x" "\<pi> p" "\<epsilon> v"] closure)
-    apply (metis DestPredA pred_alphabet_def surjective_pairing)
-    apply (metis (full_types) Diff_iff VAR_member WF_ALPHA_PREDICATE_UNREST_intro bot_least insert_subset)
-done
-
-lemma SubstA_rep_eq:
-  "\<lbrakk> v \<rhd>\<^sub>\<alpha> x \<rbrakk> \<Longrightarrow> 
-  Rep_WF_ALPHA_PREDICATE (p[v|x]\<alpha>) = 
-  (if (x \<in>\<^sub>f \<alpha> p) then (\<alpha> p -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
-                 else \<alpha> p
-
-  , (\<pi> p)[\<epsilon> v|x])"
-  by (simp only: SubstA_def SubstA_closure Abs_WF_ALPHA_PREDICATE_inverse)
-
-theorem SubstAE_closure [closure]:
-"\<lbrakk> v \<rhd>\<^sub>\<alpha> x \<rbrakk> \<Longrightarrow>
-  ( (\<alpha> f -\<^sub>f finsert x \<lbrace>\<rbrace>) \<union>\<^sub>f \<alpha> v
-  , SubstE (\<epsilon> f) (\<epsilon> v) x) \<in> WF_ALPHA_EXPRESSION"
-  apply (insert WF_ALPHA_EXPRESSION_UNREST_EXPR[of f])
-  apply (insert WF_ALPHA_EXPRESSION_UNREST_EXPR[of v])
-  apply (simp add:SubstAE_def WF_ALPHA_PREDICATE_def WF_ALPHA_EXPRESSION_def closure)
-  apply (auto intro:unrest closure simp add:WF_PREDICATE_OVER_def WF_EXPRESSION_OVER_def eavar_compat_def)[1]
-done
-
-lemma SubstAE_rep_eq:
-  "\<lbrakk> v \<rhd>\<^sub>\<alpha> x \<rbrakk> \<Longrightarrow>
-   DestExprA (f[v|x]\<alpha>\<epsilon>) = ((\<alpha> f -\<^sub>f finsert x \<lbrace>\<rbrace>) \<union>\<^sub>f \<alpha> v, SubstE (\<epsilon> f) (\<epsilon> v) x)"
-  by (simp add:SubstAE_def SubstAE_closure)
-*)
 
 subsubsection {* Alphabet Theorems *}
 
@@ -365,17 +328,17 @@ theorem PermAE_alphabet [alphabet]:
   shows "\<alpha> (ss\<bullet>e) = \<langle>ss\<rangle>\<^sub>s `\<^sub>f \<alpha> e"
   by (simp add:PermAE.rep_eq)
 
-(*
 theorem SubstA_alphabet [alphabet]:
-"\<lbrakk> v \<rhd>\<^sub>\<alpha> x \<rbrakk> 
-  \<Longrightarrow>  \<alpha>(p[v|x]\<alpha>) = (if (x \<in>\<^sub>f \<alpha> p) then (\<alpha> p -\<^sub>f finsert x \<lbrace>\<rbrace>) \<union>\<^sub>f \<alpha> v
-                     else \<alpha> p)"
-  by (auto simp add:SubstA_rep_eq)
+  "\<alpha>(p[v/\<^sub>\<alpha>x]) = (if (x \<in>\<^sub>f \<alpha> p) 
+                    then (\<alpha> p -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
+                    else \<alpha> p)"
+  by (auto simp add:SubstA.rep_eq)
 
 theorem SubstAE_alphabet [alphabet]:
-"v \<rhd>\<^sub>\<alpha> x \<Longrightarrow> \<alpha>(f[v|x]\<alpha>\<epsilon>) = (\<alpha> f -\<^sub>f finsert x \<lbrace>\<rbrace>) \<union>\<^sub>f \<alpha> v"
-  by (simp add:SubstAE_rep_eq)
-*)
+  "\<alpha>(e[v/\<^sub>\<epsilon>x]) = (if (x \<in>\<^sub>f \<alpha> e) 
+                    then (\<alpha> e -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
+                    else \<alpha> e)"
+  by (simp add:SubstAE.rep_eq)
 
 theorem TrueAE_alphabet [alphabet]: "\<alpha> TrueAE = \<lbrace>\<rbrace>"
   by (simp add:TrueAE.rep_eq)

@@ -106,6 +106,10 @@ theorem alphabet_simps:
   "dash `\<^sub>f undash `\<^sub>f out\<^sub>\<alpha> a = out\<^sub>\<alpha> a"
   by (auto, metis (lifting) equals0D in_undash out_in)
 
+lemma NON_REL_VAR_nrel_member [simp]: 
+  "x \<in> NON_REL_VAR \<Longrightarrow> x \<in> nrel vs \<longleftrightarrow> x \<in> vs"
+  by (auto simp add:var_defs)
+
 declare alphabet_simps [simp]
 
 subsubsection {* Distribution Theorems *}
@@ -134,6 +138,10 @@ theorem in_alphabet_finsert2 :
   "x \<in> DASHED \<Longrightarrow> in\<^sub>\<alpha> (finsert x xs) = (in\<^sub>\<alpha> xs)"
   by (force simp add: var_dist)
 
+theorem in_alphabet_finsert_NON_REL_VAR :
+  "x \<in> NON_REL_VAR \<Longrightarrow> in\<^sub>\<alpha> (finsert x xs) = in\<^sub>\<alpha> xs"
+  by (auto simp add: var_defs)
+
 theorem out_alphabet_empty :
   "out\<^sub>\<alpha> \<lbrace>\<rbrace> = \<lbrace>\<rbrace>"
   by (force simp add:var_defs)
@@ -158,6 +166,11 @@ theorem out_alphabet_finsert2 :
   "x \<in> UNDASHED \<Longrightarrow> out\<^sub>\<alpha> (finsert x xs) = out\<^sub>\<alpha> xs"
   by (force simp add: var_dist)
 
+theorem out_alphabet_finsert_NON_REL_VAR :
+  "x \<in> NON_REL_VAR \<Longrightarrow> out\<^sub>\<alpha> (finsert x xs) = out\<^sub>\<alpha> xs"
+  by (auto simp add: var_defs)
+
+
 theorem nrel_alphabet_empty :
   "nrel\<^sub>\<alpha> \<lbrace>\<rbrace> = \<lbrace>\<rbrace>"
   by (force simp add:var_defs)
@@ -174,6 +187,18 @@ theorem nrel_alphabet_diff :
 "nrel\<^sub>\<alpha>(a1 -\<^sub>f a2) = (nrel\<^sub>\<alpha>a1) -\<^sub>f (nrel\<^sub>\<alpha>a2)"
   by (force simp add: var_dist)
 
+theorem nrel_alphabet_finsert_NON_REL_VAR :
+  "x \<in> NON_REL_VAR \<Longrightarrow> nrel\<^sub>\<alpha> (finsert x xs) = finsert x (nrel\<^sub>\<alpha> xs)"
+  by (auto simp add: var_defs)
+
+theorem nrel_alphabet_finsert_UNDASHED :
+  "x \<in> UNDASHED \<Longrightarrow> nrel\<^sub>\<alpha> (finsert x xs) = (nrel\<^sub>\<alpha> xs)"
+  by (auto simp add: var_defs)
+
+theorem nrel_alphabet_finsert_DASHED :
+  "x \<in> DASHED \<Longrightarrow> nrel\<^sub>\<alpha> (finsert x xs) = (nrel\<^sub>\<alpha> xs)"
+  by (auto simp add: var_defs)
+
 theorems alphabet_dist =
   in_alphabet_empty
   in_alphabet_union
@@ -181,16 +206,21 @@ theorems alphabet_dist =
   in_alphabet_diff
   in_alphabet_finsert1
   in_alphabet_finsert2
+  in_alphabet_finsert_NON_REL_VAR
   out_alphabet_empty
   out_alphabet_union
   out_alphabet_inter
   out_alphabet_diff
   out_alphabet_finsert1
   out_alphabet_finsert2
+  out_alphabet_finsert_NON_REL_VAR
   nrel_alphabet_empty
   nrel_alphabet_union
   nrel_alphabet_inter
   nrel_alphabet_diff
+  nrel_alphabet_finsert_NON_REL_VAR
+  nrel_alphabet_finsert_UNDASHED
+  nrel_alphabet_finsert_DASHED
 
 end
 

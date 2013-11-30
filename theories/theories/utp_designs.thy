@@ -285,8 +285,8 @@ theorem DesignD_left_zero:
   shows "true ; (P \<turnstile> Q) = true"
 proof -
 
-  from assms have "true ; (P \<turnstile> Q) = `\<exists> okay\<acute>\<acute>\<acute>. true[$okay\<acute>\<acute>\<acute>/okay\<acute>] ; (P \<turnstile> Q)[$okay\<acute>\<acute>\<acute>/okay]`"
-    by (simp add: SemiR_extract_variable[where x="okay\<down>"] closure erasure typing)
+  from assms have "true ; (P \<turnstile> Q) = `\<exists> okay\<acute>\<acute>. true[$okay\<acute>\<acute>/okay\<acute>] ; (P \<turnstile> Q)[$okay\<acute>\<acute>/okay]`"
+    by (simp add:SemiR_extract_variable erasure typing closure unrest)
 
   also from assms have "... = `(true[false/okay\<acute>] ; (P \<turnstile> Q)[false/okay]) \<or> (true[true/okay\<acute>] ; (P \<turnstile> Q)[true/okay])`"
     apply (rule_tac trans)
@@ -321,10 +321,9 @@ theorem DesignD_composition:
   shows "`(P1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `((\<not> ((\<not> P1) ; true)) \<and> \<not> (Q1 ; (\<not> P2))) \<turnstile> (Q1 ; Q2)`"
 proof -
 
-  from assms
   have " `(P1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` 
-        = `\<exists> okay\<acute>\<acute>\<acute> . ((P1 \<turnstile> Q1)[$okay\<acute>\<acute>\<acute>/okay\<acute>] ; (P2 \<turnstile> Q2)[$okay\<acute>\<acute>\<acute>/okay])`"
-    by (simp add: SemiR_extract_variable[where x="okay\<down>"] closure erasure typing)
+        = `\<exists> okay\<acute>\<acute> . ((P1 \<turnstile> Q1)[$okay\<acute>\<acute>/okay\<acute>] ; (P2 \<turnstile> Q2)[$okay\<acute>\<acute>/okay])`"
+    by (rule SemiR_extract_variable_ty, simp_all add:closure typing unrest assms)
 
   also have "... = ` ((P1 \<turnstile> Q1)[false/okay\<acute>] ; (P2 \<turnstile> Q2)[false/okay]) 
                       \<or> ((P1 \<turnstile> Q1)[true/okay\<acute>] ; (P2 \<turnstile> Q2)[true/okay])`"

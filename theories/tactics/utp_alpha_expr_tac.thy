@@ -98,15 +98,14 @@ theorem EvalA_PermAE [evala] :
 "\<lbrakk>ss\<bullet>e\<rbrakk>\<epsilon> = ss\<bullet>\<lbrakk>e\<rbrakk>\<epsilon>"
   by (simp add:PermAE.rep_eq EvalAE_def)
  
-(*
-theorem EvalA_SubstA :
-"v \<rhd>\<^sub>\<alpha> x \<Longrightarrow> \<lbrakk>SubstA p v x\<rbrakk>\<pi> = \<lbrakk>p\<rbrakk>\<pi>[\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>|x]"
-  by (simp add:SubstA_rep_eq EvalA_def EvalAE_def)
+theorem EvalA_SubstA [evala]: 
+  "\<lbrakk>p[v/\<^sub>\<alpha>x]\<rbrakk>\<pi> = \<lbrakk>p\<rbrakk>\<pi>[\<lbrakk>v\<rbrakk>\<epsilon>/\<^sub>px]"
+  by (simp add:EvalA_def EvalAE_def SubstA.rep_eq)
 
 theorem EvalA_SubstAE [evala] :
-"v \<rhd>\<^sub>\<alpha> x \<Longrightarrow> \<lbrakk>SubstAE f v x\<rbrakk>\<alpha>\<epsilon> = \<lbrakk>f\<rbrakk>\<alpha>\<epsilon>[\<lbrakk>v\<rbrakk>\<alpha>\<epsilon>|x]"
-  by (simp add:SubstAE_rep_eq EvalAE_def)
-*)
+  "\<lbrakk>f[v/\<^sub>\<epsilon>x]\<rbrakk>\<epsilon> = \<lbrakk>f\<rbrakk>\<epsilon>[\<lbrakk>v\<rbrakk>\<epsilon>/\<^sub>ex]"
+  by (simp add:SubstAE.rep_eq EvalAE_def)
+
 
 (*
 theorem EvalA_is_SubstP_var [evala]:

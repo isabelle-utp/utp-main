@@ -43,6 +43,13 @@ theorem EvalA_UNREST [unrest] :
 "UNREST (VAR - \<langle>\<alpha> p\<rangle>\<^sub>f) \<lbrakk>p\<rbrakk>\<pi>"
   by (simp add: EvalA_def unrest)
 
+lemma EvalA_UNREST_alpha [unrest]:
+  "x \<notin>\<^sub>f \<alpha> P \<Longrightarrow> {x} \<sharp> \<lbrakk>P\<rbrakk>\<pi>"
+  apply (rule UNREST_subset)
+  apply (rule EvalA_UNREST)
+  apply (auto)
+done
+
 subsection {* Distribution Theorems *}
 
 theorem EvalA_LiftA [evala] :

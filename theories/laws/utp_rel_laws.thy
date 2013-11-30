@@ -337,54 +337,37 @@ text {* A single variable can be extracted from a sequential composition and cap
 
 theorem SemiR_extract_variable:
   assumes 
-    "P \<in> WF_RELATION" 
-    "Q \<in> WF_RELATION" 
     "x \<in> UNDASHED"
-  shows "P ; Q = (\<exists>\<^sub>p {x\<acute>\<acute>\<acute>}. P[$\<^sub>ex\<acute>\<acute>\<acute>/\<^sub>px\<acute>] ; Q[$\<^sub>ex\<acute>\<acute>\<acute>/\<^sub>px])"
-proof -
-  have "P ; Q = (\<exists>\<^sub>p DASHED_TWICE . (SS1\<bullet>P) \<and>\<^sub>p (SS2\<bullet>Q))"
-    by (simp add:assms SemiR_algebraic_rel)
-
-  also have "... = (\<exists>\<^sub>p {x\<acute>\<acute>}. \<exists>\<^sub>p (DASHED_TWICE - {x\<acute>\<acute>}) . (SS1\<bullet>P) \<and>\<^sub>p (SS2\<bullet>Q))"
-    by (metis DASHED_dash_DASHED_TWICE ExistsP_insert UNDASHED_dash_DASHED assms(3) insert_Diff)
-
-  (* FIXME: This step really should go through much easier.... *)
-  also from assms 
-  have "... = (\<exists>\<^sub>p {x\<acute>\<acute>\<acute>}. (\<exists>\<^sub>p DASHED_TWICE - {x\<acute>\<acute>}. ((SS1\<bullet>P) \<and>\<^sub>p (SS2\<bullet>Q)))[$\<^sub>ex\<acute>\<acute>\<acute>/\<^sub>px\<acute>\<acute>])"
-    apply (rule_tac trans)
-    apply (rule ExistsP_SubstP[of "x\<acute>\<acute>\<acute>"])
-    apply (simp_all)
-    apply (rule unrest) back
-    apply (rule unrest)
-    apply (auto intro: unrest closure simp add:urename)
-  done
-
-  also from assms 
-  have "... = (\<exists>\<^sub>p {x\<acute>\<acute>\<acute>}. (\<exists>\<^sub>p (DASHED_TWICE - {x\<acute>\<acute>}) . ((SubstP (SS1\<bullet>P) ($\<^sub>ex\<acute>\<acute>\<acute>) (x\<acute>\<acute>)) \<and>\<^sub>p (SubstP (SS2\<bullet>Q) ($\<^sub>ex\<acute>\<acute>\<acute>) (x\<acute>\<acute>)))))"
-    apply (subgoal_tac "(DASHED_TWICE - {x\<acute>\<acute>}) \<sharp> (VarE x\<acute>\<acute>\<acute>)")
-    apply (simp add:usubst closure typing)
-    apply (blast intro:unrest)
-  done
-
-  also from assms have "... = (\<exists>\<^sub>p {x\<acute>\<acute>\<acute>}. (\<exists>\<^sub>p DASHED_TWICE . ((SubstP (SS1\<bullet>P) (VarE x\<acute>\<acute>\<acute>) (x\<acute>\<acute>)) \<and>\<^sub>p (SubstP (SS2\<bullet>Q) (VarE x\<acute>\<acute>\<acute>) (x\<acute>\<acute>)))))"
-    apply (subgoal_tac "{x\<acute>\<acute>} \<sharp> ((SubstP (SS1\<bullet>P) (VarE x\<acute>\<acute>\<acute>) (x\<acute>\<acute>)) \<and>\<^sub>p (SubstP (SS2\<bullet>Q) (VarE x\<acute>\<acute>\<acute>) (x\<acute>\<acute>)))")
-    apply (subgoal_tac "(DASHED_TWICE - {x\<acute>\<acute>}) \<union> {x\<acute>\<acute>} = DASHED_TWICE")
-    apply (smt ExistsP_union ExistsP_ident)
-    apply (force)
-    apply (simp add:unrest typing usubst)
-  done
-
-  ultimately show ?thesis using assms
-    apply (subgoal_tac "DASHED_TWICE \<sharp> (SubstP P (VarE (x\<acute>\<acute>\<acute>)) (x\<acute>))")
-    apply (subgoal_tac "DASHED_TWICE \<sharp> (SubstP Q (VarE (x\<acute>\<acute>\<acute>)) (x))")
-    apply (subgoal_tac "\<langle>SS1\<rangle>\<^sub>s (x\<acute>\<acute>\<acute>) = x\<acute>\<acute>\<acute>")
-    apply (subgoal_tac "\<langle>SS2\<rangle>\<^sub>s (x\<acute>\<acute>\<acute>) = x\<acute>\<acute>\<acute>")
-    apply (simp add:SemiR_algebraic urename closure typing defined)
-    apply (simp add:urename closure)
-    apply (metis SS1_ident_app UNDASHED_dash_DASHED in_out_UNDASHED_DASHED(4) not_dash_dash_member_out undash_dash undash_eq_dash_contra2)
-    apply (simp_all add:typing unrest closure)
-  done
-qed
+    "{x\<acute>\<acute>} \<sharp> P" "{x\<acute>\<acute>} \<sharp> Q"
+  shows "P ; Q = (\<exists>\<^sub>p {x\<acute>\<acute>}. P[$\<^sub>ex\<acute>\<acute>/\<^sub>px\<acute>] ; Q[$\<^sub>ex\<acute>\<acute>/\<^sub>px])"
+  using assms
+  apply (utp_pred_auto_tac)
+  (* Subgoal 1 *)
+  apply (rule_tac x="b1(x\<acute>\<acute> :=\<^sub>b \<langle>b1\<rangle>\<^sub>b x\<acute>)" in exI)
+  apply (simp)
+  apply (rule_tac x="b1(x\<acute>\<acute> :=\<^sub>b \<langle>b1\<rangle>\<^sub>b x\<acute>)" in exI)
+  apply (rule_tac x="b2(x\<acute>\<acute> :=\<^sub>b \<langle>b2\<rangle>\<^sub>b x)" in exI)
+  apply (auto)
+  apply (metis DASHED_dash_not_DASHED UNDASHED_dash_DASHED binding_upd_override3)
+  apply (metis EvalP_UNREST_assign_1 binding_upd_simps(2) binding_upd_twist)
+  apply (metis EvalP_UNREST_assign_1 binding_upd_simps(2) binding_upd_twist)
+  apply (auto simp add:COMPOSABLE_BINDINGS_def)[1]
+  apply (metis binding_equiv_minus binding_equiv_update_drop)
+  (* Subgoal 2 *)
+  apply (rule_tac x="b1(x\<acute> :=\<^sub>b \<langle>b1\<rangle>\<^sub>b x\<acute>\<acute>,x\<acute>\<acute> :=\<^sub>b \<langle>b\<rangle>\<^sub>b x\<acute>\<acute>)" in exI)
+  apply (rule_tac x="b2(x :=\<^sub>b \<langle>b2\<rangle>\<^sub>b x\<acute>\<acute>,x\<acute>\<acute> :=\<^sub>b \<langle>b\<rangle>\<^sub>b x\<acute>\<acute>)" in exI)
+  apply (auto)
+  apply (subst binding_upd_twist, simp)
+  apply (simp)
+  apply (subst binding_upd_twist, simp)
+  apply (simp)
+  apply (metis (hide_lams, no_types) binding_override_simps(8) binding_override_upd binding_upd_override binding_upd_override3 binding_upd_override_extract1 binding_upd_triv binding_upd_upd)
+  apply (metis EvalP_UNREST_assign_1)
+  apply (metis EvalP_UNREST_assign_1)
+  apply (auto simp add:COMPOSABLE_BINDINGS_def)
+  apply (simp add:binding_equiv_def)
+  apply (metis (hide_lams, no_types) DASHED_not_NON_REL_VAR NON_REL_VAR_dash_NON_REL_VAR UNDASHED_dash_DASHED binding_equiv_update_subsume binding_equiv_update_subsume' binding_override_left_eq binding_override_singleton)
+done
 
 subsubsection {* Existential Lifting *}
 

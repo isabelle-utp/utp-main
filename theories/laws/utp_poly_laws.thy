@@ -26,15 +26,15 @@ lemma BoolType_pvaux_cases [ucases]:
   apply (simp_all add:typing defined erasure pvaux_aux inju)
 done
 
+thm SemiR_extract_variable
+
 theorem SemiR_extract_variable_ty:
   fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
-  assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
-          "x \<in> PUNDASHED" "pvaux x"
-          "TYPEUSOUND('a, 'm)"
-  shows "P ; Q = `\<exists> x\<acute>\<acute>\<acute>. P[$x\<acute>\<acute>\<acute>/x\<acute>] ; Q[$x\<acute>\<acute>\<acute>/x]`"
-  apply (subst SemiR_extract_variable[of _ _ "x\<down>"])
-  apply (simp_all add:assms)
-  apply (metis PVAR_VAR_PUNDASHED_UNDASHED assms(3))
+  assumes "x \<in> PUNDASHED" "TYPEUSOUND('a, 'm)" "pvaux x"
+          "{x\<down>\<acute>\<acute>} \<sharp> P" "{x\<down>\<acute>\<acute>} \<sharp> Q"
+  shows "P ; Q = `\<exists> x\<acute>\<acute>. P[$x\<acute>\<acute>/x\<acute>] ; Q[$x\<acute>\<acute>/x]`"
+  apply (subst SemiR_extract_variable[of "x\<down>"])
+  apply (simp_all add:assms closure)
   apply (simp add:erasure assms typing defined closure)
 done
 
