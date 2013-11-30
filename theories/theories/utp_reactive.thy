@@ -196,9 +196,7 @@ subsection {* R2 Laws *}
 lemma R2s_idempotent: "`R2s(R2s(P))` = `R2s(P)`"
   apply (simp add:R2s_def)
   apply (subst SubstP_twice_2) back
-  apply (simp_all add:typing defined closure unrest)
-  apply (subst SubstP_twice_1) 
-  apply (simp_all add:typing defined closure unrest)
+  apply (simp add:typing defined closure unrest)
   apply (simp add:usubst typing defined closure)
 done
 
@@ -307,35 +305,34 @@ abbreviation "tt   \<equiv> MkPlainP ''tt'' True TYPE('m EVENT ULIST) TYPE('m)"
 
 lemma R2_form:
   assumes "P \<in> WF_RELATION" "pvaux ttx" 
-  shows "R2(P) = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>\<acute>} . `P[\<langle>\<rangle>/tr][$ttx\<acute>\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr ^ $ttx\<acute>\<acute>\<acute>)`)"
+  shows "R2(P) = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>} . `P[\<langle>\<rangle>/tr][$ttx\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr ^ $ttx\<acute>\<acute>)`)"
 proof -
-have "`$tr \<le> $tr\<acute>` = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>\<acute>} . `$tr\<acute> = $tr ^ $ttx\<acute>\<acute>\<acute>`)"
-  by (metis (hide_lams, no_types) PVAR_VAR_pvdash assms(2) tr_prefix_as_concat)
-hence "R2(P) = R2s(P) \<and>\<^sub>p (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>\<acute>} .  `$tr\<acute> = $tr ^ $ttx\<acute>\<acute>\<acute>`)"
-  by(metis R2_def R1_def)
-also have "... = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>\<acute>} . R2s(P) \<and>\<^sub>p `$tr\<acute> = $tr ^ $ttx\<acute>\<acute>\<acute>`)"
-  apply(subst ExistsP_AndP_expand2)
-  apply(rule unrest)
-  apply(simp_all add:unrest assms closure)
-  done  
-also have "... = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>\<acute>} . `$tr\<acute> = $tr ^ $ttx\<acute>\<acute>\<acute>  \<and> R2s(P)`)"
-  by(subst AndP_comm, simp)
-also have  "... = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>\<acute>} . `R2s(P)[($tr ^ $ttx\<acute>\<acute>\<acute>)/tr\<acute>] \<and> $tr\<acute> = $tr ^ $ttx\<acute>\<acute>\<acute>`)"
-  apply(simp add:erasure typing defined closure)
-  apply(subst EqualP_SubstP)
-  apply(simp_all add: typing defined closure assms AndP_comm)
+  have "`$tr \<le> $tr\<acute>` = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>} . `$tr\<acute> = $tr ^ $ttx\<acute>\<acute>`)"
+    by (metis (hide_lams, no_types) PVAR_VAR_pvdash assms(2) tr_prefix_as_concat)
+  hence "R2(P) = R2s(P) \<and>\<^sub>p (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>} .  `$tr\<acute> = $tr ^ $ttx\<acute>\<acute>`)"
+    by(metis R2_def R1_def)
+  also have "... = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>} . R2s(P) \<and>\<^sub>p `$tr\<acute> = $tr ^ $ttx\<acute>\<acute>`)"
+    apply(subst ExistsP_AndP_expand2)
+    apply(rule unrest)
+    apply(simp_all add:unrest assms closure)
+    done  
+  also have "... = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>} . `$tr\<acute> = $tr ^ $ttx\<acute>\<acute> \<and> R2s(P)`)"
+    by (subst AndP_comm, simp)
+  also have  "... = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>} . `R2s(P)[($tr ^ $ttx\<acute>\<acute>)/tr\<acute>] \<and> $tr\<acute> = $tr ^ $ttx\<acute>\<acute>`)"
+    apply(simp add:erasure typing defined closure)
+    apply(subst EqualP_SubstP)
+    apply(simp_all add: typing defined closure assms AndP_comm)
   done
-also have "... = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>\<acute>} . `P[\<langle>\<rangle>/tr][$ttx\<acute>\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr ^ $ttx\<acute>\<acute>\<acute>)`)" 
-  apply(simp add:R2s_def)
-  apply(subst SubstP_twice_1)
-  apply(simp_all add:typing defined closure assms)
-  apply(simp add:usubst typing defined closure assms)
-  apply(subst app_minus)
-  apply(simp_all add:typing closure)
+  also have "... = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>} . `P[\<langle>\<rangle>/tr][$ttx\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr ^ $ttx\<acute>\<acute>)`)" 
+    apply(simp add:R2s_def)
+    apply(subst SubstP_twice_1)
+    apply(simp add:usubst typing defined closure assms)
+    apply(subst app_minus)
+    apply(simp_all add:typing closure)
   done 
-finally show ?thesis 
-  by (metis assms(1))
-qed  
+  finally show ?thesis 
+    by (metis assms(1))
+qed 
 
 lemma SS_rel_closure [closure]:
   "P \<in> WF_RELATION \<Longrightarrow> SS\<bullet>P \<in> WF_RELATION"

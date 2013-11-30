@@ -153,7 +153,7 @@ lemma tr_eq_trans:
 
 lemma tr_prefix_as_concat:
   assumes "pvaux ttx" 
-  shows "`($tr \<le> $tr\<acute>)` = `(\<exists> ttx\<acute>\<acute>\<acute>. $tr\<acute> = $tr ^ $ttx\<acute>\<acute>\<acute>)`"
+  shows "`($tr \<le> $tr\<acute>)` = `(\<exists> ttx\<acute>\<acute>. $tr\<acute> = $tr ^ $ttx\<acute>\<acute>)`"
   apply (rule prefix_as_concat)
   apply (simp_all add:typing defined assms closure)
 done
