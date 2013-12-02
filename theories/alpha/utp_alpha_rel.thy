@@ -585,11 +585,11 @@ apply (utp_rel_auto_tac)
 done
 
 theorem SemiA_SkipA_left:
-  assumes "r \<in> WF_ALPHA_REL" "a \<in> HOM_ALPHABET" "out\<^sub>\<alpha> a = dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> r)"
+  assumes "a \<in> HOM_ALPHABET" "out\<^sub>\<alpha> a = dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> r)"
   shows "II\<alpha>\<^bsub>a\<^esub> ;\<^sub>\<alpha> r = r"
 proof -
 
-  from assms have ina:"in \<langle>a\<rangle>\<^sub>f = in \<langle>\<alpha> r\<rangle>\<^sub>f"
+  from assms have ina:"in\<^sub>\<alpha> a = in\<^sub>\<alpha> (\<alpha> r)"
     apply (simp add:HOM_ALPHABET_def HOM_ALPHA_HOMOGENEOUS)
     apply (erule Rep_fset_elim)
     apply (clarsimp)
@@ -597,64 +597,38 @@ proof -
     apply (simp only: inj_on_Un_image_eq_iff[of dash, OF dash_inj])
   done
 
-  moreover with assms(1) have "in\<^sub>\<alpha> a \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r) = \<alpha> r"
-    by (auto simp add:WF_ALPHA_REL_def REL_ALPHABET_def in_out_union)
-
-  moreover from assms have "II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> ; (\<pi> r) = (\<pi> r)"
-  proof -
-    have "undash ` (DASHED - dash ` in \<langle>\<alpha> r\<rangle>\<^sub>f) = UNDASHED - in \<langle>\<alpha> r\<rangle>\<^sub>f"
-    proof -  
-      have "dash ` in \<langle>\<alpha> r\<rangle>\<^sub>f \<subseteq> DASHED"
-        by (metis out_dash utp_var.out_DASHED)
-
-      thus ?thesis
-        by (simp add: inj_on_image_set_diff[OF undash_inj_on_DASHED])
-    qed
-
-    with assms show ?thesis
-      apply (simp add:WF_ALPHA_REL_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def)
-      apply (rule_tac SemiR_SkipRA_left)
-      apply (simp_all add:ina)
-      apply (insert WF_ALPHA_PREDICATE_UNREST[of r])
-      apply (force intro:unrest simp add:closure var_defs)
-      apply (force intro:unrest simp add:closure var_defs)
-      apply (force intro: assms(1) unrest)
-    done
-  qed
-
-  ultimately show ?thesis using assms
-    by (utp_alpha_tac, simp add:EvalA_def)
-qed
-
-theorem SemiA_SkipA_right:
-  assumes "r \<in> WF_ALPHA_REL" "a \<in> HOM_ALPHABET" "in\<^sub>\<alpha> a = undash `\<^sub>f out\<^sub>\<alpha> (\<alpha> r)"
-  shows "r ;\<^sub>\<alpha> II\<alpha>\<^bsub>a\<^esub> = r"
-proof -
-  from assms have ina:"out \<langle>a\<rangle>\<^sub>f = out \<langle>\<alpha> r\<rangle>\<^sub>f"
-    by (force elim!:Rep_fset_elim intro!:Rep_fset_intro simp add:WF_ALPHA_REL_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def HOM_ALPHA_unfold)
-    
-  moreover with assms(1) have alpha:"in\<^sub>\<alpha> (\<alpha> r) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r) = \<alpha> r"
-    by (auto simp add:WF_ALPHA_REL_def REL_ALPHABET_def in_out_union)
-
-  moreover from assms have "(\<pi> r) ; II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> = (\<pi> r)"
-  proof -
-    have "dash ` (UNDASHED - undash ` out \<langle>\<alpha> r\<rangle>\<^sub>f) = DASHED - out \<langle>\<alpha> r\<rangle>\<^sub>f"
-      by (metis dash_UNDASHED_image dash_image_minus dash_undash_image utp_var.out_DASHED)
-
-    with assms show ?thesis
-      apply (simp add:WF_ALPHA_REL_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def)
-      apply (rule_tac SemiR_SkipRA_right)
-      apply (simp_all add:closure ina)
-      apply (force elim!:Rep_fset_elim intro:UNREST_subset simp add:closure var_defs)
-      apply (force elim!:Rep_fset_elim intro:UNREST_subset simp add:closure var_defs)
-      apply (force intro: assms(1) unrest)
-    done
-  qed
+  moreover with assms have "II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> ; \<lbrakk>r\<rbrakk>\<pi> = \<lbrakk>r\<rbrakk>\<pi>"
+    apply (rule_tac SemiR_SkipRA_left)
+    apply (metis COMPOSABLE_def HOMOGENEOUS_def HOM_ALPHABET_dash_in)
+    apply (rule UNREST_subset)
+    apply (rule EvalA_UNREST) 
+    apply (auto)
+  done
 
   ultimately show ?thesis using assms
     apply (utp_alpha_tac)
-    apply (simp add:EvalA_def)
-    apply (metis Rep_fset_intro alpha out_alphabet.rep_eq)
+    apply (simp add:alphabet_split)
+  done
+qed
+
+theorem SemiA_SkipA_right:
+  assumes "a \<in> HOM_ALPHABET" "in\<^sub>\<alpha> a = undash `\<^sub>f out\<^sub>\<alpha> (\<alpha> r)"
+  shows "r ;\<^sub>\<alpha> II\<alpha>\<^bsub>a\<^esub> = r"
+proof -
+  from assms have outa:"out\<^sub>\<alpha> a = out\<^sub>\<alpha> (\<alpha> r)"
+    by (force elim!:Rep_fset_elim intro!:Rep_fset_intro simp add:WF_ALPHA_REL_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def HOM_ALPHA_unfold)
+    
+  moreover with assms have "\<lbrakk>r\<rbrakk>\<pi> ; II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> = \<lbrakk>r\<rbrakk>\<pi>"
+    apply (rule_tac SemiR_SkipRA_right)
+    apply (metis COMPOSABLE_def HOMOGENEOUS_def HOM_ALPHABET_dash_in)
+    apply (rule UNREST_subset)
+    apply (rule EvalA_UNREST) 
+    apply (auto)
+  done
+
+  ultimately show ?thesis using assms
+    apply (utp_alpha_tac)
+    apply (simp add:alphabet_split)
   done
 qed
 

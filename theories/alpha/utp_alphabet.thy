@@ -222,5 +222,9 @@ theorems alphabet_dist =
   nrel_alphabet_finsert_UNDASHED
   nrel_alphabet_finsert_DASHED
 
+lemma alphabet_split:
+  "in\<^sub>\<alpha> a \<union>\<^sub>f (out\<^sub>\<alpha> a \<union>\<^sub>f nrel\<^sub>\<alpha> a) = a"
+  by (auto simp add:var_defs)
+
 end
 

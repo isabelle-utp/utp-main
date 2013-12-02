@@ -612,6 +612,10 @@ lemma SS1_eq_id: "SS1 \<cong>\<^sub>s id\<^sub>s on UNDASHED"
 lemma SS2_eq_id: "SS2 \<cong>\<^sub>s id\<^sub>s on DASHED"
   by (auto simp add:rename_equiv_def urename)
 
+lemma SS_equiv_NON_REL_VAR:
+  "b1 \<cong> (SS\<bullet>b2) on NON_REL_VAR \<longleftrightarrow> b1 \<cong> b2 on NON_REL_VAR"
+  by (auto simp add:urename binding_equiv_def)
+
 subsubsection {* Theorems for @{term "COMPOSABLE_BINDINGS"} *}
 
 theorem COMPOSABLE_BINDINGS_dash [intro] :

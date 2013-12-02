@@ -421,6 +421,10 @@ lemma binding_override_overshadow3 [simp]:
   "b1 \<oplus>\<^sub>b (b2 \<oplus>\<^sub>b b3 on - vs) on vs = b1 \<oplus>\<^sub>b b2 on vs"
   by (force simp add:override_on_def)
 
+lemma binding_override_left_subset:
+  "vs1 \<subseteq> vs2 \<Longrightarrow> (b1 \<oplus>\<^sub>b b2 on vs1) \<oplus>\<^sub>b b3 on vs2 = b1 \<oplus>\<^sub>b b3 on vs2"
+  by (metis binding_override_assoc binding_override_simps(4) sup_absorb2)
+
 lemma binding_override_right_subset:
   "vs1 \<inter> vs2 = {} \<Longrightarrow> b1 \<oplus>\<^sub>b (b2 \<oplus>\<^sub>b b3 on vs1) on vs2 = b1 \<oplus>\<^sub>b b2 on vs2"
   by (force simp add:override_on_def)
@@ -526,6 +530,10 @@ lemma binding_equiv_overshadow_left:
 lemma binding_equiv_overshadow_right:
   "vs1 \<inter> vs2 = {} \<Longrightarrow> b1 \<cong> (b2 \<oplus>\<^sub>b b3 on vs1) on vs2 \<longleftrightarrow> b1 \<cong> b2 on vs2"
   by (force simp add:override_on_def binding_equiv_def)
+
+lemma binding_override_equiv_subset: 
+  "\<lbrakk> b1 \<cong> b2 on vs1; vs2 \<subseteq> vs1 \<rbrakk> \<Longrightarrow> b1 \<oplus>\<^sub>b b2 on vs2 = b1"
+  by (metis binding_equiv_subset binding_override_equiv)
 
 text {* The default binding. Every variable maps to the default value. *}
 

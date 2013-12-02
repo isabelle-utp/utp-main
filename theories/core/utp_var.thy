@@ -800,6 +800,10 @@ lemma var_aux_uniq [simp]:
   "aux x \<noteq> aux y \<Longrightarrow> x \<noteq> y"
   by auto
 
+lemma inter_not_DASHED:
+  "vs \<inter> (- D\<^sub>1) = in vs \<union> nrel vs"
+  by (auto simp add:var_defs)
+
 theorems var_simps =
   UNDASHED_nempty
   DASHED_nempty

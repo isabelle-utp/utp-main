@@ -348,7 +348,6 @@ theorem SemiR_extract_variable:
   apply (rule_tac x="b1(x\<acute>\<acute> :=\<^sub>b \<langle>b1\<rangle>\<^sub>b x\<acute>)" in exI)
   apply (rule_tac x="b2(x\<acute>\<acute> :=\<^sub>b \<langle>b2\<rangle>\<^sub>b x)" in exI)
   apply (auto)
-  apply (metis DASHED_dash_not_DASHED UNDASHED_dash_DASHED binding_upd_override3)
   apply (metis EvalP_UNREST_assign_1 binding_upd_simps(2) binding_upd_twist)
   apply (metis EvalP_UNREST_assign_1 binding_upd_simps(2) binding_upd_twist)
   apply (auto simp add:COMPOSABLE_BINDINGS_def)[1]
@@ -359,9 +358,7 @@ theorem SemiR_extract_variable:
   apply (auto)
   apply (subst binding_upd_twist, simp)
   apply (simp)
-  apply (subst binding_upd_twist, simp)
-  apply (simp)
-  apply (metis (hide_lams, no_types) binding_override_simps(8) binding_override_upd binding_upd_override binding_upd_override3 binding_upd_override_extract1 binding_upd_triv binding_upd_upd)
+  apply (metis (mono_tags) binding_upd_override_extract1 binding_upd_triv binding_upd_upd dashed_twice_contras(2))
   apply (metis EvalP_UNREST_assign_1)
   apply (metis EvalP_UNREST_assign_1)
   apply (auto simp add:COMPOSABLE_BINDINGS_def)
@@ -794,16 +791,6 @@ qed
 
 text {* This property allows conversion of an alphabetised identity into an existential *} 
 
-theorem SemiR_right_ExistsP:
-  assumes 
-    "p \<in> WF_RELATION" 
-    "x \<in> UNDASHED"
-  shows "p ; II\<^bsub>(REL_VAR - {x,x\<acute>})\<^esub> = (\<exists>\<^sub>p {x\<acute>}. p)"
-  using assms
-  apply (subgoal_tac "REL_VAR - (REL_VAR - {x, x\<acute>}) = {x,x\<acute>}")
-  apply (auto simp add:SkipRA_def closure unrest ExistsP_SemiR_expand1 var_dist SkipR_ExistsP_out)
-done
-
 lemma SubstP_rel_closure [closure]:
   "\<lbrakk> p \<in> WF_RELATION; NON_REL_VAR \<sharp> v; x \<in> REL_VAR; v \<rhd>\<^sub>e x \<rbrakk> 
   \<Longrightarrow> p[v/\<^sub>px] \<in> WF_RELATION"
@@ -880,82 +867,141 @@ qed
 
 subsubsection {* Alphabetised Skip laws *}
 
-theorem SemiR_SkipRA_right :
+theorem SkipRA_left_as_ExistsP:
   assumes 
-  "(DASHED - out vs) \<sharp> p"
-  "(dash ` (UNDASHED - in vs)) \<sharp> p"
-  "DASHED_TWICE \<sharp> p" 
-  "vs \<subseteq> UNDASHED \<union> DASHED"
-  shows 
-  "p ; II\<^bsub>vs\<^esub> = p"
-proof -
-  have "DASHED_TWICE \<sharp> II"
-    by (auto simp add:SkipR_def closure UNREST_def)
+    "HOMOGENEOUS vs2" 
+    "vs1 \<subseteq> D\<^sub>0"
+    "D\<^sub>0 - vs1 \<sharp> p"
+  shows "II\<^bsub>vs2\<^esub> ; p = (\<exists>\<^sub>p vs1 - in vs2. p)"
+  using assms
+  apply (utp_pred_auto_tac)
+  (* Subgoal 1 (==>) *)
+  apply (simp add:COMPOSABLE_BINDINGS_def, clarify)
+  apply (rule_tac x="b2" in exI, simp)
+  apply (subst binding_override_minus)
+  apply (simp add:var_dist)
+  apply (subst Int_commute)
+  apply (subst inter_not_DASHED)
+  apply (simp add:var_dist)
+  (* Three overridings: NON_REL_VAR - nrel vs1, in (- vs1), and in vs2 *)
+  (* Case 1 *)
+  apply (subst binding_override_simps(1)[THEN sym])
+  apply (subst binding_override_equiv_subset[of _ _ "NON_REL_VAR"]) back 
+  apply (drule binding_equiv_comm)
+  apply (metis binding_override_left_eq binding_override_simps(2))
+  apply (force)
+  (* Case 2 *)
+  apply (subst Un_commute)
+  apply (subst binding_override_simps(1)[THEN sym])
+  apply (subst EvalP_UNREST_override)
+  apply (rule UNREST_subset)
+  apply (simp)
+  apply (force simp add:var_defs)
+  (* Case 3 *)
+  apply (metis (hide_lams, no_types) binding_equiv_def binding_override_equiv set_rev_mp utp_var.in_UNDASHED)
+  (* Subgoal 2 (<==) *)
+  apply (rule_tac x="b \<oplus>\<^sub>b SS\<bullet>(b \<oplus>\<^sub>b b' on vs1 - in vs2) on D\<^sub>1" in exI)
+  apply (rule_tac x="(b \<oplus>\<^sub>b b' on vs1 - in vs2) \<oplus>\<^sub>b b on D\<^sub>1" in exI)
+  apply (auto)
+  apply (subgoal_tac "v \<in> D\<^sub>0")
+  apply (simp add:closure urename)
+  apply (metis in_mono utp_var.in_UNDASHED)
+  apply (metis (hide_lams, no_types) Int_Diff binding_override_reorder binding_override_simps(2) inf_commute inf_le1 out_of_UNDASHED out_vars_def)
+  apply (simp add:COMPOSABLE_BINDINGS_def)
+  apply (auto simp add:urename)
+  apply (subst binding_equiv_overshadow_left)
+  apply (force)
+  apply (subst binding_equiv_overshadow_right)
+  apply (force)
+  apply (subst binding_equiv_overshadow_right)
+  apply (auto)
+done
 
-  moreover from assms have "UNDASHED - in vs =  in (UNDASHED \<union> DASHED - vs)"
-    by (auto simp add:var_simps var_defs)
+theorem SkipRA_right_as_ExistsP:
+  assumes 
+    "HOMOGENEOUS vs2" 
+    "vs1 \<subseteq> D\<^sub>1"
+    "D\<^sub>1 - vs1 \<sharp> p"
+  shows "p ; II\<^bsub>vs2\<^esub> = (\<exists>\<^sub>p vs1 - out vs2. p)"
+  using assms
+  apply (utp_pred_auto_tac)
+  (* Subgoal 1 (==>) *)
+  apply (simp add:COMPOSABLE_BINDINGS_def, clarify)
+  apply (rule_tac x="b1" in exI)
+  apply (subst binding_override_minus)
+  apply (simp add:var_dist)
+  apply (subst binding_override_minus)
+  apply (simp add:var_dist)
+  apply (subst Int_commute)
+  apply (subst out_vars_def[THEN sym])
+  apply (simp add:var_dist)
+  apply (subst Un_commute)
+  apply (subst binding_override_simps(1)[THEN sym])
+  apply (subst EvalP_UNREST_override)
+  apply (rule UNREST_subset)
+  apply (simp)
+  apply (force simp add:var_defs)
+  apply (subgoal_tac "b1 \<cong> b2 on out vs2")
+  apply (metis binding_override_equiv)
+  apply (auto simp add:binding_equiv_def)
+  apply (subgoal_tac "x \<in> D\<^sub>1")
+  apply (drule_tac x="x~" in bspec)
+  apply (metis (full_types) DASHED_undash_UNDASHED Int_iff dash_undash_DASHED hom_alphabet_dash in_vars_def out_vars_def)
+  apply (drule_tac x="x~" in bspec)
+  apply (metis DASHED_undash_UNDASHED in_mono utp_var.out_DASHED)
+  apply (simp)
+  apply (force simp add:var_defs)
+  (* Subgoal 2 (<==) *)
+  apply (rule_tac x="(b \<oplus>\<^sub>b b' on vs1 - out vs2)" in exI)
+  apply (rule_tac x="SS\<bullet>(b \<oplus>\<^sub>b b' on vs1 - out vs2) \<oplus>\<^sub>b b on D\<^sub>1" in exI)
 
-  moreover from assms have "out (UNDASHED \<union> DASHED - vs) = DASHED - out vs "
-    by (auto simp add:var_simps var_defs)
+  apply (auto)
+  apply (subst binding_override_left_subset)
+  apply (force)
+  apply (simp)
+  apply (subgoal_tac "v \<in> D\<^sub>0")
+  apply (simp add:closure urename)
+  apply (metis (full_types) HOMOGENEOUS_dash_in binding_override_on.rep_eq binding_override_simps(9) imageI)
+  apply (metis in_mono utp_var.in_UNDASHED)
+  apply (simp add:COMPOSABLE_BINDINGS_def)
+  apply (auto simp add:urename)
+  apply (subst binding_equiv_overshadow_left)
+  apply (force)
+  apply (subst binding_equiv_overshadow_right)
+  apply (force)
+  apply (simp add:SS_equiv_NON_REL_VAR)
+  apply (subst binding_equiv_overshadow_right)
+  apply (auto)
+done
 
-  moreover have "(UNDASHED \<union> DASHED) - vs \<subseteq> (UNDASHED \<union> DASHED)"
-    by force
-
-  moreover from assms have "p ; II = p"
-    by (utp_rel_auto_tac)
-
-  ultimately show ?thesis using assms
-    by (metis (lifting) ExistsP_SemiR_expand1 ExistsP_ident SkipRA.rep_eq)
-qed
+theorem SemiR_right_ExistsP:
+  assumes 
+    "p \<in> WF_RELATION" 
+    "x \<in> UNDASHED"
+  shows "p ; II\<^bsub>(REL_VAR - {x,x\<acute>})\<^esub> = (\<exists>\<^sub>p {x\<acute>}. p)"
+  using assms
+  apply (subgoal_tac "REL_VAR - (REL_VAR - {x, x\<acute>}) = {x,x\<acute>}")
+  apply (auto simp add:SkipRA_def closure unrest ExistsP_SemiR_expand1 var_dist SkipR_ExistsP_out)
+done
 
 theorem SemiR_SkipRA_left :
   assumes 
-  "(UNDASHED - in vs) \<sharp> p"
-  "(undash ` (DASHED - out vs)) \<sharp> p"
-  "DASHED_TWICE \<sharp> p" 
-  "vs \<subseteq> UNDASHED \<union> DASHED"
-  shows 
-  "II\<^bsub>vs\<^esub> ; p = p"
-proof -
-  have "DASHED_TWICE \<sharp> II"
-    by (auto simp add:SkipR_def closure UNREST_def)
-
-  moreover have "(UNDASHED \<union> DASHED) - vs \<subseteq> (UNDASHED \<union> DASHED)"
-    by force
-
-  moreover from assms have "DASHED - out vs = out (UNDASHED \<union> DASHED - vs)"
-    by (auto simp add:var_simps var_defs)
-
-  moreover from assms have "in (UNDASHED \<union> DASHED - vs) = UNDASHED - in vs "
-    by (auto simp add:var_simps var_defs)
-
-  moreover from assms have "II ; p = p"
-    by (utp_rel_auto_tac)
-
-  ultimately show ?thesis using assms
-    by (metis (lifting) ExistsP_SemiR_expand2 ExistsP_ident SkipRA.rep_eq)
-qed
-
-theorem SkipRA_left_unit:
-  assumes 
-    "P \<in> WF_RELATION" 
-    "vs \<subseteq> REL_VAR" 
-    "(UNDASHED - in vs) \<sharp> P"
-    "HOMOGENEOUS vs"
-  shows "II\<^bsub>vs\<^esub> ; P = P"
-  apply (rule_tac SemiR_SkipRA_left)
-  apply (simp_all add:assms unrest closure var_dist)
+    "HOMOGENEOUS vs" 
+    "D\<^sub>0 - in vs \<sharp> p"
+  shows "II\<^bsub>vs\<^esub> ; p = p"
+  using assms
+  apply (subst SkipRA_left_as_ExistsP[of _ "in vs"])
+  apply (auto simp add:ExistsP_empty)
 done
 
-theorem SkipRA_right_unit:
+theorem SemiR_SkipRA_right :
   assumes 
-    "P \<in> WF_RELATION" 
-    "vs \<subseteq> REL_VAR" 
-    "(DASHED - out vs) \<sharp> P"
-    "HOMOGENEOUS vs"
-  shows "P ; II\<^bsub>vs\<^esub> = P"
-  apply (rule_tac SemiR_SkipRA_right)
-  apply (simp_all add:assms unrest closure var_dist)
+    "HOMOGENEOUS vs" 
+    "D\<^sub>1 - out vs \<sharp> p"
+  shows "p ; II\<^bsub>vs\<^esub> = p"
+  using assms
+  apply (subst SkipRA_right_as_ExistsP[of _ "out vs"])
+  apply (auto simp add:ExistsP_empty)
 done
 
 theorem SkipRA_empty :
