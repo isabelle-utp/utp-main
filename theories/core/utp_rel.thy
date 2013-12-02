@@ -833,9 +833,13 @@ theorem CondR_rel_closure [closure] :
    p1 \<lhd> b \<rhd> p2 \<in> WF_RELATION"
   by (simp add: CondR_def closure)
 
+lemma SS_rel_closure [closure]:
+  "P \<in> WF_RELATION \<Longrightarrow> SS\<bullet>P \<in> WF_RELATION"
+  by (auto intro:unrest simp add:WF_RELATION_def urename)
+
 theorem ConvR_rel_closure [closure] :
-"\<lbrakk> p \<in> WF_RELATION \<rbrakk> \<Longrightarrow> p\<^sup>\<smile> \<in> WF_RELATION"
-  by (auto intro:unrest simp add:ConvR_def WF_RELATION_def urename)
+  "\<lbrakk> p \<in> WF_RELATION \<rbrakk> \<Longrightarrow> p\<^sup>\<smile> \<in> WF_RELATION"
+  by (metis ConvR_def SS_rel_closure)
 
 lemma PrimeP_WF_CONDITION_WF_POSTCOND [closure]:
   "p \<in> WF_CONDITION \<Longrightarrow> p\<acute> \<in> WF_POSTCOND"
@@ -1034,6 +1038,12 @@ lemma UNREST_SemiR_DASHED_TWICE [unrest]:
   "\<lbrakk> UNREST DASHED_TWICE p; UNREST DASHED_TWICE q \<rbrakk> \<Longrightarrow> UNREST DASHED_TWICE (p ; q)"
   apply (simp add:SemiR_algebraic)
   apply (force intro:unrest)
+done
+
+lemma UNREST_SemiR_NON_REL_VAR_single [unrest]:
+  "\<lbrakk> x \<in> NON_REL_VAR; {x} \<sharp> P; {x} \<sharp> Q \<rbrakk> \<Longrightarrow> {x} \<sharp> (P ; Q)"
+  apply (rule UNREST_SemiR_general)
+  apply (auto simp add:var_defs)
 done
  
 lemma UNREST_SemiR_NON_REL_VAR [unrest]:

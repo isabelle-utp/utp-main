@@ -506,6 +506,57 @@ proof -
     by simp
 qed
 
+theorem ExistsP_SemiR_NON_REL_VAR_expand1:
+  assumes "vs \<sharp> p1" "vs \<subseteq> NON_REL_VAR"
+  shows "p1 ; (\<exists>\<^sub>p vs. p2) = (\<exists>\<^sub>p vs. (p1 ; p2))"
+  using assms
+  apply (utp_pred_auto_tac)
+  apply (rule_tac x="b'" in exI)
+  apply (rule_tac x="b1 \<oplus>\<^sub>b b' on vs" in exI)
+  apply (rule_tac x="b2 \<oplus>\<^sub>b b' on vs" in exI)
+  apply (auto)
+  apply (metis (hide_lams, no_types) binding_override_assoc binding_override_simps(1) binding_override_simps(4) sup.commute)
+  apply (simp add:eval)
+  apply (simp add:COMPOSABLE_BINDINGS_def)
+  apply (auto)
+  apply (metis DASHED_not_NON_REL_VAR UNDASHED_dash_DASHED UNDASHED_not_NON_REL_VAR override_on_def set_rev_mp)
+  apply (metis binding_override_left_eq)
+  apply (rule_tac x="b1 \<oplus>\<^sub>b b on vs" in exI)
+  apply (rule_tac x="b2 \<oplus>\<^sub>b b on vs" in exI)
+  apply (auto simp add:eval)
+  apply (metis binding_override_assoc binding_override_simps(1) binding_override_simps(2) binding_override_simps(3) binding_override_simps(4) binding_override_simps(5) sup.commute)
+  apply (rule_tac x="b2" in exI, simp)
+  apply (auto simp add:COMPOSABLE_BINDINGS_def)
+  apply (metis (full_types) DASHED_minus_NON_REL_VAR Diff_iff UNDASHED_dash_DASHED UNDASHED_minus_NON_REL_VAR override_on_apply_notin)
+  apply (metis binding_override_left_eq)
+done
+
+theorem ExistsP_SemiR_NON_REL_VAR_expand2:
+  assumes "vs \<sharp> p2" "vs \<subseteq> NON_REL_VAR"
+  shows "(\<exists>\<^sub>p vs. p1) ; p2 = (\<exists>\<^sub>p vs. (p1 ; p2))"
+  using assms
+  apply (utp_pred_auto_tac)
+  apply (rule_tac x="b'" in exI)
+  apply (rule_tac x="b1 \<oplus>\<^sub>b b' on vs" in exI)
+  apply (rule_tac x="b2 \<oplus>\<^sub>b b' on vs" in exI)
+  apply (auto)
+  apply (metis (hide_lams, no_types) Un_commute binding_override_assoc binding_override_simps(1) binding_override_simps(4))
+  apply (simp add:eval)
+  apply (simp add:COMPOSABLE_BINDINGS_def)
+  apply (auto)
+  apply (metis DASHED_not_NON_REL_VAR UNDASHED_dash_DASHED UNDASHED_not_NON_REL_VAR override_on_def set_rev_mp)
+  apply (metis binding_override_left_eq)
+  apply (rule_tac x="b1 \<oplus>\<^sub>b b on vs" in exI)
+  apply (rule_tac x="b2 \<oplus>\<^sub>b b on vs" in exI)
+  apply (auto simp add:eval)
+  apply (metis Un_commute binding_override_assoc binding_override_simps(1) binding_override_simps(2) binding_override_simps(3) binding_override_simps(4) binding_override_simps(5))
+  apply (rule_tac x="b1" in exI, simp)
+  apply (auto simp add:COMPOSABLE_BINDINGS_def)
+  apply (metis (full_types) DASHED_minus_NON_REL_VAR Diff_iff UNDASHED_dash_DASHED UNDASHED_minus_NON_REL_VAR override_on_apply_notin)
+  apply (metis binding_override_left_eq)
+done
+
+
 theorem ExistsP_UNDASHED_expand_SemiR:
   assumes
     "p \<in> WF_RELATION" 

@@ -279,10 +279,6 @@ assumes "P is R2" "Q is R2"
 shows "`P \<lhd> ($tr\<acute> = $tr) \<rhd> Q` is R2"
 by(subst R2_CondR_closure_2, simp_all add:assms, simp add:is_healthy_def tr_conserved_is_R2)
 
-lemma RenamePV_aux [simp]:
-  "pvaux (ss\<bullet>x) = pvaux x"
-  by (metis PVAR_VAR_RENAME Rep_VAR_RENAME_aux pvaux_aux)
-
 lemma SS1_UNREST_d3 [unrest]:
   "P \<in> WF_RELATION \<Longrightarrow> {x\<acute>\<acute>\<acute>} \<sharp> (SS1\<bullet>P)"
   apply (rule UNREST_RenameP[of "{x\<acute>\<acute>\<acute>}"])
@@ -334,87 +330,12 @@ proof -
     by (metis assms(1))
 qed 
 
-lemma SS_rel_closure [closure]:
-  "P \<in> WF_RELATION \<Longrightarrow> SS\<bullet>P \<in> WF_RELATION"
-  by (metis ConvR_def ConvR_rel_closure)
-
-lemma append_assoc:
-  fixes xs ys zs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
-  shows "|($xs ^ $ys) ^ $zs| = |$xs ^ ($ys ^ $zs)|"
-  by (utp_poly_tac)
-
-(*
-lemma "x \<in> PUNDASHED \<Longrightarrow> SS2 \<bullet> x\<acute>\<acute>\<acute> = x\<acute>\<acute>\<acute>"
-*)
-
 lemma EvalP_ExistsP_singleton_d3_pvaux_ty [evalp]:
   fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
   assumes "TYPEUSOUND('a, 'm)" "pvaux x"
   shows "\<lbrakk>\<exists>\<^sub>p {x\<down>\<acute>\<acute>\<acute>} . p\<rbrakk>b = (\<exists> v . v \<rhd>\<^sub>p x\<acute>\<acute>\<acute> \<and> \<lbrakk>p\<rbrakk>(b(x\<acute>\<acute>\<acute> :=\<^sub>* v)))"
   apply (subst EvalP_ExistsP_singleton_pvaux_ty[THEN sym])
   apply (simp_all add:assms)
-done
-
-theorem ExistsP_SemiR_NON_REL_VAR_expand1:
-  assumes "vs \<sharp> p1" "vs \<subseteq> NON_REL_VAR"
-  shows "p1 ; (\<exists>\<^sub>p vs. p2) = (\<exists>\<^sub>p vs. (p1 ; p2))"
-  using assms
-  apply (utp_pred_auto_tac)
-  apply (rule_tac x="b'" in exI)
-  apply (rule_tac x="b1 \<oplus>\<^sub>b b' on vs" in exI)
-  apply (rule_tac x="b2 \<oplus>\<^sub>b b' on vs" in exI)
-  apply (auto)
-  apply (metis (hide_lams, no_types) binding_override_assoc binding_override_simps(1) binding_override_simps(4) sup.commute)
-  apply (simp add:eval)
-  apply (simp add:COMPOSABLE_BINDINGS_def)
-  apply (auto)
-  apply (metis DASHED_not_NON_REL_VAR UNDASHED_dash_DASHED UNDASHED_not_NON_REL_VAR override_on_def set_rev_mp)
-  apply (metis binding_override_left_eq)
-  apply (rule_tac x="b1 \<oplus>\<^sub>b b on vs" in exI)
-  apply (rule_tac x="b2 \<oplus>\<^sub>b b on vs" in exI)
-  apply (auto simp add:eval)
-  apply (metis binding_override_assoc binding_override_simps(1) binding_override_simps(2) binding_override_simps(3) binding_override_simps(4) binding_override_simps(5) sup.commute)
-  apply (rule_tac x="b2" in exI, simp)
-  apply (auto simp add:COMPOSABLE_BINDINGS_def)
-  apply (metis (full_types) DASHED_minus_NON_REL_VAR Diff_iff UNDASHED_dash_DASHED UNDASHED_minus_NON_REL_VAR override_on_apply_notin)
-  apply (metis binding_override_left_eq)
-done
-
-theorem ExistsP_SemiR_NON_REL_VAR_expand2:
-  assumes "vs \<sharp> p2" "vs \<subseteq> NON_REL_VAR"
-  shows "(\<exists>\<^sub>p vs. p1) ; p2 = (\<exists>\<^sub>p vs. (p1 ; p2))"
-  using assms
-  apply (utp_pred_auto_tac)
-  apply (rule_tac x="b'" in exI)
-  apply (rule_tac x="b1 \<oplus>\<^sub>b b' on vs" in exI)
-  apply (rule_tac x="b2 \<oplus>\<^sub>b b' on vs" in exI)
-  apply (auto)
-  apply (metis (hide_lams, no_types) Un_commute binding_override_assoc binding_override_simps(1) binding_override_simps(4))
-  apply (simp add:eval)
-  apply (simp add:COMPOSABLE_BINDINGS_def)
-  apply (auto)
-  apply (metis DASHED_not_NON_REL_VAR UNDASHED_dash_DASHED UNDASHED_not_NON_REL_VAR override_on_def set_rev_mp)
-  apply (metis binding_override_left_eq)
-  apply (rule_tac x="b1 \<oplus>\<^sub>b b on vs" in exI)
-  apply (rule_tac x="b2 \<oplus>\<^sub>b b on vs" in exI)
-  apply (auto simp add:eval)
-  apply (metis Un_commute binding_override_assoc binding_override_simps(1) binding_override_simps(2) binding_override_simps(3) binding_override_simps(4) binding_override_simps(5))
-  apply (rule_tac x="b1" in exI, simp)
-  apply (auto simp add:COMPOSABLE_BINDINGS_def)
-  apply (metis (full_types) DASHED_minus_NON_REL_VAR Diff_iff UNDASHED_dash_DASHED UNDASHED_minus_NON_REL_VAR override_on_apply_notin)
-  apply (metis binding_override_left_eq)
-done
-
-lemma [simp]: "x\<acute>\<acute> \<notin> D\<^sub>0"
-  by (metis UNDASHED_eq_dash_contra)
-
-lemma [simp]: "x\<acute>\<acute> \<notin> D\<^sub>1"
-  by (metis dash_eq_undash_contra1 undash_dash)
-
-lemma UNREST_SemiR_NON_REL_VAR_single [unrest]:
-  "\<lbrakk> x \<in> NON_REL_VAR; {x} \<sharp> P; {x} \<sharp> Q \<rbrakk> \<Longrightarrow> {x} \<sharp> (P ; Q)"
-  apply (rule UNREST_SemiR_general)
-  apply (auto simp add:var_defs)
 done
 
 lemma R2_SemiR_form: 

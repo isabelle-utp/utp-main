@@ -294,5 +294,9 @@ lemma var_compat_pvar [typing]:
   using assms
   by (auto simp add:var_compat_def typing pvar_compat_def TypeUSound_InjU_defined pvaux_aux)
 
+lemma RenamePV_aux [simp]:
+  "pvaux (ss\<bullet>x) = pvaux x"
+  by (metis PVAR_VAR_RENAME Rep_VAR_RENAME_aux pvaux_aux)
+
 end
 

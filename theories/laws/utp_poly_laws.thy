@@ -157,9 +157,18 @@ theorem nil_prefixeq [simp]:
   "`\<langle>\<rangle> \<le> x` = `true`"
   by (utp_poly_auto_tac)
 
-theorem nil_append [simp]:
+theorem nil_append_left [simp]:
   "|\<langle>\<rangle> ^ x| = |x|"
   by (utp_poly_auto_tac)
+
+theorem nil_append_right [simp]:
+  "|x ^ \<langle>\<rangle>| = |x|"
+  by (utp_poly_auto_tac)
+
+lemma append_assoc:
+  fixes xs ys zs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  shows "|($xs ^ $ys) ^ $zs| = |$xs ^ ($ys ^ $zs)|"
+  by (utp_poly_tac)
 
 theorem SemiR_prefix_trans:
   fixes xs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"

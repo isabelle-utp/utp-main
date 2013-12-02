@@ -516,6 +516,10 @@ theorem dash_eq_undash_contra2 :
 "\<lbrakk>dash x = undash y; x \<in> DASHED; y \<in> DASHED_TWICE\<rbrakk> \<Longrightarrow> False"
   by (auto simp add: var_defs)
 
+lemma dashed_twice_contras [simp]:
+  "x\<acute>\<acute> \<notin> D\<^sub>0" "x\<acute>\<acute> \<notin> D\<^sub>1"
+  by (auto simp add:var_defs)
+
 lemma dashed_thrice_contras [simp]: 
   "x\<acute>\<acute>\<acute> \<notin> D\<^sub>0" "x\<acute>\<acute>\<acute> \<notin> D\<^sub>1" "x\<acute>\<acute>\<acute> \<notin> D\<^sub>2"
   by (auto simp add:var_defs)
