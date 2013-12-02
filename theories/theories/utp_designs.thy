@@ -621,7 +621,7 @@ proof -
   also have "... = `P\<^sup>f \<or> (P\<^sup>t \<and> ok')`"
   proof -
     from assms have "`(P ; (\<not> ok \<and> II\<^bsub>?vs\<^esub>))` = `P\<^sup>f`"
-      by (simp add: VarP_NotP_EqualP_aux SemiR_left_one_point closure typing defined unrest urename usubst SkipRA_right_unit var_dist erasure)
+      by (simp add: VarP_NotP_EqualP_aux SemiR_left_one_point closure typing defined unrest urename usubst SemiR_SkipRA_right var_dist erasure)
 
     moreover have "`(P ; (ok \<and> (II\<^bsub>?vs\<^esub> \<and> ok')))` = `(P\<^sup>t \<and> ok')`"
     proof -
@@ -631,7 +631,7 @@ proof -
       done
 
       moreover from assms have "`(P ; (ok \<and> II\<^bsub>?vs\<^esub>))` =  `P\<^sup>t`"
-        by (simp add: VarP_EqualP_aux SemiR_left_one_point closure typing defined unrest urename usubst SkipRA_right_unit var_dist erasure)
+        by (simp add: VarP_EqualP_aux SemiR_left_one_point closure typing defined unrest urename usubst SemiR_SkipRA_right var_dist erasure)
      
       finally show ?thesis .
     qed
@@ -787,7 +787,7 @@ proof -
     by (simp add:DesignD_composition_cond closure unrest)
 
   also have "... = `p \<turnstile> Q`"
-    by (simp add:SkipRA_right_unit closure assms unrest var_dist)
+    by (simp add:SemiR_SkipRA_right closure assms unrest var_dist)
     
   finally show ?thesis
     by (simp add:H3_def is_healthy_def)
