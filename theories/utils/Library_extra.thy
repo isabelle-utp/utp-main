@@ -138,4 +138,8 @@ lemma set_extra_simps [simp]:
   "(xs \<union> (ys - zs)) - ys = (xs - ys)"
   by (auto)
 
+lemma insert_member [simp]: 
+  "x \<in> xs \<Longrightarrow> insert x xs = xs"
+  by auto
+
 end

@@ -386,6 +386,10 @@ lemma fset_simps [simp]:
   "\<lbrace>\<rbrace> -\<^sub>f xs = \<lbrace>\<rbrace>"
   by (auto)
 
+lemma finsert_member [simp]: 
+  "x \<in>\<^sub>f xs \<Longrightarrow> finsert x xs = xs"
+  by auto
+
 lemma flist_finsert [simp]:
   "\<forall>x'. x'\<in>\<^sub>fA \<longrightarrow> x < x' \<Longrightarrow> flist (finsert x A) = x # flist A"
   apply (subgoal_tac "x \<notin>\<^sub>f A")

@@ -2,6 +2,8 @@ theory utp_designs_a
 imports utp_designs
 begin
 
+subsection {* Design Alphabets *}
+
 definition DESIGN_ALPHABET :: "'a ALPHABET set" where
 "DESIGN_ALPHABET = {a \<in> REL_ALPHABET. \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace> \<subseteq>\<^sub>f a}"
 
@@ -17,6 +19,8 @@ lemma DESIGN_ALPHABET_ok' [closure]:
   "a \<in> DESIGN_ALPHABET \<Longrightarrow> okay\<down>\<acute> \<in> \<langle>a\<rangle>\<^sub>f"
   by (auto simp add:DESIGN_ALPHABET_def)
 
+subsection {* Design Turnstile *}
+
 lift_definition DesignA :: 
   "'a WF_ALPHA_PREDICATE \<Rightarrow> 
    'a WF_ALPHA_PREDICATE \<Rightarrow> 
@@ -26,31 +30,20 @@ is "\<lambda> P Q. (\<alpha> P \<union>\<^sub>f \<alpha> Q \<union>\<^sub>f \<lb
   apply (auto intro:unrest)
 done
 
-definition SkipDA :: "'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE" where
-"SkipDA a = true\<^bsub>a\<^esub> \<turnstile>\<^sub>\<alpha> II\<alpha>\<^bsub>a -\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>\<^esub>"
-
-notation SkipDA ("II\<^bsub>D[_]\<^esub>")
-
-lift_definition AH1 :: 
-  "'a WF_ALPHA_PREDICATE \<Rightarrow> 
-   'a WF_ALPHA_PREDICATE"
-is "\<lambda> P. (\<alpha> P \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>, H1(\<pi> P))"
-  apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def H1_def)
-  apply (auto intro:unrest)
+lift_definition SkipAD :: "'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("II\<alpha>\<^bsub>D[_]\<^esub>")
+is "\<lambda> a. ((a :: 'a ALPHABET) \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>, II\<^bsub>D[\<langle>a\<rangle>\<^sub>f]\<^esub> :: 'a WF_PREDICATE)"
+  apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
+  apply (rule UNREST_subset)
+  apply (rule unrest)
+  apply (auto)
 done
+syntax
+  "_uapred_design"  :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr "\<turnstile>" 30)
+  "_uapred_SkipD"    :: "'a ALPHABET \<Rightarrow> uapred" ("II\<^bsub>D[_]\<^esub>")
 
-lift_definition AH2 :: 
-  "'a WF_ALPHA_PREDICATE \<Rightarrow> 
-   'a WF_ALPHA_PREDICATE"
-is "\<lambda> P. (\<alpha> P \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>, H2(\<pi> P))"
-  apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def H2_def)
-oops
-
-lemma REL_ALPHABET_in_alpha [closure]: "in\<^sub>\<alpha>a \<in> REL_ALPHABET"
-  by (auto simp add:REL_ALPHABET_def var_defs)
-
-lemma REL_ALPHABET_out_alpha [closure]: "out\<^sub>\<alpha>a \<in> REL_ALPHABET"
-  by (auto simp add:REL_ALPHABET_def var_defs)
+translations
+  "_uapred_design p q"   == "CONST DesignA p q"
+  "_uapred_SkipD a"      == "CONST SkipAD a"
 
 lemma DesignA_alphabet [alphabet]:
   "\<alpha> (P \<turnstile>\<^sub>\<alpha> Q) = \<alpha> P \<union>\<^sub>f \<alpha> Q \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>"
@@ -68,29 +61,17 @@ done
 
 lemma SkipDA_alphabet [alphabet]:
   "a \<in> REL_ALPHABET \<Longrightarrow>
-   \<alpha>(II\<^bsub>D[a]\<^esub>) = a \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>"
-  by (auto simp add:SkipDA_def alphabet closure)
+   \<alpha>(II\<alpha>\<^bsub>D[a]\<^esub>) = a \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>"
+  by (simp add:pred_alphabet_def SkipAD.rep_eq)
+
+lemma EvalA_SkipDA [evala]:
+  "\<lbrakk>II\<alpha>\<^bsub>D[a]\<^esub>\<rbrakk>\<pi> = II\<^bsub>D[\<langle>a\<rangle>\<^sub>f]\<^esub>"
+  by (simp add:EvalA_def SkipAD.rep_eq)
 
 lemma SkipDA_rel_closure [closure]:
-  "a \<in> REL_ALPHABET \<Longrightarrow> II\<^bsub>D[a]\<^esub> \<in> WF_ALPHA_REL"
+  "a \<in> REL_ALPHABET \<Longrightarrow> II\<alpha>\<^bsub>D[a]\<^esub> \<in> WF_ALPHA_REL"
   apply (simp add:WF_ALPHA_REL_def REL_ALPHABET_def alphabet)
   apply (simp add:closure)
-done
-
-lemma AH1_alphabet [alphabet]:
-  "\<alpha>(AH1(P)) = \<alpha> P \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>"
-  by (simp add:AH1.rep_eq pred_alphabet_def)
-
-lemma EvalA_AH1 [evala]:
-  "\<lbrakk>AH1(P)\<rbrakk>\<pi> = H1\<lbrakk>P\<rbrakk>\<pi>"
-  by (simp add:EvalA_def AH1.rep_eq)
-
-lemma WF_ALPHA_REL_EvalA_WF_RELATION [closure]:
-  "P \<in> WF_ALPHA_REL \<Longrightarrow> \<lbrakk>P\<rbrakk>\<pi> \<in> WF_RELATION"
-  apply (simp add:WF_ALPHA_REL_def WF_RELATION_def REL_ALPHABET_def)
-  apply (rule UNREST_subset)
-  apply (rule unrest) back back back
-  apply (auto)
 done
 
 lemma UNREST_OKAY_alpha [unrest]: "\<lbrakk> okay\<down> \<notin>\<^sub>f \<alpha> P; okay\<down>\<acute> \<notin>\<^sub>f \<alpha> P \<rbrakk> \<Longrightarrow> OKAY \<sharp> \<lbrakk>P\<rbrakk>\<pi>"
@@ -98,6 +79,27 @@ lemma UNREST_OKAY_alpha [unrest]: "\<lbrakk> okay\<down> \<notin>\<^sub>f \<alph
   apply (rule EvalA_UNREST)
   apply (auto)
 done
+
+theorem DesignA_extreme_point_true:
+  "``false\<^bsub>a\<^esub> \<turnstile> false\<^bsub>a\<^esub>`` = ``false\<^bsub>a\<^esub> \<turnstile> true\<^bsub>a\<^esub>``"
+  "``false\<^bsub>a\<^esub> \<turnstile> true\<^bsub>a\<^esub>``  = ``false\<^bsub>a\<^esub> \<turnstile> true\<^bsub>a\<^esub>``"
+  apply (utp_alpha_tac, utp_pred_tac)
+  apply (utp_alpha_tac)
+done
+
+syntax
+  "_uapred_evar"    :: "(bool, 'm) PVAR \<Rightarrow> uapred" ("$_" [999] 999)
+
+translations
+  "_uapred_evar x"      == "CONST VarA x\<down>"
+
+theorem DesignA_extreme_point_nok:
+  "``true\<^bsub>a\<^esub> \<turnstile> false\<^bsub>a\<^esub>`` = ``\<not> $okay \<oplus> (a \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>)``"
+  by (utp_alpha_tac, utp_pred_tac, auto)
+
+theorem DesignA_export_precondition:
+  "``(P \<turnstile> Q)`` = ``(P \<turnstile> P \<and> Q)``"
+  by (utp_alpha_tac, utp_pred_auto_tac)
 
 theorem DesignA_composition:
   assumes 
@@ -107,16 +109,33 @@ theorem DesignA_composition:
   "okay\<down> \<notin>\<^sub>f \<alpha> P2" "okay\<down>\<acute> \<notin>\<^sub>f \<alpha> P2"
   "okay\<down> \<notin>\<^sub>f \<alpha> Q1" "okay\<down>\<acute> \<notin>\<^sub>f \<alpha> Q1"
   "okay\<down> \<notin>\<^sub>f \<alpha> Q2" "okay\<down>\<acute> \<notin>\<^sub>f \<alpha> Q2"
-  shows "(P1 \<turnstile>\<^sub>\<alpha> Q1) ;\<^sub>\<alpha> (P2 \<turnstile>\<^sub>\<alpha> Q2) = ((\<not>\<^sub>\<alpha> ((\<not>\<^sub>\<alpha> P1) ;\<^sub>\<alpha> true\<^bsub>in\<^sub>\<alpha> (\<alpha> P1)\<^esub>)) \<and>\<^sub>\<alpha> \<not>\<^sub>\<alpha> (Q1 ;\<^sub>\<alpha> (\<not>\<^sub>\<alpha> P2))) \<turnstile>\<^sub>\<alpha> (Q1 ;\<^sub>\<alpha> Q2)"
+  shows "``(P1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)`` = ``((\<not> ((\<not> P1) ; true\<^bsub>in\<^sub>\<alpha> (\<alpha> P1)\<^esub>)) \<and> \<not> (Q1 ; (\<not> P2))) \<turnstile> (Q1 ; Q2)``"
   using assms
   apply (utp_alpha_tac)
   apply (rule conjI)
-  apply (simp add:alphabet_dist closure)
-  defer
+  apply (auto)
   apply (subst DesignD_composition)
   apply (simp_all add:closure unrest)
-  apply (auto)[1]
 done
+
+subsection {* Healthiness Conditions *}
+
+lift_definition AH1 :: 
+  "'a WF_ALPHA_PREDICATE \<Rightarrow> 
+   'a WF_ALPHA_PREDICATE"
+is "\<lambda> P. (\<alpha> P \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>, H1(\<pi> P))"
+  apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def H1_def)
+  apply (auto intro:unrest)
+done
+
+
+lemma AH1_alphabet [alphabet]:
+  "\<alpha>(AH1(P)) = \<alpha> P \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>"
+  by (simp add:AH1.rep_eq pred_alphabet_def)
+
+lemma EvalA_AH1 [evala]:
+  "\<lbrakk>AH1(P)\<rbrakk>\<pi> = H1\<lbrakk>P\<rbrakk>\<pi>"
+  by (simp add:EvalA_def AH1.rep_eq)
 
 lemma AH1_DesignA:
   assumes "okay\<down> \<notin>\<^sub>f \<alpha> P" "okay\<down>\<acute> \<notin>\<^sub>f \<alpha> P"
@@ -124,8 +143,148 @@ lemma AH1_DesignA:
   shows "AH1(P \<turnstile>\<^sub>\<alpha> Q) = P \<turnstile>\<^sub>\<alpha> Q"
   by (utp_alpha_tac, utp_pred_auto_tac)
 
-lemma finsert_member [simp]: "x \<in>\<^sub>f xs \<Longrightarrow> finsert x xs = xs"
-  by auto
+lemma WF_RELATION_REL_ALPHABET [closure]: 
+  "\<alpha> P \<in> REL_ALPHABET \<Longrightarrow> \<lbrakk>P\<rbrakk>\<pi> \<in> WF_RELATION"
+  by (auto intro:closure simp add:WF_ALPHA_REL_def)
+
+thm SkipRA_closure
+
+lemma SkipRA_closure' [closure]:
+  "a \<in> REL_ALPHABET \<Longrightarrow> II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> \<in> WF_RELATION"
+  by (metis EvalA_SkipA SkipA_closure WF_ALPHA_REL_EvalA_WF_RELATION)
+ 
+lemma HOMOGENEOUS_HOM_ALPHA [closure]:
+  "a \<in> HOM_ALPHABET \<Longrightarrow> HOMOGENEOUS \<langle>a\<rangle>\<^sub>f"
+  by (metis (mono_tags) HOM_ALPHABET_def HOM_ALPHA_HOMOGENEOUS mem_Collect_eq)
+
+lemma WF_ALPHA_REL_REL_ALPHABET [closure]:
+  "\<alpha> P \<in> REL_ALPHABET \<Longrightarrow> P \<in> WF_ALPHA_REL"
+  by (simp add:WF_ALPHA_REL_def)
+
+
+theorem AH1_algebraic:
+  assumes 
+    "\<alpha> R \<in> DESIGN_ALPHABET"
+    "\<alpha> R \<in> HOM_ALPHABET"
+  shows 
+    "((true\<^bsub>\<alpha> R\<^esub> ;\<^sub>\<alpha> R = true\<^bsub>\<alpha> R\<^esub>) \<and> (II\<alpha>\<^bsub>D[\<alpha> R]\<^esub> ;\<^sub>\<alpha> R = R)) \<longleftrightarrow> AH1(R) = R"
+  using assms
+  apply (utp_alpha_tac)
+  apply (subst SkipD_SkipDA_left_link[THEN sym])
+  apply (simp_all add:closure)
+  apply (auto intro:unrest UNREST_subset)[1]
+  apply (metis H1_algebraic Healthy_elim Healthy_intro REL_ALPHABET_DESIGN_ALPHABET WF_RELATION_REL_ALPHABET)
+done
+
+lemma DASHED_minus_out:
+  "D\<^sub>1 - out vs = D\<^sub>1 - vs"
+  by (auto simp add:var_defs)
+
+lemma HOMOGENEOUS_minus_nrel [simp]:
+  "HOMOGENEOUS (vs1 - nrel vs2) = HOMOGENEOUS vs1"
+  by (simp add:HOMOGENEOUS_def COMPOSABLE_def var_dist)
+
+lemma JA_as_J_left:
+  "\<lbrakk>HOMOGENEOUS vs; okay\<down>\<acute> \<in> vs\<rbrakk> \<Longrightarrow> J\<^bsub>vs\<^esub> = (\<exists>\<^sub>p D\<^sub>1 - vs. J)"
+  apply (simp add:JA_pred_def)
+  apply (subst ExistsP_AndP_expand2[THEN sym])
+  apply (rule unrest)
+  apply (rule unrest)
+  apply (force)
+  apply (auto intro:unrest)[1]
+  apply (simp add: SkipRA_alt_out_def closure var_dist closure ExistsP_union[THEN sym] in_vars_diff DASHED_minus_out)
+done
+
+lemma JA_as_J_right:
+  "\<lbrakk>HOMOGENEOUS vs; okay\<down> \<in> vs\<rbrakk> \<Longrightarrow> J\<^bsub>vs\<^esub> = (\<exists>\<^sub>p D\<^sub>0 - vs. J)"
+  apply (simp add:JA_pred_def)
+  apply (subst ExistsP_AndP_expand2[THEN sym])
+  apply (auto intro:unrest)[1]
+  apply (simp add: SkipRA_alt_in_def closure var_dist closure ExistsP_union[THEN sym] in_vars_diff UNDASHED_minus_in)
+done
+
+lemma SemiR_JA_right:
+  assumes 
+    "vs \<subseteq> REL_VAR"
+    "HOMOGENEOUS vs"
+    "okay\<down> \<in> vs" 
+    "D\<^sub>1 - out vs \<sharp> p"
+  shows "p ; J = p ; J\<^bsub>vs\<^esub>"
+  using assms
+  apply (subst SemiR_ExistsP_insert_right[of "D\<^sub>0 - (in vs \<union> {okay\<down>})"])
+  apply (rule UNREST_subset)
+  apply (auto)
+  apply (metis (full_types) hom_alphabet_dash in_member in_out_union set_mp sup_ge2)
+  apply (simp add: UNDASHED_minus_in closure)
+  apply (simp add: JA_as_J_right)
+done  
+
+lift_definition AH2 :: 
+  "'a WF_ALPHA_PREDICATE \<Rightarrow> 
+   'a WF_ALPHA_PREDICATE"
+is "\<lambda> P. (\<alpha> P \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>, H2(\<pi> P))"
+proof -
+  fix P :: "'a WF_ALPHA_PREDICATE"
+  show "(\<alpha> P \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>, H2(\<pi> P)) \<in> WF_ALPHA_PREDICATE"
+    apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def H2_def)
+    apply (subst SemiR_JA_right[of "homr (\<langle>\<alpha> P\<rangle>\<^sub>f \<union> OKAY) - nrel \<langle>\<alpha> P\<rangle>\<^sub>f"])
+    apply (simp_all add:closure var_dist)
+    apply (auto simp add:var_defs)[1]
+    apply (auto simp add:var_defs)[1]
+    apply (rule UNREST_subset)
+    apply (rule WF_ALPHA_PREDICATE_UNREST) 
+    apply (force)
+    apply (rule UNREST_SemiR_general[of "VAR - (\<langle>\<alpha> P\<rangle>\<^sub>f \<union> OKAY)"])
+    apply (rule UNREST_subset)
+    apply (rule WF_ALPHA_PREDICATE_UNREST) 
+    apply (force)
+    apply (rule unrest)
+    apply (simp add:var_dist closure nrel_insert_NON_REL_VAR nrel_insert_UNDASHED nrel_insert_DASHED nrel_vars_def[THEN sym])
+    apply (auto simp add:var_defs)
+  done
+qed
+
+lemma AH2_alphabet [alphabet]:
+  "\<alpha> (AH2(P)) = \<alpha> P \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>"
+  by (simp add:pred_alphabet_def AH2.rep_eq)
+
+lemma EvalA_AH2 [evala]:
+  "\<lbrakk>AH2(P)\<rbrakk>\<pi> = H2(\<lbrakk>P\<rbrakk>\<pi>)"
+  by (simp add:EvalA_def AH2.rep_eq)
+
+lemma AH2_idem: 
+  "AH2 (AH2 p) = AH2 (p)"
+  by (utp_alpha_tac, metis H2_idempotent)
+
+lemma AH2_mono:
+  "p \<sqsubseteq> q \<Longrightarrow> AH2(p) \<sqsubseteq> AH2(q)"
+  apply (simp add:EvalA_RefinementA)
+  apply (utp_alpha_tac)
+  apply (metis H2_monotone)
+done
+
+lift_definition AH3 :: 
+  "'a WF_ALPHA_PREDICATE \<Rightarrow> 
+   'a WF_ALPHA_PREDICATE"
+is "\<lambda> P. (\<alpha> P \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>, H3(\<pi> P))"
+proof -
+  fix P :: "'a WF_ALPHA_PREDICATE"
+  show "(\<alpha> P \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>, H3(\<pi> P)) \<in> WF_ALPHA_PREDICATE"
+  apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def H3_def)
+  apply (subst SkipD_SkipDA_right_link[of "homr (\<langle>\<alpha> P\<rangle>\<^sub>f \<union> OKAY) - nrel \<langle>\<alpha> P\<rangle>\<^sub>f"])
+    apply (simp_all add:closure var_dist)
+    apply (auto simp add:var_defs)[1]
+    apply (auto simp add:var_defs)[1]
+    apply (rule UNREST_SemiR_general[of "VAR - (\<langle>\<alpha> P\<rangle>\<^sub>f \<union> OKAY)"])
+    apply (rule UNREST_subset)
+    apply (rule WF_ALPHA_PREDICATE_UNREST) 
+    apply (force)
+    apply (rule unrest)
+    apply (simp add:var_dist closure nrel_insert_NON_REL_VAR nrel_insert_UNDASHED nrel_insert_DASHED nrel_vars_def[THEN sym])
+    apply (auto simp add:var_defs)
+  done
+qed
+
 
 lemma EvalR_ExprP'':
   "\<lbrakk>ExprP e\<rbrakk>R = {(b1, b2). DestBool (\<lbrakk>e\<rbrakk>\<^sub>e (b1 \<oplus>\<^sub>b SS\<bullet>b2 on D\<^sub>1))
@@ -141,12 +300,6 @@ lemma EvalR_ExprP'':
   apply (metis (hide_lams, no_types) NON_REL_VAR_UNDASHED_DASHED SS_REL_VAR_overshadow WF_REL_BINDING_bc_DASHED_eq binding_equiv_override binding_override_assoc binding_override_minus binding_override_simps(2))
 done
 
-theorem undash_image_inter:
-  assumes "vs1 \<subseteq> DASHED" "vs2 \<subseteq> DASHED"
-  shows "undash ` (vs1 \<inter> vs2) = undash ` vs1 \<inter> undash ` vs2"
-  using assms
-  by (auto, metis IntI UnI1 Un_absorb1 dash_undash_DASHED imageI)
-
 (*
 theorem 
   assumes
@@ -158,31 +311,6 @@ theorem
   apply (subgoal_tac "(\<exists>\<^sub>p vs2 - vs1 . Q) \<in> WF_RELATION")
   apply (simp add:SemiR_algebraic_rel assms urename closure typing defined)
 *)
-
-theorem SkipRA_left_to_ExistsP:
-  assumes 
-    "p \<in> WF_RELATION" 
-    "HOMOGENEOUS vs2"
-    "vs2 \<subseteq> REL_VAR"
-    "vs1 \<subseteq> UNDASHED"
-    "out vs2 \<subseteq> dash ` vs1"
-    "UNDASHED - vs1 \<sharp> p"
-  shows "II\<^bsub>vs2\<^esub> ; p = (\<exists>\<^sub>p vs1 - in vs2. p)"
-  using assms
-  apply (subst SemiR_ExistsP_right[THEN sym, of _ _ "out vs2" "vs1"])
-  apply (simp_all add:unrest closure)
-  apply (auto intro:UNREST_subset unrest)[1]
-  apply (subst SemiR_SkipRA_left)
-  apply (simp_all add:unrest closure var_dist)
-  apply (rule unrest)
-  apply (rule UNREST_subset)
-  apply (simp)
-  apply (auto)[1]
-  apply (rule unrest)
-  apply (rule UNREST_subset)
-  apply (simp)
-  apply (auto)[1]
-done
 
 lemma WF_RELATION_REL_ALPHABET [closure]: 
   "\<alpha> P \<in> REL_ALPHABET \<Longrightarrow> \<lbrakk>P\<rbrakk>\<pi> \<in> WF_RELATION"
@@ -205,47 +333,8 @@ lemma WF_ALPHA_REL_REL_ALPHABET [closure]:
   "\<alpha> P \<in> REL_ALPHABET \<Longrightarrow> P \<in> WF_ALPHA_REL"
   by (simp add:WF_ALPHA_REL_def)
 
-lemma SkipD_SkipDA_link:
-  assumes 
-    "\<alpha> R \<in> DESIGN_ALPHABET" "\<alpha> R \<in> HOM_ALPHABET"
-  shows "II\<^sub>D ; \<lbrakk>R\<rbrakk>\<pi> = \<lbrakk>R\<rbrakk>\<pi> \<longleftrightarrow> (II\<^bsub>D[\<alpha> R]\<^esub> ;\<^sub>\<alpha> R = R)"
-proof -
-  have "II\<^sub>D ; \<lbrakk>R\<rbrakk>\<pi> = (true \<turnstile> II\<^bsub>\<langle>\<alpha> R -\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>\<rangle>\<^sub>f\<^esub>) ; \<lbrakk>R\<rbrakk>\<pi>"
-    apply (simp add:SkipD_def DesignD_def)
-    apply (subst BoolType_pvaux_cases[of "okay"])
-    apply (simp)
-    apply (subgoal_tac "HOMOGENEOUS (\<langle>\<alpha> R\<rangle>\<^sub>f)")
-    apply (simp add:usubst typing defined closure unrest assms)
-    apply (subst AndP_comm)
-    apply (subst SemiR_AndP_left_postcond)
-    apply (simp_all add: closure assms urename)
-    apply (subst AndP_comm) back
-    apply (subst SemiR_AndP_left_postcond)
-    apply (simp_all add: closure assms urename)
-    apply (metis (hide_lams, full_types) UNREST_SkipRA_NON_REL_VAR WF_RELATION_def mem_Collect_eq)
-    apply (subst SkipRA_left_to_ExistsP[of _ _ "D\<^sub>0"])
-    apply (simp_all add:closure var_dist unrest assms)
-    apply (subst SkipRA_left_to_ExistsP[of _ _ "in \<langle>\<alpha> R\<rangle>\<^sub>f"])
-    apply (insert assms)
-    apply (simp_all add:closure var_dist unrest)
-    apply (auto simp add:DESIGN_ALPHABET_def REL_ALPHABET_def)
-  done
 
-  also from assms have "in\<^sub>\<alpha> (\<alpha> R) \<union>\<^sub>f (in\<^sub>\<alpha> (\<alpha> R) -\<^sub>f \<lbrace>okay\<down>\<rbrace> \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> R)) = \<alpha> R" (is "?lhs = ?rhs")
-  proof -
-    have "?lhs = in\<^sub>\<alpha> (\<alpha> R) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> R)"
-      by (auto)
 
-    thus ?thesis
-      by (simp add:closure assms)
-  qed
-
-  ultimately show ?thesis using assms
-    apply (simp add:SkipDA_def)
-    apply (utp_alpha_tac)
-    apply (simp add:alphabet_dist closure)
-  done
-qed
 
 declare [[coercion TautologyA]]
 
@@ -258,17 +347,6 @@ theorem AH1_monotone:
   apply (utp_alpha_tac)
 oops
 
-theorem AH1_algebraic:
-  assumes 
-    "\<alpha> R \<in> DESIGN_ALPHABET"
-    "\<alpha> R \<in> HOM_ALPHABET"
-  shows 
-    "((true\<^bsub>\<alpha> R\<^esub> ;\<^sub>\<alpha> R = true\<^bsub>\<alpha> R\<^esub>) \<and> (II\<^bsub>D[\<alpha> R]\<^esub> ;\<^sub>\<alpha> R = R)) \<longleftrightarrow> AH1(R) = R"
-  using assms
-  apply (simp add: SkipD_SkipDA_link[THEN sym] closure alphabet_dist)
-  apply (utp_alpha_tac)
-  apply (metis H1_algebraic HOM_ALPHABET_REL_ALPHABET Healthy_elim Healthy_intro WF_RELATION_REL_ALPHABET)
-done
   
 
 

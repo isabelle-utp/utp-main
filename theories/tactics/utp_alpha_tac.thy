@@ -130,7 +130,7 @@ declare ContradictionA_def [evala]
 declare less_eq_WF_ALPHA_PREDICATE_def [evala]
 declare less_WF_ALPHA_PREDICATE_def [evala]
 
-lemma EvalA_RefinementA: "p \<sqsubseteq> q \<longleftrightarrow> \<alpha> q \<subseteq>\<^sub>f \<alpha> p \<and> \<lbrakk>p\<rbrakk>\<pi> \<sqsubseteq> \<lbrakk>q\<rbrakk>\<pi>"
+lemma EvalA_RefinementA: "p \<sqsubseteq> q \<longleftrightarrow> \<alpha> p = \<alpha> q \<and> \<lbrakk>p\<rbrakk>\<pi> \<sqsubseteq> \<lbrakk>q\<rbrakk>\<pi>"
   by (simp add:less_eq_WF_ALPHA_PREDICATE_def less_eq_WF_PREDICATE_def evala eval alphabet)
 
 subsection {* Proof Tactics *}
@@ -217,53 +217,5 @@ theorem EvalA_test :
 theorem EvalA_contr:
 "p \<Rightarrow>\<^sub>\<alpha> false\<^bsub>\<alpha> p\<^esub> = \<not>\<^sub>\<alpha> p"
   by (utp_alpha_tac)
-
-instance WF_ALPHA_PREDICATE :: (VALUE) order
-  apply (intro_classes)
-  apply (utp_alpha_tac)
-  apply (utp_alpha_tac, utp_pred_tac)
-  apply (utp_alpha_tac, utp_pred_auto_tac)
-  apply (utp_alpha_tac, utp_pred_auto_tac)
-done
-
-instantiation WF_ALPHA_PREDICATE :: (VALUE) lattice
-begin
-
-definition "inf_WF_ALPHA_PREDICATE p q = (\<forall>-\<^sub>\<alpha> (\<alpha> p -\<^sub>f \<alpha> q). p) \<and>\<^sub>\<alpha> (\<forall>-\<^sub>\<alpha> (\<alpha> q -\<^sub>f \<alpha> p). q)"
-definition "sup_WF_ALPHA_PREDICATE = op \<or>\<^sub>\<alpha>"
-
-instance
-  apply (intro_classes)
-  apply (simp_all add:inf_WF_ALPHA_PREDICATE_def sup_WF_ALPHA_PREDICATE_def)
-  apply (simp add:less_eq_WF_ALPHA_PREDICATE_def)
-  apply (utp_alpha_tac)
-  apply (utp_pred_auto_tac)
-  apply (metis binding_override_simps(2))
-  apply (utp_alpha_tac)
-  apply (utp_pred_auto_tac)
-  apply (metis binding_override_simps(2))
-  apply (utp_alpha_tac)
-  apply (utp_pred_auto_tac)
-  apply (subgoal_tac "UNREST (\<langle>\<alpha> y\<rangle>\<^sub>f - \<langle>\<alpha> z\<rangle>\<^sub>f) \<lbrakk>x\<rbrakk>\<pi>")
-  apply (metis EvalP_UNREST_override)
-  apply (metis Diff_mono EvalA_UNREST UNREST_subset VAR_subset)
-  apply (subgoal_tac "UNREST (\<langle>\<alpha> z\<rangle>\<^sub>f - \<langle>\<alpha> y\<rangle>\<^sub>f) \<lbrakk>x\<rbrakk>\<pi>")
-  apply (metis EvalP_UNREST_override)
-  apply (metis Diff_mono EvalA_UNREST UNREST_subset VAR_subset)
-  apply (utp_alpha_tac, utp_pred_auto_tac)
-  apply (utp_alpha_tac, utp_pred_auto_tac)
-  apply (utp_alpha_tac, utp_pred_auto_tac)
-done
-end
-
-lemma "\<alpha> p = \<alpha> q \<Longrightarrow> inf p q = p \<and>\<^sub>\<alpha> q"
-  by (simp add:inf_WF_ALPHA_PREDICATE_def, utp_alpha_tac, utp_pred_tac)
-
-(*
-instantiation WF_ALPHA_PREDICATE :: (VALUE) complete_lattice
-begin
-
-definition "Inf_WF_ALPHA_PREDICATE A = {p. 
-*)
 
 end

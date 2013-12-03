@@ -375,7 +375,7 @@ theorem SS_HOMOGENEOUS_image :
   apply (auto)
   apply (auto simp add:rename_on_rep_eq closure)
   apply (smt DASHED_dash_elim HOMOGENEOUS_def comp_alphabet_dash comp_vars_undash complete_inj_dom complete_inj_none complete_inj_ran dash_UNDASHED_image dash_elim dash_inv_into dash_undash_DASHED)
-  apply (metis HOMOGENEOUS_dash_in in_vars_def out_member)
+  apply (metis DASHED_dash_elim hom_alphabet_dash imageI)
 done
 
 theorems SS_simps =

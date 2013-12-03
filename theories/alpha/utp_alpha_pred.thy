@@ -294,11 +294,11 @@ begin
 
 definition less_eq_WF_ALPHA_PREDICATE :: 
   "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> bool" where
-"less_eq_WF_ALPHA_PREDICATE p2 p1 \<longleftrightarrow> \<alpha> p2 \<subseteq>\<^sub>f \<alpha> p1 \<and> taut\<^sub>\<alpha> (p1 \<sqsubseteq>\<^sub>\<alpha> p2)"
+"less_eq_WF_ALPHA_PREDICATE p2 p1 \<longleftrightarrow> \<alpha> p1 = \<alpha> p2 \<and> taut\<^sub>\<alpha> (p1 \<sqsubseteq>\<^sub>\<alpha> p2)"
 
 definition less_WF_ALPHA_PREDICATE :: 
   "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> bool" where
-"less_WF_ALPHA_PREDICATE p2 p1 \<longleftrightarrow> (\<alpha> p2 \<subseteq>\<^sub>f \<alpha> p1 \<and> taut\<^sub>\<alpha> (p1 \<sqsubseteq>\<^sub>\<alpha> p2)) \<and> \<not> (\<alpha> p1 \<subseteq>\<^sub>f \<alpha> p2 \<and> taut\<^sub>\<alpha> (p2 \<sqsubseteq>\<^sub>\<alpha> p1))"
+"less_WF_ALPHA_PREDICATE p2 p1 \<longleftrightarrow> (\<alpha> p1 = \<alpha> p2 \<and> taut\<^sub>\<alpha> (p1 \<sqsubseteq>\<^sub>\<alpha> p2))"
 
 instance ..
 

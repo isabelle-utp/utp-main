@@ -179,6 +179,14 @@ definition nrel_vars ::
    'a VAR set" ("nrel") where
 "nrel vs = vs \<inter> NON_REL_VAR"
 
+text {* homl and homr construct the left and right homogeneous alphabets *}
+
+definition homl :: "'a VAR set \<Rightarrow> 'a VAR set" where
+"homl vs = in vs \<union> (dash ` in vs) \<union> nrel vs"
+
+definition homr :: "'a VAR set \<Rightarrow> 'a VAR set" where
+"homr vs = (undash ` out vs) \<union> out vs \<union> nrel vs"
+
 definition COMPOSABLE ::
   "'VALUE VAR set \<Rightarrow>
    'VALUE VAR set \<Rightarrow> bool" where
@@ -186,6 +194,9 @@ definition COMPOSABLE ::
 
 definition HOMOGENEOUS :: "'VALUE VAR set \<Rightarrow> bool" where
 "HOMOGENEOUS a \<longleftrightarrow> COMPOSABLE a a"
+
+definition HOM :: "'a VAR set set" where
+"HOM = {xs. HOMOGENEOUS xs}"
 
 subsection {* Theorems *}
 
@@ -206,6 +217,8 @@ theorems var_defs =
   in_vars_def
   out_vars_def
   nrel_vars_def
+  homl_def
+  homr_def
   COMPOSABLE_def
   HOMOGENEOUS_def
 
@@ -399,6 +412,14 @@ theorem out_of_DASHED :
 "vs \<subseteq> DASHED \<Longrightarrow> out vs = vs"
   by (auto simp add: var_defs)
 
+lemma homl_REL_VAR:
+  "vs \<subseteq> REL_VAR \<Longrightarrow> homl vs \<subseteq> REL_VAR"
+  by (auto simp add:var_defs)
+
+lemma homr_REL_VAR:
+  "vs \<subseteq> REL_VAR \<Longrightarrow> homr vs \<subseteq> REL_VAR"
+  by (auto simp add:var_defs)
+
 theorem not_dash_member_in :
 "\<not> dash x \<in> in a"
   by (simp add: var_defs)
@@ -457,6 +478,8 @@ theorems var_member =
   in_of_DASHED
   out_of_UNDASHED
   out_of_DASHED
+  homl_REL_VAR
+  homr_REL_VAR
   not_dash_member_in
   not_dash_dash_member_out
   undash_image_member
@@ -540,6 +563,7 @@ theorems var_contra =
 declare var_contra [dest]
 
 subsubsection {* Simplification Theorems *}
+
 
 lemma UNDASHED_nempty: "UNDASHED \<noteq> {}"
   apply (auto simp add:var_defs)
@@ -639,6 +663,18 @@ lemma undash_dash_image:
 "undash ` dash ` vs = vs"
   by (auto simp add: image_def undash_dash)
 
+theorem undash_image_inter:
+  assumes "vs1 \<subseteq> DASHED" "vs2 \<subseteq> DASHED"
+  shows "undash ` (vs1 \<inter> vs2) = undash ` vs1 \<inter> undash ` vs2"
+  using assms
+  by (auto, metis IntI UnI1 Un_absorb1 dash_undash_DASHED imageI)
+
+theorem dash_image_inter:
+  shows "dash ` (vs1 \<inter> vs2) = dash ` vs1 \<inter> dash ` vs2"
+  apply (auto)
+  apply (metis Int_iff imageI undash_dash)
+done
+
 lemma dash_inv_into [simp]: 
   "x \<in> DASHED \<Longrightarrow> inv_into UNDASHED dash x = undash x"
   by (metis (lifting) dash_UNDASHED_image f_inv_into_f undash_dash)
@@ -702,6 +738,54 @@ lemma in_undash :
 lemma out_dash :
 "out (dash ` vs) = dash ` (in vs)"
   by (auto simp add: var_defs)
+
+lemma homl_homl:
+  "homl (homl vs) = homl vs"
+  by (auto simp add:var_defs)
+
+lemma homl_empty:
+  "homl {} = {}"
+  by (auto simp add:var_defs)
+
+lemma homr_empty:
+  "homr {} = {}"
+  by (auto simp add:var_defs)
+
+lemma in_homl:
+  "in (homl vs) = in vs"
+  by (auto simp add:var_defs)
+
+lemma out_homl:
+  "out (homl vs) = dash ` in vs"
+  by (auto simp add:var_defs)
+
+lemma nrel_homl:
+  "nrel (homl vs) = nrel vs"
+  by (auto simp add:var_defs)
+
+lemma homl_out:
+  "homl (out vs) = {}"
+  by (auto simp add:var_defs)
+
+lemma homr_homr:
+  "homr (homr vs) = homr vs"
+  by (auto simp add:var_defs)
+
+lemma in_homr:
+  "in (homr vs) = undash ` out vs"
+  by (auto simp add:var_defs)
+
+lemma out_homr:
+  "out (homr vs) = out vs"
+  by (auto simp add:var_defs)
+
+lemma nrel_homr:
+  "nrel (homr vs) = nrel vs"
+  by (auto simp add:var_defs)
+
+lemma homr_in:
+  "homr (in vs) = {}"
+  by (auto simp add:var_defs)
 
 lemma in_out_disj :
 "(in vs1) \<inter> (out vs2) = {}"
@@ -804,6 +888,10 @@ lemma inter_not_DASHED:
   "vs \<inter> (- D\<^sub>1) = in vs \<union> nrel vs"
   by (auto simp add:var_defs)
 
+lemma UNDASHED_minus_in:
+  "D\<^sub>0 - in vs = D\<^sub>0 - vs"
+  by (auto simp add:var_defs)
+
 theorems var_simps =
   UNDASHED_nempty
   DASHED_nempty
@@ -821,6 +909,8 @@ theorems var_simps =
   undash_DASHED_TWICE_image
   dash_undash_image
   undash_dash_image
+  dash_image_inter
+  undash_image_inter
   in_empty
   out_empty
   nrel_empty
@@ -842,6 +932,19 @@ theorems var_simps =
   in_dash
   in_undash
   out_dash
+  homl_homl
+  in_homl
+  out_homl
+  nrel_homl
+  homl_empty
+  homr_empty
+  homl_out
+  homl_out
+  homr_homr
+  in_homr
+  out_homr
+  nrel_homr
+  homr_in
   in_out_disj
   in_out_union
   in_out_UNDASHED_DASHED
@@ -937,6 +1040,14 @@ theorem out_vars_diff :
 "out (a1 - a2) = (out a1) - (out a2)"
   by (auto simp add: var_defs)
 
+theorem out_vars_insert1 :
+"v \<in> DASHED \<Longrightarrow> out (insert v vs) = insert v (out vs)"
+  by (auto simp add: var_defs)
+
+theorem out_vars_insert2 :
+"v \<in> UNDASHED \<Longrightarrow> out (insert v vs) = out vs"
+  by (auto simp add: var_defs)
+
 lemma nrel_vars_uminus:
   "nrel (- vs) = NON_REL_VAR - nrel vs"
   by (auto simp add:var_defs)
@@ -953,13 +1064,57 @@ lemma nrel_vars_union:
   "nrel (vs1 \<union> vs2) = nrel vs1 \<union> nrel vs2"
   by (auto simp add:nrel_vars_def)
 
-theorem out_vars_insert1 :
-"v \<in> DASHED \<Longrightarrow> out (insert v vs) = insert v (out vs)"
-  by (auto simp add: var_defs)
+lemma nrel_insert_UNDASHED:
+  "x \<in> UNDASHED \<Longrightarrow> nrel (insert x xs) = nrel xs"
+  by (auto simp add:var_defs)
 
-theorem out_vars_insert2 :
-"v \<in> UNDASHED \<Longrightarrow> out (insert v vs) = out vs"
-  by (auto simp add: var_defs)
+lemma nrel_insert_DASHED:
+  "x \<in> DASHED \<Longrightarrow> nrel (insert x xs) = nrel xs"
+  by (auto simp add:var_defs)
+
+lemma nrel_insert_NON_REL_VAR:
+  "x \<in> NON_REL_VAR \<Longrightarrow> nrel (insert x xs) = insert x (nrel xs)"
+  by (auto simp add:var_defs)
+
+lemma homl_union:
+  "homl (xs \<union> ys) = homl xs \<union> homl ys"
+  by (auto simp add:homl_def in_vars_union nrel_vars_union)
+
+lemma homr_union:
+  "homr (xs \<union> ys) = homr xs \<union> homr ys"
+  by (auto simp add:homr_def out_vars_union nrel_vars_union)
+
+lemma homl_inter:
+  "homl (xs \<inter> ys) = homl xs \<inter> homl ys"
+  apply (auto simp add:homl_def in_vars_inter nrel_vars_inter)
+  apply (force simp add:var_defs)+
+done
+
+lemma homl_insert_UNDASHED:
+  "x \<in> UNDASHED \<Longrightarrow> homl (insert x xs) = {x,x\<acute>} \<union> homl xs"
+  apply (simp add:homl_def out_vars_insert2 nrel_insert_UNDASHED in_vars_insert1)
+  apply (auto)
+done
+
+lemma homl_insert_DASHED:
+  "x \<in> DASHED \<Longrightarrow> homl (insert x xs) = homl xs"
+  by (simp add:homl_def in_vars_insert2 nrel_insert_DASHED)
+
+lemma homl_insert_NON_REL_VAR:
+  "x \<in> NON_REL_VAR \<Longrightarrow> homl (insert x xs) = insert x (homl xs)"
+  by (auto simp add:var_defs)
+
+lemma homr_insert_UNDASHED:
+  "x \<in> UNDASHED \<Longrightarrow> homr (insert x xs) = homr xs"
+  by (simp add:homr_def out_vars_insert2 nrel_insert_UNDASHED)
+
+lemma homr_insert_DASHED:
+  "x \<in> DASHED \<Longrightarrow> homr (insert x xs) = {x,x~} \<union> homr xs"
+  by (simp add:homr_def out_vars_insert1 nrel_insert_DASHED)
+
+lemma homr_insert_NON_REL_VAR:
+  "x \<in> NON_REL_VAR \<Longrightarrow> homr (insert x xs) = insert x (homr xs)"
+  by (auto simp add:var_defs)
 
 theorem dash_image_union:
   "dash ` (vs1 \<union> vs2) = dash ` vs1 \<union> dash ` vs2"
@@ -995,6 +1150,18 @@ theorems var_dist =
   nrel_vars_inter
   nrel_vars_uminus
   nrel_vars_minus
+  nrel_insert_UNDASHED
+  nrel_insert_DASHED
+  nrel_insert_NON_REL_VAR
+  homl_union
+  homr_union
+  homl_inter
+  homl_insert_UNDASHED
+  homl_insert_DASHED
+  homl_insert_NON_REL_VAR
+  homr_insert_UNDASHED
+  homr_insert_DASHED
+  homr_insert_NON_REL_VAR
   dash_image_union
   undash_image_union
   dash_image_minus
@@ -1032,8 +1199,25 @@ lemma HOMOGENEOUS_REL_VAR [simp]:
   "HOMOGENEOUS (UNDASHED \<union> DASHED)"
   by (simp add:HOMOGENEOUS_def COMPOSABLE_def var_dist)
 
+lemma HOMOGENEOUS_homl [simp]:
+  "HOMOGENEOUS (homl vs)"
+  apply (unfold HOMOGENEOUS_def COMPOSABLE_def homl_def)
+  apply (simp add:var_dist)
+done
+
+lemma HOMOGENEOUS_homr [simp]:
+  "HOMOGENEOUS (homr vs)"
+  apply (unfold HOMOGENEOUS_def COMPOSABLE_def homr_def)
+  apply (simp add:var_dist)
+  apply (auto simp add: var_defs)
+done
+
 lemma HOMOGENEOUS_insert [simp]:
-  "\<lbrakk>x \<in> UNDASHED; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow> HOMOGENEOUS (insert x (insert (x\<acute>) vs))"
+  "\<lbrakk>x \<in> UNDASHED; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow> HOMOGENEOUS (insert x (insert x\<acute> vs))"
+  by (simp add: HOMOGENEOUS_def COMPOSABLE_def var_defs)
+
+lemma HOMOGENEOUS_insert' [simp]:
+  "\<lbrakk>x \<in> UNDASHED; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow> HOMOGENEOUS (insert x\<acute> (insert x vs))"
   by (simp add: HOMOGENEOUS_def COMPOSABLE_def var_defs)
 
 lemma HOMOGENEOUS_union [simp]:

@@ -41,6 +41,22 @@ definition COMP_ALPHAS :: "'VALUE ALPHABET \<Rightarrow> 'VALUE ALPHABET \<Right
 definition HOM_ALPHA :: "'VALUE ALPHABET \<Rightarrow> bool" where
 "HOM_ALPHA a = COMP_ALPHAS a a"
 
+definition REL_ALPHABET :: "'VALUE ALPHABET set" where
+"REL_ALPHABET = {a . \<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED}"
+
+definition HOM_ALPHABET :: "'VALUE ALPHABET set" where
+"HOM_ALPHABET = {a . HOM_ALPHA a}"
+
+lift_definition homl_alpha ::
+  "'VALUE ALPHABET \<Rightarrow>
+   'VALUE ALPHABET" ("homl\<^sub>\<alpha>") is "homl"
+  by (simp add: fsets_def var_defs)
+
+lift_definition homr_alpha ::
+  "'VALUE ALPHABET \<Rightarrow>
+   'VALUE ALPHABET" ("homr\<^sub>\<alpha>") is "homr"
+  by (simp add: fsets_def var_defs)
+
 lemma HOM_ALPHA_HOMOGENEOUS:
   "HOM_ALPHA a \<longleftrightarrow> HOMOGENEOUS \<langle>a\<rangle>\<^sub>f"
   by (simp add:HOM_ALPHA_def HOMOGENEOUS_def COMP_ALPHAS_def COMPOSABLE_def)
@@ -86,6 +102,12 @@ theorem not_dash_member_in :
 theorems alphabet_member =
   in_UNDASHED
   out_DASHED
+
+lemma REL_ALPHABET_in_alpha [closure]: "in\<^sub>\<alpha>a \<in> REL_ALPHABET"
+  by (auto simp add:REL_ALPHABET_def var_defs)
+
+lemma REL_ALPHABET_out_alpha [closure]: "out\<^sub>\<alpha>a \<in> REL_ALPHABET"
+  by (auto simp add:REL_ALPHABET_def var_defs)
 
 subsubsection {* Simplification Theorems *}
 

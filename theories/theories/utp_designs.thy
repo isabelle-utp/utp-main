@@ -33,8 +33,13 @@ definition DesignD ::
  'a WF_PREDICATE" (infixr "\<turnstile>" 60) where
 "p \<turnstile> q = `ok \<and> p \<Rightarrow> ok' \<and> q`"
 
-definition SkipD :: "'a WF_PREDICATE" where
-"SkipD = true \<turnstile> II\<^bsub>(REL_VAR - OKAY)\<^esub>"
+definition SkipDA :: "'a VAR set \<Rightarrow> 'a WF_PREDICATE" where
+"SkipDA vs = true \<turnstile> II\<^bsub>(vs - OKAY)\<^esub>"
+
+notation SkipDA ("II\<^bsub>D[_]\<^esub>")
+
+abbreviation SkipD :: "'a WF_PREDICATE" where
+"SkipD \<equiv> SkipDA REL_VAR"
 
 notation SkipD ("II\<^sub>D")
 
@@ -48,8 +53,11 @@ definition BotD :: "'a WF_PREDICATE" ("\<bottom>\<^sub>D") where
 definition TopD :: "'a WF_PREDICATE" ("\<top>\<^sub>D") where
 "TopD = (\<not>\<^sub>p ok)"
 
-definition J_pred :: "'a WF_PREDICATE" ("J") where
-"J \<equiv> (ok \<Rightarrow>\<^sub>p ok') \<and>\<^sub>p II\<^bsub>REL_VAR - OKAY\<^esub>"
+definition JA_pred :: "'a VAR set \<Rightarrow> 'a WF_PREDICATE" ("J\<^bsub>_\<^esub>") where
+"J\<^bsub>vs\<^esub> \<equiv> (ok \<Rightarrow>\<^sub>p ok') \<and>\<^sub>p II\<^bsub>vs - OKAY\<^esub>"
+
+abbreviation J_pred :: "'a WF_PREDICATE" ("J") where
+"J \<equiv> J\<^bsub>REL_VAR\<^esub>"
 
 abbreviation ok_true :: 
   "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<^sup>t" [1000] 1000) where
@@ -73,8 +81,8 @@ definition ParallelMergeD ::
 declare BotD_def [eval,evalr,evalrx,evalp]
 declare TopD_def [eval,evalr,evalrx,evalp]
 declare DesignD_def [eval,evalr,evalrx,evalp]
-declare J_pred_def [eval,evalr,evalrx,evalp]
-declare SkipD_def [eval,evalr,evalrx,evalp]
+declare JA_pred_def [eval,evalr,evalrx,evalp]
+declare SkipDA_def [eval,evalr,evalrx,evalp]
 declare AssignD_def [eval,evalr,evalrx,evalp]
 declare ParallelD_def [eval,evalr,evalrx,evalp]
 
@@ -120,7 +128,7 @@ lemma UNREST_TopD [unrest]:
 
 lemma UNREST_SkipD_NON_REL_VAR [unrest]:
   "NON_REL_VAR \<sharp> II\<^sub>D"
-  apply (simp add:SkipD_def DesignD_def)
+  apply (simp add:SkipDA_def DesignD_def)
   apply (force simp add:PVAR_VAR_MkPVAR intro: unrest)
 done
 
@@ -138,6 +146,14 @@ lemma SubstP_UNREST_OKAY [usubst]:
   "\<lbrakk> x \<in> OKAY; OKAY \<sharp> p; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> p[v/\<^sub>px] = p"
   by (utp_pred_tac)
 
+lemma UNREST_JA [unrest]:
+  "UNREST (VAR - (vs \<union> OKAY)) J\<^bsub>vs\<^esub>"
+  by (auto intro:unrest UNREST_subset simp add:JA_pred_def)
+
+lemma UNREST_SkipDA [unrest]:
+  "UNREST (VAR - (vs \<union> OKAY)) II\<^bsub>D[vs]\<^esub>"
+  by (auto intro:unrest UNREST_subset simp add:SkipDA_def)
+
 lemma TopD_rel_closure [closure]:
   "\<top>\<^sub>D \<in> WF_RELATION"
   by (simp add:TopD_def closure)
@@ -152,7 +168,7 @@ lemma DesignD_rel_closure [closure]:
 
 lemma SkipD_rel_closure [closure]:
   "II\<^sub>D \<in> WF_RELATION"
-  by (auto intro:closure simp add:SkipD_def)
+  by (auto intro:closure simp add:SkipDA_def)
 
 lemma AssignD_rel_closure [closure]:
   "\<lbrakk> x \<in> UNDASHED; NON_REL_VAR \<union> OKAY \<sharp> v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow>
@@ -161,7 +177,7 @@ lemma AssignD_rel_closure [closure]:
 
 theorem J_closure [closure]:
   "J \<in> WF_RELATION"
-  by (simp add:J_pred_def closure)
+  by (simp add:JA_pred_def closure)
 
 lemma ParallelD_rel_closure [closure]:
   "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> P \<parallel> Q \<in> WF_RELATION"
@@ -210,7 +226,7 @@ theorem DesignD_embed_right:
 
 theorem DesignD_SkipD_right:
   "`P \<turnstile> II\<^sub>D` = `P \<turnstile> II\<^bsub>REL_VAR - OKAY\<^esub>`"
-  by (simp add:SkipD_def DesignD_embed_right)
+  by (simp add:SkipDA_def DesignD_embed_right)
 
 theorem DesignD_AssignD_right:
   "P \<turnstile> (x :=\<^sub>D v) = P \<turnstile> x :=\<^bsub>(REL_VAR - OKAY) \<^esub>v"
@@ -219,6 +235,44 @@ theorem DesignD_AssignD_right:
 theorem DesignD_AssignD_true [simp]:
   "true \<turnstile> x :=\<^sub>D v = x :=\<^sub>D v"
   by (simp add:AssignD_def DesignD_embed_right)
+
+lemma SkipD_SkipDA_right_link:
+  assumes 
+    "HOMOGENEOUS vs"
+    "D\<^sub>1 - out vs \<sharp> P"
+    "okay\<down> \<in> vs" 
+  shows "P ; II\<^sub>D = P ; II\<^bsub>D[vs]\<^esub>"
+  using assms
+  apply (subst SemiR_ExistsP_insert_right[of "D\<^sub>0 - (in vs \<union> {okay\<down>})"])
+  apply (simp add:var_dist)
+  apply (rule UNREST_subset)
+  apply (auto simp add:SkipDA_def DesignD_def ImpliesP_def ExistsP_OrP_dist)
+  apply (subst ExistsP_AndP_expand2[THEN sym])
+  apply (auto intro:unrest)
+  apply (simp add:SkipRA_alt_in_def ExistsP_union[THEN sym] var_dist closure)
+  apply (subst ExistsP_ident)
+  apply (auto intro:unrest)
+done  
+
+lemma SkipD_SkipDA_left_link:
+  assumes 
+    "HOMOGENEOUS vs"
+    "D\<^sub>0 - in vs \<sharp> P"
+    "okay\<down>\<acute> \<in> vs" 
+  shows "II\<^sub>D ; P = II\<^bsub>D[vs]\<^esub> ; P" 
+  using assms
+  apply (subst SemiR_ExistsP_insert_left[of "D\<^sub>1 - (out vs \<union> {okay\<down>\<acute>})"])
+  apply (simp add:var_dist)
+  apply (rule UNREST_subset)
+  apply (auto simp add:SkipDA_def DesignD_def ImpliesP_def ExistsP_OrP_dist)
+  apply (metis (hide_lams, no_types) Diff_disjoint Diff_iff Int_absorb1 UNDASHED_minus_in VAR_subset dash_undash_DASHED hom_alphabet_undash in_VAR in_vars_diff out_member)
+  apply (subst ExistsP_AndP_expand2[THEN sym])
+  apply (auto intro:unrest)
+  apply (simp add:SkipRA_alt_out_def ExistsP_union[THEN sym] var_dist closure)
+  apply (subst ExistsP_ident)
+  apply (auto intro:unrest)
+  apply (metis DesignD_extreme_point_nok(2) Diff_iff MkPlain_UNDASHED PVAR_VAR_MkPVAR UNDASHED_eq_dash_contra UNREST_TopD dash_undash_DASHED)
+done  
 
 text {* Design refinement law *}
 
@@ -452,7 +506,7 @@ theorem DesignD_is_H1 [closure]:
 
 theorem SkipD_is_H1 [closure]:
   "II\<^sub>D is H1"
-  by (simp add:SkipD_def closure)
+  by (simp add:SkipDA_def closure)
 
 theorem H1_AndP: "H1 (p \<and>\<^sub>p q) = H1(p) \<and>\<^sub>p H1(q)"
   by (utp_pred_auto_tac)
@@ -471,7 +525,7 @@ proof -
   have "R = II\<^sub>D ; R" by (simp add: assms)
 
   also have "... = `(true \<turnstile> II\<^bsub>?vs\<^esub>) ; R`"
-    by (simp add:SkipD_def)
+    by (simp add:SkipDA_def)
 
   also have "... = `(ok \<Rightarrow> (ok' \<and> II\<^bsub>?vs\<^esub>)) ; R`"
     by (simp add:DesignD_def)
@@ -527,7 +581,7 @@ theorem H1_left_unit:
   shows "II\<^sub>D ; P = P"
 proof -
   let ?vs = "REL_VAR - OKAY"
-  have "II\<^sub>D ; P = `(true \<turnstile> II\<^bsub>?vs\<^esub>) ; P`" by (simp add:SkipD_def)
+  have "II\<^sub>D ; P = `(true \<turnstile> II\<^bsub>?vs\<^esub>) ; P`" by (simp add:SkipDA_def)
   also have "... = `(ok \<Rightarrow> ok' \<and> II\<^bsub>?vs\<^esub>) ; P`" 
     by (simp add:DesignD_def)
   also have "... = `(ok \<Rightarrow> ok \<and> ok' \<and> II\<^bsub>?vs\<^esub>) ; P`" 
@@ -607,7 +661,7 @@ proof -
   let ?vs = "(REL_VAR - OKAY) :: 'a VAR set"
 
   have "P ; J = `P ; ((ok \<Rightarrow> ok') \<and> II\<^bsub>?vs\<^esub>)`"
-    by (simp add:J_pred_def)
+    by (simp add:JA_pred_def)
 
   also have "... = `P ; ((ok \<Rightarrow> ok \<and> ok') \<and> II\<^bsub>?vs\<^esub>)`"
     by (metis ImpliesP_export)
@@ -669,7 +723,7 @@ proof -
     by (simp add:H2_def closure J_split)
 
   also have "... = `((\<not> ok \<and> II\<^bsub>(REL_VAR - OKAY)\<^esub>) \<or> II\<^bsub>(REL_VAR - OKAY)\<^esub> \<and> ok')`"
-    by (simp add:J_pred_def usubst typing defined closure erasure)
+    by (simp add:JA_pred_def usubst typing defined closure erasure)
 
   also have "... = `(\<not> ok \<or> ok') \<and> II\<^bsub>REL_VAR - OKAY\<^esub>`"
     by (utp_pred_auto_tac)
@@ -678,7 +732,7 @@ proof -
     by (utp_pred_tac)
 
   ultimately show ?thesis
-    by (metis J_pred_def)
+    by (metis JA_pred_def)
 qed
 
 theorem J_idempotent [simp]: "J ; J = J"
@@ -754,7 +808,7 @@ theorem SkipD_idempotent:
 
 theorem H3_idempotent:
   "H3 (H3 p) = H3 p"
-  by (metis H3_def SemiR_assoc SkipD_idempotent)
+  by (metis (hide_lams, no_types) H3_def SemiR_assoc SkipD_idempotent)
 
 theorem H3_monotone:
   "p \<sqsubseteq> q \<Longrightarrow> H3 p \<sqsubseteq> H3 q"
@@ -781,7 +835,7 @@ theorem DesignD_precondition_H3 [closure]:
   shows "(p \<turnstile> Q) is H3"
 proof -
   have "(p \<turnstile> Q) ; II\<^sub>D = (p \<turnstile> Q) ; (true \<turnstile> II\<^bsub>REL_VAR - OKAY\<^esub>)"
-    by (simp add:SkipD_def)
+    by (simp add:SkipDA_def)
 
   also from assms have "... = `p \<turnstile> (Q ; II\<^bsub>REL_VAR - OKAY\<^esub>)`"
     by (simp add:DesignD_composition_cond closure unrest)
@@ -804,7 +858,7 @@ theorem SkipD_absorbs_J_1 [simp]:
 
 theorem H3_absorbs_H2_1:
   "H2 (H3 P) = H3 P"
-  by (metis H2_def H3_def SemiR_assoc SkipD_absorbs_J_1)
+  by (simp add:H2_def H3_def SemiR_assoc[THEN sym])
 
 theorem SkipD_absorbs_J_2 [simp]:
   "J ; II\<^sub>D = II\<^sub>D"
@@ -812,7 +866,7 @@ theorem SkipD_absorbs_J_2 [simp]:
 
 theorem H3_absorbs_H2_2:
   "H3 (H2 P) = H3 P"
-  by (metis H2_def H3_def SemiR_assoc SkipD_absorbs_J_2)
+  by (simp add:H2_def H3_def SemiR_assoc[THEN sym])
 
 theorem H3_implies_H2:
   "P is H3 \<Longrightarrow> P is H2"

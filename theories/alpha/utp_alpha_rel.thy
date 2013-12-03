@@ -4,7 +4,7 @@
 (* Author: Simon Foster and Frank Zeyda, University of York (UK)              *)
 (******************************************************************************)
 
-header {* Alphabetised Predicates *}
+header {* Alphabetised Relations *}
 
 theory utp_alpha_rel
 imports 
@@ -21,29 +21,11 @@ begin
 
 subsection {* Restrictions *}
 
-definition REL_ALPHABET :: "'VALUE ALPHABET set" where
-"REL_ALPHABET = {a . \<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED}"
-
-definition HOM_ALPHABET :: "'VALUE ALPHABET set" where
-"HOM_ALPHABET = {a . a \<in> REL_ALPHABET \<and> HOM_ALPHA a}"
-
-definition hom_left ::
-  "'VALUE ALPHABET \<Rightarrow>
-   'VALUE ALPHABET" ("homl") where
-"homl a = in\<^sub>\<alpha> a \<union>\<^sub>f dash `\<^sub>f in\<^sub>\<alpha> a"
-
-definition hom_right ::
-  "'VALUE ALPHABET \<Rightarrow>
-   'VALUE ALPHABET" ("homr") where
-"homr a = undash `\<^sub>f out\<^sub>\<alpha> a \<union>\<^sub>f out\<^sub>\<alpha> a"
-
-abbreviation "homa a \<equiv> homl a \<union>\<^sub>f homr a"
-
 definition WF_ALPHA_REL :: "'VALUE WF_ALPHA_PREDICATE set" where
 "WF_ALPHA_REL = {p . (\<alpha> p) \<in> REL_ALPHABET}"
 
 definition HOM_RELATION :: "'VALUE WF_ALPHA_PREDICATE set" where
-"HOM_RELATION = {p . (\<alpha> p) \<in> HOM_ALPHABET}"
+"HOM_RELATION = {p . (\<alpha> p) \<in> HOM_ALPHABET \<and> (\<alpha> p) \<in> REL_ALPHABET}"
 
 definition WF_REL_EXPR :: "'VALUE WF_ALPHA_EXPRESSION set" where
 "WF_REL_EXPR = {e . (\<alpha> e) \<in> REL_ALPHABET}"
@@ -125,6 +107,14 @@ apply (auto)
 done
 *)
 
+lemma WF_ALPHA_REL_EvalA_WF_RELATION [closure]:
+  "P \<in> WF_ALPHA_REL \<Longrightarrow> \<lbrakk>P\<rbrakk>\<pi> \<in> WF_RELATION"
+  apply (simp add:WF_ALPHA_REL_def WF_RELATION_def REL_ALPHABET_def)
+  apply (rule UNREST_subset)
+  apply (rule EvalA_UNREST)
+  apply (auto)
+done
+
 theorem WF_ALPHA_REL_intro [intro] :
   "\<langle>\<alpha> r\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED \<Longrightarrow>
    r \<in> WF_ALPHA_REL"
@@ -133,10 +123,6 @@ theorem WF_ALPHA_REL_intro [intro] :
 theorem WF_ALPHA_COND_WF_ALPHA_REL [closure] :
 "r \<in> WF_ALPHA_COND \<Longrightarrow> r \<in> WF_ALPHA_REL"
   by (simp add: WF_ALPHA_COND_def)
-
-theorem HOM_ALPHABET_REL_ALPHABET [closure] :
-"a \<in> HOM_ALPHABET \<Longrightarrow> a \<in> REL_ALPHABET"
-  by (simp add: HOM_ALPHABET_def)
 
 theorem HOM_RELATION_WF_ALPHA_REL [closure] :
 "r \<in> HOM_RELATION \<Longrightarrow> r \<in> WF_ALPHA_REL"
@@ -199,51 +185,29 @@ theorem REL_ALPHABET_minus [closure]:
 
 theorem HOM_ALPHABET_empty [closure]:
   "\<lbrace>\<rbrace> \<in> HOM_ALPHABET"
-  apply (simp add:HOM_ALPHABET_def HOM_ALPHA_unfold)
-  apply (simp add:closure)
-done
+  by (simp add:HOM_ALPHABET_def HOM_ALPHA_unfold)
 
 theorem HOM_ALPHABET_union [closure]:
   "\<lbrakk> a1 \<in> HOM_ALPHABET; a2 \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> (a1 \<union>\<^sub>f a2) \<in> HOM_ALPHABET"
-  apply (simp add:HOM_ALPHABET_def HOM_ALPHA_unfold alphabet_dist)
-  apply (simp add:closure)
-done
+  by (simp add:HOM_ALPHABET_def HOM_ALPHA_unfold alphabet_dist)
 
 theorem HOM_ALPHABET_inter [closure]:
   "\<lbrakk> a1 \<in> HOM_ALPHABET; a2 \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> (a1 \<inter>\<^sub>f a2) \<in> HOM_ALPHABET"
   apply (simp add:HOM_ALPHABET_def HOM_ALPHA_unfold alphabet_dist dash_inj dash_inter_distr)
-  apply (simp add:closure)
-  apply (clarsimp)
-  apply (simp add: dash_inter_distr)
+  apply (auto)
 done
 
 theorem HOM_ALPHABET_minus [closure]:
   "\<lbrakk> a1 \<in> HOM_ALPHABET; a2 \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> (a1 -\<^sub>f a2) \<in> HOM_ALPHABET"
-  apply (simp add:HOM_ALPHABET_def HOM_ALPHA_unfold alphabet_dist dash_inj)
-  apply (simp add:closure)
-done
-
-theorem REL_ALPHABET_hom_right [closure]: 
-  "homr a \<in> REL_ALPHABET"
-  by (auto simp add:REL_ALPHABET_def var_defs hom_right_def)
+  by (simp add:HOM_ALPHABET_def HOM_ALPHA_unfold alphabet_dist dash_inj)
 
 theorem HOM_ALPHABET_hom_right [closure]: 
-  "homr a \<in> HOM_ALPHABET"
-  apply (auto simp add:HOM_ALPHABET_def)
-  apply (simp add:closure)
-  apply (simp add:HOM_ALPHA_unfold hom_right_def alphabet_dist)
-done
-
-theorem REL_ALPHABET_hom_left [closure]: 
-  "homl a \<in> REL_ALPHABET"
-  by (auto simp add:REL_ALPHABET_def var_defs hom_left_def)
+  "homr\<^sub>\<alpha> a \<in> HOM_ALPHABET"
+  by (auto simp add:HOM_ALPHABET_def HOM_ALPHA_unfold homr_alpha.rep_eq alphabet_dist)
 
 theorem HOM_ALPHABET_hom_left [closure]: 
-  "homl a \<in> HOM_ALPHABET"
-  apply (auto simp add:HOM_ALPHABET_def)
-  apply (simp add:closure)
-  apply (simp add:HOM_ALPHA_unfold hom_left_def alphabet_dist)
-done
+  "homl\<^sub>\<alpha> a \<in> HOM_ALPHABET"
+  by (auto simp add:HOM_ALPHABET_def HOM_ALPHA_unfold homl_alpha.rep_eq alphabet_dist)
 
 theorem NotA_WF_ALPHA_REL [closure] :
 "\<lbrakk>r \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
@@ -466,8 +430,7 @@ subsection {* Alphabet Theorems *}
 declare pred_alphabet_def [simp]
 
 theorem SkipA_alphabet [alphabet] :
-"a \<in> REL_ALPHABET \<Longrightarrow>
- \<alpha> (II\<alpha>\<^bsub>a\<^esub>) = a"
+"\<alpha> (II\<alpha>\<^bsub>a\<^esub>) = a"
   by (simp add: SkipA.rep_eq)
 
 (*
@@ -536,7 +499,7 @@ theorem EvalA_UNREST_in [unrest]:
   by (auto intro:unrest UNREST_subset simp add:var_defs)
 
 theorem EvalA_SkipA [evala] :
-"a \<in> REL_ALPHABET \<Longrightarrow> \<lbrakk>II\<alpha>\<^bsub>a\<^esub>\<rbrakk>\<pi> = II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub>"
+"\<lbrakk>II\<alpha>\<^bsub>a\<^esub>\<rbrakk>\<pi> = II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub>"
   by (simp add:EvalA_def SkipA.rep_eq)
 
 theorem EvalA_CondA [evala] :
@@ -585,7 +548,9 @@ apply (utp_rel_auto_tac)
 done
 
 theorem SemiA_SkipA_left:
-  assumes "a \<in> HOM_ALPHABET" "out\<^sub>\<alpha> a = dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> r)"
+  assumes 
+    "a \<in> HOM_ALPHABET" "a \<in> REL_ALPHABET"
+    "out\<^sub>\<alpha> a = dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> r)"
   shows "II\<alpha>\<^bsub>a\<^esub> ;\<^sub>\<alpha> r = r"
 proof -
 
@@ -612,7 +577,9 @@ proof -
 qed
 
 theorem SemiA_SkipA_right:
-  assumes "a \<in> HOM_ALPHABET" "in\<^sub>\<alpha> a = undash `\<^sub>f out\<^sub>\<alpha> (\<alpha> r)"
+  assumes 
+    "a \<in> HOM_ALPHABET" "a \<in> REL_ALPHABET"
+    "in\<^sub>\<alpha> a = undash `\<^sub>f out\<^sub>\<alpha> (\<alpha> r)"
   shows "r ;\<^sub>\<alpha> II\<alpha>\<^bsub>a\<^esub> = r"
 proof -
   from assms have outa:"out\<^sub>\<alpha> a = out\<^sub>\<alpha> (\<alpha> r)"

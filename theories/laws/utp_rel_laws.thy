@@ -366,6 +366,67 @@ theorem SemiR_extract_variable:
   apply (metis (hide_lams, no_types) DASHED_not_NON_REL_VAR NON_REL_VAR_dash_NON_REL_VAR UNDASHED_dash_DASHED binding_equiv_update_subsume binding_equiv_update_subsume' binding_override_left_eq binding_override_singleton)
 done
 
+text {* If the right hand side of ; restricts less input variables than the less
+        does for corresponding outputs, those outputs can be existentially quantified. *}
+
+theorem SemiR_ExistsP_insert_left:
+  assumes "undash ` vs \<sharp> Q" "vs \<subseteq> D\<^sub>1"
+  shows "P ; Q = (\<exists>\<^sub>p vs. P) ; Q"
+  using assms
+  apply (utp_pred_auto_tac)
+  apply (rule_tac x="b1" in exI)
+  apply (rule_tac x="b2" in exI)
+  apply (auto)
+  apply (rule_tac x="b1" in exI, simp)
+  apply (rule_tac x="b1 \<oplus>\<^sub>b b' on vs" in exI)
+  apply (rule_tac x="b2 \<oplus>\<^sub>b (SS\<bullet>b') on undash ` vs" in exI)
+  apply (simp add:eval unrest)
+  apply (subst binding_override_left_subset)
+  apply (force)
+  apply (subst binding_override_right_subset)
+  apply (force simp add:var_defs)
+  apply (auto simp add:COMPOSABLE_BINDINGS_def)[1]
+  apply (case_tac "v\<acute> \<in> vs")
+  apply (simp add:urename)
+  apply (simp add:urename)
+  apply (metis (full_types) dash_undash_image imageI override_on_def)
+  apply (subst binding_equiv_overshadow_left)
+  apply (auto simp add:var_defs)[1]
+  apply (subst binding_equiv_overshadow_right)
+  apply (auto simp add:var_defs)[1]
+  apply (assumption)
+done
+
+theorem SemiR_ExistsP_insert_right:
+  assumes "dash ` vs \<sharp> P" "vs \<subseteq> D\<^sub>0" 
+  shows "P ; Q = P ; (\<exists>\<^sub>p vs. Q)"
+  using assms
+  apply (utp_pred_auto_tac)
+  apply (rule_tac x="b1" in exI)
+  apply (rule_tac x="b2" in exI)
+  apply (auto)
+  apply (rule_tac x="b2" in exI, simp)
+  apply (rule_tac x="b1 \<oplus>\<^sub>b (SS\<bullet>b') on dash ` vs" in exI)
+  apply (rule_tac x="b2 \<oplus>\<^sub>b b' on vs" in exI)
+  apply (simp add:eval unrest)
+  apply (subst binding_override_left_subset)
+  apply (force)
+  apply (auto simp add:closure)[1]
+  apply (subst binding_override_right_subset)
+  apply (force simp add:var_defs)
+  apply (simp)
+  apply (auto simp add:COMPOSABLE_BINDINGS_def)[1]
+  apply (case_tac "v \<in> vs")
+  apply (simp add:urename)
+  apply (simp add:urename)
+  apply (metis dash_elim image_iff override_on_def)
+  apply (subst binding_equiv_overshadow_left)
+  apply (auto simp add:var_defs)[1]
+  apply (subst binding_equiv_overshadow_right)
+  apply (auto simp add:var_defs)[1]
+  apply (assumption)
+done
+
 subsubsection {* Existential Lifting *}
 
 text {* Lifting of exists around sequential composition requires that p1 and p2 are 
@@ -866,6 +927,26 @@ proof -
 qed
 
 subsubsection {* Alphabetised Skip laws *}
+
+lemma SkipRA_alt_in_def:
+  "HOMOGENEOUS vs \<Longrightarrow> II\<^bsub>vs\<^esub> = (\<exists>\<^sub>p (D\<^sub>0 - in vs). II)"
+  apply (utp_pred_auto_tac)
+  apply (rule_tac x="SS\<bullet>b" in exI, auto)
+  apply (metis DiffI SS_UNDASHED_app comp_apply override_on_def)
+  apply (metis override_on_minus set_mp in_UNDASHED)
+done
+
+lemma SkipRA_alt_out_def:
+  "HOMOGENEOUS vs \<Longrightarrow> II\<^bsub>vs\<^esub> = (\<exists>\<^sub>p (D\<^sub>1 - out vs). II)"
+  apply (utp_pred_auto_tac)
+  apply (rule_tac x="SS\<bullet>b" in exI, auto)
+  apply (case_tac "v\<acute> \<in> out vs")
+  apply (simp_all add:urename)
+  apply (metis Int_iff hom_alphabet_dash in_vars_def out_vars_def)
+  apply (drule_tac x="v" in bspec, simp add:var_defs)
+  apply (simp)
+  apply (metis HOMOGENEOUS_dash_in imageI override_on_minus)
+done
 
 theorem SkipRA_left_as_ExistsP:
   assumes 
