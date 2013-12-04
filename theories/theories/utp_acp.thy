@@ -243,7 +243,7 @@ proof -
       apply (subgoal_tac "{tr\<down>} \<sharp> a")
       apply (subgoal_tac "{tr\<down>\<acute>} \<sharp> a")
       apply (simp add:R2s_def usubst typing defined closure unrest)
-      apply (auto intro:UNREST_PEXPR_subset)
+      apply (auto intro:UNREST_PEXPR_subset simp add:PSubstPE_VarP_single_UNREST)
     done
   qed
 
@@ -333,27 +333,13 @@ proof -
   also have "... = `(\<not>$wait \<and> ($tr\<acute> = $tr) \<and> $wait\<acute>) ; P`" 
     by(subst 2,simp)
   also have "... = `(\<not>$wait \<and> ($tr\<acute> = $tr)) ; ($wait \<and> P)`"
-    apply(subst SemiR_AndP_right_precond)
-    apply(subst AndP_rel_closure)
-    apply(utp_pred_auto_tac)
-    apply(metis tr_eq_rel_closure)
-    apply(simp_all)
-    apply(simp add: assms (3))
-    apply(utp_pred_auto_tac)
-    apply(simp add: urename closure typing defined )
-    apply (metis (hide_lams, mono_tags) AndP_assoc)
-done
+    by (simp add:SemiR_AndP_right_precond urename closure typing defined AndP_assoc)
  also have "... = `(\<not>$wait \<and> ($tr\<acute> = $tr)) ; ($wait \<and> R3(P))`"
     by(metis assms(2) RH_is_R3 is_healthy_def)
   also have "... = `(\<not>$wait \<and> ($tr\<acute> = $tr)) ; ($wait \<and> II)`"
     by (metis AndP_comm R3_wait)
   also have "... = `\<not>$wait \<and> ($tr\<acute> = $tr) \<and> $wait\<acute>`"
-    apply(subst SemiR_AndP_right_precond)
-    apply(subst AndP_rel_closure)
-    apply(simp_all add:closure urename)
-    apply(metis tr_eq_rel_closure)
-    apply(subst AndP_assoc, simp)
-    done
+    by (simp add:SemiR_AndP_right_precond closure urename AndP_assoc)
   finally have 3: "`\<not>$wait \<and> \<delta>;P` = `\<not>$wait \<and> ($tr\<acute> = $tr) \<and> $wait\<acute>`"
     ..
   have "`\<delta> ; P` = `R3(\<delta> ; P)`"
@@ -502,29 +488,30 @@ lemma tr_eq_SemiR:
 proof - 
   have "`P;Q \<and> ($tr\<acute> = $tr)` = `R1(P);R1(Q) \<and> ($tr\<acute> = $tr)`"
     by(metis assms is_healthy_def)
-  also have "... = `(\<exists> tr\<acute>\<acute>\<acute> . ($tr \<le> $tr\<acute>\<acute>\<acute>) \<and> (P[$tr\<acute>\<acute>\<acute>/tr\<acute>] ; Q[$tr\<acute>\<acute>\<acute>/tr]) \<and> ($tr\<acute>\<acute>\<acute> \<le> $tr) \<and> ($tr\<acute> = $tr))`"
+  also have "... = `(\<exists> tr\<acute>\<acute> . ($tr \<le> $tr\<acute>\<acute>) \<and> (P[$tr\<acute>\<acute>/tr\<acute>] ; Q[$tr\<acute>\<acute>/tr]) \<and> ($tr\<acute>\<acute> \<le> $tr) \<and> ($tr\<acute> = $tr))`"
   proof -
-    have "`($tr\<acute>\<acute>\<acute> \<le> $tr\<acute>) \<and> ($tr\<acute> = $tr)` = (`($tr\<acute>\<acute>\<acute> \<le> $tr) \<and> ($tr\<acute> = $tr)` :: 'a WF_PREDICATE)"
+    have "`($tr\<acute>\<acute> \<le> $tr\<acute>) \<and> ($tr\<acute> = $tr)` = (`($tr\<acute>\<acute> \<le> $tr) \<and> ($tr\<acute> = $tr)` :: 'a WF_PREDICATE)"
      by (utp_poly_auto_tac)
+
     thus ?thesis 
-      apply(subst SemiR_extract_variable_ty[of _ _ "tr "])
+      apply(subst SemiR_extract_variable_ty[of "tr "])
       apply(simp_all add:closure unrest assms typing)
       apply(simp add:R1_def usubst typing defined closure)
-      apply(subst SemiR_AndP_right_postcond_unrest)
-      apply(simp_all add:assms unrest typing defined closure erasure)
-      apply(subst AndP_comm) 
-      apply(subst SemiR_AndP_left_precond_unrest)
+      apply(subst SemiR_AndP_right_UNDASHED)
       apply(simp_all add:assms unrest typing defined closure erasure)
       apply(subst ExistsP_AndP_expand1)
-      apply(simp add:unrest)
-      apply(subst AndP_assoc[THEN sym])  back    
-      apply(subst AndP_assoc[THEN sym])   
-      apply(simp)
-  done
+      apply(simp_all add:unrest)
+      apply (subst AndP_comm) 
+      apply(subst SemiR_AndP_left_DASHED)
+      apply (simp add:unrest typing closure)
+      apply(subst AndP_assoc[THEN sym]) 
+      apply(subst AndP_assoc[THEN sym]) 
+      apply (smt AndP_assoc)
+    done
   qed
-  also have "... = `(\<exists> tr\<acute>\<acute>\<acute>. ($tr = $tr\<acute>\<acute>\<acute>) \<and> ($tr\<acute> = $tr\<acute>\<acute>\<acute>) \<and> P[($tr\<acute>\<acute>\<acute>)/tr\<acute>] ; Q[($tr\<acute>\<acute>\<acute>)/tr])` "
+  also have "... = `(\<exists> tr\<acute>\<acute>. ($tr = $tr\<acute>\<acute>) \<and> ($tr\<acute> = $tr\<acute>\<acute>) \<and> P[($tr\<acute>\<acute>)/tr\<acute>] ; Q[($tr\<acute>\<acute>)/tr])` "
   proof - 
-    have "`($tr = $tr\<acute>\<acute>\<acute>) \<and> ($tr\<acute> = $tr)` = (`($tr = $tr\<acute>\<acute>\<acute>) \<and> ($tr\<acute> = $tr\<acute>\<acute>\<acute>)` :: 'a WF_PREDICATE)"
+    have "`($tr = $tr\<acute>\<acute>) \<and> ($tr\<acute> = $tr)` = (`($tr = $tr\<acute>\<acute>) \<and> ($tr\<acute> = $tr\<acute>\<acute>)` :: 'a WF_PREDICATE)"
      by (utp_poly_auto_tac)
    thus ?thesis
     apply(subst AndP_comm) back
@@ -536,18 +523,19 @@ proof -
     apply(simp add: AndP_assoc[THEN sym])
     done
     qed
-  also have "... = `(\<exists> tr\<acute>\<acute>\<acute> . $tr\<acute>\<acute>\<acute> = $tr \<and> P[$tr\<acute>\<acute>\<acute>/tr\<acute>] ; Q[$tr\<acute>\<acute>\<acute>/tr] \<and> $tr\<acute> = $tr\<acute>\<acute>\<acute>)`"
+  also have "... = `(\<exists> tr\<acute>\<acute> . $tr\<acute>\<acute> = $tr \<and> P[$tr\<acute>\<acute>/tr\<acute>] ; Q[$tr\<acute>\<acute>/tr] \<and> $tr\<acute> = $tr\<acute>\<acute>)`"
     by (metis (hide_lams, mono_tags) AndP_comm EqualP_sym calculation)
   finally show ?thesis
     apply(simp)
     apply(rule sym)
-    apply(subst SemiR_extract_variable_ty[of _ _ "tr "])
+    apply(subst SemiR_extract_variable_ty[of "tr"])
     apply(simp_all add:closure assms typing tr_eq_rel_closure)
-    apply(simp add:usubst typing defined closure)
-    apply(subst SemiR_AndP_right_postcond_unrest)
+    apply(simp_all add:unrest closure typing assms)
+    apply(simp add:usubst typing defined closure assms)
+    apply(subst SemiR_AndP_right_UNDASHED)
     apply(simp_all add:assms unrest typing defined closure erasure)
     apply(subst AndP_comm) 
-    apply(subst SemiR_AndP_left_precond_unrest)
+    apply(subst SemiR_AndP_left_DASHED)
     apply(simp_all add:assms unrest typing defined closure erasure)
     apply(subst AndP_assoc[THEN sym])
     apply(simp)
@@ -562,6 +550,7 @@ by(utp_poly_auto_tac)
 lemma tr_neq_leq:
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
   shows "`(P \<and> ($tr \<acute> \<noteq> $tr));(Q \<and> ($tr \<le> $tr \<acute>))` = `((P \<and> ($tr \<acute> \<noteq> $tr));(Q \<and> ($tr \<le> $tr \<acute>))) \<and> ($tr \<acute> \<noteq> $tr)`"
+  apply (utp_prel_auto_tac)
 sorry
 
 lemma L6 : 
@@ -579,13 +568,9 @@ proof -
     apply(subst AndP_rel_closure)
     apply(simp_all add:assms)
     apply(subst SemiR_AndP_right_precond)
-    apply(subst AndP_rel_closure)
-    defer 
-    apply(subst AndP_rel_closure)
+    apply(simp add:closure)
     apply(simp_all add:assms typing closure defined urename AndP_assoc)
-    apply (metis tr_eq_rel_closure)
-
-    done
+  done
     also have "... = `(P \<and> Q \<and> ($tr\<acute> = $tr));($wait \<and> R3(R))`"
        by(metis assms is_healthy_def RH_is_R3)
     also have "... = `(P \<and> Q \<and> ($tr\<acute> = $tr));($wait \<and> II)`"
@@ -593,9 +578,6 @@ proof -
        by (metis (hide_lams, no_types) AndP_OrP_distl AndP_comm R3_form R3_wait)
     also have "... = `P \<and> Q \<and> ($tr\<acute> = $tr) \<and> $wait\<acute>`"
       apply(subst SemiR_AndP_right_precond)
-      apply(subst AndP_rel_closure)
-      defer
-      apply(subst AndP_rel_closure)
       apply(simp_all add:urename closure typing defined AndP_assoc assms tr_eq_rel_closure)
       done
     finally have 1: "`(\<delta> \<and> P \<and> Q) ; R` = `P \<and> Q \<and> ($tr\<acute> = $tr) \<and> $wait\<acute>`"
@@ -752,4 +734,5 @@ proof -
   show ?thesis
     by(simp add:alternative_def CondR_def SemiR_OrP_distr AndP_OrP_distl 2 3 4)
 qed
+
 end
