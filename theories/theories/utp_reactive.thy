@@ -1006,5 +1006,22 @@ subsection {* The theory of Reactive Processes *}
 lift_definition REACTIVE :: "'VALUE WF_THEORY" 
 is "({vs. vs \<subseteq> REL_VAR \<and> REA \<subseteq> vs}, {R1,R2,R3})"
   by (simp add:WF_THEORY_def IDEMPOTENT_OVER_def R1_idempotent R2_idempotent R3_idempotent)
+
+subsection {* Traces *}
+
+definition traces :: "'a WF_PREDICATE \<Rightarrow> 'a EVENT list set" where
+"traces(P) = {Rep_ULIST (MinusUL (\<langle>b\<rangle>\<^sub>* tr) (\<langle>b\<rangle>\<^sub>* tr\<acute>)) | b. \<lbrakk>P\<rbrakk>b}" 
+
+lemma traces_SkipR:
+  "traces(II) = {[]}"
+  apply (auto simp add: traces_def eval)
+  apply (drule_tac x="tr\<down>" in bspec, simp add:closure)
+  apply (simp add:Rep_binding_ty_def)
+  apply (rule_tac x="\<B>(tr :=\<^sub>* NilUL, tr\<acute> :=\<^sub>* NilUL)" in exI)
+  apply (simp add:typing closure)
+  apply (auto)
+  apply (case_tac "v = tr\<down>")
+  apply (auto simp add:Rep_binding_ty_def binding_upd_ty_def)
+done
       
 end
