@@ -58,9 +58,13 @@ declare fset_transfer_neq [eval,evalp]
 
 text {* Some examples *}
 
+lemma mimplies_Some_Some [simp]:
+  "mimplies (Some x) (Some y) = Some (x \<longrightarrow> y)"
+  by (case_tac x, auto)
+
 lemma cml_goal1:
   "|forall x : @bool @ &x => &x| = |true|"
-  by (cml_tac)
+  by (cml_auto_tac)
 
 lemma cml_goal2:
   "|forall x : @nat1 @ &x > 0| = |true|"
