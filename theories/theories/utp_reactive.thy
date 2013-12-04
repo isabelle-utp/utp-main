@@ -300,18 +300,18 @@ abbreviation "tt2   \<equiv> MkPlainP ''tt2'' True TYPE('m EVENT ULIST) TYPE('m)
 abbreviation "tt   \<equiv> MkPlainP ''tt'' True TYPE('m EVENT ULIST) TYPE('m)"
 
 lemma R2_form:
-  assumes "P \<in> WF_RELATION" "pvaux ttx" 
+  assumes "{ttx\<down>\<acute>\<acute>} \<sharp> P" "pvaux ttx" 
   shows "R2(P) = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>} . `P[\<langle>\<rangle>/tr][$ttx\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr ^ $ttx\<acute>\<acute>)`)"
 proof -
   have "`$tr \<le> $tr\<acute>` = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>} . `$tr\<acute> = $tr ^ $ttx\<acute>\<acute>`)"
-    by (metis (hide_lams, no_types) PVAR_VAR_pvdash assms(2) tr_prefix_as_concat)
+    by (metis (hide_lams, no_types) PVAR_VAR_pvdash assms tr_prefix_as_concat)
   hence "R2(P) = R2s(P) \<and>\<^sub>p (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>} .  `$tr\<acute> = $tr ^ $ttx\<acute>\<acute>`)"
     by(metis R2_def R1_def)
   also have "... = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>} . R2s(P) \<and>\<^sub>p `$tr\<acute> = $tr ^ $ttx\<acute>\<acute>`)"
-    apply(subst ExistsP_AndP_expand2)
-    apply(rule unrest)
-    apply(simp_all add:unrest assms closure)
-    done  
+    apply (subst ExistsP_AndP_expand2)
+    apply (simp add:R2s_def)
+    apply (simp_all add:unrest typing closure assms)
+  done  
   also have "... = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>} . `$tr\<acute> = $tr ^ $ttx\<acute>\<acute> \<and> R2s(P)`)"
     by (subst AndP_comm, simp)
   also have  "... = (\<exists>\<^sub>p {ttx\<down>\<acute>\<acute>} . `R2s(P)[($tr ^ $ttx\<acute>\<acute>)/tr\<acute>] \<and> $tr\<acute> = $tr ^ $ttx\<acute>\<acute>`)"
@@ -346,12 +346,11 @@ proof -
       (\<exists> tt1\<acute>\<acute> . (P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute>\<acute> = $tr ^ $tt1\<acute>\<acute>)));
       (\<exists> tt2\<acute>\<acute> . (Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr\<acute>\<acute> ^ $tt2\<acute>\<acute>)))
      )`"
-        apply(subst SemiR_extract_variable_ty[of "tr"])
-        apply(simp_all add:closure assms typing unrest)
-        apply(subst R2_form[of _ "tt1"])
-        apply(simp_all add:closure assms)
-        apply(subst R2_form[of _ "tt2"])
-        apply(simp_all add:closure assms)
+        apply(simp add: SemiR_extract_variable_ty[of "tr"] closure assms typing unrest)
+        apply(subst R2_form[of "tt1"])
+        apply(simp_all add:closure assms unrest)
+        apply(subst R2_form[of "tt2"])
+        apply(simp_all add:closure assms unrest)
         apply(subst SubstP_ExistsP)
         apply(simp_all add:closure typing defined unrest)
         apply(simp add:usubst typing defined assms)
@@ -404,11 +403,11 @@ qed
 
 lemma R2_SemiR_distribute:
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
-  shows "R2(P);R2(Q) is R2"
+  shows "R2(R2(P);R2(Q)) = R2(P);R2(Q)"
 proof-
   have "R2(R2(P);R2(Q)) =  `(\<exists> tt1\<acute>\<acute>. \<exists> tt2\<acute>\<acute> . \<exists> tt\<acute>\<acute>. P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>/tr\<acute>] ; Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>/tr\<acute>] \<and> ($tt\<acute>\<acute> = $tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>) \<and> ($tr\<acute> = $tr ^ $tt\<acute>\<acute>))`"
-     apply(subst R2_form[of _ "tt"])
-     apply(simp_all add:closure assms typing defined)
+     apply(subst R2_form[of "tt"])
+     apply(simp_all add:closure assms typing defined unrest)
      apply(subst R2_SemiR_form)
      apply(simp_all add: assms)
      apply(subst SubstP_ExistsP)
@@ -456,253 +455,241 @@ proof-
    also have "... = R2(P);R2(Q)" 
      by (subst R2_SemiR_form, simp_all add:assms)
 
-   finally show ?thesis 
-     by (simp add:is_healthy_def)
+   finally show ?thesis .
 qed
 
 lemma R2_SemiR_closure: 
-assumes "P is R2" "Q is R2" "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
-shows "P;Q is R2"
-by (metis Healthy_simp R2_SemiR_distribute assms)
+  assumes "P is R2" "Q is R2" "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
+  shows "P;Q is R2"
+  by (metis Healthy_intro Healthy_simp R2_SemiR_distribute assms)
+
+declare SubstP_UNREST [usubst del]
+declare SubstP_VarP_single_UNREST[usubst del]
+declare SubstE_VarE_single_UNREST[usubst del]
+declare SubstP_VarP_aux[usubst del]
+declare SubstP_UNREST_OKAY[usubst del]
+declare PSubstPE_VarP_single_UNREST[usubst del]
+
+thm usubst
+
+declare EvalP_SemiR [evalp]
+
+lemma EvalP_ExistsP_singleton_d2_pvaux_ty [evalp]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "pvaux x"
+  shows "\<lbrakk>\<exists>\<^sub>p {x\<down>\<acute>\<acute>} . p\<rbrakk>b = (\<exists> v . v \<rhd>\<^sub>p x \<and> \<lbrakk>p\<rbrakk>(b(x\<acute>\<acute> :=\<^sub>* v)))"
+  apply (auto simp add:eval)
+  apply (rule_tac x="\<langle>b'\<rangle>\<^sub>* x\<acute>\<acute>" in exI)
+  apply (auto)
+  apply (rule typing)
+  apply (simp_all add:assms defined)
+  apply (simp add:Rep_binding_ty_def binding_upd_ty_def assms typing defined)
+  apply (subst TypeUSound_ProjU_inv)
+  apply (simp_all add:typing defined assms)
+  apply (rule typing)
+  apply (simp_all add:typing defined assms pvaux_aux[THEN sym])
+  apply (metis PVAR_VAR_pvdash binding_upd_apply binding_upd_ty_def binding_upd_vcoerce)
+done
+
+lemma PUNDASHED_dash [closure]:
+  "x \<in> PUNDASHED \<Longrightarrow> x\<acute> \<in> PDASHED"
+  by (simp add:PDASHED_def PUNDASHED_def)
+
+lemma PDASHED_dash [closure]:
+  "x \<in> PDASHED \<Longrightarrow> x\<acute> \<in> PDASHED_TWICE"
+  by (simp add:PDASHED_def PDASHED_TWICE_def)
+
+lemma SS_PDASHED_TWICE_app [urename]:
+  "x \<in> PDASHED_TWICE \<Longrightarrow> SS\<bullet>x = x"
+  by (simp add:PermPV_def urename closure)
+
+theorem SemiR_extract_variable':
+  assumes 
+    "x \<in> D\<^sub>0" "y \<in> NON_REL_VAR" 
+    "vtype x = vtype y" "aux x = aux y"
+    "{y} \<sharp> P" "{y} \<sharp> Q"
+  shows "P ; Q = (\<exists>\<^sub>p {y} . P[$\<^sub>ey/\<^sub>px\<acute>] ; Q[$\<^sub>ey/\<^sub>px])"
+  using assms(1-3) assms(5-6)
+  apply (utp_pred_auto_tac)
+  (* Subgoal 1 *)
+  apply (rule_tac x="b1(y :=\<^sub>b \<langle>b1\<rangle>\<^sub>b x\<acute>)" in exI)
+  apply (simp)
+  apply (rule_tac x="b1(y :=\<^sub>b \<langle>b1\<rangle>\<^sub>b x\<acute>)" in exI)
+  apply (rule_tac x="b2(y :=\<^sub>b \<langle>b2\<rangle>\<^sub>b x)" in exI)
+  apply (auto)
+  apply (simp_all add:assms(4))
+  apply (metis (mono_tags) EvalP_UNREST_assign_1 binding_upd_apply binding_upd_simps(2))
+  apply (metis (mono_tags) EvalP_UNREST_assign_1 binding_upd_apply binding_upd_simps(2))
+  apply (auto simp add:COMPOSABLE_BINDINGS_def)[1]
+  apply (metis binding_equiv_minus binding_equiv_update_drop assms)
+  (* Subgoal 2 *)
+  apply (rule_tac x="b1(x\<acute> :=\<^sub>b \<langle>b1\<rangle>\<^sub>b y, y :=\<^sub>b \<langle>b\<rangle>\<^sub>b y)" in exI)
+  apply (rule_tac x="b2(x :=\<^sub>b \<langle>b2\<rangle>\<^sub>b y, y :=\<^sub>b \<langle>b\<rangle>\<^sub>b y)" in exI)
+  apply (auto)
+  apply (subst binding_upd_twist, force)
+  apply (simp)
+  apply (metis DASHED_not_NON_REL_VAR UNDASHED_not_DASHED binding_upd_override3 binding_upd_override_extract1 binding_upd_triv binding_upd_upd)
+  apply (metis EvalP_UNREST_assign_1)
+  apply (metis EvalP_UNREST_assign_1)
+  apply (auto simp add:COMPOSABLE_BINDINGS_def assms(4))
+  apply (simp add:binding_equiv_def)
+  apply (metis (hide_lams, no_types) DASHED_not_NON_REL_VAR NON_REL_VAR_dash_NON_REL_VAR UNDASHED_dash_DASHED binding_equiv_update_subsume binding_equiv_update_subsume' binding_override_left_eq binding_override_singleton)
+done
+
+theorem SemiR_extract_variable_ty':
+  fixes x y :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "x \<in> PUNDASHED" "y \<in> PDASHED_TWICE" "TYPEUSOUND('a, 'm)" 
+          "pvaux x" "pvaux y"
+          "{y\<down>} \<sharp> P" "{y\<down>} \<sharp> Q"
+  shows "P ; Q = `\<exists> y. P[$y/x\<acute>] ; Q[$y/x]`"
+  apply (subst SemiR_extract_variable'[of "x\<down>" "y\<down>"])
+  apply (simp_all add:assms closure)
+  apply (metis assms(4) assms(5) pvaux_aux)
+  apply (simp add:erasure assms typing defined closure)
+done
+
+lemma UNREST_R2 [unrest]:
+  "\<lbrakk> xs \<sharp> P; tr\<down> \<notin> xs; tr\<down>\<acute> \<notin> xs \<rbrakk> \<Longrightarrow> xs \<sharp> R2(P)"
+  by (simp add:R2_def R2s_def R1_def unrest typing closure)
+
+lemma R2_SemiR_distribute':
+  assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
+  shows "R2(R2(P) ; R2(Q)) = R2(P ; R2(Q))"
+proof -
+  have "R2(R2(P) ; R2(Q)) =
+        `(\<exists> tt\<acute>\<acute>. (\<exists> tt1\<acute>\<acute>. \<exists> tt2\<acute>\<acute>. (P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>/tr\<acute>] ; Q [\<langle>\<rangle>/tr][$tt2\<acute>\<acute>/tr\<acute>])
+                                   \<and> $tt\<acute>\<acute> = ($tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>))
+                 \<and> $tr\<acute> = ($tr ^ $tt\<acute>\<acute>))`"
+    apply (simp add: R2_SemiR_form assms)
+    apply (subst R2_form[of "tt"])
+    apply (simp_all add:unrest assms typing closure)
+    apply (simp add:SubstP_ExistsP unrest typing closure assms)
+    apply (simp add:usubst typing defined assms closure)
+    apply (subst SubstP_SemiR_left)
+    apply (simp_all add:closure typing unrest)
+    apply (subst SubstP_SemiR_right)
+    apply (simp_all add:closure typing unrest)
+    apply (simp add:usubst typing defined closure)
+    apply (subst SubstP_twice_3) back
+    apply (simp_all add:unrest typing closure)
+    apply (simp add:usubst typing closure defined)
+  done
+
+  also 
+  have "... = `(\<exists> tt1\<acute>\<acute>. \<exists> tt2\<acute>\<acute>. 
+                  ((P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>/tr\<acute>] ; Q [\<langle>\<rangle>/tr][$tt2\<acute>\<acute>/tr\<acute>])
+                   \<and> (\<exists> tt\<acute>\<acute>. ($tt\<acute>\<acute> = ($tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>) \<and> $tr\<acute> = ($tr ^ $tt\<acute>\<acute>)))))`"
+    apply (subst ExistsP_AndP_expand1) 
+    apply (simp add:unrest typing closure assms)
+    apply (subst ExistsP_AndP_expand1) 
+    apply (simp_all add:unrest typing closure assms)
+    apply (subst ExistsP_commute)
+    apply (subst ExistsP_commute) back
+    apply (subst AndP_assoc[THEN sym])
+    apply (subst ExistsP_AndP_expand2[THEN sym])
+    apply (simp_all add:unrest typing defined closure assms)
+  done
+
+  also have "... = `(\<exists> tt1\<acute>\<acute>. \<exists> tt2\<acute>\<acute>. 
+                     ((P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>/tr\<acute>] ; Q [\<langle>\<rangle>/tr][$tt2\<acute>\<acute>/tr\<acute>])
+                      \<and> ($tr\<acute> = ($tr ^ ($tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>)))))`"
+  proof -
+    have "`(\<exists> tt\<acute>\<acute>. ($tt\<acute>\<acute> = ($tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>) \<and> $tr\<acute> = ($tr ^ $tt\<acute>\<acute>)))` = 
+          (`($tr\<acute> = ($tr ^ ($tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>)))` :: 'a WF_PREDICATE)"
+      apply (utp_poly_auto_tac)
+      apply (metis AppendUL.rep_eq)
+    done
+
+    thus ?thesis by simp
+  qed
+
+  also have "... = `(\<exists> tt\<acute>\<acute>. (\<exists> tt2\<acute>\<acute>. (P[\<langle>\<rangle>/tr] ; (Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>/tr\<acute>] \<and> $tt\<acute>\<acute> = $tr ^ $tt2\<acute>\<acute>)))
+                                      \<and> $tr\<acute> = $tr ^ $tt\<acute>\<acute>)`"
+  proof -
+    have p1: "`\<exists> tt\<acute>\<acute>. (($tt\<acute>\<acute> = $tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>) \<and> ($tr\<acute> = $tr ^ $tt\<acute>\<acute>))` =
+                       (`$tr\<acute> = ($tr ^ $tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>)` :: 'a WF_PREDICATE)"
+      apply (utp_poly_auto_tac)
+      apply (metis AppendUL.rep_eq)
+    done
+
+    show ?thesis
+      apply (subst SemiR_extract_variable_ty'[of "tr" "tt1\<acute>\<acute>"]) back
+      apply (simp_all add:typing closure assms unrest)
+      apply (simp add:usubst typing defined closure)
+      apply (subst SubstP_twice_3) back back back back 
+      apply (simp_all add:unrest typing closure)
+      apply (simp add:usubst typing defined closure assms)
+      apply (subst AndP_comm)
+      apply (subst SemiR_AndP_right_UNDASHED)
+      apply (simp add:unrest typing closure)
+      apply (subst ExistsP_AndP_expand1)
+      apply (simp add:unrest typing closure)
+      apply (subst ExistsP_AndP_expand1)
+      apply (simp add:unrest typing closure)
+      apply (subst AndP_assoc[THEN sym])
+      apply (subst ExistsP_commute) back
+      apply (subst ExistsP_commute) back back
+      apply (subst ExistsP_AndP_expand2[THEN sym]) back
+      apply (simp add:unrest typing closure assms)
+      apply (simp add: p1[simplified])
+      apply (subst AndP_comm) back
+      apply (simp add:ExistsP_commute)
+    done
+  qed
+
+
+  also have "... = R2(P ; R2(Q))"
+    apply (subst R2_form[of "tt"])
+    apply (simp_all add:unrest assms typing closure)
+    apply (subst R2_form[of "tt2"])
+    apply (simp_all add:unrest assms typing closure)
+    apply (subst SubstP_SemiR_left)
+    apply (simp_all add:closure typing unrest)
+    apply (subst SubstP_SemiR_right)
+    apply (simp_all add:closure typing unrest)
+    apply (simp add:SubstP_ExistsP unrest typing closure assms)
+    apply (simp add:usubst typing defined assms closure)
+    apply (subst ExistsP_SemiR_NON_REL_VAR_expand1)
+    apply (simp add:unrest typing defined closure assms)
+    apply (simp_all add:closure)
+  done
+
+  finally show ?thesis .
+qed
+
 
 lemma R2_sequential_composition: 
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
   shows "`R2(P);R2(Q)` = `R2(P ; R2(Q))`"
-proof -
-  have 1: "`R2(P);R2(Q)` = `R2(R2(P);R2(Q))`"  
-    by (metis R2_SemiR_distribute assms is_healthy_def)
-  have 2: "R2(P);R2(Q)  = (\<exists>\<^sub>p {tt\<down>\<acute>\<acute>\<acute>,tt1\<down>\<acute>\<acute>\<acute>,tt2\<down>\<acute>\<acute>\<acute>} . `(P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>\<acute>/tr\<acute>] ; Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>\<acute>/tr\<acute>] \<and> ($tt\<acute>\<acute>\<acute> = $tt1\<acute>\<acute>\<acute> ^ $tt2\<acute>\<acute>\<acute>) \<and> ($tr\<acute> = $tr ^ $tt\<acute>\<acute>\<acute>))`)"
-    apply(subst 1)
-    apply(subst R2_form[of _ "tt"])
-    apply(metis assms closure)
-    apply (metis pvaux_MkPVAR)
-    apply(subst R2_SemiR_form)
-    apply(simp_all add:assms)
-    apply(subst SubstP_ExistsP)
-    apply(simp_all add:closure typing defined unrest)
-    apply(subst SubstP_ExistsP)
-    apply(simp_all add:closure typing defined unrest)
-    apply(subst SubstP_AndP)
-    apply(subst SubstP_SemiR_left)
-    apply(simp_all add:closure typing defined unrest)
-    apply(subst SubstP_twice_2) back
-    apply(simp_all add:closure typing defined unrest)
-    apply(subst SubstP_EqualP)
-    apply(subst SubstP_ExistsP)
-    apply(simp_all add:closure typing defined unrest)
-    apply(subst SubstP_ExistsP)
-    apply(simp_all add:closure typing defined unrest)
-    apply(subst SubstP_AndP)
-    apply(subst SubstP_SemiR_right)
-    apply(simp_all add:closure typing defined unrest)
-    apply(subst SubstP_twice_1)
-    apply(simp_all add:closure typing defined unrest)
-    apply(subst SubstP_EqualP)
-    apply(simp add:usubst typing defined closure)
-    apply(subst ExistsP_AndP_expand1)
-    apply(simp_all add:closure typing defined unrest)
-    apply(subst ExistsP_AndP_expand1)
-    apply(simp_all add:closure typing defined unrest)
-    apply(subst ExistsP_union[THEN sym])
-    apply(subst ExistsP_union[THEN sym])
-    apply (smt AndP_assoc Un_insert_left sup_bot_left)
-    done
-  have "R2(P ; R2(Q)) =  (\<exists>\<^sub>p {tt\<down>\<acute>\<acute>\<acute>} . (\<exists>\<^sub>p {tr\<down>\<acute>\<acute>\<acute>} . 
-    `P[\<langle>\<rangle>/tr][$tr\<acute>\<acute>\<acute>/tr\<acute>] ; (\<exists> tt2\<acute>\<acute>\<acute> . Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>\<acute>/tr\<acute>] \<and> ($tt\<acute>\<acute>\<acute> = $tr\<acute>\<acute>\<acute> ^ $tt2\<acute>\<acute>\<acute>)) \<and>
-     ($tr\<acute> = $tr ^ $tt\<acute>\<acute>\<acute>)`))"
-    apply(subst R2_form[of _ "tt"])
-    apply(metis assms closure)
-    apply (metis pvaux_MkPVAR)
-    apply(subst SemiR_extract_variable_ty[of _ _ "tr "])
-    apply(simp_all add:assms closure typing)
-    apply(subst SubstP_ExistsP)
-    apply(simp_all add:typing closure unrest defined)
-    apply(subst SubstP_SemiR_left)
-    apply(simp_all add:typing closure unrest defined)
-    apply(subst SubstP_twice_3)
-    apply(simp_all add:typing closure unrest defined)
-    apply(subst SubstP_ExistsP)
-    apply(simp_all add:typing closure unrest defined)
-    apply(subst SubstP_SemiR_right)
-    apply(simp_all add:typing closure unrest defined)
-    apply(simp add:erasure typing defined closure)
-(*    apply(simp add:usubst typing defined closure assms) *)
-    apply(subst R2_form[of _ "tt2"])
-    apply(metis assms(2))
-    apply (metis pvaux_MkPVAR)
-    apply(subst SubstP_ExistsP)
-    apply(simp_all add:typing closure unrest defined)
-    apply(subst SubstP_AndP)
-    apply(subst SubstP_twice_2) back back
-    apply(simp_all add:typing closure unrest defined)
-    apply(subst SubstP_ExistsP)
-    apply(simp_all add:typing closure unrest defined)
-    apply(subst SubstP_AndP)
-    apply(subst SubstP_twice_1)
-    apply(simp_all add:typing closure unrest defined)
-    apply(subst SubstP_EqualP)
-    apply(subst SubstP_EqualP)
-    sorry
-(*
-    apply(simp add:usubst typing defined closure)
-    apply(subst ExistsP_AndP_expand1)
-    apply(simp_all add:typing defined closure unrest)
-    done
-*)
-  also have "... = (\<exists>\<^sub>p D\<^sub>2 \<union> {tt\<down>\<acute>\<acute>\<acute>,tr\<down>\<acute>\<acute>\<acute>,tt2\<down>\<acute>\<acute>\<acute>} .
-     `(prime on D\<^sub>1 \<bullet> P)[\<langle>\<rangle>/tr][$(prime on D\<^sub>1 \<bullet> tr\<acute>\<acute>\<acute>)/tr\<acute>\<acute>] \<and>
-      ((prime \<circ> prime) on D\<^sub>0 \<bullet> Q)[\<langle>\<rangle>/tr\<acute>\<acute>][$((prime \<circ> prime) on D\<^sub>0 \<bullet> tt2\<acute>\<acute>\<acute>)/tr\<acute>] \<and> ($((prime \<circ> prime) on D\<^sub>0 \<bullet> tt\<acute>\<acute>\<acute>) = $((prime \<circ> prime) on D\<^sub>0 \<bullet> tr\<acute>\<acute>\<acute>) ^ $((prime \<circ> prime) on D\<^sub>0 \<bullet> tt2\<acute>\<acute>\<acute>)) \<and>
-     ($tr\<acute> = $tr ^ $tt\<acute>\<acute>\<acute>)`)"
-     apply(subst SemiR_algebraic)
-     apply(rule UNREST_SubstP[of _ _ "D\<^sub>2" _ "D\<^sub>2"])
-     apply(simp_all add:closure typing defined unrest)
-     apply(rule UNREST_SubstP[of _ _ "D\<^sub>2" _ "D\<^sub>2"])
-     apply(simp_all add:closure typing defined unrest assms)
-     apply(subst ExistsP_AndP_expand1)
-     apply(simp add:typing unrest defined closure assms)
-     apply (simp add:urename closure typing defined assms)
-(*    apply(rule unrest)
-     apply(rule unrest)
-     apply(simp add:typing defined closure)
-     apply(rule unrest)
-     apply(utp_pred_auto_tac)
-     apply(rule unrest)
-     apply(simp add:typing defined closure)
-     apply(rule unrest)
-     apply(rule unrest)
-     apply(utp_pred_auto_tac)
-     apply(rule unrest)
-     apply(utp_pred_auto_tac)
-     apply (metis dash_DASHED_TWICE_elim undash_dash undash_eq_dash_contra1)
-     apply(subst ExistsP_AndP_expand1)
-     apply(rule unrest) back back
-     apply(simp add:erasure typing defined closure)
-     apply(rule unrest)
-     apply(utp_pred_auto_tac)
-     apply(rule unrest)
-     apply(simp add:typing defined closure)
-     apply(rule unrest)
-     apply(rule unrest)
-     apply(utp_pred_auto_tac)
-     apply(rule unrest)
-     apply(utp_pred_auto_tac)
-     apply(subst ExistsP_union[THEN sym])
-     apply(subst ExistsP_union[THEN sym])
-     apply(subst ExistsP_union[THEN sym])
-     apply (smt AndP_assoc Un_insert_left Un_insert_right sup_bot_left sup_bot_right)*)
-     sorry (* more little bits *)
-also have "... = (\<exists>\<^sub>p {tt\<down>\<acute>\<acute>\<acute>,tr\<down>\<acute>\<acute>\<acute>,tt2\<down>\<acute>\<acute>\<acute>} .  
-    `P[\<langle>\<rangle>/tr][$tr\<acute>\<acute>\<acute>/tr\<acute>] ; (Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>\<acute>/tr\<acute>] \<and> ($tt\<acute>\<acute>\<acute> = $tr\<acute>\<acute>\<acute> ^ $tt2\<acute>\<acute>\<acute>)) \<and>
-     ($tr\<acute> = $tr ^ $tt\<acute>\<acute>\<acute>)`)"
-     apply(subst SemiR_algebraic)
-     apply(rule UNREST_SubstP[of _ _ "D\<^sub>2" _ "D\<^sub>2"])
-     apply(simp_all add:typing defined closure unrest)
-     apply(rule UNREST_SubstP[of _ _ "D\<^sub>2" _ "D\<^sub>2"])
-     apply(simp_all add:typing defined closure unrest assms)
-     apply(simp add:erasure typing defined closure)
-(*
-     apply(rule unrest)
-     apply(utp_pred_auto_tac)
-     apply (metis DASHED_dash_not_DASHED MkPlainP_UNDASHED PVAR_VAR_PUNDASHED_UNDASHED UNDASHED_dash_DASHED dash_DASHED_TWICE_elim) 
-     apply(rule unrest)
-     apply(rule UNREST_SubstP[of _ _ "D\<^sub>2" _ "D\<^sub>2"])
-     apply(simp_all add:typing defined closure unrest assms)
-     apply(simp add:erasure typing defined closure)
-     apply(rule unrest)
-     apply(utp_pred_auto_tac)
-     apply (metis DASHED_dash_not_DASHED MkPlainP_UNDASHED PVAR_VAR_PUNDASHED_UNDASHED UNDASHED_dash_DASHED dash_DASHED_TWICE_elim) 
-     apply(rule unrest)
-     apply(simp add:erasure typing defined closure)
-     apply(rule unrest)
-     apply(utp_pred_auto_tac)
-     apply (metis DASHED_dash_not_DASHED MkPlainP_UNDASHED PVAR_VAR_PUNDASHED_UNDASHED UNDASHED_dash_DASHED dash_DASHED_TWICE_elim) 
-     apply(rule unrest)
-     apply(simp add:typing defined closure)
-     apply(rule unrest)
-     apply(rule unrest)
-     apply(utp_pred_auto_tac)
-     apply (metis DASHED_dash_not_DASHED MkPlainP_UNDASHED PVAR_VAR_PUNDASHED_UNDASHED UNDASHED_dash_DASHED dash_DASHED_TWICE_elim) 
-     apply(rule unrest)
-     apply(utp_pred_auto_tac)
-     apply (metis DASHED_dash_not_DASHED MkPlainP_UNDASHED PVAR_VAR_PUNDASHED_UNDASHED UNDASHED_dash_DASHED dash_DASHED_TWICE_elim) 
-     apply (subst ExistsP_AndP_expand1)
-     apply(rule unrest)
-     apply(simp add:erasure typing defined closure)
-     apply(rule unrest)
-     apply(utp_pred_auto_tac)
-     apply(rule unrest)
-     apply(simp add:typing defined closure)
-     apply(rule unrest)
-     apply(rule unrest)
-     apply(utp_pred_auto_tac)
-     apply(rule unrest)
-     apply(utp_pred_auto_tac)
-     apply (metis DASHED_dash_not_DASHED MkPlainP_UNDASHED PVAR_VAR_PUNDASHED_UNDASHED UNDASHED_dash_DASHED dash_DASHED_TWICE_elim) 
-     apply(subst ExistsP_union[THEN sym])
-     apply(simp add:typing defined closure urename)
-     apply (smt AndP_assoc)
-     done *)
-     sorry
-  also have "... = (\<exists>\<^sub>p {tt\<down>\<acute>\<acute>\<acute>,tr\<down>\<acute>\<acute>\<acute>,tt2\<down>\<acute>\<acute>\<acute>} .  
-    `P[\<langle>\<rangle>/tr][$tr\<acute>\<acute>\<acute>/tr\<acute>] ; Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>\<acute>/tr\<acute>] \<and> 
-      ($tt\<acute>\<acute>\<acute> = $tr\<acute>\<acute>\<acute> ^ $tt2\<acute>\<acute>\<acute>) \<and> ($tr\<acute> = $tr ^ $tt\<acute>\<acute>\<acute>)`)"
-      apply(subst SemiR_AndP_right_postcond)
-      defer defer defer 
-      apply(utp_pred_auto_tac)
-     sorry (*SemiR_AndP_right_postcond on non WF_RELATION *)
-   finally have 3: "R2(P;R2(Q)) = (\<exists>\<^sub>p {tt\<down>\<acute>\<acute>\<acute>,tr\<down>\<acute>\<acute>\<acute>,tt2\<down>\<acute>\<acute>\<acute>} .  
-    `P[\<langle>\<rangle>/tr][$tr\<acute>\<acute>\<acute>/tr\<acute>] ; Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>\<acute>/tr\<acute>] \<and> ($tt\<acute>\<acute>\<acute> = $tr\<acute>\<acute>\<acute> ^ $tt2\<acute>\<acute>\<acute>) \<and> ($tr\<acute> = $tr ^ $tt\<acute>\<acute>\<acute>)`)"
-      ..
-   show ?thesis 
-      apply(subst 2) 
-      apply(subst 3)
-      sorry (*renaming a quantified variable *)
-qed
+  by (metis R2_SemiR_distribute R2_SemiR_distribute' assms(1) assms(2))
 
-lemma R2_composition: 
-  assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
-  shows "R2(P ; R2(Q)) = R2(P) ; R2(Q)"
-by (metis R2_sequential_composition assms(1) assms(2))
-   
-(* L10 R2-wait-okay' *)
+   (* L10 R2-wait-okay' *)
 
 lemma R2_wait_true: "(R2(P))\<^sub>t = R2(P\<^sub>t)"
-  apply(simp add:R2_def R1_wait_true R2s_def)
-  apply(subst SubstP_twice_3) back
-  apply(simp_all)
-  apply(utp_pred_auto_tac)
-  apply(utp_pred_auto_tac)
-  apply(simp_all add:usubst typing defined closure)
-  apply(simp add:unrest closure typing defined)
-  apply(subst SubstP_twice_3) back back
-  apply(simp_all)
-  apply(utp_pred_auto_tac)
-  apply(utp_pred_auto_tac)
-  apply(simp_all add:usubst typing defined closure)
-  apply(simp add:unrest closure typing defined)
-  done
+  apply (simp add:R2_def R1_wait_true R2s_def)
+  apply (subst SubstP_twice_3) back
+  apply (simp_all add:unrest typing)
+  apply (simp add:usubst typing defined closure)
+  apply (subst SubstP_twice_3) back back
+  apply (simp_all add:unrest typing defined closure)
+  apply (simp add:usubst typing defined closure)
+done
 
 lemma R2_wait_false: "(R2(P))\<^sub>f = R2(P\<^sub>f)"
   apply(simp add:R2_def R1_wait_false R2s_def)
   apply(subst SubstP_twice_3) back
-  apply(simp_all)
-  apply(utp_pred_auto_tac)
-  apply(utp_pred_auto_tac)
-  apply(simp_all add:usubst typing defined closure)
-  apply(simp add:unrest closure typing defined)
-  apply(subst SubstP_twice_3) back back
-  apply(simp_all)
-  apply(utp_pred_auto_tac)
-  apply(utp_pred_auto_tac)
-  apply(simp_all add:usubst typing defined closure)
-  apply(simp add:unrest closure typing defined)
-  done
+  apply (simp_all add:unrest typing)
+  apply (simp add:usubst typing defined closure)
+  apply (subst SubstP_twice_3) back back
+  apply (simp_all add:unrest typing defined closure)
+  apply (simp add:usubst typing defined closure)
+done
 
 (* L14 commutativity R2-R1 *)
 
 lemma R1_R2_commute: 
   "R1 (R2 P) = R2 (R1 P)" 
-by (simp add:R2_def R1_idempotent R2s_destroys_R1)
+  by (simp add:R2_def R1_idempotent R2s_destroys_R1)
 
 (* Additional lemmas *)
 
@@ -730,7 +717,7 @@ proof -
   done
 
   finally show ?thesis 
-    by(simp add:SkipR_as_SkipRA)
+    by (simp add:SkipR_as_SkipRA)
 qed
 
 subsection {* R3 Laws *}
@@ -739,51 +726,51 @@ subsection {* R3 Laws *}
 
 lemma R3_wait_true: 
   "`(R3(P))\<^sub>t` = `II\<^sub>t` "
-by(simp add:R3_def usubst typing defined closure CondR_def)
+  by (simp add:R3_def usubst typing defined closure CondR_def)
 
 (* L2 R3-wait-false *)
 
 lemma R3_wait_false: 
   "`(R3(P))\<^sub>f` = `P\<^sub>f` "
-by(simp add:R3_def usubst typing defined closure CondR_def)
+  by (simp add:R3_def usubst typing defined closure CondR_def)
 
 (* L4 closure-\<and>-R3 *)
 
 lemma R3_AndP: 
   "`R3(P \<and> Q)` = `R3(P) \<and> R3(Q)`"
-by(utp_pred_auto_tac)
+  by (utp_pred_auto_tac)
 
 lemma R3_AndP_closure:
   assumes "P is R3" "Q is R3"
   shows "`P \<and> Q` is R3"
-by(metis is_healthy_def R3_AndP assms)
+  by (metis is_healthy_def R3_AndP assms)
 
 (* L5 closure-\<or>-R3 *)
 
 lemma R3_OrP: 
   "`R3(P \<or> Q)` = `R3(P) \<or> R3(Q)`"
-by(utp_pred_auto_tac)
+  by (utp_pred_auto_tac)
 
 lemma R3_OrP_closure:
   assumes "P is R3" "Q is R3"
   shows "`P \<or> Q` is R3"
-by(metis is_healthy_def R3_OrP assms)
+  by (metis is_healthy_def R3_OrP assms)
   
 (* L6 closure-conditional-R3 *)
 
 lemma R3_CondR: 
   "`R3(P  \<lhd> b \<rhd> Q)` = `R3(P) \<lhd> b \<rhd> R3(Q)`"
-by(utp_pred_auto_tac)
+  by (utp_pred_auto_tac)
 
 lemma R3_CondR_closure:
   assumes "P is R3" "Q is R3"
   shows "`P \<lhd> b \<rhd> Q` is R3"
-by(metis is_healthy_def R3_CondR assms)
+  by (metis is_healthy_def R3_CondR assms)
 
 (* L7 closure-sequence-R3 *)
 
 lemma R3_form : "`R3(P)` = `($wait  \<and> II) \<or> (\<not>$wait \<and> P)`"
-  by(simp add:R3_def CondR_def)
+  by (simp add:R3_def CondR_def)
 
 lemma R3_wait: "`R3(P) \<and> $wait` = `II \<and> $wait`"
   apply (simp add:R3_def)
@@ -831,7 +818,7 @@ done
 lemma R3_SemiR_closure[closure]: 
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "P is R3" "Q is R3"
   shows "P ; Q is R3"
-by (metis Healthy_intro Healthy_simp R3_SemiR_form assms(1) assms(2) assms(3) assms(4))
+  by (metis Healthy_intro Healthy_simp R3_SemiR_form assms(1) assms(2) assms(3) assms(4))
 
 (* L8 R3-idempotent *)
 
@@ -916,11 +903,10 @@ also have "... = `($tr \<le> $tr\<acute>) ; ($wait \<and> $wait\<acute> \<and> I
 also have "... = `($tr \<le> $tr\<acute>) ; (II \<and> $wait\<acute>) \<or> ($tr \<le> $tr\<acute>) ; (\<not>$wait \<and> P)`"
   by (metis "1" AndP_comm)
 also have "... = `(($tr \<le> $tr\<acute>) \<and> $wait\<acute>) \<or> ($tr \<le> $tr\<acute>) ; (\<not>$wait \<and> P\<^sub>f)`"
-  apply(subst SemiR_AndP_right_postcond)
-  apply(simp_all add:closure)
-  apply (smt R1_def R1_rel_closure TrueP_rel_closure utp_pred_simps(6))
-  apply(subst NotP_PVarPE_PSubstPE)
-  apply(simp_all add:closure typing)
+    apply(subst SemiR_AndP_right_postcond)
+    apply(simp_all add:closure)
+    apply(subst NotP_PVarPE_PSubstPE)
+    apply(simp_all add:closure typing)
   done
 also have "... =  `(($tr \<le> $tr\<acute>) \<and> $wait\<acute>) \<or> ($tr \<le> $tr\<acute>) ; P\<^sub>f`"
   apply(subst SemiR_remove_middle_unrest1[of _ _ "{wait \<down>}"])
