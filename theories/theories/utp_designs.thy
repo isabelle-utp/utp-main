@@ -515,6 +515,10 @@ theorem H1_AndP: "H1 (p \<and>\<^sub>p q) = H1(p) \<and>\<^sub>p H1(q)"
 theorem H1_OrP: "H1 (p \<or>\<^sub>p q) = H1(p) \<or>\<^sub>p H1(q)"
   by (utp_pred_auto_tac)
 
+theorem H1_CondR: 
+  "`H1(P \<lhd> c \<rhd> Q)` = `H1(P) \<lhd> c \<rhd> H1(Q)`"
+  by (utp_pred_auto_tac)
+
 theorem H1_algebraic_intro:
   assumes 
     "R \<in> WF_RELATION"  
@@ -647,6 +651,8 @@ theorem H1_idempotent:
 theorem H1_monotone:
   "p \<sqsubseteq> q \<Longrightarrow> H1 p \<sqsubseteq> H1 q"
   by (utp_pred_tac)
+
+
 
 subsubsection {* H2: No requirement of non-termination *}
 
@@ -782,6 +788,25 @@ proof -
 
   finally show ?thesis .
 qed
+
+theorem H2_AndP_closure:
+  assumes 
+  "P \<in> WF_RELATION" "Q \<in> WF_RELATION" 
+  "P is H2" "Q is H2"
+  shows "`P \<and> Q` is H2"
+  using assms
+  apply (simp add:H2_equivalence closure usubst)
+  apply (utp_pred_auto_tac)
+done
+
+theorem H2_OrP:
+  "`H2(P \<or> Q)` = `H2(P) \<or> H2(Q)`"
+  by (simp add:H2_def SemiR_OrP_distr)
+
+theorem H2_CondR:
+  assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "c \<in> WF_CONDITION"
+  shows "`H2(P \<lhd> c \<rhd> Q)` = `H2(P) \<lhd> c \<rhd> H2(Q)`"
+  by (simp add:H2_def CondR_SemiR_distr assms closure)
 
 text {* H1 and H2 can be distinguished by the following counterexample *}
 

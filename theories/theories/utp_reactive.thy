@@ -526,56 +526,6 @@ thm usubst
 
 declare EvalP_SemiR [evalp]
 
-lemma EvalP_ExistsP_singleton_d2_pvaux_ty [evalp]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
-  assumes "TYPEUSOUND('a, 'm)" "pvaux x"
-  shows "\<lbrakk>\<exists>\<^sub>p {x\<down>\<acute>\<acute>} . p\<rbrakk>b = (\<exists> v . v \<rhd>\<^sub>p x \<and> \<lbrakk>p\<rbrakk>(b(x\<acute>\<acute> :=\<^sub>* v)))"
-  apply (auto simp add:eval)
-  apply (rule_tac x="\<langle>b'\<rangle>\<^sub>* x\<acute>\<acute>" in exI)
-  apply (auto)
-  apply (rule typing)
-  apply (simp_all add:assms defined)
-  apply (simp add:Rep_binding_ty_def binding_upd_ty_def assms typing defined)
-  apply (subst TypeUSound_ProjU_inv)
-  apply (simp_all add:typing defined assms)
-  apply (rule typing)
-  apply (simp_all add:typing defined assms pvaux_aux[THEN sym])
-  apply (metis PVAR_VAR_pvdash binding_upd_apply binding_upd_ty_def binding_upd_vcoerce)
-done
-
-theorem SemiR_extract_variable':
-  assumes 
-    "x \<in> D\<^sub>0" "y \<in> NON_REL_VAR" 
-    "vtype x = vtype y" "aux x = aux y"
-    "{y} \<sharp> P" "{y} \<sharp> Q"
-  shows "P ; Q = (\<exists>\<^sub>p {y} . P[$\<^sub>ey/\<^sub>px\<acute>] ; Q[$\<^sub>ey/\<^sub>px])"
-  using assms(1-3) assms(5-6)
-  apply (utp_pred_auto_tac)
-  (* Subgoal 1 *)
-  apply (rule_tac x="b1(y :=\<^sub>b \<langle>b1\<rangle>\<^sub>b x\<acute>)" in exI)
-  apply (simp)
-  apply (rule_tac x="b1(y :=\<^sub>b \<langle>b1\<rangle>\<^sub>b x\<acute>)" in exI)
-  apply (rule_tac x="b2(y :=\<^sub>b \<langle>b2\<rangle>\<^sub>b x)" in exI)
-  apply (auto)
-  apply (simp_all add:assms(4))
-  apply (metis (mono_tags) EvalP_UNREST_assign_1 binding_upd_apply binding_upd_simps(2))
-  apply (metis (mono_tags) EvalP_UNREST_assign_1 binding_upd_apply binding_upd_simps(2))
-  apply (auto simp add:COMPOSABLE_BINDINGS_def)[1]
-  apply (metis binding_equiv_minus binding_equiv_update_drop assms)
-  (* Subgoal 2 *)
-  apply (rule_tac x="b1(x\<acute> :=\<^sub>b \<langle>b1\<rangle>\<^sub>b y, y :=\<^sub>b \<langle>b\<rangle>\<^sub>b y)" in exI)
-  apply (rule_tac x="b2(x :=\<^sub>b \<langle>b2\<rangle>\<^sub>b y, y :=\<^sub>b \<langle>b\<rangle>\<^sub>b y)" in exI)
-  apply (auto)
-  apply (subst binding_upd_twist, force)
-  apply (simp)
-  apply (metis DASHED_not_NON_REL_VAR UNDASHED_not_DASHED binding_upd_override3 binding_upd_override_extract1 binding_upd_triv binding_upd_upd)
-  apply (metis EvalP_UNREST_assign_1)
-  apply (metis EvalP_UNREST_assign_1)
-  apply (auto simp add:COMPOSABLE_BINDINGS_def assms(4))
-  apply (simp add:binding_equiv_def)
-  apply (metis (hide_lams, no_types) DASHED_not_NON_REL_VAR NON_REL_VAR_dash_NON_REL_VAR UNDASHED_dash_DASHED binding_equiv_update_subsume binding_equiv_update_subsume' binding_override_left_eq binding_override_singleton)
-done
-
 lemma UNREST_R2 [unrest]:
   "\<lbrakk> xs \<sharp> P; tr\<down> \<notin> xs; tr\<down>\<acute> \<notin> xs \<rbrakk> \<Longrightarrow> xs \<sharp> R2(P)"
   by (simp add:R2_def R2s_def R1_def unrest typing closure)
