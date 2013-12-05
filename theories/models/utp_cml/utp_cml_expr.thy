@@ -15,7 +15,7 @@ begin
 lemma EqualP_refine [refine]:
   "P[v/\<^sub>px] \<Longrightarrow> P \<sqsubseteq> $\<^sub>ex ==\<^sub>p v"
   by (metis ImpliesP_eq_subst RefP_def Tautology_def TrueP_eq_ClosureP less_eq_WF_PREDICATE_def utp_pred_simps(14) utp_pred_simps(21))
-  
+
 text {* Getting an accurate representation of CML expressions is hard,
 in as much as Isabelle's type-system limits our ability to do proper
 type-inference. Although we can infer the type of an expression, the
