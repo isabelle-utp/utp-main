@@ -262,22 +262,13 @@ lemma CSP2_monotonic:
   "P \<sqsubseteq> Q \<Longrightarrow> CSP2(P) \<sqsubseteq> CSP2(Q)"
   by (metis H2_monotone)
 
-lemma BoolType_aux_var_split_exists_ty:
-  "pvaux x \<Longrightarrow> `\<exists> x. P` = `P[false/x] \<or> P[true/x]`"
-  by (utp_poly_auto_tac, metis)
-
-
-lemma OrP_AndP_absorb:
-  "`P \<or> (P \<and> Q)` = P"
-  by (utp_pred_auto_tac)
-
 lemma CSP1_CSP2_commute:
   assumes "P \<in> WF_RELATION"
   shows "CSP1 (CSP2 P) = CSP2 (CSP1 P)" 
 proof -
   have "(`(\<not> ok \<and> ($tr \<le> $tr\<acute>)) ; J` :: 'a WF_PREDICATE)
         = `(\<not> ok \<and> ($tr \<le> $tr\<acute>)) ; (II\<^bsub>REL_VAR - OKAY\<^esub> \<or> ($okay\<acute> \<and> II\<^bsub>REL_VAR - OKAY\<^esub>))`"
-    apply (subst SemiR_extract_variable[of "okay\<down>"])
+    apply (subst SemiR_extract_variable_id[of "okay\<down>"])
     apply (simp_all add:closure typing defined unrest usubst JA_pred_def)
     apply (subst BoolType_aux_var_split_exists, simp_all)
     apply (simp add:usubst typing closure UNREST_EXPR_TrueE UNREST_EXPR_FalseE)

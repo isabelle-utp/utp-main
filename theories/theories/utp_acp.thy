@@ -444,44 +444,6 @@ proof -
     thus ?thesis sorry
 qed
 
-theorem SemiR_AndP_left_precond_unrest: 
-  assumes
-    "D\<^sub>2 \<sharp> p"
-    "D\<^sub>2 \<sharp> q"
-    "D\<^sub>2 \<sharp> c"
-    "D\<^sub>1 \<sharp> c"
-  shows "(c \<and>\<^sub>p p) ; q = c \<and>\<^sub>p (p ; q)" 
-    apply(subst SemiR_algebraic)
-    apply(simp_all add: assms closure unrest urename)
-    apply(subst RenameP_UNREST [of "D\<^sub>1 \<union> D\<^sub>2"])
-    apply(simp_all add:unrest assms closure)
-    apply(subst SemiR_algebraic)
-    apply(simp_all add: closure assms unrest urename)
-    apply(subst ExistsP_AndP_expand2)
-    apply(simp_all add:assms)
-    apply(subst AndP_assoc[THEN sym])
-    apply(simp)
-done
-
-theorem SemiR_AndP_right_postcond_unrest: 
-  assumes
-    "D\<^sub>2 \<sharp> p"
-    "D\<^sub>2 \<sharp> q"
-    "D\<^sub>2 \<sharp> c"
-    "D\<^sub>0 \<sharp> c"
-  shows "p ; (q \<and>\<^sub>p c) = (p ; q) \<and>\<^sub>p c" 
-    apply(subst SemiR_algebraic)
-    apply(simp_all add: assms closure unrest urename)
-    apply(subst RenameP_UNREST [of "D\<^sub>0 \<union> D\<^sub>2"]) back back
-    apply(simp_all add:unrest assms closure)
-    apply(subst SemiR_algebraic)
-    apply(simp_all add: closure assms unrest urename)
-    apply(subst ExistsP_AndP_expand1)
-    apply(simp_all add:assms)
-    apply(subst AndP_assoc[THEN sym])
-    apply(simp)
-    done
-
 lemma tr_eq_SemiR:
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "P is R1" "Q is R1" 
   shows "`P;Q \<and> ($tr\<acute> = $tr)` = `(P \<and> ($tr\<acute> = $tr));(Q \<and> ($tr\<acute> = $tr))`"
@@ -494,7 +456,7 @@ proof -
      by (utp_poly_auto_tac)
 
     thus ?thesis 
-      apply(subst SemiR_extract_variable_ty[of "tr "])
+      apply(subst SemiR_extract_variable_id_ty[of "tr "])
       apply(simp_all add:closure unrest assms typing)
       apply(simp add:R1_def usubst typing defined closure)
       apply(subst SemiR_AndP_right_UNDASHED)
@@ -528,7 +490,7 @@ proof -
   finally show ?thesis
     apply(simp)
     apply(rule sym)
-    apply(subst SemiR_extract_variable_ty[of "tr"])
+    apply(subst SemiR_extract_variable_id_ty[of "tr"])
     apply(simp_all add:closure assms typing tr_eq_rel_closure)
     apply(simp_all add:unrest closure typing assms)
     apply(simp add:usubst typing defined closure assms)

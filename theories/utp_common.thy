@@ -215,6 +215,7 @@ text {* Ad-hoc overloading allows the binding of symbols to multiple
 consts
   alphabet  :: "'r \<Rightarrow> 'a" ("\<alpha>")
   prime     :: "'a \<Rightarrow> 'a" ("_\<acute>" [1000] 1000)
+  unprime   :: "'a \<Rightarrow> 'a" ("_~" [1000] 1000)
   subscr    :: "'a \<Rightarrow> nat \<Rightarrow> 'a" ("_\<^bsub>_\<^esub>")
 
 notation
@@ -226,6 +227,10 @@ setup {*
 
 setup {*
   Adhoc_Overloading.add_overloaded @{const_name prime}
+*}
+
+setup {*
+  Adhoc_Overloading.add_overloaded @{const_name unprime}
 *}
 
 setup {*

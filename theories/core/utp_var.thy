@@ -104,8 +104,9 @@ definition undash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" where
 "undash \<equiv> \<lambda> x. MkVar (MkName (name_str (name x)) (dashes (name x)- 1) (subscript (name x)))
                      (vtype x) (aux x)"
 
-notation 
-  undash ("_~" [1000] 1000)
+setup {*
+Adhoc_Overloading.add_variant @{const_name unprime} @{const_name undash}
+*}
 
 fun vchsub :: "'a VAR \<Rightarrow> nat \<Rightarrow> 'a VAR" where
 "vchsub (MkName s d b, t, a) n = (MkName s d (chsub n b), t, a)"

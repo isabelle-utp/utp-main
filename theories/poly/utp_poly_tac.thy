@@ -66,7 +66,7 @@ declare EvalR_FalseP [evalpr]
 declare EvalR_NotP [evalpr]
 declare EvalR_OrP [evalpr]
 declare EvalR_AndP [evalpr]
-declare EvalR_SemiR [evalpr]
+declare EvalR_SemiR [evalpp,evalpr]
 declare EvalR_SkipR [evalpr]
 
 declare EmptyUS.rep_eq [evalp]

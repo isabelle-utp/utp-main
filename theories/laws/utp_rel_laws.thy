@@ -337,34 +337,44 @@ text {* A single variable can be extracted from a sequential composition and cap
 
 theorem SemiR_extract_variable:
   assumes 
+    "x \<in> D\<^sub>0" "y \<in> NON_REL_VAR" 
+    "vtype x = vtype y" "aux x = aux y"
+    "{y} \<sharp> P" "{y} \<sharp> Q"
+  shows "P ; Q = (\<exists>\<^sub>p {y} . P[$\<^sub>ey/\<^sub>px\<acute>] ; Q[$\<^sub>ey/\<^sub>px])"
+  using assms(1-3) assms(5-6)
+  apply (utp_pred_auto_tac)
+  (* Subgoal 1 *)
+  apply (rule_tac x="b1(y :=\<^sub>b \<langle>b1\<rangle>\<^sub>b x\<acute>)" in exI)
+  apply (simp)
+  apply (rule_tac x="b1(y :=\<^sub>b \<langle>b1\<rangle>\<^sub>b x\<acute>)" in exI)
+  apply (rule_tac x="b2(y :=\<^sub>b \<langle>b2\<rangle>\<^sub>b x)" in exI)
+  apply (auto)
+  apply (simp_all add:assms(4))
+  apply (metis (mono_tags) EvalP_UNREST_assign_1 binding_upd_apply binding_upd_simps(2))
+  apply (metis (mono_tags) EvalP_UNREST_assign_1 binding_upd_apply binding_upd_simps(2))
+  apply (auto simp add:COMPOSABLE_BINDINGS_def)[1]
+  apply (metis binding_equiv_minus binding_equiv_update_drop assms)
+  (* Subgoal 2 *)
+  apply (rule_tac x="b1(x\<acute> :=\<^sub>b \<langle>b1\<rangle>\<^sub>b y, y :=\<^sub>b \<langle>b\<rangle>\<^sub>b y)" in exI)
+  apply (rule_tac x="b2(x :=\<^sub>b \<langle>b2\<rangle>\<^sub>b y, y :=\<^sub>b \<langle>b\<rangle>\<^sub>b y)" in exI)
+  apply (auto)
+  apply (subst binding_upd_twist, force)
+  apply (simp)
+  apply (metis DASHED_not_NON_REL_VAR UNDASHED_not_DASHED binding_upd_override3 binding_upd_override_extract1 binding_upd_triv binding_upd_upd)
+  apply (metis EvalP_UNREST_assign_1)
+  apply (metis EvalP_UNREST_assign_1)
+  apply (auto simp add:COMPOSABLE_BINDINGS_def assms(4))
+  apply (simp add:binding_equiv_def)
+  apply (metis (hide_lams, no_types) DASHED_not_NON_REL_VAR NON_REL_VAR_dash_NON_REL_VAR UNDASHED_dash_DASHED binding_equiv_update_subsume binding_equiv_update_subsume' binding_override_left_eq binding_override_singleton)
+done
+
+theorem SemiR_extract_variable_id:
+  assumes 
     "x \<in> UNDASHED"
     "{x\<acute>\<acute>} \<sharp> P" "{x\<acute>\<acute>} \<sharp> Q"
   shows "P ; Q = (\<exists>\<^sub>p {x\<acute>\<acute>}. P[$\<^sub>ex\<acute>\<acute>/\<^sub>px\<acute>] ; Q[$\<^sub>ex\<acute>\<acute>/\<^sub>px])"
   using assms
-  apply (utp_pred_auto_tac)
-  (* Subgoal 1 *)
-  apply (rule_tac x="b1(x\<acute>\<acute> :=\<^sub>b \<langle>b1\<rangle>\<^sub>b x\<acute>)" in exI)
-  apply (simp)
-  apply (rule_tac x="b1(x\<acute>\<acute> :=\<^sub>b \<langle>b1\<rangle>\<^sub>b x\<acute>)" in exI)
-  apply (rule_tac x="b2(x\<acute>\<acute> :=\<^sub>b \<langle>b2\<rangle>\<^sub>b x)" in exI)
-  apply (auto)
-  apply (metis EvalP_UNREST_assign_1 binding_upd_simps(2) binding_upd_twist)
-  apply (metis EvalP_UNREST_assign_1 binding_upd_simps(2) binding_upd_twist)
-  apply (auto simp add:COMPOSABLE_BINDINGS_def)[1]
-  apply (metis binding_equiv_minus binding_equiv_update_drop)
-  (* Subgoal 2 *)
-  apply (rule_tac x="b1(x\<acute> :=\<^sub>b \<langle>b1\<rangle>\<^sub>b x\<acute>\<acute>,x\<acute>\<acute> :=\<^sub>b \<langle>b\<rangle>\<^sub>b x\<acute>\<acute>)" in exI)
-  apply (rule_tac x="b2(x :=\<^sub>b \<langle>b2\<rangle>\<^sub>b x\<acute>\<acute>,x\<acute>\<acute> :=\<^sub>b \<langle>b\<rangle>\<^sub>b x\<acute>\<acute>)" in exI)
-  apply (auto)
-  apply (subst binding_upd_twist, simp)
-  apply (simp)
-  apply (metis (mono_tags) binding_upd_override_extract1 binding_upd_triv binding_upd_upd dashed_twice_contras(2))
-  apply (metis EvalP_UNREST_assign_1)
-  apply (metis EvalP_UNREST_assign_1)
-  apply (auto simp add:COMPOSABLE_BINDINGS_def)
-  apply (simp add:binding_equiv_def)
-  apply (metis (hide_lams, no_types) DASHED_not_NON_REL_VAR NON_REL_VAR_dash_NON_REL_VAR UNDASHED_dash_DASHED binding_equiv_update_subsume binding_equiv_update_subsume' binding_override_left_eq binding_override_singleton)
-done
+  by (rule_tac SemiR_extract_variable, simp_all)
 
 text {* If the right hand side of ; restricts less input variables than the less
         does for corresponding outputs, those outputs can be existentially quantified. *}
@@ -867,9 +877,9 @@ theorem SemiR_left_one_point:
     "{x} \<sharp> v"
   shows "P ; ($\<^sub>ex ==\<^sub>p v \<and>\<^sub>p Q) = P[v\<acute>/\<^sub>px\<acute>] ; Q[v/\<^sub>px]"
   using assms
-  (* This command takes over 15 seconds to complete, really should be optimised.
-     The problem is the inclusion of UNREST_EXPR_subset *)
-  apply (simp add:unrest urename closure typing defined UNREST_EXPR_subset evalrx evale relcomp_unfold)
+  apply (subgoal_tac "D\<^sub>1 \<sharp> v")
+  apply (subgoal_tac "NON_REL_VAR \<sharp> v")
+  apply (simp add:unrest urename closure typing defined evalrx evale relcomp_unfold)
   apply (auto)
   apply (metis DestXRelB_inverse binding_upd_triv xbinding_upd_def)
   apply (rule_tac x="ya(x :=\<^sub>x \<lbrakk>v\<rbrakk>\<^sub>e\<langle>ya\<rangle>\<^sub>x)" in exI)
@@ -890,7 +900,8 @@ theorem SemiR_right_one_point:
     "{x} \<sharp> v"
   shows "(P \<and>\<^sub>p $\<^sub>ex\<acute> ==\<^sub>p v\<acute>) ; Q = P[v\<acute>/\<^sub>px\<acute>] ; Q[v/\<^sub>px]"
   using assms
-  apply (simp add:unrest urename closure typing defined UNREST_EXPR_subset evalrx evale)
+  (* FIXME: This proof should be optimised and the WF_RELATION assumption removed *)
+  apply (simp add:unrest UNREST_EXPR_subset urename closure typing defined evalrx evale)
   apply (subgoal_tac "$\<^sub>ex\<acute> ==\<^sub>p v\<acute> = ($\<^sub>ex)\<acute> ==\<^sub>p v\<acute>")
   apply (simp add:relcomp_unfold evale evalrx closure unrest)
   defer

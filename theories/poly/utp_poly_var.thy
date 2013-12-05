@@ -80,6 +80,10 @@ Adhoc_Overloading.add_variant @{const_name prime} @{const_name pvdash}
 *}
 
 setup {*
+Adhoc_Overloading.add_variant @{const_name unprime} @{const_name pvundash}
+*}
+
+setup {*
 Adhoc_Overloading.add_variant @{const_name subscr} @{const_name pvchsub}
 *}
 
@@ -193,9 +197,25 @@ lemma PVAR_VAR_PDASHED_DASHED_TWICE [closure]:
   "x \<in> PDASHED_TWICE \<Longrightarrow> x\<down> \<in> DASHED_TWICE"
   by (simp add:PDASHED_TWICE_def)
 
+lemma PUNDASHED_dash [closure]:
+  "x \<in> PUNDASHED \<Longrightarrow> x\<acute> \<in> PDASHED"
+  by (simp add:PDASHED_def PUNDASHED_def)
+
+lemma PDASHED_dash [closure]:
+  "x \<in> PDASHED \<Longrightarrow> x\<acute> \<in> PDASHED_TWICE"
+  by (simp add:PDASHED_def PDASHED_TWICE_def)
+
 lemma MkPlainP_UNDASHED [closure]:
   "MkPlainP n a t m \<in> PUNDASHED"
   by (simp add: PVAR_VAR_MkPVAR PUNDASHED_def)
+
+lemma pvdash_pvundash [simp]:
+  "pvundash (pvdash x) = x"
+  by (metis PVAR_VAR_inv PVAR_VAR_pvdash PVAR_VAR_pvundash undash_dash)
+
+lemma pvundash_pvdash_PDASHED [simp]:
+  "x \<in> PDASHED \<Longrightarrow> pvdash (pvundash x) = x"
+  by (metis DASHED_dash_elim PVAR_VAR_PDASHED_DASHED PVAR_VAR_pvundash VAR_PVAR_erase_simps undash_dash)
 
 subsection {* Adapting Permutation *}
 

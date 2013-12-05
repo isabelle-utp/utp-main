@@ -58,7 +58,7 @@ lemma SubstP_RefineP [usubst]:
   "(P \<sqsubseteq>\<^sub>p Q)[v/\<^sub>px] = (P \<sqsubseteq>\<^sub>p Q)"
   by (utp_pred_tac)
 
-lemma SubstP_UNREST [usubst]:
+lemma SubstP_UNREST (* [usubst] *):
   "\<lbrakk> NON_REL_VAR \<sharp> p; x \<in> NON_REL_VAR \<rbrakk> 
   \<Longrightarrow> p[e/\<^sub>px] = p"
   by (utp_pred_tac)
@@ -81,11 +81,11 @@ lemma SubstP_VarP_diff [usubst]:
   "x \<noteq> y \<Longrightarrow> $\<^sub>py[e/\<^sub>px] = $\<^sub>py"
   by (utp_pred_tac)
 
-lemma SubstP_VarP_aux [usubst]:
+lemma SubstP_VarP_aux (* [usubst] *):
   "\<lbrakk> AUX_VAR \<sharp> p; aux x \<rbrakk> \<Longrightarrow> p[e/\<^sub>px] = p"
   by (utp_pred_tac)
 
-lemma SubstP_VarP_single_UNREST [usubst]:
+lemma SubstP_VarP_single_UNREST (* [usubst] *):
   "{x} \<sharp> p \<Longrightarrow> p[e/\<^sub>px] = p"
   by (utp_pred_tac)
 
@@ -246,7 +246,7 @@ lemma SubstE_VarE_other [usubst]:
   "x \<noteq> y \<Longrightarrow> VarE y[v/\<^sub>ex] = VarE y"
   by (utp_expr_tac)
 
-lemma SubstE_VarE_single_UNREST [usubst]:
+lemma SubstE_VarE_single_UNREST (* [usubst] *):
   "{x} \<sharp> f \<Longrightarrow> f[e/\<^sub>ex] = f"
   by (utp_expr_tac)
 

@@ -346,8 +346,9 @@ proof -
     apply (rule_tac trans)
     apply (rule BoolType_aux_var_split_exists, simp_all)
     apply (simp add:erasure typing inju)
-    apply (simp add:usubst)
-    apply (simp add:usubst closure unrest assms typing defined)
+    apply (simp add: usubst)
+    apply (simp add: SubstP_TrueP SubstP_NON_REL_VAR unrest closure)
+    apply (simp add: SubstP_twice_2 unrest usubst typing defined)
   done
 
   also have "... = `((true ; true) \<or> (true ; ((P \<turnstile> Q)[true/okay])))`"
@@ -381,7 +382,7 @@ proof -
 
   also have "... = ` ((P1 \<turnstile> Q1)[false/okay\<acute>] ; (P2 \<turnstile> Q2)[false/okay]) 
                       \<or> ((P1 \<turnstile> Q1)[true/okay\<acute>] ; (P2 \<turnstile> Q2)[true/okay])`"
-    by (simp add:ucases typing usubst defined closure unrest DesignD_def assms erasure inju)
+    by (simp add:ucases typing usubst defined closure unrest DesignD_def assms erasure inju SubstP_VarP_single_UNREST)
 
   also from assms
   have "... = `((ok \<and> P1 \<Rightarrow> Q1) ; (P2 \<Rightarrow> ok' \<and> Q2)) \<or> ((\<not> (ok \<and> P1)) ; true)`"

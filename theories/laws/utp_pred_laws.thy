@@ -59,6 +59,14 @@ theorem OrP_AndP_distr :
 "(p1 \<and>\<^sub>p p2) \<or>\<^sub>p p3 = (p1 \<or>\<^sub>p p3) \<and>\<^sub>p (p2 \<or>\<^sub>p p3)"
   by (utp_pred_auto_tac)
 
+lemma OrP_AndP_absorb:
+  "P \<or>\<^sub>p (P \<and>\<^sub>p Q) = P"
+  by (utp_pred_auto_tac)
+
+lemma AndP_OrP_absorb:
+  "P \<and>\<^sub>p (P \<or>\<^sub>p Q) = P"
+  by (utp_pred_auto_tac)
+
 theorem AndP_contra :
 "p \<and>\<^sub>p \<not>\<^sub>p p = false"
   by (utp_pred_auto_tac)

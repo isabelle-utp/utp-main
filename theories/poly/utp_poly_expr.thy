@@ -469,6 +469,30 @@ lemma EvalP_ExistsP_singleton_pvaux_ty [evalp]:
   apply (metis binding_upd_eq binding_upd_ty_def binding_upd_vcoerce)
 done
 
+lemma EvalP_ExistsP_singleton_d1_pvaux_ty [evalp]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "pvaux x"
+  shows "\<lbrakk>\<exists>\<^sub>p {x\<down>\<acute>} . p\<rbrakk>b = (\<exists> v . v \<rhd>\<^sub>p x\<acute> \<and> \<lbrakk>p\<rbrakk>(b(x\<acute> :=\<^sub>* v)))"
+  apply (subst EvalP_ExistsP_singleton_pvaux_ty[THEN sym])
+  apply (simp_all add:assms)
+done
+
+lemma EvalP_ExistsP_singleton_d2_pvaux_ty [evalp]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "pvaux x"
+  shows "\<lbrakk>\<exists>\<^sub>p {x\<down>\<acute>\<acute>} . p\<rbrakk>b = (\<exists> v . v \<rhd>\<^sub>p x\<acute>\<acute> \<and> \<lbrakk>p\<rbrakk>(b(x\<acute>\<acute> :=\<^sub>* v)))"
+  apply (subst EvalP_ExistsP_singleton_pvaux_ty[THEN sym])
+  apply (simp_all add:assms)
+done
+
+lemma EvalP_ExistsP_singleton_d3_pvaux_ty [evalp]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "pvaux x"
+  shows "\<lbrakk>\<exists>\<^sub>p {x\<down>\<acute>\<acute>\<acute>} . p\<rbrakk>b = (\<exists> v . v \<rhd>\<^sub>p x\<acute>\<acute>\<acute> \<and> \<lbrakk>p\<rbrakk>(b(x\<acute>\<acute>\<acute> :=\<^sub>* v)))"
+  apply (subst EvalP_ExistsP_singleton_pvaux_ty[THEN sym])
+  apply (simp_all add:assms)
+done
+
 lemma UNREST_PExprP [unrest]:
   "UNREST_PEXPR vs v \<Longrightarrow> UNREST vs v\<down>"
   by (auto simp add:UNREST_def UNREST_PEXPR_def PExprP_def)
@@ -986,6 +1010,20 @@ lemma RenamePE_VarPE [urename]:
   "ss\<bullet>(VarPE x) = VarPE (ss\<bullet>x)"
   by (auto simp add:eval)
 
+lemma SS_PUNDASHED_app [urename]:
+  "x \<in> PUNDASHED \<Longrightarrow> SS\<bullet>x = x\<acute>"
+  by (simp add:PermPV_def urename closure)
+
+lemma SS_PDASHED_app [urename]:
+  "x \<in> PDASHED \<Longrightarrow> SS\<bullet>x = x~"
+  apply (simp add:PermPV_def urename closure)
+  apply (metis PVAR_VAR_inv PVAR_VAR_pvundash)
+done
+
+lemma SS_PDASHED_TWICE_app [urename]:
+  "x \<in> PDASHED_TWICE \<Longrightarrow> SS\<bullet>x = x"
+  by (simp add:PermPV_def urename closure)
+
 lemma RenameB_rep_eq_ty [simp]:
   "\<langle>ss \<bullet> b\<rangle>\<^sub>* = \<langle>b\<rangle>\<^sub>* \<circ> inv \<langle>ss\<rangle>\<^sub>s\<^sub>*"
   apply (rule)
@@ -1192,7 +1230,7 @@ lemma PSubstPE_PVarPE_neq [usubst]:
   shows "PSubstPE (PVarPE x) v y = PVarPE x"
   using assms by (utp_poly_auto_tac)
 
-lemma PSubstPE_VarP_single_UNREST [usubst]:
+lemma PSubstPE_VarP_single_UNREST:
   "{x\<down>} \<sharp> v \<Longrightarrow> v[e/\<^sub>*x] = v"
   by (auto simp add:evalp unrest UNREST_PEXPR_def)
 

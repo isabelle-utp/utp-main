@@ -721,6 +721,10 @@ theorem UNREST_CondR [unrest]:
 
 subsubsection {* Closure Theorems *}
 
+lemma WF_RELATION_UNREST:
+  "NON_REL_VAR \<sharp> P \<Longrightarrow> P \<in> WF_RELATION"
+  by (simp add:WF_RELATION_def)
+
 theorem WF_CONDITION_WF_RELATION [closure]:
 "p \<in> WF_CONDITION \<Longrightarrow> p \<in> WF_RELATION"
   by (auto simp add:WF_CONDITION_def)

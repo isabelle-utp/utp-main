@@ -26,14 +26,28 @@ lemma BoolType_pvaux_cases [ucases]:
   apply (simp_all add:typing defined erasure pvaux_aux inju)
 done
 
-thm SemiR_extract_variable
+lemma BoolType_aux_var_split_exists_ty:
+  "pvaux x \<Longrightarrow> `\<exists> x. P` = `P[false/x] \<or> P[true/x]`"
+  by (utp_poly_auto_tac, metis)
 
 theorem SemiR_extract_variable_ty:
+  fixes x y :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "x \<in> PUNDASHED" "y \<in> PDASHED_TWICE" "TYPEUSOUND('a, 'm)" 
+          "pvaux x" "pvaux y"
+          "{y\<down>} \<sharp> P" "{y\<down>} \<sharp> Q"
+  shows "P ; Q = `\<exists> y. P[$y/x\<acute>] ; Q[$y/x]`"
+  apply (subst SemiR_extract_variable[of "x\<down>" "y\<down>"])
+  apply (simp_all add:assms closure)
+  apply (metis assms(4) assms(5) pvaux_aux)
+  apply (simp add:erasure assms typing defined closure)
+done
+
+theorem SemiR_extract_variable_id_ty:
   fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
   assumes "x \<in> PUNDASHED" "TYPEUSOUND('a, 'm)" "pvaux x"
           "{x\<down>\<acute>\<acute>} \<sharp> P" "{x\<down>\<acute>\<acute>} \<sharp> Q"
   shows "P ; Q = `\<exists> x\<acute>\<acute>. P[$x\<acute>\<acute>/x\<acute>] ; Q[$x\<acute>\<acute>/x]`"
-  apply (subst SemiR_extract_variable[of "x\<down>"])
+  apply (subst SemiR_extract_variable[of "x\<down>" "x\<down>\<acute>\<acute>"])
   apply (simp_all add:assms closure)
   apply (simp add:erasure assms typing defined closure)
 done

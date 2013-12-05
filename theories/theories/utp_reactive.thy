@@ -63,10 +63,6 @@ declare RH_def [eval, evalr, evalrr, evalrx, evalp]
 
 subsection {* Closure Laws *}
 
-lemma WF_RELATION_UNREST:
-  "NON_REL_VAR \<sharp> P \<Longrightarrow> P \<in> WF_RELATION"
-  by (simp add:WF_RELATION_def)
-
 lemma R1_rel_closure [closure]:
   "P \<in> WF_RELATION \<Longrightarrow> R1(P) \<in> WF_RELATION"
   by (simp add:R1_def closure unrest WF_RELATION_UNREST)
@@ -393,14 +389,6 @@ proof -
     by (metis assms(1))
 qed 
 
-lemma EvalP_ExistsP_singleton_d3_pvaux_ty [evalp]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
-  assumes "TYPEUSOUND('a, 'm)" "pvaux x"
-  shows "\<lbrakk>\<exists>\<^sub>p {x\<down>\<acute>\<acute>\<acute>} . p\<rbrakk>b = (\<exists> v . v \<rhd>\<^sub>p x\<acute>\<acute>\<acute> \<and> \<lbrakk>p\<rbrakk>(b(x\<acute>\<acute>\<acute> :=\<^sub>* v)))"
-  apply (subst EvalP_ExistsP_singleton_pvaux_ty[THEN sym])
-  apply (simp_all add:assms)
-done
-
 lemma R2_SemiR_form: 
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
   shows "R2(P);R2(Q) =  `(\<exists> tt1\<acute>\<acute>. \<exists> tt2\<acute>\<acute>.  P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>/tr\<acute>] ; Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr ^ $tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>))`"
@@ -409,7 +397,7 @@ proof -
       (\<exists> tt1\<acute>\<acute> . (P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute>\<acute> = $tr ^ $tt1\<acute>\<acute>)));
       (\<exists> tt2\<acute>\<acute> . (Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr\<acute>\<acute> ^ $tt2\<acute>\<acute>)))
      )`"
-        apply(simp add: SemiR_extract_variable_ty[of "tr"] closure assms typing unrest)
+        apply(simp add: SemiR_extract_variable_id_ty[of "tr"] closure assms typing unrest)
         apply(subst R2_form[of "tt1"])
         apply(simp_all add:closure assms unrest)
         apply(subst R2_form[of "tt2"])
@@ -531,6 +519,7 @@ declare SubstP_VarP_single_UNREST[usubst del]
 declare SubstE_VarE_single_UNREST[usubst del]
 declare SubstP_VarP_aux[usubst del]
 declare SubstP_UNREST_OKAY[usubst del]
+
 declare PSubstPE_VarP_single_UNREST[usubst del]
 
 thm usubst
@@ -553,18 +542,6 @@ lemma EvalP_ExistsP_singleton_d2_pvaux_ty [evalp]:
   apply (simp_all add:typing defined assms pvaux_aux[THEN sym])
   apply (metis PVAR_VAR_pvdash binding_upd_apply binding_upd_ty_def binding_upd_vcoerce)
 done
-
-lemma PUNDASHED_dash [closure]:
-  "x \<in> PUNDASHED \<Longrightarrow> x\<acute> \<in> PDASHED"
-  by (simp add:PDASHED_def PUNDASHED_def)
-
-lemma PDASHED_dash [closure]:
-  "x \<in> PDASHED \<Longrightarrow> x\<acute> \<in> PDASHED_TWICE"
-  by (simp add:PDASHED_def PDASHED_TWICE_def)
-
-lemma SS_PDASHED_TWICE_app [urename]:
-  "x \<in> PDASHED_TWICE \<Longrightarrow> SS\<bullet>x = x"
-  by (simp add:PermPV_def urename closure)
 
 theorem SemiR_extract_variable':
   assumes 
@@ -597,18 +574,6 @@ theorem SemiR_extract_variable':
   apply (auto simp add:COMPOSABLE_BINDINGS_def assms(4))
   apply (simp add:binding_equiv_def)
   apply (metis (hide_lams, no_types) DASHED_not_NON_REL_VAR NON_REL_VAR_dash_NON_REL_VAR UNDASHED_dash_DASHED binding_equiv_update_subsume binding_equiv_update_subsume' binding_override_left_eq binding_override_singleton)
-done
-
-theorem SemiR_extract_variable_ty':
-  fixes x y :: "('a :: DEFINED, 'm :: VALUE) PVAR"
-  assumes "x \<in> PUNDASHED" "y \<in> PDASHED_TWICE" "TYPEUSOUND('a, 'm)" 
-          "pvaux x" "pvaux y"
-          "{y\<down>} \<sharp> P" "{y\<down>} \<sharp> Q"
-  shows "P ; Q = `\<exists> y. P[$y/x\<acute>] ; Q[$y/x]`"
-  apply (subst SemiR_extract_variable'[of "x\<down>" "y\<down>"])
-  apply (simp_all add:assms closure)
-  apply (metis assms(4) assms(5) pvaux_aux)
-  apply (simp add:erasure assms typing defined closure)
 done
 
 lemma UNREST_R2 [unrest]:
@@ -676,7 +641,7 @@ proof -
     done
 
     show ?thesis
-      apply (subst SemiR_extract_variable_ty'[of "tr" "tt1\<acute>\<acute>"]) back
+      apply (subst SemiR_extract_variable_ty[of "tr" "tt1\<acute>\<acute>"]) back
       apply (simp_all add:typing closure assms unrest)
       apply (simp add:usubst typing defined closure)
       apply (subst SubstP_twice_3) back back back back 
