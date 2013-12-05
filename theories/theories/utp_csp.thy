@@ -207,42 +207,51 @@ by (metis CSP1_R1_compose assms)
 
 
 lemma R3c_form : "`R3c(P)` = `(\<not>ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait  \<and> II) \<or> (\<not>$wait \<and> P\<^sub>f)`"
-  sorry
+  apply (simp add:R3c_def)
+  apply (utp_poly_auto_tac)
+  apply (simp add:eval)
+  apply (drule_tac x="tr\<down>" in bspec, simp add:closure)
+  apply (simp add:Rep_binding_ty_def)
+  apply (simp add:eval)
+  apply (drule_tac x="tr\<down>" in bspec, simp add:closure)
+  apply (simp add:Rep_binding_ty_def)
+done
 
 lemma R3c_form_2 : "`R3c(P)` = `(\<not>ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait  \<and> II) \<or> (\<not>$wait \<and> P)`"
-  apply(simp add:R3c_def)
-  apply(subst CSP1_R1_form_2)
+  apply (simp add:R3c_def)
+  apply (subst CSP1_R1_form_2)
   apply (metis Healthy_intro R1_SkipR)
-  apply(utp_poly_auto_tac)
-  done
+  apply (utp_poly_auto_tac)
+done
 
 lemma CSP1_R1_R3c_compose: 
   assumes "P is R1"
   shows "R3c(CSP1(P)) = `(\<not>ok \<and> ($tr\<le>$tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not>$wait \<and> P[true/okay][false/wait])`"
-  apply(subst CSP1_R1_form)
-  apply(metis assms)
-  apply(simp add:R3c_form CSP1_def)
-  apply(utp_poly_auto_tac)
+  apply (subst CSP1_R1_form)
+  apply (metis assms)
+  apply (simp add:R3c_form CSP1_def)
+  apply (utp_poly_auto_tac)
 done
 
 lemma CSP1_R1_R3c_compose_2: 
   assumes "P is R1"
   shows "R3c(CSP1(P)) = `(\<not>ok \<and> ($tr\<le>$tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not>$wait \<and> P)`"
-  apply(subst CSP1_R1_form_2)
-  apply(metis assms)
-  apply(simp add:R3c_form_2 CSP1_def)
-  apply(utp_pred_auto_tac)
+  apply (subst CSP1_R1_form_2)
+  apply (metis assms)
+  apply (simp add:R3c_form_2 CSP1_def)
+  apply (utp_pred_auto_tac)
 done
 
 lemma CSP1_R3_okay': 
 "`CSP1(ok' \<and> R3c(P))` = `CSP1(R3c(ok' \<and> P))`"
-apply(simp add:R3c_form CSP1_def SkipR_as_SkipRA)
-apply(subst SkipRA_unfold[of "okay \<down>"])
-apply(simp_all add:closure)
-apply(subst SkipRA_unfold[of "okay \<down>"]) back
-apply(simp_all add:closure)
-apply(utp_poly_auto_tac)
-sorry
+  apply (simp add:R3c_form CSP1_def SkipR_as_SkipRA)
+  apply (subst SkipRA_unfold[of "okay\<down>"])
+  apply (simp_all add:closure)
+  apply (subst SkipRA_unfold[of "okay\<down>"]) back
+  apply (simp_all add:closure)
+  apply (utp_poly_auto_tac)
+  apply (simp_all add:eval Rep_binding_ty_def)
+done
 
 subsection {* CSP2 laws *}
 
@@ -253,20 +262,49 @@ lemma CSP2_monotonic:
   "P \<sqsubseteq> Q \<Longrightarrow> CSP2(P) \<sqsubseteq> CSP2(Q)"
   by (metis H2_monotone)
 
+lemma BoolType_aux_var_split_exists_ty:
+  "pvaux x \<Longrightarrow> `\<exists> x. P` = `P[false/x] \<or> P[true/x]`"
+  by (utp_poly_auto_tac, metis)
+
+
+lemma OrP_AndP_absorb:
+  "`P \<or> (P \<and> Q)` = P"
+  by (utp_pred_auto_tac)
+
 lemma CSP1_CSP2_commute:
   assumes "P \<in> WF_RELATION"
   shows "CSP1 (CSP2 P) = CSP2 (CSP1 P)" 
-  apply (simp add: CSP1_def usubst typing defined closure H2_def SemiR_OrP_distr)
-  sorry
-  
+proof -
+  have "(`(\<not> ok \<and> ($tr \<le> $tr\<acute>)) ; J` :: 'a WF_PREDICATE)
+        = `(\<not> ok \<and> ($tr \<le> $tr\<acute>)) ; (II\<^bsub>REL_VAR - OKAY\<^esub> \<or> ($okay\<acute> \<and> II\<^bsub>REL_VAR - OKAY\<^esub>))`"
+    apply (subst SemiR_extract_variable[of "okay\<down>"])
+    apply (simp_all add:closure typing defined unrest usubst JA_pred_def)
+    apply (subst BoolType_aux_var_split_exists, simp_all)
+    apply (simp add:usubst typing closure UNREST_EXPR_TrueE UNREST_EXPR_FalseE)
+    apply (simp add:usubst typing defined closure SubstP_VarP_single_UNREST unrest)
+    apply (subst SemiR_OrP_distl[THEN sym])
+    apply (simp)
+  done
+
+  also have "... = `(\<not> ok \<and> ($tr \<le> $tr\<acute>)) ; II\<^bsub>REL_VAR - OKAY\<^esub>`"
+    by (smt AndP_comm OrP_AndP_absorb)
+
+  also have "... = `(\<not> ok \<and> ($tr \<le> $tr\<acute>))`"
+    by (simp add:SemiR_SkipRA_right closure var_dist unrest)
+
+  finally show ?thesis
+    by (simp add: H2_def CSP1_def SemiR_OrP_distr)
+qed
+
+ 
 lemma CSP2_form:  
   assumes "P \<in> WF_RELATION"
   shows "`CSP2(P)` = `P\<^sup>f \<or> ok'\<and> P\<^sup>t`"
-    apply(simp add:H2_def)
-    apply(subst J_split)
-    apply (metis assms)
-    apply(simp add:AndP_comm)
-    done
+  apply (simp add:H2_def)
+  apply (subst J_split)
+  apply (metis assms)
+  apply (simp add:AndP_comm)
+done
 
 lemma CSP2_R1_commute: 
   assumes "P \<in> WF_RELATION"

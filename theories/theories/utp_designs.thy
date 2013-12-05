@@ -8,7 +8,7 @@ header {* UTP Designs *}
 
 theory utp_designs
 imports 
-  "../utp_base"
+  utp_base
 begin
 
 text {* Most predicates need a boolean type, so we here set the appropriate sort constraint *}

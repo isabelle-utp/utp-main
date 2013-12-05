@@ -17,7 +17,7 @@ definition ACP1 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 "ACP1 P = `P \<and> (($tr\<acute> = $tr) \<Rightarrow> $wait\<acute>)` "
 
 definition \<delta> :: "'a WF_PREDICATE" where
-"\<delta> = `R3($tr\<acute> =$tr \<and> $wait\<acute>)`"
+"\<delta> = `R3($tr\<acute> = $tr \<and> $wait\<acute>)`"
 
 definition B_pred :: "'a WF_PREDICATE" where
 "B_pred = `($tr\<acute> = $tr \<and> $wait\<acute>) \<or> ($tr < $tr\<acute>)`"
