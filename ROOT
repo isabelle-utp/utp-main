@@ -78,6 +78,21 @@ session "isabelle-utp-tutorial" in "papers/isabelle-utp-tutorial" = "HOL-UTP-THY
     "utp_types"
   files "document/root.tex"
 
+session "christmas13" in "papers/christmas13" = "HOL-UTP-THY" +
+  options [document = pdf, document_output = "output", quick_and_dirty = true]
+  theories [document = false]
+  theories 
+    "value_class"
+    "bindings"
+    "layered_pred"
+    "predicates"
+    "expr"
+    "poly_expr"
+    "tactic_prog"
+    "utp_rel_tac_proofs"
+    "proof_h1_left_zero"
+  files "document/root.tex"
+
 session "designs-tutorial" in "papers/designs-tutorial" = "HOL-UTP" +
   options [document = pdf, document_output = "output"]
   theories 
