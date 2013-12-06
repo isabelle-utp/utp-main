@@ -529,7 +529,7 @@ lemma VTautT_dash_subst [usubst]:
   shows "(VTautT v)[e\<down>/\<^sub>px\<down>\<acute>] = VTautT (v[e/\<^sub>*x\<acute>])"
   using assms
   apply (simp add:TVL_def VExprDefinedT_def VExprTrueT_def VTautHideT_def)
-  apply (simp add:usubst typing defined unrest assms erasure)
+  apply (simp add:usubst typing defined unrest assms erasure SubstE_VarE_single_UNREST)
 done
 
 lemma VTautHideT_dash_subst [usubst]:
@@ -538,7 +538,7 @@ lemma VTautHideT_dash_subst [usubst]:
   shows "(VTautHideT v)[e\<down>/\<^sub>px\<down>\<acute>] = VTautHideT (v[e/\<^sub>*x\<acute>])"
   using assms
   apply (simp add:TVL_def VExprDefinedT_def VExprTrueT_def VTautHideT_def TrueT_def)
-  apply (simp add:usubst typing defined unrest assms erasure)
+  apply (simp add:usubst typing defined unrest assms erasure SubstE_VarE_single_UNREST)
 done
 
 lemma HasTypeD_subst [usubst]:

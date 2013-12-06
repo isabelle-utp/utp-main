@@ -37,6 +37,7 @@ is "\<lambda> a. ((a :: 'a ALPHABET) \<union>\<^sub>f \<lbrace>okay\<down>, okay
   apply (rule unrest)
   apply (auto)
 done
+
 syntax
   "_uapred_design"  :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr "\<turnstile>" 30)
   "_uapred_SkipD"    :: "'a ALPHABET \<Rightarrow> uapred" ("II\<^bsub>D[_]\<^esub>")
@@ -128,7 +129,6 @@ is "\<lambda> P. (\<alpha> P \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\
   apply (auto intro:unrest)
 done
 
-
 lemma AH1_alphabet [alphabet]:
   "\<alpha>(AH1(P)) = \<alpha> P \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>"
   by (simp add:AH1.rep_eq pred_alphabet_def)
@@ -147,7 +147,15 @@ lemma WF_RELATION_REL_ALPHABET [closure]:
   "\<alpha> P \<in> REL_ALPHABET \<Longrightarrow> \<lbrakk>P\<rbrakk>\<pi> \<in> WF_RELATION"
   by (auto intro:closure simp add:WF_ALPHA_REL_def)
 
-thm SkipRA_closure
+theorem AH1_idem:
+  "AH1 (AH1 R) = AH1 R"
+  by (utp_alpha_tac, metis H1_idempotent)
+
+theorem AH1_monotone:
+  "P \<sqsubseteq> Q \<Longrightarrow> AH1 P \<sqsubseteq> AH1 Q"
+  apply (utp_alpha_tac)
+  apply (metis H1_monotone RefP_def TrueP_eq_ClosureP less_eq_WF_PREDICATE_def utp_pred_simps(21))
+done
 
 lemma SkipRA_closure' [closure]:
   "a \<in> REL_ALPHABET \<Longrightarrow> II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> \<in> WF_RELATION"
@@ -285,6 +293,21 @@ proof -
   done
 qed
 
+lemma AH3_alphabet [alphabet]:
+  "\<alpha> (AH3(P)) = \<alpha> P \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>"
+  by (simp add:pred_alphabet_def AH3.rep_eq)
+
+lemma EvalA_AH3 [evala]:
+  "\<lbrakk>AH3(P)\<rbrakk>\<pi> = H3(\<lbrakk>P\<rbrakk>\<pi>)"
+  by (simp add:EvalA_def AH3.rep_eq)
+
+theorem AH3_idem:
+  "\<alpha> p \<in> REL_ALPHABET \<Longrightarrow> AH3 (AH3 p) = AH3 (p)"
+  apply (utp_alpha_tac)
+  apply (metis H3_idempotent)
+done
+  
+
 
 lemma EvalR_ExprP'':
   "\<lbrakk>ExprP e\<rbrakk>R = {(b1, b2). DestBool (\<lbrakk>e\<rbrakk>\<^sub>e (b1 \<oplus>\<^sub>b SS\<bullet>b2 on D\<^sub>1))
@@ -338,14 +361,7 @@ lemma WF_ALPHA_REL_REL_ALPHABET [closure]:
 
 declare [[coercion TautologyA]]
 
-theorem AH1_idem:
-  "AH1 (AH1 R) = AH1 R"
-  by (utp_alpha_tac, metis H1_idempotent)
 
-theorem AH1_monotone:
-  "P \<sqsubseteq> Q \<Longrightarrow> AH1 P \<sqsubseteq> AH1 Q"
-  apply (utp_alpha_tac)
-oops
 
   
 
