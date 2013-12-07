@@ -547,4 +547,40 @@ lemma OrA_WF_ALPHA_PREDICATE_OVER [closure]:
    p \<or>\<^sub>\<alpha> q \<in> WF_ALPHA_PREDICATE_OVER a"
   by (auto simp add:alphabet)
 
+subsection {* Conversion between alphabetised predicates and finite map sets *}
+
+type_synonym 'a apredmaps = "('a ALPHABET * ('a VAR, 'a) fmap set)"
+
+definition apred_fmap_set :: "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a apredmaps" where
+"apred_fmap_set p = (\<alpha> p, Abs_fmap ` pred_map_set \<langle>\<alpha> p\<rangle>\<^sub>f (\<pi> p))"
+
+definition fmap_set_apred :: "'a apredmaps \<Rightarrow> 'a WF_ALPHA_PREDICATE" where
+"fmap_set_apred fs = MkPredA (fst fs, map_set_pred (Rep_fmap ` snd fs))"
+
+lemma pred_map_set_finite_map:
+  "finite xs \<Longrightarrow> \<forall> f \<in> pred_map_set xs p. finite (dom f)"
+  by (auto simp add:pred_map_set_def binding_map_dom)
+
+lemma apred_fmap_set_image: 
+  "Rep_fmap ` snd (apred_fmap_set p) = pred_map_set \<langle>\<alpha> p\<rangle>\<^sub>f (\<pi> p)"
+  apply (auto simp add:apred_fmap_set_def)
+  apply (subgoal_tac "xb \<in> fmaps", simp)
+  apply (auto simp add:fmaps_def pred_map_set_def binding_map_dom)[1]
+  apply (insert pred_map_set_finite_map[of "\<langle>\<alpha> p\<rangle>\<^sub>f" "\<pi> p", simplified])
+  apply (auto simp add:image_def)
+done
+
+lemma fdom_Abs_fmap_binding_map:
+  "finite vs \<Longrightarrow> fdom (Abs_fmap (binding_map vs b)) = Abs_fset vs"
+  by (metis Abs_fmap_inv binding_map_dom fdom_def map_fun_apply binding_map_dom)
+
+lemma apred_fmap_set_inv: 
+  "fmap_set_apred (apred_fmap_set p) = p"
+  apply (simp add:fmap_set_apred_def apred_fmap_set_image)
+  apply (subst pred_map_set_inv)
+  apply (metis WF_ALPHA_PREDICATE_UNREST)
+  apply (simp add:apred_fmap_set_def)
+  apply (metis DestPredA_inverse pred_alphabet_def surjective_pairing)
+done
+
 end

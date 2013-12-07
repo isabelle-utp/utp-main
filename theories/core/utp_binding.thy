@@ -549,4 +549,23 @@ lemma default_binding_dash [simp]:
   "\<langle>\<B>\<rangle>\<^sub>b (x\<acute>) = \<langle>\<B>\<rangle>\<^sub>b x"
   by (simp add:default_binding.rep_eq)
 
+text {* Convert a binding to a finite map *}
+
+definition binding_map :: "'a VAR set \<Rightarrow> 'a WF_BINDING \<Rightarrow> 'a VAR \<rightharpoonup> 'a" where
+"binding_map xs b = (\<lambda> x. if (x \<in> xs) then Some (\<langle>b\<rangle>\<^sub>b x) else None)"
+
+lemma binding_map_dom: "dom (binding_map xs b) = xs"
+  by (simp add: dom_def binding_map_def)
+
+lift_definition map_binding :: "('a VAR \<rightharpoonup> 'a) \<Rightarrow> 'a WF_BINDING"
+is "\<lambda> f x. case f x of Some v \<Rightarrow> vcoerce v x | None \<Rightarrow> default (vtype x)"
+  apply (auto simp add: WF_BINDING_def)
+  apply (case_tac "fun v")
+  apply (simp_all add:typing)
+done
+
+lemma map_binding_inv:
+  "map_binding (binding_map xs b) \<cong> b on xs"
+  by (simp add: binding_map_def map_binding.rep_eq binding_equiv_def)
+
 end

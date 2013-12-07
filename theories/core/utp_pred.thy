@@ -268,4 +268,12 @@ theorem TrueP_noteq_FalseP :
 "true \<noteq> false"
   by (auto simp add: TrueP.rep_eq FalseP.rep_eq)
 
+subsection {* Predicate to map set *}
+
+definition pred_map_set :: "'a VAR set \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> ('a VAR \<rightharpoonup> 'a) set" where
+"pred_map_set xs p = binding_map xs ` destPRED p"
+
+lift_definition map_set_pred :: "('a VAR \<rightharpoonup> 'a) set \<Rightarrow> 'a WF_PREDICATE" is
+"\<lambda> fs. {map_binding f \<oplus>\<^sub>b b on (VAR - dom f) | f b. f \<in> fs}" .
+
 end

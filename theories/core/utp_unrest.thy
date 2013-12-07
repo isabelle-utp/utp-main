@@ -378,4 +378,13 @@ lemma "rv false = {}"
 lemma "rv true = {}"
   by (simp add:rv_def unrest)
 
+lemma pred_map_set_inv:
+  "(VAR - xs) \<sharp> p \<Longrightarrow> map_set_pred (pred_map_set xs p) = p"
+  apply (rule)
+  apply (auto simp add:pred_map_set_def map_set_pred.rep_eq binding_map_dom)
+  apply (rule WF_PREDICATE_binding_equiv, simp_all add:VAR_def Compl_eq_Diff_UNIV[THEN sym])
+  apply (metis binding_equiv_comm binding_equiv_override_subsume binding_override_minus map_binding_inv)
+  apply (metis binding_equiv_override binding_map_dom binding_override_minus binding_override_simps(2) image_eqI map_binding_inv)
+done
+  
 end
