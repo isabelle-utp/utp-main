@@ -11,4 +11,5 @@ imports
   utp_poly_value
   utp_poly_var
   utp_poly_expr
+  utp_poly_alpha_expr
 begin end

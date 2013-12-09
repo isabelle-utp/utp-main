@@ -38,6 +38,15 @@ is "\<lambda> a. ((a :: 'a ALPHABET) \<union>\<^sub>f \<lbrace>okay\<down>, okay
   apply (auto)
 done
 
+abbreviation ok_alpha_true :: 
+  "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("_\<^sup>t" [1000] 1000) where
+"p\<^sup>t \<equiv> ``p[true/okay\<acute>]``"
+
+abbreviation ok_false :: 
+  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<^sup>f" [1000] 1000) where
+"p\<^sup>f \<equiv> `p[false/okay\<acute>]`"
+
+
 syntax
   "_uapred_design"  :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr "\<turnstile>" 30)
   "_uapred_SkipD"    :: "'a ALPHABET \<Rightarrow> uapred" ("II\<^bsub>D[_]\<^esub>")
@@ -306,7 +315,40 @@ theorem AH3_idem:
   apply (utp_alpha_tac)
   apply (metis H3_idempotent)
 done
+
+lift_definition AH4 :: 
+  "'a WF_ALPHA_PREDICATE \<Rightarrow> 
+   'a WF_ALPHA_PREDICATE"
+is "\<lambda> P. (\<alpha> P \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>, H4(\<pi> P))"
+proof -
+  fix P :: "'a WF_ALPHA_PREDICATE"
+  show "(\<alpha> P \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>, H4(\<pi> P)) \<in> WF_ALPHA_PREDICATE"
+    apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def H4_def)
+    apply (rule unrest)
+    apply (rule UNREST_SemiR_general)
+    apply (rule UNREST_subset[of _ _ "VAR - insert okay\<down> (insert okay\<down>\<acute> \<langle>\<alpha> P\<rangle>\<^sub>f)"])
+    apply (rule WF_ALPHA_PREDICATE_UNREST)
+    apply (force)
+    apply (rule UNREST_TrueP[of "VAR - insert okay\<down> (insert okay\<down>\<acute> \<langle>\<alpha> P\<rangle>\<^sub>f)"])
+    apply (auto simp add:var_defs)[1]
+    apply (auto intro:unrest)
+  done
+qed
   
+lemma AH4_alphabet [alphabet]:
+  "\<alpha> (AH4(P)) = \<alpha> P \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>"
+  by (simp add:pred_alphabet_def AH4.rep_eq)
+
+lemma EvalA_AH4 [evala]:
+  "\<lbrakk>AH4(P)\<rbrakk>\<pi> = H4(\<lbrakk>P\<rbrakk>\<pi>)"
+  by (simp add:EvalA_def AH4.rep_eq)
+
+theorem AH4_idem:
+  "AH4 (AH4 p) = AH4 (p)"
+  apply (utp_alpha_tac)
+  apply (metis H4_idempotent)
+done
+
 
 
 lemma EvalR_ExprP'':
@@ -335,9 +377,6 @@ theorem
   apply (simp add:SemiR_algebraic_rel assms urename closure typing defined)
 *)
 
-lemma WF_RELATION_REL_ALPHABET [closure]: 
-  "\<alpha> P \<in> REL_ALPHABET \<Longrightarrow> \<lbrakk>P\<rbrakk>\<pi> \<in> WF_RELATION"
-  by (auto intro:closure simp add:WF_ALPHA_REL_def)
 
 lemma [simp]: "a \<in> REL_ALPHABET \<Longrightarrow> (in\<^sub>\<alpha> a) \<union>\<^sub>f (out\<^sub>\<alpha> a) = a"
   by (metis REL_ALPHABET_UNDASHED_DASHED alphabet_simps(14))
@@ -357,9 +396,6 @@ lemma WF_ALPHA_REL_REL_ALPHABET [closure]:
   by (simp add:WF_ALPHA_REL_def)
 
 
-
-
-declare [[coercion TautologyA]]
 
 
 

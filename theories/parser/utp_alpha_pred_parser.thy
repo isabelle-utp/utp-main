@@ -6,9 +6,25 @@ theory utp_alpha_pred_parser
   "../tactics/utp_pred_tac"
   "../tactics/utp_expr_tac"
   "../tactics/utp_rel_tac"
+  "../poly/utp_poly_alpha_expr"
 begin
 
-nonterminal uapred and uaexpr and uzdecls and uzdecl
+nonterminal 
+  uapred and uaexpr and 
+  apexpr and apexprs and
+  uzdecls and uzdecl
+
+syntax
+  "_apexprs"            :: "[apexpr, apexprs] => apexprs" ("_,/ _")
+  ""                    :: "apexpr => apexprs" ("_")
+  "_apexpr_brack"       :: "apexpr \<Rightarrow> apexpr" ("'(_')")
+  "_apexpr_pred_var"    :: "idt \<Rightarrow> apexpr" ("@(_)")
+  "_apexpr_expr_var"    :: "idt \<Rightarrow> apexpr" ("(_)")
+  "_apexpr_evar"        :: "('a, 'm) PVAR \<Rightarrow> apexpr" ("$_" [999] 999)
+  "_apexpr_subst"       :: "apexpr \<Rightarrow> apexpr \<Rightarrow> ('a, 'm) PVAR \<Rightarrow> apexpr" ("(_[_'/_])" [999,999] 1000)
+  "_apexpr_lit"         :: "'a \<Rightarrow> apexpr" ("\<guillemotleft>_\<guillemotright>")
+  "_apexpr_true"        :: "apexpr" ("true")
+  "_apexpr_false"       :: "apexpr" ("false")
 
 (* Predicate Parser *)
 
@@ -31,13 +47,13 @@ syntax
   "_uapred_all1"     :: "pttrn \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<forall> _./ _)" [0, 10] 10) 
   "_uapred_exists1"  :: "pttrn \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<exists>+ _./ _)" [0, 10] 10) 
   "_uapred_existsres1" :: "pttrn \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<exists>- _./ _)" [0, 10] 10) 
-  "_uapred_expr"     :: "uaexpr \<Rightarrow> uapred" ("'(_')" [0] 800)
-  "_uapred_equal"    :: "uaexpr \<Rightarrow> uaexpr \<Rightarrow> uapred" (infixl "=" 50)
-  "_uapred_nequal"   :: "uaexpr \<Rightarrow> uaexpr \<Rightarrow> uapred" (infixl "\<noteq>" 50)
+  "_uapred_pexpr"    :: "apexpr \<Rightarrow> uapred" ("\<lparr>_\<rparr>")
+  "_uapred_equal"    :: "apexpr \<Rightarrow> apexpr \<Rightarrow> uapred" (infixl "=" 50)
+  "_uapred_nequal"   :: "apexpr \<Rightarrow> apexpr \<Rightarrow> uapred" (infixl "\<noteq>" 50)
   "_uapred_skip"     :: "'a ALPHABET \<Rightarrow> uapred" ("II\<^bsub>_\<^esub>")
   "_uapred_seq"      :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr ";" 45)
   "_uapred_cond"     :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" ("_ \<triangleleft> _ \<triangleright> _")
-  "_uapred_assign"   :: "'a VAR \<Rightarrow> 'a ALPHABET \<Rightarrow> uaexpr \<Rightarrow> uapred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
+  "_uapred_assign"   :: "'a VAR \<Rightarrow> 'a ALPHABET \<Rightarrow> apexpr \<Rightarrow> uapred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
   "_uapred_zpara"    :: "uzdecls \<Rightarrow> uapred \<Rightarrow> uapred" ("[_|_]")
   "_uzdecl_basic"    :: "'a VAR \<Rightarrow> 'a VAR \<Rightarrow> uzdecl" (infix ":" 45)
   ""                 :: "uzdecl => uzdecls"             ("_")
@@ -62,13 +78,12 @@ translations
   "_uapred_all1 x p"    == "CONST ForallA \<lbrace>x\<rbrace> p"
   "_uapred_exists1 x p" == "CONST ExistsA \<lbrace>x\<rbrace> p"
   "_uapred_existsres1 x p" == "CONST ExistsResA \<lbrace>x\<rbrace> p"
-  "_uapred_expr e"      == "CONST ExprA e"
-  "_uapred_equal e f"   == "CONST EqualA e f"
+  "_uapred_equal e f"   == "CONST APEqualA e f"
   "_uapred_nequal e f"  == "CONST NotA (CONST EqualA e f)"
   "_uapred_skip"        == "CONST SkipA"
   "_uapred_seq p q"     => "CONST SemiA p q"
   "_uapred_cond p q r"  == "CONST CondA p q r"
-  "_uapred_assign x a e" == "CONST AssignA x a e"
+  "_uapred_assign x a e" == "CONST PAssignA x a e"
   "_uapred_zpara ds p"  == "CONST AndA ds p"
 
 (* Expression Parser *)
@@ -79,7 +94,7 @@ syntax
   "_uaexpr_false"    :: "uaexpr" ("false")
   "_uaexpr_var"      :: "pttrn \<Rightarrow> uaexpr" ("_")
   "_uaexpr_evar"     :: "'a VAR \<Rightarrow> uaexpr" ("$_" [500] 500)
-  "_uaexpr_substp"   :: "uapred \<Rightarrow> uaexpr \<Rightarrow> pttrn \<Rightarrow> uapred" ("(_[_'/_])" [999,999] 1000)
+  "_uaexpr_substp"   :: "uapred \<Rightarrow> apexpr \<Rightarrow> pttrn \<Rightarrow> uapred" ("(_[_'/_])" [999,999] 1000)
   "_uaexpr_member"   :: "uaexpr \<Rightarrow> uaexpr \<Rightarrow> uaexpr" (infix ":" 45)
   "_uaexpr_coerce"   :: "uaexpr \<Rightarrow> pttrn \<Rightarrow> uaexpr" ("_\<Colon>_" [60,60] 65)
 
@@ -89,11 +104,26 @@ translations
   "_uaexpr_false"        == "CONST FalseAE"
   "_uaexpr_var x"        => "x" 
   "_uaexpr_evar x"       == "CONST VarAE x"
-  "_uaexpr_substp p e x" == "CONST SubstA p e x"
+  "_uaexpr_substp p e x" == "CONST PSubstA p e x"
   "_uaexpr_coerce e t"   == "CONST CoerceAE e t"
+
+translations
+  "_apexpr_evar x"             == "CONST VarAPE x"
+  "_apexpr_expr_var e"         => "e"
+  "_apexpr_brack e"            => "e"
+  "_apexpr_lit v"              == "CONST LitAPE v"
+  "_apexpr_true"               == "CONST TrueAPE"
+  "_apexpr_false"              == "CONST FalseAPE"
+
 
 (* Parser sanity check *)
 
 term "``p \<and> q``"
+
+term "``$x = false``"
+
+term "``p[v/x]``"
+
+term "``x :=\<^bsub>\<lbrace>x\<down>,x\<down>\<acute>\<rbrace>\<^esub> true``"
 
 end
