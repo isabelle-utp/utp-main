@@ -386,4 +386,38 @@ done
 
 end
 
+instantiation cmlv :: VALUE_RANK
+begin
+
+fun rank_cmlv :: "cmlv \<Rightarrow> nat" where
+"rank_cmlv (SetD a xs) = 1" |
+"rank_cmlv (FuncD a b f) = 1" |
+"rank_cmlv (BasicD x) = 0" |
+"rank_cmlv (BotD' (BasicT a)) = 0" |
+"rank_cmlv (BotD' a) = 1"
+
+definition max_rank_cmlv :: "cmlv itself \<Rightarrow> nat" where
+"max_rank_cmlv a = 1"
+
+instance 
+  apply (intro_classes)
+  sorry
+end
+
+lift_definition fmap_map_value :: "('a \<Rightarrow> 'b) \<Rightarrow> ('k, 'a) fmap \<Rightarrow> ('k, 'b) fmap"
+is "\<lambda> (f :: 'a \<Rightarrow> 'b) (m :: 'k \<rightharpoonup> 'a) (x :: 'k). Option.map f (m x)"
+  by (auto simp add:fmaps_def dom_def)
+
+definition var_to_vbasic :: "cmlv VAR \<Rightarrow> vbasic" where
+"var_to_vbasic = (\<lambda> (n,t,a). PairI (NameI n) (PairI (TypeI (prjTYPE t)) (BoolI a)))"
+
+definition alpha_to_vbasic :: "cmlv ALPHABET \<Rightarrow> vbasic" where
+"alpha_to_vbasic a = FSetI (PairBT NameBT (PairBT TypeBT BoolBT)) (var_to_vbasic `\<^sub>f a)"
+
+text {* Giving an injection from WF_BINDING into cmlv either requires
+that we formalise some sort of dependent map type, or that we rather
+use products to represent bindings which is probably easier. But if we
+use products this requires that bindings be injectable into lists
+which only works if variables have a linear order on them. *}
+
 end

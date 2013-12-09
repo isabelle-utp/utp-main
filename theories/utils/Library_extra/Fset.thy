@@ -578,5 +578,8 @@ lemma intersync_empty_interleave:
 oops
 *)
 
+lift_definition FMax :: "('a::linorder) fset \<Rightarrow> 'a" is "Max"
+  by (simp)
+
 end
 

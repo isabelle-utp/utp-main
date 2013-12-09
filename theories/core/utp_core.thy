@@ -18,6 +18,7 @@ imports
   utp_rename
   utp_lattice
   utp_assert
+  utp_rank
   utp_recursion
   utp_iteration
   utp_unrest
