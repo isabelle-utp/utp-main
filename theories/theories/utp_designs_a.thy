@@ -42,18 +42,21 @@ abbreviation ok_alpha_true ::
   "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("_\<^sup>t" [1000] 1000) where
 "p\<^sup>t \<equiv> ``p[true/okay\<acute>]``"
 
-abbreviation ok_false :: 
-  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<^sup>f" [1000] 1000) where
-"p\<^sup>f \<equiv> `p[false/okay\<acute>]`"
-
+abbreviation ok_alpha_false :: 
+  "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("_\<^sup>f" [1000] 1000) where
+"p\<^sup>f \<equiv> ``p[false/okay\<acute>]``"
 
 syntax
-  "_uapred_design"  :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr "\<turnstile>" 30)
+  "_uapred_design"   :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr "\<turnstile>" 30)
   "_uapred_SkipD"    :: "'a ALPHABET \<Rightarrow> uapred" ("II\<^bsub>D[_]\<^esub>")
+  "_uapred_ok_true"  :: "uapred \<Rightarrow> uapred" ("_\<^sup>t" [1000] 1000)
+  "_uapred_ok_false" :: "uapred \<Rightarrow> uapred" ("_\<^sup>f" [1000] 1000)
 
 translations
   "_uapred_design p q"   == "CONST DesignA p q"
   "_uapred_SkipD a"      == "CONST SkipAD a"
+  "_uapred_ok_true p"    == "CONST ok_alpha_true p"
+  "_uapred_ok_false p"   == "CONST ok_alpha_false p"
 
 lemma DesignA_alphabet [alphabet]:
   "\<alpha> (P \<turnstile>\<^sub>\<alpha> Q) = \<alpha> P \<union>\<^sub>f \<alpha> Q \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>"
@@ -279,6 +282,18 @@ lemma AH2_mono:
   apply (utp_alpha_tac)
   apply (metis H2_monotone)
 done
+
+theorem AH1_AH2_is_DesignA:
+  assumes "\<alpha>(P) \<in> DESIGN_ALPHABET" "AH1(P) = P" "AH2(P) = P"
+  shows "P = ``\<not>P\<^sup>f \<turnstile> P\<^sup>t``"
+  using assms
+  apply (utp_alpha_tac)
+  apply (rule)
+  apply (auto simp add:closure)[1]
+  apply (subst H1_H2_is_DesignD)
+  apply (simp_all add:closure is_healthy_def)
+done
+
 
 lift_definition AH3 :: 
   "'a WF_ALPHA_PREDICATE \<Rightarrow> 

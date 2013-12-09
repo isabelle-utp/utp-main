@@ -34,7 +34,9 @@ done
 setup_lifting type_definition_WF_ALPHA_PEXPR
 
 definition "ape_alphabet e = fst (DestAPExpr e)"
-definition "ape_pexpr e = snd (DestAPExpr e)"
+
+definition EvalAPE :: "('a, 'm::VALUE) WF_ALPHA_PEXPR \<Rightarrow> ('a, 'm) WF_PEXPRESSION" ("\<lbrakk>_\<rbrakk>\<epsilon>\<^sub>*") where
+"EvalAPE e = snd (DestAPExpr e)"
 
 setup {*
 Adhoc_Overloading.add_variant @{const_name alphabet} @{const_name ape_alphabet}
@@ -70,19 +72,19 @@ by (force intro:unrest UNREST_PEXPR_subset)
 
 definition APExprAE :: 
   "('a :: DEFINED, 'm :: VALUE) WF_ALPHA_PEXPR \<Rightarrow> 'm WF_ALPHA_EXPRESSION" where
-"APExprAE e = MkExprA (\<alpha> e, (ape_pexpr e)\<down>)"
+"APExprAE e = MkExprA (\<alpha> e, \<lbrakk>e\<rbrakk>\<epsilon>\<^sub>*\<down>)"
 
 lemma APExprAE_rep_eq:
   fixes e :: "('a :: DEFINED, 'm :: VALUE) WF_ALPHA_PEXPR"
   assumes "TYPEUSOUND('a, 'm)"
-  shows "DestExprA (APExprAE e) = (\<alpha> e, (ape_pexpr e)\<down>)"
+  shows "DestExprA (APExprAE e) = (\<alpha> e, \<lbrakk>e\<rbrakk>\<epsilon>\<^sub>*\<down>)"
   using assms
-  apply (subgoal_tac "(\<alpha> e, (ape_pexpr e)\<down>) \<in> WF_ALPHA_EXPRESSION")
+  apply (subgoal_tac "(\<alpha> e, \<lbrakk>e\<rbrakk>\<epsilon>\<^sub>*\<down>) \<in> WF_ALPHA_EXPRESSION")
   apply (simp add:APExprAE_def)
   apply (simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
   apply (rule unrest, simp)
   apply (insert DestAPExpr[of "e"])
-  apply (auto simp add:ape_pexpr_def)
+  apply (auto simp add:EvalAPE_def)
   apply (metis ape_alphabet_def fst_conv)
 done
 
@@ -90,15 +92,15 @@ setup {*
 Adhoc_Overloading.add_variant @{const_name erase} @{const_name APExprAE}
 *}
 
-lift_definition APExprP :: 
+lift_definition APExprA :: 
   "(bool, 'm :: VALUE) WF_ALPHA_PEXPR \<Rightarrow> 'm WF_ALPHA_PREDICATE" is
 "\<lambda> (a :: 'm ALPHABET, v). (a, PExprP v)"
   by (auto simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
 
-declare [[coercion APExprP]]
+declare [[coercion APExprA]]
 
 setup {*
-Adhoc_Overloading.add_variant @{const_name erase} @{const_name APExprP}
+Adhoc_Overloading.add_variant @{const_name erase} @{const_name APExprA}
 *}
 
 abbreviation PSubstA :: 
@@ -145,9 +147,43 @@ lemma APExprAE_alphabet [alphabet]:
   using assms by (simp add:ape_alphabet_def expr_alpha_def APExprAE_rep_eq)
 
 lemma APExprP_alphabet [alphabet]:
-  "\<alpha> (APExprP e) = \<alpha> e"
-  apply (simp add:ape_alphabet_def pred_alphabet_def APExprP.rep_eq)
+  "\<alpha> (APExprA e) = \<alpha> e"
+  apply (simp add:ape_alphabet_def pred_alphabet_def APExprA.rep_eq)
   apply (case_tac "DestAPExpr e", simp)
+done
+
+subsection {* EvalAPE theorems *}
+
+lemma EvalAPE_LitAPE [evala]:
+  "\<lbrakk>LitAPE v\<rbrakk>\<epsilon>\<^sub>* = LitPE v"
+  by (simp add:EvalAPE_def LitAPE.rep_eq)
+
+lemma EvalAPE_VarAPE [evala]:
+  "\<lbrakk>VarAPE x\<rbrakk>\<epsilon>\<^sub>* = PVarPE x"
+  by (simp add:EvalAPE_def VarAPE.rep_eq)
+
+lemma EvalAPE_Op1APE [evala]:
+  "\<lbrakk>Op1APE f v\<rbrakk>\<epsilon>\<^sub>* = Op1PE f \<lbrakk>v\<rbrakk>\<epsilon>\<^sub>*"
+  by (simp add:EvalAPE_def Op1APE.rep_eq, case_tac "DestAPExpr v", simp)
+
+lemma EvalAPE_Op2APE [alphabet]:
+  "\<lbrakk>Op2APE f v w\<rbrakk>\<epsilon>\<^sub>* = Op2PE f \<lbrakk>v\<rbrakk>\<epsilon>\<^sub>* \<lbrakk>w\<rbrakk>\<epsilon>\<^sub>*"
+  by (simp add:EvalAPE_def Op2APE.rep_eq, case_tac "DestAPExpr v", case_tac "DestAPExpr w", simp)
+
+lemma EvalAPE_Op3APE [alphabet]:
+  "\<lbrakk>Op3APE f v w x\<rbrakk>\<epsilon>\<^sub>* = Op3PE f \<lbrakk>v\<rbrakk>\<epsilon>\<^sub>* \<lbrakk>w\<rbrakk>\<epsilon>\<^sub>* \<lbrakk>x\<rbrakk>\<epsilon>\<^sub>*"
+  by (simp add:EvalAPE_def Op3APE.rep_eq, case_tac "DestAPExpr v", case_tac "DestAPExpr w", case_tac "DestAPExpr x", simp)
+
+lemma EvalAPE_APExprAE [alphabet]:
+  fixes e :: "('a :: DEFINED, 'm :: VALUE) WF_ALPHA_PEXPR"
+  assumes "TYPEUSOUND('a, 'm)"
+  shows "\<lbrakk>e\<down>\<rbrakk>\<epsilon> = \<lbrakk>e\<rbrakk>\<epsilon>\<^sub>*\<down>"
+  using assms by (simp add:EvalAPE_def EvalAE_def APExprAE_rep_eq)
+
+lemma EvalA_APExprA [alphabet]:
+  "\<lbrakk>APExprA v\<rbrakk>\<pi> = PExprP \<lbrakk>v\<rbrakk>\<epsilon>\<^sub>*"
+  apply (simp add:EvalA_def EvalAPE_def APExprA.rep_eq)
+  apply (case_tac "DestAPExpr v", simp)
 done
 
 subsection {* Polymorphic Relational Operators *}
