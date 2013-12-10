@@ -43,7 +43,8 @@ syntax
   "_uapred_ref"      :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr "\<sqsubseteq>" 25)
   "_uapred_clos"     :: "uapred \<Rightarrow> uapred" ("[_]")
   "_uapred_not"      :: "uapred \<Rightarrow> uapred" ("\<not> _" [40] 40) 
-  "_uapred_ext"      :: "uapred \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" (infixr "\<oplus>" 40)
+(*  "_uapred_ext"      :: "uapred \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" (infixr "\<oplus>" 40) *)
+  "_uapred_ext"      :: "uapred \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("_\<^bsub>+_\<^esub>" 40)
   "_uapred_all1"     :: "pttrn \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<forall> _./ _)" [0, 10] 10) 
   "_uapred_exists1"  :: "pttrn \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<exists>+ _./ _)" [0, 10] 10) 
   "_uapred_existsres1" :: "pttrn \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<exists>- _./ _)" [0, 10] 10) 
@@ -125,5 +126,7 @@ term "``$x = false``"
 term "``p[v/x]``"
 
 term "``x :=\<^bsub>\<lbrace>x\<down>,x\<down>\<acute>\<rbrace>\<^esub> true``"
+
+term "``p\<^bsub>+\<lbrace>x\<down>\<rbrace>\<^esub>``"
 
 end

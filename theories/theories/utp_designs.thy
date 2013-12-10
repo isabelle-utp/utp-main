@@ -76,7 +76,7 @@ definition WF_VALID_MERGE :: "('a VAR set * 'a WF_PREDICATE) set" where
 
 definition ParallelMergeD :: 
   "'a WF_PREDICATE => ('a VAR set * 'a WF_PREDICATE) => 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infix "\<parallel>\<^bsub>_\<^esub>" 100) where
-"P \<parallel>\<^bsub>M\<^esub> Q =  ((add_sub 0 on fst M \<bullet> P) \<parallel> (add_sub 1 on fst M \<bullet> Q)) ; snd M"
+"P \<parallel>\<^bsub>M\<^esub> Q =  ((add_sub 0 on fst M \<bullet> P) \<parallel> (add_sub 1 on fst M \<bullet> Q)) ;\<^sub>R snd M"
 
 declare BotD_def [eval,evalr,evalrx,evalp]
 declare TopD_def [eval,evalr,evalrx,evalp]
@@ -241,7 +241,7 @@ lemma SkipD_SkipDA_right_link:
     "HOMOGENEOUS vs"
     "D\<^sub>1 - out vs \<sharp> P"
     "okay\<down> \<in> vs" 
-  shows "P ; II\<^sub>D = P ; II\<^bsub>D[vs]\<^esub>"
+  shows "P ;\<^sub>R II\<^sub>D = P ;\<^sub>R II\<^bsub>D[vs]\<^esub>"
   using assms
   apply (subst SemiR_ExistsP_insert_right[of "D\<^sub>0 - (in vs \<union> {okay\<down>})"])
   apply (simp add:var_dist)
@@ -259,7 +259,7 @@ lemma SkipD_SkipDA_left_link:
     "HOMOGENEOUS vs"
     "D\<^sub>0 - in vs \<sharp> P"
     "okay\<down>\<acute> \<in> vs" 
-  shows "II\<^sub>D ; P = II\<^bsub>D[vs]\<^esub> ; P" 
+  shows "II\<^sub>D ;\<^sub>R P = II\<^bsub>D[vs]\<^esub> ;\<^sub>R P" 
   using assms
   apply (subst SemiR_ExistsP_insert_left[of "D\<^sub>1 - (out vs \<union> {okay\<down>\<acute>})"])
   apply (simp add:var_dist)
@@ -336,10 +336,10 @@ theorem DesignD_left_zero:
   assumes 
     "P \<in> WF_RELATION"
     "Q \<in> WF_RELATION"
-  shows "true ; (P \<turnstile> Q) = true"
+  shows "true ;\<^sub>R (P \<turnstile> Q) = true"
 proof -
 
-  from assms have "true ; (P \<turnstile> Q) = `\<exists> okay\<acute>\<acute>. true[$okay\<acute>\<acute>/okay\<acute>] ; (P \<turnstile> Q)[$okay\<acute>\<acute>/okay]`"
+  from assms have "`true ; (P \<turnstile> Q)` = `\<exists> okay\<acute>\<acute>. true[$okay\<acute>\<acute>/okay\<acute>] ; (P \<turnstile> Q)[$okay\<acute>\<acute>/okay]`"
     by (simp add:SemiR_extract_variable erasure typing closure unrest)
 
   also from assms have "... = `(true[false/okay\<acute>] ; (P \<turnstile> Q)[false/okay]) \<or> (true[true/okay\<acute>] ; (P \<turnstile> Q)[true/okay])`"
@@ -445,7 +445,7 @@ theorem AssignD_idem :
     "x \<notin> OKAY"
     "OKAY \<union> (VAR - (in vs - {x})) \<sharp> v"
     "v \<rhd>\<^sub>e x"
-  shows "(x :=\<^sub>D v ; x :=\<^sub>D v) = x :=\<^sub>D v"
+  shows "x :=\<^sub>D v ;\<^sub>R x :=\<^sub>D v = x :=\<^sub>D v"
   using assms
   apply (simp add:AssignD_def)
   apply (subst DesignD_composition_wp)
@@ -522,12 +522,12 @@ theorem H1_CondR:
 theorem H1_algebraic_intro:
   assumes 
     "R \<in> WF_RELATION"  
-    "(true ; R = true)" 
-    "(II\<^sub>D ; R = R)"
+    "(true ;\<^sub>R R = true)" 
+    "(II\<^sub>D ;\<^sub>R R = R)"
   shows "R is H1"
 proof -
   let ?vs = "REL_VAR - OKAY"
-  have "R = II\<^sub>D ; R" by (simp add: assms)
+  have "R = II\<^sub>D ;\<^sub>R R" by (simp add: assms)
 
   also have "... = `(true \<turnstile> II\<^bsub>?vs\<^esub>) ; R`"
     by (simp add:SkipDA_def)
@@ -564,7 +564,7 @@ qed
 
 theorem H1_left_zero:
   assumes "P \<in> WF_RELATION" "P is H1"
-  shows "true ; P = true"
+  shows "`true ; P` = `true`"
 proof -
   from assms have "`true ; P` = `true ; (ok \<Rightarrow> P)`"
     by (simp add:is_healthy_def H1_def)
@@ -583,10 +583,10 @@ qed
 
 theorem H1_left_unit:
   assumes "P \<in> WF_RELATION" "P is H1"
-  shows "II\<^sub>D ; P = P"
+  shows "`II\<^sub>D ; P` = `P`"
 proof -
   let ?vs = "REL_VAR - OKAY"
-  have "II\<^sub>D ; P = `(true \<turnstile> II\<^bsub>?vs\<^esub>) ; P`" by (simp add:SkipDA_def)
+  have "`II\<^sub>D ; P` = `(true \<turnstile> II\<^bsub>?vs\<^esub>) ; P`" by (simp add:SkipDA_def)
   also have "... = `(ok \<Rightarrow> ok' \<and> II\<^bsub>?vs\<^esub>) ; P`" 
     by (simp add:DesignD_def)
   also have "... = `(ok \<Rightarrow> ok \<and> ok' \<and> II\<^bsub>?vs\<^esub>) ; P`" 
@@ -610,12 +610,12 @@ qed
 
 theorem SkipD_left_unit:
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
-  shows "II\<^sub>D ; (P \<turnstile> Q) = P \<turnstile> Q"
+  shows "`II\<^sub>D ; (P \<turnstile> Q)` = `P \<turnstile> Q`"
   by (simp add: DesignD_is_H1 DesignD_rel_closure H1_left_unit assms)
 
 theorem H1_algebraic:
   assumes "P \<in> WF_RELATION"
-  shows "P is H1 \<longleftrightarrow> (true ; P = true) \<and> (II\<^sub>D ; P = P)"
+  shows "P is H1 \<longleftrightarrow> (`true ; P` = `true`) \<and> (`II\<^sub>D ; P` = `P`)"
    by (metis H1_algebraic_intro H1_left_unit H1_left_zero assms)
   
 theorem H1_false:
@@ -652,8 +652,6 @@ theorem H1_monotone:
   "p \<sqsubseteq> q \<Longrightarrow> H1 p \<sqsubseteq> H1 q"
   by (utp_pred_tac)
 
-
-
 subsubsection {* H2: No requirement of non-termination *}
 
 definition "H2(P) = `P ; J`"
@@ -662,12 +660,12 @@ declare H2_def [eval,evalr,evalrx]
 
 theorem J_split:
   assumes "P \<in> WF_RELATION"
-  shows "P ; J = `P\<^sup>f \<or> (P\<^sup>t \<and> ok')`"
+  shows "`P ; J` = `P\<^sup>f \<or> (P\<^sup>t \<and> ok')`"
 proof -
 
   let ?vs = "(REL_VAR - OKAY) :: 'a VAR set"
 
-  have "P ; J = `P ; ((ok \<Rightarrow> ok') \<and> II\<^bsub>?vs\<^esub>)`"
+  have "`P ; J` = `P ; ((ok \<Rightarrow> ok') \<and> II\<^bsub>?vs\<^esub>)`"
     by (simp add:JA_pred_def)
 
   also have "... = `P ; ((ok \<Rightarrow> ok \<and> ok') \<and> II\<^bsub>?vs\<^esub>)`"
@@ -742,7 +740,7 @@ proof -
     by (metis JA_pred_def)
 qed
 
-theorem J_idempotent [simp]: "J ; J = J"
+theorem J_idempotent [simp]: "`J ; J` = J"
   by (simp add:H2_def[THEN sym] J_is_H2)
 
 theorem H2_idempotent:
@@ -844,10 +842,10 @@ theorem H3_WF_CONDITION:
   assumes "P \<in> WF_CONDITION"
   shows "P is H3"
 proof -
-  from assms have "P ; II\<^sub>D = P ; (true ; II\<^sub>D)"
+  from assms have "`P ; II\<^sub>D` = `P ; (true ; II\<^sub>D)`"
     by (metis SemiR_TrueP_precond SemiR_assoc)
 
-  also have "... = P ; true"
+  also have "... = `P ; true`"
     by (metis H1_left_zero SkipD_is_H1 SkipD_rel_closure)
 
   finally show ?thesis
@@ -860,7 +858,7 @@ theorem DesignD_precondition_H3 [closure]:
     "p \<in> WF_CONDITION" "Q \<in> WF_RELATION"
   shows "(p \<turnstile> Q) is H3"
 proof -
-  have "(p \<turnstile> Q) ; II\<^sub>D = (p \<turnstile> Q) ; (true \<turnstile> II\<^bsub>REL_VAR - OKAY\<^esub>)"
+  have "`(p \<turnstile> Q) ; II\<^sub>D` = `(p \<turnstile> Q) ; (true \<turnstile> II\<^bsub>REL_VAR - OKAY\<^esub>)`"
     by (simp add:SkipDA_def)
 
   also from assms have "... = `p \<turnstile> (Q ; II\<^bsub>REL_VAR - OKAY\<^esub>)`"
@@ -879,7 +877,7 @@ theorem H1_H3_commute: "H1 (H3 P) = H3 (H1 P)"
 done
 
 theorem SkipD_absorbs_J_1 [simp]: 
-  "II\<^sub>D ; J = II\<^sub>D"
+  "`II\<^sub>D ; J` = `II\<^sub>D`"
   by (utp_xrel_auto_tac)
 
 theorem H3_absorbs_H2_1:
@@ -887,7 +885,7 @@ theorem H3_absorbs_H2_1:
   by (simp add:H2_def H3_def SemiR_assoc[THEN sym])
 
 theorem SkipD_absorbs_J_2 [simp]:
-  "J ; II\<^sub>D = II\<^sub>D"
+  "`J ; II\<^sub>D` = `II\<^sub>D`"
   by (utp_xrel_auto_tac)
 
 theorem H3_absorbs_H2_2:
@@ -925,18 +923,11 @@ lemma H4_soundness:
   assumes "P \<in> WF_RELATION"
   shows "P is H4 \<longleftrightarrow> (\<exists>\<^sub>p DASHED. P)" 
 proof -
-  have "P is H4 \<longleftrightarrow> (P ; true = true)"
+  have "P is H4 \<longleftrightarrow> (`P ; true` = `true`)"
     by (simp add:H4_equiv assms isH4_def)
 
-  moreover have "P ; true = (\<exists>\<^sub>p DASHED_TWICE. SS1\<bullet>P)"
-    by (simp add:assms closure SemiR_algebraic_rel urename)
-
-  also have "... = (\<exists>\<^sub>p DASHED. P)"
-    apply (rule sym)
-    apply (rule trans)
-    apply (rule ExistsP_alpha_convert[where f="prime"])
-    apply (auto intro:ExistsP_alpha_convert simp add:closure assms)
-  done
+  moreover have "`P ; true` = (\<exists>\<^sub>p DASHED. P)"
+    by (metis TrueP_right_ExistsP)
 
   finally show ?thesis by (utp_pred_tac)
 qed
@@ -1026,6 +1017,7 @@ qed
 theorem H4_top: "true \<turnstile> true is H4"
   by (utp_xrel_auto_tac)
 
+(*
 subsection {* The theory of Designs *}
 
 lift_definition DESIGNS :: "'a WF_THEORY" 
@@ -1112,5 +1104,6 @@ subsection {* The theory of Feasible Designs *}
 lift_definition FEASIBLE_DESIGNS :: "'a WF_THEORY" 
 is "({vs. vs \<subseteq> REL_VAR \<and> OKAY \<subseteq> vs}, {H1,H3,H4})"
   by (simp add:WF_THEORY_def IDEMPOTENT_OVER_def H1_idempotent H2_idempotent H3_idempotent H4_idempotent)
+*)
 
 end

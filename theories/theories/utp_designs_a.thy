@@ -181,7 +181,6 @@ lemma WF_ALPHA_REL_REL_ALPHABET [closure]:
   "\<alpha> P \<in> REL_ALPHABET \<Longrightarrow> P \<in> WF_ALPHA_REL"
   by (simp add:WF_ALPHA_REL_def)
 
-
 theorem AH1_algebraic:
   assumes 
     "\<alpha> R \<in> DESIGN_ALPHABET"
@@ -229,7 +228,7 @@ lemma SemiR_JA_right:
     "HOMOGENEOUS vs"
     "okay\<down> \<in> vs" 
     "D\<^sub>1 - out vs \<sharp> p"
-  shows "p ; J = p ; J\<^bsub>vs\<^esub>"
+  shows "p ;\<^sub>R J = p ;\<^sub>R J\<^bsub>vs\<^esub>"
   using assms
   apply (subst SemiR_ExistsP_insert_right[of "D\<^sub>0 - (in vs \<union> {okay\<down>})"])
   apply (rule UNREST_subset)
@@ -294,7 +293,6 @@ theorem AH1_AH2_is_DesignA:
   apply (simp_all add:closure is_healthy_def)
 done
 
-
 lift_definition AH3 :: 
   "'a WF_ALPHA_PREDICATE \<Rightarrow> 
    'a WF_ALPHA_PREDICATE"
@@ -331,6 +329,13 @@ theorem AH3_idem:
   apply (metis H3_idempotent)
 done
 
+theorem AH3_implies_AH2:
+  "P is AH3 \<Longrightarrow> P is AH2"
+  apply (simp add:is_healthy_def)
+  apply (utp_alpha_tac)
+  apply (metis H3_absorbs_H2_1)
+done
+
 lift_definition AH4 :: 
   "'a WF_ALPHA_PREDICATE \<Rightarrow> 
    'a WF_ALPHA_PREDICATE"
@@ -364,7 +369,21 @@ theorem AH4_idem:
   apply (metis H4_idempotent)
 done
 
+lift_definition DESIGNS :: "'a WF_THEORY" 
+is "(DESIGN_ALPHABET, {AH1,AH2})"
+  by (auto simp add:WF_THEORY_def IDEMPOTENT_OVER_def AH1_idem AH2_idem)
 
+lift_definition NORMAL_DESIGNS :: "'a WF_THEORY" 
+is "(DESIGN_ALPHABET, {AH1,AH3})"
+  by (auto simp add:WF_THEORY_def IDEMPOTENT_OVER_def AH1_idem AH3_idem closure)
+
+lift_definition FEASIBLE_DESIGNS :: "'a WF_THEORY" 
+is "(DESIGN_ALPHABET, {AH1,AH3,AH4})"
+  by (auto simp add:WF_THEORY_def IDEMPOTENT_OVER_def AH1_idem AH3_idem AH4_idem closure)
+
+lemma NORMAL_DESIGNS_are_DESIGNS [closure]: 
+  "P \<in> \<lbrakk>NORMAL_DESIGNS\<rbrakk>\<T> \<Longrightarrow> P \<in> \<lbrakk>DESIGNS\<rbrakk>\<T>"
+  by (auto simp add:THEORY_PRED_def utp_alphabets_def NORMAL_DESIGNS.rep_eq DESIGNS.rep_eq healthconds_def AH3_implies_AH2)
 
 lemma EvalR_ExprP'':
   "\<lbrakk>ExprP e\<rbrakk>R = {(b1, b2). DestBool (\<lbrakk>e\<rbrakk>\<^sub>e (b1 \<oplus>\<^sub>b SS\<bullet>b2 on D\<^sub>1))
