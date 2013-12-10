@@ -17,7 +17,7 @@ nonterminal uproc
 
 definition "SkipO           = (\<lambda> r. SkipR)"
 definition "PAssignO x e    = (\<lambda> r. PAssignR x e)"
-definition "SemiO p q       = (\<lambda> r. p r ; q r)"
+definition "SemiO p q       = (\<lambda> r. p r ;\<^sub>R q r)"
 definition "CondO p c q     = (\<lambda> r. CondR (p r) c (q r))"
 definition "ReturnO e       = (\<lambda> r. if (snd r) then PAssignR (fst r) e else SkipR)"
 definition "AssignRO x f v  = f v (x, True)"

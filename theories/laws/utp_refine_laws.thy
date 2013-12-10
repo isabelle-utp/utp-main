@@ -24,9 +24,8 @@ imports
   utp_rel_laws
 begin
 
-
 lemma SeqR_disjunctive2: 
-  "disjunctive2 (op ;)"
+  "disjunctive2 (op ;\<^sub>R)"
   apply (simp add: disjunctive2_def)
   apply (utp_rel_auto_tac)
 done
@@ -88,14 +87,14 @@ theorem OrP_mono_refine [refine]:
   by (utp_pred_tac)
 
 theorem SemiR_mono_refine [refine]:
-  "\<lbrakk> P1 \<sqsubseteq> P2; Q1 \<sqsubseteq> Q2 \<rbrakk> \<Longrightarrow> P1 ; Q1 \<sqsubseteq> P2 ; Q2"
+  "\<lbrakk> P1 \<sqsubseteq> P2; Q1 \<sqsubseteq> Q2 \<rbrakk> \<Longrightarrow> P1 ;\<^sub>R Q1 \<sqsubseteq> P2 ;\<^sub>R Q2"
   by (utp_rel_auto_tac)
 
 theorem SemiR_spec_inter_refine:
   assumes "p \<in> WF_CONDITION" "q \<in> WF_CONDITION" "r \<in> WF_CONDITION"
   shows "`p \<Rightarrow> r\<acute>` \<sqsubseteq> `(p \<Rightarrow> q\<acute>) ; (q \<Rightarrow> r\<acute>)`"
 proof -
-  from assms have "p ; true = p" "q ; true = q" "r ; true = r"
+  from assms have "p ;\<^sub>R true = p" "q ;\<^sub>R true = q" "r ;\<^sub>R true = r"
     by (auto dest:SemiR_TrueP_precond)
   with assms show ?thesis
     by (utp_xrel_auto_tac)

@@ -758,7 +758,7 @@ theorems RenameB_SS_COMPOSABLE_BINDINGS =
   RenameB_SS_COMPOSABLE_BINDINGS_2
 
 theorem EvalR_SemiR [evalr] :
-"\<lbrakk>p1 ; p2\<rbrakk>R = \<lbrakk>p1\<rbrakk>R O \<lbrakk>p2\<rbrakk>R"
+"\<lbrakk>p1 ;\<^sub>R p2\<rbrakk>R = \<lbrakk>p1\<rbrakk>R O \<lbrakk>p2\<rbrakk>R"
 apply (simp add: EvalR_def)
 apply (simp add: SemiR_def)
 apply (simp add: set_eq_iff)
@@ -791,7 +791,7 @@ apply (metis BindR_override)
 done
 
 lemma EvalP_SemiR [eval]:
-  "\<lbrakk>p ; q\<rbrakk>b = (\<exists> b1 b2. b = b1 \<oplus>\<^sub>b b2 on D\<^sub>1 \<and> \<lbrakk>p\<rbrakk>b1 \<and> \<lbrakk>q\<rbrakk>b2 \<and> (b1, b2) \<in> COMPOSABLE_BINDINGS)"
+  "\<lbrakk>p ;\<^sub>R q\<rbrakk>b = (\<exists> b1 b2. b = b1 \<oplus>\<^sub>b b2 on D\<^sub>1 \<and> \<lbrakk>p\<rbrakk>b1 \<and> \<lbrakk>q\<rbrakk>b2 \<and> (b1, b2) \<in> COMPOSABLE_BINDINGS)"
   by (simp add:EvalP_def SemiR.rep_eq)
 
 declare CondR_def [evalr,evalrr]
@@ -883,7 +883,7 @@ theorem EvalRR_OrP [evalrr] :
   by (force simp add: evalr MkRel_def)
 
 theorem EvalRR_SemiR [evalrr] :
-"\<lbrakk>p1 ; p2\<rbrakk>\<R> = \<lbrakk>p1\<rbrakk>\<R> O \<lbrakk>p2\<rbrakk>\<R>"
+"\<lbrakk>p1 ;\<^sub>R p2\<rbrakk>\<R> = \<lbrakk>p1\<rbrakk>\<R> O \<lbrakk>p2\<rbrakk>\<R>"
   by (force simp add: evalr MkRel_def)
 
 lemma EvalRR_ConvR [evalrr]:
@@ -1032,7 +1032,7 @@ method_setup utp_rel_auto_tac = {*
 
 subsection {* Algebraic Laws *}
 
-lemma "\<lbrakk> x \<in> UNDASHED; y \<in> UNDASHED; UNREST_EXPR DASHED e; UNREST_EXPR DASHED f; e \<rhd>\<^sub>e x; f \<rhd>\<^sub>e y; x \<noteq> y \<rbrakk> \<Longrightarrow> x :=\<^sub>R e; y :=\<^sub>R f = x,y :=\<^sub>R e,f"
+lemma "\<lbrakk> x \<in> UNDASHED; y \<in> UNDASHED; UNREST_EXPR DASHED e; UNREST_EXPR DASHED f; e \<rhd>\<^sub>e x; f \<rhd>\<^sub>e y; x \<noteq> y \<rbrakk> \<Longrightarrow> x :=\<^sub>R e ;\<^sub>R y :=\<^sub>R f = x,y :=\<^sub>R e,f"
   apply (utp_rel_tac)
 oops
 

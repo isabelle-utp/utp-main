@@ -14,17 +14,16 @@ imports
   "../tactics/utp_rel_tac"
   "../tactics/utp_xrel_tac"
   "../poly/utp_poly_tac"
+  "../alpha/utp_alpha_rel"
 begin
 
 definition is_healthy :: 
-  " 'VALUE WF_PREDICATE 
-  \<Rightarrow> 'VALUE WF_FUNCTION 
-  \<Rightarrow> bool" ("_ is _") where
+  "'a::type \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" (infix "is" 50) where
 "is_healthy p H \<equiv> H p = p"
 
 definition IDEMPOTENT_OVER ::
-  "'a VAR set \<Rightarrow> 'a WF_FUNCTION set" where
-"IDEMPOTENT_OVER vs = {f . \<forall> p \<in> WF_PREDICATE_OVER vs . f (f p) = f p}"
+  "'a ALPHABET set \<Rightarrow> 'a ALPHA_FUNCTION set" where
+"IDEMPOTENT_OVER vs = {f . \<forall> p. \<alpha> p \<in> vs \<longrightarrow> f (f p) = f p}"
 
 declare is_healthy_def [eval,evalr,evalrx,evalp]
 
@@ -36,10 +35,8 @@ lemma Healthy_elim [elim]:
   "\<lbrakk> Q is H; \<lbrakk> H(Q) = Q \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (simp add: is_healthy_def)
 
-term "P is (H1 \<circ> H2)"
-
 lemma Healthy_comp [closure]:
-  "H2(P) is H1 \<Longrightarrow> P is H2 \<Longrightarrow> P is (H1 \<circ> H2)"
+  "\<lbrakk> H2(P) is H1; P is H2 \<rbrakk> \<Longrightarrow> P is (H1 \<circ> H2)"
   by (simp add:is_healthy_def)
 
 lemma Healthy_simp:
@@ -47,13 +44,13 @@ lemma Healthy_simp:
   by (simp add:is_healthy_def)
 
 lemma Healthy_apply [closure]:
-  "\<lbrakk> H \<in> IDEMPOTENT_OVER vs; P \<in> WF_PREDICATE_OVER vs \<rbrakk> \<Longrightarrow> H(P) is H"
+  "\<lbrakk> H \<in> IDEMPOTENT_OVER vs; \<alpha> P \<in> vs \<rbrakk> \<Longrightarrow> H(P) is H"
   by (simp add:is_healthy_def IDEMPOTENT_OVER_def)
 
-type_synonym 'a THEORY = "('a VAR set set * 'a WF_FUNCTION set)"
+type_synonym 'a THEORY = "('a ALPHABET set * 'a ALPHA_FUNCTION set)"
 
 definition WF_THEORY :: "('a THEORY) set" where
-"WF_THEORY = {(A,H) | A H . \<forall>a\<in>A. \<forall> hc\<in>H. hc \<in> IDEMPOTENT_OVER a}"
+"WF_THEORY = {(A,H) | A H . \<forall> hc\<in>H. hc \<in> IDEMPOTENT_OVER A}"
 
 typedef 'a WF_THEORY = "WF_THEORY :: ('a THEORY) set"
   morphisms DestTheory MkTheory
@@ -70,15 +67,15 @@ lemma DestTheory_intro [intro]:
 setup_lifting type_definition_WF_THEORY
 
 definition utp_alphabets :: 
-  "'VALUE WF_THEORY \<Rightarrow> 'VALUE VAR set set" ("\<A>") where
+  "'a WF_THEORY \<Rightarrow> 'a ALPHABET set" ("\<A>") where
 "utp_alphabets t = fst (DestTheory t)"
 
 definition healthconds :: 
-  "'VALUE WF_THEORY \<Rightarrow> 'VALUE WF_FUNCTION set" ("\<H>") where
+  "'a WF_THEORY \<Rightarrow> 'a ALPHA_FUNCTION set" ("\<H>") where
 "healthconds t = snd (DestTheory t)"
 
-definition THEORY_PRED :: "'VALUE WF_THEORY \<Rightarrow> 'VALUE WF_PREDICATE set" where
-"THEORY_PRED t \<equiv> {p. (\<exists> a \<in> \<A> t. UNREST (VAR - a) p) \<and>  (\<forall> H \<in> \<H> t. p is H)}"
+definition THEORY_PRED :: "'a WF_THEORY \<Rightarrow> 'a WF_ALPHA_PREDICATE set" where
+"THEORY_PRED t \<equiv> {p. \<alpha> p \<in> \<A> t \<and>  (\<forall> H \<in> \<H> t. p is H)}"
 
 instantiation WF_THEORY :: (VALUE) join_semilattice_zero
 begin
@@ -88,7 +85,7 @@ lift_definition zero_WF_THEORY :: "'a WF_THEORY" is "(UNIV, {}) :: 'a THEORY"
 
 lift_definition plus_WF_THEORY :: "'a::VALUE WF_THEORY \<Rightarrow> 'a WF_THEORY \<Rightarrow> 'a WF_THEORY" 
 is "(\<lambda> (A1,HC1) (A2,HC2). (A1\<inter>A2,HC1\<union>HC2)) :: 'a THEORY \<Rightarrow> 'a THEORY \<Rightarrow> 'a THEORY"
-  by (auto simp add:WF_THEORY_def)
+  by (auto simp add:WF_THEORY_def IDEMPOTENT_OVER_def)
 
 definition less_eq_WF_THEORY :: "'a WF_THEORY \<Rightarrow> 'a WF_THEORY \<Rightarrow> bool" where
 "less_eq_WF_THEORY x y \<longleftrightarrow> x + y = y"

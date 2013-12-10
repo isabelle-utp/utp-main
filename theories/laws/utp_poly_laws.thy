@@ -35,7 +35,7 @@ theorem SemiR_extract_variable_ty:
   assumes "x \<in> PUNDASHED" "y \<in> PDASHED_TWICE" "TYPEUSOUND('a, 'm)" 
           "pvaux x" "pvaux y"
           "{y\<down>} \<sharp> P" "{y\<down>} \<sharp> Q"
-  shows "P ; Q = `\<exists> y. P[$y/x\<acute>] ; Q[$y/x]`"
+  shows "P ;\<^sub>R Q = `\<exists> y. P[$y/x\<acute>] ; Q[$y/x]`"
   apply (subst SemiR_extract_variable[of "x\<down>" "y\<down>"])
   apply (simp_all add:assms closure)
   apply (metis assms(4) assms(5) pvaux_aux)
@@ -46,7 +46,7 @@ theorem SemiR_extract_variable_id_ty:
   fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
   assumes "x \<in> PUNDASHED" "TYPEUSOUND('a, 'm)" "pvaux x"
           "{x\<down>\<acute>\<acute>} \<sharp> P" "{x\<down>\<acute>\<acute>} \<sharp> Q"
-  shows "P ; Q = `\<exists> x\<acute>\<acute>. P[$x\<acute>\<acute>/x\<acute>] ; Q[$x\<acute>\<acute>/x]`"
+  shows "P ;\<^sub>R Q = `\<exists> x\<acute>\<acute>. P[$x\<acute>\<acute>/x\<acute>] ; Q[$x\<acute>\<acute>/x]`"
   apply (subst SemiR_extract_variable[of "x\<down>" "x\<down>\<acute>\<acute>"])
   apply (simp_all add:assms closure)
   apply (simp add:erasure assms typing defined closure)

@@ -149,7 +149,7 @@ lemma Star1P_closure [closure]:
   "P \<in> WF_RELATION \<Longrightarrow> P\<^sup>+ \<in> WF_RELATION"
   by (auto intro:closure simp add:star1_def)
 
-lemma StarP_mono: "mono (\<lambda> x. (II \<or>\<^sub>p (p ; x)))"
+lemma StarP_mono: "mono (\<lambda> x. (II \<or>\<^sub>p (p ;\<^sub>R x)))"
   apply (rule)
   apply (utp_rel_auto_tac)
 done
@@ -157,22 +157,22 @@ done
 text {* Kleene star talks about finite iteration only, and is therefore a strict subset of
         the set of infinite recursions *}
 
-lemma StarP_refines_WFP: "(\<mu> X \<bullet> II \<or>\<^sub>p (P ; X)) \<sqsubseteq> P\<^sup>\<star>"
+lemma StarP_refines_WFP: "(\<mu> X \<bullet> II \<or>\<^sub>p (P ;\<^sub>R X)) \<sqsubseteq> P\<^sup>\<star>"
   apply (auto simp add:evalrr EvalRR_StarP gfp_def)
   apply (metis EvalRR_StarP rel_kleene_algebra.star_unfoldl_eq subset_refl)
 done
-lemma SFP_refines_StarP: "P\<^sup>\<star> \<sqsubseteq> (\<nu> X \<bullet> II \<or>\<^sub>p (P ; X))"
+lemma SFP_refines_StarP: "P\<^sup>\<star> \<sqsubseteq> (\<nu> X \<bullet> II \<or>\<^sub>p (P ;\<^sub>R X))"
   apply (rule lfp_lowerbound)
   apply (metis OrP_refine one_WF_PREDICATE_def star_1l star_ref times_WF_PREDICATE_def)
 done
 
-lemma StarP_refines_SFP: "(\<nu> X \<bullet> II \<or>\<^sub>p (P ; X)) \<sqsubseteq> P\<^sup>\<star>"
+lemma StarP_refines_SFP: "(\<nu> X \<bullet> II \<or>\<^sub>p (P ;\<^sub>R X)) \<sqsubseteq> P\<^sup>\<star>"
   apply (rule lfp_greatest)
   apply (metis one_WF_PREDICATE_def plus_WF_PREDICATE_def star_inductl_one times_WF_PREDICATE_def)
 done
 
 text {* The star is equivalent to the greatest fixed-point *}
-theorem StarP_as_SFP: "P\<^sup>\<star> = (\<nu> X \<bullet> II \<or>\<^sub>p (P ; X))"
+theorem StarP_as_SFP: "P\<^sup>\<star> = (\<nu> X \<bullet> II \<or>\<^sub>p (P ;\<^sub>R X))"
   by (metis SFP_refines_StarP StarP_refines_SFP antisym)
 
 definition 
@@ -260,7 +260,7 @@ qed
    
 theorem IterP_unfold:
   assumes "b \<in> WF_CONDITION" "S \<in> WF_RELATION"
-  shows "while b do S od = (S ; while b do S od) \<lhd> b \<rhd> II"
+  shows "while b do S od = (S ;\<^sub>R while b do S od) \<lhd> b \<rhd> II"
 proof -
   have "`while b do S od` = `(while b do S od \<and> b) \<or> (while b do S od \<and> \<not>b)`"
     by (metis AndP_comm WF_PREDICATE_cases)
@@ -268,7 +268,7 @@ proof -
   also have "... = `((S \<and> b) ; while b do S od) \<or> (II \<and> \<not>b)`"
     by (metis IterP_cond_false IterP_cond_true assms)
 
-  also have "... = (S ; while b do S od) \<lhd> b \<rhd> II"
+  also have "... = (S ;\<^sub>R while b do S od) \<lhd> b \<rhd> II"
     by (metis AndP_comm CondR_def IterP_closure SemiR_AndP_left_precond WF_CONDITION_WF_RELATION assms)
 
   finally show ?thesis .
@@ -280,14 +280,14 @@ theorem SemiR_ImpliesP_idem:
 
 lemma SFP_refines_IterP:
   assumes "b \<in> WF_CONDITION" "P \<in> WF_RELATION"
-  shows "while b do P od \<sqsubseteq> (\<nu> X \<bullet> ((P ; X) \<lhd> b \<rhd> II))"
+  shows "while b do P od \<sqsubseteq> (\<nu> X \<bullet> ((P ;\<^sub>R X) \<lhd> b \<rhd> II))"
   by (metis IterP_unfold assms(1) assms(2) lfp_lowerbound order_refl)
 
 
 (* Can't prove this yet, though I reckon it's true *)
 lemma IterP_refines_SFP:
   assumes "b \<in> WF_CONDITION" "P \<in> WF_RELATION"
-shows "(\<nu> X \<bullet> ((P ; X) \<lhd> b \<rhd> II)) \<sqsubseteq> while b do P od"
+shows "(\<nu> X \<bullet> ((P ;\<^sub>R X) \<lhd> b \<rhd> II)) \<sqsubseteq> while b do P od"
   apply (simp add:IterP_def StarP_as_SFP)
 oops
  

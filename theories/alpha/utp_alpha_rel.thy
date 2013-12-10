@@ -79,7 +79,7 @@ lift_definition SemiA ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_ALPHA_PREDICATE"
-is "\<lambda> p q. (in\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> q) \<union>\<^sub>f nrel\<^sub>\<alpha> (\<alpha> p \<union>\<^sub>f \<alpha> q), (\<pi> p) ; (\<pi> q))"
+is "\<lambda> p q. (in\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> q) \<union>\<^sub>f nrel\<^sub>\<alpha> (\<alpha> p \<union>\<^sub>f \<alpha> q), (\<pi> p) ;\<^sub>R (\<pi> q))"
   apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
   apply (rule UNREST_SemiR_general)
   apply (rule unrest)
@@ -507,7 +507,7 @@ theorem EvalA_CondA [evala] :
   by (simp add: EvalA_def CondA.rep_eq)
 
 theorem EvalA_SemiA [evala] :
-"\<lbrakk>r1 ;\<^sub>\<alpha> r2\<rbrakk>\<pi> = \<lbrakk>r1\<rbrakk>\<pi> ; \<lbrakk>r2\<rbrakk>\<pi>"
+"\<lbrakk>r1 ;\<^sub>\<alpha> r2\<rbrakk>\<pi> = \<lbrakk>r1\<rbrakk>\<pi> ;\<^sub>R \<lbrakk>r2\<rbrakk>\<pi>"
   by (simp add: EvalA_def SemiA.rep_eq)
 
 theorem EvalA_AssignA [evala] :
@@ -562,7 +562,7 @@ proof -
     apply (simp only: inj_on_Un_image_eq_iff[of dash, OF dash_inj])
   done
 
-  moreover with assms have "II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> ; \<lbrakk>r\<rbrakk>\<pi> = \<lbrakk>r\<rbrakk>\<pi>"
+  moreover with assms have "II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> ;\<^sub>R \<lbrakk>r\<rbrakk>\<pi> = \<lbrakk>r\<rbrakk>\<pi>"
     apply (rule_tac SemiR_SkipRA_left)
     apply (metis COMPOSABLE_def HOMOGENEOUS_def HOM_ALPHABET_dash_in)
     apply (rule UNREST_subset)
@@ -585,7 +585,7 @@ proof -
   from assms have outa:"out\<^sub>\<alpha> a = out\<^sub>\<alpha> (\<alpha> r)"
     by (force elim!:Rep_fset_elim intro!:Rep_fset_intro simp add:WF_ALPHA_REL_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def HOM_ALPHA_unfold)
     
-  moreover with assms have "\<lbrakk>r\<rbrakk>\<pi> ; II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> = \<lbrakk>r\<rbrakk>\<pi>"
+  moreover with assms have "\<lbrakk>r\<rbrakk>\<pi> ;\<^sub>R II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> = \<lbrakk>r\<rbrakk>\<pi>"
     apply (rule_tac SemiR_SkipRA_right)
     apply (metis COMPOSABLE_def HOMOGENEOUS_def HOM_ALPHABET_dash_in)
     apply (rule UNREST_subset)

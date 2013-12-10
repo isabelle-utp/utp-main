@@ -346,7 +346,7 @@ apply (simp add:urename NON_REL_VAR_def)
 done
 
 lemma EvalRX_SemiR [evalrx]: 
-  "\<lbrakk>P \<in> WF_RELATION; Q \<in> WF_RELATION\<rbrakk> \<Longrightarrow> \<lbrakk>P ; Q\<rbrakk>RX = \<lbrakk>P\<rbrakk>RX O \<lbrakk>Q\<rbrakk>RX"
+  "\<lbrakk>P \<in> WF_RELATION; Q \<in> WF_RELATION\<rbrakk> \<Longrightarrow> \<lbrakk>P ;\<^sub>R Q\<rbrakk>RX = \<lbrakk>P\<rbrakk>RX O \<lbrakk>Q\<rbrakk>RX"
 apply (simp add: EvalRX_def)
 apply (simp add: SemiR_def)
 apply (simp add: set_eq_iff)
@@ -716,23 +716,23 @@ method_setup utp_xrel_auto_tac = {*
 (* Tests *)
 
 lemma 
-  "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; c \<in> WF_RELATION; (c ; true = c) \<rbrakk> 
-    \<Longrightarrow> p ; (c \<and>\<^sub>p q) = (p \<and>\<^sub>p c\<^sup>\<smile>) ; q"
+  "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; c \<in> WF_RELATION; (c ;\<^sub>R true = c) \<rbrakk> 
+    \<Longrightarrow> p ;\<^sub>R (c \<and>\<^sub>p q) = (p \<and>\<^sub>p c\<^sup>\<smile>) ;\<^sub>R q"
   by (utp_xrel_auto_tac)
 
 lemma 
-  "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; c \<in> WF_RELATION; (true ; c = c) \<rbrakk> \<Longrightarrow>
-  (p \<and>\<^sub>p c) ; q = p ; (c\<^sup>\<smile> \<and>\<^sub>p q)"
+  "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; c \<in> WF_RELATION; (true ;\<^sub>R c = c) \<rbrakk> \<Longrightarrow>
+  (p \<and>\<^sub>p c) ;\<^sub>R q = p ;\<^sub>R (c\<^sup>\<smile> \<and>\<^sub>p q)"
   by (utp_xrel_auto_tac)
 
 (* De Morgan *)
 
 lemma
-  "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> (p\<^sup>\<smile> ; \<not>\<^sub>p (p ; q)) \<or>\<^sub>p \<not>\<^sub>p q = \<not>\<^sub>p q"
+  "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> (p\<^sup>\<smile> ;\<^sub>R \<not>\<^sub>p (p ;\<^sub>R q)) \<or>\<^sub>p \<not>\<^sub>p q = \<not>\<^sub>p q"
   by (utp_xrel_auto_tac)
 
 
-lemma "\<lbrakk> x \<in> UNDASHED; x \<in> xs; xs \<subseteq> UNDASHED \<union> DASHED; HOMOGENEOUS xs; v \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<union> NON_REL_VAR) v \<rbrakk> \<Longrightarrow> x :=\<^sub>R v ; II\<^bsub>xs\<^esub> = x :=\<^sub>R v"
+lemma "\<lbrakk> x \<in> UNDASHED; x \<in> xs; xs \<subseteq> UNDASHED \<union> DASHED; HOMOGENEOUS xs; v \<rhd>\<^sub>e x; UNREST_EXPR (DASHED \<union> NON_REL_VAR) v \<rbrakk> \<Longrightarrow> x :=\<^sub>R v ;\<^sub>R II\<^bsub>xs\<^esub> = x :=\<^sub>R v"
   oops
 
 end

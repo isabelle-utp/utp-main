@@ -96,11 +96,11 @@ lemma SubstP_EqualP [usubst]: "(e ==\<^sub>p f)[v/\<^sub>px] = (e[v/\<^sub>ex]) 
   by (utp_pred_tac)
 
 lemma SubstP_SemiR_left [usubst]: 
-  "\<lbrakk> x \<in> UNDASHED; DASHED \<sharp> v \<rbrakk> \<Longrightarrow> (p ; q)[v/\<^sub>px] = p[v/\<^sub>px] ; q"
+  "\<lbrakk> x \<in> UNDASHED; DASHED \<sharp> v \<rbrakk> \<Longrightarrow> (p ;\<^sub>R q)[v/\<^sub>px] = p[v/\<^sub>px] ;\<^sub>R q"
   by (utp_rel_auto_tac)
 
 lemma SubstP_SemiR_right [usubst]: 
-  "\<lbrakk> x \<in> DASHED; UNDASHED \<sharp> v \<rbrakk> \<Longrightarrow> (p ; q)[v/\<^sub>px] = p ; q[v/\<^sub>px]"
+  "\<lbrakk> x \<in> DASHED; UNDASHED \<sharp> v \<rbrakk> \<Longrightarrow> (p ;\<^sub>R q)[v/\<^sub>px] = p ;\<^sub>R q[v/\<^sub>px]"
   by (utp_rel_auto_tac)
 
 lemma binding_equiv_upd_match:
@@ -118,7 +118,7 @@ lemma binding_equiv_upd_drop:
   by (auto simp add:binding_equiv_def, metis)
 
 lemma SubstP_NON_REL_VAR [usubst]:
-  "\<lbrakk> x \<in> NON_REL_VAR; REL_VAR \<sharp> v \<rbrakk> \<Longrightarrow> (p ; q)[v/\<^sub>px] = p[v/\<^sub>px] ; q[v/\<^sub>px]"
+  "\<lbrakk> x \<in> NON_REL_VAR; REL_VAR \<sharp> v \<rbrakk> \<Longrightarrow> (p ;\<^sub>R q)[v/\<^sub>px] = p[v/\<^sub>px] ;\<^sub>R q[v/\<^sub>px]"
   apply (utp_rel_auto_tac)
   apply (rule_tac x="ya \<oplus>\<^sub>b xa on NON_REL_VAR" in exI)
   apply (simp add:typing)

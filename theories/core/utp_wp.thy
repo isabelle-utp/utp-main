@@ -25,7 +25,7 @@ setup wp.setup
 
 definition WeakPrecondP :: 
   "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" (infixr "wp" 150) where
-"Q wp r \<equiv> \<not>\<^sub>p (Q ; (\<not>\<^sub>p r))"
+"Q wp r \<equiv> \<not>\<^sub>p (Q ;\<^sub>R (\<not>\<^sub>p r))"
 
 declare WeakPrecondP_def [eval,evalr,evalrx]
 
@@ -40,7 +40,7 @@ theorem ConjP_wp [wp]:
   by (metis (hide_lams, no_types) SemiR_OrP_distl WeakPrecondP_def demorgan1 demorgan2)
 
 theorem SemiR_wp [wp]: 
-  "(P ; Q) wp r = P wp (Q wp r)"
+  "(P ;\<^sub>R Q) wp r = P wp (Q wp r)"
   apply (simp add: WeakPrecondP_def)
   apply (metis SemiR_assoc)
 done
@@ -83,7 +83,7 @@ theorem TrueP_wp [wp]:
   by (simp add:WeakPrecondP_def)
 
 theorem FalseP_wp [wp]: 
-  "Q ; true = true \<Longrightarrow> Q wp false = false"
+  "Q ;\<^sub>R true = true \<Longrightarrow> Q wp false = false"
   by (simp add:WeakPrecondP_def)
 
 theorem VarOpenP_wp: "\<lbrakk> x \<in> UNDASHED; r \<in> WF_RELATION \<rbrakk> 

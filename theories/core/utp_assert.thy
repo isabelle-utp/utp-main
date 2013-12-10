@@ -41,7 +41,7 @@ declare AssumeR_def [eval, evalr, evalrr, evalrx]
 declare AssertR_def [eval, evalr, evalrr, evalrx]
 
 lemma AssertR_SemiR:
-  "\<lbrakk> b \<in> WF_CONDITION; c \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> b\<^sub>\<bottom> ; c\<^sub>\<bottom> = (b \<and>\<^sub>p c)\<^sub>\<bottom>"
+  "\<lbrakk> b \<in> WF_CONDITION; c \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> b\<^sub>\<bottom> ;\<^sub>R c\<^sub>\<bottom> = (b \<and>\<^sub>p c)\<^sub>\<bottom>"
   apply (frule SemiR_TrueP_precond, frule SemiR_TrueP_precond) back
   apply (utp_xrel_auto_tac)
 done
@@ -56,7 +56,7 @@ done
 
 theorem AssertR_CondR:
   assumes "b \<in> WF_CONDITION" "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
-  shows "b\<^sup>\<top> ; (P \<lhd> b \<rhd> Q) = b\<^sup>\<top> ; P"
+  shows "b\<^sup>\<top> ;\<^sub>R (P \<lhd> b \<rhd> Q) = b\<^sup>\<top> ;\<^sub>R P"
 proof -
   have "`b\<^sup>\<top> ; (P \<lhd> b \<rhd> Q)` = `b\<^sup>\<top> ; (b \<and> (P \<lhd> b \<rhd> Q))`"
     by (metis AndP_comm AssertR_AndP CondR_rel_closure WF_CONDITION_WF_RELATION assms)

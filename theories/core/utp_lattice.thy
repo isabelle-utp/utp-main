@@ -258,7 +258,7 @@ lemma rel_Sup_comp_distr: "P O (\<Union> S) = \<Union>{ P O Q | Q. Q \<in> S}"
 
 theorem Lattice_L4:
   fixes Q :: "'VALUE WF_PREDICATE"
-  shows "(\<Sqinter> S) ; Q = \<Sqinter>{ P ; Q | P. P \<in> S}"
+  shows "(\<Sqinter> S) ;\<^sub>R Q = \<Sqinter>{ P ;\<^sub>R Q | P. P \<in> S}"
   apply (utp_rel_tac)
   apply (auto simp add:rel_Sup_comp_distl)
   apply (metis (hide_lams, no_types) EvalR_SemiR relcomp.intros)
@@ -266,7 +266,7 @@ done
 
 theorem Lattice_L5:
   fixes P :: "'VALUE WF_PREDICATE"
-  shows "P ; (\<Sqinter> S) = \<Sqinter>{ P ; Q | Q. Q \<in> S}"
+  shows "P ;\<^sub>R (\<Sqinter> S) = \<Sqinter>{ P ;\<^sub>R Q | Q. Q \<in> S}"
   apply (utp_rel_tac)
   apply (simp add:rel_Sup_comp_distr)
   apply (auto)
@@ -328,7 +328,7 @@ begin
 
 definition 
   times_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-  "P * Q = P ; Q"
+  "P * Q = P ;\<^sub>R Q"
 
 definition one_WF_PREDICATE :: "'a WF_PREDICATE" where
 "1 = II"
@@ -410,13 +410,13 @@ lemma AndP_mono2:
   by (metis AndP_disjunctive2 disjunctive2_mono2)
 
 lemma SemiR_disjunctive2:
-  "disjunctive2 (op ;)"
+  "disjunctive2 (op ;\<^sub>R)"
   apply (simp add:disjunctive2_def)
   apply (utp_rel_auto_tac)
 done
 
 lemma SemiR_mono2:
-  "mono2 (op ;)"
+  "mono2 (op ;\<^sub>R)"
   by (metis SemiR_disjunctive2 disjunctive2_mono2)
 
 end
