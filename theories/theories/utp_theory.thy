@@ -15,7 +15,6 @@ imports
   "../tactics/utp_xrel_tac"
   "../poly/utp_poly_tac"
   "../alpha/utp_alpha_rel"
-(*  "~~/src/HOL/Algebra/Lattice" *)
 begin
 
 subsection {* UTP theories definitions *}
@@ -88,6 +87,152 @@ definition THEORY_PRED_OVER ::
   "'a WF_THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE set" ("\<lbrakk>_\<rbrakk>[_]\<T>") where
 "THEORY_PRED_OVER T a \<equiv> {p \<in> \<lbrakk>T\<rbrakk>\<T>. \<alpha> p = a}"
 
+definition THEORY_CLOSED_OP :: 
+  "('a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE) \<Rightarrow>
+   'a WF_THEORY \<Rightarrow> bool" (infix "closed-under" 50) where
+"THEORY_CLOSED_OP f T = (\<forall> p \<in> \<lbrakk>T\<rbrakk>\<T>. \<forall> q \<in> \<lbrakk>T\<rbrakk>\<T>. f p q \<in> \<lbrakk>T\<rbrakk>\<T>)"
+
+lemma THEORY_PRED_intro [intro]:
+  "\<lbrakk> \<alpha> p \<in> \<A>(T); (\<forall> H \<in> \<H>(T). p is H) \<rbrakk> \<Longrightarrow> p \<in> \<lbrakk>T\<rbrakk>\<T>"
+  by (simp add:THEORY_PRED_def)
+
+lemma THEORY_PRED_OVER_alphabet [alphabet]:
+  "p \<in> \<lbrakk>T\<rbrakk>[a]\<T> \<Longrightarrow> \<alpha> p = a"
+  by (metis (lifting, full_types) THEORY_PRED_OVER_def mem_Collect_eq)
+
+lemma THEORY_PRED_OVER_intro [intro]:
+  "\<lbrakk> p \<in> \<lbrakk>T\<rbrakk>\<T>; \<alpha> p = a \<rbrakk> \<Longrightarrow> p \<in> \<lbrakk>T\<rbrakk>[a]\<T>"
+  by (simp add:THEORY_PRED_OVER_def)
+
+lemma THEORY_PRED_OVER_elim [elim]:
+  "\<lbrakk> p \<in> \<lbrakk>T\<rbrakk>[a]\<T>; \<lbrakk> p \<in> \<lbrakk>T\<rbrakk>\<T>; \<alpha> p = a \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (simp add:THEORY_PRED_OVER_def)
+
+definition THEORY_order :: "'a WF_THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE gorder" where
+"THEORY_order T a = \<lparr> partial_object.carrier = \<lbrakk>T\<rbrakk>[a]\<T>, eq = op =, le = op \<sqsubseteq> \<rparr>"
+
+interpretation THEORY_partial_order: partial_order "(THEORY_order T a)"
+  where "partial_object.carrier (THEORY_order T a) = \<lbrakk>T\<rbrakk>[a]\<T>"
+    and "eq (THEORY_order T a) = op ="
+    and "le (THEORY_order T a) = op \<sqsubseteq>"
+  apply (unfold_locales)
+  apply (simp_all add:THEORY_order_def)
+  apply (utp_alpha_tac, utp_pred_auto_tac)+
+done
+
+abbreviation THEORY_join :: 
+  "'a WF_ALPHA_PREDICATE \<Rightarrow> 
+   'a WF_THEORY \<Rightarrow> 
+   'a ALPHABET \<Rightarrow> 
+   'a WF_ALPHA_PREDICATE \<Rightarrow> 
+   'a WF_ALPHA_PREDICATE"  (infixl "\<squnion>\<^bsub>_[_]\<^esub>" 65) where
+"P \<squnion>\<^bsub>T[a]\<^esub> Q \<equiv> join (THEORY_order T a) P Q"
+
+abbreviation THEORY_meet :: 
+  "'a WF_ALPHA_PREDICATE \<Rightarrow> 
+   'a WF_THEORY \<Rightarrow> 
+   'a ALPHABET \<Rightarrow> 
+   'a WF_ALPHA_PREDICATE \<Rightarrow> 
+   'a WF_ALPHA_PREDICATE"  (infixl "\<sqinter>\<^bsub>_[_]\<^esub>" 70) where
+"P \<sqinter>\<^bsub>T[a]\<^esub> Q \<equiv> meet (THEORY_order T a) P Q"
+
+lemma AndA_RefineA_below:
+  "\<lbrakk> P \<sqsubseteq> R; Q \<sqsubseteq> R \<rbrakk> \<Longrightarrow> P \<and>\<^sub>\<alpha> Q \<sqsubseteq> R"
+  by (utp_alpha_tac, utp_pred_tac)
+
+lemma OrA_RefineA_above:
+  "\<lbrakk> R \<sqsubseteq> P; R \<sqsubseteq> Q \<rbrakk> \<Longrightarrow> R \<sqsubseteq> P \<or>\<^sub>\<alpha> Q"
+  by (utp_alpha_tac, utp_pred_tac)
+
+instance WF_ALPHA_PREDICATE :: (VALUE) order
+  apply (intro_classes)
+  apply (utp_alpha_tac, utp_pred_auto_tac)+
+done
+
+theorem THEORY_AndA_lub:
+  assumes 
+    "P \<in> \<lbrakk>T\<rbrakk>[a]\<T>" "Q \<in> \<lbrakk>T\<rbrakk>[a]\<T>" 
+    "(op \<and>\<^sub>\<alpha>) closed-under T"
+  shows "least (THEORY_order T a) (P \<and>\<^sub>\<alpha> Q) (Upper (THEORY_order T a) {P, Q})"
+  using assms
+  apply (rule_tac least_UpperI)
+  apply (simp_all add:THEORY_order_def)
+  apply (safe)[1]
+  apply (utp_alpha_tac, utp_pred_auto_tac)
+  apply (utp_alpha_tac, utp_pred_auto_tac)
+  apply (simp add:Upper_def, clarify)
+  apply (metis AndA_RefineA_below)
+  apply (metis AndA_alphabet THEORY_CLOSED_OP_def THEORY_PRED_OVER_elim THEORY_PRED_OVER_intro fset_simps(5))
+done
+
+theorem THEORY_join_AndA:
+  assumes 
+    "P \<in> \<lbrakk>T\<rbrakk>[a]\<T>" "Q \<in> \<lbrakk>T\<rbrakk>[a]\<T>" 
+    "(op \<and>\<^sub>\<alpha>) closed-under T"
+  shows "P \<squnion>\<^bsub>T[a]\<^esub> Q = P \<and>\<^sub>\<alpha> Q"
+  using assms
+  apply (auto simp add:join_def sup_def)
+  apply (rule some_equality)
+  apply (metis THEORY_AndA_lub)
+  apply (simp_all add:THEORY_order_def)
+  apply (simp add:Upper_def least_def, safe)
+  apply (rule antisym)
+  apply (metis AndA_RefineA_below)
+  apply (drule_tac x="P \<and>\<^sub>\<alpha> Q" in bspec)
+  apply (safe)
+  apply (utp_alpha_tac, utp_pred_tac)
+  apply (utp_alpha_tac, utp_pred_tac)
+  apply (rule THEORY_PRED_OVER_intro)
+  apply (erule THEORY_PRED_OVER_elim)
+  apply (erule THEORY_PRED_OVER_elim)
+  apply (metis THEORY_CLOSED_OP_def)
+  apply (simp add:alphabet)
+done
+
+lemma THEORY_OrA_glb:
+  assumes 
+    "P \<in> \<lbrakk>T\<rbrakk>[a]\<T>" "Q \<in> \<lbrakk>T\<rbrakk>[a]\<T>" 
+    "(op \<or>\<^sub>\<alpha>) closed-under T"
+  shows "greatest (THEORY_order T a) (P \<or>\<^sub>\<alpha> Q) (Lower (THEORY_order T a) {P, Q})"
+  using assms
+  apply (rule_tac greatest_LowerI)
+  apply (simp_all add:THEORY_order_def)
+  apply (safe)[1]
+  apply (utp_alpha_tac, utp_pred_auto_tac)
+  apply (utp_alpha_tac, utp_pred_auto_tac)
+  apply (simp add:Lower_def, clarify)
+  apply (metis OrA_RefineA_above)
+  apply (metis OrA_alphabet THEORY_CLOSED_OP_def THEORY_PRED_OVER_elim THEORY_PRED_OVER_intro fset_simps(5))
+done
+
+theorem THEORY_meet_OrA:
+  assumes 
+    "P \<in> \<lbrakk>T\<rbrakk>[a]\<T>" "Q \<in> \<lbrakk>T\<rbrakk>[a]\<T>" 
+    "(op \<or>\<^sub>\<alpha>) closed-under T"
+  shows "P \<sqinter>\<^bsub>T[a]\<^esub> Q = P \<or>\<^sub>\<alpha> Q"
+  using assms
+  apply (auto simp add:meet_def inf_def)
+  apply (rule some_equality)
+  apply (metis THEORY_OrA_glb)
+  apply (simp_all add:THEORY_order_def)
+  apply (simp add:Lower_def greatest_def, safe)
+  apply (rule antisym)
+  apply (drule_tac x="P \<or>\<^sub>\<alpha> Q" in bspec)
+  apply (safe)
+  apply (utp_alpha_tac, utp_pred_tac)
+  apply (utp_alpha_tac, utp_pred_tac)
+  apply (rule THEORY_PRED_OVER_intro)
+  apply (erule THEORY_PRED_OVER_elim)
+  apply (erule THEORY_PRED_OVER_elim)
+  apply (metis THEORY_CLOSED_OP_def)
+  apply (simp add:alphabet)
+  apply (metis OrA_RefineA_above)
+done
+
+lemma THEORY_order_carrier [simp]:
+  "partial_object.carrier (THEORY_order T a) = \<lbrakk>T\<rbrakk>[a]\<T>"
+  by (simp add:THEORY_order_def)
+ 
 instantiation WF_THEORY :: (VALUE) join_semilattice_zero
 begin
 
@@ -123,20 +268,8 @@ instance
 done
 end
 
+
 (*
-definition THEORY_order :: "'a WF_THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE gorder" where
-"THEORY_order T a = \<lparr> partial_object.carrier = \<lbrakk>T\<rbrakk>[a]\<T>, eq = op =, le = op \<sqsubseteq> \<rparr>"
-
-interpretation THEORY_partial_order: partial_order "(THEORY_order T a)"
-  where "partial_object.carrier (THEORY_order T a) = \<lbrakk>T\<rbrakk>[a]\<T>"
-    and "eq (THEORY_order T a) = op ="
-    and "le (THEORY_order T a) = op \<sqsubseteq>"
-  apply (unfold_locales)
-  apply (simp_all add:THEORY_order_def)
-  apply (utp_alpha_tac, utp_pred_auto_tac)+
-done
-*)
-
 abbreviation is_theory_top :: "'a WF_THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> bool" where
 "is_theory_top T a p \<equiv> (\<alpha> p = a \<and> p \<in> \<lbrakk>T\<rbrakk>\<T> \<and> (\<forall> q \<in> \<lbrakk>T\<rbrakk>\<T>. \<alpha> q = a \<longrightarrow> q \<sqsubseteq> p))"
 
@@ -148,12 +281,14 @@ definition has_theory_top :: "'a WF_THEORY \<Rightarrow> 'a ALPHABET \<Rightarro
 
 definition has_theory_bot :: "'a WF_THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> bool" where
 "has_theory_bot T a = (\<exists>! p. is_theory_bot T a p)"
+*)
 
-definition TopT :: "'a WF_THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("\<top>\<^bsub>_[_]\<^esub>") where
-"\<top>\<^bsub>T[a]\<^esub> = (THE p. is_theory_top T a p)"
+abbreviation TopT :: "'a WF_THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("\<top>\<^bsub>_[_]\<^esub>") where
+"\<top>\<^bsub>T[a]\<^esub> \<equiv> top (THEORY_order T a)"
 
 definition BotT :: "'a WF_THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("\<bottom>\<^bsub>_[_]\<^esub>") where
-"BotT T a = (THE p. is_theory_bot T a p)"
+"\<bottom>\<^bsub>T[a]\<^esub> \<equiv> bottom (THEORY_order T a)"
+
 
 subsection {* Theory of relations *}
 
@@ -186,9 +321,8 @@ lemma RELH_REL_ALPHABET:
   apply (rule iffI)
   apply (metis Healthy_simp RELH_in_REL_ALPHABET)
   apply (utp_alpha_tac)
-  apply (rule conjI)
+  apply (simp add:ExistsP_ident unrest)
   apply (metis Diff_Compl NON_REL_VAR_UNDASHED_DASHED REL_ALPHABET_UNDASHED_DASHED Rep_fset_inverse le_iff_inf)
-  apply (metis ExistsP_ident REL_ALPHABET_UNREST_NON_REL_VAR)
 done
 
 lift_definition REL :: "'a WF_THEORY"
@@ -198,6 +332,53 @@ is "(REL_ALPHABET, {RELH})"
 lemma REL_WF_ALPHA_REL:
   "\<lbrakk>REL\<rbrakk>\<T> = WF_ALPHA_REL"
   by (simp add:REL.rep_eq THEORY_PRED_def RELH_REL_ALPHABET WF_ALPHA_REL_def)
+
+lemma REL_WF_ALPHA_REL_closure:
+  "P \<in> WF_ALPHA_REL \<Longrightarrow> P \<in> \<lbrakk>REL\<rbrakk>\<T>"
+  by (metis REL_WF_ALPHA_REL)
+  
+lemma REL_AndP_closed:
+  "(op \<and>\<^sub>\<alpha>) closed-under REL"
+  by (auto simp add:THEORY_CLOSED_OP_def closure REL_WF_ALPHA_REL)
+
+lemma REL_OrP_closed:
+  "(op \<or>\<^sub>\<alpha>) closed-under REL"
+  by (auto simp add:THEORY_CLOSED_OP_def closure REL_WF_ALPHA_REL)
+
+theorem THEORY_order_lattice:
+  assumes "(op \<or>\<^sub>\<alpha>) closed-under T" "(op \<and>\<^sub>\<alpha>) closed-under T"
+  shows "lattice (THEORY_order T a)"
+  using assms
+  by (unfold_locales, auto intro: THEORY_AndA_lub THEORY_OrA_glb)
+
+locale bounded_lattice = lattice + weak_partial_order_bottom + weak_partial_order_top
+
+interpretation REL_lattice: lattice "THEORY_order REL a"
+  where "partial_object.carrier (THEORY_order REL a) = \<lbrakk>REL\<rbrakk>[a]\<T>"
+    and "eq (THEORY_order REL a) = op ="
+    and "le (THEORY_order REL a) = op \<sqsubseteq>"
+  apply (metis REL_AndP_closed REL_OrP_closed THEORY_order_lattice)
+  apply (simp_all add:THEORY_order_def)
+done
+
+lemma REL_bounded_lattice:
+  "a \<in> REL_ALPHABET \<Longrightarrow> bounded_lattice (THEORY_order REL a)"
+  apply (unfold_locales)
+  apply (rule_tac x="true\<^bsub>a\<^esub>" in exI)
+  apply (auto simp add:least_def THEORY_order_def alphabet)
+  apply (metis REL_WF_ALPHA_REL_closure THEORY_PRED_OVER_intro TrueA_WF_ALPHA_REL TrueA_alphabet)
+  apply (utp_alpha_tac, utp_pred_tac)
+  apply (rule_tac x="false\<^bsub>a\<^esub>" in exI)
+  apply (simp add:greatest_def THEORY_order_def alphabet)
+  apply (safe)
+  apply (rule THEORY_PRED_OVER_intro)
+  apply (metis FalseA_WF_ALPHA_REL REL_WF_ALPHA_REL)
+  apply (simp add:alphabet)
+  apply (utp_alpha_tac, utp_pred_tac)
+done
+
+  
+
 
 lemma bot_REL_ALPHABET:
   "a \<in> REL_ALPHABET \<Longrightarrow> \<bottom>\<^bsub>REL[a]\<^esub> = true\<^bsub>a\<^esub>"

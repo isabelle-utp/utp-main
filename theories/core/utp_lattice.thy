@@ -38,8 +38,8 @@ declare sup_WF_PREDICATE_def [eval,evalr,evalrx]
 declare inf_WF_PREDICATE_def [eval,evalr,evalrx]
 
 notation
-  bot ("\<top>") and
-  top ("\<bottom>")
+  bot_class.bot ("\<top>") and
+  top_class.top ("\<bottom>")
 
 syntax
   "_upred_inf"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "\<sqinter>" 65)
@@ -48,8 +48,8 @@ syntax
   "_upred_Sup"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("\<Squnion>_" [900] 900)
 
 translations
-  "_upred_inf p q"  == "CONST sup p q"
-  "_upred_sup p q"  == "CONST inf p q"
+  "_upred_inf p q"  == "CONST sup_class.sup p q"
+  "_upred_sup p q"  == "CONST inf_class.inf p q"
   "_upred_Inf p q"  == "CONST Sup p q"
   "_upred_Sup p q"  == "CONST Inf p q"
 
@@ -86,7 +86,7 @@ begin
 definition Inf_WF_PREDICATE ::
   "'VALUE WF_PREDICATE set \<Rightarrow>
    'VALUE WF_PREDICATE" where
-"Inf_WF_PREDICATE ps = (if ps = {} then top else mkPRED (\<Inter> (destPRED ` ps)))"
+"Inf_WF_PREDICATE ps = (if ps = {} then \<bottom> else mkPRED (\<Inter> (destPRED ` ps)))"
 
 instance ..
 end
