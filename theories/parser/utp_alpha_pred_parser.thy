@@ -7,6 +7,7 @@ theory utp_alpha_pred_parser
   "../tactics/utp_expr_tac"
   "../tactics/utp_rel_tac"
   "../poly/utp_poly_alpha_expr"
+  "../theories/utp_theory"
 begin
 
 nonterminal 
@@ -32,7 +33,9 @@ syntax
   "_uapred_top_clos" :: "uapred \<Rightarrow> bool" ("(1[_])")
   "_uapred_quote"    :: "uapred \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("(1``_``)")
   "_uapred_brack"    :: "uapred \<Rightarrow> uapred" ("'(_')" [0] 900)
+  "_uapred_TRUE"     :: "uapred" ("true")
   "_uapred_true"     :: "'a ALPHABET \<Rightarrow> uapred" ("true\<^bsub>_\<^esub>")
+  "_uapred_FALSE"    :: "uapred" ("false")
   "_uapred_false"    :: "'a ALPHABET \<Rightarrow> uapred" ("false\<^bsub>_\<^esub>")
   "_uapred_var"      :: "pttrn \<Rightarrow> uapred" ("(_)")
 (*  "_uapred_evar"     :: "idt \<Rightarrow> uapred" ("$_") *)
@@ -55,6 +58,8 @@ syntax
   "_uapred_seq"      :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr ";" 45)
   "_uapred_cond"     :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" ("_ \<triangleleft> _ \<triangleright> _")
   "_uapred_assign"   :: "'a VAR \<Rightarrow> 'a ALPHABET \<Rightarrow> apexpr \<Rightarrow> uapred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
+  "_uapred_top"      :: "'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("\<top>\<^bsub>_[_]\<^esub>")
+  "_uapred_bot"      :: "'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("\<bottom>\<^bsub>_[_]\<^esub>")
   "_uapred_zpara"    :: "uzdecls \<Rightarrow> uapred \<Rightarrow> uapred" ("[_|_]")
   "_uzdecl_basic"    :: "'a VAR \<Rightarrow> 'a VAR \<Rightarrow> uzdecl" (infix ":" 45)
   ""                 :: "uzdecl => uzdecls"             ("_")
@@ -64,7 +69,9 @@ translations
   "_uapred_brack p"     => "p"
   "_uapred_quote p"     => "p"
   "_uapred_top_clos p"  == "CONST TautologyA p"
+  "_uapred_TRUE"        == "CONST TRUE"
   "_uapred_true a"      == "CONST TrueA a"
+  "_uapred_FALSE"       == "CONST FALSE"
   "_uapred_false a"     == "CONST FalseA a"
   "_uapred_var x"       => "x"
 (*  "_uapred_evar x"      == "CONST VarA x" *)
@@ -85,6 +92,8 @@ translations
   "_uapred_seq p q"     => "CONST SemiA p q"
   "_uapred_cond p q r"  == "CONST CondA p q r"
   "_uapred_assign x a e" == "CONST PAssignA x a e"
+  "_uapred_top T a"     == "CONST TopT T a"
+  "_uapred_bot T a"     == "CONST BotT T a"
   "_uapred_zpara ds p"  == "CONST AndA ds p"
 
 (* Expression Parser *)

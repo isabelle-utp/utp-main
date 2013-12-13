@@ -15,6 +15,7 @@ imports
   "../tactics/utp_xrel_tac"
   "../poly/utp_poly_tac"
   "../alpha/utp_alpha_rel"
+(*  "~~/src/HOL/Algebra/Lattice" *)
 begin
 
 subsection {* UTP theories definitions *}
@@ -27,7 +28,7 @@ definition IDEMPOTENT_OVER ::
   "'a ALPHABET set \<Rightarrow> 'a ALPHA_FUNCTION set" where
 "IDEMPOTENT_OVER vs = {f . \<forall> p. \<alpha> p \<in> vs \<longrightarrow> f (f p) = f p}"
 
-declare is_healthy_def [eval,evalr,evalrx,evalp]
+declare is_healthy_def [eval,evalr,evalrx,evalp,evala]
 
 lemma Healthy_intro [intro]:
   "H(P) = P \<Longrightarrow> P is H"
@@ -81,9 +82,11 @@ abbreviation healthconds ::
 "healthconds t \<equiv> snd (DestTheory t)"
 
 definition THEORY_PRED :: "'a WF_THEORY \<Rightarrow> 'a WF_ALPHA_PREDICATE set" ("\<lbrakk>_\<rbrakk>\<T>") where
-"THEORY_PRED t \<equiv> {p. \<alpha> p \<in> \<A> t \<and>  (\<forall> H \<in> \<H> t. p is H)}"
+"THEORY_PRED T \<equiv> {p. \<alpha> p \<in> \<A>(T) \<and>  (\<forall> H \<in> \<H>(T). p is H)}"
 
-
+definition THEORY_PRED_OVER :: 
+  "'a WF_THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE set" ("\<lbrakk>_\<rbrakk>[_]\<T>") where
+"THEORY_PRED_OVER T a \<equiv> {p \<in> \<lbrakk>T\<rbrakk>\<T>. \<alpha> p = a}"
 
 instantiation WF_THEORY :: (VALUE) join_semilattice_zero
 begin
@@ -120,6 +123,20 @@ instance
 done
 end
 
+(*
+definition THEORY_order :: "'a WF_THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE gorder" where
+"THEORY_order T a = \<lparr> partial_object.carrier = \<lbrakk>T\<rbrakk>[a]\<T>, eq = op =, le = op \<sqsubseteq> \<rparr>"
+
+interpretation THEORY_partial_order: partial_order "(THEORY_order T a)"
+  where "partial_object.carrier (THEORY_order T a) = \<lbrakk>T\<rbrakk>[a]\<T>"
+    and "eq (THEORY_order T a) = op ="
+    and "le (THEORY_order T a) = op \<sqsubseteq>"
+  apply (unfold_locales)
+  apply (simp_all add:THEORY_order_def)
+  apply (utp_alpha_tac, utp_pred_auto_tac)+
+done
+*)
+
 abbreviation is_theory_top :: "'a WF_THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> bool" where
 "is_theory_top T a p \<equiv> (\<alpha> p = a \<and> p \<in> \<lbrakk>T\<rbrakk>\<T> \<and> (\<forall> q \<in> \<lbrakk>T\<rbrakk>\<T>. \<alpha> q = a \<longrightarrow> q \<sqsubseteq> p))"
 
@@ -132,11 +149,11 @@ definition has_theory_top :: "'a WF_THEORY \<Rightarrow> 'a ALPHABET \<Rightarro
 definition has_theory_bot :: "'a WF_THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> bool" where
 "has_theory_bot T a = (\<exists>! p. is_theory_bot T a p)"
 
-definition top_theory :: "'a WF_THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("\<top>\<^bsub>_[_]\<^esub>") where
-"top_theory T a = (THE p. is_theory_top T a p)"
+definition TopT :: "'a WF_THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("\<top>\<^bsub>_[_]\<^esub>") where
+"\<top>\<^bsub>T[a]\<^esub> = (THE p. is_theory_top T a p)"
 
-definition bot_theory :: "'a WF_THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("\<bottom>\<^bsub>_[_]\<^esub>") where
-"bot_theory T a = (THE p. is_theory_bot T a p)"
+definition BotT :: "'a WF_THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("\<bottom>\<^bsub>_[_]\<^esub>") where
+"BotT T a = (THE p. is_theory_bot T a p)"
 
 subsection {* Theory of relations *}
 
@@ -148,6 +165,10 @@ lemma RELH_alphabet [alphabet]:
   "\<alpha> (RELH p) = Abs_fset (\<langle>\<alpha> p\<rangle>\<^sub>f - NON_REL_VAR)"
   by (simp add:pred_alphabet_def RELH.rep_eq)
 
+lemma RELH_in_REL_ALPHABET [closure]:
+  "\<alpha> (RELH p) \<in> REL_ALPHABET"
+  by (auto simp add:alphabet REL_ALPHABET_def)
+
 lemma EvalA_RELH [evala]:
   "\<lbrakk>RELH p\<rbrakk>\<pi> = (\<exists>\<^sub>p NON_REL_VAR. \<lbrakk>p\<rbrakk>\<pi>)"
   by (simp add:EvalA_def RELH.rep_eq)
@@ -156,17 +177,18 @@ theorem RELH_idem:
   "RELH (RELH p) = RELH p"
   by (utp_alpha_tac, utp_pred_tac)
 
+lemma REL_ALPHABET_UNREST_NON_REL_VAR [unrest]:
+  "\<alpha> p \<in> REL_ALPHABET \<Longrightarrow> NON_REL_VAR \<sharp> \<lbrakk>p\<rbrakk>\<pi>"
+  by (metis UNREST_NON_REL_VAR_WF_RELATION WF_ALPHA_REL_EvalA_WF_RELATION WF_ALPHA_REL_def mem_Collect_eq)
+
 lemma RELH_REL_ALPHABET:
   "p is RELH \<longleftrightarrow> \<alpha> p \<in> REL_ALPHABET"
-  apply (auto simp add:RELH.rep_eq is_healthy_def)
-  apply (erule DestPredA_elim)
-  apply (simp add:RELH.rep_eq pred_alphabet_def)
-  apply (case_tac "\<langle>p\<rangle>\<^sub>\<alpha>")
-  apply (force simp add:REL_ALPHABET_def var_defs)[1]
-  apply (utp_alpha_tac, utp_pred_tac)
-  apply (rule)
-  apply (force simp add:REL_ALPHABET_def var_defs)[1]
-  apply (metis (mono_tags) EvalP_UNREST_override UNREST_NON_REL_VAR_WF_RELATION WF_ALPHA_REL_EvalA_WF_RELATION WF_ALPHA_REL_def mem_Collect_eq)
+  apply (rule iffI)
+  apply (metis Healthy_simp RELH_in_REL_ALPHABET)
+  apply (utp_alpha_tac)
+  apply (rule conjI)
+  apply (metis Diff_Compl NON_REL_VAR_UNDASHED_DASHED REL_ALPHABET_UNDASHED_DASHED Rep_fset_inverse le_iff_inf)
+  apply (metis ExistsP_ident REL_ALPHABET_UNREST_NON_REL_VAR)
 done
 
 lift_definition REL :: "'a WF_THEORY"
@@ -179,7 +201,7 @@ lemma REL_WF_ALPHA_REL:
 
 lemma bot_REL_ALPHABET:
   "a \<in> REL_ALPHABET \<Longrightarrow> \<bottom>\<^bsub>REL[a]\<^esub> = true\<^bsub>a\<^esub>"
-  apply (auto simp add:bot_theory_def)
+  apply (simp add:BotT_def)
   apply (rule the_equality)
   apply (simp add:alphabet closure REL_WF_ALPHA_REL)
   apply (utp_alpha_tac, utp_pred_tac)
@@ -191,7 +213,7 @@ done
 
 lemma top_REL_ALPHABET:
   "a \<in> REL_ALPHABET \<Longrightarrow> \<top>\<^bsub>REL[a]\<^esub> = false\<^bsub>a\<^esub>"
-  apply (auto simp add:top_theory_def)
+  apply (auto simp add:TopT_def)
   apply (rule the_equality)
   apply (simp add:alphabet closure REL_WF_ALPHA_REL)
   apply (utp_alpha_tac, utp_pred_tac)

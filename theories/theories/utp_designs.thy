@@ -282,7 +282,7 @@ theorem DesignD_refinement:
     "OKAY \<sharp> P2"
     "OKAY \<sharp> Q1" 
     "OKAY \<sharp> Q2"
-  shows "P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2 = `[P1 \<Rightarrow> P2] \<and> [P1 \<and> Q2 \<Rightarrow> Q1]`"
+  shows "`P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2` = `[P1 \<Rightarrow> P2] \<and> [P1 \<and> Q2 \<Rightarrow> Q1]`"
 proof -
   have "`(P1 \<turnstile> Q1) \<sqsubseteq> (P2 \<turnstile> Q2)` = `[P2 \<turnstile> Q2 \<Rightarrow> P1 \<turnstile> Q1]`"
     by (utp_pred_tac)
@@ -308,8 +308,7 @@ proof -
   also have "... = `[(P1 \<Rightarrow> P2)] \<and> [P1 \<and> Q2 \<Rightarrow> Q1]`"
     by (utp_pred_auto_tac)
 
-  ultimately show ?thesis
-    by (metis less_eq_WF_PREDICATE_def)
+  finally show ?thesis .
 qed
 
 theorem DesignD_refine [refine]:
@@ -322,7 +321,7 @@ theorem DesignD_refine [refine]:
     "Q1 \<sqsubseteq> P1 \<and>\<^sub>p Q2" 
   shows "P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2"
   using assms
-  apply (simp add:DesignD_refinement)
+  apply (simp add:less_eq_WF_PREDICATE_def DesignD_refinement)
   apply (simp add:less_eq_WF_PREDICATE_def RefP_def)
   apply (metis AndP_idem TrueP_eq_ClosureP)
 done

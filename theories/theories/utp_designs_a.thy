@@ -107,7 +107,7 @@ translations
   "_uapred_evar x"      == "CONST VarA x\<down>"
 
 theorem DesignA_extreme_point_nok:
-  "``true\<^bsub>a\<^esub> \<turnstile> false\<^bsub>a\<^esub>`` = ``\<not> $okay \<oplus> (a \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>)``"
+  "``true\<^bsub>a\<^esub> \<turnstile> false\<^bsub>a\<^esub>`` = ``(\<not> $okay)\<^bsub>+(a \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>)\<^esub>``"
   by (utp_alpha_tac, utp_pred_tac, auto)
 
 theorem DesignA_export_precondition:
@@ -282,6 +282,30 @@ lemma AH2_mono:
   apply (metis H2_monotone)
 done
 
+definition UNREST_ALPHA :: 
+  "'a VAR set \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> bool" where
+"UNREST_ALPHA vs p = vs \<sharp> (\<pi> p)"
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name unrest} @{const_name UNREST_ALPHA}
+*}
+
+lemma UNREST_ALPHA_EvalA [unrest]:
+  "vs \<sharp> p \<Longrightarrow> vs \<sharp> \<lbrakk>p\<rbrakk>\<pi>"
+  by (metis EvalA_def UNREST_ALPHA_def)
+
+theorem DesignA_refinement:
+  assumes 
+    "OKAY \<sharp> P1" 
+    "OKAY \<sharp> P2"
+    "OKAY \<sharp> Q1" 
+    "OKAY \<sharp> Q2"
+  shows "``P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2`` = ``[P1 \<Rightarrow> P2] \<and> [P1 \<and> Q2 \<Rightarrow> Q1]``"
+  apply (utp_alpha_tac)
+  apply (rule DesignD_refinement)
+  apply (simp_all add:assms unrest)
+done
+
 theorem AH1_AH2_is_DesignA:
   assumes "\<alpha>(P) \<in> DESIGN_ALPHABET" "AH1(P) = P" "AH2(P) = P"
   shows "P = ``\<not>P\<^sup>f \<turnstile> P\<^sup>t``"
@@ -373,6 +397,15 @@ lift_definition DESIGNS :: "'a WF_THEORY"
 is "(DESIGN_ALPHABET, {AH1,AH2})"
   by (auto simp add:WF_THEORY_def IDEMPOTENT_OVER_def AH1_idem AH2_idem)
 
+lemma DESIGNS_intro:
+  "\<lbrakk> \<alpha> P \<in> REL_ALPHABET; P is AH1; P is AH2 \<rbrakk> 
+  \<Longrightarrow> P \<in> \<lbrakk>DESIGNS\<rbrakk>\<T>"
+  apply (simp add:THEORY_PRED_def DESIGNS.rep_eq DESIGN_ALPHABET_def is_healthy_def)
+  apply (utp_alpha_tac)
+  apply (auto)
+  apply (smt finsert.rep_eq insert_iff)+
+done
+
 lift_definition NORMAL_DESIGNS :: "'a WF_THEORY" 
 is "(DESIGN_ALPHABET, {AH1,AH3})"
   by (auto simp add:WF_THEORY_def IDEMPOTENT_OVER_def AH1_idem AH3_idem closure)
@@ -383,7 +416,20 @@ is "(DESIGN_ALPHABET, {AH1,AH3,AH4})"
 
 lemma NORMAL_DESIGNS_are_DESIGNS [closure]: 
   "P \<in> \<lbrakk>NORMAL_DESIGNS\<rbrakk>\<T> \<Longrightarrow> P \<in> \<lbrakk>DESIGNS\<rbrakk>\<T>"
-  by (auto simp add:THEORY_PRED_def utp_alphabets_def NORMAL_DESIGNS.rep_eq DESIGNS.rep_eq healthconds_def AH3_implies_AH2)
+  by (auto simp add:THEORY_PRED_def NORMAL_DESIGNS.rep_eq DESIGNS.rep_eq AH3_implies_AH2)
+
+lemma "a \<in> DESIGN_ALPHABET \<Longrightarrow> \<top>\<^bsub>DESIGNS[a]\<^esub> = ``true\<^bsub>a\<^esub> \<turnstile> false\<^bsub>a\<^esub>``"
+  apply (simp add:top_theory_def)
+  apply (rule the_equality)
+  apply (auto simp add:alphabet closure)
+  apply (rule DESIGNS_intro)
+  apply (simp_all add:alphabet)
+  apply (metis DESIGN_ALPHABET_ok DESIGN_ALPHABET_ok' REL_ALPHABET_DESIGN_ALPHABET Rep_fset_inject finsert.rep_eq insert_absorb)
+  apply (simp add:is_healthy_def)
+  apply (utp_alpha_tac, utp_pred_tac)
+  apply (simp add:is_healthy_def)
+  apply (utp_alpha_tac)
+oops
 
 lemma EvalR_ExprP'':
   "\<lbrakk>ExprP e\<rbrakk>R = {(b1, b2). DestBool (\<lbrakk>e\<rbrakk>\<^sub>e (b1 \<oplus>\<^sub>b SS\<bullet>b2 on D\<^sub>1))
