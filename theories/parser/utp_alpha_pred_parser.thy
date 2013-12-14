@@ -60,6 +60,8 @@ syntax
   "_uapred_assign"   :: "'a VAR \<Rightarrow> 'a ALPHABET \<Rightarrow> apexpr \<Rightarrow> uapred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
   "_uapred_top"      :: "'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("\<top>\<^bsub>_[_]\<^esub>")
   "_uapred_bot"      :: "'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("\<bottom>\<^bsub>_[_]\<^esub>")
+  "_uapred_joint"    :: "uapred \<Rightarrow> 'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred \<Rightarrow> uapred" (infixl "\<squnion>\<^bsub>_[_]\<^esub>" 65)
+  "_uapred_meett"    :: "uapred \<Rightarrow> 'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred \<Rightarrow> uapred" (infixl "\<sqinter>\<^bsub>_[_]\<^esub>" 70)
   "_uapred_zpara"    :: "uzdecls \<Rightarrow> uapred \<Rightarrow> uapred" ("[_|_]")
   "_uzdecl_basic"    :: "'a VAR \<Rightarrow> 'a VAR \<Rightarrow> uzdecl" (infix ":" 45)
   ""                 :: "uzdecl => uzdecls"             ("_")
@@ -94,6 +96,8 @@ translations
   "_uapred_assign x a e" == "CONST PAssignA x a e"
   "_uapred_top T a"     == "CONST TopT T a"
   "_uapred_bot T a"     == "CONST BotT T a"
+  "_uapred_joint T a"   == "CONST JoinT T a"
+  "_uapred_meett T a"   == "CONST MeetT T a"
   "_uapred_zpara ds p"  == "CONST AndA ds p"
 
 (* Expression Parser *)

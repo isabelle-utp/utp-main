@@ -2,13 +2,18 @@ theory Lattice_extra
 imports "~~/src/HOL/Algebra/Lattice"
 begin
 
-term "le L"
-
 definition dual_gorder :: "('a, 'b) gorder_scheme \<Rightarrow> 'a gorder" where
   "dual_gorder L = \<lparr> carrier = carrier L
                    , eq = op .=\<^bsub>L\<^esub>
                    , le = (\<lambda> x y. y \<sqsubseteq>\<^bsub>L \<^esub>x) \<rparr>"
 
+definition
+  LFP :: "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a" ("\<mu>\<index>") where
+  "LFP L f = \<Sqinter>\<^bsub>L\<^esub> {u \<in> carrier L. f u \<sqsubseteq>\<^bsub>L\<^esub> u}"    --{*least fixed point*}
+
+definition
+  GFP:: "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a" ("\<nu>\<index>") where
+  "GFP L f = \<Squnion>\<^bsub>L\<^esub> {u \<in> carrier L. u \<sqsubseteq>\<^bsub>L\<^esub> f u}"    --{*greatest fixed point*}
 
 lemma eq_dual [simp]:
   "(x .=\<^bsub>dual_gorder L\<^esub> y) = (x .=\<^bsub>L\<^esub> y)"
@@ -61,6 +66,14 @@ lemma top_dual [simp]:
 lemma bottom_dual [simp]:
   "\<bottom>\<^bsub>dual_gorder L\<^esub> = \<top>\<^bsub>L\<^esub>"
   by (simp add:top_def bottom_def)
+
+lemma LFP_dual [simp]:
+  "LFP (dual_gorder L) f = GFP L f"
+  by (simp add:LFP_def GFP_def)
+
+lemma GFP_dual [simp]:
+  "GFP (dual_gorder L) f = LFP L f"
+  by (simp add:LFP_def GFP_def)
 
 context weak_partial_order
 begin
@@ -174,7 +187,7 @@ lemma top_closed:
   "\<top> \<in> carrier L"
   by (metis greatest_mem top_greatest)
 
-lemma top_lower:
+lemma top_higher:
   "x \<in> carrier L \<Longrightarrow> x \<sqsubseteq> \<top>"
   by (metis greatest_le top_greatest)
 
@@ -190,10 +203,10 @@ lemma bottom_join: "x \<in> carrier L \<Longrightarrow> \<bottom> \<squnion> x .
   by (metis bottom_least join_closed join_le join_right le_refl least_def weak_le_antisym)
 
 lemma top_join: "x \<in> carrier L \<Longrightarrow> \<top> \<squnion> x .= \<top>"
-  by (metis join_closed join_left top_closed top_lower weak_le_antisym)
+  by (metis join_closed join_left top_closed top_higher weak_le_antisym)
 
 lemma top_meet: "x \<in> carrier L \<Longrightarrow> \<top> \<sqinter> x .= x"
-  by (metis le_refl meet_closed meet_le meet_right top_closed top_lower weak_le_antisym)
+  by (metis le_refl meet_closed meet_le meet_right top_closed top_higher weak_le_antisym)
 
 end
 
@@ -207,6 +220,18 @@ locale bounded_lattice = lattice + weak_partial_order_bottom + weak_partial_orde
 
 context weak_complete_lattice
 begin
+
+lemma dual_weak_complete_lattice:
+  "weak_complete_lattice (dual_gorder L)"
+proof -
+  interpret dual: weak_lattice "dual_gorder L"
+    by (metis dual_weak_lattice)
+
+  show ?thesis
+    apply (unfold_locales)
+    apply (simp_all add:inf_exists sup_exists)
+  done
+qed
 
 lemma inf_glb: 
   assumes "A \<subseteq> carrier L"
@@ -237,14 +262,11 @@ lemma sup_lub:
   assumes "A \<subseteq> carrier L"
   shows "least L (\<Squnion>A) (Upper L A)"
 proof -
-  obtain i where "least L i (Upper L A)"
-    by (metis assms sup_exists)
+  interpret dual: weak_complete_lattice "dual_gorder L"
+    by (metis dual_weak_complete_lattice)
 
-  thus ?thesis
-    apply (simp add:sup_def)
-    apply (rule someI2[of _ "i"])
-    apply (auto)
-  done
+  show ?thesis
+    by (metis Lower_dual assms carrier_dual dual.inf_glb greatest_dual inf_dual)
 qed
 
 lemma sup_upper: 
@@ -258,39 +280,90 @@ lemma sup_least:
   shows "\<Squnion>A \<sqsubseteq> z"
   by (metis Upper_memI assms least_le sup_lub)
 
-definition
-  LFP :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  "LFP f = \<Sqinter> {u \<in> carrier L. f u \<sqsubseteq> u}"    --{*least fixed point*}
-
-definition
-  GFP:: "('a \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  "GFP f = \<Squnion> {u \<in> carrier L. u \<sqsubseteq> f u}"    --{*greatest fixed point*}
-
 lemma LFP_closed:
-  "LFP f \<in> carrier L"
+  "\<mu> f \<in> carrier L"
   by (metis (lifting) LFP_def inf_closed mem_Collect_eq subsetI)
+
+lemma GFP_closed:
+  "\<nu> f \<in> carrier L"
+  by (metis LFP_dual carrier_dual dual_weak_complete_lattice weak_complete_lattice.LFP_closed)
 
 lemma LFP_lowerbound: 
   assumes "x \<in> carrier L" "f x \<sqsubseteq> x" 
-  shows "LFP f \<sqsubseteq> x"
+  shows "\<mu> f \<sqsubseteq> x"
   by (auto intro:inf_lower assms simp add:LFP_def)
+
+lemma GFP_upperbound:
+  assumes "x \<in> carrier L" "x \<sqsubseteq> f x"
+  shows "x \<sqsubseteq> \<nu> f"
+  by (metis LFP_dual assms carrier_dual dual_weak_complete_lattice le_dual weak_complete_lattice.LFP_lowerbound)
 
 lemma LFP_greatest: 
   assumes "x \<in> carrier L" 
           "(\<And>u. \<lbrakk> u \<in> carrier L; f u \<sqsubseteq> u \<rbrakk> \<Longrightarrow> x \<sqsubseteq> u)"
-  shows "x \<sqsubseteq> LFP f"
+  shows "x \<sqsubseteq> \<mu> f"
   by (auto simp add:LFP_def intro:inf_greatest assms)
+
+lemma GFP_least: 
+  assumes "x \<in> carrier L" 
+          "(\<And>u. \<lbrakk> u \<in> carrier L; u \<sqsubseteq> f u \<rbrakk> \<Longrightarrow> u \<sqsubseteq> x)"
+  shows "\<nu> f \<sqsubseteq> x"
+  by (auto simp add:GFP_def intro:sup_least assms)
 
 lemma LFP_lemma2: 
   assumes "Mono f" "\<And> x. x \<in> carrier L \<Longrightarrow> f x \<in> carrier L"
-  shows "f (LFP f) \<sqsubseteq> LFP f"
+  shows "f (\<mu> f) \<sqsubseteq> \<mu> f"
   apply (rule LFP_greatest)
   apply (metis LFP_closed assms)
   apply (metis LFP_closed LFP_lowerbound Mono_def assms le_trans)
 done
 
+lemma LFP_lemma3: 
+  assumes "Mono f" "\<And> x. x \<in> carrier L \<Longrightarrow> f x \<in> carrier L"
+  shows "\<mu> f \<sqsubseteq> f (\<mu> f)"
+  by (metis LFP_closed LFP_lemma2 LFP_lowerbound Mono_def assms)
+
+lemma LFP_weak_unfold: 
+  "\<lbrakk> Mono f; \<And> x. x \<in> carrier L \<Longrightarrow> f x \<in> carrier L \<rbrakk> \<Longrightarrow> \<mu> f .= f (\<mu> f)"
+  by (metis LFP_closed LFP_lemma2 LFP_lemma3 weak_le_antisym)
+
+lemma GFP_lemma2:
+  assumes "Mono f" "\<And> x. x \<in> carrier L \<Longrightarrow> f x \<in> carrier L"
+  shows "\<nu> f \<sqsubseteq> f (\<nu> f)"
+  apply (rule GFP_least)
+  apply (metis GFP_closed assms(2))
+  apply (metis GFP_closed GFP_upperbound Mono_def assms le_trans)
+done
+
+lemma GFP_lemma3:
+  assumes "Mono f" "\<And> x. x \<in> carrier L \<Longrightarrow> f x \<in> carrier L"
+  shows "f (\<nu> f) \<sqsubseteq> \<nu> f"
+  by (metis GFP_closed GFP_lemma2 GFP_upperbound Mono_def assms)
+
+lemma GFP_weak_unfold: 
+  "\<lbrakk> Mono f; \<And> x. x \<in> carrier L \<Longrightarrow> f x \<in> carrier L \<rbrakk> \<Longrightarrow> \<nu> f .= f (\<nu> f)"
+  by (metis GFP_closed GFP_lemma2 GFP_lemma3 weak_le_antisym)
+
 end
 
+context complete_lattice
+begin
+
+lemma LFP_unfold: 
+  "\<lbrakk> Mono f; \<And> x. x \<in> carrier L \<Longrightarrow> f x \<in> carrier L \<rbrakk> \<Longrightarrow> \<mu> f = f (\<mu> f)"
+  by (metis LFP_closed LFP_lemma2 LFP_lemma3 le_antisym)
+
+lemma GFP_unfold:
+  "\<lbrakk> Mono f; \<And> x. x \<in> carrier L \<Longrightarrow> f x \<in> carrier L \<rbrakk> \<Longrightarrow> \<nu> f = f (\<nu> f)"
+  by (metis GFP_closed GFP_lemma2 GFP_lemma3 le_antisym)
+
+end
+
+sublocale weak_bounded_lattice \<subseteq> weak_partial_order ..
+
+sublocale bounded_lattice \<subseteq> partial_order ..
+
+sublocale bounded_lattice \<subseteq> weak_bounded_lattice ..
 
 text {* Unfortunately we have to hide the algebra lattice syntax so it doesn't conflict
         with the builtin HOL version. *}
@@ -303,6 +376,8 @@ no_notation
   join (infixl "\<squnion>\<index>" 65) and
   meet (infixl "\<sqinter>\<index>" 70) and
   top ("\<top>\<index>") and
-  bottom ("\<bottom>\<index>")
+  bottom ("\<bottom>\<index>") and
+  LFP ("\<mu>\<index>") and
+  GFP ("\<nu>\<index>")
 
 end
