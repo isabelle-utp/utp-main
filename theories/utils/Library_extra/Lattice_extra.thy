@@ -2,8 +2,79 @@ theory Lattice_extra
 imports "~~/src/HOL/Algebra/Lattice"
 begin
 
+term "le L"
+
+definition dual_gorder :: "('a, 'b) gorder_scheme \<Rightarrow> 'a gorder" where
+  "dual_gorder L = \<lparr> carrier = carrier L
+                   , eq = op .=\<^bsub>L\<^esub>
+                   , le = (\<lambda> x y. y \<sqsubseteq>\<^bsub>L \<^esub>x) \<rparr>"
+
+
+lemma eq_dual [simp]:
+  "(x .=\<^bsub>dual_gorder L\<^esub> y) = (x .=\<^bsub>L\<^esub> y)"
+  by (simp add:dual_gorder_def)
+
+lemma le_dual [simp]:
+  "x \<sqsubseteq>\<^bsub>dual_gorder L\<^esub> y = (y \<sqsubseteq>\<^bsub>L\<^esub> x)"
+  by (simp add:dual_gorder_def)
+
+lemma carrier_dual [simp]:
+  "carrier (dual_gorder L) = carrier L"
+  by (simp add:dual_gorder_def)
+
+lemma Lower_dual [simp]:
+  "Lower (dual_gorder L) A = Upper L A"
+  by (simp add:Upper_def Lower_def dual_gorder_def)
+
+lemma Upper_dual [simp]:
+  "Upper (dual_gorder L) A = Lower L A"
+  by (simp add:Upper_def Lower_def dual_gorder_def)
+
+lemma least_dual [simp]:
+  "least (dual_gorder L) x A = greatest L x A"
+  by (simp add:least_def greatest_def dual_gorder_def)
+
+lemma greatest_dual [simp]:
+  "greatest (dual_gorder L) x A = least L x A"
+  by (simp add:least_def greatest_def dual_gorder_def)
+
+lemma sup_dual [simp]: 
+  "\<Squnion>\<^bsub>dual_gorder L\<^esub>A = \<Sqinter>\<^bsub>L\<^esub>A"
+  by (simp add:sup_def inf_def)
+
+lemma inf_dual [simp]: 
+  "\<Sqinter>\<^bsub>dual_gorder L\<^esub>A = \<Squnion>\<^bsub>L\<^esub>A"
+  by (simp add:sup_def inf_def)
+
+lemma join_dual [simp]:
+  "p \<squnion>\<^bsub>dual_gorder L\<^esub> q = p \<sqinter>\<^bsub>L\<^esub> q"
+  by (simp add:join_def meet_def)
+
+lemma meet_dual [simp]:
+  "p \<sqinter>\<^bsub>dual_gorder L\<^esub> q = p \<squnion>\<^bsub>L\<^esub> q"
+  by (simp add:join_def meet_def)
+
+lemma top_dual [simp]:
+  "\<top>\<^bsub>dual_gorder L\<^esub> = \<bottom>\<^bsub>L\<^esub>"
+  by (simp add:top_def bottom_def)
+
+lemma bottom_dual [simp]:
+  "\<bottom>\<^bsub>dual_gorder L\<^esub> = \<top>\<^bsub>L\<^esub>"
+  by (simp add:top_def bottom_def)
+
 context weak_partial_order
 begin
+
+lemma dual_weak_order:
+  "weak_partial_order (dual_gorder L)"
+  apply (unfold_locales)
+  apply (simp_all add:dual_gorder_def)
+  apply (metis sym)
+  apply (metis trans)
+  apply (metis weak_le_antisym)
+  apply (metis le_trans)
+  apply (metis le_cong_l le_cong_r sym)
+done
 
 definition Mono :: "('a \<Rightarrow> 'a) \<Rightarrow> bool" where
 "Mono f \<longleftrightarrow> (\<forall>x\<in>carrier L. \<forall>y\<in>carrier L. x \<sqsubseteq> y \<longrightarrow> f x \<sqsubseteq> f y)"
@@ -13,6 +84,43 @@ lemma MonoI [intro?]:
   assumes "(\<And>x y. \<lbrakk> x \<in> carrier L; y \<in> carrier L; x \<sqsubseteq> y \<rbrakk> \<Longrightarrow> f x \<sqsubseteq> f y)"
   shows "Mono f"
   by (metis assms Mono_def)
+
+end
+
+context weak_lattice
+begin
+
+lemma dual_weak_lattice:
+  "weak_lattice (dual_gorder L)"
+proof -
+  interpret dual: weak_partial_order "dual_gorder L"
+    by (metis dual_weak_order)
+
+  show ?thesis
+    apply (unfold_locales)
+    apply (simp_all add: inf_of_two_exists sup_of_two_exists)
+  done
+qed
+
+end
+
+sublocale lattice \<subseteq> weak_lattice ..
+
+context lattice
+begin
+
+lemma dual_lattice:
+  "lattice (dual_gorder L)"
+proof -
+  interpret dual: weak_lattice "dual_gorder L"
+    by (metis dual_weak_lattice)
+
+  show ?thesis
+    apply (unfold_locales)
+    apply (simp_all add: inf_of_two_exists sup_of_two_exists)
+    apply (simp add:dual_gorder_def eq_is_equal)
+  done
+qed
 
 end
 
