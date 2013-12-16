@@ -155,7 +155,7 @@ proof -
   done
 qed
 
-lemma bottom_closed:
+lemma bottom_closed':
   "\<bottom> \<in> carrier L"
   by (metis bottom_least least_mem)
 
@@ -183,7 +183,7 @@ proof -
   done
 qed
 
-lemma top_closed:
+lemma top_closed':
   "\<top> \<in> carrier L"
   by (metis greatest_mem top_greatest)
 
@@ -202,11 +202,17 @@ lemma bottom_meet: "x \<in> carrier L \<Longrightarrow> \<bottom> \<sqinter> x .
 lemma bottom_join: "x \<in> carrier L \<Longrightarrow> \<bottom> \<squnion> x .= x"
   by (metis bottom_least join_closed join_le join_right le_refl least_def weak_le_antisym)
 
+lemma bottom_weak_eq:  "\<lbrakk> b \<in> carrier L; \<And> x. x \<in> carrier L \<Longrightarrow> b \<sqsubseteq> x \<rbrakk> \<Longrightarrow> b .= \<bottom>"
+  by (metis bottom_closed' bottom_lower weak_le_antisym)
+
 lemma top_join: "x \<in> carrier L \<Longrightarrow> \<top> \<squnion> x .= \<top>"
-  by (metis join_closed join_left top_closed top_higher weak_le_antisym)
+  by (metis join_closed join_left top_closed' top_higher weak_le_antisym)
 
 lemma top_meet: "x \<in> carrier L \<Longrightarrow> \<top> \<sqinter> x .= x"
-  by (metis le_refl meet_closed meet_le meet_right top_closed top_higher weak_le_antisym)
+  by (metis le_refl meet_closed meet_le meet_right top_closed' top_higher weak_le_antisym)
+
+lemma top_weak_eq:  "\<lbrakk> t \<in> carrier L; \<And> x. x \<in> carrier L \<Longrightarrow> x \<sqsubseteq> t \<rbrakk> \<Longrightarrow> t .= \<top>"
+  by (metis top_closed' top_higher weak_le_antisym)
 
 end
 
@@ -217,6 +223,15 @@ sublocale weak_complete_lattice \<subseteq> weak_bounded_lattice
 done
 
 locale bounded_lattice = lattice + weak_partial_order_bottom + weak_partial_order_top
+begin
+
+lemma bottom_eq:  "\<lbrakk> b \<in> carrier L; \<And> x. x \<in> carrier L \<Longrightarrow> b \<sqsubseteq> x \<rbrakk> \<Longrightarrow> b = \<bottom>"
+  by (metis bottom_closed' bottom_lower le_antisym)
+
+lemma top_eq:  "\<lbrakk> t \<in> carrier L; \<And> x. x \<in> carrier L \<Longrightarrow> x \<sqsubseteq> t \<rbrakk> \<Longrightarrow> t = \<top>"
+  by (metis le_antisym top_closed' top_higher)
+
+end
 
 context weak_complete_lattice
 begin

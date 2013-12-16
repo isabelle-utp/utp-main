@@ -12,7 +12,6 @@ imports
   utp_alpha_pred
   utp_alpha_expr
   utp_alpha_rel
-(*  utp_alpha_laws
-  utp_alpha_lattice *)
+  utp_alpha_lattice
 begin
 end
