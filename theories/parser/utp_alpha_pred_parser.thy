@@ -129,8 +129,30 @@ translations
   "_apexpr_true"               == "CONST TrueAPE"
   "_apexpr_false"              == "CONST FalseAPE"
 
+(* Big operators *)
+
+syntax
+  "_uapred_ANDI1" :: "'a ALPHABET \<Rightarrow> pttrns \<Rightarrow> uapred \<Rightarrow> uapred" ("(3\<And>\<^bsub>_\<^esub> _./ _)" [0, 0, 10] 10)
+  "_uapred_ANDI"  :: "'a ALPHABET \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<And>\<^bsub>_\<^esub> _:_./ _)" [0, 0, 0, 10] 10)
+  "_uapred_ORDI1" :: "'a ALPHABET \<Rightarrow> pttrns \<Rightarrow> uapred \<Rightarrow> uapred" ("(3\<Or>\<^bsub>_\<^esub> _./ _)" [0, 0, 10] 10)
+  "_uapred_ORDI"  :: "'a ALPHABET \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<Or>\<^bsub>_\<^esub> _:_./ _)" [0, 0, 10] 10)
+  "_uapred_INF1"  :: "pttrns \<Rightarrow> upred \<Rightarrow> upred" ("(3\<Sqinter> _./ _)" [0, 10] 10)
+  "_uapred_INF"   :: "pttrn \<Rightarrow> 'b set \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<Sqinter> _:_./ _)" [0, 0, 10] 10)
+  "_uapred_SUP1"  :: "pttrns \<Rightarrow> upred \<Rightarrow> upred" ("(3\<Squnion> _./ _)" [0, 10] 10)
+  "_uapred_SUP"   :: "pttrn \<Rightarrow> 'b set \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<Squnion> _:_./ _)" [0, 0, 10] 10)
+
+
+translations
+  "_uapred_ANDI1 a x y B" => "AND[a] x. AND[a] y. B"
+  "_uapred_ANDI1 a x B"   == "CONST AANDI a CONST UNIV (%x. B)"
+  "_uapred_ANDI a x A B"  == "CONST AANDI a A (%x. B)"
+  "_uapred_ORDI1 a x y B" => "OR[a] x. OR[a] y. B"
+  "_uapred_ORDI1 a x B"   == "CONST AORDI a CONST UNIV (%x. B)"
+  "_uapred_ORDI a x A B"  == "CONST AORDI a A (%x. B)"
 
 (* Parser sanity check *)
+
+term "``\<And>\<^bsub>a\<^esub> i:I. P``"
 
 term "``p \<and> q``"
 

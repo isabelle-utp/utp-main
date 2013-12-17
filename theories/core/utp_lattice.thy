@@ -41,17 +41,35 @@ notation
   bot_class.bot ("\<top>") and
   top_class.top ("\<bottom>")
 
+(* Lattice syntax *)
+
+default_sort type
+
 syntax
-  "_upred_inf"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "\<sqinter>" 65)
-  "_upred_sup"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "\<squnion>" 70)
-  "_upred_Inf"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("\<Sqinter>_" [900] 900)
-  "_upred_Sup"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("\<Squnion>_" [900] 900)
+  "_upred_inf"   :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "\<sqinter>" 65)
+  "_upred_sup"   :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "\<squnion>" 70)
+  "_upred_Inf"   :: "upreds \<Rightarrow> upred" ("\<Sqinter> {_}" [900] 900)
+  "_upred_Sup"   :: "upreds \<Rightarrow> upred" ("\<Squnion> {_}" [900] 900)
+  "_upred_INF1"  :: "pttrns \<Rightarrow> upred \<Rightarrow> upred" ("(3\<Sqinter> _./ _)" [0, 10] 10)
+  "_upred_INF"   :: "pttrn \<Rightarrow> 'b set \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<Sqinter> _:_./ _)" [0, 0, 10] 10)
+  "_upred_SUP1"  :: "pttrns \<Rightarrow> upred \<Rightarrow> upred" ("(3\<Squnion> _./ _)" [0, 10] 10)
+  "_upred_SUP"   :: "pttrn \<Rightarrow> 'b set \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<Squnion> _:_./ _)" [0, 0, 10] 10)
 
 translations
-  "_upred_inf p q"  == "CONST sup_class.sup p q"
-  "_upred_sup p q"  == "CONST inf_class.inf p q"
-  "_upred_Inf p q"  == "CONST Sup p q"
-  "_upred_Sup p q"  == "CONST Inf p q"
+  "_upred_inf p q"     == "CONST sup_class.sup p q"
+  "_upred_sup p q"     == "CONST inf_class.inf p q"
+  "_upred_Inf ps"      == "CONST Sup ps"
+  "_upred_Sup ps"      == "CONST Inf ps"
+  "_upred_INF1 x y B"  == "SUP x. SUP y. B"
+  "_upred_INF1 x B"    == "CONST SUPR CONST UNIV (%x. B)"
+  "_upred_INF x A B"   == "CONST SUPR A (%x. B)"
+  "_upred_SUP1 x y B"  == "INF x. INF y. B"
+  "_upred_SUP1 x B"    == "CONST INFI CONST UNIV (%x. B)"
+  "_upred_SUP x A B"   == "CONST INFI A (%x. B)"
+  "_upreds x xs"       == "CONST insert x xs"
+  "_upreds_end x"      == "{x}"
+
+default_sort VALUE
 
 instantiation WF_PREDICATE :: (VALUE) bounded_lattice
 begin

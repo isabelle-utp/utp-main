@@ -137,6 +137,7 @@ lemma SupA_lub:
   apply (metis SupA_alphabet WF_ALPHA_PREDICATE_OVER_intro)
 done
 
+
 text {* Alphabetised predicates for a complete lattice over any alphabet *}
 
 interpretation alpha_complete_lattice: complete_lattice "(OrderA a)"

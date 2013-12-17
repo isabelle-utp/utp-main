@@ -233,6 +233,14 @@ lemma top_eq:  "\<lbrakk> t \<in> carrier L; \<And> x. x \<in> carrier L \<Longr
 
 end
 
+definition supr :: 
+  "('a, 'b) gorder_scheme \<Rightarrow> 'c set \<Rightarrow> ('c \<Rightarrow> 'a) \<Rightarrow> 'a " where
+"supr L A f = \<Squnion>\<^bsub>L \<^esub>(f ` A)"
+
+definition infi :: 
+  "('a, 'b) gorder_scheme \<Rightarrow> 'c set \<Rightarrow> ('c \<Rightarrow> 'a) \<Rightarrow> 'a " where
+"infi L A f = \<Sqinter>\<^bsub>L \<^esub>(f ` A)"
+
 context weak_complete_lattice
 begin
 

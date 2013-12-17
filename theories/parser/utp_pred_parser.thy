@@ -51,6 +51,8 @@ syntax
   "_upred_inf"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "|~|" 65)
 
 syntax (xsymbols)
+  "_upreds"         :: "[upred, upreds] => upreds" ("_,/ _")
+  "_upreds_end"     :: "upred => upreds" ("_")
   "_upred_top_clos" :: "upred \<Rightarrow> bool" ("(1[_])")
   "_upred_quote"    :: "upred \<Rightarrow> 'a WF_PREDICATE" ("(1`_`)")
   "_upred_brack"    :: "upred \<Rightarrow> upred" ("'(_')")
@@ -278,6 +280,8 @@ translations
 
 (* Linking the predicate parser to the poly parser *)
 
+default_sort type
+
 syntax
   "_upred_lesseq"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "\<le>" 25)
   "_upred_less"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "<" 25)
@@ -287,23 +291,22 @@ syntax
   "_upred_set_nmember"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" ("(_/ \<notin> _)" [51, 51] 50)
   "_upred_set_subset"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "\<subset>" 50)
   "_upred_set_subseteq"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "\<subseteq>" 50)
+  "_upred_index"         :: "('b \<Rightarrow> 'a WF_PREDICATE) \<Rightarrow> 'b \<Rightarrow> upred" ("_<_>" 50)
 
 translations
-  "_upred_lesseq e f"        == "CONST PExprP (_pexpr_less_eq e f)"
-  "_upred_less e f"          == "CONST PExprP (_pexpr_less e f)"
-  "_upred_greater_eq e f"    == "CONST PExprP (_pexpr_greater_eq e f)"
-  "_upred_greater e f"       == "CONST PExprP (_pexpr_greater e f)"
-  "_upred_set_member x xs"   == "CONST PExprP (_pexpr_set_member x xs)"
-  "_upred_set_nmember x xs"  == "CONST PExprP (_pexpr_set_nmember x xs)"
-  "_upred_set_subset xs ys"  == "CONST PExprP (_pexpr_set_subset xs ys)"
+  "_upred_lesseq e f"         == "CONST PExprP (_pexpr_less_eq e f)"
+  "_upred_less e f"           == "CONST PExprP (_pexpr_less e f)"
+  "_upred_greater_eq e f"     == "CONST PExprP (_pexpr_greater_eq e f)"
+  "_upred_greater e f"        == "CONST PExprP (_pexpr_greater e f)"
+  "_upred_set_member x xs"    == "CONST PExprP (_pexpr_set_member x xs)"
+  "_upred_set_nmember x xs"   == "CONST PExprP (_pexpr_set_nmember x xs)"
+  "_upred_set_subset xs ys"   == "CONST PExprP (_pexpr_set_subset xs ys)"
   "_upred_set_subseteq xs ys" == "CONST PExprP (_pexpr_set_subseteq xs ys)"
+  "_upred_index f i"          => "f i"
 
+(* Big operators *)
 
-(* Lattice syntax *)
-
-default_sort type
-
-syntax (xsymbols)
+syntax
   "_upred_ANDI1" :: "pttrns \<Rightarrow> upred \<Rightarrow> upred" ("(3\<And> _./ _)" [0, 10] 10)
   "_upred_ANDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<And> _:_./ _)" [0, 0, 10] 10)
   "_upred_ORDI1" :: "pttrns \<Rightarrow> upred \<Rightarrow> upred" ("(3\<Or> _./ _)" [0, 10] 10)
@@ -316,6 +319,8 @@ translations
   "_upred_ORDI1 x y B" == "OR x. OR y. B"
   "_upred_ORDI1 x B"   == "CONST ORDI CONST UNIV (%x. B)"
   "_upred_ORDI x A B"  == "CONST ORDI A (%x. B)"
+
+default_sort VALUE
 
 (* Some regression tests *)
 
