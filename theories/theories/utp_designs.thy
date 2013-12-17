@@ -357,6 +357,23 @@ proof -
     by (simp add:closure SemiR_TrueP_precond)
 qed
 
+lemma DesignD_OrP:
+  "`(P1 \<turnstile> Q1) \<or> (P2 \<turnstile> Q2)` = `(P1 \<and> P2 \<turnstile> Q1 \<or> Q2)`"
+  by (utp_pred_auto_tac)
+
+lemma DesignD_AndP:
+  "`(P1 \<turnstile> Q1) \<and> (P2 \<turnstile> Q2)` = 
+   `(P1 \<or> P2 \<turnstile> (P1 \<Rightarrow> Q1) \<and> (P2 \<Rightarrow> Q2))`"
+  by (utp_pred_auto_tac)
+
+lemma DesignD_OrDistP:
+  "I \<noteq> {} \<Longrightarrow> (\<Or>\<^sub>p i:I. (P i \<turnstile> Q i)) = ((\<And>\<^sub>p i:I. P i) \<turnstile> (\<Or>\<^sub>p i:I. Q i))"
+  by (utp_pred_auto_tac)
+
+lemma DesignD_AndDistP:
+  "I \<noteq> {} \<Longrightarrow> (\<And>\<^sub>p i:I. (P i \<turnstile> Q i)) = ((\<Or>\<^sub>p i:I. P i) \<turnstile> (\<And>\<^sub>p i:I. P i \<Rightarrow>\<^sub>p Q i))"
+  by (utp_pred_auto_tac)
+
 text {* The choice of two designs conjoins the assumptions and disjoins the commitments *}
 
 theorem DesignD_choice:

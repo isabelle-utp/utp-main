@@ -418,6 +418,17 @@ lemma NORMAL_DESIGNS_are_DESIGNS [closure]:
   "P \<in> \<lbrakk>NORMAL_DESIGNS\<rbrakk>\<T> \<Longrightarrow> P \<in> \<lbrakk>DESIGNS\<rbrakk>\<T>"
   by (auto simp add:THEORY_PRED_def NORMAL_DESIGNS.rep_eq DESIGNS.rep_eq AH3_implies_AH2)
 
+theorem AH1_true:
+  "a \<in> DESIGN_ALPHABET \<Longrightarrow> true\<^bsub>a \<^esub>is AH1"
+  by (utp_alpha_tac, utp_pred_tac)
+
+theorem AH2_true:
+  "a \<in> DESIGN_ALPHABET \<Longrightarrow> true\<^bsub>a \<^esub>is AH2"
+  by (utp_alpha_tac, metis H3_WF_CONDITION H3_implies_H2 Healthy_elim TrueP_cond_closure)
+
+theorem AH1_AndP:
+  "P
+  
 lemma "a \<in> DESIGN_ALPHABET \<Longrightarrow> \<top>\<^bsub>DESIGNS[a]\<^esub> = ``true\<^bsub>a\<^esub> \<turnstile> false\<^bsub>a\<^esub>``"
   apply (simp add:top_theory_def)
   apply (rule the_equality)

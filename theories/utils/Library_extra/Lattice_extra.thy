@@ -380,19 +380,4 @@ sublocale bounded_lattice \<subseteq> partial_order ..
 
 sublocale bounded_lattice \<subseteq> weak_bounded_lattice ..
 
-text {* Unfortunately we have to hide the algebra lattice syntax so it doesn't conflict
-        with the builtin HOL version. *}
-
-no_notation
-  le (infixl "\<sqsubseteq>\<index>" 50) and
-  lless (infixl "\<sqsubset>\<index>" 50) and
-  sup ("\<Squnion>\<index>_" [90] 90) and
-  inf ("\<Sqinter>\<index>_" [90] 90) and
-  join (infixl "\<squnion>\<index>" 65) and
-  meet (infixl "\<sqinter>\<index>" 70) and
-  top ("\<top>\<index>") and
-  bottom ("\<bottom>\<index>") and
-  LFP ("\<mu>\<index>") and
-  GFP ("\<nu>\<index>")
-
 end

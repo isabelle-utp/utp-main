@@ -127,6 +127,54 @@ definition IffP ::
 
 notation IffP (infixr "\<Leftrightarrow>\<^sub>p" 150)
 
+definition AndDistP :: "'a WF_PREDICATE set \<Rightarrow> 'a WF_PREDICATE"
+where "AndDistP ps = mkPRED (\<Inter> {destPRED p | p. p \<in> ps})"
+
+notation AndDistP ("\<And>\<^sub>p _" [900] 900)
+
+lemma AndDistP_rep_eq: "destPRED (\<And>\<^sub>p ps) = \<Inter> {destPRED p | p. p \<in> ps}"
+  by (simp add:AndDistP_def)
+
+definition OrDistP :: "'a WF_PREDICATE set \<Rightarrow> 'a WF_PREDICATE"
+where "OrDistP ps = mkPRED (\<Union> {destPRED p | p. p \<in> ps})"
+
+notation OrDistP ("\<Or>\<^sub>p _" [900] 900)
+
+lemma OrDistP_rep_eq: "destPRED (\<Or>\<^sub>p ps) = \<Union> {destPRED p | p. p \<in> ps}"
+  by (simp add:OrDistP_def)
+
+default_sort type
+
+definition ANDI :: "'b set \<Rightarrow> ('b \<Rightarrow> ('a::VALUE) WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" where
+"ANDI A f = \<And>\<^sub>p(f ` A)"
+
+definition ORDI :: "'b set \<Rightarrow> ('b \<Rightarrow> ('a::VALUE) WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" where
+"ORDI A f = \<Or>\<^sub>p(f ` A)"
+
+syntax
+  "_ANDI1" :: "pttrns \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("(3AND _./ _)" [0, 10] 10)
+  "_ANDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE"  ("(3AND _:_./ _)" [0, 0, 10] 10)
+  "_ORDI1" :: "pttrns \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("(3OR _./ _)" [0, 10] 10)
+  "_ORDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE"  ("(3OR _:_./ _)" [0, 0, 10] 10)
+
+syntax (xsymbols)
+  "_ANDI1" :: "pttrns \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("(3\<And>\<^sub>p_./ _)" [0, 10] 10)
+  "_ANDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE"  ("(3\<And>\<^sub>p _:_./ _)" [0, 0, 10] 10)
+  "_ORDI1" :: "pttrns \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("(3\<Or>\<^sub>p _./ _)" [0, 10] 10)
+  "_ORDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE"  ("(3\<Or>\<^sub>p _:_./ _)" [0, 0, 10] 10)
+
+translations
+  "AND x y. B"  == "AND x. AND y. B"
+  "AND x. B"    == "CONST ANDI CONST UNIV (%x. B)"
+  "AND x. B"    == "AND x:CONST UNIV. B"
+  "AND x:A. B"  == "CONST ANDI A (%x. B)"
+  "OR x y. B"   == "OR x. OR y. B"
+  "OR x. B"     == "CONST ORDI CONST UNIV (%x. B)"
+  "OR x. B"     == "OR x:CONST UNIV. B"
+  "OR x:A. B"   == "CONST ORDI A (%x. B)"
+
+default_sort VALUE
+
 subsubsection {* Quantifiers *}
 
 lift_definition ExistsP ::

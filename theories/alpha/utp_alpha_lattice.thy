@@ -89,38 +89,32 @@ interpretation alpha_lattice: lattice "(OrderA a)"
 done
 
 definition InfA ::
-  "'VALUE ALPHABET \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE set \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" ("\<Or>\<^bsub>_ \<^esub>_" [900,900] 900) where
-"InfA a ps = (if ps = {} then false\<^bsub>a\<^esub> else MkPredA (a, \<Sqinter> {\<lbrakk>p\<rbrakk>\<pi> | p. p \<in> ps}))"
+  "'a ALPHABET \<Rightarrow>
+   'a WF_ALPHA_PREDICATE set \<Rightarrow>
+   'a WF_ALPHA_PREDICATE" ("\<Sqinter>\<^bsub>_\<^esub> _" [900] 900) where
+"\<Sqinter>\<^bsub>a\<^esub> ps = (if (ps \<subseteq> WF_ALPHA_PREDICATE_OVER a) then (\<Or>\<^bsub>a\<^esub> ps) else FalseA a)"
 
-theorem InfA_rep_eq:
-  "ps \<subseteq> WF_ALPHA_PREDICATE_OVER a \<Longrightarrow>
-   DestPredA (\<Or>\<^bsub>a \<^esub>ps) = (a, \<Sqinter> {\<lbrakk>p\<rbrakk>\<pi> | p. p \<in> ps})"
-  apply (subgoal_tac "(a, \<Sqinter> {\<lbrakk>p\<rbrakk>\<pi> | p. p \<in> ps}) \<in> WF_ALPHA_PREDICATE")
-  apply (simp add:InfA_def)
-  apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
-  apply (auto simp add:bot_WF_PREDICATE_def FalseA_rep_eq)
-  apply (auto simp add:WF_ALPHA_PREDICATE_OVER_def WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
-  apply (auto intro: unrest)
-done
+definition SupA ::
+  "'a ALPHABET \<Rightarrow>
+   'a WF_ALPHA_PREDICATE set \<Rightarrow>
+   'a WF_ALPHA_PREDICATE" ("\<Squnion>\<^bsub>_\<^esub> _" [900] 900) where
+"\<Squnion>\<^bsub>a\<^esub> ps = (if (ps \<subseteq> WF_ALPHA_PREDICATE_OVER a) then (\<And>\<^bsub>a\<^esub> ps) else TrueA a)"
+
+declare InfA_def [evala]
+declare SupA_def [evala]
 
 lemma InfA_alphabet [alphabet]:
-  "ps \<subseteq> WF_ALPHA_PREDICATE_OVER a \<Longrightarrow> \<alpha> (\<Or>\<^bsub>a\<^esub> ps) = a"
-  by (simp add:pred_alphabet_def InfA_rep_eq)
+  "\<alpha> (\<Sqinter>\<^bsub>a\<^esub> ps) = a"
+  by (simp add:InfA_def alphabet)
 
-lemma EvalA_InfA [evala]:
-  "ps \<subseteq> WF_ALPHA_PREDICATE_OVER a \<Longrightarrow> \<lbrakk>\<Or>\<^bsub>a\<^esub> ps\<rbrakk>\<pi> = \<Sqinter> {\<lbrakk>p\<rbrakk>\<pi> | p. p \<in> ps}"
-  by (auto simp add: EvalA_def InfA_rep_eq)
-
-lemma WF_ALPHA_PREDICATE_OVER_member [alphabet]:
-  "\<lbrakk> ps \<subseteq> WF_ALPHA_PREDICATE_OVER a; p \<in> ps \<rbrakk> \<Longrightarrow> \<alpha> p = a"
-  by (auto simp add:WF_ALPHA_PREDICATE_OVER_def)
+lemma SupA_alphabet [alphabet]:
+  "\<alpha> (\<Squnion>\<^bsub>a\<^esub> ps) = a"
+  by (simp add:SupA_def alphabet)
 
 lemma InfA_glb:
   assumes 
     "ps \<subseteq> WF_ALPHA_PREDICATE_OVER a"
-  shows "greatest (OrderA a) (\<Or>\<^bsub>a\<^esub> ps) (Lower (OrderA a) ps)"
+  shows "greatest (OrderA a) (\<Sqinter>\<^bsub>a\<^esub> ps) (Lower (OrderA a) ps)"
   using assms
   apply (rule_tac greatest_LowerI)
   apply (simp_all)
@@ -130,35 +124,10 @@ lemma InfA_glb:
   apply (metis InfA_alphabet WF_ALPHA_PREDICATE_OVER_intro)
 done
 
-definition SupA ::
-  "'VALUE ALPHABET \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE set \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" ("\<And>\<^bsub>_ \<^esub>_" [900,900] 900) where
-"SupA a ps = (if ps = {} then true\<^bsub>a\<^esub> else MkPredA (a, \<Squnion> {\<lbrakk>p\<rbrakk>\<pi> | p. p \<in> ps}))"
-
-theorem SupA_rep_eq:
-  "ps \<subseteq> WF_ALPHA_PREDICATE_OVER a \<Longrightarrow>
-   DestPredA (\<And>\<^bsub>a\<^esub> ps) = (a, \<Squnion> {\<lbrakk>p\<rbrakk>\<pi> | p. p \<in> ps})"
-  apply (subgoal_tac "(a, \<Squnion> {\<lbrakk>p\<rbrakk>\<pi> | p. p \<in> ps}) \<in> WF_ALPHA_PREDICATE")
-  apply (simp add:SupA_def)
-  apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
-  apply (auto simp add:top_WF_PREDICATE_def TrueA_rep_eq)
-  apply (auto simp add:WF_ALPHA_PREDICATE_OVER_def WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
-  apply (auto intro: unrest)
-done
-
-lemma SupA_alphabet [alphabet]:
-  "ps \<subseteq> WF_ALPHA_PREDICATE_OVER a \<Longrightarrow> \<alpha> (\<And>\<^bsub>a\<^esub> ps) = a"
-  by (simp add:pred_alphabet_def SupA_rep_eq)
-
-lemma EvalA_SupA [evala]:
-  "ps \<subseteq> WF_ALPHA_PREDICATE_OVER a \<Longrightarrow> \<lbrakk>\<And>\<^bsub>a\<^esub> ps\<rbrakk>\<pi> = \<Squnion> {\<lbrakk>p\<rbrakk>\<pi> | p. p \<in> ps}"
-  by (auto simp add: EvalA_def SupA_rep_eq)
-
 lemma SupA_lub:
   assumes 
     "ps \<subseteq> WF_ALPHA_PREDICATE_OVER a"
-  shows "least (OrderA a) (\<And>\<^bsub>a\<^esub> ps) (Upper (OrderA a) ps)"
+  shows "least (OrderA a) (\<Squnion>\<^bsub>a\<^esub> ps) (Upper (OrderA a) ps)"
   using assms
   apply (rule_tac least_UpperI)
   apply (simp_all)
@@ -168,25 +137,27 @@ lemma SupA_lub:
   apply (metis SupA_alphabet WF_ALPHA_PREDICATE_OVER_intro)
 done
 
+text {* Alphabetised predicates for a complete lattice over any alphabet *}
+
 interpretation alpha_complete_lattice: complete_lattice "(OrderA a)"
   where "partial_object.carrier (OrderA a) = WF_ALPHA_PREDICATE_OVER a"
     and "eq (OrderA a) = op ="
     and "le (OrderA a) = op \<sqsubseteq>"
   apply (unfold_locales, simp_all)
-  apply (rule_tac x="\<And>\<^bsub>a\<^esub> A" in exI)
+  apply (rule_tac x="\<Squnion>\<^bsub>a\<^esub> A" in exI)
   apply (metis SupA_lub)
-  apply (rule_tac x="\<Or>\<^bsub>a\<^esub> A" in exI)
+  apply (rule_tac x="\<Sqinter>\<^bsub>a\<^esub> A" in exI)
   apply (metis InfA_glb)
 done
 
 lemma InfA_is_inf:
   assumes "ps \<subseteq> WF_ALPHA_PREDICATE_OVER a"
-  shows "inf (OrderA a) ps = \<Or>\<^bsub>a\<^esub> ps"
+  shows "inf (OrderA a) ps = \<Sqinter>\<^bsub>a\<^esub> ps"
   by (metis InfA_glb alpha_complete_lattice.inf_glb alpha_partial_order.weak_greatest_unique assms)
 
 lemma SupA_is_sup:
   assumes "ps \<subseteq> WF_ALPHA_PREDICATE_OVER a"
-  shows "sup (OrderA a) ps = \<And>\<^bsub>a\<^esub> ps"
+  shows "sup (OrderA a) ps = \<Squnion>\<^bsub>a\<^esub> ps"
   by (metis SupA_lub alpha_complete_lattice.sup_lub alpha_partial_order.weak_least_unique assms)
 
 lemma TrueA_least:

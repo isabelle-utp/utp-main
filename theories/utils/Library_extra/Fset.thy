@@ -11,6 +11,7 @@ imports Main
   List_lexord
   Countable
   List_extra
+  Lattice_extra
 begin
 
 default_sort type
@@ -136,7 +137,7 @@ definition FinPow :: "'a fset \<Rightarrow> 'a fset fset" where
 text {* Set of all finite subsets of a set *}
 
 definition Fow :: "'a set \<Rightarrow> 'a fset set" where
-"Fow A = {Abs_fset x | x. x \<subseteq> A \<and> finite x}"
+"Fow A = {x. \<langle>x\<rangle>\<^sub>f \<subseteq> A}"
 
 notation
   fsubset_eq ("op \<subseteq>\<^sub>f") and
@@ -153,6 +154,39 @@ translations
 
 definition fset_elem :: "('a * 'a fset) set" 
 where "fset_elem = {(x,xs) | x xs. x \<notin> Rep_fset xs}"
+
+text {* Finite least upper bound with respect to a top element *}
+
+definition flub :: "'a fset set \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
+"flub A t = (if (\<forall> a\<in>A. a \<subseteq>\<^sub>f t) then Abs_fset (\<Union>x\<in>A. \<langle>x\<rangle>\<^sub>f) else t)"
+
+lemma finite_Union_subsets:
+  "\<lbrakk> \<forall> a \<in> A. a \<subseteq> b; finite b \<rbrakk> \<Longrightarrow> finite (\<Union>A)"
+  by (metis Sup_le_iff finite_subset)
+
+lemma finite_UN_subsets:
+  "\<lbrakk> \<forall> a \<in> A. B a \<subseteq> b; finite b \<rbrakk> \<Longrightarrow> finite (\<Union>a\<in>A. B a)"
+  by (metis UN_subset_iff finite_subset)
+
+lemma flub_rep_eq:
+  "\<langle>flub A t\<rangle>\<^sub>f = (if (\<forall> a\<in>A. a \<subseteq>\<^sub>f t) then (\<Union>x\<in>A. \<langle>x\<rangle>\<^sub>f) else \<langle>t\<rangle>\<^sub>f)"
+  apply (subgoal_tac "(if (\<forall> a\<in>A. a \<subseteq>\<^sub>f t) then (\<Union>x\<in>A. \<langle>x\<rangle>\<^sub>f) else \<langle>t\<rangle>\<^sub>f) \<in> fsets")
+  apply (auto simp add:flub_def)
+  apply (auto simp add:fsets_def)
+  apply (rule finite_UN_subsets[of _ _ "\<langle>t\<rangle>\<^sub>f"])
+  apply (auto)
+done
+
+definition fglb :: "'a fset set \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
+"fglb A t = (if (A = {}) then t else Abs_fset (\<Inter>x\<in>A. \<langle>x\<rangle>\<^sub>f))"
+
+lemma fglb_rep_eq:
+  "\<langle>fglb A t\<rangle>\<^sub>f = (if (A = {}) then \<langle>t\<rangle>\<^sub>f else (\<Inter>x\<in>A. \<langle>x\<rangle>\<^sub>f))"
+  apply (subgoal_tac "(if (A = {}) then \<langle>t\<rangle>\<^sub>f else (\<Inter>x\<in>A. \<langle>x\<rangle>\<^sub>f)) \<in> fsets")
+  apply (metis Abs_fset_inverse fglb_def)
+  apply (auto simp add:fsets_def)
+  apply (metis Rep_fset_finite finite_INT)
+done
 
 definition fset :: "'a list \<Rightarrow> 'a fset" where
 "fset xs = Abs_fset (set xs)"
@@ -463,10 +497,10 @@ lemma FUnion_FinPow [simp]:
   by (auto)
 
 lemma Fow_mem [iff]: "x \<in> Fow A \<longleftrightarrow> \<langle>x\<rangle>\<^sub>f \<subseteq> A"
-  apply (auto simp add:Fow_def)
-  apply (rule_tac x="\<langle>x\<rangle>\<^sub>f" in exI)
-  apply (simp)
-done
+  by (auto simp add:Fow_def)
+
+lemma Fow_UNIV [simp]: "Fow UNIV = UNIV"
+  by (simp add:Fow_def)
 
 subsection {* Finite set binders *}
 
@@ -580,6 +614,83 @@ oops
 
 lift_definition FMax :: "('a::linorder) fset \<Rightarrow> 'a" is "Max"
   by (simp)
+
+abbreviation fset_order :: "'a set \<Rightarrow> ('a fset) gorder" where
+"fset_order A \<equiv> \<lparr> carrier = Fow A, eq = op =, le = op \<subseteq>\<^sub>f \<rparr>"
+
+interpretation fset_order: partial_order "fset_order A"
+  where "carrier (fset_order A) = Fow A "
+    and "eq (fset_order A) = op ="
+    and "le (fset_order A) = op \<subseteq>\<^sub>f"
+  by (unfold_locales, auto)
+
+lemma funion_lub:
+  "\<lbrakk> x \<in> Fow A; y \<in> Fow A \<rbrakk> \<Longrightarrow>
+     least (fset_order A) (x \<union>\<^sub>f y) (Upper (fset_order A) {x, y})"
+  by (rule least_UpperI, auto simp add:Upper_def)
+
+lemma finter_glb:
+  "\<lbrakk> x \<in> Fow A; y \<in> Fow A \<rbrakk> \<Longrightarrow>
+     greatest (fset_order A) (x \<inter>\<^sub>f y) (Lower (fset_order A) {x, y})"
+  by (rule greatest_LowerI, auto simp add:Lower_def)
+
+interpretation fset_lattice: lattice "fset_order A"
+  where "carrier (fset_order A) = Fow A "
+    and "eq (fset_order A) = op ="
+    and "le (fset_order A) = op \<subseteq>\<^sub>f"
+  apply (unfold_locales, simp_all)
+  apply (rule_tac x="x \<union>\<^sub>f y" in exI, simp add:funion_lub)
+  apply (rule_tac x="x \<inter>\<^sub>f y" in exI, simp add:finter_glb)
+done
+  
+lemma flub_lub:
+  "B \<subseteq> Fow \<langle>A\<rangle>\<^sub>f \<Longrightarrow> least (fset_order \<langle>A\<rangle>\<^sub>f) (flub B A) (Upper (fset_order \<langle>A\<rangle>\<^sub>f) B)"
+  apply (rule least_UpperI, auto simp add:flub_rep_eq Upper_def)
+  apply (metis set_rev_mp)
+done
+
+lemma fglb_glb:
+  "B \<subseteq> Fow \<langle>A\<rangle>\<^sub>f \<Longrightarrow> greatest (fset_order \<langle>A\<rangle>\<^sub>f) (fglb B A) (Lower (fset_order \<langle>A\<rangle>\<^sub>f) B)"
+  apply (rule greatest_LowerI, auto simp add:fglb_rep_eq Lower_def)
+  apply (metis Fow_mem set_rev_mp)
+done
+
+text {* Every set of finite sets with a common finite parent forms a complete lattice *}
+
+lemma fset_complat: "complete_lattice (fset_order \<langle>A\<rangle>\<^sub>f)"
+  apply (unfold_locales, simp_all)
+  apply (rule_tac x="flub Aa A" in exI, simp add:flub_lub)
+  apply (rule_tac x="fglb Aa A" in exI, simp add:fglb_glb)
+done
+
+interpretation fset_complete_lattice: complete_lattice "fset_order \<langle>A\<rangle>\<^sub>f"
+  where "carrier (fset_order \<langle>A\<rangle>\<^sub>f) = Fow \<langle>A\<rangle>\<^sub>f"
+    and "eq (fset_order \<langle>A\<rangle>\<^sub>f) = op ="
+    and "le (fset_order \<langle>A\<rangle>\<^sub>f) = op \<subseteq>\<^sub>f"
+    and "\<top>\<^bsub>fset_order \<langle>A\<rangle>\<^sub>f\<^esub> = A"
+    and  "\<bottom>\<^bsub>fset_order \<langle>A\<rangle>\<^sub>f\<^esub> = \<lbrace>\<rbrace>"
+proof -
+  interpret fcl: complete_lattice "fset_order \<langle>A\<rangle>\<^sub>f"
+  where "carrier (fset_order \<langle>A\<rangle>\<^sub>f) = Fow \<langle>A\<rangle>\<^sub>f"
+    and "eq (fset_order \<langle>A\<rangle>\<^sub>f) = op ="
+    and "le (fset_order \<langle>A\<rangle>\<^sub>f) = op \<subseteq>\<^sub>f"
+    by (metis fset_complat, simp_all)
+
+  show "\<top>\<^bsub>fset_order \<langle>A\<rangle>\<^sub>f\<^esub> = A"
+    by (metis Fow_mem fcl.top_weak_eq less_eq_fset.rep_eq order_refl)
+
+  show "\<bottom>\<^bsub>fset_order \<langle>A\<rangle>\<^sub>f\<^esub> = \<lbrace>\<rbrace>"
+    by (metis (mono_tags) Fow_mem empty_subsetI fempty.rep_eq fcl.bottom_weak_eq less_eq_fset.rep_eq)
+
+qed (simp_all add: fset_complat)
+
+lemma sup_flub:
+  "B \<subseteq> Fow \<langle>A\<rangle>\<^sub>f \<Longrightarrow> sup (fset_order \<langle>A\<rangle>\<^sub>f) B = flub B A"
+  by (metis flub_lub fset_complete_lattice.sup_lub fset_order.weak_least_unique)
+
+lemma inf_fglb:
+  "B \<subseteq> Fow \<langle>A\<rangle>\<^sub>f \<Longrightarrow> inf (fset_order \<langle>A\<rangle>\<^sub>f) B = fglb B A"
+  by (metis fglb_glb fset_complete_lattice.inf_glb fset_order.weak_greatest_unique)
 
 end
 

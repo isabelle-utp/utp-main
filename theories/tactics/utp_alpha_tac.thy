@@ -97,6 +97,41 @@ theorem EvalA_IffA [evala] :
 "\<lbrakk>p1 \<Leftrightarrow>\<^sub>\<alpha> p2\<rbrakk>\<pi> = \<lbrakk>p1\<rbrakk>\<pi> \<Leftrightarrow>\<^sub>p \<lbrakk>p2\<rbrakk>\<pi>"
   by (simp add: EvalA_def IffA.rep_eq)
 
+theorem EvalA_AndDistA [evala] :
+"\<lbrakk> \<forall> a \<in> \<alpha>`ps. a \<subseteq>\<^sub>f t \<rbrakk> \<Longrightarrow> \<lbrakk>\<And>\<^bsub>t\<^esub> ps\<rbrakk>\<pi> = \<And>\<^sub>p {\<lbrakk>p\<rbrakk>\<pi> | p. p \<in> ps}"
+  apply (case_tac "ps = {}")
+  apply (simp add:AndDistA_empty evala)
+  apply (utp_pred_auto_tac)
+  apply (simp add:EvalA_def AndDistA_rep_eq)
+  apply (utp_pred_auto_tac)
+done
+
+theorem EvalA_OrDistA [evala] :
+"\<lbrakk> \<forall> a \<in> \<alpha>`ps. a \<subseteq>\<^sub>f t \<rbrakk> \<Longrightarrow> \<lbrakk>\<Or>\<^bsub>t\<^esub> ps\<rbrakk>\<pi> = \<Or>\<^sub>p {\<lbrakk>p\<rbrakk>\<pi> | p. p \<in> ps}"
+  apply (case_tac "ps = {}")
+  apply (simp add:OrDistA_empty evala)
+  apply (utp_pred_auto_tac)
+  apply (auto simp add: EvalA_def OrDistA_rep_eq)
+  apply (utp_pred_auto_tac)
+done
+
+theorem EvalA_AANDI_enum [evala]:
+  "\<lbrakk> \<forall> i\<in>A. \<alpha> (P i) \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow> \<lbrakk>\<And>\<^bsub>a\<^esub> i:A. P i\<rbrakk>\<pi> = (\<And>\<^sub>p i:A. \<lbrakk>P i\<rbrakk>\<pi>)"
+  apply (simp add:AANDI_def)
+  apply (subst EvalA_AndDistA)
+  apply (simp) 
+  apply (utp_pred_auto_tac)
+  apply (metis imageI)
+done
+
+theorem EvalA_AORDI_enum [evala]:
+  "\<lbrakk> \<forall> i\<in>A. \<alpha> (P i) \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow> \<lbrakk>\<Or>\<^bsub>a\<^esub> i:A. P i\<rbrakk>\<pi> = (\<Or>\<^sub>p i:A. \<lbrakk>P i\<rbrakk>\<pi>)"
+  apply (simp add:AORDI_def)
+  apply (subst EvalA_OrDistA)
+  apply (simp) 
+  apply (utp_pred_auto_tac)
+done
+
 theorem EvalA_ExistsA [evala] :
 "\<lbrakk>\<exists>\<^sub>\<alpha> a . p\<rbrakk>\<pi> = (\<exists>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<lbrakk>p\<rbrakk>\<pi>)"
   by (simp add: EvalA_def ExistsA.rep_eq)

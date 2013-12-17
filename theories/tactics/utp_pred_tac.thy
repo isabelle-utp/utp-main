@@ -74,6 +74,22 @@ theorem EvalP_IffP [eval] :
 "\<lbrakk>p1 \<Leftrightarrow>\<^sub>p p2\<rbrakk>b = (\<lbrakk>p1\<rbrakk>b \<longleftrightarrow> \<lbrakk>p2\<rbrakk>b)"
   by (auto simp add: IffP_def EvalP_AndP EvalP_ImpliesP closure)
 
+theorem EvalP_DistAndP [eval] :
+"\<lbrakk>\<And>\<^sub>p ps\<rbrakk>b = \<Squnion> {\<lbrakk>p\<rbrakk>b | p. p \<in> ps}"
+  by (auto simp add:EvalP_def AndDistP_rep_eq)
+
+theorem EvalP_DistOrP [eval]:
+"\<lbrakk>\<Or>\<^sub>p ps\<rbrakk>b = \<Sqinter> {\<lbrakk>p\<rbrakk>b | p. p \<in> ps}"
+  by (auto simp add:EvalP_def OrDistP_rep_eq)
+
+theorem EvalP_ANDI_enum [eval]:
+  "\<lbrakk>\<And>\<^sub>pi:A. P i\<rbrakk>b = (INF i:A. \<lbrakk>P i\<rbrakk>b)"
+  by (auto simp add:ANDI_def eval)
+
+theorem EvalP_ORDI_enum [eval]:
+  "\<lbrakk>\<Or>\<^sub>pi:A. P i\<rbrakk>b = (SUP i:A. \<lbrakk>P i\<rbrakk>b)"
+  by (auto simp add:ORDI_def eval)
+
 theorem EvalP_ExistsP [eval] :
 "\<lbrakk>\<exists>\<^sub>p vs . p\<rbrakk>b = (\<exists> b'. \<lbrakk>p\<rbrakk>(b \<oplus>\<^sub>b b' on vs))"
 apply (simp add: ExistsP_def)

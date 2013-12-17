@@ -298,6 +298,25 @@ translations
   "_upred_set_subset xs ys"  == "CONST PExprP (_pexpr_set_subset xs ys)"
   "_upred_set_subseteq xs ys" == "CONST PExprP (_pexpr_set_subseteq xs ys)"
 
+
+(* Lattice syntax *)
+
+default_sort type
+
+syntax (xsymbols)
+  "_upred_ANDI1" :: "pttrns \<Rightarrow> upred \<Rightarrow> upred" ("(3\<And> _./ _)" [0, 10] 10)
+  "_upred_ANDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<And> _:_./ _)" [0, 0, 10] 10)
+  "_upred_ORDI1" :: "pttrns \<Rightarrow> upred \<Rightarrow> upred" ("(3\<Or> _./ _)" [0, 10] 10)
+  "_upred_ORDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<Or> _:_./ _)" [0, 0, 10] 10)
+
+translations
+  "_upred_ANDI1 x y B" == "AND x. AND y. B"
+  "_upred_ANDI1 x B"   == "CONST ANDI CONST UNIV (%x. B)"
+  "_upred_ANDI x A B"  == "CONST ANDI A (%x. B)"
+  "_upred_ORDI1 x y B" == "OR x. OR y. B"
+  "_upred_ORDI1 x B"   == "CONST ORDI CONST UNIV (%x. B)"
+  "_upred_ORDI x A B"  == "CONST ORDI A (%x. B)"
+
 (* Some regression tests *)
 
 term "`(P \<and> Q) \<Rightarrow> P`"
@@ -330,5 +349,7 @@ term "|$x\<^bsub>0\<^esub>|"
 
 lemma "|\<langle><1>,<2>,<3>\<rangle> \<upharpoonright> {\<guillemotleft>2\<guillemotright>}| = |\<langle><1>,<3>\<rangle>|"
   by (auto simp add:evalp typing defined)
+
+term "`\<Or> i:I. P`"
 
 end

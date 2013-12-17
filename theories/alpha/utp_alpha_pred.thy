@@ -84,6 +84,10 @@ apply (insert DestPredA[of p])
 apply (auto simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def pred_alphabet_def)
 done
 
+lemma WF_ALPHA_PREDICATE_OVER_member [alphabet]:
+  "\<lbrakk> ps \<subseteq> WF_ALPHA_PREDICATE_OVER a; p \<in> ps \<rbrakk> \<Longrightarrow> \<alpha> p = a"
+  by (auto simp add:WF_ALPHA_PREDICATE_OVER_def)
+
 subsection {* Operators *}
 
 subsubsection {* Shallow Lifting *}
@@ -193,6 +197,112 @@ lift_definition IffA ::
 
 notation IffA (infixr "\<Leftrightarrow>\<^sub>\<alpha>" 150)
 
+text {* It would be nice if we could define a version of distributive alphabetised
+        conjunction which could infer the alphabet. Basically we would need to show
+        that if there is a complete lattice of alphabets then there is also a _minimal_
+        complete lattice of alphabets and then we can infer the top element. For
+        now this is simply supplied as a parameter. *}
+
+definition AndDistA ::
+  "'a ALPHABET \<Rightarrow>
+   'a WF_ALPHA_PREDICATE set \<Rightarrow>
+   'a WF_ALPHA_PREDICATE" where
+"AndDistA t ps = (if ((\<forall> a \<in> (pred_alphabet ` ps). a \<subseteq>\<^sub>f t) \<and> ps \<noteq> {}) 
+                     then MkPredA (flub (pred_alphabet ` ps) t, \<And>\<^sub>p (\<pi> ` ps))
+                     else TrueA t)"
+
+notation AndDistA ("\<And>\<^bsub>_\<^esub> _" [900] 900)
+
+lemma AndDistA_rep_eq:
+  assumes 
+    "\<forall> a \<in> (\<alpha>`ps). a \<subseteq>\<^sub>f t" "ps \<noteq> {}"
+  shows "DestPredA (\<And>\<^bsub>t\<^esub> ps) = (flub (\<alpha>`ps) t, \<And>\<^sub>p (\<pi> ` ps))"
+proof -
+  from assms(1) have "(flub (\<alpha>`ps) t, \<And>\<^sub>p (\<pi>`ps)) \<in> WF_ALPHA_PREDICATE"
+    apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
+    apply (rule unrest)
+    apply (auto simp add:flub_rep_eq)
+    apply (rule UNREST_subset)
+    apply (rule WF_ALPHA_PREDICATE_UNREST)
+    apply (auto)
+  done
+
+  with assms show ?thesis
+    by (simp add:AndDistA_def)
+qed
+
+lemma AndDistA_empty:
+  "\<And>\<^bsub>t\<^esub> {} = true\<^bsub>t\<^esub>"
+  by (simp add:AndDistA_def)
+
+definition OrDistA ::
+  "'a ALPHABET \<Rightarrow>
+   'a WF_ALPHA_PREDICATE set \<Rightarrow>
+   'a WF_ALPHA_PREDICATE" where
+"OrDistA t ps = (if ((\<forall> a \<in> (\<alpha>`ps). a \<subseteq>\<^sub>f t) \<and> ps \<noteq> {}) 
+                    then MkPredA (flub (\<alpha>`ps) t, \<Or>\<^sub>p (\<pi> ` ps))
+                    else FalseA t)"
+
+notation OrDistA ("\<Or>\<^bsub>_\<^esub> _" [900] 900)
+
+lemma OrDistA_rep_eq:
+  assumes 
+    "\<forall> a \<in> (\<alpha>`ps). a \<subseteq>\<^sub>f t" "ps \<noteq> {}"
+  shows "DestPredA (\<Or>\<^bsub>t\<^esub> ps) = (flub (\<alpha>`ps) t, \<Or>\<^sub>p (\<pi> ` ps))"
+proof -
+  from assms(1) have "(flub (\<alpha>`ps) t, \<Or>\<^sub>p (\<pi>`ps)) \<in> WF_ALPHA_PREDICATE"
+    apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
+    apply (rule unrest)
+    apply (auto simp add:flub_rep_eq)
+    apply (rule UNREST_subset)
+    apply (rule WF_ALPHA_PREDICATE_UNREST)
+    apply (auto)
+  done
+
+  with assms show ?thesis
+    by (simp add:OrDistA_def)
+qed
+
+lemma OrDistA_empty:
+  "\<Or>\<^bsub>t\<^esub> {} = false\<^bsub>t\<^esub>"
+  by (simp add:OrDistA_def)
+
+default_sort type
+
+definition AANDI :: 
+  "'a ALPHABET \<Rightarrow> 'b set \<Rightarrow> 
+   ('b \<Rightarrow> ('a::VALUE) WF_ALPHA_PREDICATE) \<Rightarrow> 'a WF_ALPHA_PREDICATE" where
+"AANDI a A f = \<And>\<^bsub>a\<^esub>(f ` A)"
+
+definition AORDI :: 
+  "'a ALPHABET \<Rightarrow> 'b set \<Rightarrow> 
+   ('b \<Rightarrow> ('a::VALUE) WF_ALPHA_PREDICATE) \<Rightarrow> 'a WF_ALPHA_PREDICATE" where
+"AORDI a A f = \<Or>\<^bsub>a\<^esub>(f ` A)"
+
+syntax
+  "_AANDI1" :: "'a ALPHABET \<Rightarrow> pttrns \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("(3AND[_] _./ _)" [0, 0, 10] 10)
+  "_AANDI"  :: "'a ALPHABET \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE"  ("(3AND[_] _:_./ _)" [0, 0, 0, 10] 10)
+  "_AORDI1" :: "'a ALPHABET \<Rightarrow> pttrns \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("(3OR[_] _./ _)" [0, 0, 10] 10)
+  "_AORDI"  :: "'a ALPHABET \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE"  ("(3OR[_] _:_./ _)" [0, 0, 0, 10] 10)
+
+syntax (xsymbols)
+  "_AANDI1" :: "'a ALPHABET \<Rightarrow> pttrns \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("(3\<And>\<^bsub>_\<^esub> _./ _)" [0, 0, 10] 10)
+  "_AANDI"  :: "'a ALPHABET \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE"  ("(3\<And>\<^bsub>_\<^esub> _:_./ _)" [0, 0, 0, 10] 10)
+  "_AORDI1" :: "'a ALPHABET \<Rightarrow> pttrns \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("(3\<Or>\<^bsub>_\<^esub> _./ _)" [0, 0, 10] 10)
+  "_AORDI"  :: "'a ALPHABET \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE"  ("(3\<Or>\<^bsub>_\<^esub> _:_./ _)" [0, 0, 0, 10] 10)
+
+translations
+  "AND[a] x y. B"  => "AND[a] x. AND[a] y. B"
+  "AND[a] x. B"    == "CONST AANDI a CONST UNIV (%x. B)"
+  "AND[a] x. B"    == "AND[a] x:CONST UNIV. B"
+  "AND[a] x:A. B"  == "CONST AANDI a A (%x. B)"
+  "OR[a] x y. B"   => "OR[a] x. OR[a] y. B"
+  "OR[a] x. B"     == "CONST AORDI a CONST UNIV (%x. B)"
+  "OR[a] x. B"     == "OR[a] x:CONST UNIV. B"
+  "OR[a] x:A. B"   == "CONST AORDI a A (%x. B)"
+
+default_sort VALUE
+  
 subsubsection {* Quantifiers *}
 
 lift_definition ExistsA ::
@@ -397,6 +507,56 @@ theorem IffA_alphabet [alphabet] :
 "\<alpha> (p1 \<Leftrightarrow>\<^sub>\<alpha> p2) = (\<alpha> p1) \<union>\<^sub>f (\<alpha> p2)"
   by (simp add: IffA.rep_eq)
 
+theorem AndDistA_alphabet [alphabet] :
+"\<lbrakk> \<forall> a \<in> \<alpha>`ps. a \<subseteq>\<^sub>f t; ps \<noteq> {} \<rbrakk> \<Longrightarrow> \<alpha> (\<And>\<^bsub>t\<^esub> ps) = flub (\<alpha> ` ps) t"
+  by (simp add:AndDistA_rep_eq)
+
+lemma AndDistA_alphabet_alt [alphabet]:
+  "\<lbrakk> ps \<subseteq> WF_ALPHA_PREDICATE_OVER a \<rbrakk> \<Longrightarrow> \<alpha> (\<And>\<^bsub>a\<^esub> ps) = a"
+  apply (case_tac "ps = {}")
+  apply (simp add:AndDistA_empty alphabet)
+  apply (metis TrueA_alphabet pred_alphabet_def)
+  apply (subst AndDistA_alphabet)
+  apply (force simp add:WF_ALPHA_PREDICATE_OVER_def, simp)
+  apply (force simp add:flub_rep_eq WF_ALPHA_PREDICATE_OVER_def)
+done
+
+theorem OrDistA_alphabet [alphabet] :
+"\<lbrakk> \<forall> a \<in> \<alpha>`ps. a \<subseteq>\<^sub>f t; ps \<noteq> {} \<rbrakk> \<Longrightarrow> \<alpha> (\<Or>\<^bsub>t\<^esub> ps) = flub (\<alpha> ` ps) t"
+  by (simp add:OrDistA_rep_eq)
+
+lemma OrDistA_alphabet_alt [alphabet]:
+  "\<lbrakk> ps \<subseteq> WF_ALPHA_PREDICATE_OVER a \<rbrakk> \<Longrightarrow> \<alpha> (\<Or>\<^bsub>a\<^esub> ps) = a"
+  apply (case_tac "ps = {}")
+  apply (simp add:OrDistA_empty alphabet)
+  apply (metis FalseA_alphabet pred_alphabet_def)
+  apply (subst OrDistA_alphabet)
+  apply (force simp add:WF_ALPHA_PREDICATE_OVER_def, simp)
+  apply (force simp add:flub_rep_eq WF_ALPHA_PREDICATE_OVER_def)
+done
+
+lemma AANDI_alphabet [alphabet]:
+  "\<lbrakk> \<forall>a\<in>\<alpha>`f`ps. a \<subseteq>\<^sub>f t; ps \<noteq> {} \<rbrakk> \<Longrightarrow> \<alpha> (AANDI t ps f) = flub (\<alpha>`f`ps) t"
+  apply (unfold AANDI_def)
+  apply (subst AndDistA_alphabet)
+  apply (auto)
+done
+
+lemma AANDI_alphabet_alt [alphabet]:
+  "\<lbrakk> f`ps \<subseteq> WF_ALPHA_PREDICATE_OVER a \<rbrakk> \<Longrightarrow> \<alpha> (AANDI a ps f) = a"
+  by (metis AANDI_def AndDistA_alphabet_alt)
+
+lemma AORDI_alphabet [alphabet]:
+  "\<lbrakk> \<forall>a\<in>\<alpha>`f`ps. a \<subseteq>\<^sub>f t; ps \<noteq> {} \<rbrakk> \<Longrightarrow> \<alpha> (AORDI t ps f) = flub (\<alpha>`f`ps) t"
+  apply (unfold AORDI_def)
+  apply (subst OrDistA_alphabet)
+  apply (auto)
+done
+
+lemma AORDI_alphabet_alt [alphabet]:
+  "\<lbrakk> f`ps \<subseteq> WF_ALPHA_PREDICATE_OVER a \<rbrakk> \<Longrightarrow> \<alpha> (AORDI a ps f) = a"
+  by (metis AORDI_def OrDistA_alphabet_alt)
+
 theorem ExistsA_alphabet [alphabet] :
 "\<alpha> (\<exists>\<^sub>\<alpha> a . p) = (\<alpha> p)"
   by (simp add: ExistsA.rep_eq)
@@ -506,7 +666,7 @@ lemma WF_ALPHA_PREDICATE_neq_elim [elim]:
 
 theorem WF_ALPHA_PREDICATE_empty_true_false:
   "\<alpha> p = \<lbrace>\<rbrace> \<Longrightarrow> p = TRUE \<or> p = FALSE"
-  apply (auto)
+  apply (safe)
   apply (rule WF_ALPHA_PREDICATE_intro)
   apply (simp add:alphabet)
   apply (erule WF_ALPHA_PREDICATE_neq_elim)

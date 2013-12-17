@@ -202,6 +202,14 @@ theorem UNREST_IffP [unrest]:
   apply (auto intro: UNREST_ImpliesP UNREST_AndP closure)
 done
 
+theorem UNREST_AndDistP [unrest]:
+  "\<lbrakk> \<And> p. p \<in> ps \<Longrightarrow> vs \<sharp> p \<rbrakk> \<Longrightarrow> vs \<sharp> \<And>\<^sub>p ps"
+  by (auto simp add: UNREST_def AndDistP_rep_eq)
+
+theorem UNREST_OrDistP [unrest]:
+  "\<lbrakk> \<And> p. p \<in> ps \<Longrightarrow> vs \<sharp> p \<rbrakk> \<Longrightarrow> vs \<sharp> \<Or>\<^sub>p ps"
+  by (auto simp add: UNREST_def OrDistP_rep_eq)
+
 theorem UNREST_ExistsP [unrest]:
 "\<lbrakk> vs1 \<sharp> p; vs = vs1 \<union> vs2 \<rbrakk> \<Longrightarrow>
  vs \<sharp> (\<exists>\<^sub>p vs2 . p)"
