@@ -94,11 +94,23 @@ definition InfA ::
    'a WF_ALPHA_PREDICATE" ("\<Sqinter>\<^bsub>_\<^esub> _" [900] 900) where
 "\<Sqinter>\<^bsub>a\<^esub> ps = (if (ps \<subseteq> WF_ALPHA_PREDICATE_OVER a) then (\<Or>\<^bsub>a\<^esub> ps) else FalseA a)"
 
+definition InfiA ::
+  "'a ALPHABET \<Rightarrow>
+   'b set \<Rightarrow> ('b::type \<Rightarrow> 'a WF_ALPHA_PREDICATE) \<Rightarrow>
+   'a WF_ALPHA_PREDICATE" where
+"InfiA a A f = \<Sqinter>\<^bsub>a\<^esub> (f ` A)"
+
 definition SupA ::
   "'a ALPHABET \<Rightarrow>
    'a WF_ALPHA_PREDICATE set \<Rightarrow>
    'a WF_ALPHA_PREDICATE" ("\<Squnion>\<^bsub>_\<^esub> _" [900] 900) where
 "\<Squnion>\<^bsub>a\<^esub> ps = (if (ps \<subseteq> WF_ALPHA_PREDICATE_OVER a) then (\<And>\<^bsub>a\<^esub> ps) else TrueA a)"
+
+definition SuprA ::
+  "'a ALPHABET \<Rightarrow>
+   'b set \<Rightarrow> ('b::type \<Rightarrow> 'a WF_ALPHA_PREDICATE) \<Rightarrow>
+   'a WF_ALPHA_PREDICATE" where
+"SuprA a A f = \<Squnion>\<^bsub>a\<^esub> (f ` A)"
 
 declare InfA_def [evala]
 declare SupA_def [evala]
@@ -110,6 +122,14 @@ lemma InfA_alphabet [alphabet]:
 lemma SupA_alphabet [alphabet]:
   "\<alpha> (\<Squnion>\<^bsub>a\<^esub> ps) = a"
   by (simp add:SupA_def alphabet)
+
+lemma InfiA_alphabet [alphabet]:
+  "\<alpha> (InfiA a A f) = a"
+  by (simp add:InfiA_def alphabet)
+
+lemma SuprA_alphabet [alphabet]:
+  "\<alpha> (SuprA a A f) = a"
+  by (simp add:SuprA_def alphabet)
 
 lemma InfA_glb:
   assumes 
@@ -160,6 +180,16 @@ lemma SupA_is_sup:
   assumes "ps \<subseteq> WF_ALPHA_PREDICATE_OVER a"
   shows "sup (OrderA a) ps = \<Squnion>\<^bsub>a\<^esub> ps"
   by (metis SupA_lub alpha_complete_lattice.sup_lub alpha_partial_order.weak_least_unique assms)
+
+lemma InfiA_is_infi:
+  assumes "f`ps \<subseteq> WF_ALPHA_PREDICATE_OVER a"
+  shows "infi (OrderA a) ps f = InfiA a ps f"
+  using assms by (simp add:InfiA_def InfA_is_inf[THEN sym] infi_def)
+
+lemma SuprA_is_supr:
+  assumes "f`ps \<subseteq> WF_ALPHA_PREDICATE_OVER a"
+  shows "supr (OrderA a) ps f = SuprA a ps f"
+  using assms by (simp add:SuprA_def SupA_is_sup[THEN sym] supr_def)
 
 lemma TrueA_least:
   "\<alpha> p = a \<Longrightarrow> true\<^bsub>a\<^esub> \<sqsubseteq> p"

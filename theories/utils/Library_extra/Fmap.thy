@@ -72,7 +72,7 @@ lift_definition fmap_upd :: "('a, 'b) fmap \<Rightarrow> 'a \<Rightarrow> 'b opt
 
 lemma fdom_empty [simp]: 
   "fdom f = \<lbrace>\<rbrace> \<Longrightarrow> f = fmempty"
-  by (auto simp add:fdom.rep_eq fmempty.rep_eq)
+  by (erule Rep_fset_elim, auto simp add:fdom.rep_eq fmempty.rep_eq)
 
 lemma fran_empty [simp]: 
   "fran f = \<lbrace>\<rbrace> \<Longrightarrow> f = fmempty"

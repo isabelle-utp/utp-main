@@ -8,10 +8,11 @@ header {* Finite set type *}
 
 theory Fset
 imports Main 
+  "../../../contrib/HOL-Algebra2/Complete_Lattice"
   List_lexord
   Countable
   List_extra
-  Lattice_extra
+(*  Lattice_extra *)
 begin
 
 default_sort type
@@ -626,12 +627,12 @@ interpretation fset_order: partial_order "fset_order A"
 
 lemma funion_lub:
   "\<lbrakk> x \<in> Fow A; y \<in> Fow A \<rbrakk> \<Longrightarrow>
-     least (fset_order A) (x \<union>\<^sub>f y) (Upper (fset_order A) {x, y})"
+     is_lub (fset_order A) (x \<union>\<^sub>f y) {x, y}"
   by (rule least_UpperI, auto simp add:Upper_def)
 
 lemma finter_glb:
   "\<lbrakk> x \<in> Fow A; y \<in> Fow A \<rbrakk> \<Longrightarrow>
-     greatest (fset_order A) (x \<inter>\<^sub>f y) (Lower (fset_order A) {x, y})"
+     is_glb (fset_order A) (x \<inter>\<^sub>f y) {x, y}"
   by (rule greatest_LowerI, auto simp add:Lower_def)
 
 interpretation fset_lattice: lattice "fset_order A"

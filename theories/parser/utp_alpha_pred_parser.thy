@@ -131,28 +131,39 @@ translations
 
 (* Big operators *)
 
+default_sort type
+
 syntax
+  "_uapred_index" :: "('b \<Rightarrow> 'a WF_ALPHA_PREDICATE) \<Rightarrow> 'b \<Rightarrow> uapred" ("_<_>" 50)
   "_uapred_ANDI1" :: "'a ALPHABET \<Rightarrow> pttrns \<Rightarrow> uapred \<Rightarrow> uapred" ("(3\<And>\<^bsub>_\<^esub> _./ _)" [0, 0, 10] 10)
   "_uapred_ANDI"  :: "'a ALPHABET \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<And>\<^bsub>_\<^esub> _:_./ _)" [0, 0, 0, 10] 10)
   "_uapred_ORDI1" :: "'a ALPHABET \<Rightarrow> pttrns \<Rightarrow> uapred \<Rightarrow> uapred" ("(3\<Or>\<^bsub>_\<^esub> _./ _)" [0, 0, 10] 10)
   "_uapred_ORDI"  :: "'a ALPHABET \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<Or>\<^bsub>_\<^esub> _:_./ _)" [0, 0, 10] 10)
-  "_uapred_INF1"  :: "pttrns \<Rightarrow> upred \<Rightarrow> upred" ("(3\<Sqinter> _./ _)" [0, 10] 10)
-  "_uapred_INF"   :: "pttrn \<Rightarrow> 'b set \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<Sqinter> _:_./ _)" [0, 0, 10] 10)
-  "_uapred_SUP1"  :: "pttrns \<Rightarrow> upred \<Rightarrow> upred" ("(3\<Squnion> _./ _)" [0, 10] 10)
-  "_uapred_SUP"   :: "pttrn \<Rightarrow> 'b set \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<Squnion> _:_./ _)" [0, 0, 10] 10)
-
+  "_uapred_INF1"  :: "'a ALPHABET \<Rightarrow> pttrns \<Rightarrow> uapred \<Rightarrow> uapred" ("(3\<Sqinter>\<^bsub>_\<^esub> _./ _)" [0, 0, 10] 10)
+  "_uapred_INF"   :: "'a ALPHABET \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<Sqinter>\<^bsub>_\<^esub> _:_./ _)" [0, 0, 0, 10] 10)
+  "_uapred_SUP1"  :: "'a ALPHABET \<Rightarrow> pttrns \<Rightarrow> uapred \<Rightarrow> uapred" ("(3\<Squnion>\<^bsub>_\<^esub> _./ _)" [0, 0, 10] 10)
+  "_uapred_SUP"   :: "'a ALPHABET \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<Squnion>\<^bsub>_\<^esub> _:_./ _)" [0, 0, 0, 10] 10)
 
 translations
+  "_uapred_index f i"     => "f i"
   "_uapred_ANDI1 a x y B" => "AND[a] x. AND[a] y. B"
   "_uapred_ANDI1 a x B"   == "CONST AANDI a CONST UNIV (%x. B)"
   "_uapred_ANDI a x A B"  == "CONST AANDI a A (%x. B)"
   "_uapred_ORDI1 a x y B" => "OR[a] x. OR[a] y. B"
   "_uapred_ORDI1 a x B"   == "CONST AORDI a CONST UNIV (%x. B)"
   "_uapred_ORDI a x A B"  == "CONST AORDI a A (%x. B)"
+  "_uapred_INF1 a x B"    == "CONST InfiA a CONST UNIV (%x. B)"
+  "_uapred_INF a x A B"   == "CONST InfiA a A (%x . B)"
+  "_uapred_SUP1 a x B"    == "CONST SuprA a CONST UNIV (%x. B)"
+  "_uapred_SUP a x A B"   == "CONST SuprA a A (%x . B)"
+
+default_sort VALUE
 
 (* Parser sanity check *)
 
 term "``\<And>\<^bsub>a\<^esub> i:I. P``"
+
+term "``\<Sqinter>\<^bsub>a\<^esub> i. P<i>``"
 
 term "``p \<and> q``"
 

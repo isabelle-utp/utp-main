@@ -149,3 +149,11 @@ session Kleene_Algebra (AFP) in "contrib/Kleene_Algebra"
   files
     "document/root.bib"
     "document/root.tex"
+
+session "HOL-RegAlg" in "contrib/HOL-RegAlg" 
+  = "Kleene_Algebra" +
+  options [timeout = 300]
+  theories [document=false]
+    Base
+    Lattice
+    Galois_Connection

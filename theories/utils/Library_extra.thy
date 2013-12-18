@@ -1,12 +1,14 @@
 theory Library_extra
-imports 
+imports
+  "../../contrib/HOL-Algebra2/Complete_Lattice"
+  "../../contrib/HOL-Algebra2/Galois_Connection"
   "Library_extra/List_extra"
   "Library_extra/Fset"
   "Library_extra/Map_Extra"
   "Library_extra/Fmap"
   "Library_extra/Multi_Elem"
   "Library_extra/Lattices_extra"
-  "Library_extra/Lattice_extra"
+(*  "Library_extra/Lattice_extra" *)
   "Library_extra/McCarthy_Logic"
 begin
 
