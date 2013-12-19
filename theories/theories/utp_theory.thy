@@ -145,8 +145,11 @@ abbreviation GfpT ::
    'a ALPHA_FUNCTION \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("\<nu>\<^bsub>_[_]\<^esub>") where
 "\<nu>\<^bsub>T[a]\<^esub> f \<equiv> GFP (OrderT T a) f"
 
-abbreviation "GaloisT T1 T2 f g \<equiv> (\<forall> a \<in> (\<A>\<^bsub>T1\<^esub> \<inter> \<A>\<^bsub>T2\<^esub>). galois_connection \<lparr> orderA = (OrderT T1 a), orderB = (OrderT T1 a)
-                                                                         , lower = f, upper = g \<rparr>)"
+abbreviation 
+  "GaloisT T1 T2 f g \<equiv> (\<forall> a \<in> \<A>\<^bsub>T1\<^esub>. \<forall> b \<in> \<A>\<^bsub>T2\<^esub>. 
+                         galois_connection \<lparr> orderA = (OrderT T1 a)
+                                           , orderB = (OrderT T2 b)
+                                           , lower = f, upper = g \<rparr>)"
 
 lemma AndA_RefineA_below:
   "\<lbrakk> P \<sqsubseteq> R; Q \<sqsubseteq> R \<rbrakk> \<Longrightarrow> P \<and>\<^sub>\<alpha> Q \<sqsubseteq> R"

@@ -107,6 +107,7 @@ apply (auto)
 done
 *)
 
+
 lemma WF_ALPHA_REL_EvalA_WF_RELATION [closure]:
   "P \<in> WF_ALPHA_REL \<Longrightarrow> \<lbrakk>P\<rbrakk>\<pi> \<in> WF_RELATION"
   apply (simp add:WF_ALPHA_REL_def WF_RELATION_def REL_ALPHABET_def)
@@ -114,6 +115,18 @@ lemma WF_ALPHA_REL_EvalA_WF_RELATION [closure]:
   apply (rule EvalA_UNREST)
   apply (auto)
 done
+
+lemma WF_RELATION_REL_ALPHABET [closure]: 
+  "\<alpha> P \<in> REL_ALPHABET \<Longrightarrow> \<lbrakk>P\<rbrakk>\<pi> \<in> WF_RELATION"
+  by (auto intro:closure simp add:WF_ALPHA_REL_def)
+
+lemma WF_ALPHA_REL_REL_ALPHABET [closure]:
+  "\<alpha> P \<in> REL_ALPHABET \<Longrightarrow> P \<in> WF_ALPHA_REL"
+  by (simp add:WF_ALPHA_REL_def)
+
+lemma HOMOGENEOUS_HOM_ALPHA [closure]:
+  "a \<in> HOM_ALPHABET \<Longrightarrow> HOMOGENEOUS \<langle>a\<rangle>\<^sub>f"
+  by (metis (mono_tags) HOM_ALPHABET_def HOM_ALPHA_HOMOGENEOUS mem_Collect_eq)
 
 theorem WF_ALPHA_REL_intro [intro] :
   "\<langle>\<alpha> r\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED \<Longrightarrow>
@@ -132,9 +145,11 @@ theorem HOM_RELATION_HOM_ALPHABET [closure] :
 "r \<in> HOM_RELATION \<Longrightarrow> (\<alpha> r) \<in> HOM_ALPHABET"
   by (simp add:HOM_RELATION_def HOM_ALPHABET_def)
 
+(*
 theorem WF_ALPHA_REL_REL_ALPHABET [closure] :
 "r \<in> WF_ALPHA_REL \<Longrightarrow> (\<alpha> r) \<in> REL_ALPHABET"
   by (simp add: WF_ALPHA_REL_def)
+*)
 
 theorem REL_ALPHABET_UNDASHED_DASHED [closure]:
 "a \<in> REL_ALPHABET \<Longrightarrow> \<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED"
@@ -153,7 +168,7 @@ done
 
 lemma HOM_ALPHABET_dash_in [simp]:
   "a \<in> HOM_ALPHABET \<Longrightarrow> dash ` in \<langle>a\<rangle>\<^sub>f = out \<langle>a\<rangle>\<^sub>f"
-  by (auto simp add:HOM_ALPHABET_def HOM_ALPHA_unfold)
+  by (metis HOMOGENEOUS_HOM_ALPHA HOMOGENEOUS_dash_in)
 
 lemma HOM_ALPHABET_undash_out [simp]: 
   "a \<in> HOM_ALPHABET \<Longrightarrow> undash ` out \<langle>a\<rangle>\<^sub>f = in \<langle>a\<rangle>\<^sub>f"
@@ -193,9 +208,7 @@ theorem HOM_ALPHABET_union [closure]:
 
 theorem HOM_ALPHABET_inter [closure]:
   "\<lbrakk> a1 \<in> HOM_ALPHABET; a2 \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> (a1 \<inter>\<^sub>f a2) \<in> HOM_ALPHABET"
-  apply (simp add:HOM_ALPHABET_def HOM_ALPHA_unfold alphabet_dist dash_inj dash_inter_distr)
-  apply (auto)
-done
+  by (metis HOMOGENEOUS_HOM_ALPHA HOMOGENEOUS_inter HOM_ALPHABET_def HOM_ALPHA_HOMOGENEOUS finter.rep_eq mem_Collect_eq)
 
 theorem HOM_ALPHABET_minus [closure]:
   "\<lbrakk> a1 \<in> HOM_ALPHABET; a2 \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> (a1 -\<^sub>f a2) \<in> HOM_ALPHABET"
@@ -350,6 +363,10 @@ theorem SkipA_closure [closure] :
 "a \<in> REL_ALPHABET \<Longrightarrow>
  II\<alpha>\<^bsub>a\<^esub> \<in> WF_ALPHA_REL"
   by (simp add: WF_ALPHA_REL_def REL_ALPHABET_def pred_alphabet_def SkipA.rep_eq)
+
+lemma SkipRA_closure' [closure]:
+  "a \<in> REL_ALPHABET \<Longrightarrow> II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> \<in> WF_RELATION"
+  by (metis UNREST_SkipRA_NON_REL_VAR WF_RELATION_UNREST)
 
 theorem AssignA_rep_eq:
   "\<lbrakk> a \<in> REL_ALPHABET
@@ -566,8 +583,8 @@ proof -
     apply (rule_tac SemiR_SkipRA_left)
     apply (metis COMPOSABLE_def HOMOGENEOUS_def HOM_ALPHABET_dash_in)
     apply (rule UNREST_subset)
-    apply (rule EvalA_UNREST) 
-    apply (auto)
+    apply (rule EvalA_UNREST)
+    apply (metis DiffE DiffI UNDASHED_minus_in VAR_member in_alphabet.rep_eq subsetI) 
   done
 
   ultimately show ?thesis using assms
@@ -589,8 +606,8 @@ proof -
     apply (rule_tac SemiR_SkipRA_right)
     apply (metis COMPOSABLE_def HOMOGENEOUS_def HOM_ALPHABET_dash_in)
     apply (rule UNREST_subset)
-    apply (rule EvalA_UNREST) 
-    apply (auto)
+    apply (rule EvalA_UNREST)
+    apply (metis (lifting, no_types) Diff_iff VAR_member out_alphabet.rep_eq out_member subsetI) 
   done
 
   ultimately show ?thesis using assms

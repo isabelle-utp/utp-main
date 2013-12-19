@@ -361,6 +361,34 @@ apply (simp add: OrP_def)
 apply (auto)
 done
 
+lemma image_Inter: "\<lbrakk> inj_on f (\<Union>S); S \<noteq> {} \<rbrakk> \<Longrightarrow> f ` \<Inter>S = (\<Inter>x\<in>S. f ` x)"
+  apply (auto simp add:image_def)
+  apply (metis (full_types) InterI UnionI the_inv_into_f_eq)
+done
+
+(* We have to block out empty sets in distributive and because they end up being 
+   true (UNIV), which does not correspond to the range of BindR. *)
+
+theorem EvalR_AndDistP [evalr] :
+"ps \<noteq> {} \<Longrightarrow> \<lbrakk>\<And>\<^sub>p ps\<rbrakk>R = \<Inter> {\<lbrakk>p\<rbrakk>R | p. p \<in> ps}"
+  apply (auto simp add: EvalR_def AndDistP_rep_eq)
+  apply (subst image_Inter)
+  apply (auto)
+  apply (metis (lifting, no_types) BindR_inject inj_onI)
+done
+
+theorem EvalR_OrDistP [evalr]:
+"\<lbrakk>\<Or>\<^sub>p ps\<rbrakk>R = \<Union> {\<lbrakk>p\<rbrakk>R | p. p \<in> ps}"
+  by (auto simp add: EvalR_def OrDistP_rep_eq)
+
+theorem EvalR_ANDI_enum [evalr]:
+  "A \<noteq> {} \<Longrightarrow> \<lbrakk>\<And>\<^sub>pi:A. P i\<rbrakk>R = (\<Inter> i\<in>A. \<lbrakk>P i\<rbrakk>R)"
+  by (auto simp add:ANDI_def evalr)
+
+theorem EvalR_ORDI_enum [evalr]:
+  "\<lbrakk>\<Or>\<^sub>pi:A. P i\<rbrakk>R = (\<Union> i\<in>A. \<lbrakk>P i\<rbrakk>R)"
+  by (auto simp add:ORDI_def evalr)
+
 declare ImpliesP_def [evalr]
 
 declare IffP_def [evalr]

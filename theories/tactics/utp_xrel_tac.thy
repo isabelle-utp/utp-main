@@ -292,6 +292,22 @@ lemma EvalRX_OrP [evalrx]:
   "\<lbrakk>p \<or>\<^sub>p q\<rbrakk>RX = \<lbrakk>p\<rbrakk>RX \<union> \<lbrakk>q\<rbrakk>RX"
   by (auto simp add:EvalRX_def OrP.rep_eq image_def WF_RELATION_def UNREST_def)
 
+lemma EvalRX_AndDistP [evalrx] :
+"\<lbrakk> ps \<subseteq> WF_RELATION \<rbrakk> \<Longrightarrow> \<lbrakk>\<And>\<^sub>p ps\<rbrakk>RX = \<Inter> {\<lbrakk>p\<rbrakk>RX | p. p \<in> ps}"
+  apply (case_tac "ps = {}")
+  apply (simp add: AndDistP_rep_eq EvalRX_def)
+  apply (metis EvalRX_TrueP EvalRX_def TrueP.rep_eq)
+  apply (auto simp add: EvalRX_def AndDistP_rep_eq)
+oops (* Can't prove this right now, though it (or something like it) should be true *)
+
+theorem EvalR_OrDistP [evalrx]:
+"\<lbrakk>\<Or>\<^sub>p ps\<rbrakk>RX = \<Union> {\<lbrakk>p\<rbrakk>RX | p. p \<in> ps}"
+  by (auto simp add: EvalRX_def OrDistP_rep_eq)
+
+theorem EvalRX_ORDI_enum [evalrx]:
+  "\<lbrakk>\<Or>\<^sub>pi:A. P i\<rbrakk>RX = (\<Union> i\<in>A. \<lbrakk>P i\<rbrakk>RX)"
+  by (auto simp add:ORDI_def evalrx)
+
 lemma EvalRX_NotP [evalrx]:
   "p \<in> WF_RELATION \<Longrightarrow> \<lbrakk>\<not>\<^sub>p p\<rbrakk>RX = - \<lbrakk>p\<rbrakk>RX"
   apply (auto simp add:EvalRX_def NotP.rep_eq image_def BindRX_def WF_RELATION_def UNREST_def)

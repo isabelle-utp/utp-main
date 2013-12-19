@@ -48,6 +48,7 @@ syntax
   "_uapred_not"      :: "uapred \<Rightarrow> uapred" ("\<not> _" [40] 40) 
 (*  "_uapred_ext"      :: "uapred \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" (infixr "\<oplus>" 40) *)
   "_uapred_ext"      :: "uapred \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("_\<^bsub>+_\<^esub>" 40)
+  "_uapred_res"      :: "uapred \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("_\<^bsub>-_\<^esub>" 40)
   "_uapred_all1"     :: "pttrn \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<forall> _./ _)" [0, 10] 10) 
   "_uapred_exists1"  :: "pttrn \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<exists>+ _./ _)" [0, 10] 10) 
   "_uapred_existsres1" :: "pttrn \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<exists>- _./ _)" [0, 10] 10) 
@@ -85,6 +86,7 @@ translations
   "_uapred_clos p"      == "CONST ClosureA p"
   "_uapred_not p"       == "CONST NotA p"
   "_uapred_ext a p"     == "CONST ExtA a p"
+  "_uapred_res a p"     == "CONST ResA a p"
   "_uapred_all1 x p"    == "CONST ForallA \<lbrace>x\<rbrace> p"
   "_uapred_exists1 x p" == "CONST ExistsA \<lbrace>x\<rbrace> p"
   "_uapred_existsres1 x p" == "CONST ExistsResA \<lbrace>x\<rbrace> p"

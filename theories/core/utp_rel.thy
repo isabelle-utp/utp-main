@@ -795,6 +795,22 @@ theorem AndP_cond_closure [closure]:
   "\<lbrakk> p \<in> WF_CONDITION; q \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> p \<and>\<^sub>p q \<in> WF_CONDITION"
   by (auto simp add:WF_CONDITION_def intro:unrest closure)
 
+lemma AndDistP_rel_closure [closure]:
+  "ps \<subseteq> WF_RELATION \<Longrightarrow> \<And>\<^sub>p ps \<in> WF_RELATION"
+  by (auto intro:unrest simp add:WF_RELATION_def)
+
+lemma AndDistP_cond_closure [closure]:
+  "ps \<subseteq> WF_CONDITION \<Longrightarrow> \<And>\<^sub>p ps \<in> WF_CONDITION"
+  by (auto intro:unrest closure simp add:WF_CONDITION_def)
+
+lemma OrDistP_rel_closure [closure]:
+  "ps \<subseteq> WF_RELATION \<Longrightarrow> \<Or>\<^sub>p ps \<in> WF_RELATION"
+  by (auto intro:unrest simp add:WF_RELATION_def)
+
+lemma OrDistP_cond_closure [closure]:
+  "ps \<subseteq> WF_CONDITION \<Longrightarrow> \<Or>\<^sub>p ps \<in> WF_CONDITION"
+  by (auto intro:unrest closure simp add:WF_CONDITION_def)
+
 theorem NotP_rel_closure [closure]:
   "\<lbrakk> p \<in> WF_RELATION \<rbrakk> \<Longrightarrow> \<not>\<^sub>p p \<in> WF_RELATION"
   by (auto simp add:WF_RELATION_def intro:unrest)

@@ -72,16 +72,16 @@ lemma DesignA_rel_closure [closure]:
   apply (simp add:closure)
 done
 
-lemma SkipDA_alphabet [alphabet]:
+lemma SkipAD_alphabet [alphabet]:
   "a \<in> REL_ALPHABET \<Longrightarrow>
    \<alpha>(II\<alpha>\<^bsub>D[a]\<^esub>) = a \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>"
   by (simp add:pred_alphabet_def SkipAD.rep_eq)
 
-lemma EvalA_SkipDA [evala]:
+lemma EvalA_SkipAD [evala]:
   "\<lbrakk>II\<alpha>\<^bsub>D[a]\<^esub>\<rbrakk>\<pi> = II\<^bsub>D[\<langle>a\<rangle>\<^sub>f]\<^esub>"
   by (simp add:EvalA_def SkipAD.rep_eq)
 
-lemma SkipDA_rel_closure [closure]:
+lemma SkipAD_rel_closure [closure]:
   "a \<in> REL_ALPHABET \<Longrightarrow> II\<alpha>\<^bsub>D[a]\<^esub> \<in> WF_ALPHA_REL"
   apply (simp add:WF_ALPHA_REL_def REL_ALPHABET_def alphabet)
   apply (simp add:closure)
@@ -112,6 +112,15 @@ theorem DesignA_extreme_point_nok:
 
 theorem DesignA_export_precondition:
   "``(P \<turnstile> Q)`` = ``(P \<turnstile> P \<and> Q)``"
+  by (utp_alpha_tac, utp_pred_auto_tac)
+
+theorem DesignA_OrA:
+  "``(P1 \<turnstile> Q1) \<or> (P2 \<turnstile> Q2)`` = ``(P1 \<and> P2) \<turnstile> (Q1 \<or> Q2)``"
+  by (utp_alpha_tac, utp_pred_auto_tac)
+
+theorem DesignA_AndA:
+  "``(P1 \<turnstile> Q1) \<and> (P2 \<turnstile> Q2)`` = 
+   ``(P1 \<or> P2 \<turnstile> (P1 \<Rightarrow> Q1) \<and> (P2 \<Rightarrow> Q2))``"
   by (utp_alpha_tac, utp_pred_auto_tac)
 
 theorem DesignA_composition:
@@ -155,10 +164,6 @@ lemma AH1_DesignA:
   shows "AH1(P \<turnstile>\<^sub>\<alpha> Q) = P \<turnstile>\<^sub>\<alpha> Q"
   by (utp_alpha_tac, utp_pred_auto_tac)
 
-lemma WF_RELATION_REL_ALPHABET [closure]: 
-  "\<alpha> P \<in> REL_ALPHABET \<Longrightarrow> \<lbrakk>P\<rbrakk>\<pi> \<in> WF_RELATION"
-  by (auto intro:closure simp add:WF_ALPHA_REL_def)
-
 theorem AH1_idem:
   "AH1 (AH1 R) = AH1 R"
   by (utp_alpha_tac, metis H1_idempotent)
@@ -168,18 +173,6 @@ theorem AH1_monotone:
   apply (utp_alpha_tac)
   apply (metis H1_monotone RefP_def TrueP_eq_ClosureP less_eq_WF_PREDICATE_def utp_pred_simps(21))
 done
-
-lemma SkipRA_closure' [closure]:
-  "a \<in> REL_ALPHABET \<Longrightarrow> II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> \<in> WF_RELATION"
-  by (metis EvalA_SkipA SkipA_closure WF_ALPHA_REL_EvalA_WF_RELATION)
- 
-lemma HOMOGENEOUS_HOM_ALPHA [closure]:
-  "a \<in> HOM_ALPHABET \<Longrightarrow> HOMOGENEOUS \<langle>a\<rangle>\<^sub>f"
-  by (metis (mono_tags) HOM_ALPHABET_def HOM_ALPHA_HOMOGENEOUS mem_Collect_eq)
-
-lemma WF_ALPHA_REL_REL_ALPHABET [closure]:
-  "\<alpha> P \<in> REL_ALPHABET \<Longrightarrow> P \<in> WF_ALPHA_REL"
-  by (simp add:WF_ALPHA_REL_def)
 
 theorem AH1_algebraic:
   assumes 
@@ -194,6 +187,22 @@ theorem AH1_algebraic:
   apply (auto intro:unrest UNREST_subset)[1]
   apply (metis H1_algebraic Healthy_elim Healthy_intro REL_ALPHABET_DESIGN_ALPHABET WF_RELATION_REL_ALPHABET)
 done
+
+lemma "H1 (p \<and>\<^sub>p q) = H1(p) \<and>\<^sub>p H1(q)"
+  by (utp_pred_auto_tac)
+
+lemma "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION;  \<rbrakk> \<Longrightarrow> "
+
+lemma "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; p is H2; q is H2 \<rbrakk> \<Longrightarrow> (p \<and>\<^sub>p q) is H2"
+  by (metis H2_AndP_closure)
+  apply (utp_xrel_auto_tac)
+  apply (simp add:H2_def JA_pred_def)
+  apply (utp_rel_tac)
+
+lemma "H1 (\<And>\<^sub>p ps) = \<And>\<^sub>p {H1(p) | p. p \<in> ps}"
+  apply (utp_pred_auto_tac)
+  apply (drule_tac x="p" in spec, auto) 
+  apply (drule_tac x="p" in spec, auto) 
 
 lemma DASHED_minus_out:
   "D\<^sub>1 - out vs = D\<^sub>1 - vs"

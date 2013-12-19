@@ -104,7 +104,7 @@ begin
 definition Inf_WF_PREDICATE ::
   "'VALUE WF_PREDICATE set \<Rightarrow>
    'VALUE WF_PREDICATE" where
-"Inf_WF_PREDICATE ps = (if ps = {} then \<bottom> else mkPRED (\<Inter> (destPRED ` ps)))"
+"Inf_WF_PREDICATE ps = \<And>\<^sub>p ps"
 
 instance ..
 end
@@ -115,26 +115,18 @@ begin
 definition Sup_WF_PREDICATE ::
   "'VALUE WF_PREDICATE set \<Rightarrow>
    'VALUE WF_PREDICATE" where
-"Sup_WF_PREDICATE ps = (if ps = {} then bot else mkPRED (\<Union> (destPRED ` ps)))"
+"Sup_WF_PREDICATE ps = \<Or>\<^sub>p ps"
 
 instance ..
 end
 
 lemma EvalP_Inf [eval] :
 "\<lbrakk>\<Sqinter> ps\<rbrakk>b = (\<exists> p \<in> ps . \<lbrakk>p\<rbrakk>b)"
-apply (simp add: EvalP_def closure)
-apply (simp add: Sup_WF_PREDICATE_def)
-apply (clarify)
-apply (simp add: bot_WF_PREDICATE_def FalseP_def)
-done
+  by (auto simp add:Sup_WF_PREDICATE_def eval)
 
 lemma EvalP_Sup [eval] :
 "\<lbrakk>\<Squnion> ps\<rbrakk>b = (\<forall> p \<in> ps . \<lbrakk>p\<rbrakk>b)"
-apply (simp add: EvalP_def closure)
-apply (simp add: Inf_WF_PREDICATE_def)
-apply (clarify)
-apply (simp add: top_WF_PREDICATE_def TrueP_def)
-done
+  by (auto simp add:Inf_WF_PREDICATE_def eval)
 
 instantiation WF_PREDICATE :: (VALUE) complete_lattice
 begin
@@ -232,7 +224,7 @@ qed
 
 lemma EvalR_SupP [evalr]:
   "\<lbrakk>\<Sqinter> ps\<rbrakk>R = \<Union> {\<lbrakk>p\<rbrakk>R | p . p \<in> ps}"
-  by (auto simp add:EvalR_def Sup_WF_PREDICATE_def bot_WF_PREDICATE_def FalseP_def)
+  by (simp add:Sup_WF_PREDICATE_def evalr)
 
 lemma EvalRR_SupP [evalrr]:
   "\<lbrakk>\<Sqinter> ps\<rbrakk>\<R> = \<Union> {\<lbrakk>p\<rbrakk>\<R> | p . p \<in> ps}"
@@ -240,20 +232,11 @@ lemma EvalRR_SupP [evalrr]:
 
 lemma EvalRX_SupP [evalrx]:
   "\<lbrakk>\<Sqinter> ps\<rbrakk>RX = \<Union> {\<lbrakk>p\<rbrakk>RX | p . p \<in> ps}"
-  by (auto simp add:EvalRX_def Sup_WF_PREDICATE_def bot_WF_PREDICATE_def FalseP_def)
-
-lemma image_Inter: "\<lbrakk> inj_on f (\<Union>S); S \<noteq> {} \<rbrakk> \<Longrightarrow> f ` \<Inter>S = (\<Inter>x\<in>S. f ` x)"
-  apply (auto simp add:image_def)
-  apply (smt InterI UnionI inj_on_contraD)
-done
+  by (simp add:Sup_WF_PREDICATE_def evalrx)
 
 lemma EvalR_InfP [evalr]:
   "ps \<noteq> {} \<Longrightarrow> \<lbrakk>\<Squnion> ps\<rbrakk>R = \<Inter> {\<lbrakk>p\<rbrakk>R | p . p \<in> ps}"
-  apply (simp add: Inf_WF_PREDICATE_def EvalR_def)
-  apply (simp add:EvalR_def Inf_WF_PREDICATE_def top_WF_PREDICATE_def TrueP_def)
-  apply (auto)
-  apply (smt BindR_inject EvalR_def INT_I image_iff)
-done
+  by (simp add:Inf_WF_PREDICATE_def evalr)
 
 lemma EvalRR_InfP [evalrr]:
   "ps \<noteq> {} \<Longrightarrow> \<lbrakk>\<Squnion> ps\<rbrakk>\<R> = \<Inter> {\<lbrakk>p\<rbrakk>\<R> | p . p \<in> ps}"
@@ -319,27 +302,19 @@ lemma UNREST_inf [unrest]:
 
 lemma UNREST_Sup [unrest]:
 "\<forall> p \<in> ps. UNREST vs p \<Longrightarrow> UNREST vs (\<Squnion> ps)"
-  apply (simp add: Inf_WF_PREDICATE_def UNREST_BotP)
-  apply (simp add: UNREST_def)
-done
+  by (simp add: Inf_WF_PREDICATE_def unrest)
 
 lemma UNREST_Inf [unrest]:
 "\<forall> p \<in> ps. UNREST vs p \<Longrightarrow> UNREST vs (\<Sqinter> ps)"
-  apply (simp add: Sup_WF_PREDICATE_def UNREST_TopP)
-  apply (auto simp add: UNREST_def)
-done
+  by (simp add: Sup_WF_PREDICATE_def unrest)
 
 lemma Sup_rel_closure [closure]:
-  "\<forall> p \<in> ps. p \<in> WF_RELATION \<Longrightarrow> \<Squnion> ps \<in> WF_RELATION"
-  apply (simp add:WF_RELATION_def)
-  apply (auto intro:unrest)
-done
+  "ps \<subseteq> WF_RELATION \<Longrightarrow> \<Squnion> ps \<in> WF_RELATION"
+  by (simp add:Inf_WF_PREDICATE_def closure)
 
 lemma Inf_rel_closure [closure]:
-  "\<forall> p \<in> ps. p \<in> WF_RELATION \<Longrightarrow> \<Sqinter> ps \<in> WF_RELATION"
-  apply (simp add:WF_RELATION_def)
-  apply (auto intro:unrest)
-done
+  "ps \<subseteq> WF_RELATION \<Longrightarrow> \<Sqinter> ps \<in> WF_RELATION"
+  by (simp add:Sup_WF_PREDICATE_def closure)
 
 instantiation WF_PREDICATE :: (VALUE) monoid_mult
 begin
@@ -394,16 +369,75 @@ end
 
 theorem SkipR_SupP_def: 
   "II = \<Squnion> { $\<^sub>ex\<acute> ==\<^sub>p $\<^sub>ex | x. x \<in> UNDASHED}"
-  apply (auto intro!:destPRED_intro simp add:SkipR_def Inf_WF_PREDICATE_def UNDASHED_nempty EqualP_def VarE.rep_eq)
+  apply (auto intro!:destPRED_intro simp add:SkipR_def Inf_WF_PREDICATE_def UNDASHED_nempty EqualP_def VarE.rep_eq AndDistP_rep_eq)
   apply (metis (lifting, full_types) LiftP.rep_eq destPRED_inverse mem_Collect_eq)
 done
 
 theorem SkipRA_SupP_def: 
   "\<lbrakk> vs \<subseteq> REL_VAR; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow> 
      II\<^bsub>vs\<^esub> = \<Squnion> { $\<^sub>ex\<acute> ==\<^sub>p $\<^sub>ex | x. x \<in> in vs}"
-  apply (auto intro!:destPRED_intro simp add:SkipRA_rep_eq_alt Inf_WF_PREDICATE_def UNDASHED_nempty EqualP_def VarE.rep_eq top_WF_PREDICATE_def TrueP_def)
+  apply (auto intro!:destPRED_intro simp add:SkipRA_rep_eq_alt Inf_WF_PREDICATE_def UNDASHED_nempty EqualP_def VarE.rep_eq top_WF_PREDICATE_def TrueP_def AndDistP_rep_eq)
   apply (metis (lifting, full_types) LiftP.rep_eq destPRED_inverse mem_Collect_eq)
 done
+
+subsection {* Big operator properties derived from the lattice *}
+
+theorem OrP_AndDistP_dist:
+  "p \<or>\<^sub>p \<And>\<^sub>p qs = \<And>\<^sub>p {p \<or>\<^sub>p q | q. q \<in> qs}"
+proof -
+  have "p \<or>\<^sub>p \<And>\<^sub>p qs = \<Squnion> qs \<sqinter> p"
+    by (utp_pred_auto_tac)
+
+  also have "... = \<Squnion> { q \<sqinter> p | q. q \<in> qs}"
+    by (simp add: Lattice_L2)
+
+  also have "... = \<Squnion> { p \<or>\<^sub>p q | q. q \<in> qs}"
+    by (utp_pred_auto_tac)
+
+  finally show ?thesis
+    by (simp add:Inf_WF_PREDICATE_def)
+qed
+
+theorem ImpliesP_AndDistP_dist:
+  "p \<Rightarrow>\<^sub>p \<And>\<^sub>p qs = \<And>\<^sub>p {p \<Rightarrow>\<^sub>p q | q. q \<in> qs}"
+  by (simp add:OrP_AndDistP_dist ImpliesP_def)
+
+lemma union_Union_dist:
+  "qs \<noteq> {} \<Longrightarrow> p \<union> \<Union> qs = \<Union> {p \<union> q | q. q \<in> qs}"
+  by (auto)
+
+theorem OrP_OrDistP_dist:
+  "qs \<noteq> {} \<Longrightarrow> p \<or>\<^sub>p \<Or>\<^sub>p qs = \<Or>\<^sub>p {p \<or>\<^sub>p q | q. q \<in> qs}"
+  apply (utp_rel_tac)
+  apply (simp add: union_Union_dist)
+  apply (auto)
+  apply (metis EvalR_OrP Un_iff)+
+done
+
+lemma inter_Inter_dist:
+  "qs \<noteq> {} \<Longrightarrow> p \<inter> \<Inter> qs = \<Inter> {p \<inter> q | q. q \<in> qs}"
+  by (auto)
+
+theorem AndP_AndDistP_dist:
+  "qs \<noteq> {} \<Longrightarrow> p \<and>\<^sub>p \<And>\<^sub>p qs = \<And>\<^sub>p {p \<and>\<^sub>p q | q. q \<in> qs}"
+  apply (subgoal_tac "{p \<and>\<^sub>p q | q. q \<in> qs} \<noteq> {}")
+  apply (utp_rel_tac)
+  apply (simp add: inter_Inter_dist)
+  apply (auto)
+  apply (metis EvalR_AndP Int_iff)
+done
+
+theorem ImpliesP_OrDistP_dist:
+  "qs \<noteq> {} \<Longrightarrow> p \<Rightarrow>\<^sub>p \<Or>\<^sub>p qs = \<Or>\<^sub>p {p \<Rightarrow>\<^sub>p q | q. q \<in> qs}"
+  by (simp add:OrP_OrDistP_dist ImpliesP_def)
+
+theorem OrDistP_SemiR_dist:
+  "(\<Or>\<^sub>p ps) ;\<^sub>R q = \<Or>\<^sub>p {p ;\<^sub>R q | p. p \<in> ps}"
+  by (simp add:Sup_WF_PREDICATE_def[THEN sym] Lattice_L4)
+
+theorem SemiR_OrDistP_dist:
+  "p ;\<^sub>R (\<Or>\<^sub>p qs) = \<Or>\<^sub>p {p ;\<^sub>R q | q. q \<in> qs}"
+  by (simp add:Sup_WF_PREDICATE_def[THEN sym] Lattice_L5)
 
 subsection {* Disjunctive / Monotonicity properties *}
 

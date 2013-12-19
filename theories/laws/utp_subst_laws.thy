@@ -34,6 +34,26 @@ lemma SubstP_AndP [usubst]: "(p \<and>\<^sub>p q)[v/\<^sub>px] = p[v/\<^sub>px] 
 lemma SubstP_OrP [usubst]: "(p \<or>\<^sub>p q)[v/\<^sub>px] = p[v/\<^sub>px] \<or>\<^sub>p q[v/\<^sub>px]"
   by (utp_pred_tac)
 
+lemma SubstP_AndDistP [usubst]:
+  "(\<And>\<^sub>p ps)[v/\<^sub>px] = (\<And>\<^sub>p {p[v/\<^sub>px] | p. p \<in> ps})"
+  apply (utp_pred_auto_tac)
+  apply (metis EvalP_SubstP)
+done
+
+lemma SubstP_ANDI [usubst]:
+  "(\<And>\<^sub>p i:I. P i)[v/\<^sub>px] = (\<And>\<^sub>p i:I. (P i)[v/\<^sub>px])"
+  by (utp_pred_auto_tac)
+
+lemma SubstP_OrDistP [usubst]:
+  "(\<Or>\<^sub>p ps)[v/\<^sub>px] = (\<Or>\<^sub>p {p[v/\<^sub>px] | p. p \<in> ps})"
+  apply (utp_pred_auto_tac)
+  apply (metis EvalP_SubstP)
+done
+
+lemma SubstP_ORDI [usubst]:
+  "(\<Or>\<^sub>p i:I. P i)[v/\<^sub>px] = (\<Or>\<^sub>p i:I. (P i)[v/\<^sub>px])"
+  by (utp_pred_auto_tac)
+
 lemma SubstP_CondR [usubst]: 
   "(P \<lhd> c \<rhd> Q)[v/\<^sub>px] = (P[v/\<^sub>px]) \<lhd> (c[v/\<^sub>px]) \<rhd> (Q[v/\<^sub>px])"
   by (utp_pred_tac)

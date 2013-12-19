@@ -323,7 +323,7 @@ theorem DesignD_refine [refine]:
   using assms
   apply (simp add:less_eq_WF_PREDICATE_def DesignD_refinement)
   apply (simp add:less_eq_WF_PREDICATE_def RefP_def)
-  apply (metis AndP_idem TrueP_eq_ClosureP)
+  apply (metis ClosureP_iff Tautology_def utp_pred_simps(7))
 done
 
 theorem DesignD_diverge:
@@ -367,11 +367,11 @@ lemma DesignD_AndP:
   by (utp_pred_auto_tac)
 
 lemma DesignD_OrDistP:
-  "I \<noteq> {} \<Longrightarrow> (\<Or>\<^sub>p i:I. (P i \<turnstile> Q i)) = ((\<And>\<^sub>p i:I. P i) \<turnstile> (\<Or>\<^sub>p i:I. Q i))"
+  "I \<noteq> {} \<Longrightarrow> `\<Or> i:I. P<i> \<turnstile> Q<i>` = `(\<And> i:I. P<i>) \<turnstile> (\<Or> i:I. Q<i>)`"
   by (utp_pred_auto_tac)
 
 lemma DesignD_AndDistP:
-  "I \<noteq> {} \<Longrightarrow> (\<And>\<^sub>p i:I. (P i \<turnstile> Q i)) = ((\<Or>\<^sub>p i:I. P i) \<turnstile> (\<And>\<^sub>p i:I. P i \<Rightarrow>\<^sub>p Q i))"
+  "I \<noteq> {} \<Longrightarrow> `\<And> i:I. P<i> \<turnstile> Q<i>` = `(\<Or> i:I. P<i>) \<turnstile> (\<And> i:I. P<i> \<Rightarrow> Q<i>)`"
   by (utp_pred_auto_tac)
 
 text {* The choice of two designs conjoins the assumptions and disjoins the commitments *}
@@ -530,6 +530,26 @@ theorem H1_AndP: "H1 (p \<and>\<^sub>p q) = H1(p) \<and>\<^sub>p H1(q)"
 
 theorem H1_OrP: "H1 (p \<or>\<^sub>p q) = H1(p) \<or>\<^sub>p H1(q)"
   by (utp_pred_auto_tac)
+
+theorem H1_AndDistP:
+  "H1 (\<And>\<^sub>p ps) = \<And>\<^sub>p {H1(p) | p. p \<in> ps}"
+  by (simp add:H1_def ImpliesP_AndDistP_dist)
+
+theorem AndDistP_is_H1:
+  "\<lbrakk> \<forall> p\<in>ps. p is H1 \<rbrakk> \<Longrightarrow> \<And>\<^sub>p ps is H1"
+  by (utp_pred_auto_tac)
+
+theorem H1_OrDistP:
+  "ps \<noteq> {} \<Longrightarrow> H1 (\<Or>\<^sub>p ps) = \<Or>\<^sub>p {H1(p) | p. p \<in> ps}"
+  by (simp add: H1_def ImpliesP_OrDistP_dist)
+
+theorem OrDistP_is_H1:
+  "\<lbrakk> \<forall> p\<in>ps. p is H1; ps \<noteq> {} \<rbrakk> \<Longrightarrow> \<Or>\<^sub>p ps is H1"
+  apply (simp add:is_healthy_def H1_OrDistP)
+  apply (subgoal_tac "{H1 p |p. p \<in> ps} = ps")
+  apply (simp)
+  apply (auto, metis)
+done
 
 theorem H1_CondR: 
   "`H1(P \<lhd> c \<rhd> Q)` = `H1(P) \<lhd> c \<rhd> H1(Q)`"
@@ -737,6 +757,11 @@ proof -
     by (utp_pred_auto_tac)
 qed
 
+theorem H2_equivalence_ref:
+  assumes "P \<in> WF_RELATION"
+  shows "P is H2 \<longleftrightarrow> P\<^sup>t \<sqsubseteq> P\<^sup>f"
+  by (simp add:H2_equivalence assms less_eq_WF_PREDICATE_def RefP_def)
+
 theorem J_is_H2:
   "H2(J) = J"
 proof -
@@ -816,6 +841,34 @@ done
 theorem H2_OrP:
   "`H2(P \<or> Q)` = `H2(P) \<or> H2(Q)`"
   by (simp add:H2_def SemiR_OrP_distr)
+
+lemma H2_OrDistP:
+  "H2(\<Or>\<^sub>p ps) = \<Or>\<^sub>p {H2(p) | p. p \<in> ps}"
+  by (simp add:H2_def OrDistP_SemiR_dist)
+
+lemma H2_OrDistP_closure:
+  assumes "\<forall>p\<in>ps. p is H2"
+  shows "\<Or>\<^sub>p ps is H2"
+  apply (simp add: is_healthy_def H2_OrDistP)
+  apply (subgoal_tac "{H2 p |p. p \<in> ps} = ps")
+  apply (simp)
+  apply (insert assms)
+  apply (auto simp add:is_healthy_def, metis)
+done
+
+lemma H2_AndDistP_closure:
+  assumes "ps \<subseteq> WF_RELATION" "\<forall>p\<in>ps. p is H2"
+  shows "\<And>\<^sub>p ps is H2"
+proof -
+  from assms have "\<forall>p\<in>ps. p\<^sup>t \<sqsubseteq> p\<^sup>f"
+    by (force simp add:H2_equivalence_ref)
+
+  with assms(1) show ?thesis
+    apply (simp add: H2_equivalence_ref closure usubst assms(1))
+    apply (simp add: Inf_WF_PREDICATE_def[THEN sym])
+    apply (auto intro: Inf_mono)
+  done
+qed
 
 theorem H2_CondR:
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "c \<in> WF_CONDITION"

@@ -237,6 +237,9 @@ theorem ClosureP_AndP_dist:
   "[p \<and>\<^sub>p q]\<^sub>p = [p]\<^sub>p \<and>\<^sub>p [q]\<^sub>p"
   by (utp_pred_auto_tac)
 
+lemma ClosureP_iff [simp]: "[P]\<^sub>p \<longleftrightarrow> P"
+  by (utp_pred_auto_tac)
+
 theorem ExistsP_OrP_dist:
 "(\<exists>\<^sub>p vs. p1 \<or>\<^sub>p p2) = (\<exists>\<^sub>p vs. p1) \<or>\<^sub>p (\<exists>\<^sub>p vs. p2)"
   by (utp_pred_auto_tac)

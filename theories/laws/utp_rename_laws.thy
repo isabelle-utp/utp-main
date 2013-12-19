@@ -114,6 +114,26 @@ theorem RenameP_OrP_distr [urename]:
 "ss \<bullet> (p1 \<or>\<^sub>p p2) = (ss \<bullet> p1) \<or>\<^sub>p (ss \<bullet> p2)"
   by (utp_pred_auto_tac)
 
+lemma RenameP_AndDistP [urename]:
+  "ss\<bullet>(\<And>\<^sub>p ps) = (\<And>\<^sub>p {ss\<bullet>p | p. p \<in> ps})"
+  apply (utp_pred_auto_tac)
+  apply (metis EvalP_RenameP)
+done
+
+lemma RenameP_ANDI [urename]:
+  "ss\<bullet>(\<And>\<^sub>p i:I. P i) = (\<And>\<^sub>p i:I. ss\<bullet>(P i))"
+  by (utp_pred_auto_tac)
+
+lemma RenameP_OrDistP [urename]:
+  "ss\<bullet>(\<Or>\<^sub>p ps) = (\<Or>\<^sub>p {ss\<bullet>p | p. p \<in> ps})"
+  apply (utp_pred_auto_tac)
+  apply (metis EvalP_RenameP)
+done
+
+lemma RenameP_ORDI [urename]:
+  "ss\<bullet>(\<Or>\<^sub>p i:I. P i) = (\<Or>\<^sub>p i:I. ss\<bullet>(P i))"
+  by (utp_pred_auto_tac)
+
 theorem RenameP_ImpliesP_distr [urename]:
 "ss \<bullet> (p1 \<Rightarrow>\<^sub>p p2) = (ss \<bullet> p1) \<Rightarrow>\<^sub>p (ss \<bullet> p2)"
   by (utp_pred_auto_tac)
