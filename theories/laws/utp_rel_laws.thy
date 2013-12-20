@@ -866,22 +866,15 @@ lemma SubstP_rel_closure [closure]:
   by (auto intro:unrest simp add:WF_RELATION_def unrest typing)
 
 theorem SemiR_left_one_point:
-  assumes 
-    "x \<in> UNDASHED" 
-    "P \<in> WF_RELATION" 
-    "Q \<in> WF_RELATION" 
-    "v \<rhd>\<^sub>e x"
-    "(DASHED \<union> NON_REL_VAR) \<sharp> v" 
-    "{x} \<sharp> v"
+  assumes "x \<in> D\<^sub>0" "v \<rhd>\<^sub>e x" "D\<^sub>1 \<sharp> v" "{x} \<sharp> v"
   shows "P ;\<^sub>R ($\<^sub>ex ==\<^sub>p v \<and>\<^sub>p Q) = P[v\<acute>/\<^sub>px\<acute>] ;\<^sub>R Q[v/\<^sub>px]"
   using assms
-  apply (subgoal_tac "D\<^sub>1 \<sharp> v")
-  apply (subgoal_tac "NON_REL_VAR \<sharp> v")
-  apply (simp add:unrest urename closure typing defined evalrx evale relcomp_unfold)
+  apply (utp_rel_auto_tac)
+  apply (metis binding_upd_simps(2))
+  apply (rule_tac x="ya(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eya) \<oplus>\<^sub>b y on NON_REL_VAR" in exI)
   apply (auto)
-  apply (metis DestXRelB_inverse binding_upd_triv xbinding_upd_def)
-  apply (rule_tac x="ya(x :=\<^sub>x \<lbrakk>v\<rbrakk>\<^sub>e\<langle>ya\<rangle>\<^sub>x)" in exI)
-  apply (simp add:evale)
+  apply (metis EvalE_UNREST_binding_upd EvalR_NON_REL_VAR_elim binding_override_equiv)
+  apply (metis EvalR_NON_REL_VAR_elim binding_override_equiv)
 done
 
 lemma xbinding_upd_refl [simp]: 
@@ -890,47 +883,30 @@ lemma xbinding_upd_refl [simp]:
 
 theorem SemiR_right_one_point:
   assumes 
-    "x \<in> UNDASHED" 
-    "P \<in> WF_RELATION" 
-    "Q \<in> WF_RELATION" 
-    "v \<rhd>\<^sub>e x"
-    "(DASHED \<union> NON_REL_VAR) \<sharp> v" 
-    "{x} \<sharp> v"
+    "x \<in> D\<^sub>0" "v \<rhd>\<^sub>e x" "D\<^sub>1 \<sharp> v" "{x} \<sharp> v"
   shows "(P \<and>\<^sub>p $\<^sub>ex\<acute> ==\<^sub>p v\<acute>) ;\<^sub>R Q = P[v\<acute>/\<^sub>px\<acute>] ;\<^sub>R Q[v/\<^sub>px]"
   using assms
-  (* FIXME: This proof should be optimised and the WF_RELATION assumption removed *)
-  apply (simp add:unrest UNREST_EXPR_subset urename closure typing defined evalrx evale)
-  apply (subgoal_tac "$\<^sub>ex\<acute> ==\<^sub>p v\<acute> = ($\<^sub>ex)\<acute> ==\<^sub>p v\<acute>")
-  apply (simp add:relcomp_unfold evale evalrx closure unrest)
-  defer
-  apply (utp_pred_tac, simp add:urename)
+  apply (utp_rel_auto_tac)
+  apply (metis binding_upd_simps(2))
+  apply (rule_tac x="ya(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eya)" in exI)
   apply (auto)
-  apply (rule_tac x="ya" in exI)
-  apply (drule sym) back
-  apply (simp add:evale typing)
-  apply (rule_tac x="ya(x :=\<^sub>x \<lbrakk>v\<rbrakk>\<^sub>e\<langle>ya\<rangle>\<^sub>x)" in exI)
-  apply (simp add:evale)
+  apply (metis EvalE_UNREST_binding_upd)
 done
 
 theorem SemiR_right_one_point_alt:
   assumes 
-    "x \<in> DASHED" 
-    "P \<in> WF_RELATION" 
-    "Q \<in> WF_RELATION" 
-    "v \<rhd>\<^sub>e x"
-    "(UNDASHED \<union> NON_REL_VAR) \<sharp> v" 
-    "{x} \<sharp> v"
-  shows "(P \<and>\<^sub>p $\<^sub>ex ==\<^sub>p v) ;\<^sub>R Q = P[v/\<^sub>px] ;\<^sub>R Q[v\<acute>/\<^sub>pundash x]"
+    "x \<in> D\<^sub>1" "v \<rhd>\<^sub>e x" "D\<^sub>0 \<sharp> v" "{x} \<sharp> v"
+  shows "(P \<and>\<^sub>p $\<^sub>ex ==\<^sub>p v) ;\<^sub>R Q = P[v/\<^sub>px] ;\<^sub>R Q[v\<acute>/\<^sub>px~]"
 proof -
 
-  from assms have u1: "(DASHED \<union> NON_REL_VAR) \<sharp> v\<acute>"
+  from assms have u1: "DASHED \<sharp> v\<acute>"
     by (simp add:urename unrest)
 
-  from assms have u2: "{undash x} \<sharp> v\<acute>"
+  from assms have u2: "{x~} \<sharp> v\<acute>"
     by (simp add:urename unrest)
 
   thus ?thesis
-    apply (insert SemiR_right_one_point[of "undash x" P Q "v\<acute>"])
+    apply (insert SemiR_right_one_point[of "x~" "v\<acute>" P Q])
     apply (simp add:urename closure assms unrest typing u1 u2)
   done
 qed

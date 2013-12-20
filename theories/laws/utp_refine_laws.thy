@@ -100,6 +100,10 @@ proof -
     by (utp_xrel_auto_tac)
 qed
 
+lemma SemiR_AndP_dist_refine:
+  "`(P ; R) \<and> (Q ; R)` \<sqsubseteq> `(P \<and> Q) ; R`"
+  by (utp_rel_auto_tac)
+
 lemma AndP_refines_1 [refine]:
   "X \<sqsubseteq> Y \<Longrightarrow> X \<sqsubseteq> `Y \<and> Z`"
   by (utp_pred_tac)

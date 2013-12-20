@@ -1113,6 +1113,19 @@ lemma EvalR_EqualP_UNDASHED [evalr]:
   apply (smt BindR_def BindR_inverse EvalE_UNREST_override Pair_inject UNDASHED_DASHED_contra WF_REL_BINDING_bc_DASHED binding_override_equiv binding_override_on_eq)
 done
 
+lemma EvalR_EqualP_DASHED [evalr]:
+  "\<lbrakk> x \<in> D\<^sub>0; D\<^sub>1 \<sharp> v \<rbrakk> \<Longrightarrow>
+   \<lbrakk>$\<^sub>ex\<acute> ==\<^sub>p v\<acute>\<rbrakk>R = { (b1, b2). \<langle>b2\<rangle>\<^sub>b x = \<lbrakk>v\<rbrakk>\<^sub>eb2 \<and> b1 \<cong> b2 on NON_REL_VAR 
+                            \<and> b1 \<in> WF_REL_BINDING \<and> b2 \<in> WF_REL_BINDING }"
+  apply (auto simp add:EvalR_EqualP evale BindR_def closure)
+  apply (metis SS_UNDASHED_app)
+  apply (metis RenameB_equiv_VAR_RENAME_ON_2 SS_VAR_RENAME_ON UNDASHED_DASHED_inter(16) binding_override_left_eq)
+  apply (rule_tac x="(SS\<bullet>y) \<oplus>\<^sub>b xa on D\<^sub>0" in exI)
+  apply (auto simp add:urename closure RenameB_override_distr1 unrest evale)
+  apply (metis NON_REL_VAR_def SS_REL_VAR_overshadow WF_REL_BINDING_bc_DASHED binding_override_assoc binding_override_equiv binding_override_minus)
+  apply (metis WF_REL_BINDING_bc_DASHED binding_override_equiv)
+done
+
 lemma AssignR_alt_def: 
   "\<lbrakk>v \<rhd>\<^sub>e x; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> x :=\<^sub>R v = ($\<^sub>ex\<acute> ==\<^sub>p v) \<and>\<^sub>p II\<^bsub>REL_VAR - {x,x\<acute>}\<^esub>"
   apply (simp add:SkipRA_def)

@@ -357,20 +357,20 @@ proof -
     by (simp add:closure SemiR_TrueP_precond)
 qed
 
-lemma DesignD_OrP:
+theorem DesignD_OrP:
   "`(P1 \<turnstile> Q1) \<or> (P2 \<turnstile> Q2)` = `(P1 \<and> P2 \<turnstile> Q1 \<or> Q2)`"
   by (utp_pred_auto_tac)
 
-lemma DesignD_AndP:
+theorem DesignD_AndP:
   "`(P1 \<turnstile> Q1) \<and> (P2 \<turnstile> Q2)` = 
    `(P1 \<or> P2 \<turnstile> (P1 \<Rightarrow> Q1) \<and> (P2 \<Rightarrow> Q2))`"
   by (utp_pred_auto_tac)
 
-lemma DesignD_OrDistP:
+theorem DesignD_OrDistP:
   "I \<noteq> {} \<Longrightarrow> `\<Or> i:I. P<i> \<turnstile> Q<i>` = `(\<And> i:I. P<i>) \<turnstile> (\<Or> i:I. Q<i>)`"
   by (utp_pred_auto_tac)
 
-lemma DesignD_AndDistP:
+theorem DesignD_AndDistP:
   "I \<noteq> {} \<Longrightarrow> `\<And> i:I. P<i> \<turnstile> Q<i>` = `(\<Or> i:I. P<i>) \<turnstile> (\<And> i:I. P<i> \<Rightarrow> Q<i>)`"
   by (utp_pred_auto_tac)
 
@@ -455,6 +455,22 @@ theorem DesignD_composition_wp:
   shows "`(p1 \<turnstile> Q1) ; (P2 \<turnstile> Q2)` = `(p1 \<and> (Q1 wp P2)) \<turnstile> (Q1 ; Q2)`"
   by (simp add: DesignD_composition_cond closure WeakPrecondP_def assms)
 
+theorem DesignD_TopD_left:
+  assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "OKAY \<sharp> P" "OKAY \<sharp> Q"
+  shows "`\<top>\<^sub>D ; (P \<turnstile> Q)` = `\<top>\<^sub>D`"
+  apply (simp add:DesignD_extreme_point_nok[THEN sym])
+  apply (subst DesignD_composition)
+  apply (simp_all add:assms closure unrest)
+done  
+
+theorem DesignD_TopD_right:
+  assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "OKAY \<sharp> P" "OKAY \<sharp> Q"
+  shows "`(P \<turnstile> Q); \<top>\<^sub>D` = `(\<not> ((\<not> P) ; true) \<turnstile> false)`"
+  apply (simp add:DesignD_extreme_point_nok[THEN sym])
+  apply (subst DesignD_composition)
+  apply (simp_all add:assms closure unrest)
+done
+
 theorem AssignD_idem :
   assumes 
     "x \<in> UNDASHED" 
@@ -517,6 +533,10 @@ theorem H1_true [closure]:
   "true is H1"
   by (utp_pred_tac)
 
+theorem H1_DesignD [closure]:
+  "H1(P \<turnstile> Q) = P \<turnstile> Q"
+  by (utp_pred_auto_tac)
+
 theorem DesignD_is_H1 [closure]:
   "P \<turnstile> Q is H1"
   by (utp_pred_auto_tac)
@@ -524,6 +544,18 @@ theorem DesignD_is_H1 [closure]:
 theorem SkipD_is_H1 [closure]:
   "II\<^sub>D is H1"
   by (simp add:SkipDA_def closure)
+
+theorem H1_TrueP:
+  "H1(true) = true"
+  by (utp_pred_auto_tac)
+
+theorem H1_FalseP:
+  "H1(false) = \<top>\<^sub>D"
+  by (utp_pred_auto_tac)
+
+theorem H1_TopD:
+  "H1(\<top>\<^sub>D) = \<top>\<^sub>D"
+  by (utp_pred_auto_tac)
 
 theorem H1_AndP: "H1 (p \<and>\<^sub>p q) = H1(p) \<and>\<^sub>p H1(q)"
   by (utp_pred_auto_tac)
@@ -557,7 +589,6 @@ theorem H1_CondR:
 
 theorem H1_algebraic_intro:
   assumes 
-    "R \<in> WF_RELATION"  
     "(true ;\<^sub>R R = true)" 
     "(II\<^sub>D ;\<^sub>R R = R)"
   shows "R is H1"
@@ -599,7 +630,7 @@ proof -
 qed
 
 theorem H1_left_zero:
-  assumes "P \<in> WF_RELATION" "P is H1"
+  assumes "P is H1"
   shows "`true ; P` = `true`"
 proof -
   from assms have "`true ; P` = `true ; (ok \<Rightarrow> P)`"
@@ -618,7 +649,7 @@ proof -
 qed
 
 theorem H1_left_unit:
-  assumes "P \<in> WF_RELATION" "P is H1"
+  assumes "P is H1"
   shows "`II\<^sub>D ; P` = `P`"
 proof -
   let ?vs = "REL_VAR - OKAY"
@@ -650,16 +681,18 @@ theorem SkipD_left_unit:
   by (simp add: DesignD_is_H1 DesignD_rel_closure H1_left_unit assms)
 
 theorem H1_algebraic:
-  assumes "P \<in> WF_RELATION"
-  shows "P is H1 \<longleftrightarrow> (`true ; P` = `true`) \<and> (`II\<^sub>D ; P` = `P`)"
+  "P is H1 \<longleftrightarrow> (`true ; P` = `true`) \<and> (`II\<^sub>D ; P` = `P`)"
    by (metis H1_algebraic_intro H1_left_unit H1_left_zero assms)
   
 theorem H1_false:
   "H1 false \<noteq> false"
-  apply (auto simp add:H1_def eval evale)
-  apply (rule_tac x="\<B>(okay\<down> :=\<^sub>b FalseV)" in exI)
-  apply (simp add:typing defined)
-done
+  by (metis H1_FalseP TopD_FalseP_uniqs(1))
+
+theorem H1_TopD_left_zero:
+  assumes "P is H1"
+  shows "`\<top>\<^sub>D ; P` = `\<top>\<^sub>D`"
+  using assms
+  by (metis (full_types) H1_left_zero SemiR_TrueP_precond SemiR_assoc TopD_cond_closure) 
 
 theorem H1_ImpliesP_SemiR:
   assumes "p \<in> WF_CONDITION" "Q \<in> WF_RELATION" "R \<in> WF_RELATION" "R is H1"
@@ -695,8 +728,7 @@ definition "H2(P) = `P ; J`"
 declare H2_def [eval,evalr,evalrx]
 
 theorem J_split:
-  assumes "P \<in> WF_RELATION"
-  shows "`P ; J` = `P\<^sup>f \<or> (P\<^sup>t \<and> ok')`"
+  "`P ; J` = `P\<^sup>f \<or> (P\<^sup>t \<and> ok')`"
 proof -
 
   let ?vs = "(REL_VAR - OKAY) :: 'a VAR set"
@@ -722,8 +754,11 @@ proof -
     proof -
       have "`(P ; (ok \<and> (II\<^bsub>?vs\<^esub> \<and> ok')))` = `(P ; (ok \<and> II\<^bsub>?vs\<^esub>)) \<and> ok'`"
         apply (insert SemiR_TrueP_postcond[OF VarP_precond_closure[of "okay\<down>\<acute>",simplified]])
-        apply (auto simp add:evalrx closure assms)
-      done
+        apply (subst AndP_assoc)
+        apply (subst SemiR_AndP_right_UNDASHED) 
+        apply (simp add:unrest typing defined closure)
+        apply (simp)
+     done
 
       moreover from assms have "`(P ; (ok \<and> II\<^bsub>?vs\<^esub>))` =  `P\<^sup>t`"
         by (simp add: VarP_EqualP_aux SemiR_left_one_point closure typing defined unrest urename usubst SemiR_SkipRA_right var_dist erasure)
@@ -737,11 +772,13 @@ proof -
   finally show ?thesis .
 qed
 
+theorem J_split_alt: "`P ; J` = `P\<^sup>f \<or> (P \<and> ok')`"
+  by (subst J_split, utp_poly_auto_tac)
+
 theorem H2_equivalence:
-  assumes "P \<in> WF_RELATION"
-  shows "P is H2 \<longleftrightarrow> `P\<^sup>f \<Rightarrow> P\<^sup>t`"
+  "P is H2 \<longleftrightarrow> `P\<^sup>f \<Rightarrow> P\<^sup>t`"
 proof -
-  from assms have "`[P \<Leftrightarrow> (P ; J)]` = `[P \<Leftrightarrow> (P\<^sup>f \<or> (P\<^sup>t \<and> ok'))]`"
+  have "`[P \<Leftrightarrow> (P ; J)]` = `[P \<Leftrightarrow> (P\<^sup>f \<or> (P\<^sup>t \<and> ok'))]`"
     by (simp add:J_split)
 
   also have "... = `[(P \<Leftrightarrow> P\<^sup>f \<or> P\<^sup>t \<and> ok')\<^sup>f \<and> (P \<Leftrightarrow> P\<^sup>f \<or> P\<^sup>t \<and> ok')\<^sup>t]`"
@@ -758,8 +795,7 @@ proof -
 qed
 
 theorem H2_equivalence_ref:
-  assumes "P \<in> WF_RELATION"
-  shows "P is H2 \<longleftrightarrow> P\<^sup>t \<sqsubseteq> P\<^sup>f"
+  "P is H2 \<longleftrightarrow> P\<^sup>t \<sqsubseteq> P\<^sup>f"
   by (simp add:H2_equivalence assms less_eq_WF_PREDICATE_def RefP_def)
 
 theorem J_is_H2:
@@ -794,12 +830,15 @@ theorem H2_monotone:
   "p \<sqsubseteq> q \<Longrightarrow> H2 p \<sqsubseteq> H2 q"
   by (utp_rel_auto_tac)
 
-theorem DesignD_is_H2 [closure]:
-  "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION; OKAY \<sharp> P; OKAY \<sharp> Q \<rbrakk> \<Longrightarrow> P \<turnstile> Q is H2"
-  apply (simp add:H2_equivalence closure)
-  apply (simp add:DesignD_def usubst closure typing defined erasure)
-  apply (utp_pred_auto_tac)
+theorem H2_DesignD:
+  "\<lbrakk> OKAY \<sharp> P; OKAY \<sharp> Q \<rbrakk> \<Longrightarrow> H2(P \<turnstile> Q) = P \<turnstile> Q"
+  apply (simp add: H2_def J_split DesignD_def usubst typing closure defined)
+  apply (utp_poly_auto_tac)
 done
+
+theorem DesignD_is_H2 [closure]:
+  "\<lbrakk> OKAY \<sharp> P; OKAY \<sharp> Q \<rbrakk> \<Longrightarrow> P \<turnstile> Q is H2"
+  by (metis H2_DesignD Healthy_intro)
 
 theorem H1_H2_commute: "H1 (H2 P) = H2 (H1 P)"
   apply (simp add:H1_def H2_def ImpliesP_def)
@@ -807,14 +846,14 @@ theorem H1_H2_commute: "H1 (H2 P) = H2 (H1 P)"
 done
 
 theorem H1_H2_is_DesignD:
-  assumes "P \<in> WF_RELATION" "P is H1" "P is H2"
+  assumes "P is H1" "P is H2"
   shows "P = `\<not>P\<^sup>f \<turnstile> P\<^sup>t`"
 proof -
   have "P = `ok \<Rightarrow> P`"
-    by (metis H1_def assms(2) is_healthy_def) 
+    by (metis H1_def assms(1) is_healthy_def) 
   
   also have "... = `ok \<Rightarrow> (P ; J)`"
-    by (metis H2_def assms(3) is_healthy_def) 
+    by (metis H2_def assms(2) is_healthy_def) 
 
   also have "... = `ok \<Rightarrow> (P\<^sup>f \<or> (P\<^sup>t \<and> ok'))`"
     by (metis J_split assms(1))
@@ -829,12 +868,29 @@ proof -
 qed
 
 theorem H2_AndP_closure:
-  assumes 
-  "P \<in> WF_RELATION" "Q \<in> WF_RELATION" 
-  "P is H2" "Q is H2"
+  assumes "P is H2" "Q is H2"
   shows "`P \<and> Q` is H2"
   using assms
   apply (simp add:H2_equivalence closure usubst)
+  apply (utp_pred_auto_tac)
+done
+
+theorem H1_J: "`H1(J)` = II\<^sub>D"
+  by (utp_pred_tac)
+
+theorem H2_TrueP: "`H2(true)` = true"
+  apply (subst DesignD_extreme_point_true(2)[THEN sym])
+  apply (simp add: H2_DesignD unrest)
+  apply (utp_pred_tac)
+done
+
+theorem H2_FalseP: "`H2(false)` = false"
+  by (utp_pred_tac)
+
+theorem H2_TopD: "`H2(\<top>\<^sub>D)` = `\<top>\<^sub>D`"
+  apply (subst DesignD_extreme_point_nok(2)[THEN sym])
+  apply (subst DesignD_extreme_point_nok(1)[THEN sym])
+  apply (simp add: H2_DesignD unrest)  
   apply (utp_pred_auto_tac)
 done
 
@@ -939,6 +995,47 @@ proof -
   finally show ?thesis
     by (simp add:H3_def is_healthy_def)
 qed
+
+theorem H3_OrP: "`H3(P \<or> Q)` = `H3(P) \<or> H3(Q)`"
+  by (simp add:H3_def SemiR_OrP_distr)
+
+theorem SemiR_split_bool_ty:
+  assumes "pvaux x" "x \<in> PUNDASHED" "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
+  shows "`P ; Q` = `(P[false/x\<acute>] ; Q[false/x]) \<or> (P[true/x\<acute>] ; Q[true/x])`"
+  apply (subst SemiR_extract_variable_id_ty[of "x"])
+  apply (simp_all add:assms closure typing unrest)
+  apply (subst BoolType_aux_var_split_exists)
+  apply (simp_all add:typing defined assms closure)
+  apply (metis assms pvaux_aux)
+  apply (simp add:usubst assms closure typing defined erasure)
+  apply (subst SubstP_NON_REL_VAR)
+  apply (simp_all add:closure assms unrest)
+  apply (subst SubstP_NON_REL_VAR)
+  apply (simp_all add:closure assms unrest)
+  apply (simp add: SubstP_twice_2 unrest typing defined assms)
+  apply (simp add:usubst typing defined closure unrest)
+done
+
+lemma DesignD_neg_assumption:
+  "OKAY \<sharp> P \<Longrightarrow> `(P \<turnstile> Q)[false/okay\<acute>]` = `\<not> (ok \<and> P)`"
+  by (simp add:DesignD_def usubst typing defined)
+
+lemma SkipD_neg_assump: "`II\<^sub>D[false/okay\<acute>]` = `\<not> ok`"
+  by (simp only:SkipDA_def DesignD_neg_assumption unrest, simp)
+
+lemma H3_neg_assm:
+  assumes "P is H3"
+  shows "`P[false/okay\<acute>]` = `P ; \<top>\<^sub>D`"
+proof -
+  have "`P[false/okay\<acute>]` = `(P ; II\<^sub>D)[false/okay\<acute>]`"
+    by (metis H3_def Healthy_simp assms)
+
+  also have "... = `(P ; \<not> ok)`"
+    by (simp only:usubst closure typing defined unrest SkipD_neg_assump)
+
+  finally show ?thesis by (simp add:TopD_def)
+qed
+
 
 theorem H1_H3_commute: "H1 (H3 P) = H3 (H1 P)"
   apply (simp add:H1_def H3_def ImpliesP_def SemiR_OrP_distr TopD_def[THEN sym])
