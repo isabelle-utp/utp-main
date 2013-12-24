@@ -52,6 +52,23 @@ theorem SemiR_extract_variable_id_ty:
   apply (simp add:erasure assms typing defined closure)
 done
 
+theorem SemiR_split_bool_ty:
+  assumes "pvaux x" "x \<in> PUNDASHED" "{x\<down>\<acute>\<acute>} \<sharp> P" "{x\<down>\<acute>\<acute>} \<sharp> Q"
+  shows "`P ; Q` = `(P[false/x\<acute>] ; Q[false/x]) \<or> (P[true/x\<acute>] ; Q[true/x])`"
+  apply (subst SemiR_extract_variable_id_ty[of "x"])
+  apply (simp_all add:assms closure typing unrest)
+  apply (subst BoolType_aux_var_split_exists)
+  apply (simp_all add:typing defined assms closure)
+  apply (metis assms pvaux_aux)
+  apply (simp add:usubst assms closure typing defined erasure)
+  apply (subst SubstP_NON_REL_VAR)
+  apply (simp_all add:closure assms unrest)
+  apply (subst SubstP_NON_REL_VAR)
+  apply (simp_all add:closure assms unrest)
+  apply (simp add: SubstP_twice_2 unrest typing defined assms)
+  apply (simp add:usubst typing defined closure unrest)
+done
+
 theorem AssignR_SemiR_ty:
   fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
   assumes 

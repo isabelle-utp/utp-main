@@ -66,8 +66,8 @@ translations
   "_upred_SUP1 x y B"  == "INF x. INF y. B"
   "_upred_SUP1 x B"    == "CONST INFI CONST UNIV (%x. B)"
   "_upred_SUP x A B"   == "CONST INFI A (%x. B)"
-  "_upreds x xs"       == "CONST insert x xs"
-  "_upreds_end x"      == "{x}"
+  "_upreds x xs"       => "CONST insert x xs"
+  "_upreds_end x"      => "{x}"
 
 default_sort VALUE
 

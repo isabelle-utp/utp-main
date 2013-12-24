@@ -210,6 +210,14 @@ theorem UNREST_OrDistP [unrest]:
   "\<lbrakk> \<And> p. p \<in> ps \<Longrightarrow> vs \<sharp> p \<rbrakk> \<Longrightarrow> vs \<sharp> \<Or>\<^sub>p ps"
   by (auto simp add: UNREST_def OrDistP_rep_eq)
 
+lemma UNREST_ANDI [unrest]:
+  "\<lbrakk> \<And> p. p \<in> ps \<Longrightarrow> vs \<sharp> f p \<rbrakk> \<Longrightarrow> vs \<sharp> (\<And>\<^sub>p p:ps. f p)"
+  by (auto intro: unrest simp add:ANDI_def)
+
+lemma UNREST_ORDI [unrest]:
+  "\<lbrakk> \<And> p. p \<in> ps \<Longrightarrow> vs \<sharp> f p \<rbrakk> \<Longrightarrow> vs \<sharp> (\<Or>\<^sub>p p:ps. f p)"
+  by (auto intro: unrest simp add:ORDI_def)
+
 theorem UNREST_ExistsP [unrest]:
 "\<lbrakk> vs1 \<sharp> p; vs = vs1 \<union> vs2 \<rbrakk> \<Longrightarrow>
  vs \<sharp> (\<exists>\<^sub>p vs2 . p)"

@@ -162,7 +162,7 @@ lemma AH1_DesignA:
   assumes "okay\<down> \<notin>\<^sub>f \<alpha> P" "okay\<down>\<acute> \<notin>\<^sub>f \<alpha> P"
           "okay\<down> \<notin>\<^sub>f \<alpha> Q" "okay\<down>\<acute> \<notin>\<^sub>f \<alpha> Q"
   shows "AH1(P \<turnstile>\<^sub>\<alpha> Q) = P \<turnstile>\<^sub>\<alpha> Q"
-  by (utp_alpha_tac, utp_pred_auto_tac)
+  by (utp_alpha_tac)
 
 theorem AH1_idem:
   "AH1 (AH1 R) = AH1 R"
@@ -187,22 +187,6 @@ theorem AH1_algebraic:
   apply (auto intro:unrest UNREST_subset)[1]
   apply (metis H1_algebraic Healthy_elim Healthy_intro REL_ALPHABET_DESIGN_ALPHABET WF_RELATION_REL_ALPHABET)
 done
-
-lemma "H1 (p \<and>\<^sub>p q) = H1(p) \<and>\<^sub>p H1(q)"
-  by (utp_pred_auto_tac)
-
-lemma "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION;  \<rbrakk> \<Longrightarrow> "
-
-lemma "\<lbrakk> p \<in> WF_RELATION; q \<in> WF_RELATION; p is H2; q is H2 \<rbrakk> \<Longrightarrow> (p \<and>\<^sub>p q) is H2"
-  by (metis H2_AndP_closure)
-  apply (utp_xrel_auto_tac)
-  apply (simp add:H2_def JA_pred_def)
-  apply (utp_rel_tac)
-
-lemma "H1 (\<And>\<^sub>p ps) = \<And>\<^sub>p {H1(p) | p. p \<in> ps}"
-  apply (utp_pred_auto_tac)
-  apply (drule_tac x="p" in spec, auto) 
-  apply (drule_tac x="p" in spec, auto) 
 
 lemma DASHED_minus_out:
   "D\<^sub>1 - out vs = D\<^sub>1 - vs"
@@ -402,7 +386,24 @@ theorem AH4_idem:
   apply (metis H4_idempotent)
 done
 
-lift_definition DESIGNS :: "'a WF_THEORY" 
+definition "DESIGNS = \<lparr> alphas = DESIGN_ALPHABET, healths = [AH1, AH2] \<rparr>"
+
+interpretation designs: UTP_THEORY DESIGNS
+  apply (unfold_locales)
+  apply (auto simp add:DESIGNS_def IDEMPOTENT_OVER_def AH1_idem AH2_idem)
+done
+
+theorem DESIGNS_lattice: 
+  "a \<in> DESIGN_ALPHABET \<Longrightarrow> lattice (OrderT DESIGNS a)"
+  apply (unfold_locales)
+  apply (rule_tac x="``x \<and> y``" in exI)
+  apply (rule least_UpperI)
+  apply (simp_all add:Upper_def)
+  apply (utp_alpha_tac, utp_pred_auto_tac)
+  apply (utp_alpha_tac)
+oops
+
+lift_definition DESIGNS :: "'a THEORY" 
 is "(DESIGN_ALPHABET, {AH1,AH2})"
   by (auto simp add:WF_THEORY_def IDEMPOTENT_OVER_def AH1_idem AH2_idem)
 

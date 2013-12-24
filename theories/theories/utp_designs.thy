@@ -1038,23 +1038,6 @@ theorem DesignD_precondition_H3 [closure]:
 theorem H3_OrP: "`H3(P \<or> Q)` = `H3(P) \<or> H3(Q)`"
   by (simp add:H3_def SemiR_OrP_distr)
 
-theorem SemiR_split_bool_ty:
-  assumes "pvaux x" "x \<in> PUNDASHED" "{x\<down>\<acute>\<acute>} \<sharp> P" "{x\<down>\<acute>\<acute>} \<sharp> Q"
-  shows "`P ; Q` = `(P[false/x\<acute>] ; Q[false/x]) \<or> (P[true/x\<acute>] ; Q[true/x])`"
-  apply (subst SemiR_extract_variable_id_ty[of "x"])
-  apply (simp_all add:assms closure typing unrest)
-  apply (subst BoolType_aux_var_split_exists)
-  apply (simp_all add:typing defined assms closure)
-  apply (metis assms pvaux_aux)
-  apply (simp add:usubst assms closure typing defined erasure)
-  apply (subst SubstP_NON_REL_VAR)
-  apply (simp_all add:closure assms unrest)
-  apply (subst SubstP_NON_REL_VAR)
-  apply (simp_all add:closure assms unrest)
-  apply (simp add: SubstP_twice_2 unrest typing defined assms)
-  apply (simp add:usubst typing defined closure unrest)
-done
-
 lemma DesignD_neg_assumption:
   "OKAY \<sharp> P \<Longrightarrow> `(P \<turnstile> Q)[false/okay\<acute>]` = `\<not> (ok \<and> P)`"
   by (simp add:DesignD_def usubst typing defined)
@@ -1112,7 +1095,7 @@ proof -
     by (metis H1_TopD_left_zero H1_true SemiR_assoc TrueP_right_UNREST_DASHED)
 qed
 
-theorem H3_assm_CONDITION:
+theorem H3_assm_CONDITION [closure]:
   assumes "P \<in> WF_RELATION" "P is H3"
   shows "P\<^sup>f \<in> WF_CONDITION"
   by (metis H3_neg_assm SemiR_second_CONDITION TopD_cond_closure assms)
@@ -1142,6 +1125,52 @@ proof -
 
   ultimately show ?thesis
      by (metis Healthy_intro)
+qed
+
+theorem AndDistP_is_H3:
+  assumes 
+    "ps \<subseteq> WF_RELATION"
+    "\<forall> p\<in>ps. p is H1" 
+    "\<forall> p\<in>ps. p is H3" 
+    "ps \<noteq> {}"
+  shows "(\<And>\<^sub>p ps) is H3"
+proof -
+  from assms have "ps = {`\<not>p\<^sup>f \<turnstile> p\<^sup>t` | p. p \<in> ps}"
+    by (auto, (metis H1_H3_is_DesignD PVAR_VAR_pvdash)+)
+
+  moreover have "(\<And>\<^sub>p {`\<not>p\<^sup>f \<turnstile> p\<^sup>t` | p. p \<in> ps}) = (\<And>\<^sub>p p:ps. `\<not>p\<^sup>f \<turnstile> p\<^sup>t`)"
+    apply (simp only: ANDI_def)
+    apply (rule cong[of AndDistP])
+    apply (auto)
+  done
+
+  moreover have "... = `(\<Or> p:ps. \<not>p\<^sup>f) \<turnstile> (\<And> p:ps. \<not>p\<^sup>f \<Rightarrow> p\<^sup>t)`"
+    by (simp add: DesignD_AndDistP assms(4))
+
+  moreover from assms have "... = `H3((\<Or> p:ps. \<not>p\<^sup>f) \<turnstile> (\<And> p:ps. \<not>p\<^sup>f \<Rightarrow> p\<^sup>t))`"
+    apply (rule_tac H3_DesignD_precondition[THEN sym])
+    apply (simp add:typing defined unrest closure)
+    apply (simp add:typing defined unrest closure)
+    apply (rule closure)
+    apply (rule closure)
+    apply (rule closure)
+    apply (force)
+    apply (force)
+    apply (rule closure)
+    apply (rule closure)
+    apply (rule closure)
+    apply (rule closure)
+    apply (simp_all add:closure unrest typing defined)
+    apply (force)
+    apply (rule closure) 
+    apply (force)
+    apply (simp add:unrest typing defined)
+    apply (simp add:closure)
+    apply (simp add:typing defined)
+  done
+
+  ultimately show ?thesis
+    by (metis Healthy_intro)
 qed
 
 text {* H2-H3 commutivity is vacuously true *}

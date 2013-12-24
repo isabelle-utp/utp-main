@@ -811,6 +811,22 @@ lemma OrDistP_cond_closure [closure]:
   "ps \<subseteq> WF_CONDITION \<Longrightarrow> \<Or>\<^sub>p ps \<in> WF_CONDITION"
   by (auto intro:unrest closure simp add:WF_CONDITION_def)
 
+lemma ANDI_rel_closure [closure]:
+  "\<lbrakk> \<And> p. p \<in> ps \<Longrightarrow> f p \<in> WF_RELATION \<rbrakk> \<Longrightarrow> (\<And>\<^sub>p p:ps. f p) \<in> WF_RELATION"
+  by (auto intro:closure simp add:ANDI_def)
+
+lemma ANDI_cond_closure [closure]:
+  "\<lbrakk> \<And> p. p \<in> ps \<Longrightarrow> f p \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> (\<And>\<^sub>p p:ps. f p) \<in> WF_CONDITION"
+  by (auto intro:closure simp add:ANDI_def)
+
+lemma ORDI_rel_closure [closure]:
+  "\<lbrakk> \<And> p. p \<in> ps \<Longrightarrow> f p \<in> WF_RELATION \<rbrakk> \<Longrightarrow> (\<Or>\<^sub>p p:ps. f p) \<in> WF_RELATION"
+  by (auto intro:closure simp add:ORDI_def)
+
+lemma ORDI_cond_closure [closure]:
+  "\<lbrakk> \<And> p. p \<in> ps \<Longrightarrow> f p \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> (\<Or>\<^sub>p p:ps. f p) \<in> WF_CONDITION"
+  by (auto intro:closure simp add:ORDI_def)
+
 theorem NotP_rel_closure [closure]:
   "\<lbrakk> p \<in> WF_RELATION \<rbrakk> \<Longrightarrow> \<not>\<^sub>p p \<in> WF_RELATION"
   by (auto simp add:WF_RELATION_def intro:unrest)
