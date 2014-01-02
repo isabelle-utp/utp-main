@@ -537,7 +537,7 @@ subsubsection {* H1: Only observation after starting *}
 
 definition "H1(P) = `ok \<Rightarrow> P`"
 
-declare H1_def [eval,evalr,evalrx]
+declare H1_def [eval,evalr,evalrx,evalp]
 
 theorem H1_true [closure]:
   "true is H1"
@@ -749,7 +749,7 @@ subsubsection {* H2: No requirement of non-termination *}
 
 definition "H2(P) = `P ; J`"
 
-declare H2_def [eval,evalr,evalrx]
+declare H2_def [eval,evalr,evalrx,evalp]
 
 theorem J_split:
   "`P ; J` = `P\<^sup>f \<or> (P\<^sup>t \<and> ok')`"
@@ -855,13 +855,13 @@ theorem H2_monotone:
   by (utp_rel_auto_tac)
 
 theorem H2_DesignD:
-  "\<lbrakk> OKAY \<sharp> P; OKAY \<sharp> Q \<rbrakk> \<Longrightarrow> H2(P \<turnstile> Q) = P \<turnstile> Q"
+  "{okay\<down>\<acute>} \<sharp> P \<Longrightarrow> H2(P \<turnstile> Q) = P \<turnstile> Q"
   apply (simp add: H2_def J_split DesignD_def usubst typing closure defined)
   apply (utp_poly_auto_tac)
 done
 
 theorem DesignD_is_H2 [closure]:
-  "\<lbrakk> OKAY \<sharp> P; OKAY \<sharp> Q \<rbrakk> \<Longrightarrow> P \<turnstile> Q is H2"
+  "{okay\<down>\<acute>} \<sharp> P \<Longrightarrow> P \<turnstile> Q is H2"
   by (metis H2_DesignD Healthy_intro)
 
 theorem H1_H2_commute: "H1 (H2 P) = H2 (H1 P)"
@@ -981,7 +981,7 @@ done
 subsubsection {* H3: Assumption is a condition *}
 
 definition "H3(P) = `P ; II\<^sub>D`"
-declare H3_def [eval,evalr,evalrx]
+declare H3_def [eval,evalr,evalrx,evalp]
 
 theorem SkipD_idempotent:
   "`II\<^sub>D ; II\<^sub>D` = `II\<^sub>D`"
@@ -1184,8 +1184,8 @@ definition "H4(P) = `(P ; true) \<Rightarrow> P`"
 
 definition "isH4(P) \<equiv> `P ; true` = `true`"
 
-declare H4_def [eval,evalr,evalrx]
-declare isH4_def [eval,evalr,evalrx]
+declare H4_def [eval,evalr,evalrx,evalp]
+declare isH4_def [eval,evalr,evalrx,evalp]
 
 theorem H4_idempotent: "H4 (H4 P) = H4 P"
   by (utp_rel_tac)
