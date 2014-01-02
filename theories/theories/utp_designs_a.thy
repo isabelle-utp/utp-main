@@ -106,9 +106,14 @@ syntax
 translations
   "_uapred_evar x"      == "CONST VarA x\<down>"
 
+definition TopAD :: "'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE" where
+"TopAD a = ``(\<not> $okay)\<^bsub>+a\<^esub>``"
+
+declare TopAD_def [evala]
+
 theorem DesignA_extreme_point_nok:
-  "``true\<^bsub>a\<^esub> \<turnstile> false\<^bsub>a\<^esub>`` = ``(\<not> $okay)\<^bsub>+(a \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>)\<^esub>``"
-  by (utp_alpha_tac, utp_pred_tac, auto)
+  "a \<in> DESIGN_ALPHABET \<Longrightarrow> ``true\<^bsub>a\<^esub> \<turnstile> false\<^bsub>a\<^esub>`` = TopAD a"
+  by (utp_alpha_tac, utp_pred_tac)
 
 theorem DesignA_export_precondition:
   "``(P \<turnstile> Q)`` = ``(P \<turnstile> P \<and> Q)``"
@@ -393,6 +398,24 @@ interpretation designs: UTP_THEORY DESIGNS
   apply (auto simp add:DESIGNS_def IDEMPOTENT_OVER_def AH1_idem AH2_idem)
 done
 
+lemma THEORY_PRED_elim [elim]:
+  "\<lbrakk> p \<in> \<lbrakk>T\<rbrakk>\<T>; \<lbrakk> \<alpha> p \<in> \<A>\<^bsub>T\<^esub>; (\<forall> H \<in> set \<H>\<^bsub>T\<^esub>. p is H) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (simp add:THEORY_PRED_def)
+
+theorem TopAD_DESIGNS_greatest:
+  "\<lbrakk> p \<in> \<lbrakk>DESIGNS\<rbrakk>[a]\<T> \<rbrakk> \<Longrightarrow> p \<sqsubseteq> TopAD a"
+  apply (erule THEORY_PRED_OVER_elim)
+  apply (erule THEORY_PRED_elim)
+  apply (simp add:DESIGNS_def)
+  apply (clarify)
+  apply (utp_alpha_tac)
+  apply (utp_pred_auto_tac)
+done
+
+theorem TrueA_DESIGNS_least:
+  "\<lbrakk> p \<in> \<lbrakk>DESIGNS\<rbrakk>[a]\<T> \<rbrakk> \<Longrightarrow> true\<^bsub>a\<^esub> \<sqsubseteq> p"
+  by (utp_alpha_tac, utp_pred_tac)
+
 theorem DESIGNS_lattice: 
   "a \<in> DESIGN_ALPHABET \<Longrightarrow> lattice (OrderT DESIGNS a)"
   apply (unfold_locales)
@@ -400,7 +423,56 @@ theorem DESIGNS_lattice:
   apply (rule least_UpperI)
   apply (simp_all add:Upper_def)
   apply (utp_alpha_tac, utp_pred_auto_tac)
+  apply (utp_alpha_tac, utp_pred_auto_tac)
+  apply (metis THEORY_PRED_OVER_alphabet)
+  apply (rule)
+  apply (rule)
+  apply (simp add:alphabet DESIGNS_def)
+  apply (simp add:DESIGNS_def THEORY_PRED_OVER_def THEORY_PRED_def)
   apply (utp_alpha_tac)
+  apply (metis H1_AndP H2_AndP_closure is_healthy_def)
+  apply (simp add:alphabet)
+  apply (rule_tac x="``x \<or> y``" in exI)
+  apply (rule greatest_LowerI, simp_all)
+  apply (utp_alpha_tac, utp_pred_auto_tac)
+  apply (simp add:Lower_def)
+  apply (utp_alpha_tac, utp_pred_auto_tac)
+  apply (metis THEORY_PRED_OVER_alphabet)
+  apply (simp add:DESIGNS_def THEORY_PRED_OVER_def THEORY_PRED_def)
+  apply (utp_alpha_tac)
+  apply (metis H1_OrP H2_OrP)
+done
+
+lemma WF_ALPHA_PREDICATE_OVER_THEORY [alphabet]: 
+  "ps \<subseteq> \<lbrakk>T\<rbrakk>[a]\<T> \<Longrightarrow> ps \<subseteq> WF_ALPHA_PREDICATE_OVER a"
+  by (auto)
+
+lemma THEORY_subset_alphabet [alphabet]:
+  "\<lbrakk> ps \<subseteq> \<lbrakk>T\<rbrakk>[a]\<T>; p \<in> ps \<rbrakk> \<Longrightarrow> \<alpha> p = a"
+  by (auto)
+
+theorem DESIGNS_complete_lattice: 
+  assumes  "a \<in> DESIGN_ALPHABET"
+  shows "complete_lattice (OrderT DESIGNS a)"
+proof -
+  interpret lat: lattice "OrderT DESIGNS a"
+    by (metis DESIGNS_lattice assms)
+  from assms show ?thesis
+    apply (unfold_locales)
+    apply (case_tac "A = {}")
+    apply (rule_tac x="``true\<^bsub>a\<^esub>``" in exI)
+    apply (rule least_UpperI, simp_all)
+    apply (metis TrueA_DESIGNS_least)
+    apply (rule, rule)
+    apply (simp add:alphabet DESIGNS_def assms)
+    apply (simp add:DESIGNS_def, utp_alpha_tac, metis H1_TrueP H2_TrueP)
+    apply (simp add:alphabet)
+    apply (rule_tac x="\<And>\<^bsub>a\<^esub> A" in exI)
+    apply (rule least_UpperI, simp_all)
+    apply (utp_alpha_tac, utp_pred_auto_tac)
+    apply (simp add:Upper_def)
+    apply (utp_alpha_tac, utp_pred_auto_tac)
+    apply (rule, rule, simp add:DESIGNS_def alphabet)
 oops
 
 lift_definition DESIGNS :: "'a THEORY" 
