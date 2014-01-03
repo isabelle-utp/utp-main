@@ -38,25 +38,37 @@ is "\<lambda> a. ((a :: 'a ALPHABET) \<union>\<^sub>f \<lbrace>okay\<down>, okay
   apply (auto)
 done
 
-abbreviation ok_alpha_true :: 
+abbreviation ok'_alpha_true :: 
   "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("_\<^sup>t" [1000] 1000) where
 "p\<^sup>t \<equiv> ``p[true/okay\<acute>]``"
 
-abbreviation ok_alpha_false :: 
+abbreviation ok'_alpha_false :: 
   "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("_\<^sup>f" [1000] 1000) where
 "p\<^sup>f \<equiv> ``p[false/okay\<acute>]``"
 
+abbreviation ok_true_ok'_alpha_true :: 
+  "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("_\<^bsup>tt\<^esup>" [1000] 1000) where
+"p\<^bsup>tt\<^esup> \<equiv> ``p[true/okay][true/okay\<acute>]``"
+
+abbreviation ok_true_ok'_alpha_false :: 
+  "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("_\<^bsup>tf\<^esup>" [1000] 1000) where
+"p\<^bsup>tf\<^esup> \<equiv> ``p[true/okay][false/okay\<acute>]``"
+
 syntax
-  "_uapred_design"   :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr "\<turnstile>" 30)
-  "_uapred_SkipD"    :: "'a ALPHABET \<Rightarrow> uapred" ("II\<^bsub>D[_]\<^esub>")
-  "_uapred_ok_true"  :: "uapred \<Rightarrow> uapred" ("_\<^sup>t" [1000] 1000)
-  "_uapred_ok_false" :: "uapred \<Rightarrow> uapred" ("_\<^sup>f" [1000] 1000)
+  "_uapred_design"    :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr "\<turnstile>" 30)
+  "_uapred_SkipD"     :: "'a ALPHABET \<Rightarrow> uapred" ("II\<^bsub>D[_]\<^esub>")
+  "_uapred_ok'_true"  :: "uapred \<Rightarrow> uapred" ("_\<^sup>t" [1000] 1000)
+  "_uapred_ok'_false" :: "uapred \<Rightarrow> uapred" ("_\<^sup>f" [1000] 1000)
+  "_uapred_ok_true_ok'_true"  :: "uapred \<Rightarrow> uapred" ("_\<^bsup>tt\<^esup>" [1000] 1000)
+  "_uapred_ok_true_ok'_false" :: "uapred \<Rightarrow> uapred" ("_\<^bsup>tf\<^esup>" [1000] 1000)
 
 translations
   "_uapred_design p q"   == "CONST DesignA p q"
   "_uapred_SkipD a"      == "CONST SkipAD a"
-  "_uapred_ok_true p"    == "CONST ok_alpha_true p"
-  "_uapred_ok_false p"   == "CONST ok_alpha_false p"
+  "_uapred_ok'_true p"   == "CONST ok'_alpha_true p"
+  "_uapred_ok'_false p"  == "CONST ok'_alpha_false p"
+  "_uapred_ok_true_ok'_true p"   == "CONST ok_true_ok'_alpha_true p"
+  "_uapred_ok_true_ok'_false p"  == "CONST ok_true_ok'_alpha_false p"
 
 lemma DesignA_alphabet [alphabet]:
   "\<alpha> (P \<turnstile>\<^sub>\<alpha> Q) = \<alpha> P \<union>\<^sub>f \<alpha> Q \<union>\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>"
@@ -305,15 +317,38 @@ theorem DesignA_refinement:
   apply (simp_all add:assms unrest)
 done
 
+lemma DESIGN_ALPHABET_AH1:
+  "\<alpha>(P) \<in> REL_ALPHABET \<Longrightarrow>
+   \<alpha>(AH1(P)) \<in> DESIGN_ALPHABET"
+  apply (simp add:DESIGN_ALPHABET_def)
+  apply (auto simp add:alphabet closure)
+done
+
+
 theorem AH1_AH2_is_DesignA:
-  assumes "\<alpha>(P) \<in> DESIGN_ALPHABET" "AH1(P) = P" "AH2(P) = P"
+  assumes "\<alpha> P \<in> REL_ALPHABET" "P is AH1" "P is AH2"
   shows "P = ``\<not>P\<^sup>f \<turnstile> P\<^sup>t``"
   using assms
+  apply (subgoal_tac "\<alpha>(P) \<in> DESIGN_ALPHABET")
   apply (utp_alpha_tac)
   apply (rule)
   apply (auto simp add:closure)[1]
   apply (subst H1_H2_is_DesignD)
   apply (simp_all add:closure is_healthy_def)
+  apply (metis DESIGN_ALPHABET_AH1)
+done
+
+theorem AH1_AH2_is_DesignA':
+  assumes "\<alpha> P \<in> REL_ALPHABET" "P is AH1" "P is AH2"
+  shows "P = ``\<not>P\<^bsup>tf\<^esup> \<turnstile> P\<^bsup>tt\<^esup>``"
+  using assms
+  apply (subgoal_tac "\<alpha>(P) \<in> DESIGN_ALPHABET")
+  apply (utp_alpha_tac)
+  apply (rule)
+  apply (auto simp add:closure)[1]
+  apply (subst H1_H2_is_DesignD')
+  apply (simp_all add:closure is_healthy_def)
+  apply (metis DESIGN_ALPHABET_AH1)
 done
 
 lift_definition AH3 :: 
@@ -399,9 +434,17 @@ interpretation designs: UTP_THEORY DESIGNS
   apply (auto simp add:DESIGNS_def IDEMPOTENT_OVER_def AH1_idem AH2_idem)
 done
 
-lemma THEORY_PRED_elim [elim]:
-  "\<lbrakk> p \<in> \<lbrakk>T\<rbrakk>\<T>; \<lbrakk> \<alpha> p \<in> \<A>\<^bsub>T\<^esub>; (\<forall> H \<in> set \<H>\<^bsub>T\<^esub>. p is H) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (simp add:THEORY_PRED_def)
+theorem DESIGNS_form:
+  "P \<in> \<lbrakk>DESIGNS\<rbrakk>\<T> \<Longrightarrow> P = ``\<not>P\<^sup>f \<turnstile> P\<^sup>t``"
+  apply (erule THEORY_PRED_elim, simp add:DESIGNS_def, clarify)
+  apply (metis AH1_AH2_is_DesignA PVAR_VAR_pvdash REL_ALPHABET_DESIGN_ALPHABET)
+done
+
+theorem DESIGNS_form':
+  "P \<in> \<lbrakk>DESIGNS\<rbrakk>\<T> \<Longrightarrow> P = ``\<not>P\<^bsup>tf\<^esup> \<turnstile> P\<^bsup>tt\<^esup>``"
+  apply (erule THEORY_PRED_elim, simp add:DESIGNS_def, clarify)
+  apply (metis (hide_lams, no_types) AH1_AH2_is_DesignA' PVAR_VAR_pvdash REL_ALPHABET_DESIGN_ALPHABET)
+done
 
 theorem TopAD_DESIGNS_greatest:
   "\<lbrakk> p \<in> \<lbrakk>DESIGNS\<rbrakk>[a]\<T> \<rbrakk> \<Longrightarrow> p \<sqsubseteq> TopAD a"
@@ -470,11 +513,11 @@ theorem DESIGNS_lattice:
   apply (metis H1_OrP H2_OrP)
 done
 
-lemma WF_ALPHA_PREDICATE_OVER_THEORY [alphabet]: 
+lemma WF_ALPHA_PREDICATE_OVER_THEORY [closure]: 
   "ps \<subseteq> \<lbrakk>T\<rbrakk>[a]\<T> \<Longrightarrow> ps \<subseteq> WF_ALPHA_PREDICATE_OVER a"
   by (auto)
 
-lemma THEORY_subset_alphabet [alphabet]:
+lemma THEORY_subset_alphabet :
   "\<lbrakk> ps \<subseteq> \<lbrakk>T\<rbrakk>[a]\<T>; p \<in> ps \<rbrakk> \<Longrightarrow> \<alpha> p = a"
   by (auto)
 
@@ -500,6 +543,14 @@ lemma DESIGN_ALPHABET_WF_RELATION [closure]:
   "\<alpha>(P) \<in> DESIGN_ALPHABET \<Longrightarrow> \<lbrakk>P\<rbrakk>\<pi> \<in> WF_RELATION"
   by (metis REL_ALPHABET_DESIGN_ALPHABET WF_RELATION_REL_ALPHABET)
   
+theorem EvalA_AndDistA' [evala] :
+  "ps \<subseteq> WF_ALPHA_PREDICATE_OVER t \<Longrightarrow> \<lbrakk>\<And>\<^bsub>t\<^esub> ps\<rbrakk>\<pi> = \<And>\<^sub>p {\<lbrakk>p\<rbrakk>\<pi> | p. p \<in> ps}"
+  by (simp add:EvalA_AndDistA WF_ALPHA_PREDICATE_OVER_member)
+
+theorem EvalA_OrDistA' [evala] :
+  "ps \<subseteq> WF_ALPHA_PREDICATE_OVER t \<Longrightarrow> \<lbrakk>\<Or>\<^bsub>t\<^esub> ps\<rbrakk>\<pi> = \<Or>\<^sub>p {\<lbrakk>p\<rbrakk>\<pi> | p. p \<in> ps}"
+  by (simp add:EvalA_OrDistA WF_ALPHA_PREDICATE_OVER_member)
+
 theorem H1_DistAndA_closure:
   "\<lbrakk>a \<in> DESIGN_ALPHABET; A \<subseteq> \<lbrakk>DESIGNS\<rbrakk>[a]\<T>\<rbrakk> \<Longrightarrow> \<And>\<^bsub>a\<^esub> A is AH1"
   apply (utp_alpha_tac)
@@ -548,6 +599,14 @@ theorem AH2_DistOrA_closure:
   apply (utp_alpha_tac)
 done
 
+lemma AndDistA_alphabet_theory [alphabet]:
+  "A \<subseteq> \<lbrakk>T\<rbrakk>[a]\<T> \<Longrightarrow> \<alpha> (\<And>\<^bsub>a\<^esub> A) = a"
+  by (metis AndDistA_alphabet_alt WF_ALPHA_PREDICATE_OVER_THEORY)
+
+lemma OrDistA_alphabet_theory [alphabet]:
+  "A \<subseteq> \<lbrakk>T\<rbrakk>[a]\<T> \<Longrightarrow> \<alpha> (\<Or>\<^bsub>a\<^esub> A) = a"
+  by (metis OrDistA_alphabet_alt WF_ALPHA_PREDICATE_OVER_THEORY)
+
 theorem SupA_DESIGNS_closure:
   "\<lbrakk>a \<in> DESIGN_ALPHABET; A \<subseteq> \<lbrakk>DESIGNS\<rbrakk>[a]\<T>\<rbrakk> \<Longrightarrow> (\<And>\<^bsub>a\<^esub> A) \<in> \<lbrakk>DESIGNS\<rbrakk>[a]\<T>"
   apply (rule THEORY_PRED_OVER_intro)
@@ -586,10 +645,6 @@ done
 
 lemma UNREST_EvalA [unrest]: "vs \<sharp> \<lbrakk>p\<rbrakk>\<pi> \<Longrightarrow> vs \<sharp> p"
   by (metis EvalA_def UNREST_ALPHA_def)
-
-lemma H1_below_TopD: 
-  "p is H1 \<Longrightarrow> p \<sqsubseteq> `true \<turnstile> false`"
-  by (utp_poly_auto_tac)
 
 theorem DESIGNS_complete_lattice: 
   assumes  "a \<in> DESIGN_ALPHABET"
@@ -670,6 +725,10 @@ definition "Rel(D) = ``D[true/okay][true/okay\<acute>]``"
 
 declare Rel_def [evala]
 
+lemma DESIGNS_DESIGN_ALPHABET [closure]:
+  "p \<in> \<lbrakk>DESIGNS\<rbrakk>\<T> \<Longrightarrow> \<alpha>(p) \<in> DESIGN_ALPHABET"
+  by (auto simp add:alphabet)
+
 lemma Rel_alphabet [alphabet]: 
   "\<alpha> D \<in> DESIGN_ALPHABET \<Longrightarrow> \<alpha>(Rel(D)) = \<alpha> D -\<^sub>f \<lbrace>okay\<down>, okay\<down>\<acute>\<rbrace>"
   by (auto simp add:Rel_def alphabet closure typing)
@@ -682,10 +741,6 @@ theorem Rel_DesignD:
   apply (force)
   apply (simp add:DesignD_def usubst typing defined unrest)
 done
-
-theorem H2_split:
-  "`H2(P)` = `P\<^sup>f \<or> (P\<^sup>t \<and> ok')`"
-  by (metis H2_def J_split)
   
 theorem Des_as_DesignD:
   "Des(R) = ``true\<^bsub>\<alpha>(R)\<^esub> \<turnstile> R``"
@@ -738,6 +793,60 @@ using assms
   apply (simp add: Rep_fset_inject[THEN sym] insert_inject)
 done
 
+theorem DESIGNS_RelA_galois:
+  assumes "P \<in> \<lbrakk>DESIGNS\<rbrakk>\<T>" "Q \<in> \<lbrakk>REL\<rbrakk>\<T>" 
+  shows "P \<sqsubseteq> Des(Q) \<longleftrightarrow> Rel(P) \<sqsubseteq> Q"
+  using assms
+  apply (subst DESIGNS_form'[of "P"], simp)
+  apply (subst DESIGNS_form'[of "P"]) back back
+  apply (simp)
+  apply (subst DesignA_RelA_galois)
+  apply (simp_all add:alphabet closure typing defined unrest assms)
+done
+
+abbreviation "Rel_Des \<equiv> \<lparr> orderA = (OrderTA DESIGNS)
+                        , orderB = (OrderTA REL)
+                        , lower = Rel, upper = Des \<rparr>"
+
+declare THEORY_PRED_OVER_alphabet [alphabet del]
+
+theorem AH1_AH2_commute:
+  "AH1(AH2(P)) = AH2(AH1(P))"
+  by (utp_alpha_tac, metis H1_H2_commute)
+
+theorem Rel_Des_Galois:
+  "galois_connection Rel_Des"
+  apply (unfold_locales, simp_all)
+  apply (simp_all add: ftype_pred)
+  apply (clarify)
+  apply (rule)
+  apply (subst alphabet)
+  apply (simp add:closure)
+  apply (simp add:alphabet)
+  apply (metis DESIGNS_DESIGN_ALPHABET REL_ALPHABET_DESIGN_ALPHABET REL_ALPHABET_minus)
+  apply (simp add:RELH_REL_ALPHABET closure)
+  apply (simp add:alphabet closure)
+  apply (clarify)
+  apply (rule)
+  apply (simp add:alphabet closure)
+  apply (erule THEORY_PRED_elim)
+  apply (simp add:DESIGN_ALPHABET_def)
+  apply (metis (lifting, no_types) DesignA_DESIGN_ALPHABET DesignA_alphabet REL_ALPHABET_DESIGN_ALPHABET fset_simps(1) fset_simps(5) funion_finsert_right)
+  apply (simp add:is_healthy_def Des_def)
+  apply (metis (lifting, no_types) AH1_AH2_commute AH1_idem AH2_idem)
+  apply (simp add:DESIGNS_form)
+  apply (subst AH1_AH2_is_DesignA) back back
+  apply (simp_all add:closure alphabet)
+  apply (simp add:Des_def)
+  apply (metis AH1_idem Healthy_intro)
+  apply (simp add:alphabet closure)
+  apply (simp add:closure)
+  apply (subst Rel_alphabet)
+  apply (simp add:alphabet closure)
+  apply (simp add:DESIGN_ALPHABET_def)
+  apply (simp add:closure)
+  apply (simp add:alphabet closure)
+  apply (simp)
 
 lift_definition DESIGNS :: "'a THEORY" 
 is "(DESIGN_ALPHABET, {AH1,AH2})"

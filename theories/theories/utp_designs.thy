@@ -59,13 +59,21 @@ definition JA_pred :: "'a VAR set \<Rightarrow> 'a WF_PREDICATE" ("J\<^bsub>_\<^
 abbreviation J_pred :: "'a WF_PREDICATE" ("J") where
 "J \<equiv> J\<^bsub>REL_VAR\<^esub>"
 
-abbreviation ok_true :: 
+abbreviation ok'_true :: 
   "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<^sup>t" [1000] 1000) where
 "p\<^sup>t \<equiv> `p[true/okay\<acute>]`"
 
-abbreviation ok_false :: 
+abbreviation ok'_false :: 
   "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<^sup>f" [1000] 1000) where
 "p\<^sup>f \<equiv> `p[false/okay\<acute>]`"
+
+abbreviation ok_true_ok'_true :: 
+  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<^bsup>tt\<^esup>" [1000] 1000) where
+"p\<^bsup>tt\<^esup> \<equiv> `p[true/okay][true/okay\<acute>]`"
+
+abbreviation ok_true_ok'_false :: 
+  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<^bsup>tf\<^esup>" [1000] 1000) where
+"p\<^bsup>tf\<^esup> \<equiv> `p[true/okay][false/okay\<acute>]`"
 
 definition ParallelD :: 
   "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infixr "\<parallel>" 100) where 
@@ -87,22 +95,27 @@ declare AssignD_def [eval,evalr,evalrx,evalp]
 declare ParallelD_def [eval,evalr,evalrx,evalp]
 
 syntax
-  "_upred_desbot"   :: "upred" ("\<bottom>\<^sub>D")
-  "_upred_destop"   :: "upred" ("\<top>\<^sub>D")
-  "_upred_design"   :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<turnstile>" 30)
-  "_upred_ok_true"  :: "upred \<Rightarrow> upred" ("_\<^sup>t" [1000] 1000)
-  "_upred_ok_false" :: "upred \<Rightarrow> upred" ("_\<^sup>f" [1000] 1000)
-  "_upred_SkipD"    :: "upred" ("II\<^sub>D")
-  "_upred_assignd"  :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> upred" ("_ :=\<^sub>D _" [100] 100)
-  "_upred_J"        :: "upred" ("J")
-  "_upred_parallel" :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infix "\<parallel>" 50)
+  "_upred_desbot"    :: "upred" ("\<bottom>\<^sub>D")
+  "_upred_destop"    :: "upred" ("\<top>\<^sub>D")
+  "_upred_design"    :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<turnstile>" 30)
+  "_upred_ok'_true"  :: "upred \<Rightarrow> upred" ("_\<^sup>t" [1000] 1000)
+  "_upred_ok'_false" :: "upred \<Rightarrow> upred" ("_\<^sup>f" [1000] 1000)
+  "_upred_ok_true_ok'_true"  :: "upred \<Rightarrow> upred" ("_\<^bsup>tt\<^esup>" [1000] 1000)
+  "_upred_ok_true_ok'_false" :: "upred \<Rightarrow> upred" ("_\<^bsup>tf\<^esup>" [1000] 1000)
+
+  "_upred_SkipD"     :: "upred" ("II\<^sub>D")
+  "_upred_assignd"   :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> upred" ("_ :=\<^sub>D _" [100] 100)
+  "_upred_J"         :: "upred" ("J")
+  "_upred_parallel"  :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infix "\<parallel>" 50)
 
 translations
   "_upred_desbot"       == "CONST BotD"
   "_upred_destop"       == "CONST TopD"
   "_upred_design p q"   == "CONST DesignD p q"
-  "_upred_ok_true p"    == "CONST ok_true p"
-  "_upred_ok_false p"   == "CONST ok_false p"
+  "_upred_ok'_true p"   == "CONST ok'_true p"
+  "_upred_ok'_false p"  == "CONST ok'_false p"
+  "_upred_ok_true_ok'_true p"   == "CONST ok_true_ok'_true p"
+  "_upred_ok_true_ok'_false p"  == "CONST ok_true_ok'_false p"
   "_upred_SkipD"        == "CONST SkipD"
   "_upred_assignd x v"  == "CONST AssignD x\<down> v\<down>"
   "_upred_J"            == "CONST J_pred"
@@ -567,6 +580,10 @@ theorem H1_TopD:
   "H1(\<top>\<^sub>D) = \<top>\<^sub>D"
   by (utp_pred_auto_tac)
 
+lemma H1_below_TopD: 
+  "p is H1 \<longleftrightarrow> p \<sqsubseteq> \<top>\<^sub>D"
+  by (utp_poly_auto_tac)
+
 theorem H1_AndP: "H1 (p \<and>\<^sub>p q) = H1(p) \<and>\<^sub>p H1(q)"
   by (utp_pred_auto_tac)
 
@@ -799,6 +816,10 @@ qed
 theorem J_split_alt: "`P ; J` = `P\<^sup>f \<or> (P \<and> ok')`"
   by (subst J_split, utp_poly_auto_tac)
 
+theorem H2_split:
+  "`H2(P)` = `P\<^sup>f \<or> (P\<^sup>t \<and> ok')`"
+  by (metis H2_def J_split)
+
 theorem H2_equivalence:
   "P is H2 \<longleftrightarrow> `P\<^sup>f \<Rightarrow> P\<^sup>t`"
 proof -
@@ -890,6 +911,15 @@ proof -
 
   finally show ?thesis .
 qed
+
+theorem H1_H2_is_DesignD':
+  assumes "P is H1" "P is H2"
+  shows "P = `\<not>P\<^bsup>tf\<^esup> \<turnstile> P\<^bsup>tt\<^esup>`"
+  apply (subst H1_H2_is_DesignD)
+  apply (simp_all add: assms)
+  apply (simp add: DesignD_def)
+  apply (utp_poly_auto_tac)
+done
 
 theorem H2_AndP_closure:
   assumes "P is H2" "Q is H2"
@@ -1104,6 +1134,11 @@ theorem H1_H3_is_DesignD:
   assumes "P is H1" "P is H3"
   shows "P = `\<not>P\<^sup>f \<turnstile> P\<^sup>t`"
   by (metis H1_H2_is_DesignD H3_implies_H2 assms)
+
+theorem H1_H3_is_DesignD':
+  assumes "P is H1" "P is H3"
+  shows "P = `\<not>P\<^bsup>tf\<^esup> \<turnstile> P\<^bsup>tt\<^esup>`"
+  by (metis H1_H2_is_DesignD' H3_implies_H2 assms)
 
 theorem AndP_is_H3:
   assumes 

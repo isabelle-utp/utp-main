@@ -79,6 +79,10 @@ lemma THEORY_PRED_intro [intro]:
   "\<lbrakk> \<alpha> p \<in> \<A>\<^bsub>T\<^esub>; (\<forall> H \<in> set \<H>\<^bsub>T\<^esub>. p is H) \<rbrakk> \<Longrightarrow> p \<in> \<lbrakk>T\<rbrakk>\<T>"
   by (simp add:THEORY_PRED_def)
 
+lemma THEORY_PRED_elim [elim]:
+  "\<lbrakk> p \<in> \<lbrakk>T\<rbrakk>\<T>; \<lbrakk> \<alpha> p \<in> \<A>\<^bsub>T\<^esub>; (\<forall> H \<in> set \<H>\<^bsub>T\<^esub>. p is H) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (simp add:THEORY_PRED_def)
+
 lemma THEORY_PRED_OVER_alphabet [alphabet]:
   "p \<in> \<lbrakk>T\<rbrakk>[a]\<T> \<Longrightarrow> \<alpha> p = a"
   by (metis (lifting, full_types) THEORY_PRED_OVER_def mem_Collect_eq)
@@ -90,6 +94,14 @@ lemma THEORY_PRED_OVER_intro [intro]:
 lemma THEORY_PRED_OVER_elim [elim]:
   "\<lbrakk> p \<in> \<lbrakk>T\<rbrakk>[a]\<T>; \<lbrakk> p \<in> \<lbrakk>T\<rbrakk>\<T>; \<alpha> p = a \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (simp add:THEORY_PRED_OVER_def)
+
+abbreviation "OrderTA T \<equiv> \<lparr> partial_object.carrier = \<lbrakk>T\<rbrakk>\<T>, eq = op =, le = op \<sqsubseteq> \<rparr>"
+
+interpretation THEORYA_partial_order: partial_order "(OrderTA T)"
+  where "partial_object.carrier (OrderTA T) = \<lbrakk>T\<rbrakk>\<T>"
+    and "eq (OrderTA T) = op ="
+    and "le (OrderTA T) = op \<sqsubseteq>"
+  by (unfold_locales, simp_all)
 
 abbreviation "OrderT T a \<equiv> \<lparr> partial_object.carrier = \<lbrakk>T\<rbrakk>[a]\<T>, eq = op =, le = op \<sqsubseteq> \<rparr>"
 
