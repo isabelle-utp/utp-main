@@ -216,6 +216,7 @@ end
 text {* Next we create a collection of fields associated with the tag, and give each
         the position in record and its VDM type. *}
 
+(*
 abbreviation "higher_fld \<equiv> MkField TYPE(MyRec_Tag) #1 \<parallel>@nat\<parallel>"
 abbreviation "lower_fld \<equiv> MkField TYPE(MyRec_Tag) #2 \<parallel>@nat\<parallel>"
 
@@ -231,7 +232,6 @@ lemma "|mk_MyType(2,1) hasType @MyType| = |true|"
 
 lemma "|forall x:@nat @ mk_MyType(^x^,0) hasType @MyType| = |false|"
   by (auto simp add:evalp mk_MyType_def MyType_def)
-
-
+*)
 
 end

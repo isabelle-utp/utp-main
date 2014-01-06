@@ -293,7 +293,6 @@ lemma CSP2_form:
   shows "`CSP2(P)` = `P\<^sup>f \<or> ok'\<and> P\<^sup>t`"
   apply (simp add:H2_def)
   apply (subst J_split)
-  apply (metis assms)
   apply (simp add:AndP_comm)
 done
 

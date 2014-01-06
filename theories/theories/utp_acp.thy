@@ -317,7 +317,7 @@ subsection {*ACP laws *}
 
 lemma L1 :
   assumes "P is ACP1" "P is RH" "P \<in> WF_RELATION"
-  shows "\<delta> ; P = \<delta>"  
+  shows "`\<delta> ; P` = `\<delta>`"  
 proof -
   have 1: "`\<delta> ; P` is R3"
     apply(subst R3_SemiR_closure)
@@ -434,10 +434,10 @@ qed
 
 lemma ACP1_SemiR_closure: 
   assumes "P is ACP1" "Q is ACP1" "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
-  shows "P;Q is ACP1"
+  shows "`P ; Q` is ACP1"
 
 proof -
-  have "ACP1(P);ACP1(Q) = undefined"
+  have "`ACP1(P) ; ACP1(Q)` = undefined"
     apply(simp add:ACP1_def)
     
     sorry
@@ -519,7 +519,7 @@ lemma L6 :
   assumes "P is ACP1" "P is RH" "P \<in> WF_RELATION"
  "Q is ACP1" "Q is RH" "Q \<in> WF_RELATION"
  "R is ACP1" "R is RH" "R \<in> WF_RELATION"
-  shows "(P +\<^bsub>ACP\<^esub> Q) ; R = (P;R) +\<^bsub>ACP\<^esub> (Q;R)"
+  shows "(P +\<^bsub>ACP\<^esub> Q) ;\<^sub>R R = (P ;\<^sub>R R) +\<^bsub>ACP\<^esub> (Q ;\<^sub>R R)"
 proof -
   have 1: "`(\<delta> \<and> P \<and> Q) ; R` = `(P \<and> Q \<and> ($tr\<acute> = $tr));($wait \<and> R)`"
     apply(subst AndP_comm[of "\<delta>"])

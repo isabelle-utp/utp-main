@@ -386,6 +386,7 @@ done
 
 end
 
+(*
 instantiation cmlv :: VALUE_RANK
 begin
 
@@ -403,6 +404,7 @@ instance
   apply (intro_classes)
   sorry
 end
+*)
 
 lift_definition fmap_map_value :: "('a \<Rightarrow> 'b) \<Rightarrow> ('k, 'a) fmap \<Rightarrow> ('k, 'b) fmap"
 is "\<lambda> (f :: 'a \<Rightarrow> 'b) (m :: 'k \<rightharpoonup> 'a) (x :: 'k). Option.map f (m x)"

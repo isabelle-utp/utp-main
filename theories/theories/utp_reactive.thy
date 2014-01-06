@@ -239,7 +239,7 @@ theorem R1_SemiR_closure [closure]:
   assumes
     "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
     "P is R1" "Q is R1"
-  shows "(P ; Q) is R1"
+  shows "(P ;\<^sub>R Q) is R1"
   using assms
   apply (unfold R1_by_refinement)
   apply (rule order_trans)
@@ -391,9 +391,9 @@ qed
 
 lemma R2_SemiR_form: 
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
-  shows "R2(P);R2(Q) =  `(\<exists> tt1\<acute>\<acute>. \<exists> tt2\<acute>\<acute>.  P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>/tr\<acute>] ; Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr ^ $tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>))`"
+  shows "R2(P) ;\<^sub>R R2(Q) =  `(\<exists> tt1\<acute>\<acute>. \<exists> tt2\<acute>\<acute>.  P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>/tr\<acute>] ; Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr ^ $tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>))`"
 proof -
-    have "R2(P);R2(Q) = `( \<exists> tr \<acute>\<acute> . 
+    have "R2(P) ;\<^sub>R R2(Q) = `( \<exists> tr \<acute>\<acute> . 
       (\<exists> tt1\<acute>\<acute> . (P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute>\<acute> = $tr ^ $tt1\<acute>\<acute>)));
       (\<exists> tt2\<acute>\<acute> . (Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr\<acute>\<acute> ^ $tt2\<acute>\<acute>)))
      )`"
@@ -454,9 +454,9 @@ qed
 
 lemma R2_SemiR_distribute:
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
-  shows "R2(R2(P);R2(Q)) = R2(P);R2(Q)"
+  shows "R2(R2(P) ;\<^sub>R R2(Q)) = R2(P) ;\<^sub>R R2(Q)"
 proof-
-  have "R2(R2(P);R2(Q)) =  `(\<exists> tt1\<acute>\<acute>. \<exists> tt2\<acute>\<acute> . \<exists> tt\<acute>\<acute>. P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>/tr\<acute>] ; Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>/tr\<acute>] \<and> ($tt\<acute>\<acute> = $tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>) \<and> ($tr\<acute> = $tr ^ $tt\<acute>\<acute>))`"
+  have "R2(R2(P) ;\<^sub>R R2(Q)) =  `(\<exists> tt1\<acute>\<acute>. \<exists> tt2\<acute>\<acute> . \<exists> tt\<acute>\<acute>. P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>/tr\<acute>] ; Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>/tr\<acute>] \<and> ($tt\<acute>\<acute> = $tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>) \<and> ($tr\<acute> = $tr ^ $tt\<acute>\<acute>))`"
      apply(subst R2_form[of "tt"])
      apply(simp_all add:closure assms typing defined unrest)
      apply(subst R2_SemiR_form)
@@ -503,7 +503,7 @@ proof-
      apply(simp add:usubst typing defined closure)
    done 
 
-   also have "... = R2(P);R2(Q)" 
+   also have "... = R2(P);\<^sub>RR2(Q)" 
      by (subst R2_SemiR_form, simp_all add:assms)
 
    finally show ?thesis .
@@ -511,7 +511,7 @@ qed
 
 lemma R2_SemiR_closure: 
   assumes "P is R2" "Q is R2" "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
-  shows "P;Q is R2"
+  shows "P ;\<^sub>R Q is R2"
   by (metis Healthy_intro Healthy_simp R2_SemiR_distribute assms)
 
 declare SubstP_UNREST [usubst del]
@@ -522,8 +522,6 @@ declare SubstP_UNREST_OKAY[usubst del]
 
 declare PSubstPE_VarP_single_UNREST[usubst del]
 
-thm usubst
-
 declare EvalP_SemiR [evalp]
 
 lemma UNREST_R2 [unrest]:
@@ -532,9 +530,9 @@ lemma UNREST_R2 [unrest]:
 
 lemma R2_SemiR_distribute':
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
-  shows "R2(R2(P) ; R2(Q)) = R2(P ; R2(Q))"
+  shows "R2(R2(P) ;\<^sub>R R2(Q)) = R2(P ;\<^sub>R R2(Q))"
 proof -
-  have "R2(R2(P) ; R2(Q)) =
+  have "R2(R2(P) ;\<^sub>R R2(Q)) =
         `(\<exists> tt\<acute>\<acute>. (\<exists> tt1\<acute>\<acute>. \<exists> tt2\<acute>\<acute>. (P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>/tr\<acute>] ; Q [\<langle>\<rangle>/tr][$tt2\<acute>\<acute>/tr\<acute>])
                                    \<and> $tt\<acute>\<acute> = ($tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>))
                  \<and> $tr\<acute> = ($tr ^ $tt\<acute>\<acute>))`"
@@ -616,7 +614,7 @@ proof -
   qed
 
 
-  also have "... = R2(P ; R2(Q))"
+  also have "... = R2(P ;\<^sub>R R2(Q))"
     apply (subst R2_form[of "tt"])
     apply (simp_all add:unrest assms typing closure)
     apply (subst R2_form[of "tt2"])
@@ -638,7 +636,7 @@ qed
 
 lemma R2_sequential_composition: 
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
-  shows "`R2(P);R2(Q)` = `R2(P ; R2(Q))`"
+  shows "`R2(P) ; R2(Q)` = `R2(P ; R2(Q))`"
   by (metis R2_SemiR_distribute R2_SemiR_distribute' assms(1) assms(2))
 
    (* L10 R2-wait-okay' *)
@@ -781,7 +779,7 @@ done
 theorem R3_SemiR_form:
   assumes
     "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
-  shows "R3(P);R3(Q) = R3(P;R3(Q))"
+  shows "R3(P) ;\<^sub>R R3(Q) = R3(P ;\<^sub>R R3(Q))"
     apply(simp add:R3_form SemiR_OrP_distl SemiR_OrP_distr)
     apply(subst SemiR_AndP_right_precond)
     apply(simp_all add:closure typing defined WF_RELATION_UNREST unrest urename)
@@ -806,7 +804,7 @@ done
 
 lemma R3_SemiR_closure[closure]: 
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "P is R3" "Q is R3"
-  shows "P ; Q is R3"
+  shows "P ;\<^sub>R Q is R3"
   by (metis Healthy_intro Healthy_simp R3_SemiR_form assms(1) assms(2) assms(3) assms(4))
 
 (* L8 R3-idempotent *)
@@ -990,11 +988,13 @@ lemma RH_SemiR_closure:
   shows "`P ; Q` is RH"
 by (metis R1_SemiR_closure R2_SemiR_closure R3_SemiR_closure RH_is_R1 RH_is_R2 RH_is_R3 R_intro assms(1) assms(2) assms(3) assms(4))
 
+(*
 subsection {* The theory of Reactive Processes *}
 
 lift_definition REACTIVE :: "'VALUE WF_THEORY" 
 is "({vs. vs \<subseteq> REL_VAR \<and> REA \<subseteq> vs}, {R1,R2,R3})"
   by (simp add:WF_THEORY_def IDEMPOTENT_OVER_def R1_idempotent R2_idempotent R3_idempotent)
+*)
 
 subsection {* Traces *}
 
