@@ -69,6 +69,31 @@ theorem PrescrP_HP:
   apply (simp add:PrescrP_def usubst typing defined)
 done
 
+lemma binding_value_ccontr:
+  fixes x :: "('a :: DEFINED, 'm ::VALUE) PVAR"
+  assumes "\<lbrakk>P\<rbrakk>b" "TYPEUSOUND('a, 'm)" "pvaux x"
+           "\<not> \<lbrakk>P\<rbrakk>(b(x :=\<^sub>* v))"
+  shows "\<langle>b\<rangle>\<^sub>* x \<noteq> v"
+  using assms by (auto)
+
+lemma binding_ty_true:
+  fixes x :: "(bool, 'm :: BOOL_SORT) PVAR"
+  assumes "\<lbrakk>P\<rbrakk>b" "\<not> \<lbrakk>P\<rbrakk>(b(x :=\<^sub>* True))" "pvaux x"
+  shows "\<not> \<langle>b\<rangle>\<^sub>* x"
+  using assms 
+  apply (auto)
+  apply (metis (full_types) TypeUSound_bool binding_upd_drop_ty)
+done
+
+lemma binding_ty_false:
+  fixes x :: "(bool, 'm :: BOOL_SORT) PVAR"
+  assumes "\<lbrakk>P\<rbrakk>b" "\<not> \<lbrakk>P\<rbrakk>(b(x :=\<^sub>* False))" "pvaux x"
+  shows "\<langle>b\<rangle>\<^sub>* x"
+  using assms
+  apply (drule_tac binding_value_ccontr[of _ _ "x" "False"])
+  apply (simp_all add:typing)
+done
+
 theorem HP_as_PrescrP:
   assumes "P is HP"
   shows "P = `\<not> P\<^bsup>tf\<^esup> \<parallel>- P\<^bsup>tt\<^esup>`"
@@ -76,7 +101,9 @@ proof -
   have "`(\<not> P\<^bsup>tf\<^esup> \<parallel>- P\<^bsup>tt\<^esup>)[true/okay]` = `P[true/okay]`"
     apply (simp add:PrescrP_def usubst typing defined)
     apply (utp_poly_auto_tac)
-  sorry
+    apply (drule binding_ty_false)
+    apply (auto simp add:typing defined closure)
+  done
 
   moreover from assms have "`(\<not> P\<^bsup>tf\<^esup> \<parallel>- P\<^bsup>tt\<^esup>)[false/okay]` = `P[false/okay]`"
     by (simp add:PrescrP_def usubst typing defined HP_form_equiv[THEN sym])
@@ -87,5 +114,8 @@ proof -
   done
 qed
 
+theorem HP_iff_PrescrP:
+  "P is HP \<longleftrightarrow> P = `\<not> P\<^bsup>tf\<^esup> \<parallel>- P\<^bsup>tt\<^esup>`"
+  by (metis HP_as_PrescrP PrescrP_HP)
 
 end
