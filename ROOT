@@ -49,6 +49,17 @@ session "utp-hjf-summer-school" in "papers/utp-hjf-summer-school" = "HOL-UTP-THY
     "proof_wp"
   files "document/root.tex"
 
+session "itp2014" in "papers/itp2014" = "HOL-UTP-THY" +
+  options [document = pdf, document_output = "output"]
+  theories [document = false]
+  files 
+    "document/root.tex"
+    "document/intro.tex"
+    "document/designs.tex"
+    "document/utp_mech.tex"
+    "document/mech_designs.tex"
+    "document/conclusion.tex"
+
 session "isabelle-basics-tutorial" in "papers/isabelle-basics-tutorial" = "HOL" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
   theories
