@@ -793,6 +793,16 @@ using assms
   apply (simp add: Rep_fset_inject[THEN sym] insert_inject)
 done
 
+definition TheoryRes :: "'a THEORY \<Rightarrow> 'a ALPHABET set \<Rightarrow> 'a THEORY" (infixl "'/\<^sub>T" 70) where
+"T/\<^sub>TA = \<lparr> alphas = (alphas T) - A, healths = healths T \<rparr>"
+
+lemma TheoryRes_closure:
+  "UTP_THEORY T \<Longrightarrow> UTP_THEORY (T/\<^sub>TA)"
+  apply (unfold_locales)
+  apply (simp add:TheoryRes_def IDEMPOTENT_OVER_def, safe)
+  apply (metis Healthy_apply UTP_THEORY.healths_idem is_healthy_def)
+done
+
 theorem DESIGNS_RelA_galois:
   assumes "P \<in> \<lbrakk>DESIGNS\<rbrakk>\<T>" "Q \<in> \<lbrakk>REL\<rbrakk>\<T>" 
   shows "P \<sqsubseteq> Des(Q) \<longleftrightarrow> Rel(P) \<sqsubseteq> Q"

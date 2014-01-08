@@ -175,6 +175,10 @@ lift_definition AssignsR ::
 "'m AssignF \<Rightarrow> 'm WF_PREDICATE"
 is "\<lambda> f. {b. \<forall> v \<in> UNDASHED. \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>(\<langle>f\<rangle>\<^sub>a v)\<rangle>\<^sub>e b}" .
 
+lift_definition AssignsRA ::
+"'m VAR set \<Rightarrow> 'm AssignF \<Rightarrow> 'm WF_PREDICATE"
+is "\<lambda> vs f. {b. \<forall> v \<in> in vs. \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>(\<langle>f\<rangle>\<^sub>a v)\<rangle>\<^sub>e b}" .
+
 lift_definition IdA :: "'m AssignF" is "VarE"
   by (auto simp add: typing AssignF_def unrest)
 
@@ -236,6 +240,10 @@ term "AssignsR (AssignF_upd IdA x v)"
 lemma AssignsR_SkipR: "AssignsR IdA = II"
   by (auto simp add:SkipR.rep_eq AssignsR.rep_eq IdA.rep_eq VarE.rep_eq)
 
+lemma AssignsRA_SkipRA: 
+  "HOMOGENEOUS vs \<Longrightarrow> AssignsRA vs IdA = II\<^bsub>vs\<^esub>"
+  by (auto simp add:AssignsRA.rep_eq IdA.rep_eq VarE.rep_eq SkipRA_rep_eq_alt)
+
 (*
 lemma AssignsR_L1: "x \<noteq> y \<Longrightarrow> (x :=p e) = (x,y :=p e,VarE y)"
   apply (auto simp add:AssignsR.rep_eq VarE.rep_eq IdA.rep_eq AssignF_upd_rep_eq)
@@ -286,6 +294,10 @@ definition VarOpenP ::
 definition VarCloseP ::
 "'VALUE VAR \<Rightarrow> 'VALUE WF_PREDICATE" ("end") where
 "VarCloseP x = (\<exists>\<^sub>p {x\<acute>}. II)"
+
+definition VarExtP ::
+"'m WF_PREDICATE \<Rightarrow> 'm VAR \<Rightarrow> 'm WF_PREDICATE" ("_\<^bsub>+_\<^esub>") where
+"VarExtP p x = p \<and>\<^sub>p ($\<^sub>ex\<acute> ==\<^sub>p $\<^sub>ex)"
 
 subsection {* Theorems *}
 

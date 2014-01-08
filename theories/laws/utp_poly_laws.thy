@@ -172,6 +172,19 @@ lemma EvalR_EqualP_ty [evalpr]:
   using assms by (auto simp add:evalr evale)
 *)
 
+lemma EvalR_VarExtP_ty [evalpr]:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "x \<in> PUNDASHED" "pvaux x"
+  shows "\<lbrakk>P\<^bsub>+x\<down>\<^esub>\<rbrakk>R = {(b,b'). (b,b') \<in> \<lbrakk>P\<rbrakk>R \<and> \<langle>b\<rangle>\<^sub>* x = \<langle>b'\<rangle>\<^sub>* x 
+                   \<and> b \<in> WF_REL_BINDING \<and> b' \<in> WF_REL_BINDING
+                   \<and> b \<cong> b' on NON_REL_VAR}"
+  using assms
+  apply (auto simp add: evalr closure)
+  apply (metis Rep_binding_ty_def)
+  apply (auto simp add:Rep_binding_ty_def)
+  apply (metis PVAR_VAR_vtype TypeUSound_ProjU_inv binding_stype pvaux_aux)
+done
+
 lemma var_eq_trans:
   fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
   assumes "TYPEUSOUND('a, 'm)" "x \<in> PUNDASHED" "pvaux x"

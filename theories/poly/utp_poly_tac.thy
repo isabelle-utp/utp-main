@@ -71,6 +71,9 @@ declare EvalR_AndP [evalpr]
 declare EvalR_SemiR [evalpp,evalpr]
 declare EvalR_SkipR [evalpr]
 
+declare EvalR_VarOpenP [evalpr]
+declare EvalR_VarCloseP [evalpr]
+
 declare EmptyUS.rep_eq [evalp]
 declare InsertUS_rep_eq [evalp]
 declare UnionUS.rep_eq [evalp]

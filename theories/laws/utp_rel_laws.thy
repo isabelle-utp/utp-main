@@ -1236,23 +1236,6 @@ proof (simp add:SkipRA_def AssignRA_def AssignR_alt_def)
     by (smt ExistsP_AndP_expand2 ExistsP_union Un_empty_right Un_insert_right union_minus)
 qed
 
-lemma EvalR_SkipRA'' :
-"\<lbrakk> vs \<subseteq> UNDASHED \<union> DASHED; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow>
- \<lbrakk>II\<^bsub>vs\<^esub>\<rbrakk>R = { (b, b') 
-           . b \<cong> b' on in vs \<and> b \<cong> b' on NON_REL_VAR
-           \<and> b \<in> WF_REL_BINDING \<and> b' \<in> WF_REL_BINDING}"
-  apply (auto intro: binding_override_left_eq simp add:EvalR_SkipRA' closure)
-  apply (metis WF_REL_BINDING_bc_DASHED binding_override_equiv)
-done
-
-lemma Collect_eq_pair_intro:
-  "\<lbrakk> \<And> x y. P x y \<longleftrightarrow> Q x y \<rbrakk> \<Longrightarrow> {(x, y). P x y} = {(x, y) . Q x y}"
-  by simp
-
-lemma Collect_conj_pair_eq: 
-  "{(x, y). P x y} \<inter> {(x, y). Q x y} = {(x, y). P x y & Q x y}"
-  by auto
-
 lemma EvalR_AssignRA [evalr]:
   assumes 
     "x \<in> vs" "x\<acute> \<in> vs" 
@@ -1434,6 +1417,14 @@ proof -
 qed
 
 subsubsection {* Variable Laws *}
+
+theorem VarOpenP_idem:
+  "x \<in> D\<^sub>0 \<Longrightarrow> var x ;\<^sub>R var x = var x"
+  by (utp_rel_auto_tac)
+
+theorem VarCloseP_idem:
+  "x \<in> D\<^sub>0 \<Longrightarrow> end x ;\<^sub>R end x = end x"
+  by (utp_rel_auto_tac)
 
 theorem VarOpenP_commute:
   assumes 

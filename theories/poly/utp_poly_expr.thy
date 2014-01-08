@@ -558,6 +558,9 @@ abbreviation PAssignR ::
   "('a, 'm :: VALUE) PVAR \<Rightarrow> ('a, 'm) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" where
 "PAssignR x v \<equiv> x\<down> :=\<^sub>R v\<down>"
 
+abbreviation PAssignF_upd :: "'m AssignF \<Rightarrow> ('a::DEFINED, 'm::VALUE) PVAR \<Rightarrow> ('a, 'm) WF_PEXPRESSION \<Rightarrow> 'm AssignF" where
+"PAssignF_upd f x v \<equiv> AssignF_upd f (x\<down>) (v\<down>)"
+
 abbreviation AssignRPE ::
   "('a, 'm :: VALUE) PVAR \<Rightarrow> ('a, 'm) WF_PEXPRESSION \<Rightarrow> (bool, 'm) WF_PEXPRESSION" where
 "AssignRPE x v \<equiv> PredPE (PAssignR x v)"

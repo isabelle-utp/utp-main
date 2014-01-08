@@ -416,7 +416,7 @@ definition var_to_vbasic :: "cmlv VAR \<Rightarrow> vbasic" where
 definition alpha_to_vbasic :: "cmlv ALPHABET \<Rightarrow> vbasic" where
 "alpha_to_vbasic a = FSetI (PairBT NameBT (PairBT TypeBT BoolBT)) (var_to_vbasic `\<^sub>f a)"
 
-text {* Giving an injection from WF_BINDING into cmlv either requires
+text {* Giving an injection from WF BINDING into cmlv either requires
 that we formalise some sort of dependent map type, or that we rather
 use products to represent bindings which is probably easier. But if we
 use products this requires that bindings be injectable into lists

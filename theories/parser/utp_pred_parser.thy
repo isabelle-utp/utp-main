@@ -17,7 +17,8 @@ begin
 nonterminal 
   upred and upreds and 
   uexpr and uexprs and
-  pexpr and pexprs
+  pexpr and pexprs and
+  pvar and pvars
 
 section {* Core Polymorphic Expression Syntax *}
 
@@ -26,6 +27,10 @@ syntax
 (*  "_pexpr_pred_quote"   :: "pexpr \<Rightarrow> 'a WF_PREDICATE" ("(1``_``)") *)
   "_pexprs"             :: "[pexpr, pexprs] => pexprs" ("_,/ _")
   ""                    :: "pexpr => pexprs" ("_")
+  "_pvar"               :: "idt \<Rightarrow> pvar" ("(_)")
+  "_pvars"              :: "[pvar, pvars] => pvars" ("_,/ _")
+  ""                    :: "pvar => pvars" ("_")
+  "_passign"            :: "['a AssignF, pvars, pexprs] \<Rightarrow> 'a AssignF" ("(1[_])")
   "_pexpr_brack"        :: "pexpr \<Rightarrow> pexpr" ("'(_')")
   "_pexpr_pred_var"     :: "idt \<Rightarrow> pexpr" ("@(_)")
   "_pexpr_expr_var"     :: "idt \<Rightarrow> pexpr" ("(_)")
@@ -44,6 +49,8 @@ translations
   "_pexpr_subst e v x"         == "CONST PSubstPE e v x"
   "_pexpr_prime e"             == "CONST PermPE (CONST SS) e"
   "_pexpr_erase e"             == "CONST ErasePE e" 
+  "_passign m (_pvar x) v"     == "CONST PAssignF_upd m x v"
+  "_passign m (_pvars x xs) (_pexprs v vs)" == "_passign (_passign m x v) xs vs"
 
 section {* Predicate Parser *}
 
@@ -83,12 +90,13 @@ syntax (xsymbols)
   "_upred_cond"     :: "upred \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("_ \<lhd> _ \<rhd> _")
   "_upred_ifthenelse" :: "upred \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("if _ then _ else _")
   "_upred_assigna"  :: "('a, 'm) PVAR \<Rightarrow> 'a VAR set \<Rightarrow> pexpr \<Rightarrow> upred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
-  "_upred_assign"   :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> upred" ("_ := _" [100] 100)
-  "_upred_assigns"  :: "string \<Rightarrow> uexpr \<Rightarrow> upred" ("_ := _" [100] 100)
+(*  "_upred_assign"   :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> upred" ("_ := _" [100] 100) *)
+  "_upred_assigns"  :: "pvars \<Rightarrow> pexprs \<Rightarrow> upred" ("_ := _" [100] 100)
   "_upred_conv"     :: "upred \<Rightarrow> upred" ("(_\<^sup>\<smile>)" [1000] 999)
   "_upred_prime"    :: "upred \<Rightarrow> upred" ("_\<acute>" [1000] 1000)
   "_upred_varopen"  :: "('a, 'm) PVAR \<Rightarrow> upred" ("var _")
   "_upred_varclose" :: "('a, 'm) PVAR \<Rightarrow> upred" ("end _")
+  "_upred_varext"   :: "upred \<Rightarrow> ('a, 'm) PVAR \<Rightarrow> upred" ("_\<^bsub>+_\<^esub>")
   "_upred_substp"   :: "upred \<Rightarrow> pexpr \<Rightarrow> ('a, 'm) PVAR \<Rightarrow> upred" ("(_[_'/_])" [999,999] 1000)
   "_upred_perm"     :: "'m VAR_RENAME \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<bullet>" 80)
 
@@ -122,21 +130,23 @@ translations
   "_upred_seq p q"     => "CONST SemiR p q"
   "_upred_cond p q r"  == "CONST CondR p q r"
   "_upred_ifthenelse b p q"  == "CONST CondR p b q"
-  "_upred_assign x e"  == "CONST PAssignR x e"
-  "_upred_assigna x xs e" == "CONST AssignRA x\<down> xs e\<down>"
+(*  "_upred_assign x e"  == "CONST PAssignR x e" *)
+  "_upred_assigns xs vs" == "CONST AssignsR (_passign (CONST IdA) xs vs)"
+  "_upred_assigna x xs e" == "CONST AssignRA x\<down> xs e\<down>" 
   "_upred_conv x"      => "CONST ConvR x"
   "_upred_prime x"     == "CONST ConvR x"
   "_upred_varopen x"   == "CONST VarOpenP x\<down>"
   "_upred_varclose x"  == "CONST VarCloseP x\<down>"
+  "_upred_varext p x"  == "CONST VarExtP p x\<down>"
   "_upred_substp p e x" == "CONST PSubstP p e x"
   "_upred_perm ss p"   == "CONST PermP ss p"
-
-
 
 term "`p[x/v]`"
 term "`p[$x/y]`"
 term "`x \<Rightarrow> $y\<acute>`"
 term "`SS\<bullet>p`"
+
+term "`p\<^bsub>+x\<^esub>`"
 
 section {* Core Expression Parser *}
 
@@ -329,6 +339,8 @@ term "`(P \<and> Q) \<Rightarrow> P`"
 term "`(P \<lhd> b \<rhd> Q) \<sqsubseteq> (b \<and> P)`"
 
 term "`$x \<in> {\<guillemotleft>1\<guillemotright>,\<guillemotleft>2\<guillemotright>,\<guillemotleft>3\<guillemotright>} \<sqsubseteq> $x = \<guillemotleft>2\<guillemotright>`"
+
+term "`x,y,z := \<guillemotleft>1::int\<guillemotright>,false,{}`"
 
 term "`x := (\<guillemotleft>7\<guillemotright> * $z) ; ((y := $x + \<guillemotleft>1\<guillemotright>) \<lhd> ($x < \<guillemotleft>10\<guillemotright>) \<rhd> P)`"
 
