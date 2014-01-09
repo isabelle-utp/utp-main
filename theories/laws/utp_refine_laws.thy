@@ -122,13 +122,23 @@ lemma RefineP_equal_left_trans:
 
 lemma AssignR_refinement [refine]:
   assumes
-    "p \<in> WF_CONDITION" "q \<in> WF_POSTCOND"
     "x \<in> UNDASHED" "v \<rhd>\<^sub>e x" "DASHED \<sharp> v" "q[v/\<^sub>px\<acute>] \<sqsubseteq> p"
   shows "(p \<Rightarrow>\<^sub>p q) \<sqsubseteq> x :=\<^sub>R v"
   using assms
     apply (utp_pred_auto_tac)
     apply (auto simp add:AssignF_upd_rep_eq EvalE_def)
     apply (metis (full_types) binding_upd_simps(2))
+done
+
+lemma AssignRA_refinement [refine]:
+  assumes
+    "HOMOGENEOUS xs" "xs \<subseteq> REL_VAR" "x \<in> xs" "x\<acute> \<in> xs" 
+    "v \<rhd>\<^sub>e x" "(VAR - in(xs)) \<sharp> v" "q[v/\<^sub>px\<acute>] \<sqsubseteq> p"
+  shows "(p \<Rightarrow>\<^sub>p q) \<sqsubseteq> x :=\<^bsub>xs\<^esub> v"
+  using assms
+    apply (utp_pred_tac)
+    apply (safe)
+    apply (metis (lifting, no_types) DASHED_dash_not_DASHED UNDASHED_eq_dash_contra UnE binding_upd_triv in_member in_mono)
 done
 
 end

@@ -135,7 +135,6 @@ theorem HoareP_AssignR [hoare]:
   using assms
   apply (rule_tac HoareP_intro)
   apply (utp_pred_auto_tac)
-  apply (simp add:ConvR_def eval urename)
   apply (subgoal_tac "(SS\<bullet>b) \<cong> (b(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b)) on UNDASHED")
   apply (drule_tac x="x" in bspec, simp)
   apply (simp add:AssignF_upd_rep_eq EvalE_def)

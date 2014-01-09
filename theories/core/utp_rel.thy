@@ -731,6 +731,14 @@ theorem UNREST_CondR [unrest]:
    UNREST vs (p1 \<lhd> b \<rhd> p2)"
   by (auto intro:unrest simp add:CondR_def)
 
+lemma UNREST_ConvR [unrest]:
+  "(\<langle>SS\<rangle>\<^sub>s`vs) \<sharp> p \<Longrightarrow> UNREST vs p\<acute>"
+  apply (simp add: ConvR_def)
+  apply (metis SS_VAR_RENAME_INV UNREST_RenameP VAR_RENAME_INV_image_twice)
+done
+
+declare ConvR_def [eval]
+
 subsubsection {* Closure Theorems *}
 
 lemma WF_RELATION_UNREST:

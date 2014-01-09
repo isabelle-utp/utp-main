@@ -1268,6 +1268,32 @@ proof -
  done
 qed
 
+lemma EvalP_AssignRA [eval]:
+  assumes 
+    "x \<in> xs" "x\<acute> \<in> xs" 
+    "xs \<subseteq> REL_VAR" 
+    "HOMOGENEOUS xs"
+    "(VAR - in(xs)) \<sharp> e" 
+    "e \<rhd>\<^sub>e x"
+  shows "\<lbrakk>x :=\<^bsub>xs\<^esub> e\<rbrakk>b = (\<forall> v \<in> in(xs). if (v = x) then \<langle>b\<rangle>\<^sub>b (v\<acute>) = (vcoerce (\<lbrakk>e\<rbrakk>\<^sub>eb) x)
+                                                 else \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>b\<rangle>\<^sub>b v)"
+  apply (subgoal_tac "x \<in> D\<^sub>0")
+  apply (subst AssignRA_alt_def)
+  apply (simp_all add: assms)
+  apply (rule UNREST_EXPR_subset)
+  apply (rule assms)
+  apply (force simp add:var_defs)
+  apply (simp add:eval closure assms)
+  apply (safe)
+  apply (drule_tac x="v" in bspec)
+  apply (simp add:var_dist assms)
+  apply (force)
+  apply (metis assms(1) assms(3) in_member)
+  apply (drule_tac x="v" in bspec)
+  apply (auto simp add:var_dist closure assms)
+  apply (metis ComplD DASHED_dash_DASHED_TWICE NON_REL_VAR_UNDASHED_DASHED UnE assms(1) assms(2) assms(3) set_rev_mp utp_var.DASHED_TWICE_NON_REL_VAR)
+done
+
 (*
 lemma EvalR_AssignRA_alt [evalr]:
   assumes 

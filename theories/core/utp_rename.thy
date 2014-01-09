@@ -818,6 +818,10 @@ lemma RenameB_rep_eq [simp]:
   "\<langle>ss \<bullet> b\<rangle>\<^sub>b = \<langle>b\<rangle>\<^sub>b \<circ> inv \<langle>ss\<rangle>\<^sub>s"
   by (simp add:RenameB_def)
 
+lemma VAR_RENAME_INV_image_twice [urename]:
+  "ss \<in> VAR_RENAME_INV \<Longrightarrow> \<langle>ss\<rangle>\<^sub>s ` \<langle>ss\<rangle>\<^sub>s ` vs = vs"
+  by (auto)
+
 subsection {* Building renamings from a partial map *}
 
 
