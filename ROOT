@@ -132,6 +132,21 @@ session "nfm2014" in "papers/nfm2014" = "HOL-UTP" +
         "document/nfm2014.bib"
         "document/deep-shallow.pdf"
 
+session "utp2014" in "papers/utp2014" = "HOL-UTP-THY" +
+  options [document = pdf, document_output = "output", quick_and_dirty = true]
+  theories [document = false]
+  theories 
+    "prelim"
+    "deep_shallow"
+    "h1_h2_design"
+    "prog_model"
+    "poly_expr"
+    "tactics"
+    "shallow_values"
+  files "document/root.tex"
+        "document/utp2014.bib"
+        "document/deep-shallow.pdf"
+
 session Datatype_Order_Generator (AFP) in "contrib/Datatype_Order_Generator" 
   = "HOL-Library" +
   options [timeout = 300]

@@ -43,9 +43,21 @@ abbreviation SkipD :: "'a WF_PREDICATE" where
 
 notation SkipD ("II\<^sub>D")
 
+abbreviation AssignDO ::
+  "'a VAR \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_PREDICATE" ("(_ /:=\<^sub>o/ _)") where
+"AssignDO x v \<equiv> x :=\<^bsub>(REL_VAR - OKAY)\<^esub> v"
+
+abbreviation AssignDOt ::
+  "('a :: DEFINED, 'm) PVAR \<Rightarrow> ('a, 'm) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" where
+"AssignDOt x v \<equiv> x\<down> :=\<^sub>o v\<down>"
+
 definition AssignD ::
   "'a VAR \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_PREDICATE" ("(_ /:=\<^sub>D/ _)") where
-"AssignD x v = (true \<turnstile> x :=\<^bsub>(REL_VAR - OKAY)\<^esub> v)"
+"AssignD x v = (true \<turnstile> x :=\<^sub>o v)"
+
+abbreviation AssignDt :: 
+  "('a :: DEFINED, 'm) PVAR \<Rightarrow> ('a, 'm) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" where
+"AssignDt x v \<equiv> AssignD x\<down> v\<down>"
 
 definition BotD :: "'a WF_PREDICATE" ("\<bottom>\<^sub>D") where
 "BotD = true"
@@ -105,6 +117,7 @@ syntax
 
   "_upred_SkipD"     :: "upred" ("II\<^sub>D")
   "_upred_assignd"   :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> upred" ("_ :=\<^sub>D _" [100] 100)
+  "_upred_assigndo"  :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> upred" ("_ :=\<^sub>o _" [100] 100)
   "_upred_J"         :: "upred" ("J")
   "_upred_parallel"  :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infix "\<parallel>" 50)
 
@@ -117,7 +130,8 @@ translations
   "_upred_ok_true_ok'_true p"   == "CONST ok_true_ok'_true p"
   "_upred_ok_true_ok'_false p"  == "CONST ok_true_ok'_false p"
   "_upred_SkipD"        == "CONST SkipD"
-  "_upred_assignd x v"  == "CONST AssignD x\<down> v\<down>"
+  "_upred_assignd x v"  == "CONST AssignDt x v"
+  "_upred_assigndo x v" == "CONST AssignDOt x v"
   "_upred_J"            == "CONST J_pred"
   "_upred_parallel P Q" == "CONST ParallelD P Q"
 
@@ -183,6 +197,126 @@ lemma SkipD_rel_closure [closure]:
   "II\<^sub>D \<in> WF_RELATION"
   by (auto intro:closure simp add:SkipDA_def)
 
+lemma AssignR_alt_def: 
+  "x \<in> D\<^sub>0 \<Longrightarrow> x :=\<^sub>R v = ($\<^sub>ex\<acute> ==\<^sub>p ecoerce v x) \<and>\<^sub>p II\<^bsub>REL_VAR - {x,x\<acute>}\<^esub>"
+  apply (simp add:SkipRA_def)
+  apply (utp_pred_tac)
+  apply (safe)
+  apply (simp_all add:IdA.rep_eq AssignF_upd.rep_eq evale VarE.rep_eq EvalE_def urename)
+  apply (rule_tac x="b(x\<acute> :=\<^sub>b \<langle>b\<rangle>\<^sub>b x)" in exI)
+  apply (simp_all)
+  apply (rule)
+  apply (metis (lifting) UNDASHED_eq_dash_contra undash_dash)
+  apply (drule_tac x="va" in bspec, simp_all)
+  apply (metis UNDASHED_eq_dash_contra undash_dash)
+done
+
+lemma AssignRA_alt_def:
+  assumes 
+    "x \<in> vs" "x\<acute> \<in> vs" 
+    "x \<in> UNDASHED" 
+    "REL_VAR - vs \<sharp> v" 
+  shows "x :=\<^bsub>vs\<^esub> v = $\<^sub>ex\<acute> ==\<^sub>p ecoerce v x \<and>\<^sub>p II\<^bsub>vs - {x,x\<acute>}\<^esub>"
+using assms
+proof (simp add:SkipRA_def AssignRA_def AssignR_alt_def)
+  from assms have "REL_VAR - (vs - {x, x\<acute>}) = (REL_VAR - vs) \<union> {x, x\<acute>}"
+    by (auto)
+
+  hence "(\<exists>\<^sub>p REL_VAR - (vs - {x, x\<acute>}) . II) = (\<exists>\<^sub>p REL_VAR - vs. \<exists>\<^sub>p {x, x\<acute>} . II)"
+    by (metis (lifting) ExistsP_union)
+
+  moreover from assms have "(REL_VAR - vs) \<sharp> ($\<^sub>ex\<acute> ==\<^sub>p ecoerce v x)"
+    by (rule_tac unrest, auto intro:unrest)
+
+  ultimately show "(\<exists>\<^sub>p REL_VAR - vs . $\<^sub>ex\<acute> ==\<^sub>p ecoerce v x \<and>\<^sub>p (\<exists>\<^sub>p {x, x\<acute>} . II)) =
+                    $\<^sub>ex\<acute> ==\<^sub>p ecoerce v x \<and>\<^sub>p (\<exists>\<^sub>p insert x (insert x\<acute> (REL_VAR - vs)) . II)"
+    by (smt ExistsP_AndP_expand2 ExistsP_union Un_empty_right Un_insert_right union_minus)
+qed
+
+lemma EvalE_ecoerce [evale]:
+  "\<lbrakk>ecoerce e x\<rbrakk>\<^sub>eb = vcoerce (\<lbrakk>e\<rbrakk>\<^sub>eb) x"
+by (metis EvalE_def ecoerce_rep_eq)
+
+lemma EvalP_AssignRA1 [eval]:
+  assumes "HOMOGENEOUS xs" "xs \<subseteq> REL_VAR" 
+          "x \<in> in(xs)" "REL_VAR - in(xs) \<sharp> e" 
+  shows "\<lbrakk>x :=\<^bsub>xs\<^esub> e\<rbrakk>b = (\<forall> v \<in> in(xs). if (v = x) then \<langle>b\<rangle>\<^sub>b (v\<acute>) = (vcoerce (\<lbrakk>e\<rbrakk>\<^sub>eb) x)
+                                                 else \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>b\<rangle>\<^sub>b v)"
+  using assms
+  apply (subgoal_tac "x \<in> D\<^sub>0")
+  apply (subst AssignRA_alt_def)
+  apply (simp_all)
+  apply (force simp add:var_defs)
+  apply (force simp add:var_defs)
+  apply (rule UNREST_EXPR_subset)
+  apply (simp)
+  apply (force simp add:var_defs)
+  apply (simp add:eval evale closure)
+  apply (safe)
+  apply (drule_tac x="v" in bspec)
+  apply (simp_all add:var_dist)
+  apply (force simp add:var_defs)
+done
+
+lemma AssignRA_unfold:
+  assumes
+    "HOMOGENEOUS xs" "xs \<subseteq> REL_VAR"
+    "x \<in> in(xs)" "y \<in> in(xs)" "x \<noteq> y" 
+    "REL_VAR - in(xs) \<sharp> v" "{y} \<sharp> v"
+  shows "AssignRA x xs v = (($\<^sub>ey\<acute> ==\<^sub>p $\<^sub>ey) \<and>\<^sub>p (AssignRA x (xs-{y,y\<acute>}) v))"
+  using assms
+  apply (subgoal_tac "y \<in> D\<^sub>0")
+  apply (utp_pred_tac)
+  apply (subst EvalP_AssignRA1)
+  apply (simp_all add:closure var_dist)
+  apply (metis (full_types) Un_Diff_Int le_sup_iff)
+  apply (rule UNREST_EXPR_subset[of "{y} \<union> (REL_VAR - in xs)"])
+  apply (metis UNREST_EXPR_union)
+  apply (auto)
+  apply (metis set_rev_mp utp_var.in_UNDASHED)
+done
+
+lemma AssignR_as_AssignRA:
+  "\<lbrakk> x \<in> D\<^sub>0; D\<^sub>1 \<sharp> v; NON_REL_VAR \<sharp> v \<rbrakk> \<Longrightarrow> (x :=\<^sub>R v) = (x :=\<^bsub>REL_VAR\<^esub> v)"
+  apply (rule EvalP_intro)
+  apply (subst EvalP_AssignR1)
+  apply (subst EvalP_AssignRA1)
+  apply (simp_all add:var_dist unrest)
+  apply (metis Diff_subset_conv UNREST_EXPR_subset subset_refl)
+done
+
+(* This should probably be shown for untyped expressions *)
+
+lemma AssignD_alt_def:
+  fixes x :: "('a :: DEFINED, 'm) PVAR" 
+  assumes "TYPEUSOUND('a, 'm)"
+          "x \<in> PUNDASHED" "x\<down> \<noteq> okay\<down>" "{okay\<down>} \<sharp> v"
+          "D\<^sub>1 \<sharp> v" "NON_REL_VAR \<sharp> v"
+  shows "`x :=\<^sub>D v` = `(true \<turnstile> x := v)`"
+proof -
+  have "`x :=\<^sub>D v` = `true \<turnstile> x :=\<^bsub>REL_VAR - OKAY\<^esub> v`"
+    by (metis AssignD_def)
+
+  also have "... = `true \<turnstile> ($okay\<acute> = $okay \<and> x :=\<^bsub>REL_VAR - OKAY\<^esub> v)`"
+    by (utp_poly_tac)
+
+  also from assms
+  have "... = `true \<turnstile> (x :=\<^bsub>REL_VAR\<^esub> v)`"
+    apply (subst AssignRA_unfold[of _ _ "okay\<down>"]) back
+    apply (simp_all add:closure var_dist typing defined unrest)
+    apply (metis Diff_cancel UNDASHED_DASHED_minus(2) UNREST_PExprE Un_commute Un_empty_right union_minus)
+    apply (simp add:erasure typing)
+  done
+
+  also from assms
+  have "... = `true \<turnstile> (x := v)`"
+    apply (subst AssignR_as_AssignRA)
+    apply (simp_all add:closure unrest)
+  done
+
+  finally show ?thesis ..
+qed
+
 lemma AssignD_rel_closure [closure]:
   "\<lbrakk> x \<in> UNDASHED; NON_REL_VAR \<union> OKAY \<sharp> v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow>
      x :=\<^sub>D v \<in> WF_RELATION"
@@ -237,12 +371,35 @@ theorem DesignD_embed_right:
   "`P \<turnstile> (Q \<turnstile> R)` = `P \<turnstile> (Q \<Rightarrow> R)`"
   by (utp_pred_auto_tac)
 
+lemma SkipDA_alt_def: 
+  assumes "okay\<down> \<in> vs" "HOMOGENEOUS vs"
+  shows "II\<^bsub>D[vs]\<^esub> = `true \<turnstile> II\<^bsub>vs\<^esub>`"
+proof -
+  have "II\<^bsub>D[vs]\<^esub> = `true \<turnstile> II\<^bsub>vs-{okay\<down>, okay\<down>\<acute>}\<^esub>`"
+    by (simp add:SkipDA_def)
+
+  also have "... = `true \<turnstile> ($okay\<acute> = $okay \<and> II\<^bsub>vs-{okay\<down>, okay\<down>\<acute>}\<^esub>)`"
+    by (utp_poly_tac)
+
+  also from assms have "... = `true \<turnstile> II\<^bsub>vs\<^esub>`"
+    apply (subst SkipRA_unfold[of "okay\<down>"]) back
+    apply (simp_all add:closure)
+    apply (metis MkPlain_UNDASHED PVAR_VAR_MkPVAR hom_alphabet_undash)
+    apply (simp add:erasure typing defined)
+  done
+
+  finally show ?thesis .
+qed
+
+theorem SkipD_def: "II\<^sub>D = `true \<turnstile> II`"
+  by (simp add:SkipDA_alt_def SkipR_as_SkipRA closure)
+
 theorem DesignD_SkipD_right:
-  "`P \<turnstile> II\<^sub>D` = `P \<turnstile> II\<^bsub>REL_VAR - OKAY\<^esub>`"
-  by (simp add:SkipDA_def DesignD_embed_right)
+  "`P \<turnstile> II\<^sub>D` = `P \<turnstile> II`"
+  by (simp add:SkipD_def DesignD_embed_right)
 
 theorem DesignD_AssignD_right:
-  "P \<turnstile> (x :=\<^sub>D v) = P \<turnstile> x :=\<^bsub>(REL_VAR - OKAY) \<^esub>v"
+  "P \<turnstile> (x :=\<^sub>D v) = P \<turnstile> (x :=\<^bsub>(REL_VAR - OKAY)\<^esub> v)"
   by (simp add:AssignD_def DesignD_embed_right)
 
 theorem DesignD_AssignD_true [simp]:
@@ -413,11 +570,10 @@ proof -
                       \<or> ((P1 \<turnstile> Q1)[true/okay\<acute>] ; (P2 \<turnstile> Q2)[true/okay])`"
     by (simp add:ucases typing usubst defined closure unrest DesignD_def assms erasure inju SubstP_VarP_single_UNREST)
 
+
   also from assms
   have "... = `((ok \<and> P1 \<Rightarrow> Q1) ; (P2 \<Rightarrow> ok' \<and> Q2)) \<or> ((\<not> (ok \<and> P1)) ; true)`"
-    apply (simp add: typing usubst defined unrest DesignD_def OrP_comm erasure)
-    apply (metis SubstP_VarP_single_UNREST)
-  done
+    by (simp add: typing usubst defined unrest DesignD_def OrP_comm erasure SubstP_VarP_single_UNREST)
 
   also have "... = `((\<not> (ok \<and> P1) ; (P2 \<Rightarrow> ok' \<and> Q2)) \<or> \<not> (ok \<and> P1) ; true) 
                        \<or> Q1 ; (P2 \<Rightarrow> ok' \<and> Q2)`"
@@ -656,18 +812,21 @@ proof -
   finally show ?thesis by (simp add:is_healthy_def H1_def)
 qed
 
+declare EvalP_SemiR [evalpp]
+declare ImpliesP_def [evalpr]
+
 theorem H1_left_zero:
   assumes "P is H1"
   shows "`true ; P` = `true`"
 proof -
   from assms have "`true ; P` = `true ; (ok \<Rightarrow> P)`"
-    by (simp add:is_healthy_def H1_def)
+    by (utp_pred_tac)
 
   also have "... = `true ; (\<not> ok \<or> P)`"
     by (simp add:ImpliesP_def)
 
   also have "... = `(true ; \<not> ok) \<or> (true ; P)`"
-    by (simp add:SemiR_OrP_distl)
+    by (metis SemiR_OrP_distl)
 
   also from assms have "... = `true \<or> (true ; P)`"
     by (simp add:SemiR_precond_left_zero closure)
@@ -894,21 +1053,16 @@ theorem H1_H2_is_DesignD:
   assumes "P is H1" "P is H2"
   shows "P = `\<not>P\<^sup>f \<turnstile> P\<^sup>t`"
 proof -
-  have "P = `ok \<Rightarrow> P`"
-    by (metis H1_def assms(1) is_healthy_def) 
-  
-  also have "... = `ok \<Rightarrow> (P ; J)`"
-    by (metis H2_def assms(2) is_healthy_def) 
-
+  from assms have "P = `ok \<Rightarrow> P`"
+    by (utp_pred_tac)
+  also from assms have "... = `ok \<Rightarrow> H2(P)`"
+    by (utp_pred_tac)
   also have "... = `ok \<Rightarrow> (P\<^sup>f \<or> (P\<^sup>t \<and> ok'))`"
-    by (metis J_split assms(1))
-
+    by (metis H2_split assms)
   also have "... = `ok \<and> (\<not> P\<^sup>f) \<Rightarrow> ok' \<and> P\<^sup>t`"
     by (utp_pred_auto_tac)
-
   also have "... = `(\<not> P\<^sup>f) \<turnstile> P\<^sup>t`"
     by (metis DesignD_def)
-
   finally show ?thesis .
 qed
 
