@@ -135,6 +135,18 @@ translations
   "_upred_J"            == "CONST J_pred"
   "_upred_parallel P Q" == "CONST ParallelD P Q"
 
+text {* Lift design syntax to procedure level *}
+
+definition "DesignO p q = (\<lambda> r. DesignD (p r) (q r))"
+
+syntax
+  "_uproc_design" :: "uproc \<Rightarrow> uproc \<Rightarrow> uproc" (infixr "\<turnstile>" 30)
+
+translations
+  "_uproc_design p q" == "CONST DesignO p q"
+
+declare DesignO_def [eval, evalpp, evalr, evalpr]
+
 subsection {* Closure / UNREST theorems *}
 
 lemma UNREST_OKAY [unrest]:
@@ -483,18 +495,9 @@ qed
 
 theorem DesignD_refine [refine]:
   assumes 
-    "OKAY \<sharp> P1"
-    "OKAY \<sharp> P2"
-    "OKAY \<sharp> Q1"
-    "OKAY \<sharp> Q2"
-    "P2 \<sqsubseteq> P1" 
-    "Q1 \<sqsubseteq> P1 \<and>\<^sub>p Q2" 
+    "P2 \<sqsubseteq> P1" "Q1 \<sqsubseteq> P1 \<and>\<^sub>p Q2" 
   shows "P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2"
-  using assms
-  apply (simp add:less_eq_WF_PREDICATE_def DesignD_refinement)
-  apply (simp add:less_eq_WF_PREDICATE_def RefP_def)
-  apply (metis ClosureP_iff Tautology_def utp_pred_simps(7))
-done
+  using assms by (utp_poly_tac)
 
 theorem DesignD_diverge:
   "`(P \<turnstile> Q)[false/okay]` = true"

@@ -98,27 +98,6 @@ definition "sub = MkChanD ''add'' \<parallel>@Byte\<parallel>"
 text {* We use an Isabelle locale to create a new namespace for the
 \texttt{RegisterProc}. *}
 
-nonterminal 
-  pvar and pvars
-
-syntax
-  "_pvar"          :: "idt \<Rightarrow> pvar" ("(_)")
-  "_pvars"         :: "[pvar, pvars] => pvars" ("_,/ _")
-  ""               :: "pvar => pvars" ("_")
-  "_passign"       :: "['a AssignF, pvars, pexprs] \<Rightarrow> 'a AssignF" ("(1[_])")
-  "_upred_assignr" :: "pvars \<Rightarrow> pexprs \<Rightarrow> upred" ("_ := _" [100] 100)
-
-translations
-  "_passign m (_pvar x) v" == "CONST AssignFP_upd m x v"
-  "_passign m (_pvars x xs) (_pexprs v vs)" == "_passign (_passign m x v) xs vs"
-  "_upred_assignr xs vs" == "CONST AssignsR (_passign (CONST IdA) xs vs)"
-
-term "`x := 1`"
-
-
-translations
-  "_upred_assignr (_pvars x xs) (_pexprs e es) 
-
 locale RegisterProc
 begin
 
@@ -127,21 +106,15 @@ value of the calculation. *}
 
 abbreviation "reg \<equiv> MkVarD ''reg'' \<parallel>@Byte\<parallel>"
 
+definition "RegisterProc_inv = `\<lparr> $reg hasType @Byte \<rparr> \<turnstile> \<lparr> $reg\<acute> hasType @Byte \<rparr>`"
+
 text {* Now we declare the operations of the
 bit-register. \texttt{INIT} initialises the state variables to 0. *}
-
-definition AssignCOP :: "
 
 definition "INIT = 
   `true \<turnstile> (reg := 0)`"
 
 declare INIT_def [eval, evalp]
-
-lemma "`INIT ; INIT` = `INIT`"
-  apply (simp add:INIT_def)
-  apply (subst DesignD_composition)
-  apply (simp_all)
-  apply (utp_prel_tac)
 
 text {* \texttt{LOAD} sets the register to a particular value. *}
 

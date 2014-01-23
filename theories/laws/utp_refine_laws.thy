@@ -130,6 +130,21 @@ lemma AssignR_refinement [refine]:
     apply (metis (full_types) binding_upd_simps(2))
 done
 
+lemma AssignR_refine_alt [refine]:
+  assumes
+    "x \<in> UNDASHED" "v \<rhd>\<^sub>e x" "DASHED \<sharp> v" "p[v/\<^sub>px\<acute>]"
+  shows "p \<sqsubseteq> x :=\<^sub>R v"
+proof -
+  from assms have "`true \<Rightarrow> p` \<sqsubseteq> x :=\<^sub>R v"
+    apply (rule_tac AssignR_refinement)
+    apply (simp_all)
+    apply (utp_pred_tac)
+  done
+   
+  thus ?thesis
+    by (utp_pred_tac)
+qed
+
 lemma AssignRA_refinement [refine]:
   assumes
     "HOMOGENEOUS xs" "xs \<subseteq> REL_VAR" "x \<in> xs" "x\<acute> \<in> xs" 

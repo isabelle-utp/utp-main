@@ -38,14 +38,16 @@ lemma TypeUSound_cml [typing]: "TYPEUSOUND('a::vbasic option, cmlv)"
 
 (* CML expressions and CML predicates *)
 
-type_synonym 'a cmle   = "('a option, cmlv) WF_PEXPRESSION"
-type_synonym cmlp      = "cmlv WF_PREDICATE" 
-type_synonym 'a cmlvar = "('a option, cmlv) PVAR"
+type_synonym 'a cmle        = "('a option, cmlv) WF_PEXPRESSION"
+type_synonym cmlp           = "cmlv WF_PREDICATE" 
+type_synonym 'a cmlvar      = "('a option, cmlv) PVAR"
+type_synonym ('a, 'b) cmlop = "('a option, 'b option, cmlv) WF_POPERATION"
 
 translations
   (type) "'a cmle" <= (type) "('a option, cmlv) WF_PEXPRESSION"
   (type) "cmlp" <= (type) "cmlv WF_PREDICATE"
   (type) "'a cmlvar" <= (type) "('a option, cmlv) PVAR"
+  (type) "('a, 'b) cmlop" <= (type) "'a cmle \<Rightarrow> 'b cmlvar \<times> bool \<Rightarrow> cmlp"
 
 definition BotDE :: "'a cmle" ("\<bottom>\<^sub>v") where
 "BotDE = LitPE None"
@@ -250,6 +252,11 @@ no_syntax
   "_pexpr_pred_var"     :: "idt \<Rightarrow> pexpr" ("@(_)")
   "_uexpr_quote"       :: "uexpr \<Rightarrow> 'a WF_EXPRESSION" ("(1^_^)")
   "_upred_pexpr"       :: "pexpr \<Rightarrow> upred" ("\<lparr>_\<rparr>")
+  "_uproc_pexpr"      :: "pexpr \<Rightarrow> uproc" ("\<lparr>_\<rparr>")
+  "_upred_callpr"     :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> pexpr \<Rightarrow> upred" ("call _'[_']")
+
+no_translations
+  "_upred_callpr f v"       == "CONST CallRO f v"
 
 abbreviation "vexpr_defined   \<equiv> (DefinedD :: 'a cmle \<Rightarrow> bool cmle)"
 
@@ -356,17 +363,26 @@ abbreviation VTautT :: "bool cmle \<Rightarrow> cmlp" where
 definition VTautHideT :: "bool cmle \<Rightarrow> cmlp" where
 "VTautHideT e \<equiv> (\<exists>\<^sub>p {def\<down>}. VTautT e \<Leftrightarrow>\<^sub>p TrueT)"
 
+definition "VTautHideO e = (\<lambda> r. VTautHideT e)"
+
 declare [[coercion VTautHideT]]
 
 declare VExprTrueT_def [eval, evale, evalp]
 declare VExprDefinedT_def [eval, evale, evalp]
 declare VTautHideT_def [eval, evale, evalp]
+declare VTautHideO_def [eval, evalpp, evalr, evalpr]
 
 syntax
   "_upred_vexpr"       :: "pexpr \<Rightarrow> upred" ("\<lparr>_\<rparr>")
+  "_uproc_vexpr"       :: "pexpr \<Rightarrow> uproc" ("\<lparr>_\<rparr>")
+  "_upred_vcallpr"     :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> pexprs \<Rightarrow> upred" ("call _'[_']")
+  "_upred_vcallpr_nil" :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> upred" ("call _'[']")
 
 translations
   "_upred_vexpr e" == "CONST VTautHideT e"
+  "_uproc_vexpr e" == "CONST VTautHideO e"
+  "_upred_vcallpr f ps" == "CONST CallRO f (_vexpr_prod ps)"
+  "_upred_vcallpr_nil f" == "CONST CallRO f CONST UnitD"
 
 subsection {* Evaluation theorems *}
 

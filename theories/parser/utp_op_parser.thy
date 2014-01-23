@@ -10,11 +10,21 @@ theory utp_op_parser
   imports utp_pred_parser
 begin
 
+text {* Operations / Procedures are implemented through functional abstraction *}
+
 type_synonym ('a, 'm) WF_OPERATION = "(('a, 'm) PVAR * bool) \<Rightarrow> 'm WF_PREDICATE"
 type_synonym ('a, 'b, 'm) WF_POPERATION = "('a, 'm) WF_PEXPRESSION \<Rightarrow> ('b, 'm) WF_OPERATION"
-  
+
 nonterminal uproc
 
+definition "TrueO           = (\<lambda> r. TrueP)"
+definition "FalseO          = (\<lambda> r. FalseP)"
+definition "NotO p          = (\<lambda> r. NotP (p r))"
+definition "AndO p q        = (\<lambda> r. AndP (p r) (q r))"
+definition "OrO p q         = (\<lambda> r. OrP (p r) (q r))"
+definition "ImpliesO p q    = (\<lambda> r. ImpliesP (p r) (q r))"
+definition "IffO p q        = (\<lambda> r. IffP (p r) (q r))"
+definition "ExprO e         = (\<lambda> r. PExprP e)"
 definition "SkipO           = (\<lambda> r. SkipR)"
 definition "PAssignO x e    = (\<lambda> r. PAssignR x e)"
 definition "SemiO p q       = (\<lambda> r. p r ;\<^sub>R q r)"
@@ -23,8 +33,33 @@ definition "ReturnO e       = (\<lambda> r. if (snd r) then PAssignR (fst r) e e
 definition "AssignRO x f v  = f v (x, True)"
 definition "CallRO f v      = f v (undefined, False)"
 
+declare TrueO_def [eval, evalpp, evalr, evalpr]
+declare FalseO_def [eval, evalpp, evalr, evalpr]
+declare NotO_def [eval, evalpp, evalr, evalpr]
+declare AndO_def [eval, evalpp, evalr, evalpr]
+declare OrO_def [eval, evalpp, evalr, evalpr]
+declare ImpliesO_def [eval, evalpp, evalr, evalpr]
+declare IffO_def [eval, evalpp, evalr, evalpr]
+declare ExprO_def [eval, evalpp, evalr, evalpr]
+declare SkipO_def [eval, evalpp, evalr, evalpr]
+declare PAssignO_def [eval, evalpp, evalr, evalpr]
+declare SemiO_def [eval, evalpp, evalr, evalpr]
+declare CondO_def [eval, evalpp, evalr, evalpr]
+declare ReturnO_def [eval, evalpp, evalr, evalpr]
+declare AssignRO_def [eval, evalpp, evalr, evalpr]
+declare CallRO_def [eval, evalpp, evalr, evalpr]
+
 syntax
-  "_uproc_quote"      :: "uproc \<Rightarrow> ('a, 'm) WF_OPERATION" ("UTPOP'(_')")
+  "_uproc_var"        :: "pttrn \<Rightarrow> uproc" ("(_)")
+  "_uproc_true"       :: "uproc" ("true")
+  "_uproc_false"      :: "uproc" ("false")
+  "_uproc_not"        :: "upred \<Rightarrow> upred" ("\<not> _" [40] 40)
+  "_uproc_and"        :: "uproc \<Rightarrow> uproc \<Rightarrow> uproc" (infixr "\<and>" 35)
+  "_uproc_or"         :: "uproc \<Rightarrow> uproc \<Rightarrow> uproc" (infixr "\<or>" 35)
+  "_uproc_imp"        :: "uproc \<Rightarrow> uproc \<Rightarrow> uproc" (infixr "\<Rightarrow>" 25)
+  "_uproc_iff"        :: "uproc \<Rightarrow> uproc \<Rightarrow> uproc" (infixr "\<Leftrightarrow>" 25)
+  "_uproc_pexpr"      :: "pexpr \<Rightarrow> uproc" ("\<lparr>_\<rparr>")
+  "_uproc_quote"      :: "uproc \<Rightarrow> ('a, 'm) WF_OPERATION" ("{:_:}")
   "_uproc_brack"      :: "uproc \<Rightarrow> uproc" ("'(_')")
   "_uproc_skip"       :: "uproc" ("II")
   "_uproc_assign"     :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> uproc" ("_ := _" [100] 100)
@@ -36,6 +71,15 @@ syntax
   "_upred_callpr"     :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> pexpr \<Rightarrow> upred" ("call _'[_']")
 
 translations
+  "_uproc_var p"            => "p"
+  "_uproc_true"             == "CONST TrueO"
+  "_uproc_false"            == "CONST FalseO"
+  "_uproc_not p"            == "CONST NotO p"
+  "_uproc_and p q"          == "CONST AndO p q"
+  "_uproc_or p q"           == "CONST OrO p q"
+  "_uproc_imp p q"          == "CONST ImpliesO p q"
+  "_uproc_iff p q"          == "CONST IffO p q"
+  "_uproc_pexpr e"          == "CONST ExprO e"
   "_uproc_quote x"          => "x"
   "_uproc_brack x"          => "x"
   "_uproc_skip"             == "CONST SkipO"
@@ -47,10 +91,20 @@ translations
   "_upred_assignpr x f v"   == "CONST AssignRO x f v"
   "_upred_callpr f v"       == "CONST CallRO f v"
 
-definition "utp_test_op1(x) \<equiv> UTPOP(if (x > \<guillemotleft>1::int\<guillemotright>) then return x else return \<guillemotleft>10\<guillemotright>)"
+term "{: p \<Rightarrow> q ; true :}"
+
+definition utp_test_op1 :: "(int, int, 'm :: INT_SORT) WF_POPERATION" where
+"utp_test_op1(x) = {: if (x > \<guillemotleft>1::int\<guillemotright>) then return x else return \<guillemotleft>10\<guillemotright> :}"
+
+declare utp_test_op1_def [evalpp, evalpr]
 
 term "`call utp_test_op1[$x]`"
 term "`x := utp_test_op1[\<guillemotleft>5\<guillemotright> + $y]`"
 term "`x := \<guillemotleft>5\<guillemotright>`"
+
+text {* Some quick tests *}
+
+lemma "\<lbrakk> x \<in> PUNDASHED \<rbrakk> \<Longrightarrow> `x := utp_test_op1[\<guillemotleft>1\<guillemotright>]` = `x := \<guillemotleft>10\<guillemotright>`"
+  by (utp_prel_auto_tac)
 
 end
