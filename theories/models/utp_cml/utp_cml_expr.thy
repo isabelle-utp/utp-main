@@ -63,6 +63,14 @@ abbreviation "FalseDE \<equiv> LitD False"
 definition MkVarD :: "string \<Rightarrow> 'a set \<Rightarrow> 'a cmlvar" where
 "MkVarD n t \<equiv> MkPlainP n False TYPE('a option) TYPE(cmlv)"
 
+lemma pvname_MkVarD [simp]:
+  "pvname (MkVarD s t) = bName s"
+  by (simp add:MkVarD_def)
+
+lemma pvaux_MkVarD [simp]:
+  "pvaux (MkVarD s t) = False"
+  by (simp add:MkVarD_def)
+
 abbreviation UnitD :: "unit cmle" where
 "UnitD \<equiv> LitD ()"
 
@@ -370,7 +378,7 @@ declare [[coercion VTautHideT]]
 declare VExprTrueT_def [eval, evale, evalp]
 declare VExprDefinedT_def [eval, evale, evalp]
 declare VTautHideT_def [eval, evale, evalp]
-declare VTautHideO_def [eval, evalpp, evalr, evalpr]
+declare VTautHideO_def [eval, evalpp, evalr, evalpr, uop_defs]
 
 syntax
   "_upred_vexpr"       :: "pexpr \<Rightarrow> upred" ("\<lparr>_\<rparr>")
@@ -508,6 +516,18 @@ lemma UNREST_PEXPR_NumD [unrest]:
   "vs \<sharp> NumD n"
   by (metis NumD_def UNREST_LitPE)
 
+lemma VExprTrueT_unrest [unrest]: 
+  "vs \<sharp> e \<Longrightarrow> vs \<sharp> VExprTrueT e"
+  by (simp add:VExprTrueT_def unrest typing)
+
+lemma VExprDefinedT_unrest [unrest]: 
+  "vs \<sharp> e \<Longrightarrow> vs \<sharp> VExprDefinedT e"
+  by (simp add:VExprDefinedT_def unrest typing)
+
+lemma VTautHideT_unrest [unrest]:
+  "vs \<sharp> e \<Longrightarrow> vs \<sharp> VTautHideT e"
+  by (simp add:VTautHideT_def unrest UNREST_PEXPR_subset)
+
 subsection {* Substitution theorems *}
 
 lemma LitD_subst [usubst]:
@@ -631,10 +651,13 @@ lemma Some_defined [defined]: "\<D> (Some x)"
 lemma None_not_defined [defined]: "\<not> \<D> None"
   by (simp add:Defined_option_def)
 
-
 lemma VTaut_TrueD [simp]:
   "`\<lparr>true\<rparr>` = `true`"
   by (utp_pred_tac)
+
+lemma SelectD_SingleD [simp]:
+  "SelectD #1 (SingleD x) = x"
+  by (simp add:evalp)
 
 (*
 lemma VTaut_FalseD [simp]:

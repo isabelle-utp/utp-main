@@ -234,6 +234,18 @@ lemma AndT_right_unit:
 done
 (*>*)
 
+lemma TVL_unrest [unrest]:
+  "\<lbrakk> vs \<sharp> p; vs \<sharp> q; def\<down> \<notin> vs \<rbrakk> \<Longrightarrow> vs \<sharp> TVL (p, q)"
+  by (simp add:TVL_def unrest)
+
+lemma TrueT_unrest [unrest]:
+  "def\<down> \<notin> vs \<Longrightarrow> vs \<sharp> TrueT"
+  by (simp add:TrueT_def unrest)
+
+lemma FalseT_unrest [unrest]:
+  "def\<down> \<notin> vs \<Longrightarrow> vs \<sharp> FalseT"
+  by (simp add:FalseT_def unrest)
+
 text {* We can then prove some simple properties about the new
 operators which we've defined, such as as that both conjunction and
 disjunction are commutative and associative. *}

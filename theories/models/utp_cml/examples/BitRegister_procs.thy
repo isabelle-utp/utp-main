@@ -19,8 +19,10 @@ and underflow if and when it occurs and informs the user. A byte is
 represented as a integer with the invariant that the value must be
 between 0 and 255.*}
 
-abbreviation 
+definition 
   "Byte \<equiv> \<parallel>@int inv n == (^n^ >= 0) and (^n^ <= 255)\<parallel>"
+
+declare Byte_def [cmlty_defs]
 
 text {* We can now prove some simple membership theorems for
 \texttt{Byte}. For instance the following lemma states that 1 is 
@@ -56,12 +58,12 @@ in CML are desugared to lambda terms . *}
 definition 
   "oflow = |lambda d @ (^d^.#1 + ^d^.#2) > 255|"
 
-(*<*)declare oflow_def [evalp](*>*)
+(*<*)declare oflow_def [cmlfun_defs](*>*)
 
 definition 
   "uflow = |lambda d @ (^d^.#1 - ^d^.#2) < 0|"
 
-(*<*)declare uflow_def [evalp](*>*)
+(*<*)declare uflow_def [cmlfun_defs](*>*)
 
 text {* For example an overflow can occur if we try to add together
 200 and 100, as proved below: *}
@@ -95,8 +97,29 @@ definition "load = MkChanD ''load'' \<parallel>@Byte\<parallel>"
 definition "add = MkChanD ''add'' \<parallel>@Byte\<parallel>"
 definition "sub = MkChanD ''add'' \<parallel>@Byte\<parallel>"
 
+declare init_def [cmlchan_defs]
+declare overflow_def [cmlchan_defs]
+declare underflow_def [cmlchan_defs]
+declare read_def [cmlchan_defs]
+declare load_def [cmlchan_defs]
+declare add_def [cmlchan_defs]
+declare sub_def [cmlchan_defs]
+
 text {* We use an Isabelle locale to create a new namespace for the
 \texttt{RegisterProc}. *}
+
+definition "ApplyO f e = (\<lambda> r. f e)"
+
+declare ApplyO_def [uop_defs]
+
+syntax
+  "_uproc_apply"    :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> uproc" ("_'(_')" [998,0] 998)
+
+translations
+  "_uproc_apply f p" == "CONST ApplyO f p"
+
+syntax
+  "_vty_prod"    :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixl "*" 20)
 
 locale RegisterProc
 begin
@@ -108,64 +131,88 @@ abbreviation "reg \<equiv> MkVarD ''reg'' \<parallel>@Byte\<parallel>"
 
 definition "RegisterProc_inv = `\<lparr> $reg hasType @Byte \<rparr> \<turnstile> \<lparr> $reg\<acute> hasType @Byte \<rparr>`"
 
+declare RegisterProc_inv_def [cmlproc_defs]
+
 text {* Now we declare the operations of the
 bit-register. \texttt{INIT} initialises the state variables to 0. *}
 
-definition INIT :: "(unit, unit) cmlop" where
-"INIT(parm) = {: true \<turnstile> reg := 0 :}"
+definition "pre_INIT = (\<lambda> inp. |true| )"
 
-declare INIT_def [eval, evalpp, evalpr]
+declare pre_INIT_def [cmlop_defs]
+
+definition "post_INIT = (\<lambda> inp outp. |true| )"
+
+declare post_INIT_def [cmlop_defs]
+
+definition "body_INIT inp = {: reg := 0 :}"
+
+declare body_INIT_def [cmlop_defs]
+
+(* DesignD (VExprDefinedT (pre i)) (VExprDefinedT (post i x)) *)
+
+definition "INIT = CMLOpO \<parallel>()\<parallel> \<parallel>()\<parallel> pre_INIT post_INIT body_INIT"
+
+declare INIT_def [cmlop_defs]
+
+declare DesignO_def [uop_defs]
+
+lemma VExprDefinedT_TrueDE [simp]: 
+  "VExprDefinedT TrueDE = TrueP"
+  by (utp_poly_tac)
 
 lemma INIT_sat_inv:
   "RegisterProc_inv \<sqsubseteq> `call INIT[]`"
-  apply (simp add:INIT_def RegisterProc_inv_def CallRO_def DesignO_def TrueO_def PAssignO_def)
+  apply (unfold_cml)
   apply (rule DesignD_refine)
-  apply (utp_poly_tac)
+  apply (force intro:refine)
   apply (rule AndP_refines_2)
   apply (rule AssignR_refine_alt)
   apply (simp_all add:closure typing defined unrest usubst) 
-  apply (utp_poly_tac)
+  apply (cml_tac)
 done
 
 text {* \texttt{LOAD} sets the register to a particular value. *}
 
-definition LOAD :: "(real * unit, unit) cmlop" where
-"LOAD = (\<lambda> parm. {: true \<turnstile> reg := @parm.#1 :})"
+definition "pre_LOAD(inp)        = |true|"
 
-(*
-lemma [simp]: "|mk_prod(@x).#1| = x"
-  by (simp add:evalp)
-*)
+declare pre_LOAD_def [cmlop_defs]
 
-lemma SelectD_SingleD [simp]:
-  "SelectD #1 (SingleD x) = x"
-  by (simp add:evalp)
+definition "post_LOAD(inp)(outp) = |true|"
 
-lemma pvaux_MkVarD [simp]:
-  "pvaux (MkVarD s t) = False"
-  by (simp add:MkVarD_def)
+declare post_LOAD_def [cmlop_defs]
+
+definition "body_LOAD(inp)       = {: reg := @inp.#1 :}"
+
+declare body_LOAD_def [cmlop_defs]
+
+definition "LOAD = CMLOpO \<parallel>@Byte*()\<parallel> \<parallel>()\<parallel> pre_LOAD post_LOAD body_LOAD"
+
+declare LOAD_def [cmlop_defs]
 
 lemma LOAD_sat_inv:
   "`\<lparr>&x hasType @Byte\<rparr>` \<Longrightarrow> RegisterProc_inv \<sqsubseteq> `call LOAD[&x]`"
-  apply (simp add:LOAD_def RegisterProc_inv_def CallRO_def DesignO_def TrueO_def PAssignO_def)
+  apply (unfold_cml)
   apply (rule DesignD_refine)
-  apply (utp_poly_tac)
+  apply (cml_tac)
   apply (rule AndP_refines_2)
   apply (rule AssignR_refine_alt)
-  apply (simp_all add:closure typing defined unrest)
-  apply (simp add:usubst typing defined closure unrest)
-done
+  apply (simp_all add:usubst closure typing defined unrest)
+done 
 
 text {* The \texttt{READ} operation returns the value of reg *}
 
 definition READ :: "(unit, real) cmlop" where
 "READ(parm) = {: true \<turnstile> return $reg :}"
 
+declare READ_def [cmlop_defs]
+
 lemma READ_sat_inv: 
   "RegisterProc_inv \<sqsubseteq> `call READ[]`"
   apply (simp add:READ_def RegisterProc_inv_def CallRO_def ReturnO_def DesignO_def TrueO_def PAssignO_def)
   apply (rule DesignD_refine)
-  apply (utp_poly_tac)
+  apply (cml_tac)
+  apply (rule SkipR_transport_refine)
+  apply (rule VTautHideT_unrest)
 oops
 
 text {* \texttt{ADD} adds the given value to the register, under the
@@ -174,11 +221,15 @@ assumption that an overflow will not occur. *}
 definition ADD :: "(real * unit, unit) cmlop" where
 "ADD(parm) = {: \<lparr> not oflow($reg, @parm.#1) \<rparr> \<turnstile> reg := $reg + @parm.#1 :}"
 
+declare ADD_def [cmlop_defs]
+
 text {* \texttt{SUBTR} subtracts the given value from the register,
 under the assumption that an underflow will not occur. *}
 
 definition SUBTR :: "(real * unit, unit) cmlop" where
 "SUBTR(parm) = {: \<lparr> not uflow($reg, @parm.#1) \<rparr> \<turnstile> reg := ($reg - @parm.#1) :}"
+
+declare SUBTR_def [cmlop_defs]
 
 text {* Then we create the actual \texttt{REG} process. It can be
 thought of as a calculator which waits for particular buttons to be
@@ -201,12 +252,16 @@ definition "REG =
              (  ([\<lparr>uflow($reg, ^i^)\<rparr>] & (underflow -> (call INIT[] ; REG))) 
              [] ([\<lparr>not uflow($reg, ^i^)\<rparr>] & (call SUBTR[&i] ; REG))))`"
 
+declare REG_def [cmlact_defs]
+
 text {* Finally we have the main action of the process, which waits
 for an \texttt{init} signal, and then initialises the register and
 begins the recursive behaviour described by \texttt{REG}. *}
 
 definition
   "MainAction = `init -> (call INIT[] ; REG)`"
+
+declare MainAction_def [cmlact_defs]
 
 (*<*)
 end

@@ -91,6 +91,9 @@ declare InvS_def [eval,evale,evalp]
 
 nonterminal vty_decl and vty_decls
 
+syntax (xsymbols)
+  "_vty_prod"    :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixl "\<times>" 20)
+
 syntax 
   "_vty_unit"    :: "vty" ("'(')")
   "_vty_quote"   :: "string \<Rightarrow> vty" ("<_>")
@@ -110,7 +113,6 @@ syntax
   "_vty_seq_of"  :: "vty \<Rightarrow> vty" ("@seq of _")
   "_vty_map_to"  :: "vty \<Rightarrow> vty \<Rightarrow> vty" ("@map _ to _")
   "_vty_seq1_of" :: "vty \<Rightarrow> vty" ("@seq1 of _")
-  "_vty_prod"    :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixl "\<times>" 20)
   "_vty_quo"     :: "vty \<Rightarrow> 'a set" ("\<parallel>_\<parallel>")
   "_vty_inv"     :: "vty \<Rightarrow> pttrn \<Rightarrow> pexpr \<Rightarrow> vty" ("_ inv _ == _")
   "_vty_collect" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> vty" ("(1{_|/ _})")

@@ -145,7 +145,7 @@ syntax
 translations
   "_uproc_design p q" == "CONST DesignO p q"
 
-declare DesignO_def [eval, evalpp, evalr, evalpr]
+declare DesignO_def [eval, evalpp, evalr, evalpr, uop_defs]
 
 subsection {* Closure / UNREST theorems *}
 

@@ -10,6 +10,15 @@ theory utp_op_parser
   imports utp_pred_parser
 begin
 
+text {* Theorem Attribute *}
+
+ML {*
+  structure uop_defs =
+    Named_Thms (val name = @{binding uop_defs} val description = "UTP operation defs")
+*}
+
+setup uop_defs.setup
+
 text {* Operations / Procedures are implemented through functional abstraction *}
 
 type_synonym ('a, 'm) WF_OPERATION = "(('a, 'm) PVAR * bool) \<Rightarrow> 'm WF_PREDICATE"
@@ -33,21 +42,21 @@ definition "ReturnO e       = (\<lambda> r. if (snd r) then PAssignR (fst r) e e
 definition "AssignRO x f v  = f v (x, True)"
 definition "CallRO f v      = f v (undefined, False)"
 
-declare TrueO_def [eval, evalpp, evalr, evalpr]
-declare FalseO_def [eval, evalpp, evalr, evalpr]
-declare NotO_def [eval, evalpp, evalr, evalpr]
-declare AndO_def [eval, evalpp, evalr, evalpr]
-declare OrO_def [eval, evalpp, evalr, evalpr]
-declare ImpliesO_def [eval, evalpp, evalr, evalpr]
-declare IffO_def [eval, evalpp, evalr, evalpr]
-declare ExprO_def [eval, evalpp, evalr, evalpr]
-declare SkipO_def [eval, evalpp, evalr, evalpr]
-declare PAssignO_def [eval, evalpp, evalr, evalpr]
-declare SemiO_def [eval, evalpp, evalr, evalpr]
-declare CondO_def [eval, evalpp, evalr, evalpr]
-declare ReturnO_def [eval, evalpp, evalr, evalpr]
-declare AssignRO_def [eval, evalpp, evalr, evalpr]
-declare CallRO_def [eval, evalpp, evalr, evalpr]
+declare TrueO_def [eval, evalpp, evalr, evalpr, uop_defs]
+declare FalseO_def [eval, evalpp, evalr, evalpr, uop_defs]
+declare NotO_def [eval, evalpp, evalr, evalpr, uop_defs]
+declare AndO_def [eval, evalpp, evalr, evalpr, uop_defs]
+declare OrO_def [eval, evalpp, evalr, evalpr, uop_defs]
+declare ImpliesO_def [eval, evalpp, evalr, evalpr, uop_defs]
+declare IffO_def [eval, evalpp, evalr, evalpr, uop_defs]
+declare ExprO_def [eval, evalpp, evalr, evalpr, uop_defs]
+declare SkipO_def [eval, evalpp, evalr, evalpr, uop_defs]
+declare PAssignO_def [eval, evalpp, evalr, evalpr, uop_defs]
+declare SemiO_def [eval, evalpp, evalr, evalpr, uop_defs]
+declare CondO_def [eval, evalpp, evalr, evalpr, uop_defs]
+declare ReturnO_def [eval, evalpp, evalr, evalpr, uop_defs]
+declare AssignRO_def [eval, evalpp, evalr, evalpr, uop_defs]
+declare CallRO_def [eval, evalpp, evalr, evalpr, uop_defs]
 
 syntax
   "_uproc_var"        :: "pttrn \<Rightarrow> uproc" ("(_)")

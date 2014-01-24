@@ -12,6 +12,21 @@ imports
   utp_cml_types
 begin
 
+text {* A CML operation specification takes an input type, an output type,
+        a precondition, a postcondition and the "body" of the operation. *}
+
+definition CMLOpO :: 
+  "'a set \<Rightarrow> 'b set \<Rightarrow> 
+   ('a cmle \<Rightarrow> bool cmle) \<Rightarrow> 
+   ('a cmle \<Rightarrow> 'b cmlvar \<Rightarrow> bool cmle) \<Rightarrow> 
+   ('a, 'b) cmlop \<Rightarrow> ('a, 'b) cmlop" where 
+"CMLOpO A B pre post body = (\<lambda> i x. VExprDefinedT (pre i) \<turnstile> 
+                                   (if (snd x) then VExprDefinedT (post i (fst x)) 
+                                               else TrueP) 
+                                   \<and>\<^sub>p (body i x))"
+
+declare CMLOpO_def [uop_defs]
+
 definition ParallelD :: 
   "cmlp \<Rightarrow> cmlv UCHAN set \<Rightarrow> cmlp \<Rightarrow> cmlp" where
 "ParallelD p cs q = ParallelCSP p (LitPE (Abs_USET (MkEvents cs))) q"

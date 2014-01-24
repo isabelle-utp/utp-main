@@ -120,6 +120,10 @@ lemma RefineP_equal_left_trans:
   "\<lbrakk> X = Y; Y \<sqsubseteq> Z \<rbrakk> \<Longrightarrow> X \<sqsubseteq> Z"
   by (simp)
 
+lemma SkipR_transport_refine [refine]:
+  "\<lbrakk> D\<^sub>1 \<sharp> p; q \<sqsubseteq> p\<acute> \<rbrakk> \<Longrightarrow> q \<sqsubseteq> p \<and>\<^sub>p II"
+  by (utp_rel_auto_tac)
+
 lemma AssignR_refinement [refine]:
   assumes
     "x \<in> UNDASHED" "v \<rhd>\<^sub>e x" "DASHED \<sharp> v" "q[v/\<^sub>px\<acute>] \<sqsubseteq> p"
