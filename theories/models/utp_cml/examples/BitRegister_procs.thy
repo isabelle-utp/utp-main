@@ -108,19 +108,6 @@ declare sub_def [cmlchan_defs]
 text {* We use an Isabelle locale to create a new namespace for the
 \texttt{RegisterProc}. *}
 
-definition "ApplyO f e = (\<lambda> r. f e)"
-
-declare ApplyO_def [uop_defs]
-
-syntax
-  "_uproc_apply"    :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> uproc" ("_'(_')" [998,0] 998)
-
-translations
-  "_uproc_apply f p" == "CONST ApplyO f p"
-
-syntax
-  "_vty_prod"    :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixl "*" 20)
-
 locale RegisterProc
 begin
 
@@ -155,10 +142,6 @@ definition "INIT = CMLOpO \<parallel>()\<parallel> \<parallel>()\<parallel> pre_
 declare INIT_def [cmlop_defs]
 
 declare DesignO_def [uop_defs]
-
-lemma VExprDefinedT_TrueDE [simp]: 
-  "VExprDefinedT TrueDE = TrueP"
-  by (utp_poly_tac)
 
 lemma INIT_sat_inv:
   "RegisterProc_inv \<sqsubseteq> `call INIT[]`"

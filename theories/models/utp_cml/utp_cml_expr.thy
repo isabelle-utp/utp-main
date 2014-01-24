@@ -659,6 +659,11 @@ lemma SelectD_SingleD [simp]:
   "SelectD #1 (SingleD x) = x"
   by (simp add:evalp)
 
+lemma VExprDefinedT_TrueDE [simp]: 
+  "VExprDefinedT TrueDE = TrueP"
+  by (utp_poly_tac)
+
+
 (*
 lemma VTaut_FalseD [simp]:
   "`\<lparr>false\<rparr>` = `false`"
