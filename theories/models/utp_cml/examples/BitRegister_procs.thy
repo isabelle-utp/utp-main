@@ -212,10 +212,30 @@ oops
 text {* \texttt{ADD} adds the given value to the register, under the
 assumption that an overflow will not occur. *}
 
-definition ADD :: "(real * unit, unit) cmlop" where
-"ADD(parm) = {: \<lparr> not oflow($reg, @parm.#1) \<rparr> \<turnstile> reg := $reg + @parm.#1 :}"
+definition "pre_ADD(inp) = |not oflow($reg, @inp.#1)|"
+
+declare pre_ADD_def [cmlop_defs]
+
+definition "post_ADD inp outp = |true|"
+
+declare post_ADD_def [cmlop_defs]
+
+definition "body_ADD inp = {: reg := $reg + @inp.#1 :}"
+
+declare body_ADD_def [cmlop_defs]
+
+definition "ADD = CMLOpO \<parallel>@Byte*()\<parallel> \<parallel>()\<parallel> pre_ADD post_ADD body_ADD"
 
 declare ADD_def [cmlop_defs]
+
+lemma ADD_sat_inv: 
+  "RegisterProc_inv \<sqsubseteq> `call READ[]`"
+  apply (unfold_cml)
+  apply (rule DesignD_refine)
+  apply (cml_tac)
+  apply (rule SkipR_transport_refine)
+  apply (rule VTautHideT_unrest)
+oops
 
 text {* \texttt{SUBTR} subtracts the given value from the register,
 under the assumption that an underflow will not occur. *}
