@@ -9,6 +9,7 @@ header {* CML Function Library *}
 theory utp_cml_functions
 imports 
   utp_cml_types
+  utp_cml_tac
   utp_cml_expr
 begin
 
@@ -275,8 +276,12 @@ translations
   "_vexpr_implies x y" == "CONST vexpr_implies x y"
   "_vexpr_all_set x xs p" == "CONST ForallSetD xs (\<lambda>x. p)"
 
+lemma FUnion_finsert [simp]: 
+  "\<Union>\<^sub>f (finsert x xs) = x \<union>\<^sub>f (\<Union>\<^sub>f xs)"
+  by (auto)
+
 lemma "|dunion({{1,3},{2},{3}})| = |{1,2,3}|"
-  by (auto simp add:evalp)
+  by (cml_tac)
 
 term "|$x <= $y|"
 
@@ -290,16 +295,16 @@ term "|forall x:@nat1 @ ^x^ > 1|"
 term "|forall x in @set {1} @ ^x^ > 5|"
 
 lemma "|forall x:@nat1 @ ^x^ > 0| = |true|"
-  by (simp add:evalp)
+  by (cml_tac)
 
 term "|x > (5 : @int)|"
 term "\<parallel>@int inv x == ^x^ > 5\<parallel>"
 
 lemma "|2 : (@int inv x == (^x^ < 5))| = |2 : @int|"
-  by (simp add:evalp typing defined)
+  by (cml_tac)
 
 lemma "|card {1,2,3}| = |3|"
-  by (simp add:evalp)
+  by (cml_tac)
 
 instantiation fset :: (DEFINED) DEFINED
 begin
@@ -313,16 +318,16 @@ end
 text {* Some test lemmas ... *}
 
 lemma "|{1} : @set of @int| = |{1}|"
-  by (simp add:evalp defined typing)
+  by (cml_tac)
 
 lemma "|{1,2,3} hasType @set of @nat| = |true|"
-  by (simp add:evalp)
+  by (cml_tac)
 
 lemma "|forall x : @int @ ^x^ in @set {^x^}| = |true|"
-  by (simp add:evalp)
+  by (cml_tac)
 
 lemma "|true => false| = |false|"
-  by (simp add:evalp)
+  by (cml_tac)
 
 term "`x := ({1,2,3,4,5,6,7} union {8,9})`"
 
@@ -330,23 +335,45 @@ lemma "|{2} union {3}| = |{2,3}|"
   by (simp add:evalp)
 
 lemma "|card {2}| = |1|"
-  by (simp add:evalp)
+  by (cml_tac)
 
 lemma "|2 in @set {3,2}| = |true|"
-  by (simp add:evalp)
+  by (cml_tac)
 
 lemma "|5 <= 6| = |true|"
-  by (simp add:evalp)
+  by (cml_tac)
 
 lemma "|[2,1,5,4]<2>| = |5|"
-  by (simp add:evalp)
+  by (cml_tac)
 
 lemma [simp]: "mconj (Some p) (Some q) = Some (p \<and> q)"
   by (case_tac p, case_tac[!] q, simp_all add:mconj_def)
 
+declare Defined_WF_PEXPRESSION_def [evalp]
+
+lemma Defined_option_bind_1 [dest]:
+  "\<D> ((x::'a option) \<guillemotright>= f) \<Longrightarrow> \<D> x"
+  by (case_tac x, simp_all)
+
+lemma "|defn(@x union @y)| = |defn(@x) and defn(@y)|"
+  apply (cml_auto_tac)
+  apply (drule_tac x="b" in spec)
+  apply (metis (mono_tags) Defined_option_bind_1 Defined_option_elim bind_lunit)
+  apply (metis Defined_option.simps(2) Defined_option_elim Some_defined bind_lunit)
+done
+
+lemma "|defn(@x<@i>)| = |defn(@i) and defn(@x) and (@i < len @x)|"
+  apply (cml_auto_tac)
+oops
+
 lemma "|defn(@x[@i])| = |defn(@i) and defn(@x) and (@i in @set (dom @x))|"
+  apply (cml_tac)
   apply (auto simp add:evalp Defined_WF_PEXPRESSION_def fdom.rep_eq)
+  apply (case_tac "\<lbrakk>x\<rbrakk>\<^sub>*b = None")
+  apply (simp)
   apply (case_tac "\<lbrakk>i\<rbrakk>\<^sub>*b = None")
 oops
+
+term "|{1 |-> 2, 2 |-> 3}|"
 
 end

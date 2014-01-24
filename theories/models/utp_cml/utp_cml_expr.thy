@@ -342,8 +342,10 @@ translations
   "_vexpr_fset (_pexprs x xs)" == "CONST vexpr_insert x (_vexpr_fset xs)"
   "_vexpr_fset x"              == "CONST vexpr_insert x CONST vexpr_empty"
 
-abbreviation mk_prod :: "'a \<Rightarrow> 'a option" where
-"mk_prod \<equiv> Some"
+definition mk_prod :: "'a \<Rightarrow> 'a option" where
+"mk_prod = Some"
+
+declare mk_prod_def [evalp]
 
 term "Op1D' id (vexpr_prod TrueDE (SingleD FalseDE))"
 
@@ -628,7 +630,7 @@ lemma bpfun_dom [defined]:
 
 lemma mk_prod_dom [defined]: 
   "dom (mk_prod \<circ> f) = UNIV"
-  by (auto)
+  by (auto simp add:mk_prod_def)
 
 lemma ApplyD_defined [defined]:
   "\<lbrakk> \<D> v; \<forall> b. the (\<lbrakk>v\<rbrakk>\<^sub>* b) \<in> dom f \<rbrakk> \<Longrightarrow> \<D> (ApplyD f v)"

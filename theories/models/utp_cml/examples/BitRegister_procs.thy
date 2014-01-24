@@ -135,13 +135,9 @@ definition "body_INIT inp = {: reg := 0 :}"
 
 declare body_INIT_def [cmlop_defs]
 
-(* DesignD (VExprDefinedT (pre i)) (VExprDefinedT (post i x)) *)
-
 definition "INIT = CMLOpO \<parallel>()\<parallel> \<parallel>()\<parallel> pre_INIT post_INIT body_INIT"
 
 declare INIT_def [cmlop_defs]
-
-declare DesignO_def [uop_defs]
 
 lemma INIT_sat_inv:
   "RegisterProc_inv \<sqsubseteq> `call INIT[]`"
@@ -229,21 +225,35 @@ definition "ADD = CMLOpO \<parallel>@Byte*()\<parallel> \<parallel>()\<parallel>
 declare ADD_def [cmlop_defs]
 
 lemma ADD_sat_inv: 
-  "RegisterProc_inv \<sqsubseteq> `call READ[]`"
+  "RegisterProc_inv \<sqsubseteq> `call ADD[&x]`"
   apply (unfold_cml)
   apply (rule DesignD_refine)
-  apply (cml_tac)
-  apply (rule SkipR_transport_refine)
-  apply (rule VTautHideT_unrest)
 oops
 
 text {* \texttt{SUBTR} subtracts the given value from the register,
 under the assumption that an underflow will not occur. *}
 
-definition SUBTR :: "(real * unit, unit) cmlop" where
-"SUBTR(parm) = {: \<lparr> not uflow($reg, @parm.#1) \<rparr> \<turnstile> reg := ($reg - @parm.#1) :}"
+definition "pre_SUBTR(inp) = |not uflow($reg, @inp.#1)|"
+
+declare pre_SUBTR_def [cmlop_defs]
+
+definition "post_SUBTR inp outp = |true|"
+
+declare post_SUBTR_def [cmlop_defs]
+
+definition "body_SUBTR inp = {: reg := $reg - @inp.#1 :}"
+
+declare body_SUBTR_def [cmlop_defs]
+
+definition "SUBTR = CMLOpO \<parallel>@Byte*()\<parallel> \<parallel>()\<parallel> pre_SUBTR post_SUBTR body_SUBTR"
 
 declare SUBTR_def [cmlop_defs]
+
+lemma SUBTR_sat_inv: 
+  "RegisterProc_inv \<sqsubseteq> `call SUBTR[&x]`"
+  apply (unfold_cml)
+  apply (rule DesignD_refine)
+oops
 
 text {* Then we create the actual \texttt{REG} process. It can be
 thought of as a calculator which waits for particular buttons to be

@@ -9,8 +9,6 @@ header {* Proof Tactic for CML *}
 theory utp_cml_tac
 imports 
   utp_cml_expr
-  utp_cml_types
-  utp_cml_functions
 begin
 
 text {* Theorem Attributes *}
@@ -132,6 +130,7 @@ lemma mimplies_Some_Some [simp]:
   "mimplies (Some x) (Some y) = Some (x \<longrightarrow> y)"
   by (case_tac x, auto)
 
+(*
 lemma cml_goal1:
   "|forall x : @bool @ &x => &x| = |true|"
   by (cml_auto_tac)
@@ -146,5 +145,6 @@ lemma cml_goal3:
 
 lemma cml_goal4: "|iota x : @nat @ &x = 5| = |5|"
   by (cml_auto_tac)
+*)
 
 end
