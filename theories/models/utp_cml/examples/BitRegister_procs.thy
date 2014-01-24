@@ -184,14 +184,25 @@ done
 
 text {* The \texttt{READ} operation returns the value of reg *}
 
-definition READ :: "(unit, real) cmlop" where
-"READ(parm) = {: true \<turnstile> return $reg :}"
+definition "pre_READ(inp) = |true|"
+
+declare pre_READ_def [cmlop_defs]
+
+definition "post_READ inp outp = |true|"
+
+declare post_READ_def [cmlop_defs]
+
+definition "body_READ inp = {: return $reg :}"
+
+declare body_READ_def [cmlop_defs]
+
+definition "READ = CMLOpO \<parallel>()\<parallel> \<parallel>@Byte\<parallel> pre_READ post_READ body_READ"
 
 declare READ_def [cmlop_defs]
 
 lemma READ_sat_inv: 
   "RegisterProc_inv \<sqsubseteq> `call READ[]`"
-  apply (simp add:READ_def RegisterProc_inv_def CallRO_def ReturnO_def DesignO_def TrueO_def PAssignO_def)
+  apply (unfold_cml)
   apply (rule DesignD_refine)
   apply (cml_tac)
   apply (rule SkipR_transport_refine)
