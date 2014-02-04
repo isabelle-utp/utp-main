@@ -10,9 +10,30 @@ imports
   utp_cml_inject
   utp_cml_sorts
   utp_cml_expr
+  utp_cml_laws
   utp_cml_tac
   utp_cml_types
   utp_cml_functions
   utp_cml_records
   utp_cml_process
-begin end
+begin 
+
+text {* Remove syntax which will likely clash *}
+
+hide_const "SUB"
+hide_const "floor"
+
+no_notation
+  J_pred ("J") and
+  relcomp (infixr "O" 75)
+
+(* Remove standard HOL arithmetic operators *)
+
+no_notation
+  plus (infixl "+" 65) and
+  minus (infixl "-" 65) and
+  times (infixl "*" 70) and
+  uminus ("- _" [81] 80) and
+  divide (infixl "'/" 70)
+
+end

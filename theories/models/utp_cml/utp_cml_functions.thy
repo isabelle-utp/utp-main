@@ -10,6 +10,7 @@ theory utp_cml_functions
 imports 
   utp_cml_types
   utp_cml_tac
+  utp_cml_laws
   utp_cml_expr
 begin
 
@@ -226,10 +227,6 @@ abbreviation "vexpr_psubset   \<equiv> Op2D' (op \<subset>\<^sub>f)"
 abbreviation "vexpr_fpower    \<equiv> Op1D' FinPow"
 abbreviation "vexpr_card      \<equiv> Op1D' fcard"
 abbreviation "vexpr_lookup    \<equiv> Op2D (\<lambda> (x, m). \<langle>m\<rangle>\<^sub>m x)"
-abbreviation "vexpr_not       \<equiv> (Op1PE mnot :: bool cmle \<Rightarrow> bool cmle)"
-abbreviation "vexpr_and       \<equiv> (Op2PE mconj :: bool cmle \<Rightarrow> bool cmle \<Rightarrow> bool cmle)"
-abbreviation "vexpr_or        \<equiv> (Op2PE mdisj :: bool cmle \<Rightarrow> bool cmle \<Rightarrow> bool cmle)"
-abbreviation "vexpr_implies   \<equiv> (Op2PE mimplies :: bool cmle \<Rightarrow> bool cmle \<Rightarrow> bool cmle)"
 
 (*
 abbreviation "vexpr_and       \<equiv> Op2D' conj"
@@ -239,6 +236,50 @@ abbreviation "vexpr_implies   \<equiv> Op2D' implies"
 
 definition ForallSetD :: "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
 "ForallSetD xs f = MkPExpr (\<lambda> b. (Some (\<forall> x \<in> \<langle>the (\<lbrakk>xs\<rbrakk>\<^sub>* b)\<rangle>\<^sub>f. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)))"
+
+definition FCollect :: "('a \<Rightarrow> bool option) \<Rightarrow> 'a fset option" where
+"FCollect p = (if (finite (Collect (the \<circ> p)) \<and> None \<notin> range p) then Some (Abs_fset (Collect (the \<circ> p))) else None)"
+
+definition map_fset_option :: "('a option) fset \<Rightarrow> 'a fset option" where
+"map_fset_option xs = (if (None \<in>\<^sub>f xs) then None else Some (the `\<^sub>f xs))"
+
+definition FCollect_ext :: "('a \<Rightarrow> 'b option) \<Rightarrow> ('a \<Rightarrow> bool option) \<Rightarrow> 'b fset option" where
+"FCollect_ext f p = do { xs \<leftarrow> FCollect p; map_fset_option (f `\<^sub>f xs) }"
+
+lemma the_Some_image [simp]:
+  "the ` Some ` xs = xs"
+  by (auto simp add:image_iff)
+
+lemma map_fset_Some [simp]: 
+  "map_fset_option (Some `\<^sub>f xs) = Some xs"
+  by (auto simp add:map_fset_option_def)
+
+lemma mconj_True_right [simp]: 
+  "mconj p \<lfloor>True\<rfloor> = p"
+  apply (case_tac p)
+  apply (simp_all add:mconj_def)
+  apply (case_tac a)
+  apply (simp_all add:mconj_def)
+done
+
+lemma the_comp_Some [simp]: 
+  "the \<circ> (\<lambda>x. \<lfloor>p x\<rfloor>) = p"
+  by (auto)
+
+lemma FCollect_ext_Some [simp]: 
+  "FCollect_ext Some xs = FCollect xs"
+  apply (case_tac "FCollect xs")
+  apply (auto simp add:FCollect_ext_def)
+done
+
+definition vcollect :: "('a \<Rightarrow> bool cmle) \<Rightarrow> 'a fset cmle" where
+"vcollect P = MkPExpr (\<lambda> b. FCollect (\<lambda> x. \<lbrakk>P x\<rbrakk>\<^sub>*b))"
+
+definition vcollect_ext :: "('a \<Rightarrow> 'b cmle) \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> 'b fset cmle" where
+"vcollect_ext f P = MkPExpr (\<lambda> b. FCollect_ext (\<lambda> x. \<lbrakk>f x\<rbrakk>\<^sub>*b) (\<lambda> x. \<lbrakk>P x\<rbrakk>\<^sub>*b))"
+
+abbreviation vcollect_ext_ty :: "('a \<Rightarrow> 'b cmle) \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> 'b fset cmle" where
+"vcollect_ext_ty f A P \<equiv> vcollect_ext f (\<lambda> x. AndD (P x) (LitD (x \<in> A)))"
 
 syntax
   "_vexpr_quotev"  :: "string \<Rightarrow> pexpr" ("<_>")
@@ -252,11 +293,8 @@ syntax
   "_vexpr_psubset" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "psubset" 50)
   "_vexpr_fpower"  :: "pexpr \<Rightarrow> pexpr" ("power _")
   "_vexpr_card"    :: "pexpr \<Rightarrow> pexpr" ("card _")
-  "_vexpr_not"     :: "pexpr \<Rightarrow> pexpr" ("not _" [40] 40)
-  "_vexpr_and"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "and" 35)
-  "_vexpr_or"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "or" 30)
-  "_vexpr_implies" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "=>" 25)
   "_vexpr_all_set" :: "pttrn \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ in @set _ @/ _)" [0, 0, 10] 10)
+  "_vexpr_collect" :: "pexpr \<Rightarrow> pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("{_ | _ : _ @/ _}")
 
 translations
   "_vexpr_quotev x"    == "CONST LitD (CONST QuoteD x)"
@@ -270,11 +308,16 @@ translations
   "_vexpr_psubset x y" == "CONST vexpr_psubset x y"
   "_vexpr_fpower xs"   == "CONST vexpr_fpower xs"
   "_vexpr_card x"      == "CONST vexpr_card x"
-  "_vexpr_not x"       == "CONST vexpr_not x"
-  "_vexpr_and x y"     == "CONST vexpr_and x y"
-  "_vexpr_or x y"      == "CONST vexpr_or x y"
-  "_vexpr_implies x y" == "CONST vexpr_implies x y"
   "_vexpr_all_set x xs p" == "CONST ForallSetD xs (\<lambda>x. p)"
+  "_vexpr_collect e x t p" => "CONST vcollect_ext_ty (\<lambda> x. e) t (\<lambda> x. p)"
+
+term "|{ %x + 1 | x : @nat @ %x > 1}|"
+
+lemma "|{ %x | x : @real @ %x in @set %xs}| = |%xs|"
+  apply (simp add:vcollect_ext_def evalp)
+  apply (auto simp add:FCollect_def)
+done
+
 
 lemma FUnion_finsert [simp]: 
   "\<Union>\<^sub>f (finsert x xs) = x \<union>\<^sub>f (\<Union>\<^sub>f xs)"
@@ -375,5 +418,8 @@ lemma "|defn(@x[@i])| = |defn(@i) and defn(@x) and (@i in @set (dom @x))|"
 oops
 
 term "|{1 |-> 2, 2 |-> 3}|"
+
+lemma "|forall x:@nat @ &x >= 0 => (floor (5 / &x)) hasType @nat| = |true|"
+  by (cml_auto_tac)
 
 end

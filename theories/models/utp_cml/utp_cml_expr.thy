@@ -39,12 +39,14 @@ lemma TypeUSound_cml [typing]: "TYPEUSOUND('a::vbasic option, cmlv)"
 (* CML expressions and CML predicates *)
 
 type_synonym 'a cmle        = "('a option, cmlv) WF_PEXPRESSION"
+type_synonym cmlb           = "cmlv WF_BINDING"
 type_synonym cmlp           = "cmlv WF_PREDICATE" 
 type_synonym 'a cmlvar      = "('a option, cmlv) PVAR"
 type_synonym ('a, 'b) cmlop = "('a option, 'b option, cmlv) WF_POPERATION"
 
 translations
   (type) "'a cmle" <= (type) "('a option, cmlv) WF_PEXPRESSION"
+  (type) "cmlb" <= (type) "cmlv WF_BINDING"
   (type) "cmlp" <= (type) "cmlv WF_PREDICATE"
   (type) "'a cmlvar" <= (type) "('a option, cmlv) PVAR"
   (type) "('a, 'b) cmlop" <= (type) "'a cmle \<Rightarrow> 'b cmlvar \<times> bool \<Rightarrow> cmlp"
@@ -122,6 +124,11 @@ definition ListD :: "'a::vbasic cmle list \<Rightarrow> 'a list cmle" where
 definition FSetD :: "'a::vbasic cmle fset \<Rightarrow> 'a fset cmle" where
 "FSetD xs = MkPExpr (\<lambda> b. fset_option ((\<lambda> v. \<lbrakk>v\<rbrakk>\<^sub>* b) `\<^sub>f xs))"
 
+abbreviation "NotD     \<equiv> (Op1PE mnot :: bool cmle \<Rightarrow> bool cmle)"
+abbreviation "AndD     \<equiv> (Op2PE mconj :: bool cmle \<Rightarrow> bool cmle \<Rightarrow> bool cmle)"
+abbreviation "OrD      \<equiv> (Op2PE mdisj :: bool cmle \<Rightarrow> bool cmle \<Rightarrow> bool cmle)"
+abbreviation "ImpliesD \<equiv> (Op2PE mimplies :: bool cmle \<Rightarrow> bool cmle \<Rightarrow> bool cmle)"
+
 definition ForallD :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
 "ForallD xs f = MkPExpr (\<lambda> b. (Some (\<forall> x \<in> xs. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)))"
 
@@ -149,6 +156,10 @@ declare FunD_def [evalp]
 abbreviation DefinedD :: "'a cmle \<Rightarrow> bool cmle" where
 "DefinedD v \<equiv> LitD (\<D> v)"
 
+definition HasTypeD :: "'a cmle \<Rightarrow> 'a set \<Rightarrow> bool cmle" where
+"HasTypeD e t \<equiv> MkPExpr (\<lambda> b. \<lbrakk>e\<rbrakk>\<^sub>*b \<guillemotright>= (\<lambda> x. \<lfloor>x \<in> t\<rfloor>))"
+
+(*
 definition HasType :: "'a cmle \<Rightarrow> 'a set \<Rightarrow> bool" (infix ":\<^sub>d" 50) where
 "HasType e t = (\<forall> b. \<D> (\<lbrakk>e\<rbrakk>\<^sub>* b) \<longrightarrow> the (\<lbrakk>e\<rbrakk>\<^sub>*b) \<in> t)"
 
@@ -156,6 +167,7 @@ definition HasTypeD :: "'a cmle \<Rightarrow> 'a set \<Rightarrow> bool cmle" wh
 "HasTypeD e t \<equiv> MkPExpr (\<lambda> b. if (\<D> (\<lbrakk>e\<rbrakk>\<^sub>* b) \<and> the (\<lbrakk>e\<rbrakk>\<^sub>* b) \<in> t)
                               then Some True 
                               else Some False)"
+*)
 
 definition CoerceD :: "'a cmle \<Rightarrow> 'a set \<Rightarrow> 'a cmle" where
 "CoerceD e t \<equiv> MkPExpr (\<lambda> b. if (\<D> (\<lbrakk>e\<rbrakk>\<^sub>* b) \<and> the (\<lbrakk>e\<rbrakk>\<^sub>* b) \<in> t)
@@ -273,14 +285,19 @@ syntax
   "_vexpr_defined"  :: "pexpr \<Rightarrow> pexpr" ("defn'(_')")
   "_vexpr_expr_var" :: "idt \<Rightarrow> pexpr" ("@_" [999] 999)
   "_vexpr_val_var"  :: "idt \<Rightarrow> pexpr" ("&_" [999] 999)
+  "_vexpr_lit_var"  :: "idt \<Rightarrow> pexpr" ("%_" [999] 999)
   "_vexpr_equal"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "=" 50)
   "_vexpr_nequal"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "<>" 50)
   "_vexpr_unit"     :: "pexpr" ("'(')")
   "_vexpr_true"     :: "pexpr" ("true")
   "_vexpr_false"    :: "pexpr" ("false")
+  "_vexpr_not"     :: "pexpr \<Rightarrow> pexpr" ("not _" [40] 40)
+  "_vexpr_and"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "and" 35)
+  "_vexpr_or"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "or" 30)
+  "_vexpr_implies" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "=>" 25)
   "_vexpr_token"    :: "pexpr \<Rightarrow> pexpr" ("mk'_token'(_')")
   "_vexpr_num"      :: "real \<Rightarrow> pexpr" ("_")
-  "_vexpr_bot"      :: "pexpr" ("undefined")
+  "_vexpr_bot"      :: "pexpr" ("undef")
   "_vexpr_lit"      :: "'a::vbasic option \<Rightarrow> pexpr" ("(1^_^)")
   "_vexpr_litd"     :: "'a::vbasic \<Rightarrow> pexpr" ("(1<<_>>)")
   "_vexpr_lambda"    :: "idt \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3lambda _ @/ _)" [0, 10] 10)
@@ -310,11 +327,16 @@ translations
   "_vexpr_defined x"           == "CONST vexpr_defined x"
   "_vexpr_expr_var x"          => "x"
   "_vexpr_val_var x"           == "CONST LitPE x"
+  "_vexpr_lit_var x"           == "CONST LitD x"
   "_vexpr_equal"               == "CONST vexpr_equal"
   "_vexpr_nequal"              == "CONST vexpr_nequal"
   "_vexpr_unit"                == "CONST UnitD"
   "_vexpr_true"                == "CONST TrueDE"
   "_vexpr_false"               == "CONST FalseDE"
+  "_vexpr_not x"               == "CONST NotD x"
+  "_vexpr_and x y"             == "CONST AndD x y"
+  "_vexpr_or x y"              == "CONST OrD x y"
+  "_vexpr_implies x y"         == "CONST ImpliesD x y"
   "_vexpr_token x"             == "CONST TokenD x"
   "_vexpr_num n"               == "CONST NumD n"
   "_vexpr_bot"                 == "CONST BotDE"
@@ -437,8 +459,20 @@ lemma EvalD_Op3D [eval,evalp,evale]:
   "\<lbrakk>Op3D f x y z\<rbrakk>\<^sub>*b = do { v1 <- \<lbrakk>x\<rbrakk>\<^sub>*b; v2 <- \<lbrakk>y\<rbrakk>\<^sub>*b; v3 <- \<lbrakk>z\<rbrakk>\<^sub>*b; f (v1, v2, v3) }"
   by (simp add:Op3D_def evalp)
 
+notation
+  mconj (infixr "\<and>\<^sub>3" 35) and
+  mdisj (infixr "\<or>\<^sub>3" 35) and
+  mimplies (infixr "\<Rightarrow>\<^sub>3" 25) and
+  mnot ("\<not>\<^sub>3 _" [40] 40)
+
+(*
 lemma EvalD_HasTypeD [eval,evalp,evale]:
   "\<lbrakk>HasTypeD e t\<rbrakk>\<^sub>*b = (if (\<D> (\<lbrakk>e\<rbrakk>\<^sub>* b) \<and> the (\<lbrakk>e\<rbrakk>\<^sub>* b) \<in> t) then \<lfloor>True\<rfloor> else \<lfloor>False\<rfloor>)"
+  by (simp add:HasTypeD_def)
+*)
+
+lemma EvalD_HasTypeD [eval,evalp,evale]:
+  "\<lbrakk>HasTypeD e t\<rbrakk>\<^sub>*b = \<lbrakk>e\<rbrakk>\<^sub>*b \<guillemotright>= (\<lambda> x. \<lfloor>x \<in> t\<rfloor>)"
   by (simp add:HasTypeD_def)
 
 lemma EvalD_CoerceD [eval,evalp,evale]:
@@ -675,7 +709,7 @@ lemma VTaut_FalseD [simp]:
 done  
 *)
 
-lemma BotD_defn: "|defn(undefined)| = |false|"
+lemma BotD_defn: "|defn(undef)| = |false|"
   by (simp add:evalp Defined_WF_PEXPRESSION_def)
 
 lemma LitD_defn: "|defn(<<x>>)| = |true|"

@@ -176,7 +176,7 @@ lemma LOAD_sat_inv:
   apply (rule AndP_refines_2)
   apply (rule AssignR_refine_alt)
   apply (simp_all add:usubst closure typing defined unrest)
-done 
+done
 
 text {* The \texttt{READ} operation returns the value of reg *}
 
