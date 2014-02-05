@@ -218,9 +218,6 @@ consts
   unprime   :: "'a \<Rightarrow> 'a" ("_~" [1000] 1000)
   subscr    :: "'a \<Rightarrow> nat \<Rightarrow> 'a" ("_\<^bsub>_\<^esub>")
 
-notation
-  Some ("\<lfloor>_\<rfloor>")
-
 setup {*
   Adhoc_Overloading.add_overloaded @{const_name alphabet}
 *}

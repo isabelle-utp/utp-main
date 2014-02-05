@@ -83,10 +83,11 @@ definition Op1D :: "('a::vbasic \<rightharpoonup> 'b::vbasic) \<Rightarrow> 'a c
 
 text {* Build a unary partial function from a normal binary HOL function *}
 
-definition upfun :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b option)" where
-"upfun f = (\<lambda> v. Some (f v))"
+definition upfun :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" where
+"upfun A f = ((\<lambda> v. Some (f v)) |` A)"
 
-abbreviation "Op1D' f \<equiv> Op1D (upfun f)"
+abbreviation "Op1DR A f \<equiv> Op1D (upfun A f)"
+abbreviation "Op1D' f \<equiv> Op1DR UNIV f"
 
 definition Op2D :: "('a::vbasic * 'b::vbasic \<rightharpoonup> 'c::vbasic) 
                    \<Rightarrow> 'a cmle \<Rightarrow> 'b cmle \<Rightarrow> 'c cmle" where
@@ -96,10 +97,11 @@ definition Op2D :: "('a::vbasic * 'b::vbasic \<rightharpoonup> 'c::vbasic)
 
 text {* Build a binary partial function from a normal binary HOL function *}
 
-definition bpfun :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a * 'b \<Rightarrow> 'c option)" where
-"bpfun f \<equiv> (\<lambda> (v1, v2). Some (f v1 v2))"
+definition bpfun :: "('a * 'b) set \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a * 'b \<Rightarrow> 'c option)" where
+"bpfun AB f \<equiv> (\<lambda> (v1, v2). Some (f v1 v2)) |` AB"
 
-abbreviation "Op2D' f \<equiv> Op2D (bpfun f)"
+abbreviation "Op2DR AB f \<equiv> Op2D (bpfun AB f)"
+abbreviation "Op2D' f \<equiv> Op2DR UNIV f"
 
 definition Op3D :: "('a::vbasic * 'b::vbasic * 'c::vbasic \<rightharpoonup> 'd::vbasic) 
                    \<Rightarrow> 'a cmle \<Rightarrow> 'b cmle \<Rightarrow> 'c cmle \<Rightarrow> 'd cmle" where
@@ -130,22 +132,22 @@ abbreviation "OrD      \<equiv> (Op2PE mdisj :: bool cmle \<Rightarrow> bool cml
 abbreviation "ImpliesD \<equiv> (Op2PE mimplies :: bool cmle \<Rightarrow> bool cmle \<Rightarrow> bool cmle)"
 
 definition ForallD :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
-"ForallD xs f = MkPExpr (\<lambda> b. (Some (\<forall> x \<in> xs. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)))"
+"ForallD xs f = MkPExpr (\<lambda> b. (Some (\<forall> x \<in> xs. [\<lbrakk>f (Some x)\<rbrakk>\<^sub>* b]\<^sub>3)))"
 
 definition ExistsD :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
-"ExistsD xs f = MkPExpr (\<lambda> b. (Some (\<exists> x \<in> xs. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)))"
+"ExistsD xs f = MkPExpr (\<lambda> b. (Some (\<exists> x \<in> xs. [\<lbrakk>f (Some x)\<rbrakk>\<^sub>* b]\<^sub>3)))"
 
 definition Exists1D :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
-"Exists1D xs f = MkPExpr (\<lambda> b. (Some (\<exists>! x \<in> xs. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)))"
+"Exists1D xs f = MkPExpr (\<lambda> b. (Some (\<exists>! x \<in> xs. [\<lbrakk>f (Some x)\<rbrakk>\<^sub>* b]\<^sub>3)))"
 
 definition IotaD :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> 'a cmle" where 
-"IotaD xs f = MkPExpr (\<lambda> b. (if (\<exists>! x \<in> xs. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)
-                                then Some (THE x. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)
+"IotaD xs f = MkPExpr (\<lambda> b. (if (\<exists>! x \<in> xs. [\<lbrakk>f (Some x)\<rbrakk>\<^sub>* b]\<^sub>3)
+                                then Some (THE x. [\<lbrakk>f (Some x)\<rbrakk>\<^sub>* b]\<^sub>3)
                                 else None))"
 
 definition EpsD :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> 'a cmle" where 
-"EpsD xs f = MkPExpr (\<lambda> b. (if (\<exists> x \<in> xs. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)
-                                then Some (SOME x. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)
+"EpsD xs f = MkPExpr (\<lambda> b. (if (\<exists> x \<in> xs. [\<lbrakk>f (Some x)\<rbrakk>\<^sub>* b]\<^sub>3)
+                                then Some (SOME x. [\<lbrakk>f (Some x)\<rbrakk>\<^sub>* b]\<^sub>3)
                                 else None))"
 
 definition FunD :: "'a set \<Rightarrow> ('a option \<Rightarrow> 'b cmle) \<Rightarrow> 'a \<Rightarrow> 'b option" where
@@ -175,7 +177,7 @@ definition CoerceD :: "'a cmle \<Rightarrow> 'a set \<Rightarrow> 'a cmle" where
                              else None)"
 
 definition CollectD :: "'a::vbasic cmle \<Rightarrow> bool cmle \<Rightarrow> 'a set" where
-"CollectD v p = {the (\<lbrakk>v\<rbrakk>\<^sub>*b) | b. \<D> (\<lbrakk>v\<rbrakk>\<^sub>*b) \<and> \<lbrakk>p\<rbrakk>\<^sub>*b = Some True}"
+"CollectD v p = {the (\<lbrakk>v\<rbrakk>\<^sub>*b) | b. \<D> (\<lbrakk>v\<rbrakk>\<^sub>*b) \<and> [\<lbrakk>p\<rbrakk>\<^sub>*b]\<^sub>3}"
 
 declare CollectD_def [eval,evale,evalp]
 
@@ -436,7 +438,7 @@ lemma EvalD_BotDE [eval,evalp,evale]:
   by (simp add:BotDE_def evalp)
 
 lemma EvalD_ForallD [eval,evalp,evale]:
-  "\<lbrakk>ForallD xs f\<rbrakk>\<^sub>*b = \<lfloor>\<forall>x\<in>xs. \<lbrakk>f (Some x)\<rbrakk>\<^sub>*b = \<lfloor>True\<rfloor>\<rfloor>"
+  "\<lbrakk>ForallD xs f\<rbrakk>\<^sub>*b = \<lfloor>\<forall>x\<in>xs. [\<lbrakk>f \<lfloor>x\<rfloor>\<rbrakk>\<^sub>*b]\<^sub>3\<rfloor>"
   by (simp add:ForallD_def)
 
 lemma EvalD_Op1D [eval,evalp,evale]:
@@ -448,7 +450,7 @@ lemma EvalD_ApplyD [eval,evalp,evale]:
   by (simp add:ApplyD_def evalp)
 
 lemma EvalD_SelectD [eval,evalp,evale]:
-  "\<lbrakk>SelectD f x\<rbrakk>\<^sub>*b = \<lbrakk>x\<rbrakk>\<^sub>* b >>= upfun f"
+  "\<lbrakk>SelectD f x\<rbrakk>\<^sub>*b = \<lbrakk>x\<rbrakk>\<^sub>* b >>= upfun UNIV f"
   by (simp add:SelectD_def evalp)
 
 lemma EvalD_Op2D [eval,evalp,evale]:
@@ -458,12 +460,6 @@ lemma EvalD_Op2D [eval,evalp,evale]:
 lemma EvalD_Op3D [eval,evalp,evale]:
   "\<lbrakk>Op3D f x y z\<rbrakk>\<^sub>*b = do { v1 <- \<lbrakk>x\<rbrakk>\<^sub>*b; v2 <- \<lbrakk>y\<rbrakk>\<^sub>*b; v3 <- \<lbrakk>z\<rbrakk>\<^sub>*b; f (v1, v2, v3) }"
   by (simp add:Op3D_def evalp)
-
-notation
-  mconj (infixr "\<and>\<^sub>3" 35) and
-  mdisj (infixr "\<or>\<^sub>3" 35) and
-  mimplies (infixr "\<Rightarrow>\<^sub>3" 25) and
-  mnot ("\<not>\<^sub>3 _" [40] 40)
 
 (*
 lemma EvalD_HasTypeD [eval,evalp,evale]:
@@ -483,11 +479,14 @@ declare IotaD_def [evalp]
 declare EpsD_def [evalp]
 
 lemma upfun_apply [simp]:
-  "upfun f x = Some (f x)"
+  "upfun A f x = (if (x \<in> A) then Some (f x) else None)"
   by (simp add:upfun_def)
 
 lemma bpfun_apply [simp]:
-  "bpfun f x = Some (f (fst x) (snd x))"
+  "bpfun AB f x = (if (x \<in> AB) 
+                   then Some (f (fst x) (snd x))
+                   else None)"
+  apply (auto)
   apply (case_tac x)
   apply (auto simp add:bpfun_def)
 done
@@ -655,11 +654,11 @@ lemma Op2D_EvalD_defined [defined]:
 done
 
 lemma upfun_dom [defined]: 
-  "dom (upfun f) = UNIV"
+  "dom (upfun A f) = A"
   by (auto simp add:upfun_def)
 
 lemma bpfun_dom [defined]: 
-  "dom (bpfun f) = UNIV"
+  "dom (bpfun AB f) = AB"
   by (auto simp add:bpfun_def)
 
 lemma mk_prod_dom [defined]: 

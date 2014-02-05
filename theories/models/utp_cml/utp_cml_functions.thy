@@ -32,29 +32,26 @@ lemma inds_cons [simp]:
   "inds (x#xs) = finsert 1 (Suc `\<^sub>f (inds xs))"
   by (auto simp add:inds.rep_eq)
 
-definition "vhd xs       = (case xs of [] \<Rightarrow> None | (x#xs) \<Rightarrow> Some x)"
-definition "vtl xs       = (case xs of [] \<Rightarrow> None | (x#xs) \<Rightarrow> Some xs)"
 definition "vinds xs     \<equiv> real `\<^sub>f (inds xs)"
 definition "vconc xs     \<equiv> foldr (op @) xs []"
-definition "vseqapp      = (\<lambda> (xs, i::real). if (nat (floor i) < length xs)
-                                             then Some (nth xs (nat (floor i)))
-                                             else None)"
 
-declare vhd_def [eval,evalp]
-declare vtl_def [eval,evalp]
 declare vinds_def [eval,evalp]
 declare vconc_def [eval,evalp]
-declare vseqapp_def [eval,evalp]
 
-abbreviation "vexpr_hd      \<equiv> Op1D vhd"
-abbreviation "vexpr_tl      \<equiv> Op1D vtl"
+definition "vexpr_hd      = Op1DR {x. x \<noteq> []} hd"
+definition "vexpr_tl      = Op1DR {x. x \<noteq> []} tl"
+definition "vexpr_seqapp  = Op2DR {(xs, i::real). i \<in> Nats \<and> nat (floor i) < length xs} (\<lambda> xs i. nth xs (nat (floor i)))"
+
+declare vexpr_hd_def [eval,evalp]
+declare vexpr_tl_def [eval,evalp]
+declare vexpr_seqapp_def [eval,evalp]
+
 abbreviation "vexpr_elems   \<equiv> Op1D' fset"
 abbreviation "vexpr_concat  \<equiv> Op2D' (op @)"
 abbreviation "vexpr_conc    \<equiv> Op1D' vconc"
 abbreviation "vexpr_reverse \<equiv> Op1D' rev"
 abbreviation "vexpr_inds    \<equiv> Op1D' vinds"
 abbreviation "vexpr_len     \<equiv> Op1D' length"
-abbreviation "vexpr_seqapp  \<equiv> Op2D  vseqapp"
 
 syntax
   "_vexpr_hd"      :: "pexpr \<Rightarrow> pexpr" ("hd _")
@@ -129,6 +126,14 @@ is "map_inv" by (simp add:fmaps_def)
 definition fmap_domr' :: "'a fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" where
 "fmap_domr' s f = fmap_domr (fdom f -\<^sub>f s) f"
 
+definition "vmapapp = (\<lambda> (m, k). Rep_fmap m k)"
+
+declare vmapapp_def [eval,evalp]
+
+lemma dom_vmapapp [defined]:
+  "dom vmapapp = {(m, k). k \<in>\<^sub>f fdom(m)}"
+  by (auto simp add:fdom.rep_eq vmapapp_def)
+
 abbreviation "vexpr_dom       \<equiv> Op1D' fdom"
 abbreviation "vexpr_rng       \<equiv> Op1D' fran"
 abbreviation "vexpr_mapcomp   \<equiv> Op2D' fmap_comp"
@@ -136,7 +141,7 @@ abbreviation "vexpr_munion    \<equiv> Op2D' fmap_add"
 abbreviation "vexpr_moverride \<equiv> Op2D' fmap_add"
 abbreviation "vexpr_domresto  \<equiv> Op2D' fmap_domr"
 abbreviation "vexpr_domresfr  \<equiv> Op2D' fmap_domr'"
-abbreviation "vexpr_mapapp    \<equiv> Op2D (\<lambda> (m, k). Rep_fmap m k)"
+abbreviation "vexpr_mapapp    \<equiv> Op2D vmapapp"
 abbreviation "vexpr_mapinv    \<equiv> Op1D' fmap_inv"
 
 syntax
@@ -175,9 +180,9 @@ abbreviation "vexpr_floor     \<equiv> Op1D' (floor :: real \<Rightarrow> real)"
 abbreviation "vexpr_plus      \<equiv> Op2D' (op + :: real \<Rightarrow> real \<Rightarrow> real)"
 abbreviation "vexpr_minus     \<equiv> Op2D' (op - :: real \<Rightarrow> real \<Rightarrow> real)"
 abbreviation "vexpr_mult      \<equiv> Op2D' (op * :: real \<Rightarrow> real \<Rightarrow> real)"
-abbreviation "vexpr_divide    \<equiv> Op2D' (op / :: real \<Rightarrow> real \<Rightarrow> real)"
-abbreviation "vexpr_idiv      \<equiv> Op2D' idiv"
-abbreviation "vexpr_imod      \<equiv> Op2D' imod"
+abbreviation "vexpr_divide    \<equiv> Op2DR {(x,y). y \<noteq> 0} (op / :: real \<Rightarrow> real \<Rightarrow> real)"
+abbreviation "vexpr_idiv      \<equiv> Op2DR {(x,y). y \<noteq> 0} idiv"
+abbreviation "vexpr_imod      \<equiv> Op2DR {(x,y). y \<noteq> 0} imod"
 abbreviation "vexpr_power     \<equiv> Op2D' (vpower :: real \<Rightarrow> real \<Rightarrow> real)"
 abbreviation "vexpr_le        \<equiv> Op2D' (op \<le> :: real \<Rightarrow> real \<Rightarrow> bool)"
 abbreviation "vexpr_less      \<equiv> Op2D' (op < :: real \<Rightarrow> real \<Rightarrow> bool)"
@@ -254,14 +259,6 @@ lemma map_fset_Some [simp]:
   "map_fset_option (Some `\<^sub>f xs) = Some xs"
   by (auto simp add:map_fset_option_def)
 
-lemma mconj_True_right [simp]: 
-  "mconj p \<lfloor>True\<rfloor> = p"
-  apply (case_tac p)
-  apply (simp_all add:mconj_def)
-  apply (case_tac a)
-  apply (simp_all add:mconj_def)
-done
-
 lemma the_comp_Some [simp]: 
   "the \<circ> (\<lambda>x. \<lfloor>p x\<rfloor>) = p"
   by (auto)
@@ -317,7 +314,6 @@ lemma "|{ %x | x : @real @ %x in @set %xs}| = |%xs|"
   apply (simp add:vcollect_ext_def evalp)
   apply (auto simp add:FCollect_def)
 done
-
 
 lemma FUnion_finsert [simp]: 
   "\<Union>\<^sub>f (finsert x xs) = x \<union>\<^sub>f (\<Union>\<^sub>f xs)"
@@ -389,9 +385,6 @@ lemma "|5 <= 6| = |true|"
 lemma "|[2,1,5,4]<2>| = |5|"
   by (cml_tac)
 
-lemma [simp]: "mconj (Some p) (Some q) = Some (p \<and> q)"
-  by (case_tac p, case_tac[!] q, simp_all add:mconj_def)
-
 declare Defined_WF_PEXPRESSION_def [evalp]
 
 lemma Defined_option_bind_1 [dest]:
@@ -419,7 +412,20 @@ oops
 
 term "|{1 |-> 2, 2 |-> 3}|"
 
-lemma "|forall x:@nat @ &x >= 0 => (floor (5 / &x)) hasType @nat| = |true|"
+lemma "|forall x:@nat @ &x > 0 => (floor (5 / &x)) hasType @nat| = |true|"
+  by (cml_auto_tac)
+
+(* FIXME: Should the following really be safe rules? *)
+
+lemma fdom_elim [elim!]:
+  "\<lbrakk> k \<in> \<langle>fdom m\<rangle>\<^sub>f; \<And> v. \<lbrakk> \<langle>m\<rangle>\<^sub>m k = Some v; v \<in> \<langle>fran m\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  apply (auto simp add:fdom.rep_eq fran.rep_eq)
+  apply (metis ranI)
+done
+
+declare mimpliesI_Some [intro!]
+
+lemma "|forall m:@map @nat to @nat @ forall i:@nat @ &i in @set dom(&m) => &m[&i] hasType @nat| = |true|"
   by (cml_auto_tac)
 
 end
