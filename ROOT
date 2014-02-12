@@ -147,6 +147,12 @@ session "utp2014" in "papers/utp2014" = "HOL-UTP-THY" +
         "document/utp2014.bib"
         "document/deep-shallow.pdf"
 
+session "sets2014" in "papers/sets2014" = "HOL-UTP-THY" +
+  options [document = pdf, document_output = "output", quick_and_dirty = true]
+  theories 
+  files "document/root.tex"
+        "document/sets2014.bib"
+
 session Datatype_Order_Generator (AFP) in "contrib/Datatype_Order_Generator" 
   = "HOL-Library" +
   options [timeout = 300]
