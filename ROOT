@@ -149,7 +149,9 @@ session "utp2014" in "papers/utp2014" = "HOL-UTP-THY" +
 
 session "sets2014" in "papers/sets2014" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
+  theories [document = false]
   theories 
+    "vdm_model"
   files "document/root.tex"
         "document/sets2014.bib"
 
