@@ -34,6 +34,14 @@ no_notation
   minus (infixl "-" 65) and
   times (infixl "*" 70) and
   uminus ("- _" [81] 80) and
-  divide (infixl "'/" 70)
+  divide (infixl "'/" 70) and
+  Groups.zero ("0") and
+  greater_eq  (infix ">=" 50) and
+  greater  (infix ">" 50) and
+  less_eq  ("op <=") and
+  less_eq  ("(_/ <= _)" [51, 51] 50) and
+  less  ("op <") and
+  less  ("(_/ < _)"  [51, 51] 50)
+
 
 end
