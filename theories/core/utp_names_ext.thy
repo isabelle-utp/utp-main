@@ -7,30 +7,45 @@
 header {* Extensible Variable Names *}
 
 theory utp_names_ext
-imports "../utp_common"
+imports "../utp_common" Derive
 begin
 
 datatype NmAtT = NABoolT | NANatT | NAIntT | NACharT | NAPairT NmAtT NmAtT | NAListT NmAtT
 
+derive linorder  NmAtT
+derive countable NmAtT
+
 datatype NmAtV = NABoolV bool | NANatV nat | NAIntV int | NACharV char
-               | NAPairV NmAtV NmAtV | NAListV "NmAtV list"
+               | NAPairV NmAtV NmAtV | NAListV NmAtT "NmAtV list"
+
+derive linorder  NmAtV
+derive countable NmAtV
 
 type_synonym NmAtN = "(string * NmAtT)"
 
-inductive nm_ty :: "NmAtV \<Rightarrow> NmAtT \<Rightarrow> bool" (infix ":\<^sub>n" 50) where
-"NABoolV x :\<^sub>n NABoolT" |
-"NANatV n :\<^sub>n NANatT" |
-"NAIntV n :\<^sub>n NAIntT" |
-"NACharV x :\<^sub>n NACharT" |
-"\<lbrakk> x :\<^sub>n a; y :\<^sub>n b \<rbrakk> \<Longrightarrow> NAPairV x y :\<^sub>n NAPairT a b" |
-"\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>n a \<rbrakk> \<Longrightarrow> NAListV xs :\<^sub>n NAListT a"
+inductive nm_ty :: "NmAtV \<Rightarrow> NmAtT \<Rightarrow> bool" (infix ":\<^sub>a" 50) where
+"NABoolV x :\<^sub>a NABoolT" |
+"NANatV n :\<^sub>a NANatT" |
+"NAIntV n :\<^sub>a NAIntT" |
+"NACharV x :\<^sub>a NACharT" |
+"\<lbrakk> x :\<^sub>a a; y :\<^sub>a b \<rbrakk> \<Longrightarrow> NAPairV x y :\<^sub>a NAPairT a b" |
+"\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>a a \<rbrakk> \<Longrightarrow> NAListV a xs :\<^sub>a NAListT a"
+
+inductive_cases 
+   [elim!]: "x :\<^sub>a NABoolT" and
+   [elim!]: "x :\<^sub>a NANatT" and
+   [elim!]: "x :\<^sub>a NAIntT" and
+   [elim!]: "x :\<^sub>a NACharT" and
+   [elim!]: "x :\<^sub>a NAPairT a b" and
+   [elim!]: "x :\<^sub>a NAListT a"
 
 class nm_at =
   fixes nma_inj :: "'a \<Rightarrow> NmAtV"
   and   nma_prj :: "NmAtV \<Rightarrow> 'a"
   and   nma_ty  :: "'a itself \<Rightarrow> NmAtT"
-  assumes nma_ty_sound: "nma_inj x :\<^sub>n nma_ty TYPE('a)"
-  and nma_inv [simp]: "nma_prj (nma_inj x) = x"
+  assumes nma_ty_sound: "nma_inj x :\<^sub>a nma_ty TYPE('a)"
+  and nma_inj_inv [simp]: "nma_prj (nma_inj x) = x"
+  and nma_prj_inv [simp]: "\<lbrakk> y :\<^sub>a  nma_ty TYPE('a) \<rbrakk> \<Longrightarrow> nma_inj (nma_prj y) = y" 
 
 instantiation bool :: nm_at
 begin
@@ -40,7 +55,7 @@ fun nma_prj_bool :: "NmAtV \<Rightarrow> bool" where  "nma_prj_bool(NABoolV x) =
 definition nma_ty_bool :: "bool itself \<Rightarrow> NmAtT" where "nma_ty_bool(t) = NABoolT"
 
 instance
-  by (intro_classes, simp_all add: nma_ty_bool_def nma_ty_sound nma_inj_bool_def nm_ty.intros)
+  by (intro_classes, auto simp add: nma_ty_bool_def nma_ty_sound nma_inj_bool_def nm_ty.intros)
 end
 
 instantiation nat :: nm_at
@@ -51,7 +66,7 @@ fun nma_prj_nat :: "NmAtV \<Rightarrow> nat" where  "nma_prj_nat(NANatV x) = x"
 definition nma_ty_nat :: "nat itself \<Rightarrow> NmAtT" where "nma_ty_nat(t) = NANatT"
 
 instance
-  by (intro_classes, simp_all add: nma_ty_nat_def nma_ty_sound nma_inj_nat_def nm_ty.intros)
+  by (intro_classes, auto simp add: nma_ty_nat_def nma_ty_sound nma_inj_nat_def nm_ty.intros)
 end
 
 instantiation int :: nm_at
@@ -62,7 +77,7 @@ fun nma_prj_int :: "NmAtV \<Rightarrow> int" where  "nma_prj_int(NAIntV x) = x"
 definition nma_ty_int :: "int itself \<Rightarrow> NmAtT" where "nma_ty_int(t) = NAIntT"
 
 instance
-  by (intro_classes, simp_all add: nma_ty_int_def nma_ty_sound nma_inj_int_def nm_ty.intros)
+  by (intro_classes, auto simp add: nma_ty_int_def nma_ty_sound nma_inj_int_def nm_ty.intros)
 end
 
 instantiation char :: nm_at
@@ -73,17 +88,17 @@ fun nma_prj_char :: "NmAtV \<Rightarrow> char" where  "nma_prj_char(NACharV x) =
 definition nma_ty_char :: "char itself \<Rightarrow> NmAtT" where "nma_ty_char(t) = NACharT"
 
 instance
-  by (intro_classes, simp_all add: nma_ty_char_def nma_ty_sound nma_inj_char_def nm_ty.intros)
+  by (intro_classes, auto simp add: nma_ty_char_def nma_ty_sound nma_inj_char_def nm_ty.intros)
 end
 
 instantiation list :: (nm_at) nm_at
 begin
 
 definition nma_inj_list :: "'a list \<Rightarrow> NmAtV" where 
-"nma_inj_list xs = NAListV (map nma_inj xs)"
+"nma_inj_list xs = NAListV (nma_ty TYPE('a)) (map nma_inj xs)"
 
 fun nma_prj_list :: "NmAtV \<Rightarrow> 'a list" where
-"nma_prj_list (NAListV xs) = map nma_prj xs"
+"nma_prj_list (NAListV a xs) = map nma_prj xs"
 
 definition nma_ty_list :: "'a list itself \<Rightarrow> NmAtT" where 
 "nma_ty_list t = NAListT (nma_ty TYPE('a))"
@@ -93,38 +108,68 @@ instance
   apply (simp_all add:nma_inj_list_def nma_ty_list_def)
   apply (rule nm_ty.intros)
   apply (force intro: nm_ty.intros nma_ty_sound)
-  apply (metis (full_types) comp_def map_idI nma_inv)
+  apply (metis (full_types) comp_def map_idI nma_inj_inv)
+  apply (auto)
+  apply (metis comp_def map_idI nma_prj_inv)
 done
 end
 
-type_synonym UNAME_SCHEMA = "(string, NmAtT) fmap"
+type_synonym NAME_SCHEMA = "NmAtN fset"
 
-typedef UNAME = "{f :: (NmAtN, NmAtV) fmap. \<forall> x \<in>\<^sub>f fdom f. the (\<langle>f\<rangle>\<^sub>m x) :\<^sub>n snd x}"
+typedef NAME = "{f :: (NmAtN, NmAtV) fmap. \<forall> x \<in>\<^sub>f fdom f. the (\<langle>f\<rangle>\<^sub>m x) :\<^sub>a snd x}"
   by (rule_tac x="fmempty" in exI, simp)
 
-setup_lifting type_definition_UNAME
+declare Rep_NAME [simp]
+declare Rep_NAME_inverse [simp]
+declare Abs_NAME_inverse [simp]
 
-typedef ('a::nm_at) UNAME_ATT = "UNIV :: string set" 
+lemma Rep_NAME_intro [intro]:
+  "Rep_NAME x = Rep_NAME y \<Longrightarrow> x = y"
+  by (simp add:Rep_NAME_inject)
+
+lemma Rep_NAME_type:
+  "x \<in>\<^sub>f fdom (Rep_NAME n) \<Longrightarrow> the (\<langle>Rep_NAME n\<rangle>\<^sub>m x) :\<^sub>a snd x"
+  by (metis (lifting, no_types) Rep_NAME mem_Collect_eq)
+
+lemma Rep_NAME_type':
+  "\<langle>Rep_NAME n\<rangle>\<^sub>m (k, a) = \<lfloor>x\<rfloor> \<Longrightarrow> x :\<^sub>a a"
+  apply (insert Rep_NAME[of n])
+  apply (simp)
+  apply (drule_tac x="k" in spec)
+  apply (drule_tac x="a" in spec)
+  apply (auto simp add:fdom.rep_eq)
+done
+
+setup_lifting type_definition_NAME
+
+definition NAME_type_rel :: "NAME \<Rightarrow> NAME_SCHEMA \<Rightarrow> bool" (infix ":\<^sub>n" 50) where
+"NAME_type_rel n ns = (ns \<subseteq>\<^sub>f fdom (Rep_NAME n))"
+
+typedef ('a::nm_at) NAME_ATT = "UNIV :: string set" 
   by auto
 
-setup_lifting type_definition_UNAME_ATT
+setup_lifting type_definition_NAME_ATT
 
-declare Rep_UNAME_ATT [simp]
-declare Rep_UNAME_ATT_inverse [simp]
-declare Abs_UNAME_ATT_inverse [simp]
+declare Rep_NAME_ATT [simp]
+declare Rep_NAME_ATT_inverse [simp]
+declare Abs_NAME_ATT_inverse [simp]
 
-lift_definition nm_nil :: "UNAME" is "fmempty"
+abbreviation nm_erase :: "('a::nm_at) NAME_ATT \<Rightarrow> (string * NmAtT)"
+where "nm_erase k \<equiv> (Rep_NAME_ATT k, nma_ty(TYPE('a::nm_at)))"
+
+lift_definition nm_nil :: "NAME" is "fmempty"
   by (auto)
 
-lift_definition nm_set :: "'a::nm_at UNAME_ATT \<Rightarrow> 'a option \<Rightarrow> UNAME \<Rightarrow> UNAME"
+lift_definition nm_set :: "'a::nm_at NAME_ATT \<Rightarrow> 'a option \<Rightarrow> NAME \<Rightarrow> NAME"
 is "\<lambda> (k::string) (v::'a option) n. fmap_upd n (k, nma_ty(TYPE('a::nm_at))) (Option.map nma_inj v)"
   apply (case_tac option)
   apply (auto intro:nma_ty_sound simp add:fdom.rep_eq)
   apply (metis domI the.simps)
+  apply (metis domI)
 done
 
-definition nm_lookup :: "'a::nm_at UNAME_ATT \<Rightarrow> UNAME \<Rightarrow> 'a option"
-where "nm_lookup k n = (\<langle>Rep_UNAME n\<rangle>\<^sub>m (Rep_UNAME_ATT k, nma_ty(TYPE('a::nm_at))) \<guillemotright>= Some \<circ> nma_prj)"
+definition nm_lookup :: "'a::nm_at NAME_ATT \<Rightarrow> NAME \<Rightarrow> 'a option"
+where "nm_lookup k n = (\<langle>Rep_NAME n\<rangle>\<^sub>m (nm_erase k) \<guillemotright>= Some \<circ> nma_prj)"
 
 lemma nm_lookup_nm_set [simp]:
   "nm_lookup k (nm_set k v n) = v"
@@ -132,29 +177,58 @@ lemma nm_lookup_nm_set [simp]:
   apply (auto simp add:nm_lookup_def nm_set.rep_eq)
 done
 
+lemma nm_set_lookup [simp]:
+  "nm_set k (nm_lookup k f) f = f"
+  apply (rule)
+  apply (auto simp add:nm_set.rep_eq nm_lookup_def)
+  apply (rule ext)
+  apply (case_tac "\<langle>Rep_NAME f\<rangle>\<^sub>m (nm_erase k)")
+  apply (simp_all)
+  apply (metis Rep_NAME_type' nma_prj_inv)
+done
+
 lemma nm_lookup_nm_ne [simp]:
-  "Rep_UNAME_ATT k \<noteq> Rep_UNAME_ATT k' \<Longrightarrow> nm_lookup k (nm_set k' v n) = nm_lookup k n"
+  "Rep_NAME_ATT k \<noteq> Rep_NAME_ATT k' \<Longrightarrow> nm_lookup k (nm_set k' v n) = nm_lookup k n"
   by (auto simp add:nm_lookup_def nm_set.rep_eq)
 
-abbreviation "nm_label_attr     \<equiv> (Abs_UNAME_ATT ''label'' :: string UNAME_ATT)"
-abbreviation "nm_dashes_attr    \<equiv> (Abs_UNAME_ATT ''dashes'' :: nat UNAME_ATT)"
-abbreviation "nm_subscript_attr \<equiv> (Abs_UNAME_ATT ''subscript'' :: nat UNAME_ATT)"
+abbreviation "nm_str_attr     \<equiv> (Abs_NAME_ATT ''str'' :: string NAME_ATT)"
+abbreviation "nm_dashes_attr    \<equiv> (Abs_NAME_ATT ''dashes'' :: nat NAME_ATT)"
+abbreviation "nm_subscript_attr \<equiv> (Abs_NAME_ATT ''subscript'' :: nat NAME_ATT)"
 
-definition MkUName :: "string \<Rightarrow> nat \<Rightarrow> nat option \<Rightarrow> UNAME" where
-"MkUName n d s = nm_set nm_label_attr (Some n) 
-                 (nm_set nm_dashes_attr (Some d) 
-                  (nm_set nm_subscript_attr s nm_nil))"
+abbreviation "NameStd \<equiv> \<lbrace>nm_erase nm_str_attr, nm_erase nm_dashes_attr, nm_erase nm_subscript_attr\<rbrace>"
 
-abbreviation uname_str :: "UNAME \<Rightarrow> string" where
-"uname_str n \<equiv> the (nm_lookup nm_label_attr n)"
+definition MkName :: "string \<Rightarrow> nat \<Rightarrow> nat option \<Rightarrow> NAME" where
+"MkName n d s = nm_set nm_str_attr (Some n) 
+                (nm_set nm_dashes_attr (Some d) 
+                 (nm_set nm_subscript_attr s nm_nil))"
 
-abbreviation uname_dashes :: "UNAME \<Rightarrow> nat" where
-"uname_dashes n \<equiv> the (nm_lookup nm_dashes_attr n)"
+term "Rep_NAME f"
 
-lemma "uname_str (MkUName n d s) = n"
-  by (simp add:MkUName_def)
+term "nm_set k"
 
-lemma "uname_dashes (MkUName n d s) = d"
-  by (simp add:MkUName_def)
+abbreviation name_str :: "NAME \<Rightarrow> string" where
+"name_str n \<equiv> the (nm_lookup nm_str_attr n)"
+
+abbreviation dashes :: "NAME \<Rightarrow> nat" where
+"dashes n \<equiv> the (nm_lookup nm_dashes_attr n)"
+
+type_synonym SUBSCRIPT = "nat option"
+
+abbreviation subscript :: "NAME \<Rightarrow> SUBSCRIPT" where
+"subscript n \<equiv> nm_lookup nm_subscript_attr n"
+
+lemma name_str_simp [simp]: "name_str (MkName n d s) = n"
+  by (simp add:MkName_def)
+
+lemma dashes_simp [simp]: "dashes (MkName n d s) = d"
+  by (simp add:MkName_def)
+
+lemma subscript_simp [simp]: "subscript (MkName n d s) = s"
+  by (simp add:MkName_def)
+
+lemma MkName_inverse [simp]: 
+  "n :\<^sub>n NameStd \<Longrightarrow> MkName (name_str n) (dashes n) (subscript n) = n"
+  apply (auto simp add:MkName_def nm_set.rep_eq fmap_upd.rep_eq)
+oops
 
 end
