@@ -31,5 +31,6 @@ imports
   "types/utp_list"
   "types/utp_fset"
   "types/utp_uset"
+  "types/utp_store"
   "theories/utp_theory"
 begin end
