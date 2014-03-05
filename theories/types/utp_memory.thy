@@ -18,7 +18,7 @@ typedef ADDR = "UNIV :: nat set" ..
 
 declare Rep_ADDR [simp]
 declare Rep_ADDR_inverse [simp]
-declare Abs_ADDR_inverse [simplified, simp]
+declare Abs_ADDR_inverse [simp]
 
 class ADDR_SORT = VALUE +
   fixes MkAddr   :: "ADDR \<Rightarrow> 'a"
@@ -73,7 +73,7 @@ typedef ('a::type) PADDR = "UNIV :: ADDR set" ..
 
 declare Rep_PADDR [simp]
 declare Rep_PADDR_inverse [simp]
-declare Abs_PADDR_inverse [simplified, simp]
+declare Abs_PADDR_inverse [simp]
 
 instantiation PADDR :: (type) DEFINED_NE
 begin
@@ -117,6 +117,30 @@ lemma Rep_STORE_intro [intro!]:
 lemma Rep_STORE_elim [elim]:
   "\<lbrakk> x = y; Rep_STORE x = Rep_STORE y \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (auto)
+
+lift_definition st_graph :: "('m::ADDR_SORT) STORE \<Rightarrow> (ADDR \<times> 'm SIGTYPE) fset" is fmap_graph ..
+
+lemma st_graph_inj: "st_graph(s1) = st_graph(s2) \<Longrightarrow> s1 = s2"
+  apply (erule Rep_fset_elim)
+  apply (auto simp add:st_graph.rep_eq fmap_graph.rep_eq)
+  apply (metis map_graph_inv)
+done
+
+instantiation STORE :: (ADDR_SORT) order
+begin
+
+definition less_eq_STORE :: "'a STORE \<Rightarrow> 'a STORE \<Rightarrow> bool" where
+"s1 \<le> s2 \<longleftrightarrow> st_graph s1 \<subseteq>\<^sub>f st_graph s2"
+
+definition less_STORE :: "'a STORE \<Rightarrow> 'a STORE \<Rightarrow> bool" where
+"s1 < s2 \<longleftrightarrow> st_graph s1 \<subset>\<^sub>f st_graph s2"
+
+instance
+  apply (intro_classes)
+  apply (auto intro:st_graph_inj simp add:less_eq_STORE_def less_STORE_def)
+  apply (metis Rep_fset_inject st_graph_inj)
+done
+end
 
 lift_definition st_lookup :: "('m::ADDR_SORT) STORE \<Rightarrow> ADDR \<Rightarrow> 'm SIGTYPE" ("\<langle>_\<rangle>\<^sub>\<mu>") is "\<lambda> s k. the (Rep_fmap s k)" ..
 
@@ -207,6 +231,27 @@ done
 
 end
 
+lemma map_graph_add:
+  "dom(x) \<inter> dom(y) = {} \<Longrightarrow> map_graph(x ++ y) = map_graph(x) \<union> map_graph(y)"
+  apply (auto simp add:map_graph_def)
+  apply (metis map_add_comm map_add_find_right)
+done
+
+lemma fmap_graph_add:
+  "fdom(x) \<inter>\<^sub>f fdom(y) = \<lbrace>\<rbrace> \<Longrightarrow> fmap_graph(x + y) = fmap_graph(x) \<union>\<^sub>f fmap_graph(y)"
+  by (force simp add:fdom.rep_eq fmap_graph.rep_eq plus_fmap.rep_eq map_graph_add)
+
+lemma st_graph_add:
+  "sdom(x) \<inter>\<^sub>f sdom(y) = \<lbrace>\<rbrace> \<Longrightarrow> st_graph(x + y) = st_graph(x) \<union>\<^sub>f st_graph(y)"
+  by (metis fmap_graph_add plus_STORE.rep_eq sdom.rep_eq st_graph.rep_eq)
+
+lemma st_leq_lub:
+  fixes x :: "('m::ADDR_SORT) STORE"
+  assumes "sdom(x) \<inter>\<^sub>f sdom(y) = \<lbrace>\<rbrace>"
+  shows "x \<le> y \<longleftrightarrow> x + y \<le> y"
+  using assms by (simp add:less_eq_STORE_def st_graph_add)
+
+ 
 lemma srefs_subset_sdom: "srefs(\<Gamma>) \<subseteq>\<^sub>f sdom(\<Gamma>)"
   apply (insert Rep_STORE[of "\<Gamma>"])
   apply (auto simp add: sdom.rep_eq srefs.rep_eq)
@@ -218,6 +263,15 @@ lemma STORE_add_comm: "sdom(s1) \<inter>\<^sub>f sdom(s2) = \<lbrace>\<rbrace> \
   apply (simp add:plus_STORE.rep_eq)
   apply (metis Rep_fset_intro fempty.rep_eq finter.rep_eq fmap_add_comm sdom.rep_eq)
 done
+
+lemma sdom_0 [simp]: "sdom(0) = \<lbrace>\<rbrace>"
+  by (metis fdom_fmempty sdom.rep_eq zero_STORE.rep_eq)
+
+lemma sran_0 [simp]: "sran(0) = \<lbrace>\<rbrace>"
+  by (auto simp add:sran.rep_eq zero_STORE.rep_eq fran.rep_eq zero_fmap.rep_eq)
+
+lemma sdom_plus [simp]: "sdom(x + y) = sdom(x) \<union>\<^sub>f sdom(y)"
+  by (metis (hide_lams, no_types) fdom_plus plus_STORE.rep_eq sdom.rep_eq)
 
 default_sort VALUE
 

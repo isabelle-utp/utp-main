@@ -383,6 +383,9 @@ lemma fimage_funion [simp]: "f `\<^sub>f (A \<union>\<^sub>f B) = (f `\<^sub>f A
 lemma fimage_set_diff [simp]: "inj f ==> f `\<^sub>f (A -\<^sub>f B) = f `\<^sub>f A -\<^sub>f f `\<^sub>f B"
   by (clarsimp, simp add:image_set_diff)
 
+lemma funion_comm: "A \<union>\<^sub>f B = B \<union>\<^sub>f A"
+  by auto
+
 lemma funion_assoc [simp]: "(A \<union>\<^sub>f B) \<union>\<^sub>f C =  A \<union>\<^sub>f (B \<union>\<^sub>f C)"
   by (auto)
 
@@ -392,6 +395,12 @@ lemma funion_finsert_left [simp]:
 
 lemma funion_finsert_right [simp]: 
   "A \<union>\<^sub>f (finsert a B) = finsert a (A \<union>\<^sub>f B)"
+  by (auto)
+
+lemma finter_comm: "A \<inter>\<^sub>f B = B \<inter>\<^sub>f A"
+  by auto
+
+lemma finter_assoc: "(A \<inter>\<^sub>f B) \<inter>\<^sub>f C =  A \<inter>\<^sub>f (B \<inter>\<^sub>f C)"
   by (auto)
 
 lemma finsert_idem [simp]:

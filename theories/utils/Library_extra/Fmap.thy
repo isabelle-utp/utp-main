@@ -98,6 +98,9 @@ done
 lemma fdom_fmempty [simp]: "fdom(0) = \<lbrace>\<rbrace>"
   by (auto simp add:fdom.rep_eq zero_fmap.rep_eq)
 
+lemma fdom_plus [simp]: "fdom(x + y) = fdom(x) \<union>\<^sub>f fdom(y)"
+  by (auto simp add:fdom.rep_eq plus_fmap.rep_eq)
+
 lemma fmap_list_empty [simp]:
   "fmap_list(0) = []"
   by (simp add:fmap_list_def flist_def fdom.rep_eq zero_fmap.rep_eq)
