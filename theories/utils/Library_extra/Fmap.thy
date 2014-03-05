@@ -56,8 +56,23 @@ lift_definition fdom :: "('a, 'b) fmap \<Rightarrow> 'a fset" is dom
 lift_definition fran :: "('a, 'b) fmap \<Rightarrow> 'b fset" is ran
   by (simp add:fmaps_def fsets_def)
 
-lift_definition fmempty :: "('a, 'b) fmap" is "Map.empty"
+instantiation fmap :: (type,type) monoid_add
+begin
+
+lift_definition zero_fmap :: "('a, 'b) fmap" is "Map.empty"
   by (simp add:fmaps_def)
+
+lift_definition plus_fmap :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" is map_add
+  by (simp add:fmaps_def)
+
+instance
+  apply (intro_classes)
+  apply (auto simp add:plus_fmap.rep_eq zero_fmap.rep_eq)
+done
+end
+
+abbreviation fmempty :: "('a, 'b) fmap"
+where "fmempty \<equiv> 0"
 
 definition "fmap_list f = map (\<lambda> x. (x, the (\<langle>f\<rangle>\<^sub>m x))) (flist (fdom f))"
 lift_definition list_fmap :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) fmap" is "map_of"
@@ -71,21 +86,21 @@ lift_definition fmap_upd :: "('a, 'b) fmap \<Rightarrow> 'a \<Rightarrow> 'b opt
   by (auto simp add:fmaps_def)
 
 lemma fdom_empty [simp]: 
-  "fdom f = \<lbrace>\<rbrace> \<Longrightarrow> f = fmempty"
-  by (erule Rep_fset_elim, auto simp add:fdom.rep_eq fmempty.rep_eq)
+  "fdom f = \<lbrace>\<rbrace> \<Longrightarrow> f = 0"
+  by (erule Rep_fset_elim, auto simp add:fdom.rep_eq zero_fmap.rep_eq)
 
 lemma fran_empty [simp]: 
-  "fran f = \<lbrace>\<rbrace> \<Longrightarrow> f = fmempty"
-  apply (auto elim!:Rep_fset_elim simp add:fran.rep_eq fmempty.rep_eq fempty.rep_eq)
+  "fran f = \<lbrace>\<rbrace> \<Longrightarrow> f = 0"
+  apply (auto elim!:Rep_fset_elim simp add:fran.rep_eq zero_fmap.rep_eq fempty.rep_eq)
   apply (metis empty_iff option.exhaust ranI)
 done
 
-lemma fdom_fmempty [simp]: "fdom fmempty = \<lbrace>\<rbrace>"
-  by (auto simp add:fdom.rep_eq fmempty.rep_eq)
+lemma fdom_fmempty [simp]: "fdom(0) = \<lbrace>\<rbrace>"
+  by (auto simp add:fdom.rep_eq zero_fmap.rep_eq)
 
 lemma fmap_list_empty [simp]:
-  "fmap_list fmempty = []"
-  by (simp add:fmap_list_def flist_def fdom.rep_eq fmempty.rep_eq)
+  "fmap_list(0) = []"
+  by (simp add:fmap_list_def flist_def fdom.rep_eq zero_fmap.rep_eq)
 
 lemma fmap_list_inv [simp]: 
   "list_fmap (fmap_list f) = f"
@@ -203,15 +218,15 @@ lemma fmap_values_less_eq [simp]:
 
 lemma fmempty_least [simp]:
   "fmempty \<le> x"
-  by (simp add:less_eq_fmap_def fdom.rep_eq fmempty.rep_eq)
+  by (simp add:less_eq_fmap_def fdom.rep_eq zero_fmap.rep_eq)
 
 lemma fmap_upd_less [intro]:
   "k \<notin>\<^sub>f fdom f \<Longrightarrow> f \<le> fmap_upd f k v"
   by (auto simp add:less_eq_fmap_def fmap_graph.rep_eq fmap_upd.rep_eq fdom.rep_eq map_graph_def)
 
 lemma fmap_fset_fmempty [simp]:
-  "fmap_graph fmempty = \<lbrace>\<rbrace>"
-  by (auto simp add: fmap_graph.rep_eq fmempty.rep_eq map_graph_def)
+  "fmap_graph(0) = \<lbrace>\<rbrace>"
+  by (auto simp add: fmap_graph.rep_eq zero_fmap.rep_eq map_graph_def)
 
 lemma fdom_map_upd [simp]: 
   "fdom (f(k :=\<^sub>m Some v)) = finsert k (fdom f)"
@@ -231,8 +246,22 @@ lemma fmap_upd_apply [simp]: "\<langle>f(x:=\<^sub>my)\<rangle>\<^sub>m z = (if 
 lemma fmap_upd_upd [simp]: "f(x:=\<^sub>my,x:=\<^sub>mz) = f(x:=\<^sub>mz)"
   by (auto)
 
-lemma fempty_upd_None [simp]: "fmempty(x:=\<^sub>mNone) = fmempty"
-  by (auto simp add:fmempty.rep_eq)
+lemma fempty_upd_None [simp]: "0(x:=\<^sub>mNone) = 0"
+  by (auto simp add:zero_fmap.rep_eq)
+
+lemma fupd_None_fran_subset:
+  "fran(m(k:=\<^sub>mNone)) \<subseteq>\<^sub>f fran(m)"
+  apply (auto simp add:fran.rep_eq fmap_upd.rep_eq)
+  apply (metis (hide_lams, mono_tags) ranI ran_restrictD restrict_complement_singleton_eq)
+done
+
+lemma fran_fmap_upd [simp]:
+  "fran(m(k:=\<^sub>mSome v)) = \<lbrace>v\<rbrace> \<union>\<^sub>f fran(m(k:=\<^sub>mNone))"
+  apply (auto simp add:fran.rep_eq fmap_upd.rep_eq)
+  apply (metis fun_upd_same fun_upd_upd insert_iff ran_map_upd)
+  apply (metis fun_upd_same ranI)
+  apply (metis fun_upd_same fun_upd_upd insertCI ran_map_upd)
+done
 
 default_sort type
 

@@ -56,6 +56,10 @@ lemma dom_map_graph: "dom f = fst ` (map_graph f)"
 lemma ran_map_graph: "ran f = snd ` (map_graph f)"
   by (simp add: map_graph_def ran_def image_def)
 
+lemma ran_map_add_subset:
+  "ran (x ++ y) \<subseteq> (ran x) \<union> (ran y)"
+  by (auto simp add:ran_def)
+
 lemma finite_dom_graph: "finite (dom f) \<Longrightarrow> finite (map_graph f)"
   apply (simp add:dom_map_graph)
   apply (drule finite_imageD)

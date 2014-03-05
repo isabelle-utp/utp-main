@@ -487,4 +487,23 @@ lemma TypeUSound_Event [typing]:
   by (auto simp add:typing)
 *)
 
+definition psigma :: "'a \<Rightarrow> ('m::VALUE) SIGTYPE" where
+"psigma v = (\<Sigma> InjU v : TYPEU('a))"
+
+lemma sigtype_psigma [simp]:
+  fixes x :: "'a :: DEFINED"
+  assumes "TYPEUSOUND('a, 'm :: VALUE)"
+  shows "sigtype (psigma x :: 'm SIGTYPE) = TYPEU('a)"
+  by (metis TypeUSound_InjU_type assms psigma_def sigtype)
+
+lemma sigvalue_psigma [simp]:
+  fixes x :: "'a :: DEFINED"
+  assumes "TYPEUSOUND('a, 'm :: VALUE)"
+  shows "sigvalue (psigma x :: 'm SIGTYPE) = InjU x"
+  apply (simp add:psigma_def)
+  apply (subst sigvalue)
+  apply (rule typing)
+  apply (simp_all add:assms)
+done
+
 end
