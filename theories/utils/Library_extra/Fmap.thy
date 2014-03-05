@@ -263,6 +263,13 @@ lemma fran_fmap_upd [simp]:
   apply (metis fun_upd_same fun_upd_upd insertCI ran_map_upd)
 done
 
+lemma fmap_add_comm: "fdom(m1) \<inter>\<^sub>f fdom(m2) = \<lbrace>\<rbrace> \<Longrightarrow> m1 + m2 = m2 + m1"
+  apply (erule Rep_fset_elim)
+  apply (rule Rep_fmap_intro)
+  apply (simp add:fdom.rep_eq fran.rep_eq plus_fmap.rep_eq)
+  apply (metis map_add_comm)
+done
+
 default_sort type
 
 (*

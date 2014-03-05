@@ -50,6 +50,8 @@ lemma MkAddr_inj_simp [simp]:
 
 end
 
+default_sort DEFINED
+
 instantiation ADDR :: DEFINED_NE
 begin
 definition "Defined_ADDR (x::ADDR) = True"
@@ -67,7 +69,28 @@ defs (overloaded)
 lemma TypeUSound_ADDR [typing]: "TYPEUSOUND(ADDR, 'm :: ADDR_SORT)"
   by (force simp add: typing defined inju)
 
-typedef 'a PADDR = "UNIV :: ADDR set" ..
+typedef ('a::type) PADDR = "UNIV :: ADDR set" ..
+
+declare Rep_PADDR [simp]
+declare Rep_PADDR_inverse [simp]
+declare Abs_PADDR_inverse [simplified, simp]
+
+instantiation PADDR :: (type) DEFINED_NE
+begin
+definition "Defined_PADDR (x::'a PADDR) = True"
+instance 
+  by (intro_classes, auto simp add:Defined_PADDR_def)
+end
+
+lemma Defined_PADDR [defined]: "\<D> (x :: ('a::DEFINED) PADDR)" by (simp add:Defined_PADDR_def)
+
+defs (overloaded)
+  InjU_PADDR [inju]:  "InjU (x::('a::DEFINED) PADDR) \<equiv> MkAddr (Rep_PADDR x)"
+  ProjU_PADDR [inju]: "ProjU (x::('a::ADDR_SORT)) \<equiv> Abs_PADDR (DestAddr x)"
+  TypeU_PADDR [simp]: "TypeU (x::('a::DEFINED) PADDR itself) \<equiv> AddrType"
+
+lemma TypeUSound_PADDR [typing]: "TYPEUSOUND(('a::DEFINED) PADDR, 'm :: ADDR_SORT)"
+  by (force simp add: typing defined inju)
 
 setup {*
 Adhoc_Overloading.add_variant @{const_name erase} @{const_name Rep_PADDR}
@@ -83,8 +106,6 @@ typedef ('m::ADDR_SORT) STORE = "{f :: (ADDR, 'm SIGTYPE) fmap. \<Union>\<^sub>f
 
 setup_lifting type_definition_STORE
 
-(* notation Rep_STORE *)
-
 declare Rep_STORE [simp]
 declare Rep_STORE_inverse [simp]
 declare Abs_STORE_inverse [simp]
@@ -99,7 +120,7 @@ lemma Rep_STORE_elim [elim]:
 
 lift_definition st_lookup :: "('m::ADDR_SORT) STORE \<Rightarrow> ADDR \<Rightarrow> 'm SIGTYPE" ("\<langle>_\<rangle>\<^sub>\<mu>") is "\<lambda> s k. the (Rep_fmap s k)" ..
 
-definition st_lookup_ty :: "('m::ADDR_SORT) STORE \<Rightarrow> 'a PADDR \<Rightarrow> 'a" where
+definition st_lookup_ty :: "('m::ADDR_SORT) STORE \<Rightarrow> 'a PADDR \<Rightarrow> 'a" ("\<langle>_\<rangle>\<^sub>&") where
 "st_lookup_ty s k = (if (TYPEU('a) = sigtype(\<langle>s\<rangle>\<^sub>\<mu> (k\<down>))) then ProjU(sigvalue(\<langle>s\<rangle>\<^sub>\<mu> (k\<down>))) else undefined)"
 
 lift_definition sdom :: "('m::ADDR_SORT) STORE \<Rightarrow> ADDR fset" is "fdom" ..
@@ -114,29 +135,49 @@ lift_definition st_upd :: "('m::ADDR_SORT) STORE \<Rightarrow> ADDR \<Rightarrow
   apply (metis (no_types) UN_I fupd_None_fran_subset less_eq_fset.rep_eq subsetD)
 done
 
+definition st_upd_ty :: "('m::ADDR_SORT) STORE \<Rightarrow> 'a PADDR \<Rightarrow> 'a \<Rightarrow> 'm STORE" where
+"st_upd_ty s k v = st_upd s (k\<down>) (psigma v)"
+
+nonterminal supdbinds and supdbind and tsupdbinds and tsupdbind
+
+syntax
+  "_supdbind" :: "['a, 'a] => supdbind"               ("(2_ :=\<^sub>\<mu>/ _)")
+  ""          :: "supdbind => supdbinds"              ("_")
+  "_supdbinds":: "[supdbind, supdbinds] => supdbinds" ("_,/ _")
+  "_SUpdate"  :: "['a, supdbinds] => 'a"              ("_/'((_)')" [1000, 0] 900)
+
+  "_tsupdbind" :: "['a, 'a] => tsupdbind"                 ("(2_ :=\<^sub>&/ _)")
+  ""           :: "tsupdbind => tsupdbinds"               ("_")
+  "_tsupdbinds":: "[tsupdbind, tsupdbinds] => tsupdbinds" ("_,/ _")
+  "_TSUpdate"  :: "['a, tsupdbinds] => 'a"                ("_/'((_)')" [1000, 0] 900)
+
+translations
+  "_SUpdate f (_supdbinds b bs)" == "_SUpdate (_SUpdate f b) bs"
+  "f(x:=\<^sub>\<mu>y)" == "CONST st_upd f x y"
+
+  "_TSUpdate f (_tsupdbinds b bs)" == "_TSUpdate (_TSUpdate f b) bs"
+  "f(x:=\<^sub>&y)" == "CONST st_upd_ty f x y"
+
 lemma st_upd_closed:
   "\<lbrakk> refs(sigvalue(v)) \<subseteq>\<^sub>f sdom(s) \<union>\<^sub>f \<lbrace>k\<rbrace> \<rbrakk> \<Longrightarrow> Rep_STORE (st_upd s k v) = fmap_upd (Rep_STORE s) k (Some v)"
   by (auto simp add: st_upd.rep_eq sdom.rep_eq)
 
-lemma st_lookup_upd_1: "refs(sigvalue(v)) \<subseteq>\<^sub>f sdom(s) \<union>\<^sub>f \<lbrace>k\<rbrace> \<Longrightarrow> \<langle>st_upd s k v\<rangle>\<^sub>\<mu> k = v"
+lemma st_lookup_upd_1: "refs(sigvalue(v)) \<subseteq>\<^sub>f sdom(s) \<union>\<^sub>f \<lbrace>k\<rbrace> \<Longrightarrow> \<langle>s(k :=\<^sub>\<mu> v)\<rangle>\<^sub>\<mu> k = v"
   by (auto simp add:st_lookup_def st_upd_closed)
 
-lemma st_lookup_upd_2: "\<lbrakk> refs(sigvalue(v)) \<subseteq>\<^sub>f sdom(s) \<union>\<^sub>f \<lbrace>k\<rbrace>; k \<noteq> k' \<rbrakk> \<Longrightarrow> \<langle>st_upd s k v\<rangle>\<^sub>\<mu> k' = \<langle>s\<rangle>\<^sub>\<mu> k'"
+lemma st_lookup_upd_2: "\<lbrakk> refs(sigvalue(v)) \<subseteq>\<^sub>f sdom(s) \<union>\<^sub>f \<lbrace>k\<rbrace>; k \<noteq> k' \<rbrakk> \<Longrightarrow> \<langle>s(k :=\<^sub>\<mu> v)\<rangle>\<^sub>\<mu> k' = \<langle>s\<rangle>\<^sub>\<mu> k'"
   by (simp add:st_lookup_def st_upd_closed)
-
-definition st_upd_ty :: "('m::ADDR_SORT) STORE \<Rightarrow> 'a PADDR \<Rightarrow> 'a \<Rightarrow> 'm STORE" where
-"st_upd_ty s k v = st_upd s (k\<down>) (psigma v)"
 
 lemma st_lookup_upd_ty_1: 
   fixes s :: "('m::ADDR_SORT) STORE" and k :: "'a PADDR"
   assumes "TYPEUSOUND('a, 'm)" "prefs v TYPE('m) \<subseteq>\<^sub>f sdom(s) \<union>\<^sub>f \<lbrace>k\<down>\<rbrace>"
-  shows "st_lookup_ty (st_upd_ty s k v) k = v"
+  shows "\<langle>s(k :=\<^sub>& v)\<rangle>\<^sub>& k = v"
   using assms by (simp add:st_lookup_ty_def st_upd_ty_def st_lookup_upd_1 prefs_def)
 
 lemma st_lookup_upd_ty_2: 
   fixes s :: "('m::ADDR_SORT) STORE" and k :: "'a PADDR" and k' :: "'b PADDR"
   assumes "TYPEUSOUND('a, 'm)" "prefs v TYPE('m) \<subseteq>\<^sub>f sdom(s) \<union>\<^sub>f \<lbrace>k\<down>\<rbrace>" "k\<down> = k'\<down>"
-  shows "st_lookup_ty (st_upd_ty s k v) k' = st_lookup_ty s k'"
+  shows "\<langle>s(k :=\<^sub>& v)\<rangle>\<^sub>& k' = \<langle>s\<rangle>\<^sub>& k'"
   using assms apply (simp add:st_lookup_ty_def st_upd_ty_def)
 oops
 
@@ -166,22 +207,19 @@ done
 
 end
 
-nonterminal supdbinds and supdbind
-
-syntax
-  "_supdbind" :: "['a, 'a] => supdbind"               ("(2_ :=\<^sub>s/ _)")
-  ""          :: "supdbind => supdbinds"              ("_")
-  "_supdbinds":: "[supdbind, supdbinds] => supdbinds" ("_,/ _")
-  "_SUpdate"  :: "['a, supdbinds] => 'a"              ("_/'((_)')" [1000, 0] 900)
-
-translations
-  "_SUpdate f (_supdbinds b bs)" == "_SUpdate (_SUpdate f b) bs"
-  "f(x:=\<^sub>sy)" == "CONST st_upd f x y"
-
 lemma srefs_subset_sdom: "srefs(\<Gamma>) \<subseteq>\<^sub>f sdom(\<Gamma>)"
   apply (insert Rep_STORE[of "\<Gamma>"])
   apply (auto simp add: sdom.rep_eq srefs.rep_eq)
 done
+
+lemma STORE_add_comm: "sdom(s1) \<inter>\<^sub>f sdom(s2) = \<lbrace>\<rbrace> \<Longrightarrow> s1 + s2 = s2 + s1"
+  apply (rule Rep_STORE_intro)
+  apply (erule Rep_fset_elim)
+  apply (simp add:plus_STORE.rep_eq)
+  apply (metis Rep_fset_intro fempty.rep_eq finter.rep_eq fmap_add_comm sdom.rep_eq)
+done
+
+default_sort VALUE
 
 class STORE_SORT = ADDR_SORT +
   fixes MkStore   :: "'a STORE \<Rightarrow> 'a"
