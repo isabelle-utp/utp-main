@@ -1,20 +1,16 @@
 session "HOL-UTP" = "Kleene_Algebra" +
-  options [browser_info = true, document = pdf, document_output = "output", document_graph = true, document_variants="document:outline=/proof,/ML"]
   theories [document = false]
-  theories 
   "theories/utp_base"
-  files "document/root.tex"
 
 session "HOL-UTP-THY" in "theories/theories" = "HOL-UTP" +
-  options [browser_info = true, document = pdf, document_output = "output", quick_and_dirty = true, document_variants="document:outline=/proof,/ML"]
-  theories
+  options [quick_and_dirty = true]
+  theories [document = "false"]
   "utp_acp"
   "utp_csp"
   "utp_designs"
   "utp_definedness"
   "utp_reactive"
   "utp_relations"
-  files "document/root.tex"
   
 session "HOL-UTP-CML" in "theories/models/utp_cml" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
