@@ -789,7 +789,7 @@ proof -
     by (simp add:DesignD_def)
 
   also have "... = `(ok \<Rightarrow> (ok \<and> ok' \<and> II\<^bsub>?vs\<^esub>)) ; R`"
-    by (smt ImpliesP_export)
+    by (metis (hide_lams, no_types) ImpliesP_export)
 
   also have "... = `(ok \<Rightarrow> (ok \<and> $okay\<acute> = $okay \<and> II\<^bsub>?vs\<^esub>)) ; R`"
     apply (simp add:VarP_EqualP_aux typing defined erasure)

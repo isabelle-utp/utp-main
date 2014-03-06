@@ -83,6 +83,10 @@ lemma BH1_example_2:
   "`($p = \<guillemotleft>7\<guillemotright>) \<and> ($V = \<guillemotleft>3\<guillemotright>) \<and> ($k = \<guillemotleft>21\<guillemotright>)` is BH1"
   by (utp_poly_auto_tac)
 
+lemma BH_1_counterexample_1:
+  "`($p = \<guillemotleft>9\<guillemotright>) \<and> ($V = \<guillemotleft>2\<guillemotright>) \<and> ($k = \<guillemotleft>18\<guillemotright>)` is BH1"
+  by (utp_poly_auto_tac)
+
 end
 
 (*
