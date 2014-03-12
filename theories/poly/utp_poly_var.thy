@@ -184,6 +184,8 @@ lemma pvaux_pvundash [simp]:
 definition "PUNDASHED     \<equiv> {x. PVAR_VAR x \<in> UNDASHED}"
 definition "PDASHED       \<equiv> {x. PVAR_VAR x \<in> DASHED}"
 definition "PDASHED_TWICE \<equiv> {x. PVAR_VAR x \<in> DASHED_TWICE}"
+definition "PNOSUB        = {x. PVAR_VAR x \<in> NOSUB}"
+definition "PWITHSUB n    = {x. PVAR_VAR x \<in> WITHSUB n}"
 
 lemma PVAR_VAR_PUNDASHED_UNDASHED [closure]:
   "x \<in> PUNDASHED \<Longrightarrow> x\<down> \<in> UNDASHED"
@@ -196,6 +198,14 @@ lemma PVAR_VAR_PDASHED_DASHED [closure]:
 lemma PVAR_VAR_PDASHED_DASHED_TWICE [closure]:
   "x \<in> PDASHED_TWICE \<Longrightarrow> x\<down> \<in> DASHED_TWICE"
   by (simp add:PDASHED_TWICE_def)
+
+lemma PVAR_VAR_PNOSUB_NOSUB [closure]:
+  "x \<in> PNOSUB \<Longrightarrow> x\<down> \<in> NOSUB"
+  by (simp add: PNOSUB_def)
+
+lemma PVAR_VAR_PSUB_SUB [closure]:
+  "x \<in> PWITHSUB(n) \<Longrightarrow> x\<down> \<in> WITHSUB(n)"
+  by (simp add: PWITHSUB_def)
 
 lemma PUNDASHED_dash [closure]:
   "x \<in> PUNDASHED \<Longrightarrow> x\<acute> \<in> PDASHED"

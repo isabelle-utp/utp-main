@@ -28,7 +28,6 @@ lemma EvalP_rename_on_expand_binding:
   apply (metis binding_override_simps(2) binding_override_simps(3))
 done
 
-
 theorem RenameP_id :
   fixes p :: "'a WF_PREDICATE"
   shows "id\<^sub>s\<bullet>p = p"
@@ -248,6 +247,21 @@ apply (simp)
 apply (simp add: RenameP_ClosureP_1 closure)
 apply (utp_pred_tac)
 apply (simp add: RenameP_IffP_distr)
+done
+
+lemma RenameP_func_insert_to_SubstP [urename]:
+  "\<lbrakk> rename_func_on f (insert x xs); x \<notin> xs; {f(x)} \<sharp> (p :: 'm WF_PREDICATE) \<rbrakk> 
+   \<Longrightarrow> (f on insert x xs)\<bullet>p = ((f on xs)\<bullet>p)[$\<^sub>e(f x)/\<^sub>px]"
+  apply (utp_pred_tac)
+  apply (subst inv_rename_func_on)
+  apply (metis rename_func_on_subset subset_insertI)
+  apply (subst rename_on_insert)
+  apply (simp_all)
+  apply (subst RenameB_binding_upd_1)
+  apply (subst EvalP_UNREST_assign)
+  apply (auto)
+  apply (subst rename_on_perm3)
+  apply (auto intro: rename_func_on_subset)
 done
 
 subsubsection {* Expression Renaming Theorems *}

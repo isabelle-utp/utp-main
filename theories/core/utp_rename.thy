@@ -582,6 +582,18 @@ lemma rename_on_image2 [simp]:
   "rename_func_on f vs \<Longrightarrow> \<langle>f on vs\<rangle>\<^sub>s ` f ` vs = vs"
   by (metis (hide_lams, no_types) Rep_VAR_RENAME_inj image_inv_f_f inv_complete_inj rename_func_on_def rename_inv_rep_eq rename_on_image1 rename_on_rep_eq)
 
+lemma rename_func_on_subset:
+  "\<lbrakk> rename_func_on f B; A \<subseteq> B \<rbrakk> \<Longrightarrow> rename_func_on f A"
+  apply (auto simp add:rename_func_on_def)
+  apply (metis subset_inj_on)
+  apply (metis IntI empty_iff imageI in_mono)
+done
+
+lemma rename_func_on_vtype:
+  "\<lbrakk> rename_func_on f vs; x \<in> vs \<rbrakk> \<Longrightarrow> vtype (f x) = vtype x"
+  by (metis Rep_VAR_RENAME_type rename_on_perm1)
+
+
 text {* More theorems about @{term "VAR_RENAME"} *}
 
 lemma VAR_RENAME_MapRename [closure]:
@@ -791,6 +803,14 @@ theorem VAR_RENAME_INV_rename_on [closure]:
   "\<lbrakk> rename_func_on f vs \<rbrakk> \<Longrightarrow>
    rename_on f vs \<in> VAR_RENAME_INV"
   unfolding VAR_RENAME_INV_def by (force simp add: rename_on_rep_eq)
+
+lemma inv_rename_func_on:
+  "rename_func_on f vs \<Longrightarrow> inv\<^sub>s (f on vs) = f on vs"
+  by (metis VAR_RENAME_INV_inv VAR_RENAME_INV_rename_on)
+
+lemma inv_rename_func_on' [simp]: 
+  "rename_func_on f A \<Longrightarrow> inv \<langle>f on A\<rangle>\<^sub>s = \<langle>f on A\<rangle>\<^sub>s"
+  by (metis VAR_RENAME_INV_inv' VAR_RENAME_INV_rename_on)
 
 subsection {* Binding Renaming *}
 
@@ -1033,6 +1053,13 @@ text {* Subscript addition permutation *}
 lift_definition SUB :: "nat \<Rightarrow> 'a VAR_RENAME" is "(\<lambda> x y. vchsub y x)"
   by (simp add:VAR_RENAME_def add_sub_bij)
 
+lemma SUB_rename_func_on [closure]:
+  "rename_func_on (add_sub n) NOSUB"
+  apply (auto simp add:rename_func_on_def)
+  apply (metis (no_types) add_sub_inv inj_onI)
+  apply (simp add: NOSUB_def)
+done
+
 lemma SUB_var [urename]:
   fixes x :: "'m VAR"
   shows "SUB n\<bullet>x = x\<^bsub>n\<^esub>"
@@ -1080,6 +1107,26 @@ lemma DSUB_UNDASHED [urename]:
   apply (subgoal_tac "x \<notin> add_sub n ` (DASHED \<inter> NOSUB)")
   apply (simp add:DSUB_def closure rename_on_perm3)
   apply (auto simp add:var_defs)
+done
+
+text {* Some extra rename on laws *}
+
+lemma rename_on_insert:
+  "\<lbrakk> rename_func_on f (insert x xs); x \<notin> xs \<rbrakk> \<Longrightarrow> f on insert x xs \<bullet> b = (f on xs)\<bullet>b(x :=\<^sub>b \<langle>b\<rangle>\<^sub>b (f x), f x :=\<^sub>b \<langle>b\<rangle>\<^sub>b x)"
+  apply (subgoal_tac "rename_func_on f xs")
+  apply (rule)
+  apply (rule ext)
+  apply (case_tac "xa = x")
+  apply (simp add:rename_on_rep_eq)
+  apply (auto)[1]
+  apply (case_tac "xa = f(x)")
+  apply (simp add:rename_on_rep_eq)
+  apply (auto)[1]
+  apply (auto)[1]
+  apply (smt VAR_RENAME_INV_app VAR_RENAME_INV_rename_on insertI1 insertI2 inv_into_into rename_on_perm1 rename_on_perm2 rename_on_perm3)
+  apply (auto simp add:rename_on_rep_eq rename_func_on_def)
+  apply (metis complete_inj_inverse complete_inj_none)
+  apply (metis (hide_lams, no_types) Diff_idemp Diff_insert_absorb complete_inj_insert_3 inj_on_insert)
 done
 
 end

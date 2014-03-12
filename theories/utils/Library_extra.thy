@@ -16,6 +16,10 @@ definition complete_inj ::
   "('a \<Rightarrow> 'a) \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'a)" where
 "complete_inj f vs = (\<lambda> x. if (x \<in> vs) then f x else if (x \<in> f ` vs) then inv_into vs f x else x)"
 
+lemma complete_inj_empty [simp]:
+  "complete_inj f {} = id"
+  by (auto simp add:complete_inj_def)
+
 lemma complete_inj_dom [simp]:
   "x \<in> vs \<Longrightarrow> complete_inj f vs x = f x"
   by (simp add:complete_inj_def)
@@ -27,6 +31,19 @@ lemma complete_inj_ran [simp]:
 lemma complete_inj_none [simp]:
   "\<lbrakk> x \<notin> vs; x \<notin> f ` vs \<rbrakk> \<Longrightarrow> complete_inj f vs x = x"
   by (simp add:complete_inj_def)
+
+lemma complete_inj_insert_1 [simp]:
+  "complete_inj f (insert x xs) x = f x" 
+  by (simp add:complete_inj_def)
+
+lemma complete_inj_insert_2:
+  "\<lbrakk> inj_on f (insert x xs); f(x) \<notin> xs \<rbrakk> \<Longrightarrow> complete_inj f (insert x xs) (f(x)) = x"
+  by (simp add: complete_inj_def)
+
+lemma complete_inj_insert_3:
+  "\<lbrakk> inj_on f (insert x xs); y \<noteq> x; y \<noteq> f(x) \<rbrakk> 
+     \<Longrightarrow> complete_inj f (insert x xs) y = complete_inj f xs y"
+  by (auto simp add: complete_inj_def)
 
 lemma inj_complete_inj: "\<lbrakk> inj_on f vs; f ` vs \<inter> vs = {} \<rbrakk> \<Longrightarrow> inj (complete_inj f vs)"
   apply (rule injI)
