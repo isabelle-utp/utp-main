@@ -88,7 +88,7 @@ text {* A precondition has true as left identity *}
 theorem SemiR_TrueP_precond : 
   assumes "p \<in> WF_CONDITION"
   shows "p ;\<^sub>R true = p"
-  by (metis TrueP_right_UNREST_DASHED WF_CONDITION_def assms mem_Collect_eq)
+  by (metis (lifting) ExistsP_ident TrueP_right_ExistsP WF_CONDITION_def assms mem_Collect_eq)
 
 text {* True as a left-identity equates to all undashed variables having values *}
 

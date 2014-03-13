@@ -219,6 +219,10 @@ lemma MkPlainP_UNDASHED [closure]:
   "MkPlainP n a t m \<in> PUNDASHED"
   by (simp add: PVAR_VAR_MkPVAR PUNDASHED_def)
 
+lemma MkPlainP_NOSUB [closure]:
+  "MkPlainP n a t m \<in> PNOSUB"
+  by (simp add: PVAR_VAR_MkPVAR PNOSUB_def)
+
 lemma pvdash_pvundash [simp]:
   "pvundash (pvdash x) = x"
   by (metis PVAR_VAR_inv PVAR_VAR_pvdash PVAR_VAR_pvundash undash_dash)

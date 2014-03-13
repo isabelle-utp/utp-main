@@ -249,8 +249,8 @@ apply (utp_pred_tac)
 apply (simp add: RenameP_IffP_distr)
 done
 
-lemma RenameP_func_insert_to_SubstP [urename]:
-  "\<lbrakk> rename_func_on f (insert x xs); x \<notin> xs; {f(x)} \<sharp> (p :: 'm WF_PREDICATE) \<rbrakk> 
+lemma RenameP_func_insert_to_SubstP:
+  "\<lbrakk> rename_func_on f (insert x xs); x \<notin> xs; {f(x)} \<sharp> p \<rbrakk> 
    \<Longrightarrow> (f on insert x xs)\<bullet>p = ((f on xs)\<bullet>p)[$\<^sub>e(f x)/\<^sub>px]"
   apply (utp_pred_tac)
   apply (subst inv_rename_func_on)

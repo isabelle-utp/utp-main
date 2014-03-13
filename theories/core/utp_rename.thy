@@ -515,6 +515,10 @@ definition rename_on ::
    \<Rightarrow> 'VALUE VAR_RENAME" (infix "on" 100) where
 "rename_on f vs = Abs_VAR_RENAME (complete_inj f vs)"
 
+lemma rename_on_empty [simp]:
+  "rename_on f {} = id\<^sub>s"
+  by (metis complete_inj_empty rename_id_def rename_on_def)
+
 lemma rename_on_VAR_RENAME [closure]:
   "rename_func_on f vs \<Longrightarrow>
    complete_inj f vs \<in> VAR_RENAME"

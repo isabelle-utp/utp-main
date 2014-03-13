@@ -274,4 +274,12 @@ lemma SkipRA_unfold_aux_ty:
   apply(simp_all add:closure assms erasure typing defined)
 done
 
+theorem ExistsP_has_ty_value:
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  assumes 
+    "TYPEUSOUND('a, 'm)" "pvaux x" "v \<rhd>\<^sub>* x" "{x\<down>} \<sharp> v"
+  shows "`\<exists> x. $x = v` = `true`"
+  using assms
+  by (utp_poly_auto_tac, metis EvalPE_compat TypeUSound_InjU_inv var_compat_pvar vcoerce_reduce1)
+
 end

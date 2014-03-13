@@ -211,6 +211,7 @@ theorems var_defs =
   DASHED_TWICE_def
   DASHED_THRICE_def
   NOSUB_def
+  WITHSUB_def
   PLAIN_def
   MkVar_def
   undash_def
@@ -389,6 +390,30 @@ lemma DASHED_not_NON_REL_VAR:
   "x \<in> DASHED \<Longrightarrow> x \<notin> NON_REL_VAR"
   by (simp add:var_defs)
 
+lemma NOSUB_dash: 
+  "x \<in> NOSUB \<Longrightarrow> x\<acute> \<in> NOSUB"
+  by (simp add:var_defs)
+
+lemma NOSUB_undash_DASHED: 
+  "\<lbrakk> x \<in> NOSUB; x \<in> DASHED \<rbrakk> \<Longrightarrow> x~ \<in> NOSUB"
+  by (simp add:var_defs)
+
+lemma NOSUB_undash_DASHED_TWICE: 
+  "\<lbrakk> x \<in> NOSUB; x \<in> DASHED_TWICE \<rbrakk> \<Longrightarrow> x~ \<in> NOSUB"
+  by (simp add:var_defs)
+
+lemma WITHSUB_dash: 
+  "x \<in> WITHSUB(n) \<Longrightarrow> x\<acute> \<in> WITHSUB(n)"
+  by (simp add:var_defs)
+
+lemma WITHSUB_undash_DASHED: 
+  "\<lbrakk> x \<in> WITHSUB(n); x \<in> DASHED \<rbrakk> \<Longrightarrow> x~ \<in> WITHSUB(n)"
+  by (simp add:var_defs)
+
+lemma WITHSUB_undash_DASHED_TWICE: 
+  "\<lbrakk> x \<in> WITHSUB(n); x \<in> DASHED_TWICE \<rbrakk> \<Longrightarrow> x~ \<in> WITHSUB(n)"
+  by (simp add:var_defs)
+
 theorem in_UNDASHED :
 "in vs \<subseteq> UNDASHED"
   by (simp add: in_vars_def)
@@ -473,6 +498,12 @@ theorems var_member =
   NON_REL_VAR_dash_NON_REL_VAR
   UNDASHED_not_NON_REL_VAR
   DASHED_not_NON_REL_VAR
+  NOSUB_dash
+  NOSUB_undash_DASHED
+  NOSUB_undash_DASHED_TWICE
+  WITHSUB_dash
+  WITHSUB_undash_DASHED
+  WITHSUB_undash_DASHED_TWICE
   in_UNDASHED
   out_DASHED
   in_of_UNDASHED
@@ -584,6 +615,10 @@ lemma DASHED_TWICE_nempty: "DASHED_TWICE \<noteq> {}"
   apply (simp)
 done
 
+lemma dash_neq_reduce: 
+  "x\<acute> \<noteq> y\<acute> \<longleftrightarrow> x \<noteq> y"
+  by (auto simp add: prod_eq_iff var_defs)
+
 theorem dash_uniqs:
 "x \<noteq> dash x" "dash x \<noteq> x"
 "x \<noteq> dash (dash x)" "dash (dash x) \<noteq> x"
@@ -591,6 +626,9 @@ theorem dash_uniqs:
 "x \<noteq> x\<acute>\<acute>\<acute>" "x\<acute>\<acute>\<acute> \<noteq> x" 
 "x\<acute> \<noteq> x\<acute>\<acute>\<acute>" "x\<acute>\<acute>\<acute> \<noteq> x\<acute>"
 "x\<acute>\<acute> \<noteq> x\<acute>\<acute>\<acute>" "x\<acute>\<acute>\<acute> \<noteq> x\<acute>\<acute>"
+  by (case_tac x, case_tac a, simp add:var_defs)+
+
+lemma sub_uniqs: "x \<in> NOSUB \<Longrightarrow> x\<^bsub>n\<^esub> \<noteq> x" "x \<in> NOSUB \<Longrightarrow> x \<noteq> x\<^bsub>n\<^esub>"
   by (case_tac x, case_tac a, simp add:var_defs)+
 
 theorem dash_name_str:
@@ -953,6 +991,8 @@ theorems var_simps =
   UNDASHED_DASHED_minus
   HOMOGENEOUS_undash_out
   HOMOGENEOUS_dash_in
+  dash_neq_reduce
+  sub_uniqs
 
 declare var_simps [simp]
 
