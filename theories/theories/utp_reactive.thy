@@ -18,17 +18,6 @@ abbreviation "ref  \<equiv> MkPlainP ''ref'' True TYPE('m EVENT USET) TYPE('m)"
 
 abbreviation "REA \<equiv> {wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<down>\<acute>, ref\<down>, ref\<down>\<acute>}"
 
-definition SkipREA :: "'a WF_PREDICATE" where
-"SkipREA = `(\<not> ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok' \<and> II\<^bsub>REL_VAR - OKAY\<^esub>)`"
-
-syntax 
-  "_upred_skiprea" :: " upred" ("II\<^bsub>rea\<^esub>")
-
-translations
-  "_upred_skiprea" == "CONST SkipREA"
-
-declare SkipREA_def [eval, evalr, evalp]
-
 text {* R1 ensures that the trace only gets longer *}
 
 definition R1 :: " 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
@@ -45,11 +34,6 @@ definition R2 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 definition R3 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 "R3(P) = `II \<lhd> $wait \<rhd> P`"
 
-text {* The old version of R3 *}
-
-definition R3h :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"R3h(P) = `II\<^bsub>rea\<^esub> \<lhd> $wait \<rhd> P`"
-
 definition RH :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where 
 "RH P = (R1 \<circ> R2 \<circ> R3)P"
 
@@ -57,7 +41,6 @@ declare R1_def [eval, evalr, evalrr, evalrx, evalp]
 declare R2_def [eval, evalr, evalrr, evalrx, evalp]
 declare R2s_def [eval, evalr, evalrr, evalrx, evalp]
 declare R3_def [eval, evalr, evalrr, evalrx, evalp]
-declare R3h_def [eval, evalr, evalrr, evalrx, evalp]
 declare is_healthy_def [eval, evalr, evalrr, evalrx, evalp]
 declare RH_def [eval, evalr, evalrr, evalrx, evalp]
 
@@ -78,14 +61,6 @@ lemma R2_rel_closure [closure]:
 lemma R3_rel_closure [closure]:
   "P \<in> WF_RELATION \<Longrightarrow> R3(P) \<in> WF_RELATION"
   by (simp add:R3_def closure)
-
-lemma SkipREA_rel_closure [closure]:
-  "`II\<^bsub>rea\<^esub>` \<in> WF_RELATION"
-  by (simp add:SkipREA_def closure unrest erasure WF_RELATION_UNREST)
-
-lemma R3h_rel_closure [closure]:
-  "P \<in> WF_RELATION \<Longrightarrow> R3h(P) \<in> WF_RELATION"
-  by (simp add:R3h_def closure)
 
 lemma RH_rel_closure [closure]: 
   "P \<in> WF_RELATION \<Longrightarrow> RH(P) \<in> WF_RELATION"
@@ -194,40 +169,6 @@ by (metis Healthy_intro Healthy_simp R1_CondR assms(1) assms(2))
 lemma R1_tr_leq_tr' [closure]:
   "`$tr \<le> $tr\<acute>` is R1"
   by (simp add:R1_def is_healthy_def)
-
-lemma SkipREA_form: 
-  "`II\<^bsub>rea\<^esub>` = `II \<lhd> ok \<rhd> ($tr \<le> $tr\<acute>)`"
-proof -
-  have "`II \<lhd> ok \<rhd> ($tr \<le> $tr\<acute>)` = `($okay\<acute> = $okay \<and> II\<^bsub>REL_VAR - OKAY\<^esub>) \<lhd> ok \<rhd> ($tr \<le> $tr\<acute>)`"
-    by (simp add:SkipR_as_SkipRA SkipRA_unfold[of "okay\<down>"] closure erasure typing)
-
-  also 
-  have "... = `($okay\<acute> = $okay \<and> II\<^bsub>REL_VAR - OKAY\<^esub>)[true/okay] 
-               \<lhd> ok \<rhd> 
-               (($tr \<le> $tr\<acute>)[false/okay])`"
-    by (simp add:erasure, rule_tac CondR_VarP_aux[of "okay\<down>"], simp_all)
-
-  also have "... = `(ok' \<and> II\<^bsub>REL_VAR - OKAY\<^esub>) \<lhd> ok \<rhd> ($tr \<le> $tr\<acute>)`"
-    by (simp add:usubst typing defined closure)
-
-  also have "... = `(ok \<and> ok' \<and> II\<^bsub>REL_VAR - OKAY\<^esub>) \<or> (\<not> ok \<and> ($tr \<le> $tr\<acute>))`"
-    by (utp_pred_auto_tac)
-
-  also have "... = `II\<^bsub>rea\<^esub>`"
-    apply (simp add:SkipREA_def)
-    apply (rule_tac x="okay\<down>" in BoolType_aux_var_split_eq_intro)
-    apply (simp_all add:usubst closure typing defined urename)
-    apply (utp_poly_auto_tac)
-    apply (utp_pred_tac)
-    apply (drule_tac x="tr\<down>" in bspec)
-    apply (simp_all add:var_dist closure evalp typing Rep_binding_ty_def)
-  done
-  finally show ?thesis ..
-qed
-
-lemma R1_SkipREA [closure]:
-  "`II\<^bsub>rea\<^esub>` is R1"
-  by (simp add: SkipREA_form closure)
 
 (* L13 R10-sequence-closure *)
 
@@ -696,17 +637,6 @@ proof -
     by (simp add:SkipR_as_SkipRA)
 qed
 
-theorem SkipREA_R2_closure [closure]:
-  "`II\<^bsub>rea\<^esub>` is R2"
-  apply (simp add:SkipREA_def R2_def is_healthy_def R2s_def usubst defined typing closure unrest)
-  apply (subst SkipRA_unfold[of "tr\<down>"])
-  apply (auto simp add:closure)
-  apply (simp add:usubst closure typing defined)
-  apply (utp_poly_tac)
-  apply (simp add:eval closure typing)
-  apply (auto)
-oops
-
 subsection {* R3 Laws *}
 
 (* L1 R3-wait-true *)
@@ -898,7 +828,6 @@ also have "... = `(($tr \<le> $tr\<acute>) \<and> $wait\<acute>) \<or> ($tr \<le
 also have "... =  `(($tr \<le> $tr\<acute>) \<and> $wait\<acute>) \<or> ($tr \<le> $tr\<acute>) ; P\<^sub>f`"
   apply(subst SemiR_remove_middle_unrest1[of _ _ "{wait \<down>}"])
   apply(simp_all add:closure typing defined erasure unrest)
-  apply (smt R1_def R1_rel_closure TrueP_rel_closure utp_pred_simps(6))
   apply(subst SubstP_rel_closure)
   apply(simp_all add:assms closure typing defined WF_RELATION_UNREST unrest)
   done

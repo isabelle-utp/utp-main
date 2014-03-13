@@ -64,10 +64,16 @@ lemma ok_wait_commute_f_t:
   apply (simp add:usubst typing defined)
 done
 
-lemma tr_eq_rel_closure: 
+lemma tr_eq_rel_closure[closure]: 
   "`($tr\<acute> = $tr)` \<in> WF_RELATION"
  by (simp add:closure unrest typing)
 
+
+lemma tr_leq_rel_closure[closure]: 
+  "`($tr \<le> $tr\<acute>)` \<in> WF_RELATION"
+  apply(simp add:WF_RELATION_def)
+  apply (simp add:closure unrest typing)
+done
 
 lemma DestList_event_dcarrier [typing]: 
   fixes xs :: "('m EVENT ULIST, 'm :: REACTIVE_SORT) PVAR"

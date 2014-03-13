@@ -92,11 +92,11 @@ definition ParallelD ::
 "P \<parallel> Q = (\<not>\<^sub>p P\<^sup>f \<and>\<^sub>p \<not>\<^sub>p Q\<^sup>f) \<turnstile> (P\<^sup>t \<and>\<^sub>p Q\<^sup>t)"
 
 definition WF_VALID_MERGE :: "('a VAR set * 'a WF_PREDICATE) set" where
-"WF_VALID_MERGE = UNIV"
+"WF_VALID_MERGE = UNIV" (* fst M undashed only *)
 
 definition ParallelMergeD :: 
   "'a WF_PREDICATE => ('a VAR set * 'a WF_PREDICATE) => 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infix "\<parallel>\<^bsub>_\<^esub>" 100) where
-"P \<parallel>\<^bsub>M\<^esub> Q =  ((add_sub 0 on fst M \<bullet> P) \<parallel> (add_sub 1 on fst M \<bullet> Q)) ;\<^sub>R snd M"
+"P \<parallel>\<^bsub>M\<^esub> Q =  (((add_sub 0 on (dash ` fst M) \<bullet> P) \<parallel> (add_sub 1 on (dash ` fst M) \<bullet> Q)) \<and>\<^sub>p II\<^bsub>fst M \<union> (dash ` fst M)\<^esub>) ;\<^sub>R snd M"
 
 declare BotD_def [eval,evalr,evalrx,evalp]
 declare TopD_def [eval,evalr,evalrx,evalp]
@@ -678,7 +678,6 @@ theorem AssignD_idem :
   apply (metis (full_types) UNDASHED_not_NON_REL_VAR in_mono utp_var.in_UNDASHED)
   apply (subst AssignRA_idem)
   apply (simp_all add:var_dist closure)
-  apply (metis dash_elim)
   apply (rule UNREST_EXPR_subset)
   apply (auto)
   apply (metis (full_types) utp_var.in_UNDASHED set_mp)
