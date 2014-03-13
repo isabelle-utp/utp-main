@@ -181,6 +181,10 @@ lemma pvaux_pvundash [simp]:
   "pvaux (pvundash x) = pvaux x"
   by (simp add:pvundash_def)
 
+lemma pvaux_sub [simp]:
+  "pvaux (x\<^bsub>n\<^esub>) = pvaux x"
+  by (simp add:pvchsub_def)
+
 definition "PUNDASHED     \<equiv> {x. PVAR_VAR x \<in> UNDASHED}"
 definition "PDASHED       \<equiv> {x. PVAR_VAR x \<in> DASHED}"
 definition "PDASHED_TWICE \<equiv> {x. PVAR_VAR x \<in> DASHED_TWICE}"

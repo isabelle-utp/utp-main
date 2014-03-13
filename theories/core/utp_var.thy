@@ -304,6 +304,14 @@ theorem aux_undash [simp] :
 "aux (undash x) = aux x"
   by (simp add: var_defs)
 
+theorem vtype_sub [simp] :
+"vtype (x\<^bsub>n\<^esub>) = vtype x"
+  by (case_tac x, case_tac a, simp add: var_defs)
+
+theorem aux_sub [simp] :
+"aux (x\<^bsub>n\<^esub>) = aux x"
+  by (case_tac x, case_tac a, simp add: var_defs)
+
 subsubsection {* Membership Theorems *}
 
 theorem UNDASHED_not_DASHED :
