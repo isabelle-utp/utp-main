@@ -176,15 +176,15 @@ lemma AssignRA_refinement [refine]:
 
 lemma AssignRA_refinement_alt:
   assumes "HOMOGENEOUS(xs)" "xs \<subseteq> REL_VAR" "x \<in> in(xs)"
-          "- in(xs) \<sharp> p" "- in(xs) \<sharp> v"
-  shows "(p[v/\<^sub>px] \<Rightarrow>\<^sub>p p\<acute>) \<sqsubseteq> x :=\<^bsub>xs\<^esub> v"
+          "p \<Rightarrow>\<^sub>p q[v/\<^sub>px]" "- in(xs) \<sharp> q" "- in(xs) \<sharp> v"
+  shows "(p \<Rightarrow>\<^sub>p q\<acute>) \<sqsubseteq> x :=\<^bsub>xs\<^esub> v"
   using assms
   apply (utp_pred_auto_tac)
   apply (subst EvalP_binding_equiv[of _ _ _ "b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eb)"])
   apply (simp_all)
   apply (subgoal_tac "x \<in> D\<^sub>0")
   apply (simp add: binding_equiv_def urename)
-  apply (metis in_UNDASHED set_rev_mp)
+  apply (metis set_mp utp_var.in_UNDASHED)
 done
 
 end
