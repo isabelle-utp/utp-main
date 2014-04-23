@@ -195,7 +195,7 @@ theorem ExistsP_commute:
   by (metis ExistsP_union sup_commute)
 
 theorem ExistsP_rest_vars:
-  "\<lbrakk> (VAR - vs) \<sharp> P; (P \<noteq> false) \<rbrakk> 
+  "\<lbrakk> - vs \<sharp> P; (P \<noteq> false) \<rbrakk> 
    \<Longrightarrow> (\<exists>\<^sub>p vs. P) = true"
   apply (utp_pred_auto_tac)
   apply (rule_tac x="b" in exI)

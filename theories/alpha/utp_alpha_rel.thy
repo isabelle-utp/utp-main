@@ -89,6 +89,14 @@ is "\<lambda> p q. (in\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f out\<^sub>\<
 done
 
 notation SemiA (infixr ";\<^sub>\<alpha>" 140)
+definition ConvA ::
+"'a WF_ALPHA_PREDICATE \<Rightarrow>
+ 'a WF_ALPHA_PREDICATE" where
+"ConvA p = SS\<bullet>p"
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name prime} @{const_name ConvA}
+*}
 
 subsection {* Theorems *}
 
@@ -112,17 +120,26 @@ lemma WF_ALPHA_REL_EvalA_WF_RELATION [closure]:
   "P \<in> WF_ALPHA_REL \<Longrightarrow> \<lbrakk>P\<rbrakk>\<pi> \<in> WF_RELATION"
   apply (simp add:WF_ALPHA_REL_def WF_RELATION_def REL_ALPHABET_def)
   apply (rule UNREST_subset)
-  apply (rule EvalA_UNREST)
+  apply (rule UNREST_EvalA)
   apply (auto)
+done
+
+lemma WF_ALPHA_COND_EvalA_WF_CONDITION [closure]:
+  "p \<in> WF_ALPHA_COND \<Longrightarrow> \<lbrakk>p\<rbrakk>\<pi> \<in> WF_CONDITION"
+  apply (auto simp add:WF_ALPHA_COND_def WF_CONDITION_def)
+  apply (simp add:closure)
+  apply (simp add:EvalA_def)
 done
 
 lemma WF_RELATION_REL_ALPHABET [closure]: 
   "\<alpha> P \<in> REL_ALPHABET \<Longrightarrow> \<lbrakk>P\<rbrakk>\<pi> \<in> WF_RELATION"
   by (auto intro:closure simp add:WF_ALPHA_REL_def)
 
+(*
 lemma WF_ALPHA_REL_REL_ALPHABET [closure]:
   "\<alpha> P \<in> REL_ALPHABET \<Longrightarrow> P \<in> WF_ALPHA_REL"
   by (simp add:WF_ALPHA_REL_def)
+*)
 
 lemma HOMOGENEOUS_HOM_ALPHA [closure]:
   "a \<in> HOM_ALPHABET \<Longrightarrow> HOMOGENEOUS \<langle>a\<rangle>\<^sub>f"
@@ -156,13 +173,23 @@ theorem REL_ALPHABET_UNDASHED_DASHED [closure]:
   by (simp add: REL_ALPHABET_def)
 
 lemma NON_REL_VAR_REL_ALPHABET [closure]: 
-  "a \<in> REL_ALPHABET \<Longrightarrow> NON_REL_VAR \<subseteq> VAR - \<langle>a\<rangle>\<^sub>f"
-  by (auto simp add: REL_ALPHABET_def NON_REL_VAR_def)
+  "a \<in> REL_ALPHABET \<Longrightarrow> NON_REL_VAR \<subseteq> - \<langle>a\<rangle>\<^sub>f"
+  apply (simp only: REL_ALPHABET_def NON_REL_VAR_def)
+  apply (auto)
+done
+
+lemma REL_ALPHABET_WF_ALPHA_COND [closure]: 
+  "p \<in> WF_ALPHA_COND \<Longrightarrow> \<alpha>(p) \<in> REL_ALPHABET"
+  by (metis WF_ALPHA_COND_WF_ALPHA_REL WF_ALPHA_REL_def mem_Collect_eq)
+
+lemma REL_ALPHABET_WF_ALPHA_REL [closure]: 
+  "p \<in> WF_ALPHA_REL \<Longrightarrow> \<alpha>(p) \<in> REL_ALPHABET"
+  by (metis WF_ALPHA_COND_WF_ALPHA_REL WF_ALPHA_REL_def mem_Collect_eq)
 
 theorem WF_ALPHA_REL_UNREST_UNDASHED [unrest]:
   "r \<in> WF_ALPHA_REL \<Longrightarrow> UNREST DASHED_TWICE (\<pi> r)"
   apply (simp add:WF_ALPHA_REL_def REL_ALPHABET_def)
-  apply (rule_tac ?vs1.0="VAR - \<langle>\<alpha> r\<rangle>\<^sub>f" in UNREST_subset)
+  apply (rule_tac ?vs1.0="- \<langle>\<alpha> r\<rangle>\<^sub>f" in UNREST_subset)
   apply (auto intro:unrest)
 done
 
@@ -292,7 +319,7 @@ theorem TrueA_WF_ALPHA_COND [closure] :
 "a \<in> REL_ALPHABET \<Longrightarrow>
  true\<^bsub>a\<^esub> \<in> WF_ALPHA_COND"
 apply (simp add:WF_ALPHA_COND_def)
-apply (simp add:TrueA_rep_eq closure)
+apply (simp add:TrueA.rep_eq closure)
 apply (auto intro:unrest)
 done
 
@@ -307,7 +334,7 @@ theorem FalseA_WF_ALPHA_COND [closure] :
 "a \<in> REL_ALPHABET \<Longrightarrow>
  false\<^bsub>a\<^esub> \<in> WF_ALPHA_COND"
 apply (simp add:WF_ALPHA_COND_def)
-apply (simp add:FalseA_rep_eq closure)
+apply (simp add:FalseA.rep_eq closure)
 apply (auto intro:unrest)
 done
 
@@ -371,14 +398,13 @@ lemma SkipRA_closure' [closure]:
 theorem AssignA_rep_eq:
   "\<lbrakk> a \<in> REL_ALPHABET
    ; x \<in>\<^sub>f a; dash x \<in>\<^sub>f a
-   ; \<alpha> v \<subseteq>\<^sub>f a
-   ; v \<rhd>\<^sub>\<alpha> x \<rbrakk> \<Longrightarrow> 
+   ; \<alpha> v \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow> 
    \<langle>x :=\<^bsub>a\<^esub> v\<rangle>\<^sub>\<alpha> = (a, AssignRA x \<langle>a\<rangle>\<^sub>f (\<epsilon> v))"
   apply (subgoal_tac "x \<in> UNDASHED")
   apply (subgoal_tac "(a, x :=\<^bsub>\<langle>a\<rangle>\<^sub>f \<^esub>\<epsilon> v) \<in> WF_ALPHA_PREDICATE")
   apply (simp add:AssignA_def)
   apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
-  apply (subgoal_tac "UNREST (VAR - ({dash x} \<union> \<langle>a\<rangle>\<^sub>f)) (x :=\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub>\<epsilon> v)")
+  apply (subgoal_tac "UNREST (- ({dash x} \<union> \<langle>a\<rangle>\<^sub>f)) (x :=\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub>\<epsilon> v)")
   apply (subgoal_tac "\<langle>a\<rangle>\<^sub>f = {dash x} \<union> (\<langle>a\<rangle>\<^sub>f - {dash x})")
   apply (force)
   apply (force)
@@ -394,7 +420,6 @@ theorem AssignA_closure [closure] :
    "a \<in> REL_ALPHABET"
    "x \<in>\<^sub>f a" "dash x \<in>\<^sub>f a"
    "\<alpha> v \<subseteq>\<^sub>f a"
-   "v \<rhd>\<^sub>\<alpha> x"
   shows "x :=\<^bsub>a\<^esub> v \<in> WF_ALPHA_REL"
 proof
   from assms show "\<langle>\<alpha> (x :=\<^bsub>a \<^esub>v)\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED"
@@ -450,12 +475,15 @@ theorem SkipA_alphabet [alphabet] :
 "\<alpha> (II\<alpha>\<^bsub>a\<^esub>) = a"
   by (simp add: SkipA.rep_eq)
 
-(*
 theorem AssignA_alphabet [alphabet] :
-"\<lbrakk> a \<in> REL_ALPHABET; x \<in>\<^sub>f a; dash x \<in>\<^sub>f a; \<alpha> v \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow>
+"\<lbrakk> a \<in> REL_ALPHABET; a \<in> HOM_ALPHABET; x \<in>\<^sub>f in\<^sub>\<alpha>(a); \<alpha> v \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow>
  \<alpha> (x :=\<^bsub>a\<^esub> v) = a"
-  by (simp add: AssignA_rep_eq)
-*)
+  apply (simp add:pred_alphabet_def)
+  apply (subst AssignA_rep_eq)
+  apply (simp_all)
+  apply (metis Int_iff in_vars_def)
+  apply (metis (mono_tags) Diff_iff HOMOGENEOUS_HOM_ALPHA UNDASHED_minus_in hom_alphabet_undash set_mp utp_var.in_UNDASHED)
+done
 
 theorem CondA_alphabet [alphabet] :
 "\<alpha> (r1 \<lhd> b \<rhd>\<^sub>\<alpha> r2) = (\<alpha> r1 \<union>\<^sub>f \<alpha> b \<union>\<^sub>f \<alpha> r2)"
@@ -473,6 +501,10 @@ theorem SemiA_alphabet [alphabet] :
   "\<alpha> (p ;\<^sub>\<alpha> q) = in\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> q) \<union>\<^sub>f nrel\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f nrel\<^sub>\<alpha> (\<alpha> q)"
   by (force simp add: SemiA.rep_eq WF_ALPHA_REL_def REL_ALPHABET_def var_defs)
 
+theorem ConvA_alphabet [alphabet] :
+  "\<alpha> (P\<acute>) = \<langle>SS\<rangle>\<^sub>s `\<^sub>f \<alpha>(P :: 'a WF_ALPHA_PREDICATE)"
+  by (metis ConvA_def PermA_alphabet)
+
 subsection {* Evaluation Theorems *}
 
 theorem EvalP_SkipP_override :
@@ -486,13 +518,13 @@ apply (drule_tac x = "v" in bspec)
 apply (assumption)
 apply (subgoal_tac "v \<notin> vs", simp)
 apply (subgoal_tac "dash v \<notin> vs", simp)
-apply (auto simp: NON_REL_VAR_def) [1]
-apply (auto simp: NON_REL_VAR_def) [1]
+apply (metis DASHED_not_NON_REL_VAR UNDASHED_dash_DASHED set_mp)
+apply (metis UNDASHED_not_NON_REL_VAR set_rev_mp)
 -- {* Subgoal 3 *}
 apply (subgoal_tac "v \<notin> vs", simp)
 apply (subgoal_tac "dash v \<notin> vs", simp)
-apply (auto simp: NON_REL_VAR_def) [1]
-apply (auto simp: NON_REL_VAR_def) [1]
+apply (metis DASHED_not_NON_REL_VAR UNDASHED_dash_DASHED set_rev_mp)
+apply (metis UNDASHED_not_NON_REL_VAR set_rev_mp)
 done
 
 theorem EvalA_UNREST_DASHED_TWICE [unrest]:
@@ -503,8 +535,7 @@ theorem WF_ALPHA_REL_UNREST_NON_REL_VAR [unrest]:
   "r \<in> WF_ALPHA_REL \<Longrightarrow> UNREST NON_REL_VAR (\<pi> r)"
   apply (rule UNREST_subset)
   apply (rule unrest) back
-  apply (simp add:WF_ALPHA_REL_def REL_ALPHABET_def NON_REL_VAR_def)
-  apply (auto)
+  apply (metis NON_REL_VAR_REL_ALPHABET REL_ALPHABET_WF_ALPHA_REL)
 done
 
 theorem EvalA_UNREST_out [unrest]:
@@ -528,9 +559,18 @@ theorem EvalA_SemiA [evala] :
   by (simp add: EvalA_def SemiA.rep_eq)
 
 theorem EvalA_AssignA [evala] :
-"\<lbrakk> a \<in> REL_ALPHABET; x \<in>\<^sub>f a; dash x \<in>\<^sub>f a; \<alpha> v \<subseteq>\<^sub>f a; v \<rhd>\<^sub>\<alpha> x \<rbrakk> \<Longrightarrow> 
+"\<lbrakk> a \<in> REL_ALPHABET; a \<in> HOM_ALPHABET; x \<in>\<^sub>f in\<^sub>\<alpha>(a); \<alpha> v \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow>
  \<lbrakk>x :=\<^bsub>a\<^esub> v\<rbrakk>\<pi> = x :=\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> \<lbrakk>v\<rbrakk>\<epsilon>"
-  by (simp add:AssignA_rep_eq EvalA_def EvalAE_def)
+  apply (simp add:AssignA_rep_eq EvalA_def EvalAE_def)
+  apply (subst AssignA_rep_eq)
+  apply (simp_all)
+  apply (metis Int_iff in_vars_def)
+  apply (metis (mono_tags) Diff_iff HOMOGENEOUS_HOM_ALPHA UNDASHED_minus_in hom_alphabet_undash set_mp utp_var.in_UNDASHED)
+done
+
+theorem EvalA_ConvA [evala] :
+  "\<lbrakk>P\<acute>\<rbrakk>\<pi> = \<lbrakk>P\<rbrakk>\<pi>\<acute>"
+  by (metis ConvA_def ConvR_def EvalA_RenameA)
 
 declare pred_alphabet_def [simp del]
 
@@ -583,8 +623,8 @@ proof -
     apply (rule_tac SemiR_SkipRA_left)
     apply (metis COMPOSABLE_def HOMOGENEOUS_def HOM_ALPHABET_dash_in)
     apply (rule UNREST_subset)
-    apply (rule EvalA_UNREST)
-    apply (metis DiffE DiffI UNDASHED_minus_in VAR_member in_alphabet.rep_eq subsetI) 
+    apply (rule UNREST_EvalA)
+    apply (metis (lifting, no_types) ComplI Diff_iff in_alphabet.rep_eq in_member subsetI)
   done
 
   ultimately show ?thesis using assms
@@ -606,8 +646,8 @@ proof -
     apply (rule_tac SemiR_SkipRA_right)
     apply (metis COMPOSABLE_def HOMOGENEOUS_def HOM_ALPHABET_dash_in)
     apply (rule UNREST_subset)
-    apply (rule EvalA_UNREST)
-    apply (metis (lifting, no_types) Diff_iff VAR_member out_alphabet.rep_eq out_member subsetI) 
+    apply (rule UNREST_EvalA)
+    apply (metis (lifting, no_types) ComplI Diff_iff out_alphabet.rep_eq out_member subsetI)
   done
 
   ultimately show ?thesis using assms

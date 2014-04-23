@@ -44,6 +44,9 @@ definition HOM_ALPHA :: "'VALUE ALPHABET \<Rightarrow> bool" where
 definition REL_ALPHABET :: "'VALUE ALPHABET set" where
 "REL_ALPHABET = {a . \<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED}"
 
+definition COND_ALPHABET :: "'VALUE ALPHABET set" where
+"COND_ALPHABET = {a . \<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED}"
+
 definition HOM_ALPHABET :: "'VALUE ALPHABET set" where
 "HOM_ALPHABET = {a . HOM_ALPHA a}"
 

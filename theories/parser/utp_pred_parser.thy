@@ -212,6 +212,8 @@ syntax
   "_pexpr_less_eq"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<le>" 25)
   "_pexpr_greater"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr ">" 25)
   "_pexpr_greater_eq"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<ge>" 25)
+  "_pexpr_max"           :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("max'(_, _')")
+  "_pexpr_min"           :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("min'(_, _')")
   "_pexpr_list"          :: "pexprs \<Rightarrow> pexpr" ("\<langle>_\<rangle>")
   "_pexpr_list_nil"      :: "pexpr" ("\<langle>\<rangle>")
   "_pexpr_list_append"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "^" 65)
@@ -269,6 +271,8 @@ translations
   "_pexpr_less_eq x y"         == "CONST LessEqPE x y"
   "_pexpr_greater x y"         == "CONST LessPE y x"
   "_pexpr_greater_eq x y"      == "CONST LessEqPE y x"
+  "_pexpr_max x y"             == "CONST MaxPE x y"
+  "_pexpr_min x y"             == "CONST MinPE x y"
   "_pexpr_list_nil"            == "CONST NilPE"
   "_pexpr_list_append e f"     == "CONST ConcatPE e f"
   "_pexpr_list (_pexprs x xs)" == "CONST ConsPE x (_pexpr_list xs)"

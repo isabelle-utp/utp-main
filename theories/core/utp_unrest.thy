@@ -28,22 +28,42 @@ definition UNREST ::
   "('VALUE VAR) set \<Rightarrow> 'VALUE WF_PREDICATE \<Rightarrow> bool" where
 "UNREST vs p \<longleftrightarrow> (\<forall> b1 \<in> destPRED p . \<forall> b2. b1 \<oplus>\<^sub>b b2 on vs \<in> destPRED p)"
 
+(* Relational unrestriction says that if an undashed variable has the
+   same value as its dashed partner, it is unrestricted *)
+
+definition REL_UNREST ::
+  "('VALUE VAR) set \<Rightarrow> 'VALUE WF_PREDICATE \<Rightarrow> bool" where
+"REL_UNREST vs p \<longleftrightarrow> (\<forall> b \<in> destPRED p . \<forall>v\<in>in(vs). \<langle>b\<rangle>\<^sub>b(v) = \<langle>b\<rangle>\<^sub>b(v\<acute>))"
+
+definition alphas ::
+  "'a WF_PREDICATE \<Rightarrow> 'a VAR fset set" where
+"alphas(p) = {vs. UNREST (VAR - \<langle>vs\<rangle>\<^sub>f) p}"
+
 consts
-  unrest :: "'v::type \<Rightarrow> 'a::type \<Rightarrow> bool" (infixr "\<sharp>" 60)
+  unrest  :: "'v::type \<Rightarrow> 'a::type \<Rightarrow> bool" (infixr "\<sharp>" 60)
+  runrest :: "'v::type \<Rightarrow> 'a::type \<Rightarrow> bool" (infixr "\<sharp>\<sharp>" 60)
 
 setup {*
   Adhoc_Overloading.add_overloaded @{const_name unrest}
 *}
 
 setup {*
+  Adhoc_Overloading.add_overloaded @{const_name runrest}
+*}
+
+setup {*
 Adhoc_Overloading.add_variant @{const_name unrest} @{const_name UNREST}
+*}
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name runrest} @{const_name REL_UNREST}
 *}
 
 subsubsection {* Restricted variables *}
 
 definition rv :: 
   "'VALUE WF_PREDICATE \<Rightarrow> ('VALUE VAR) set" where
-"rv p = \<Inter> {vs. UNREST (VAR - vs) p}"
+"rv(p) = \<Inter> {vs. UNREST (VAR - vs) p}"
 
 subsubsection {* Fresh variables *}
 
@@ -66,7 +86,7 @@ subsubsection {* Restricted Predicates *}
 definition WF_PREDICATE_OVER ::
   "('VALUE VAR) set \<Rightarrow>
    'VALUE WF_PREDICATE set" where
-"WF_PREDICATE_OVER vs = {p . (VAR - vs) \<sharp> p}"
+"WF_PREDICATE_OVER vs = {p . - vs \<sharp> p}"
 
 subsubsection {* Theorems *}
 
@@ -130,12 +150,12 @@ done
 
 theorem UNREST_LiftP_1 [unrest]:
 "\<lbrakk> f \<in> WF_BINDING_PRED vs \<rbrakk> \<Longrightarrow>
-   VAR - vs \<sharp> LiftP f"
+   - vs \<sharp> LiftP f"
   apply (simp add: UNREST_def LiftP_def)
   apply (simp add: WF_BINDING_PRED_def)
   apply (auto)
   apply (drule_tac x = "b1" in spec, auto)
-  apply (drule_tac x = "b1 \<oplus>\<^sub>b b2 on (VAR - vs)" in spec)
+  apply (drule_tac x = "b1 \<oplus>\<^sub>b b2 on (- vs)" in spec)
   apply (simp add: binding_equiv_def)
 done
 
@@ -283,20 +303,19 @@ theorem UNREST_RenameP [unrest]:
 done
 
 lemma WF_PREDICATE_binding_equiv:
-"\<lbrakk> UNREST (VAR - vs) p; b1 \<in> destPRED p; b1 \<cong> b2 on vs \<rbrakk> 
+"\<lbrakk> - vs \<sharp> p; b1 \<in> destPRED p; b1 \<cong> b2 on vs \<rbrakk> 
  \<Longrightarrow> b2 \<in> destPRED p"
   apply (auto simp add:UNREST_def)
-  apply (smt binding_equiv_comm binding_override_equiv binding_override_simps(10) binding_override_simps(5))
+  apply (metis (full_types) binding_equiv_override binding_override_simps(2))
 done
 
 subsubsection {* Proof Support *}
 
 theorem UNREST_LiftP_alt [unrest]:
 "\<lbrakk>f \<in> WF_BINDING_PRED vs1;
- vs2 \<subseteq> VAR - vs1\<rbrakk> \<Longrightarrow>
+ vs2 \<subseteq> - vs1\<rbrakk> \<Longrightarrow>
  vs2 \<sharp> (LiftP f)"
-apply (auto intro: UNREST_LiftP_1 UNREST_subset simp: closure)
-done
+  by (auto intro: UNREST_LiftP_1 UNREST_subset simp: closure)
 
 theorem UNREST_ExistsP_alt [unrest]:
 "\<lbrakk> vs1 \<sharp> p; vs3 \<subseteq> vs1 \<union> vs2 \<rbrakk> \<Longrightarrow>
@@ -380,9 +399,13 @@ theorem EvalP_UNREST_override [eval] :
 done
 
 theorem EvalP_UNREST_binding_equiv [eval] :
-"\<lbrakk> (VAR - vs) \<sharp> p; \<lbrakk>p\<rbrakk>b1; b1 \<cong> b2 on vs \<rbrakk> 
+"\<lbrakk> - vs \<sharp> p; \<lbrakk>p\<rbrakk>b1; b1 \<cong> b2 on vs \<rbrakk> 
  \<Longrightarrow> \<lbrakk>p\<rbrakk>b2"
   by (simp add: EvalP_def WF_PREDICATE_binding_equiv)
+
+lemma EvalP_binding_equiv:
+  "\<lbrakk> - vs \<sharp> p; b1 \<cong> b2 on vs \<rbrakk> \<Longrightarrow> \<lbrakk>p\<rbrakk>b1 = \<lbrakk>p\<rbrakk>b2"
+  by (metis EvalP_UNREST_override binding_equiv_override)
 
 lemma UNREST_EvalP_def:
   "vs \<sharp> P \<longleftrightarrow> (\<forall>b1. \<lbrakk>P\<rbrakk>b1 \<longrightarrow> (\<forall> b2. \<lbrakk>P\<rbrakk>(b1 \<oplus>\<^sub>b b2 on vs)))" 
@@ -395,12 +418,21 @@ lemma "rv true = {}"
   by (simp add:rv_def unrest)
 
 lemma pred_map_set_inv:
-  "(VAR - xs) \<sharp> p \<Longrightarrow> map_set_pred (pred_map_set xs p) = p"
+  "- xs \<sharp> p \<Longrightarrow> map_set_pred (pred_map_set xs p) = p"
   apply (rule)
   apply (auto simp add:pred_map_set_def map_set_pred.rep_eq binding_map_dom)
   apply (rule WF_PREDICATE_binding_equiv, simp_all add:VAR_def Compl_eq_Diff_UNIV[THEN sym])
   apply (metis binding_equiv_comm binding_equiv_override_subsume binding_override_minus map_binding_inv)
   apply (metis binding_equiv_override binding_map_dom binding_override_minus binding_override_simps(2) image_eqI map_binding_inv)
 done
+
+lemma alphas_FalseP: "alphas(false) = UNIV"
+  by (auto simp add:alphas_def unrest)
+
+lemma alphas_TrueP: "alphas(true) = UNIV"
+  by (metis (lifting) UNIV_eq_I UNREST_TrueP alphas_def mem_Collect_eq)
+
+lemma alphas_NotP: "alphas(\<not>\<^sub>p p) = alphas(p)"
+  by (metis (lifting, no_types) Collect_cong NotP_NotP UNREST_NotP alphas_def)
   
 end

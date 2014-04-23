@@ -17,7 +17,10 @@ begin
 
 instance
   apply (intro_classes)
-  apply (utp_alpha_tac, utp_pred_auto_tac)+
+  apply (utp_alpha_tac, utp_pred_auto_tac)
+  apply (utp_alpha_tac)
+  apply (utp_alpha_tac, utp_pred_auto_tac)
+  apply (utp_alpha_tac)
 done
 end
 

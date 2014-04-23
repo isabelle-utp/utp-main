@@ -609,7 +609,7 @@ lemma binding_equiv_SS_DASHED:
   by (metis (hide_lams, no_types) RenameB_equiv_cong RenameB_inv_cancel1 SS_DASHED_image SS_inv binding_equiv_comm rename_image_def)
 
 theorem UNREST_EXPR_compl_member [simp] :
-"(VAR - vs) \<sharp> f \<Longrightarrow> \<langle>f\<rangle>\<^sub>e (b \<oplus>\<^sub>b b' on vs) = \<langle>f\<rangle>\<^sub>e b' "
+"- vs \<sharp> f \<Longrightarrow> \<langle>f\<rangle>\<^sub>e (b \<oplus>\<^sub>b b' on vs) = \<langle>f\<rangle>\<^sub>e b' "
   by (metis WF_EXPRESSION_UNREST_binding_equiv binding_override_equiv1)
 
 lemma binding_upd_vcoerce_dash [simp]:

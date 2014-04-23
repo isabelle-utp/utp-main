@@ -51,7 +51,7 @@ theorem EvalAE_expr [evala]:
   by (simp add:EvalAE_def)
 
 theorem EvalAE_UNREST_EXPR [unrest] :
-"UNREST_EXPR (VAR - \<langle>\<alpha> e\<rangle>\<^sub>f) \<lbrakk>e\<rbrakk>\<epsilon>"
+"UNREST_EXPR (- \<langle>\<alpha> e\<rangle>\<^sub>f) \<lbrakk>e\<rbrakk>\<epsilon>"
   by (simp add: EvalAE_def unrest)
 
 subsection {* Distribution Theorems *}

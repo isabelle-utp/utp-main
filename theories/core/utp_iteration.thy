@@ -49,6 +49,14 @@ lemma UNREST_PowerP [unrest]: "UNREST NON_REL_VAR p \<Longrightarrow> UNREST NON
   apply (force intro:unrest)
 done
 
+lemma UNREST_NON_REL_VAR_PowerP:
+  "\<lbrakk> vs \<sharp> p; vs \<subseteq> NON_REL_VAR \<rbrakk> \<Longrightarrow> vs \<sharp> p^n"
+  apply (induct n)
+  apply (simp_all add: one_WF_PREDICATE_def times_WF_PREDICATE_def)
+  apply (metis UNREST_SkipR)
+  apply (metis ExistsP_SemiR_NON_REL_VAR_expand1 UNREST_as_ExistsP)
+done
+
 instantiation WF_PREDICATE :: (VALUE) star_op
 begin
 
@@ -105,6 +113,14 @@ done
 lemma UNREST_StarP [unrest]: "UNREST NON_REL_VAR p \<Longrightarrow> UNREST NON_REL_VAR (p\<^sup>\<star>)"
   by (auto intro:unrest simp add:star_WF_PREDICATE_def)
 
+lemma UNREST_NON_REL_VAR_StarP:
+  "\<lbrakk> vs \<sharp> p; vs \<subseteq> NON_REL_VAR \<rbrakk> \<Longrightarrow> vs \<sharp> p\<^sup>\<star>"
+  apply (simp add: star_WF_PREDICATE_def)
+  apply (rule unrest)
+  apply (auto)
+  apply (metis UNREST_NON_REL_VAR_PowerP)
+done
+
 instantiation WF_PREDICATE :: (VALUE) dioid
 begin
 
@@ -144,6 +160,26 @@ next
 
 qed (simp_all add: evalrr)
 end
+
+lemma UNREST_StarP_coerce:
+  "- vs \<sharp> p \<Longrightarrow> - vs \<sharp> ((p\<^sup>\<star>) ;\<^sub>R II\<^bsub>vs\<^esub>)"
+  apply (subst star_unfoldl_eq[of p, THEN sym])
+  apply (simp add: times_WF_PREDICATE_def one_WF_PREDICATE_def plus_WF_PREDICATE_def SemiR_OrP_distr)
+  apply (rule unrest)
+  apply (auto intro:unrest UNREST_subset)[1]
+  apply (rule UNREST_SemiR_general[of "in(- vs) \<union> nrel(- vs)" _ "- vs"])
+  apply (rule UNREST_SemiR_general)
+  apply (simp)
+  apply (rule UNREST_NON_REL_VAR_StarP[of "NON_REL_VAR - vs"])
+  apply (auto intro:UNREST_subset)[1]
+  apply (simp)
+  apply (simp add:var_dist)
+  apply (rule UNREST_subset)
+  apply (rule UNREST_SkipRA)
+  apply (force)
+  apply (simp add:var_dist)
+  apply (auto simp add:var_defs)
+done
 
 lemma Star1P_closure [closure]:
   "P \<in> WF_RELATION \<Longrightarrow> P\<^sup>+ \<in> WF_RELATION"

@@ -226,7 +226,7 @@ theorem RenameP_UNREST [simp]:
 done
 
 lemma RenameP_equiv:
-  "\<lbrakk> UNREST (VAR - vs) p; ss1 \<cong>\<^sub>s ss2 on vs \<rbrakk> \<Longrightarrow> ss1\<bullet>p = ss2\<bullet>p"
+  "\<lbrakk> UNREST (- vs) p; ss1 \<cong>\<^sub>s ss2 on vs \<rbrakk> \<Longrightarrow> ss1\<bullet>p = ss2\<bullet>p"
   apply (utp_pred_tac)
   apply (simp add: EvalP_def rename_equiv_def rename_equiv_def RenameB_def)
   apply (clarify)
@@ -234,9 +234,9 @@ lemma RenameP_equiv:
   apply (simp add:UNREST_def)
   apply (auto)
   apply (drule_tac x="CompB b ss1" in bspec,simp)
-  apply (smt binding_override_equiv binding_override_simps(10) binding_override_simps(2) binding_override_simps(4) binding_override_simps(5) binding_override_subset)
+  apply (metis binding_equiv_override binding_override_simps(2))
   apply (drule_tac x="CompB b ss2" in bspec,simp)
-  apply (metis binding_override_equiv binding_override_simps(10) binding_override_simps(5) binding_override_subset)
+  apply (metis binding_equiv_override binding_override_simps(2))
   apply (simp add:binding_equiv_def)
 done
 
@@ -305,7 +305,7 @@ apply (simp_all add: closure)
 done
 
 lemma RenameE_equiv:
-  "\<lbrakk> UNREST_EXPR (VAR - vs) e; ss1 \<cong>\<^sub>s ss2 on vs \<rbrakk> \<Longrightarrow> ss1\<bullet>e = ss2\<bullet>e"
+  "\<lbrakk> UNREST_EXPR (- vs) e; ss1 \<cong>\<^sub>s ss2 on vs \<rbrakk> \<Longrightarrow> ss1\<bullet>e = ss2\<bullet>e"
   apply (utp_expr_tac)
   apply (simp add: EvalE_def rename_equiv_def rename_equiv_def RenameB_def)
   apply (clarify)
@@ -313,7 +313,7 @@ lemma RenameE_equiv:
   apply (simp add:UNREST_EXPR_def)
   apply (drule_tac x="CompB b ss1" in spec)
   apply (drule_tac x="CompB b ss2" in spec)
-  apply (smt binding_override_equiv binding_override_simps(10) binding_override_simps(2) binding_override_simps(4) binding_override_simps(5) binding_override_subset)
+  apply (metis binding_equiv_comm binding_override_equiv binding_override_minus)
   apply (simp add:binding_equiv_def)
 done
 

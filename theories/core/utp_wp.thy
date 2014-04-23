@@ -96,9 +96,9 @@ text {* wp gives the weakest solution to a Hoare triple *}
 
 theorem HoareP_extreme_solution:
   assumes "p \<in> WF_CONDITION" "Q \<in> WF_RELATION" "r \<in> WF_CONDITION"
-  shows "`p{Q}r` = `[p \<Rightarrow> \<not> (Q ; \<not> r)]`"
+  shows "`{p}Q{r}` = `[p \<Rightarrow> \<not> (Q ; \<not> r)]`"
 proof -
-  have "`p{Q}r` = `[Q \<Rightarrow> (p \<Rightarrow> r\<acute>)]`"
+  have "`{p}Q{r}` = `[Q \<Rightarrow> (p \<Rightarrow> r\<acute>)]`"
     by (utp_pred_tac)
 
   also have "... = `[p \<Rightarrow> (Q \<Rightarrow> r\<acute>)]`"
@@ -130,12 +130,12 @@ theorem HoareP_weakest_precondition [refine]:
     "p \<in> WF_CONDITION" 
     "Q \<in> WF_RELATION" 
     "r \<in> WF_CONDITION"
-  shows "`p{Q}r` \<Longrightarrow> Q wp r \<sqsubseteq> p"
+  shows "`{p}Q{r}` \<Longrightarrow> Q wp r \<sqsubseteq> p"
   by (simp add:HoareP_extreme_solution assms WeakPrecondP_def RefP_def less_eq_WF_PREDICATE_def)
 
 theorem HoareP_WeakPrecondP:
   assumes "Q \<in> WF_RELATION" "r \<in> WF_CONDITION"
-  shows "(Q wp r){Q}\<^sub>pr"
+  shows "`{Q wp r}Q{r}`"
   using assms
   apply (frule_tac SemiR_TrueP_precond)
   apply (utp_xrel_auto_tac)

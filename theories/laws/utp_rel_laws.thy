@@ -142,7 +142,7 @@ theorem SemiR_AndP_right_precond:
   assumes 
     "c \<in> WF_CONDITION"
   shows "p ;\<^sub>R (c \<and>\<^sub>p q) = (p \<and>\<^sub>p c\<acute>) ;\<^sub>R q"
-  by (metis (full_types) Diff_mono SemiR_AndP_right_DASHED UNDASHED_DASHED_minus(2) UNREST_WF_CONDITION UNREST_subset VAR_subset assms order_refl)
+  by (metis SemiR_AndP_right_DASHED SemiR_TrueP_precond TrueP_right_UNREST_DASHED assms)
 
 theorem SemiR_AndP_right_UNDASHED: 
   assumes
@@ -788,7 +788,7 @@ theorem SemiR_remove_middle_unrest1:
     "P \<in> WF_RELATION"
     "R \<in> WF_RELATION"
     "vs \<subseteq> UNDASHED"
-    "(VAR - vs) \<sharp> q"
+    "- vs \<sharp> q"
     "dash`vs \<sharp> P"
     "vs \<sharp> R"
     "q \<noteq> false"
@@ -847,7 +847,7 @@ proof -
     apply (simp_all)
     apply (rule unrest)
     apply (auto)
-    apply (smt Diff_iff Rep_VAR_RENAME_VAR SS2_UNDASHED_app VAR_member image_iff set_mp)
+    apply (smt ComplI RenameP_image_uminus SS2_UNDASHED_app image_iff set_rev_mp)
     apply (metis RenameP_FalseP RenameP_inverse1)
   done
 
@@ -1242,7 +1242,7 @@ lemma EvalR_AssignRA [evalr]:
     "x \<in> UNDASHED"
     "vs \<subseteq> UNDASHED \<union> DASHED" 
     "HOMOGENEOUS vs"
-    "(VAR - in vs) \<sharp> v" 
+    "- in(vs) \<sharp> v" 
     "v \<rhd>\<^sub>e x"
   shows "\<lbrakk>x :=\<^bsub>vs\<^esub> v\<rbrakk>R = { (b1, b2) 
                        . b1 \<cong> b2 on (in vs - {x}) \<and> b1 \<cong> b2 on NON_REL_VAR 
@@ -1268,12 +1268,12 @@ proof -
  done
 qed
 
-lemma EvalP_AssignRA [eval]:
+lemma EvalP_AssignRA:
   assumes 
     "x \<in> xs" "x\<acute> \<in> xs" 
     "xs \<subseteq> REL_VAR" 
     "HOMOGENEOUS xs"
-    "(VAR - in(xs)) \<sharp> e" 
+    "- in(xs) \<sharp> e" 
     "e \<rhd>\<^sub>e x"
   shows "\<lbrakk>x :=\<^bsub>xs\<^esub> e\<rbrakk>b = (\<forall> v \<in> in(xs). if (v = x) then \<langle>b\<rangle>\<^sub>b (v\<acute>) = (vcoerce (\<lbrakk>e\<rbrakk>\<^sub>eb) x)
                                                  else \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>b\<rangle>\<^sub>b v)"
@@ -1292,6 +1292,25 @@ lemma EvalP_AssignRA [eval]:
   apply (drule_tac x="v" in bspec)
   apply (auto simp add:var_dist closure assms)
   apply (metis ComplD DASHED_dash_DASHED_TWICE NON_REL_VAR_UNDASHED_DASHED UnE assms(1) assms(2) assms(3) set_rev_mp utp_var.DASHED_TWICE_NON_REL_VAR)
+done
+
+lemma EvalP_AssignRA_alt [eval]:
+  "\<lbrakk> x \<in> in(vs); HOMOGENEOUS(vs); vs \<subseteq> REL_VAR; -in(vs) \<sharp> v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> 
+     \<lbrakk>x :=\<^bsub>vs\<^esub> v\<rbrakk>b = (b \<cong> SS\<bullet>b on in(vs) - {x} \<and> \<langle>b\<rangle>\<^sub>b x\<acute> = \<lbrakk>v\<rbrakk>\<^sub>e(b))"
+  apply (subst EvalP_AssignRA)
+  apply (simp_all)
+  apply (metis Int_iff in_vars_def)
+  apply (metis IntE hom_alphabet_undash in_vars_def)
+  apply (safe)
+  apply (simp add:binding_equiv_def)
+  apply (rule)
+  apply (drule_tac x="xa" in bspec, simp)
+  apply (simp)
+  apply (metis SS_UNDASHED_app set_rev_mp utp_var.in_UNDASHED)
+  apply (drule_tac x="x" in bspec, simp_all)
+  apply (simp add:binding_equiv_def)
+  apply (drule_tac x="va" in bspec, simp_all)
+  apply (metis SS_UNDASHED_app set_rev_mp utp_var.in_UNDASHED)
 done
 
 (*
@@ -1327,8 +1346,8 @@ theorem AssignRA_SemiR_left:
     "e \<rhd>\<^sub>e x" 
     "HOMOGENEOUS vs" 
     "vs \<subseteq> UNDASHED \<union> DASHED"
-    "(VAR - vs) \<sharp> p" 
-    "(VAR - in vs) \<sharp> e"
+    "- vs \<sharp> p" 
+    "- in(vs) \<sharp> e"
   shows "(x :=\<^bsub>vs\<^esub> e ;\<^sub>R p) = p[e/\<^sub>px]"
 proof -
 
@@ -1358,7 +1377,7 @@ proof -
   done
 
   moreover from assms have "(in (UNDASHED \<union> DASHED - vs)) \<sharp> (p[e/\<^sub>px])"
-    apply (rule_tac UNREST_subset[of "(VAR - vs) \<inter> (VAR - in vs)"])
+    apply (rule_tac UNREST_subset[of "(- vs) \<inter> (- in(vs))"])
     apply (rule_tac UNREST_SubstP)
     apply (simp_all add:var_dist)
     apply (force)
@@ -1422,11 +1441,11 @@ theorem AssignRA_idem :
     "x \<in> UNDASHED"
     "vs \<subseteq> UNDASHED \<union> DASHED" 
     "HOMOGENEOUS vs"
-    "(VAR - (in vs - {x})) \<sharp> v" 
+    "- (in(vs) - {x}) \<sharp> v" 
     "v \<rhd>\<^sub>e x"
   shows "x :=\<^bsub>vs\<^esub> v ;\<^sub>R x :=\<^bsub>vs\<^esub> v = x :=\<^bsub>vs\<^esub> v"
 proof -
-  from assms(6) have "(VAR - in vs) \<sharp> v" 
+  from assms(6) have "(- in vs) \<sharp> v" 
     by (auto intro:UNREST_EXPR_subset simp add:in_vars_def)
 
   with assms show ?thesis
@@ -1626,6 +1645,10 @@ lemma WF_RELATION_UNREST_dash3 [unrest]:
   apply (auto simp add:NON_REL_VAR_def)
 done
 
+lemma NUNDASHED_inter_NDASHED [simp]: 
+  "- D\<^sub>0 \<inter> - D\<^sub>1 = NON_REL_VAR"
+  by (simp add:var_defs)
+
 lemma EvalP_WF_RELATION_binding_equiv:
   "\<lbrakk> p \<in> WF_RELATION; b1 \<cong> b2 on REL_VAR; \<lbrakk>p\<rbrakk>b1 \<rbrakk> 
     \<Longrightarrow> \<lbrakk>p\<rbrakk>b2"
@@ -1640,8 +1663,29 @@ lemma EvalP_WF_CONDITION_binding_equiv:
   apply (auto simp add: WF_CONDITION_def WF_RELATION_def)
   apply (rule utp_unrest.EvalP_UNREST_binding_equiv[of "UNDASHED"])
   apply (auto intro:unrest)
-  apply (subgoal_tac "((VAR - UNDASHED) :: 'a VAR set) = (NON_REL_VAR \<union> DASHED)")
+  apply (subgoal_tac "((- UNDASHED) :: 'a VAR set) = (NON_REL_VAR \<union> DASHED)")
   apply (auto intro:unrest)
+done
+
+declare EvalP_SkipR [eval del]
+declare EvalP_SkipR_alt [eval]
+
+declare EvalP_SkipRA [eval del]
+declare EvalP_SkipRA_alt [eval]
+
+lemma SkipRA_AndP_cond:
+  "\<lbrakk> HOMOGENEOUS(vs); - in(vs) \<sharp> p \<rbrakk> \<Longrightarrow> p \<and>\<^sub>p II\<^bsub>vs\<^esub> = II\<^bsub>vs\<^esub> \<and>\<^sub>p p\<acute>"
+  by (utp_pred_tac, metis EvalP_binding_equiv)
+
+lemma SkipRA_AndP_postcond:
+  "\<lbrakk> HOMOGENEOUS(vs); - out(vs) \<sharp> p \<rbrakk> \<Longrightarrow>  II\<^bsub>vs\<^esub> \<and>\<^sub>p p = p\<acute> \<and>\<^sub>p II\<^bsub>vs\<^esub>"
+  apply (insert SkipRA_AndP_cond[of "vs" "p\<acute>"])
+  apply (subgoal_tac "- in vs \<sharp> p\<acute>")
+  apply (simp add:urename)
+  apply (rule unrest)
+  apply (rule UNREST_subset)
+  apply (auto)
+  apply (metis HOMOGENEOUS_undash_out SS_DASHED_subset_image SS_VAR_RENAME_INV VAR_RENAME_INV_app imageI utp_var.out_DASHED)
 done
 
 end

@@ -213,13 +213,18 @@ text {* Ad-hoc overloading allows the binding of symbols to multiple
   alphabets *}
 
 consts
-  alphabet  :: "'r \<Rightarrow> 'a" ("\<alpha>")
-  prime     :: "'a \<Rightarrow> 'a" ("_\<acute>" [1000] 1000)
-  unprime   :: "'a \<Rightarrow> 'a" ("_~" [1000] 1000)
-  subscr    :: "'a \<Rightarrow> nat \<Rightarrow> 'a" ("_\<^bsub>_\<^esub>")
+  alphabet     :: "'r \<Rightarrow> 'a" ("\<alpha>")
+  alpha_coerce :: "'p \<Rightarrow> 'a \<Rightarrow> 'q" ("_\<^bsub>!_\<^esub>")
+  prime        :: "'a \<Rightarrow> 'a" ("_\<acute>" [1000] 1000)
+  unprime      :: "'a \<Rightarrow> 'a" ("_~" [1000] 1000)
+  subscr       :: "'a \<Rightarrow> nat \<Rightarrow> 'a" ("_\<^bsub>_\<^esub>")
 
 setup {*
   Adhoc_Overloading.add_overloaded @{const_name alphabet}
+*}
+
+setup {*
+  Adhoc_Overloading.add_overloaded @{const_name alpha_coerce}
 *}
 
 setup {*

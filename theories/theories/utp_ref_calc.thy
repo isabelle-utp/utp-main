@@ -78,6 +78,73 @@ theorem SpecD_weaken_pre:
   apply (utp_pred_tac)
 done
 
+theorem SpecD_left_unit:
+  "`II\<^sub>D ; w:[pre, post]` = `w:[pre, post]`"
+  apply (subst H1_left_unit)
+  apply (simp add:SpecD_def)
+  apply (rule closure)
+  apply (simp)
+done
+
+theorem SkipR_pred_prime:
+  "`p \<and> II` = `p \<and> p\<acute> \<and> II`"
+  by (utp_rel_auto_tac)
+
+lemma ExistsP_refine:
+  "vs2 \<subseteq> vs1 \<Longrightarrow> (\<exists>\<^sub>p vs1. p) \<sqsubseteq> (\<exists>\<^sub>p vs2. p)" 
+  apply (utp_pred_auto_tac)
+  apply (metis binding_override_simps(6) inf_absorb1)
+done
+
+lemma SkipRA_closure' [closure]: "II\<^bsub>vs\<^esub> \<in> WF_RELATION"
+  by (simp add:SkipRA_def WF_RELATION_def unrest)
+
+lemma SkipRA_refine:
+  "vs1 \<subseteq> vs2 \<Longrightarrow> II\<^bsub>vs1\<^esub> \<sqsubseteq> II\<^bsub>vs2\<^esub>"
+  apply (simp add:SkipRA_def)
+  apply (rule ExistsP_refine)
+  apply (auto)
+done
+
+lemma SkipRA_SkipR_refine: "II\<^bsub>vs\<^esub> \<sqsubseteq> II"
+  apply (simp add: SkipR_as_SkipRA)
+  apply (simp add:SkipRA_def)
+  apply (rule ExistsP_refine)
+  apply (simp)
+done
+
+theorem SpecD_skip:
+  assumes "`pre \<Rightarrow> post`"
+  shows "`w:[pre, post]` \<sqsubseteq> `II\<^sub>D`"
+proof -
+  have "`pre \<and> II` = `pre \<and> post\<acute> \<and> II`"
+    by (metis (hide_lams, no_types) AndP_assoc AndP_comm AndP_idem ConvR_invol IffP_eq_intro ImpliesP_eq_intro ImpliesP_export SkipR_pred_prime assms utp_pred_simps(16) utp_pred_simps(18))
+
+  moreover hence "`post\<acute> \<and> II\<^bsub>REL_VAR - OKAY - w\<^esub>` \<sqsubseteq> `pre \<and> post\<acute> \<and> II`"
+    by (smt AndP_assoc AndP_comm AndP_refines_1 RefP_AndP_intro RefineP_seperation SkipRA_SkipR_refine)
+
+  ultimately show ?thesis
+    apply (simp add: SpecD_def SkipD_def)
+    apply (rule DesignD_refine)
+    apply (rule RefineP_TrueP_refine)
+    apply (simp)
+  done
+qed
+
+theorem SpecD_sequential:
+  assumes "pre \<in> WF_CONDITION" "post \<in> WF_CONDITION" "mid \<in> WF_CONDITION"
+    "{okay\<down>} \<sharp> pre" "{okay\<down>} \<sharp> mid" "{okay\<down>} \<sharp> post"
+    "okay\<down> \<notin> w" "okay\<down>\<acute> \<notin> w"
+  shows "`w:[pre, post]` \<sqsubseteq> `w:[pre, mid] ; w:[mid, post]`"
+  apply (simp add:SpecD_def)
+  apply (subst DesignD_composition_cond)
+  apply (simp_all add:assms closure unrest)
+  defer defer defer
+  apply (rule DesignD_refine)
+  apply (smt AndP_comm AndP_contra SemiR_AndP_right_DASHED SemiR_FalseP_right SemiR_TrueP_precond TrueP_right_UNREST_DASHED assms(3) order_refl utp_pred_simps(15) utp_pred_simps(16) utp_pred_simps(6))
+oops
+  
+  
 
 lemma 
   fixes x :: "(int, 'm :: {BOOL_SORT, INT_SORT}) PVAR"
@@ -93,7 +160,6 @@ lemma
   apply (utp_poly_tac)
 done
 
-done
 (*
 theorem SpecD_AssignD:
   fixes x :: "('a :: DEFINED, 'm) PVAR"

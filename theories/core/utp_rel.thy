@@ -662,7 +662,7 @@ lemma [dest]: "\<lbrakk> x \<in> NON_REL_VAR; x \<in> REL_VAR \<rbrakk> \<Longri
   by (simp add:NON_REL_VAR_def)
 
 theorem UNREST_SkipRA [unrest]:
-"UNREST (VAR - vs) (II\<^bsub>vs\<^esub>)"
+"- vs \<sharp> II\<^bsub>vs\<^esub>"
   apply (simp add:SkipRA_def)
   apply (force intro:unrest)
 done
@@ -686,7 +686,7 @@ theorem UNREST_AssignR_DASHED_TWICE [unrest]:
 (* FIXME: Add complete set of UNREST rules for n-ary assignments (AssignF) *)
 
 theorem UNREST_AssignRA [unrest]:
-"\<lbrakk> x \<in> UNDASHED; (VAR - vs) \<sharp> v; vs \<subseteq> REL_VAR \<rbrakk> \<Longrightarrow> (VAR - vs) \<sharp> (x :=\<^bsub>vs\<^esub> v)"
+"\<lbrakk> x \<in> UNDASHED; - vs \<sharp> v; vs \<subseteq> REL_VAR \<rbrakk> \<Longrightarrow> - vs \<sharp> (x :=\<^bsub>vs\<^esub> v)"
   apply (simp add:AssignRA_def)
   apply (rule unrest) back
   apply (rule unrest) back
@@ -696,7 +696,7 @@ theorem UNREST_AssignRA [unrest]:
 done
 
 theorem UNREST_AssignRA' [unrest]:
-"\<lbrakk> x \<in> UNDASHED; (VAR - vs2) \<sharp> v; vs2 \<subseteq> REL_VAR; vs1 \<subseteq> (VAR - vs2) \<rbrakk> \<Longrightarrow>
+"\<lbrakk> x \<in> UNDASHED; - vs2 \<sharp> v; vs2 \<subseteq> REL_VAR; vs1 \<subseteq> - vs2 \<rbrakk> \<Longrightarrow>
   vs1 \<sharp> (x :=\<^bsub>vs2\<^esub> v)"
   by (metis UNREST_AssignRA UNREST_subset)
 
@@ -770,7 +770,7 @@ theorem UNREST_NON_REL_VAR_WF_RELATION [closure]:
   by (simp add:WF_RELATION_def)
 
 lemma UNREST_WF_CONDITION [closure]:
-  "p \<in> WF_CONDITION \<Longrightarrow> UNREST (VAR - UNDASHED) p"
+  "p \<in> WF_CONDITION \<Longrightarrow> (- UNDASHED) \<sharp> p"
   apply (clarsimp simp add:WF_CONDITION_def WF_RELATION_def)
   apply (rule UNREST_subset)
   apply (rule UNREST_union)
@@ -880,11 +880,11 @@ theorem SkipRA_closure [closure] :
   by (simp add:WF_RELATION_def unrest)
 
 lemma AssignRA_rel_closure [closure]:
-  "\<lbrakk> x \<in> UNDASHED; (VAR - vs) \<sharp> v; vs \<subseteq> REL_VAR \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> x \<in> UNDASHED; - vs \<sharp> v; vs \<subseteq> REL_VAR \<rbrakk> \<Longrightarrow>
      x :=\<^bsub>vs\<^esub> v \<in> WF_RELATION"
   apply (simp add:WF_RELATION_def)
-  apply (subgoal_tac "NON_REL_VAR = (VAR - REL_VAR :: 'a VAR set)")
-  apply (metis (hide_lams, no_types) Diff_mono UNREST_AssignRA UNREST_subset VAR_subset)
+  apply (subgoal_tac "NON_REL_VAR = (- REL_VAR :: 'a VAR set)")
+  apply (metis Compl_anti_mono UNREST_AssignRA')
   apply (auto)
 done
 
@@ -1038,7 +1038,7 @@ theorem SemiR_algebraic_rel :
 done
 
 lemma VAR_minus_inter: 
-  "(VAR - xs) \<inter> (VAR - ys) = (VAR - (xs \<union> ys))"
+  "(- xs) \<inter> (- ys) = (- (xs \<union> ys))"
   by (auto)
 
 lemma UNREST_SemiR_general:
@@ -1072,7 +1072,7 @@ lemma UNREST_SemiR_general:
 done
 
 lemma UNREST_SemiR:
-      "\<lbrakk> UNREST (VAR - vs1) p1; UNREST (VAR - vs2) p2
+      "\<lbrakk> - vs1 \<sharp> p1;  - vs2 \<sharp> p2
        ; vs1 \<subseteq> UNDASHED \<union> DASHED; vs2 \<subseteq> UNDASHED \<union> DASHED
        ; vs3 = (VAR - (in vs1 \<union> out vs2)) \<rbrakk> 
        \<Longrightarrow> UNREST vs3 (p1 ;\<^sub>R p2)"
@@ -1129,15 +1129,24 @@ done
 
 subsubsection {* Evaluation Theorems *}
 
-theorem EvalP_SkipR [eval] :
+theorem EvalP_SkipR [eval]:
 "\<lbrakk>II\<rbrakk>b \<longleftrightarrow> (\<forall> v \<in> UNDASHED . \<langle>b\<rangle>\<^sub>b v = \<langle>b\<rangle>\<^sub>b (dash v))"
-apply (simp add: EvalP_def)
-apply (simp add: SkipR_def)
-done
+  by (simp add: EvalP_def SkipR_def)
 
-theorem EvalP_SkipRA [eval] :
+theorem EvalP_SkipR_alt :
+"\<lbrakk>II\<rbrakk>b \<longleftrightarrow> b \<cong> SS\<bullet>b on D\<^sub>0"
+  by (auto simp add: EvalP_def SkipR_def binding_equiv_def urename)
+
+theorem EvalP_SkipRA [eval]:
 "HOMOGENEOUS vs \<Longrightarrow> \<lbrakk>II\<^bsub>vs\<^esub>\<rbrakk>b \<longleftrightarrow> (\<forall> v \<in> in vs . \<langle>b\<rangle>\<^sub>b v = \<langle>b\<rangle>\<^sub>b (dash v))"
   by (auto simp add: EvalP_def SkipRA_rep_eq_alt)
+
+lemma EvalP_SkipRA_alt :
+  "HOMOGENEOUS(vs) \<Longrightarrow> \<lbrakk>II\<^bsub>vs\<^esub>\<rbrakk>b = b \<cong> SS\<bullet>b on in(vs)"
+  apply (utp_pred_auto_tac)
+  apply (auto simp add:binding_equiv_def EvalP_SkipRA)
+  apply (metis SS_UNDASHED_app in_UNDASHED in_mono)+
+done
 
 declare CondR_def [eval]
 
@@ -1158,13 +1167,35 @@ oops
 
 lemma SkipR_as_SkipRA: "II = (II\<^bsub>REL_VAR\<^esub>)"
   apply (utp_pred_auto_tac)
-  apply (simp add:var_dist)
+  apply (simp_all add:var_dist)
 done
+
+lemma Rep_VAR_RENAME_in [urename]: "HOMOGENEOUS(vs) \<Longrightarrow> \<langle>SS\<rangle>\<^sub>s ` in(vs) = out(vs)"
+  by (metis HOMOGENEOUS_dash_in SS_UNDASHED_app image_cong in_UNDASHED set_rev_mp)
+
+lemma Rep_VAR_RENAME_out [urename]: "HOMOGENEOUS(vs) \<Longrightarrow> \<langle>SS\<rangle>\<^sub>s ` out(vs) = in(vs)"
+  by (metis Rep_VAR_RENAME_in SS_VAR_RENAME_INV VAR_RENAME_INV_image_twice)
+
+(*
+lemma binding_equiv_UNDASHED_override:
+  "(b1 \<oplus>\<^sub>b b2 on vs) \<cong> b3 on D\<^sub>0 \<longleftrightarrow> (b1 \<oplus>\<^sub>b b2 on in(vs)) \<cong> b3 on D\<^sub>0"
+  by (metis binding_equiv_override_subsume binding_override_simps(6) in_vars_def) 
+
+lemma binding_equiv_DASHED_override:
+  "(b1 \<oplus>\<^sub>b b2 on vs) \<cong> b3 on D\<^sub>1 \<longleftrightarrow> (b1 \<oplus>\<^sub>b b2 on out(vs)) \<cong> b3 on D\<^sub>1"
+  by (metis binding_equiv_override_subsume binding_override_simps(6) out_vars_def)
+
+lemma [simp]: "(b1 \<oplus>\<^sub>b b2 on out(vs)) \<cong> b3 on D\<^sub>0 \<longleftrightarrow> b1 \<cong> b3 on D\<^sub>0"
+  by (metis binding_equiv_UNDASHED_override binding_override_simps(11) in_out)
+
+lemma [simp]: "b1 \<cong> (b2 \<oplus>\<^sub>b b3 on out(vs)) on D\<^sub>0 \<longleftrightarrow> b1 \<cong> b2 on D\<^sub>0"
+  by (metis binding_equiv_UNDASHED_override binding_equiv_comm binding_override_simps(11) in_out)
+*)  
 
 lemma SkipR_ExistsP_in:
   "HOMOGENEOUS vs \<Longrightarrow> (\<exists>\<^sub>p vs. II) = (\<exists>\<^sub>p (in vs). II)"
   apply (utp_pred_auto_tac)
-  apply (rule_tac x="RenameB SS b" in exI)
+  apply (rule_tac x="SS\<bullet>b" in exI)
   apply (auto)
   apply (case_tac "v \<in> in vs")
   apply (simp add:urename)
@@ -1288,5 +1319,6 @@ lemma AssignF_upd_rep_eq:
   apply (rule AssignF_dom_DASHED_var[of _ "f"])
   apply (simp add:dom_def)
 done
- 
+
+
 *)

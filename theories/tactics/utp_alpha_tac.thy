@@ -39,14 +39,14 @@ theorem EvalA_intro :
  \<lbrakk>p1\<rbrakk>\<pi> = \<lbrakk>p2\<rbrakk>\<pi>\<rbrakk> \<Longrightarrow> p1 = p2"
   by (auto simp add: EvalA_def)
 
-theorem EvalA_UNREST [unrest] :
-"UNREST (VAR - \<langle>\<alpha> p\<rangle>\<^sub>f) \<lbrakk>p\<rbrakk>\<pi>"
-  by (simp add: EvalA_def unrest)
+theorem UNREST_EvalA [unrest] :
+"UNREST (- \<langle>\<alpha> p\<rangle>\<^sub>f) \<lbrakk>p\<rbrakk>\<pi>"
+  by (simp add: EvalA_def unrest UNREST_subset)
 
 lemma EvalA_UNREST_alpha [unrest]:
   "x \<notin>\<^sub>f \<alpha> P \<Longrightarrow> {x} \<sharp> \<lbrakk>P\<rbrakk>\<pi>"
   apply (rule UNREST_subset)
-  apply (rule EvalA_UNREST)
+  apply (rule UNREST_EvalA)
   apply (auto)
 done
 
@@ -63,11 +63,11 @@ theorem EvalA_EqualsA [evala] :
 
 theorem EvalA_TrueA [evala] :
 "\<lbrakk>true\<^bsub>a\<^esub>\<rbrakk>\<pi> = true"
-  by (simp add: EvalA_def TrueA_rep_eq)
+  by (simp add: EvalA_def TrueA.rep_eq)
 
 theorem EvalA_FalseA [evala] :
 "\<lbrakk>false\<^bsub>a\<^esub>\<rbrakk>\<pi> = false"
-  by (simp add: EvalA_def FalseA_rep_eq)
+  by (simp add: EvalA_def FalseA.rep_eq)
 
 theorem EvalA_ExtA [evala] :
 "\<lbrakk>p \<oplus>\<^sub>\<alpha> a\<rbrakk>\<pi> = \<lbrakk>p\<rbrakk>\<pi>"
@@ -160,7 +160,11 @@ theorem EvalA_RenameA [evala] :
 "\<lbrakk>ss\<bullet>p\<rbrakk>\<pi> = ss\<bullet>\<lbrakk>p\<rbrakk>\<pi>"
   by (simp add:EvalA_def PermA.rep_eq)
 
-declare TautologyA_def [evala]
+lemma EvalA_TautologyA [evala]:
+  "taut\<^sub>\<alpha>(p) \<longleftrightarrow> taut(\<lbrakk>p\<rbrakk>\<pi>)"
+  by (metis EvalA_TrueA EvalA_intro TautologyA_def Tautology_def TrueA_alphabet TrueP_eq_ClosureP utp_pred_simps(21))
+
+(* declare TautologyA_def [evala] *)
 declare ContradictionA_def [evala]
 declare less_eq_WF_ALPHA_PREDICATE_def [evala]
 declare less_WF_ALPHA_PREDICATE_def [evala]

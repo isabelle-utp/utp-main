@@ -119,7 +119,7 @@ Adhoc_Overloading.add_variant @{const_name unrest} @{const_name UNREST_EXPR}
 definition WF_EXPRESSION_OVER ::
   "('VALUE VAR) set \<Rightarrow>
    'VALUE WF_EXPRESSION set" where
-"WF_EXPRESSION_OVER vs = {e . UNREST_EXPR (VAR - vs) e}"
+"WF_EXPRESSION_OVER vs = {e . - vs \<sharp> e}"
 
 subsection {* Operators *}
 
@@ -632,13 +632,13 @@ theorem UNREST_EXPR_FalseE [unrest]: "vs \<sharp> FalseE"
 theorem UNREST_ExprP [unrest]:
 "\<lbrakk> vs \<sharp> e \<rbrakk> \<Longrightarrow> vs \<sharp> (ExprP e)"
   apply (simp add:ExprP_def)
-  apply (rule_tac ?vs1.0="VAR - vs" in UNREST_LiftP_alt)
+  apply (rule_tac ?vs1.0="- vs" in UNREST_LiftP_alt)
   apply (simp add:WF_BINDING_PRED_def UNREST_EXPR_def)
   apply (clarify)
   apply (drule_tac x="b2" in spec)
   apply (drule_tac x="b1" in spec)
   apply (drule binding_override_equiv)
-  apply (metis (full_types) binding_override_simps(10) binding_override_simps(5))
+  apply (metis binding_override_minus)
   apply (force)
 done
 
@@ -653,9 +653,9 @@ lemma UNREST_VarP [unrest]:
   by (auto intro:unrest)
 
 theorem WF_EXPRESSION_UNREST_binding_equiv :
-"\<lbrakk> (VAR - vs) \<sharp> e; b1 \<cong> b2 on vs \<rbrakk> 
+"\<lbrakk> - vs \<sharp> e; b1 \<cong> b2 on vs \<rbrakk> 
  \<Longrightarrow> \<langle>e\<rangle>\<^sub>eb1 = \<langle>e\<rangle>\<^sub>eb2"
-  by (smt UNREST_EXPR_member binding_override_equiv binding_override_simps(10) binding_override_simps(5))
+  by (metis UNREST_EXPR_def binding_equiv_override)
 
 subsection {* List Expressions *}
 

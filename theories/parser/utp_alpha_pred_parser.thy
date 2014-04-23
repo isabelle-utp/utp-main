@@ -57,7 +57,7 @@ syntax
   "_uapred_nequal"   :: "apexpr \<Rightarrow> apexpr \<Rightarrow> uapred" (infixl "\<noteq>" 50)
   "_uapred_skip"     :: "'a ALPHABET \<Rightarrow> uapred" ("II\<^bsub>_\<^esub>")
   "_uapred_seq"      :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr ";" 45)
-  "_uapred_cond"     :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" ("_ \<triangleleft> _ \<triangleright> _")
+  "_uapred_cond"     :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" ("_ \<lhd> _ \<rhd> _")
   "_uapred_assign"   :: "'a VAR \<Rightarrow> 'a ALPHABET \<Rightarrow> apexpr \<Rightarrow> uapred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
   "_uapred_top"      :: "'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("\<top>\<^bsub>_[_]\<^esub>")
   "_uapred_bot"      :: "'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("\<bottom>\<^bsub>_[_]\<^esub>")
@@ -90,6 +90,7 @@ translations
   "_uapred_all1 x p"    == "CONST ForallA \<lbrace>x\<rbrace> p"
   "_uapred_exists1 x p" == "CONST ExistsA \<lbrace>x\<rbrace> p"
   "_uapred_existsres1 x p" == "CONST ExistsResA \<lbrace>x\<rbrace> p"
+  "_uapred_pexpr e"     == "CONST APExprA e"
   "_uapred_equal e f"   == "CONST APEqualA e f"
   "_uapred_nequal e f"  == "CONST NotA (CONST EqualA e f)"
   "_uapred_skip"        == "CONST SkipA"
@@ -131,6 +132,31 @@ translations
   "_apexpr_true"               == "CONST TrueAPE"
   "_apexpr_false"              == "CONST FalseAPE"
 
+syntax
+  (* Data Structures *)
+  "_apexpr_plus"          :: "apexpr \<Rightarrow> apexpr \<Rightarrow> apexpr" (infixl "+" 65)
+  "_apexpr_mult"          :: "apexpr \<Rightarrow> apexpr \<Rightarrow> apexpr" (infixl "*" 70)
+  "_apexpr_div"           :: "apexpr \<Rightarrow> apexpr \<Rightarrow> apexpr" (infixl "'/" 70)
+  "_apexpr_minus"         :: "apexpr \<Rightarrow> apexpr \<Rightarrow> apexpr" (infixl "-" 65)
+  "_apexpr_max"           :: "apexpr \<Rightarrow> apexpr \<Rightarrow> apexpr" ("max'(_, _')")
+  "_apexpr_min"           :: "apexpr \<Rightarrow> apexpr \<Rightarrow> apexpr" ("min'(_, _')")
+  "_apexpr_less"          :: "apexpr \<Rightarrow> apexpr \<Rightarrow> apexpr" (infixr "<" 25)
+  "_apexpr_less_eq"       :: "apexpr \<Rightarrow> apexpr \<Rightarrow> apexpr" (infixr "\<le>" 25)
+  "_apexpr_greater"       :: "apexpr \<Rightarrow> apexpr \<Rightarrow> apexpr" (infixr ">" 25)
+  "_apexpr_greater_eq"    :: "apexpr \<Rightarrow> apexpr \<Rightarrow> apexpr" (infixr "\<ge>" 25)
+
+translations
+  "_apexpr_plus x y"            == "CONST PlusAPE x y"
+  "_apexpr_mult x y"            == "CONST MultAPE x y"
+  "_apexpr_div x y"             == "CONST DivAPE x y"
+  "_apexpr_max x y"             == "CONST MaxAPE x y"
+  "_apexpr_min x y"             == "CONST MinAPE x y"
+  "_apexpr_less x y"            == "CONST LessAPE x y"
+  "_apexpr_less_eq x y"         == "CONST LessEqAPE x y"
+  "_apexpr_greater x y"         == "CONST LessAPE y x"
+  "_apexpr_greater_eq x y"      == "CONST LessEqAPE y x"
+
+  
 (* Big operators *)
 
 default_sort type

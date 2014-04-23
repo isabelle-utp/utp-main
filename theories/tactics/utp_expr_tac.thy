@@ -126,7 +126,7 @@ theorem EvalE_UNREST_assign [eval,evale] :
 done
 
 theorem EvalP_UNREST_binding_equiv [eval,evale] :
-"\<lbrakk> (VAR - vs) \<sharp> e; b1 \<cong> b2 on vs \<rbrakk> 
+"\<lbrakk> - vs \<sharp> e; b1 \<cong> b2 on vs \<rbrakk> 
  \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>eb1 = \<lbrakk>e\<rbrakk>\<^sub>eb2"
   by (metis (mono_tags) Compl_eq_Diff_UNIV EvalE_def UNREST_EXPR_member VAR_def binding_override_equiv binding_override_minus)
   

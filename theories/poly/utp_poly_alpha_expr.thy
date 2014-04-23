@@ -25,7 +25,7 @@ default_sort DEFINED
 subsection {* Polymorphic Expression Basic Syntax *}
 
 typedef ('a :: DEFINED, 'm :: VALUE) WF_ALPHA_PEXPR = 
-  "{(a :: 'm ALPHABET, e :: ('a, 'm) WF_PEXPRESSION). VAR - \<langle>a\<rangle>\<^sub>f \<sharp> e}" 
+  "{(a :: 'm ALPHABET, e :: ('a, 'm) WF_PEXPRESSION). - \<langle>a\<rangle>\<^sub>f \<sharp> e}" 
 morphisms DestAPExpr MkAPExpr 
   apply (rule_tac x="(\<lbrace>\<rbrace>, LitPE undefined)" in exI)
   apply (auto intro:unrest)
@@ -191,5 +191,21 @@ subsection {* Polymorphic Relational Operators *}
 abbreviation PAssignA ::
   "('a :: DEFINED, 'm :: VALUE) PVAR \<Rightarrow> 'm ALPHABET \<Rightarrow> ('a, 'm) WF_ALPHA_PEXPR \<Rightarrow> 'm WF_ALPHA_PREDICATE" where
 "PAssignA x a v \<equiv> AssignA x\<down> a v\<down>"
+
+subsection {* Numeric Expressions *}
+
+abbreviation IntAPE :: "int \<Rightarrow> (int, 'a :: INT_SORT) WF_ALPHA_PEXPR" where
+"IntAPE \<equiv> LitAPE"
+
+abbreviation RealAPE :: "int \<Rightarrow> (int, 'a :: REAL_SORT) WF_ALPHA_PEXPR" where
+"RealAPE \<equiv> LitAPE"
+
+abbreviation "LessAPE     \<equiv> Op2APE uless"
+abbreviation "LessEqAPE   \<equiv> Op2APE uless_eq"
+abbreviation "PlusAPE u v \<equiv> Op2APE (op +) u v"
+abbreviation "MultAPE u v \<equiv> Op2APE (op *) u v"
+abbreviation "DivAPE  u v \<equiv> Op2APE (op /) u v"
+abbreviation "MaxAPE  u v \<equiv> Op2APE max u v"
+abbreviation "MinAPE  u v \<equiv> Op2APE min u v"
 
 end

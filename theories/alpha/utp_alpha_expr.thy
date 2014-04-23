@@ -100,7 +100,7 @@ theorem WF_ALPHA_EXPRESSION_intro [intro] :
 done
 
 theorem WF_ALPHA_EXPRESSION_UNREST_EXPR [unrest] :
-"UNREST_EXPR (VAR - \<langle>\<alpha> e\<rangle>\<^sub>f) (\<epsilon> e)"
+"UNREST_EXPR (- \<langle>\<alpha> e\<rangle>\<^sub>f) (\<epsilon> e)"
 apply (insert DestExprA[of e])
 apply (simp add:WF_ALPHA_EXPRESSION_def expr_alpha_def WF_EXPRESSION_OVER_def)
 done
@@ -192,7 +192,7 @@ lift_definition PermAE ::
   apply (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
   apply (rule UNREST_EXPR_RenameE_alt)
   apply (auto)
-  apply (metis (mono_tags) RenameP_image_minus Rep_VAR_RENAME_VAR Rep_VAR_RENAME_inj WF_ALPHA_EXPRESSION_UNREST_EXPR image_inv_f_f)
+  apply (metis RenameP_image_uminus Rep_VAR_RENAME_inj Rep_VAR_RENAME_surj WF_ALPHA_EXPRESSION_UNREST_EXPR image_surj_f_inv_f inj_image_eq_iff rename_inv_rep_eq)
 done
 
 setup {*

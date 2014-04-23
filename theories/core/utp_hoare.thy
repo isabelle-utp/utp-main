@@ -25,77 +25,77 @@ ML {*
 setup hoare.setup
 
 definition HoareP :: 
-  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_{_}\<^sub>p_" [200,0,201] 200) where
-"p{Q}\<^sub>pr = ((p \<Rightarrow>\<^sub>p r\<acute>) \<sqsubseteq>\<^sub>p Q)"
+  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("{_}_{_}\<^sub>p" [200,0,201] 200) where
+"{p}Q{r}\<^sub>p = ((p \<Rightarrow>\<^sub>p r\<acute>) \<sqsubseteq>\<^sub>p Q)"
 
 declare HoareP_def [eval,evalr,evalrx]
 
 syntax
-  "_upred_hoare" :: "upred \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("_{_}_" [55,0,56] 55)
+  "_upred_hoare" :: "upred \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("{_}_{_}" [0,20,0] 100)
 
 translations
   "_upred_hoare p Q r"  == "CONST HoareP p Q r"
 
 theorem HoareP_intro [intro]:
-  "(p \<Rightarrow>\<^sub>p r\<acute>) \<sqsubseteq> Q \<Longrightarrow> `p{Q}r`"
+  "(p \<Rightarrow>\<^sub>p r\<acute>) \<sqsubseteq> Q \<Longrightarrow> `{p}Q{r}`"
   by (metis HoareP_def less_eq_WF_PREDICATE_def)
 
 lemma HoareP_elim [elim]:
-  "\<lbrakk> `p{Q}r`; \<lbrakk> (p \<Rightarrow>\<^sub>p r\<acute>) \<sqsubseteq> Q \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk> `{p}Q{r}`; \<lbrakk> (p \<Rightarrow>\<^sub>p r\<acute>) \<sqsubseteq> Q \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (metis HoareP_def less_eq_WF_PREDICATE_def)
 
 theorem HoareP_AndP:
-  "`p{Q}(r \<and> s)` = `p{Q}r \<and> p{Q}s`"
+  "`{p}Q{r \<and> s}` = `{p}Q{r} \<and> {p}Q{s}`"
   apply (simp add:HoareP_def urename)
   apply (utp_pred_auto_tac)
 done
 
 theorem HoareP_OrP:
-  "`(p \<or> q){Q}r` = `p{Q}r \<and> q{Q}r`"
+  "`{p \<or> q}Q{r}` = `{p}Q{r} \<and> {q}Q{r}`"
   apply (simp add:HoareP_def urename)
   apply (utp_pred_auto_tac)
 done
 
 theorem HoareP_pre [hoare]:
-  "`p{Q}r` \<Longrightarrow> `(p \<and> q){Q}r`"
+  "`{p}Q{r}` \<Longrightarrow> `{p \<and> q}Q{r}`"
   by (utp_pred_auto_tac)
 
 theorem HoareP_post [hoare]:
-  "`p{Q}r` \<Longrightarrow> `p{Q}(r \<or> s)`"
+  "`{p}Q{r}` \<Longrightarrow> `{p}Q{r \<or> s}`"
   by (simp add:HoareP_def urename eval)
 
 theorem HoareP_prepost [hoare]:
-  "`p{Q}r` \<Longrightarrow> `(p \<and> q){Q}(r \<or> s)`"
+  "`{p}Q{r}` \<Longrightarrow> `{p \<and> q}Q{r \<or> s}`"
   by (simp add:HoareP_def urename eval)
 
 theorem HoareP_pre_refine:
-  "\<lbrakk> (p \<sqsubseteq> q); `p{Q}r` \<rbrakk> \<Longrightarrow> `q{Q}r`"
+  "\<lbrakk> (p \<sqsubseteq> q); `{p}Q{r}` \<rbrakk> \<Longrightarrow> `{q}Q{r}`"
 by (metis HoareP_pre RefP_AndP)
 
 theorem HoareP_post_refine:
-  "\<lbrakk> (r \<sqsubseteq> s); `p{Q}s` \<rbrakk> \<Longrightarrow> `p{Q}r`"
+  "\<lbrakk> (r \<sqsubseteq> s); `{p}Q{s}` \<rbrakk> \<Longrightarrow> `{p}Q{r}`"
   by (metis HoareP_post OrP_comm RefP_OrP)
 
 theorem HoareP_TrueR [hoare]:
-  "`p{Q}true`"
+  "`{p}Q{true}`"
   by (metis ConvR_TrueP HoareP_intro RefineP_TrueP_refine utp_pred_simps(14))
 
 theorem HoareP_SkipR [hoare]:
   assumes "p \<in> WF_CONDITION"
-  shows "`p{II}p`"
+  shows "`{p}II{p}`"
   using assms by (utp_xrel_auto_tac)
 
 theorem HoareP_CondR [hoare]:
-  assumes "`(b \<and> p){S}q`" "`(\<not>b \<and> p){T}q`"
-  shows "`p{S \<lhd> b \<rhd> T}q`"
+  assumes "`{b \<and> p}S{q}`" "`{\<not>b \<and> p}T{q}`"
+  shows "`{p}S \<lhd> b \<rhd> T{q}`"
   using assms by (utp_pred_auto_tac)
   
 theorem HoareP_SemiR [hoare]:
   assumes 
     "p \<in> WF_CONDITION" "r \<in> WF_CONDITION" "s \<in> WF_CONDITION"
     "Q1 \<in> WF_RELATION" "Q2 \<in> WF_RELATION"
-    "`p{Q1}s`" "`s{Q2}r`" 
-  shows "`p{Q1 ; Q2}r`"
+    "`{p}Q1{s}`" "`{s}Q2{r}`" 
+  shows "`{p}Q1 ; Q2{r}`"
 proof
   from assms 
   have refs: "(p \<Rightarrow>\<^sub>p s\<acute>) \<sqsubseteq> Q1" "(s \<Rightarrow>\<^sub>p r\<acute>) \<sqsubseteq> Q2"
@@ -131,7 +131,7 @@ qed
 theorem HoareP_AssignR [hoare]:
   assumes "q \<in> WF_CONDITION" "p = q[v/\<^sub>px]"
    "x \<in> UNDASHED" "UNREST_EXPR DASHED v" "v \<rhd>\<^sub>e x"
-  shows "p{x :=\<^sub>R v}\<^sub>pq"
+  shows "{p}x :=\<^sub>R v{q}\<^sub>p"
   using assms
   apply (rule_tac HoareP_intro)
   apply (utp_pred_auto_tac)
@@ -153,8 +153,8 @@ lemma (in left_near_kleene_algebra)
 theorem HoareP_IterP [hoare]:
   assumes 
     "p \<in> WF_CONDITION" "b \<in> WF_CONDITION" "S \<in> WF_RELATION"
-    "`(p \<and> b){S}p`"
-  shows "`p{while b do S od}(\<not>b \<and> p)`"
+    "`{p \<and> b}S{p}`"
+  shows "`{p}while b do S od{\<not>b \<and> p}`"
 proof -
   from assms have S_ref: "`p \<and> b \<Rightarrow> p\<acute>` \<sqsubseteq> S"
     by (force elim: HoareP_elim)

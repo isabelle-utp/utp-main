@@ -24,6 +24,20 @@ setup evala.setup
 
 subsection {* Wellformed alphabetised predicates *}
 
+consts
+  alpha_type :: "('p::type) \<Rightarrow> ('a::type) \<Rightarrow> bool" (infix ":\<alpha>:" 50)
+
+setup {*
+  Adhoc_Overloading.add_overloaded @{const_name alpha_type}
+*}
+
+definition pred_alpha_type :: "'a WF_PREDICATE \<Rightarrow> 'a ALPHABET \<Rightarrow> bool" where
+"pred_alpha_type P a = (- \<langle>a\<rangle>\<^sub>f) \<sharp> P"
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name alpha_type} @{const_name pred_alpha_type}
+*}
+
 type_synonym 'VALUE ALPHA_PREDICATE =
   "('VALUE ALPHABET) \<times> 'VALUE WF_PREDICATE"
 
@@ -79,7 +93,7 @@ definition WF_ALPHA_PREDICATE_OVER ::
 "WF_ALPHA_PREDICATE_OVER a = {p . \<alpha> p = a}"
 
 theorem WF_ALPHA_PREDICATE_UNREST [unrest] (* [dest] *) :
-"UNREST (VAR - \<langle>\<alpha> p\<rangle>\<^sub>f) (\<pi> p)"
+"UNREST (- \<langle>\<alpha> p\<rangle>\<^sub>f) (\<pi> p)"
 apply (insert DestPredA[of p])
 apply (auto simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def pred_alphabet_def)
 done
@@ -131,17 +145,35 @@ done
 
 notation ResA (infix "\<ominus>\<^sub>\<alpha>" 200)
 
+subsubsection {* Alphabet Coercion *}
+
+lift_definition CoerceA ::
+  "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE ALPHABET \<Rightarrow>
+   'VALUE WF_ALPHA_PREDICATE" is
+"\<lambda> p a. (a, \<exists>\<^sub>p (- \<langle>a\<rangle>\<^sub>f). p)"
+apply (simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
+apply (auto intro: unrest)
+done
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name alpha_coerce} @{const_name CoerceA}
+*}
+
+lemma CoerceA_rep_eq_simple:
+  "- \<langle>a\<rangle>\<^sub>f \<sharp> p \<Longrightarrow> \<pi>(p\<^bsub>!a\<^esub>) = p"
+  by (metis CoerceA.rep_eq UNREST_as_ExistsP snd_conv)
+
 subsubsection {* True and False *}
 
-definition TrueA ::
-  "'VALUE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" where
-"TrueA a = MkPredA (a, true)"
+lift_definition TrueA :: "'VALUE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" is
+"\<lambda> a. (a :: 'VALUE ALPHABET, TrueP :: 'VALUE WF_PREDICATE)"
+  by (simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
 
 notation TrueA ("true\<^bsub>_\<^esub>")
 
-definition FalseA ::
-  "'VALUE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" where
-"FalseA a = MkPredA (a, false)"
+lift_definition FalseA :: "'VALUE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" is
+"\<lambda> a. (a :: 'VALUE ALPHABET, FalseP :: 'VALUE WF_PREDICATE)"
+  by (simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
 
 notation FalseA ("false\<^bsub>_\<^esub>")
 
@@ -378,7 +410,7 @@ lift_definition PermA ::
   apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
   apply (rule UNREST_RenameP_alt)
   apply (rule WF_ALPHA_PREDICATE_UNREST)
-  apply (metis (lifting) Rep_VAR_RENAME_surj VAR_def image_diff_subset)
+  apply (metis RenameP_image_uminus equalityD2)
 done
 
 setup {*
@@ -390,6 +422,8 @@ subsection {* Meta-logical Operators *}
 definition TautologyA ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow> bool" where
 "TautologyA p = (p = true\<^bsub>\<alpha> p\<^esub>)"
+
+declare [[coercion TautologyA]]
 
 notation TautologyA ("taut\<^sub>\<alpha> _" [50] 50)
 
@@ -419,7 +453,7 @@ instantiation WF_ALPHA_PREDICATE :: (VALUE) refines begin instance .. end
 subsection {* Theorems *}
 
 theorem WF_ALPHA_PREDICATE_UNREST_intro [intro] :
-"a \<subseteq> VAR - \<langle>\<alpha> p\<rangle>\<^sub>f \<Longrightarrow> UNREST a (\<pi> p)"
+"a \<subseteq> - \<langle>\<alpha> p\<rangle>\<^sub>f \<Longrightarrow> UNREST a (\<pi> p)"
 apply (insert WF_ALPHA_PREDICATE_UNREST [of "p"])
 apply (erule UNREST_subset)
 apply (assumption)
@@ -444,20 +478,6 @@ theorem LiftA_rep_eq:
   apply (auto intro:unrest)
 done
 
-theorem TrueA_rep_eq:
-  "DestPredA (TrueA a) = (a, TrueP)"
-  apply (subgoal_tac "(a, true) \<in> WF_ALPHA_PREDICATE")
-  apply (simp add:TrueA_def)
-  apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
-done
-
-theorem FalseA_rep_eq:
-  "DestPredA (FalseA a) = (a, FalseP)"
-  apply (subgoal_tac "(a, false) \<in> WF_ALPHA_PREDICATE")
-  apply (simp add:FalseA_def)
-  apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
-done
-
 subsubsection {* Alphabet Theorems *}
 
 declare pred_alphabet_def [simp]
@@ -473,11 +493,11 @@ theorem EqualsA_alphabet [alphabet] :
 
 theorem TrueA_alphabet [alphabet] :
 "\<alpha> (true\<^bsub>a\<^esub>) = a"
-  by (simp add: TrueA_rep_eq)
+  by (simp add: TrueA.rep_eq)
 
 theorem FalseA_alphabet [alphabet] :
 "\<alpha> (false\<^bsub>a\<^esub>) = a"
-  by (simp add: FalseA_rep_eq)
+  by (simp add: FalseA.rep_eq)
 
 theorem ExtA_alphabet [alphabet] :
 "\<alpha> (p \<oplus>\<^sub>\<alpha> a) = (\<alpha> p) \<union>\<^sub>f a"
@@ -486,6 +506,10 @@ theorem ExtA_alphabet [alphabet] :
 theorem ResA_alphabet [alphabet] :
 "\<alpha> (p \<ominus>\<^sub>\<alpha> a) = (\<alpha> p) -\<^sub>f a"
   by (simp add: ResA.rep_eq)
+
+theorem CoerceA_alphabet [alphabet] :
+"\<alpha> (p\<^bsub>!a\<^esub>) = a"
+  by (simp add:CoerceA.rep_eq)
 
 theorem NotA_alphabet [alphabet] :
 "\<alpha> (\<not>\<^sub>\<alpha> p) = (\<alpha> p)"
@@ -655,7 +679,7 @@ done
 
 theorem TrueA_noteq_FalseA :
 "true\<^bsub>a\<^esub> \<noteq> false\<^bsub>b\<^esub>"
-  by (auto simp add: TrueA_rep_eq FalseA_rep_eq TrueP_noteq_FalseP )
+  by (auto simp add: TrueA.rep_eq FalseA.rep_eq TrueP_noteq_FalseP )
 
 (* This lines make many later proofs easier *)
 declare pred_alphabet_def [simp del]
@@ -670,12 +694,11 @@ theorem WF_ALPHA_PREDICATE_empty_true_false:
   apply (rule WF_ALPHA_PREDICATE_intro)
   apply (simp add:alphabet)
   apply (erule WF_ALPHA_PREDICATE_neq_elim)
-  apply (simp add:TrueA_rep_eq FalseA_rep_eq alphabet)
-  apply (simp add:TrueA_rep_eq FalseA_rep_eq alphabet)
+  apply (simp add:TrueA.rep_eq FalseA.rep_eq alphabet)
+  apply (simp add:TrueA.rep_eq FalseA.rep_eq alphabet)
   apply (insert WF_ALPHA_PREDICATE_UNREST[of p])
   apply (simp)
-  apply (drule UNREST_true_false)
-  apply (force)
+  apply (metis UNREST_true_false VAR_def)
 done
 
 theorem WF_ALPHA_PREDICATE_empty_elim:
@@ -686,7 +709,7 @@ lemma WF_ALPHA_PREDICATE_binding_equiv:
   "\<lbrakk> b1 \<in> destPRED (\<pi> p); b1 \<cong> b2 on \<langle>\<alpha> p\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> b2 \<in> destPRED (\<pi> p)"
   apply (insert WF_ALPHA_PREDICATE_UNREST[of "p"])
   apply (auto simp add:UNREST_def)
-  apply (smt binding_equiv_comm binding_override_equiv binding_override_simps(10) binding_override_simps(5))
+  apply (metis WF_ALPHA_PREDICATE_UNREST WF_PREDICATE_binding_equiv)
 done
 
 lemma WF_ALPHA_PREDICATE_OVER_intro [intro]:
@@ -742,5 +765,29 @@ lemma apred_fmap_set_inv:
   apply (simp add:apred_fmap_set_def)
   apply (metis DestPredA_inverse pred_alphabet_def surjective_pairing)
 done
+
+lemma CoerceA_TrueP:
+  "TrueP\<^bsub>!a\<^esub> = true\<^bsub>a\<^esub>"
+  apply (rule)
+  apply (simp add:alphabet)
+  apply (simp add:TrueA.rep_eq CoerceA.rep_eq)
+  apply (metis ExistsP_ident UNREST_TrueP)
+done
+
+lemma CoerceA_FalseP:
+  "FalseP\<^bsub>!a\<^esub> = false\<^bsub>a\<^esub>"
+  apply (rule)
+  apply (simp add:alphabet)
+  apply (simp add:FalseA.rep_eq CoerceA.rep_eq)
+  apply (metis UNREST_FalseP UNREST_as_ExistsP)
+done
+
+lemma CoerceA_OrP:
+  "(p \<or>\<^sub>p q)\<^bsub>!a\<^esub> = (p\<^bsub>!a\<^esub> \<or>\<^sub>\<alpha> q\<^bsub>!a\<^esub>)"
+  by (auto simp add:alphabet OrA.rep_eq CoerceA.rep_eq ExistsP_OrP_dist)
+
+lemma CoerceA_AndP:
+  "\<lbrakk> - \<langle>a\<rangle>\<^sub>f \<sharp> p; - \<langle>a\<rangle>\<^sub>f \<sharp> q \<rbrakk> \<Longrightarrow> (p \<and>\<^sub>p q)\<^bsub>!a\<^esub> = (p\<^bsub>!a\<^esub> \<and>\<^sub>\<alpha> q\<^bsub>!a\<^esub>)"
+  by (metis AndA.abs_eq CoerceA.abs_eq CoerceA.rep_eq CoerceA_alphabet CoerceA_rep_eq_simple ExistsP_AndP_expand1 fset_simps(5) snd_eqD)
 
 end
