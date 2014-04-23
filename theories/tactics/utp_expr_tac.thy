@@ -142,6 +142,10 @@ theorem EvalP_SubstP [eval,eval] :
   "\<lbrakk>p[v/\<^sub>px]\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eb))"
   by (simp add:SubstP.rep_eq EvalP_def EvalE_def)
 
+lemma EvalE_ecoerce [evale]:
+  "\<lbrakk>ecoerce e x\<rbrakk>\<^sub>eb = vcoerce (\<lbrakk>e\<rbrakk>\<^sub>eb) x"
+by (metis EvalE_def ecoerce_rep_eq)
+
 lemma EvalE_UNREST_binding_upd [evale]:
   "{x} \<sharp> e \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>e(b(x :=\<^sub>b v)) = \<lbrakk>e\<rbrakk>\<^sub>eb"
   apply (auto simp add:EvalE_def UNREST_EXPR_def)

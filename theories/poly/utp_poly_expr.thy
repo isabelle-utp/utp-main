@@ -694,7 +694,7 @@ abbreviation "PlusPE u v \<equiv> Op2PE (op +) u v"
 abbreviation "MultPE u v \<equiv> Op2PE (op *) u v"
 abbreviation "DivPE  u v \<equiv> Op2PE (op /) u v"
 abbreviation "MaxPE  u v \<equiv> Op2PE max u v"
-abbreviation "MinPE  u v \<equiv> Op2PE max u v"
+abbreviation "MinPE  u v \<equiv> Op2PE min u v"
 
 instantiation int :: LESS_THAN
 begin

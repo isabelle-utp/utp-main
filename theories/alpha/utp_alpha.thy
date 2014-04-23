@@ -13,5 +13,7 @@ imports
   utp_alpha_expr
   utp_alpha_rel
   utp_alpha_lattice
+  utp_alpha_iteration
+  utp_alpha_hoare
 begin
 end

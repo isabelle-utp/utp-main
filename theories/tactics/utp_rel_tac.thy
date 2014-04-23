@@ -1145,6 +1145,21 @@ lemma EvalR_EqualP_DASHED [evalr]:
 done
 
 lemma AssignR_alt_def: 
+  "x \<in> D\<^sub>0 \<Longrightarrow> x :=\<^sub>R v = ($\<^sub>ex\<acute> ==\<^sub>p ecoerce v x) \<and>\<^sub>p II\<^bsub>REL_VAR - {x,x\<acute>}\<^esub>"
+  apply (simp add:SkipRA_def)
+  apply (utp_pred_tac)
+  apply (safe)
+  apply (simp_all add:IdA.rep_eq AssignF_upd.rep_eq evale VarE.rep_eq EvalE_def urename)
+  apply (rule_tac x="b(x\<acute> :=\<^sub>b \<langle>b\<rangle>\<^sub>b x)" in exI)
+  apply (simp_all)
+  apply (rule)
+  apply (metis (lifting) UNDASHED_eq_dash_contra undash_dash)
+  apply (drule_tac x="va" in bspec, simp_all)
+  apply (metis UNDASHED_eq_dash_contra undash_dash)
+done
+
+(*
+lemma AssignR_alt_def: 
   "\<lbrakk>v \<rhd>\<^sub>e x; x \<in> UNDASHED \<rbrakk> \<Longrightarrow> x :=\<^sub>R v = ($\<^sub>ex\<acute> ==\<^sub>p v) \<and>\<^sub>p II\<^bsub>REL_VAR - {x,x\<acute>}\<^esub>"
   apply (simp add:SkipRA_def)
   apply (utp_pred_tac)
@@ -1157,6 +1172,7 @@ lemma AssignR_alt_def:
   apply (drule_tac x="va" in bspec, simp_all)
   apply (metis UNDASHED_eq_dash_contra undash_dash)
 done
+*)
 
 lemma SS_equiv_UNDASHED: "\<forall>v\<in>D\<^sub>0. \<langle>b\<rangle>\<^sub>b v = \<langle>b\<rangle>\<^sub>b v\<acute> \<Longrightarrow> SS\<bullet>b = b"
   apply (rule Rep_WF_BINDING_intro)

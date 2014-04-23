@@ -169,14 +169,14 @@ qed
 lemma AssignRA_refinement [refine]:
   assumes
     "HOMOGENEOUS xs" "xs \<subseteq> REL_VAR" "x \<in> in(xs)"
-    "v \<rhd>\<^sub>e x" "- in(xs) \<sharp> v" "q[v/\<^sub>px\<acute>] \<sqsubseteq> p"
+    "- in(xs) \<sharp> v" "q[v/\<^sub>px\<acute>] \<sqsubseteq> p"
   shows "(p \<Rightarrow>\<^sub>p q) \<sqsubseteq> x :=\<^bsub>xs\<^esub> v"
   using assms
-  by (utp_pred_auto_tac, metis binding_upd_triv)
+  by (utp_pred_auto_tac, metis binding_upd_simps(2) binding_upd_vcoerce_dash)
 
 lemma AssignRA_refinement_alt:
   assumes "HOMOGENEOUS(xs)" "xs \<subseteq> REL_VAR" "x \<in> in(xs)"
-          "v \<rhd>\<^sub>e x" "- in(xs) \<sharp> p" "- in(xs) \<sharp> v"
+          "- in(xs) \<sharp> p" "- in(xs) \<sharp> v"
   shows "(p[v/\<^sub>px] \<Rightarrow>\<^sub>p p\<acute>) \<sqsubseteq> x :=\<^bsub>xs\<^esub> v"
   using assms
   apply (utp_pred_auto_tac)

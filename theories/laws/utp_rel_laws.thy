@@ -1214,6 +1214,29 @@ done
 
 lemma AssignRA_alt_def:
   assumes 
+    "x \<in> vs" "x\<acute> \<in> vs" 
+    "x \<in> UNDASHED" 
+    "REL_VAR - vs \<sharp> v" 
+  shows "x :=\<^bsub>vs\<^esub> v = $\<^sub>ex\<acute> ==\<^sub>p ecoerce v x \<and>\<^sub>p II\<^bsub>vs - {x,x\<acute>}\<^esub>"
+using assms
+proof (simp add:SkipRA_def AssignRA_def AssignR_alt_def)
+  from assms have "REL_VAR - (vs - {x, x\<acute>}) = (REL_VAR - vs) \<union> {x, x\<acute>}"
+    by (auto)
+
+  hence "(\<exists>\<^sub>p REL_VAR - (vs - {x, x\<acute>}) . II) = (\<exists>\<^sub>p REL_VAR - vs. \<exists>\<^sub>p {x, x\<acute>} . II)"
+    by (metis (lifting) ExistsP_union)
+
+  moreover from assms have "(REL_VAR - vs) \<sharp> ($\<^sub>ex\<acute> ==\<^sub>p ecoerce v x)"
+    by (rule_tac unrest, auto intro:unrest)
+
+  ultimately show "(\<exists>\<^sub>p REL_VAR - vs . $\<^sub>ex\<acute> ==\<^sub>p ecoerce v x \<and>\<^sub>p (\<exists>\<^sub>p {x, x\<acute>} . II)) =
+                    $\<^sub>ex\<acute> ==\<^sub>p ecoerce v x \<and>\<^sub>p (\<exists>\<^sub>p insert x (insert x\<acute> (REL_VAR - vs)) . II)"
+    by (smt ExistsP_AndP_expand2 ExistsP_union Un_empty_right Un_insert_right union_minus)
+qed
+
+(*
+lemma AssignRA_alt_def:
+  assumes 
     "x \<in> vs" 
     "x\<acute> \<in> vs" 
     "x \<in> UNDASHED" 
@@ -1235,37 +1258,33 @@ proof (simp add:SkipRA_def AssignRA_def AssignR_alt_def)
                     $\<^sub>ex\<acute> ==\<^sub>p v \<and>\<^sub>p (\<exists>\<^sub>p insert x (insert x\<acute> (REL_VAR - vs)) . II)"
     by (smt ExistsP_AndP_expand2 ExistsP_union Un_empty_right Un_insert_right union_minus)
 qed
+*)
 
 lemma EvalR_AssignRA [evalr]:
   assumes 
-    "x \<in> vs" "x\<acute> \<in> vs" 
-    "x \<in> UNDASHED"
-    "vs \<subseteq> UNDASHED \<union> DASHED" 
+    "x \<in> in(vs)"  "vs \<subseteq> REL_VAR" 
     "HOMOGENEOUS vs"
     "- in(vs) \<sharp> v" 
-    "v \<rhd>\<^sub>e x"
+    (* "v \<rhd>\<^sub>e x" *)
   shows "\<lbrakk>x :=\<^bsub>vs\<^esub> v\<rbrakk>R = { (b1, b2) 
                        . b1 \<cong> b2 on (in vs - {x}) \<and> b1 \<cong> b2 on NON_REL_VAR 
-                       \<and> \<langle>b2\<rangle>\<^sub>b x = \<lbrakk>v\<rbrakk>\<^sub>eb1 \<and> b1 \<in> WF_REL_BINDING \<and> b2 \<in> WF_REL_BINDING}"
+                       \<and> \<langle>b2\<rangle>\<^sub>b x = vcoerce (\<lbrakk>v\<rbrakk>\<^sub>eb1) x \<and> b1 \<in> WF_REL_BINDING \<and> b2 \<in> WF_REL_BINDING}"
 proof -
-
-  have "(vs - {x,x\<acute>}) \<subseteq> REL_VAR"
-    by (metis Diff_subset assms(4) subset_trans)
-
-  moreover from assms(6) have "REL_VAR - vs \<sharp> v"
+  from assms have "x \<in> vs"  by (auto simp add:var_defs)
+  moreover from assms have "x \<in> D\<^sub>0" by (auto simp add:var_defs)
+  moreover from assms have "x\<acute> \<in> vs"
+    by (metis Int_iff hom_alphabet_undash in_vars_def)
+  moreover from assms have "REL_VAR - vs \<sharp> v"
+    by (auto intro: UNREST_EXPR_subset simp add:var_defs)
+  moreover from assms have "vs - {x, x\<acute>} \<subseteq> REL_VAR"
+    by (auto simp add:var_defs)
+  moreover from assms have "DASHED \<sharp> v"
     by (auto intro: UNREST_EXPR_subset simp add:var_defs)
 
-  moreover from assms(6) have "DASHED \<sharp> v"
-    apply (rule UNREST_EXPR_subset)
-    apply (auto simp add:var_defs)
-  done
-
   ultimately show ?thesis using assms
-    apply (simp add: AssignRA_alt_def EvalR_AndP EvalR_SkipRA'' EvalR_EqualP_alt' evale BindR_def Collect_conj_pair_eq)
-    apply (rule Collect_eq_pair_intro)
-    apply (simp add:var_dist)
-    apply (safe)
- done
+    apply (simp add: AssignRA_alt_def EvalR_AndP EvalR_SkipRA'' EvalR_EqualP_alt' evale BindR_def Collect_conj_pair_eq unrest)
+    apply (auto simp add:var_dist)
+  done
 qed
 
 lemma EvalP_AssignRA:
@@ -1274,7 +1293,6 @@ lemma EvalP_AssignRA:
     "xs \<subseteq> REL_VAR" 
     "HOMOGENEOUS xs"
     "- in(xs) \<sharp> e" 
-    "e \<rhd>\<^sub>e x"
   shows "\<lbrakk>x :=\<^bsub>xs\<^esub> e\<rbrakk>b = (\<forall> v \<in> in(xs). if (v = x) then \<langle>b\<rangle>\<^sub>b (v\<acute>) = (vcoerce (\<lbrakk>e\<rbrakk>\<^sub>eb) x)
                                                  else \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>b\<rangle>\<^sub>b v)"
   apply (subgoal_tac "x \<in> D\<^sub>0")
@@ -1283,20 +1301,17 @@ lemma EvalP_AssignRA:
   apply (rule UNREST_EXPR_subset)
   apply (rule assms)
   apply (force simp add:var_defs)
-  apply (simp add:eval closure assms)
+  apply (simp add: eval evale assms var_dist)
   apply (safe)
-  apply (drule_tac x="v" in bspec)
-  apply (simp add:var_dist assms)
   apply (force)
-  apply (metis assms(1) assms(3) in_member)
-  apply (drule_tac x="v" in bspec)
-  apply (auto simp add:var_dist closure assms)
-  apply (metis ComplD DASHED_dash_DASHED_TWICE NON_REL_VAR_UNDASHED_DASHED UnE assms(1) assms(2) assms(3) set_rev_mp utp_var.DASHED_TWICE_NON_REL_VAR)
+  apply (metis assms(1) in_member)
+  apply (metis)
+  apply (metis (lifting, no_types) DASHED_dash_elim UNDASHED_eq_dash_contra UnE assms(2) assms(3) dash_neq_reduce set_rev_mp)
 done
 
 lemma EvalP_AssignRA_alt [eval]:
-  "\<lbrakk> x \<in> in(vs); HOMOGENEOUS(vs); vs \<subseteq> REL_VAR; -in(vs) \<sharp> v; v \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> 
-     \<lbrakk>x :=\<^bsub>vs\<^esub> v\<rbrakk>b = (b \<cong> SS\<bullet>b on in(vs) - {x} \<and> \<langle>b\<rangle>\<^sub>b x\<acute> = \<lbrakk>v\<rbrakk>\<^sub>e(b))"
+  "\<lbrakk> x \<in> in(vs); HOMOGENEOUS(vs); vs \<subseteq> REL_VAR; -in(vs) \<sharp> v \<rbrakk> \<Longrightarrow> 
+     \<lbrakk>x :=\<^bsub>vs\<^esub> v\<rbrakk>b = (b \<cong> SS\<bullet>b on in(vs) - {x} \<and> \<langle>b\<rangle>\<^sub>b x\<acute> = vcoerce (\<lbrakk>v\<rbrakk>\<^sub>e(b)) x)"
   apply (subst EvalP_AssignRA)
   apply (simp_all)
   apply (metis Int_iff in_vars_def)

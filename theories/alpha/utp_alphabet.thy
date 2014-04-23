@@ -38,6 +38,15 @@ declare nrel_alpha.rep_eq [simp]
 definition COMP_ALPHAS :: "'VALUE ALPHABET \<Rightarrow> 'VALUE ALPHABET \<Rightarrow> bool" where
 "COMP_ALPHAS a1 a2 = COMPOSABLE \<langle>a1\<rangle>\<^sub>f \<langle>a2\<rangle>\<^sub>f"
 
+definition REL_ALPHA :: "'a ALPHABET \<Rightarrow> bool" where
+"REL_ALPHA a = (\<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED)"
+
+definition COND_ALPHA :: "'a ALPHABET \<Rightarrow> bool" where
+"COND_ALPHA a = (\<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED)"
+
+definition POST_ALPHA :: "'a ALPHABET \<Rightarrow> bool" where
+"POST_ALPHA a = (\<langle>a\<rangle>\<^sub>f \<subseteq> DASHED)"
+
 definition HOM_ALPHA :: "'VALUE ALPHABET \<Rightarrow> bool" where
 "HOM_ALPHA a = COMP_ALPHAS a a"
 
@@ -68,6 +77,26 @@ lemma HOM_ALPHA_unfold:
   "HOM_ALPHA a \<longleftrightarrow> out\<^sub>\<alpha> a = dash `\<^sub>f in\<^sub>\<alpha> a"
   by (auto simp add:HOM_ALPHA_def COMP_ALPHAS_def COMPOSABLE_def)
 
+lemma REL_ALPHABET_empty [closure]:
+  "\<lbrace>\<rbrace> \<in> REL_ALPHABET"
+  by (simp add: REL_ALPHABET_def)
+
+lemma REL_ALPHABET_finsert_UNDASHED [closure]:
+  "\<lbrakk> a \<in> REL_ALPHABET; x \<in> D\<^sub>0 \<rbrakk> \<Longrightarrow> finsert x a \<in> REL_ALPHABET"
+  by (simp add: REL_ALPHABET_def)
+
+lemma REL_ALPHABET_finsert_DASHED [closure]:
+  "\<lbrakk> a \<in> REL_ALPHABET; x \<in> D\<^sub>1 \<rbrakk> \<Longrightarrow> finsert x a \<in> REL_ALPHABET"
+  by (simp add: REL_ALPHABET_def)
+
+lemma HOM_ALPHABET_empty [closure]:
+  "\<lbrace>\<rbrace> \<in> HOM_ALPHABET"
+  by (simp add: HOM_ALPHABET_def HOM_ALPHA_def COMP_ALPHAS_def COMPOSABLE_def)
+
+lemma HOM_ALPHABET_insert [closure]:
+  "\<lbrakk> a \<in> HOM_ALPHABET; x \<in> D\<^sub>0 \<rbrakk> \<Longrightarrow> (finsert x (finsert x\<acute> a)) \<in> HOM_ALPHABET"
+  by (metis HOMOGENEOUS_insert HOM_ALPHABET_def HOM_ALPHA_HOMOGENEOUS finsert.rep_eq mem_Collect_eq)
+  
 subsection {* Restrictions *}
 
 definition PROGRAM_ALPHABET :: "'VALUE ALPHABET set" where

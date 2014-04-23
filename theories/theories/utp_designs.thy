@@ -209,46 +209,6 @@ lemma SkipD_rel_closure [closure]:
   "II\<^sub>D \<in> WF_RELATION"
   by (auto intro:closure simp add:SkipDA_def)
 
-lemma AssignR_alt_def: 
-  "x \<in> D\<^sub>0 \<Longrightarrow> x :=\<^sub>R v = ($\<^sub>ex\<acute> ==\<^sub>p ecoerce v x) \<and>\<^sub>p II\<^bsub>REL_VAR - {x,x\<acute>}\<^esub>"
-  apply (simp add:SkipRA_def)
-  apply (utp_pred_tac)
-  apply (safe)
-  apply (simp_all add:IdA.rep_eq AssignF_upd.rep_eq evale VarE.rep_eq EvalE_def urename)
-  apply (rule_tac x="b(x\<acute> :=\<^sub>b \<langle>b\<rangle>\<^sub>b x)" in exI)
-  apply (simp_all)
-  apply (rule)
-  apply (metis (lifting) UNDASHED_eq_dash_contra undash_dash)
-  apply (drule_tac x="va" in bspec, simp_all)
-  apply (metis UNDASHED_eq_dash_contra undash_dash)
-done
-
-lemma AssignRA_alt_def:
-  assumes 
-    "x \<in> vs" "x\<acute> \<in> vs" 
-    "x \<in> UNDASHED" 
-    "REL_VAR - vs \<sharp> v" 
-  shows "x :=\<^bsub>vs\<^esub> v = $\<^sub>ex\<acute> ==\<^sub>p ecoerce v x \<and>\<^sub>p II\<^bsub>vs - {x,x\<acute>}\<^esub>"
-using assms
-proof (simp add:SkipRA_def AssignRA_def AssignR_alt_def)
-  from assms have "REL_VAR - (vs - {x, x\<acute>}) = (REL_VAR - vs) \<union> {x, x\<acute>}"
-    by (auto)
-
-  hence "(\<exists>\<^sub>p REL_VAR - (vs - {x, x\<acute>}) . II) = (\<exists>\<^sub>p REL_VAR - vs. \<exists>\<^sub>p {x, x\<acute>} . II)"
-    by (metis (lifting) ExistsP_union)
-
-  moreover from assms have "(REL_VAR - vs) \<sharp> ($\<^sub>ex\<acute> ==\<^sub>p ecoerce v x)"
-    by (rule_tac unrest, auto intro:unrest)
-
-  ultimately show "(\<exists>\<^sub>p REL_VAR - vs . $\<^sub>ex\<acute> ==\<^sub>p ecoerce v x \<and>\<^sub>p (\<exists>\<^sub>p {x, x\<acute>} . II)) =
-                    $\<^sub>ex\<acute> ==\<^sub>p ecoerce v x \<and>\<^sub>p (\<exists>\<^sub>p insert x (insert x\<acute> (REL_VAR - vs)) . II)"
-    by (smt ExistsP_AndP_expand2 ExistsP_union Un_empty_right Un_insert_right union_minus)
-qed
-
-lemma EvalE_ecoerce [evale]:
-  "\<lbrakk>ecoerce e x\<rbrakk>\<^sub>eb = vcoerce (\<lbrakk>e\<rbrakk>\<^sub>eb) x"
-by (metis EvalE_def ecoerce_rep_eq)
-
 lemma EvalP_AssignRA1 [eval]:
   assumes "HOMOGENEOUS xs" "xs \<subseteq> REL_VAR" 
           "x \<in> in(xs)" "REL_VAR - in(xs) \<sharp> e" 
