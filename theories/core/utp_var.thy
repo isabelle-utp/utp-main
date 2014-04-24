@@ -1140,10 +1140,8 @@ lemma homl_inter:
 done
 
 lemma homl_insert_UNDASHED:
-  "x \<in> UNDASHED \<Longrightarrow> homl (insert x xs) = {x,x\<acute>} \<union> homl xs"
-  apply (simp add:homl_def out_vars_insert2 nrel_insert_UNDASHED in_vars_insert1)
-  apply (auto)
-done
+  "x \<in> UNDASHED \<Longrightarrow> homl (insert x xs) = insert x (insert x\<acute> (homl xs))"
+  by (auto simp add:homl_def out_vars_insert2 nrel_insert_UNDASHED in_vars_insert1)
 
 lemma homl_insert_DASHED:
   "x \<in> DASHED \<Longrightarrow> homl (insert x xs) = homl xs"
@@ -1158,8 +1156,8 @@ lemma homr_insert_UNDASHED:
   by (simp add:homr_def out_vars_insert2 nrel_insert_UNDASHED)
 
 lemma homr_insert_DASHED:
-  "x \<in> DASHED \<Longrightarrow> homr (insert x xs) = {x,x~} \<union> homr xs"
-  by (simp add:homr_def out_vars_insert1 nrel_insert_DASHED)
+  "x \<in> DASHED \<Longrightarrow> homr (insert x xs) = insert x~ (insert x (homr xs))"
+  by (auto simp add:homr_def out_vars_insert1 nrel_insert_DASHED)
 
 lemma homr_insert_NON_REL_VAR:
   "x \<in> NON_REL_VAR \<Longrightarrow> homr (insert x xs) = insert x (homr xs)"

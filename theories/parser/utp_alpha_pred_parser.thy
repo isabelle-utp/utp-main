@@ -60,6 +60,7 @@ syntax
   "_uapred_cond"     :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" ("_ \<lhd> _ \<rhd> _")
   "_uapred_ifthenelse" :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" ("if _ then _ else _")
   "_uapred_assign"   :: "'a VAR \<Rightarrow> 'a ALPHABET \<Rightarrow> apexpr \<Rightarrow> uapred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
+  "_uapred_varext"   :: "uapred \<Rightarrow> ('a, 'm) PVAR \<Rightarrow> upred" ("_\<^bsub>+_\<^esub>")
   "_uapred_top"      :: "'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("\<top>\<^bsub>_[_]\<^esub>")
   "_uapred_bot"      :: "'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("\<bottom>\<^bsub>_[_]\<^esub>")
   "_uapred_joint"    :: "uapred \<Rightarrow> 'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred \<Rightarrow> uapred" (infixl "\<squnion>\<^bsub>_[_]\<^esub>" 65)
@@ -99,6 +100,7 @@ translations
   "_uapred_cond p q r"  == "CONST CondA p q r"
   "_uapred_ifthenelse b p q"  => "CONST CondA p b q"
   "_uapred_assign x a e" == "CONST PAssignA x a e"
+  "_uapred_varext p x"  == "CONST VarExtA p x\<down>"
   "_uapred_top T a"     == "CONST TopT T a"
   "_uapred_bot T a"     == "CONST BotT T a"
   "_uapred_joint T a"   == "CONST JoinT T a"

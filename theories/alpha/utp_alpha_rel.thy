@@ -94,6 +94,10 @@ definition ConvA ::
  'a WF_ALPHA_PREDICATE" where
 "ConvA p = SS\<bullet>p"
 
+definition VarExtA ::
+"'m WF_ALPHA_PREDICATE \<Rightarrow> 'm VAR \<Rightarrow> 'm WF_ALPHA_PREDICATE" ("_\<^bsub>+_\<^esub>") where
+"VarExtA p x = p \<and>\<^sub>\<alpha> ($\<^sub>\<alpha>x\<acute> ==\<^sub>\<alpha> $\<^sub>\<alpha>x)"
+
 setup {*
 Adhoc_Overloading.add_variant @{const_name prime} @{const_name ConvA}
 *}
@@ -504,6 +508,9 @@ theorem SemiA_alphabet [alphabet] :
 theorem ConvA_alphabet [alphabet] :
   "\<alpha> (P\<acute>) = \<langle>SS\<rangle>\<^sub>s `\<^sub>f \<alpha>(P :: 'a WF_ALPHA_PREDICATE)"
   by (metis ConvA_def PermA_alphabet)
+
+lemma VarExtA_alphabet: "\<alpha>(P\<^bsub>+x\<^esub>) = finsert x (finsert x\<acute> (\<alpha>(P)))"
+  by (simp add: VarExtA_def alphabet del: pred_alphabet_def)
 
 subsection {* Evaluation Theorems *}
 
