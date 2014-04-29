@@ -35,6 +35,20 @@ lift_definition nrel_alpha ::
 
 declare nrel_alpha.rep_eq [simp]
 
+definition dash_alpha :: "'a ALPHABET \<Rightarrow> 'a ALPHABET" where
+"dash_alpha A = dash `\<^sub>f A"
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name prime} @{const_name dash_alpha}
+*}
+
+definition undash_alpha :: "'a ALPHABET \<Rightarrow> 'a ALPHABET" where
+"undash_alpha A = dash `\<^sub>f A"
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name unprime} @{const_name undash_alpha}
+*}
+
 definition COMP_ALPHAS :: "'VALUE ALPHABET \<Rightarrow> 'VALUE ALPHABET \<Rightarrow> bool" where
 "COMP_ALPHAS a1 a2 = COMPOSABLE \<langle>a1\<rangle>\<^sub>f \<langle>a2\<rangle>\<^sub>f"
 
@@ -165,6 +179,18 @@ lemma NON_REL_VAR_nrel_member [simp]:
   by (auto simp add:var_defs)
 
 declare alphabet_simps [simp]
+
+lemma alpha_dash_empty [simp]: "\<lbrace>\<rbrace>\<acute> = \<lbrace>\<rbrace>"
+  by (metis dash_alpha_def fimage_fempty)
+
+lemma alpha_dash_finsert [simp]: "(finsert x A)\<acute> = finsert x\<acute> A\<acute>"
+  by (metis dash_alpha_def fimage_finsert)
+
+lemma alpha_dash_union [simp]: "(A \<union>\<^sub>f B)\<acute> = (A\<acute> \<union>\<^sub>f B\<acute>)"
+  by (metis dash_alpha_def fimage_funion)
+
+lemma alpha_dash_inter [simp]: "(A \<inter>\<^sub>f B)\<acute> = (A\<acute> \<inter>\<^sub>f B\<acute>)"
+  by (auto simp add:dash_alpha_def)
 
 subsubsection {* Distribution Theorems *}
 

@@ -92,9 +92,14 @@ theorem HoareA_SemiA [hoare]:
   apply (simp_all add:closure)
 done
 
+lemma UNREST_WF_ALPHA_COND:
+  "p \<in> WF_ALPHA_COND \<Longrightarrow> - D\<^sub>0 \<sharp> \<lbrakk>p\<rbrakk>\<pi>"
+  by (metis UNREST_WF_CONDITION WF_ALPHA_COND_EvalA_WF_CONDITION)
+
 theorem HoareA_AssignA [hoare]:
   assumes "p \<Rightarrow>\<^sub>\<alpha> q[v/\<^sub>\<alpha>x]"
-   "x \<in>\<^sub>f in\<^sub>\<alpha>(a)" "\<alpha>(p) \<subseteq>\<^sub>f in\<^sub>\<alpha>(a)" "\<alpha>(q) \<subseteq>\<^sub>f in\<^sub>\<alpha>(a)" "\<alpha>(v) \<subseteq>\<^sub>f in\<^sub>\<alpha>(a)" 
+   "p \<in> COND" "q \<in> COND"
+   "x \<in>\<^sub>f in\<^sub>\<alpha>(a)" "\<alpha>(p) \<subseteq>\<^sub>f a" "\<alpha>(q) \<subseteq>\<^sub>f a" "\<alpha>(v) \<subseteq>\<^sub>f in\<^sub>\<alpha>(a)" 
    "a \<in> REL_ALPHABET" "a \<in> HOM_ALPHABET"
   shows "{p}x :=\<^bsub>a\<^esub> v{q}\<^sub>\<alpha>"
   using assms
@@ -106,7 +111,11 @@ theorem HoareA_AssignA [hoare]:
   apply (metis REL_ALPHABET_UNDASHED_DASHED)
   apply (metis Compl_subset_Compl_iff EvalAE_UNREST_EXPR UNREST_EXPR_subset)
   apply (simp)
+  apply (rule UNREST_subset[of "(- D\<^sub>0) \<union> (- \<langle>a\<rangle>\<^sub>f)"])
+  apply (rule UNREST_union)
+  apply (metis UNREST_WF_ALPHA_COND)
   apply (metis Compl_subset_Compl_iff UNREST_EvalA UNREST_subset)
+  apply (force)
   apply (metis Compl_subset_Compl_iff EvalAE_UNREST_EXPR UNREST_EXPR_subset)
   apply (metis (no_types) Un_upper1 alphabet_split funion.rep_eq le_less_trans le_neq_trans less_eq_fset.rep_eq less_imp_le)
 done

@@ -50,17 +50,21 @@ lemma Healthy_apply [closure]:
   "\<lbrakk> H \<in> IDEMPOTENT_OVER vs; \<alpha> P \<in> vs \<rbrakk> \<Longrightarrow> H(P) is H"
   by (simp add:is_healthy_def IDEMPOTENT_OVER_def)
 
+lemma Healthy_id [closure]:
+  "p is id"
+  by (simp add:is_healthy_def)
+
 record 'a THEORY =
-  alphas  :: "'a ALPHABET set" ("\<A>\<index>")
-  healths :: "'a ALPHA_FUNCTION list" ("\<H>\<index>")
+  alphas :: "'a ALPHABET set" ("\<A>\<index>")
+  health :: "'a ALPHA_FUNCTION " ("\<H>\<index>")
 
 locale UTP_THEORY =
   fixes T (structure)
   assumes alpha_lattice: "a \<in> \<A> \<Longrightarrow> complete_lattice (fset_order \<langle>a\<rangle>\<^sub>f)"
-  and     healths_idem: "\<forall> hc\<in>set \<H>. hc \<in> IDEMPOTENT_OVER \<A>"
+  and     health_idem: "\<H> \<in> IDEMPOTENT_OVER \<A>"
 
 definition THEORY_PRED :: "('a, 'b :: type) THEORY_scheme \<Rightarrow> 'a WF_ALPHA_PREDICATE set" ("\<lbrakk>_\<rbrakk>\<T>") where
-"THEORY_PRED T = {p. \<alpha> p \<in> \<A>\<^bsub>T\<^esub> \<and>  (\<forall> H \<in> set \<H>\<^bsub>T\<^esub>. p is H)}"
+"THEORY_PRED T = {p. \<alpha> p \<in> \<A>\<^bsub>T\<^esub> \<and> p is \<H>\<^bsub>T\<^esub>}"
 
 definition THEORY_PRED_OVER :: 
   "('a, 'b :: type) THEORY_scheme \<Rightarrow> 'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE set" ("\<lbrakk>_\<rbrakk>[_]\<T>") where
@@ -76,14 +80,14 @@ definition THEORY_CLOSED_OP ::
 "THEORY_CLOSED_OP f T = (\<forall> p \<in> \<lbrakk>T\<rbrakk>\<T>. \<forall> q \<in> \<lbrakk>T\<rbrakk>\<T>. f p q \<in> \<lbrakk>T\<rbrakk>\<T>)"
 
 lemma THEORY_PRED_intro [intro]:
-  "\<lbrakk> \<alpha> p \<in> \<A>\<^bsub>T\<^esub>; (\<forall> H \<in> set \<H>\<^bsub>T\<^esub>. p is H) \<rbrakk> \<Longrightarrow> p \<in> \<lbrakk>T\<rbrakk>\<T>"
+  "\<lbrakk> \<alpha> p \<in> \<A>\<^bsub>T\<^esub>; p is \<H>\<^bsub>T\<^esub> \<rbrakk> \<Longrightarrow> p \<in> \<lbrakk>T\<rbrakk>\<T>"
   by (simp add:THEORY_PRED_def)
 
 lemma THEORY_PRED_elim [elim]:
-  "\<lbrakk> p \<in> \<lbrakk>T\<rbrakk>\<T>; \<lbrakk> \<alpha> p \<in> \<A>\<^bsub>T\<^esub>; (\<forall> H \<in> set \<H>\<^bsub>T\<^esub>. p is H) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk> p \<in> \<lbrakk>T\<rbrakk>\<T>; \<lbrakk> \<alpha> p \<in> \<A>\<^bsub>T\<^esub>; p is \<H>\<^bsub>T\<^esub> \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (simp add:THEORY_PRED_def)
 
-lemma THEORY_PRED_OVER_alphabet [alphabet]:
+lemma THEORY_PRED_OVER_alphabet :
   "p \<in> \<lbrakk>T\<rbrakk>[a]\<T> \<Longrightarrow> \<alpha> p = a"
   by (metis (lifting, full_types) THEORY_PRED_OVER_def mem_Collect_eq)
 
@@ -184,7 +188,9 @@ theorem THEORY_AndA_lub:
   apply (simp_all)
   apply (safe)[1]
   apply (utp_alpha_tac, utp_pred_auto_tac)
+  apply (metis THEORY_PRED_OVER_alphabet)
   apply (utp_alpha_tac, utp_pred_auto_tac)
+  apply (metis THEORY_PRED_OVER_alphabet)
   apply (simp add:Upper_def, clarify)
   apply (metis AndA_RefineA_below)
   apply (metis AndA_alphabet THEORY_CLOSED_OP_def THEORY_PRED_OVER_elim THEORY_PRED_OVER_intro fset_simps(5))
@@ -205,12 +211,15 @@ theorem THEORY_join_AndA:
   apply (drule_tac x="P \<and>\<^sub>\<alpha> Q" in bspec)
   apply (safe)
   apply (utp_alpha_tac, utp_pred_tac)
+  apply (metis fset_simps(5))
   apply (utp_alpha_tac, utp_pred_tac)
+  apply (metis fset_simps(5))
   apply (rule THEORY_PRED_OVER_intro)
   apply (erule THEORY_PRED_OVER_elim)
   apply (erule THEORY_PRED_OVER_elim)
   apply (metis THEORY_CLOSED_OP_def)
   apply (simp add:alphabet)
+  apply (metis THEORY_PRED_OVER_alphabet fset_simps(5))
 done
 
 lemma THEORY_OrA_glb:
@@ -223,7 +232,9 @@ lemma THEORY_OrA_glb:
   apply (simp_all)
   apply (safe)[1]
   apply (utp_alpha_tac, utp_pred_auto_tac)
+  apply (metis THEORY_PRED_OVER_alphabet)
   apply (utp_alpha_tac, utp_pred_auto_tac)
+  apply (metis THEORY_PRED_OVER_alphabet)
   apply (simp add:Lower_def, clarify)
   apply (metis OrA_RefineA_above)
   apply (metis OrA_alphabet THEORY_CLOSED_OP_def THEORY_PRED_OVER_elim THEORY_PRED_OVER_intro fset_simps(5))
@@ -249,12 +260,15 @@ theorem MeetT_OrA:
   apply (drule_tac x="P \<or>\<^sub>\<alpha> Q" in bspec)
   apply (safe)
   apply (utp_alpha_tac, utp_pred_tac)
+  apply (metis fset_simps(5))
   apply (utp_alpha_tac, utp_pred_tac)
+  apply (metis fset_simps(5))
   apply (rule THEORY_PRED_OVER_intro)
   apply (erule THEORY_PRED_OVER_elim)
   apply (erule THEORY_PRED_OVER_elim)
   apply (metis THEORY_CLOSED_OP_def)
   apply (simp add:alphabet)
+  apply (metis THEORY_PRED_OVER_alphabet fset_simps(5))
   apply (metis OrA_RefineA_above)
 done
 
@@ -331,10 +345,10 @@ end
 
 subsection {* Theory of predicates *}
 
-abbreviation "PRED \<equiv> \<lparr> alphas = UNIV, healths = [] \<rparr>"
+abbreviation "PREDT \<equiv> \<lparr> alphas = UNIV, health = id \<rparr>"
 
-interpretation PRED_theory: UTP_THEORY PRED
-  by (unfold_locales, simp)
+interpretation PREDT_theory: UTP_THEORY PREDT
+  by (unfold_locales, simp add:IDEMPOTENT_OVER_def)
 
 subsection {* Theory of relations *}
 
@@ -371,67 +385,96 @@ lemma RELH_REL_ALPHABET:
   apply (metis Diff_Compl NON_REL_VAR_UNDASHED_DASHED REL_ALPHABET_UNDASHED_DASHED Rep_fset_inverse le_iff_inf)
 done
 
-abbreviation "REL \<equiv> \<lparr> alphas = REL_ALPHABET, healths = [RELH] \<rparr>"
+abbreviation "RELT \<equiv> \<lparr> alphas = REL_ALPHABET, health = RELH \<rparr>"
 
-interpretation REL_theory: UTP_THEORY REL
+interpretation RELT_theory: UTP_THEORY RELT
   by (unfold_locales, auto simp add: IDEMPOTENT_OVER_def RELH.rep_eq RELH_idem)
 
-lemma REL_WF_ALPHA_REL:
-  "\<lbrakk>REL\<rbrakk>\<T> = WF_ALPHA_REL"
+lemma RELT_WF_ALPHA_REL:
+  "\<lbrakk>RELT\<rbrakk>\<T> = WF_ALPHA_REL"
   by (simp add: THEORY_PRED_def RELH_REL_ALPHABET WF_ALPHA_REL_def)
 
-lemma REL_WF_ALPHA_REL_closure:
-  "P \<in> WF_ALPHA_REL \<Longrightarrow> P \<in> \<lbrakk>REL\<rbrakk>\<T>"
-  by (metis REL_WF_ALPHA_REL)
+lemma RELT_WF_ALPHA_REL_closure:
+  "P \<in> WF_ALPHA_REL \<Longrightarrow> P \<in> \<lbrakk>RELT\<rbrakk>\<T>"
+  by (metis RELT_WF_ALPHA_REL)
   
-lemma REL_AndP_closed:
-  "(op \<and>\<^sub>\<alpha>) closed-under REL"
-  by (auto simp add:THEORY_CLOSED_OP_def closure REL_WF_ALPHA_REL)
+lemma RELT_AndP_closed:
+  "(op \<and>\<^sub>\<alpha>) closed-under RELT"
+  by (auto simp add:THEORY_CLOSED_OP_def closure RELT_WF_ALPHA_REL)
 
-lemma REL_OrP_closed:
-  "(op \<or>\<^sub>\<alpha>) closed-under REL"
-  by (auto simp add:THEORY_CLOSED_OP_def closure REL_WF_ALPHA_REL)
+lemma RELT_OrP_closed:
+  "(op \<or>\<^sub>\<alpha>) closed-under RELT"
+  by (auto simp add:THEORY_CLOSED_OP_def closure RELT_WF_ALPHA_REL)
 
 sublocale lattice \<subseteq> weak_partial_order ..
 
-interpretation REL_lattice: lattice "OrderT REL a"
-  where "partial_object.carrier (OrderT REL a) = \<lbrakk>REL\<rbrakk>[a]\<T>"
-    and "eq (OrderT REL a) = op ="
-    and "le (OrderT REL a) = op \<sqsubseteq>"
-  apply (metis REL_AndP_closed REL_OrP_closed REL_theory.OrderT_lattice)
+interpretation RELT_lattice: lattice "OrderT RELT a"
+  where "partial_object.carrier (OrderT RELT a) = \<lbrakk>RELT\<rbrakk>[a]\<T>"
+    and "eq (OrderT RELT a) = op ="
+    and "le (OrderT RELT a) = op \<sqsubseteq>"
+  apply (metis RELT_AndP_closed RELT_OrP_closed RELT_theory.OrderT_lattice)
   apply (simp_all)
 done
 
-lemma REL_bounded_lattice:
-  "a \<in> REL_ALPHABET \<Longrightarrow> bounded_lattice (OrderT REL a)"
+lemma RELT_bounded_lattice:
+  "a \<in> REL_ALPHABET \<Longrightarrow> bounded_lattice (OrderT RELT a)"
   apply (unfold_locales)
   apply (rule_tac x="true\<^bsub>a\<^esub>" in exI)
   apply (simp add:least_def alphabet, safe)
-  apply (metis REL_WF_ALPHA_REL_closure THEORY_PRED_OVER_intro TrueA_WF_ALPHA_REL TrueA_alphabet)
+  apply (metis RELT_WF_ALPHA_REL_closure THEORY_PRED_OVER_intro TrueA_WF_ALPHA_REL TrueA_alphabet)
   apply (utp_alpha_tac, utp_pred_tac)
+  apply (metis THEORY_PRED_OVER_alphabet)
   apply (rule_tac x="false\<^bsub>a\<^esub>" in exI)
   apply (simp add:greatest_def alphabet)
   apply (safe)
   apply (rule THEORY_PRED_OVER_intro)
-  apply (metis FalseA_WF_ALPHA_REL REL_WF_ALPHA_REL)
+  apply (metis FalseA_WF_ALPHA_REL RELT_WF_ALPHA_REL)
   apply (simp add:alphabet)
   apply (utp_alpha_tac, utp_pred_tac)
+  apply (metis THEORY_PRED_OVER_elim)
 done
 
-lemma TopT_REL:
-  "a \<in> REL_ALPHABET \<Longrightarrow> \<top>\<^bsub>REL[a]\<^esub> = false\<^bsub>a\<^esub>"
-  apply (rule REL_theory.TopT_eq)
-  apply (metis REL_bounded_lattice)
-  apply (metis FalseA_WF_ALPHA_REL FalseA_alphabet REL_WF_ALPHA_REL_closure THEORY_PRED_OVER_closure)
+lemma TopT_RELT:
+  "a \<in> REL_ALPHABET \<Longrightarrow> \<top>\<^bsub>RELT[a]\<^esub> = false\<^bsub>a\<^esub>"
+  apply (rule RELT_theory.TopT_eq)
+  apply (metis RELT_bounded_lattice)
+  apply (metis FalseA_WF_ALPHA_REL FalseA_alphabet RELT_WF_ALPHA_REL_closure THEORY_PRED_OVER_closure)
   apply (utp_alpha_tac, utp_pred_auto_tac)
 done
 
-lemma BotT_REL:
-  "a \<in> REL_ALPHABET \<Longrightarrow> \<bottom>\<^bsub>REL[a]\<^esub> = true\<^bsub>a\<^esub>"
-  apply (rule REL_theory.BotT_eq)
-  apply (metis REL_bounded_lattice)
-  apply (metis REL_WF_ALPHA_REL_closure THEORY_PRED_OVER_closure TrueA_WF_ALPHA_REL TrueA_alphabet)
+lemma BotT_RELT:
+  "a \<in> REL_ALPHABET \<Longrightarrow> \<bottom>\<^bsub>RELT[a]\<^esub> = true\<^bsub>a\<^esub>"
+  apply (rule RELT_theory.BotT_eq)
+  apply (metis RELT_bounded_lattice)
+  apply (metis RELT_WF_ALPHA_REL_closure THEORY_PRED_OVER_closure TrueA_WF_ALPHA_REL TrueA_alphabet)
   apply (utp_alpha_tac, utp_pred_auto_tac)
 done
+
+default_sort type
+
+class unitary =
+  assumes one_elem: "\<And> x y :: 'a. x = y"
+
+instance unit :: unitary
+  by (intro_classes, auto)
+
+instantiation THEORY_ext :: (VALUE,type) preorder
+begin
+
+definition less_eq_THEORY_ext :: "('a, 'b) THEORY_scheme \<Rightarrow> ('a, 'b) THEORY_scheme \<Rightarrow> bool" where
+"less_eq_THEORY_ext T1 T2 \<longleftrightarrow> (\<A>\<^bsub>T1\<^esub> \<subseteq> \<A>\<^bsub>T2\<^esub> \<and> (\<forall> p. \<alpha>(p) \<in> \<A>\<^bsub>T1\<^esub> \<longrightarrow> p is \<H>\<^bsub>T1\<^esub> \<longrightarrow> p is \<H>\<^bsub>T2\<^esub>))"
+
+definition less_THEORY_ext :: "('a, 'b) THEORY_scheme \<Rightarrow> ('a, 'b) THEORY_scheme \<Rightarrow> bool" where
+"less_THEORY_ext T1 T2 = (T1 \<le> T2 \<and> \<not> T2 \<le> T1)"
+
+instance
+  by (intro_classes, auto simp add:less_eq_THEORY_ext_def less_THEORY_ext_def)
+end
+
+lemma THEORY_PRED_subseteq [intro]: "T1 \<le> T2 \<Longrightarrow> \<lbrakk>T1\<rbrakk>\<T> \<subseteq> \<lbrakk>T2\<rbrakk>\<T>"
+  by (auto simp add: less_eq_THEORY_ext_def THEORY_PRED_def)
+
+lemma RELT_leq_PREDT [intro]: "RELT \<le> PREDT"
+  by (simp add: less_eq_THEORY_ext_def closure)
 
 end

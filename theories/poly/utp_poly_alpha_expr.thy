@@ -42,6 +42,20 @@ setup {*
 Adhoc_Overloading.add_variant @{const_name alphabet} @{const_name ape_alphabet}
 *}
 
+definition WF_ALPHA_PEXPR_REL :: "('a :: DEFINED, 'm::VALUE) WF_ALPHA_PEXPR set" where
+"WF_ALPHA_PEXPR_REL = {e. \<langle>\<alpha>(e)\<rangle>\<^sub>f \<subseteq> REL_VAR}" 
+
+definition WF_ALPHA_PEXPR_COND :: "('a :: DEFINED, 'm::VALUE) WF_ALPHA_PEXPR set" where
+"WF_ALPHA_PEXPR_COND = {e \<in> WF_ALPHA_PEXPR_REL. D\<^sub>1 \<sharp> \<lbrakk>e\<rbrakk>\<epsilon>\<^sub>*}"
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name REL} @{const_name WF_ALPHA_PEXPR_REL}
+*}
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name COND} @{const_name WF_ALPHA_PEXPR_COND}
+*}
+
 lift_definition LitAPE :: "'a \<Rightarrow> ('a :: DEFINED, 'm :: VALUE) WF_ALPHA_PEXPR"
 is "\<lambda> v :: 'a. (\<lbrace>\<rbrace>, LitPE v)" by (auto intro:unrest)
 
@@ -207,5 +221,66 @@ abbreviation "MultAPE u v \<equiv> Op2APE (op *) u v"
 abbreviation "DivAPE  u v \<equiv> Op2APE (op /) u v"
 abbreviation "MaxAPE  u v \<equiv> Op2APE max u v"
 abbreviation "MinAPE  u v \<equiv> Op2APE min u v"
+
+subsection {* Closure Laws *}
+
+lemma LitAPE_rel_closure [closure]:
+  "LitAPE v \<in> REL"
+  by (simp add:WF_ALPHA_PEXPR_REL_def alphabet)
+
+lemma LitAPE_cond_closure [closure]:
+  "LitAPE v \<in> COND"
+  by (simp add:WF_ALPHA_PEXPR_COND_def LitAPE_rel_closure EvalAPE_LitAPE UNREST_LitPE)
+
+lemma VarAPE_rel_closure [closure]:
+  "x\<down> \<in> REL_VAR \<Longrightarrow> VarAPE x \<in> REL"
+  by (simp add:WF_ALPHA_PEXPR_REL_def alphabet)
+
+lemma VarAPE_cond_closure [closure]:
+  "x\<down> \<in> D\<^sub>0 \<Longrightarrow> VarAPE x \<in> COND"
+  by (simp add:WF_ALPHA_PEXPR_COND_def VarAPE_rel_closure EvalAPE_VarAPE UNREST_PVarPE)
+
+lemma Op1APE_rel_closure [closure]:
+  "v \<in> REL \<Longrightarrow> Op1APE f v \<in> REL"
+  by (simp add:WF_ALPHA_PEXPR_REL_def alphabet)
+
+lemma Op1APE_cond_closure [closure]:
+  "v \<in> COND \<Longrightarrow> Op1APE f v \<in> COND"
+  by (simp add:WF_ALPHA_PEXPR_COND_def Op1APE_rel_closure EvalAPE_Op1APE UNREST_Op1PE)
+
+lemma Op2APE_rel_closure [closure]:
+  "\<lbrakk> u \<in> REL; v \<in> REL \<rbrakk> \<Longrightarrow> Op2APE f u v \<in> REL"
+  by (simp add:WF_ALPHA_PEXPR_REL_def alphabet)
+
+lemma Op2APE_cond_closure [closure]:
+  "\<lbrakk> u \<in> COND; v \<in> COND \<rbrakk> \<Longrightarrow> Op2APE f u v \<in> COND"
+  by (simp add:WF_ALPHA_PEXPR_COND_def Op2APE_rel_closure EvalAPE_Op2APE UNREST_Op2PE)
+
+lemma APExprA_rel_closure [closure]:
+  "v \<in> REL \<Longrightarrow> APExprA v \<in> REL"
+  by (simp add:WF_ALPHA_PEXPR_REL_def WF_ALPHA_REL_def REL_ALPHABET_def alphabet)
+
+lemma APExprA_cond_closure [closure]:
+  "v \<in> COND \<Longrightarrow> APExprA v \<in> COND"
+  apply (simp add:WF_ALPHA_PEXPR_COND_def WF_ALPHA_COND_def APExprA_rel_closure)
+  apply (metis EvalA_APExprA EvalA_def UNREST_PExprP)
+done
+
+lemma APExprAE_rel_closure [closure]:
+  fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_ALPHA_PEXPR"
+  assumes "TYPEUSOUND('a, 'm)" "v \<in> REL"
+  shows "APExprAE v \<in> REL"
+  using assms by (simp add:WF_ALPHA_PEXPR_REL_def WF_ALPHA_EXPR_REL_def alphabet REL_ALPHABET_def)
+
+
+lemma APExprAE_cond_closure [closure]:
+  fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_ALPHA_PEXPR"
+  assumes "TYPEUSOUND('a, 'm)" "v \<in> COND"
+  shows "APExprAE v \<in> COND"
+  using assms 
+    apply (simp add: WF_ALPHA_PEXPR_COND_def WF_ALPHA_EXPR_COND_def closure)
+    apply (metis EvalAE_expr EvalAPE_APExprAE UNREST_PExprE)
+done
+  
 
 end

@@ -35,6 +35,19 @@ definition WF_CONDITION :: "'VALUE WF_PREDICATE set" where
 definition WF_POSTCOND :: "'VALUE WF_PREDICATE set" where
 "WF_POSTCOND = {p \<in> WF_RELATION. UNREST UNDASHED p}"
 
+setup {*
+Adhoc_Overloading.add_variant @{const_name REL} @{const_name WF_RELATION}
+*}
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name COND} @{const_name WF_CONDITION}
+*}
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name POST} @{const_name WF_POSTCOND}
+*}
+
+
 text {* An assignment is a special kind of predicate whose sole
 behaviour is to assign particular values to a particular set of
 variables. All other variables are unrestricted. *}

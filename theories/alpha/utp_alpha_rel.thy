@@ -27,8 +27,10 @@ definition WF_ALPHA_REL :: "'VALUE WF_ALPHA_PREDICATE set" where
 definition HOM_RELATION :: "'VALUE WF_ALPHA_PREDICATE set" where
 "HOM_RELATION = {p . (\<alpha> p) \<in> HOM_ALPHABET \<and> (\<alpha> p) \<in> REL_ALPHABET}"
 
+(*
 definition WF_REL_EXPR :: "'VALUE WF_ALPHA_EXPRESSION set" where
 "WF_REL_EXPR = {e . (\<alpha> e) \<in> REL_ALPHABET}"
+*)
 
 typedef 'VALUE WF_ALPHA_REL = "WF_ALPHA_REL :: 'VALUE WF_ALPHA_PREDICATE set"
   apply (auto simp add:WF_ALPHA_REL_def REL_ALPHABET_def)
@@ -37,6 +39,14 @@ done
 
 definition WF_ALPHA_COND :: "'VALUE WF_ALPHA_PREDICATE set" where
 "WF_ALPHA_COND = {p . p \<in> WF_ALPHA_REL \<and> UNREST DASHED (\<pi> p)}"
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name REL} @{const_name WF_ALPHA_REL}
+*}
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name COND} @{const_name WF_ALPHA_COND}
+*}
 
 subsection {* Operators *}
 
@@ -101,6 +111,14 @@ definition VarExtA ::
 setup {*
 Adhoc_Overloading.add_variant @{const_name prime} @{const_name ConvA}
 *}
+
+(*
+lift_definition CoercePreA :: "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("_\<^sub>\<leftarrow>")
+is "\<lambda> (a, P). (a, \<exists>\<^sub>p D\<^sub>1. P)"
+
+lift_definition CoercePostA :: "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("_\<^sub>\<rightarrow>")
+is "\<lambda> (a, P). (a, \<exists>\<^sub>p D\<^sub>0. P)"
+*)
 
 subsection {* Theorems *}
 
@@ -377,18 +395,24 @@ theorem ExistsA_WF_ALPHA_COND [closure]:
   by (auto intro:closure unrest simp add:WF_ALPHA_COND_def alphabet ExistsA.rep_eq)
 
 theorem EqualA_WF_ALPHA_REL [closure]:
-"\<lbrakk> e \<in> WF_REL_EXPR; f \<in> WF_REL_EXPR \<rbrakk> \<Longrightarrow>
- e ==\<^sub>\<alpha> f \<in> WF_ALPHA_REL"
-  by (auto intro:closure simp add:WF_ALPHA_REL_def WF_REL_EXPR_def alphabet)
+"\<lbrakk> e \<in> REL; f \<in> REL \<rbrakk> \<Longrightarrow> e ==\<^sub>\<alpha> f \<in> REL"
+  by (auto intro:closure simp add:WF_ALPHA_REL_def WF_ALPHA_EXPR_REL_def alphabet)
+
+theorem EqualA_WF_ALPHA_COND [closure]:
+"\<lbrakk> e \<in> COND; f \<in> COND \<rbrakk> \<Longrightarrow> e ==\<^sub>\<alpha> f \<in> COND"
+  apply (simp add:WF_ALPHA_EXPR_COND_def WF_ALPHA_COND_def)
+  apply (simp add:closure)
+  apply (metis EvalAE_expr EvalA_EqualA EvalA_def UNREST_EqualP)
+done
 
 theorem VarAE_WF_REL_EXPR [closure]:
 "x \<in> UNDASHED \<union> DASHED \<Longrightarrow>
- VarAE x \<in> WF_REL_EXPR"
-  by (auto intro:closure simp add:WF_REL_EXPR_def alphabet)
+ VarAE x \<in> WF_ALPHA_EXPR_REL"
+  by (auto intro:closure simp add:WF_ALPHA_EXPR_REL_def alphabet)
 
 theorem LitAE_WF_REL_EXPR [closure]:
-"LitAE v \<in> WF_REL_EXPR"
-  by (simp add:WF_REL_EXPR_def alphabet closure)
+"LitAE v \<in> WF_ALPHA_EXPR_REL"
+  by (simp add:WF_ALPHA_EXPR_REL_def alphabet closure)
 
 theorem SkipA_closure [closure] :
 "a \<in> REL_ALPHABET \<Longrightarrow>
@@ -614,19 +638,19 @@ done
 theorem SemiA_SkipA_left:
   assumes 
     "a \<in> HOM_ALPHABET" "a \<in> REL_ALPHABET"
-    "out\<^sub>\<alpha> a = dash `\<^sub>f in\<^sub>\<alpha> (\<alpha> r)"
-  shows "II\<alpha>\<^bsub>a\<^esub> ;\<^sub>\<alpha> r = r"
+    "out\<^sub>\<alpha> a = (in\<alpha>(P))\<acute>"
+  shows "II\<alpha>\<^bsub>a\<^esub> ;\<^sub>\<alpha> P = P"
 proof -
 
-  from assms have ina:"in\<^sub>\<alpha> a = in\<^sub>\<alpha> (\<alpha> r)"
-    apply (simp add:HOM_ALPHABET_def HOM_ALPHA_HOMOGENEOUS)
+  from assms have ina:"in\<^sub>\<alpha> a = in\<alpha>(P)"
+    apply (simp add:HOM_ALPHABET_def HOM_ALPHA_HOMOGENEOUS dash_alpha_def)
     apply (erule Rep_fset_elim)
     apply (clarsimp)
     apply (unfold HOMOGENEOUS_dash_in[THEN sym])
     apply (simp only: inj_on_Un_image_eq_iff[of dash, OF dash_inj])
   done
 
-  moreover with assms have "II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> ;\<^sub>R \<lbrakk>r\<rbrakk>\<pi> = \<lbrakk>r\<rbrakk>\<pi>"
+  moreover with assms have "II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> ;\<^sub>R \<lbrakk>P\<rbrakk>\<pi> = \<lbrakk>P\<rbrakk>\<pi>"
     apply (rule_tac SemiR_SkipRA_left)
     apply (metis COMPOSABLE_def HOMOGENEOUS_def HOM_ALPHABET_dash_in)
     apply (rule UNREST_subset)
@@ -643,13 +667,13 @@ qed
 theorem SemiA_SkipA_right:
   assumes 
     "a \<in> HOM_ALPHABET" "a \<in> REL_ALPHABET"
-    "in\<^sub>\<alpha> a = undash `\<^sub>f out\<^sub>\<alpha> (\<alpha> r)"
-  shows "r ;\<^sub>\<alpha> II\<alpha>\<^bsub>a\<^esub> = r"
+    "in\<^sub>\<alpha> a = (out\<alpha>(P))\<acute>"
+  shows "P ;\<^sub>\<alpha> II\<alpha>\<^bsub>a\<^esub> = P"
 proof -
-  from assms have outa:"out\<^sub>\<alpha> a = out\<^sub>\<alpha> (\<alpha> r)"
-    by (force elim!:Rep_fset_elim intro!:Rep_fset_intro simp add:WF_ALPHA_REL_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def HOM_ALPHA_unfold)
+  from assms have outa:"out\<^sub>\<alpha> a = out\<alpha>(P)"
+    by (force elim!:Rep_fset_elim intro!:Rep_fset_intro simp add:WF_ALPHA_REL_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def HOM_ALPHA_unfold dash_alpha_def)
     
-  moreover with assms have "\<lbrakk>r\<rbrakk>\<pi> ;\<^sub>R II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> = \<lbrakk>r\<rbrakk>\<pi>"
+  moreover with assms have "\<lbrakk>P\<rbrakk>\<pi> ;\<^sub>R II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> = \<lbrakk>P\<rbrakk>\<pi>"
     apply (rule_tac SemiR_SkipRA_right)
     apply (metis COMPOSABLE_def HOMOGENEOUS_def HOM_ALPHABET_dash_in)
     apply (rule UNREST_subset)
@@ -670,10 +694,16 @@ theorem ClosureA_rel_closure [closure] :
 done
 
 theorem VarA_rel_closure [closure] :
-"x \<in> UNDASHED \<union> DASHED \<Longrightarrow>
-VarA x \<in> WF_ALPHA_REL"
+"x \<in> REL_VAR \<Longrightarrow> VarA x \<in> REL"
 apply (simp add:WF_ALPHA_REL_def REL_ALPHABET_def)
 apply (simp add:alphabet closure)
+done
+
+theorem VarA_cond_closure [closure] :
+"x \<in> D\<^sub>0 \<Longrightarrow> VarA x \<in> COND"
+apply (simp add:WF_ALPHA_COND_def REL_ALPHABET_def)
+apply (simp add:alphabet closure VarA.rep_eq)
+apply (rule unrest, auto)
 done
 
 lemma SS1_alpha_image [urename]: 

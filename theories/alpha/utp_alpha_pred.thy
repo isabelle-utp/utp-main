@@ -81,8 +81,13 @@ abbreviation predicate ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
    'VALUE WF_PREDICATE" where
 "predicate p \<equiv> snd \<langle>p\<rangle>\<^sub>\<alpha>"
-
 notation predicate ("\<pi>")
+
+abbreviation in_alpha_of :: "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a ALPHABET" ("in\<alpha>") where
+"in_alpha_of(P) \<equiv> in\<^sub>\<alpha>(\<alpha>(P))"
+
+abbreviation out_alpha_of :: "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a ALPHABET" ("out\<alpha>") where
+"out_alpha_of(P) \<equiv> out\<^sub>\<alpha>(\<alpha>(P))"
 
 type_synonym 'VALUE ALPHA_FUNCTION =
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>

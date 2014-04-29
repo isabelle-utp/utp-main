@@ -33,9 +33,9 @@ syntax
   "_uapred_top_clos" :: "uapred \<Rightarrow> bool" ("(1[_])")
   "_uapred_quote"    :: "uapred \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("(1``_``)")
   "_uapred_brack"    :: "uapred \<Rightarrow> uapred" ("'(_')" [0] 900)
-  "_uapred_TRUE"     :: "uapred" ("true")
+  "_uapred_TRUE"     :: "uapred" ("TT")
   "_uapred_true"     :: "'a ALPHABET \<Rightarrow> uapred" ("true\<^bsub>_\<^esub>")
-  "_uapred_FALSE"    :: "uapred" ("false")
+  "_uapred_FALSE"    :: "uapred" ("FF")
   "_uapred_false"    :: "'a ALPHABET \<Rightarrow> uapred" ("false\<^bsub>_\<^esub>")
   "_uapred_var"      :: "pttrn \<Rightarrow> uapred" ("(_)")
 (*  "_uapred_evar"     :: "idt \<Rightarrow> uapred" ("$_") *)
@@ -95,7 +95,7 @@ translations
   "_uapred_pexpr e"     == "CONST APExprA e"
   "_uapred_equal e f"   == "CONST APEqualA e f"
   "_uapred_nequal e f"  == "CONST NotA (CONST EqualA e f)"
-  "_uapred_skip"        == "CONST SkipA"
+  "_uapred_skip a"      == "CONST SkipA a"
   "_uapred_seq p q"     => "CONST SemiA p q"
   "_uapred_cond p q r"  == "CONST CondA p q r"
   "_uapred_ifthenelse b p q"  => "CONST CondA p b q"

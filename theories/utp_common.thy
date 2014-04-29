@@ -218,6 +218,9 @@ consts
   prime        :: "'a \<Rightarrow> 'a" ("_\<acute>" [1000] 1000)
   unprime      :: "'a \<Rightarrow> 'a" ("_~" [1000] 1000)
   subscr       :: "'a \<Rightarrow> nat \<Rightarrow> 'a" ("_\<^bsub>_\<^esub>")
+  REL          :: "'a set"
+  COND         :: "'a set"
+  POST         :: "'a set"
 
 setup {*
   Adhoc_Overloading.add_overloaded @{const_name alphabet}
@@ -237,6 +240,18 @@ setup {*
 
 setup {*
   Adhoc_Overloading.add_overloaded @{const_name subscr}
+*}
+
+setup {*
+  Adhoc_Overloading.add_overloaded @{const_name REL}
+*}
+
+setup {*
+  Adhoc_Overloading.add_overloaded @{const_name COND}
+*}
+
+setup {*
+  Adhoc_Overloading.add_overloaded @{const_name POST}
 *}
 
 end

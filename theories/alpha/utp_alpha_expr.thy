@@ -72,6 +72,20 @@ setup {*
 Adhoc_Overloading.add_variant @{const_name alphabet} @{const_name expr_alpha}
 *}
 
+definition WF_ALPHA_EXPR_REL :: "'VALUE WF_ALPHA_EXPRESSION set" where
+"WF_ALPHA_EXPR_REL = {p . (\<alpha> p) \<in> REL_ALPHABET}"
+
+definition WF_ALPHA_EXPR_COND :: "'VALUE WF_ALPHA_EXPRESSION set" where
+"WF_ALPHA_EXPR_COND = {e \<in> WF_ALPHA_EXPR_REL. D\<^sub>1 \<sharp> \<epsilon> e}"
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name REL} @{const_name WF_ALPHA_EXPR_REL}
+*}
+
+setup {*
+Adhoc_Overloading.add_variant @{const_name COND} @{const_name WF_ALPHA_EXPR_COND}
+*}
+
 instantiation WF_ALPHA_EXPRESSION :: (VALUE) DEFINED
 begin
 
