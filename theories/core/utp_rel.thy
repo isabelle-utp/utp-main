@@ -35,18 +35,14 @@ definition WF_CONDITION :: "'VALUE WF_PREDICATE set" where
 definition WF_POSTCOND :: "'VALUE WF_PREDICATE set" where
 "WF_POSTCOND = {p \<in> WF_RELATION. UNREST UNDASHED p}"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name REL} @{const_name WF_RELATION}
-*}
+adhoc_overloading
+  REL WF_RELATION
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name COND} @{const_name WF_CONDITION}
-*}
+adhoc_overloading
+  COND WF_CONDITION
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name POST} @{const_name WF_POSTCOND}
-*}
-
+adhoc_overloading
+  POST WF_POSTCOND
 
 text {* An assignment is a special kind of predicate whose sole
 behaviour is to assign particular values to a particular set of
@@ -296,9 +292,8 @@ definition ConvR ::
 
 notation ConvR ("(_\<^sup>\<smile>)" [1000] 999)
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name prime} @{const_name ConvR}
-*}
+adhoc_overloading
+  prime ConvR
 
 definition VarOpenP ::
 "'VALUE VAR \<Rightarrow> 'VALUE WF_PREDICATE" ("var") where

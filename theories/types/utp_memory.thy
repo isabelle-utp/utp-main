@@ -92,9 +92,8 @@ defs (overloaded)
 lemma TypeUSound_PADDR [typing]: "TYPEUSOUND(('a::DEFINED) PADDR, 'm :: ADDR_SORT)"
   by (force simp add: typing defined inju)
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name erase} @{const_name Rep_PADDR}
-*}
+adhoc_overloading
+  erase Rep_PADDR
 
 definition prefs :: "'a \<Rightarrow> ('m::ADDR_SORT) itself \<Rightarrow> ADDR fset" where
 "prefs x t = refs (InjU x :: 'm)"

@@ -1040,7 +1040,7 @@ text {*
 
 ML {*
   fun utp_rel_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps (evalr.get ctxt)
       addsimps (closure.get ctxt)
       addsimps @{thms "var_dist"};
@@ -1048,7 +1048,7 @@ ML {*
 
 ML {*
   fun utp_rel_auto_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps @{thms "relcomp_unfold"}
 *}
 

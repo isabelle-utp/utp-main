@@ -1,0 +1,79 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+\usepackage[greek,english]{babel}
+  %option greek for \<euro>
+  %option english (default language) for \<guillemotleft>, \<guillemotright>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
+  %\<currency>
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
+
+\begin{document}
+
+\title{Kleene Algebra}
+\author{Alasdair Armstrong, Georg Struth, Tjark Weber}
+\maketitle
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+\section{Introductory Remarks}
+
+These theory files are only sparsely commented. Additional information
+on the hierarchy of Kleene algebras and its formalisation in
+Isabelle/HOL can be found in a tutorial
+paper~\cite{fosterstruthweber11tutorial} or an overview
+article~\cite{guttmannstruthweber11tarskikleene}. While these papers
+focus on the automation of algebraic reasoning, the present
+formalisation presents readable proofs whenever these are interesting
+and instructive.
+
+Expansions of the hierarchy to modal Kleene algebras and Hoare logics
+as well as infinitary and higher-order Kleene
+algebras~\cite{guttmannstruthweber11algmeth,armstrongstruth12hoka},
+and an alternative hierarchy of regular algebras and Kleene
+algebras~\cite{fosterstruth12regalg}---orthogonal to the present
+one---have also been implemented. These are not covered by this
+repository.
+
+% generated text of all theories
+\input{session}
+
+% optional bibliography
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

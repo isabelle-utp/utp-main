@@ -38,9 +38,8 @@ definition "ape_alphabet e = fst (DestAPExpr e)"
 definition EvalAPE :: "('a, 'm::VALUE) WF_ALPHA_PEXPR \<Rightarrow> ('a, 'm) WF_PEXPRESSION" ("\<lbrakk>_\<rbrakk>\<epsilon>\<^sub>*") where
 "EvalAPE e = snd (DestAPExpr e)"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name alphabet} @{const_name ape_alphabet}
-*}
+adhoc_overloading
+  alphabet ape_alphabet
 
 definition WF_ALPHA_PEXPR_REL :: "('a :: DEFINED, 'm::VALUE) WF_ALPHA_PEXPR set" where
 "WF_ALPHA_PEXPR_REL = {e. \<langle>\<alpha>(e)\<rangle>\<^sub>f \<subseteq> REL_VAR}" 
@@ -48,13 +47,11 @@ definition WF_ALPHA_PEXPR_REL :: "('a :: DEFINED, 'm::VALUE) WF_ALPHA_PEXPR set"
 definition WF_ALPHA_PEXPR_COND :: "('a :: DEFINED, 'm::VALUE) WF_ALPHA_PEXPR set" where
 "WF_ALPHA_PEXPR_COND = {e \<in> WF_ALPHA_PEXPR_REL. D\<^sub>1 \<sharp> \<lbrakk>e\<rbrakk>\<epsilon>\<^sub>*}"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name REL} @{const_name WF_ALPHA_PEXPR_REL}
-*}
+adhoc_overloading
+  REL WF_ALPHA_PEXPR_REL
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name COND} @{const_name WF_ALPHA_PEXPR_COND}
-*}
+adhoc_overloading
+  COND WF_ALPHA_PEXPR_COND
 
 lift_definition LitAPE :: "'a \<Rightarrow> ('a :: DEFINED, 'm :: VALUE) WF_ALPHA_PEXPR"
 is "\<lambda> v :: 'a. (\<lbrace>\<rbrace>, LitPE v)" by (auto intro:unrest)
@@ -102,9 +99,8 @@ lemma APExprAE_rep_eq:
   apply (metis ape_alphabet_def fst_conv)
 done
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name erase} @{const_name APExprAE}
-*}
+adhoc_overloading
+  erase APExprAE
 
 lift_definition APExprA :: 
   "(bool, 'm :: VALUE) WF_ALPHA_PEXPR \<Rightarrow> 'm WF_ALPHA_PREDICATE" is
@@ -113,9 +109,8 @@ lift_definition APExprA ::
 
 declare [[coercion APExprA]]
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name erase} @{const_name APExprA}
-*}
+adhoc_overloading
+  erase APExprA
 
 abbreviation PSubstA :: 
 "('m :: VALUE) WF_ALPHA_PREDICATE \<Rightarrow> 

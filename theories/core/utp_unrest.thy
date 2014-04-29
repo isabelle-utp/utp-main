@@ -41,23 +41,9 @@ definition alphas ::
 
 consts
   unrest  :: "'v::type \<Rightarrow> 'a::type \<Rightarrow> bool" (infixr "\<sharp>" 60)
-  runrest :: "'v::type \<Rightarrow> 'a::type \<Rightarrow> bool" (infixr "\<sharp>\<sharp>" 60)
 
-setup {*
-  Adhoc_Overloading.add_overloaded @{const_name unrest}
-*}
-
-setup {*
-  Adhoc_Overloading.add_overloaded @{const_name runrest}
-*}
-
-setup {*
-Adhoc_Overloading.add_variant @{const_name unrest} @{const_name UNREST}
-*}
-
-setup {*
-Adhoc_Overloading.add_variant @{const_name runrest} @{const_name REL_UNREST}
-*}
+adhoc_overloading
+  unrest UNREST
 
 subsubsection {* Restricted variables *}
 

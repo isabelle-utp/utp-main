@@ -20,10 +20,6 @@ default_sort type
 consts
   permute  :: "'r \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "\<bullet>" 80)
 
-setup {*
-  Adhoc_Overloading.add_overloaded @{const_name permute}
-*}
-
 default_sort VALUE
 
 subsection {* Variable Renaming *}
@@ -52,9 +48,8 @@ setup_lifting type_definition_VAR_RENAME
 
 notation Rep_VAR_RENAME ("\<langle>_\<rangle>\<^sub>s")
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name permute} @{const_name Rep_VAR_RENAME}
-*}
+adhoc_overloading
+  permute Rep_VAR_RENAME
 
 lemma Rep_VAR_RENAME_bij [simp]: "bij \<langle>ss\<rangle>\<^sub>s"
   apply (insert Rep_VAR_RENAME[of ss])
@@ -834,9 +829,8 @@ definition RenameB ::
    'VALUE WF_BINDING" where
 "RenameB ss b = CompB b (inv\<^sub>s ss)"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name permute} @{const_name RenameB}
-*}
+adhoc_overloading
+  permute RenameB
 
 lemma RenameB_rep_eq [simp]:
   "\<langle>ss \<bullet> b\<rangle>\<^sub>b = \<langle>b\<rangle>\<^sub>b \<circ> inv \<langle>ss\<rangle>\<^sub>s"
@@ -847,7 +841,6 @@ lemma VAR_RENAME_INV_image_twice [urename]:
   by (auto)
 
 subsection {* Building renamings from a partial map *}
-
 
 definition MapR ::
   "('VALUE VAR \<rightharpoonup> 'VALUE VAR) \<Rightarrow>

@@ -240,17 +240,8 @@ abbreviation RenameP ::
    'VALUE WF_PREDICATE" ("_[_]\<^sub>p" [200] 200) where
 "RenameP p ss \<equiv> PermP ss p"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name permute} @{const_name PermP}
-*}
-
-(*
-definition RenamePMap :: 
-  "'VALUE  WF_PREDICATE \<Rightarrow> 
-   ('VALUE VAR \<rightharpoonup> 'VALUE VAR) \<Rightarrow> 
-   'VALUE WF_PREDICATE" ("_\<^bsup>_\<^esup>" [200]) where
-"RenamePMap p ss \<equiv> p[MapR ss]\<^sub>p"
-*)
+adhoc_overloading
+  permute PermP
 
 subsection {* Meta-logical Operators *}
 

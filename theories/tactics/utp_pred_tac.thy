@@ -245,7 +245,7 @@ text {*
 
 ML {*
   fun utp_pred_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps (eval.get ctxt)
       addsimps (closure.get ctxt)
       addsimps (typing.get ctxt)
@@ -254,21 +254,21 @@ ML {*
 
 ML {*
   fun utp_atomise_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps @{thms QuantP_atomise}
       addsimps (closure.get ctxt);
 *}
 
 ML {*
   fun utp_deatomise_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps @{thms QuantP_deatomise}
       addsimps (closure.get ctxt);
 *}
 
 ML {*
   fun utp_singleton_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps (eval.get ctxt)
       delsimps @{thms EvalP_QuantP}
       addsimps @{thms EvalP_QuantP_singleton}
@@ -277,7 +277,7 @@ ML {*
 
 ML {*
   fun utp_auto_simpset ctxt =
-    (simpset_of ctxt);
+    (ctxt);
 *}
 
 ML {*
@@ -299,6 +299,8 @@ ML {*
       TRY (asm_full_simp_tac (utp_deatomise_simpset ctxt) i) THEN
       TRY (asm_full_simp_tac (utp_singleton_simpset ctxt) i))
 *}
+
+
 
 text {* Should we atomise or deatomise below? *}
 

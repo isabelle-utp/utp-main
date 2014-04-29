@@ -68,9 +68,8 @@ definition eatype_rel ::
 definition eavar_compat :: "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE VAR \<Rightarrow> bool" (infix "\<rhd>\<^sub>\<alpha>" 50) where
 "eavar_compat e x \<equiv> \<epsilon> e \<rhd>\<^sub>e x"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name alphabet} @{const_name expr_alpha}
-*}
+adhoc_overloading
+  alphabet expr_alpha
 
 definition WF_ALPHA_EXPR_REL :: "'VALUE WF_ALPHA_EXPRESSION set" where
 "WF_ALPHA_EXPR_REL = {p . (\<alpha> p) \<in> REL_ALPHABET}"
@@ -78,13 +77,11 @@ definition WF_ALPHA_EXPR_REL :: "'VALUE WF_ALPHA_EXPRESSION set" where
 definition WF_ALPHA_EXPR_COND :: "'VALUE WF_ALPHA_EXPRESSION set" where
 "WF_ALPHA_EXPR_COND = {e \<in> WF_ALPHA_EXPR_REL. D\<^sub>1 \<sharp> \<epsilon> e}"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name REL} @{const_name WF_ALPHA_EXPR_REL}
-*}
+adhoc_overloading
+  REL WF_ALPHA_EXPR_REL
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name COND} @{const_name WF_ALPHA_EXPR_COND}
-*}
+adhoc_overloading
+  COND WF_ALPHA_EXPR_COND
 
 instantiation WF_ALPHA_EXPRESSION :: (VALUE) DEFINED
 begin
@@ -209,9 +206,8 @@ lift_definition PermAE ::
   apply (metis RenameP_image_uminus Rep_VAR_RENAME_inj Rep_VAR_RENAME_surj WF_ALPHA_EXPRESSION_UNREST_EXPR image_surj_f_inv_f inj_image_eq_iff rename_inv_rep_eq)
 done
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name permute} @{const_name PermAE}
-*}
+adhoc_overloading
+  permute PermAE
 
 (*
 lift_definition SubstA ::

@@ -211,8 +211,8 @@ lemma sorted_list_of_set_inj:
   apply (induct xs rule:finite_induct)
   apply (induct ys rule:finite_induct)
   apply (simp_all)
-  apply (metis insort_not_Nil sorted_list_of_set_def sorted_list_of_set_insert)
-  apply (metis finite.insertI sorted_list_of_set sorted_list_of_set_def)
+  apply (metis finite.insertI insert_not_empty sorted_list_of_set_def sorted_list_of_set_empty sorted_list_of_set_eq_Nil_iff)
+  apply (metis finite.insertI finite_list set_remdups set_sort sorted_list_of_set_def sorted_list_of_set_sort_remdups)
 done
 
 definition flist :: "'a fset \<Rightarrow> 'a list" where

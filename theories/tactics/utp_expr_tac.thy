@@ -156,7 +156,7 @@ subsection {* Proof Tactics *}
 
 ML {*
   fun utp_expr_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps (evale.get ctxt)
       addsimps (closure.get ctxt)
       addsimps (defined.get ctxt)

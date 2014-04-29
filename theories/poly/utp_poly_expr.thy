@@ -71,9 +71,8 @@ end
 definition UNREST_PEXPR :: "('m VAR) set \<Rightarrow> ('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> bool" where
 "UNREST_PEXPR vs e \<equiv> (\<forall> b1 b2. \<lbrakk>e\<rbrakk>\<^sub>*(b1 \<oplus>\<^sub>b b2 on vs) = \<lbrakk>e\<rbrakk>\<^sub>* b1)" 
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name unrest} @{const_name UNREST_PEXPR}
-*}
+adhoc_overloading
+  unrest UNREST_PEXPR
 
 lemma EvalPE_UNREST_assign [evalp]:
   "{x\<down>} \<sharp> e \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>*(b(x :=\<^sub>* v)) = \<lbrakk>e\<rbrakk>\<^sub>*b"
@@ -288,9 +287,8 @@ definition PExprE ::
 "('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm WF_EXPRESSION" where
 "PExprE f = Abs_WF_EXPRESSION (InjU \<circ> DestPExpr f)"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name erase} @{const_name PExprE}
-*}
+adhoc_overloading
+  erase PExprE
 
 lemma PExprE_rep_eq:
   fixes e :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION" 
@@ -357,9 +355,8 @@ definition PExprP ::
 
 declare [[coercion PExprP]]
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name erase} @{const_name PExprP}
-*}
+adhoc_overloading
+  erase PExprP
 
 lemma EvalP_PExprP [evalp]:
   "\<lbrakk>e\<down>\<rbrakk>b = \<lbrakk>e\<rbrakk>\<^sub>* b"
@@ -678,10 +675,6 @@ subsection {* Restriction Operator *}
 consts
   restrict  :: "'a \<Rightarrow> 'b \<Rightarrow> 'a" 
 
-setup {*
-  Adhoc_Overloading.add_overloaded @{const_name restrict}
-*}
-
 subsection {* Numeric Expressions *}
 
 abbreviation IntPE :: "int \<Rightarrow> (int, 'a :: INT_SORT) WF_PEXPRESSION" where
@@ -791,9 +784,8 @@ end
 
 declare utminus_ULIST_def [simp]
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name restrict} @{const_name RestrictPE}
-*}
+adhoc_overloading
+  restrict RestrictPE
 
 declare RestrictPE_def [simp]
 
@@ -991,9 +983,8 @@ text {* Channel type erasure *}
 definition CHAN_UCHAN :: "'a::type CHAN \<Rightarrow> ('m :: VALUE) UCHAN" where
 "CHAN_UCHAN c = MkUCHAN ((chan_name c), TYPEU('a))"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name erase} @{const_name CHAN_UCHAN}
-*}
+adhoc_overloading
+  erase CHAN_UCHAN
 
 subsection {* Permutation *}
 
@@ -1003,9 +994,8 @@ definition PermPE ::
    ('a, 'm) WF_PEXPRESSION" where
 "PermPE ss e = MkPExpr (\<lbrakk>e\<rbrakk>\<^sub>* \<circ> (RenameB (inv\<^sub>s ss)))"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name permute} @{const_name PermPE}
-*}
+adhoc_overloading
+  permute PermPE
 
 lemma EvalPE_RenamePE [eval,evale,evalp]:
   "\<lbrakk>ss\<bullet>e\<rbrakk>\<^sub>*b = \<lbrakk>e\<rbrakk>\<^sub>*((inv\<^sub>s ss)\<bullet>b)"
@@ -1106,9 +1096,8 @@ definition PrimePE ::
    ('a, 'm) WF_PEXPRESSION" where
 "PrimePE e = PermPE SS e"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name prime} @{const_name PrimePE}
-*}
+adhoc_overloading
+  prime PrimePE
 
 lemma PrimePE_PExprE [urename]:  
   fixes e :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"

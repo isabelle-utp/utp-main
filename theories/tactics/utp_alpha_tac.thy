@@ -181,7 +181,7 @@ text {*
 
 ML {*
   fun utp_alpha_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps (evala.get ctxt)
       addsimps (closure.get ctxt)
       (* Closure alone seems not enough e.g. to simplify (p1 \<or>\<alpha> p2) \<sqsubseteq> p2. *)
@@ -194,7 +194,7 @@ ML {*
 
 ML {*
   fun utp_alphabet_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps (alphabet.get ctxt)
       addsimps (closure.get ctxt)
       addsimps (typing.get ctxt)
@@ -212,7 +212,7 @@ ML {*
   fun utp_alpha_tac2 thms ctxt i =
     CHANGED (resolve_tac @{thms EvalA_intro} 1 
       THEN
-        asm_full_simp_tac ((simpset_of ctxt) addsimps (evala.get ctxt @ closure.get ctxt @ typing.get ctxt)) 2
+        asm_full_simp_tac (ctxt addsimps (evala.get ctxt @ closure.get ctxt @ typing.get ctxt)) 2
       THEN
         asm_full_simp_tac (utp_alphabet_simpset ctxt) 1
       THEN

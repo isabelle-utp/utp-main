@@ -16,6 +16,7 @@ imports
   "tactics/utp_rel_tac"
   "tactics/utp_xrel_tac"
   "tactics/utp_subst_tac"
+  "tactics/utp_closure_tac"
   "tactics/utp_alpha_tac"
   "laws/utp_pred_laws"
   "laws/utp_rel_laws"

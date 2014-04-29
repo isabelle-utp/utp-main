@@ -75,35 +75,27 @@ definition pvdash :: "('a, 'm :: VALUE) PVAR \<Rightarrow> ('a, 'm :: VALUE) PVA
 definition pvchsub :: "('a, 'm::VALUE) PVAR \<Rightarrow> nat \<Rightarrow> ('a, 'm) PVAR" where
 "pvchsub v n = Abs_PVAR (MkName (name_str (pvname v)) (dashes (pvname v)) (chsub n (subscript (pvname v))), pvaux v)"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name prime} @{const_name pvdash}
-*}
+adhoc_overloading
+  prime pvdash
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name unprime} @{const_name pvundash}
-*}
+adhoc_overloading
+  unprime pvundash
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name subscr} @{const_name pvchsub}
-*}
+adhoc_overloading
+  subscr pvchsub
 
 text {* Set up syntax for operators which perform type erasure *}
 
 consts
   erase :: "'r \<Rightarrow> 'a" ("(_)\<down>" [1000] 1000)
 
-setup {*
-  Adhoc_Overloading.add_overloaded @{const_name erase}
-*}
-
 text {* This function performs a type erasure on the variable. *}
 
 definition PVAR_VAR :: "('a, 'm) PVAR \<Rightarrow> ('m :: VALUE) VAR" where
 "PVAR_VAR v = MkVar (pvname v) (TypeU TYPE('a)) (pvaux v)"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name erase} @{const_name PVAR_VAR}
-*}
+adhoc_overloading
+  erase PVAR_VAR
 
 definition VAR_PVAR :: "('m :: VALUE) VAR \<Rightarrow> ('a, 'm) PVAR" where
 "VAR_PVAR v = Abs_PVAR (name v, aux v)"
@@ -243,10 +235,8 @@ definition PermPV ::
 
 notation PermPV ("\<langle>_\<rangle>\<^sub>s\<^sub>*")
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name permute} @{const_name PermPV}
-*}
-
+adhoc_overloading
+  permute PermPV
 
 lemma PVAR_VAR_vtype [simp]:
   "vtype (x :: ('a, 'm :: VALUE) PVAR)\<down> = TYPEU('a)"

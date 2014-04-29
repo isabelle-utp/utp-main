@@ -112,9 +112,8 @@ text {* Unrestriction on expressions is equivalent to that of predicates. *}
 definition UNREST_EXPR :: "('VALUE VAR) set \<Rightarrow> 'VALUE WF_EXPRESSION \<Rightarrow> bool" where
 "UNREST_EXPR vs e \<equiv> (\<forall> b1 b2. \<langle>e\<rangle>\<^sub>e(b1 \<oplus>\<^sub>b b2 on vs) = \<langle>e\<rangle>\<^sub>e b1)" 
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name unrest} @{const_name UNREST_EXPR}
-*}
+adhoc_overloading
+  unrest UNREST_EXPR
 
 definition WF_EXPRESSION_OVER ::
   "('VALUE VAR) set \<Rightarrow>
@@ -239,18 +238,16 @@ abbreviation RenameE ::
    'VALUE WF_EXPRESSION" ("_[_]\<^sub>e" [200] 200) where
 "RenameE e ss \<equiv> PermE ss e"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name permute} @{const_name PermE}
-*}
+adhoc_overloading
+  permute PermE
 
 definition PrimeE ::
   "'VALUE WF_EXPRESSION \<Rightarrow>
    'VALUE WF_EXPRESSION" where
 "PrimeE e = PermE (dash on UNDASHED) e"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name prime} @{const_name PrimeE}
-*}
+adhoc_overloading
+  prime PrimeE
 
 lift_definition SubstE :: 
 "'VALUE WF_EXPRESSION \<Rightarrow> 

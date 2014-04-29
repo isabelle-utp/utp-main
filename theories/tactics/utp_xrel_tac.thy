@@ -691,7 +691,7 @@ subsection {* Proof Tactics *}
 
 ML {*
   fun utp_xrel_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps (evalrx.get ctxt)
       addsimps (typing.get ctxt)
       addsimps (defined.get ctxt)
@@ -700,7 +700,7 @@ ML {*
 
 ML {*
   fun utp_xrel_auto_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps @{thms "relcomp_unfold"}
 *}
 
@@ -727,7 +727,6 @@ method_setup utp_xrel_auto_tac = {*
   (fn thms => fn ctxt =>
     SIMPLE_METHOD' (utp_rel_deep_auto_tac thms ctxt))
 *} "proof tactic for relations with auto"
-
 
 (* Tests *)
 

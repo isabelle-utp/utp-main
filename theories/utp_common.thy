@@ -32,15 +32,7 @@ text {* This prevents Isabelle from automatically splitting pairs. *}
 declare split_paired_All [simp del]
 declare split_paired_Ex [simp del]
 
-declaration {* fn _ =>
-  Classical.map_cs (fn cs => cs delSWrapper "split_all_tac")
-*}
-
-text {* Temporary hack, comment out when there are no sorrys. *}
-
-ML {*
-  quick_and_dirty := true
-*}
+setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
 
 subsection {* Theorem Attributes *}
 
@@ -221,37 +213,5 @@ consts
   REL          :: "'a set"
   COND         :: "'a set"
   POST         :: "'a set"
-
-setup {*
-  Adhoc_Overloading.add_overloaded @{const_name alphabet}
-*}
-
-setup {*
-  Adhoc_Overloading.add_overloaded @{const_name alpha_coerce}
-*}
-
-setup {*
-  Adhoc_Overloading.add_overloaded @{const_name prime}
-*}
-
-setup {*
-  Adhoc_Overloading.add_overloaded @{const_name unprime}
-*}
-
-setup {*
-  Adhoc_Overloading.add_overloaded @{const_name subscr}
-*}
-
-setup {*
-  Adhoc_Overloading.add_overloaded @{const_name REL}
-*}
-
-setup {*
-  Adhoc_Overloading.add_overloaded @{const_name COND}
-*}
-
-setup {*
-  Adhoc_Overloading.add_overloaded @{const_name POST}
-*}
 
 end

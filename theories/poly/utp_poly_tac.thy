@@ -98,7 +98,7 @@ declare ULIST_transfer [evalp]
 
 ML {*
   fun utp_poly_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps (evalp.get ctxt)
       addsimps (evalpp.get ctxt)
       addsimps (closure.get ctxt)
@@ -109,7 +109,7 @@ ML {*
 
 ML {*
   fun utp_prel_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps (evalp.get ctxt)
       addsimps (evalpr.get ctxt)
       addsimps (closure.get ctxt)
@@ -130,7 +130,7 @@ ML {*
 ML {*
   fun utp_poly_auto_tac thms ctxt i =
     CHANGED (
-      (SELECT_GOAL (auto_tac (map_simpset (fn _ => (utp_poly_simpset ctxt)) ctxt)) i))
+      (SELECT_GOAL (auto_tac (utp_poly_simpset ctxt))) i)
 *}
 
 ML {*
@@ -142,7 +142,7 @@ ML {*
 ML {*
   fun utp_prel_auto_tac thms ctxt i =
     CHANGED (
-      (SELECT_GOAL (auto_tac (map_simpset (fn _ => (utp_prel_simpset ctxt) addsimps (@{thms "relcomp_unfold"})) ctxt)) i))
+      (SELECT_GOAL (auto_tac ((utp_prel_simpset ctxt) addsimps (@{thms "relcomp_unfold"}))) i))
 *}
 
 method_setup utp_poly_tac = {*

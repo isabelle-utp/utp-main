@@ -40,13 +40,11 @@ done
 definition WF_ALPHA_COND :: "'VALUE WF_ALPHA_PREDICATE set" where
 "WF_ALPHA_COND = {p . p \<in> WF_ALPHA_REL \<and> UNREST DASHED (\<pi> p)}"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name REL} @{const_name WF_ALPHA_REL}
-*}
+adhoc_overloading
+  REL WF_ALPHA_REL
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name COND} @{const_name WF_ALPHA_COND}
-*}
+adhoc_overloading
+  COND WF_ALPHA_COND
 
 subsection {* Operators *}
 
@@ -108,9 +106,8 @@ definition VarExtA ::
 "'m WF_ALPHA_PREDICATE \<Rightarrow> 'm VAR \<Rightarrow> 'm WF_ALPHA_PREDICATE" ("_\<^bsub>+_\<^esub>") where
 "VarExtA p x = p \<and>\<^sub>\<alpha> ($\<^sub>\<alpha>x\<acute> ==\<^sub>\<alpha> $\<^sub>\<alpha>x)"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name prime} @{const_name ConvA}
-*}
+adhoc_overloading
+  prime ConvA
 
 (*
 lift_definition CoercePreA :: "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("_\<^sub>\<leftarrow>")

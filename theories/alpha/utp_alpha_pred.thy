@@ -27,16 +27,11 @@ subsection {* Wellformed alphabetised predicates *}
 consts
   alpha_type :: "('p::type) \<Rightarrow> ('a::type) \<Rightarrow> bool" (infix ":\<alpha>:" 50)
 
-setup {*
-  Adhoc_Overloading.add_overloaded @{const_name alpha_type}
-*}
-
 definition pred_alpha_type :: "'a WF_PREDICATE \<Rightarrow> 'a ALPHABET \<Rightarrow> bool" where
 "pred_alpha_type P a = (- \<langle>a\<rangle>\<^sub>f) \<sharp> P"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name alpha_type} @{const_name pred_alpha_type}
-*}
+adhoc_overloading
+  alpha_type pred_alpha_type
 
 type_synonym 'VALUE ALPHA_PREDICATE =
   "('VALUE ALPHABET) \<times> 'VALUE WF_PREDICATE"
@@ -73,9 +68,8 @@ definition pred_alphabet ::
    'VALUE ALPHABET" where
 "pred_alphabet p \<equiv> fst \<langle>p\<rangle>\<^sub>\<alpha>"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name alphabet} @{const_name pred_alphabet}
-*}
+adhoc_overloading
+  alphabet pred_alphabet
 
 abbreviation predicate ::
   "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
@@ -160,9 +154,8 @@ apply (simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 apply (auto intro: unrest)
 done
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name alpha_coerce} @{const_name CoerceA}
-*}
+adhoc_overloading
+  alpha_coerce CoerceA
 
 lemma CoerceA_rep_eq_simple:
   "- \<langle>a\<rangle>\<^sub>f \<sharp> p \<Longrightarrow> \<pi>(p\<^bsub>!a\<^esub>) = p"
@@ -418,9 +411,8 @@ lift_definition PermA ::
   apply (metis RenameP_image_uminus equalityD2)
 done
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name permute} @{const_name PermA}
-*}
+adhoc_overloading
+  permute PermA
 
 subsection {* Meta-logical Operators *}
 

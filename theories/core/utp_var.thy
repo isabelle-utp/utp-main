@@ -96,17 +96,15 @@ definition dash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" where
 "dash \<equiv> \<lambda> x. MkVar (MkName (name_str (name x)) (dashes (name x) + 1) (subscript (name x)))
                    (vtype x) (aux x)"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name prime} @{const_name dash}
-*}
+adhoc_overloading
+  prime dash
 
 definition undash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" where
 "undash \<equiv> \<lambda> x. MkVar (MkName (name_str (name x)) (dashes (name x)- 1) (subscript (name x)))
                      (vtype x) (aux x)"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name unprime} @{const_name undash}
-*}
+adhoc_overloading
+  unprime undash
 
 fun vchsub :: "'a VAR \<Rightarrow> nat \<Rightarrow> 'a VAR" where
 "vchsub (MkName s d b, t, a) n = (MkName s d (chsub n b), t, a)"
@@ -121,9 +119,8 @@ lemma add_sub_bij:
   "bij (add_sub n)"
   by (metis (mono_tags) add_sub_inv inj_on_def inj_on_imp_bij_betw surjI)
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name subscr} @{const_name vchsub}
-*}
+adhoc_overloading
+  subscr vchsub
 
 subsection {* Recontrolions *}
 

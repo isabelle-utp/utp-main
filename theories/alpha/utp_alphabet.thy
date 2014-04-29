@@ -38,16 +38,14 @@ declare nrel_alpha.rep_eq [simp]
 definition dash_alpha :: "'a ALPHABET \<Rightarrow> 'a ALPHABET" where
 "dash_alpha A = dash `\<^sub>f A"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name prime} @{const_name dash_alpha}
-*}
+adhoc_overloading
+  prime dash_alpha
 
 definition undash_alpha :: "'a ALPHABET \<Rightarrow> 'a ALPHABET" where
 "undash_alpha A = dash `\<^sub>f A"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name unprime} @{const_name undash_alpha}
-*}
+adhoc_overloading
+  unprime undash_alpha
 
 definition COMP_ALPHAS :: "'VALUE ALPHABET \<Rightarrow> 'VALUE ALPHABET \<Rightarrow> bool" where
 "COMP_ALPHAS a1 a2 = COMPOSABLE \<langle>a1\<rangle>\<^sub>f \<langle>a2\<rangle>\<^sub>f"
@@ -149,10 +147,10 @@ theorems alphabet_member =
   in_UNDASHED
   out_DASHED
 
-lemma REL_ALPHABET_in_alpha [closure]: "in\<^sub>\<alpha>a \<in> REL_ALPHABET"
+lemma REL_ALPHABET_in_alpha [closure]: "in\<^sub>\<alpha>(a) \<in> REL_ALPHABET"
   by (auto simp add:REL_ALPHABET_def var_defs)
 
-lemma REL_ALPHABET_out_alpha [closure]: "out\<^sub>\<alpha>a \<in> REL_ALPHABET"
+lemma REL_ALPHABET_out_alpha [closure]: "out\<^sub>\<alpha>(a) \<in> REL_ALPHABET"
   by (auto simp add:REL_ALPHABET_def var_defs)
 
 subsubsection {* Simplification Theorems *}
@@ -207,7 +205,7 @@ theorem in_alphabet_inter :
   by (force simp add: var_dist)
 
 theorem in_alphabet_diff :
-"in\<^sub>\<alpha>(a1 -\<^sub>f a2) = (in\<^sub>\<alpha>a1) -\<^sub>f (in\<^sub>\<alpha>a2)"
+"in\<^sub>\<alpha>(a1 -\<^sub>f a2) = (in\<^sub>\<alpha>(a1)) -\<^sub>f (in\<^sub>\<alpha>(a2))"
   by (force simp add: var_dist)
 
 theorem in_alphabet_finsert1 :
@@ -227,15 +225,15 @@ theorem out_alphabet_empty :
   by (force simp add:var_defs)
 
 theorem out_alphabet_union :
-"out\<^sub>\<alpha>(a1 \<union>\<^sub>f a2) = (out\<^sub>\<alpha>a1) \<union>\<^sub>f (out\<^sub>\<alpha>a2)"
+"out\<^sub>\<alpha>(a1 \<union>\<^sub>f a2) = (out\<^sub>\<alpha> a1) \<union>\<^sub>f (out\<^sub>\<alpha> a2)"
   by (force simp add: var_dist)
 
 theorem out_alphabet_inter :
-"out\<^sub>\<alpha>(a1 \<inter>\<^sub>f a2) = (out\<^sub>\<alpha>a1) \<inter>\<^sub>f (out\<^sub>\<alpha>a2)"
+"out\<^sub>\<alpha>(a1 \<inter>\<^sub>f a2) = (out\<^sub>\<alpha> a1) \<inter>\<^sub>f (out\<^sub>\<alpha> a2)"
   by (force simp add: var_dist)
 
 theorem out_alphabet_diff :
-"out\<^sub>\<alpha>(a1 -\<^sub>f a2) = (out\<^sub>\<alpha>a1) -\<^sub>f (out\<^sub>\<alpha>a2)"
+"out\<^sub>\<alpha>(a1 -\<^sub>f a2) = (out\<^sub>\<alpha> a1) -\<^sub>f (out\<^sub>\<alpha> a2)"
   by (force simp add: var_dist)
 
 theorem out_alphabet_finsert1 :
@@ -256,15 +254,15 @@ theorem nrel_alphabet_empty :
   by (force simp add:var_defs)
 
 theorem nrel_alphabet_union :
-"nrel\<^sub>\<alpha>(a1 \<union>\<^sub>f a2) = (nrel\<^sub>\<alpha>a1) \<union>\<^sub>f (nrel\<^sub>\<alpha>a2)"
+"nrel\<^sub>\<alpha>(a1 \<union>\<^sub>f a2) = (nrel\<^sub>\<alpha> a1) \<union>\<^sub>f (nrel\<^sub>\<alpha> a2)"
   by (force simp add: var_dist)
 
 theorem nrel_alphabet_inter :
-"nrel\<^sub>\<alpha>(a1 \<inter>\<^sub>f a2) = (nrel\<^sub>\<alpha>a1) \<inter>\<^sub>f (nrel\<^sub>\<alpha>a2)"
+"nrel\<^sub>\<alpha>(a1 \<inter>\<^sub>f a2) = (nrel\<^sub>\<alpha> a1) \<inter>\<^sub>f (nrel\<^sub>\<alpha> a2)"
   by (force simp add: var_dist)
 
 theorem nrel_alphabet_diff :
-"nrel\<^sub>\<alpha>(a1 -\<^sub>f a2) = (nrel\<^sub>\<alpha>a1) -\<^sub>f (nrel\<^sub>\<alpha>a2)"
+"nrel\<^sub>\<alpha>(a1 -\<^sub>f a2) = (nrel\<^sub>\<alpha> a1) -\<^sub>f (nrel\<^sub>\<alpha> a2)"
   by (force simp add: var_dist)
 
 theorem nrel_alphabet_finsert_NON_REL_VAR :
