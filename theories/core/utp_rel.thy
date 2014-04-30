@@ -863,6 +863,12 @@ theorem NotP_cond_closure [closure]:
   "\<lbrakk> p \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> \<not>\<^sub>p p \<in> WF_CONDITION"
   by (auto simp add:WF_CONDITION_def intro:unrest closure)
 
+lemma NotP_post_closure [closure]:
+  "p \<in> POST \<Longrightarrow> \<not>\<^sub>p p \<in> POST"
+  apply (simp add:WF_POSTCOND_def)
+  apply (simp add:unrest closure)
+done
+
 lemma ImpliesP_rel_closure [closure]:
   "\<lbrakk>p \<in> WF_RELATION; q \<in> WF_RELATION\<rbrakk> \<Longrightarrow>
    p \<Rightarrow>\<^sub>p q \<in> WF_RELATION"

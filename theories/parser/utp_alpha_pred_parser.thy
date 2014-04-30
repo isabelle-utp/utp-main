@@ -3,11 +3,11 @@ theory utp_alpha_pred_parser
   "../alpha/utp_alpha_pred"
   "../alpha/utp_alpha_rel"
   "../alpha/utp_alpha_expr"
+  "../alpha/utp_alpha_lattice"
   "../tactics/utp_pred_tac"
   "../tactics/utp_expr_tac"
   "../tactics/utp_rel_tac"
   "../poly/utp_poly_alpha_expr"
-  "../theories/utp_theory"
 begin
 
 nonterminal 
@@ -60,11 +60,9 @@ syntax
   "_uapred_cond"     :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" ("_ \<lhd> _ \<rhd> _")
   "_uapred_ifthenelse" :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" ("if _ then _ else _")
   "_uapred_assign"   :: "'a VAR \<Rightarrow> 'a ALPHABET \<Rightarrow> apexpr \<Rightarrow> uapred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
+  "_uapred_conv"     :: "uapred \<Rightarrow> uapred" ("(_\<^sup>\<smile>)" [1000] 999)
+  "_uapred_prime"    :: "uapred \<Rightarrow> uapred" ("_\<acute>" [1000] 1000)
   "_uapred_varext"   :: "uapred \<Rightarrow> ('a, 'm) PVAR \<Rightarrow> upred" ("_\<^bsub>+_\<^esub>")
-  "_uapred_top"      :: "'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("\<top>\<^bsub>_[_]\<^esub>")
-  "_uapred_bot"      :: "'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("\<bottom>\<^bsub>_[_]\<^esub>")
-  "_uapred_joint"    :: "uapred \<Rightarrow> 'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred \<Rightarrow> uapred" (infixl "\<squnion>\<^bsub>_[_]\<^esub>" 65)
-  "_uapred_meett"    :: "uapred \<Rightarrow> 'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred \<Rightarrow> uapred" (infixl "\<sqinter>\<^bsub>_[_]\<^esub>" 70)
   "_uapred_zpara"    :: "uzdecls \<Rightarrow> uapred \<Rightarrow> uapred" ("[_|_]")
   "_uzdecl_basic"    :: "'a VAR \<Rightarrow> 'a VAR \<Rightarrow> uzdecl" (infix ":" 45)
   ""                 :: "uzdecl => uzdecls"             ("_")
@@ -100,12 +98,9 @@ translations
   "_uapred_cond p q r"  == "CONST CondA p q r"
   "_uapred_ifthenelse b p q"  => "CONST CondA p b q"
   "_uapred_assign x a e" == "CONST PAssignA x a e"
+  "_uapred_conv x"      => "CONST ConvA x"
+  "_uapred_prime x"     == "CONST ConvA x"
   "_uapred_varext p x"  == "CONST VarExtA p x\<down>"
-  "_uapred_top T a"     == "CONST TopT T a"
-  "_uapred_bot T a"     == "CONST BotT T a"
-  "_uapred_joint T a"   == "CONST JoinT T a"
-  "_uapred_meett T a"   == "CONST MeetT T a"
-  "_uapred_zpara ds p"  == "CONST AndA ds p"
 
 (* Expression Parser *)
 
@@ -176,6 +171,7 @@ syntax
   "_uapred_SUP1"  :: "'a ALPHABET \<Rightarrow> pttrns \<Rightarrow> uapred \<Rightarrow> uapred" ("(3\<Squnion>\<^bsub>_\<^esub> _./ _)" [0, 0, 10] 10)
   "_uapred_SUP"   :: "'a ALPHABET \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<Squnion>\<^bsub>_\<^esub> _:_./ _)" [0, 0, 0, 10] 10)
 
+(*
 translations
   "_uapred_index f i"     => "f i"
   "_uapred_ANDI1 a x y B" => "AND[a] x. AND[a] y. B"
@@ -206,5 +202,6 @@ term "``p[v/x]``"
 term "``x :=\<^bsub>\<lbrace>x\<down>,x\<down>\<acute>\<rbrace>\<^esub> true``"
 
 term "``p\<^bsub>+\<lbrace>x\<down>\<rbrace>\<^esub>``"
+*)
 
 end

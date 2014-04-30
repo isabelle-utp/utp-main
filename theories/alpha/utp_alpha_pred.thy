@@ -709,6 +709,7 @@ lemma WF_ALPHA_PREDICATE_binding_equiv:
   apply (metis WF_ALPHA_PREDICATE_UNREST WF_PREDICATE_binding_equiv)
 done
 
+(*
 lemma WF_ALPHA_PREDICATE_OVER_intro [intro]:
   "\<alpha> p = a \<Longrightarrow> p \<in> WF_ALPHA_PREDICATE_OVER a"
   by (simp add:WF_ALPHA_PREDICATE_OVER_def)
@@ -726,6 +727,7 @@ lemma OrA_WF_ALPHA_PREDICATE_OVER [closure]:
   "\<lbrakk> p \<in> WF_ALPHA_PREDICATE_OVER a; q \<in> WF_ALPHA_PREDICATE_OVER a \<rbrakk> \<Longrightarrow>
    p \<or>\<^sub>\<alpha> q \<in> WF_ALPHA_PREDICATE_OVER a"
   by (auto simp add:alphabet)
+*)
 
 subsection {* Conversion between alphabetised predicates and finite map sets *}
 
@@ -782,9 +784,5 @@ done
 lemma CoerceA_OrP:
   "(p \<or>\<^sub>p q)\<^bsub>!a\<^esub> = (p\<^bsub>!a\<^esub> \<or>\<^sub>\<alpha> q\<^bsub>!a\<^esub>)"
   by (auto simp add:alphabet OrA.rep_eq CoerceA.rep_eq ExistsP_OrP_dist)
-
-lemma CoerceA_AndP:
-  "\<lbrakk> - \<langle>a\<rangle>\<^sub>f \<sharp> p; - \<langle>a\<rangle>\<^sub>f \<sharp> q \<rbrakk> \<Longrightarrow> (p \<and>\<^sub>p q)\<^bsub>!a\<^esub> = (p\<^bsub>!a\<^esub> \<and>\<^sub>\<alpha> q\<^bsub>!a\<^esub>)"
-  by (metis AndA.abs_eq CoerceA.abs_eq CoerceA.rep_eq CoerceA_alphabet CoerceA_rep_eq_simple ExistsP_AndP_expand1 fset_simps(5) snd_eqD)
 
 end

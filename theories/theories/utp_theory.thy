@@ -161,6 +161,19 @@ abbreviation GfpT ::
    'a ALPHA_FUNCTION \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("\<nu>\<^bsub>_[_]\<^esub>") where
 "\<nu>\<^bsub>T[a]\<^esub> f \<equiv> GFP (OrderT T a) f"
 
+syntax
+  "_uapred_top"      :: "'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("\<top>\<^bsub>_[_]\<^esub>")
+  "_uapred_bot"      :: "'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("\<bottom>\<^bsub>_[_]\<^esub>")
+  "_uapred_joint"    :: "uapred \<Rightarrow> 'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred \<Rightarrow> uapred" (infixl "\<squnion>\<^bsub>_[_]\<^esub>" 65)
+  "_uapred_meett"    :: "uapred \<Rightarrow> 'a THEORY \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred \<Rightarrow> uapred" (infixl "\<sqinter>\<^bsub>_[_]\<^esub>" 70)
+
+translations
+  "_uapred_top T a"     == "CONST TopT T a"
+  "_uapred_bot T a"     == "CONST BotT T a"
+  "_uapred_joint T a"   == "CONST JoinT T a"
+  "_uapred_meett T a"   == "CONST MeetT T a"
+  "_uapred_zpara ds p"  == "CONST AndA ds p"
+
 abbreviation 
   "GaloisT T1 T2 f g \<equiv> (\<forall> a \<in> \<A>\<^bsub>T1\<^esub>. \<forall> b \<in> \<A>\<^bsub>T2\<^esub>. 
                          galois_connection \<lparr> orderA = (OrderT T1 a)

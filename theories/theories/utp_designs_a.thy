@@ -101,7 +101,7 @@ done
 
 lemma UNREST_OKAY_alpha [unrest]: "\<lbrakk> okay\<down> \<notin>\<^sub>f \<alpha> P; okay\<down>\<acute> \<notin>\<^sub>f \<alpha> P \<rbrakk> \<Longrightarrow> OKAY \<sharp> \<lbrakk>P\<rbrakk>\<pi>"
   apply (rule UNREST_subset)
-  apply (rule EvalA_UNREST)
+  apply (rule UNREST_EvalA)
   apply (auto)
 done
 
@@ -144,16 +144,15 @@ definition UNREST_ALPHA ::
   "'a VAR set \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> bool" where
 "UNREST_ALPHA vs p = vs \<sharp> (\<pi> p)"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name unrest} @{const_name UNREST_ALPHA}
-*}
+adhoc_overloading
+  unrest UNREST_ALPHA
 
 lemma UNREST_ALPHA_EvalA [unrest]:
   "vs \<sharp> p \<Longrightarrow> vs \<sharp> \<lbrakk>p\<rbrakk>\<pi>"
   by (metis EvalA_def UNREST_ALPHA_def)
 
 lemma UNREST_ALPHA_alphabet [unrest]:
-  "UNREST_ALPHA (VAR - \<langle>\<alpha>(p)\<rangle>\<^sub>f) p"
+  "UNREST_ALPHA (- \<langle>\<alpha>(p)\<rangle>\<^sub>f) p"
   by (simp add:UNREST_ALPHA_def unrest)
 
 theorem DesignA_composition:
@@ -298,6 +297,10 @@ lemma AH2_idem:
   "AH2 (AH2 p) = AH2 (p)"
   by (utp_alpha_tac, metis H2_idempotent)
 
+lemma AH1_AH2_commute:
+  "AH1 (AH2 p) = AH2 (AH1 p)"
+  by (utp_alpha_tac, metis H1_H2_commute)
+
 lemma AH2_mono:
   "p \<sqsubseteq> q \<Longrightarrow> AH2(p) \<sqsubseteq> AH2(q)"
   apply (simp add:EvalA_RefinementA)
@@ -404,10 +407,10 @@ proof -
     apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def H4_def)
     apply (rule unrest)
     apply (rule UNREST_SemiR_general)
-    apply (rule UNREST_subset[of _ _ "VAR - insert okay\<down> (insert okay\<down>\<acute> \<langle>\<alpha> P\<rangle>\<^sub>f)"])
+    apply (rule UNREST_subset[of _ _ "- insert okay\<down> (insert okay\<down>\<acute> \<langle>\<alpha> P\<rangle>\<^sub>f)"])
     apply (rule WF_ALPHA_PREDICATE_UNREST)
     apply (force)
-    apply (rule UNREST_TrueP[of "VAR - insert okay\<down> (insert okay\<down>\<acute> \<langle>\<alpha> P\<rangle>\<^sub>f)"])
+    apply (rule UNREST_TrueP[of "- insert okay\<down> (insert okay\<down>\<acute> \<langle>\<alpha> P\<rangle>\<^sub>f)"])
     apply (auto simp add:var_defs)[1]
     apply (auto intro:unrest)
   done
@@ -427,23 +430,25 @@ theorem AH4_idem:
   apply (metis H4_idempotent)
 done
 
-definition "DESIGNS = \<lparr> alphas = DESIGN_ALPHABET, healths = [AH1, AH2] \<rparr>"
+definition "DESIGNS = \<lparr> alphas = DESIGN_ALPHABET, health = (AH1 \<circ> AH2) \<rparr>"
 
 interpretation designs: UTP_THEORY DESIGNS
   apply (unfold_locales)
-  apply (auto simp add:DESIGNS_def IDEMPOTENT_OVER_def AH1_idem AH2_idem)
+  apply (simp add:DESIGNS_def IDEMPOTENT_OVER_def)
+  apply (metis AH1_AH2_commute AH1_idem AH2_idem)
 done
 
 theorem DESIGNS_form:
   "P \<in> \<lbrakk>DESIGNS\<rbrakk>\<T> \<Longrightarrow> P = ``\<not>P\<^sup>f \<turnstile> P\<^sup>t``"
-  apply (erule THEORY_PRED_elim, simp add:DESIGNS_def, clarify)
-  apply (metis AH1_AH2_is_DesignA PVAR_VAR_pvdash REL_ALPHABET_DESIGN_ALPHABET)
+  apply (erule THEORY_PRED_elim)
+  apply (simp add:DESIGNS_def)
+  apply (metis (no_types) AH1_AH2_commute AH1_AH2_is_DesignA AH2_idem PVAR_VAR_pvdash REL_ALPHABET_DESIGN_ALPHABET comp_apply is_healthy_def)
 done
 
 theorem DESIGNS_form':
   "P \<in> \<lbrakk>DESIGNS\<rbrakk>\<T> \<Longrightarrow> P = ``\<not>P\<^bsup>tf\<^esup> \<turnstile> P\<^bsup>tt\<^esup>``"
-  apply (erule THEORY_PRED_elim, simp add:DESIGNS_def, clarify)
-  apply (metis (hide_lams, no_types) AH1_AH2_is_DesignA' PVAR_VAR_pvdash REL_ALPHABET_DESIGN_ALPHABET)
+  apply (erule THEORY_PRED_elim, simp add:DESIGNS_def)
+  apply (metis (no_types) AH1_AH2_commute AH1_AH2_is_DesignA' AH2_idem PVAR_VAR_pvdash REL_ALPHABET_DESIGN_ALPHABET comp_apply is_healthy_def)
 done
 
 theorem TopAD_DESIGNS_greatest:
@@ -461,7 +466,7 @@ lemma DESIGNS_THEORY_alphabet [alphabet]:
   by (simp add:DESIGNS_def)
 
 lemma DESIGNS_THEORY_healthconds [simp]:
-  "\<H>\<^bsub>DESIGNS\<^esub> = [AH1, AH2]"
+  "\<H>\<^bsub>DESIGNS\<^esub> = AH1 \<circ> AH2"
   by (simp add:DESIGNS_def)
 
 theorem DesignA_DESIGNS_closure [closure]:
@@ -471,7 +476,7 @@ theorem DesignA_DESIGNS_closure [closure]:
   apply (rule THEORY_PRED_intro)
   apply (simp_all add:alphabet closure)
   apply (utp_alpha_tac)
-  apply (metis H2_DesignD UNREST_ALPHA_EvalA)
+  apply (metis (lifting, no_types) H1_DesignD H2_DesignD UNREST_ALPHA_EvalA)
 done
 
 theorem TrueA_DESIGNS [closure]:
@@ -484,7 +489,7 @@ done
 
 theorem TrueA_DESIGNS_least:
   "\<lbrakk> p \<in> \<lbrakk>DESIGNS\<rbrakk>[a]\<T> \<rbrakk> \<Longrightarrow> true\<^bsub>a\<^esub> \<sqsubseteq> p"
-  by (utp_alpha_tac, utp_pred_tac)
+  by (utp_alpha_tac, utp_pred_auto_tac)
 
 theorem DESIGNS_lattice: 
   "a \<in> DESIGN_ALPHABET \<Longrightarrow> lattice (OrderT DESIGNS a)"
@@ -492,22 +497,29 @@ theorem DESIGNS_lattice:
   apply (rule_tac x="``x \<and> y``" in exI)
   apply (rule least_UpperI)
   apply (simp_all add:Upper_def)
-  apply (utp_alpha_tac, utp_pred_auto_tac)
-  apply (utp_alpha_tac, utp_pred_auto_tac)
-  apply (metis THEORY_PRED_OVER_alphabet)
+  apply (utp_alpha_tac)
+  apply (metis RefineP_seperation THEORY_PRED_OVER_alphabet dual_order.refl fset_simps(5))
+  apply (utp_alpha_tac)
+  apply (metis RefineP_seperation fset_simps(5))
   apply (rule)
   apply (rule)
   apply (simp add:alphabet DESIGNS_def)
   apply (simp add:DESIGNS_def THEORY_PRED_OVER_def THEORY_PRED_def)
   apply (utp_alpha_tac)
-  apply (metis H1_AndP H2_AndP_closure is_healthy_def)
-  apply (simp add:alphabet)
+  apply (erule THEORY_PRED_OVER_elim)
+  apply (erule THEORY_PRED_OVER_elim)
+  apply (simp)
+  apply (rule)
+  apply (auto simp add:DESIGN_ALPHABET_def)[1]
+  apply (metis (hide_lams, no_types) AH1_AH2_commute AH2_idem DESIGNS_THEORY_healthconds EvalA_AH1 EvalA_AH2 H1_AndP H2_AndP_closure THEORY_PRED_elim comp_apply is_healthy_def)
+  apply (simp add:alphabet THEORY_PRED_OVER_alphabet)
   apply (rule_tac x="``x \<or> y``" in exI)
   apply (rule greatest_LowerI, simp_all)
-  apply (utp_alpha_tac, utp_pred_auto_tac)
+  apply (utp_alpha_tac)
+  apply (metis OrP_comm OrP_ref THEORY_PRED_OVER_alphabet fset_simps(5))
   apply (simp add:Lower_def)
-  apply (utp_alpha_tac, utp_pred_auto_tac)
-  apply (metis THEORY_PRED_OVER_alphabet)
+  apply (utp_alpha_tac)
+  apply (metis OrP_refine fset_simps(5))
   apply (simp add:DESIGNS_def THEORY_PRED_OVER_def THEORY_PRED_def)
   apply (utp_alpha_tac)
   apply (metis H1_OrP H2_OrP)
@@ -561,6 +573,7 @@ theorem H1_DistAndA_closure:
   apply (erule THEORY_PRED_OVER_elim)
   apply (erule THEORY_PRED_elim)
   apply (utp_alpha_tac)
+  apply (metis H1_idempotent)
 done
 
 theorem H2_DistAndA_closure:
@@ -573,6 +586,7 @@ theorem H2_DistAndA_closure:
   apply (erule THEORY_PRED_OVER_elim)
   apply (erule THEORY_PRED_elim)
   apply (utp_alpha_tac)
+  apply (metis H1_H2_commute H2_idempotent)
 done
 
 theorem AH1_DistOrA_closure:
@@ -585,6 +599,7 @@ theorem AH1_DistOrA_closure:
   apply (erule THEORY_PRED_OVER_elim)
   apply (erule THEORY_PRED_elim)
   apply (utp_alpha_tac)
+  apply (metis H1_idempotent)
 done
 
 theorem AH2_DistOrA_closure:
@@ -597,6 +612,7 @@ theorem AH2_DistOrA_closure:
   apply (erule THEORY_PRED_OVER_elim)
   apply (erule THEORY_PRED_elim)
   apply (utp_alpha_tac)
+  apply (metis H1_H2_commute H2_idempotent)
 done
 
 lemma AndDistA_alphabet_theory [alphabet]:
@@ -612,7 +628,7 @@ theorem SupA_DESIGNS_closure:
   apply (rule THEORY_PRED_OVER_intro)
   apply (rule THEORY_PRED_intro)
   apply (simp_all add:alphabet)
-  apply (metis H1_DistAndA_closure H2_DistAndA_closure)
+  apply (metis H1_DistAndA_closure H2_DistAndA_closure Healthy_intro comp_def is_healthyD)
 done
 
 theorem SupA_is_lub: 
@@ -631,7 +647,7 @@ theorem InfA_DESIGNS_closure:
   apply (rule THEORY_PRED_OVER_intro)
   apply (rule THEORY_PRED_intro)
   apply (simp_all add:alphabet)
-  apply (metis AH1_DistOrA_closure AH2_DistOrA_closure)
+  apply (metis AH1_DistOrA_closure AH2_DistOrA_closure Healthy_elim Healthy_intro comp_def)
 done
 
 theorem InfA_is_glb:
@@ -666,8 +682,7 @@ proof -
     apply (rule unrest)
     apply (simp add:unrest evala)
     apply (utp_alpha_tac)
-    apply (safe)[1]
-    apply (metis DesignA_evala DesignA_extreme_point_nok EvalA_FalseA EvalA_RefinementA EvalA_TrueA TopAD_DESIGNS_greatest)
+    apply (metis DesignA_evala DesignA_extreme_point_nok EvalA_FalseA EvalA_RefinementA EvalA_TrueA THEORY_PRED_OVER_alphabet TopAD_DESIGNS_greatest)
     apply (rule_tac x="\<Or>\<^bsub>a\<^esub> A" in exI)
     apply (simp add:InfA_is_glb)
   done
@@ -793,6 +808,7 @@ using assms
   apply (simp add: Rep_fset_inject[THEN sym] insert_inject)
 done
 
+(*
 definition TheoryRes :: "'a THEORY \<Rightarrow> 'a ALPHABET set \<Rightarrow> 'a THEORY" (infixl "'/\<^sub>T" 70) where
 "T/\<^sub>TA = \<lparr> alphas = (alphas T) - A, healths = healths T \<rparr>"
 
@@ -951,7 +967,7 @@ lemma WF_ALPHA_REL_REL_ALPHABET [closure]:
   "\<alpha> P \<in> REL_ALPHABET \<Longrightarrow> P \<in> WF_ALPHA_REL"
   by (simp add:WF_ALPHA_REL_def)
 
-
+*)
 
 
 

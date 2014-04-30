@@ -1280,6 +1280,10 @@ lemma HOMOGENEOUS_minus [simp]:
    apply (simp add:var_dist)
 done
 
+lemma HOMOGENEOUS_out_unprimed:
+  "\<lbrakk> HOMOGENEOUS xs; x \<in> out(xs) \<rbrakk> \<Longrightarrow> x~ \<in> xs"
+  by (metis HOMOGENEOUS_undash_out IntD1 imageI in_vars_def)
+
 subsubsection {* Subscript Properties *}
 
 lemma vchsub_vtype [simp]: 

@@ -12,6 +12,7 @@ imports
   "../core/utp_hoare"
   "../laws/utp_rel_laws"
   "../parser/utp_alpha_pred_parser"
+  "utp_alpha_iteration"
 begin
 
 lift_definition HoareA :: 
@@ -118,6 +119,33 @@ theorem HoareA_AssignA [hoare]:
   apply (force)
   apply (metis Compl_subset_Compl_iff EvalAE_UNREST_EXPR UNREST_EXPR_subset)
   apply (metis (no_types) Un_upper1 alphabet_split funion.rep_eq le_less_trans le_neq_trans less_eq_fset.rep_eq less_imp_le)
+done
+
+theorem HoareA_EvalA:
+  "{\<lbrakk>p\<rbrakk>\<pi>}\<lbrakk>Q\<rbrakk>\<pi>{\<lbrakk>r\<rbrakk>\<pi>}\<^sub>p \<Longrightarrow> {p}Q{r}\<^sub>\<alpha>"
+  by (metis EvalA_HoareA EvalA_TautologyA)
+
+theorem HoareA_IterA [hoare]:
+  assumes 
+    "p \<in> COND" "b \<in> COND" "S \<in> REL" "\<alpha>(S) \<in> HOM_ALPHABET"
+    "\<alpha>(b) \<subseteq>\<^sub>f \<alpha>(S)" "\<alpha>(p) \<subseteq>\<^sub>f \<alpha>(S)" "``{p \<and> b}S{p}``"
+  shows "``{p}while b do S od{\<not>b \<and> p}``"
+  using assms
+    apply (rule_tac HoareA_EvalA)
+    apply (simp add:evala)
+    apply (rule HoareP_SemiR[of _ _ "\<not>\<^sub>p \<lbrakk>b\<rbrakk>\<pi> \<and>\<^sub>p \<lbrakk>p\<rbrakk>\<pi>"])
+    apply (simp_all add:closure)
+    apply (metis HoareP_IterP WF_ALPHA_COND_EvalA_WF_CONDITION WF_ALPHA_REL_EvalA_WF_RELATION)
+    apply (rule hoare)
+    apply (metis HOMOGENEOUS_HOM_ALPHA)
+    apply (rule unrest)
+    apply (rule unrest)
+    apply (rule UNREST_subset[of "(- D\<^sub>0) \<union> (- \<langle>\<alpha> b\<rangle>\<^sub>f)"])
+    apply (metis UNREST_EvalA UNREST_WF_ALPHA_COND UNREST_union)
+    apply (auto)[1]
+    apply (rule UNREST_subset[of "(- D\<^sub>0) \<union> (- \<langle>\<alpha> p\<rangle>\<^sub>f)"])
+    apply (metis UNREST_EvalA UNREST_WF_ALPHA_COND UNREST_union)
+    apply (auto)[1]
 done
 
 end

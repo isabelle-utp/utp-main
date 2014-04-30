@@ -40,11 +40,17 @@ done
 definition WF_ALPHA_COND :: "'VALUE WF_ALPHA_PREDICATE set" where
 "WF_ALPHA_COND = {p . p \<in> WF_ALPHA_REL \<and> UNREST DASHED (\<pi> p)}"
 
+definition WF_ALPHA_POST :: "'VALUE WF_ALPHA_PREDICATE set" where
+"WF_ALPHA_POST = {p . p \<in> WF_ALPHA_REL \<and> UNREST D\<^sub>0 (\<pi> p)}"
+
 adhoc_overloading
   REL WF_ALPHA_REL
 
 adhoc_overloading
   COND WF_ALPHA_COND
+
+adhoc_overloading
+  POST WF_ALPHA_POST
 
 subsection {* Operators *}
 
@@ -150,6 +156,13 @@ lemma WF_ALPHA_COND_EvalA_WF_CONDITION [closure]:
   apply (simp add:EvalA_def)
 done
 
+lemma WF_ALPHA_POST_EvalA_WF_POSTCOND [closure]:
+  "p \<in> POST \<Longrightarrow> \<lbrakk>p\<rbrakk>\<pi> \<in> POST"
+  apply (auto simp add:WF_ALPHA_POST_def WF_POSTCOND_def)
+  apply (simp add:closure)
+  apply (simp add:EvalA_def)
+done
+
 lemma WF_RELATION_REL_ALPHABET [closure]: 
   "\<alpha> P \<in> REL_ALPHABET \<Longrightarrow> \<lbrakk>P\<rbrakk>\<pi> \<in> WF_RELATION"
   by (auto intro:closure simp add:WF_ALPHA_REL_def)
@@ -172,6 +185,10 @@ theorem WF_ALPHA_REL_intro [intro] :
 theorem WF_ALPHA_COND_WF_ALPHA_REL [closure] :
 "r \<in> WF_ALPHA_COND \<Longrightarrow> r \<in> WF_ALPHA_REL"
   by (simp add: WF_ALPHA_COND_def)
+
+theorem WF_ALPHA_POST_WF_ALPHA_REL [closure] :
+"r \<in> WF_ALPHA_POST \<Longrightarrow> r \<in> WF_ALPHA_REL"
+  by (simp add: WF_ALPHA_POST_def)
 
 theorem HOM_RELATION_WF_ALPHA_REL [closure] :
 "r \<in> HOM_RELATION \<Longrightarrow> r \<in> WF_ALPHA_REL"
@@ -200,6 +217,10 @@ done
 lemma REL_ALPHABET_WF_ALPHA_COND [closure]: 
   "p \<in> WF_ALPHA_COND \<Longrightarrow> \<alpha>(p) \<in> REL_ALPHABET"
   by (metis WF_ALPHA_COND_WF_ALPHA_REL WF_ALPHA_REL_def mem_Collect_eq)
+
+lemma REL_ALPHABET_WF_ALPHA_POST [closure]: 
+  "p \<in> WF_ALPHA_POST \<Longrightarrow> \<alpha>(p) \<in> REL_ALPHABET"
+  by (metis WF_ALPHA_POST_WF_ALPHA_REL WF_ALPHA_REL_def mem_Collect_eq)
 
 lemma REL_ALPHABET_WF_ALPHA_REL [closure]: 
   "p \<in> WF_ALPHA_REL \<Longrightarrow> \<alpha>(p) \<in> REL_ALPHABET"
@@ -282,6 +303,10 @@ apply (simp add:NotA.rep_eq)
 apply (auto intro: unrest)
 done
 
+theorem NotA_WF_ALPHA_POST [closure] :
+"r \<in> POST \<Longrightarrow> \<not>\<^sub>\<alpha> r \<in> POST"
+  by (metis (lifting, no_types) EvalA_NotA EvalA_def NotA_WF_ALPHA_REL UNREST_NotP WF_ALPHA_POST_def mem_Collect_eq)
+
 theorem AndA_WF_ALPHA_REL [closure] :
 "\<lbrakk>r1 \<in> WF_ALPHA_REL;
  r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
@@ -293,6 +318,15 @@ theorem AndA_WF_ALPHA_COND [closure] :
  r2 \<in> WF_ALPHA_COND\<rbrakk> \<Longrightarrow>
  r1 \<and>\<^sub>\<alpha> r2 \<in> WF_ALPHA_COND"
 apply (simp add:WF_ALPHA_COND_def)
+apply (simp add:AndA.rep_eq closure)
+apply (auto intro:unrest)
+done
+
+theorem AndA_WF_ALPHA_POST [closure] :
+"\<lbrakk>r1 \<in> WF_ALPHA_POST;
+ r2 \<in> WF_ALPHA_POST\<rbrakk> \<Longrightarrow>
+ r1 \<and>\<^sub>\<alpha> r2 \<in> WF_ALPHA_POST"
+apply (simp add:WF_ALPHA_POST_def)
 apply (simp add:AndA.rep_eq closure)
 apply (auto intro:unrest)
 done
@@ -739,6 +773,37 @@ theorem SkipA_unfold :
   apply (subgoal_tac "x \<in> UNDASHED")
   apply (simp add:SkipRA_unfold)
   apply (auto simp add:REL_ALPHABET_def)
+done
+
+lemma EvalA_CoerceA [evala]: "\<lbrakk>(P)\<^bsub>!A\<^esub>\<rbrakk>\<pi> = (\<exists>\<^sub>p (- \<langle>A\<rangle>\<^sub>f). P)"
+  by (simp add:EvalA_def CoerceA.rep_eq)
+
+lemma CoerceA_SkipRA_right:
+  "A \<in> HOM_ALPHABET \<Longrightarrow> (P)\<^bsub>!A\<^esub> = (P ;\<^sub>R II\<^bsub>\<langle>A\<rangle>\<^sub>f\<^esub>)\<^bsub>!A\<^esub>"
+  apply (utp_alpha_tac)
+  apply (subgoal_tac "- \<langle>A\<rangle>\<^sub>f = - \<langle>A\<rangle>\<^sub>f \<union> (D\<^sub>1 - out \<langle>A\<rangle>\<^sub>f)") 
+  apply (subst SkipRA_right_as_ExistsP[of _ "D\<^sub>1"])
+  apply (metis HOMOGENEOUS_HOM_ALPHA)
+  apply (simp_all add: unrest)
+  apply (metis ExistsP_union)
+  apply (auto)
+done
+
+lemma CoerceA_SkipRA_left:
+  "A \<in> HOM_ALPHABET \<Longrightarrow> (P)\<^bsub>!A\<^esub> = (II\<^bsub>\<langle>A\<rangle>\<^sub>f\<^esub> ;\<^sub>R P)\<^bsub>!A\<^esub>"
+  apply (utp_alpha_tac)
+  apply (subgoal_tac "- \<langle>A\<rangle>\<^sub>f = - \<langle>A\<rangle>\<^sub>f \<union> (D\<^sub>0 - in \<langle>A\<rangle>\<^sub>f)") 
+  apply (subst SkipRA_left_as_ExistsP[of _ "D\<^sub>0"])
+  apply (simp_all add:unrest)
+  apply (metis HOMOGENEOUS_HOM_ALPHA)
+  apply (metis ExistsP_union)
+  apply (auto)
+done
+
+theorem CoerceA_SkipA: "A \<in> HOM_ALPHABET \<Longrightarrow> (II)\<^bsub>!A \<^esub>= II\<alpha>\<^bsub>A\<^esub>"
+  apply (subst CoerceA_SkipRA_left)
+  apply (simp_all)
+  apply (metis CoerceA_alphabet CoerceA_rep_eq_simple SkipA.rep_eq SkipA_alphabet UNREST_SkipRA WF_ALPHA_PREDICATE_neq_elim snd_conv)
 done
 
 end

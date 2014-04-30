@@ -21,6 +21,12 @@ notation thy ("\<T>\<index>")
 
 abbreviation "TopTS TS \<equiv> TopT (thy TS) (alpha TS)"
 abbreviation "BotTS TS \<equiv> BotT (thy TS) (alpha TS)"
+abbreviation "MeetTS TS p q \<equiv> MeetT p (thy TS) (alpha TS) q"
+abbreviation "JoinTS TS p q \<equiv> JoinT p (thy TS) (alpha TS) q"
+abbreviation "SupTS TS \<equiv> SupT (thy TS) (alpha TS)"
+abbreviation "InfTS TS \<equiv> InfT (thy TS) (alpha TS)"
+abbreviation "LfpTS TS \<equiv> LfpT (thy TS) (alpha TS)"
+abbreviation "GfpTS TS \<equiv> GfpT (thy TS) (alpha TS)"
 
 no_syntax
   "_uapred_true"     :: "'m ALPHABET \<Rightarrow> uapred" ("true\<^bsub>_\<^esub>")
@@ -41,6 +47,8 @@ syntax
   "_uapred_bot_st"    :: "'a utp_struct \<Rightarrow> uapred" ("\<bottom>\<index>")
   "_uapred_skip_st"   :: "'a utp_struct \<Rightarrow> uapred" ("II\<index>")
   "_uapred_assign_st" :: "'a utp_struct \<Rightarrow> 'a VAR \<Rightarrow> apexpr \<Rightarrow> uapred" ("_ :=\<index> _" [100] 100)
+  "_uapred_meet_st"   :: "'a utp_struct \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixl "\<squnion>\<index>" 65)
+  "_uapred_join_st"   :: "'a utp_struct \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixl "\<sqinter>\<index>" 70)
 
 translations
   "_uapred_true_st A"       == "CONST TrueA (CONST alpha A)"
@@ -49,6 +57,8 @@ translations
   "_uapred_bot_st A "       == "CONST BotTS A"
   "_uapred_skip_st A"       == "CONST SkipA (CONST alpha A)"
   "_uapred_assign_st A x e" == "CONST PAssignA x (CONST alpha A) e"
+  "_uapred_meet_st A p q"   == "CONST MeetTS A p q"
+  "_uapred_join_st A p q"   == "CONST JoinTS A p q"
 
 locale UTP_CTX =
   fixes US :: "('m::VALUE, 'e::type) utp_struct_scheme" (structure)
@@ -56,6 +66,28 @@ locale UTP_CTX =
 locale UTP_THY_CTX = 
   UTP_CTX "US" for US :: "('m::VALUE, 'e::type) thy_struct_scheme" (structure) +
   assumes thy_is_theory: "UTP_THEORY \<T>" and alpha_of_theory: "\<Sigma> \<in> alphas \<T>"
+
+locale UTP_THY_LAT_CTX =
+   UTP_CTX +
+   assumes thy_lat: "bounded_lattice (OrderT \<T> \<Sigma>)"
+begin
+
+   lemma assumes "P \<in> \<lbrakk>\<T>\<rbrakk>[\<Sigma>]\<T>" shows "``\<bottom>`` \<sqsubseteq> ``P``"
+   proof -
+     interpret blat: bounded_lattice "OrderT \<T> \<Sigma>"
+    where "partial_object.carrier (OrderT \<T> \<Sigma>) = \<lbrakk>\<T>\<rbrakk>[\<Sigma>]\<T>"
+    and "eq (OrderT \<T> \<Sigma>) = op ="
+    and "le (OrderT \<T> \<Sigma>) = op \<sqsubseteq>"
+       apply (simp_all)
+
+       by (metis thy_lat)   
+
+     show ?thesis
+       thm blat.bottom_lower
+by (metis assms blat.bottom_lower)
+qed
+
+end
 
 locale UTP_REL_CTX = UTP_THY_CTX  +
   assumes RELT_thy [simp]: "\<T> \<le> RELT"

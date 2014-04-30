@@ -190,6 +190,11 @@ lemma StarP_mono: "mono (\<lambda> x. (II \<or>\<^sub>p (p ;\<^sub>R x)))"
   apply (utp_rel_auto_tac)
 done
 
+lemma StarP_false [simp]: "false\<^sup>\<star> = II"
+  apply (subst star_unfoldl_eq[THEN sym])
+  apply (simp add:plus_WF_PREDICATE_def one_WF_PREDICATE_def times_WF_PREDICATE_def)
+done
+
 text {* Kleene star talks about finite iteration only, and is therefore a strict subset of
         the set of infinite recursions *}
 

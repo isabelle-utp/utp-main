@@ -85,6 +85,11 @@ theorem HoareP_SkipR [hoare]:
   shows "`{p}II{p}`"
   using assms by (utp_xrel_auto_tac)
 
+theorem HoareP_SkipRA [hoare]:
+  assumes "HOMOGENEOUS vs" "- in(vs) \<sharp> p"
+  shows "`{p}II\<^bsub>vs\<^esub>{p}`"
+  by (metis AndP_assoc AndP_comm AndP_idem HoareP_intro RefP_AndP_intro SemiR_spec_refine SkipRA_AndP_cond assms)
+
 theorem HoareP_CondR [hoare]:
   assumes "`{b \<and> p}S{q}`" "`{\<not>b \<and> p}T{q}`"
   shows "`{p}S \<lhd> b \<rhd> T{q}`"
