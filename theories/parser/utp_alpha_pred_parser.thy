@@ -33,6 +33,9 @@ syntax
   "_uapred_top_clos" :: "uapred \<Rightarrow> bool" ("(1[_])")
   "_uapred_quote"    :: "uapred \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("(1``_``)")
   "_uapred_brack"    :: "uapred \<Rightarrow> uapred" ("'(_')" [0] 900)
+  "_uapred_op1"      :: "idt \<Rightarrow> uapred \<Rightarrow> uapred" ("_'(_')")
+  "_uapred_op2"      :: "idt \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" ("_'(_,_')")
+  "_uapred_op3"      :: "idt \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" ("_'(_,_,_')")
   "_uapred_TRUE"     :: "uapred" ("TT")
   "_uapred_true"     :: "'a ALPHABET \<Rightarrow> uapred" ("true\<^bsub>_\<^esub>")
   "_uapred_FALSE"    :: "uapred" ("FF")
@@ -49,9 +52,9 @@ syntax
 (*  "_uapred_ext"      :: "uapred \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" (infixr "\<oplus>" 40) *)
   "_uapred_ext"      :: "uapred \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("_\<^bsub>+_\<^esub>" 40)
   "_uapred_res"      :: "uapred \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("_\<^bsub>-_\<^esub>" 40)
-  "_uapred_all1"     :: "pttrn \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<forall> _./ _)" [0, 10] 10) 
-  "_uapred_exists1"  :: "pttrn \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<exists>+ _./ _)" [0, 10] 10) 
-  "_uapred_existsres1" :: "pttrn \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<exists>- _./ _)" [0, 10] 10) 
+  "_uapred_all1"     :: "('a, 'm) PVAR \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<forall> _./ _)" [0, 10] 10) 
+  "_uapred_exists1"  :: "('a, 'm) PVAR \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<exists>+ _./ _)" [0, 10] 10) 
+  "_uapred_existsres1" :: "('a, 'm) PVAR \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<exists> _./ _)" [0, 10] 10) 
   "_uapred_pexpr"    :: "apexpr \<Rightarrow> uapred" ("\<lparr>_\<rparr>")
   "_uapred_equal"    :: "apexpr \<Rightarrow> apexpr \<Rightarrow> uapred" (infixl "=" 50)
   "_uapred_nequal"   :: "apexpr \<Rightarrow> apexpr \<Rightarrow> uapred" (infixl "\<noteq>" 50)
@@ -63,13 +66,18 @@ syntax
   "_uapred_conv"     :: "uapred \<Rightarrow> uapred" ("(_\<^sup>\<smile>)" [1000] 999)
   "_uapred_prime"    :: "uapred \<Rightarrow> uapred" ("_\<acute>" [1000] 1000)
   "_uapred_varext"   :: "uapred \<Rightarrow> ('a, 'm) PVAR \<Rightarrow> upred" ("_\<^bsub>+_\<^esub>")
+(*
   "_uapred_zpara"    :: "uzdecls \<Rightarrow> uapred \<Rightarrow> uapred" ("[_|_]")
   "_uzdecl_basic"    :: "'a VAR \<Rightarrow> 'a VAR \<Rightarrow> uzdecl" (infix ":" 45)
   ""                 :: "uzdecl => uzdecls"             ("_")
   "_uzdecls"         :: "[uzdecl, uzdecls] => uzdecls" ("_,/ _")
+*)
 
 translations
   "_uapred_brack p"     => "p"
+  "_uapred_op1 f x"     => "f x"
+  "_uapred_op2 f x y"   => "f x y"
+  "_uapred_op3 f x y z" => "f x y z" 
   "_uapred_quote p"     => "p"
   "_uapred_top_clos p"  == "CONST TautologyA p"
   "_uapred_TRUE"        == "CONST TRUE"
@@ -87,9 +95,9 @@ translations
   "_uapred_not p"       == "CONST NotA p"
   "_uapred_ext a p"     == "CONST ExtA a p"
   "_uapred_res a p"     == "CONST ResA a p"
-  "_uapred_all1 x p"    == "CONST ForallA \<lbrace>x\<rbrace> p"
-  "_uapred_exists1 x p" == "CONST ExistsA \<lbrace>x\<rbrace> p"
-  "_uapred_existsres1 x p" == "CONST ExistsResA \<lbrace>x\<rbrace> p"
+  "_uapred_all1 x p"    == "CONST ForallA \<lbrace>x\<down>\<rbrace> p"
+  "_uapred_exists1 x p" == "CONST ExistsA \<lbrace>x\<down>\<rbrace> p"
+  "_uapred_existsres1 x p" == "CONST ExistsResA \<lbrace>x\<down>\<rbrace> p"
   "_uapred_pexpr e"     == "CONST APExprA e"
   "_uapred_equal e f"   == "CONST APEqualA e f"
   "_uapred_nequal e f"  == "CONST NotA (CONST EqualA e f)"
@@ -171,7 +179,6 @@ syntax
   "_uapred_SUP1"  :: "'a ALPHABET \<Rightarrow> pttrns \<Rightarrow> uapred \<Rightarrow> uapred" ("(3\<Squnion>\<^bsub>_\<^esub> _./ _)" [0, 0, 10] 10)
   "_uapred_SUP"   :: "'a ALPHABET \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<Squnion>\<^bsub>_\<^esub> _:_./ _)" [0, 0, 0, 10] 10)
 
-(*
 translations
   "_uapred_index f i"     => "f i"
   "_uapred_ANDI1 a x y B" => "AND[a] x. AND[a] y. B"
@@ -202,6 +209,7 @@ term "``p[v/x]``"
 term "``x :=\<^bsub>\<lbrace>x\<down>,x\<down>\<acute>\<rbrace>\<^esub> true``"
 
 term "``p\<^bsub>+\<lbrace>x\<down>\<rbrace>\<^esub>``"
-*)
+
+term "``\<exists> x\<acute>. p``"
 
 end

@@ -16,6 +16,7 @@ imports
   "../poly/utp_poly_tac"
   "../alpha/utp_alpha_rel"
   "../alpha/utp_alpha_lattice"
+  "../parser/utp_alpha_pred_parser"
 begin
 
 subsection {* UTP theories definitions *}
@@ -101,19 +102,29 @@ lemma THEORY_PRED_OVER_elim [elim]:
 
 abbreviation "OrderTA T \<equiv> \<lparr> partial_object.carrier = \<lbrakk>T\<rbrakk>\<T>, eq = op =, le = op \<sqsubseteq> \<rparr>"
 
-interpretation THEORYA_partial_order: partial_order "(OrderTA T)"
+theorem THEORYA_partial_order: "partial_order (OrderTA T)"
+  by (unfold_locales, simp_all)
+
+(*
+interpretation THEORYA_partial_orderder: partial_order "(OrderTA T)"
   where "partial_object.carrier (OrderTA T) = \<lbrakk>T\<rbrakk>\<T>"
-    and "eq (OrderTA T) = op ="
+(*    and "eq (OrderTA T) = op =" *)
     and "le (OrderTA T) = op \<sqsubseteq>"
   by (unfold_locales, simp_all)
+*)
 
 abbreviation "OrderT T a \<equiv> \<lparr> partial_object.carrier = \<lbrakk>T\<rbrakk>[a]\<T>, eq = op =, le = op \<sqsubseteq> \<rparr>"
 
+theorem THEORY_partial_order: "partial_order (OrderT T a)"
+  by (unfold_locales, simp_all)
+
+(*
 interpretation THEORY_partial_order: partial_order "(OrderT T a)"
   where "partial_object.carrier (OrderT T a) = \<lbrakk>T\<rbrakk>[a]\<T>"
-    and "eq (OrderT T a) = op ="
+(*    and "eq (OrderT T a) = op =" *)
     and "le (OrderT T a) = op \<sqsubseteq>"
   by (unfold_locales, simp_all)
+*)
 
 subsection {* UTP theory lattice operators *}
 
@@ -172,7 +183,6 @@ translations
   "_uapred_bot T a"     == "CONST BotT T a"
   "_uapred_joint T a"   == "CONST JoinT T a"
   "_uapred_meett T a"   == "CONST MeetT T a"
-  "_uapred_zpara ds p"  == "CONST AndA ds p"
 
 abbreviation 
   "GaloisT T1 T2 f g \<equiv> (\<forall> a \<in> \<A>\<^bsub>T1\<^esub>. \<forall> b \<in> \<A>\<^bsub>T2\<^esub>. 
@@ -336,7 +346,7 @@ proof -
     and "le (OrderT T a) = op \<sqsubseteq>"
     by (simp_all add:assms)
   show ?thesis
-    by (auto intro: THEORY_partial_order.le_antisym[of _ _ "T" "a"] simp add:blat.top_higher blat.top_closed assms)
+    by (auto intro: blat.le_antisym simp add:blat.top_higher blat.top_closed assms)
 qed  
 
 lemma BotT_eq:
@@ -351,7 +361,7 @@ proof -
     and "le (OrderT T a) = op \<sqsubseteq>"
     by (simp_all add:assms)
   show ?thesis
-    by (auto intro: THEORY_partial_order.le_antisym[of _ _ "T" "a"] simp add:blat.bottom_lower blat.bottom_closed assms)
+    by (auto intro: blat.le_antisym simp add:blat.bottom_lower blat.bottom_closed assms)
 qed  
 
 end
@@ -423,7 +433,7 @@ sublocale lattice \<subseteq> weak_partial_order ..
 
 interpretation RELT_lattice: lattice "OrderT RELT a"
   where "partial_object.carrier (OrderT RELT a) = \<lbrakk>RELT\<rbrakk>[a]\<T>"
-    and "eq (OrderT RELT a) = op ="
+(*    and "eq (OrderT RELT a) = op =" *)
     and "le (OrderT RELT a) = op \<sqsubseteq>"
   apply (metis RELT_AndP_closed RELT_OrP_closed RELT_theory.OrderT_lattice)
   apply (simp_all)
