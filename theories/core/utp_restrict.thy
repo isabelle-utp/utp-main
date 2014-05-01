@@ -1,5 +1,9 @@
 theory utp_restrict
-imports utp_pred utp_unrest utp_expr utp_rel
+imports 
+  utp_pred 
+  utp_unrest 
+  utp_expr 
+  utp_rel
 begin
 
 (* Restriction forcibly removes a set of variables from a predicate by substituting
@@ -52,17 +56,22 @@ lemma RestrictP_LitE:
   by (auto simp add:RestrictE.rep_eq LitE_rep_eq)
 
 lemma RestrictP_SkipR:
-  "HOMOGENEOUS xs \<Longrightarrow> II \<ominus>\<^sub>p (- xs) = II\<^bsub>xs\<^esub>"
+  "\<lbrakk> xs \<subseteq> REL_VAR; HOMOGENEOUS xs \<rbrakk> \<Longrightarrow> II \<ominus>\<^sub>p (- xs) = II\<^bsub>xs\<^esub>"
   apply (rule)
   apply (auto simp add:SkipR.rep_eq SkipRA.rep_eq ExistsP.rep_eq RestrictP.rep_eq)
-oops
+  apply (rule_tac x="x \<oplus>\<^sub>b \<B> on REL_VAR - xs" in exI)
+  apply (auto)
+  apply (rule_tac x="x" in exI, simp)
+  apply (drule_tac x="v" in bspec, auto)
+  apply (metis (hide_lams, no_types) Compl_iff Diff_iff UNDASHED_dash_DASHED Un_iff override_on_apply_in override_on_apply_notin)
+  apply (metis (hide_lams, mono_tags) Compl_iff default_binding_dash hom_alphabet_dash hom_alphabet_undash override_on_apply_in override_on_apply_notin override_on_minus)
+done
 
 lemma RestrictP_SemiR:
   "(p ;\<^sub>R q) \<ominus>\<^sub>p xs = (p \<ominus>\<^sub>p (in(xs) \<union> nrel(xs))) ;\<^sub>R (q \<ominus>\<^sub>p (out(xs) \<union> nrel(xs)))"
   apply (rule) 
   apply (auto simp add:SemiR.rep_eq RestrictP.rep_eq)
-oops  
-
+oops
 
 lemma UNREST_RestrictP [unrest]:
   "vs \<sharp> p \<ominus>\<^sub>p vs"
@@ -73,6 +82,5 @@ lemma UNREST_RestrictE [unrest]:
   apply (subst UNREST_EXPR_def)
   apply (simp add: RestrictE.rep_eq)
 done
-
 
 end
