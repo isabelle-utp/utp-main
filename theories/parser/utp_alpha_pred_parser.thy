@@ -26,6 +26,9 @@ syntax
   "_apexpr_lit"         :: "'a \<Rightarrow> apexpr" ("\<guillemotleft>_\<guillemotright>")
   "_apexpr_true"        :: "apexpr" ("true")
   "_apexpr_false"       :: "apexpr" ("false")
+  "_apexpr_op1"         :: "idt \<Rightarrow> apexpr \<Rightarrow> apexpr" ("_'(_')")
+  "_apexpr_op2"         :: "idt \<Rightarrow> apexpr \<Rightarrow> apexpr \<Rightarrow> apexpr" ("_'(_,_')")
+  "_apexpr_op3"         :: "idt \<Rightarrow> apexpr \<Rightarrow> apexpr \<Rightarrow> apexpr \<Rightarrow> apexpr" ("_'(_,_,_')")
 
 (* Predicate Parser *)
 
@@ -138,6 +141,9 @@ translations
   "_apexpr_lit v"              == "CONST LitAPE v"
   "_apexpr_true"               == "CONST TrueAPE"
   "_apexpr_false"              == "CONST FalseAPE"
+  "_apexpr_op1 f x"            == "CONST Op1APE f x"
+  "_apexpr_op2 f x y"          == "CONST Op2APE f x y"
+  "_apexpr_op3 f x y z"        == "CONST Op3APE f x y z"
 
 syntax
   (* Data Structures *)

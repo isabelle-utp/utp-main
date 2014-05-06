@@ -186,6 +186,9 @@ syntax
   "_pexpr_not"          :: "pexpr \<Rightarrow> pexpr" ("\<not> _" [40] 40)
   "_pexpr_all1"         :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> pexpr"  ("(3\<forall> _./ _)" [0, 10] 10) 
   "_pexpr_exists1"      :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> pexpr"  ("(3\<exists> _./ _)" [0, 10] 10) 
+  "_pexpr_op1"          :: "idt \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_'(_')")
+  "_pexpr_op2"          :: "idt \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_'(_,_')")
+  "_pexpr_op3"          :: "idt \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_'(_,_,_')")
 
 syntax
   (* Relational operators *)
@@ -246,6 +249,9 @@ translations
   "_pexpr_not p"               == "CONST NotPE p"
   "_pexpr_all1 x p"            == "CONST ForallPE {x\<down>} p"
   "_pexpr_exists1 x p"         == "CONST ExistsPE {x\<down>} p"
+  "_pexpr_op1 f x"             == "CONST Op1PE f x"
+  "_pexpr_op2 f x y"           == "CONST Op2PE f x y"
+  "_pexpr_op3 f x y z"         == "CONST Op3PE f x y z"
 
 translations
   (* Relational operators *)
