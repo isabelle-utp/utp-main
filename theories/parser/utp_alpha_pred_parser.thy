@@ -41,10 +41,12 @@ syntax
   "_uapred_op3"      :: "idt \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" ("_'(_,_,_')")
   "_uapred_TRUE"     :: "uapred" ("TT")
   "_uapred_true"     :: "'a ALPHABET \<Rightarrow> uapred" ("true\<^bsub>_\<^esub>")
+  "_uapred_tt"       :: "'a ALPHABET \<Rightarrow> uapred" ("tt\<^bsub>_\<^esub>")
   "_uapred_FALSE"    :: "uapred" ("FF")
   "_uapred_false"    :: "'a ALPHABET \<Rightarrow> uapred" ("false\<^bsub>_\<^esub>")
+  "_uapred_ff"       :: "'a ALPHABET \<Rightarrow> uapred" ("ff\<^bsub>_\<^esub>")
   "_uapred_var"      :: "pttrn \<Rightarrow> uapred" ("(_)")
-(*  "_uapred_evar"     :: "idt \<Rightarrow> uapred" ("$_") *)
+  "_uapred_evar"     :: "(bool, 'm) PVAR \<Rightarrow> uapred" ("$_" [999] 999)
   "_uapred_and"      :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr "\<and>" 35)
   "_uapred_or"       :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr "\<or>" 35)
   "_uapred_imp"      :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr "\<Rightarrow>" 25)
@@ -52,9 +54,12 @@ syntax
   "_uapred_ref"      :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixr "\<sqsubseteq>" 25)
   "_uapred_clos"     :: "uapred \<Rightarrow> uapred" ("[_]")
   "_uapred_not"      :: "uapred \<Rightarrow> uapred" ("\<not> _" [40] 40) 
-(*  "_uapred_ext"      :: "uapred \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" (infixr "\<oplus>" 40) *)
+  "_uapred_ext"      :: "uapred \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" (infixr "\<oplus>" 40)
+  "_uapred_res"      :: "uapred \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" (infixr "\<ominus>" 40)
+(*
   "_uapred_ext"      :: "uapred \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("_\<^bsub>+_\<^esub>" 40)
   "_uapred_res"      :: "uapred \<Rightarrow> 'a ALPHABET \<Rightarrow> uapred" ("_\<^bsub>-_\<^esub>" 40)
+*)
   "_uapred_all1"     :: "('a, 'm) PVAR \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<forall> _./ _)" [0, 10] 10) 
   "_uapred_exists1"  :: "('a, 'm) PVAR \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<exists>+ _./ _)" [0, 10] 10) 
   "_uapred_existsres1" :: "('a, 'm) PVAR \<Rightarrow> uapred \<Rightarrow> uapred"  ("(3\<exists> _./ _)" [0, 10] 10) 
@@ -85,10 +90,12 @@ translations
   "_uapred_top_clos p"  == "CONST TautologyA p"
   "_uapred_TRUE"        == "CONST TRUE"
   "_uapred_true a"      == "CONST TrueA a"
+  "_uapred_tt a"        => "CONST TrueA a"
   "_uapred_FALSE"       == "CONST FALSE"
   "_uapred_false a"     == "CONST FalseA a"
+  "_uapred_ff a"        => "CONST FalseA a"
   "_uapred_var x"       => "x"
-(*  "_uapred_evar x"      == "CONST VarA x" *)
+  "_uapred_evar x"      == "CONST VarAP x"
   "_uapred_and p q"     == "CONST AndA p q"
   "_uapred_or p q"      == "CONST OrA p q"
   "_uapred_imp p q"     == "CONST ImpliesA p q"
@@ -214,7 +221,7 @@ term "``p[v/x]``"
 
 term "``x :=\<^bsub>\<lbrace>x\<down>,x\<down>\<acute>\<rbrace>\<^esub> true``"
 
-term "``p\<^bsub>+\<lbrace>x\<down>\<rbrace>\<^esub>``"
+term "``p \<oplus> \<lbrace>x\<down>\<rbrace>``"
 
 term "``\<exists> x\<acute>. p``"
 

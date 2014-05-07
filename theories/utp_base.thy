@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
 (* File: utp_base.thy                                                         *)
-(* Author: Frank Zeyda, University of York (UK)                               *)
+(* Author:Simon Foster and Frank Zeyda, University of York (UK)               *)
 (******************************************************************************)
 
 header {* Base UTP without any theories *}

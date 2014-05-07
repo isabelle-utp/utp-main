@@ -112,6 +112,9 @@ declare [[coercion APExprA]]
 adhoc_overloading
   erase APExprA
 
+abbreviation VarAP :: "(bool, 'm :: BOOL_SORT) PVAR \<Rightarrow> 'm WF_ALPHA_PREDICATE" where
+"VarAP x \<equiv> APExprA (VarAPE x)"
+
 abbreviation PSubstA :: 
 "('m :: VALUE) WF_ALPHA_PREDICATE \<Rightarrow> 
  ('b :: DEFINED, 'm) WF_ALPHA_PEXPR \<Rightarrow> 
@@ -175,21 +178,21 @@ lemma EvalAPE_Op1APE [evala]:
   "\<lbrakk>Op1APE f v\<rbrakk>\<epsilon>\<^sub>* = Op1PE f \<lbrakk>v\<rbrakk>\<epsilon>\<^sub>*"
   by (simp add:EvalAPE_def Op1APE.rep_eq, case_tac "DestAPExpr v", simp)
 
-lemma EvalAPE_Op2APE [alphabet]:
+lemma EvalAPE_Op2APE [evala]:
   "\<lbrakk>Op2APE f v w\<rbrakk>\<epsilon>\<^sub>* = Op2PE f \<lbrakk>v\<rbrakk>\<epsilon>\<^sub>* \<lbrakk>w\<rbrakk>\<epsilon>\<^sub>*"
   by (simp add:EvalAPE_def Op2APE.rep_eq, case_tac "DestAPExpr v", case_tac "DestAPExpr w", simp)
 
-lemma EvalAPE_Op3APE [alphabet]:
+lemma EvalAPE_Op3APE [evala]:
   "\<lbrakk>Op3APE f v w x\<rbrakk>\<epsilon>\<^sub>* = Op3PE f \<lbrakk>v\<rbrakk>\<epsilon>\<^sub>* \<lbrakk>w\<rbrakk>\<epsilon>\<^sub>* \<lbrakk>x\<rbrakk>\<epsilon>\<^sub>*"
   by (simp add:EvalAPE_def Op3APE.rep_eq, case_tac "DestAPExpr v", case_tac "DestAPExpr w", case_tac "DestAPExpr x", simp)
 
-lemma EvalAPE_APExprAE [alphabet]:
+lemma EvalAPE_APExprAE [evala]:
   fixes e :: "('a :: DEFINED, 'm :: VALUE) WF_ALPHA_PEXPR"
   assumes "TYPEUSOUND('a, 'm)"
   shows "\<lbrakk>e\<down>\<rbrakk>\<epsilon> = \<lbrakk>e\<rbrakk>\<epsilon>\<^sub>*\<down>"
   using assms by (simp add:EvalAPE_def EvalAE_def APExprAE_rep_eq)
 
-lemma EvalA_APExprA [alphabet]:
+lemma EvalA_APExprA [evala]:
   "\<lbrakk>APExprA v\<rbrakk>\<pi> = PExprP \<lbrakk>v\<rbrakk>\<epsilon>\<^sub>*"
   apply (simp add:EvalA_def EvalAPE_def APExprA.rep_eq)
   apply (case_tac "DestAPExpr v", simp)

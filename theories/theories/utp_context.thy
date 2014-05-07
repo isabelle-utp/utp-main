@@ -9,6 +9,7 @@ header {* UTP Contexts *}
 theory utp_context
 imports 
   utp_theory
+  "../alpha/utp_alpha_lattice"
   "../parser/utp_alpha_pred_parser"
 begin
 
@@ -25,8 +26,14 @@ abbreviation "MeetTS TS p q \<equiv> MeetT p (thy TS) (alpha TS) q"
 abbreviation "JoinTS TS p q \<equiv> JoinT p (thy TS) (alpha TS) q"
 abbreviation "SupTS TS \<equiv> SupT (thy TS) (alpha TS)"
 abbreviation "InfTS TS \<equiv> InfT (thy TS) (alpha TS)"
-abbreviation "LfpTS TS \<equiv> LfpT (thy TS) (alpha TS)"
-abbreviation "GfpTS TS \<equiv> GfpT (thy TS) (alpha TS)"
+
+abbreviation WfpTS :: 
+  "('a::VALUE, 'b) thy_struct_scheme \<Rightarrow> ('a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE) \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("\<mu>\<index>")
+where "WfpTS TS \<equiv> GfpT (thy TS) (alpha TS)"
+
+abbreviation SfpTS :: 
+  "('a::VALUE, 'b) thy_struct_scheme \<Rightarrow> ('a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE) \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("\<nu>\<index>")
+where "SfpTS TS \<equiv> LfpT (thy TS) (alpha TS)"
 
 no_syntax
   "_uapred_true"     :: "'m ALPHABET \<Rightarrow> uapred" ("true\<^bsub>_\<^esub>")
@@ -49,6 +56,8 @@ syntax
   "_uapred_assign_st" :: "'a utp_struct \<Rightarrow> 'a VAR \<Rightarrow> apexpr \<Rightarrow> uapred" ("_ :=\<index> _" [100] 100)
   "_uapred_meet_st"   :: "'a utp_struct \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixl "\<squnion>\<index>" 65)
   "_uapred_join_st"   :: "'a utp_struct \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixl "\<sqinter>\<index>" 70)
+  "_uapred_wfp"       :: "logic \<Rightarrow> idt \<Rightarrow> uapred \<Rightarrow> uapred" ("(3\<mu>\<index>_./ _)" [0, 10] 10)
+  "_uapred_sfp"       :: "logic \<Rightarrow> idt \<Rightarrow> uapred \<Rightarrow> uapred" ("(3\<nu>\<index>_./ _)" [0, 10] 10)
 
 translations
   "_uapred_true_st A"       == "CONST TrueA (CONST alpha A)"
@@ -59,6 +68,11 @@ translations
   "_uapred_assign_st A x e" == "CONST PAssignA x (CONST alpha A) e"
   "_uapred_meet_st A p q"   == "CONST MeetTS A p q"
   "_uapred_join_st A p q"   == "CONST JoinTS A p q"
+  "_uapred_wfp A x p"       == "CONST WfpTS A (\<lambda>x. p)"
+  "_uapred_sfp A x p"       == "CONST SfpTS A (\<lambda>x. p)"
+
+no_notation
+  WFP ("\<mu>") and SFP ("\<nu>")
 
 locale UTP_CTX =
   fixes US :: "('m::VALUE, 'e::type) utp_struct_scheme" (structure)
@@ -69,23 +83,20 @@ locale UTP_THY_CTX =
 
 locale UTP_THY_LAT_CTX =
    UTP_CTX +
-   assumes thy_lat: "bounded_lattice (OrderT \<T> \<Sigma>)"
+   assumes thy_lat: "complete_lattice (OrderT \<T> \<Sigma>)"
 begin
 
-   lemma assumes "P \<in> \<lbrakk>\<T>\<rbrakk>[\<Sigma>]\<T>" shows "``\<bottom>`` \<sqsubseteq> ``P``"
-   proof -
-     interpret blat: bounded_lattice "OrderT \<T> \<Sigma>"
-    where "partial_object.carrier (OrderT \<T> \<Sigma>) = \<lbrakk>\<T>\<rbrakk>[\<Sigma>]\<T>"
-    and "eq (OrderT \<T> \<Sigma>) = op ="
-    and "le (OrderT \<T> \<Sigma>) = op \<sqsubseteq>"
-       apply (simp_all)
+  abbreviation "Mono F \<equiv> isotone (OrderT \<T> \<Sigma>) (OrderT \<T> \<Sigma>) F"
 
-       by (metis thy_lat)   
+  lemma WFP_unfold:
+    assumes "Mono F" "F \<in> \<lbrakk>\<T>\<rbrakk>[\<Sigma>]\<T> \<rightarrow> \<lbrakk>\<T>\<rbrakk>[\<Sigma>]\<T>"
+    shows "\<mu> F = F(\<mu> F)"
+    by (metis assms(1) assms(2) complete_lattice.GFP_unfold partial_object.select_convs(1) thy_lat)
 
-     show ?thesis
-       thm blat.bottom_lower
-by (metis assms blat.bottom_lower)
-qed
+  lemma SFP_unfold:
+    assumes "Mono F" "F \<in> \<lbrakk>\<T>\<rbrakk>[\<Sigma>]\<T> \<rightarrow> \<lbrakk>\<T>\<rbrakk>[\<Sigma>]\<T>"
+    shows "\<nu> F = F(\<nu> F)"
+    by (metis assms(1) assms(2) complete_lattice.LFP_unfold partial_object.select_convs(1) thy_lat)
 
 end
 
@@ -93,10 +104,12 @@ locale UTP_REL_CTX = UTP_THY_CTX  +
   assumes RELT_thy [simp]: "\<T> \<le> RELT"
 begin
 
-lemma alpha_rel [closure]: "\<Sigma> \<in> REL_ALPHABET"
-  by (metis RELT_thy THEORY.select_convs(1) alpha_of_theory less_eq_THEORY_ext_def set_mp)
+  lemma alpha_rel [closure]: "\<Sigma> \<in> REL_ALPHABET"
+    by (metis RELT_thy THEORY.select_convs(1) alpha_of_theory less_eq_THEORY_ext_def set_mp)
 
 end
+
+
 
 locale UTP_HOM_CTX =
   UTP_REL_CTX +

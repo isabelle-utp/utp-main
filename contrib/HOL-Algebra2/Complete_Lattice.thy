@@ -1,5 +1,5 @@
 theory Complete_Lattice
-imports Lattice
+imports Lattice FType
 begin
 
 subsection {* Complete Lattices *}
@@ -255,21 +255,30 @@ lemma LFP_greatest:
   by (auto simp add:LFP_def intro:inf_greatest assms)
 
 lemma LFP_lemma2: 
-  assumes "Mono f" "\<And> x. x \<in> carrier L \<Longrightarrow> f x \<in> carrier L"
+  assumes "Mono f" "f \<in> carrier L \<rightarrow> carrier L"
   shows "f (\<mu> f) \<sqsubseteq> \<mu> f"
+  using assms
+  apply (auto simp add:ftype_def)
   apply (rule LFP_greatest)
-  apply (metis LFP_closed assms)
-  apply (metis LFP_closed LFP_lowerbound assms le_trans use_iso2)
+  apply (metis LFP_closed)
+  apply (metis LFP_closed LFP_lowerbound le_trans use_iso1)
 done
 
 lemma LFP_lemma3: 
-  assumes "Mono f" "\<And> x. x \<in> carrier L \<Longrightarrow> f x \<in> carrier L"
+  assumes "Mono f" "f \<in> carrier L \<rightarrow> carrier L"
   shows "\<mu> f \<sqsubseteq> f (\<mu> f)"
-  by (metis LFP_closed LFP_lemma2 LFP_lowerbound assms use_iso1)
+  using assms
+  apply (auto simp add:ftype_def)
+  apply (metis LFP_closed LFP_lemma2 LFP_lowerbound assms(2) use_iso2)
+done
+
+lemma ftype_carrier [intro]:
+  "\<lbrakk> x \<in> carrier L; f \<in> carrier L \<rightarrow> carrier L \<rbrakk> \<Longrightarrow> f(x) \<in> carrier L"
+  by (simp add: typed_application)
 
 lemma LFP_weak_unfold: 
-  "\<lbrakk> Mono f; \<And> x. x \<in> carrier L \<Longrightarrow> f x \<in> carrier L \<rbrakk> \<Longrightarrow> \<mu> f .= f (\<mu> f)"
-  by (metis LFP_closed LFP_lemma2 LFP_lemma3 weak_le_antisym)
+  "\<lbrakk> Mono f; f \<in> carrier L \<rightarrow> carrier L \<rbrakk> \<Longrightarrow> \<mu> f .= f (\<mu> f)"
+  by (auto intro: LFP_closed LFP_lemma2 LFP_lemma3 weak_le_antisym)
 
 lemma GFP_closed [intro, simp]:
   "\<nu> f \<in> carrier L"
@@ -287,21 +296,23 @@ lemma GFP_least:
   by (auto simp add:GFP_def intro:sup_least assms)
 
 lemma GFP_lemma2:
-  assumes "Mono f" "\<And> x. x \<in> carrier L \<Longrightarrow> f x \<in> carrier L"
+  assumes "Mono f" "f \<in> carrier L \<rightarrow> carrier L"
   shows "\<nu> f \<sqsubseteq> f (\<nu> f)"
+  using assms
+  apply (auto simp add:ftype_def)
   apply (rule GFP_least)
   apply (metis GFP_closed assms(2))
   apply (metis GFP_closed GFP_upperbound assms le_trans use_iso2)
 done
 
 lemma GFP_lemma3:
-  assumes "Mono f" "\<And> x. x \<in> carrier L \<Longrightarrow> f x \<in> carrier L"
+  assumes "Mono f" "f \<in> carrier L \<rightarrow> carrier L"
   shows "f (\<nu> f) \<sqsubseteq> \<nu> f"
-  by (metis GFP_closed GFP_lemma2 GFP_upperbound assms use_iso1)
-
+  by (metis GFP_closed GFP_lemma2 GFP_upperbound assms ftype_carrier use_iso2)
+  
 lemma GFP_weak_unfold: 
-  "\<lbrakk> Mono f; \<And> x. x \<in> carrier L \<Longrightarrow> f x \<in> carrier L \<rbrakk> \<Longrightarrow> \<nu> f .= f (\<nu> f)"
-  by (metis GFP_closed GFP_lemma2 GFP_lemma3 weak_le_antisym)
+  "\<lbrakk> Mono f; f \<in> carrier L \<rightarrow> carrier L \<rbrakk> \<Longrightarrow> \<nu> f .= f (\<nu> f)"
+  by (auto intro: GFP_closed GFP_lemma2 GFP_lemma3 weak_le_antisym)
 
 end
 
@@ -381,12 +392,12 @@ context complete_lattice
 begin
 
 lemma LFP_unfold: 
-  "\<lbrakk> Mono f; \<And> x. x \<in> carrier L \<Longrightarrow> f x \<in> carrier L \<rbrakk> \<Longrightarrow> \<mu> f = f (\<mu> f)"
-  by (metis LFP_closed LFP_lemma2 LFP_lemma3 le_antisym)
+  "\<lbrakk> Mono f; f \<in> carrier L \<rightarrow> carrier L \<rbrakk> \<Longrightarrow> \<mu> f = f (\<mu> f)"
+  by (auto intro: LFP_closed LFP_lemma2 LFP_lemma3 le_antisym)
 
 lemma GFP_unfold:
-  "\<lbrakk> Mono f; \<And> x. x \<in> carrier L \<Longrightarrow> f x \<in> carrier L \<rbrakk> \<Longrightarrow> \<nu> f = f (\<nu> f)"
-  by (metis GFP_closed GFP_lemma2 GFP_lemma3 le_antisym)
+  "\<lbrakk> Mono f; f \<in> carrier L \<rightarrow> carrier L \<rbrakk> \<Longrightarrow> \<nu> f = f (\<nu> f)"
+  by (auto intro: GFP_closed GFP_lemma2 GFP_lemma3 le_antisym)
 
 end
 
