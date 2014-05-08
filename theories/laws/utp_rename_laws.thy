@@ -71,7 +71,7 @@ theorems rename_simps =
   RenameP_inverse1
   RenameP_inverse2
   RenameP_compose
-  RenameP_involution
+(* RenameP_involution *)
 
 declare rename_simps [urename]
 

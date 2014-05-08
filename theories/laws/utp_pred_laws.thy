@@ -264,7 +264,7 @@ theorem ExistsP_one_point:
   using assms
   apply (auto simp add:eval evale typing defined)
   apply (rule_tac x="b(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>eb)" in exI)
-  apply (simp)
+  apply (simp add:typing)
 done
 
 theorem ExistsP_has_value:
@@ -276,7 +276,7 @@ theorem ExistsP_has_value:
   apply (utp_pred_tac, utp_expr_tac)
   apply (auto)
   apply (rule_tac x="b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eb)" in exI)
-  apply (simp)
+  apply (simp add:typing)
 done
 
 theorem ExistsP_SubstP_rename :

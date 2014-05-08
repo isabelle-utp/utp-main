@@ -309,7 +309,7 @@ definition VarExtP ::
 
 subsection {* Theorems *}
 
-theorem DASHED_TWICE_NON_REL_VAR [simp,unrest]:
+theorem DASHED_TWICE_NON_REL_VAR [simp]:
   "DASHED_TWICE \<subseteq> NON_REL_VAR"
   by (auto simp add: NON_REL_VAR_def DASHED_TWICE_def)
 
@@ -403,7 +403,7 @@ theorems SS_simps =
   SS_DASHED_app
   SS_DASHED_TWICE_app
   SS_ident_app
-  SS_inv
+(*  SS_inv *)
   SS_UNDASHED_DASHED_image
   SS_UNDASHED_image
   SS_DASHED_image

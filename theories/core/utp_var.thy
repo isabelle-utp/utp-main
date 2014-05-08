@@ -1040,15 +1040,17 @@ done
 
 subsubsection {* Distribution Theorems *}
 
+(*
 theorem dash_inter_distr :
 "dash ` (vs1 \<inter> vs2) = (dash ` vs1) \<inter> (dash ` vs2)"
 apply (auto intro!: image_Int dash_inj)
 done
 
-theorem dash_unsion_distr :
+theorem dash_union_distr :
 "dash ` (vs1 \<union> vs2) = (dash ` vs1) \<union> (dash ` vs2)"
 apply (auto intro!: image_Un)
 done
+*)
 
 theorem override_on_UNIV [simp]:
   "f \<oplus> g on UNIV = g"
@@ -1178,8 +1180,8 @@ theorem undash_image_minus:
   by (metis dash_image_minus dash_undash_image undash_dash_image)
 
 theorems var_dist =
-  dash_inter_distr
-  dash_unsion_distr
+(*  dash_inter_distr
+  dash_unsion_distr *)
   in_vars_union
   in_vars_inter
   in_vars_diff

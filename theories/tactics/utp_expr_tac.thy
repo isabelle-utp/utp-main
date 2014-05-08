@@ -28,7 +28,7 @@ definition EvalE ::
    'VALUE WF_BINDING \<Rightarrow> 'VALUE" ("\<lbrakk>_\<rbrakk>\<^sub>e_" [0, 1000] 51) where
 "EvalE e b = \<langle>e\<rangle>\<^sub>e b"
 
-theorem EvalE_type [typing, simp]:
+theorem EvalE_type [typing]:
 "e :\<^sub>e t \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>eb : t"
   by (simp add:EvalE_def etype_rel_def)
 
@@ -36,7 +36,7 @@ lemma EvalE_defined [defined]:
   "\<D> v \<Longrightarrow> \<D> (\<lbrakk>v\<rbrakk>\<^sub>eb)"
   by (simp add:EvalE_def Defined_WF_EXPRESSION_def)
 
-theorem EvalE_compat [typing, simp]:
+theorem EvalE_compat [typing]:
 "e \<rhd>\<^sub>e t \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>eb \<rhd> t"
   by (simp add:EvalE_def evar_compat_def)
 

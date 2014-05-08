@@ -3,6 +3,7 @@ session "HOL-UTP" = "Kleene_Algebra" +
   theories [document = false]
   theories 
   "theories/utp_base"
+  "theories/utp_friendly"
   "theories/models/utp_basic_model"
   files "document/root.tex"
 

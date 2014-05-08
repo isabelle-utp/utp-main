@@ -324,6 +324,52 @@ lemma SFP_refines_IterP:
   shows "while b do P od \<sqsubseteq> (\<nu> X \<bullet> ((P ;\<^sub>R X) \<lhd> b \<rhd> II))"
   by (metis IterP_unfold assms(1) assms(2) lfp_lowerbound order_refl)
 
+(*
+lemma "(\<And> P :: 'a WF_PREDICATE. F(P) \<sqsubseteq> G(P)) \<Longrightarrow> \<nu> F \<sqsubseteq> \<nu> G"
+  apply (rule lfp_mono)
+  apply (auto)
+  apply (subgoal_tac "{u. u \<sqsubseteq> F u} \<noteq> {}")
+  apply (subgoal_tac "{u. u \<sqsubseteq> G u} \<noteq> {}")
+  apply (simp add: lfp_def)
+  
+  apply (utp_rel_auto_tac)
+  sledgehammer
+
+  apply (utp_pred_auto_tac)
+  apply (drule_tac x="b" in spec)
+*)
+
+lemma SupP_conj: "ps \<noteq> {} \<Longrightarrow> (\<Squnion> ps) \<and>\<^sub>p q = \<Squnion> {p \<and>\<^sub>p q | p. p \<in> ps}"
+  apply (subgoal_tac "{p \<and>\<^sub>p q | p. p \<in> ps} \<noteq> {}")
+  apply (utp_rel_tac)
+  apply (subst Int_ac(3))
+  apply (simp add: inter_Inter_dist)
+  apply (auto)
+  apply (metis EvalR_AndP Int_iff)
+done
+
+declare lfp_const [simp]
+
+(*
+lemma "`(\<nu> X. ((true ; X) \<lhd> b \<rhd> II))` \<sqsubseteq> `(\<nu> X. II \<or> ((b \<and> true) ; X)) \<and> \<not> b\<acute>`"
+  apply (simp add:lfp_def)
+  apply (subst SupP_conj)
+  apply (auto)
+  apply (metis OrP_ref utp_pred_simps(9))
+  apply (rule Inf_superset_mono)
+  apply (auto)
+  nitpick
+  sledgehammer  
+*)
+
+lemma church_rosser_pred: "`Q\<^sup>\<star> ; P\<^sup>\<star>` \<sqsubseteq> `P\<^sup>\<star> ; Q\<^sup>\<star>` \<Longrightarrow> `(P \<or> Q)\<^sup>\<star>` = `Q\<^sup>\<star> ; P\<^sup>\<star>`"
+  apply (insert  church_rosser[of "P" "Q"])
+  apply (simp add: plus_WF_PREDICATE_def)
+  apply (auto simp add:times_WF_PREDICATE_def)
+done
+
+lemma StarP_denest: "`(P \<or> Q)\<^sup>\<star>` = `(P\<^sup>\<star> ; Q\<^sup>\<star>)\<^sup>\<star>`"
+  by (metis plus_WF_PREDICATE_def star_denest times_WF_PREDICATE_def)
 
 (* Can't prove this yet, though I reckon it's true *)
 lemma IterP_refines_SFP:

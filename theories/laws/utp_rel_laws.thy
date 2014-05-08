@@ -689,8 +689,8 @@ proof -
       by (auto)
 
     with UNREST show ?thesis using assms
-      apply (simp add: SemiR_algebraic closure urename var_simps)
-      apply (simp add: SS1_UNDASHED_DASHED_image[simplified] var_simps var_dist closure)
+      apply (simp add: SemiR_algebraic closure urename)
+      apply (simp add: SS1_UNDASHED_DASHED_image[simplified] var_dist closure)
     done
   qed
 
@@ -699,7 +699,7 @@ proof -
     from assms(4) have "UNREST ?A (SS2\<bullet>q)"
       apply (rule unrest)
       apply (subgoal_tac "UNDASHED - vs2 \<subseteq> UNDASHED \<union> DASHED")
-      apply (simp add: SS2_UNDASHED_DASHED_image[simplified] var_simps var_dist closure)
+      apply (simp add: SS2_UNDASHED_DASHED_image[simplified] var_dist closure)
       apply (auto intro: unrest)
       apply (metis (lifting) DASHED_dash_DASHED_TWICE set_rev_mp utp_var.out_DASHED)
     done
@@ -747,10 +747,10 @@ proof -
       by (auto)
 
     with UNREST show ?thesis using assms
-      apply (simp add: SemiR_algebraic closure urename var_simps)
+      apply (simp add: SemiR_algebraic closure urename)
       apply (subgoal_tac "undash ` vs1 \<subseteq> UNDASHED \<union> DASHED")
       apply (subgoal_tac "vs2 \<subseteq> UNDASHED \<union> DASHED")
-      apply (simp add: SS2_UNDASHED_DASHED_image[simplified] var_simps var_dist closure)
+      apply (simp add: SS2_UNDASHED_DASHED_image[simplified] var_dist closure)
       apply (auto)
     done
   qed
@@ -760,7 +760,7 @@ proof -
     from assms(3) have "?A \<sharp> (SS1\<bullet>p)"
       apply (rule unrest)
       apply (subgoal_tac "DASHED - vs1 \<subseteq> UNDASHED \<union> DASHED")
-      apply (simp add: SS1_UNDASHED_DASHED_image[simplified] var_simps var_dist closure)
+      apply (simp add: SS1_UNDASHED_DASHED_image[simplified] var_dist closure)
       apply (auto intro: unrest)
       apply (metis DASHED_dash_DASHED_TWICE Int_iff UNDASHED_dash_DASHED in_vars_def)
       apply (metis (lifting) assms(5) dash_undash_image image_eqI out_dash)
@@ -872,7 +872,7 @@ theorem SemiR_left_one_point:
   apply (utp_rel_auto_tac)
   apply (metis binding_upd_simps(2))
   apply (rule_tac x="ya(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eya) \<oplus>\<^sub>b y on NON_REL_VAR" in exI)
-  apply (auto)
+  apply (auto simp add:typing)
   apply (metis EvalE_UNREST_binding_upd EvalR_NON_REL_VAR_elim binding_override_equiv)
   apply (metis EvalR_NON_REL_VAR_elim binding_override_equiv)
 done
@@ -889,7 +889,7 @@ theorem SemiR_right_one_point:
   apply (utp_rel_auto_tac)
   apply (metis binding_upd_simps(2))
   apply (rule_tac x="ya(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eya)" in exI)
-  apply (auto)
+  apply (auto simp add:typing)
   apply (metis EvalE_UNREST_binding_upd)
 done
 

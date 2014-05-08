@@ -214,7 +214,7 @@ done
 
 declare binding_override_on.rep_eq [simp]
 
-lemma binding_type [simp, typing, intro]: "t = vtype x \<Longrightarrow> \<langle>b\<rangle>\<^sub>bx : t"
+lemma binding_type [typing, intro]: "t = vtype x \<Longrightarrow> \<langle>b\<rangle>\<^sub>bx : t"
   apply (insert Rep_WF_BINDING[of b])
   apply (auto simp add:WF_BINDING_def)
 done
@@ -223,7 +223,7 @@ lemma binding_stype [typing]:
   "\<lbrakk> t = vtype x; aux x \<rbrakk> \<Longrightarrow> \<langle>b\<rangle>\<^sub>b x :! t"
   by (auto intro:typing simp add:defined)
 
-lemma binding_compat [simp, intro, typing]: "\<langle>b\<rangle>\<^sub>bx \<rhd> x"
+lemma binding_compat [intro, typing]: "\<langle>b\<rangle>\<^sub>bx \<rhd> x"
   by auto
 
 lemma aux_defined [defined]:

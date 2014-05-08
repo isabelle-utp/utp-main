@@ -134,7 +134,7 @@ proof
 qed
 
 theorem HoareP_AssignR [hoare]:
-  assumes "q \<in> WF_CONDITION" "p = q[v/\<^sub>px]"
+  assumes "q \<in> WF_CONDITION" "p \<Rightarrow>\<^sub>p q[v/\<^sub>px]"
    "x \<in> UNDASHED" "UNREST_EXPR DASHED v" "v \<rhd>\<^sub>e x"
   shows "{p}x :=\<^sub>R v{q}\<^sub>p"
   using assms

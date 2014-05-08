@@ -1,19 +1,18 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming                                  *)
-(* File: utp_subst_tac.thy                                                    *)
+(* File: utp_unrest_tac.thy                                                   *)
 (* Author: Simon Foster, University of York (UK)                              *)
 (******************************************************************************)
 
-header {* Proof Tactic for Substitution *}
+header {* Proof Tactic for Unrestriction *}
 
-theory utp_subst_tac
-imports "../laws/utp_subst_laws"
+theory utp_unrest_tac
+imports "../core/utp_unrest"
 begin
 
 ML {*
-  fun utp_subst_simpset ctxt =
+  fun utp_unrest_simpset ctxt =
     ctxt
-      addsimps (usubst.get ctxt)
       addsimps (closure.get ctxt)
       addsimps (unrest.get ctxt)
       addsimps (typing.get ctxt)
@@ -21,16 +20,16 @@ ML {*
 *}
 
 ML {*
-  fun utp_subst_tac thms ctxt i =
+  fun utp_unrest_tac thms ctxt i =
     CHANGED (
-      TRY (asm_full_simp_tac (utp_subst_simpset ctxt) i))
+      TRY (asm_full_simp_tac (utp_unrest_simpset ctxt) i))
 *}
 
 
-method_setup utp_subst_tac = {*
+method_setup utp_unrest_tac = {*
   Attrib.thms >>
   (fn thms => fn ctxt =>
-    SIMPLE_METHOD' (utp_subst_tac thms ctxt))
-*} "proof tactic for substitution"
+    SIMPLE_METHOD' (utp_unrest_tac thms ctxt))
+*} "proof tactic for unrestitution"
 
 end

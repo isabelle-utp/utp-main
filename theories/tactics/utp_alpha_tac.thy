@@ -170,7 +170,7 @@ declare less_eq_WF_ALPHA_PREDICATE_def [evala]
 declare less_WF_ALPHA_PREDICATE_def [evala]
 
 lemma EvalA_RefinementA: "p \<sqsubseteq> q \<longleftrightarrow> \<alpha> p = \<alpha> q \<and> \<lbrakk>p\<rbrakk>\<pi> \<sqsubseteq> \<lbrakk>q\<rbrakk>\<pi>"
-  by (simp add:less_eq_WF_ALPHA_PREDICATE_def less_eq_WF_PREDICATE_def evala eval alphabet)
+  by (simp add: evala eval alphabet)
 
 subsection {* Proof Tactics *}
 
@@ -187,7 +187,6 @@ ML {*
       (* Closure alone seems not enough e.g. to simplify (p1 \<or>\<alpha> p2) \<sqsubseteq> p2. *)
       addsimps (alphabet.get ctxt)
       addsimps (typing.get ctxt)
-      addsimps @{thms var_simps}
       addsimps @{thms var_dist}
       addsimps @{thms alphabet_dist};
 *}
@@ -198,7 +197,6 @@ ML {*
       addsimps (alphabet.get ctxt)
       addsimps (closure.get ctxt)
       addsimps (typing.get ctxt)
-      addsimps @{thms var_simps}
       addsimps @{thms var_dist}
       addsimps @{thms alphabet_dist};
 *}

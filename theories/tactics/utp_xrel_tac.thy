@@ -420,7 +420,7 @@ theorem EvalRX_AssignR [evalrx] :
   apply (case_tac "xa \<in> DASHED \<union> NON_REL_VAR")
   apply (simp)
   apply (simp add:var_contra NON_REL_VAR_def urename)
-  apply (safe, simp add:var_contra NON_REL_VAR_def urename evale EvalE_def)
+  apply (safe, simp add:var_contra NON_REL_VAR_def urename evale EvalE_def typing)
   apply (rule_tac x="BindPX (b, b(x :=\<^sub>x \<langle>e\<rangle>\<^sub>e \<langle>b\<rangle>\<^sub>x))" in exI)
   apply (auto)
   apply (auto simp add:BindPX_def RenameB_rep_eq urename typing defined EvalE_def)
@@ -435,7 +435,7 @@ theorem EvalRX_AssignR_alt [evalrx] :
   apply (simp_all add:typing)
   apply (rule, rule, rule)
   apply (case_tac "xb \<in> UNDASHED")
-  apply (auto)
+  apply (auto simp add:typing)
 done
 
 (*

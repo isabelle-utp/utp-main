@@ -282,4 +282,14 @@ theorem ExistsP_has_ty_value:
   using assms
   by (utp_poly_auto_tac, metis EvalPE_compat TypeUSound_InjU_inv var_compat_pvar vcoerce_reduce1)
 
+lemma SubstP_AssignR_simple_ty [usubst]:
+  assumes 
+    "x \<in> PUNDASHED"
+    "e \<rhd>\<^sub>* x"
+    "v \<rhd>\<^sub>* x"
+    "DASHED \<sharp> e"
+    "DASHED \<sharp> v"
+  shows "`(x := e)[v/x]` = `(x := (e[v/x]))`"
+by (metis PExprE_compat PVAR_VAR_PUNDASHED_UNDASHED SubstE_PSubstPE SubstP_AssignR_simple UNREST_PExprE assms pevar_compat_TYPEUSOUND)
+
 end
