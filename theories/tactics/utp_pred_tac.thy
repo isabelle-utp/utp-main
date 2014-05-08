@@ -145,6 +145,16 @@ declare Contradiction_def [eval]
 declare less_eq_WF_PREDICATE_def [eval]
 (* declare PrimeP_def [eval] *)
 
+lemma EvalP_Tautology_intro:
+  "\<lbrakk> \<And> b. \<lbrakk>p\<rbrakk>b \<rbrakk> \<Longrightarrow> taut p"
+  by (metis EvalP_ClosureP EvalP_TrueP EvalP_intro Tautology_def)
+
+lemma EvalP_RefineP_intro:
+  "\<lbrakk> \<And> b. \<lbrakk>q\<rbrakk>b \<Longrightarrow> \<lbrakk>p\<rbrakk>b \<rbrakk> \<Longrightarrow> p \<sqsubseteq> q"
+  by (metis EvalP_RefP EvalP_Tautology_intro less_eq_WF_PREDICATE_def)  
+
+lemmas EvalP_intros = EvalP_intro EvalP_Tautology_intro EvalP_RefineP_intro
+
 subsection {* Support Theorems *}
 
 theorem EvalP_ExistsP_singleton :

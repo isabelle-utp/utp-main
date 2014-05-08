@@ -172,6 +172,14 @@ declare less_WF_ALPHA_PREDICATE_def [evala]
 lemma EvalA_RefinementA: "p \<sqsubseteq> q \<longleftrightarrow> \<alpha> p = \<alpha> q \<and> \<lbrakk>p\<rbrakk>\<pi> \<sqsubseteq> \<lbrakk>q\<rbrakk>\<pi>"
   by (simp add: evala eval alphabet)
 
+lemma EvalA_RefineA_intro: "\<lbrakk> \<alpha>(p) = \<alpha>(q); \<lbrakk>p\<rbrakk>\<pi> \<sqsubseteq> \<lbrakk>q\<rbrakk>\<pi> \<rbrakk> \<Longrightarrow> p \<sqsubseteq> q"
+  by (metis EvalA_RefinementA)
+
+lemma EvalA_TautologyA_intro: "\<lbrakk> True; \<lbrakk>p\<rbrakk>\<pi> \<rbrakk> \<Longrightarrow> taut\<^sub>\<alpha> p"
+  by (metis EvalA_TautologyA)
+
+lemmas EvalA_intros = EvalA_intro EvalA_RefineA_intro EvalA_TautologyA
+
 subsection {* Proof Tactics *}
 
 text {*
