@@ -449,7 +449,7 @@ lemma EvalP_SubstP_dash3_ty [evalp]:
   apply (simp add:binding_upd_ty_def)
 done
 
-lemma EvalP_ExistsP_singleton_pvaux_ty [evalp]:
+lemma EvalP_ExistsP_singleton_pvaux_ty [evalpp]:
   fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
   assumes "TYPEUSOUND('a, 'm)" "pvaux x"
   shows "\<lbrakk>\<exists>\<^sub>p {x\<down>} . p\<rbrakk>b = (\<exists> v . v \<rhd>\<^sub>p x \<and> \<lbrakk>p\<rbrakk>(b(x :=\<^sub>* v)))"
@@ -466,7 +466,18 @@ lemma EvalP_ExistsP_singleton_pvaux_ty [evalp]:
   apply (metis binding_upd_eq binding_upd_ty_def binding_upd_vcoerce)
 done
 
-lemma EvalP_ExistsP_singleton_d1_pvaux_ty [evalp]:
+lemma EvalP_ForallP_singleton_pvaux_ty [evalpp]:
+  fixes x :: "('a::DEFINED, 'm::VALUE) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "pvaux x"
+  shows "\<lbrakk>\<forall>\<^sub>p  {x\<down>}. p\<rbrakk>b = (\<forall> v. v \<rhd>\<^sub>p x \<longrightarrow> \<lbrakk>p\<rbrakk>(b(x :=\<^sub>* v)))" 
+  using assms
+  apply (auto simp add:EvalP_def ForallP_def ExistsP.rep_eq NotP.rep_eq)
+  apply (metis binding_upd_triv binding_upd_ty_def binding_upd_upd)
+  apply (drule_tac x="\<langle>b1\<rangle>\<^sub>*x" in spec)
+  apply (metis PVAR_binding_defined_aux Rep_binding_ty_compat binding_upd_ty_triv)
+done
+
+lemma EvalP_ExistsP_singleton_d1_pvaux_ty [evalpp]:
   fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
   assumes "TYPEUSOUND('a, 'm)" "pvaux x"
   shows "\<lbrakk>\<exists>\<^sub>p {x\<down>\<acute>} . p\<rbrakk>b = (\<exists> v . v \<rhd>\<^sub>p x\<acute> \<and> \<lbrakk>p\<rbrakk>(b(x\<acute> :=\<^sub>* v)))"
@@ -474,7 +485,7 @@ lemma EvalP_ExistsP_singleton_d1_pvaux_ty [evalp]:
   apply (simp_all add:assms)
 done
 
-lemma EvalP_ExistsP_singleton_d2_pvaux_ty [evalp]:
+lemma EvalP_ExistsP_singleton_d2_pvaux_ty [evalpp]:
   fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
   assumes "TYPEUSOUND('a, 'm)" "pvaux x"
   shows "\<lbrakk>\<exists>\<^sub>p {x\<down>\<acute>\<acute>} . p\<rbrakk>b = (\<exists> v . v \<rhd>\<^sub>p x\<acute>\<acute> \<and> \<lbrakk>p\<rbrakk>(b(x\<acute>\<acute> :=\<^sub>* v)))"
@@ -482,7 +493,7 @@ lemma EvalP_ExistsP_singleton_d2_pvaux_ty [evalp]:
   apply (simp_all add:assms)
 done
 
-lemma EvalP_ExistsP_singleton_d3_pvaux_ty [evalp]:
+lemma EvalP_ExistsP_singleton_d3_pvaux_ty [evalpp]:
   fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
   assumes "TYPEUSOUND('a, 'm)" "pvaux x"
   shows "\<lbrakk>\<exists>\<^sub>p {x\<down>\<acute>\<acute>\<acute>} . p\<rbrakk>b = (\<exists> v . v \<rhd>\<^sub>p x\<acute>\<acute>\<acute> \<and> \<lbrakk>p\<rbrakk>(b(x\<acute>\<acute>\<acute> :=\<^sub>* v)))"

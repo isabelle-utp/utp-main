@@ -115,4 +115,25 @@ lemma binding_upd_ty_twist [intro]:
   shows "b(x :=\<^sub>* e, y :=\<^sub>* f) = b(y :=\<^sub>* f, x :=\<^sub>* e)"
   using assms by (simp add:binding_upd_ty_def typing binding_upd_twist)
 
+lemma binding_upd_ty_nty [simp]:
+  "(b1(x\<down> :=\<^sub>b \<langle>b2\<rangle>\<^sub>b x\<down>))(x :=\<^sub>* v) = b1(x :=\<^sub>* v)"
+  by (metis binding_upd_ty_def binding_upd_upd)
+
+lemma binding_upd_ty_triv [simp]:
+  fixes x :: "('a::DEFINED, 'm::VALUE) PVAR"
+  assumes "TYPEUSOUND('a, 'm)" "\<D>(\<langle>b\<rangle>\<^sub>b x\<down>)"
+  shows "b(x :=\<^sub>* \<langle>b\<rangle>\<^sub>* x) = b"
+  using assms
+  apply (simp add:binding_upd_ty_def Rep_binding_ty_def)
+  apply (subst TypeUSound_ProjU_inv)
+  apply (auto simp add:dtype_rel_def)
+done
+
+lemma Rep_binding_ty_compat [typing]: 
+  fixes x :: "('a::DEFINED, 'm::VALUE) PVAR"
+  assumes "TYPEUSOUND('a, 'm)"
+  shows "\<langle>b\<rangle>\<^sub>*x \<rhd>\<^sub>p x"
+  using assms
+  by (auto simp add:pvar_compat_def defined)
+
 end

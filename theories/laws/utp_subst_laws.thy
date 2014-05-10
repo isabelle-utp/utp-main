@@ -70,6 +70,18 @@ lemma SubstP_ExistsP [usubst]:
   "\<lbrakk> vs \<sharp> e; x \<notin> vs \<rbrakk> \<Longrightarrow> (\<exists>\<^sub>p vs. p)[e/\<^sub>px] = (\<exists>\<^sub>p vs. p[e/\<^sub>px])"
   by (utp_pred_tac)
 
+lemma ExistsP_SubstP_same [usubst]:
+  "x \<in> xs \<Longrightarrow> (\<exists>\<^sub>p xs. p)[v/\<^sub>px] = (\<exists>\<^sub>p xs. p)"
+  by (utp_pred_tac)
+
+lemma ForallP_SubstP_same [usubst]:
+  "x \<in> xs \<Longrightarrow> (\<forall>\<^sub>p xs. p)[v/\<^sub>px] = (\<forall>\<^sub>p xs. p)"
+  by (utp_pred_tac)
+
+lemma ForallP_SubstP_diff [usubst]:
+  "\<lbrakk> x \<notin> xs; xs \<sharp> v \<rbrakk> \<Longrightarrow> (\<forall>\<^sub>p xs. p)[v/\<^sub>px] = (\<forall>\<^sub>p xs. p[v/\<^sub>px])"
+  by (simp add: ForallP_def usubst)
+
 lemma SubstP_ClosureP [usubst]:
   "[P]\<^sub>p[v/\<^sub>px] = [P]\<^sub>p"
   by (utp_pred_tac)
