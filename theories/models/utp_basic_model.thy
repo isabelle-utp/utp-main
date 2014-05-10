@@ -1,3 +1,11 @@
+(******************************************************************************)
+(* Project: Unifying Theories of Programming in HOL                           *)
+(* File: utp_basic_model                                                      *)
+(* Author: Simon Foster, University of York (UK)                              *)
+(******************************************************************************)
+
+header {* Basic model for UTP predicates *}
+
 theory utp_basic_model
 imports 
   Derive
@@ -6,14 +14,14 @@ begin
 
 default_sort type
 
-datatype btyp = Int\<^isub>t | Bool\<^isub>t | List\<^isub>t btyp
-datatype bval = Bot\<^isub>v btyp | Int\<^isub>v int | Bool\<^isub>v bool | List\<^isub>v btyp "(bval list)"
+datatype btyp = Int\<^sub>t | Bool\<^sub>t | List\<^sub>t btyp
+datatype bval = Bot\<^sub>v btyp | Int\<^sub>v int | Bool\<^sub>v bool | List\<^sub>v btyp "(bval list)"
 
 inductive bval_type_rel :: "bval \<Rightarrow> btyp \<Rightarrow> bool" (infix ":\<^sub>b" 50) where
-Bot\<^isub>v_type [intro]: "Bot\<^isub>v(t) :\<^sub>b t" |
-Bool\<^isub>v_type [intro]: "Bool\<^isub>v(x) :\<^sub>b Bool\<^isub>t"  |  
-Int\<^isub>v_type [intro]: "Int\<^isub>v(n) :\<^sub>b Int\<^isub>t"  | 
-List\<^isub>v_type [intro]: "\<forall> x\<in>set(xs). x :\<^sub>b t \<Longrightarrow> List\<^isub>v(t)(xs) :\<^sub>b List\<^isub>t(t)"
+Bot\<^sub>v_type [intro]: "Bot\<^sub>v(t) :\<^sub>b t" |
+Bool\<^sub>v_type [intro]: "Bool\<^sub>v(x) :\<^sub>b Bool\<^sub>t"  |  
+Int\<^sub>v_type [intro]: "Int\<^sub>v(n) :\<^sub>b Int\<^sub>t"  | 
+List\<^sub>v_type [intro]: "\<forall> x\<in>set(xs). x :\<^sub>b t \<Longrightarrow> List\<^sub>v(t)(xs) :\<^sub>b List\<^sub>t(t)"
 
 derive countable btyp
 derive linorder btyp
@@ -29,21 +37,21 @@ translations
   (type) "'a bvar" <= (type) "('a, bval) PVAR"
 
 inductive_cases
-  Bot\<^isub>v_cases [elim]: "Bot\<^isub>v a :\<^sub>b t" and
-  Bot\<^isub>t_cases [elim!]: "x :\<^sub>b Bot\<^isub>t" and
-  Bool\<^isub>v_cases [elim]: "Bool\<^isub>v x :\<^sub>b t" and
-  Bool\<^isub>t_cases [elim!]: "x :\<^sub>b Boot\<^isub>t" and
-  Int\<^isub>v_cases [elim]: "Int\<^isub>v x :\<^sub>b t" and
-  Int\<^isub>t_cases [elim!]: "x :\<^sub>b Int\<^isub>t" and
-  List\<^isub>v_cases [elim]: "List\<^isub>v a xs :\<^sub>b t" and
-  List\<^isub>t_cases [elim!]: "x :\<^sub>b List\<^isub>t a"
+  Bot\<^sub>v_cases [elim]: "Bot\<^sub>v a :\<^sub>b t" and
+  Bot\<^sub>t_cases [elim!]: "x :\<^sub>b Bot\<^sub>t" and
+  Bool\<^sub>v_cases [elim]: "Bool\<^sub>v x :\<^sub>b t" and
+  Bool\<^sub>t_cases [elim!]: "x :\<^sub>b Boot\<^sub>t" and
+  Int\<^sub>v_cases [elim]: "Int\<^sub>v x :\<^sub>b t" and
+  Int\<^sub>t_cases [elim!]: "x :\<^sub>b Int\<^sub>t" and
+  List\<^sub>v_cases [elim]: "List\<^sub>v a xs :\<^sub>b t" and
+  List\<^sub>t_cases [elim!]: "x :\<^sub>b List\<^sub>t a"
 
 instantiation bval :: DEFINED
 begin
 
 fun Defined_bval :: "bval \<Rightarrow> bool" where
-"\<D>(Bot\<^isub>v a) = False" |  "\<D>(Bool\<^isub>v x) = True" | "\<D>(Int\<^isub>v x) = True" |
-"\<D>(List\<^isub>v a xs) = (\<forall> x \<in> set(xs). \<D>(x))"
+"\<D>(Bot\<^sub>v a) = False" |  "\<D>(Bool\<^sub>v x) = True" | "\<D>(Int\<^sub>v x) = True" |
+"\<D>(List\<^sub>v a xs) = (\<forall> x \<in> set(xs). \<D>(x))"
 
 instance ..
 end
@@ -57,8 +65,8 @@ definition utype_rel_bval :: "bval \<Rightarrow> nat \<Rightarrow> bool" where
 instance
   apply (intro_classes)
   apply (simp add:utype_rel_bval_def)
-  apply (rule_tac x="to_nat(Int\<^isub>t)" in exI)
-  apply (rule_tac x="Int\<^isub>v 0" in exI)
+  apply (rule_tac x="to_nat(Int\<^sub>t)" in exI)
+  apply (rule_tac x="Int\<^sub>v 0" in exI)
   apply (auto)
 done
 end
@@ -70,11 +78,11 @@ lemma prjTYPE_inv_bty [simp]
 lemma embTYPE_inv_bty [simp]:
   "prjTYPE (embTYPE (t :: btyp) :: bval UTYPE) = t"
   apply (induct t)
-  apply (rule embTYPE_inv[of "Int\<^isub>v 0"])
+  apply (rule embTYPE_inv[of "Int\<^sub>v 0"])
   apply (auto simp add: utype_rel_bval_def)
-  apply (rule embTYPE_inv[of "Bool\<^isub>v False"])
+  apply (rule embTYPE_inv[of "Bool\<^sub>v False"])
   apply (auto simp add: utype_rel_bval_def)
-  apply (rule_tac v="List\<^isub>v t []" in embTYPE_inv)
+  apply (rule_tac v="List\<^sub>v t []" in embTYPE_inv)
   apply (auto simp add: utype_rel_bval_def)
 done
 
@@ -86,13 +94,13 @@ instantiation bval :: BOOL_SORT
 begin
 
 definition MkBool_bval :: "bool \<Rightarrow> bval" where
-"MkBool_bval x = Bool\<^isub>v x"
+"MkBool_bval x = Bool\<^sub>v x"
 
 primrec DestBool_bval :: "bval \<Rightarrow> bool" where
-"DestBool_bval (Bool\<^isub>v x) = x" 
+"DestBool_bval (Bool\<^sub>v x) = x" 
 
 definition BoolType_bval :: "bval UTYPE" where
-"BoolType_bval = embTYPE Bool\<^isub>t"
+"BoolType_bval = embTYPE Bool\<^sub>t"
 
 instance
   apply (intro_classes)
@@ -106,13 +114,13 @@ instantiation bval :: INT_SORT
 begin
 
 definition MkInt_bval :: "int \<Rightarrow> bval" where
-"MkInt_bval x = Int\<^isub>v x"
+"MkInt_bval x = Int\<^sub>v x"
 
 primrec DestInt_bval :: "bval \<Rightarrow> int" where
-"DestInt_bval (Int\<^isub>v x) = x" 
+"DestInt_bval (Int\<^sub>v x) = x" 
 
 definition IntType_bval :: "bval UTYPE" where
-"IntType_bval = embTYPE Int\<^isub>t"
+"IntType_bval = embTYPE Int\<^sub>t"
 
 instance
   apply (intro_classes)
