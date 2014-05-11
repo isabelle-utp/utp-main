@@ -1422,31 +1422,25 @@ theorem SkipRA_assign :
   apply (force simp add:assms)
 done
 
-theorem AssignR_commute: 
-  assumes 
-    "x \<in> UNDASHED" "y \<in> UNDASHED"  
-    "DASHED \<sharp> e" "DASHED \<sharp> f"
-    "{x} \<sharp> f" "{y} \<sharp> e"
-    "e \<rhd>\<^sub>e x" "f \<rhd>\<^sub>e y"
-    "x \<noteq> y"
-  shows "(x :=\<^sub>R e;\<^sub>R y :=\<^sub>R f) = (y :=\<^sub>R f;\<^sub>R x :=\<^sub>R e)"
-  using assms
-  apply (utp_rel_tac, simp add:relcomp_unfold)
-  apply (utp_expr_tac)
-  apply (metis (hide_lams, no_types) EvalE_compat WF_REL_BINDING_binding_upd binding_upd_twist)
-done
-
 theorem AssignR_idem :
   assumes 
-    "x \<in> UNDASHED" 
-    "{x} \<sharp> v" 
-    "DASHED \<sharp> v" 
-    "v \<rhd>\<^sub>e x"
+    "x \<in> D\<^sub>0" "{x} \<sharp> v" "D\<^sub>1 \<sharp> v" 
   shows "(x :=\<^sub>R v ;\<^sub>R x :=\<^sub>R v) = x :=\<^sub>R v"
 using assms
   apply (utp_rel_auto_tac)
   apply (simp_all add: EvalE_UNREST_assign[of _ "{x}"])
   apply (auto simp add:WF_REL_BINDING_def)
+done
+
+theorem AssignR_commute: 
+  assumes 
+    "x \<in> D\<^sub>0" "y \<in> D\<^sub>0" "x \<noteq> y"
+    "{x} \<sharp> f" "{y} \<sharp> e" "D\<^sub>1 \<sharp> e" "D\<^sub>1 \<sharp> f"
+  shows "(x :=\<^sub>R e;\<^sub>R y :=\<^sub>R f) = (y :=\<^sub>R f;\<^sub>R x :=\<^sub>R e)"
+  using assms
+  apply (utp_rel_tac, simp add:relcomp_unfold)
+  apply (utp_expr_tac)
+  apply (metis (hide_lams, no_types) WF_REL_BINDING_binding_upd binding_upd_twist)
 done
 
 theorem AssignRA_idem :

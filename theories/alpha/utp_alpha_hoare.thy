@@ -11,6 +11,7 @@ imports
   utp_alpha_rel
   "../core/utp_hoare"
   "../laws/utp_rel_laws"
+  "../tactics/utp_solve_tac"
   "../parser/utp_alpha_pred_parser"
   "utp_alpha_iteration"
 begin
@@ -23,13 +24,13 @@ lift_definition HoareA ::
 is "\<lambda> p q r. (\<lbrace>\<rbrace> :: 'a ALPHABET, {\<pi> p}\<pi> q{\<pi> r}\<^sub>p)"
   by (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def HoareP_def unrest)
 
-lemma HoareA_alphabet [alphabet]: "\<alpha>({p}Q{r}\<^sub>\<alpha>) = \<lbrace>\<rbrace>"
+theorem HoareA_alphabet [alphabet]: "\<alpha>({p}Q{r}\<^sub>\<alpha>) = \<lbrace>\<rbrace>"
   by (simp add:pred_alphabet_def HoareA.rep_eq)
 
 lemma EvalA_HoareA [evala]: "\<lbrakk>{p}Q{r}\<^sub>\<alpha>\<rbrakk>\<pi> = {\<lbrakk>p\<rbrakk>\<pi>}\<lbrakk>Q\<rbrakk>\<pi>{\<lbrakk>r\<rbrakk>\<pi>}\<^sub>p"
   by (metis EvalA_def HoareA.rep_eq snd_conv)
 
-lemma HoareA_alt_def:
+theorem HoareA_alt_def:
   "{p}Q{r}\<^sub>\<alpha> = (p \<Rightarrow>\<^sub>\<alpha> r\<acute>) \<sqsubseteq>\<^sub>\<alpha> Q"
   by (utp_alpha_tac, utp_pred_tac)
 
@@ -58,6 +59,16 @@ theorem HoareA_post [hoare]:
 theorem HoareA_prepost [hoare]:
   "``{p}Q{r}`` \<Longrightarrow> ``{p \<and> q}Q{r \<or> s}``"
   by (utp_alpha_tac, metis HoareP_prepost)
+
+theorem HoareA_weaken_pre:
+  "\<lbrakk> ``p' \<Rightarrow> p``; ``{p}Q{r}`` \<rbrakk> \<Longrightarrow> ``{p'}Q{r}``"
+  by (simp add: HoareA_alt_def, utp_solve)
+
+theorem HoareA_strengthen_post:
+  "\<lbrakk> ``r \<Rightarrow> r'``; ``{p}Q{r}`` \<rbrakk> \<Longrightarrow> ``{p}Q{r'}``"
+  apply (simp add: HoareA_alt_def, utp_solve)
+  apply (metis ConvR_AndP EvalP_AndP EvalP_RefineP_intro RefP_AndP)
+done
 
 theorem HoareA_TrueA [hoare]:
   "``{p}Q{true\<^bsub>a\<^esub>}``"
@@ -121,7 +132,7 @@ theorem HoareA_AssignA [hoare]:
   apply (metis (no_types) Un_upper1 alphabet_split funion.rep_eq le_less_trans le_neq_trans less_eq_fset.rep_eq less_imp_le)
 done
 
-theorem HoareA_EvalA:
+lemma HoareA_EvalA:
   "{\<lbrakk>p\<rbrakk>\<pi>}\<lbrakk>Q\<rbrakk>\<pi>{\<lbrakk>r\<rbrakk>\<pi>}\<^sub>p \<Longrightarrow> {p}Q{r}\<^sub>\<alpha>"
   by (metis EvalA_HoareA EvalA_TautologyA)
 

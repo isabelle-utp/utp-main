@@ -146,6 +146,9 @@ theorem ClosureP_intro:
   shows "taut p"
   using assms by (utp_pred_tac)
 
+theorem TrueP_taut [simp]: "true"
+  by (utp_pred_tac)
+
 subsection {* Implication Laws *}
 
 lemma ImpliesP_AndP_pre:

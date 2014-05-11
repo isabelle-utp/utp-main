@@ -84,6 +84,12 @@ done
 
 text {* Declare some useful simplications for polymorphic expressions *}
 
+lemma [simp]: "(m::int) \<le> n \<Longrightarrow> `\<guillemotleft>m\<guillemotright> \<le> \<guillemotleft>n\<guillemotright>` = true"
+  by (utp_poly_tac)
+
+lemma [simp]: "\<not> ((m::int) \<le> n) \<Longrightarrow> `\<guillemotleft>m\<guillemotright> \<le> \<guillemotleft>n\<guillemotright>` = false"
+  by (utp_poly_tac)
+
 lemma [simp]: "(x::int) < y \<Longrightarrow> `<x> < <y>` = true"
   by (utp_poly_tac)
 
@@ -91,6 +97,12 @@ lemma [simp]: "\<not> (x::int) < y \<Longrightarrow> `<x> < <y>` = false"
   by (utp_poly_tac)
 
 lemma [simp]: "|<x :: int> + <y>| = |<x + y>|"
+  by (utp_poly_tac)
+
+lemma [simp]: "|<x :: int> - <y>| = |<x - y>|"
+  by (utp_poly_tac)
+
+lemma [simp]: "|<x :: int> * <y>| = |<x * y>|"
   by (utp_poly_tac)
 
 lemma prefix_implies_concat_minus:

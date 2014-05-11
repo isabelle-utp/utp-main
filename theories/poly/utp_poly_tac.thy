@@ -61,6 +61,8 @@ declare Tautology_def [evalpp]
 declare less_eq_WF_PREDICATE_def [evalpp]
 declare CondR_def [evalpp, evalpr]
 
+declare ImpliesP_def [evalpr]
+
 declare EvalR_simp [evalpr]
 declare EvalR_refinement [evalpr]
 declare EvalR_TrueP_explicit [evalpr]

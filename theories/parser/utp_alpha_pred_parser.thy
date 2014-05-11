@@ -168,6 +168,7 @@ syntax
 translations
   "_apexpr_plus x y"            == "CONST PlusAPE x y"
   "_apexpr_mult x y"            == "CONST MultAPE x y"
+  "_apexpr_minus x y"           == "CONST MinusAPE x y"
   "_apexpr_div x y"             == "CONST DivAPE x y"
   "_apexpr_max x y"             == "CONST MaxAPE x y"
   "_apexpr_min x y"             == "CONST MinAPE x y"
