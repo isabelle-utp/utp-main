@@ -31,4 +31,6 @@ theorem SemiA_extract_variable:
   apply (simp_all add:unrest)
 done
 
+
+
 end
