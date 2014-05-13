@@ -108,6 +108,19 @@ session "nfm2014" in "papers/nfm2014" = "HOL-UTP" +
         "document/nfm2014.bib"
         "document/deep-shallow.pdf"
 
+session "utp2014-presentation" in "papers/utp2014-presentation" = "HOL-UTP" +
+  options [document = pdf, document_output = "output", quick_and_dirty = true]
+  theories
+    "value_class"
+    "bindings"
+    "pred_ops"
+    "alpha_unrest"
+    "expr"
+    "sort_class"
+    "poly_expr"
+    "poly_erasure"
+  files "document/root.tex"
+
 session Datatype_Order_Generator (AFP) in "contrib/Datatype_Order_Generator" 
   = "HOL-Library" +
   options [timeout = 600]
