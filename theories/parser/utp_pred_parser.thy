@@ -127,7 +127,7 @@ translations
   "_upred_pexpr e"     == "CONST PExprP e"
   "_upred_skip"        == "CONST SkipR"
   "_upred_skipa vs"    == "CONST SkipRA vs"
-  "_upred_seq p q"     => "CONST SemiR p q"
+  "_upred_seq p q"     == "CONST SemiR p q"
   "_upred_cond p q r"  == "CONST CondR p q r"
   "_upred_ifthenelse b p q"  == "CONST CondR p b q"
 (*  "_upred_assign x e"  == "CONST PAssignR x e" *)
@@ -193,9 +193,9 @@ syntax
 syntax
   (* Relational operators *)
 
-  "_pexpr_skip"         :: "pexpr" ("II")
-  "_pexpr_skipa"        :: "'VALUE VAR set \<Rightarrow> pexpr" ("II\<^bsub>_\<^esub>")
-  "_pexpr_seq"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr ";" 36)
+(*  "_pexpr_skip"         :: "pexpr" ("II") *)
+(*  "_pexpr_skipa"        :: "'VALUE VAR set \<Rightarrow> pexpr" ("II\<^bsub>_\<^esub>") *)
+(*  "_pexpr_seq"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr ";" 36) *)
   "_pexpr_cond"         :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_ \<lhd> _ \<rhd> _")
   "_pexpr_assign"       :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_ := _" [100] 100)
   "_pexpr_wassign"      :: "'m VAR \<Rightarrow> uexpr \<Rightarrow> pexpr" ("_ :\<equiv> _" [100] 100)
@@ -255,9 +255,9 @@ translations
 
 translations
   (* Relational operators *)
-  "_pexpr_skip"                == "CONST PredPE (CONST SkipR)"
-  "_pexpr_skipa vs"            == "CONST PredPE (CONST SkipRA vs)"
-  "_pexpr_seq p q"             == "CONST PredOp2PE (CONST SemiR) p q"
+(*  "_pexpr_skip"                == "CONST PredPE (CONST SkipR)" *)
+(*  "_pexpr_skipa vs"            == "CONST PredPE (CONST SkipRA vs)" *)
+(*  "_pexpr_seq p q"             == "CONST PredOp2PE (CONST SemiR) p q" *)
   "_pexpr_cond p q r"          == "CONST PredOp3PE (CONST CondR) p q r"
   "_pexpr_assign x v"          == "CONST AssignRPE x v"
   "_pexpr_wassign x v"         == "CONST WAssignRPE x v"
@@ -314,14 +314,14 @@ syntax
   "_upred_index"         :: "('b \<Rightarrow> 'a WF_PREDICATE) \<Rightarrow> 'b \<Rightarrow> upred" ("_<_>" 50)
 
 translations
-  "_upred_lesseq e f"         == "CONST PExprP (_pexpr_less_eq e f)"
-  "_upred_less e f"           == "CONST PExprP (_pexpr_less e f)"
-  "_upred_greater_eq e f"     == "CONST PExprP (_pexpr_greater_eq e f)"
-  "_upred_greater e f"        == "CONST PExprP (_pexpr_greater e f)"
-  "_upred_set_member x xs"    == "CONST PExprP (_pexpr_set_member x xs)"
-  "_upred_set_nmember x xs"   == "CONST PExprP (_pexpr_set_nmember x xs)"
-  "_upred_set_subset xs ys"   == "CONST PExprP (_pexpr_set_subset xs ys)"
-  "_upred_set_subseteq xs ys" == "CONST PExprP (_pexpr_set_subseteq xs ys)"
+  "_upred_lesseq e f"         => "CONST PExprP (_pexpr_less_eq e f)"
+  "_upred_less e f"           => "CONST PExprP (_pexpr_less e f)"
+  "_upred_greater_eq e f"     => "CONST PExprP (_pexpr_greater_eq e f)"
+  "_upred_greater e f"        => "CONST PExprP (_pexpr_greater e f)"
+  "_upred_set_member x xs"    => "CONST PExprP (_pexpr_set_member x xs)"
+  "_upred_set_nmember x xs"   => "CONST PExprP (_pexpr_set_nmember x xs)"
+  "_upred_set_subset xs ys"   => "CONST PExprP (_pexpr_set_subset xs ys)"
+  "_upred_set_subseteq xs ys" => "CONST PExprP (_pexpr_set_subseteq xs ys)"
   "_upred_index f i"          => "f i"
 
 (* Big operators *)
@@ -357,7 +357,7 @@ term "`x := (\<guillemotleft>7\<guillemotright> * $z) ; ((y := $x + \<guillemotl
 term "`var x; x := \<guillemotleft>5::int\<guillemotright>; end x`"
 
 term "`$x\<acute> = $y\<acute>`"
-term "`p[($x)\<acute>/y\<acute>]`"
+term "`p[$x\<acute>/y\<acute>]`"
 term "`\<lparr>true\<rparr>`"
 
 lemma "`$x \<in> {<1>,\<guillemotleft>2\<guillemotright>,<3>,<4>,<5>} \<sqsubseteq> $x = <1>`"
@@ -378,5 +378,7 @@ lemma "|\<langle><1>,<2>,<3>\<rangle> \<upharpoonright> {\<guillemotleft>2\<guil
   by (auto simp add:evalp typing defined)
 
 term "`\<Or> i:I. P`"
+
+term "`if \<lparr>$x \<ge> $y\<rparr> then z := $x else z := $y`"
 
 end

@@ -349,9 +349,9 @@ done
 text {* The following functions and rules mechanise marshalling between predicates
         and boolean valued expressions *}
 
-definition PExprP :: 
-  "(bool, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" where
-"PExprP e = mkPRED {b. \<lbrakk>e\<rbrakk>\<^sub>* b}"
+lift_definition PExprP :: 
+  "(bool, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" 
+is "\<lambda> e. {b. \<lbrakk>e\<rbrakk>\<^sub>* b}" .
 
 declare [[coercion PExprP]]
 
@@ -362,7 +362,7 @@ lemma EvalP_PExprP [evalp]:
   "\<lbrakk>e\<down>\<rbrakk>b = \<lbrakk>e\<rbrakk>\<^sub>* b"
   by (simp add:PExprP_def EvalP_def)
 
-lemma EvalP_EqualP_ty [evalp]:
+lemma EvalP_EqualP_ty [evalpp]:
   fixes e1 e2 :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION" 
   assumes "TYPEUSOUND('a, 'm)"
   shows "\<lbrakk>e1\<down> ==\<^sub>p e2\<down>\<rbrakk>b = (\<lbrakk>e1\<rbrakk>\<^sub>*b = \<lbrakk>e2\<rbrakk>\<^sub>*b)"
@@ -509,9 +509,11 @@ lemma WF_CONDITION_PExprP [closure]:
   "UNREST_PEXPR (NON_REL_VAR \<union> DASHED) v \<Longrightarrow> PExprP v \<in> WF_CONDITION"
   by (metis (lifting, no_types) UNREST_PExprP UNREST_unionE WF_CONDITION_def WF_RELATION_def mem_Collect_eq)
 
-abbreviation PVarP ::
+definition PVarP ::
   "(bool, 'm :: BOOL_SORT) PVAR \<Rightarrow> 'm WF_PREDICATE" where
 "PVarP x \<equiv> PExprP (PVarPE x)" 
+
+declare PVarP_def [eval, evalpp]
 
 definition PredPE ::
   "'m WF_PREDICATE \<Rightarrow> (bool, 'm :: VALUE) WF_PEXPRESSION" where
@@ -528,9 +530,9 @@ lemma PredPE_inv [evalp]: "(PredPE e)\<down> = e"
   by (simp add: PExprP_def PredPE_def)
 
 abbreviation PEqualP ::
-  "('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> ('a, 'm) WF_PEXPRESSION \<Rightarrow>
+  "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> ('a, 'm) WF_PEXPRESSION \<Rightarrow>
    'm WF_PREDICATE" where
-"PEqualP e f \<equiv> e\<down> ==\<^sub>p f\<down>"
+"PEqualP e f \<equiv> PExprP (Op2PE (op =) e f)"
 
 (*
 lemma PExprP_EqualPE [evalp]: 
@@ -562,12 +564,16 @@ abbreviation PredOp3PE ::
 
 subsection {* Polymorphic Relational Operators *}
 
-abbreviation PAssignR ::
+definition PAssignR ::
   "('a, 'm :: VALUE) PVAR \<Rightarrow> ('a, 'm) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" where
-"PAssignR x v \<equiv> x\<down> :=\<^sub>R v\<down>"
+"PAssignR x v = x\<down> :=\<^sub>R v\<down>"
 
-abbreviation PAssignF_upd :: "'m AssignF \<Rightarrow> ('a::DEFINED, 'm::VALUE) PVAR \<Rightarrow> ('a, 'm) WF_PEXPRESSION \<Rightarrow> 'm AssignF" where
-"PAssignF_upd f x v \<equiv> AssignF_upd f (x\<down>) (v\<down>)"
+declare PAssignR_def [eval, evalr, evalpp, evalpr]
+
+definition PAssignF_upd :: "'m AssignF \<Rightarrow> ('a::DEFINED, 'm::VALUE) PVAR \<Rightarrow> ('a, 'm) WF_PEXPRESSION \<Rightarrow> 'm AssignF" where
+"PAssignF_upd f x v = AssignF_upd f (x\<down>) (v\<down>)"
+
+declare PAssignF_upd_def [eval, evalr, evalpp, evalpr]
 
 abbreviation AssignRPE ::
   "('a, 'm :: VALUE) PVAR \<Rightarrow> ('a, 'm) WF_PEXPRESSION \<Rightarrow> (bool, 'm) WF_PEXPRESSION" where
@@ -671,8 +677,13 @@ class LESS_THAN =
   fixes uless    :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
   and   uless_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 
-abbreviation "LessPE \<equiv> Op2PE uless"
-abbreviation "LessEqPE \<equiv> Op2PE uless_eq"
+definition "LessPE = Op2PE uless"
+
+declare LessPE_def [eval, evalpp, evalpr]
+
+definition "LessEqPE = Op2PE uless_eq"
+
+declare LessEqPE_def [eval, evalpp, evalpr]
 
 subsection {* Minus class *}
 
@@ -1125,7 +1136,7 @@ definition SubstPE ::
  ('a, 'm) WF_PEXPRESSION" where
 "SubstPE f v x = MkPExpr (\<lambda> b. \<lbrakk>f\<rbrakk>\<^sub>* (b(x :=\<^sub>b InjU (\<lbrakk>v\<rbrakk>\<^sub>* b))))"
 
-definition PSubstPE :: 
+abbreviation PSubstPE :: 
 "('a, 'm :: VALUE) WF_PEXPRESSION \<Rightarrow> 
  ('b :: DEFINED, 'm) WF_PEXPRESSION \<Rightarrow> 
  ('b, 'm) PVAR \<Rightarrow> 
@@ -1143,21 +1154,23 @@ lemma EvalPE_SubstPE [eval,evale,evalp]:
   "\<lbrakk>SubstPE e v x\<rbrakk>\<^sub>*b = \<lbrakk>e\<rbrakk>\<^sub>* (b(x :=\<^sub>b InjU (\<lbrakk>v\<rbrakk>\<^sub>* b)))"
   by (simp add:SubstPE_def)
 
-lemma EvalPE_PSubstPE:
-  "\<lbrakk>PSubstPE e v x\<rbrakk>\<^sub>*b = \<lbrakk>e\<rbrakk>\<^sub>* (b(x\<down> :=\<^sub>b InjU (\<lbrakk>v\<rbrakk>\<^sub>* b)))"
-  by (simp add:PSubstPE_def SubstPE_def)
-
-lemma EvalPE_PSubstPE_typed [eval,evale,evalp]:
+lemma EvalPE_PSubstPE_typed [evale,evalpp]:
   "\<lbrakk>PSubstPE e v x\<rbrakk>\<^sub>*b = \<lbrakk>e\<rbrakk>\<^sub>* (b(x :=\<^sub>* \<lbrakk>v\<rbrakk>\<^sub>* b))"
-  by (simp add:eval EvalPE_PSubstPE binding_upd_ty_def)
+  by (simp add:eval binding_upd_ty_def)
 
-lemma PExprP_SubstPE [evalp]:
+lemma EvalPE_PSubstP_typed [evalpp]:
+  fixes x :: "('a::DEFINED, 'm::VALUE) PVAR"
+  assumes "TYPEUSOUND('a,'m)"
+  shows "\<lbrakk>PSubstP p v x\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>* \<lbrakk>v\<rbrakk>\<^sub>* b))"
+  by (simp add: eval binding_upd_ty_def assms)
+
+lemma PExprP_SubstPE [evalpp]:
   fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
   assumes "v \<rhd>\<^sub>* x"
   shows "(PSubstPE e v x)\<down> = SubstP e\<down> v\<down> x\<down>"
   apply (insert assms)
   apply (frule pevar_compat_TYPEUSOUND)
-  apply (simp add:SubstPE_def PSubstPE_def PExprP_def SubstP_def PExprE_rep_eq)
+  apply (simp add:SubstPE_def PExprP_def SubstP_def PExprE_rep_eq)
 done
 
 lemma InjU_EvalPE_compat [typing]:
@@ -1179,15 +1192,22 @@ lemma PSubstPE_PVarPE_different [usubst]:
   fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
   assumes "v \<rhd>\<^sub>* x" "x\<down> \<noteq> y\<down>"
   shows "PSubstPE (PVarPE y) v x = PVarPE y"
-  using assms by (auto simp add: evalp binding_upd_ty_def Rep_binding_ty_def typing)
+  using assms by (auto simp add: evalpp evalp binding_upd_ty_def Rep_binding_ty_def typing)
 
 lemma PSubstPE_ProdPE [usubst]:
   "ProdPE u v[e/\<^sub>*x] = ProdPE (u[e/\<^sub>*x]) (v[e/\<^sub>*x])"
-  by (auto simp add:evalp)
+  by (auto simp add:evalpp evalp)
+
+lemma PSubstP_PEqualP [usubst]:
+  fixes e :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  and   x :: "('a, 'm) PVAR"
+  assumes "TYPEUSOUND('a, 'm)"
+  shows "PSubstP (PEqualP u v) e x = PEqualP (u[e/\<^sub>*x]) (v[e/\<^sub>*x])"
+  using assms by (utp_poly_tac, metis binding_upd_ty_def)
 
 lemma PSubstPE_LitPE [usubst]:
   "PSubstPE (LitPE v) x e = LitPE v"
-  by (auto simp add:evalp)
+  by (auto simp add:evalpp evalp)
 
 lemma PSubstPE_Op1PE [usubst]:
   "(Op1PE f v)[x/\<^sub>*e] = Op1PE f (v[x/\<^sub>*e])"
@@ -1212,32 +1232,35 @@ lemma SubstP_PSubstPE_dash [usubst]:
   assumes "v \<rhd>\<^sub>* x"
   shows "e\<down>[v\<down>/\<^sub>px\<down>\<acute>] = (PSubstPE e v x\<acute>)\<down>"
   using assms 
-  by (utp_poly_tac)
+  by (utp_poly_tac, metis PVAR_VAR_pvdash binding_upd_ty_def)
 
 lemma SubstP_PSubstPE_dash_dash [usubst]:
   fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
   assumes "v \<rhd>\<^sub>* x"
   shows "e\<down>[v\<down>/\<^sub>px\<down>\<acute>\<acute>] = (PSubstPE e v x\<acute>\<acute>)\<down>" 
   using assms
-  by (utp_poly_tac)
+  by (utp_poly_tac, metis PVAR_VAR_pvdash binding_upd_ty_def)
 
 lemma SubstP_PSubstPE_dash_dash_dash [usubst]:
   fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
   assumes "v \<rhd>\<^sub>* x"
   shows "e\<down>[v\<down>/\<^sub>px\<down>\<acute>\<acute>\<acute>] = (PSubstPE e v x\<acute>\<acute>\<acute>)\<down>"
   using assms  
-  by (utp_poly_tac)
+  by (utp_poly_tac, metis PVAR_VAR_pvdash binding_upd_ty_def)
 
 lemma PSubstPE_PVarPE_neq [usubst]:
   fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
   and   x :: "('b :: DEFINED, 'm :: VALUE) PVAR"
   assumes "x\<down> \<noteq> y\<down>" "v \<rhd>\<^sub>* y"
   shows "PSubstPE (PVarPE x) v y = PVarPE x"
-  using assms by (utp_poly_auto_tac)
+  using assms 
+  by (utp_poly_auto_tac, metis Rep_binding_ty_def binding_upd_apply)
 
 lemma PSubstPE_VarP_single_UNREST:
   "{x\<down>} \<sharp> v \<Longrightarrow> v[e/\<^sub>*x] = v"
-  by (auto simp add:evalp unrest UNREST_PEXPR_def)
+  apply (simp add: evalp UNREST_PEXPR_def)
+  apply (metis binding_upd_upd)
+done
 
 lemma SubstE_PSubstPE [usubst]:
   fixes v :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"

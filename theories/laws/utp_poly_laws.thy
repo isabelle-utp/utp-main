@@ -21,7 +21,7 @@ lemma BoolType_pvaux_cases [ucases]:
   shows "p = q \<longleftrightarrow> `p[false/x]` = `q[false/x]` \<and> `p[true/x]` = `q[true/x]`"
   using assms
   apply (rule_tac iffI)
-  apply (utp_pred_tac)
+  apply (utp_poly_tac)
   apply (rule BoolType_aux_var_split_eq_intro[of "x\<down>"])
   apply (simp_all add:typing defined erasure pvaux_aux inju)
 done
@@ -78,7 +78,7 @@ theorem AssignR_SemiR_ty:
   shows "`(x := e) ; p` = `p[e/x]`"
   apply (utp_rel_tac)
   apply (simp add: EvalR_AssignR_typed evalp closure typing defined unrest relcomp_unfold assms EvalR_SubstP_UNDASHED_ty)
-  apply (auto simp add: binding_upd_ty_def)
+  apply (auto simp add: binding_upd_ty_def erasure)
   apply (metis InjU_EvalPE_compat PVAR_VAR_PUNDASHED_UNDASHED WF_REL_BINDING_binding_upd_remove WF_REL_BINDING_member1 assms(2) assms(3))
 done
 
@@ -114,6 +114,9 @@ lemma prefix_implies_concat_minus:
   apply (metis prefixeq_drop)
 done
 
+lemma PEqualP_sym: "`u = v` = `v = u`"
+  by (utp_poly_auto_tac)
+
 lemma prefix_implies_diff:
   fixes xs ys zs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
   assumes "TYPEUSOUND('a ULIST, 'm)" "pvaux xs"  "pvaux ys" "pvaux zs" 
@@ -122,7 +125,7 @@ lemma prefix_implies_diff:
   using assms
   apply (rule_tac ExistsP_assm_witness[of _ _ "|($ys - $xs)|\<down>"])
   apply (simp add:usubst typing defined closure)
-  apply (metis EqualP_sym prefix_implies_concat_minus)
+  apply (metis PEqualP_sym prefix_implies_concat_minus)
 done
 
 lemma prefix_as_concat:
@@ -201,13 +204,7 @@ lemma var_eq_trans:
   fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
   assumes "TYPEUSOUND('a, 'm)" "x \<in> PUNDASHED" "pvaux x"
   shows "`($x\<acute> = $x) ; ($x\<acute> = $x)` = `($x\<acute> = $x)`"
-  using assms
-  apply (subst SemiR_algebraic)
-  apply (simp_all add:closure unrest typing assms urename PermPV_PVAR)
-  apply (auto simp add:eval closure assms)
-  apply (rule_tac x="b(x\<acute>\<acute> :=\<^sub>* \<langle>b\<rangle>\<^sub>* x)" in exI)
-  apply (simp add:typing defined assms closure)
-done
+  using assms by (utp_prel_auto_tac)
 
 theorem nil_prefixeq [simp]:
   "`\<langle>\<rangle> \<le> x` = `true`"
@@ -282,8 +279,12 @@ lemma SkipRA_unfold_aux_ty:
   fixes v :: "('a :: DEFINED, 'm :: VALUE) PVAR" 
   assumes "TYPEUSOUND('a, 'm)" "v\<down> \<in> vs" "v\<down> \<acute> \<in> vs" "v \<in> PUNDASHED" "HOMOGENEOUS vs" "pvaux v"
   shows "II\<^bsub>vs\<^esub> = `($v\<acute> = $v) \<and> II\<^bsub>vs - {v \<down>, v \<down>\<acute>}\<^esub>`"
+  using assms
   apply(subst SkipRA_unfold[of "v \<down>"])
-  apply(simp_all add:closure assms erasure typing defined)
+  apply(simp_all add:closure typing defined)
+  apply (utp_poly_auto_tac)
+  apply (metis EvalE_VarE EvalPE_PVarPE_ty EvalPE_VarPE EvalP_EqualP PVAR_VAR_pvdash PVarPE_def)
+  apply (metis EvalPE_PVarPE_ty EvalP_EqualP_ty PVAR_VAR_pvdash PVarPE_erasure pvaux_pvdash)
 done
 
 theorem ExistsP_has_ty_value:
@@ -302,6 +303,6 @@ lemma SubstP_AssignR_simple_ty [usubst]:
     "DASHED \<sharp> e"
     "DASHED \<sharp> v"
   shows "`(x := e)[v/x]` = `(x := (e[v/x]))`"
-by (metis PExprE_compat PVAR_VAR_PUNDASHED_UNDASHED SubstE_PSubstPE SubstP_AssignR_simple UNREST_PExprE assms pevar_compat_TYPEUSOUND)
+  by (metis (mono_tags) PAssignF_upd_def PVAR_VAR_PUNDASHED_UNDASHED SubstE_PSubstPE SubstP_AssignR_simple UNREST_PExprE assms(1) assms(3) assms(4) assms(5) pevar_compat_TYPEUSOUND)
 
 end
