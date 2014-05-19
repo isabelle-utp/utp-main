@@ -115,6 +115,18 @@ definition UNREST_EXPR :: "('VALUE VAR) set \<Rightarrow> 'VALUE WF_EXPRESSION \
 adhoc_overloading
   unrest UNREST_EXPR
 
+definition WF_EXPR_REL :: "'m WF_EXPRESSION set" where
+"WF_EXPR_REL = {e. - D\<^sub>0 \<sharp> e}"
+
+adhoc_overloading
+  REL WF_EXPR_REL
+
+definition WF_EXPR_COND :: "'m WF_EXPRESSION set" where
+"WF_EXPR_COND = {e. - D\<^sub>0 \<sharp> e}"
+
+adhoc_overloading
+  COND WF_EXPR_COND
+
 definition WF_EXPRESSION_OVER ::
   "('VALUE VAR) set \<Rightarrow>
    'VALUE WF_EXPRESSION set" where

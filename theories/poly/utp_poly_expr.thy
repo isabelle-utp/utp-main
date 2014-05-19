@@ -74,6 +74,18 @@ definition UNREST_PEXPR :: "('m VAR) set \<Rightarrow> ('a, 'm :: VALUE) WF_PEXP
 adhoc_overloading
   unrest UNREST_PEXPR
 
+definition WF_PEXPR_REL :: "('a::DEFINED, 'm::VALUE) WF_PEXPRESSION set" where
+"WF_PEXPR_REL = {e. NON_REL_VAR \<sharp> e}"
+
+definition WF_PEXPR_COND :: "('a::DEFINED, 'm::VALUE) WF_PEXPRESSION set" where
+"WF_PEXPR_COND = {e. - D\<^sub>0 \<sharp> e}"
+
+adhoc_overloading
+  REL WF_PEXPR_REL
+
+adhoc_overloading
+  COND WF_PEXPR_COND
+
 lemma EvalPE_UNREST_assign [evalp]:
   "{x\<down>} \<sharp> e \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>*(b(x :=\<^sub>* v)) = \<lbrakk>e\<rbrakk>\<^sub>*b"
   apply (simp add:UNREST_PEXPR_def binding_upd_ty_def)
@@ -1409,5 +1421,72 @@ declare PrefixUL.rep_eq [evalp]
 declare PrefixeqUL.rep_eq [evalp]
 
 declare drop_map [eval,evalr,evalp]
+
+subsection {* Closure Laws *}
+
+lemma Op2PE_rel_closure [closure]: "\<lbrakk> u \<in> REL; v \<in> REL \<rbrakk> \<Longrightarrow> Op2PE f u v \<in> REL"
+  by (simp add:WF_PEXPR_REL_def unrest)
+  
+lemma Op2PE_cond_closure [closure]: "\<lbrakk> u \<in> COND; v \<in> COND \<rbrakk> \<Longrightarrow> Op2PE f u v \<in> COND"
+  by (simp add:WF_PEXPR_COND_def unrest)
+
+lemma LessEqPE_rel_closure [closure]: "\<lbrakk> u \<in> REL; v \<in> REL \<rbrakk> \<Longrightarrow> LessEqPE u v \<in> REL"
+  by (simp add: LessEqPE_def closure)
+
+lemma LessEqPE_cond_closure [closure]: "\<lbrakk> u \<in> COND; v \<in> COND \<rbrakk> \<Longrightarrow> LessEqPE u v \<in> COND"
+  by (simp add: LessEqPE_def closure)
+
+lemma LessPE_rel_closure [closure]: "\<lbrakk> u \<in> REL; v \<in> REL \<rbrakk> \<Longrightarrow> LessEqPE u v \<in> REL"
+  by (simp add: LessPE_def closure)
+
+lemma LessPE_cond_closure [closure]: "\<lbrakk> u \<in> COND; v \<in> COND \<rbrakk> \<Longrightarrow> LessPE u v \<in> COND"
+  by (simp add: LessPE_def closure)
+
+lemma LitPE_rel_closure [closure]: "LitPE v \<in> REL"
+  by (simp add:WF_PEXPR_REL_def unrest)
+
+lemma LitPE_cond_closure [closure]: "LitPE v \<in> COND"
+  by (simp add:WF_PEXPR_COND_def unrest)
+
+lemma PVarPE_rel_closure_1 [closure]: "x\<down> \<in> D\<^sub>0 \<Longrightarrow> PVarPE x \<in> REL"
+  by (auto simp add:WF_PEXPR_REL_def unrest typing)
+
+lemma PVarPE_rel_closure_2 [closure]: "x\<down> \<in> D\<^sub>1 \<Longrightarrow> PVarPE x \<in> REL"
+  by (auto simp add:WF_PEXPR_REL_def unrest typing)
+
+lemma PVarPE_cond_closure [closure]: "x\<down> \<in> D\<^sub>0 \<Longrightarrow> PVarPE x \<in> COND"
+  by (simp add:WF_PEXPR_COND_def unrest typing)
+
+lemma PExprE_cond_closure [closure]: 
+  fixes v :: "('a::DEFINED, 'm::VALUE) WF_PEXPRESSION"
+  assumes "v \<in> COND" "TYPEUSOUND('a, 'm)"
+  shows "PExprE v \<in> COND"
+  using assms
+  by (simp add:WF_EXPR_COND_def WF_PEXPR_COND_def unrest)
+
+lemma PExprP_rel_closure [closure]: "e \<in> REL \<Longrightarrow> PExprP e \<in> REL"
+  by (auto intro: unrest UNREST_PEXPR_subset simp add:WF_PEXPR_REL_def WF_RELATION_def)
+
+lemma PExprP_cond_closure [closure]: "e \<in> COND \<Longrightarrow> PExprP e \<in> COND"
+  by (auto intro: unrest UNREST_PEXPR_subset simp add:WF_PEXPR_COND_def WF_CONDITION_def WF_RELATION_def)
+
+lemma PAssignF_upd_cond_closure [closure]: 
+  "\<lbrakk> f \<in> COND; x\<down> \<in> D\<^sub>0; PExprE v \<in> COND \<rbrakk> \<Longrightarrow> PAssignF_upd f x v \<in> COND"
+  apply (simp add:PAssignF_upd_def)
+  apply (rule closure)
+  apply (simp_all)
+done
+
+lemma PAssignR_rel_closure [closure]: 
+  fixes x :: "('a::DEFINED, 'm::VALUE) PVAR"
+    and v :: "('a::DEFINED, 'm::VALUE) WF_PEXPRESSION"
+  assumes "x\<down> \<in> D\<^sub>0" "PExprE v \<in> COND" "TYPEUSOUND('a, 'm)"
+  shows "PAssignR x v \<in> REL"
+  using assms
+  apply (simp add:PAssignR_def)
+  apply (rule closure)
+  apply (auto intro:unrest UNREST_PEXPR_subset simp add:WF_PEXPR_COND_def closure)
+  apply (metis UNREST_EXPR_unionE WF_EXPR_COND_def double_complement mem_Collect_eq minus_DASHED_NON_REL_VAR)
+done
 
 end

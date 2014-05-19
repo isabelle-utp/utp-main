@@ -106,8 +106,14 @@ definition undash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" where
 adhoc_overloading
   unprime undash
 
+(*
+definition vchsub :: "'a VAR \<Rightarrow> nat \<Rightarrow> 'a VAR" where
+"vchsub = (\<lambda> (nm, t, a) n. (nm_set nm_subscript_attr (Some n) nm, t, a))"
+*)
+
 fun vchsub :: "'a VAR \<Rightarrow> nat \<Rightarrow> 'a VAR" where
 "vchsub (MkName s d b, t, a) n = (MkName s d (chsub n b), t, a)"
+
 
 abbreviation "add_sub n i \<equiv> vchsub i n"
 

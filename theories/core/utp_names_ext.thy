@@ -10,13 +10,13 @@ theory utp_names_ext
 imports "../utp_common" Derive
 begin
 
-datatype NmAtT = NABoolT | NANatT | NAIntT | NACharT | NAPairT NmAtT NmAtT | NAListT NmAtT
+datatype NmAtT = NABoolT | NANatT | NAIntT | NACharT | NAOptT NmAtT | NAPairT NmAtT NmAtT | NAListT NmAtT
 
 derive linorder  NmAtT
 derive countable NmAtT
 
 datatype NmAtV = NABoolV bool | NANatV nat | NAIntV int | NACharV char
-               | NAPairV NmAtV NmAtV | NAListV NmAtT "NmAtV list"
+               | NAOptV "NmAtV option" | NAPairV NmAtV NmAtV | NAListV NmAtT "NmAtV list"
 
 derive linorder  NmAtV
 derive countable NmAtV
@@ -28,6 +28,7 @@ inductive nm_ty :: "NmAtV \<Rightarrow> NmAtT \<Rightarrow> bool" (infix ":\<^su
 "NANatV n :\<^sub>a NANatT" |
 "NAIntV n :\<^sub>a NAIntT" |
 "NACharV x :\<^sub>a NACharT" |
+"\<lbrakk> x :\<^sub>a a \<rbrakk> \<Longrightarrow> NAOptV (Some x) :\<^sub>a NAOptT a" |
 "\<lbrakk> x :\<^sub>a a; y :\<^sub>a b \<rbrakk> \<Longrightarrow> NAPairV x y :\<^sub>a NAPairT a b" |
 "\<lbrakk> \<forall>x\<in>set xs. x :\<^sub>a a \<rbrakk> \<Longrightarrow> NAListV a xs :\<^sub>a NAListT a"
 
@@ -36,6 +37,7 @@ inductive_cases
    [elim!]: "x :\<^sub>a NANatT" and
    [elim!]: "x :\<^sub>a NAIntT" and
    [elim!]: "x :\<^sub>a NACharT" and
+   [elim!]: "x :\<^sub>a NAOptT a" and
    [elim!]: "x :\<^sub>a NAPairT a b" and
    [elim!]: "x :\<^sub>a NAListT a"
 
@@ -226,9 +228,34 @@ lemma dashes_simp [simp]: "dashes (MkName n d s) = d"
 lemma subscript_simp [simp]: "subscript (MkName n d s) = s"
   by (simp add:MkName_def)
 
+fun chsub :: "nat \<Rightarrow> SUBSCRIPT \<Rightarrow> SUBSCRIPT" where
+"chsub n None = Some n" |
+"chsub n (Some n') = (if (n = n') then None else Some n')"
+
+lemma chsub_inv [simp]: 
+  "chsub n (chsub n x) = x"
+  by (case_tac x, simp_all)
+
+lemma chsub_inj:
+  "inj (chsub n)"
+  apply (rule injI)
+  apply (metis chsub_inv)
+done
+
+lemma chsub_surj:
+  "surj (chsub n)"
+  by (metis chsub_inv surj_def)
+
+lemma chsub_bij [closure]:
+  "bij (chsub n)"
+  by (rule bijI, fact chsub_inj, fact chsub_surj)  
+
+(*
 lemma MkName_inverse [simp]: 
   "n :\<^sub>n NameStd \<Longrightarrow> MkName (name_str n) (dashes n) (subscript n) = n"
-  apply (auto simp add:MkName_def nm_set.rep_eq fmap_upd.rep_eq)
+  apply (auto simp add:NAME_type_rel_def MkName_def nm_set.rep_eq fmap_upd.rep_eq)
+  sledgehammer
 oops
+*)
 
 end

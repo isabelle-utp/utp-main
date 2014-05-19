@@ -68,6 +68,14 @@ theorem HoareP_prepost [hoare]:
   "`{p}Q{r}` \<Longrightarrow> `{p \<and> q}Q{r \<or> s}`"
   by (simp add:HoareP_def urename eval)
 
+theorem HoareP_weaken_pre:
+  "\<lbrakk> `p' \<Rightarrow> p`; `{p}Q{r}` \<rbrakk> \<Longrightarrow> `{p'}Q{r}`"
+  by (simp add: HoareP_def, utp_pred_tac)
+
+theorem HoareP_strengthen_post:
+  "\<lbrakk> `r \<Rightarrow> r'`; `{p}Q{r}` \<rbrakk> \<Longrightarrow> `{p}Q{r'}`"
+  by (simp add: HoareP_def, utp_pred_tac)
+
 theorem HoareP_pre_refine:
   "\<lbrakk> (p \<sqsubseteq> q); `{p}Q{r}` \<rbrakk> \<Longrightarrow> `{q}Q{r}`"
 by (metis HoareP_pre RefP_AndP)
@@ -81,7 +89,7 @@ theorem HoareP_TrueR [hoare]:
   by (metis ConvR_TrueP HoareP_intro RefineP_TrueP_refine utp_pred_simps(14))
 
 theorem HoareP_SkipR [hoare]:
-  assumes "p \<in> WF_CONDITION"
+  assumes "p \<in> COND"
   shows "`{p}II{p}`"
   using assms by (utp_xrel_auto_tac)
 
@@ -97,8 +105,8 @@ theorem HoareP_CondR [hoare]:
   
 theorem HoareP_SemiR [hoare]:
   assumes 
-    "p \<in> WF_CONDITION" "r \<in> WF_CONDITION" "s \<in> WF_CONDITION"
-    "Q1 \<in> WF_RELATION" "Q2 \<in> WF_RELATION"
+    "p \<in> COND" "r \<in> COND" "s \<in> COND"
+    "Q1 \<in> REL" "Q2 \<in> REL"
     "`{p}Q1{s}`" "`{s}Q2{r}`" 
   shows "`{p}Q1 ; Q2{r}`"
 proof
@@ -134,21 +142,24 @@ proof
 qed
 
 theorem HoareP_AssignR [hoare]:
-  assumes "q \<in> WF_CONDITION" "p \<Rightarrow>\<^sub>p q[v/\<^sub>px]"
-   "x \<in> UNDASHED" "UNREST_EXPR DASHED v" "v \<rhd>\<^sub>e x"
+  assumes "q \<in> COND" "p \<Rightarrow>\<^sub>p q[v/\<^sub>px]"
+   "x \<in> D\<^sub>0" "D\<^sub>1 \<sharp> v"
   shows "{p}x :=\<^sub>R v{q}\<^sub>p"
   using assms
   apply (rule_tac HoareP_intro)
-  apply (utp_pred_auto_tac)
-  apply (subgoal_tac "(SS\<bullet>b) \<cong> (b(x :=\<^sub>b \<langle>v\<rangle>\<^sub>e b)) on UNDASHED")
-  apply (drule_tac x="x" in bspec, simp)
-  apply (simp add:AssignF_upd_rep_eq EvalE_def)
+  apply (rule AssignR_refinement_alt)
+  apply (simp_all)
+done
 
-  apply (metis EvalP_WF_CONDITION_binding_equiv binding_equiv_comm)
-  apply (auto simp add:binding_equiv_def)
-  apply (simp add:typing urename AssignF_upd_rep_eq)
-  apply (drule_tac x="xa" in bspec, simp)
-  apply (simp add:typing urename AssignF_upd_rep_eq IdA.rep_eq VarE.rep_eq)
+lemma HoareP_PAssignR:
+  fixes x :: "('a::DEFINED, 'm::VALUE) PVAR"
+    and v :: "('a::DEFINED, 'm::VALUE) WF_PEXPRESSION"
+  assumes "q \<in> COND" "x\<down> \<in> D\<^sub>0" "TYPEUSOUND('a, 'm)" "D\<^sub>1 \<sharp> v" "`p \<Rightarrow> q[v/x]`"
+  shows "`{p}x := v{q}`"
+  using assms
+  apply (simp add:PAssignF_upd_def)
+  apply (rule HoareP_AssignR)
+  apply (simp_all add:closure typing defined unrest)
 done
 
 lemma (in left_near_kleene_algebra) 
@@ -157,7 +168,7 @@ lemma (in left_near_kleene_algebra)
 
 theorem HoareP_IterP [hoare]:
   assumes 
-    "p \<in> WF_CONDITION" "b \<in> WF_CONDITION" "S \<in> WF_RELATION"
+    "p \<in> COND" "b \<in> COND" "S \<in> REL"
     "`{p \<and> b}S{p}`"
   shows "`{p}while b do S od{\<not>b \<and> p}`"
 proof -
@@ -204,5 +215,32 @@ proof -
     apply (utp_pred_tac)
   done
 qed
+
+theorem HoareP_IterInvP [hoare]:
+  assumes 
+    "p \<in> COND" "b \<in> COND" "S \<in> REL"
+    "`{p \<and> b}S{p}`" "`pre \<Rightarrow> p`" "`(\<not>b \<and> p) \<Rightarrow> post`"
+  shows "`{pre}while b inv p do S od{post}`"
+  using assms
+  by (auto simp add: IterInvP_def intro: HoareP_strengthen_post HoareP_weaken_pre HoareP_IterP)
+
+declare EvalP_SkipR [eval del]
+declare EvalP_SkipR_alt [eval]
+
+lemma HoareP_VarOpenP:
+  "\<lbrakk> x\<down> \<in> D\<^sub>0; {x\<down>} \<sharp> p; p \<in> COND; q \<in> COND; `p \<Rightarrow> q` \<rbrakk> \<Longrightarrow> `{p}var x{q}`"
+  apply (simp add:VarOpenP_def)
+  apply (utp_pred_auto_tac)
+  apply (metis EvalP_UNREST_assign_1 EvalP_WF_CONDITION_binding_equiv UNDASHED_not_DASHED 
+               binding_equiv_SS_DASHED binding_equiv_SS_UNDASHED binding_equiv_update_subsume)
+done
+
+lemma HoareP_VarCloseP:
+  "\<lbrakk> x\<down> \<in> D\<^sub>0; {x\<down>} \<sharp> q; p \<in> COND; q \<in> COND; `p \<Rightarrow> q` \<rbrakk> \<Longrightarrow> `{p}end x{q}`"
+  apply (simp add:VarCloseP_def)
+  apply (utp_pred_auto_tac)
+  apply (metis EvalP_UNREST_assign_1 EvalP_WF_CONDITION_binding_equiv RenameB_binding_upd_1 
+               SS_DASHED_app UNDASHED_dash_DASHED undash_dash)
+done
 
 end

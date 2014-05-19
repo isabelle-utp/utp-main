@@ -216,6 +216,12 @@ lemma AssignF_upd_rep_eq:
   apply (simp add:AssignF_def)
 done
 
+definition AssignF_COND :: "'m AssignF set" where
+"AssignF_COND = {f. \<forall> x \<in> D\<^sub>0. \<langle>f\<rangle>\<^sub>a x \<in> COND}"
+
+adhoc_overloading
+  COND AssignF_COND
+
 (*
 abbreviation "AssignR x v \<equiv> AssignsR (AssignF_upd IdA x v)"
 *)
@@ -252,6 +258,25 @@ lemma AssignsR_SkipR: "AssignsR IdA = II"
 lemma AssignsRA_SkipRA: 
   "HOMOGENEOUS vs \<Longrightarrow> AssignsRA vs IdA = II\<^bsub>vs\<^esub>"
   by (auto simp add:AssignsRA.rep_eq IdA.rep_eq VarE.rep_eq SkipRA_rep_eq_alt)
+
+lemma IdA_cond_closure [closure]: "IdA \<in> COND"
+  apply (auto simp add:AssignF_COND_def)
+  apply (metis ComplD IdA.rep_eq UNREST_EXPR_VarE WF_EXPR_COND_def mem_Collect_eq)
+done
+
+lemma AssignF_upd_cond_closure [closure]: 
+  "\<lbrakk> f \<in> COND; x \<in> D\<^sub>0; v \<in> COND \<rbrakk> \<Longrightarrow> AssignF_upd f x v \<in> COND"
+  apply (auto simp add:AssignF_COND_def AssignF_upd.rep_eq)
+  apply (metis UNREST_ecoerce WF_EXPR_COND_def mem_Collect_eq)
+done
+
+lemma AssignsR_rel_closure [closure]: "f \<in> COND \<Longrightarrow> AssignsR f \<in> REL"
+  apply (auto simp add: WF_RELATION_def)
+  apply (unfold UNREST_def)
+  apply (auto simp add: AssignsR.rep_eq WF_EXPR_COND_def AssignF_COND_def)
+  apply (unfold UNREST_EXPR_def)
+  apply (metis UNDASHED_DASHED_inter(14) binding_override_simps(6))
+done
 
 (*
 lemma AssignsR_L1: "x \<noteq> y \<Longrightarrow> (x :=p e) = (x,y :=p e,VarE y)"

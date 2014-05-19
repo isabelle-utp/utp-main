@@ -12,6 +12,7 @@ imports
   "../core/utp_hoare"
   "../laws/utp_rel_laws"
   "../tactics/utp_solve_tac"
+  "../tactics/utp_closure_tac"
   "../parser/utp_alpha_pred_parser"
   "utp_alpha_iteration"
 begin

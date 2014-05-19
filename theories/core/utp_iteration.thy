@@ -221,20 +221,36 @@ definition
            \<Rightarrow> 'a WF_PREDICATE 
            \<Rightarrow> 'a WF_PREDICATE" ("while _ do _ od") where
 "IterP b P \<equiv> ((b \<and>\<^sub>p P)\<^sup>\<star>) \<and>\<^sub>p (\<not>\<^sub>p b\<acute>)"  
+
+definition 
+  IterInvP :: " 'a WF_PREDICATE
+             \<Rightarrow> 'a WF_PREDICATE 
+             \<Rightarrow> 'a WF_PREDICATE 
+             \<Rightarrow> 'a WF_PREDICATE" ("while _ inv _ do _ od") where
+"IterInvP b i P = IterP b P"  
+
   
 syntax
-  "_upred_while"    :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("while _ do _ od")
+  "_upred_while"     :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("while _ do _ od")
+  "_upred_while_inv" :: "upred \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("while _ inv _ do _ od")
 
 translations
-  "_upred_while b p"   == "CONST IterP b p"
+  "_upred_while b p"       == "CONST IterP b p"
+  "_upred_while_inv b i p" == "CONST IterInvP b i p"
 
 declare EvalRR_StarP [evalrr]
 declare IterP_def [eval, evalr, evalrr, evalrx]
+declare IterInvP_def [eval, evalr, evalrr, evalrx]
 
 lemma IterP_closure [closure]:
   "\<lbrakk> b \<in> WF_RELATION; P \<in> WF_RELATION \<rbrakk> \<Longrightarrow>
      while b do P od \<in> WF_RELATION"
   by (simp add:IterP_def closure)
+
+lemma IterInvP_closure [closure]:
+  "\<lbrakk> b \<in> WF_RELATION; P \<in> WF_RELATION \<rbrakk> \<Longrightarrow>
+     while b inv i do P od \<in> WF_RELATION"
+  by (simp add:IterInvP_def closure)
 
 theorem IterP_false: "while false do P od = II"
   by (simp add:evalrr)

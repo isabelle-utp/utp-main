@@ -143,17 +143,28 @@ done
 
 lemma AssignR_refinement [refine]:
   assumes
-    "x \<in> UNDASHED" "v \<rhd>\<^sub>e x" "DASHED \<sharp> v" "q[v/\<^sub>px\<acute>] \<sqsubseteq> p"
+    "x \<in> D\<^sub>0" "D\<^sub>1 \<sharp> v" "q[v/\<^sub>px\<acute>] \<sqsubseteq> p"
   shows "(p \<Rightarrow>\<^sub>p q) \<sqsubseteq> x :=\<^sub>R v"
   using assms
     apply (utp_pred_auto_tac)
     apply (auto simp add:AssignF_upd_rep_eq EvalE_def)
-    apply (metis (full_types) binding_upd_simps(2))
+    apply (metis EvalE_def EvalP_AssignR1 EvalP_AssignsR binding_upd_triv binding_upd_vcoerce_dash)
+done
+
+lemma AssignR_refinement_alt:
+  assumes "q \<in> COND" "x \<in> D\<^sub>0" "p \<Rightarrow>\<^sub>p q[v/\<^sub>px]"
+  shows "(p \<Rightarrow>\<^sub>p q\<acute>) \<sqsubseteq> x :=\<^sub>R v"
+  using assms
+  apply (utp_pred_auto_tac)
+  apply (subst EvalP_binding_equiv[of "D\<^sub>0" _ _ "b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eb)"])
+  apply (simp_all add:closure)
+  apply (simp add: binding_equiv_def urename)
+  apply (metis EvalP_AssignR1 EvalP_AssignsR)
 done
 
 lemma AssignR_refine_alt [refine]:
   assumes
-    "x \<in> UNDASHED" "v \<rhd>\<^sub>e x" "DASHED \<sharp> v" "p[v/\<^sub>px\<acute>]"
+    "x \<in> UNDASHED" "DASHED \<sharp> v" "p[v/\<^sub>px\<acute>]"
   shows "p \<sqsubseteq> x :=\<^sub>R v"
 proof -
   from assms have "`true \<Rightarrow> p` \<sqsubseteq> x :=\<^sub>R v"
