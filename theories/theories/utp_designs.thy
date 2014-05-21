@@ -277,14 +277,12 @@ proof -
     apply (subst AssignRA_unfold[of _ _ "okay\<down>"]) back
     apply (simp_all add:closure var_dist typing defined unrest)
     apply (metis Diff_cancel UNDASHED_DASHED_minus(2) UNREST_PExprE Un_commute Un_empty_right union_minus)
-    apply (simp add:erasure typing)
+    apply (metis (lifting, no_types) EqualP_as_EqualPE PVAR_VAR_pvdash PVarPE_erasure TypeUSound_bool pvaux_MkPVAR pvaux_pvdash)
   done
 
   also from assms
   have "... = `true \<turnstile> (x := v)`"
-    apply (subst AssignR_as_AssignRA)
-    apply (simp_all add:closure unrest)
-  done
+    by (metis AssignR_as_AssignRA PAssignF_upd_def PUNDASHED_def UNREST_PExprE mem_Collect_eq)
 
   finally show ?thesis ..
 qed
@@ -343,6 +341,12 @@ theorem DesignD_embed_right:
   "`P \<turnstile> (Q \<turnstile> R)` = `P \<turnstile> (Q \<Rightarrow> R)`"
   by (utp_pred_auto_tac)
 
+lemma PExprP_erasure [erasure]:
+  fixes e :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  assumes "TYPEUSOUND('a, 'm)"
+  shows "PExprP (EqualPE e f) = EqualP (e\<down>) (f\<down>)"
+  using assms by (utp_poly_tac)
+
 lemma SkipDA_alt_def: 
   assumes "okay\<down> \<in> vs" "HOMOGENEOUS vs"
   shows "II\<^bsub>D[vs]\<^esub> = `true \<turnstile> II\<^bsub>vs\<^esub>`"
@@ -357,7 +361,7 @@ proof -
     apply (subst SkipRA_unfold[of "okay\<down>"]) back
     apply (simp_all add:closure)
     apply (metis MkPlain_UNDASHED PVAR_VAR_MkPVAR hom_alphabet_undash)
-    apply (simp add:erasure typing defined)
+    apply (simp add:erasure typing defined closure)
   done
 
   finally show ?thesis .
