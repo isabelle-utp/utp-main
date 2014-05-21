@@ -48,7 +48,6 @@ lemma omega_coinduct_eq_var1: "y = 1 + x \<cdot> y \<longrightarrow> y \<le> x\<
 lemma  omega_coinduct_eq_var2: "y = x \<cdot> y \<longrightarrow> y \<le> x\<^sup>\<omega>"
   by (metis eq_refl omega_coinduct_var2)
 
-(*
 lemma "y = x \<cdot> y + z \<longrightarrow> y = x\<^sup>\<star> \<cdot> z + x\<^sup>\<omega>"
   nitpick [expect=genuine] -- "2-element counterexample"
 oops
@@ -60,7 +59,6 @@ oops
 lemma "y = x \<cdot> y \<longrightarrow> y = x\<^sup>\<omega>"
   nitpick [expect=genuine] -- "2-element counterexample"
 oops
-*)
 
 text {* Next we strengthen the unfold law to an equation. *}
 
@@ -77,11 +75,9 @@ qed
 lemma omega_unfold_var: "z + x \<cdot> x\<^sup>\<omega> \<le> x\<^sup>\<omega> + x\<^sup>\<star> \<cdot> z"
   by (metis add_lub add_ub1 omega_coinduct omega_unfold_eq)
 
-(*
 lemma "z + x \<cdot> x\<^sup>\<omega> = x\<^sup>\<omega> + x\<^sup>\<star> \<cdot> z"
   nitpick [expect=genuine] -- "4-element counterexample"
 oops
-*)
 
 text {* We now prove subdistributivity and isotonicity of omega. *}
 
@@ -145,11 +141,9 @@ proof -
     by (metis mult.assoc omega_coinduct_var2)
 qed
 
-(*
 lemma "x\<^sup>\<omega> \<cdot> y = x\<^sup>\<omega>"
   nitpick [expect=genuine] -- "2-element counterexample"
 oops
-*)
 
 lemma omega_sup_id: "1 \<le> y \<longrightarrow> x\<^sup>\<omega> \<cdot> y = x\<^sup>\<omega>"
   by (metis eq_iff mult_isol mult_oner omega_1)
@@ -160,11 +154,9 @@ lemma omega_top [simp]: "x\<^sup>\<omega> \<cdot> \<top> = x\<^sup>\<omega>"
 lemma supid_omega: "1 \<le> x \<longrightarrow> x\<^sup>\<omega> = \<top>"
   by (metis eq_iff max_element omega_iso top_def)
 
-(*
 lemma "x\<^sup>\<omega> = \<top> \<longrightarrow> 1 \<le> x"
   nitpick [expect=genuine] -- "4-element counterexample"
 oops
-*)
 
 text {* Next we prove a simulation law for the omega operation *}
 
@@ -179,19 +171,17 @@ proof
     by (metis calculation mult.assoc omega_coinduct_var2)
 qed
 
-(*
 lemma "z \<cdot> x \<le> y \<cdot> z \<longrightarrow> z \<cdot> x\<^sup>\<omega> \<le> y\<^sup>\<omega> \<cdot> z"
-  nitpick -- "4-element counterexample"
+  nitpick [expect=genuine] -- "4-element counterexample"
 oops
 
 lemma "y \<cdot> z  \<le> z \<cdot> x \<longrightarrow> y\<^sup>\<omega> \<le> z \<cdot> x\<^sup>\<omega>"
-  nitpick -- "2-element counterexample"
+  nitpick [expect=genuine] -- "2-element counterexample"
 oops
 
 lemma "y \<cdot> z  \<le> z \<cdot> x \<longrightarrow> y\<^sup>\<omega> \<cdot> z \<le> x\<^sup>\<omega>"
-  nitpick -- "4-element counterexample"
+  nitpick [expect=genuine] -- "4-element counterexample"
 oops
-*)
 
 text {* Next we prove transitivity of omega elements. *}
 
@@ -384,12 +374,12 @@ lemma bachmair_dershowitz:
   shows "(x + y)\<^sup>\<omega> = 0 \<longleftrightarrow> x\<^sup>\<omega> + y\<^sup>\<omega> = 0"
 proof
   assume "(x + y)\<^sup>\<omega> = 0"
-  thus "x\<^sup>\<omega> + y\<^sup>\<omega> = 0"
-    by (metis add.commute add_zero_r annir omega_sum_unfold)
+  show "x\<^sup>\<omega> + y\<^sup>\<omega> = 0"
+    by (metis `(x + y)\<^sup>\<omega> = (0\<Colon>'a)` add.commute add_zero_r annir omega_sum_unfold)
 next
   assume "x\<^sup>\<omega> + y\<^sup>\<omega> = 0"
-  thus "(x + y)\<^sup>\<omega> = 0"
-    by (metis assms no_trivial_inverse omega_sum_refine distrib_left star_omega_1)
+  show "(x + y)\<^sup>\<omega> = 0"
+    by (metis `x\<^sup>\<omega> + y\<^sup>\<omega> = (0\<Colon>'a)` assms no_trivial_inverse omega_sum_refine distrib_left star_omega_1)
 qed
 
 text {*
@@ -404,11 +394,9 @@ where "ewp x \<equiv> \<not>(\<forall>y. y \<le> x \<cdot> y \<longrightarrow> y
 lemma ewp_super_id1: "0 \<noteq> 1 \<longrightarrow> 1 \<le> x \<longrightarrow> ewp x"
   by (metis ewp_def mult_oner)
 
-(*
 lemma "0 \<noteq> 1 \<longrightarrow> 1 \<le> x \<longleftrightarrow> ewp x"
-  nitpick -- "3-element counterexample"
+  nitpick [expect=genuine] -- "3-element counterexample"
 oops
-*)
 
 text {* The next facts relate the absence of the empty word property
 with the absence of infinite iteration. *}
@@ -498,17 +486,5 @@ end
 subsection {* Omega Algebras *}
 
 class omega_algebra = kleene_algebra + left_omega_algebra
-
-text {* Omega algebras are the only algebras in this repository for
-which we currently do not provide any models. In fact, the trace, path
-and language model are not really interesting in this setting. In the
-relational model, the omega of a relation relates all those elements
-in the domain of the relation, from which an infinite chain starts,
-with all other elements; all other elements are not related to
-anything~\cite{hofnerstruth10nontermination}.
-
-Since this situation can be modelled most conveniently in the context
-of Kleene algebras with domain, we postpone an implementation until
-these structures have been prepared for the Archive. *}
 
 end

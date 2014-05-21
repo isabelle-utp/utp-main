@@ -191,12 +191,12 @@ subsection {* Matrix Multiplication *}
 fun matrix_times :: "('a::{comm_monoid_add,times},'m,'k) matrix \<Rightarrow> ('a,'k,'n) matrix \<Rightarrow> ('a,'m,'n) matrix" where
   "matrix_times (Matrix A) (Matrix B) = Matrix (\<lambda>i j. setsum (\<lambda>k. A i k * B k j) (UNIV::'k atMost set))"
 
-notation matrix_times (infixl "*\<^isub>M" 70)
+notation matrix_times (infixl "*\<^sub>M" 70)
 
 instantiation sqmatrix :: ("{comm_monoid_add,times}",type) times
 begin
   definition times_sqmatrix_def:
-    "A * B = sqmatrix_of_matrix (matrix_of_sqmatrix A *\<^isub>M matrix_of_sqmatrix B)"
+    "A * B = sqmatrix_of_matrix (matrix_of_sqmatrix A *\<^sub>M matrix_of_sqmatrix B)"
   instance ..
 end
 
@@ -205,11 +205,11 @@ lemma times_sqmatrix_def' [simp]:
   by (simp add: times_sqmatrix_def)
 
 lemma matrix_mult_0_right [simp]:
-  "(A::('a::{comm_monoid_add,mult_zero},'m,'n) matrix) *\<^isub>M 0 = 0"
+  "(A::('a::{comm_monoid_add,mult_zero},'m,'n) matrix) *\<^sub>M 0 = 0"
   by (cases A, simp add: zero_matrix_def)
 
 lemma matrix_mult_0_left [simp]:
-  "0 *\<^isub>M (A::('a::{comm_monoid_add,mult_zero},'m,'n) matrix) = 0"
+  "0 *\<^sub>M (A::('a::{comm_monoid_add,mult_zero},'m,'n) matrix) = 0"
   by (cases A, simp add: zero_matrix_def)
 
 lemma setsum_delta_r_0 [simp]:
@@ -221,7 +221,7 @@ lemma setsum_delta_r_1 [simp]:
   by (induct S rule: finite_induct, auto)
 
 lemma matrix_mult_1_right [simp]:
-  "(A::('a::{semiring_0,monoid_mult},'m::len,'n::len) matrix) *\<^isub>M 1 = A"
+  "(A::('a::{semiring_0,monoid_mult},'m::len,'n::len) matrix) *\<^sub>M 1 = A"
   by (cases A, simp add: one_matrix_def)
 
 lemma setsum_delta_l_0 [simp]:
@@ -233,11 +233,11 @@ lemma setsum_delta_l_1 [simp]:
   by (induct S rule: finite_induct, auto)
 
 lemma matrix_mult_1_left [simp]:
-  "1 *\<^isub>M (A::('a::{semiring_0,monoid_mult},'m::len,'n::len) matrix) = A"
+  "1 *\<^sub>M (A::('a::{semiring_0,monoid_mult},'m::len,'n::len) matrix) = A"
   by (cases A, simp add: one_matrix_def)
 
 lemma matrix_mult_assoc:
-  "(A::('a::semiring_0,'m,'n) matrix) *\<^isub>M B *\<^isub>M C = A *\<^isub>M (B *\<^isub>M C)"
+  "(A::('a::semiring_0,'m,'n) matrix) *\<^sub>M B *\<^sub>M C = A *\<^sub>M (B *\<^sub>M C)"
  apply (cases A)
  apply (cases B)
  apply (cases C)
@@ -247,11 +247,11 @@ lemma matrix_mult_assoc:
 done
 
 lemma matrix_mult_distrib_left:
-  "(A::('a::{comm_monoid_add,semiring},'m,'n::len) matrix) *\<^isub>M (B + C) = A *\<^isub>M B + A *\<^isub>M C"
+  "(A::('a::{comm_monoid_add,semiring},'m,'n::len) matrix) *\<^sub>M (B + C) = A *\<^sub>M B + A *\<^sub>M C"
   by (cases A, cases B, cases C, simp add: distrib_left setsum.distrib)
 
 lemma matrix_mult_distrib_right:
-  "((A::('a::{comm_monoid_add,semiring},'m,'n::len) matrix) + B) *\<^isub>M C = A *\<^isub>M C + B *\<^isub>M C"
+  "((A::('a::{comm_monoid_add,semiring},'m,'n::len) matrix) + B) *\<^sub>M C = A *\<^sub>M C + B *\<^sub>M C"
   by (cases A, cases B, cases C, simp add: distrib_right setsum.distrib)
 
 lemma sqmatrix_mult_0_right [simp]:

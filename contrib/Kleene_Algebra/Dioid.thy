@@ -153,7 +153,7 @@ in which the right distributivity law holds. We call such near
 semirings \emph{abelian}. *}
 
 class ab_near_semiring = ab_semigroup_add + semigroup_mult +
-  assumes right_distrib': "(x + y) \<cdot> z = x \<cdot> z + y \<cdot> z"
+  assumes distrib_right': "(x + y) \<cdot> z = x \<cdot> z + y \<cdot> z"
 
 subclass (in semiring) ab_near_semiring
   by (unfold_locales, metis distrib_right)
@@ -191,18 +191,16 @@ proof
   hence "x + y = y"
     by (metis less_eq_def)
   also have "x \<cdot> z + y \<cdot> z = (x + y) \<cdot> z"
-    by (metis right_distrib')
+    by (metis distrib_right')
   moreover have "... = y \<cdot> z"
     by (metis calculation)
   thus "x \<cdot> z \<le> y \<cdot> z"
     by (metis calculation less_eq_def)
 qed
 
-(*
 lemma "x \<le> y \<longrightarrow> z \<cdot> x \<le> z \<cdot> y"
   nitpick [expect=genuine] -- "3-element counterexample"
 oops
-*)
 
 text {* The next lemma states that, in every near dioid, left
 isotonicity and left subdistributivity are equivalent. *}
@@ -262,7 +260,8 @@ idempotent semirings. *}
 class dioid = near_dioid + semiring
 
 subclass (in dioid) pre_dioid
-  by (unfold_locales, metis distrib_left order_prop)
+  by (unfold_locales, metis order_prop distrib_left)
+
 
 subsection {* Families of Nearsemirings with a Multiplicative Unit *}
 
@@ -409,11 +408,5 @@ begin
 subclass dioid_one_zero ..
 
 end (* selective_semiring *)
-
-class semilattice_inf_join = join_semilattice + sup +
-  assumes inf_as_plus: "sup x y = x + y"
-
-instance semilattice_inf_join \<subseteq> semilattice_sup
-  by (intro_classes, simp_all add:inf_as_plus add_lub)
 
 end

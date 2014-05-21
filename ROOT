@@ -141,10 +141,12 @@ session Kleene_Algebra (AFP) in "contrib/Kleene_Algebra"
     Action_Algebra_Models
     Dioid
     Dioid_Models
-    Kleene_Algebra
+    Formal_Power_Series
+    Kleene_Algebras
     Kleene_Algebra_Models
     Matrix
     Omega_Algebra
+    Omega_Algebra_Models
     Signatures
   files
     "document/root.bib"

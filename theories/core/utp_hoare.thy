@@ -103,11 +103,16 @@ theorem HoareP_CondR [hoare]:
   shows "`{p}S \<lhd> b \<rhd> T{q}`"
   using assms by (utp_pred_auto_tac)
   
+theorem HoareP_ChoiceP [hoare]:
+  assumes "`{p}Q{s}`" "`{p}R{s}`" 
+  shows "`{p}Q \<sqinter> R{s}`"
+  using assms by (utp_pred_tac)
+
 theorem HoareP_SemiR [hoare]:
   assumes 
+    "`{p}Q1{s}`" "`{s}Q2{r}`" 
     "p \<in> COND" "r \<in> COND" "s \<in> COND"
     "Q1 \<in> REL" "Q2 \<in> REL"
-    "`{p}Q1{s}`" "`{s}Q2{r}`" 
   shows "`{p}Q1 ; Q2{r}`"
 proof
   from assms 
@@ -115,19 +120,19 @@ proof
     by (auto elim!:HoareP_elim)
 
   have "`(p \<and> (p \<Rightarrow> s\<acute>) ; (s \<Rightarrow> r\<acute>))` = `((p \<and> (p \<Rightarrow> s\<acute>)) ; (s \<Rightarrow> r\<acute>))`"
-    by (metis ConvR_rel_closure ImpliesP_rel_closure SemiR_AndP_left_precond WF_CONDITION_WF_RELATION assms(1) assms(2) assms(3))
+    by (metis ConvR_rel_closure ImpliesP_rel_closure SemiR_AndP_left_precond WF_CONDITION_WF_RELATION assms(3) assms(4) assms(5))
 
   also have "... = `(p \<and> s\<acute>) ; (s \<Rightarrow> r\<acute>)`"
     by (metis (hide_lams, no_types) AndP_OrP_distl ImpliesP_def OrP_comm inf_WF_PREDICATE_def inf_compl_bot uminus_WF_PREDICATE_def utp_pred_simps(11) utp_pred_simps(2) utp_pred_simps(6))
 
   also have "... = `p ; (s \<and> (s \<Rightarrow> r\<acute>))`"
-    by (metis ConvR_rel_closure ImpliesP_rel_closure SemiR_AndP_right_precond WF_CONDITION_WF_RELATION assms(1) assms(2) assms(3))
+    by (metis SemiR_AndP_right_precond assms(5))
 
   also have "... = `p ; (s \<and> r\<acute>)`"
     by (metis AndP_OrP_distl AndP_contra ImpliesP_def utp_pred_simps(13) utp_pred_simps(2))
 
   also have "... = `(p ; s) \<and> r\<acute>`"
-    by (metis PrimeP_WF_CONDITION_WF_POSTCOND SemiR_AndP_right_postcond WF_CONDITION_WF_RELATION assms(1) assms(2) assms(3))
+    by (metis PrimeP_WF_CONDITION_WF_POSTCOND SemiR_AndP_right_postcond assms(4))
 
   finally show "`(p \<Rightarrow> r\<acute>)` \<sqsubseteq> `Q1 ; Q2`"
   using refs
@@ -142,8 +147,8 @@ proof
 qed
 
 theorem HoareP_AssignR [hoare]:
-  assumes "q \<in> COND" "p \<Rightarrow>\<^sub>p q[v/\<^sub>px]"
-   "x \<in> D\<^sub>0" "D\<^sub>1 \<sharp> v"
+  assumes "q \<in> COND" "x \<in> D\<^sub>0" 
+          "D\<^sub>1 \<sharp> v" "p \<Rightarrow>\<^sub>p q[v/\<^sub>px]"
   shows "{p}x :=\<^sub>R v{q}\<^sub>p"
   using assms
   apply (rule_tac HoareP_intro)
@@ -168,8 +173,8 @@ lemma (in left_near_kleene_algebra)
 
 theorem HoareP_IterP [hoare]:
   assumes 
-    "p \<in> COND" "b \<in> COND" "S \<in> REL"
     "`{p \<and> b}S{p}`"
+    "p \<in> COND" "b \<in> COND" "S \<in> REL"
   shows "`{p}while b do S od{\<not>b \<and> p}`"
 proof -
   from assms have S_ref: "`p \<and> b \<Rightarrow> p\<acute>` \<sqsubseteq> S"
@@ -185,7 +190,7 @@ proof -
       by (utp_rel_auto_tac)
 
     also have "... = `(p \<and> b \<and> S) ; (p \<and> (p \<Rightarrow> p\<acute>))`"
-      by (metis (lifting, no_types) AndP_rel_closure ConvR_rel_closure ImpliesP_rel_closure SemiR_AndP_left_precond SemiR_AndP_right_precond WF_CONDITION_WF_RELATION assms(1) assms(2) assms(3))
+      by (metis (lifting, no_types) AndP_assoc SemiR_AndP_right_precond assms(2))
 
     also have "... = `((p \<and> b \<and> S) ; (p \<and> p\<acute>))`"
       by (utp_rel_auto_tac)
@@ -218,8 +223,8 @@ qed
 
 theorem HoareP_IterInvP [hoare]:
   assumes 
-    "p \<in> COND" "b \<in> COND" "S \<in> REL"
     "`{p \<and> b}S{p}`" "`pre \<Rightarrow> p`" "`(\<not>b \<and> p) \<Rightarrow> post`"
+    "p \<in> COND" "b \<in> COND" "S \<in> REL"
   shows "`{pre}while b inv p do S od{post}`"
   using assms
   by (auto simp add: IterInvP_def intro: HoareP_strengthen_post HoareP_weaken_pre HoareP_IterP)

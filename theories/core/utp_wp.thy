@@ -46,12 +46,12 @@ theorem SemiR_wp [wp]:
 done
 
 theorem AssignR_wp [wp]:
-  "\<lbrakk> x \<in> UNDASHED; v \<rhd>\<^sub>e x; UNREST_EXPR DASHED v; R \<in> WF_RELATION \<rbrakk> 
+  "\<lbrakk> x \<in> D\<^sub>0; v \<rhd>\<^sub>e x; D\<^sub>1 \<sharp> v; R \<in> REL \<rbrakk> 
      \<Longrightarrow> (x :=\<^sub>R v) wp R = R[v/\<^sub>px]"
   by (simp add: WeakPrecondP_def AssignR_SemiR_left usubst)
 
 lemma CondP_wp [wp]:
-  "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION; b \<in> WF_CONDITION; r \<in> WF_RELATION \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> P \<in> REL; Q \<in> REL; b \<in> COND; r \<in> REL \<rbrakk> \<Longrightarrow>
   (P \<lhd> b \<rhd> Q) wp r = (P wp r) \<lhd> b \<rhd> (Q wp r)"
   apply (simp add: WeakPrecondP_def)
   apply (simp add:CondR_SemiR_distr closure)

@@ -161,9 +161,11 @@ next
 qed (simp_all add: evalrr)
 end
 
+instance WF_PREDICATE :: (VALUE) bounded_distributive_lattice ..
+
 lemma UNREST_StarP_coerce:
   "- vs \<sharp> p \<Longrightarrow> - vs \<sharp> ((p\<^sup>\<star>) ;\<^sub>R II\<^bsub>vs\<^esub>)"
-  apply (subst star_unfoldl_eq[of p, THEN sym])
+  apply (subst left_pre_kleene_algebra_class.star_unfoldl_eq[of p, THEN sym])
   apply (simp add: times_WF_PREDICATE_def one_WF_PREDICATE_def plus_WF_PREDICATE_def SemiR_OrP_distr)
   apply (rule unrest)
   apply (auto intro:unrest UNREST_subset)[1]
@@ -191,7 +193,7 @@ lemma StarP_mono: "mono (\<lambda> x. (II \<or>\<^sub>p (p ;\<^sub>R x)))"
 done
 
 lemma StarP_false [simp]: "false\<^sup>\<star> = II"
-  apply (subst star_unfoldl_eq[THEN sym])
+  apply (subst left_pre_kleene_algebra_class.star_unfoldl_eq[THEN sym])
   apply (simp add:plus_WF_PREDICATE_def one_WF_PREDICATE_def times_WF_PREDICATE_def)
 done
 
@@ -204,12 +206,12 @@ lemma StarP_refines_WFP: "(\<mu> X \<bullet> II \<or>\<^sub>p (P ;\<^sub>R X)) \
 done
 lemma SFP_refines_StarP: "P\<^sup>\<star> \<sqsubseteq> (\<nu> X \<bullet> II \<or>\<^sub>p (P ;\<^sub>R X))"
   apply (rule lfp_lowerbound)
-  apply (metis OrP_refine one_WF_PREDICATE_def star_1l star_ref times_WF_PREDICATE_def)
+  apply (metis OrP_refine left_near_kleene_algebra_class.star_1l left_near_kleene_algebra_class.star_ref one_WF_PREDICATE_def times_WF_PREDICATE_def)
 done
 
 lemma StarP_refines_SFP: "(\<nu> X \<bullet> II \<or>\<^sub>p (P ;\<^sub>R X)) \<sqsubseteq> P\<^sup>\<star>"
   apply (rule lfp_greatest)
-  apply (metis one_WF_PREDICATE_def plus_WF_PREDICATE_def star_inductl_one times_WF_PREDICATE_def)
+  apply (metis left_near_kleene_algebra_class.star_inductl_one one_WF_PREDICATE_def plus_WF_PREDICATE_def times_WF_PREDICATE_def)
 done
 
 text {* The star is equivalent to the greatest fixed-point *}
@@ -266,7 +268,7 @@ proof -
     by (simp add:IterP_def)
 
   also have "... = `((II \<or> ((b \<and> P) ; (b \<and> P)\<^sup>\<star>)) \<and> \<not>b\<acute>) \<and> b`"
-    by (metis star_unfoldl_eq one_WF_PREDICATE_def plus_WF_PREDICATE_def times_WF_PREDICATE_def)
+    by (metis left_pre_kleene_algebra_class.star_unfoldl_eq one_WF_PREDICATE_def plus_WF_PREDICATE_def times_WF_PREDICATE_def)
 
   also have "... = `(b \<and> (II \<or> ((b \<and> P) ; (b \<and> P)\<^sup>\<star>))) \<and> \<not>b\<acute>`"
     by (metis AndP_assoc AndP_comm)
@@ -297,7 +299,7 @@ proof -
     by (simp add:IterP_def)
 
   also have "... = `((II \<or> ((b \<and> P) ; (b \<and> P)\<^sup>\<star>)) \<and> \<not>b\<acute>) \<and> \<not>b`"
-    by (metis star_unfoldl_eq one_WF_PREDICATE_def plus_WF_PREDICATE_def times_WF_PREDICATE_def)
+    by (metis left_pre_kleene_algebra_class.star_unfoldl_eq one_WF_PREDICATE_def plus_WF_PREDICATE_def times_WF_PREDICATE_def)
 
   also have "... = `(\<not>b \<and> (II \<or> ((b \<and> P) ; (b \<and> P)\<^sup>\<star>))) \<and> \<not>b\<acute>`"
     by (metis AndP_assoc AndP_comm)
@@ -378,14 +380,9 @@ lemma "`(\<nu> X. ((true ; X) \<lhd> b \<rhd> II))` \<sqsubseteq> `(\<nu> X. II 
   sledgehammer  
 *)
 
-lemma church_rosser_pred: "`Q\<^sup>\<star> ; P\<^sup>\<star>` \<sqsubseteq> `P\<^sup>\<star> ; Q\<^sup>\<star>` \<Longrightarrow> `(P \<or> Q)\<^sup>\<star>` = `Q\<^sup>\<star> ; P\<^sup>\<star>`"
-  apply (insert  church_rosser[of "P" "Q"])
-  apply (simp add: plus_WF_PREDICATE_def)
-  apply (auto simp add:times_WF_PREDICATE_def)
-done
 
 lemma StarP_denest: "`(P \<or> Q)\<^sup>\<star>` = `(P\<^sup>\<star> ; Q\<^sup>\<star>)\<^sup>\<star>`"
-  by (metis plus_WF_PREDICATE_def star_denest times_WF_PREDICATE_def)
+  by (metis left_pre_kleene_algebra_class.star_denest plus_WF_PREDICATE_def times_WF_PREDICATE_def)
 
 (* Can't prove this yet, though I reckon it's true *)
 lemma IterP_refines_SFP:

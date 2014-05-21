@@ -225,7 +225,7 @@ done
 instance
   apply (intro_classes)
   apply (auto simp add:zero_STORE.rep_eq plus_STORE.rep_eq)
-  apply (metis add_assoc)
+  apply (metis map_add_assoc plus_fmap.rep_eq)
 done
 
 end

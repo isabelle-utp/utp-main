@@ -7,32 +7,28 @@
 header {* Formal Power Series *}
 
 theory Formal_Power_Series
-imports Finite_Suprema
+imports Finite_Suprema Kleene_Algebras
 begin
 
 subsection {* The Type of Formal Power Series*}
 
 text {* Formal powerseries are functions from a free monoid into a
 dioid. They have applications in formal language theory, e.g.,
-weighted automata.
-
-We show that formal power series with suitably defined operations and
-functions form a dioid. Many of the underlying properties already hold
-in weaker settings, where the target algebra is a semilattice or
-semiring. We currently ignore this fact.
-
-As usual, we represent free dioids by sets of lists.
-
-Alternatively, the same result could also be obtained for formal power
-series from finite monoids.
+weighted automata. As usual, we represent elements of a free monoid
+by lists.
 
 This theory generalises Amine Chaieb's development of formal power
 series as functions from natural numbers, which may be found in {\em
 HOL/Library/Formal\_Power\_Series.thy}. *}
 
-typedef (open) ('a, 'b) fps = "{f::'a list \<Rightarrow> 'b. True}"
+typedef ('a, 'b) fps = "{f::'a list \<Rightarrow> 'b. True}"
   morphisms fps_nth Abs_fps
   by simp
+
+text {* It is often convenient to reason about functions, and transfer
+results to formal power series. *}
+
+setup_lifting type_definition_fps
 
 declare fps_nth_inverse [simp]
 
@@ -128,7 +124,7 @@ text {* We call the set of all prefix/suffix splittings of a
 list~@{term xs} the \emph{splitset} of~@{term xs}. *}
 
 definition splitset where
-  "splitset xs \<equiv> {(p, q) | p q. xs = p @ q}"
+  "splitset xs \<equiv> {(p, q). xs = p @ q}"
 
 text {* Altenatively, splitsets can be defined recursively, which
 yields convenient simplification rules in Isabelle. *}
@@ -165,6 +161,9 @@ lemma splitset_fun_finite [simp]: "finite (splitset_fun xs)"
 lemma splitset_finite [simp]: "finite (splitset xs)"
   by (simp add: splitset_eq_splitset_fun)
 
+lemma split_append_finite [simp]: "finite {(p, q). xs = p @ q}"
+  by (fold splitset_def, fact splitset_finite)
+
 lemma splitset_fun_nonempty [simp]: "splitset_fun xs \<noteq> {}"
   by (cases xs, simp_all)
 
@@ -184,11 +183,11 @@ by (simp add: fps_ext times_fps_def setsum_0')
 
 lemma fps_distl:
   "(f::('a::type,'b::{join_semilattice_zero,semiring}) fps) * (g + h) = (f * g) + (f * h)"
-by (simp add: fps_ext fps_mult_image right_distrib setsum_fun_sum)
+by (simp add: fps_ext fps_mult_image distrib_left setsum_fun_sum)
 
 lemma fps_distr:
   "((f::('a::type,'b::{join_semilattice_zero,semiring}) fps) + g) * h = (f * h) + (g * h)"
-by (simp add: fps_ext fps_mult_image left_distrib setsum_fun_sum)
+by (simp add: fps_ext fps_mult_image distrib_right setsum_fun_sum)
 
 text {* The multiplicative unit laws are surprisingly tedious. For the
 proof of the left unit law we use the recursive definition, which we
@@ -271,7 +270,10 @@ qed
 
 subsection {* The Dioid Model of Formal Power Series *}
 
-text {* We can now prove that formal power series form dioids. *}
+text {* We can now show that formal power series with suitably
+defined operations form a dioid. Many of the underlying properties
+already hold in weaker settings, where the target algebra is a
+semilattice or semiring. We currently ignore this fact. *}
 
 subclass (in dioid_one_zero) mult_zero
 proof
@@ -324,8 +326,141 @@ begin
 
 end (* instantiation *)
 
-text {* We currently do not prove that formal power series form Kleene
-algebras, since this is complicated. *}
+lemma expand_fps_less_eq: "(f::('a,'b::dioid_one_zero) fps) \<le> g \<longleftrightarrow> (\<forall>n. f $ n \<le> g $ n)"
+by (simp add: expand_fps_eq less_eq_def less_eq_fps_def)
+
+
+subsection {* The Kleene Algebra Model of Formal Power Series *}
+
+text {* There are two approaches to define the Kleene star. The first
+one defines the star for a certain kind of (so-called proper) formal
+power series into a semiring or dioid. The second one, which is more
+interesting in the context of our algebraic hierarchy, shows that
+formal power series into a Kleene algebra form a Kleene algebra. We
+have only formalised the latter approach. *}
+
+lemma Setsum_splitlist_nonempty:
+  "\<Sum>{f ys zs |ys zs. xs = ys @ zs} = ((f [] xs)::'a::join_semilattice_zero) + \<Sum>{f ys zs |ys zs. xs = ys @ zs \<and> ys \<noteq> []}"
+proof -
+  have "{f ys zs |ys zs. xs = ys @ zs} = {f ys zs |ys zs. xs = ys @ zs \<and> ys = []} \<union> {f ys zs |ys zs. xs = ys @ zs \<and> ys \<noteq> []}"
+    by blast
+  thus ?thesis
+    by (simp add: setsum_insert)
+qed
+
+lemma (in left_kleene_algebra) add_star_eq:
+  "x + y \<cdot> y\<^sup>\<star> \<cdot> x = y\<^sup>\<star> \<cdot> x"
+by (metis add_commute mult_onel star2 star_one troeger)
+
+instantiation fps :: (type,kleene_algebra) kleene_algebra
+begin
+
+  text {* We first define the star on functions, where we can use
+  Isabelle's package for recursive functions, before lifting the
+  definition to the type of formal power series.
+
+  This definition of the star is from an unpublished manuscript by
+  Esik and Kuich. *}
+
+  declare rev_conj_cong[fundef_cong]
+    -- "required for the function package to prove termination of @{term star_fps_rep}"
+
+  fun star_fps_rep where
+    star_fps_rep_Nil: "star_fps_rep f [] = (f [])\<^sup>\<star>"
+  | star_fps_rep_Cons: "star_fps_rep f n = (f [])\<^sup>\<star> \<cdot> \<Sum>{f y \<cdot> star_fps_rep f z |y z. n = y @ z \<and> y \<noteq> []}"
+
+  lift_definition star_fps :: "('a, 'b) fps \<Rightarrow> ('a, 'b) fps" is star_fps_rep ..
+
+  lemma star_fps_Nil [simp]: "f\<^sup>\<star> $ [] = (f $ [])\<^sup>\<star>"
+  by (simp add: star_fps_def)
+
+  lemma star_fps_Cons [simp]: "f\<^sup>\<star> $ (x # xs) = (f $ [])\<^sup>\<star> \<cdot> \<Sum>{f $ y \<cdot> f\<^sup>\<star> $ z |y z. x # xs = y @ z \<and> y \<noteq> []}"
+  by (simp add: star_fps_def)
+
+  instance
+  proof
+    fix f g h :: "('a,'b) fps"  
+    have "1 + f \<cdot> f\<^sup>\<star> = f\<^sup>\<star>"
+      apply (rule fps_ext)
+      apply (case_tac n)
+       apply (auto simp add: times_fps_def)
+      apply (simp add: add_star_eq mult_assoc[THEN sym] Setsum_splitlist_nonempty)
+    done
+    thus "1 + f \<cdot> f\<^sup>\<star> \<le> f\<^sup>\<star>"
+      by (metis order_refl)
+    have "f \<cdot> g \<le> g \<longrightarrow> f\<^sup>\<star> \<cdot> g \<le> g"
+      proof
+        assume "f \<cdot> g \<le> g"
+        hence 1: "\<And>u v. f $ u \<cdot> g $ v \<le> g $ (u @ v)"
+          apply (simp add: expand_fps_less_eq)
+          apply (drule_tac x="u @ v" in spec)
+          apply (simp add: times_fps_def)
+          apply (auto elim!: setsum_less_eqE)
+        done
+        hence 2: "\<And>v. (f $ []) \<^sup>\<star> \<cdot> g $ v \<le> g $ v"
+          apply (subgoal_tac "f $ [] \<cdot> g $ v \<le> g $ v")
+           apply (metis star_inductl_var)
+          apply (metis append_Nil)
+        done
+        show "f\<^sup>\<star> \<cdot> g \<le> g"
+          apply (auto intro!: setsum_less_eqI simp add: expand_fps_less_eq times_fps_def)
+          apply (induct_tac "y" rule: length_induct)
+          apply (case_tac "xs")
+           apply (simp add: "2")
+          apply (auto simp add: mult_assoc setsum_distr)
+          apply (rule_tac y="(f $ [])\<^sup>\<star> \<cdot> g $ (a # list @ z)" in order_trans)
+           prefer 2
+           apply (rule "2")
+          apply (auto intro!: mult_isol[rule_format] setsum_less_eqI)
+          apply (drule_tac x="za" in spec)
+          apply (drule mp)
+           apply (metis append_eq_Cons_conv length_append less_not_refl2 nat_add_commute not_less_eq trans_less_add1)
+          apply (drule_tac z="f $ y" in mult_isol[rule_format])
+          apply (auto elim!: order_trans simp add: mult_assoc)
+          apply (metis "1" append_Cons append_assoc)
+        done
+      qed
+    thus "h + f \<cdot> g \<le> g \<longrightarrow> f\<^sup>\<star> \<cdot> h \<le> g"
+      by (metis (hide_lams, no_types) add_lub mult_isol order_trans)
+    have "g \<cdot> f \<le> g \<longrightarrow> g \<cdot> f\<^sup>\<star> \<le> g"
+      -- "this property is dual to the previous one; the proof is slightly different"
+      proof
+        assume "g \<cdot> f \<le> g"
+        hence 1: "\<And>u v. g $ u \<cdot> f $ v \<le> g $ (u @ v)"
+          apply (simp add: expand_fps_less_eq)
+          apply (drule_tac x="u @ v" in spec)
+          apply (simp add: times_fps_def)
+          apply (auto elim!: setsum_less_eqE)
+        done
+        hence 2: "\<And>u. g $ u \<cdot> (f $ [])\<^sup>\<star> \<le> g $ u"
+          apply (subgoal_tac "g $ u \<cdot> f $ [] \<le> g $ u")
+           apply (metis star_inductr_var)
+          apply (metis append_Nil2)
+        done
+        show "g \<cdot> f\<^sup>\<star> \<le> g"
+          apply (auto intro!: setsum_less_eqI simp add: expand_fps_less_eq times_fps_def)
+          apply (rule_tac P="\<lambda>y. g $ y \<cdot> f\<^sup>\<star> $ z \<le> g $ (y @ z)" and x="y" in allE)
+           prefer 2
+           apply assumption
+          apply (induct_tac "z" rule: length_induct)
+          apply (case_tac "xs")
+           apply (simp add: "2")
+          apply (auto intro!: setsum_less_eqI simp add: setsum_distl)
+          apply (rule_tac y="g $ x \<cdot> f $ yb \<cdot> f\<^sup>\<star> $ z" in order_trans)
+           apply (simp add: "2" mult_assoc[THEN sym] mult_isor)
+          apply (rule_tac y="g $ (x @ yb) \<cdot> f\<^sup>\<star> $ z" in order_trans)
+           apply (simp add: "1" mult_isor)
+          apply (drule_tac x="z" in spec)
+          apply (drule mp)
+           apply (metis append_eq_Cons_conv length_append less_not_refl2 nat_add_commute not_less_eq trans_less_add1)
+          apply (metis append_assoc)
+        done
+      qed
+    thus "h + g \<cdot> f \<le> g \<longrightarrow> h \<cdot> f\<^sup>\<star> \<le> g"
+      by (metis (hide_lams, no_types) add_lub mult_isor order_trans)
+  qed
+
+end (* instantiation *)
 
 end
 

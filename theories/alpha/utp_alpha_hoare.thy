@@ -95,14 +95,15 @@ theorem HoareA_CondA [hoare]:
   
 theorem HoareA_SemiA [hoare]:
   assumes
+    "``{p}Q1{s}``" "``{s}Q2{r}``"
     "p \<in> WF_ALPHA_COND" "r \<in> WF_ALPHA_COND" "s \<in> WF_ALPHA_COND"
-    "Q1 \<in> WF_ALPHA_REL" "Q2 \<in> WF_ALPHA_REL"
-    "``{p}Q1{s}``" "``{s}Q2{r}``" 
+    "Q1 \<in> WF_ALPHA_REL" "Q2 \<in> WF_ALPHA_REL" 
   shows "``{p}Q1 ; Q2{r}``"
   using assms
   apply (utp_alpha_tac)
   apply (rule HoareP_SemiR)
   apply (simp_all add:closure)
+  apply (metis WF_ALPHA_COND_EvalA_WF_CONDITION)
 done
 
 lemma UNREST_WF_ALPHA_COND:
@@ -139,8 +140,8 @@ lemma HoareA_EvalA:
 
 theorem HoareA_IterA [hoare]:
   assumes 
-    "p \<in> COND" "b \<in> COND" "S \<in> REL" "\<alpha>(S) \<in> HOM_ALPHABET"
-    "\<alpha>(b) \<subseteq>\<^sub>f \<alpha>(S)" "\<alpha>(p) \<subseteq>\<^sub>f \<alpha>(S)" "``{p \<and> b}S{p}``"
+    "``{p \<and> b}S{p}``" "p \<in> COND" "b \<in> COND" "S \<in> REL" 
+    "\<alpha>(S) \<in> HOM_ALPHABET" "\<alpha>(b) \<subseteq>\<^sub>f \<alpha>(S)" "\<alpha>(p) \<subseteq>\<^sub>f \<alpha>(S)" 
   shows "``{p}while b do S od{\<not>b \<and> p}``"
   using assms
     apply (rule_tac HoareA_EvalA)

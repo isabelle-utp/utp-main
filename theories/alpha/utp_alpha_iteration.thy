@@ -57,7 +57,7 @@ done
 lemma StarA_unfold:
   "``P\<^sup>\<star>`` = ``(P ; P\<^sup>\<star>) \<or> II\<^bsub>\<alpha>(P)\<^esub>``"
   apply (utp_alpha_tac)
-  apply (subst star_unfoldl_eq[THEN sym])
+  apply (subst left_pre_kleene_algebra_class.star_unfoldl_eq[THEN sym])
   apply (simp add:plus_WF_PREDICATE_def times_WF_PREDICATE_def one_WF_PREDICATE_def)
   apply (rule)
   apply (metis alphabet_split fset_simps(5) funion_assoc)

@@ -56,7 +56,6 @@ by (metis less_eq_def star_ref)
 lemma star_1l: "x \<cdot> x\<^sup>\<star> \<le> x\<^sup>\<star>"
   by (metis add_lub star_unfoldl)
 
-(*
 lemma "x\<^sup>\<star> \<cdot> x \<le> x\<^sup>\<star>"
   nitpick [expect=genuine] -- "3-element counterexample"
 oops
@@ -64,7 +63,6 @@ oops
 lemma "x \<cdot> x\<^sup>\<star> = x\<^sup>\<star>"
   nitpick [expect=genuine] -- "2-element counterexample"
 oops
-*)
 
 text {* Next we show that starred elements are transitive. *}
 
@@ -74,7 +72,7 @@ proof (rule antisym) -- "this splits an equation into two inequalities"
     by (metis add_lub eq_refl star_1l)
   thus "x\<^sup>\<star> \<cdot> x\<^sup>\<star> \<le> x\<^sup>\<star>"
     by (metis star_inductl)
-  show "x\<^sup>\<star> \<le> x\<^sup>\<star> \<cdot> x\<^sup>\<star>"
+  next show "x\<^sup>\<star> \<le> x\<^sup>\<star> \<cdot> x\<^sup>\<star>"
     by (metis mult_isor mult_onel star_ref)
 qed
 
@@ -121,15 +119,13 @@ proof
     by (metis calculation eq_iff star_inductl_var_eq)
 qed
 
-(*
-lemma star_inductl_var_eq2: "y = x \<cdot> y \<longleftrightarrow> y = x\<^sup>\<star> \<cdot> y"
+lemma "y = x \<cdot> y \<longleftrightarrow> y = x\<^sup>\<star> \<cdot> y"
   nitpick [expect=genuine] -- "2-element counterexample"
 oops
 
 lemma "x\<^sup>\<star> \<cdot> z \<le> y \<longrightarrow> z + x \<cdot> y \<le> y"
   nitpick [expect=genuine] -- "3-element counterexample"
 oops
-*)
 
 lemma star_inductl_one: "1 + x \<cdot> y \<le> y \<longrightarrow> x\<^sup>\<star> \<le> y"
 by (metis mult_oner star_inductl)
@@ -198,12 +194,11 @@ proof (rule antisym)
   have "x\<^sup>\<star> + x \<cdot> x\<^sup>\<star> \<le> x\<^sup>\<star>"
     by (metis add_lub eq_refl star_1l)
   hence "(1 + x) \<cdot> x\<^sup>\<star> \<le> x\<^sup>\<star>"
-    by (metis mult_onel right_distrib')
+    by (metis mult_onel distrib_right')
   thus "(1 + x)\<^sup>\<star> \<le> x\<^sup>\<star>"
     by (metis star_inductl_star)
 qed
 
-(*
 lemma "1 + x\<^sup>\<star> \<cdot> x \<le> x\<^sup>\<star>"
   nitpick [expect=genuine] -- "3-element counterexample"
 oops
@@ -223,7 +218,6 @@ oops
 lemma "x \<cdot> z \<le> z \<cdot> y \<longrightarrow> x\<^sup>\<star> \<cdot> z \<le> z \<cdot> y\<^sup>\<star>"
   nitpick [expect=genuine] -- "3-element counterexample"
 oops
-*)
 
 text {* The following facts express inductive conditions that are used
 to show that @{term "(x + y)\<^sup>\<star>"} is the greatest term that can be built
@@ -251,11 +245,9 @@ lemma star_star_closure: "x\<^sup>\<star> \<le> z\<^sup>\<star> \<longrightarrow
 lemma star_closed_unfold: "x\<^sup>\<star> = x \<longrightarrow> x = 1 + x \<cdot> x"
   by (metis star_plus_one star_trans_eq)
 
-(*
-lemma star_closed_unfold: "x\<^sup>\<star> = x \<longleftrightarrow> x = 1 + x \<cdot> x"
+lemma "x\<^sup>\<star> = x \<longleftrightarrow> x = 1 + x \<cdot> x"
   nitpick [expect=genuine] -- "3-element counterexample"
 oops
-*)
 
 end (* left_near_kleene_algebra *)
 
@@ -288,11 +280,9 @@ qed
 lemma star_unfoldr: "1 + x\<^sup>\<star> \<cdot> x \<le> x\<^sup>\<star>"
   by (metis add_lub star_1r star_ref)
 
-(*
 lemma "1 + x\<^sup>\<star> \<cdot> x = x\<^sup>\<star>"
   nitpick [expect=genuine] -- "4-element counterexample"
 oops
-*)
 
 text {* Next we prove a simulation law for the star.  It is
 instrumental in proving further properties. *}
@@ -329,11 +319,9 @@ qed
 lemma star_slide1: "(x \<cdot> y)\<^sup>\<star> \<cdot> x \<le> x \<cdot> (y \<cdot> x)\<^sup>\<star>"
   by (metis eq_iff mult_assoc star_sim1)
 
-(*
 lemma "(x \<cdot> y)\<^sup>\<star> \<cdot> x = x \<cdot> (y \<cdot> x)\<^sup>\<star>"
   nitpick [expect=genuine] -- "3-element counterexample"
 oops
-*)
 
 lemma star_slide_var1: "x\<^sup>\<star> \<cdot> x \<le> x \<cdot> x\<^sup>\<star>"
   by (metis eq_refl star_sim1)
@@ -351,11 +339,9 @@ proof (rule antisym)
     by (metis star_inductl_one)
 qed
 
-(*
 lemma "1 + x\<^sup>\<star> \<cdot> x = x\<^sup>\<star>"
   nitpick [expect=genuine] -- "4-element counterexample"
 oops
-*)
 
 text {* Next we relate the star and the reflexive transitive closure
 operation. *}
@@ -383,7 +369,7 @@ lemma star_rtc_least: "1 + x + y \<cdot> y \<le> y \<longrightarrow> x\<^sup>\<s
 proof
   assume "1 + x + y \<cdot> y \<le> y"
   hence "1 + x \<cdot> y \<le> y"
-    by (metis add_lub less_eq_def right_distrib')
+    by (metis add_lub less_eq_def distrib_right')
   thus "x\<^sup>\<star> \<le> y"
     by (metis star_inductl_one)
 qed
@@ -391,11 +377,9 @@ qed
 lemma star_rtc_least_eq: "1 + x + y \<cdot> y = y \<longrightarrow> x\<^sup>\<star> \<le> y"
   by (metis eq_refl star_rtc_least)
 
-(*
 lemma "1 + x + y \<cdot> y \<le> y \<longleftrightarrow> x\<^sup>\<star> \<le> y"
   nitpick [expect=genuine] -- "3-element counterexample"
 oops
-*)
 
 text {* The next lemmas are again related to closure conditions *}
 
@@ -435,7 +419,7 @@ proof (rule antisym)
   moreover have "y \<cdot> x\<^sup>\<star> \<cdot> (y \<cdot> x\<^sup>\<star>)\<^sup>\<star> \<le> x\<^sup>\<star> \<cdot> (y \<cdot> x\<^sup>\<star>)\<^sup>\<star>"
     by (metis mult_isol_var mult_onel star_1l star_ref)
   hence "1 + (x + y) \<cdot> x\<^sup>\<star> \<cdot> (y \<cdot> x\<^sup>\<star>)\<^sup>\<star> \<le> x\<^sup>\<star> \<cdot> (y \<cdot> x\<^sup>\<star>)\<^sup>\<star>"
-    by (metis calculation add_lub_var right_distrib')
+    by (metis calculation add_lub_var distrib_right')
   thus "(x + y)\<^sup>\<star> \<le> x\<^sup>\<star> \<cdot> (y \<cdot> x\<^sup>\<star>)\<^sup>\<star>"
     by (metis mult.assoc mult_oner star_inductl)
   have "(y \<cdot> x\<^sup>\<star>)\<^sup>\<star> \<le> (y\<^sup>\<star> \<cdot> x\<^sup>\<star>)\<^sup>\<star>"
@@ -569,7 +553,6 @@ qed
 lemma sup_id_star2: "1 \<le> x \<longrightarrow> x\<^sup>\<star> \<cdot> x = x\<^sup>\<star>"
   by (metis eq_iff mult_isol mult_oner star_1r)
 
-(*
 lemma "1 + x\<^sup>\<star> \<cdot> x = x\<^sup>\<star>"
   nitpick [expect=genuine] -- "4-element counterexample"
 oops
@@ -581,7 +564,6 @@ oops
 lemma "x \<cdot> x = x \<longrightarrow> x\<^sup>\<star> = 1 + x"
   nitpick [expect=genuine] -- "4-element counterexample"
 oops
-*)
 
 end (* left_pre_kleene_algebra *)
 
@@ -639,7 +621,7 @@ proof -
   have "x \<cdot> (y \<cdot> x)\<^sup>\<star> = x \<cdot> (1 + y \<cdot> (x \<cdot> y)\<^sup>\<star> \<cdot> x)"
     by (metis star_prod_unfold)
   also have "... = (1 + x \<cdot> y \<cdot> (x \<cdot> y)\<^sup>\<star>) \<cdot> x"
-    by (metis distrib_left mult.assoc mult_onel mult_oner distrib_right)
+    by (metis distrib_right mult.assoc mult_onel mult_oner distrib_left)
   thus ?thesis
     by (metis calculation star_unfoldl_eq)
 qed
@@ -667,7 +649,13 @@ qed
 text {* The following property appears in process algebra. *}
 
 lemma troeger [simp]: "(x + y)\<^sup>\<star> \<cdot> z = x\<^sup>\<star> \<cdot> (y \<cdot> (x+y)\<^sup>\<star> \<cdot> z + z)"
-  by (metis add.commute distrib_left mult.assoc mult_onel mult_oner opp_mult_def distrib_right star_sum_unfold)
+  using [[metis_verbose=false]]
+    -- {* Theorem {\em opp\_mult\_def} is not actually required for
+          {\em metis} to find a proof, but (interestingly enough) it
+          considerably speeds up the proof search. We suppress the
+          ``unused theorem'' warning that {\em metis} would generate
+          in verbose mode. *}
+  by (metis add.commute distrib_left distrib_right mult.assoc mult_onel mult_oner opp_mult_def star_sum_unfold)
 
 text {* The following properties are related to a property from
 propositional dynamic logic which has been attributed to Albert
@@ -687,7 +675,7 @@ proof (rule antisym)
   have "1 \<le> (1 + x) \<cdot> (x \<cdot> x)\<^sup>\<star>"
     by (metis add_lub mult_oner star_unfoldl_eq subdistl)
   also have "x \<cdot>  (1 + x) \<cdot> (x \<cdot> x)\<^sup>\<star> = x \<cdot> (x \<cdot> x)\<^sup>\<star> + x \<cdot> x \<cdot> (x \<cdot> x)\<^sup>\<star>"
-    by (metis distrib_left mult_oner distrib_right)
+    by (metis distrib_right mult_oner distrib_left)
    moreover have "... \<le> x \<cdot> (x \<cdot> x)\<^sup>\<star> + (x \<cdot> x)\<^sup>\<star>"
     by (metis add_iso_var le_less star_1l)
   moreover have "... \<le> (1 + x) \<cdot> (x \<cdot> x)\<^sup>\<star>"
@@ -970,13 +958,13 @@ proof (rule antisym)
   also have "... = x \<cdot> (x \<cdot> y)\<^sup>\<star> \<cdot> (x\<^sup>\<star> + y \<cdot> y\<^sup>\<star>)"
     by (metis add.commute star_plus_one)
   also have "... = (x \<cdot> y)\<^sup>\<star> \<cdot> x \<cdot> x\<^sup>\<star> + (x \<cdot> y)\<^sup>\<star> \<cdot> x \<cdot> y \<cdot> y\<^sup>\<star>"
-    by (metis distrib_right mult_assoc mult_comm)
+    by (metis distrib_left mult_assoc mult_comm)
   also have "... \<le> (x \<cdot> y)\<^sup>\<star> \<cdot> x\<^sup>\<star> + (x \<cdot> y)\<^sup>\<star> \<cdot> x \<cdot> y \<cdot> y\<^sup>\<star>"
     by (metis star_1l add_iso mult_isol mult_assoc)
   also have "... \<le> (x \<cdot> y)\<^sup>\<star> \<cdot> x\<^sup>\<star> + (x \<cdot> y)\<^sup>\<star> \<cdot> y\<^sup>\<star>"
     by (metis add_iso_var conway_c3 mult.assoc mult_comm order_refl prod_star_closure star_subdist_var_1)
   also have "... = (x \<cdot> y)\<^sup>\<star> \<cdot> (x\<^sup>\<star> + y\<^sup>\<star>)"
-    by (metis distrib_left mult_comm)
+    by (metis distrib_right mult_comm)
   finally have "x \<cdot> (x \<cdot> y)\<^sup>\<star> \<cdot> (x\<^sup>\<star> + y\<^sup>\<star>) \<le> (x \<cdot> y)\<^sup>\<star> \<cdot> (x\<^sup>\<star> + y\<^sup>\<star>)" .
   also have "y\<^sup>\<star> \<le> (x \<cdot> y)\<^sup>\<star> \<cdot> (x\<^sup>\<star> + y\<^sup>\<star>)"
     by (metis add_lub annir mult_oner star_sim2 star_zero zero_least)
