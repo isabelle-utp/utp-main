@@ -20,21 +20,21 @@ abbreviation "REA \<equiv> {wait\<down>, wait\<down>\<acute>, tr\<down>, tr\<dow
 
 text {* R1 ensures that the trace only gets longer *}
 
-definition R1 :: " 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+definition R1 :: " 'a upred \<Rightarrow> 'a upred" where
 "R1(P) = `P \<and> ($tr \<le> $tr\<acute>)`"
 
 text {* R2 ensures that the trace only gets longer *}
 
-definition R2s :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+definition R2s :: "'a upred \<Rightarrow> 'a upred" where
 "R2s(P) = `P[\<langle>\<rangle> / tr][($tr\<acute> - $tr) / tr\<acute>]`"
 
-definition R2 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+definition R2 :: "'a upred \<Rightarrow> 'a upred" where
 "R2(P) = R1 (R2s P)"
 
-definition R3 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+definition R3 :: "'a upred \<Rightarrow> 'a upred" where
 "R3(P) = `II \<lhd> $wait \<rhd> P`"
 
-definition RH :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where 
+definition RH :: "'a upred \<Rightarrow> 'a upred" where 
 "RH P = (R1 \<circ> R2 \<circ> R3)P"
 
 declare R1_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
@@ -198,11 +198,10 @@ lemma R2s_idempotent: "`R2s(R2s(P))` = `R2s(P)`"
   apply (subst SubstP_twice_2) back
   apply (simp add:typing defined closure unrest)
   apply (simp add:usubst typing defined closure)
-  
 done
 
 lemma R2s_destroys_R1: "R2s (R1 P) = R2s P" 
-  by (simp add:R2s_def R1_def usubst closure typing defined)
+  by (utp_poly_tac)
 
 lemma R2_idempotent: "`R2(R2(P))` = `R2(P)`" 
   by (simp add:R2_def R2s_destroys_R1 R2s_idempotent)
@@ -219,7 +218,7 @@ lemma R2_AndP: "`R2(P \<and> Q)` = `R2(P) \<and> R2(Q)`"
 lemma R2_AndP_closure: 
 assumes "P is R2" "Q is R2"
 shows "`P \<and> Q` is R2"
-by (metis R2_AndP assms(1) assms(2) is_healthy_def)
+  by (metis R2_AndP assms(1) assms(2) is_healthy_def)
 
 (* L5 R2-\<or>-closure *)
 
@@ -412,7 +411,6 @@ proof-
      apply(simp_all add:unrest closure typing defined)
      apply(subst SubstP_twice_2) back
      apply(simp_all add:unrest closure typing defined)
-     apply(subst SubstP_EqualP)
      apply(subst SubstP_ExistsP)
      apply(simp_all add:unrest closure typing defined)
      apply(subst SubstP_ExistsP)
@@ -421,7 +419,6 @@ proof-
      apply(subst SubstP_SemiR_right)
      apply(simp_all add:unrest closure typing defined)
      apply(subst SubstP_twice_1)
-     apply(subst SubstP_EqualP)
      apply(simp add:usubst typing defined closure)
      apply(subst ExistsP_AndP_expand1)
      apply(simp add:unrest closure typing defined)
@@ -437,11 +434,9 @@ proof-
    done
    also have "... = `(\<exists> tt1\<acute>\<acute> . \<exists> tt2\<acute>\<acute> . P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>/tr\<acute>] ; Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr ^ $tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>))`"
      apply(subst AndP_comm) back
-     apply(simp add:PVarPE_erasure typing defined closure)
-     apply(subst ExistsP_one_point[of _ "tt\<down>\<acute>\<acute>"])
+     apply(subst ExistsP_one_point_ty[of _ "tt\<acute>\<acute>"])
+     apply(simp_all add: typing defined closure)
      apply(simp add:closure typing defined unrest erasure)
-     apply(auto intro!:unrest closure typing simp add:typing closure)[1]
-     apply(subst SubstP_EqualP)
      apply(simp add:usubst typing defined closure)
    done 
 
@@ -513,7 +508,7 @@ proof -
                       \<and> ($tr\<acute> = ($tr ^ ($tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>)))))`"
   proof -
     have "`(\<exists> tt\<acute>\<acute>. ($tt\<acute>\<acute> = ($tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>) \<and> $tr\<acute> = ($tr ^ $tt\<acute>\<acute>)))` = 
-          (`($tr\<acute> = ($tr ^ ($tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>)))` :: 'a WF_PREDICATE)"
+          (`($tr\<acute> = ($tr ^ ($tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>)))` :: 'a upred)"
       apply (utp_poly_auto_tac)
       apply (metis AppendUL.rep_eq)
     done
@@ -525,7 +520,7 @@ proof -
                                       \<and> $tr\<acute> = $tr ^ $tt\<acute>\<acute>)`"
   proof -
     have p1: "`\<exists> tt\<acute>\<acute>. (($tt\<acute>\<acute> = $tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>) \<and> ($tr\<acute> = $tr ^ $tt\<acute>\<acute>))` =
-                       (`$tr\<acute> = ($tr ^ $tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>)` :: 'a WF_PREDICATE)"
+                       (`$tr\<acute> = ($tr ^ $tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>)` :: 'a upred)"
       apply (utp_poly_auto_tac)
       apply (metis AppendUL.rep_eq)
     done
@@ -583,7 +578,7 @@ lemma R2_sequential_composition:
 
    (* L10 R2-wait-okay' *)
 
-lemma R2_wait_true: "(R2(P))\<^sub>t = R2(P\<^sub>t)"
+lemma R2_wait_true: "(R2(P))\<^sub>t = R2(P \<^sub>t)"
   apply (simp add:R2_def R1_wait_true R2s_def)
   apply (subst SubstP_twice_3) back
   apply (simp_all add:unrest typing)
@@ -593,7 +588,7 @@ lemma R2_wait_true: "(R2(P))\<^sub>t = R2(P\<^sub>t)"
   apply (simp add:usubst typing defined closure)
 done
 
-lemma R2_wait_false: "(R2(P))\<^sub>f = R2(P\<^sub>f)"
+lemma R2_wait_false: "(R2(P))\<^sub>f = R2(P \<^sub>f)"
   apply(simp add:R2_def R1_wait_false R2s_def)
   apply(subst SubstP_twice_3) back
   apply (simp_all add:unrest typing)
@@ -621,6 +616,7 @@ proof -
     apply (subst SkipRA_unfold[of "tr\<down>"])
     apply (auto simp add:closure)
     apply (simp add:usubst closure typing defined)
+    apply (utp_poly_tac)
   done
 
   also have "... = `(($tr\<acute> - $tr) = \<langle>\<rangle> \<and> ($tr \<le> $tr\<acute>)) \<and> II\<^bsub>REL_VAR - TR\<^esub>`"
@@ -643,13 +639,13 @@ subsection {* R3 Laws *}
 (* L1 R3-wait-true *)
 
 lemma R3_wait_true: 
-  "`(R3(P))\<^sub>t` = `II\<^sub>t` "
+  "`(R3(P))\<^sub>t` = `II \<^sub>t` "
   by (simp add:R3_def usubst typing defined closure CondR_def)
 
 (* L2 R3-wait-false *)
 
 lemma R3_wait_false: 
-  "`(R3(P))\<^sub>f` = `P\<^sub>f` "
+  "`(R3(P))\<^sub>f` = `P \<^sub>f` "
   by (simp add:R3_def usubst typing defined closure CondR_def)
 
 (* L4 closure-\<and>-R3 *)
@@ -775,9 +771,6 @@ qed
 lemma R3_SkipR: "`R3(II)` = `II`"
   by (simp add:R3_def CondR_idem)
 
-declare CondR_def [evalp]
-declare less_eq_WF_PREDICATE_def [evalp]
-
 lemma R3_monotonic: "P \<sqsubseteq> Q \<Longrightarrow> R3(P) \<sqsubseteq> R3(Q)"
   by utp_poly_tac 
   
@@ -802,7 +795,7 @@ lemma R_intro: "\<lbrakk> P is R1; P is R2; P is R3 \<rbrakk> \<Longrightarrow> 
 
 lemma R1_true_left_zero: 
   assumes "P is R1" "P is R3" "P \<in> WF_RELATION"
-  shows "`($tr \<le> $tr\<acute>) ; P` = `($tr \<le> $tr\<acute>) \<and> ($wait\<acute> \<or> ($tr \<le> $tr\<acute>);P\<^sub>f)`"
+  shows "`($tr \<le> $tr\<acute>) ; P` = `($tr \<le> $tr\<acute>) \<and> ($wait\<acute> \<or> ($tr \<le> $tr\<acute>);P \<^sub>f)`"
 proof -
 have 1: "`($wait\<acute> \<and> II)` = `($wait \<and> $wait\<acute> \<and> II)`"
   apply(simp add:SkipR_as_SkipRA)
@@ -820,24 +813,24 @@ also have "... = `($tr \<le> $tr\<acute>) ; ($wait \<and> $wait\<acute> \<and> I
   by (metis AndP_comm wait_and_II)
 also have "... = `($tr \<le> $tr\<acute>) ; (II \<and> $wait\<acute>) \<or> ($tr \<le> $tr\<acute>) ; (\<not>$wait \<and> P)`"
   by (metis "1" AndP_comm)
-also have "... = `(($tr \<le> $tr\<acute>) \<and> $wait\<acute>) \<or> ($tr \<le> $tr\<acute>) ; (\<not>$wait \<and> P\<^sub>f)`"
+also have "... = `(($tr \<le> $tr\<acute>) \<and> $wait\<acute>) \<or> ($tr \<le> $tr\<acute>) ; (\<not>$wait \<and> P \<^sub>f)`"
     apply(subst SemiR_AndP_right_postcond)
     apply(simp_all add:closure)
     apply(subst NotP_PVarPE_PSubstPE)
     apply(simp_all add:closure typing)
   done
-also have "... =  `(($tr \<le> $tr\<acute>) \<and> $wait\<acute>) \<or> ($tr \<le> $tr\<acute>) ; P\<^sub>f`"
+also have "... =  `(($tr \<le> $tr\<acute>) \<and> $wait\<acute>) \<or> ($tr \<le> $tr\<acute>) ; P \<^sub>f`"
   apply(subst SemiR_remove_middle_unrest1[of _ _ "{wait \<down>}"])
   apply(simp_all add:closure typing defined erasure unrest)
   apply(subst SubstP_rel_closure)
   apply(simp_all add:assms closure typing defined WF_RELATION_UNREST unrest)
   done
-also have "... = `(($tr \<le> $tr\<acute>) \<and> $wait\<acute>) \<or> R1(($tr \<le> $tr\<acute>) ; P\<^sub>f)`"
+also have "... = `(($tr \<le> $tr\<acute>) \<and> $wait\<acute>) \<or> R1(($tr \<le> $tr\<acute>) ; P \<^sub>f)`"
   proof-
-    have "`P\<^sub>f` is R1"
+    have "`P \<^sub>f` is R1"
       apply(simp add:is_healthy_def R1_wait_false[THEN sym])
       by (metis Healthy_simp assms(1))
-    hence "`($tr \<le> $tr\<acute>) ; P\<^sub>f` is R1"
+    hence "`($tr \<le> $tr\<acute>) ; P \<^sub>f` is R1"
       apply(subst R1_SemiR_closure)
       apply(simp_all add:closure is_healthy_def R1_def assms typing defined WF_RELATION_UNREST unrest)
       done
@@ -858,13 +851,13 @@ by (metis SemiR_SkipR_left)
 (* L3 R-wait-false *)
 
 lemma RH_wait_false: 
-  "`(RH(P))\<^sub>f` = `R1(R2(P\<^sub>f))`"
+  "`(RH(P))\<^sub>f` = `R1(R2(P \<^sub>f))`"
 by(simp add:RH_def R1_wait_false R2_wait_false R3_wait_false)
 
 (* L4 R-wait-true *)
 
 lemma RH_wait_true: 
-  "`(RH(P))\<^sub>t` = `II\<^sub>t`"
+  "`(RH(P))\<^sub>t` = `II \<^sub>t`"
 by(simp add:RH_def R2_R3_commute R1_R3_commute R3_wait_true)
 
 (* L6 closure-\<and>-R *)
@@ -928,7 +921,7 @@ is "({vs. vs \<subseteq> REL_VAR \<and> REA \<subseteq> vs}, {R1,R2,R3})"
 
 subsection {* Traces *}
 
-definition traces :: "'a WF_PREDICATE \<Rightarrow> 'a EVENT list set" where
+definition traces :: "'a upred \<Rightarrow> 'a EVENT list set" where
 "traces(P) = {Rep_ULIST (MinusUL (\<langle>b\<rangle>\<^sub>* tr) (\<langle>b\<rangle>\<^sub>* tr\<acute>)) | b. \<lbrakk>P\<rbrakk>b \<and> \<not> \<langle>b\<rangle>\<^sub>* wait}" 
 
 lemma traces_rel_def:

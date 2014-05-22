@@ -54,15 +54,15 @@ abbreviation "vexpr_inds    \<equiv> Op1D' vinds"
 abbreviation "vexpr_len     \<equiv> Op1D' length"
 
 syntax
-  "_vexpr_hd"      :: "pexpr \<Rightarrow> pexpr" ("hd _")
-  "_vexpr_tl"      :: "pexpr \<Rightarrow> pexpr" ("tl _")
-  "_vexpr_len"     :: "pexpr \<Rightarrow> pexpr" ("len _")
-  "_vexpr_elems"   :: "pexpr \<Rightarrow> pexpr" ("elems _")
-  "_vexpr_inds"    :: "pexpr \<Rightarrow> pexpr" ("inds _")
-  "_vexpr_reverse" :: "pexpr \<Rightarrow> pexpr" ("reverse _")
-  "_vexpr_concat"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "^" 65)
-  "_vexpr_conc"    :: "pexpr \<Rightarrow> pexpr" ("conc _")
-  "_vexpr_seqapp"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_'<_'>")
+  "_vexpr_hd"      :: "n_pexpr \<Rightarrow> n_pexpr" ("hd _")
+  "_vexpr_tl"      :: "n_pexpr \<Rightarrow> n_pexpr" ("tl _")
+  "_vexpr_len"     :: "n_pexpr \<Rightarrow> n_pexpr" ("len _")
+  "_vexpr_elems"   :: "n_pexpr \<Rightarrow> n_pexpr" ("elems _")
+  "_vexpr_inds"    :: "n_pexpr \<Rightarrow> n_pexpr" ("inds _")
+  "_vexpr_reverse" :: "n_pexpr \<Rightarrow> n_pexpr" ("reverse _")
+  "_vexpr_concat"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "^" 65)
+  "_vexpr_conc"    :: "n_pexpr \<Rightarrow> n_pexpr" ("conc _")
+  "_vexpr_seqapp"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_'<_'>")
 
 translations
   "_vexpr_hd xs"        == "CONST vexpr_hd xs"
@@ -84,10 +84,10 @@ declare vexpr_mapupd_def [eval,evalp]
 nonterminal vmaplets and vmaplet
 
 syntax
-  "_vmaplet"  :: "[pexpr, pexpr] => vmaplet"       ("_ /|->/ _")
+  "_vmaplet"  :: "[n_pexpr, n_pexpr] => vmaplet"       ("_ /|->/ _")
   ""          :: "vmaplet => vmaplets"             ("_")
   "_VMaplets" :: "[vmaplet, vmaplets] => vmaplets" ("_,/ _")
-  "_VMap"     :: "vmaplets => pexpr"               ("(1{_})")
+  "_VMap"     :: "vmaplets => n_pexpr"               ("(1{_})")
 
 translations
   "_VMap (_VMaplets (_vmaplet x v) ms2)" == "CONST vexpr_mapupd (_VMap ms2) x v"
@@ -145,14 +145,14 @@ abbreviation "vexpr_mapapp    \<equiv> Op2D vmapapp"
 abbreviation "vexpr_mapinv    \<equiv> Op1D' fmap_inv"
 
 syntax
-  "_vexpr_dom"       :: "pexpr \<Rightarrow> pexpr" ("dom _")
-  "_vexpr_rng"       :: "pexpr \<Rightarrow> pexpr" ("rng _")
-  "_vexpr_moverride" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "++" 65)
-  "_vexpr_domresto"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "<:" 110)
-  "_vexpr_domresfr"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "<-:" 110)
-  "_vexpr_mapcomp"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "comp" 55)  
-  "_vexpr_mapinv"    :: "pexpr \<Rightarrow> pexpr" ("inverse _")
-  "_vexpr_mapapp"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_[_]")
+  "_vexpr_dom"       :: "n_pexpr \<Rightarrow> n_pexpr" ("dom _")
+  "_vexpr_rng"       :: "n_pexpr \<Rightarrow> n_pexpr" ("rng _")
+  "_vexpr_moverride" :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "++" 65)
+  "_vexpr_domresto"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "<:" 110)
+  "_vexpr_domresfr"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "<-:" 110)
+  "_vexpr_mapcomp"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "comp" 55)  
+  "_vexpr_mapinv"    :: "n_pexpr \<Rightarrow> n_pexpr" ("inverse _")
+  "_vexpr_mapapp"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_[_]")
 
 translations
   "_vexpr_dom x"         == "CONST vexpr_dom x"
@@ -172,7 +172,7 @@ abbreviation imod :: "real \<Rightarrow> real \<Rightarrow> real" where
 "imod x y \<equiv> (floor x) mod (floor y)"
 
 abbreviation vpower :: "real \<Rightarrow> real \<Rightarrow> real" where
-"vpower x n \<equiv> power x (nat (floor n))"
+"vpower x n \<equiv> x ^ (nat (floor n))"
 
 abbreviation "vexpr_uminus    \<equiv> Op1D' (uminus :: real \<Rightarrow> real)"
 abbreviation "vexpr_abs       \<equiv> Op1D' (abs :: real \<Rightarrow> real)"
@@ -190,20 +190,20 @@ abbreviation "vexpr_ge        \<equiv> Op2D' (\<lambda> (x::real) y. y \<le> x)"
 abbreviation "vexpr_greater   \<equiv> Op2D' (\<lambda> (x::real) y. y < x)"
 
 syntax
-  "_vexpr_uminus"  :: "pexpr \<Rightarrow> pexpr" ("- _" [81] 80)
-  "_vexpr_abs"     :: "pexpr \<Rightarrow> pexpr" ("abs _")
-  "_vexpr_floor"   :: "pexpr \<Rightarrow> pexpr" ("floor _")
-  "_vexpr_plus"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "+" 30)
-  "_vexpr_minus"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "-" 65)
-  "_vexpr_mult"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "*" 70)
-  "_vexpr_divide"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "'/" 70)
-  "_vexpr_idiv"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "div" 70)
-  "_vexpr_imod"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "mod" 70)
-  "_vexpr_power"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "**" 70)
-  "_vexpr_le"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "<=" 50)
-  "_vexpr_less"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "<" 50)
-  "_vexpr_ge"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix ">=" 50)
-  "_vexpr_greater" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix ">" 50)
+  "_vexpr_uminus"  :: "n_pexpr \<Rightarrow> n_pexpr" ("- _" [81] 80)
+  "_vexpr_abs"     :: "n_pexpr \<Rightarrow> n_pexpr" ("abs _")
+  "_vexpr_floor"   :: "n_pexpr \<Rightarrow> n_pexpr" ("floor _")
+  "_vexpr_plus"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "+" 30)
+  "_vexpr_minus"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "-" 65)
+  "_vexpr_mult"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "*" 70)
+  "_vexpr_divide"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "'/" 70)
+  "_vexpr_idiv"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "div" 70)
+  "_vexpr_imod"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "mod" 70)
+  "_vexpr_power"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "**" 70)
+  "_vexpr_le"      :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "<=" 50)
+  "_vexpr_less"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "<" 50)
+  "_vexpr_ge"      :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix ">=" 50)
+  "_vexpr_greater" :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix ">" 50)
 
 translations
   "_vexpr_uminus x"    == "CONST vexpr_uminus x"
@@ -279,19 +279,19 @@ abbreviation vcollect_ext_ty :: "('a \<Rightarrow> 'b cmle) \<Rightarrow> 'a set
 "vcollect_ext_ty f A P \<equiv> vcollect_ext f (\<lambda> x. AndD (P x) (LitD (x \<in> A)))"
 
 syntax
-  "_vexpr_quotev"  :: "string \<Rightarrow> pexpr" ("<_>")
-  "_vexpr_in_set"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "in @set" 50)
-  "_vexpr_union"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "union" 65)
-  "_vexpr_inter"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "inter" 70)
-  "_vexpr_dunion"  :: "pexpr \<Rightarrow> pexpr" ("dunion _")
-  "_vexpr_dinter"  :: "pexpr \<Rightarrow> pexpr" ("dinter _")
-  "_vexpr_sminus"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "setminus" 70)
-  "_vexpr_subset"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "subset" 50) 
-  "_vexpr_psubset" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infix "psubset" 50)
-  "_vexpr_fpower"  :: "pexpr \<Rightarrow> pexpr" ("power _")
-  "_vexpr_card"    :: "pexpr \<Rightarrow> pexpr" ("card _")
-  "_vexpr_all_set" :: "pttrn \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ in @set _ @/ _)" [0, 0, 10] 10)
-  "_vexpr_collect" :: "pexpr \<Rightarrow> pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("{_ | _ : _ @/ _}")
+  "_vexpr_quotev"  :: "string \<Rightarrow> n_pexpr" ("<_>")
+  "_vexpr_in_set"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "in @set" 50)
+  "_vexpr_union"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "union" 65)
+  "_vexpr_inter"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "inter" 70)
+  "_vexpr_dunion"  :: "n_pexpr \<Rightarrow> n_pexpr" ("dunion _")
+  "_vexpr_dinter"  :: "n_pexpr \<Rightarrow> n_pexpr" ("dinter _")
+  "_vexpr_sminus"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "setminus" 70)
+  "_vexpr_subset"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "subset" 50) 
+  "_vexpr_psubset" :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "psubset" 50)
+  "_vexpr_fpower"  :: "n_pexpr \<Rightarrow> n_pexpr" ("power _")
+  "_vexpr_card"    :: "n_pexpr \<Rightarrow> n_pexpr" ("card _")
+  "_vexpr_all_set" :: "pttrn \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3forall _ in @set _ @/ _)" [0, 0, 10] 10)
+  "_vexpr_collect" :: "n_pexpr \<Rightarrow> pttrn \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("{_ | _ : _ @/ _}")
 
 translations
   "_vexpr_quotev x"    == "CONST LitD (CONST QuoteD x)"
@@ -326,7 +326,7 @@ term "|$x <= $y|"
 
 term "|$x in @set {<1>}|"
 
-term "|^x^|"
+(* term "|^x^|" *)
 
 term "|mk_prod(1, {})|"
 
@@ -385,23 +385,25 @@ lemma "|5 <= 6| = |true|"
 lemma "|[2,1,5,4]<2>| = |5|"
   by (cml_tac)
 
-declare Defined_WF_PEXPRESSION_def [evalp]
+declare Defined_pexpr_def [evalp]
 
 lemma Defined_option_bind_1 [dest]:
   "\<D> ((x::'a option) \<guillemotright>= f) \<Longrightarrow> \<D> x"
   by (case_tac x, simp_all)
 
 lemma "|defn(@x union @y)| = |defn(@x) and defn(@y)|"
-  apply (cml_auto_tac)
+  apply (utp_poly_auto_tac)
   apply (drule_tac x="b" in spec)
   apply (metis (mono_tags) Defined_option_bind_1 Defined_option_elim bind_lunit)
   apply (metis Defined_option.simps(2) Defined_option_elim Some_defined bind_lunit)
 done
 
+
 lemma "|defn(@x<@i>)| = |defn(@i) and defn(@x) and (@i < len @x)|"
   apply (cml_auto_tac)
 oops
 
+(*
 lemma "|defn(@x[@i])| = |defn(@i) and defn(@x) and (@i in @set (dom @x))|"
   apply (cml_tac)
   apply (auto simp add:evalp Defined_WF_PEXPRESSION_def fdom.rep_eq)
@@ -409,6 +411,7 @@ lemma "|defn(@x[@i])| = |defn(@i) and defn(@x) and (@i in @set (dom @x))|"
   apply (simp)
   apply (case_tac "\<lbrakk>i\<rbrakk>\<^sub>*b = None")
 oops
+*)
 
 term "|{1 |-> 2, 2 |-> 3}|"
 

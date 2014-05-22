@@ -13,43 +13,43 @@ imports
   utp_reactive
 begin
 
-definition ACP1 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+definition ACP1 :: "'a upred \<Rightarrow> 'a upred" where
 "ACP1 P = `P \<and> (($tr\<acute> = $tr) \<Rightarrow> $wait\<acute>)` "
 
-definition \<delta> :: "'a WF_PREDICATE" where
+definition \<delta> :: "'a upred" where
 "\<delta> = `R3($tr\<acute> = $tr \<and> $wait\<acute>)`"
 
-definition B_pred :: "'a WF_PREDICATE" where
+definition B_pred :: "'a upred" where
 "B_pred = `($tr\<acute> = $tr \<and> $wait\<acute>) \<or> ($tr < $tr\<acute>)`"
 
-definition \<Phi> :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+definition \<Phi> :: "'a upred \<Rightarrow> 'a upred" where
 "\<Phi>(P) = `RH(B_pred \<and> P)`"
 
-definition doA :: "('m EVENT, 'm) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" where
+definition doA :: "('m EVENT, 'm) pexpr \<Rightarrow> 'm upred" where
 "doA(a) = `\<Phi>(a \<notin> $ref\<acute> \<lhd> $wait\<acute> \<rhd> ($tr^\<langle>a\<rangle> =$tr\<acute>))`"
 
-definition alternative :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_ +\<^bsub>ACP\<^esub> _") where
+definition alternative :: "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" ("_ +\<^bsub>ACP\<^esub> _") where
 "(P +\<^bsub>ACP\<^esub> Q) = `(P \<and> Q) \<lhd> \<delta> \<rhd> (P \<or> Q)`"
 
-declare ACP1_def [eval,evalr,evalrx,evalp]
-declare \<delta>_def [eval,evalr,evalrx,evalp]
-declare B_pred_def [eval,evalr,evalrx,evalp]
-declare \<Phi>_def [eval,evalr,evalrx,evalp]
-declare doA_def [eval,evalr,evalrx,evalp]
-declare alternative_def [eval,evalr,evalrx,evalp]
+declare ACP1_def [eval,evalr,evalrx,evalpp, evalpr]
+declare \<delta>_def [eval,evalr,evalrx,evalpp, evalpr]
+declare B_pred_def [eval,evalr,evalrx,evalpp, evalpr]
+declare \<Phi>_def [eval,evalr,evalrx,evalpp, evalpr]
+declare doA_def [eval,evalr,evalrx,evalpp, evalpr]
+declare alternative_def [eval,evalr,evalrx,evalpp, evalpr]
 
 syntax 
-  "_upred_doA" :: "uexpr \<Rightarrow> upred" ("do\<A>'(_')")
-  "_upred_alternative" :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("_ + _")
+  "_n_upred_doA" :: "n_pexpr \<Rightarrow> n_upred" ("do\<A>'(_')")
+  "_n_upred_alternative" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ + _")
 
 translations
-  "_upred_doA a" == "CONST doA a"
-  "_upred_alternative P Q" == "CONST alternative P Q"
+  "_n_upred_doA a" == "CONST doA a"
+  "_n_upred_alternative P Q" == "CONST alternative P Q"
 
-declare \<delta>_def [eval, evalr, evalrr, evalrx]
-declare doA_def [eval, evalr, evalrr, evalrx]
-declare \<Phi>_def [eval, evalr, evalrr, evalrx]
-declare B_pred_def [eval, evalr, evalrr, evalrx]
+declare \<delta>_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
+declare doA_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
+declare \<Phi>_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
+declare B_pred_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
 
 subsection {* Closure Laws *}
 
@@ -96,9 +96,7 @@ lemma ACP1_R1_commute:
 lemma ACP1_R2_commute: "ACP1(R2(P)) = R2(ACP1(P))" 
 proof -
   have "R2(ACP1(P)) = `R2(P) \<and> (\<langle>\<rangle> = ($tr\<acute> - $tr) \<Rightarrow> $wait\<acute>)`"
-    apply (simp add:ACP1_def R2_def R2s_def usubst typing defined closure)
-    apply (utp_pred_auto_tac)
-    done
+    by (utp_poly_auto_tac, metis drop_eq_Nil)
 
   also have "... = `R2(P) \<and> ($tr \<le> $tr\<acute>) \<and> (\<langle>\<rangle> = ($tr\<acute> - $tr) \<Rightarrow> $wait\<acute>)`"
     by (smt AndP_assoc AndP_idem R1_def R2_def)
@@ -113,7 +111,7 @@ proof -
     by (smt AndP_assoc AndP_comm)
 
   also have "... = `R2(P) \<and> (($tr\<acute> = $tr) \<Rightarrow> $wait\<acute>)`"
-    by (metis (hide_lams, no_types) EqualP_sym tr_prefix_as_nil)
+    by (metis PEqualP_sym tr_prefix_as_nil)
 
   finally show ?thesis 
     by (simp add:ACP1_def) 
@@ -141,7 +139,7 @@ subsection {* Delta laws *}
 lemma R1_\<delta> : "`R1(\<delta>)` = `\<delta>`"
 proof -
   have "`R1(\<delta>)`  = `(II \<and> ($tr \<le> $tr\<acute>)) \<lhd> $wait \<rhd> ($tr =$tr\<acute> \<and> $wait\<acute> \<and> ($tr \<le> $tr\<acute>))`" 
-    by (simp add:\<delta>_def, utp_pred_auto_tac)
+    by (simp add:\<delta>_def, utp_poly_auto_tac)
   also have "... = `R1(II) \<lhd> $wait \<rhd> ($tr\<acute> =$tr \<and> $wait\<acute> )`" 
     by utp_poly_auto_tac
   finally show ?thesis 
@@ -253,11 +251,8 @@ proof -
   also from assms have "... = `R3(R1((a \<notin> $ref\<acute>) \<lhd> $wait\<acute> \<rhd> ($tr ^ \<langle>a\<rangle> = $tr\<acute>)))`"
   proof -
     have "`\<langle>a\<rangle> = ($tr\<acute> - $tr) \<and> ($tr \<le> $tr\<acute>)` = `($tr ^ \<langle>a\<rangle>) = $tr\<acute> \<and> ($tr \<le> $tr\<acute>)`"
-      apply (utp_poly_tac)
-      apply (rule)
-      apply (subgoal_tac "set (drop (length (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>))) (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>))) \<subseteq> dcarrier (EventType :: 'a UTYPE)")
+      apply (utp_poly_tac)      
       apply (smt drop_Cons' drop_all drop_append prefixeq_drop self_append_conv2)
-      apply (rule subset_trans, rule set_drop_subset, rule DestList_tr'_dcarrier)
     done
 
     thus ?thesis
@@ -452,7 +447,7 @@ proof -
     by(metis assms is_healthy_def)
   also have "... = `(\<exists> tr\<acute>\<acute> . ($tr \<le> $tr\<acute>\<acute>) \<and> (P[$tr\<acute>\<acute>/tr\<acute>] ; Q[$tr\<acute>\<acute>/tr]) \<and> ($tr\<acute>\<acute> \<le> $tr) \<and> ($tr\<acute> = $tr))`"
   proof -
-    have "`($tr\<acute>\<acute> \<le> $tr\<acute>) \<and> ($tr\<acute> = $tr)` = (`($tr\<acute>\<acute> \<le> $tr) \<and> ($tr\<acute> = $tr)` :: 'a WF_PREDICATE)"
+    have "`($tr\<acute>\<acute> \<le> $tr\<acute>) \<and> ($tr\<acute> = $tr)` = (`($tr\<acute>\<acute> \<le> $tr) \<and> ($tr\<acute> = $tr)` :: 'a upred)"
      by (utp_poly_auto_tac)
 
     thus ?thesis 
@@ -473,7 +468,7 @@ proof -
   qed
   also have "... = `(\<exists> tr\<acute>\<acute>. ($tr = $tr\<acute>\<acute>) \<and> ($tr\<acute> = $tr\<acute>\<acute>) \<and> P[($tr\<acute>\<acute>)/tr\<acute>] ; Q[($tr\<acute>\<acute>)/tr])` "
   proof - 
-    have "`($tr = $tr\<acute>\<acute>) \<and> ($tr\<acute> = $tr)` = (`($tr = $tr\<acute>\<acute>) \<and> ($tr\<acute> = $tr\<acute>\<acute>)` :: 'a WF_PREDICATE)"
+    have "`($tr = $tr\<acute>\<acute>) \<and> ($tr\<acute> = $tr)` = (`($tr = $tr\<acute>\<acute>) \<and> ($tr\<acute> = $tr\<acute>\<acute>)` :: 'a upred)"
      by (utp_poly_auto_tac)
    thus ?thesis
     apply(subst AndP_comm) back
@@ -486,7 +481,7 @@ proof -
     done
     qed
   also have "... = `(\<exists> tr\<acute>\<acute> . $tr\<acute>\<acute> = $tr \<and> P[$tr\<acute>\<acute>/tr\<acute>] ; Q[$tr\<acute>\<acute>/tr] \<and> $tr\<acute> = $tr\<acute>\<acute>)`"
-    by (metis (hide_lams, mono_tags) AndP_comm EqualP_sym calculation)
+    by (metis (hide_lams, mono_tags) AndP_comm PEqualP_sym calculation)
   finally show ?thesis
     apply(simp)
     apply(rule sym)

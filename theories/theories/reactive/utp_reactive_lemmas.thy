@@ -21,20 +21,20 @@ abbreviation "TR \<equiv> {tr\<down>, tr\<down>\<acute>}"
 abbreviation "WAIT \<equiv> {wait\<down>, wait\<down>\<acute>}"
 
 abbreviation wait_true :: 
-  "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" ("_\<^sub>t"[150]) where
+  "'a upred \<Rightarrow> 'a upred" ("_\<^sub>t"[150]) where
 "p \<^sub>t \<equiv> `p[true/wait]`"
 
 abbreviation wait_false :: 
-  "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" ("_\<^sub>f"[150]) where
+  "'a upred \<Rightarrow> 'a upred" ("_\<^sub>f"[150]) where
 "p \<^sub>f \<equiv> `p[false/wait]`"
 
 syntax
-  "_upred_wait_true"    :: "upred \<Rightarrow> upred" ("_\<^sub>t" [1000] 1000)
-  "_upred_wait_false"   :: "upred \<Rightarrow> upred" ("_\<^sub>f" [1000] 1000)
+  "_n_upred_wait_true"    :: "n_upred \<Rightarrow> n_upred" ("_\<^sub>t" [1000] 1000)
+  "_n_upred_wait_false"   :: "n_upred \<Rightarrow> n_upred" ("_\<^sub>f" [1000] 1000)
 
 translations
-  "_upred_wait_true p"  == "CONST wait_true p"
-  "_upred_wait_false p" == "CONST wait_false p"
+  "_n_upred_wait_true p"  == "CONST wait_true p"
+  "_n_upred_wait_false p" == "CONST wait_false p"
 
 lemma ok_wait_commute_t_t: 
   "`P\<^sup>t\<^sub>t` = `P \<^sub>t\<^sup>t`"
@@ -76,7 +76,7 @@ lemma tr_leq_rel_closure[closure]:
 done
 
 lemma DestList_event_dcarrier [typing]: 
-  fixes xs :: "('m EVENT ULIST, 'm :: REACTIVE_SORT) PVAR"
+  fixes xs :: "('m EVENT ULIST, 'm :: REACTIVE_SORT) pvar"
   assumes "pvaux xs"
   shows "set (DestList (\<langle>b\<rangle>\<^sub>b xs\<down>)) \<subseteq> dcarrier EventType"
   apply (rule DestList_elem_type)
@@ -85,7 +85,7 @@ lemma DestList_event_dcarrier [typing]:
 done
 
 lemma DestList_event'_dcarrier [typing]: 
-  fixes xs :: "('m EVENT ULIST, 'm :: REACTIVE_SORT) PVAR"
+  fixes xs :: "('m EVENT ULIST, 'm :: REACTIVE_SORT) pvar"
   assumes "pvaux xs"
   shows "set (DestList (\<langle>b\<rangle>\<^sub>b xs\<down>\<acute>)) \<subseteq> dcarrier EventType"
   apply (rule DestList_elem_type)
@@ -96,7 +96,7 @@ lemma DestList_event'_dcarrier [typing]:
 done
 
 lemma DestList_event''_dcarrier [typing]: 
-  fixes xs :: "('m EVENT ULIST, 'm :: REACTIVE_SORT) PVAR"
+  fixes xs :: "('m EVENT ULIST, 'm :: REACTIVE_SORT) pvar"
   assumes "pvaux xs"
   shows "set (DestList (\<langle>b\<rangle>\<^sub>b xs\<down>\<acute>\<acute>)) \<subseteq> dcarrier EventType"
   apply (rule DestList_elem_type)
@@ -107,7 +107,7 @@ lemma DestList_event''_dcarrier [typing]:
 done
 
 lemma DestList_event'''_dcarrier [typing]: 
-  fixes xs :: "('m EVENT ULIST, 'm :: REACTIVE_SORT) PVAR"
+  fixes xs :: "('m EVENT ULIST, 'm :: REACTIVE_SORT) pvar"
   assumes "pvaux xs"
   shows "set (DestList (\<langle>b\<rangle>\<^sub>b xs\<down>\<acute>\<acute>\<acute>)) \<subseteq> dcarrier EventType"
   apply (rule DestList_elem_type)

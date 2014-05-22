@@ -45,7 +45,7 @@ context vbasic
 begin
 
 definition Project :: "vbasic \<Rightarrow> 'a option" where
-"Project x \<equiv> if (x :\<^sub>b BTYPE('a) \<and> \<D> x) then Some (inv Inject x) else None"
+"Project x \<equiv> if (x :\<^sub>b BTYPE('a) \<and> \<D> x) then Some (inv_into UNIV Inject x) else None"
 
 lemma Inject_type[simp]: "Inject x :\<^sub>b BTYPE('a)"
   by (insert Inject_range, auto simp add:image_def)

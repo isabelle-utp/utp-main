@@ -58,7 +58,7 @@ setup cmlact_defs.setup
 
 ML {*
   fun utp_cml_defs ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps (cmlty_defs.get ctxt)
       addsimps (cmlval_defs.get ctxt)
       addsimps (cmlfun_defs.get ctxt)
@@ -95,7 +95,7 @@ ML {*
   fun utp_cml_auto_tac thms ctxt i =
     CHANGED ((
       (asm_full_simp_tac (utp_cml_simpset ctxt)) THEN_ALL_NEW
-      (asm_full_simp_tac (simpset_of ctxt)) THEN_ALL_NEW
+      (asm_full_simp_tac ctxt) THEN_ALL_NEW
       (SELECT_GOAL (auto_tac ctxt))) i)
 *}
 

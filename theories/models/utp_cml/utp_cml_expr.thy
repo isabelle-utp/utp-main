@@ -14,7 +14,7 @@ begin
 
 lemma EqualP_refine [refine]:
   "P[v/\<^sub>px] \<Longrightarrow> P \<sqsubseteq> $\<^sub>ex ==\<^sub>p v"
-  by (metis ImpliesP_eq_subst RefP_def Tautology_def TrueP_eq_ClosureP less_eq_WF_PREDICATE_def utp_pred_simps(14) utp_pred_simps(21))
+  by (metis ImpliesP_eq_subst RefP_def Tautology_def TrueP_eq_ClosureP less_eq_upred_def utp_pred_simps(14) utp_pred_simps(21))
 
 text {* Getting an accurate representation of CML expressions is hard,
 in as much as Isabelle's type-system limits our ability to do proper
@@ -38,17 +38,17 @@ lemma TypeUSound_cml [typing]: "TYPEUSOUND('a::vbasic option, cmlv)"
 
 (* CML expressions and CML predicates *)
 
-type_synonym 'a cmle        = "('a option, cmlv) WF_PEXPRESSION"
-type_synonym cmlb           = "cmlv WF_BINDING"
-type_synonym cmlp           = "cmlv WF_PREDICATE" 
-type_synonym 'a cmlvar      = "('a option, cmlv) PVAR"
+type_synonym 'a cmle        = "('a option, cmlv) pexpr"
+type_synonym cmlb           = "cmlv binding"
+type_synonym cmlp           = "cmlv upred" 
+type_synonym 'a cmlvar      = "('a option, cmlv) pvar"
 type_synonym ('a, 'b) cmlop = "('a option, 'b option, cmlv) WF_POPERATION"
 
 translations
-  (type) "'a cmle" <= (type) "('a option, cmlv) WF_PEXPRESSION"
-  (type) "cmlb" <= (type) "cmlv WF_BINDING"
-  (type) "cmlp" <= (type) "cmlv WF_PREDICATE"
-  (type) "'a cmlvar" <= (type) "('a option, cmlv) PVAR"
+  (type) "'a cmle" <= (type) "('a option, cmlv) pexpr"
+  (type) "cmlb" <= (type) "cmlv binding"
+  (type) "cmlp" <= (type) "cmlv upred"
+  (type) "'a cmlvar" <= (type) "('a option, cmlv) pvar"
   (type) "('a, 'b) cmlop" <= (type) "'a cmle \<Rightarrow> 'b cmlvar \<times> bool \<Rightarrow> cmlp"
 
 definition BotDE :: "'a cmle" ("\<bottom>\<^sub>v") where
@@ -256,28 +256,28 @@ definition VExprD ::
 text {* We remove some of the generic syntax in favour of our own *}
 
 no_syntax
-  "_pexpr_equal"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "=" 50)
-  "_pexpr_true"        :: "pexpr" ("true")
-  "_pexpr_false"       :: "pexpr" ("false")
-  "_pexpr_plus"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "+" 65)
-  "_pexpr_minus"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "-" 65)
-  "_pexpr_less"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "<" 25)
-  "_pexpr_less_eq"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<le>" 25)
-  "_pexpr_greater"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr ">" 25)
-  "_pexpr_greater_eq"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<ge>" 25)
-  "_pexpr_int"         :: "int \<Rightarrow> pexpr" ("<_>")
-  "_pexpr_set"         :: "pexprs \<Rightarrow> pexpr" ("{_}")
-  "_pexpr_set_empty"   :: "pexpr" ("{}")
-  "_pexpr_fset_empty"  :: "pexpr" ("{}")
-  "_pexpr_fset"        :: "pexprs \<Rightarrow> pexpr" ("{_}")
-  "_pexpr_list"        :: "pexprs \<Rightarrow> pexpr" ("\<langle>_\<rangle>")
-  "_pexpr_list_nil"    :: "pexpr" ("\<langle>\<rangle>")
-  "_pexpr_expr_var"    :: "idt \<Rightarrow> pexpr" ("(_)")
-  "_pexpr_pred_var"    :: "idt \<Rightarrow> pexpr" ("@(_)")
-  "_uexpr_quote"       :: "uexpr \<Rightarrow> 'a WF_EXPRESSION" ("(1^_^)")
-  "_upred_pexpr"       :: "pexpr \<Rightarrow> upred" ("\<lparr>_\<rparr>")
-  "_uproc_pexpr"       :: "pexpr \<Rightarrow> uproc" ("\<lparr>_\<rparr>")
-  "_upred_callpr"      :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> pexpr \<Rightarrow> upred" ("call _'[_']")
+  "_n_pexpr_equal"       :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "=" 50)
+  "_n_pexpr_true"        :: "n_pexpr" ("true")
+  "_n_pexpr_false"       :: "n_pexpr" ("false")
+  "_n_pexpr_plus"        :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "+" 65)
+  "_n_pexpr_minus"       :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "-" 65)
+  "_n_pexpr_less"        :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "<" 25)
+  "_n_pexpr_less_eq"     :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "\<le>" 25)
+  "_n_pexpr_greater"     :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr ">" 25)
+  "_n_pexpr_greater_eq"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "\<ge>" 25)
+  "_n_pexpr_int"         :: "int \<Rightarrow> n_pexpr" ("<_>")
+  "_n_pexpr_set"         :: "n_pexprs \<Rightarrow> n_pexpr" ("{_}")
+  "_n_pexpr_set_empty"   :: "n_pexpr" ("{}")
+  "_n_pexpr_fset_empty"  :: "n_pexpr" ("{}")
+  "_n_pexpr_fset"        :: "n_pexprs \<Rightarrow> n_pexpr" ("{_}")
+  "_n_pexpr_list"        :: "n_pexprs \<Rightarrow> n_pexpr" ("\<langle>_\<rangle>")
+  "_n_pexpr_list_nil"    :: "n_pexpr" ("\<langle>\<rangle>")
+  "_n_pexpr_expr_var"    :: "idt \<Rightarrow> n_pexpr" ("(_)")
+  "_n_pexpr_pred_var"    :: "idt \<Rightarrow> n_pexpr" ("@(_)")
+(*  "_n_uexpr_quote"       :: "n_uexpr \<Rightarrow> 'a WF_EXPRESSION" ("(1^_^)") *)
+  "_n_upred_n_pexpr"       :: "n_pexpr \<Rightarrow> n_upred" ("\<lparr>_\<rparr>")
+  "_uproc_n_pexpr"       :: "n_pexpr \<Rightarrow> n_uproc" ("\<lparr>_\<rparr>")
+  "_n_upred_callpr"      :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("call _'[_']")
 
 no_translations
   "_upred_callpr f v"       == "CONST CallRO f v"
@@ -285,46 +285,46 @@ no_translations
 abbreviation "vexpr_defined   \<equiv> (DefinedD :: 'a cmle \<Rightarrow> bool cmle)"
 
 syntax
-  "_vexpr_eval"     :: "pexpr \<Rightarrow> 'a" ("+|_|+")
-  "_vexpr_defined"  :: "pexpr \<Rightarrow> pexpr" ("defn'(_')")
-  "_vexpr_expr_var" :: "idt \<Rightarrow> pexpr" ("@_" [999] 999)
-  "_vexpr_val_var"  :: "idt \<Rightarrow> pexpr" ("&_" [999] 999)
-  "_vexpr_lit_var"  :: "idt \<Rightarrow> pexpr" ("%_" [999] 999)
-  "_vexpr_equal"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "=" 50)
-  "_vexpr_nequal"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "<>" 50)
-  "_vexpr_unit"     :: "pexpr" ("'(')")
-  "_vexpr_true"     :: "pexpr" ("true")
-  "_vexpr_false"    :: "pexpr" ("false")
-  "_vexpr_not"     :: "pexpr \<Rightarrow> pexpr" ("not _" [40] 40)
-  "_vexpr_and"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "and" 35)
-  "_vexpr_or"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "or" 30)
-  "_vexpr_implies" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "=>" 25)
-  "_vexpr_token"    :: "pexpr \<Rightarrow> pexpr" ("mk'_token'(_')")
-  "_vexpr_num"      :: "real \<Rightarrow> pexpr" ("_")
-  "_vexpr_bot"      :: "pexpr" ("undef")
-  "_vexpr_lit"      :: "'a::vbasic option \<Rightarrow> pexpr" ("(1^_^)")
-  "_vexpr_litd"     :: "'a::vbasic \<Rightarrow> pexpr" ("(1<<_>>)")
-  "_vexpr_lambda"    :: "idt \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3lambda _ @/ _)" [0, 10] 10)
-  "_vexpr_lambda_ty" :: "idt \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3lambda _ : _ @/ _)" [0, 0, 10] 10)
-  "_vexpr_forall"   :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3forall _ : _ @/ _)" [0, 0, 10] 10)
-  "_vexpr_exists"   :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3exists _ : _ @/ _)" [0, 0, 10] 10)
-  "_vexpr_exists1"  :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3exists1 _ : _ @/ _)" [0, 0, 10] 10)
-  "_vexpr_iota"     :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3iota _ : _ @/ _)" [0, 0, 10] 10)
-  "_vexpr_eps"      :: "pttrn \<Rightarrow> vty \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(3eps _ : _ @/ _)" [0, 0, 10] 10)
-  "_vexpr_coerce"   :: "pexpr \<Rightarrow> vty \<Rightarrow> pexpr" (infix ":" 50)
-  "_vexpr_ifthen"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("if _ then _ else _")
-  "_vexpr_hasType"  :: "pexpr \<Rightarrow> vty \<Rightarrow> pexpr" (infix "hasType" 50)
-  "_vexpr_apply"    :: "('a \<Rightarrow> 'b) \<Rightarrow> pexprs \<Rightarrow> pexpr"    ("_'(_')" [998,0] 998)
-  "_vexpr_vapply"   :: "'a \<Rightarrow> pexpr"    ("_'(')" [998] 998)
-  "_vexpr_prod"     :: "pexprs \<Rightarrow> vprod" ("_")
-  "_vexpr_select"   :: "pexpr \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> pexpr" ("_._" [89,90] 90)
-  "_vexpr_nil"      :: "pexpr" ("[]")
-  "_vexpr_list"     :: "pexprs => pexpr"    ("[(_)]")
-  "_vexpr_empty"    :: "pexpr" ("{}")
-  "_vexpr_fset"     :: "pexprs => pexpr"    ("{(_)}")
+  "_vexpr_eval"     :: "n_pexpr \<Rightarrow> 'a" ("+|_|+")
+  "_vexpr_defined"  :: "n_pexpr \<Rightarrow> n_pexpr" ("defn'(_')")
+  "_vexpr_expr_var" :: "idt \<Rightarrow> n_pexpr" ("@_" [999] 999)
+  "_vexpr_val_var"  :: "idt \<Rightarrow> n_pexpr" ("&_" [999] 999)
+  "_vexpr_lit_var"  :: "idt \<Rightarrow> n_pexpr" ("%_" [999] 999)
+  "_vexpr_equal"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "=" 50)
+  "_vexpr_nequal"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "<>" 50)
+  "_vexpr_unit"     :: "n_pexpr" ("'(')")
+  "_vexpr_true"     :: "n_pexpr" ("true")
+  "_vexpr_false"    :: "n_pexpr" ("false")
+  "_vexpr_not"     :: "n_pexpr \<Rightarrow> n_pexpr" ("not _" [40] 40)
+  "_vexpr_and"     :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "and" 35)
+  "_vexpr_or"      :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "or" 30)
+  "_vexpr_implies" :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "=>" 25)
+  "_vexpr_token"    :: "n_pexpr \<Rightarrow> n_pexpr" ("mk'_token'(_')")
+  "_vexpr_num"      :: "real \<Rightarrow> n_pexpr" ("_")
+  "_vexpr_bot"      :: "n_pexpr" ("undef")
+  "_vexpr_lit"      :: "'a::vbasic option \<Rightarrow> n_pexpr" ("(1^_^)")
+  "_vexpr_litd"     :: "'a::vbasic \<Rightarrow> n_pexpr" ("(1<<_>>)")
+  "_vexpr_lambda"    :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3lambda _ @/ _)" [0, 10] 10)
+  "_vexpr_lambda_ty" :: "idt \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3lambda _ : _ @/ _)" [0, 0, 10] 10)
+  "_vexpr_forall"   :: "pttrn \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3forall _ : _ @/ _)" [0, 0, 10] 10)
+  "_vexpr_exists"   :: "pttrn \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3exists _ : _ @/ _)" [0, 0, 10] 10)
+  "_vexpr_exists1"  :: "pttrn \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3exists1 _ : _ @/ _)" [0, 0, 10] 10)
+  "_vexpr_iota"     :: "pttrn \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3iota _ : _ @/ _)" [0, 0, 10] 10)
+  "_vexpr_eps"      :: "pttrn \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3eps _ : _ @/ _)" [0, 0, 10] 10)
+  "_vexpr_coerce"   :: "n_pexpr \<Rightarrow> vty \<Rightarrow> n_pexpr" (infix ":" 50)
+  "_vexpr_ifthen"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("if _ then _ else _")
+  "_vexpr_hasType"  :: "n_pexpr \<Rightarrow> vty \<Rightarrow> n_pexpr" (infix "hasType" 50)
+  "_vexpr_apply"    :: "('a \<Rightarrow> 'b) \<Rightarrow> n_pexprs \<Rightarrow> n_pexpr"    ("_'(_')" [998,0] 998)
+  "_vexpr_vapply"   :: "'a \<Rightarrow> n_pexpr"    ("_'(')" [998] 998)
+  "_vexpr_prod"     :: "n_pexprs \<Rightarrow> vprod" ("_")
+  "_vexpr_select"   :: "n_pexpr \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> n_pexpr" ("_._" [89,90] 90)
+  "_vexpr_nil"      :: "n_pexpr" ("[]")
+  "_vexpr_list"     :: "n_pexprs => n_pexpr"    ("[(_)]")
+  "_vexpr_empty"    :: "n_pexpr" ("{}")
+  "_vexpr_fset"     :: "n_pexprs => n_pexpr"    ("{(_)}")
 
 syntax (xsymbols)
-  "_vexpr_bot"     :: "pexpr" ("\<bottom>")
+  "_vexpr_bot"     :: "n_pexpr" ("\<bottom>")
 
 translations
   "_vexpr_eval e"              == "\<lbrakk>e\<rbrakk>\<^sub>* \<B>"
@@ -358,14 +358,14 @@ translations
   "_vexpr_hasType e t"         == "CONST HasTypeD e t"
   "_vexpr_apply f x"           == "CONST ApplyD f (_vexpr_prod x)"
   "_vexpr_vapply f"            => "CONST ApplyD f (CONST LitD ())"
-  "_vexpr_prod (_pexprs x xs)" == "CONST vexpr_prod x (_vexpr_prod xs)"
+  "_vexpr_prod (_n_pexprs x xs)" == "CONST vexpr_prod x (_vexpr_prod xs)"
   "_vexpr_prod x"              == "CONST SingleD x"
   "_vexpr_select e f"          == "CONST SelectD f e"
   "_vexpr_nil"                 == "CONST vexpr_nil"
-  "_vexpr_list (_pexprs x xs)" == "CONST vexpr_cons x (_vexpr_list xs)"
+  "_vexpr_list (_n_pexprs x xs)" == "CONST vexpr_cons x (_vexpr_list xs)"
   "_vexpr_list x"              == "CONST vexpr_cons x CONST vexpr_nil"
   "_vexpr_empty"               == "CONST vexpr_empty"
-  "_vexpr_fset (_pexprs x xs)" == "CONST vexpr_insert x (_vexpr_fset xs)"
+  "_vexpr_fset (_n_pexprs x xs)" == "CONST vexpr_insert x (_vexpr_fset xs)"
   "_vexpr_fset x"              == "CONST vexpr_insert x CONST vexpr_empty"
 
 definition mk_prod :: "'a \<Rightarrow> 'a option" where
@@ -409,16 +409,16 @@ declare VTautHideT_def [eval, evale, evalp]
 declare VTautHideO_def [eval, evalpp, evalr, evalpr, uop_defs]
 
 syntax
-  "_upred_vexpr"       :: "pexpr \<Rightarrow> upred" ("\<lparr>_\<rparr>")
-  "_uproc_vexpr"       :: "pexpr \<Rightarrow> uproc" ("\<lparr>_\<rparr>")
-  "_upred_vcallpr"     :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> pexprs \<Rightarrow> upred" ("call _'[_']")
-  "_upred_vcallpr_nil" :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> upred" ("call _'[']")
+  "_n_upred_vexpr"       :: "n_pexpr \<Rightarrow> n_upred" ("\<lparr>_\<rparr>")
+  "_n_uproc_vexpr"       :: "n_pexpr \<Rightarrow> n_uproc" ("\<lparr>_\<rparr>")
+  "_n_upred_vcallpr"     :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexprs \<Rightarrow> n_upred" ("call _'[_']")
+  "_n_upred_vcallpr_nil" :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_upred" ("call _'[']")
 
 translations
-  "_upred_vexpr e" == "CONST VTautHideT e"
-  "_uproc_vexpr e" == "CONST VTautHideO e"
-  "_upred_vcallpr f ps" == "CONST CallRO f (_vexpr_prod ps)"
-  "_upred_vcallpr_nil f" == "CONST CallRO f CONST UnitD"
+  "_n_upred_vexpr e" == "CONST VTautHideT e"
+  "_n_uproc_vexpr e" == "CONST VTautHideO e"
+  "_n_upred_vcallpr f ps" == "CONST CallRO f (_vexpr_prod ps)"
+  "_n_upred_vcallpr_nil f" == "CONST CallRO f CONST UnitD"
 
 subsection {* Evaluation theorems *}
 
@@ -582,7 +582,7 @@ lemma Op2D_subst [usubst]:
 lemma BotDE_subst [usubst]:
   fixes x :: "('a::vbasic) cmlvar"
   shows "(BotDE :: 'b cmle)[e/\<^sub>*x] = BotDE"
-  by (simp add:evalp)
+  by (utp_poly_tac)
 
 lemma VTautT_subst [usubst]:
   fixes e :: "('a::vbasic) cmle"
@@ -616,13 +616,13 @@ done
 
 lemma HasTypeD_subst [usubst]:
   "(HasTypeD e t)[v/\<^sub>*x] = HasTypeD (e[v/\<^sub>*x]) t"
-  by (simp add:evalp)
+  by (utp_poly_tac)
  
 subsection {* Definedness theorems *}
 
 lemma LitD_defined [defined]:
   "\<D> (LitD v)"
-  by (simp add:Defined_option_def Defined_WF_PEXPRESSION_def evalp)
+  by (simp add:Defined_option_def Defined_pexpr_def evalp)
 
 lemma NumD_defined [defined]:
   "\<D> (NumD n)"
@@ -630,7 +630,7 @@ lemma NumD_defined [defined]:
 
 lemma BotDE_not_defined [defined]:
   "\<D> \<bottom>\<^sub>v = False"
-  by (simp add:BotDE_def Defined_WF_PEXPRESSION_def evalp)
+  by (simp add:BotDE_def Defined_pexpr_def evalp)
 
 lemma Defined_option_elim [elim]:
   "\<lbrakk> \<D> x; \<And> y. \<lbrakk> x = Some y \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
@@ -640,7 +640,7 @@ done
 
 lemma Op1D_EvalD_defined [defined]: 
   "\<lbrakk> \<D> v; \<forall> b. the (\<lbrakk>v\<rbrakk>\<^sub>* b) \<in> dom f \<rbrakk> \<Longrightarrow> \<D> (Op1D f v)"
-  apply (auto simp add:Op1D_def Defined_WF_PEXPRESSION_def evalp)
+  apply (auto simp add:Op1D_def Defined_pexpr_def evalp)
   apply (drule_tac x="b" in spec)+
   apply (erule Defined_option_elim)
   apply (auto simp add:dom_def)
@@ -648,7 +648,7 @@ done
 
 lemma Op2D_EvalD_defined [defined]: 
   "\<lbrakk> \<D> v1; \<D> v2; \<forall> b. (the (\<lbrakk>v1\<rbrakk>\<^sub>* b), the (\<lbrakk>v2\<rbrakk>\<^sub>* b)) \<in> dom f \<rbrakk> \<Longrightarrow> \<D> (Op2D f v1 v2)"
-  apply (auto simp add:Op2D_def Defined_WF_PEXPRESSION_def evalp EvalPE_ProdPE)
+  apply (auto simp add:Op2D_def Defined_pexpr_def evalp EvalPE_ProdPE)
   apply (drule_tac x="b" in spec)+
   apply (erule Defined_option_elim)
   apply (erule Defined_option_elim)
@@ -680,7 +680,7 @@ lemma vexpr_empty_defined [defined]:
   by (simp add:vexpr_empty_def defined)
 
 lemma EvalD_defined [defined]: "\<D> v \<Longrightarrow> \<D> (\<lbrakk>v\<rbrakk>\<^sub>*b)"
-  by (simp add:Defined_option_def Defined_WF_PEXPRESSION_def)
+  by (simp add:Defined_option_def Defined_pexpr_def)
 
 lemma Some_defined [defined]: "\<D> (Some x)"
   by (simp add:Defined_option_def)
@@ -690,7 +690,7 @@ lemma None_not_defined [defined]: "\<not> \<D> None"
 
 lemma VTaut_TrueD [simp]:
   "`\<lparr>true\<rparr>` = `true`"
-  by (utp_pred_tac)
+  by (utp_poly_tac)
 
 lemma SelectD_SingleD [simp]:
   "SelectD #1 (SingleD x) = x"
@@ -711,9 +711,9 @@ done
 *)
 
 lemma BotD_defn: "|defn(undef)| = |false|"
-  by (simp add:evalp Defined_WF_PEXPRESSION_def)
+  by (simp add:evalp Defined_pexpr_def)
 
 lemma LitD_defn: "|defn(<<x>>)| = |true|"
-  by (simp add:evalp Defined_WF_PEXPRESSION_def)
+  by (simp add:evalp Defined_pexpr_def)
 
 end

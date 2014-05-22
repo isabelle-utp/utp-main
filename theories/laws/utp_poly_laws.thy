@@ -305,4 +305,13 @@ lemma SubstP_AssignR_simple_ty [usubst]:
   shows "`(x := e)[v/x]` = `(x := (e[v/x]))`"
   by (metis (mono_tags) PAssignF_upd_def PVAR_VAR_PUNDASHED_UNDASHED SubstE_PSubstPE SubstP_AssignR_simple UNREST_PExprE assms(1) assms(3) assms(4) assms(5) pevar_compat_TYPEUSOUND)
 
+lemma ExistsP_one_point_ty:
+  fixes e :: "('a::DEFINED, 'm::VALUE) pexpr"
+  assumes "TYPEUSOUND('a,'m)" "e \<rhd>\<^sub>* x" "{x\<down>} \<sharp> e" "pvaux(x)"
+  shows "`\<exists> x. p \<and> $x = e` = `p[e/x]`"
+  using assms
+  apply (utp_poly_auto_tac)
+  apply (metis EvalPE_compat TypeUSound_InjU_inv var_compat_pvar vcoerce_reduce1)
+done
+
 end

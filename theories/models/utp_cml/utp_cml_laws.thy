@@ -16,7 +16,7 @@ lemma Nats_elim [elim!]:
 
 lemma Nats_floor [intro]: 
   "\<lbrakk> x \<ge> 0 \<rbrakk> \<Longrightarrow> real (floor (x :: real)) \<in> Nats"
-  apply (auto simp add:Reals_def Nats_def)
+  apply (auto simp add: Nats_def)
   apply (metis of_nat_nat rangeI real_eq_of_int zero_le_floor)
 done
 

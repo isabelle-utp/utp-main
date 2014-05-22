@@ -27,32 +27,32 @@ done
 end
 
 lemma cmlt_UTYPE [simp]: 
-  "\<lbrakk> v :\<^sub>v t; \<D> v \<rbrakk> \<Longrightarrow> to_nat t \<in> UTYPES (TYPE(cmlv))"
-  by (auto simp add:UTYPES_def utype_rel_cmlv_def)
+  "\<lbrakk> v :\<^sub>v t; \<D> v \<rbrakk> \<Longrightarrow> to_nat t \<in> utypeS (TYPE(cmlv))"
+  by (auto simp add:utypeS_def utype_rel_cmlv_def)
 
 lemma prjTYPE_inv_cmlt [simp]
-  : "embTYPE ((prjTYPE t) :: cmlt) = (t :: cmlv UTYPE)"
+  : "embTYPE ((prjTYPE t) :: cmlt) = (t :: cmlv utype)"
   apply (simp add:prjTYPE_def embTYPE_def)
   apply (case_tac t)
-  apply (auto simp add: utype_rel_cmlv_def UTYPES_def)
+  apply (auto simp add: utype_rel_cmlv_def utypeS_def)
 done
 
 lemma prjTYPE_cmlt_inj:
-  "(prjTYPE (x :: cmlv UTYPE) :: cmlt) = prjTYPE y \<Longrightarrow> x = y"
+  "(prjTYPE (x :: cmlv utype) :: cmlt) = prjTYPE y \<Longrightarrow> x = y"
   by (metis prjTYPE_inv_cmlt)
 
 lemma embTYPE_inv_cmlt [simp]:
-  "prjTYPE (embTYPE (t :: cmlt) :: cmlv UTYPE) = t"
+  "prjTYPE (embTYPE (t :: cmlt) :: cmlv utype) = t"
   apply (rule embTYPE_inv[of "default_cmlt t"])
   apply (simp_all add:utype_rel_cmlv_def typing defined embTYPE_inv)
 done
 
 lemma embTYPE_cmlt_inj:
-  "(embTYPE (x :: cmlt) :: cmlv UTYPE) = embTYPE y \<Longrightarrow> x = y"
+  "(embTYPE (x :: cmlt) :: cmlv utype) = embTYPE y \<Longrightarrow> x = y"
   by (metis embTYPE_inv_cmlt)
 
 lemma embTYPE_cmlt_inj' [simp]:
-  "inj (embTYPE :: cmlt \<Rightarrow> cmlv UTYPE)"
+  "inj (embTYPE :: cmlt \<Rightarrow> cmlv utype)"
   by (metis embTYPE_inv_cmlt injI)
 
 lemma type_rel_cmlt_exists: 
@@ -60,7 +60,7 @@ lemma type_rel_cmlt_exists:
   apply (simp add:type_rel_def)
   apply (simp add:utype_rel_cmlv_def)
   apply (case_tac a)
-  apply (auto simp add:UTYPES_def)
+  apply (auto simp add:utypeS_def)
   apply (rule_tac x="t" in exI)
   apply (simp add:embTYPE_def)
 done
@@ -72,7 +72,7 @@ lemma type_rel_cmlt_elim [elim]:
 lemma type_rel_cmlt: 
   "x : t \<longleftrightarrow> x :\<^sub>v prjTYPE t"
   apply (auto simp add: type_rel_def utype_rel_cmlv_def prjTYPE_def)
-  apply (metis Rep_UTYPE_elim from_nat_to_nat utype_rel_cmlv_def)
+  apply (metis Rep_utype_elim from_nat_to_nat utype_rel_cmlv_def)
 done
 
 lemma carrier_embTYPE:
@@ -86,7 +86,7 @@ lemma dcarrier_embTYPE:
 instantiation cmlv :: BOT_SORT
 begin
 
-definition ubot_cmlv :: "cmlv UTYPE \<Rightarrow> cmlv" where
+definition ubot_cmlv :: "cmlv utype \<Rightarrow> cmlv" where
 "ubot_cmlv = BotD \<circ> prjTYPE"
 
 instance
@@ -102,7 +102,7 @@ begin
 
 definition MkBool_cmlv where "MkBool_cmlv (x::bool) = BasicD (BoolI x)"
 definition DestBool_cmlv where "DestBool_cmlv x = the (ProjBoolI (ProjBasicD x))"
-definition BoolType_cmlv :: "cmlv UTYPE" where 
+definition BoolType_cmlv :: "cmlv utype" where 
 "BoolType_cmlv = embTYPE BoolT"
 
 instance 
@@ -149,7 +149,7 @@ begin
 
 definition MkStr_cmlv where "MkStr_cmlv (x::string) = BasicD (StringI x)"
 definition DestStr_cmlv where "DestStr_cmlv x = ProjStringI (ProjBasicD x)"
-definition StringType_cmlv :: "cmlv UTYPE" where 
+definition StringType_cmlv :: "cmlv utype" where 
 "StringType_cmlv = embTYPE StringT"
 
 instance
@@ -166,16 +166,16 @@ subsection {* List sort instantiation *}
 instantiation cmlv :: LIST_SORT
 begin
 
-definition MkList_cmlv :: "cmlv UTYPE \<Rightarrow> cmlv list \<Rightarrow> cmlv" where
+definition MkList_cmlv :: "cmlv utype \<Rightarrow> cmlv list \<Rightarrow> cmlv" where
 "MkList_cmlv a xs = BasicD (ListI (ProjBasicT (prjTYPE a)) (map ProjBasicD xs))"
 
 definition DestList_cmlv :: "cmlv \<Rightarrow> cmlv list" where
 "DestList_cmlv x = map BasicD (the (ProjListI (ProjBasicD x)))"
 
-definition ListType_cmlv :: "cmlv UTYPE \<Rightarrow> cmlv UTYPE" where
+definition ListType_cmlv :: "cmlv utype \<Rightarrow> cmlv utype" where
 "ListType_cmlv a = (if (prjTYPE a \<in> vbtypes) then embTYPE (ListT (prjTYPE a)) else a)"
 
-definition ListPerm_cmlv :: "cmlv UTYPE set" where
+definition ListPerm_cmlv :: "cmlv utype set" where
 "ListPerm_cmlv = embTYPE ` vbtypes"
 
 instance
@@ -203,16 +203,16 @@ subsection {* Finite set instantiation *}
 instantiation cmlv :: FSET_SORT
 begin
 
-definition MkFSet_cmlv :: "cmlv UTYPE \<Rightarrow> cmlv fset \<Rightarrow> cmlv" where
+definition MkFSet_cmlv :: "cmlv utype \<Rightarrow> cmlv fset \<Rightarrow> cmlv" where
 "MkFSet_cmlv a xs = BasicD (FSetI (ProjBasicT (prjTYPE a)) (ProjBasicD `\<^sub>f xs))"
 
 definition DestFSet_cmlv :: "cmlv \<Rightarrow> cmlv fset" where
 "DestFSet_cmlv x = BasicD `\<^sub>f (the (ProjFSetI (ProjBasicD x)))"
 
-definition FSetType_cmlv :: "cmlv UTYPE \<Rightarrow> cmlv UTYPE" where
+definition FSetType_cmlv :: "cmlv utype \<Rightarrow> cmlv utype" where
 "FSetType_cmlv a = (if (prjTYPE a \<in> vbtypes) then embTYPE (FSetT (prjTYPE a)) else a)"
 
-definition FSetPerm_cmlv :: "cmlv UTYPE set" where
+definition FSetPerm_cmlv :: "cmlv utype set" where
 "FSetPerm_cmlv = embTYPE ` vbtypes"
 
 instance
@@ -241,17 +241,17 @@ subsection {* Set Sort instantiation *}
 instantiation cmlv :: SET_SORT
 begin
 
-definition MkSet_cmlv :: "cmlv UTYPE \<Rightarrow> cmlv set \<Rightarrow> cmlv" where
+definition MkSet_cmlv :: "cmlv utype \<Rightarrow> cmlv set \<Rightarrow> cmlv" where
 "MkSet_cmlv a xs = SetD (ProjBasicT (prjTYPE a)) (ProjBasicD ` xs)"
 
 definition DestSet_cmlv :: "cmlv \<Rightarrow> cmlv set" where
 "DestSet_cmlv x = BasicD ` ProjSetD x"
 
-definition SetType_cmlv :: "cmlv UTYPE \<Rightarrow> cmlv UTYPE" where
+definition SetType_cmlv :: "cmlv utype \<Rightarrow> cmlv utype" where
 "SetType_cmlv a = (if (prjTYPE a \<in> vbtypes) then embTYPE (SetT (ProjBasicT (prjTYPE a))) else a)"
 
-definition SetPerm_cmlv :: "cmlv UTYPE set" where
-"SetPerm_cmlv = ((embTYPE :: cmlt \<Rightarrow> cmlv UTYPE) ` vbtypes)"
+definition SetPerm_cmlv :: "cmlv utype set" where
+"SetPerm_cmlv = ((embTYPE :: cmlt \<Rightarrow> cmlv utype) ` vbtypes)"
 
 instance 
   apply (intro_classes)
@@ -275,7 +275,7 @@ subsection {* Events and Event Sort Instantiation *}
 instantiation cmlv :: EVENT_PERM
 begin
 
-definition EventPerm_cmlv :: "cmlv UTYPE set" where
+definition EventPerm_cmlv :: "cmlv utype set" where
 "EventPerm_cmlv = embTYPE ` vbtypes"
 
 instance
@@ -326,7 +326,7 @@ definition MkEvent_cmlv :: "cmlv EVENT \<Rightarrow> cmlv" where
 definition DestEvent_cmlv :: "cmlv \<Rightarrow> cmlv EVENT" where
 "DestEvent_cmlv e = ProjEventI (ProjBasicD e)"
 
-definition EventType_cmlv :: "cmlv UTYPE" where
+definition EventType_cmlv :: "cmlv utype" where
 "EventType_cmlv = embTYPE EventT"
 
 instance
@@ -334,7 +334,7 @@ instance
   apply (auto simp add:DestEvent_cmlv_def MkEvent_cmlv_def EventType_cmlv_def dcarrier_def type_rel_cmlt image_def)
   apply (rule_tac x="EV n (embTYPE (BasicT  t)) (BasicD v)" in exI)
   apply (subgoal_tac "BasicD v : embTYPE (BasicT t)")
-  apply (subgoal_tac "(embTYPE (BasicT t) :: cmlv UTYPE) \<in> EventPerm")
+  apply (subgoal_tac "(embTYPE (BasicT t) :: cmlv utype) \<in> EventPerm")
   apply (simp add:EventI_def)
   apply (simp add:EventPerm_cmlv_def vbtypes_def)
   apply (force simp add:type_rel_cmlt)
@@ -410,10 +410,10 @@ lift_definition fmap_map_value :: "('a \<Rightarrow> 'b) \<Rightarrow> ('k, 'a) 
 is "\<lambda> (f :: 'a \<Rightarrow> 'b) (m :: 'k \<rightharpoonup> 'a) (x :: 'k). Option.map f (m x)"
   by (auto simp add:fmaps_def dom_def)
 
-definition var_to_vbasic :: "cmlv VAR \<Rightarrow> vbasic" where
+definition var_to_vbasic :: "cmlv uvar \<Rightarrow> vbasic" where
 "var_to_vbasic = (\<lambda> (n,t,a). PairI (NameI n) (PairI (TypeI (prjTYPE t)) (BoolI a)))"
 
-definition alpha_to_vbasic :: "cmlv ALPHABET \<Rightarrow> vbasic" where
+definition alpha_to_vbasic :: "cmlv alpha \<Rightarrow> vbasic" where
 "alpha_to_vbasic a = FSetI (PairBT NameBT (PairBT TypeBT BoolBT)) (var_to_vbasic `\<^sub>f a)"
 
 text {* Giving an injection from WF BINDING into cmlv either requires

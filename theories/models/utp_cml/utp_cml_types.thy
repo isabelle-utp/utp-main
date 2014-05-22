@@ -117,12 +117,12 @@ syntax
   "_vty_map_to"  :: "vty \<Rightarrow> vty \<Rightarrow> vty" ("@map _ to _")
   "_vty_seq1_of" :: "vty \<Rightarrow> vty" ("@seq1 of _")
   "_vty_quo"     :: "vty \<Rightarrow> 'a set" ("\<parallel>_\<parallel>")
-  "_vty_inv"     :: "vty \<Rightarrow> pttrn \<Rightarrow> pexpr \<Rightarrow> vty" ("_ inv _ == _")
-  "_vty_collect" :: "pexpr \<Rightarrow> pexpr \<Rightarrow> vty" ("(1{_|/ _})")
-  "_vty_decl"    :: "('a, 'm) PVAR \<Rightarrow> vty \<Rightarrow> vty_decl" (infix ":" 50)
+  "_vty_inv"     :: "vty \<Rightarrow> pttrn \<Rightarrow> n_pexpr \<Rightarrow> vty" ("_ inv _ == _")
+  "_vty_collect" :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> vty" ("(1{_|/ _})")
+  "_vty_decl"    :: "('a, 'm) pvar \<Rightarrow> vty \<Rightarrow> vty_decl" (infix ":" 50)
   "_vty_decls"   :: "[vty_decl, vty_decls] => vty_decls" ("_,/ _")
   ""             :: "vty_decl => vty_decls" ("_")
-  "_vty_schema"  :: "vty_decls \<Rightarrow> pexpr \<Rightarrow> vty" ("(1[_|/ _])")
+  "_vty_schema"  :: "vty_decls \<Rightarrow> n_pexpr \<Rightarrow> vty" ("(1[_|/ _])")
 
 translations
   "_vty_unit"      == "CONST vty_unit"

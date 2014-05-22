@@ -1255,6 +1255,14 @@ lemma SubstP_PSubstPE [usubst]:
   shows "e\<down>[v\<down>/\<^sub>px\<down>] = (PSubstPE e v x)\<down>" 
   using assms by (utp_poly_tac)
 
+lemma PSubstPE_LessPE [usubst]: 
+  "(LessPE e f)[v/\<^sub>*x] = (LessPE (e[v/\<^sub>*x]) (f[v/\<^sub>*x]))"
+  by (simp add:LessPE_def usubst)
+
+lemma PSubstPE_LessEqPE [usubst]: 
+  "(LessEqPE e f)[v/\<^sub>*x] = (LessEqPE (e[v/\<^sub>*x]) (f[v/\<^sub>*x]))"
+  by (simp add:LessEqPE_def usubst)
+
 lemma SubstP_PSubstPE_dash [usubst]:
   fixes v :: "('a :: DEFINED, 'm :: VALUE) pexpr"
   assumes "v \<rhd>\<^sub>* x"

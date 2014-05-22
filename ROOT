@@ -13,7 +13,7 @@ session "HOL-UTP-DES" in "theories/theories" = "HOL-UTP" +
   "utp_designs"
   
 session "HOL-UTP-THY" in "theories/theories" = "HOL-UTP-DES" +
-  theories [document = false]
+  theories [document = false, quick_and_dirty = true]
   "utp_acp"
   "utp_csp"
   "utp_definedness"

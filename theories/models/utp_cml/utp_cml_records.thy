@@ -71,7 +71,7 @@ declare Abs_rec_inject [simp]
 declare Rep_rec_inverse [simp]
 declare Rep_rec_inject [simp]
 
-setup_lifting type_definition_rec
+(* setup_lifting type_definition_rec *)
 
 instantiation rec :: (tag, vbasic) vbasic
 begin

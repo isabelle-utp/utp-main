@@ -11,136 +11,136 @@ imports
   utp_acp
 begin
 
-definition CSP1 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"CSP1 P = `P \<or> (\<not> ok \<and> ($tr \<le> $tr\<acute>))`"
+definition CSP1 :: "'a upred \<Rightarrow> 'a upred" where
+"CSP1 P = `P \<or> (\<not> $ok \<and> ($tr \<le> $tr\<acute>))`"
 
 abbreviation "CSP2 \<equiv> H2"
 
-definition R3c :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+definition R3c :: "'a upred \<Rightarrow> 'a upred" where
 "R3c P = `CSP1(II) \<lhd> $wait \<rhd> P`"
 
-definition RHc :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+definition RHc :: "'a upred \<Rightarrow> 'a upred" where
 "RHc P = (R1 \<circ> R2 \<circ> R3c) P"
 
-definition CSP :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+definition CSP :: "'a upred \<Rightarrow> 'a upred" where
 "CSP P = (CSP1 \<circ> CSP2 \<circ> RHc) P"
 
-definition StopCSP :: "'a WF_PREDICATE" ("STOP") where
-"STOP = `CSP1( ok' \<and> \<delta>)`"
+definition StopCSP :: "'a upred" ("STOP") where
+"STOP = `CSP1($ok\<acute> \<and> \<delta>)`"
 
-definition PrefixSkipCSP :: "('m EVENT, 'm) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" ("_ \<rightarrow> SKIP") where
-"a \<rightarrow> SKIP = `CSP1(ok' \<and> do\<A>(a))`"
+definition PrefixSkipCSP :: "('m EVENT, 'm) pexpr \<Rightarrow> 'm upred" ("_ \<rightarrow> SKIP") where
+"a \<rightarrow> SKIP = `CSP1($ok\<acute> \<and> do\<A>(a))`"
 
-definition SkipCSP :: "'a WF_PREDICATE" ("SKIP") where 
+definition SkipCSP :: "'a upred" ("SKIP") where 
 "SKIP = `RHc(\<exists> ref . CSP1(II))`"
 
 syntax
-  "_upred_StopCSP" :: "upred" ("STOP")
-  "_upred_PrefixSkipCSP" :: "uexpr \<Rightarrow> upred" ("@_")
-  "_upred_SkipCSP" :: "upred" ("SKIP")
+  "_n_upred_StopCSP" :: "n_upred" ("STOP")
+  "_n_upred_PrefixSkipCSP" :: "n_pexpr \<Rightarrow> n_upred" ("@_")
+  "_n_upred_SkipCSP" :: "n_upred" ("SKIP")
   
 translations
-  "_upred_StopCSP" == "CONST StopCSP"
-  "_upred_PrefixSkipCSP a" == "CONST PrefixSkipCSP a"
-  "_upred_SkipCSP" == "CONST SkipCSP"
+  "_n_upred_StopCSP" == "CONST StopCSP"
+  "_n_upred_PrefixSkipCSP a" == "CONST PrefixSkipCSP a"
+  "_n_upred_SkipCSP" == "CONST SkipCSP"
 
-definition ChaosCSP :: "'a WF_PREDICATE" ("CHAOS") where
+definition ChaosCSP :: "'a upred" ("CHAOS") where
 "CHAOS = `CSP(true)`"
 
 definition PrefixCSP :: 
-  "('a EVENT, 'a) WF_PEXPRESSION \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<rightarrow>_") where
+  "('a EVENT, 'a) pexpr \<Rightarrow> 'a upred \<Rightarrow> 'a upred" ("_\<rightarrow>_") where
 "a\<rightarrow>P = `@a ; P`"
 
-definition InputCSP :: "'b::type CHAN \<Rightarrow> ('b \<Rightarrow> 'a WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" where
+definition InputCSP :: "'b::type CHAN \<Rightarrow> ('b \<Rightarrow> 'a upred) \<Rightarrow> 'a upred" where
 "InputCSP n P = ExistsShP (\<lambda> v. PrefixCSP (LitPE (PEV n v)) (P v))"
 
 definition OutputCSP :: 
-  "'b::type CHAN \<Rightarrow> ('b, 'a) WF_PEXPRESSION \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+  "'b::type CHAN \<Rightarrow> ('b, 'a) pexpr \<Rightarrow> 'a upred \<Rightarrow> 'a upred" where
 "OutputCSP n v P = PrefixCSP (EventPE n v) P"
 
 definition ExternalChoiceCSP :: 
-  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infixl "\<box>" 65) where
+  "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" (infixl "\<box>" 65) where
 "P \<box> Q = `CSP2((P \<and> Q)\<lhd> STOP \<rhd>(P \<or> Q))`"
 
 definition MergeCSP :: 
-  "('a EVENT USET, 'a) WF_PEXPRESSION \<Rightarrow> 
-   ('a VAR set * 'a WF_PREDICATE)" where
-  "MergeCSP A = ( {okay\<down>\<acute>, wait\<down>\<acute>, ref\<down>\<acute>, tr\<down>\<acute>}
-              , `(($okay\<acute> = $okay\<^bsub>0\<^esub>\<acute> \<and> $okay\<^bsub>1\<^esub>\<acute>) \<and> 
+  "('a EVENT USET, 'a) pexpr \<Rightarrow> 
+   ('a uvar set * 'a upred)" where
+  "MergeCSP A = ( {ok\<down>\<acute>, wait\<down>\<acute>, ref\<down>\<acute>, tr\<down>\<acute>}
+              , `(($ok\<acute> = $ok\<^bsub>0\<^esub>\<acute> \<and> $ok\<^bsub>1\<^esub>\<acute>) \<and> 
                  ($wait\<acute> = $wait\<^bsub>0\<^esub>\<acute> \<or> $wait\<^bsub>1\<^esub>\<acute>) \<and> 
                  ($ref\<acute> = $ref\<^bsub>0\<^esub>\<acute> \<union> $ref\<^bsub>1\<^esub>\<acute>) \<and> 
                  (($tr\<acute> - $tr) \<in> ($tr\<^bsub>0\<^esub> - $tr) \<parallel>\<^bsub>A \<^esub>($tr\<^bsub>1 \<^esub>- $tr))) ; SKIP`)"
 
 definition HideCSP ::
-  "'m WF_PREDICATE \<Rightarrow>
-   ('m EVENT USET, 'm) WF_PEXPRESSION \<Rightarrow>
-   'm WF_PREDICATE" where
+  "'m upred \<Rightarrow>
+   ('m EVENT USET, 'm) pexpr \<Rightarrow>
+   'm upred" where
 "HideCSP P A = `RHc(\<exists> tr\<acute>\<acute>. P[$tr\<acute>\<acute>/tr\<acute>][($ref\<acute> \<union> A)/ref\<acute>] 
                    \<and> $tr\<acute> = $tr ^ (($tr\<acute>\<acute> - $tr)\<upharpoonright>A)) ; SKIP`"
 
 definition GuardCSP ::
-  "'a WF_PREDICATE \<Rightarrow>
-   'a WF_PREDICATE \<Rightarrow>
-   'a WF_PREDICATE" where
+  "'a upred \<Rightarrow>
+   'a upred \<Rightarrow>
+   'a upred" where
 "GuardCSP g P = P \<lhd> g \<rhd> STOP"
 
 definition ParallelCSP :: 
-  "'a WF_PREDICATE \<Rightarrow> 
-   ('a EVENT USET, 'a) WF_PEXPRESSION \<Rightarrow> 
-   'a WF_PREDICATE \<Rightarrow> 
-   'a WF_PREDICATE" (infix "\<parallel>\<^bsub>CSP'(_')\<^esub>" 100) where
+  "'a upred \<Rightarrow> 
+   ('a EVENT USET, 'a) pexpr \<Rightarrow> 
+   'a upred \<Rightarrow> 
+   'a upred" (infix "\<parallel>\<^bsub>CSP'(_')\<^esub>" 100) where
 "P \<parallel>\<^bsub>CSP(A)\<^esub> Q = P \<parallel>\<^bsub>MergeCSP A\<^esub> Q"
 
 definition InterleaveCSP 
-  :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infix "|||\<^bsub>CSP\<^esub>" 100) where
+  :: "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" (infix "|||\<^bsub>CSP\<^esub>" 100) where
 "P |||\<^bsub>CSP\<^esub> Q = ParallelCSP P |{}| Q"
 
 syntax
-  "_upred_ChaosCSP" :: "upred" ("CHAOS")
-  "_upred_prefixed"  :: "pexpr \<Rightarrow> upred \<Rightarrow> upred" ("_ -> _")
-  "_upred_input"     :: "'a CHAN \<Rightarrow> pttrn \<Rightarrow> upred \<Rightarrow> upred" ("_?_ -> _")
-  "_upred_output"    :: "'a CHAN \<Rightarrow> pexpr \<Rightarrow> upred \<Rightarrow> upred" ("_!_ -> _")
-  "_upred_extchoice" :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "[]" 65)
-  "_upred_guardcsp"  :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("[_] & _" [0, 100] 100)
-  "_upred_parallel"  :: "upred \<Rightarrow> pexpr \<Rightarrow> upred \<Rightarrow> upred" (infixr "||\<^bsub>_\<^esub>" 100)
+  "_n_upred_ChaosCSP" :: "n_upred" ("CHAOS")
+  "_n_upred_prefixed"  :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _")
+  "_n_upred_input"     :: "'a CHAN \<Rightarrow> pttrn \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_?_ -> _")
+  "_n_upred_output"    :: "'a CHAN \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_!_ -> _")
+  "_n_upred_extchoice" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "[]" 65)
+  "_n_upred_guardcsp"  :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("[_] & _" [0, 100] 100)
+  "_n_upred_parallel"  :: "n_upred \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr "||\<^bsub>_\<^esub>" 100)
 
 syntax (xsymbols)
-  "_upred_prefixed"  :: "pexpr \<Rightarrow> upred \<Rightarrow> upred" ("_ \<rightarrow> _")
-  "_upred_input"     :: "'a CHAN \<Rightarrow> pttrn \<Rightarrow> upred \<Rightarrow> upred" ("_?_ \<rightarrow> _")
-  "_upred_output"    :: "'a CHAN \<Rightarrow> pexpr \<Rightarrow> upred \<Rightarrow> upred" ("_!_ \<rightarrow> _")
-  "_upred_extchoice" :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "\<box>" 65)
-  "_upred_parallel"  :: "upred \<Rightarrow> pexpr \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<parallel>\<^bsub>_\<^esub>" 100)
-  "_upred_interleave" :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infix "|||" 100)
+  "_n_upred_prefixed"  :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ \<rightarrow> _")
+  "_n_upred_input"     :: "'a CHAN \<Rightarrow> pttrn \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_?_ \<rightarrow> _")
+  "_n_upred_output"    :: "'a CHAN \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_!_ \<rightarrow> _")
+  "_n_upred_extchoice" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "\<box>" 65)
+  "_n_upred_parallel"  :: "n_upred \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr "\<parallel>\<^bsub>_\<^esub>" 100)
+  "_n_upred_interleave" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infix "|||" 100)
 
 translations
-  "_upred_ChaosCSP" == "CONST ChaosCSP"
-  "_upred_prefixed a P"   == "CONST PrefixCSP a P"
-  "_upred_input n v p"    == "CONST InputCSP n (\<lambda> v. p)"
-  "_upred_output n v p"   == "CONST OutputCSP n v p"
-  "_upred_extchoice P Q"  == "CONST ExternalChoiceCSP P Q"
-  "_upred_guardcsp b P"   == "CONST GuardCSP b P"
-  "_upred_parallel P A Q" == "CONST ParallelCSP P A Q"
-  "_upred_interleave P Q" == "CONST InterleaveCSP P Q"
+  "_n_upred_ChaosCSP" == "CONST ChaosCSP"
+  "_n_upred_prefixed a P"   == "CONST PrefixCSP a P"
+  "_n_upred_input n v p"    == "CONST InputCSP n (\<lambda> v. p)"
+  "_n_upred_output n v p"   == "CONST OutputCSP n v p"
+  "_n_upred_extchoice P Q"  == "CONST ExternalChoiceCSP P Q"
+  "_n_upred_guardcsp b P"   == "CONST GuardCSP b P"
+  "_n_upred_parallel P A Q" == "CONST ParallelCSP P A Q"
+  "_n_upred_interleave P Q" == "CONST InterleaveCSP P Q"
 
 definition CSP_Pre
-  :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE " where
-"CSP_Pre P = `\<not>P\<^sup>f[true/okay]\<^sub>f`"
+  :: "'a upred \<Rightarrow> 'a upred " where
+"CSP_Pre P = `\<not>P\<^sup>f[true/ok]\<^sub>f`"
 
 definition CSP_Post
-  :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE " where
-"CSP_Post P = `P\<^sup>t[true/okay]\<^sub>f`"
+  :: "'a upred \<Rightarrow> 'a upred " where
+"CSP_Post P = `P\<^sup>t[true/ok]\<^sub>f`"
 
-declare CSP1_def [eval, evalr, evalrr, evalrx, evalp]
-declare CSP_def [eval, evalr, evalrr, evalrx, evalp]
-declare StopCSP_def [eval, evalr, evalrr, evalrx, evalp]
-declare PrefixSkipCSP_def [eval, evalr, evalrr, evalrx, evalp]
-declare SkipCSP_def [eval, evalr, evalrr, evalrx, evalp]
-declare ChaosCSP_def [eval, evalr, evalrr, evalrx, evalp]
-declare PrefixCSP_def [eval, evalr, evalrr, evalrx, evalp]
-declare ExternalChoiceCSP_def [eval, evalr, evalrr, evalrx, evalp]
-declare MergeCSP_def [eval, evalr, evalrr, evalrx, evalp]
-declare ParallelCSP_def [eval, evalr, evalrr, evalrx, evalp]
-declare InterleaveCSP_def [eval, evalr, evalrr, evalrx, evalp]
+declare CSP1_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
+declare CSP_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
+declare StopCSP_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
+declare PrefixSkipCSP_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
+declare SkipCSP_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
+declare ChaosCSP_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
+declare PrefixCSP_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
+declare ExternalChoiceCSP_def [eval, evalr, evalrr, evalpp, evalpr]
+declare MergeCSP_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
+declare ParallelCSP_def [eval, evalr, evalrr, evalpp, evalpr]
+declare InterleaveCSP_def [eval, evalr, evalrr, evalpp, evalpr]
 
 lemma CSP1_rel_closure[closure]:
   "P \<in> WF_RELATION \<Longrightarrow> CSP1(P) \<in> WF_RELATION"
@@ -181,7 +181,7 @@ lemma CSP1_Extend_OrP:
 
 lemma CSP1_R1_compose: 
   assumes "P is R1"
-  shows "CSP1(P) = `CSP1(ok \<and> P)`"
+  shows "CSP1(P) = `CSP1($ok \<and> P)`"
 proof -
   have "CSP1(P) = CSP1 (R1 P)" 
     by (metis Healthy_simp assms)
@@ -190,23 +190,23 @@ proof -
 qed
 
 lemma ok_AndP:
-  "`ok \<and> P` = `ok \<and> P[true/okay]`"
+  "`$ok \<and> P` = `$ok \<and> P[true/ok]`"
 apply(subst PVarPE_PSubstPE)
 apply(simp_all add:typing closure)
 done
 
 lemma CSP1_R1_form: 
   assumes "P is R1"
-  shows "CSP1(P) = `CSP1(ok \<and> P[true/okay])`"
+  shows "CSP1(P) = `CSP1($ok \<and> P[true/ok])`"
 by (metis CSP1_R1_compose assms ok_AndP)
 
 lemma CSP1_R1_form_2: 
   assumes "P is R1"
-  shows "CSP1(P) = `CSP1(ok \<and> P)`"
+  shows "CSP1(P) = `CSP1($ok \<and> P)`"
 by (metis CSP1_R1_compose assms)
 
 
-lemma R3c_form : "`R3c(P)` = `(\<not>ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait  \<and> II) \<or> (\<not>$wait \<and> P\<^sub>f)`"
+lemma R3c_form : "`R3c(P)` = `(\<not>$ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)) \<or> ($ok \<and> $wait  \<and> II) \<or> (\<not>$wait \<and> P \<^sub>f)`"
   apply (simp add:R3c_def)
   apply (utp_poly_auto_tac)
   apply (simp add:eval)
@@ -217,7 +217,7 @@ lemma R3c_form : "`R3c(P)` = `(\<not>ok \<and> $wait \<and> ($tr \<le> $tr\<acut
   apply (simp add:Rep_binding_ty_def)
 done
 
-lemma R3c_form_2 : "`R3c(P)` = `(\<not>ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait  \<and> II) \<or> (\<not>$wait \<and> P)`"
+lemma R3c_form_2 : "`R3c(P)` = `(\<not>$ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)) \<or> ($ok \<and> $wait  \<and> II) \<or> (\<not>$wait \<and> P)`"
   apply (simp add:R3c_def)
   apply (subst CSP1_R1_form_2)
   apply (metis Healthy_intro R1_SkipR)
@@ -226,7 +226,7 @@ done
 
 lemma CSP1_R1_R3c_compose: 
   assumes "P is R1"
-  shows "R3c(CSP1(P)) = `(\<not>ok \<and> ($tr\<le>$tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not>$wait \<and> P[true/okay][false/wait])`"
+  shows "R3c(CSP1(P)) = `(\<not>$ok \<and> ($tr\<le>$tr\<acute>)) \<or> ($ok \<and> $wait \<and> II) \<or> ($ok \<and> \<not>$wait \<and> P[true/ok][false/wait])`"
   apply (subst CSP1_R1_form)
   apply (metis assms)
   apply (simp add:R3c_form CSP1_def)
@@ -235,7 +235,7 @@ done
 
 lemma CSP1_R1_R3c_compose_2: 
   assumes "P is R1"
-  shows "R3c(CSP1(P)) = `(\<not>ok \<and> ($tr\<le>$tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not>$wait \<and> P)`"
+  shows "R3c(CSP1(P)) = `(\<not>$ok \<and> ($tr\<le>$tr\<acute>)) \<or> ($ok \<and> $wait \<and> II) \<or> ($ok \<and> \<not>$wait \<and> P)`"
   apply (subst CSP1_R1_form_2)
   apply (metis assms)
   apply (simp add:R3c_form_2 CSP1_def)
@@ -243,11 +243,11 @@ lemma CSP1_R1_R3c_compose_2:
 done
 
 lemma CSP1_R3_okay': 
-"`CSP1(ok' \<and> R3c(P))` = `CSP1(R3c(ok' \<and> P))`"
+"`CSP1($ok\<acute> \<and> R3c(P))` = `CSP1(R3c($ok\<acute> \<and> P))`"
   apply (simp add:R3c_form CSP1_def SkipR_as_SkipRA)
-  apply (subst SkipRA_unfold[of "okay\<down>"])
+  apply (subst SkipRA_unfold[of "ok\<down>"])
   apply (simp_all add:closure)
-  apply (subst SkipRA_unfold[of "okay\<down>"]) back
+  apply (subst SkipRA_unfold[of "ok\<down>"]) back
   apply (simp_all add:closure)
   apply (utp_poly_auto_tac)
   apply (simp_all add:eval Rep_binding_ty_def)
@@ -266,9 +266,9 @@ lemma CSP1_CSP2_commute:
   assumes "P \<in> WF_RELATION"
   shows "CSP1 (CSP2 P) = CSP2 (CSP1 P)" 
 proof -
-  have "(`(\<not> ok \<and> ($tr \<le> $tr\<acute>)) ; J` :: 'a WF_PREDICATE)
-        = `(\<not> ok \<and> ($tr \<le> $tr\<acute>)) ; (II\<^bsub>REL_VAR - OKAY\<^esub> \<or> ($okay\<acute> \<and> II\<^bsub>REL_VAR - OKAY\<^esub>))`"
-    apply (subst SemiR_extract_variable_id[of "okay\<down>"])
+  have "(`(\<not> $ok \<and> ($tr \<le> $tr\<acute>)) ; J` :: 'a upred)
+        = `(\<not> $ok \<and> ($tr \<le> $tr\<acute>)) ; (II\<^bsub>REL_VAR - OKAY\<^esub> \<or> ($ok\<acute> \<and> II\<^bsub>REL_VAR - OKAY\<^esub>))`"
+    apply (subst SemiR_extract_variable_id[of "ok\<down>"])
     apply (simp_all add:closure typing defined unrest usubst JA_pred_def)
     apply (subst BoolType_aux_var_split_exists, simp_all)
     apply (simp add:usubst typing closure UNREST_EXPR_TrueE UNREST_EXPR_FalseE)
@@ -277,10 +277,10 @@ proof -
     apply (simp)
   done
 
-  also have "... = `(\<not> ok \<and> ($tr \<le> $tr\<acute>)) ; II\<^bsub>REL_VAR - OKAY\<^esub>`"
+  also have "... = `(\<not> $ok \<and> ($tr \<le> $tr\<acute>)) ; II\<^bsub>REL_VAR - OKAY\<^esub>`"
     by (smt AndP_comm OrP_AndP_absorb)
 
-  also have "... = `(\<not> ok \<and> ($tr \<le> $tr\<acute>))`"
+  also have "... = `(\<not> $ok \<and> ($tr \<le> $tr\<acute>))`"
     by (simp add:SemiR_SkipRA_right closure var_dist unrest)
 
   finally show ?thesis
@@ -290,7 +290,7 @@ qed
  
 lemma CSP2_form:  
   assumes "P \<in> WF_RELATION"
-  shows "`CSP2(P)` = `P\<^sup>f \<or> ok'\<and> P\<^sup>t`"
+  shows "`CSP2(P)` = `P\<^sup>f \<or> $ok\<acute>\<and> P\<^sup>t`"
   apply (simp add:H2_def)
   apply (subst J_split)
   apply (simp add:AndP_comm)
@@ -315,7 +315,7 @@ subsection {* CSP laws *}
   
 lemma CSP_form: 
 assumes "P is CSP" "P \<in> WF_RELATION"
-shows "P = `(\<not>ok \<and> ($tr \<le> $tr\<acute>)) \<or> (ok \<and> $wait \<and> II) \<or> (ok \<and> \<not>$wait \<and> R2(\<not>CSP_Pre(P))) \<or> (ok \<and> \<not>$wait \<and>  ok' \<and> R2(CSP_Post(P)))`"
+shows "P = `(\<not>$ok \<and> ($tr \<le> $tr\<acute>)) \<or> ($ok \<and> $wait \<and> II) \<or> ($ok \<and> \<not>$wait \<and> R2(\<not>CSP_Pre(P))) \<or> ($ok \<and> \<not>$wait \<and>  $ok\<acute> \<and> R2(CSP_Post(P)))`"
 proof-
   have "P = CSP P" 
     by(metis assms(1) is_healthy_def)

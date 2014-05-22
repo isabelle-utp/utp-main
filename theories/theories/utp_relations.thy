@@ -13,7 +13,7 @@ begin
 
 subsection {* Relational Healthiness Condition *}
 
-definition RELH :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+definition RELH :: "'a upred \<Rightarrow> 'a upred" where
 "RELH(P) = (\<exists>\<^sub>p NON_REL_VAR. P)"
 
 declare RELH_def [eval,evalr,evalrx]
