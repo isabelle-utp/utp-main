@@ -1,3 +1,11 @@
+(******************************************************************************)
+(* Project: Mechanisation of the UTP                                          *)
+(* File: utp_designs_hoare.thy                                                *)
+(* Authors: Simon Foster, University of York                                  *)
+(******************************************************************************)
+
+header {* Total Correctness Hoare Logic *}
+
 theory utp_designs_hoare
 imports utp_designs_healths
 begin

@@ -27,11 +27,24 @@ theorem DesignD_assumption:
   using assms
   by (utp_poly_auto_tac)
 
+theorem DesignD_assumption_alt:
+  assumes "OKAY \<sharp> P"
+  shows "`\<not> (P \<turnstile> Q)\<^bsup>tf\<^esup>` = `P`"
+  using assms
+  by (utp_poly_auto_tac)
+
 theorem DesignD_commitment:
   assumes
     "OKAY \<sharp> P" 
     "OKAY \<sharp> Q" 
   shows "`(P \<turnstile> Q)\<^sup>t` = `($ok \<and> P \<Rightarrow> Q)`"
+  using assms by (utp_poly_auto_tac)
+
+theorem DesignD_commitment_alt:
+  assumes
+    "OKAY \<sharp> P" 
+    "OKAY \<sharp> Q" 
+  shows "`(P \<turnstile> Q)\<^bsup>tt\<^esup>` = `P \<Rightarrow> Q`"
   using assms by (utp_poly_auto_tac)
 
 theorem DesignD_export_precondition:
