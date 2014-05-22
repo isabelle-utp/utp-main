@@ -414,7 +414,7 @@ lemma BoolType_aux_var_split_exists [ucases]:
   "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> \<Longrightarrow> 
    (\<exists>\<^sub>p {x}. P) = P[FalseE/\<^sub>px] \<or>\<^sub>p P[TrueE/\<^sub>px]"
   apply (utp_pred_auto_tac)
-  apply (metis FalseV_def MkBool_cases Rep_WF_BINDING TrueV_def WF_BINDING_app_type aux_defined)
+  apply (metis FalseV_def MkBool_cases Rep_binding TrueV_def binding_app_type aux_defined)
   apply (metis binding_upd_apply binding_upd_vcoerce)
   apply (metis binding_upd_apply binding_upd_vcoerce)
 done

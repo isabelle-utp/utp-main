@@ -15,131 +15,132 @@ theory utp_pred_parser
 begin
 
 nonterminal 
-  upred and upreds and 
-  uexpr and uexprs and
-  pexpr and pexprs and
-  pvar and pvars
+  n_upred and n_upreds and 
+  n_expr and n_exprs and
+  n_pexpr and n_pexprs and
+  n_pexprb and n_pexprbs and
+  n_pvar and n_pvars
 
 section {* Core Polymorphic Expression Syntax *}
 
 syntax
-  "_pexpr_quote"        :: "pexpr \<Rightarrow> ('a, 'm) WF_PEXPRESSION" ("(1|_|)")
-(*  "_pexpr_pred_quote"   :: "pexpr \<Rightarrow> 'a WF_PREDICATE" ("(1``_``)") *)
-  "_pexprs"             :: "[pexpr, pexprs] => pexprs" ("_,/ _")
-  ""                    :: "pexpr => pexprs" ("_")
-  "_pvar"               :: "idt \<Rightarrow> pvar" ("(_)")
-  "_pvars"              :: "[pvar, pvars] => pvars" ("_,/ _")
-  ""                    :: "pvar => pvars" ("_")
-  "_passign"            :: "['a AssignF, pvars, pexprs] \<Rightarrow> 'a AssignF" ("(1[_])")
-  "_pexpr_brack"        :: "pexpr \<Rightarrow> pexpr" ("'(_')")
-  "_pexpr_pred_var"     :: "idt \<Rightarrow> pexpr" ("@(_)")
-  "_pexpr_expr_var"     :: "idt \<Rightarrow> pexpr" ("(_)")
-  "_pexpr_evar"         :: "('a, 'm) PVAR \<Rightarrow> pexpr" ("$_" [999] 999)
-  "_pexpr_subst"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> ('a, 'm) PVAR \<Rightarrow> pexpr" ("(_[_'/_])" [999,999] 1000)
-  "_pexpr_prime"        :: "pexpr \<Rightarrow> pexpr" ("_\<acute>" [1000] 1000)
-  "_pexpr_erase"        :: "pexpr \<Rightarrow> pexpr" ("_\<down>" [1000] 1000)
+  "_n_pexpr_quote"        :: "n_pexpr \<Rightarrow> ('a, 'm) pexpr" ("(1|_|)")
+(*  "_n_pexpr_pred_quote"   :: "n_pexpr \<Rightarrow> 'a WF_PREDICATE" ("(1``_``)") *)
+  "_n_pexprs"             :: "[n_pexpr, n_pexprs] => n_pexprs" ("_,/ _")
+  ""                    :: "n_pexpr => n_pexprs" ("_")
+  "_pvar"               :: "idt \<Rightarrow> n_pvar" ("(_)")
+  "_pvars"              :: "[n_pvar, n_pvars] => n_pvars" ("_,/ _")
+  ""                    :: "n_pvar => n_pvars" ("_")
+  "_passign"            :: "['a AssignF, n_pvars, n_pexprs] \<Rightarrow> 'a AssignF" ("(1[_])")
+  "_n_pexpr_brack"        :: "n_pexpr \<Rightarrow> n_pexpr" ("'(_')")
+  "_n_pexpr_pred_var"     :: "idt \<Rightarrow> n_pexpr" ("@(_)")
+  "_n_pexpr_expr_var"     :: "idt \<Rightarrow> n_pexpr" ("(_)")
+  "_n_pexpr_evar"         :: "('a, 'm) pvar \<Rightarrow> n_pexpr" ("$_" [999] 999)
+  "_n_pexpr_subst"        :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> ('a, 'm) pvar \<Rightarrow> n_pexpr" ("(_[_'/_])" [999,999] 1000)
+  "_n_pexpr_prime"        :: "n_pexpr \<Rightarrow> n_pexpr" ("_\<acute>" [1000] 1000)
+  "_n_pexpr_erase"        :: "n_pexpr \<Rightarrow> n_pexpr" ("_\<down>" [1000] 1000)
 
 translations
-  "_pexpr_quote e"             => "e"
-(*  "_pexpr_pred_quote e"        == "CONST PExprP e" *)
-  "_pexpr_pred_var p"          == "CONST PredPE p"
-  "_pexpr_expr_var v"          => "v"
-  "_pexpr_evar x"              == "CONST PVarPE x"
-  "_pexpr_brack e"             => "e"
-  "_pexpr_subst e v x"         == "CONST PSubstPE e v x"
-  "_pexpr_prime e"             == "CONST PermPE (CONST SS) e"
-  "_pexpr_erase e"             == "CONST ErasePE e" 
+  "_n_pexpr_quote e"             => "e"
+(*  "_n_pexpr_pred_quote e"        == "CONST PExprP e" *)
+  "_n_pexpr_pred_var p"          == "CONST PredPE p"
+  "_n_pexpr_expr_var v"          => "v"
+  "_n_pexpr_evar x"              == "CONST PVarPE x"
+  "_n_pexpr_brack e"             => "e"
+  "_n_pexpr_subst e v x"         == "CONST PSubstPE e v x"
+  "_n_pexpr_prime e"             == "CONST PermPE (CONST SS) e"
+  "_n_pexpr_erase e"             == "CONST ErasePE e" 
   "_passign m (_pvar x) v"     == "CONST PAssignF_upd m x v"
-  "_passign m (_pvars x xs) (_pexprs v vs)" == "_passign (_passign m x v) xs vs"
+  "_passign m (_pvars x xs) (_n_pexprs v vs)" == "_passign (_passign m x v) xs vs"
 
 section {* Predicate Parser *}
 
 syntax
-  "_upred_inf"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "|~|" 65)
+  "_n_upred_inf"      :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "|~|" 65)
 
 syntax (xsymbols)
-  "_upreds"         :: "[upred, upreds] => upreds" ("_,/ _")
-  "_upreds_end"     :: "upred => upreds" ("_")
-  "_upred_top_clos" :: "upred \<Rightarrow> bool" ("(1[_])")
-  "_upred_quote"    :: "upred \<Rightarrow> 'a WF_PREDICATE" ("(1`_`)")
-  "_upred_brack"    :: "upred \<Rightarrow> upred" ("'(_')")
-  "_upred_op1"      :: "idt \<Rightarrow> upred \<Rightarrow> upred" ("_'(_')")
-  "_upred_op2"      :: "idt \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("_'(_,_')")
-  "_upred_op3"      :: "idt \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("_'(_,_,_')")
-  "_upred_true"     :: "upred" ("true")
-  "_upred_false"    :: "upred" ("false")
-  "_upred_var"      :: "pttrn \<Rightarrow> upred" ("(_)")
-  "_upred_evar"     :: "(bool, 'm) PVAR \<Rightarrow> upred" ("$_" [999] 999)
-  "_upred_and"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<and>" 35)
-  "_upred_or"       :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<or>" 35)
-  "_upred_imp"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<Rightarrow>" 25)
-  "_upred_iff"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<Leftrightarrow>" 25)
-  "_upred_ref"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<sqsubseteq>" 25)
-  "_upred_clos"     :: "upred \<Rightarrow> upred" ("[_]")
-  "_upred_not"      :: "upred \<Rightarrow> upred" ("\<not> _" [40] 40)
-  "_upred_all1"     :: "('a, 'm) PVAR \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<forall> _./ _)" [0, 10] 10) 
-  "_upred_exists1"  :: "('a, 'm) PVAR \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<exists> _./ _)" [0, 10] 10) 
-  "_upred_all_sh"   :: "idt \<Rightarrow> upred \<Rightarrow> upred"  ("(4\<forall>\<^sub>s _./ _)" [0, 10] 10) 
-  "_upred_exists_sh":: "idt \<Rightarrow> upred \<Rightarrow> upred"  ("(4\<exists>\<^sub>s _./ _)" [0, 10] 10) 
-  "_upred_equal"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixl "=" 50)
-  "_upred_nequal"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixl "\<noteq>" 50)
-  "_upred_pexpr"    :: "pexpr \<Rightarrow> upred" ("\<lparr>_\<rparr>")
-  "_upred_skip"     :: "upred" ("II")
-  "_upred_skipa"    :: "'VALUE VAR set \<Rightarrow> upred" ("II\<^bsub>_\<^esub>")
-  "_upred_seq"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr ";" 36)
-  "_upred_cond"     :: "upred \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("_ \<lhd> _ \<rhd> _")
-  "_upred_ifthenelse" :: "upred \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("if _ then _ else _")
-  "_upred_assigna"  :: "('a, 'm) PVAR \<Rightarrow> 'a VAR set \<Rightarrow> pexpr \<Rightarrow> upred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
-(*  "_upred_assign"   :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> upred" ("_ := _" [100] 100) *)
-  "_upred_assigns"  :: "pvars \<Rightarrow> pexprs \<Rightarrow> upred" ("_ := _" [100] 100)
-  "_upred_conv"     :: "upred \<Rightarrow> upred" ("(_\<^sup>\<smile>)" [1000] 999)
-  "_upred_prime"    :: "upred \<Rightarrow> upred" ("_\<acute>" [1000] 1000)
-  "_upred_varopen"  :: "('a, 'm) PVAR \<Rightarrow> upred" ("var _")
-  "_upred_varclose" :: "('a, 'm) PVAR \<Rightarrow> upred" ("end _")
-  "_upred_varext"   :: "upred \<Rightarrow> ('a, 'm) PVAR \<Rightarrow> upred" ("_\<^bsub>+_\<^esub>")
-  "_upred_substp"   :: "upred \<Rightarrow> pexpr \<Rightarrow> ('a, 'm) PVAR \<Rightarrow> upred" ("(_[_'/_])" [999,999] 1000)
-  "_upred_perm"     :: "'m VAR_RENAME \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<bullet>" 80)
+  "_n_upreds"         :: "[n_upred, n_upreds] => n_upreds" ("_,/ _")
+  "_n_upreds_end"     :: "n_upred => n_upreds" ("_")
+  "_n_upred_top_clos" :: "n_upred \<Rightarrow> bool" ("(1[_])")
+  "_n_upred_quote"    :: "n_upred \<Rightarrow> 'a upred" ("(1`_`)")
+  "_n_upred_brack"    :: "n_upred \<Rightarrow> n_upred" ("'(_')")
+  "_n_upred_op1"      :: "idt \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_'(_')")
+  "_n_upred_op2"      :: "idt \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_'(_,_')")
+  "_n_upred_op3"      :: "idt \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_'(_,_,_')")
+  "_n_upred_true"     :: "n_upred" ("true")
+  "_n_upred_false"    :: "n_upred" ("false")
+  "_n_upred_var"      :: "pttrn \<Rightarrow> n_upred" ("(_)")
+  "_n_upred_evar"     :: "(bool, 'm) pvar \<Rightarrow> n_upred" ("$_" [999] 999)
+  "_n_upred_and"      :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr "\<and>" 35)
+  "_n_upred_or"       :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr "\<or>" 35)
+  "_n_upred_imp"      :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr "\<Rightarrow>" 25)
+  "_n_upred_iff"      :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr "\<Leftrightarrow>" 25)
+  "_n_upred_ref"      :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr "\<sqsubseteq>" 25)
+  "_n_upred_clos"     :: "n_upred \<Rightarrow> n_upred" ("[_]")
+  "_n_upred_not"      :: "n_upred \<Rightarrow> n_upred" ("\<not> _" [40] 40)
+  "_n_upred_all1"     :: "('a, 'm) pvar \<Rightarrow> n_upred \<Rightarrow> n_upred"  ("(3\<forall> _./ _)" [0, 10] 10) 
+  "_n_upred_exists1"  :: "('a, 'm) pvar \<Rightarrow> n_upred \<Rightarrow> n_upred"  ("(3\<exists> _./ _)" [0, 10] 10) 
+  "_n_upred_all_sh"   :: "idt \<Rightarrow> n_upred \<Rightarrow> n_upred"  ("(4\<forall>\<^sub>s _./ _)" [0, 10] 10) 
+  "_n_upred_exists_sh":: "idt \<Rightarrow> n_upred \<Rightarrow> n_upred"  ("(4\<exists>\<^sub>s _./ _)" [0, 10] 10) 
+  "_n_upred_equal"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_upred" (infixl "=" 50)
+  "_n_upred_nequal"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_upred" (infixl "\<noteq>" 50)
+  "_n_upred_n_pexpr"    :: "n_pexpr \<Rightarrow> n_upred" ("\<lparr>_\<rparr>")
+  "_n_upred_skip"     :: "n_upred" ("II")
+  "_n_upred_skipa"    :: "'a uvar set \<Rightarrow> n_upred" ("II\<^bsub>_\<^esub>")
+  "_n_upred_seq"      :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr ";" 36)
+  "_n_upred_cond"     :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ \<lhd> _ \<rhd> _")
+  "_n_upred_ifthenelse" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("if _ then _ else _")
+  "_n_upred_assigna"  :: "('a, 'm) pvar \<Rightarrow> 'a uvar set \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
+(*  "_n_upred_assign"   :: "('a, 'm) PVAR \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_ := _" [100] 100) *)
+  "_n_upred_assigns"  :: "n_pvars \<Rightarrow> n_pexprs \<Rightarrow> n_upred" ("_ := _" [100] 100)
+  "_n_upred_conv"     :: "n_upred \<Rightarrow> n_upred" ("(_\<^sup>\<smile>)" [1000] 999)
+  "_n_upred_prime"    :: "n_upred \<Rightarrow> n_upred" ("_\<acute>" [1000] 1000)
+  "_n_upred_varopen"  :: "('a, 'm) pvar \<Rightarrow> n_upred" ("var _")
+  "_n_upred_varclose" :: "('a, 'm) pvar \<Rightarrow> n_upred" ("end _")
+  "_n_upred_varext"   :: "n_upred \<Rightarrow> ('a, 'm) pvar \<Rightarrow> n_upred" ("_\<^bsub>+_\<^esub>")
+  "_n_upred_substp"   :: "n_upred \<Rightarrow> n_pexpr \<Rightarrow> ('a, 'm) pvar \<Rightarrow> n_upred" ("(_[_'/_])" [999,999] 1000)
+  "_n_upred_perm"     :: "'m VAR_RENAME \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr "\<bullet>" 80)
 
 translations
-  "_upred_brack p"     => "p"
-  "_upred_op1 f x"     => "f x"
-  "_upred_op2 f x y"   => "f x y"
-  "_upred_op3 f x y z" => "f x y z" 
-  "_upred_quote p"     => "p"
-  "_upred_top_clos p"  == "CONST Tautology p"
-  "_upred_true"        == "CONST TrueP"
-  "_upred_false"       == "CONST FalseP"
-  "_upred_var x"       => "x"
-  "_upred_evar x"      == "CONST VarP x\<down>"
-  "_upred_and p q"     == "CONST AndP p q"
-  "_upred_or p q"      == "CONST OrP p q"
-  "_upred_imp p q"     == "CONST ImpliesP p q"
-  "_upred_ref p q"     == "CONST RefP p q"
-  "_upred_iff p q"     == "CONST IffP p q"
-  "_upred_clos p"      == "CONST ClosureP p"
-  "_upred_not p"       == "CONST NotP p"
-  "_upred_all1 x p"    == "CONST ForallP {x\<down>} p"
-  "_upred_exists1 x p" == "CONST ExistsP {x\<down>} p"
-  "_upred_all_sh x p"  == "\<forall>\<^sub>s x. p"
-  "_upred_exists_sh x p"  == "\<exists>\<^sub>s x. p"
-  "_upred_equal e f"   == "CONST PEqualP e f"
-  "_upred_nequal e f"  == "CONST NotP (CONST PEqualP e f)"
-  "_upred_pexpr e"     == "CONST PExprP e"
-  "_upred_skip"        == "CONST SkipR"
-  "_upred_skipa vs"    == "CONST SkipRA vs"
-  "_upred_seq p q"     == "CONST SemiR p q"
-  "_upred_cond p q r"  == "CONST CondR p q r"
-  "_upred_ifthenelse b p q"  == "CONST CondR p b q"
-(*  "_upred_assign x e"  == "CONST PAssignR x e" *)
-  "_upred_assigns xs vs" == "CONST AssignsR (_passign (CONST IdA) xs vs)"
-  "_upred_assigna x xs e" == "CONST AssignRA x\<down> xs e\<down>" 
-  "_upred_conv x"      => "CONST ConvR x"
-  "_upred_prime x"     == "CONST ConvR x"
-  "_upred_varopen x"   == "CONST VarOpenP x\<down>"
-  "_upred_varclose x"  == "CONST VarCloseP x\<down>"
-  "_upred_varext p x"  == "CONST VarExtP p x\<down>"
-  "_upred_substp p e x" == "CONST PSubstP p e x"
-  "_upred_perm ss p"   == "CONST PermP ss p"
+  "_n_upred_brack p"     => "p"
+  "_n_upred_op1 f x"     => "f x"
+  "_n_upred_op2 f x y"   => "f x y"
+  "_n_upred_op3 f x y z" => "f x y z" 
+  "_n_upred_quote p"     => "p"
+  "_n_upred_top_clos p"  == "CONST Tautology p"
+  "_n_upred_true"        == "CONST TrueP"
+  "_n_upred_false"       == "CONST FalseP"
+  "_n_upred_var x"       => "x"
+  "_n_upred_evar x"      == "CONST VarP x\<down>"
+  "_n_upred_and p q"     == "CONST AndP p q"
+  "_n_upred_or p q"      == "CONST OrP p q"
+  "_n_upred_imp p q"     == "CONST ImpliesP p q"
+  "_n_upred_ref p q"     == "CONST RefP p q"
+  "_n_upred_iff p q"     == "CONST IffP p q"
+  "_n_upred_clos p"      == "CONST ClosureP p"
+  "_n_upred_not p"       == "CONST NotP p"
+  "_n_upred_all1 x p"    == "CONST ForallP {x\<down>} p"
+  "_n_upred_exists1 x p" == "CONST ExistsP {x\<down>} p"
+  "_n_upred_all_sh x p"  == "\<forall>\<^sub>s x. p"
+  "_n_upred_exists_sh x p"  == "\<exists>\<^sub>s x. p"
+  "_n_upred_equal e f"   == "CONST PEqualP e f"
+  "_n_upred_nequal e f"  == "CONST NotP (CONST PEqualP e f)"
+  "_n_upred_n_pexpr e"     == "CONST PExprP e"
+  "_n_upred_skip"        == "CONST SkipR"
+  "_n_upred_skipa vs"    == "CONST SkipRA vs"
+  "_n_upred_seq p q"     == "CONST SemiR p q"
+  "_n_upred_cond p q r"  == "CONST CondR p q r"
+  "_n_upred_ifthenelse b p q"  == "CONST CondR p b q"
+(*  "_n_upred_assign x e"  == "CONST PAssignR x e" *)
+  "_n_upred_assigns xs vs" == "CONST AssignsR (_passign (CONST IdA) xs vs)"
+  "_n_upred_assigna x xs e" == "CONST AssignRA x\<down> xs e\<down>" 
+  "_n_upred_conv x"      => "CONST ConvR x"
+  "_n_upred_prime x"     == "CONST ConvR x"
+  "_n_upred_varopen x"   == "CONST VarOpenP x\<down>"
+  "_n_upred_varclose x"  == "CONST VarCloseP x\<down>"
+  "_n_upred_varext p x"  == "CONST VarExtP p x\<down>"
+  "_n_upred_substp p e x" == "CONST PSubstP p e x"
+  "_n_upred_perm ss p"   == "CONST PermP ss p"
 
 term "`p[x/v]`"
 term "`p[$x/y]`"
@@ -151,194 +152,194 @@ term "`p\<^bsub>+x\<^esub>`"
 section {* Core Expression Parser *}
 
 syntax
-  "_uexprs"             :: "[uexpr, uexprs] => uexprs" ("_,/ _")
-  ""                    :: "uexpr => uexprs" ("_")
-  "_uexpr_brack"        :: "uexpr \<Rightarrow> uexpr" ("'(_')")
-  "_uexpr_quote"        :: "uexpr \<Rightarrow> 'a WF_EXPRESSION" ("(1^_^)")
-  "_uexpr_true"         :: "uexpr" ("true")
-  "_uexpr_false"        :: "uexpr" ("false")
-  "_uexpr_var"          :: "pttrn \<Rightarrow> uexpr" ("_")
-  "_uexpr_evar"         :: "'a VAR \<Rightarrow> uexpr" ("$_" [999] 999)
-  "_uexpr_prime"        :: "uexpr \<Rightarrow> uexpr" ("_\<acute>" [1000] 1000)
+  "_n_exprs"             :: "[n_expr, n_exprs] => n_exprs" ("_,/ _")
+  ""                    :: "n_expr => n_exprs" ("_")
+  "_n_expr_brack"        :: "n_expr \<Rightarrow> n_expr" ("'(_')")
+  "_n_expr_quote"        :: "n_expr \<Rightarrow> 'a uexpr" ("(1^_^)")
+  "_n_expr_true"         :: "n_expr" ("true")
+  "_n_expr_false"        :: "n_expr" ("false")
+  "_n_expr_var"          :: "pttrn \<Rightarrow> n_expr" ("_")
+  "_n_expr_evar"         :: "'a uvar \<Rightarrow> n_expr" ("$_" [999] 999)
+  "_n_expr_prime"        :: "n_expr \<Rightarrow> n_expr" ("_\<acute>" [1000] 1000)
 
 translations
-  "_uexpr_brack e"      => "e"
-  "_uexpr_quote e"      => "e"
-  "_uexpr_true"         == "CONST TrueE"
-  "_uexpr_false"        == "CONST FalseE"
-  "_uexpr_var x"        => "x" 
-  "_uexpr_evar x"       == "CONST VarE x"
-  "_uexpr_prime e"      == "CONST RenameE e (CONST SS)"
+  "_n_expr_brack e"      => "e"
+  "_n_expr_quote e"      => "e"
+  "_n_expr_true"         == "CONST TrueE"
+  "_n_expr_false"        == "CONST FalseE"
+  "_n_expr_var x"        => "x" 
+  "_n_expr_evar x"       == "CONST VarE x"
+  "_n_expr_prime e"      == "CONST RenameE e (CONST SS)"
 
 
 syntax
   (* Basic logical operators *)
-  "_pexpr_equal"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "=" 50)
-  "_pexpr_wequal"       :: "uexpr \<Rightarrow> uexpr \<Rightarrow> pexpr" (infixl "\<equiv>" 50)
-  "_pexpr_true"         :: "pexpr" ("true")
-  "_pexpr_false"        :: "pexpr" ("false")
-  "_pexpr_and"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<and>" 35)
-  "_pexpr_or"           :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<or>" 35)
-  "_pexpr_imp"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<Rightarrow>" 25)
-  "_pexpr_iff"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<Leftrightarrow>" 25)
-  "_pexpr_ref"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<sqsubseteq>" 25)
-  "_pexpr_clos"         :: "pexpr \<Rightarrow> pexpr" ("[_]")
-  "_pexpr_not"          :: "pexpr \<Rightarrow> pexpr" ("\<not> _" [40] 40)
-  "_pexpr_all1"         :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> pexpr"  ("(3\<forall> _./ _)" [0, 10] 10) 
-  "_pexpr_exists1"      :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> pexpr"  ("(3\<exists> _./ _)" [0, 10] 10) 
-  "_pexpr_op1"          :: "idt \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_'(_')")
-  "_pexpr_op2"          :: "idt \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_'(_,_')")
-  "_pexpr_op3"          :: "idt \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_'(_,_,_')")
+  "_n_pexpr_equal"        :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "=" 50)
+  "_n_pexpr_wequal"       :: "n_expr \<Rightarrow> n_expr \<Rightarrow> n_pexpr" (infixl "\<equiv>" 50)
+  "_n_pexpr_true"         :: "n_pexpr" ("true")
+  "_n_pexpr_false"        :: "n_pexpr" ("false")
+  "_n_pexpr_and"          :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "\<and>" 35)
+  "_n_pexpr_or"           :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "\<or>" 35)
+  "_n_pexpr_imp"          :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "\<Rightarrow>" 25)
+  "_n_pexpr_iff"          :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "\<Leftrightarrow>" 25)
+  "_n_pexpr_ref"          :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "\<sqsubseteq>" 25)
+  "_n_pexpr_clos"         :: "n_pexpr \<Rightarrow> n_pexpr" ("[_]")
+  "_n_pexpr_not"          :: "n_pexpr \<Rightarrow> n_pexpr" ("\<not> _" [40] 40)
+  "_n_pexpr_all1"         :: "('a, 'm) pvar \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr"  ("(3\<forall> _./ _)" [0, 10] 10) 
+  "_n_pexpr_exists1"      :: "('a, 'm) pvar \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr"  ("(3\<exists> _./ _)" [0, 10] 10) 
+  "_n_pexpr_op1"          :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_'(_')")
+  "_n_pexpr_op2"          :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_'(_,_')")
+  "_n_pexpr_op3"          :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_'(_,_,_')")
 
 syntax
   (* Relational operators *)
 
-(*  "_pexpr_skip"         :: "pexpr" ("II") *)
-(*  "_pexpr_skipa"        :: "'VALUE VAR set \<Rightarrow> pexpr" ("II\<^bsub>_\<^esub>") *)
-(*  "_pexpr_seq"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr ";" 36) *)
-  "_pexpr_cond"         :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_ \<lhd> _ \<rhd> _")
-  "_pexpr_assign"       :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_ := _" [100] 100)
-  "_pexpr_wassign"      :: "'m VAR \<Rightarrow> uexpr \<Rightarrow> pexpr" ("_ :\<equiv> _" [100] 100)
-  "_pexpr_conv"         :: "pexpr \<Rightarrow> pexpr" ("(_\<^sup>\<smile>)" [1000] 999)
-  "_pexpr_varopen"      :: "('a, 'm) PVAR \<Rightarrow> pexpr" ("var _")
-  "_pexpr_varclose"     :: "('a, 'm) PVAR \<Rightarrow> pexpr" ("end _")
+(*  "_n_pexpr_skip"         :: "n_pexpr" ("II") *)
+(*  "_n_pexpr_skipa"        :: "'VALUE VAR set \<Rightarrow> n_pexpr" ("II\<^bsub>_\<^esub>") *)
+(*  "_n_pexpr_seq"          :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr ";" 36) *)
+  "_n_pexpr_cond"         :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_ \<lhd> _ \<rhd> _")
+  "_n_pexpr_assign"       :: "('a, 'm) pvar \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_ := _" [100] 100)
+  "_n_pexpr_wassign"      :: "'m uvar \<Rightarrow> n_expr \<Rightarrow> n_pexpr" ("_ :\<equiv> _" [100] 100)
+  "_n_pexpr_conv"         :: "n_pexpr \<Rightarrow> n_pexpr" ("(_\<^sup>\<smile>)" [1000] 999)
+  "_n_pexpr_varopen"      :: "('a, 'm) pvar \<Rightarrow> n_pexpr" ("var _")
+  "_n_pexpr_varclose"     :: "('a, 'm) pvar \<Rightarrow> n_pexpr" ("end _")
 
 syntax
   (* Data Structures *)
-  "_pexpr_lit"           :: "'a \<Rightarrow> pexpr" ("\<guillemotleft>_\<guillemotright>")
-  "_pexpr_int"           :: "int \<Rightarrow> pexpr" ("<_>")
-  "_pexpr_plus"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "+" 65)
-  "_pexpr_mult"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "*" 70)
-  "_pexpr_div"           :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "'/" 70)
-  "_pexpr_minus"         :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "-" 65)
-  "_pexpr_less"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "<" 25)
-  "_pexpr_less_eq"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<le>" 25)
-  "_pexpr_greater"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr ">" 25)
-  "_pexpr_greater_eq"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<ge>" 25)
-  "_pexpr_max"           :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("max'(_, _')")
-  "_pexpr_min"           :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("min'(_, _')")
-  "_pexpr_list"          :: "pexprs \<Rightarrow> pexpr" ("\<langle>_\<rangle>")
-  "_pexpr_list_nil"      :: "pexpr" ("\<langle>\<rangle>")
-  "_pexpr_list_append"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "^" 65)
-  "_pexpr_set"           :: "pexprs \<Rightarrow> pexpr" ("{_}")
-  "_pexpr_set_empty"     :: "pexpr" ("{}")
-  "_pexpr_set_union"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "\<union>" 65)
-  "_pexpr_set_inter"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixl "\<inter>" 70)
-  "_pexpr_set_member"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(_/ \<in> _)" [51, 51] 50)
-  "_pexpr_set_nmember"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" ("(_/ \<notin> _)" [51, 51] 50)
-  "_pexpr_set_subset"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<subset>" 50)
-  "_pexpr_set_subseteq"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<subseteq>" 50)
-  "_pexpr_set_list"      :: "pexpr \<Rightarrow> pexpr" ("elems _")
-  "_pexpr_intersync"     :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<parallel>\<^bsub>_\<^esub>" 75)
-  "_pexpr_restrict"      :: "pexpr \<Rightarrow> pexpr \<Rightarrow> pexpr" (infixr "\<upharpoonright>" 70)
-  "_pexpr_event"         :: "NAME \<Rightarrow> pexpr \<Rightarrow> pexpr" ("_.'(_')" 50)
-  "_pexpr_event_chan"    :: "pexpr \<Rightarrow> pexpr" ("chan _")
+  "_n_pexpr_lit"           :: "'a \<Rightarrow> n_pexpr" ("\<guillemotleft>_\<guillemotright>")
+  "_n_pexpr_int"           :: "int \<Rightarrow> n_pexpr" ("<_>")
+  "_n_pexpr_plus"          :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "+" 65)
+  "_n_pexpr_mult"          :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "*" 70)
+  "_n_pexpr_div"           :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "'/" 70)
+  "_n_pexpr_minus"         :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "-" 65)
+  "_n_pexpr_less"          :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "<" 25)
+  "_n_pexpr_less_eq"       :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "\<le>" 25)
+  "_n_pexpr_greater"       :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr ">" 25)
+  "_n_pexpr_greater_eq"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "\<ge>" 25)
+  "_n_pexpr_max"           :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("max'(_, _')")
+  "_n_pexpr_min"           :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("min'(_, _')")
+  "_n_pexpr_list"          :: "n_pexprs \<Rightarrow> n_pexpr" ("\<langle>_\<rangle>")
+  "_n_pexpr_list_nil"      :: "n_pexpr" ("\<langle>\<rangle>")
+  "_n_pexpr_list_append"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "^" 65)
+  "_n_pexpr_set"           :: "n_pexprs \<Rightarrow> n_pexpr" ("{_}")
+  "_n_pexpr_set_empty"     :: "n_pexpr" ("{}")
+  "_n_pexpr_set_union"     :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "\<union>" 65)
+  "_n_pexpr_set_inter"     :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "\<inter>" 70)
+  "_n_pexpr_set_member"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(_/ \<in> _)" [51, 51] 50)
+  "_n_pexpr_set_nmember"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(_/ \<notin> _)" [51, 51] 50)
+  "_n_pexpr_set_subset"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "\<subset>" 50)
+  "_n_pexpr_set_subseteq"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "\<subseteq>" 50)
+  "_n_pexpr_set_list"      :: "n_pexpr \<Rightarrow> n_pexpr" ("elems _")
+  "_n_pexpr_intersync"     :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "\<parallel>\<^bsub>_\<^esub>" 75)
+  "_n_pexpr_restrict"      :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "\<upharpoonright>" 70)
+  "_n_pexpr_event"         :: "NAME \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_.'(_')" 50)
+  "_n_pexpr_event_chan"    :: "n_pexpr \<Rightarrow> n_pexpr" ("chan _")
 
 translations
   (* Basic logical operators *)
-  "_pexpr_equal e f"           == "CONST EqualPE e f"
-  "_pexpr_wequal e f"          == "CONST PredPE (CONST EqualP e f)"
-  "_pexpr_true"                == "CONST TruePE"
-  "_pexpr_false"               == "CONST FalsePE"
-  "_pexpr_and p q"             == "CONST AndPE p q"
-  "_pexpr_or p q"              == "CONST OrPE p q"
-  "_pexpr_imp p q"             == "CONST ImpliesPE p q"
-  "_pexpr_iff p q"             == "CONST IffPE p q"
-  "_pexpr_ref p q"             == "CONST RefPE p q"
-  "_pexpr_clos p"              == "CONST ClosurePE p"
-  "_pexpr_not p"               == "CONST NotPE p"
-  "_pexpr_all1 x p"            == "CONST ForallPE {x\<down>} p"
-  "_pexpr_exists1 x p"         == "CONST ExistsPE {x\<down>} p"
-  "_pexpr_op1 f x"             == "CONST Op1PE f x"
-  "_pexpr_op2 f x y"           == "CONST Op2PE f x y"
-  "_pexpr_op3 f x y z"         == "CONST Op3PE f x y z"
+  "_n_pexpr_equal e f"           == "CONST EqualPE e f"
+  "_n_pexpr_wequal e f"          == "CONST PredPE (CONST EqualP e f)"
+  "_n_pexpr_true"                == "CONST TruePE"
+  "_n_pexpr_false"               == "CONST FalsePE"
+  "_n_pexpr_and p q"             == "CONST AndPE p q"
+  "_n_pexpr_or p q"              == "CONST OrPE p q"
+  "_n_pexpr_imp p q"             == "CONST ImpliesPE p q"
+  "_n_pexpr_iff p q"             == "CONST IffPE p q"
+  "_n_pexpr_ref p q"             == "CONST RefPE p q"
+  "_n_pexpr_clos p"              == "CONST ClosurePE p"
+  "_n_pexpr_not p"               == "CONST NotPE p"
+  "_n_pexpr_all1 x p"            == "CONST ForallPE {x\<down>} p"
+  "_n_pexpr_exists1 x p"         == "CONST ExistsPE {x\<down>} p"
+  "_n_pexpr_op1 f x"             == "CONST Op1PE f x"
+  "_n_pexpr_op2 f x y"           == "CONST Op2PE f x y"
+  "_n_pexpr_op3 f x y z"         == "CONST Op3PE f x y z"
 
 translations
   (* Relational operators *)
-(*  "_pexpr_skip"                == "CONST PredPE (CONST SkipR)" *)
-(*  "_pexpr_skipa vs"            == "CONST PredPE (CONST SkipRA vs)" *)
-(*  "_pexpr_seq p q"             == "CONST PredOp2PE (CONST SemiR) p q" *)
-  "_pexpr_cond p q r"          == "CONST PredOp3PE (CONST CondR) p q r"
-  "_pexpr_assign x v"          == "CONST AssignRPE x v"
-  "_pexpr_wassign x v"         == "CONST WAssignRPE x v"
-  "_pexpr_conv p"              == "CONST PredOp1PE (CONST ConvR) p"
-  "_pexpr_varopen x"           == "CONST PredPE (CONST VarOpenP x\<down>)"
-  "_pexpr_varclose x"          == "CONST PredPE (CONST VarCloseP x\<down>)"
+(*  "_n_pexpr_skip"                == "CONST PredPE (CONST SkipR)" *)
+(*  "_n_pexpr_skipa vs"            == "CONST PredPE (CONST SkipRA vs)" *)
+(*  "_n_pexpr_seq p q"             == "CONST PredOp2PE (CONST SemiR) p q" *)
+  "_n_pexpr_cond p q r"          == "CONST PredOp3PE (CONST CondR) p q r"
+  "_n_pexpr_assign x v"          == "CONST AssignRPE x v"
+  "_n_pexpr_wassign x v"         == "CONST WAssignRPE x v"
+  "_n_pexpr_conv p"              == "CONST PredOp1PE (CONST ConvR) p"
+  "_n_pexpr_varopen x"           == "CONST PredPE (CONST VarOpenP x\<down>)"
+  "_n_pexpr_varclose x"          == "CONST PredPE (CONST VarCloseP x\<down>)"
 
 translations
   (* Data Structures *)
-  "_pexpr_lit x"               == "CONST LitPE x"
-  "_pexpr_int x"               == "CONST IntPE x"
-  "_pexpr_plus x y"            == "CONST PlusPE x y"
-  "_pexpr_mult x y"            == "CONST MultPE x y"
-  "_pexpr_div x y"             == "CONST DivPE x y"
-  "_pexpr_minus x y"           == "CONST MinusPE x y"
-  "_pexpr_less x y"            == "CONST LessPE x y"
-  "_pexpr_less_eq x y"         == "CONST LessEqPE x y"
-  "_pexpr_greater x y"         == "CONST LessPE y x"
-  "_pexpr_greater_eq x y"      == "CONST LessEqPE y x"
-  "_pexpr_max x y"             == "CONST MaxPE x y"
-  "_pexpr_min x y"             == "CONST MinPE x y"
-  "_pexpr_list_nil"            == "CONST NilPE"
-  "_pexpr_list_append e f"     == "CONST ConcatPE e f"
-  "_pexpr_list (_pexprs x xs)" == "CONST ConsPE x (_pexpr_list xs)"
-  "_pexpr_list x"              == "CONST ConsPE x (CONST NilPE)"
-  "_pexpr_set (_pexprs x xs)"  == "CONST InsertPE x (_pexpr_set xs)"
-  "_pexpr_set x"               == "CONST InsertPE x CONST EmptyPE"
-  "_pexpr_set_empty"           == "CONST EmptyPE"
-  "_pexpr_set_union xs ys"     == "CONST UnionPE xs ys"
-  "_pexpr_set_inter xs ys"     == "CONST InterPE xs ys"
-  "_pexpr_set_member x xs"     == "CONST MemberPE x xs"
-  "_pexpr_set_subset xs ys"    == "CONST SubsetPE xs ys"
-  "_pexpr_set_subseteq xs ys"  == "CONST SubseteqPE xs ys"
-  "_pexpr_set_nmember x xs"    == "CONST NotMemberPE x xs"
-  "_pexpr_set_list xs"         == "CONST SetPE xs"
-  "_pexpr_intersync p xs q"    == "CONST IntersyncPE xs p q"
-  "_pexpr_restrict xs A"       == "CONST RestrictPE xs A"
-  "_pexpr_event n v"           == "CONST EventPE n v"
-  "_pexpr_event_chan e"        == "CONST ChannelPE e"
+  "_n_pexpr_lit x"               == "CONST LitPE x"
+  "_n_pexpr_int x"               == "CONST IntPE x"
+  "_n_pexpr_plus x y"            == "CONST PlusPE x y"
+  "_n_pexpr_mult x y"            == "CONST MultPE x y"
+  "_n_pexpr_div x y"             == "CONST DivPE x y"
+  "_n_pexpr_minus x y"           == "CONST MinusPE x y"
+  "_n_pexpr_less x y"            == "CONST LessPE x y"
+  "_n_pexpr_less_eq x y"         == "CONST LessEqPE x y"
+  "_n_pexpr_greater x y"         == "CONST LessPE y x"
+  "_n_pexpr_greater_eq x y"      == "CONST LessEqPE y x"
+  "_n_pexpr_max x y"             == "CONST MaxPE x y"
+  "_n_pexpr_min x y"             == "CONST MinPE x y"
+  "_n_pexpr_list_nil"            == "CONST NilPE"
+  "_n_pexpr_list_append e f"     == "CONST ConcatPE e f"
+  "_n_pexpr_list (_n_pexprs x xs)" == "CONST ConsPE x (_n_pexpr_list xs)"
+  "_n_pexpr_list x"              == "CONST ConsPE x (CONST NilPE)"
+  "_n_pexpr_set (_n_pexprs x xs)"  == "CONST InsertPE x (_n_pexpr_set xs)"
+  "_n_pexpr_set x"               == "CONST InsertPE x CONST EmptyPE"
+  "_n_pexpr_set_empty"           == "CONST EmptyPE"
+  "_n_pexpr_set_union xs ys"     == "CONST UnionPE xs ys"
+  "_n_pexpr_set_inter xs ys"     == "CONST InterPE xs ys"
+  "_n_pexpr_set_member x xs"     == "CONST MemberPE x xs"
+  "_n_pexpr_set_subset xs ys"    == "CONST SubsetPE xs ys"
+  "_n_pexpr_set_subseteq xs ys"  == "CONST SubseteqPE xs ys"
+  "_n_pexpr_set_nmember x xs"    == "CONST NotMemberPE x xs"
+  "_n_pexpr_set_list xs"         == "CONST SetPE xs"
+  "_n_pexpr_intersync p xs q"    == "CONST IntersyncPE xs p q"
+  "_n_pexpr_restrict xs A"       == "CONST RestrictPE xs A"
+  "_n_pexpr_event n v"           == "CONST EventPE n v"
+  "_n_pexpr_event_chan e"        == "CONST ChannelPE e"
 
 (* Linking the predicate parser to the poly parser *)
 
 default_sort type
 
 syntax
-  "_upred_lesseq"        :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "\<le>" 25)
-  "_upred_less"          :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "<" 25)
-  "_upred_greater_eq"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "\<ge>" 25)
-  "_upred_greater"       :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr ">" 25)
-  "_upred_set_member"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" ("(_/ \<in> _)" [51, 51] 50)
-  "_upred_set_nmember"   :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" ("(_/ \<notin> _)" [51, 51] 50)
-  "_upred_set_subset"    :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "\<subset>" 50)
-  "_upred_set_subseteq"  :: "pexpr \<Rightarrow> pexpr \<Rightarrow> upred" (infixr "\<subseteq>" 50)
-  "_upred_index"         :: "('b \<Rightarrow> 'a WF_PREDICATE) \<Rightarrow> 'b \<Rightarrow> upred" ("_<_>" 50)
+  "_n_upred_lesseq"        :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_upred" (infixr "\<le>" 25)
+  "_n_upred_less"          :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_upred" (infixr "<" 25)
+  "_n_upred_greater_eq"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_upred" (infixr "\<ge>" 25)
+  "_n_upred_greater"       :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_upred" (infixr ">" 25)
+  "_n_upred_set_member"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("(_/ \<in> _)" [51, 51] 50)
+  "_n_upred_set_nmember"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("(_/ \<notin> _)" [51, 51] 50)
+  "_n_upred_set_subset"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_upred" (infixr "\<subset>" 50)
+  "_n_upred_set_subseteq"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_upred" (infixr "\<subseteq>" 50)
+  "_n_upred_index"         :: "('b \<Rightarrow> 'a upred) \<Rightarrow> 'b \<Rightarrow> n_upred" ("_<_>" 50)
 
 translations
-  "_upred_lesseq e f"         => "CONST PExprP (_pexpr_less_eq e f)"
-  "_upred_less e f"           => "CONST PExprP (_pexpr_less e f)"
-  "_upred_greater_eq e f"     => "CONST PExprP (_pexpr_greater_eq e f)"
-  "_upred_greater e f"        => "CONST PExprP (_pexpr_greater e f)"
-  "_upred_set_member x xs"    => "CONST PExprP (_pexpr_set_member x xs)"
-  "_upred_set_nmember x xs"   => "CONST PExprP (_pexpr_set_nmember x xs)"
-  "_upred_set_subset xs ys"   => "CONST PExprP (_pexpr_set_subset xs ys)"
-  "_upred_set_subseteq xs ys" => "CONST PExprP (_pexpr_set_subseteq xs ys)"
-  "_upred_index f i"          => "f i"
+  "_n_upred_lesseq e f"         => "CONST PExprP (_n_pexpr_less_eq e f)"
+  "_n_upred_less e f"           => "CONST PExprP (_n_pexpr_less e f)"
+  "_n_upred_greater_eq e f"     => "CONST PExprP (_n_pexpr_greater_eq e f)"
+  "_n_upred_greater e f"        => "CONST PExprP (_n_pexpr_greater e f)"
+  "_n_upred_set_member x xs"    => "CONST PExprP (_n_pexpr_set_member x xs)"
+  "_n_upred_set_nmember x xs"   => "CONST PExprP (_n_pexpr_set_nmember x xs)"
+  "_n_upred_set_subset xs ys"   => "CONST PExprP (_n_pexpr_set_subset xs ys)"
+  "_n_upred_set_subseteq xs ys" => "CONST PExprP (_n_pexpr_set_subseteq xs ys)"
+  "_n_upred_index f i"          => "f i"
 
 (* Big operators *)
 
 syntax
-  "_upred_ANDI1" :: "pttrns \<Rightarrow> upred \<Rightarrow> upred" ("(3\<And> _./ _)" [0, 10] 10)
-  "_upred_ANDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<And> _:_./ _)" [0, 0, 10] 10)
-  "_upred_ORDI1" :: "pttrns \<Rightarrow> upred \<Rightarrow> upred" ("(3\<Or> _./ _)" [0, 10] 10)
-  "_upred_ORDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<Or> _:_./ _)" [0, 0, 10] 10)
+  "_n_upred_ANDI1" :: "pttrns \<Rightarrow> n_upred \<Rightarrow> n_upred" ("(3\<And> _./ _)" [0, 10] 10)
+  "_n_upred_ANDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> n_upred \<Rightarrow> n_upred"  ("(3\<And> _:_./ _)" [0, 0, 10] 10)
+  "_n_upred_ORDI1" :: "pttrns \<Rightarrow> n_upred \<Rightarrow> n_upred" ("(3\<Or> _./ _)" [0, 10] 10)
+  "_n_upred_ORDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> n_upred \<Rightarrow> n_upred"  ("(3\<Or> _:_./ _)" [0, 0, 10] 10)
 
 translations
-  "_upred_ANDI1 x y B" == "AND x. AND y. B"
-  "_upred_ANDI1 x B"   == "CONST ANDI CONST UNIV (%x. B)"
-  "_upred_ANDI x A B"  == "CONST ANDI A (%x. B)"
-  "_upred_ORDI1 x y B" == "OR x. OR y. B"
-  "_upred_ORDI1 x B"   == "CONST ORDI CONST UNIV (%x. B)"
-  "_upred_ORDI x A B"  == "CONST ORDI A (%x. B)"
+  "_n_upred_ANDI1 x y B" == "AND x. AND y. B"
+  "_n_upred_ANDI1 x B"   == "CONST ANDI CONST UNIV (%x. B)"
+  "_n_upred_ANDI x A B"  == "CONST ANDI A (%x. B)"
+  "_n_upred_ORDI1 x y B" == "OR x. OR y. B"
+  "_n_upred_ORDI1 x B"   == "CONST ORDI CONST UNIV (%x. B)"
+  "_n_upred_ORDI x A B"  == "CONST ORDI A (%x. B)"
 
 default_sort VALUE
 

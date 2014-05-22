@@ -12,10 +12,10 @@ class VALUE_RANK = VALUE +
   and rank_sound: "\<forall>n\<le>max_rank TYPE('a). \<exists> x. rank x = n"
 begin
 
-definition type_rank :: "'a UTYPE \<Rightarrow> nat" where
+definition type_rank :: "'a utype \<Rightarrow> nat" where
 "type_rank t = rank (SOME x. x : t)"
 
-definition TRANK :: "nat \<Rightarrow> 'a UTYPE set" where
+definition TRANK :: "nat \<Rightarrow> 'a utype set" where
 "TRANK n = {x. type_rank x = n}"
 
 lemma value_rank_type_rank: 
@@ -28,10 +28,10 @@ done
 definition RANK :: "nat \<Rightarrow> 'a set" where
 "RANK n = {x. rank x = n}"
 
-definition pred_rank :: "'a WF_ALPHA_PREDICATE \<Rightarrow> nat" where
+definition pred_rank :: "'a uapred \<Rightarrow> nat" where
 "pred_rank P = FMax (type_rank `\<^sub>f vtype `\<^sub>f (\<alpha> P))"
 
-definition PRANK :: "nat \<Rightarrow> 'a WF_ALPHA_PREDICATE set" where
+definition PRANK :: "nat \<Rightarrow> 'a uapred set" where
 "PRANK n = {x. pred_rank x = n}"
 
 end

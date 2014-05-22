@@ -31,7 +31,7 @@ lemma BoolType_aux_var_split_exists_ty:
   by (utp_poly_auto_tac, metis)
 
 theorem SemiR_extract_variable_ty:
-  fixes x y :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  fixes x y :: "('a :: DEFINED, 'm :: VALUE) pvar"
   assumes "x \<in> PUNDASHED" "y \<in> PDASHED_TWICE" "TYPEUSOUND('a, 'm)" 
           "pvaux x" "pvaux y"
           "{y\<down>} \<sharp> P" "{y\<down>} \<sharp> Q"
@@ -43,7 +43,7 @@ theorem SemiR_extract_variable_ty:
 done
 
 theorem SemiR_extract_variable_id_ty:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
   assumes "x \<in> PUNDASHED" "TYPEUSOUND('a, 'm)" "pvaux x"
           "{x\<down>\<acute>\<acute>} \<sharp> P" "{x\<down>\<acute>\<acute>} \<sharp> Q"
   shows "P ;\<^sub>R Q = `\<exists> x\<acute>\<acute>. P[$x\<acute>\<acute>/x\<acute>] ; Q[$x\<acute>\<acute>/x]`"
@@ -70,7 +70,7 @@ theorem SemiR_split_bool_ty:
 done
 
 theorem AssignR_SemiR_ty:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
   assumes 
     "TYPEUSOUND('a, 'm)"
     "x \<in> PUNDASHED" 
@@ -106,7 +106,7 @@ lemma [simp]: "|<x :: int> * <y>| = |<x * y>|"
   by (utp_poly_tac)
 
 lemma prefix_implies_concat_minus:
-  fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) pvar"
   assumes "TYPEUSOUND('a ULIST, 'm)" "pvaux xs" "pvaux ys"
   shows "`($xs \<le> $ys) \<Rightarrow> $xs ^ ($ys - $xs) = $ys`"
   using assms
@@ -118,7 +118,7 @@ lemma PEqualP_sym: "`u = v` = `v = u`"
   by (utp_poly_auto_tac)
 
 lemma prefix_implies_diff:
-  fixes xs ys zs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  fixes xs ys zs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) pvar"
   assumes "TYPEUSOUND('a ULIST, 'm)" "pvaux xs"  "pvaux ys" "pvaux zs" 
           "zs\<down> \<noteq> xs\<down>" "zs\<down> \<noteq> ys\<down>"
   shows "`($xs \<le> $ys) \<Rightarrow> (\<exists> zs. $ys = $xs ^ $zs)`"
@@ -129,7 +129,7 @@ lemma prefix_implies_diff:
 done
 
 lemma prefix_as_concat:
-  fixes xs ys zs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  fixes xs ys zs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) pvar"
   assumes "TYPEUSOUND('a ULIST, 'm)" "pvaux xs"  "pvaux ys" "pvaux zs" 
           "zs\<down> \<noteq> xs\<down>" "zs\<down> \<noteq> ys\<down>"
   shows "`($xs \<le> $ys)` = `(\<exists> zs. $ys = $xs ^ $zs)`"
@@ -140,7 +140,7 @@ lemma prefix_as_concat:
 done
 
 lemma EqualP_as_EqualPE:
-  fixes e f :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  fixes e f :: "('a :: DEFINED, 'm :: VALUE) pexpr"
   assumes "TYPEUSOUND('a, 'm)"
   shows "EqualP e\<down> f\<down> = PExprP (EqualPE e f)"
   using assms by (utp_poly_tac)
@@ -150,7 +150,7 @@ lemma ExprP_as_PExprP:
   by (utp_poly_tac)
 
 lemma EvalR_ExprR_ty [evalpr]: 
-  fixes e :: "(bool, 'm :: BOOL_SORT) WF_PEXPRESSION"
+  fixes e :: "(bool, 'm :: BOOL_SORT) pexpr"
   shows "\<lbrakk>ExprP e\<down>\<rbrakk>R = {(b1, b2). \<lbrakk>e\<rbrakk>\<^sub>* (b1 \<oplus>\<^sub>b SS\<bullet>b2 on D\<^sub>1) 
                                 \<and> b1 \<in> WF_REL_BINDING
                                 \<and> b2 \<in> WF_REL_BINDING
@@ -167,7 +167,7 @@ lemma EvalR_ExprR_ty [evalpr]:
 done
 
 lemma EvalR_EqualP_ty [evalpr]:
-  fixes e f :: "('a :: DEFINED, 'm :: BOOL_SORT) WF_PEXPRESSION"
+  fixes e f :: "('a :: DEFINED, 'm :: BOOL_SORT) pexpr"
   assumes "TYPEUSOUND('a, 'm)"
   shows "\<lbrakk>EqualP e\<down> f\<down>\<rbrakk>R = {(b1, b2). \<lbrakk>e\<rbrakk>\<^sub>* (b1 \<oplus>\<^sub>b SS\<bullet>b2 on D\<^sub>1) = \<lbrakk>f\<rbrakk>\<^sub>* (b1 \<oplus>\<^sub>b SS\<bullet>b2 on D\<^sub>1) 
                                 \<and> b1 \<in> WF_REL_BINDING
@@ -188,7 +188,7 @@ lemma EvalR_EqualP_ty [evalpr]:
 *)
 
 lemma EvalR_VarExtP_ty [evalpr]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
   assumes "TYPEUSOUND('a, 'm)" "x \<in> PUNDASHED" "pvaux x"
   shows "\<lbrakk>P\<^bsub>+x\<down>\<^esub>\<rbrakk>R = {(b,b'). (b,b') \<in> \<lbrakk>P\<rbrakk>R \<and> \<langle>b\<rangle>\<^sub>* x = \<langle>b'\<rangle>\<^sub>* x 
                    \<and> b \<in> WF_REL_BINDING \<and> b' \<in> WF_REL_BINDING
@@ -201,7 +201,7 @@ lemma EvalR_VarExtP_ty [evalpr]:
 done
 
 lemma var_eq_trans:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
   assumes "TYPEUSOUND('a, 'm)" "x \<in> PUNDASHED" "pvaux x"
   shows "`($x\<acute> = $x) ; ($x\<acute> = $x)` = `($x\<acute> = $x)`"
   using assms by (utp_prel_auto_tac)
@@ -219,30 +219,30 @@ theorem nil_append_right [simp]:
   by (utp_poly_auto_tac)
 
 lemma append_assoc:
-  fixes xs ys zs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  fixes xs ys zs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) pvar"
   shows "|($xs ^ $ys) ^ $zs| = |$xs ^ ($ys ^ $zs)|"
   by (utp_poly_tac)
 
 theorem SemiR_prefix_trans:
-  fixes xs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  fixes xs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) pvar"
   assumes "TYPEUSOUND('a ULIST, 'm)" "xs \<in> PUNDASHED"
   shows "`($xs \<le> $xs\<acute>) ; ($xs \<le> $xs\<acute>)` = `($xs \<le> $xs\<acute>)`"
   using assms by (utp_prel_auto_tac)
 
 lemma SemiR_prefix_eq_trans:
-  fixes xs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  fixes xs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) pvar"
   assumes "TYPEUSOUND('a ULIST, 'm)" "xs \<in> PUNDASHED"
   shows "`($xs \<le> $xs\<acute>) ; ($xs = $xs\<acute>)` = `($xs \<le> $xs\<acute>)`"
   using assms by (utp_prel_auto_tac)
 
 lemma SemiR_eq_prefix_trans:
-  fixes xs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  fixes xs :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) pvar"
   assumes "TYPEUSOUND('a ULIST, 'm)" "xs \<in> PUNDASHED"
   shows "`($xs = $xs\<acute>) ; ($xs \<le> $xs\<acute>)` = `($xs \<le> $xs\<acute>)`"
   using assms by (utp_prel_auto_tac)
 
 lemma prefix_eq_nil:
-  fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) pvar"
   assumes "TYPEUSOUND('a ULIST, 'm)" 
   shows "`($xs - $ys) = \<langle>\<rangle> \<and> ($ys \<le> $xs)` = `$ys = $xs`"
   using assms
@@ -251,7 +251,7 @@ lemma prefix_eq_nil:
 done
 
 lemma prefix_app:
-  fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) pvar"
   assumes "TYPEUSOUND('a ULIST, 'm)" 
   shows "`($xs ^ \<langle>a\<rangle> = $ys) \<and> ($xs \<le> $ys)` = `($xs ^ \<langle>a\<rangle> = $ys)`"
   using assms
@@ -260,14 +260,14 @@ lemma prefix_app:
 done
 
 lemma app_minus:   
-  fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) pvar"
   assumes "TYPEUSOUND('a ULIST, 'm)" 
   shows "|($xs ^ $ys) - $xs| = |$ys|"
   using assms
   by (utp_poly_tac)
 
 lemma prefix_antisym:
-  fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) PVAR"
+  fixes xs ys :: "(('a :: DEFINED) ULIST, 'm :: LIST_SORT) pvar"
   assumes "TYPEUSOUND('a ULIST, 'm)" 
   shows "`($xs \<le> $ys) \<and> ($ys \<le> $xs)` = `$xs = $ys`"
   using assms 
@@ -276,19 +276,19 @@ lemma prefix_antisym:
 done
 
 lemma SkipRA_unfold_aux_ty: 
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) PVAR" 
+  fixes v :: "('a :: DEFINED, 'm :: VALUE) pvar" 
   assumes "TYPEUSOUND('a, 'm)" "v\<down> \<in> vs" "v\<down> \<acute> \<in> vs" "v \<in> PUNDASHED" "HOMOGENEOUS vs" "pvaux v"
   shows "II\<^bsub>vs\<^esub> = `($v\<acute> = $v) \<and> II\<^bsub>vs - {v \<down>, v \<down>\<acute>}\<^esub>`"
   using assms
   apply(subst SkipRA_unfold[of "v \<down>"])
   apply(simp_all add:closure typing defined)
   apply (utp_poly_auto_tac)
-  apply (metis EvalE_VarE EvalPE_PVarPE_ty EvalPE_VarPE EvalP_EqualP PVAR_VAR_pvdash PVarPE_def)
+  apply (simp add:eval Rep_binding_ty_def)
   apply (metis EvalPE_PVarPE_ty EvalP_EqualP_ty PVAR_VAR_pvdash PVarPE_erasure pvaux_pvdash)
 done
 
 theorem ExistsP_has_ty_value:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) PVAR"
+  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
   assumes 
     "TYPEUSOUND('a, 'm)" "pvaux x" "v \<rhd>\<^sub>* x" "{x\<down>} \<sharp> v"
   shows "`\<exists> x. $x = v` = `true`"

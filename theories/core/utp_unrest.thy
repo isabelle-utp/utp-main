@@ -25,18 +25,18 @@ setup unrest.setup
 subsubsection {* @{term UNREST} Function *}
 
 definition UNREST ::
-  "('VALUE VAR) set \<Rightarrow> 'VALUE WF_PREDICATE \<Rightarrow> bool" where
+  "('a uvar) set \<Rightarrow> 'a upred \<Rightarrow> bool" where
 "UNREST vs p \<longleftrightarrow> (\<forall> b1 \<in> destPRED p . \<forall> b2. b1 \<oplus>\<^sub>b b2 on vs \<in> destPRED p)"
 
 (* Relational unrestriction says that if an undashed variable has the
    same value as its dashed partner, it is unrestricted *)
 
 definition REL_UNREST ::
-  "('VALUE VAR) set \<Rightarrow> 'VALUE WF_PREDICATE \<Rightarrow> bool" where
+  "('a uvar) set \<Rightarrow> 'a upred \<Rightarrow> bool" where
 "REL_UNREST vs p \<longleftrightarrow> (\<forall> b \<in> destPRED p . \<forall>v\<in>in(vs). \<langle>b\<rangle>\<^sub>b(v) = \<langle>b\<rangle>\<^sub>b(v\<acute>))"
 
 definition alphas ::
-  "'a WF_PREDICATE \<Rightarrow> 'a VAR fset set" where
+  "'a upred \<Rightarrow> 'a uvar fset set" where
 "alphas(p) = {vs. UNREST (VAR - \<langle>vs\<rangle>\<^sub>f) p}"
 
 consts
@@ -48,17 +48,17 @@ adhoc_overloading
 subsubsection {* Restricted variables *}
 
 definition rv :: 
-  "'VALUE WF_PREDICATE \<Rightarrow> ('VALUE VAR) set" where
+  "'a upred \<Rightarrow> ('a uvar) set" where
 "rv(p) = \<Inter> {vs. UNREST (VAR - vs) p}"
 
 subsubsection {* Fresh variables *}
 
-definition fresh :: "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool \<Rightarrow> 'VALUE VAR" where
+definition fresh :: "'a upred \<Rightarrow> 'a utype \<Rightarrow> bool \<Rightarrow> 'a uvar" where
 "fresh p t a = (SOME x. UNREST {x} p \<and> vtype x = t \<and> aux x = a)"
 
 (*
 definition ExistsFP :: 
-  "'a UTYPE \<Rightarrow> bool \<Rightarrow> ('a VAR \<Rightarrow> 'a WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" where
+  "'a UTYPE \<Rightarrow> bool \<Rightarrow> ('a VAR \<Rightarrow> 'a upred) \<Rightarrow> 'a upred" where
 "ExistsFP t a P = 
   (let x = (SOME x. (\<forall> y. x \<noteq> y \<longrightarrow> UNREST {x} (P y)) \<and> vtype x = t \<and> aux x = a)
    in ExistsP {x} (P x))"
@@ -70,8 +70,8 @@ lemma "\<forall> y. UNREST {x}
 subsubsection {* Restricted Predicates *}
 
 definition WF_PREDICATE_OVER ::
-  "('VALUE VAR) set \<Rightarrow>
-   'VALUE WF_PREDICATE set" where
+  "('a uvar) set \<Rightarrow>
+   'a upred set" where
 "WF_PREDICATE_OVER vs = {p . - vs \<sharp> p}"
 
 subsubsection {* Theorems *}

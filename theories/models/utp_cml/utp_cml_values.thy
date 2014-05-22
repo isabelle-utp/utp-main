@@ -14,8 +14,8 @@ imports
   Monad_Syntax
   utp_base
   utp_designs
-  utp_definedness
-  utp_csp
+(*  utp_definedness *)
+(*  utp_csp *)
 begin
 
 declare split_paired_All [simp del]

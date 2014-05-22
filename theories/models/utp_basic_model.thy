@@ -47,14 +47,14 @@ inductive_cases
 text {* We create some useful type synonyms for expressions, predicates, and variables in
         our basic value model. *}
 
-type_synonym 'a bexp   = "('a, bval) WF_PEXPRESSION"
-type_synonym bpred     = "bval WF_PREDICATE" 
-type_synonym 'a bvar   = "('a, bval) PVAR"
+type_synonym 'a bexp   = "('a, bval) pexpr"
+type_synonym bpred     = "bval upred" 
+type_synonym 'a bvar   = "('a, bval) pvar"
 
 translations
-  (type) "'a bexp" <= (type) "('a, bval) WF_PEXPRESSION"
-  (type) "bpred" <= (type) "bval WF_PREDICATE"
-  (type) "'a bvar" <= (type) "('a, bval) PVAR"
+  (type) "'a bexp" <= (type) "('a, bval) pexpr"
+  (type) "bpred" <= (type) "bval upred"
+  (type) "'a bvar" <= (type) "('a, bval) pvar"
 
 text {* We next create a definedness predicate for our value space that 
         determines whether a value contains a bottom element. *}
@@ -90,11 +90,11 @@ end
 text {* Next we show some useful inverse properties for embedding types. *}
 
 lemma prjTYPE_inv_bty [simp]
-  : "embTYPE ((prjTYPE t) :: btyp) = (t :: bval UTYPE)"
-  by (metis Rep_UTYPE_elim Rep_UTYPE_inverse embTYPE_def from_nat_to_nat prjTYPE_def utype_rel_bval_def)
+  : "embTYPE ((prjTYPE t) :: btyp) = (t :: bval utype)"
+  by (metis Rep_utype_elim Rep_utype_inverse embTYPE_def from_nat_to_nat prjTYPE_def utype_rel_bval_def)
 
 lemma embTYPE_inv_bty [simp]:
-  "prjTYPE (embTYPE (t :: btyp) :: bval UTYPE) = t"
+  "prjTYPE (embTYPE (t :: btyp) :: bval utype) = t"
   apply (induct t)
   apply (rule embTYPE_inv[of "Int\<^sub>v 0"])
   apply (auto simp add: utype_rel_bval_def)
@@ -108,7 +108,7 @@ text {* We also show that UTP typing corresponds to our basic type relation. *}
 
 lemma type_rel_btyp [simp]: 
   "x : t \<longleftrightarrow> x :\<^sub>b prjTYPE t"
-  by (metis (full_types) Rep_UTYPE_elim empty_Collect_eq from_nat_to_nat prjTYPE_def type_rel_def utype_rel_bval_def)
+  by (metis (full_types) Rep_utype_elim empty_Collect_eq from_nat_to_nat prjTYPE_def type_rel_def utype_rel_bval_def)
 
 text {* We also instantiate the Boolean and Integer sorts so that we can 
         make use of theories which require them (e.g. Designs). *}
@@ -122,7 +122,7 @@ definition MkBool_bval :: "bool \<Rightarrow> bval" where
 primrec DestBool_bval :: "bval \<Rightarrow> bool" where
 "DestBool_bval (Bool\<^sub>v x) = x" 
 
-definition BoolType_bval :: "bval UTYPE" where
+definition BoolType_bval :: "bval utype" where
 "BoolType_bval = embTYPE Bool\<^sub>t"
 
 instance
@@ -142,7 +142,7 @@ definition MkInt_bval :: "int \<Rightarrow> bval" where
 primrec DestInt_bval :: "bval \<Rightarrow> int" where
 "DestInt_bval (Int\<^sub>v x) = x" 
 
-definition IntType_bval :: "bval UTYPE" where
+definition IntType_bval :: "bval utype" where
 "IntType_bval = embTYPE Int\<^sub>t"
 
 instance

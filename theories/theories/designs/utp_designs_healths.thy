@@ -242,7 +242,7 @@ theorem J_split:
   "`P ; J` = `P\<^sup>f \<or> (P\<^sup>t \<and> $ok\<acute>)`"
 proof -
 
-  let ?vs = "(REL_VAR - OKAY) :: 'a VAR set"
+  let ?vs = "(REL_VAR - OKAY) :: 'a uvar set"
 
   have "`P ; J` = `P ; (($ok \<Rightarrow> $ok\<acute>) \<and> II\<^bsub>?vs\<^esub>)`"
     by (simp add:JA_pred_def)
@@ -311,7 +311,7 @@ qed
 
 theorem H2_equivalence_ref:
   "P is H2 \<longleftrightarrow> P\<^sup>t \<sqsubseteq> P\<^sup>f"
-  by (simp add:H2_equivalence assms less_eq_WF_PREDICATE_def RefP_def)
+  by (simp add:H2_equivalence assms less_eq_upred_def RefP_def)
 
 theorem J_is_H2:
   "H2(J) = J"
@@ -440,7 +440,7 @@ proof -
 
   with assms(1) show ?thesis
     apply (simp add: H2_equivalence_ref closure usubst assms(1))
-    apply (simp add: Inf_WF_PREDICATE_def[THEN sym])
+    apply (simp add: Inf_upred_def[THEN sym])
     apply (auto intro: Inf_mono)
   done
 qed
@@ -715,7 +715,7 @@ theorem SkipR_is_H4 [closure]:
 theorem SkipR_not_H1: 
   "\<not> (II is H1)"
 proof -
-  have "`$ok \<Rightarrow> II` = (`II` :: 'a WF_PREDICATE) \<longleftrightarrow> (`true` :: 'a WF_PREDICATE) = `II[false/ok]`"
+  have "`$ok \<Rightarrow> II` = (`II` :: 'a upred) \<longleftrightarrow> (`true` :: 'a upred) = `II[false/ok]`"
     by (unfold BoolType_pvaux_cases[of "ok" "`$ok \<Rightarrow> II`" "II", simplified], utp_subst_tac)
 
   moreover have "`II[false/ok]` = `($ok\<acute> = $ok \<and> II\<^bsub>REL_VAR - OKAY\<^esub>)[false/ok]`"

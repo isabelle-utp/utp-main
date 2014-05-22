@@ -24,8 +24,8 @@ setup evala.setup
 subsection {* Interpretation Function *}
 
 definition EvalA ::
-  "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE" ("\<lbrakk>_\<rbrakk>\<pi>") where
+  "'a uapred \<Rightarrow>
+   'a upred" ("\<lbrakk>_\<rbrakk>\<pi>") where
 "EvalA p = \<pi> p"
 
 subsection {* Transfer Theorems *}
@@ -166,8 +166,8 @@ lemma EvalA_TautologyA [evala]:
 
 (* declare TautologyA_def [evala] *)
 declare ContradictionA_def [evala]
-declare less_eq_WF_ALPHA_PREDICATE_def [evala]
-declare less_WF_ALPHA_PREDICATE_def [evala]
+declare less_eq_uapred_def [evala]
+declare less_uapred_def [evala]
 
 lemma EvalA_RefinementA: "p \<sqsubseteq> q \<longleftrightarrow> \<alpha> p = \<alpha> q \<and> \<lbrakk>p\<rbrakk>\<pi> \<sqsubseteq> \<lbrakk>q\<rbrakk>\<pi>"
   by (simp add: evala eval alphabet)

@@ -22,8 +22,8 @@ setup eval.setup
 subsection {* Interpretation Function *}
 
 definition EvalP ::
-  "'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_BINDING \<Rightarrow> bool" ("\<lbrakk>_\<rbrakk>_" [0, 1000] 51) where
+  "'a upred \<Rightarrow>
+   'a binding \<Rightarrow> bool" ("\<lbrakk>_\<rbrakk>_" [0, 1000] 51) where
 "EvalP p = (\<lambda> b. b \<in> destPRED p)"
 
 subsection {* Transfer Theorems *}
@@ -142,7 +142,7 @@ done
 declare Tautology_def [eval]
 declare Contradiction_def [eval]
 (* declare Refinement_def [eval] *)
-declare less_eq_WF_PREDICATE_def [eval]
+declare less_eq_upred_def [eval]
 (* declare PrimeP_def [eval] *)
 
 lemma EvalP_Tautology_intro:
@@ -151,7 +151,7 @@ lemma EvalP_Tautology_intro:
 
 lemma EvalP_RefineP_intro:
   "\<lbrakk> \<And> b. \<lbrakk>q\<rbrakk>b \<Longrightarrow> \<lbrakk>p\<rbrakk>b \<rbrakk> \<Longrightarrow> p \<sqsubseteq> q"
-  by (metis EvalP_RefP EvalP_Tautology_intro less_eq_WF_PREDICATE_def)  
+  by (metis EvalP_RefP EvalP_Tautology_intro less_eq_upred_def)  
 
 lemmas EvalP_intros = EvalP_intro EvalP_Tautology_intro EvalP_RefineP_intro
 

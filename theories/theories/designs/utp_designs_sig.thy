@@ -23,74 +23,72 @@ abbreviation "OKAY \<equiv> {ok\<down>,ok\<down>\<acute>}"
 subsection {* Design Signature *}
 
 definition DesignD :: 
-"'a WF_PREDICATE \<Rightarrow>
- 'a WF_PREDICATE \<Rightarrow>
- 'a WF_PREDICATE" (infixr "\<turnstile>" 60) where
+  "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" (infixr "\<turnstile>" 60) where
 "p \<turnstile> q = `$ok \<and> p \<Rightarrow> $ok\<acute> \<and> q`"
 
-definition SkipDA :: "'a VAR set \<Rightarrow> 'a WF_PREDICATE" where
+definition SkipDA :: "'a uvar set \<Rightarrow> 'a upred" where
 "SkipDA vs = true \<turnstile> II\<^bsub>(vs - OKAY)\<^esub>"
 
 notation SkipDA ("II\<^bsub>D[_]\<^esub>")
 
-abbreviation SkipD :: "'a WF_PREDICATE" where
+abbreviation SkipD :: "'a upred" where
 "SkipD \<equiv> SkipDA REL_VAR"
 
 notation SkipD ("II\<^sub>D")
 
 abbreviation AssignDO ::
-  "'a VAR \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_PREDICATE" ("(_ /:=\<^sub>o/ _)") where
+  "'a uvar \<Rightarrow> 'a uexpr \<Rightarrow> 'a upred" ("(_ /:=\<^sub>o/ _)") where
 "AssignDO x v \<equiv> x :=\<^bsub>(REL_VAR - OKAY)\<^esub> v"
 
 abbreviation AssignDOt ::
-  "('a :: DEFINED, 'm) PVAR \<Rightarrow> ('a, 'm) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" where
+  "('a :: DEFINED, 'm) pvar \<Rightarrow> ('a, 'm) pexpr \<Rightarrow> 'm upred" where
 "AssignDOt x v \<equiv> x\<down> :=\<^sub>o v\<down>"
 
 definition AssignD ::
-  "'a VAR \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a WF_PREDICATE" ("(_ /:=\<^sub>D/ _)") where
+  "'a uvar \<Rightarrow> 'a uexpr \<Rightarrow> 'a upred" ("(_ /:=\<^sub>D/ _)") where
 "AssignD x v = (true \<turnstile> x :=\<^sub>o v)"
 
 abbreviation AssignDt :: 
-  "('a :: DEFINED, 'm) PVAR \<Rightarrow> ('a, 'm) WF_PEXPRESSION \<Rightarrow> 'm WF_PREDICATE" where
+  "('a :: DEFINED, 'm) pvar \<Rightarrow> ('a, 'm) pexpr \<Rightarrow> 'm upred" where
 "AssignDt x v \<equiv> AssignD x\<down> v\<down>"
 
-definition BotD :: "'a WF_PREDICATE" ("\<bottom>\<^sub>D") where
+definition BotD :: "'a upred" ("\<bottom>\<^sub>D") where
 "BotD = true"
 
-definition TopD :: "'a WF_PREDICATE" ("\<top>\<^sub>D") where
+definition TopD :: "'a upred" ("\<top>\<^sub>D") where
 "TopD = `\<not> $ok`"
 
-definition JA_pred :: "'a VAR set \<Rightarrow> 'a WF_PREDICATE" ("J\<^bsub>_\<^esub>") where
+definition JA_pred :: "'a uvar set \<Rightarrow> 'a upred" ("J\<^bsub>_\<^esub>") where
 "J\<^bsub>vs\<^esub> \<equiv> `($ok \<Rightarrow> $ok\<acute>) \<and> II\<^bsub>vs - OKAY\<^esub>`"
 
-abbreviation J_pred :: "'a WF_PREDICATE" ("J") where
+abbreviation J_pred :: "'a upred" ("J") where
 "J \<equiv> J\<^bsub>REL_VAR\<^esub>"
 
 abbreviation ok'_true :: 
-  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<^sup>t" [1000] 1000) where
+  "'a upred \<Rightarrow> 'a upred" ("_\<^sup>t" [1000] 1000) where
 "p\<^sup>t \<equiv> `p[true/ok\<acute>]`"
 
 abbreviation ok'_false :: 
-  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<^sup>f" [1000] 1000) where
+  "'a upred \<Rightarrow> 'a upred" ("_\<^sup>f" [1000] 1000) where
 "p\<^sup>f \<equiv> `p[false/ok\<acute>]`"
 
 abbreviation ok_true_ok'_true :: 
-  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<^bsup>tt\<^esup>" [1000] 1000) where
+  "'a upred \<Rightarrow> 'a upred" ("_\<^bsup>tt\<^esup>" [1000] 1000) where
 "p\<^bsup>tt\<^esup> \<equiv> `p[true/ok][true/ok\<acute>]`"
 
 abbreviation ok_true_ok'_false :: 
-  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("_\<^bsup>tf\<^esup>" [1000] 1000) where
+  "'a upred \<Rightarrow> 'a upred" ("_\<^bsup>tf\<^esup>" [1000] 1000) where
 "p\<^bsup>tf\<^esup> \<equiv> `p[true/ok][false/ok\<acute>]`"
 
 definition ParallelD :: 
-  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infixr "\<parallel>" 100) where 
+  "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" (infixr "\<parallel>" 100) where 
 "P \<parallel> Q = (\<not>\<^sub>p P\<^sup>f \<and>\<^sub>p \<not>\<^sub>p Q\<^sup>f) \<turnstile> (P\<^sup>t \<and>\<^sub>p Q\<^sup>t)"
 
-definition WF_VALID_MERGE :: "('a VAR set * 'a WF_PREDICATE) set" where
+definition WF_VALID_MERGE :: "('a uvar set * 'a upred) set" where
 "WF_VALID_MERGE = UNIV" (* fst M undashed only *)
 
 definition ParallelMergeD :: 
-  "'a WF_PREDICATE => ('a VAR set * 'a WF_PREDICATE) => 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infix "\<parallel>\<^bsub>_\<^esub>" 100) where
+  "'a upred => ('a uvar set * 'a upred) => 'a upred \<Rightarrow> 'a upred" (infix "\<parallel>\<^bsub>_\<^esub>" 100) where
 "P \<parallel>\<^bsub>M\<^esub> Q =  (((add_sub 0 on (dash ` fst M) \<bullet> P) \<parallel> (add_sub 1 on (dash ` fst M) \<bullet> Q)) \<and>\<^sub>p II\<^bsub>fst M \<union> (dash ` fst M)\<^esub>) ;\<^sub>R snd M"
 
 declare BotD_def [eval,evalr,evalrx,evalpp,evalpr]
@@ -102,43 +100,43 @@ declare AssignD_def [eval,evalr,evalrx,evalpp,evalpr]
 declare ParallelD_def [eval,evalr,evalrx,evalpp,evalpr]
 
 syntax
-  "_upred_desbot"    :: "upred" ("\<bottom>\<^sub>D")
-  "_upred_destop"    :: "upred" ("\<top>\<^sub>D")
-  "_upred_design"    :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<turnstile>" 30)
-  "_upred_ok'_true"  :: "upred \<Rightarrow> upred" ("_\<^sup>t" [1000] 1000)
-  "_upred_ok'_false" :: "upred \<Rightarrow> upred" ("_\<^sup>f" [1000] 1000)
-  "_upred_ok_true_ok'_true"  :: "upred \<Rightarrow> upred" ("_\<^bsup>tt\<^esup>" [1000] 1000)
-  "_upred_ok_true_ok'_false" :: "upred \<Rightarrow> upred" ("_\<^bsup>tf\<^esup>" [1000] 1000)
+  "_n_upred_desbot"    :: "n_upred" ("\<bottom>\<^sub>D")
+  "_n_upred_destop"    :: "n_upred" ("\<top>\<^sub>D")
+  "_n_upred_design"    :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr "\<turnstile>" 30)
+  "_n_upred_ok'_true"  :: "n_upred \<Rightarrow> n_upred" ("_\<^sup>t" [1000] 1000)
+  "_n_upred_ok'_false" :: "n_upred \<Rightarrow> n_upred" ("_\<^sup>f" [1000] 1000)
+  "_n_upred_ok_true_ok'_true"  :: "n_upred \<Rightarrow> n_upred" ("_\<^bsup>tt\<^esup>" [1000] 1000)
+  "_n_upred_ok_true_ok'_false" :: "n_upred \<Rightarrow> n_upred" ("_\<^bsup>tf\<^esup>" [1000] 1000)
 
-  "_upred_SkipD"     :: "upred" ("II\<^sub>D")
-  "_upred_assignd"   :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> upred" ("_ :=\<^sub>D _" [100] 100)
-  "_upred_assigndo"  :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> upred" ("_ :=\<^sub>o _" [100] 100)
-  "_upred_J"         :: "upred" ("J")
-  "_upred_parallel"  :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infix "\<parallel>" 50)
+  "_n_upred_SkipD"     :: "n_upred" ("II\<^sub>D")
+  "_n_upred_assignd"   :: "('a, 'm) pvar \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_ :=\<^sub>D _" [100] 100)
+  "_n_upred_assigndo"  :: "('a, 'm) pvar \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_ :=\<^sub>o _" [100] 100)
+  "_n_upred_J"         :: "n_upred" ("J")
+  "_n_upred_parallel"  :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infix "\<parallel>" 50)
 
 translations
-  "_upred_desbot"       == "CONST BotD"
-  "_upred_destop"       == "CONST TopD"
-  "_upred_design p q"   == "CONST DesignD p q"
-  "_upred_ok'_true p"   == "CONST ok'_true p"
-  "_upred_ok'_false p"  == "CONST ok'_false p"
-  "_upred_ok_true_ok'_true p"   == "CONST ok_true_ok'_true p"
-  "_upred_ok_true_ok'_false p"  == "CONST ok_true_ok'_false p"
-  "_upred_SkipD"        == "CONST SkipD"
-  "_upred_assignd x v"  == "CONST AssignDt x v"
-  "_upred_assigndo x v" == "CONST AssignDOt x v"
-  "_upred_J"            == "CONST J_pred"
-  "_upred_parallel P Q" == "CONST ParallelD P Q"
+  "_n_upred_desbot"       == "CONST BotD"
+  "_n_upred_destop"       == "CONST TopD"
+  "_n_upred_design p q"   == "CONST DesignD p q"
+  "_n_upred_ok'_true p"   == "CONST ok'_true p"
+  "_n_upred_ok'_false p"  == "CONST ok'_false p"
+  "_n_upred_ok_true_ok'_true p"   == "CONST ok_true_ok'_true p"
+  "_n_upred_ok_true_ok'_false p"  == "CONST ok_true_ok'_false p"
+  "_n_upred_SkipD"        == "CONST SkipD"
+  "_n_upred_assignd x v"  == "CONST AssignDt x v"
+  "_n_upred_assigndo x v" == "CONST AssignDOt x v"
+  "_n_upred_J"            == "CONST J_pred"
+  "_n_upred_parallel P Q" == "CONST ParallelD P Q"
 
 text {* Lift design syntax to procedure level *}
 
 definition "DesignO p q = (\<lambda> r. DesignD (p r) (q r))"
 
 syntax
-  "_uproc_design" :: "uproc \<Rightarrow> uproc \<Rightarrow> uproc" (infixr "\<turnstile>" 30)
+  "_n_uproc_design" :: "n_uproc \<Rightarrow> n_uproc \<Rightarrow> n_uproc" (infixr "\<turnstile>" 30)
 
 translations
-  "_uproc_design p q" == "CONST DesignO p q"
+  "_n_uproc_design p q" == "CONST DesignO p q"
 
 declare DesignO_def [eval, evalpp, evalr, evalpr, uop_defs]
 
@@ -255,7 +253,7 @@ done
 (* This should probably be shown for untyped expressions *)
 
 lemma AssignD_alt_def:
-  fixes x :: "('a :: DEFINED, 'm) PVAR" 
+  fixes x :: "('a :: DEFINED, 'm) pvar" 
   assumes "TYPEUSOUND('a, 'm)"
           "x \<in> PUNDASHED" "x\<down> \<noteq> ok\<down>" "{ok\<down>} \<sharp> v"
           "D\<^sub>1 \<sharp> v" "NON_REL_VAR \<sharp> v"
@@ -304,7 +302,7 @@ lemma TopD_FalseP_uniqs [simp]:
   by (utp_poly_tac, rule_tac x="\<B>(ok :=\<^sub>* False)" in exI, simp add:typing defined)+
 
 lemma PExprP_erasure [erasure]:
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION"
+  fixes e :: "('a :: DEFINED, 'm :: VALUE) pexpr"
   assumes "TYPEUSOUND('a, 'm)"
   shows "PExprP (EqualPE e f) = EqualP (e\<down>) (f\<down>)"
   using assms by (utp_poly_tac)

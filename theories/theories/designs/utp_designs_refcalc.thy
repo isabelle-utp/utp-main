@@ -11,19 +11,16 @@ imports utp_designs_healths
 begin
 
 definition SpecD :: 
-  "'a VAR set \<Rightarrow>
-   'a WF_PREDICATE \<Rightarrow>
-   'a WF_PREDICATE \<Rightarrow>
-   'a WF_PREDICATE" ("_:[_, _]" [999,999,999] 1000) where
+  "'a uvar set \<Rightarrow> 'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" ("_:[_, _]" [999,999,999] 1000) where
 "w:[P, Q] = `P \<turnstile> (Q\<acute> \<and> II\<^bsub>REL_VAR - OKAY - w\<^esub>)`"
 
 declare SpecD_def [eval, evalp, evalr]
 
 syntax
-  "_upred_spec" :: "'a VAR set \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("_:[_, _]" [999] 1000)
+  "_n_upred_spec" :: "'a uvar set \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_:[_, _]" [999] 1000)
 
 translations
-  "_upred_spec w p q" == "CONST SpecD w p q"
+  "_n_upred_spec w p q" == "CONST SpecD w p q"
 
 theorem SpecD_abort:
   "`w:[false,true]` = `true`"

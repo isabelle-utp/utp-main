@@ -18,24 +18,24 @@ imports
   "../parser/utp_pred_parser"
 begin
 
-instantiation WF_PREDICATE :: (VALUE) lattice
+instantiation upred :: (VALUE) lattice
 begin
 
-definition sup_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"sup_WF_PREDICATE = OrP"
+definition sup_upred :: "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" where
+"sup_upred = OrP"
 
-definition inf_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"inf_WF_PREDICATE = AndP"
+definition inf_upred :: "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" where
+"inf_upred = AndP"
 
 instance
   apply (intro_classes)
-  apply (simp_all add: sup_WF_PREDICATE_def inf_WF_PREDICATE_def less_eq_WF_PREDICATE_def less_WF_PREDICATE_def)
+  apply (simp_all add: sup_upred_def inf_upred_def less_eq_upred_def less_upred_def)
   apply (utp_pred_auto_tac)+
 done
 end
 
-declare sup_WF_PREDICATE_def [eval,evalr,evalrx]
-declare inf_WF_PREDICATE_def [eval,evalr,evalrx]
+declare sup_upred_def [eval,evalr,evalrx,evalpp,evalpr]
+declare inf_upred_def [eval,evalr,evalrx,evalpp,evalpr]
 
 notation
   bot_class.bot ("\<top>") and
@@ -46,102 +46,102 @@ notation
 default_sort type
 
 syntax
-  "_upred_inf"   :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "\<sqinter>" 65)
-  "_upred_sup"   :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixl "\<squnion>" 70)
-  "_upred_Inf"   :: "upreds \<Rightarrow> upred" ("\<Sqinter> {_}" [900] 900)
-  "_upred_Sup"   :: "upreds \<Rightarrow> upred" ("\<Squnion> {_}" [900] 900)
-  "_upred_INF1"  :: "pttrns \<Rightarrow> upred \<Rightarrow> upred" ("(3\<Sqinter> _./ _)" [0, 10] 10)
-  "_upred_INF"   :: "pttrn \<Rightarrow> 'b set \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<Sqinter> _:_./ _)" [0, 0, 10] 10)
-  "_upred_SUP1"  :: "pttrns \<Rightarrow> upred \<Rightarrow> upred" ("(3\<Squnion> _./ _)" [0, 10] 10)
-  "_upred_SUP"   :: "pttrn \<Rightarrow> 'b set \<Rightarrow> upred \<Rightarrow> upred"  ("(3\<Squnion> _:_./ _)" [0, 0, 10] 10)
+  "_n_upred_inf"   :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "\<sqinter>" 65)
+  "_n_upred_sup"   :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "\<squnion>" 70)
+  "_n_upred_Inf"   :: "n_upreds \<Rightarrow> n_upred" ("\<Sqinter> {_}" [900] 900)
+  "_n_upred_Sup"   :: "n_upreds \<Rightarrow> n_upred" ("\<Squnion> {_}" [900] 900)
+  "_n_upred_INF1"  :: "pttrns \<Rightarrow> n_upred \<Rightarrow> n_upred" ("(3\<Sqinter> _./ _)" [0, 10] 10)
+  "_n_upred_INF"   :: "pttrn \<Rightarrow> 'b set \<Rightarrow> n_upred \<Rightarrow> n_upred"  ("(3\<Sqinter> _:_./ _)" [0, 0, 10] 10)
+  "_n_upred_SUP1"  :: "pttrns \<Rightarrow> n_upred \<Rightarrow> n_upred" ("(3\<Squnion> _./ _)" [0, 10] 10)
+  "_n_upred_SUP"   :: "pttrn \<Rightarrow> 'b set \<Rightarrow> n_upred \<Rightarrow> n_upred"  ("(3\<Squnion> _:_./ _)" [0, 0, 10] 10)
 
 translations
-  "_upred_inf p q"     == "CONST sup_class.sup p q"
-  "_upred_sup p q"     == "CONST inf_class.inf p q"
-  "_upred_Inf ps"      == "CONST Sup ps"
-  "_upred_Sup ps"      == "CONST Inf ps"
-  "_upred_INF1 x y B"  == "SUP x. SUP y. B"
-  "_upred_INF1 x B"    == "CONST SUPR CONST UNIV (%x. B)"
-  "_upred_INF x A B"   == "CONST SUPR A (%x. B)"
-  "_upred_SUP1 x y B"  == "INF x. INF y. B"
-  "_upred_SUP1 x B"    == "CONST INFI CONST UNIV (%x. B)"
-  "_upred_SUP x A B"   == "CONST INFI A (%x. B)"
-  "_upreds x xs"       => "CONST insert x xs"
-  "_upreds_end x"      => "{x}"
+  "_n_upred_inf p q"     == "CONST sup_class.sup p q"
+  "_n_upred_sup p q"     == "CONST inf_class.inf p q"
+  "_n_upred_Inf ps"      == "CONST Sup ps"
+  "_n_upred_Sup ps"      == "CONST Inf ps"
+  "_n_upred_INF1 x y B"  == "SUP x. SUP y. B"
+  "_n_upred_INF1 x B"    == "CONST SUPR CONST UNIV (%x. B)"
+  "_n_upred_INF x A B"   == "CONST SUPR A (%x. B)"
+  "_n_upred_SUP1 x y B"  == "INF x. INF y. B"
+  "_n_upred_SUP1 x B"    == "CONST INFI CONST UNIV (%x. B)"
+  "_n_upred_SUP x A B"   == "CONST INFI A (%x. B)"
+  "_n_upreds x xs"       => "CONST insert x xs"
+  "_n_upreds_end x"      => "{x}"
 
 default_sort VALUE
 
-instantiation WF_PREDICATE :: (VALUE) bounded_lattice
+instantiation upred :: (VALUE) bounded_lattice
 begin
 
-definition top_WF_PREDICATE :: "'a WF_PREDICATE" where
-"top_WF_PREDICATE = TrueP"
+definition top_upred :: "'a upred" where
+"top_upred = TrueP"
 
-definition bot_WF_PREDICATE :: "'a WF_PREDICATE" where
-"bot_WF_PREDICATE = FalseP"
+definition bot_upred :: "'a upred" where
+"bot_upred = FalseP"
 
 instance proof
 
-  fix a :: "'a WF_PREDICATE"
+  fix a :: "'a upred"
   show "bot \<le> a"
-    apply (simp add:bot_WF_PREDICATE_def less_eq_WF_PREDICATE_def)
+    apply (simp add:bot_upred_def less_eq_upred_def)
     apply (utp_pred_auto_tac)
   done
 
   show "a \<le> top_class.top"
-    apply (simp add:top_WF_PREDICATE_def less_eq_WF_PREDICATE_def)
+    apply (simp add:top_upred_def less_eq_upred_def)
     apply (utp_pred_auto_tac)
   done
 qed
 end
 
-declare bot_WF_PREDICATE_def [eval,evalr,evalrx]
-declare top_WF_PREDICATE_def [eval,evalr,evalrx]
+declare bot_upred_def [eval,evalr,evalrx,evalpp,evalpr]
+declare top_upred_def [eval,evalr,evalrx,evalpp,evalpr]
 
-instantiation WF_PREDICATE :: (VALUE) Inf
+instantiation upred :: (VALUE) Inf
 begin
 
-definition Inf_WF_PREDICATE ::
-  "'VALUE WF_PREDICATE set \<Rightarrow>
-   'VALUE WF_PREDICATE" where
-"Inf_WF_PREDICATE ps = \<And>\<^sub>p ps"
+definition Inf_upred ::
+  "'VALUE upred set \<Rightarrow>
+   'VALUE upred" where
+"Inf_upred ps = \<And>\<^sub>p ps"
 
 instance ..
 end
 
-instantiation WF_PREDICATE :: (VALUE) Sup
+instantiation upred :: (VALUE) Sup
 begin
 
-definition Sup_WF_PREDICATE ::
-  "'VALUE WF_PREDICATE set \<Rightarrow>
-   'VALUE WF_PREDICATE" where
-"Sup_WF_PREDICATE ps = \<Or>\<^sub>p ps"
+definition Sup_upred ::
+  "'VALUE upred set \<Rightarrow>
+   'VALUE upred" where
+"Sup_upred ps = \<Or>\<^sub>p ps"
 
 instance ..
 end
 
 lemma EvalP_Inf [eval] :
 "\<lbrakk>\<Sqinter> ps\<rbrakk>b = (\<exists> p \<in> ps . \<lbrakk>p\<rbrakk>b)"
-  by (auto simp add:Sup_WF_PREDICATE_def eval)
+  by (auto simp add:Sup_upred_def eval)
 
 lemma EvalP_Sup [eval] :
 "\<lbrakk>\<Squnion> ps\<rbrakk>b = (\<forall> p \<in> ps . \<lbrakk>p\<rbrakk>b)"
-  by (auto simp add:Inf_WF_PREDICATE_def eval)
+  by (auto simp add:Inf_upred_def eval)
 
-instantiation WF_PREDICATE :: (VALUE) complete_lattice
+instantiation upred :: (VALUE) complete_lattice
 begin
 
 instance
   apply (intro_classes)
-  apply (simp_all add:less_eq_WF_PREDICATE_def)
+  apply (simp_all add:less_eq_upred_def)
   apply (utp_pred_auto_tac)+
 done
 end
 
-declare INF_def [eval]
-declare SUP_def [eval]
+declare INF_def [eval,evalpp]
+declare SUP_def [eval,evalpp]
 
-instantiation WF_PREDICATE :: (VALUE) complete_distrib_lattice
+instantiation upred :: (VALUE) complete_distrib_lattice
 begin
 
 instance
@@ -150,39 +150,39 @@ instance
 done
 end
 
-instantiation WF_PREDICATE :: (VALUE) boolean_algebra
+instantiation upred :: (VALUE) boolean_algebra
 begin
 
-definition uminus_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"uminus_WF_PREDICATE p = \<not>\<^sub>p p"
+definition uminus_upred :: "'a upred \<Rightarrow> 'a upred" where
+"uminus_upred p = \<not>\<^sub>p p"
 
-definition minus_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-"minus_WF_PREDICATE p q = (p \<and>\<^sub>p \<not>\<^sub>p q)"
+definition minus_upred :: "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" where
+"minus_upred p q = (p \<and>\<^sub>p \<not>\<^sub>p q)"
 
 instance 
   apply (intro_classes)
-  apply (simp_all add: uminus_WF_PREDICATE_def minus_WF_PREDICATE_def inf_WF_PREDICATE_def sup_WF_PREDICATE_def bot_WF_PREDICATE_def top_WF_PREDICATE_def)
+  apply (simp_all add: uminus_upred_def minus_upred_def inf_upred_def sup_upred_def bot_upred_def top_upred_def)
   apply (utp_pred_tac)+
 done
 end
 
 theorem Lattice_L1:
-  fixes P :: "'VALUE WF_PREDICATE"
+  fixes P :: "'VALUE upred"
   shows "P \<sqsubseteq> \<Sqinter> S \<longleftrightarrow> (\<forall> X\<in>S. P \<sqsubseteq> X)"
   by (metis Sup_le_iff)
 
 theorem Lattice_L1A:
-  fixes X :: "'VALUE WF_PREDICATE"
+  fixes X :: "'VALUE upred"
   shows "X \<in> S \<Longrightarrow> \<Sqinter> S \<sqsubseteq> X"
   by (metis Sup_upper)
 
 theorem Lattice_L1B:
-  fixes P :: "'VALUE WF_PREDICATE"
+  fixes P :: "'VALUE upred"
   shows "\<forall> X \<in> S. P \<sqsubseteq> X \<Longrightarrow> P \<sqsubseteq> \<Sqinter> S"
   by (metis Lattice_L1)
 
 theorem Lattice_L2:
-  fixes Q :: "'VALUE WF_PREDICATE"
+  fixes Q :: "'VALUE upred"
   shows "(\<Squnion> S) \<sqinter> Q = \<Squnion> { P \<sqinter> Q | P. P \<in> S}"
 proof -
 
@@ -204,7 +204,7 @@ proof -
 qed
   
 theorem Lattice_L3:
-  fixes Q :: "'VALUE WF_PREDICATE"
+  fixes Q :: "'VALUE upred"
   shows "(\<Sqinter> S) \<squnion> Q = \<Sqinter>{ P \<squnion> Q | P. P \<in> S}"
 proof -
 
@@ -224,7 +224,7 @@ qed
 
 lemma EvalR_SupP [evalr]:
   "\<lbrakk>\<Sqinter> ps\<rbrakk>R = \<Union> {\<lbrakk>p\<rbrakk>R | p . p \<in> ps}"
-  by (simp add:Sup_WF_PREDICATE_def evalr)
+  by (simp add:Sup_upred_def evalr)
 
 lemma EvalRR_SupP [evalrr]:
   "\<lbrakk>\<Sqinter> ps\<rbrakk>\<R> = \<Union> {\<lbrakk>p\<rbrakk>\<R> | p . p \<in> ps}"
@@ -232,11 +232,11 @@ lemma EvalRR_SupP [evalrr]:
 
 lemma EvalRX_SupP [evalrx]:
   "\<lbrakk>\<Sqinter> ps\<rbrakk>RX = \<Union> {\<lbrakk>p\<rbrakk>RX | p . p \<in> ps}"
-  by (simp add:Sup_WF_PREDICATE_def evalrx)
+  by (simp add:Sup_upred_def evalrx)
 
 lemma EvalR_InfP [evalr]:
   "ps \<noteq> {} \<Longrightarrow> \<lbrakk>\<Squnion> ps\<rbrakk>R = \<Inter> {\<lbrakk>p\<rbrakk>R | p . p \<in> ps}"
-  by (simp add:Inf_WF_PREDICATE_def evalr)
+  by (simp add:Inf_upred_def evalr)
 
 lemma EvalRR_InfP [evalrr]:
   "ps \<noteq> {} \<Longrightarrow> \<lbrakk>\<Squnion> ps\<rbrakk>\<R> = \<Inter> {\<lbrakk>p\<rbrakk>\<R> | p . p \<in> ps}"
@@ -258,7 +258,7 @@ lemma rel_Sup_comp_distr: "P O (\<Union> S) = \<Union>{ P O Q | Q. Q \<in> S}"
   by (auto)
 
 theorem Lattice_L4:
-  fixes Q :: "'VALUE WF_PREDICATE"
+  fixes Q :: "'a upred"
   shows "(\<Sqinter> S) ;\<^sub>R Q = \<Sqinter>{ P ;\<^sub>R Q | P. P \<in> S}"
   apply (utp_rel_tac)
   apply (auto simp add:rel_Sup_comp_distl)
@@ -266,7 +266,7 @@ theorem Lattice_L4:
 done
 
 theorem Lattice_L5:
-  fixes P :: "'VALUE WF_PREDICATE"
+  fixes P :: "'a upred"
   shows "P ;\<^sub>R (\<Sqinter> S) = \<Sqinter>{ P ;\<^sub>R Q | Q. Q \<in> S}"
   apply (utp_rel_tac)
   apply (simp add:rel_Sup_comp_distr)
@@ -283,100 +283,100 @@ lemma "S \<noteq> {} \<Longrightarrow> (\<Squnion> S) \<and>\<^sub>p P = (\<Squn
 subsection {* @{term UNREST} Theorems *}
 
 lemma UNREST_BotP [unrest]: "UNREST vs \<bottom>"
-  by (simp add:top_WF_PREDICATE_def unrest)
+  by (simp add:top_upred_def unrest)
 
 lemma UNREST_TopP [unrest]: "UNREST vs \<top>"
-  by (simp add:bot_WF_PREDICATE_def unrest)
+  by (simp add:bot_upred_def unrest)
 
 lemma UNREST_sup :
 "\<lbrakk>UNREST vs p1;
  UNREST vs p2\<rbrakk> \<Longrightarrow>
  UNREST vs (p1 \<squnion> p2)"
-  by (simp add: inf_WF_PREDICATE_def UNREST_AndP)
+  by (simp add: inf_upred_def UNREST_AndP)
 
 lemma UNREST_inf [unrest]:
 "\<lbrakk>UNREST vs p1;
  UNREST vs p2\<rbrakk> \<Longrightarrow>
  UNREST vs (p1 \<sqinter> p2)"
-  by (auto simp add: sup_WF_PREDICATE_def UNREST_OrP)
+  by (auto simp add: sup_upred_def UNREST_OrP)
 
 lemma UNREST_Sup [unrest]:
 "\<forall> p \<in> ps. UNREST vs p \<Longrightarrow> UNREST vs (\<Squnion> ps)"
-  by (simp add: Inf_WF_PREDICATE_def unrest)
+  by (simp add: Inf_upred_def unrest)
 
 lemma UNREST_Inf [unrest]:
 "\<forall> p \<in> ps. UNREST vs p \<Longrightarrow> UNREST vs (\<Sqinter> ps)"
-  by (simp add: Sup_WF_PREDICATE_def unrest)
+  by (simp add: Sup_upred_def unrest)
 
 lemma Sup_rel_closure [closure]:
   "ps \<subseteq> WF_RELATION \<Longrightarrow> \<Squnion> ps \<in> WF_RELATION"
-  by (simp add:Inf_WF_PREDICATE_def closure)
+  by (simp add:Inf_upred_def closure)
 
 lemma Inf_rel_closure [closure]:
   "ps \<subseteq> WF_RELATION \<Longrightarrow> \<Sqinter> ps \<in> WF_RELATION"
-  by (simp add:Sup_WF_PREDICATE_def closure)
+  by (simp add:Sup_upred_def closure)
 
-instantiation WF_PREDICATE :: (VALUE) monoid_mult
+instantiation upred :: (VALUE) monoid_mult
 begin
 
 definition 
-  times_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+  times_upred :: "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" where
   "P * Q = P ;\<^sub>R Q"
 
-definition one_WF_PREDICATE :: "'a WF_PREDICATE" where
+definition one_upred :: "'a upred" where
 "1 = II"
 
 instance 
   apply (intro_classes)
-  apply (simp_all add:times_WF_PREDICATE_def one_WF_PREDICATE_def SemiR_assoc)
+  apply (simp_all add:times_upred_def one_upred_def SemiR_assoc)
 done
 end
 
-declare times_WF_PREDICATE_def [eval, evalr, evalrr, evalrx]
-declare one_WF_PREDICATE_def [eval, evalr, evalrr, evalrx]
+declare times_upred_def [eval, evalr, evalrr, evalrx]
+declare one_upred_def [eval, evalr, evalrr, evalrx]
 
-instantiation WF_PREDICATE :: (VALUE) comm_monoid_add
+instantiation upred :: (VALUE) comm_monoid_add
 begin
 
 definition 
-  plus_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
-  "plus_WF_PREDICATE p q = p \<or>\<^sub>p q"
+  plus_upred :: "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" where
+  "plus_upred p q = p \<or>\<^sub>p q"
 
 definition 
-  zero_WF_PREDICATE :: "'a WF_PREDICATE" where
+  zero_upred :: "'a upred" where
   "0 = FalseP"
 
 instance 
   apply (intro_classes)
-  apply (simp_all add: plus_WF_PREDICATE_def zero_WF_PREDICATE_def)
+  apply (simp_all add: plus_upred_def zero_upred_def)
   apply (utp_pred_auto_tac)+
 done
 end
 
-declare plus_WF_PREDICATE_def [eval, evalr, evalrr, evalrx]
-declare zero_WF_PREDICATE_def [eval, evalr, evalrr, evalrx]
+declare plus_upred_def [eval, evalr, evalrr, evalrx]
+declare zero_upred_def [eval, evalr, evalrr, evalrx]
 
-instantiation WF_PREDICATE :: (VALUE) semiring_1
+instantiation upred :: (VALUE) semiring_1
 begin
 
 instance
   apply (intro_classes)
-  apply (simp_all add:plus_WF_PREDICATE_def times_WF_PREDICATE_def 
-                      zero_WF_PREDICATE_def one_WF_PREDICATE_def)
+  apply (simp_all add:plus_upred_def times_upred_def 
+                      zero_upred_def one_upred_def)
   apply (utp_rel_tac)+
 done
 end
 
 theorem SkipR_SupP_def: 
   "II = \<Squnion> { $\<^sub>ex\<acute> ==\<^sub>p $\<^sub>ex | x. x \<in> UNDASHED}"
-  apply (auto intro!:destPRED_intro simp add:SkipR_def Inf_WF_PREDICATE_def UNDASHED_nempty EqualP_def VarE.rep_eq AndDistP_rep_eq)
+  apply (auto intro!:destPRED_intro simp add:SkipR_def Inf_upred_def UNDASHED_nempty EqualP_def VarE.rep_eq AndDistP_rep_eq)
   apply (metis (lifting, full_types) LiftP.rep_eq destPRED_inverse mem_Collect_eq)
 done
 
 theorem SkipRA_SupP_def: 
   "\<lbrakk> vs \<subseteq> REL_VAR; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow> 
      II\<^bsub>vs\<^esub> = \<Squnion> { $\<^sub>ex\<acute> ==\<^sub>p $\<^sub>ex | x. x \<in> in vs}"
-  apply (auto intro!:destPRED_intro simp add:SkipRA_rep_eq_alt Inf_WF_PREDICATE_def UNDASHED_nempty EqualP_def VarE.rep_eq top_WF_PREDICATE_def TrueP_def AndDistP_rep_eq)
+  apply (auto intro!:destPRED_intro simp add:SkipRA_rep_eq_alt Inf_upred_def UNDASHED_nempty EqualP_def VarE.rep_eq top_upred_def TrueP_def AndDistP_rep_eq)
   apply (metis (lifting, full_types) LiftP.rep_eq destPRED_inverse mem_Collect_eq)
 done
 
@@ -395,7 +395,7 @@ proof -
     by (utp_pred_auto_tac)
 
   finally show ?thesis
-    by (simp add:Inf_WF_PREDICATE_def)
+    by (simp add:Inf_upred_def)
 qed
 
 theorem ImpliesP_AndDistP_dist:
@@ -433,11 +433,11 @@ theorem ImpliesP_OrDistP_dist:
 
 theorem OrDistP_SemiR_dist:
   "(\<Or>\<^sub>p ps) ;\<^sub>R q = \<Or>\<^sub>p {p ;\<^sub>R q | p. p \<in> ps}"
-  by (simp add:Sup_WF_PREDICATE_def[THEN sym] Lattice_L4)
+  by (simp add:Sup_upred_def[THEN sym] Lattice_L4)
 
 theorem SemiR_OrDistP_dist:
   "p ;\<^sub>R (\<Or>\<^sub>p qs) = \<Or>\<^sub>p {p ;\<^sub>R q | q. q \<in> qs}"
-  by (simp add:Sup_WF_PREDICATE_def[THEN sym] Lattice_L5)
+  by (simp add:Sup_upred_def[THEN sym] Lattice_L5)
 
 subsection {* Disjunctive / Monotonicity properties *}
 

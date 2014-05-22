@@ -12,11 +12,11 @@ begin
 
 text {* This theory defines type synonyms for the various semantic domains. *}
 
-type_synonym 'VALUE ALPHABET =
-  "('VALUE VAR) fset"
+type_synonym 'a alpha =
+  "('a uvar) fset"
 
 type_synonym 'VALUE BINDING =
-  "('VALUE VAR) \<Rightarrow> 'VALUE"
+  "('VALUE uvar) \<Rightarrow> 'VALUE"
 
 type_synonym 'VALUE BINDING_SET =
   "'VALUE  BINDING set"
@@ -35,6 +35,6 @@ type_synonym 'VALUE FUNCTION =
    'VALUE PREDICATE"
 
 type_synonym 'VALUE ALPHA_PREDICATE =
-  "('VALUE ALPHABET) \<times> 'VALUE PREDICATE"
+  "('VALUE alpha) \<times> 'VALUE PREDICATE"
 
 end

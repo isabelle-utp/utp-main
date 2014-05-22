@@ -15,70 +15,70 @@ begin
 subsection {* Operators *}
 
 lift_definition in_alphabet ::
-  "'VALUE ALPHABET \<Rightarrow>
-   'VALUE ALPHABET" ("in\<^sub>\<alpha>") is "in"
+  "'a alpha \<Rightarrow>
+   'a alpha" ("in\<^sub>\<alpha>") is "in"
    by (simp add:in_vars_def fsets_def)
 
 declare in_alphabet.rep_eq [simp]
 
 lift_definition out_alphabet ::
-  "'VALUE ALPHABET \<Rightarrow>
-   'VALUE ALPHABET" ("out\<^sub>\<alpha>") is "out"
+  "'a alpha \<Rightarrow>
+   'a alpha" ("out\<^sub>\<alpha>") is "out"
   by (simp add:out_vars_def fsets_def)
 
 declare out_alphabet.rep_eq [simp]
 
 lift_definition nrel_alpha :: 
-  "'a ALPHABET \<Rightarrow> 
-   'a ALPHABET" ("nrel\<^sub>\<alpha>") is nrel
+  "'a alpha \<Rightarrow> 
+   'a alpha" ("nrel\<^sub>\<alpha>") is nrel
   by (simp add: fsets_def nrel_vars_def)
 
 declare nrel_alpha.rep_eq [simp]
 
-definition dash_alpha :: "'a ALPHABET \<Rightarrow> 'a ALPHABET" where
+definition dash_alpha :: "'a alpha \<Rightarrow> 'a alpha" where
 "dash_alpha A = dash `\<^sub>f A"
 
 adhoc_overloading
   prime dash_alpha
 
-definition undash_alpha :: "'a ALPHABET \<Rightarrow> 'a ALPHABET" where
+definition undash_alpha :: "'a alpha \<Rightarrow> 'a alpha" where
 "undash_alpha A = dash `\<^sub>f A"
 
 adhoc_overloading
   unprime undash_alpha
 
-definition COMP_ALPHAS :: "'VALUE ALPHABET \<Rightarrow> 'VALUE ALPHABET \<Rightarrow> bool" where
+definition COMP_ALPHAS :: "'a alpha \<Rightarrow> 'a alpha \<Rightarrow> bool" where
 "COMP_ALPHAS a1 a2 = COMPOSABLE \<langle>a1\<rangle>\<^sub>f \<langle>a2\<rangle>\<^sub>f"
 
-definition REL_ALPHA :: "'a ALPHABET \<Rightarrow> bool" where
+definition REL_ALPHA :: "'a alpha \<Rightarrow> bool" where
 "REL_ALPHA a = (\<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED)"
 
-definition COND_ALPHA :: "'a ALPHABET \<Rightarrow> bool" where
+definition COND_ALPHA :: "'a alpha \<Rightarrow> bool" where
 "COND_ALPHA a = (\<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED)"
 
-definition POST_ALPHA :: "'a ALPHABET \<Rightarrow> bool" where
+definition POST_ALPHA :: "'a alpha \<Rightarrow> bool" where
 "POST_ALPHA a = (\<langle>a\<rangle>\<^sub>f \<subseteq> DASHED)"
 
-definition HOM_ALPHA :: "'VALUE ALPHABET \<Rightarrow> bool" where
+definition HOM_ALPHA :: "'a alpha \<Rightarrow> bool" where
 "HOM_ALPHA a = COMP_ALPHAS a a"
 
-definition REL_ALPHABET :: "'VALUE ALPHABET set" where
+definition REL_ALPHABET :: "'a alpha set" where
 "REL_ALPHABET = {a . \<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED}"
 
-definition COND_ALPHABET :: "'VALUE ALPHABET set" where
+definition COND_ALPHABET :: "'a alpha set" where
 "COND_ALPHABET = {a . \<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED}"
 
-definition HOM_ALPHABET :: "'VALUE ALPHABET set" where
+definition HOM_ALPHABET :: "'a alpha set" where
 "HOM_ALPHABET = {a . HOM_ALPHA a}"
 
 lift_definition homl_alpha ::
-  "'VALUE ALPHABET \<Rightarrow>
-   'VALUE ALPHABET" ("homl\<^sub>\<alpha>") is "homl"
+  "'a alpha \<Rightarrow>
+   'a alpha" ("homl\<^sub>\<alpha>") is "homl"
   by (simp add: fsets_def var_defs)
 
 lift_definition homr_alpha ::
-  "'VALUE ALPHABET \<Rightarrow>
-   'VALUE ALPHABET" ("homr\<^sub>\<alpha>") is "homr"
+  "'a alpha \<Rightarrow>
+   'a alpha" ("homr\<^sub>\<alpha>") is "homr"
   by (simp add: fsets_def var_defs)
 
 lemma HOM_ALPHA_HOMOGENEOUS:
@@ -111,7 +111,7 @@ lemma HOM_ALPHABET_insert [closure]:
   
 subsection {* Restrictions *}
 
-definition PROGRAM_ALPHABET :: "'VALUE ALPHABET set" where
+definition PROGRAM_ALPHABET :: "'a alpha set" where
 "PROGRAM_ALPHABET \<equiv> {a. \<langle>a\<rangle>\<^sub>f \<subseteq> PROGRAM_VAR}"
 
 subsection {* Proof Support *}

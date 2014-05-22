@@ -11,7 +11,7 @@ imports utp_designs_hoare
 begin
 
 definition WeakPrecondD :: 
-  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" (infixr "wp\<^sub>D" 150) where
+  "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" (infixr "wp\<^sub>D" 150) where
 "Q wp\<^sub>D r = `\<not> Q\<^bsup>tf\<^esup> \<and> Q\<^bsup>tt\<^esup> wp r`"
 
 lemma ImpliesP_wp:

@@ -44,10 +44,10 @@ text {*
   valuation yields simpler proofs and there is not loss of generality with it.
 *}
 
-definition bc :: "'VALUE WF_BINDING" where
+definition bc :: "'a binding" where
 "bc = (SOME b . b \<in> UNIV)"
 
-definition WF_REL_BINDING :: "'VALUE WF_BINDING set" where
+definition WF_REL_BINDING :: "'a binding set" where
 "WF_REL_BINDING = {b \<oplus>\<^sub>b bc on DASHED | b . b \<in> UNIV}"
 abbreviation "WF_REL \<equiv> WF_REL_BINDING \<times> WF_REL_BINDING"
 
@@ -87,7 +87,7 @@ lemma WF_REL_BINDING_override_DASHED_NON_REL_VAR [closure]:
   apply (metis binding_override_assoc)
 done
 
-typedef 'VALUE WF_REL_BINDING = "WF_REL_BINDING :: 'VALUE WF_BINDING set"
+typedef 'a WF_REL_BINDING = "WF_REL_BINDING :: 'a binding set"
   morphisms DestRelB MkRelB
   by (auto simp add:WF_REL_BINDING_def)
 
@@ -105,16 +105,16 @@ lemma DestRelB_elim [elim]:
 
 notation DestRelB ("\<langle>_\<rangle>\<^sub>r")
 
-type_synonym 'VALUE RELATION =
-  "('VALUE WF_BINDING \<times>
-    'VALUE WF_BINDING) set"
+type_synonym 'a RELATION =
+  "('a binding \<times>
+    'a binding) set"
 
 subsection {* Interpretation Function *}
 
 definition BindR ::
-  "'VALUE WF_BINDING \<Rightarrow>
-   'VALUE WF_BINDING \<times>
-   'VALUE WF_BINDING" where
+  "'a binding \<Rightarrow>
+   'a binding \<times>
+   'a binding" where
 "BindR b = (b \<oplus>\<^sub>b bc on DASHED, (RenameB SS b) \<oplus>\<^sub>b bc on DASHED)"
 
 lemma BindR_range: 
@@ -122,19 +122,19 @@ lemma BindR_range:
   by (auto simp add:BindR_def WF_REL_BINDING_def)
 
 definition BindP ::
-  "'VALUE WF_BINDING \<times>
-   'VALUE WF_BINDING \<Rightarrow>
-   'VALUE WF_BINDING" where
+  "'a binding \<times>
+   'a binding \<Rightarrow>
+   'a binding" where
 "BindP = (\<lambda> (rb1, rb2) . rb1 \<oplus>\<^sub>b (RenameB SS rb2) on DASHED)"
 
 definition EvalR ::
-  "'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE RELATION" ("\<lbrakk>_\<rbrakk>R") where
+  "'a upred \<Rightarrow>
+   'a RELATION" ("\<lbrakk>_\<rbrakk>R") where
 "EvalR p = BindR ` (destPRED p)"
 
 definition IEvalR ::
-  "'VALUE RELATION \<Rightarrow>
-   'VALUE WF_PREDICATE" where
+  "'a RELATION \<Rightarrow>
+   'a upred" where
 "IEvalR r = mkPRED (BindP ` r)"
 
 subsection {* Auxilary Theorems *}
@@ -168,7 +168,7 @@ theorem EvalR_NON_REL_VAR:
 theorem BindP_inverse :
 "BindP (BindR b) = b"
 apply (simp add: BindR_def BindP_def)
-apply (rule Rep_WF_BINDING_intro)
+apply (rule Rep_binding_intro)
 apply (rule ext)
 apply (case_tac "x \<in> DASHED")
 apply (simp add: RenameB_def SS_DASHED_member closure)
@@ -186,8 +186,8 @@ done
 theorem BindR_inject [simp] :
 "BindR b1 = BindR b2 \<longleftrightarrow> b1 = b2"
 apply (auto simp add: BindR_def)
-apply (erule Rep_WF_BINDING_elim)+
-apply (rule Rep_WF_BINDING_intro)
+apply (erule Rep_binding_elim)+
+apply (rule Rep_binding_intro)
 apply (auto simp add: override_on_eq)
 apply (rule ext)
 apply (case_tac "x \<in> DASHED")
@@ -233,7 +233,7 @@ theorem BindR_COMPOSABLE_BINDINGS :
 apply (simp add: BindR_def)
 apply (simp add: COMPOSABLE_BINDINGS_def)
 apply (auto)
-apply (erule Rep_WF_BINDING_elim)+
+apply (erule Rep_binding_elim)+
 apply (simp add: override_on_eq RenameB_def)
 -- {* Subgoal 1 *}
 apply (drule_tac x = "v" in spec)
@@ -243,7 +243,7 @@ apply (simp add: binding_equiv_def)
 apply (simp add: NON_REL_VAR_def)
 apply (rule ballI)
 apply (simp add: urename)
-apply (erule Rep_WF_BINDING_elim)+
+apply (erule Rep_binding_elim)+
 apply (simp add:override_on_eq)
 apply (drule_tac x = "x" in spec)
 apply (simp add:RenameB_def)
@@ -255,7 +255,7 @@ theorem BindR_override :
  (rb3, rb2) = BindR b2\<rbrakk> \<Longrightarrow>
  (rb1, rb2) = BindR (b1 \<oplus>\<^sub>b b2 on DASHED)"
 apply (simp add: BindR_def)
-apply (auto elim!:Rep_WF_BINDING_elim intro!:Rep_WF_BINDING_intro)
+apply (auto elim!:Rep_binding_elim intro!:Rep_binding_intro)
 apply (simp add: override_on_eq)
 apply (clarify)
 apply (drule_tac x = "x" in spec)
@@ -316,7 +316,7 @@ apply (simp add: NON_REL_VAR_def)
 apply (simp add: RenameB_def closure urename)
 -- {* Subgoal 5 *}
 apply (rule_tac x = "b \<oplus>\<^sub>b (RenameB SS ba) on DASHED" in exI)
-apply (auto elim!:Rep_WF_BINDING_elim intro!:Rep_WF_BINDING_intro)
+apply (auto elim!:Rep_binding_elim intro!:Rep_binding_intro)
 apply (simp add: override_on_eq)
 apply (safe)
 apply (case_tac "x \<in> UNDASHED")
@@ -411,7 +411,7 @@ apply (rule conjI)
 apply (rule_tac x = "b" in exI)
 apply (simp)
 apply (simp add: RenameB_def closure)
-apply (rule Rep_WF_BINDING_intro)
+apply (rule Rep_binding_intro)
 apply (simp add:override_on_eq o_def)
 apply (metis SS_UNDASHED_app SS_ident_app)
 -- {* Subgoal 2 *}
@@ -425,7 +425,7 @@ apply (simp add: RenameB_def closure urename)
 apply (auto) [1]
 -- {* Subgoal 2.2 *}
 apply (simp add: RenameB_def closure)
-apply (rule Rep_WF_BINDING_intro)
+apply (rule Rep_binding_intro)
 apply (auto simp add:override_on_eq urename)
 apply (metis (no_types) SS_DASHED_app SS_UNDASHED_app SS_ident_app UNDASHED_dash_DASHED o_def override_on_def undash_dash)
 done
@@ -452,7 +452,7 @@ theorem EvalR_SkipRA' :
   apply (simp add: RenameB_override_distr1 urename closure)
   apply (auto)
   apply (rule binding_override_eq_intro)
-  apply (subgoal_tac "(- DASHED :: 'a VAR set) = UNDASHED \<union> NON_REL_VAR")
+  apply (subgoal_tac "(- DASHED :: 'a uvar set) = UNDASHED \<union> NON_REL_VAR")
   apply (simp)
   apply (rule binding_equiv_union_intro)
   apply (metis binding_equiv_comm binding_override_equiv1)
@@ -536,7 +536,7 @@ theorem EvalR_AssignR [evalr] :
 apply (simp add: EvalR_def EvalE_def AssignsR.rep_eq IdA.rep_eq VarE.rep_eq AssignF_upd_rep_eq BindR_image)
 apply (safe, simp_all add:urename closure AssignF_upd.rep_eq IdA.rep_eq)
 apply (simp add:BindR_def closure urename)
-apply (rule Rep_WF_BINDING_intro)
+apply (rule Rep_binding_intro)
 apply (rule ext)
 apply (case_tac "xa = x")
 apply (drule_tac x="x" in bspec, simp_all add:ecoerce_rep_eq urename binding_upd.rep_eq)
@@ -551,7 +551,7 @@ done
 
 theorem EvalR_ExprR [evalr]: 
   "\<lbrakk>ExprP e\<rbrakk>R = {BindR b |b. DestBool (\<lbrakk>e\<rbrakk>\<^sub>e b)}"
-  by (simp add:ExprP_def LiftP_def EvalR_def BindR_def EvalE_def UNREST_EXPR_member[THEN sym] etype_rel_def Defined_WF_EXPRESSION_def image_Collect)
+  by (simp add:ExprP_def LiftP_def EvalR_def BindR_def EvalE_def UNREST_EXPR_member[THEN sym] etype_rel_def Defined_uexpr_def image_Collect)
 
 theorem EvalR_EqualP:
   "\<lbrakk>EqualP e f\<rbrakk>R = {BindR b |b. (\<lbrakk>e\<rbrakk>\<^sub>e b = \<lbrakk>f\<rbrakk>\<^sub>e b)}"
@@ -640,7 +640,7 @@ theorem SubstP_rel_DASHED [evalr] :
   apply (auto simp add:typing defined urename)
   apply (subgoal_tac "\<langle>RenameE e SS\<rangle>\<^sub>e (xb \<oplus>\<^sub>b RenameB SS y on DASHED) = \<langle>RenameE e SS\<rangle>\<^sub>e (RenameB SS y)")
   apply (simp_all add: RenameB_override_distr1 urename closure PermE.rep_eq EvalE_def)
-  apply (rule WF_EXPRESSION_UNREST_binding_equiv[of "UNDASHED \<union> NON_REL_VAR"])
+  apply (rule uexpr_UNREST_binding_equiv[of "UNDASHED \<union> NON_REL_VAR"])
   apply (simp add:unrest UNREST_EXPR_subset urename closure)
   apply (rule UNREST_EXPR_subset)
   apply (simp)
@@ -650,7 +650,7 @@ theorem SubstP_rel_DASHED [evalr] :
   apply (simp add:urename)
   apply (case_tac "xa \<in> D\<^sub>1 - {x\<acute>}")
   apply (simp add:urename)
-  apply (erule Rep_WF_BINDING_elim)
+  apply (erule Rep_binding_elim)
   apply (simp)
   apply (drule_tac x="undash xa" and y="undash xa" in cong, simp)
   apply (simp add:typing defined urename)
@@ -782,7 +782,7 @@ done
 theorem RenameB_SS_COMPOSABLE_BINDINGS_1 :
 "\<lbrakk>(b1, b2) \<in> COMPOSABLE_BINDINGS\<rbrakk> \<Longrightarrow>
  RenameB SS b1 \<oplus>\<^sub>b bc on DASHED = b2 \<oplus>\<^sub>b bc on DASHED"
-apply (rule Rep_WF_BINDING_intro)
+apply (rule Rep_binding_intro)
 apply (simp add: override_on_eq)
 apply (safe)
 apply (auto simp add: COMPOSABLE_BINDINGS_def)
@@ -792,7 +792,7 @@ done
 theorem RenameB_SS_COMPOSABLE_BINDINGS_2 :
 "\<lbrakk>(b1, b2) \<in> COMPOSABLE_BINDINGS\<rbrakk> \<Longrightarrow>
  RenameB SS (b1 \<oplus>\<^sub>b b2 on DASHED) \<oplus>\<^sub>b bc on DASHED = RenameB SS b2 \<oplus>\<^sub>b bc on DASHED"
-apply (rule Rep_WF_BINDING_intro)
+apply (rule Rep_binding_intro)
 apply (simp add: override_on_eq)
 apply (auto simp add: COMPOSABLE_BINDINGS_def binding_equiv_def NON_REL_VAR_def)
 apply (metis Compl_iff Int_iff SS_UNDASHED_app SS_ident_app UNDASHED_dash_DASHED override_on_def)
@@ -858,7 +858,7 @@ lemma EvalR_as_EvalP':
 done
 
 lemma EvalR_refinement [evalr]: "p \<sqsubseteq> q \<longleftrightarrow> \<lbrakk>q\<rbrakk>R \<subseteq> \<lbrakk>p\<rbrakk>R"
-  by (auto simp add:EvalR_as_EvalP less_eq_WF_PREDICATE_def eval)
+  by (auto simp add:EvalR_as_EvalP less_eq_upred_def eval)
 
 definition MkRel :: "'VALUE RELATION \<Rightarrow> ('VALUE WF_REL_BINDING) rel" where
 "MkRel R = map_pair MkRelB MkRelB ` R"
@@ -897,8 +897,8 @@ theorem MkRel_EvalR_intro :
   by (simp add:MkRel_EvalR_simp)
 
 abbreviation EvalRR ::
-  "'VALUE WF_PREDICATE \<Rightarrow>
-   ('VALUE WF_REL_BINDING) rel" ("\<lbrakk>_\<rbrakk>\<R>") where
+  "'a upred \<Rightarrow>
+   ('a WF_REL_BINDING) rel" ("\<lbrakk>_\<rbrakk>\<R>") where
 "EvalRR p \<equiv> MkRel \<lbrakk>p\<rbrakk>R"
 
 lemma EvalRR_simp [evalrr] :
@@ -1175,7 +1175,7 @@ done
 *)
 
 lemma SS_equiv_UNDASHED: "\<forall>v\<in>D\<^sub>0. \<langle>b\<rangle>\<^sub>b v = \<langle>b\<rangle>\<^sub>b v\<acute> \<Longrightarrow> SS\<bullet>b = b"
-  apply (rule Rep_WF_BINDING_intro)
+  apply (rule Rep_binding_intro)
   apply (simp add:RenameB_rep_eq)
   apply (rule ext)
   apply (auto)

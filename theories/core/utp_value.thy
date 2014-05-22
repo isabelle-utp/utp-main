@@ -71,150 +71,150 @@ class VALUE = DEFINED +
 
 default_sort VALUE
 
-subsection {* The @{term "UTYPE"} type *}
+subsection {* The @{term "utype"} type *}
 
-text {* The type @{term "UTYPE"} consists of the set of types which, according
+text {* The type @{term "utype"} consists of the set of types which, according
 to the typing relation, have at least one defined value. This set should be
 more-or-less isomorphic to the underlying type sort in the user's value
 model. *}
 
-definition "UTYPES (x::'a itself) = {t. \<exists> v :: 'a. v :\<^sub>u t \<and> \<D> v}"
+definition "utypeS (x::'a itself) = {t. \<exists> v :: 'a. v :\<^sub>u t \<and> \<D> v}"
 
-typedef 'VALUE UTYPE = "UTYPES TYPE('VALUE)"
+typedef 'VALUE utype = "utypeS TYPE('VALUE)"
   apply (insert utype_nonempty)
-  apply (auto simp add:UTYPES_def)
+  apply (auto simp add:utypeS_def)
 done
 
-declare Rep_UTYPE [simp]
-declare Abs_UTYPE_inverse [simp]
-declare Rep_UTYPE_inverse [simp]
+declare Rep_utype [simp]
+declare Abs_utype_inverse [simp]
+declare Rep_utype_inverse [simp]
 
-lemma Rep_UTYPE_intro [intro!]:
-  "Rep_UTYPE x = Rep_UTYPE y \<Longrightarrow> x = y"
-  by (simp add:Rep_UTYPE_inject)
+lemma Rep_utype_intro [intro!]:
+  "Rep_utype x = Rep_utype y \<Longrightarrow> x = y"
+  by (simp add:Rep_utype_inject)
 
-lemma Rep_UTYPE_elim [elim]:
-  "\<lbrakk> \<And> v\<Colon>'VALUE. \<lbrakk> v :\<^sub>u Rep_UTYPE (t :: 'VALUE UTYPE); \<D> v \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  apply (insert Rep_UTYPE[of t])
-  apply (auto simp add:UTYPES_def)
+lemma Rep_utype_elim [elim]:
+  "\<lbrakk> \<And> v\<Colon>'VALUE. \<lbrakk> v :\<^sub>u Rep_utype (t :: 'VALUE utype); \<D> v \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  apply (insert Rep_utype[of t])
+  apply (auto simp add:utypeS_def)
 done
 
-lemma Abs_UTYPE_inv [simp]:
-  "\<lbrakk> (v :: 'a :: VALUE) :\<^sub>u t; \<D> v \<rbrakk> \<Longrightarrow> Rep_UTYPE (Abs_UTYPE t :: 'a UTYPE) = t"
-  apply (rule Abs_UTYPE_inverse)
-  apply (auto simp add:UTYPES_def)
+lemma Abs_utype_inv [simp]:
+  "\<lbrakk> (v :: 'a :: VALUE) :\<^sub>u t; \<D> v \<rbrakk> \<Longrightarrow> Rep_utype (Abs_utype t :: 'a utype) = t"
+  apply (rule Abs_utype_inverse)
+  apply (auto simp add:utypeS_def)
 done
 
-instantiation UTYPE :: (VALUE) countable
+instantiation utype :: (VALUE) countable
 begin
 instance
   apply (intro_classes)
-  apply (rule_tac x="Rep_UTYPE" in exI)
-  apply (metis Rep_UTYPE_inverse injI)
+  apply (rule_tac x="Rep_utype" in exI)
+  apply (metis Rep_utype_inverse injI)
 done
 end
 
 (*  
 class VALUE_SUBTYPES = VALUE +
   fixes   usubtype_lattice :: "'a itself \<Rightarrow> nat lattice" 
-  assumes carrier_UTYPES: "carrier (Rep_lattice (usubtype_lattice TYPE('a))) = UTYPES TYPE('a)"
+  assumes carrier_utypeS: "carrier (Rep_lattice (usubtype_lattice TYPE('a))) = utypeS TYPE('a)"
 
-instantiation UTYPE :: (VALUE_SUBTYPES) order
+instantiation utype :: (VALUE_SUBTYPES) order
 begin
 
-definition less_eq_UTYPE :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> bool" where
-"less_eq_UTYPE s t \<longleftrightarrow> le (Rep_lattice (usubtype_lattice TYPE('a))) (Rep_UTYPE s) (Rep_UTYPE t)"
+definition less_eq_utype :: "'a utype \<Rightarrow> 'a utype \<Rightarrow> bool" where
+"less_eq_utype s t \<longleftrightarrow> le (Rep_lattice (usubtype_lattice TYPE('a))) (Rep_utype s) (Rep_utype t)"
 
-definition less_UTYPE :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> bool" where
-"less_UTYPE x y \<longleftrightarrow> (x \<le> y \<and> \<not> y \<le> x)"
+definition less_utype :: "'a utype \<Rightarrow> 'a utype \<Rightarrow> bool" where
+"less_utype x y \<longleftrightarrow> (x \<le> y \<and> \<not> y \<le> x)"
 
 instance
   apply (intro_classes)
-  apply (simp add:less_UTYPE_def)
-  apply (simp_all add: less_eq_UTYPE_def)
-  apply (metis Rep_UTYPE carrier_UTYPES ltype.le_refl)
-  apply (metis (no_types) Rep_UTYPE carrier_UTYPES ltype.le_trans)
-  apply (metis Rep_UTYPE Rep_UTYPE_intro carrier_UTYPES ltype.le_antisym)
+  apply (simp add:less_utype_def)
+  apply (simp_all add: less_eq_utype_def)
+  apply (metis Rep_utype carrier_utypeS ltype.le_refl)
+  apply (metis (no_types) Rep_utype carrier_utypeS ltype.le_trans)
+  apply (metis Rep_utype Rep_utype_intro carrier_utypeS ltype.le_antisym)
 done
 end
 
-instantiation UTYPE :: (VALUE_SUBTYPES) lattice
+instantiation utype :: (VALUE_SUBTYPES) lattice
 begin
 
-definition sup_UTYPE :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> 'a UTYPE" where
-"sup_UTYPE s t = Abs_UTYPE (join (Rep_lattice (usubtype_lattice TYPE('a))) (Rep_UTYPE s) (Rep_UTYPE t))"
+definition sup_utype :: "'a utype \<Rightarrow> 'a utype \<Rightarrow> 'a utype" where
+"sup_utype s t = Abs_utype (join (Rep_lattice (usubtype_lattice TYPE('a))) (Rep_utype s) (Rep_utype t))"
 
-definition inf_UTYPE :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> 'a UTYPE" where
-"inf_UTYPE s t = Abs_UTYPE (meet (Rep_lattice (usubtype_lattice TYPE('a))) (Rep_UTYPE s) (Rep_UTYPE t))"
+definition inf_utype :: "'a utype \<Rightarrow> 'a utype \<Rightarrow> 'a utype" where
+"inf_utype s t = Abs_utype (meet (Rep_lattice (usubtype_lattice TYPE('a))) (Rep_utype s) (Rep_utype t))"
 
 instance
   apply (intro_classes)
-  apply (simp_all add:inf_UTYPE_def less_eq_UTYPE_def)
-  apply (smt Abs_UTYPE_inverse Rep_UTYPE carrier_UTYPES ltype.meet_closed ltype.meet_left)
-  apply (smt Abs_UTYPE_inverse Rep_UTYPE carrier_UTYPES ltype.meet_closed ltype.meet_right)
-  apply (smt Abs_UTYPE_inverse Rep_UTYPE carrier_UTYPES ltype.meet_closed ltype.meet_le)
-  apply (smt Abs_UTYPE_inverse Rep_UTYPE carrier_UTYPES ltype.join_closed ltype.join_left utp_value.sup_UTYPE_def)
-  apply (metis (no_types) Abs_UTYPE_inverse Rep_UTYPE carrier_UTYPES ltype.join_closed ltype.join_right utp_value.sup_UTYPE_def)
-  apply (metis (no_types) Abs_UTYPE_inverse Rep_UTYPE carrier_UTYPES ltype.join_closed ltype.join_le utp_value.sup_UTYPE_def)
+  apply (simp_all add:inf_utype_def less_eq_utype_def)
+  apply (smt Abs_utype_inverse Rep_utype carrier_utypeS ltype.meet_closed ltype.meet_left)
+  apply (smt Abs_utype_inverse Rep_utype carrier_utypeS ltype.meet_closed ltype.meet_right)
+  apply (smt Abs_utype_inverse Rep_utype carrier_utypeS ltype.meet_closed ltype.meet_le)
+  apply (smt Abs_utype_inverse Rep_utype carrier_utypeS ltype.join_closed ltype.join_left utp_value.sup_utype_def)
+  apply (metis (no_types) Abs_utype_inverse Rep_utype carrier_utypeS ltype.join_closed ltype.join_right utp_value.sup_utype_def)
+  apply (metis (no_types) Abs_utype_inverse Rep_utype carrier_utypeS ltype.join_closed ltype.join_le utp_value.sup_utype_def)
 done
 end
 *)
 
-instantiation UTYPE :: (VALUE) linorder 
+instantiation utype :: (VALUE) linorder 
 begin
 
-definition less_eq_UTYPE :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> bool" where
-"less_eq_UTYPE x y = (Rep_UTYPE x \<le> Rep_UTYPE y)"
+definition less_eq_utype :: "'a utype \<Rightarrow> 'a utype \<Rightarrow> bool" where
+"less_eq_utype x y = (Rep_utype x \<le> Rep_utype y)"
 
-definition less_UTYPE :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> bool" where
-"less_UTYPE x y = (Rep_UTYPE x < Rep_UTYPE y)"
+definition less_utype :: "'a utype \<Rightarrow> 'a utype \<Rightarrow> bool" where
+"less_utype x y = (Rep_utype x < Rep_utype y)"
 
 instance
   apply (intro_classes)
-  apply (auto simp add:less_eq_UTYPE_def less_UTYPE_def)
+  apply (auto simp add:less_eq_utype_def less_utype_def)
 done
 end
 
 
-text {* We derive a typing relation using @{term "UTYPE"}, which has more 
+text {* We derive a typing relation using @{term "utype"}, which has more 
 useful properties than the underlying @{term "utype_rel"}. *}
 
-definition type_rel :: "'VALUE \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool" (infix ":" 50) where
-"x : t \<longleftrightarrow> x :\<^sub>u Rep_UTYPE t"
+definition type_rel :: "'VALUE \<Rightarrow> 'VALUE utype \<Rightarrow> bool" (infix ":" 50) where
+"x : t \<longleftrightarrow> x :\<^sub>u Rep_utype t"
 
-definition dtype_rel :: "'VALUE \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool" (infix ":!" 50) where
+definition dtype_rel :: "'VALUE \<Rightarrow> 'VALUE utype \<Rightarrow> bool" (infix ":!" 50) where
 "x :! t \<longleftrightarrow> x : t \<and> \<D> x"
 
-definition default :: "'VALUE UTYPE \<Rightarrow> 'VALUE" where
+definition default :: "'VALUE utype \<Rightarrow> 'VALUE" where
 "default t \<equiv> SOME x. x : t \<and> \<D> x"
 
-definition someType :: "'VALUE UTYPE" where
+definition someType :: "'VALUE utype" where
 "someType \<equiv> SOME t. \<exists>x. x : t"
 
-definition monotype :: "'VALUE UTYPE \<Rightarrow> bool" where
+definition monotype :: "'VALUE utype \<Rightarrow> bool" where
 "monotype t \<longleftrightarrow> (\<forall> x a. x : t \<and> x : a \<and> \<D> x \<longrightarrow> a = t)"
 
 definition monovalue :: "'a::VALUE \<Rightarrow> bool" where
 "monovalue x = (\<D> x \<and> (\<forall> t t'. x : t \<and> x : t' \<longrightarrow> t = t'))"
 
-definition type_of :: "'VALUE \<Rightarrow> 'VALUE UTYPE" ("\<tau>") where
+definition type_of :: "'VALUE \<Rightarrow> 'VALUE utype" ("\<tau>") where
 "type_of x = (SOME t. x : t)"
 
 lemma type_non_empty: "\<exists> x. x : t"
   apply (auto simp add:type_rel_def)
-  apply (rule_tac Rep_UTYPE_elim)
+  apply (rule_tac Rep_utype_elim)
   apply (auto)
 done
 
 lemma type_non_empty_defined: "\<exists> x. x : t \<and> \<D> x"
   apply (auto simp add:type_rel_def)
-  apply (rule_tac Rep_UTYPE_elim)
+  apply (rule_tac Rep_utype_elim)
   apply (auto)
 done
 
 lemma dtype_non_empty: "\<exists> x. x :! t"
   apply (auto simp add:dtype_rel_def type_rel_def)
-  apply (rule_tac Rep_UTYPE_elim)
+  apply (rule_tac Rep_utype_elim)
   apply (auto)
 done
 
@@ -243,7 +243,7 @@ done
 
 lemma someType_value: "\<exists> v. v : someType"
   apply (simp add:someType_def)
-  apply (metis (lifting) Rep_UTYPE_elim type_rel_def)
+  apply (metis (lifting) Rep_utype_elim type_rel_def)
 done
 
 lemma type_of_type [typing]:
@@ -265,9 +265,9 @@ lemma monovalue_monotype [typing]:
   "\<lbrakk> monotype t; x :! t \<rbrakk> \<Longrightarrow> monovalue x"
   by (auto simp add:monovalue_def monotype_def dtype_rel_def)
 
-lemma Abs_UTYPE_type [typing,intro]: 
-  "\<lbrakk> x :\<^sub>u t; \<D> x \<rbrakk> \<Longrightarrow> x : Abs_UTYPE t"
-  by (metis (lifting) Rep_UTYPE_cases Rep_UTYPE_inverse UTYPES_def mem_Collect_eq type_rel_def)
+lemma Abs_utype_type [typing,intro]: 
+  "\<lbrakk> x :\<^sub>u t; \<D> x \<rbrakk> \<Longrightarrow> x : Abs_utype t"
+  by (metis (lifting) Rep_utype_cases Rep_utype_inverse utypeS_def mem_Collect_eq type_rel_def)
 
 lemma dtype_relI [intro]: "\<lbrakk> x : t; \<D> x \<rbrakk> \<Longrightarrow> x :! t"
   by (simp add:dtype_rel_def)
@@ -281,43 +281,43 @@ lemma dtype_type [typing]: "x :! a \<Longrightarrow> x : a"
 lemma dtype_defined [defined]: "x :! a \<Longrightarrow> \<D> x"
   by (simp add:dtype_rel_def)
 
-definition embTYPE :: "'b::countable \<Rightarrow> 'a::VALUE UTYPE" where
-"embTYPE t \<equiv> Abs_UTYPE (to_nat t)"
+definition embTYPE :: "'b::countable \<Rightarrow> 'a::VALUE utype" where
+"embTYPE t \<equiv> Abs_utype (to_nat t)"
 
-definition prjTYPE :: "'a::VALUE UTYPE \<Rightarrow> 'b::{countable}" where
-"prjTYPE t \<equiv> from_nat (Rep_UTYPE t)"
+definition prjTYPE :: "'a::VALUE utype \<Rightarrow> 'b::{countable}" where
+"prjTYPE t \<equiv> from_nat (Rep_utype t)"
 
 lemma embTYPE_inv [simp]:
   fixes t :: "'a::countable"
     and v :: "'b"
   assumes "v :\<^sub>u to_nat t" "\<D> v"
-  shows "prjTYPE (embTYPE t :: 'b UTYPE) = t"
-  apply (subgoal_tac "to_nat t \<in> UTYPES TYPE('b)")
+  shows "prjTYPE (embTYPE t :: 'b utype) = t"
+  apply (subgoal_tac "to_nat t \<in> utypeS TYPE('b)")
   apply (simp add:embTYPE_def prjTYPE_def)
-  apply (simp add:UTYPES_def)
+  apply (simp add:utypeS_def)
   apply (rule_tac x="v" in exI)
   apply (simp add:assms)
 done
 
 subsection {* Typing operator syntax *}
 
-abbreviation Tall :: "'a UTYPE \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
+abbreviation Tall :: "'a utype \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
   "Tall t P \<equiv> (\<forall>x. x : t \<longrightarrow> P x)"
 
-abbreviation Tex :: "'a UTYPE \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
+abbreviation Tex :: "'a utype \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
   "Tex t P \<equiv> (\<exists>x. x : t \<and> P x)"
 
-abbreviation DTex :: "'a UTYPE \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
+abbreviation DTex :: "'a utype \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
   "DTex t P \<equiv> (\<exists>x. x :! t \<and> P x)"
 
-abbreviation DTall :: "'a UTYPE \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
+abbreviation DTall :: "'a utype \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
   "DTall t P \<equiv> (\<forall>x. x :! t \<longrightarrow> P x)"
 
 syntax
-  "_Tall" :: "pttrn => 'a UTYPE => bool => bool" ("(3\<forall> _:_./ _)" [0, 0, 10] 10)
-  "_Tex"  :: "pttrn => 'a UTYPE => bool => bool" ("(3\<exists> _:_./ _)" [0, 0, 10] 10)
-  "_DTall" :: "pttrn => 'a UTYPE => bool => bool" ("(3\<forall> _:!_./ _)" [0, 0, 10] 10)
-  "_DTex"  :: "pttrn => 'a UTYPE => bool => bool" ("(3\<exists> _:!_./ _)" [0, 0, 10] 10)
+  "_Tall" :: "pttrn => 'a utype => bool => bool" ("(3\<forall> _:_./ _)" [0, 0, 10] 10)
+  "_Tex"  :: "pttrn => 'a utype => bool => bool" ("(3\<exists> _:_./ _)" [0, 0, 10] 10)
+  "_DTall" :: "pttrn => 'a utype => bool => bool" ("(3\<forall> _:!_./ _)" [0, 0, 10] 10)
+  "_DTex"  :: "pttrn => 'a utype => bool => bool" ("(3\<exists> _:!_./ _)" [0, 0, 10] 10)
 
   
 translations
@@ -327,18 +327,18 @@ translations
   "\<exists> x:!A. P" == "CONST DTex A (%x. P)"
 
 
-instantiation UTYPE :: (VALUE) DEFINED
+instantiation utype :: (VALUE) DEFINED
 begin
 
-definition Defined_UTYPE :: "'a UTYPE \<Rightarrow> bool" where
-"Defined_UTYPE t = (\<exists> v:t. \<D> v)"
+definition Defined_utype :: "'a utype \<Rightarrow> bool" where
+"Defined_utype t = (\<exists> v:t. \<D> v)"
 
 instance ..
 end
 
-lemma Defined_UTYPE_elim [elim]:
+lemma Defined_utype_elim [elim]:
   "\<lbrakk> \<D> t; \<And> x. \<lbrakk> x : t; \<D> x \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (auto simp add:Defined_UTYPE_def)
+  by (auto simp add:Defined_utype_def)
 
 subsection {* Universe *}
 
@@ -347,7 +347,7 @@ definition VALUE :: "'VALUE set" where
 
 subsection {* Carrier Set *}
 
-definition carrier :: "'VALUE UTYPE \<Rightarrow> 'VALUE set" where
+definition carrier :: "'VALUE utype \<Rightarrow> 'VALUE set" where
 "carrier t = {x . x : t}"
 
 theorem carrier_non_empty :
@@ -372,7 +372,7 @@ done
 
 subsection {* Value Sets *}
 
-definition set_type_rel :: "('VALUE) set \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool" where
+definition set_type_rel :: "('VALUE) set \<Rightarrow> 'VALUE utype \<Rightarrow> bool" where
 "set_type_rel s t = (\<forall> x \<in> s . x : t)"
 
 notation set_type_rel (infix ":\<subseteq>" 50)
@@ -387,7 +387,7 @@ theorem set_type_rel_insert [simp] :
 apply (simp add: set_type_rel_def)
 done
 
-definition dcarrier :: "'VALUE UTYPE \<Rightarrow> 'VALUE set" where
+definition dcarrier :: "'VALUE utype \<Rightarrow> 'VALUE set" where
 "dcarrier t = {x . x : t \<and> \<D> x}"
 
 lemma dcarrierI [intro]: 
@@ -444,7 +444,7 @@ typedef 'm SIGTYPE = "{(t, v :: 'm :: VALUE). v : t}"
   by (auto)
 
 abbreviation Abs_SIGTYPE_syn :: 
-  "'a \<Rightarrow> 'a UTYPE \<Rightarrow> 'a SIGTYPE" ("(\<Sigma> _ : _)" [50] 50) where
+  "'a \<Rightarrow> 'a utype \<Rightarrow> 'a SIGTYPE" ("(\<Sigma> _ : _)" [50] 50) where
 "\<Sigma> x : t \<equiv> Abs_SIGTYPE (t, x)"
 
 declare Rep_SIGTYPE [simp]
@@ -455,7 +455,7 @@ lemma Rep_SIGTYPE_intro [intro!]:
   "Rep_SIGTYPE x = Rep_SIGTYPE y \<Longrightarrow> x = y"
   by (simp add:Rep_SIGTYPE_inject)
 
-definition sigtype :: "'m SIGTYPE \<Rightarrow> 'm UTYPE" where
+definition sigtype :: "'m SIGTYPE \<Rightarrow> 'm utype" where
 "sigtype s = fst (Rep_SIGTYPE s)"
 
 definition sigvalue :: "'m SIGTYPE \<Rightarrow> 'm" where
@@ -480,7 +480,7 @@ done
 
 subsection {* Coercision *}
 
-definition coerce :: "'a \<Rightarrow> 'a UTYPE \<Rightarrow> 'a" where
+definition coerce :: "'a \<Rightarrow> 'a utype \<Rightarrow> 'a" where
 "coerce x t = (if (x : t) then x else default t)"
 
 lemma coerce_type: 

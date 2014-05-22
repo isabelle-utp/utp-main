@@ -37,12 +37,12 @@ definition R3 :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
 definition RH :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where 
 "RH P = (R1 \<circ> R2 \<circ> R3)P"
 
-declare R1_def [eval, evalr, evalrr, evalrx, evalp]
-declare R2_def [eval, evalr, evalrr, evalrx, evalp]
-declare R2s_def [eval, evalr, evalrr, evalrx, evalp]
-declare R3_def [eval, evalr, evalrr, evalrx, evalp]
-declare is_healthy_def [eval, evalr, evalrr, evalrx, evalp]
-declare RH_def [eval, evalr, evalrr, evalrx, evalp]
+declare R1_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
+declare R2_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
+declare R2s_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
+declare R3_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
+declare is_healthy_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
+declare RH_def [eval, evalr, evalrr, evalrx, evalpp, evalpr]
 
 subsection {* Closure Laws *}
 
@@ -69,12 +69,12 @@ lemma RH_rel_closure [closure]:
 subsection {* Sorried Laws *}
 
 (* Trace sequence relation *)
-lemma Aida : "`(($tr \<le> $tr\<acute>) ; ((\<not>ok \<and> $wait) \<and> ($tr \<le> $tr\<acute>)))`=`($tr \<le> $tr\<acute>)`"
-  apply (subst SemiR_remove_middle_unrest1[of _ _ "{okay\<down>, wait\<down>}"])
+lemma Aida : "`(($tr \<le> $tr\<acute>) ; ((\<not>$ok \<and> $wait) \<and> ($tr \<le> $tr\<acute>)))`=`($tr \<le> $tr\<acute>)`"
+  apply (subst SemiR_remove_middle_unrest1[of _ _ "{ok\<down>, wait\<down>}"])
   apply (simp_all add: closure typing defined unrest WF_RELATION_UNREST)
-  apply (utp_pred_tac)
-  apply (rule_tac x="\<B>(okay\<down> :=\<^sub>b FalseV, wait\<down> :=\<^sub>b TrueV)" in exI)
-  apply (simp add:typing)
+  apply (utp_poly_tac)
+  apply (rule_tac x="\<B>(ok :=\<^sub>* False, wait :=\<^sub>* True)" in exI)
+  apply (simp add:typing defined)
   apply (metis tr_leq_trans)
 done
     
@@ -126,11 +126,11 @@ lemma R1_negate_R1:
 (* L7 R1-wait *)
 
 lemma R1_wait_true: 
-  "(R1(P))\<^sub>t = R1(P\<^sub>t)"
+  "(R1(P))\<^sub>t = R1(P \<^sub>t)"
 by(simp add:R1_def, utp_poly_auto_tac)
 
 lemma R1_wait_false: 
-  "(R1(P))\<^sub>f = R1(P\<^sub>f)"
+  "(R1(P))\<^sub>f = R1(P \<^sub>f)"
 by(simp add:R1_def, utp_poly_auto_tac)
 
 (* L8 II_rel-R1 *)
@@ -198,6 +198,7 @@ lemma R2s_idempotent: "`R2s(R2s(P))` = `R2s(P)`"
   apply (subst SubstP_twice_2) back
   apply (simp add:typing defined closure unrest)
   apply (simp add:usubst typing defined closure)
+  
 done
 
 lemma R2s_destroys_R1: "R2s (R1 P) = R2s P" 

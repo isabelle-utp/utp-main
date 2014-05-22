@@ -29,22 +29,22 @@ lemma EvalP_rename_on_expand_binding:
 done
 
 theorem RenameP_id :
-  fixes p :: "'a WF_PREDICATE"
+  fixes p :: "'a upred"
   shows "id\<^sub>s\<bullet>p = p"
   by (utp_pred_auto_tac)
 
 theorem RenameP_inverse1 :
-  fixes p :: "'a WF_PREDICATE"
+  fixes p :: "'a upred"
   shows "inv\<^sub>s ss \<bullet> ss \<bullet> p = p"
   by (utp_pred_auto_tac)
 
 theorem RenameP_inverse2 :
-  fixes p :: "'a WF_PREDICATE"
+  fixes p :: "'a upred"
   shows "ss \<bullet> inv\<^sub>s ss \<bullet> p = p"
   by (utp_pred_auto_tac)
 
 theorem RenameP_compose :
-  fixes p :: "'a WF_PREDICATE"
+  fixes p :: "'a upred"
   shows "ss1 \<bullet> ss2 \<bullet> p = (ss1 \<circ>\<^sub>s ss2) \<bullet> p"
 apply (utp_pred_tac)
 apply (simp add: RenameB_compose closure)
@@ -54,7 +54,7 @@ theorem RenameP_commute :
 "\<lbrakk>ss1 \<in> VAR_RENAME_ON vs1;
  ss2 \<in> VAR_RENAME_ON vs2;
  vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
- ss2\<bullet>ss1\<bullet>(p :: 'a WF_PREDICATE) = ss1\<bullet>ss2\<bullet>p"
+ ss2\<bullet>ss1\<bullet>(p :: 'a upred) = ss1\<bullet>ss2\<bullet>p"
 apply (utp_pred_tac)
 apply (clarify)
 apply (subst RenameB_commute [of "(inv\<^sub>s ss1)" "vs1" "(inv\<^sub>s ss2)" "vs2" "b"])
@@ -63,7 +63,7 @@ done
 
 theorem RenameP_involution [simp] :
 "\<lbrakk>ss \<in> VAR_RENAME_INV\<rbrakk> \<Longrightarrow>
- ss\<bullet>ss\<bullet>(p :: 'a WF_PREDICATE) = p"
+ ss\<bullet>ss\<bullet>(p :: 'a upred) = p"
   by (utp_pred_auto_tac)
 
 theorems rename_simps =
@@ -267,22 +267,22 @@ done
 subsubsection {* Expression Renaming Theorems *}
 
 theorem RenameE_id [urename]:
-  fixes e :: "'a WF_EXPRESSION"
+  fixes e :: "'a uexpr"
   shows "id\<^sub>s\<bullet>e = e"
   by (utp_expr_tac)
 
 theorem RenameE_inverse1 [urename]:
-  fixes e :: "'a WF_EXPRESSION"
+  fixes e :: "'a uexpr"
   shows "(inv\<^sub>s ss)\<bullet>ss\<bullet>e = e"
   by (utp_expr_tac)
 
 theorem RenameE_inverse2 [urename]:
-  fixes e :: "'a WF_EXPRESSION"
+  fixes e :: "'a uexpr"
   shows "ss\<bullet>(inv\<^sub>s ss)\<bullet>e = e"
   by (utp_expr_tac)
 
 theorem RenameE_compose [urename]:
-  fixes e :: "'a WF_EXPRESSION"
+  fixes e :: "'a uexpr"
   shows "ss1\<bullet>ss2\<bullet>e = (ss1 \<circ>\<^sub>s ss2)\<bullet>e"
 apply (utp_expr_tac)
 apply (simp add: RenameB_compose closure)
@@ -290,14 +290,14 @@ done
 
 theorem RenameE_involution [simp] :
 "\<lbrakk>ss \<in> VAR_RENAME_INV\<rbrakk> \<Longrightarrow>
- ss\<bullet>ss\<bullet>e = (e :: 'a WF_EXPRESSION)"
+ ss\<bullet>ss\<bullet>e = (e :: 'a uexpr)"
   by (utp_expr_tac)
 
 theorem RenameE_commute :
 "\<lbrakk>ss1 \<in> VAR_RENAME_ON vs1;
  ss2 \<in> VAR_RENAME_ON vs2;
  vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
- ss2 \<bullet> ss1 \<bullet> (e::'VALUE WF_EXPRESSION) = ss1 \<bullet> ss2 \<bullet> e"
+ ss2 \<bullet> ss1 \<bullet> (e::'a uexpr) = ss1 \<bullet> ss2 \<bullet> e"
 apply (utp_expr_tac)
 apply (clarify)
 apply (subst RenameB_commute [of "(inv\<^sub>s ss1)" "vs1" "(inv\<^sub>s ss2)" "vs2" "b"])
@@ -336,7 +336,7 @@ theorem RenameE_FalseE [urename]:
 subsubsection {* Expression Prime Theorems *}
 
 theorem PrimeE_double [urename]:
-  fixes v :: "'a WF_EXPRESSION"
+  fixes v :: "'a uexpr"
   shows "v\<acute>\<acute> = v"
   by (utp_expr_tac)
 

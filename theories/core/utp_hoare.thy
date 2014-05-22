@@ -25,24 +25,24 @@ ML {*
 setup hoare.setup
 
 definition HoareP :: 
-  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("{_}_{_}\<^sub>p" [200,0,201] 200) where
+  "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" ("{_}_{_}\<^sub>p" [200,0,201] 200) where
 "{p}Q{r}\<^sub>p = ((p \<Rightarrow>\<^sub>p r\<acute>) \<sqsubseteq>\<^sub>p Q)"
 
 declare HoareP_def [eval,evalr,evalrx]
 
 syntax
-  "_upred_hoare" :: "upred \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("{_}_{_}" [0,20,0] 100)
+  "_n_upred_hoare" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("{_}_{_}" [0,20,0] 100)
 
 translations
-  "_upred_hoare p Q r"  == "CONST HoareP p Q r"
+  "_n_upred_hoare p Q r"  == "CONST HoareP p Q r"
 
 theorem HoareP_intro [intro]:
   "(p \<Rightarrow>\<^sub>p r\<acute>) \<sqsubseteq> Q \<Longrightarrow> `{p}Q{r}`"
-  by (metis HoareP_def less_eq_WF_PREDICATE_def)
+  by (metis HoareP_def less_eq_upred_def)
 
 lemma HoareP_elim [elim]:
   "\<lbrakk> `{p}Q{r}`; \<lbrakk> (p \<Rightarrow>\<^sub>p r\<acute>) \<sqsubseteq> Q \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (metis HoareP_def less_eq_WF_PREDICATE_def)
+  by (metis HoareP_def less_eq_upred_def)
 
 theorem HoareP_AndP:
   "`{p}Q{r \<and> s}` = `{p}Q{r} \<and> {p}Q{s}`"
@@ -123,7 +123,7 @@ proof
     by (metis ConvR_rel_closure ImpliesP_rel_closure SemiR_AndP_left_precond WF_CONDITION_WF_RELATION assms(3) assms(4) assms(5))
 
   also have "... = `(p \<and> s\<acute>) ; (s \<Rightarrow> r\<acute>)`"
-    by (metis (hide_lams, no_types) AndP_OrP_distl ImpliesP_def OrP_comm inf_WF_PREDICATE_def inf_compl_bot uminus_WF_PREDICATE_def utp_pred_simps(11) utp_pred_simps(2) utp_pred_simps(6))
+    by (metis (hide_lams, no_types) AndP_OrP_distl ImpliesP_def OrP_comm inf_upred_def inf_compl_bot uminus_upred_def utp_pred_simps(11) utp_pred_simps(2) utp_pred_simps(6))
 
   also have "... = `p ; (s \<and> (s \<Rightarrow> r\<acute>))`"
     by (metis SemiR_AndP_right_precond assms(5))
@@ -157,8 +157,8 @@ theorem HoareP_AssignR [hoare]:
 done
 
 lemma HoareP_PAssignR:
-  fixes x :: "('a::DEFINED, 'm::VALUE) PVAR"
-    and v :: "('a::DEFINED, 'm::VALUE) WF_PEXPRESSION"
+  fixes x :: "('a::DEFINED, 'm::VALUE) pvar"
+    and v :: "('a::DEFINED, 'm::VALUE) pexpr"
   assumes "q \<in> COND" "x\<down> \<in> D\<^sub>0" "TYPEUSOUND('a, 'm)" "D\<^sub>1 \<sharp> v" "`p \<Rightarrow> q[v/x]`"
   shows "`{p}x := v{q}`"
   using assms
@@ -203,7 +203,7 @@ proof -
 
     finally show ?thesis using assms
       apply (rule_tac star_inductl_one_intro)
-      apply (simp add:plus_WF_PREDICATE_def times_WF_PREDICATE_def one_WF_PREDICATE_def)
+      apply (simp add:plus_upred_def times_upred_def one_upred_def)
       apply (rule OrP_refine)
       apply (utp_xrel_auto_tac)
       apply (rule SemiR_spec_refine)

@@ -18,11 +18,11 @@ imports
 begin
 
 lift_definition HoareA :: 
-  "'a WF_ALPHA_PREDICATE \<Rightarrow> 
-   'a WF_ALPHA_PREDICATE \<Rightarrow> 
-   'a WF_ALPHA_PREDICATE \<Rightarrow> 
-   'a WF_ALPHA_PREDICATE" ("{_}_{_}\<^sub>\<alpha>" [200,0,201] 200)
-is "\<lambda> p q r. (\<lbrace>\<rbrace> :: 'a ALPHABET, {\<pi> p}\<pi> q{\<pi> r}\<^sub>p)"
+  "'a uapred \<Rightarrow> 
+   'a uapred \<Rightarrow> 
+   'a uapred \<Rightarrow> 
+   'a uapred" ("{_}_{_}\<^sub>\<alpha>" [200,0,201] 200)
+is "\<lambda> p q r. (\<lbrace>\<rbrace> :: 'a alpha, {\<pi> p}\<pi> q{\<pi> r}\<^sub>p)"
   by (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def HoareP_def unrest)
 
 theorem HoareA_alphabet [alphabet]: "\<alpha>({p}Q{r}\<^sub>\<alpha>) = \<lbrace>\<rbrace>"
@@ -36,10 +36,10 @@ theorem HoareA_alt_def:
   by (utp_alpha_tac, utp_pred_tac)
 
 syntax
-  "_uapred_hoare" :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" ("{_}_{_}" [0,20,0] 100)
+  "_n_uapred_hoare" :: "n_uapred \<Rightarrow> n_uapred \<Rightarrow> n_uapred \<Rightarrow> n_uapred" ("{_}_{_}" [0,20,0] 100)
 
 translations
-  "_uapred_hoare p Q r"  == "CONST HoareA p Q r"
+  "_n_uapred_hoare p Q r"  == "CONST HoareA p Q r"
 
 theorem HoareA_AndA:
   "``{p}Q{r \<and> s}`` = ``{p}Q{r} \<and> {p}Q{s}``"

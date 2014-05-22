@@ -27,13 +27,13 @@ text {* The following locale allows us to deal generically with single-parametri
 
 locale UTP_PARM_TYPE =
   (* Constructor *)
-  fixes AbsU     :: "'UTP_VALUE UTYPE \<Rightarrow> 'HOL_VALUE::type \<Rightarrow> 'UTP_VALUE"
+  fixes AbsU     :: "'UTP_VALUE utype \<Rightarrow> 'HOL_VALUE::type \<Rightarrow> 'UTP_VALUE"
   (* Destructor *)
   fixes RepU     :: "'UTP_VALUE \<Rightarrow> 'HOL_VALUE"
   (* Type for constructed values *)
-  fixes TypeU    :: "'UTP_VALUE UTYPE \<Rightarrow> 'UTP_VALUE UTYPE"
+  fixes TypeU    :: "'UTP_VALUE utype \<Rightarrow> 'UTP_VALUE utype"
   (* Permissible element types *)
-  fixes PermU    :: "'UTP_VALUE UTYPE set"
+  fixes PermU    :: "'UTP_VALUE utype set"
   (* The elements of a composite value *)
   fixes elemU    :: "'HOL_VALUE \<Rightarrow> 'UTP_VALUE set"
 
@@ -45,13 +45,13 @@ locale UTP_PARM_TYPE =
   and     PermU_exists: "\<exists>x. x \<in> PermU"
 begin
 
-definition isTypeU :: "'UTP_VALUE UTYPE \<Rightarrow> bool" where
+definition isTypeU :: "'UTP_VALUE utype \<Rightarrow> bool" where
 "isTypeU a = (\<exists> b. a = TypeU b)"
 
-definition TypeU_param :: "'UTP_VALUE UTYPE \<Rightarrow> 'UTP_VALUE UTYPE" where
+definition TypeU_param :: "'UTP_VALUE utype \<Rightarrow> 'UTP_VALUE utype" where
 "TypeU_param t = (THE a. t = TypeU a \<and> a \<in> PermU)"
 
-definition DefaultPermU :: "'UTP_VALUE UTYPE" where
+definition DefaultPermU :: "'UTP_VALUE utype" where
 "DefaultPermU = (SOME x. x \<in> PermU)"
 
 lemma isTypeU: "isTypeU (TypeU a)"
@@ -95,7 +95,7 @@ end
 subsection {* Bottom Element Sort *}
 
 class BOT_SORT = VALUE +
-  fixes ubot :: "'a UTYPE \<Rightarrow> 'a" ("\<bottom>v\<^bsub>_\<^esub>")
+  fixes ubot :: "'a utype \<Rightarrow> 'a" ("\<bottom>v\<^bsub>_\<^esub>")
   assumes ubot_ndefined [defined] : "\<D> (\<bottom>v\<^bsub>a\<^esub>) = False"
   and     ubot_type [typing]: "\<bottom>v\<^bsub>a\<^esub> : a"
 
@@ -108,7 +108,7 @@ theorem Defined_not_eq_bot [simp] :
 (*
 subsection {* Coercision Sort *}
 class COERCE_SORT = VALUE +
-  fixes coerce :: "'a \<Rightarrow> 'a UTYPE \<Rightarrow> 'a"
+  fixes coerce :: "'a \<Rightarrow> 'a utype \<Rightarrow> 'a"
   assumes coerce_tau: "x :! t \<Longrightarrow> \<tau> (coerce x t) = t"
 *)
 
@@ -122,7 +122,7 @@ a type. *}
 class INT_SORT = VALUE +
   fixes MkInt   :: "int \<Rightarrow> 'a"
   fixes DestInt :: "'a \<Rightarrow> int"
-  fixes IntType :: "'a UTYPE"
+  fixes IntType :: "'a utype"
   -- {* The injection can always be reversed. *}
   assumes Inverse [simp] : "DestInt (MkInt i) = i"
   -- {* The values produced by the injection are precisely the well typed 
@@ -191,7 +191,7 @@ subsection {* Name Sort *}
 class NAME_SORT = VALUE +
   fixes MkNm :: "NAME \<Rightarrow> 'a"
   fixes DestNm :: "'a \<Rightarrow> NAME"
-  fixes NmType  :: "'a UTYPE"
+  fixes NmType  :: "'a utype"
   assumes Inverse [simp] : "DestNm (MkNm b) = b"
   and     MkNm_dcarrier: "dcarrier NmType = range MkNm"
   and     NmType_monotype [typing]: "monotype NmType"
@@ -201,7 +201,7 @@ subsection {* Boolean Sort *}
 class BOOL_SORT = VALUE +
   fixes MkBool :: "bool \<Rightarrow> 'a"
   fixes DestBool :: "'a \<Rightarrow> bool"
-  fixes BoolType  :: "'a UTYPE"
+  fixes BoolType  :: "'a utype"
   assumes Inverse [simp] : "DestBool (MkBool b) = b"
   and     BoolType_dcarrier: "dcarrier BoolType = range MkBool"
   and     BoolType_monotype [typing]: "monotype BoolType"
@@ -297,7 +297,7 @@ subsection {* Character Sort *}
 class CHAR_SORT = VALUE +
   fixes MkChar :: "char \<Rightarrow> 'a"
   fixes DestChar :: "'a \<Rightarrow> char"
-  fixes CharType :: "'a UTYPE"
+  fixes CharType :: "'a utype"
   assumes Inverse [simp] : "DestChar (MkChar c) = c"
   assumes MkChar_range: "range MkChar = {x. x : CharType \<and> \<D> x}"
 begin
@@ -317,7 +317,7 @@ subsection {* String Sort *}
 class STRING_SORT = VALUE +
   fixes MkStr :: "string \<Rightarrow> 'a"
   fixes DestStr :: "'a \<Rightarrow> string"
-  fixes StringType :: "'a UTYPE"
+  fixes StringType :: "'a utype"
   assumes Inverse [simp] : "DestStr (MkStr s) = s"
   and     MkStr_range: "range MkStr = {x. x : StringType \<and> \<D> x}"
 begin
@@ -348,10 +348,10 @@ class MINUS_SORT = VALUE +
 subsection {* Finite set sort *}
 
 class FSET_SORT = BOOL_SORT +
-  fixes   MkFSet   :: "'a UTYPE \<Rightarrow> 'a fset \<Rightarrow> 'a"
+  fixes   MkFSet   :: "'a utype \<Rightarrow> 'a fset \<Rightarrow> 'a"
   and     DestFSet :: "'a \<Rightarrow> 'a fset"
-  and     FSetType :: "'a UTYPE \<Rightarrow> 'a UTYPE"
-  and     FSetPerm :: "'a UTYPE set"
+  and     FSetType :: "'a utype \<Rightarrow> 'a utype"
+  and     FSetPerm :: "'a utype set"
   assumes FSet_UTP_TYPE: "UTP_PARM_TYPE MkFSet DestFSet FSetType FSetPerm Rep_fset"
 begin
 
@@ -362,16 +362,16 @@ theorems
   FSetType_witness [typing] = UTP_PARM_TYPE.TypeU_witness[OF FSet_UTP_TYPE] and
   FSetType_elim [elim]      = UTP_PARM_TYPE.TypeU_elim[OF FSet_UTP_TYPE]
 
-definition FEmptyV  :: "'a UTYPE \<Rightarrow> 'a" where
+definition FEmptyV  :: "'a utype \<Rightarrow> 'a" where
 "FEmptyV a = MkFSet a \<lbrace>\<rbrace>"
 
-definition FInsertV :: "'a UTYPE \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+definition FInsertV :: "'a utype \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "FInsertV a x xs = MkFSet a (finsert x (DestFSet xs))"
 
-definition FUnionV  :: "'a UTYPE \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+definition FUnionV  :: "'a utype \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "FUnionV a xs ys = MkFSet a (DestFSet xs \<union>\<^sub>f DestFSet ys)"
 
-definition FInterV  :: "'a UTYPE \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+definition FInterV  :: "'a utype \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "FInterV a xs ys = MkFSet a (DestFSet xs \<inter>\<^sub>f DestFSet ys)"
 
 definition FSubsetV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
@@ -400,10 +400,10 @@ class STRING_FSET_SORT = STRING_SORT + FSET_SORT +
 subsection {* Set sort *}
 
 class SET_SORT = BOOL_SORT +
-  fixes   MkSet   :: "'a UTYPE \<Rightarrow> 'a set \<Rightarrow> 'a"
+  fixes   MkSet   :: "'a utype \<Rightarrow> 'a set \<Rightarrow> 'a"
   and     DestSet :: "'a \<Rightarrow> 'a set"
-  and     SetType :: "'a UTYPE \<Rightarrow> 'a UTYPE"
-  and     SetPerm :: "'a UTYPE set"
+  and     SetType :: "'a utype \<Rightarrow> 'a utype"
+  and     SetPerm :: "'a utype set"
   assumes Set_UTP_TYPE: "UTP_PARM_TYPE MkSet DestSet SetType SetPerm id"
 begin
 
@@ -414,16 +414,16 @@ theorems
   SetType_witness [typing] = UTP_PARM_TYPE.TypeU_witness[OF Set_UTP_TYPE] and
   SetType_elim [elim]      = UTP_PARM_TYPE.TypeU_elim[OF Set_UTP_TYPE]
 
-definition EmptyV  :: "'a UTYPE \<Rightarrow> 'a" where
+definition EmptyV  :: "'a utype \<Rightarrow> 'a" where
 "EmptyV a = MkSet a {}"
 
-definition InsertV :: "'a UTYPE \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+definition InsertV :: "'a utype \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "InsertV a x xs = MkSet a (insert x (DestSet xs))"
 
-definition UnionV  :: "'a UTYPE \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+definition UnionV  :: "'a utype \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "UnionV a xs ys = MkSet a (DestSet xs \<union> DestSet ys)"
 
-definition InterV  :: "'a UTYPE \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+definition InterV  :: "'a utype \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "InterV a xs ys = MkSet a (DestSet xs \<inter> DestSet ys)"
 
 definition SubsetV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
@@ -443,10 +443,10 @@ class EVENT_SET_SORT = EVENT_SORT + SET_SORT +
 subsection {* List Sort *}
 
 class LIST_SORT = BOOL_SORT +
-  fixes MkList :: "'a UTYPE \<Rightarrow> 'a list \<Rightarrow> 'a"
+  fixes MkList :: "'a utype \<Rightarrow> 'a list \<Rightarrow> 'a"
   and   DestList :: "'a \<Rightarrow> 'a list"
-  and   ListType :: "'a UTYPE \<Rightarrow> 'a UTYPE"
-  and   ListPerm :: "'a UTYPE set"
+  and   ListType :: "'a utype \<Rightarrow> 'a utype"
+  and   ListPerm :: "'a utype set"
   assumes List_UTP_TYPE: "UTP_PARM_TYPE MkList DestList ListType ListPerm set"
 begin
 
@@ -468,20 +468,20 @@ theorems
 
 subsubsection {* List Operators *}
 
-definition NilV :: "'a UTYPE \<Rightarrow> 'a" where
+definition NilV :: "'a utype \<Rightarrow> 'a" where
 "NilV a = MkList a []"
 notation NilV ("[]\<^bsub>_\<^esub>")
 
-definition ConsV :: "'a UTYPE \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+definition ConsV :: "'a utype \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "ConsV a x xs = MkList a (x # DestList xs)"
 
-abbreviation ConsV_syn :: "'a \<Rightarrow> 'a UTYPE \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "#\<^bsub>_\<^esub>" 65) where
+abbreviation ConsV_syn :: "'a \<Rightarrow> 'a utype \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "#\<^bsub>_\<^esub>" 65) where
 "ConsV_syn xs a ys \<equiv> ConsV a xs ys" 
 
-definition ConcatV :: "'a UTYPE \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+definition ConcatV :: "'a utype \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "ConcatV a xs ys = MkList a (DestList xs @ DestList ys)"
 
-abbreviation ConcatV_syn :: "'a \<Rightarrow> 'a UTYPE \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "@\<^bsub>_\<^esub>" 65) where
+abbreviation ConcatV_syn :: "'a \<Rightarrow> 'a utype \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "@\<^bsub>_\<^esub>" 65) where
 "xs @\<^bsub>a\<^esub> ys \<equiv> ConcatV a xs ys" 
 
 definition PrefixV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
@@ -581,8 +581,8 @@ subsection {* Pair Sort *}
 class PAIR_SORT = VALUE +
   fixes MkPair :: "('a \<times> 'a) \<Rightarrow> 'a"
   and   DestPair :: "'a \<Rightarrow> ('a \<times> 'a)"
-  and   PairType :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> 'a UTYPE"
-  and   PairPerm :: "'a UTYPE set"
+  and   PairType :: "'a utype \<Rightarrow> 'a utype \<Rightarrow> 'a utype"
+  and   PairPerm :: "'a utype set"
 
   assumes Inverse [simp] :
     "\<lbrakk> a \<in> PairPerm; b \<in> PairPerm; x :! a; y :! b \<rbrakk> \<Longrightarrow> DestPair (MkPair (x, y)) = (x, y)"
@@ -620,7 +620,7 @@ class REAL_SORT = VALUE +
   fixes MkReal :: "real \<Rightarrow> 'a"
   fixes DestReal :: "'a \<Rightarrow> real"
   fixes IsReal :: "'a \<Rightarrow> bool"
-  fixes RealType :: "'a UTYPE" ("\<real>")
+  fixes RealType :: "'a utype" ("\<real>")
   assumes Inverse [simp] : "DestReal (MkReal r) = r"
   assumes RealType_dcarrier: "dcarrier RealType = range MkReal"
 begin
@@ -652,7 +652,7 @@ class FUNCTION_SORT = BOT_SORT +
   fixes MkFunc   :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"
   and   DestFunc :: "'a \<Rightarrow> ('a \<Rightarrow> 'a)"
   and   IsFunc   :: "('a \<Rightarrow> 'a) \<Rightarrow> bool"
-  and   FuncType :: "'a UTYPE \<Rightarrow> 'a UTYPE \<Rightarrow> 'a UTYPE"
+  and   FuncType :: "'a utype \<Rightarrow> 'a utype \<Rightarrow> 'a utype"
   assumes Inverse [simp]: "IsFunc f \<Longrightarrow> DestFunc (MkFunc f) = f"
   and     Defined [simp]: "IsFunc f \<Longrightarrow> Defined (MkFunc f)"
   and     MkFunc_range: "{MkFunc f | f . \<forall> x : a. f x : b \<and> IsFunc f} = dcarrier (FuncType a b)"
@@ -674,10 +674,10 @@ lemma DestFunc_type [typing]:
   apply (smt CollectE CollectI Inverse)
 done
 
-definition func_inp_type :: "'a UTYPE \<Rightarrow> 'a UTYPE" where
+definition func_inp_type :: "'a utype \<Rightarrow> 'a utype" where
 "func_inp_type t = (SOME a. \<exists> b. t = FuncType a b)"
 
-definition func_out_type :: "'a UTYPE \<Rightarrow> 'a UTYPE" where
+definition func_out_type :: "'a utype \<Rightarrow> 'a utype" where
 "func_out_type t = (SOME b. \<exists> a. t = FuncType a b)"
 
 lemma func_inp_type [simp]:

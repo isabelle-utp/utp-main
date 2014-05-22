@@ -11,16 +11,16 @@ imports utp_designs_healths
 begin
 
 definition HoareD :: 
-  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("{_}_{_}\<^sub>D" [200,0,201] 200) where
+  "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" ("{_}_{_}\<^sub>D" [200,0,201] 200) where
 "{p}Q{r}\<^sub>D = `((p \<turnstile> r\<acute>) \<sqsubseteq> Q)`"
 
 declare HoareD_def [eval,evalr,evalrx,evalpp,evalpr]
 
 syntax
-  "_upred_hoared" :: "upred \<Rightarrow> upred \<Rightarrow> upred \<Rightarrow> upred" ("{_}_{_}\<^sub>D" [0,20,0] 100)
+  "_n_upred_hoared" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("{_}_{_}\<^sub>D" [0,20,0] 100)
 
 translations
-  "_upred_hoared p Q r"  == "CONST HoareD p Q r"
+  "_n_upred_hoared p Q r"  == "CONST HoareD p Q r"
 
 
 lemma HoareD_as_HoareP: "`{p}Q{r}\<^sub>D` = `{$ok \<and> p}Q{$ok \<and> r}`"
@@ -45,7 +45,7 @@ lemma RefImp: "`q \<Rightarrow> p` \<sqsubseteq> r \<Longrightarrow> p \<sqsubse
   by (utp_pred_tac)
 
 theorem HoareD_AssignD [hoare]:
-  fixes x :: "('a :: DEFINED, 'm) PVAR"
+  fixes x :: "('a :: DEFINED, 'm) pvar"
   assumes "TYPEUSOUND('a, 'm)" 
           "x \<in> PUNDASHED" "x\<down> \<noteq> ok\<down>" "{ok\<down>} \<sharp> v"
           "D\<^sub>1 \<sharp> v" "NON_REL_VAR \<sharp> v" "q \<in> COND"

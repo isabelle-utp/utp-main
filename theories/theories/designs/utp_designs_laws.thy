@@ -153,7 +153,6 @@ theorem DesignD_diverge:
   by (simp add:DesignD_def usubst typing defined evalp)
 
 theorem DesignD_left_zero:
-  fixes P :: "'m WF_PREDICATE"
   assumes 
     "P \<in> WF_RELATION"
     "Q \<in> WF_RELATION"
@@ -347,7 +346,7 @@ theorem ParallelD_comm:
   by (utp_pred_auto_tac)
 
 theorem ParallelD_assoc:
-  fixes P :: "'a WF_PREDICATE"
+  fixes P :: "'a upred"
   shows "P \<parallel> Q \<parallel> R = (P \<parallel> Q) \<parallel> R"
   by (utp_poly_auto_tac)
 

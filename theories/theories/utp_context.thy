@@ -13,7 +13,7 @@ imports
   "../parser/utp_alpha_pred_parser"
 begin
 
-record 'm utp_struct = alpha :: "'m ALPHABET"
+record 'm utp_struct = alpha :: "'m alpha"
 
 record 'm thy_struct = "'m utp_struct" + thy :: "'m THEORY"
 
@@ -28,48 +28,48 @@ abbreviation "SupTS TS \<equiv> SupT (thy TS) (alpha TS)"
 abbreviation "InfTS TS \<equiv> InfT (thy TS) (alpha TS)"
 
 abbreviation WfpTS :: 
-  "('a::VALUE, 'b) thy_struct_scheme \<Rightarrow> ('a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE) \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("\<mu>\<index>")
+  "('a::VALUE, 'b) thy_struct_scheme \<Rightarrow> ('a uapred \<Rightarrow> 'a uapred) \<Rightarrow> 'a uapred" ("\<mu>\<index>")
 where "WfpTS TS \<equiv> GfpT (thy TS) (alpha TS)"
 
 abbreviation SfpTS :: 
-  "('a::VALUE, 'b) thy_struct_scheme \<Rightarrow> ('a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE) \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("\<nu>\<index>")
+  "('a::VALUE, 'b) thy_struct_scheme \<Rightarrow> ('a uapred \<Rightarrow> 'a uapred) \<Rightarrow> 'a uapred" ("\<nu>\<index>")
 where "SfpTS TS \<equiv> LfpT (thy TS) (alpha TS)"
 
 no_syntax
-  "_uapred_true"     :: "'m ALPHABET \<Rightarrow> uapred" ("true\<^bsub>_\<^esub>")
-  "_uapred_false"    :: "'a ALPHABET \<Rightarrow> uapred" ("false\<^bsub>_\<^esub>")
-  "_uapred_skip"     :: "'a ALPHABET \<Rightarrow> uapred" ("II\<^bsub>_\<^esub>")
-  "_uapred_assign"   :: "'a VAR \<Rightarrow> 'a ALPHABET \<Rightarrow> apexpr \<Rightarrow> uapred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
+  "_n_uapred_true"     :: "'m alpha \<Rightarrow> n_uapred" ("true\<^bsub>_\<^esub>")
+  "_n_uapred_false"    :: "'a alpha \<Rightarrow> n_uapred" ("false\<^bsub>_\<^esub>")
+  "_n_uapred_skip"     :: "'a alpha \<Rightarrow> n_uapred" ("II\<^bsub>_\<^esub>")
+  "_n_uapred_assign"   :: "'a uvar \<Rightarrow> 'a alpha \<Rightarrow> n_apexpr \<Rightarrow> n_uapred" ("_ :=\<^bsub>_ \<^esub>_" [100] 100)
 
 no_translations
-  "_uapred_true a"      == "CONST TrueA a"
-  "_uapred_skip a"      == "CONST SkipA a"
+  "_n_uapred_true a"      == "CONST TrueA a"
+  "_n_uapred_skip a"      == "CONST SkipA a"
 
 no_notation TrueA ("true\<^bsub>_\<^esub>")
 
 syntax
-  "_uapred_true_st"   :: "'a utp_struct \<Rightarrow> uapred" ("true\<index>")
-  "_uapred_false_st"  :: "'a utp_struct \<Rightarrow> uapred" ("false\<index>")
-  "_uapred_top_st"    :: "'a utp_struct \<Rightarrow> uapred" ("\<top>\<index>")
-  "_uapred_bot_st"    :: "'a utp_struct \<Rightarrow> uapred" ("\<bottom>\<index>")
-  "_uapred_skip_st"   :: "'a utp_struct \<Rightarrow> uapred" ("II\<index>")
-  "_uapred_assign_st" :: "'a utp_struct \<Rightarrow> 'a VAR \<Rightarrow> apexpr \<Rightarrow> uapred" ("_ :=\<index> _" [100] 100)
-  "_uapred_meet_st"   :: "'a utp_struct \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixl "\<squnion>\<index>" 65)
-  "_uapred_join_st"   :: "'a utp_struct \<Rightarrow> uapred \<Rightarrow> uapred \<Rightarrow> uapred" (infixl "\<sqinter>\<index>" 70)
-  "_uapred_wfp"       :: "logic \<Rightarrow> idt \<Rightarrow> uapred \<Rightarrow> uapred" ("(3\<mu>\<index>_./ _)" [0, 10] 10)
-  "_uapred_sfp"       :: "logic \<Rightarrow> idt \<Rightarrow> uapred \<Rightarrow> uapred" ("(3\<nu>\<index>_./ _)" [0, 10] 10)
+  "_n_uapred_true_st"   :: "'a utp_struct \<Rightarrow> n_uapred" ("true\<index>")
+  "_n_uapred_false_st"  :: "'a utp_struct \<Rightarrow> n_uapred" ("false\<index>")
+  "_n_uapred_top_st"    :: "'a utp_struct \<Rightarrow> n_uapred" ("\<top>\<index>")
+  "_n_uapred_bot_st"    :: "'a utp_struct \<Rightarrow> n_uapred" ("\<bottom>\<index>")
+  "_n_uapred_skip_st"   :: "'a utp_struct \<Rightarrow> n_uapred" ("II\<index>")
+  "_n_uapred_assign_st" :: "'a utp_struct \<Rightarrow> 'a uvar \<Rightarrow> n_apexpr \<Rightarrow> n_uapred" ("_ :=\<index> _" [100] 100)
+  "_n_uapred_meet_st"   :: "'a utp_struct \<Rightarrow> n_uapred \<Rightarrow> n_uapred \<Rightarrow> n_uapred" (infixl "\<squnion>\<index>" 65)
+  "_n_uapred_join_st"   :: "'a utp_struct \<Rightarrow> n_uapred \<Rightarrow> n_uapred \<Rightarrow> n_uapred" (infixl "\<sqinter>\<index>" 70)
+  "_n_uapred_wfp"       :: "logic \<Rightarrow> idt \<Rightarrow> n_uapred \<Rightarrow> n_uapred" ("(3\<mu>\<index>_./ _)" [0, 10] 10)
+  "_n_uapred_sfp"       :: "logic \<Rightarrow> idt \<Rightarrow> n_uapred \<Rightarrow> n_uapred" ("(3\<nu>\<index>_./ _)" [0, 10] 10)
 
 translations
-  "_uapred_true_st A"       == "CONST TrueA (CONST alpha A)"
-  "_uapred_false_st A"      == "CONST FalseA (CONST alpha A)"
-  "_uapred_top_st A "       == "CONST TopTS A"
-  "_uapred_bot_st A "       == "CONST BotTS A"
-  "_uapred_skip_st A"       == "CONST SkipA (CONST alpha A)"
-  "_uapred_assign_st A x e" == "CONST PAssignA x (CONST alpha A) e"
-  "_uapred_meet_st A p q"   == "CONST MeetTS A p q"
-  "_uapred_join_st A p q"   == "CONST JoinTS A p q"
-  "_uapred_wfp A x p"       == "CONST WfpTS A (\<lambda>x. p)"
-  "_uapred_sfp A x p"       == "CONST SfpTS A (\<lambda>x. p)"
+  "_n_uapred_true_st A"       == "CONST TrueA (CONST alpha A)"
+  "_n_uapred_false_st A"      == "CONST FalseA (CONST alpha A)"
+  "_n_uapred_top_st A "       == "CONST TopTS A"
+  "_n_uapred_bot_st A "       == "CONST BotTS A"
+  "_n_uapred_skip_st A"       == "CONST SkipA (CONST alpha A)"
+  "_n_uapred_assign_st A x e" == "CONST PAssignA x (CONST alpha A) e"
+  "_n_uapred_meet_st A p q"   == "CONST MeetTS A p q"
+  "_n_uapred_join_st A p q"   == "CONST JoinTS A p q"
+  "_n_uapred_wfp A x p"       == "CONST WfpTS A (\<lambda>x. p)"
+  "_n_uapred_sfp A x p"       == "CONST SfpTS A (\<lambda>x. p)"
 
 no_notation
   WFP ("\<mu>") and SFP ("\<nu>")

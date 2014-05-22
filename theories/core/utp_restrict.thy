@@ -10,15 +10,15 @@ begin
    the default value for them. This method is better than through quantification since
    it distributes through the predicate operators. *)
 
-lift_definition RestrictP :: "'a WF_PREDICATE \<Rightarrow> 'a VAR set \<Rightarrow> 'a WF_PREDICATE" 
+lift_definition RestrictP :: "'a upred \<Rightarrow> 'a uvar set \<Rightarrow> 'a upred" 
 is "\<lambda> p xs. {b. b \<oplus>\<^sub>b \<B> on xs \<in> p}" .
 
 notation RestrictP (infixr "\<ominus>\<^sub>p" 200)
 
-lift_definition RestrictE :: "'a WF_EXPRESSION \<Rightarrow> 'a VAR set \<Rightarrow> 'a WF_EXPRESSION"
+lift_definition RestrictE :: "'a uexpr \<Rightarrow> 'a uvar set \<Rightarrow> 'a uexpr"
 is "\<lambda> f xs. (\<lambda> b. \<langle>f\<rangle>\<^sub>e (b \<oplus>\<^sub>b \<B> on xs))"
   apply (simp add:WF_EXPRESSION_def)
-  apply (metis Rep_WF_EXPRESSION_typed)
+  apply (metis Rep_uexpr_typed)
 done
 
 notation RestrictE (infixr "\<ominus>\<^sub>e" 200)
@@ -56,7 +56,7 @@ lemma RestrictP_LitE:
   by (auto simp add:RestrictE.rep_eq LitE_rep_eq)
 
 lemma RestrictP_SkipR:
-  "\<lbrakk> xs \<subseteq> REL_VAR; HOMOGENEOUS xs \<rbrakk> \<Longrightarrow> II \<ominus>\<^sub>p (- xs) = II\<^bsub>xs\<^esub>"
+  "\<lbrakk> xs \<subseteq> REL_uvar; HOMOGENEOUS xs \<rbrakk> \<Longrightarrow> II \<ominus>\<^sub>p (- xs) = II\<^bsub>xs\<^esub>"
   apply (rule)
   apply (auto simp add:SkipR.rep_eq SkipRA.rep_eq ExistsP.rep_eq RestrictP.rep_eq)
   apply (rule_tac x="x \<oplus>\<^sub>b \<B> on REL_VAR - xs" in exI)

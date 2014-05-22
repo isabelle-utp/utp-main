@@ -14,7 +14,7 @@ begin
 
 default_sort VALUE
 
-instantiation WF_ALPHA_PREDICATE :: (VALUE) order
+instantiation uapred :: (VALUE) order
 begin
 
 instance
@@ -26,7 +26,7 @@ instance
 done
 end
 
-definition OrderA :: "'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE gorder" where
+definition OrderA :: "'a alpha \<Rightarrow> 'a uapred gorder" where
 "OrderA a = \<lparr> partial_object.carrier = WF_ALPHA_PREDICATE_OVER a, eq = op =, le = op \<sqsubseteq> \<rparr>"
 
 lemma OrderA_carrier [simp]:
@@ -91,27 +91,27 @@ interpretation alpha_lattice: lattice "(OrderA a)"
 done
 
 definition InfA ::
-  "'a ALPHABET \<Rightarrow>
-   'a WF_ALPHA_PREDICATE set \<Rightarrow>
-   'a WF_ALPHA_PREDICATE" ("\<Sqinter>\<^bsub>_\<^esub> _" [900] 900) where
+  "'a alpha \<Rightarrow>
+   'a uapred set \<Rightarrow>
+   'a uapred" ("\<Sqinter>\<^bsub>_\<^esub> _" [900] 900) where
 "\<Sqinter>\<^bsub>a\<^esub> ps = (if (ps \<subseteq> WF_ALPHA_PREDICATE_OVER a) then (\<Or>\<^bsub>a\<^esub> ps) else FalseA a)"
 
 definition InfiA ::
-  "'a ALPHABET \<Rightarrow>
-   'b set \<Rightarrow> ('b::type \<Rightarrow> 'a WF_ALPHA_PREDICATE) \<Rightarrow>
-   'a WF_ALPHA_PREDICATE" where
+  "'a alpha \<Rightarrow>
+   'b set \<Rightarrow> ('b::type \<Rightarrow> 'a uapred) \<Rightarrow>
+   'a uapred" where
 "InfiA a A f = \<Sqinter>\<^bsub>a\<^esub> (f ` A)"
 
 definition SupA ::
-  "'a ALPHABET \<Rightarrow>
-   'a WF_ALPHA_PREDICATE set \<Rightarrow>
-   'a WF_ALPHA_PREDICATE" ("\<Squnion>\<^bsub>_\<^esub> _" [900] 900) where
+  "'a alpha \<Rightarrow>
+   'a uapred set \<Rightarrow>
+   'a uapred" ("\<Squnion>\<^bsub>_\<^esub> _" [900] 900) where
 "\<Squnion>\<^bsub>a\<^esub> ps = (if (ps \<subseteq> WF_ALPHA_PREDICATE_OVER a) then (\<And>\<^bsub>a\<^esub> ps) else TrueA a)"
 
 definition SuprA ::
-  "'a ALPHABET \<Rightarrow>
-   'b set \<Rightarrow> ('b::type \<Rightarrow> 'a WF_ALPHA_PREDICATE) \<Rightarrow>
-   'a WF_ALPHA_PREDICATE" where
+  "'a alpha \<Rightarrow>
+   'b set \<Rightarrow> ('b::type \<Rightarrow> 'a uapred) \<Rightarrow>
+   'a uapred" where
 "SuprA a A f = \<Squnion>\<^bsub>a\<^esub> (f ` A)"
 
 declare InfA_def [evala]

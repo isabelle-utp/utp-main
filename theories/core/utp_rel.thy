@@ -19,20 +19,20 @@ begin
 subsection {* Composable Bindings *}
 
 definition COMPOSABLE_BINDINGS ::
-  "('VALUE WF_BINDING \<times>
-    'VALUE WF_BINDING) set" where
+  "('a binding \<times>
+    'a binding) set" where
 "COMPOSABLE_BINDINGS =
  {(b1, b2) . (\<forall> v \<in> UNDASHED . \<langle>b1\<rangle>\<^sub>b(dash v) = \<langle>b2\<rangle>\<^sub>b v) \<and> b1 \<cong> b2 on NON_REL_VAR}"
 
 subsection {* Classes of relation *}
 
-definition WF_RELATION :: "'VALUE WF_PREDICATE set" where
+definition WF_RELATION :: "'a upred set" where
 "WF_RELATION = {p. UNREST NON_REL_VAR p}"
 
-definition WF_CONDITION :: "'VALUE WF_PREDICATE set" where
+definition WF_CONDITION :: "'a upred set" where
 "WF_CONDITION = {p \<in> WF_RELATION. UNREST DASHED p}"
 
-definition WF_POSTCOND :: "'VALUE WF_PREDICATE set" where
+definition WF_POSTCOND :: "'a upred set" where
 "WF_POSTCOND = {p \<in> WF_RELATION. UNREST UNDASHED p}"
 
 adhoc_overloading
@@ -48,7 +48,7 @@ text {* An assignment is a special kind of predicate whose sole
 behaviour is to assign particular values to a particular set of
 variables. All other variables are unrestricted. *}
 
-definition WF_ASSIGN :: "'a VAR set \<Rightarrow> 'a WF_PREDICATE set" where
+definition WF_ASSIGN :: "'a uvar set \<Rightarrow> 'a upred set" where
 "WF_ASSIGN xs = {P. (\<forall>x\<in>xs. \<forall> b1 \<in> destPRED P. \<forall> b2 \<in> destPRED P. \<langle>b1\<rangle>\<^sub>b x = \<langle>b2\<rangle>\<^sub>b x)
                   \<and> (- xs) \<sharp> P
                   \<and> xs \<subseteq> DASHED}"
@@ -68,19 +68,19 @@ text {* @{term "SS2"} swaps undashed and doubly-dashed variables. *}
 abbreviation "SS2 \<equiv> (prime \<circ> prime) on UNDASHED"
 
 (*
-lift_definition SS :: "'VALUE VAR_RENAME" is
+lift_definition SS :: "'a VAR_RENAME" is
 "(\<lambda> v .
    if v \<in> UNDASHED then (dash v) else
    if v \<in> DASHED then (undash v) else v)"
   by (auto simp add:VAR_RENAME_def bij_def inj_on_def)
 
-lift_definition SS1 :: "'VALUE VAR_RENAME" is
+lift_definition SS1 :: "'a VAR_RENAME" is
 "(\<lambda> v .
    if (v \<in> DASHED) then (dash v) else
    if (v \<in> DASHED_TWICE) then (undash v) else v)"
   by (auto simp add: VAR_RENAME_def bij_def inj_on_def)
 
-lift_definition SS2 :: "'VALUE VAR_RENAME" is
+lift_definition SS2 :: "'a VAR_RENAME" is
 "(\<lambda> v .
    if v \<in> UNDASHED then dash (dash v) else
    if v \<in> DASHED_TWICE then undash (undash v) else v)"
@@ -100,7 +100,7 @@ subsection {* Operators *}
 
 subsubsection {* Skip *}
 
-lift_definition SkipR :: "'VALUE WF_PREDICATE"
+lift_definition SkipR :: "'a upred"
 is "{b. \<forall> v \<in> UNDASHED . \<langle>b\<rangle>\<^sub>b v = \<langle>b\<rangle>\<^sub>b (dash v)}"
 done
 
@@ -108,7 +108,7 @@ notation SkipR ("II")
 
 subsubsection {* Alphabet Skip *}
 
-lift_definition SkipRA :: "'VALUE VAR set \<Rightarrow> 'VALUE WF_PREDICATE" ("II\<^bsub>_\<^esub>") is
+lift_definition SkipRA :: "'a uvar set \<Rightarrow> 'a upred" ("II\<^bsub>_\<^esub>") is
 "\<lambda> vs. (\<exists>\<^sub>p ((UNDASHED \<union> DASHED) - vs). II)"
 done
 
@@ -138,10 +138,10 @@ subsubsection {* Conditional *}
 text {* Should we impose a constraint on b for it to be a condition? *}
 
 definition CondR ::
-  "'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE" where
+  "'a upred \<Rightarrow>
+   'a upred \<Rightarrow>
+   'a upred \<Rightarrow>
+   'a upred" where
 "CondR p1 b p2 = (b \<and>\<^sub>p p1) \<or>\<^sub>p (\<not>\<^sub>p b \<and>\<^sub>p p2)"
 
 notation CondR ("_ \<lhd> _ \<rhd> _")
@@ -149,9 +149,9 @@ notation CondR ("_ \<lhd> _ \<rhd> _")
 subsubsection {* Sequential Composition *}
 
 lift_definition SemiR ::
-  "'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE" is
+  "'a upred \<Rightarrow>
+   'a upred \<Rightarrow>
+   'a upred" is
 "\<lambda> p1 p2.
  {b1 \<oplus>\<^sub>b b2 on DASHED | b1 b2 .
    b1 \<in> p1 \<and> b2 \<in> p2 \<and> (b1, b2) \<in> COMPOSABLE_BINDINGS}"
@@ -164,9 +164,9 @@ notation SemiR (infixr ";\<^sub>R" 140)
 subsubsection {* Assignment *}
 
 definition 
-  "AssignF = {f :: 'a VAR \<Rightarrow> 'a WF_EXPRESSION. \<forall> x. f x \<rhd>\<^sub>e x}"
+  "AssignF = {f :: 'a uvar \<Rightarrow> 'a uexpr. \<forall> x. f x \<rhd>\<^sub>e x}"
 
-typedef 'a AssignF = "AssignF :: ('a VAR \<Rightarrow> 'a WF_EXPRESSION) set"
+typedef 'a AssignF = "AssignF :: ('a uvar \<Rightarrow> 'a uexpr) set"
   apply (rule_tac x="\<lambda> x. DefaultE (vtype x)" in exI)
   apply (auto simp add:AssignF_def typing defined)
 done
@@ -181,17 +181,17 @@ notation
 setup_lifting type_definition_AssignF
 
 lift_definition AssignsR ::
-"'m AssignF \<Rightarrow> 'm WF_PREDICATE"
+"'m AssignF \<Rightarrow> 'm upred"
 is "\<lambda> f. {b. \<forall> v \<in> UNDASHED. \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>(\<langle>f\<rangle>\<^sub>a v)\<rangle>\<^sub>e b}" .
 
 lift_definition AssignsRA ::
-"'m VAR set \<Rightarrow> 'm AssignF \<Rightarrow> 'm WF_PREDICATE"
+"'m uvar set \<Rightarrow> 'm AssignF \<Rightarrow> 'm upred"
 is "\<lambda> vs f. {b. \<forall> v \<in> in vs. \<langle>b\<rangle>\<^sub>b (v\<acute>) = \<langle>(\<langle>f\<rangle>\<^sub>a v)\<rangle>\<^sub>e b}" .
 
 lift_definition IdA :: "'m AssignF" is "VarE"
   by (auto simp add: typing AssignF_def unrest)
 
-lift_definition AssignF_upd :: "'a AssignF \<Rightarrow> 'a VAR \<Rightarrow> 'a WF_EXPRESSION \<Rightarrow> 'a AssignF" 
+lift_definition AssignF_upd :: "'a AssignF \<Rightarrow> 'a uvar \<Rightarrow> 'a uexpr \<Rightarrow> 'a AssignF" 
 is "\<lambda> f x v. f(x := ecoerce v x)"
   by (simp add:AssignF_def typing)
 
@@ -234,14 +234,14 @@ abbreviation "AssignR x v \<equiv> AssignsR (IdA(x := v))"
 nonterminal avar and avars and aexpr and aexprs and assignment
 
 syntax
-  "_avar"    :: "'a VAR \<Rightarrow> avar" ("_")
+  "_avar"    :: "'a uvar \<Rightarrow> avar" ("_")
   ""         :: "avar \<Rightarrow> avars" ("_")
   "_avars"   :: "[avar, avars] \<Rightarrow> avars" ("_,/ _")
-  "_aexpr"   :: "'a WF_EXPRESSION \<Rightarrow> aexpr" ("_")
+  "_aexpr"   :: "'a uexpr \<Rightarrow> aexpr" ("_")
   ""         :: "aexpr \<Rightarrow> aexprs" ("_")
   "_aexprs"  :: "[aexpr, aexprs] \<Rightarrow> aexprs" ("_,/ _")
   "_assign"  :: "['a AssignF, avars, aexprs] \<Rightarrow> 'a AssignF" ("(1[_])")
-  "_Assignment" :: "avars \<Rightarrow> aexprs \<Rightarrow> 'a WF_PREDICATE" ("(_ /:=\<^sub>R/ _)")   
+  "_Assignment" :: "avars \<Rightarrow> aexprs \<Rightarrow> 'a upred" ("(_ /:=\<^sub>R/ _)")   
 
 translations
   "_assign m (_avar x) (_aexpr v)" == "CONST AssignF_upd m x v"
@@ -288,9 +288,9 @@ lemma AssignsR_L2: "x \<noteq> y \<Longrightarrow> x, y :=p e, f = y,x :=p f,e"
 
 (*
 lift_definition AssignR ::
-"'VALUE VAR \<Rightarrow>
- 'VALUE WF_EXPRESSION \<Rightarrow>
- 'VALUE WF_PREDICATE"
+"'a VAR \<Rightarrow>
+ 'a WF_EXPRESSION \<Rightarrow>
+ 'a upred"
 is "\<lambda> x e. {b. \<forall> v \<in> UNDASHED . if (v = x) then \<langle>b\<rangle>\<^sub>b v\<acute> = \<langle>e\<rangle>\<^sub>e b 
                                            else \<langle>b\<rangle>\<^sub>b v\<acute> = \<langle>b\<rangle>\<^sub>b v}" .
 
@@ -303,16 +303,16 @@ lemma "AssignRS (IdA(x := v)) = AssignR x v"
 *)
 
 lift_definition AssignRA ::
-"'VALUE VAR \<Rightarrow>
- 'VALUE VAR set \<Rightarrow>
- 'VALUE WF_EXPRESSION \<Rightarrow>
- 'VALUE WF_PREDICATE" is "\<lambda> x vs v. (\<exists>\<^sub>p ((UNDASHED \<union> DASHED) - vs). x :=\<^sub>R v)" .
+"'a uvar \<Rightarrow>
+ 'a uvar set \<Rightarrow>
+ 'a uexpr \<Rightarrow>
+ 'a upred" is "\<lambda> x vs v. (\<exists>\<^sub>p ((UNDASHED \<union> DASHED) - vs). x :=\<^sub>R v)" .
 
 notation AssignRA (infix ":=\<^bsub>_\<^esub>" 190)
 
 definition ConvR ::
-"'VALUE WF_PREDICATE \<Rightarrow>
- 'VALUE WF_PREDICATE" where
+"'a upred \<Rightarrow>
+ 'a upred" where
 "ConvR p = SS\<bullet>p"
 
 notation ConvR ("(_\<^sup>\<smile>)" [1000] 999)
@@ -321,15 +321,15 @@ adhoc_overloading
   prime ConvR
 
 definition VarOpenP ::
-"'VALUE VAR \<Rightarrow> 'VALUE WF_PREDICATE" ("var") where
+"'a uvar \<Rightarrow> 'a upred" ("var") where
 "VarOpenP x = (\<exists>\<^sub>p {x}. II)"
 
 definition VarCloseP ::
-"'VALUE VAR \<Rightarrow> 'VALUE WF_PREDICATE" ("end") where
+"'a uvar \<Rightarrow> 'a upred" ("end") where
 "VarCloseP x = (\<exists>\<^sub>p {x\<acute>}. II)"
 
 definition VarExtP ::
-"'m WF_PREDICATE \<Rightarrow> 'm VAR \<Rightarrow> 'm WF_PREDICATE" ("_\<^bsub>+_\<^esub>") where
+"'m upred \<Rightarrow> 'm uvar \<Rightarrow> 'm upred" ("_\<^bsub>+_\<^esub>") where
 "VarExtP p x = p \<and>\<^sub>p ($\<^sub>ex\<acute> ==\<^sub>p $\<^sub>ex)"
 
 subsection {* Theorems *}
@@ -679,7 +679,7 @@ subsubsection {* @{term UNREST} theorems *}
 
 theorem UNREST_SkipR [unrest]:
 "vs \<subseteq> NON_REL_VAR \<Longrightarrow> UNREST vs II"
-  by (auto intro: UNREST_subset simp add:SkipR_def UNREST_def WF_BINDING_def override_on_def NON_REL_VAR_def)
+  by (auto intro: UNREST_subset simp add:SkipR_def UNREST_def binding_def override_on_def NON_REL_VAR_def)
 
 theorem UNREST_SkipR_DASHED_TWICE [unrest]:
 "UNREST DASHED_TWICE II"
@@ -922,7 +922,7 @@ lemma AssignRA_rel_closure [closure]:
   "\<lbrakk> x \<in> UNDASHED; - vs \<sharp> v; vs \<subseteq> REL_VAR \<rbrakk> \<Longrightarrow>
      x :=\<^bsub>vs\<^esub> v \<in> WF_RELATION"
   apply (simp add:WF_RELATION_def)
-  apply (subgoal_tac "NON_REL_VAR = (- REL_VAR :: 'a VAR set)")
+  apply (subgoal_tac "NON_REL_VAR = (- REL_VAR :: 'a uvar set)")
   apply (metis Compl_anti_mono UNREST_AssignRA')
   apply (auto)
 done
@@ -984,7 +984,7 @@ lemma SemiR_algebraic_lemma1 :
 "\<lbrakk>(b1, b2) \<in> COMPOSABLE_BINDINGS\<rbrakk> \<Longrightarrow>
   CompB ((b1 \<oplus>\<^sub>b b2 on DASHED) \<oplus>\<^sub>b (RenameB SS1 b1) on DASHED_TWICE) SS1 =
    b1 \<oplus>\<^sub>b (RenameB SS1 b2) on DASHED_TWICE"
-apply (rule Rep_WF_BINDING_intro)
+apply (rule Rep_binding_intro)
 apply (simp add:CompB_rep_eq)
 apply (rule ext)
 apply (simp add: RenameB_def closure)
@@ -1001,7 +1001,7 @@ lemma SemiR_algebraic_lemma2 :
 "\<lbrakk>(b1, b2) \<in> COMPOSABLE_BINDINGS\<rbrakk> \<Longrightarrow>
  CompB ((b1 \<oplus>\<^sub>b b2 on DASHED) \<oplus>\<^sub>b (RenameB SS1 b1) on DASHED_TWICE) SS2 =
    b2 \<oplus>\<^sub>b (RenameB SS2 b1) on DASHED_TWICE"
-apply (rule Rep_WF_BINDING_intro)
+apply (rule Rep_binding_intro)
 apply (simp)
 apply (rule ext)
 apply (simp add: RenameB_def closure)
@@ -1033,7 +1033,7 @@ apply (rule_tac x =
 apply (safe)
 -- {* Subgoal 1.1 *}
 apply (simp add: closure)
-apply (rule Rep_WF_BINDING_intro)
+apply (rule Rep_binding_intro)
 apply (rule ext)
 apply (case_tac "x \<in> DASHED")
 apply (simp add: SS1_simps SS2_simps)
@@ -1326,7 +1326,7 @@ lemma Rep_AssignF_compat [typing]:
 done
 
 lift_definition AssignsR ::
-"'m AssignF \<Rightarrow> 'm WF_PREDICATE"
+"'m AssignF \<Rightarrow> 'm upred"
 is "\<lambda> f. {b. \<forall> v \<in> dom \<langle>f\<rangle>\<^sub>a. \<langle>b\<rangle>\<^sub>b v\<acute> = \<langle>the (\<langle>f\<rangle>\<^sub>a v)\<rangle>\<^sub>e b}" .
 
 lift_definition IdA :: "'m AssignF" 

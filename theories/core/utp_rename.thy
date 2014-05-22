@@ -26,10 +26,10 @@ subsection {* Variable Renaming *}
 
 text {* Renamings are total bijections that respect typing. *}
 
-definition VAR_RENAME :: "('VALUE VAR \<Rightarrow> 'VALUE VAR) set" where
+definition VAR_RENAME :: "('a uvar \<Rightarrow> 'a uvar) set" where
 "VAR_RENAME = {ss . bij ss \<and> (\<forall> v . vtype (ss v) = vtype v \<and> aux (ss v) = aux v)}"
 
-typedef 'VALUE VAR_RENAME = "VAR_RENAME :: ('VALUE VAR \<Rightarrow> 'VALUE VAR) set"
+typedef 'a VAR_RENAME = "VAR_RENAME :: ('a uvar \<Rightarrow> 'a uvar) set"
   by (auto simp add:VAR_RENAME_def)
 
 declare Rep_VAR_RENAME [simp]
@@ -79,8 +79,8 @@ theorem Rep_VAR_RENAME_VAR [simp]:
 subsection {* Renaming builder *}
 
 definition MapRename :: 
-  "('VALUE VAR \<rightharpoonup> 'VALUE VAR) \<Rightarrow>
-    'VALUE VAR \<Rightarrow> 'VALUE VAR" where
+  "('a uvar \<rightharpoonup> 'a uvar) \<Rightarrow>
+    'a uvar \<Rightarrow> 'a uvar" where
 "MapRename f = the \<circ> (Some ++ (map_inv f ++ f))"
   
 subsection {* Theorems *}
@@ -334,11 +334,11 @@ apply (drule VAR_RENAME_bij)
 apply (simp add: o_inv_distrib)
 done
 
-theorem VAR_RENAME_WF_BINDING [closure] :
-"\<lbrakk>b \<in> WF_BINDING;
+theorem VAR_RENAME_binding [closure] :
+"\<lbrakk>b \<in> binding;
  ss \<in> VAR_RENAME\<rbrakk> \<Longrightarrow>
- b \<circ> ss \<in> WF_BINDING"
-apply (simp add: VAR_RENAME_def WF_BINDING_def)
+ b \<circ> ss \<in> binding"
+apply (simp add: VAR_RENAME_def binding_def)
 apply (safe)
 apply (drule_tac x = "ss v" in spec)
 apply (drule_tac x = "v" in spec)
@@ -394,7 +394,7 @@ done
 subsubsection {* Derived renaming operators *}
 
 definition rename_comp :: 
-  "'VALUE VAR_RENAME \<Rightarrow> 'VALUE VAR_RENAME \<Rightarrow> 'VALUE VAR_RENAME" (infixl "\<circ>\<^sub>s" 55) where 
+  "'a VAR_RENAME \<Rightarrow> 'a VAR_RENAME \<Rightarrow> 'a VAR_RENAME" (infixl "\<circ>\<^sub>s" 55) where 
 "rename_comp x y = Abs_VAR_RENAME (\<langle>x\<rangle>\<^sub>s \<circ> \<langle>y\<rangle>\<^sub>s)"
 
 lemma rename_comp_rep_eq [simp]:
@@ -405,7 +405,7 @@ lemma rename_comp_rep_eq [simp]:
 done
 
 definition rename_inv :: 
-  "'VALUE VAR_RENAME \<Rightarrow> 'VALUE VAR_RENAME" ("inv\<^sub>s") where
+  "'a VAR_RENAME \<Rightarrow> 'a VAR_RENAME" ("inv\<^sub>s") where
 "inv\<^sub>s ss = Abs_VAR_RENAME (inv \<langle>ss\<rangle>\<^sub>s)"
 
 lemma rename_inv_rep_eq [simp]:
@@ -413,7 +413,7 @@ lemma rename_inv_rep_eq [simp]:
   by (simp add:rename_inv_def closure)
 
 definition rename_id :: 
-  "'VALUE VAR_RENAME" ("id\<^sub>s") where
+  "'a VAR_RENAME" ("id\<^sub>s") where
 "id\<^sub>s = Abs_VAR_RENAME id"
 
 lemma rename_id_rep_eq [simp]:
@@ -433,13 +433,13 @@ lemma rename_inv_comp [simp]:
   by force
 
 definition rename_image :: 
-  "('VALUE VAR_RENAME) \<Rightarrow> 'VALUE VAR set \<Rightarrow> 'VALUE VAR set" (infixr "`\<^sub>s" 90) where
+  "('a VAR_RENAME) \<Rightarrow> 'a uvar set \<Rightarrow> 'a uvar set" (infixr "`\<^sub>s" 90) where
 "ss `\<^sub>s vs = \<langle>ss\<rangle>\<^sub>s ` vs"
 
 declare rename_image_def [simp]
 
 definition rename_equiv ::
-  "'VALUE VAR_RENAME \<Rightarrow> 'VALUE VAR_RENAME \<Rightarrow> 'VALUE VAR set \<Rightarrow> bool" where
+  "'a VAR_RENAME \<Rightarrow> 'a VAR_RENAME \<Rightarrow> 'a uvar set \<Rightarrow> bool" where
 "rename_equiv ss1 ss2 vs \<equiv> \<forall>x \<in> vs. (\<langle>ss1\<rangle>\<^sub>s x = \<langle>ss2\<rangle>\<^sub>s x)"
 
 notation rename_equiv ("_ \<cong>\<^sub>s _ on _")
@@ -468,7 +468,7 @@ lemma rename_equiv_union [intro]:
  ss1 \<cong>\<^sub>s ss2 on (vs1 \<union> vs2)"
   by (auto simp add: rename_equiv_def)
 
-definition rename_func_on :: "('VALUE VAR \<Rightarrow> 'VALUE VAR) \<Rightarrow> 'VALUE VAR set \<Rightarrow> bool" where
+definition rename_func_on :: "('a uvar \<Rightarrow> 'a uvar) \<Rightarrow> 'a uvar set \<Rightarrow> bool" where
 "rename_func_on f vs \<longleftrightarrow> (inj_on f vs \<and> f ` vs \<inter> vs = {} \<and> (\<forall> x. vtype x = vtype (f x)) \<and> (\<forall> x. aux x = aux (f x)))"
 
 lemma rename_func_onE [elim]:
@@ -505,9 +505,9 @@ lemma dash_dash_UNDASHED_rename_func [closure]:
   by (auto intro: closure)
 
 definition rename_on ::
-  "('VALUE VAR \<Rightarrow> 'VALUE VAR) 
-   \<Rightarrow> ('VALUE VAR) set
-   \<Rightarrow> 'VALUE VAR_RENAME" (infix "on" 100) where
+  "('a uvar \<Rightarrow> 'a uvar) 
+   \<Rightarrow> ('a uvar) set
+   \<Rightarrow> 'a VAR_RENAME" (infix "on" 100) where
 "rename_on f vs = Abs_VAR_RENAME (complete_inj f vs)"
 
 lemma rename_on_empty [simp]:
@@ -556,19 +556,19 @@ lemma rename_on_image:
 done
 
 lemma rename_on_perm1:
-  fixes x :: "'a VAR"
+  fixes x :: "'a uvar"
   assumes "rename_func_on f vs" "x \<in> vs"
   shows "(f on vs)\<bullet>x = f x"
   by (simp add:rename_on_rep_eq assms)
 
 lemma rename_on_perm2:
-  fixes x :: "'a VAR"
+  fixes x :: "'a uvar"
   assumes "rename_func_on f vs" "x \<notin> vs" "x \<in> f ` vs"
   shows "(f on vs)\<bullet>x = inv_into vs f x"
   by (simp add:rename_on_rep_eq assms)
 
 lemma rename_on_perm3:
-  fixes x :: "'a VAR"
+  fixes x :: "'a uvar"
   assumes "rename_func_on f vs" "x \<notin> vs" "x \<notin> f ` vs"
   shows "(f on vs)\<bullet>x = x"
   by (simp add:rename_on_rep_eq assms)
@@ -651,13 +651,13 @@ done
 text {* Variable renamings confined to a set of variables. *}
 
 definition VAR_RENAME_ON ::
-  "('VALUE VAR) set \<Rightarrow> 'VALUE VAR_RENAME set" where
+  "('a uvar) set \<Rightarrow> 'a VAR_RENAME set" where
 "VAR_RENAME_ON vs =
  {ss. (\<forall> v . v \<notin> vs \<longrightarrow> \<langle>ss\<rangle>\<^sub>s v = v)}"
 
 text {* Variable renamings that are also involutions. *}
 
-definition VAR_RENAME_INV :: "'VALUE VAR_RENAME set" where
+definition VAR_RENAME_INV :: "'a VAR_RENAME set" where
 "VAR_RENAME_INV = {ss. ss = inv\<^sub>s ss}"
 
 text {* Theorems about @{term "VAR_RENAME_ON"} *}
@@ -814,19 +814,19 @@ lemma inv_rename_func_on' [simp]:
 subsection {* Binding Renaming *}
 
 definition CompB ::   
-  "'VALUE WF_BINDING \<Rightarrow>
-   'VALUE VAR_RENAME \<Rightarrow>
-   'VALUE WF_BINDING" where
-"CompB b ss = Abs_WF_BINDING (\<langle>b\<rangle>\<^sub>b \<circ> \<langle>ss\<rangle>\<^sub>s)"
+  "'a binding \<Rightarrow>
+   'a VAR_RENAME \<Rightarrow>
+   'a binding" where
+"CompB b ss = Abs_binding (\<langle>b\<rangle>\<^sub>b \<circ> \<langle>ss\<rangle>\<^sub>s)"
 
 lemma CompB_rep_eq [simp]:
   "\<langle>CompB b ss\<rangle>\<^sub>b = \<langle>b\<rangle>\<^sub>b \<circ> \<langle>ss\<rangle>\<^sub>s"
   by (simp add:CompB_def closure)
 
 definition RenameB ::
-  "'VALUE VAR_RENAME \<Rightarrow>
-   'VALUE WF_BINDING \<Rightarrow>
-   'VALUE WF_BINDING" where
+  "'a VAR_RENAME \<Rightarrow>
+   'a binding \<Rightarrow>
+   'a binding" where
 "RenameB ss b = CompB b (inv\<^sub>s ss)"
 
 adhoc_overloading
@@ -843,8 +843,8 @@ lemma VAR_RENAME_INV_image_twice [urename]:
 subsection {* Building renamings from a partial map *}
 
 definition MapR ::
-  "('VALUE VAR \<rightharpoonup> 'VALUE VAR) \<Rightarrow>
-   'VALUE VAR_RENAME" where
+  "('a uvar \<rightharpoonup> 'a uvar) \<Rightarrow>
+   'a VAR_RENAME" where
 "MapR f = Abs_VAR_RENAME (MapRename f)"
 
 lemma MapR_rep_eq [simp]:
@@ -909,27 +909,27 @@ subsubsection {* Binding Renaming Laws *}
 (*
 theorem RenameB_closure [closure] :
 "\<lbrakk>ss \<in> VAR_RENAME;
- b \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
- RenameB ss b \<in> WF_BINDING"
+ b \<in> binding\<rbrakk> \<Longrightarrow>
+ RenameB ss b \<in> binding"
 apply (simp add: RenameB_def closure)
 done
 *)
 
-lemma WF_BINDING_VAR_RENAME [closure]: "\<langle>b\<rangle>\<^sub>b \<circ> inv \<langle>ss\<rangle>\<^sub>s \<in> WF_BINDING"
-  by (metis Rep_VAR_RENAME Rep_WF_BINDING VAR_RENAME_WF_BINDING VAR_RENAME_inv)
+lemma binding_VAR_RENAME [closure]: "\<langle>b\<rangle>\<^sub>b \<circ> inv \<langle>ss\<rangle>\<^sub>s \<in> binding"
+  by (metis Rep_VAR_RENAME Rep_binding VAR_RENAME_binding VAR_RENAME_inv)
 
 theorem RenameB_inject [simp]:
-  fixes b1 :: "'a WF_BINDING" 
+  fixes b1 :: "'a binding" 
   shows "(ss\<bullet>b1 = ss\<bullet>b2) = (b1 = b2)"
   by (force simp add:RenameB_def CompB_rep_eq)
 
 theorem RenameB_id [simp] :
-  fixes b :: "'a WF_BINDING" 
+  fixes b :: "'a binding" 
   shows "id\<^sub>s\<bullet>b = b"
   by (auto simp add: RenameB_def CompB_rep_eq closure)
 
 theorem RenameB_compose :
-  fixes b :: "'a WF_BINDING" 
+  fixes b :: "'a binding" 
   shows "ss1\<bullet>(ss2\<bullet>b) = (ss1 \<circ>\<^sub>s ss2)\<bullet>b"
   by (auto simp add: RenameB_def closure o_assoc CompB_rep_eq)
 
@@ -937,7 +937,7 @@ theorem RenameB_commute :
 "\<lbrakk>ss1 \<in> VAR_RENAME_ON vs1;
  ss2 \<in> VAR_RENAME_ON vs2;
  vs1 \<inter> vs2 = {}\<rbrakk> \<Longrightarrow>
- ss1\<bullet>ss2\<bullet>(b :: 'a WF_BINDING) = ss2\<bullet>ss1\<bullet>b"
+ ss1\<bullet>ss2\<bullet>(b :: 'a binding) = ss2\<bullet>ss1\<bullet>b"
 apply (simp add: RenameB_compose)
 apply (subgoal_tac "ss1 \<circ>\<^sub>s ss2 = ss2 \<circ>\<^sub>s ss1")
 apply (simp)
@@ -945,19 +945,19 @@ apply (metis Rep_VAR_RENAME_inverse VAR_RENAME_ON_commute rename_comp_rep_eq)
 done
 
 theorem RenameB_inv_cancel1 [simp] :
-  fixes b :: "'a WF_BINDING" 
+  fixes b :: "'a binding" 
   shows "(inv\<^sub>s ss)\<bullet>ss\<bullet>b = b"
   by (force simp add: RenameB_def closure CompB_rep_eq)
 
 theorem RenameB_inv_cancel2 [simp] :
-  fixes b :: "'a WF_BINDING" 
+  fixes b :: "'a binding" 
   shows "ss\<bullet>(inv\<^sub>s ss)\<bullet>b = b"
   by (force simp add: RenameB_def closure CompB_rep_eq)
 
 theorem RenameB_override_distr1 :
 "ss\<bullet>(b1 \<oplus>\<^sub>b b2 on vs) = (ss\<bullet>b1) \<oplus>\<^sub>b (ss\<bullet>b2) on (\<langle>ss\<rangle>\<^sub>s ` vs)"
 apply (simp add: RenameB_def closure)
-apply (rule Rep_WF_BINDING_intro)
+apply (rule Rep_binding_intro)
 apply (simp add: closure CompB_rep_eq)
 apply (simp add: override_on_def)
 apply (rule ext)
@@ -1018,7 +1018,7 @@ lemma RenameB_binding_upd_1 :
 
 lemma RenameB_binding_upd_2 [simp]:
   "(RenameB ss b)(x :=\<^sub>b v) = RenameB ss (b(inv \<langle>ss\<rangle>\<^sub>s x :=\<^sub>b v))"
-  apply (rule Rep_WF_BINDING_intro)
+  apply (rule Rep_binding_intro)
   apply (auto simp add:binding_upd.rep_eq fun_upd_def)
   apply (rule ext, auto)
   apply (metis rename_inv_rep_eq vcoerce_perm)
@@ -1058,7 +1058,7 @@ lemma SUB_rename_func_on [closure]:
 done
 
 lemma SUB_var [urename]:
-  fixes x :: "'m VAR"
+  fixes x :: "'m uvar"
   shows "SUB n\<bullet>x = x\<^bsub>n\<^esub>"
   by (simp add:SUB.rep_eq)
 

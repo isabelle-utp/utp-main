@@ -10,13 +10,6 @@ theory utp_friendly
 imports utp_base
 begin
 
-type_synonym 'a pred        = "'a WF_PREDICATE"
-type_synonym 'a apred       = "'a WF_ALPHA_PREDICATE"
-type_synonym 'a alpha       = "'a ALPHABET" 
-type_synonym ('a, 'm) uvar  = "('a, 'm) PVAR"
-type_synonym ('a, 'm) expr  = "('a, 'm) WF_PEXPRESSION"
-type_synonym ('a, 'm) aexpr = "('a, 'm) WF_ALPHA_PEXPR"
-
 no_notation (xsymbols)
   Set.member  ("op \<in>") and
   Set.member  ("(_/ \<in> _)" [51, 51] 50) and

@@ -14,16 +14,16 @@ text {* A variable constists of a name, type and a flag denoting if it is a auxi
 variable or not. *}
 
 
-(* datatype 'VALUE VAR = MkVar NAME "'VALUE UTYPE" bool *)
+(* datatype 'a uvar = MkVar NAME "'a utype" bool *)
 
 (*
-primrec var_name :: "'VALUE VAR \<Rightarrow> NAME" ("name") where
+primrec var_name :: "'a uvar \<Rightarrow> NAME" ("name") where
 "var_name (MkVar n t d) = n"
 
-primrec var_type :: "'VALUE VAR \<Rightarrow> 'VALUE UTYPE" ("vtype") where
+primrec var_type :: "'a uvar \<Rightarrow> 'a utype" ("vtype") where
 "var_type (MkVar n t d) = t"
 
-primrec var_aux :: "'VALUE VAR \<Rightarrow> bool" ("aux") where
+primrec var_aux :: "'a uvar \<Rightarrow> bool" ("aux") where
 "var_aux (MkVar n t d) = d"
 
 lemma MkVar_inverse [simp]: 
@@ -43,12 +43,12 @@ lemma VAR_elim [elim]:
 instantiation VAR :: (VALUE) linorder
 begin
 
-definition less_eq_VAR :: "'a VAR \<Rightarrow> 'a VAR \<Rightarrow> bool" where
+definition less_eq_VAR :: "'a uvar \<Rightarrow> 'a uvar \<Rightarrow> bool" where
 "x \<le> y \<longleftrightarrow> name x < name y \<or>
            (name x = name y \<and> to_nat (vtype x) < to_nat (vtype y)) \<or>
            (name x = name y \<and> to_nat (vtype x) = to_nat (vtype y) \<and> aux x \<le> aux y)"
 
-definition less_VAR :: "'a VAR \<Rightarrow> 'a VAR \<Rightarrow> bool" where
+definition less_VAR :: "'a uvar \<Rightarrow> 'a uvar \<Rightarrow> bool" where
 "less_VAR x y \<longleftrightarrow> (x \<le> y \<and> \<not> y \<le> x)"
 
 instance 
@@ -60,46 +60,46 @@ done
 end
 *)
 
-type_synonym 'VALUE VAR =
-  "NAME \<times> 'VALUE UTYPE \<times> bool"
+type_synonym 'a uvar =
+  "NAME \<times> 'a utype \<times> bool"
 
-definition VAR :: "'VALUE VAR set" where
+definition VAR :: "'a uvar set" where
 "VAR = UNIV"
 
-abbreviation var_name :: "'VALUE VAR \<Rightarrow> NAME" ("name") where
+abbreviation var_name :: "'a uvar \<Rightarrow> NAME" ("name") where
 "var_name x \<equiv> fst x"
 
-abbreviation var_subscript :: "'VALUE VAR \<Rightarrow> SUBSCRIPT" ("vsub") where
+abbreviation var_subscript :: "'a uvar \<Rightarrow> SUBSCRIPT" ("vsub") where
 "var_subscript x \<equiv> subscript (var_name x)"
 
-abbreviation var_dashes :: "'VALUE VAR \<Rightarrow> nat" ("vdashes") where
+abbreviation var_dashes :: "'a uvar \<Rightarrow> nat" ("vdashes") where
 "var_dashes x \<equiv> dashes (name x)"
 
-abbreviation var_type :: "'VALUE VAR \<Rightarrow> 'VALUE UTYPE" ("vtype") where 
+abbreviation var_type :: "'a uvar \<Rightarrow> 'a utype" ("vtype") where 
 "var_type x \<equiv> fst (snd x)"
 
-abbreviation var_aux :: "'VALUE VAR \<Rightarrow> bool" ("aux") where 
+abbreviation var_aux :: "'a uvar \<Rightarrow> bool" ("aux") where 
 "var_aux x \<equiv> snd (snd x)"
 
 subsection {* Constructors *}
 
 definition MkVar :: 
-  "NAME \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool \<Rightarrow> 'VALUE VAR" where
+  "NAME \<Rightarrow> 'a utype \<Rightarrow> bool \<Rightarrow> 'a uvar" where
 "MkVar n t d = (n, t, d)"
 
-abbreviation MkPlain :: "string \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool \<Rightarrow> 'VALUE VAR" where
+abbreviation MkPlain :: "string \<Rightarrow> 'a utype \<Rightarrow> bool \<Rightarrow> 'a uvar" where
 "MkPlain s t d \<equiv> MkVar (bName s) t d"
 
 subsection {* Operators *}
 
-definition dash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" where
+definition dash :: "'a uvar \<Rightarrow> 'a uvar" where
 "dash \<equiv> \<lambda> x. MkVar (MkName (name_str (name x)) (dashes (name x) + 1) (subscript (name x)))
                    (vtype x) (aux x)"
 
 adhoc_overloading
   prime dash
 
-definition undash :: "'VALUE VAR \<Rightarrow> 'VALUE VAR" where
+definition undash :: "'a uvar \<Rightarrow> 'a uvar" where
 "undash \<equiv> \<lambda> x. MkVar (MkName (name_str (name x)) (dashes (name x)- 1) (subscript (name x)))
                      (vtype x) (aux x)"
 
@@ -107,11 +107,11 @@ adhoc_overloading
   unprime undash
 
 (*
-definition vchsub :: "'a VAR \<Rightarrow> nat \<Rightarrow> 'a VAR" where
+definition vchsub :: "'a uvar \<Rightarrow> nat \<Rightarrow> 'a uvar" where
 "vchsub = (\<lambda> (nm, t, a) n. (nm_set nm_subscript_attr (Some n) nm, t, a))"
 *)
 
-fun vchsub :: "'a VAR \<Rightarrow> nat \<Rightarrow> 'a VAR" where
+fun vchsub :: "'a uvar \<Rightarrow> nat \<Rightarrow> 'a uvar" where
 "vchsub (MkName s d b, t, a) n = (MkName s d (chsub n b), t, a)"
 
 
@@ -130,16 +130,16 @@ adhoc_overloading
 
 subsection {* Recontrolions *}
 
-definition UNDASHED :: "'VALUE VAR set" where
+definition UNDASHED :: "'a uvar set" where
 "UNDASHED = {v . dashes (name v) = 0}"
 
-definition DASHED :: "'VALUE VAR set" where
+definition DASHED :: "'a uvar set" where
 "DASHED = {v . dashes (name v) = 1}"
 
-definition DASHED_TWICE :: "'VALUE VAR set" where
+definition DASHED_TWICE :: "'a uvar set" where
 "DASHED_TWICE = {v . dashes (name v) = 2}"
 
-definition DASHED_THRICE :: "'VALUE VAR set" where
+definition DASHED_THRICE :: "'a uvar set" where
 "DASHED_THRICE = {v . dashes (name v) = 3}"
 
 notation 
@@ -148,58 +148,58 @@ notation
   DASHED_TWICE  ("D\<^sub>2") and
   DASHED_THRICE ("D\<^sub>3")
 
-definition NOSUB :: "'VALUE VAR set" where
+definition NOSUB :: "'a uvar set" where
 "NOSUB = {v. subscript (name v) = NoSub}"
 
-definition WITHSUB :: "nat \<Rightarrow> 'VALUE VAR set" where
+definition WITHSUB :: "nat \<Rightarrow> 'a uvar set" where
 "WITHSUB n = {v. subscript (name v) = Sub n}"
 
-definition PLAIN :: "'VALUE VAR set" where
+definition PLAIN :: "'a uvar set" where
 "PLAIN = {v . v \<in> UNDASHED \<and> subscript (name v) = NoSub}"
 
-definition AUX_VAR :: "'VALUE VAR set" where
+definition AUX_VAR :: "'a uvar set" where
 "AUX_VAR = {v . aux v}"
 
-definition PROGRAM_VAR :: "'VALUE VAR set" where
+definition PROGRAM_VAR :: "'a uvar set" where
 "PROGRAM_VAR = {v . \<not> aux v}"
 
 abbreviation "REL_VAR \<equiv> UNDASHED \<union> DASHED"
 
-definition NON_REL_VAR :: "'VALUE VAR set" where
+definition NON_REL_VAR :: "'a uvar set" where
 "NON_REL_VAR = - (UNDASHED \<union> DASHED)"
 
 definition in_vars ::
-  "'VALUE VAR set \<Rightarrow>
-   'VALUE VAR set" ("in") where
+  "'a uvar set \<Rightarrow>
+   'a uvar set" ("in") where
 "in vs = vs \<inter> UNDASHED"
 
 definition out_vars ::
-  "'VALUE VAR set \<Rightarrow>
-   'VALUE VAR set" ("out") where
+  "'a uvar set \<Rightarrow>
+   'a uvar set" ("out") where
 "out vs = vs \<inter> DASHED"
 
 definition nrel_vars :: 
-  "'a VAR set \<Rightarrow> 
-   'a VAR set" ("nrel") where
+  "'a uvar set \<Rightarrow> 
+   'a uvar set" ("nrel") where
 "nrel vs = vs \<inter> NON_REL_VAR"
 
 text {* homl and homr construct the left and right homogeneous alphabets *}
 
-definition homl :: "'a VAR set \<Rightarrow> 'a VAR set" where
+definition homl :: "'a uvar set \<Rightarrow> 'a uvar set" where
 "homl vs = in vs \<union> (dash ` in vs) \<union> nrel vs"
 
-definition homr :: "'a VAR set \<Rightarrow> 'a VAR set" where
+definition homr :: "'a uvar set \<Rightarrow> 'a uvar set" where
 "homr vs = (undash ` out vs) \<union> out vs \<union> nrel vs"
 
 definition COMPOSABLE ::
-  "'VALUE VAR set \<Rightarrow>
-   'VALUE VAR set \<Rightarrow> bool" where
+  "'a uvar set \<Rightarrow>
+   'a uvar set \<Rightarrow> bool" where
 "COMPOSABLE a1 a2 \<longleftrightarrow> (out a1) = dash ` (in a2)"
 
-definition HOMOGENEOUS :: "'VALUE VAR set \<Rightarrow> bool" where
+definition HOMOGENEOUS :: "'a uvar set \<Rightarrow> bool" where
 "HOMOGENEOUS a \<longleftrightarrow> COMPOSABLE a a"
 
-definition HOM :: "'a VAR set set" where
+definition HOM :: "'a uvar set set" where
 "HOM = {xs. HOMOGENEOUS xs}"
 
 subsection {* Theorems *}
@@ -1319,7 +1319,7 @@ text {* This proof uses the infinitness of @{term "NAME"} proof to demonstrate
 that, given a finite set of variables, we can always generate a fresh variable
 with any given type and auxness *}
 
-theorem fresh_var: "\<exists>x::'VALUE VAR. x \<notin> \<langle>xs\<rangle>\<^sub>f \<and> vtype x = t \<and> aux x = s"
+theorem fresh_var: "\<exists>x::'a uvar. x \<notin> \<langle>xs\<rangle>\<^sub>f \<and> vtype x = t \<and> aux x = s"
 proof -
 
   obtain n where "n \<notin> name ` \<langle>xs\<rangle>\<^sub>f"

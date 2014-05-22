@@ -13,7 +13,7 @@ imports
 begin
 
 definition UNRH :: 
-  "'a VAR set \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("UH\<^bsub>_\<^esub>") where
+  "'a uvar set \<Rightarrow> 'a upred \<Rightarrow> 'a upred" ("UH\<^bsub>_\<^esub>") where
 "UNRH vs p = (\<exists>\<^sub>p (VAR - vs). p)"
 
 lemma UNRH_idem:
@@ -44,46 +44,46 @@ lemma mono_comp [intro]:
 subsection {* Fixed Points *}
 
 abbreviation WFP ::
-  "'VALUE WF_FUNCTION \<Rightarrow>
-   'VALUE WF_PREDICATE" ("\<mu>") where
+  "'a WF_FUNCTION \<Rightarrow>
+   'a upred" ("\<mu>") where
 "WFP \<equiv> gfp"
 
 abbreviation WFP_alpha ::
-  "'a VAR set \<Rightarrow>
+  "'a uvar set \<Rightarrow>
    'a WF_FUNCTION \<Rightarrow>
-   'a WF_PREDICATE" ("\<mu>\<^bsub>_\<^esub>") where
+   'a upred" ("\<mu>\<^bsub>_\<^esub>") where
 "WFP_alpha vs f \<equiv> WFP (f \<circ> UH\<^bsub>vs\<^esub>)"
 
 syntax
-  "_WFP" :: "pttrn => 'VALUE WF_PREDICATE => 'VALUE WF_PREDICATE" ("(3MU _./ _)" [0, 10] 10)
+  "_WFP" :: "pttrn => 'a upred => 'a upred" ("(3MU _./ _)" [0, 10] 10)
 
 syntax (xsymbols)
-  "_WFP" :: "pttrn => 'VALUE WF_PREDICATE => 'VALUE WF_PREDICATE" ("(3\<mu>_\<bullet>/ _)" [0, 10] 10)
+  "_WFP" :: "pttrn => 'a upred => 'a upred" ("(3\<mu>_\<bullet>/ _)" [0, 10] 10)
 
 translations
   "MU x. P" == "CONST WFP (%x. P)"
 
 abbreviation SFP ::
-  "'VALUE WF_FUNCTION \<Rightarrow>
-   'VALUE WF_PREDICATE" ("\<nu>") where
+  "'a WF_FUNCTION \<Rightarrow>
+   'a upred" ("\<nu>") where
 "SFP \<equiv> lfp"
 
 syntax
-  "_SFP" :: "pttrn => 'VALUE WF_PREDICATE => 'VALUE WF_PREDICATE" ("(3NU _./ _)" [0, 10] 10)
+  "_SFP" :: "pttrn => 'a upred => 'a upred" ("(3NU _./ _)" [0, 10] 10)
 
 syntax (xsymbols)
-  "_SFP" :: "pttrn => 'VALUE WF_PREDICATE => 'VALUE WF_PREDICATE" ("(3\<nu>_\<bullet>/ _)" [0, 10] 10)
+  "_SFP" :: "pttrn => 'a upred => 'a upred" ("(3\<nu>_\<bullet>/ _)" [0, 10] 10)
 
 translations
   "NU x. P" == "CONST SFP (%x. P)"
 
 syntax
-  "_upred_wfp"      :: "pttrn \<Rightarrow> upred \<Rightarrow> upred" ("(3\<mu>_./ _)" [0, 10] 10)
-  "_upred_sfp"      :: "pttrn \<Rightarrow> upred \<Rightarrow> upred" ("(3\<nu>_./ _)" [0, 10] 10)
+  "_n_upred_wfp"      :: "pttrn \<Rightarrow> n_upred \<Rightarrow> n_upred" ("(3\<mu>_./ _)" [0, 10] 10)
+  "_n_upred_sfp"      :: "pttrn \<Rightarrow> n_upred \<Rightarrow> n_upred" ("(3\<nu>_./ _)" [0, 10] 10)
 
 translations
-  "_upred_wfp x p"  == "CONST WFP (\<lambda>x. p)"
-  "_upred_sfp x p"  == "CONST SFP (\<lambda>x. p)"
+  "_n_upred_wfp x p"  == "CONST WFP (\<lambda>x. p)"
+  "_n_upred_sfp x p"  == "CONST SFP (\<lambda>x. p)"
 
 
 theorem WFP: "F(Y) \<sqsubseteq> Y \<Longrightarrow> \<mu> F \<sqsubseteq> Y"
@@ -93,7 +93,7 @@ theorem WFP_unfold: "mono F \<Longrightarrow> \<mu> F = F(\<mu> F)"
   by (metis gfp_unfold)
 
 theorem WFP_id: "(\<mu> X \<bullet> X) = true"
-  by (metis WFP top_WF_PREDICATE_def top_unique)
+  by (metis WFP top_upred_def top_unique)
 
 theorem SFP: "S \<sqsubseteq> F(S) \<Longrightarrow> S \<sqsubseteq> \<nu> F"
   by (metis lfp_lowerbound)
@@ -102,14 +102,14 @@ theorem SFP_unfold: "mono F \<Longrightarrow> F (\<nu> F) = \<nu> F"
   by (metis lfp_unfold)
 
 theorem SFP_id: "(\<nu> X \<bullet> X) = false"
-  by (metis SFP bot_WF_PREDICATE_def bot_unique)
+  by (metis SFP bot_upred_def bot_unique)
 
 lemma UNREST_WFP:
-  "\<lbrakk> \<And> x. UNREST vs (F x); mono F \<rbrakk> \<Longrightarrow> UNREST vs (\<mu> F)"
+  "\<lbrakk> \<And> x. vs \<sharp> (F x); mono F \<rbrakk> \<Longrightarrow> UNREST vs (\<mu> F)"
   by (metis WFP_unfold)
 
 lemma UNREST_SFP:
-  "\<lbrakk> \<And> x. UNREST vs (F x); mono F \<rbrakk> \<Longrightarrow> UNREST vs (\<nu> F)"
+  "\<lbrakk> \<And> x. vs \<sharp> (F x); mono F \<rbrakk> \<Longrightarrow> UNREST vs (\<nu> F)"
   by (metis SFP_unfold)
 
 lemma UNREST_WFP_alpha [unrest]:
@@ -129,7 +129,7 @@ lemma WFP_alpha_unfold:
   apply (simp add:unrest assms)
 done
 
-type_synonym 'a WF_PRED_CHAIN = "nat \<Rightarrow> 'a WF_PREDICATE"
+type_synonym 'a WF_PRED_CHAIN = "nat \<Rightarrow> 'a upred"
 
 definition chain :: "'a WF_PRED_CHAIN \<Rightarrow> bool" where
   "chain Y = ((Y 0 = false) \<and> (\<forall>i. Y (Suc i) \<sqsubseteq> Y i))"
@@ -147,7 +147,7 @@ lemma L274: "\<forall> n. (E n \<and>\<^sub>p X = E n \<and>\<^sub>p Y) \<Longri
   by (utp_pred_auto_tac)
 
 definition constr :: 
-  " ('a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE) 
+  " ('a upred \<Rightarrow> 'a upred) 
   \<Rightarrow> 'a WF_PRED_CHAIN \<Rightarrow> bool" where
 "constr F E \<longleftrightarrow> (\<forall> X n. (F(X) \<and>\<^sub>p E (n + 1) = F(X \<and>\<^sub>p E n) \<and>\<^sub>p E (n + 1)))"
 

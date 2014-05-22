@@ -18,11 +18,11 @@ begin
 
 default_sort VALUE
 
-instantiation WF_ALPHA_PREDICATE :: (VALUE) star_op
+instantiation uapred :: (VALUE) star_op
 begin
 
-lift_definition star_WF_ALPHA_PREDICATE :: "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE"
-is "\<lambda> (a, p). (a, ((p\<^sup>\<star>) ;\<^sub>R II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub>) :: 'a WF_PREDICATE)"
+lift_definition star_uapred :: "'a uapred \<Rightarrow> 'a uapred"
+is "\<lambda> (a, p). (a, ((p\<^sup>\<star>) ;\<^sub>R II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub>) :: 'a upred)"
   apply (auto simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
   apply (metis Compl_eq_Diff_UNIV UNREST_StarP_coerce VAR_def)
 done
@@ -32,13 +32,13 @@ instance ..
 end
 
 syntax
-  "_uapred_star"     :: "uapred \<Rightarrow> uapred" ("_\<^sup>\<star>" [900] 900)
+  "_n_uapred_star"     :: "n_uapred \<Rightarrow> n_uapred" ("_\<^sup>\<star>" [900] 900)
 
 translations
-  "_uapred_star p"   == "p\<^sup>\<star>"
+  "_n_uapred_star p"   == "p\<^sup>\<star>"
 
 lemma StarA_alphabet [alphabet]: "\<alpha>(P\<^sup>\<star>) = \<alpha>(P)"
-  apply (simp add:pred_alphabet_def star_WF_ALPHA_PREDICATE.rep_eq)
+  apply (simp add:pred_alphabet_def star_uapred.rep_eq)
   apply (metis (lifting) fst_def prod.exhaust split_conv)
 done
 
@@ -49,7 +49,7 @@ lemma StarA_closure [closure]:
 lemma EvalA_StarA [evala]:
   "\<lbrakk>P\<^sup>\<star>\<rbrakk>\<pi> = (\<lbrakk>P\<rbrakk>\<pi>\<^sup>\<star>) ;\<^sub>R II\<^bsub>\<langle>\<alpha>(P)\<rangle>\<^sub>f\<^esub>"
   apply (case_tac P)
-  apply (auto simp add:star_WF_ALPHA_PREDICATE.rep_eq EvalA_def WF_ALPHA_PREDICATE_def
+  apply (auto simp add:star_uapred.rep_eq EvalA_def WF_ALPHA_PREDICATE_def
 WF_PREDICATE_OVER_def pred_alphabet_def)
 done
 
@@ -58,22 +58,23 @@ lemma StarA_unfold:
   "``P\<^sup>\<star>`` = ``(P ; P\<^sup>\<star>) \<or> II\<^bsub>\<alpha>(P)\<^esub>``"
   apply (utp_alpha_tac)
   apply (subst left_pre_kleene_algebra_class.star_unfoldl_eq[THEN sym])
-  apply (simp add:plus_WF_PREDICATE_def times_WF_PREDICATE_def one_WF_PREDICATE_def)
+  apply (simp add:plus_upred_def times_upred_def one_upred_def)
   apply (rule)
   apply (metis alphabet_split fset_simps(5) funion_assoc)
   apply (metis (hide_lams, no_types) OrP_comm SemiR_OrP_distr SemiR_SkipR_left SemiR_assoc)
 done
 
 definition 
-  IterA :: " 'a WF_ALPHA_PREDICATE 
-           \<Rightarrow> 'a WF_ALPHA_PREDICATE 
-           \<Rightarrow> 'a WF_ALPHA_PREDICATE"  where
+  IterA :: " 'a uapred 
+           \<Rightarrow> 'a uapred 
+           \<Rightarrow> 'a uapred"  where
 "IterA b P \<equiv> ((b \<and>\<^sub>\<alpha> P)\<^sup>\<star>) \<and>\<^sub>\<alpha> (\<not>\<^sub>\<alpha> b\<acute>)"  
+
 syntax
-  "_uapred_while"    :: "uapred \<Rightarrow> uapred \<Rightarrow> uapred" ("while _ do _ od")
+  "_n_uapred_while"    :: "n_uapred \<Rightarrow> n_uapred \<Rightarrow> n_uapred" ("while _ do _ od")
 
 translations
-  "_uapred_while b p"   == "CONST IterA b p"
+  "_n_uapred_while b p"   == "CONST IterA b p"
 
 lemma EvalA_IterA_basic [evala]: "\<lbrakk>IterA b P\<rbrakk>\<pi> = \<lbrakk>((b \<and>\<^sub>\<alpha> P)\<^sup>\<star>) \<and>\<^sub>\<alpha> (\<not>\<^sub>\<alpha> b\<acute>)\<rbrakk>\<pi>"
   by (simp add:IterA_def)

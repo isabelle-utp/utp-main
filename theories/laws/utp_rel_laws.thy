@@ -1170,7 +1170,7 @@ text {* This lemma needs to be proved in the context of the BOOL SORT
         (or any sort with at least two elements) *}
 
 lemma SkipR_neq_TrueP_BOOL_SORT [simp]:
-  "(II :: ('a::BOOL_SORT) WF_PREDICATE) \<noteq> true"
+  "(II :: ('a::BOOL_SORT) upred) \<noteq> true"
 proof -
   let ?x = "MkPlain ''x'' BoolType True"
 
@@ -1178,7 +1178,7 @@ proof -
   and ?b2 = "\<B>(?x :=\<^sub>b MkBool False) \<oplus>\<^sub>b bc on DASHED \<union> NON_REL_VAR"
 
   have "?b1 \<noteq> ?b2"
-    apply (auto elim!:Rep_WF_BINDING_elim simp add:typing defined closure fun_eq_iff)
+    apply (auto elim!:Rep_binding_elim simp add:typing defined closure fun_eq_iff)
     apply (drule_tac x="?x" in spec)
     apply (simp add:typing defined closure)
   done
@@ -1672,7 +1672,7 @@ lemma EvalP_WF_CONDITION_binding_equiv:
   apply (auto simp add: WF_CONDITION_def WF_RELATION_def)
   apply (rule utp_unrest.EvalP_UNREST_binding_equiv[of "UNDASHED"])
   apply (auto intro:unrest)
-  apply (subgoal_tac "((- UNDASHED) :: 'a VAR set) = (NON_REL_VAR \<union> DASHED)")
+  apply (subgoal_tac "((- UNDASHED) :: 'a uvar set) = (NON_REL_VAR \<union> DASHED)")
   apply (auto intro:unrest)
 done
 

@@ -18,15 +18,15 @@ imports
   "../tactics/utp_expr_tac"
 begin
 
-type_synonym 'VALUE ALPHA_EXPRESSION =
-  "('VALUE ALPHABET) \<times> 'VALUE WF_EXPRESSION"
+type_synonym 'a ALPHA_EXPRESSION =
+  "('a alpha) \<times> 'a uexpr"
 
 definition WF_ALPHA_EXPRESSION ::
-  "'VALUE ALPHA_EXPRESSION set" where
+  "'a ALPHA_EXPRESSION set" where
 "WF_ALPHA_EXPRESSION =
  {e . snd e \<in> WF_EXPRESSION_OVER \<langle>fst e\<rangle>\<^sub>f}"
 
-typedef 'VALUE WF_ALPHA_EXPRESSION = "WF_ALPHA_EXPRESSION :: 'VALUE ALPHA_EXPRESSION set"
+typedef 'a uaexpr = "WF_ALPHA_EXPRESSION :: 'a ALPHA_EXPRESSION set"
   morphisms DestExprA MkExprA
   apply (auto simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
   apply (rule_tac x="(\<lbrace>\<rbrace>, DefaultE someType)" in exI)
@@ -45,36 +45,36 @@ lemma DestExprA_elim [elim]:
   "\<lbrakk> x = y; DestExprA x = DestExprA y \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (auto)
 
-setup_lifting type_definition_WF_ALPHA_EXPRESSION
+setup_lifting type_definition_uaexpr
 
 definition expr_alpha ::
-  "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE ALPHABET" where
+  "'a uaexpr \<Rightarrow> 'a alpha" where
 "expr_alpha e = fst (DestExprA e)"
 
 abbreviation expression ::
-  "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE WF_EXPRESSION" ("\<epsilon>") where
+  "'a uaexpr \<Rightarrow> 'a uexpr" ("\<epsilon>") where
 "expression e \<equiv> snd (DestExprA e)"
 
 (*
 definition alpha_expr_type ::
-  "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE UTYPE" ("\<tau>\<^sub>\<alpha>") where
+  "'a uaexpr \<Rightarrow> 'VALUE UTYPE" ("\<tau>\<^sub>\<alpha>") where
 "alpha_expr_type e = \<tau>\<^sub>e (\<epsilon> e)"
 *)
 
 definition eatype_rel :: 
-  "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE UTYPE \<Rightarrow> bool" (infix ":\<^sub>\<alpha>" 50) where
+  "'a uaexpr \<Rightarrow> 'a utype \<Rightarrow> bool" (infix ":\<^sub>\<alpha>" 50) where
 "eatype_rel e t \<equiv> \<epsilon> e :\<^sub>e t"
 
-definition eavar_compat :: "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE VAR \<Rightarrow> bool" (infix "\<rhd>\<^sub>\<alpha>" 50) where
+definition eavar_compat :: "'a uaexpr \<Rightarrow> 'a uvar \<Rightarrow> bool" (infix "\<rhd>\<^sub>\<alpha>" 50) where
 "eavar_compat e x \<equiv> \<epsilon> e \<rhd>\<^sub>e x"
 
 adhoc_overloading
   alphabet expr_alpha
 
-definition WF_ALPHA_EXPR_REL :: "'VALUE WF_ALPHA_EXPRESSION set" where
+definition WF_ALPHA_EXPR_REL :: "'a uaexpr set" where
 "WF_ALPHA_EXPR_REL = {p . (\<alpha> p) \<in> REL_ALPHABET}"
 
-definition WF_ALPHA_EXPR_COND :: "'VALUE WF_ALPHA_EXPRESSION set" where
+definition WF_ALPHA_EXPR_COND :: "'a uaexpr set" where
 "WF_ALPHA_EXPR_COND = {e \<in> WF_ALPHA_EXPR_REL. D\<^sub>1 \<sharp> \<epsilon> e}"
 
 adhoc_overloading
@@ -83,11 +83,11 @@ adhoc_overloading
 adhoc_overloading
   COND WF_ALPHA_EXPR_COND
 
-instantiation WF_ALPHA_EXPRESSION :: (VALUE) DEFINED
+instantiation uaexpr :: (VALUE) DEFINED
 begin
 
-definition Defined_WF_ALPHA_EXPRESSION :: "'a WF_ALPHA_EXPRESSION \<Rightarrow> bool" where
-"Defined_WF_ALPHA_EXPRESSION e \<equiv> \<D> (\<epsilon> e)"
+definition Defined_uaexpr :: "'a uaexpr \<Rightarrow> bool" where
+"Defined_uaexpr e \<equiv> \<D> (\<epsilon> e)"
 
 instance ..
 
@@ -96,12 +96,12 @@ end
 lemma eavar_compat_intros [intro]:
   "\<lbrakk> v :\<^sub>\<alpha> vtype x; \<D> v \<rbrakk> \<Longrightarrow> v \<rhd>\<^sub>\<alpha> x"
   "\<lbrakk> v :\<^sub>\<alpha> vtype x; \<not> aux x \<rbrakk> \<Longrightarrow> v \<rhd>\<^sub>\<alpha> x"
-  by (auto simp add:eavar_compat_def eatype_rel_def Defined_WF_ALPHA_EXPRESSION_def)
+  by (auto simp add:eavar_compat_def eatype_rel_def Defined_uaexpr_def)
 
 lemma eavar_compat_cases [elim]:
   "\<lbrakk> v \<rhd>\<^sub>\<alpha> x; \<lbrakk> v :\<^sub>\<alpha> vtype x; \<D> v \<rbrakk> \<Longrightarrow> P
            ; \<lbrakk> v :\<^sub>\<alpha> vtype x; \<not> aux x \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (auto simp add:eavar_compat_def eatype_rel_def Defined_WF_ALPHA_EXPRESSION_def)
+  by (auto simp add:eavar_compat_def eatype_rel_def Defined_uaexpr_def)
 
 theorem WF_ALPHA_EXPRESSION_intro [intro] :
   "\<lbrakk>\<alpha> e1 = \<alpha> e2; \<epsilon> e1 = \<epsilon> e2\<rbrakk> \<Longrightarrow> e1 = e2"
@@ -139,9 +139,9 @@ qed
 subsection {* Operators *}
 
 lift_definition EqualA :: 
-"'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
- 'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
- 'VALUE WF_ALPHA_PREDICATE" is
+"'a uaexpr \<Rightarrow> 
+ 'a uaexpr \<Rightarrow> 
+ 'a uapred" is
 "\<lambda> e f. (\<alpha> e \<union>\<^sub>f \<alpha> f, (\<epsilon> e) ==\<^sub>p (\<epsilon> f))"
 proof -
   fix e1 e2
@@ -155,26 +155,26 @@ qed
 notation EqualA (infixr "==\<^sub>\<alpha>" 150)
 
 lift_definition VarAE ::
-"'VALUE VAR \<Rightarrow>
- 'VALUE WF_ALPHA_EXPRESSION" ("$\<^sub>\<alpha>_" [999] 999)  is
+"'a uvar \<Rightarrow>
+ 'a uaexpr" ("$\<^sub>\<alpha>_" [999] 999)  is
 "\<lambda> x. (finsert x \<lbrace>\<rbrace>, VarE x)"
   by (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
 
 lift_definition LitAE :: 
-  "'VALUE \<Rightarrow> 'VALUE WF_ALPHA_EXPRESSION" is
+  "'a \<Rightarrow> 'a uaexpr" is
 "\<lambda> v. (\<lbrace>\<rbrace>, LitE v)"
   by (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
 
 lift_definition CoerceAE ::
-  "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE UTYPE \<Rightarrow> 'VALUE WF_ALPHA_EXPRESSION" is
+  "'a uaexpr \<Rightarrow> 'a utype \<Rightarrow> 'a uaexpr" is
 "\<lambda> e t. (\<alpha> e, CoerceE (\<epsilon> e) t)"
   by (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
 
 (*
 definition AppAE ::
   "'VALUE::FUNCTION_SORT WF_ALPHA_EXPRESSION \<Rightarrow> 
-   'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
-   'VALUE WF_ALPHA_EXPRESSION" where
+   'a uaexpr \<Rightarrow> 
+   'a uaexpr" where
 "AppAE f v = MkExprA (\<alpha> f \<union>\<^sub>f \<alpha> v, AppE (\<epsilon> f) (\<epsilon> v))"
 
 lemma AppAE_rep_eq:
@@ -186,7 +186,7 @@ done
 *)
 
 definition ExprA ::
-  "'VALUE::BOOL_SORT WF_ALPHA_EXPRESSION \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" where
+  "'a::BOOL_SORT uaexpr \<Rightarrow> 'a uapred" where
 "ExprA e = MkPredA (\<alpha> e, ExprP (\<epsilon> e))"
 
 lemma ExprA_rep_eq:
@@ -196,9 +196,9 @@ lemma ExprA_rep_eq:
 done
 
 lift_definition PermAE ::
-  "'VALUE VAR_RENAME \<Rightarrow>
-   'VALUE WF_ALPHA_EXPRESSION \<Rightarrow>
-   'VALUE WF_ALPHA_EXPRESSION" is
+  "'a VAR_RENAME \<Rightarrow>
+   'a uaexpr \<Rightarrow>
+   'a uaexpr" is
 "\<lambda> ss e. (\<langle>ss\<rangle>\<^sub>s `\<^sub>f \<alpha> e, ss\<bullet>(\<epsilon> e))"
   apply (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
   apply (rule UNREST_EXPR_RenameE_alt)
@@ -211,10 +211,10 @@ adhoc_overloading
 
 (*
 lift_definition SubstA ::
-"'VALUE WF_ALPHA_PREDICATE \<Rightarrow> 
- 'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
+"'a uapred \<Rightarrow> 
+ 'a uaexpr \<Rightarrow> 
  'VALUE UTYPE VAR \<Rightarrow> 
- 'VALUE WF_ALPHA_PREDICATE" ("_[_|_]\<alpha>" [200]) is
+ 'a uapred" ("_[_|_]\<alpha>" [200]) is
 "\<lambda> p v x. (\<alpha> p \<union>\<^sub>f \<alpha> v, (\<pi> p)[\<epsilon> v|x])"
 proof -
   fix p v x
@@ -225,10 +225,10 @@ proof -
  *) 
 
 lift_definition SubstA ::
-"'VALUE WF_ALPHA_PREDICATE \<Rightarrow> 
- 'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
- 'VALUE VAR \<Rightarrow> 
- 'VALUE WF_ALPHA_PREDICATE" ("_[_'/\<^sub>\<alpha>_]" [200] 200) is
+"'a uapred \<Rightarrow> 
+ 'a uaexpr \<Rightarrow> 
+ 'a uvar \<Rightarrow> 
+ 'a uapred" ("_[_'/\<^sub>\<alpha>_]" [200] 200) is
 "\<lambda> p v x. (if (x \<in>\<^sub>f \<alpha> p) 
               then (\<alpha> p -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
               else \<alpha> p , (\<pi> p)[\<epsilon> v/\<^sub>px])"
@@ -251,10 +251,10 @@ lemma SubstE_VarE_single_UNREST [usubst]:
   by (utp_expr_tac)
 
 lift_definition SubstAE ::
-"'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
- 'VALUE WF_ALPHA_EXPRESSION \<Rightarrow> 
- 'VALUE VAR \<Rightarrow> 
- 'VALUE WF_ALPHA_EXPRESSION" ("_[_'/\<^sub>\<epsilon>_]" [200] 200) is
+"'a uaexpr \<Rightarrow> 
+ 'a uaexpr \<Rightarrow> 
+ 'a uvar \<Rightarrow> 
+ 'a uaexpr" ("_[_'/\<^sub>\<epsilon>_]" [200] 200) is
 "\<lambda> e v x. (if (x \<in>\<^sub>f \<alpha> e) 
               then (\<alpha> e -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
               else \<alpha> e , (\<epsilon> e)[\<epsilon> v/\<^sub>ex])"
@@ -276,20 +276,20 @@ lift_definition SubstAE ::
 done
 
 lift_definition TrueAE :: 
-  "('VALUE :: BOOL_SORT) WF_ALPHA_EXPRESSION" ("true") is "(\<lbrace>\<rbrace>, TrueE)"
+  "('a :: BOOL_SORT) uaexpr" ("true") is "(\<lbrace>\<rbrace>, TrueE)"
   by (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
 
 lift_definition FalseAE :: 
-  "('VALUE :: BOOL_SORT) WF_ALPHA_EXPRESSION" ("false") is "(\<lbrace>\<rbrace>, FalseE)"
+  "('a :: BOOL_SORT) uaexpr" ("false") is "(\<lbrace>\<rbrace>, FalseE)"
   by (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
 
 lift_definition PredAE :: 
-"('VALUE :: BOOL_SORT) WF_ALPHA_PREDICATE \<Rightarrow> 
- 'VALUE WF_ALPHA_EXPRESSION" is "\<lambda> p. (\<alpha> p, PredE (\<pi> p))"
+"('a :: BOOL_SORT) uapred \<Rightarrow> 
+ 'a uaexpr" is "\<lambda> p. (\<alpha> p, PredE (\<pi> p))"
   by (auto intro:unrest simp add:WF_ALPHA_EXPRESSION_def WF_EXPRESSION_OVER_def)
 
 lift_definition VarA :: 
-"('VALUE::BOOL_SORT) VAR \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" ("&_") is
+"('a::BOOL_SORT) uvar \<Rightarrow> 'a uapred" ("&_") is
 "\<lambda> x. (\<lbrace>x\<rbrace>, VarP x)"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
@@ -334,7 +334,7 @@ theorem ExprA_alphabet [alphabet]:
   by (simp add:ExprA_rep_eq)
 
 theorem PermAE_alphabet [alphabet]:
-  fixes e :: "'a WF_ALPHA_EXPRESSION" 
+  fixes e :: "'a uaexpr" 
   shows "\<alpha> (ss\<bullet>e) = \<langle>ss\<rangle>\<^sub>s `\<^sub>f \<alpha> e"
   by (simp add:PermAE.rep_eq)
 
@@ -404,19 +404,19 @@ theorem alpha_expr_type [typing]: "\<exists> t. e :\<^sub>\<alpha> t"
 subsubsection {* Definedness Theorems *}
 
 theorem LitAE_defined [defined]: "\<D> v \<Longrightarrow> \<D> (LitAE v)"
-  by (auto simp add:LitAE.rep_eq Defined_WF_ALPHA_EXPRESSION_def defined)
+  by (auto simp add:LitAE.rep_eq Defined_uaexpr_def defined)
 
 theorem CoerceAE_defined [defined]: "\<D> e \<Longrightarrow> \<D> (CoerceAE e t)"
-  by (auto simp add:CoerceAE.rep_eq Defined_WF_ALPHA_EXPRESSION_def defined)
+  by (auto simp add:CoerceAE.rep_eq Defined_uaexpr_def defined)
 
 theorem TrueAE_defined [defined]: "\<D> TrueAE"
-  by (auto simp add:TrueAE.rep_eq Defined_WF_ALPHA_EXPRESSION_def defined)
+  by (auto simp add:TrueAE.rep_eq Defined_uaexpr_def defined)
 
 theorem FalseAE_defined [defined]: "\<D> FalseAE"
-  by (auto simp add:FalseAE.rep_eq Defined_WF_ALPHA_EXPRESSION_def defined)
+  by (auto simp add:FalseAE.rep_eq Defined_uaexpr_def defined)
 
 theorem VarAE_defined [defined]: "aux x \<Longrightarrow> \<D> (VarAE x)"
-  by (simp add:VarAE.rep_eq Defined_WF_ALPHA_EXPRESSION_def defined)
+  by (simp add:VarAE.rep_eq Defined_uaexpr_def defined)
 
 (*
 theorem RenameAE_defined [defined]: "\<D> (e[ss]\<alpha>\<epsilon>) = \<D> e"
