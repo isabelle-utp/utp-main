@@ -274,7 +274,7 @@ no_syntax
   "_n_pexpr_list_nil"    :: "n_pexpr" ("\<langle>\<rangle>")
   "_n_pexpr_expr_var"    :: "idt \<Rightarrow> n_pexpr" ("(_)")
   "_n_pexpr_pred_var"    :: "idt \<Rightarrow> n_pexpr" ("@(_)")
-(*  "_n_uexpr_quote"       :: "n_uexpr \<Rightarrow> 'a WF_EXPRESSION" ("(1^_^)") *)
+  "_n_expr_quote"        :: "n_expr \<Rightarrow> 'a uexpr" ("(1^_^)")
   "_n_upred_n_pexpr"       :: "n_pexpr \<Rightarrow> n_upred" ("\<lparr>_\<rparr>")
   "_uproc_n_pexpr"       :: "n_pexpr \<Rightarrow> n_uproc" ("\<lparr>_\<rparr>")
   "_n_upred_callpr"      :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("call _'[_']")
