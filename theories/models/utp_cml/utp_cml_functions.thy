@@ -15,6 +15,8 @@ imports
   utp_cml_monad
 begin
 
+type_synonym 'a hol_set = "'a set"
+
 text {* Set up the CML expression parser with API functions *}
 
 text {* List Functions *}
@@ -52,7 +54,11 @@ definition vexpr_seqcomp :: "('a \<Rightarrow> 'b::{vbasic,linorder} cmle * bool
                           ; LA <- cmle_fset_iter (\<Union>\<^sub>f PA) (fst \<circ> FP)
                           ; LitD (flist LA) }"
 
+definition vexpr_subseq :: "'a list cmle \<Rightarrow> real cmle \<Rightarrow> real cmle \<Rightarrow> 'a list cmle" where
+"vexpr_subseq = Op3DR {(xs, m, n). m \<ge> 0 \<and> n \<ge> m} (\<lambda> xs m n. sublist xs {nat (floor m) .. nat (floor n)})"
+
 declare vexpr_seqcomp_def [evalp]
+declare vexpr_subseq_def [evalp]
 
 declare vexpr_hd_def [eval,evalp]
 declare vexpr_tl_def [eval,evalp]
@@ -76,6 +82,7 @@ syntax
   "_vexpr_conc"    :: "n_pexpr \<Rightarrow> n_pexpr" ("conc _")
   "_vexpr_seqapp"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_'<_'>")
   "_vexpr_seqcomp" :: "n_pexpr \<Rightarrow> pttrn \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("[_ | _ in @set _ @/ _]")
+  "_vexpr_subseq"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_'(_,...,_')")
 
 translations
   "_vexpr_hd xs"        == "CONST vexpr_hd xs"
@@ -88,6 +95,7 @@ translations
   "_vexpr_conc xss"     == "CONST vexpr_conc xss"
   "_vexpr_seqapp xs i"  == "CONST vexpr_seqapp xs i"
   "_vexpr_seqcomp f x A P" == "CONST vexpr_seqcomp (\<lambda> x. (f, P)) A"
+  "_vexpr_subseq xs m n"   == "CONST vexpr_subseq xs m n"
 
 text {* Set Functions *}
 
@@ -223,6 +231,17 @@ is "map_comp"
   apply (metis finite_subset map_comp_dom)
 done
 
+lemma finite_dom_graph_map:
+  "finite A \<Longrightarrow> finite (dom (graph_map A))"
+  by (simp add:graph_map_def dom_def)
+
+lift_definition fgraph_fmap :: "('a * 'b) fset \<Rightarrow> ('a, 'b) fmap" is graph_map
+  by (simp add:fmaps_def, metis finite_dom_graph_map fsets_def mem_Collect_eq)
+
+lift_definition fmap_collect :: "('a \<Rightarrow> 'b * 'c) \<Rightarrow> 'a fset \<Rightarrow> ('b, 'c) fmap"
+is "\<lambda> f A. graph_map (f ` A)"
+  by (auto simp add:fmaps_def, metis finite_dom_graph_map finite_imageI fsets_def mem_Collect_eq)
+
 lift_definition fmap_add :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" 
 is "map_add" by (simp add:fmaps_def)
 
@@ -237,7 +256,12 @@ definition fmap_domr' :: "'a fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a,
 
 definition "vmapapp = (\<lambda> (m, k). Rep_fmap m k)"
 
+definition vexpr_map_collect :: 
+  "('a \<Rightarrow> ('b * 'c) cmle) \<Rightarrow> 'a fset cmle \<Rightarrow> ('b, 'c) fmap cmle" where
+"vexpr_map_collect f A = do { A' <- A; g <- cmle_fset_iter A' f; LitD (fgraph_fmap g)}"
+
 declare vmapapp_def [eval,evalp]
+declare vexpr_map_collect_def [eval,evalp]
 
 lemma dom_vmapapp [defined]:
   "dom vmapapp = {(m, k). k \<in>\<^sub>f fdom(m)}"
@@ -262,6 +286,7 @@ syntax
   "_vexpr_mapcomp"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "comp" 55)  
   "_vexpr_mapinv"    :: "n_pexpr \<Rightarrow> n_pexpr" ("inverse _")
   "_vexpr_mapapp"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_[_]")
+  "_vexpr_mapcomp"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> pttrn \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("{_ |-> _ | _ in @set _}")
 
 translations
   "_vexpr_dom x"         == "CONST vexpr_dom x"
@@ -271,6 +296,9 @@ translations
   "_vexpr_domresfr s f"  == "CONST vexpr_domresfr s f"
   "_vexpr_mapinv m"      == "CONST vexpr_mapinv m"
   "_vexpr_mapapp m k"    == "CONST vexpr_mapapp m k"
+  "_vexpr_mapcomp e f x A" == "CONST vexpr_map_collect (\<lambda> x. (CONST vexpr_prod e f)) A"
+
+term "|{x |-> (x * 2) + 5 | x in @set {1,...,5}}|"
 
 text {* Numeric Functions *}
 
@@ -497,5 +525,7 @@ lemma "|{ %x | x in @set {1,...,5} @ true }| = |{2,1,3,4,5}|"
 
 lemma "|[ %x | x in @set {1,...,5} @ true ]| = |[1,2,3,4,5]|"
   by (cml_tac)
+
+term "|[1,2,3,4,5](2,...,3)|"
 
 end

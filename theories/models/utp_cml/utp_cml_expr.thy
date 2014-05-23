@@ -107,10 +107,11 @@ definition Op3D :: "('a::vbasic * 'b::vbasic * 'c::vbasic \<rightharpoonup> 'd::
                    \<Rightarrow> 'a cmle \<Rightarrow> 'b cmle \<Rightarrow> 'c cmle \<Rightarrow> 'd cmle" where
 "Op3D f u v w = Op3PE (\<lambda> v1 v2 v3. do { x <- v1; y <- v2; z <- v3; f (x, y, z) }) u v w"
 
-definition tpfun :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> ('a * 'b * 'c \<Rightarrow> 'd option)" where
-"tpfun f \<equiv> (\<lambda> (v1, v2, v3). Some (f v1 v2 v3))"
+definition tpfun :: "('a * 'b * 'c) set \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> ('a * 'b * 'c \<Rightarrow> 'd option)" where
+"tpfun ABC f \<equiv> (\<lambda> (v1, v2, v3). Some (f v1 v2 v3)) |` ABC"
 
-abbreviation "Op3D' f \<equiv> Op3D (tpfun f)"
+abbreviation "Op3DR ABC f \<equiv> Op3D (tpfun ABC f)"
+abbreviation "Op3D' f \<equiv> Op3DR UNIV f"
 
 definition SingleD :: "'a cmle \<Rightarrow> ('a*unit) cmle" where
 "SingleD x = Op1D' (\<lambda> x. (x, ())) x"
@@ -494,7 +495,9 @@ lemma bpfun_apply [simp]:
 done
 
 lemma tpfun_apply [simp]:
-  "tpfun f x = Some (f (fst x) (fst (snd x)) (snd (snd x)))"
+  "tpfun ABC f x = (if (x \<in> ABC)
+                    then Some (f (fst x) (fst (snd x)) (snd (snd x)))
+                    else None)"
   apply (case_tac x)
   apply (auto simp add:tpfun_def)
 done
