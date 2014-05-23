@@ -12,11 +12,15 @@ imports
   utp_cml_tac
   utp_cml_laws
   utp_cml_expr
+  utp_cml_monad
 begin
 
 text {* Set up the CML expression parser with API functions *}
 
 text {* List Functions *}
+
+definition seq_comp :: "('a \<Rightarrow> 'b::{vbasic,linorder}) \<Rightarrow> 'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'b list" where
+"seq_comp f A P = flist (fset_comp f A P)"
 
 lift_definition inds :: "'a list \<Rightarrow> nat fset" is
 "\<lambda> xs. {1..length xs}" 
@@ -42,6 +46,14 @@ definition "vexpr_hd      = Op1DR {x. x \<noteq> []} hd"
 definition "vexpr_tl      = Op1DR {x. x \<noteq> []} tl"
 definition "vexpr_seqapp  = Op2DR {(xs, i::real). i \<in> Nats \<and> nat (floor i) < length xs} (\<lambda> xs i. nth xs (nat (floor i)))"
 
+definition vexpr_seqcomp :: "('a \<Rightarrow> 'b::{vbasic,linorder} cmle * bool cmle) \<Rightarrow> 'a fset cmle \<Rightarrow> 'b list cmle" where
+"vexpr_seqcomp FP eA = do { A <- eA
+                          ; PA <- cmle_fset_iter A (\<lambda> x. do { c <- snd(FP(x)); if c then LitD \<lbrace>x\<rbrace> else LitD \<lbrace>\<rbrace> })
+                          ; LA <- cmle_fset_iter (\<Union>\<^sub>f PA) (fst \<circ> FP)
+                          ; LitD (flist LA) }"
+
+declare vexpr_seqcomp_def [evalp]
+
 declare vexpr_hd_def [eval,evalp]
 declare vexpr_tl_def [eval,evalp]
 declare vexpr_seqapp_def [eval,evalp]
@@ -63,6 +75,7 @@ syntax
   "_vexpr_concat"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "^" 65)
   "_vexpr_conc"    :: "n_pexpr \<Rightarrow> n_pexpr" ("conc _")
   "_vexpr_seqapp"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_'<_'>")
+  "_vexpr_seqcomp" :: "n_pexpr \<Rightarrow> pttrn \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("[_ | _ in @set _ @/ _]")
 
 translations
   "_vexpr_hd xs"        == "CONST vexpr_hd xs"
@@ -74,6 +87,102 @@ translations
   "_vexpr_concat xs ys" == "CONST vexpr_concat xs ys"
   "_vexpr_conc xss"     == "CONST vexpr_conc xss"
   "_vexpr_seqapp xs i"  == "CONST vexpr_seqapp xs i"
+  "_vexpr_seqcomp f x A P" == "CONST vexpr_seqcomp (\<lambda> x. (f, P)) A"
+
+text {* Set Functions *}
+
+abbreviation "vexpr_in_set    \<equiv> Op2D' (op \<in>\<^sub>f)"
+abbreviation "vexpr_dunion    \<equiv> Op1D' FUnion"
+abbreviation "vexpr_dinter    \<equiv> Op1D' FInter"
+abbreviation "vexpr_subset    \<equiv> Op2D' (op \<subseteq>\<^sub>f)"
+abbreviation "vexpr_psubset   \<equiv> Op2D' (op \<subset>\<^sub>f)"
+abbreviation "vexpr_fpower    \<equiv> Op1D' FinPow"
+abbreviation "vexpr_card      \<equiv> Op1D' fcard"
+abbreviation "vexpr_lookup    \<equiv> Op2D (\<lambda> (x, m). \<langle>m\<rangle>\<^sub>m x)"
+
+lift_definition fatLeastAtMost :: "int \<Rightarrow> int \<Rightarrow> int fset" is atLeastAtMost
+  by (auto simp add:fsets_def)
+
+definition vexpr_set_range :: "real cmle \<Rightarrow> real cmle \<Rightarrow> real fset cmle" where
+"vexpr_set_range = Op2D' (\<lambda> m n. real `\<^sub>f fatLeastAtMost (floor m) (floor n))"
+
+definition vexpr_setcomp :: "('a \<Rightarrow> 'b::{vbasic,linorder} cmle * bool cmle) \<Rightarrow> 'a fset cmle \<Rightarrow> 'b fset cmle" where
+"vexpr_setcomp FP eA = do { A <- eA
+                          ; PA <- cmle_fset_iter A (\<lambda> x. do { c <- snd(FP(x)); if c then LitD \<lbrace>x\<rbrace> else LitD \<lbrace>\<rbrace> })
+                          ; LA <- cmle_fset_iter (\<Union>\<^sub>f PA) (fst \<circ> FP)
+                          ; LitD LA }"
+
+declare vexpr_setcomp_def [evalp]
+
+definition ForallSetD :: "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
+"ForallSetD xs f = MkPExpr (\<lambda> b. (Some (\<forall> x \<in> \<langle>the (\<lbrakk>xs\<rbrakk>\<^sub>* b)\<rangle>\<^sub>f. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)))"
+
+definition FCollect :: "('a \<Rightarrow> bool option) \<Rightarrow> 'a fset option" where
+"FCollect p = (if (finite (Collect (the \<circ> p)) \<and> None \<notin> range p) then Some (Abs_fset (Collect (the \<circ> p))) else None)"
+
+definition FCollect_ext :: "('a \<Rightarrow> 'b option) \<Rightarrow> ('a \<Rightarrow> bool option) \<Rightarrow> 'b fset option" where
+"FCollect_ext f p = do { xs \<leftarrow> FCollect p; map_fset_option (f `\<^sub>f xs) }"
+
+lemma the_Some_image [simp]:
+  "the ` Some ` xs = xs"
+  by (auto simp add:image_iff)
+
+lemma map_fset_Some [simp]: 
+  "map_fset_option (Some `\<^sub>f xs) = Some xs"
+  by (auto simp add:map_fset_option_def)
+
+lemma the_comp_Some [simp]: 
+  "the \<circ> (\<lambda>x. \<lfloor>p x\<rfloor>) = p"
+  by (auto)
+
+lemma FCollect_ext_Some [simp]: 
+  "FCollect_ext Some xs = FCollect xs"
+  apply (case_tac "FCollect xs")
+  apply (auto simp add:FCollect_ext_def)
+done
+
+definition vcollect :: "('a \<Rightarrow> bool cmle) \<Rightarrow> 'a fset cmle" where
+"vcollect P = MkPExpr (\<lambda> b. FCollect (\<lambda> x. \<lbrakk>P x\<rbrakk>\<^sub>*b))"
+
+definition vcollect_ext :: "('a \<Rightarrow> 'b cmle) \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> 'b fset cmle" where
+"vcollect_ext f P = MkPExpr (\<lambda> b. FCollect_ext (\<lambda> x. \<lbrakk>f x\<rbrakk>\<^sub>*b) (\<lambda> x. \<lbrakk>P x\<rbrakk>\<^sub>*b))"
+
+abbreviation vcollect_ext_ty :: "('a \<Rightarrow> 'b cmle) \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> 'b fset cmle" where
+"vcollect_ext_ty f A P \<equiv> vcollect_ext f (\<lambda> x. AndD (P x) (LitD (x \<in> A)))"
+
+syntax
+  "_vexpr_quotev"  :: "string \<Rightarrow> n_pexpr" ("<_>")
+  "_vexpr_in_set"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "in @set" 50)
+  "_vexpr_union"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "union" 65)
+  "_vexpr_inter"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "inter" 70)
+  "_vexpr_dunion"  :: "n_pexpr \<Rightarrow> n_pexpr" ("dunion _")
+  "_vexpr_dinter"  :: "n_pexpr \<Rightarrow> n_pexpr" ("dinter _")
+  "_vexpr_sminus"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "setminus" 70)
+  "_vexpr_subset"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "subset" 50) 
+  "_vexpr_psubset" :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "psubset" 50)
+  "_vexpr_fpower"  :: "n_pexpr \<Rightarrow> n_pexpr" ("power _")
+  "_vexpr_card"    :: "n_pexpr \<Rightarrow> n_pexpr" ("card _")
+  "_vexpr_all_set" :: "pttrn \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3forall _ in @set _ @/ _)" [0, 0, 10] 10)
+  "_vexpr_collect" :: "n_pexpr \<Rightarrow> pttrn \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("{_ | _ : _ @/ _}")
+  "_vexpr_setcomp" :: "n_pexpr \<Rightarrow> pttrn \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("{_ | _ in @set _ @/ _}")
+  "_vexpr_setrange" :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("{_,...,_}")
+
+translations
+  "_vexpr_quotev x"    == "CONST LitD (CONST QuoteD x)"
+  "_vexpr_in_set x xs" == "CONST vexpr_in_set x xs"
+  "_vexpr_union x y"   == "CONST Op2D' CONST funion x y"
+  "_vexpr_inter x y"   == "CONST Op2D' CONST finter x y"
+  "_vexpr_dunion xs"   == "CONST vexpr_dunion xs"
+  "_vexpr_dinter xs"   == "CONST vexpr_dinter xs"
+  "_vexpr_sminus x y"  == "CONST Op2D' CONST fminus x y"
+  "_vexpr_subset x y"  == "CONST vexpr_subset x y"
+  "_vexpr_psubset x y" == "CONST vexpr_psubset x y"
+  "_vexpr_fpower xs"   == "CONST vexpr_fpower xs"
+  "_vexpr_card x"      == "CONST vexpr_card x"
+  "_vexpr_all_set x xs p" == "CONST ForallSetD xs (\<lambda>x. p)"
+  "_vexpr_collect e x t p" => "CONST vcollect_ext_ty (\<lambda> x. e) t (\<lambda> x. p)"
+  "_vexpr_setcomp f x A P" == "CONST vexpr_setcomp (\<lambda> x. (f, P)) A"
+  "_vexpr_setrange m n"    == "CONST vexpr_set_range m n"
 
 text {* Map Functions *}
 
@@ -224,14 +333,6 @@ translations
 
 text {* Other constructs *}
 
-abbreviation "vexpr_in_set    \<equiv> Op2D' (op \<in>\<^sub>f)"
-abbreviation "vexpr_dunion    \<equiv> Op1D' FUnion"
-abbreviation "vexpr_dinter    \<equiv> Op1D' FInter"
-abbreviation "vexpr_subset    \<equiv> Op2D' (op \<subseteq>\<^sub>f)"
-abbreviation "vexpr_psubset   \<equiv> Op2D' (op \<subset>\<^sub>f)"
-abbreviation "vexpr_fpower    \<equiv> Op1D' FinPow"
-abbreviation "vexpr_card      \<equiv> Op1D' fcard"
-abbreviation "vexpr_lookup    \<equiv> Op2D (\<lambda> (x, m). \<langle>m\<rangle>\<^sub>m x)"
 
 (*
 abbreviation "vexpr_and       \<equiv> Op2D' conj"
@@ -239,88 +340,7 @@ abbreviation "vexpr_or        \<equiv> Op2D' disj"
 abbreviation "vexpr_implies   \<equiv> Op2D' implies"
 *)
 
-definition ForallSetD :: "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
-"ForallSetD xs f = MkPExpr (\<lambda> b. (Some (\<forall> x \<in> \<langle>the (\<lbrakk>xs\<rbrakk>\<^sub>* b)\<rangle>\<^sub>f. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)))"
 
-definition FCollect :: "('a \<Rightarrow> bool option) \<Rightarrow> 'a fset option" where
-"FCollect p = (if (finite (Collect (the \<circ> p)) \<and> None \<notin> range p) then Some (Abs_fset (Collect (the \<circ> p))) else None)"
-
-definition map_fset_option :: "('a option) fset \<Rightarrow> 'a fset option" where
-"map_fset_option xs = (if (None \<in>\<^sub>f xs) then None else Some (the `\<^sub>f xs))"
-
-definition FCollect_ext :: "('a \<Rightarrow> 'b option) \<Rightarrow> ('a \<Rightarrow> bool option) \<Rightarrow> 'b fset option" where
-"FCollect_ext f p = do { xs \<leftarrow> FCollect p; map_fset_option (f `\<^sub>f xs) }"
-
-lemma the_Some_image [simp]:
-  "the ` Some ` xs = xs"
-  by (auto simp add:image_iff)
-
-lemma map_fset_Some [simp]: 
-  "map_fset_option (Some `\<^sub>f xs) = Some xs"
-  by (auto simp add:map_fset_option_def)
-
-lemma the_comp_Some [simp]: 
-  "the \<circ> (\<lambda>x. \<lfloor>p x\<rfloor>) = p"
-  by (auto)
-
-lemma FCollect_ext_Some [simp]: 
-  "FCollect_ext Some xs = FCollect xs"
-  apply (case_tac "FCollect xs")
-  apply (auto simp add:FCollect_ext_def)
-done
-
-definition vcollect :: "('a \<Rightarrow> bool cmle) \<Rightarrow> 'a fset cmle" where
-"vcollect P = MkPExpr (\<lambda> b. FCollect (\<lambda> x. \<lbrakk>P x\<rbrakk>\<^sub>*b))"
-
-definition vcollect_ext :: "('a \<Rightarrow> 'b cmle) \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> 'b fset cmle" where
-"vcollect_ext f P = MkPExpr (\<lambda> b. FCollect_ext (\<lambda> x. \<lbrakk>f x\<rbrakk>\<^sub>*b) (\<lambda> x. \<lbrakk>P x\<rbrakk>\<^sub>*b))"
-
-abbreviation vcollect_ext_ty :: "('a \<Rightarrow> 'b cmle) \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> 'b fset cmle" where
-"vcollect_ext_ty f A P \<equiv> vcollect_ext f (\<lambda> x. AndD (P x) (LitD (x \<in> A)))"
-
-syntax
-  "_vexpr_quotev"  :: "string \<Rightarrow> n_pexpr" ("<_>")
-  "_vexpr_in_set"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "in @set" 50)
-  "_vexpr_union"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "union" 65)
-  "_vexpr_inter"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "inter" 70)
-  "_vexpr_dunion"  :: "n_pexpr \<Rightarrow> n_pexpr" ("dunion _")
-  "_vexpr_dinter"  :: "n_pexpr \<Rightarrow> n_pexpr" ("dinter _")
-  "_vexpr_sminus"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "setminus" 70)
-  "_vexpr_subset"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "subset" 50) 
-  "_vexpr_psubset" :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "psubset" 50)
-  "_vexpr_fpower"  :: "n_pexpr \<Rightarrow> n_pexpr" ("power _")
-  "_vexpr_card"    :: "n_pexpr \<Rightarrow> n_pexpr" ("card _")
-  "_vexpr_all_set" :: "pttrn \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3forall _ in @set _ @/ _)" [0, 0, 10] 10)
-  "_vexpr_collect" :: "n_pexpr \<Rightarrow> pttrn \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("{_ | _ : _ @/ _}")
-
-translations
-  "_vexpr_quotev x"    == "CONST LitD (CONST QuoteD x)"
-  "_vexpr_in_set x xs" == "CONST vexpr_in_set x xs"
-  "_vexpr_union x y"   == "CONST Op2D' CONST funion x y"
-  "_vexpr_inter x y"   == "CONST Op2D' CONST finter x y"
-  "_vexpr_dunion xs"   == "CONST vexpr_dunion xs"
-  "_vexpr_dinter xs"   == "CONST vexpr_dinter xs"
-  "_vexpr_sminus x y"  == "CONST Op2D' CONST fminus x y"
-  "_vexpr_subset x y"  == "CONST vexpr_subset x y"
-  "_vexpr_psubset x y" == "CONST vexpr_psubset x y"
-  "_vexpr_fpower xs"   == "CONST vexpr_fpower xs"
-  "_vexpr_card x"      == "CONST vexpr_card x"
-  "_vexpr_all_set x xs p" == "CONST ForallSetD xs (\<lambda>x. p)"
-  "_vexpr_collect e x t p" => "CONST vcollect_ext_ty (\<lambda> x. e) t (\<lambda> x. p)"
-
-term "|{ %x + 1 | x : @nat @ %x > 1}|"
-
-lemma "|{ %x | x : @real @ %x in @set %xs}| = |%xs|"
-  apply (simp add:vcollect_ext_def evalp)
-  apply (auto simp add:FCollect_def)
-done
-
-lemma FUnion_finsert [simp]: 
-  "\<Union>\<^sub>f (finsert x xs) = x \<union>\<^sub>f (\<Union>\<^sub>f xs)"
-  by (auto)
-
-lemma "|dunion({{1,3},{2},{3}})| = |{1,2,3}|"
-  by (cml_tac)
 
 term "|$x <= $y|"
 
@@ -385,6 +405,22 @@ lemma "|5 <= 6| = |true|"
 lemma "|[2,1,5,4]<2>| = |5|"
   by (cml_tac)
 
+term "|{ %x + 1 | x : @nat @ %x > 1}|"
+
+
+lemma "|{ %x | x : @real @ %x in @set %xs}| = |%xs|"
+  apply (simp add:vcollect_ext_def evalp)
+  apply (auto simp add:FCollect_def)
+done
+
+lemma FUnion_finsert [simp]: 
+  "\<Union>\<^sub>f (finsert x xs) = x \<union>\<^sub>f (\<Union>\<^sub>f xs)"
+  by (auto)
+
+lemma "|dunion({{1,3},{2},{3}})| = |{1,2,3}|"
+  by (cml_tac)
+
+
 declare Defined_pexpr_def [evalp]
 
 lemma Defined_option_bind_1 [dest]:
@@ -413,7 +449,7 @@ lemma "|defn(@x[@i])| = |defn(@i) and defn(@x) and (@i in @set (dom @x))|"
 oops
 *)
 
-term "|{1 |-> 2, 2 |-> 3}|"
+term "|{1 |-> 2, 2 |-> 3} ++ {2 |-> 3}|"
 
 lemma "|forall x:@nat @ &x > 0 => (floor (5 / &x)) hasType @nat| = |true|"
   by (cml_auto_tac)
@@ -430,5 +466,36 @@ declare mimpliesI_Some [intro!]
 
 lemma "|forall m:@map @nat to @nat @ forall i:@nat @ &i in @set dom(&m) => &m[&i] hasType @nat| = |true|"
   by (cml_auto_tac)
+
+term "|{5,...,9}|"
+
+declare vexpr_set_range_def [evalp]
+
+thm cmle_fset_iter_def
+
+
+lemma fatLeastAtMost_simp_1 [simp]: 
+  "m < n \<Longrightarrow> fatLeastAtMost m n = finsert m (fatLeastAtMost (m + 1) n)"
+  by (auto simp add:fatLeastAtMost.rep_eq)
+
+lemma fatLeastAtMost_simp_2 [simp]: 
+  "fatLeastAtMost m m = \<lbrace>m\<rbrace>"
+  by (auto simp add:fatLeastAtMost.rep_eq)
+
+lemma map_fset_option_empty [simp]:
+  "map_fset_option \<lbrace>\<rbrace> = Some \<lbrace>\<rbrace>"
+  by (simp add:map_fset_option_def)
+
+lemma map_fset_option_simp [simp]:
+  "map_fset_option (finsert x A) = do { v <- x; vs <- map_fset_option A; Some (finsert v vs) }"
+  apply (auto simp add:map_fset_option_def)
+  apply (metis bind_lunit not_Some_eq the.simps)
+done
+
+lemma "|{ %x | x in @set {1,...,5} @ true }| = |{2,1,3,4,5}|"
+  by (cml_tac)
+
+lemma "|[ %x | x in @set {1,...,5} @ true ]| = |[1,2,3,4,5]|"
+  by (cml_tac)
 
 end

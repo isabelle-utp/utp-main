@@ -11,6 +11,7 @@ imports
   utp_cml_sorts
   utp_cml_expr
   utp_cml_laws
+  utp_cml_monad
   utp_cml_tac
   utp_cml_types
   utp_cml_functions
