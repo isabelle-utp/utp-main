@@ -16,13 +16,13 @@ imports
   utp_cml_types
   utp_cml_functions
   utp_cml_records
+  utp_cml_stmt
   utp_cml_process
 begin 
 
 text {* Remove syntax which will likely clash *}
 
-hide_const "SUB"
-hide_const "floor"
+hide_const "SUB" "floor" "greatest"
 
 no_notation
   J_pred ("J") and
@@ -42,10 +42,15 @@ no_notation
   less_eq  ("op <=") and
   less_eq  ("(_/ <= _)" [51, 51] 50) and
   less  ("op <") and
-  less  ("(_/ < _)"  [51, 51] 50)
+  less  ("(_/ < _)"  [51, 51] 50) and
+  TrueP ("true") and
+  FalseP ("false") and
+  VarA ("&_") and
+  TrueAE ("true") and
+  FalseAE ("false")
 
 no_syntax
   "_n_upred_prefixed"  :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _")
-  "_n_upred_index"         :: "('b \<Rightarrow> 'a upred) \<Rightarrow> 'b \<Rightarrow> n_upred" ("_<_>" 50)
+  "_n_upred_index"     :: "('b \<Rightarrow> 'a upred) \<Rightarrow> 'b \<Rightarrow> n_upred" ("_<_>" 50)
 
 end

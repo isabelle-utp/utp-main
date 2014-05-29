@@ -13,13 +13,14 @@ begin
 
 (* CML expressions and CML predicates *)
 
-type_synonym 'a cmle        = "('a option, cmlv) pexpr"
-type_synonym cmlb           = "cmlv binding"
-type_synonym cmlp           = "cmlv upred" 
-type_synonym 'a cmlvar      = "('a option, cmlv) pvar"
-type_synonym ('a, 'b) cmlop = "('a option, 'b option, cmlv) WF_POPERATION"
-type_synonym cmlev          = "cmlv EVENT"
-type_synonym 'a cmlch       = "'a CHAN"
+type_synonym 'a cmle         = "('a option, cmlv) pexpr"
+type_synonym cmlb            = "cmlv binding"
+type_synonym cmlp            = "cmlv upred" 
+type_synonym 'a cmlvar       = "('a option, cmlv) pvar"
+type_synonym 'a cmlopb       = "('a option, cmlv) WF_OPERATION"
+type_synonym ('a, 'b) cmlop  = "('a option, 'b option, cmlv) WF_POPERATION"
+type_synonym cmlev           = "cmlv EVENT"
+type_synonym 'a cmlch        = "'a CHAN"
 
 translations
   (type) "'a cmle" <= (type) "('a option, cmlv) pexpr"

@@ -5,6 +5,7 @@ sig
   val mk_string : string -> Ast.ast
   val cml_var_ast_tr : Ast.ast list -> Ast.ast
   val cml_dcl_ast_tr : Ast.ast list -> Ast.ast
+  val cml_op_dcl_ast_tr : Ast.ast list -> Ast.ast
 end;
 
 structure Cml_Parser : CML_PARSER =
@@ -48,5 +49,15 @@ struct
                         cml_pred]
              ]
   | cml_dcl_ast_tr _ = raise Match;
+
+  fun cml_op_dcl_ast_tr [cml_var, cml_type, cml_op] =
+    Ast.Appl [Ast.Constant @{const_syntax DclO},
+              cml_var_ast_tr [cml_var, cml_type],
+              Ast.Appl [Ast.Constant @{syntax_const "_abs"},
+                        cml_var,
+                        cml_op]
+             ]
+  | cml_op_dcl_ast_tr _ = raise Match;
+
 
 end;

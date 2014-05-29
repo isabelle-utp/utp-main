@@ -48,10 +48,10 @@ definition "vexpr_hd      = Op1DR {x. x \<noteq> []} hd"
 definition "vexpr_tl      = Op1DR {x. x \<noteq> []} tl"
 definition "vexpr_seqapp  = Op2DR {(xs, i::real). i \<in> Nats \<and> nat (floor i) < length xs} (\<lambda> xs i. nth xs (nat (floor i)))"
 
-definition vexpr_seqcomp :: "('a \<Rightarrow> 'b::{vbasic,linorder} cmle * bool cmle) \<Rightarrow> 'a fset cmle \<Rightarrow> 'b list cmle" where
+definition vexpr_seqcomp :: "('a option \<Rightarrow> 'b::{vbasic,linorder} cmle * bool cmle) \<Rightarrow> 'a fset cmle \<Rightarrow> 'b list cmle" where
 "vexpr_seqcomp FP eA = do { A <- eA
-                          ; PA <- cmle_fset_iter A (\<lambda> x. do { c <- snd(FP(x)); if c then LitD \<lbrace>x\<rbrace> else LitD \<lbrace>\<rbrace> })
-                          ; LA <- cmle_fset_iter (\<Union>\<^sub>f PA) (fst \<circ> FP)
+                          ; PA <- cmle_fset_iter A (\<lambda> x. do { c <- snd(FP(Some(x))); if c then LitD \<lbrace>x\<rbrace> else LitD \<lbrace>\<rbrace> })
+                          ; LA <- cmle_fset_iter (\<Union>\<^sub>f PA) (fst \<circ> FP \<circ> Some)
                           ; LitD (flist LA) }"
 
 definition vexpr_subseq :: "'a list cmle \<Rightarrow> real cmle \<Rightarrow> real cmle \<Rightarrow> 'a list cmle" where
@@ -114,10 +114,10 @@ lift_definition fatLeastAtMost :: "int \<Rightarrow> int \<Rightarrow> int fset"
 definition vexpr_set_range :: "real cmle \<Rightarrow> real cmle \<Rightarrow> real fset cmle" where
 "vexpr_set_range = Op2D' (\<lambda> m n. real `\<^sub>f fatLeastAtMost (floor m) (floor n))"
 
-definition vexpr_setcomp :: "('a \<Rightarrow> 'b::{vbasic,linorder} cmle * bool cmle) \<Rightarrow> 'a fset cmle \<Rightarrow> 'b fset cmle" where
+definition vexpr_setcomp :: "('a option \<Rightarrow> 'b::{vbasic,linorder} cmle * bool cmle) \<Rightarrow> 'a fset cmle \<Rightarrow> 'b fset cmle" where
 "vexpr_setcomp FP eA = do { A <- eA
-                          ; PA <- cmle_fset_iter A (\<lambda> x. do { c <- snd(FP(x)); if c then LitD \<lbrace>x\<rbrace> else LitD \<lbrace>\<rbrace> })
-                          ; LA <- cmle_fset_iter (\<Union>\<^sub>f PA) (fst \<circ> FP)
+                          ; PA <- cmle_fset_iter A (\<lambda> x. do { c <- snd(FP(Some(x))); if c then LitD \<lbrace>x\<rbrace> else LitD \<lbrace>\<rbrace> })
+                          ; LA <- cmle_fset_iter (\<Union>\<^sub>f PA) (fst \<circ> FP \<circ> Some)
                           ; LitD LA }"
 
 declare vexpr_setcomp_def [evalp]
@@ -156,10 +156,10 @@ definition vcollect :: "('a \<Rightarrow> bool cmle) \<Rightarrow> 'a fset cmle"
 "vcollect P = MkPExpr (\<lambda> b. FCollect (\<lambda> x. \<lbrakk>P x\<rbrakk>\<^sub>*b))"
 
 definition vcollect_ext :: "('a \<Rightarrow> 'b cmle) \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> 'b fset cmle" where
-"vcollect_ext f P = MkPExpr (\<lambda> b. FCollect_ext (\<lambda> x. \<lbrakk>f x\<rbrakk>\<^sub>*b) (\<lambda> x. \<lbrakk>P x\<rbrakk>\<^sub>*b))"
+"vcollect_ext f P = MkPExpr (\<lambda> b. FCollect_ext (\<lambda> x. \<lbrakk>f(x)\<rbrakk>\<^sub>*b) (\<lambda> x. \<lbrakk>P(x)\<rbrakk>\<^sub>*b))"
 
-abbreviation vcollect_ext_ty :: "('a \<Rightarrow> 'b cmle) \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> 'b fset cmle" where
-"vcollect_ext_ty f A P \<equiv> vcollect_ext f (\<lambda> x. AndD (P x) (LitD (x \<in> A)))"
+abbreviation vcollect_ext_ty :: "('a option \<Rightarrow> 'b cmle) \<Rightarrow> 'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> 'b fset cmle" where
+"vcollect_ext_ty f A P \<equiv> vcollect_ext (f \<circ> Some) (\<lambda> x. AndD (P (Some x)) (LitD (x \<in> A)))"
 
 syntax
   "_vexpr_quotev"  :: "string \<Rightarrow> n_pexpr" ("<_>")
@@ -481,11 +481,11 @@ lemma "|5 <= 6| = |true|"
 lemma "|[2,1,5,4]<2>| = |5|"
   by (cml_tac)
 
-term "|{ %x + 1 | x : @nat @ %x > 1}|"
+term "|{ &x + 1 | x : @nat @ &x > 1}|"
 
-
-lemma "|{ %x | x : @real @ %x in @set %xs}| = |%xs|"
+lemma "|{ &x | x : @real @ &x in @set &xs}| = |&xs|"
   apply (simp add:vcollect_ext_def evalp)
+  apply (case_tac xs)
   apply (auto simp add:FCollect_def)
 done
 
@@ -568,10 +568,10 @@ lemma map_fset_option_simp [simp]:
   apply (metis bind_lunit not_Some_eq the.simps)
 done
 
-lemma "|{ %x | x in @set {1,...,5} @ true }| = |{2,1,3,4,5}|"
+lemma "|{ &x | x in @set {1,...,5} @ & x > 0 }| = |{2,1,3,4,5}|"
   by (cml_tac)
 
-lemma "|[ %x | x in @set {1,...,5} @ true ]| = |[1,2,3,4,5]|"
+lemma "|[ &x | x in @set {1,...,5} @ true ]| = |[1,2,3,4,5]|"
   by (cml_tac)
 
 term "|[1,2,3,4,5](2,...,3)|"

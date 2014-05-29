@@ -49,9 +49,6 @@ lemma pvaux_MkVarD [simp]:
   "pvaux (MkVarD s t) = False"
   by (simp add:MkVarD_def)
 
-definition DclD :: "'a cmlvar \<Rightarrow> ('a cmlvar \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
-"DclD x F = (let p = F(x) in `var x; p; end x`)"
-
 abbreviation UnitD :: "unit cmle" where
 "UnitD \<equiv> LitD ()"
 
@@ -270,6 +267,8 @@ no_syntax
   "_n_pexpr_false"       :: "n_pexpr" ("false")
   "_n_pexpr_plus"        :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "+" 65)
   "_n_pexpr_minus"       :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "-" 65)
+  "_n_pexpr_mult"        :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "*" 70)
+  "_n_pexpr_div"         :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "'/" 70)
   "_n_pexpr_less"        :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "<" 25)
   "_n_pexpr_less_eq"     :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "\<le>" 25)
   "_n_pexpr_greater"     :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr ">" 25)
@@ -287,6 +286,9 @@ no_syntax
   "_n_upred_n_pexpr"       :: "n_pexpr \<Rightarrow> n_upred" ("\<lparr>_\<rparr>")
   "_uproc_n_pexpr"       :: "n_pexpr \<Rightarrow> n_uproc" ("\<lparr>_\<rparr>")
   "_n_upred_callpr"      :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("call _'[_']")
+  "_n_pexpr_op1"         :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_'(_')")
+  "_n_pexpr_op2"         :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_'(_,_')")
+  "_n_pexpr_op3"         :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_'(_,_,_')")
 
 no_translations
   "_upred_callpr f v"       == "CONST CallRO f v"
@@ -314,7 +316,8 @@ syntax
   "_vexpr_lit"      :: "'a::vbasic option \<Rightarrow> n_pexpr" ("(1^_^)")
   "_vexpr_litd"     :: "'a::vbasic \<Rightarrow> n_pexpr" ("(1<<_>>)")
   "_vexpr_let"      :: "idt \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("let _ : _ = _ in _")
-  "_vexpr_lambda"   :: "vtype_binds \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3lambda _ @/ _)" [0, 10] 10)
+  "_vexpr_lambda"   :: "idt \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3lambda _ : _ @/ _)" [0, 10] 10)
+  "_vexpr_ulambda"  :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3lambda _ @/ _)" [0, 10] 10)
   "_vexpr_forall"   :: "vbinds \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3forall _ @/ _)" [0, 10] 10)
   "_vexpr_exists"   :: "vbinds \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3exists _ @/ _)" [0, 10] 10)
   "_vexpr_exists1"  :: "vbinds \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3exists1 _ @/ _)" [0, 10] 10)
@@ -331,16 +334,6 @@ syntax
   "_vexpr_list"     :: "n_pexprs => n_pexpr"    ("[(_)]")
   "_vexpr_empty"    :: "n_pexpr" ("{}")
   "_vexpr_fset"     :: "n_pexprs => n_pexpr"    ("{(_)}")
-  "_vexpr_dcl"      :: "id \<Rightarrow> vty \<Rightarrow> n_upred \<Rightarrow> n_upred"  ("dcl _ : _ @  _")
-  "_vty_nat"        :: "vty" ("@nat")
-  "_cml_var"        :: "id \<Rightarrow> vty \<Rightarrow> logic" ("CMLVAR'(_, _')")
-
-ML_file "utp_cml_parser.ML"
-
-parse_ast_translation {*
-   [(@{syntax_const "_cml_var"}, K Cml_Parser.cml_var_ast_tr),
-    (@{syntax_const "_vexpr_dcl"}, K Cml_Parser.cml_dcl_ast_tr)]
-*}
 
 syntax (xsymbols)
   "_vexpr_bot"     :: "n_pexpr" ("\<bottom>")
@@ -369,10 +362,9 @@ translations
 
   (* Parse rules for lambda abstractions *)
 
-  "_vexpr_lambda 
-    (_vtype_binds (_vtybind (_vidt x) A) bs) e" == "CONST FunD A (\<lambda> x. (_vexpr_lambda bs e))"
-  "_vexpr_lambda 
-    (_vtype_bind (_vtybind (_vidt x) A)) e" == "CONST FunD A (\<lambda> x. e)"
+  "_vexpr_lambda x A e" == "CONST FunD A (\<lambda> x. e)"
+
+  "_vexpr_ulambda x e" == "CONST FunD CONST UNIV (\<lambda> x. e)"
 
   (* Parse rules for forall quantifiers *)
 
