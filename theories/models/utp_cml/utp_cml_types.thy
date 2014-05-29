@@ -162,6 +162,14 @@ term "\<parallel>{mk_prod($x : @int,$y : @int) | $x = $y}\<parallel>"
 
 term "|[1] : @seq1 of @int|"
 
+term "|forall x,y : @real, z,u : @int @ true|"
+
+term "|lambda x : @nat @ true|"
+
 term "|iota x : @real @ ^x^ = 1|"
+
+term "|let x : @real = 5 in true|"
+
+term "`dcl x : @nat @ (x := 1; y := $x)`" 
 
 end

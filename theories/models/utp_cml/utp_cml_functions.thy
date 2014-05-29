@@ -125,6 +125,9 @@ declare vexpr_setcomp_def [evalp]
 definition ForallSetD :: "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
 "ForallSetD xs f = MkPExpr (\<lambda> b. (Some (\<forall> x \<in> \<langle>the (\<lbrakk>xs\<rbrakk>\<^sub>* b)\<rangle>\<^sub>f. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)))"
 
+definition ExistsSetD :: "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
+"ExistsSetD xs f = MkPExpr (\<lambda> b. (Some (\<exists> x \<in> \<langle>the (\<lbrakk>xs\<rbrakk>\<^sub>* b)\<rangle>\<^sub>f. \<lbrakk>f (Some x)\<rbrakk>\<^sub>* b = Some True)))"
+
 definition FCollect :: "('a \<Rightarrow> bool option) \<Rightarrow> 'a fset option" where
 "FCollect p = (if (finite (Collect (the \<circ> p)) \<and> None \<notin> range p) then Some (Abs_fset (Collect (the \<circ> p))) else None)"
 
@@ -170,7 +173,7 @@ syntax
   "_vexpr_psubset" :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "psubset" 50)
   "_vexpr_fpower"  :: "n_pexpr \<Rightarrow> n_pexpr" ("power _")
   "_vexpr_card"    :: "n_pexpr \<Rightarrow> n_pexpr" ("card _")
-  "_vexpr_all_set" :: "pttrn \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3forall _ in @set _ @/ _)" [0, 0, 10] 10)
+(*  "_vexpr_all_set" :: "pttrn \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3forall _ in @set _ @/ _)" [0, 0, 10] 10) *)
   "_vexpr_collect" :: "n_pexpr \<Rightarrow> pttrn \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("{_ | _ : _ @/ _}")
   "_vexpr_setcomp" :: "n_pexpr \<Rightarrow> pttrn \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("{_ | _ in @set _ @/ _}")
   "_vexpr_setrange" :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("{_,...,_}")
@@ -187,10 +190,55 @@ translations
   "_vexpr_psubset x y" == "CONST vexpr_psubset x y"
   "_vexpr_fpower xs"   == "CONST vexpr_fpower xs"
   "_vexpr_card x"      == "CONST vexpr_card x"
-  "_vexpr_all_set x xs p" == "CONST ForallSetD xs (\<lambda>x. p)"
+
+  (* Parse rules for forall set quantifiers *)
+
+  "_vexpr_forall 
+    (_vbinds 
+      (_vsetbind 
+        (_vidts x xs) A) bs) e" => "CONST ForallSetD A (\<lambda>x. _vexpr_forall 
+                                                            (_vbinds (_vsetbind xs A) bs) e)"
+  "_vexpr_forall 
+    (_vbinds 
+      (_vsetbind 
+        (_vidt x) xs) bs) e" == "CONST ForallSetD xs (\<lambda>x. _vexpr_forall bs e)"
+  "_vexpr_forall 
+    (_vbind 
+      (_vsetbind 
+        (_vidts x xs) A)) e" => "CONST ForallSetD A (\<lambda>x. _vexpr_forall (_vbind (_vsetbind xs A)) e)"
+  "_vexpr_forall 
+    (_vbind 
+      (_vsetbind 
+        (_vidt x) xs)) e" == "CONST ForallSetD xs (\<lambda>x. e)"
+
+  (* Parse rules for exists set quantifiers *)
+
+  "_vexpr_exists 
+    (_vbinds 
+      (_vsetbind 
+        (_vidts x xs) A) bs) e" => "CONST ExistsSetD A (\<lambda>x. _vexpr_exists 
+                                                            (_vbinds (_vsetbind xs A) bs) e)"
+  "_vexpr_exists 
+    (_vbinds 
+      (_vsetbind 
+        (_vidt x) xs) bs) e" == "CONST ExistsSetD xs (\<lambda>x. _vexpr_exists bs e)"
+  "_vexpr_exists 
+    (_vbind 
+      (_vsetbind 
+        (_vidts x xs) A)) e" => "CONST ExistsSetD A (\<lambda>x. _vexpr_exists (_vbind (_vsetbind xs A)) e)"
+  "_vexpr_exists 
+    (_vbind 
+      (_vsetbind 
+        (_vidt x) xs)) e" == "CONST ExistsSetD xs (\<lambda>x. e)"
+
+(*  "_vexpr_all_set x xs p" == "CONST ForallSetD xs (\<lambda>x. p)" *)
   "_vexpr_collect e x t p" => "CONST vcollect_ext_ty (\<lambda> x. e) t (\<lambda> x. p)"
   "_vexpr_setcomp f x A P" == "CONST vexpr_setcomp (\<lambda> x. (f, P)) A"
   "_vexpr_setrange m n"    == "CONST vexpr_set_range m n"
+
+term "|forall x,y in @set {1,...,5} @ true|"
+
+term "|exists x,y in @set {1,...,5} @ true|"
 
 text {* Map Functions *}
 

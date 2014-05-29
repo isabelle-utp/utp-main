@@ -8,21 +8,12 @@ header {* CML expressions *}
 
 theory utp_cml_expr
 imports 
-  utp_cml_sorts 
-  "../../theories/utp_definedness"
+  utp_cml_monad
 begin
 
 lemma EqualP_refine [refine]:
   "P[v/\<^sub>px] \<Longrightarrow> P \<sqsubseteq> $\<^sub>ex ==\<^sub>p v"
   by (metis ImpliesP_eq_subst RefP_def Tautology_def TrueP_eq_ClosureP less_eq_upred_def utp_pred_simps(14) utp_pred_simps(21))
-
-text {* Getting an accurate representation of CML expressions is hard,
-in as much as Isabelle's type-system limits our ability to do proper
-type-inference. Although we can infer the type of an expression, the
-types of variables are immediately erased when placed in a
-context. This means that if the context doesn't fully qualify the type
-of a variable, there is no way to quantify it other than by coercing
-it in place. It is therefore impossible to create quantifiers which *}
 
 default_sort vbasic
 
@@ -35,21 +26,6 @@ defs (overloaded)
 
 lemma TypeUSound_cml [typing]: "TYPEUSOUND('a::vbasic option, cmlv)"
   by (force simp add: type_rel_cmlt typing defined)
-
-(* CML expressions and CML predicates *)
-
-type_synonym 'a cmle        = "('a option, cmlv) pexpr"
-type_synonym cmlb           = "cmlv binding"
-type_synonym cmlp           = "cmlv upred" 
-type_synonym 'a cmlvar      = "('a option, cmlv) pvar"
-type_synonym ('a, 'b) cmlop = "('a option, 'b option, cmlv) WF_POPERATION"
-
-translations
-  (type) "'a cmle" <= (type) "('a option, cmlv) pexpr"
-  (type) "cmlb" <= (type) "cmlv binding"
-  (type) "cmlp" <= (type) "cmlv upred"
-  (type) "'a cmlvar" <= (type) "('a option, cmlv) pvar"
-  (type) "('a, 'b) cmlop" <= (type) "'a cmle \<Rightarrow> 'b cmlvar \<times> bool \<Rightarrow> cmlp"
 
 definition BotDE :: "'a cmle" ("\<bottom>\<^sub>v") where
 "BotDE = LitPE None"
@@ -72,6 +48,9 @@ lemma pvname_MkVarD [simp]:
 lemma pvaux_MkVarD [simp]:
   "pvaux (MkVarD s t) = False"
   by (simp add:MkVarD_def)
+
+definition DclD :: "'a cmlvar \<Rightarrow> ('a cmlvar \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
+"DclD x F = (let p = F(x) in `var x; p; end x`)"
 
 abbreviation UnitD :: "unit cmle" where
 "UnitD \<equiv> LitD ()"
@@ -131,6 +110,9 @@ abbreviation "NotD     \<equiv> (Op1PE mnot :: bool cmle \<Rightarrow> bool cmle
 abbreviation "AndD     \<equiv> (Op2PE mconj :: bool cmle \<Rightarrow> bool cmle \<Rightarrow> bool cmle)"
 abbreviation "OrD      \<equiv> (Op2PE mdisj :: bool cmle \<Rightarrow> bool cmle \<Rightarrow> bool cmle)"
 abbreviation "ImpliesD \<equiv> (Op2PE mimplies :: bool cmle \<Rightarrow> bool cmle \<Rightarrow> bool cmle)"
+
+definition LetD :: "'a cmle \<Rightarrow> 'a set \<Rightarrow> ('a option \<Rightarrow> 'b cmle) \<Rightarrow> 'b cmle" where
+"LetD v A f = do { x <- v; f (Some x) }"
 
 definition ForallD :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
 "ForallD xs f = MkPExpr (\<lambda> b. (Some (\<forall> x \<in> xs. [\<lbrakk>f (Some x)\<rbrakk>\<^sub>* b]\<^sub>3)))"
@@ -200,7 +182,33 @@ definition "vexpr_insert    \<equiv> Op2D' finsert"
 declare vexpr_empty_def [eval,evalp]
 declare vexpr_insert_def [eval,evalp]
 
-nonterminal vty and vprod
+nonterminal 
+  idt_list and
+  vty and 
+  vprod and 
+  vbind and 
+  vset_bind and
+  vset_binds and
+  vtype_bind and
+  vtype_binds and
+  vbinds
+
+syntax
+  "_vidt"        :: "idt \<Rightarrow> idt_list" ("_")
+  "_vidts"       :: "idt \<Rightarrow> idt_list \<Rightarrow> idt_list" ("_,/ _")
+  "_vidt_cl"     :: "vbinds \<Rightarrow> logic" ("\<bar>_\<bar>")
+  "_vtybind"     :: "idt_list \<Rightarrow> vty \<Rightarrow> vtype_bind" ("_ : _")
+  "_vsetbind"    :: "idt_list \<Rightarrow> n_pexpr \<Rightarrow> vset_bind" ("_ in @set _")
+  "_vsb"         :: "vset_bind \<Rightarrow> vbind" ("_")
+  "_vtb"         :: "vtype_bind \<Rightarrow> vbind" ("_")
+  "_vbind"       :: "vbind \<Rightarrow> vbinds" ("_")
+  "_vbinds"      :: "vbind \<Rightarrow> vbinds \<Rightarrow> vbinds" ("_,/ _")
+  "_vtype_bind"  :: "vtype_bind \<Rightarrow> vtype_binds" ("_")
+  "_vtype_binds" :: "vtype_bind \<Rightarrow> vtype_binds \<Rightarrow> vtype_binds" ("_,/ _")
+
+translations 
+  "_vtb x" => "x"
+  "_vsb x" => "x"
 
 subsection {* Product Projections *}
 
@@ -305,12 +313,12 @@ syntax
   "_vexpr_bot"      :: "n_pexpr" ("undef")
   "_vexpr_lit"      :: "'a::vbasic option \<Rightarrow> n_pexpr" ("(1^_^)")
   "_vexpr_litd"     :: "'a::vbasic \<Rightarrow> n_pexpr" ("(1<<_>>)")
-  "_vexpr_lambda"    :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3lambda _ @/ _)" [0, 10] 10)
-  "_vexpr_lambda_ty" :: "idt \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3lambda _ : _ @/ _)" [0, 0, 10] 10)
-  "_vexpr_forall"   :: "pttrn \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3forall _ : _ @/ _)" [0, 0, 10] 10)
-  "_vexpr_exists"   :: "pttrn \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3exists _ : _ @/ _)" [0, 0, 10] 10)
-  "_vexpr_exists1"  :: "pttrn \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3exists1 _ : _ @/ _)" [0, 0, 10] 10)
-  "_vexpr_iota"     :: "pttrn \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3iota _ : _ @/ _)" [0, 0, 10] 10)
+  "_vexpr_let"      :: "idt \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("let _ : _ = _ in _")
+  "_vexpr_lambda"   :: "vtype_binds \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3lambda _ @/ _)" [0, 10] 10)
+  "_vexpr_forall"   :: "vbinds \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3forall _ @/ _)" [0, 10] 10)
+  "_vexpr_exists"   :: "vbinds \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3exists _ @/ _)" [0, 10] 10)
+  "_vexpr_exists1"  :: "vbinds \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3exists1 _ @/ _)" [0, 10] 10)
+  "_vexpr_iota"     :: "vbinds \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3iota _ @/ _)" [0, 10] 10)
   "_vexpr_eps"      :: "pttrn \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3eps _ : _ @/ _)" [0, 0, 10] 10)
   "_vexpr_coerce"   :: "n_pexpr \<Rightarrow> vty \<Rightarrow> n_pexpr" (infix ":" 50)
   "_vexpr_ifthen"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("if _ then _ else _")
@@ -323,6 +331,16 @@ syntax
   "_vexpr_list"     :: "n_pexprs => n_pexpr"    ("[(_)]")
   "_vexpr_empty"    :: "n_pexpr" ("{}")
   "_vexpr_fset"     :: "n_pexprs => n_pexpr"    ("{(_)}")
+  "_vexpr_dcl"      :: "id \<Rightarrow> vty \<Rightarrow> n_upred \<Rightarrow> n_upred"  ("dcl _ : _ @  _")
+  "_vty_nat"        :: "vty" ("@nat")
+  "_cml_var"        :: "id \<Rightarrow> vty \<Rightarrow> logic" ("CMLVAR'(_, _')")
+
+ML_file "utp_cml_parser.ML"
+
+parse_ast_translation {*
+   [(@{syntax_const "_cml_var"}, K Cml_Parser.cml_var_ast_tr),
+    (@{syntax_const "_vexpr_dcl"}, K Cml_Parser.cml_dcl_ast_tr)]
+*}
 
 syntax (xsymbols)
   "_vexpr_bot"     :: "n_pexpr" ("\<bottom>")
@@ -347,12 +365,95 @@ translations
   "_vexpr_bot"                 == "CONST BotDE"
   "_vexpr_lit v"               == "CONST LitPE v"
   "_vexpr_litd v"              == "CONST LitD v"
-  "_vexpr_lambda x e"          == "CONST FunD CONST UNIV (\<lambda> x. e)"
-  "_vexpr_lambda_ty x t e"     == "CONST FunD t (\<lambda> x. e)"
-  "_vexpr_forall x xs e"       == "CONST ForallD xs (\<lambda>x. e)"
-  "_vexpr_exists x xs e"       == "CONST ExistsD xs (\<lambda>x. e)"
-  "_vexpr_exists1 x xs e"      == "CONST Exists1D xs (\<lambda>x. e)"
-  "_vexpr_iota x xs e"         == "CONST IotaD xs (\<lambda>x. e)"
+  "_vexpr_let x A v e"         == "CONST LetD v A (\<lambda> x. e)"
+
+  (* Parse rules for lambda abstractions *)
+
+  "_vexpr_lambda 
+    (_vtype_binds (_vtybind (_vidt x) A) bs) e" == "CONST FunD A (\<lambda> x. (_vexpr_lambda bs e))"
+  "_vexpr_lambda 
+    (_vtype_bind (_vtybind (_vidt x) A)) e" == "CONST FunD A (\<lambda> x. e)"
+
+  (* Parse rules for forall quantifiers *)
+
+  "_vexpr_forall 
+    (_vbinds 
+      (_vtybind 
+        (_vidts x xs) A) bs) e" => "CONST ForallD A (\<lambda>x. _vexpr_forall 
+                                                          (_vbinds (_vtybind xs A) bs) e)"
+  "_vexpr_forall 
+    (_vbinds 
+      (_vtybind 
+        (_vidt x) xs) bs) e" == "CONST ForallD xs (\<lambda>x. _vexpr_forall bs e)"
+  "_vexpr_forall 
+    (_vbind 
+      (_vtybind 
+        (_vidts x xs) A)) e" => "CONST ForallD A (\<lambda>x. _vexpr_forall (_vbind (_vtybind xs A)) e)"
+  "_vexpr_forall 
+    (_vbind 
+      (_vtybind 
+        (_vidt x) xs)) e" == "CONST ForallD xs (\<lambda>x. e)"
+
+  (* Parse rules for exists quantifiers *)
+
+  "_vexpr_exists 
+    (_vbinds 
+      (_vtybind 
+        (_vidts x xs) A) bs) e" => "CONST ExistsD A (\<lambda>x. _vexpr_exists
+                                                          (_vbinds (_vtybind xs A) bs) e)"
+  "_vexpr_exists 
+    (_vbinds 
+      (_vtybind 
+        (_vidt x) xs) bs) e" == "CONST ExistsD xs (\<lambda>x. _vexpr_exists bs e)"
+  "_vexpr_exists 
+    (_vbind 
+      (_vtybind 
+        (_vidts x xs) A)) e" => "CONST ExistsD A (\<lambda>x. _vexpr_exists (_vbind (_vtybind xs A)) e)"
+  "_vexpr_exists 
+    (_vbind 
+      (_vtybind 
+        (_vidt x) xs)) e" == "CONST ExistsD xs (\<lambda>x. e)"
+
+  (* Parse rules for exists1 quantifiers *)
+
+  "_vexpr_exists1 
+    (_vbinds 
+      (_vtybind 
+        (_vidts x xs) A) bs) e" => "CONST Exists1D A (\<lambda>x. _vexpr_exists1
+                                                          (_vbinds (_vtybind xs A) bs) e)"
+  "_vexpr_exists1 
+    (_vbinds 
+      (_vtybind 
+        (_vidt x) xs) bs) e" == "CONST Exists1D xs (\<lambda>x. _vexpr_exists1 bs e)"
+  "_vexpr_exists1 
+    (_vbind 
+      (_vtybind 
+        (_vidts x xs) A)) e" => "CONST Exists1D A (\<lambda>x. _vexpr_exists1 (_vbind (_vtybind xs A)) e)"
+  "_vexpr_exists1 
+    (_vbind 
+      (_vtybind 
+        (_vidt x) xs)) e" == "CONST Exists1D xs (\<lambda>x. e)"
+
+  (* Parse rules for iota description operator *)
+
+  "_vexpr_iota 
+    (_vbinds 
+      (_vtybind 
+        (_vidts x xs) A) bs) e" => "CONST IotaD A (\<lambda>x. _vexpr_iota
+                                                          (_vbinds (_vtybind xs A) bs) e)"
+  "_vexpr_iota 
+    (_vbinds 
+      (_vtybind 
+        (_vidt x) xs) bs) e" == "CONST IotaD xs (\<lambda>x. _vexpr_iota bs e)"
+  "_vexpr_iota 
+    (_vbind 
+      (_vtybind 
+        (_vidts x xs) A)) e" => "CONST IotaD A (\<lambda>x. _vexpr_iota (_vbind (_vtybind xs A)) e)"
+  "_vexpr_iota 
+    (_vbind 
+      (_vtybind 
+        (_vidt x) xs)) e" == "CONST IotaD xs (\<lambda>x. e)"
+
   "_vexpr_eps x xs e"          == "CONST EpsD xs (\<lambda>x. e)"
   "_vexpr_coerce e t"          == "CONST CoerceD e t"
   "_vexpr_ifthen b x y"        == "CONST IfThenElseD b x y"
@@ -431,6 +532,10 @@ lemma EvalE_cmle [evale, evalp, eval]:
 lemma EvalD_LitD [eval,evalp,evale]:
   "\<lbrakk>LitD x\<rbrakk>\<^sub>*b = Some x"
   by (simp add:evalp)
+
+lemma EvalD_LetD [evalp]:
+  "\<lbrakk>LetD v A f\<rbrakk>\<^sub>*b = do { x <- \<lbrakk>v\<rbrakk>\<^sub>*b; \<lbrakk>f(Some x)\<rbrakk>\<^sub>*b }"
+  by (simp add:LetD_def evalp)
 
 lemma EvalD_NumD [eval,evalp,evale]:
   "\<lbrakk>NumD x\<rbrakk>\<^sub>*b = Some x"

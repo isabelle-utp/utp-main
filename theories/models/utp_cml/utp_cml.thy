@@ -44,5 +44,8 @@ no_notation
   less  ("op <") and
   less  ("(_/ < _)"  [51, 51] 50)
 
+no_syntax
+  "_n_upred_prefixed"  :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _")
+  "_n_upred_index"         :: "('b \<Rightarrow> 'a upred) \<Rightarrow> 'b \<Rightarrow> n_upred" ("_<_>" 50)
 
 end
