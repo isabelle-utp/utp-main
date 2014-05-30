@@ -113,6 +113,14 @@ definition VarExtA ::
 "'m uapred \<Rightarrow> 'm uvar \<Rightarrow> 'm uapred" ("_\<^bsub>+_\<^esub>") where
 "VarExtA p x = p \<and>\<^sub>\<alpha> ($\<^sub>\<alpha>x\<acute> ==\<^sub>\<alpha> $\<^sub>\<alpha>x)"
 
+definition VarOpenA :: "'m uvar \<Rightarrow> 'm alpha \<Rightarrow> 'm uapred" where
+"VarOpenA x A = (\<exists>\<^sub>\<alpha> \<lbrace>x\<rbrace>. II\<alpha>\<^bsub>A\<^esub>)"
+
+definition VarCloseA :: "'m uvar \<Rightarrow> 'm alpha \<Rightarrow> 'm uapred" where
+"VarCloseA x A = (\<exists>\<^sub>\<alpha> \<lbrace>x\<acute>\<rbrace>. II\<alpha>\<^bsub>A\<^esub>)"
+
+definition "VarDeclA x A p \<equiv> (VarOpenA x (finsert x (finsert x\<acute> A)) ;\<^sub>\<alpha> p ;\<^sub>\<alpha> VarCloseA x (finsert x (finsert x\<acute> A)))"
+
 adhoc_overloading
   prime ConvA
 

@@ -56,6 +56,15 @@ end
 
 lemma Defined_real [defined]: "\<D> (x :: real)" by (simp add:Defined_real_def)
 
+instantiation char :: DEFINED
+begin
+
+definition Defined_char :: "char \<Rightarrow> bool" where
+"Defined_char(x) = True"
+
+instance ..
+end
+
 instantiation list :: (DEFINED) DEFINED
 begin
 definition "Defined_list (xs :: 'a list) = (\<forall>x\<in>set xs. \<D> x)"

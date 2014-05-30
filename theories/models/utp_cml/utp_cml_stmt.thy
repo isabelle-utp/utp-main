@@ -46,6 +46,7 @@ syntax
   "_vexpr_dcl"      :: "id \<Rightarrow> vty \<Rightarrow> n_upred \<Rightarrow> n_upred" ("dcl _ : _ @  _")
   "_vop_dcl"        :: "id \<Rightarrow> vty \<Rightarrow> n_uproc \<Rightarrow> n_uproc" ("dcl _ : _ @  _")
   "_cml_var"        :: "id \<Rightarrow> vty \<Rightarrow> logic" ("CMLVAR'(_, _')")
+  "_upred_sskip"    :: "n_upred" ("III")
 
 ML_file "utp_cml_parser.ML"
 
@@ -64,8 +65,8 @@ translations
   "_uop_speccml xs p q"    == "CONST SpecO (_idt_set xs) p q"
   "_uop_especcml p q"      == "CONST SpecO {} p q"
   "_uop_precml p"          == "CONST SpecO {} p CONST TrueDE"
-
   "_upred_nyscml" == "CONST NotYetSpecD"
+
 
 term "`dcl x : @nat @ (x := 1; y := $x)`" 
 term "`x,y:[$x > 0, $y = $y~ / $x]`"

@@ -12,6 +12,7 @@ theory utp_pred_parser
   "../core/utp_rel"
   "../core/utp_expr"
   "../poly/utp_poly_expr"
+  utp_parser_utils
 begin
 
 nonterminal 
@@ -27,11 +28,11 @@ syntax
   "_n_pexpr_quote"        :: "n_pexpr \<Rightarrow> ('a, 'm) pexpr" ("(1|_|)")
 (*  "_n_pexpr_pred_quote"   :: "n_pexpr \<Rightarrow> 'a WF_PREDICATE" ("(1``_``)") *)
   "_n_pexprs"             :: "[n_pexpr, n_pexprs] => n_pexprs" ("_,/ _")
-  ""                    :: "n_pexpr => n_pexprs" ("_")
-  "_pvar"               :: "idt \<Rightarrow> n_pvar" ("(_)")
-  "_pvars"              :: "[n_pvar, n_pvars] => n_pvars" ("_,/ _")
-  ""                    :: "n_pvar => n_pvars" ("_")
-  "_passign"            :: "['a AssignF, n_pvars, n_pexprs] \<Rightarrow> 'a AssignF" ("(1[_])")
+  ""                      :: "n_pexpr => n_pexprs" ("_")
+  "_pvar"                 :: "idt \<Rightarrow> n_pvar" ("(_)")
+  "_pvars"                :: "[n_pvar, n_pvars] => n_pvars" ("_,/ _")
+  ""                      :: "n_pvar => n_pvars" ("_")
+  "_passign"              :: "['a AssignF, n_pvars, n_pexprs] \<Rightarrow> 'a AssignF" ("(1[_])")
   "_n_pexpr_brack"        :: "n_pexpr \<Rightarrow> n_pexpr" ("'(_')")
   "_n_pexpr_pred_var"     :: "idt \<Rightarrow> n_pexpr" ("@(_)")
   "_n_pexpr_expr_var"     :: "idt \<Rightarrow> n_pexpr" ("(_)")
@@ -208,6 +209,11 @@ syntax
   (* Data Structures *)
   "_n_pexpr_lit"           :: "'a \<Rightarrow> n_pexpr" ("\<guillemotleft>_\<guillemotright>")
   "_n_pexpr_int"           :: "int \<Rightarrow> n_pexpr" ("<_>")
+  "_n_pexpr_num_0"         :: "n_pexpr" ("0")
+  "_n_pexpr_num_1"         :: "n_pexpr" ("1")
+  "_n_pexpr_num"           :: "num_const \<Rightarrow> n_pexpr" ("_")
+  "_n_pexpr_float"         :: "float_const \<Rightarrow> n_pexpr" ("_")
+  "_n_pexpr_string"        :: "str_position \<Rightarrow> n_pexpr" ("_")
   "_n_pexpr_plus"          :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "+" 65)
   "_n_pexpr_mult"          :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "*" 70)
   "_n_pexpr_div"           :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "'/" 70)
@@ -270,6 +276,10 @@ translations
   (* Data Structures *)
   "_n_pexpr_lit x"               == "CONST LitPE x"
   "_n_pexpr_int x"               == "CONST IntPE x"
+  "_n_pexpr_num_0"               == "CONST LitPE 0"
+  "_n_pexpr_num_1"               == "CONST LitPE 1"
+  "_n_pexpr_num n"               == "CONST LitPE (_Numeral n)"
+  "_n_pexpr_float n"             == "CONST LitPE (_Float n)"
   "_n_pexpr_plus x y"            == "CONST PlusPE x y"
   "_n_pexpr_mult x y"            == "CONST MultPE x y"
   "_n_pexpr_div x y"             == "CONST DivPE x y"
@@ -298,6 +308,17 @@ translations
   "_n_pexpr_restrict xs A"       == "CONST RestrictPE xs A"
   "_n_pexpr_event n v"           == "CONST EventPE n v"
   "_n_pexpr_event_chan e"        == "CONST ChannelPE e"
+
+(* Strings are not available via a translation function, so we spin our own : *)
+
+parse_ast_translation {*
+let fun pexpr_string_tr [str] =
+  Ast.Appl [Ast.Constant @{const_syntax LitPE}, Utp_Parser_Utils.string_ast_tr [str]]
+  | pexpr_string_tr _ = raise Match;
+  in
+  [(@{syntax_const "_n_pexpr_string"}, K pexpr_string_tr)]
+end
+*}
 
 (* Linking the predicate parser to the poly parser *)
 
@@ -353,7 +374,7 @@ term "`$x \<in> {\<guillemotleft>1\<guillemotright>,\<guillemotleft>2\<guillemot
 
 term "`x,y,z := \<guillemotleft>1::int\<guillemotright>,false,{}`"
 
-term "`x := (\<guillemotleft>7\<guillemotright> * $z) ; ((y := $x + \<guillemotleft>1\<guillemotright>) \<lhd> ($x < \<guillemotleft>10\<guillemotright>) \<rhd> P)`"
+term "`x := (7 * $z) ; ((y := $x + 1) \<lhd> ($x < 10) \<rhd> P)`"
 
 term "`var x; x := \<guillemotleft>5::int\<guillemotright>; end x`"
 
@@ -381,5 +402,7 @@ lemma "|\<langle><1>,<2>,<3>\<rangle> \<upharpoonright> {\<guillemotleft>2\<guil
 term "`\<Or> i:I. P`"
 
 term "`if \<lparr>$x \<ge> $y\<rparr> then z := $x else z := $y`"
+
+term "`x := ''hello''`"
 
 end

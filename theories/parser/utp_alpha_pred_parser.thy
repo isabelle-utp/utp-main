@@ -8,6 +8,7 @@ theory utp_alpha_pred_parser
   "../tactics/utp_expr_tac"
   "../tactics/utp_rel_tac"
   "../poly/utp_poly_alpha_expr"
+  utp_parser_utils
 begin
 
 nonterminal 
@@ -154,6 +155,11 @@ translations
 
 syntax
   (* Data Structures *)
+  "_n_apexpr_num_0"         :: "n_apexpr" ("0")
+  "_n_apexpr_num_1"         :: "n_apexpr" ("1")
+  "_n_apexpr_num"           :: "num_const \<Rightarrow> n_apexpr" ("_")
+  "_n_apexpr_float"         :: "float_const \<Rightarrow> n_apexpr" ("_")
+  "_n_apexpr_string"        :: "str_position \<Rightarrow> n_apexpr" ("_")
   "_n_apexpr_plus"          :: "n_apexpr \<Rightarrow> n_apexpr \<Rightarrow> n_apexpr" (infixl "+" 65)
   "_n_apexpr_mult"          :: "n_apexpr \<Rightarrow> n_apexpr \<Rightarrow> n_apexpr" (infixl "*" 70)
   "_n_apexpr_div"           :: "n_apexpr \<Rightarrow> n_apexpr \<Rightarrow> n_apexpr" (infixl "'/" 70)
@@ -166,6 +172,10 @@ syntax
   "_n_apexpr_greater_eq"    :: "n_apexpr \<Rightarrow> n_apexpr \<Rightarrow> n_apexpr" (infixr "\<ge>" 25)
 
 translations
+  "_n_apexpr_num_0"               == "CONST LitAPE 0"
+  "_n_apexpr_num_1"               == "CONST LitAPE 1"
+  "_n_apexpr_num n"               == "CONST LitAPE (_Numeral n)"
+  "_n_apexpr_float n"             == "CONST LitAPE (_Float n)"
   "_n_apexpr_plus x y"            == "CONST PlusAPE x y"
   "_n_apexpr_mult x y"            == "CONST MultAPE x y"
   "_n_apexpr_minus x y"           == "CONST MinusAPE x y"
@@ -177,6 +187,14 @@ translations
   "_n_apexpr_greater x y"         == "CONST LessAPE y x"
   "_n_apexpr_greater_eq x y"      == "CONST LessEqAPE y x"
 
+parse_ast_translation {*
+let fun apexpr_string_tr [str] =
+  Ast.Appl [Ast.Constant @{const_syntax LitAPE}, Utp_Parser_Utils.string_ast_tr [str]]
+  | apexpr_string_tr _ = raise Match;
+  in
+  [(@{syntax_const "_n_apexpr_string"}, K apexpr_string_tr)]
+end
+*}
   
 (* Big operators *)
 
@@ -225,5 +243,9 @@ term "``x :=\<^bsub>\<lbrace>x\<down>,x\<down>\<acute>\<rbrace>\<^esub> true``"
 term "``p \<oplus> \<lbrace>x\<down>\<rbrace>``"
 
 term "``\<exists> x\<acute>. p``"
+
+term "``$x = 1``"
+
+term "``$x = ''hello''``"
 
 end
