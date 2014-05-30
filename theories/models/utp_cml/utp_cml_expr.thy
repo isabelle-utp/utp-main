@@ -251,6 +251,9 @@ notation vproj16 ("#16")
 
 definition "NumD (x :: real) = LitD x"
 
+translations
+  "n" <= "CONST NumD n"
+
 definition "ApplyD f  = Op1D f"
 
 definition "SelectD f = Op1D' f"
@@ -311,12 +314,16 @@ syntax
   "_vexpr_unit"     :: "n_pexpr" ("'(')")
   "_vexpr_true"     :: "n_pexpr" ("true")
   "_vexpr_false"    :: "n_pexpr" ("false")
-  "_vexpr_not"     :: "n_pexpr \<Rightarrow> n_pexpr" ("not _" [40] 40)
-  "_vexpr_and"     :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "and" 35)
-  "_vexpr_or"      :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "or" 30)
-  "_vexpr_implies" :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "=>" 25)
+  "_vexpr_not"      :: "n_pexpr \<Rightarrow> n_pexpr" ("not _" [40] 40)
+  "_vexpr_and"      :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "and" 35)
+  "_vexpr_or"       :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "or" 30)
+  "_vexpr_implies"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "=>" 25)
   "_vexpr_token"    :: "n_pexpr \<Rightarrow> n_pexpr" ("mk'_token'(_')")
-  "_vexpr_num"      :: "real \<Rightarrow> n_pexpr" ("_")
+  "_vexpr_num_0"    :: "n_pexpr" ("0")
+  "_vexpr_num_1"    :: "n_pexpr" ("1")
+  "_vexpr_num"      :: "num_const \<Rightarrow> n_pexpr" ("_")
+  "_vexpr_float"    :: "float_const \<Rightarrow> n_pexpr" ("_")
+  "_vexpr_string"   :: "str_position \<Rightarrow> n_pexpr" ("_")
   "_vexpr_bot"      :: "n_pexpr" ("undef")
   "_vexpr_lit"      :: "'a::vbasic option \<Rightarrow> n_pexpr" ("(1^_^)")
   "_vexpr_litd"     :: "'a::vbasic \<Rightarrow> n_pexpr" ("(1<<_>>)")
@@ -359,7 +366,10 @@ translations
   "_vexpr_or x y"              == "CONST OrD x y"
   "_vexpr_implies x y"         == "CONST ImpliesD x y"
   "_vexpr_token x"             == "CONST TokenD x"
-  "_vexpr_num n"               == "CONST NumD n"
+  "_vexpr_num_0"               == "CONST NumD 0"
+  "_vexpr_num_1"               == "CONST NumD 1"
+  "_vexpr_num n"               == "CONST NumD (_Numeral n)"
+  "_vexpr_float n"             == "CONST NumD (_Float n)"
   "_vexpr_bot"                 == "CONST BotDE"
   "_vexpr_lit v"               == "CONST LitPE v"
   "_vexpr_litd v"              == "CONST LitD v"

@@ -47,7 +47,8 @@ syntax
   "_vop_dcl"        :: "id \<Rightarrow> vty \<Rightarrow> n_uproc \<Rightarrow> n_uproc" ("dcl _ : _ @  _")
   "_cml_var"        :: "id \<Rightarrow> vty \<Rightarrow> logic" ("CMLVAR'(_, _')")
   "_upred_sskip"    :: "n_upred" ("III")
-
+  
+(*
 ML_file "utp_cml_parser.ML"
 
 parse_ast_translation {*
@@ -55,6 +56,7 @@ parse_ast_translation {*
     (@{syntax_const "_vexpr_dcl"}, K Cml_Parser.cml_dcl_ast_tr),
     (@{syntax_const "_vop_dcl"}, K Cml_Parser.cml_op_dcl_ast_tr)]
 *}
+*)
 
 translations
   "_idt_set (_vidts x xs)" => "Set.insert x\<down> (_idt_set xs)"
@@ -65,10 +67,13 @@ translations
   "_uop_speccml xs p q"    == "CONST SpecO (_idt_set xs) p q"
   "_uop_especcml p q"      == "CONST SpecO {} p q"
   "_uop_precml p"          == "CONST SpecO {} p CONST TrueDE"
-  "_upred_nyscml" == "CONST NotYetSpecD"
-
+  "_upred_nyscml"          == "CONST NotYetSpecD"
+  "_cml_var x t"           == "CONST MkVarD IDSTR(x) t"
+  "_vexpr_dcl x t p"       => "CONST DclD (_cml_var x t) (\<lambda> x. p)"
+  "_vop_dcl x t p"         => "CONST DclO (_cml_var x t) (\<lambda> x. p)"
 
 term "`dcl x : @nat @ (x := 1; y := $x)`" 
+term "{: dcl x : @nat @ (x := 1; y := $x) :}"
 term "`x,y:[$x > 0, $y = $y~ / $x]`"
 term "`[$x > 0, true]`"
 term "`[$x > 1]`"

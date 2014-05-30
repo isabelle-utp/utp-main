@@ -346,7 +346,9 @@ translations
   "_vexpr_mapapp m k"    == "CONST vexpr_mapapp m k"
   "_vexpr_mapcomp e f x A" == "CONST vexpr_map_collect (\<lambda> x. (CONST vexpr_prod e f)) A"
 
+(*
 term "|{x |-> (x * 2) + 5 | x in @set {1,...,5}}|"
+*)
 
 text {* Numeric Functions *}
 
@@ -432,7 +434,7 @@ term "|forall x in @set {1} @ ^x^ > 5|"
 lemma "|forall x:@nat1 @ ^x^ > 0| = |true|"
   by (cml_tac)
 
-term "|x > (5 : @int)|"
+term "|$x > 0|"
 term "\<parallel>@int inv x == ^x^ > 5\<parallel>"
 
 lemma "|2 : (@int inv x == (^x^ < 5))| = |2 : @int|"
