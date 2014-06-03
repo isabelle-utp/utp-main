@@ -20,6 +20,7 @@ imports
   "tactics/utp_unrest_tac"
   "tactics/utp_alpha_tac"
   "tactics/utp_solve_tac"
+  "tactics/utp_hoare_tac"
   "laws/utp_pred_laws"
   "laws/utp_rel_laws"
   "laws/utp_subst_laws"

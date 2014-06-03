@@ -927,10 +927,16 @@ lemma AssignRA_rel_closure [closure]:
   apply (auto)
 done
 
-theorem CondR_rel_closure [closure] :
+lemma CondR_rel_closure [closure] :
 "\<lbrakk> p1 \<in> WF_RELATION; p2 \<in> WF_RELATION; b \<in> WF_RELATION \<rbrakk> \<Longrightarrow>
    p1 \<lhd> b \<rhd> p2 \<in> WF_RELATION"
   by (simp add: CondR_def closure)
+
+lemma VarOpenP_rel_closure [closure]: "var x \<in> REL"
+  by (simp add:WF_RELATION_def unrest VarOpenP_def)
+
+lemma VarCloseP_rel_closure [closure]: "end x \<in> REL"
+  by (simp add:WF_RELATION_def unrest VarCloseP_def)
 
 lemma SS_rel_closure [closure]:
   "P \<in> WF_RELATION \<Longrightarrow> SS\<bullet>P \<in> WF_RELATION"
