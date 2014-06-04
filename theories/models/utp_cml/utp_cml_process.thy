@@ -10,9 +10,28 @@ theory utp_cml_process
 imports 
   utp_cml_expr
   utp_cml_types
+  utp_csp
 begin
 
-term "MkVarD"
+
+text {* Add a simple syntax translator for main actions in CML processes. The ML
+        function simply appends .MainAction
+        FIXME: We also need to support parameters. *}
+
+syntax
+  "_cml_proc_ref" :: "id \<Rightarrow> n_upred" ("@_" [10] 10)
+
+parse_ast_translation {*
+let
+  fun cml_proc_ref_tr [Ast.Variable full_name] =
+    Ast.Variable (full_name ^ ".MainAction")
+  | cml_proc_ref_tr [Ast.Constant full_name] =
+    Ast.Variable (full_name ^ ".MainAction")
+  | cml_proc_ref_tr e = raise Match;
+in
+  [(@{syntax_const "_cml_proc_ref"}, K cml_proc_ref_tr)]
+end
+*}
 
 definition ForLoopSetD :: "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
 "ForLoopSetD xs F = undefined"
@@ -138,11 +157,11 @@ translations
 syntax
   "_n_upred_cml_prefix" :: "unit option CHAN \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _")
   "_n_upred_parcml"     :: "n_upred \<Rightarrow> n_chanset \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "[|_|]" 50)
-  "_n_upred_aseqsetcml" :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("; _ in @set _ @ _")
-  "_n_upred_aextsetcml" :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("[] _ in @set _ @ _")
-  "_n_upred_aintsetcml" :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("|~| _ in @set _ @ _")
-  "_n_upred_aparsetcml" :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("|| _ in @set _ @ _")
-  "_n_upred_ainlvsetcml" :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("||| _ in @set _ @ _")
+  "_n_upred_aseqsetcml" :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("; _ in @set _ @ _" [0,0,10] 10)
+  "_n_upred_aextsetcml" :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("[] _ in @set _ @ _" [0,0,10] 10)
+  "_n_upred_aintsetcml" :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("|~| _ in @set _ @ _" [0,0,10] 10)
+  "_n_upred_aparsetcml" :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("|| _ in @set _ @ _" [0,0,10] 10)
+  "_n_upred_ainlvsetcml" :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("||| _ in @set _ @ _" [0,0,10] 10)
   "_n_upred_hidecml"    :: "n_upred \<Rightarrow> n_chanset \<Rightarrow> n_upred" (infixl "\\" 60)
   "_n_upred_intrptcml"  :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "'/-\\" 50)
   "_n_upred_timeoutcml" :: "n_upred \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "['(_')>" 50)
@@ -155,7 +174,6 @@ syntax
   "_n_upred_cml_exec5"  :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_'(_, _, _, _, _')")
   "_n_upred_cml_exec6"  :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_'(_, _, _, _, _, _')")
   "_n_upred_cindex"     :: "('b \<Rightarrow> 'a upred) \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_<_>" 50)
-  
 
 translations
   "_n_upred_parcml p vs q"        == "CONST ParallelD p vs q"
@@ -178,7 +196,8 @@ translations
   "_n_upred_cml_exec3 v1 v2 v3 v4 v5 v6 s" == "CONST RH (CONST Exec3D v1 v2 v3 v4 v5 v6 s)"
   "_n_upred_cindex F v"           == "CONST IndexD F v"
 
-term "`|| i in @set {1,2,3} @ (P [(&i)> Q)`"
+term "`([] i in @set {1,2,3} @ P) ; Q`"
+term "`|| i in @set {1,2,3} @ P [(&i)> Q`"
 term "`||| i in @set {1,2,3} @ (P [(&i)> Q)`"
 term "`; i in @set {1,2,3} @ (P [(&i)> Q)`"
 term "`[] i in @set {1,2,3} @ (P [(&i)> Q)`"

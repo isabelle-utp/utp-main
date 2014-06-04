@@ -26,7 +26,6 @@ section {* Core Polymorphic Expression Syntax *}
 
 syntax
   "_n_pexpr_quote"        :: "n_pexpr \<Rightarrow> ('a, 'm) pexpr" ("(1|_|)")
-(*  "_n_pexpr_pred_quote"   :: "n_pexpr \<Rightarrow> 'a WF_PREDICATE" ("(1``_``)") *)
   "_n_pexprs"             :: "[n_pexpr, n_pexprs] => n_pexprs" ("_,/ _")
   ""                      :: "n_pexpr => n_pexprs" ("_")
   "_pvar"                 :: "idt \<Rightarrow> n_pvar" ("(_)")
@@ -70,7 +69,7 @@ syntax (xsymbols)
   "_n_upred_op3"      :: "idt \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_'(_,_,_')")
   "_n_upred_true"     :: "n_upred" ("true")
   "_n_upred_false"    :: "n_upred" ("false")
-  "_n_upred_var"      :: "pttrn \<Rightarrow> n_upred" ("(_)")
+  "_n_upred_var"      :: "idt \<Rightarrow> n_upred" ("_")
   "_n_upred_evar"     :: "(bool, 'm) pvar \<Rightarrow> n_upred" ("$_" [999] 999)
   "_n_upred_and"      :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr "\<and>" 35)
   "_n_upred_or"       :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr "\<or>" 35)
@@ -159,7 +158,7 @@ syntax
   "_n_expr_quote"        :: "n_expr \<Rightarrow> 'a uexpr" ("(1^_^)")
   "_n_expr_true"         :: "n_expr" ("true")
   "_n_expr_false"        :: "n_expr" ("false")
-  "_n_expr_var"          :: "pttrn \<Rightarrow> n_expr" ("_")
+  "_n_expr_var"          :: "idt \<Rightarrow> n_expr" ("_")
   "_n_expr_evar"         :: "'a uvar \<Rightarrow> n_expr" ("$_" [999] 999)
   "_n_expr_prime"        :: "n_expr \<Rightarrow> n_expr" ("_\<acute>" [1000] 1000)
 

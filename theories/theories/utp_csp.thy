@@ -100,6 +100,7 @@ syntax
   "_n_upred_prefixed"  :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _")
   "_n_upred_input"     :: "'a CHAN \<Rightarrow> pttrn \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_?_ -> _")
   "_n_upred_output"    :: "'a CHAN \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_!_ -> _")
+  "_n_upred_event"     :: "'a CHAN \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_._ -> _")
   "_n_upred_extchoice" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "[]" 65)
   "_n_upred_guardcsp"  :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("[_] & _" [0, 100] 100)
   "_n_upred_parallel"  :: "n_upred \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr "||\<^bsub>_\<^esub>" 100)
@@ -117,6 +118,7 @@ translations
   "_n_upred_prefixed a P"   == "CONST PrefixCSP a P"
   "_n_upred_input n v p"    == "CONST InputCSP n (\<lambda> v. p)"
   "_n_upred_output n v p"   == "CONST OutputCSP n v p"
+  "_n_upred_event n v p"    == "CONST OutputCSP n v p"
   "_n_upred_extchoice P Q"  == "CONST ExternalChoiceCSP P Q"
   "_n_upred_guardcsp b P"   == "CONST GuardCSP b P"
   "_n_upred_parallel P A Q" == "CONST ParallelCSP P A Q"

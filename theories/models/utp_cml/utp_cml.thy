@@ -47,10 +47,18 @@ no_notation
   FalseP ("false") and
   VarA ("&_") and
   TrueAE ("true") and
-  FalseAE ("false")
+  FalseAE ("false") and
+  Sublist.parallel (infixl "\<parallel>" 50) and
+  utp_designs_sig.ParallelD (infixr "\<parallel>" 100)
 
 no_syntax
   "_n_upred_prefixed"  :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _")
   "_n_upred_index"     :: "('b \<Rightarrow> 'a upred) \<Rightarrow> 'b \<Rightarrow> n_upred" ("_<_>" 50)
+
+syntax
+  "_n_upred_event'"     :: "'a CHAN \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_.'(_') -> _")
+
+translations
+    "_n_upred_event' n v p"    == "CONST OutputCSP n v p"
 
 end
