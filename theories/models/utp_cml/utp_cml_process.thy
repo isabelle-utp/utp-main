@@ -53,25 +53,33 @@ definition ParallelD ::
   "cmlp \<Rightarrow> cmlev set \<Rightarrow> cmlp \<Rightarrow> cmlp" where
 "ParallelD p cs q = ParallelCSP p (LitPE (Abs_USET cs)) q"
 
-definition AlphaSeqSetD ::
+definition ReplSeqSetD ::
   "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
-"AlphaSeqSetD = undefined"
+"ReplSeqSetD = undefined"
 
-definition AlphaIntSetD ::
+definition ReplIntSetD ::
   "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
-"AlphaIntSetD = undefined"
+"ReplIntSetD = undefined"
 
-definition AlphaExtSetD ::
+definition ReplExtSetD ::
   "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
-"AlphaExtSetD = undefined"
+"ReplExtSetD = undefined"
 
-definition AlphaParSetD ::
-  "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
-"AlphaParSetD = undefined"
+definition ReplExtTyD ::
+  "'a set \<Rightarrow> ('a option \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
+"ReplExtTyD = undefined"
 
-definition AlphaInlvSetD ::
+definition ReplParSetD ::
   "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
-"AlphaInlvSetD = undefined"
+"ReplParSetD = undefined"
+
+definition ReplAlphaParSetD ::
+  "'a fset cmle \<Rightarrow> cmlev set \<Rightarrow> ('a option \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
+"ReplAlphaParSetD = undefined"
+
+definition ReplInlvSetD ::
+  "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
+"ReplInlvSetD = undefined"
 
 definition HideD ::
   "cmlp \<Rightarrow> cmlev set \<Rightarrow> cmlp" where
@@ -139,11 +147,16 @@ where "IndexD F v = mkPRED {b. \<lbrakk>F(the(\<lbrakk>v\<rbrakk>\<^sub>*b))\<rb
 no_syntax
   "_n_upred_prefixed"  :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _")
   "_n_upred_index"         :: "('b \<Rightarrow> 'a upred) \<Rightarrow> 'b \<Rightarrow> n_upred" ("_<_>" 50)
+  "_n_upred_input"     :: "'a CHAN \<Rightarrow> pttrn \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_?_ -> _")
+  "_n_upred_output"    :: "'a CHAN \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_!_ -> _")
+  "_n_upred_event"     :: "'a CHAN \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_._ -> _")
 
 no_syntax (xsymbols)
   "_n_upred_prefixed"  :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ \<rightarrow> _")
 
-nonterminal n_chanset and n_chan and n_chans
+nonterminal n_chanset and n_chan and n_chans and n_comm and n_comms
+
+term "SUP x:A. PrefixCSP x p"
 
 syntax
   "_n_chan_ev"       :: "idt => idt => n_chan"  ("_@_")
@@ -168,12 +181,14 @@ translations
   "_n_chanset_diff  cs1 cs2" => "cs1 - cs2"
 
 syntax
-  "_n_upred_cml_prefix" :: "unit option CHAN \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _")
+(*  "_n_upred_cml_prefix" :: "unit option CHAN \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _") *)
   "_n_upred_parcml"     :: "n_upred \<Rightarrow> n_chanset \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "[|_|]" 50)
   "_n_upred_aseqsetcml" :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("; _ in @set _ @ _" [0,0,10] 10)
   "_n_upred_aextsetcml" :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("[] _ in @set _ @ _" [0,0,10] 10)
+  "_n_upred_aexttycml"  :: "idt \<Rightarrow> vty \<Rightarrow> n_upred \<Rightarrow> n_upred" ("[] _ : _ @ _" [0,0,10] 10)
   "_n_upred_aintsetcml" :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("|~| _ in @set _ @ _" [0,0,10] 10)
-  "_n_upred_aparsetcml" :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("|| _ in @set _ @ _" [0,0,10] 10)
+  "_n_upred_aparsetcml"   :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("|| _ in @set _ @ _" [0,0,10] 10)
+  "_n_upred_aparsetevcml" :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_chanset \<Rightarrow> n_upred \<Rightarrow> n_upred" ("|| _ in @set _ @ [_] _" [0,0,0,10] 10)
   "_n_upred_ainlvsetcml" :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("||| _ in @set _ @ _" [0,0,10] 10)
   "_n_upred_hidecml"    :: "n_upred \<Rightarrow> n_chanset \<Rightarrow> n_upred" (infixl "\\" 60)
   "_n_upred_intrptcml"  :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "'/-\\" 50)
@@ -190,16 +205,18 @@ syntax
 
 translations
   "_n_upred_parcml p vs q"        == "CONST ParallelD p vs q"
-  "_n_upred_aseqsetcml x vs p"    == "CONST AlphaSeqSetD vs (\<lambda> x. p)"
-  "_n_upred_aintsetcml x vs p"    == "CONST AlphaIntSetD vs (\<lambda> x. p)"
-  "_n_upred_aextsetcml x vs p"    == "CONST AlphaExtSetD vs (\<lambda> x. p)"
-  "_n_upred_aparsetcml x vs p"    == "CONST AlphaParSetD vs (\<lambda> x. p)" 
-  "_n_upred_ainlvsetcml x vs p"   == "CONST AlphaInlvSetD vs (\<lambda> x. p)"
+  "_n_upred_aseqsetcml x vs p"    == "CONST ReplSeqSetD vs (\<lambda> x. p)"
+  "_n_upred_aintsetcml x vs p"    == "CONST ReplIntSetD vs (\<lambda> x. p)"
+  "_n_upred_aextsetcml x vs p"    == "CONST ReplExtSetD vs (\<lambda> x. p)"
+  "_n_upred_aexttycml x vs p"     == "CONST ReplExtTyD vs (\<lambda> x. p)"
+  "_n_upred_aparsetcml x vs p"    == "CONST ReplParSetD vs (\<lambda> x. p)" 
+  "_n_upred_aparsetevcml x vs es p" == "CONST ReplAlphaParSetD vs es (\<lambda> x. p)"
+  "_n_upred_ainlvsetcml x vs p"   == "CONST ReplInlvSetD vs (\<lambda> x. p)"
   "_n_upred_hidecml p cs"         == "CONST HideD p cs"
   "_n_upred_intrptcml p q"        == "CONST InterruptD p q"
   "_n_upred_timeoutcml p n q"     == "CONST TimeoutD p n q"
   "_n_upred_waitcml n"            == "CONST WaitD n"
-  "_n_upred_cml_prefix n p"       == "CONST CommD n p"
+(*  "_n_upred_cml_prefix n p"       == "CONST CommD n p" *)
   "_n_upred_cml_exec0 s"          == "CONST RH (CONST Exec0D s)"
   "_n_upred_cml_exec1 f s"        == "CONST RH (CONST Exec1D f s)"
   "_n_upred_cml_exec2 v1 v2 s"    == "CONST RH (CONST Exec2D v1 v2 s)"
@@ -214,6 +231,8 @@ term "`|| i in @set {1,2,3} @ P [(&i)> Q`"
 term "`||| i in @set {1,2,3} @ (P [(&i)> Q)`"
 term "`; i in @set {1,2,3} @ (P [(&i)> Q)`"
 term "`[] i in @set {1,2,3} @ (P [(&i)> Q)`"
+term "`[] i : @nat @ (P [(&i)> Q)`"
+term "`|| i in @set {1,2,3} @ [{|v|}] (P [(&i)> Q)`"
 term "`P [|{|x,y,z|}|] Q`"
 term "`P \\ {|x,y,z|}`"
 term "`P \\ {|x,y|} union {|z|}`"
@@ -223,5 +242,55 @@ term "`P [(5)> Q`"
 term "`WAIT $x ; WAIT $y`"
 term "`f()`"
 term "`P<1>`"
+
+text {* CML event prefix syntax *}
+
+no_syntax
+  "_n_upred_prefixed"      :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _")
+  "_n_upred_index"         :: "('b \<Rightarrow> 'a upred) \<Rightarrow> 'b \<Rightarrow> n_upred" ("_<_>" 50)
+  "_n_upred_PrefixSkipCSP" :: "n_pexpr \<Rightarrow> n_upred" ("@_")
+
+syntax
+  "_n_comm_nil"      :: "n_comm" ("")
+  "_n_comm_inp"      :: "idt \<Rightarrow> n_comm \<Rightarrow> n_comm" ("?'(_')_")
+  "_n_comm_outp"     :: "n_pexpr \<Rightarrow> n_comm \<Rightarrow> n_comm" ("!'(_')_")
+  "_n_comm_dot"      :: "n_pexpr \<Rightarrow> n_comm \<Rightarrow> n_comm" (".'(_')_")
+  "_cml_comm"        :: "idt \<Rightarrow> n_comm \<Rightarrow> n_upred \<Rightarrow> n_upred" ("__ -> _" [20,50,50] 50)
+  "_cml_comm_body"   :: "idt \<Rightarrow> n_comm \<Rightarrow> n_upred \<Rightarrow> n_upred"
+  "_cml_comm_bind"   :: "n_comm \<Rightarrow> idt \<Rightarrow> n_comm \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> logic"
+  "_cml_comm_prod"   :: "n_comm \<Rightarrow> logic"
+
+translations
+  "_cml_comm c _n_comm_nil (_n_upred_SkipCSP)" <= "CONST CommD c SKIP"
+
+text {* This rather complex set of translations performs two passes over a list 
+        of channel variables:
+        - in the first pass, a big external choice is entered for each input, and all
+          other kinds are ignored
+        - in the second pass, each variable is inserted into a tuple and then composed
+          with the channel. 
+       FIXME: Currently we don't insert correct type data for the external choice,
+              this should be extracted somehow from the channel.
+*}
+
+translations
+  "_cml_comm_prod (_n_comm_nil)" => "CONST UnitD"
+  "_cml_comm_prod (_n_comm_dot v _n_comm_nil)" => "CONST SingleD v"
+  "_cml_comm_prod (_n_comm_dot v vs)"  => "CONST vexpr_prod v (_cml_comm_prod vs)"
+  "_cml_comm_prod (_n_comm_inp v _n_comm_nil)" => "CONST SingleD (CONST LitPE v)"
+  "_cml_comm_prod (_n_comm_inp x vs)"  => "CONST vexpr_prod (CONST LitPE x) (_cml_comm_prod vs)"
+  "_cml_comm_prod (_n_comm_outp v _n_comm_nil)" => "CONST SingleD v"
+  "_cml_comm_prod (_n_comm_outp v vs)" => "CONST vexpr_prod v (_cml_comm_prod vs)"
+  "_cml_comm_bind (_n_comm_nil) c v p" => "_cml_comm_body c v p"
+  "_cml_comm_bind (_n_comm_dot x _n_comm_nil) c v p" => "_cml_comm_body c v p"
+  "_cml_comm_bind (_n_comm_dot x vs) c v p"  => "_cml_comm_bind vs c v p"
+  "_cml_comm_bind (_n_comm_inp x _n_comm_nil) c v p" 
+      => "CONST ReplExtTyD CONST UNIV (\<lambda> x. (_cml_comm_body c v p))"
+  "_cml_comm_bind (_n_comm_inp x vs) c v p"  
+      => "CONST ReplExtTyD CONST UNIV (\<lambda> x. (_cml_comm_bind vs c v p))"
+  "_cml_comm_bind (_n_comm_outp x _n_comm_nil) c v p" => "_cml_comm_body c v p"
+  "_cml_comm_bind (_n_comm_outp x vs) c v p"  => "_cml_comm_bind vs c v p"
+  "_cml_comm_body c v p"               => "CONST OutputCSP c (_cml_comm_prod v) p"
+  "_cml_comm c v p"                    => "_cml_comm_bind v c v p"
 
 end

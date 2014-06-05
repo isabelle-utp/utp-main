@@ -477,6 +477,15 @@ translations
   "_vexpr_fset (_n_pexprs x xs)" == "CONST vexpr_insert x (_vexpr_fset xs)"
   "_vexpr_fset x"              == "CONST vexpr_insert x CONST vexpr_empty"
 
+parse_ast_translation {*
+let fun vexpr_string_tr [str] =
+  Ast.Appl [Ast.Constant @{const_syntax LitD}, Utp_Parser_Utils.string_ast_tr [str]]
+  | vexpr_string_tr _ = raise Match;
+  in
+  [(@{syntax_const "_vexpr_string"}, K vexpr_string_tr)]
+end
+*}
+
 definition mk_prod :: "'a \<Rightarrow> 'a option" where
 "mk_prod = Some"
 

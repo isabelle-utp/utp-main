@@ -52,35 +52,9 @@ no_notation
   utp_designs_sig.ParallelD (infixr "\<parallel>" 100)
 
 no_syntax
-  "_n_upred_prefixed"  :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _")
-  "_n_upred_index"     :: "('b \<Rightarrow> 'a upred) \<Rightarrow> 'b \<Rightarrow> n_upred" ("_<_>" 50)
-
-syntax
-  "_n_upred_event'"     :: "'a CHAN \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_.'(_') -> _")
-
-translations
-    "_n_upred_event' n v p"    == "CONST OutputCSP n v p"
-
-(*
-locale proc =
-  fixes i
-  assumes "`\<lparr>^i^ hasType @nat\<rparr>`"
-  fixes j
-  assumes "`\<lparr>^j^ hasType @nat\<rparr>`"
-begin
-  definition "MainAction = `WAIT(^i^) ; WAIT(^j^)`"
-end
-
-
-term "proc.MainAction"
-
-term "ApplyD"
-
-term "IndexD"
-
-term "Op2PP proc.MainAction"
-
-term "`@proc(1,2)`"
-*)
+  "_n_upred_prefixed"      :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _")
+  "_n_upred_index"         :: "('b \<Rightarrow> 'a upred) \<Rightarrow> 'b \<Rightarrow> n_upred" ("_<_>" 50)
+  "_n_upred_PrefixSkipCSP" :: "n_pexpr \<Rightarrow> n_upred" ("@_")
+  "_upred_callpr"          :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("call _'[_']")
 
 end
