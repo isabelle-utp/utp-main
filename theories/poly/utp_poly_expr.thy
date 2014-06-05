@@ -293,6 +293,36 @@ lemma Op3PE_defined [defined]:
    \<Longrightarrow> \<D> (Op3PE f x y z)"
   by (simp add:Op3PE_def defined)
 
+lift_definition Op1PP :: "('a::type \<Rightarrow> 'm::VALUE upred) \<Rightarrow> ('a, 'm) pexpr \<Rightarrow> 'm upred"
+is "\<lambda> P e. {b. b \<in> P(\<lbrakk>e\<rbrakk>\<^sub>*b)}" .
+
+lemma EvalP_Op1PP [eval, evalpp]: "\<lbrakk>Op1PP P e\<rbrakk>b = \<lbrakk>P(\<lbrakk>e\<rbrakk>\<^sub>*b)\<rbrakk>b"
+  by (simp add:EvalP_def Op1PP.rep_eq)
+
+lemma UNREST_Op1PP: "\<lbrakk> \<And> x. vs \<sharp> P(x); vs \<sharp> e \<rbrakk> \<Longrightarrow> vs \<sharp> Op1PP P e"
+  by (auto simp add:UNREST_def UNREST_PEXPR_def Op1PP.rep_eq)
+
+lift_definition Op2PP :: "('a::type \<Rightarrow> 'b::type \<Rightarrow> 'm::VALUE upred) \<Rightarrow> ('a, 'm) pexpr \<Rightarrow> ('b, 'm) pexpr \<Rightarrow> 'm upred"
+is "\<lambda> P e f. {b. b \<in> P(\<lbrakk>e\<rbrakk>\<^sub>*b)(\<lbrakk>f\<rbrakk>\<^sub>*b)}" .
+
+lemma EvalP_Op2PP [eval, evalpp]: "\<lbrakk>Op2PP P e f\<rbrakk>b = \<lbrakk>P(\<lbrakk>e\<rbrakk>\<^sub>*b) (\<lbrakk>f\<rbrakk>\<^sub>*b)\<rbrakk>b"
+  by (simp add:EvalP_def Op2PP.rep_eq)
+
+lemma UNREST_Op2PP: "\<lbrakk> \<And> x y. vs \<sharp> P(x)(y); vs \<sharp> e; vs \<sharp> f \<rbrakk> \<Longrightarrow> vs \<sharp> Op2PP P e f"
+  by (auto simp add:UNREST_def UNREST_PEXPR_def Op2PP.rep_eq)
+
+lift_definition Op3PP :: "('a::type \<Rightarrow> 'b::type \<Rightarrow> 'c::type \<Rightarrow> 'm::VALUE upred) \<Rightarrow> 
+                          ('a, 'm) pexpr \<Rightarrow> ('b, 'm) pexpr \<Rightarrow> ('c, 'm) pexpr \<Rightarrow> 'm upred"
+is "\<lambda> P e f g. {b. b \<in> P(\<lbrakk>e\<rbrakk>\<^sub>*b)(\<lbrakk>f\<rbrakk>\<^sub>*b)(\<lbrakk>g\<rbrakk>\<^sub>*b)}" .
+
+lemma EvalP_Op3PP [eval, evalpp]: 
+  "\<lbrakk>Op3PP P e f g\<rbrakk>b = \<lbrakk>P (\<lbrakk>e\<rbrakk>\<^sub>*b) (\<lbrakk>f\<rbrakk>\<^sub>*b) (\<lbrakk>g\<rbrakk>\<^sub>*b)\<rbrakk>b"
+  by (simp add:EvalP_def Op3PP.rep_eq)
+
+lemma UNREST_Op3PP: 
+  "\<lbrakk> \<And> x y z. vs \<sharp> P(x)(y)(z); vs \<sharp> e; vs \<sharp> f; vs \<sharp> g \<rbrakk> \<Longrightarrow> vs \<sharp> Op3PP P e f g"
+  by (auto simp add:UNREST_def UNREST_PEXPR_def Op3PP.rep_eq)
+
 abbreviation "EqualPE \<equiv> Op2PE (op =)"
 
 definition PExprE :: 

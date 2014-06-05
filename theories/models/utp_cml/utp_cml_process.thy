@@ -19,17 +19,30 @@ text {* Add a simple syntax translator for main actions in CML processes. The ML
         FIXME: We also need to support parameters. *}
 
 syntax
-  "_cml_proc_ref" :: "id \<Rightarrow> n_upred" ("@_" [10] 10)
+  "_cml_proc_ref_0" :: "id \<Rightarrow> n_upred" ("@_'(')" [10] 10)
+  "_cml_proc_ref_1" :: "id \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("@_'(_')" [10,10] 10)
+  "_cml_proc_ref_2" :: "id \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("@_'(_,/ _')" [10,10,10] 10)
+  "_cml_proc_ref_3" :: "id \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("@_'(_,/ _,/ _')" [10,10,10,10] 10)
 
 parse_ast_translation {*
 let
-  fun cml_proc_ref_tr [Ast.Variable full_name] =
+  fun cml_proc_ref_tr_0 [Ast.Variable full_name] =
     Ast.Variable (full_name ^ ".MainAction")
-  | cml_proc_ref_tr [Ast.Constant full_name] =
-    Ast.Variable (full_name ^ ".MainAction")
-  | cml_proc_ref_tr e = raise Match;
+  | cml_proc_ref_tr_0 e = raise Match;
+  fun cml_proc_ref_tr_1 [Ast.Variable full_name, p] =
+    Ast.Appl [Ast.Constant @{const_syntax Op1PP}, Ast.Variable (full_name ^ ".MainAction"), p]
+  | cml_proc_ref_tr_1 e = raise Match;
+  fun cml_proc_ref_tr_2 [Ast.Variable full_name, p, q] =
+    Ast.Appl [Ast.Constant @{const_syntax Op2PP}, Ast.Variable (full_name ^ ".MainAction"), p, q]
+  | cml_proc_ref_tr_2 e = raise Match;
+  fun cml_proc_ref_tr_3 [Ast.Variable full_name, p, q, r] =
+    Ast.Appl [Ast.Constant @{const_syntax Op3PP}, Ast.Variable (full_name ^ ".MainAction"), p, q, r]
+  | cml_proc_ref_tr_3 e = raise Match;
 in
-  [(@{syntax_const "_cml_proc_ref"}, K cml_proc_ref_tr)]
+  [(@{syntax_const "_cml_proc_ref_0"}, K cml_proc_ref_tr_0)
+  ,(@{syntax_const "_cml_proc_ref_1"}, K cml_proc_ref_tr_1)
+  ,(@{syntax_const "_cml_proc_ref_2"}, K cml_proc_ref_tr_2)
+  ,(@{syntax_const "_cml_proc_ref_3"}, K cml_proc_ref_tr_3)]
 end
 *}
 
@@ -210,6 +223,5 @@ term "`P [(5)> Q`"
 term "`WAIT $x ; WAIT $y`"
 term "`f()`"
 term "`P<1>`"
-
 
 end

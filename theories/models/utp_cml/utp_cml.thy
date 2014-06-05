@@ -61,4 +61,26 @@ syntax
 translations
     "_n_upred_event' n v p"    == "CONST OutputCSP n v p"
 
+(*
+locale proc =
+  fixes i
+  assumes "`\<lparr>^i^ hasType @nat\<rparr>`"
+  fixes j
+  assumes "`\<lparr>^j^ hasType @nat\<rparr>`"
+begin
+  definition "MainAction = `WAIT(^i^) ; WAIT(^j^)`"
+end
+
+
+term "proc.MainAction"
+
+term "ApplyD"
+
+term "IndexD"
+
+term "Op2PP proc.MainAction"
+
+term "`@proc(1,2)`"
+*)
+
 end
