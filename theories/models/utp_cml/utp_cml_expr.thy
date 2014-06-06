@@ -501,7 +501,7 @@ term "|mk_prod($x,2,5)|"
 term "LitD (1 :: real)"
 
 term "|1.1|"
-term "|mk_prod(1,2,3,4).#3|"
+term "|mk_prod(1,2,3,4).#4|"
 
 subsection {* Tautologies *}
 
@@ -823,7 +823,6 @@ lemma SelectD_SingleD [simp]:
 lemma VExprDefinedT_TrueDE [simp]: 
   "VExprDefinedT TrueDE = TrueP"
   by (utp_poly_tac)
-
 
 (*
 lemma VTaut_FalseD [simp]:

@@ -97,7 +97,8 @@ syntax
 syntax (xsymbols)
   "_vty_prod"    :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixl "\<times>" 20)
 
-syntax 
+syntax
+  "_vty_hprod"   :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixr "**" 20)
   "_vty_unit"    :: "vty" ("'(')")
   "_vty_quote"   :: "string \<Rightarrow> vty" ("<_>")
   "_vty_brack"   :: "vty \<Rightarrow> vty" ("'(_')")
@@ -106,7 +107,7 @@ syntax
   "_vty_bool"    :: "vty" ("@bool")
   "_vty_token"   :: "vty" ("@token")
   "_vty_nat"     :: "vty" ("@nat")
-  "_vty_nat1"     :: "vty" ("@nat1")
+  "_vty_nat1"    :: "vty" ("@nat1")
   "_vty_int"     :: "vty" ("@int")
   "_vty_rat"     :: "vty" ("@rat")
   "_vty_char"    :: "vty" ("@char")
@@ -138,7 +139,9 @@ translations
   "_vty_rat"       == "CONST vty_rat"
   "_vty_real"      == "CONST vty_real"
   "_vty_char"      == "CONST vty_char"
-  "_vty_prod x y"  == "CONST vty_prod x y"
+  "_vty_hprod x y"  == "CONST vty_prod x y"
+  "_vty_prod x (_vty_prod y z)" == "CONST vty_prod x (_vty_prod y z)"
+  "_vty_prod x y"  == "CONST vty_prod x (CONST vty_prod y CONST vty_unit)"
   "_vty_set_of A"  == "CONST Fow A"
   "_vty_option A"  == "CONST vty_option A"
   "_vty_seq_of A"  == "CONST vty_seq_of A"
@@ -169,5 +172,7 @@ term "|lambda x : @nat @ true|"
 term "|iota x : @real @ ^x^ = 1|"
 
 term "|let x : @real = 5 in true|"
+
+term "|mk_prod(1,''hello'') hasType (@nat * @seq of @char)|"
 
 end

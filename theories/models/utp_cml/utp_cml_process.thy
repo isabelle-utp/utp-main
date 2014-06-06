@@ -15,8 +15,7 @@ begin
 
 
 text {* Add a simple syntax translator for main actions in CML processes. The ML
-        function simply appends .MainAction
-        FIXME: We also need to support parameters. *}
+        function simply appends .MainAction. *}
 
 syntax
   "_cml_proc_ref_0" :: "id \<Rightarrow> n_upred" ("@_'(')" [10] 10)
@@ -97,9 +96,6 @@ definition WaitD :: "real cmle \<Rightarrow> cmlp" where
 abbreviation MkChanD :: "string \<Rightarrow> 'a set \<Rightarrow> ('a option) CHAN" where
 "MkChanD n xs \<equiv> MkCHAN (bName n, TYPE('a option))"
 
-abbreviation CommD :: "unit option CHAN \<Rightarrow> cmlp \<Rightarrow> cmlp" where
-"CommD x p \<equiv> OutputCSP x |()| p"
-
 
 (* FIXME: Execution of CML operations needs to take care of undefinedness *)
 
@@ -163,8 +159,10 @@ syntax
   "_n_chan_ch"       :: "idt => n_chan" ("_")
   "_n_chan"          :: "n_chan => n_chans" ("_")
   "_n_chans"         :: "[n_chan, n_chans] => n_chans" ("_,/ _")
+  "_n_comm_dot"      :: "n_pexpr \<Rightarrow> n_comm \<Rightarrow> n_comm" (".'(_')_")
   "_n_chanset_id"    :: "idt \<Rightarrow> n_chanset" ("_")
-  "_n_chanset_enum"  :: "n_chans => n_chanset" ("{|(_)|}")
+  "_n_chanset_enum"  :: "n_chans \<Rightarrow> n_chanset" ("{|(_)|}")
+(*  "_n_chanset_comp"  :: "n_comm \<Rightarrow> vbinds \<Rightarrow> n_chanset" ("{| _ | _ |}") *)
   "_n_chanset_union" :: "n_chanset \<Rightarrow> n_chanset \<Rightarrow> n_chanset" (infixl "union" 65)
   "_n_chanset_inter" :: "n_chanset \<Rightarrow> n_chanset \<Rightarrow> n_chanset" (infixl "inter" 70)
   "_n_chanset_diff"  :: "n_chanset \<Rightarrow> n_chanset \<Rightarrow> n_chanset" (infixl "\\" 70)
@@ -254,14 +252,15 @@ syntax
   "_n_comm_nil"      :: "n_comm" ("")
   "_n_comm_inp"      :: "idt \<Rightarrow> n_comm \<Rightarrow> n_comm" ("?'(_')_")
   "_n_comm_outp"     :: "n_pexpr \<Rightarrow> n_comm \<Rightarrow> n_comm" ("!'(_')_")
-  "_n_comm_dot"      :: "n_pexpr \<Rightarrow> n_comm \<Rightarrow> n_comm" (".'(_')_")
   "_cml_comm"        :: "idt \<Rightarrow> n_comm \<Rightarrow> n_upred \<Rightarrow> n_upred" ("__ -> _" [20,50,50] 50)
   "_cml_comm_body"   :: "idt \<Rightarrow> n_comm \<Rightarrow> n_upred \<Rightarrow> n_upred"
   "_cml_comm_bind"   :: "n_comm \<Rightarrow> idt \<Rightarrow> n_comm \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> logic"
   "_cml_comm_prod"   :: "n_comm \<Rightarrow> logic"
 
+(*
 translations
-  "_cml_comm c _n_comm_nil (_n_upred_SkipCSP)" <= "CONST CommD c SKIP"
+  "_cml_comm c _n_comm_nil (_n_upred_SkipCSP)" <= "CONST Output c SKIP"
+*)
 
 text {* This rather complex set of translations performs two passes over a list 
         of channel variables:
@@ -275,11 +274,11 @@ text {* This rather complex set of translations performs two passes over a list
 
 translations
   "_cml_comm_prod (_n_comm_nil)" => "CONST UnitD"
-  "_cml_comm_prod (_n_comm_dot v _n_comm_nil)" => "CONST SingleD v"
+  "_cml_comm_prod (_n_comm_dot v _n_comm_nil)" => "v"
   "_cml_comm_prod (_n_comm_dot v vs)"  => "CONST vexpr_prod v (_cml_comm_prod vs)"
-  "_cml_comm_prod (_n_comm_inp v _n_comm_nil)" => "CONST SingleD (CONST LitPE v)"
+  "_cml_comm_prod (_n_comm_inp v _n_comm_nil)" => "(CONST LitPE v)"
   "_cml_comm_prod (_n_comm_inp x vs)"  => "CONST vexpr_prod (CONST LitPE x) (_cml_comm_prod vs)"
-  "_cml_comm_prod (_n_comm_outp v _n_comm_nil)" => "CONST SingleD v"
+  "_cml_comm_prod (_n_comm_outp v _n_comm_nil)" => "v"
   "_cml_comm_prod (_n_comm_outp v vs)" => "CONST vexpr_prod v (_cml_comm_prod vs)"
   "_cml_comm_bind (_n_comm_nil) c v p" => "_cml_comm_body c v p"
   "_cml_comm_bind (_n_comm_dot x _n_comm_nil) c v p" => "_cml_comm_body c v p"
@@ -292,5 +291,21 @@ translations
   "_cml_comm_bind (_n_comm_outp x vs) c v p"  => "_cml_comm_bind vs c v p"
   "_cml_comm_body c v p"               => "CONST OutputCSP c (_cml_comm_prod v) p"
   "_cml_comm c v p"                    => "_cml_comm_bind v c v p"
+
+definition "mychan = MkChanD ''mychan'' \<parallel>@nat\<parallel>"
+
+(* Add pretty printing for 1-4 communications *)
+
+translations
+  "_cml_comm c (_n_comm_dot u (_n_comm_dot v (_n_comm_dot w (_n_comm_dot x _n_comm_nil)))) p"
+    <= "CONST OutputCSP c (CONST vexpr_prod u (CONST vexpr_prod v (CONST vexpr_prod w x))) p"
+  "_cml_comm c (_n_comm_dot u (_n_comm_dot v (_n_comm_dot w _n_comm_nil))) p"
+    <= "CONST OutputCSP c (CONST vexpr_prod u (CONST vexpr_prod v w)) p"
+  "_cml_comm c (_n_comm_dot u (_n_comm_dot v _n_comm_nil)) p" 
+    <= "CONST OutputCSP c (CONST vexpr_prod u v) p"
+  "_cml_comm c (_n_comm_nil) p"
+  <= "CONST OutputCSP c (CONST UnitD) p"
+  "_cml_comm c (_n_comm_dot u _n_comm_nil) p"
+  <= "CONST OutputCSP c u p"
 
 end
