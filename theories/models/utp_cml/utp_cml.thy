@@ -22,7 +22,7 @@ begin
 
 text {* Remove syntax which will likely clash *}
 
-hide_const "SUB" "floor" "greatest"
+hide_const "SUB" "floor" "greatest" "Set.empty" "Map.empty"
 
 no_notation
   J_pred ("J") and
@@ -56,5 +56,6 @@ no_syntax
   "_n_upred_index"         :: "('b \<Rightarrow> 'a upred) \<Rightarrow> 'b \<Rightarrow> n_upred" ("_<_>" 50)
   "_n_upred_PrefixSkipCSP" :: "n_pexpr \<Rightarrow> n_upred" ("@_")
   "_upred_callpr"          :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("call _'[_']")
+  "_upred_assignpr"        :: "('a, 'm) pvar \<Rightarrow> ('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_ := _'[_']" [100] 100)
 
 end

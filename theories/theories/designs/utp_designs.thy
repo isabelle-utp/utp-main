@@ -8,12 +8,12 @@ header {* UTP Designs *}
 
 theory utp_designs
 imports 
-  "designs/utp_designs_sig"
-  "designs/utp_designs_laws"
-  "designs/utp_designs_healths"
-  "designs/utp_designs_hoare"
-  "designs/utp_designs_wp"
-  "designs/utp_designs_refcalc"
+  "utp_designs_sig"
+  "utp_designs_laws"
+  "utp_designs_healths"
+  "utp_designs_hoare"
+  "utp_designs_wp"
+  "utp_designs_refcalc"
 begin
 
 end

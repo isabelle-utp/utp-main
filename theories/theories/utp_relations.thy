@@ -8,8 +8,10 @@ header {* UTP Theory of Relations *}
 
 theory utp_relations
 imports 
-  utp_base
+  "utp_theory"
 begin
+
+default_sort VALUE
 
 subsection {* Relational Healthiness Condition *}
 

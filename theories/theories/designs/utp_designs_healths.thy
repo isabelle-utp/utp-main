@@ -11,9 +11,7 @@ imports
   utp_designs_laws
 begin
 
-subsection {* Design Healthiness Conditions *}
-
-subsubsection {* H1: Only observation after starting *}
+subsection {* H1: Only observation after starting *}
 
 definition "H1(P) = `$ok \<Rightarrow> P`"
 
@@ -232,7 +230,7 @@ theorem H1_monotone:
   "p \<sqsubseteq> q \<Longrightarrow> H1 p \<sqsubseteq> H1 q"
   by (utp_pred_tac)
 
-subsubsection {* H2: No requirement of non-termination *}
+subsection {* H2: No requirement of non-termination *}
 
 definition "H2(P) = `P ; J`"
 
@@ -473,7 +471,7 @@ theorem NoTerminate_not_H2:
   apply (rule_tac x="\<B>(ok :=\<^sub>* True)" in exI, simp add:typing defined)
 done
 
-subsubsection {* H3: Assumption is a condition *}
+subsection {* H3: Assumption is a condition *}
 
 definition "H3(P) = `P ; II\<^sub>D`"
 declare H3_def [eval,evalr,evalrx,evalp]
@@ -678,7 +676,7 @@ text {* H2-H3 commutivity is vacuously true *}
 theorem H2_H3_commute: "H2 (H3 P) = H3 (H2 P)"
   by (metis H3_absorbs_H2_1 H3_absorbs_H2_2)
 
-subsubsection {* H4: Feasibility *}
+subsection {* H4: Feasibility *}
 
 definition "H4(P) = `(P ; true) \<Rightarrow> P`"
 

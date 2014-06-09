@@ -167,6 +167,8 @@ syntax
   "_n_chanset_inter" :: "n_chanset \<Rightarrow> n_chanset \<Rightarrow> n_chanset" (infixl "inter" 70)
   "_n_chanset_diff"  :: "n_chanset \<Rightarrow> n_chanset \<Rightarrow> n_chanset" (infixl "\\" 70)
 
+ML {* absdummy dummyT *}
+
 translations
   "_n_chan_ev c v"   => "CONST insert (CONST PEV c v) {}"
   "_n_chan_ch c"     => "CONST MkEvents {c\<down>}"

@@ -92,10 +92,10 @@ declare InvS_def [eval,evale,evalp]
 nonterminal vty_decl and vty_decls
 
 syntax
-  "_vty_prod"    :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixl "*" 20)
+  "_vty_prod"    :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixr "*" 20)
 
 syntax (xsymbols)
-  "_vty_prod"    :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixl "\<times>" 20)
+  "_vty_prod"    :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixr "\<times>" 20)
 
 syntax
   "_vty_hprod"   :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixr "**" 20)

@@ -7,17 +7,19 @@ session "HOL-UTP" = "Kleene_Algebra" +
   "theories/models/utp_basic_model"
   files "document/root.tex"
 
-session "HOL-UTP-DES" in "theories/theories" = "HOL-UTP" +
-  theories [document = false]
-  "utp_relations"
-  "utp_designs"
+session "HOL-UTP-DES" in "theories/theories/designs" = "HOL-UTP" +
+  options [document = pdf, document_output = "output"]
+  theories
+    "utp_designs"
+  files "document/root.tex"
   
 session "HOL-UTP-THY" in "theories/theories" = "HOL-UTP-DES" +
-  theories [document = false, quick_and_dirty = true]
+  theories [document = pdf, document_output = "output", quick_and_dirty = true]
   "utp_acp"
   "utp_csp"
   "utp_definedness"
   "utp_reactive"
+  files "document/root.tex"
   
 session "HOL-UTP-CML" in "theories/models/utp_cml" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]

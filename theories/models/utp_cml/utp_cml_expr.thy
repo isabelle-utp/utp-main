@@ -294,6 +294,7 @@ no_syntax
   "_n_upred_n_pexpr"       :: "n_pexpr \<Rightarrow> n_upred" ("\<lparr>_\<rparr>")
   "_uproc_n_pexpr"       :: "n_pexpr \<Rightarrow> n_uproc" ("\<lparr>_\<rparr>")
   "_n_upred_callpr"      :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("call _'[_']")
+  "_upred_assignpr"      :: "('a, 'm) pvar \<Rightarrow> ('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_ := _'[_']" [100] 100)
   "_n_pexpr_op1"         :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_'(_')")
   "_n_pexpr_op2"         :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_'(_,_')")
   "_n_pexpr_op3"         :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_'(_,_,_')")
@@ -531,12 +532,19 @@ syntax
   "_n_uproc_vexpr"       :: "n_pexpr \<Rightarrow> n_uproc" ("\<lparr>_\<rparr>")
   "_n_upred_vcallpr"     :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexprs \<Rightarrow> n_upred" ("call _'[_']")
   "_n_upred_vcallpr_nil" :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_upred" ("call _'[']")
+  "_n_upred_vassignpr"   :: 
+    "idt \<Rightarrow> ('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_ := _'[_']" [100] 100)
+  "_n_upred_vassignpr_nil" :: 
+    "idt \<Rightarrow> ('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_upred" ("_ := _'[']" [100] 100)
+
 
 translations
   "_n_upred_vexpr e" == "CONST VTautHideT e"
   "_n_uproc_vexpr e" == "CONST VTautHideO e"
   "_n_upred_vcallpr f ps" == "CONST CallRO f (_vexpr_prod ps)"
   "_n_upred_vcallpr_nil f" == "CONST CallRO f CONST UnitD"
+  "_n_upred_vassignpr x f ps" == "CONST AssignRO x f (_vexpr_prod ps)"
+  "_n_upred_vassignpr_nil x f" == "CONST AssignRO x f (CONST UnitD)"
 
 subsection {* Evaluation theorems *}
 

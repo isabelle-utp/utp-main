@@ -38,4 +38,5 @@ imports
   "types/utp_memory"
   "theories/utp_theory"
   "theories/utp_context"
+  "theories/utp_relations"
 begin end

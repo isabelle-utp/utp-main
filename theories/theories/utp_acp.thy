@@ -8,7 +8,7 @@ header {* ACP Processes *}
 
 theory utp_acp
 imports 
-  utp_designs
+  "designs/utp_designs"
   utp_theory
   utp_reactive
 begin
