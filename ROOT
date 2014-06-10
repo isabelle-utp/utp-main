@@ -54,6 +54,27 @@ session "utp-hjf-summer-school" in "papers/utp-hjf-summer-school" = "HOL-UTP-THY
     "proof_wp"
   files "document/root.tex"
 
+session "utp-mrktdrf-2014" in "papers/utp-mrktdrf-2014" = "HOL-UTP-THY" +
+  options [document = pdf, document_output = "output"]
+  theories [document = false]
+  theories 
+    "theory_mechanisation"
+    "proof_basic_laws"
+    "proof_design_comp"
+    "proof_h1_algebraic"
+    "proof_h1_equiv"
+    "proof_h1_h2_design"
+    "proof_h1_left_unit"
+    "proof_h1_left_zero"
+    "proof_h2_equiv"
+    "proof_h2_idempotent"
+    "proof_j_is_h2"
+    "proof_j_split"
+    "proof_refinement_conditional"
+    "proof_unreachable_branch"
+    "proof_wp"
+  files "document/root.tex"
+
 session "isabelle-basics-tutorial" in "papers/isabelle-basics-tutorial" = "HOL" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
   theories
