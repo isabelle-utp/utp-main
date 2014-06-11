@@ -108,32 +108,50 @@ abbreviation "AndD     \<equiv> (Op2PE mconj :: bool cmle \<Rightarrow> bool cml
 abbreviation "OrD      \<equiv> (Op2PE mdisj :: bool cmle \<Rightarrow> bool cmle \<Rightarrow> bool cmle)"
 abbreviation "ImpliesD \<equiv> (Op2PE mimplies :: bool cmle \<Rightarrow> bool cmle \<Rightarrow> bool cmle)"
 
-definition LetD :: "'a cmle \<Rightarrow> 'a set \<Rightarrow> ('a option \<Rightarrow> 'b cmle) \<Rightarrow> 'b cmle" where
-"LetD v A f = do { x <- v; f (Some x) }"
+definition LetD :: "'a cmle \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'b cmle) \<Rightarrow> 'b cmle" where
+"LetD v A f = do { x <- v; f(x) }"
 
-definition ForallD :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
-"ForallD xs f = MkPExpr (\<lambda> b. (Some (\<forall> x \<in> xs. [\<lbrakk>f (Some x)\<rbrakk>\<^sub>* b]\<^sub>3)))"
+definition ForallD :: "'a set \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
+"ForallD xs f = MkPExpr (\<lambda> b. (Some (\<forall> x \<in> xs. [\<lbrakk>f(x)\<rbrakk>\<^sub>* b]\<^sub>3)))"
 
-definition ExistsD :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
-"ExistsD xs f = MkPExpr (\<lambda> b. (Some (\<exists> x \<in> xs. [\<lbrakk>f (Some x)\<rbrakk>\<^sub>* b]\<^sub>3)))"
+definition ExistsD :: "'a set \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
+"ExistsD xs f = MkPExpr (\<lambda> b. (Some (\<exists> x \<in> xs. [\<lbrakk>f(x)\<rbrakk>\<^sub>* b]\<^sub>3)))"
 
-definition Exists1D :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
-"Exists1D xs f = MkPExpr (\<lambda> b. (Some (\<exists>! x \<in> xs. [\<lbrakk>f (Some x)\<rbrakk>\<^sub>* b]\<^sub>3)))"
+definition Exists1D :: "'a set \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> bool cmle" where
+"Exists1D xs f = MkPExpr (\<lambda> b. (Some (\<exists>! x \<in> xs. [\<lbrakk>f(x)\<rbrakk>\<^sub>* b]\<^sub>3)))"
 
-definition IotaD :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> 'a cmle" where 
-"IotaD xs f = MkPExpr (\<lambda> b. (if (\<exists>! x \<in> xs. [\<lbrakk>f (Some x)\<rbrakk>\<^sub>* b]\<^sub>3)
-                                then Some (THE x. [\<lbrakk>f (Some x)\<rbrakk>\<^sub>* b]\<^sub>3)
+definition IotaD :: "'a set \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> 'a cmle" where 
+"IotaD xs f = MkPExpr (\<lambda> b. (if (\<exists>! x \<in> xs. [\<lbrakk>f(x)\<rbrakk>\<^sub>* b]\<^sub>3)
+                                then Some (THE x. [\<lbrakk>f(x)\<rbrakk>\<^sub>* b]\<^sub>3)
                                 else None))"
 
-definition EpsD :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> 'a cmle" where 
-"EpsD xs f = MkPExpr (\<lambda> b. (if (\<exists> x \<in> xs. [\<lbrakk>f (Some x)\<rbrakk>\<^sub>* b]\<^sub>3)
-                                then Some (SOME x. [\<lbrakk>f (Some x)\<rbrakk>\<^sub>* b]\<^sub>3)
+definition EpsD :: "'a set \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> 'a cmle" where 
+"EpsD xs f = MkPExpr (\<lambda> b. (if (\<exists> x \<in> xs. [\<lbrakk>f(x)\<rbrakk>\<^sub>* b]\<^sub>3)
+                                then Some (SOME x. [\<lbrakk>f(x)\<rbrakk>\<^sub>* b]\<^sub>3)
                                 else None))"
 
-definition FunD :: "'a set \<Rightarrow> ('a option \<Rightarrow> 'b cmle) \<Rightarrow> 'a \<Rightarrow> 'b option" where
-"FunD t P = (\<lambda> x. \<lbrakk>P (Some x)\<rbrakk>\<^sub>*\<B>)"
+definition FunD :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b cmle) \<Rightarrow> 'a \<Rightarrow> 'b cmle" where
+"FunD A f = (\<lambda> x. if (x \<in> A) then f(x) else \<bottom>\<^sub>v)"
 
 declare FunD_def [evalp]
+
+definition vprod_case ::
+  "('a * 'b) set \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c cmle) \<Rightarrow> ('a * 'b) \<Rightarrow> 'c cmle" where
+"vprod_case A f = (\<lambda> (x, y). if (x, y) \<in> A then f x y else \<bottom>\<^sub>v)"
+
+declare vprod_case_def [evalp]
+
+definition vfun_case_1 :: 
+  "('a * unit) set \<Rightarrow> ('a \<Rightarrow> 'b cmle) \<Rightarrow> ('a * unit) \<Rightarrow> 'b cmle" where
+"vfun_case_1 A f = (\<lambda> (x, u). if ((x, u) \<in> A) then f(x) else \<bottom>\<^sub>v)"
+
+definition vfun_case_2 :: 
+  "('a * ('b * unit)) set \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c cmle) \<Rightarrow> ('a * ('b * unit)) \<Rightarrow> 'c cmle" where
+"vfun_case_2 A f = (\<lambda> (x, (y, u)). if ((x, (y, u)) \<in> A) then f x y else \<bottom>\<^sub>v)"
+
+definition vfun_case_3 :: 
+  "('a * ('b * ('c * unit))) set \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd cmle) \<Rightarrow> ('a * ('b * ('c * unit))) \<Rightarrow> 'd cmle" where
+"vfun_case_3 A f = (\<lambda> (x, (y, (z, u))). if ((x, (y, (z, u))) \<in> A) then f x y z else \<bottom>\<^sub>v)"
 
 abbreviation DefinedD :: "'a cmle \<Rightarrow> bool cmle" where
 "DefinedD v \<equiv> LitD (\<D> v)"
@@ -188,7 +206,9 @@ nonterminal
   vset_binds and
   vtype_bind and
   vtype_binds and
-  vbinds
+  vbinds and
+  vpttrn and
+  vpttrns
 
 syntax
   "_vidt"        :: "idt \<Rightarrow> idt_list" ("_")
@@ -209,44 +229,6 @@ translations
 
 subsection {* Product Projections *}
 
-abbreviation "vproj1  \<equiv> fst"
-abbreviation "vproj2  \<equiv> fst \<circ> snd"
-abbreviation "vproj3  \<equiv> fst \<circ> snd \<circ> snd"
-abbreviation "vproj4  \<equiv> fst \<circ> snd \<circ> snd \<circ> snd"
-abbreviation "vproj5  \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
-abbreviation "vproj6  \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
-abbreviation "vproj7  \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
-abbreviation "vproj8  \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
-abbreviation "vproj9  \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
-abbreviation "vproj10 \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
-abbreviation "vproj11 \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
-abbreviation "vproj12 \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
-abbreviation "vproj13 \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd 
-                       \<circ> snd"
-abbreviation "vproj14 \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd 
-                       \<circ> snd \<circ> snd"
-abbreviation "vproj15 \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd 
-                       \<circ> snd \<circ> snd \<circ> snd"
-abbreviation "vproj16 \<equiv> fst \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd \<circ> snd 
-                       \<circ> snd \<circ> snd \<circ> snd \<circ> snd"
-
-notation vproj1  ("#1")
-notation vproj2  ("#2")
-notation vproj3  ("#3")
-notation vproj4  ("#4")
-notation vproj5  ("#5")
-notation vproj6  ("#6")
-notation vproj7  ("#7")
-notation vproj8  ("#8")
-notation vproj9  ("#9")
-notation vproj10 ("#10")
-notation vproj11 ("#11")
-notation vproj12 ("#12")
-notation vproj13 ("#13")
-notation vproj14 ("#14")
-notation vproj15 ("#15")
-notation vproj16 ("#16")
-
 (* These seemingly vacuous definitions are there to help the pretty printer *)
 
 definition "NumD (x :: real) = LitD x"
@@ -254,13 +236,89 @@ definition "NumD (x :: real) = LitD x"
 translations
   "n" <= "CONST NumD n"
 
-definition "ApplyD f  = Op1D f"
+term Op1D
+
+definition ApplyD :: "('a \<Rightarrow> 'b cmle) \<Rightarrow> 'a cmle \<Rightarrow> 'b cmle" where
+"ApplyD f x = x >>= f"
 
 definition "SelectD f = Op1D' f"
 
 definition VExprD :: 
   "'a cmle \<Rightarrow> 'a cmle" where
 "VExprD = id"
+
+text {* Set up plast and pfirst to work through a tuple by adhoc overloading *}
+
+consts
+  plast :: "'a::type \<Rightarrow> 'b::type"
+
+definition "pnext = snd"
+
+definition plast_tuple :: "('b * 'c) \<Rightarrow> 'b" where
+"plast_tuple = (\<lambda> (x, y). x)"
+
+definition plast_bool :: "bool \<Rightarrow> bool" where
+"plast_bool = id"
+
+definition plast_real :: "real \<Rightarrow> real" where
+"plast_real = id"
+
+definition plast_list :: "'a list \<Rightarrow> 'a list" where
+"plast_list = id"
+
+definition plast_fset :: "'a fset \<Rightarrow> 'a fset" where
+"plast_fset = id"
+
+definition plast_fmap :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" where
+"plast_fmap = id"
+
+lemmas vprod_simps = 
+  pnext_def
+  plast_tuple_def
+  plast_bool_def
+  plast_real_def
+  plast_list_def
+  plast_fset_def
+  plast_fmap_def
+
+declare vprod_simps [evalp]
+
+adhoc_overloading
+  plast plast_tuple and 
+  plast plast_bool  and
+  plast plast_real  and
+  plast plast_list  and
+  plast plast_fset  and
+  plast plast_fmap
+
+syntax
+  "_vproj1" :: "logic" ("#[1]")
+  "_vprojn" :: "num_const \<Rightarrow> logic" ("#[_]")
+
+translations
+  "_vproj1" == "CONST plast"
+
+parse_translation {*
+let
+  fun prod_sel n = 
+    if (n = 1) then (Const (@{const_syntax plast}, dummyT))
+    else if (n > 1) then (Const (@{const_syntax Fun.comp}, dummyT) 
+                            $ prod_sel (n - 1) 
+                            $ Const (@{const_syntax pnext}, dummyT))
+    else raise Match;
+  fun vproj_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ n $ t] =
+          vproj_tr [n]
+    | vproj_tr [Const (num, _)] =
+        let
+          val {value, ...} = Lexicon.read_xnum num;
+        in prod_sel value
+        end
+    | vproj_tr [t] = error (@{make_string} t)
+    | vproj_tr [t, u] = error (@{make_string} t)
+    | vproj_tr ts = raise TERM ("vproj_sel", ts);
+in [("_vprojn", K vproj_tr)] 
+end
+*}
 
 text {* We remove some of the generic syntax in favour of our own *}
 
@@ -326,11 +384,11 @@ syntax
   "_vexpr_float"    :: "float_const \<Rightarrow> n_pexpr" ("_")
   "_vexpr_string"   :: "str_position \<Rightarrow> n_pexpr" ("_")
   "_vexpr_bot"      :: "n_pexpr" ("undef")
-  "_vexpr_lit"      :: "'a::vbasic option \<Rightarrow> n_pexpr" ("(1^_^)")
+  "_vexpr_lit"      :: "'a::vbasic \<Rightarrow> n_pexpr" ("(1^_^)")
   "_vexpr_litd"     :: "'a::vbasic \<Rightarrow> n_pexpr" ("(1<<_>>)")
   "_vexpr_let"      :: "idt \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("let _ : _ = _ in _")
-  "_vexpr_lambda"   :: "idt \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3lambda _ : _ @/ _)" [0, 10] 10)
-  "_vexpr_ulambda"  :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3lambda _ @/ _)" [0, 10] 10)
+  "_vexpr_lambda"   :: "vpttrn \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3lambda _ : _ @/ _)" [0, 10] 10)
+  "_vexpr_ulambda"  :: "vpttrn \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3lambda _ @/ _)" [0, 10] 10)
   "_vexpr_forall"   :: "vbinds \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3forall _ @/ _)" [0, 10] 10)
   "_vexpr_exists"   :: "vbinds \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3exists _ @/ _)" [0, 10] 10)
   "_vexpr_exists1"  :: "vbinds \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3exists1 _ @/ _)" [0, 10] 10)
@@ -355,7 +413,7 @@ translations
   "_vexpr_eval e"              == "\<lbrakk>e\<rbrakk>\<^sub>* \<B>"
   "_vexpr_defined x"           == "CONST vexpr_defined x"
   "_vexpr_expr_var x"          => "x"
-  "_vexpr_val_var x"           == "CONST LitPE x"
+  "_vexpr_val_var x"           == "CONST LitD x"
   "_vexpr_lit_var x"           == "CONST LitD x"
   "_vexpr_equal"               == "CONST vexpr_equal"
   "_vexpr_nequal"              == "CONST vexpr_nequal"
@@ -372,15 +430,9 @@ translations
   "_vexpr_num n"               == "CONST NumD (_Numeral n)"
   "_vexpr_float n"             == "CONST NumD (_Float n)"
   "_vexpr_bot"                 == "CONST BotDE"
-  "_vexpr_lit v"               == "CONST LitPE v"
+  "_vexpr_lit v"               == "CONST LitD v"
   "_vexpr_litd v"              == "CONST LitD v"
   "_vexpr_let x A v e"         == "CONST LetD v A (\<lambda> x. e)"
-
-  (* Parse rules for lambda abstractions *)
-
-  "_vexpr_lambda x A e" == "CONST FunD A (\<lambda> x. e)"
-
-  "_vexpr_ulambda x e" == "CONST FunD CONST UNIV (\<lambda> x. e)"
 
   (* Parse rules for forall quantifiers *)
 
@@ -469,7 +521,7 @@ translations
   "_vexpr_apply f x"           == "CONST ApplyD f (_vexpr_prod x)"
   "_vexpr_vapply f"            => "CONST ApplyD f (CONST LitD ())"
   "_vexpr_prod (_n_pexprs x xs)" == "CONST vexpr_prod x (_vexpr_prod xs)"
-  "_vexpr_prod x"              == "CONST SingleD x"
+  "_vexpr_prod x"              => "x"
   "_vexpr_select e f"          == "CONST SelectD f e"
   "_vexpr_nil"                 == "CONST vexpr_nil"
   "_vexpr_list (_n_pexprs x xs)" == "CONST vexpr_cons x (_vexpr_list xs)"
@@ -487,8 +539,8 @@ let fun vexpr_string_tr [str] =
 end
 *}
 
-definition mk_prod :: "'a \<Rightarrow> 'a option" where
-"mk_prod = Some"
+definition mk_prod :: "'a \<Rightarrow> 'a cmle" where
+"mk_prod = LitD"
 
 declare mk_prod_def [evalp]
 
@@ -496,13 +548,17 @@ term "Op1D' id (vexpr_prod TrueDE (SingleD FalseDE))"
 
 term "|mk_prod(true, false, 1)|"
 
-term "|mk_prod(true, false, 1).#1|"
+term "SelectD (plast \<circ> pnext) |mk_prod(true, false, 1)|"
+
+term "SelectD (Fun.comp plast pnext) |mk_prod(true, false, 1)|"
+
+term "|mk_prod(true, false, 1).#[2]|"
 term "|mk_prod($x,2,5)|"
 
 term "LitD (1 :: real)"
 
 term "|1.1|"
-term "|mk_prod(1,2,3,4).#4|"
+term "|mk_prod(1,2,3,4).#[4]|"
 
 subsection {* Tautologies *}
 
@@ -558,7 +614,7 @@ lemma EvalD_LitD [eval,evalp,evale]:
   by (simp add:evalp)
 
 lemma EvalD_LetD [evalp]:
-  "\<lbrakk>LetD v A f\<rbrakk>\<^sub>*b = do { x <- \<lbrakk>v\<rbrakk>\<^sub>*b; \<lbrakk>f(Some x)\<rbrakk>\<^sub>*b }"
+  "\<lbrakk>LetD v A f\<rbrakk>\<^sub>*b = do { x <- \<lbrakk>v\<rbrakk>\<^sub>*b; \<lbrakk>f(x)\<rbrakk>\<^sub>*b }"
   by (simp add:LetD_def evalp)
 
 lemma EvalD_NumD [eval,evalp,evale]:
@@ -570,7 +626,7 @@ lemma EvalD_BotDE [eval,evalp,evale]:
   by (simp add:BotDE_def evalp)
 
 lemma EvalD_ForallD [eval,evalp,evale]:
-  "\<lbrakk>ForallD xs f\<rbrakk>\<^sub>*b = \<lfloor>\<forall>x\<in>xs. [\<lbrakk>f \<lfloor>x\<rfloor>\<rbrakk>\<^sub>*b]\<^sub>3\<rfloor>"
+  "\<lbrakk>ForallD xs f\<rbrakk>\<^sub>*b = \<lfloor>\<forall>x\<in>xs. [\<lbrakk>f(x)\<rbrakk>\<^sub>*b]\<^sub>3\<rfloor>"
   by (simp add:ForallD_def)
 
 lemma EvalD_Op1D [eval,evalp,evale]:
@@ -578,7 +634,7 @@ lemma EvalD_Op1D [eval,evalp,evale]:
   by (simp add:Op1D_def evalp)
 
 lemma EvalD_ApplyD [eval,evalp,evale]:
-  "\<lbrakk>ApplyD f x\<rbrakk>\<^sub>*b = (\<lbrakk>x\<rbrakk>\<^sub>*b >>= f)"
+  "\<lbrakk>ApplyD f v\<rbrakk>\<^sub>*b = (\<lbrakk>v\<rbrakk>\<^sub>*b >>= (\<lambda> x. \<lbrakk>f(x)\<rbrakk>\<^sub>*b))"
   by (simp add:ApplyD_def evalp)
 
 lemma EvalD_SelectD [eval,evalp,evale]:
@@ -640,37 +696,37 @@ lemma MkVarD_PUNDASHED [closure]:
   by (simp add:MkVarD_def PUNDASHED_def PVAR_VAR_MkPVAR)
 
 lemma UNREST_PEXPR_BotDE [unrest]: 
-  "UNREST_PEXPR vs \<bottom>\<^sub>v"
+  "vs \<sharp> \<bottom>\<^sub>v"
   by (simp add:UNREST_PEXPR_def evalp)
 
 lemma UNREST_PEXPR_ForallD [unrest]:
-  "\<forall> e. UNREST_PEXPR vs (f e) \<Longrightarrow> UNREST_PEXPR vs (ForallD xs f)"
+  "\<lbrakk> \<And> e. vs \<sharp> f(e) \<rbrakk> \<Longrightarrow> vs \<sharp> (ForallD xs f)"
   by (simp add:UNREST_PEXPR_def ForallD_def)
 
 lemma UNREST_PEXPR_ExistsD [unrest]:
-  "\<forall> e. UNREST_PEXPR vs (f e) \<Longrightarrow> UNREST_PEXPR vs (ExistsD xs f)"
+  "\<lbrakk> \<And> e. vs \<sharp> f(e) \<rbrakk> \<Longrightarrow> vs \<sharp> (ExistsD xs f)"
   by (simp add:UNREST_PEXPR_def ExistsD_def)
 
 lemma UNREST_PEXPR_Op1D [unrest]: 
-  "UNREST_PEXPR vs v \<Longrightarrow> UNREST_PEXPR vs (Op1D f v)"
+  "vs \<sharp> v \<Longrightarrow> vs \<sharp> (Op1D f v)"
   by (simp add:UNREST_PEXPR_def Op1D_def evalp)
 
 lemma UNREST_PEXPR_ApplyD [unrest]: 
-  "UNREST_PEXPR vs v \<Longrightarrow> UNREST_PEXPR vs (ApplyD f v)"
+  "\<lbrakk> \<And> x. vs \<sharp> f(x); vs \<sharp> v \<rbrakk> \<Longrightarrow> vs \<sharp> (ApplyD f v)"
   by (simp add:UNREST_PEXPR_def ApplyD_def evalp Op1D_def)
 
 lemma UNREST_PEXPR_Op2D [unrest]: 
-  "\<lbrakk> UNREST_PEXPR vs v1; UNREST_PEXPR vs v2 \<rbrakk> \<Longrightarrow> UNREST_PEXPR vs (Op2D f v1 v2)"
+  "\<lbrakk> vs \<sharp> v1; vs \<sharp> v2 \<rbrakk> \<Longrightarrow> vs \<sharp> (Op2D f v1 v2)"
   by (simp add:UNREST_PEXPR_def Op2D_def evalp EvalPE_ProdPE)
 
 lemma UNREST_PEXPR_ListD [unrest]: 
-  "\<lbrakk> \<forall> x \<in> set xs. UNREST_PEXPR vs x \<rbrakk> \<Longrightarrow> UNREST_PEXPR vs (ListD xs)"
+  "\<lbrakk> \<And> x. x \<in> set xs \<Longrightarrow> vs \<sharp> x \<rbrakk> \<Longrightarrow> vs \<sharp> (ListD xs)"
   apply (induct xs)
   apply (auto simp add:UNREST_PEXPR_def ListD_def)
 done
 
 lemma UNREST_PEXPR_FSetE [unrest]: 
-  "\<lbrakk> \<forall> x \<in>\<^sub>f xs. UNREST_PEXPR vs x \<rbrakk> \<Longrightarrow> UNREST_PEXPR vs (FSetD xs)"
+  "\<lbrakk> \<And> x. x \<in>\<^sub>f xs \<Longrightarrow> vs \<sharp> x \<rbrakk> \<Longrightarrow> vs \<sharp> (FSetD xs)"
   apply (simp add:UNREST_PEXPR_def FSetD_def)
   apply (clarify)
   apply (simp add:fimage.rep_eq fset_option_def)
@@ -678,7 +734,7 @@ lemma UNREST_PEXPR_FSetE [unrest]:
 done
 
 lemma UNREST_PEXPR_CoerceD [unrest]:
-  "\<lbrakk> UNREST_PEXPR vs x \<rbrakk> \<Longrightarrow> UNREST_PEXPR vs (CoerceD x t)"
+  "vs \<sharp> x \<Longrightarrow> vs \<sharp> (CoerceD x t)"
   by (auto simp add:UNREST_PEXPR_def CoerceD_def)
 
 lemma UNREST_PEXPR_NumD [unrest]:
@@ -795,13 +851,15 @@ lemma bpfun_dom [defined]:
   "dom (bpfun AB f) = AB"
   by (auto simp add:bpfun_def)
 
+(*
 lemma mk_prod_dom [defined]: 
   "dom (mk_prod \<circ> f) = UNIV"
   by (auto simp add:mk_prod_def)
 
 lemma ApplyD_defined [defined]:
-  "\<lbrakk> \<D> v; \<forall> b. the (\<lbrakk>v\<rbrakk>\<^sub>* b) \<in> dom f \<rbrakk> \<Longrightarrow> \<D> (ApplyD f v)"
+  "\<lbrakk> \<D>(v); \<forall> b. the (\<lbrakk>v\<rbrakk>\<^sub>* b) \<in> dom f \<rbrakk> \<Longrightarrow> \<D> (ApplyD f v)"
   by (simp add:ApplyD_def defined)
+*)
 
 lemma vexpr_insert_defined [defined]:
   "\<lbrakk> \<D> x; \<D> xs \<rbrakk> \<Longrightarrow> \<D> (vexpr_insert x xs)"
@@ -824,9 +882,11 @@ lemma VTaut_TrueD [simp]:
   "`\<lparr>true\<rparr>` = `true`"
   by (utp_poly_tac)
 
+(*
 lemma SelectD_SingleD [simp]:
   "SelectD #1 (SingleD x) = x"
   by (simp add:evalp)
+*)
 
 lemma VExprDefinedT_TrueDE [simp]: 
   "VExprDefinedT TrueDE = TrueP"

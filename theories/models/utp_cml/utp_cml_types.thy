@@ -84,8 +84,8 @@ done
 
 (* FIXME: It may be that CML types need to be binding dependent
    as they can potentially depend on UTP variables. *)
-definition InvS :: "'a set \<Rightarrow> ('a option \<Rightarrow> bool cmle) \<Rightarrow> 'a set" where
-"InvS A P = {x. x \<in> A \<and> (\<forall> b. \<lbrakk>P (Some x)\<rbrakk>\<^sub>* b = Some True)}"
+definition InvS :: "'a set \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> 'a set" where
+"InvS A P = {x. x \<in> A \<and> (\<forall> b. \<lbrakk>P(x)\<rbrakk>\<^sub>* b = Some True)}"
 
 declare InvS_def [eval,evale,evalp]
 
@@ -141,7 +141,7 @@ translations
   "_vty_char"      == "CONST vty_char"
   "_vty_hprod x y"  == "CONST vty_prod x y"
   "_vty_prod x (_vty_prod y z)" == "CONST vty_prod x (_vty_prod y z)"
-  "_vty_prod x y"  == "CONST vty_prod x (CONST vty_prod y CONST vty_unit)"
+  "_vty_prod x y"  == "CONST vty_prod x y"
   "_vty_set_of A"  == "CONST Fow A"
   "_vty_option A"  == "CONST vty_option A"
   "_vty_seq_of A"  == "CONST vty_seq_of A"
@@ -151,11 +151,41 @@ translations
   "_vty_inv A x P" == "CONST InvS A (\<lambda>x. P)"
   "_vty_collect v P" == "CONST CollectD v P"
 
+(* Pattern parser *)
+
+syntax
+  "_vpttrn_id"     :: "idt \<Rightarrow> vpttrn" ("_")
+  "_vpttrn_prod"   :: "vpttrn \<Rightarrow> vpttrns \<Rightarrow> vpttrn" ("'(_,/ _')")
+  ""               :: "vpttrn => vpttrns"                  ("_")
+  "_vpttrns"       :: "[vpttrn, vpttrns] => vpttrns"      ("_,/ _")
+
+translations
+  "_vpttrn_prods x y" => "_vpttrn_prod x y"
+  (* Parse rules for lambda abstractions *)
+  "_vexpr_lambda (_vpttrn_id x) A e" => "CONST FunD A (\<lambda> x. e)"
+  "_vexpr_lambda (_vpttrn_prod x (_vpttrns y z)) A e" 
+      => "CONST vprod_case A (_vexpr_ulambda x (_vexpr_ulambda (_vpttrn_prod y z) y e))"
+  "_vexpr_lambda (_vpttrn_prod x y) A e" => "CONST vprod_case A (_vexpr_ulambda x (_vexpr_ulambda y e))"
+  "_vexpr_ulambda (_vpttrn_id x) e" => "(\<lambda> x. e)"
+  "_vexpr_ulambda (_vpttrn_prod x (_vpttrns y z)) e" 
+      => "CONST vprod_case (CONST UNIV) (_vexpr_ulambda x (_vexpr_ulambda (_vpttrn_prod y z) y e))"
+  "_vexpr_ulambda (_vpttrn_prod x y) e" => "CONST vprod_case (CONST UNIV) (_vexpr_ulambda x (_vexpr_ulambda y e))"
+
+term "|lambda (x,y) : @nat * @nat @ true|"
+
+term "FunD UNIV (\<lambda> y. |^x^| )"
+
+(*
+definition "myfun = |lambda (x,y) : @nat * @nat @ ^x^|"
+*)
+
+term "|myfun(&u, &v)|"
+
 term "\<parallel>@seq1 of @char\<parallel>"
 
 term "CHR ''x''"
 
-term "\<parallel>@seq1 of @char inv x == if (^x^ = <<CHR ''x''>>) then true else false\<parallel>"
+term "\<parallel>@seq1 of @char inv x == if (^x^ = ^CHR ''x''^) then true else false\<parallel>"
 
 term "\<parallel>@map @char to @int\<parallel>"
 
@@ -167,7 +197,7 @@ term "|[1] : @seq1 of @int|"
 
 term "|forall x,y : @real, z,u : @int @ true|"
 
-term "|lambda x : @nat @ true|"
+term "|lambda (x,y) : @nat * @nat @ ^x^|"
 
 term "|iota x : @real @ ^x^ = 1|"
 

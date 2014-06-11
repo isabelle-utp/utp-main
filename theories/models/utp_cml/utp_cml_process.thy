@@ -53,31 +53,31 @@ definition ParallelD ::
 "ParallelD p cs q = ParallelCSP p (LitPE (Abs_USET cs)) q"
 
 definition ReplSeqSetD ::
-  "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
+  "'a fset cmle \<Rightarrow> ('a \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
 "ReplSeqSetD = undefined"
 
 definition ReplIntSetD ::
-  "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
+  "'a fset cmle \<Rightarrow> ('a \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
 "ReplIntSetD = undefined"
 
 definition ReplExtSetD ::
-  "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
+  "'a fset cmle \<Rightarrow> ('a \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
 "ReplExtSetD = undefined"
 
 definition ReplExtTyD ::
-  "'a set \<Rightarrow> ('a option \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
+  "'a set \<Rightarrow> ('a \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
 "ReplExtTyD = undefined"
 
 definition ReplParSetD ::
-  "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
+  "'a fset cmle \<Rightarrow> ('a \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
 "ReplParSetD = undefined"
 
 definition ReplAlphaParSetD ::
-  "'a fset cmle \<Rightarrow> cmlev set \<Rightarrow> ('a option \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
+  "'a fset cmle \<Rightarrow> cmlev set \<Rightarrow> ('a \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
 "ReplAlphaParSetD = undefined"
 
 definition ReplInlvSetD ::
-  "'a fset cmle \<Rightarrow> ('a option \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
+  "'a fset cmle \<Rightarrow> ('a \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
 "ReplInlvSetD = undefined"
 
 definition HideD ::

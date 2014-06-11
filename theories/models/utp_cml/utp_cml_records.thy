@@ -48,8 +48,8 @@ lift_definition FieldType ::
 
 declare FieldType.rep_eq [simp]
 
-definition MkField :: "'t::tag itself \<Rightarrow> ('r \<Rightarrow> 'a) \<Rightarrow> 'a::vbasic set \<Rightarrow> ('t,'a,'r) field" where
-"MkField t f x = Abs_field (f, x)"
+definition MkField :: "'t::tag itself \<Rightarrow> ('r \<Rightarrow> 'a) \<Rightarrow> 'a::vbasic set \<Rightarrow> 'r set \<Rightarrow> ('t,'a,'r) field" where
+"MkField t f x r = Abs_field (f, x)"
 
 (* declare MkField_def [eval,evalp] *)
 
@@ -105,8 +105,8 @@ instance
 done
 end
 
-definition UnitField :: "('t::tag, 'a::vbasic, 'r) field \<Rightarrow> ('t, ('a * unit), 'r) tagged" where
-"UnitField f = Abs_tagged (FieldType f \<times> UNIV)"
+definition UnitField :: "('t::tag, 'a::vbasic, 'r) field \<Rightarrow> ('t, 'a, 'r) tagged" where
+"UnitField f = Abs_tagged (FieldType f)"
 
 (* declare UnitField_def [eval,evalp] *)
 
@@ -136,8 +136,8 @@ definition FinishField :: "('t::tag, 'r::vbasic, 'r) tagged \<Rightarrow> ('t, '
 
 (* declare FinishField_def [eval,evalp] *)
 
-definition MkRec :: "('t, 'r) rec set \<Rightarrow> 'r \<Rightarrow> ('t, 'r) rec option" where
-"MkRec t = Some \<circ> Abs_rec"
+definition MkRec :: "('t::tag, 'r::vbasic) rec set \<Rightarrow> 'r \<Rightarrow> ('t, 'r) rec cmle" where
+"MkRec t r = LitD (Abs_rec r)"
 
 declare MkRec_def [eval, evalp]
 
@@ -166,45 +166,52 @@ lemma Abs_rec_cons_type [simp]:
   by (auto simp add:TermField_def MkTagRec_def ConsField_def UnitField_def)
 
 lemma Abs_rec_unit_type [simp]:
-  "Abs_rec (x, y) \<in> TermField (UnitField a)
+  "Abs_rec x \<in> TermField (UnitField a)
    \<longleftrightarrow> x \<in> FieldType a"
   by (auto simp add:TermField_def MkTagRec_def ConsField_def UnitField_def)
 
-lemma [simp]: "Rep_field (MkField t f x) = (f, x)"
+lemma [simp]: "Rep_field (MkField t f x r) = (f, x)"
   by (simp add:MkField_def)
 
-lemma SelectRec_1 [simp]: 
-  "SelectRec (MkField g #1 t) (Abs_rec (v1, r)) = v1"
+lemma SelectRec_simp [simp]:
+  "SelectRec (MkField g f t u) (Abs_rec x) = f x"
   by (simp add:SelectRec_def)
+
+(*
+lemma SelectRec_1_2 [simp]: 
+  "SelectRec (MkField g #[1] t u) (Abs_rec (v1, r)) = v1"
+  by (simp add:SelectRec_def vprod_simps)
 
 lemma SelectRec_2 [simp]: 
-  "SelectRec (MkField g #2 t) (Abs_rec (v1, v2, r)) = v2"
-  by (simp add:SelectRec_def)
+  "SelectRec (MkField g #[2] t u) (Abs_rec (v1, v2, r)) = v2"
+  by (simp add:SelectRec_def vprod_simps)
 
 lemma SelectRec_3 [simp]: 
-  "SelectRec (MkField g #3 t) (Abs_rec (v1, v2, v3, r)) = v3"
-  by (simp add:SelectRec_def)
+  "SelectRec (MkField g #[3] t u) (Abs_rec (v1, v2, v3, r)) = v3"
+  by (simp add:SelectRec_def vprod_simps)
 
 lemma SelectRec_4 [simp]: 
-  "SelectRec (MkField g #4 t) (Abs_rec (v1, v2, v3, v4, r)) = v4"
-  by (simp add:SelectRec_def)
+  "SelectRec (MkField g #[4] t u) (Abs_rec (v1, v2, v3, v4, r)) = v4"
+  by (simp add:SelectRec_def vprod_simps)
 
 lemma SelectRec_5 [simp]: 
-  "SelectRec (MkField g #5 t) (Abs_rec (v1, v2, v3, v4, v5, r)) = v5"
-  by (simp add:SelectRec_def)
+  "SelectRec (MkField g #[5] t u) (Abs_rec (v1, v2, v3, v4, v5, r)) = v5"
+  by (simp add:SelectRec_def vprod_simps)
 
 lemma SelectRec_6 [simp]: 
-  "SelectRec (MkField g #6 t) (Abs_rec (v1, v2, v3, v4, v5, v6, r)) = v6"
-  by (simp add:SelectRec_def)
+  "SelectRec (MkField g #[6] t u) (Abs_rec (v1, v2, v3, v4, v5, v6, r)) = v6"
+  by (simp add:SelectRec_def vprod_simps)
 
 lemma SelectRec_7 [simp]: 
-  "SelectRec (MkField g #7 t) (Abs_rec (v1, v2, v3, v4, v5, v6, v7, r)) = v7"
-  by (simp add:SelectRec_def)
+  "SelectRec (MkField g #[7] t u) (Abs_rec (v1, v2, v3, v4, v5, v6, v7, r)) = v7"
+  by (simp add:SelectRec_def vprod_simps)
 
 lemma SelectRec_8 [simp]: 
-  "SelectRec (MkField g #8 t) (Abs_rec (v1, v2, v3, v4, v5, v6, v7, v8, r)) = v8"
-  by (simp add:SelectRec_def)
+  "SelectRec (MkField g #[8] t u) (Abs_rec (v1, v2, v3, v4, v5, v6, v7, v8, r)) = v8"
+  by (simp add:SelectRec_def vprod_simps)
+*)
 
+(*
 typedef MyRec_Tag = "{True}" by auto
 instantiation MyRec_Tag :: tag
 begin
@@ -216,22 +223,26 @@ end
 text {* Next we create a collection of fields associated with the tag, and give each
         the position in record and its VDM type. *}
 
-(*
-abbreviation "higher_fld \<equiv> MkField TYPE(MyRec_Tag) #1 \<parallel>@nat\<parallel>"
-abbreviation "lower_fld \<equiv> MkField TYPE(MyRec_Tag) #2 \<parallel>@nat\<parallel>"
+abbreviation "hgr_fld \<equiv> MkField TYPE(MyRec_Tag) #[1] \<parallel>@nat\<parallel> \<parallel>@nat*@nat\<parallel>"
+abbreviation "lwr_fld \<equiv> MkField TYPE(MyRec_Tag) #[2] \<parallel>@nat\<parallel> \<parallel>@nat*@nat\<parallel>"
 
-abbreviation "higher \<equiv> SelectRec higher_fld"
-abbreviation "lower  \<equiv> SelectRec lower_fld"
+abbreviation "hgr \<equiv> SelectRec hgr_fld"
+abbreviation "lwr  \<equiv> SelectRec lwr_fld"
 
-definition "MyType = \<parallel>[ higher_fld, lower_fld] inv x == ^x^.higher > ^x^.lower\<parallel>"
+definition "MyType = \<parallel>[ hgr_fld, lwr_fld] inv x == ^x^.hgr > ^x^.lwr\<parallel>"
+
+term "MyType"
 
 definition "mk_MyType \<equiv> MkRec MyType"
 
+term "|mk_MyType(2,1)|"
+term "|mk_MyType(2,1).lwr|"
+
 lemma "|mk_MyType(2,1) hasType @MyType| = |true|"
-  by (simp add:evalp mk_MyType_def MyType_def)
+  by (simp add:evalp mk_MyType_def MyType_def vprod_simps)
 
 lemma "|forall x:@nat @ mk_MyType(^x^,0) hasType @MyType| = |false|"
-  by (auto simp add:evalp mk_MyType_def MyType_def)
+  by (auto simp add:evalp mk_MyType_def MyType_def vprod_simps)
 *)
 
 end
