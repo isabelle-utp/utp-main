@@ -73,8 +73,10 @@ session "utp-mrktdrf-2014" in "papers/utp-mrktdrf-2014" = "HOL-UTP-THY" +
     "proof_refinement_conditional"
     "proof_unreachable_branch"
     "proof_wp"
-  files "document/root.tex"
-
+  files 
+    "document/root.tex"
+    "document/mdrf.bib"
+    
 session "isabelle-basics-tutorial" in "papers/isabelle-basics-tutorial" = "HOL" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
   theories
