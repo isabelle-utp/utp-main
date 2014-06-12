@@ -160,18 +160,19 @@ syntax
   "_vpttrns"       :: "[vpttrn, vpttrns] => vpttrns"      ("_,/ _")
 
 translations
-  "_vpttrn_prods x y" => "_vpttrn_prod x y"
   (* Parse rules for lambda abstractions *)
   "_vexpr_lambda (_vpttrn_id x) A e" => "CONST FunD A (\<lambda> x. e)"
   "_vexpr_lambda (_vpttrn_prod x (_vpttrns y z)) A e" 
-      => "CONST vprod_case A (_vexpr_ulambda x (_vexpr_ulambda (_vpttrn_prod y z) y e))"
-  "_vexpr_lambda (_vpttrn_prod x y) A e" => "CONST vprod_case A (_vexpr_ulambda x (_vexpr_ulambda y e))"
+      => "CONST vprod_case A (_vexpr_ulambda x (_vexpr_ulambda (_vpttrn_prod y z) e))"
+  "_vexpr_lambda (_vpttrn_prod x y) A e" 
+      => "CONST vprod_case A (_vexpr_ulambda x (_vexpr_ulambda y e))"
   "_vexpr_ulambda (_vpttrn_id x) e" => "(\<lambda> x. e)"
   "_vexpr_ulambda (_vpttrn_prod x (_vpttrns y z)) e" 
-      => "CONST vprod_case (CONST UNIV) (_vexpr_ulambda x (_vexpr_ulambda (_vpttrn_prod y z) y e))"
-  "_vexpr_ulambda (_vpttrn_prod x y) e" => "CONST vprod_case (CONST UNIV) (_vexpr_ulambda x (_vexpr_ulambda y e))"
+      => "CONST vprod_case (CONST UNIV) (_vexpr_ulambda x (_vexpr_ulambda (_vpttrn_prod y z) e))"
+  "_vexpr_ulambda (_vpttrn_prod x y) e" 
+      => "CONST vprod_case (CONST UNIV) (_vexpr_ulambda x (_vexpr_ulambda y e))"
 
-term "|lambda (x,y) : @nat * @nat @ true|"
+term "|lambda (x,y,z) : @nat * @nat * @seq of @char @ true|"
 
 term "FunD UNIV (\<lambda> y. |^x^| )"
 
