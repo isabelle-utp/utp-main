@@ -9,7 +9,7 @@ header {* Commands to construct CML definitions *}
 theory utp_cml_commands
 imports 
   utp_cml_functions
-keywords "cmlifun" :: thy_decl and "inps" "outs" "pre" "post"
+keywords "cmlifun" "cmlefun" :: thy_decl and "inps" "outs" "pre" "post"
 begin
 
 abbreviation "swap \<equiv> \<lambda> (x,y). (y, x)"
@@ -19,6 +19,11 @@ definition mk_ifun_body :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Righ
   = {(x,y) | x y. x \<in> A \<and> y \<in> B \<and> \<lbrakk>pre(x)\<rbrakk>\<^sub>*\<B> = Some True \<and> \<lbrakk>post(x,y)\<rbrakk>\<^sub>*\<B> = Some True}"
 
 ML {*
+fun subst_free nm e (u $ t) = subst_free nm e u $ subst_free nm e t
+  | subst_free nm e (Free (x, t)) = if (x = nm) then e else Free (x, t)
+  | subst_free nm e (Abs (y, ty, tr)) = if (nm = y) then (Abs (y, ty, tr)) else (Abs (y, ty, subst_free nm e tr))
+  | subst_free _ _ t = t;
+
 local
   fun absnm' x n (u $ t) = (absnm' x n u) $ (absnm' x n t)
     | absnm' x n (Free (y, t)) = if (x = y) then Bound n else Free (y, t)
@@ -43,7 +48,29 @@ in
   fun mk_lambda xs term ctxt = mk_lambda' xs (length xs - 1) term ctxt
 end;
 
-fun mk_fun ((id, (inp, out)), (pre, post)) ctxt = 
+fun mk_efun ((id, inp), ((pre, post), body)) ctxt =
+  let val pctxt = (Config.put Syntax.root @{nonterminal "n_pexpr"} ctxt)
+      val preb = (Binding.name ("pre_" ^ id), NoSyn)
+      val preb_term = Syntax.check_term pctxt (mk_lambda inp (Syntax.parse_term pctxt pre) ctxt)
+      val preb_type = type_of preb_term
+      val preb_def = ( (Binding.name ("pre_" ^ id ^ "_def"), []), preb_term)
+      val bodyb = (Binding.name id, NoSyn)
+      val bodyb_inner = Syntax.parse_term pctxt body (* FIXME: Do something with the postcondition *)
+      val bodyb_def = ( (Binding.name (id ^ "_def"), [])
+                      ,  Syntax.check_term pctxt (
+                           mk_lambda inp (
+                             (if (pre = "true") then bodyb_inner
+                                                else Syntax.const @{const_name IfThenElseD}
+                                                   $ Syntax.parse_term pctxt pre
+                                                   $ bodyb_inner 
+                                                   $ Syntax.const @{const_name BotDE})) ctxt))
+  in 
+    ((Local_Theory.define (bodyb, bodyb_def) #> snd) o
+     (Local_Theory.define (preb, preb_def) #> snd)) ctxt
+  end;
+
+
+fun mk_ifun ((id, (inp, out)), (pre, post)) ctxt = 
   let val pctxt = (Config.put Syntax.root @{nonterminal "n_pexpr"} ctxt)
       val tctxt = (Config.put Syntax.root @{nonterminal "vty"} ctxt)
       val preb = (Binding.name ("pre_" ^ id), NoSyn)
@@ -75,27 +102,49 @@ val outs_parser = Parse.short_ident -- (@{keyword "::"} |-- Parse.term)
 
 val cmlifun_parser = Parse.short_ident 
                   -- ((@{keyword "inps"} |-- inps_parser) -- (@{keyword "outs"} |-- outs_parser))
-                  -- ((Parse.command_name "pre" |-- Parse.term)
+                  -- (Scan.optional (Parse.command_name "pre" |-- Parse.term) "true"
                       -- (@{keyword "post"} |-- Parse.term));
+
+val cmlefun_parser = Parse.short_ident 
+                  -- ((@{keyword "inps"} |-- inps_parser))
+                  -- ((Scan.optional (Parse.command_name "pre" |-- Parse.term) "true"
+                  --  (Scan.optional (@{keyword "post"} |-- Parse.term) "true"))
+                  --  (@{keyword "is"} |-- Parse.term));
+
+Outer_Syntax.local_theory  @{command_spec "cmlefun"} 
+"Explicit CML function" 
+(cmlefun_parser >> mk_efun);
 
 Outer_Syntax.local_theory  @{command_spec "cmlifun"} 
 "Implicit CML function" 
-(cmlifun_parser >> mk_fun) 
-
+(cmlifun_parser >> mk_ifun);
 *}
 
-cmlifun divide 
+cmlifun mydiv
   inps x :: "@nat" and y :: "@nat"
   outs z :: "@nat"
   pre "&y > 0" 
   post "&z = floor (&x / &y)"
 
-thm "pre_divide_def"
-thm "post_divide_def"
+print_theorems
 
-lemma "((5,2),2) \<in> divide"
-  apply (simp add:divide_def mk_ifun_body_def evalp)
-  sledgehammer
+cmlefun myadd
+  inps x :: "@nat" and y :: "@nat"
+  pre "&x > 0"
+  is "&x + &y"
+
+print_theorems
+
+thm myadd_def
+thm myadd_def
+
+thm "pre_mydiv_def"
+thm "post_mydiv_def"
+term "mydiv"
+thm "mydiv_def"
+
+lemma "((4,2),2) \<in> mydiv"
+  by (simp add:mydiv_def mk_ifun_body_def evalp)
 
 end
 
