@@ -12,11 +12,13 @@ imports
 keywords "cmlifun" "cmlefun" :: thy_decl and "inps" "outs" "pre" "post"
 begin
 
-abbreviation "swap \<equiv> \<lambda> (x,y). (y, x)"
+abbreviation "swap \<equiv> \<lambda> (x,y). (y, x)"                                          
 
 definition mk_ifun_body :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> (('a * 'b) \<Rightarrow> bool cmle) \<Rightarrow> ('a * 'b) set" where
 "mk_ifun_body A B pre post 
   = {(x,y) | x y. x \<in> A \<and> y \<in> B \<and> \<lbrakk>pre(x)\<rbrakk>\<^sub>*\<B> = Some True \<and> \<lbrakk>post(x,y)\<rbrakk>\<^sub>*\<B> = Some True}"
+
+declare mk_ifun_body_def [evalp]
 
 ML {*
 fun subst_free nm e (u $ t) = subst_free nm e u $ subst_free nm e t
@@ -48,15 +50,17 @@ in
   fun mk_lambda xs term ctxt = mk_lambda' xs (length xs - 1) term ctxt
 end;
 
+val add_evalp = Attrib.internal (K (Thm.declaration_attribute evalp.add_thm));
+
 fun mk_efun ((id, inp), ((pre, post), body)) ctxt =
   let val pctxt = (Config.put Syntax.root @{nonterminal "n_pexpr"} ctxt)
       val preb = (Binding.name ("pre_" ^ id), NoSyn)
       val preb_term = Syntax.check_term pctxt (mk_lambda inp (Syntax.parse_term pctxt pre) ctxt)
       val preb_type = type_of preb_term
-      val preb_def = ( (Binding.name ("pre_" ^ id ^ "_def"), []), preb_term)
+      val preb_def = ( (Binding.name ("pre_" ^ id ^ "_def"), [add_evalp]), preb_term)
       val bodyb = (Binding.name id, NoSyn)
       val bodyb_inner = Syntax.parse_term pctxt body (* FIXME: Do something with the postcondition *)
-      val bodyb_def = ( (Binding.name (id ^ "_def"), [])
+      val bodyb_def = ( (Binding.name (id ^ "_def"), [add_evalp])
                       ,  Syntax.check_term pctxt (
                            mk_lambda inp (
                              (if (pre = "true") then bodyb_inner
@@ -64,9 +68,10 @@ fun mk_efun ((id, inp), ((pre, post), body)) ctxt =
                                                    $ Syntax.parse_term pctxt pre
                                                    $ bodyb_inner 
                                                    $ Syntax.const @{const_name BotDE})) ctxt))
+      val ((_,(_,thm1)), ctxt1) = Local_Theory.define (preb, preb_def) ctxt
+      val ((_,(_,thm2)), ctxt2) = Local_Theory.define (bodyb, bodyb_def) ctxt1
   in 
-    ((Local_Theory.define (bodyb, bodyb_def) #> snd) o
-     (Local_Theory.define (preb, preb_def) #> snd)) ctxt
+      ctxt2
   end;
 
 
@@ -76,13 +81,13 @@ fun mk_ifun ((id, (inp, out)), (pre, post)) ctxt =
       val preb = (Binding.name ("pre_" ^ id), NoSyn)
       val preb_term = Syntax.check_term pctxt (mk_lambda inp (Syntax.parse_term pctxt pre) ctxt)
       val preb_type = type_of preb_term
-      val preb_def = ( (Binding.name ("pre_" ^ id ^ "_def"), []), preb_term)
+      val preb_def = ( (Binding.name ("pre_" ^ id ^ "_def"), [add_evalp]), preb_term)
       val postb = (Binding.name ("post_" ^ id), NoSyn)
       val postb_term = (Syntax.check_term pctxt 
                           (Const (@{const_name "comp"}, dummyT) 
                             $ (mk_lambda (out :: inp) (Syntax.parse_term pctxt post) ctxt)
                             $ Const (@{const_abbrev "swap"}, dummyT)))
-      val postb_def = ( (Binding.name ("post_" ^ id ^ "_def"), []), postb_term) 
+      val postb_def = ( (Binding.name ("post_" ^ id ^ "_def"), [add_evalp]), postb_term) 
       val inpt = foldr1 (fn (x,y) => 
             (Syntax.check_term ctxt (Syntax.const @{const_abbrev "vty_prod"} $ x $ y)))
                                      (map (Syntax.read_term tctxt o snd) inp)
@@ -90,11 +95,14 @@ fun mk_ifun ((id, (inp, out)), (pre, post)) ctxt =
       val ppctxt = ((Local_Theory.define (preb, preb_def) #> snd) o
                     (Local_Theory.define (postb, postb_def) #> snd)) ctxt
       val bodyb = (Binding.name id, NoSyn)
-      val bodyb_def = ( (Binding.name (id ^ "_def"), [])
+      val bodyb_def = ( (Binding.name (id ^ "_def"), [add_evalp])
                       ,  Syntax.check_term ctxt (Const (@{const_name mk_ifun_body}, dummyT)
                            $ inpt $ outt $ preb_term $ postb_term))
+      val ((_,(_,thm1)), ctxt1) = Local_Theory.define (preb, preb_def) ctxt
+      val ((_,(_,thm2)), ctxt2) = Local_Theory.define (postb, postb_def) ctxt1
+      val ((_,(_,thm3)), ctxt3) = Local_Theory.define (bodyb, bodyb_def) ctxt2
   in 
-    (Local_Theory.define (bodyb, bodyb_def) #> snd) ppctxt
+     ctxt3
   end;
 
 val inps_parser = Parse.enum1 "and" (Parse.short_ident -- (@{keyword "::"} |-- Parse.term));
@@ -102,12 +110,12 @@ val outs_parser = Parse.short_ident -- (@{keyword "::"} |-- Parse.term)
 
 val cmlifun_parser = Parse.short_ident 
                   -- ((@{keyword "inps"} |-- inps_parser) -- (@{keyword "outs"} |-- outs_parser))
-                  -- (Scan.optional (Parse.command_name "pre" |-- Parse.term) "true"
+                  -- (Scan.optional (@{keyword "pre"} |-- Parse.term) "true"
                       -- (@{keyword "post"} |-- Parse.term));
 
 val cmlefun_parser = Parse.short_ident 
                   -- ((@{keyword "inps"} |-- inps_parser))
-                  -- ((Scan.optional (Parse.command_name "pre" |-- Parse.term) "true"
+                  -- ((Scan.optional (@{keyword "pre"} |-- Parse.term) "true"
                   --  (Scan.optional (@{keyword "post"} |-- Parse.term) "true"))
                   --  (@{keyword "is"} |-- Parse.term));
 
@@ -120,11 +128,18 @@ Outer_Syntax.local_theory  @{command_spec "cmlifun"}
 (cmlifun_parser >> mk_ifun);
 *}
 
+ML {*  *}
+
+ML {* Attrib.internal (K Simplifier.simp_add) *}
+
+
 cmlifun mydiv
   inps x :: "@nat" and y :: "@nat"
   outs z :: "@nat"
   pre "&y > 0" 
   post "&z = floor (&x / &y)"
+
+thm evalp
 
 print_theorems
 
@@ -133,18 +148,10 @@ cmlefun myadd
   pre "&x > 0"
   is "&x + &y"
 
-print_theorems
-
-thm myadd_def
-thm myadd_def
-
-thm "pre_mydiv_def"
-thm "post_mydiv_def"
-term "mydiv"
-thm "mydiv_def"
+thm evalp
 
 lemma "((4,2),2) \<in> mydiv"
-  by (simp add:mydiv_def mk_ifun_body_def evalp)
+  by (simp add:evalp)
 
 end
 
