@@ -98,7 +98,6 @@ syntax (xsymbols)
   "_vty_prod"    :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixr "\<times>" 20)
 
 syntax
-  "_vty_hprod"   :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixr "**" 20)
   "_vty_unit"    :: "vty" ("'(')")
   "_vty_quote"   :: "string \<Rightarrow> vty" ("<_>")
   "_vty_brack"   :: "vty \<Rightarrow> vty" ("'(_')")
@@ -139,7 +138,6 @@ translations
   "_vty_rat"       == "CONST vty_rat"
   "_vty_real"      == "CONST vty_real"
   "_vty_char"      == "CONST vty_char"
-  "_vty_hprod x y"  == "CONST vty_prod x y"
   "_vty_prod x (_vty_prod y z)" == "CONST vty_prod x (_vty_prod y z)"
   "_vty_prod x y"  == "CONST vty_prod x y"
   "_vty_set_of A"  == "CONST Fow A"
