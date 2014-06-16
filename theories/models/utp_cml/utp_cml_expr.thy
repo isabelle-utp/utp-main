@@ -565,7 +565,7 @@ subsection {* Tautologies *}
 definition VExprTrueT :: "bool cmle \<Rightarrow> cmlp" where
 "VExprTrueT e = `@e = true`"
 
-definition VExprDefinedT :: "bool cmle \<Rightarrow> cmlp" where
+definition VExprDefinedT :: "bool cmle \<Rightarrow> cmlp" ("\<D>\<^sub>v") where
 "VExprDefinedT e = `\<not> (@e = \<bottom>)`"
 
 abbreviation VTautT :: "bool cmle \<Rightarrow> cmlp" where

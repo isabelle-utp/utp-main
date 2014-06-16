@@ -578,4 +578,7 @@ lemma "|[ &x | x in @set {1,...,5} @ true ]| = |[1,2,3,4,5]|"
 
 term "|[1,2,3,4,5](2,...,3)|"
 
+lemma "|defn(&x / &n)| = |&n <> 0|"
+  by (cml_tac)
+
 end

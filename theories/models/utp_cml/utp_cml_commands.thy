@@ -9,7 +9,7 @@ header {* Commands to construct CML definitions *}
 theory utp_cml_commands
 imports 
   utp_cml_functions
-keywords "cmlifun" "cmlefun" :: thy_decl and "inps" "outs" "pre" "post"
+keywords "cmlifun" "cmlefun" :: thy_decl and "inp" "out" "pre" "post"
 begin
 
 abbreviation "swap \<equiv> \<lambda> (x,y). (y, x)"                                          
@@ -52,14 +52,18 @@ end;
 
 val add_evalp = Attrib.internal (K (Thm.declaration_attribute evalp.add_thm));
 
-fun mk_efun ((id, inp), ((pre, post), body)) ctxt =
+fun mk_efun ((id, (inp, out)), ((pre, post), body)) ctxt =
   let val pctxt = (Config.put Syntax.root @{nonterminal "n_pexpr"} ctxt)
+      val tctxt = (Config.put Syntax.root @{nonterminal "vty"} ctxt)
       val preb = (Binding.name ("pre_" ^ id), NoSyn)
       val preb_term = Syntax.check_term pctxt (mk_lambda inp (Syntax.parse_term pctxt pre) ctxt)
       val preb_type = type_of preb_term
       val preb_def = ( (Binding.name ("pre_" ^ id ^ "_def"), [add_evalp]), preb_term)
       val bodyb = (Binding.name id, NoSyn)
-      val bodyb_inner = Syntax.parse_term pctxt body (* FIXME: Do something with the postcondition *)
+      val bodyb_type = Syntax.parse_term tctxt out
+      val bodyb_inner = Syntax.const @{const_name "CoerceD"} 
+                        $ Syntax.parse_term pctxt body (* FIXME: Do something with the postcondition *)
+                        $ bodyb_type
       val bodyb_def = ( (Binding.name (id ^ "_def"), [add_evalp])
                       ,  Syntax.check_term pctxt (
                            mk_lambda inp (
@@ -141,12 +145,12 @@ val inps_parser = Parse.enum1 "and" (Parse.short_ident -- (@{keyword "::"} |-- P
 val outs_parser = Parse.short_ident -- (@{keyword "::"} |-- Parse.term)
 
 val cmlifun_parser = Parse.short_ident 
-                  -- ((@{keyword "inps"} |-- inps_parser) -- (@{keyword "outs"} |-- outs_parser))
+                  -- ((@{keyword "inp"} |-- inps_parser) -- (@{keyword "out"} |-- outs_parser))
                   -- (Scan.optional (@{keyword "pre"} |-- Parse.term) "true"
                       -- (@{keyword "post"} |-- Parse.term));
 
 val cmlefun_parser = Parse.short_ident 
-                  -- ((@{keyword "inps"} |-- inps_parser))
+                  -- ((@{keyword "inp"} |-- inps_parser) -- (@{keyword "out"} |-- Parse.term))
                   -- ((Scan.optional (@{keyword "pre"} |-- Parse.term) "true"
                   --  (Scan.optional (@{keyword "post"} |-- Parse.term) "true"))
                   --  (@{keyword "is"} |-- Parse.term));
@@ -158,6 +162,7 @@ Outer_Syntax.local_theory  @{command_spec "cmlefun"}
 Outer_Syntax.local_theory  @{command_spec "cmlifun"} 
 "Implicit CML function" 
 (cmlifun_parser >> mk_ifun);
+
 *}
 
 ML {*  *}
@@ -166,8 +171,8 @@ ML {* Attrib.internal (K Simplifier.simp_add) *}
 
 
 cmlifun mydiv
-  inps x :: "@nat" and y :: "@nat"
-  outs z :: "@nat"
+  inp x :: "@nat" and y :: "@nat"
+  out z :: "@nat"
   pre "&y > 0" 
   post "&z = floor (&x / &y)"
 
@@ -176,7 +181,8 @@ thm evalp
 print_theorems
 
 cmlefun myadd
-  inps x :: "@nat" and y :: "@nat"
+  inp x :: "@nat" and y :: "@nat"
+  out "@real"
   pre "&x > 0"
   is "&x + &y"
 
