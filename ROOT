@@ -59,6 +59,7 @@ session "utp-mrktdrf-2014" in "papers/utp-mrktdrf-2014" = "HOL-UTP-THY" +
   theories [document = false]
   theories 
     "theory_mechanisation"
+    "isabelle_utp"
     "proof_basic_laws"
     "proof_design_comp"
     "proof_h1_algebraic"
