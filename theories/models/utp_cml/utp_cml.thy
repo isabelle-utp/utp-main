@@ -18,46 +18,8 @@ imports
   utp_cml_records
   utp_cml_stmt
   utp_cml_process
-keywords "cml_exfun" :: thy_decl
+  utp_cml_commands
 begin 
-
-ML {*
-fun define_thing str =
-  Local_Theory.define ((@{binding "TrueConj"}, NoSyn),
-  ((@{binding "TrueConj_def"}, []), Syntax.check_term  @{context} (Syntax.parse_term @{context} str))) #> snd;
-
-Parse.prop >> define_thing;
-
-Outer_Syntax.local_theory @{command_spec "cml_exfun"}
-"traces a proposition"
-(Parse.prop >> define_thing)
-*}
-
-ML {* Syntax.check_term  @{context} (Syntax.parse_term @{context} "|true|") *}
-
-cml_exfun "''hello''"
-
-thm TrueConj_def
-
-term "TrueConj"
-
-ML {* Local_Theory.define *}
-
-ML {* Local_Theory.background_theory *}
-
-ML {* Parse.prop (Outer_Syntax.scan Position.none "P \<and> Q") *}
-
-ML {* Syntax.parse_term @{context}  *}
-
-ML {* Parse.group (fn () => "proposition") *}
-
-ML {* Syntax.parse_term @{context} "|1 + 1|" *}
-
-local_setup {* Local_Theory.define ((@{binding "TrueConj"}, NoSyn), ((@{binding "TrueConj_def"}, []), @{term "True \<and> True"})) #> snd *}
-
-thm TrueConj_def
-
-foobar "True \<and> False"
 
 text {* Remove syntax which will likely clash *}
 

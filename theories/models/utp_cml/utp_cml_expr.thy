@@ -410,7 +410,7 @@ syntax (xsymbols)
   "_vexpr_bot"     :: "n_pexpr" ("\<bottom>")
 
 translations
-  "_vexpr_eval e"              == "\<lbrakk>e\<rbrakk>\<^sub>* \<B>"
+  "_vexpr_eval e"              == "CONST the (\<lbrakk>e\<rbrakk>\<^sub>* \<B>)"
   "_vexpr_defined x"           == "CONST vexpr_defined x"
   "_vexpr_expr_var x"          => "x"
   "_vexpr_val_var x"           == "CONST LitD x"
