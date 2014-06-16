@@ -105,6 +105,38 @@ fun mk_ifun ((id, (inp, out)), (pre, post)) ctxt =
      ctxt3
   end;
 
+(*
+fun mk_iop ((id, (inp, out)), (pre, post)) ctxt = 
+  let val pctxt = (Config.put Syntax.root @{nonterminal "n_pexpr"} ctxt)
+      val tctxt = (Config.put Syntax.root @{nonterminal "vty"} ctxt)
+      val preb = (Binding.name ("pre_" ^ id), NoSyn)
+      val preb_term = Syntax.check_term pctxt (mk_lambda inp (Syntax.parse_term pctxt pre) ctxt)
+      val preb_type = type_of preb_term
+      val preb_def = ( (Binding.name ("pre_" ^ id ^ "_def"), [add_evalp]), preb_term)
+      val postb = (Binding.name ("post_" ^ id), NoSyn)
+      val postb_term = (Syntax.check_term pctxt 
+                          (Const (@{const_name "comp"}, dummyT) 
+                            $ (mk_lambda (out :: inp) (Syntax.parse_term pctxt post) ctxt)
+                            $ Const (@{const_abbrev "swap"}, dummyT)))
+      val postb_def = ( (Binding.name ("post_" ^ id ^ "_def"), [add_evalp]), postb_term) 
+      val inpt = foldr1 (fn (x,y) => 
+            (Syntax.check_term ctxt (Syntax.const @{const_abbrev "vty_prod"} $ x $ y)))
+                                     (map (Syntax.read_term tctxt o snd) inp)
+      val outt = Syntax.read_term tctxt (snd out)
+      val ppctxt = ((Local_Theory.define (preb, preb_def) #> snd) o
+                    (Local_Theory.define (postb, postb_def) #> snd)) ctxt
+      val bodyb = (Binding.name id, NoSyn)
+      val bodyb_def = ( (Binding.name (id ^ "_def"), [add_evalp])
+                      ,  Syntax.check_term ctxt (Const (@{const_name mk_ifun_body}, dummyT)
+                           $ inpt $ outt $ preb_term $ postb_term))
+      val ((_,(_,thm1)), ctxt1) = Local_Theory.define (preb, preb_def) ctxt
+      val ((_,(_,thm2)), ctxt2) = Local_Theory.define (postb, postb_def) ctxt1
+      val ((_,(_,thm3)), ctxt3) = Local_Theory.define (bodyb, bodyb_def) ctxt2
+  in 
+     ctxt3
+  end;
+*)
+
 val inps_parser = Parse.enum1 "and" (Parse.short_ident -- (@{keyword "::"} |-- Parse.term));
 val outs_parser = Parse.short_ident -- (@{keyword "::"} |-- Parse.term)
 

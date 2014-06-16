@@ -30,6 +30,9 @@ term SpecD
 definition SpecO :: "cmlv uvar set \<Rightarrow> bool cmle \<Rightarrow> bool cmle \<Rightarrow> 'a cmlopb" where
 "SpecO vs p q = (\<lambda> r. SpecD vs (VTautHideT p) (VTautHideT q))"
 
+definition ReturnP :: "'a cmlvar \<Rightarrow> 'a cmle \<Rightarrow> cmlp" where
+"ReturnP x e = PAssignR x e"
+
 no_syntax
   "_n_upred_spec" :: "'a uvar set \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_:[_, _]" [999] 1000)
   "_n_upred_clos" :: "n_upred \<Rightarrow> n_upred" ("[_]")
@@ -47,7 +50,8 @@ syntax
   "_vop_dcl"        :: "id \<Rightarrow> vty \<Rightarrow> n_uproc \<Rightarrow> n_uproc" ("dcl _ : _ @  _")
   "_cml_var"        :: "id \<Rightarrow> vty \<Rightarrow> logic" ("CMLVAR'(_, _')")
   "_upred_sskip"    :: "n_upred" ("III")
-  
+  "_upred_return"   :: "n_pexpr \<Rightarrow> n_upred" ("return _" [100] 100)
+
 (*
 ML_file "utp_cml_parser.ML"
 
@@ -72,11 +76,26 @@ translations
   "_vexpr_dcl x t p"       => "CONST DclD (_cml_var x t) (\<lambda> x. p)"
   "_vop_dcl x t p"         => "CONST DclO (_cml_var x t) (\<lambda> x. p)"
 
+(* A return statement is just an assignment, but using the fresh variable RESULT *)
+
+translations
+  "_upred_return e" <= "CONST ReturnP x e"
+
+parse_translation {* 
+let
+  val result = Free ("RESULT", dummyT)
+  fun return_tr [e] = Syntax.const @{const_name ReturnP} $ result $ e
+in
+  [(@{syntax_const "_upred_return"}, K return_tr)]
+end
+*} 
+
 term "`dcl x : @nat @ (x := 1; y := $x)`" 
 term "{: dcl x : @nat @ (x := 1; y := $x) :}"
 term "`x,y:[$x > 0, $y = $y~ / $x]`"
 term "`[$x > 0, true]`"
 term "`[$x > 1]`"
 term "`P ; is not yet specified`"
+term "`return ($x + 1)`"
 
 end
