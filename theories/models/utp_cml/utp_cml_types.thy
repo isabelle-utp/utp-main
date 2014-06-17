@@ -11,8 +11,6 @@ imports
   utp_cml_expr
 begin
 
-datatype quote = QuoteD string
-
 instantiation quote :: vbasic
 begin
 

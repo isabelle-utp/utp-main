@@ -65,6 +65,7 @@ fun subst_free nm e (u $ t) = subst_free nm e u $ subst_free nm e t
 (* Insert a lambda abstraction for a given free name, irrespective of the type *)
 local
   fun absnm' x n (u $ t) = (absnm' x n u) $ (absnm' x n t)
+    | absnm' x n (Const (y, t)) = if (x = y) then Bound n else Const (y, t)
     | absnm' x n (Free (y, t)) = if (x = y) then Bound n else Free (y, t)
     | absnm' x n (Abs (y, ty, tr)) = if (x = y) then (Abs (y, ty, tr)) else (Abs (y, ty, absnm' x n tr))
     | absnm' _ _ e = e;

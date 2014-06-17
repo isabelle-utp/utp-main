@@ -318,6 +318,7 @@ lemma dom_vmapapp [defined]:
 abbreviation "vexpr_dom       \<equiv> Op1D' fdom"
 abbreviation "vexpr_rng       \<equiv> Op1D' fran"
 abbreviation "vexpr_mapcomp   \<equiv> Op2D' fmap_comp"
+abbreviation "vexpr_mapempty  \<equiv> LitD  fmempty"
 abbreviation "vexpr_munion    \<equiv> Op2D' fmap_add"
 abbreviation "vexpr_moverride \<equiv> Op2D' fmap_add"
 abbreviation "vexpr_domresto  \<equiv> Op2D' fmap_domr"
@@ -335,6 +336,7 @@ syntax
   "_vexpr_mapinv"    :: "n_pexpr \<Rightarrow> n_pexpr" ("inverse _")
   "_vexpr_mapapp"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_[_]")
   "_vexpr_mapcomp"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> pttrn \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("{_ |-> _ | _ in @set _}")
+  "_vexpr_mapempty"  :: "n_pexpr" ("{|->}")
 
 translations
   "_vexpr_dom x"         == "CONST vexpr_dom x"
@@ -345,6 +347,7 @@ translations
   "_vexpr_mapinv m"      == "CONST vexpr_mapinv m"
   "_vexpr_mapapp m k"    == "CONST vexpr_mapapp m k"
   "_vexpr_mapcomp e f x A" == "CONST vexpr_map_collect (\<lambda> x. (CONST vexpr_prod e f)) A"
+  "_vexpr_mapempty"      == "CONST vexpr_mapempty"
 
 (*
 term "|{x |-> (x * 2) + 5 | x in @set {1,...,5}}|"

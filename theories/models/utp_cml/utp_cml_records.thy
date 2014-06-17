@@ -86,6 +86,15 @@ instance
 done
 end
 
+definition plast_rec :: "('a::type, 'b::type) rec \<Rightarrow> ('a, 'b) rec" where
+"plast_rec = id"
+
+declare plast_rec_def [evalp]
+
+adhoc_overloading
+  plast plast_rec
+
+
 instantiation rec :: (type, linorder) linorder
 begin
 

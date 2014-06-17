@@ -237,8 +237,6 @@ definition "NumD (x :: real) = LitD x"
 translations
   "n" <= "CONST NumD n"
 
-term Op1D
-
 definition ApplyD :: "('a \<Rightarrow> 'b cmle) \<Rightarrow> 'a cmle \<Rightarrow> 'b cmle" where
 "ApplyD f x = x >>= f"
 
@@ -247,6 +245,8 @@ definition "SelectD f = Op1D' f"
 definition VExprD :: 
   "'a cmle \<Rightarrow> 'a cmle" where
 "VExprD = id"
+
+datatype quote = QuoteD string
 
 text {* Set up plast and pfirst to work through a tuple by adhoc overloading *}
 
@@ -273,6 +273,12 @@ definition plast_fset :: "'a fset \<Rightarrow> 'a fset" where
 definition plast_fmap :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" where
 "plast_fmap = id"
 
+definition plast_token :: "token \<Rightarrow> token" where
+"plast_token = id"
+
+definition plast_quote :: "quote \<Rightarrow> quote" where
+"plast_quote = id"
+
 lemmas vprod_simps = 
   pnext_def
   plast_tuple_def
@@ -281,6 +287,8 @@ lemmas vprod_simps =
   plast_list_def
   plast_fset_def
   plast_fmap_def
+  plast_token_def
+  plast_quote_def
 
 declare vprod_simps [evalp]
 
@@ -290,7 +298,8 @@ adhoc_overloading
   plast plast_real  and
   plast plast_list  and
   plast plast_fset  and
-  plast plast_fmap
+  plast plast_fmap  and
+  plast plast_token
 
 syntax
   "_vproj1" :: "logic" ("#[1]")
