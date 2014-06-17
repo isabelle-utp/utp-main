@@ -162,7 +162,7 @@ abbreviation vcollect_ext_ty :: "('a \<Rightarrow> 'b cmle) \<Rightarrow> 'a set
 "vcollect_ext_ty f A P \<equiv> vcollect_ext f (\<lambda> x. AndD (P(x)) (LitD (x \<in> A)))"
 
 syntax
-  "_vexpr_quotev"  :: "string \<Rightarrow> n_pexpr" ("<_>")
+  "_vexpr_quotev"  :: "id \<Rightarrow> n_pexpr" ("<_>")
   "_vexpr_in_set"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "in @set" 50)
   "_vexpr_union"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "union" 65)
   "_vexpr_inter"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "inter" 70)
@@ -179,7 +179,7 @@ syntax
   "_vexpr_setrange" :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("{_, ..., _}")
 
 translations
-  "_vexpr_quotev x"    == "CONST LitD (CONST QuoteD x)"
+  "_vexpr_quotev x"    == "CONST LitD (CONST QuoteD IDSTR(x))"
   "_vexpr_in_set x xs" == "CONST vexpr_in_set x xs"
   "_vexpr_union x y"   == "CONST Op2D' CONST funion x y"
   "_vexpr_inter x y"   == "CONST Op2D' CONST finter x y"
@@ -380,8 +380,8 @@ syntax
   "_vexpr_uminus"  :: "n_pexpr \<Rightarrow> n_pexpr" ("- _" [81] 80)
   "_vexpr_abs"     :: "n_pexpr \<Rightarrow> n_pexpr" ("abs _")
   "_vexpr_floor"   :: "n_pexpr \<Rightarrow> n_pexpr" ("floor _")
-  "_vexpr_plus"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "+" 30)
-  "_vexpr_minus"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "-" 65)
+  "_vexpr_plus"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "+" 30)
+  "_vexpr_minus"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "-" 65)
   "_vexpr_mult"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "*" 70)
   "_vexpr_divide"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "'/" 70)
   "_vexpr_idiv"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "div" 70)
@@ -422,7 +422,7 @@ abbreviation "vexpr_implies   \<equiv> Op2D' implies"
 
 term "|$x <= $y|"
 
-term "|$x in @set {<1>}|"
+term "|$x in @set {1}|"
 
 (* term "|^x^|" *)
 
@@ -579,6 +579,9 @@ lemma "|[ &x | x in @set {1,...,5} @ true ]| = |[1,2,3,4,5]|"
 term "|[1,2,3,4,5](2,...,3)|"
 
 lemma "|defn(&x / &n)| = |&n <> 0|"
+  by (cml_tac)
+
+lemma "|<x> hasType <x> | <y> | <z>| = |true|"
   by (cml_tac)
 
 end

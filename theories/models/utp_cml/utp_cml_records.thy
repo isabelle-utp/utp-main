@@ -48,9 +48,6 @@ lift_definition FieldType ::
 
 declare FieldType.rep_eq [simp]
 
-definition MkField :: "'t::tag itself \<Rightarrow> ('r \<Rightarrow> 'a) \<Rightarrow> 'a::vbasic set \<Rightarrow> 'r set \<Rightarrow> ('t,'a,'r) field" where
-"MkField t f x r = Abs_field (f, x)"
-
 (* declare MkField_def [eval,evalp] *)
 
 typedef ('t, 'a, 'r) tagged = "UNIV :: 'a set set"
@@ -123,11 +120,17 @@ definition MkTagRec :: "('t::tag, 'r::vbasic, 'r) tagged \<Rightarrow> 'r \<Righ
 
 (* declare MkTagRec_def [eval,evalp] *)
 
+definition MkField :: "('t::tag, 'r) rec set \<Rightarrow> ('r \<Rightarrow> 'a) \<Rightarrow> 'a::vbasic set \<Rightarrow> ('t,'a,'r) field" where
+"MkField t f x = Abs_field (f, x)"
+
 definition TermField :: "('t::tag, 'r::vbasic, 's) tagged \<Rightarrow> ('t, 'r) rec set" where
 "TermField t \<equiv> Abs_rec ` Rep_tagged t"
 
 abbreviation FinishField :: "('t::tag, 'r::vbasic, 'r) tagged \<Rightarrow> ('t, 'r) rec set" where
 "FinishField \<equiv> TermField"
+
+definition RecMaximalType :: "'a set \<Rightarrow> 't::tag itself \<Rightarrow> ('t, 'a) rec set"
+where "RecMaximalType xs t = Abs_rec ` xs"
 
 (*
 definition FinishField :: "('t::tag, 'r::vbasic, 'r) tagged \<Rightarrow> ('t, 'r) rec set" where
@@ -170,11 +173,11 @@ lemma Abs_rec_unit_type [simp]:
    \<longleftrightarrow> x \<in> FieldType a"
   by (auto simp add:TermField_def MkTagRec_def ConsField_def UnitField_def)
 
-lemma [simp]: "Rep_field (MkField t f x r) = (f, x)"
+lemma [simp]: "Rep_field (MkField t f x) = (f, x)"
   by (simp add:MkField_def)
 
 lemma SelectRec_simp [simp]:
-  "SelectRec (MkField g f t u) (Abs_rec x) = f x"
+  "SelectRec (MkField t f u) (Abs_rec x) = f x"
   by (simp add:SelectRec_def)
 
 (*
@@ -223,8 +226,10 @@ end
 text {* Next we create a collection of fields associated with the tag, and give each
         the position in record and its VDM type. *}
 
-abbreviation "hgr_fld \<equiv> MkField TYPE(MyRec_Tag) #[1] \<parallel>@nat\<parallel> \<parallel>@nat*@nat\<parallel>"
-abbreviation "lwr_fld \<equiv> MkField TYPE(MyRec_Tag) #[2] \<parallel>@nat\<parallel> \<parallel>@nat*@nat\<parallel>"
+abbreviation "maxty_MyRec \<equiv> RecMaximalType \<parallel>@nat*@nat\<parallel> TYPE(MyRec_Tag)"
+
+abbreviation "hgr_fld \<equiv> MkField maxty_MyRec #[1] \<parallel>@nat\<parallel>"
+abbreviation "lwr_fld \<equiv> MkField maxty_MyRec #[2] \<parallel>@nat\<parallel>"
 
 abbreviation "hgr \<equiv> SelectRec hgr_fld"
 abbreviation "lwr  \<equiv> SelectRec lwr_fld"

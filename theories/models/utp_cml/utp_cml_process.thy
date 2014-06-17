@@ -278,8 +278,8 @@ translations
   "_cml_comm_prod (_n_comm_nil)" => "CONST UnitD"
   "_cml_comm_prod (_n_comm_dot v _n_comm_nil)" => "v"
   "_cml_comm_prod (_n_comm_dot v vs)"  => "CONST vexpr_prod v (_cml_comm_prod vs)"
-  "_cml_comm_prod (_n_comm_inp v _n_comm_nil)" => "(CONST LitPE v)"
-  "_cml_comm_prod (_n_comm_inp x vs)"  => "CONST vexpr_prod (CONST LitPE x) (_cml_comm_prod vs)"
+  "_cml_comm_prod (_n_comm_inp v _n_comm_nil)" => "(CONST LitD v)"
+  "_cml_comm_prod (_n_comm_inp x vs)"  => "CONST vexpr_prod (CONST LitD x) (_cml_comm_prod vs)"
   "_cml_comm_prod (_n_comm_outp v _n_comm_nil)" => "v"
   "_cml_comm_prod (_n_comm_outp v vs)" => "CONST vexpr_prod v (_cml_comm_prod vs)"
   "_cml_comm_bind (_n_comm_nil) c v p" => "_cml_comm_body c v p"
@@ -293,8 +293,6 @@ translations
   "_cml_comm_bind (_n_comm_outp x vs) c v p"  => "_cml_comm_bind vs c v p"
   "_cml_comm_body c v p"               => "CONST OutputCSP c (_cml_comm_prod v) p"
   "_cml_comm c v p"                    => "_cml_comm_bind v c v p"
-
-definition "mychan = MkChanD ''mychan'' \<parallel>@nat\<parallel>"
 
 (* Add pretty printing for 1-4 communications *)
 

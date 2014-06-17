@@ -99,7 +99,7 @@ syntax (xsymbols)
 
 syntax
   "_vty_unit"    :: "vty" ("'(')")
-  "_vty_quote"   :: "string \<Rightarrow> vty" ("<_>")
+  "_vty_quote"   :: "id \<Rightarrow> vty" ("<_>")
   "_vty_brack"   :: "vty \<Rightarrow> vty" ("'(_')")
   "_vty_union"   :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixr "|" 65)
   "_vty_set"     :: "'a set \<Rightarrow> vty" ("@_")
@@ -112,10 +112,10 @@ syntax
   "_vty_char"    :: "vty" ("@char")
   "_vty_real"    :: "vty" ("@real")
   "_vty_option"  :: "vty \<Rightarrow> vty" ("[_]")
-  "_vty_set_of"  :: "vty \<Rightarrow> vty" ("@set of _")
-  "_vty_seq_of"  :: "vty \<Rightarrow> vty" ("@seq of _")
-  "_vty_map_to"  :: "vty \<Rightarrow> vty \<Rightarrow> vty" ("@map _ to _")
-  "_vty_seq1_of" :: "vty \<Rightarrow> vty" ("@seq1 of _")
+  "_vty_set_of"  :: "vty \<Rightarrow> vty" ("@set of _" [100] 100)
+  "_vty_seq_of"  :: "vty \<Rightarrow> vty" ("@seq of _" [100] 100)
+  "_vty_map_to"  :: "vty \<Rightarrow> vty \<Rightarrow> vty" ("@map _ to _" [0,100] 100)
+  "_vty_seq1_of" :: "vty \<Rightarrow> vty" ("@seq1 of _" [100] 100)
   "_vty_quo"     :: "vty \<Rightarrow> 'a set" ("\<parallel>_\<parallel>")
   "_vty_inv"     :: "vty \<Rightarrow> pttrn \<Rightarrow> n_pexpr \<Rightarrow> vty" ("_ inv _ == _")
   "_vty_collect" :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> vty" ("(1{_|/ _})")
@@ -126,7 +126,7 @@ syntax
 
 translations
   "_vty_unit"      == "CONST vty_unit"
-  "_vty_quote x"   == "CONST QuoteS x"
+  "_vty_quote x"   == "CONST QuoteS IDSTR(x)"
   "_vty_union x y" == "CONST union x y"
   "_vty_set x"     => "x"
   "_vty_brack x"   => "x"
@@ -177,6 +177,8 @@ term "FunD UNIV (\<lambda> y. |^x^| )"
 (*
 definition "myfun = |lambda (x,y) : @nat * @nat @ ^x^|"
 *)
+
+term "\<parallel>@set of @nat * @set of @nat\<parallel>"
 
 term "|myfun(&u, &v)|"
 

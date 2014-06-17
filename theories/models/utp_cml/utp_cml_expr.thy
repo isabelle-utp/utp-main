@@ -208,7 +208,8 @@ nonterminal
   vtype_binds and
   vbinds and
   vpttrn and
-  vpttrns
+  vpttrns and
+  vvar
 
 syntax
   "_vidt"        :: "idt \<Rightarrow> idt_list" ("_")
@@ -323,6 +324,7 @@ end
 text {* We remove some of the generic syntax in favour of our own *}
 
 no_syntax
+  "_n_pexpr_evar"        :: "('a, 'm) pvar \<Rightarrow> n_pexpr" ("$_" [999] 999)
   "_n_pexpr_equal"       :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "=" 50)
   "_n_pexpr_true"        :: "n_pexpr" ("true")
   "_n_pexpr_false"       :: "n_pexpr" ("false")
@@ -349,7 +351,7 @@ no_syntax
   "_n_pexpr_expr_var"    :: "idt \<Rightarrow> n_pexpr" ("(_)")
   "_n_pexpr_pred_var"    :: "idt \<Rightarrow> n_pexpr" ("@(_)")
   "_n_expr_quote"        :: "n_expr \<Rightarrow> 'a uexpr" ("(1^_^)")
-  "_n_upred_n_pexpr"       :: "n_pexpr \<Rightarrow> n_upred" ("\<lparr>_\<rparr>")
+  "_n_upred_n_pexpr"     :: "n_pexpr \<Rightarrow> n_upred" ("\<lparr>_\<rparr>")
   "_uproc_n_pexpr"       :: "n_pexpr \<Rightarrow> n_uproc" ("\<lparr>_\<rparr>")
   "_n_upred_callpr"      :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("call _'[_']")
   "_upred_assignpr"      :: "('a, 'm) pvar \<Rightarrow> ('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_ := _'[_']" [100] 100)
@@ -363,6 +365,17 @@ no_translations
 abbreviation "vexpr_defined   \<equiv> (DefinedD :: 'a cmle \<Rightarrow> bool cmle)"
 
 syntax
+  "_vvar_idt"       :: "idt \<Rightarrow> vvar" ("_")
+  "_vvar_prime"     :: "vvar \<Rightarrow> vvar" ("_\<acute>" [1000] 1000)
+  "_vvar_old"       :: "vvar \<Rightarrow> vvar" ("_~" [1000] 1000)
+
+translations
+  "_vvar_idt x"     => "x"
+  "_vvar_prime x"   => "x\<acute>"
+  "_vvar_old x"     => "x\<acute>"
+
+syntax
+  "_vexpr_st_var"   :: "vvar \<Rightarrow> n_pexpr" ("$_" [999] 999)
   "_vexpr_eval"     :: "n_pexpr \<Rightarrow> 'a" ("+|_|+")
   "_vexpr_defined"  :: "n_pexpr \<Rightarrow> n_pexpr" ("defn'(_')")
   "_vexpr_expr_var" :: "idt \<Rightarrow> n_pexpr" ("@_" [999] 999)
@@ -410,6 +423,7 @@ syntax (xsymbols)
   "_vexpr_bot"     :: "n_pexpr" ("\<bottom>")
 
 translations
+  "_vexpr_st_var x"            == "CONST PVarPE x"
   "_vexpr_eval e"              == "CONST the (\<lbrakk>e\<rbrakk>\<^sub>* \<B>)"
   "_vexpr_defined x"           == "CONST vexpr_defined x"
   "_vexpr_expr_var x"          => "x"
@@ -555,6 +569,8 @@ term "SelectD (Fun.comp plast pnext) |mk_prod(true, false, 1)|"
 term "|mk_prod(true, false, 1).#[2]|"
 term "|mk_prod($x,2,5)|"
 
+term "|mk_prod($x\<acute>,$y)|"
+
 term "LitD (1 :: real)"
 
 term "|1.1|"
@@ -586,21 +602,11 @@ declare VTautHideO_def [eval, evalpp, evalr, evalpr, uop_defs]
 syntax
   "_n_upred_vexpr"       :: "n_pexpr \<Rightarrow> n_upred" ("\<lparr>_\<rparr>")
   "_n_uproc_vexpr"       :: "n_pexpr \<Rightarrow> n_uproc" ("\<lparr>_\<rparr>")
-  "_n_upred_vcallpr"     :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexprs \<Rightarrow> n_upred" ("call _'[_']")
-  "_n_upred_vcallpr_nil" :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_upred" ("call _'[']")
-  "_n_upred_vassignpr"   :: 
-    "idt \<Rightarrow> ('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_ := _'[_']" [100] 100)
-  "_n_upred_vassignpr_nil" :: 
-    "idt \<Rightarrow> ('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_upred" ("_ := _'[']" [100] 100)
 
 
 translations
   "_n_upred_vexpr e" == "CONST VTautHideT e"
   "_n_uproc_vexpr e" == "CONST VTautHideO e"
-  "_n_upred_vcallpr f ps" == "CONST CallRO f (_vexpr_prod ps)"
-  "_n_upred_vcallpr_nil f" == "CONST CallRO f CONST UnitD"
-  "_n_upred_vassignpr x f ps" == "CONST AssignRO x f (_vexpr_prod ps)"
-  "_n_upred_vassignpr_nil x f" == "CONST AssignRO x f (CONST UnitD)"
 
 subsection {* Evaluation theorems *}
 
@@ -906,5 +912,6 @@ lemma BotD_defn: "|defn(undef)| = |false|"
 
 lemma LitD_defn: "|defn(<<x>>)| = |true|"
   by (simp add:evalp Defined_pexpr_def)
+
 
 end

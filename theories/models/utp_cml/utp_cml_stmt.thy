@@ -5,6 +5,21 @@ begin
 text {* A CML operation specification takes an input type, an output type,
         a precondition, a postcondition and the "body" of the operation. *}
 
+definition CMLOpR :: 
+  "'a set \<Rightarrow> 'b set \<Rightarrow> 
+   ('a \<Rightarrow> bool cmle) \<Rightarrow> (('a * 'b) \<Rightarrow> bool cmle) \<Rightarrow> ('b cmlvar \<Rightarrow> 'a \<Rightarrow> cmlp) \<Rightarrow> ('b cmlvar \<Rightarrow> 'a \<Rightarrow> cmlp)" where
+"CMLOpR A B pre post body v x = (let bd = body v x in `\<lparr> &x hasType @A \<rparr> \<and> \<lparr> pre(&x) \<rparr> 
+                                                       \<turnstile> \<lparr> $v\<acute> hasType @B \<rparr> \<and> \<lparr> post(&x, $v) \<rparr>\<acute> \<and> bd`)"
+
+declare CMLOpR_def [evalpp, evalpr, cmlop_defs]
+
+definition CMLIOpR ::
+  "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> (('a * 'b) \<Rightarrow> bool cmle) \<Rightarrow> cmluvar fset \<Rightarrow> ('b cmlvar \<Rightarrow> 'a \<Rightarrow> cmlp)" where
+"CMLIOpR A B pre post frm = CMLOpR A B pre post (\<lambda> v i. SkipRA (REL_VAR - (OKAY \<union> \<langle>frm\<rangle>\<^sub>f \<union> (dash ` \<langle>frm\<rangle>\<^sub>f))))"
+
+declare CMLIOpR_def [evalpp, evalpr, cmlop_defs]
+
+(*
 definition CMLOpO :: 
   "'a set \<Rightarrow> 'b set \<Rightarrow> 
    ('a cmle \<Rightarrow> bool cmle) \<Rightarrow> 
@@ -16,6 +31,7 @@ definition CMLOpO ::
                                    \<and>\<^sub>p (body i x))"
 
 declare CMLOpO_def [uop_defs]
+*)
 
 definition NotYetSpecD :: "cmlp" where
 "NotYetSpecD = `true`"
@@ -31,7 +47,7 @@ definition SpecO :: "cmlv uvar set \<Rightarrow> bool cmle \<Rightarrow> bool cm
 "SpecO vs p q = (\<lambda> r. SpecD vs (VTautHideT p) (VTautHideT q))"
 
 definition ReturnP :: "'a cmlvar \<Rightarrow> 'a cmle \<Rightarrow> cmlp" where
-"ReturnP x e = PAssignR x e"
+"ReturnP = (\<lambda> x e. PAssignR x e)"
 
 no_syntax
   "_n_upred_spec" :: "'a uvar set \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_:[_, _]" [999] 1000)
@@ -97,5 +113,36 @@ term "`[$x > 0, true]`"
 term "`[$x > 1]`"
 term "`P ; is not yet specified`"
 term "`return ($x + 1)`"
+
+term "`\<lparr> defn(@e) \<rparr> \<turnstile> true`"
+
+thm CallRO_def
+
+(* Guard a CML predicate by a CML expression *)
+
+lift_definition GuardCmlP :: "'a cmle \<Rightarrow> ('a \<Rightarrow> cmlp) \<Rightarrow> cmlp"
+is "\<lambda> e P. {b. case (e b) of None \<Rightarrow> False | Some v \<Rightarrow> \<lbrakk>P(v)\<rbrakk>b}" .
+
+(* Call an operation when the parameter is defined *)
+
+definition CallOp :: "('a, 'b) cmlop \<Rightarrow> 'a cmle \<Rightarrow> cmlp" where
+"CallOp F e = `\<lparr> defn(@e) \<rparr>` \<turnstile> (GuardCmlP e (F undefined))"
+
+definition AssignOp :: "'b cmlvar \<Rightarrow> ('a, 'b) cmlop \<Rightarrow> 'a cmle \<Rightarrow> cmlp" where
+"AssignOp x F e = `\<lparr> defn(@e) \<rparr>` \<turnstile> (GuardCmlP e (F x))"
+
+syntax
+  "_n_upred_vcallpr"     :: "idt \<Rightarrow> n_pexprs \<Rightarrow> n_upred" ("call _'[_']")
+  "_n_upred_vcallpr_nil" :: "idt \<Rightarrow> n_upred" ("call _'[']")
+  "_n_upred_vassignpr"   :: 
+    "idt \<Rightarrow> idt \<Rightarrow> n_pexprs \<Rightarrow> n_upred" ("_ := _'[_']" [100] 100)
+  "_n_upred_vassignpr_nil" :: 
+    "idt \<Rightarrow> idt \<Rightarrow> n_upred" ("_ := _'[']" [100] 100)
+
+translations
+  "_n_upred_vcallpr f ps" == "CONST CallOp f (_vexpr_prod ps)"
+  "_n_upred_vcallpr_nil f" == "CONST CallOp f CONST UnitD"
+  "_n_upred_vassignpr x f ps" == "CONST AssignOp x f (_vexpr_prod ps)"
+  "_n_upred_vassignpr_nil x f" == "CONST AssignOp x f (CONST UnitD)"
 
 end
