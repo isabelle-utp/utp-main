@@ -172,13 +172,13 @@ term "|lambda (x,y,z) : @nat * @nat * @seq of @char @ true|"
 
 term "FunD UNIV (\<lambda> y. |^x^| )"
 
-(*
 definition "myfun = |lambda (x,y) : @nat * @nat @ ^x^|"
-*)
 
 term "\<parallel>@set of @nat * @set of @nat\<parallel>"
 
 term "|myfun(&u, &v)|"
+
+hide_const myfun
 
 term "\<parallel>@seq1 of @char\<parallel>"
 

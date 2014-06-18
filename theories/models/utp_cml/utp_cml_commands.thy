@@ -49,6 +49,10 @@ struct
 open Syntax;
 open Local_Theory;
 
+fun split_dot x = case (String.tokens (fn x => x = #".") x) of
+                    [_,y] => y
+                  | _ => x;
+
 (* Functions to get grammar categories from the context *)
 
 fun n_upred ctxt = (Config.put root @{nonterminal "n_upred"} ctxt);
@@ -65,9 +69,12 @@ fun subst_free nm e (u $ t) = subst_free nm e u $ subst_free nm e t
 (* Insert a lambda abstraction for a given free name, irrespective of the type *)
 local
   fun absnm' x n (u $ t) = (absnm' x n u) $ (absnm' x n t)
-    | absnm' x n (Const (y, t)) = if (x = y) then Bound n else Const (y, t)
+    | absnm' x n (Const (y, t)) = if (x = split_dot y) then Bound n else Const (y, t) 
+    (* FIXME: Slightly dangerous case: if we encounter a constant with the same local
+       name part as the variable we're abstracting, treat it as a variable. Could we
+       accidentally capture? *)
     | absnm' x n (Free (y, t)) = if (x = y) then Bound n else Free (y, t)
-    | absnm' x n (Abs (y, ty, tr)) = if (x = y) then (Abs (y, ty, tr)) else (Abs (y, ty, absnm' x n tr))
+    | absnm' x n (Abs (y, ty, tr)) = if (x = y) then (Abs (y, ty, tr)) else (Abs (y, ty, absnm' x (n+1) tr))
     | absnm' _ _ e = e;
 in fun absnm (x, ty) n tr = Abs (x, ty, absnm' x n tr) end;
 
@@ -82,14 +89,12 @@ fun get_cml_holty ty ctxt =
 
 (* Create a product-based lambda term from a list of names and types *)
 
-fun mk_lambda' [(id, ty)] n term ctxt =
-      absnm (id, get_cml_holty ty ctxt) n term
-  | mk_lambda' ((id, ty) :: xs) n term ctxt =
+fun mk_lambda [(id, ty)] term ctxt =
+      absnm (id, get_cml_holty ty ctxt) 0 term
+  | mk_lambda ((id, ty) :: xs) term ctxt =
       const @{const_name "prod_case"} 
-        $ absnm (id, get_cml_holty ty ctxt) n (mk_lambda' xs (n - 1) term ctxt)
-  | mk_lambda' [] _ term _ = term;
-
-fun mk_lambda xs term ctxt = mk_lambda' xs (length xs - 1) term ctxt
+        $ absnm (id, get_cml_holty ty ctxt) 0 (mk_lambda xs term ctxt)
+  | mk_lambda [] term _ = term;
 
 (* Attribute to add a theorem to the evalp theorem set *)
 

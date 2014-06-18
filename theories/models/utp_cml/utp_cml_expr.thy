@@ -237,8 +237,20 @@ definition "NumD (x :: real) = LitD x"
 translations
   "n" <= "CONST NumD n"
 
-definition ApplyD :: "('a \<Rightarrow> 'b cmle) \<Rightarrow> 'a cmle \<Rightarrow> 'b cmle" where
-"ApplyD f x = x >>= f"
+consts
+  ApplyD :: "'f::type \<Rightarrow> 'a cmle \<Rightarrow> 'b cmle"
+
+definition ApplyD_fun :: "('a \<Rightarrow> 'b cmle) \<Rightarrow> 'a cmle \<Rightarrow> 'b cmle" where
+"ApplyD_fun f x = x >>= f"
+
+(* Relational application currently used definite choice. If a unique choice is not
+   possible, undefined is returned. *)
+definition ApplyD_rel :: "('a * 'b) set \<Rightarrow> 'a cmle \<Rightarrow> 'b cmle" where
+"ApplyD_rel R x = x >>= (\<lambda> u. if (\<exists>! v. (u, v) \<in> R) then LitD (THE v. (u, v) \<in> R) else \<bottom>\<^sub>v)"
+
+adhoc_overloading
+  ApplyD ApplyD_fun and
+  ApplyD ApplyD_rel
 
 definition "SelectD f = Op1D' f"
 
@@ -333,6 +345,7 @@ end
 text {* We remove some of the generic syntax in favour of our own *}
 
 no_syntax
+  "_n_pexpr_clos"         :: "n_pexpr \<Rightarrow> n_pexpr" ("[_]")
   "_n_pexpr_evar"        :: "('a, 'm) pvar \<Rightarrow> n_pexpr" ("$_" [999] 999)
   "_n_pexpr_equal"       :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "=" 50)
   "_n_pexpr_true"        :: "n_pexpr" ("true")
@@ -357,6 +370,7 @@ no_syntax
   "_n_pexpr_fset"        :: "n_pexprs \<Rightarrow> n_pexpr" ("{_}")
   "_n_pexpr_list"        :: "n_pexprs \<Rightarrow> n_pexpr" ("\<langle>_\<rangle>")
   "_n_pexpr_list_nil"    :: "n_pexpr" ("\<langle>\<rangle>")
+  "_n_pexpr_list_append"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "^" 65)
   "_n_pexpr_expr_var"    :: "idt \<Rightarrow> n_pexpr" ("(_)")
   "_n_pexpr_pred_var"    :: "idt \<Rightarrow> n_pexpr" ("@(_)")
   "_n_expr_quote"        :: "n_expr \<Rightarrow> 'a uexpr" ("(1^_^)")
@@ -648,10 +662,18 @@ lemma EvalD_Op1D [eval,evalp,evale]:
   "\<lbrakk>Op1D f x\<rbrakk>\<^sub>*b = (\<lbrakk>x\<rbrakk>\<^sub>*b >>= f)"
   by (simp add:Op1D_def evalp)
 
-lemma EvalD_ApplyD [eval,evalp,evale]:
-  "\<lbrakk>ApplyD f v\<rbrakk>\<^sub>*b = (\<lbrakk>v\<rbrakk>\<^sub>*b >>= (\<lambda> x. \<lbrakk>f(x)\<rbrakk>\<^sub>*b))"
-  by (simp add:ApplyD_def evalp)
+lemma EvalD_ApplyD_fun [eval,evalp,evale]:
+  "\<lbrakk>ApplyD_fun f v\<rbrakk>\<^sub>*b = (\<lbrakk>v\<rbrakk>\<^sub>*b >>= (\<lambda> x. \<lbrakk>f(x)\<rbrakk>\<^sub>*b))"
+  by (simp add:ApplyD_fun_def evalp)
 
+lemma EvalD_ApplyD_rel [eval,evalp,evale]:
+  "\<lbrakk>ApplyD_rel R v\<rbrakk>\<^sub>*b = (\<lbrakk>v\<rbrakk>\<^sub>*b >>= (\<lambda> x. if (\<exists>! y. (x, y) \<in> R) then Some (THE y. (x, y) \<in> R) else None))"  
+  apply (simp add:ApplyD_rel_def evalp)
+  apply (rule Option.bind_cong)
+  apply (simp_all)
+  apply (metis EvalD_BotDE EvalD_LitD)
+done
+  
 lemma EvalD_SelectD [eval,evalp,evale]:
   "\<lbrakk>SelectD f x\<rbrakk>\<^sub>*b = \<lbrakk>x\<rbrakk>\<^sub>* b >>= upfun UNIV f"
   by (simp add:SelectD_def evalp)
@@ -726,9 +748,9 @@ lemma UNREST_PEXPR_Op1D [unrest]:
   "vs \<sharp> v \<Longrightarrow> vs \<sharp> (Op1D f v)"
   by (simp add:UNREST_PEXPR_def Op1D_def evalp)
 
-lemma UNREST_PEXPR_ApplyD [unrest]: 
+lemma UNREST_PEXPR_ApplyD_fun [unrest]: 
   "\<lbrakk> \<And> x. vs \<sharp> f(x); vs \<sharp> v \<rbrakk> \<Longrightarrow> vs \<sharp> (ApplyD f v)"
-  by (simp add:UNREST_PEXPR_def ApplyD_def evalp Op1D_def)
+  by (simp add:UNREST_PEXPR_def ApplyD_fun_def evalp Op1D_def)
 
 lemma UNREST_PEXPR_Op2D [unrest]: 
   "\<lbrakk> vs \<sharp> v1; vs \<sharp> v2 \<rbrakk> \<Longrightarrow> vs \<sharp> (Op2D f v1 v2)"
