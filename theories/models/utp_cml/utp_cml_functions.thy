@@ -15,6 +15,9 @@ imports
   utp_cml_monad
 begin
 
+abbreviation "hol_floor \<equiv> floor"
+abbreviation "hol_abs \<equiv> abs"
+
 type_synonym 'a hol_set = "'a set"
 
 text {* Set up the CML expression parser with API functions *}

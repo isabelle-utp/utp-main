@@ -243,6 +243,10 @@ consts
 definition ApplyD_fun :: "('a \<Rightarrow> 'b cmle) \<Rightarrow> 'a cmle \<Rightarrow> 'b cmle" where
 "ApplyD_fun f x = x >>= f"
 
+definition ApplyD_fun' :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a cmle \<Rightarrow> 'b cmle" where
+"ApplyD_fun' f x = x >>= Op1D f \<circ> LitD"
+
+
 (* Relational application currently used definite choice. If a unique choice is not
    possible, undefined is returned. *)
 definition ApplyD_rel :: "('a * 'b) set \<Rightarrow> 'a cmle \<Rightarrow> 'b cmle" where
@@ -250,6 +254,7 @@ definition ApplyD_rel :: "('a * 'b) set \<Rightarrow> 'a cmle \<Rightarrow> 'b c
 
 adhoc_overloading
   ApplyD ApplyD_fun and
+  ApplyD ApplyD_fun' and
   ApplyD ApplyD_rel
 
 definition "SelectD f = Op1D' f"
@@ -754,7 +759,7 @@ lemma UNREST_PEXPR_Op1D [unrest]:
   by (simp add:UNREST_PEXPR_def Op1D_def evalp)
 
 lemma UNREST_PEXPR_ApplyD_fun [unrest]: 
-  "\<lbrakk> \<And> x. vs \<sharp> f(x); vs \<sharp> v \<rbrakk> \<Longrightarrow> vs \<sharp> (ApplyD f v)"
+  "\<lbrakk> \<And> x. vs \<sharp> f(x); vs \<sharp> v \<rbrakk> \<Longrightarrow> vs \<sharp> (ApplyD_fun f v)"
   by (simp add:UNREST_PEXPR_def ApplyD_fun_def evalp Op1D_def)
 
 lemma UNREST_PEXPR_Op2D [unrest]: 

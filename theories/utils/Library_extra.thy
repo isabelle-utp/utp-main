@@ -10,6 +10,7 @@ imports
   "Library_extra/Lattices_extra"
 (*  "Library_extra/Lattice_extra" *)
   "Library_extra/McCarthy_Logic"
+  "Library_extra/AProd"
 begin
 
 definition complete_inj ::

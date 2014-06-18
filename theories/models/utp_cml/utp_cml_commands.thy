@@ -10,7 +10,7 @@ theory utp_cml_commands
 imports 
   utp_cml_functions
   utp_cml_stmt
-keywords "cmlifun" "cmlefun" "cmleop" "cmliop" :: thy_decl and "inp" "out" "pre" "post" "frame"
+keywords "cmlifun" "cmlefun" "cmleop" "cmliop" "cmlacts" :: thy_decl and "inp" "out" "pre" "post" "frame"
 begin
 
 abbreviation "swap \<equiv> \<lambda> (x,y). (y, x)"                                          
@@ -20,6 +20,7 @@ definition mk_ifun_body :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Righ
   = {(x,y) | x y. x \<in> A \<and> y \<in> B \<and> \<lbrakk>pre(x)\<rbrakk>\<^sub>*\<B> = Some True \<and> \<lbrakk>post(x,y)\<rbrakk>\<^sub>*\<B> = Some True}"
 
 declare mk_ifun_body_def [evalp]
+
 
 ML {*
 
@@ -33,6 +34,7 @@ sig
               -> Proof.context -> local_theory
   val mk_iop: ((string * ((string * string) list * (string * string))) * (string list * (string * string)))
               -> Proof.context -> local_theory
+  val mk_acts: (string * string) list -> local_theory -> local_theory
   val efun_pr: Token.T list ->
       ((string * ((string * string) list * string)) * ((string * string) * string)) * Token.T list
   val ifun_pr: Token.T list ->
@@ -41,6 +43,7 @@ sig
       ((string * ((string * string) list * string)) * ((string * string) * string)) * Token.T list
   val iop_pr: Token.T list -> 
       ((string * ((string * string) list * (string * string))) * (string list * (string * string))) * Token.T list
+  val acts_pr: Token.T list -> (string * string) list * Token.T list
 end
 
 structure CmlCommands : CMLCOMMANDS =
@@ -95,6 +98,13 @@ fun mk_lambda [(id, ty)] term ctxt =
       const @{const_name "prod_case"} 
         $ absnm (id, get_cml_holty ty ctxt) 0 (mk_lambda xs term ctxt)
   | mk_lambda [] term _ = term;
+
+fun mk_act_lambda [id] term ctxt =
+      absnm (id, @{typ "cmlp"}) 0 term
+  | mk_act_lambda (id :: xs) term ctxt =
+      const @{const_name "aprod_case"} 
+        $ absnm (id, @{typ "cmlp"}) 0 (mk_act_lambda xs term ctxt)
+  | mk_act_lambda [] term _ = term;
 
 (* Attribute to add a theorem to the evalp theorem set *)
 
@@ -198,7 +208,14 @@ fun mk_ifun ((id, (inp, out)), (pre, post)) ctxt =
      ctxt3
   end;
 
+(* (foldr1 (fn x y => const @{const_name "Abs_aprod"} $ x $ y) *)
 
+fun mk_acts acts ctxt = 
+  let val act_tuple = (foldr1 (fn (x, y) => const @{const_name "Abs_aprod"} $ (const @{const_name Pair} $ x $ y)) 
+                                      (map (parse_term (n_upred ctxt) o snd) acts))
+      val block = check_term (n_upred ctxt) (const @{const_name "lfp"} $ (mk_act_lambda (map fst acts) act_tuple ctxt))
+  in snd (define (mk_defn "ActionBlock" "" block) ctxt)
+  end
 
 (*
 fun mk_iop ((id, (inp, out)), (pre, post)) ctxt = 
@@ -262,6 +279,8 @@ val iop_pr = Parse.short_ident
                   -- (Scan.optional (@{keyword "pre"} |-- Parse.term) "true"
                       -- (@{keyword "post"} |-- Parse.term)));
 
+val acts_pr = Parse.enum1 "and" ((Parse.short_ident --| @{keyword "="}) -- Parse.term);
+
 end;
 
 
@@ -285,7 +304,23 @@ Outer_Syntax.local_theory  @{command_spec "cmleop"}
 "Explicit CML operation" 
 (CmlCommands.eop_pr >> CmlCommands.mk_eop);
 
+Outer_Syntax.local_theory @{command_spec "cmlacts"}
+"CML Action block"
+(CmlCommands.acts_pr >> CmlCommands.mk_acts);
+
 *}
+
+ML {* Local_Theory.define *}
+
+ML {* @{type_abbrev "cmlp"} *}
+
+cmlacts
+  P = "Q" and Q = "P [] Q"
+
+term "afst ActionBlock"
+
+print_theorems
+
 
 end
 
