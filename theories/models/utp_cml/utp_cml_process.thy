@@ -166,6 +166,7 @@ syntax
   "_n_chanset_union" :: "n_chanset \<Rightarrow> n_chanset \<Rightarrow> n_chanset" (infixl "union" 65)
   "_n_chanset_inter" :: "n_chanset \<Rightarrow> n_chanset \<Rightarrow> n_chanset" (infixl "inter" 70)
   "_n_chanset_diff"  :: "n_chanset \<Rightarrow> n_chanset \<Rightarrow> n_chanset" (infixl "\\" 70)
+  "_n_chanset_val_enum" :: "n_chans \<Rightarrow> logic" ("{|(_)|}")
 
 ML {* absdummy dummyT *}
 
@@ -179,6 +180,7 @@ translations
   "_n_chanset_union cs1 cs2" => "cs1 \<union> cs2"
   "_n_chanset_inter cs1 cs2" => "cs1 \<inter> cs2"
   "_n_chanset_diff  cs1 cs2" => "cs1 - cs2"
+  "_n_chanset_val_enum cs" => "cs"
 
 syntax
 (*  "_n_upred_cml_prefix" :: "unit option CHAN \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _") *)

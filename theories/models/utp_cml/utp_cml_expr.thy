@@ -576,6 +576,11 @@ let fun vexpr_string_tr [str] =
 end
 *}
 
+translations
+  "_vexpr_apply f (_vexpr_prod (_n_pexprs x y))" <= "CONST ApplyD f (CONST vexpr_prod x y)"
+  "_vexpr_apply f x" <= "CONST ApplyD f x"
+
+
 definition mk_prod :: "'a \<Rightarrow> 'a cmle" where
 "mk_prod = LitD"
 
