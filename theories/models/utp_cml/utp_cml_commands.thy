@@ -106,6 +106,11 @@ fun mk_act_lambda [id] term ctxt =
         $ absnm (id, @{typ "cmlp"}) 0 (mk_act_lambda xs term ctxt)
   | mk_act_lambda [] term _ = term;
 
+fun mk_n_of_m n m =
+  if (m = 0) then const @{const_name id}
+  else if (n = 0) then const @{const_name afst}
+  else const @{const_name comp} $ mk_n_of_m (n - 1) (m - 1) $ const @{const_name asnd}
+
 (* Attribute to add a theorem to the evalp theorem set *)
 
 val add_evalp = Attrib.internal (K (Thm.declaration_attribute evalp.add_thm));
@@ -208,46 +213,15 @@ fun mk_ifun ((id, (inp, out)), (pre, post)) ctxt =
      ctxt3
   end;
 
-(* (foldr1 (fn x y => const @{const_name "Abs_aprod"} $ x $ y) *)
-
 fun mk_acts acts ctxt = 
   let val act_tuple = (foldr1 (fn (x, y) => const @{const_name "Abs_aprod"} $ (const @{const_name Pair} $ x $ y)) 
                                       (map (parse_term (n_upred ctxt) o snd) acts))
-      val block = check_term (n_upred ctxt) (const @{const_name "lfp"} $ (mk_act_lambda (map fst acts) act_tuple ctxt))
-  in snd (define (mk_defn "ActionBlock" "" block) ctxt)
+      val block = check_term (n_upred ctxt) (const @{const_name "gfp"} $ (mk_act_lambda (map fst acts) act_tuple ctxt))
+      val ((block_term, _), ctxt1) = define (mk_defn "ActionBlock" "" block) ctxt
+      fun actfun (x :: xs) n = actfun xs (n + 1) o snd o (define (mk_defn x "" (check_term ctxt1 (mk_n_of_m n (length acts - 1) $ block_term))))
+        | actfun [] _ = fn x => x
+  in actfun (map fst acts) 0 ctxt1
   end
-
-(*
-fun mk_iop ((id, (inp, out)), (pre, post)) ctxt = 
-  let val pctxt = (Config.put Syntax.root @{nonterminal "n_pexpr"} ctxt)
-      val tctxt = (Config.put Syntax.root @{nonterminal "vty"} ctxt)
-      val preb = (Binding.name ("pre_" ^ id), NoSyn)
-      val preb_term = Syntax.check_term pctxt (mk_lambda inp (Syntax.parse_term pctxt pre) ctxt)
-      val preb_type = type_of preb_term
-      val preb_def = ( (Binding.name ("pre_" ^ id ^ "_def"), [add_evalp]), preb_term)
-      val postb = (Binding.name ("post_" ^ id), NoSyn)
-      val postb_term = (Syntax.check_term pctxt 
-                          (Const (@{const_name "comp"}, dummyT) 
-                            $ (mk_lambda (out :: inp) (Syntax.parse_term pctxt post) ctxt)
-                            $ Const (@{const_abbrev "swap"}, dummyT)))
-      val postb_def = ( (Binding.name ("post_" ^ id ^ "_def"), [add_evalp]), postb_term) 
-      val inpt = foldr1 (fn (x,y) => 
-            (Syntax.check_term ctxt (Syntax.const @{const_abbrev "vty_prod"} $ x $ y)))
-                                     (map (Syntax.read_term tctxt o snd) inp)
-      val outt = Syntax.read_term tctxt (snd out)
-      val ppctxt = ((Local_Theory.define (preb, preb_def) #> snd) o
-                    (Local_Theory.define (postb, postb_def) #> snd)) ctxt
-      val bodyb = (Binding.name id, NoSyn)
-      val bodyb_def = ( (Binding.name (id ^ "_def"), [add_evalp])
-                      ,  Syntax.check_term ctxt (Const (@{const_name mk_ifun_body}, dummyT)
-                           $ inpt $ outt $ preb_term $ postb_term))
-      val ((_,(_,thm1)), ctxt1) = Local_Theory.define (preb, preb_def) ctxt
-      val ((_,(_,thm2)), ctxt2) = Local_Theory.define (postb, postb_def) ctxt1
-      val ((_,(_,thm3)), ctxt3) = Local_Theory.define (bodyb, bodyb_def) ctxt2
-  in 
-     ctxt3
-  end;
-*)
 
 val inps1_pr = Parse.enum1 "and" (Parse.short_ident -- (@{keyword "::"} |-- Parse.term));
 val outs_pr = Parse.short_ident -- (@{keyword "::"} |-- Parse.term)
@@ -309,18 +283,6 @@ Outer_Syntax.local_theory @{command_spec "cmlacts"}
 (CmlCommands.acts_pr >> CmlCommands.mk_acts);
 
 *}
-
-ML {* Local_Theory.define *}
-
-ML {* @{type_abbrev "cmlp"} *}
-
-cmlacts
-  P = "Q" and Q = "P [] Q"
-
-term "afst ActionBlock"
-
-print_theorems
-
 
 end
 
