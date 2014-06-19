@@ -103,6 +103,7 @@ translations
 text {* Set Functions *}
 
 abbreviation "vexpr_in_set    \<equiv> Op2D' (op \<in>\<^sub>f)"
+abbreviation "vexpr_not_in_set\<equiv> Op2D' (op \<notin>\<^sub>f)"
 abbreviation "vexpr_dunion    \<equiv> Op1D' FUnion"
 abbreviation "vexpr_dinter    \<equiv> Op1D' FInter"
 abbreviation "vexpr_subset    \<equiv> Op2D' (op \<subseteq>\<^sub>f)"
@@ -167,6 +168,7 @@ abbreviation vcollect_ext_ty :: "('a \<Rightarrow> 'b cmle) \<Rightarrow> 'a set
 syntax
   "_vexpr_quotev"  :: "id \<Rightarrow> n_pexpr" ("<_>")
   "_vexpr_in_set"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "in @set" 50)
+  "_vexpr_not_in_set"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infix "not in @set" 50)
   "_vexpr_union"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "union" 65)
   "_vexpr_inter"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "inter" 70)
   "_vexpr_dunion"  :: "n_pexpr \<Rightarrow> n_pexpr" ("dunion _")
@@ -184,6 +186,7 @@ syntax
 translations
   "_vexpr_quotev x"    == "CONST LitD (CONST QuoteD IDSTR(x))"
   "_vexpr_in_set x xs" == "CONST vexpr_in_set x xs"
+  "_vexpr_not_in_set x xs" == "CONST vexpr_not_in_set x xs"
   "_vexpr_union x y"   == "CONST Op2D' CONST funion x y"
   "_vexpr_inter x y"   == "CONST Op2D' CONST finter x y"
   "_vexpr_dunion xs"   == "CONST vexpr_dunion xs"

@@ -2,6 +2,15 @@ theory utp_cml_stmt
 imports utp_cml_functions
 begin
 
+no_syntax
+  "_n_upred_ifthenelse" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("if _ then _ else _")
+
+syntax
+  "_n_upred_ifthencml" :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("if _ then _ else _")
+
+translations
+  "_n_upred_ifthencml b P Q" == "CONST CondR P (CONST VTautHideT b) Q"
+
 text {* A CML operation specification takes an input type, an output type,
         a precondition, a postcondition and the "body" of the operation. *}
 
