@@ -104,6 +104,12 @@ lemma mtaut_mimplies_rNone [simp]:
   "[p \<Rightarrow>\<^sub>3 None]\<^sub>3 = [\<not>\<^sub>3 p]\<^sub>3"
   by (cases p rule:tvl_cases, simp_all)
 
+lemma mand_mimplies [simp]: "(p \<and>\<^sub>3 q \<Rightarrow>\<^sub>3 r) = (p \<Rightarrow>\<^sub>3 q \<Rightarrow>\<^sub>3 r)"
+  by (cases p rule:tvl_cases, simp_all)
+  
+lemma mand_assoc [simp]: "((p \<and>\<^sub>3 q) \<and>\<^sub>3 r) = (p \<and>\<^sub>3 (q \<and>\<^sub>3 r))" 
+  by (cases p rule:tvl_cases, simp_all)
+
 (* Deduction Rules for TVL *)
 
 lemma mimpliesI_Some [intro]: "\<lbrakk> x \<Longrightarrow> [y]\<^sub>3 \<rbrakk> \<Longrightarrow> [\<lfloor>x\<rfloor> \<Rightarrow>\<^sub>3 y]\<^sub>3"
@@ -134,5 +140,8 @@ lemma mdisjE [elim]:
 lemma mnot_double [simp]:
   "(\<not>\<^sub>3 (\<not>\<^sub>3 p)) = p"
   by (cases p rule:tvl_cases, simp_all)
+
+lemma p_TT [simp]: "p = TT \<longleftrightarrow> [p]\<^sub>3"
+  by (auto simp add: mtaut_def) 
 
 end

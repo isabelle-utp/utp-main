@@ -65,8 +65,7 @@ ML {*
       addsimps (cmlchan_defs.get ctxt)
       addsimps (cmlproc_defs.get ctxt)
       addsimps (cmlop_defs.get ctxt)
-      addsimps (cmlact_defs.get ctxt)
-      addsimps (uop_defs.get ctxt);
+      addsimps (cmlact_defs.get ctxt);
 *}
 
 ML {*

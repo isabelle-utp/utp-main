@@ -340,7 +340,7 @@ syntax
   "_vexpr_domresfr"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "<-:" 110)
   "_vexpr_mapcomp"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "comp" 55)  
   "_vexpr_mapinv"    :: "n_pexpr \<Rightarrow> n_pexpr" ("inverse _")
-  "_vexpr_mapapp"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_[_]")
+  "_vexpr_mapapp"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_[_]" [200,0] 200)
   "_vexpr_mapcomp"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> pttrn \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("{_ |-> _ | _ in @set _}")
   "_vexpr_mapempty"  :: "n_pexpr" ("{|->}")
 
@@ -517,8 +517,9 @@ lemma Defined_option_bind_1 [dest]:
 lemma "|defn(@x union @y)| = |defn(@x) and defn(@y)|"
   apply (utp_poly_auto_tac)
   apply (drule_tac x="b" in spec)
+  apply (metis Defined_option_bind_1)
   apply (metis (mono_tags) Defined_option_bind_1 Defined_option_elim bind_lunit)
-  apply (metis Defined_option.simps(2) Defined_option_elim Some_defined bind_lunit)
+  apply (metis (mono_tags) Defined_option_elim bind_lunit nDefined_option_elim option.distinct(1))
 done
 
 

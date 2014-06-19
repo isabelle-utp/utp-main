@@ -4,12 +4,15 @@ begin
 
 no_syntax
   "_n_upred_ifthenelse" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("if _ then _ else _")
+  "_n_upred_while"      :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("while _ do _ od")
 
 syntax
-  "_n_upred_ifthencml" :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("if _ then _ else _")
+  "_n_upred_ifthencml" :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("(if (_)/ then (_)/ else (_))" [0, 0, 10] 10)
+  "_n_upred_whilecml"  :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("while _ do _ od")
 
 translations
   "_n_upred_ifthencml b P Q" == "CONST CondR P (CONST VTautHideT b) Q"
+  "_n_upred_whilecml b P" == "CONST IterP (CONST VTautHideT b) P"
 
 text {* A CML operation specification takes an input type, an output type,
         a precondition, a postcondition and the "body" of the operation. *}
@@ -20,13 +23,13 @@ definition CMLOpR ::
 "CMLOpR A B pre post body v x = (let bd = body v x in `\<lparr> &x hasType @A \<rparr> \<and> \<lparr> pre(&x) \<rparr> 
                                                        \<turnstile> \<lparr> $v\<acute> hasType @B \<rparr> \<and> \<lparr> post(&x, $v) \<rparr>\<acute> \<and> bd`)"
 
-declare CMLOpR_def [evalpp, evalpr, cmlop_defs]
+declare CMLOpR_def [evalpp, evalpr]
 
 definition CMLIOpR ::
   "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> (('a * 'b) \<Rightarrow> bool cmle) \<Rightarrow> cmluvar fset \<Rightarrow> ('b cmlvar \<Rightarrow> 'a \<Rightarrow> cmlp)" where
 "CMLIOpR A B pre post frm = CMLOpR A B pre post (\<lambda> v i. SkipRA (REL_VAR - (OKAY \<union> \<langle>frm\<rangle>\<^sub>f \<union> (dash ` \<langle>frm\<rangle>\<^sub>f))))"
 
-declare CMLIOpR_def [evalpp, evalpr, cmlop_defs]
+declare CMLIOpR_def [evalpp, evalpr]
 
 (*
 definition CMLOpO :: 
@@ -144,7 +147,7 @@ syntax
   "_n_upred_vcallpr"     :: "idt \<Rightarrow> n_pexprs \<Rightarrow> n_upred" ("call _'[_']")
   "_n_upred_vcallpr_nil" :: "idt \<Rightarrow> n_upred" ("call _'[']")
   "_n_upred_vassignpr"   :: 
-    "idt \<Rightarrow> idt \<Rightarrow> n_pexprs \<Rightarrow> n_upred" ("_ := _'[_']" [100] 100)
+    "idt \<Rightarrow> idt \<Rightarrow> n_pexprs \<Rightarrow> n_upred" ("_ := _'[_']" [100,0,0] 100)
   "_n_upred_vassignpr_nil" :: 
     "idt \<Rightarrow> idt \<Rightarrow> n_upred" ("_ := _'[']" [100] 100)
 

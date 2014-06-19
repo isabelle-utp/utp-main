@@ -10,9 +10,8 @@ theory utp_cml_process
 imports 
   utp_cml_expr
   utp_cml_types
-  utp_csp
+  utp_cml_stmt
 begin
-
 
 text {* Add a simple syntax translator for main actions in CML processes. The ML
         function simply appends .MainAction. *}
@@ -195,7 +194,7 @@ syntax
   "_n_upred_ainlvsetcml" :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("||| _ in @set _ @ _" [0,0,10] 10)
   "_n_upred_hidecml"    :: "n_upred \<Rightarrow> n_chanset \<Rightarrow> n_upred" (infixl "\\" 60)
   "_n_upred_intrptcml"  :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "'/-\\" 50)
-  "_n_upred_timeoutcml" :: "n_upred \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "['(_')>" 50)
+  "_n_upred_timeoutcml" :: "n_upred \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "[_>" 50)
   "_n_upred_waitcml"    :: "n_pexpr \<Rightarrow> n_upred" ("WAIT _")
   "_n_upred_cml_exec0"  :: "idt \<Rightarrow> n_upred" ("_'(')")
   "_n_upred_cml_exec1"  :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_'(_')")

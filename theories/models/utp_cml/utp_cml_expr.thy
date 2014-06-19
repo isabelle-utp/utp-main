@@ -157,7 +157,7 @@ abbreviation DefinedD :: "'a cmle \<Rightarrow> bool cmle" where
 "DefinedD v \<equiv> LitD (\<D> v)"
 
 definition HasTypeD :: "'a cmle \<Rightarrow> 'a set \<Rightarrow> bool cmle" where
-"HasTypeD e t \<equiv> MkPExpr (\<lambda> b. \<lbrakk>e\<rbrakk>\<^sub>*b \<guillemotright>= (\<lambda> x. \<lfloor>x \<in> t\<rfloor>))"
+"HasTypeD e A \<equiv> MkPExpr (\<lambda> b. Some (Defined(\<lbrakk>e\<rbrakk>\<^sub>*b) \<and> the(\<lbrakk>e\<rbrakk>\<^sub>*b) \<in> A))"
 
 (*
 definition HasType :: "'a cmle \<Rightarrow> 'a set \<Rightarrow> bool" (infix ":\<^sub>d" 50) where
@@ -664,6 +664,10 @@ lemma EvalD_BotDE [eval,evalp,evale]:
   "\<lbrakk>\<bottom>\<^sub>v\<rbrakk>\<^sub>*b = None"
   by (simp add:BotDE_def evalp)
 
+lemma EvalD_ExistsD [eval,evalp]:
+  "\<lbrakk>ExistsD A P\<rbrakk>\<^sub>*b = Some (\<exists>x\<in>A. [\<lbrakk>P(x)\<rbrakk>\<^sub>* b]\<^sub>3)"
+  by (simp add:ExistsD_def)
+
 lemma EvalD_ForallD [eval,evalp,evale]:
   "\<lbrakk>ForallD xs f\<rbrakk>\<^sub>*b = \<lfloor>\<forall>x\<in>xs. [\<lbrakk>f(x)\<rbrakk>\<^sub>*b]\<^sub>3\<rfloor>"
   by (simp add:ForallD_def)
@@ -703,12 +707,12 @@ lemma EvalD_HasTypeD [eval,evalp,evale]:
 *)
 
 lemma EvalD_HasTypeD [eval,evalp,evale]:
-  "\<lbrakk>HasTypeD e t\<rbrakk>\<^sub>*b = \<lbrakk>e\<rbrakk>\<^sub>*b \<guillemotright>= (\<lambda> x. \<lfloor>x \<in> t\<rfloor>)"
+  "\<lbrakk>HasTypeD e A\<rbrakk>\<^sub>*b = Some (Defined(\<lbrakk>e\<rbrakk>\<^sub>*b) \<and> the(\<lbrakk>e\<rbrakk>\<^sub>*b) \<in> A)"
   by (simp add:HasTypeD_def)
 
 lemma EvalD_CoerceD [eval,evalp,evale]:
   "\<lbrakk> \<D> (\<lbrakk>x\<rbrakk>\<^sub>*b); the (\<lbrakk>x\<rbrakk>\<^sub>*b) \<in> t \<rbrakk> \<Longrightarrow> \<lbrakk>CoerceD x t\<rbrakk>\<^sub>*b = \<lbrakk>x\<rbrakk>\<^sub>*b"
-  by (simp add:CoerceD_def)
+  by (simp add:CoerceD_def)  
 
 declare IotaD_def [evalp]
 declare EpsD_def [evalp]
@@ -867,11 +871,15 @@ lemma BotDE_not_defined [defined]:
   "\<D> \<bottom>\<^sub>v = False"
   by (simp add:BotDE_def Defined_pexpr_def evalp)
 
-lemma Defined_option_elim [elim]:
+lemma Defined_option_elim [elim!]:
   "\<lbrakk> \<D> x; \<And> y. \<lbrakk> x = Some y \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   apply (auto simp add:Defined_option_def)
   apply (metis not_None_eq option.simps(6) option.simps(7))
 done
+
+lemma nDefined_option_elim [elim!]:
+  "\<lbrakk> \<not> Defined(x); x = None \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (metis Defined_option.simps(2) not_Some_eq)
 
 lemma Op1D_EvalD_defined [defined]: 
   "\<lbrakk> \<D> v; \<forall> b. the (\<lbrakk>v\<rbrakk>\<^sub>* b) \<in> dom f \<rbrakk> \<Longrightarrow> \<D> (Op1D f v)"
@@ -919,11 +927,14 @@ lemma vexpr_empty_defined [defined]:
 lemma EvalD_defined [defined]: "\<D> v \<Longrightarrow> \<D> (\<lbrakk>v\<rbrakk>\<^sub>*b)"
   by (simp add:Defined_option_def Defined_pexpr_def)
 
-lemma Some_defined [defined]: "\<D> (Some x)"
+lemma Some_defined: "\<D> (Some x)"
   by (simp add:Defined_option_def)
 
-lemma None_not_defined [defined]: "\<not> \<D> None"
+lemma None_not_defined: "\<not> \<D> None"
   by (simp add:Defined_option_def)
+
+declare EvalP_SemiR [evalp del]
+declare is_healthy_def [evalp del]
 
 lemma VTaut_TrueD [simp]:
   "`\<lparr>true\<rparr>` = `true`"
