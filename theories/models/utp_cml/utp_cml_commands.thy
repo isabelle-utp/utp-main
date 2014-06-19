@@ -131,7 +131,7 @@ fun mk_eop ((id, (inp, out)), ((pre, post), body)) ctxt =
                           (const @{const_name "comp"} 
                             $ (mk_lambda (("RESULT", out) :: inp) (parse_term (n_pexpr ctxt) post) ctxt)
                             $ const @{const_abbrev "swap"})
-      val body_term = absnm ("RESULT", Type (@{type_abbrev "cmlvar"}, [get_cml_holty out ctxt])) (length inp) (mk_lambda inp (parse_term (n_upred ctxt) body) ctxt)
+      val body_term = absnm ("RESULT", Type (@{type_abbrev "cmlvar"}, [get_cml_holty out ctxt])) (length inp - 1) (mk_lambda inp (parse_term (n_upred ctxt) body) ctxt)
       val op_term = check_term ctxt (
                         const @{const_name CMLOpR} 
                         $ mk_prod_ty ctxt inp 

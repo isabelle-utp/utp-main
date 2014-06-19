@@ -406,9 +406,9 @@ syntax
   "_vexpr_st_var"   :: "vvar \<Rightarrow> n_pexpr" ("$_" [999] 999)
   "_vexpr_eval"     :: "n_pexpr \<Rightarrow> 'a" ("+|_|+")
   "_vexpr_defined"  :: "n_pexpr \<Rightarrow> n_pexpr" ("defn'(_')")
-  "_vexpr_expr_var" :: "idt \<Rightarrow> n_pexpr" ("@_" [999] 999)
-  "_vexpr_val_var"  :: "idt \<Rightarrow> n_pexpr" ("&_" [999] 999)
-  "_vexpr_lit_var"  :: "idt \<Rightarrow> n_pexpr" ("%_" [999] 999)
+  "_vexpr_expr_var" :: "idt \<Rightarrow> n_pexpr" ("@_" [990] 990)
+  "_vexpr_val_var"  :: "idt \<Rightarrow> n_pexpr" ("&_" [990] 990)
+  "_vexpr_lit_var"  :: "idt \<Rightarrow> n_pexpr" ("%_" [990] 990)
   "_vexpr_equal"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "=" 50)
   "_vexpr_nequal"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "<>" 50)
   "_vexpr_unit"     :: "n_pexpr" ("'(')")
@@ -438,10 +438,10 @@ syntax
   "_vexpr_coerce"   :: "n_pexpr \<Rightarrow> vty \<Rightarrow> n_pexpr" (infix ":" 50)
   "_vexpr_ifthen"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("if _ then _ else _")
   "_vexpr_hasType"  :: "n_pexpr \<Rightarrow> vty \<Rightarrow> n_pexpr" (infix "hasType" 50)
-  "_vexpr_apply"    :: "('a \<Rightarrow> 'b) \<Rightarrow> n_pexprs \<Rightarrow> n_pexpr"    ("_'(_')" [998,0] 998)
+  "_vexpr_apply"    :: "('a \<Rightarrow> 'b) \<Rightarrow> n_pexprs \<Rightarrow> n_pexpr"    ("_'(_')" [918,0] 918)
   "_vexpr_vapply"   :: "'a \<Rightarrow> n_pexpr"    ("_'(')" [998] 998)
   "_vexpr_prod"     :: "n_pexprs \<Rightarrow> vprod" ("_")
-  "_vexpr_select"   :: "n_pexpr \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> n_pexpr" ("_._" [89,90] 90)
+  "_vexpr_select"   :: "n_pexpr \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> n_pexpr" ("_._" [198, 199] 200)
   "_vexpr_nil"      :: "n_pexpr" ("[]")
   "_vexpr_list"     :: "n_pexprs => n_pexpr"    ("[(_)]")
   "_vexpr_empty"    :: "n_pexpr" ("{}")
@@ -953,6 +953,5 @@ lemma BotD_defn: "|defn(undef)| = |false|"
 
 lemma LitD_defn: "|defn(<<x>>)| = |true|"
   by (simp add:evalp Defined_pexpr_def)
-
 
 end
