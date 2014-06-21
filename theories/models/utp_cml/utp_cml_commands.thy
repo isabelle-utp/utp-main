@@ -21,6 +21,13 @@ definition mk_ifun_body :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Righ
 
 declare mk_ifun_body_def [evalp]
 
+nonterminal acthead
+
+syntax
+  "_act_head_id"     :: "idt \<Rightarrow> acthead" ("_")
+  "_act_head_pttrn"  :: "idt \<Rightarrow> vpttrns \<Rightarrow> acthead" ("_'(_')")
+
+ML {* @{syntax_const "_act_head_id"} *}
 
 ML {*
 
@@ -61,6 +68,7 @@ fun split_dot x = case (String.tokens (fn x => x = #".") x) of
 fun n_upred ctxt = (Config.put root @{nonterminal "n_upred"} ctxt);
 fun n_pexpr ctxt = (Config.put root @{nonterminal "n_pexpr"} ctxt);
 fun vty ctxt = (Config.put root @{nonterminal "vty"} ctxt);
+fun acthead ctxt = (Config.put root @{nonterminal "acthead"} ctxt);
 
 (* Substitute an expression for a given free name irrespective of the type *)
 
@@ -213,8 +221,9 @@ fun mk_ifun ((id, (inp, out)), (pre, post)) ctxt =
      ctxt3
   end;
 
-fun mk_acts acts ctxt = 
-  let val act_tuple = (foldr1 (fn (x, y) => const @{const_name "Abs_aprod"} $ (const @{const_name Pair} $ x $ y)) 
+fun mk_acts acts ctxt =
+  let (* val act_heads = map (parse_term (acthead ctxt) o fst) acts *)
+      val act_tuple = (foldr1 (fn (x, y) => const @{const_name "Abs_aprod"} $ (const @{const_name Pair} $ x $ y)) 
                                       (map (parse_term (n_upred ctxt) o snd) acts))
       val block = check_term (n_upred ctxt) (const @{const_name "gfp"} $ (mk_act_lambda (map fst acts) act_tuple ctxt))
       val ((block_term, _), ctxt1) = define (mk_defn "ActionBlock" "" block) ctxt

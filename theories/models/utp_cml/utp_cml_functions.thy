@@ -10,7 +10,6 @@ theory utp_cml_functions
 imports 
   utp_cml_types
   utp_cml_tac
-  utp_cml_laws
   utp_cml_expr
   utp_cml_monad
 begin
@@ -539,8 +538,10 @@ oops
 
 term "|{1 |-> 2, 2 |-> 3} ++ {2 |-> 3}|"
 
+(*
 lemma "|forall x:@nat @ &x > 0 => (floor (5 / &x)) hasType @nat| = |true|"
   by (cml_auto_tac)
+*)
 
 (* FIXME: Should the following really be safe rules? *)
 
@@ -557,7 +558,13 @@ lemma "|forall m:@map @nat to @nat @ forall i:@nat @ &i in @set dom(&m) => &m[&i
 
 term "|{5,...,9}|"
 
-declare vexpr_set_range_def [evalp]
+(* declare vexpr_set_range_def [evalp] *)
+
+thm vexpr_set_range_def
+
+lemma EvalD_vexpr_set_range [evalp]: 
+  "\<lbrakk>vexpr_set_range (NumD m) (NumD n)\<rbrakk>\<^sub>*b = \<lfloor>real `\<^sub>f fatLeastAtMost (hol_floor m) (hol_floor n)\<rfloor>"
+  by (simp add:vexpr_set_range_def evalp)
 
 thm cmle_fset_iter_def
 
@@ -581,7 +588,7 @@ lemma map_fset_option_simp [simp]:
 done
 
 lemma "|{ &x | x in @set {1,...,5} @ & x > 0 }| = |{2,1,3,4,5}|"
-  by (cml_tac)
+  by (cml_auto_tac)
 
 lemma "|[ &x | x in @set {1,...,5} @ true ]| = |[1,2,3,4,5]|"
   by (cml_tac)

@@ -32,8 +32,18 @@ definition BotDE :: "'a cmle" ("\<bottom>\<^sub>v") where
 
 declare BotDE_def [eval,evale,evalp]
 
-abbreviation LitD :: "'a \<Rightarrow> 'a cmle" where
+definition TautDE :: "bool cmle \<Rightarrow> bool" where
+"TautDE e = (\<forall> b. [\<lbrakk>e\<rbrakk>\<^sub>*b]\<^sub>3)"
+
+declare TautDE_def [eval,evale,evalp]
+
+declare [[coercion TautDE]]
+
+definition LitD :: "'a \<Rightarrow> 'a cmle" where
 "LitD x \<equiv> LitPE (Some x)"
+
+lemma EvalPE_LitD [evalp]: "\<lbrakk>LitD x\<rbrakk>\<^sub>*b = \<lfloor>x\<rfloor>"
+  by (simp add:LitD_def evalp)
 
 abbreviation "TrueDE  \<equiv> LitD True"
 abbreviation "FalseDE \<equiv> LitD False"
@@ -212,6 +222,7 @@ nonterminal
   vvar
 
 syntax
+  "_vtaut"       :: "n_pexpr \<Rightarrow> logic" ("|_|\<^sub>3")
   "_vidt"        :: "idt \<Rightarrow> idt_list" ("_")
   "_vidts"       :: "idt \<Rightarrow> idt_list \<Rightarrow> idt_list" ("_,/ _")
   "_vidt_cl"     :: "vbinds \<Rightarrow> logic" ("\<bar>_\<bar>")
@@ -225,6 +236,7 @@ syntax
   "_vtype_binds" :: "vtype_bind \<Rightarrow> vtype_binds \<Rightarrow> vtype_binds" ("_,/ _")
 
 translations 
+  "_vtaut x" == "CONST TautDE x"
   "_vtb x" => "x"
   "_vsb x" => "x"
 
@@ -232,7 +244,7 @@ subsection {* Product Projections *}
 
 (* These seemingly vacuous definitions are there to help the pretty printer *)
 
-definition "NumD (x :: real) = LitD x"
+abbreviation "NumD (x :: real) \<equiv> LitD x"
 
 translations
   "n" <= "CONST NumD n"
@@ -656,9 +668,11 @@ lemma EvalD_LetD [evalp]:
   "\<lbrakk>LetD v A f\<rbrakk>\<^sub>*b = do { x <- \<lbrakk>v\<rbrakk>\<^sub>*b; \<lbrakk>f(x)\<rbrakk>\<^sub>*b }"
   by (simp add:LetD_def evalp)
 
+(*
 lemma EvalD_NumD [eval,evalp,evale]:
   "\<lbrakk>NumD x\<rbrakk>\<^sub>*b = Some x"
   by (simp add:NumD_def evalp)
+*)
 
 lemma EvalD_BotDE [eval,evalp,evale]:
   "\<lbrakk>\<bottom>\<^sub>v\<rbrakk>\<^sub>*b = None"
@@ -711,7 +725,7 @@ lemma EvalD_HasTypeD [eval,evalp,evale]:
   by (simp add:HasTypeD_def)
 
 lemma EvalD_CoerceD [eval,evalp,evale]:
-  "\<lbrakk> \<D> (\<lbrakk>x\<rbrakk>\<^sub>*b); the (\<lbrakk>x\<rbrakk>\<^sub>*b) \<in> t \<rbrakk> \<Longrightarrow> \<lbrakk>CoerceD x t\<rbrakk>\<^sub>*b = \<lbrakk>x\<rbrakk>\<^sub>*b"
+  "\<lbrakk>CoerceD e A\<rbrakk>\<^sub>*b = (if (\<D> (\<lbrakk>e\<rbrakk>\<^sub>* b) \<and> the (\<lbrakk>e\<rbrakk>\<^sub>* b) \<in> A) then \<lbrakk>e\<rbrakk>\<^sub>*b else None)"
   by (simp add:CoerceD_def)  
 
 declare IotaD_def [evalp]
@@ -788,13 +802,15 @@ lemma UNREST_PEXPR_CoerceD [unrest]:
   "vs \<sharp> x \<Longrightarrow> vs \<sharp> (CoerceD x t)"
   by (auto simp add:UNREST_PEXPR_def CoerceD_def)
 
+(*
 lemma UNREST_PEXPR_NumD [unrest]:
   "vs \<sharp> NumD n"
-  by (metis NumD_def UNREST_LitPE)
+  by (metis LitD_def NumD_def UNREST_LitPE)
+*)
 
 lemma VExprTrueT_unrest [unrest]: 
   "vs \<sharp> e \<Longrightarrow> vs \<sharp> VExprTrueT e"
-  by (simp add:VExprTrueT_def unrest typing)
+  by (simp add:LitD_def VExprTrueT_def unrest typing)
 
 lemma VExprDefinedT_unrest [unrest]: 
   "vs \<sharp> e \<Longrightarrow> vs \<sharp> VExprDefinedT e"
@@ -808,7 +824,7 @@ subsection {* Substitution theorems *}
 
 lemma LitD_subst [usubst]:
   "LitD v[e/\<^sub>*x] = LitD v"
-  by (simp add:usubst)
+  by (simp add:LitD_def usubst)
 
 lemma Op1D_subst [usubst]:
   "(Op1D f v)[e/\<^sub>*x] = Op1D f (v[e/\<^sub>*x])"
@@ -863,9 +879,11 @@ lemma LitD_defined [defined]:
   "\<D> (LitD v)"
   by (simp add:Defined_option_def Defined_pexpr_def evalp)
 
+(*
 lemma NumD_defined [defined]:
   "\<D> (NumD n)"
   by (simp add:NumD_def defined)
+*)
 
 lemma BotDE_not_defined [defined]:
   "\<D> \<bottom>\<^sub>v = False"

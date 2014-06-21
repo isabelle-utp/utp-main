@@ -96,6 +96,7 @@ syntax (xsymbols)
   "_vty_prod"    :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixr "\<times>" 20)
 
 syntax
+  "_vty_idt"     :: "idt \<Rightarrow> vty" ("_")
   "_vty_unit"    :: "vty" ("'(')")
   "_vty_quote"   :: "id \<Rightarrow> vty" ("<_>")
   "_vty_brack"   :: "vty \<Rightarrow> vty" ("'(_')")
@@ -123,6 +124,7 @@ syntax
   "_vty_schema"  :: "vty_decls \<Rightarrow> n_pexpr \<Rightarrow> vty" ("(1[_|/ _])")
 
 translations
+  "_vty_idt x"     => "x"
   "_vty_unit"      == "CONST vty_unit"
   "_vty_quote x"   == "CONST QuoteS IDSTR(x)"
   "_vty_union x y" == "CONST union x y"

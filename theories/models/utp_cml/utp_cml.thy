@@ -23,7 +23,8 @@ begin
 
 text {* Remove syntax which will likely clash *}
 
-hide_const "SUB" "floor" "greatest" "Set.empty" "Map.empty" "Id"
+hide_const "SUB" "floor" "greatest" "Set.empty" "Map.empty" "Id" 
+           "size" "top" "top_class.top" "bot_class.bot"
 
 no_notation
   J_pred ("J") and
