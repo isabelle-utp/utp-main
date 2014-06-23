@@ -57,11 +57,11 @@ lemma star_1l: "x \<cdot> x\<^sup>\<star> \<le> x\<^sup>\<star>"
   by (metis add_lub star_unfoldl)
 
 lemma "x\<^sup>\<star> \<cdot> x \<le> x\<^sup>\<star>"
-  nitpick [expect=genuine] -- "3-element counterexample"
+  (* nitpick [expect=genuine] -- "3-element counterexample" *)
 oops
 
 lemma "x \<cdot> x\<^sup>\<star> = x\<^sup>\<star>"
-  nitpick [expect=genuine] -- "2-element counterexample"
+  (* nitpick [expect=genuine] -- "2-element counterexample" *)
 oops
 
 text {* Next we show that starred elements are transitive. *}
@@ -120,11 +120,11 @@ proof
 qed
 
 lemma "y = x \<cdot> y \<longleftrightarrow> y = x\<^sup>\<star> \<cdot> y"
-  nitpick [expect=genuine] -- "2-element counterexample"
+  (* nitpick [expect=genuine] -- "2-element counterexample" *)
 oops
 
 lemma "x\<^sup>\<star> \<cdot> z \<le> y \<longrightarrow> z + x \<cdot> y \<le> y"
-  nitpick [expect=genuine] -- "3-element counterexample"
+  (* nitpick [expect=genuine] -- "3-element counterexample" *)
 oops
 
 lemma star_inductl_one: "1 + x \<cdot> y \<le> y \<longrightarrow> x\<^sup>\<star> \<le> y"
@@ -200,23 +200,23 @@ proof (rule antisym)
 qed
 
 lemma "1 + x\<^sup>\<star> \<cdot> x \<le> x\<^sup>\<star>"
-  nitpick [expect=genuine] -- "3-element counterexample"
+  (* nitpick [expect=genuine] -- "3-element counterexample" *)
 oops
 
 lemma "x \<le> x\<^sup>\<star>"
-  nitpick [expect=genuine] -- "3-element counterexample"
+  (* nitpick [expect=genuine] -- "3-element counterexample" *)
 oops
 
 lemma "x\<^sup>\<star> \<cdot> x \<le> x\<^sup>\<star>"
-  nitpick [expect=genuine] -- "3-element counterexample"
+  (* nitpick [expect=genuine] -- "3-element counterexample" *)
 oops
 
 lemma "1 + x \<cdot> x\<^sup>\<star> = x\<^sup>\<star>"
-  nitpick [expect=genuine] -- "4-element counterexample"
+  (* nitpick [expect=genuine] -- "4-element counterexample" *)
 oops
 
 lemma "x \<cdot> z \<le> z \<cdot> y \<longrightarrow> x\<^sup>\<star> \<cdot> z \<le> z \<cdot> y\<^sup>\<star>"
-  nitpick [expect=genuine] -- "3-element counterexample"
+  (* nitpick [expect=genuine] -- "3-element counterexample" *)
 oops
 
 text {* The following facts express inductive conditions that are used
@@ -246,7 +246,7 @@ lemma star_closed_unfold: "x\<^sup>\<star> = x \<longrightarrow> x = 1 + x \<cdo
   by (metis star_plus_one star_trans_eq)
 
 lemma "x\<^sup>\<star> = x \<longleftrightarrow> x = 1 + x \<cdot> x"
-  nitpick [expect=genuine] -- "3-element counterexample"
+  (* nitpick [expect=genuine] -- "3-element counterexample" *)
 oops
 
 end (* left_near_kleene_algebra *)
@@ -281,7 +281,7 @@ lemma star_unfoldr: "1 + x\<^sup>\<star> \<cdot> x \<le> x\<^sup>\<star>"
   by (metis add_lub star_1r star_ref)
 
 lemma "1 + x\<^sup>\<star> \<cdot> x = x\<^sup>\<star>"
-  nitpick [expect=genuine] -- "4-element counterexample"
+  (* nitpick [expect=genuine] -- "4-element counterexample" *)
 oops
 
 text {* Next we prove a simulation law for the star.  It is
@@ -320,7 +320,7 @@ lemma star_slide1: "(x \<cdot> y)\<^sup>\<star> \<cdot> x \<le> x \<cdot> (y \<c
   by (metis eq_iff mult_assoc star_sim1)
 
 lemma "(x \<cdot> y)\<^sup>\<star> \<cdot> x = x \<cdot> (y \<cdot> x)\<^sup>\<star>"
-  nitpick [expect=genuine] -- "3-element counterexample"
+  (* nitpick [expect=genuine] -- "3-element counterexample" *)
 oops
 
 lemma star_slide_var1: "x\<^sup>\<star> \<cdot> x \<le> x \<cdot> x\<^sup>\<star>"
@@ -340,7 +340,7 @@ proof (rule antisym)
 qed
 
 lemma "1 + x\<^sup>\<star> \<cdot> x = x\<^sup>\<star>"
-  nitpick [expect=genuine] -- "4-element counterexample"
+  (* nitpick [expect=genuine] -- "4-element counterexample" *)
 oops
 
 text {* Next we relate the star and the reflexive transitive closure
@@ -378,7 +378,7 @@ lemma star_rtc_least_eq: "1 + x + y \<cdot> y = y \<longrightarrow> x\<^sup>\<st
   by (metis eq_refl star_rtc_least)
 
 lemma "1 + x + y \<cdot> y \<le> y \<longleftrightarrow> x\<^sup>\<star> \<le> y"
-  nitpick [expect=genuine] -- "3-element counterexample"
+  (* nitpick [expect=genuine] -- "3-element counterexample" *)
 oops
 
 text {* The next lemmas are again related to closure conditions *}
@@ -554,15 +554,15 @@ lemma sup_id_star2: "1 \<le> x \<longrightarrow> x\<^sup>\<star> \<cdot> x = x\<
   by (metis eq_iff mult_isol mult_oner star_1r)
 
 lemma "1 + x\<^sup>\<star> \<cdot> x = x\<^sup>\<star>"
-  nitpick [expect=genuine] -- "4-element counterexample"
+  (* nitpick [expect=genuine] -- "4-element counterexample" *)
 oops
 
 lemma "(x \<cdot> y)\<^sup>\<star> \<cdot> x = x \<cdot> (y \<cdot> x)\<^sup>\<star>"
-  nitpick [expect=genuine] -- "3-element counterexample"
+  (* nitpick [expect=genuine] -- "3-element counterexample" *)
 oops
 
 lemma "x \<cdot> x = x \<longrightarrow> x\<^sup>\<star> = 1 + x"
-  nitpick [expect=genuine] -- "4-element counterexample"
+  (* nitpick [expect=genuine] -- "4-element counterexample" *)
 oops
 
 end (* left_pre_kleene_algebra *)

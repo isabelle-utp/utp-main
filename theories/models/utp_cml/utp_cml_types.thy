@@ -101,6 +101,7 @@ syntax
   "_vty_quote"   :: "id \<Rightarrow> vty" ("<_>")
   "_vty_brack"   :: "vty \<Rightarrow> vty" ("'(_')")
   "_vty_union"   :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixr "|" 65)
+  "_vty_inter"   :: "vty \<Rightarrow> vty \<Rightarrow> vty" (infixr "\<inter>" 60)
   "_vty_set"     :: "'a set \<Rightarrow> vty" ("@_")
   "_vty_bool"    :: "vty" ("@bool")
   "_vty_token"   :: "vty" ("@token")
@@ -128,6 +129,7 @@ translations
   "_vty_unit"      == "CONST vty_unit"
   "_vty_quote x"   == "CONST QuoteS IDSTR(x)"
   "_vty_union x y" == "CONST union x y"
+  "_vty_inter x y" == "CONST inter x y"
   "_vty_set x"     => "x"
   "_vty_brack x"   => "x"
   "_vty_bool"      == "CONST vty_bool"

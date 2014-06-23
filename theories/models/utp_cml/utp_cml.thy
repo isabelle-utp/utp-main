@@ -62,4 +62,6 @@ no_syntax
   "_upred_callpr"          :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("call _'[_']")
   "_upred_assignpr"        :: "('a, 'm) pvar \<Rightarrow> ('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_ := _'[_']" [100] 100)
 
+declare EvalD_vexpr_set_range [evalp del]
+
 end
