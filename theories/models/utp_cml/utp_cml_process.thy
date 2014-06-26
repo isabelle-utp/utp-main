@@ -100,9 +100,6 @@ abbreviation MkChanD :: "string \<Rightarrow> 'a set \<Rightarrow> ('a option) C
 
 (* FIXME: Surely these can all be unified into a single thing ... *)
 
-definition AssignC :: "'a cmlvar \<Rightarrow> 'a cmle \<Rightarrow> cmlp" where
-"AssignC x v = `\<lparr> defn(@v) \<rparr> \<turnstile> x := @v`"
-
 definition Exec0D :: "cmlp \<Rightarrow> cmlp" where
 "Exec0D p = p"
 

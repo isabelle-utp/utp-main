@@ -9,8 +9,9 @@ header {* Commands to construct CML definitions *}
 theory utp_cml_commands
 imports 
   utp_cml_functions
+  utp_cml_records
   utp_cml_stmt
-keywords "cmlifun" "cmlefun" "cmleop" "cmliop" "cmlacts" :: thy_decl and "inp" "out" "pre" "post" "frame"
+keywords "cmlifun" "cmlefun" "cmleop" "cmliop" "cmlrec" "cmlacts" :: thy_decl and "inp" "out" "pre" "post" "frame" "invariant"
 begin
 
 abbreviation "swap \<equiv> \<lambda> (x,y). (y, x)"                                          
@@ -41,6 +42,7 @@ sig
               -> Proof.context -> local_theory
   val mk_iop: ((string * ((string * string) list * (string * string))) * (string list * (string * string)))
               -> Proof.context -> local_theory
+  val mk_rec: (string * ((string * string) list * string)) -> local_theory -> local_theory
   val mk_acts: (string * string) list -> local_theory -> local_theory
   val efun_pr: Token.T list ->
       ((string * ((string * string) list * string)) * ((string * string) * string)) * Token.T list
@@ -50,6 +52,7 @@ sig
       ((string * ((string * string) list * string)) * ((string * string) * string)) * Token.T list
   val iop_pr: Token.T list -> 
       ((string * ((string * string) list * (string * string))) * (string list * (string * string))) * Token.T list
+  val rec_pr: Token.T list -> (string * ((string * string) list * string)) * Token.T list 
   val acts_pr: Token.T list -> (string * string) list * Token.T list
 end
 
@@ -58,6 +61,7 @@ struct
 
 open Syntax;
 open Local_Theory;
+open Typedef;
 
 fun split_dot x = case (String.tokens (fn x => x = #".") x) of
                     [_,y] => y
@@ -221,6 +225,33 @@ fun mk_ifun ((id, (inp, out)), (pre, post)) ctxt =
      ctxt3
   end;
 
+fun mk_rec_inst typ_name thm1 thm2 thy0 =
+let
+    val lthy = Named_Target.theory_init thy0
+    val typ = Syntax.parse_typ lthy typ_name
+    val typ_lname = (#1 o dest_Type) typ
+    fun inst_tac ctxt = stac (thm1 RSN (1, @{thm sym})) 1 THEN 
+                   asm_simp_tac (ctxt addsimps [simplify ctxt thm2]) 1
+in
+Local_Theory.exit_global lthy
+      |> Class.instantiation ([typ_lname], [], @{sort tag})
+      |> (snd o Local_Theory.define (mk_defn ("tagName_" ^ typ_name) "" (Abs ("x", typ, (HOLogic.mk_string typ_name)))))
+      |> (fn lthy => Class.prove_instantiation_exit (fn ctxt => Class.intro_classes_tac [] THEN inst_tac ctxt) lthy) 
+end
+
+fun mk_rec (id, (flds, inv)) ctxt =
+let
+  val ((n, (r, info)), ctx') = (Typedef.add_typedef (Binding.name id, [], NoSyn) 
+                                  @{term "{True}"}
+                                  NONE 
+                                  (rtac @{thm exI[of _ "True"]} 1 THEN rtac @{thm insertI1} 1)
+                                  ctxt)
+  val ctxt'' = background_theory (mk_rec_inst id (#Rep_inject info) (#Rep info)) ctx'
+(*  val maxty = *)
+in
+  ctxt''
+end
+
 fun mk_acts acts ctxt =
   let (* val act_heads = map (parse_term (acthead ctxt) o fst) acts *)
       val act_tuple = (foldr1 (fn (x, y) => const @{const_name "Abs_aprod"} $ (const @{const_name Pair} $ x $ y)) 
@@ -246,8 +277,6 @@ val efun_pr = Parse.short_ident
                   --  (Scan.optional (@{keyword "post"} |-- Parse.term) "true"))
                   --  (@{keyword "is"} |-- Parse.term));
 
-
-
 val eop_pr = Parse.short_ident 
                   -- ((Scan.optional (@{keyword "inp"} |-- inps1_pr) [("null_input", "()")])
                       -- (Scan.optional (@{keyword "out"} |-- Parse.term) "()"))
@@ -262,14 +291,12 @@ val iop_pr = Parse.short_ident
                   -- (Scan.optional (@{keyword "pre"} |-- Parse.term) "true"
                       -- (@{keyword "post"} |-- Parse.term)));
 
+val rec_pr = Parse.short_ident 
+                  -- (inps1_pr -- (Scan.optional (@{keyword "invariant"} |-- Parse.term)) "true") ;
+
 val acts_pr = Parse.enum1 "and" ((Parse.short_ident --| @{keyword "="}) -- Parse.term);
 
 end;
-
-
-
-
-Scan.optional;
 
 Outer_Syntax.local_theory  @{command_spec "cmlefun"} 
 "Explicit CML function" 
@@ -287,11 +314,22 @@ Outer_Syntax.local_theory  @{command_spec "cmleop"}
 "Explicit CML operation" 
 (CmlCommands.eop_pr >> CmlCommands.mk_eop);
 
+Outer_Syntax.local_theory @{command_spec "cmlrec"}
+"CML Record"
+(CmlCommands.rec_pr >> CmlCommands.mk_rec);
+
 Outer_Syntax.local_theory @{command_spec "cmlacts"}
 "CML Action block"
 (CmlCommands.acts_pr >> CmlCommands.mk_acts);
 
 *}
+
+cmlrec Coordinate
+  x :: "@nat" and y :: "@nat"
+
+print_theorems
+
+
 
 end
 

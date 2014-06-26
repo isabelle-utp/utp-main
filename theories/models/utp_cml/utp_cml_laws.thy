@@ -22,7 +22,7 @@ lemma Nats_floor [intro]:
   apply (metis of_nat_nat rangeI real_eq_of_int zero_le_floor)
 done
 
-lemma Nats_Ints_intro [intro]: 
+lemma Nats_Ints_intro [intro!]: 
   "\<lbrakk> (x::real) \<in> Ints; x \<ge> 0 \<rbrakk> \<Longrightarrow> x \<in> Nats"
   apply (auto simp add:Ints_def Nats_def)
   apply (metis Nats_def of_nat_in_Nats of_nat_nat)
@@ -50,7 +50,7 @@ lemma Ints_floor [intro]:
    be converted to HOL typed integers. This has the 
    advantage that HOL laws can be applied. *)
 
-lemma Ints_elim [elim]:
+lemma Ints_elim [elim!]:
   "\<lbrakk> x \<in> \<int>; \<And> (y :: int). \<lbrakk> x = real y \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (metis Ints_cases real_eq_of_int)
 

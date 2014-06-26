@@ -146,4 +146,6 @@ lemma cml_goal4: "|iota x : @nat @ &x = 5| = |5|"
   by (cml_auto_tac)
 *)
 
+declare fcard_def [evalp]
+
 end

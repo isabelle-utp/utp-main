@@ -213,6 +213,22 @@ lemma UNREST_ErasePE [unrest]:
   "UNREST_PEXPR vs v \<Longrightarrow> UNREST_PEXPR vs (ErasePE v)"
   by (simp add:UNREST_PEXPR_def ErasePE_def)
 
+(* Expression restriction: forcibly remove variables from an expression by
+   substituting them for a default value. *)
+
+lift_definition ResPE :: "('a::DEFINED, 'm::VALUE) pexpr \<Rightarrow> 'm uvar set \<Rightarrow> ('a, 'm) pexpr"
+is "\<lambda> f xs. (\<lambda> b. \<lbrakk>f\<rbrakk>\<^sub>* (b \<oplus>\<^sub>b \<B> on xs))" .
+
+notation ResPE (infixr "\<ominus>\<^sub>*" 200)
+
+lemma EvalPE_ResPE [evalp]:
+  "\<lbrakk>e \<ominus>\<^sub>* vs\<rbrakk>\<^sub>*b = \<lbrakk>e\<rbrakk>\<^sub>* (b \<oplus>\<^sub>b \<B> on vs)"
+  by (simp add:ResPE.rep_eq)
+
+lemma UNREST_ResPE [unrest]:
+  "vs \<sharp> e \<ominus>\<^sub>* vs"
+  by (simp add:UNREST_PEXPR_def ResPE.rep_eq)
+
 definition ProdPE ::
   "('a :: DEFINED, 'm :: VALUE) pexpr \<Rightarrow> 
    ('b :: DEFINED, 'm :: VALUE) pexpr \<Rightarrow>

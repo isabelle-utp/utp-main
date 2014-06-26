@@ -257,7 +257,7 @@ syntax
   "_vmaplet"  :: "[n_pexpr, n_pexpr] => vmaplet"       ("_ /|->/ _")
   ""          :: "vmaplet => vmaplets"             ("_")
   "_VMaplets" :: "[vmaplet, vmaplets] => vmaplets" ("_,/ _")
-  "_VMap"     :: "vmaplets => n_pexpr"               ("(1{_})")
+  "_VMap"     :: "vmaplets => n_pexpr"               ("(1{_})") 
 
 translations
   "_VMap (_VMaplets (_vmaplet x v) ms2)" == "CONST vexpr_mapupd (_VMap ms2) x v"
@@ -520,7 +520,6 @@ lemma "|defn(@x union @y)| = |defn(@x) and defn(@y)|"
   apply (metis (mono_tags) Defined_option_bind_1 Defined_option_elim bind_lunit)
   apply (metis (mono_tags) Defined_option_elim bind_lunit nDefined_option_elim option.distinct(1))
 done
-
 
 lemma "|defn(@x<@i>)| = |defn(@i) and defn(@x) and (@i < len @x)|"
   apply (cml_auto_tac)

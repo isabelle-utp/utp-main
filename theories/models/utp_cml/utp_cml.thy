@@ -54,6 +54,7 @@ no_notation
   utp_designs_sig.ParallelD (infixr "\<parallel>" 100)
 
 no_syntax
+  "_n_upred_assigns"    :: "n_pvars \<Rightarrow> n_pexprs \<Rightarrow> n_upred" ("_ := _" [100] 100)
   "_n_upred_ifthenelse" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("if _ then _ else _")
   "_n_upred_while"      :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("while _ do _ od")
   "_upred_prefixed"      :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _")

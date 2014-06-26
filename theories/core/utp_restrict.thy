@@ -4,7 +4,10 @@ imports
   utp_unrest 
   utp_expr 
   utp_rel
+  "../poly/utp_poly_expr"
 begin
+
+default_sort VALUE
 
 (* Restriction forcibly removes a set of variables from a predicate by substituting
    the default value for them. This method is better than through quantification since
@@ -22,6 +25,15 @@ is "\<lambda> f xs. (\<lambda> b. \<langle>f\<rangle>\<^sub>e (b \<oplus>\<^sub>
 done
 
 notation RestrictE (infixr "\<ominus>\<^sub>e" 200)
+
+lift_definition RestrictPE :: "('a, 'm) pexpr \<Rightarrow> 'm uvar set \<Rightarrow> ('a, 'm) pexpr"
+is "\<lambda> f xs. (\<lambda> b. \<lbrakk>f\<rbrakk>\<^sub>* (b \<oplus>\<^sub>b \<B> on xs))" .
+
+notation RestrictPE (infixr "\<ominus>\<^sub>*" 200)
+
+lemma UNREST_RestrictPE [unrest]:
+  "vs \<sharp> e \<ominus>\<^sub>* vs"
+  by (simp add:UNREST_PEXPR_def RestrictPE.rep_eq)
 
 lemma RestrictP_TrueP:
   "true \<ominus>\<^sub>p vs = true"

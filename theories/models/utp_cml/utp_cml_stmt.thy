@@ -2,17 +2,47 @@ theory utp_cml_stmt
 imports utp_cml_functions
 begin
 
+definition AssignC :: "'a cmlvar \<Rightarrow> 'a cmle \<Rightarrow> cmlp" where
+"AssignC x v = `\<lparr> defn(@v) \<rparr> \<turnstile> x := @v`"
+
+(* CML assignment can be performed on various type of expression with a variable this
+   overloaded constant implements this. *)
+
+consts
+  asgn_app :: "'a cmlvar \<Rightarrow> 'b cmle \<Rightarrow> 'c cmle \<Rightarrow> 'd cmle"
+
+abbreviation "AssignC_app x v e \<equiv> AssignC x (asgn_app x v e)"
+
+nonterminal
+  vasgn_exp
+
 no_syntax
+  "_n_upred_assigns"    :: "n_pvars \<Rightarrow> n_pexprs \<Rightarrow> n_upred" ("_ := _" [100] 100)
   "_n_upred_ifthenelse" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("if _ then _ else _")
   "_n_upred_while"      :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("while _ do _ od")
 
 syntax
+  "_n_upred_assigncml" :: "vasgn_exp \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_ := _" [100] 100)
   "_n_upred_ifthencml" :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("(if (_)/ then (_)/ else (_))" [0, 0, 10] 10)
   "_n_upred_whilecml"  :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("while _ do _ od")
-
+  "_vasgn_id"          :: "idt \<Rightarrow> vasgn_exp" ("_")
+  "_vasgn_app"         :: "idt \<Rightarrow> n_pexprs \<Rightarrow> vasgn_exp" ("_'(_')")
+  
 translations
+  "_n_upred_assigncml (_vasgn_id x) e" == "CONST AssignC x e"
+  "_n_upred_assigncml (_vasgn_app x i) e" == "CONST AssignC_app x (_vexpr_prod i) e"
   "_n_upred_ifthencml b P Q" == "CONST CondR P (CONST VTautHideT b) Q"
   "_n_upred_whilecml b P" == "CONST IterP (CONST VTautHideT b) P"
+
+term "`x := 5`"
+term "`f(5) := 1`"
+
+term "|@f ++ {@i |-> @v}|"
+
+definition "vmap_asgn_app f i v = |$f ++ {@i |-> @v}|"
+
+adhoc_overloading
+  asgn_app vmap_asgn_app
 
 text {* A CML operation specification takes an input type, an output type,
         a precondition, a postcondition and the "body" of the operation. *}
