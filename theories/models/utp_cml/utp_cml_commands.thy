@@ -241,15 +241,20 @@ end
 
 fun mk_rec (id, (flds, inv)) ctxt =
 let
-  val ((n, (r, info)), ctx') = (Typedef.add_typedef (Binding.name id, [], NoSyn) 
-                                  @{term "{True}"}
-                                  NONE 
-                                  (rtac @{thm exI[of _ "True"]} 1 THEN rtac @{thm insertI1} 1)
-                                  ctxt)
-  val ctxt'' = background_theory (mk_rec_inst id (#Rep_inject info) (#Rep info)) ctx'
-(*  val maxty = *)
+  val ((n, (r, info)), ctxt1) = (Typedef.add_typedef (Binding.name (id ^ "_tag"), [], NoSyn) 
+                                   @{term "{True}"}
+                                   NONE 
+                                   (rtac @{thm exI[of _ "True"]} 1 THEN rtac @{thm insertI1} 1)
+                                   ctxt)
+  val ctxt2 = background_theory (mk_rec_inst (id ^ "_tag") (#Rep_inject info) (#Rep info)) ctxt1
+  val maxty = mk_prod_ty ctxt flds
+  val maxty_term = check_term ctxt2 ( const @{const_name "RecMaximalType"} 
+                                    $ maxty 
+                                    $ Const ("TYPE", Term.itselfT (#abs_type r)))
+  val ((mtr,(_,thm2)), ctxt3) = define (mk_defn id "maxty_" maxty_term) ctxt2                                   
+
 in
-  ctxt''
+  ctxt3
 end
 
 fun mk_acts acts ctxt =
@@ -329,7 +334,20 @@ cmlrec Coordinate
 
 print_theorems
 
+ML {*
+  fun prod_sel n = 
+    if (n = 1) then (Const (@{const_syntax plast}, dummyT))
+    else if (n > 1) then (Const (@{const_syntax Fun.comp}, dummyT) 
+                            $ prod_sel (n - 1) 
+                            $ Const (@{const_syntax pnext}, dummyT))
+    else raise Match;
+*}
 
+term maxty_Coordinate
+
+ML {* Syntax.const "_vprojn" $ (HOLogic.mk_number 2) *}
+
+ML {* Local_Theory.define *}
 
 end
 
