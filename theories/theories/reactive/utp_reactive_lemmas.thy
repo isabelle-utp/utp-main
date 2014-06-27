@@ -1,24 +1,16 @@
 (******************************************************************************)
 (* Project: Mechanisation of the UTP                                          *)
 (* File: utp_reactive_lemmas.thy                                              *)
-(* Authors: Simon Foster, University of York                                  *)
+(* Authors: Simon Foster and Samuel Canham, University of York                *)
 (******************************************************************************)
 
 header {* Lemmas for the theory of reactive processes *}
 
 theory utp_reactive_lemmas
 imports 
-  "../utp_designs"
-  "../utp_theory"
+  "utp_designs"
+  "utp_reactive_sig"
 begin
-
-default_sort REACTIVE_SORT
-
-abbreviation "wait \<equiv> MkPlainP ''wait'' True TYPE(bool) TYPE('m)"
-abbreviation "tr   \<equiv> MkPlainP ''tr'' True TYPE('m EVENT ULIST) TYPE('m)"
-
-abbreviation "TR \<equiv> {tr\<down>, tr\<down>\<acute>}"
-abbreviation "WAIT \<equiv> {wait\<down>, wait\<down>\<acute>}"
 
 abbreviation wait_true :: 
   "'a upred \<Rightarrow> 'a upred" ("_\<^sub>t"[150]) where
@@ -187,5 +179,114 @@ lemma tr_prefix_app:
   apply (rule prefix_app)
   apply (simp add:closure typing)
 done
+
+lemma Leq_alt: "`($tr \<le> $tr\<acute>)` = `($tr < $tr\<acute>) \<or> ($tr = $tr\<acute>)`"
+by(utp_poly_auto_tac)
+
+lemma Subst_NotEq:
+  assumes "`P[x/y]` \<noteq> `Q[x/y]`"
+  shows "`P` \<noteq> `Q`"
+by (metis assms)
+
+
+lemma Seq_split_ok:
+  assumes "P \<in> REL" "Q \<in> REL"
+  shows "`P;Q` = `(P[true/ok\<acute>];(Q[true/ok])) \<or> (P[false/ok\<acute>];(Q[false/ok]))`"
+proof-
+have "`P;Q` = `\<exists> ok\<acute>\<acute>. ($ok\<acute>\<acute> \<or> \<not> $ok\<acute>\<acute>) \<and> (P[$ok\<acute>\<acute>/ok\<acute>];(Q[$ok\<acute>\<acute>/ok]))`"
+by(subst SemiR_extract_variable_ty[of "ok" "ok\<acute>\<acute>"],simp_all add:typing defined closure unrest assms OrP_excluded_middle)
+also have "... =`(P[true/ok\<acute>];(Q[true/ok])) \<or> (P[false/ok\<acute>];(Q[false/ok]))`"
+apply(subst PVarPE_VarP[THEN sym])
+apply(subst NotP_PVarPE_VarP[THEN sym])
+apply(subst AndP_comm)
+apply(subst AndP_OrP_distl)
+apply(subst ExistsP_OrP_dist)
+apply(subst EqualP_as_EqualPE,simp add:typing defined closure)+
+apply(subst ExistsP_one_point_ty) defer defer defer defer
+apply(subst ExistsP_one_point_ty)
+apply(simp add:typing defined closure unrest)+ defer
+apply(simp add:typing defined closure unrest)+
+apply(subst usubst) back back back back back back back back back back
+apply(simp_all add:typing defined closure unrest)
+apply(subst usubst) back back back back back back back back back back back
+apply(simp_all add:typing defined closure unrest)
+apply(subst SubstP_twice_2,simp_all add:typing defined closure unrest assms)+
+apply(simp add:usubst typing defined closure)
+done
+finally show ?thesis .
+qed
+
+lemma Seq_split_wait:
+  assumes "P \<in> REL" "Q \<in> REL"
+  shows "`P;Q` = `(P[true/wait\<acute>];(Q[true/wait])) \<or> (P[false/wait\<acute>];(Q[false/wait]))`"
+proof-
+have "`P;Q` = `\<exists> wait\<acute>\<acute>. ($wait\<acute>\<acute> \<or> \<not> $wait\<acute>\<acute>) \<and> (P[$wait\<acute>\<acute>/wait\<acute>];(Q[$wait\<acute>\<acute>/wait]))`"
+by(subst SemiR_extract_variable_ty[of "wait" "wait\<acute>\<acute>"],simp_all add:typing defined closure unrest assms OrP_excluded_middle)
+also have "... =`(P[true/wait\<acute>];(Q[true/wait])) \<or> (P[false/wait\<acute>];(Q[false/wait]))`"
+apply(subst PVarPE_VarP[THEN sym])
+apply(subst NotP_PVarPE_VarP[THEN sym])
+apply(subst AndP_comm)
+apply(subst AndP_OrP_distl)
+apply(subst ExistsP_OrP_dist)
+apply(subst EqualP_as_EqualPE,simp add:typing defined closure)+
+apply(subst ExistsP_one_point_ty) defer defer defer defer
+apply(subst ExistsP_one_point_ty)
+apply(simp add:typing defined closure unrest)+ defer
+apply(simp add:typing defined closure unrest)+
+apply(subst usubst) back back back back back back back back back back
+apply(simp_all add:typing defined closure unrest)
+apply(subst usubst) back back back back back back back back back back back
+apply(simp_all add:typing defined closure unrest)
+apply(subst SubstP_twice_2,simp_all add:typing defined closure unrest assms)+
+apply(simp add:usubst typing defined closure)
+done
+finally show ?thesis .
+qed
+
+lemma tr_diff_neq:
+  "`$tr^\<langle>x\<rangle> = $tr` = `false`"
+by(utp_poly_auto_tac)
+
+lemma tr_prefix_as_a: 
+  "`\<langle>a\<rangle> = ($tr \<acute>-$tr) \<and> ($tr \<le> $tr \<acute>)` = `$tr^\<langle>a\<rangle> = $tr \<acute>`"
+apply(utp_poly_auto_tac)
+apply (metis prefixeq_drop)
+apply (metis append_eq_conv_conj)
+apply (metis prefixeqI)
+done
+
+lemma a_notin_ref_closure[closure]:
+  assumes "NON_REL_VAR \<sharp> a"
+  shows "`a \<notin> $ref\<acute>` \<in> WF_RELATION"
+apply(simp add:WF_RELATION_def)
+apply(simp add:closure unrest assms typing defined)
+done
+
+lemma tr_prefix_a_closure[closure]:
+  assumes "NON_REL_VAR \<sharp> a"
+  shows "`$tr^\<langle>a\<rangle> = $tr\<acute>` \<in> WF_RELATION"
+apply(simp add:WF_RELATION_def)
+apply(simp add:closure unrest assms typing defined)
+done
+
+lemma prime_ref_a: 
+  assumes "D\<^sub>0 \<sharp> a"
+  shows "`($ref = {a})\<acute>` = `$ref\<acute> = {a}`"
+sorry
+
+lemma less_eq_self: "`($x \<le> $x)` = `true`"
+sorry
+
+lemma tr_leq_ident:
+  "`($x \<le> $y) \<and> ($y \<le> $x)` = `$y = $x`"
+sorry
+
+lemma SubstP_EqualP_swap:
+  "`P[$x/y] \<and> ($z = $x)` = `P[$z/y] \<and> ($z = $x)`"
+sorry 
+
+lemma SubstP_ident: 
+  "`P[$x/x]` = `P`"
+sorry
 
 end
