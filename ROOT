@@ -59,6 +59,7 @@ session "utp-mrktdrf-2014" in "papers/utp-mrktdrf-2014" = "HOL-UTP-THY" +
   theories [document = false]
   theories 
     "theory_mechanisation"
+    "hoare_gcd"
     "isabelle_utp"
     "proof_basic_laws"
     "proof_design_comp"
@@ -69,10 +70,12 @@ session "utp-mrktdrf-2014" in "papers/utp-mrktdrf-2014" = "HOL-UTP-THY" +
     "proof_h1_left_zero"
     "proof_h2_equiv"
     "proof_h2_idempotent"
+    "proof_iter_unfold"
     "proof_j_is_h2"
     "proof_j_split"
     "proof_refinement_conditional"
     "proof_unreachable_branch"
+    "proof_unreachable_branch_single"
     "proof_wp"
   files 
     "document/root.tex"

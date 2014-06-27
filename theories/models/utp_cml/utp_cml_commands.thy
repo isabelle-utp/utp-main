@@ -239,6 +239,14 @@ Local_Theory.exit_global lthy
       |> (fn lthy => Class.prove_instantiation_exit (fn ctxt => Class.intro_classes_tac [] THEN inst_tac ctxt) lthy) 
 end
 
+fun prod_sel n = 
+  if (n = 1) then (Const (@{const_name plast}, dummyT))
+  else if (n > 1) then (Const (@{const_name Fun.comp}, dummyT) 
+                          $ prod_sel (n - 1) 
+                          $ Const (@{const_name pnext}, dummyT))
+  else raise Match;
+
+
 fun mk_rec (id, (flds, inv)) ctxt =
 let
   val ((n, (r, info)), ctxt1) = (Typedef.add_typedef (Binding.name (id ^ "_tag"), [], NoSyn) 
@@ -252,9 +260,16 @@ let
                                     $ maxty 
                                     $ Const ("TYPE", Term.itselfT (#abs_type r)))
   val ((mtr,(_,thm2)), ctxt3) = define (mk_defn id "maxty_" maxty_term) ctxt2                                   
-
+  fun mk_flds ((id, ty) :: fs) n =   
+    let val fld = const @{const_name MkField} $ maxty_term $ prod_sel n $ read_term (vty ctxt3) ty
+    in
+    mk_flds fs (n + 1) o
+      snd o abbrev Syntax.mode_default ((Binding.name (id ^ "_fld"), NoSyn), check_term ctxt3 fld)
+    o snd o abbrev Syntax.mode_default ((Binding.name id, NoSyn), check_term ctxt3 (const @{const_name SelectRec} $ fld))
+    end
+    | mk_flds [] _ = (fn x => x)
 in
-  ctxt3
+  mk_flds flds 1 ctxt3
 end
 
 fun mk_acts acts ctxt =
@@ -331,23 +346,6 @@ Outer_Syntax.local_theory @{command_spec "cmlacts"}
 
 cmlrec Coordinate
   x :: "@nat" and y :: "@nat"
-
-print_theorems
-
-ML {*
-  fun prod_sel n = 
-    if (n = 1) then (Const (@{const_syntax plast}, dummyT))
-    else if (n > 1) then (Const (@{const_syntax Fun.comp}, dummyT) 
-                            $ prod_sel (n - 1) 
-                            $ Const (@{const_syntax pnext}, dummyT))
-    else raise Match;
-*}
-
-term maxty_Coordinate
-
-ML {* Syntax.const "_vprojn" $ (HOLogic.mk_number 2) *}
-
-ML {* Local_Theory.define *}
 
 end
 
