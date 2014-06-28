@@ -13,9 +13,10 @@ imports
   "csp/utp_csp_laws"
   "csp/utp_csp_processes"
   "csp/utp_csp_process_laws"
-  "csp/utp_csp_refine"
+(*  "csp/utp_csp_refine" *)
 begin
 
+(*
 definition ParallelMergeD2 :: 
   "'a upred =>  'a upred => 'a upred \<Rightarrow> 'a upred" (infix "\<parallel>2\<^bsub>_\<^esub>" 100) where
 "P \<parallel>2\<^bsub>M\<^esub> Q =  ((add_sub 0 on {tr \<down>\<acute>,wait \<down>\<acute>,ref \<down>\<acute>,ok \<down>\<acute>} \<bullet> P) \<and>\<^sub>p (add_sub 1 on {tr \<down>\<acute>,wait \<down>\<acute>,ref \<down>\<acute>,ok \<down>\<acute>} \<bullet> Q) \<and>\<^sub>p II\<^bsub>REA \<union> OKAY\<^esub>) ;\<^sub>R M"
@@ -666,5 +667,6 @@ lemma Interleave_closure[closure]:
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
   shows "`P ||| Q` \<in> WF_RELATION"
 sorry
+*)
 
 end

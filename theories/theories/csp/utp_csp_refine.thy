@@ -67,6 +67,7 @@ apply(simp)
 done
 qed
 
+(*
 lemma aid2:
 assumes 
   "NON_REL_VAR\<sharp> a" 
@@ -77,9 +78,7 @@ apply(simp add:assms Prefix_design)
 apply(subst DesignREA_refine)
 apply(simp add:R2s_def usubst typing defined closure)
 apply (metis RefineP_FalseP_refine)
-apply (metis PVAR_VAR_pvdash assms(3))
-apply(simp)
-done
+sorry
 
 lemma aid3:
   assumes "`a \<Rightarrow> b` \<sqsubseteq> `c`"
@@ -133,9 +132,13 @@ apply(subst aid4)
 apply(simp_all add:assms)
 apply(subst Prefix_post)
 apply(simp add:0)
+sorry
+(*
 apply (metis (lifting, no_types) AndP_idem PVAR_VAR_pvdash RefP_AndP)
 done
+*)
 qed
+
 
 lemma hand:
   assumes "`P` \<sqsubseteq> `a \<and> R`"
@@ -592,5 +595,6 @@ sorry
 qed
 show ?thesis sorry
 oops
+*)
 
 end
