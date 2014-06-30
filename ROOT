@@ -64,6 +64,7 @@ session "utp-mrktdrf-2014" in "papers/utp-mrktdrf-2014" = "HOL-UTP-THY" +
     "proof_basic_laws"
     "proof_design_comp"
     "proof_des_design"
+    "proof_des_inj"
     "proof_h1_algebraic"
     "proof_h1_equiv"
     "proof_h1_h2_design"
