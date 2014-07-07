@@ -72,6 +72,7 @@ session "utp-mrktdrf-2014" in "papers/utp-mrktdrf-2014" = "HOL-UTP-THY" +
     "proof_h1_left_zero"
     "proof_h2_equiv"
     "proof_h2_idempotent"
+    "proof_h3"
     "proof_h4_form"
     "proof_iter_unfold"
     "proof_j_is_h2"
