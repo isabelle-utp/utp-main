@@ -12,6 +12,7 @@ imports
   "csp/utp_csp_healths"
   "csp/utp_csp_laws"
   "csp/utp_csp_processes"
+  "csp/utp_csp_parallel_processes"
   "csp/utp_csp_process_laws"
 (*  "csp/utp_csp_refine" *)
 begin
