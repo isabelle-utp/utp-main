@@ -23,7 +23,7 @@ declare Abs_ADDR_inverse [simp]
 class ADDR_SORT = VALUE +
   fixes MkAddr   :: "ADDR \<Rightarrow> 'a"
   and   DestAddr :: "'a \<Rightarrow> ADDR"
-  and   AddrType :: "'a UTYPE"
+  and   AddrType :: "'a utype"
   and   refs     :: "'a \<Rightarrow> ADDR fset"
 
   assumes Inverse [simp] : "DestAddr (MkAddr x) = x"
@@ -92,9 +92,8 @@ defs (overloaded)
 lemma TypeUSound_PADDR [typing]: "TYPEUSOUND(('a::DEFINED) PADDR, 'm :: ADDR_SORT)"
   by (force simp add: typing defined inju)
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name erase} @{const_name Rep_PADDR}
-*}
+adhoc_overloading
+  erase Rep_PADDR
 
 definition prefs :: "'a \<Rightarrow> ('m::ADDR_SORT) itself \<Rightarrow> ADDR fset" where
 "prefs x t = refs (InjU x :: 'm)"
@@ -226,7 +225,7 @@ done
 instance
   apply (intro_classes)
   apply (auto simp add:zero_STORE.rep_eq plus_STORE.rep_eq)
-  apply (metis add_assoc)
+  apply (metis map_add_assoc plus_fmap.rep_eq)
 done
 
 end
@@ -278,7 +277,7 @@ default_sort VALUE
 class STORE_SORT = ADDR_SORT +
   fixes MkStore   :: "'a STORE \<Rightarrow> 'a"
   and   DestStore :: "'a \<Rightarrow> 'a STORE"
-  and   StoreType :: "'a UTYPE"
+  and   StoreType :: "'a utype"
 
   assumes Inverse [simp] : "DestStore (MkStore x) = x"
   and     StoreType_dcarrier: "dcarrier StoreType = range MkStore"

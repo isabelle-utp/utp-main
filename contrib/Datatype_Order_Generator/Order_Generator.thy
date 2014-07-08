@@ -5,7 +5,7 @@
 *)
 
 (*
-Copyright 2012 René Thiemann
+Copyright 2013 René Thiemann
 
 This file is part of IsaFoR/CeTA.
 
@@ -32,34 +32,35 @@ subsection Introduction
 
 text {*
 
-The order generator registers itself at the derive-manager for the classes \texttt{ord},
-\texttt{order}, and \texttt{linorder}.
+The order generator registers itself at the derive-manager for the classes @{class ord},
+@{class order}, and @{class linorder}.
 To be more precise,
-it automatically generates the two functions $\le$ and $<$ for some datatype 
-\texttt{dtyp} and
+it automatically generates the two functions @{term "op \<le>"} and @{term "op <"} for some datatype 
+\texttt{dtype} and
 proves the following instantiations.
 
 \begin{itemize}
-\item \texttt{instantiation dtyp :: (ord,\ldots,ord) ord}
-\item \texttt{instantiation dtyp :: (order,\ldots,order) order}
-\item \texttt{instantiation dtyp :: (linorder,\ldots,linorder) linorder}
+\item \texttt{instantiation dtype :: (ord,\ldots,ord) ord}
+\item \texttt{instantiation dtype :: (order,\ldots,order) order}
+\item \texttt{instantiation dtype :: (linorder,\ldots,linorder) linorder}
 \end{itemize}
 
 All the non-recursive types that are used in the datatype must have similar instantiations.
 For recursive type-dependencies this is automatically generated.
 
 For example, for the \texttt{datatype tree = Leaf nat | Node "tree list"} we require that
-\texttt{nat} is already in \texttt{linorder}, whereas for \texttt{list}s nothing is required, since for the 
+@{type nat} is already in @{class linorder}, whereas for @{type list} nothing is required, since for the 
 \texttt{tree}
-datatype the \texttt{list} is used recursively.
+datatype the @{type list} is only used recursively.
 
 However, if we define \texttt{datatype tree = Leaf "nat list" | Node tree tree} then 
-\texttt{list} must
+@{type list} must
 provide the above instantiations.
 
-Note that when calling the generator for \texttt{linorder}, it will automatically also derive the instantiations 
-for \texttt{order}, which in turn invokes the generator for \texttt{ord}. A later invokation of \texttt{linorder}
-after \texttt{order} or \texttt{ord} is not possible.
+Note that when calling the generator for @{class linorder}, it will automatically also derive the instantiations 
+for @{class order}, which in turn invokes the generator for @{class ord}. 
+A later invokation of @{class linorder}
+after @{class order} or @{class ord} is not possible.
 *}
 
 subsection "Implementation Notes"
@@ -77,10 +78,10 @@ this will semantically result in
 (l <= r) = (l < r || l = r)
 \end{verbatim}
 
-The desired properties (like \texttt{x < y ==> y < z ==> x < z}) 
-of the orders are all proven using induction (with the induction theorem from the datatype on \texttt{x}),
-and afterwards there is a case distinction on the remaining variables, i.e., here \texttt{y} and \texttt{z}.
-If the constructors of \texttt{x}, \texttt{y}, and \texttt{z} are different always some basic tactic is invoked. 
+The desired properties (like @{term "x < y \<Longrightarrow> y < z \<Longrightarrow> x < z"}) 
+of the orders are all proven using induction (with the induction theorem from the datatype on @{term x}),
+and afterwards there is a case distinction on the remaining variables, i.e., here @{term y} and @{term z}.
+If the constructors of @{term x}, @{term y}, and @{term z} are different always some basic tactic is invoked. 
 In the other case (identical constructors) for each property a dedicated tactic was designed.
 *}
 

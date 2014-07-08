@@ -22,8 +22,8 @@ setup eval.setup
 subsection {* Interpretation Function *}
 
 definition EvalP ::
-  "'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_BINDING \<Rightarrow> bool" ("\<lbrakk>_\<rbrakk>_" [0, 1000] 51) where
+  "'a upred \<Rightarrow>
+   'a binding \<Rightarrow> bool" ("\<lbrakk>_\<rbrakk>_" [0, 1000] 51) where
 "EvalP p = (\<lambda> b. b \<in> destPRED p)"
 
 subsection {* Transfer Theorems *}
@@ -142,8 +142,18 @@ done
 declare Tautology_def [eval]
 declare Contradiction_def [eval]
 (* declare Refinement_def [eval] *)
-declare less_eq_WF_PREDICATE_def [eval]
+declare less_eq_upred_def [eval]
 (* declare PrimeP_def [eval] *)
+
+lemma EvalP_Tautology_intro:
+  "\<lbrakk> \<And> b. \<lbrakk>p\<rbrakk>b \<rbrakk> \<Longrightarrow> taut p"
+  by (metis EvalP_ClosureP EvalP_TrueP EvalP_intro Tautology_def)
+
+lemma EvalP_RefineP_intro:
+  "\<lbrakk> \<And> b. \<lbrakk>q\<rbrakk>b \<Longrightarrow> \<lbrakk>p\<rbrakk>b \<rbrakk> \<Longrightarrow> p \<sqsubseteq> q"
+  by (metis EvalP_RefP EvalP_Tautology_intro less_eq_upred_def)  
+
+lemmas EvalP_intros = EvalP_intro EvalP_Tautology_intro EvalP_RefineP_intro
 
 subsection {* Support Theorems *}
 
@@ -245,7 +255,7 @@ text {*
 
 ML {*
   fun utp_pred_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps (eval.get ctxt)
       addsimps (closure.get ctxt)
       addsimps (typing.get ctxt)
@@ -254,21 +264,21 @@ ML {*
 
 ML {*
   fun utp_atomise_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps @{thms QuantP_atomise}
       addsimps (closure.get ctxt);
 *}
 
 ML {*
   fun utp_deatomise_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps @{thms QuantP_deatomise}
       addsimps (closure.get ctxt);
 *}
 
 ML {*
   fun utp_singleton_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps (eval.get ctxt)
       delsimps @{thms EvalP_QuantP}
       addsimps @{thms EvalP_QuantP_singleton}
@@ -277,7 +287,7 @@ ML {*
 
 ML {*
   fun utp_auto_simpset ctxt =
-    (simpset_of ctxt);
+    (ctxt);
 *}
 
 ML {*
@@ -299,6 +309,8 @@ ML {*
       TRY (asm_full_simp_tac (utp_deatomise_simpset ctxt) i) THEN
       TRY (asm_full_simp_tac (utp_singleton_simpset ctxt) i))
 *}
+
+
 
 text {* Should we atomise or deatomise below? *}
 

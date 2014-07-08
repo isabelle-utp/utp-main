@@ -68,6 +68,23 @@ qed
 
 text {* This immediately implies some variants. *}
 
+lemma setsum_less_eqI:
+  "(\<And>x. x \<in> A \<Longrightarrow> f x \<le> y) \<Longrightarrow> setsum f A \<le> (y::'a::join_semilattice_zero)"
+ apply (atomize (full))
+ apply (case_tac "finite A")
+  apply (erule finite_induct)
+   apply simp_all
+ apply (metis add_lub)
+done
+
+lemma setsum_less_eqE:
+  "\<lbrakk> setsum f A \<le> y; x \<in> A; finite A \<rbrakk> \<Longrightarrow> f x \<le> (y::'a::join_semilattice_zero)"
+ apply (erule rev_mp)
+ apply (erule rev_mp)
+ apply (erule finite_induct)
+  apply (auto simp add: add_lub)
+done
+
 lemma setsum_fun_image_sup:
   fixes f :: "'a \<Rightarrow> 'b::join_semilattice_zero"
   assumes "finite (A :: 'a set)"
@@ -158,15 +175,20 @@ lemma setsum_flatten1:
   assumes "finite (A :: 'a set)"
   and "finite (B :: 'a set)"
   shows "\<Sum>{\<Sum>{f x y |y. y \<in> B} |x. x \<in> A} = \<Sum>{f x y |x y. x \<in> A \<and> y \<in> B}"
-  by (simp add: fset_to_im assms flatten1_im, simp add: fset_to_im[symmetric])
-
+ apply (simp add: fset_to_im assms flatten1_im)
+ apply (subst fset_to_im[symmetric])
+ apply simp
+done
 
 lemma setsum_flatten2:
   fixes f :: "'a \<Rightarrow> 'a \<Rightarrow> 'b::join_semilattice_zero"
   assumes "finite A"
   and "finite B"
   shows "\<Sum>{\<Sum> {f x y |x. x \<in> A} |y. y \<in> B} = \<Sum>{f x y |x y. x \<in> A \<and> y \<in> B}"
-  by  (simp add: fset_to_im assms flatten2_im, simp add: fset_to_im[symmetric])
+ apply (simp add: fset_to_im assms flatten2_im)
+ apply (subst fset_to_im[symmetric])
+ apply simp
+done
 
 text {* Next we show another additivity property for suprema. *}
 
@@ -214,20 +236,19 @@ qed
 
 subsection {* Finite Suprema in Dioids *}
 
-text {* In this section we mainly prove variants of distributivity
-laws. *}
+text {* In this section we mainly prove variants of distributivity laws. *}
 
 lemma setsum_distl:
   assumes "finite Y"
   shows "(x :: 'a::dioid_one_zero) \<cdot> (\<Sum>Y) = \<Sum>{x \<cdot> y|y. y \<in> Y}"
-  by (simp only: setsum_fun_add assms annir right_distrib Collect_mem_eq fun_im)
+  by (simp only: setsum_fun_add assms annir distrib_left Collect_mem_eq fun_im)
 
 lemma setsum_distr:
   assumes "finite X"
   shows "(\<Sum>X) \<cdot> (y :: 'a::dioid_one_zero) = \<Sum>{x \<cdot> y|x. x \<in> X}"
 proof -
   have "(\<Sum> X) \<cdot> y = \<Sum> ((\<lambda>x. x \<cdot> y) ` X)"
-    by (rule setsum_fun_add, metis assms, rule annil, rule left_distrib)
+    by (rule setsum_fun_add, metis assms, rule annil, rule distrib_right)
   thus ?thesis
     by (metis Collect_mem_eq fun_im)
 qed

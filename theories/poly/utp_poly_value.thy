@@ -56,6 +56,15 @@ end
 
 lemma Defined_real [defined]: "\<D> (x :: real)" by (simp add:Defined_real_def)
 
+instantiation char :: DEFINED
+begin
+
+definition Defined_char :: "char \<Rightarrow> bool" where
+"Defined_char(x) = True"
+
+instance ..
+end
+
 instantiation list :: (DEFINED) DEFINED
 begin
 definition "Defined_list (xs :: 'a list) = (\<forall>x\<in>set xs. \<D> x)"
@@ -94,7 +103,7 @@ text {* The following global constants serve to link the (polymorphic)
 *}
 
 consts 
-  TypeU :: "'a itself \<Rightarrow> ('m :: VALUE) UTYPE"
+  TypeU :: "'a itself \<Rightarrow> ('m :: VALUE) utype"
   InjU  :: "'a \<Rightarrow> 'm :: VALUE"
   ProjU :: "'m :: VALUE \<Rightarrow> 'a"
 
@@ -170,7 +179,7 @@ defs (overloaded)
 
   InjU_event [inju]:  "InjU (x::('m::EVENT_SORT) EVENT) \<equiv> (MkEvent x::'m)"
   ProjU_event [inju]: "ProjU (x::('m::EVENT_SORT)) \<equiv> DestEvent x"
-  TypeU_event [simp]: "TypeU (x::('m::EVENT_SORT) EVENT itself) \<equiv> EventType::'m UTYPE"
+  TypeU_event [simp]: "TypeU (x::('m::EVENT_SORT) EVENT itself) \<equiv> EventType::'m utype"
 
   InjU_ULIST [inju]: 
     "InjU (xs::'a::DEFINED ULIST) \<equiv> MkList TYPEU('a) (map InjU (Rep_ULIST xs))"
@@ -303,12 +312,12 @@ lemma ProjU_DestEvent [simp]: "ProjU = DestEvent"
 
 lemma TypeUSound_ULIST [typing]: 
   assumes 
-    "(TYPEU('a :: DEFINED) :: 'm UTYPE) \<in> ListPerm" "TYPEUSOUND('a, 'm)"
+    "(TYPEU('a :: DEFINED) :: 'm utype) \<in> ListPerm" "TYPEUSOUND('a, 'm)"
   shows "TYPEUSOUND('a ULIST, 'm :: LIST_SORT)"
 proof -
 
   from assms
-  have "\<And> x::'a ULIST. MkList TYPEU('a) (map InjU (Rep_ULIST x)) :! (ListType TYPEU('a) :: 'm UTYPE)"
+  have "\<And> x::'a ULIST. MkList TYPEU('a) (map InjU (Rep_ULIST x)) :! (ListType TYPEU('a) :: 'm utype)"
     apply (rule_tac typing)
     apply (simp)
     apply (auto simp add:dcarrier_def intro:typing)
@@ -355,12 +364,12 @@ lemma Abs_UFSET_inverse'': "(\<forall>x \<in> \<langle>xs\<rangle>\<^sub>f. \<D>
 
 lemma TypeUSound_UFSET [typing]: 
   assumes 
-    "(TYPEU('a :: DEFINED) :: 'm UTYPE) \<in> FSetPerm" "TYPEUSOUND('a, 'm)"
+    "(TYPEU('a :: DEFINED) :: 'm utype) \<in> FSetPerm" "TYPEUSOUND('a, 'm)"
   shows "TYPEUSOUND('a UFSET, 'm :: FSET_SORT)"
 proof -
 
   from assms
-  have "\<And> x::'a UFSET. MkFSet TYPEU('a) (InjU `\<^sub>f (Rep_UFSET x)) :! (FSetType TYPEU('a) :: 'm UTYPE)"
+  have "\<And> x::'a UFSET. MkFSet TYPEU('a) (InjU `\<^sub>f (Rep_UFSET x)) :! (FSetType TYPEU('a) :: 'm utype)"
     apply (rule_tac typing)
     apply (simp add: inju)
     apply (auto simp add:dcarrier_def intro:typing)
@@ -405,12 +414,12 @@ done
 
 lemma TypeUSound_USET [typing]: 
   assumes 
-    "(TYPEU('a :: DEFINED) :: 'm UTYPE) \<in> SetPerm" "TYPEUSOUND('a, 'm)"
+    "(TYPEU('a :: DEFINED) :: 'm utype) \<in> SetPerm" "TYPEUSOUND('a, 'm)"
   shows "TYPEUSOUND('a USET, 'm :: SET_SORT)"
 proof -
 
   from assms
-  have "\<And> x::'a USET. MkSet TYPEU('a) (InjU ` (Rep_USET x)) :! (SetType TYPEU('a) :: 'm UTYPE)"
+  have "\<And> x::'a USET. MkSet TYPEU('a) (InjU ` (Rep_USET x)) :! (SetType TYPEU('a) :: 'm utype)"
     apply (rule_tac typing)
     apply (simp)
     apply (auto simp add:dcarrier_def intro:typing)

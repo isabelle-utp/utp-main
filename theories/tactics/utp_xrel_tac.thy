@@ -19,7 +19,7 @@ ML {*
 
 setup evalrx.setup
 
-definition WF_XREL_BINDING :: "'VALUE WF_BINDING set" where
+definition WF_XREL_BINDING :: "'a binding set" where
 "WF_XREL_BINDING = {b \<oplus>\<^sub>b bc on DASHED \<union> NON_REL_VAR | b . b \<in> UNIV}"
 
 lemma WF_XREL_BINDING: 
@@ -30,7 +30,7 @@ done
 
 abbreviation "WF_XREL \<equiv> WF_XREL_BINDING \<times> WF_XREL_BINDING"
 
-typedef 'VALUE WF_XREL_BINDING = "WF_XREL_BINDING :: 'VALUE WF_BINDING set"
+typedef 'a WF_XREL_BINDING = "WF_XREL_BINDING :: 'a binding set"
   morphisms DestXRelB MkXRelB
   by (auto simp add:WF_XREL_BINDING_def)
 
@@ -69,10 +69,10 @@ lemma DestXRelB_binding_equiv:
 done
 
 lift_definition xbinding_override_on ::
-  "'VALUE WF_XREL_BINDING \<Rightarrow>
-   'VALUE WF_XREL_BINDING \<Rightarrow>
-   'VALUE VAR set \<Rightarrow>
-   'VALUE WF_XREL_BINDING" ("_ \<oplus>\<^sub>x _ on _" [56, 56, 0] 55) is "binding_override_on"
+  "'a WF_XREL_BINDING \<Rightarrow>
+   'a WF_XREL_BINDING \<Rightarrow>
+   'a uvar set \<Rightarrow>
+   'a WF_XREL_BINDING" ("_ \<oplus>\<^sub>x _ on _" [56, 56, 0] 55) is "binding_override_on"
   apply (auto simp add:WF_XREL_BINDING_def)
   apply (metis (hide_lams, no_types) binding_override_assoc binding_override_simps(1) binding_override_simps(4) sup_commute)
 done
@@ -80,10 +80,10 @@ done
 declare xbinding_override_on.rep_eq [simp]
 
 definition xbinding_upd :: 
-  "'VALUE WF_XREL_BINDING \<Rightarrow>
-   'VALUE VAR \<Rightarrow>
-   'VALUE \<Rightarrow>
-   'VALUE WF_XREL_BINDING" where
+  "'a WF_XREL_BINDING \<Rightarrow>
+   'a uvar \<Rightarrow>
+   'a \<Rightarrow>
+   'a WF_XREL_BINDING" where
 "xbinding_upd b x v = MkXRelB (binding_upd \<langle>b\<rangle>\<^sub>x x v)"
 
 lemma DestXRelB_rep_eq [simp]:
@@ -108,15 +108,15 @@ translations
   "_XBUpdate f (_xbupdbinds b bs)" == "_XBUpdate (_XBUpdate f b) bs"
   "f(x:=\<^sub>xy)" == "CONST xbinding_upd f x y"
 
-type_synonym 'VALUE XRELATION =
-  "('VALUE WF_XREL_BINDING \<times>
-    'VALUE WF_XREL_BINDING) set"
+type_synonym 'a XRELATION =
+  "('a WF_XREL_BINDING \<times>
+    'a WF_XREL_BINDING) set"
 
 subsection {* Interpretation Function *}
 
 definition BindRX ::
-  "'VALUE WF_BINDING \<Rightarrow>
-   'VALUE WF_XREL_BINDING \<times> 'VALUE WF_XREL_BINDING" where
+  "'a binding \<Rightarrow>
+   'a WF_XREL_BINDING \<times> 'a WF_XREL_BINDING" where
 "BindRX b = (MkXRelB (b \<oplus>\<^sub>b bc on DASHED \<union> NON_REL_VAR), MkXRelB ((RenameB SS b) \<oplus>\<^sub>b bc on DASHED \<union> NON_REL_VAR))"
 
 lemma BindRX_left_XREL [simp]:"(b \<oplus>\<^sub>b bc on DASHED \<union> NON_REL_VAR) \<in> WF_XREL_BINDING"
@@ -130,7 +130,7 @@ theorem BindRX_override :
  (rb3, rb2) = BindRX b2\<rbrakk> \<Longrightarrow>
  (rb1, rb2) = BindRX (b1 \<oplus>\<^sub>b b2 on DASHED \<union> NON_REL_VAR)"
 apply (simp add: BindRX_def)
-apply (auto elim!:Rep_WF_BINDING_elim DestXRelB_elim intro!:Rep_WF_BINDING_intro DestXRelB_intro)
+apply (auto elim!:Rep_binding_elim DestXRelB_elim intro!:Rep_binding_intro DestXRelB_intro)
 apply (simp add: override_on_eq)
 apply (clarify)
 apply (drule_tac x = "x" in spec)
@@ -148,7 +148,7 @@ lemma BindRX_inj:
   apply (auto simp add:BindRX_def)
   apply (erule DestXRelB_elim)+
   apply (simp)
-  apply ((erule Rep_WF_BINDING_elim)+, auto simp add:RenameB_rep_eq binding_equiv_def)
+  apply ((erule Rep_binding_elim)+, auto simp add:RenameB_rep_eq binding_equiv_def)
   apply (smt Compl_eq_Diff_UNIV Diff_iff NON_REL_VAR_def UNDASHED_not_DASHED Un_iff override_on_eq)
   apply (drule_tac x="undash x" and y="undash x" in cong) back
   apply (simp_all)
@@ -158,8 +158,8 @@ lemma BindRX_inj:
 done
   
 definition BindPX ::
-  "'VALUE WF_XREL_BINDING \<times> 'VALUE WF_XREL_BINDING \<Rightarrow>
-   'VALUE WF_BINDING" where
+  "'a WF_XREL_BINDING \<times> 'a WF_XREL_BINDING \<Rightarrow>
+   'a binding" where
 "BindPX = (\<lambda> (rb1, rb2) . DestXRelB rb1 \<oplus>\<^sub>b (RenameB SS (DestXRelB rb2)) on DASHED)"
 
 lemma UNDASHED_DASHED_NON_REL_VAR :
@@ -194,13 +194,13 @@ lemma BindRX_inverse: "BindPX (BindRX p) \<cong> p on REL_VAR"
 done
 
 definition EvalRX ::
-  "'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE XRELATION" ("\<lbrakk>_\<rbrakk>RX") where
+  "'a upred \<Rightarrow>
+   'a XRELATION" ("\<lbrakk>_\<rbrakk>RX") where
 "EvalRX p = BindRX ` (destPRED p)"
 
 definition IEvalRX ::
-  "'VALUE XRELATION \<Rightarrow>
-   'VALUE WF_PREDICATE" where
+  "'a XRELATION \<Rightarrow>
+   'a upred" where
 "IEvalRX p = mkPRED {BindPX b1 \<oplus>\<^sub>b b2 on NON_REL_VAR | b1 b2. b1 \<in> p }"
 
 lemma EvalRX_intro:
@@ -231,7 +231,7 @@ lemma EvalRX_as_EvalP [eval]: "\<lbrakk>p\<rbrakk>RX = {BindRX b | b. \<lbrakk>p
 
 lemma EvalRX_refinement_intro:
   "\<lbrakk>p1 \<in> WF_RELATION; p2 \<in> WF_RELATION; \<lbrakk>p2\<rbrakk>RX \<subseteq> \<lbrakk>p1\<rbrakk>RX \<rbrakk> \<Longrightarrow> p1 \<sqsubseteq> p2"
-  apply (auto simp add:EvalR_as_EvalP less_eq_WF_PREDICATE_def eval)
+  apply (auto simp add:EvalR_as_EvalP less_eq_upred_def eval)
   apply (drule_tac c="BindRX b" in subsetD)
   apply (force)
   apply (auto)
@@ -261,13 +261,13 @@ lemma EvalRX_simp [evalrx]:
 lemma EvalRX_refinement [evalrx]: 
   "\<lbrakk>p1 \<in> WF_RELATION; p2 \<in> WF_RELATION \<rbrakk> \<Longrightarrow> p1 \<sqsubseteq> p2 \<longleftrightarrow> \<lbrakk>p2\<rbrakk>RX \<subseteq> \<lbrakk>p1\<rbrakk>RX"
   apply (auto)
-  apply (force simp add:EvalR_as_EvalP less_eq_WF_PREDICATE_def eval)
+  apply (force simp add:EvalR_as_EvalP less_eq_upred_def eval)
   apply (force intro:EvalRX_refinement_intro)
 done
 
 lemma EvalRX_refp [evalrx]: 
   "\<lbrakk>p1 \<in> WF_RELATION; p2 \<in> WF_RELATION \<rbrakk> \<Longrightarrow> p1 \<sqsubseteq>\<^sub>p p2 \<longleftrightarrow> \<lbrakk>p2\<rbrakk>RX \<subseteq> \<lbrakk>p1\<rbrakk>RX"
-  by (metis EvalRX_refinement less_eq_WF_PREDICATE_def)
+  by (metis EvalRX_refinement less_eq_upred_def)
 
 lemma EvalRX_implies [evalrx]: 
   "\<lbrakk>p1 \<in> WF_RELATION; p2 \<in> WF_RELATION \<rbrakk> \<Longrightarrow> [p2 \<Rightarrow>\<^sub>p p1]\<^sub>p \<longleftrightarrow> \<lbrakk>p2\<rbrakk>RX \<subseteq> \<lbrakk>p1\<rbrakk>RX"
@@ -316,7 +316,7 @@ lemma EvalRX_NotP [evalrx]:
 done
 
 lemma EvalRX_SkipR [evalrx]: "\<lbrakk>II\<rbrakk>RX = Id"
-  apply (auto intro!:DestXRelB_intro Rep_WF_BINDING_intro simp add:EvalRX_def SkipR.rep_eq BindRX_def RenameB_rep_eq)
+  apply (auto intro!:DestXRelB_intro Rep_binding_intro simp add:EvalRX_def SkipR.rep_eq BindRX_def RenameB_rep_eq)
   apply (rule)
   apply (case_tac "x \<in> DASHED \<union> NON_REL_VAR")
   apply (force)
@@ -353,7 +353,7 @@ apply (simp add: BindRX_def)
 apply (simp add: COMPOSABLE_BINDINGS_def)
 apply (auto)
 apply (erule DestXRelB_elim)+
-apply (erule Rep_WF_BINDING_elim)+
+apply (erule Rep_binding_elim)+
 apply (simp add: override_on_eq RenameB_def)
 -- {* Subgoal 1 *}
 apply (drule_tac x = "v" in spec)
@@ -420,7 +420,7 @@ theorem EvalRX_AssignR [evalrx] :
   apply (case_tac "xa \<in> DASHED \<union> NON_REL_VAR")
   apply (simp)
   apply (simp add:var_contra NON_REL_VAR_def urename)
-  apply (safe, simp add:var_contra NON_REL_VAR_def urename evale EvalE_def)
+  apply (safe, simp add:var_contra NON_REL_VAR_def urename evale EvalE_def typing)
   apply (rule_tac x="BindPX (b, b(x :=\<^sub>x \<langle>e\<rangle>\<^sub>e \<langle>b\<rangle>\<^sub>x))" in exI)
   apply (auto)
   apply (auto simp add:BindPX_def RenameB_rep_eq urename typing defined EvalE_def)
@@ -435,7 +435,7 @@ theorem EvalRX_AssignR_alt [evalrx] :
   apply (simp_all add:typing)
   apply (rule, rule, rule)
   apply (case_tac "xb \<in> UNDASHED")
-  apply (auto)
+  apply (auto simp add:typing)
 done
 
 (*
@@ -486,7 +486,7 @@ lemma EvalRX_VarP_UNDASHED [evalrx]:
   apply (simp add:evale)
   apply (rule)
   apply (auto)
-  apply (metis BOOL_SORT_class.Inverse FalseV_def MkBool_cases Rep_WF_BINDING TrueV_def WF_BINDING_app_type WF_BINDING_aux_defined)
+  apply (metis BOOL_SORT_class.Inverse FalseV_def MkBool_cases Rep_binding TrueV_def binding_app_type binding_aux_defined)
 done
 
 lemma EvalRX_VarP_DASHED [evalrx]:
@@ -498,7 +498,7 @@ lemma EvalRX_VarP_DASHED [evalrx]:
   apply (simp add:evale)
   apply (rule)
   apply (auto simp add:urename)
-  apply (metis BOOL_SORT_class.Inverse FalseV_def MkBool_cases Rep_WF_BINDING TrueV_def WF_BINDING_app_type aux_defined aux_undash vtype_undash)
+  apply (metis BOOL_SORT_class.Inverse FalseV_def MkBool_cases Rep_binding TrueV_def binding_app_type aux_defined aux_undash vtype_undash)
 done
 
 theorem EvalR_EqualP_UNDASHED [evalrx]:
@@ -610,7 +610,7 @@ lemma binding_equiv_SS_DASHED:
 
 theorem UNREST_EXPR_compl_member [simp] :
 "- vs \<sharp> f \<Longrightarrow> \<langle>f\<rangle>\<^sub>e (b \<oplus>\<^sub>b b' on vs) = \<langle>f\<rangle>\<^sub>e b' "
-  by (metis WF_EXPRESSION_UNREST_binding_equiv binding_override_equiv1)
+  by (metis uexpr_UNREST_binding_equiv binding_override_equiv1)
 
 lemma binding_upd_vcoerce_dash [simp]:
   "b(x\<acute> :=\<^sub>b vcoerce v x) = b(x\<acute> :=\<^sub>b v)"
@@ -656,7 +656,7 @@ theorem EvalRX_SubstP_DASHED [evalrx] :
   apply (auto intro:unrest UNREST_EXPR_subset)[1]
   apply (subst binding_override_minus)
   apply (simp add:var_dist)
-  apply (subgoal_tac "- D\<^sub>1 \<inter> REL_VAR = (D\<^sub>0 :: 'a VAR set)")
+  apply (subgoal_tac "- D\<^sub>1 \<inter> REL_VAR = (D\<^sub>0 :: 'a uvar set)")
   defer
   apply (auto)[1]
   apply (simp)
@@ -691,7 +691,7 @@ subsection {* Proof Tactics *}
 
 ML {*
   fun utp_xrel_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps (evalrx.get ctxt)
       addsimps (typing.get ctxt)
       addsimps (defined.get ctxt)
@@ -700,7 +700,7 @@ ML {*
 
 ML {*
   fun utp_xrel_auto_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps @{thms "relcomp_unfold"}
 *}
 
@@ -727,7 +727,6 @@ method_setup utp_xrel_auto_tac = {*
   (fn thms => fn ctxt =>
     SIMPLE_METHOD' (utp_rel_deep_auto_tac thms ctxt))
 *} "proof tactic for relations with auto"
-
 
 (* Tests *)
 

@@ -5,7 +5,7 @@
 *)
 
 (*
-Copyright 2012 René Thiemann
+Copyright 2013 René Thiemann
 
 This file is part of IsaFoR/CeTA.
 
@@ -34,8 +34,8 @@ subsection "Introduction"
 text {*
 Brian Huffmann and Alexander Krauss have developed a tactic
 which automatically can prove that a datatype is countable.
-We just make this tactic available in the derive-manger so that
-one can conviently write \texttt{derive countable some-datatype}.
+We just make this tactic available in the derive-manager so that
+one can conveniently write \texttt{derive countable some-datatype}.
 *}
 
 subsection "Features and Limitations"
@@ -43,7 +43,7 @@ subsection "Features and Limitations"
 text {*
 We get similar limitation as for the order generator. 
 For mutual recursive datatypes, only
-for the first mentioned datatype the instantiations of the countable-class are
+for the first mentioned datatype the instantiations of the @{class countable}-class are
 derived. 
 *}
 
@@ -56,7 +56,7 @@ for class-instantiation.
 
 setup {*
   let 
-    fun derive dtyp_name thy = 
+    fun derive dtyp_name _ thy = 
       let
         val base_name = Long_Name.base_name dtyp_name
         val _ = Output.writeln ("proving that datatype " ^ base_name ^ " is countable")
@@ -69,7 +69,7 @@ setup {*
         val _ = Output.writeln ("registered " ^ base_name ^ " in class countable")
       in thy' end
   in 
-    Derive_Manager.register_derive "countable" "proves that a datatype is countable" derive 
+    Derive_Manager.register_derive "countable" "proves that a datatype is countable" derive
   end
 *}
 

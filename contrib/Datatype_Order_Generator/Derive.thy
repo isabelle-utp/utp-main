@@ -5,7 +5,7 @@
 *)
 
 (*
-Copyright 2012 René Thiemann
+Copyright 2013 René Thiemann
 
 This file is part of IsaFoR/CeTA.
 
@@ -33,5 +33,10 @@ begin
 text{*
 We just load the commands to derive (linear) orders, hash-functions, and the
 command to show that a datatype is countable, so that now all of them are available.
+There are further generators available in
+the AFP entry of lightweight containers. 
 *}
+
+print_derives
+
 end

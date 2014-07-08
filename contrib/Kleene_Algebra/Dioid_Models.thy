@@ -270,9 +270,9 @@ a dioid. *}
 
 interpretation trace_dioid: dioid_one_zero "op \<union>" t_prod t_one t_zero "op \<subseteq>" "op \<subset>"
 apply unfold_locales
-apply (auto simp add: t_prod_def t_one_def t_zero_def t_fusion_def first_def)
-apply (metis first_def first_t_fusion pair_collapse snd_conv t_fusion_def)
-apply (metis Dioid_Models.last_append append_assoc)
+apply (auto simp add: t_prod_def t_one_def t_zero_def t_fusion_def)
+apply (metis last_append)
+apply (metis last_append append_assoc)
 done
 
 no_notation
@@ -298,7 +298,7 @@ path and an empty one is undefined; the fusion of two non-empty paths
 appends the tail of the second path to the first one.
 
 We need to use a total alternative and make sure that undefined paths
-do not contribute to the complex product.  *}
+do not contribute to the complex product. *}
 
 fun p_fusion :: "'a path \<Rightarrow> 'a path \<Rightarrow> 'a path" where
   "p_fusion [] _ = []"
@@ -564,7 +564,6 @@ lattice is a dioid with one and zero. *}
 
 class bounded_distributive_lattice = bounded_lattice + distrib_lattice
 
-(*
 sublocale bounded_distributive_lattice \<subseteq> dioid_one_zero sup inf top bot less_eq
 proof
   fix x y z
@@ -595,7 +594,7 @@ proof
   show "inf x (sup y z) = sup (inf x y) (inf x z)"
     by (fact inf_sup_distrib1)
 qed
-*)
+
 
 subsection {* The Boolean Dioid *}
 
@@ -609,10 +608,9 @@ begin
 
 end (* instantiation *)
 
-(*
 interpretation boolean_dioid: dioid_one_zero sup inf True False less_eq less
   by (unfold_locales, simp_all add: inf_bool_def sup_bool_def)
-*)
+
 
 subsection {* The Max-Plus Dioid *}
 
@@ -697,15 +695,7 @@ begin
     show "x + y = x \<or> x + y = y"
       by (cases x, cases y, simp_all add: plus_mreal_def, metis linorder_le_cases min_max.le_iff_sup min_max.sup_absorb1)
     show "x * (y + z) = x * y + x * z"
-      by (cases x, cases y, cases z, simp_all add: plus_mreal_def times_mreal_def)
-qed
-
-end (* instantiation *)
-
-instantiation mreal :: dioid_one_zero
-begin
-
-  instance ..
+      by (cases x, cases y, cases z, simp_all add: plus_mreal_def times_mreal_def)     qed
 
 end (* instantiation *)
 
@@ -780,13 +770,6 @@ begin
      by (cases x, cases y, simp_all add: plus_preal_def, metis linorder_le_cases min_max.inf_absorb2 min_max.le_iff_inf)
     show "x * (y + z) = x * y + x * z"
       by (cases x, cases y, cases z, simp_all add: plus_preal_def times_preal_def)   qed
-
-end (* instantiation *)
-
-instantiation preal :: dioid_one_zero
-begin
-
-  instance ..
 
 end (* instantiation *)
 
@@ -865,11 +848,5 @@ begin
 
 end (* instantiation *)
 
-instantiation pnat :: dioid_one_zero
-begin
-
-  instance ..
-
-end (* instantiation *)
-
 end
+

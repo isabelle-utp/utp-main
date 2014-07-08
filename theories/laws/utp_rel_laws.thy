@@ -689,8 +689,8 @@ proof -
       by (auto)
 
     with UNREST show ?thesis using assms
-      apply (simp add: SemiR_algebraic closure urename var_simps)
-      apply (simp add: SS1_UNDASHED_DASHED_image[simplified] var_simps var_dist closure)
+      apply (simp add: SemiR_algebraic closure urename)
+      apply (simp add: SS1_UNDASHED_DASHED_image[simplified] var_dist closure)
     done
   qed
 
@@ -699,7 +699,7 @@ proof -
     from assms(4) have "UNREST ?A (SS2\<bullet>q)"
       apply (rule unrest)
       apply (subgoal_tac "UNDASHED - vs2 \<subseteq> UNDASHED \<union> DASHED")
-      apply (simp add: SS2_UNDASHED_DASHED_image[simplified] var_simps var_dist closure)
+      apply (simp add: SS2_UNDASHED_DASHED_image[simplified] var_dist closure)
       apply (auto intro: unrest)
       apply (metis (lifting) DASHED_dash_DASHED_TWICE set_rev_mp utp_var.out_DASHED)
     done
@@ -747,10 +747,10 @@ proof -
       by (auto)
 
     with UNREST show ?thesis using assms
-      apply (simp add: SemiR_algebraic closure urename var_simps)
+      apply (simp add: SemiR_algebraic closure urename)
       apply (subgoal_tac "undash ` vs1 \<subseteq> UNDASHED \<union> DASHED")
       apply (subgoal_tac "vs2 \<subseteq> UNDASHED \<union> DASHED")
-      apply (simp add: SS2_UNDASHED_DASHED_image[simplified] var_simps var_dist closure)
+      apply (simp add: SS2_UNDASHED_DASHED_image[simplified] var_dist closure)
       apply (auto)
     done
   qed
@@ -760,7 +760,7 @@ proof -
     from assms(3) have "?A \<sharp> (SS1\<bullet>p)"
       apply (rule unrest)
       apply (subgoal_tac "DASHED - vs1 \<subseteq> UNDASHED \<union> DASHED")
-      apply (simp add: SS1_UNDASHED_DASHED_image[simplified] var_simps var_dist closure)
+      apply (simp add: SS1_UNDASHED_DASHED_image[simplified] var_dist closure)
       apply (auto intro: unrest)
       apply (metis DASHED_dash_DASHED_TWICE Int_iff UNDASHED_dash_DASHED in_vars_def)
       apply (metis (lifting) assms(5) dash_undash_image image_eqI out_dash)
@@ -872,7 +872,7 @@ theorem SemiR_left_one_point:
   apply (utp_rel_auto_tac)
   apply (metis binding_upd_simps(2))
   apply (rule_tac x="ya(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eya) \<oplus>\<^sub>b y on NON_REL_VAR" in exI)
-  apply (auto)
+  apply (auto simp add:typing)
   apply (metis EvalE_UNREST_binding_upd EvalR_NON_REL_VAR_elim binding_override_equiv)
   apply (metis EvalR_NON_REL_VAR_elim binding_override_equiv)
 done
@@ -889,7 +889,7 @@ theorem SemiR_right_one_point:
   apply (utp_rel_auto_tac)
   apply (metis binding_upd_simps(2))
   apply (rule_tac x="ya(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eya)" in exI)
-  apply (auto)
+  apply (auto simp add:typing)
   apply (metis EvalE_UNREST_binding_upd)
 done
 
@@ -1170,7 +1170,7 @@ text {* This lemma needs to be proved in the context of the BOOL SORT
         (or any sort with at least two elements) *}
 
 lemma SkipR_neq_TrueP_BOOL_SORT [simp]:
-  "(II :: ('a::BOOL_SORT) WF_PREDICATE) \<noteq> true"
+  "(II :: ('a::BOOL_SORT) upred) \<noteq> true"
 proof -
   let ?x = "MkPlain ''x'' BoolType True"
 
@@ -1178,7 +1178,7 @@ proof -
   and ?b2 = "\<B>(?x :=\<^sub>b MkBool False) \<oplus>\<^sub>b bc on DASHED \<union> NON_REL_VAR"
 
   have "?b1 \<noteq> ?b2"
-    apply (auto elim!:Rep_WF_BINDING_elim simp add:typing defined closure fun_eq_iff)
+    apply (auto elim!:Rep_binding_elim simp add:typing defined closure fun_eq_iff)
     apply (drule_tac x="?x" in spec)
     apply (simp add:typing defined closure)
   done
@@ -1422,31 +1422,25 @@ theorem SkipRA_assign :
   apply (force simp add:assms)
 done
 
-theorem AssignR_commute: 
-  assumes 
-    "x \<in> UNDASHED" "y \<in> UNDASHED"  
-    "DASHED \<sharp> e" "DASHED \<sharp> f"
-    "{x} \<sharp> f" "{y} \<sharp> e"
-    "e \<rhd>\<^sub>e x" "f \<rhd>\<^sub>e y"
-    "x \<noteq> y"
-  shows "(x :=\<^sub>R e;\<^sub>R y :=\<^sub>R f) = (y :=\<^sub>R f;\<^sub>R x :=\<^sub>R e)"
-  using assms
-  apply (utp_rel_tac, simp add:relcomp_unfold)
-  apply (utp_expr_tac)
-  apply (metis (hide_lams, no_types) EvalE_compat WF_REL_BINDING_binding_upd binding_upd_twist)
-done
-
 theorem AssignR_idem :
   assumes 
-    "x \<in> UNDASHED" 
-    "{x} \<sharp> v" 
-    "DASHED \<sharp> v" 
-    "v \<rhd>\<^sub>e x"
+    "x \<in> D\<^sub>0" "{x} \<sharp> v" "D\<^sub>1 \<sharp> v" 
   shows "(x :=\<^sub>R v ;\<^sub>R x :=\<^sub>R v) = x :=\<^sub>R v"
 using assms
   apply (utp_rel_auto_tac)
   apply (simp_all add: EvalE_UNREST_assign[of _ "{x}"])
   apply (auto simp add:WF_REL_BINDING_def)
+done
+
+theorem AssignR_commute: 
+  assumes 
+    "x \<in> D\<^sub>0" "y \<in> D\<^sub>0" "x \<noteq> y"
+    "{x} \<sharp> f" "{y} \<sharp> e" "D\<^sub>1 \<sharp> e" "D\<^sub>1 \<sharp> f"
+  shows "(x :=\<^sub>R e;\<^sub>R y :=\<^sub>R f) = (y :=\<^sub>R f;\<^sub>R x :=\<^sub>R e)"
+  using assms
+  apply (utp_rel_tac, simp add:relcomp_unfold)
+  apply (utp_expr_tac)
+  apply (metis (hide_lams, no_types) WF_REL_BINDING_binding_upd binding_upd_twist)
 done
 
 theorem AssignRA_idem :
@@ -1678,7 +1672,7 @@ lemma EvalP_WF_CONDITION_binding_equiv:
   apply (auto simp add: WF_CONDITION_def WF_RELATION_def)
   apply (rule utp_unrest.EvalP_UNREST_binding_equiv[of "UNDASHED"])
   apply (auto intro:unrest)
-  apply (subgoal_tac "((- UNDASHED) :: 'a VAR set) = (NON_REL_VAR \<union> DASHED)")
+  apply (subgoal_tac "((- UNDASHED) :: 'a uvar set) = (NON_REL_VAR \<union> DASHED)")
   apply (auto intro:unrest)
 done
 

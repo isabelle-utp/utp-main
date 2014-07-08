@@ -1,5 +1,5 @@
 theory Map_Extra
-imports Main "~~/src/HOL/Library/Char_ord" "~~/src/HOL/Library/Product_ord"
+imports Main Char_ord Product_Lexorder
 begin
 
 definition functional :: "('a * 'b) set \<Rightarrow> bool" where
@@ -73,12 +73,11 @@ done
 
 lemma graph_map_inv [simp]: "functional g \<Longrightarrow> map_graph (graph_map g) = g"
   apply (auto simp add:map_graph_def graph_map_def functional_def)
-  apply (smt DomainE fst_eq_Domain not_Some_eq option.inject tfl_some)
+  apply (metis (lifting, no_types) image_iff option.distinct(1) option.inject someI surjective_pairing)
   apply (simp add:inj_on_def)
   apply (metis (lifting) Pair_eq fst_eqD someI)
   apply (metis (lifting) fst_conv image_iff)
 done
-
 
 lemma functional_list_graph: "\<lbrakk>functional_list xs; sorted xs; distinct xs\<rbrakk> \<Longrightarrow> map_of xs = graph_map (set xs)"
   apply (simp add:functional_list)
@@ -167,12 +166,11 @@ lemma inj_map_inv [intro]:
   apply (auto simp add:map_inv_def inj_on_def dom_def ran_def)
   apply (frule_tac P="\<lambda> xa. f xa = Some x" in some_equality)
   apply (auto)
-  apply (smt option.inject someI)
+  apply (metis (lifting, full_types) someI_ex the.simps)
 done
 
 lemma inj_map_bij: "inj_on f (dom f) \<Longrightarrow> bij_betw f (dom f) (Some ` ran f)"
   by (auto simp add:inj_on_def dom_def ran_def image_def bij_betw_def)
-
 
 lemma map_inv_map_inv [simp]:
   assumes "inj_on f (dom f)"
@@ -259,8 +257,8 @@ done
 lemma bij_map_Some:
   "bij_betw f a (Some ` b) \<Longrightarrow> bij_betw (the \<circ> f) a b"
   apply (auto simp add:bij_betw_def)
-  apply (smt comp_inj_on f_the_inv_into_f inj_on_def the.simps)
-  apply (smt image_iff the.simps)
+  apply (metis (hide_lams, no_types) comp_inj_on_iff f_the_inv_into_f inj_on_inverseI the.simps)
+  apply (metis (full_types) image_iff the.simps)
   apply (metis imageI image_compose the.simps)
 done
 
@@ -286,13 +284,12 @@ lemma inj_map_add:
   "\<lbrakk> inj_on f (dom f); inj_on g (dom g); ran f \<inter> ran g = {} \<rbrakk> \<Longrightarrow> 
    inj_on (f ++ g) (dom f \<union> dom g)"
   apply (auto simp add:inj_on_def)
-  apply (smt disjoint_iff_not_equal domIff map_add_Some_iff map_add_dom_app_simps(1) ranI)
+  apply (metis (full_types) disjoint_iff_not_equal domI dom_left_map_add map_add_dom_app_simps(3) ranI)
   apply (metis domI)
   apply (metis disjoint_iff_not_equal ranI)
   apply (metis disjoint_iff_not_equal domIff map_add_Some_iff ranI)
   apply (metis domI)
 done
-
 
 lemma map_inv_add [simp]:
   assumes "inj_on f (dom f)" "inj_on g (dom g)" 
@@ -331,10 +328,8 @@ proof (rule ext)
   qed
 
   moreover from assms minj have "\<lbrakk> x \<notin> ran g; x \<notin> ran f \<rbrakk> \<Longrightarrow> map_inv (f ++ g) x = (map_inv f ++ map_inv g) x"
-
     apply (auto simp add:map_inv_def ran_def map_add_def)
     apply (metis dom_left_map_add map_add_def map_add_dom_app_simps(3))
-
   done
 
   ultimately show "map_inv (f ++ g) x = (map_inv f ++ map_inv g) x"

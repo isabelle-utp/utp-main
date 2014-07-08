@@ -58,15 +58,14 @@ setup cmlact_defs.setup
 
 ML {*
   fun utp_cml_defs ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps (cmlty_defs.get ctxt)
       addsimps (cmlval_defs.get ctxt)
       addsimps (cmlfun_defs.get ctxt)
       addsimps (cmlchan_defs.get ctxt)
       addsimps (cmlproc_defs.get ctxt)
       addsimps (cmlop_defs.get ctxt)
-      addsimps (cmlact_defs.get ctxt)
-      addsimps (uop_defs.get ctxt);
+      addsimps (cmlact_defs.get ctxt);
 *}
 
 ML {*
@@ -95,7 +94,7 @@ ML {*
   fun utp_cml_auto_tac thms ctxt i =
     CHANGED ((
       (asm_full_simp_tac (utp_cml_simpset ctxt)) THEN_ALL_NEW
-      (asm_full_simp_tac (simpset_of ctxt)) THEN_ALL_NEW
+      (asm_full_simp_tac ctxt) THEN_ALL_NEW
       (SELECT_GOAL (auto_tac ctxt))) i)
 *}
 
@@ -146,5 +145,7 @@ lemma cml_goal3:
 lemma cml_goal4: "|iota x : @nat @ &x = 5| = |5|"
   by (cml_auto_tac)
 *)
+
+declare fcard_def [evalp]
 
 end

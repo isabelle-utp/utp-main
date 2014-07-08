@@ -19,7 +19,7 @@ begin
 
 default_sort BOOL_SORT
 
-abbreviation "def  \<equiv> MkPlainP ''def'' True TYPE(bool) TYPE('m :: BOOL_SORT)"
+abbreviation "def  \<equiv> MkBoolV ''def'' True"
 (*>*)
 
 text {* A TVL pair (Three-Valued Logic) consists of a pair of
@@ -27,7 +27,7 @@ predicates, the first of which give the true valued region of the
 predicate, and second gives the defined region of the predicate. *}
 
 definition TVL :: 
-  "('a WF_PREDICATE * 'a WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" 
+  "('a upred * 'a upred) \<Rightarrow> 'a upred" 
 where "TVL \<equiv> \<lambda> (P,Q). `($def \<Rightarrow> P) \<and> (Q \<Leftrightarrow> $def)`"
 
 text {* We then define functions to extract the first and second
@@ -35,10 +35,10 @@ elements of the TVL pair, by substituting @{term def} for
 \textsf{true}, substituting @{term def} for false and negating,
 respectively. *}
 
-definition PredicateT :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+definition PredicateT :: "'a upred \<Rightarrow> 'a upred" where
 "PredicateT P = `P[true/def]`"
 
-definition DefinedT :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+definition DefinedT :: "'a upred \<Rightarrow> 'a upred" where
 "DefinedT P = `\<not> P[false/def]`"
 
 (*<*)
@@ -47,14 +47,14 @@ declare PredicateT_def [eval,evalp]
 declare DefinedT_def [eval,evalp]
 
 syntax
-  "_upred_tvl"     :: "upred \<Rightarrow> upred \<Rightarrow> upred" ("\<three>'(_, _')")
-  "_upred_definedt" :: "upred \<Rightarrow> upred" ("\<D>'(_')")
-  "_upred_predicatet" :: "upred \<Rightarrow> upred" ("\<P>'(_')")
+  "_n_upred_tvl"        :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("\<three>'(_, _')")
+  "_n_upred_definedt"   :: "n_upred \<Rightarrow> n_upred" ("\<D>'(_')")
+  "_n_upred_predicatet" :: "n_upred \<Rightarrow> n_upred" ("\<P>'(_')")
 
 translations
-  "_upred_tvl p q"     == "CONST TVL (p, q)"
-  "_upred_definedt p" == "CONST DefinedT p"
-  "_upred_predicatet p" == "CONST PredicateT p"
+  "_n_upred_tvl p q"      == "CONST TVL (p, q)"
+  "_n_upred_definedt p"   == "CONST DefinedT p"
+  "_n_upred_predicatet p" == "CONST PredicateT p"
 (*>*)
 
 text {* We also extend the parser with suitable syntax so that a
@@ -63,32 +63,32 @@ predicate can be extracted with @{term "`\<P>(P)`"} and the definedness of
 a predicate can be extracted with @{term "`\<D>(P)`"}. This then allows us
 to define some of the common syntax of three-valued logic. *}
 
-definition TrueT :: "'a WF_PREDICATE" where
+definition TrueT :: "'a upred" where
 "TrueT = `\<three>(true, true)`"
 
-definition FalseT :: "'a WF_PREDICATE" where
+definition FalseT :: "'a upred" where
 "FalseT = `\<three>(false, true)`"
 
 text {* Predicates $\textsf{true}_T$ and $\textsf{false}_T$ are
 both defined, and exhibit their respective truth values. *}
 
-definition BotT :: "'a WF_PREDICATE" where
+definition BotT :: "'a upred" where
 "BotT = `\<not> $def`"
 
 text {* Bottom (undefined) is the predicate which is never defined. *}
 
-definition NotT :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+definition NotT :: "'a upred \<Rightarrow> 'a upred" where
 "NotT P = `\<three>(\<not> \<P>(P), \<D>(P))`"
 
 text {* Boolean not ($\neg_T P$) negates the truth valuation and
 leaves the definedness as is. *}
 
 definition AndT :: 
-  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+  "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" where
 "AndT P Q = `\<three>(\<P>(P) \<and> \<P>(Q), \<D>(P) \<and> \<D>(Q))`"
 
 definition OrT :: 
-  "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+  "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" where
 "OrT P Q = `\<three>(\<P>(P) \<or> \<P>(Q), \<D>(P) \<and> \<D>(Q))`"
 
 text {* Conjunction ($\wedge_T$) and disjunction $\vee_T$,
@@ -97,56 +97,56 @@ respective predicates, and both conjoin the definedness regions, as
 both sides must be defined. *}
 
 (*<*)
-definition AllDefinedT :: "'a VAR set \<Rightarrow> 'a WF_PREDICATE" where
+definition AllDefinedT :: "'a uvar set \<Rightarrow> 'a upred" where
 "AllDefinedT xs = mkPRED {b. \<forall>x\<in>xs. \<D> (\<langle>b\<rangle>\<^sub>b x)}"
 
-definition ExistsT :: "'a VAR set \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+definition ExistsT :: "'a uvar set \<Rightarrow> 'a upred \<Rightarrow> 'a upred" where
 "ExistsT xs p = (\<exists>\<^sub>p xs. AllDefinedT xs \<and>\<^sub>p p)"
 
 notation ExistsT ("(\<exists>\<^sub>t _ ./ _)" [0, 10] 10)
 
-definition ForallT :: "'a VAR set \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+definition ForallT :: "'a uvar set \<Rightarrow> 'a upred \<Rightarrow> 'a upred" where
 "ForallT xs p = (\<forall>\<^sub>p xs. AllDefinedT xs \<Rightarrow>\<^sub>p p)"
 
 notation ForallT ("(\<forall>\<^sub>t _ ./ _)" [0, 10] 10)
 
-definition ClosureT :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+definition ClosureT :: "'a upred \<Rightarrow> 'a upred" where
 "ClosureT p = (\<forall>\<^sub>t VAR. p)"
 
-declare TrueT_def  [eval,evalp]
-declare FalseT_def [eval,evalp]
-declare BotT_def [eval,evalp]
-declare NotT_def [eval,evalp]
-declare OrT_def [eval,evalp]
-declare AndT_def [eval,evalp]
+declare TrueT_def  [eval,evalpp]
+declare FalseT_def [eval,evalpp]
+declare BotT_def [eval,evalpp]
+declare NotT_def [eval,evalpp]
+declare OrT_def [eval,evalpp]
+declare AndT_def [eval,evalpp]
 
 text {* DH for a given TVL (P, Q) ensures that P is true only when Q is also true,
         i.e. a true valuation must also be a defined evaluation. *}
 
-definition DH :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" where
+definition DH :: "'a upred \<Rightarrow> 'a upred" where
 "DH(P) = `P \<and> (\<D>(P) \<sqsubseteq> \<P>(P))`"
 
 declare DH_def [eval,evalp]
 
 syntax
-  "_upred_truet"    :: "upred" ("true\<^sub>T")
-  "_upred_falset"   :: "upred" ("false\<^sub>T")
-  "_upred_bott"     :: "upred" ("\<bottom>\<^sub>T")
-  "_upred_nott"     :: "upred \<Rightarrow> upred" ("\<not>\<^sub>T _" [40] 40)
-  "_upred_andt"     :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<and>\<^sub>T" 35)
-  "_upred_ort"      :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<or>\<^sub>T" 35)
-  "_upred_clost"    :: "upred \<Rightarrow> upred" ("[_]\<^sub>T")
-  "_upred_dh"       :: "upred \<Rightarrow> upred" ("DH'(_')")
+  "_n_upred_truet"    :: "n_upred" ("true\<^sub>T")
+  "_n_upred_falset"   :: "n_upred" ("false\<^sub>T")
+  "_n_upred_bott"     :: "n_upred" ("\<bottom>\<^sub>T")
+  "_n_upred_nott"     :: "n_upred \<Rightarrow> n_upred" ("\<not>\<^sub>T _" [40] 40)
+  "_n_upred_andt"     :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr "\<and>\<^sub>T" 35)
+  "_n_upred_ort"      :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr "\<or>\<^sub>T" 35)
+  "_n_upred_clost"    :: "n_upred \<Rightarrow> n_upred" ("[_]\<^sub>T")
+  "_n_upred_dh"       :: "n_upred \<Rightarrow> n_upred" ("DH'(_')")
 
 translations
-  "_upred_truet"    == "CONST TrueT"
-  "_upred_falset"   == "CONST FalseT"
-  "_upred_bott"     == "CONST BotT"
-  "_upred_nott p"   == "CONST NotT p"
-  "_upred_andt p q" == "CONST AndT p q"
-  "_upred_ort p q"  == "CONST OrT p q"
-  "_upred_clost p"  == "CONST ClosureT p"
-  "_upred_dh p"     == "CONST DH p"
+  "_n_upred_truet"    == "CONST TrueT"
+  "_n_upred_falset"   == "CONST FalseT"
+  "_n_upred_bott"     == "CONST BotT"
+  "_n_upred_nott p"   == "CONST NotT p"
+  "_n_upred_andt p q" == "CONST AndT p q"
+  "_n_upred_ort p q"  == "CONST OrT p q"
+  "_n_upred_clost p"  == "CONST ClosureT p"
+  "_n_upred_dh p"     == "CONST DH p"
 
 lemma TrueT_unfold:
   "`true\<^sub>T` = `$def`"

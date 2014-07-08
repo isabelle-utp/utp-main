@@ -1,9 +1,9 @@
 signature DERIVE_MANAGER =
 sig
-  (* identifier, description, (fn dtyp_name => derive-method) *)
-  val register_derive : string -> string -> (string -> theory -> theory) -> theory -> theory
-  (* identifier, dtyp_name *)
-  val derive : string -> string -> theory -> theory
+  (* identifier, description, (fn dtyp_name => param => derive-method) *)
+  val register_derive : string -> string -> (string -> string -> theory -> theory) -> theory -> theory
+  (* identifier, dtyp_name, param *)
+  val derive : string -> string -> string -> theory -> theory
   (* print all registered deriving-methods  *)
   val print_info : theory -> unit
 end
@@ -13,7 +13,7 @@ struct
 
 structure Derive_Data = Theory_Data(
   type T = 
-    (string * (string -> theory -> theory)) Symtab.table  (* descr * derive-fun *)
+    (string * (string -> string -> theory -> theory)) Symtab.table  (* descr * derive-fun *)
   
   val empty = Symtab.empty
   val extend = I
@@ -27,7 +27,7 @@ fun derive_options thy =
 fun print_info thy = 
   let
     val _ = Output.writeln "The following sorts can be derived"
-    val _ = derive_options thy |> map (fn (id,descr) => Output.writeln (id ^ ": " ^ descr)) 
+    val _ = derive_options thy |> sort_wrt fst |> map (fn (id,descr) => Output.writeln (id ^ ": " ^ descr)) 
   in () end
   
 
@@ -37,16 +37,16 @@ fun register_derive id descr f thy =
   else
     Derive_Data.map (Symtab.update_new (id,(descr,f))) thy
 
-fun gen_derive prep id dtname thy = 
+fun gen_derive prep id dtname param thy = 
   case Symtab.lookup (Derive_Data.get thy) id of
     NONE => error ("No handler to derive sort " ^ quote id ^
       " is registered. Try " ^ quote "print_derives" ^ " to see available sorts.")
-  | SOME (_, f) => f (prep thy dtname) thy
+  | SOME (_, f) => f (prep thy dtname) param thy
 
 val derive = gen_derive (K I)
   
-val derive_cmd = gen_derive
-  (fn thy => fst o dest_Type o Syntax.parse_typ (Proof_Context.init_global thy))
+fun derive_cmd id dtname param = gen_derive
+  (fn thy => fst o dest_Type o Syntax.parse_typ (Proof_Context.init_global thy)) id dtname param
  
 (* TODO: also check for alternative of  *)
 (* NB: Proof_Context.read_type_name_proper ctxt false could be an alternative. *)
@@ -56,6 +56,6 @@ val _ =
     (Scan.succeed (Toplevel.theory (tap print_info)))
 
 val _ = Outer_Syntax.command @{command_spec "derive"} "derives a sort for some datatype"
-    (Parse.name -- Parse.type_const >> (fn (s, dtname) => Toplevel.theory (derive_cmd s dtname)))
+    (Parse.parname -- Parse.name -- Parse.type_const >> (fn ((param, s), dtname) => Toplevel.theory (derive_cmd s dtname param)))
 
 end;

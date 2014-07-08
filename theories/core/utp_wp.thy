@@ -24,16 +24,16 @@ ML {*
 setup wp.setup
 
 definition WeakPrecondP :: 
-  "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE" (infixr "wp" 150) where
+  "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" (infixr "wp" 150) where
 "Q wp r \<equiv> \<not>\<^sub>p (Q ;\<^sub>R (\<not>\<^sub>p r))"
 
 declare WeakPrecondP_def [eval,evalr,evalrx]
 
 syntax
-  "_upred_wp" :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "wp" 50)
+  "_n_upred_wp" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr "wp" 50)
 
 translations
-  "_upred_wp p q"  == "CONST WeakPrecondP p q"
+  "_n_upred_wp p q"  == "CONST WeakPrecondP p q"
 
 theorem ConjP_wp [wp]:
   "`P wp (q \<and> r)` = `(P wp q) \<and> (P wp r)`"
@@ -46,12 +46,12 @@ theorem SemiR_wp [wp]:
 done
 
 theorem AssignR_wp [wp]:
-  "\<lbrakk> x \<in> UNDASHED; v \<rhd>\<^sub>e x; UNREST_EXPR DASHED v; R \<in> WF_RELATION \<rbrakk> 
+  "\<lbrakk> x \<in> D\<^sub>0; v \<rhd>\<^sub>e x; D\<^sub>1 \<sharp> v; R \<in> REL \<rbrakk> 
      \<Longrightarrow> (x :=\<^sub>R v) wp R = R[v/\<^sub>px]"
   by (simp add: WeakPrecondP_def AssignR_SemiR_left usubst)
 
 lemma CondP_wp [wp]:
-  "\<lbrakk> P \<in> WF_RELATION; Q \<in> WF_RELATION; b \<in> WF_CONDITION; r \<in> WF_RELATION \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> P \<in> REL; Q \<in> REL; b \<in> COND; r \<in> REL \<rbrakk> \<Longrightarrow>
   (P \<lhd> b \<rhd> Q) wp r = (P wp r) \<lhd> b \<rhd> (Q wp r)"
   apply (simp add: WeakPrecondP_def)
   apply (simp add:CondR_SemiR_distr closure)
@@ -64,19 +64,19 @@ theorem OrP_wp [wp]:
 
 theorem ChoiceP_wp [wp]:
   "(P \<sqinter> Q) wp r = (P wp r) \<and>\<^sub>p (Q wp r)"
-  by (simp add:sup_WF_PREDICATE_def wp)
+  by (simp add:sup_upred_def wp)
 
 theorem ImpliesP_precond_wp: "`[r \<Rightarrow> s]` \<Longrightarrow> `[(Q wp r) \<Rightarrow> (Q wp s)]`"
-  by (metis ConjP_wp RefP_AndP RefP_def less_eq_WF_PREDICATE_def)
+  by (metis ConjP_wp RefP_AndP RefP_def less_eq_upred_def)
 
 theorem ImpliesP_pred_wp: "`[Q \<Rightarrow> S]` \<Longrightarrow> `[(S wp r) \<Rightarrow> (Q wp r)]`"
-  by (metis OrP_comm OrP_wp RefP_def inf_WF_PREDICATE_def le_iff_inf le_iff_sup less_eq_WF_PREDICATE_def sup_WF_PREDICATE_def)
+  by (metis OrP_comm OrP_wp RefP_def inf_upred_def le_iff_inf le_iff_sup less_eq_upred_def sup_upred_def)
 
 theorem RefineP_precond_wp: "`[r \<Rightarrow> s]` \<Longrightarrow> Q wp s \<sqsubseteq> Q wp r"
-  by (metis ImpliesP_precond_wp RefP_def less_eq_WF_PREDICATE_def)
+  by (metis ImpliesP_precond_wp RefP_def less_eq_upred_def)
 
 theorem RefineP_pred_wp: "S \<sqsubseteq> Q \<Longrightarrow> Q wp r \<sqsubseteq> S wp r"
-  by (metis OrP_wp RefP_AndP le_iff_sup sup_WF_PREDICATE_def)
+  by (metis OrP_wp RefP_AndP le_iff_sup sup_upred_def)
 
 theorem TrueP_wp [wp]:
   "Q wp true = true"
@@ -131,7 +131,7 @@ theorem HoareP_weakest_precondition [refine]:
     "Q \<in> WF_RELATION" 
     "r \<in> WF_CONDITION"
   shows "`{p}Q{r}` \<Longrightarrow> Q wp r \<sqsubseteq> p"
-  by (simp add:HoareP_extreme_solution assms WeakPrecondP_def RefP_def less_eq_WF_PREDICATE_def)
+  by (simp add:HoareP_extreme_solution assms WeakPrecondP_def RefP_def less_eq_upred_def)
 
 theorem HoareP_WeakPrecondP:
   assumes "Q \<in> WF_RELATION" "r \<in> WF_CONDITION"

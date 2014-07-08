@@ -146,6 +146,9 @@ theorem ClosureP_intro:
   shows "taut p"
   using assms by (utp_pred_tac)
 
+theorem TrueP_taut [simp]: "true"
+  by (utp_pred_tac)
+
 subsection {* Implication Laws *}
 
 lemma ImpliesP_AndP_pre:
@@ -264,7 +267,7 @@ theorem ExistsP_one_point:
   using assms
   apply (auto simp add:eval evale typing defined)
   apply (rule_tac x="b(x :=\<^sub>b \<lbrakk>e\<rbrakk>\<^sub>eb)" in exI)
-  apply (simp)
+  apply (simp add:typing)
 done
 
 theorem ExistsP_has_value:
@@ -276,7 +279,7 @@ theorem ExistsP_has_value:
   apply (utp_pred_tac, utp_expr_tac)
   apply (auto)
   apply (rule_tac x="b(x :=\<^sub>b \<lbrakk>v\<rbrakk>\<^sub>eb)" in exI)
-  apply (simp)
+  apply (simp add:typing)
 done
 
 theorem ExistsP_SubstP_rename :
@@ -411,7 +414,7 @@ lemma BoolType_aux_var_split_exists [ucases]:
   "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> \<Longrightarrow> 
    (\<exists>\<^sub>p {x}. P) = P[FalseE/\<^sub>px] \<or>\<^sub>p P[TrueE/\<^sub>px]"
   apply (utp_pred_auto_tac)
-  apply (metis FalseV_def MkBool_cases Rep_WF_BINDING TrueV_def WF_BINDING_app_type aux_defined)
+  apply (metis FalseV_def MkBool_cases Rep_binding TrueV_def binding_app_type aux_defined)
   apply (metis binding_upd_apply binding_upd_vcoerce)
   apply (metis binding_upd_apply binding_upd_vcoerce)
 done

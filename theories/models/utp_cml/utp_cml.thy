@@ -11,17 +11,20 @@ imports
   utp_cml_sorts
   utp_cml_expr
   utp_cml_laws
+  utp_cml_monad
   utp_cml_tac
   utp_cml_types
   utp_cml_functions
   utp_cml_records
+  utp_cml_stmt
   utp_cml_process
+  utp_cml_commands
 begin 
 
 text {* Remove syntax which will likely clash *}
 
-hide_const "SUB"
-hide_const "floor"
+hide_const "SUB" "floor" "greatest" "Set.empty" "Map.empty" "Id" 
+           "size" "top" "top_class.top" "bot_class.bot"
 
 no_notation
   J_pred ("J") and
@@ -41,7 +44,25 @@ no_notation
   less_eq  ("op <=") and
   less_eq  ("(_/ <= _)" [51, 51] 50) and
   less  ("op <") and
-  less  ("(_/ < _)"  [51, 51] 50)
+  less  ("(_/ < _)"  [51, 51] 50) and
+  TrueP ("true") and
+  FalseP ("false") and
+  VarA ("&_") and
+  TrueAE ("true") and
+  FalseAE ("false") and
+  Sublist.parallel (infixl "\<parallel>" 50) and
+  utp_designs_sig.ParallelD (infixr "\<parallel>" 100)
 
+no_syntax
+  "_n_upred_assigns"    :: "n_pvars \<Rightarrow> n_pexprs \<Rightarrow> n_upred" ("_ := _" [100] 100)
+  "_n_upred_ifthenelse" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("if _ then _ else _")
+  "_n_upred_while"      :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("while _ do _ od")
+  "_upred_prefixed"      :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _")
+  "_n_upred_index"         :: "('b \<Rightarrow> 'a upred) \<Rightarrow> 'b \<Rightarrow> n_upred" ("_<_>" 50)
+  "_n_upred_PrefixSkipCSP" :: "n_pexpr \<Rightarrow> n_upred" ("@_")
+  "_upred_callpr"          :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("call _'[_']")
+  "_upred_assignpr"        :: "('a, 'm) pvar \<Rightarrow> ('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_ := _'[_']" [100] 100)
+
+declare EvalD_vexpr_set_range [evalp del]
 
 end

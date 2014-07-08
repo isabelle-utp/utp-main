@@ -21,10 +21,10 @@ setup uop_defs.setup
 
 text {* Operations / Procedures are implemented through functional abstraction *}
 
-type_synonym ('a, 'm) WF_OPERATION = "(('a, 'm) PVAR * bool) \<Rightarrow> 'm WF_PREDICATE"
-type_synonym ('a, 'b, 'm) WF_POPERATION = "('a, 'm) WF_PEXPRESSION \<Rightarrow> ('b, 'm) WF_OPERATION"
+type_synonym ('a, 'm) WF_OPERATION = "(('a, 'm) pvar * bool) \<Rightarrow> 'm upred"
+type_synonym ('a, 'b, 'm) WF_POPERATION = "('a, 'm) pexpr \<Rightarrow> ('b, 'm) WF_OPERATION"
 
-nonterminal uproc
+nonterminal n_uproc
 
 definition "TrueO           = (\<lambda> r. TrueP)"
 definition "FalseO          = (\<lambda> r. FalseP)"
@@ -59,44 +59,44 @@ declare AssignRO_def [eval, evalpp, evalr, evalpr, uop_defs]
 declare CallRO_def [eval, evalpp, evalr, evalpr, uop_defs]
 
 syntax
-  "_uproc_var"        :: "pttrn \<Rightarrow> uproc" ("(_)")
-  "_uproc_true"       :: "uproc" ("true")
-  "_uproc_false"      :: "uproc" ("false")
-  "_uproc_not"        :: "upred \<Rightarrow> upred" ("\<not> _" [40] 40)
-  "_uproc_and"        :: "uproc \<Rightarrow> uproc \<Rightarrow> uproc" (infixr "\<and>" 35)
-  "_uproc_or"         :: "uproc \<Rightarrow> uproc \<Rightarrow> uproc" (infixr "\<or>" 35)
-  "_uproc_imp"        :: "uproc \<Rightarrow> uproc \<Rightarrow> uproc" (infixr "\<Rightarrow>" 25)
-  "_uproc_iff"        :: "uproc \<Rightarrow> uproc \<Rightarrow> uproc" (infixr "\<Leftrightarrow>" 25)
-  "_uproc_pexpr"      :: "pexpr \<Rightarrow> uproc" ("\<lparr>_\<rparr>")
-  "_uproc_quote"      :: "uproc \<Rightarrow> ('a, 'm) WF_OPERATION" ("{:_:}")
-  "_uproc_brack"      :: "uproc \<Rightarrow> uproc" ("'(_')")
-  "_uproc_skip"       :: "uproc" ("II")
-  "_uproc_assign"     :: "('a, 'm) PVAR \<Rightarrow> pexpr \<Rightarrow> uproc" ("_ := _" [100] 100)
-  "_uproc_seq"        :: "uproc \<Rightarrow> uproc \<Rightarrow> uproc" (infixr ";" 36)
-  "_uproc_ifthenelse" :: "upred \<Rightarrow> uproc \<Rightarrow> uproc \<Rightarrow> uproc" ("if _ then _ else _")
-  "_uproc_cond"       :: "uproc \<Rightarrow> upred \<Rightarrow> uproc \<Rightarrow> uproc" ("_ \<lhd> _ \<rhd> _")
-  "_uproc_return"     :: "pexpr \<Rightarrow> uproc" ("return _")
-  "_upred_assignpr"   :: "('a, 'm) PVAR \<Rightarrow> ('a, 'b, 'm) WF_POPERATION \<Rightarrow> pexpr \<Rightarrow> upred" ("_ := _'[_']" [100] 100)
-  "_upred_callpr"     :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> pexpr \<Rightarrow> upred" ("call _'[_']")
+  "_n_uproc_var"        :: "pttrn \<Rightarrow> n_uproc" ("(_)")
+  "_n_uproc_true"       :: "n_uproc" ("true")
+  "_n_uproc_false"      :: "n_uproc" ("false")
+  "_n_uproc_not"        :: "n_uproc \<Rightarrow> n_uproc" ("\<not> _" [40] 40)
+  "_n_uproc_and"        :: "n_uproc \<Rightarrow> n_uproc \<Rightarrow> n_uproc" (infixr "\<and>" 35)
+  "_n_uproc_or"         :: "n_uproc \<Rightarrow> n_uproc \<Rightarrow> n_uproc" (infixr "\<or>" 35)
+  "_n_uproc_imp"        :: "n_uproc \<Rightarrow> n_uproc \<Rightarrow> n_uproc" (infixr "\<Rightarrow>" 25)
+  "_n_uproc_iff"        :: "n_uproc \<Rightarrow> n_uproc \<Rightarrow> n_uproc" (infixr "\<Leftrightarrow>" 25)
+  "_n_uproc_pexpr"      :: "n_pexpr \<Rightarrow> n_uproc" ("\<lparr>_\<rparr>")
+  "_n_uproc_quote"      :: "n_uproc \<Rightarrow> ('a, 'm) WF_OPERATION" ("{:_:}")
+  "_n_uproc_brack"      :: "n_uproc \<Rightarrow> n_uproc" ("'(_')")
+  "_n_uproc_skip"       :: "n_uproc" ("II")
+  "_n_uproc_assign"     :: "('a, 'm) pvar \<Rightarrow> n_pexpr \<Rightarrow> n_uproc" ("_ := _" [100] 100)
+  "_n_uproc_seq"        :: "n_uproc \<Rightarrow> n_uproc \<Rightarrow> n_uproc" (infixr ";" 36)
+  "_n_uproc_ifthenelse" :: "n_upred \<Rightarrow> n_uproc \<Rightarrow> n_uproc \<Rightarrow> n_uproc" ("if _ then _ else _")
+  "_n_uproc_cond"       :: "n_uproc \<Rightarrow> n_upred \<Rightarrow> n_uproc \<Rightarrow> n_uproc" ("_ \<lhd> _ \<rhd> _")
+  "_n_uproc_return"     :: "n_pexpr \<Rightarrow> n_uproc" ("return _")
+  "_upred_assignpr"   :: "('a, 'm) pvar \<Rightarrow> ('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_ := _'[_']" [100] 100)
+  "_upred_callpr"     :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("call _'[_']")
 
 translations
-  "_uproc_var p"            => "p"
-  "_uproc_true"             == "CONST TrueO"
-  "_uproc_false"            == "CONST FalseO"
-  "_uproc_not p"            == "CONST NotO p"
-  "_uproc_and p q"          == "CONST AndO p q"
-  "_uproc_or p q"           == "CONST OrO p q"
-  "_uproc_imp p q"          == "CONST ImpliesO p q"
-  "_uproc_iff p q"          == "CONST IffO p q"
-  "_uproc_pexpr e"          == "CONST ExprO e"
-  "_uproc_quote x"          => "x"
-  "_uproc_brack x"          => "x"
-  "_uproc_skip"             == "CONST SkipO"
-  "_uproc_assign x e"       == "CONST PAssignO x e"
-  "_uproc_seq p q"          == "CONST SemiO p q"
-  "_uproc_cond p c q"       == "CONST CondO p c q"
-  "_uproc_ifthenelse c p q" == "CONST CondO p c q"
-  "_uproc_return e"         == "CONST ReturnO e"
+  "_n_uproc_var p"            => "p"
+  "_n_uproc_true"             == "CONST TrueO"
+  "_n_uproc_false"            == "CONST FalseO"
+  "_n_uproc_not p"            == "CONST NotO p"
+  "_n_uproc_and p q"          == "CONST AndO p q"
+  "_n_uproc_or p q"           == "CONST OrO p q"
+  "_n_uproc_imp p q"          == "CONST ImpliesO p q"
+  "_n_uproc_iff p q"          == "CONST IffO p q"
+  "_n_uproc_pexpr e"          == "CONST ExprO e"
+  "_n_uproc_quote x"          => "x"
+  "_n_uproc_brack x"          => "x"
+  "_n_uproc_skip"             == "CONST SkipO"
+  "_n_uproc_assign x e"       == "CONST PAssignO x e"
+  "_n_uproc_seq p q"          == "CONST SemiO p q"
+  "_n_uproc_cond p c q"       == "CONST CondO p c q"
+  "_n_uproc_ifthenelse c p q" == "CONST CondO p c q"
+  "_n_uproc_return e"         == "CONST ReturnO e"
   "_upred_assignpr x f v"   == "CONST AssignRO x f v"
   "_upred_callpr f v"       == "CONST CallRO f v"
 

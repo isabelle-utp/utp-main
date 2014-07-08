@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
 (* File: utp_base.thy                                                         *)
-(* Author: Frank Zeyda, University of York (UK)                               *)
+(* Author:Simon Foster and Frank Zeyda, University of York (UK)               *)
 (******************************************************************************)
 
 header {* Base UTP without any theories *}
@@ -16,7 +16,11 @@ imports
   "tactics/utp_rel_tac"
   "tactics/utp_xrel_tac"
   "tactics/utp_subst_tac"
+  "tactics/utp_closure_tac"
+  "tactics/utp_unrest_tac"
   "tactics/utp_alpha_tac"
+  "tactics/utp_solve_tac"
+  "tactics/utp_hoare_tac"
   "laws/utp_pred_laws"
   "laws/utp_rel_laws"
   "laws/utp_subst_laws"
@@ -34,4 +38,5 @@ imports
   "types/utp_memory"
   "theories/utp_theory"
   "theories/utp_context"
+  "theories/utp_relations"
 begin end

@@ -21,10 +21,10 @@ begin
 
 subsection {* Restrictions *}
 
-definition WF_ALPHA_REL :: "'VALUE WF_ALPHA_PREDICATE set" where
+definition WF_ALPHA_REL :: "'a uapred set" where
 "WF_ALPHA_REL = {p . (\<alpha> p) \<in> REL_ALPHABET}"
 
-definition HOM_RELATION :: "'VALUE WF_ALPHA_PREDICATE set" where
+definition HOM_RELATION :: "'a uapred set" where
 "HOM_RELATION = {p . (\<alpha> p) \<in> HOM_ALPHABET \<and> (\<alpha> p) \<in> REL_ALPHABET}"
 
 (*
@@ -32,27 +32,31 @@ definition WF_REL_EXPR :: "'VALUE WF_ALPHA_EXPRESSION set" where
 "WF_REL_EXPR = {e . (\<alpha> e) \<in> REL_ALPHABET}"
 *)
 
-typedef 'VALUE WF_ALPHA_REL = "WF_ALPHA_REL :: 'VALUE WF_ALPHA_PREDICATE set"
+typedef 'a WF_ALPHA_REL = "WF_ALPHA_REL :: 'a uapred set"
   apply (auto simp add:WF_ALPHA_REL_def REL_ALPHABET_def)
   apply (metis ClosureA_alphabet bot_least fempty.rep_eq pred_alphabet_def)
 done
 
-definition WF_ALPHA_COND :: "'VALUE WF_ALPHA_PREDICATE set" where
+definition WF_ALPHA_COND :: "'a uapred set" where
 "WF_ALPHA_COND = {p . p \<in> WF_ALPHA_REL \<and> UNREST DASHED (\<pi> p)}"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name REL} @{const_name WF_ALPHA_REL}
-*}
+definition WF_ALPHA_POST :: "'a uapred set" where
+"WF_ALPHA_POST = {p . p \<in> WF_ALPHA_REL \<and> UNREST D\<^sub>0 (\<pi> p)}"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name COND} @{const_name WF_ALPHA_COND}
-*}
+adhoc_overloading
+  REL WF_ALPHA_REL
+
+adhoc_overloading
+  COND WF_ALPHA_COND
+
+adhoc_overloading
+  POST WF_ALPHA_POST
 
 subsection {* Operators *}
 
 subsubsection {* Skip *}
 
-lift_definition SkipA :: "'VALUE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" is
+lift_definition SkipA :: "'a alpha \<Rightarrow> 'a uapred" is
 "\<lambda> a. (a, SkipRA \<langle>a\<rangle>\<^sub>f)"
   by (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
 
@@ -61,10 +65,10 @@ notation SkipA ("II\<alpha>\<^bsub>_\<^esub>")
 subsubsection {* Assignment *}
 
 definition AssignA ::
-"'VALUE VAR \<Rightarrow>
- 'VALUE ALPHABET \<Rightarrow>
- 'VALUE WF_ALPHA_EXPRESSION \<Rightarrow>
- 'VALUE WF_ALPHA_PREDICATE" where
+"'a uvar \<Rightarrow>
+ 'a alpha \<Rightarrow>
+ 'a uaexpr \<Rightarrow>
+ 'a uapred" where
 "a \<in> REL_ALPHABET \<Longrightarrow>
  AssignA x a v \<equiv> MkPredA (a, AssignRA x \<langle>a\<rangle>\<^sub>f (\<epsilon> v))"
 
@@ -75,10 +79,10 @@ subsubsection {* Conditional *}
 text {* Should we impose a constraint on b for it to be a condition? *}
 
 lift_definition CondA ::
-  "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" 
+  "'VALUE uapred \<Rightarrow>
+   'VALUE uapred \<Rightarrow>
+   'VALUE uapred \<Rightarrow>
+   'VALUE uapred" 
 is "\<lambda> r1 b r2. (\<alpha> r1 \<union>\<^sub>f \<alpha> b \<union>\<^sub>f \<alpha> r2, (\<pi> r1) \<lhd> (\<pi> b) \<rhd> (\<pi> r2))"
   by (auto intro: unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
@@ -86,9 +90,9 @@ notation CondA ("_ \<lhd> _ \<rhd>\<^sub>\<alpha> _")
 subsubsection {* Sequential Composition *}
 
 lift_definition SemiA ::
-  "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE"
+  "'VALUE uapred \<Rightarrow>
+   'VALUE uapred \<Rightarrow>
+   'VALUE uapred"
 is "\<lambda> p q. (in\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> q) \<union>\<^sub>f nrel\<^sub>\<alpha> (\<alpha> p \<union>\<^sub>f \<alpha> q), (\<pi> p) ;\<^sub>R (\<pi> q))"
   apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
   apply (rule UNREST_SemiR_general)
@@ -99,18 +103,26 @@ is "\<lambda> p q. (in\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f out\<^sub>\<
 done
 
 notation SemiA (infixr ";\<^sub>\<alpha>" 140)
+
 definition ConvA ::
-"'a WF_ALPHA_PREDICATE \<Rightarrow>
- 'a WF_ALPHA_PREDICATE" where
+"'a uapred \<Rightarrow>
+ 'a uapred" where
 "ConvA p = SS\<bullet>p"
 
 definition VarExtA ::
-"'m WF_ALPHA_PREDICATE \<Rightarrow> 'm VAR \<Rightarrow> 'm WF_ALPHA_PREDICATE" ("_\<^bsub>+_\<^esub>") where
+"'m uapred \<Rightarrow> 'm uvar \<Rightarrow> 'm uapred" ("_\<^bsub>+_\<^esub>") where
 "VarExtA p x = p \<and>\<^sub>\<alpha> ($\<^sub>\<alpha>x\<acute> ==\<^sub>\<alpha> $\<^sub>\<alpha>x)"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name prime} @{const_name ConvA}
-*}
+definition VarOpenA :: "'m uvar \<Rightarrow> 'm alpha \<Rightarrow> 'm uapred" where
+"VarOpenA x A = (\<exists>\<^sub>\<alpha> \<lbrace>x\<rbrace>. II\<alpha>\<^bsub>A\<^esub>)"
+
+definition VarCloseA :: "'m uvar \<Rightarrow> 'm alpha \<Rightarrow> 'm uapred" where
+"VarCloseA x A = (\<exists>\<^sub>\<alpha> \<lbrace>x\<acute>\<rbrace>. II\<alpha>\<^bsub>A\<^esub>)"
+
+definition "VarDeclA x A p \<equiv> (VarOpenA x (finsert x (finsert x\<acute> A)) ;\<^sub>\<alpha> p ;\<^sub>\<alpha> VarCloseA x (finsert x (finsert x\<acute> A)))"
+
+adhoc_overloading
+  prime ConvA
 
 (*
 lift_definition CoercePreA :: "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("_\<^sub>\<leftarrow>")
@@ -153,6 +165,13 @@ lemma WF_ALPHA_COND_EvalA_WF_CONDITION [closure]:
   apply (simp add:EvalA_def)
 done
 
+lemma WF_ALPHA_POST_EvalA_WF_POSTCOND [closure]:
+  "p \<in> POST \<Longrightarrow> \<lbrakk>p\<rbrakk>\<pi> \<in> POST"
+  apply (auto simp add:WF_ALPHA_POST_def WF_POSTCOND_def)
+  apply (simp add:closure)
+  apply (simp add:EvalA_def)
+done
+
 lemma WF_RELATION_REL_ALPHABET [closure]: 
   "\<alpha> P \<in> REL_ALPHABET \<Longrightarrow> \<lbrakk>P\<rbrakk>\<pi> \<in> WF_RELATION"
   by (auto intro:closure simp add:WF_ALPHA_REL_def)
@@ -175,6 +194,10 @@ theorem WF_ALPHA_REL_intro [intro] :
 theorem WF_ALPHA_COND_WF_ALPHA_REL [closure] :
 "r \<in> WF_ALPHA_COND \<Longrightarrow> r \<in> WF_ALPHA_REL"
   by (simp add: WF_ALPHA_COND_def)
+
+theorem WF_ALPHA_POST_WF_ALPHA_REL [closure] :
+"r \<in> WF_ALPHA_POST \<Longrightarrow> r \<in> WF_ALPHA_REL"
+  by (simp add: WF_ALPHA_POST_def)
 
 theorem HOM_RELATION_WF_ALPHA_REL [closure] :
 "r \<in> HOM_RELATION \<Longrightarrow> r \<in> WF_ALPHA_REL"
@@ -203,6 +226,10 @@ done
 lemma REL_ALPHABET_WF_ALPHA_COND [closure]: 
   "p \<in> WF_ALPHA_COND \<Longrightarrow> \<alpha>(p) \<in> REL_ALPHABET"
   by (metis WF_ALPHA_COND_WF_ALPHA_REL WF_ALPHA_REL_def mem_Collect_eq)
+
+lemma REL_ALPHABET_WF_ALPHA_POST [closure]: 
+  "p \<in> WF_ALPHA_POST \<Longrightarrow> \<alpha>(p) \<in> REL_ALPHABET"
+  by (metis WF_ALPHA_POST_WF_ALPHA_REL WF_ALPHA_REL_def mem_Collect_eq)
 
 lemma REL_ALPHABET_WF_ALPHA_REL [closure]: 
   "p \<in> WF_ALPHA_REL \<Longrightarrow> \<alpha>(p) \<in> REL_ALPHABET"
@@ -285,6 +312,10 @@ apply (simp add:NotA.rep_eq)
 apply (auto intro: unrest)
 done
 
+theorem NotA_WF_ALPHA_POST [closure] :
+"r \<in> POST \<Longrightarrow> \<not>\<^sub>\<alpha> r \<in> POST"
+  by (metis (lifting, no_types) EvalA_NotA EvalA_def NotA_WF_ALPHA_REL UNREST_NotP WF_ALPHA_POST_def mem_Collect_eq)
+
 theorem AndA_WF_ALPHA_REL [closure] :
 "\<lbrakk>r1 \<in> WF_ALPHA_REL;
  r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
@@ -296,6 +327,15 @@ theorem AndA_WF_ALPHA_COND [closure] :
  r2 \<in> WF_ALPHA_COND\<rbrakk> \<Longrightarrow>
  r1 \<and>\<^sub>\<alpha> r2 \<in> WF_ALPHA_COND"
 apply (simp add:WF_ALPHA_COND_def)
+apply (simp add:AndA.rep_eq closure)
+apply (auto intro:unrest)
+done
+
+theorem AndA_WF_ALPHA_POST [closure] :
+"\<lbrakk>r1 \<in> WF_ALPHA_POST;
+ r2 \<in> WF_ALPHA_POST\<rbrakk> \<Longrightarrow>
+ r1 \<and>\<^sub>\<alpha> r2 \<in> WF_ALPHA_POST"
+apply (simp add:WF_ALPHA_POST_def)
 apply (simp add:AndA.rep_eq closure)
 apply (auto intro:unrest)
 done
@@ -530,7 +570,7 @@ theorem SemiA_alphabet [alphabet] :
   by (force simp add: SemiA.rep_eq WF_ALPHA_REL_def REL_ALPHABET_def var_defs)
 
 theorem ConvA_alphabet [alphabet] :
-  "\<alpha> (P\<acute>) = \<langle>SS\<rangle>\<^sub>s `\<^sub>f \<alpha>(P :: 'a WF_ALPHA_PREDICATE)"
+  "\<alpha> (P\<acute>) = \<langle>SS\<rangle>\<^sub>s `\<^sub>f \<alpha>(P :: 'a uapred)"
   by (metis ConvA_def PermA_alphabet)
 
 lemma VarExtA_alphabet: "\<alpha>(P\<^bsub>+x\<^esub>) = finsert x (finsert x\<acute> (\<alpha>(P)))"
@@ -742,6 +782,37 @@ theorem SkipA_unfold :
   apply (subgoal_tac "x \<in> UNDASHED")
   apply (simp add:SkipRA_unfold)
   apply (auto simp add:REL_ALPHABET_def)
+done
+
+lemma EvalA_CoerceA [evala]: "\<lbrakk>(P)\<^bsub>!A\<^esub>\<rbrakk>\<pi> = (\<exists>\<^sub>p (- \<langle>A\<rangle>\<^sub>f). P)"
+  by (simp add:EvalA_def CoerceA.rep_eq)
+
+lemma CoerceA_SkipRA_right:
+  "A \<in> HOM_ALPHABET \<Longrightarrow> (P)\<^bsub>!A\<^esub> = (P ;\<^sub>R II\<^bsub>\<langle>A\<rangle>\<^sub>f\<^esub>)\<^bsub>!A\<^esub>"
+  apply (utp_alpha_tac)
+  apply (subgoal_tac "- \<langle>A\<rangle>\<^sub>f = - \<langle>A\<rangle>\<^sub>f \<union> (D\<^sub>1 - out \<langle>A\<rangle>\<^sub>f)") 
+  apply (subst SkipRA_right_as_ExistsP[of _ "D\<^sub>1"])
+  apply (metis HOMOGENEOUS_HOM_ALPHA)
+  apply (simp_all add: unrest)
+  apply (metis ExistsP_union)
+  apply (auto)
+done
+
+lemma CoerceA_SkipRA_left:
+  "A \<in> HOM_ALPHABET \<Longrightarrow> (P)\<^bsub>!A\<^esub> = (II\<^bsub>\<langle>A\<rangle>\<^sub>f\<^esub> ;\<^sub>R P)\<^bsub>!A\<^esub>"
+  apply (utp_alpha_tac)
+  apply (subgoal_tac "- \<langle>A\<rangle>\<^sub>f = - \<langle>A\<rangle>\<^sub>f \<union> (D\<^sub>0 - in \<langle>A\<rangle>\<^sub>f)") 
+  apply (subst SkipRA_left_as_ExistsP[of _ "D\<^sub>0"])
+  apply (simp_all add:unrest)
+  apply (metis HOMOGENEOUS_HOM_ALPHA)
+  apply (metis ExistsP_union)
+  apply (auto)
+done
+
+theorem CoerceA_SkipA: "A \<in> HOM_ALPHABET \<Longrightarrow> (II)\<^bsub>!A \<^esub>= II\<alpha>\<^bsub>A\<^esub>"
+  apply (subst CoerceA_SkipRA_left)
+  apply (simp_all)
+  apply (metis CoerceA_alphabet CoerceA_rep_eq_simple SkipA.rep_eq SkipA_alphabet UNREST_SkipRA uapred_neq_elim snd_conv)
 done
 
 end

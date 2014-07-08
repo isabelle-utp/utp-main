@@ -5,7 +5,7 @@ sig
   val mk_hash : theory -> Datatype_Aux.info -> bool    -> term;
   
   (* creates and registers hash-functions for datatype *)
-  val derive : string -> theory -> theory
+  val derive : string -> string -> theory -> theory
 
   (* registers in derive-manager *)
   val setup : theory -> theory
@@ -98,7 +98,7 @@ fun mk_hash thy info bounded =
   in mk_rec 0 end
 
 
-fun derive dtyp_name thy = 
+fun derive dtyp_name _ thy = 
   let
     val tyco = dtyp_name
   
@@ -115,22 +115,11 @@ fun derive dtyp_name thy =
     val ty = Term.fastype_of hash_rhs |> Term.dest_Type |> snd |> hd
     val ty_it = Type ("itself", [ty])
     val hashs_rhs = lambda (Free ("x",ty_it)) (HOLogic.mk_number @{typ nat} (create_def_size ty))
+
+    val hash_def = mk_def (ty --> @{typ nat}) @{const_name hashcode} hash_rhs
+    val hashb_def = mk_def (@{typ nat} --> ty --> @{typ nat}) @{const_name bounded_hashcode} hashb_rhs
+    val hashs_def = mk_def (ty_it --> @{typ nat}) @{const_name def_hashmap_size} hashs_rhs
   
-    (* code copied from HOL/SPARK/TOOLS *)
-    fun mk_binrel_def T c rhs = Logic.mk_equals (Const (c, T), rhs)
-    fun define_overloaded (def_name, eq) lthy =
-      let
-        val ((c, _), rhs) = eq |> Syntax.check_term lthy |>
-          Logic.dest_equals |>> dest_Free;
-        val ((_, (_, thm)), lthy') = Local_Theory.define
-          ((Binding.name c, NoSyn), ((Binding.name def_name, @{attributes [code]}), rhs)) lthy
-        val ctxt_thy = Proof_Context.init_global (Proof_Context.theory_of lthy');
-        val thm' = singleton (Proof_Context.export lthy' ctxt_thy) thm
-      in (thm', lthy') end;
-  
-    val hash_def = mk_binrel_def (ty --> @{typ nat}) @{const_name hashcode} hash_rhs
-    val hashb_def = mk_binrel_def (@{typ nat} --> ty --> @{typ nat}) @{const_name bounded_hashcode} hashb_rhs
-    val hashs_def = mk_binrel_def (ty_it --> @{typ nat}) @{const_name def_hashmap_size} hashs_rhs
     val (((hash_thm , hashb_thm), hashs_thm),lthy) = Class.instantiation ([tyco],vs,sort) thy
       |> define_overloaded ("hashcode_" ^ base_name ^ "_def", hash_def)
       ||>> define_overloaded ("bounded_hashcode_" ^ base_name ^ "_def", hashb_def) 
@@ -138,16 +127,12 @@ fun derive dtyp_name thy =
     val hash_thms = [hash_thm, hashb_thm, hashs_thm]
   
     fun hash_tac ctxt = 
-      let 
-        val ss = simpset_of ctxt 
-      in 
-        my_print_tac "enter hash " THEN
-        unfold_tac hash_thms ss THEN
-        my_print_tac "after unfolding" THEN
-        rtac @{thm hash_mod_lemma} 1 THEN atac 1 THEN
-        my_print_tac "after hash_mod" THEN
-        simp_tac ss 1
-      end
+      my_print_tac "enter hash " THEN
+      unfold_tac hash_thms ctxt THEN
+      my_print_tac "after unfolding" THEN
+      rtac @{thm hash_mod_lemma} 1 THEN atac 1 THEN
+      my_print_tac "after hash_mod" THEN
+      simp_tac ctxt 1
     val thy' = Class.prove_instantiation_exit (fn ctxt => (Class.intro_classes_tac [] THEN hash_tac ctxt)) lthy
     val _ = Output.writeln ("registered " ^ base_name ^ " in class hashable")
   

@@ -24,19 +24,19 @@ setup evale.setup
 subsection {* Interpretation Function *}
 
 definition EvalE ::
-  "'VALUE WF_EXPRESSION \<Rightarrow>
-   'VALUE WF_BINDING \<Rightarrow> 'VALUE" ("\<lbrakk>_\<rbrakk>\<^sub>e_" [0, 1000] 51) where
+  "'a uexpr \<Rightarrow>
+   'a binding \<Rightarrow> 'a" ("\<lbrakk>_\<rbrakk>\<^sub>e_" [0, 1000] 51) where
 "EvalE e b = \<langle>e\<rangle>\<^sub>e b"
 
-theorem EvalE_type [typing, simp]:
+theorem EvalE_type [typing]:
 "e :\<^sub>e t \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>eb : t"
   by (simp add:EvalE_def etype_rel_def)
 
 lemma EvalE_defined [defined]:
   "\<D> v \<Longrightarrow> \<D> (\<lbrakk>v\<rbrakk>\<^sub>eb)"
-  by (simp add:EvalE_def Defined_WF_EXPRESSION_def)
+  by (simp add:EvalE_def Defined_uexpr_def)
 
-theorem EvalE_compat [typing, simp]:
+theorem EvalE_compat [typing]:
 "e \<rhd>\<^sub>e t \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>eb \<rhd> t"
   by (simp add:EvalE_def evar_compat_def)
 
@@ -156,7 +156,7 @@ subsection {* Proof Tactics *}
 
 ML {*
   fun utp_expr_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps (evale.get ctxt)
       addsimps (closure.get ctxt)
       addsimps (defined.get ctxt)
@@ -219,7 +219,7 @@ done
 
 (*
 definition 
-  PROP_VARS :: "('VALUE \<Rightarrow> bool) \<Rightarrow> 'VALUE PREDICATE \<Rightarrow> 'TYPE VAR set" where
+  PROP_VARS :: "('a \<Rightarrow> bool) \<Rightarrow> 'a PREDICATE \<Rightarrow> 'TYPE VAR set" where
   "PROP_VARS P p = {x. \<forall>b\<in>p. P (b x)}"
 
 lemma PROP_VARS_Defined: "\<lbrakk> x \<in> PROP_VARS \<D> p; b \<in> p \<rbrakk> \<Longrightarrow> \<D> (b x)"

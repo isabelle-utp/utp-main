@@ -27,26 +27,21 @@ subsection {* Wellformed alphabetised predicates *}
 consts
   alpha_type :: "('p::type) \<Rightarrow> ('a::type) \<Rightarrow> bool" (infix ":\<alpha>:" 50)
 
-setup {*
-  Adhoc_Overloading.add_overloaded @{const_name alpha_type}
-*}
-
-definition pred_alpha_type :: "'a WF_PREDICATE \<Rightarrow> 'a ALPHABET \<Rightarrow> bool" where
+definition pred_alpha_type :: "'a upred \<Rightarrow> 'a alpha \<Rightarrow> bool" where
 "pred_alpha_type P a = (- \<langle>a\<rangle>\<^sub>f) \<sharp> P"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name alpha_type} @{const_name pred_alpha_type}
-*}
+adhoc_overloading
+  alpha_type pred_alpha_type
 
 type_synonym 'VALUE ALPHA_PREDICATE =
-  "('VALUE ALPHABET) \<times> 'VALUE WF_PREDICATE"
+  "('VALUE alpha) \<times> 'VALUE upred"
 
 definition WF_ALPHA_PREDICATE ::
-  "'VALUE ALPHA_PREDICATE set" where
+  "'a ALPHA_PREDICATE set" where
 "WF_ALPHA_PREDICATE =
  {(a,p) | a p . p \<in> WF_PREDICATE_OVER \<langle>a\<rangle>\<^sub>f}"
 
-typedef 'a WF_ALPHA_PREDICATE = "WF_ALPHA_PREDICATE :: 'a ALPHA_PREDICATE set"
+typedef 'a uapred = "WF_ALPHA_PREDICATE :: 'a ALPHA_PREDICATE set"
 morphisms DestPredA MkPredA
   apply (auto simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
   apply (metis UNREST_FalseP prod_caseI)
@@ -66,38 +61,37 @@ lemma DestPredA_elim [elim]:
 
 notation DestPredA ("\<langle>_\<rangle>\<^sub>\<alpha>")
 
-setup_lifting type_definition_WF_ALPHA_PREDICATE
+setup_lifting type_definition_uapred
 
 definition pred_alphabet ::
-  "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE ALPHABET" where
+  "'VALUE uapred \<Rightarrow>
+   'VALUE alpha" where
 "pred_alphabet p \<equiv> fst \<langle>p\<rangle>\<^sub>\<alpha>"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name alphabet} @{const_name pred_alphabet}
-*}
+adhoc_overloading
+  alphabet pred_alphabet
 
 abbreviation predicate ::
-  "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE" where
+  "'VALUE uapred \<Rightarrow>
+   'VALUE upred" where
 "predicate p \<equiv> snd \<langle>p\<rangle>\<^sub>\<alpha>"
 notation predicate ("\<pi>")
 
-abbreviation in_alpha_of :: "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a ALPHABET" ("in\<alpha>") where
+abbreviation in_alpha_of :: "'a uapred \<Rightarrow> 'a alpha" ("in\<alpha>") where
 "in_alpha_of(P) \<equiv> in\<^sub>\<alpha>(\<alpha>(P))"
 
-abbreviation out_alpha_of :: "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a ALPHABET" ("out\<alpha>") where
+abbreviation out_alpha_of :: "'a uapred \<Rightarrow> 'a alpha" ("out\<alpha>") where
 "out_alpha_of(P) \<equiv> out\<^sub>\<alpha>(\<alpha>(P))"
 
 type_synonym 'VALUE ALPHA_FUNCTION =
-  "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE"
+  "'VALUE uapred \<Rightarrow>
+   'VALUE uapred"
 
 definition WF_ALPHA_PREDICATE_OVER ::
-  "'VALUE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE set" where
+  "'VALUE alpha \<Rightarrow> 'VALUE uapred set" where
 "WF_ALPHA_PREDICATE_OVER a = {p . \<alpha> p = a}"
 
-theorem WF_ALPHA_PREDICATE_UNREST [unrest] (* [dest] *) :
+theorem uapred_UNREST [unrest] (* [dest] *) :
 "UNREST (- \<langle>\<alpha> p\<rangle>\<^sub>f) (\<pi> p)"
 apply (insert DestPredA[of p])
 apply (auto simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def pred_alphabet_def)
@@ -112,16 +106,16 @@ subsection {* Operators *}
 subsubsection {* Shallow Lifting *}
 
 definition LiftA ::
-  "'a ALPHABET \<Rightarrow>
-   ('a WF_BINDING \<Rightarrow> bool) \<Rightarrow>
-   'a WF_ALPHA_PREDICATE" where
+  "'a alpha \<Rightarrow>
+   ('a binding \<Rightarrow> bool) \<Rightarrow>
+   'a uapred" where
 "LiftA a f = MkPredA (a, LiftP f)"
 
 subsubsection {* Equality *}
 
 lift_definition EqualsA ::
-  "'a VAR \<Rightarrow> 'a \<Rightarrow>
-   'a WF_ALPHA_PREDICATE" is "\<lambda> v x. (\<lbrace>v\<rbrace>, v =\<^sub>p x)"
+  "'a uvar \<Rightarrow> 'a \<Rightarrow>
+   'a uapred" is "\<lambda> v x. (\<lbrace>v\<rbrace>, v =\<^sub>p x)"
   by (simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
   
 notation EqualsA (infix "=\<^sub>\<alpha>" 210)
@@ -129,8 +123,8 @@ notation EqualsA (infix "=\<^sub>\<alpha>" 210)
 subsubsection {* Extension and Restriction *}
 
 lift_definition ExtA ::
-  "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a ALPHABET \<Rightarrow>
-   'a WF_ALPHA_PREDICATE" is
+  "'a uapred \<Rightarrow> 'a alpha \<Rightarrow>
+   'a uapred" is
 "\<lambda> p a. ((\<alpha> p) \<union>\<^sub>f a, \<pi> p)"
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
@@ -140,8 +134,8 @@ done
 notation ExtA (infix "\<oplus>\<^sub>\<alpha>" 200)
 
 lift_definition ResA ::
-  "'VALUE WF_ALPHA_PREDICATE \<Rightarrow> 'VALUE ALPHABET \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" is
+  "'VALUE uapred \<Rightarrow> 'VALUE alpha \<Rightarrow>
+   'VALUE uapred" is
 "\<lambda> p a. ((\<alpha> p) -\<^sub>f a, \<exists>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<pi> p)"
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
@@ -153,16 +147,15 @@ notation ResA (infix "\<ominus>\<^sub>\<alpha>" 200)
 subsubsection {* Alphabet Coercion *}
 
 lift_definition CoerceA ::
-  "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE ALPHABET \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" is
+  "'VALUE upred \<Rightarrow> 'VALUE alpha \<Rightarrow>
+   'VALUE uapred" is
 "\<lambda> p a. (a, \<exists>\<^sub>p (- \<langle>a\<rangle>\<^sub>f). p)"
 apply (simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 apply (auto intro: unrest)
 done
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name alpha_coerce} @{const_name CoerceA}
-*}
+adhoc_overloading
+  alpha_coerce CoerceA
 
 lemma CoerceA_rep_eq_simple:
   "- \<langle>a\<rangle>\<^sub>f \<sharp> p \<Longrightarrow> \<pi>(p\<^bsub>!a\<^esub>) = p"
@@ -170,65 +163,65 @@ lemma CoerceA_rep_eq_simple:
 
 subsubsection {* True and False *}
 
-lift_definition TrueA :: "'VALUE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" is
-"\<lambda> a. (a :: 'VALUE ALPHABET, TrueP :: 'VALUE WF_PREDICATE)"
+lift_definition TrueA :: "'VALUE alpha \<Rightarrow> 'VALUE uapred" is
+"\<lambda> a. (a :: 'VALUE alpha, TrueP :: 'VALUE upred)"
   by (simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
 
 notation TrueA ("true\<^bsub>_\<^esub>")
 
-lift_definition FalseA :: "'VALUE ALPHABET \<Rightarrow> 'VALUE WF_ALPHA_PREDICATE" is
-"\<lambda> a. (a :: 'VALUE ALPHABET, FalseP :: 'VALUE WF_PREDICATE)"
+lift_definition FalseA :: "'VALUE alpha \<Rightarrow> 'VALUE uapred" is
+"\<lambda> a. (a :: 'VALUE alpha, FalseP :: 'VALUE upred)"
   by (simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
 
 notation FalseA ("false\<^bsub>_\<^esub>")
 
-abbreviation TRUE :: "'VALUE WF_ALPHA_PREDICATE" where
+abbreviation TRUE :: "'VALUE uapred" where
 "TRUE \<equiv> true\<^bsub>\<lbrace>\<rbrace>\<^esub>"
 
-abbreviation FALSE :: "'VALUE WF_ALPHA_PREDICATE" where
+abbreviation FALSE :: "'VALUE uapred" where
 "FALSE \<equiv> false\<^bsub>\<lbrace>\<rbrace>\<^esub>"
 
 subsubsection {* Logical Connectives *}
 
 lift_definition NotA ::
-  "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" is
+  "'VALUE uapred \<Rightarrow>
+   'VALUE uapred" is
 "\<lambda> p. (\<alpha> p, \<not>\<^sub>p (\<pi> p))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation NotA ("\<not>\<^sub>\<alpha> _" [190] 190)
 
 lift_definition AndA ::
-  "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" is
+  "'VALUE uapred \<Rightarrow>
+   'VALUE uapred \<Rightarrow>
+   'VALUE uapred" is
 "\<lambda> p1 p2. ((\<alpha> p1) \<union>\<^sub>f (\<alpha> p2), (\<pi> p1) \<and>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation AndA (infixr "\<and>\<^sub>\<alpha>" 180)
 
 lift_definition OrA ::
-  "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" is
+  "'VALUE uapred \<Rightarrow>
+   'VALUE uapred \<Rightarrow>
+   'VALUE uapred" is
 "\<lambda> p1 p2 . ((\<alpha> p1) \<union>\<^sub>f (\<alpha> p2), (\<pi> p1) \<or>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation OrA (infixr "\<or>\<^sub>\<alpha>" 170)
 
 lift_definition ImpliesA ::
-  "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" is
+  "'VALUE uapred \<Rightarrow>
+   'VALUE uapred \<Rightarrow>
+   'VALUE uapred" is
 "\<lambda> p1 p2 . ((\<alpha> p1) \<union>\<^sub>f (\<alpha> p2), (\<pi> p1) \<Rightarrow>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation ImpliesA (infixr "\<Rightarrow>\<^sub>\<alpha>" 160)
 
 lift_definition IffA ::
-  "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" is
+  "'VALUE uapred \<Rightarrow>
+   'VALUE uapred \<Rightarrow>
+   'VALUE uapred" is
 "\<lambda> p1 p2 . ((\<alpha> p1) \<union>\<^sub>f (\<alpha> p2), (\<pi> p1) \<Leftrightarrow>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
@@ -241,9 +234,9 @@ text {* It would be nice if we could define a version of distributive alphabetis
         now this is simply supplied as a parameter. *}
 
 definition AndDistA ::
-  "'a ALPHABET \<Rightarrow>
-   'a WF_ALPHA_PREDICATE set \<Rightarrow>
-   'a WF_ALPHA_PREDICATE" where
+  "'a alpha \<Rightarrow>
+   'a uapred set \<Rightarrow>
+   'a uapred" where
 "AndDistA t ps = (if ((\<forall> a \<in> (pred_alphabet ` ps). a \<subseteq>\<^sub>f t) \<and> ps \<noteq> {}) 
                      then MkPredA (flub (pred_alphabet ` ps) t, \<And>\<^sub>p (\<pi> ` ps))
                      else TrueA t)"
@@ -260,7 +253,7 @@ proof -
     apply (rule unrest)
     apply (auto simp add:flub_rep_eq)
     apply (rule UNREST_subset)
-    apply (rule WF_ALPHA_PREDICATE_UNREST)
+    apply (rule uapred_UNREST)
     apply (auto)
   done
 
@@ -273,9 +266,9 @@ lemma AndDistA_empty:
   by (simp add:AndDistA_def)
 
 definition OrDistA ::
-  "'a ALPHABET \<Rightarrow>
-   'a WF_ALPHA_PREDICATE set \<Rightarrow>
-   'a WF_ALPHA_PREDICATE" where
+  "'a alpha \<Rightarrow>
+   'a uapred set \<Rightarrow>
+   'a uapred" where
 "OrDistA t ps = (if ((\<forall> a \<in> (\<alpha>`ps). a \<subseteq>\<^sub>f t) \<and> ps \<noteq> {}) 
                     then MkPredA (flub (\<alpha>`ps) t, \<Or>\<^sub>p (\<pi> ` ps))
                     else FalseA t)"
@@ -292,7 +285,7 @@ proof -
     apply (rule unrest)
     apply (auto simp add:flub_rep_eq)
     apply (rule UNREST_subset)
-    apply (rule WF_ALPHA_PREDICATE_UNREST)
+    apply (rule uapred_UNREST)
     apply (auto)
   done
 
@@ -307,26 +300,26 @@ lemma OrDistA_empty:
 default_sort type
 
 definition AANDI :: 
-  "'a ALPHABET \<Rightarrow> 'b set \<Rightarrow> 
-   ('b \<Rightarrow> ('a::VALUE) WF_ALPHA_PREDICATE) \<Rightarrow> 'a WF_ALPHA_PREDICATE" where
+  "'a alpha \<Rightarrow> 'b set \<Rightarrow> 
+   ('b \<Rightarrow> ('a::VALUE) uapred) \<Rightarrow> 'a uapred" where
 "AANDI a A f = \<And>\<^bsub>a\<^esub>(f ` A)"
 
 definition AORDI :: 
-  "'a ALPHABET \<Rightarrow> 'b set \<Rightarrow> 
-   ('b \<Rightarrow> ('a::VALUE) WF_ALPHA_PREDICATE) \<Rightarrow> 'a WF_ALPHA_PREDICATE" where
+  "'a alpha \<Rightarrow> 'b set \<Rightarrow> 
+   ('b \<Rightarrow> ('a::VALUE) uapred) \<Rightarrow> 'a uapred" where
 "AORDI a A f = \<Or>\<^bsub>a\<^esub>(f ` A)"
 
 syntax
-  "_AANDI1" :: "'a ALPHABET \<Rightarrow> pttrns \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("(3AND[_] _./ _)" [0, 0, 10] 10)
-  "_AANDI"  :: "'a ALPHABET \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE"  ("(3AND[_] _:_./ _)" [0, 0, 0, 10] 10)
-  "_AORDI1" :: "'a ALPHABET \<Rightarrow> pttrns \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("(3OR[_] _./ _)" [0, 0, 10] 10)
-  "_AORDI"  :: "'a ALPHABET \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE"  ("(3OR[_] _:_./ _)" [0, 0, 0, 10] 10)
+  "_AANDI1" :: "'a alpha \<Rightarrow> pttrns \<Rightarrow> 'a uapred \<Rightarrow> 'a uapred" ("(3AND[_] _./ _)" [0, 0, 10] 10)
+  "_AANDI"  :: "'a alpha \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> 'a uapred \<Rightarrow> 'a uapred"  ("(3AND[_] _:_./ _)" [0, 0, 0, 10] 10)
+  "_AORDI1" :: "'a alpha \<Rightarrow> pttrns \<Rightarrow> 'a uapred \<Rightarrow> 'a uapred" ("(3OR[_] _./ _)" [0, 0, 10] 10)
+  "_AORDI"  :: "'a alpha \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> 'a uapred \<Rightarrow> 'a uapred"  ("(3OR[_] _:_./ _)" [0, 0, 0, 10] 10)
 
 syntax (xsymbols)
-  "_AANDI1" :: "'a ALPHABET \<Rightarrow> pttrns \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("(3\<And>\<^bsub>_\<^esub> _./ _)" [0, 0, 10] 10)
-  "_AANDI"  :: "'a ALPHABET \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE"  ("(3\<And>\<^bsub>_\<^esub> _:_./ _)" [0, 0, 0, 10] 10)
-  "_AORDI1" :: "'a ALPHABET \<Rightarrow> pttrns \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE" ("(3\<Or>\<^bsub>_\<^esub> _./ _)" [0, 0, 10] 10)
-  "_AORDI"  :: "'a ALPHABET \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE"  ("(3\<Or>\<^bsub>_\<^esub> _:_./ _)" [0, 0, 0, 10] 10)
+  "_AANDI1" :: "'a alpha \<Rightarrow> pttrns \<Rightarrow> 'a uapred \<Rightarrow> 'a uapred" ("(3\<And>\<^bsub>_\<^esub> _./ _)" [0, 0, 10] 10)
+  "_AANDI"  :: "'a alpha \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> 'a uapred \<Rightarrow> 'a uapred"  ("(3\<And>\<^bsub>_\<^esub> _:_./ _)" [0, 0, 0, 10] 10)
+  "_AORDI1" :: "'a alpha \<Rightarrow> pttrns \<Rightarrow> 'a uapred \<Rightarrow> 'a uapred" ("(3\<Or>\<^bsub>_\<^esub> _./ _)" [0, 0, 10] 10)
+  "_AORDI"  :: "'a alpha \<Rightarrow> pttrn \<Rightarrow> 'b set \<Rightarrow> 'a uapred \<Rightarrow> 'a uapred"  ("(3\<Or>\<^bsub>_\<^esub> _:_./ _)" [0, 0, 0, 10] 10)
 
 translations
   "AND[a] x y. B"  => "AND[a] x. AND[a] y. B"
@@ -343,36 +336,36 @@ default_sort VALUE
 subsubsection {* Quantifiers *}
 
 lift_definition ExistsA ::
-  "'VALUE ALPHABET \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" is
+  "'VALUE alpha \<Rightarrow>
+   'VALUE uapred \<Rightarrow>
+   'VALUE uapred" is
 "\<lambda> a p . (\<alpha> p, \<exists>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<pi> p)"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation ExistsA ("(\<exists>\<^sub>\<alpha> _ ./ _)" [0, 10] 10)
 
 lift_definition ForallA ::
-  "'VALUE ALPHABET \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" is
+  "'VALUE alpha \<Rightarrow>
+   'VALUE uapred \<Rightarrow>
+   'VALUE uapred" is
 "\<lambda> a p. (\<alpha> p, \<forall>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<pi> p)"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation ForallA ("(\<forall>\<^sub>\<alpha> _ ./ _)" [0, 10] 10)
 
 lift_definition ExistsResA ::
-  "'VALUE ALPHABET \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" is
+  "'VALUE alpha \<Rightarrow>
+   'VALUE uapred \<Rightarrow>
+   'VALUE uapred" is
 "\<lambda> a p. ((\<alpha> p) -\<^sub>f a, \<exists>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<pi> p)"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation ExistsResA ("(\<exists>-\<^sub>\<alpha> _ ./ _)" [0, 10] 10)
 
 lift_definition ForallResA ::
-  "'VALUE ALPHABET \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" is
+  "'VALUE alpha \<Rightarrow>
+   'VALUE uapred \<Rightarrow>
+   'VALUE uapred" is
 "\<lambda> a p. ((\<alpha> p) -\<^sub>f a, \<forall>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<pi> p)"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
@@ -381,8 +374,8 @@ notation ForallResA ("(\<forall>-\<^sub>\<alpha> _ ./ _)" [0, 10] 10)
 subsubsection {* Universal Closure *}
 
 lift_definition ClosureA ::
-  "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" is
+  "'VALUE uapred \<Rightarrow>
+   'VALUE uapred" is
 "\<lambda> p. (\<lbrace>\<rbrace>, [\<pi> p]\<^sub>p)"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
@@ -391,9 +384,9 @@ notation ClosureA ("[_]\<^sub>\<alpha>")
 subsubsection {* Refinement *}
 
 lift_definition RefA ::
-  "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" is
+  "'VALUE uapred \<Rightarrow>
+   'VALUE uapred \<Rightarrow>
+   'VALUE uapred" is
 "\<lambda> p1 p2. (\<lbrace>\<rbrace>, (\<pi> p1) \<sqsubseteq>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
@@ -403,29 +396,28 @@ subsubsection {* Permuation *}
 
 (*
 lift_definition alpha_rename_image :: 
-  "('VALUE VAR_RENAME) \<Rightarrow> 'VALUE ALPHABET \<Rightarrow> 'VALUE ALPHABET" (infixr "`\<^sub>\<alpha>" 90) is rename_image
+  "('VALUE VAR_RENAME) \<Rightarrow> 'VALUE alpha \<Rightarrow> 'VALUE alpha" (infixr "`\<^sub>\<alpha>" 90) is rename_image
   by (simp add:rename_image_def fsets_def)
 *)
 
 lift_definition PermA ::
   "'VALUE VAR_RENAME \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_ALPHA_PREDICATE" ("_[_]\<alpha>" [200]) is
+   'VALUE uapred \<Rightarrow>
+   'VALUE uapred" ("_[_]\<alpha>" [200]) is
 "\<lambda> ss p. (\<langle>ss\<rangle>\<^sub>s `\<^sub>f \<alpha> p, ss\<bullet>(\<pi> p))"
   apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
   apply (rule UNREST_RenameP_alt)
-  apply (rule WF_ALPHA_PREDICATE_UNREST)
+  apply (rule uapred_UNREST)
   apply (metis RenameP_image_uminus equalityD2)
 done
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name permute} @{const_name PermA}
-*}
+adhoc_overloading
+  permute PermA
 
 subsection {* Meta-logical Operators *}
 
 definition TautologyA ::
-  "'VALUE WF_ALPHA_PREDICATE \<Rightarrow> bool" where
+  "'VALUE uapred \<Rightarrow> bool" where
 "TautologyA p = (p = true\<^bsub>\<alpha> p\<^esub>)"
 
 declare [[coercion TautologyA]]
@@ -433,38 +425,38 @@ declare [[coercion TautologyA]]
 notation TautologyA ("taut\<^sub>\<alpha> _" [50] 50)
 
 definition ContradictionA ::
-  "'VALUE WF_ALPHA_PREDICATE \<Rightarrow> bool" where
+  "'VALUE uapred \<Rightarrow> bool" where
 "ContradictionA p = (p = false\<^bsub>\<alpha> p\<^esub>)"
 
 notation ContradictionA ("contra\<^sub>\<alpha> _" [50] 50)
 
-instantiation WF_ALPHA_PREDICATE :: (VALUE) ord
+instantiation uapred :: (VALUE) ord
 begin
 
-definition less_eq_WF_ALPHA_PREDICATE :: 
-  "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> bool" where
-"less_eq_WF_ALPHA_PREDICATE p2 p1 \<longleftrightarrow> \<alpha> p1 = \<alpha> p2 \<and> taut\<^sub>\<alpha> (p1 \<sqsubseteq>\<^sub>\<alpha> p2)"
+definition less_eq_uapred :: 
+  "'a uapred \<Rightarrow> 'a uapred \<Rightarrow> bool" where
+"less_eq_uapred p2 p1 \<longleftrightarrow> \<alpha> p1 = \<alpha> p2 \<and> taut\<^sub>\<alpha> (p1 \<sqsubseteq>\<^sub>\<alpha> p2)"
 
-definition less_WF_ALPHA_PREDICATE :: 
-  "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a WF_ALPHA_PREDICATE \<Rightarrow> bool" where
-"less_WF_ALPHA_PREDICATE p2 p1 \<longleftrightarrow> (\<alpha> p1 = \<alpha> p2 \<and> taut\<^sub>\<alpha> (p1 \<sqsubseteq>\<^sub>\<alpha> p2) \<and> \<not> taut\<^sub>\<alpha> (p2 \<sqsubseteq>\<^sub>\<alpha> p1))"
+definition less_uapred :: 
+  "'a uapred \<Rightarrow> 'a uapred \<Rightarrow> bool" where
+"less_uapred p2 p1 \<longleftrightarrow> (\<alpha> p1 = \<alpha> p2 \<and> taut\<^sub>\<alpha> (p1 \<sqsubseteq>\<^sub>\<alpha> p2) \<and> \<not> taut\<^sub>\<alpha> (p2 \<sqsubseteq>\<^sub>\<alpha> p1))"
 
 instance ..
 
 end
 
-instantiation WF_ALPHA_PREDICATE :: (VALUE) refines begin instance .. end
+instantiation uapred :: (VALUE) refines begin instance .. end
 
 subsection {* Theorems *}
 
-theorem WF_ALPHA_PREDICATE_UNREST_intro [intro] :
+theorem uapred_UNREST_intro [intro] :
 "a \<subseteq> - \<langle>\<alpha> p\<rangle>\<^sub>f \<Longrightarrow> UNREST a (\<pi> p)"
-apply (insert WF_ALPHA_PREDICATE_UNREST [of "p"])
+apply (insert uapred_UNREST [of "p"])
 apply (erule UNREST_subset)
 apply (assumption)
 done
 
-theorem WF_ALPHA_PREDICATE_intro [intro] :
+theorem uapred_intro [intro] :
   "\<lbrakk>\<alpha> p1 = \<alpha> p2; \<pi> p1 = \<pi> p2\<rbrakk> \<Longrightarrow> p1 = p2"
   apply (case_tac p1, case_tac p2)
   apply (simp)
@@ -689,34 +681,35 @@ theorem TrueA_noteq_FalseA :
 (* This lines make many later proofs easier *)
 declare pred_alphabet_def [simp del]
 
-lemma WF_ALPHA_PREDICATE_neq_elim [elim]: 
+lemma uapred_neq_elim [elim]: 
   "\<lbrakk> p \<noteq> q; \<alpha> p \<noteq> \<alpha> q \<Longrightarrow> P; (\<pi> p \<noteq> \<pi> q) \<Longrightarrow> P \<rbrakk>  \<Longrightarrow> P "
   by (auto)
 
-theorem WF_ALPHA_PREDICATE_empty_true_false:
+theorem uapred_empty_true_false:
   "\<alpha> p = \<lbrace>\<rbrace> \<Longrightarrow> p = TRUE \<or> p = FALSE"
   apply (safe)
-  apply (rule WF_ALPHA_PREDICATE_intro)
+  apply (rule uapred_intro)
   apply (simp add:alphabet)
-  apply (erule WF_ALPHA_PREDICATE_neq_elim)
+  apply (erule uapred_neq_elim)
   apply (simp add:TrueA.rep_eq FalseA.rep_eq alphabet)
   apply (simp add:TrueA.rep_eq FalseA.rep_eq alphabet)
-  apply (insert WF_ALPHA_PREDICATE_UNREST[of p])
+  apply (insert uapred_UNREST[of p])
   apply (simp)
   apply (metis UNREST_true_false VAR_def)
 done
 
-theorem WF_ALPHA_PREDICATE_empty_elim:
+theorem uapred_empty_elim:
   "\<lbrakk> \<alpha> p = \<lbrace>\<rbrace>; p = TRUE \<Longrightarrow> P; p = FALSE \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (metis WF_ALPHA_PREDICATE_empty_true_false)
+  by (metis uapred_empty_true_false)
 
-lemma WF_ALPHA_PREDICATE_binding_equiv:
+lemma uapred_binding_equiv:
   "\<lbrakk> b1 \<in> destPRED (\<pi> p); b1 \<cong> b2 on \<langle>\<alpha> p\<rangle>\<^sub>f \<rbrakk> \<Longrightarrow> b2 \<in> destPRED (\<pi> p)"
-  apply (insert WF_ALPHA_PREDICATE_UNREST[of "p"])
+  apply (insert uapred_UNREST[of "p"])
   apply (auto simp add:UNREST_def)
-  apply (metis WF_ALPHA_PREDICATE_UNREST WF_PREDICATE_binding_equiv)
+  apply (metis uapred_UNREST WF_PREDICATE_binding_equiv)
 done
 
+(*
 lemma WF_ALPHA_PREDICATE_OVER_intro [intro]:
   "\<alpha> p = a \<Longrightarrow> p \<in> WF_ALPHA_PREDICATE_OVER a"
   by (simp add:WF_ALPHA_PREDICATE_OVER_def)
@@ -734,15 +727,16 @@ lemma OrA_WF_ALPHA_PREDICATE_OVER [closure]:
   "\<lbrakk> p \<in> WF_ALPHA_PREDICATE_OVER a; q \<in> WF_ALPHA_PREDICATE_OVER a \<rbrakk> \<Longrightarrow>
    p \<or>\<^sub>\<alpha> q \<in> WF_ALPHA_PREDICATE_OVER a"
   by (auto simp add:alphabet)
+*)
 
 subsection {* Conversion between alphabetised predicates and finite map sets *}
 
-type_synonym 'a apredmaps = "('a ALPHABET * ('a VAR, 'a) fmap set)"
+type_synonym 'a apredmaps = "('a alpha * ('a uvar, 'a) fmap set)"
 
-definition apred_fmap_set :: "'a WF_ALPHA_PREDICATE \<Rightarrow> 'a apredmaps" where
+definition apred_fmap_set :: "'a uapred \<Rightarrow> 'a apredmaps" where
 "apred_fmap_set p = (\<alpha> p, Abs_fmap ` pred_map_set \<langle>\<alpha> p\<rangle>\<^sub>f (\<pi> p))"
 
-definition fmap_set_apred :: "'a apredmaps \<Rightarrow> 'a WF_ALPHA_PREDICATE" where
+definition fmap_set_apred :: "'a apredmaps \<Rightarrow> 'a uapred" where
 "fmap_set_apred fs = MkPredA (fst fs, map_set_pred (Rep_fmap ` snd fs))"
 
 lemma pred_map_set_finite_map:
@@ -766,7 +760,7 @@ lemma apred_fmap_set_inv:
   "fmap_set_apred (apred_fmap_set p) = p"
   apply (simp add:fmap_set_apred_def apred_fmap_set_image)
   apply (subst pred_map_set_inv)
-  apply (metis WF_ALPHA_PREDICATE_UNREST)
+  apply (metis uapred_UNREST)
   apply (simp add:apred_fmap_set_def)
   apply (metis DestPredA_inverse pred_alphabet_def surjective_pairing)
 done
@@ -790,9 +784,5 @@ done
 lemma CoerceA_OrP:
   "(p \<or>\<^sub>p q)\<^bsub>!a\<^esub> = (p\<^bsub>!a\<^esub> \<or>\<^sub>\<alpha> q\<^bsub>!a\<^esub>)"
   by (auto simp add:alphabet OrA.rep_eq CoerceA.rep_eq ExistsP_OrP_dist)
-
-lemma CoerceA_AndP:
-  "\<lbrakk> - \<langle>a\<rangle>\<^sub>f \<sharp> p; - \<langle>a\<rangle>\<^sub>f \<sharp> q \<rbrakk> \<Longrightarrow> (p \<and>\<^sub>p q)\<^bsub>!a\<^esub> = (p\<^bsub>!a\<^esub> \<and>\<^sub>\<alpha> q\<^bsub>!a\<^esub>)"
-  by (metis AndA.abs_eq CoerceA.abs_eq CoerceA.rep_eq CoerceA_alphabet CoerceA_rep_eq_simple ExistsP_AndP_expand1 fset_simps(5) snd_eqD)
 
 end

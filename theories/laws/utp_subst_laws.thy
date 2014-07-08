@@ -19,107 +19,119 @@ begin
 
 subsection {* Predicate Substitution Laws *}
 
-lemma SubstP_NotP [usubst]: "(\<not>\<^sub>p p)[v/\<^sub>px] = \<not>\<^sub>p p[v/\<^sub>px]"
+theorem SubstP_NotP [usubst]: "(\<not>\<^sub>p p)[v/\<^sub>px] = \<not>\<^sub>p p[v/\<^sub>px]"
   by (utp_pred_tac)
 
-lemma SubstP_TrueP [usubst]: "true[v/\<^sub>px] = true"
+theorem SubstP_TrueP [usubst]: "true[v/\<^sub>px] = true"
   by (utp_pred_tac)
 
-lemma SubstP_FalseP [usubst]: "false[v/\<^sub>px] = false"
+theorem SubstP_FalseP [usubst]: "false[v/\<^sub>px] = false"
   by (utp_pred_tac)
 
-lemma SubstP_AndP [usubst]: "(p \<and>\<^sub>p q)[v/\<^sub>px] = p[v/\<^sub>px] \<and>\<^sub>p q[v/\<^sub>px]"
+theorem SubstP_AndP [usubst]: "(p \<and>\<^sub>p q)[v/\<^sub>px] = p[v/\<^sub>px] \<and>\<^sub>p q[v/\<^sub>px]"
   by (utp_pred_tac)
 
-lemma SubstP_OrP [usubst]: "(p \<or>\<^sub>p q)[v/\<^sub>px] = p[v/\<^sub>px] \<or>\<^sub>p q[v/\<^sub>px]"
+theorem SubstP_OrP [usubst]: "(p \<or>\<^sub>p q)[v/\<^sub>px] = p[v/\<^sub>px] \<or>\<^sub>p q[v/\<^sub>px]"
   by (utp_pred_tac)
 
-lemma SubstP_AndDistP [usubst]:
+theorem SubstP_AndDistP [usubst]:
   "(\<And>\<^sub>p ps)[v/\<^sub>px] = (\<And>\<^sub>p {p[v/\<^sub>px] | p. p \<in> ps})"
   apply (utp_pred_auto_tac)
   apply (metis EvalP_SubstP)
 done
 
-lemma SubstP_ANDI [usubst]:
+theorem SubstP_ANDI [usubst]:
   "(\<And>\<^sub>p i:I. P i)[v/\<^sub>px] = (\<And>\<^sub>p i:I. (P i)[v/\<^sub>px])"
   by (utp_pred_auto_tac)
 
-lemma SubstP_OrDistP [usubst]:
+theorem SubstP_OrDistP [usubst]:
   "(\<Or>\<^sub>p ps)[v/\<^sub>px] = (\<Or>\<^sub>p {p[v/\<^sub>px] | p. p \<in> ps})"
   apply (utp_pred_auto_tac)
   apply (metis EvalP_SubstP)
 done
 
-lemma SubstP_ORDI [usubst]:
+theorem SubstP_ORDI [usubst]:
   "(\<Or>\<^sub>p i:I. P i)[v/\<^sub>px] = (\<Or>\<^sub>p i:I. (P i)[v/\<^sub>px])"
   by (utp_pred_auto_tac)
 
-lemma SubstP_CondR [usubst]: 
+theorem SubstP_CondR [usubst]: 
   "(P \<lhd> c \<rhd> Q)[v/\<^sub>px] = (P[v/\<^sub>px]) \<lhd> (c[v/\<^sub>px]) \<rhd> (Q[v/\<^sub>px])"
   by (utp_pred_tac)
 
-lemma SubstP_ImpliesP [usubst]: 
+theorem SubstP_ImpliesP [usubst]: 
   "(p \<Rightarrow>\<^sub>p q)[v/\<^sub>px] = p[v/\<^sub>px] \<Rightarrow>\<^sub>p q[v/\<^sub>px]"
   by (utp_pred_tac)
 
-lemma SubstP_IffP [usubst]: 
+theorem SubstP_IffP [usubst]: 
   "(p \<Leftrightarrow>\<^sub>p q)[v/\<^sub>px] = p[v/\<^sub>px] \<Leftrightarrow>\<^sub>p q[v/\<^sub>px]"
   by (utp_pred_tac)
 
-lemma SubstP_ExistsP [usubst]:
+theorem SubstP_ExistsP [usubst]:
   "\<lbrakk> vs \<sharp> e; x \<notin> vs \<rbrakk> \<Longrightarrow> (\<exists>\<^sub>p vs. p)[e/\<^sub>px] = (\<exists>\<^sub>p vs. p[e/\<^sub>px])"
   by (utp_pred_tac)
 
-lemma SubstP_ClosureP [usubst]:
+theorem ExistsP_SubstP_same [usubst]:
+  "x \<in> xs \<Longrightarrow> (\<exists>\<^sub>p xs. p)[v/\<^sub>px] = (\<exists>\<^sub>p xs. p)"
+  by (utp_pred_tac)
+
+theorem ForallP_SubstP_same [usubst]:
+  "x \<in> xs \<Longrightarrow> (\<forall>\<^sub>p xs. p)[v/\<^sub>px] = (\<forall>\<^sub>p xs. p)"
+  by (utp_pred_tac)
+
+theorem ForallP_SubstP_diff [usubst]:
+  "\<lbrakk> x \<notin> xs; xs \<sharp> v \<rbrakk> \<Longrightarrow> (\<forall>\<^sub>p xs. p)[v/\<^sub>px] = (\<forall>\<^sub>p xs. p[v/\<^sub>px])"
+  by (simp add: ForallP_def usubst)
+
+theorem SubstP_ClosureP [usubst]:
   "[P]\<^sub>p[v/\<^sub>px] = [P]\<^sub>p"
   by (utp_pred_tac)
 
-lemma SubstP_RefineP [usubst]:
+theorem SubstP_RefineP [usubst]:
   "(P \<sqsubseteq>\<^sub>p Q)[v/\<^sub>px] = (P \<sqsubseteq>\<^sub>p Q)"
   by (utp_pred_tac)
 
-lemma SubstP_UNREST (* [usubst] *):
+theorem SubstP_UNREST (* [usubst] *):
   "\<lbrakk> NON_REL_VAR \<sharp> p; x \<in> NON_REL_VAR \<rbrakk> 
   \<Longrightarrow> p[e/\<^sub>px] = p"
   by (utp_pred_tac)
 
-lemma SubstP_twice_1 [usubst]:
+theorem SubstP_twice_1 [usubst]:
   "p[e/\<^sub>px][f/\<^sub>px] = p[e[f/\<^sub>ex]/\<^sub>px]"
   by (utp_pred_tac)
 
-lemma SubstP_twice_2 [usubst]:
+theorem SubstP_twice_2 [usubst]:
   "{y} \<sharp> p \<Longrightarrow> p[e/\<^sub>px][f/\<^sub>py] = p[e[f/\<^sub>ey]/\<^sub>px]"
   apply (simp add:eval evale typing closure defined)
   apply (metis EvalE_compat EvalP_UNREST_assign_1 binding_upd_twist)
 done
 
-lemma SubstP_twice_3 [usubst]:
+theorem SubstP_twice_3 [usubst]:
   "\<lbrakk> x \<noteq> y; {x} \<sharp> f \<rbrakk> \<Longrightarrow> p[e/\<^sub>px][f/\<^sub>py] = p[f/\<^sub>py][e[f/\<^sub>ey]/\<^sub>px]"
   by (utp_pred_tac, metis EvalE_UNREST_binding_upd EvalE_compat binding_upd_twist)
 
-lemma SubstP_VarP_diff [usubst]:
+theorem SubstP_VarP_diff [usubst]:
   "x \<noteq> y \<Longrightarrow> $\<^sub>py[e/\<^sub>px] = $\<^sub>py"
   by (utp_pred_tac)
 
-lemma SubstP_VarP_aux (* [usubst] *):
+theorem SubstP_VarP_aux (* [usubst] *):
   "\<lbrakk> AUX_VAR \<sharp> p; aux x \<rbrakk> \<Longrightarrow> p[e/\<^sub>px] = p"
   by (utp_pred_tac)
 
-lemma SubstP_VarP_single_UNREST (* [usubst] *):
+theorem SubstP_VarP_single_UNREST (* [usubst] *):
   "{x} \<sharp> p \<Longrightarrow> p[e/\<^sub>px] = p"
   by (utp_pred_tac)
 
-lemma SubstP_VarP [usubst]: "v \<rhd>\<^sub>e x \<Longrightarrow> $\<^sub>px[v/\<^sub>px] = ExprP v"
+theorem SubstP_VarP [usubst]: "v \<rhd>\<^sub>e x \<Longrightarrow> $\<^sub>px[v/\<^sub>px] = ExprP v"
   by (utp_pred_tac)
 
-lemma SubstP_EqualP [usubst]: "(e ==\<^sub>p f)[v/\<^sub>px] = (e[v/\<^sub>ex]) ==\<^sub>p (f[v/\<^sub>ex])"
+theorem SubstP_EqualP [usubst]: "(e ==\<^sub>p f)[v/\<^sub>px] = (e[v/\<^sub>ex]) ==\<^sub>p (f[v/\<^sub>ex])"
   by (utp_pred_tac)
 
-lemma SubstP_SemiR_left [usubst]: 
+theorem SubstP_SemiR_left [usubst]: 
   "\<lbrakk> x \<in> UNDASHED; DASHED \<sharp> v \<rbrakk> \<Longrightarrow> (p ;\<^sub>R q)[v/\<^sub>px] = p[v/\<^sub>px] ;\<^sub>R q"
   by (utp_rel_auto_tac)
 
-lemma SubstP_SemiR_right [usubst]: 
+theorem SubstP_SemiR_right [usubst]: 
   "\<lbrakk> x \<in> DASHED; UNDASHED \<sharp> v \<rbrakk> \<Longrightarrow> (p ;\<^sub>R q)[v/\<^sub>px] = p ;\<^sub>R q[v/\<^sub>px]"
   by (utp_rel_auto_tac)
 
@@ -137,7 +149,7 @@ lemma binding_equiv_upd_drop:
   "\<lbrakk> b1(x :=\<^sub>b e) \<cong> b2(x :=\<^sub>b f) on vs \<rbrakk> \<Longrightarrow> b1 \<cong> b2 on vs - {x}"
   by (auto simp add:binding_equiv_def, metis)
 
-lemma SubstP_NON_REL_VAR [usubst]:
+theorem SubstP_NON_REL_VAR [usubst]:
   "\<lbrakk> x \<in> NON_REL_VAR; REL_VAR \<sharp> v \<rbrakk> \<Longrightarrow> (p ;\<^sub>R q)[v/\<^sub>px] = p[v/\<^sub>px] ;\<^sub>R q[v/\<^sub>px]"
   apply (utp_rel_auto_tac)
   apply (rule_tac x="ya \<oplus>\<^sub>b xa on NON_REL_VAR" in exI)
@@ -151,7 +163,7 @@ lemma SubstP_NON_REL_VAR [usubst]:
   apply (metis EvalE_UNREST_override NON_REL_VAR_def binding_override_minus)
 done
 
-lemma SubstP_SkipRA [usubst]: 
+theorem SubstP_SkipRA [usubst]: 
   "\<lbrakk> HOMOGENEOUS vs; x \<notin> vs; e \<rhd>\<^sub>e x \<rbrakk> \<Longrightarrow> II\<^bsub>vs\<^esub>[e/\<^sub>px] = II\<^bsub>vs\<^esub>"
   apply (utp_pred_tac)
   apply (metis (full_types) Int_iff hom_alphabet_undash in_vars_def)
@@ -225,7 +237,7 @@ done
 
 subsection {* Expression Substitution Laws *}
 
-lemma SubstE_LitE [usubst]:
+theorem SubstE_LitE [usubst]:
   "v : a \<Longrightarrow> LitE v[e/\<^sub>ex] = LitE v"
   by (utp_expr_tac)
 
@@ -236,7 +248,7 @@ lemma [typing]: "x :! a \<Longrightarrow> x : a"
 (* Hmmmm, why does this proof take so much effort? It should just go through by
    utp_expr_tac but I have to explicitly guide application of EvalE_Op1E. I think
    there may be too much non-determinism. *)
-lemma SubstE_Op1E [usubst]:
+theorem SubstE_Op1E [usubst]:
   "\<lbrakk> v :!\<^sub>e a; f \<in> FUNC1 a b; e :\<^sub>e vtype x \<rbrakk> \<Longrightarrow> (Op1E f v)[e/\<^sub>ex] = Op1E f (v[e/\<^sub>ex])"
   apply (auto simp add:evale typing defined)
   apply (insert SubstE_type[of e x v a])
@@ -250,35 +262,54 @@ lemma SubstE_Op2E [usubst]:
   apply (metis EvalE_SubstE EvalE_def Op2E_rep_eq edtype_rel_def)
 done
 
-lemma SubstE_TrueE [usubst]:
+theorem SubstE_TrueE [usubst]:
   "TrueE[e/\<^sub>ex] = TrueE"
   by (utp_expr_tac)
 
-lemma SubstE_FalseE [usubst]:
+theorem SubstE_FalseE [usubst]:
   "FalseE[e/\<^sub>ex] = FalseE"
   by (utp_expr_tac)
 
-lemma SubstE_VarE [usubst]: 
+theorem SubstE_VarE [usubst]: 
   "v \<rhd>\<^sub>e x \<Longrightarrow> VarE x[v/\<^sub>ex] = v"
   by (utp_expr_tac)
 
-lemma SubstE_VarE_other [usubst]: 
+theorem SubstE_VarE_other [usubst]: 
   "x \<noteq> y \<Longrightarrow> VarE y[v/\<^sub>ex] = VarE y"
   by (utp_expr_tac)
 
-lemma SubstE_VarE_single_UNREST (* [usubst] *):
+theorem SubstE_VarE_single_UNREST (* [usubst] *):
   "{x} \<sharp> f \<Longrightarrow> f[e/\<^sub>ex] = f"
   by (utp_expr_tac)
 
-lemma SubstP_AssignR_simple [usubst]:
+theorem SubstP_AssignR_simple [usubst]:
   assumes 
     "x \<in> UNDASHED"
-    "e \<rhd>\<^sub>e x"
-    "v \<rhd>\<^sub>e x"
     "DASHED \<sharp> e"
     "DASHED \<sharp> v"
   shows "(x :=\<^sub>R e)[v/\<^sub>px] = (x :=\<^sub>R (e[v/\<^sub>ex]))"
-  using assms by (simp add: AssignR_alt_def typing defined usubst unrest)
+  using assms 
+  apply (utp_rel_auto_tac)
+  apply (metis (lifting, mono_tags) EvalE_SubstE EvalR_AssignR UNDASHED_not_DASHED UNDASHED_undash_elim UNREST_SubstE_simple WF_REL_BINDING_binding_upd_remove assms(1) assms(2) assms(3) mem_Collect_eq)
+  apply (smt EvalE_SubstE EvalR_AssignR UNDASHED_not_DASHED UNREST_SubstE_simple WF_REL_BINDING_binding_upd mem_Collect_eq)
+done
+(*
+Alternative proof requiring typing constraints:
+by (simp add: AssignR_alt_def typing defined usubst unrest)
+*)
+
+theorem SubstP_AssignR_disjoint [usubst]:
+  assumes "x \<in> D\<^sub>0" "y \<in> D\<^sub>0" "x \<noteq> y"
+          "{x} \<sharp> v" "{y} \<sharp> u" "D\<^sub>1 \<sharp> u" "D\<^sub>1 \<sharp> v"
+  shows "(x :=\<^sub>R u)[v/\<^sub>py] = (x :=\<^sub>R u) ;\<^sub>R (y :=\<^sub>R v)"
+  using assms
+  apply (utp_rel_auto_tac)
+  apply (metis WF_REL_BINDING_binding_upd_remove)
+  apply (metis EvalE_UNREST_binding_upd binding_upd_twist)
+  apply (metis WF_REL_BINDING_binding_upd WF_REL_BINDING_binding_upd_remove)
+  apply (metis EvalE_UNREST_binding_upd binding_upd_twist)
+  apply (metis WF_REL_BINDING_binding_upd)
+done
 
 lemma SubstP_AssignR_1 [usubst]:
   "\<lbrakk> x \<in> UNDASHED; y \<in> UNDASHED; e \<rhd>\<^sub>e y; v \<rhd>\<^sub>e x; x \<noteq> y; 

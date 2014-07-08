@@ -1,16 +1,25 @@
 session "HOL-UTP" = "Kleene_Algebra" +
+  options [browser_info = true, document = pdf, document_output = "output", document_graph = true, document_variants="document:outline=/proof,/ML"]
   theories [document = false]
+  theories 
   "theories/utp_base"
+  "theories/utp_friendly"
+  "theories/models/utp_basic_model"
+  files "document/root.tex"
 
-session "HOL-UTP-THY" in "theories/theories" = "HOL-UTP" +
-  options [quick_and_dirty = true]
-  theories [document = "false"]
+session "HOL-UTP-DES" in "theories/theories/designs" = "HOL-UTP" +
+  options [document = pdf, document_output = "output"]
+  theories
+    "utp_designs"
+  files "document/root.tex"
+  
+session "HOL-UTP-THY" in "theories/theories" = "HOL-UTP-DES" +
+  theories [document = pdf, document_output = "output", quick_and_dirty = true]
   "utp_acp"
   "utp_csp"
-  "utp_designs"
   "utp_definedness"
   "utp_reactive"
-  "utp_relations"
+  files "document/root.tex"
   
 session "HOL-UTP-CML" in "theories/models/utp_cml" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
@@ -45,17 +54,39 @@ session "utp-hjf-summer-school" in "papers/utp-hjf-summer-school" = "HOL-UTP-THY
     "proof_wp"
   files "document/root.tex"
 
-session "itp2014" in "papers/itp2014" = "HOL-UTP-THY" +
+session "utp-mrktdrf-2014" in "papers/utp-mrktdrf-2014" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output"]
   theories [document = false]
+  theories 
+    "theory_mechanisation"
+    "hoare_gcd"
+    "isabelle_utp"
+    "proof_basic_laws"
+    "proof_design_comp"
+    "proof_des_design"
+    "proof_des_inj"
+    "proof_h1_algebraic"
+    "proof_h1_equiv"
+    "proof_h1_h2_design"
+    "proof_h1_left_unit"
+    "proof_h1_left_zero"
+    "proof_h2_equiv"
+    "proof_h2_idempotent"
+    "proof_h3"
+    "proof_h4_form"
+    "proof_iter_unfold"
+    "proof_j_is_h2"
+    "proof_j_split"
+    "proof_refinement_conditional"
+    "proof_rel_design"
+    "proof_rel_des"
+    "proof_unreachable_branch"
+    "proof_unreachable_branch_single"
+    "proof_wp"
   files 
     "document/root.tex"
-    "document/intro.tex"
-    "document/designs.tex"
-    "document/utp_mech.tex"
-    "document/mech_designs.tex"
-    "document/conclusion.tex"
-
+    "document/mdrf.bib"
+    
 session "isabelle-basics-tutorial" in "papers/isabelle-basics-tutorial" = "HOL" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
   theories
@@ -83,21 +114,6 @@ session "isabelle-utp-tutorial" in "papers/isabelle-utp-tutorial" = "HOL-UTP-THY
     "utp_pred_tac_proofs"
     "utp_rel_tac_proofs"
     "utp_types"
-  files "document/root.tex"
-
-session "christmas13" in "papers/christmas13" = "HOL-UTP-THY" +
-  options [document = pdf, document_output = "output", quick_and_dirty = true]
-  theories [document = false]
-  theories 
-    "value_class"
-    "bindings"
-    "layered_pred"
-    "predicates"
-    "expr"
-    "poly_expr"
-    "tactic_prog"
-    "utp_rel_tac_proofs"
-    "proof_h1_left_zero"
   files "document/root.tex"
 
 session "designs-tutorial" in "papers/designs-tutorial" = "HOL-UTP" +
@@ -128,37 +144,27 @@ session "nfm2014" in "papers/nfm2014" = "HOL-UTP" +
         "document/nfm2014.bib"
         "document/deep-shallow.pdf"
 
-session "utp2014" in "papers/utp2014" = "HOL-UTP-THY" +
+session "utp2014-presentation" in "papers/utp2014-presentation" = "HOL-UTP" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
-  theories [document = false]
-  theories 
-    "prelim"
-    "deep_shallow"
-    "h1_h2_design"
-    "prog_model"
+  theories
+    "value_class"
+    "bindings"
+    "pred_ops"
+    "alpha_unrest"
+    "expr"
+    "sort_class"
     "poly_expr"
-    "tactics"
-    "shallow_values"
+    "poly_erasure"
   files "document/root.tex"
-        "document/utp2014.bib"
-        "document/deep-shallow.pdf"
-
-session "sets2014" in "papers/sets2014" = "HOL-UTP-THY" +
-  options [document = pdf, document_output = "output", quick_and_dirty = true]
-  theories [document = false]
-  theories 
-    "vdm_model"
-  files "document/root.tex"
-        "document/sets2014.bib"
 
 session Datatype_Order_Generator (AFP) in "contrib/Datatype_Order_Generator" 
   = "HOL-Library" +
-  options [timeout = 300]
+  options [timeout = 600]
   theories [document=false]
-    "../HashCode"
+    "../Collections/Lib/HashCode"
   theories
     Derive
-    Derive_Examples
+    Derive_Examples 
   files
     "document/root.bib"
     "document/root.tex"
@@ -171,19 +177,13 @@ session Kleene_Algebra (AFP) in "contrib/Kleene_Algebra"
     Action_Algebra_Models
     Dioid
     Dioid_Models
-    Kleene_Algebra
+    Formal_Power_Series
+    Kleene_Algebras
     Kleene_Algebra_Models
     Matrix
     Omega_Algebra
+    Omega_Algebra_Models
     Signatures
   files
     "document/root.bib"
     "document/root.tex"
-
-session "HOL-RegAlg" in "contrib/HOL-RegAlg" 
-  = "Kleene_Algebra" +
-  options [timeout = 300]
-  theories [document=false]
-    Base
-    Lattice
-    Galois_Connection

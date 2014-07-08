@@ -95,7 +95,11 @@ proof
     by (metis le_iff_sup)
 
   also from assms have "... \<longleftrightarrow> (F (x1 \<sqinter> y1) (x2 \<sqinter> y2) = F y1 y2)"
-    by (smt disjunctive2E sup_absorb1 sup_commute sup_ge1 x1ley1 x2ley2)
+    apply (auto)
+    apply (metis le_iff_sup x1ley1 x2ley2)
+    apply (erule disjunctive2E)
+    apply (metis disjunctive2E sup_absorb1 sup_commute sup_ge1)
+  done
 
   also from assms have "..."
     by (metis sup_absorb2 x1ley1 x2ley2)

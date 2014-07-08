@@ -12,9 +12,10 @@ begin
 
 ML {*
   fun utp_subst_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps (usubst.get ctxt)
       addsimps (closure.get ctxt)
+      addsimps (unrest.get ctxt)
       addsimps (typing.get ctxt)
       addsimps (defined.get ctxt);
 *}

@@ -66,7 +66,7 @@ proof -
     have "(f \<otimes> (g \<oplus> h)) i j  = \<Sum>{f i k \<cdot> (g k j + h k j) |k. k \<in> UNIV}"
       by (simp only: mat_mult_def mat_add_def)
     also have "... = \<Sum>{f i k \<cdot> g k j + f i k \<cdot> h k j |k. k \<in> UNIV}"
-      by (simp only: right_distrib)
+      by (simp only: distrib_left)
     also have "... = \<Sum>{f i k \<cdot> g k j |k. k \<in> UNIV} + \<Sum>{f i k \<cdot> h k j |k. k \<in> UNIV}"
       by (simp only: fset_to_im setsum_fun_sum finiteuniv)
     finally have "(f \<otimes> (g \<oplus> h)) i j  = ((f \<otimes> g) \<oplus> (f \<otimes> h)) i j"
@@ -83,7 +83,7 @@ proof -
     have "((f \<oplus> g) \<otimes> h) i j  = \<Sum>{(f i k + g i k) \<cdot> h k j |k. k \<in> UNIV}"
       by (simp only: mat_mult_def mat_add_def)
     also have "... = \<Sum>{f i k \<cdot> h k j + g i k \<cdot> h k j |k. k \<in> UNIV}"
-      by (simp only: left_distrib)
+      by (simp only: distrib_right)
     also have "... = \<Sum>{f i k \<cdot> h k j |k. k \<in> UNIV} + \<Sum>{g i k \<cdot> h k j |k. k \<in> UNIV}"
       by (simp only: fset_to_im setsum_fun_sum finiteuniv)
     finally have "((f \<oplus> g) \<otimes> h) i j  = ((f \<otimes> h) \<oplus> (g \<otimes> h)) i j"

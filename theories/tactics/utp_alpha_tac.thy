@@ -24,8 +24,8 @@ setup evala.setup
 subsection {* Interpretation Function *}
 
 definition EvalA ::
-  "'VALUE WF_ALPHA_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE" ("\<lbrakk>_\<rbrakk>\<pi>") where
+  "'a uapred \<Rightarrow>
+   'a upred" ("\<lbrakk>_\<rbrakk>\<pi>") where
 "EvalA p = \<pi> p"
 
 subsection {* Transfer Theorems *}
@@ -166,11 +166,19 @@ lemma EvalA_TautologyA [evala]:
 
 (* declare TautologyA_def [evala] *)
 declare ContradictionA_def [evala]
-declare less_eq_WF_ALPHA_PREDICATE_def [evala]
-declare less_WF_ALPHA_PREDICATE_def [evala]
+declare less_eq_uapred_def [evala]
+declare less_uapred_def [evala]
 
 lemma EvalA_RefinementA: "p \<sqsubseteq> q \<longleftrightarrow> \<alpha> p = \<alpha> q \<and> \<lbrakk>p\<rbrakk>\<pi> \<sqsubseteq> \<lbrakk>q\<rbrakk>\<pi>"
-  by (simp add:less_eq_WF_ALPHA_PREDICATE_def less_eq_WF_PREDICATE_def evala eval alphabet)
+  by (simp add: evala eval alphabet)
+
+lemma EvalA_RefineA_intro: "\<lbrakk> \<alpha>(p) = \<alpha>(q); \<lbrakk>p\<rbrakk>\<pi> \<sqsubseteq> \<lbrakk>q\<rbrakk>\<pi> \<rbrakk> \<Longrightarrow> p \<sqsubseteq> q"
+  by (metis EvalA_RefinementA)
+
+lemma EvalA_TautologyA_intro: "\<lbrakk> True; \<lbrakk>p\<rbrakk>\<pi> \<rbrakk> \<Longrightarrow> taut\<^sub>\<alpha> p"
+  by (metis EvalA_TautologyA)
+
+lemmas EvalA_intros = EvalA_intro EvalA_RefineA_intro EvalA_TautologyA
 
 subsection {* Proof Tactics *}
 
@@ -181,24 +189,22 @@ text {*
 
 ML {*
   fun utp_alpha_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps (evala.get ctxt)
       addsimps (closure.get ctxt)
       (* Closure alone seems not enough e.g. to simplify (p1 \<or>\<alpha> p2) \<sqsubseteq> p2. *)
       addsimps (alphabet.get ctxt)
       addsimps (typing.get ctxt)
-      addsimps @{thms var_simps}
       addsimps @{thms var_dist}
       addsimps @{thms alphabet_dist};
 *}
 
 ML {*
   fun utp_alphabet_simpset ctxt =
-    (simpset_of ctxt)
+    ctxt
       addsimps (alphabet.get ctxt)
       addsimps (closure.get ctxt)
       addsimps (typing.get ctxt)
-      addsimps @{thms var_simps}
       addsimps @{thms var_dist}
       addsimps @{thms alphabet_dist};
 *}
@@ -212,7 +218,7 @@ ML {*
   fun utp_alpha_tac2 thms ctxt i =
     CHANGED (resolve_tac @{thms EvalA_intro} 1 
       THEN
-        asm_full_simp_tac ((simpset_of ctxt) addsimps (evala.get ctxt @ closure.get ctxt @ typing.get ctxt)) 2
+        asm_full_simp_tac (ctxt addsimps (evala.get ctxt @ closure.get ctxt @ typing.get ctxt)) 2
       THEN
         asm_full_simp_tac (utp_alphabet_simpset ctxt) 1
       THEN

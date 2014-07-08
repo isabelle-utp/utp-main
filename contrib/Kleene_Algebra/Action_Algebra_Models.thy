@@ -354,6 +354,23 @@ begin
       by (cases y, cases x, cases z) (auto simp add: plus_pnat_def times_pnat_def residual_r_pnat_def less_eq_pnat_def zero_pnat_def one_pnat_def)
   qed
 
-end (* instance *)
+end (* instantiation *)
+
+instantiation pnat :: action_algebra
+begin
+
+text {* The Kleene star for type~@{typ pnat} has already been defined in theory
+@{theory Kleene_Algebra_Models}. *}
+
+  instance
+  proof
+    fix x y :: pnat
+    show "1 + x\<^sup>\<star> \<cdot> x\<^sup>\<star> + x \<le> x\<^sup>\<star>"
+      by (metis star_pnat_def zero_pnat_top)
+    show "1 + y \<cdot> y + x \<le> y \<longrightarrow> x\<^sup>\<star> \<le> y"
+      by (metis join_semilattice_class.add_lub star_pnat_def)
+  qed
+
+end (* instantiation *)
 
 end

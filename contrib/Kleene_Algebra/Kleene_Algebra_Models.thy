@@ -387,7 +387,6 @@ all elements to to the maximal element. *}
 definition (in bounded_distributive_lattice) bdl_star :: "'a \<Rightarrow> 'a" where
   "bdl_star x = top"
 
-(*
 sublocale bounded_distributive_lattice \<subseteq> kleene_algebra sup inf top bot less_eq less bdl_star
 proof
   fix x y z :: 'a
@@ -398,17 +397,18 @@ proof
   show "sup z (inf y x) \<le> y \<longrightarrow> inf z (bdl_star x) \<le> y"
     by (simp add: bdl_star_def)
 qed
-*)
+
 
 subsection {* The Min-Plus Kleene Algebra *}
 
-text {* While we cannot define a Kleene star for max-plus and min-plus
+text {* One cannot define a Kleene star for max-plus and min-plus
 algebras that range over the real numbers. Here we define the star for
-a min-plus algebra restricted to the positive reals. Similar variants
-can be obtained for max-plus algebras and other algebras ranging over
-the positive or negative integers. *}
+a min-plus algebra restricted to natural numbers and~$+\infty$. The
+resulting Kleene algebra is commutative. Similar variants can be
+obtained for max-plus algebras and other algebras ranging over the
+positive or negative integers. *}
 
-instantiation pnat :: kleene_algebra
+instantiation pnat :: commutative_kleene_algebra
 begin
 
   definition star_pnat where
@@ -423,6 +423,8 @@ begin
       by (metis join_semilattice_class.add_lub monoid_mult_class.mult_1_left star_pnat_def)
     show "z + y \<cdot> x \<le> y \<longrightarrow> z \<cdot> x\<^sup>\<star> \<le> y"
       by (metis join_semilattice_class.add_lub monoid_mult_class.mult_1_right star_pnat_def)
+    show "x \<cdot> y = y \<cdot> x"
+      unfolding times_pnat_def by (cases x, cases y, simp_all)
   qed
 
 end (* instantiation *)

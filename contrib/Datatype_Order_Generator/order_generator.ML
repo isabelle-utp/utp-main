@@ -32,7 +32,7 @@ sig
   val mk_order_thms : theory -> Datatype_Aux.info -> thm list
 
   (* creates and registers (0 = ord, 1 = order, 2 = linear-order) for datatype *)
-  val derive : int -> string -> theory -> theory
+  val derive : int -> string -> string -> theory -> theory
 
   (* registeres method in Derive-Manager *)
   val setup : theory -> theory
@@ -43,8 +43,6 @@ end
 structure Order_Generator : ORDER_GENERATOR =
 struct
 open Datatype_Aux; open Datatype; open Derive_Aux;
-
-fun strip_cases ctac = ctac #> Seq.map snd
 
 val less_name = @{const_name "Orderings.less"}
 
@@ -117,36 +115,18 @@ fun mk_less_eq_idx thy info sort idx x y =
   |> fst
   |> (fn less => HOLogic.mk_disj (less idx $ x $ y, HOLogic.mk_eq (x,y)))
 
-fun mk_xs thy info sort idx i =   
-  let 
-    val descr = #descr info
-    val typ_subst = typ_subst_for_sort thy info sort
-    fun typ_of dty = typ_of_dtyp descr dty |> typ_subst
-    val mk_free_i = mk_free_tysubst_i typ_subst
-  in 
-    mk_free_i ("x_" ^ string_of_int idx ^ "_") i (typ_of (DtRec idx))
-  end
-
 fun mk_prop_trm thy info sort 
-  (gen : (int -> term) -> (term -> term -> term) -> (term -> term -> term) -> term list * term list) = 
+  (gen : (int -> term) -> (term -> term -> term)list -> term list * term list) = 
   let 
     fun main idx = 
       let
         val xs = mk_xs thy info sort idx
         fun less a b = (mk_less_idx thy info sort |> fst) idx $ a $ b
         val less_eq = mk_less_eq_idx thy info sort idx
-      in gen xs less less_eq end
+      in gen xs [less, less_eq] end
   in #descr info  
     |> map (fst #> main)
   end
-
-fun prop_trm_to_major_imp prop =
-  hd prop 
-  |> (fn (p,v) => (
-    map (HOLogic.mk_Trueprop) p
-    |> split_last
-    |> Logic.list_implies, 
-    v))
 
 fun mk_prop_major_trm thy info sort gen =
   mk_prop_trm thy info sort gen |> prop_trm_to_major_imp 
@@ -154,30 +134,15 @@ fun mk_prop_major_trm thy info sort gen =
 
 fun mk_trans_thm_trm thy info =
   mk_prop_trm thy info @{sort "order"}
-  (fn xs => fn less => fn _ => 
+  (fn xs => fn [less,_] => 
     let val (x,y,z) = (xs 1, xs 2, xs 3)
     in ([less x y, less y z, less x z], [x,y,z]) end)
 
 fun mk_trans_eq_thm_trm thy info =
   mk_prop_major_trm thy info @{sort "order"}
-  (fn xs => fn _ => fn lesseq =>
+  (fn xs => fn [_, lesseq] =>
     let val (x,y,z) = (xs 1, xs 2, xs 3)
     in ([lesseq x y, lesseq y z, lesseq x z], [x,y,z]) end)
-
-
-fun mk_case_tac (ctxt : Proof.context)
-  (insts : term option list list) 
-  (thm : thm) 
-  (sub_case_tac : Proof.context * int * thm list * (string * cterm) list -> tactic) = 
-    (
-      DETERM o strip_cases o Induct.cases_tac ctxt false insts (SOME thm) []
-      THEN_ALL_NEW (fn i => Subgoal.SUBPROOF (fn {context = ctxt, prems = hyps, params = params, ...} 
-        => sub_case_tac (ctxt, i-1, hyps, params)) ctxt i)
-    )
-    1
-
-fun mk_solve_with_tac (thms : thm list) (solver_tac : tactic) =
-  SOLVE (Method.insert_tac thms 1 THEN solver_tac)
 
 fun mk_less_disj mk_less px py dtys = 
   let
@@ -190,18 +155,13 @@ fun mk_less_disj mk_less px py dtys =
 
 fun simps_of_info info = #case_rewrites info @ #rec_rewrites info @ #inject info @ #distinct info
 
-(* TODO: my_simp_set should be HOL_ss + the other simplification stuff for orders like simprocs, ... *)
-val my_simp_set = simpset_of @{context} 
-  delsimps (simpset_of @{context} |> dest_ss |> #simps |> map snd) 
-  addsimps @{thms HOL.simp_thms}
-
 fun mk_transitivity_thms thy (info : Datatype_Aux.info) = 
   let 
     val ctxt = Proof_Context.init_global thy
     (* first prove transitivity of < *)
     val trans_props = mk_trans_thm_trm thy info
     val sort = @{sort "order"}
-    val simp_main = my_simp_set addsimps (simps_of_info info)
+    val simp_main = put_simpset my_simp_set ctxt addsimps (simps_of_info info)
     val (mk_rec,nrec_args) = mk_less_idx thy info sort
     val typ_subst = typ_subst_for_sort thy info sort
     val descr = #descr info
@@ -245,7 +205,7 @@ fun mk_transitivity_thms thy (info : Datatype_Aux.info) =
                     fun disj_thm t = Goal.prove ctxt [] [] t (K (solve_with_tac comp_eq))
                     val xy_disj = disj_thm xy'
                     val yz_disj = disj_thm yz'
-                    fun solve_tac xy yz [] _ _ _ eqs ihyps = K (solve_with_tac [xy])
+                    fun solve_tac xy _ [] _ _ _ _ _ = K (solve_with_tac [xy])
                       | solve_tac xy yz (px :: pxs) (py :: pys) (pz :: pzs) (dty :: dtys) eqs ihyps =
                           let 
                             fun case_tac_disj disj tac = 
@@ -336,65 +296,24 @@ fun mk_transitivity_thms thy (info : Datatype_Aux.info) =
     (trans_thm,trans_eq_thm) 
   end 
 
-fun mk_binary_thm thy (info : Datatype_Aux.info) prop_gen sort same_constructor_tac = 
-  let 
-    val ctxt = Proof_Context.init_global thy
-    val prop_props = mk_prop_trm thy info sort prop_gen
-    val (mk_rec,nrec_args) = mk_less_idx thy info sort
-    val typ_subst = typ_subst_for_sort thy info sort
-    val descr = #descr info
-    fun typ_of dty = typ_of_dtyp descr dty |> typ_subst
-    fun mk_less_term (DtRec i) = mk_rec i
-      | mk_less_term dty =
-          let 
-            val ty = typ_of dty
-          in Const (less_name, ty --> ty --> @{typ bool}) end;
-    fun mk_less dty x y = mk_less_term dty $ x $ y;
-    val ind_thm = #induct info
-    val prop_thm_of_tac = inductive_thm thy prop_props ind_thm sort
-    fun ind_case_tac ctxt i hyps ihprems params_x [y] =  
-      let 
-        val (j,idx) = nth nrec_args i |> (fn (_,j,idx) => (j,idx))
-        val linfo = nth descr idx |> (fn (_,(ty_name,_,_)) => ty_name) |> the_info thy
-        val simp_set = my_simp_set addsimps (simps_of_info info) @ (simps_of_info linfo)
-        val solve_with_tac = (fn thms => mk_solve_with_tac thms 
-          (force_tac (map_simpset (K simp_set) ctxt) 1))
-        fun case_tac ctxt = mk_case_tac ctxt [[SOME y]] (#exhaust linfo)
-        fun sub_case_tac (ctxt,k,prems,iparams_y) = 
-          let 
-            val case_hyp_y = hd prems 
-          in 
-            if not (j = k) 
-            then my_print_tac ("different constructors ") THEN solve_with_tac (case_hyp_y :: ihprems) (* different constructor *) 
-            else
-              let 
-                val params_y = map (snd #> term_of) iparams_y
-                val c_info = nth descr idx |> snd |> (fn (_,_,info) => nth info j)
-              in 
-                my_print_tac ("consider constructor " ^ string_of_int k) 
-                THEN same_constructor_tac ctxt hyps ihprems case_hyp_y solve_with_tac j params_x params_y c_info mk_less
-              end
-          end
-      in my_print_tac ("start induct " ^ string_of_int i) THEN case_tac ctxt sub_case_tac end
-    val prop_thm = prop_thm_of_tac ind_case_tac
-  in prop_thm end 
+val mk_binary_less_thm = mk_binary_thm mk_prop_trm mk_less_idx less_name
 
 fun mk_less_le_not_le_thm thy info = 
   let
     val sort = @{sort "order"}
     (* main property: x < y \<Longrightarrow> \<not> y \<le> x *)
-    fun prop_gen xs less lesseq = 
+    fun prop_gen xs [less,lesseq] = 
       let 
         val (x,y) = (xs 1, xs 2)
       in ([less x y, lesseq y x |> HOLogic.mk_not], [x,y]) end
-    fun main_tac ctxt ih_hyps ih_prems y_prem solve_with_tac j params_x params_y c_info mk_less = 
+    fun main_tac ctxt ih_hyps ih_prems y_prem solve_with_tac _ params_x params_y c_info mk_less = 
       let 
         val pdtys = snd c_info
         val comp_eq = y_prem :: ih_prems
         val build_disj = mk_less_disj mk_less
         val xy' = build_disj params_x params_y pdtys 
         val xy_disj = Goal.prove ctxt [] [] xy' (K (solve_with_tac comp_eq))
-        fun solve_tac xy [] _ _ eqs ihyps = solve_with_tac [xy]
+        fun solve_tac xy [] _ _ _ _ = solve_with_tac [xy]
           | solve_tac xy (px :: pxs) (py :: pys) (dty :: dtys) eqs ihyps =
               let 
                 val xs_ys = build_disj pxs pys dtys
@@ -437,9 +356,9 @@ fun mk_less_le_not_le_thm thy info =
       in 
         (solve_tac xy_disj params_x params_y pdtys [] ih_hyps : tactic)
       end (* end main_tac *)
-    val main_thm = mk_binary_thm thy info prop_gen sort main_tac
+    val main_thm = mk_binary_less_thm thy info prop_gen sort main_tac
     val ctxt = Proof_Context.init_global thy
-    val (thm_trm,vars) = mk_prop_major_trm thy info sort (fn xs => fn less => fn lesseq => 
+    val (thm_trm,vars) = mk_prop_major_trm thy info sort (fn xs => fn [less,lesseq] =>
       let val (x,y) = (xs 1, xs 2) 
       in
         ([HOLogic.mk_eq (less x y,HOLogic.mk_conj (lesseq x y, lesseq y x |> HOLogic.mk_not))], [x,y]) 
@@ -456,7 +375,7 @@ fun mk_le_refl_thm thy info =
     val sort = @{sort "order"}
     (* x \<le> x *)
     val ctxt = Proof_Context.init_global thy
-    val (thm_trm,vars) = mk_prop_major_trm thy info sort (fn xs => fn _ => fn lesseq => 
+    val (thm_trm,vars) = mk_prop_major_trm thy info sort (fn xs => fn [_,lesseq] => 
       let val x = xs 1 
       in
         ([lesseq x x],[x]) 
@@ -471,7 +390,7 @@ fun mk_antisym_thm thy info trans_thm less_thm =
     val sort = @{sort "order"}
     (* x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y *)
     val ctxt = Proof_Context.init_global thy
-    val (thm_trm,vars) = mk_prop_major_trm thy info sort (fn xs => fn _ => fn lesseq => 
+    val (thm_trm,vars) = mk_prop_major_trm thy info sort (fn xs => fn [_,lesseq] => 
       let val (x,y) = (xs 1, xs 2) 
       in
         ([lesseq x y, lesseq y x, HOLogic.mk_eq (x,y)],[x,y]) 
@@ -502,15 +421,15 @@ fun mk_linear_thm thy info =
   let
     val sort = @{sort "linorder"}
     (* main property: x = y \<or> x < y \<or> y < x *)
-    fun prop_gen xs less _ = 
+    fun prop_gen xs [less,_] = 
       let val (x,y) = (xs 1, xs 2)          
       in 
         ([HOLogic.mk_disj (HOLogic.mk_eq (x,y),HOLogic.mk_disj(less x y, less y x))],[x,y]) 
       end
-    fun main_tac ctxt ih_hyps _ y_prem solve_with_tac j params_x params_y c_info mk_less = 
+    fun main_tac ctxt ih_hyps _ y_prem solve_with_tac _ params_x params_y c_info mk_less = 
       let 
         val pdtys = snd c_info
-        fun solve_tac [] _ _ eqs ihyps = solve_with_tac eqs
+        fun solve_tac [] _ _ eqs _ = solve_with_tac eqs
           | solve_tac (px :: pxs) (py :: pys) (dty :: dtys) eqs ihyps =
               let 
                 val less = mk_less dty
@@ -522,7 +441,7 @@ fun mk_linear_thm thy info =
                 val disj_thm = Goal.prove ctxt [] [] disj_trm (K (disj_tac))
                 fun case_tac_disj disj tac = 
                   mk_case_tac ctxt [] (@{thm disjE} OF [disj]) (fn (ctxt,ii,hyps,_) => tac ii ctxt (List.last hyps))
-                fun eq_less_less_tac ii ctxt eq_less = 
+                fun eq_less_less_tac ii _ eq_less = 
                   if ii = 0 
                   then (* left branch, px = py *) 
                     let
@@ -543,10 +462,10 @@ fun mk_linear_thm thy info =
       in 
         (solve_tac params_x params_y pdtys [y_prem] ih_hyps : tactic)
       end (* end main tac *)
-    val main_thm = mk_binary_thm thy info prop_gen sort main_tac
+    val main_thm = mk_binary_less_thm thy info prop_gen sort main_tac
     val ctxt = Proof_Context.init_global thy
     (* x \<le> y \<or> y \<le> x *)
-    val (thm_trm,vars) = mk_prop_major_trm thy info sort (fn xs => fn less => fn lesseq => 
+    val (thm_trm,vars) = mk_prop_major_trm thy info sort (fn xs => fn [_,lesseq] => 
       let val (x,y) = (xs 1, xs 2) 
       in
         ([HOLogic.mk_disj (lesseq x y,lesseq y x)],[x,y]) 
@@ -558,7 +477,7 @@ fun mk_linear_thm thy info =
     thm
   end
 
-fun derive kind dtyp_name thy = 
+fun derive kind dtyp_name _ thy = 
   let
     val tyco = dtyp_name
 
@@ -569,23 +488,11 @@ fun derive kind dtyp_name thy =
     val info = Datatype.the_info thy tyco
     val vs_of_sort = 
       let val i = Datatype.the_spec thy tyco |> #1 
-      in fn sort => map (fn (n,s) => (n, sort)) i end
+      in fn sort => map (fn (n,_) => (n, sort)) i end
     val vs = vs_of_sort sort
     val less_rhs = mk_less_idx thy info sort |> fst |> (fn x => x 0)
-    val ty = Term.fastype_of less_rhs |> Term.dest_Type |> snd |> hd
-  
-    (* code copied from HOL/SPARK/TOOLS *)
-    fun mk_binrel_def T c rhs = Logic.mk_equals (Const (c, T --> T --> HOLogic.boolT), rhs)
-    fun define_overloaded (def_name, eq) lthy =
-      let
-        val ((c, _), rhs) = Syntax.check_term lthy eq
-          |> Logic.dest_equals |>> dest_Free;
-        val ((_, (_, thm)), lthy') = Local_Theory.define
-          ((Binding.name c, NoSyn), ((Binding.name def_name, @{attributes [code]}), rhs)) lthy
-        val ctxt_thy = Proof_Context.init_global (Proof_Context.theory_of lthy');
-        val thm' = singleton (Proof_Context.export lthy' ctxt_thy) thm
-      in (thm', lthy') end;
-  
+    val ty = Term.fastype_of less_rhs |> Term.dest_Type |> snd |> hd  
+    fun mk_binrel_def T = mk_def (T --> T --> HOLogic.boolT)  
     val less_def = mk_binrel_def ty @{const_name less} less_rhs
     val x = Free ("x",ty)
     val y = Free ("y",ty)
@@ -611,7 +518,7 @@ fun derive kind dtyp_name thy =
         
           fun order_tac ctxt = 
             my_print_tac "enter order" THEN
-            unfold_tac less_thms (simpset_of ctxt) THEN
+            unfold_tac less_thms ctxt THEN
             my_print_tac "after unfolding" THEN
             rtac less 1 THEN
             my_print_tac "after less" THEN
@@ -634,7 +541,7 @@ fun derive kind dtyp_name thy =
           val lthy = Class.instantiation ([tyco],vs,sort) thy''
           val linear = mk_linear_thm thy info
           fun order_tac ctxt = 
-            unfold_tac less_thms (simpset_of ctxt) THEN
+            unfold_tac less_thms ctxt THEN
             rtac linear 1 
           val thy''' = Class.prove_instantiation_exit (fn ctxt => (Class.intro_classes_tac [] THEN order_tac ctxt)) lthy
           val _ = Output.writeln ("registered " ^ base_name ^ " in class linorder")

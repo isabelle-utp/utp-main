@@ -17,17 +17,17 @@ imports
   "../laws/utp_refine_laws"
 begin
 
-type_synonym 'a WF_STATE = "('a WF_PREDICATE * 'a WF_PREDICATE)"
+type_synonym 'a WF_STATE = "('a upred * 'a upred)"
 
 fun StepP :: "'a WF_STATE \<Rightarrow> 'a WF_STATE \<Rightarrow> bool" (infix "~>" 50) where
-"(s,P) ~> (t,Q) \<longleftrightarrow> (s\<acute>;P) \<sqsubseteq> (t\<acute>;Q)"
+"(s,P) ~> (t,Q) \<longleftrightarrow> (s\<acute>;\<^sub>RP) \<sqsubseteq> (t\<acute>;\<^sub>RQ)"
 
 lemma SkipR_step:
-  "(s, II; P) ~> (s, P)"
+  "(s, II;\<^sub>R P) ~> (s, P)"
   by simp
 
 lemma SeqR_step:
-  "(s,P) ~> (t,P') \<Longrightarrow> (s, P;Q) ~> (t, P';Q)"
+  "(s,P) ~> (t,P') \<Longrightarrow> (s, P;\<^sub>RQ) ~> (t, P';\<^sub>RQ)"
   apply (simp)
   apply (simp add:SemiR_assoc)
   apply (rule refine)

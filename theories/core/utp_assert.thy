@@ -12,22 +12,22 @@ imports
 begin
 
 definition AssertR ::
-"'VALUE WF_PREDICATE \<Rightarrow>
- 'VALUE WF_PREDICATE" ("_\<^sub>\<bottom>" [200] 200) where
+"'a upred \<Rightarrow>
+ 'a upred" ("_\<^sub>\<bottom>" [200] 200) where
 "c\<^sub>\<bottom> \<equiv> II \<lhd> c \<rhd> \<bottom>"
 
 definition AssumeR ::
-"'VALUE WF_PREDICATE \<Rightarrow>
- 'VALUE WF_PREDICATE" ("_\<^sup>\<top>" [200] 200) where
+"'a upred \<Rightarrow>
+ 'a upred" ("_\<^sup>\<top>" [200] 200) where
 "c\<^sup>\<top> \<equiv> II \<lhd> c \<rhd> \<top>"
 
 syntax
-  "_upred_assert" :: "upred \<Rightarrow> upred" ("_\<^sub>\<bottom>" [900] 900)
-  "_upred_assume" :: "upred \<Rightarrow> upred" ("_\<^sup>\<top>" [899] 899)
+  "_n_upred_assert" :: "n_upred \<Rightarrow> n_upred" ("_\<^sub>\<bottom>" [900] 900)
+  "_n_upred_assume" :: "n_upred \<Rightarrow> n_upred" ("_\<^sup>\<top>" [899] 899)
 
 translations
-  "_upred_assert c" == "CONST AssertR c"
-  "_upred_assume c" == "CONST AssumeR c"
+  "_n_upred_assert c" == "CONST AssertR c"
+  "_n_upred_assume c" == "CONST AssumeR c"
 
 lemma UNREST_AssumeR_DASHED_TWICE [unrest]:
   "UNREST DASHED_TWICE c \<Longrightarrow> UNREST DASHED_TWICE (c\<^sup>\<top>)"

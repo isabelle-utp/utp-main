@@ -12,7 +12,9 @@ imports
   "../laws/utp_alpha_laws"
 begin
 
-instantiation WF_ALPHA_PREDICATE :: (VALUE) order
+default_sort VALUE
+
+instantiation uapred :: (VALUE) order
 begin
 
 instance
@@ -24,7 +26,7 @@ instance
 done
 end
 
-definition OrderA :: "'a ALPHABET \<Rightarrow> 'a WF_ALPHA_PREDICATE gorder" where
+definition OrderA :: "'a alpha \<Rightarrow> 'a uapred gorder" where
 "OrderA a = \<lparr> partial_object.carrier = WF_ALPHA_PREDICATE_OVER a, eq = op =, le = op \<sqsubseteq> \<rparr>"
 
 lemma OrderA_carrier [simp]:
@@ -41,7 +43,6 @@ lemma OrderA_le [simp]:
 
 interpretation alpha_partial_order: partial_order "(OrderA a)"
   where "partial_object.carrier (OrderA a) = WF_ALPHA_PREDICATE_OVER a"
-    and "eq (OrderA a) = op ="
     and "le (OrderA a) = op \<sqsubseteq>"
   apply (unfold_locales)
   apply (simp_all add:OrderA_def)
@@ -56,7 +57,8 @@ lemma OrA_glb:
   apply (simp_all add:OrderA_def)
   apply (utp_alpha_tac, utp_pred_auto_tac)
   apply (simp add:Lower_def)
-  apply (utp_alpha_tac, utp_pred_auto_tac)
+  apply (utp_alpha_tac)
+  apply (metis (mono_tags) OrP_refine WF_ALPHA_PREDICATE_OVER_def mem_Collect_eq)
   apply (simp_all add:WF_ALPHA_PREDICATE_OVER_def)
   apply (simp add:alphabet)
 done
@@ -71,11 +73,8 @@ lemma AndA_lub:
   apply (utp_alpha_tac, utp_pred_auto_tac)
   apply (simp add:Upper_def)
   apply (utp_alpha_tac)
-  apply (erule conjE, simp add:alphabet)
-  apply (frule_tac x="P" in spec)
-  apply (drule_tac x="Q" in spec)
-  apply (simp add:alphabet)
-  apply (utp_pred_auto_tac)
+  apply (metis (mono_tags) RefineP_seperation_refine WF_ALPHA_PREDICATE_OVER_def mem_Collect_eq)
+  apply (metis (mono_tags) WF_ALPHA_PREDICATE_OVER_def mem_Collect_eq)
   apply (simp_all add:WF_ALPHA_PREDICATE_OVER_def)
   apply (simp add:alphabet)
 done
@@ -92,27 +91,27 @@ interpretation alpha_lattice: lattice "(OrderA a)"
 done
 
 definition InfA ::
-  "'a ALPHABET \<Rightarrow>
-   'a WF_ALPHA_PREDICATE set \<Rightarrow>
-   'a WF_ALPHA_PREDICATE" ("\<Sqinter>\<^bsub>_\<^esub> _" [900] 900) where
+  "'a alpha \<Rightarrow>
+   'a uapred set \<Rightarrow>
+   'a uapred" ("\<Sqinter>\<^bsub>_\<^esub> _" [900] 900) where
 "\<Sqinter>\<^bsub>a\<^esub> ps = (if (ps \<subseteq> WF_ALPHA_PREDICATE_OVER a) then (\<Or>\<^bsub>a\<^esub> ps) else FalseA a)"
 
 definition InfiA ::
-  "'a ALPHABET \<Rightarrow>
-   'b set \<Rightarrow> ('b::type \<Rightarrow> 'a WF_ALPHA_PREDICATE) \<Rightarrow>
-   'a WF_ALPHA_PREDICATE" where
+  "'a alpha \<Rightarrow>
+   'b set \<Rightarrow> ('b::type \<Rightarrow> 'a uapred) \<Rightarrow>
+   'a uapred" where
 "InfiA a A f = \<Sqinter>\<^bsub>a\<^esub> (f ` A)"
 
 definition SupA ::
-  "'a ALPHABET \<Rightarrow>
-   'a WF_ALPHA_PREDICATE set \<Rightarrow>
-   'a WF_ALPHA_PREDICATE" ("\<Squnion>\<^bsub>_\<^esub> _" [900] 900) where
+  "'a alpha \<Rightarrow>
+   'a uapred set \<Rightarrow>
+   'a uapred" ("\<Squnion>\<^bsub>_\<^esub> _" [900] 900) where
 "\<Squnion>\<^bsub>a\<^esub> ps = (if (ps \<subseteq> WF_ALPHA_PREDICATE_OVER a) then (\<And>\<^bsub>a\<^esub> ps) else TrueA a)"
 
 definition SuprA ::
-  "'a ALPHABET \<Rightarrow>
-   'b set \<Rightarrow> ('b::type \<Rightarrow> 'a WF_ALPHA_PREDICATE) \<Rightarrow>
-   'a WF_ALPHA_PREDICATE" where
+  "'a alpha \<Rightarrow>
+   'b set \<Rightarrow> ('b::type \<Rightarrow> 'a uapred) \<Rightarrow>
+   'a uapred" where
 "SuprA a A f = \<Squnion>\<^bsub>a\<^esub> (f ` A)"
 
 declare InfA_def [evala]
@@ -144,7 +143,9 @@ lemma InfA_glb:
   apply (utp_alpha_tac, utp_pred_auto_tac)
   apply (auto simp add:Lower_def)
   apply (utp_alpha_tac, utp_pred_auto_tac)
-  apply (metis InfA_alphabet WF_ALPHA_PREDICATE_OVER_intro)
+  apply (metis WF_ALPHA_PREDICATE_OVER_member order_refl)
+  apply (metis WF_ALPHA_PREDICATE_OVER_member order_refl)
+  apply (metis (lifting, full_types) InfA_alphabet WF_ALPHA_PREDICATE_OVER_def mem_Collect_eq)
 done
 
 lemma SupA_lub:
@@ -157,7 +158,9 @@ lemma SupA_lub:
   apply (utp_alpha_tac, utp_pred_auto_tac)
   apply (auto simp add:Upper_def)
   apply (utp_alpha_tac, utp_pred_auto_tac)
-  apply (metis SupA_alphabet WF_ALPHA_PREDICATE_OVER_intro)
+  apply (metis WF_ALPHA_PREDICATE_OVER_member order_refl)
+  apply (metis WF_ALPHA_PREDICATE_OVER_member order_refl)
+  apply (metis (full_types) SupA_alphabet WF_ALPHA_PREDICATE_OVER_def mem_Collect_eq)
 done
 
 
@@ -177,12 +180,12 @@ done
 lemma InfA_is_inf:
   assumes "ps \<subseteq> WF_ALPHA_PREDICATE_OVER a"
   shows "inf (OrderA a) ps = \<Sqinter>\<^bsub>a\<^esub> ps"
-  by (metis InfA_glb alpha_complete_lattice.inf_glb alpha_partial_order.weak_greatest_unique assms)
+  by (metis InfA_glb alpha_complete_lattice.inf_glb alpha_partial_order.greatest_unique assms)
 
 lemma SupA_is_sup:
   assumes "ps \<subseteq> WF_ALPHA_PREDICATE_OVER a"
   shows "sup (OrderA a) ps = \<Squnion>\<^bsub>a\<^esub> ps"
-  by (metis SupA_lub alpha_complete_lattice.sup_lub alpha_partial_order.weak_least_unique assms)
+  by (metis SupA_lub alpha_complete_lattice.sup_lub alpha_partial_order.least_unique assms)
 
 lemma InfiA_is_infi:
   assumes "f`ps \<subseteq> WF_ALPHA_PREDICATE_OVER a"
@@ -208,20 +211,21 @@ lemma TrueA_is_bottom:
   "bottom (OrderA a) = true\<^bsub>a\<^esub>"
   apply (rule sym)
   apply (rule alpha_complete_lattice.bottom_eq)
-  apply (metis TrueA_alphabet WF_ALPHA_PREDICATE_OVER_intro)
-  apply (metis TrueA_least WF_ALPHA_PREDICATE_OVER_alphabet)
+  apply (metis (full_types) TrueA_alphabet WF_ALPHA_PREDICATE_OVER_def mem_Collect_eq)
+  apply (metis TrueA_least WF_ALPHA_PREDICATE_OVER_member subset_refl)
 done
 
 lemma FalseA_is_top:
   "top (OrderA a) = false\<^bsub>a\<^esub>"
   apply (rule sym)
   apply (rule alpha_complete_lattice.top_eq)
-  apply (metis FalseA_alphabet WF_ALPHA_PREDICATE_OVER_intro)
-  apply (metis FalseA_greatest WF_ALPHA_PREDICATE_OVER_alphabet)
+  apply (metis (full_types) FalseA_alphabet WF_ALPHA_PREDICATE_OVER_def mem_Collect_eq)
+  apply (metis FalseA_greatest WF_ALPHA_PREDICATE_OVER_member order_refl)
 done
 
 abbreviation "LfpA a \<equiv> LFP (OrderA a)"
 
 abbreviation "GfpA a \<equiv> GFP (OrderA a)"
+
 
 end

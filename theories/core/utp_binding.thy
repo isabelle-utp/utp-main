@@ -18,7 +18,7 @@ subsection {* Value Compatibility *}
 
 text {* Can the given value be placed into the given variable? *}
 
-definition var_compat :: "'VALUE \<Rightarrow> 'VALUE VAR \<Rightarrow> bool" (infix "\<rhd>" 50) where
+definition var_compat :: "'a \<Rightarrow> 'a uvar \<Rightarrow> bool" (infix "\<rhd>" 50) where
 "v \<rhd> x \<equiv> v : vtype x \<and> (aux x \<longrightarrow> \<D> v)"
 
 lemma var_compat_intros [intro]:
@@ -53,7 +53,7 @@ lemma var_compat_undash [typing]:
 
 subsection {* Variable coercison *}
 
-definition vcoerce :: "'a \<Rightarrow> 'a VAR \<Rightarrow> 'a" where
+definition vcoerce :: "'a \<Rightarrow> 'a uvar \<Rightarrow> 'a" where
 "vcoerce v x = (if (v \<rhd> x) then v else default (vtype x))"
 
 lemma vcoerce_compat [typing]:
@@ -76,14 +76,14 @@ subsection {* Bindings *}
 
 text {* We require bindings to be well-typed. *}
 
-definition "WF_BINDING \<equiv> {b . \<forall> v. b v \<rhd> v}"
+definition "binding \<equiv> {b . \<forall> v. b v \<rhd> v}"
 
 subsubsection {* Binding Theorems *}
 
-theorem WF_BINDING_exists :
-"\<exists> b . b \<in> WF_BINDING"
+theorem binding_exists :
+"\<exists> b . b \<in> binding"
 apply (rule_tac x = "(\<lambda> v . SOME x . x : (vtype v) \<and> \<D> x)" in exI)
-apply (auto simp add: WF_BINDING_def)
+apply (auto simp add: binding_def)
 apply (rule someI2_ex)
 apply (rule type_non_empty_elim)
 apply (auto)
@@ -92,10 +92,10 @@ done
 (* Some attempt to convert the above proof into ISAR. *)
 
 (*
-theorem WF_BINDING_exists :
-"\<exists> b . b \<in> WF_BINDING"
+theorem binding_exists :
+"\<exists> b . b \<in> binding"
 apply (rule_tac x = "(\<lambda> v . SOME x . x : (type v))" in exI)
-apply (simp add: WF_BINDING_def)
+apply (simp add: binding_def)
 apply (safe)
 apply (rule someI2_ex)
 proof -
@@ -109,104 +109,104 @@ qed
 
 subsubsection {* Binding theorems *}
 
-theorem WF_BINDING_non_empty :
-"WF_BINDING \<noteq> {}"
-apply (insert WF_BINDING_exists)
+theorem binding_non_empty :
+"binding \<noteq> {}"
+apply (insert binding_exists)
 apply (auto)
 done
 
-theorem WF_BINDING_app_compat [intro] :
-"\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow> (b v) \<rhd> v"
-  apply (simp add: WF_BINDING_def)
+theorem binding_app_compat [intro] :
+"\<lbrakk>b \<in> binding\<rbrakk> \<Longrightarrow> (b v) \<rhd> v"
+  apply (simp add: binding_def)
 done
 
-theorem WF_BINDING_app_type [intro] :
-"\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow> (b v) : (vtype v)"
-apply (auto simp add: WF_BINDING_def)
+theorem binding_app_type [intro] :
+"\<lbrakk>b \<in> binding\<rbrakk> \<Longrightarrow> (b v) : (vtype v)"
+apply (auto simp add: binding_def)
 done
 
-theorem WF_BINDING_app_carrier [intro] :
-"\<lbrakk>b \<in> WF_BINDING\<rbrakk> \<Longrightarrow> (b v) \<in> carrier (vtype v)"
-apply (simp add: WF_BINDING_app_type carrier_def)
+theorem binding_app_carrier [intro] :
+"\<lbrakk>b \<in> binding\<rbrakk> \<Longrightarrow> (b v) \<in> carrier (vtype v)"
+apply (simp add: binding_app_type carrier_def)
 done
 
-theorem WF_BINDING_update1 [closure] :
-"\<lbrakk>b \<in> WF_BINDING; x \<rhd> v\<rbrakk> \<Longrightarrow>
- b(v := x) \<in> WF_BINDING"
-apply (simp add: WF_BINDING_def)
+theorem binding_update1 [closure] :
+"\<lbrakk>b \<in> binding; x \<rhd> v\<rbrakk> \<Longrightarrow>
+ b(v := x) \<in> binding"
+apply (simp add: binding_def)
 done
 
-theorem WF_BINDING_update2 [closure] :
-"\<lbrakk>b \<in> WF_BINDING; x \<in> carrier (vtype v); \<not> aux v\<rbrakk> \<Longrightarrow>
- b(v := x) \<in> WF_BINDING"
+theorem binding_update2 [closure] :
+"\<lbrakk>b \<in> binding; x \<in> carrier (vtype v); \<not> aux v\<rbrakk> \<Longrightarrow>
+ b(v := x) \<in> binding"
 apply (simp add: carrier_def closure var_compat_intros)
 done
 
-theorem WF_BINDING_update2_aux [closure] :
-"\<lbrakk>b \<in> WF_BINDING; x \<in> carrier (vtype v); aux v; \<D> x\<rbrakk> \<Longrightarrow>
- b(v := x) \<in> WF_BINDING"
+theorem binding_update2_aux [closure] :
+"\<lbrakk>b \<in> binding; x \<in> carrier (vtype v); aux v; \<D> x\<rbrakk> \<Longrightarrow>
+ b(v := x) \<in> binding"
 apply (simp add: carrier_def closure var_compat_intros)
 done
 
-theorem WF_BINDING_override [closure] :
-"\<lbrakk>b1 \<in> WF_BINDING;
- b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
- b1 \<oplus> b2 on vs \<in> WF_BINDING"
-apply (simp add: WF_BINDING_def)
+theorem binding_override [closure] :
+"\<lbrakk>b1 \<in> binding;
+ b2 \<in> binding\<rbrakk> \<Longrightarrow>
+ b1 \<oplus> b2 on vs \<in> binding"
+apply (simp add: binding_def)
 apply (safe)
 apply (case_tac "v \<in> vs")
 apply (auto simp add:override_on_def)
 done
 
-theorem WF_BINDING_aux_defined [defined]:
-"\<lbrakk> b \<in> WF_BINDING; aux v \<rbrakk> \<Longrightarrow> \<D> (b v)"
-  by (auto simp add:WF_BINDING_def)
+theorem binding_aux_defined [defined]:
+"\<lbrakk> b \<in> binding; aux v \<rbrakk> \<Longrightarrow> \<D> (b v)"
+  by (auto simp add:binding_def)
 
 subsubsection {* Binding type *}
 
-typedef 'VALUE WF_BINDING = "WF_BINDING :: 'VALUE BINDING set"
-  by (simp add: WF_BINDING_exists)
+typedef 'a binding = "binding :: ('a uvar \<Rightarrow> 'a)  set"
+  by (simp add: binding_exists)
 
-declare Rep_WF_BINDING [simp]
-declare Rep_WF_BINDING_inverse [simp]
-declare Abs_WF_BINDING_inverse [simp]
+declare Rep_binding [simp]
+declare Rep_binding_inverse [simp]
+declare Abs_binding_inverse [simp]
 
-lemma Rep_WF_BINDING_intro [intro]:
-  "Rep_WF_BINDING x = Rep_WF_BINDING y \<Longrightarrow> x = y"
-  by (simp add:Rep_WF_BINDING_inject)
+lemma Rep_binding_intro [intro]:
+  "Rep_binding x = Rep_binding y \<Longrightarrow> x = y"
+  by (simp add:Rep_binding_inject)
 
-lemma Rep_WF_BINDING_elim [elim]:
-  "\<lbrakk> x = y; Rep_WF_BINDING x = Rep_WF_BINDING y \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+lemma Rep_binding_elim [elim]:
+  "\<lbrakk> x = y; Rep_binding x = Rep_binding y \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (auto)
 
-notation Rep_WF_BINDING ("\<langle>_\<rangle>\<^sub>b")
+notation Rep_binding ("\<langle>_\<rangle>\<^sub>b")
 
 subsubsection {* Binding operators *}
 
 text {* Binding Equivalence *}
 
 definition binding_equiv ::
-  "'VALUE WF_BINDING \<Rightarrow>
-   'VALUE WF_BINDING \<Rightarrow>
-   ('VALUE VAR set) \<Rightarrow> bool" where
+  "'a binding \<Rightarrow>
+   'a binding \<Rightarrow>
+   ('a uvar set) \<Rightarrow> bool" where
 "(binding_equiv b1 b2 a) \<longleftrightarrow> (\<forall> x \<in> a . \<langle>b1\<rangle>\<^sub>bx = \<langle>b2\<rangle>\<^sub>bx)"
 
 notation binding_equiv ("_ \<cong> _ on _")
 
 text {* The lifting package allows us to define operators on a typedef
 by lifting operators on the underlying type. The following command sets
-up the @{term "WF_BINDING"} type for lifting. *}
+up the @{term "binding"} type for lifting. *}
 
-setup_lifting type_definition_WF_BINDING
+setup_lifting type_definition_binding
 
 text {* Binding override *}
 
 lift_definition binding_override_on ::
-  "'VALUE WF_BINDING \<Rightarrow>
-   'VALUE WF_BINDING \<Rightarrow>
-   'VALUE VAR set \<Rightarrow>
-   'VALUE WF_BINDING" ("_ \<oplus>\<^sub>b _ on _" [56, 56, 0] 55) is "override_on"
-  apply (simp add: WF_BINDING_def)
+  "'a binding \<Rightarrow>
+   'a binding \<Rightarrow>
+   'a uvar set \<Rightarrow>
+   'a binding" ("_ \<oplus>\<^sub>b _ on _" [56, 0, 57] 55) is "override_on"
+  apply (simp add: binding_def)
   apply (safe)
   apply (case_tac "v \<in> set")
   apply (auto)
@@ -214,16 +214,16 @@ done
 
 declare binding_override_on.rep_eq [simp]
 
-lemma binding_type [simp, typing, intro]: "t = vtype x \<Longrightarrow> \<langle>b\<rangle>\<^sub>bx : t"
-  apply (insert Rep_WF_BINDING[of b])
-  apply (auto simp add:WF_BINDING_def)
+lemma binding_type [typing, intro]: "t = vtype x \<Longrightarrow> \<langle>b\<rangle>\<^sub>bx : t"
+  apply (insert Rep_binding[of b])
+  apply (auto simp add:binding_def)
 done
 
 lemma binding_stype [typing]:
   "\<lbrakk> t = vtype x; aux x \<rbrakk> \<Longrightarrow> \<langle>b\<rangle>\<^sub>b x :! t"
   by (auto intro:typing simp add:defined)
 
-lemma binding_compat [simp, intro, typing]: "\<langle>b\<rangle>\<^sub>bx \<rhd> x"
+lemma binding_compat [intro, typing]: "\<langle>b\<rangle>\<^sub>bx \<rhd> x"
   by auto
 
 lemma aux_defined [defined]:
@@ -235,17 +235,17 @@ lemma binding_value_alt [simp, intro]:
   by (auto simp add:var_compat_def intro: defined)
 
 lemma binding_eq_iff: "f = g = (\<forall>x. \<langle>f\<rangle>\<^sub>b x = \<langle>g\<rangle>\<^sub>b x)"
-  by (force)
+  by (auto)
 
 text {* Binding update *}
 
 lift_definition binding_upd :: 
-  "'VALUE WF_BINDING \<Rightarrow>
-   'VALUE VAR \<Rightarrow>
-   'VALUE \<Rightarrow>
-   'VALUE WF_BINDING" is
+  "'a binding \<Rightarrow>
+   'a uvar \<Rightarrow>
+   'a \<Rightarrow>
+   'a binding" is
 "\<lambda> b x v. (fun_upd b x (vcoerce v x))"
-  by (simp add:WF_BINDING_def typing)
+  by (simp add:binding_def typing)
 
 nonterminal bupdbinds and bupdbind
 
@@ -259,12 +259,12 @@ translations
   "_BUpdate f (_bupdbinds b bs)" == "_BUpdate (_BUpdate f b) bs"
   "f(x:=\<^sub>by)" == "CONST binding_upd f x y"
 
-lemma Rep_WF_BINDING_rep_eq [simp]:
+lemma Rep_binding_rep_eq [simp]:
   "\<lbrakk> v \<rhd> x \<rbrakk> \<Longrightarrow> \<langle>binding_upd b x v\<rangle>\<^sub>b = fun_upd \<langle>b\<rangle>\<^sub>b x v"
-  by (simp_all add: binding_upd_def WF_BINDING_def)
+  by (simp_all add: binding_upd_def binding_def)
 
 lemma binding_upd_idem_iff: "y \<rhd> x \<Longrightarrow> (f(x:=\<^sub>by) = f) = (\<langle>f\<rangle>\<^sub>b x = y)"
-  by (force simp add: fun_upd_idem_iff var_compat_def)
+  by (auto simp add: fun_upd_idem_iff var_compat_def)
 
 lemma binding_upd_idem: "\<lbrakk> y \<rhd> x \<rbrakk> \<Longrightarrow> \<langle>f\<rangle>\<^sub>b x = y ==> f(x:=\<^sub>by) = f"
   by (simp add: binding_upd_idem_iff)
@@ -287,7 +287,7 @@ theorem binding_override_on_eq :
 "f1 \<oplus>\<^sub>b g1 on a = f2 \<oplus>\<^sub>b g2 on a \<longleftrightarrow>
  (\<forall> x . x \<in> a \<longrightarrow> \<langle>g1\<rangle>\<^sub>bx = \<langle>g2\<rangle>\<^sub>bx) \<and>
  (\<forall> x . x \<notin> a \<longrightarrow> \<langle>f1\<rangle>\<^sub>bx = \<langle>f2\<rangle>\<^sub>bx)"
-  by (simp add:binding_override_on_def Abs_WF_BINDING_inject closure override_on_eq)
+  by (simp add:binding_override_on_def Abs_binding_inject closure override_on_eq)
 
 lemma binding_override_left_eq: 
   "b1 \<cong> b2 on vs2 \<Longrightarrow> b1 \<oplus>\<^sub>b b3 on vs1 \<cong> b2 \<oplus>\<^sub>b b3 on vs1 on vs2"
@@ -308,7 +308,7 @@ lemma binding_override_simps [simp]:
   "f \<oplus>\<^sub>b g on VAR = g"
   "f \<oplus>\<^sub>b g on {} = f"
   apply (auto simp add:override_on_assoc override_on_singleton override_on_chain)
-  apply (auto intro!: Rep_WF_BINDING_intro simp add:binding_upd.rep_eq)
+  apply (auto intro!: Rep_binding_intro simp add:binding_upd.rep_eq)
   apply (metis Un_empty_left Un_insert_left insert_Diff_single override_on_chain override_on_singleton)
 done
 
@@ -327,7 +327,7 @@ lemma binding_override_subset:
 lemma binding_override_reorder:
 "\<lbrakk> a \<inter> b = {} \<rbrakk> \<Longrightarrow>
  (f \<oplus>\<^sub>b g on a) \<oplus>\<^sub>b h on b = (f \<oplus>\<^sub>b h on b) \<oplus>\<^sub>b g on a"
-  apply (rule Rep_WF_BINDING_intro)
+  apply (rule Rep_binding_intro)
   apply (simp)
   apply (drule_tac f="\<langle>f\<rangle>\<^sub>b" and g="\<langle>g\<rangle>\<^sub>b" and h="\<langle>h\<rangle>\<^sub>b" in override_on_reorder)
   apply (simp)
@@ -498,7 +498,7 @@ done
 lemma binding_eq_split_equiv:
   "\<lbrakk> b1 \<cong> b2 on D\<^sub>0; b1 \<cong> b2 on D\<^sub>1; b1 \<cong> b2 on NON_REL_VAR \<rbrakk> \<Longrightarrow> b1 = b2"
   apply (auto simp add:binding_equiv_def)
-  apply (rule Rep_WF_BINDING_intro, rule ext)
+  apply (rule Rep_binding_intro, rule ext)
   apply (case_tac "x \<in> D\<^sub>0", simp_all)
   apply (case_tac "x \<in> D\<^sub>1", simp_all)
   apply (drule_tac x="x" in bspec) back back
@@ -538,8 +538,8 @@ lemma binding_override_equiv_subset:
 text {* The default binding. Every variable maps to the default value. *}
 
 lift_definition default_binding :: 
-  "'VALUE WF_BINDING" ("\<B>") is "(\<lambda> v . SOME x . x : (vtype v) \<and> \<D> x)" 
-  apply (auto simp add: WF_BINDING_def)
+  "'a binding" ("\<B>") is "(\<lambda> v . SOME x . x : (vtype v) \<and> \<D> x)" 
+  apply (auto simp add: binding_def)
   apply (rule someI2_ex)
   apply (rule type_non_empty_elim)
   apply (auto)
@@ -551,15 +551,15 @@ lemma default_binding_dash [simp]:
 
 text {* Convert a binding to a finite map *}
 
-definition binding_map :: "'a VAR set \<Rightarrow> 'a WF_BINDING \<Rightarrow> 'a VAR \<rightharpoonup> 'a" where
+definition binding_map :: "'a uvar set \<Rightarrow> 'a binding \<Rightarrow> 'a uvar \<rightharpoonup> 'a" where
 "binding_map xs b = (\<lambda> x. if (x \<in> xs) then Some (\<langle>b\<rangle>\<^sub>b x) else None)"
 
 lemma binding_map_dom: "dom (binding_map xs b) = xs"
   by (simp add: dom_def binding_map_def)
 
-lift_definition map_binding :: "('a VAR \<rightharpoonup> 'a) \<Rightarrow> 'a WF_BINDING"
+lift_definition map_binding :: "('a uvar \<rightharpoonup> 'a) \<Rightarrow> 'a binding"
 is "\<lambda> f x. case f x of Some v \<Rightarrow> vcoerce v x | None \<Rightarrow> default (vtype x)"
-  apply (auto simp add: WF_BINDING_def)
+  apply (auto simp add: binding_def)
   apply (case_tac "fun v")
   apply (simp_all add:typing)
 done

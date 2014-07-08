@@ -16,17 +16,14 @@ subsection {* Predicates *}
 
 text {* Binding Predicates *}
 
-type_synonym 'VALUE WF_BINDING_PRED = "'VALUE WF_BINDING \<Rightarrow> bool"
-type_synonym 'VALUE WF_BINDING_FUN = "'VALUE WF_BINDING \<Rightarrow> 'VALUE"
+type_synonym 'a binding_pred = "'a binding \<Rightarrow> bool"
+type_synonym 'a binding_fun = "'a binding \<Rightarrow> 'a"
 
 definition WF_BINDING_PRED ::
-  "'VALUE VAR set \<Rightarrow> 'VALUE WF_BINDING_PRED set" where
+  "'a uvar set \<Rightarrow> 'a binding_pred set" where
 "WF_BINDING_PRED vs = {f . \<forall> b1 b2 . b1 \<cong> b2 on vs \<longrightarrow> f b1 = f b2}"
 
-definition WF_PREDICATE :: "'VALUE PREDICATE set" where
-"WF_PREDICATE = Pow WF_BINDING"
-
-typedef 'VALUE WF_PREDICATE = "UNIV :: 'VALUE WF_BINDING set set"
+typedef 'a upred = "UNIV :: 'a binding set set"
 morphisms destPRED mkPRED
   by (auto)
 
@@ -44,13 +41,13 @@ lemma destPRED_elim [elim]:
 
 text {* The lifting package allows us to define operators on a typedef
 by lifting operators on the underlying type. The following command sets
-up the @{term "WF_PREDICATE"} type for lifting. *}
+up the @{term "upred"} type for lifting. *}
 
-setup_lifting type_definition_WF_PREDICATE
+setup_lifting type_definition_upred
 
 subsection {* Functions *}
 
-type_synonym 'VALUE WF_FUNCTION = "'VALUE WF_PREDICATE \<Rightarrow> 'VALUE WF_PREDICATE"
+type_synonym 'a WF_FUNCTION = "'a upred \<Rightarrow> 'a upred"
 
 subsection {* Operators *}
 
@@ -61,73 +58,73 @@ that the operator is closed under the charateristic set. *}
 subsubsection {* Shallow Lifting *}
 
 lift_definition LiftP ::
-  "('VALUE WF_BINDING \<Rightarrow> bool) \<Rightarrow>
-   'VALUE WF_PREDICATE" is 
-  "Collect :: ('VALUE WF_BINDING \<Rightarrow> bool) \<Rightarrow> 'VALUE WF_BINDING set" .
+  "('a binding \<Rightarrow> bool) \<Rightarrow>
+   'a upred" is 
+  "Collect :: ('a binding \<Rightarrow> bool) \<Rightarrow> 'a binding set" .
 
 subsubsection {* Equality *}
 
 definition EqualsP ::
-  "'VALUE VAR \<Rightarrow> 'VALUE \<Rightarrow>
-   'VALUE WF_PREDICATE" where
+  "'a uvar \<Rightarrow> 'a \<Rightarrow>
+   'a upred" where
 "EqualsP v x = LiftP (\<lambda> b . \<langle>b\<rangle>\<^sub>bv = x)"
 
 notation EqualsP (infix "=\<^sub>p" 210)
 
 subsubsection {* True and False *}
 
-lift_definition TrueP :: "'VALUE WF_PREDICATE" 
-  is "UNIV :: 'VALUE WF_BINDING set" .
+lift_definition TrueP :: "'a upred" 
+  is "UNIV :: 'a binding set" .
 
 notation TrueP ("true")
 
-lift_definition FalseP :: "'VALUE WF_PREDICATE" 
-is "{} :: 'VALUE WF_BINDING set" .
+lift_definition FalseP :: "'a upred" 
+is "{} :: 'a binding set" .
 
 notation FalseP ("false")
 
 subsubsection {* Logical Connectives *}
 
 lift_definition NotP ::
-  "'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE" 
+  "'a upred \<Rightarrow>
+   'a upred" 
 is "uminus" .
 
 notation NotP ("\<not>\<^sub>p _" [190] 190)
 
 lift_definition AndP ::
-  "'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE" 
-is "op \<inter> :: 'VALUE WF_BINDING set \<Rightarrow> 'VALUE WF_BINDING set \<Rightarrow> 'VALUE WF_BINDING set" .
+  "'a upred \<Rightarrow>
+   'a upred \<Rightarrow>
+   'a upred" 
+is "op \<inter> :: 'a binding set \<Rightarrow> 'a binding set \<Rightarrow> 'a binding set" .
 
 notation AndP (infixr "\<and>\<^sub>p" 180)
 
 lift_definition OrP ::
-  "'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE" 
-is "op \<union> :: 'VALUE WF_BINDING set \<Rightarrow> 'VALUE WF_BINDING set \<Rightarrow> 'VALUE WF_BINDING set" .
+  "'a upred \<Rightarrow>
+   'a upred \<Rightarrow>
+   'a upred" 
+is "op \<union> :: 'a binding set \<Rightarrow> 'a binding set \<Rightarrow> 'a binding set" .
 
 notation OrP (infixr "\<or>\<^sub>p" 170)
 
 definition ImpliesP ::
-  "'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE" where
+  "'a upred \<Rightarrow>
+   'a upred \<Rightarrow>
+   'a upred" where
 "ImpliesP p1 p2 = \<not>\<^sub>p p1 \<or>\<^sub>p p2"
 
 notation ImpliesP (infixr "\<Rightarrow>\<^sub>p" 160)
 
 definition IffP ::
-  "'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE" where
+  "'a upred \<Rightarrow>
+   'a upred \<Rightarrow>
+   'a upred" where
 "IffP p1 p2 \<equiv> (p1 \<Rightarrow>\<^sub>p p2) \<and>\<^sub>p (p2 \<Rightarrow>\<^sub>p p1)"
 
 notation IffP (infixr "\<Leftrightarrow>\<^sub>p" 150)
 
-definition AndDistP :: "'a WF_PREDICATE set \<Rightarrow> 'a WF_PREDICATE"
+definition AndDistP :: "'a upred set \<Rightarrow> 'a upred"
 where "AndDistP ps = mkPRED (\<Inter> {destPRED p | p. p \<in> ps})"
 
 notation AndDistP ("\<And>\<^sub>p _" [900] 900)
@@ -135,7 +132,7 @@ notation AndDistP ("\<And>\<^sub>p _" [900] 900)
 lemma AndDistP_rep_eq: "destPRED (\<And>\<^sub>p ps) = \<Inter> {destPRED p | p. p \<in> ps}"
   by (simp add:AndDistP_def)
 
-definition OrDistP :: "'a WF_PREDICATE set \<Rightarrow> 'a WF_PREDICATE"
+definition OrDistP :: "'a upred set \<Rightarrow> 'a upred"
 where "OrDistP ps = mkPRED (\<Union> {destPRED p | p. p \<in> ps})"
 
 notation OrDistP ("\<Or>\<^sub>p _" [900] 900)
@@ -145,23 +142,23 @@ lemma OrDistP_rep_eq: "destPRED (\<Or>\<^sub>p ps) = \<Union> {destPRED p | p. p
 
 default_sort type
 
-definition ANDI :: "'b set \<Rightarrow> ('b \<Rightarrow> ('a::VALUE) WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" where
+definition ANDI :: "'b set \<Rightarrow> ('b \<Rightarrow> ('a::VALUE) upred) \<Rightarrow> 'a upred" where
 "ANDI A f = \<And>\<^sub>p(f ` A)"
 
-definition ORDI :: "'b set \<Rightarrow> ('b \<Rightarrow> ('a::VALUE) WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" where
+definition ORDI :: "'b set \<Rightarrow> ('b \<Rightarrow> ('a::VALUE) upred) \<Rightarrow> 'a upred" where
 "ORDI A f = \<Or>\<^sub>p(f ` A)"
 
 syntax
-  "_ANDI1" :: "pttrns \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("(3AND _./ _)" [0, 10] 10)
-  "_ANDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE"  ("(3AND _:_./ _)" [0, 0, 10] 10)
-  "_ORDI1" :: "pttrns \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("(3OR _./ _)" [0, 10] 10)
-  "_ORDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE"  ("(3OR _:_./ _)" [0, 0, 10] 10)
+  "_ANDI1" :: "pttrns \<Rightarrow> 'a upred \<Rightarrow> 'a upred" ("(3AND _./ _)" [0, 10] 10)
+  "_ANDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a upred \<Rightarrow> 'a upred"  ("(3AND _:_./ _)" [0, 0, 10] 10)
+  "_ORDI1" :: "pttrns \<Rightarrow> 'a upred \<Rightarrow> 'a upred" ("(3OR _./ _)" [0, 10] 10)
+  "_ORDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a upred \<Rightarrow> 'a upred"  ("(3OR _:_./ _)" [0, 0, 10] 10)
 
 syntax (xsymbols)
-  "_ANDI1" :: "pttrns \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("(3\<And>\<^sub>p_./ _)" [0, 10] 10)
-  "_ANDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE"  ("(3\<And>\<^sub>p _:_./ _)" [0, 0, 10] 10)
-  "_ORDI1" :: "pttrns \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE" ("(3\<Or>\<^sub>p _./ _)" [0, 10] 10)
-  "_ORDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE"  ("(3\<Or>\<^sub>p _:_./ _)" [0, 0, 10] 10)
+  "_ANDI1" :: "pttrns \<Rightarrow> 'a upred \<Rightarrow> 'a upred" ("(3\<And>\<^sub>p_./ _)" [0, 10] 10)
+  "_ANDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a upred \<Rightarrow> 'a upred"  ("(3\<And>\<^sub>p _:_./ _)" [0, 0, 10] 10)
+  "_ORDI1" :: "pttrns \<Rightarrow> 'a upred \<Rightarrow> 'a upred" ("(3\<Or>\<^sub>p _./ _)" [0, 10] 10)
+  "_ORDI"  :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a upred \<Rightarrow> 'a upred"  ("(3\<Or>\<^sub>p _:_./ _)" [0, 0, 10] 10)
 
 translations
   "AND x y. B"  == "AND x. AND y. B"
@@ -178,17 +175,17 @@ default_sort VALUE
 subsubsection {* Quantifiers *}
 
 lift_definition ExistsP ::
-  "('VALUE VAR set) \<Rightarrow>
-   'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE" is
+  "('a uvar set) \<Rightarrow>
+   'a upred \<Rightarrow>
+   'a upred" is
 "\<lambda> vs p. {b1 \<oplus>\<^sub>b b2 on vs | b1 b2. b1 \<in> p}" .
 
 notation ExistsP ("(\<exists>\<^sub>p _ ./ _)" [0, 10] 10)
 
 definition ForallP ::
-  "'VALUE VAR set \<Rightarrow>
-   'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE" where
+  "'a uvar set \<Rightarrow>
+   'a upred \<Rightarrow>
+   'a upred" where
 "ForallP vs p = \<not>\<^sub>p (\<exists>\<^sub>p vs . \<not>\<^sub>p p)"
 
 notation ForallP ("(\<forall>\<^sub>p _ ./ _)" [0, 10] 10)
@@ -196,22 +193,22 @@ notation ForallP ("(\<forall>\<^sub>p _ ./ _)" [0, 10] 10)
 text {* Shallow versions of the quantifiers *}
 
 lift_definition ExistsShP :: 
-  "('b::type \<Rightarrow> 'a WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" is
-"\<lambda> P. {b :: 'a WF_BINDING. (\<exists> x. b \<in> P x)}" .
+  "('b::type \<Rightarrow> 'a upred) \<Rightarrow> 'a upred" is
+"\<lambda> P. {b :: 'a binding. (\<exists> x. b \<in> P x)}" .
 
 notation ExistsShP (binder "\<exists>\<^sub>s" 10)
 
 lift_definition ForallShP :: 
-  "('b::type \<Rightarrow> 'a WF_PREDICATE) \<Rightarrow> 'a WF_PREDICATE" is
-"\<lambda> P. {b :: 'a WF_BINDING. (\<forall> x. b \<in> P x)}" .
+  "('b::type \<Rightarrow> 'a upred) \<Rightarrow> 'a upred" is
+"\<lambda> P. {b :: 'a binding. (\<forall> x. b \<in> P x)}" .
 
 notation ForallShP (binder "\<forall>\<^sub>s" 10)
 
 subsubsection {* Universal Closure *}
 
 definition ClosureP ::
-  "'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE" where
+  "'a upred \<Rightarrow>
+   'a upred" where
 "ClosureP p = (\<forall>\<^sub>p VAR . p)"
 
 notation ClosureP ("[_]\<^sub>p")
@@ -219,9 +216,9 @@ notation ClosureP ("[_]\<^sub>p")
 subsubsection {* Refinement *}
 
 definition RefP ::
-  "'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE" where
+  "'a upred \<Rightarrow>
+   'a upred \<Rightarrow>
+   'a upred" where
 "RefP p1 p2 = [p2 \<Rightarrow>\<^sub>p p1]\<^sub>p"
 
 notation RefP (infix "\<sqsubseteq>\<^sub>p" 100)
@@ -229,35 +226,26 @@ notation RefP (infix "\<sqsubseteq>\<^sub>p" 100)
 subsubsection {* Predicate Permuation *}
 
 lift_definition PermP ::
-  "'VALUE VAR_RENAME \<Rightarrow>
-   'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE WF_PREDICATE" is
+  "'a VAR_RENAME \<Rightarrow>
+   'a upred \<Rightarrow>
+   'a upred" is
 "\<lambda> ss p. (RenameB ss) ` p" .
 
 abbreviation RenameP ::
-  "'VALUE WF_PREDICATE \<Rightarrow>
-   'VALUE VAR_RENAME \<Rightarrow>
-   'VALUE WF_PREDICATE" ("_[_]\<^sub>p" [200] 200) where
+  "'a upred \<Rightarrow>
+   'a VAR_RENAME \<Rightarrow>
+   'a upred" ("_[_]\<^sub>p" [200] 200) where
 "RenameP p ss \<equiv> PermP ss p"
 
-setup {*
-Adhoc_Overloading.add_variant @{const_name permute} @{const_name PermP}
-*}
-
-(*
-definition RenamePMap :: 
-  "'VALUE  WF_PREDICATE \<Rightarrow> 
-   ('VALUE VAR \<rightharpoonup> 'VALUE VAR) \<Rightarrow> 
-   'VALUE WF_PREDICATE" ("_\<^bsup>_\<^esup>" [200]) where
-"RenamePMap p ss \<equiv> p[MapR ss]\<^sub>p"
-*)
+adhoc_overloading
+  permute PermP
 
 subsection {* Meta-logical Operators *}
 
 subsubsection {* Tautologies *}
 
 definition Tautology ::
-  "'VALUE WF_PREDICATE \<Rightarrow> bool" where
+  "'a upred \<Rightarrow> bool" where
 "Tautology p \<longleftrightarrow> [p]\<^sub>p = true"
 
 declare [[coercion Tautology]]
@@ -265,27 +253,27 @@ declare [[coercion Tautology]]
 notation Tautology ("taut _" [50] 50)
 
 definition Contradiction ::
-  "'VALUE WF_PREDICATE \<Rightarrow> bool" where
+  "'a upred \<Rightarrow> bool" where
 "Contradiction p \<longleftrightarrow> [p]\<^sub>p = false"
 
 notation Contradiction ("contra _" [50] 50)
 
 definition Contingency ::
-  "'VALUE WF_PREDICATE \<Rightarrow> bool" where
+  "'a upred \<Rightarrow> bool" where
 "Contingency p \<longleftrightarrow> (\<not> taut p) \<and> (\<not> contra p)"
 
 notation Contingency ("contg _" [50] 50)
 
 subsubsection {* Refinement *}
 
-instantiation WF_PREDICATE :: (VALUE) ord
+instantiation upred :: (VALUE) ord
 begin
 
-definition less_eq_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> bool" where
-"less_eq_WF_PREDICATE p1 p2 \<longleftrightarrow> taut (p2 \<sqsubseteq>\<^sub>p p1)"
+definition less_eq_upred :: "'a upred \<Rightarrow> 'a upred \<Rightarrow> bool" where
+"less_eq_upred p1 p2 \<longleftrightarrow> taut (p2 \<sqsubseteq>\<^sub>p p1)"
 
-definition less_WF_PREDICATE :: "'a WF_PREDICATE \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> bool" where
-"less_WF_PREDICATE p1 p2 \<longleftrightarrow> taut (p2 \<sqsubseteq>\<^sub>p p1) \<and> \<not> taut (p1 \<sqsubseteq>\<^sub>p p2)"
+definition less_upred :: "'a upred \<Rightarrow> 'a upred \<Rightarrow> bool" where
+"less_upred p1 p2 \<longleftrightarrow> taut (p2 \<sqsubseteq>\<^sub>p p1) \<and> \<not> taut (p1 \<sqsubseteq>\<^sub>p p2)"
 
 instance ..
 
@@ -297,16 +285,16 @@ text {* Since we want the refinement operator for several types but don't
 
 class refines = ord 
 
-instantiation WF_PREDICATE :: (VALUE) refines begin instance .. end
+instantiation upred :: (VALUE) refines begin instance .. end
 
 abbreviation RefinesP :: "'a::refines \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<sqsubseteq>" 50) where
 "p \<sqsubseteq> q \<equiv> q \<le> p"
 
 subsection {* Theorems *}
 
-theorem WF_BINDING_override_on_VAR [simp] :
-"\<lbrakk>b1 \<in> WF_BINDING;
- b2 \<in> WF_BINDING\<rbrakk> \<Longrightarrow>
+theorem binding_override_on_VAR [simp] :
+"\<lbrakk>b1 \<in> binding;
+ b2 \<in> binding\<rbrakk> \<Longrightarrow>
  b1 \<oplus> b2 on VAR = b2"
   by (auto)
 
@@ -318,10 +306,10 @@ theorem TrueP_noteq_FalseP :
 
 subsection {* Predicate to map set *}
 
-definition pred_map_set :: "'a VAR set \<Rightarrow> 'a WF_PREDICATE \<Rightarrow> ('a VAR \<rightharpoonup> 'a) set" where
+definition pred_map_set :: "'a uvar set \<Rightarrow> 'a upred \<Rightarrow> ('a uvar \<rightharpoonup> 'a) set" where
 "pred_map_set xs p = binding_map xs ` destPRED p"
 
-lift_definition map_set_pred :: "('a VAR \<rightharpoonup> 'a) set \<Rightarrow> 'a WF_PREDICATE" is
+lift_definition map_set_pred :: "('a uvar \<rightharpoonup> 'a) set \<Rightarrow> 'a upred" is
 "\<lambda> fs. {map_binding f \<oplus>\<^sub>b b on (VAR - dom f) | f b. f \<in> fs}" .
 
 end

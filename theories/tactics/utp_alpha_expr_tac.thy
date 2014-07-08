@@ -17,8 +17,8 @@ begin
 subsection {* Interpretation Function *}
 
 definition EvalAE ::
-  "'VALUE WF_ALPHA_EXPRESSION \<Rightarrow>
-   'VALUE WF_EXPRESSION" ("\<lbrakk>_\<rbrakk>\<epsilon>") where
+  "'a uaexpr \<Rightarrow>
+   'a uexpr" ("\<lbrakk>_\<rbrakk>\<epsilon>") where
 "EvalAE e = \<epsilon> e"
 
 subsection {* Transfer Theorems *}
@@ -51,7 +51,7 @@ theorem EvalAE_expr [evala]:
   by (simp add:EvalAE_def)
 
 theorem EvalAE_UNREST_EXPR [unrest] :
-"UNREST_EXPR (- \<langle>\<alpha> e\<rangle>\<^sub>f) \<lbrakk>e\<rbrakk>\<epsilon>"
+"(- \<langle>\<alpha> e\<rangle>\<^sub>f) \<sharp> \<lbrakk>e\<rbrakk>\<epsilon>"
   by (simp add: EvalAE_def unrest)
 
 subsection {* Distribution Theorems *}

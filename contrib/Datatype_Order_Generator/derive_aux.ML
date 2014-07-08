@@ -3,6 +3,8 @@
 
 signature DERIVE_AUX = 
 sig 
+  val alist_to_string : (string * 'a)list -> string
+
   (* split_last [a,...,z] -> ([a,...,y],z) *)
   val split_last : 'a list -> 'a list * 'a
   
@@ -42,11 +44,59 @@ sig
 (* delivers a typ substitution which constrains all free type variables in datatype by sort *)
   val typ_subst_for_sort : theory -> Datatype_Aux.info -> sort -> typ -> typ
 
+(* delivers a full type from a type name by instantiating the type-variables of that
+   type with different variables of a given sort, also returns the chosen variables 
+   as second component *)
+  val typ_and_vs_of_typname : theory -> string -> sort -> typ * (string * sort) list
+
 (* identity and number recursive occurrences of datatypes *)
   val dt_number_recs : Datatype.dtyp list -> int * (int * int) list
 
 (* like print_tac, but is turned off by default to not exceed tracing limit *)
   val my_print_tac : string -> tactic 
+
+(* generates a theorem over two variables, where induction over the first one performed,
+   and then in every case one performs immediately a case analysis on the second variable.
+   It is assumed that if the constructors are different, then the goal is proven by some
+   standard tactic, whereas for same constructors, one has to provide a tactic *)
+  val mk_binary_thm :  
+    (theory -> Datatype_Aux.info -> sort -> 'a -> (term list * term list) list) -> (* mk_prop_trm *)
+    (theory -> Datatype_Aux.info -> sort -> (int -> term) * ('b * int * int) list) -> (* mk_bin_idx *)
+    string -> (* bin_const_name *)
+    theory -> 
+    Datatype_Aux.info -> 
+    'a -> (* property_generator *)
+    sort -> 
+    (* same_constructor_tac *)
+    (Proof.context -> thm list -> thm list -> thm -> (thm list -> tactic) -> int -> term list -> 
+     term list -> string * Datatype_Aux.dtyp list -> (Datatype.dtyp -> term -> term -> term) -> tactic) 
+    -> thm
+
+  val mk_case_tac : Proof.context ->
+    term option list list -> (* usually [[SOME term_to_perform_the_case]] *)
+    thm -> (* exhaust theorem *)
+    (*               i-th case, prems, newly obtained arguments *)
+    (Proof.context * int * thm list * (string * cterm) list -> tactic)
+    -> tactic
+
+  val prop_trm_to_major_imp : (term list * 'a) list -> term * 'a
+
+(* delivers "x_i" of corresponding datatype of idx-th type for datatype *)
+(*                                                 idx    i *)
+  val mk_xs : theory -> Datatype_Aux.info -> sort -> int -> int -> term
+
+(* create Some t *)
+  val mk_Some : term -> term
+
+(* my_simp_set should be HOL_ss + the other simplification stuff for orders like simprocs, ... *)
+  val my_simp_set : simpset
+
+  val mk_solve_with_tac : thm list -> tactic -> tactic
+
+  val define_overloaded : string * term -> local_theory -> thm * local_theory
+
+  val mk_def : typ -> string -> term -> term
+
 end
 
 
@@ -57,6 +107,8 @@ open Datatype_Aux; open Datatype;
 val printing = false
 val my_print_tac = if printing then print_tac else (fn _ => Seq.single) 
 
+fun alist_to_string al = map fst al |> commas |> enclose "(" ")"
+
 fun split_last xs = (take (length xs - 1) xs, List.last xs)
 fun strip_cases ctac = ctac #> Seq.map snd
 
@@ -66,6 +118,12 @@ fun HOLogic_list_conj [] = @{term true}
   | HOLogic_list_conj [x] = x
   | HOLogic_list_conj (x :: xs) = HOLogic.mk_conj (x, HOLogic_list_conj xs)
 fun HOLogic_list_all (xs,p) = fold_rev (fn (x,ty) => fn p => HOLogic.mk_all (x,ty,p)) (map dest_Free xs) p
+
+fun mk_Some t = let 
+    val ty = fastype_of t 
+  in
+    Const (@{const_name Some}, ty --> Type (@{type_name option}, [ty])) $ t
+  end 
 
 fun rulify_only_asm thm = 
   (@{thm conjI[OF TrueI]} OF [thm]) (* add conj to prohibit rulify in conclusion *)
@@ -147,6 +205,16 @@ fun typ_subst_for_sort thy info sort =
     val typ_subst = Term.typ_subst_atomic (spec |> fst |> map (fn (n,s) => (TFree (n,s), TFree (n,sort)))) 
   in typ_subst end
 
+fun typ_and_vs_of_typname thy typ_name sort =
+  let 
+    val ar = Type.arity_number (Proof_Context.tsig_of (Proof_Context.init_global thy)) typ_name
+    val sorts = map (K sort) (1 upto ar)
+    val ty_vars = Name.invent_names (Name.make_context [typ_name]) "a" sorts
+    val ty = Type (typ_name,map TFree ty_vars)
+  in (ty,ty_vars)
+end
+
+
 fun dt_number_recs dtys = 
   let 
     fun dtrecs [] j = (j,[]) 
@@ -162,5 +230,120 @@ fun dt_number_recs dtys =
           in (j'',ijs @ ijs') end
   in dtrecs dtys 0
 end
+
+(* code copied from HOL/SPARK/TOOLS *)
+fun define_overloaded (def_name, eq) lthy =
+  let
+    val ((c, _), rhs) = eq |> Syntax.check_term lthy |>
+      Logic.dest_equals |>> dest_Free;
+    val ((_, (_, thm)), lthy') = Local_Theory.define
+      ((Binding.name c, NoSyn), ((Binding.name def_name, @{attributes [code]}), rhs)) lthy
+    val ctxt_thy = Proof_Context.init_global (Proof_Context.theory_of lthy');
+    val thm' = singleton (Proof_Context.export lthy' ctxt_thy) thm
+  in (thm', lthy') 
+end
+
+fun mk_def T c rhs = Logic.mk_equals (Const (c, T), rhs)
+
+(* construct free variable x_i *)
+fun mk_free_tysubst_i typ_subst x i ty = Free (x ^ string_of_int i, ty |> typ_subst)
+
+
+fun mk_xs thy info sort idx i =   
+  let 
+    val descr = #descr info
+    val typ_subst = typ_subst_for_sort thy info sort
+    fun typ_of dty = typ_of_dtyp descr dty |> typ_subst
+    val mk_free_i = mk_free_tysubst_i typ_subst
+  in 
+    mk_free_i ("x_" ^ string_of_int idx ^ "_") i (typ_of (DtRec idx))
+  end
+
+fun prop_trm_to_major_imp prop =
+  hd prop 
+  |> (fn (p,v) => (
+    map (HOLogic.mk_Trueprop) p
+    |> split_last
+    |> Logic.list_implies, 
+    v))
+
+
+fun mk_case_tac (ctxt : Proof.context)
+  (insts : term option list list) 
+  (thm : thm) 
+  (sub_case_tac : Proof.context * int * thm list * (string * cterm) list -> tactic) = 
+    (
+      DETERM o strip_cases o Induct.cases_tac ctxt false insts (SOME thm) []
+      THEN_ALL_NEW (fn i => Subgoal.SUBPROOF (fn {context = ctxt, prems = hyps, params = params, ...} 
+        => sub_case_tac (ctxt, i-1, hyps, params)) ctxt i)
+    )
+    1
+
+fun mk_solve_with_tac (thms : thm list) (solver_tac : tactic) =
+  SOLVE (Method.insert_tac thms 1 THEN solver_tac)
+
+fun simps_of_info info = #case_rewrites info @ #rec_rewrites info @ #inject info @ #distinct info
+
+val my_simp_set =
+  simpset_of (@{context} 
+    delsimps (simpset_of @{context} |> dest_ss |> #simps |> map snd)
+    addsimps @{thms HOL.simp_thms})
+
+fun mk_binary_thm mk_prop_trm mk_bin_idx bin_const_name thy (info : Datatype_Aux.info) prop_gen sort same_constructor_tac = 
+  let 
+    fun bin_const ty = Const (bin_const_name, ty --> ty --> @{typ bool})
+    val prop_props = mk_prop_trm thy info sort prop_gen
+    val (mk_rec,nrec_args) = mk_bin_idx thy info sort
+    val typ_subst = typ_subst_for_sort thy info sort
+    val descr = #descr info
+    fun typ_of dty = typ_of_dtyp descr dty |> typ_subst
+    fun mk_binary_term (DtRec i) = mk_rec i
+      | mk_binary_term dty =
+          let 
+            val ty = typ_of dty
+          in bin_const ty end;
+    fun mk_binary dty x y = mk_binary_term dty $ x $ y;
+    val ind_thm = #induct info
+    val prop_thm_of_tac = inductive_thm thy prop_props ind_thm sort
+    fun ind_case_tac ctxt i hyps ihprems params_x ys =  
+      let 
+        val y = hd ys
+        val (j,idx) = nth nrec_args i |> (fn (_,j,idx) => (j,idx))
+        val linfo = nth descr idx |> (fn (_,(ty_name,_,_)) => ty_name) |> the_info thy
+        val simp_set =
+          put_simpset my_simp_set ctxt addsimps (simps_of_info info) @ (simps_of_info linfo)
+        val solve_with_tac = (fn thms => mk_solve_with_tac thms (force_tac simp_set 1))
+        fun case_tac ctxt = mk_case_tac ctxt [[SOME y]] (#exhaust linfo)
+        fun sub_case_tac (ctxt,k,prems,iparams_y) = 
+          let 
+            val case_hyp_y = hd prems 
+          in 
+            if not (j = k) 
+            then my_print_tac ("different constructors ") THEN solve_with_tac (case_hyp_y :: ihprems) (* different constructor *) 
+            else
+              let 
+                val params_y = map (snd #> term_of) iparams_y
+                val c_info = nth descr idx |> snd |> (fn (_,_,info) => nth info j)
+              in 
+                my_print_tac ("consider constructor " ^ string_of_int k) 
+                THEN same_constructor_tac ctxt hyps ihprems case_hyp_y solve_with_tac j params_x params_y c_info mk_binary
+              end
+          end
+      in my_print_tac ("start induct " ^ string_of_int i) THEN case_tac ctxt sub_case_tac end
+    val prop_thm = prop_thm_of_tac ind_case_tac
+  in prop_thm end 
+
+fun mk_case_tac (ctxt : Proof.context)
+  (insts : term option list list) 
+  (thm : thm) 
+  (sub_case_tac : Proof.context * int * thm list * (string * cterm) list -> tactic) = 
+    (
+      DETERM o strip_cases o Induct.cases_tac ctxt false insts (SOME thm) []
+      THEN_ALL_NEW (fn i => Subgoal.SUBPROOF (fn {context = ctxt, prems = hyps, params = params, ...} 
+        => sub_case_tac (ctxt, i-1, hyps, params)) ctxt i)
+    )
+    1
+
+
 
 end

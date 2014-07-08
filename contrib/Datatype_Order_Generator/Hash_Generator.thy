@@ -5,7 +5,7 @@
 *)
 
 (*
-Copyright 2012 René Thiemann
+Copyright 2013 René Thiemann
 
 This file is part of IsaFoR/CeTA.
 
@@ -25,18 +25,19 @@ with IsaFoR/CeTA. If not, see <http://www.gnu.org/licenses/>.
 header {* Hash functions *}
 
 theory Hash_Generator
-imports "../HashCode"
+imports "../Collections/Lib/HashCode"
   Derive_Manager
 begin
 
 subsection "Introduction"
 
 text {*
-The interface for hash-functions is defined in the theory \texttt{HashCode} which has been developed
-as part of the Isabelle Collection Framework \cite{rbt}. It requires a hash-function, a bounded hash-function,
-and a default hash-table size.
+The interface for hash-functions is defined in the class @{class hashable} which has been developed
+as part of the Isabelle Collection Framework \cite{rbt}. It requires a hash-function
+(@{const hashcode}), a bounded hash-function (@{const bounded_hashcode}),
+and a default hash-table size (@{const def_hashmap_size}).
 
-The hash function for each datatype are created by instantiating the recursors of that 
+The @{const hashcode} function for each datatype are created by instantiating the recursors of that 
 datatype appropriately. E.g., for \texttt{datatype 'a test = C1 'a 'a | C2 "'a test list"} 
 we get a hash-function which is equivalent to 
 \begin{verbatim}
@@ -50,7 +51,7 @@ in the example \texttt{c1} and \texttt{c2} will usually be different numbers.)
 These parameters are used in linear combination with prime numbers to hopefully
 get some useful hash-function.
 
-The bounded hash functions are constructed in the same way, except that after each
+The @{const bounded_hashcode} functions are constructed in the same way, except that after each
 arithmetic operation a modulo operation is performed.
 
 Finally, the default hash-table size is just set to 10, following Java's default
@@ -62,7 +63,7 @@ subsection "Features and Limitations"
 text {*
 We get same limitation as for the order generator. 
 For mutual recursive datatypes, only
-for the first mentioned datatype the instantiations of the hashable-class are
+for the first mentioned datatype the instantiations of the @{class hashable}-class are
 derived.
 *}
 

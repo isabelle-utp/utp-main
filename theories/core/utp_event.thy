@@ -25,7 +25,7 @@ abbreviation chan_name :: "'a::type CHAN \<Rightarrow> NAME" where
 abbreviation chan_type :: "'a::type CHAN \<Rightarrow> 'a itself" where
 "chan_type c \<equiv> snd (DestCHAN c)"
 
-typedef 'a UCHAN = "UNIV :: (NAME * 'a UTYPE) set"
+typedef 'a UCHAN = "UNIV :: (NAME * 'a utype) set"
   morphisms DestUCHAN MkUCHAN
   by (simp)
 
@@ -35,7 +35,7 @@ declare MkUCHAN_inverse[simplified,simp]
 abbreviation uchan_name :: "'a UCHAN \<Rightarrow> NAME" where
 "uchan_name c \<equiv> fst (DestUCHAN c)"
 
-abbreviation uchan_type :: "'a UCHAN \<Rightarrow> 'a UTYPE" where
+abbreviation uchan_type :: "'a UCHAN \<Rightarrow> 'a utype" where
 "uchan_type c \<equiv> snd (DestUCHAN c)"
 
 subsection {* Event Sort *}
@@ -46,7 +46,7 @@ text {* Events carry values, and therefore before we can introduce the
         the EVENT typedef *}
 
 class EVENT_PERM = VALUE +
-  fixes   EventPerm :: "'a UTYPE set"
+  fixes   EventPerm :: "'a utype set"
   assumes EventPerm_exists: "\<exists> x. x \<in> EventPerm"
 
 typedef ('m::EVENT_PERM) EVENT = 
@@ -81,7 +81,7 @@ lemma Defined_EVENT [defined]:
   "\<D> (x :: 'a EVENT) = True"
   by (simp add:Defined_EVENT_def)
 
-abbreviation EV :: "NAME \<Rightarrow> ('a::EVENT_PERM) UTYPE \<Rightarrow> 'a \<Rightarrow> 'a EVENT" where
+abbreviation EV :: "NAME \<Rightarrow> ('a::EVENT_PERM) utype \<Rightarrow> 'a \<Rightarrow> 'a EVENT" where
 "EV n t v \<equiv> MkEVENT (MkUCHAN (n, t), v)"
 
 text {* Make all possible events over a set of channels *}
@@ -90,7 +90,7 @@ abbreviation MkEvents :: "'a::EVENT_PERM UCHAN set \<Rightarrow> 'a EVENT set" w
 "MkEvents cs \<equiv> {MkEVENT (c,v) | c v. c \<in> cs}"
 
 (*
-definition MkEVENT :: "NAME \<Rightarrow> ('a::EVENT_PERM) UTYPE \<Rightarrow> 'a \<Rightarrow> 'a EVENT" where
+definition MkEVENT :: "NAME \<Rightarrow> ('a::EVENT_PERM) utype \<Rightarrow> 'a \<Rightarrow> 'a EVENT" where
 "MkEVENT n t v = (if (t \<in> EventPerm \<and> v :! t) 
                   then (Abs_EVENT ((n, t), v))
                   else (Abs_EVENT ((n, (SOME t. t \<in> EventPerm)), default (SOME t. t \<in> EventPerm))))"
@@ -103,7 +103,7 @@ apply (metis Rep_EVENT_inverse pair_collapse)
 class EVENT_SORT = EVENT_PERM +
   fixes MkEvent   :: "'a EVENT \<Rightarrow> 'a"
   and   DestEvent :: "'a \<Rightarrow> 'a EVENT"
-  and   EventType :: "'a UTYPE"
+  and   EventType :: "'a utype"
 
   assumes Inverse [simp] : 
     "DestEvent (MkEvent v) = v"

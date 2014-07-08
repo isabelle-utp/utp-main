@@ -5,7 +5,7 @@
 *)
 
 (*
-Copyright 2012 René Thiemann
+Copyright 2013 René Thiemann
 
 This file is part of IsaFoR/CeTA.
 
@@ -25,7 +25,9 @@ with IsaFoR/CeTA. If not, see <http://www.gnu.org/licenses/>.
 header Examples
 
 theory Derive_Examples
-imports Derive
+imports 
+  Derive
+  Rat
 begin
 
 subsection "Register standard existing types"
@@ -33,7 +35,6 @@ subsection "Register standard existing types"
 derive linorder list
 derive linorder sum
 derive linorder prod
-derive countable list 
 
 subsection "Without nested recursion"
 
