@@ -57,12 +57,23 @@ no_syntax
   "_n_upred_assigns"    :: "n_pvars \<Rightarrow> n_pexprs \<Rightarrow> n_upred" ("_ := _" [100] 100)
   "_n_upred_ifthenelse" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("if _ then _ else _")
   "_n_upred_while"      :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("while _ do _ od")
-  "_upred_prefixed"      :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _")
-  "_n_upred_index"         :: "('b \<Rightarrow> 'a upred) \<Rightarrow> 'b \<Rightarrow> n_upred" ("_<_>" 50)
+  "_upred_prefixed"     :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _")
+  "_n_upred_index"      :: "('b \<Rightarrow> 'a upred) \<Rightarrow> 'b \<Rightarrow> n_upred" ("_<_>" 50)
+  "_n_upred_var"        :: "idt \<Rightarrow> n_upred" ("_")
+  "_upred_StopCSP"      :: "n_upred" ("STOP")
+  "_upred_SkipCSP"      :: "n_upred" ("SKIP")
+  "_upred_ChaosCSP"     :: "n_upred" ("CHAOS")
   "_n_upred_PrefixSkipCSP" :: "n_pexpr \<Rightarrow> n_upred" ("@_")
   "_upred_callpr"          :: "('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("call _'[_']")
   "_upred_assignpr"        :: "('a, 'm) pvar \<Rightarrow> ('a, 'b, 'm) WF_POPERATION \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_ := _'[_']" [100] 100)
 
 declare EvalD_vexpr_set_range [evalp del]
+
+cmlacts
+  P = "i:@int @ P<&i>" and
+  Q = "i:@int @ P<5 + &i>" and
+  R = "Q<1>" and
+  S = "SKIP"
+
 
 end
