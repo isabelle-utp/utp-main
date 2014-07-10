@@ -11,6 +11,7 @@ imports
   utp_cml_functions
   utp_cml_records
   utp_cml_stmt
+  utp_cml_process
 keywords "cmlifun" "cmlefun" "cmleop" "cmliop" "cmlrec" "cmlacts" :: thy_decl and "inp" "out" "pre" "post" "frame" "invariant"
 begin
 
@@ -112,10 +113,10 @@ fun mk_lambda [(id, ty)] term ctxt =
   | mk_lambda [] term _ = term;
 
 fun mk_act_lambda [id] term ctxt =
-      absnm (id, @{typ "cmlp"}) 0 term
+      absnm (id, dummyT) 0 term
   | mk_act_lambda (id :: xs) term ctxt =
       const @{const_name "aprod_case"} 
-        $ absnm (id, @{typ "cmlp"}) 0 (mk_act_lambda xs term ctxt)
+        $ absnm (id, dummyT) 0 (mk_act_lambda xs term ctxt)
   | mk_act_lambda [] term _ = term;
 
 fun mk_n_of_m n m =
@@ -215,7 +216,7 @@ fun mk_ifun ((id, (inp, out)), (pre, post)) ctxt =
       val inpt = mk_prod_ty ctxt inp
       val outt = read_term tctxt (snd out)
       val bodyb = (Binding.name id, NoSyn)
-      val bodyb_def = ( (Binding.name (id ^ "_def"), [add_evalp])
+      val bodyb_def = ( (Binding.name (id ^ "_def"), [add_evalp]) 
                       ,  Syntax.check_term ctxt (Const (@{const_name mk_ifun_body}, dummyT)
                            $ inpt $ outt $ preb_term $ postb_term))
       val ((_,(_,thm1)), ctxt1) = Local_Theory.define (preb, preb_def) ctxt
@@ -254,6 +255,7 @@ let
                                    NONE 
                                    (rtac @{thm exI[of _ "True"]} 1 THEN rtac @{thm insertI1} 1)
                                    ctxt)
+  (* Create the tag type and instance *)
   val ctxt2 = background_theory (mk_rec_inst (id ^ "_tag") (#Rep_inject info) (#Rep info)) ctxt1
   val maxty = mk_prod_ty ctxt flds
   val maxty_term = check_term ctxt2 ( const @{const_name "RecMaximalType"} 
@@ -268,8 +270,12 @@ let
     o snd o abbrev Syntax.mode_default ((Binding.name id, NoSyn), check_term ctxt3 (const @{const_name SelectRec} $ fld))
     end
     | mk_flds [] _ = (fn x => x)
+  val ctxt4 = mk_flds flds 1 ctxt3
+  (* Define the record type with possible invariant *) 
+  val ((ttr, _), ctxt5) = define (mk_defn id "" (check_term ctxt4 (const @{const_name InvS} $ mtr $ parse_term (n_pexpr ctxt4) inv))) ctxt4
+  val (_, ctxt6) = define (mk_defn id "mk_" (check_term ctxt5 (const @{const_name MkRec} $ ttr))) ctxt5
 in
-  mk_flds flds 1 ctxt3
+  ctxt6
 end
 
 fun mk_acts acts ctxt =
@@ -312,7 +318,7 @@ val iop_pr = Parse.short_ident
                       -- (@{keyword "post"} |-- Parse.term)));
 
 val rec_pr = Parse.short_ident 
-                  -- (inps1_pr -- (Scan.optional (@{keyword "invariant"} |-- Parse.term)) "true") ;
+                  -- (inps1_pr -- (Scan.optional (@{keyword "invariant"} |-- Parse.term)) "lambda x @ true") ;
 
 val acts_pr = Parse.enum1 "and" ((Parse.short_ident --| @{keyword "="}) -- Parse.term);
 
@@ -344,8 +350,46 @@ Outer_Syntax.local_theory @{command_spec "cmlacts"}
 
 *}
 
+ML {* Syntax.parse_term @{context} "|^v^.px|" *}
+
 cmlrec Coordinate
-  x :: "@nat" and y :: "@nat"
+  px :: "@nat" and py :: "@nat"
+  
+term "`c?(v) -> P<v>`"
+
+term "lfp (\<lambda> <P,Q>. <\<lambda> x. `a?(v) -> P<v>`, \<lambda> x. `b?(v) -> P<v>`>)"
+
+definition CmlAbsP :: "'a set \<Rightarrow> ('a \<Rightarrow> cmlp) \<Rightarrow> ('a \<Rightarrow> cmlp)" where
+"CmlAbsP A P = P"
+
+syntax
+  "_cml_proc_abs" :: "id \<Rightarrow> vty \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_:_ @ _" [30,0,30] 30)
+
+translations
+  "_cml_proc_abs x A P" == "CONST CmlAbsP A (\<lambda> x. P)"
+
+term "\<lambda> P. `i:@int @ P<&i>`"
+
+term "lfp (\<lambda> <P,Q>. <`i:@int @ P<&i>`, `i:@int @ Q<&i>`>)"
+
+no_syntax
+  "_n_upred_index"   :: "('b \<Rightarrow> 'a upred) \<Rightarrow> 'b \<Rightarrow> n_upred" ("_<_>" 50)
+  "_n_upred_var"      :: "idt \<Rightarrow> n_upred" ("_")
+  "_upred_StopCSP" :: "n_upred" ("STOP")
+  "_upred_SkipCSP" :: "n_upred" ("SKIP")
+  "_upred_ChaosCSP" :: "n_upred" ("CHAOS")
+
+syntax
+  "_n_cml_var"   :: "idt \<Rightarrow> n_upred" ("_")
+  "_n_cml_Stop"  :: "n_upred" ("STOP")
+  "_n_cml_Skip"  :: "n_upred" ("SKIP")
+  "_n_cml_Chaos" :: "n_upred" ("CHAOS") 
+
+translations
+  "_n_cml_var p" => "p :: cmlp"
+  "_n_cml_Stop"  => "STOP :: cmlp"
+  "_n_cml_Skip"  => "SKIP :: cmlp"
+  "_n_cml_Chaos" => "CHAOS :: cmlp"
 
 end
 
