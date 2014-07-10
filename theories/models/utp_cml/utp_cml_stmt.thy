@@ -31,14 +31,14 @@ syntax
   "_n_upred_whilecml"  :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("while _ do _ od")
   "_vasgn_id"          :: "idt \<Rightarrow> vasgn_exp" ("_")
   "_vasgn_app"         :: "idt \<Rightarrow> n_pexprs \<Rightarrow> vasgn_exp" ("_'(_')")
-  "_n_upred_cindex"     :: "('b \<Rightarrow> 'a upred) \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_<_>" 50)
+  "_n_upred_cindex"     :: "('b \<Rightarrow> 'a upred) \<Rightarrow> n_pexprs \<Rightarrow> n_upred" ("_<_>" 50)
   
 translations
   "_n_upred_assigncml (_vasgn_id x) e" == "CONST AssignC x e"
   "_n_upred_assigncml (_vasgn_app x i) e" == "CONST AssignC_app x (_vexpr_prod i) e"
   "_n_upred_ifthencml b P Q" == "CONST CondR P (CONST VTautHideT b) Q"
   "_n_upred_whilecml b P" == "CONST IterP (CONST VTautHideT b) P"
-  "_n_upred_cindex F v"           == "CONST IndexD F v"
+  "_n_upred_cindex F v"           == "CONST IndexD F (_vexpr_prod v)"
 
 term "`x := 5`"
 term "`f(5) := 1`"
@@ -198,6 +198,6 @@ translations
   "_n_upred_vassignpr x f ps" == "CONST AssignOp x f (_vexpr_prod ps)"
   "_n_upred_vassignpr_nil x f" == "CONST AssignOp x f (CONST UnitD)"
 
-term "`let x = 5 in P<&x>`"
+term "`let y : @int = 5 in P<&x,&y>`"
 
 end
