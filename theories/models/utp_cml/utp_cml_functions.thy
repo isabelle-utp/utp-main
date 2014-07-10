@@ -263,50 +263,6 @@ translations
   "_VMap (_VMaplets (_vmaplet x v) ms2)" == "CONST vexpr_mapupd (_VMap ms2) x v"
   "_VMap (_vmaplet x v)" == "CONST vexpr_mapupd (CONST LitD CONST fmempty) x v"
 
-definition
-  ranres :: "('a ~=> 'b) => 'b set => ('a ~=> 'b)" where
-"ranres m ys = (\<lambda> x. case m x of None \<Rightarrow> None | Some y \<Rightarrow> (if (y \<in> ys) then Some y else None))"
-
-declare ranres_def [eval,evalp]
-
-lemma finite_dom_map_of:
-  fixes f :: "('a::linorder ~=> 'b)"
-  assumes "finite (dom f)" 
-  shows "\<exists> xs. f = map_of xs"
-  by (metis Abs_fmap_inv assms fmap_list_inv list_fmap.rep_eq)
-
-lemma map_comp_dom: "dom (g \<circ>\<^sub>m f) \<subseteq> dom f"
-  by (metis (lifting, full_types) Collect_mono dom_def map_comp_simps(1))
-
-lift_definition fmap_comp :: "('b, 'c) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'c) fmap"
-is "map_comp" 
-  apply (auto simp add:fmaps_def)
-  apply (metis finite_subset map_comp_dom)
-done
-
-lemma finite_dom_graph_map:
-  "finite A \<Longrightarrow> finite (dom (graph_map A))"
-  by (simp add:graph_map_def dom_def)
-
-lift_definition fgraph_fmap :: "('a * 'b) fset \<Rightarrow> ('a, 'b) fmap" is graph_map
-  by (simp add:fmaps_def, metis finite_dom_graph_map fsets_def mem_Collect_eq)
-
-lift_definition fmap_collect :: "('a \<Rightarrow> 'b * 'c) \<Rightarrow> 'a fset \<Rightarrow> ('b, 'c) fmap"
-is "\<lambda> f A. graph_map (f ` A)"
-  by (auto simp add:fmaps_def, metis finite_dom_graph_map finite_imageI fsets_def mem_Collect_eq)
-
-lift_definition fmap_add :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" 
-is "map_add" by (simp add:fmaps_def)
-
-lift_definition fmap_domr :: "'a fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" 
-is "\<lambda> s f. restrict_map f s" by (simp add:fmaps_def)
-
-lift_definition fmap_inv :: "('a, 'b) fmap \<Rightarrow> ('b, 'a) fmap" 
-is "map_inv" by (simp add:fmaps_def)
-
-definition fmap_domr' :: "'a fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" where
-"fmap_domr' s f = fmap_domr (fdom f -\<^sub>f s) f"
-
 definition "vmapapp = (\<lambda> (m, k). Rep_fmap m k)"
 
 definition vexpr_map_collect :: 
@@ -320,14 +276,18 @@ lemma dom_vmapapp [defined]:
   "dom vmapapp = {(m, k). k \<in>\<^sub>f fdom(m)}"
   by (auto simp add:fdom.rep_eq vmapapp_def)
 
+abbreviation "fmap_plus f g \<equiv> (f + g :: ('a, 'b) fmap)"
+
 abbreviation "vexpr_dom       \<equiv> Op1D' fdom"
 abbreviation "vexpr_rng       \<equiv> Op1D' fran"
 abbreviation "vexpr_mapcomp   \<equiv> Op2D' fmap_comp"
 abbreviation "vexpr_mapempty  \<equiv> LitD  fmempty"
-abbreviation "vexpr_munion    \<equiv> Op2D' fmap_add"
-abbreviation "vexpr_moverride \<equiv> Op2D' fmap_add"
+abbreviation "vexpr_munion    \<equiv> Op2D' fmap_plus"
+abbreviation "vexpr_moverride \<equiv> Op2D' fmap_plus"
 abbreviation "vexpr_domresto  \<equiv> Op2D' fmap_domr"
 abbreviation "vexpr_domresfr  \<equiv> Op2D' fmap_domr'"
+abbreviation "vexpr_ranresto  \<equiv> Op2D' fmap_ranr"
+abbreviation "vexpr_ranresfr  \<equiv> Op2D' fmap_ranr'"
 abbreviation "vexpr_mapapp    \<equiv> Op2D vmapapp"
 abbreviation "vexpr_mapinv    \<equiv> Op1D' fmap_inv"
 
@@ -337,6 +297,8 @@ syntax
   "_vexpr_moverride" :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "++" 65)
   "_vexpr_domresto"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "<:" 110)
   "_vexpr_domresfr"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "<-:" 110)
+  "_vexpr_ranresto"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl ":>" 110)
+  "_vexpr_ranresfr"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl ":->" 110)
   "_vexpr_mapcomp"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixl "comp" 55)  
   "_vexpr_mapinv"    :: "n_pexpr \<Rightarrow> n_pexpr" ("inverse _")
   "_vexpr_mapapp"    :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_[_]" [200,0] 200)
@@ -349,6 +311,8 @@ translations
   "_vexpr_moverride f g" == "CONST vexpr_moverride f g"
   "_vexpr_domresto s f"  == "CONST vexpr_domresto s f"
   "_vexpr_domresfr s f"  == "CONST vexpr_domresfr s f"
+  "_vexpr_ranresto s f"  == "CONST vexpr_ranresto s f"
+  "_vexpr_ranresfr s f"  == "CONST vexpr_ranresfr s f"
   "_vexpr_mapinv m"      == "CONST vexpr_mapinv m"
   "_vexpr_mapapp m k"    == "CONST vexpr_mapapp m k"
   "_vexpr_mapcomp e f x A" == "CONST vexpr_map_collect (\<lambda> x. (CONST vexpr_prod e f)) A"

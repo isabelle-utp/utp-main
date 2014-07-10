@@ -350,28 +350,6 @@ Outer_Syntax.local_theory @{command_spec "cmlacts"}
 
 *}
 
-ML {* Syntax.parse_term @{context} "|^v^.px|" *}
-
-cmlrec Coordinate
-  px :: "@nat" and py :: "@nat"
-  
-term "`c?(v) -> P<v>`"
-
-term "lfp (\<lambda> <P,Q>. <\<lambda> x. `a?(v) -> P<v>`, \<lambda> x. `b?(v) -> P<v>`>)"
-
-definition CmlAbsP :: "'a set \<Rightarrow> ('a \<Rightarrow> cmlp) \<Rightarrow> ('a \<Rightarrow> cmlp)" where
-"CmlAbsP A P = P"
-
-syntax
-  "_cml_proc_abs" :: "id \<Rightarrow> vty \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_:_ @ _" [30,0,30] 30)
-
-translations
-  "_cml_proc_abs x A P" == "CONST CmlAbsP A (\<lambda> x. P)"
-
-term "\<lambda> P. `i:@int @ P<&i>`"
-
-term "lfp (\<lambda> <P,Q>. <`i:@int @ P<&i>`, `i:@int @ Q<&i>`>)"
-
 no_syntax
   "_n_upred_index"   :: "('b \<Rightarrow> 'a upred) \<Rightarrow> 'b \<Rightarrow> n_upred" ("_<_>" 50)
   "_n_upred_var"      :: "idt \<Rightarrow> n_upred" ("_")
@@ -390,6 +368,8 @@ translations
   "_n_cml_Stop"  => "STOP :: cmlp"
   "_n_cml_Skip"  => "SKIP :: cmlp"
   "_n_cml_Chaos" => "CHAOS :: cmlp"
+
+term "`i:@int,j:@nat @ P<&i>`"
 
 end
 

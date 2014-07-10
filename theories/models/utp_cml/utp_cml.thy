@@ -69,11 +69,14 @@ no_syntax
 
 declare EvalD_vexpr_set_range [evalp del]
 
+(*
 cmlacts
   P = "i:@int @ P<&i>" and
   Q = "i:@int @ P<5 + &i>" and
   R = "Q<1>" and
-  S = "SKIP"
+  S = "let x : @nat = 5 in SKIP"
 
+term "ActionBlock"
+*)
 
 end
