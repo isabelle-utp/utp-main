@@ -336,12 +336,9 @@ lemma FinMapI_type_cases [elim!]:
   apply (subgoal_tac "\<forall>y\<in>ran (Rep_fmap (list_fmap list)). y :\<^sub>b b")
   apply (metis)
   apply (simp add: list_fmap_def finite_dom_map_of)
+  apply (metis Rep_fmap_inverse list_fmap.rep_eq ran_map_of split_conv)
+  apply (metis (lifting) dom_map_of list_fmap.rep_eq split_conv)
   apply (force dest: ran_map_of)
-  apply (simp add: list_fmap_def finite_dom_map_of)
-  apply (rule ballI)
-  apply (drule dom_map_of)
-  apply (force)
-  apply (simp)
 done
 
 subsection {* Definedness of CML values *}

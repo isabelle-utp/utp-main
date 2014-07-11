@@ -273,6 +273,64 @@ lemma fmap_add_comm: "fdom(m1) \<inter>\<^sub>f fdom(m2) = \<lbrace>\<rbrace> \<
   apply (metis map_add_comm)
 done
 
+text {* Composition of finite maps *}
+
+lift_definition fmap_comp :: "('b, 'c) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'c) fmap"
+is "map_comp" 
+  apply (auto simp add:fmaps_def)
+  apply (metis finite_subset map_comp_dom)
+done
+
+lemma fmap_comp_0_0 [simp]: 
+  "fmap_comp 0 f = 0"
+  by (auto simp add:fmap_comp.rep_eq zero_fmap.rep_eq)
+  
+lemma fmap_comp_0_1 [simp]: 
+  "fmap_comp f 0 = 0"
+  by (auto simp add:fmap_comp.rep_eq zero_fmap.rep_eq)
+
+lemma finite_dom_graph_map:
+  "finite A \<Longrightarrow> finite (dom (graph_map A))"
+  by (simp add:graph_map_def dom_def)
+
+lift_definition fgraph_fmap :: "('a * 'b) fset \<Rightarrow> ('a, 'b) fmap" is graph_map
+  by (simp add:fmaps_def, metis finite_dom_graph_map fsets_def mem_Collect_eq)
+
+lift_definition fmap_collect :: "('a \<Rightarrow> 'b * 'c) \<Rightarrow> 'a fset \<Rightarrow> ('b, 'c) fmap"
+is "\<lambda> f A. graph_map (f ` A)"
+  by (auto simp add:fmaps_def, metis finite_dom_graph_map finite_imageI fsets_def mem_Collect_eq)
+
+text {* Domain restriction *}
+
+lift_definition fmap_domr :: "'a fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" 
+is "\<lambda> s f. restrict_map f s" by (simp add:fmaps_def)
+
+definition fmap_inj :: "('a, 'b) fmap \<Rightarrow> bool"
+where "fmap_inj f = inj_on \<langle>f\<rangle>\<^sub>m (dom(\<langle>f\<rangle>\<^sub>m))"
+
+lemma fmap_inj_empty: "fmap_inj(fmempty)"
+  by (simp add:fmap_inj_def zero_fmap.rep_eq)
+
+text {* Range restriction *}
+
+lift_definition fmap_ranr :: "'b fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" 
+  is "\<lambda> A f. ran_restrict_map f A" by (auto simp add:fmaps_def)
+
+lift_definition fmap_inv :: "('a, 'b) fmap \<Rightarrow> ('b, 'a) fmap" 
+is "map_inv" by (simp add:fmaps_def)
+
+definition fmap_domr' :: "'a fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" where
+"fmap_domr' s f = fmap_domr (fdom f -\<^sub>f s) f"
+
+definition fmap_ranr' :: "'b fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" where
+"fmap_ranr' s f = fmap_ranr (fran f -\<^sub>f s) f"
+
+lemma finite_dom_map_of:
+  fixes f :: "('a::linorder ~=> 'b)"
+  assumes "finite (dom f)" 
+  shows "\<exists> xs. f = map_of xs"
+  by (metis Abs_fmap_inv assms fmap_list_inv list_fmap.rep_eq)
+
 default_sort type
 
 (*

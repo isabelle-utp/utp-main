@@ -8,8 +8,6 @@ header {* CML processes *}
 
 theory utp_cml_process
 imports 
-  utp_cml_expr
-  utp_cml_types
   utp_cml_stmt
 begin
 
@@ -89,6 +87,9 @@ definition InterruptD :: "cmlp \<Rightarrow> cmlp \<Rightarrow> cmlp" where
 definition TimeoutD :: "cmlp \<Rightarrow> real cmle \<Rightarrow> cmlp \<Rightarrow> cmlp" where
 "TimeoutD p n q = undefined"
 
+definition UTimeoutD :: "cmlp \<Rightarrow> cmlp \<Rightarrow> cmlp" where
+"UTimeoutD p q = undefined"
+
 definition WaitD :: "real cmle \<Rightarrow> cmlp" where
 "WaitD n = undefined"
 
@@ -131,14 +132,13 @@ lift_definition Exec6D ::
    \<Rightarrow> 'a cmle \<Rightarrow> 'b cmle \<Rightarrow> 'c cmle \<Rightarrow> 'd cmle \<Rightarrow> 'e cmle \<Rightarrow> 'f cmle \<Rightarrow> cmlp" 
   is "\<lambda> P e f g h i j. {b :: cmlv binding. b \<in> P (e b) (f b) (g b) (h b) (i b) (j b)}" .
 
-definition IndexD :: "('a \<Rightarrow> cmlp) \<Rightarrow> 'a cmle \<Rightarrow> cmlp"
-where "IndexD F v = mkPRED {b. \<lbrakk>F(the(\<lbrakk>v\<rbrakk>\<^sub>*b))\<rbrakk>b}"
+definition CmlAbsP :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::type) \<Rightarrow> ('a \<Rightarrow> 'b)" where
+"CmlAbsP A P = P"
 
 (* We remove the standard definition of prefix and add one specific for CML *)
 
 no_syntax
   "_upred_prefixed"  :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _")
-  "_n_upred_index"   :: "('b \<Rightarrow> 'a upred) \<Rightarrow> 'b \<Rightarrow> n_upred" ("_<_>" 50)
   "_upred_input"     :: "'a CHAN \<Rightarrow> pttrn \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_?_ -> _")
   "_upred_output"    :: "'a CHAN \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_!_ -> _")
   "_upred_event"     :: "'a CHAN \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_._ -> _")
@@ -192,6 +192,7 @@ syntax
   "_n_upred_hidecml"    :: "n_upred \<Rightarrow> n_chanset \<Rightarrow> n_upred" (infixl "\\" 60)
   "_n_upred_intrptcml"  :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "'/-\\" 50)
   "_n_upred_timeoutcml" :: "n_upred \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "[_>" 50)
+  "_n_upred_utimeoutcml" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "[>" 50)
   "_n_upred_waitcml"    :: "n_pexpr \<Rightarrow> n_upred" ("WAIT _")
   "_n_upred_cml_exec0"  :: "idt \<Rightarrow> n_upred" ("_'(')")
   "_n_upred_cml_exec1"  :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_'(_')")
@@ -200,7 +201,9 @@ syntax
   "_n_upred_cml_exec4"  :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_'(_, _, _, _')")
   "_n_upred_cml_exec5"  :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_'(_, _, _, _, _')")
   "_n_upred_cml_exec6"  :: "idt \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_'(_, _, _, _, _, _')")
-  "_n_upred_cindex"     :: "('b \<Rightarrow> 'a upred) \<Rightarrow> n_pexpr \<Rightarrow> n_upred" ("_<_>" 50)
+  "_cml_proc_abs"       :: "vtype_binds \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ @ _" [30,30] 30)
+
+term "prod_case"
 
 translations
   "_n_upred_parcml p vs q"        == "CONST ParallelD p vs q"
@@ -214,6 +217,7 @@ translations
   "_n_upred_hidecml p cs"         == "CONST HideD p cs"
   "_n_upred_intrptcml p q"        == "CONST InterruptD p q"
   "_n_upred_timeoutcml p n q"     == "CONST TimeoutD p n q"
+  "_n_upred_utimeoutcml p q"      == "CONST TimeoutD p q"
   "_n_upred_waitcml n"            == "CONST WaitD n"
 (*  "_n_upred_cml_prefix n p"       == "CONST CommD n p" *)
   "_n_upred_cml_exec0 s"          == "CONST RH (CONST Exec0D s)"
@@ -223,7 +227,21 @@ translations
   "_n_upred_cml_exec3 v1 v2 v3 v4 s" == "CONST RH (CONST Exec3D v1 v2 v3 v4 s)"
   "_n_upred_cml_exec3 v1 v2 v3 v4 v5 s" == "CONST RH (CONST Exec3D v1 v2 v3 v4 v5 s)"
   "_n_upred_cml_exec3 v1 v2 v3 v4 v5 v6 s" == "CONST RH (CONST Exec3D v1 v2 v3 v4 v5 v6 s)"
-  "_n_upred_cindex F v"           == "CONST IndexD F v"
+  (* Parse rules for parametric actions *)
+  "_cml_proc_abs (_vtype_bind (_vtybind (_vidts x xs) A)) P" 
+    => "CONST prod_case (CONST CmlAbsP A (\<lambda> x . (_cml_proc_abs (_vtype_bind (_vtybind xs A)) P)))" 
+  "_cml_proc_abs (_vtype_bind (_vtybind (_vidt x) A)) P"   => "CONST CmlAbsP A (\<lambda> x. (P :: cmlp))"
+  "_cml_proc_abs (_vtype_binds (_vtybind (_vidts x xs) A) bs) P" 
+    => "CONST prod_case (CONST CmlAbsP A (\<lambda> x . (_cml_proc_abs (_vtype_binds (_vtybind xs A) bs) P)))"
+  "_cml_proc_abs (_vtype_binds (_vtybind (_vidt x) A) bs) P"  
+    => "CONST prod_case (CONST CmlAbsP A (\<lambda> x. _cml_proc_abs bs P))"
+  (* Print rules for parametric actions *)
+(*
+  "_cml_proc_abs (_vtype_bind (_vtybind (_vidt x) A)) P" <= "CONST CmlAbsP A (\<lambda> x . P)"
+  "_cml_proc_abs (_vtype_bind (_vtybind (_vidt x) A)) P" <= "CONST CmlAbsP A (\<lambda> x . P)"
+*)
+
+term "`(i:@bool,j,k:@nat,l:@bool @ P)`"
 
 term "`([] i in @set {1,2,3} @ P) ; Q`"
 term "`|| i in @set {1,2,3} @ P [(&i)> Q`"
@@ -238,6 +256,7 @@ term "`P \\ {|x,y|} union {|z|}`"
 term "`P \\ xs`"
 term "`P /-\\ Q`"
 term "`P [(5)> Q`"
+term "`P [> Q`"
 term "`WAIT $x ; WAIT $y`"
 term "`f()`"
 term "`P<1>`"

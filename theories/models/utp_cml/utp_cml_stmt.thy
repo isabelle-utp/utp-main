@@ -5,6 +5,9 @@ begin
 definition AssignC :: "'a cmlvar \<Rightarrow> 'a cmle \<Rightarrow> cmlp" where
 "AssignC x v = `\<lparr> defn(@v) \<rparr> \<turnstile> x := @v`"
 
+definition IndexD :: "('a \<Rightarrow> cmlp) \<Rightarrow> 'a cmle \<Rightarrow> cmlp"
+where "IndexD F v = mkPRED {b. \<lbrakk>F(the(\<lbrakk>v\<rbrakk>\<^sub>*b))\<rbrakk>b}"
+
 (* CML assignment can be performed on various type of expression with a variable this
    overloaded constant implements this. *)
 
@@ -17,6 +20,7 @@ nonterminal
   vasgn_exp
 
 no_syntax
+  "_n_upred_index"      :: "('b \<Rightarrow> 'a upred) \<Rightarrow> 'b \<Rightarrow> n_upred" ("_<_>" 50)
   "_n_upred_assigns"    :: "n_pvars \<Rightarrow> n_pexprs \<Rightarrow> n_upred" ("_ := _" [100] 100)
   "_n_upred_ifthenelse" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("if _ then _ else _")
   "_n_upred_while"      :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("while _ do _ od")
@@ -27,12 +31,14 @@ syntax
   "_n_upred_whilecml"  :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("while _ do _ od")
   "_vasgn_id"          :: "idt \<Rightarrow> vasgn_exp" ("_")
   "_vasgn_app"         :: "idt \<Rightarrow> n_pexprs \<Rightarrow> vasgn_exp" ("_'(_')")
+  "_n_upred_cindex"     :: "('b \<Rightarrow> 'a upred) \<Rightarrow> n_pexprs \<Rightarrow> n_upred" ("_<_>" 50)
   
 translations
   "_n_upred_assigncml (_vasgn_id x) e" == "CONST AssignC x e"
   "_n_upred_assigncml (_vasgn_app x i) e" == "CONST AssignC_app x (_vexpr_prod i) e"
   "_n_upred_ifthencml b P Q" == "CONST CondR P (CONST VTautHideT b) Q"
   "_n_upred_whilecml b P" == "CONST IterP (CONST VTautHideT b) P"
+  "_n_upred_cindex F v"           == "CONST IndexD F (_vexpr_prod v)"
 
 term "`x := 5`"
 term "`f(5) := 1`"
@@ -75,6 +81,9 @@ definition CMLOpO ::
 declare CMLOpO_def [uop_defs]
 *)
 
+definition LetC :: "'a cmle \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> cmlp) \<Rightarrow> cmlp" where
+"LetC v A P = `\<lparr> defn(@v) and @v hasType A \<rparr> \<turnstile> P<@v>`"
+
 definition NotYetSpecD :: "cmlp" where
 "NotYetSpecD = `true`"
 
@@ -109,6 +118,7 @@ syntax
   "_cml_var"        :: "id \<Rightarrow> vty \<Rightarrow> logic" ("CMLVAR'(_, _')")
   "_upred_sskip"    :: "n_upred" ("III")
   "_upred_return"   :: "n_pexpr \<Rightarrow> n_upred" ("return _" [100] 100)
+  "_n_upred_let"    :: "idt \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("let _ : _ = _ in _")
 
 (*
 ML_file "utp_cml_parser.ML"
@@ -133,6 +143,7 @@ translations
   "_cml_var x t"           == "CONST MkVarD IDSTR(x) t"
   "_vexpr_dcl x t p"       => "CONST DclD (_cml_var x t) (\<lambda> x. p)"
   "_vop_dcl x t p"         => "CONST DclO (_cml_var x t) (\<lambda> x. p)"
+  "_n_upred_let x A e P"   == "CONST LetC e A (\<lambda> x. P)"
 
 (* A return statement is just an assignment, but using the fresh variable RESULT *)
 
@@ -186,5 +197,7 @@ translations
   "_n_upred_vcallpr_nil f" == "CONST CallOp f CONST UnitD"
   "_n_upred_vassignpr x f ps" == "CONST AssignOp x f (_vexpr_prod ps)"
   "_n_upred_vassignpr_nil x f" == "CONST AssignOp x f (CONST UnitD)"
+
+term "`let y : @int = 5 in P<&x,&y>`"
 
 end

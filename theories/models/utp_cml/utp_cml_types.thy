@@ -59,6 +59,7 @@ abbreviation "vty_option A \<equiv> {Some x | x. x \<in> A} \<union> {None}"
 abbreviation "vty_seq_of A  \<equiv> {xs. set xs \<subseteq> A}" 
 abbreviation "vty_seq1_of A \<equiv> {xs. set xs \<subseteq> A \<and> length xs > 0}" 
 abbreviation "vty_map_to X Y \<equiv> {f. \<langle>fdom f\<rangle>\<^sub>f \<subseteq> X \<and> \<langle>fran f\<rangle>\<^sub>f \<subseteq> Y}"
+abbreviation "vty_inmap_to X Y \<equiv> {f. f \<in> vty_map_to X Y \<and> inj_on \<langle>f\<rangle>\<^sub>m \<langle>fdom(f)\<rangle>\<^sub>f }"
 
 lemma vty_subtypes [simp]:
   "vty_nat1 \<subseteq> vty_nat"
@@ -115,6 +116,7 @@ syntax
   "_vty_set_of"  :: "vty \<Rightarrow> vty" ("@set of _" [100] 100)
   "_vty_seq_of"  :: "vty \<Rightarrow> vty" ("@seq of _" [100] 100)
   "_vty_map_to"  :: "vty \<Rightarrow> vty \<Rightarrow> vty" ("@map _ to _" [0,100] 100)
+  "_vty_inmap_to"  :: "vty \<Rightarrow> vty \<Rightarrow> vty" ("@inmap _ to _" [0,100] 100)
   "_vty_seq1_of" :: "vty \<Rightarrow> vty" ("@seq1 of _" [100] 100)
   "_vty_quo"     :: "vty \<Rightarrow> 'a set" ("\<parallel>_\<parallel>")
   "_vty_inv"     :: "vty \<Rightarrow> pttrn \<Rightarrow> n_pexpr \<Rightarrow> vty" ("_ inv _ == _")
@@ -147,6 +149,7 @@ translations
   "_vty_seq_of A"  == "CONST vty_seq_of A"
   "_vty_seq1_of A" == "CONST vty_seq1_of A"
   "_vty_map_to A B" == "CONST vty_map_to A B"
+  "_vty_inmap_to A B" == "CONST vty_inmap_to A B"
   "_vty_quo x"     => "x"
   "_vty_inv A x P" == "CONST InvS A (\<lambda>x. P)"
   "_vty_collect v P" == "CONST CollectD v P"

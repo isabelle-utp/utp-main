@@ -1,6 +1,20 @@
 theory Map_Extra
-imports Main Char_ord Product_Lexorder
+imports Main Char_ord Product_Lexorder Monad_Syntax
 begin
+
+text {* Create some extra intro/elim rules to help dealing with proof about
+        option bind. *}
+
+lemma option_bindSomeE [elim]: 
+  "\<lbrakk> X \<guillemotright>= F = Some(v); \<And> x. \<lbrakk> X = Some(x); F(x) = Some(v) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (case_tac X, auto)
+
+lemma option_bindSomeI [intro]:
+  "\<lbrakk> X = Some(x); F(x) = Some(y) \<rbrakk> \<Longrightarrow> X >>= F = Some(y)"
+  by (simp)
+
+lemma ifSomeE [elim]: "\<lbrakk> (if c then Some(x) else None) = Some(y); \<lbrakk> c; x = y \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (case_tac c, auto)
 
 definition functional :: "('a * 'b) set \<Rightarrow> bool" where
 "functional g = inj_on fst g"
@@ -96,6 +110,30 @@ lemma map_graph_list: "\<lbrakk>finite g; functional g\<rbrakk> \<Longrightarrow
   apply (auto dest:functional_listD)
 done
 
+text {* A range restriction operator; only domain restriction is provided in HOL *}
+
+definition ran_restrict_map :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'b set \<Rightarrow> 'a \<rightharpoonup> 'b" ("_\<upharpoonleft>\<^bsub>_\<^esub>" [111,110] 110) where
+"ran_restrict_map f B = (\<lambda>x. do { v <- f(x); if (v \<in> B) then Some(v) else None })"
+
+lemma ran_restrict_empty [simp]: "f\<upharpoonleft>\<^bsub>{}\<^esub> = Map.empty"
+  by (simp add:ran_restrict_map_def)
+
+lemma ran_restrict_ran [simp]: "f\<upharpoonleft>\<^bsub>ran(f) \<^esub> = f"
+  apply (auto simp add:ran_restrict_map_def ran_def)
+  apply (rule ext)
+  apply (case_tac "f(x)", auto)
+done
+
+lemma ran_ran_restrict [simp]: "ran(f\<upharpoonleft>\<^bsub>B\<^esub>) = ran(f) \<inter> B"
+  by (auto intro!:option_bindSomeI simp add:ran_restrict_map_def ran_def)
+
+lemma dom_ran_restrict: "dom(f\<upharpoonleft>\<^bsub>B\<^esub>) \<subseteq> dom(f)"
+  by (auto simp add:ran_restrict_map_def dom_def)
+
+lemma ran_restrict_finite_dom [intro]: 
+  "finite(dom(f)) \<Longrightarrow> finite(dom(f\<upharpoonleft>\<^bsub>B\<^esub>))"
+  by (metis finite_subset dom_ran_restrict)
+
 definition map_inv :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('b \<rightharpoonup> 'a)" where
 "map_inv f \<equiv> \<lambda> y. if (y \<in> ran f) then Some (SOME x. f x = Some y) else None"
 
@@ -142,10 +180,7 @@ done
 
 lemma dom_map_inv [simp]:
   "dom (map_inv f) = ran f"
-  apply (auto simp add:map_inv_def)
-  apply (case_tac "x \<in> ran f")
-  apply (simp_all)
-done
+  by (auto simp add:map_inv_def)
 
 lemma ran_map_inv [simp]:
   "inj_on f (dom f) \<Longrightarrow> ran (map_inv f) = dom f"
@@ -256,9 +291,10 @@ done
 
 lemma bij_map_Some:
   "bij_betw f a (Some ` b) \<Longrightarrow> bij_betw (the \<circ> f) a b"
-  apply (auto simp add:bij_betw_def)
+  apply (simp add:bij_betw_def)
+  apply (safe)
   apply (metis (hide_lams, no_types) comp_inj_on_iff f_the_inv_into_f inj_on_inverseI the.simps)
-  apply (metis (full_types) image_iff the.simps)
+  apply (metis (hide_lams, no_types) comp_apply image_iff the.simps)
   apply (metis imageI image_compose the.simps)
 done
 
@@ -452,5 +488,8 @@ theorem inv_map_inv:
   apply (metis domD dom_left_map_add map_add_Some map_add_dom_app_simps(3) the.simps)
   apply (metis dom_image_ran image_iff)
 done
+
+lemma map_comp_dom: "dom (g \<circ>\<^sub>m f) \<subseteq> dom f"
+  by (metis (lifting, full_types) Collect_mono dom_def map_comp_simps(1))
 
 end
