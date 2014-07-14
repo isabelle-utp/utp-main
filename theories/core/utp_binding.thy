@@ -287,7 +287,10 @@ theorem binding_override_on_eq :
 "f1 \<oplus>\<^sub>b g1 on a = f2 \<oplus>\<^sub>b g2 on a \<longleftrightarrow>
  (\<forall> x . x \<in> a \<longrightarrow> \<langle>g1\<rangle>\<^sub>bx = \<langle>g2\<rangle>\<^sub>bx) \<and>
  (\<forall> x . x \<notin> a \<longrightarrow> \<langle>f1\<rangle>\<^sub>bx = \<langle>f2\<rangle>\<^sub>bx)"
-  by (simp add:binding_override_on_def Abs_binding_inject closure override_on_eq)
+apply (simp add: binding_override_on_def
+  Abs_binding_inject closure override_on_aux_eq)
+apply (safe)
+done
 
 lemma binding_override_left_eq: 
   "b1 \<cong> b2 on vs2 \<Longrightarrow> b1 \<oplus>\<^sub>b b3 on vs1 \<cong> b2 \<oplus>\<^sub>b b3 on vs1 on vs2"

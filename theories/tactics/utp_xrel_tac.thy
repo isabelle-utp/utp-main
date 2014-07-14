@@ -356,6 +356,7 @@ apply (erule DestXRelB_elim)+
 apply (erule Rep_binding_elim)+
 apply (simp add: override_on_eq RenameB_def)
 -- {* Subgoal 1 *}
+apply (clarify)
 apply (drule_tac x = "v" in spec)
 apply (simp add:urename NON_REL_VAR_def)
 -- {* Subgoal 2 *}

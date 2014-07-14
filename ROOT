@@ -1,7 +1,12 @@
-session "HOL-UTP" = "Kleene_Algebra" +
+session "HOL-UTP-IMPORTS" = "Kleene_Algebra" +
+  options [browser_info = true, document = false]
+  theories "theories/utp_imports"
+  files "document/root.tex"
+
+session "HOL-UTP" = "HOL-UTP-IMPORTS" +
   options [browser_info = true, document = pdf, document_output = "output", document_graph = true, document_variants="document:outline=/proof,/ML"]
   theories [document = false]
-  theories 
+  theories
   "theories/utp_base"
   "theories/utp_friendly"
   "theories/models/utp_basic_model"
@@ -12,7 +17,7 @@ session "HOL-UTP-DES" in "theories/theories/designs" = "HOL-UTP" +
   theories
     "utp_designs"
   files "document/root.tex"
-  
+
 session "HOL-UTP-THY" in "theories/theories" = "HOL-UTP-DES" +
   theories [document = pdf, document_output = "output", quick_and_dirty = true]
   "utp_acp"
@@ -20,7 +25,7 @@ session "HOL-UTP-THY" in "theories/theories" = "HOL-UTP-DES" +
   "utp_definedness"
   "utp_reactive"
   files "document/root.tex"
-  
+
 session "HOL-UTP-CML" in "theories/models/utp_cml" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
   theories
@@ -36,7 +41,7 @@ session "HOL-UTP-CML-EX" in "theories/models/utp_cml/examples" = "HOL-UTP-CML" +
 session "utp-hjf-summer-school" in "papers/utp-hjf-summer-school" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output"]
   theories [document = false]
-  theories 
+  theories
     "theory_mechanisation"
     "proof_basic_laws"
     "proof_design_comp"
@@ -57,7 +62,7 @@ session "utp-hjf-summer-school" in "papers/utp-hjf-summer-school" = "HOL-UTP-THY
 session "utp-mrktdrf-2014" in "papers/utp-mrktdrf-2014" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output"]
   theories [document = false]
-  theories 
+  theories
     "theory_mechanisation"
     "hoare_gcd"
     "isabelle_utp"
@@ -83,10 +88,10 @@ session "utp-mrktdrf-2014" in "papers/utp-mrktdrf-2014" = "HOL-UTP-THY" +
     "proof_unreachable_branch"
     "proof_unreachable_branch_single"
     "proof_wp"
-  files 
+  files
     "document/root.tex"
     "document/mdrf.bib"
-    
+
 session "isabelle-basics-tutorial" in "papers/isabelle-basics-tutorial" = "HOL" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
   theories
@@ -98,7 +103,7 @@ session "isabelle-basics-tutorial" in "papers/isabelle-basics-tutorial" = "HOL" 
 session "isabelle-utp-tutorial" in "papers/isabelle-utp-tutorial" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
   theories [document = false]
-  theories 
+  theories
     "value_class"
     "bindings"
     "cantor_isar"
@@ -118,14 +123,14 @@ session "isabelle-utp-tutorial" in "papers/isabelle-utp-tutorial" = "HOL-UTP-THY
 
 session "designs-tutorial" in "papers/designs-tutorial" = "HOL-UTP" +
   options [document = pdf, document_output = "output"]
-  theories 
+  theories
     "utp_designs"
   files "document/root.tex"
 
 session "avocs2013" in "papers/avocs2013" = "HOL-UTP" +
   options [document = pdf, document_output = "output"]
   theories [document = false]
-  theories 
+  theories
     "proof_unreachable_branch"
     "proof_refinement_conditional"
   files "document/root.tex"
@@ -133,7 +138,7 @@ session "avocs2013" in "papers/avocs2013" = "HOL-UTP" +
 session "nfm2014" in "papers/nfm2014" = "HOL-UTP" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
   theories [document = false]
-  theories 
+  theories
     "prelim"
     "deep_shallow"
     "prog_model"
@@ -157,14 +162,14 @@ session "utp2014-presentation" in "papers/utp2014-presentation" = "HOL-UTP" +
     "poly_erasure"
   files "document/root.tex"
 
-session Datatype_Order_Generator (AFP) in "contrib/Datatype_Order_Generator" 
+session Datatype_Order_Generator (AFP) in "contrib/Datatype_Order_Generator"
   = "HOL-Library" +
   options [timeout = 600]
   theories [document=false]
     "../Collections/Lib/HashCode"
   theories
     Derive
-    Derive_Examples 
+    Derive_Examples
   files
     "document/root.bib"
     "document/root.tex"

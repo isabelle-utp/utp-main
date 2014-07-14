@@ -1,10 +1,11 @@
 (******************************************************************************)
-(* Project: Unifying Theories of Programming in HOL                           *)
+(* Project: Unifying Theories of Programming in Isabelle/HOL                  *)
 (* File: utp_core.thy                                                         *)
-(* Author: Frank Zeyda, University of York (UK)                               *)
+(* Author: Simon Foster & Frank Zeyda, University of York (UK)                *)
 (******************************************************************************)
+(* LAST REVIEWED: 14 July 2014 *)
 
-header {* Meta-Theory for the Core Predicate Model *}
+header {* Meta-Theory for the Core Model *}
 
 theory utp_core
 imports

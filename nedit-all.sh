@@ -1,7 +1,20 @@
 #!/bin/sh
 
 nedit\
-  theories/*.thy\
-  theories/core/*.thy\
-  theories/alpha/*.thy\
-  theories/tactics/*.thy
+ theories/*.thy\
+ theories/algebra/*.thy\
+ theories/alpha/*.thy\
+ theories/core/*.thy\
+ theories/laws/*.thy\
+ theories/models/*.thy\
+ theories/models/utp_cml/*.thy\
+ theories/models/utp_vdm/*.thy\
+ theories/models/utp_vdm_simp/*.thy\
+ theories/parser/*.thy\
+ theories/poly/*.thy\
+ theories/tactics/*.thy\
+ theories/theories/*.thy\
+ theories/theories/csp/*.thy\
+ theories/theories/designs/*.thy\
+ theories/theories/reactive/*.thy\
+ theories/types/*.thy
