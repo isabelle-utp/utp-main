@@ -371,5 +371,35 @@ translations
 
 term "`i:@int,j:@nat @ P<&i>`"
 
+(*
+lemma vif_cong [fundef_cong]:
+  assumes "b = c"
+      and "TautDE c \<Longrightarrow> |@x| = |@u|"
+      and "|not(@c)| \<Longrightarrow> |@y| = |@v|"
+  shows "|if @b then @x else @y| = |if @c then @u else @v|"
+  using assms 
+  apply (auto simp add:evalp)
+  apply (case_tac "\<lbrakk>b\<rbrakk>\<^sub>* ba")
+  apply (auto)
+  sledgehammer
+ sorry
+*)
+
+(* To make recursive functions work in the CML setting, we'd need some congruence rules
+   like those below. I don't really know what these should be though so I've given up
+   for now. *)
+
+(*
+lemma vif_cong [fundef_cong]:
+  assumes "\<lbrakk>b\<rbrakk>\<^sub>*\<B> = \<lbrakk>c\<rbrakk>\<^sub>*\<B>"
+      and "[\<lbrakk>c\<rbrakk>\<^sub>*\<B>]\<^sub>3 \<Longrightarrow> \<lbrakk>x\<rbrakk>\<^sub>*\<B> = \<lbrakk>u\<rbrakk>\<^sub>*\<B>"
+      and "\<not> [\<lbrakk>c\<rbrakk>\<^sub>*\<B>]\<^sub>3 \<Longrightarrow> \<lbrakk>y\<rbrakk>\<^sub>*\<B> = \<lbrakk>v\<rbrakk>\<^sub>*\<B>"
+  shows "\<lbrakk>|if @b then @x else @y|\<rbrakk>\<^sub>*\<B> = \<lbrakk>|if @c then @u else @v|\<rbrakk>\<^sub>*\<B>"
+  using assms apply (auto simp add:evalp)
+  apply (case_tac "\<lbrakk>c\<rbrakk>\<^sub>*\<B>")
+  apply (auto)
+done
+*)
+
 end
 
