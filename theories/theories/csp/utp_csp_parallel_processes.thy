@@ -44,10 +44,10 @@ definition HideCSP ::
 syntax
  "_upred_parallel"  :: "n_upred \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr "||\<^bsub>_\<^esub>" 100)
  "_upred_hide"      :: "n_upred \<Rightarrow> n_pexpr \<Rightarrow> n_upred" (infixr "\\" 100)
+ "_upred_interleave" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr "|||" 100)
 
 syntax (xsymbols)
   "_upred_parallel"  :: "n_upred \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixr "\<parallel>\<^bsub>_\<^esub>" 100)
-  "_upred_interleave" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infix "|||" 100)
 
 translations
  "_upred_parallel P A Q" == "CONST ParallelCSP P A Q"
