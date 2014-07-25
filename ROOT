@@ -149,6 +149,19 @@ session "nfm2014" in "papers/nfm2014" = "HOL-UTP" +
         "document/nfm2014.bib"
         "document/deep-shallow.pdf"
 
+session "utp2014" in "papers/utp2014" = "HOL-UTP-THY" +
+  options [document = pdf, document_output = "output", quick_and_dirty = true]
+  theories [document = false]
+  theories 
+    "prelim"
+    "h1_h2_design"
+    "prog_model"
+    "poly_expr"
+    "tactics"
+  files "document/root.tex"
+        "document/utp2014.bib"
+        "document/deep-shallow.pdf"
+
 session "utp2014-presentation" in "papers/utp2014-presentation" = "HOL-UTP" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
   theories
