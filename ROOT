@@ -1,15 +1,15 @@
 session "HOL-UTP-IMPORTS" = "Kleene_Algebra" +
   options [browser_info = true, document = false]
-  theories "theories/utp_imports"
+    theories "theories/utp_imports"
   files "document/root.tex"
 
 session "HOL-UTP" = "HOL-UTP-IMPORTS" +
   options [browser_info = true, document = pdf, document_output = "output", document_graph = true, document_variants="document:outline=/proof,/ML"]
   theories [document = false]
   theories
-  "theories/utp_base"
-  "theories/utp_friendly"
-  "theories/models/utp_basic_model"
+    "theories/utp_base"
+    "theories/utp_friendly"
+ (* "theories/models/utp_basic_model" *)
   files "document/root.tex"
 
 session "HOL-UTP-DES" in "theories/theories/designs" = "HOL-UTP" +
@@ -20,10 +20,10 @@ session "HOL-UTP-DES" in "theories/theories/designs" = "HOL-UTP" +
 
 session "HOL-UTP-THY" in "theories/theories" = "HOL-UTP-DES" +
   theories [document = pdf, document_output = "output", quick_and_dirty = true]
-  "utp_acp"
-  "utp_csp"
-  "utp_definedness"
-  "utp_reactive"
+    "utp_acp"
+    "utp_csp"
+    "utp_definedness"
+    "utp_reactive"
   files "document/root.tex"
 
 session "HOL-UTP-CML" in "theories/models/utp_cml" = "HOL-UTP-THY" +
@@ -145,9 +145,10 @@ session "nfm2014" in "papers/nfm2014" = "HOL-UTP" +
     "poly_expr"
     "tactics"
     "shallow_values"
-  files "document/root.tex"
-        "document/nfm2014.bib"
-        "document/deep-shallow.pdf"
+  files
+    "document/root.tex"
+    "document/nfm2014.bib"
+    "document/deep-shallow.pdf"
 
 session "utp2014" in "papers/utp2014" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]

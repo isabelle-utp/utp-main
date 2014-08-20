@@ -13,7 +13,7 @@ begin
 
 subsection {* Traces *}
 
-definition traces :: "'a upred \<Rightarrow> 'a EVENT list set" where
+definition traces :: "'a upred \<Rightarrow> 'a event list set" where
 "traces(P) = {Rep_ULIST (MinusUL (\<langle>b\<rangle>\<^sub>* tr) (\<langle>b\<rangle>\<^sub>* tr\<acute>)) | b. \<lbrakk>P\<rbrakk>b \<and> \<not> \<langle>b\<rangle>\<^sub>* wait}" 
 
 lemma traces_rel_def:
@@ -39,10 +39,9 @@ lemma SkipR_traces:
   apply (simp add:typing closure defined)
   apply (auto)
   apply (case_tac "v = tr\<down>")
-  apply (auto simp add:Rep_binding_ty_def binding_upd_ty_def typing)
+  apply (auto simp add:Rep_binding_ty_def binding_upd_ty_def typing inju)
 done
 
-lemma ChoiceP_traces: "traces (P \<sqinter> Q) = traces P \<union> traces Q"
+lemma ChoiceP_traces: "traces (P \<sqinter>\<^sub>p Q) = traces P \<union> traces Q"
   by (auto simp add:traces_def eval)
-
 end

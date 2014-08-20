@@ -25,7 +25,7 @@ subsection {* Interpretation Function *}
 
 definition EvalE ::
   "'a uexpr \<Rightarrow>
-   'a binding \<Rightarrow> 'a" ("\<lbrakk>_\<rbrakk>\<^sub>e_" [0, 1000] 51) where
+   'a binding \<Rightarrow> 'a uval" ("\<lbrakk>_\<rbrakk>\<^sub>e_" [0, 1000] 51) where
 "EvalE e b = \<langle>e\<rangle>\<^sub>e b"
 
 theorem EvalE_type [typing]:
@@ -33,8 +33,8 @@ theorem EvalE_type [typing]:
   by (simp add:EvalE_def etype_rel_def)
 
 lemma EvalE_defined [defined]:
-  "\<D> v \<Longrightarrow> \<D> (\<lbrakk>v\<rbrakk>\<^sub>eb)"
-  by (simp add:EvalE_def Defined_uexpr_def)
+  "\<D>\<^sub>e v \<Longrightarrow> \<D>\<^sub>v (\<lbrakk>v\<rbrakk>\<^sub>eb)"
+  by (simp add:EvalE_def defined_uexpr_def)
 
 theorem EvalE_compat [typing]:
 "e \<rhd>\<^sub>e t \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>eb \<rhd> t"
@@ -88,7 +88,7 @@ theorem EvalE_Op2E [eval,evale] :
 
 theorem EvalE_DefaultE [eval,evale] :
 "\<lbrakk>DefaultE t\<rbrakk>\<^sub>eb = default t"
-  by (auto simp add: DefaultE_def EvalE_def LitE_rep_eq)
+  by (metis DefaultE_def EvalE_LitE some_defined_value_typed)
 
 theorem EvalE_CoerceE_LitE [eval,evale] :
 "v : t \<Longrightarrow> \<lbrakk>CoerceE (LitE v) t\<rbrakk>\<^sub>eb = v"
@@ -99,7 +99,7 @@ theorem EvalE_CoerceE_ntype [eval,evale] :
   by (simp add:CoerceE_def evale)
 
 theorem EvalE_AppE [eval,evale] :
-"\<lbrakk> f :\<^sub>e FuncType s t; v :\<^sub>e s; \<D> f \<rbrakk> \<Longrightarrow> \<lbrakk>AppE f v\<rbrakk>\<^sub>eb = DestFunc (\<lbrakk>f\<rbrakk>\<^sub>eb) (\<lbrakk>v\<rbrakk>\<^sub>eb)"
+"\<lbrakk> f :\<^sub>e FuncType s t; v :\<^sub>e s; \<D>\<^sub>e f \<rbrakk> \<Longrightarrow> \<lbrakk>AppE f v\<rbrakk>\<^sub>eb = DestFunc (\<lbrakk>f\<rbrakk>\<^sub>eb) (\<lbrakk>v\<rbrakk>\<^sub>eb)"
   by (simp add:EvalE_def AppE_rep_eq)
 
 theorem EvalE_SubstE [eval,evale] :
@@ -108,11 +108,11 @@ theorem EvalE_SubstE [eval,evale] :
 
 theorem EvalE_TrueE [eval,evale] :
 "\<lbrakk>TrueE\<rbrakk>\<^sub>eb = TrueV"
-  by (simp add:TrueE_def EvalE_LitE[OF MkBool_type])
+  by (simp add:TrueE_def EvalE_LitE[OF MkBool_typed])
 
 theorem EvalE_FalseE [eval,evale] :
 "\<lbrakk>FalseE\<rbrakk>\<^sub>eb = FalseV"
-  by (simp add:FalseE_def EvalE_LitE[OF MkBool_type])
+  by (simp add:FalseE_def EvalE_LitE[OF MkBool_typed])
 
 theorem EvalE_UNREST_override [eval,evale] :
 "vs \<sharp> e \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>e(b \<oplus>\<^sub>b b' on vs) = \<lbrakk>e\<rbrakk>\<^sub>eb"
@@ -128,7 +128,7 @@ done
 theorem EvalP_UNREST_binding_equiv [eval,evale] :
 "\<lbrakk> - vs \<sharp> e; b1 \<cong> b2 on vs \<rbrakk> 
  \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>eb1 = \<lbrakk>e\<rbrakk>\<^sub>eb2"
-  by (metis (mono_tags) Compl_eq_Diff_UNIV EvalE_def UNREST_EXPR_member VAR_def binding_override_equiv binding_override_minus)
+  by (metis (mono_tags) Compl_eq_Diff_UNIV EvalE_def UNREST_EXPR_member binding_override_equiv binding_override_minus)
   
 theorem EvalE_RenameE [eval,evale] :
 "\<lbrakk>ss\<bullet>e\<rbrakk>\<^sub>eb = \<lbrakk>e\<rbrakk>\<^sub>e((inv\<^sub>s ss)\<bullet>b)"

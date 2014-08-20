@@ -68,59 +68,56 @@ lemma tr_leq_rel_closure[closure]:
 done
 
 lemma DestList_event_dcarrier [typing]: 
-  fixes xs :: "('m EVENT ULIST, 'm :: REACTIVE_SORT) pvar"
+  fixes xs :: "('m event ULIST, 'm :: REACTIVE_SORT) pvar"
   assumes "pvaux xs"
   shows "set (DestList (\<langle>b\<rangle>\<^sub>b xs\<down>)) \<subseteq> dcarrier EventType"
-  apply (rule DestList_elem_type)
-  apply (simp add:closure)
-  apply (auto intro:typing assms)[1]
+  apply (rule DestList_subset_dcarrier)
+  apply (simp add: typing)
+  apply (metis assms aux_defined pvaux_aux)
 done
 
 lemma DestList_event'_dcarrier [typing]: 
-  fixes xs :: "('m EVENT ULIST, 'm :: REACTIVE_SORT) pvar"
+  fixes xs :: "('m event ULIST, 'm :: REACTIVE_SORT) pvar"
   assumes "pvaux xs"
   shows "set (DestList (\<langle>b\<rangle>\<^sub>b xs\<down>\<acute>)) \<subseteq> dcarrier EventType"
-  apply (rule DestList_elem_type)
-  apply (simp add:closure)
-  apply (rule typing)
-  apply (auto intro:typing assms)[1]
-  apply (metis assms aux_dash pvaux_aux)
+  apply (rule DestList_subset_dcarrier)
+  apply (simp add: closure)
+  apply (simp add: typing)
+  apply (metis assms aux_dash aux_defined pvaux_aux)
 done
 
 lemma DestList_event''_dcarrier [typing]: 
-  fixes xs :: "('m EVENT ULIST, 'm :: REACTIVE_SORT) pvar"
+  fixes xs :: "('m event ULIST, 'm :: REACTIVE_SORT) pvar"
   assumes "pvaux xs"
   shows "set (DestList (\<langle>b\<rangle>\<^sub>b xs\<down>\<acute>\<acute>)) \<subseteq> dcarrier EventType"
-  apply (rule DestList_elem_type)
-  apply (simp add:closure)
-  apply (rule typing)
-  apply (auto intro:typing assms)[1]
-  apply (metis assms aux_dash pvaux_aux)
+  apply (rule DestList_subset_dcarrier)
+  apply (simp add: closure)
+  apply (simp add: typing)
+  apply (metis assms aux_dash aux_defined pvaux_aux)
 done
 
 lemma DestList_event'''_dcarrier [typing]: 
-  fixes xs :: "('m EVENT ULIST, 'm :: REACTIVE_SORT) pvar"
+  fixes xs :: "('m event ULIST, 'm :: REACTIVE_SORT) pvar"
   assumes "pvaux xs"
   shows "set (DestList (\<langle>b\<rangle>\<^sub>b xs\<down>\<acute>\<acute>\<acute>)) \<subseteq> dcarrier EventType"
-  apply (rule DestList_elem_type)
-  apply (simp add:closure)
-  apply (rule typing)
-  apply (auto intro:typing assms)[1]
-  apply (metis assms aux_dash pvaux_aux)
+  apply (rule DestList_subset_dcarrier)
+  apply (simp add: closure)
+  apply (simp add: typing)
+  apply (metis assms aux_dash aux_defined pvaux_aux)
 done
 
 lemma DestList_tr_dcarrier [typing]: 
   "set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>)) \<subseteq> dcarrier EventType"
-  apply (rule DestList_elem_type)
-  apply (simp add:closure)
-  apply (auto intro:typing)[1]
+  apply (rule DestList_subset_dcarrier)
+  apply (simp add: closure)
+  apply (simp add: typing defined)
 done
 
 lemma DestList_tr'_dcarrier [typing]: 
   "set (DestList (\<langle>b\<rangle>\<^sub>b tr\<down>\<acute>)) \<subseteq> dcarrier EventType"
-  apply (rule DestList_elem_type)
-  apply (simp add:closure)
-  apply (auto intro:typing)[1]
+  apply (rule DestList_subset_dcarrier)
+  apply (simp add: closure)
+  apply (simp add: typing defined)
 done
 
 lemma prefix_DestEvent_simp [simp]:

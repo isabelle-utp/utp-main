@@ -468,7 +468,7 @@ theorem NoTerminate_not_H2:
   "\<not> (NoTerminate is H2)"
   apply (simp add:H2_equivalence closure usubst typing defined)
   apply (utp_poly_tac)
-  apply (rule_tac x="\<B>(ok :=\<^sub>* True)" in exI, simp add:typing defined)
+  apply (rule_tac x="\<B>(ok :=\<^sub>* True)" in exI, simp add:typing defined inju)
 done
 
 subsection {* H3: Assumption is a condition *}
@@ -725,7 +725,7 @@ proof -
   also have "... \<noteq> true"
     apply (utp_poly_auto_tac)
     apply (rule_tac x="\<B>(ok\<acute> :=\<^sub>* True)" in exI)
-    apply (simp add:typing defined)
+    apply (simp add:typing defined inju)
   done
 
   ultimately show ?thesis
@@ -789,5 +789,4 @@ qed
     
 theorem H4_top: "true \<turnstile> true is H4"
   by (utp_xrel_auto_tac)
-
 end

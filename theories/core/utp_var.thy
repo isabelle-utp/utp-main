@@ -1,206 +1,216 @@
 (******************************************************************************)
-(* Project: Unifying Theories of Programming in HOL                           *)
+(* Project: Unifying Theories of Programming in Isabelle/HOL                  *)
 (* File: utp_var.thy                                                          *)
-(* Author: Simon Foster and Frank Zeyda, University of York (UK)              *)
+(* Author: Simon Foster & Frank Zeyda, University of York (UK)                *)
 (******************************************************************************)
+(* LAST REVIEWED: 15 July 2014 *)
 
-header {* Variables *}
+header {* UTP Variables *}
 
 theory utp_var
-imports utp_names utp_value
+imports utp_name utp_model
 begin
 
-text {* A variable constists of a name, type and a flag denoting if it is a auxiliary
-variable or not. *}
+default_sort type
 
+subsection {* Variable Model *}
 
-(* datatype 'a uvar = MkVar NAME "'a utype" bool *)
+record 'm uvar =
+  name :: "name" ("vname")
+  type :: "'m utype" ("vtype")
+  strict :: "bool" ("aux")
 
-(*
-primrec var_name :: "'a uvar \<Rightarrow> NAME" ("name") where
-"var_name (MkVar n t d) = n"
-
-primrec var_type :: "'a uvar \<Rightarrow> 'a utype" ("vtype") where
-"var_type (MkVar n t d) = t"
-
-primrec var_aux :: "'a uvar \<Rightarrow> bool" ("aux") where
-"var_aux (MkVar n t d) = d"
-
-lemma MkVar_inverse [simp]: 
-  "MkVar (name x) (vtype x) (aux x) = x"
-  by (case_tac x, simp)
-
-lemma VAR_eq_intro [intro]:
-  "\<lbrakk> name x = name y; vtype x = vtype y; aux x = aux y \<rbrakk> \<Longrightarrow> x = y"
-  by (case_tac x, case_tac y, simp)
-
-lemma VAR_elim [elim]:
-  "\<lbrakk> \<And> n t d. a = MkVar n t d \<Longrightarrow> P a \<rbrakk> \<Longrightarrow> P a"
-  by (case_tac a, simp)
-*)
-
-(*
-instantiation VAR :: (VALUE) linorder
-begin
-
-definition less_eq_VAR :: "'a uvar \<Rightarrow> 'a uvar \<Rightarrow> bool" where
-"x \<le> y \<longleftrightarrow> name x < name y \<or>
-           (name x = name y \<and> to_nat (vtype x) < to_nat (vtype y)) \<or>
-           (name x = name y \<and> to_nat (vtype x) = to_nat (vtype y) \<and> aux x \<le> aux y)"
-
-definition less_VAR :: "'a uvar \<Rightarrow> 'a uvar \<Rightarrow> bool" where
-"less_VAR x y \<longleftrightarrow> (x \<le> y \<and> \<not> y \<le> x)"
-
-instance 
-  apply (intro_classes)
-  apply (simp add:less_VAR_def)
-  apply (simp_all add:less_eq_VAR_def)
-  apply (auto)
-done
-end
-*)
-
-type_synonym 'a uvar =
-  "NAME \<times> 'a utype \<times> bool"
-
-definition VAR :: "'a uvar set" where
+definition VAR :: "'m uvar set" where
 "VAR = UNIV"
 
-abbreviation var_name :: "'a uvar \<Rightarrow> NAME" ("name") where
-"var_name x \<equiv> fst x"
+abbreviation var_dashes :: "'m uvar \<Rightarrow> nat" ("vdashes") where
+"var_dashes v \<equiv> dashes (name v)"
 
-abbreviation var_subscript :: "'a uvar \<Rightarrow> SUBSCRIPT" ("vsub") where
-"var_subscript x \<equiv> subscript (var_name x)"
+abbreviation var_subscript :: "'m uvar \<Rightarrow> string" ("vsub") where
+"var_subscript x \<equiv> subscript (name x)"
 
-abbreviation var_dashes :: "'a uvar \<Rightarrow> nat" ("vdashes") where
-"var_dashes x \<equiv> dashes (name x)"
+subsection {* Countability *}
 
-abbreviation var_type :: "'a uvar \<Rightarrow> 'a utype" ("vtype") where 
-"var_type x \<equiv> fst (snd x)"
+definition uvar_to_nat ::
+  "('m::COUNTABLE_MODEL, 'more::countable) uvar_ext \<Rightarrow> nat" where
+"uvar_to_nat v = to_nat (name v, type v, strict v, more v)"
 
-abbreviation var_aux :: "'a uvar \<Rightarrow> bool" ("aux") where 
-"var_aux x \<equiv> snd (snd x)"
+instance uvar_ext :: (COUNTABLE_MODEL, countable) countable
+apply (intro_classes)
+apply (rule_tac x = "uvar_to_nat" in exI)
+apply (rule injI)
+apply (unfold uvar_to_nat_def)
+apply (erule asmE)
+apply (induct_tac x)
+apply (induct_tac y)
+apply (simp)
+done
+
+subsection {* Linear Order *}
+
+text {*
+  For now we derive the linear order for variables from the countability of
+  model types. That order is, however, not so useful as it cannot effectively
+  be evaluated. Future work might consider support for custom orders if this
+  proofs to be necessary.
+*}
+
+instantiation uvar_ext :: (COUNTABLE_MODEL, linorder) linorder
+begin
+definition less_eq_uvar_ext ::
+  "('m::COUNTABLE_MODEL, 'more::linorder) uvar_ext \<Rightarrow>
+   ('m::COUNTABLE_MODEL, 'more::linorder) uvar_ext \<Rightarrow> bool" where
+"(less_eq_uvar_ext v1 v2) \<longleftrightarrow>
+   (name v1, type v1, strict v1, more v1) \<le>
+   (name v2, type v2, strict v2, more v2)"
+
+definition less_uvar_ext ::
+  "('m::COUNTABLE_MODEL, 'more::linorder) uvar_ext \<Rightarrow>
+   ('m::COUNTABLE_MODEL, 'more::linorder) uvar_ext \<Rightarrow> bool" where
+"(less_uvar_ext v1 v2) \<longleftrightarrow> (v1 \<le> v2 \<and> \<not> v2 \<le> v1)"
+instance
+apply (intro_classes)
+apply (simp add: less_uvar_ext_def)
+apply (simp add: less_eq_uvar_ext_def)
+apply (unfold less_eq_uvar_ext_def)
+apply (smt dual_order.trans)
+apply (metis eq_iff prod.inject uvar.equality)
+apply (metis linear)
+done
+end
+
+declare less_eq_uvar_ext_def [simp]
+declare less_uvar_ext_def [simp]
 
 subsection {* Constructors *}
 
-definition MkVar :: 
-  "NAME \<Rightarrow> 'a utype \<Rightarrow> bool \<Rightarrow> 'a uvar" where
-"MkVar n t d = (n, t, d)"
+definition MkVar :: "name \<Rightarrow> 'm utype \<Rightarrow> bool \<Rightarrow> 'm uvar" where
+"MkVar n t b = \<lparr>name = n, type = t, strict = b\<rparr>"
 
-abbreviation MkPlain :: "string \<Rightarrow> 'a utype \<Rightarrow> bool \<Rightarrow> 'a uvar" where
+abbreviation MkPlain :: "string \<Rightarrow> 'm utype \<Rightarrow> bool \<Rightarrow> 'm uvar" where
 "MkPlain s t d \<equiv> MkVar (bName s) t d"
 
-subsection {* Operators *}
+subsection {* Restrictions *}
 
-definition dash :: "'a uvar \<Rightarrow> 'a uvar" where
-"dash \<equiv> \<lambda> x. MkVar (MkName (name_str (name x)) (dashes (name x) + 1) (subscript (name x)))
-                   (vtype x) (aux x)"
-
-adhoc_overloading
-  prime dash
-
-definition undash :: "'a uvar \<Rightarrow> 'a uvar" where
-"undash \<equiv> \<lambda> x. MkVar (MkName (name_str (name x)) (dashes (name x)- 1) (subscript (name x)))
-                     (vtype x) (aux x)"
-
-adhoc_overloading
-  unprime undash
-
-(*
-definition vchsub :: "'a uvar \<Rightarrow> nat \<Rightarrow> 'a uvar" where
-"vchsub = (\<lambda> (nm, t, a) n. (nm_set nm_subscript_attr (Some n) nm, t, a))"
-*)
-
-fun vchsub :: "'a uvar \<Rightarrow> nat \<Rightarrow> 'a uvar" where
-"vchsub (MkName s d b, t, a) n = (MkName s d (chsub n b), t, a)"
-
-
-abbreviation "add_sub n i \<equiv> vchsub i n"
-
-lemma add_sub_inv [simp]:
-  "add_sub n (add_sub n x) = x"
-  by (case_tac x, case_tac a, auto)
-
-lemma add_sub_bij:
-  "bij (add_sub n)"
-  by (metis (mono_tags) add_sub_inv inj_on_def inj_on_imp_bij_betw surjI)
-
-adhoc_overloading
-  subscr vchsub
-
-subsection {* Recontrolions *}
-
-definition UNDASHED :: "'a uvar set" where
+definition UNDASHED :: "'m uvar set" where
 "UNDASHED = {v . dashes (name v) = 0}"
 
-definition DASHED :: "'a uvar set" where
+definition DASHED :: "'m uvar set" where
 "DASHED = {v . dashes (name v) = 1}"
 
-definition DASHED_TWICE :: "'a uvar set" where
+definition DASHED_TWICE :: "'m uvar set" where
 "DASHED_TWICE = {v . dashes (name v) = 2}"
 
-definition DASHED_THRICE :: "'a uvar set" where
+definition DASHED_THRICE :: "'m uvar set" where
 "DASHED_THRICE = {v . dashes (name v) = 3}"
 
-notation 
+notation
   UNDASHED      ("D\<^sub>0") and
   DASHED        ("D\<^sub>1") and
   DASHED_TWICE  ("D\<^sub>2") and
   DASHED_THRICE ("D\<^sub>3")
 
-definition NOSUB :: "'a uvar set" where
-"NOSUB = {v. subscript (name v) = NoSub}"
+definition NOSUB :: "'m uvar set" where
+"NOSUB = {v. vsub v = NoSub}"
 
-definition WITHSUB :: "nat \<Rightarrow> 'a uvar set" where
-"WITHSUB n = {v. subscript (name v) = Sub n}"
+definition WITHSUB :: "nat \<Rightarrow> 'm uvar set" where
+"WITHSUB n = {v. vsub v \<noteq> NoSub}"
 
-definition PLAIN :: "'a uvar set" where
-"PLAIN = {v . v \<in> UNDASHED \<and> subscript (name v) = NoSub}"
+definition PLAIN :: "'m uvar set" where
+"PLAIN = UNDASHED \<inter> NOSUB"
 
-definition AUX_VAR :: "'a uvar set" where
+definition AUX_VAR :: "'m uvar set" where
 "AUX_VAR = {v . aux v}"
 
-definition PROGRAM_VAR :: "'a uvar set" where
+definition PROGRAM_VAR :: "'m uvar set" where
 "PROGRAM_VAR = {v . \<not> aux v}"
 
-abbreviation "REL_VAR \<equiv> UNDASHED \<union> DASHED"
+abbreviation REL_VAR :: "'m uvar set" where
+"REL_VAR \<equiv> UNDASHED \<union> DASHED"
 
-definition NON_REL_VAR :: "'a uvar set" where
-"NON_REL_VAR = - (UNDASHED \<union> DASHED)"
+definition NON_REL_VAR :: "'m uvar set" where
+"NON_REL_VAR = -REL_VAR"
+
+subsection {* Operators *}
+
+definition dash :: "'m uvar \<Rightarrow> 'm uvar" where
+"dash = name_update (dashes_update (\<lambda> d . d + 1))"
+
+adhoc_overloading prime dash
+
+definition undash :: "'m uvar \<Rightarrow> 'm uvar" where
+"undash = name_update (dashes_update (\<lambda> d . d - 1))"
+
+adhoc_overloading unprime undash
+
+definition vchsub :: "'m uvar \<Rightarrow> string \<Rightarrow> 'm uvar" where
+"vchsub v s = name_update (chsub s) v"
+
+text {* TODO: Do we really need another abberviation here? Ask Simon. *}
+
+abbreviation add_sub :: "string \<Rightarrow> 'm uvar \<Rightarrow> 'm uvar" where
+"add_sub s v \<equiv> vchsub v s"
+
+text {* TODO: Move the following into the Theorems subsection? *}
+
+lemma add_sub_inv [simp] :
+"add_sub s (add_sub s v) = v"
+apply (unfold vchsub_def)
+apply (simp)
+done
+
+lemma add_sub_bij :
+"bij (add_sub s)"
+apply (rule Fun.bijI)
+apply (rule injI)
+apply (metis add_sub_inv)
+apply (metis add_sub_inv surj_def)
+done
+
+adhoc_overloading subscr vchsub
 
 definition in_vars ::
-  "'a uvar set \<Rightarrow>
-   'a uvar set" ("in") where
+  "'m uvar set \<Rightarrow>
+   'm uvar set" ("in") where
 "in vs = vs \<inter> UNDASHED"
 
 definition out_vars ::
-  "'a uvar set \<Rightarrow>
-   'a uvar set" ("out") where
+  "'m uvar set \<Rightarrow>
+   'm uvar set" ("out") where
 "out vs = vs \<inter> DASHED"
 
-definition nrel_vars :: 
-  "'a uvar set \<Rightarrow> 
-   'a uvar set" ("nrel") where
+definition rel_vars ::
+  "'m uvar set \<Rightarrow>
+   'm uvar set" ("rel") where
+"rel vs = vs \<inter> REL_VAR"
+
+definition nrel_vars ::
+  "'m uvar set \<Rightarrow>
+   'm uvar set" ("nrel") where
 "nrel vs = vs \<inter> NON_REL_VAR"
 
-text {* homl and homr construct the left and right homogeneous alphabets *}
+text {* homl and homr construct the left and right homogeneous alphabets. *}
 
-definition homl :: "'a uvar set \<Rightarrow> 'a uvar set" where
+definition homl :: "'m uvar set \<Rightarrow> 'm uvar set" where
 "homl vs = in vs \<union> (dash ` in vs) \<union> nrel vs"
 
-definition homr :: "'a uvar set \<Rightarrow> 'a uvar set" where
+definition homr :: "'m uvar set \<Rightarrow> 'm uvar set" where
 "homr vs = (undash ` out vs) \<union> out vs \<union> nrel vs"
 
 definition COMPOSABLE ::
-  "'a uvar set \<Rightarrow>
-   'a uvar set \<Rightarrow> bool" where
+  "'m uvar set \<Rightarrow>
+   'm uvar set \<Rightarrow> bool" where
 "COMPOSABLE a1 a2 \<longleftrightarrow> (out a1) = dash ` (in a2)"
 
-definition HOMOGENEOUS :: "'a uvar set \<Rightarrow> bool" where
+definition HOMOGENEOUS :: "'m uvar set \<Rightarrow> bool" where
 "HOMOGENEOUS a \<longleftrightarrow> COMPOSABLE a a"
 
-definition HOM :: "'a uvar set set" where
-"HOM = {xs. HOMOGENEOUS xs}"
+definition HOM :: "'m uvar set set" where
+"HOM = {xs . HOMOGENEOUS xs}"
+
+(***********************)
+(* REVIEWED UNTIL HERE *)
+(***********************)
 
 subsection {* Theorems *}
 
@@ -219,6 +229,7 @@ theorems var_defs =
   MkVar_def
   undash_def
   dash_def
+  vchsub_def
   in_vars_def
   out_vars_def
   nrel_vars_def
@@ -243,19 +254,19 @@ theorem VAR_subset [simp]:
 "vs \<subseteq> VAR"
   by (simp add:VAR_def)
 
-theorem MkVar_name [simp]: 
+theorem MkVar_name [simp]:
   "name (MkVar n t s) = n"
   by (simp add:var_defs)
 
-theorem MkVar_vtype [simp]: 
-  "vtype (MkVar n t s) = t" 
+theorem MkVar_vtype [simp]:
+  "vtype (MkVar n t s) = t"
   by (simp add:var_defs)
 
-theorem MkVar_aux [simp]: 
-  "aux (MkVar n t s) = s" 
+theorem MkVar_aux [simp]:
+  "aux (MkVar n t s) = s"
   by (simp add:var_defs)
 
-lemma MkVar_eq_iff[simp]: 
+lemma MkVar_eq_iff[simp]:
   "MkVar n t s = MkVar n' t' s' \<longleftrightarrow> n = n' \<and> t = t' \<and> s = s'"
   by (auto simp add:var_defs)
 
@@ -277,7 +288,7 @@ lemma MkPlain_UNDASHED [simp]: "MkPlain n t a \<in> UNDASHED"
 lemma MkPlain_NOSUB [simp]: "MkPlain n t a \<in> NOSUB"
   by (simp add:var_defs)
 
-lemma MkPlain_eq_iff[simp]: 
+lemma MkPlain_eq_iff[simp]:
   "MkPlain n t a = MkPlain n' t' a' \<longleftrightarrow> n = n' \<and> t = t' \<and> a = a'"
   by (auto simp add:var_defs)
 
@@ -309,11 +320,15 @@ theorem aux_undash [simp] :
 
 theorem vtype_sub [simp] :
 "vtype (x\<^bsub>n\<^esub>) = vtype x"
-  by (case_tac x, case_tac a, simp add: var_defs)
+apply (case_tac x)
+apply (simp add: var_defs)
+done
 
 theorem aux_sub [simp] :
 "aux (x\<^bsub>n\<^esub>) = aux x"
-  by (case_tac x, case_tac a, simp add: var_defs)
+apply (case_tac x)
+apply (simp add: var_defs)
+done
 
 subsubsection {* Membership Theorems *}
 
@@ -389,39 +404,39 @@ lemma DASHED_THRICE_NON_REL_VAR:
   "x \<in> DASHED_THRICE \<Longrightarrow> x \<in> NON_REL_VAR"
   by (simp add:var_defs)
 
-lemma NON_REL_VAR_dash_NON_REL_VAR: 
-  "x \<in> NON_REL_VAR \<Longrightarrow> x\<acute> \<in> NON_REL_VAR" 
+lemma NON_REL_VAR_dash_NON_REL_VAR:
+  "x \<in> NON_REL_VAR \<Longrightarrow> x\<acute> \<in> NON_REL_VAR"
   by (simp add:var_defs)
 
-lemma UNDASHED_not_NON_REL_VAR: 
+lemma UNDASHED_not_NON_REL_VAR:
   "x \<in> UNDASHED \<Longrightarrow> x \<notin> NON_REL_VAR"
   by (simp add:var_defs)
 
-lemma DASHED_not_NON_REL_VAR: 
+lemma DASHED_not_NON_REL_VAR:
   "x \<in> DASHED \<Longrightarrow> x \<notin> NON_REL_VAR"
   by (simp add:var_defs)
 
-lemma NOSUB_dash: 
+lemma NOSUB_dash:
   "x \<in> NOSUB \<Longrightarrow> x\<acute> \<in> NOSUB"
   by (simp add:var_defs)
 
-lemma NOSUB_undash_DASHED: 
+lemma NOSUB_undash_DASHED:
   "\<lbrakk> x \<in> NOSUB; x \<in> DASHED \<rbrakk> \<Longrightarrow> x~ \<in> NOSUB"
   by (simp add:var_defs)
 
-lemma NOSUB_undash_DASHED_TWICE: 
+lemma NOSUB_undash_DASHED_TWICE:
   "\<lbrakk> x \<in> NOSUB; x \<in> DASHED_TWICE \<rbrakk> \<Longrightarrow> x~ \<in> NOSUB"
   by (simp add:var_defs)
 
-lemma WITHSUB_dash: 
+lemma WITHSUB_dash:
   "x \<in> WITHSUB(n) \<Longrightarrow> x\<acute> \<in> WITHSUB(n)"
   by (simp add:var_defs)
 
-lemma WITHSUB_undash_DASHED: 
+lemma WITHSUB_undash_DASHED:
   "\<lbrakk> x \<in> WITHSUB(n); x \<in> DASHED \<rbrakk> \<Longrightarrow> x~ \<in> WITHSUB(n)"
   by (simp add:var_defs)
 
-lemma WITHSUB_undash_DASHED_TWICE: 
+lemma WITHSUB_undash_DASHED_TWICE:
   "\<lbrakk> x \<in> WITHSUB(n); x \<in> DASHED_TWICE \<rbrakk> \<Longrightarrow> x~ \<in> WITHSUB(n)"
   by (simp add:var_defs)
 
@@ -443,7 +458,7 @@ theorem in_of_DASHED :
 
 theorem out_of_UNDASHED :
 "vs \<subseteq> UNDASHED \<Longrightarrow> out vs = {}"
-  by (auto simp add: var_defs)  
+  by (auto simp add: var_defs)
 
 theorem out_of_DASHED :
 "vs \<subseteq> DASHED \<Longrightarrow> out vs = vs"
@@ -480,11 +495,11 @@ lemma dash_image_member :
   apply (auto)
 done
 
-lemma out_member : 
+lemma out_member :
   "\<lbrakk> x \<in> DASHED; x \<in> vs \<rbrakk> \<Longrightarrow> x \<in> out vs"
   by (simp add:var_defs)
 
-lemma in_member : 
+lemma in_member :
   "\<lbrakk> x \<in> UNDASHED; x \<in> vs \<rbrakk> \<Longrightarrow> x \<in> in vs"
   by (simp add:var_defs)
 
@@ -568,25 +583,25 @@ done
 
 theorem undash_eq_dash_contra1 :
 "\<lbrakk>undash x = dash y; x \<in> DASHED\<rbrakk> \<Longrightarrow> False"
-  by (auto simp add: var_defs)
+  by (metis DASHED_undash_UNDASHED UNDASHED_eq_dash_contra)
 
 theorem undash_eq_dash_contra2 :
 "\<lbrakk>undash x = dash y; x \<in> DASHED_TWICE; y \<in> DASHED\<rbrakk> \<Longrightarrow> False"
-  by (auto simp add: var_defs)
+  by (metis DASHED_TWICE_undash_DASHED DASHED_dash_not_DASHED)
 
 theorem dash_eq_undash_contra1 :
 "\<lbrakk>dash x = undash y; y \<in> DASHED\<rbrakk> \<Longrightarrow> False"
-  by (auto simp add: var_defs)
+  by (metis undash_eq_dash_contra1)
 
 theorem dash_eq_undash_contra2 :
 "\<lbrakk>dash x = undash y; x \<in> DASHED; y \<in> DASHED_TWICE\<rbrakk> \<Longrightarrow> False"
-  by (auto simp add: var_defs)
+  by (metis undash_eq_dash_contra2)
 
 lemma dashed_twice_contras [simp]:
   "x\<acute>\<acute> \<notin> D\<^sub>0" "x\<acute>\<acute> \<notin> D\<^sub>1"
   by (auto simp add:var_defs)
 
-lemma dashed_thrice_contras [simp]: 
+lemma dashed_thrice_contras [simp]:
   "x\<acute>\<acute>\<acute> \<notin> D\<^sub>0" "x\<acute>\<acute>\<acute> \<notin> D\<^sub>1" "x\<acute>\<acute>\<acute> \<notin> D\<^sub>2"
   by (auto simp add:var_defs)
 
@@ -626,21 +641,40 @@ lemma DASHED_TWICE_nempty: "DASHED_TWICE \<noteq> {}"
   apply (simp)
 done
 
-lemma dash_neq_reduce: 
+lemma dash_neq_reduce:
   "x\<acute> \<noteq> y\<acute> \<longleftrightarrow> x \<noteq> y"
-  by (auto simp add: prod_eq_iff var_defs)
+apply (simp add: var_defs)
+apply (case_tac x)
+apply (case_tac y)
+apply (auto)
+apply (rename_tac n1 n2)
+apply (case_tac n1)
+apply (case_tac n2)
+apply (simp)
+done
 
 theorem dash_uniqs:
 "x \<noteq> dash x" "dash x \<noteq> x"
 "x \<noteq> dash (dash x)" "dash (dash x) \<noteq> x"
 "dash x \<noteq> dash (dash x)" "dash (dash x) \<noteq> dash x"
-"x \<noteq> x\<acute>\<acute>\<acute>" "x\<acute>\<acute>\<acute> \<noteq> x" 
+"x \<noteq> x\<acute>\<acute>\<acute>" "x\<acute>\<acute>\<acute> \<noteq> x"
 "x\<acute> \<noteq> x\<acute>\<acute>\<acute>" "x\<acute>\<acute>\<acute> \<noteq> x\<acute>"
 "x\<acute>\<acute> \<noteq> x\<acute>\<acute>\<acute>" "x\<acute>\<acute>\<acute> \<noteq> x\<acute>\<acute>"
-  by (case_tac x, case_tac a, simp add:var_defs)+
+apply (simp add: var_defs, case_tac x, auto)+
+done
 
-lemma sub_uniqs: "x \<in> NOSUB \<Longrightarrow> x\<^bsub>n\<^esub> \<noteq> x" "x \<in> NOSUB \<Longrightarrow> x \<noteq> x\<^bsub>n\<^esub>"
-  by (case_tac x, case_tac a, simp add:var_defs)+
+text {* I had to add a second assumption to the following lemma. *}
+
+lemma sub_uniqs:
+"\<lbrakk>x \<in> NOSUB; n \<noteq> NoSub\<rbrakk> \<Longrightarrow> x\<^bsub>n\<^esub> \<noteq> x"
+"\<lbrakk>x \<in> NOSUB; n \<noteq> NoSub\<rbrakk> \<Longrightarrow> x \<noteq> x\<^bsub>n\<^esub>"
+apply (simp_all add: var_defs)
+apply (unfold chsub_def)
+apply (case_tac x)
+apply (clarsimp)
+apply (case_tac x)
+apply (clarsimp)
+done
 
 theorem dash_name_str:
   "name_str (name (dash x)) = name_str (name x)"
@@ -657,17 +691,11 @@ theorem dash_subscript:
 theorem dash_undash_DASHED :
 "x \<in> DASHED \<Longrightarrow> dash (undash x) = x"
 apply (simp add: var_defs)
-apply (atomize (full))
-apply (induct_tac x)
-apply (auto simp add: var_defs)
 done
 
 theorem dash_undash_DASHED_TWICE :
 "x \<in> DASHED_TWICE \<Longrightarrow> dash (undash x) = x"
 apply (simp add: var_defs)
-apply (atomize (full))
-apply (induct_tac x)
-apply (auto simp add: var_defs)
 done
 
 theorem undash_dash :
@@ -689,7 +717,7 @@ lemma DASHED_TWICE_dash_elim [elim]:
 lemma dash_DASHED_TWICE_elim [elim]: "\<lbrakk> x\<acute> \<in> DASHED_TWICE; x \<in> DASHED \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (simp add:var_defs)
 
-lemma dash_UNDASHED_image: 
+lemma dash_UNDASHED_image:
 "dash ` UNDASHED = DASHED"
   by auto
 
@@ -697,7 +725,7 @@ lemma dash_DASHED_image:
 "dash ` DASHED = DASHED_TWICE"
   by auto
 
-lemma undash_DASHED_image: 
+lemma undash_DASHED_image:
 "undash ` DASHED = UNDASHED"
   by auto
 
@@ -709,7 +737,7 @@ lemma dash_undash_image:
 "vs \<subseteq> DASHED \<Longrightarrow> dash ` undash ` vs = vs"
   by (auto simp add:image_def dash_undash_DASHED, metis dash_undash_DASHED set_mp)
 
-lemma undash_dash_image: 
+lemma undash_dash_image:
 "undash ` dash ` vs = vs"
   by (auto simp add: image_def undash_dash)
 
@@ -725,7 +753,7 @@ theorem dash_image_inter:
   apply (metis Int_iff imageI undash_dash)
 done
 
-lemma dash_inv_into [simp]: 
+lemma dash_inv_into [simp]:
   "x \<in> DASHED \<Longrightarrow> inv_into UNDASHED dash x = undash x"
   by (metis (lifting) dash_UNDASHED_image f_inv_into_f undash_dash)
 
@@ -896,8 +924,8 @@ theorem UNDASHED_DASHED_inter:
   "NON_REL_VAR \<inter> DASHED = {}"
   "UNDASHED \<inter> NON_REL_VAR = {}"
   "NON_REL_VAR \<inter> UNDASHED = {}"
-   "(- DASHED) \<inter> NON_REL_VAR = NON_REL_VAR"
-   "NON_REL_VAR \<inter> - DASHED = NON_REL_VAR"
+  "(- DASHED) \<inter> NON_REL_VAR = NON_REL_VAR"
+  "NON_REL_VAR \<inter> - DASHED = NON_REL_VAR"
   "(- UNDASHED) \<inter> NON_REL_VAR = NON_REL_VAR"
   "NON_REL_VAR \<inter> (- UNDASHED) = NON_REL_VAR"
   "((VAR - UNDASHED) \<inter> (VAR - DASHED)) = NON_REL_VAR"
@@ -913,7 +941,7 @@ theorem UNDASHED_DASHED_minus:
   "DASHED - DASHED_TWICE   = DASHED"
   "UNDASHED - NON_REL_VAR  = UNDASHED"
   "DASHED   - NON_REL_VAR  = DASHED"
-  "DASHED_TWICE - NON_REL_VAR  = {}"
+  "DASHED_TWICE - NON_REL_VAR = {}"
   "NON_REL_VAR - UNDASHED  = NON_REL_VAR"
   "NON_REL_VAR - DASHED    = NON_REL_VAR"
   "UNDASHED - VAR          = {}"
@@ -922,7 +950,7 @@ theorem UNDASHED_DASHED_minus:
   "NON_REL_VAR - VAR       = {}"
   by (auto simp add:var_defs)
 
-lemma var_name_uniq [simp]: 
+lemma var_name_uniq [simp]:
   "name x \<noteq> name y \<Longrightarrow> x \<noteq> y"
   by (auto)
 
@@ -949,7 +977,7 @@ theorems var_simps =
   dash_uniqs
   dash_undash_DASHED
   dash_undash_DASHED_TWICE
-  dash_dashes  
+  dash_dashes
   dash_name_str
   dash_subscript
   undash_dash
@@ -1012,7 +1040,7 @@ subsubsection {* Injectivity Theorems *}
 theorem dash_inj [simp]:
 "inj_on dash vs"
 apply (rule inj_onI)
-apply (force simp add: prod_eq_iff var_defs)
+apply (metis dash_neq_reduce)
 done
 
 theorem dash_elim [elim] :
@@ -1022,26 +1050,47 @@ theorem dash_elim [elim] :
 theorem undash_inj_on [simp]:
 "inj_on undash (- UNDASHED)"
 apply (rule inj_onI)
-apply (force simp add: var_defs prod_eq_iff)
+apply (simp add: var_defs)
+apply (case_tac x)
+apply (case_tac y)
+apply (clarsimp)
+apply (rename_tac n1 n2)
+apply (case_tac n1)
+apply (case_tac n2)
+apply (clarsimp)
+apply (rename_tac d1 d2)
+apply (metis Suc_pred)
 done
 
 theorem undash_inj_on_DASHED [simp]:
 "inj_on undash DASHED"
 apply (rule inj_onI)
-apply (force simp add: var_defs prod_eq_iff)
+apply (simp add: var_defs)
+apply (case_tac x)
+apply (case_tac y)
+apply (clarsimp)
+apply (rename_tac n1 n2)
+apply (case_tac n1)
+apply (case_tac n2)
+apply (clarsimp)
 done
 
 theorem undash_inj_on_DASHED_TWICE [simp]:
 "inj_on undash DASHED_TWICE"
 apply (rule inj_onI)
-apply (force simp add: var_defs prod_eq_iff)
+apply (simp add: var_defs)
+apply (case_tac x)
+apply (case_tac y)
+apply (clarsimp)
+apply (rename_tac n1 n2)
+apply (case_tac n1)
+apply (case_tac n2)
+apply (clarsimp)
 done
 
 theorem dash_strict_mono [simp]:
 "strict_mono dash"
-  apply (auto simp add:strict_mono_def)
-  apply (simp add: NAME_less_iff prod_less_def dash_name_str dash_subscript dash_dashes)
-  apply (metis (hide_lams, no_types) MkVar_name NAME_less_iff dash_def order_eq_iff order_less_le)
+apply (simp add: strict_mono_def)
 done
 
 subsubsection {* Distribution Theorems *}
@@ -1186,7 +1235,7 @@ theorem undash_image_minus:
   by (metis dash_image_minus dash_undash_image undash_dash_image)
 
 theorems var_dist =
-(*  dash_inter_distr
+(* dash_inter_distr
   dash_unsion_distr *)
   in_vars_union
   in_vars_inter
@@ -1230,7 +1279,7 @@ done
 lemma comp_alphabet_dash [elim]:
   "\<lbrakk> COMPOSABLE vs1 vs2; dash v \<in> vs1; v \<in> UNDASHED; v \<in> vs2 \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   apply (auto simp add:COMPOSABLE_def)
-  apply (auto simp add:  in_vars_def out_vars_def)
+  apply (auto simp add: in_vars_def out_vars_def)
 done
 
 lemma hom_alphabet_undash [elim]:
@@ -1292,39 +1341,51 @@ lemma HOMOGENEOUS_out_unprimed:
   "\<lbrakk> HOMOGENEOUS xs; x \<in> out(xs) \<rbrakk> \<Longrightarrow> x~ \<in> xs"
   by (metis HOMOGENEOUS_undash_out IntD1 imageI in_vars_def)
 
+(***********************)
+(* REVIEWED UNTIL HERE *)
+(***********************)
+
 subsubsection {* Subscript Properties *}
 
-lemma vchsub_vtype [simp]: 
+lemma vchsub_vtype [simp] :
   "vtype x\<^bsub>n\<^esub> = vtype x"
-  by (case_tac x, case_tac a, simp)
+apply (case_tac x)
+apply (clarsimp)
+done
 
 lemma vchsub_vdashes [simp]:
   "vdashes x\<^bsub>n\<^esub> = vdashes x"
-  by (case_tac x, case_tac a, simp)
+apply (case_tac x)
+apply (simp add: vchsub_def chsub_def)
+done
 
-lemma vsub_aux [simp]: 
+lemma vsub_aux [simp] :
   "aux x\<^bsub>n\<^esub> = aux x"
-  by (case_tac x, case_tac a, simp)
+apply (case_tac x)
+apply (clarsimp)
+done
 
 lemma vsub_NOSUB [simp]:
-  "x \<in> NOSUB \<Longrightarrow> vsub x\<^bsub>n\<^esub> = Sub n"
-  apply (simp add:NOSUB_def)
-  apply (case_tac x, case_tac a)
-  apply (simp)
+  "x \<in> NOSUB \<Longrightarrow> vsub x\<^bsub>n\<^esub> = n"
+apply (case_tac x)
+apply (unfold vchsub_def)
+apply (clarsimp)
+apply (unfold chsub_def)
+apply (clarsimp)
+apply (simp add: NOSUB_def)
 done
 
 subsubsection {* Fresh variables *}
 
-text {* This proof uses the infinitness of @{term "NAME"} proof to demonstrate
+text {* This proof uses the infinitness of @{term "name"} proof to demonstrate
 that, given a finite set of variables, we can always generate a fresh variable
 with any given type and auxness *}
 
-theorem fresh_var: "\<exists>x::'a uvar. x \<notin> \<langle>xs\<rangle>\<^sub>f \<and> vtype x = t \<and> aux x = s"
+theorem fresh_var: "\<exists>x::'m uvar. x \<notin> \<langle>xs\<rangle>\<^sub>f \<and> vtype x = t \<and> aux x = s"
 proof -
 
   obtain n where "n \<notin> name ` \<langle>xs\<rangle>\<^sub>f"
-    by (force intro!: ex_new_if_finite infinite_NAME)
-    
+    by (force intro!: ex_new_if_finite infinite_name)
   with assms show ?thesis
     apply (rule_tac x="MkVar n t s" in exI)
     apply (simp)
@@ -1333,4 +1394,3 @@ proof -
 qed
 
 end
-

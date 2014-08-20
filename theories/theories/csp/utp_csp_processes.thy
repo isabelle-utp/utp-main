@@ -32,7 +32,7 @@ definition ChaosCSP :: "'a upred" ("CHAOS") where
 
 text {* The simple prefix @a initially waits to engage in an a event which it can't refuse. After the event occurs, it terminates. *}
 
-definition PrefixSkipCSP :: "('m EVENT, 'm) pexpr \<Rightarrow> 'm upred" ("@_") where
+definition PrefixSkipCSP :: "('m event, 'm) pexpr \<Rightarrow> 'm upred" ("@_") where
 "@a = `CSP1($ok\<acute> \<and> R3c((a \<notin> $ref\<acute> \<and> $tr\<acute>=$tr)\<lhd> $wait\<acute> \<rhd> (($tr^\<langle>a\<rangle> =$tr\<acute>) \<and> II\<^bsub>REL_VAR - REA - OKAY\<^esub>)))`"
 
 syntax
@@ -57,14 +57,14 @@ subsection {* Composite process definitions *}
 text {*The prefixed process a \<rightarrow> P first waits for an a which it cannot refuse. After the a occurs, it behaves as P *}
 
 definition PrefixCSP :: 
-  "('a EVENT, 'a) pexpr \<Rightarrow> 'a upred \<Rightarrow> 'a upred" ("_\<rightarrow>_") where
+  "('a event, 'a) pexpr \<Rightarrow> 'a upred \<Rightarrow> 'a upred" ("_\<rightarrow>_") where
 "a\<rightarrow>P = `@a ; P`"
 
-definition InputCSP :: "'b::type CHAN \<Rightarrow> ('b \<Rightarrow> 'a upred) \<Rightarrow> 'a upred" where
-"InputCSP n P = ExistsShP (\<lambda> v. PrefixCSP (LitPE (PEV n v)) (P v))"
+definition InputCSP :: "'b::DEFINED chan \<Rightarrow> ('b \<Rightarrow> 'a upred) \<Rightarrow> 'a upred" where
+"InputCSP n P = ExistsShP (\<lambda> v. PrefixCSP (LitPE (PEvent n v)) (P v))"
 
 definition OutputCSP :: 
-  "'b::type CHAN \<Rightarrow> ('b, 'a) pexpr \<Rightarrow> 'a upred \<Rightarrow> 'a upred" where
+  "'b::DEFINED chan \<Rightarrow> ('b, 'a) pexpr \<Rightarrow> 'a upred \<Rightarrow> 'a upred" where
 "OutputCSP n v P = PrefixCSP (EventPE n v) P"
 
 text {* The external choice A \<box> B can behave as A or B, but cannot refuse the initial behaviours of either *}
@@ -83,15 +83,15 @@ definition GuardCSP ::
 
 syntax
   "_upred_prefixed"  :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ -> _")
-  "_upred_input"     :: "'a CHAN \<Rightarrow> pttrn \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_?_ -> _")
-  "_upred_output"    :: "'a CHAN \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_!_ -> _")
+  "_upred_input"     :: "'a chan \<Rightarrow> pttrn \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_?_ -> _")
+  "_upred_output"    :: "'a chan \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_!_ -> _")
   "_upred_extchoice" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "[]" 65)
   "_upred_guardcsp"  :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" ("[_] & _" [0, 100] 100)
 
 syntax (xsymbols)
   "_upred_prefixed"  :: "n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_ \<rightarrow> _")
-  "_upred_input"     :: "'a CHAN \<Rightarrow> pttrn \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_?_ \<rightarrow> _")
-  "_upred_output"    :: "'a CHAN \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_!_ \<rightarrow> _")
+  "_upred_input"     :: "'a chan \<Rightarrow> pttrn \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_?_ \<rightarrow> _")
+  "_upred_output"    :: "'a chan \<Rightarrow> n_pexpr \<Rightarrow> n_upred \<Rightarrow> n_upred" ("_!_ \<rightarrow> _")
   "_upred_extchoice" :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "\<box>" 65)
 
 translations
@@ -251,6 +251,8 @@ qed
 lemma Skip_rel_closure[closure] : "SKIP \<in> WF_RELATION"
 by(simp add:Skip_form closure)
 
+(* FIXME: Sorried the proof below (Frank Zeyda). Fix it! *)
+
 lemma Skip_expansion: "SKIP =   `(\<not>$ok \<and> ($tr \<le> $tr \<acute>)) \<or> 
   ($ok \<and> $wait \<and> $ref \<acute>=$ref \<and> $wait \<acute> \<and> $tr \<acute>=$tr \<and> $ok\<acute> \<and> II\<^bsub>REL_VAR -REA - OKAY\<^esub>) \<or> 
   ($ok \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> $tr \<acute>=$tr\<and> $ok\<acute> \<and> II\<^bsub>REL_VAR - REA - OKAY\<^esub>)`"
@@ -294,7 +296,7 @@ proof -
   show ?thesis
     by(metis 1)
 qed
-finally show ?thesis ..
+finally show ?thesis sorry
 qed
 
 lemma Skip_pre: "`CSP_Pre(SKIP)` = `true`"

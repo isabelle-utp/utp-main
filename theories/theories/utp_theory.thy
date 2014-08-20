@@ -481,7 +481,7 @@ class unitary =
 instance unit :: unitary
   by (intro_classes, auto)
 
-instantiation THEORY_ext :: (VALUE,type) preorder
+instantiation THEORY_ext :: (TYPED_MODEL,type) preorder
 begin
 
 definition less_eq_THEORY_ext :: "('a, 'b) THEORY_scheme \<Rightarrow> ('a, 'b) THEORY_scheme \<Rightarrow> bool" where

@@ -33,8 +33,8 @@ definition pred_alpha_type :: "'a upred \<Rightarrow> 'a alpha \<Rightarrow> boo
 adhoc_overloading
   alpha_type pred_alpha_type
 
-type_synonym 'VALUE ALPHA_PREDICATE =
-  "('VALUE alpha) \<times> 'VALUE upred"
+type_synonym 'm ALPHA_PREDICATE =
+  "('m alpha) \<times> 'm upred"
 
 definition WF_ALPHA_PREDICATE ::
   "'a ALPHA_PREDICATE set" where
@@ -64,16 +64,16 @@ notation DestPredA ("\<langle>_\<rangle>\<^sub>\<alpha>")
 setup_lifting type_definition_uapred
 
 definition pred_alphabet ::
-  "'VALUE uapred \<Rightarrow>
-   'VALUE alpha" where
+  "'m uapred \<Rightarrow>
+   'm alpha" where
 "pred_alphabet p \<equiv> fst \<langle>p\<rangle>\<^sub>\<alpha>"
 
 adhoc_overloading
   alphabet pred_alphabet
 
 abbreviation predicate ::
-  "'VALUE uapred \<Rightarrow>
-   'VALUE upred" where
+  "'m uapred \<Rightarrow>
+   'm upred" where
 "predicate p \<equiv> snd \<langle>p\<rangle>\<^sub>\<alpha>"
 notation predicate ("\<pi>")
 
@@ -83,12 +83,12 @@ abbreviation in_alpha_of :: "'a uapred \<Rightarrow> 'a alpha" ("in\<alpha>") wh
 abbreviation out_alpha_of :: "'a uapred \<Rightarrow> 'a alpha" ("out\<alpha>") where
 "out_alpha_of(P) \<equiv> out\<^sub>\<alpha>(\<alpha>(P))"
 
-type_synonym 'VALUE ALPHA_FUNCTION =
-  "'VALUE uapred \<Rightarrow>
-   'VALUE uapred"
+type_synonym 'm ALPHA_FUNCTION =
+  "'m uapred \<Rightarrow>
+   'm uapred"
 
 definition WF_ALPHA_PREDICATE_OVER ::
-  "'VALUE alpha \<Rightarrow> 'VALUE uapred set" where
+  "'m alpha \<Rightarrow> 'm uapred set" where
 "WF_ALPHA_PREDICATE_OVER a = {p . \<alpha> p = a}"
 
 theorem uapred_UNREST [unrest] (* [dest] *) :
@@ -114,7 +114,7 @@ definition LiftA ::
 subsubsection {* Equality *}
 
 lift_definition EqualsA ::
-  "'a uvar \<Rightarrow> 'a \<Rightarrow>
+  "'a uvar \<Rightarrow> 'a uval \<Rightarrow>
    'a uapred" is "\<lambda> v x. (\<lbrace>v\<rbrace>, v =\<^sub>p x)"
   by (simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
   
@@ -134,8 +134,8 @@ done
 notation ExtA (infix "\<oplus>\<^sub>\<alpha>" 200)
 
 lift_definition ResA ::
-  "'VALUE uapred \<Rightarrow> 'VALUE alpha \<Rightarrow>
-   'VALUE uapred" is
+  "'m uapred \<Rightarrow> 'm alpha \<Rightarrow>
+   'm uapred" is
 "\<lambda> p a. ((\<alpha> p) -\<^sub>f a, \<exists>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<pi> p)"
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
@@ -147,8 +147,8 @@ notation ResA (infix "\<ominus>\<^sub>\<alpha>" 200)
 subsubsection {* Alphabet Coercion *}
 
 lift_definition CoerceA ::
-  "'VALUE upred \<Rightarrow> 'VALUE alpha \<Rightarrow>
-   'VALUE uapred" is
+  "'m upred \<Rightarrow> 'm alpha \<Rightarrow>
+   'm uapred" is
 "\<lambda> p a. (a, \<exists>\<^sub>p (- \<langle>a\<rangle>\<^sub>f). p)"
 apply (simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 apply (auto intro: unrest)
@@ -163,65 +163,65 @@ lemma CoerceA_rep_eq_simple:
 
 subsubsection {* True and False *}
 
-lift_definition TrueA :: "'VALUE alpha \<Rightarrow> 'VALUE uapred" is
-"\<lambda> a. (a :: 'VALUE alpha, TrueP :: 'VALUE upred)"
+lift_definition TrueA :: "'m alpha \<Rightarrow> 'm uapred" is
+"\<lambda> a. (a :: 'm alpha, TrueP :: 'm upred)"
   by (simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
 
 notation TrueA ("true\<^bsub>_\<^esub>")
 
-lift_definition FalseA :: "'VALUE alpha \<Rightarrow> 'VALUE uapred" is
-"\<lambda> a. (a :: 'VALUE alpha, FalseP :: 'VALUE upred)"
+lift_definition FalseA :: "'m alpha \<Rightarrow> 'm uapred" is
+"\<lambda> a. (a :: 'm alpha, FalseP :: 'm upred)"
   by (simp add: WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
 
 notation FalseA ("false\<^bsub>_\<^esub>")
 
-abbreviation TRUE :: "'VALUE uapred" where
+abbreviation TRUE :: "'m uapred" where
 "TRUE \<equiv> true\<^bsub>\<lbrace>\<rbrace>\<^esub>"
 
-abbreviation FALSE :: "'VALUE uapred" where
+abbreviation FALSE :: "'m uapred" where
 "FALSE \<equiv> false\<^bsub>\<lbrace>\<rbrace>\<^esub>"
 
 subsubsection {* Logical Connectives *}
 
 lift_definition NotA ::
-  "'VALUE uapred \<Rightarrow>
-   'VALUE uapred" is
+  "'m uapred \<Rightarrow>
+   'm uapred" is
 "\<lambda> p. (\<alpha> p, \<not>\<^sub>p (\<pi> p))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation NotA ("\<not>\<^sub>\<alpha> _" [190] 190)
 
 lift_definition AndA ::
-  "'VALUE uapred \<Rightarrow>
-   'VALUE uapred \<Rightarrow>
-   'VALUE uapred" is
+  "'m uapred \<Rightarrow>
+   'm uapred \<Rightarrow>
+   'm uapred" is
 "\<lambda> p1 p2. ((\<alpha> p1) \<union>\<^sub>f (\<alpha> p2), (\<pi> p1) \<and>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation AndA (infixr "\<and>\<^sub>\<alpha>" 180)
 
 lift_definition OrA ::
-  "'VALUE uapred \<Rightarrow>
-   'VALUE uapred \<Rightarrow>
-   'VALUE uapred" is
+  "'m uapred \<Rightarrow>
+   'm uapred \<Rightarrow>
+   'm uapred" is
 "\<lambda> p1 p2 . ((\<alpha> p1) \<union>\<^sub>f (\<alpha> p2), (\<pi> p1) \<or>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation OrA (infixr "\<or>\<^sub>\<alpha>" 170)
 
 lift_definition ImpliesA ::
-  "'VALUE uapred \<Rightarrow>
-   'VALUE uapred \<Rightarrow>
-   'VALUE uapred" is
+  "'m uapred \<Rightarrow>
+   'm uapred \<Rightarrow>
+   'm uapred" is
 "\<lambda> p1 p2 . ((\<alpha> p1) \<union>\<^sub>f (\<alpha> p2), (\<pi> p1) \<Rightarrow>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation ImpliesA (infixr "\<Rightarrow>\<^sub>\<alpha>" 160)
 
 lift_definition IffA ::
-  "'VALUE uapred \<Rightarrow>
-   'VALUE uapred \<Rightarrow>
-   'VALUE uapred" is
+  "'m uapred \<Rightarrow>
+   'm uapred \<Rightarrow>
+   'm uapred" is
 "\<lambda> p1 p2 . ((\<alpha> p1) \<union>\<^sub>f (\<alpha> p2), (\<pi> p1) \<Leftrightarrow>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
@@ -301,12 +301,12 @@ default_sort type
 
 definition AANDI :: 
   "'a alpha \<Rightarrow> 'b set \<Rightarrow> 
-   ('b \<Rightarrow> ('a::VALUE) uapred) \<Rightarrow> 'a uapred" where
+   ('b \<Rightarrow> ('a::TYPED_MODEL) uapred) \<Rightarrow> 'a uapred" where
 "AANDI a A f = \<And>\<^bsub>a\<^esub>(f ` A)"
 
 definition AORDI :: 
   "'a alpha \<Rightarrow> 'b set \<Rightarrow> 
-   ('b \<Rightarrow> ('a::VALUE) uapred) \<Rightarrow> 'a uapred" where
+   ('b \<Rightarrow> ('a::TYPED_MODEL) uapred) \<Rightarrow> 'a uapred" where
 "AORDI a A f = \<Or>\<^bsub>a\<^esub>(f ` A)"
 
 syntax
@@ -331,41 +331,41 @@ translations
   "OR[a] x. B"     == "OR[a] x:CONST UNIV. B"
   "OR[a] x:A. B"   == "CONST AORDI a A (%x. B)"
 
-default_sort VALUE
+default_sort TYPED_MODEL
   
 subsubsection {* Quantifiers *}
 
 lift_definition ExistsA ::
-  "'VALUE alpha \<Rightarrow>
-   'VALUE uapred \<Rightarrow>
-   'VALUE uapred" is
+  "'m alpha \<Rightarrow>
+   'm uapred \<Rightarrow>
+   'm uapred" is
 "\<lambda> a p . (\<alpha> p, \<exists>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<pi> p)"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation ExistsA ("(\<exists>\<^sub>\<alpha> _ ./ _)" [0, 10] 10)
 
 lift_definition ForallA ::
-  "'VALUE alpha \<Rightarrow>
-   'VALUE uapred \<Rightarrow>
-   'VALUE uapred" is
+  "'m alpha \<Rightarrow>
+   'm uapred \<Rightarrow>
+   'm uapred" is
 "\<lambda> a p. (\<alpha> p, \<forall>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<pi> p)"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation ForallA ("(\<forall>\<^sub>\<alpha> _ ./ _)" [0, 10] 10)
 
 lift_definition ExistsResA ::
-  "'VALUE alpha \<Rightarrow>
-   'VALUE uapred \<Rightarrow>
-   'VALUE uapred" is
+  "'m alpha \<Rightarrow>
+   'm uapred \<Rightarrow>
+   'm uapred" is
 "\<lambda> a p. ((\<alpha> p) -\<^sub>f a, \<exists>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<pi> p)"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation ExistsResA ("(\<exists>-\<^sub>\<alpha> _ ./ _)" [0, 10] 10)
 
 lift_definition ForallResA ::
-  "'VALUE alpha \<Rightarrow>
-   'VALUE uapred \<Rightarrow>
-   'VALUE uapred" is
+  "'m alpha \<Rightarrow>
+   'm uapred \<Rightarrow>
+   'm uapred" is
 "\<lambda> a p. ((\<alpha> p) -\<^sub>f a, \<forall>\<^sub>p \<langle>a\<rangle>\<^sub>f . \<pi> p)"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
@@ -374,8 +374,8 @@ notation ForallResA ("(\<forall>-\<^sub>\<alpha> _ ./ _)" [0, 10] 10)
 subsubsection {* Universal Closure *}
 
 lift_definition ClosureA ::
-  "'VALUE uapred \<Rightarrow>
-   'VALUE uapred" is
+  "'m uapred \<Rightarrow>
+   'm uapred" is
 "\<lambda> p. (\<lbrace>\<rbrace>, [\<pi> p]\<^sub>p)"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
@@ -384,9 +384,9 @@ notation ClosureA ("[_]\<^sub>\<alpha>")
 subsubsection {* Refinement *}
 
 lift_definition RefA ::
-  "'VALUE uapred \<Rightarrow>
-   'VALUE uapred \<Rightarrow>
-   'VALUE uapred" is
+  "'m uapred \<Rightarrow>
+   'm uapred \<Rightarrow>
+   'm uapred" is
 "\<lambda> p1 p2. (\<lbrace>\<rbrace>, (\<pi> p1) \<sqsubseteq>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
@@ -396,14 +396,14 @@ subsubsection {* Permuation *}
 
 (*
 lift_definition alpha_rename_image :: 
-  "('VALUE VAR_RENAME) \<Rightarrow> 'VALUE alpha \<Rightarrow> 'VALUE alpha" (infixr "`\<^sub>\<alpha>" 90) is rename_image
+  "('m VAR_RENAME) \<Rightarrow> 'm alpha \<Rightarrow> 'm alpha" (infixr "`\<^sub>\<alpha>" 90) is rename_image
   by (simp add:rename_image_def fsets_def)
 *)
 
 lift_definition PermA ::
-  "'VALUE VAR_RENAME \<Rightarrow>
-   'VALUE uapred \<Rightarrow>
-   'VALUE uapred" ("_[_]\<alpha>" [200]) is
+  "'m VAR_RENAME \<Rightarrow>
+   'm uapred \<Rightarrow>
+   'm uapred" ("_[_]\<alpha>" [200]) is
 "\<lambda> ss p. (\<langle>ss\<rangle>\<^sub>s `\<^sub>f \<alpha> p, ss\<bullet>(\<pi> p))"
   apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
   apply (rule UNREST_RenameP_alt)
@@ -417,7 +417,7 @@ adhoc_overloading
 subsection {* Meta-logical Operators *}
 
 definition TautologyA ::
-  "'VALUE uapred \<Rightarrow> bool" where
+  "'m uapred \<Rightarrow> bool" where
 "TautologyA p = (p = true\<^bsub>\<alpha> p\<^esub>)"
 
 declare [[coercion TautologyA]]
@@ -425,12 +425,12 @@ declare [[coercion TautologyA]]
 notation TautologyA ("taut\<^sub>\<alpha> _" [50] 50)
 
 definition ContradictionA ::
-  "'VALUE uapred \<Rightarrow> bool" where
+  "'m uapred \<Rightarrow> bool" where
 "ContradictionA p = (p = false\<^bsub>\<alpha> p\<^esub>)"
 
 notation ContradictionA ("contra\<^sub>\<alpha> _" [50] 50)
 
-instantiation uapred :: (VALUE) ord
+instantiation uapred :: (TYPED_MODEL) ord
 begin
 
 definition less_eq_uapred :: 
@@ -445,7 +445,9 @@ instance ..
 
 end
 
-instantiation uapred :: (VALUE) refines begin instance .. end
+(* FIXME: We should instantiate the rest of the lattice operators too below. *)
+
+instantiation uapred :: (TYPED_MODEL) utp_lattice_sign begin instance .. end
 
 subsection {* Theorems *}
 
@@ -731,7 +733,7 @@ lemma OrA_WF_ALPHA_PREDICATE_OVER [closure]:
 
 subsection {* Conversion between alphabetised predicates and finite map sets *}
 
-type_synonym 'a apredmaps = "('a alpha * ('a uvar, 'a) fmap set)"
+type_synonym 'a apredmaps = "('a alpha * ('a uvar, 'a uval) fmap set)"
 
 definition apred_fmap_set :: "'a uapred \<Rightarrow> 'a apredmaps" where
 "apred_fmap_set p = (\<alpha> p, Abs_fmap ` pred_map_set \<langle>\<alpha> p\<rangle>\<^sub>f (\<pi> p))"

@@ -59,7 +59,7 @@ adhoc_overloading
   csubseteq fsubset_eq
 
 
-default_sort VALUE
+default_sort TYPED_MODEL
 
 
 end

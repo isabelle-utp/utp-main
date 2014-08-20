@@ -1,12 +1,12 @@
 (******************************************************************************)
 (* Project: Unifying Theories of Programming in HOL                           *)
-(* File: utp_names_ext.thy                                                    *)
+(* File: utp_name_ext.thy                                                     *)
 (* Author: Simon Foster, University of York (UK)                              *)
 (******************************************************************************)
 
 header {* Extensible Variable Names *}
 
-theory utp_names_ext
+theory utp_name_ext
 imports "../utp_common" Derive
 begin
 

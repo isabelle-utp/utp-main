@@ -32,7 +32,7 @@ done
 
 lemma RefineP_taut [simp]: 
   "`p \<sqsubseteq> q` \<longleftrightarrow> p \<sqsubseteq> q"
-  by (simp add: less_eq_upred_def)
+  by (metis ClosureP_iff RefP_def less_eq_upred_def)
 
 theorem RefineP_TrueP_refine [refine]:
   "true \<sqsubseteq> P"
@@ -55,11 +55,11 @@ theorem RefineP_CondR_refine [refine]:
   by (utp_pred_auto_tac)
 
 theorem RefineP_choice1:
-  "(P \<sqinter> Q) \<sqsubseteq> (P :: 'a upred)"
+  "(P \<sqinter>\<^sub>p Q) \<sqsubseteq> (P :: 'a upred)"
   by (utp_pred_tac)
 
 theorem RefineP_choice2:
-  "(P \<sqinter> Q) \<sqsubseteq> (Q :: 'a upred)"
+  "(P \<sqinter>\<^sub>p Q) \<sqsubseteq> (Q :: 'a upred)"
   by (utp_pred_tac)
 
 theorem RefineP_seperation:

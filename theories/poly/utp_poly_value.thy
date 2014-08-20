@@ -1,19 +1,20 @@
 (******************************************************************************)
-(* Project: Unifying Theories of Programming in HOL                           *)
+(* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
 (* File: utp_poly_value.thy                                                   *)
-(* Author: Simon Foster, University of York (UK)                              *)
+(* Authors: Simon Foster & Frank Zeyda, University of York (UK)               *)
 (******************************************************************************)
 
-header {* Shallow Polymorphic Values *}
+header {* Polymorphic Values *}
 
 theory utp_poly_value
-imports 
-  "../core/utp_value"
-  "../core/utp_sorts"
+imports
+  "../core/utp_model"
+  "../core/utp_sorts_new"
   "../core/utp_event"
-  "../types/utp_list"
-  "../types/utp_fset"
-  "../types/utp_uset"
+  "../types/utp_dlist"
+  "../types/utp_dset"
+  "../types/utp_dfset"
+  "../core/utp_defined"
 begin
 
 default_sort type
@@ -21,131 +22,208 @@ default_sort type
 subsection {* Theorem Attributes *}
 
 ML {*
-  structure erasure =
-    Named_Thms (val name = @{binding erasure} val description = "erasure theorems")
+  structure erasure = Named_Thms
+    (val name = @{binding erasure} val description = "erasure theorems")
 *}
 
 setup erasure.setup
 
-text {* We first provided definedness instances for injectable types *}
+text {* Perhaps rename @{text "inju"} into something like @{text "poly"}. *}
 
-instantiation bool :: DEFINED_NE
-begin
-definition "Defined_bool (x::bool) = True"
-instance 
-  by (intro_classes, auto simp add:Defined_bool_def)
-end
-
-lemma Defined_bool [defined]: "\<D> (x :: bool)" by (simp add:Defined_bool_def)
-
-instantiation int :: DEFINED_NE
-begin
-definition "Defined_int (x::int) = True"
-instance
-  by (intro_classes, auto simp add:Defined_int_def)
-end
-
-lemma Defined_int [defined]: "\<D> (x :: int)" by (simp add:Defined_int_def)
-
-instantiation real :: DEFINED_NE
-begin
-definition "Defined_real (x::real) = True"
-instance
-  by (intro_classes, auto simp add:Defined_real_def)
-end
-
-lemma Defined_real [defined]: "\<D> (x :: real)" by (simp add:Defined_real_def)
-
-instantiation char :: DEFINED
-begin
-
-definition Defined_char :: "char \<Rightarrow> bool" where
-"Defined_char(x) = True"
-
-instance ..
-end
-
-instantiation list :: (DEFINED) DEFINED
-begin
-definition "Defined_list (xs :: 'a list) = (\<forall>x\<in>set xs. \<D> x)"
-instance ..
-end
-
-lemma Defined_list [defined]: 
-  "\<D> (xs :: ('a::DEFINED) list) = (\<forall>x\<in>set xs. \<D> x)"
-  by (simp add:Defined_list_def)
-
-instantiation prod :: (DEFINED, DEFINED) DEFINED
-begin
-
-definition "Defined_prod = (\<lambda>(x, y). \<D> x \<and> \<D> y)"
-
-instance ..
-end
-
-lemma Defined_prod [defined]:
-  "\<D> (x, y) \<longleftrightarrow> \<D> x \<and> \<D> y"
-  by (auto simp add:Defined_prod_def)
-
-subsection {* Polymorphic constants *}
-
-text {* The following global constants serve to link the (polymorphic)
-        HOL types which we would like to use in UTP predicates /
-        expressions with the (also polymorphic) model type. Since we
-        need range over these two type variables we cannot use a
-        type-class, which are limited to one variable for reasons of
-        guaranteeing decidability. Isabelle constants provide a way to
-        directly create polymorphic functions, but a great deal of
-        care is needed in using them. If associated definitions for
-        the constants overlap chaos will ensue, as the type-system may
-        not be able to disambiguate. FIXME: We need to defined some
-        carefully thought rules to define what we can and can't have here. 
+ML {*
+  structure inju = Named_Thms
+    (val name = @{binding inju} val description = "inju theorems")
 *}
 
-consts 
-  TypeU :: "'a itself \<Rightarrow> ('m :: VALUE) utype"
-  InjU  :: "'a \<Rightarrow> 'm :: VALUE"
-  ProjU :: "'m :: VALUE \<Rightarrow> 'a"
+setup inju.setup
 
-text {* @{const TypeU} gives the corresponding UTP model type for a
-        given HOL type, effectively performing an erasure. @{const
-        InjU} injects a HOL value into a given model, and @{const
-        ProjU} is the inverse. *}
+subsection {* HOL-to-UTP Injection *}
 
-text {* At this point we could add axioms about our consts, but since
-        these are user checked I consider this too dangerous to the integrity of 
-        the Isabelle/UTP model. Instead we create the following definition
-        which encodes the required constraints over the constants, and will need
-        to be added as assumptions to proofs about definitions which use these 
-        constants. Without this we know nothing about the behaviour of constants. *}
+text {*
+  The following locale serves to link HOL types and values to UTP model types
+  and values. We cannot use a type class here as the linking functions range
+  over two type variables, one for the injected HOL type and another one for
+  the UTP model type. Type classes in Isabelle are limited to range over one
+  type variable only to guarantee decidability. Polymorphic constants provide
+  an easy way to create polymorphic functions, but some care is needed using
+  them. If associated definitions for the constants overlap, for instance,
+  Isabelle's type system may not be able to disambiguate them upon parsing.
+*}
 
-definition TypeUSound :: "'a::DEFINED itself \<Rightarrow> 'm::VALUE itself \<Rightarrow> bool" where
-"TypeUSound a m \<longleftrightarrow> (\<forall> x::'a. (InjU x :: 'm) : TypeU a) 
-                 \<and> (\<forall> x::'a. \<D> x \<longrightarrow> \<D> (InjU x :: 'm))
-                 \<and> (\<forall> x::'m. x :! TypeU a \<longrightarrow> \<D> (ProjU x :: 'a))
-                 \<and> (\<forall> x::'a. ProjU (InjU x :: 'm) = x)
-                 \<and> (\<forall> x :! TypeU a. (InjU (ProjU x :: 'a) :: 'm) = x)"
+text {*
+  FIXME: We need to defined some carefully thought-out rules to define what we
+  can and what we cannot have here. (Simon Foster)
+*}
 
-(* Can we deal without: (\<forall> x :! TypeU a. (InjU (ProjU x :: 'a) :: 'm) = x) *)
+consts
+-- {* Injects a HOL value into a given UTP model. *}
+  InjU  :: "'a::DEFINED \<Rightarrow> 'm::PRE_TYPED_MODEL uval"
+-- {* Extracts a HOL value from a given UTP model. *}
+  ProjU :: "'m::PRE_TYPED_MODEL uval \<Rightarrow> 'a"
+-- {* Yields the UTP model type of a HOL type. *}
+  TypeU :: "'a itself \<Rightarrow> 'm::PRE_TYPED_MODEL utype"
 
 syntax
-  "_TYPEU"      :: "type => logic"  ("(1TYPEU/(1'(_')))")
-  "_TYPEUSOUND" :: "type \<Rightarrow> type => logic"  ("(1TYPEUSOUND/(1'(_, _')))")
+  "_UTYPE" :: "type \<Rightarrow> logic" ("(1UTYPE/(1'(_')))")
+  "_TYPEU" :: "type \<Rightarrow> logic" ("(1TYPEU/(1'(_')))")
 
-translations 
-  "TYPEUSOUND('a, 'm)" == "CONST TypeUSound TYPE('a) TYPE('m)"
-  "TYPEU('a)" == "CONST TypeU TYPE('a)"
+translations
+  "UTYPE('a)" \<rightleftharpoons> "CONST TypeU TYPE('a)"
+  "TYPEU('a)" \<rightharpoonup> "UTYPE('a)" -- {* For compatibility. Remove eventually! *}
 
-text {* @{const TypeUSound} can be thought of as a two-parameter type
-        class which stores the properties of the above polymorphic
-        constants, namely that the given Isabelle type can be
-        constructed under the given sort constraints. For instance we could
-        declare @{term "TYPEUSOUND(int, 'm :: INT_SORT)"}. *}
+subsection {* Injection Locale *}
+
+text {*
+  We create the following locale to captures the required properties of the
+  injection and projection functions. These roughly correspond to the axioms
+  of a typedef but are geared towards the UTP model. The locale predicate is
+  then proved for various concrete injections of HOL types, and this provides
+  the basic reasoning support for polymorphic values, expressions, etc. over
+  arbitrary HOL types using a set of permissible HOL type constructors.
+*}
+
+(* Simon's original definition is now captured by the locale below. *)
+
+(*
+definition TypeUSound ::
+  "'a::DEFINED itself \<Rightarrow> 'm::PRE_TYPED_MODEL itself \<Rightarrow> bool" where
+"UTypedef t m \<longleftrightarrow>
+  (\<forall> x :: 'a . (InjU x :: 'm uval) : TypeU t) \<and>
+  (\<forall> x :: 'a . \<D> x \<longrightarrow> \<D>\<^sub>v (InjU x :: 'm uval)) \<and>
+  (\<forall> x :: 'm uval . x :! TypeU t \<longrightarrow> \<D> (ProjU x :: 'a)) \<and>
+  (\<forall> x :: 'a . ProjU (InjU x :: 'm uval) = x) \<and>
+  (\<forall> x :! TypeU t . (InjU (ProjU x::'a)::'m uval) = x)"
+*)
+
+(* Can we do without (\<forall> x :! TypeU a . (InjU (ProjU x :: 'a) :: 'm) = x) ? *)
+
+text {* TODO: Perhaps give the axioms below more meaningful names. *}
+
+locale UTypedef =
+  fixes hol_type :: "'a::DEFINED itself"
+  fixes utp_type :: "'m::PRE_TYPED_MODEL itself" 
+  assumes axm1 : "(\<forall> x :: 'a . (InjU x :: 'm uval) : UTYPE('a))"
+  assumes axm2 : "(\<forall> x :: 'a . \<D> x \<longrightarrow> \<D>\<^sub>v (InjU x :: 'm uval))"
+  assumes axm3 : "(\<forall> x :: 'm uval . x :! UTYPE('a) \<longrightarrow> \<D> (ProjU x :: 'a))"
+  assumes axm4 : "(\<forall> x :: 'a . ProjU (InjU x :: 'm uval) = x)"
+  assumes axm5 : "(\<forall> (x :: 'm uval) :! UTYPE('a) . (InjU (ProjU x :: 'a)) = x)"
+
+syntax
+  "_UTYPEDEF"   :: "type \<Rightarrow> type => logic" ("(1UTYPEDEF/(1'(_, _')))")
+  "_TYPEUSOUND" :: "type \<Rightarrow> type => logic" ("(1TYPEUSOUND/(1'(_, _')))")
+
+translations
+  "UTYPEDEF('a, 'm)"   \<rightleftharpoons> "CONST UTypedef TYPE('a) TYPE('m)"
+  "TYPEUSOUND('a, 'm)" \<rightharpoonup> "CONST UTypedef TYPE('a) TYPE('m)"
+
+context UTypedef
+begin
+
+paragraph {* Lemmas derived from the Axioms *}
+
+lemma InjU_typed [typing] :
+  shows "(InjU (x :: 'a) :: 'm uval) : UTYPE('a)"
+  by (metis axm1)
+
+lemma InjU_defined [defined] :
+  assumes "\<D> (x :: 'a)"
+  shows "\<D>\<^sub>v (InjU x :: 'm uval)"
+  by (metis assms axm2)
+
+lemma InjU_strictly_typed [typing] :
+  assumes "\<D> (x :: 'a)"
+  shows "(InjU x :: 'm uval) :! UTYPE('a)"
+apply (unfold strict_type_rel_def)
+apply (metis assms InjU_typed InjU_defined)
+done
+
+lemma ProjU_defined [defined] :
+  assumes "(x :: 'm uval) :! UTYPE('a)"
+  shows "\<D> (ProjU x :: 'a)"
+  by (metis assms axm3)
+
+lemma InjU_inverse [simp] :
+  shows "ProjU (InjU (x :: 'a) :: 'm uval) = x"
+  by (metis axm4)
+
+lemma ProjU_inverse [simp] :
+  assumes "(x :: 'm uval)  :! UTYPE('a)"
+  shows "(InjU (ProjU x :: 'a) :: 'm uval) = x"
+  by (metis (lifting, mono_tags) DTall_def assms axm5)
+
+lemma ProjU_InjU_comp [simp] :
+  shows "ProjU \<circ> (InjU :: 'a \<Rightarrow> 'm uval) = id"
+apply (rule ext)
+apply (unfold comp_def id_def)
+apply (rule InjU_inverse)
+done
+
+lemma InjU_inject [intro] :
+  assumes "(InjU x :: 'm uval) = (InjU y :: 'm uval)"
+  shows "(x :: 'a) = (y :: 'a)"
+  by (metis InjU_inverse assms)
+
+lemma ProjU_image_InjU [simp] :
+  shows "ProjU ` (InjU :: 'a \<Rightarrow> 'm uval) ` xs = xs"
+apply (fold image_compose)
+apply (subst ProjU_InjU_comp)
+apply (metis id_def image_id)
+done
+
+lemma InjU_image_ProjU [simp] :
+  assumes "xs \<subseteq> dcarrier UTYPE('a)"
+  shows "(InjU :: 'a \<Rightarrow> 'm uval) ` ProjU ` xs = xs"
+apply (safe)
+apply (simp_all)
+apply (metis ProjU_inverse assms dcarrier_def in_mono mem_Collect_eq)
+apply (unfold image_def)
+apply (clarsimp)
+apply (metis ProjU_inverse assms dcarrier_def in_mono mem_Collect_eq)
+done
+
+lemma ProjU_fimage_InjU [simp] :
+  shows "ProjU `\<^sub>f (InjU :: 'a \<Rightarrow> 'm uval) `\<^sub>f xs = xs"
+apply (transfer')
+apply (rule ProjU_image_InjU)
+done
+
+lemma InjU_fimage_ProjU [simp] :
+  assumes "\<langle>xs\<rangle>\<^sub>f \<subseteq> dcarrier UTYPE('a)"
+  shows "(InjU :: 'a \<Rightarrow> 'm uval) `\<^sub>f ProjU `\<^sub>f xs = xs"
+apply (insert assms)
+apply (transfer')
+apply (erule InjU_image_ProjU)
+done
+
+lemma map_InjU_ProjU [simp] :
+  assumes "set xs \<subseteq> dcarrier UTYPE('a)"
+  shows "map ((InjU :: 'a \<Rightarrow> 'm uval) \<circ> ProjU) xs = xs"
+apply (simp add: map_eq_conv [where g = "id", simplified])
+apply (metis ProjU_inverse assms dcarrier_def in_mono mem_Collect_eq)
+done
+end
+
+theorem UTypedef_intro [intro] :
+"\<lbrakk>\<And> (x :: 'a::DEFINED) . (InjU x :: 'm::PRE_TYPED_MODEL uval) : UTYPE('a);
+  \<And> (x :: 'a) . ProjU (InjU x :: 'm uval) = x;
+  \<And> x :: 'a . \<D> x \<Longrightarrow> \<D>\<^sub>v (InjU x :: 'm uval);
+  \<And> x :: 'm uval. x :! UTYPE('a) \<Longrightarrow> \<D> (ProjU x :: 'a);
+  \<And> x . x :! UTYPE('a) \<Longrightarrow> (InjU (ProjU x :: 'a) :: 'm uval) = x\<rbrakk> \<Longrightarrow>
+  UTYPEDEF('a::DEFINED, 'm::PRE_TYPED_MODEL)"
+  by (simp add: UTypedef_def)
+
+subsection {* Concrete Injections *}
+
+(***********************)
+(* REVIEWED UNTIL HERE *)
+(***********************)
+
+(* TODO: Review the following explanation and revise the layout. *)
 
 text {* The following defs are carefully crafted, there must no
-        overlap or \emph{potential} overlap.  That is to say it must
+        overlap or \emph{potential} overlap. That is to say it must
         not be possible to create a type class or instance which
-        renders them undisambiguable.  Basically the LHS (value type)
+        renders them undisambiguable. Basically the LHS (value type)
         of @{const InjU} / @{const TypeU} should define the
         \emph{concrete type} which is to mapped. It can be parametric,
         but I can't conceive of a situation when this would be a class
@@ -155,364 +233,260 @@ text {* The following defs are carefully crafted, there must no
         course @{typ bool} and the model type is @{typ "'m ::
         BOOL_SORT"}, since we need the ability to reconstruct the
         boolean in the model. Nevertheless these definitions
-        \emph{are} extensible, but a great deal of care is required! *}
-
-ML {*
-  structure inju =
-    Named_Thms (val name = @{binding inju} val description = "inju theorems")
+        \emph{are} extensible, but a great deal of care is required!
 *}
 
-setup inju.setup
+(* TODO: The TypeU definitions should not be in [simp] I think... *)
 
 defs (overloaded)
-  InjU_bool [inju]:  "InjU (x::bool) \<equiv> MkBool x"
-  ProjU_bool [inju]: "ProjU (x::('a::BOOL_SORT)) \<equiv> DestBool x"
-  TypeU_bool [simp]: "TypeU (x::bool itself) \<equiv> BoolType"
+  InjU_bool [inju] : "InjU (x :: bool) \<equiv> MkBool x"
+  ProjU_bool [inju] : "ProjU (x :: 'm::BOOL_SORT uval) \<equiv> DestBool x"
+  TypeU_bool [simp] : "TypeU (x :: bool itself) \<equiv> BoolType"
 
-  InjU_int [inju]:  "InjU (x::int) \<equiv> MkInt x"
-  ProjU_int [inju]: "ProjU (x::('a::INT_SORT)) \<equiv> DestInt x"
-  TypeU_int [simp]: "TypeU (x::int itself) \<equiv> IntType"
+  InjU_int [inju] : "InjU (x :: int) \<equiv> MkInt x"
+  ProjU_int [inju] : "ProjU (x :: 'm::INT_SORT uval) \<equiv> DestInt x"
+  TypeU_int [simp] : "TypeU (x::int itself) \<equiv> IntType"
 
-  InjU_real [inju]:  "InjU (x::real) \<equiv> MkReal x"
-  ProjU_real [inju]: "ProjU (x::('a::REAL_SORT)) \<equiv> DestReal x"
-  TypeU_real [simp]: "TypeU (x::real itself) \<equiv> RealType"
+  InjU_real [inju] :  "InjU (x :: real) \<equiv> MkReal x"
+  ProjU_real [inju] : "ProjU (x :: 'a::REAL_SORT uval) \<equiv> DestReal x"
+  TypeU_real [simp] : "TypeU (x :: real itself) \<equiv> RealType"
 
-  InjU_event [inju]:  "InjU (x::('m::EVENT_SORT) EVENT) \<equiv> (MkEvent x::'m)"
-  ProjU_event [inju]: "ProjU (x::('m::EVENT_SORT)) \<equiv> DestEvent x"
-  TypeU_event [simp]: "TypeU (x::('m::EVENT_SORT) EVENT itself) \<equiv> EventType::'m utype"
+  InjU_event [inju] :  "InjU (x :: 'm::EVENT_SORT event) \<equiv> MkEvent x"
+  ProjU_event [inju] : "ProjU (x :: 'm::EVENT_SORT uval) \<equiv> DestEvent x"
+  TypeU_event [simp] : "TypeU (x :: 'm::EVENT_SORT event itself) \<equiv> EventType"
 
-  InjU_ULIST [inju]: 
-    "InjU (xs::'a::DEFINED ULIST) \<equiv> MkList TYPEU('a) (map InjU (Rep_ULIST xs))"
-  ProjU_ULIST [inju]:
-    "ProjU (xs::('a::LIST_SORT)) \<equiv> Abs_ULIST (map ProjU (DestList xs))"
-  TypeU_ULIST [simp]:
-    "TypeU (x::('a ULIST) itself) \<equiv> ListType (TypeU TYPE('a))"
+  InjU_ULIST [inju] : "InjU (xs :: 'a::DEFINED ULIST) \<equiv> MkList UTYPE('a) (map InjU (Rep_ULIST xs))"
+  ProjU_ULIST [inju] : "ProjU (xs :: 'a::LIST_SORT uval) \<equiv> Abs_ULIST (map ProjU (DestList xs))"
+  TypeU_ULIST [simp] : "TypeU (x :: 'a ULIST itself) \<equiv> ListType (TypeU TYPE('a))"
 
-  InjU_UFSET [inju]: 
-    "InjU (xs::'a::DEFINED UFSET) \<equiv> MkFSet TYPEU('a) (InjU `\<^sub>f (Rep_UFSET xs))"
-  ProjU_UFSET [inju]:
-    "ProjU (xs::('a::FSET_SORT)) \<equiv> Abs_UFSET (ProjU `\<^sub>f (DestFSet xs))"
-  TypeU_UFSET [simp]:
-    "TypeU (x::('a UFSET) itself) \<equiv> FSetType (TypeU TYPE('a))"
+  InjU_USET [inju] : "InjU (xs :: 'a::DEFINED USET) \<equiv> MkSet UTYPE('a) (InjU ` (Rep_USET xs))"
+  ProjU_USET [inju] : "ProjU (xs :: ('a::SET_SORT uval)) \<equiv> Abs_USET (ProjU ` (DestSet xs))"
+  TypeU_USET [simp] : "TypeU (x :: ('a USET) itself) \<equiv> SetType (TypeU TYPE('a))"
 
-  InjU_USET [inju]: 
-    "InjU (xs::'a::DEFINED USET) \<equiv> MkSet TYPEU('a) (InjU ` (Rep_USET xs))"
-  ProjU_USET [inju]:
-    "ProjU (xs::('a::SET_SORT)) \<equiv> Abs_USET (ProjU ` (DestSet xs))"
-  TypeU_USET [simp]:
-    "TypeU (x::('a USET) itself) \<equiv> SetType (TypeU TYPE('a))"
+  InjU_UFSET [inju] : "InjU (xs :: 'a::DEFINED UFSET) \<equiv> MkFSet UTYPE('a) (InjU `\<^sub>f (Rep_UFSET xs))"
+  ProjU_UFSET [inju] : "ProjU (xs :: 'a::FSET_SORT uval) \<equiv> Abs_UFSET (ProjU `\<^sub>f (DestFSet xs))"
+  TypeU_UFSET [simp] : "TypeU (x::('a UFSET) itself) \<equiv> FSetType (TypeU TYPE('a))"
 
-  InjU_list [inju]: "InjU (xs::'a list) \<equiv> MkList (TypeU (TYPE('a))) (map InjU xs)"
-  ProjU_list [inju]: "ProjU (xs::('a::LIST_SORT)) \<equiv> map ProjU (DestList xs)"
-  TypeU_list [simp]: "TypeU (x::('a list) itself) \<equiv> ListType (TypeU TYPE('a))"
+  InjU_list [inju] : "InjU (xs :: 'a::DEFINED list) \<equiv> MkList (TypeU TYPE('a)) (map InjU xs)"
+  ProjU_list [inju] : "ProjU (xs :: 'a::LIST_SORT uval) \<equiv> map ProjU (DestList xs)"
+  TypeU_list [simp] : "TypeU (x :: 'a list itself) \<equiv> ListType (TypeU TYPE('a))"
 
-  InjU_fset [inju]: "InjU (xs::'a fset) \<equiv> MkFSet (TypeU (TYPE('a))) (InjU `\<^sub>f xs)"
-  ProjU_fset [inju]: "ProjU (xs::('a::FSET_SORT)) \<equiv> ProjU `\<^sub>f (DestFSet xs)"
-  TypeU_fset [simp]: "TypeU (x::('a fset) itself) \<equiv> FSetType (TypeU TYPE('a))"  
+  InjU_fset [inju] : "InjU (xs :: 'a::DEFINED fset) \<equiv> MkFSet (TypeU TYPE('a)) (InjU `\<^sub>f xs)"
+  ProjU_fset [inju] : "ProjU (xs :: 'a::FSET_SORT uval) \<equiv> ProjU `\<^sub>f (DestFSet xs)"
+  TypeU_fset [simp] : "TypeU (x :: 'a fset itself) \<equiv> FSetType (TypeU TYPE('a))"
 
-subsection {* @{const TypeUSound} rules *}
+lemma InjU_MkEvent [simp] :
+"InjU = MkEvent"
+  by (auto simp add: inju)
 
-lemma TypeUSound_intro [intro]:
-  "\<lbrakk> \<And> (x :: 'a :: DEFINED). (InjU x :: 'm) : TYPEU('a)
-   ; \<And> (x :: 'a). (ProjU (InjU x :: 'm) = x) 
-   ; \<And> x::'a. \<D> x \<Longrightarrow> \<D> (InjU x :: 'm)
-   ; \<And> x::'m. x :! TYPEU('a) \<Longrightarrow> \<D> (ProjU x :: 'a)
-   ; \<And> x. x :! TYPEU('a) \<Longrightarrow> (InjU (ProjU x :: 'a) :: 'm) = x \<rbrakk> \<Longrightarrow>
-   TYPEUSOUND('a, 'm :: VALUE)"
-  by (simp add:TypeUSound_def)
+lemma ProjU_DestEvent [simp] :
+"ProjU = DestEvent"
+  by (auto simp add: inju)
 
-lemma TypeUSound_InjU_type [typing]:
-  fixes x :: "'a :: DEFINED"
-  assumes "TYPEUSOUND('a, 'm :: VALUE)"
-  shows "(InjU x :: 'm) : TYPEU('a)"
-  using assms by (auto simp add:TypeUSound_def)
+text {*
+  The following instantiations make use of the sort constraints to discharge
+  the requirements of @{const UTypedef}.
+*}
 
-lemma TypeUSound_InjU_defined [defined]:
-  fixes x :: "'a :: DEFINED"
-  assumes "TYPEUSOUND('a, 'm :: VALUE)" "\<D> x"
-  shows "\<D> (InjU x :: 'm)"
-  using assms by (auto simp add:TypeUSound_def)
+lemma UTypedef_bool [typing] :
+"UTYPEDEF(bool, 'm::BOOL_SORT)"
+  by (force simp add: defined typing inju)
 
-lemma TypeUSound_InjU_dtype [typing]:
-  fixes x :: "'a :: DEFINED"
-  assumes "TYPEUSOUND('a, 'm :: VALUE)" "\<D> x"
-  shows "(InjU x :: 'm) :! TYPEU('a)"
-  using assms by (auto simp add:TypeUSound_def)
+lemma UTypedef_int [typing] :
+"UTYPEDEF(int, 'm::INT_SORT)"
+  by (force simp add: defined typing inju)
 
-lemma TypeUSound_ProjU_defined [defined]:
-  fixes x :: "'m :: VALUE"
-  assumes "TYPEUSOUND('a :: DEFINED, 'm)" "x :! TYPEU('a)"
-  shows "\<D> (ProjU x :: 'a)"
-  using assms by (simp add:TypeUSound_def)
+(*
+lemma UTypedef_char [typing] :
+"UTYPEDEF(char, 'm::CHAR_SORT)"
+  by (force simp add: defined typing inju)
+*)
 
-lemma TypeUSound_InjU_inv [simp]:
-  fixes x :: "'a :: DEFINED"
-  assumes "TYPEUSOUND('a, 'm :: VALUE)"
-  shows "ProjU (InjU x :: 'm) = x"
-  using assms by (auto simp add:TypeUSound_def)
+lemma UTypedef_real [typing] :
+"UTYPEDEF(real, 'm::REAL_SORT)"
+  by (force simp add: defined typing inju)
 
-lemma TypeUSound_InjU_inv_pf [simp]:
-  fixes x :: "'a :: DEFINED"
-  assumes "TYPEUSOUND('a, 'm :: VALUE)"
-  shows "(ProjU \<circ> (InjU :: 'a \<Rightarrow> 'm)) = id"
-  using assms by (auto simp add:TypeUSound_def)
+lemma UTypedef_Event [typing] :
+"UTYPEDEF('m event, 'm::EVENT_SORT)"
+  by (auto simp add: typing defined inju)
 
-lemma TypeUSound_InjU_inv_fimage [simp]:
-  fixes x :: "'a :: DEFINED"
-  assumes "TYPEUSOUND('a, 'm :: VALUE)"
-  shows "ProjU `\<^sub>f (InjU :: 'a \<Rightarrow> 'm) `\<^sub>f xs = xs"
-  using assms 
-  apply (auto)
-  apply (metis TypeUSound_InjU_inv image_iff)
+theorem UTypedef_ULIST [typing] :
+"UTYPEDEF('a::DEFINED, 'm::LIST_SORT) \<Longrightarrow>
+ UTYPEDEF('a::DEFINED ULIST, 'm::LIST_SORT)"
+apply (rule_tac UTypedef_intro)
+apply (unfold inju TypeU_ULIST)
+-- {* Subgoal 1 *}
+apply (rule MkList_typed)
+apply (transfer)
+apply (clarsimp)
+apply (metis UTypedef.axm1 UTypedef.axm2)
+-- {* Subgoal 2 *}
+apply (subst MkList_inverse)
+apply (clarsimp)
+apply (metis Rep_ULIST' UTypedef.axm1 UTypedef.axm2)
+apply (clarsimp simp: UTypedef.ProjU_InjU_comp)
+-- {* Subgoal 3 *}
+apply (subst MkList_defined)
+apply (clarsimp)
+apply (metis UTypedef.axm1 UTypedef.axm2 ULIST_elems_defined)
+-- {* Subgoal 4 *}
+apply (clarsimp)
+apply (metis defined_ULIST)
+-- {* Subgoal 5 *}
+apply (subst Abs_ULIST_inverse)
+apply (clarsimp)
+apply (metis UTypedef.axm3 in_DestList_strictly_typed strict_type_rel_def)
+apply (clarsimp)
+apply (metis DestList_inverse DestList_subset_dcarrier
+  UTypedef.map_InjU_ProjU strict_type_rel_def)
 done
 
-lemma TypeUSound_InjU_inj [intro]:
-  fixes x y :: "'a :: DEFINED"
-  assumes "TYPEUSOUND('a, 'm :: VALUE)" "(InjU x :: 'm) = InjU y"
-  shows "x = y"
-  using assms
-  by (simp add:TypeUSound_def, metis)
-
-lemma TypeUSound_ProjU_inv [simp]:
-  fixes x :: "'m :: VALUE"
-  assumes "TYPEUSOUND('a :: DEFINED, 'm :: VALUE)" "x :! TYPEU('a)"
-  shows "(InjU (ProjU x :: 'a) :: 'm) = x"
-  using assms by (auto simp add:TypeUSound_def)
-
-subsection {* Some basic instantiations *}
-
-text {* The following instantiations make use of the sort constraints
-        to discharge the requirements of @{const TypeUSound}. *}
-
-lemma TypeUSound_bool [typing]: "TYPEUSOUND(bool, 'm :: BOOL_SORT)"
-  by (force simp add: typing defined inju)
-
-lemma TypeUSound_int [typing]: "TYPEUSOUND(int, 'm :: INT_SORT)"
-  by (force simp add: typing defined inju)
-
-lemma TypeUSound_real [typing]: "TYPEUSOUND(real, 'm :: REAL_SORT)"
-  by (force simp add: typing defined inju)
-
-lemma TypeUSound_Event [typing]:
-  "TYPEUSOUND('m EVENT, 'm :: EVENT_SORT)"
-  by (auto simp add:typing defined inju)
-
-lemma map_InjU_ProjU [simp]:
-  assumes "TYPEUSOUND('a :: DEFINED, 'm::VALUE)" "set xs \<subseteq> dcarrier TYPEU('a)"
-  shows "map ((InjU :: 'a \<Rightarrow> 'm) \<circ> ProjU) xs = xs"
-  apply (simp add:map_eq_conv[where g="id",simplified])
-  apply (metis TypeUSound_ProjU_inv assms dtype_as_dcarrier set_mp)
+theorem UTypedef_USET [typing] :
+"UTYPEDEF('a::DEFINED, 'm::SET_SORT) \<Longrightarrow>
+ UTYPEDEF('a::DEFINED USET, 'm::SET_SORT)"
+apply (rule_tac UTypedef_intro)
+apply (unfold inju TypeU_USET)
+-- {* Subgoal 1 *}
+apply (rule MkSet_typed)
+apply (transfer)
+apply (clarsimp)
+apply (metis UTypedef.axm1 UTypedef.axm2)
+-- {* Subgoal 2 *}
+apply (subst MkSet_inverse)
+apply (clarsimp)
+apply (metis Rep_USET' UTypedef.axm1 UTypedef.axm2)
+apply (metis Rep_USET_inverse UTypedef.ProjU_image_InjU)
+-- {* Subgoal 3 *}
+apply (subst MkSet_defined)
+apply (clarsimp)
+apply (metis UTypedef.axm1 UTypedef.axm2 USET_elems_defined)
+-- {* Subgoal 4 *}
+apply (clarsimp)
+apply (metis defined_USET)
+-- {* Subgoal 5 *}
+apply (subst Abs_USET_inverse')
+apply (clarsimp)
+apply (metis (full_types) DestSet_inverse MkSet_defined UTypedef.axm3
+  WT_SET_member strict_type_rel_def)
+apply (clarsimp)
+apply (metis DestSet_inverse MkSet_defined UTypedef.InjU_image_ProjU
+  WT_SET_member dcarrier_member strict_type_rel_def subsetI)
 done
 
-lemma InjU_MkEvent [simp]: "InjU = MkEvent"
-  by (auto simp add:inju)
-
-lemma ProjU_DestEvent [simp]: "ProjU = DestEvent"
-  by (auto simp add:inju)
-
-lemma TypeUSound_ULIST [typing]: 
-  assumes 
-    "(TYPEU('a :: DEFINED) :: 'm utype) \<in> ListPerm" "TYPEUSOUND('a, 'm)"
-  shows "TYPEUSOUND('a ULIST, 'm :: LIST_SORT)"
-proof -
-
-  from assms
-  have "\<And> x::'a ULIST. MkList TYPEU('a) (map InjU (Rep_ULIST x)) :! (ListType TYPEU('a) :: 'm utype)"
-    apply (rule_tac typing)
-    apply (simp)
-    apply (auto simp add:dcarrier_def intro:typing)
-    apply (metis TypeUSound_InjU_defined ULIST_elems_defined)
-  done
-
-  with assms show ?thesis
-    apply (rule_tac TypeUSound_intro)
-    apply (auto simp add:inju)
-    apply (subgoal_tac "set (map InjU (Rep_ULIST x)) \<subseteq> (dcarrier TYPEU('a) :: 'm set)")
-    apply (simp)
-    apply (auto)
-    apply (metis TypeUSound_InjU_dtype ULIST_elems_defined dtype_as_dcarrier)
-    apply (auto simp add:defined)
-    apply (subgoal_tac "\<forall> y::'a \<in> set (map ProjU (DestList x)). \<D> y")
-    defer
-    apply (auto simp add:defined)[1]
-    apply (rule defined)
-    apply (simp)
-    apply (metis ListType_witness MkList_inv dcarrier_dtype set_mp)
-    apply (drule Abs_ULIST_inverse')
-    apply (simp)
-    apply (subgoal_tac "map ((InjU :: 'a \<Rightarrow> 'm) \<circ> ProjU) (DestList x :: 'm list) = map id (DestList x)")
-    apply (simp)
-    apply (metis ListType_elim MkList_inv)
-    apply (unfold map_eq_conv)
-    apply (auto)
-    apply (subgoal_tac "xa :! TYPEU('a)")
-    apply (metis TypeUSound_ProjU_inv)
-    apply (metis ListType_elim MkList_inv dtype_as_dcarrier in_mono)
-  done
-qed
-
-lemma fimage_InjU_ProjU [simp]:
-  assumes "TYPEUSOUND('a :: DEFINED, 'm::VALUE)" "\<langle>xs\<rangle>\<^sub>f \<subseteq> dcarrier TYPEU('a)"
-  shows "(InjU :: 'a \<Rightarrow> 'm) `\<^sub>f ProjU `\<^sub>f xs = xs"
-  apply (auto)
-  apply (metis TypeUSound_ProjU_inv assms(1) assms(2) dtype_as_dcarrier set_mp)
-  apply (metis (full_types) TypeUSound_ProjU_inv assms(1) assms(2) dcarrier_dtype imageI in_mono)
-done
-
-lemma Abs_UFSET_inverse'': "(\<forall>x \<in> \<langle>xs\<rangle>\<^sub>f. \<D> x) \<Longrightarrow> Rep_UFSET (Abs_UFSET xs) = xs"
+lemma Abs_UFSET_inverse'' :
+"\<forall> x \<in> \<langle>xs\<rangle>\<^sub>f . \<D> x \<Longrightarrow> Rep_UFSET (Abs_UFSET xs) = xs"
   by (metis Abs_UFSET_inverse')
 
-lemma TypeUSound_UFSET [typing]: 
-  assumes 
-    "(TYPEU('a :: DEFINED) :: 'm utype) \<in> FSetPerm" "TYPEUSOUND('a, 'm)"
-  shows "TYPEUSOUND('a UFSET, 'm :: FSET_SORT)"
-proof -
-
-  from assms
-  have "\<And> x::'a UFSET. MkFSet TYPEU('a) (InjU `\<^sub>f (Rep_UFSET x)) :! (FSetType TYPEU('a) :: 'm utype)"
-    apply (rule_tac typing)
-    apply (simp add: inju)
-    apply (auto simp add:dcarrier_def intro:typing)
-    apply (metis Rep_UFSET' TypeUSound_InjU_defined)
-  done
-
-  with assms show ?thesis
-    apply (rule_tac TypeUSound_intro)
-    apply (auto simp add:inju)
-    apply (subgoal_tac "\<langle>InjU `\<^sub>f (Rep_UFSET x)\<rangle>\<^sub>f \<subseteq> (dcarrier TYPEU('a) :: 'm set)")
-    apply (simp)
-    apply (subgoal_tac "\<langle>InjU `\<^sub>f (Rep_UFSET x)\<rangle>\<^sub>f \<subseteq> (dcarrier TYPEU('a) :: 'm set)")
-    apply (auto)
-    apply (metis Rep_UFSET' TypeUSound_InjU_dtype)
-    apply (auto simp add:defined)
-    apply (subgoal_tac "\<langle>InjU `\<^sub>f (Rep_UFSET x)\<rangle>\<^sub>f \<subseteq> (dcarrier TYPEU('a) :: 'm set)")
-    apply (auto simp add:defined)
-    apply (metis Rep_UFSET' TypeUSound_InjU_dtype)
-
-    apply (subgoal_tac "\<forall> y::'a \<in> \<langle>ProjU `\<^sub>f (DestFSet x)\<rangle>\<^sub>f. \<D> y")
-    defer
-    apply (auto simp add:defined)[1]
-    apply (rule defined)
-    apply (simp)
-    apply (metis FSetType_elim MkFSet_inv dcarrier_defined dcarrier_type dtype_relI in_mono)
-    apply (drule Abs_UFSET_inverse'')
-    apply (simp)
-    apply (subgoal_tac "(InjU :: 'a \<Rightarrow> 'm) `\<^sub>f ProjU `\<^sub>f (DestFSet x :: 'm fset) = (DestFSet x)")
-    apply (simp)
-    apply (metis FSetType_elim MkFSet_inv)
-    apply (auto)
-  done
-qed
-
-lemma image_InjU_ProjU [simp]:
-  assumes "TYPEUSOUND('a :: DEFINED, 'm::VALUE)" "xs \<subseteq> dcarrier TYPEU('a)"
-  shows "(InjU :: 'a \<Rightarrow> 'm) ` ProjU ` xs = xs"
-  apply (auto)
-  apply (metis TypeUSound_ProjU_inv assms(1) assms(2) dtype_as_dcarrier set_mp)
-  apply (metis TypeUSound_ProjU_inv assms(1) assms(2) dtype_as_dcarrier image_iff in_mono)
+theorem UTypedef_UFSET [typing] :
+"UTYPEDEF('a::DEFINED, 'm::FSET_SORT) \<Longrightarrow>
+ UTYPEDEF('a::DEFINED UFSET, 'm::FSET_SORT)"
+apply (rule_tac UTypedef_intro)
+apply (unfold inju TypeU_UFSET)
+-- {* Subgoal 1 *}
+apply (rule MkFSet_typed)
+apply (transfer)
+apply (clarsimp)
+apply (metis UTypedef.axm1 UTypedef.axm2)
+-- {* Subgoal 2 *}
+apply (subst MkFSet_inverse)
+apply (clarsimp)
+apply (metis Rep_UFSET' UTypedef.axm1 UTypedef.axm2)
+apply (clarsimp)
+apply (metis Rep_UFSET_inverse UTypedef.ProjU_fimage_InjU)
+-- {* Subgoal 3 *}
+apply (subst MkFSet_defined)
+apply (clarsimp)
+apply (metis Rep_UFSET' UTypedef.axm1 UTypedef.axm2)
+-- {* Subgoal 4 *}
+apply (clarsimp)
+apply (metis defined_UFSET)
+-- {* Subgoal 5 *}
+apply (erule FSetType_elim)
+apply (clarsimp)
+apply (subst Abs_UFSET_inverse'')
+-- {* Subgoal 5.1 *}
+apply (clarsimp)
+apply (metis UTypedef.ProjU_defined strict_type_rel_def)
+-- {* Subgoal 5.2 *}
+apply (subst UTypedef.InjU_fimage_ProjU)
+apply (simp_all)
+apply (metis dcarrier_member strict_type_rel_def subsetI)
 done
 
-lemma TypeUSound_USET [typing]: 
-  assumes 
-    "(TYPEU('a :: DEFINED) :: 'm utype) \<in> SetPerm" "TYPEUSOUND('a, 'm)"
-  shows "TYPEUSOUND('a USET, 'm :: SET_SORT)"
-proof -
-
-  from assms
-  have "\<And> x::'a USET. MkSet TYPEU('a) (InjU ` (Rep_USET x)) :! (SetType TYPEU('a) :: 'm utype)"
-    apply (rule_tac typing)
-    apply (simp)
-    apply (auto simp add:dcarrier_def intro:typing)
-    apply (metis Rep_USET' TypeUSound_InjU_defined)
-  done
-
-  with assms show ?thesis
-    apply (rule_tac TypeUSound_intro)
-    apply (auto simp add:inju)
-    apply (subgoal_tac "InjU ` (Rep_USET x) \<subseteq> (dcarrier TYPEU('a) :: 'm set)")
-    apply (simp)
-    apply (subgoal_tac "InjU ` (Rep_USET x) \<subseteq> (dcarrier TYPEU('a) :: 'm set)")
-    apply (auto)
-    apply (metis Rep_USET' TypeUSound_InjU_dtype)
-    apply (auto simp add:defined)
-    apply (subgoal_tac "InjU ` (Rep_USET x) \<subseteq> (dcarrier TYPEU('a) :: 'm set)")
-    apply (auto simp add:defined)
-    apply (metis (full_types) TypeUSound_InjU_inv imageI)
-    apply (metis TypeUSound_InjU_dtype USET_elems_defined)
-    apply (subgoal_tac "\<forall>y::'a \<in> (ProjU ` DestSet x). \<D> y")
-    apply (auto)
-    apply (erule SetType_elim)
-    apply (auto)
-    apply (metis TypeUSound_ProjU_defined dcarrier_defined dcarrier_type dtype_relI set_mp)
-  done
-qed
-
-(*
-    apply (auto)
-
-    apply (subgoal_tac "\<forall> y::'a \<in> \<langle>ProjU `\<^sub>f (DestFSet x)\<rangle>\<^sub>f. \<D> y")
-    defer
-    apply (auto simp add:defined)[1]
-    apply (rule defined)
-    apply (simp)
-    apply (metis FSetType_elim MkFSet_inv dcarrier_defined dcarrier_type dtype_relI in_mono)
-    apply (drule Abs_UFSET_inverse'')
-    apply (simp)
-*)
-
-(*
-lemma TypeUSound_list [typing]: 
-  "\<lbrakk> (TYPEU('a :: DEFINED) :: 'm UTYPE) \<in> ListPerm; TYPEUSOUND('a, 'm) \<rbrakk> 
-     \<Longrightarrow> TYPEUSOUND('a list, 'm :: LIST_SORT)"
-  apply (rule)
-  apply (simp_all)
-  apply (rule MkList_type)
-  apply (simp)
-  apply (auto simp add:dcarrier_def defined intro:typing)
-  apply (auto simp add:dcarrier_def TypeUSound_def)[1]
-  apply (rule typing, auto)
-  apply (subgoal_tac "set (map InjU x) \<subseteq> dcarrier (TYPEU('a) :: 'm UTYPE)")
-  apply (auto simp add:comp_def)
-done
-*)
-
-(*
-lemma TypeUSound_fset [typing]: 
-  "\<lbrakk> (TYPEU('a) :: 'm UTYPE) \<in> FSetPerm; TYPEUSOUND('a, 'm) \<rbrakk> 
-     \<Longrightarrow> TYPEUSOUND('a fset, 'm :: FSET_SORT)"
-  apply (simp add:dcarrier_def TypeUSound_def)
-  apply (rule)
-  apply (clarify)
-  apply (rule typing)
-  apply (force)
-  apply (force)
-  apply (clarify)
-  apply (subgoal_tac "\<langle>InjU `\<^sub>f x\<rangle>\<^sub>f \<subseteq> dcarrier (TYPEU('a) :: 'm UTYPE)")
-  apply (auto simp add:image_def)
+theorem UTypedef_list [typing] :
+"UTYPEDEF('a::DEFINED_TOTAL, 'm::LIST_SORT) \<Longrightarrow>
+ UTYPEDEF('a::DEFINED_TOTAL list, 'm::LIST_SORT)"
+apply (rule_tac UTypedef_intro)
+apply (unfold inju TypeU_list)
+-- {* Subgoal 1 *}
+apply (rule MkList_typed)
+apply (transfer)
+apply (clarsimp)
+apply (metis UTypedef.axm1 UTypedef.axm2 defined_total)
+-- {* Subgoal 2 *}
+apply (subst MkList_inverse)
+apply (clarsimp)
+apply (metis UTypedef.axm1 UTypedef.axm2 defined_total)
+apply (simp add: UTypedef.ProjU_InjU_comp)
+-- {* Subgoal 3 *}
+apply (subst MkList_defined)
+apply (clarsimp)
+apply (metis UTypedef.axm1 UTypedef.axm2 defined_list_def)
+-- {* Subgoal 4 *}
+apply (clarsimp)
+apply (metis defined_list_def defined_total)
+-- {* Subgoal 5 *}
+apply (clarsimp)
+apply (metis DestList_inverse DestList_subset_dcarrier UTypedef.map_InjU_ProjU
+  strict_type_rel_def)
 done
 
-lemma TypeUSound_Event [typing]:
-  "TYPEUSOUND('m EVENT, 'm :: EVENT_SORT)"
-  by (auto simp add:typing)
-*)
+theorem UTypedef_fset [typing] :
+"UTYPEDEF('a::DEFINED_TOTAL, 'm::FSET_SORT) \<Longrightarrow>
+ UTYPEDEF('a::DEFINED_TOTAL fset, 'm::FSET_SORT)"
+apply (rule_tac UTypedef_intro)
+apply (unfold inju TypeU_fset)
+-- {* Subgoal 1 *}
+apply (rule MkFSet_typed)
+apply (clarsimp)
+apply (metis UTypedef.axm1 UTypedef.axm2 defined_total)
+-- {* Subgoal 2 *}
+apply (subst MkFSet_inverse)
+apply (clarsimp)
+apply (metis UTypedef.axm1 UTypedef.axm2 defined_total)
+apply (clarsimp)
+apply (simp add: UTypedef.ProjU_image_InjU)
+-- {* Subgoal 3 *}
+apply (subst MkFSet_defined)
+apply (clarsimp)
+apply (metis UTypedef.axm1 UTypedef.axm2 defined_total)
+-- {* Subgoal 4 *}
+apply (clarsimp)
+apply (metis defined_fset_def defined_total)
+-- {* Subgoal 5 *}
+apply (erule FSetType_elim)
+apply (clarsimp)
+apply (subst UTypedef.InjU_fimage_ProjU)
+apply (simp_all)
+apply (metis dcarrier_member strict_type_rel_def subsetI)
+done
 
-definition psigma :: "'a \<Rightarrow> ('m::VALUE) SIGTYPE" where
-"psigma v = (\<Sigma> InjU v : TYPEU('a))"
+definition psigma :: "'a::DEFINED \<Rightarrow> 'm::TYPED_MODEL sigtype" where
+"psigma v = (\<Sigma> InjU v : UTYPE('a))"
 
-lemma sigtype_psigma [simp]:
+lemma sigtype_psigma [simp] :
   fixes x :: "'a :: DEFINED"
-  assumes "TYPEUSOUND('a, 'm :: VALUE)"
-  shows "sigtype (psigma x :: 'm SIGTYPE) = TYPEU('a)"
-  by (metis TypeUSound_InjU_type assms psigma_def sigtype)
+  assumes "UTYPEDEF('a, 'm :: TYPED_MODEL)"
+  shows "sigtype (psigma x :: 'm sigtype) = UTYPE('a)"
+  by (metis UTypedef.InjU_typed assms psigma_def sigtype)
 
-lemma sigvalue_psigma [simp]:
+lemma sigvalue_psigma [simp] :
   fixes x :: "'a :: DEFINED"
-  assumes "TYPEUSOUND('a, 'm :: VALUE)"
-  shows "sigvalue (psigma x :: 'm SIGTYPE) = InjU x"
-  apply (simp add:psigma_def)
+  assumes "UTYPEDEF('a, 'm :: TYPED_MODEL)"
+  shows "sigvalue (psigma x :: 'm sigtype) = InjU x"
+  apply (simp add: psigma_def)
   apply (subst sigvalue)
-  apply (rule typing)
-  apply (simp_all add:assms)
+  apply (metis UTypedef.axm1 assms)
+  apply (simp)
 done
-
 end

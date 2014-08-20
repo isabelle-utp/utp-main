@@ -25,7 +25,7 @@ definition B_pred :: "'a upred" where
 definition \<Phi> :: "'a upred \<Rightarrow> 'a upred" where
 "\<Phi>(P) = `RH(B_pred \<and> P)`"
 
-definition doA :: "('m EVENT, 'm) pexpr \<Rightarrow> 'm upred" where
+definition doA :: "('m event, 'm) pexpr \<Rightarrow> 'm upred" where
 "doA(a) = `\<Phi>(a \<notin> $ref\<acute> \<lhd> $wait\<acute> \<rhd> ($tr^\<langle>a\<rangle> =$tr\<acute>))`"
 
 definition alternative :: "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" ("_ +\<^bsub>ACP\<^esub> _") where
@@ -96,7 +96,15 @@ lemma ACP1_R1_commute:
 lemma ACP1_R2_commute: "ACP1(R2(P)) = R2(ACP1(P))" 
 proof -
   have "R2(ACP1(P)) = `R2(P) \<and> (\<langle>\<rangle> = ($tr\<acute> - $tr) \<Rightarrow> $wait\<acute>)`"
-    by (utp_poly_auto_tac, metis drop_eq_Nil)
+    apply (utp_poly_tac)
+    apply (subst UTypedef.InjU_inverse)
+    apply (metis UTypedef_Event UTypedef_ULIST)
+    apply (subst UTypedef.InjU_inverse)
+    apply (metis UTypedef_Event UTypedef_ULIST)
+    apply (auto)
+    apply (metis MinusUL.rep_eq NilUL.rep_eq)
+    apply (metis MinusUL.rep_eq NilUL.rep_eq)
+  done
 
   also have "... = `R2(P) \<and> ($tr \<le> $tr\<acute>) \<and> (\<langle>\<rangle> = ($tr\<acute> - $tr) \<Rightarrow> $wait\<acute>)`"
     by (smt AndP_assoc AndP_idem R1_def R2_def)

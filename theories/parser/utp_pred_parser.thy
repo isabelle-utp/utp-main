@@ -49,7 +49,7 @@ translations
   "_n_pexpr_brack e"             => "e"
   "_n_pexpr_subst e v x"         == "CONST PSubstPE e v x"
   "_n_pexpr_prime e"             == "CONST PermPE (CONST SS) e"
-  "_n_pexpr_erase e"             == "CONST ErasePE e" 
+  "_n_pexpr_erase e"             == "CONST ErasePE e"
   "_passign m (_pvar x) v"     == "CONST PAssignF_upd m x v"
   "_passign m (_pvars x xs) (_n_pexprs v vs)" == "_passign (_passign m x v) xs vs"
 
@@ -237,8 +237,9 @@ syntax
   "_n_pexpr_set_list"      :: "n_pexpr \<Rightarrow> n_pexpr" ("elems _")
   "_n_pexpr_intersync"     :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "\<parallel>\<^bsub>_\<^esub>" 75)
   "_n_pexpr_restrict"      :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "\<upharpoonright>" 70)
-  "_n_pexpr_event"         :: "NAME \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_.'(_')" 50)
-  "_n_pexpr_event_chan"    :: "n_pexpr \<Rightarrow> n_pexpr" ("chan _")
+  "_n_pexpr_event"         :: "name \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_.'(_')" 50)
+(* Modified by Frank Zeyda to avoid a clash with the channel type. *)
+  "_n_pexpr_event_chan"    :: "n_pexpr \<Rightarrow> n_pexpr" ("echan _")
 
 translations
   (* Basic logical operators *)
@@ -361,7 +362,7 @@ translations
   "_n_upred_ORDI1 x B"   == "CONST ORDI CONST UNIV (%x. B)"
   "_n_upred_ORDI x A B"  == "CONST ORDI A (%x. B)"
 
-default_sort VALUE
+default_sort BASE_MODEL
 
 (* Some regression tests *)
 
@@ -393,7 +394,7 @@ lemma "`({<1>,<2>} - {<1>}) \<subseteq> {<2>}`"
 lemma "`<1> \<in> elems \<langle><4>,<7>,<1>,<9>\<rangle>`"
   by (utp_poly_tac)
 
-term "|$x\<^bsub>0\<^esub>|"
+(* term "|$x\<^bsub>0\<^esub>|" *)
 
 lemma "|\<langle><1>,<2>,<3>\<rangle> \<upharpoonright> {\<guillemotleft>2\<guillemotright>}| = |\<langle><1>,<3>\<rangle>|"
   by (auto simp add:evalp typing defined)

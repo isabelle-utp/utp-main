@@ -57,11 +57,11 @@ lemma UNREST_NON_REL_VAR_PowerP:
   apply (metis ExistsP_SemiR_NON_REL_VAR_expand1 UNREST_as_ExistsP)
 done
 
-instantiation upred :: (VALUE) star_op
+instantiation upred :: (TYPED_MODEL) star_op
 begin
 
 definition star_upred :: "'a upred \<Rightarrow> 'a upred" where
-"star_upred p \<equiv> (\<Sqinter> { p ^ n | n. n \<in> UNIV})"
+"star_upred p \<equiv> (\<Sqinter>\<^sub>p { p ^ n | n. n \<in> UNIV})"
 
 instance ..
 
@@ -121,7 +121,7 @@ lemma UNREST_NON_REL_VAR_StarP:
   apply (metis UNREST_NON_REL_VAR_PowerP)
 done
 
-instantiation upred :: (VALUE) dioid
+instantiation upred :: (TYPED_MODEL) dioid
 begin
 
 instance
@@ -133,7 +133,7 @@ instance
 done
 end
 
-instantiation upred :: (VALUE) kleene_algebra
+instantiation upred :: (TYPED_MODEL) kleene_algebra
 begin
 
 instance proof
@@ -161,7 +161,7 @@ next
 qed (simp_all add: evalrr)
 end
 
-instance upred :: (VALUE) bounded_distributive_lattice ..
+instance upred :: (TYPED_MODEL) bounded_distributive_lattice ..
 
 lemma UNREST_StarP_coerce:
   "- vs \<sharp> p \<Longrightarrow> - vs \<sharp> ((p\<^sup>\<star>) ;\<^sub>R II\<^bsub>vs\<^esub>)"
@@ -204,6 +204,7 @@ lemma StarP_refines_WFP: "(\<mu> X \<bullet> II \<or>\<^sub>p (P ;\<^sub>R X)) \
   apply (auto simp add:evalrr EvalRR_StarP gfp_def)
   apply (metis EvalRR_StarP rel_kleene_algebra.star_unfoldl_eq subset_refl)
 done
+
 lemma SFP_refines_StarP: "P\<^sup>\<star> \<sqsubseteq> (\<nu> X \<bullet> II \<or>\<^sub>p (P ;\<^sub>R X))"
   apply (rule lfp_lowerbound)
   apply (metis OrP_refine left_near_kleene_algebra_class.star_1l left_near_kleene_algebra_class.star_ref one_upred_def times_upred_def)
@@ -357,7 +358,7 @@ lemma "(\<And> P :: 'a upred. F(P) \<sqsubseteq> G(P)) \<Longrightarrow> \<nu> F
   apply (drule_tac x="b" in spec)
 *)
 
-lemma SupP_conj: "ps \<noteq> {} \<Longrightarrow> (\<Squnion> ps) \<and>\<^sub>p q = \<Squnion> {p \<and>\<^sub>p q | p. p \<in> ps}"
+lemma SupP_conj: "ps \<noteq> {} \<Longrightarrow> (\<Squnion>\<^sub>p ps) \<and>\<^sub>p q = \<Squnion>\<^sub>p {p \<and>\<^sub>p q | p. p \<in> ps}"
   apply (subgoal_tac "{p \<and>\<^sub>p q | p. p \<in> ps} \<noteq> {}")
   apply (utp_rel_tac)
   apply (subst Int_ac(3))
@@ -390,5 +391,4 @@ lemma IterP_refines_SFP:
 shows "(\<nu> X \<bullet> ((P ;\<^sub>R X) \<lhd> b \<rhd> II)) \<sqsubseteq> while b do P od"
   apply (simp add:IterP_def StarP_as_SFP)
 oops
- 
 end

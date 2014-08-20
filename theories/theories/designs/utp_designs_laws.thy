@@ -25,27 +25,37 @@ theorem DesignD_assumption:
   assumes "{ok\<down>\<acute>} \<sharp> P"
   shows "`\<not> (P \<turnstile> Q)\<^sup>f` = `P \<and> $ok`"
   using assms
-  by (utp_poly_auto_tac)
+  apply (utp_poly_auto_tac)
+  apply (simp add: inju)
+  done
 
 theorem DesignD_assumption_alt:
   assumes "OKAY \<sharp> P"
   shows "`\<not> (P \<turnstile> Q)\<^bsup>tf\<^esup>` = `P`"
   using assms
-  by (utp_poly_auto_tac)
+  apply (utp_poly_auto_tac)
+  apply (simp_all add: inju)
+  done
 
 theorem DesignD_commitment:
   assumes
     "OKAY \<sharp> P" 
     "OKAY \<sharp> Q" 
   shows "`(P \<turnstile> Q)\<^sup>t` = `($ok \<and> P \<Rightarrow> Q)`"
-  using assms by (utp_poly_auto_tac)
+  using assms
+  apply (utp_poly_auto_tac)
+  apply (simp add: inju)
+  done
 
 theorem DesignD_commitment_alt:
   assumes
     "OKAY \<sharp> P" 
     "OKAY \<sharp> Q" 
   shows "`(P \<turnstile> Q)\<^bsup>tt\<^esup>` = `P \<Rightarrow> Q`"
-  using assms by (utp_poly_auto_tac)
+  using assms
+  apply (utp_poly_auto_tac)
+  apply (simp add: inju)
+  done
 
 theorem DesignD_export_precondition:
   "(P \<turnstile> Q) = (P \<turnstile> P \<and>\<^sub>p Q)"
@@ -198,7 +208,7 @@ theorem DesignD_AndDistP:
 text {* The choice of two designs conjoins the assumptions and disjoins the commitments *}
 
 theorem DesignD_choice:
-  "(P1 \<turnstile> Q1) \<sqinter> (P2 \<turnstile> Q2) = `(P1 \<and> P2 \<turnstile> Q1 \<or> Q2)`"
+  "(P1 \<turnstile> Q1) \<sqinter>\<^sub>p (P2 \<turnstile> Q2) = `(P1 \<and> P2 \<turnstile> Q1 \<or> Q2)`"
   by (utp_pred_auto_tac)
 
 theorem DesignD_cond:
@@ -339,7 +349,9 @@ theorem ParallelD_DesignD:
     "OKAY \<sharp> Q2"
   shows "`(P1 \<turnstile> P2) \<parallel> (Q1 \<turnstile> Q2)` = `(P1 \<and> Q1) \<turnstile> (P2 \<and> Q2)`"
   using assms 
-  by (utp_poly_auto_tac)
+  apply (utp_poly_auto_tac)
+  apply (simp_all add: inju)
+  done
 
 theorem ParallelD_comm:
   "P \<parallel> Q = Q \<parallel> P"
@@ -348,6 +360,7 @@ theorem ParallelD_comm:
 theorem ParallelD_assoc:
   fixes P :: "'a upred"
   shows "P \<parallel> Q \<parallel> R = (P \<parallel> Q) \<parallel> R"
-  by (utp_poly_auto_tac)
-
+  apply (utp_poly_auto_tac)
+  apply (simp_all add: inju)
+  done
 end

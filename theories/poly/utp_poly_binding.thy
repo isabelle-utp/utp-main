@@ -15,12 +15,12 @@ imports
 begin
 
 definition Rep_binding_ty :: 
-  "'m binding \<Rightarrow> ('a :: DEFINED, 'm :: VALUE) pvar \<Rightarrow> 'a" ("\<langle>_\<rangle>\<^sub>*") where
+  "'m binding \<Rightarrow> ('a::DEFINED, 'm::TYPED_MODEL) pvar \<Rightarrow> 'a" ("\<langle>_\<rangle>\<^sub>*") where
 "Rep_binding_ty b x = ProjU (\<langle>b\<rangle>\<^sub>b x\<down>)"
 
 definition binding_upd_ty :: 
   "'m binding \<Rightarrow>
-   ('a :: DEFINED, 'm :: VALUE) pvar \<Rightarrow>
+   ('a :: DEFINED, 'm :: TYPED_MODEL) pvar \<Rightarrow>
    'a \<Rightarrow>
    'm binding" where
 "binding_upd_ty b x v = binding_upd b (x\<down>) (InjU v)"
@@ -41,13 +41,14 @@ translations
    to identical sound types. *)
 
 lemma binding_upd_apply_ty [simp]: 
-  fixes x :: "('a :: DEFINED , 'm :: VALUE) pvar"
-  and   y :: "('b :: DEFINED, 'm) pvar"
-  shows "\<langle>f(x:=\<^sub>*v)\<rangle>\<^sub>* y = (if (x\<down>)=(y\<down>) then ProjU (vcoerce (InjU v :: 'm) x\<down>) else \<langle>f\<rangle>\<^sub>* y)"
+  fixes x :: "('a::DEFINED , 'm::TYPED_MODEL) pvar"
+  and   y :: "('b::DEFINED, 'm::TYPED_MODEL) pvar"
+  shows "\<langle>f(x:=\<^sub>*v)\<rangle>\<^sub>* y =
+    (if (x\<down>)=(y\<down>) then ProjU (vcoerce (InjU v :: 'm uval) x\<down>) else \<langle>f\<rangle>\<^sub>* y)"
   by (auto simp add:Rep_binding_ty_def binding_upd_ty_def typing assms)
 
 lemma binding_upd_upd_ty [simp]: 
-  fixes x :: "('a :: DEFINED , 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED , 'm :: TYPED_MODEL) pvar"
   shows "f(x:=\<^sub>*y,x:=\<^sub>*z) = f(x:=\<^sub>*z)"
   by (simp add:binding_upd_ty_def)
 
@@ -56,15 +57,18 @@ lemma WF_REL_BINDING_binding_upd_ty [closure]:
   by (simp add:binding_upd_ty_def closure typing)
 
 lemma Rep_binding_ty_pvaux_defined [defined]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
-  assumes "TYPEUSOUND('a, 'm)" "pvaux x"
+  fixes x :: "('a::DEFINED, 'm::TYPED_MODEL) pvar"
+  assumes "TYPEUSOUND('a, 'm)"
+  assumes "pvaux x"
   shows "\<D> (\<langle>b\<rangle>\<^sub>* x)"
-  by (auto intro:defined typing assms simp add:Rep_binding_ty_def)
+apply (insert assms)
+apply (metis PVAR_binding_aux_stype Rep_binding_ty_def UTypedef.ProjU_defined)
+done
 
 (* Some useful simplifications *)
 
 lemma binding_override_ty_UNDASHED [simp]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "TYPEUSOUND('a, 'm)" "x \<in> PUNDASHED"
   shows "\<langle>b \<oplus>\<^sub>b b' on D\<^sub>2\<rangle>\<^sub>* x = \<langle>b\<rangle>\<^sub>* x"
   apply (simp add:Rep_binding_ty_def)
@@ -72,7 +76,7 @@ lemma binding_override_ty_UNDASHED [simp]:
 done
 
 lemma binding_override_ty_dash [simp]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "TYPEUSOUND('a, 'm)" "x \<in> PUNDASHED"
   shows "\<langle>b \<oplus>\<^sub>b b' on D\<^sub>2\<rangle>\<^sub>* x\<acute> = \<langle>b\<rangle>\<^sub>* x\<acute>"
   apply (simp add:Rep_binding_ty_def)
@@ -80,7 +84,7 @@ lemma binding_override_ty_dash [simp]:
 done
 
 lemma binding_override_ty_dash_dash [simp]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "TYPEUSOUND('a, 'm)" "x \<in> PUNDASHED"
   shows "\<langle>b \<oplus>\<^sub>b b' on D\<^sub>2\<rangle>\<^sub>* x\<acute>\<acute> = \<langle>b'\<rangle>\<^sub>* x\<acute>\<acute>"
   apply (simp add:Rep_binding_ty_def)
@@ -104,7 +108,7 @@ lemma binding_equiv_ty_reduce_right [simp]:
   by (auto simp add:binding_upd_ty_def typing defined)
 
 lemma EvalP_UNREST_binding_upd_ty [evalp]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "vs \<sharp> P" "x\<down> \<in> vs"
   shows "\<lbrakk>P\<rbrakk>(b(x :=\<^sub>* v)) = \<lbrakk>P\<rbrakk>b"
   using assms
@@ -120,20 +124,22 @@ lemma binding_upd_ty_nty [simp]:
   by (metis binding_upd_ty_def binding_upd_upd)
 
 lemma binding_upd_ty_triv [simp]:
-  fixes x :: "('a::DEFINED, 'm::VALUE) pvar"
+  fixes x :: "('a::DEFINED, 'm::TYPED_MODEL) pvar"
   assumes "TYPEUSOUND('a, 'm)" "\<D>(\<langle>b\<rangle>\<^sub>b x\<down>)"
   shows "b(x :=\<^sub>* \<langle>b\<rangle>\<^sub>* x) = b"
   using assms
   apply (simp add:binding_upd_ty_def Rep_binding_ty_def)
-  apply (subst TypeUSound_ProjU_inv)
-  apply (auto simp add:dtype_rel_def)
+  apply (subst UTypedef.ProjU_inverse)
+  apply (metis)
+  apply (metis PVAR_VAR_vtype binding_type defined_uval_def strict_type_rel_def)
+  apply (metis binding_upd_triv)
+(* apply (auto simp add:strict_type_rel_def) *)
 done
 
 lemma Rep_binding_ty_compat [typing]: 
-  fixes x :: "('a::DEFINED, 'm::VALUE) pvar"
+  fixes x :: "('a::DEFINED, 'm::TYPED_MODEL) pvar"
   assumes "TYPEUSOUND('a, 'm)"
   shows "\<langle>b\<rangle>\<^sub>*x \<rhd>\<^sub>p x"
   using assms
-  by (auto simp add:pvar_compat_def defined)
-
+  by (simp add: pvar_compat_def defined)
 end

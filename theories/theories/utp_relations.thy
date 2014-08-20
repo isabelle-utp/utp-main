@@ -11,7 +11,7 @@ imports
   "utp_theory"
 begin
 
-default_sort VALUE
+default_sort TYPED_MODEL
 
 subsection {* Relational Healthiness Condition *}
 

@@ -10,10 +10,11 @@ header {* Meta-Theory for the Core Model *}
 theory utp_core
 imports
   utp_event
-  utp_names
+  utp_name
   utp_synonyms
-  utp_sorts
-  utp_value
+  utp_sorts_new
+(* utp_value *)
+  utp_model
   utp_var
   utp_pred
   utp_rename

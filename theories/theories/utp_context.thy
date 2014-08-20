@@ -28,11 +28,11 @@ abbreviation "SupTS TS \<equiv> SupT (thy TS) (alpha TS)"
 abbreviation "InfTS TS \<equiv> InfT (thy TS) (alpha TS)"
 
 abbreviation WfpTS :: 
-  "('a::VALUE, 'b) thy_struct_scheme \<Rightarrow> ('a uapred \<Rightarrow> 'a uapred) \<Rightarrow> 'a uapred" ("\<mu>\<index>")
+  "('a::TYPED_MODEL, 'b) thy_struct_scheme \<Rightarrow> ('a uapred \<Rightarrow> 'a uapred) \<Rightarrow> 'a uapred" ("\<mu>\<index>")
 where "WfpTS TS \<equiv> GfpT (thy TS) (alpha TS)"
 
 abbreviation SfpTS :: 
-  "('a::VALUE, 'b) thy_struct_scheme \<Rightarrow> ('a uapred \<Rightarrow> 'a uapred) \<Rightarrow> 'a uapred" ("\<nu>\<index>")
+  "('a::TYPED_MODEL, 'b) thy_struct_scheme \<Rightarrow> ('a uapred \<Rightarrow> 'a uapred) \<Rightarrow> 'a uapred" ("\<nu>\<index>")
 where "SfpTS TS \<equiv> LfpT (thy TS) (alpha TS)"
 
 no_syntax
@@ -75,10 +75,10 @@ no_notation
   WFP ("\<mu>") and SFP ("\<nu>")
 
 locale UTP_CTX =
-  fixes US :: "('m::VALUE, 'e::type) utp_struct_scheme" (structure)
+  fixes US :: "('m::TYPED_MODEL, 'e::type) utp_struct_scheme" (structure)
 
 locale UTP_THY_CTX = 
-  UTP_CTX "US" for US :: "('m::VALUE, 'e::type) thy_struct_scheme" (structure) +
+  UTP_CTX "US" for US :: "('m::TYPED_MODEL, 'e::type) thy_struct_scheme" (structure) +
   assumes thy_is_theory: "UTP_THEORY \<T>" and alpha_of_theory: "\<Sigma> \<in> alphas \<T>"
 
 locale UTP_THY_LAT_CTX =

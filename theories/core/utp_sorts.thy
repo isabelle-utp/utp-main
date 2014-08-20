@@ -9,8 +9,9 @@ header {* Value Sorts *}
 theory utp_sorts
 imports 
   "../utp_common" 
-  utp_names
-  utp_event
+  utp_name
+(* Commented out by Frank Zeyda to avoid clash with utp_model. *)
+(* utp_event *)
   utp_value
 begin
 
@@ -189,8 +190,8 @@ end
 subsection {* Name Sort *}
 
 class NAME_SORT = VALUE +
-  fixes MkNm :: "NAME \<Rightarrow> 'a"
-  fixes DestNm :: "'a \<Rightarrow> NAME"
+  fixes MkNm :: "name \<Rightarrow> 'a"
+  fixes DestNm :: "'a \<Rightarrow> name"
   fixes NmType  :: "'a utype"
   assumes Inverse [simp] : "DestNm (MkNm b) = b"
   and     MkNm_dcarrier: "dcarrier NmType = range MkNm"
@@ -391,8 +392,11 @@ class BOOL_FSET_SORT = BOOL_SORT + FSET_SORT +
 class INT_FSET_SORT = INT_SORT + FSET_SORT +
   assumes IntType_FSetPerm [closure]: "IntType \<in> FSetPerm"
 
-class EVENT_FSET_SORT = EVENT_SORT + FSET_SORT +
+(* Commented out by Frank Zeyda to avoid clash with utp_model. *)
+
+(* class EVENT_FSET_SORT = EVENT_SORT + FSET_SORT +
   assumes EventType_FSetPerm [closure]: "EventType \<in> FSetPerm"
+*)
 
 class STRING_FSET_SORT = STRING_SORT + FSET_SORT +
   assumes StringType_FSetPerm [closure]: "StringType \<in> FSetPerm"
@@ -437,8 +441,11 @@ definition NotMemberV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 
 end
 
-class EVENT_SET_SORT = EVENT_SORT + SET_SORT +
+(* Commented out by Frank Zeyda to avoid clash with utp_model. *)
+
+(* class EVENT_SET_SORT = EVENT_SORT + SET_SORT +
   assumes EventType_SetPerm [closure]: "EventType \<in> SetPerm"
+*)
 
 subsection {* List Sort *}
 
@@ -608,8 +615,11 @@ class BOOL_LIST_SORT = BOOL_SORT + LIST_SORT +
 class INT_LIST_SORT = INT_SORT + LIST_SORT +
   assumes IntType_ListPerm [closure]: "IntType \<in> ListPerm"
 
-class EVENT_LIST_SORT = EVENT_SORT + LIST_SORT +
+(* Commented out by Frank Zeyda to avoid clash with utp_model. *)
+
+(* class EVENT_LIST_SORT = EVENT_SORT + LIST_SORT +
   assumes EventType_ListPerm [closure]: "EventType \<in> ListPerm"
+*)
 
 class STRING_LIST_SORT = STRING_SORT + LIST_SORT +
   assumes StringType_ListPerm [closure]: "StringType \<in> ListPerm"
@@ -719,10 +729,11 @@ class REACTIVE_SORT =
   LIST_SORT + 
   FSET_SORT + 
   SET_SORT +
-  EVENT_SORT + 
-  EVENT_LIST_SORT + 
-  EVENT_FSET_SORT +
-  EVENT_SET_SORT +
+(* Commented out by Frank Zeyda to avoid clash with utp_model. *)
+(* EVENT_SORT + *)
+(* EVENT_LIST_SORT + *)
+(* EVENT_FSET_SORT + *)
+(* EVENT_SET_SORT + *)
   assumes FSetPerm_ListPerm [closure]: "a \<in> ListPerm \<Longrightarrow> ListType a \<in> FSetPerm"
 
 end

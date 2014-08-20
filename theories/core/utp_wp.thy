@@ -63,17 +63,18 @@ theorem OrP_wp [wp]:
   by (metis (no_types) SemiR_OrP_distr WeakPrecondP_def demorgan1)
 
 theorem ChoiceP_wp [wp]:
-  "(P \<sqinter> Q) wp r = (P wp r) \<and>\<^sub>p (Q wp r)"
+  "(P \<sqinter>\<^sub>p Q) wp r = (P wp r) \<and>\<^sub>p (Q wp r)"
   by (simp add:sup_upred_def wp)
 
 theorem ImpliesP_precond_wp: "`[r \<Rightarrow> s]` \<Longrightarrow> `[(Q wp r) \<Rightarrow> (Q wp s)]`"
-  by (metis ConjP_wp RefP_AndP RefP_def less_eq_upred_def)
+  by (metis ConjP_wp RefP_AndP RefP_def RefineP_taut)
 
 theorem ImpliesP_pred_wp: "`[Q \<Rightarrow> S]` \<Longrightarrow> `[(S wp r) \<Rightarrow> (Q wp r)]`"
-  by (metis OrP_comm OrP_wp RefP_def inf_upred_def le_iff_inf le_iff_sup less_eq_upred_def sup_upred_def)
+  by (metis AndP_comm OrP_wp RefP_AndP RefP_def RefineP_seperation RefineP_taut
+    WF_PREDICATE_cases dual_order.order_iff_strict)
 
 theorem RefineP_precond_wp: "`[r \<Rightarrow> s]` \<Longrightarrow> Q wp s \<sqsubseteq> Q wp r"
-  by (metis ImpliesP_precond_wp RefP_def less_eq_upred_def)
+  by (metis ImpliesP_precond_wp RefP_def RefineP_taut)
 
 theorem RefineP_pred_wp: "S \<sqsubseteq> Q \<Longrightarrow> Q wp r \<sqsubseteq> S wp r"
   by (metis OrP_wp RefP_AndP le_iff_sup sup_upred_def)

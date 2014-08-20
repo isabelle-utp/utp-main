@@ -4,10 +4,10 @@
 (* Author: Simon Foster & Frank Zeyda, University of York (UK)                *)
 (******************************************************************************)
 
-header {* Meta-theory for Library Imports *}
+header {* Meta-theory for Imports *}
 
 theory utp_imports
-imports
+imports "~~/src/HOL/BNF/BNF"
   Main
   Real
   Countable
@@ -16,6 +16,7 @@ imports
   Adhoc_Overloading
   Sublist
   "utils/Library_extra"
+  "utils/Unit_ord"
   "utils/infinity"
 begin
 end

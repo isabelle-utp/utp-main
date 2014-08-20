@@ -16,9 +16,9 @@ imports
 (*  "../theories/utp_context" *)
 begin
 
-default_sort VALUE
+default_sort TYPED_MODEL
 
-instantiation uapred :: (VALUE) star_op
+instantiation uapred :: (TYPED_MODEL) star_op
 begin
 
 lift_definition star_uapred :: "'a uapred \<Rightarrow> 'a uapred"

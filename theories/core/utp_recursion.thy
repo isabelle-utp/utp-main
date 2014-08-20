@@ -93,7 +93,7 @@ theorem WFP_unfold: "mono F \<Longrightarrow> \<mu> F = F(\<mu> F)"
   by (metis gfp_unfold)
 
 theorem WFP_id: "(\<mu> X \<bullet> X) = true"
-  by (metis WFP top_upred_def top_unique)
+  by (metis WFP eq_iff less_eq_upred_def utp_pred_simps(14))
 
 theorem SFP: "S \<sqsubseteq> F(S) \<Longrightarrow> S \<sqsubseteq> \<nu> F"
   by (metis lfp_lowerbound)
@@ -102,7 +102,7 @@ theorem SFP_unfold: "mono F \<Longrightarrow> F (\<nu> F) = \<nu> F"
   by (metis lfp_unfold)
 
 theorem SFP_id: "(\<nu> X \<bullet> X) = false"
-  by (metis SFP bot_upred_def bot_unique)
+  by (metis OrP_ref eq_iff lfp_lowerbound utp_pred_simps(10))
 
 lemma UNREST_WFP:
   "\<lbrakk> \<And> x. vs \<sharp> (F x); mono F \<rbrakk> \<Longrightarrow> UNREST vs (\<mu> F)"

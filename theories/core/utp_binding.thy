@@ -7,85 +7,87 @@
 header {* Variable Bindings *}
 
 theory utp_binding
-imports 
-  utp_synonyms 
-  utp_value 
-  utp_sorts 
+imports
   utp_var
+  utp_model
 begin
+
+default_sort (*PRE_*)TYPED_MODEL
 
 subsection {* Value Compatibility *}
 
 text {* Can the given value be placed into the given variable? *}
 
-definition var_compat :: "'a \<Rightarrow> 'a uvar \<Rightarrow> bool" (infix "\<rhd>" 50) where
-"v \<rhd> x \<equiv> v : vtype x \<and> (aux x \<longrightarrow> \<D> v)"
+definition var_compat :: "'m uval \<Rightarrow> 'm uvar \<Rightarrow> bool" (infix "\<rhd>" 50) where
+"x \<rhd> v \<longleftrightarrow> x : vtype v \<and> (aux v \<longrightarrow> \<D>\<^sub>v x)"
 
-lemma var_compat_intros [intro]:
-  "\<lbrakk> v : vtype x; \<D> v \<rbrakk> \<Longrightarrow> v \<rhd> x"
-  "\<lbrakk> v : vtype x; \<not> aux x \<rbrakk> \<Longrightarrow> v \<rhd> x"
-  by (simp_all add:var_compat_def)
+lemma var_compat_intros [intro] :
+"\<lbrakk>v : vtype x; \<D>\<^sub>v v\<rbrakk> \<Longrightarrow> v \<rhd> x"
+"\<lbrakk>v : vtype x; \<not> aux x\<rbrakk> \<Longrightarrow> v \<rhd> x"
+  by (simp_all add: var_compat_def)
 
-lemma var_compat_cases [elim]:
-  "\<lbrakk> v \<rhd> x; \<lbrakk> v : vtype x; \<D> v \<rbrakk> \<Longrightarrow> P
-          ; \<lbrakk> v : vtype x; \<not> aux x \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (auto simp add:var_compat_def)
+lemma var_compat_cases [elim] :
+"\<lbrakk>v \<rhd> x; \<lbrakk>v : vtype x; \<D>\<^sub>v v\<rbrakk> \<Longrightarrow> P; \<lbrakk>v : vtype x; \<not> aux x\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  by (auto simp add: var_compat_def)
 
 lemma var_compat_typing [typing]:
-  "v \<rhd> x \<Longrightarrow> v : vtype x"
-  by (auto simp add:var_compat_def)
+"v \<rhd> x \<Longrightarrow> v : vtype x"
+  by (auto simp add: var_compat_def)
 
 lemma var_compat_defined [defined]:
-  "\<lbrakk> v \<rhd> x; aux x \<rbrakk> \<Longrightarrow> \<D> v"
-  by (auto simp add:var_compat_def)  
+"\<lbrakk>v \<rhd> x; aux x\<rbrakk> \<Longrightarrow> \<D>\<^sub>v v"
+  by (auto simp add: var_compat_def)
 
 lemma var_compat_default [typing]:
   "default (vtype x) \<rhd> x"
-  by (auto intro:typing defined)
+apply (unfold var_compat_def)
+apply (simp add: typing defined)
+done
 
 lemma var_compat_dash [typing]:
-  "v \<rhd> x \<Longrightarrow> v \<rhd> x\<acute>"
-  by (simp add:var_compat_def)
+"v \<rhd> x \<Longrightarrow> v \<rhd> x\<acute>"
+  by (simp add: var_compat_def)
 
 lemma var_compat_undash [typing]:
-  "v \<rhd> x \<Longrightarrow> v \<rhd> undash x"
-  by (simp add:var_compat_def)
+"v \<rhd> x \<Longrightarrow> v \<rhd> undash x"
+  by (simp add: var_compat_def)
 
 subsection {* Variable coercison *}
 
-definition vcoerce :: "'a \<Rightarrow> 'a uvar \<Rightarrow> 'a" where
+definition vcoerce :: "'m uval \<Rightarrow> 'm uvar \<Rightarrow> 'm uval" where
 "vcoerce v x = (if (v \<rhd> x) then v else default (vtype x))"
 
-lemma vcoerce_compat [typing]:
-  "vcoerce v x \<rhd> x"
+lemma vcoerce_compat [typing] :
+"vcoerce v x \<rhd> x"
   by (simp add:vcoerce_def var_compat_default)
 
-lemma vcoerce_reduce1 [simp]:
-  "v \<rhd> x \<Longrightarrow> vcoerce v x = v"
+lemma vcoerce_reduce1 [simp] :
+"v \<rhd> x \<Longrightarrow> vcoerce v x = v"
   by (simp add: vcoerce_def)
 
-lemma vcoerce_reduce2 [simp]:
-  "\<not> v \<rhd> x \<Longrightarrow> vcoerce v x = default (vtype x)"
+lemma vcoerce_reduce2 [simp] :
+"\<not> v \<rhd> x \<Longrightarrow> vcoerce v x = default (vtype x)"
   by (simp add: vcoerce_def)
 
-lemma vcoerce_idem [simp]:
-  "vcoerce (vcoerce v x) x = vcoerce v x"
+lemma vcoerce_idem [simp] :
+"vcoerce (vcoerce v x) x = vcoerce v x"
   by (simp add:vcoerce_def)
 
 subsection {* Bindings *}
 
 text {* We require bindings to be well-typed. *}
 
-definition "binding \<equiv> {b . \<forall> v. b v \<rhd> v}"
+definition binding :: "('m::TYPED_MODEL uvar \<Rightarrow> 'm uval) set" where
+"binding = {b . \<forall> v . b v \<rhd> v}"
 
 subsubsection {* Binding Theorems *}
 
 theorem binding_exists :
 "\<exists> b . b \<in> binding"
-apply (rule_tac x = "(\<lambda> v . SOME x . x : (vtype v) \<and> \<D> x)" in exI)
+apply (rule_tac x = "(\<lambda> v . SOME x . x : (vtype v) \<and> \<D>\<^sub>v x)" in exI)
 apply (auto simp add: binding_def)
 apply (rule someI2_ex)
-apply (rule type_non_empty_elim)
+apply (rule types_non_empty)
 apply (auto)
 done
 
@@ -143,7 +145,7 @@ apply (simp add: carrier_def closure var_compat_intros)
 done
 
 theorem binding_update2_aux [closure] :
-"\<lbrakk>b \<in> binding; x \<in> carrier (vtype v); aux v; \<D> x\<rbrakk> \<Longrightarrow>
+"\<lbrakk>b \<in> binding; x \<in> carrier (vtype v); aux v; \<D>\<^sub>v x\<rbrakk> \<Longrightarrow>
  b(v := x) \<in> binding"
 apply (simp add: carrier_def closure var_compat_intros)
 done
@@ -159,12 +161,12 @@ apply (auto simp add:override_on_def)
 done
 
 theorem binding_aux_defined [defined]:
-"\<lbrakk> b \<in> binding; aux v \<rbrakk> \<Longrightarrow> \<D> (b v)"
+"\<lbrakk> b \<in> binding; aux v \<rbrakk> \<Longrightarrow> \<D>\<^sub>v (b v)"
   by (auto simp add:binding_def)
 
 subsubsection {* Binding type *}
 
-typedef 'a binding = "binding :: ('a uvar \<Rightarrow> 'a)  set"
+typedef 'a binding = "binding :: ('a uvar \<Rightarrow> 'a uval)  set"
   by (simp add: binding_exists)
 
 declare Rep_binding [simp]
@@ -227,7 +229,7 @@ lemma binding_compat [intro, typing]: "\<langle>b\<rangle>\<^sub>bx \<rhd> x"
   by auto
 
 lemma aux_defined [defined]:
-  "aux v \<Longrightarrow> \<D> (\<langle>b\<rangle>\<^sub>b v)"
+  "aux v \<Longrightarrow> \<D>\<^sub>v (\<langle>b\<rangle>\<^sub>b v)"
   by (metis binding_compat var_compat_def)
 
 lemma binding_value_alt [simp, intro]: 
@@ -240,10 +242,10 @@ lemma binding_eq_iff: "f = g = (\<forall>x. \<langle>f\<rangle>\<^sub>b x = \<la
 text {* Binding update *}
 
 lift_definition binding_upd :: 
-  "'a binding \<Rightarrow>
-   'a uvar \<Rightarrow>
-   'a \<Rightarrow>
-   'a binding" is
+  "'m binding \<Rightarrow>
+   'm uvar \<Rightarrow>
+   'm uval \<Rightarrow>
+   'm binding" is
 "\<lambda> b x v. (fun_upd b x (vcoerce v x))"
   by (simp add:binding_def typing)
 
@@ -541,10 +543,10 @@ lemma binding_override_equiv_subset:
 text {* The default binding. Every variable maps to the default value. *}
 
 lift_definition default_binding :: 
-  "'a binding" ("\<B>") is "(\<lambda> v . SOME x . x : (vtype v) \<and> \<D> x)" 
+  "'a binding" ("\<B>") is "(\<lambda> v . SOME x . x : (vtype v) \<and> \<D>\<^sub>v x)" 
   apply (auto simp add: binding_def)
   apply (rule someI2_ex)
-  apply (rule type_non_empty_elim)
+  apply (rule types_non_empty)
   apply (auto)
 done
 
@@ -554,13 +556,13 @@ lemma default_binding_dash [simp]:
 
 text {* Convert a binding to a finite map *}
 
-definition binding_map :: "'a uvar set \<Rightarrow> 'a binding \<Rightarrow> 'a uvar \<rightharpoonup> 'a" where
+definition binding_map :: "'a uvar set \<Rightarrow> 'a binding \<Rightarrow> 'a uvar \<rightharpoonup> 'a uval" where
 "binding_map xs b = (\<lambda> x. if (x \<in> xs) then Some (\<langle>b\<rangle>\<^sub>b x) else None)"
 
 lemma binding_map_dom: "dom (binding_map xs b) = xs"
   by (simp add: dom_def binding_map_def)
 
-lift_definition map_binding :: "('a uvar \<rightharpoonup> 'a) \<Rightarrow> 'a binding"
+lift_definition map_binding :: "('a uvar \<rightharpoonup> 'a uval) \<Rightarrow> 'a binding"
 is "\<lambda> f x. case f x of Some v \<Rightarrow> vcoerce v x | None \<Rightarrow> default (vtype x)"
   apply (auto simp add: binding_def)
   apply (case_tac "fun v")
@@ -570,5 +572,7 @@ done
 lemma map_binding_inv:
   "map_binding (binding_map xs b) \<cong> b on xs"
   by (simp add: binding_map_def map_binding.rep_eq binding_equiv_def)
+
+default_sort type
 
 end

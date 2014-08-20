@@ -1,11 +1,11 @@
 theory utp_rank
 imports 
-  utp_value
+  utp_model
   "../alpha/utp_alpha_pred"
 begin
 
-class VALUE_RANK = VALUE +
-  fixes rank      :: "'a \<Rightarrow> nat"
+class VALUE_RANK = PRE_TYPED_MODEL +
+  fixes rank      :: "'a uval \<Rightarrow> nat"
   and   max_rank  :: "'a itself \<Rightarrow> nat"
   assumes rank_type_inj: 
   "\<lbrakk> x1 : t; x2 : t \<rbrakk> \<Longrightarrow> rank x1 = rank x2"
@@ -25,7 +25,7 @@ lemma value_rank_type_rank:
   apply (metis rank_type_inj)
 done
 
-definition RANK :: "nat \<Rightarrow> 'a set" where
+definition RANK :: "nat \<Rightarrow> 'a uval set" where
 "RANK n = {x. rank x = n}"
 
 definition pred_rank :: "'a uapred \<Rightarrow> nat" where

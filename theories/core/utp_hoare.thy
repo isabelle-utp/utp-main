@@ -38,11 +38,11 @@ translations
 
 theorem HoareP_intro [intro]:
   "(p \<Rightarrow>\<^sub>p r\<acute>) \<sqsubseteq> Q \<Longrightarrow> `{p}Q{r}`"
-  by (metis HoareP_def less_eq_upred_def)
+  by (metis HoareP_def RefineP_taut)
 
 lemma HoareP_elim [elim]:
   "\<lbrakk> `{p}Q{r}`; \<lbrakk> (p \<Rightarrow>\<^sub>p r\<acute>) \<sqsubseteq> Q \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (metis HoareP_def less_eq_upred_def)
+  by (metis HoareP_def RefineP_taut)
 
 theorem HoareP_AndP:
   "`{p}Q{r \<and> s}` = `{p}Q{r} \<and> {p}Q{s}`"
@@ -108,6 +108,10 @@ theorem HoareP_ChoiceP [hoare]:
   shows "`{p}Q \<sqinter> R{s}`"
   using assms by (utp_pred_tac)
 
+(***********************)
+(* REVIEWED UNTIL HERE *)
+(***********************)
+
 theorem HoareP_SemiR [hoare]:
   assumes 
     "`{p}Q1{s}`" "`{s}Q2{r}`" 
@@ -123,7 +127,7 @@ proof
     by (metis ConvR_rel_closure ImpliesP_rel_closure SemiR_AndP_left_precond WF_CONDITION_WF_RELATION assms(3) assms(4) assms(5))
 
   also have "... = `(p \<and> s\<acute>) ; (s \<Rightarrow> r\<acute>)`"
-    by (metis (hide_lams, no_types) AndP_OrP_distl ImpliesP_def OrP_comm inf_upred_def inf_compl_bot uminus_upred_def utp_pred_simps(11) utp_pred_simps(2) utp_pred_simps(6))
+    by (metis ImpliesP_AndP_pre utp_pred_simps(13) utp_pred_simps(7))
 
   also have "... = `p ; (s \<and> (s \<Rightarrow> r\<acute>))`"
     by (metis SemiR_AndP_right_precond assms(5))
@@ -157,8 +161,8 @@ theorem HoareP_AssignR [hoare]:
 done
 
 lemma HoareP_PAssignR:
-  fixes x :: "('a::DEFINED, 'm::VALUE) pvar"
-    and v :: "('a::DEFINED, 'm::VALUE) pexpr"
+  fixes x :: "('a::DEFINED, 'm::TYPED_MODEL) pvar"
+    and v :: "('a::DEFINED, 'm::TYPED_MODEL) pexpr"
   assumes "q \<in> COND" "x\<down> \<in> D\<^sub>0" "TYPEUSOUND('a, 'm)" "D\<^sub>1 \<sharp> v" "`p \<Rightarrow> q[v/x]`"
   shows "`{p}x := v{q}`"
   using assms

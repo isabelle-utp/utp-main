@@ -1364,6 +1364,4 @@ lemma AssignF_upd_rep_eq:
   apply (rule AssignF_dom_DASHED_var[of _ "f"])
   apply (simp add:dom_def)
 done
-
-
 *)

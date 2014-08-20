@@ -12,9 +12,9 @@ imports
   "../laws/utp_alpha_laws"
 begin
 
-default_sort VALUE
+default_sort TYPED_MODEL
 
-instantiation uapred :: (VALUE) order
+instantiation uapred :: (TYPED_MODEL) order
 begin
 
 instance
@@ -160,7 +160,7 @@ lemma SupA_lub:
   apply (utp_alpha_tac, utp_pred_auto_tac)
   apply (metis WF_ALPHA_PREDICATE_OVER_member order_refl)
   apply (metis WF_ALPHA_PREDICATE_OVER_member order_refl)
-  apply (metis (full_types) SupA_alphabet WF_ALPHA_PREDICATE_OVER_def mem_Collect_eq)
+  apply (metis (mono_tags) SupA_alphabet WF_ALPHA_PREDICATE_OVER_def mem_Collect_eq)
 done
 
 
@@ -211,7 +211,7 @@ lemma TrueA_is_bottom:
   "bottom (OrderA a) = true\<^bsub>a\<^esub>"
   apply (rule sym)
   apply (rule alpha_complete_lattice.bottom_eq)
-  apply (metis (full_types) TrueA_alphabet WF_ALPHA_PREDICATE_OVER_def mem_Collect_eq)
+  apply (metis (mono_tags) TrueA_alphabet WF_ALPHA_PREDICATE_OVER_def mem_Collect_eq)
   apply (metis TrueA_least WF_ALPHA_PREDICATE_OVER_member subset_refl)
 done
 
@@ -219,7 +219,7 @@ lemma FalseA_is_top:
   "top (OrderA a) = false\<^bsub>a\<^esub>"
   apply (rule sym)
   apply (rule alpha_complete_lattice.top_eq)
-  apply (metis (full_types) FalseA_alphabet WF_ALPHA_PREDICATE_OVER_def mem_Collect_eq)
+  apply (metis (mono_tags) FalseA_alphabet WF_ALPHA_PREDICATE_OVER_def mem_Collect_eq)
   apply (metis FalseA_greatest WF_ALPHA_PREDICATE_OVER_member order_refl)
 done
 

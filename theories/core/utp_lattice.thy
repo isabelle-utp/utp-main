@@ -18,28 +18,33 @@ imports
   "../parser/utp_pred_parser"
 begin
 
-instantiation upred :: (VALUE) lattice
+instantiation upred :: (TYPED_MODEL) lattice
 begin
-
+(* Lattice operators are now instantiated in utp_pred.thy. Change? *)
+(*
 definition sup_upred :: "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" where
-"sup_upred = OrP"
+"sup_upred = AndP"
 
 definition inf_upred :: "'a upred \<Rightarrow> 'a upred \<Rightarrow> 'a upred" where
-"inf_upred = AndP"
-
+"inf_upred = OrP"
+*)
 instance
-  apply (intro_classes)
-  apply (simp_all add: sup_upred_def inf_upred_def less_eq_upred_def less_upred_def)
-  apply (utp_pred_auto_tac)+
+apply (intro_classes)
+apply (unfold less_eq_upred_def less_upred_def sup_upred_def inf_upred_def)
+apply (utp_pred_auto_tac)+
 done
 end
 
-declare sup_upred_def [eval,evalr,evalrx,evalpp,evalpr]
-declare inf_upred_def [eval,evalr,evalrx,evalpp,evalpr]
+declare sup_upred_def [eval, evalr, evalrx, evalpp, evalpr]
+declare inf_upred_def [eval, evalr, evalrx, evalpp, evalpr]
 
+(* Why did Simon redeclare notations from Lattice here? *)
+
+(*
 notation
   bot_class.bot ("\<top>") and
   top_class.top ("\<bottom>")
+*)
 
 (* Lattice syntax *)
 
@@ -50,10 +55,10 @@ syntax
   "_n_upred_sup"   :: "n_upred \<Rightarrow> n_upred \<Rightarrow> n_upred" (infixl "\<squnion>" 70)
   "_n_upred_Inf"   :: "n_upreds \<Rightarrow> n_upred" ("\<Sqinter> {_}" [900] 900)
   "_n_upred_Sup"   :: "n_upreds \<Rightarrow> n_upred" ("\<Squnion> {_}" [900] 900)
-  "_n_upred_INF1"  :: "pttrns \<Rightarrow> n_upred \<Rightarrow> n_upred" ("(3\<Sqinter> _./ _)" [0, 10] 10)
-  "_n_upred_INF"   :: "pttrn \<Rightarrow> 'b set \<Rightarrow> n_upred \<Rightarrow> n_upred"  ("(3\<Sqinter> _:_./ _)" [0, 0, 10] 10)
-  "_n_upred_SUP1"  :: "pttrns \<Rightarrow> n_upred \<Rightarrow> n_upred" ("(3\<Squnion> _./ _)" [0, 10] 10)
-  "_n_upred_SUP"   :: "pttrn \<Rightarrow> 'b set \<Rightarrow> n_upred \<Rightarrow> n_upred"  ("(3\<Squnion> _:_./ _)" [0, 0, 10] 10)
+  "_n_upred_INF1"  :: "pttrns \<Rightarrow> n_upred \<Rightarrow> n_upred" ("(3\<Sqinter>\<^sub>p _./ _)" [0, 10] 10)
+  "_n_upred_INF"   :: "pttrn \<Rightarrow> 'b set \<Rightarrow> n_upred \<Rightarrow> n_upred"  ("(3\<Sqinter>\<^sub>p _:_./ _)" [0, 0, 10] 10)
+  "_n_upred_SUP1"  :: "pttrns \<Rightarrow> n_upred \<Rightarrow> n_upred" ("(3\<Squnion>\<^sub>p _./ _)" [0, 10] 10)
+  "_n_upred_SUP"   :: "pttrn \<Rightarrow> 'b set \<Rightarrow> n_upred \<Rightarrow> n_upred"  ("(3\<Squnion>\<^sub>p _:_./ _)" [0, 0, 10] 10)
 
 translations
   "_n_upred_inf p q"     == "CONST sup_class.sup p q"
@@ -69,66 +74,67 @@ translations
   "_n_upreds x xs"       => "CONST insert x xs"
   "_n_upreds_end x"      => "{x}"
 
-default_sort VALUE
+default_sort TYPED_MODEL
 
-instantiation upred :: (VALUE) bounded_lattice
+instantiation upred :: (TYPED_MODEL) bounded_lattice
 begin
+(* Lattice operators are now instantiated in utp_pred.thy. Change? *)
+(*
+definition bot_upred :: "'a upred" where
+"bot_upred = TrueP"
 
 definition top_upred :: "'a upred" where
-"top_upred = TrueP"
-
-definition bot_upred :: "'a upred" where
-"bot_upred = FalseP"
-
-instance proof
-
-  fix a :: "'a upred"
-  show "bot \<le> a"
-    apply (simp add:bot_upred_def less_eq_upred_def)
-    apply (utp_pred_auto_tac)
-  done
-
-  show "a \<le> top_class.top"
-    apply (simp add:top_upred_def less_eq_upred_def)
-    apply (utp_pred_auto_tac)
-  done
-qed
+"top_upred = FalseP"
+*)
+instance
+apply (intro_classes)
+apply (simp add: eval bot_upred_def)
+apply (simp add: eval top_upred_def)
+done
 end
 
 declare bot_upred_def [eval,evalr,evalrx,evalpp,evalpr]
 declare top_upred_def [eval,evalr,evalrx,evalpp,evalpr]
 
-instantiation upred :: (VALUE) Inf
+(* Lattice operators are now instantiated in utp_pred.thy. Change? *)
+
+(*
+instantiation upred :: (TYPED_MODEL) Inf
 begin
 
 definition Inf_upred ::
   "'VALUE upred set \<Rightarrow>
    'VALUE upred" where
-"Inf_upred ps = \<And>\<^sub>p ps"
+"Inf_upred ps = \<Or>\<^sub>p ps"
 
 instance ..
 end
+*)
 
-instantiation upred :: (VALUE) Sup
+(*
+instantiation upred :: (TYPED_MODEL) Sup
 begin
 
 definition Sup_upred ::
   "'VALUE upred set \<Rightarrow>
    'VALUE upred" where
-"Sup_upred ps = \<Or>\<^sub>p ps"
+"Sup_upred ps = \<And>\<^sub>p ps"
 
 instance ..
 end
+*)
+
+(* Are the following really needed? *)
 
 lemma EvalP_Inf [eval] :
-"\<lbrakk>\<Sqinter> ps\<rbrakk>b = (\<exists> p \<in> ps . \<lbrakk>p\<rbrakk>b)"
-  by (auto simp add:Sup_upred_def eval)
+"\<lbrakk>\<Sqinter>\<^sub>p ps\<rbrakk>b = (\<exists> p \<in> ps . \<lbrakk>p\<rbrakk>b)"
+  by (auto simp add: Sup_upred_def eval)
 
 lemma EvalP_Sup [eval] :
-"\<lbrakk>\<Squnion> ps\<rbrakk>b = (\<forall> p \<in> ps . \<lbrakk>p\<rbrakk>b)"
-  by (auto simp add:Inf_upred_def eval)
+"\<lbrakk>\<Squnion>\<^sub>p ps\<rbrakk>b = (\<forall> p \<in> ps . \<lbrakk>p\<rbrakk>b)"
+  by (auto simp add: Inf_upred_def eval)
 
-instantiation upred :: (VALUE) complete_lattice
+instantiation upred :: (TYPED_MODEL) complete_lattice
 begin
 
 instance
@@ -141,7 +147,7 @@ end
 declare INF_def [eval,evalpp]
 declare SUP_def [eval,evalpp]
 
-instantiation upred :: (VALUE) complete_distrib_lattice
+instantiation upred :: (TYPED_MODEL) complete_distrib_lattice
 begin
 
 instance
@@ -150,7 +156,7 @@ instance
 done
 end
 
-instantiation upred :: (VALUE) boolean_algebra
+instantiation upred :: (TYPED_MODEL) boolean_algebra
 begin
 
 definition uminus_upred :: "'a upred \<Rightarrow> 'a upred" where
@@ -168,33 +174,33 @@ end
 
 theorem Lattice_L1:
   fixes P :: "'VALUE upred"
-  shows "P \<sqsubseteq> \<Sqinter> S \<longleftrightarrow> (\<forall> X\<in>S. P \<sqsubseteq> X)"
+  shows "P \<sqsubseteq> \<Sqinter>\<^sub>p S \<longleftrightarrow> (\<forall> X\<in>S. P \<sqsubseteq> X)"
   by (metis Sup_le_iff)
 
 theorem Lattice_L1A:
   fixes X :: "'VALUE upred"
-  shows "X \<in> S \<Longrightarrow> \<Sqinter> S \<sqsubseteq> X"
+  shows "X \<in> S \<Longrightarrow> \<Sqinter>\<^sub>p S \<sqsubseteq> X"
   by (metis Sup_upper)
 
 theorem Lattice_L1B:
   fixes P :: "'VALUE upred"
-  shows "\<forall> X \<in> S. P \<sqsubseteq> X \<Longrightarrow> P \<sqsubseteq> \<Sqinter> S"
-  by (metis Lattice_L1)
+  shows "\<forall> X \<in> S. P \<sqsubseteq> X \<Longrightarrow> P \<sqsubseteq> \<Sqinter>\<^sub>p S"
+  by (metis Sup_le_iff)
 
 theorem Lattice_L2:
   fixes Q :: "'VALUE upred"
-  shows "(\<Squnion> S) \<sqinter> Q = \<Squnion> { P \<sqinter> Q | P. P \<in> S}"
+  shows "(\<Squnion>\<^sub>p S) \<sqinter>\<^sub>p Q = \<Squnion>\<^sub>p { P \<sqinter>\<^sub>p Q | P. P \<in> S}"
 proof -
 
-  have "(\<Squnion> S) \<sqinter> Q = Q \<sqinter> (\<Squnion> S)"
-    by (metis sup.commute)
+  have "(\<Squnion>\<^sub>p S) \<sqinter>\<^sub>p Q = Q \<sqinter>\<^sub>p (\<Squnion>\<^sub>p S)"
+    by (metis sup_commute)
 
-  also have "... = (INF P:S. P \<sqinter> Q)"
+  also have "... = (INF P:S. P \<sqinter>\<^sub>p Q)"
     by (metis Inf_sup sup_commute)
 
-  also have "... = \<Squnion> { P \<sqinter> Q | P. P \<in> S}"
+  also have "... = \<Squnion>\<^sub>p { P \<sqinter>\<^sub>p Q | P. P \<in> S}"
     apply (simp add:INF_def image_def)
-    apply (subgoal_tac "{y. \<exists>x\<in>S. y = x \<sqinter> Q} = {P \<sqinter> Q |P. P \<in> S}")
+    apply (subgoal_tac "{y. \<exists>x\<in>S. y = x \<sqinter>\<^sub>p Q} = {P \<sqinter>\<^sub>p Q |P. P \<in> S}")
     apply (simp)
     apply (auto)
   done
@@ -205,15 +211,15 @@ qed
   
 theorem Lattice_L3:
   fixes Q :: "'VALUE upred"
-  shows "(\<Sqinter> S) \<squnion> Q = \<Sqinter>{ P \<squnion> Q | P. P \<in> S}"
+  shows "(\<Sqinter>\<^sub>p S) \<squnion>\<^sub>p Q = \<Sqinter>\<^sub>p{ P \<squnion>\<^sub>p Q | P. P \<in> S}"
 proof -
 
-  have "(\<Sqinter> S) \<squnion> Q = (SUP P:S. P \<squnion> Q)"
+  have "(\<Sqinter>\<^sub>p S) \<squnion>\<^sub>p Q = (SUP P:S. P \<squnion>\<^sub>p Q)"
     by (metis Sup_inf)
 
-  also have "... = \<Sqinter> { P \<squnion> Q | P. P \<in> S}"
+  also have "... = \<Sqinter>\<^sub>p { P \<squnion>\<^sub>p Q | P. P \<in> S}"
     apply (simp add:SUP_def image_def)
-    apply (subgoal_tac "{y. \<exists>x\<in>S. y = x \<squnion> Q} = {P \<squnion> Q |P. P \<in> S}")
+    apply (subgoal_tac "{y. \<exists>x\<in>S. y = x \<squnion>\<^sub>p Q} = {P \<squnion>\<^sub>p Q |P. P \<in> S}")
     apply (simp)
     apply (auto)
   done
@@ -222,24 +228,28 @@ proof -
 
 qed
 
+(***********************)
+(* REVIEWED UNTIL HERE *)
+(***********************)
+
 lemma EvalR_SupP [evalr]:
-  "\<lbrakk>\<Sqinter> ps\<rbrakk>R = \<Union> {\<lbrakk>p\<rbrakk>R | p . p \<in> ps}"
+  "\<lbrakk>\<Sqinter>\<^sub>p ps\<rbrakk>R = \<Union> {\<lbrakk>p\<rbrakk>R | p . p \<in> ps}"
   by (simp add:Sup_upred_def evalr)
 
 lemma EvalRR_SupP [evalrr]:
-  "\<lbrakk>\<Sqinter> ps\<rbrakk>\<R> = \<Union> {\<lbrakk>p\<rbrakk>\<R> | p . p \<in> ps}"
+  "\<lbrakk>\<Sqinter>\<^sub>p ps\<rbrakk>\<R> = \<Union> {\<lbrakk>p\<rbrakk>\<R> | p . p \<in> ps}"
   by (auto simp add:evalr MkRel_def)
 
 lemma EvalRX_SupP [evalrx]:
-  "\<lbrakk>\<Sqinter> ps\<rbrakk>RX = \<Union> {\<lbrakk>p\<rbrakk>RX | p . p \<in> ps}"
+  "\<lbrakk>\<Sqinter>\<^sub>p ps\<rbrakk>RX = \<Union> {\<lbrakk>p\<rbrakk>RX | p . p \<in> ps}"
   by (simp add:Sup_upred_def evalrx)
 
 lemma EvalR_InfP [evalr]:
-  "ps \<noteq> {} \<Longrightarrow> \<lbrakk>\<Squnion> ps\<rbrakk>R = \<Inter> {\<lbrakk>p\<rbrakk>R | p . p \<in> ps}"
+  "ps \<noteq> {} \<Longrightarrow> \<lbrakk>\<Squnion>\<^sub>p ps\<rbrakk>R = \<Inter> {\<lbrakk>p\<rbrakk>R | p . p \<in> ps}"
   by (simp add:Inf_upred_def evalr)
 
 lemma EvalRR_InfP [evalrr]:
-  "ps \<noteq> {} \<Longrightarrow> \<lbrakk>\<Squnion> ps\<rbrakk>\<R> = \<Inter> {\<lbrakk>p\<rbrakk>\<R> | p . p \<in> ps}"
+  "ps \<noteq> {} \<Longrightarrow> \<lbrakk>\<Squnion>\<^sub>p ps\<rbrakk>\<R> = \<Inter> {\<lbrakk>p\<rbrakk>\<R> | p . p \<in> ps}"
   apply (simp add:evalr MkRel_def)
   apply (rule trans)
   apply (rule image_Inter)
@@ -259,7 +269,7 @@ lemma rel_Sup_comp_distr: "P O (\<Union> S) = \<Union>{ P O Q | Q. Q \<in> S}"
 
 theorem Lattice_L4:
   fixes Q :: "'a upred"
-  shows "(\<Sqinter> S) ;\<^sub>R Q = \<Sqinter>{ P ;\<^sub>R Q | P. P \<in> S}"
+  shows "(\<Sqinter>\<^sub>p S) ;\<^sub>R Q = \<Sqinter>\<^sub>p{ P ;\<^sub>R Q | P. P \<in> S}"
   apply (utp_rel_tac)
   apply (auto simp add:rel_Sup_comp_distl)
   apply (metis (hide_lams, no_types) EvalR_SemiR relcomp.intros)
@@ -267,7 +277,7 @@ done
 
 theorem Lattice_L5:
   fixes P :: "'a upred"
-  shows "P ;\<^sub>R (\<Sqinter> S) = \<Sqinter>{ P ;\<^sub>R Q | Q. Q \<in> S}"
+  shows "P ;\<^sub>R (\<Sqinter>\<^sub>p S) = \<Sqinter>\<^sub>p{ P ;\<^sub>R Q | Q. Q \<in> S}"
   apply (utp_rel_tac)
   apply (simp add:rel_Sup_comp_distr)
   apply (auto)
@@ -277,46 +287,46 @@ done
 lemma Inter_inter_dist: "S \<noteq> {} \<Longrightarrow> (\<Inter> S) \<inter> P = \<Inter> {s \<inter> P | s. s \<in> S}"
   by (auto)
 
-lemma "S \<noteq> {} \<Longrightarrow> (\<Squnion> S) \<and>\<^sub>p P = (\<Squnion> {s \<and>\<^sub>p P | s. s \<in> S})"
+lemma "S \<noteq> {} \<Longrightarrow> (\<Squnion>\<^sub>p S) \<and>\<^sub>p P = (\<Squnion> {s \<and>\<^sub>p P | s. s \<in> S})"
   oops
 
 subsection {* @{term UNREST} Theorems *}
 
 lemma UNREST_BotP [unrest]: "UNREST vs \<bottom>"
-  by (simp add:top_upred_def unrest)
+  by (simp add:bot_upred_def unrest)
 
 lemma UNREST_TopP [unrest]: "UNREST vs \<top>"
-  by (simp add:bot_upred_def unrest)
+  by (simp add:top_upred_def unrest)
 
 lemma UNREST_sup :
 "\<lbrakk>UNREST vs p1;
  UNREST vs p2\<rbrakk> \<Longrightarrow>
- UNREST vs (p1 \<squnion> p2)"
+ UNREST vs (p1 \<squnion>\<^sub>p p2)"
   by (simp add: inf_upred_def UNREST_AndP)
 
 lemma UNREST_inf [unrest]:
 "\<lbrakk>UNREST vs p1;
  UNREST vs p2\<rbrakk> \<Longrightarrow>
- UNREST vs (p1 \<sqinter> p2)"
+ UNREST vs (p1 \<sqinter>\<^sub>p p2)"
   by (auto simp add: sup_upred_def UNREST_OrP)
 
 lemma UNREST_Sup [unrest]:
-"\<forall> p \<in> ps. UNREST vs p \<Longrightarrow> UNREST vs (\<Squnion> ps)"
+"\<forall> p \<in> ps. UNREST vs p \<Longrightarrow> UNREST vs (\<Squnion>\<^sub>p ps)"
   by (simp add: Inf_upred_def unrest)
 
 lemma UNREST_Inf [unrest]:
-"\<forall> p \<in> ps. UNREST vs p \<Longrightarrow> UNREST vs (\<Sqinter> ps)"
+"\<forall> p \<in> ps. UNREST vs p \<Longrightarrow> UNREST vs (\<Sqinter>\<^sub>p ps)"
   by (simp add: Sup_upred_def unrest)
 
 lemma Sup_rel_closure [closure]:
-  "ps \<subseteq> WF_RELATION \<Longrightarrow> \<Squnion> ps \<in> WF_RELATION"
+  "ps \<subseteq> WF_RELATION \<Longrightarrow> \<Squnion>\<^sub>p ps \<in> WF_RELATION"
   by (simp add:Inf_upred_def closure)
 
 lemma Inf_rel_closure [closure]:
-  "ps \<subseteq> WF_RELATION \<Longrightarrow> \<Sqinter> ps \<in> WF_RELATION"
+  "ps \<subseteq> WF_RELATION \<Longrightarrow> \<Sqinter>\<^sub>p ps \<in> WF_RELATION"
   by (simp add:Sup_upred_def closure)
 
-instantiation upred :: (VALUE) monoid_mult
+instantiation upred :: (TYPED_MODEL) monoid_mult
 begin
 
 definition 
@@ -335,7 +345,7 @@ end
 declare times_upred_def [eval, evalr, evalrr, evalrx]
 declare one_upred_def [eval, evalr, evalrr, evalrx]
 
-instantiation upred :: (VALUE) comm_monoid_add
+instantiation upred :: (TYPED_MODEL) comm_monoid_add
 begin
 
 definition 
@@ -356,7 +366,7 @@ end
 declare plus_upred_def [eval, evalr, evalrr, evalrx]
 declare zero_upred_def [eval, evalr, evalrr, evalrx]
 
-instantiation upred :: (VALUE) semiring_1
+instantiation upred :: (TYPED_MODEL) semiring_1
 begin
 
 instance
@@ -368,14 +378,14 @@ done
 end
 
 theorem SkipR_SupP_def: 
-  "II = \<Squnion> { $\<^sub>ex\<acute> ==\<^sub>p $\<^sub>ex | x. x \<in> UNDASHED}"
+  "II = \<Squnion>\<^sub>p { $\<^sub>ex\<acute> ==\<^sub>p $\<^sub>ex | x. x \<in> UNDASHED}"
   apply (auto intro!:destPRED_intro simp add:SkipR_def Inf_upred_def UNDASHED_nempty EqualP_def VarE.rep_eq AndDistP_rep_eq)
   apply (metis (lifting, full_types) LiftP.rep_eq destPRED_inverse mem_Collect_eq)
 done
 
 theorem SkipRA_SupP_def: 
   "\<lbrakk> vs \<subseteq> REL_VAR; HOMOGENEOUS vs \<rbrakk> \<Longrightarrow> 
-     II\<^bsub>vs\<^esub> = \<Squnion> { $\<^sub>ex\<acute> ==\<^sub>p $\<^sub>ex | x. x \<in> in vs}"
+     II\<^bsub>vs\<^esub> = \<Squnion>\<^sub>p { $\<^sub>ex\<acute> ==\<^sub>p $\<^sub>ex | x. x \<in> in vs}"
   apply (auto intro!:destPRED_intro simp add:SkipRA_rep_eq_alt Inf_upred_def UNDASHED_nempty EqualP_def VarE.rep_eq top_upred_def TrueP_def AndDistP_rep_eq)
   apply (metis (lifting, full_types) LiftP.rep_eq destPRED_inverse mem_Collect_eq)
 done
@@ -385,13 +395,13 @@ subsection {* Big operator properties derived from the lattice *}
 theorem OrP_AndDistP_dist:
   "p \<or>\<^sub>p \<And>\<^sub>p qs = \<And>\<^sub>p {p \<or>\<^sub>p q | q. q \<in> qs}"
 proof -
-  have "p \<or>\<^sub>p \<And>\<^sub>p qs = \<Squnion> qs \<sqinter> p"
+  have "p \<or>\<^sub>p \<And>\<^sub>p qs = \<Squnion>\<^sub>p qs \<sqinter>\<^sub>p p"
     by (utp_pred_auto_tac)
 
-  also have "... = \<Squnion> { q \<sqinter> p | q. q \<in> qs}"
+  also have "... = \<Squnion>\<^sub>p { q \<sqinter>\<^sub>p p | q. q \<in> qs}"
     by (simp add: Lattice_L2)
 
-  also have "... = \<Squnion> { p \<or>\<^sub>p q | q. q \<in> qs}"
+  also have "... = \<Squnion>\<^sub>p { p \<or>\<^sub>p q | q. q \<in> qs}"
     by (utp_pred_auto_tac)
 
   finally show ?thesis

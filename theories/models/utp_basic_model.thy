@@ -19,6 +19,9 @@ text {* We first create types to represent basic types and values in our model. 
 datatype btyp = Int\<^sub>t | Bool\<^sub>t | List\<^sub>t btyp
 datatype bval = Bot\<^sub>v btyp | Int\<^sub>v int | Bool\<^sub>v bool | List\<^sub>v btyp "(bval list)"
 
+primrec BoolOf :: "bval \<Rightarrow> bool" where
+"BoolOf (Bool\<^sub>v x) = x"
+
 text {* Our type space must be countable which we derive here. Moreover, our type and value
         spaces are also linearly ordered. *}
 
@@ -61,32 +64,72 @@ text {* We next create a definedness predicate for our value space that
 
 instantiation bval :: DEFINED
 begin
-
-fun Defined_bval :: "bval \<Rightarrow> bool" where
-"\<D>(Bot\<^sub>v a) = False" |  "\<D>(Bool\<^sub>v x) = True" | "\<D>(Int\<^sub>v x) = True" |
-"\<D>(List\<^sub>v a xs) = (\<forall> x \<in> set(xs). \<D>(x))"
-
+fun defined_bval :: "bval \<Rightarrow> bool" where
+"\<D> (Bot\<^sub>v a) = False" |
+"\<D> (Bool\<^sub>v x) = True" |
+"\<D> (Int\<^sub>v x) = True" |
+"\<D> (List\<^sub>v a xs) = (\<forall> x \<in> set(xs). \<D>(x))"
 instance ..
 end
 
 text {* Then we show that our value space is a valid UTP value space by instantiating
         the VALUE class. This involves a proof that the type space is countable. *}
 
-instantiation bval :: VALUE
+(***********************)
+(* REVIEWED UNTIL HERE *)
+(***********************)
+
+datatype bmdl =
+  bval "bval" |
+  btyp "btyp"
+
+primrec bvalOf :: "bmdl \<Rightarrow> bval" where
+"bvalOf (bval x) = x"
+
+primrec btypOf :: "bmdl \<Rightarrow> btyp" where
+"btypOf (btyp x) = x"
+
+instantiation bmdl :: BASE_MODEL
 begin
+definition VALUE_bmdl :: "bmdl set" where
+"VALUE_bmdl = range bval"
 
-definition utype_rel_bval :: "bval \<Rightarrow> nat \<Rightarrow> bool" where
-"utype_rel_bval x t \<longleftrightarrow> (\<exists> a. t = to_nat a \<and> x :\<^sub>b a)"
-
+definition UTYPE_bmdl :: "bmdl set" where
+"UTYPE_bmdl = range btyp"
 instance
-  apply (intro_classes)
-  apply (simp add:utype_rel_bval_def)
-  apply (rule_tac x="to_nat(Int\<^sub>t)" in exI)
-  apply (rule_tac x="Int\<^sub>v 0" in exI)
-  apply (auto)
+apply (intro_classes)
+apply (unfold VALUE_bmdl_def UTYPE_bmdl_def)
+apply (auto)
 done
 end
 
+instantiation bmdl :: DEFINED_MODEL
+begin
+definition value_defined_bmdl :: "bmdl uval \<Rightarrow> bool" where
+"value_defined_bmdl v = \<D> (bvalOf (Rep_uval v))"
+
+definition utype_rel_bval :: "bval \<Rightarrow> nat \<Rightarrow> bool" where
+"utype_rel_bval x t \<longleftrightarrow> (\<exists> a. t = to_nat a \<and> x :\<^sub>b a)"
+instance
+apply (intro_classes)
+apply (unfold value_defined_bmdl_def utype_rel_bval_def)
+apply (rule_tac x = "Abs_uval (bval (Bool\<^sub>v undefined))" in exI)
+apply (subst Abs_uval_inverse)
+apply (simp add: VALUE_bmdl_def)
+apply (simp)
+done
+end
+
+instance bmdl :: PRE_TYPED_MODEL ..
+
+instance bmdl :: TYPED_MODEL
+apply (intro_classes)
+apply (unfold value_defined_bmdl_def utype_rel_bval_def)
+sorry
+
+(* I think the stuff below is not needed anymore. *)
+
+(*
 text {* Next we show some useful inverse properties for embedding types. *}
 
 lemma prjTYPE_inv_bty [simp]
@@ -112,26 +155,31 @@ lemma type_rel_btyp [simp]:
 
 text {* We also instantiate the Boolean and Integer sorts so that we can 
         make use of theories which require them (e.g. Designs). *}
+*)
 
-instantiation bval :: BOOL_SORT
+instantiation bmdl :: BOOL_SORT
 begin
 
-definition MkBool_bval :: "bool \<Rightarrow> bval" where
-"MkBool_bval x = Bool\<^sub>v x"
+definition MkBool_bmdl :: "bool \<Rightarrow> bmdl uval" where
+"MkBool_bmdl x = Abs_uval (bval (Bool\<^sub>v x))"
 
-primrec DestBool_bval :: "bval \<Rightarrow> bool" where
-"DestBool_bval (Bool\<^sub>v x) = x" 
+definition DestBool_bmdl :: "bmdl uval \<Rightarrow> bool" where
+"DestBool_bmdl v = BoolOf (bvalOf (Rep_uval v))" 
 
-definition BoolType_bval :: "bval utype" where
-"BoolType_bval = embTYPE Bool\<^sub>t"
+definition BoolType_bmdl :: "bmdl utype" where
+"BoolType_bmdl = Abs_utype (btyp Bool\<^sub>t)"
 
 instance
-  apply (intro_classes)
-  apply (simp add:MkBool_bval_def DestBool_bval_def BoolType_bval_def dcarrier_def monotype_def type_rel_def)
-  apply (auto simp add:MkBool_bval_def DestBool_bval_def BoolType_bval_def dcarrier_def monotype_def)
-  apply (metis prjTYPE_inv_bty)
-done
+apply (intro_classes)
+apply (unfold_locales)
+apply (unfold MkBool_bmdl_def DestBool_bmdl_def BoolType_bmdl_def)
+apply (simp_all)
+sorry
 end
+
+(***********************)
+(* REVIEWED UNTIL HERE *)
+(***********************)
 
 instantiation bval :: INT_SORT
 begin

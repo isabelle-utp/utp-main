@@ -31,7 +31,7 @@ lemma BoolType_aux_var_split_exists_ty:
   by (utp_poly_auto_tac, metis)
 
 theorem SemiR_extract_variable_ty:
-  fixes x y :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x y :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "x \<in> PUNDASHED" "y \<in> PDASHED_TWICE" "TYPEUSOUND('a, 'm)" 
           "pvaux x" "pvaux y"
           "{y\<down>} \<sharp> P" "{y\<down>} \<sharp> Q"
@@ -43,7 +43,7 @@ theorem SemiR_extract_variable_ty:
 done
 
 theorem SemiR_extract_variable_id_ty:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "x \<in> PUNDASHED" "TYPEUSOUND('a, 'm)" "pvaux x"
           "{x\<down>\<acute>\<acute>} \<sharp> P" "{x\<down>\<acute>\<acute>} \<sharp> Q"
   shows "P ;\<^sub>R Q = `\<exists> x\<acute>\<acute>. P[$x\<acute>\<acute>/x\<acute>] ; Q[$x\<acute>\<acute>/x]`"
@@ -66,11 +66,11 @@ theorem SemiR_split_bool_ty:
   apply (subst SubstP_NON_REL_VAR)
   apply (simp_all add:closure assms unrest)
   apply (simp add: SubstP_twice_2 unrest typing defined assms)
-  apply (simp add:usubst typing defined closure unrest)
+  apply (simp add: usubst typing defined closure unrest TypeU_bool)
 done
 
 theorem AssignR_SemiR_ty:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes 
     "TYPEUSOUND('a, 'm)"
     "x \<in> PUNDASHED" 
@@ -140,7 +140,7 @@ lemma prefix_as_concat:
 done
 
 lemma EqualP_as_EqualPE:
-  fixes e f :: "('a :: DEFINED, 'm :: VALUE) pexpr"
+  fixes e f :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
   assumes "TYPEUSOUND('a, 'm)"
   shows "EqualP e\<down> f\<down> = PExprP (EqualPE e f)"
   using assms by (utp_poly_tac)
@@ -188,7 +188,7 @@ lemma EvalR_EqualP_ty [evalpr]:
 *)
 
 lemma EvalR_VarExtP_ty [evalpr]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "TYPEUSOUND('a, 'm)" "x \<in> PUNDASHED" "pvaux x"
   shows "\<lbrakk>P\<^bsub>+x\<down>\<^esub>\<rbrakk>R = {(b,b'). (b,b') \<in> \<lbrakk>P\<rbrakk>R \<and> \<langle>b\<rangle>\<^sub>* x = \<langle>b'\<rangle>\<^sub>* x 
                    \<and> b \<in> WF_REL_BINDING \<and> b' \<in> WF_REL_BINDING
@@ -197,11 +197,11 @@ lemma EvalR_VarExtP_ty [evalpr]:
   apply (auto simp add: evalr closure)
   apply (metis Rep_binding_ty_def)
   apply (auto simp add:Rep_binding_ty_def)
-  apply (metis PVAR_VAR_vtype TypeUSound_ProjU_inv binding_stype pvaux_aux)
+  apply (metis PVAR_binding_aux_stype UTypedef.ProjU_inverse)
 done
 
 lemma var_eq_trans:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "TYPEUSOUND('a, 'm)" "x \<in> PUNDASHED" "pvaux x"
   shows "`($x\<acute> = $x) ; ($x\<acute> = $x)` = `($x\<acute> = $x)`"
   using assms by (utp_prel_auto_tac)
@@ -276,7 +276,7 @@ lemma prefix_antisym:
 done
 
 lemma SkipRA_unfold_aux_ty: 
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) pvar" 
+  fixes v :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar" 
   assumes "TYPEUSOUND('a, 'm)" "v\<down> \<in> vs" "v\<down> \<acute> \<in> vs" "v \<in> PUNDASHED" "HOMOGENEOUS vs" "pvaux v"
   shows "II\<^bsub>vs\<^esub> = `($v\<acute> = $v) \<and> II\<^bsub>vs - {v \<down>, v \<down>\<acute>}\<^esub>`"
   using assms
@@ -288,12 +288,14 @@ lemma SkipRA_unfold_aux_ty:
 done
 
 theorem ExistsP_has_ty_value:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes 
     "TYPEUSOUND('a, 'm)" "pvaux x" "v \<rhd>\<^sub>* x" "{x\<down>} \<sharp> v"
   shows "`\<exists> x. $x = v` = `true`"
   using assms
-  by (utp_poly_auto_tac, metis EvalPE_compat TypeUSound_InjU_inv var_compat_pvar vcoerce_reduce1)
+apply (utp_poly_auto_tac)
+apply (metis EvalPE_compat UTypedef.InjU_inverse var_compat_pvar vcoerce_reduce1)
+done
 
 lemma SubstP_AssignR_simple_ty [usubst]:
   assumes 
@@ -306,12 +308,12 @@ lemma SubstP_AssignR_simple_ty [usubst]:
   by (metis (mono_tags) PAssignF_upd_def PVAR_VAR_PUNDASHED_UNDASHED SubstE_PSubstPE SubstP_AssignR_simple UNREST_PExprE assms(1) assms(3) assms(4) assms(5) pevar_compat_TYPEUSOUND)
 
 lemma ExistsP_one_point_ty:
-  fixes e :: "('a::DEFINED, 'm::VALUE) pexpr"
+  fixes e :: "('a::DEFINED, 'm::TYPED_MODEL) pexpr"
   assumes "TYPEUSOUND('a,'m)" "e \<rhd>\<^sub>* x" "{x\<down>} \<sharp> e" "pvaux(x)"
   shows "`\<exists> x. p \<and> $x = e` = `p[e/x]`"
   using assms
-  apply (utp_poly_auto_tac)
-  apply (metis EvalPE_compat TypeUSound_InjU_inv var_compat_pvar vcoerce_reduce1)
+apply (utp_poly_auto_tac)
+apply (metis UTypedef.axm4)
+apply (metis EvalPE_compat UTypedef.axm4 var_compat_pvar vcoerce_reduce1)
 done
-
 end

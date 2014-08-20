@@ -1181,6 +1181,7 @@ proof -
     apply (auto elim!:Rep_binding_elim simp add:typing defined closure fun_eq_iff)
     apply (drule_tac x="?x" in spec)
     apply (simp add:typing defined closure)
+    apply (metis MkBool_inverse)
   done
 
   thus ?thesis
@@ -1688,13 +1689,12 @@ lemma SkipRA_AndP_cond:
 
 lemma SkipRA_AndP_postcond:
   "\<lbrakk> HOMOGENEOUS(vs); - out(vs) \<sharp> p \<rbrakk> \<Longrightarrow>  II\<^bsub>vs\<^esub> \<and>\<^sub>p p = p\<acute> \<and>\<^sub>p II\<^bsub>vs\<^esub>"
-  apply (insert SkipRA_AndP_cond[of "vs" "p\<acute>"])
+  apply (insert SkipRA_AndP_cond [of "vs" "p\<acute>"])
   apply (subgoal_tac "- in vs \<sharp> p\<acute>")
-  apply (simp add:urename)
+  apply (simp add: urename)
   apply (rule unrest)
   apply (rule UNREST_subset)
   apply (auto)
   apply (metis HOMOGENEOUS_undash_out SS_DASHED_subset_image SS_VAR_RENAME_INV VAR_RENAME_INV_app imageI utp_var.out_DASHED)
 done
-
 end

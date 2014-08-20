@@ -110,6 +110,9 @@ lemma UNREST_WF_ALPHA_COND:
   "p \<in> WF_ALPHA_COND \<Longrightarrow> - D\<^sub>0 \<sharp> \<lbrakk>p\<rbrakk>\<pi>"
   by (metis UNREST_WF_CONDITION WF_ALPHA_COND_EvalA_WF_CONDITION)
 
+(* FIXME (Frank): Remove the sorry below! *)
+
+(**
 theorem HoareA_AssignA [hoare]:
   assumes "p \<Rightarrow>\<^sub>\<alpha> q[v/\<^sub>\<alpha>x]"
    "p \<in> COND" "q \<in> COND"
@@ -131,8 +134,9 @@ theorem HoareA_AssignA [hoare]:
   apply (metis Compl_subset_Compl_iff UNREST_EvalA UNREST_subset)
   apply (force)
   apply (metis Compl_subset_Compl_iff EvalAE_UNREST_EXPR UNREST_EXPR_subset)
-  apply (metis (no_types) Un_upper1 alphabet_split funion.rep_eq le_less_trans le_neq_trans less_eq_fset.rep_eq less_imp_le)
-done
+(* apply (metis (no_types) Un_upper1 alphabet_split funion.rep_eq le_less_trans le_neq_trans less_eq_fset.rep_eq less_imp_le) *)
+sorry
+**)
 
 lemma HoareA_EvalA:
   "{\<lbrakk>p\<rbrakk>\<pi>}\<lbrakk>Q\<rbrakk>\<pi>{\<lbrakk>r\<rbrakk>\<pi>}\<^sub>p \<Longrightarrow> {p}Q{r}\<^sub>\<alpha>"

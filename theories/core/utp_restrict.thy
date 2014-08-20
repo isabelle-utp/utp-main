@@ -7,7 +7,7 @@ imports
   "../poly/utp_poly_expr"
 begin
 
-default_sort VALUE
+default_sort TYPED_MODEL
 
 (* Restriction forcibly removes a set of variables from a predicate by substituting
    the default value for them. This method is better than through quantification since
@@ -20,12 +20,13 @@ notation RestrictP (infixr "\<ominus>\<^sub>p" 200)
 
 lift_definition RestrictE :: "'a uexpr \<Rightarrow> 'a uvar set \<Rightarrow> 'a uexpr"
 is "\<lambda> f xs. (\<lambda> b. \<langle>f\<rangle>\<^sub>e (b \<oplus>\<^sub>b \<B> on xs))"
-  apply (simp add:WF_EXPRESSION_def)
+  apply (simp add:WF_EXPR_def)
   apply (metis Rep_uexpr_typed)
 done
 
 notation RestrictE (infixr "\<ominus>\<^sub>e" 200)
 
+(**
 lift_definition RestrictPE :: "('a, 'm) pexpr \<Rightarrow> 'm uvar set \<Rightarrow> ('a, 'm) pexpr"
 is "\<lambda> f xs. (\<lambda> b. \<lbrakk>f\<rbrakk>\<^sub>* (b \<oplus>\<^sub>b \<B> on xs))" .
 
@@ -34,6 +35,11 @@ notation RestrictPE (infixr "\<ominus>\<^sub>*" 200)
 lemma UNREST_RestrictPE [unrest]:
   "vs \<sharp> e \<ominus>\<^sub>* vs"
   by (simp add:UNREST_PEXPR_def RestrictPE.rep_eq)
+**)
+
+lemma UNREST_RestrictPE [unrest]:
+  "vs \<sharp> e \<ominus>\<^sub>* vs"
+  by (metis UNREST_ResPE)
 
 lemma RestrictP_TrueP:
   "true \<ominus>\<^sub>p vs = true"
@@ -67,6 +73,7 @@ lemma RestrictP_LitE:
   "(LitE v) \<ominus>\<^sub>e xs = LitE v"
   by (auto simp add:RestrictE.rep_eq LitE_rep_eq)
 
+(*
 lemma RestrictP_SkipR:
   "\<lbrakk> xs \<subseteq> REL_uvar; HOMOGENEOUS xs \<rbrakk> \<Longrightarrow> II \<ominus>\<^sub>p (- xs) = II\<^bsub>xs\<^esub>"
   apply (rule)
@@ -78,12 +85,15 @@ lemma RestrictP_SkipR:
   apply (metis (hide_lams, no_types) Compl_iff Diff_iff UNDASHED_dash_DASHED Un_iff override_on_apply_in override_on_apply_notin)
   apply (metis (hide_lams, mono_tags) Compl_iff default_binding_dash hom_alphabet_dash hom_alphabet_undash override_on_apply_in override_on_apply_notin override_on_minus)
 done
+*)
 
+(*
 lemma RestrictP_SemiR:
   "(p ;\<^sub>R q) \<ominus>\<^sub>p xs = (p \<ominus>\<^sub>p (in(xs) \<union> nrel(xs))) ;\<^sub>R (q \<ominus>\<^sub>p (out(xs) \<union> nrel(xs)))"
-  apply (rule) 
+  apply (rule)
   apply (auto simp add:SemiR.rep_eq RestrictP.rep_eq)
 oops
+*)
 
 lemma UNREST_RestrictP [unrest]:
   "vs \<sharp> p \<ominus>\<^sub>p vs"

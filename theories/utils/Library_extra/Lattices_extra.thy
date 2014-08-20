@@ -4,31 +4,35 @@
 (* Author: Simon Foster, University of York (UK)                              *)
 (******************************************************************************)
 
-header {* Additional lattice properties *}
+header {* Additional Lattice Properties *}
 
 theory Lattices_extra
 imports Main
+  "~/src/HOL/Lattices"
+  "~/src/HOL/Complete_Lattices"
 begin
 
+text {* It seems odd that we have to declare the below. *}
+
 notation
-  Sup ("\<Sqinter>_" [900] 900) and
-  Inf ("\<Squnion>_" [900] 900) and
-  sup  (infixl "\<sqinter>" 65) and
-  inf  (infixl "\<squnion>" 70)
+  inf  (infixl "\<sqinter>" 70) and
+  sup  (infixl "\<squnion>" 65) and
+  Inf ("\<Sqinter>_" [900] 900) and
+  Sup ("\<Squnion>_" [900] 900)
 
 text {* Disjunctive unary functions *}
 
 definition disjunctive ::
   "('a::lattice \<Rightarrow> 'b::lattice) \<Rightarrow> bool" where
-"disjunctive F \<longleftrightarrow> (\<forall> P Q. (F (P \<sqinter> Q)) = ((F P) \<sqinter> (F Q)))"
+"disjunctive F \<longleftrightarrow> (\<forall> P Q. (F (P \<squnion> Q)) = ((F P) \<squnion> (F Q)))"
 
 lemma disjunctiveI [intro]:
-  "\<lbrakk> \<And> P Q. (F (P \<sqinter> Q)) = ((F P) \<sqinter> (F Q)) \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> \<And> P Q. (F (P \<squnion> Q)) = ((F P) \<squnion> (F Q)) \<rbrakk> \<Longrightarrow>
    disjunctive F"
   by (simp add:disjunctive_def)
 
 lemma disjunctiveE [elim]:
-  "\<lbrakk> disjunctive F; \<lbrakk> \<And> P Q. (F (P \<sqinter> Q)) = ((F P) \<sqinter> (F Q)) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk> disjunctive F; \<lbrakk> \<And> P Q. (F (P \<squnion> Q)) = ((F P) \<squnion> (F Q)) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (simp add:disjunctive_def)
 
 text {* Disjunctive operators are monotone *}
@@ -40,14 +44,14 @@ proof
   fix x y :: 'a
   assume xley: "x \<le> y"
 
-  have "F x \<le> F y \<longleftrightarrow> ((F x \<sqinter> F y) = F y)"
+  have "F x \<le> F y \<longleftrightarrow> ((F x \<squnion> F y) = F y)"
     by (metis le_iff_sup)
 
-  also from assms have "... \<longleftrightarrow> (F (x \<sqinter> y) = F y)"
+  also from assms have "... \<longleftrightarrow> (F (x \<squnion> y) = F y)"
     by (auto)
 
   also from assms have "..."
-    by (metis sup_absorb2 xley)
+  by (metis le_iff_sup xley)
     
   finally show "F x \<le> F y" by simp
 qed
@@ -71,16 +75,16 @@ lemma mono2E [elim]:
 end
 
 definition disjunctive2 :: "('a::lattice \<Rightarrow> 'b::lattice \<Rightarrow> 'c::lattice) \<Rightarrow> bool" where
-"disjunctive2 F = (\<forall> x1 x2 y1 y2. F (x1 \<sqinter> y1) (x2 \<sqinter> y2) = (F x1 x2) \<sqinter> (F x1 y2) \<sqinter> (F y1 x2) \<sqinter> (F y1 y2))"
+"disjunctive2 F = (\<forall> x1 x2 y1 y2. F (x1 \<squnion> y1) (x2 \<squnion> y2) = (F x1 x2) \<squnion> (F x1 y2) \<squnion> (F y1 x2) \<squnion> (F y1 y2))"
 
 lemma disjunctive2I [intro]:
-  "\<lbrakk> \<And> x1 x2 y1 y2. (F (x1 \<sqinter> y1) (x2 \<sqinter> y2) = (F x1 x2) \<sqinter> (F x1 y2) \<sqinter> (F y1 x2) \<sqinter> (F y1 y2)) \<rbrakk> \<Longrightarrow>
+  "\<lbrakk> \<And> x1 x2 y1 y2. (F (x1 \<squnion> y1) (x2 \<squnion> y2) = (F x1 x2) \<squnion> (F x1 y2) \<squnion> (F y1 x2) \<squnion> (F y1 y2)) \<rbrakk> \<Longrightarrow>
    disjunctive2 F"
   by (simp add:disjunctive2_def)
 
 lemma disjunctive2E [elim]:
   "\<lbrakk> disjunctive2 F
-   ; \<lbrakk> \<And> x1 x2 y1 y2. (F (x1 \<sqinter> y1) (x2 \<sqinter> y2) = (F x1 x2) \<sqinter> (F x1 y2) \<sqinter> (F y1 x2) \<sqinter> (F y1 y2)) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+   ; \<lbrakk> \<And> x1 x2 y1 y2. (F (x1 \<squnion> y1) (x2 \<squnion> y2) = (F x1 x2) \<squnion> (F x1 y2) \<squnion> (F y1 x2) \<squnion> (F y1 y2)) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (simp add:disjunctive2_def)
 
 lemma disjunctive2_mono2:
@@ -91,10 +95,10 @@ proof
 
   assume x1ley1: "x1 \<le> y1" and x2ley2: "x2 \<le> y2"
 
-  have "F x1 x2 \<le> F y1 y2 \<longleftrightarrow> ((F x1 x2 \<sqinter> F y1 y2) = F y1 y2)"
+  have "F x1 x2 \<le> F y1 y2 \<longleftrightarrow> ((F x1 x2 \<squnion> F y1 y2) = F y1 y2)"
     by (metis le_iff_sup)
 
-  also from assms have "... \<longleftrightarrow> (F (x1 \<sqinter> y1) (x2 \<sqinter> y2) = F y1 y2)"
+  also from assms have "... \<longleftrightarrow> (F (x1 \<squnion> y1) (x2 \<squnion> y2) = F y1 y2)"
     apply (auto)
     apply (metis le_iff_sup x1ley1 x2ley2)
     apply (erule disjunctive2E)
@@ -107,4 +111,13 @@ proof
   finally show "F x1 x2 \<le> F y1 y2" by simp
 qed
 
+text {* Even odder, undeclare the notation is necessary too to avoid errors. *}
+
+(*
+no_notation
+  inf  (infixl "\<sqinter>" 70) and
+  sup  (infixl "\<squnion>" 65) and
+  Inf ("\<Sqinter>_" [900] 900) and
+  Sup ("\<Squnion>_" [900] 900)
+*)
 end

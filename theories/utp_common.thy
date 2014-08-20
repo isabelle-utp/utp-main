@@ -11,11 +11,13 @@ theory utp_common
 imports utp_imports
   utp_document
   "core/utp_constants"
+(* Move the following into the theory utp_imports. *)
+  "utils/Unit_ord"
 begin
 
-subsection {* Configuration *}
-
 default_sort type
+
+subsection {* Configuration *}
 
 hide_const Wellorder_Relation.supr
 
@@ -240,4 +242,8 @@ theorem inj_on_eval_intro :
  \<lbrakk>x1 \<in> s; x2 \<in> s; f x1 = f x2\<rbrakk> \<Longrightarrow> x1 = x2"
 apply (simp add: inj_on_eval_simp)
 done
+
+subsubsection {* Miscellaneous Lemmas *}
+
+theorems asmE = rev_mp
 end

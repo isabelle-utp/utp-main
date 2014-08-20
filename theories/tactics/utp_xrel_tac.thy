@@ -82,7 +82,7 @@ declare xbinding_override_on.rep_eq [simp]
 definition xbinding_upd :: 
   "'a WF_XREL_BINDING \<Rightarrow>
    'a uvar \<Rightarrow>
-   'a \<Rightarrow>
+   'a uval \<Rightarrow>
    'a WF_XREL_BINDING" where
 "xbinding_upd b x v = MkXRelB (binding_upd \<langle>b\<rangle>\<^sub>x x v)"
 
@@ -266,8 +266,11 @@ lemma EvalRX_refinement [evalrx]:
 done
 
 lemma EvalRX_refp [evalrx]: 
-  "\<lbrakk>p1 \<in> WF_RELATION; p2 \<in> WF_RELATION \<rbrakk> \<Longrightarrow> p1 \<sqsubseteq>\<^sub>p p2 \<longleftrightarrow> \<lbrakk>p2\<rbrakk>RX \<subseteq> \<lbrakk>p1\<rbrakk>RX"
-  by (metis EvalRX_refinement less_eq_upred_def)
+  "\<lbrakk>p1 \<in> WF_RELATION; p2 \<in> WF_RELATION \<rbrakk> \<Longrightarrow> (p1 \<sqsubseteq>\<^sub>p p2) \<longleftrightarrow> \<lbrakk>p2\<rbrakk>RX \<subseteq> \<lbrakk>p1\<rbrakk>RX"
+apply (subst sym [OF EvalRX_refinement])
+apply (simp_all) [2]
+apply (utp_pred_tac)
+done
 
 lemma EvalRX_implies [evalrx]: 
   "\<lbrakk>p1 \<in> WF_RELATION; p2 \<in> WF_RELATION \<rbrakk> \<Longrightarrow> [p2 \<Rightarrow>\<^sub>p p1]\<^sub>p \<longleftrightarrow> \<lbrakk>p2\<rbrakk>RX \<subseteq> \<lbrakk>p1\<rbrakk>RX"
@@ -487,7 +490,7 @@ lemma EvalRX_VarP_UNDASHED [evalrx]:
   apply (simp add:evale)
   apply (rule)
   apply (auto)
-  apply (metis BOOL_SORT_class.Inverse FalseV_def MkBool_cases Rep_binding TrueV_def binding_app_type binding_aux_defined)
+  apply (metis (full_types) DestBool_inverse binding_stype)
 done
 
 lemma EvalRX_VarP_DASHED [evalrx]:
@@ -499,7 +502,7 @@ lemma EvalRX_VarP_DASHED [evalrx]:
   apply (simp add:evale)
   apply (rule)
   apply (auto simp add:urename)
-  apply (metis BOOL_SORT_class.Inverse FalseV_def MkBool_cases Rep_binding TrueV_def binding_app_type aux_defined aux_undash vtype_undash)
+  apply (metis (full_types) DestBool_inverse aux_undash binding_stype vtype_undash)
 done
 
 theorem EvalR_EqualP_UNDASHED [evalrx]:
@@ -752,5 +755,3 @@ lemma "\<lbrakk> x \<in> UNDASHED; x \<in> xs; xs \<subseteq> UNDASHED \<union> 
   oops
 
 end
-
-

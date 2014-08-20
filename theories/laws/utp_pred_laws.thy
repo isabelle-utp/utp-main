@@ -355,7 +355,7 @@ lemma VarP_EqualP_aux:
   using assms
   apply (utp_pred_tac)
   apply (auto)
-  apply (metis BOOL_SORT_class.Inverse FalseV_def MkBool_cases TrueV_def aux_defined binding_type)
+  apply (metis (full_types) DestBool_inverse binding_stype)
 done
 
 lemma VarP_NotP_EqualP_aux:
@@ -366,7 +366,7 @@ lemma VarP_NotP_EqualP_aux:
   using assms
   apply (utp_pred_tac)
   apply (auto)
-  apply (metis BOOL_SORT_class.Inverse FalseV_def MkBool_cases TrueV_def aux_defined binding_type)
+  apply (metis DestBool_inverse MkBool_eqI binding_stype)
 done
 
 lemma expr_simps [simp]:
@@ -401,20 +401,24 @@ done
 
 lemma BoolType_aux_cases:
   "(v :! BoolType) \<longleftrightarrow> v \<in> {TrueV, FalseV}"
-  by (auto intro:typing)
+apply (clarsimp)
+apply (safe)
+apply (simp_all add: defined typing)
+apply (metis DestBool_inverse MkBool_eqI strict_type_rel_def)
+done
 
 lemma BoolType_aux_var_split_taut [ucases]:
   "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> \<Longrightarrow> 
   [p]\<^sub>p = [p[FalseE/\<^sub>px] \<and>\<^sub>p p[TrueE/\<^sub>px]]\<^sub>p"
   apply (utp_pred_auto_tac)
-  apply (metis FalseV_def MkBool_cases TrueV_def aux_defined binding_type binding_upd_triv) 
+  apply (metis DestBool_inverse MkBool_eqI binding_stype binding_upd_triv)
 done
 
 lemma BoolType_aux_var_split_exists [ucases]:
   "\<lbrakk> vtype x = BoolType; aux x \<rbrakk> \<Longrightarrow> 
    (\<exists>\<^sub>p {x}. P) = P[FalseE/\<^sub>px] \<or>\<^sub>p P[TrueE/\<^sub>px]"
   apply (utp_pred_auto_tac)
-  apply (metis FalseV_def MkBool_cases Rep_binding TrueV_def binding_app_type aux_defined)
+  apply (metis DestBool_inverse MkBool_eqI binding_stype)
   apply (metis binding_upd_apply binding_upd_vcoerce)
   apply (metis binding_upd_apply binding_upd_vcoerce)
 done
@@ -433,13 +437,17 @@ done
 
 subsection {* Typing theorems *}
 
+(***********************)
+(* REVIEWED UNTIL HERE *)
+(***********************)
+
 lemma MkBool_True_compat [typing]: 
   "vtype x = BoolType \<Longrightarrow> MkBool True \<rhd> x"
-  by (metis BOOL_SORT_class.Defined MkBool_type var_compat_intros(1))
+  by (metis MkBool_defined MkBool_typed UNIV_I var_compat_intros(1))
 
 lemma MkBool_False_compat [typing]: 
   "vtype x = BoolType \<Longrightarrow> MkBool False \<rhd> x"
- by (metis BOOL_SORT_class.Defined MkBool_type var_compat_intros(1))
+  by (metis MkBool_defined MkBool_typed UNIV_I var_compat_intros(1))
 
 subsection {* Uniqueness Theorems *}
 

@@ -197,7 +197,10 @@ lemma R2s_idempotent: "`R2s(R2s(P))` = `R2s(P)`"
 done
 
 lemma R2s_destroys_R1: "R2s (R1 P) = R2s P" 
-  by (utp_poly_tac)
+  apply (utp_poly_tac)
+  apply (unfold InjU_ULIST)
+  apply (metis InjU_ULIST NilUL.rep_eq UTypedef.axm4 UTypedef_Event UTypedef_ULIST prefixeq_code(1))
+done
 
 lemma R2_idempotent: "`R2(R2(P))` = `R2(P)`" 
   by (simp add:R2_def R2s_destroys_R1 R2s_idempotent)
@@ -285,9 +288,9 @@ done
 
 (* L9 R2-composition *)
 
-abbreviation "tt1   \<equiv> MkPlainP ''tt1'' True TYPE('m EVENT ULIST) TYPE('m)"
-abbreviation "tt2   \<equiv> MkPlainP ''tt2'' True TYPE('m EVENT ULIST) TYPE('m)"
-abbreviation "tt   \<equiv> MkPlainP ''tt'' True TYPE('m EVENT ULIST) TYPE('m)"
+abbreviation "tt1   \<equiv> MkPlainP ''tt1'' True TYPE('m event ULIST) TYPE('m)"
+abbreviation "tt2   \<equiv> MkPlainP ''tt2'' True TYPE('m event ULIST) TYPE('m)"
+abbreviation "tt   \<equiv> MkPlainP ''tt'' True TYPE('m event ULIST) TYPE('m)"
 
 lemma R2_form:
   assumes "{ttx\<down>\<acute>\<acute>} \<sharp> P" "pvaux ttx" 
@@ -318,7 +321,17 @@ proof -
   done 
   finally show ?thesis 
     by (metis assms(1))
-qed 
+qed
+
+
+thm SubstP_UNREST_OKAY
+thm SubstE_VarE_single_UNREST
+thm SubstP_twice_3
+
+(* FIXMES: SubstP_twice_3 seems not to be safe with the above.
+   
+   Remove from simpset (Frank Zeyda).
+*)
 
 lemma R2_SemiR_form: 
   assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
@@ -337,13 +350,16 @@ proof -
         apply(simp_all add:closure typing defined unrest)
         apply(simp add:usubst typing defined assms)
         apply(subst SubstP_ExistsP)
-        apply(simp_all add:closure typing defined unrest)
-        apply(simp add:usubst typing defined assms unrest)
+        apply(simp_all add: closure typing defined unrest)
+        apply(simp add: usubst typing defined assms unrest del: SubstP_twice_3)
+(* Adding del: SubstP_twice_3 the following seems not necessary anymore. Bad design. *)
+(*
         apply(simp add: SubstE_PSubstPE SubstE_PSubstPE_dash PSubstPE_Op2PE PSubstPE_PVarPE PSubstPE_PVarPE_different closure typing defined)
         apply(subst SubstP_twice_2) back back
         apply(simp add:typing defined closure assms unrest)
         apply(subst SubstE_PSubstPE)
         apply(simp_all add:typing closure defined usubst)
+*)
      done
 
   also have "... = `(\<exists> tt1\<acute>\<acute>. \<exists> tt2\<acute>\<acute>. \<exists> tr\<acute>\<acute>. ($tr\<acute>\<acute> = $tr ^ $tt1\<acute>\<acute>) \<and> P[\<langle>\<rangle>/tr][$tt1\<acute>\<acute>/tr\<acute>] ; Q[\<langle>\<rangle>/tr][$tt2\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute> = $tr\<acute>\<acute> ^ $tt2\<acute>\<acute>))`"
@@ -500,7 +516,7 @@ proof -
     have "`(\<exists> tt\<acute>\<acute>. ($tt\<acute>\<acute> = ($tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>) \<and> $tr\<acute> = ($tr ^ $tt\<acute>\<acute>)))` = 
           (`($tr\<acute> = ($tr ^ ($tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>)))` :: 'a upred)"
       apply (utp_poly_auto_tac)
-      apply (metis AppendUL.rep_eq)
+      apply (metis AppendUL.rep_eq UTypedef.axm4 UTypedef_Event UTypedef_ULIST)
     done
 
     thus ?thesis by simp
@@ -512,7 +528,7 @@ proof -
     have p1: "`\<exists> tt\<acute>\<acute>. (($tt\<acute>\<acute> = $tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>) \<and> ($tr\<acute> = $tr ^ $tt\<acute>\<acute>))` =
                        (`$tr\<acute> = ($tr ^ $tt1\<acute>\<acute> ^ $tt2\<acute>\<acute>)` :: 'a upred)"
       apply (utp_poly_auto_tac)
-      apply (metis AppendUL.rep_eq)
+      apply (metis AppendUL.rep_eq UTypedef.axm4 UTypedef_Event UTypedef_ULIST)
     done
 
     show ?thesis

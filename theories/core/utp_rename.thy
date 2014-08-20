@@ -7,20 +7,20 @@
 header {* Renaming *}
 
 theory utp_rename
-imports 
-  utp_value
+imports
+(* utp_value *)
   utp_var
   utp_binding
 begin
 
-subsection {* Permutation Polymorphic Constant *}
-
 default_sort type
+
+subsection {* Permutation Polymorphic Constant *}
 
 consts
   permute  :: "'r \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "\<bullet>" 80)
 
-default_sort VALUE
+default_sort TYPED_MODEL
 
 subsection {* Variable Renaming *}
 
@@ -579,7 +579,12 @@ lemma rename_on_image1 [simp]:
 
 lemma rename_on_image2 [simp]: 
   "rename_func_on f vs \<Longrightarrow> \<langle>f on vs\<rangle>\<^sub>s ` f ` vs = vs"
-  by (metis (hide_lams, no_types) Rep_VAR_RENAME_inj image_inv_f_f inv_complete_inj rename_func_on_def rename_inv_rep_eq rename_on_image1 rename_on_rep_eq)
+  apply (safe)
+  apply (simp_all)
+  apply (metis complete_inj_dom complete_inj_inverse rename_func_onE rename_on_rep_eq)
+  apply (simp add: image_def)
+  apply (metis complete_inj_dom complete_inj_inverse rename_func_onE rename_on_rep_eq)
+done
 
 lemma rename_func_on_subset:
   "\<lbrakk> rename_func_on f B; A \<subseteq> B \<rbrakk> \<Longrightarrow> rename_func_on f A"
@@ -1047,11 +1052,13 @@ lemma RenameB_equiv_cong:
 
 text {* Subscript addition permutation *}
 
-lift_definition SUB :: "nat \<Rightarrow> 'a VAR_RENAME" is "(\<lambda> x y. vchsub y x)"
+lift_definition SUB :: "string \<Rightarrow> 'a VAR_RENAME" is "(\<lambda> x y. vchsub y x)"
   by (simp add:VAR_RENAME_def add_sub_bij)
 
+text {* Frank: I had to add an assumption in the next theorem. *}
+
 lemma SUB_rename_func_on [closure]:
-  "rename_func_on (add_sub n) NOSUB"
+  "n \<noteq> NoSub \<Longrightarrow> rename_func_on (add_sub n) NOSUB"
   apply (auto simp add:rename_func_on_def)
   apply (metis (no_types) add_sub_inv inj_onI)
   apply (simp add: NOSUB_def)
@@ -1065,45 +1072,61 @@ lemma SUB_var [urename]:
 definition "USUB n \<equiv> (add_sub n) on (UNDASHED \<inter> NOSUB)"
 
 lemma USUB_rename_func_on [closure]:
-  "rename_func_on (add_sub n) (UNDASHED \<inter> NOSUB)"
+  "n \<noteq> NoSub \<Longrightarrow> rename_func_on (add_sub n) (UNDASHED \<inter> NOSUB)"
   apply (auto simp add:rename_func_on_def)
   apply (metis (full_types) add_sub_inv inj_on_inverseI)
-  apply (metis (mono_tags) NOSUB_def SUBSCRIPT.distinct(1) mem_Collect_eq vsub_NOSUB)
+  apply (metis (mono_tags) NOSUB_def mem_Collect_eq vsub_NOSUB)
 done
 
+text {* Frank: I had to add an assumption in the next theorem. *}
+
 lemma USUB_UNDASHED_NOSUB [urename]:
-  assumes "x \<in> UNDASHED" "x \<in> NOSUB"
+  assumes "x \<in> UNDASHED" "x \<in> NOSUB" "n \<noteq> NoSub"
   shows "USUB n\<bullet>x = x\<^bsub>n\<^esub>"
-  by (simp add:USUB_def closure rename_on_perm1 assms)
+  by (simp add: USUB_def closure rename_on_perm1 assms)
+
+text {* Frank: I had to add an assumption in the next theorem. *}
 
 lemma USUB_DASHED [urename]:
-  "x \<in> DASHED \<Longrightarrow> USUB n\<bullet>x = x"
+  "x \<in> DASHED \<Longrightarrow> n \<noteq> NoSub \<Longrightarrow> USUB n\<bullet>x = x"
   apply (subgoal_tac "x \<notin> (UNDASHED \<inter> NOSUB)")
   apply (subgoal_tac "x \<notin> add_sub n ` (UNDASHED \<inter> NOSUB)")
   apply (simp add:USUB_def closure rename_on_perm3 assms)
   apply (auto simp add:var_defs)
+  apply (case_tac x)
+  apply (clarsimp)
+  apply (case_tac name)
+  apply (clarsimp)
+  apply (unfold chsub_def)
+  apply (clarsimp)
 done
 
 definition "DSUB n \<equiv> (add_sub n) on (DASHED \<inter> NOSUB)"
 
 lemma DSUB_rename_func_on [closure]:
-  "rename_func_on (add_sub n) (DASHED \<inter> NOSUB)"
+  " n \<noteq> NoSub \<Longrightarrow> rename_func_on (add_sub n) (DASHED \<inter> NOSUB)"
   apply (auto simp add:rename_func_on_def)
   apply (metis (full_types) add_sub_inv inj_on_inverseI)
-  apply (metis (mono_tags) NOSUB_def SUBSCRIPT.distinct(1) mem_Collect_eq vsub_NOSUB)
+  apply (metis (mono_tags) NOSUB_def mem_Collect_eq vsub_NOSUB)
 done
 
 lemma DSUB_DASHED_NOSUB [urename]:
-  assumes "x \<in> DASHED" "x \<in> NOSUB"
+  assumes "x \<in> DASHED" "x \<in> NOSUB" "n \<noteq> NoSub"
   shows "DSUB n\<bullet>x = x\<^bsub>n\<^esub>"
   by (simp add:DSUB_def closure rename_on_perm1 assms)
 
 lemma DSUB_UNDASHED [urename]:
-  "x \<in> UNDASHED \<Longrightarrow> DSUB n\<bullet>x = x"
+  "x \<in> UNDASHED \<Longrightarrow> n \<noteq> NoSub \<Longrightarrow> DSUB n\<bullet>x = x"
   apply (subgoal_tac "x \<notin> (DASHED \<inter> NOSUB)")
   apply (subgoal_tac "x \<notin> add_sub n ` (DASHED \<inter> NOSUB)")
   apply (simp add:DSUB_def closure rename_on_perm3)
   apply (auto simp add:var_defs)
+  apply (case_tac x)
+  apply (clarsimp)
+  apply (case_tac name)
+  apply (clarsimp)
+  apply (unfold chsub_def)
+  apply (clarsimp)
 done
 
 text {* Some extra rename on laws *}
@@ -1125,5 +1148,4 @@ lemma rename_on_insert:
   apply (metis complete_inj_inverse complete_inj_none)
   apply (metis (hide_lams, no_types) Diff_idemp Diff_insert_absorb complete_inj_insert_3 inj_on_insert)
 done
-
 end

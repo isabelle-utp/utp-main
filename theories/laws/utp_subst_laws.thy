@@ -252,14 +252,14 @@ theorem SubstE_Op1E [usubst]:
   "\<lbrakk> v :!\<^sub>e a; f \<in> FUNC1 a b; e :\<^sub>e vtype x \<rbrakk> \<Longrightarrow> (Op1E f v)[e/\<^sub>ex] = Op1E f (v[e/\<^sub>ex])"
   apply (auto simp add:evale typing defined)
   apply (insert SubstE_type[of e x v a])
-  apply (metis EvalE_SubstE EvalE_def Op1E_rep_eq edtype_rel_def)
+  apply (metis EvalE_SubstE EvalE_def Op1E_rep_eq strict_etype_rel_def)
 done
 
 lemma SubstE_Op2E [usubst]:
   "\<lbrakk> v1 :!\<^sub>e a; v2 :!\<^sub>e b; f \<in> FUNC2 a b c; e :\<^sub>e vtype x \<rbrakk> \<Longrightarrow> 
      (Op2E f v1 v2)[e/\<^sub>ex] = Op2E f (v1[e/\<^sub>ex]) (v2[e/\<^sub>ex])"
   apply (auto simp add:evale typing defined)
-  apply (metis EvalE_SubstE EvalE_def Op2E_rep_eq edtype_rel_def)
+  apply (metis EvalE_SubstE EvalE_def Op2E_rep_eq strict_etype_rel_def)
 done
 
 theorem SubstE_TrueE [usubst]:

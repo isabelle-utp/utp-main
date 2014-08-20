@@ -368,18 +368,22 @@ assumes "`a \<rightarrow> P` = `a \<rightarrow> Q`" "P \<in> REL" "Q \<in> REL" 
 shows "`P` = `Q`"
 oops
 
+(* Modification by Frank Zeyda *)
+
+(* I changed REL into WF_RELATION due to an issue with overloading. Review! *)
+
 lemma Nondet_L1:
-  assumes "P \<in> REL" 
+  assumes "P \<in> WF_RELATION" 
   shows "`P \<sqinter> P` = `P`"
 by (metis sup_idem)
 
 lemma Nondet_L2: 
-  assumes "P \<in> REL" "Q \<in> REL"
+  assumes "P \<in> REL" "Q \<in> WF_RELATION"
   shows "`P \<sqinter> Q` = `Q \<sqinter> P `"
 by (metis sup_commute)
 
 lemma Nondet_L3: 
-  assumes "P \<in> REL" "Q \<in> REL" "R \<in> REL"
+  assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "R \<in> WF_RELATION"
   shows "`P \<sqinter> (Q \<sqinter> R)` = `(P \<sqinter> Q) \<sqinter> R`"
 by (metis sup_assoc)
 
@@ -857,7 +861,9 @@ qed
 have "`R2(CSP_Pre(a \<rightarrow> CHAOS))[$tr/tr\<acute>]` \<noteq> `R2(CSP_Pre(CHAOS))[$tr/tr\<acute>]`"
 apply(subst 1)
 apply(subst 2)
-apply(utp_poly_auto_tac)
+apply (utp_poly_tac)
+apply(subst UTypedef.InjU_inverse, metis UTypedef_Event UTypedef_ULIST)+
+apply (simp add: inju defined typing)
 done
 thus ?thesis by metis
 qed
@@ -1112,13 +1118,19 @@ apply(simp add:SemiR_AndP_right_DASHED typing closure defined unrest urename And
 apply(subst SemiR_SkipRA_right,simp_all add:typing defined closure unrest Stop_design)
 done
 
+(***********************)
+(* REVIEWED UNTIL HERE *)
+(***********************)
+
 lemma Chaos_design_alt:
   "`RHc(\<not>R1(true) \<turnstile> b)` = CHAOS"
 apply(simp add:Chaos_design DesignD_def R1_def)
 apply(simp add:RHc_def)
 apply(subst R1_idempotent[THEN sym],subst R1_R2_commute, simp add:R1_R3c_commute)
 apply(subst R1_def) back
-apply(utp_poly_auto_tac)
+apply(utp_poly_tac)
+apply(subst UTypedef.InjU_inverse, metis UTypedef_Event UTypedef_ULIST)+
+apply (metis NilUL.rep_eq prefix_bot.bot.extremum)
 done
 
 lemma Sequential_L5b:
@@ -1149,5 +1161,4 @@ done
  apply(simp add:0 Chaos_design_alt)
 done
 qed
-
 end

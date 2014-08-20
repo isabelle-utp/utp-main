@@ -7,13 +7,13 @@
 header {* Proof Tactic for Relations *}
 
 theory utp_rel_tac
-imports 
+imports
   "../core/utp_pred" 
   "../core/utp_rel" 
   "utp_expr_tac"
 begin
 
-default_sort VALUE
+default_sort TYPED_MODEL
 
 text {* Theorem Attribute *}
 
@@ -551,7 +551,7 @@ done
 
 theorem EvalR_ExprR [evalr]: 
   "\<lbrakk>ExprP e\<rbrakk>R = {BindR b |b. DestBool (\<lbrakk>e\<rbrakk>\<^sub>e b)}"
-  by (simp add:ExprP_def LiftP_def EvalR_def BindR_def EvalE_def UNREST_EXPR_member[THEN sym] etype_rel_def Defined_uexpr_def image_Collect)
+  by (simp add:ExprP_def LiftP_def EvalR_def BindR_def EvalE_def UNREST_EXPR_member[THEN sym] etype_rel_def defined_uexpr_def image_Collect)
 
 theorem EvalR_EqualP:
   "\<lbrakk>EqualP e f\<rbrakk>R = {BindR b |b. (\<lbrakk>e\<rbrakk>\<^sub>e b = \<lbrakk>f\<rbrakk>\<^sub>e b)}"
@@ -860,7 +860,9 @@ done
 lemma EvalR_refinement [evalr]: "p \<sqsubseteq> q \<longleftrightarrow> \<lbrakk>q\<rbrakk>R \<subseteq> \<lbrakk>p\<rbrakk>R"
   by (auto simp add:EvalR_as_EvalP less_eq_upred_def eval)
 
-definition MkRel :: "'VALUE RELATION \<Rightarrow> ('VALUE WF_REL_BINDING) rel" where
+type_synonym 'a relation = "('a \<times> 'a) set"
+
+definition MkRel :: "'VALUE RELATION \<Rightarrow> 'VALUE WF_REL_BINDING relation" where
 "MkRel R = map_pair MkRelB MkRelB ` R"
 
 lemma MkRelB_inj: "inj_on MkRelB WF_REL_BINDING"
@@ -898,7 +900,7 @@ theorem MkRel_EvalR_intro :
 
 abbreviation EvalRR ::
   "'a upred \<Rightarrow>
-   ('a WF_REL_BINDING) rel" ("\<lbrakk>_\<rbrakk>\<R>") where
+   ('a WF_REL_BINDING) relation" ("\<lbrakk>_\<rbrakk>\<R>") where
 "EvalRR p \<equiv> MkRel \<lbrakk>p\<rbrakk>R"
 
 lemma EvalRR_simp [evalrr] :

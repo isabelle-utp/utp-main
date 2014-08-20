@@ -12,20 +12,20 @@ imports
 begin
 
 definition MergeCSP :: 
-  "('a EVENT USET, 'a) pexpr \<Rightarrow> 
+  "('a event USET, 'a) pexpr \<Rightarrow> 
    ('a uvar set * 'a upred)" where
   "MergeCSP A = ( { wait\<down>, ref\<down>, tr\<down>}
               , `R1(
-                  (\<not>$ok \<and> (($tr\<acute> - $tr) \<in> ($tr\<^bsub>0\<^esub> - $tr) \<parallel>\<^bsub>A \<^esub>($tr\<^bsub>1 \<^esub>- $tr))) \<or>
-                  ($ok \<and> ($ref\<acute> = ($ref\<^bsub>0\<^esub> \<union> $ref\<^bsub>1\<^esub>)) \<and> 
-                 (($tr\<acute> - $tr) \<in> ($tr\<^bsub>0\<^esub> - $tr) \<parallel>\<^bsub>A \<^esub>($tr\<^bsub>1 \<^esub>- $tr))
-                 \<and> (($wait\<^bsub>0\<^esub> \<or> $wait\<^bsub>1\<^esub>)\<lhd> $wait\<acute> \<rhd>(\<not>$wait\<^bsub>0\<^esub>\<and>\<not>$wait\<^bsub>1\<^esub>) )
+                  (\<not>$ok \<and> (($tr\<acute> - $tr) \<in> ($tr\<^bsub>''0''\<^esub> - $tr) \<parallel>\<^bsub>A \<^esub>($tr\<^bsub>''1'' \<^esub>- $tr))) \<or>
+                  ($ok \<and> ($ref\<acute> = ($ref\<^bsub>''0''\<^esub> \<union> $ref\<^bsub>''1''\<^esub>)) \<and> 
+                 (($tr\<acute> - $tr) \<in> ($tr\<^bsub>''0''\<^esub> - $tr) \<parallel>\<^bsub>A \<^esub>($tr\<^bsub>''1'' \<^esub>- $tr))
+                 \<and> (($wait\<^bsub>''0''\<^esub> \<or> $wait\<^bsub>''1''\<^esub>)\<lhd> $wait\<acute> \<rhd>(\<not>$wait\<^bsub>''0''\<^esub>\<and>\<not>$wait\<^bsub>''1''\<^esub>) )
                  \<and> $ok\<acute>)
                  ) ; SKIP`)"
 
 definition ParallelCSP :: 
   "'a upred \<Rightarrow> 
-   ('a EVENT USET, 'a) pexpr \<Rightarrow> 
+   ('a event USET, 'a) pexpr \<Rightarrow> 
    'a upred \<Rightarrow> 
    'a upred" (infix "\<parallel>\<^bsub>CSP'(_')\<^esub>" 100) where
 "P \<parallel>\<^bsub>CSP(A)\<^esub> Q = P \<parallel>\<^bsub>MergeCSP A\<^esub> Q"
@@ -36,7 +36,7 @@ definition InterleaveCSP
 
 definition HideCSP ::
   "'m upred \<Rightarrow>
-   ('m EVENT USET, 'm) pexpr \<Rightarrow>
+   ('m event USET, 'm) pexpr \<Rightarrow>
    'm upred" where
 "HideCSP P A = `RHc(CSP1(\<exists> tr\<acute>\<acute>. P[$tr\<acute>\<acute>/tr\<acute>][($ref\<acute> \<union> A)/ref\<acute>] 
                    \<and> $tr\<acute> = $tr ^ (($tr\<acute>\<acute> - $tr)\<upharpoonright>A))) ; SKIP`"

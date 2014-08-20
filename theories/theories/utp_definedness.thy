@@ -179,10 +179,14 @@ lemma DH_TVL: "UNREST {def\<down>} Q \<Longrightarrow> `\<three>(P, Q)` is DH"
 done
 
 lemma DH_BotT: "`\<bottom>\<^sub>T` is DH"
-  by (utp_poly_tac)
+  apply (utp_poly_tac)
+  apply (metis UTypedef.axm4 UTypedef_bool)
+done
 
 lemma DH_TrueT: "`true\<^sub>T` is DH"
-  by (utp_poly_tac)
+  apply (utp_poly_tac)
+  apply (metis UTypedef.axm4 UTypedef_bool)
+done
 
 lemma DH_FalseT: "`false\<^sub>T` is DH"
   by (utp_poly_tac)
@@ -195,19 +199,27 @@ done
 
 lemma TVL_left:
   "`\<P>(\<three>(P, Q))` = `(P \<and> Q)[true/def]`"
-  by (utp_poly_tac)
+  apply (utp_poly_tac)
+  apply (metis UTypedef.axm4 UTypedef_bool)
+done
 
 lemma TVL_right:
   "`\<D>(\<three>(P, Q))` = `Q[false/def]`"
-  by (utp_poly_tac)
+  apply (utp_poly_tac)
+  apply (metis UTypedef.axm4 UTypedef_bool)
+done
 
 lemma DefinedT_BotT:
   "[\<not> \<D>(\<bottom>\<^sub>T)]"
-  by (utp_poly_tac)
+  apply (utp_poly_tac)
+  apply (metis UTypedef.axm4 UTypedef_bool)
+done
 
 lemma DefinedT_TrueT:
   "`\<D>(true\<^sub>T)`"
-  by (utp_poly_tac)
+  apply (utp_poly_tac)
+  apply (metis UTypedef.axm4 UTypedef_bool)
+done
 
 lemma DefinedT_FalseT:
   "`\<D>(false\<^sub>T)`"
@@ -224,13 +236,13 @@ lemma TVL_extreme_point2:
 lemma AndT_left_unit:
   "P is DH \<Longrightarrow> `true\<^sub>T \<and>\<^sub>T P` = `P`"
   apply (utp_poly_tac)
-  apply (metis (full_types) TypeUSound_bool binding_upd_drop_ty pvaux_MkPVAR)
+  apply (metis (full_types) UTypedef.axm4 UTypedef_bool binding_upd_drop_ty pvaux_MkPVAR)
 done
 
 lemma AndT_right_unit:
   "P is DH \<Longrightarrow> `P \<and>\<^sub>T true\<^sub>T` = `P`"
   apply (utp_poly_tac)
-  apply (metis (full_types) TypeUSound_bool binding_upd_drop_ty pvaux_MkPVAR)
+  apply (metis (full_types) UTypedef.axm4 UTypedef_bool binding_upd_drop_ty pvaux_MkPVAR)
 done
 (*>*)
 
@@ -252,7 +264,9 @@ disjunction are commutative and associative. *}
 
 lemma AndT_assoc:
   "`(P \<and>\<^sub>T Q) \<and>\<^sub>T R` = `P \<and>\<^sub>T Q \<and>\<^sub>T R`"
-  by (utp_poly_auto_tac)
+  apply (utp_poly_tac)
+  apply (auto simp add: inju)
+done
 
 lemma AndT_commute: 
   "`P \<and>\<^sub>T Q` = `Q \<and>\<^sub>T P`"
@@ -260,7 +274,9 @@ lemma AndT_commute:
 
 lemma OrT_assoc:
   "`(P \<or>\<^sub>T Q) \<or>\<^sub>T R` = `P \<or>\<^sub>T Q \<or>\<^sub>T R`"
-  by (utp_poly_auto_tac)
+  apply (utp_poly_tac)
+  apply (auto simp add: inju)
+done
 
 lemma OrT_commute:
   "`P \<or>\<^sub>T Q` = `Q \<or>\<^sub>T P`"
@@ -269,21 +285,29 @@ lemma OrT_commute:
 (*<*)
 lemma NotT_double: "P is DH \<Longrightarrow> `\<not>\<^sub>T \<not>\<^sub>T P` = `P`"
   apply (utp_poly_tac)
-  apply (metis (full_types) TypeUSound_bool binding_upd_drop_ty pvaux_MkPVAR)
+  apply (metis (full_types) UTypedef.axm4 UTypedef_bool binding_upd_drop_ty pvaux_MkPVAR)
 done
 (*>*)
 
 lemma NotT_TrueT: "`\<not>\<^sub>T true\<^sub>T` = `false\<^sub>T`"
-  by (utp_poly_tac)
+  apply (utp_poly_tac)
+  apply (simp add: inju)
+done
 
 lemma AndT_BotT_left: "`\<bottom>\<^sub>T \<and>\<^sub>T P` = `\<bottom>\<^sub>T`"
-  by (utp_poly_tac)
+  apply (utp_poly_tac)
+  apply (simp add: inju)
+done
 
 lemma AndT_BotT_right: "`P \<and>\<^sub>T \<bottom>\<^sub>T` = `\<bottom>\<^sub>T`"
-  by (utp_poly_tac)
+  apply (utp_poly_tac)
+  apply (simp add: inju)
+done
 
 lemma NotT_BotT: "`\<not>\<^sub>T \<bottom>\<^sub>T` = `\<bottom>\<^sub>T`"
-  by (utp_poly_tac)
+  apply (utp_poly_tac)
+  apply (simp add: inju)
+done
 
 (*<*)
 end

@@ -8,7 +8,7 @@ header {* UTP Designs Signature *}
 
 theory utp_designs_sig
 imports 
-  utp_base
+  "../../utp_base"
 begin
 
 text {* Most predicates need a boolean type, so we here set the appropriate sort constraint *}
@@ -87,9 +87,13 @@ definition ParallelD ::
 definition WF_VALID_MERGE :: "('a uvar set * 'a upred) set" where
 "WF_VALID_MERGE = UNIV" (* fst M undashed only *)
 
-definition ParallelMergeD :: 
-  "'a upred => ('a uvar set * 'a upred) => 'a upred \<Rightarrow> 'a upred" (infix "\<parallel>\<^bsub>_\<^esub>" 100) where
-"P \<parallel>\<^bsub>M\<^esub> Q =  (((add_sub 0 on (dash ` fst M) \<bullet> P) \<parallel> (add_sub 1 on (dash ` fst M) \<bullet> Q)) \<and>\<^sub>p II\<^bsub>fst M \<union> (dash ` fst M)\<^esub>) ;\<^sub>R snd M"
+definition ParallelMergeD ::
+  "'a upred => ('a uvar set * 'a upred) => 'a upred \<Rightarrow> 'a upred"
+    (infix "\<parallel>\<^bsub>_\<^esub>" 100) where
+"P \<parallel>\<^bsub>M\<^esub> Q = ((
+  (add_sub ''0'' on (dash ` fst M) \<bullet> P) \<parallel>
+  (add_sub ''1'' on (dash ` fst M) \<bullet> Q)) \<and>\<^sub>p
+    II\<^bsub>fst M \<union> (dash ` fst M)\<^esub>) ;\<^sub>R snd M"
 
 declare BotD_def [eval,evalr,evalrx,evalpp,evalpr]
 declare TopD_def [eval,evalr,evalrx,evalpp,evalpr]
@@ -270,7 +274,7 @@ proof -
     apply (subst AssignRA_unfold[of _ _ "ok\<down>"]) back
     apply (simp_all add:closure var_dist typing defined unrest)
     apply (metis Diff_cancel UNDASHED_DASHED_minus(2) UNREST_PExprE Un_commute Un_empty_right union_minus)
-    apply (metis (lifting, no_types) EqualP_as_EqualPE PVAR_VAR_pvdash PVarPE_erasure TypeUSound_bool pvaux_MkPVAR pvaux_pvdash)
+    apply (metis (lifting, no_types) EqualP_as_EqualPE PVAR_VAR_pvdash PVarPE_erasure UTypedef_bool pvaux_MkPVAR pvaux_pvdash)
   done
 
   also from assms
@@ -295,14 +299,14 @@ lemma ParallelD_rel_closure [closure]:
 
 lemma TopD_TrueP_uniqs [simp]:
   "true \<noteq> \<top>\<^sub>D" "\<top>\<^sub>D \<noteq> true"
-  by (utp_poly_tac, rule_tac x="\<B>(ok :=\<^sub>* True)" in exI, simp add:typing defined)+
+  by (utp_poly_tac, rule_tac x="\<B>(ok :=\<^sub>* True)" in exI, simp add:typing defined inju)+
 
 lemma TopD_FalseP_uniqs [simp]:
   "false \<noteq> \<top>\<^sub>D" "\<top>\<^sub>D \<noteq> false"
-  by (utp_poly_tac, rule_tac x="\<B>(ok :=\<^sub>* False)" in exI, simp add:typing defined)+
+  by (utp_poly_tac, rule_tac x="\<B>(ok :=\<^sub>* False)" in exI, simp add:typing defined inju)+
 
 lemma PExprP_erasure [erasure]:
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) pexpr"
+  fixes e :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
   assumes "TYPEUSOUND('a, 'm)"
   shows "PExprP (EqualPE e f) = EqualP (e\<down>) (f\<down>)"
   using assms by (utp_poly_tac)

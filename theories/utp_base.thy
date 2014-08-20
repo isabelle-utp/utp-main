@@ -32,11 +32,12 @@ imports
   "parser/utp_pred_parser"
   "parser/utp_alpha_pred_parser"
   "parser/utp_op_parser"
-  "types/utp_list"
-  "types/utp_fset"
-  "types/utp_uset"
+  "types/utp_dset"
+  "types/utp_dfset"
+  "types/utp_dlist"
   "types/utp_memory"
   "theories/utp_theory"
   "theories/utp_context"
   "theories/utp_relations"
-begin end
+begin
+end

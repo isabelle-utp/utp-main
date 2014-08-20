@@ -50,7 +50,7 @@ lemma DestPExpr_transfer [evalp]:
   by (auto)
 
 definition WF_PEXPRESSION_type :: 
-  "('a, 'm :: VALUE) pexpr \<Rightarrow> 'm utype" ("\<tau>\<^sub>*") where
+  "('a, 'm :: TYPED_MODEL) pexpr \<Rightarrow> 'm utype" ("\<tau>\<^sub>*") where
 "WF_PEXPRESSION_type e = TYPEU('a)"
 
 text {* The lifting package allows us to define operators on a typedef
@@ -59,25 +59,25 @@ up the @{term "upred"} type for lifting. *}
 
 setup_lifting type_definition_pexpr
 
-instantiation pexpr :: (DEFINED,VALUE) DEFINED
+instantiation pexpr :: (DEFINED, TYPED_MODEL) DEFINED
 begin
 
-definition Defined_pexpr :: "('a, 'b) pexpr \<Rightarrow> bool" where
-"Defined_pexpr e = (\<forall> b. \<D> (\<lbrakk>e\<rbrakk>\<^sub>* b))"
+definition defined_pexpr :: "('a, 'b) pexpr \<Rightarrow> bool" where
+"defined_pexpr e = (\<forall> b. \<D> (\<lbrakk>e\<rbrakk>\<^sub>* b))"
 
 instance ..
 end
 
-definition UNREST_PEXPR :: "('m uvar) set \<Rightarrow> ('a, 'm :: VALUE) pexpr \<Rightarrow> bool" where
+definition UNREST_PEXPR :: "('m uvar) set \<Rightarrow> ('a, 'm :: TYPED_MODEL) pexpr \<Rightarrow> bool" where
 "UNREST_PEXPR vs e \<equiv> (\<forall> b1 b2. \<lbrakk>e\<rbrakk>\<^sub>*(b1 \<oplus>\<^sub>b b2 on vs) = \<lbrakk>e\<rbrakk>\<^sub>* b1)" 
 
 adhoc_overloading
   unrest UNREST_PEXPR
 
-definition WF_PEXPR_REL :: "('a::DEFINED, 'm::VALUE) pexpr set" where
+definition WF_PEXPR_REL :: "('a::DEFINED, 'm::TYPED_MODEL) pexpr set" where
 "WF_PEXPR_REL = {e. NON_REL_VAR \<sharp> e}"
 
-definition WF_PEXPR_COND :: "('a::DEFINED, 'm::VALUE) pexpr set" where
+definition WF_PEXPR_COND :: "('a::DEFINED, 'm::TYPED_MODEL) pexpr set" where
 "WF_PEXPR_COND = {e. - D\<^sub>0 \<sharp> e}"
 
 adhoc_overloading
@@ -94,7 +94,7 @@ lemma EvalPE_UNREST_assign [evalp]:
   apply (simp add:typing)
 done
 
-definition LitPE :: "'a \<Rightarrow> ('a :: DEFINED, 'm :: VALUE) pexpr" where
+definition LitPE :: "'a \<Rightarrow> ('a :: DEFINED, 'm :: TYPED_MODEL) pexpr" where
 "LitPE v = MkPExpr (\<lambda> b. v)"
 
 lemma EvalPE_LitPE [eval,evalp]:
@@ -107,7 +107,7 @@ lemma LitPE_range [simp]:
 
 lemma LitPE_defined [defined]:
   "\<D> x \<Longrightarrow> \<D> (LitPE x)"
-  by (simp add:Defined_pexpr_def LitPE_def)
+  by (simp add: LitPE_def defined_pexpr_def)
 
 lemma UNREST_PEXPR_subset:
   "\<lbrakk> UNREST_PEXPR vs1 v; vs2 \<subseteq> vs1 \<rbrakk> \<Longrightarrow> UNREST_PEXPR vs2 v"
@@ -120,43 +120,43 @@ lemma UNREST_LitPE [unrest]:
   by (simp add:UNREST_PEXPR_def LitPE_def)
 
 lemma WF_PEXPRESSION_tau [typing]:
-  fixes v :: "('a, 'm :: VALUE) pexpr"
+  fixes v :: "('a, 'm :: TYPED_MODEL) pexpr"
   shows "\<tau>\<^sub>*(v) = TypeU(TYPE('a))"
   by (simp add:WF_PEXPRESSION_type_def)
 
 definition pevar_compat :: 
-  "('a :: DEFINED, 'm :: VALUE) pexpr \<Rightarrow> ('a, 'm) pvar \<Rightarrow> bool" (infix "\<rhd>\<^sub>*" 50) where
+  "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr \<Rightarrow> ('a, 'm) pvar \<Rightarrow> bool" (infix "\<rhd>\<^sub>*" 50) where
 "pevar_compat e x \<equiv> \<forall>b. (\<lbrakk>e\<rbrakk>\<^sub>* b) \<rhd>\<^sub>p x"
 
 lemma pevar_compat_TYPEUSOUND:
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) pexpr"
+  fixes e :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
   and   x :: "('a, 'm) pvar"
   assumes "e \<rhd>\<^sub>* x"
   shows "TYPEUSOUND('a,'m)"
   by (metis assms pevar_compat_def pvar_compat_def)
 
 lemma pvar_VAR_compat_naux [typing]:
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) pexpr" 
+  fixes e :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr" 
   and   x :: "('a, 'm) pvar"
   assumes "TYPEUSOUND('a, 'm)" "\<not> pvaux x"
   shows "e \<rhd>\<^sub>* x"
   by (auto simp add:pevar_compat_def PVAR_VAR_def assms typing var_compat_def)
 
 lemma pvar_VAR_compat [typing]:
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) pexpr" 
+  fixes e :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr" 
   and   x :: "('a, 'm) pvar"
   assumes "TYPEUSOUND('a, 'm)" "\<D> e"
   shows "e \<rhd>\<^sub>* x"
   using assms
-  by (auto simp add:pevar_compat_def defined typing Defined_pexpr_def)
+  by (auto simp add:pevar_compat_def defined typing defined_pexpr_def)
 
 lemma EvalPE_compat [typing]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "v \<rhd>\<^sub>* x"
   shows "\<lbrakk>v\<rbrakk>\<^sub>* b \<rhd>\<^sub>p x"
   using assms by (simp add: pevar_compat_def)
 
-definition WVarPE :: "'m uvar \<Rightarrow> ('m SIGTYPE, 'm :: VALUE) pexpr" where
+definition WVarPE :: "'m uvar \<Rightarrow> ('m sigtype, 'm :: TYPED_MODEL) pexpr" where
 "WVarPE x = MkPExpr (\<lambda> b. \<Sigma> \<langle>b\<rangle>\<^sub>b x : vtype x)"
 
 lemma EvalPE_WVarPE [eval,evalp]:
@@ -167,7 +167,7 @@ lemma UNREST_WVarPE [unrest]:
   "x \<notin> vs \<Longrightarrow> UNREST_PEXPR vs (WVarPE x)"
   by (simp add:WVarPE_def UNREST_PEXPR_def)
 
-definition VarPE :: "'m uvar \<Rightarrow> ('a, 'm :: VALUE) pexpr" where
+definition VarPE :: "'m uvar \<Rightarrow> ('a, 'm :: TYPED_MODEL) pexpr" where
 "VarPE x = MkPExpr (\<lambda> b. ProjU (\<langle>b\<rangle>\<^sub>b x))"
 
 lemma EvalPE_VarPE [eval,evalp]:
@@ -178,7 +178,7 @@ lemma UNREST_VarPE [unrest]:
   "x \<notin> vs \<Longrightarrow> UNREST_PEXPR vs (VarPE x)"
   by (simp add:VarPE_def UNREST_PEXPR_def)
 
-definition PVarPE :: "('a :: DEFINED, 'm :: VALUE) pvar \<Rightarrow> ('a, 'm) pexpr" where
+definition PVarPE :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar \<Rightarrow> ('a, 'm) pexpr" where
 "PVarPE x \<equiv> MkPExpr (\<lambda> b. (\<langle>b\<rangle>\<^sub>* x))"
 
 (* FIXME: Maybe this law should be removed in favour of the following one... *)
@@ -191,21 +191,23 @@ lemma EvalPE_PVarPE_ty [eval,evalp]:
   by (simp add: EvalPE_PVarPE Rep_binding_ty_def)
 
 lemma PVarPE_defined_aux [defined]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "TYPEUSOUND('a, 'm)" "pvaux x"
   shows "\<D> (PVarPE x)"
-  using assms by (auto intro:defined typing simp add:Defined_pexpr_def eval)
+apply (insert assms)
+apply (simp add: defined typing defined_pexpr_def eval)
+done
 
 lemma UNREST_PVarPE [unrest]:
   "x\<down> \<notin> vs \<Longrightarrow> UNREST_PEXPR vs (PVarPE x)"
   by (metis EvalPE_PVarPE_ty UNREST_PEXPR_def binding_override_ty_left)
 
 definition ErasePE :: 
-  "('a, 'm :: VALUE) pexpr \<Rightarrow> ('m SIGTYPE, 'm) pexpr" where
+  "('a::DEFINED, 'm :: TYPED_MODEL) pexpr \<Rightarrow> ('m sigtype, 'm) pexpr" where
 "ErasePE v = MkPExpr (\<lambda> b. \<Sigma> (InjU (\<lbrakk>v\<rbrakk>\<^sub>*b)) : TYPEU('a))"
 
 lemma EvalPE_ErasePE:
-  fixes v :: "('a, 'm :: VALUE) pexpr"
+  fixes v :: "('a::DEFINED, 'm :: TYPED_MODEL) pexpr"
   shows "\<lbrakk>ErasePE v\<rbrakk>\<^sub>*b = (\<Sigma> (InjU (\<lbrakk>v\<rbrakk>\<^sub>*b)) : TYPEU('a))"
   by (simp add:ErasePE_def)
 
@@ -216,7 +218,7 @@ lemma UNREST_ErasePE [unrest]:
 (* Expression restriction: forcibly remove variables from an expression by
    substituting them for a default value. *)
 
-lift_definition ResPE :: "('a::DEFINED, 'm::VALUE) pexpr \<Rightarrow> 'm uvar set \<Rightarrow> ('a, 'm) pexpr"
+lift_definition ResPE :: "('a::DEFINED, 'm::TYPED_MODEL) pexpr \<Rightarrow> 'm uvar set \<Rightarrow> ('a, 'm) pexpr"
 is "\<lambda> f xs. (\<lambda> b. \<lbrakk>f\<rbrakk>\<^sub>* (b \<oplus>\<^sub>b \<B> on xs))" .
 
 notation ResPE (infixr "\<ominus>\<^sub>*" 200)
@@ -230,8 +232,8 @@ lemma UNREST_ResPE [unrest]:
   by (simp add:UNREST_PEXPR_def ResPE.rep_eq)
 
 definition ProdPE ::
-  "('a :: DEFINED, 'm :: VALUE) pexpr \<Rightarrow> 
-   ('b :: DEFINED, 'm :: VALUE) pexpr \<Rightarrow>
+  "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr \<Rightarrow> 
+   ('b :: DEFINED, 'm :: TYPED_MODEL) pexpr \<Rightarrow>
    (('a * 'b), 'm) pexpr" ("'(_, _')\<^sub>*") where
 "ProdPE x y = MkPExpr (\<lambda> b. (\<lbrakk>x\<rbrakk>\<^sub>* b, \<lbrakk>y\<rbrakk>\<^sub>* b))"
 
@@ -245,7 +247,7 @@ lemma UNREST_ProdPE [unrest]:
 
 lemma ProdPE_defined [defined]:
   "\<lbrakk> \<D> x; \<D> y \<rbrakk> \<Longrightarrow> \<D> (x, y)\<^sub>*"
-  by (simp add:Defined_pexpr_def EvalPE_ProdPE defined)
+  by (simp add:defined_pexpr_def EvalPE_ProdPE defined)
 
 lemma ProdPE_range:
   "range \<lbrakk>(x, y)\<^sub>*\<rbrakk>\<^sub>* = {(\<lbrakk>x\<rbrakk>\<^sub>*b, \<lbrakk>y\<rbrakk>\<^sub>*b)|b. True}"
@@ -257,7 +259,7 @@ lemma ProdPE_Dom_uncurry [defined]:
   by (auto simp add:Dom_def EvalPE_ProdPE)
 
 definition Op1PE :: 
-  "('a \<Rightarrow> 'b) \<Rightarrow> ('a, 'm :: VALUE) pexpr \<Rightarrow> ('b, 'm) pexpr" where
+  "('a \<Rightarrow> 'b) \<Rightarrow> ('a, 'm :: TYPED_MODEL) pexpr \<Rightarrow> ('b, 'm) pexpr" where
 "Op1PE f u = MkPExpr (\<lambda> b. f (\<lbrakk>u\<rbrakk>\<^sub>*b))"
 
 lemma EvalPE_Op1PE [eval,evale,evalp]:
@@ -270,11 +272,11 @@ lemma UNREST_Op1PE [unrest]:
 
 lemma Op1PE_defined [defined]:
   "\<lbrakk> \<D> x; range \<lbrakk>x\<rbrakk>\<^sub>* \<subseteq> Dom f \<rbrakk> \<Longrightarrow> \<D> (Op1PE f x)"
-  by (auto simp add:Defined_pexpr_def EvalPE_Op1PE Dom_def)
+  by (auto simp add:defined_pexpr_def EvalPE_Op1PE Dom_def)
 
 definition 
   Op2PE :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 
-            ('a :: DEFINED, 'm :: VALUE) pexpr \<Rightarrow> 
+            ('a :: DEFINED, 'm :: TYPED_MODEL) pexpr \<Rightarrow> 
             ('b :: DEFINED, 'm) pexpr \<Rightarrow> 
             ('c :: DEFINED, 'm) pexpr" where
 "Op2PE f u v \<equiv> Op1PE (uncurry f) (u, v)\<^sub>*"
@@ -291,7 +293,7 @@ lemma Op2PE_defined [defined]:
 
 definition
   Op3PE :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 
-            ('a :: DEFINED, 'm :: VALUE) pexpr \<Rightarrow> 
+            ('a :: DEFINED, 'm :: TYPED_MODEL) pexpr \<Rightarrow> 
             ('b :: DEFINED, 'm) pexpr \<Rightarrow> 
             ('c :: DEFINED, 'm) pexpr \<Rightarrow>
             ('d :: DEFINED, 'm) pexpr" where
@@ -309,7 +311,7 @@ lemma Op3PE_defined [defined]:
    \<Longrightarrow> \<D> (Op3PE f x y z)"
   by (simp add:Op3PE_def defined)
 
-lift_definition Op1PP :: "('a::type \<Rightarrow> 'm::VALUE upred) \<Rightarrow> ('a, 'm) pexpr \<Rightarrow> 'm upred"
+lift_definition Op1PP :: "('a::type \<Rightarrow> 'm::TYPED_MODEL upred) \<Rightarrow> ('a, 'm) pexpr \<Rightarrow> 'm upred"
 is "\<lambda> P e. {b. b \<in> P(\<lbrakk>e\<rbrakk>\<^sub>*b)}" .
 
 lemma EvalP_Op1PP [eval, evalpp]: "\<lbrakk>Op1PP P e\<rbrakk>b = \<lbrakk>P(\<lbrakk>e\<rbrakk>\<^sub>*b)\<rbrakk>b"
@@ -318,7 +320,7 @@ lemma EvalP_Op1PP [eval, evalpp]: "\<lbrakk>Op1PP P e\<rbrakk>b = \<lbrakk>P(\<l
 lemma UNREST_Op1PP: "\<lbrakk> \<And> x. vs \<sharp> P(x); vs \<sharp> e \<rbrakk> \<Longrightarrow> vs \<sharp> Op1PP P e"
   by (auto simp add:UNREST_def UNREST_PEXPR_def Op1PP.rep_eq)
 
-lift_definition Op2PP :: "('a::type \<Rightarrow> 'b::type \<Rightarrow> 'm::VALUE upred) \<Rightarrow> ('a, 'm) pexpr \<Rightarrow> ('b, 'm) pexpr \<Rightarrow> 'm upred"
+lift_definition Op2PP :: "('a::type \<Rightarrow> 'b::type \<Rightarrow> 'm::TYPED_MODEL upred) \<Rightarrow> ('a, 'm) pexpr \<Rightarrow> ('b, 'm) pexpr \<Rightarrow> 'm upred"
 is "\<lambda> P e f. {b. b \<in> P(\<lbrakk>e\<rbrakk>\<^sub>*b)(\<lbrakk>f\<rbrakk>\<^sub>*b)}" .
 
 lemma EvalP_Op2PP [eval, evalpp]: "\<lbrakk>Op2PP P e f\<rbrakk>b = \<lbrakk>P(\<lbrakk>e\<rbrakk>\<^sub>*b) (\<lbrakk>f\<rbrakk>\<^sub>*b)\<rbrakk>b"
@@ -327,7 +329,7 @@ lemma EvalP_Op2PP [eval, evalpp]: "\<lbrakk>Op2PP P e f\<rbrakk>b = \<lbrakk>P(\
 lemma UNREST_Op2PP: "\<lbrakk> \<And> x y. vs \<sharp> P(x)(y); vs \<sharp> e; vs \<sharp> f \<rbrakk> \<Longrightarrow> vs \<sharp> Op2PP P e f"
   by (auto simp add:UNREST_def UNREST_PEXPR_def Op2PP.rep_eq)
 
-lift_definition Op3PP :: "('a::type \<Rightarrow> 'b::type \<Rightarrow> 'c::type \<Rightarrow> 'm::VALUE upred) \<Rightarrow> 
+lift_definition Op3PP :: "('a::type \<Rightarrow> 'b::type \<Rightarrow> 'c::type \<Rightarrow> 'm::TYPED_MODEL upred) \<Rightarrow> 
                           ('a, 'm) pexpr \<Rightarrow> ('b, 'm) pexpr \<Rightarrow> ('c, 'm) pexpr \<Rightarrow> 'm upred"
 is "\<lambda> P e f g. {b. b \<in> P(\<lbrakk>e\<rbrakk>\<^sub>*b)(\<lbrakk>f\<rbrakk>\<^sub>*b)(\<lbrakk>g\<rbrakk>\<^sub>*b)}" .
 
@@ -342,41 +344,42 @@ lemma UNREST_Op3PP:
 abbreviation "EqualPE \<equiv> Op2PE (op =)"
 
 definition PExprE :: 
-"('a, 'm :: VALUE) pexpr \<Rightarrow> 'm uexpr" where
+"('a::DEFINED, 'm :: TYPED_MODEL) pexpr \<Rightarrow> 'm uexpr" where
 "PExprE f = Abs_uexpr (InjU \<circ> DestPExpr f)"
 
 adhoc_overloading
   erase PExprE
 
 lemma PExprE_rep_eq:
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) pexpr" 
+  fixes e :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr" 
   assumes "TYPEUSOUND('a, 'm)"
   shows "\<langle>PExprE e\<rangle>\<^sub>e b = InjU (DestPExpr e b)"
-  apply (subgoal_tac "(InjU \<circ> DestPExpr e) \<in> WF_EXPRESSION")
+  apply (subgoal_tac "(InjU \<circ> DestPExpr e) \<in> WF_EXPR")
   apply (simp add:PExprE_def)
-  apply (auto simp add:WF_EXPRESSION_def)
+  apply (auto simp add:WF_EXPR_def)
   apply (rule_tac x="TYPEU('a)" in exI)
   apply (insert assms)
-  apply (auto intro:typing)
+(* apply (auto intro:typing) *)
+  apply (metis UTypedef.axm1)
 done
 
 lemma EvalE_PExprE [eval, evale]:
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) pexpr" 
+  fixes e :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr" 
   assumes "TYPEUSOUND('a, 'm)"
   shows "\<lbrakk>e\<down>\<rbrakk>\<^sub>eb = InjU (\<lbrakk>e\<rbrakk>\<^sub>*b)"
   by (simp add:EvalE_def PExprE_rep_eq assms)
 
 lemma PExprE_type [typing]:
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) pexpr" 
+  fixes e :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr" 
   assumes "TYPEUSOUND('a, 'm)" 
   and "t = \<tau>\<^sub>* e"
   shows "PExprE e :\<^sub>e t"
   apply (simp add: etype_rel_def PExprE_rep_eq assms WF_PEXPRESSION_type_def)
-  apply (metis TypeUSound_def assms dtype_type)
+  apply (metis UTypedef.axm1 assms(1))
 done
 
 lemma UNREST_PExprE [unrest]:
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) pexpr" 
+  fixes e :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr" 
   assumes "TYPEUSOUND('a, 'm)" "UNREST_PEXPR vs e"
   shows "UNREST_EXPR vs (PExprE e)"
   apply (insert assms)
@@ -385,30 +388,30 @@ done
 
 lemma LitPE_erasure [erasure]:
   fixes v :: "'a :: DEFINED" 
-  assumes "TYPEUSOUND('a, 'm :: VALUE)"
+  assumes "TYPEUSOUND('a, 'm :: TYPED_MODEL)"
   shows "(LitPE v)\<down> = (LitE (InjU v) :: 'm uexpr)"
   using assms
   apply (utp_expr_tac)
-  apply (subgoal_tac "(InjU v :: 'm) : TYPEU('a)")
+  apply (subgoal_tac "(InjU v :: 'm uval) : TYPEU('a)")
   apply (simp add:evale LitPE_def)
-  apply (simp add:typing)
+  apply (metis UTypedef.axm1)
 done
 
 lemma PVarPE_erasure [erasure]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar" 
-  assumes "TYPEUSOUND('a, 'm :: VALUE)" "pvaux x"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar" 
+  assumes "TYPEUSOUND('a, 'm :: TYPED_MODEL)" "pvaux x"
   shows "(PVarPE x)\<down> = VarE (x\<down>)"
   using assms
-  apply (auto simp add:evale defined typing evalp)
+  apply (simp add: defined typing evalp evale)
   apply (simp add:Rep_binding_ty_def)
-  apply (metis MkVar_def PVAR_VAR_def TypeUSound_ProjU_inv aux_defined binding_type dtype_relI fst_conv snd_conv)
+  apply (metis PVAR_VAR_vtype UTypedef.ProjU_inverse binding_stype pvaux_aux)
 done
 
 text {* The following functions and rules mechanise marshalling between predicates
         and boolean valued expressions *}
 
 lift_definition PExprP :: 
-  "(bool, 'm :: VALUE) pexpr \<Rightarrow> 'm upred" 
+  "(bool, 'm :: TYPED_MODEL) pexpr \<Rightarrow> 'm upred" 
 is "\<lambda> e. {b. \<lbrakk>e\<rbrakk>\<^sub>* b}" .
 
 declare [[coercion PExprP]]
@@ -421,11 +424,11 @@ lemma EvalP_PExprP [evalp]:
   by (simp add:PExprP_def EvalP_def)
 
 lemma EvalP_EqualP_ty [evalpp]:
-  fixes e1 e2 :: "('a :: DEFINED, 'm :: VALUE) pexpr" 
+  fixes e1 e2 :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr" 
   assumes "TYPEUSOUND('a, 'm)"
   shows "\<lbrakk>e1\<down> ==\<^sub>p e2\<down>\<rbrakk>b = (\<lbrakk>e1\<rbrakk>\<^sub>*b = \<lbrakk>e2\<rbrakk>\<^sub>*b)"
   apply (auto simp add:eval evale evalp assms)
-  apply (drule TypeUSound_InjU_inj[OF assms(1)], simp)
+  apply (drule UTypedef.InjU_inject [OF assms(1)], simp)
 done
 
 lemma EvalP_VarP_ty [evalp]:
@@ -468,7 +471,7 @@ lemma EvalP_ExprP_ty [evalp]:
 done
 
 lemma EvalP_SubstP_ty [evalp]:
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) pexpr" 
+  fixes v :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr" 
   assumes "v \<rhd>\<^sub>* x"
   shows "\<lbrakk>p[v\<down>/\<^sub>px\<down>]\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>* \<lbrakk>v\<rbrakk>\<^sub>*b))"
   apply (utp_pred_tac)
@@ -478,7 +481,7 @@ lemma EvalP_SubstP_ty [evalp]:
 done
 
 lemma EvalP_SubstP_dash1_ty [evalp]:
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) pexpr" 
+  fixes v :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr" 
   assumes "v \<rhd>\<^sub>* x"
   shows "\<lbrakk>p[v\<down>/\<^sub>px\<down>\<acute>]\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x\<acute> :=\<^sub>* \<lbrakk>v\<rbrakk>\<^sub>*b))"
   apply (utp_pred_tac)
@@ -488,7 +491,7 @@ lemma EvalP_SubstP_dash1_ty [evalp]:
 done
 
 lemma EvalP_SubstP_dash2_ty [evalp]:
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) pexpr" 
+  fixes v :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr" 
   assumes "v \<rhd>\<^sub>* x"
   shows "\<lbrakk>p[v\<down>/\<^sub>px\<down>\<acute>\<acute>]\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x\<acute>\<acute> :=\<^sub>* \<lbrakk>v\<rbrakk>\<^sub>*b))"
   apply (utp_pred_tac)
@@ -498,7 +501,7 @@ lemma EvalP_SubstP_dash2_ty [evalp]:
 done
 
 lemma EvalP_SubstP_dash3_ty [evalp]:
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) pexpr" 
+  fixes v :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr" 
   assumes "v \<rhd>\<^sub>* x"
   shows "\<lbrakk>p[v\<down>/\<^sub>px\<down>\<acute>\<acute>\<acute>]\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x\<acute>\<acute>\<acute> :=\<^sub>* \<lbrakk>v\<rbrakk>\<^sub>*b))"
   apply (utp_pred_tac)
@@ -508,7 +511,7 @@ lemma EvalP_SubstP_dash3_ty [evalp]:
 done
 
 lemma EvalP_ExistsP_singleton_pvaux_ty [evalpp]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "TYPEUSOUND('a, 'm)" "pvaux x"
   shows "\<lbrakk>\<exists>\<^sub>p {x\<down>} . p\<rbrakk>b = (\<exists> v . v \<rhd>\<^sub>p x \<and> \<lbrakk>p\<rbrakk>(b(x :=\<^sub>* v)))"
   apply (auto simp add:eval)
@@ -517,26 +520,24 @@ lemma EvalP_ExistsP_singleton_pvaux_ty [evalpp]:
   apply (rule typing)
   apply (simp_all add:assms defined)
   apply (simp add:Rep_binding_ty_def binding_upd_ty_def assms typing defined)
-  apply (subst TypeUSound_ProjU_inv)
-  apply (simp_all add:typing defined assms)
-  apply (rule typing)
-  apply (simp_all add:typing defined assms pvaux_aux[THEN sym])
+  apply (subst UTypedef.ProjU_inverse)
+  apply (simp_all add:typing defined assms pvaux_aux [THEN sym])
   apply (metis binding_upd_eq binding_upd_ty_def binding_upd_vcoerce)
 done
 
 lemma EvalP_ForallP_singleton_pvaux_ty [evalpp]:
-  fixes x :: "('a::DEFINED, 'm::VALUE) pvar"
+  fixes x :: "('a::DEFINED, 'm::TYPED_MODEL) pvar"
   assumes "TYPEUSOUND('a, 'm)" "pvaux x"
   shows "\<lbrakk>\<forall>\<^sub>p  {x\<down>}. p\<rbrakk>b = (\<forall> v. v \<rhd>\<^sub>p x \<longrightarrow> \<lbrakk>p\<rbrakk>(b(x :=\<^sub>* v)))" 
   using assms
   apply (auto simp add:EvalP_def ForallP_def ExistsP.rep_eq NotP.rep_eq)
   apply (metis binding_upd_triv binding_upd_ty_def binding_upd_upd)
   apply (drule_tac x="\<langle>b1\<rangle>\<^sub>*x" in spec)
-  apply (metis PVAR_binding_defined_aux Rep_binding_ty_compat binding_upd_ty_triv)
+  apply (metis Rep_binding_ty_compat aux_defined binding_upd_ty_triv defined_uval_def pvaux_aux)
 done
 
 lemma EvalP_ExistsP_singleton_d1_pvaux_ty [evalpp]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "TYPEUSOUND('a, 'm)" "pvaux x"
   shows "\<lbrakk>\<exists>\<^sub>p {x\<down>\<acute>} . p\<rbrakk>b = (\<exists> v . v \<rhd>\<^sub>p x\<acute> \<and> \<lbrakk>p\<rbrakk>(b(x\<acute> :=\<^sub>* v)))"
   apply (subst EvalP_ExistsP_singleton_pvaux_ty[THEN sym])
@@ -544,7 +545,7 @@ lemma EvalP_ExistsP_singleton_d1_pvaux_ty [evalpp]:
 done
 
 lemma EvalP_ExistsP_singleton_d2_pvaux_ty [evalpp]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "TYPEUSOUND('a, 'm)" "pvaux x"
   shows "\<lbrakk>\<exists>\<^sub>p {x\<down>\<acute>\<acute>} . p\<rbrakk>b = (\<exists> v . v \<rhd>\<^sub>p x\<acute>\<acute> \<and> \<lbrakk>p\<rbrakk>(b(x\<acute>\<acute> :=\<^sub>* v)))"
   apply (subst EvalP_ExistsP_singleton_pvaux_ty[THEN sym])
@@ -552,7 +553,7 @@ lemma EvalP_ExistsP_singleton_d2_pvaux_ty [evalpp]:
 done
 
 lemma EvalP_ExistsP_singleton_d3_pvaux_ty [evalpp]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "TYPEUSOUND('a, 'm)" "pvaux x"
   shows "\<lbrakk>\<exists>\<^sub>p {x\<down>\<acute>\<acute>\<acute>} . p\<rbrakk>b = (\<exists> v . v \<rhd>\<^sub>p x\<acute>\<acute>\<acute> \<and> \<lbrakk>p\<rbrakk>(b(x\<acute>\<acute>\<acute> :=\<^sub>* v)))"
   apply (subst EvalP_ExistsP_singleton_pvaux_ty[THEN sym])
@@ -574,7 +575,7 @@ definition PVarP ::
 declare PVarP_def [eval, evalpp]
 
 definition PredPE ::
-  "'m upred \<Rightarrow> (bool, 'm :: VALUE) pexpr" where
+  "'m upred \<Rightarrow> (bool, 'm :: TYPED_MODEL) pexpr" where
 "PredPE p = MkPExpr (\<lambda> b. b \<in> destPRED p)"
 
 lemma EvalPE_PExprP [eval, evalp]:
@@ -588,13 +589,13 @@ lemma PredPE_inv [evalp]: "(PredPE e)\<down> = e"
   by (simp add: PExprP_def PredPE_def)
 
 abbreviation PEqualP ::
-  "('a :: DEFINED, 'm :: VALUE) pexpr \<Rightarrow> ('a, 'm) pexpr \<Rightarrow>
+  "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr \<Rightarrow> ('a, 'm) pexpr \<Rightarrow>
    'm upred" where
 "PEqualP e f \<equiv> PExprP (Op2PE (op =) e f)"
 
 (*
 lemma PExprP_EqualPE [evalp]: 
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) WF_PEXPRESSION" 
+  fixes e :: "('a :: DEFINED, 'm :: TYPED_MODEL) WF_PEXPRESSION" 
   assumes "TYPEUSOUND('a, 'm)"
   shows "(EqualPE e f)\<down> = (e\<down>) ==\<^sub>p (f\<down>)"
   by (force intro:assms simp add:EqualP_def Op2PE_def PExprP_def PExprE_rep_eq assms)
@@ -602,19 +603,19 @@ lemma PExprP_EqualPE [evalp]:
 
 abbreviation PredOp1PE :: 
   "('m upred \<Rightarrow> 'm upred) \<Rightarrow>
-   (bool, 'm :: VALUE) pexpr \<Rightarrow> (bool, 'm) pexpr" where
+   (bool, 'm :: TYPED_MODEL) pexpr \<Rightarrow> (bool, 'm) pexpr" where
 "PredOp1PE f v \<equiv> PredPE (f (PExprP v))"
 
 abbreviation PredOp2PE :: 
   "('m upred \<Rightarrow> 'm upred \<Rightarrow> 'm upred) \<Rightarrow>
-   (bool, 'm :: VALUE) pexpr \<Rightarrow> 
+   (bool, 'm :: TYPED_MODEL) pexpr \<Rightarrow> 
    (bool, 'm) pexpr \<Rightarrow> 
    (bool, 'm) pexpr" where
 "PredOp2PE f u v \<equiv> PredPE (f (PExprP u) (PExprP v))"
 
 abbreviation PredOp3PE :: 
   "('m upred \<Rightarrow> 'm upred \<Rightarrow> 'm upred \<Rightarrow> 'm upred) \<Rightarrow>
-   (bool, 'm :: VALUE) pexpr \<Rightarrow> 
+   (bool, 'm :: TYPED_MODEL) pexpr \<Rightarrow> 
    (bool, 'm) pexpr \<Rightarrow> 
    (bool, 'm) pexpr \<Rightarrow>
    (bool, 'm) pexpr" where
@@ -623,32 +624,33 @@ abbreviation PredOp3PE ::
 subsection {* Polymorphic Relational Operators *}
 
 definition PAssignR ::
-  "('a, 'm :: VALUE) pvar \<Rightarrow> ('a, 'm) pexpr \<Rightarrow> 'm upred" where
+  "('a::DEFINED, 'm :: TYPED_MODEL) pvar \<Rightarrow> ('a, 'm) pexpr \<Rightarrow> 'm upred" where
 "PAssignR x v = x\<down> :=\<^sub>R v\<down>"
 
 declare PAssignR_def [eval, evalr, evalpp, evalpr]
 
-definition PAssignF_upd :: "'m AssignF \<Rightarrow> ('a::DEFINED, 'm::VALUE) pvar \<Rightarrow> ('a, 'm) pexpr \<Rightarrow> 'm AssignF" where
+definition PAssignF_upd :: "'m AssignF \<Rightarrow> ('a::DEFINED, 'm::TYPED_MODEL) pvar \<Rightarrow> ('a, 'm) pexpr \<Rightarrow> 'm AssignF" where
 "PAssignF_upd f x v = AssignF_upd f (x\<down>) (v\<down>)"
 
 declare PAssignF_upd_def [eval, evalr, evalpp, evalpr]
 
 abbreviation AssignRPE ::
-  "('a, 'm :: VALUE) pvar \<Rightarrow> ('a, 'm) pexpr \<Rightarrow> (bool, 'm) pexpr" where
+  "('a::DEFINED, 'm :: TYPED_MODEL) pvar \<Rightarrow> ('a, 'm) pexpr \<Rightarrow> (bool, 'm) pexpr" where
 "AssignRPE x v \<equiv> PredPE (PAssignR x v)"
 
 abbreviation WAssignRPE ::
-  "('m :: VALUE) uvar \<Rightarrow> 'm uexpr \<Rightarrow> (bool, 'm) pexpr" where
+  "('m :: TYPED_MODEL) uvar \<Rightarrow> 'm uexpr \<Rightarrow> (bool, 'm) pexpr" where
 "WAssignRPE x v \<equiv> PredPE (x :=\<^sub>R v)"
 
 lemma PExprE_compat [typing]:
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) pexpr" 
+  fixes e :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr" 
   and   x :: "('a, 'm) pvar"
   assumes "e \<rhd>\<^sub>* x"
   shows "e\<down> \<rhd>\<^sub>e x\<down>"
   using assms
   apply (auto simp add: pevar_compat_def evar_compat_def pvar_compat_def PExprE_rep_eq)
-  apply (metis pvar_compat_def var_compat_pvar)
+  apply (metis MkVar_def PVAR_VAR_def UTypedef.InjU_defined UTypedef.InjU_typed uvar.select_convs(2) uvar.select_convs(3) var_compat_intros(1) var_compat_intros(2))
+  (* apply (metis pvar_compat_def var_compat_pvar) *)
 done
 
 lemma pevar_compat_dash_simp [simp]: "e \<rhd>\<^sub>* x\<acute> \<longleftrightarrow> e \<rhd>\<^sub>* x"
@@ -658,37 +660,38 @@ lemma evar_compat_dash_simp [simp]: "e \<rhd>\<^sub>e x\<acute> \<longleftrighta
   by (metis (full_types) evar_compat_dash evar_compat_undash undash_dash)
 
 lemma PExprE_compat_dash [typing]:
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) pexpr" 
+  fixes e :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr" 
   and   x :: "('a, 'm) pvar"
   assumes "e \<rhd>\<^sub>* x\<acute>"
   shows "e\<down> \<rhd>\<^sub>e x\<down>\<acute>"
   using assms by (simp add:typing)
 
 lemma PExprE_compat_dash_dash [typing]:
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) pexpr" 
+  fixes e :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr" 
   and   x :: "('a, 'm) pvar"
   assumes "e \<rhd>\<^sub>* x\<acute>\<acute>"
   shows "e\<down> \<rhd>\<^sub>e x\<down>\<acute>\<acute>"
   using assms by (simp add:typing)
 
 lemma PExprE_compat_naux [typing]:
-fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar" and e :: "('a, 'm) pexpr"
+fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar" and e :: "('a, 'm) pexpr"
 assumes "TYPEUSOUND('a, 'm)" "\<not> pvaux x"
 shows "e\<down> \<rhd>\<^sub>e x\<down>"
   by (simp add:typing assms)
 
 lemma PExprE_compat_def [typing]:
-fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar" and e :: "('a, 'm) pexpr"
+fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar" and e :: "('a, 'm) pexpr"
 assumes "TYPEUSOUND('a, 'm)" "\<D> e"
 shows "e\<down> \<rhd>\<^sub>e x\<down>"
-  using assms
-  by (simp add:evar_compat_def assms PExprE_rep_eq typing Defined_pexpr_def)
+apply (insert assms)
+apply (simp add:evar_compat_def assms PExprE_rep_eq typing defined_pexpr_def)
+done
 
 subsection {* Boolean Expressions *}
 
 text {* Boolean values are the only values for which we do not postulate the
         existence of BOOL_SORT. This is so that the predicate model depends
-        only on VALUE. We defined them by simply lifting the associated
+        only on TYPED_MODEL. We defined them by simply lifting the associated
         predicate operators. *}
 
 abbreviation "NotPE       \<equiv> PredOp1PE NotP"
@@ -1038,7 +1041,6 @@ end
 
 declare utminus_UFSET_def [simp]
 
-
 (*
 lemma FUnionPE_type: 
   "\<tau>\<^sub>* (FUnionPE (xs :: ('a :: DEFINED UFSET , 'm :: FSET_SORT) WF_PEXPRESSION) ys) 
@@ -1048,13 +1050,17 @@ lemma FUnionPE_type:
 
 subsection {* Action Expressions *}
 
-definition PEV :: "'a CHAN \<Rightarrow> 'a \<Rightarrow> ('m :: EVENT_SORT) EVENT" where
-"PEV c v = EV (chan_name c) TYPEU('a) (InjU v)"
+(***********************)
+(* REVIEWED UNTIL HERE *)
+(***********************)
+
+definition PEvent :: "'a::DEFINED chan \<Rightarrow> 'a \<Rightarrow> ('m :: EVENT_SORT) event" where
+"PEvent c v = Event (chan_name c) TYPEU('a) (InjU v)"
 
 abbreviation EventPE ::
-  "'a CHAN \<Rightarrow> ('a, 'm :: EVENT_SORT) pexpr 
-           \<Rightarrow> ('m EVENT, 'm) pexpr" where
-"EventPE n v \<equiv> Op1PE (PEV n) v"
+  "'a chan \<Rightarrow> ('a::DEFINED, 'm :: EVENT_SORT) pexpr 
+           \<Rightarrow> ('m event, 'm) pexpr" where
+"EventPE n v \<equiv> Op1PE (PEvent n) v"
 
 (*
 abbreviation ReceivePE ::
@@ -1062,14 +1068,14 @@ abbreviation ReceivePE ::
 *)
 
 abbreviation ChannelPE ::
-  "('m::EVENT_SORT EVENT, 'm) pexpr \<Rightarrow> 
-   ('m UCHAN, 'm) pexpr" where
-"ChannelPE \<equiv> Op1PE EVENT_chan"
+  "('m::EVENT_SORT event, 'm) pexpr \<Rightarrow> 
+   ('m uchan, 'm) pexpr" where
+"ChannelPE \<equiv> Op1PE EventChan"
 
 text {* Channel type erasure *}
 
-definition CHAN_UCHAN :: "'a::type CHAN \<Rightarrow> ('m :: VALUE) UCHAN" where
-"CHAN_UCHAN c = MkUCHAN ((chan_name c), TYPEU('a))"
+definition CHAN_UCHAN :: "'a::type chan \<Rightarrow> ('m :: TYPED_MODEL) uchan" where
+"CHAN_UCHAN c = AbsUChan ((chan_name c), TYPEU('a))"
 
 adhoc_overloading
   erase CHAN_UCHAN
@@ -1077,7 +1083,7 @@ adhoc_overloading
 subsection {* Permutation *}
 
 definition PermPE ::
-  "('m :: VALUE) VAR_RENAME \<Rightarrow>
+  "('m :: TYPED_MODEL) VAR_RENAME \<Rightarrow>
    ('a, 'm) pexpr \<Rightarrow>   
    ('a, 'm) pexpr" where
 "PermPE ss e = MkPExpr (\<lbrakk>e\<rbrakk>\<^sub>* \<circ> (RenameB (inv\<^sub>s ss)))"
@@ -1122,7 +1128,7 @@ lemma PermPV_inv [simp]:
 done
   
 lemma PermPV_app_inv [urename]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "ss \<in> VAR_RENAME_INV"
   shows "inv (op \<bullet> ss) x = ss\<bullet>x"
   using assms by (metis PermPV_inv VAR_RENAME_INV_inv)
@@ -1158,13 +1164,13 @@ lemma RenamePE_Op3PE [urename]:
   by (auto simp add:eval)
 
 lemma RenameE_RenamePE [urename]:
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) pexpr"
+  fixes e :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
   assumes "TYPEUSOUND('a, 'm)"
   shows "ss \<bullet> (e\<down>) = (ss \<bullet> e)\<down>"
   by (simp add:evale evalp closure typing defined assms)
 
 lemma RenameP_RenamePE [urename]:
-  fixes e :: "(bool, 'm :: VALUE) pexpr"
+  fixes e :: "(bool, 'm :: TYPED_MODEL) pexpr"
   assumes "TYPEUSOUND(bool, 'm)"
   shows "ss \<bullet> (PExprP e) = PExprP (ss \<bullet> e)"
   apply (utp_pred_tac)
@@ -1172,7 +1178,7 @@ lemma RenameP_RenamePE [urename]:
 done
 
 lemma RenamePE_PExprPE [urename]:
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) pexpr"
+  fixes e :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
   assumes "TYPEUSOUND('a, 'm)"
   shows "ss\<bullet>(PExprE e) = PExprE (ss\<bullet>e)"
   by (auto simp add:evale assms)
@@ -1180,7 +1186,7 @@ lemma RenamePE_PExprPE [urename]:
 subsection {* Variable Priming *}
 
 definition PrimePE ::
-   "('a :: DEFINED, 'm :: VALUE) pexpr \<Rightarrow>   
+   "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr \<Rightarrow>   
    ('a, 'm) pexpr" where
 "PrimePE e = PermPE SS e"
 
@@ -1188,22 +1194,23 @@ adhoc_overloading
   prime PrimePE
 
 lemma PrimePE_PExprE [urename]:  
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) pexpr"
+  fixes e :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
   assumes "TYPEUSOUND('a, 'm)"
   shows "(PExprE e)\<acute> = (PExprE e\<acute>)"
   by (simp add:PrimePE_def PrimeE_def urename assms)
 
 subsection {* Substitution *}
+
 (*
 definition SubstPE :: 
-"('a, 'm :: VALUE) pexpr \<Rightarrow> 
+"('a, 'm :: TYPED_MODEL) pexpr \<Rightarrow> 
  ('b, 'm) pexpr \<Rightarrow> 
  'm VAR \<Rightarrow> 
  ('a, 'm) pexpr" where
 "SubstPE f v x = MkPExpr (\<lambda> b. \<lbrakk>f\<rbrakk>\<^sub>* (b(x :=\<^sub>b InjU (\<lbrakk>v\<rbrakk>\<^sub>* b))))"
 
 abbreviation PSubstPE :: 
-"('a, 'm :: VALUE) pexpr \<Rightarrow> 
+"('a, 'm :: TYPED_MODEL) pexpr \<Rightarrow> 
  ('b :: DEFINED, 'm) pexpr \<Rightarrow> 
  ('b, 'm) pvar \<Rightarrow> 
  ('a, 'm) pexpr" ("_[_'/\<^sub>*_]" [200] 200) where
@@ -1211,15 +1218,15 @@ abbreviation PSubstPE ::
 *)
 
 definition PSubstPE :: 
-"('a, 'm :: VALUE) pexpr \<Rightarrow> 
+"('a, 'm :: TYPED_MODEL) pexpr \<Rightarrow> 
  ('b :: DEFINED, 'm) pexpr \<Rightarrow> 
  ('b, 'm) pvar \<Rightarrow> 
  ('a, 'm) pexpr" ("_[_'/\<^sub>*_]" [200] 200) where
 "PSubstPE f v x \<equiv> MkPExpr (\<lambda> b. \<lbrakk>f\<rbrakk>\<^sub>* (b(x :=\<^sub>* \<lbrakk>v\<rbrakk>\<^sub>* b)))"
 
 abbreviation PSubstP :: 
-"('m :: VALUE) upred \<Rightarrow> 
- ('b, 'm) pexpr \<Rightarrow> 
+"('m :: TYPED_MODEL) upred \<Rightarrow> 
+ ('b::DEFINED, 'm) pexpr \<Rightarrow> 
  ('b, 'm) pvar \<Rightarrow> 
  'm upred" where
 "PSubstP p e x \<equiv> SubstP p e\<down> x\<down>"
@@ -1233,13 +1240,14 @@ lemma EvalPE_PSubstPE_typed [evale,evalpp]:
   by (simp add:PSubstPE_def)
 
 lemma EvalPE_PSubstP_typed [evalpp]:
-  fixes x :: "('a::DEFINED, 'm::VALUE) pvar"
+  fixes x :: "('a::DEFINED, 'm::TYPED_MODEL) pvar"
   assumes "TYPEUSOUND('a,'m)"
   shows "\<lbrakk>PSubstP p v x\<rbrakk>b = \<lbrakk>p\<rbrakk>(b(x :=\<^sub>* \<lbrakk>v\<rbrakk>\<^sub>* b))"
  by (simp add: eval binding_upd_ty_def assms)
 
+
 lemma PExprP_SubstPE [evalpp]:
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) pexpr"
+  fixes v :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
   assumes "v \<rhd>\<^sub>* x"
   shows "(PSubstPE e v x)\<down> = SubstP e\<down> v\<down> x\<down>"
   apply (insert assms)
@@ -1248,22 +1256,23 @@ lemma PExprP_SubstPE [evalpp]:
 done
 
 lemma InjU_EvalPE_compat [typing]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "v \<rhd>\<^sub>* x"
   shows "InjU (\<lbrakk>v\<rbrakk>\<^sub>* b) \<rhd> x\<down>"
   by (simp add: typing assms)
 
 lemma PSubstPE_PVarPE [usubst]:
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) pexpr"
+  fixes v :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
   assumes "v \<rhd>\<^sub>* x"
   shows "PSubstPE (PVarPE x) v x = v"
   using assms
     apply (frule_tac pevar_compat_TYPEUSOUND)  
     apply (utp_poly_tac)
+    apply (metis UTypedef.axm4)
 done
 
 lemma PSubstPE_PVarPE_different [usubst]:
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) pexpr"
+  fixes v :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
   assumes "v \<rhd>\<^sub>* x" "x\<down> \<noteq> y\<down>"
   shows "PSubstPE (PVarPE y) v x = PVarPE y"
   using assms by (utp_poly_tac)
@@ -1273,7 +1282,7 @@ lemma PSubstPE_ProdPE [usubst]:
   by (utp_poly_tac)
 
 lemma PSubstP_PEqualP [usubst]:
-  fixes e :: "('a :: DEFINED, 'm :: VALUE) pexpr"
+  fixes e :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
   and   x :: "('a, 'm) pvar"
   assumes "TYPEUSOUND('a, 'm)"
   shows "PSubstP (PEqualP u v) e x = PEqualP (u[e/\<^sub>*x]) (v[e/\<^sub>*x])"
@@ -1296,7 +1305,7 @@ lemma PSubstPE_Op3PE [usubst]:
   by (utp_poly_tac)
 
 lemma SubstP_PSubstPE [usubst]:
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) pexpr"
+  fixes v :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
   assumes "v \<rhd>\<^sub>* x"
   shows "e\<down>[v\<down>/\<^sub>px\<down>] = (PSubstPE e v x)\<down>" 
   using assms by (utp_poly_tac)
@@ -1310,26 +1319,26 @@ lemma PSubstPE_LessEqPE [usubst]:
   by (simp add:LessEqPE_def usubst)
 
 lemma SubstP_PSubstPE_dash [usubst]:
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) pexpr"
+  fixes v :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
   assumes "v \<rhd>\<^sub>* x"
   shows "e\<down>[v\<down>/\<^sub>px\<down>\<acute>] = (PSubstPE e v x\<acute>)\<down>"
   using assms by (utp_poly_tac)
 
 lemma SubstP_PSubstPE_dash_dash [usubst]:
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) pexpr"
+  fixes v :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
   assumes "v \<rhd>\<^sub>* x"
   shows "e\<down>[v\<down>/\<^sub>px\<down>\<acute>\<acute>] = (PSubstPE e v x\<acute>\<acute>)\<down>" 
   using assms by (utp_poly_tac)
 
 lemma SubstP_PSubstPE_dash_dash_dash [usubst]:
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) pexpr"
+  fixes v :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
   assumes "v \<rhd>\<^sub>* x"
   shows "e\<down>[v\<down>/\<^sub>px\<down>\<acute>\<acute>\<acute>] = (PSubstPE e v x\<acute>\<acute>\<acute>)\<down>"
   using assms by (utp_poly_tac)
 
 lemma PSubstPE_PVarPE_neq [usubst]:
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) pexpr"
-  and   x :: "('b :: DEFINED, 'm :: VALUE) pvar"
+  fixes v :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
+  and   x :: "('b :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "x\<down> \<noteq> y\<down>" "v \<rhd>\<^sub>* y"
   shows "PSubstPE (PVarPE x) v y = PVarPE x"
   using assms by (utp_poly_tac)
@@ -1339,30 +1348,30 @@ lemma PSubstPE_VarP_single_UNREST:
   by (utp_poly_tac)
 
 lemma SubstE_PSubstPE [usubst]:
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) pexpr"
-  and   e :: "('b :: DEFINED, 'm :: VALUE) pexpr"
+  fixes v :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
+  and   e :: "('b :: DEFINED, 'm :: TYPED_MODEL) pexpr"
   assumes "TYPEUSOUND('a, 'm)" "TYPEUSOUND('b, 'm)" "v \<rhd>\<^sub>* x"
   shows "e\<down>[v\<down>/\<^sub>ex\<down>] = (PSubstPE e v x)\<down>"
   using assms 
   by (auto simp add:evale typing defined evalp binding_upd_ty_def)
 
 lemma SubstE_PSubstPE_dash [usubst]:
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) pexpr"
-  and   e :: "('b :: DEFINED, 'm :: VALUE) pexpr"
+  fixes v :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
+  and   e :: "('b :: DEFINED, 'm :: TYPED_MODEL) pexpr"
   assumes "TYPEUSOUND('a, 'm)" "TYPEUSOUND('b, 'm)" "v \<rhd>\<^sub>* x\<acute>"
   shows "e\<down>[v\<down>/\<^sub>ex\<down>\<acute>] = (PSubstPE e v x\<acute>)\<down>"
   using assms by (auto simp add:evale typing defined evalp erasure  binding_upd_ty_def)
 
 lemma SubstE_PSubstPE_dash_dash [usubst]:
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) pexpr"
-  and   e :: "('b :: DEFINED, 'm :: VALUE) pexpr"
+  fixes v :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
+  and   e :: "('b :: DEFINED, 'm :: TYPED_MODEL) pexpr"
   assumes "TYPEUSOUND('a, 'm)" "TYPEUSOUND('b, 'm)" "v \<rhd>\<^sub>* x\<acute>\<acute>"
   shows "e\<down>[v\<down>/\<^sub>ex\<down>\<acute>\<acute>] = (PSubstPE e v x\<acute>\<acute>)\<down>"
   using assms by (auto simp add:evale typing defined evalp erasure binding_upd_ty_def)
 
 lemma SubstE_PSubstPE_dash_dash_dash [usubst]:
-  fixes v :: "('a :: DEFINED, 'm :: VALUE) pexpr"
-  and   e :: "('b :: DEFINED, 'm :: VALUE) pexpr"
+  fixes v :: "('a :: DEFINED, 'm :: TYPED_MODEL) pexpr"
+  and   e :: "('b :: DEFINED, 'm :: TYPED_MODEL) pexpr"
   assumes "TYPEUSOUND('a, 'm)" "TYPEUSOUND('b, 'm)" "v \<rhd>\<^sub>* x\<acute>\<acute>\<acute>"
   shows "e\<down>[v\<down>/\<^sub>ex\<down>\<acute>\<acute>\<acute>] = (PSubstPE e v x\<acute>\<acute>\<acute>)\<down>"
   using assms by (auto simp add:evale typing defined evalp erasure binding_upd_ty_def)
@@ -1390,15 +1399,15 @@ lemma NotP_PVarPE_VarP [simp]:
   by (utp_poly_tac)
 
 lemma binding_upd_drop_ty [simp]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "TYPEUSOUND('a, 'm)" "\<langle>b\<rangle>\<^sub>*x = v" "pvaux x"
   shows "b(x :=\<^sub>* v) = b"
   using assms
   apply (simp add:binding_upd_ty_def Rep_binding_ty_def)
   apply (drule sym, simp add:closure typing defined)
-  apply (subst TypeUSound_ProjU_inv)
+  apply (subst UTypedef.ProjU_inverse)
   apply (simp_all add:defined typing)
-  apply (metis PVAR_binding_defined_aux PVAR_binding_type dtype_relI)
+  apply (metis aux_defined pvaux_aux)
 done
 
 lemma PVarPE_PSubstPE:
@@ -1440,7 +1449,7 @@ lemma EvalR_PExprP [evalr,evalpr]:
 done
 
 lemma EvalR_AssignR_typed [evalpr]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "x \<in> PUNDASHED" "D\<^sub>1 \<sharp> e" "TYPEUSOUND('a, 'm)"
   shows "\<lbrakk>x\<down> :=\<^sub>R e\<down>\<rbrakk>R = {(b, b(x:=\<^sub>* (\<lbrakk>e\<rbrakk>\<^sub>* b))) | b. b \<in> WF_REL_BINDING}"
   using assms
@@ -1451,7 +1460,7 @@ lemma EvalR_AssignR_typed [evalpr]:
 done
 
 theorem EvalR_SubstP_UNDASHED_ty [evalr, evalpr] :
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes 
     "TYPEUSOUND('a, 'm)"
     "x \<in> PUNDASHED" 
@@ -1518,7 +1527,7 @@ lemma PVarPE_cond_closure [closure]: "x\<down> \<in> D\<^sub>0 \<Longrightarrow>
   by (simp add:WF_PEXPR_COND_def unrest typing)
 
 lemma PExprE_cond_closure [closure]: 
-  fixes v :: "('a::DEFINED, 'm::VALUE) pexpr"
+  fixes v :: "('a::DEFINED, 'm::TYPED_MODEL) pexpr"
   assumes "v \<in> COND" "TYPEUSOUND('a, 'm)"
   shows "PExprE v \<in> COND"
   using assms
@@ -1538,8 +1547,8 @@ lemma PAssignF_upd_cond_closure [closure]:
 done
 
 lemma PAssignR_rel_closure [closure]: 
-  fixes x :: "('a::DEFINED, 'm::VALUE) pvar"
-    and v :: "('a::DEFINED, 'm::VALUE) pexpr"
+  fixes x :: "('a::DEFINED, 'm::TYPED_MODEL) pvar"
+    and v :: "('a::DEFINED, 'm::TYPED_MODEL) pexpr"
   assumes "x\<down> \<in> D\<^sub>0" "PExprE v \<in> COND" "TYPEUSOUND('a, 'm)"
   shows "PAssignR x v \<in> REL"
   using assms

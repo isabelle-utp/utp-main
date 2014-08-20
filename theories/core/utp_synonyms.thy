@@ -1,40 +1,43 @@
 (******************************************************************************)
-(* Project: Unifying Theories of Programming in HOL                           *)
-(* File: utp_synonyms.thy                                                        *)
-(* Author: Frank Zeyda, University of York (UK)                               *)
+(* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
+(* File: utp_synonyms.thy                                                     *)
+(* Authors: Simon Foster & Frank Zeyda, University of York (UK)               *)
 (******************************************************************************)
+(* LAST REVIEWED: 15 July 2014 *)
 
 header {* Type Synonyms *}
 
 theory utp_synonyms
-imports utp_names utp_var
+imports utp_name utp_var
 begin
 
-text {* This theory defines type synonyms for the various semantic domains. *}
+default_sort type
 
-type_synonym 'a alpha =
-  "('a uvar) fset"
+text {* This theory defines type synonyms for various semantic domains. *}
 
-type_synonym 'VALUE BINDING =
-  "('VALUE uvar) \<Rightarrow> 'VALUE"
+type_synonym 'a alpha = "('a uvar) fset"
 
-type_synonym 'VALUE BINDING_SET =
-  "'VALUE  BINDING set"
+(*
+type_synonym 'm BINDING =
+  "('m uvar) \<Rightarrow> 'VALUE"
 
-type_synonym 'VALUE BINDING_PRED =
-  "'VALUE BINDING \<Rightarrow> bool"
+type_synonym 'm BINDING_SET =
+  "'m BINDING set"
 
-type_synonym 'VALUE BINDING_FUN =
-  "'VALUE BINDING \<Rightarrow> 'VALUE"
+type_synonym 'm BINDING_PRED =
+  "'m BINDING \<Rightarrow> bool"
 
-type_synonym 'VALUE PREDICATE =
-  "'VALUE BINDING_SET"
+type_synonym 'm BINDING_FUN =
+  "'m BINDING \<Rightarrow> 'm uval"
 
-type_synonym 'VALUE FUNCTION =
-  "'VALUE PREDICATE \<Rightarrow>
-   'VALUE PREDICATE"
+type_synonym 'm PREDICATE =
+  "'m BINDING_SET"
 
-type_synonym 'VALUE ALPHA_PREDICATE =
-  "('VALUE alpha) \<times> 'VALUE PREDICATE"
+type_synonym 'm FUNCTION =
+  "'m PREDICATE \<Rightarrow>
+   'm PREDICATE"
 
+type_synonym 'm ALPHA_PREDICATE =
+  "('m alpha) \<times> 'm PREDICATE"
+*)
 end

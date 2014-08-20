@@ -75,11 +75,11 @@ theorem EvalP_IffP [eval] :
   by (auto simp add: IffP_def EvalP_AndP EvalP_ImpliesP closure)
 
 theorem EvalP_DistAndP [eval] :
-"\<lbrakk>\<And>\<^sub>p ps\<rbrakk>b = \<Squnion> {\<lbrakk>p\<rbrakk>b | p. p \<in> ps}"
+"\<lbrakk>\<And>\<^sub>p ps\<rbrakk>b = (\<forall> p \<in> ps . \<lbrakk>p\<rbrakk>b)"
   by (auto simp add:EvalP_def AndDistP_rep_eq)
 
 theorem EvalP_DistOrP [eval]:
-"\<lbrakk>\<Or>\<^sub>p ps\<rbrakk>b = \<Sqinter> {\<lbrakk>p\<rbrakk>b | p. p \<in> ps}"
+"\<lbrakk>\<Or>\<^sub>p ps\<rbrakk>b = (\<exists> p \<in> ps . \<lbrakk>p\<rbrakk>b)"
   by (auto simp add:EvalP_def OrDistP_rep_eq)
 
 theorem EvalP_ANDI_enum [eval]:
@@ -151,7 +151,7 @@ lemma EvalP_Tautology_intro:
 
 lemma EvalP_RefineP_intro:
   "\<lbrakk> \<And> b. \<lbrakk>q\<rbrakk>b \<Longrightarrow> \<lbrakk>p\<rbrakk>b \<rbrakk> \<Longrightarrow> p \<sqsubseteq> q"
-  by (metis EvalP_RefP EvalP_Tautology_intro less_eq_upred_def)  
+  by (metis EvalP_ImpliesP EvalP_Tautology_intro less_eq_upred_def)
 
 lemmas EvalP_intros = EvalP_intro EvalP_Tautology_intro EvalP_RefineP_intro
 
@@ -364,4 +364,3 @@ lemma AndP_reorder_test :
   by (utp_pred_auto_tac)
 
 end
-

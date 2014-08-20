@@ -29,7 +29,7 @@ text {* A derivative of normal variables @{typ "'m uvar"} which also carry
         these are simply there to help the type-system and store no
         additional data. *}
 
-typedef ('a, 'm :: VALUE) pvar = "UNIV :: (NAME * bool) set"
+typedef ('a, 'm::PRE_TYPED_MODEL) pvar = "UNIV :: (name * bool) set"
   by auto
 
 declare Rep_pvar [simp]
@@ -37,11 +37,11 @@ declare Rep_pvar_inverse [simp]
 declare Abs_pvar_inverse [simp]
 
 definition MkPVAR :: 
-  "NAME \<Rightarrow> bool \<Rightarrow> 'a itself \<Rightarrow> 'm itself \<Rightarrow> ('a, 'm :: VALUE) pvar" where
+  "name \<Rightarrow> bool \<Rightarrow> 'a itself \<Rightarrow> 'm itself \<Rightarrow> ('a, 'm::PRE_TYPED_MODEL) pvar" where
 "MkPVAR n s a t = Abs_pvar (n, s)"
 
 abbreviation MkPlainP ::
-  "string \<Rightarrow> bool \<Rightarrow> 'a itself \<Rightarrow> 'm itself \<Rightarrow> ('a, 'm :: VALUE) pvar" where
+  "string \<Rightarrow> bool \<Rightarrow> 'a itself \<Rightarrow> 'm itself \<Rightarrow> ('a, 'm::PRE_TYPED_MODEL) pvar" where
 "MkPlainP n s a t \<equiv> MkPVAR (bName n) s a t"
 
 text {* Some default variables constructors *}
@@ -52,10 +52,10 @@ abbreviation "MkIntV n a \<equiv> MkPlainP n a TYPE(int) TYPE('m :: INT_SORT)"
 
 abbreviation "MkRealV n a \<equiv> MkPlainP n a TYPE(real) TYPE('m :: REAL_SORT)"
 
-abbreviation pvname :: "('a, 'm :: VALUE) pvar \<Rightarrow> NAME" where
+abbreviation pvname :: "('a, 'm::PRE_TYPED_MODEL) pvar \<Rightarrow> name" where
 "pvname x \<equiv> fst (Rep_pvar x)"
 
-abbreviation pvaux :: "('a, 'm :: VALUE) pvar \<Rightarrow> bool" where
+abbreviation pvaux :: "('a, 'm::PRE_TYPED_MODEL) pvar \<Rightarrow> bool" where
 "pvaux x \<equiv> snd (Rep_pvar x)"
 
 lemma pvname_MkPVAR [simp]:
@@ -66,14 +66,19 @@ lemma pvaux_MkPVAR [simp]:
   "pvaux (MkPVAR n s a m) = s"
   by (simp add:MkPVAR_def)
 
-definition pvundash :: "('a, 'm :: VALUE) pvar \<Rightarrow> ('a, 'm :: VALUE) pvar" where
-"pvundash v = Abs_pvar (MkName (name_str (pvname v)) (dashes (pvname v) - 1) (subscript (pvname v)), pvaux v)"
+definition pvundash ::
+  "('a, 'm::PRE_TYPED_MODEL) pvar \<Rightarrow> ('a, 'm::PRE_TYPED_MODEL) pvar" where
+"pvundash v = Abs_pvar (MkName (name_str (pvname v)) (dashes (pvname v) - 1)
+  (subscript (pvname v)), pvaux v)"
 
-definition pvdash :: "('a, 'm :: VALUE) pvar \<Rightarrow> ('a, 'm :: VALUE) pvar" where
-"pvdash v = Abs_pvar (MkName (name_str (pvname v)) (dashes (pvname v) + 1) (subscript (pvname v)), pvaux v)"
+definition pvdash ::
+    "('a, 'm::PRE_TYPED_MODEL) pvar \<Rightarrow> ('a, 'm::PRE_TYPED_MODEL) pvar" where
+"pvdash v = Abs_pvar (MkName (name_str (pvname v)) (dashes (pvname v) + 1)
+  (subscript (pvname v)), pvaux v)"
 
-definition pvchsub :: "('a, 'm::VALUE) pvar \<Rightarrow> nat \<Rightarrow> ('a, 'm) pvar" where
-"pvchsub v n = Abs_pvar (MkName (name_str (pvname v)) (dashes (pvname v)) (chsub n (subscript (pvname v))), pvaux v)"
+definition pvchsub ::
+  "('a, 'm::PRE_TYPED_MODEL) pvar \<Rightarrow> string \<Rightarrow> ('a, 'm) pvar" where
+"pvchsub v s = Abs_pvar (chsub s (pvname v), pvaux v)"
 
 adhoc_overloading
   prime pvdash
@@ -91,13 +96,13 @@ consts
 
 text {* This function performs a type erasure on the variable. *}
 
-definition PVAR_VAR :: "('a, 'm) pvar \<Rightarrow> ('m :: VALUE) uvar" where
+definition PVAR_VAR :: "('a, 'm) pvar \<Rightarrow> ('m :: PRE_TYPED_MODEL) uvar" where
 "PVAR_VAR v = MkVar (pvname v) (TypeU TYPE('a)) (pvaux v)"
 
 adhoc_overloading
   erase PVAR_VAR
 
-definition VAR_PVAR :: "('m :: VALUE) uvar \<Rightarrow> ('a, 'm) pvar" where
+definition VAR_PVAR :: "('m :: PRE_TYPED_MODEL) uvar \<Rightarrow> ('a, 'm) pvar" where
 "VAR_PVAR v = Abs_pvar (name v, aux v)"
 
 lemma PVAR_VAR_inv [simp]: 
@@ -105,13 +110,13 @@ lemma PVAR_VAR_inv [simp]:
   by (simp add:PVAR_VAR_def VAR_PVAR_def)
 
 lemma PVAR_VAR_inj [dest]:
-  fixes x y :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x y :: "('a :: DEFINED, 'm :: PRE_TYPED_MODEL) pvar"
   assumes "x\<down> = y\<down>"
   shows "x = y"
    by (metis PVAR_VAR_inv assms)
 
 lemma VAR_PVAR_inv [erasure]: 
-  "vtype x = TYPEU('a) \<Longrightarrow> (VAR_PVAR x :: ('a, 'm :: VALUE) pvar)\<down> = x"
+  "vtype x = TYPEU('a) \<Longrightarrow> (VAR_PVAR x :: ('a, 'm :: PRE_TYPED_MODEL) pvar)\<down> = x"
   apply (case_tac x)
   apply (auto simp add:PVAR_VAR_def VAR_PVAR_def MkVar_def)
 done
@@ -127,11 +132,11 @@ lemma PVAR_VAR_pvdash [simp]:
 lemma PVAR_VAR_pvchsub [simp]:
   "(pvchsub x n)\<down> = vchsub (x\<down>) n"
   apply (case_tac x, case_tac y, case_tac a)
-  apply (auto simp add:PVAR_VAR_def pvchsub_def MkVar_def)
+  apply (simp add: PVAR_VAR_def pvchsub_def MkVar_def vchsub_def)
 done
 
 lemma PVAR_VAR_MkPVAR:
-  "(MkPVAR n s (a :: 'a itself) (m :: ('m::VALUE) itself))\<down> 
+  "(MkPVAR n s (a :: 'a itself) (m :: ('m::PRE_TYPED_MODEL) itself))\<down> 
   = MkVar n (TYPEU('a)  :: 'm utype) s"
   by (simp add:MkPVAR_def PVAR_VAR_def)
 
@@ -230,7 +235,7 @@ lemma pvundash_pvdash_PDASHED [simp]:
 subsection {* Adapting Permutation *}
 
 definition PermPV :: 
-  "'m VAR_RENAME \<Rightarrow> ('a, 'm :: VALUE) pvar \<Rightarrow> ('a, 'm) pvar" where
+  "'m VAR_RENAME \<Rightarrow> ('a, 'm :: TYPED_MODEL) pvar \<Rightarrow> ('a, 'm) pvar" where
 "PermPV ss x \<equiv> VAR_PVAR (\<langle>ss\<rangle>\<^sub>s x\<down>)"
 
 notation PermPV ("\<langle>_\<rangle>\<^sub>s\<^sub>*")
@@ -239,7 +244,7 @@ adhoc_overloading
   permute PermPV
 
 lemma PVAR_VAR_vtype [simp]:
-  "vtype (x :: ('a, 'm :: VALUE) pvar)\<down> = TYPEU('a)"
+  "vtype (x :: ('a, 'm :: PRE_TYPED_MODEL) pvar)\<down> = TYPEU('a)"
   by (metis MkVar_vtype PVAR_VAR_def)
 
 lemma PVAR_VAR_RENAME [simp]: 
@@ -253,78 +258,86 @@ lemma PermPV_PVAR:
 text {* A list produced from a polymorphic auxiliary variable is within the carrier of
         the list elements *}
 
+(* The TYPEUSOUND('a, 'm) assumption seems not necessary below? *)
+
 lemma PVAR_list_aux [typing]:
-  fixes x :: "('a::DEFINED ULIST, 'm :: LIST_SORT) pvar"
-  assumes "TYPEUSOUND('a, 'm)" "aux (x\<down>)" "(TYPEU('a) :: 'm utype) \<in> ListPerm" 
-          "t = TYPEU('a)"
+  fixes x :: "('a::DEFINED ULIST, 'm::LIST_SORT) pvar"
+  assumes (* "TYPEUSOUND('a, 'm)" *) "aux (x\<down>)" "t = TYPEU('a)"
   shows "set (DestList (\<langle>b\<rangle>\<^sub>b x\<down>)) \<subseteq> dcarrier t"
-  apply (rule DestList_elem_type)
-  apply (auto simp add:closure typing defined assms inju)
-done
+  by (metis DestList_subset_dcarrier PVAR_VAR_vtype TypeU_ULIST assms binding_stype)
 
 lemma PVAR_dash_list_aux [typing]:
-  fixes x :: "('a::DEFINED ULIST, 'm :: LIST_SORT) pvar"
-  assumes "TYPEUSOUND('a, 'm)" "aux (x\<down>)" "(TYPEU('a) :: 'm utype) \<in> ListPerm" 
-          "t = TYPEU('a)"
+  fixes x :: "('a::DEFINED ULIST, 'm::LIST_SORT) pvar"
+  assumes (* "TYPEUSOUND('a, 'm)" *) "aux (x\<down>)" "t = TYPEU('a)"
   shows "set (DestList (\<langle>b\<rangle>\<^sub>b (x\<down>\<acute>))) \<subseteq> dcarrier t"
-  apply (rule DestList_elem_type)
-  apply (auto simp add:closure typing defined assms inju)
-done
+  by (metis PVAR_VAR_pvdash PVAR_list_aux assms(1) assms(2) aux_dash)
 
-lemma PVAR_binding_type [typing]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+lemma PVAR_binding_type [typing] :
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "t = TYPEU('a)"
   shows "\<langle>b\<rangle>\<^sub>b x\<down> : t"
-  by (simp add:assms typing)
+  by (simp add: assms typing)
 
 lemma PVAR_binding_defined_aux [defined]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   assumes "pvaux x"
   shows "\<D> (\<langle>b\<rangle>\<^sub>b x\<down>)"
-  by (metis assms aux_defined pvaux_aux)
+  by (metis (full_types) assms aux_defined defined_uval_def pvaux_aux)
 
+(*
 lemma PVAR_binding_aux_stype [typing]:
   fixes x :: "('a::DEFINED, 'm::REACTIVE_SORT) pvar"
   assumes "pvaux x" "t = TYPEU('a)"
   shows "\<langle>b\<rangle>\<^sub>b x\<down> :! t"
     by (metis PVAR_binding_defined_aux PVAR_binding_type assms dtype_rel_def)
+*)
 
-lemma TypeUSound_InjU_var_compat [typing]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+(* NOTE (Frank): Looks like we do not need 'm::REACTIVE_SORT. *)
+
+lemma PVAR_binding_aux_stype [typing]:
+  fixes x :: "('a::DEFINED, 'm::TYPED_MODEL) pvar"
+  assumes "pvaux x" "t = TYPEU('a)"
+  shows "\<langle>b\<rangle>\<^sub>b x\<down> :! t"
+    by (metis PVAR_VAR_vtype assms(1) assms(2) binding_stype pvaux_aux)
+
+lemma TypeUSound_InjU_var_compat [typing] :
+  fixes x :: "('a::DEFINED, 'm::TYPED_MODEL) pvar"
   and   y :: "'a"
   assumes "TYPEUSOUND('a, 'm)" "\<D> y"
-  shows "(InjU y :: 'm) \<rhd> x\<down>"
-  by (auto simp add:var_compat_def intro:typing defined assms)
+  shows "(InjU y :: 'm uval) \<rhd> x\<down>"
+apply (simp add: var_compat_def)
+apply (metis UTypedef.InjU_defined UTypedef.axm1 assms(1) assms(2))
+done
 
 (* Compatibility *)
 
 definition pvar_compat :: 
-  "'a \<Rightarrow> ('a :: DEFINED, 'm :: VALUE) pvar \<Rightarrow> bool" (infix "\<rhd>\<^sub>p" 50) where
+  "'a \<Rightarrow> ('a :: DEFINED, 'm :: PRE_TYPED_MODEL) pvar \<Rightarrow> bool" (infix "\<rhd>\<^sub>p" 50) where
 "pvar_compat v x \<equiv> (if (pvaux x) then \<D> v else True) \<and> TYPEUSOUND('a,'m)"
 
 lemma npvaux_pvar_compat [typing]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: PRE_TYPED_MODEL) pvar"
   assumes "TYPEUSOUND('a,'m)" "\<not> pvaux x"
   shows "v \<rhd>\<^sub>p x"
   by (simp add:pvar_compat_def assms)
 
 lemma pvaux_pvar_compat [typing]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: PRE_TYPED_MODEL) pvar"
   assumes "TYPEUSOUND('a,'m)" "\<D> v"
   shows "v \<rhd>\<^sub>p x"
   by (simp add:pvar_compat_def assms)
 
 lemma var_compat_pvar [typing]:
-  fixes x :: "('a :: DEFINED, 'm :: VALUE) pvar"
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
   and   v :: "'a"
   assumes "v \<rhd>\<^sub>p x"
   shows "InjU v \<rhd> x\<down>"
   using assms
-  by (auto simp add:var_compat_def typing pvar_compat_def TypeUSound_InjU_defined pvaux_aux)
+apply (simp add: var_compat_def typing pvar_compat_def UTypedef.InjU_defined pvaux_aux)
+apply (metis UTypedef.axm1)
+done
 
 lemma RenamePV_aux [simp]:
   "pvaux (ss\<bullet>x) = pvaux x"
   by (metis PVAR_VAR_RENAME Rep_VAR_RENAME_aux pvaux_aux)
-
 end
-

@@ -224,7 +224,7 @@ translations
   "_n_uapred_SUP1 a x B"    == "CONST SuprA a CONST UNIV (%x. B)"
   "_n_uapred_SUP a x A B"   == "CONST SuprA a A (%x . B)"
 
-default_sort VALUE
+default_sort TYPED_MODEL
 
 (* Parser sanity check *)
 

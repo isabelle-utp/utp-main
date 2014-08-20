@@ -19,7 +19,7 @@ definition AssertR ::
 definition AssumeR ::
 "'a upred \<Rightarrow>
  'a upred" ("_\<^sup>\<top>" [200] 200) where
-"c\<^sup>\<top> \<equiv> II \<lhd> c \<rhd> \<top>"
+"c\<^sup>\<top> \<equiv> II \<lhd> c \<rhd> \<top>\<^sub>p"
 
 syntax
   "_n_upred_assert" :: "n_upred \<Rightarrow> n_upred" ("_\<^sub>\<bottom>" [900] 900)
