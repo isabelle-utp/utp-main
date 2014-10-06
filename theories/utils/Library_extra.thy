@@ -3,12 +3,11 @@ imports
   "../../contrib/HOL-Algebra2/Complete_Lattice"
   "../../contrib/HOL-Algebra2/Galois_Connection"
   "Library_extra/List_extra"
-  "Library_extra/Fset"
+  FSet
   "Library_extra/Map_Extra"
   "Library_extra/Fmap"
   "Library_extra/Multi_Elem"
   "Library_extra/Lattices_extra"
-(*  "Library_extra/Lattice_extra" *)
   "Library_extra/McCarthy_Logic"
   "Library_extra/AProd"
 begin

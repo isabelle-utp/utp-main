@@ -91,7 +91,7 @@ lemma prefix_map_inj:
    prefix xs ys"
   apply (induct xs arbitrary:ys)
   apply (auto)
-  apply (metis map.simps(1) prefix_bot.bot_less)
+  apply (metis list.disc_map_iff prefix_bot.bot.not_eq_extremum)
   apply (erule prefix_Cons_elim)
   apply (auto)
   apply (metis (hide_lams, full_types) image_insert insertI1 insert_Diff_if singletonE)

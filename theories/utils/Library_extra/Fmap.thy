@@ -1,5 +1,5 @@
 theory Fmap
-imports Map_Extra Fset
+imports Map_Extra FSet_extra
 begin
 
 text {* Ideally, this should only require a linear order on the domain type
@@ -49,12 +49,13 @@ lemma fin_map_graph_fmap [simp]: "finite (map_graph (Rep_fmap f))"
   by (metis fin_dom_fmap finite_dom_graph)
 
 setup_lifting type_definition_fmap
+setup_lifting type_definition_fset
 
 lift_definition fdom :: "('a, 'b) fmap \<Rightarrow> 'a fset" is dom
-  by (simp add:fmaps_def fsets_def)
+  by (simp add:fmaps_def)
 
 lift_definition fran :: "('a, 'b) fmap \<Rightarrow> 'b fset" is ran
-  by (simp add:fmaps_def fsets_def)
+  by (simp add:fmaps_def)
 
 instantiation fmap :: (type,type) monoid_add
 begin
@@ -79,7 +80,7 @@ lift_definition list_fmap :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) fmap"
   by (simp add:fmaps_def finite_dom_map_of)
 
 lift_definition fmap_graph :: "('a, 'b) fmap \<Rightarrow> ('a * 'b) fset" is "map_graph"
-  by (simp add: fmaps_def fsets_def finite_dom_graph)
+  by (simp add: fmaps_def finite_dom_graph)
 
 
 lift_definition fmap_upd :: "('a, 'b) fmap \<Rightarrow> 'a \<Rightarrow> 'b option \<Rightarrow> ('a, 'b) fmap" is "fun_upd"
@@ -87,19 +88,19 @@ lift_definition fmap_upd :: "('a, 'b) fmap \<Rightarrow> 'a \<Rightarrow> 'b opt
 
 lemma fdom_empty [simp]: 
   "fdom f = \<lbrace>\<rbrace> \<Longrightarrow> f = 0"
-  by (erule Rep_fset_elim, auto simp add:fdom.rep_eq zero_fmap.rep_eq)
+  by (erule fset_elim, auto simp add:fdom.rep_eq zero_fmap.rep_eq)
 
 lemma fran_empty [simp]: 
   "fran f = \<lbrace>\<rbrace> \<Longrightarrow> f = 0"
-  apply (auto elim!:Rep_fset_elim simp add:fran.rep_eq zero_fmap.rep_eq fempty.rep_eq)
+  apply (auto elim!:fset_elim simp add:fran.rep_eq zero_fmap.rep_eq)
   apply (metis empty_iff option.exhaust ranI)
 done
 
 lemma fdom_fmempty [simp]: "fdom(0) = \<lbrace>\<rbrace>"
   by (auto simp add:fdom.rep_eq zero_fmap.rep_eq)
 
-lemma fdom_plus [simp]: "fdom(x + y) = fdom(x) \<union>\<^sub>f fdom(y)"
-  by (auto simp add:fdom.rep_eq plus_fmap.rep_eq)
+lemma fdom_plus [simp]: "fdom(x + y) = fdom(x) |\<union>| fdom(y)"
+  by (force simp add:fdom.rep_eq plus_fmap.rep_eq)
 
 lemma fmap_list_empty [simp]:
   "fmap_list(0) = []"
@@ -108,7 +109,7 @@ lemma fmap_list_empty [simp]:
 lemma fmap_list_inv [simp]: 
   "list_fmap (fmap_list f) = f"
   apply (auto simp add:list_fmap.rep_eq fmap_list_def)
-  apply (metis fdom.rep_eq flist_inv fset_rep_eq map_of_map_keys)
+  apply (metis fdom.rep_eq flist_inv finset.rep_eq map_of_map_keys)
 done
 
 lemma map_graph_set: "\<lbrakk>distinct (map fst xs); sorted xs\<rbrakk> \<Longrightarrow> set xs = map_graph (map_of xs)"
@@ -124,8 +125,8 @@ lemma map_graph_set: "\<lbrakk>distinct (map fst xs); sorted xs\<rbrakk> \<Longr
   apply (metis (lifting) drop_1_Cons sorted_drop)
 done
 
-lemma fdom_fmap_list [simp]: "fdom (list_fmap xs) = fset (map fst xs)"
-  by (auto simp add:fdom.rep_eq list_fmap.rep_eq dom_map_of_conv_image_fst)
+lemma fdom_fmap_list [simp]: "fdom (list_fmap xs) = finset (map fst xs)"
+  by (force simp add:fdom.rep_eq finset.rep_eq list_fmap.rep_eq dom_map_of_conv_image_fst)
 
 lemma list_fmap_inv[simp]:
   "\<lbrakk>distinct (map fst xs); sorted (map fst xs)\<rbrakk> \<Longrightarrow> fmap_list (list_fmap xs) = xs"
@@ -146,37 +147,43 @@ lemma fmap_list_props2 [simp]:
 
 lemma fdom_list: "fdom f = Abs_fset (fst ` set (fmap_list f))"
   apply (auto simp add:fdom_def fmap_list_def dom_map_graph)
-  apply (metis (lifting) fst_conv image_iff)+
+  apply (simp_all add: fset_inverse image_image)
 done
 
 lemma fran_list: "fran f = Abs_fset (snd ` set (fmap_list f))"
-  apply (auto simp add:fran.rep_eq fdom.rep_eq fmap_list_def image_def)
-  apply (auto simp add:ran_def)
-done
+  by (metis fmap_list_inv fmap_list_props(2) fran.rep_eq fset_inverse list_fmap.rep_eq ran_distinct)
 
 lemma fmext[intro]: "(\<And> x. \<langle>f\<rangle>\<^sub>m x = \<langle>g\<rangle>\<^sub>m x) \<Longrightarrow> f = g"
   by (auto)
 
-lemma fdomI: "\<langle>m\<rangle>\<^sub>m a = Some b ==> a \<in>\<^sub>f fdom m"
-  by (auto simp add:fdom_def fmember.rep_eq)
+lemma fdomI: "\<langle>m\<rangle>\<^sub>m a = Some b ==> a |\<in>| fdom m"
+  by (auto simp add:fdom_def fmember.rep_eq, metis domI fdom.rep_eq fset_inverse)
 
-lemma fdomD: "a \<in>\<^sub>f fdom m \<Longrightarrow> \<exists>b. \<langle>m\<rangle>\<^sub>m a = Some b"
-  by (auto simp add:fdom_def fmember.rep_eq)
+lemma fdomD: "a |\<in>| fdom m \<Longrightarrow> \<exists>b. \<langle>m\<rangle>\<^sub>m a = Some b"
+  by (auto simp add:fdom_def fmember.rep_eq, metis domD fdom.rep_eq fset_inverse)
 
-lemma fdomIff [iff, simp del]: "(a \<in>\<^sub>f fdom m) = (\<langle>m\<rangle>\<^sub>m a ~= None)"
-  by (auto simp add:fdom_def fmember.rep_eq)
+lemma fdomIff [iff, simp del]: "(a |\<in>| fdom m) = (\<langle>m\<rangle>\<^sub>m a ~= None)"
+  apply (auto simp add:fdom_def fmember.rep_eq)
+  apply (metis domD fdom.rep_eq fset_inverse)
+  apply (metis domI fdom.rep_eq fset_inverse)
+done
 
 lemma fmap_list_fdom_fran:
   assumes "(x, y) \<in> set (fmap_list f)" 
-  shows "x \<in>\<^sub>f fdom f" "y \<in>\<^sub>f fran f"
+  shows "x |\<in>| fdom f" "y |\<in>| fran f"
 proof -
 
   obtain xs where 
     "f = list_fmap xs" "distinct (map fst xs)" "sorted (map fst xs)"
     by (metis fmap_list_inv fmap_list_props)
 
-  with assms show "x \<in>\<^sub>f fdom f" "y \<in>\<^sub>f fran f"
-    by (simp_all add:fran.rep_eq list_fmap.rep_eq, metis fst_conv imageI, metis map_of_is_SomeI ranI)
+  with assms show "x |\<in>| fdom f" "y |\<in>| fran f"
+    apply (simp_all add:fran.rep_eq list_fmap.rep_eq)
+    apply (metis fdomI fdom_fmap_list list_fmap.rep_eq weak_map_of_SomeI)
+    apply (rule fmember_intro)
+    apply (simp add:fran.rep_eq list_fmap.rep_eq)
+    apply (metis Some_eq_map_of_iff ranI)
+  done
 qed
 
 nonterminal mupdbinds and mupdbind
@@ -196,7 +203,7 @@ instantiation fmap :: (linorder,linorder) order
 begin
 
 definition less_eq_fmap :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> bool" where
-"less_eq_fmap m1 m2 \<longleftrightarrow> fdom m1 \<subseteq>\<^sub>f fdom m2 \<and> (\<forall>x\<in>\<^sub>ffdom m1. the (\<langle>m1\<rangle>\<^sub>m x) \<le> the (\<langle>m2\<rangle>\<^sub>m x))"
+"less_eq_fmap m1 m2 \<longleftrightarrow> fdom m1 |\<subseteq>| fdom m2 \<and> (\<forall>x|\<in>|fdom m1. the (\<langle>m1\<rangle>\<^sub>m x) \<le> the (\<langle>m2\<rangle>\<^sub>m x))"
 
 definition less_fmap :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> bool" where
 "less_fmap x y \<longleftrightarrow> x \<le> y \<and> \<not> (y \<le> x)"

@@ -54,7 +54,7 @@ next
   show "(\<Sum>(insert x F) \<le> z) = (\<forall>a \<in> insert x F. a \<le> z)"
   proof -
     have "\<Sum>(insert x F) \<le> z \<longleftrightarrow> (x + \<Sum>F) \<le> z"
-      by (metis finF setsum_insert xnF)
+      by (metis finF setsum.insert xnF)
     also have "... \<longleftrightarrow> x \<le> z \<and> \<Sum>F \<le> z"
       by (metis add_lub)
     also have "... \<longleftrightarrow> x \<le> z \<and> (\<forall>a \<in> F. a \<le> z)"
