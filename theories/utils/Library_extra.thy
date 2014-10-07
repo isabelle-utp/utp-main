@@ -139,8 +139,8 @@ lemma complete_inj_image [simp]:
    \<Longrightarrow> complete_inj f vs1 ` vs2 = 
        f ` (vs2 \<inter> vs1) \<union> inv_into vs1 f ` (vs2 \<inter> f ` vs1) \<union> (vs2 \<inter> -(vs1 \<union> f ` vs1))"
   apply (auto)
-  apply (smt Int_iff complete_inj_def imageI)
-  apply (smt Int_iff complete_inj_def imageI)
+  apply (metis (no_types, hide_lams) IntI complete_inj_def image_iff)
+  apply (metis (no_types, hide_lams) IntI complete_inj_def image_iff)
   apply (metis Int_iff complete_inj_dom complete_inj_inverse imageI)
   apply (metis complete_inj_dom imageI)
   apply (metis complete_inj_dom complete_inj_inverse imageI)
