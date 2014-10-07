@@ -8,7 +8,7 @@
 header {* Variable Names *}
 
 theory utp_name
-imports "../utp_common" "../utils/Unit_ord"
+imports "../utp_common"
 begin
 
 default_sort type

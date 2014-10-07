@@ -560,7 +560,6 @@ theorem EvalR_EqualP:
 lemma EvalR_ConvR [evalr]:
   "\<lbrakk>p\<^sup>\<smile>\<rbrakk>R = \<lbrakk>p\<rbrakk>R\<inverse>"
   apply (auto simp add: EvalR_def ConvR_def PermP.rep_eq BindR_def urename closure)
-  apply (metis BindR_def image_iff)
   apply (metis (lifting) BindR_def RenameB_involution SS_VAR_RENAME_INV image_eqI)
 done
 
@@ -863,17 +862,17 @@ lemma EvalR_refinement [evalr]: "p \<sqsubseteq> q \<longleftrightarrow> \<lbrak
 type_synonym 'a relation = "('a \<times> 'a) set"
 
 definition MkRel :: "'VALUE RELATION \<Rightarrow> 'VALUE WF_REL_BINDING relation" where
-"MkRel R = map_pair MkRelB MkRelB ` R"
+"MkRel R = map_prod MkRelB MkRelB ` R"
 
 lemma MkRelB_inj: "inj_on MkRelB WF_REL_BINDING"
   by (rule inj_onI, metis MkRelB_inverse)
 
 lemma MkRel_inj: "\<lbrakk> P \<subseteq> WF_REL; Q \<subseteq> WF_REL; MkRel P = MkRel Q \<rbrakk> \<Longrightarrow> P = Q"
-  apply (subgoal_tac "inj_on (map_pair MkRelB MkRelB) (P \<union> Q)")
+  apply (subgoal_tac "inj_on (map_prod MkRelB MkRelB) (P \<union> Q)")
   apply (drule inj_on_Un_image_eq_iff)
   apply (simp add:MkRel_def)
   apply (rule subset_inj_on)
-  apply (rule map_pair_inj_on)
+  apply (rule map_prod_inj_on)
   apply (rule MkRelB_inj)
   apply (rule MkRelB_inj)
   apply (auto)
@@ -890,8 +889,8 @@ done
 
 lemma MkRel_subset:
   "\<lbrakk> p \<subseteq> WF_REL; q \<subseteq> WF_REL \<rbrakk> \<Longrightarrow> p \<subseteq> q \<longleftrightarrow> MkRel p \<subseteq> MkRel q"
-  apply (simp add:MkRel_def)
-  apply (smt MkRel_def MkRel_inj subset_image_iff subset_trans)
+  apply (auto simp add:MkRel_def subset_image_iff)
+  apply (metis (no_types) MkRel_def MkRel_inj contra_subsetD order.trans)
 done
 
 theorem MkRel_EvalR_intro :

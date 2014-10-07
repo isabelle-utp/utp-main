@@ -388,4 +388,5 @@ definition pred_map_set :: "'a uvar set \<Rightarrow> 'a upred \<Rightarrow> ('a
 
 lift_definition map_set_pred :: "('a uvar \<rightharpoonup> 'a uval) set \<Rightarrow> 'a upred" is
 "\<lambda> fs. {map_binding f \<oplus>\<^sub>b b on (VAR - dom f) | f b. f \<in> fs}" .
+
 end

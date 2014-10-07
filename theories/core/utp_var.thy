@@ -625,32 +625,30 @@ subsubsection {* Simplification Theorems *}
 
 lemma UNDASHED_nempty: "UNDASHED \<noteq> {}"
   apply (auto simp add:var_defs)
-  apply (rule_tac x="MkVar (MkName ''x'' 0 NoSub) someType False" in exI)
+  apply (rule_tac x="MkVar (MkName ''x'' 0 NoSub) some_type False" in exI)
   apply (simp)
 done
 
 lemma DASHED_nempty: "DASHED \<noteq> {}"
   apply (auto simp add:var_defs)
-  apply (rule_tac x="MkVar (MkName ''x'' 1 NoSub) someType False" in exI)
+  apply (rule_tac x="MkVar (MkName ''x'' 1 NoSub) some_type False" in exI)
   apply (simp)
 done
 
 lemma DASHED_TWICE_nempty: "DASHED_TWICE \<noteq> {}"
   apply (auto simp add:var_defs)
-  apply (rule_tac x="MkVar (MkName ''x'' 2 NoSub) someType False" in exI)
+  apply (rule_tac x="MkVar (MkName ''x'' 2 NoSub) some_type False" in exI)
   apply (simp)
 done
 
 lemma dash_neq_reduce:
-  "x\<acute> \<noteq> y\<acute> \<longleftrightarrow> x \<noteq> y"
-apply (simp add: var_defs)
-apply (case_tac x)
-apply (case_tac y)
-apply (auto)
-apply (rename_tac n1 n2)
-apply (case_tac n1)
-apply (case_tac n2)
-apply (simp)
+  "(x::('a::BASE_MODEL) uvar)\<acute> \<noteq> y\<acute> \<longleftrightarrow> x \<noteq> y"
+  apply (simp add: var_defs)
+  apply (case_tac x)
+  apply (case_tac y)
+  apply (auto)
+  apply (rename_tac n1 n2)
+  apply (metis name.ext_inject name.surjective name.update_convs(2) old.nat.inject)
 done
 
 theorem dash_uniqs:
@@ -660,20 +658,19 @@ theorem dash_uniqs:
 "x \<noteq> x\<acute>\<acute>\<acute>" "x\<acute>\<acute>\<acute> \<noteq> x"
 "x\<acute> \<noteq> x\<acute>\<acute>\<acute>" "x\<acute>\<acute>\<acute> \<noteq> x\<acute>"
 "x\<acute>\<acute> \<noteq> x\<acute>\<acute>\<acute>" "x\<acute>\<acute>\<acute> \<noteq> x\<acute>\<acute>"
-apply (simp add: var_defs, case_tac x, auto)+
-done
+  by (simp add: var_defs, case_tac x, auto)+
 
 text {* I had to add a second assumption to the following lemma. *}
 
 lemma sub_uniqs:
 "\<lbrakk>x \<in> NOSUB; n \<noteq> NoSub\<rbrakk> \<Longrightarrow> x\<^bsub>n\<^esub> \<noteq> x"
 "\<lbrakk>x \<in> NOSUB; n \<noteq> NoSub\<rbrakk> \<Longrightarrow> x \<noteq> x\<^bsub>n\<^esub>"
-apply (simp_all add: var_defs)
-apply (unfold chsub_def)
-apply (case_tac x)
-apply (clarsimp)
-apply (case_tac x)
-apply (clarsimp)
+  apply (simp_all add: var_defs)
+  apply (unfold chsub_def)
+  apply (case_tac x)
+  apply (clarsimp)
+  apply (case_tac x)
+  apply (clarsimp)
 done
 
 theorem dash_name_str:
@@ -1039,9 +1036,7 @@ subsubsection {* Injectivity Theorems *}
 
 theorem dash_inj [simp]:
 "inj_on dash vs"
-apply (rule inj_onI)
-apply (metis dash_neq_reduce)
-done
+  by (metis inj_on_inverseI undash_dash)
 
 theorem dash_elim [elim] :
   "\<lbrakk>dash x = dash y; x = y \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
@@ -1049,49 +1044,48 @@ theorem dash_elim [elim] :
 
 theorem undash_inj_on [simp]:
 "inj_on undash (- UNDASHED)"
-apply (rule inj_onI)
-apply (simp add: var_defs)
-apply (case_tac x)
-apply (case_tac y)
-apply (clarsimp)
-apply (rename_tac n1 n2)
-apply (case_tac n1)
-apply (case_tac n2)
-apply (clarsimp)
-apply (rename_tac d1 d2)
-apply (metis Suc_pred)
+  apply (rule inj_onI)
+  apply (simp add: var_defs)
+  apply (case_tac x)
+  apply (case_tac y)
+  apply (clarsimp)
+  apply (rename_tac n1 n2)
+  apply (case_tac n1)
+  apply (case_tac n2)
+  apply (clarsimp)
+  apply (rename_tac d1 d2)
+  apply (metis Suc_pred)
 done
 
 theorem undash_inj_on_DASHED [simp]:
 "inj_on undash DASHED"
-apply (rule inj_onI)
-apply (simp add: var_defs)
-apply (case_tac x)
-apply (case_tac y)
-apply (clarsimp)
-apply (rename_tac n1 n2)
-apply (case_tac n1)
-apply (case_tac n2)
-apply (clarsimp)
+  apply (rule inj_onI)
+  apply (simp add: var_defs)
+  apply (case_tac x)
+  apply (case_tac y)
+  apply (clarsimp)
+  apply (rename_tac n1 n2)
+  apply (case_tac n1)
+  apply (case_tac n2)
+  apply (clarsimp)
 done
 
 theorem undash_inj_on_DASHED_TWICE [simp]:
 "inj_on undash DASHED_TWICE"
-apply (rule inj_onI)
-apply (simp add: var_defs)
-apply (case_tac x)
-apply (case_tac y)
-apply (clarsimp)
-apply (rename_tac n1 n2)
-apply (case_tac n1)
-apply (case_tac n2)
-apply (clarsimp)
+  apply (rule inj_onI)
+  apply (simp add: var_defs)
+  apply (case_tac x)
+  apply (case_tac y)
+  apply (clarsimp)
+  apply (rename_tac n1 n2)
+  apply (case_tac n1)
+  apply (case_tac n2)
+  apply (clarsimp)
 done
 
 theorem dash_strict_mono [simp]:
 "strict_mono dash"
-apply (simp add: strict_mono_def)
-done
+  by (simp add: strict_mono_def)
 
 subsubsection {* Distribution Theorems *}
 

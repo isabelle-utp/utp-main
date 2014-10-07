@@ -1095,10 +1095,7 @@ lemma USUB_DASHED [urename]:
   apply (auto simp add:var_defs)
   apply (case_tac x)
   apply (clarsimp)
-  apply (case_tac name)
-  apply (clarsimp)
-  apply (unfold chsub_def)
-  apply (clarsimp)
+  apply (metis nat.distinct(1) uvar.select_convs(1) uvar.update_convs(1) vchsub_def vchsub_vdashes)
 done
 
 definition "DSUB n \<equiv> (add_sub n) on (DASHED \<inter> NOSUB)"
@@ -1123,29 +1120,60 @@ lemma DSUB_UNDASHED [urename]:
   apply (auto simp add:var_defs)
   apply (case_tac x)
   apply (clarsimp)
-  apply (case_tac name)
-  apply (clarsimp)
-  apply (unfold chsub_def)
-  apply (clarsimp)
+  apply (metis nat.distinct(1) uvar.select_convs(1) uvar.update_convs(1) vchsub_def vchsub_vdashes)
 done
 
 text {* Some extra rename on laws *}
 
 lemma rename_on_insert:
-  "\<lbrakk> rename_func_on f (insert x xs); x \<notin> xs \<rbrakk> \<Longrightarrow> f on insert x xs \<bullet> b = (f on xs)\<bullet>b(x :=\<^sub>b \<langle>b\<rangle>\<^sub>b (f x), f x :=\<^sub>b \<langle>b\<rangle>\<^sub>b x)"
-  apply (subgoal_tac "rename_func_on f xs")
-  apply (rule)
-  apply (rule ext)
-  apply (case_tac "xa = x")
-  apply (simp add:rename_on_rep_eq)
-  apply (auto)[1]
-  apply (case_tac "xa = f(x)")
-  apply (simp add:rename_on_rep_eq)
-  apply (auto)[1]
-  apply (auto)[1]
-  apply (smt VAR_RENAME_INV_app VAR_RENAME_INV_rename_on insertI1 insertI2 inv_into_into rename_on_perm1 rename_on_perm2 rename_on_perm3)
-  apply (auto simp add:rename_on_rep_eq rename_func_on_def)
-  apply (metis complete_inj_inverse complete_inj_none)
-  apply (metis (hide_lams, no_types) Diff_idemp Diff_insert_absorb complete_inj_insert_3 inj_on_insert)
-done
+  assumes "rename_func_on f (insert x xs)" "x \<notin> xs"
+  shows "f on insert x xs \<bullet> b = (f on xs)\<bullet>b(x :=\<^sub>b \<langle>b\<rangle>\<^sub>b (f x), f x :=\<^sub>b \<langle>b\<rangle>\<^sub>b x)" (is "?F = ?G")
+proof -
+  from assms have rf: "rename_func_on f xs"
+    by (auto simp add: rename_func_on_def)
+  hence "\<And> y. \<langle>?F\<rangle>\<^sub>b y = \<langle>?G\<rangle>\<^sub>b y"
+  proof -
+    fix y show "\<langle>?F\<rangle>\<^sub>b y = \<langle>?G\<rangle>\<^sub>b y"
+    proof (cases "y = x")
+    case True with assms rf show ?thesis
+      by (auto simp add:rename_on_rep_eq)
+    next
+      case False note cthm1 = this
+      thus ?thesis
+      proof (cases "y = f(x)")
+        case True with cthm1 rf assms show ?thesis
+          by (auto simp add:rename_on_rep_eq)
+      next
+        case False note cthm2 = this 
+        with assms cthm1 rf show ?thesis
+        proof (cases "f on xs \<bullet> y = x")
+          case True with cthm1 cthm2 assms rf show ?thesis
+            by (metis (erased, hide_lams) disjoint_insert(1) imageI image_insert insertI1 insert_commute insert_member rename_func_onE rename_on_image1 rename_on_image2 rename_on_perm3)
+        next
+          case False note cthm3 = this
+          show ?thesis
+          proof (cases "f on xs \<bullet> y = f(x)")
+            case True with cthm1 cthm2 cthm3 assms rf
+            show ?thesis
+            proof -
+              have f1: "f x \<notin> f ` xs" using assms(1) assms(2) by blast
+              have "f x \<notin> xs" using assms(1) by auto
+              thus "\<langle>f on insert x xs \<bullet> b\<rangle>\<^sub>b y = \<langle>f on xs \<bullet> b (x :=\<^sub>b \<langle>b\<rangle>\<^sub>b (f x), f x :=\<^sub>b \<langle>b\<rangle>\<^sub>b x)\<rangle>\<^sub>b y" 
+                using f1 by (metis (no_types) True complete_inj_def complete_inj_inverse cthm2 rename_func_onE rename_on_rep_eq rf)
+            qed
+          next
+            case False with cthm1 cthm2 cthm3 assms rf
+            show ?thesis
+              apply (auto simp add:rename_on_rep_eq rename_func_on_def)                        
+              apply (metis (poly_guards_query) assms(1) complete_inj_insert_3 rename_func_onE)
+            done
+          qed
+        qed
+      qed
+    qed
+  qed
+  thus ?thesis
+    by (metis binding_eq_iff)
+qed
+
 end

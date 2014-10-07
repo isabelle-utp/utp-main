@@ -86,19 +86,15 @@ abbreviation EventSet :: "'a uchan set \<Rightarrow> 'a event set" where
 
 subsubsection {* Destructors *}
 
-lift_definition EventChan :: "'a event \<Rightarrow> 'a uchan" is "fst"
-apply (simp)
-done
+lift_definition EventChan :: "'a event \<Rightarrow> 'a uchan" is "fst" .
 
-lift_definition EventValue :: "'a event \<Rightarrow> 'a uval" is "snd"
-apply (simp)
-done
+lift_definition EventValue :: "'a event \<Rightarrow> 'a uval" is "snd" .
 
 subsubsection {* Theorems *}
 
 lemma AbsEvent_inverse2 [simp] :
 "v : uchan_type c \<Longrightarrow> RepEvent (AbsEvent (c, v)) = (c, v)"
-  by (metis (lifting) AbsEvent_inverse mem_Collect_eq prod_caseI)
+  by (metis AbsEvent_inverse mem_Collect_eq prod.case)
 
 lemma EventChan_AbsEvent [simp] :
 "v : uchan_type c \<Longrightarrow> EventChan (AbsEvent (c, v)) = c"

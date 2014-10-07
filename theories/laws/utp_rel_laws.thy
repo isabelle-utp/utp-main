@@ -271,13 +271,13 @@ theorem TrueP_left_annihilator_unique:
     "P ;\<^sub>R true = false"
   shows "P = false"
   using assms
-  by (utp_xrel_auto_tac, metis (lifting) prod_caseI2)
+  by (utp_xrel_auto_tac, metis (erased, lifting) case_prodI old.prod.exhaust)
 
 theorem TrueP_right_annihilator_unique:
   assumes "P \<in> WF_RELATION"
   shows "true ;\<^sub>R P = false \<Longrightarrow> P = false"
   using assms
-  by (utp_xrel_auto_tac, metis (lifting) prod_caseI2)
+  by (utp_xrel_auto_tac, metis (erased, lifting) PairE case_prodI)
 
 text {* A precondition followed by a postcondition is a conjunction *}
 

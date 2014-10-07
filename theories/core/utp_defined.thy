@@ -237,7 +237,7 @@ subsubsection {* Definedness of type @{type fset} *}
 instantiation fset :: (DEFINED) DEFINED_NE
 begin
 definition defined_fset :: "'a fset \<Rightarrow> bool" where
-"\<D> (xs :: 'a fset) = (\<forall> x \<in>\<^sub>f xs . \<D> x)"
+"\<D> (xs :: 'a fset) = (\<forall> x |\<in>| xs . \<D> x)"
 instance
 apply (intro_classes)
 apply (unfold defined_fset_def)
@@ -246,7 +246,7 @@ apply (simp)
 done
 
 theorem defined_fset [defined] :
-"\<D> (xs :: 'a fset) \<longleftrightarrow> (\<forall>x \<in>\<^sub>f xs . \<D> x)"
+"\<D> (xs :: 'a fset) \<longleftrightarrow> (\<forall>x |\<in>| xs . \<D> x)"
 apply (simp add: defined_fset_def)
 done
 end
