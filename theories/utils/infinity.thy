@@ -7,28 +7,10 @@
 header {* Infinity Theorems *}
 
 theory infinity
-imports Main Real "~~/src/HOL/Cardinals/Cardinals"
+imports Main Real Infinite_Set "~~/src/HOL/Cardinals/Cardinals"
 begin
 
 subsection {* Infinity of @{const UNIV} *}
-
-declare nat_infinite [simp del]
-declare int_infinite [simp del]
-
-theorem infinite_UNIV_nat [simp] :
-"infinite (UNIV :: nat set)"
-apply (rule nat_infinite)
-done
-
-theorem infinite_UNIV_int [simp] :
-"infinite (UNIV :: int set)"
-apply (rule int_infinite)
-done
-
-theorem infinite_UNIV_real [simp] :
-"infinite (UNIV :: real set)"
-apply (rule infinite_UNIV_char_0)
-done
 
 theorem infinite_UNIV_fun1 [simp] :
 "infinite (UNIV :: 'a set) \<Longrightarrow>
@@ -102,7 +84,7 @@ text {*
 *}
 
 instance nat :: infinite by (intro_classes, simp)
-instance int :: infinite by (intro_classes, simp)
+instance int :: infinite by (intro_classes, metis infinite_UNIV_int)
 instance "fun" :: (type, infinite) infinite by (intro_classes, simp)
 instance set :: (infinite) infinite by (intro_classes, simp)
 instance prod :: (infinite, infinite) infinite by (intro_classes, simp)
