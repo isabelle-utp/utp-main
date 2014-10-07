@@ -52,22 +52,44 @@ begin
     by (metis (lifting, no_types) ftype_pred is_weak_order_B lower_closure right upper_closure weak_partial_order.le_refl)
    
   lemma lower_iso: "isotone \<X> \<Y> \<pi>\<^sup>*"
-    by (smt ftype_pred inflation is_weak_order_A is_weak_order_B isotone_def left lower_closure upper_closure weak_partial_order.le_trans)
+    apply (auto simp add:isotone_def)
+    apply (metis is_weak_order_A)
+    apply (metis is_weak_order_B)
+    apply (metis (no_types, hide_lams) inflation is_weak_order_A left lower_closure typed_application upper_closure weak_partial_order.le_trans)
+  done
 
   lemma upper_iso: "isotone \<Y> \<X> \<pi>\<^sub>*"
-    by (smt deflation ftype_pred is_weak_order_A is_weak_order_B isotone_def lower_closure right upper_closure weak_partial_order.le_trans)
+    apply (auto simp add:isotone_def)
+    apply (metis is_weak_order_B)
+    apply (metis is_weak_order_A)
+    apply (metis (no_types, hide_lams) deflation is_weak_order_B lower_closure right typed_application upper_closure weak_partial_order.le_trans)
+  done
 
   lemma lower_comp: "x \<in> carrier \<X> \<Longrightarrow> (\<pi>\<^sup>* \<circ> \<pi>\<^sub>* \<circ> \<pi>\<^sup>*) x = \<pi>\<^sup>* x"
-    by (smt comp_def deflation ftype_pred inflation is_order_B isotone_def lower_closure lower_iso partial_order.le_antisym upper_closure)
+  proof -
+    assume a1: "x \<in> carrier \<X>"
+    have f2: "\<And>x\<^sub>1. \<pi>\<^sup>* x\<^sub>1 \<in> carrier \<Y> \<or> x\<^sub>1 \<notin> carrier \<X>" by (metis lower_closure typed_application)
+    hence "\<pi>\<^sub>* (\<pi>\<^sup>* x) \<in> carrier \<X>" using a1 by (metis typed_application upper_closure)
+    thus "(\<pi>\<^sup>* \<circ> \<pi>\<^sub>* \<circ> \<pi>\<^sup>*) x = \<pi>\<^sup>* x" using a1 f2 by (metis (no_types) comp_apply deflation inflation is_order_B lower_iso partial_order.le_antisym use_iso2)
+  qed
 
   lemma upper_comp: "y \<in> carrier \<Y> \<Longrightarrow> (\<pi>\<^sub>* \<circ> \<pi>\<^sup>* \<circ> \<pi>\<^sub>*) y = \<pi>\<^sub>* y"
-    by (smt comp_def deflation ftype_pred inflation is_order_A isotone_def lower_closure partial_order.le_antisym upper_closure upper_iso)
+  proof -
+    assume a1: "y \<in> carrier \<Y>"
+    hence f2: "\<pi>\<^sub>* y \<in> carrier \<X>" by (metis ftype_pred upper_closure)
+    have f3: "\<pi>\<^sub>* \<circ> \<pi>\<^sup>* \<circ> \<pi>\<^sub>* \<in> carrier \<Y> \<rightarrow> carrier \<X>" by (metis (no_types) lower_closure typed_composition upper_closure)
+    have f4: "\<pi>\<^sup>* (\<pi>\<^sub>* y) \<sqsubseteq>\<^bsub>\<Y>\<^esub> y" using a1 deflation by blast
+    have f5: "\<pi>\<^sub>* (\<pi>\<^sup>* (\<pi>\<^sub>* y)) \<in> carrier \<X>" using a1 f3 by (simp add: ftype_pred)
+    have "\<pi>\<^sup>* (\<pi>\<^sub>* y) \<in> carrier \<Y>" using f2 by (metis (no_types) ftype_pred lower_closure)
+    hence "\<pi>\<^sub>* (\<pi>\<^sup>* (\<pi>\<^sub>* y)) = \<pi>\<^sub>* y" using a1 f2 f4 f5 by (metis inflation is_order_A partial_order.le_antisym upper_iso use_iso2)
+    thus "(\<pi>\<^sub>* \<circ> \<pi>\<^sup>* \<circ> \<pi>\<^sub>*) y = \<pi>\<^sub>* y" by simp
+  qed
 
   lemma adjoint_idem1: "idempotent (carrier \<Y>) (\<pi>\<^sup>* \<circ> \<pi>\<^sub>*)"
-    by (smt idempotent_def o_apply o_assoc upper_comp)
+    by (metis (no_types, hide_lams) comp_apply idempotent_def upper_comp)
 
   lemma adjoint_idem2: "idempotent (carrier \<X>) (\<pi>\<^sub>* \<circ> \<pi>\<^sup>*)"
-    by (smt idempotent_def o_apply o_assoc lower_comp)
+    by (metis (mono_tags, hide_lams) comp_apply idempotent_def lower_comp)
 
   lemma fg_iso: "isotone \<Y> \<Y> (\<pi>\<^sup>* \<circ> \<pi>\<^sub>*)"
     by (metis iso_compose lower_closure lower_iso upper_closure upper_iso)

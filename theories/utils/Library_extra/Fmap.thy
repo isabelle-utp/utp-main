@@ -97,10 +97,10 @@ lemma fran_empty [simp]:
 done
 
 lemma fdom_fmempty [simp]: "fdom(0) = \<lbrace>\<rbrace>"
-  by (auto simp add:fdom.rep_eq zero_fmap.rep_eq)
+  by (auto intro:fmember_intro elim:fmember_elim simp add:fdom.rep_eq zero_fmap.rep_eq)
 
 lemma fdom_plus [simp]: "fdom(x + y) = fdom(x) |\<union>| fdom(y)"
-  by (force simp add:fdom.rep_eq plus_fmap.rep_eq)
+  by (force intro:fmember_intro elim:fmember_elim simp add:fdom.rep_eq plus_fmap.rep_eq)
 
 lemma fmap_list_empty [simp]:
   "fmap_list(0) = []"
@@ -126,7 +126,7 @@ lemma map_graph_set: "\<lbrakk>distinct (map fst xs); sorted xs\<rbrakk> \<Longr
 done
 
 lemma fdom_fmap_list [simp]: "fdom (list_fmap xs) = finset (map fst xs)"
-  by (force simp add:fdom.rep_eq finset.rep_eq list_fmap.rep_eq dom_map_of_conv_image_fst)
+  by (force intro:fmember_intro elim:fmember_elim simp add:fdom.rep_eq finset.rep_eq list_fmap.rep_eq dom_map_of_conv_image_fst)
 
 lemma list_fmap_inv[simp]:
   "\<lbrakk>distinct (map fst xs); sorted (map fst xs)\<rbrakk> \<Longrightarrow> fmap_list (list_fmap xs) = xs"
@@ -212,40 +212,44 @@ instance
   apply (intro_classes)
   apply (force simp add:less_fmap_def less_eq_fmap_def)
   apply (force simp add:less_fmap_def less_eq_fmap_def)
-  apply (force simp add:less_fmap_def less_eq_fmap_def)
-  apply (auto simp add:less_fmap_def less_eq_fmap_def fdom.rep_eq)
-  apply (metis (lifting) domD domIff fmext order_antisym the.simps)
+  apply (auto elim!:fsubset_elim fBall_elim intro!:fsubset_intro simp add:less_fmap_def less_eq_fmap_def fdom.rep_eq)
+  apply (metis contra_subsetD domI option.sel order.trans)
+  apply (metis eq_iff fdom.rep_eq fdomIff fmember.rep_eq fmext not_None_eq option.sel)
 done
 end
 
 lemma fdom_less_eq [simp]:
-  "m1 \<le> m2 \<Longrightarrow> fdom m1 \<subseteq>\<^sub>f fdom m2"
+  "m1 \<le> m2 \<Longrightarrow> fdom m1 |\<subseteq>| fdom m2"
   by (simp add:less_eq_fmap_def)
 
 lemma fmap_values_less_eq [simp]:
-  "\<lbrakk> m1 \<le> m2; x \<in>\<^sub>f fdom m1 \<rbrakk> \<Longrightarrow> the (\<langle>m1\<rangle>\<^sub>m x) \<le> the (\<langle>m2\<rangle>\<^sub>m x)"
-  by (simp add:less_eq_fmap_def)
+  "\<lbrakk> m1 \<le> m2; x |\<in>| fdom m1 \<rbrakk> \<Longrightarrow> the (\<langle>m1\<rangle>\<^sub>m x) \<le> the (\<langle>m2\<rangle>\<^sub>m x)"
+  by (auto simp add:less_eq_fmap_def)
 
 lemma fmempty_least [simp]:
   "fmempty \<le> x"
   by (simp add:less_eq_fmap_def fdom.rep_eq zero_fmap.rep_eq)
 
 lemma fmap_upd_less [intro]:
-  "k \<notin>\<^sub>f fdom f \<Longrightarrow> f \<le> fmap_upd f k v"
-  by (auto simp add:less_eq_fmap_def fmap_graph.rep_eq fmap_upd.rep_eq fdom.rep_eq map_graph_def)
+  "k |\<notin>| fdom f \<Longrightarrow> f \<le> fmap_upd f k v"
+  apply (unfold less_eq_fmap_def)
+  apply (auto)
+  apply (metis fmap_upd.rep_eq fun_upd_apply option.distinct(1))
+  apply (metis fmap_upd.rep_eq fun_upd_apply option.distinct(1) option.sel order_refl)
+done
 
 lemma fmap_fset_fmempty [simp]:
   "fmap_graph(0) = \<lbrace>\<rbrace>"
-  by (auto simp add: fmap_graph.rep_eq zero_fmap.rep_eq map_graph_def)
+  by (auto intro:fmember_intro elim:fmember_elim simp add: fmap_graph.rep_eq zero_fmap.rep_eq map_graph_def)
 
 lemma fdom_map_upd [simp]: 
   "fdom (f(k :=\<^sub>m Some v)) = finsert k (fdom f)"
   by (auto simp add:fdom.rep_eq fmap_upd.rep_eq)
 
 lemma fmap_graph_upd [simp]:
-  "k \<notin>\<^sub>f fdom f \<Longrightarrow> fmap_graph (fmap_upd f k (Some v)) = finsert (k, v) (fmap_graph f)"
+  "k |\<notin>| fdom f \<Longrightarrow> fmap_graph (fmap_upd f k (Some v)) = finsert (k, v) (fmap_graph f)"
   apply (rule)
-  apply (auto simp add: finsert.rep_eq fmap_graph.rep_eq fmap_upd.rep_eq fdom.rep_eq dom_def map_graph_def)
+  apply (auto elim!:fmember_elim fnmember_elim intro!:fmember_intro simp add: finsert.rep_eq fmap_graph.rep_eq fmap_upd.rep_eq fdom.rep_eq dom_def map_graph_def)
   apply (metis)
   apply (metis option.inject)
 done
@@ -260,21 +264,21 @@ lemma fempty_upd_None [simp]: "0(x:=\<^sub>mNone) = 0"
   by (auto simp add:zero_fmap.rep_eq)
 
 lemma fupd_None_fran_subset:
-  "fran(m(k:=\<^sub>mNone)) \<subseteq>\<^sub>f fran(m)"
-  apply (auto simp add:fran.rep_eq fmap_upd.rep_eq)
+  "fran(m(k:=\<^sub>mNone)) |\<subseteq>| fran(m)"
+  apply (auto intro!:fmember_intro elim!:fmember_elim simp add:fran.rep_eq fmap_upd.rep_eq)
   apply (metis (hide_lams, mono_tags) ranI ran_restrictD restrict_complement_singleton_eq)
 done
 
 lemma fran_fmap_upd [simp]:
-  "fran(m(k:=\<^sub>mSome v)) = \<lbrace>v\<rbrace> \<union>\<^sub>f fran(m(k:=\<^sub>mNone))"
-  apply (auto simp add:fran.rep_eq fmap_upd.rep_eq)
+  "fran(m(k:=\<^sub>mSome v)) = \<lbrace>v\<rbrace> |\<union>| fran(m(k:=\<^sub>mNone))"
+  apply (auto elim!:fmember_elim fnmember_elim intro!:fmember_intro simp add:fran.rep_eq fmap_upd.rep_eq)
   apply (metis fun_upd_same fun_upd_upd insert_iff ran_map_upd)
   apply (metis fun_upd_same ranI)
   apply (metis fun_upd_same fun_upd_upd insertCI ran_map_upd)
 done
 
-lemma fmap_add_comm: "fdom(m1) \<inter>\<^sub>f fdom(m2) = \<lbrace>\<rbrace> \<Longrightarrow> m1 + m2 = m2 + m1"
-  apply (erule Rep_fset_elim)
+lemma fmap_add_comm: "fdom(m1) |\<inter>| fdom(m2) = \<lbrace>\<rbrace> \<Longrightarrow> m1 + m2 = m2 + m1"
+  apply (erule fset_elim)
   apply (rule Rep_fmap_intro)
   apply (simp add:fdom.rep_eq fran.rep_eq plus_fmap.rep_eq)
   apply (metis map_add_comm)
@@ -301,11 +305,11 @@ lemma finite_dom_graph_map:
   by (simp add:graph_map_def dom_def)
 
 lift_definition fgraph_fmap :: "('a * 'b) fset \<Rightarrow> ('a, 'b) fmap" is graph_map
-  by (simp add:fmaps_def, metis finite_dom_graph_map fsets_def mem_Collect_eq)
+  by (simp add:fmaps_def, metis finite_dom_graph_map)
 
 lift_definition fmap_collect :: "('a \<Rightarrow> 'b * 'c) \<Rightarrow> 'a fset \<Rightarrow> ('b, 'c) fmap"
 is "\<lambda> f A. graph_map (f ` A)"
-  by (auto simp add:fmaps_def, metis finite_dom_graph_map finite_imageI fsets_def mem_Collect_eq)
+  by (auto simp add:fmaps_def, metis finite_dom_graph_map finite_imageI)
 
 text {* Domain restriction *}
 

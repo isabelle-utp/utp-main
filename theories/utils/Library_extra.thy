@@ -4,6 +4,7 @@ imports
   "../../contrib/HOL-Algebra2/Galois_Connection"
   "Library_extra/List_extra"
   FSet
+  "Library_extra/FSet_extra"
   "Library_extra/Map_Extra"
   "Library_extra/Fmap"
   "Library_extra/Multi_Elem"
@@ -62,7 +63,7 @@ done
 
 lemma surj_complete_inj: "\<lbrakk> inj_on f vs; f ` vs \<inter> vs = {} \<rbrakk> \<Longrightarrow> surj (complete_inj f vs)"
   apply (auto simp add:complete_inj_def)
-  apply (smt Int_Collect disjoint_iff_not_equal imageI inf_commute inv_into_f_f)
+  apply (metis (erased, lifting) IntI empty_iff image_iff inv_into_f_f mem_Collect_eq)
 done
    
 lemma bij_complete_inj: "\<lbrakk> inj_on f vs; f ` vs \<inter> vs = {} \<rbrakk> \<Longrightarrow> bij (complete_inj f vs)"
@@ -112,7 +113,7 @@ proof -
     apply (subgoal_tac "x \<notin> vs1 \<union> vs2")
     apply (subgoal_tac "x \<in> f ` (vs1 \<union> vs2)")
     apply (simp)
-    apply (smt IntI UnE empty_iff image_iff inj_on_Un inv_into_f_eq)
+    apply (metis UnCI f_inv_into_f inv_into_f_f inv_into_into)
     apply (force)
     apply (force)
     apply (subgoal_tac "inv_into vs2 f x \<in> vs2")
