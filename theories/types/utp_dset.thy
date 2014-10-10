@@ -60,10 +60,10 @@ apply (auto simp add: InsertUS_def)
 done
 
 lift_definition MemberUS :: "'a \<Rightarrow> 'a USET \<Rightarrow> bool"
-is "op \<in>" by (auto)
+is "op \<in>" .
 
 lift_definition NMemberUS :: "'a \<Rightarrow> 'a USET \<Rightarrow> bool"
-is "op \<notin>" by (auto)
+is "op \<notin>" .
 
 lift_definition UnionUS :: "'a USET \<Rightarrow> 'a USET \<Rightarrow> 'a USET"
 is "union" by (auto)
@@ -75,10 +75,10 @@ lift_definition MinusUS :: "'a USET \<Rightarrow> 'a USET \<Rightarrow> 'a USET"
 is "minus" by (auto)
 
 lift_definition SubsetUS :: "'a USET \<Rightarrow> 'a USET \<Rightarrow> bool"
-is "subset" by (auto)
+is "subset" .
 
 lift_definition SubseteqUS :: "'a USET \<Rightarrow> 'a USET \<Rightarrow> bool"
-is "subset_eq" by (auto)
+is "subset_eq" .
 
 lift_definition SetUS :: "'a ULIST \<Rightarrow> 'a USET"
 is "set" by (auto)

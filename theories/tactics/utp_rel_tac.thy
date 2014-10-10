@@ -1129,7 +1129,12 @@ lemma EvalR_EqualP_UNDASHED [evalr]:
                             \<and> b1 \<in> WF_REL_BINDING \<and> b2 \<in> WF_REL_BINDING }"
   apply (auto simp add:EvalR_EqualP evale BindR_def closure)
   apply (metis RenameB_equiv_VAR_RENAME_ON_2 SS_VAR_RENAME_ON UNDASHED_DASHED_inter(16) binding_override_left_eq)
-  apply (smt BindR_def BindR_inverse EvalE_UNREST_override Pair_inject UNDASHED_DASHED_contra WF_REL_BINDING_bc_DASHED binding_override_equiv binding_override_on_eq)
+  apply (rule_tac x="xa \<oplus>\<^sub>b (SS\<bullet>y) on D\<^sub>1" in exI)
+  apply (auto simp add:urename)
+  apply (metis WF_REL_BINDING_bc_DASHED_eq binding_override_equiv)
+  apply (simp add: RenameB_override_distr1 urename closure)
+  apply (metis (erased, hide_lams) NON_REL_VAR_def SS_REL_VAR_overshadow WF_REL_BINDING_bc_DASHED_eq binding_equiv_override binding_override_minus binding_override_simps(1) binding_override_simps(2))
+  apply (metis EvalE_UNREST_override)
 done
 
 lemma EvalR_EqualP_DASHED [evalr]:

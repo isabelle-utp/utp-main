@@ -165,10 +165,7 @@ lemma InjU_inject [intro] :
 
 lemma ProjU_image_InjU [simp] :
   shows "ProjU ` (InjU :: 'a \<Rightarrow> 'm uval) ` xs = xs"
-apply (fold image_compose)
-apply (subst ProjU_InjU_comp)
-apply (metis id_def image_id)
-done
+  by (metis ProjU_InjU_comp id_apply image_comp image_id)
 
 lemma InjU_image_ProjU [simp] :
   assumes "xs \<subseteq> dcarrier UTYPE('a)"
@@ -182,17 +179,17 @@ apply (metis ProjU_inverse assms dcarrier_def in_mono mem_Collect_eq)
 done
 
 lemma ProjU_fimage_InjU [simp] :
-  shows "ProjU `\<^sub>f (InjU :: 'a \<Rightarrow> 'm uval) `\<^sub>f xs = xs"
-apply (transfer')
-apply (rule ProjU_image_InjU)
+  shows "ProjU |`| (InjU :: 'a \<Rightarrow> 'm uval) |`| xs = xs"
+  apply (transfer')
+  apply (metis ProjU_InjU_comp fset.map_comp fset.map_id)
 done
 
 lemma InjU_fimage_ProjU [simp] :
   assumes "\<langle>xs\<rangle>\<^sub>f \<subseteq> dcarrier UTYPE('a)"
-  shows "(InjU :: 'a \<Rightarrow> 'm uval) `\<^sub>f ProjU `\<^sub>f xs = xs"
-apply (insert assms)
-apply (transfer')
-apply (erule InjU_image_ProjU)
+  shows "(InjU :: 'a \<Rightarrow> 'm uval) |`| ProjU |`| xs = xs"
+  apply (insert assms)
+  apply (transfer')
+  apply (metis (erased, hide_lams) InjU_image_ProjU fimage.rep_eq fset_inject)
 done
 
 lemma map_InjU_ProjU [simp] :
@@ -263,16 +260,16 @@ defs (overloaded)
   ProjU_USET [inju] : "ProjU (xs :: ('a::SET_SORT uval)) \<equiv> Abs_USET (ProjU ` (DestSet xs))"
   TypeU_USET [simp] : "TypeU (x :: ('a USET) itself) \<equiv> SetType (TypeU TYPE('a))"
 
-  InjU_UFSET [inju] : "InjU (xs :: 'a::DEFINED UFSET) \<equiv> MkFSet UTYPE('a) (InjU `\<^sub>f (Rep_UFSET xs))"
-  ProjU_UFSET [inju] : "ProjU (xs :: 'a::FSET_SORT uval) \<equiv> Abs_UFSET (ProjU `\<^sub>f (DestFSet xs))"
+  InjU_UFSET [inju] : "InjU (xs :: 'a::DEFINED UFSET) \<equiv> MkFSet UTYPE('a) (InjU |`| (Rep_UFSET xs))"
+  ProjU_UFSET [inju] : "ProjU (xs :: 'a::FSET_SORT uval) \<equiv> Abs_UFSET (ProjU |`| (DestFSet xs))"
   TypeU_UFSET [simp] : "TypeU (x::('a UFSET) itself) \<equiv> FSetType (TypeU TYPE('a))"
 
   InjU_list [inju] : "InjU (xs :: 'a::DEFINED list) \<equiv> MkList (TypeU TYPE('a)) (map InjU xs)"
   ProjU_list [inju] : "ProjU (xs :: 'a::LIST_SORT uval) \<equiv> map ProjU (DestList xs)"
   TypeU_list [simp] : "TypeU (x :: 'a list itself) \<equiv> ListType (TypeU TYPE('a))"
 
-  InjU_fset [inju] : "InjU (xs :: 'a::DEFINED fset) \<equiv> MkFSet (TypeU TYPE('a)) (InjU `\<^sub>f xs)"
-  ProjU_fset [inju] : "ProjU (xs :: 'a::FSET_SORT uval) \<equiv> ProjU `\<^sub>f (DestFSet xs)"
+  InjU_fset [inju] : "InjU (xs :: 'a::DEFINED fset) \<equiv> MkFSet (TypeU TYPE('a)) (InjU |`| xs)"
+  ProjU_fset [inju] : "ProjU (xs :: 'a::FSET_SORT uval) \<equiv> ProjU |`| (DestFSet xs)"
   TypeU_fset [simp] : "TypeU (x :: 'a fset itself) \<equiv> FSetType (TypeU TYPE('a))"
 
 lemma InjU_MkEvent [simp] :
@@ -375,7 +372,7 @@ done
 
 lemma Abs_UFSET_inverse'' :
 "\<forall> x \<in> \<langle>xs\<rangle>\<^sub>f . \<D> x \<Longrightarrow> Rep_UFSET (Abs_UFSET xs) = xs"
-  by (metis Abs_UFSET_inverse')
+  by (metis Abs_UFSET_inverse' fBall_intro)
 
 theorem UTypedef_UFSET [typing] :
 "UTYPEDEF('a::DEFINED, 'm::FSET_SORT) \<Longrightarrow>
@@ -386,17 +383,17 @@ apply (unfold inju TypeU_UFSET)
 apply (rule MkFSet_typed)
 apply (transfer)
 apply (clarsimp)
-apply (metis UTypedef.axm1 UTypedef.axm2)
+apply (metis UTypedef.InjU_defined UTypedef.axm1 fBallE)
 -- {* Subgoal 2 *}
 apply (subst MkFSet_inverse)
 apply (clarsimp)
-apply (metis Rep_UFSET' UTypedef.axm1 UTypedef.axm2)
+apply (metis UFSET_elems_defined UTypedef.InjU_defined UTypedef.axm1)
 apply (clarsimp)
-apply (metis Rep_UFSET_inverse UTypedef.ProjU_fimage_InjU)
+apply (metis Rep_UFSET_inverse UTypedef.ProjU_InjU_comp fset.map_id)
 -- {* Subgoal 3 *}
 apply (subst MkFSet_defined)
 apply (clarsimp)
-apply (metis Rep_UFSET' UTypedef.axm1 UTypedef.axm2)
+apply (metis UFSET_elems_defined UTypedef.InjU_defined UTypedef.axm1)
 -- {* Subgoal 4 *}
 apply (clarsimp)
 apply (metis defined_UFSET)
@@ -406,11 +403,11 @@ apply (clarsimp)
 apply (subst Abs_UFSET_inverse'')
 -- {* Subgoal 5.1 *}
 apply (clarsimp)
-apply (metis UTypedef.ProjU_defined strict_type_rel_def)
+apply (metis UTypedef.axm3 fBallE fmember.rep_eq strict_type_rel_def)
 -- {* Subgoal 5.2 *}
 apply (subst UTypedef.InjU_fimage_ProjU)
 apply (simp_all)
-apply (metis dcarrier_member strict_type_rel_def subsetI)
+apply (metis (mono_tags, lifting) dcarrier_def fBallE fmember.rep_eq mem_Collect_eq strict_type_rel_def subsetI)
 done
 
 theorem UTypedef_list [typing] :
@@ -455,7 +452,7 @@ apply (subst MkFSet_inverse)
 apply (clarsimp)
 apply (metis UTypedef.axm1 UTypedef.axm2 defined_total)
 apply (clarsimp)
-apply (simp add: UTypedef.ProjU_image_InjU)
+apply (metis UTypedef.ProjU_InjU_comp fset.map_id0 id_apply)
 -- {* Subgoal 3 *}
 apply (subst MkFSet_defined)
 apply (clarsimp)
@@ -464,11 +461,7 @@ apply (metis UTypedef.axm1 UTypedef.axm2 defined_total)
 apply (clarsimp)
 apply (metis defined_fset_def defined_total)
 -- {* Subgoal 5 *}
-apply (erule FSetType_elim)
-apply (clarsimp)
-apply (subst UTypedef.InjU_fimage_ProjU)
-apply (simp_all)
-apply (metis dcarrier_member strict_type_rel_def subsetI)
+apply (metis Abs_UFSET_inverse'' InjU_UFSET ProjU_UFSET TypeU_UFSET UTypedef.ProjU_inverse UTypedef_UFSET defined_total)
 done
 
 definition psigma :: "'a::DEFINED \<Rightarrow> 'm::TYPED_MODEL sigtype" where

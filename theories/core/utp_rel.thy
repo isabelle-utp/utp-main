@@ -419,7 +419,7 @@ theorem SS_HOMOGENEOUS_image :
 "HOMOGENEOUS vs \<Longrightarrow> \<langle>SS\<rangle>\<^sub>s ` vs = vs"
   apply (auto)
   apply (auto simp add:rename_on_rep_eq closure)
-  apply (smt DASHED_dash_elim HOMOGENEOUS_def comp_alphabet_dash comp_vars_undash complete_inj_dom complete_inj_none complete_inj_ran dash_UNDASHED_image dash_elim dash_inv_into dash_undash_DASHED)
+  apply (metis DASHED_dash_elim complete_inj_def dash_UNDASHED_image dash_neq_reduce f_inv_into_f hom_alphabet_dash hom_alphabet_undash insert_iff insert_member)
   apply (metis DASHED_dash_elim hom_alphabet_dash imageI)
 done
 
@@ -560,7 +560,7 @@ theorem SS2_DASHED_TWICE_app [urename]:
   apply (subgoal_tac "x \<notin> UNDASHED")
   apply (subgoal_tac "x \<in> (dash \<circ> dash) ` UNDASHED")
   apply (simp)
-  apply (smt DASHED_TWICE_dash_elim dash_elim dash_undash_DASHED dash_undash_DASHED_TWICE f_inv_into_f o_def)
+  apply (metis (erased, hide_lams) comp_eq_dest_lhs f_inv_into_f undash_dash)
   apply (auto simp add:var_contra)
   apply (metis dash_DASHED_image dash_UNDASHED_image image_comp)
 done
@@ -1280,7 +1280,7 @@ lemma SkipR_ExistsP_out:
   apply (auto)
   apply (subgoal_tac "v\<acute> \<notin> vs")
   apply (auto)
-  apply (smt Int_commute out_vars_def override_on_apply_notin override_on_cancel5)
+  apply (metis Int_iff out_vars_def override_on_apply_notin)
 done
 
 end

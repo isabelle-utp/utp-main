@@ -264,14 +264,14 @@ proof -
   also from assms have "... = the \<circ> ((map_id_on (-(dom f \<union> ran f))) ++ (f ++ map_inv f))"
   proof -
     from assms have "map_inv (map_inv f ++ f) = (f ++ map_inv f)"
-      by (smt dom_map_inv inf_sup_aci(1) inj_map_inv map_inv_add map_inv_map_inv)
+      by (metis (poly_guards_query) Int_commute dom_map_inv inj_map_inv map_add_comm map_inv_add map_inv_map_inv)
 
     thus ?thesis by simp
   qed
 
   also from assms have "... = MapRename (map_inv f)"
     apply (simp add: MapRename_def)
-    apply (smt compl_sup dom_map_add dom_map_inv map_add_Some map_add_assoc sup_commute)
+    apply (metis (no_types, hide_lams) Int_commute compl_sup dom_map_add dom_map_inv map_add_Some map_add_assoc)
   done
 
   ultimately show ?thesis by simp
@@ -636,7 +636,7 @@ lemma MapRename_invol:
 proof -
 
   from assms have "inv (MapRename [xs [\<mapsto>] ys]) = MapRename (map_inv [xs [\<mapsto>] ys])"
-    by (smt Int_commute MapRename_inv dom_map_inv map_inv_maplets maplets_distinct_inj ran_maplets)
+    by (metis Int_commute MapRename_inv dom_empty dom_map_inv dom_map_upds map_inv_maplets maplets_distinct_inj order_refl sup_bot.right_neutral take_all)
 
   also from assms have "... = MapRename [xs [\<mapsto>] ys]"
     by (metis (no_types) Int_commute MapRename_map_inv dom_map_inv map_inv_maplets maplets_distinct_inj ran_maplets)

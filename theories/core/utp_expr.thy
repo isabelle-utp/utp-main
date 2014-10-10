@@ -385,11 +385,16 @@ theorem BotE_type [typing]:
 
 theorem Op1E_type [typing] :
   "\<lbrakk> x :!\<^sub>e a; f \<in> FUNC1 a b \<rbrakk> \<Longrightarrow> Op1E f x :!\<^sub>e b"
-  by (smt DTall_def FUNC1_def Op1E_rep_eq mem_Collect_eq strict_etype_rel_def)
+  by (metis (mono_tags) DTall_def FUNC1_def Op1E_rep_eq mem_Collect_eq strict_etype_rel_def)
 
-theorem Op2E_type [typing] :
-  "\<lbrakk> x :!\<^sub>e a; y :!\<^sub>e b; f \<in> FUNC2 a b c \<rbrakk> \<Longrightarrow> Op2E f x y :!\<^sub>e c"
-  by (smt DTall_def FUNC2_def Op2E_rep_eq mem_Collect_eq strict_etype_rel_def)
+theorem Op2E_type [typing]:
+  assumes "x :!\<^sub>e a" "y :!\<^sub>e b" "f \<in> FUNC2 a b c"
+  shows "Op2E f x y :!\<^sub>e c"
+  apply (unfold strict_etype_rel_def)
+  apply (simp add: Op2E_rep_eq[of _ a _ b _ c] assms)
+  apply (insert assms)
+  apply (simp add: strict_etype_rel_def FUNC2_def)
+done
 
 theorem AppE_type [typing]:
 "\<lbrakk> f :\<^sub>e FuncType a b; \<D>\<^sub>e f; v :\<^sub>e a \<rbrakk> \<Longrightarrow> AppE f v :\<^sub>e b"

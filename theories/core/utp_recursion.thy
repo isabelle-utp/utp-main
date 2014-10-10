@@ -144,7 +144,11 @@ lemma chainE: "\<lbrakk> chain Y; \<And> i. \<lbrakk> Y 0 = false; Y (Suc i) \<s
   unfolding chain_def by fast
 
 lemma L274: "\<forall> n. (E n \<and>\<^sub>p X = E n \<and>\<^sub>p Y) \<Longrightarrow> \<Sqinter> (range E) \<and>\<^sub>p X = \<Sqinter> (range E) \<and>\<^sub>p Y"
-  by (utp_pred_auto_tac)
+  apply (rule EvalP_intro)
+  apply (simp only: eval)
+  apply (utp_pred_tac)
+  apply (auto)
+done
 
 definition constr :: 
   " ('a upred \<Rightarrow> 'a upred) 

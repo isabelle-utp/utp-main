@@ -69,14 +69,14 @@ definition less_uvar_ext ::
    ('m::COUNTABLE_MODEL, 'more::linorder) uvar_ext \<Rightarrow> bool" where
 "(less_uvar_ext v1 v2) \<longleftrightarrow> (v1 \<le> v2 \<and> \<not> v2 \<le> v1)"
 instance
-apply (intro_classes)
-apply (simp add: less_uvar_ext_def)
-apply (simp add: less_eq_uvar_ext_def)
-apply (unfold less_eq_uvar_ext_def)
-apply (smt dual_order.trans)
-apply (metis eq_iff prod.inject uvar.equality)
-apply (metis linear)
-done
+  apply (intro_classes)
+  apply (simp add: less_uvar_ext_def)
+  apply (simp add: less_eq_uvar_ext_def)
+  apply (unfold less_eq_uvar_ext_def)
+  apply (metis (no_types, hide_lams) order.trans)
+  apply (metis eq_iff prod.inject uvar.equality)
+  apply (metis linear)
+  done
 end
 
 declare less_eq_uvar_ext_def [simp]
