@@ -60,7 +60,7 @@ theorem ordLess_lemma :
 apply (metis not_ordLess_ordIso ordLeq_iff_ordLess_or_ordIso)
 done
 
-paragraph {* Transfer Rules *}
+section {* Transfer Rules *}
 
 theorem leq_card_iff_ordLeq :
 "c1 \<preceq>\<^sub>c c2 \<longleftrightarrow> |c1| \<le>o |c2|"
@@ -90,7 +90,7 @@ theorems card_transfer =
   equal_card_iff_ordIso
   less_card_iff_ordLess
 
-paragraph {* Introduction Rules *}
+section {* Introduction Rules *}
 
 theorem leq_card_intro [intro] :
 "|c1| \<le>o |c2| \<Longrightarrow> c1 \<preceq>\<^sub>c c2"
@@ -107,7 +107,7 @@ theorem less_card_intro [intro] :
 apply (simp add: less_card_iff_ordLess)
 done
 
-paragraph {* Destruction Rules *}
+section {* Destruction Rules *}
 
 theorem leq_card_dest [dest] :
 "c1 \<preceq>\<^sub>c c2 \<Longrightarrow> |c1| \<le>o |c2|"
@@ -152,7 +152,7 @@ apply (assumption)
 apply (erule subset_inj_on)
 apply (assumption)
 -- {* Subgoal 2 *}
-apply (simp add: image_compose)
+apply (simp add: image_comp)
 apply (metis image_mono order.trans)
 done
 
