@@ -25,6 +25,12 @@ translations
   "\<forall> x|\<in>|A. P" == "CONST fBall A (%x. P)"
   "\<exists> x|\<in>|A. P" == "CONST fBex A (%x. P)"
 
+definition FUnion :: "'a fset fset \<Rightarrow> 'a fset" ("\<Union>\<^sub>f_" [90] 90) where
+"FUnion xs = Abs_fset (\<Union>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)"
+
+definition FInter :: "'a fset fset \<Rightarrow> 'a fset" ("\<Inter>\<^sub>f_" [90] 90) where
+"FInter xs = Abs_fset (\<Inter>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)"
+  
 lemma fset_intro:
   "fset x = fset y \<Longrightarrow> x = y"
   by (simp add:fset_inject)
@@ -124,5 +130,51 @@ definition fmax :: "'a fset \<Rightarrow> 'a" where
 "fmax xs = (if (xs = \<lbrace>\<rbrace>) then undefined else last (flist xs))"
 
 end
-  
+
+definition flub :: "'a fset set \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where 
+"flub A t = (if (\<forall> a\<in>A. a |\<subseteq>| t) then Abs_fset (\<Union>x\<in>A. \<langle>x\<rangle>\<^sub>f) else t)"
+
+lemma finite_Union_subsets:
+  "\<lbrakk> \<forall> a \<in> A. a \<subseteq> b; finite b \<rbrakk> \<Longrightarrow> finite (\<Union>A)"
+  by (metis Sup_le_iff finite_subset)
+
+lemma finite_UN_subsets:
+  "\<lbrakk> \<forall> a \<in> A. B a \<subseteq> b; finite b \<rbrakk> \<Longrightarrow> finite (\<Union>a\<in>A. B a)"
+  by (metis UN_subset_iff finite_subset)
+
+lemma flub_rep_eq:
+  "\<langle>flub A t\<rangle>\<^sub>f = (if (\<forall> a\<in>A. a |\<subseteq>| t) then (\<Union>x\<in>A. \<langle>x\<rangle>\<^sub>f) else \<langle>t\<rangle>\<^sub>f)"
+  apply (subgoal_tac "(if (\<forall> a\<in>A. a |\<subseteq>| t) then (\<Union>x\<in>A. \<langle>x\<rangle>\<^sub>f) else \<langle>t\<rangle>\<^sub>f) \<in> {x. finite x}")
+  apply (auto simp add:flub_def Abs_fset_inverse)
+  apply (rule finite_UN_subsets[of _ _ "\<langle>t\<rangle>\<^sub>f"])
+  apply (auto)
+done
+
+definition fglb :: "'a fset set \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
+"fglb A t = (if (A = {}) then t else Abs_fset (\<Inter>x\<in>A. \<langle>x\<rangle>\<^sub>f))"
+
+lemma fglb_rep_eq:
+  "\<langle>fglb A t\<rangle>\<^sub>f = (if (A = {}) then \<langle>t\<rangle>\<^sub>f else (\<Inter>x\<in>A. \<langle>x\<rangle>\<^sub>f))"
+  apply (subgoal_tac "(if (A = {}) then \<langle>t\<rangle>\<^sub>f else (\<Inter>x\<in>A. \<langle>x\<rangle>\<^sub>f)) \<in> {x. finite x}")
+  apply (metis Abs_fset_inverse fglb_def)
+  apply (auto)
+  apply (metis finite_INT finite_fset)
+done
+
+lemma FUnion_rep_eq [simp]: 
+  "\<langle>\<Union>\<^sub>f xs\<rangle>\<^sub>f = (\<Union>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)"
+  by (simp add:FUnion_def Abs_fset_inverse)
+
+lemma FInter_rep_eq [simp]: 
+  "xs \<noteq> \<lbrace>\<rbrace> \<Longrightarrow> \<langle>\<Inter>\<^sub>f xs\<rangle>\<^sub>f = (\<Inter>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)"
+  apply (simp add:FInter_def)
+  apply (subgoal_tac "finite (\<Inter>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)")
+  apply (simp add:Abs_fset_inverse)
+  apply (metis (poly_guards_query) bot_fset.rep_eq fglb_rep_eq finite_fset fset_inverse)
+done
+
+lemma FUnion_empty [simp]:
+  "\<Union>\<^sub>f \<lbrace>\<rbrace> = \<lbrace>\<rbrace>"
+  by (auto simp add:FUnion_def fmember_def Abs_fset_inverse)
+
 end

@@ -44,7 +44,7 @@ definition WF_ALPHA_PREDICATE ::
 typedef 'a uapred = "WF_ALPHA_PREDICATE :: 'a ALPHA_PREDICATE set"
 morphisms DestPredA MkPredA
   apply (auto simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
-  apply (metis UNREST_FalseP prod_caseI)
+  apply (metis UNREST_FalseP case_prodI)
 done
 
 declare DestPredA [simp]
@@ -125,7 +125,7 @@ subsubsection {* Extension and Restriction *}
 lift_definition ExtA ::
   "'a uapred \<Rightarrow> 'a alpha \<Rightarrow>
    'a uapred" is
-"\<lambda> p a. ((\<alpha> p) \<union>\<^sub>f a, \<pi> p)"
+"\<lambda> p a. ((\<alpha> p) |\<union>| a, \<pi> p)"
 apply (simp add: WF_ALPHA_PREDICATE_def)
 apply (simp add: WF_PREDICATE_OVER_def)
 apply (auto intro: unrest)
@@ -195,7 +195,7 @@ lift_definition AndA ::
   "'m uapred \<Rightarrow>
    'm uapred \<Rightarrow>
    'm uapred" is
-"\<lambda> p1 p2. ((\<alpha> p1) \<union>\<^sub>f (\<alpha> p2), (\<pi> p1) \<and>\<^sub>p (\<pi> p2))"
+"\<lambda> p1 p2. ((\<alpha> p1) |\<union>| (\<alpha> p2), (\<pi> p1) \<and>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation AndA (infixr "\<and>\<^sub>\<alpha>" 180)
@@ -204,7 +204,7 @@ lift_definition OrA ::
   "'m uapred \<Rightarrow>
    'm uapred \<Rightarrow>
    'm uapred" is
-"\<lambda> p1 p2 . ((\<alpha> p1) \<union>\<^sub>f (\<alpha> p2), (\<pi> p1) \<or>\<^sub>p (\<pi> p2))"
+"\<lambda> p1 p2 . ((\<alpha> p1) |\<union>| (\<alpha> p2), (\<pi> p1) \<or>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation OrA (infixr "\<or>\<^sub>\<alpha>" 170)
@@ -213,7 +213,7 @@ lift_definition ImpliesA ::
   "'m uapred \<Rightarrow>
    'm uapred \<Rightarrow>
    'm uapred" is
-"\<lambda> p1 p2 . ((\<alpha> p1) \<union>\<^sub>f (\<alpha> p2), (\<pi> p1) \<Rightarrow>\<^sub>p (\<pi> p2))"
+"\<lambda> p1 p2 . ((\<alpha> p1) |\<union>| (\<alpha> p2), (\<pi> p1) \<Rightarrow>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation ImpliesA (infixr "\<Rightarrow>\<^sub>\<alpha>" 160)
@@ -222,7 +222,7 @@ lift_definition IffA ::
   "'m uapred \<Rightarrow>
    'm uapred \<Rightarrow>
    'm uapred" is
-"\<lambda> p1 p2 . ((\<alpha> p1) \<union>\<^sub>f (\<alpha> p2), (\<pi> p1) \<Leftrightarrow>\<^sub>p (\<pi> p2))"
+"\<lambda> p1 p2 . ((\<alpha> p1) |\<union>| (\<alpha> p2), (\<pi> p1) \<Leftrightarrow>\<^sub>p (\<pi> p2))"
   by (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation IffA (infixr "\<Leftrightarrow>\<^sub>\<alpha>" 150)
@@ -233,11 +233,12 @@ text {* It would be nice if we could define a version of distributive alphabetis
         complete lattice of alphabets and then we can infer the top element. For
         now this is simply supplied as a parameter. *}
 
+        
 definition AndDistA ::
   "'a alpha \<Rightarrow>
    'a uapred set \<Rightarrow>
    'a uapred" where
-"AndDistA t ps = (if ((\<forall> a \<in> (pred_alphabet ` ps). a \<subseteq>\<^sub>f t) \<and> ps \<noteq> {}) 
+"AndDistA t ps = (if ((\<forall> a \<in> (pred_alphabet ` ps). a |\<subseteq>| t) \<and> ps \<noteq> {}) 
                      then MkPredA (flub (pred_alphabet ` ps) t, \<And>\<^sub>p (\<pi> ` ps))
                      else TrueA t)"
 
@@ -245,7 +246,7 @@ notation AndDistA ("\<And>\<^bsub>_\<^esub> _" [900] 900)
 
 lemma AndDistA_rep_eq:
   assumes 
-    "\<forall> a \<in> (\<alpha>`ps). a \<subseteq>\<^sub>f t" "ps \<noteq> {}"
+    "\<forall> a \<in> (\<alpha>`ps). a |\<subseteq>| t" "ps \<noteq> {}"
   shows "DestPredA (\<And>\<^bsub>t\<^esub> ps) = (flub (\<alpha>`ps) t, \<And>\<^sub>p (\<pi> ` ps))"
 proof -
   from assms(1) have "(flub (\<alpha>`ps) t, \<And>\<^sub>p (\<pi>`ps)) \<in> WF_ALPHA_PREDICATE"
@@ -269,7 +270,7 @@ definition OrDistA ::
   "'a alpha \<Rightarrow>
    'a uapred set \<Rightarrow>
    'a uapred" where
-"OrDistA t ps = (if ((\<forall> a \<in> (\<alpha>`ps). a \<subseteq>\<^sub>f t) \<and> ps \<noteq> {}) 
+"OrDistA t ps = (if ((\<forall> a \<in> (\<alpha>`ps). a |\<subseteq>| t) \<and> ps \<noteq> {}) 
                     then MkPredA (flub (\<alpha>`ps) t, \<Or>\<^sub>p (\<pi> ` ps))
                     else FalseA t)"
 
@@ -277,7 +278,7 @@ notation OrDistA ("\<Or>\<^bsub>_\<^esub> _" [900] 900)
 
 lemma OrDistA_rep_eq:
   assumes 
-    "\<forall> a \<in> (\<alpha>`ps). a \<subseteq>\<^sub>f t" "ps \<noteq> {}"
+    "\<forall> a \<in> (\<alpha>`ps). a |\<subseteq>| t" "ps \<noteq> {}"
   shows "DestPredA (\<Or>\<^bsub>t\<^esub> ps) = (flub (\<alpha>`ps) t, \<Or>\<^sub>p (\<pi> ` ps))"
 proof -
   from assms(1) have "(flub (\<alpha>`ps) t, \<Or>\<^sub>p (\<pi>`ps)) \<in> WF_ALPHA_PREDICATE"
@@ -404,7 +405,7 @@ lift_definition PermA ::
   "'m VAR_RENAME \<Rightarrow>
    'm uapred \<Rightarrow>
    'm uapred" ("_[_]\<alpha>" [200]) is
-"\<lambda> ss p. (\<langle>ss\<rangle>\<^sub>s `\<^sub>f \<alpha> p, ss\<bullet>(\<pi> p))"
+"\<lambda> ss p. (\<langle>ss\<rangle>\<^sub>s |`| \<alpha> p, ss\<bullet>(\<pi> p))"
   apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
   apply (rule UNREST_RenameP_alt)
   apply (rule uapred_UNREST)
@@ -499,7 +500,7 @@ theorem FalseA_alphabet [alphabet] :
   by (simp add: FalseA.rep_eq)
 
 theorem ExtA_alphabet [alphabet] :
-"\<alpha> (p \<oplus>\<^sub>\<alpha> a) = (\<alpha> p) \<union>\<^sub>f a"
+"\<alpha> (p \<oplus>\<^sub>\<alpha> a) = (\<alpha> p) |\<union>| a"
   by (simp add: ExtA.rep_eq)
 
 theorem ResA_alphabet [alphabet] :
@@ -515,25 +516,33 @@ theorem NotA_alphabet [alphabet] :
   by (simp add: NotA.rep_eq)
 
 theorem AndA_alphabet [alphabet] :
-"\<alpha> (p1 \<and>\<^sub>\<alpha> p2) = (\<alpha> p1) \<union>\<^sub>f (\<alpha> p2)"
+"\<alpha> (p1 \<and>\<^sub>\<alpha> p2) = (\<alpha> p1) |\<union>| (\<alpha> p2)"
   by (simp add: AndA.rep_eq)
 
 theorem OrA_alphabet [alphabet] :
-"\<alpha> (p1 \<or>\<^sub>\<alpha> p2) = (\<alpha> p1) \<union>\<^sub>f (\<alpha> p2)"
+"\<alpha> (p1 \<or>\<^sub>\<alpha> p2) = (\<alpha> p1) |\<union>| (\<alpha> p2)"
   by (simp add: OrA.rep_eq)
 
 theorem ImpliesA_alphabet [alphabet] :
-"\<alpha> (p1 \<Rightarrow>\<^sub>\<alpha> p2) = (\<alpha> p1) \<union>\<^sub>f (\<alpha> p2)"
+"\<alpha> (p1 \<Rightarrow>\<^sub>\<alpha> p2) = (\<alpha> p1) |\<union>| (\<alpha> p2)"
   by (simp add: ImpliesA.rep_eq)
 
 theorem IffA_alphabet [alphabet] :
-"\<alpha> (p1 \<Leftrightarrow>\<^sub>\<alpha> p2) = (\<alpha> p1) \<union>\<^sub>f (\<alpha> p2)"
+"\<alpha> (p1 \<Leftrightarrow>\<^sub>\<alpha> p2) = (\<alpha> p1) |\<union>| (\<alpha> p2)"
   by (simp add: IffA.rep_eq)
 
 theorem AndDistA_alphabet [alphabet] :
-"\<lbrakk> \<forall> a \<in> \<alpha>`ps. a \<subseteq>\<^sub>f t; ps \<noteq> {} \<rbrakk> \<Longrightarrow> \<alpha> (\<And>\<^bsub>t\<^esub> ps) = flub (\<alpha> ` ps) t"
+"\<lbrakk> \<forall> a \<in> \<alpha>`ps. a |\<subseteq>| t; ps \<noteq> {} \<rbrakk> \<Longrightarrow> \<alpha> (\<And>\<^bsub>t\<^esub> ps) = flub (\<alpha> ` ps) t"
   by (simp add:AndDistA_rep_eq)
 
+lemma WF_ALPHA_PREDICATE_image: 
+  "\<lbrakk> ps \<subseteq> WF_ALPHA_PREDICATE_OVER a; ps \<noteq> {} \<rbrakk> \<Longrightarrow> \<alpha> ` ps = {a}"
+  by (auto simp add:WF_ALPHA_PREDICATE_OVER_def image_def subset_eq)
+  
+lemma flub_singleton [simp]: 
+  "A |\<subseteq>| B \<Longrightarrow> flub {A} B = A"
+  by (simp add: flub_def fset_inverse)
+  
 lemma AndDistA_alphabet_alt [alphabet]:
   "\<lbrakk> ps \<subseteq> WF_ALPHA_PREDICATE_OVER a \<rbrakk> \<Longrightarrow> \<alpha> (\<And>\<^bsub>a\<^esub> ps) = a"
   apply (case_tac "ps = {}")
@@ -541,11 +550,11 @@ lemma AndDistA_alphabet_alt [alphabet]:
   apply (metis TrueA_alphabet pred_alphabet_def)
   apply (subst AndDistA_alphabet)
   apply (force simp add:WF_ALPHA_PREDICATE_OVER_def, simp)
-  apply (force simp add:flub_rep_eq WF_ALPHA_PREDICATE_OVER_def)
+  apply (simp add:WF_ALPHA_PREDICATE_image)
 done
 
 theorem OrDistA_alphabet [alphabet] :
-"\<lbrakk> \<forall> a \<in> \<alpha>`ps. a \<subseteq>\<^sub>f t; ps \<noteq> {} \<rbrakk> \<Longrightarrow> \<alpha> (\<Or>\<^bsub>t\<^esub> ps) = flub (\<alpha> ` ps) t"
+"\<lbrakk> \<forall> a \<in> \<alpha>`ps. a |\<subseteq>| t; ps \<noteq> {} \<rbrakk> \<Longrightarrow> \<alpha> (\<Or>\<^bsub>t\<^esub> ps) = flub (\<alpha> ` ps) t"
   by (simp add:OrDistA_rep_eq)
 
 lemma OrDistA_alphabet_alt [alphabet]:
@@ -555,11 +564,11 @@ lemma OrDistA_alphabet_alt [alphabet]:
   apply (metis FalseA_alphabet pred_alphabet_def)
   apply (subst OrDistA_alphabet)
   apply (force simp add:WF_ALPHA_PREDICATE_OVER_def, simp)
-  apply (force simp add:flub_rep_eq WF_ALPHA_PREDICATE_OVER_def)
+  apply (simp add:WF_ALPHA_PREDICATE_image)
 done
 
 lemma AANDI_alphabet [alphabet]:
-  "\<lbrakk> \<forall>a\<in>\<alpha>`f`ps. a \<subseteq>\<^sub>f t; ps \<noteq> {} \<rbrakk> \<Longrightarrow> \<alpha> (AANDI t ps f) = flub (\<alpha>`f`ps) t"
+  "\<lbrakk> \<forall>a\<in>\<alpha>`f`ps. a |\<subseteq>| t; ps \<noteq> {} \<rbrakk> \<Longrightarrow> \<alpha> (AANDI t ps f) = flub (\<alpha>`f`ps) t"
   apply (unfold AANDI_def)
   apply (subst AndDistA_alphabet)
   apply (auto)
@@ -570,7 +579,7 @@ lemma AANDI_alphabet_alt [alphabet]:
   by (metis AANDI_def AndDistA_alphabet_alt)
 
 lemma AORDI_alphabet [alphabet]:
-  "\<lbrakk> \<forall>a\<in>\<alpha>`f`ps. a \<subseteq>\<^sub>f t; ps \<noteq> {} \<rbrakk> \<Longrightarrow> \<alpha> (AORDI t ps f) = flub (\<alpha>`f`ps) t"
+  "\<lbrakk> \<forall>a\<in>\<alpha>`f`ps. a |\<subseteq>| t; ps \<noteq> {} \<rbrakk> \<Longrightarrow> \<alpha> (AORDI t ps f) = flub (\<alpha>`f`ps) t"
   apply (unfold AORDI_def)
   apply (subst OrDistA_alphabet)
   apply (auto)
@@ -605,7 +614,7 @@ theorem RefA_alphabet [alphabet] :
   by (simp add: RefA.rep_eq)
 
 theorem PermA_alphabet [alphabet] :
-"\<alpha> (ss\<bullet>p) = \<langle>ss\<rangle>\<^sub>s `\<^sub>f (\<alpha> p)"
+"\<alpha> (ss\<bullet>p) = \<langle>ss\<rangle>\<^sub>s |`| (\<alpha> p)"
   by (simp add:PermA.rep_eq)
 
 subsubsection {* Validation of Soundness *}

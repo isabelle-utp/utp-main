@@ -8,7 +8,7 @@
 header {* Lightweight Cardinals *}
 
 theory cardinals
-imports Main Real Countable_Set Cardinals infinity UNIV_TYPE
+imports Main Real Countable_Set "~~/src/HOL/Cardinals/Cardinals" infinity UNIV_TYPE
 begin
 
 subsection {* Cardinal Order *}
@@ -152,7 +152,7 @@ apply (assumption)
 apply (erule subset_inj_on)
 apply (assumption)
 -- {* Subgoal 2 *}
-apply (simp add: image_comp)
+apply (simp add: image_comp[THEN sym])
 apply (metis image_mono order.trans)
 done
 
@@ -408,4 +408,8 @@ apply (unfold type_card_def)
 apply (unfold UNIV_TYPE_def)
 apply (simp_all)
 done
+
+theorem Nats_countable: "\<nat> \<preceq>\<^sub>c c\<^sub>\<T> TYPE(nat)"
+  by (metis Nats_def UNIV_TYPE_def leq_card_refl leq_image_mono type_card_def)
+  
 end

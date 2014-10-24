@@ -119,7 +119,7 @@ definition prefs :: "'a::DEFINED \<Rightarrow> 'm::ADDR_SORT itself \<Rightarrow
 (* Does this type need to avoid cyclicity? *)
 
 typedef 'm::ADDR_SORT STORE =
-  "{f :: (ADDR, 'm sigtype) fmap . \<Union>\<^sub>f (refs `\<^sub>f sigvalue `\<^sub>f fran f) \<subseteq>\<^sub>f fdom f}"
+  "{f :: (ADDR, 'm sigtype) fmap . |\<Union>| (refs |`| sigvalue |`| fran f) |\<subseteq>| fdom f}"
   by (rule_tac x = "0" in exI, simp add: fran.rep_eq zero_fmap.rep_eq)
 
 setup_lifting type_definition_STORE

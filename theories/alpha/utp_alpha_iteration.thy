@@ -60,7 +60,7 @@ lemma StarA_unfold:
   apply (subst left_pre_kleene_algebra_class.star_unfoldl_eq[THEN sym])
   apply (simp add:plus_upred_def times_upred_def one_upred_def)
   apply (rule)
-  apply (metis alphabet_split fset_simps(5) funion_assoc)
+  apply (metis alphabet_split inf_sup_aci(7) sup.idem sup_commute)
   apply (metis (hide_lams, no_types) OrP_comm SemiR_OrP_distr SemiR_SkipR_left SemiR_assoc)
 done
 
@@ -79,21 +79,21 @@ translations
 lemma EvalA_IterA_basic [evala]: "\<lbrakk>IterA b P\<rbrakk>\<pi> = \<lbrakk>((b \<and>\<^sub>\<alpha> P)\<^sup>\<star>) \<and>\<^sub>\<alpha> (\<not>\<^sub>\<alpha> b\<acute>)\<rbrakk>\<pi>"
   by (simp add:IterA_def)
 
-lemma IterA_alphabet [alphabet]: "\<lbrakk> \<alpha>(b) \<subseteq>\<^sub>f \<alpha>(P); \<alpha>(P) \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> \<alpha>(IterA b P) = \<alpha>(P)"
-  apply (auto simp add: IterA_def alphabet)
+lemma IterA_alphabet [alphabet]: "\<lbrakk> \<alpha>(b) |\<subseteq>| \<alpha>(P); \<alpha>(P) \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> \<alpha>(IterA b P) = \<alpha>(P)"
+  apply (auto elim!:fsubset_elim simp add: IterA_def alphabet fmember.rep_eq)
   apply (metis HOMOGENEOUS_HOM_ALPHA SS_DASHED_app SS_UNDASHED_app SS_dash_DASHED SS_ident_app dash_UNDASHED_image dash_inv_into hom_alphabet_dash hom_alphabet_undash inv_into_into set_rev_mp)
 done
 
 lemma IterA_false: 
-  "\<lbrakk> A \<subseteq>\<^sub>f \<alpha>(P); \<alpha>(P) \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> ``while false\<^bsub>A\<^esub> do P od`` = ``II\<^bsub>\<alpha>(P)\<^esub>``"
+  "\<lbrakk> A |\<subseteq>| \<alpha>(P); \<alpha>(P) \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> ``while false\<^bsub>A\<^esub> do P od`` = ``II\<^bsub>\<alpha>(P)\<^esub>``"
   by (utp_alpha_tac)
 
 lemma IterA_true: 
-  "\<lbrakk> A \<subseteq>\<^sub>f \<alpha>(P); \<alpha>(P) \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> ``while true\<^bsub>A\<^esub> do P od`` = ``false\<^bsub>\<alpha>(P)\<^esub>``"
+  "\<lbrakk> A |\<subseteq>| \<alpha>(P); \<alpha>(P) \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> ``while true\<^bsub>A\<^esub> do P od`` = ``false\<^bsub>\<alpha>(P)\<^esub>``"
   by (utp_alpha_tac)
 
 theorem IterA_cond_true:
-  assumes "b \<in> COND" "P \<in> REL" "\<alpha>(b) \<subseteq>\<^sub>f \<alpha>(P)" "\<alpha>(P) \<in> HOM_ALPHABET"
+  assumes "b \<in> COND" "P \<in> REL" "\<alpha>(b) |\<subseteq>| \<alpha>(P)" "\<alpha>(P) \<in> HOM_ALPHABET"
   shows "``(while b do P od) \<and> b`` = ``(P \<and> b) ; while b do P od``"
 proof -
   have "``while b do P od \<and> b`` = ``((b \<and> P)\<^sup>\<star> \<and> \<not>b\<acute>) \<and> b``"
@@ -110,8 +110,8 @@ proof -
 
   also have "... = ``(((b \<and> II\<^bsub>\<alpha>(P)\<^esub>) \<or> ((b \<and> P) ; (b \<and> P)\<^sup>\<star>))) \<and> \<not>b\<acute>``"
   proof -
-    have "out\<alpha> b \<subseteq>\<^sub>f out\<alpha> ``(b \<and> P)\<^sup>\<star>``"
-      by (simp add:var_dist alphabet)
+    have "out\<alpha> b |\<subseteq>| out\<alpha> ``(b \<and> P)\<^sup>\<star>``"
+      by (rule fsubset_intro, simp add:var_dist alphabet)
 
     with assms show ?thesis
       by (metis (lifting, no_types) AndA_WF_ALPHA_REL AndA_assoc AndA_idem SemiA_AndA_left_precond StarA_closure WF_ALPHA_COND_WF_ALPHA_REL)
@@ -126,9 +126,9 @@ proof -
   also from assms have "... = ``((b \<and> P) ; (b \<and> P)\<^sup>\<star>) \<and> \<not>b\<acute>``"
     apply (simp)
     apply (subst OrA_left_unit_sub)
-    apply (auto simp add:alphabet assms var_dist)[1]
+    apply (auto elim!:fmember_elim fnmember_elim intro!:fmember_intro simp add:alphabet assms var_dist)[1]
     apply (metis REL_ALPHABET_UNDASHED_DASHED UnE WF_ALPHA_REL_def assms(2) in_out_union mem_Collect_eq)
-    apply (metis HOMOGENEOUS_HOM_ALPHA Rep_VAR_RENAME_out SS_UNDASHED_app UNDASHED_dash_DASHED Un_iff WF_ALPHA_COND_WF_ALPHA_REL WF_ALPHA_REL_unfold assms(1) assms(4) hom_alphabet_undash imageI out_member set_rev_mp)
+    apply (metis (no_types, hide_lams) HOMOGENEOUS_HOM_ALPHA HOM_ALPHABET_undash_out SS_DASHED_app SS_UNDASHED_app SS_VAR_RENAME_INV UNDASHED_undash_elim Un_iff VAR_RENAME_INV_app WF_ALPHA_COND_WF_ALPHA_REL WF_ALPHA_REL_unfold assms(1) assms(3) assms(4) contra_subsetD hom_alphabet_undash imageI less_eq_fset.rep_eq out_member)
     apply (simp)
   done
 
@@ -140,22 +140,21 @@ proof -
       apply (auto)
       apply (case_tac "xa \<in> D\<^sub>0")
       apply (simp add:urename)
-      apply (metis COMP_ALPHAS_def HOM_ALPHABET_def HOM_ALPHA_def comp_vars_undash mem_Collect_eq set_rev_mp)
+      apply (metis HOMOGENEOUS_HOM_ALPHA contra_subsetD hom_alphabet_undash less_eq_fset.rep_eq)
       apply (subgoal_tac "xa \<in> D\<^sub>1")
       apply (simp add:urename)
       apply (rule HOMOGENEOUS_out_unprimed)
       apply (metis HOMOGENEOUS_HOM_ALPHA)
-      apply (metis out_member set_rev_mp)
-      apply (metis (no_types) Un_iff WF_ALPHA_REL_unfold in_mono)
+      apply (metis contra_subsetD less_eq_fset.rep_eq out_member)
+      apply (metis Un_iff WF_ALPHA_COND_WF_ALPHA_REL WF_ALPHA_REL_unfold contra_subsetD)
     done
 
     with assms show ?thesis
-      apply (simp add:IterA_def)
       apply (subst SemiA_AndA_right_postcond)
       apply (simp add:assms closure)
       apply (simp add:alphabet var_dist)
+      apply (metis HOM_ALPHABET_SS fimage_mono funion_absorb2 funion_upper2 in_alphabet_union)
       apply (metis in_vars_union subset_Un_eq)
-      apply (simp)
     done
   qed
 
@@ -164,7 +163,7 @@ proof -
 qed
 
 theorem IterA_cond_false:
-  assumes "b \<in> COND" "P \<in> REL" "\<alpha>(b) \<subseteq>\<^sub>f \<alpha>(P)" "\<alpha>(P) \<in> HOM_ALPHABET"
+  assumes "b \<in> COND" "P \<in> REL" "\<alpha>(b) |\<subseteq>| \<alpha>(P)" "\<alpha>(P) \<in> HOM_ALPHABET"
   shows "``while b do P od \<and> \<not>b`` = ``II\<^bsub>\<alpha>(P)\<^esub> \<and> \<not>b``"
 proof -
   have "``while b do P od \<and> \<not>b`` = ``((b \<and> P)\<^sup>\<star> \<and> \<not>b\<acute>) \<and> \<not>b``"
@@ -176,9 +175,13 @@ proof -
   also have "... = ``(\<not>b \<and> (((b \<and> P) ; (b \<and> P)\<^sup>\<star>)  \<or> II\<^bsub>\<alpha>(P)\<^esub>)) \<and> \<not>b\<acute>``"
     by (metis AndA_assoc AndA_comm)
   also have "... = ``(((\<not>b \<and> (b \<and> P)) ; (b \<and> P)\<^sup>\<star>) \<or> (\<not>b \<and> II\<^bsub>\<alpha>(P)\<^esub>)) \<and> \<not>b\<acute>``"
+    sledgehammer
     apply (subst AndA_OrA_distl)
     apply (subst SemiA_AndA_left_precond[THEN sym])
-    apply (simp_all add:assms alphabet var_dist closure)
+    apply (simp add:assms closure)
+    apply (simp add:alphabet)
+    apply (metis out_alphabet_union sup_ge1)
+    apply (simp add:assms alphabet var_dist closure fmember.rep_eq)
   done
 
   also from assms have "... = ``(\<not>b \<and> II\<^bsub>\<alpha>(P)\<^esub>) \<and> \<not>b\<acute>``"
@@ -191,7 +194,7 @@ proof -
     apply (subst AndA_assoc[THEN sym])
     apply (subst SkipA_AndA_post)
     apply (simp_all add:closure assms alphabet)
-    apply (metis HOMOGENEOUS_HOM_ALPHA SS_HOMOGENEOUS_image assms(3) assms(4) image_mono less_eq_fset.rep_eq)
+    apply (metis HOM_ALPHABET_SS assms(3) assms(4) subset_fimage_iff)
     apply (simp add:urename closure assms)
     apply (metis AndA_assoc AndA_idem)
   done
@@ -201,7 +204,7 @@ proof -
 qed
 
 theorem IterA_unfold:
-  assumes "b \<in> COND" "P \<in> REL" "\<alpha>(b) \<subseteq>\<^sub>f \<alpha>(P)" "\<alpha>(P) \<in> HOM_ALPHABET"
+  assumes "b \<in> COND" "P \<in> REL" "\<alpha>(b) |\<subseteq>| \<alpha>(P)" "\<alpha>(P) \<in> HOM_ALPHABET"
   shows "``while b do P od`` = ``(P ; while b do P od) \<lhd> b \<rhd> II\<^bsub>\<alpha>(P)\<^esub>``"
 proof -
   have "``while b do P od`` = ``(while b do P od \<and> b) \<or> (while b do P od \<and> \<not>b)``"
@@ -214,7 +217,7 @@ proof -
     apply (subst AndA_comm)
     apply (subst SemiA_AndA_left_precond)
     apply (simp_all add:assms alphabet closure)
-    apply (metis out_vars_union sup.orderE sup.orderI)
+    apply (metis assms(3) fsubset_funion_eq out_alphabet_union)
     apply (metis AndA_comm CondA_alt_def)
   done
 
@@ -225,7 +228,7 @@ declare EvalA_IterA_basic [evala del]
 
 lemma EvalA_IterA [evala]: 
   assumes "P \<in> REL" "b \<in> COND"
-          "\<alpha>(P) \<in> HOM_ALPHABET" "\<alpha>(b) \<subseteq>\<^sub>f \<alpha>(P)"
+          "\<alpha>(P) \<in> HOM_ALPHABET" "\<alpha>(b) |\<subseteq>| \<alpha>(P)"
   shows "\<lbrakk>IterA b P\<rbrakk>\<pi> = (IterP \<lbrakk>b\<rbrakk>\<pi> \<lbrakk>P\<rbrakk>\<pi>) ;\<^sub>R II\<^bsub>\<langle>\<alpha>(P)\<rangle>\<^sub>f\<^esub>"
 proof -
   from assms have "((((\<lbrakk>b\<rbrakk>\<pi> \<and>\<^sub>p \<lbrakk>P\<rbrakk>\<pi>)\<^sup>\<star>) ;\<^sub>R II\<^bsub>\<langle>\<alpha> P\<rangle>\<^sub>f\<^esub>) \<and>\<^sub>p \<not>\<^sub>p \<lbrakk>b\<rbrakk>\<pi>\<acute>) = ((((\<lbrakk>b\<rbrakk>\<pi> \<and>\<^sub>p \<lbrakk>P\<rbrakk>\<pi>)\<^sup>\<star>) \<and>\<^sub>p \<not>\<^sub>p \<lbrakk>b\<rbrakk>\<pi>\<acute>) ;\<^sub>R II\<^bsub>\<langle>\<alpha> P\<rangle>\<^sub>f\<^esub>)"
@@ -240,7 +243,7 @@ proof -
     apply (metis UNREST_WF_CONDITION WF_ALPHA_COND_EvalA_WF_CONDITION assms(2))
     apply (metis UNREST_EvalA)
     apply (auto)
-    apply (metis (lifting, no_types) COMP_ALPHAS_def HOM_ALPHABET_def HOM_ALPHA_def SS_UNDASHED_app SS_VAR_RENAME_INV UNDASHED_dash_DASHED VAR_RENAME_INV_app assms(3) comp_vars_undash mem_Collect_eq out_member set_rev_mp)
+    apply (metis (no_types, hide_lams) HOMOGENEOUS_HOM_ALPHA SS_UNDASHED_app SS_VAR_RENAME_INV SS_ident_app UNDASHED_eq_dash_contra VAR_RENAME_INV_app contra_subsetD hom_alphabet_undash less_eq_fset.rep_eq out_member)
     apply (simp add:urename)
     apply (metis ConvR_NotP NotP_cond_closure SemiR_AndP_right_precond WF_ALPHA_COND_EvalA_WF_CONDITION)
   done

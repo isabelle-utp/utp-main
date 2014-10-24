@@ -76,7 +76,7 @@ theorem HoareA_TrueA [hoare]:
   by (utp_alpha_tac, metis HoareP_TrueR)
 
 theorem HoareA_SkipA [hoare]:
-  assumes "a \<in> HOM_ALPHABET" "\<alpha>(p) \<subseteq>\<^sub>f in\<^sub>\<alpha>(a)"
+  assumes "a \<in> HOM_ALPHABET" "\<alpha>(p) |\<subseteq>| in\<^sub>\<alpha>(a)"
   shows "``{p}II\<^bsub>a\<^esub>{p}``"
   using assms
   apply (utp_alpha_tac)
