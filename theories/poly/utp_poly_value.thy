@@ -9,7 +9,7 @@ header {* Polymorphic Values *}
 theory utp_poly_value
 imports
   "../core/utp_model"
-  "../core/utp_sorts_new"
+  "../core/utp_sorts"
   "../core/utp_event"
   "../types/utp_dlist"
   "../types/utp_dset"

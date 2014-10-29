@@ -1,9 +1,9 @@
 (******************************************************************************)
-(* Project: Unifying Theories of Programming in Isabelle/HOL                  *)
+(* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
 (* File: utp_common.thy                                                       *)
-(* Author: Simon Foster & Frank Zeyda, University of York (UK)                *)
+(* Authors: Simon Foster & Frank Zeyda, University of York (UK)               *)
 (******************************************************************************)
-(* LAST REVIEWED: 14 July 2014 *)
+(* LAST REVIEWED: 2 September 2014 *)
 
 header {* Common Definitions *}
 
@@ -11,23 +11,28 @@ theory utp_common
 imports utp_imports
   utp_document
   "core/utp_constants"
-(* Move the following into the theory utp_imports. *)
-  "utils/Unit_ord"
+  "utils/typedef_extra"
+  "utils/infinity"
+  "utils/maxset"
 begin
 
 default_sort type
 
 subsection {* Configuration *}
 
+text {* \fixme{Why do we need to hide the following constant? Check.} *}
+
 hide_const Wellorder_Relation.supr
 
 text {* We are going to use the colon for type membership in UTP models. *}
 
 no_notation
-  Set.member  ("op :") and
-  Set.member  ("(_/ : _)" [51, 51] 50)
+  Set.member ("op :") and
+  Set.member ("(_/ : _)" [51, 51] 50)
 
-text {* The following prevents Isabelle from splitting pairs in proofs. *}
+text {*
+  The following prevents Isabelle from splitting pairs in proofs by default.
+*}
 
 declare split_paired_All [simp del]
 declare split_paired_Ex [simp del]
@@ -35,8 +40,6 @@ declare split_paired_Ex [simp del]
 setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
 
 subsection {* Theorem Attributes *}
-
-text {* TODO: Introduce the attributes below in the relevant theories? *}
 
 ML {*
   structure closure = Named_Thms
@@ -46,12 +49,18 @@ ML {*
 setup closure.setup
 
 ML {*
-  structure refine = Named_Thms
-    (val name = @{binding refine} val description = "refinement theorems")
+  structure defined = Named_Thms
+    (val name = @{binding defined} val description = "definedness theorems")
 *}
 
-setup refine.setup
+setup defined.setup
 
+ML {*
+  structure typing = Named_Thms
+    (val name = @{binding typing} val description = "typing theorems")
+*}
+
+setup typing.setup
 
 ML {*
   structure urename = Named_Thms
@@ -67,36 +76,43 @@ ML {*
 
 setup usubst.setup
 
-subsection {* Type Definitions *}
+ML {*
+  structure refine = Named_Thms
+    (val name = @{binding refine} val description = "refinement theorems")
+*}
 
-text {* Include the theory @{text "typedef_supplement"} instead. *}
-
-lemma (in type_definition) Rep_inject_sym [simp, intro!] :
-"(x = y) \<longleftrightarrow> (Rep x = Rep y)"
-apply (simp only: Rep_inject)
-done
+setup refine.setup
 
 subsection {* Total Predicates *}
+
+text {* Total predicates are everywhere true. *}
 
 definition is_total :: "('a \<Rightarrow> bool) \<Rightarrow> bool" where
 "is_total p = (\<forall> x . p x)"
 
 theorem is_totalI [intro] :
-"(\<forall> x . p x) \<Longrightarrow> is_total p"
+"(\<And> x . p x) \<Longrightarrow> is_total p"
 apply (simp add: is_total_def)
 done
 
-theorem is_totalD [elim] :
+theorem is_totalD [dest] :
 "is_total p \<Longrightarrow> p x"
 apply (simp add: is_total_def)
 done
 
+text {*
+  \note{Note that we cannot have @{thm [source] is_totalD} as a default
+  simplification as it seems to cause the simplifier to loop.}
+*}
+
 subsection {* Uncurrying *}
 
-text {* Isabelle provides a currying operator but none for uncurrying. *}
+text {*
+  Isabelle provides a currying operator @{const curry} but none for uncurrying.
+*}
 
 definition uncurry :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a \<times> 'b \<Rightarrow> 'c)" where
-"uncurry f = (\<lambda> p . f (fst p) (snd p))"
+"uncurry = (\<lambda> f p . f (fst p) (snd p))"
 
 lemma uncurry_app [simp] :
 "uncurry f (x, y) = f x y"
@@ -105,17 +121,17 @@ done
 
 subsection {* Function Override *}
 
-text {* We first introduce a neater syntax for function overriding. *}
+text {* We first introduce a neater syntax for function override. *}
 
 notation override_on ("_ \<oplus> _ on _" [56, 56, 51] 55)
 
-theorem override_on_eq :
+lemma override_on_eq :
 "f1 \<oplus> g1 on a1 = f2 \<oplus> g2 on a2 \<longleftrightarrow>
  (\<forall> x . x \<notin> a1 \<and> x \<notin> a2 \<longrightarrow> f1 x = f2 x) \<and>
  (\<forall> x . x \<notin> a1 \<and> x \<in> a2 \<longrightarrow> f1 x = g2 x) \<and>
  (\<forall> x . x \<in> a1 \<and> x \<notin> a2 \<longrightarrow> g1 x = f2 x) \<and>
  (\<forall> x . x \<in> a1 \<and> x \<in> a2 \<longrightarrow> g1 x = g2 x)"
-apply (simp add: fun_eq_iff)
+apply (unfold fun_eq_iff)
 apply (safe)
 apply (drule_tac x = "x" in spec)
 apply (simp)
@@ -130,11 +146,19 @@ apply (case_tac "x \<in> a1", case_tac[!] "x \<in> a2")
 apply (simp_all)
 done
 
-theorem override_on_aux_eq :
+lemma override_on_eq2 :
 "f1 \<oplus> g1 on a = f2 \<oplus> g2 on a \<longleftrightarrow>
  (\<forall> x . x \<notin> a \<longrightarrow> f1 x = f2 x) \<and>
  (\<forall> x . x \<in> a \<longrightarrow> g1 x = g2 x)"
-apply (simp add: override_on_eq)
+apply (subst override_on_eq)
+apply (clarsimp)
+done
+
+theorem override_on_idem [simp] :
+"f \<oplus> f on a = f"
+apply (rule ext)
+apply (case_tac "x \<in> a")
+apply (simp_all)
 done
 
 theorem override_on_assoc :
@@ -144,7 +168,24 @@ apply (case_tac "x \<in> a", case_tac[!] "x \<in> b")
 apply (simp_all)
 done
 
-lemma override_on_subset :
+text {*
+  The theorem @{thm [source] override_on_emptyset} is already a default
+  simplification.
+*}
+
+theorem override_on_empty (* [simp] *) :
+"f \<oplus> g on {} = f"
+apply (rule ext)
+apply (simp)
+done
+
+theorem override_on_UNIV [simp] :
+"f \<oplus> g on UNIV = g"
+apply (rule ext)
+apply (simp)
+done
+
+theorem override_on_subset :
 "\<lbrakk>f = f \<oplus> g on a; b \<subseteq> a\<rbrakk> \<Longrightarrow> f = f \<oplus> g on b"
 apply (simp add: fun_eq_iff)
 apply (clarify)
@@ -154,10 +195,10 @@ apply (simp_all)
 apply (auto)
 done
 
-text {* TODO: Maybe the next theorem should be a default simplification? *}
+text {* \fixme{Should the next theorem be a default simplification?} *}
 
 theorem override_on_singleton (* [simp] *) :
-"(f \<oplus> g on {x}) = f(x := g x)"
+"f \<oplus> g on {x} = f(x := g x)"
 apply (rule ext)
 apply (simp)
 done
@@ -177,39 +218,16 @@ apply (case_tac "x \<in> a", case_tac[!] "x \<in> b")
 apply (simp_all)
 done
 
-theorem override_on_cancel1 [simp] :
-"f \<oplus> f on a = f"
-apply (rule ext)
-apply (case_tac "x \<in> a")
-apply (simp_all)
-done
+text {* \fixme{Perhaps a few useful cancellation theorems are missing here.} *}
 
-theorem override_on_cancel2 [simp] :
+theorem override_on_cancel [simp] :
 "(f \<oplus> g on a) \<oplus> h on a = f \<oplus> h on a"
-apply (rule ext)
-apply (case_tac "x \<in> a")
-apply (simp_all)
-done
-
-theorem override_on_cancel3 [simp] :
 "f \<oplus> (g \<oplus> h on a) on a = f \<oplus> h on a"
-apply (rule ext)
-apply (case_tac "x \<in> a")
-apply (simp_all)
-done
-
-theorem override_on_cancel4 [simp] :
-"f \<oplus> (g \<oplus> f on b) on a = f \<oplus> g on a - b"
-apply (rule ext)
-apply (case_tac "x \<in> a", case_tac[!] "x \<in> b")
-apply (simp_all)
-done
-
-theorem override_on_cancel5 [simp] :
 "f \<oplus> (f \<oplus> g on a) on b = f \<oplus> g on a \<inter> b"
-apply (rule ext)
-apply (case_tac "x \<in> a", case_tac[!] "x \<in> b")
-apply (simp_all)
+"f \<oplus> (g \<oplus> f on b) on a = f \<oplus> g on a - b"
+apply (unfold fun_eq_iff)
+apply (safe)
+apply (case_tac "x \<in> a", case_tac[1-2] "x \<in> b", simp_all)+
 done
 
 theorem override_on_reorder :
@@ -221,9 +239,7 @@ apply (simp_all)
 apply (auto)
 done
 
-text {* TODO: The following theorems seems very specific. Remove? *}
-
-theorem override_on_minus [simp] :
+theorem override_on_minus_app [simp] :
 "x \<in> b \<Longrightarrow> (f \<oplus> g on a - b) x = f x"
 apply (simp_all)
 done
@@ -232,18 +248,18 @@ subsection {* Transfer Strategy *}
 
 theorem inj_on_eval_simp :
 "inj_on f s \<Longrightarrow>
- \<lbrakk>x1 \<in> s; x2 \<in> s\<rbrakk> \<Longrightarrow> x1 = x2 \<longleftrightarrow> (f x1 = f x2)"
+ \<lbrakk>x \<in> s; y \<in> s\<rbrakk> \<Longrightarrow> x = y \<longleftrightarrow> f x = f y"
 apply (simp add: inj_on_def)
 apply (auto)
 done
 
 theorem inj_on_eval_intro :
 "inj_on f s \<Longrightarrow>
- \<lbrakk>x1 \<in> s; x2 \<in> s; f x1 = f x2\<rbrakk> \<Longrightarrow> x1 = x2"
+ \<lbrakk>x \<in> s; y \<in> s; f x = f y\<rbrakk> \<Longrightarrow> x = y"
 apply (simp add: inj_on_eval_simp)
 done
 
-subsubsection {* Miscellaneous Lemmas *}
+subsection {* Miscellaneous *}
 
 theorems asmE = rev_mp
 end

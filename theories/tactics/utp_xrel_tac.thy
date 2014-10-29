@@ -384,7 +384,8 @@ apply (simp)
 -- {* Subgoal 1.2 *}
 apply (rule_tac x = "b2" in bexI)
 apply (simp add: BindRX_def)
-apply (metis RenameB_SS_COMPOSABLE_BINDINGS_1 RenameB_SS_COMPOSABLE_BINDINGS_2 binding_override_simps(1))
+apply (metis (hide_lams, no_types) RenameB_SS_COMPOSABLE_BINDINGS_1 RenameB_SS_COMPOSABLE_BINDINGS_2 binding_override_simps(1))
+(* apply (metis RenameB_SS_COMPOSABLE_BINDINGS_1 RenameB_SS_COMPOSABLE_BINDINGS_2 binding_override_simps(1)) *)
 -- {* Subgoal 2 *}
 apply (simp)
 apply (rename_tac x rb1 rb2 rb3 b1 b2)

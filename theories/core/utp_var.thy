@@ -16,7 +16,7 @@ default_sort type
 subsection {* Variable Model *}
 
 record 'm uvar =
-  name :: "name" ("vname")
+  name :: "uname" ("vname")
   type :: "'m utype" ("vtype")
   strict :: "bool" ("aux")
 
@@ -84,7 +84,7 @@ declare less_uvar_ext_def [simp]
 
 subsection {* Constructors *}
 
-definition MkVar :: "name \<Rightarrow> 'm utype \<Rightarrow> bool \<Rightarrow> 'm uvar" where
+definition MkVar :: "uname \<Rightarrow> 'm utype \<Rightarrow> bool \<Rightarrow> 'm uvar" where
 "MkVar n t b = \<lparr>name = n, type = t, strict = b\<rparr>"
 
 abbreviation MkPlain :: "string \<Rightarrow> 'm utype \<Rightarrow> bool \<Rightarrow> 'm uvar" where
@@ -1385,12 +1385,11 @@ theorem fresh_var: "\<exists>x::'m uvar. x \<notin> \<langle>xs\<rangle>\<^sub>f
 proof -
 
   obtain n where "n \<notin> name ` \<langle>xs\<rangle>\<^sub>f"
-    by (force intro!: ex_new_if_finite infinite_name)
+    by (force intro!: ex_new_if_finite infinite_uname)
   with assms show ?thesis
     apply (rule_tac x="MkVar n t s" in exI)
     apply (simp)
     apply (metis MkVar_name imageI)
   done
 qed
-
 end

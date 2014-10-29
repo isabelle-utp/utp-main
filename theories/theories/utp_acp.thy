@@ -344,7 +344,7 @@ proof -
   also have "... = `\<not>$wait \<and> ($tr\<acute> = $tr) \<and> $wait\<acute>`"
     by (simp add:SemiR_AndP_right_precond closure urename AndP_assoc)
   finally have 3: "`\<not>$wait \<and> \<delta>;P` = `\<not>$wait \<and> ($tr\<acute> = $tr) \<and> $wait\<acute>`"
-    ..
+    by this
   have "`\<delta> ; P` = `R3(\<delta> ; P)`"
     by(metis "1" is_healthy_def)
   also have "... = `($wait \<and> II) \<or> (\<not>$wait \<and> \<delta> ; P)`"
@@ -546,7 +546,7 @@ proof -
       apply(simp_all add:urename closure typing defined AndP_assoc assms tr_eq_rel_closure)
       done
     finally have 1: "`(\<delta> \<and> P \<and> Q) ; R` = `P \<and> Q \<and> ($tr\<acute> = $tr) \<and> $wait\<acute>`"
-      ..
+      by this
     have "`\<delta> \<and> (P;R) \<and> (Q;R)` = `(P;R) \<and> (Q;R) \<and> ($tr\<acute> = $tr) \<and> $wait\<acute>`"
       apply(subst AndP_comm[of "\<delta>"])
       apply(subst \<delta>_AndP)

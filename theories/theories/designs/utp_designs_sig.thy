@@ -281,7 +281,7 @@ proof -
   have "... = `true \<turnstile> (x := v)`"
     by (metis AssignR_as_AssignRA PAssignF_upd_def PUNDASHED_def UNREST_PExprE mem_Collect_eq)
 
-  finally show ?thesis ..
+  finally show ?thesis by this
 qed
 
 lemma AssignD_rel_closure [closure]:

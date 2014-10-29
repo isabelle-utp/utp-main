@@ -237,7 +237,7 @@ syntax
   "_n_pexpr_set_list"      :: "n_pexpr \<Rightarrow> n_pexpr" ("elems _")
   "_n_pexpr_intersync"     :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "\<parallel>\<^bsub>_\<^esub>" 75)
   "_n_pexpr_restrict"      :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "\<upharpoonright>" 70)
-  "_n_pexpr_event"         :: "name \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_.'(_')" 50)
+  "_n_pexpr_event"         :: "uname \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_.'(_')" 50)
 (* Modified by Frank Zeyda to avoid a clash with the channel type. *)
   "_n_pexpr_event_chan"    :: "n_pexpr \<Rightarrow> n_pexpr" ("echan _")
 

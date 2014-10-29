@@ -11,7 +11,7 @@ theory utp_expr
 imports
   utp_pred
   utp_unrest
-  utp_sorts_new
+  utp_sorts
   utp_rename
   utp_event
 begin
@@ -30,9 +30,9 @@ definition WF_EXPR :: "'a EXPR set" where
 
 typedef 'a uexpr = "WF_EXPR :: 'a EXPR set"
 apply (simp add: WF_EXPR_def)
-apply (rule_tac x = "(\<lambda> b . default some_type)" in exI)
-apply (rule_tac x = "some_type" in exI)
-apply (simp)
+apply (rule_tac x = "(\<lambda> b . default some_utype)" in exI)
+apply (rule_tac x = "some_utype" in exI)
+apply (simp add: typing)
 done
 
 declare Abs_uexpr_inverse [simp, intro!]
@@ -199,11 +199,11 @@ definition EqualP ::
 notation EqualP (infixr "==\<^sub>p" 200)
 
 definition LitE :: "'a uval \<Rightarrow> 'a uexpr" where
-"LitE v = Abs_uexpr (if (\<exists> t. v : t) then (\<lambda> b. v) else (\<lambda> b. default some_type))"
+"LitE v = Abs_uexpr (if (\<exists> t. v : t) then (\<lambda> b. v) else (\<lambda> b. default some_utype))"
 
 lemma LitE_rep_eq:
-  "\<langle>LitE v\<rangle>\<^sub>e = (if (\<exists> t. v : t) then (\<lambda> b. v) else (\<lambda> b. default some_type))"
-  apply (subgoal_tac "(if (\<exists> t. v : t) then (\<lambda> b. v) else (\<lambda> b. default some_type)) \<in> WF_EXPR")
+  "\<langle>LitE v\<rangle>\<^sub>e = (if (\<exists> t. v : t) then (\<lambda> b. v) else (\<lambda> b. default some_utype))"
+  apply (subgoal_tac "(if (\<exists> t. v : t) then (\<lambda> b. v) else (\<lambda> b. default some_utype)) \<in> WF_EXPR")
   apply (auto simp add:LitE_def WF_EXPR_def intro: some_defined_value_typed)
 done
 
@@ -258,7 +258,7 @@ lemma ecoerce_rep_eq:
   apply (subst Abs_uexpr_inverse)
   apply (simp_all add:WF_EXPR_def)
   apply (rule_tac x="vtype x" in exI)
-  apply (auto simp add:vcoerce_def)
+  apply (auto simp add:vcoerce_def typing)
 done
 
 lift_definition VarE :: "'a uvar \<Rightarrow> 'a uexpr" ("$\<^sub>e_" [999] 999)

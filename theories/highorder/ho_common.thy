@@ -3,15 +3,30 @@
 (* File: ho_common.thy                                                        *)
 (* Author: Frank Zeyda, University of York (UK)                               *)
 (******************************************************************************)
-(* LAST REVIEWED: 3 April 2014 *)
+(* LAST REVIEWED: 26 August 2014 *)
 
 header {* Higher-Order Common *}
 
 theory ho_common
-imports "../utp_common"
-  "../utils/type_injection"
+imports
+  "../utp_common"
   "../utils/cardinals"
+  "../utils/type_injection"
+(* "../utils/fset" *)
+  "../utils/maxset"
 begin
+
+default_sort type
+
+text {* We are going to use the colon for type membership in UTP models. *}
+
+no_notation
+  Set.member ("op :") and
+  Set.member ("(_/ : _)" [51, 51] 50)
+
+text {* Undeclare notation from theory @{theory McCarthy_Logic}. *}
+
+no_notation Some ("\<lfloor>_\<rfloor>")
 
 subsection {* Syntax and Printing *}
 
@@ -130,7 +145,7 @@ apply (metis UnI1 UnI2 inj_onD ranI)
 apply (simp)
 done
 
-subsubsection {* Additional Theorems *}
+subsubsection {* General Theorems *}
 
 theorem ranE :
 "\<lbrakk>y \<in> ran f; \<And> x . \<lbrakk>x \<in> dom f; f x = Some y\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
@@ -229,7 +244,7 @@ apply (induct_tac x, induct_tac[!] y)
 apply (auto)
 done
 
-subsection {* Cardinality and Typedefs *}
+subsection {* Type Definitions and Injections *}
 
 theorem leq_card_type_injection :
 "(A :: 'a set) \<preceq>\<^sub>c (B :: 'b set) \<Longrightarrow>

@@ -285,7 +285,7 @@ done
 also have "... = `\<not>$ok \<and> $wait \<and> ($tr \<le> $tr\<acute>)`"
   by(simp add:utp_pred_simps(8) tr_leq_trans)
   finally show ?thesis
-    ..
+    by this
 qed
 
 lemma R3c_seq_comp_2: 
@@ -318,7 +318,7 @@ proof -
     apply(utp_poly_auto_tac)
     done
   finally show ?thesis
-    ..
+    by this
 qed
 
 lemma R3c_SemiR_closure:

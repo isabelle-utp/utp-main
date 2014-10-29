@@ -16,7 +16,5 @@ imports "~~/src/HOL/BNF/BNF"
   Adhoc_Overloading
   Sublist
   "utils/Library_extra"
-  "utils/Unit_ord"
-  "utils/infinity"
 begin
 end

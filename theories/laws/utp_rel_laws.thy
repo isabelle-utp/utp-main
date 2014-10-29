@@ -918,7 +918,7 @@ lemma SkipRA_alt_in_def:
   apply (utp_pred_auto_tac)
   apply (rule_tac x="SS\<bullet>b" in exI, auto)
   apply (metis DiffI SS_UNDASHED_app comp_apply override_on_def)
-  apply (metis override_on_minus set_mp in_UNDASHED)
+  apply (metis override_on_minus_app set_mp in_UNDASHED)
 done
 
 lemma SkipRA_alt_out_def:
@@ -930,7 +930,7 @@ lemma SkipRA_alt_out_def:
   apply (metis Int_iff hom_alphabet_dash in_vars_def out_vars_def)
   apply (drule_tac x="v" in bspec, simp add:var_defs)
   apply (simp)
-  apply (metis HOMOGENEOUS_dash_in imageI override_on_minus)
+  apply (metis HOMOGENEOUS_dash_in imageI override_on_minus_app)
 done
 
 theorem SkipRA_left_as_ExistsP:

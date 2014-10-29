@@ -3,67 +3,48 @@
 (* File: utp_model.thy                                                        *)
 (* Authors: Simon Foster & Frank Zeyda, University of York (UK)               *)
 (******************************************************************************)
-(* LAST REVIEWED: 15 July 2014 *)
+(* LAST REVIEWED: 4 September 2014 *)
 
-header {* UTP Models *}
+header {* UTP Model *}
 
 theory utp_model
 imports utp_defined
 begin
 
-text {* We next develop a generic hierarchical model for values and types. *}
+text {* In this theory, we develop a unified model of UTP values and types. *}
 
 default_sort type
-
-subsection {* Theorem Attributes *}
-
-(* The following attribute needs to be already introduced in utp_defined. *)
-
-(*
-ML {*
-  structure defined = Named_Thms
-    (val name = @{binding defined} val description = "definedness theorems")
-*}
-
-setup defined.setup
-*)
-
-ML {*
-  structure typing = Named_Thms
-    (val name = @{binding typing} val description = "typing theorems")
-*}
-
-setup typing.setup
 
 subsection {* Base Model *}
 
 text {*
   A type class is used to relate the value and type notions of a UTP model.
   This means that the user has to encode both these notions into a single HOL
-  type and as part of the instantiation, identify subsets of that HOL type's
+  type and, as part of the instantiation, identify subsets of that HOL type's
   universe that correspond to UTP value and type models. This approach works
   around the limitation of HOL not supporting multi-parameter type classes,
-  which is really what we would need here.
+  which is really what we need here to solve this design issue.
 *}
 
+
 class BASE_MODEL =
--- {* Universe of the UTP value model. *}
+-- {* Universe of the value model. *}
   fixes VALUE :: "'a set"
--- {* Universe of the UTP type model. *}
+-- {* Universe of the type model. *}
   fixes UTYPE :: "'a set"
--- {* The disjointness property below may not be needed. *}
+-- {* The disjointness property below may not be essential. *}
 -- {* @{text "assumes models_disjoint : VALUE \<inter> UTYPE = {}"} *}
--- {* There must be at least one model value. *}
+-- {* There must be at least one model value. This is essential! *}
   assumes values_non_empty : "\<exists> v . v \<in> VALUE"
--- {* There must be at least one model type. *}
+-- {* There must be at least one model type. This is essential! *}
   assumes utypes_non_empty : "\<exists> t . t \<in> UTYPE"
 
 text {*
-  The non-emptiness assumptions of the @{class BASE_MODEL} class are needed
-  to encapsulate UTP model values and types into HOL types as we do next.
+  We note that the non-emptiness assumptions above are needed to encapsulate
+  UTP model values and types into HOL types as we do next.
 *}
 
-subsection {* Type Definitions *}
+subsubsection {* Type Definitions *}
 
 typedef 'm::BASE_MODEL uval = "VALUE :: 'm set"
 apply (rule values_non_empty)
@@ -73,21 +54,15 @@ typedef 'm::BASE_MODEL utype = "UTYPE :: 'm set"
 apply (rule utypes_non_empty)
 done
 
-subsubsection {* Some Model Value or Type *}
+subsubsection {* Some Model Value *}
 
-abbreviation some_value :: "'m uval" where
-"some_value \<equiv> undefined"
+abbreviation some_uval :: "'m uval" where
+"some_uval \<equiv> undefined"
 
-abbreviation some_type :: "'m utype" where
-"some_type \<equiv> undefined"
+subsubsection {* Some Model Type *}
 
-text {*
-  Note that the we cannot use @text "setup_lifting"} due to parametricity of
-  the types. Instead, we will prove the relevant transfer theorems manually.
-*}
-
--- {* @{text "setup_lifting type_definition_uval"}. *}
--- {* @{text "setup_lifting type_definition_utype"}. *}
+abbreviation some_utype :: "'m utype" where
+"some_utype \<equiv> undefined"
 
 subsubsection {* Proof Support *}
 
@@ -101,12 +76,15 @@ declare Rep_utype [simp]
 
 subsubsection {* Transfer Setup *}
 
-paragraph {* Transfer Support for @{typ "'m uval"} *}
-
 text {*
-  We note that @{text setup_lifting} fails due to the type parameter
-  in @{typ "'a uval"}. However, it we can set up transfer manually.
+  Note that the we cannot use @{text "setup_lifting"} due to parametricity of
+  the types. Instead, we here prove the relevant transfer theorems by hand.
 *}
+
+-- {* @{text "setup_lifting type_definition_uval"}. *}
+-- {* @{text "setup_lifting type_definition_utype"}. *}
+
+paragraph {* Transfer Support for @{type uval} *}
 
 definition cr_uval :: "'m::BASE_MODEL \<Rightarrow> 'm uval \<Rightarrow> bool" where
 "cr_uval \<equiv> (\<lambda> x y . x = Rep_uval y)"
@@ -200,7 +178,7 @@ apply (metis Abs_uval_inverse)
 apply (metis Abs_uval_cases Abs_uval_inverse)
 done
 
-text {* Not sure the instantiation below is needed. *}
+text {* \fixme{Not sure the instantiation below is needed.} *}
 
 instantiation uval :: (type) term_of
 begin
@@ -217,12 +195,7 @@ apply (unfold term_of_uval_def)
 apply (simp)
 done
 
-paragraph {* Transfer Support for @{typ "'m utype"} *}
-
-text {*
-  We note that @{text setup_lifting} fails due to the type parameter
-  in @{typ "'a uval"}. However, it we can set up transfer manually.
-*}
+paragraph {* Transfer Support for @{type utype} *}
 
 definition cr_utype :: "'m::BASE_MODEL \<Rightarrow> 'm utype \<Rightarrow> bool" where
 "cr_utype \<equiv> (\<lambda> x y . x = Rep_utype y)"
@@ -316,7 +289,7 @@ apply (metis Abs_utype_inverse)
 apply (metis Abs_utype_cases Abs_utype_inverse)
 done
 
-text {* Not sure the instantiation below is needed. *}
+text {* \fixme{Not sure the instantiation below is needed.} *}
 
 instantiation utype :: (type) term_of
 begin
@@ -336,9 +309,9 @@ done
 subsection {* Countable Model *}
 
 text {*
-  The class @{text COUNTABLE_MODEL} introduces the caveat that model types
-  have to be countable. For such models, we automatically obtain that
-  @{typ "'m utype"} is an instance of the class @{class countable}.
+  The class @{text COUNTABLE_MODEL} adds the caveat that model types have to be
+  countable. For such models, we automatically obtain that @{typ "'m utype"} is
+  an instance of the class @{class countable}.
 *}
 
 class COUNTABLE_MODEL = BASE_MODEL +
@@ -368,10 +341,12 @@ apply (rule countable_UTYPE)
 done
 end
 
+text {* Countability also induces a linear order on types. *}
+
 text {*
-  Countability also induces a linear order on types. Perhaps we ought to give
-  the user the choice of the order though, as the implicit order that derives
-  from countability is not very useful as it cannot be practically evaluated.
+  \fixme{Perhaps we ought to give the user the choice of the order since the
+  implicit order that derives from countability is not entirely useful as it
+  cannot be practically evaluated.}
 *}
 
 instantiation utype :: (COUNTABLE_MODEL) linorder
@@ -390,12 +365,12 @@ end
 subsection {* Infinite Model *}
 
 text {*
-  The class @{text INFINITE_MODEL} introduces the caveat that model types
-  have infinite carriers. For such models, we automatically obtain that
-  @{typ "'m utype"} is an instance of the class @{class infinite}.
-  Importantly, for models that are both countable and infinite, we can embed
-  (meaning inject) their types into arbitrary HOL types that are likewise
-  countable and infinite as the cardinality in both cases is @{text "\<aleph>\<^sub>0"}.
+  The class @{text INFINITE_MODEL} adds the caveat that model types have
+  infinite carriers. For such models, we automatically obtain that
+  @{typ "'m utype"} is an instance of class @{class infinite}. Importantly,
+  for models that are both countable and infinite, we can embed their types
+  into arbitrary HOL types that are likewise countable and infinite as the
+  cardinality in both cases is @{text "\<aleph>\<^sub>0"}.
 *}
 
 class INFINITE_MODEL = BASE_MODEL +
@@ -416,26 +391,18 @@ subsection {* Defined Model *}
 text {* The next layer introduces the notion of definedness. *}
 
 class DEFINED_MODEL = BASE_MODEL +
--- {* Definedness notion for values. *}
+-- {* Definedness notion for UTP values. *}
   fixes value_defined :: "'a uval \<Rightarrow> bool" ("\<D>\<^sub>v")
 -- {* We assume the existence of at least one defined value. *}
   assumes defined_value_exists : "\<exists> v . \<D>\<^sub>v v"
 begin
 
-text {*
-  Perhaps the existence of a defined value is not relevant in practice, unless
-  we additionally like to introduce a type definition for defined values. For
-  now, I am not considering such a typedef as it appears to complicate matters.
-*}
-
-theorem defined_vacuous [simp] :
+theorem value_defined_vacuous [simp] :
 "is_total \<D>\<^sub>v \<Longrightarrow> \<D>\<^sub>v x"
 apply (erule is_totalD)
 done
 
 subsubsection {* Defined Values *}
-
-text {* TODO: Should we rename @{text DVALUE} into @{text dval}? *}
 
 definition DVALUE :: "'a uval set" where
 "DVALUE = {v . \<D>\<^sub>v v}"
@@ -451,7 +418,7 @@ apply (simp)
 apply (rule defined_value_exists)
 done
 
-theorem DVALUE_non_empty [simp] :
+theorem DVALUE_neq_empty :
 "DVALUE \<noteq> {}"
 apply (simp add: set_eq_iff)
 apply (rule defined_value_exists)
@@ -463,7 +430,7 @@ apply (simp add: DVALUE_def)
 done
 end
 
-subsubsection {* Instantiation of @{class DEFINED_NE}. *}
+subsubsection {* Instantiation as @{class DEFINED}. *}
 
 instantiation uval :: (DEFINED_MODEL) DEFINED_NE
 begin
@@ -476,7 +443,7 @@ apply (rule defined_value_exists)
 done
 end
 
-declare defined_uval_def [defined]
+declare defined_uval_def [simp]
 
 subsection {* Pretyped Model *}
 
@@ -485,8 +452,12 @@ text {*
   typing relation with the right properties yet but nevertheless like to make
   use of core definitions related to typed values. In the predicate model, it
   allows us to prove laws that hold irrespective of the non-emptiness property
-  of types, for instance. Perhaps review the need for this class once the HO
-  model is fully in place; it would actually be nice to eradicate this class.
+  of types, for instance.
+*}
+
+text {*
+  \todo{Perhaps review the need for this class once the HO model is fully in
+  place; it would actually be nice to eradicate it.}
 *}
 
 class PRE_TYPED_MODEL = DEFINED_MODEL +
@@ -543,7 +514,7 @@ apply (simp)
 done
 end
 
-subsubsection {* Type Binder Syntax *}
+subsubsection {* Type Binders *}
 
 default_sort PRE_TYPED_MODEL
 
@@ -561,9 +532,9 @@ definition DTex :: "'m utype \<Rightarrow> ('m uval \<Rightarrow> bool) \<Righta
 
 syntax
   "_Tall" :: "pttrn \<Rightarrow> 'm utype \<Rightarrow> bool \<Rightarrow> bool" ("(3\<forall>_ : _./ _)" [0, 0, 10] 10)
-  "_Tex"  :: "pttrn \<Rightarrow> 'm utype \<Rightarrow> bool => bool" ("(3\<exists>_ : _./ _)" [0, 0, 10] 10)
+  "_Tex" :: "pttrn \<Rightarrow> 'm utype \<Rightarrow> bool => bool" ("(3\<exists>_ : _./ _)" [0, 0, 10] 10)
   "_DTall" :: "pttrn \<Rightarrow> 'm utype => bool => bool" ("(3\<forall>_ :! _./ _)" [0, 0, 10] 10)
-  "_DTex"  :: "pttrn => 'm utype => bool => bool" ("(3\<exists>_ :! _./ _)" [0, 0, 10] 10)
+  "_DTex" :: "pttrn => 'm utype => bool => bool" ("(3\<exists>_ :! _./ _)" [0, 0, 10] 10)
 
 default_sort type
 
@@ -573,7 +544,7 @@ translations
   "\<forall> x :! t . P" \<rightleftharpoons> "(CONST DTall) t (\<lambda> x . P)"
   "\<exists> x :! t . P" \<rightleftharpoons> "(CONST DTex) t (\<lambda> x . P)"
 
--- {* Avoid eta-contraction for robuster pretty-printing. *}
+-- {* Avoid eta-contraction for a more robust  pretty-printing. *}
 
 print_translation {*
  [Syntax_Trans.preserve_binder_abs2_tr'
@@ -604,7 +575,7 @@ subsection {* Typed Model *}
 
 text {*
   The two fundamental properties of typing are that types are non-empty and
-  that each defined value belongs to some type. We do not, however, preclude
+  that every defined value belongs to some type. We do not, however, preclude
   type systems in which values may belong to more than one type. Stronger
   constraints are imposed, for instance, in @{text MONO_TYPED_MODEL}s where
   values indeed must inhabit a single type.
@@ -635,7 +606,7 @@ subsubsection {* Theorems *}
 
 paragraph {* Value of a Type *}
 
-theorem some_value_typed [simp] :
+theorem some_value_typed [typing] :
 "(some_value t) : t"
 apply (unfold some_value_def)
 apply (rule someI_ex)
@@ -645,7 +616,7 @@ apply (rule_tac x = "v" in exI)
 apply (assumption)
 done
 
-theorem some_defined_value_defined [simp] :
+theorem some_defined_value_defined [defined] :
 "\<D>\<^sub>v (some_defined_value t)"
 apply (unfold some_defined_value_def)
 apply (insert types_non_empty [of "t"])
@@ -654,7 +625,7 @@ apply (rule_tac a = "v" in someI2)
 apply (simp_all)
 done
 
-theorem some_defined_value_typed [simp] :
+theorem some_defined_value_typed [typing] :
 "(some_defined_value t) : t"
 apply (unfold some_defined_value_def)
 apply (insert types_non_empty [of "t"])
@@ -663,7 +634,7 @@ apply (rule_tac a = "v" in someI2)
 apply (simp_all)
 done
 
-theorem some_defined_value_strictly_typed [simp] :
+theorem some_defined_value_strictly_typed [typing] :
 "(some_defined_value t) :! t"
 apply (unfold strict_type_rel_def)
 apply (rule conjI)
@@ -673,7 +644,7 @@ done
 
 paragraph {* Type of a Value *}
 
-theorem utype_of_typed [simp] :
+theorem utype_of_typed [typing] :
 "\<D>\<^sub>v v \<Longrightarrow> v : (utype_of v)"
 apply (unfold utype_of_def)
 apply (rule someI_ex)
@@ -721,7 +692,7 @@ end
 
 subsection {* Monotyped Model *}
 
-definition monotype :: "'a::PRE_TYPED_MODEL utype \<Rightarrow> bool"  where
+definition monotype :: "'a::PRE_TYPED_MODEL utype \<Rightarrow> bool" where
 "monotype t \<longleftrightarrow> (\<forall> v t' . v : t \<and> v : t' \<longrightarrow> t = t')"
 
 text {* In monotyped models, values must inhabit a single type. *}
@@ -770,17 +741,30 @@ apply (rule sym [OF the_equality])
 apply (assumption)
 apply (metis inhabits_single_type)
 done
+
+theorems the_utype_of_value_simp [simp] =
+  sym [OF utype_of_value_unique]
 end
 
-(************************)
-(* REVIEWED BEFORE HERE *)
-(************************)
+subsection {* Miscellaneous *}
 
-subsection {* Sigma Types *}
+subsubsection {* Compatibility *}
 
-text {* FIXME: Why did Simon not use a set of values? Email to clarify! *}
+text {* \todo{Discuss with Simon whether to keep @{text default}.} *}
 
-text {* Some more work may be needed in this section. *}
+syntax "_default" :: "'a utype \<Rightarrow> 'a uval" ("default")
+
+translations "default t" \<rightharpoonup> "(CONST some_defined_value) t"
+
+(***********************)
+(* REVIEWED UNTIL HERE *)
+(***********************)
+
+subsubsection {* Sigma Types *}
+
+text {* \todo{This section needs a review and some more work.} *}
+
+text {* \fixme{Why did Simon not use a set of values? Clarify!} *}
 
 typedef 'm::TYPED_MODEL sigtype =
   "{(t :: 'm utype, v :: 'm uval). v : t}"
@@ -826,15 +810,5 @@ apply (insert Rep_sigtype [of x])
 apply (auto simp add: sigvalue.rep_eq sigtype.rep_eq)
 done
 
-(***********************)
-(* REVIEWED AFTER HERE *)
-(***********************)
-
-subsection {* Compatibility *}
-
-text {* TODO: Discuss with Simon Foster whether to keep @{text default}. *}
-
-syntax "_default" :: "'a utype \<Rightarrow> 'a uval" ("default")
-
-translations "default t" \<rightharpoonup> "(CONST some_defined_value) t"
+default_sort type
 end

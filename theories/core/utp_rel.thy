@@ -117,7 +117,7 @@ done
 lemma SkipRA_rep_eq_alt:
   "HOMOGENEOUS vs \<Longrightarrow> destPRED (II\<^bsub>vs\<^esub>) = {b. \<forall> v \<in> in vs . \<langle>b\<rangle>\<^sub>b v = \<langle>b\<rangle>\<^sub>b (dash v)}"
   apply (auto simp add:SkipRA.rep_eq ExistsP.rep_eq SkipR.rep_eq)
-  apply (metis Int_iff hom_alphabet_undash in_vars_def override_on_minus)
+  apply (metis Int_iff hom_alphabet_undash in_vars_def override_on_minus_app)
   apply (rule_tac x="x \<oplus>\<^sub>b \<B> on UNDASHED \<union> DASHED - vs" in exI)
   apply (safe)
   apply (rule_tac x="x" in exI)
@@ -1277,7 +1277,7 @@ lemma SkipR_ExistsP_out:
   apply (auto)
   apply (subgoal_tac "v\<acute> \<notin> vs")
   apply (auto)
-  apply (smt Int_commute out_vars_def override_on_apply_notin override_on_cancel5)
+  apply (smt Int_commute out_vars_def override_on_apply_notin override_on_cancel(3))
 done
 
 end

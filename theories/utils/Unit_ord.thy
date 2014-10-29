@@ -1,20 +1,20 @@
 (******************************************************************************)
 (* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
 (* File: Unit_ord.thy                                                         *)
-(* Author: Frank Zeyda, University of York (UK)                               *)
+(* Authors: Simon Foster & Frank Zeyda, University of York (UK)               *)
 (******************************************************************************)
-(* LAST REVIEWED: 23 January 2014 *)
+(* LAST REVIEWED: 3 September 2014 *)
 
-header {* Linear Order for Unit *}
+header {* Unit Order *}
 
 theory Unit_ord
-imports Main
+imports "../utp_common"
 begin
 
 text {*
-  Defining a linear order on @{type unit} is useful in conjunction with linear
-  orders on open record types, because the type instantiated for ``more'' in a
-  closed record is typically @{type unit}.
+  Defining a linear order for the @{type unit} type is useful in conjunction
+  with defining linear orders on record types, because the type instantiated
+  for ``more'' in a closed record is typically @{type unit}.
 *}
 
 instantiation unit :: linorder
@@ -25,11 +25,12 @@ definition less_unit :: "unit \<Rightarrow> unit \<Rightarrow> bool" where
 "less_unit x y \<longleftrightarrow> False"
 instance
 apply (intro_classes)
-apply (simp_all add: less_eq_unit_def less_unit_def)
+apply (unfold less_eq_unit_def less_unit_def)
+apply (simp_all)
 done
 end
 
-text {* Default Simplifications *}
+paragraph {* Default Simplifications *}
 
 declare less_eq_unit_def [simp]
 declare less_unit_def [simp]
