@@ -157,16 +157,13 @@ lemma fmext[intro]: "(\<And> x. \<langle>f\<rangle>\<^sub>m x = \<langle>g\<rang
   by (auto)
 
 lemma fdomI: "\<langle>m\<rangle>\<^sub>m a = Some b ==> a |\<in>| fdom m"
-  by (auto simp add:fdom_def fmember.rep_eq, metis domI fdom.rep_eq fset_inverse)
+  by (auto simp add:fdom_def fmember.rep_eq)
 
 lemma fdomD: "a |\<in>| fdom m \<Longrightarrow> \<exists>b. \<langle>m\<rangle>\<^sub>m a = Some b"
-  by (auto simp add:fdom_def fmember.rep_eq, metis domD fdom.rep_eq fset_inverse)
+  by (auto simp add:fdom_def fmember.rep_eq)
 
 lemma fdomIff [iff, simp del]: "(a |\<in>| fdom m) = (\<langle>m\<rangle>\<^sub>m a ~= None)"
-  apply (auto simp add:fdom_def fmember.rep_eq)
-  apply (metis domD fdom.rep_eq fset_inverse)
-  apply (metis domI fdom.rep_eq fset_inverse)
-done
+  by (auto simp add:fdom_def fmember.rep_eq)
 
 lemma fmap_list_fdom_fran:
   assumes "(x, y) \<in> set (fmap_list f)" 

@@ -373,7 +373,7 @@ subsection {* Theory of relations *}
 
 lift_definition RELH :: "'a ALPHA_FUNCTION"
 is "\<lambda> p. (Abs_fset (\<langle>\<alpha> p\<rangle>\<^sub>f - NON_REL_VAR), \<exists>\<^sub>p NON_REL_VAR. \<pi> p)"
-  by (auto simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
+  by (auto simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def Abs_fset_inverse unrest)
 
 lemma RELH_alphabet [alphabet]:
   "\<alpha> (RELH p) = Abs_fset (\<langle>\<alpha> p\<rangle>\<^sub>f - NON_REL_VAR)"
@@ -381,12 +381,12 @@ lemma RELH_alphabet [alphabet]:
 
 lemma RELH_in_REL_ALPHABET [closure]:
   "\<alpha> (RELH p) \<in> REL_ALPHABET"
-  by (auto simp add:alphabet REL_ALPHABET_def)
+  by (auto simp add:alphabet REL_ALPHABET_def Abs_fset_inverse)
 
 lemma EvalA_RELH [evala]:
   "\<lbrakk>RELH p\<rbrakk>\<pi> = (\<exists>\<^sub>p NON_REL_VAR. \<lbrakk>p\<rbrakk>\<pi>)"
   by (simp add:EvalA_def RELH.rep_eq)
-
+  
 theorem RELH_idem:
   "RELH (RELH p) = RELH p"
   by (utp_alpha_tac, utp_pred_tac)
@@ -401,7 +401,7 @@ lemma RELH_REL_ALPHABET:
   apply (metis Healthy_simp RELH_in_REL_ALPHABET)
   apply (utp_alpha_tac)
   apply (simp add:ExistsP_ident unrest)
-  apply (metis Diff_Compl NON_REL_VAR_UNDASHED_DASHED REL_ALPHABET_UNDASHED_DASHED Rep_fset_inverse le_iff_inf)
+  apply (metis Diff_Compl NON_REL_VAR_UNDASHED_DASHED REL_ALPHABET_UNDASHED_DASHED fset_inverse le_iff_inf)
 done
 
 abbreviation "RELT \<equiv> \<lparr> alphas = REL_ALPHABET, health = RELH \<rparr>"
@@ -409,7 +409,7 @@ abbreviation "RELT \<equiv> \<lparr> alphas = REL_ALPHABET, health = RELH \<rpar
 interpretation RELT_theory: UTP_THEORY RELT
   by (unfold_locales, auto simp add: IDEMPOTENT_OVER_def RELH.rep_eq RELH_idem)
 
-lemma RELT_WF_ALPHA_REL:https://www.facebook.com/
+lemma RELT_WF_ALPHA_REL:
   "\<lbrakk>RELT\<rbrakk>\<T> = WF_ALPHA_REL"
   by (simp add: THEORY_PRED_def RELH_REL_ALPHABET WF_ALPHA_REL_def)
 
