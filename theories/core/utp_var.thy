@@ -625,19 +625,19 @@ subsubsection {* Simplification Theorems *}
 
 lemma UNDASHED_nempty: "UNDASHED \<noteq> {}"
   apply (auto simp add:var_defs)
-  apply (rule_tac x="MkVar (MkName ''x'' 0 NoSub) some_type False" in exI)
+  apply (rule_tac x="MkVar (MkName ''x'' 0 NoSub) some_utype False" in exI)
   apply (simp)
 done
 
 lemma DASHED_nempty: "DASHED \<noteq> {}"
   apply (auto simp add:var_defs)
-  apply (rule_tac x="MkVar (MkName ''x'' 1 NoSub) some_type False" in exI)
+  apply (rule_tac x="MkVar (MkName ''x'' 1 NoSub) some_utype False" in exI)
   apply (simp)
 done
 
 lemma DASHED_TWICE_nempty: "DASHED_TWICE \<noteq> {}"
   apply (auto simp add:var_defs)
-  apply (rule_tac x="MkVar (MkName ''x'' 2 NoSub) some_type False" in exI)
+  apply (rule_tac x="MkVar (MkName ''x'' 2 NoSub) some_utype False" in exI)
   apply (simp)
 done
 
