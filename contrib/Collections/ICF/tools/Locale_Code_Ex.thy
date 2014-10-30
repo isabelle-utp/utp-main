@@ -1,6 +1,8 @@
 header {* Example for locale-code *}
 theory Locale_Code_Ex
-imports Locale_Code "~~/src/HOL/Library/Code_Target_Nat"
+imports 
+  Locale_Code   
+  "../../Lib/Code_Target_ICF"
 begin
 
 definition [simp, code del]: "NOCODE \<equiv> id"
@@ -24,12 +26,12 @@ begin
 
   lemmas "defs" = k_def j_def i_def h_def g.simps f.simps 
 
-  lemma j_alt: "j x y \<equiv> f x + y + x" unfolding j_def by (simp add: add_ac)
+  lemma j_alt: "j x y \<equiv> f x + y + x" unfolding j_def by (simp add: ac_simps)
 
   lemma g_alt:
     "g 0 = a"
     "g (Suc n) = f n + n + a"
-    by (auto simp: add_ac)
+    by (auto simp: ac_simps)
 
 
   definition "c \<equiv> a + b"
@@ -83,10 +85,10 @@ lemma "foo 3 4 = 34578" by eval
 lemma "bar 3 4 = 354189" by eval
 
 text {* Exported code *}
-export_code foo bar in SML file -
-export_code foo bar in OCaml file -
-export_code foo bar in Haskell file -
-export_code foo bar in Scala file -
+export_code foo bar in SML
+export_code foo bar in OCaml
+export_code foo bar in Haskell
+export_code foo bar in Scala
 
 text {* Inlined code *}
 ML_val {*

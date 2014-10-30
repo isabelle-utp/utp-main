@@ -3,12 +3,12 @@ imports
   "../../contrib/HOL-Algebra2/Complete_Lattice"
   "../../contrib/HOL-Algebra2/Galois_Connection"
   "Library_extra/List_extra"
-  "Library_extra/Fset"
+  FSet
+  "Library_extra/FSet_extra"
   "Library_extra/Map_Extra"
   "Library_extra/Fmap"
   "Library_extra/Multi_Elem"
   "Library_extra/Lattices_extra"
-(*  "Library_extra/Lattice_extra" *)
   "Library_extra/McCarthy_Logic"
   "Library_extra/AProd"
 begin
@@ -63,7 +63,7 @@ done
 
 lemma surj_complete_inj: "\<lbrakk> inj_on f vs; f ` vs \<inter> vs = {} \<rbrakk> \<Longrightarrow> surj (complete_inj f vs)"
   apply (auto simp add:complete_inj_def)
-  apply (smt Int_Collect disjoint_iff_not_equal imageI inf_commute inv_into_f_f)
+  apply (metis (erased, lifting) IntI empty_iff image_iff inv_into_f_f mem_Collect_eq)
 done
    
 lemma bij_complete_inj: "\<lbrakk> inj_on f vs; f ` vs \<inter> vs = {} \<rbrakk> \<Longrightarrow> bij (complete_inj f vs)"
@@ -113,7 +113,7 @@ proof -
     apply (subgoal_tac "x \<notin> vs1 \<union> vs2")
     apply (subgoal_tac "x \<in> f ` (vs1 \<union> vs2)")
     apply (simp)
-    apply (smt IntI UnE empty_iff image_iff inj_on_Un inv_into_f_eq)
+    apply (metis UnCI f_inv_into_f inv_into_f_f inv_into_into)
     apply (force)
     apply (force)
     apply (subgoal_tac "inv_into vs2 f x \<in> vs2")
@@ -139,8 +139,8 @@ lemma complete_inj_image [simp]:
    \<Longrightarrow> complete_inj f vs1 ` vs2 = 
        f ` (vs2 \<inter> vs1) \<union> inv_into vs1 f ` (vs2 \<inter> f ` vs1) \<union> (vs2 \<inter> -(vs1 \<union> f ` vs1))"
   apply (auto)
-  apply (smt Int_iff complete_inj_def imageI)
-  apply (smt Int_iff complete_inj_def imageI)
+  apply (metis (no_types, hide_lams) IntI complete_inj_def image_iff)
+  apply (metis (no_types, hide_lams) IntI complete_inj_def image_iff)
   apply (metis Int_iff complete_inj_dom complete_inj_inverse imageI)
   apply (metis complete_inj_dom imageI)
   apply (metis complete_inj_dom complete_inj_inverse imageI)

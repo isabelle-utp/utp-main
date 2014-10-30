@@ -656,12 +656,11 @@ text {* We require finite sets to be well-typed. *}
 
 definition WT_FSET ::
   "'m::TYPED_MODEL utype \<Rightarrow> 'm::TYPED_MODEL uval fset set" where
-"WT_FSET t = {fs . \<forall> x \<in>\<^sub>f fs . x :! t}"
+"WT_FSET t = {fs . \<forall> x |\<in>| fs . x :! t}"
 
 theorem WT_FSET_member [iff] :
-"fs \<in> WT_FSET t \<longleftrightarrow> (\<forall> x \<in>\<^sub>f fs . x :! t)"
-apply (simp add: WT_FSET_def)
-done
+"fs \<in> WT_FSET t \<longleftrightarrow> (\<forall> x |\<in>| fs . x :! t)"
+  by (simp add: WT_FSET_def)
 
 class FSET_SORT = BOOL_SORT +
   fixes MkFSet :: "'a::TYPED_MODEL utype \<Rightarrow> 'a uval fset \<Rightarrow> 'a uval"
@@ -706,22 +705,22 @@ definition FInsertV :: "'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval \<R
 "FInsertV t x xs = MkFSet t (finsert x (DestFSet xs))"
 
 definition FUnionV  :: "'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
-"FUnionV t xs ys = MkFSet t (DestFSet xs \<union>\<^sub>f DestFSet ys)"
+"FUnionV t xs ys = MkFSet t (DestFSet xs |\<union>| DestFSet ys)"
 
 definition FInterV  :: "'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
-"FInterV t xs ys = MkFSet t (DestFSet xs \<inter>\<^sub>f DestFSet ys)"
+"FInterV t xs ys = MkFSet t (DestFSet xs |\<inter>| DestFSet ys)"
 
 definition FMinusV  :: "'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
 "FMinusV t xs ys = MkFSet t (DestFSet xs -\<^sub>f DestFSet ys)"
 
 definition FSubsetV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
-"FSubsetV xs ys = MkBool (DestFSet xs \<subseteq>\<^sub>f DestFSet ys)"
+"FSubsetV xs ys = MkBool (DestFSet xs |\<subseteq>| DestFSet ys)"
 
 definition FMemberV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
-"FMemberV x xs = MkBool (x \<in>\<^sub>f DestFSet xs)"
+"FMemberV x xs = MkBool (x |\<in>| DestFSet xs)"
 
 definition FNotMemberV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
-"FNotMemberV x xs = MkBool (x \<notin>\<^sub>f DestFSet xs)"
+"FNotMemberV x xs = MkBool (x |\<notin>| DestFSet xs)"
 end
 
 (***********************)

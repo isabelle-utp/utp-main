@@ -456,10 +456,10 @@ theorem sum_max''_code_correct:
 
 text {* Now, we can generate verified code with the Isabelle/HOL code
   generator: *}
-export_code sum_max_code sum_max'_code sum_max''_code in SML file -
-export_code sum_max_code sum_max'_code sum_max''_code in OCaml file -
-export_code sum_max_code sum_max'_code sum_max''_code in Haskell file -
-export_code sum_max_code sum_max'_code sum_max''_code in Scala file -
+export_code sum_max_code sum_max'_code sum_max''_code in SML
+export_code sum_max_code sum_max'_code sum_max''_code in OCaml
+export_code sum_max_code sum_max'_code sum_max''_code in Haskell
+export_code sum_max_code sum_max'_code sum_max''_code in Scala
 
 subsection {* Foreach-Loops *}
 text {*
@@ -528,10 +528,10 @@ proof -
   finally show ?thesis using assms by (auto simp: refine_rel_defs)
 qed
 
-export_code sum_max_it_code in SML file -
-export_code sum_max_it_code in OCaml file -
-export_code sum_max_it_code in Haskell file -
-export_code sum_max_it_code in Scala file -
+export_code sum_max_it_code in SML
+export_code sum_max_it_code in OCaml
+export_code sum_max_it_code in Haskell
+export_code sum_max_it_code in Scala
 
 definition "sum_max_it_list \<equiv> sum_max_it_code o ls.from_list"
 ML_val {*

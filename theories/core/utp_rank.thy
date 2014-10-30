@@ -29,7 +29,7 @@ definition RANK :: "nat \<Rightarrow> 'a uval set" where
 "RANK n = {x. rank x = n}"
 
 definition pred_rank :: "'a uapred \<Rightarrow> nat" where
-"pred_rank P = FMax (type_rank `\<^sub>f vtype `\<^sub>f (\<alpha> P))"
+"pred_rank P = FMax (type_rank |`| vtype |`| (\<alpha> P))"
 
 definition PRANK :: "nat \<Rightarrow> 'a uapred set" where
 "PRANK n = {x. pred_rank x = n}"

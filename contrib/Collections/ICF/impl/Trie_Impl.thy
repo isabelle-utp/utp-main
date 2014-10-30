@@ -70,7 +70,7 @@ unfolding iteratei_def by (simp add: iteratei_postfixed_interrupt)
 lemma iteratei_postfixed_alt_def :
   "iteratei_postfixed ks ((Trie vo ts)::('key, 'val) trie) =
    (set_iterator_union 
-     (option_case set_iterator_emp (\<lambda>v. set_iterator_sng (ks, v)) vo) 
+     (case_option set_iterator_emp (\<lambda>v. set_iterator_sng (ks, v)) vo) 
      (set_iterator_image snd
      (set_iterator_product (foldli ts) 
         (\<lambda>(k, t'). iteratei_postfixed (k # ks) t'))
@@ -84,7 +84,7 @@ proof -
     apply (rule ext)+ apply (rename_tac c f \<sigma>)
     apply (simp add: set_iterator_product_def set_iterator_image_filter_def
                      set_iterator_union_def set_iterator_sng_def set_iterator_image_alt_def
-                     prod_case_beta set_iterator_emp_def 
+                     case_prod_beta set_iterator_emp_def 
             split: option.splits)
     apply (simp add: aux)
   done
@@ -173,7 +173,7 @@ proof(induct t)
     apply(erule meta_allE)+
     apply(erule meta_impE)
     apply(rule disjI1)
-    apply(fastforce intro: exI[where x="a # b", standard])+
+    apply(fastforce intro: exI[where x="a # b" for a b])+
     done
 qed
 
@@ -453,7 +453,7 @@ proof (induct t arbitrary: ks0)
       unfolding it_prod_def it_prod_S_def
       apply (rule set_iterator_product_correct [OF it_foldli])
       apply (insert it_child)
-      apply (simp add: prod_case_beta)
+      apply (simp add: case_prod_beta)
     done
   qed
 

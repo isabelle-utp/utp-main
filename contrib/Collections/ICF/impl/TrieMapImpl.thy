@@ -158,7 +158,7 @@ definition "test_codegen \<equiv> (
   tm.update ,
   tm.update_dj)"
 
-export_code test_codegen in SML file -
+export_code test_codegen in SML
 
 end
 

@@ -4,7 +4,7 @@
 *)
 header "Tests"
 theory PerformanceTest
-imports "../Collections" "~~/src/HOL/Library/Efficient_Nat" 
+imports "../../ICF/Collections" "~~/src/HOL/Library/Code_Target_Numeral" 
 begin
 text_raw {*\label{thy:PerformanceTest}*}
 
@@ -47,7 +47,7 @@ text {*
         (0::nat,s)
       "
 
-  -- {* Parameters: empty, member, insert, delete, iterate,  seed, N, M \rightarrow count, size *}
+  -- {* Parameters: empty, member, insert, delete, iterate,  seed, N, M $\rightarrow$ count, size *}
   definition 
     test_all :: "(unit \<Rightarrow> 's) \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> 's) \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> 's) 
       \<Rightarrow> ('s \<Rightarrow> (nat,nat) set_iterator) \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> (nat \<times> nat)"
@@ -115,16 +115,16 @@ text {*
     test_hs test_rs test_ls test_ahs test_ias
     test_hs' test_rs' test_ls' test_ahs' test_cg' test_ias'
     test_hs'' test_rs'' test_ls'' test_ahs'' test_cg'' test_ias''
-    in SML 
-    module_name Test
+    checking SML 
     
 
   (*
     Ad-hoc test code:
   *)
+  definition "test_hs_eval a b c = test_hs (nat_of_integer a) (nat_of_integer b) (nat_of_integer c)"
   ML_val {*
     val start = Time.now();
-    @{code test_hs} 1 100000 200000;
+    @{code test_hs_eval} 1 100000 200000;
     val rt = Time.toMilliseconds (Time.now() - start);
     *}
 

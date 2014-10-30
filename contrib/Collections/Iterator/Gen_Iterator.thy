@@ -312,7 +312,7 @@ lemma map_to_list_by_tsl[autoref_rules]:
 
 (*lemma dres_it_FOREACH_it_simp[iterator_simps]: 
   "dres_it_FOREACH (\<lambda>s. dRETURN (i s)) s c f \<sigma> 
-    = foldli (i s) (dres_case False False c) (\<lambda>x s. s \<guillemotright>= f x) (dRETURN \<sigma>)"
+    = foldli (i s) (case_dres False False c) (\<lambda>x s. s \<guillemotright>= f x) (dRETURN \<sigma>)"
   unfolding dres_it_FOREACH_def
   by simp
 *)
@@ -328,30 +328,30 @@ lemma proper_it_mono_dres_pair:
   assumes PR: "proper_it' it it'"
   assumes A: "\<And>k v x. f k v x \<le> f' k v x"
   shows "
-    it' s (dres_case False False c) (\<lambda>(k,v) s. s \<guillemotright>= f k v) \<sigma>
-    \<le> it' s (dres_case False False c) (\<lambda>(k,v) s. s \<guillemotright>= f' k v) \<sigma>" (is "?a \<le> ?b")
+    it' s (case_dres False False c) (\<lambda>(k,v) s. s \<guillemotright>= f k v) \<sigma>
+    \<le> it' s (case_dres False False c) (\<lambda>(k,v) s. s \<guillemotright>= f' k v) \<sigma>" (is "?a \<le> ?b")
 proof -
   from proper_itE[OF PR[THEN proper_it'D]] obtain l where 
     A_FMT: 
-      "?a = foldli l (dres_case False False c) (\<lambda>(k,v) s. s \<guillemotright>= f k v) \<sigma>" 
+      "?a = foldli l (case_dres False False c) (\<lambda>(k,v) s. s \<guillemotright>= f k v) \<sigma>" 
         (is "_ = ?a'")
     and B_FMT: 
-      "?b = foldli l (dres_case False False c) (\<lambda>(k,v) s. s \<guillemotright>= f' k v) \<sigma>" 
+      "?b = foldli l (case_dres False False c) (\<lambda>(k,v) s. s \<guillemotright>= f' k v) \<sigma>" 
         (is "_ = ?b'")
     by metis
   
-  from A have A': "\<And>kv x. prod_case f kv x \<le> prod_case f' kv x"
+  from A have A': "\<And>kv x. case_prod f kv x \<le> case_prod f' kv x"
     by auto
 
   note A_FMT
   also have 
-    "?a' = foldli l (dres_case False False c) (\<lambda>kv s. s \<guillemotright>= prod_case f kv) \<sigma>"
+    "?a' = foldli l (case_dres False False c) (\<lambda>kv s. s \<guillemotright>= case_prod f kv) \<sigma>"
     apply (fo_rule fun_cong)
     apply (fo_rule arg_cong)
     by auto
   also note foldli_mono_dres[OF A']
   also have 
-    "foldli l (dres_case False False c) (\<lambda>kv s. s \<guillemotright>= prod_case f' kv) \<sigma> = ?b'"
+    "foldli l (case_dres False False c) (\<lambda>kv s. s \<guillemotright>= case_prod f' kv) \<sigma> = ?b'"
     apply (fo_rule fun_cong)
     apply (fo_rule arg_cong)
     by auto
@@ -363,8 +363,8 @@ lemma proper_it_mono_dres:
   assumes PR: "proper_it' it it'"
   assumes A: "\<And>kv x. f kv x \<le> f' kv x"
   shows "
-    it' s (dres_case False False c) (\<lambda>kv s. s \<guillemotright>= f kv) \<sigma>
-    \<le> it' s (dres_case False False c) (\<lambda>kv s. s \<guillemotright>= f' kv) \<sigma>"
+    it' s (case_dres False False c) (\<lambda>kv s. s \<guillemotright>= f kv) \<sigma>
+    \<le> it' s (case_dres False False c) (\<lambda>kv s. s \<guillemotright>= f' kv) \<sigma>"
   apply (rule proper_itE[OF PR[THEN proper_it'D[where s=s]]])
   apply (erule_tac t="it' s" in ssubst)
   apply (rule foldli_mono_dres[OF A])
@@ -383,9 +383,9 @@ lemma proper_it_mono_dres_dom:
   assumes PR: "proper_it' it it'"
   assumes A: "\<And>kv x. f kv x \<le> f' kv x"
   shows "
-    (map_iterator_dom o it') s (dres_case False False c) (\<lambda>kv s. s \<guillemotright>= f kv) \<sigma>
+    (map_iterator_dom o it') s (case_dres False False c) (\<lambda>kv s. s \<guillemotright>= f kv) \<sigma>
     \<le> 
-    (map_iterator_dom o it') s (dres_case False False c) (\<lambda>kv s. s \<guillemotright>= f' kv) \<sigma>"
+    (map_iterator_dom o it') s (case_dres False False c) (\<lambda>kv s. s \<guillemotright>= f' kv) \<sigma>"
   
   apply (rule proper_it_mono_dres)
   apply (rule icf_proper_iteratorI)

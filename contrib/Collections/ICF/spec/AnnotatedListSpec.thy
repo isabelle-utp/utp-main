@@ -171,7 +171,6 @@ begin
     apply (drule_tac i = i and p = p 
       and l = a and r = c and e = aa and a = ba in  splits_correct)
     apply (simp_all)
-    apply blast
     done
 end    
 

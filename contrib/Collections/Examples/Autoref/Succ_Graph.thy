@@ -16,6 +16,12 @@ lemma slg_rel_def: "\<langle>R\<rangle>slg_rel \<equiv>
   {(succs,G). \<forall>v. (succs v, G``{v}) \<in> \<langle>R\<rangle>list_set_rel}" 
   by (auto simp: slg_rel_def_internal relAPP_def)
 
+lemma [relator_props]: "single_valued R \<Longrightarrow> single_valued (\<langle>R\<rangle>slg_rel)"
+  unfolding slg_rel_def
+  apply (rule single_valuedI)
+  apply (auto dest: single_valuedD[OF list_set_rel_sv])
+  done
+
 consts i_slg :: "interface \<Rightarrow> interface"
 
 lemmas [autoref_rel_intf] =
@@ -54,8 +60,8 @@ definition succ_of_list :: "(nat\<times>nat) list \<Rightarrow> nat \<Rightarrow
     
 schematic_lemma succ_of_list_impl:
   notes [autoref_tyrel] = 
-    ty_REL[where 'a="nat\<rightharpoonup>nat set" and R="\<langle>nat_rel,R\<rangle>iam_map_rel", standard]
-    ty_REL[where 'a="nat set" and R="\<langle>nat_rel\<rangle>list_set_rel", standard]
+    ty_REL[where 'a="nat\<rightharpoonup>nat set" and R="\<langle>nat_rel,R\<rangle>iam_map_rel" for R]
+    ty_REL[where 'a="nat set" and R="\<langle>nat_rel\<rangle>list_set_rel"]
 
   shows "(?f::?'c,succ_of_list) \<in> ?R"
   unfolding succ_of_list_def[abs_def]
@@ -63,14 +69,14 @@ schematic_lemma succ_of_list_impl:
   done
 
 concrete_definition succ_of_list_impl uses succ_of_list_impl
-export_code succ_of_list_impl in SML file -
+export_code succ_of_list_impl in SML
 
 definition acc_of_list :: "nat list \<Rightarrow> nat set" 
   where "acc_of_list l \<equiv> fold insert l {}"
 
 schematic_lemma acc_of_list_impl:
   notes [autoref_tyrel] = 
-    ty_REL[where 'a="nat set" and R="\<langle>nat_rel\<rangle>iam_set_rel", standard]
+    ty_REL[where 'a="nat set" and R="\<langle>nat_rel\<rangle>iam_set_rel" for R]
 
   shows "(?f::?'c,acc_of_list) \<in> ?R"
   unfolding acc_of_list_def[abs_def]
@@ -78,6 +84,6 @@ schematic_lemma acc_of_list_impl:
   done
 
 concrete_definition acc_of_list_impl uses acc_of_list_impl
-export_code acc_of_list_impl in SML file -
+export_code acc_of_list_impl in SML
 
 end

@@ -211,12 +211,10 @@ theorem THEORY_AndA_lub:
   apply (simp_all)
   apply (safe)[1]
   apply (utp_alpha_tac, utp_pred_auto_tac)
-  apply (metis THEORY_PRED_OVER_alphabet)
   apply (utp_alpha_tac, utp_pred_auto_tac)
-  apply (metis THEORY_PRED_OVER_alphabet)
   apply (simp add:Upper_def, clarify)
   apply (metis AndA_RefineA_below)
-  apply (metis AndA_alphabet THEORY_CLOSED_OP_def THEORY_PRED_OVER_elim THEORY_PRED_OVER_intro fset_simps(5))
+  apply (metis (erased, hide_lams) AndA_alphabet THEORY_CLOSED_OP_def THEORY_PRED_OVER_closure THEORY_PRED_OVER_elim fsubset_funion_eq order_refl)
 done
 
 theorem THEORY_join_AndA:
@@ -234,15 +232,15 @@ theorem THEORY_join_AndA:
   apply (drule_tac x="P \<and>\<^sub>\<alpha> Q" in bspec)
   apply (safe)
   apply (utp_alpha_tac, utp_pred_tac)
-  apply (metis fset_simps(5))
+  apply (metis sup.idem)
   apply (utp_alpha_tac, utp_pred_tac)
-  apply (metis fset_simps(5))
+  apply (metis sup.idem)
   apply (rule THEORY_PRED_OVER_intro)
   apply (erule THEORY_PRED_OVER_elim)
   apply (erule THEORY_PRED_OVER_elim)
   apply (metis THEORY_CLOSED_OP_def)
   apply (simp add:alphabet)
-  apply (metis THEORY_PRED_OVER_alphabet fset_simps(5))
+  apply (metis THEORY_PRED_OVER_alphabet sup.idem)
 done
 
 lemma THEORY_OrA_glb:
@@ -255,12 +253,10 @@ lemma THEORY_OrA_glb:
   apply (simp_all)
   apply (safe)[1]
   apply (utp_alpha_tac, utp_pred_auto_tac)
-  apply (metis THEORY_PRED_OVER_alphabet)
   apply (utp_alpha_tac, utp_pred_auto_tac)
-  apply (metis THEORY_PRED_OVER_alphabet)
   apply (simp add:Lower_def, clarify)
   apply (metis OrA_RefineA_above)
-  apply (metis OrA_alphabet THEORY_CLOSED_OP_def THEORY_PRED_OVER_elim THEORY_PRED_OVER_intro fset_simps(5))
+  apply (metis OrA_alphabet THEORY_CLOSED_OP_def THEORY_PRED_OVER_elim THEORY_PRED_OVER_intro sup.idem)
 done
 
 theorem OrderT_lattice:
@@ -283,15 +279,15 @@ theorem MeetT_OrA:
   apply (drule_tac x="P \<or>\<^sub>\<alpha> Q" in bspec)
   apply (safe)
   apply (utp_alpha_tac, utp_pred_tac)
-  apply (metis fset_simps(5))
+  apply (metis sup.idem)
   apply (utp_alpha_tac, utp_pred_tac)
-  apply (metis fset_simps(5))
+  apply (metis sup.idem)
   apply (rule THEORY_PRED_OVER_intro)
   apply (erule THEORY_PRED_OVER_elim)
   apply (erule THEORY_PRED_OVER_elim)
   apply (metis THEORY_CLOSED_OP_def)
   apply (simp add:alphabet)
-  apply (metis THEORY_PRED_OVER_alphabet fset_simps(5))
+  apply (metis THEORY_PRED_OVER_alphabet sup.idem)
   apply (metis OrA_RefineA_above)
 done
 
@@ -377,7 +373,7 @@ subsection {* Theory of relations *}
 
 lift_definition RELH :: "'a ALPHA_FUNCTION"
 is "\<lambda> p. (Abs_fset (\<langle>\<alpha> p\<rangle>\<^sub>f - NON_REL_VAR), \<exists>\<^sub>p NON_REL_VAR. \<pi> p)"
-  by (auto simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def unrest)
+  by (auto simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def Abs_fset_inverse unrest)
 
 lemma RELH_alphabet [alphabet]:
   "\<alpha> (RELH p) = Abs_fset (\<langle>\<alpha> p\<rangle>\<^sub>f - NON_REL_VAR)"
@@ -385,12 +381,12 @@ lemma RELH_alphabet [alphabet]:
 
 lemma RELH_in_REL_ALPHABET [closure]:
   "\<alpha> (RELH p) \<in> REL_ALPHABET"
-  by (auto simp add:alphabet REL_ALPHABET_def)
+  by (auto simp add:alphabet REL_ALPHABET_def Abs_fset_inverse)
 
 lemma EvalA_RELH [evala]:
   "\<lbrakk>RELH p\<rbrakk>\<pi> = (\<exists>\<^sub>p NON_REL_VAR. \<lbrakk>p\<rbrakk>\<pi>)"
   by (simp add:EvalA_def RELH.rep_eq)
-
+  
 theorem RELH_idem:
   "RELH (RELH p) = RELH p"
   by (utp_alpha_tac, utp_pred_tac)
@@ -405,7 +401,7 @@ lemma RELH_REL_ALPHABET:
   apply (metis Healthy_simp RELH_in_REL_ALPHABET)
   apply (utp_alpha_tac)
   apply (simp add:ExistsP_ident unrest)
-  apply (metis Diff_Compl NON_REL_VAR_UNDASHED_DASHED REL_ALPHABET_UNDASHED_DASHED Rep_fset_inverse le_iff_inf)
+  apply (metis Diff_Compl NON_REL_VAR_UNDASHED_DASHED REL_ALPHABET_UNDASHED_DASHED fset_inverse le_iff_inf)
 done
 
 abbreviation "RELT \<equiv> \<lparr> alphas = REL_ALPHABET, health = RELH \<rparr>"

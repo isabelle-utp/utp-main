@@ -68,9 +68,9 @@ definition ahm_rel_def_internal: "ahm_rel bhc Rk Rv =
 lemma ahm_rel_def: "\<langle>Rk, Rv\<rangle> ahm_rel bhc \<equiv>
      \<langle>Rk,Rv\<rangle> ahm_map_rel O ahm_map_rel' (abstract_bounded_hashcode Rk bhc)" 
     unfolding relAPP_def ahm_rel_def_internal .
-lemmas [autoref_rel_intf] = REL_INTFI[of "ahm_rel bhc" i_map, standard]
+lemmas [autoref_rel_intf] = REL_INTFI[of "ahm_rel bhc" i_map] for bhc
 
-abbreviation "dflt_ahm_rel \<equiv> ahm_rel bounded_hashcode"
+abbreviation "dflt_ahm_rel \<equiv> ahm_rel bounded_hashcode_nat"
 
 
 primrec ahm_iteratei_aux :: "(('k\<times>'v) list array) \<Rightarrow> ('k\<times>'v, '\<sigma>) set_iterator"
@@ -161,13 +161,13 @@ lemma param_HashMap[param]: "(HashMap, HashMap) \<in>
     \<langle>\<langle>\<langle>Rk,Rv\<rangle>prod_rel\<rangle>list_rel\<rangle>array_rel \<rightarrow> nat_rel \<rightarrow> \<langle>Rk,Rv\<rangle>ahm_map_rel" 
     unfolding ahm_map_rel_def by force
 
-lemma param_hashmap_case[param]: "(hashmap_case, hashmap_case) \<in>
+lemma param_case_hashmap[param]: "(case_hashmap, case_hashmap) \<in>
     (\<langle>\<langle>\<langle>Rk,Rv\<rangle>prod_rel\<rangle>list_rel\<rangle>array_rel \<rightarrow> nat_rel \<rightarrow> R) \<rightarrow> 
      \<langle>Rk,Rv\<rangle>ahm_map_rel \<rightarrow> R"
 unfolding ahm_map_rel_def[abs_def]
 by (force split: hashmap.split dest: fun_relD)
 
-lemma hashmap_rec_is_case[simp]: "hashmap_rec = hashmap_case"
+lemma rec_hashmap_is_case[simp]: "rec_hashmap = case_hashmap"
   by (intro ext, simp split: hashmap.split)
 
 
@@ -379,7 +379,7 @@ proof(cases a)
   hence "card (dom (map_of (concat xs))) = length (concat xs)"
     by(rule card_dom_map_of)
   also have "length (concat xs) = foldl op + 0 (map length xs)"
-    by (simp add: length_concat foldl_conv_fold add_commute fold_plus_listsum_rev)
+    by (simp add: length_concat foldl_conv_fold add.commute fold_plus_listsum_rev)
   also from inv
   have "\<dots> = n" unfolding foldl_map by(simp add: ahm_invar_aux_def array_foldl_foldl)
   finally show ?thesis by(simp)
@@ -479,7 +479,7 @@ proof-
   with bhc'[param_fo, OF _ K] 
       have "bhc (array_length a) k < array_length a" by simp
   ultimately show ?thesis using K
-      unfolding ahm_lookup_def[abs_def] hashmap_rec_is_case
+      unfolding ahm_lookup_def[abs_def] rec_hashmap_is_case
       by (simp, parametricity)
 qed
 
@@ -526,7 +526,7 @@ unfolding ahm_iteratei_aux_def[abs_def] by parametricity
 lemma param_ahm_iteratei[param]:
   "(ahm_iteratei,ahm_iteratei) \<in> \<langle>Rk,Rv\<rangle>ahm_map_rel \<rightarrow>
        (Rb \<rightarrow> bool_rel) \<rightarrow> (\<langle>Rk,Rv\<rangle>prod_rel \<rightarrow> Rb \<rightarrow> Rb) \<rightarrow> Rb \<rightarrow> Rb"
-unfolding ahm_iteratei_def[abs_def] hashmap_rec_is_case by parametricity
+unfolding ahm_iteratei_def[abs_def] rec_hashmap_is_case by parametricity
 
 lemma param_ahm_to_list[param]:
   "(ahm_to_list,ahm_to_list) \<in> 
@@ -829,7 +829,7 @@ subsection {* @{term ahm_update} *}
 
 lemma param_hm_grow[param]:
   "(hm_grow, hm_grow) \<in> \<langle>Rk,Rv\<rangle>ahm_map_rel \<rightarrow> nat_rel"
-unfolding hm_grow_def[abs_def] hashmap_rec_is_case by parametricity
+unfolding hm_grow_def[abs_def] rec_hashmap_is_case by parametricity
 
 lemma param_ahm_rehash_aux'[param]:
   assumes "is_bounded_hashcode Rk eq bhc"
@@ -843,7 +843,7 @@ lemma param_ahm_rehash_aux'[param]:
 proof-
   from assms have "bhc n (fst kv) < array_length a" by force
   thus ?thesis unfolding ahm_rehash_aux'_def[abs_def] 
-      hashmap_rec_is_case Let_def using assms by parametricity
+      rec_hashmap_is_case Let_def using assms by parametricity
 qed
 
 (* TODO: Move this *)
@@ -922,7 +922,7 @@ lemma param_load_factor[param]:
 
 lemma param_ahm_filled[param]: 
     "(ahm_filled, ahm_filled) \<in> \<langle>Rk,Rv\<rangle>ahm_map_rel \<rightarrow> bool_rel"
-  unfolding ahm_filled_def[abs_def] hashmap_rec_is_case
+  unfolding ahm_filled_def[abs_def] rec_hashmap_is_case
   by parametricity
 
 lemma param_ahm_update_aux[param]:
@@ -958,7 +958,7 @@ proof-
   note cmp = option_compare[OF param_list_map_lookup[param_fo, OF eq K this]]
   
   show ?thesis apply simp
-    unfolding ahm_update_aux_def Let_def hashmap_rec_is_case
+    unfolding ahm_update_aux_def Let_def rec_hashmap_is_case
     using assms A N bhc_range cmp by parametricity 
 qed
 
@@ -1399,17 +1399,17 @@ subsection {* Various simple operations *}
 
 lemma param_ahm_isEmpty[param]: 
     "(ahm_isEmpty, ahm_isEmpty) \<in> \<langle>Rk,Rv\<rangle>ahm_map_rel \<rightarrow> bool_rel"
-unfolding ahm_isEmpty_def[abs_def] hashmap_rec_is_case
+unfolding ahm_isEmpty_def[abs_def] rec_hashmap_is_case
 by parametricity
 
 lemma param_ahm_isSng[param]: 
     "(ahm_isSng, ahm_isSng) \<in> \<langle>Rk,Rv\<rangle>ahm_map_rel \<rightarrow> bool_rel"
-unfolding ahm_isSng_def[abs_def] hashmap_rec_is_case
+unfolding ahm_isSng_def[abs_def] rec_hashmap_is_case
 by parametricity
 
 lemma param_ahm_size[param]: 
     "(ahm_size, ahm_size) \<in> \<langle>Rk,Rv\<rangle>ahm_map_rel \<rightarrow> nat_rel"
-unfolding ahm_size_def[abs_def] hashmap_rec_is_case
+unfolding ahm_size_def[abs_def] rec_hashmap_is_case
 by parametricity
 
 
@@ -1584,7 +1584,7 @@ lemmas autoref_ahm_rules =
   autoref_ahm_size
 
 lemmas autoref_ahm_rules_hashable[autoref_rules_raw]
-  = autoref_ahm_rules[where Rk="Rk::(_\<times>_::hashable) set", standard]
+  = autoref_ahm_rules[where Rk="Rk"] for Rk :: "(_\<times>_::hashable) set"
 
 
 end

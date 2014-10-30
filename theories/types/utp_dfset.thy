@@ -9,7 +9,7 @@ header {* Defined Finite Sets *}
 
 theory utp_dfset
 imports utp_dlist
-  "../utils/Library_extra/Fset"
+  (* "../utils/Library_extra/Fset" *)
   "../core/utp_defined"
   "../tactics/utp_pred_tac"
   "../tactics/utp_expr_tac"
@@ -21,7 +21,7 @@ subsection {* Type Definition *}
 
 text {* Rename the following type into @{text "'a dfset"}. *}
 
-typedef 'a UFSET = "{fs :: 'a fset . \<forall> x \<in>\<^sub>f fs . \<D> x}"
+typedef 'a UFSET = "{fs :: 'a fset . \<forall> x |\<in>| fs . \<D> x}"
 apply (rule_tac x="\<lbrace>\<rbrace>" in exI)
 apply (auto)
 done
@@ -56,15 +56,15 @@ definition InsertUF :: "'a \<Rightarrow> 'a UFSET \<Rightarrow> 'a UFSET" where
 
 lemma InsertUF_rep_eq:
 "\<D> x \<Longrightarrow> Rep_UFSET (InsertUF x xs) = finsert x (Rep_UFSET xs)"
-apply (subgoal_tac "\<forall> y \<in>\<^sub>f (finsert x (Rep_UFSET xs)) . \<D> y")
+apply (subgoal_tac "\<forall> y |\<in>| (finsert x (Rep_UFSET xs)) . \<D> y")
 apply (auto simp add: InsertUF_def)
 done
 
 lift_definition MemberUF :: "'a \<Rightarrow> 'a UFSET \<Rightarrow> bool"
-is "fmember" by (auto)
+is "fmember" .
 
 lift_definition NMemberUF :: "'a \<Rightarrow> 'a UFSET \<Rightarrow> bool"
-is "fnmember" by (auto)
+is "notin_fset" .
 
 lift_definition UnionUF :: "'a UFSET \<Rightarrow> 'a UFSET \<Rightarrow> 'a UFSET"
 is "funion" by (auto)
@@ -76,16 +76,16 @@ lift_definition MinusUF :: "'a UFSET \<Rightarrow> 'a UFSET \<Rightarrow> 'a UFS
 is "fminus" by (auto)
 
 lift_definition SubsetUF :: "'a UFSET \<Rightarrow> 'a UFSET \<Rightarrow> bool"
-is "fsubset" by (auto)
+is "fsubset" .
 
 lift_definition SubseteqUF :: "'a UFSET \<Rightarrow> 'a UFSET \<Rightarrow> bool"
-is "fsubset_eq" by (auto)
+is "fsubset_eq" .
 
 lift_definition FSetUF :: "'a ULIST \<Rightarrow> 'a UFSET"
-is "fset" by (auto)
+is "finset" by (metis fBall_intro finset.rep_eq) 
 
 lift_definition RestrictUF :: "'a ULIST \<Rightarrow> 'a UFSET \<Rightarrow> 'a ULIST"
-is "\<lambda> xs v . filter (\<lambda> x . x \<notin>\<^sub>f v) xs"
+is "\<lambda> xs v . filter (\<lambda> x . x |\<notin>| v) xs"
   by (auto)
 
 definition IntersyncUF ::
@@ -96,9 +96,10 @@ definition IntersyncUF ::
 subsection {* Definedness *}
 
 lemma UFSET_elems_defined [defined] :
-"x \<in>\<^sub>f (Rep_UFSET xs) \<Longrightarrow> \<D> x"
-apply (insert Rep_UFSET [of xs])
-apply (auto)
+"x |\<in>| (Rep_UFSET xs) \<Longrightarrow> \<D> x"
+  apply (insert Rep_UFSET [of xs])
+  apply (auto)
+  apply (metis Rep_UFSET' fBallE)
 done
 
 instantiation UFSET :: (DEFINED) DEFINED_NE

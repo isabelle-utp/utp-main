@@ -268,17 +268,17 @@ lemma map_iterator_abs_genord_I2 :
   assumes it_OK: "map_iterator_genord iti m R'"
       and invar: "\<And>k v. m k = Some v \<Longrightarrow> invar v"
       and R_OK: "\<And>k v k' v'. invar v \<Longrightarrow> invar v' \<Longrightarrow> R' (k, v) (k', v') \<Longrightarrow> R (k, \<alpha> v) (k', \<alpha> v')"
-      and m'_eq: "m' = ((Option.map \<alpha>) o m)"
+      and m'_eq: "m' = ((map_option \<alpha>) o m)"
   shows "map_iterator_abs_genord \<alpha> invar iti m' R"
 proof -
   let ?\<alpha>' = "\<lambda>(k,v). (k, \<alpha> v)"
   let ?invar' = "\<lambda>(k,v). invar v"
 
-  have \<alpha>_rewr: "?\<alpha>' ` (map_to_set m) = map_to_set ((Option.map \<alpha>) o m)"
+  have \<alpha>_rewr: "?\<alpha>' ` (map_to_set m) = map_to_set ((map_option \<alpha>) o m)"
     by (auto simp add: map_to_set_def)
  
   note rule' = set_iterator_abs_genord_I2[OF it_OK[unfolded set_iterator_def], 
-    of ?invar' R ?\<alpha>' "map_to_set (Option.map \<alpha> \<circ> m)", unfolded \<alpha>_rewr map_iterator_abs_genord_def[symmetric]]
+    of ?invar' R ?\<alpha>' "map_to_set (map_option \<alpha> \<circ> m)", unfolded \<alpha>_rewr map_iterator_abs_genord_def[symmetric]]
 
   show ?thesis
     unfolding m'_eq
@@ -290,7 +290,7 @@ qed
 lemma map_iterator_abs_genord_remove_abs2 :
   assumes iti: "map_iterator_abs_genord \<alpha> invar iti m R"
   obtains m' where "map_iterator_genord iti m' (\<lambda>(k, v) (k', v'). R (k, \<alpha> v) (k', \<alpha> v'))"
-       "(Option.map \<alpha>) o m' = m" "\<And>k v. m' k = Some v \<Longrightarrow> invar v"
+       "(map_option \<alpha>) o m' = m" "\<And>k v. m' k = Some v \<Longrightarrow> invar v"
   proof -
     let ?\<alpha>' = "\<lambda>(k,v). (k, \<alpha> v)"
     let ?invar' = "\<lambda>(k,v). invar v"
@@ -323,7 +323,7 @@ lemma map_iterator_abs_genord_remove_abs2 :
       by (auto simp add: distinct_map inj_on_def Ball_def)
     hence "map_to_set m = map_to_set (map_of (map ?\<alpha>' lc))"
       by (simp add: \<alpha>_props map_to_set_map_of)
-    hence m_eq: "Option.map \<alpha> \<circ> map_of lc = m"
+    hence m_eq: "map_option \<alpha> \<circ> map_of lc = m"
       by (simp add: map_of_map[symmetric] map_to_set_cong)
 
     from that[of ?m'] it' lc_invar \<alpha>_props(1) show ?thesis
@@ -350,27 +350,27 @@ proof -
 
   from map_iterator_abs_genord_remove_abs2 [OF iti_OK]
   obtain m' where m'_props: "map_iterator_genord iti m' (\<lambda>x y. R (?\<alpha>' x) (?\<alpha>' y))"
-     "m = Option.map \<alpha> \<circ> m'" "\<And>k v. m' k = Some v \<Longrightarrow> invar v" 
+     "m = map_option \<alpha> \<circ> m'" "\<And>k v. m' k = Some v \<Longrightarrow> invar v" 
      by (auto simp add: split_def) 
 
-  have dom_m'_eq[simp]: "dom m' = dom m"
+  have dom_m'_eq: "dom m' = dom m"
     unfolding m'_props by (simp add: dom_def)
 
   show ?thesis
   proof (rule map_iterator_genord_rule_P[OF m'_props(1), of I])
-    case goal1 thus ?case using I0 by simp   
+    case goal1 thus ?case using I0 by (simp add: dom_m'_eq)   
   next
     case goal3 thus ?case using IF by simp   
   next
     case (goal2 k v S \<sigma>) note assms = this
     from IP [of \<sigma> k S v] assms
-    show ?case 
+    show ?case
       by (simp add: m'_props) metis
   next
     case (goal4 \<sigma> S) note assms = this
     show ?case
-      using II[of S \<sigma>] assms m'_props
-      by simp metis
+      using II[of S \<sigma>] assms
+      by (simp add: m'_props) metis
   qed
 qed
 
@@ -394,17 +394,17 @@ proof -
 
   from map_iterator_abs_genord_remove_abs2 [OF iti_OK]
   obtain m' where m'_props: "map_iterator_genord iti m' (\<lambda>x y. R (?\<alpha>' x) (?\<alpha>' y))"
-     "m = Option.map \<alpha> \<circ> m'" "\<And>k v. m' k = Some v \<Longrightarrow> invar v" 
+     "m = map_option \<alpha> \<circ> m'" "\<And>k v. m' k = Some v \<Longrightarrow> invar v" 
      by (auto simp add: split_def) 
 
-  have dom_m'_eq[simp]: "dom m' = dom m"
+  have dom_m'_eq: "dom m' = dom m"
     unfolding m'_props by (simp add: dom_def)
 
   show ?thesis
   proof (rule map_iterator_genord_rule_insert_P[OF m'_props(1), of I])
     case goal1 thus ?case using I0 by simp   
   next
-    case goal3 thus ?case using IF by simp   
+    case goal3 thus ?case using IF by (simp add: dom_m'_eq)   
   next
     case (goal2 k v S \<sigma>) note assms = this
     from IP [of \<sigma> k S v] assms
@@ -413,8 +413,8 @@ proof -
   next
     case (goal4 \<sigma> S) note assms = this
     show ?case
-      using II[of S \<sigma>] assms m'_props
-      by simp metis
+      using II[of S \<sigma>] assms
+      by (simp add: m'_props) metis
   qed
 qed
 
@@ -558,7 +558,7 @@ qed
 lemma map_iterator_abs_I2 :
   assumes it_OK: "map_iterator iti m"
       and invar: "\<And>k v. m k = Some v \<Longrightarrow> invar v"
-      and m'_eq: "m' = Option.map \<alpha> \<circ> m"
+      and m'_eq: "m' = map_option \<alpha> \<circ> m"
   shows "map_iterator_abs \<alpha> invar iti m'"
 using assms
 unfolding map_iterator_abs_def set_iterator_def

@@ -18,7 +18,7 @@ sig
   val HOLogic_list_all : term list * term -> term
   
   (* rulifys P1 .. Pn in a thm P1 ==> ... ==> Pn ==> Q *)
-  val rulify_only_asm : thm -> thm
+  val rulify_only_asm : Proof.context -> thm -> thm
 
   (* instantiates a thm for given terms of given sort *)
   val instantiate' : theory -> sort -> term list -> thm -> thm
@@ -53,7 +53,7 @@ sig
   val dt_number_recs : Datatype.dtyp list -> int * (int * int) list
 
 (* like print_tac, but is turned off by default to not exceed tracing limit *)
-  val my_print_tac : string -> tactic 
+  val my_print_tac : Proof.context -> string -> tactic 
 
 (* generates a theorem over two variables, where induction over the first one performed,
    and then in every case one performs immediately a case analysis on the second variable.
@@ -68,7 +68,7 @@ sig
     'a -> (* property_generator *)
     sort -> 
     (* same_constructor_tac *)
-    (Proof.context -> thm list -> thm list -> thm -> (thm list -> tactic) -> int -> term list -> 
+    (Proof.context -> thm list -> thm list -> thm -> (Proof.context -> thm list -> tactic) -> int -> term list -> 
      term list -> string * Datatype_Aux.dtyp list -> (Datatype.dtyp -> term -> term -> term) -> tactic) 
     -> thm
 
@@ -105,7 +105,7 @@ struct
 open Datatype_Aux; open Datatype;
 
 val printing = false
-val my_print_tac = if printing then print_tac else (fn _ => Seq.single) 
+fun my_print_tac ctxt = if printing then print_tac ctxt else (fn _ => Seq.single) 
 
 fun alist_to_string al = map fst al |> commas |> enclose "(" ")"
 
@@ -125,19 +125,13 @@ fun mk_Some t = let
     Const (@{const_name Some}, ty --> Type (@{type_name option}, [ty])) $ t
   end 
 
-fun rulify_only_asm thm = 
+fun rulify_only_asm ctxt thm = 
   (@{thm conjI[OF TrueI]} OF [thm]) (* add conj to prohibit rulify in conclusion *)
-  |> Object_Logic.rulify (* rulify everything, i.e., by preprocessing only the assms *)
+  |> Object_Logic.rulify ctxt (* rulify everything, i.e., by preprocessing only the assms *)
   |> (fn conj => (@{thm conjunct2} OF [conj])) (* drop conjunction again *)
 
-fun instantiate' thy sort vars thm = 
-  let 
-    val tvars = Thm.prop_of thm |> Term.add_tvars |> (fn x => x []) |> rev
-    val inst_tvars = map (fn (n, _) => TFree (fst n,sort) |> ctyp_of thy |> SOME) tvars
-    val cvars = map (cterm_of thy #> SOME) vars
-  in 
-    Drule.instantiate' inst_tvars cvars thm
-  end
+fun instantiate' thy _ vars = 
+  Ctr_Sugar_Util.cterm_instantiate_pos (map (cterm_of thy #> SOME) vars)
 
 fun permute_for_ind_thm ps xs ind_thm =
   let 
@@ -168,7 +162,7 @@ fun inductive_thm thy (imp_list : (term list * term list) list) ind_thm sort ind
       |> map (fn (x,imp) => lambda x imp)
     val insts = permute_for_ind_thm ps xs ind_thm      
     val ind_thm_inst = instantiate' thy sort insts ind_thm 
-    val ind_thm' = rulify_only_asm ind_thm_inst
+    val ind_thm' = rulify_only_asm (Proof_Context.init_global thy) ind_thm_inst
     val xs_strings = map (dest_Free #> fst) xs
     val conjunctive_thm = Goal.prove_global thy xs_strings [] ind_term 
       (fn {context = ctxt, ...} => 
@@ -310,26 +304,30 @@ fun mk_binary_thm mk_prop_trm mk_bin_idx bin_const_name thy (info : Datatype_Aux
         val y = hd ys
         val (j,idx) = nth nrec_args i |> (fn (_,j,idx) => (j,idx))
         val linfo = nth descr idx |> (fn (_,(ty_name,_,_)) => ty_name) |> the_info thy
-        val simp_set =
-          put_simpset my_simp_set ctxt addsimps (simps_of_info info) @ (simps_of_info linfo)
-        val solve_with_tac = (fn thms => mk_solve_with_tac thms (force_tac simp_set 1))
+        fun solve_with_tac ctxt thms =
+          let val simp_ctxt =
+            (ctxt
+              |> Context_Position.set_visible false
+              |> put_simpset my_simp_set)
+              addsimps (simps_of_info info @ simps_of_info linfo)
+          in mk_solve_with_tac thms (force_tac simp_ctxt 1) end
         fun case_tac ctxt = mk_case_tac ctxt [[SOME y]] (#exhaust linfo)
         fun sub_case_tac (ctxt,k,prems,iparams_y) = 
           let 
             val case_hyp_y = hd prems 
           in 
             if not (j = k) 
-            then my_print_tac ("different constructors ") THEN solve_with_tac (case_hyp_y :: ihprems) (* different constructor *) 
+            then my_print_tac ctxt ("different constructors ") THEN solve_with_tac ctxt (case_hyp_y :: ihprems) (* different constructor *) 
             else
               let 
                 val params_y = map (snd #> term_of) iparams_y
                 val c_info = nth descr idx |> snd |> (fn (_,_,info) => nth info j)
               in 
-                my_print_tac ("consider constructor " ^ string_of_int k) 
+                my_print_tac ctxt ("consider constructor " ^ string_of_int k) 
                 THEN same_constructor_tac ctxt hyps ihprems case_hyp_y solve_with_tac j params_x params_y c_info mk_binary
               end
           end
-      in my_print_tac ("start induct " ^ string_of_int i) THEN case_tac ctxt sub_case_tac end
+      in my_print_tac ctxt ("start induct " ^ string_of_int i) THEN case_tac ctxt sub_case_tac end
     val prop_thm = prop_thm_of_tac ind_case_tac
   in prop_thm end 
 

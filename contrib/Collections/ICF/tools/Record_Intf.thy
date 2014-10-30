@@ -45,10 +45,6 @@ structure Record_Intf: RECORD_INTF = struct
     val name = "Record_Intf";
   );
 
-  (*fun ss_generic_context context ss = Context.cases 
-    (fn thy => Raw_Simplifier.global_context thy ss)
-    (fn ctxt => Raw_Simplifier.context ctxt ss)  context;*)
-
   fun get_unf_ss context = Data.get context
   val get_unf_thms = Data.get #> Raw_Simplifier.dest_ss #> #simps #> map #2
 

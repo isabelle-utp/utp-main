@@ -367,12 +367,12 @@ begin
   lemma foldli_pick:
     assumes "l\<noteq>[]" 
     obtains x where "x\<in>set l" 
-    and "(foldli l (option_case True (\<lambda>_. False)) (\<lambda>x _. Some x) None) = Some x"
+    and "(foldli l (case_option True (\<lambda>_. False)) (\<lambda>x _. Some x) None) = Some x"
     using assms by (cases l) auto
 
   definition gen_pick where
     "gen_pick it s \<equiv> 
-      (the (it s (option_case True (\<lambda>_. False)) (\<lambda>x _. Some x) None))"
+      (the (it s (case_option True (\<lambda>_. False)) (\<lambda>x _. Some x) None))"
 
 context begin interpretation autoref_syn .
   lemma gen_pick[autoref_rules_raw]:
@@ -393,7 +393,7 @@ context begin interpretation autoref_syn .
     from IT' NE have "tsl'\<noteq>[]" and [simp]: "s'=set tsl'" 
       unfolding it_to_sorted_list_def by simp_all
     then obtain x where "x\<in>s'" and
-      "(foldli tsl' (option_case True (\<lambda>_. False)) (\<lambda>x _. Some x) None) = Some x"
+      "(foldli tsl' (case_option True (\<lambda>_. False)) (\<lambda>x _. Some x) None) = Some x"
       (is "?fld = _")
       by (blast elim: foldli_pick)
     moreover 
@@ -508,5 +508,127 @@ end
       EMPTY[unfolded autoref_tag_defs]
     ]
     by simp
+
+lemma gen_cart:
+  assumes PRIO_TAG_GEN_ALGO
+  assumes [param]: "(sigma, Sigma) \<in> (\<langle>Rx\<rangle>Rsx \<rightarrow> (Rx \<rightarrow> \<langle>Ry\<rangle>Rsy) \<rightarrow> \<langle>Rx \<times>\<^sub>r Ry\<rangle>Rsp)"
+  shows "(\<lambda>x y. sigma x (\<lambda>_. y), op_set_cart) \<in> \<langle>Rx\<rangle>Rsx \<rightarrow> \<langle>Ry\<rangle>Rsy \<rightarrow> \<langle>Rx \<times>\<^sub>r Ry\<rangle>Rsp"
+  unfolding op_set_cart_def[abs_def]
+  by parametricity
+lemmas [autoref_rules] = gen_cart[OF _ GEN_OP_D]
+
+
+context begin interpretation autoref_syn .
+
+  lemma op_set_to_sorted_list_autoref[autoref_rules]:
+    assumes "PREFER single_valued Rk"
+    assumes "SIDE_GEN_ALGO (is_set_to_sorted_list ordR Rk Rs tsl)"
+    shows "(\<lambda>si. RETURN (tsl si),  OP (op_set_to_sorted_list ordR)) 
+      \<in> \<langle>Rk\<rangle>Rs \<rightarrow> \<langle>\<langle>Rk\<rangle>list_rel\<rangle>nres_rel"
+    using assms
+    apply (intro fun_relI nres_relI)
+    apply simp
+    apply (rule RETURN_SPEC_refine_sv)
+    apply tagged_solver
+    apply (auto simp: is_set_to_sorted_list_def it_to_sorted_list_def)
+    done
+
+  lemma op_set_to_list_autoref[autoref_rules]:
+    assumes "PREFER single_valued Rk"
+    assumes "SIDE_GEN_ALGO (is_set_to_sorted_list ordR Rk Rs tsl)"
+    shows "(\<lambda>si. RETURN (tsl si), op_set_to_list) 
+      \<in> \<langle>Rk\<rangle>Rs \<rightarrow> \<langle>\<langle>Rk\<rangle>list_rel\<rangle>nres_rel"
+    using assms
+    apply (intro fun_relI nres_relI)
+    apply simp
+    apply (rule RETURN_SPEC_refine_sv)
+    apply tagged_solver
+    apply (auto simp: is_set_to_sorted_list_def it_to_sorted_list_def)
+    done
+
+end
+
+lemma foldli_Union: "det_fold_set X (\<lambda>_. True) (op \<union>) {} Union"
+proof
+  case (goal1 l)
+  have "\<forall>a. foldli l (\<lambda>_. True) op \<union> a = a \<union> \<Union>set l"
+    by (induct l) auto
+  thus ?case by auto
+qed
+
+definition gen_Union
+  :: "_ \<Rightarrow> 's3 \<Rightarrow> ('s2 \<Rightarrow> 's3 \<Rightarrow> 's3) 
+      \<Rightarrow> 's1 \<Rightarrow> 's3"
+  where 
+  "gen_Union it emp un X \<equiv> it X (\<lambda>_. True) un emp"
+
+lemma gen_Union[autoref_rules_raw]:
+  assumes PRIO_TAG_GEN_ALGO
+  assumes EMP: "GEN_OP emp {} (\<langle>Rk\<rangle>Rs3)"
+  assumes UN: "GEN_OP un (op \<union>) (\<langle>Rk\<rangle>Rs2\<rightarrow>\<langle>Rk\<rangle>Rs3\<rightarrow>\<langle>Rk\<rangle>Rs3)"
+  assumes IT: "SIDE_GEN_ALGO (is_set_to_list (\<langle>Rk\<rangle>Rs2) Rs1 tsl)"
+  shows "(gen_Union (\<lambda>x. foldli (tsl x)) emp un,Union) \<in> \<langle>\<langle>Rk\<rangle>Rs2\<rangle>Rs1 \<rightarrow> \<langle>Rk\<rangle>Rs3"
+  apply (intro fun_relI)
+  unfolding gen_Union_def 
+  apply (rule det_fold_set[OF 
+    foldli_Union IT[unfolded autoref_tag_defs]])
+  using EMP UN
+  unfolding autoref_tag_defs
+  apply (parametricity)+
+  done
+
+definition "atLeastLessThan_impl a b \<equiv> do {
+  (_,r) \<leftarrow> WHILET (\<lambda>(i,r). i<b) (\<lambda>(i,r). RETURN (i+1, insert i r)) (a,{});
+  RETURN r
+}"
+
+lemma atLeastLessThan_impl_correct: 
+  "atLeastLessThan_impl a b \<le> SPEC (\<lambda>r. r = {a..<b::nat})"
+  unfolding atLeastLessThan_impl_def
+  apply (refine_rcg refine_vcg WHILET_rule[where 
+    I = "\<lambda>(i,r). r = {a..<i} \<and> a\<le>i \<and> ((a<b \<longrightarrow> i\<le>b) \<and> (\<not>a<b \<longrightarrow> i=a))"
+    and R = "measure (\<lambda>(i,_). b - i)"
+    ])
+  by auto
+
+schematic_lemma atLeastLessThan_code_aux:
+  notes [autoref_rules] = IdI[of a] IdI[of b]
+  assumes [autoref_rules]: "(emp,{})\<in>Rs"
+  assumes [autoref_rules]: "(ins,insert)\<in>nat_rel \<rightarrow> Rs \<rightarrow> Rs"
+  assumes [relator_props]: "single_valued Rs"
+  shows "(?c, atLeastLessThan_impl) 
+  \<in> nat_rel \<rightarrow> nat_rel \<rightarrow> \<langle>Rs\<rangle>nres_rel"
+  unfolding atLeastLessThan_impl_def[abs_def]
+  apply (autoref (keep_goal))
+  done
+concrete_definition atLeastLessThan_code uses atLeastLessThan_code_aux
+
+schematic_lemma atLeastLessThan_tr_aux:
+  "RETURN ?c \<le> atLeastLessThan_code emp ins a b"
+  unfolding atLeastLessThan_code_def
+  by (refine_transfer (post))
+concrete_definition atLeastLessThan_tr 
+  for emp ins a b uses atLeastLessThan_tr_aux
+
+lemma atLeastLessThan_gen[autoref_rules]: 
+  assumes "PRIO_TAG_GEN_ALGO"
+  assumes "GEN_OP emp {} Rs"
+  assumes "GEN_OP ins insert (nat_rel \<rightarrow> Rs \<rightarrow> Rs)"
+  assumes "PREFER single_valued Rs"
+  shows "(atLeastLessThan_tr emp ins, atLeastLessThan) 
+    \<in> nat_rel \<rightarrow> nat_rel \<rightarrow> Rs"
+proof (intro fun_relI, simp)
+  fix a b
+  from assms have GEN: 
+    "(emp,{})\<in>Rs" "(ins,insert)\<in>nat_rel \<rightarrow> Rs \<rightarrow> Rs" "single_valued Rs"
+    by auto
+
+  note atLeastLessThan_tr.refine[of emp ins a b]
+  also note 
+    atLeastLessThan_code.refine[OF GEN,param_fo, OF IdI IdI, THEN nres_relD]
+  also note atLeastLessThan_impl_correct
+  finally show "(atLeastLessThan_tr emp ins a b, {a..<b}) \<in> Rs"
+    by (auto simp: pw_le_iff refine_pw_simps)
+qed
 
 end

@@ -179,8 +179,10 @@ text {* Since addition is idempotent, the additive (commutative)
 semigroup reduct of a near dioid is a semilattice. Near dioids are
 therefore ordered by the semilattice order. *}
 
+thm add_commute
+
 subclass join_semilattice
-by unfold_locales (auto simp add: add_commute add_left_commute)
+by unfold_locales (auto simp add: add_commute add.left_commute)
 
 text {* It follows that multiplication is right-isotone (but not
 necessarily left-isotone). *}

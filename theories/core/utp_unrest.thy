@@ -352,7 +352,7 @@ done
 theorem UNREST_fresh [unrest]: 
   "\<exists> v. {v} \<sharp> p \<and> vtype v = t \<and> aux v = a \<Longrightarrow> {fresh p t a} \<sharp> p"
   apply (auto simp add:fresh_def)
-  apply (smt someI_ex)
+  apply (metis (mono_tags, lifting) someI)+
 done
 
 theorem UNREST_fresh' [unrest]:

@@ -21,7 +21,7 @@ setup_lifting type_definition_aprod
 
 lift_definition afst :: "('a, 'b) aprod \<Rightarrow> 'a" is fst .
 lift_definition asnd :: "('a, 'b) aprod \<Rightarrow> 'b" is snd .
-lift_definition aprod_case :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a, 'b) aprod \<Rightarrow> 'c" is prod_case .
+lift_definition aprod_case :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a, 'b) aprod \<Rightarrow> 'c" is case_prod .
 
 nonterminal atuple_args and apatterns
 
@@ -245,45 +245,33 @@ lemma asnd_Inf: "asnd (Inf A) = (INF x:A. asnd x)"
   unfolding Inf_aprod_def by simp
 
 lemma afst_SUP: "afst (SUP x:A. f x) = (SUP x:A. afst (f x))"
-  by (simp add: SUP_def afst_Sup image_image)
+  by (metis (no_types) Sup_image_eq afst_Sup image_image)
 
 lemma asnd_SUP: "asnd (SUP x:A. f x) = (SUP x:A. asnd (f x))"
-  by (simp add: SUP_def asnd_Sup image_image)
+  by (metis (no_types) Sup_image_eq asnd_Sup image_image)
 
 lemma afst_INF: "afst (INF x:A. f x) = (INF x:A. afst (f x))"
-  by (simp add: INF_def afst_Inf image_image)
+  by (metis (no_types) INF_def afst_Inf image_image)
 
 lemma asnd_INF: "asnd (INF x:A. f x) = (INF x:A. asnd (f x))"
-  by (simp add: INF_def asnd_Inf image_image)
+  by (metis (no_types) INF_def asnd_Inf image_image)
 
 lemma SUP_aprod: "(SUP x:A. <f x, g x>) = <SUP x:A. f x, SUP x:A. g x>"
-  by (simp add: SUP_def Sup_aprod_def image_image)
+  unfolding SUP_def Sup_aprod_def by (simp add: comp_def)
 
 lemma INF_aprod: "(INF x:A. <f x, g x>) = <INF x:A. f x, INF x:A. g x>"
-  by (simp add: INF_def Inf_aprod_def image_image)
+  unfolding INF_def Inf_aprod_def by (simp add: comp_def)
 
 text {* Alternative formulations for set infima and suprema over the product
 of two complete lattices: *}
 
-lemma Inf_aprod_alt_def: "Inf A = <Inf (afst ` A), Inf (asnd ` A)>"
-by (auto simp: Inf_aprod_def INF_def)
-
-lemma Sup_aprod_alt_def: "Sup A = <Sup (afst ` A), Sup (asnd ` A)>"
-by (auto simp: Sup_aprod_def SUP_def)
-
-lemma INFI_prod_alt_def: "INFI A f = <INFI A (afst o f), INFI A (asnd o f)>"
-by (auto simp: INF_def Inf_aprod_def image_compose)
-
-lemma SUPR_aprod_alt_def: "SUPR A f = <SUPR A (afst o f), SUPR A (asnd o f)>"
-by (auto simp: SUP_def Sup_aprod_def image_compose)
-
 lemma INF_aprod_alt_def:
-  "(INF x:A. f x) = <INF x:A. afst (f x), INF x:A. asnd (f x)>"
-by (metis afst_INF asnd_INF surjective_aprod)
+  "INFIMUM A f = <INFIMUM A (afst o f), INFIMUM A (asnd o f)>"
+  unfolding INF_def Inf_aprod_def by simp
 
 lemma SUP_aprod_alt_def:
-  "(SUP x:A. f x) = <SUP x:A. afst (f x), SUP x:A. asnd (f x)>"
-by (metis afst_SUP asnd_SUP surjective_aprod)
+  "SUPREMUM A f = <SUPREMUM A (afst o f), SUPREMUM A (asnd o f)>"
+  unfolding SUP_def Sup_aprod_def by simp
 
 subsection {* Complete distributive lattices *}
 

@@ -23,6 +23,7 @@ session Collections (AFP) = Refine_Monadic +
     "Lib/Assoc_List"
     "Lib/Diff_Array"
     "Lib/Partial_Equivalence_Relation"
+    "Lib/Robdd"
 
     "ICF/tools/Locale_Code"
     "ICF/tools/ICF_Tools"
@@ -124,6 +125,19 @@ session Collections (AFP) = Refine_Monadic +
       "Userguides/Refine_Monadic_Userguide"
       "Userguides/ICF_Userguide"
 
+  document_files
+    "conclusion.tex"
+    "documentation.tex"
+    "intro.tex"
+    "root.bib"
+    "root.tex"
+    "root_userguide.bib"
+    "root_userguide.tex"
+
+
+session Collections_Examples (AFP) = Collections +
+  options [timeout = 1200]
+
   (* Examples *)
   theories
     "Examples/Examples_Chapter"
@@ -137,14 +151,17 @@ session Collections (AFP) = Refine_Monadic +
     "Examples/ICF/ICF_Examples_Chapter"
     "Examples/ICF/ICF_Examples"
 
+  theories [document = false]
+    "Examples/ICF/PerformanceTest"
+
   theories [document = false] (* Just in case we forgot something *)
     "Examples/Collection_Examples"
 
-  files
-    "document/conclusion.tex"
-    "document/documentation.tex"
-    "document/intro.tex"
-    "document/root.bib"
-    "document/root.tex"
-    "document/root_userguide.bib"
-    "document/root_userguide.tex"
+  document_files
+    "conclusion.tex"
+    "documentation.tex"
+    "intro.tex"
+    "root.bib"
+    "root.tex"
+    "root_userguide.bib"
+    "root_userguide.tex"

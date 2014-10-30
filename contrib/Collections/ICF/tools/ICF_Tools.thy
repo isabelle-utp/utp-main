@@ -36,7 +36,7 @@ ML {*
     val changed_conv: conv -> conv
     val repeat_top_sweep_conv: (Proof.context -> conv) -> Proof.context -> conv
 
-    val rem_dup_prems: thm -> thm
+    val rem_dup_prems: Proof.context -> thm -> thm
 
     (* Definition Theorems *)
     val dest_def_eq: term -> term * term
@@ -89,7 +89,7 @@ ML {*
 
     val parse_cpat =
       Args.context --
-        Scan.lift Args.name_source >> (fn (context,str) => 
+        Scan.lift Args.name_inner_syntax >> (fn (context,str) => 
           Proof_Context.read_term_pattern context str
           |> cterm_of (Proof_Context.theory_of context) 
         );
@@ -127,7 +127,7 @@ ML {*
     |> the |> #2 |> map (Thm.transfer thy);
   in thms end
 
-  fun thm_from_main name = thms_from_main name |> Facts.the_single name
+  fun thm_from_main name = thms_from_main name |> Facts.the_single (name, Position.none)
 *)
     (* Unfold with simpset 
     fun unfold_ss ss = let
@@ -167,7 +167,7 @@ ML {*
     end
 
     (* Remove duplicate premises (stable) *)
-    fun rem_dup_prems thm = let
+    fun rem_dup_prems ctxt thm = let
       val prems = prems_of thm;
       val perm = prems
       |> tag_list 0 
@@ -180,17 +180,17 @@ ML {*
 
       val thm' = Drule.rearrange_prems perm thm
         |> Conv.fconv_rule 
-             (Raw_Simplifier.rewrite true @{thms meta_same_imp_rule});
+             (Raw_Simplifier.rewrite ctxt true @{thms meta_same_imp_rule});
     in thm' end;
 
-    fun dest_def_eq (Const (@{const_name "=="},_)$l$r) = (l,r)
+    fun dest_def_eq (Const (@{const_name Pure.eq},_)$l$r) = (l,r)
     | dest_def_eq (Const (@{const_name HOL.Trueprop},_)
                     $(Const (@{const_name HOL.eq},_)$l$r)) = (l,r)
     | dest_def_eq t = raise TERM ("No definitional equation",[t]);
 
     fun norm_def_thm thm =
       case concl_of thm of
-        (Const (@{const_name "=="},_)$_$_) => thm
+        (Const (@{const_name Pure.eq},_)$_$_) => thm
       | _ => thm RS eq_reflection;
 
     val dt_lhs = dest_def_eq #> fst;
@@ -287,12 +287,13 @@ ML {*
       val ctxt = Proof_Context.init_global thy;
       val match_prefix = if Long_Name.is_qualified mpat then mpat
         else Long_Name.qualify (Context.theory_name thy) mpat;
-      val names = Sign.consts_of thy |> Consts.dest |> #constants 
-      |> Name_Space.dest_table ctxt
-      |> filter (fn 
-          (name,(_,SOME _)) => Long_Name.qualifier name = match_prefix 
-        | _ => false)
-      |> map #1
+      val {const_space, constants, ...} = Sign.consts_of thy |> Consts.dest;
+      val names = 
+      Name_Space.extern_entries ctxt const_space constants
+      |> map_filter (fn
+          ((name, _), (_, SOME _)) =>
+            if Long_Name.qualifier name = match_prefix then SOME name else NONE
+        | _ => NONE)
       val _ = if null names then 
         warning ("ICF_Tools.revert_abbrevs: No names with prefix: " 
           ^ match_prefix) 
@@ -305,11 +306,11 @@ ML {*
 *}
 
 attribute_setup rem_dup_prems = {*
-  Scan.succeed (Thm.rule_attribute (K ICF_Tools.rem_dup_prems))
+  Scan.succeed (Thm.rule_attribute (ICF_Tools.rem_dup_prems o Context.proof_of))
 *} "Remove duplicate premises"
 
 method_setup dup_subgoals = {*
-  Scan.succeed (K (SIMPLE_METHOD (PRIMITIVE ICF_Tools.rem_dup_prems)))
+  Scan.succeed (fn ctxt => SIMPLE_METHOD (PRIMITIVE (ICF_Tools.rem_dup_prems ctxt)))
 *} "Remove duplicate subgoals"
 
 

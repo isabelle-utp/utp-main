@@ -185,7 +185,7 @@ schematic_lemma "(?f::?'c,
 text {* A hairy case for the operator identification heuristics for maps: *}
 schematic_lemma 
   shows "(?f::?'c,
-  \<lambda>m (x::'a::linorder) (y::'b::linorder). option_case
+  \<lambda>m (x::'a::linorder) (y::'b::linorder). case_option
     None
     (\<lambda>m'. m' y)
     (m x)
@@ -195,7 +195,7 @@ schematic_lemma
 
 schematic_lemma 
   shows "(?f::?'c,
-  \<lambda>m (x::'a::hashable) (y::'b::hashable). option_case
+  \<lambda>m (x::'a::hashable) (y::'b::hashable). case_option
     None
     (\<lambda>m'. m' y)
     (m x)
@@ -206,7 +206,7 @@ schematic_lemma
 
 schematic_lemma 
   shows "(?f::?'c,
-  \<lambda>m (x::'a::hashable) (y::'b::linorder). option_case
+  \<lambda>m (x::'a::hashable) (y::'b::linorder). case_option
     None
     (\<lambda>m'. m' y)
     (m (x:::Id))
@@ -365,16 +365,16 @@ definition
 
 schematic_lemma 
   notes [autoref_rel_indirect] = 
-    REL_INDIRECT[of rel_set1 "\<langle>Rk\<rangle>list_set_rel", standard]
-    REL_INDIRECT[of rel_set2 "\<langle>Rk\<rangle>dflt_rs_rel", standard]
+    REL_INDIRECT[of rel_set1 "\<langle>Rk\<rangle>list_set_rel" for Rk]
+    REL_INDIRECT[of rel_set2 "\<langle>Rk\<rangle>dflt_rs_rel" for Rk]
   shows "(?f::?'c,algo) \<in> ?R"
   unfolding algo_def
   by (autoref)
 
 schematic_lemma 
   notes [autoref_rel_indirect] = 
-    REL_INDIRECT[of rel_set1 "\<langle>Rk\<rangle>dflt_rs_rel", standard]
-    REL_INDIRECT[of rel_set2 "\<langle>Rk\<rangle>dflt_rs_rel", standard]
+    REL_INDIRECT[of rel_set1 "\<langle>Rk\<rangle>dflt_rs_rel" for Rk]
+    REL_INDIRECT[of rel_set2 "\<langle>Rk\<rangle>dflt_rs_rel" for Rk]
   shows "(?f::?'c,algo) \<in> ?R"
   unfolding algo_def
   by (autoref)
@@ -455,7 +455,7 @@ concrete_definition red_dfs_impl for E onstack V u uses red_dfs_impl
 
 prepare_code_thms red_dfs_impl_def
 
-export_code red_dfs_impl in SML file -
+export_code red_dfs_impl in SML
 
 
 end

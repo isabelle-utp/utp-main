@@ -38,20 +38,22 @@ ML {*
       fun trace_ft ft thy thms = if !trace_enabled then let
         val res = ft thy thms;
         val (m1,m2) = case res of NONE => ("NF: ","")
-        | SOME thms => ("Preproc: REW: "," --> " ^ PolyML.makestring thms);
+        | SOME thms => ("Preproc: REW: "," --> " ^ @{make_string} thms);
 
-        val _ = tracing (m1 ^ PolyML.makestring thms ^ m2);
+        val _ = tracing (m1 ^ @{make_string} thms ^ m2);
       in res end
       else ft thy thms;
 
-      fun s_functrans thy thms = let
+      fun s_functrans ctxt thms =
+        let
+        val thy = Proof_Context.theory_of ctxt;
         val trs = Data.get thy;
         val process = fold (fn (_,_,tr) => fn thm => tr thy thm) trs;
         val process' = fold (fn (_,name,tr) => fn thm => let
             val thm' = tr thy thm;
             val _ = if !trace_enabled andalso not (Thm.eq_thm (thm,thm')) then
-              tracing ("Preproc "^name^": "^PolyML.makestring thm ^ " --> " ^
-                PolyML.makestring thm')
+              tracing ("Preproc "^name^": " ^ @{make_string} thm ^ " --> " ^
+                @{make_string} thm')
             else ();
           in thm' end
         ) trs;
@@ -92,7 +94,7 @@ ML {*
 
     local 
       fun trans_fun thy thm = let
-        val ss = get thy |> Raw_Simplifier.global_context thy
+        val ss = Proof_Context.init_global thy |> put_simpset (get thy)
       in simplify ss thm end;
     in
       val setup = Ord_Code_Preproc.add (prio, name, trans_fun);

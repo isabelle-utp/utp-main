@@ -563,7 +563,7 @@ begin
       iterate_to_map m2.empty m2.update_dj (
         set_iterator_image_filter f (m1.iteratei m))" 
       unfolding g_image_filter_def iterate_to_map_alt_def 
-        set_iterator_image_filter_def prod_case_beta
+        set_iterator_image_filter_def case_prod_beta
       by simp
   
     from m1.iteratei_correct[OF invar_m] 

@@ -1,7 +1,6 @@
 header {* \isaheader{Orderings By Comparison Operator} *}
 theory Intf_Comp
 imports 
-  "~~/src/HOL/Library/Zorn"
   "../../../Automatic_Refinement/Automatic_Refinement"
 begin
 
@@ -818,7 +817,7 @@ lemma param_comp_res[param]:
   "(LESS,LESS)\<in>Id"
   "(EQUAL,EQUAL)\<in>Id"
   "(GREATER,GREATER)\<in>Id"
-  "(comp_res_case,comp_res_case)\<in>Ra\<rightarrow>Ra\<rightarrow>Ra\<rightarrow>Id\<rightarrow>Ra"
+  "(case_comp_res,case_comp_res)\<in>Ra\<rightarrow>Ra\<rightarrow>Ra\<rightarrow>Id\<rightarrow>Ra"
   by (auto split: comp_res.split)
 
 term cmp_lex

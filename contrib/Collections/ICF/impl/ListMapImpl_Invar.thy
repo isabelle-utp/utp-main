@@ -56,7 +56,7 @@ definition [icf_rec_def]: "lmi_ops \<equiv> lmi_basic.dflt_ops \<lparr>
   map_op_add_dj := revg,
   map_op_to_list := id,
   map_op_size := length,
-  map_op_isEmpty := list_case True (\<lambda>_ _. False),
+  map_op_isEmpty := case_list True (\<lambda>_ _. False),
   map_op_isSng := (\<lambda>l. case l of [_] \<Rightarrow> True | _ \<Rightarrow> False)
 \<rparr>"
 
@@ -78,7 +78,7 @@ proof -
     apply unfold_locales
     by (simp_all add: lmi_\<alpha>_def lmi_invar_def)
 
-  have [simp]: "map_isEmpty lmi_\<alpha> lmi_invar (list_case True (\<lambda>_ _. False))"
+  have [simp]: "map_isEmpty lmi_\<alpha> lmi_invar (case_list True (\<lambda>_ _. False))"
     apply unfold_locales
     unfolding lmi_\<alpha>_def lmi_invar_def
     by (simp split: list.split)
@@ -152,6 +152,6 @@ definition "test_codegen \<equiv> (
   lmi_from_list_dj
   )"
 
-export_code test_codegen in SML file -
+export_code test_codegen in SML
 
 end

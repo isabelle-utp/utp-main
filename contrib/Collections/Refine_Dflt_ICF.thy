@@ -4,7 +4,7 @@ imports
   "../Refine_Monadic/Refine_Monadic"
   "GenCF/GenCF"
   "ICF/Collections"
-  "~~/src/HOL/Library/Code_Target_Numeral"
+  "Lib/Code_Target_ICF"
 begin
 
 
@@ -51,13 +51,14 @@ lemmas [autoref_tyrel] =
   ty_REL[where 'a="int set" and R="\<langle>Id\<rangle>rs.rel"]
   ty_REL[where 'a="bool set" and R="\<langle>Id\<rangle>lsi.rel"]
 lemmas [autoref_tyrel] = 
-  ty_REL[where 'a="(nat \<rightharpoonup> 'b)", where R="\<langle>nat_rel,Rv\<rangle>dflt_rm_rel", standard]
-  ty_REL[where 'a="(int \<rightharpoonup> 'b)", where R="\<langle>int_rel,Rv\<rangle>dflt_rm_rel", standard]
-  ty_REL[where 'a="(bool \<rightharpoonup> 'b)", where R="\<langle>bool_rel,Rv\<rangle>dflt_rm_rel", standard]
+  ty_REL[where 'a="(nat \<rightharpoonup> 'b)", where R="\<langle>nat_rel,Rv\<rangle>dflt_rm_rel"]
+  ty_REL[where 'a="(int \<rightharpoonup> 'b)", where R="\<langle>int_rel,Rv\<rangle>dflt_rm_rel"]
+  ty_REL[where 'a="(bool \<rightharpoonup> 'b)", where R="\<langle>bool_rel,Rv\<rangle>dflt_rm_rel"]
+  for Rv
 
 lemmas [autoref_tyrel] = 
-  ty_REL[where 'a="(nat \<rightharpoonup> 'b::id_refine)", where R="\<langle>nat_rel,Id\<rangle>rm.rel", standard]
-  ty_REL[where 'a="(int \<rightharpoonup> 'b::id_refine)", where R="\<langle>int_rel,Id\<rangle>rm.rel", standard]
-  ty_REL[where 'a="(bool \<rightharpoonup> 'b::id_refine)", where R="\<langle>bool_rel,Id\<rangle>rm.rel", standard]
+  ty_REL[where 'a="(nat \<rightharpoonup> 'b::id_refine)", where R="\<langle>nat_rel,Id\<rangle>rm.rel"]
+  ty_REL[where 'a="(int \<rightharpoonup> 'b::id_refine)", where R="\<langle>int_rel,Id\<rangle>rm.rel"]
+  ty_REL[where 'a="(bool \<rightharpoonup> 'b::id_refine)", where R="\<langle>bool_rel,Id\<rangle>rm.rel"]
 
 end

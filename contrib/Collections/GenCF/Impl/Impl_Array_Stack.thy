@@ -114,6 +114,7 @@ lemma as_get_refine:
   apply (clarsimp 
     simp add: as_get_def as_rel_def br_def as_raw_\<alpha>_def as_raw_invar_def
     split: prod.split)
+  apply (rename_tac aa bb)
   apply (case_tac aa, simp)
 proof -
   fix n cl

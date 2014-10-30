@@ -17,32 +17,32 @@ subsection {* Operators *}
 lift_definition in_alphabet ::
   "'a alpha \<Rightarrow>
    'a alpha" ("in\<^sub>\<alpha>") is "in"
-   by (simp add:in_vars_def fsets_def)
+   by (simp add:in_vars_def)
 
 declare in_alphabet.rep_eq [simp]
 
 lift_definition out_alphabet ::
   "'a alpha \<Rightarrow>
    'a alpha" ("out\<^sub>\<alpha>") is "out"
-  by (simp add:out_vars_def fsets_def)
+  by (simp add:out_vars_def)
 
 declare out_alphabet.rep_eq [simp]
 
 lift_definition nrel_alpha :: 
   "'a alpha \<Rightarrow> 
    'a alpha" ("nrel\<^sub>\<alpha>") is nrel
-  by (simp add: fsets_def nrel_vars_def)
+  by (simp add: nrel_vars_def)
 
 declare nrel_alpha.rep_eq [simp]
 
 definition dash_alpha :: "'a alpha \<Rightarrow> 'a alpha" where
-"dash_alpha A = dash `\<^sub>f A"
+"dash_alpha A = dash |`| A"
 
 adhoc_overloading
   prime dash_alpha
 
 definition undash_alpha :: "'a alpha \<Rightarrow> 'a alpha" where
-"undash_alpha A = dash `\<^sub>f A"
+"undash_alpha A = dash |`| A"
 
 adhoc_overloading
   unprime undash_alpha
@@ -74,20 +74,20 @@ definition HOM_ALPHABET :: "'a alpha set" where
 lift_definition homl_alpha ::
   "'a alpha \<Rightarrow>
    'a alpha" ("homl\<^sub>\<alpha>") is "homl"
-  by (simp add: fsets_def var_defs)
+  by (simp add: var_defs)
 
 lift_definition homr_alpha ::
   "'a alpha \<Rightarrow>
    'a alpha" ("homr\<^sub>\<alpha>") is "homr"
-  by (simp add: fsets_def var_defs)
+  by (simp add: var_defs)
 
 lemma HOM_ALPHA_HOMOGENEOUS:
   "HOM_ALPHA a \<longleftrightarrow> HOMOGENEOUS \<langle>a\<rangle>\<^sub>f"
   by (simp add:HOM_ALPHA_def HOMOGENEOUS_def COMP_ALPHAS_def COMPOSABLE_def)
 
 lemma HOM_ALPHA_unfold:
-  "HOM_ALPHA a \<longleftrightarrow> out\<^sub>\<alpha> a = dash `\<^sub>f in\<^sub>\<alpha> a"
-  by (auto simp add:HOM_ALPHA_def COMP_ALPHAS_def COMPOSABLE_def)
+  "HOM_ALPHA a \<longleftrightarrow> out\<^sub>\<alpha> a = dash |`| in\<^sub>\<alpha> a"
+  by (metis (erased, hide_lams) COMPOSABLE_def COMP_ALPHAS_def HOM_ALPHA_def fimage.rep_eq fset_inject in_alphabet.rep_eq out_alphabet.rep_eq)
 
 lemma REL_ALPHABET_empty [closure]:
   "\<lbrace>\<rbrace> \<in> REL_ALPHABET"
@@ -140,8 +140,8 @@ theorem out_DASHED :
   by simp
 
 theorem not_dash_member_in :
-"\<not> dash x \<in>\<^sub>f in\<^sub>\<alpha> a"
-  by (simp add: var_defs)
+"\<not> dash x |\<in>| in\<^sub>\<alpha> a"
+  by (auto elim:fmember_elim)
 
 theorems alphabet_member =
   in_UNDASHED
@@ -162,15 +162,19 @@ theorem alphabet_simps:
   "\<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED \<Longrightarrow> out\<^sub>\<alpha> a = \<lbrace>\<rbrace>"
   "in\<^sub>\<alpha> (in\<^sub>\<alpha> a) = in\<^sub>\<alpha> a" "out\<^sub>\<alpha> (out\<^sub>\<alpha> a) = out\<^sub>\<alpha> a"
   "in\<^sub>\<alpha> (out\<^sub>\<alpha> a) = \<lbrace>\<rbrace>" "out\<^sub>\<alpha> (in\<^sub>\<alpha> a) = \<lbrace>\<rbrace>"
-  "in\<^sub>\<alpha> (dash `\<^sub>f vs) = \<lbrace>\<rbrace>"
-  "in\<^sub>\<alpha> (undash `\<^sub>f out\<^sub>\<alpha> vs) = undash `\<^sub>f (out\<^sub>\<alpha> vs)"
-  "out\<^sub>\<alpha> (dash `\<^sub>f vs) = dash `\<^sub>f (in\<^sub>\<alpha> vs)"
-  "out\<^sub>\<alpha> (undash `\<^sub>f out\<^sub>\<alpha> a) = \<lbrace>\<rbrace>"
-  "(in\<^sub>\<alpha> a1) \<inter>\<^sub>f (out\<^sub>\<alpha> a2) = \<lbrace>\<rbrace>"
-  "\<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED \<Longrightarrow> (in\<^sub>\<alpha> a) \<union>\<^sub>f (out\<^sub>\<alpha> a) = a"
-  "undash `\<^sub>f dash `\<^sub>f a = a"
-  "dash `\<^sub>f undash `\<^sub>f out\<^sub>\<alpha> a = out\<^sub>\<alpha> a"
-  by (auto, metis (lifting) equals0D in_undash out_in)
+  "in\<^sub>\<alpha> (dash |`| vs) = \<lbrace>\<rbrace>"
+  "in\<^sub>\<alpha> (undash |`| out\<^sub>\<alpha> vs) = undash |`| (out\<^sub>\<alpha> vs)"
+  "out\<^sub>\<alpha> (dash |`| vs) = dash |`| (in\<^sub>\<alpha> vs)"
+  "out\<^sub>\<alpha> (undash |`| out\<^sub>\<alpha> a) = \<lbrace>\<rbrace>"
+  "(in\<^sub>\<alpha> a1) |\<inter>| (out\<^sub>\<alpha> a2) = \<lbrace>\<rbrace>"
+  "\<langle>a\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED \<Longrightarrow> (in\<^sub>\<alpha> a) |\<union>| (out\<^sub>\<alpha> a) = a"
+  "undash |`| dash |`| a = a"
+  "dash |`| undash |`| out\<^sub>\<alpha> a = out\<^sub>\<alpha> a"
+  apply (auto elim!:fmember_elim intro!:fmember_intro)
+  apply (metis empty_iff in_homr in_vars_def inf_le2 out_of_UNDASHED)
+  apply (metis Int_iff dash_undash_DASHED out_vars_def)
+  apply (metis dash_undash_image image_comp utp_var.out_DASHED)
+done
 
 lemma NON_REL_VAR_nrel_member [simp]: 
   "x \<in> NON_REL_VAR \<Longrightarrow> x \<in> nrel vs \<longleftrightarrow> x \<in> vs"
@@ -184,10 +188,10 @@ lemma alpha_dash_empty [simp]: "\<lbrace>\<rbrace>\<acute> = \<lbrace>\<rbrace>"
 lemma alpha_dash_finsert [simp]: "(finsert x A)\<acute> = finsert x\<acute> A\<acute>"
   by (metis dash_alpha_def fimage_finsert)
 
-lemma alpha_dash_union [simp]: "(A \<union>\<^sub>f B)\<acute> = (A\<acute> \<union>\<^sub>f B\<acute>)"
+lemma alpha_dash_union [simp]: "(A |\<union>| B)\<acute> = (A\<acute> |\<union>| B\<acute>)"
   by (metis dash_alpha_def fimage_funion)
 
-lemma alpha_dash_inter [simp]: "(A \<inter>\<^sub>f B)\<acute> = (A\<acute> \<inter>\<^sub>f B\<acute>)"
+lemma alpha_dash_inter [simp]: "(A |\<inter>| B)\<acute> = (A\<acute> |\<inter>| B\<acute>)"
   by (auto simp add:dash_alpha_def)
 
 subsubsection {* Distribution Theorems *}
@@ -197,85 +201,84 @@ theorem in_alphabet_empty :
   by (force simp add:var_defs)
 
 theorem in_alphabet_union :
-"in\<^sub>\<alpha> (a1 \<union>\<^sub>f a2) = (in\<^sub>\<alpha> a1) \<union>\<^sub>f (in\<^sub>\<alpha> a2)"
-  by (force simp add: var_dist)
+"in\<^sub>\<alpha> (a1 |\<union>| a2) = (in\<^sub>\<alpha> a1) |\<union>| (in\<^sub>\<alpha> a2)"
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_dist)
 
 theorem in_alphabet_inter :
-"in\<^sub>\<alpha> (a1 \<inter>\<^sub>f a2) = (in\<^sub>\<alpha> a1) \<inter>\<^sub>f (in\<^sub>\<alpha> a2)"
-  by (force simp add: var_dist)
+"in\<^sub>\<alpha> (a1 |\<inter>| a2) = (in\<^sub>\<alpha> a1) |\<inter>| (in\<^sub>\<alpha> a2)"
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_dist)
 
 theorem in_alphabet_diff :
 "in\<^sub>\<alpha>(a1 -\<^sub>f a2) = (in\<^sub>\<alpha>(a1)) -\<^sub>f (in\<^sub>\<alpha>(a2))"
-  by (force simp add: var_dist)
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_dist)
 
 theorem in_alphabet_finsert1 :
   "x \<in> UNDASHED \<Longrightarrow> in\<^sub>\<alpha> (finsert x xs) = finsert x (in\<^sub>\<alpha> xs)"
-  by (force simp add: var_dist)
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_dist)
 
 theorem in_alphabet_finsert2 :
   "x \<in> DASHED \<Longrightarrow> in\<^sub>\<alpha> (finsert x xs) = (in\<^sub>\<alpha> xs)"
-  by (force simp add: var_dist)
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_dist)
 
 theorem in_alphabet_finsert_NON_REL_VAR :
   "x \<in> NON_REL_VAR \<Longrightarrow> in\<^sub>\<alpha> (finsert x xs) = in\<^sub>\<alpha> xs"
-  by (auto simp add: var_defs)
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_defs)
 
 theorem out_alphabet_empty :
   "out\<^sub>\<alpha> \<lbrace>\<rbrace> = \<lbrace>\<rbrace>"
   by (force simp add:var_defs)
 
 theorem out_alphabet_union :
-"out\<^sub>\<alpha>(a1 \<union>\<^sub>f a2) = (out\<^sub>\<alpha> a1) \<union>\<^sub>f (out\<^sub>\<alpha> a2)"
-  by (force simp add: var_dist)
+"out\<^sub>\<alpha>(a1 |\<union>| a2) = (out\<^sub>\<alpha> a1) |\<union>| (out\<^sub>\<alpha> a2)"
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_dist)
 
 theorem out_alphabet_inter :
-"out\<^sub>\<alpha>(a1 \<inter>\<^sub>f a2) = (out\<^sub>\<alpha> a1) \<inter>\<^sub>f (out\<^sub>\<alpha> a2)"
-  by (force simp add: var_dist)
+"out\<^sub>\<alpha>(a1 |\<inter>| a2) = (out\<^sub>\<alpha> a1) |\<inter>| (out\<^sub>\<alpha> a2)"
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_dist)
 
 theorem out_alphabet_diff :
 "out\<^sub>\<alpha>(a1 -\<^sub>f a2) = (out\<^sub>\<alpha> a1) -\<^sub>f (out\<^sub>\<alpha> a2)"
-  by (force simp add: var_dist)
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_dist)
 
 theorem out_alphabet_finsert1 :
   "x \<in> DASHED \<Longrightarrow> out\<^sub>\<alpha> (finsert x xs) = finsert x (out\<^sub>\<alpha> xs)"
-  by (force simp add: var_dist)
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_dist)
 
 theorem out_alphabet_finsert2 :
   "x \<in> UNDASHED \<Longrightarrow> out\<^sub>\<alpha> (finsert x xs) = out\<^sub>\<alpha> xs"
-  by (force simp add: var_dist)
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_dist)
 
 theorem out_alphabet_finsert_NON_REL_VAR :
   "x \<in> NON_REL_VAR \<Longrightarrow> out\<^sub>\<alpha> (finsert x xs) = out\<^sub>\<alpha> xs"
-  by (auto simp add: var_defs)
-
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_defs)
 
 theorem nrel_alphabet_empty :
   "nrel\<^sub>\<alpha> \<lbrace>\<rbrace> = \<lbrace>\<rbrace>"
-  by (force simp add:var_defs)
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_dist)
 
 theorem nrel_alphabet_union :
-"nrel\<^sub>\<alpha>(a1 \<union>\<^sub>f a2) = (nrel\<^sub>\<alpha> a1) \<union>\<^sub>f (nrel\<^sub>\<alpha> a2)"
-  by (force simp add: var_dist)
+"nrel\<^sub>\<alpha>(a1 |\<union>| a2) = (nrel\<^sub>\<alpha> a1) |\<union>| (nrel\<^sub>\<alpha> a2)"
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_dist)
 
 theorem nrel_alphabet_inter :
-"nrel\<^sub>\<alpha>(a1 \<inter>\<^sub>f a2) = (nrel\<^sub>\<alpha> a1) \<inter>\<^sub>f (nrel\<^sub>\<alpha> a2)"
-  by (force simp add: var_dist)
+"nrel\<^sub>\<alpha>(a1 |\<inter>| a2) = (nrel\<^sub>\<alpha> a1) |\<inter>| (nrel\<^sub>\<alpha> a2)"
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_dist)
 
 theorem nrel_alphabet_diff :
 "nrel\<^sub>\<alpha>(a1 -\<^sub>f a2) = (nrel\<^sub>\<alpha> a1) -\<^sub>f (nrel\<^sub>\<alpha> a2)"
-  by (force simp add: var_dist)
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_dist)
 
 theorem nrel_alphabet_finsert_NON_REL_VAR :
   "x \<in> NON_REL_VAR \<Longrightarrow> nrel\<^sub>\<alpha> (finsert x xs) = finsert x (nrel\<^sub>\<alpha> xs)"
-  by (auto simp add: var_defs)
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_dist)
 
 theorem nrel_alphabet_finsert_UNDASHED :
   "x \<in> UNDASHED \<Longrightarrow> nrel\<^sub>\<alpha> (finsert x xs) = (nrel\<^sub>\<alpha> xs)"
-  by (auto simp add: var_defs)
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_dist)
 
 theorem nrel_alphabet_finsert_DASHED :
   "x \<in> DASHED \<Longrightarrow> nrel\<^sub>\<alpha> (finsert x xs) = (nrel\<^sub>\<alpha> xs)"
-  by (auto simp add: var_defs)
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_dist)  
 
 theorems alphabet_dist =
   in_alphabet_empty
@@ -301,8 +304,8 @@ theorems alphabet_dist =
   nrel_alphabet_finsert_DASHED
 
 lemma alphabet_split:
-  "in\<^sub>\<alpha> a \<union>\<^sub>f (out\<^sub>\<alpha> a \<union>\<^sub>f nrel\<^sub>\<alpha> a) = a"
-  by (auto simp add:var_defs)
+  "in\<^sub>\<alpha> a |\<union>| (out\<^sub>\<alpha> a |\<union>| nrel\<^sub>\<alpha> a) = a"
+  by (auto elim!:fmember_elim intro!:fmember_intro simp add: var_defs)
 
 end
 

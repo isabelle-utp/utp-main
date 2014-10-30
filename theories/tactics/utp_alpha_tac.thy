@@ -44,7 +44,7 @@ theorem UNREST_EvalA [unrest] :
   by (simp add: EvalA_def unrest UNREST_subset)
 
 lemma EvalA_UNREST_alpha [unrest]:
-  "x \<notin>\<^sub>f \<alpha> P \<Longrightarrow> {x} \<sharp> \<lbrakk>P\<rbrakk>\<pi>"
+  "x |\<notin>| \<alpha> P \<Longrightarrow> {x} \<sharp> \<lbrakk>P\<rbrakk>\<pi>"
   apply (rule UNREST_subset)
   apply (rule UNREST_EvalA)
   apply (auto)
@@ -98,7 +98,7 @@ theorem EvalA_IffA [evala] :
   by (simp add: EvalA_def IffA.rep_eq)
 
 theorem EvalA_AndDistA [evala] :
-"\<lbrakk> \<forall> a \<in> \<alpha>`ps. a \<subseteq>\<^sub>f t \<rbrakk> \<Longrightarrow> \<lbrakk>\<And>\<^bsub>t\<^esub> ps\<rbrakk>\<pi> = \<And>\<^sub>p {\<lbrakk>p\<rbrakk>\<pi> | p. p \<in> ps}"
+"\<lbrakk> \<forall> a \<in> \<alpha>`ps. a |\<subseteq>| t \<rbrakk> \<Longrightarrow> \<lbrakk>\<And>\<^bsub>t\<^esub> ps\<rbrakk>\<pi> = \<And>\<^sub>p {\<lbrakk>p\<rbrakk>\<pi> | p. p \<in> ps}"
   apply (case_tac "ps = {}")
   apply (simp add:AndDistA_empty evala)
   apply (utp_pred_auto_tac)
@@ -107,7 +107,7 @@ theorem EvalA_AndDistA [evala] :
 done
 
 theorem EvalA_OrDistA [evala] :
-"\<lbrakk> \<forall> a \<in> \<alpha>`ps. a \<subseteq>\<^sub>f t \<rbrakk> \<Longrightarrow> \<lbrakk>\<Or>\<^bsub>t\<^esub> ps\<rbrakk>\<pi> = \<Or>\<^sub>p {\<lbrakk>p\<rbrakk>\<pi> | p. p \<in> ps}"
+"\<lbrakk> \<forall> a \<in> \<alpha>`ps. a |\<subseteq>| t \<rbrakk> \<Longrightarrow> \<lbrakk>\<Or>\<^bsub>t\<^esub> ps\<rbrakk>\<pi> = \<Or>\<^sub>p {\<lbrakk>p\<rbrakk>\<pi> | p. p \<in> ps}"
   apply (case_tac "ps = {}")
   apply (simp add:OrDistA_empty evala)
   apply (utp_pred_auto_tac)
@@ -116,16 +116,15 @@ theorem EvalA_OrDistA [evala] :
 done
 
 theorem EvalA_AANDI_enum [evala]:
-  "\<lbrakk> \<forall> i\<in>A. \<alpha> (P i) \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow> \<lbrakk>\<And>\<^bsub>a\<^esub> i:A. P i\<rbrakk>\<pi> = (\<And>\<^sub>p i:A. \<lbrakk>P i\<rbrakk>\<pi>)"
+  "\<lbrakk> \<forall> i\<in>A. \<alpha> (P i) |\<subseteq>| a \<rbrakk> \<Longrightarrow> \<lbrakk>\<And>\<^bsub>a\<^esub> i:A. P i\<rbrakk>\<pi> = (\<And>\<^sub>p i:A. \<lbrakk>P i\<rbrakk>\<pi>)"
   apply (simp add:AANDI_def)
   apply (subst EvalA_AndDistA)
   apply (simp) 
   apply (utp_pred_auto_tac)
-  apply (metis imageI)
 done
 
 theorem EvalA_AORDI_enum [evala]:
-  "\<lbrakk> \<forall> i\<in>A. \<alpha> (P i) \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow> \<lbrakk>\<Or>\<^bsub>a\<^esub> i:A. P i\<rbrakk>\<pi> = (\<Or>\<^sub>p i:A. \<lbrakk>P i\<rbrakk>\<pi>)"
+  "\<lbrakk> \<forall> i\<in>A. \<alpha> (P i) |\<subseteq>| a \<rbrakk> \<Longrightarrow> \<lbrakk>\<Or>\<^bsub>a\<^esub> i:A. P i\<rbrakk>\<pi> = (\<Or>\<^sub>p i:A. \<lbrakk>P i\<rbrakk>\<pi>)"
   apply (simp add:AORDI_def)
   apply (subst EvalA_OrDistA)
   apply (simp) 

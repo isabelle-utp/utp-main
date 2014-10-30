@@ -145,20 +145,20 @@ begin
   
   lemma iam_rev_iterateoi_aux_foldli_conv :
     "iam_rev_iterateoi_aux n a =
-     foldli (List.map_filter (\<lambda>n. Option.map (\<lambda>v. (n, v)) (array_get a n)) (rev [0..<n]))"
+     foldli (List.map_filter (\<lambda>n. map_option (\<lambda>v. (n, v)) (array_get a n)) (rev [0..<n]))"
   by (induct n) (auto simp add: List.map_filter_def fun_eq_iff)
 
   lemma iam_rev_iterateoi_foldli_conv :
     "iam_rev_iterateoi a =
      foldli (List.map_filter 
-       (\<lambda>n. Option.map (\<lambda>v. (n, v)) (array_get a n)) 
+       (\<lambda>n. map_option (\<lambda>v. (n, v)) (array_get a n)) 
        (rev [0..<(array_length a)]))"
     unfolding iam_rev_iterateoi_def iam_rev_iterateoi_aux_foldli_conv by simp
 
   lemma iam_rev_iterateoi_correct : 
   fixes m::"'a option array"
   defines "kvs \<equiv> List.map_filter 
-    (\<lambda>n. Option.map (\<lambda>v. (n, v)) (array_get m n)) (rev [0..<(array_length m)])"
+    (\<lambda>n. map_option (\<lambda>v. (n, v)) (array_get m n)) (rev [0..<(array_length m)])"
   shows "map_iterator_rev_linord (iam_rev_iterateoi m) (iam_\<alpha> m)" 
   proof (rule map_iterator_rev_linord_I [of kvs])
     show "iam_rev_iterateoi m = foldli kvs"
@@ -204,7 +204,7 @@ begin
 
   lemma iam_iterateoi_aux_foldli_conv :
     "iam_iterateoi_aux n (array_length a) a c f \<sigma> =
-     foldli (List.map_filter (\<lambda>n. Option.map (\<lambda>v. (n, v)) (array_get a n)) 
+     foldli (List.map_filter (\<lambda>n. map_option (\<lambda>v. (n, v)) (array_get a n)) 
        ([n..<array_length a])) c f \<sigma>"
     thm iam_iterateoi_aux.induct
     apply (induct n "array_length a" a c f \<sigma> rule: iam_iterateoi_aux.induct)
@@ -221,7 +221,7 @@ begin
   lemma iam_iterateoi_foldli_conv :
     "iam_iterateoi a =
      foldli (List.map_filter 
-       (\<lambda>n. Option.map (\<lambda>v. (n, v)) (array_get a n)) 
+       (\<lambda>n. map_option (\<lambda>v. (n, v)) (array_get a n)) 
        ([0..<(array_length a)]))"
     apply (intro ext)
     unfolding iam_iterateoi_def iam_iterateoi_aux_foldli_conv
@@ -236,7 +236,7 @@ begin
   lemma iam_iterateoi_correct: 
   fixes m::"'a option array"
   defines "kvs \<equiv> List.map_filter 
-    (\<lambda>n. Option.map (\<lambda>v. (n, v)) (array_get m n)) ([0..<(array_length m)])"
+    (\<lambda>n. map_option (\<lambda>v. (n, v)) (array_get m n)) ([0..<(array_length m)])"
   shows "map_iterator_linord (iam_iterateoi m) (iam_\<alpha> m)" 
   proof (rule map_iterator_linord_I [of kvs])
     show "iam_iterateoi m = foldli kvs"
@@ -357,6 +357,6 @@ definition "test_codegen \<equiv> (
   iam.update ,
   iam.update_dj)"
 
-export_code test_codegen in SML file -
+export_code test_codegen in SML
     
 end

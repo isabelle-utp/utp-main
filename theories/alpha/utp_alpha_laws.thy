@@ -17,7 +17,7 @@ begin
 subsection {* Basic properties *}
 
 theorem AndA_assoc:
-  "`p \<and> (q \<and> r)` = `(p \<and> q) \<and> r`"
+  "``p \<and> (q \<and> r)`` = ``(p \<and> q) \<and> r``"
   by (utp_alpha_tac2, utp_pred_tac)
 
 theorem AndA_comm:

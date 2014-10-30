@@ -14,6 +14,7 @@ imports utp_imports
   "utils/typedef_extra"
   "utils/infinity"
   "utils/maxset"
+  List_lexord
 begin
 
 default_sort type
@@ -29,7 +30,7 @@ text {* We are going to use the colon for type membership in UTP models. *}
 no_notation
   Set.member ("op :") and
   Set.member ("(_/ : _)" [51, 51] 50)
-
+  
 text {*
   The following prevents Isabelle from splitting pairs in proofs by default.
 *}

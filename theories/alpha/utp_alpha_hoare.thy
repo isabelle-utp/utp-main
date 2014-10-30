@@ -76,16 +76,16 @@ theorem HoareA_TrueA [hoare]:
   by (utp_alpha_tac, metis HoareP_TrueR)
 
 theorem HoareA_SkipA [hoare]:
-  assumes "a \<in> HOM_ALPHABET" "\<alpha>(p) \<subseteq>\<^sub>f in\<^sub>\<alpha>(a)"
+  assumes "a \<in> HOM_ALPHABET" "\<alpha>(p) |\<subseteq>| in\<^sub>\<alpha>(a)"
   shows "``{p}II\<^bsub>a\<^esub>{p}``"
   using assms
   apply (utp_alpha_tac)
   apply (simp add:HoareP_def)
   apply (rule SkipRA_refines_ImpliesP[of "\<langle>\<alpha> p\<rangle>\<^sub>f"])
-  apply (metis in_vars_def le_inf_iff)
+  apply (metis less_eq_fset.rep_eq order.trans utp_alphabet.in_UNDASHED)
   apply (metis UNREST_EvalA)
   apply (metis HOMOGENEOUS_HOM_ALPHA)
-  apply (metis in_vars_def le_inf_iff)
+  apply (metis alphabet_split less_eq_fset.rep_eq order.trans sup_ge1)
 done
 
 theorem HoareA_CondA [hoare]:
@@ -145,7 +145,7 @@ lemma HoareA_EvalA:
 theorem HoareA_IterA [hoare]:
   assumes 
     "``{p \<and> b}S{p}``" "p \<in> COND" "b \<in> COND" "S \<in> REL" 
-    "\<alpha>(S) \<in> HOM_ALPHABET" "\<alpha>(b) \<subseteq>\<^sub>f \<alpha>(S)" "\<alpha>(p) \<subseteq>\<^sub>f \<alpha>(S)" 
+    "\<alpha>(S) \<in> HOM_ALPHABET" "\<alpha>(b) |\<subseteq>| \<alpha>(S)" "\<alpha>(p) |\<subseteq>| \<alpha>(S)" 
   shows "``{p}while b do S od{\<not>b \<and> p}``"
   using assms
     apply (rule_tac HoareA_EvalA)

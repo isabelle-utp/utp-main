@@ -292,16 +292,16 @@ definition
 
 schematic_lemma 
   notes [autoref_rel_indirect] = 
-    REL_INDIRECT[of rel_set1 "\<langle>Rk\<rangle>list_set_rel", standard]
-    REL_INDIRECT[of rel_set2 "\<langle>Rk\<rangle>dflt_rs_rel", standard]
+    REL_INDIRECT[of rel_set1 "\<langle>Rk\<rangle>list_set_rel" for Rk]
+    REL_INDIRECT[of rel_set2 "\<langle>Rk\<rangle>dflt_rs_rel" for Rk]
   shows "(?f::?'c,algo) \<in> ?R"
   unfolding algo_def
   by (autoref)
 
 schematic_lemma 
   notes [autoref_rel_indirect] = 
-    REL_INDIRECT[of rel_set1 "\<langle>Rk\<rangle>dflt_rs_rel", standard]
-    REL_INDIRECT[of rel_set2 "\<langle>Rk\<rangle>dflt_rs_rel", standard]
+    REL_INDIRECT[of rel_set1 "\<langle>Rk\<rangle>dflt_rs_rel" for Rk]
+    REL_INDIRECT[of rel_set2 "\<langle>Rk\<rangle>dflt_rs_rel" for Rk]
   shows "(?f::?'c,algo) \<in> ?R"
   unfolding algo_def
   by (autoref)

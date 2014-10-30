@@ -54,10 +54,10 @@ lift_definition AppendUL ::
 is "op @" by (auto)
 
 lift_definition PrefixUL :: "'a ULIST \<Rightarrow> 'a ULIST \<Rightarrow> bool"
-is "prefix" by (auto)
+is "prefix" .
 
 lift_definition PrefixeqUL :: "'a ULIST \<Rightarrow> 'a ULIST \<Rightarrow> bool"
-is "prefixeq" by (auto)
+is "prefixeq" .
 
 lift_definition MinusUL :: "'a ULIST \<Rightarrow> 'a ULIST \<Rightarrow> 'a ULIST"
 is "\<lambda> xs ys. drop (length ys) xs"

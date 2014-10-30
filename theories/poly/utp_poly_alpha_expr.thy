@@ -63,7 +63,7 @@ lift_definition ProdAPE ::
   "('a :: DEFINED, 'm :: TYPED_MODEL) paexpr \<Rightarrow> 
    ('b :: DEFINED, 'm :: TYPED_MODEL) paexpr \<Rightarrow>
    (('a * 'b), 'm) paexpr" ("'(_, _')\<^sub>\<alpha>")
-is "\<lambda> (a, e) (b, f). (a \<union>\<^sub>f b, ProdPE e f)" by (force intro:unrest UNREST_PEXPR_subset)
+is "\<lambda> (a, e) (b, f). (a |\<union>| b, ProdPE e f)" by (force intro:unrest UNREST_PEXPR_subset)
 
 lift_definition Op1APE :: 
   "('a :: DEFINED \<Rightarrow> 'b :: DEFINED) \<Rightarrow> ('a, 'm :: TYPED_MODEL) paexpr \<Rightarrow> ('b, 'm) paexpr"
@@ -72,13 +72,13 @@ is "\<lambda> f (a :: 'm alpha, v). (a, Op1PE f v)" by (auto intro:unrest)
 lift_definition Op2APE :: 
   "('a :: DEFINED \<Rightarrow> 'b :: DEFINED \<Rightarrow> 'c :: DEFINED) \<Rightarrow> 
    ('a, 'm :: TYPED_MODEL) paexpr \<Rightarrow> ('b, 'm) paexpr \<Rightarrow> ('c, 'm) paexpr"
-is "\<lambda> f (a :: 'm alpha, v) (b :: 'm alpha, w). (a \<union>\<^sub>f b, Op2PE f v w)" by (force intro:unrest UNREST_PEXPR_subset)
+is "\<lambda> f (a :: 'm alpha, v) (b :: 'm alpha, w). (a |\<union>| b, Op2PE f v w)" by (force intro:unrest UNREST_PEXPR_subset)
 
 lift_definition Op3APE :: 
   "('a :: DEFINED \<Rightarrow> 'b :: DEFINED \<Rightarrow> 'c :: DEFINED \<Rightarrow> 'd :: DEFINED) \<Rightarrow> 
    ('a, 'm :: TYPED_MODEL) paexpr \<Rightarrow> ('b, 'm) paexpr \<Rightarrow> 
    ('c, 'm) paexpr \<Rightarrow> ('d, 'm) paexpr"
-is "\<lambda> f (a :: 'm alpha, v) (b :: 'm alpha, w) (c :: 'm alpha, x). (a \<union>\<^sub>f b \<union>\<^sub>f c, Op3PE f v w x)" 
+is "\<lambda> f (a :: 'm alpha, v) (b :: 'm alpha, w) (c :: 'm alpha, x). (a |\<union>| b |\<union>| c, Op3PE f v w x)" 
 by (force intro:unrest UNREST_PEXPR_subset)
 
 definition APExprAE :: 
@@ -145,11 +145,11 @@ lemma Op1APE_alphabet [alphabet]:
   by (simp add:ape_alphabet_def Op1APE.rep_eq, case_tac "DestAPExpr v", simp)
 
 lemma Op2APE_alphabet [alphabet]:
-  "\<alpha> (Op2APE f v w) = \<alpha> v \<union>\<^sub>f \<alpha> w"
+  "\<alpha> (Op2APE f v w) = \<alpha> v |\<union>| \<alpha> w"
   by (simp add:ape_alphabet_def Op2APE.rep_eq, case_tac "DestAPExpr v", case_tac "DestAPExpr w", simp)
 
 lemma Op3APE_alphabet [alphabet]:
-  "\<alpha> (Op3APE f v w x) = \<alpha> v \<union>\<^sub>f \<alpha> w \<union>\<^sub>f \<alpha> x"
+  "\<alpha> (Op3APE f v w x) = \<alpha> v |\<union>| \<alpha> w |\<union>| \<alpha> x"
   by (simp add:ape_alphabet_def Op3APE.rep_eq, case_tac "DestAPExpr v", case_tac "DestAPExpr w", case_tac "DestAPExpr x", simp)
 
 lemma APExprAE_alphabet [alphabet]:

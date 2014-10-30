@@ -6,7 +6,7 @@
 theory ICF_Userguide
 imports 
   "../ICF/Collections"
-  "~~/src/HOL/Library/Code_Target_Nat"
+  "../Lib/Code_Target_ICF"
 begin
 (*>*)
 
@@ -404,7 +404,7 @@ text_raw {*\label{sec:userguide.design}*}
 
     For a more detailed discussion of the data refinement issue, we refer to
     the monadic refinement framework, that is available in the AFP 
-    (\url{http://afp.sourceforge.net/entries/Refine_Monadic.shtml})
+    (@{url "http://afp.sourceforge.net/entries/Refine_Monadic.shtml"})
     *}
 
   subsection {* Operation Records *}

@@ -477,8 +477,8 @@ qed
     "skew"
     ];
 
-    val clist = Sign.consts_of thy |> Consts.dest |> #constants 
-    |> Name_Space.dest_table ctxt;
+    val {const_space, constants, ...} = Sign.consts_of thy |> Consts.dest
+    val clist = Name_Space.extern_entries ctxt const_space constants |> map (apfst #1)
 
     fun abbrevs_for pat = clist
     |> map_filter (fn (n,_) => case Long_Name.explode n of

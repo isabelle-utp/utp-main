@@ -295,8 +295,111 @@ end
     "(is_Nil,op_set_isEmpty) \<in> \<langle>R\<rangle>list_set_rel \<rightarrow> bool_rel"
     by (auto simp: list_set_rel_def br_def split: list.split_asm)
 
+  lemma list_set_autoref_filter[autoref_rules]:
+    "(filter,op_set_filter) 
+      \<in> (R \<rightarrow> bool_rel) \<rightarrow> \<langle>R\<rangle>list_set_rel \<rightarrow> \<langle>R\<rangle>list_set_rel"
+  proof -
+    have "(filter, op_set_filter) 
+      \<in> (Id \<rightarrow> bool_rel) \<rightarrow> \<langle>Id\<rangle>list_set_rel \<rightarrow> \<langle>Id\<rangle>list_set_rel"
+      by (auto simp: list_set_rel_def br_def)
+    note this[param_fo]
+    moreover have "(filter,filter)\<in>(R \<rightarrow> bool_rel) \<rightarrow> \<langle>R\<rangle>list_rel \<rightarrow> \<langle>R\<rangle>list_rel"
+      unfolding List.filter_def
+      by parametricity
+    note this[param_fo]
+    ultimately show ?thesis
+      unfolding list_set_rel_def
+      apply (intro fun_relI)
+      apply (erule relcompE, simp)
+      apply (rule relcompI)
+      apply (rprems, assumption+)
+      apply (rprems, simp+)
+      done
+  qed
+
+
+  context begin interpretation autoref_syn .
+  lemma list_set_autoref_inj_image[autoref_rules]:
+    assumes "PRIO_TAG_OPTIMIZATION"
+    assumes INJ: "SIDE_PRECOND_OPT (inj_on f s)"
+    assumes [param]: "(fi,f)\<in>Ra\<rightarrow>Rb"
+    assumes LP: "(l,s)\<in>\<langle>Ra\<rangle>list_set_rel"
+    shows "(map fi l, 
+      (OP op ` ::: (Ra\<rightarrow>Rb) \<rightarrow> \<langle>Ra\<rangle>list_set_rel \<rightarrow> \<langle>Rb\<rangle>list_set_rel)$f$s) 
+      \<in> \<langle>Rb\<rangle>list_set_rel"
+  proof -
+    from LP obtain l' where 
+      [param]: "(l,l')\<in>\<langle>Ra\<rangle>list_rel" and L'S: "(l',s)\<in>br set distinct"
+      unfolding list_set_rel_def by auto
+
+    have "(map fi l, map f l')\<in>\<langle>Rb\<rangle>list_rel" by parametricity
+    also from INJ L'S have "(map f l',f`s)\<in>br set distinct"
+      apply (induction l' arbitrary: s)
+      apply (auto simp: br_def dest: injD)
+      done
+    finally (relcompI) show ?thesis 
+      unfolding autoref_tag_defs list_set_rel_def .
+  qed
+
+  end
+
+
+  lemma list_set_cart_autoref[autoref_rules]:
+    fixes Rx :: "('xi \<times> 'x) set"
+    fixes Ry :: "('yi \<times> 'y) set"
+    shows "(\<lambda>xl yl. [ (x,y). x\<leftarrow>xl, y\<leftarrow>yl], op_set_cart) 
+    \<in> \<langle>Rx\<rangle>list_set_rel \<rightarrow> \<langle>Ry\<rangle>list_set_rel \<rightarrow> \<langle>Rx \<times>\<^sub>r Ry\<rangle>list_set_rel"
+  proof (intro fun_relI)
+    fix xl xs yl ys
+    assume "(xl, xs) \<in> \<langle>Rx\<rangle>list_set_rel" "(yl, ys) \<in> \<langle>Ry\<rangle>list_set_rel"
+    then obtain xl' :: "'x list" and yl' :: "'y list" where 
+      [param]: "(xl,xl')\<in>\<langle>Rx\<rangle>list_rel" "(yl,yl')\<in>\<langle>Ry\<rangle>list_rel"
+      and XLS: "(xl',xs)\<in>br set distinct" and YLS: "(yl',ys)\<in>br set distinct"
+      unfolding list_set_rel_def 
+      by auto
+
+    have "([ (x,y). x\<leftarrow>xl, y\<leftarrow>yl ], [ (x,y). x\<leftarrow>xl', y\<leftarrow>yl' ]) 
+      \<in> \<langle>Rx \<times>\<^sub>r Ry\<rangle>list_rel"
+      by parametricity
+    also have "([ (x,y). x\<leftarrow>xl', y\<leftarrow>yl' ], xs \<times> ys) \<in> br set distinct"
+      using XLS YLS
+      apply (auto simp: br_def)
+      apply hypsubst_thin
+      apply (induction xl')
+      apply simp
+      apply (induction yl')
+      apply simp
+      apply auto []
+      apply (metis (lifting) concat_map_maps distinct.simps(2) 
+        distinct_singleton maps_simps(2))
+      done
+    finally (relcompI) 
+    show "([ (x,y). x\<leftarrow>xl, y\<leftarrow>yl ], op_set_cart xs ys) \<in> \<langle>Rx \<times>\<^sub>r Ry\<rangle>list_set_rel"
+      unfolding list_set_rel_def by simp
+  qed
+
+
   subsection {* Optimizations *}
   lemma glist_delete_hd: "eq x y \<Longrightarrow> glist_delete eq x (y#s) = s"
     by (simp add: glist_delete_def)
+
+  text {* Hack to ensure specific ordering. Note that ordering has no meaning
+    abstractly *}
+  definition [simp]: "LIST_SET_REV_TAG \<equiv> \<lambda>x. x"
+  
+  lemma LIST_SET_REV_TAG_autoref[autoref_rules]: 
+    "(rev,LIST_SET_REV_TAG) \<in> \<langle>R\<rangle>list_set_rel \<rightarrow> \<langle>R\<rangle>list_set_rel"
+    unfolding list_set_rel_def
+    apply (intro fun_relI)
+    apply (elim relcompE)
+    apply (clarsimp simp: br_def)
+    apply (rule relcompI)
+    apply (rule param_rev[param_fo], assumption)
+    apply auto
+    done
+  
+  
+
+
 
 end

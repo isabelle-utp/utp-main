@@ -49,7 +49,7 @@ lemma map2set_empty[autoref_rules_raw]:
   by auto
 
 lemmas [autoref_rel_intf] = 
-  REL_INTFI[of "map2set_rel R" i_set, standard]
+  REL_INTFI[of "map2set_rel R" i_set] for R
 
 
 definition "map2set_insert i k s \<equiv> i k () s"

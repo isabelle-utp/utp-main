@@ -15,11 +15,8 @@ text {*
 *}
 
 subsection {* Definition *}
-
-(*hide_const Zorn.succ (* That was in the way and conflicted with the
-  prefered parameter name. As this is a demo, we want a nice definition,
-  so just hiding what is in the way! *)*)
-
+(* TODO: Warning, this is not exactly DFS, as V is not updated in FOREACH.
+  Replace by more accurate example from ICFContainers paper draft! *)
 text {* Recursive DFS-Algorithm. 
   @{text "E"} is the edge relation of the graph, @{text "vd"} the node to 
   search for, and @{text "v0"} the start node.
@@ -127,10 +124,10 @@ concrete_definition dfs_impl3 for succi vd ?v0.0 uses dfs_impl_refine_aux3
 prepare_code_thms dfs_impl3_def
 
 text {* Finally, we export code using the code-generator *}
-export_code dfs_impl dfs_impl2 dfs_impl3 in SML file -
-export_code dfs_impl dfs_impl2 dfs_impl3 in OCaml file -
-export_code dfs_impl dfs_impl2 dfs_impl3 in Haskell file -
-export_code dfs_impl dfs_impl2 dfs_impl3 in Scala file -
+export_code dfs_impl dfs_impl2 dfs_impl3 in SML
+export_code dfs_impl dfs_impl2 dfs_impl3 in OCaml
+export_code dfs_impl dfs_impl2 dfs_impl3 in Haskell
+export_code dfs_impl dfs_impl2 dfs_impl3 in Scala
 
 text {* Derived correctness lemma for the generated function *}
 lemma dfs_impl_correct:
