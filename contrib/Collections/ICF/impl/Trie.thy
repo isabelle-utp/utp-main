@@ -9,7 +9,7 @@ begin
 
 (*<*)
 lemma rev_rev_image: "rev ` rev ` A = A"
-by(auto intro: rev_image_eqI[where x="rev y", standard])
+by(auto intro: rev_image_eqI[where x="rev y" for y])
 (*>*)
 
 subsection {* Abstract type definition *}

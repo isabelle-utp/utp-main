@@ -7,7 +7,7 @@
 header {* Meta-theory for Imports *}
 
 theory utp_imports
-imports "~~/src/HOL/BNF/BNF"
+imports
   Main
   Real
   Countable
@@ -16,5 +16,8 @@ imports "~~/src/HOL/BNF/BNF"
   Adhoc_Overloading
   Sublist
   "utils/Library_extra"
+  "utils/infinity"
+  "utils/cardinals"
+  "utils/bset"
 begin
 end

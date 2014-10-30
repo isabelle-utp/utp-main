@@ -221,6 +221,6 @@ definition test_codegen where "test_codegen \<equiv>
     fifo.rev_iteratei
   )"
 
-export_code test_codegen in SML file -
+export_code test_codegen in SML
 
 end

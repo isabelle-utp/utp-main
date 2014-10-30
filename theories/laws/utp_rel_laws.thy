@@ -271,13 +271,13 @@ theorem TrueP_left_annihilator_unique:
     "P ;\<^sub>R true = false"
   shows "P = false"
   using assms
-  by (utp_xrel_auto_tac, metis (lifting) prod_caseI2)
+  by (utp_xrel_auto_tac, metis (erased, lifting) case_prodI old.prod.exhaust)
 
 theorem TrueP_right_annihilator_unique:
   assumes "P \<in> WF_RELATION"
   shows "true ;\<^sub>R P = false \<Longrightarrow> P = false"
   using assms
-  by (utp_xrel_auto_tac, metis (lifting) prod_caseI2)
+  by (utp_xrel_auto_tac, metis (erased, lifting) PairE case_prodI)
 
 text {* A precondition followed by a postcondition is a conjunction *}
 
@@ -470,8 +470,14 @@ proof -
         by (force simp add:var_defs)
 
       moreover from assms have "(dash ` dash ` in vs) \<sharp> (SS1\<bullet>p1)"
-        by (smt SS1_UNDASHED_DASHED_image UNREST_RenameP_alt Un_empty_left calculation(1) in_dash in_in le_iff_sup out_dash rename_image_def sup.idem)
-
+      proof -
+        have f1: "\<And>x\<^sub>1. (x\<^sub>1\<Colon>'a uvar set) \<inter> D\<^sub>1 \<inter> D\<^sub>1 = x\<^sub>1 \<inter> D\<^sub>1" by simp
+        have f2: "\<And>x\<^sub>1. (D\<^sub>0\<Colon>'a uvar set) \<inter> D\<^sub>1 \<union> x\<^sub>1 = x\<^sub>1" by simp
+        hence f3: "\<And>x\<^sub>1. in (x\<^sub>1\<Colon>'a uvar set) \<inter> D\<^sub>1 = D\<^sub>0 \<inter> D\<^sub>1" by (metis (no_types) Un_commute in_UNDASHED out_vars_def out_vars_union subset_Un_eq)
+        have "in (prime ` vs \<inter> D\<^sub>1) \<subseteq> D\<^sub>1" by simp
+        thus ?thesis using f1 f2 f3 by (metis (no_types) SS1_UNDASHED_DASHED_image UNREST_RenameP calculation(1) noconn out_dash out_of_DASHED out_vars_def rename_image_def)
+      qed
+      
       moreover from assms have "(out vs) \<sharp> (SS1\<bullet>p1)"
         apply (rule_tac ?vs1.0="dash ` out vs" in UNREST_RenameP_alt)
         apply (force intro:  UNREST_subset simp add:var_defs)
@@ -492,8 +498,8 @@ proof -
       by (force simp add:var_defs)
 
     thus ?thesis using assms
-      apply (simp add:SS2_simps)
-      apply (smt ExistsP_union SS2_UNDASHED_DASHED_image rename_image_def sup_commute)
+      apply (auto simp add:SS2_simps)
+      apply (metis (erased, hide_lams) ExistsP_union SS2_UNDASHED_DASHED_image rename_image_def sup_commute)
     done
   qed
 
@@ -562,7 +568,7 @@ proof -
 
     thus ?thesis using assms
       apply (simp add:SS1_simps)
-      apply (smt ExistsP_union SS1_UNDASHED_DASHED_image Un_commute rename_image_def)
+      apply (metis (erased, hide_lams) ExistsP_union SS1_UNDASHED_DASHED_image Un_commute rename_image_def)
     done
   qed
 
@@ -633,7 +639,7 @@ theorem ExistsP_UNDASHED_expand_SemiR:
   apply (simp add: SemiR_algebraic_rel closure urename)
   apply (subgoal_tac "UNREST vs (SS2\<bullet>q)")
   apply (simp add:ExistsP_AndP_expand1)
-  apply (smt ExistsP_union Un_commute)
+  apply (metis ExistsP_commute)
   apply (rule unrest) 
   apply (auto intro:closure simp add:urename)
 done
@@ -648,7 +654,7 @@ theorem ExistsP_DASHED_expand_SemiR:
   apply (simp add: SemiR_algebraic_rel closure urename)
   apply (subgoal_tac "UNREST vs (SS1\<bullet>p)")
   apply (simp add:ExistsP_AndP_expand2)
-  apply (smt ExistsP_union Un_commute)
+  apply (metis ExistsP_commute)
   apply (rule unrest) 
   apply (auto intro:closure simp add:urename)
 done
@@ -767,7 +773,8 @@ proof -
     done
 
     thus ?thesis
-      by (smt ExistsP_AndP_expand2)
+      sledgehammer
+      by (metis (erased, hide_lams) ExistsP_AndP_expand2)
   qed
 
   also have "... = (\<exists>\<^sub>p DASHED_TWICE . (SS1\<bullet>p) \<and>\<^sub>p (SS2\<bullet>q))"
@@ -776,7 +783,7 @@ proof -
       by (auto simp add:var_defs)
 
     thus ?thesis
-      by (smt ExistsP_union sup_absorb1)
+      by (metis (erased, hide_lams) ExistsP_union sup_absorb1)
   qed
 
   ultimately show ?thesis using assms UNREST

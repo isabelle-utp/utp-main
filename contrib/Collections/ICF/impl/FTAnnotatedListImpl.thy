@@ -216,6 +216,6 @@ definition "test_codegen \<equiv> (
   ft.foldr
 )"
 
-export_code test_codegen in SML file -
+export_code test_codegen in SML
 
 end

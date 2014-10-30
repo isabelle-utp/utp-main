@@ -127,8 +127,8 @@ done
 theorem WF_ALPHA_EXPR_is_SubstP_var:
   "\<exists> x'. is_SubstP_var (\<pi> p) (\<epsilon> v) x x'"
 proof -
-  obtain x' where "x' \<notin> \<langle>\<alpha> p \<union>\<^sub>f \<alpha> v\<rangle>\<^sub>f" "x' \<noteq> x" "vtype x' = vtype x" "aux x' = aux x"
-    apply (insert fresh_var[of "finsert x (\<alpha> p \<union>\<^sub>f \<alpha> v)"])
+  obtain x' where "x' \<notin> \<langle>\<alpha> p |\<union>| \<alpha> v\<rangle>\<^sub>f" "x' \<noteq> x" "vtype x' = vtype x" "aux x' = aux x"
+    apply (insert fresh_var[of "finsert x (\<alpha> p |\<union>| \<alpha> v)"])
     apply (auto)
   done
 
@@ -148,10 +148,10 @@ lift_definition EqualA ::
 "'a uaexpr \<Rightarrow> 
  'a uaexpr \<Rightarrow> 
  'a uapred" is
-"\<lambda> e f. (\<alpha> e \<union>\<^sub>f \<alpha> f, (\<epsilon> e) ==\<^sub>p (\<epsilon> f))"
+"\<lambda> e f. (\<alpha> e |\<union>| \<alpha> f, (\<epsilon> e) ==\<^sub>p (\<epsilon> f))"
 proof -
   fix e1 e2
-  show "(\<alpha> e1 \<union>\<^sub>f \<alpha> e2, \<epsilon> e1 ==\<^sub>p \<epsilon> e2) \<in> WF_ALPHA_PREDICATE"
+  show "(\<alpha> e1 |\<union>| \<alpha> e2, \<epsilon> e1 ==\<^sub>p \<epsilon> e2) \<in> WF_ALPHA_PREDICATE"
     apply (insert WF_ALPHA_EXPR_UNREST_EXPR[of e1])
     apply (insert WF_ALPHA_EXPR_UNREST_EXPR[of e2])
     apply (auto intro:unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def WF_EXPR_def)
@@ -181,11 +181,11 @@ definition AppAE ::
   "'VALUE::FUNCTION_SORT WF_ALPHA_EXPR \<Rightarrow> 
    'a uaexpr \<Rightarrow> 
    'a uaexpr" where
-"AppAE f v = MkExprA (\<alpha> f \<union>\<^sub>f \<alpha> v, AppE (\<epsilon> f) (\<epsilon> v))"
+"AppAE f v = MkExprA (\<alpha> f |\<union>| \<alpha> v, AppE (\<epsilon> f) (\<epsilon> v))"
 
 lemma AppAE_rep_eq:
-  "\<lbrakk> f :\<^sub>\<alpha> FuncType a b; v :\<^sub>\<alpha> a; \<D> f \<rbrakk> \<Longrightarrow> DestExprA (AppAE f v) = (\<alpha> f \<union>\<^sub>f \<alpha> v, AppE (\<epsilon> f) (\<epsilon> v))"
-  apply (subgoal_tac "(\<alpha> f \<union>\<^sub>f \<alpha> v, AppE (\<epsilon> f) (\<epsilon> v)) \<in> WF_ALPHA_EXPR")
+  "\<lbrakk> f :\<^sub>\<alpha> FuncType a b; v :\<^sub>\<alpha> a; \<D> f \<rbrakk> \<Longrightarrow> DestExprA (AppAE f v) = (\<alpha> f |\<union>| \<alpha> v, AppE (\<epsilon> f) (\<epsilon> v))"
+  apply (subgoal_tac "(\<alpha> f |\<union>| \<alpha> v, AppE (\<epsilon> f) (\<epsilon> v)) \<in> WF_ALPHA_EXPR")
   apply (simp add:AppAE_def)
   apply (auto intro:unrest UNREST_EXPR_subset simp add:WF_ALPHA_EXPR_def WF_EXPR_OVER_def eatype_rel_def Defined_WF_ALPHA_EXPR_def)
 done
@@ -205,7 +205,7 @@ lift_definition PermAE ::
   "'a VAR_RENAME \<Rightarrow>
    'a uaexpr \<Rightarrow>
    'a uaexpr" is
-"\<lambda> ss e. (\<langle>ss\<rangle>\<^sub>s `\<^sub>f \<alpha> e, ss\<bullet>(\<epsilon> e))"
+"\<lambda> ss e. (\<langle>ss\<rangle>\<^sub>s |`| \<alpha> e, ss\<bullet>(\<epsilon> e))"
   apply (auto intro:unrest simp add:WF_ALPHA_EXPR_def WF_EXPR_OVER_def)
   apply (rule UNREST_EXPR_RenameE_alt)
   apply (auto)
@@ -221,10 +221,10 @@ lift_definition SubstA ::
  'a uaexpr \<Rightarrow> 
  'VALUE UTYPE VAR \<Rightarrow> 
  'a uapred" ("_[_|_]\<alpha>" [200]) is
-"\<lambda> p v x. (\<alpha> p \<union>\<^sub>f \<alpha> v, (\<pi> p)[\<epsilon> v|x])"
+"\<lambda> p v x. (\<alpha> p |\<union>| \<alpha> v, (\<pi> p)[\<epsilon> v|x])"
 proof -
   fix p v x
-  show "(\<alpha> p \<union>\<^sub>f \<alpha> v, (\<pi> p)[\<epsilon> v|x]) \<in> WF_ALPHA_PREDICATE"
+  show "(\<alpha> p |\<union>| \<alpha> v, (\<pi> p)[\<epsilon> v|x]) \<in> WF_ALPHA_PREDICATE"
     apply (insert WF_ALPHA_PREDICATE_UNREST[of p])
     apply (insert WF_ALPHA_EXPR_UNREST_EXPR[of v])
     apply (auto intro:unrest WF_ALPHA_EXPR_is_SubstPE_var simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
@@ -235,8 +235,8 @@ lift_definition SubstA ::
  'a uaexpr \<Rightarrow> 
  'a uvar \<Rightarrow> 
  'a uapred" ("_[_'/\<^sub>\<alpha>_]" [200] 200) is
-"\<lambda> p v x. (if (x \<in>\<^sub>f \<alpha> p) 
-              then (\<alpha> p -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
+"\<lambda> p v x. (if (x |\<in>| \<alpha> p) 
+              then (\<alpha> p -\<^sub>f \<lbrace>x\<rbrace>) |\<union>| \<alpha> v
               else \<alpha> p , (\<pi> p)[\<epsilon> v/\<^sub>px])"
   apply (auto simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
   apply (rule UNREST_SubstP_simple)
@@ -261,8 +261,8 @@ lift_definition SubstAE ::
  'a uaexpr \<Rightarrow> 
  'a uvar \<Rightarrow> 
  'a uaexpr" ("_[_'/\<^sub>\<epsilon>_]" [200] 200) is
-"\<lambda> e v x. (if (x \<in>\<^sub>f \<alpha> e) 
-              then (\<alpha> e -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
+"\<lambda> e v x. (if (x |\<in>| \<alpha> e) 
+              then (\<alpha> e -\<^sub>f \<lbrace>x\<rbrace>) |\<union>| \<alpha> v
               else \<alpha> e , (\<epsilon> e)[\<epsilon> v/\<^sub>ex])"
   apply (auto simp add:WF_ALPHA_EXPR_def WF_EXPR_OVER_def)
   apply (rule UNREST_SubstE_simple)
@@ -313,7 +313,7 @@ declare expr_alpha_def [simp]
 declare pred_alphabet_def [simp]
 
 theorem EqualA_alphabet [alphabet]:
-"\<alpha> (e ==\<^sub>\<alpha> f) = \<alpha> e \<union>\<^sub>f \<alpha> f"
+"\<alpha> (e ==\<^sub>\<alpha> f) = \<alpha> e |\<union>| \<alpha> f"
   by (simp add:EqualA.rep_eq)
 
 theorem VarAE_alphabet [alphabet]:
@@ -331,7 +331,7 @@ theorem CoerceAE_alphabet [alphabet]:
 (*
 theorem AppAE_alphabet [alphabet]:
 "\<lbrakk> f :\<^sub>\<alpha> FuncType a b; v :\<^sub>\<alpha> a; \<D> f \<rbrakk> \<Longrightarrow> 
- \<alpha> (AppAE f v) = \<alpha> f \<union>\<^sub>f \<alpha> v"
+ \<alpha> (AppAE f v) = \<alpha> f |\<union>| \<alpha> v"
   by (simp add:AppAE_rep_eq)
 *)
 
@@ -341,18 +341,18 @@ theorem ExprA_alphabet [alphabet]:
 
 theorem PermAE_alphabet [alphabet]:
   fixes e :: "'a uaexpr" 
-  shows "\<alpha> (ss\<bullet>e) = \<langle>ss\<rangle>\<^sub>s `\<^sub>f \<alpha> e"
+  shows "\<alpha> (ss\<bullet>e) = \<langle>ss\<rangle>\<^sub>s |`| \<alpha> e"
   by (simp add:PermAE.rep_eq)
 
 theorem SubstA_alphabet [alphabet]:
-  "\<alpha>(p[v/\<^sub>\<alpha>x]) = (if (x \<in>\<^sub>f \<alpha> p) 
-                    then (\<alpha> p -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
+  "\<alpha>(p[v/\<^sub>\<alpha>x]) = (if (x |\<in>| \<alpha> p) 
+                    then (\<alpha> p -\<^sub>f \<lbrace>x\<rbrace>) |\<union>| \<alpha> v
                     else \<alpha> p)"
   by (auto simp add:SubstA.rep_eq)
 
 theorem SubstAE_alphabet [alphabet]:
-  "\<alpha>(e[v/\<^sub>\<epsilon>x]) = (if (x \<in>\<^sub>f \<alpha> e) 
-                    then (\<alpha> e -\<^sub>f \<lbrace>x\<rbrace>) \<union>\<^sub>f \<alpha> v
+  "\<alpha>(e[v/\<^sub>\<epsilon>x]) = (if (x |\<in>| \<alpha> e) 
+                    then (\<alpha> e -\<^sub>f \<lbrace>x\<rbrace>) |\<union>| \<alpha> v
                     else \<alpha> e)"
   by (simp add:SubstAE.rep_eq)
 

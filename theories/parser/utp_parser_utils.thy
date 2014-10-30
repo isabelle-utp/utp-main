@@ -46,12 +46,12 @@ fun mk_string [] = Ast.Constant @{const_syntax Nil}
       Ast.Appl [Ast.Constant @{const_syntax List.Cons}, mk_char c, mk_string cs];
 
 fun string_ast_tr [Ast.Variable str] =
-      (case Lexicon.explode_str str of
+      (case Lexicon.explode_str (str, Position.none) of
         [] =>
           Ast.Appl
             [Ast.Constant @{syntax_const "_constrain"},
-              Ast.Constant @{const_syntax List.Nil}, Ast.Constant @{type_syntax string}]
-      | cs => mk_string cs)
+              Ast.Constant @{const_syntax Nil}, Ast.Constant @{type_syntax string}]
+      | ss => mk_string (map Symbol_Pos.symbol ss))
   | string_ast_tr [Ast.Appl [Ast.Constant @{syntax_const "_constrain"}, ast1, ast2]] =
       Ast.Appl [Ast.Constant @{syntax_const "_constrain"}, string_ast_tr [ast1], ast2]
   | string_ast_tr asts = raise Ast.AST ("string_tr", asts);

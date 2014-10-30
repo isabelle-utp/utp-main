@@ -291,13 +291,13 @@ begin
   lemma foldli_pick:
     assumes "l\<noteq>[]" 
     obtains k v where "(k,v)\<in>set l" 
-    and "(foldli l (option_case True (\<lambda>_. False)) (\<lambda>x _. Some x) None) 
+    and "(foldli l (case_option True (\<lambda>_. False)) (\<lambda>x _. Some x) None) 
       = Some (k,v)"
     using assms by (cases l) auto
 
   definition gen_pick where
     "gen_pick it s \<equiv> 
-      (the (it s (option_case True (\<lambda>_. False)) (\<lambda>x _. Some x) None))"
+      (the (it s (case_option True (\<lambda>_. False)) (\<lambda>x _. Some x) None))"
 
 
 
@@ -330,7 +330,7 @@ context begin interpretation autoref_syn .
       done
 
     then obtain k v where "m' k = Some v" and
-      "(foldli tsl' (option_case True (\<lambda>_. False)) (\<lambda>x _. Some x) None) 
+      "(foldli tsl' (case_option True (\<lambda>_. False)) (\<lambda>x _. Some x) None) 
         = Some (k,v)"
       (is "?fld = _")
       by (cases rule: foldli_pick) auto

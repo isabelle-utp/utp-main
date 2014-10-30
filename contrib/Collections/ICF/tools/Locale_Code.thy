@@ -153,7 +153,7 @@ structure Locale_Code :LOCALE_CODE = struct
       val acc' = filter (not o curry renames_cterm cpat o fst) acc;
       val _ = if length acc = length acc' then
           warning ("Locale_Code: LC_DEL without effect: "
-            ^ PolyML.makestring cpat) 
+            ^ @{make_string} cpat) 
         else ();
     in process_actions acc' acts end;
 
@@ -193,7 +193,7 @@ structure Locale_Code :LOCALE_CODE = struct
         | pname _ = Name.uu;
     in  
       space_implode "_" (Long_Name.base_name fname::map pname params)
-      |> gen_variant (can (Proof_Context.read_const_proper lthy false))
+      |> gen_variant (can (Proof_Context.read_const {proper = true, strict = false} lthy))
     end;
   in
     fun inst_pat_eq (cpat,thms) = 
@@ -242,7 +242,7 @@ structure Locale_Code :LOCALE_CODE = struct
       val peqs' = filter (not o del_pat_matches cpat) peqs
       val _ = if length peqs = length peqs' then
           warning ("Locale_Code: No pattern-eqs matching filter: " ^ 
-            PolyML.makestring cpat) 
+            @{make_string} cpat) 
         else ();
     in peqs' end;
 
@@ -260,7 +260,7 @@ structure Locale_Code :LOCALE_CODE = struct
       they have been added! *)
 
     val _ = if !tracing_enabled then
-      map (fn peq => (tracing (PolyML.makestring peq); ())) peqs
+      map (fn peq => (tracing (@{make_string} peq); ())) peqs
     else [];
 
     val thy = thy |> fold inst_pat_eq peqs;
@@ -338,8 +338,8 @@ structure Locale_Code :LOCALE_CODE = struct
     fun lc_decl_eq thms lthy = case comp_head thms of
       SOME (cpat,thms) => let
         val _ = if !tracing_enabled then 
-          tracing ("decl_eq: " ^ PolyML.makestring cpat ^ ": "
-                 ^ PolyML.makestring thms)
+          tracing ("decl_eq: " ^ @{make_string} cpat ^ ": "
+                 ^ @{make_string} thms)
         else ();
 
         fun decl m = let

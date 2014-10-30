@@ -119,9 +119,9 @@ proof -
 qed
 
 text {* Finally, we can generate code *}
-export_code find_max_impl in SML file -
-export_code find_max_impl in OCaml file -
-export_code find_max_impl in Haskell file -
-export_code find_max_impl in Scala file -
+export_code find_max_impl in SML
+export_code find_max_impl in OCaml
+export_code find_max_impl in Haskell
+export_code find_max_impl in Scala
   
 end

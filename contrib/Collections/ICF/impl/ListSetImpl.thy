@@ -45,13 +45,27 @@ interpretation ls_basic!: StdBasicSet ls_basic_ops
   done
 setup Locale_Code.close_block
 
-definition [icf_rec_def]: "ls_ops \<equiv> ls_basic.dflt_ops"
+definition [icf_rec_def]: "ls_ops \<equiv> ls_basic.dflt_ops\<lparr> 
+  set_op_to_list := list_of_dlist
+  \<rparr>"
 
 setup Locale_Code.open_block
 interpretation ls!: StdSetDefs ls_ops .
 interpretation ls!: StdSet ls_ops
-  unfolding ls_ops_def
-  by (rule ls_basic.dflt_ops_impl)
+proof -
+  interpret aux: StdSet ls_basic.dflt_ops
+    by (rule ls_basic.dflt_ops_impl)
+
+  show "StdSet ls_ops"
+    unfolding ls_ops_def
+    apply (rule StdSet_intro)
+    apply icf_locales
+    apply (simp_all add: icf_rec_unf)
+    apply (unfold_locales)
+    apply (simp_all add: ls_\<alpha>_def)
+    done
+qed
+
 interpretation ls!: StdSet_no_invar ls_ops
   by unfold_locales (simp add: icf_rec_unf)
 setup Locale_Code.close_block
@@ -103,6 +117,6 @@ definition test_codegen where "test_codegen \<equiv> (
   ls.from_list
 )"
 
-export_code test_codegen in SML file -
+export_code test_codegen in SML
 
 end

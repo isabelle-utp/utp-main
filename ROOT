@@ -196,7 +196,6 @@ session Kleene_Algebra (AFP) in "contrib/Kleene_Algebra"
     Action_Algebra_Models
     Dioid
     Dioid_Models
-    Formal_Power_Series
     Kleene_Algebras
     Kleene_Algebra_Models
     Matrix

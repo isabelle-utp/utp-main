@@ -100,9 +100,9 @@ qed simp
 (* TODO: This is a hack that causes the relation to be instantiated to Id, if it is not
     yet fixed! *)
 lemma hashable_bhc_is_bhc[autoref_ga_rules]:
-  "\<lbrakk>STRUCT_EQ_tag eq op=; REL_FORCE_ID R\<rbrakk> \<Longrightarrow> is_bounded_hashcode R eq bounded_hashcode"
+  "\<lbrakk>STRUCT_EQ_tag eq op=; REL_FORCE_ID R\<rbrakk> \<Longrightarrow> is_bounded_hashcode R eq bounded_hashcode_nat"
   unfolding is_bounded_hashcode_def
-  by (simp add: bounded_hashcode_bounds)
+  by (simp add: bounded_hashcode_nat_bounds)
 
 
 subsection {* Default hash map size *}

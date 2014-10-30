@@ -218,7 +218,7 @@ where
     "map_ran f [] = []"
   | "map_ran f (p#ps) = (fst p, f (fst p) (snd p)) # map_ran f ps"
 
-lemma map_ran_conv: "map_of (map_ran f al) k = Option.map (f k) (map_of al k)"
+lemma map_ran_conv: "map_of (map_ran f al) k = map_option (f k) (map_of al k)"
   by (induct al) auto
 
 lemma dom_map_ran: "fst ` set (map_ran f al) = fst ` set al"
@@ -238,13 +238,13 @@ text {* new lemmas and definitions *}
 
 lemma map_ran_cong [fundef_cong]:
   "\<lbrakk> al = al'; \<And>k v. (k, v) \<in> set al \<Longrightarrow> f k v = g k v \<rbrakk> \<Longrightarrow> map_ran f al = map_ran g al'"
-by clarify (induct al', auto)
+by hypsubst_thin (induct al', auto)
 
-lemma list_size_delete: "list_size f (AList.delete a al) \<le> list_size f al"
+lemma size_list_delete: "size_list f (AList.delete a al) \<le> size_list f al"
 by(induct al) simp_all
 
-lemma list_size_clearjunk: "list_size f (AList.clearjunk al) \<le> list_size f al"
-by(induct al)(auto simp add: clearjunk_delete intro: le_trans[OF list_size_delete])
+lemma size_list_clearjunk: "size_list f (AList.clearjunk al) \<le> size_list f al"
+by(induct al)(auto simp add: clearjunk_delete intro: le_trans[OF size_list_delete])
 
 lemma set_delete_conv: "set (AList.delete a al) = set al - ({a} \<times> UNIV)"
 proof(induct al)
@@ -279,5 +279,15 @@ lemma length_distinct:
   "distinct (map fst xs) \<Longrightarrow> length (AList.delete k xs) 
   = (if k \<in> fst ` set xs then length xs - 1 else length xs)"
   by(induct xs)(auto split: split_if_asm simp add: in_set_conv_nth)
+
+lemma finite_Assoc_List_set_image:
+  assumes "finite (Assoc_List.set ` A)"
+  shows "finite A"
+proof -
+  have "Assoc_List.set ` A = set ` Assoc_List.impl_of ` A"
+    by (auto simp add: Assoc_List.set_def)
+  with assms finite_set_image have "finite (Assoc_List.impl_of ` A)" by auto
+  with assoc_list_ext show ?thesis by (metis inj_onI finite_imageD)
+qed
 
 end

@@ -43,7 +43,7 @@ begin
   proof
     fix X Y Z :: "'a set"
      show "X \<cdot> Y \<cdot> Z = X \<cdot> (Y \<cdot> Z)"
-      by (auto simp add: c_prod_def) (metis mult_assoc)+
+      by (auto simp add: c_prod_def) (metis mult.assoc)+
     show "1 \<cdot> X = X"
       by (simp add: one_set_def c_prod_def)
     show "X \<cdot> 1 = X"
@@ -327,10 +327,10 @@ lemma p_fusion_last:
   and "ps \<noteq> []"
   and "qs \<noteq> []"
   shows "List.last (p_fusion ps qs) = List.last qs"
-  by (metis (hide_lams, no_types) List.last.simps List.last_append append_Nil2 assms hd.simps neq_Nil_conv p_fusion.simps(3))
+  by (metis (hide_lams, no_types) List.last.simps List.last_append append_Nil2 assms list.sel(1) neq_Nil_conv p_fusion.simps(3))
 
 lemma p_fusion_hd: "\<lbrakk>ps \<noteq> []; qs \<noteq> []\<rbrakk> \<Longrightarrow> hd (p_fusion ps qs) = hd ps"
-  by (metis list.exhaust p_fusion.simps(3) append_Cons hd.simps)
+  by (metis list.exhaust p_fusion.simps(3) append_Cons list.sel(1))
 
 lemma nonempty_p_fusion: "\<lbrakk>ps \<noteq> []; qs \<noteq> []\<rbrakk> \<Longrightarrow> p_fusion ps qs \<noteq> []"
   by (metis list.exhaust append_Cons p_fusion.simps(3) list.simps(2))
@@ -383,7 +383,7 @@ proof (rule set_eqI)
         by (auto simp add: p_one_def p_prod_def, metis nonempty_p_fusion not_Cons_self)
     next
       case Cons thus ?thesis
-        by (auto simp add: p_one_def p_prod_def, metis append_Cons append_Nil hd.simps neq_Nil_conv p_fusion.simps(3), metis Cons_eq_appendI hd.simps last_ConsL list.simps(3) p_fusion.simps(3) self_append_conv2)
+        by (auto simp add: p_one_def p_prod_def, metis append_Cons append_Nil list.sel neq_Nil_conv p_fusion.simps(3), metis Cons_eq_appendI list.sel last_ConsL list.simps(3) p_fusion.simps(3) self_append_conv2)
     qed
 qed
 
@@ -396,7 +396,7 @@ proof (rule set_eqI)
         by (auto simp add: p_one_def p_prod_def, metis nonempty_p_fusion not_Cons_self2, metis p_fusion.simps(1))
     next
       case Cons thus ?thesis
-        by (auto simp add: p_one_def p_prod_def, metis append_Nil2 neq_Nil_conv p_fusion.simps(3), metis hd.simps list.simps(2) p_fusion.simps(3) self_append_conv)
+        by (auto simp add: p_one_def p_prod_def, metis append_Nil2 neq_Nil_conv p_fusion.simps(3), metis list.sel(1) list.simps(2) p_fusion.simps(3) self_append_conv)
     qed
 qed
 
@@ -693,9 +693,10 @@ begin
     show "x < y \<longleftrightarrow> x \<le> y \<and> x \<noteq> y"
       by (metis less_mreal_def)
     show "x + y = x \<or> x + y = y"
-      by (cases x, cases y, simp_all add: plus_mreal_def, metis linorder_le_cases min_max.le_iff_sup min_max.sup_absorb1)
+      by (cases x, cases y, simp_all add: plus_mreal_def, metis max_def)
     show "x * (y + z) = x * y + x * z"
-      by (cases x, cases y, cases z, simp_all add: plus_mreal_def times_mreal_def)     qed
+      by (cases x, cases y, cases z, simp_all add: plus_mreal_def times_mreal_def)
+  qed
 
 end (* instantiation *)
 
@@ -767,7 +768,7 @@ begin
     show "x < y \<longleftrightarrow> x \<le> y \<and> x \<noteq> y"
       by (metis less_preal_def)
     show "x + y = x \<or> x + y = y"
-     by (cases x, cases y, simp_all add: plus_preal_def, metis linorder_le_cases min_max.inf_absorb2 min_max.le_iff_inf)
+      by (cases x, cases y, simp_all add: plus_preal_def, metis min_def)
     show "x * (y + z) = x * y + x * z"
       by (cases x, cases y, cases z, simp_all add: plus_preal_def times_preal_def)   qed
 
@@ -841,7 +842,7 @@ begin
     show "x < y \<longleftrightarrow> x \<le> y \<and> x \<noteq> y"
       by (metis less_pnat_def)
     show "x + y = x \<or> x + y = y"
-      by (cases x, cases y, simp_all add: plus_pnat_def, metis linorder_le_cases min_max.inf_absorb2 min_max.le_iff_inf)
+      by (cases x, cases y, simp_all add: plus_pnat_def, metis min_def)
     show "x * (y + z) = x * y + x * z"
       by (cases x, cases y, cases z, simp_all add: plus_pnat_def times_pnat_def)
   qed

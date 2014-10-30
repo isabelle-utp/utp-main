@@ -201,7 +201,7 @@ lemma inj_map_inv [intro]:
   apply (auto simp add:map_inv_def inj_on_def dom_def ran_def)
   apply (frule_tac P="\<lambda> xa. f xa = Some x" in some_equality)
   apply (auto)
-  apply (metis (lifting, full_types) someI_ex the.simps)
+  apply (metis (mono_tags) option.sel someI)
 done
 
 lemma inj_map_bij: "inj_on f (dom f) \<Longrightarrow> bij_betw f (dom f) (Some ` ran f)"
@@ -293,9 +293,9 @@ lemma bij_map_Some:
   "bij_betw f a (Some ` b) \<Longrightarrow> bij_betw (the \<circ> f) a b"
   apply (simp add:bij_betw_def)
   apply (safe)
-  apply (metis (hide_lams, no_types) comp_inj_on_iff f_the_inv_into_f inj_on_inverseI the.simps)
-  apply (metis (hide_lams, no_types) comp_apply image_iff the.simps)
-  apply (metis imageI image_compose the.simps)
+  apply (metis (hide_lams, no_types) comp_inj_on_iff f_the_inv_into_f inj_on_inverseI option.sel)
+  apply (metis (hide_lams, no_types) comp_apply image_iff option.sel)
+  apply (metis imageI image_comp option.sel)
 done
 
 lemma ran_map_add [simp]: 
@@ -477,7 +477,7 @@ theorem inv_map_inv:
   apply (simp)
   apply (rule some_equality)
   apply (simp)
-  apply (metis (hide_lams, mono_tags) domD domI dom_left_map_add inj_on_contraD map_add_Some map_add_dom_app_simps(3) the.simps)
+  apply (metis (hide_lams, mono_tags) domD domI dom_left_map_add inj_on_contraD map_add_Some map_add_dom_app_simps(3) option.sel)
   apply (simp add:dom_def)
   apply (metis ranI)
   apply (simp)
@@ -485,7 +485,7 @@ theorem inv_map_inv:
   apply (simp)
   apply (rule some_equality)
   apply (simp)
-  apply (metis domD dom_left_map_add map_add_Some map_add_dom_app_simps(3) the.simps)
+  apply (metis domD dom_left_map_add map_add_Some map_add_dom_app_simps(3) option.sel)
   apply (metis dom_image_ran image_iff)
 done
 

@@ -110,7 +110,7 @@ proof -
     also have "... = \<Sum>{x. \<exists>k. (i = k \<and> x = f i j)} + \<Sum>{x. \<exists>k. (i \<noteq> k \<and> x = 0)}"
       by (rule setsum_union, auto)
     finally have "(\<epsilon> \<otimes> f) i j = f i j"
-      by (auto simp add: setsum_0')
+      by (auto simp add: setsum.neutral)
   }
   thus ?thesis
     by auto
@@ -127,7 +127,7 @@ proof -
     also have "... = \<Sum>{x. \<exists>k. (k = j \<and> x = f i j)} + \<Sum>{x. \<exists>k. (k \<noteq> j \<and> x = 0)}"
       by (rule setsum_union, auto)
     finally have "(f \<otimes> \<epsilon>) i j = f i j"
-      by (auto simp add: setsum_0')
+      by (auto simp add: setsum.neutral)
   }
   thus ?thesis
     by auto
@@ -159,7 +159,7 @@ proof -
     have "(f \<otimes> (g \<otimes> h)) i j = \<Sum>{f i k1 \<cdot> \<Sum>{g k1 k2 \<cdot> h k2 j |k2. k2 \<in> UNIV} |k1. k1 \<in> UNIV}"
       by (simp only: mat_mult_def)
     also have "... = \<Sum>{\<Sum>{f i k1 \<cdot> g k1 k2 \<cdot> h k2 j |k2. k2 \<in> UNIV} |k1. k1 \<in> UNIV}"
-      by (simp only: fset_to_im setsum_fun_distl finiteuniv mult_assoc)
+      by (simp only: fset_to_im setsum_fun_distl finiteuniv mult.assoc)
     also have "... = \<Sum>{\<Sum>{(f i k1 \<cdot> g k1 k2) \<cdot> h k2 j|k1. k1 \<in> UNIV} |k2. k2 \<in> UNIV}"
       by (rule mat_rearrange, auto simp add: finiteuniv)
     also have "... = \<Sum>{\<Sum>{f i k1 \<cdot> g k1 k2 |k1. k1 \<in> UNIV} \<cdot> h k2 j |k2. k2 \<in> UNIV}"

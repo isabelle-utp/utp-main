@@ -165,7 +165,7 @@ lemma transfer_FOREACH_plain[refine_transfer]:
   by (rule transfer_FOREACHc_plain)
 
 abbreviation "dres_it iterate c (fi::'a \<Rightarrow> 'b \<Rightarrow> 'b dres) \<sigma> \<equiv> 
-  iterate (dres_case False False c) (\<lambda>x s. s\<guillemotright>=fi x) (dRETURN \<sigma>)"
+  iterate (case_dres False False c) (\<lambda>x s. s\<guillemotright>=fi x) (dRETURN \<sigma>)"
 
 lemma transfer_FOREACHoci_nres[refine_transfer]:
   assumes A: "set_iterator_genord iterate s ordR"
@@ -267,16 +267,16 @@ qed
 lemma it_mono_aux_dres':
   assumes STRICT: "\<And>x. f x bot = bot" "\<And>x. f' x top = top"
   assumes A: "\<And>a x x'. x\<le>x' \<Longrightarrow> f a x \<le> f' a x'"
-  shows "foldli l (dres_case True True c) f \<sigma> 
-    \<le> foldli l (dres_case True True c) f' \<sigma>"
+  shows "foldli l (case_dres True True c) f \<sigma> 
+    \<le> foldli l (case_dres True True c) f' \<sigma>"
   apply (rule it_mono_aux)
   apply (simp_all split: dres.split_asm add: STRICT A)
   done
 
 lemma it_mono_aux_dres:
   assumes A: "\<And>a x. f a x \<le> f' a x"
-  shows "foldli l (dres_case True True c) (\<lambda>x s. dbind s (f x)) \<sigma> 
-    \<le> foldli l (dres_case True True c) (\<lambda>x s. dbind s (f' x)) \<sigma>"
+  shows "foldli l (case_dres True True c) (\<lambda>x s. dbind s (f x)) \<sigma> 
+    \<le> foldli l (case_dres True True c) (\<lambda>x s. dbind s (f' x)) \<sigma>"
   apply (rule it_mono_aux_dres')
   apply (simp_all)
   apply (rule dbind_mono)
@@ -288,8 +288,8 @@ lemma iteratei_mono':
   assumes STRICT: "\<And>x. f x bot = bot" "\<And>x. f' x top = top"
   assumes A: "\<And>a x x'. x\<le>x' \<Longrightarrow> f a x \<le> f' a x'"
   assumes I: "invar s"
-  shows "IT_tag it s (dres_case True True c) f \<sigma> 
-    \<le> IT_tag it s (dres_case True True c) f' \<sigma>"
+  shows "IT_tag it s (case_dres True True c) f \<sigma> 
+    \<le> IT_tag it s (case_dres True True c) f' \<sigma>"
   proof -
     from set_iteratei.iteratei_rule[OF L, OF I, unfolded set_iterator_foldli_conv]
     obtain l0 where l0_props: "distinct l0" "\<alpha> s = set l0" "it s = foldli l0" by blast
@@ -304,8 +304,8 @@ lemma iteratei_mono:
   assumes L: "set_iteratei \<alpha> invar it"
   assumes A: "\<And>a x. f a x \<le> f' a x"
   assumes I: "invar s"
-  shows "IT_tag it s (dres_case True True c) (\<lambda>x s. dbind s (f x)) \<sigma> 
-    \<le> IT_tag it s (dres_case True True c) (\<lambda>x s. dbind s (f' x)) \<sigma>"
+  shows "IT_tag it s (case_dres True True c) (\<lambda>x s. dbind s (f x)) \<sigma> 
+    \<le> IT_tag it s (case_dres True True c) (\<lambda>x s. dbind s (f' x)) \<sigma>"
  proof -
     from set_iteratei.iteratei_rule[OF L, OF I, unfolded set_iterator_foldli_conv]
     obtain l0 where l0_props: "distinct l0" "\<alpha> s = set l0" "it s = foldli l0" by blast
@@ -351,8 +351,8 @@ qed
 
 lemma iteratei_mono_lsi[refine_mono]:
   assumes A: "\<And>a x. f a x \<le> f' a x"
-  shows "IT_tag lsi_iteratei s (dres_case True True c) (\<lambda>x s. dbind s (f x)) \<sigma> 
-    \<le> IT_tag lsi_iteratei s (dres_case True True c) (\<lambda>x s. dbind s (f' x)) \<sigma>"
+  shows "IT_tag lsi_iteratei s (case_dres True True c) (\<lambda>x s. dbind s (f x)) \<sigma> 
+    \<le> IT_tag lsi_iteratei s (case_dres True True c) (\<lambda>x s. dbind s (f' x)) \<sigma>"
  proof -
     from it_mono_aux_dres [of f f' s c \<sigma>]
     show ?thesis

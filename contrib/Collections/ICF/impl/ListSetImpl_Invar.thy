@@ -47,7 +47,8 @@ interpretation lsi_basic!: StdBasicSet lsi_basic_ops
 setup Locale_Code.close_block
 
 definition [icf_rec_def]: "lsi_ops \<equiv> lsi_basic.dflt_ops \<lparr>
-  set_op_union_dj := op @
+  set_op_union_dj := op @,
+  set_op_to_list := id
 \<rparr>"
 
 setup Locale_Code.open_block
@@ -59,8 +60,8 @@ proof -
     unfolding lsi_ops_def
     apply (rule StdSet_intro)
     apply icf_locales
-    apply (simp add: icf_rec_unf)
-    apply (unfold_locales, auto) []
+    apply (simp_all add: icf_rec_unf)
+    apply (unfold_locales, auto)
     done
 qed
 setup Locale_Code.close_block
@@ -101,6 +102,6 @@ definition test_codegen where "test_codegen \<equiv> (
   lsi.from_list
 )"
 
-export_code test_codegen in SML file -
+export_code test_codegen in SML
 
 end

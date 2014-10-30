@@ -8,12 +8,13 @@ imports
   "Impl/Impl_Array_Hash_Map"
   "Impl/Impl_Array_Stack"
   "Impl/Impl_Cfun_Set"
+  "Impl/Impl_Bit_Set"
+  "Impl/Impl_Uv_Set"
   "Gen/Gen_Set"
   "Gen/Gen_Map"
   "Gen/Gen_Map2Set"
   "Gen/Gen_Comp"
-  "~~/src/HOL/Library/Code_Target_Numeral"
-
+  "../Lib/Code_Target_ICF"
 begin
 
   text {* Use one of the @{text "Refine_Dflt"}-theories as entry-point! *}

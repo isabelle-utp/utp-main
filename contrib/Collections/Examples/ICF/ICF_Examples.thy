@@ -5,6 +5,7 @@ imports
   "itp_2010"
   "Exploration"
   "Exploration_DFS"
+  "PerformanceTest"
 begin
 
 end

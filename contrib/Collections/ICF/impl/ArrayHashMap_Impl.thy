@@ -87,7 +87,7 @@ definition ahm_empty :: "unit \<Rightarrow> ('key :: hashable, 'val) hashmap"
 where "ahm_empty \<equiv> \<lambda>_. new_hashmap_with (def_hashmap_size TYPE('key))"
 
 definition bucket_ok :: "nat \<Rightarrow> nat \<Rightarrow> (('key :: hashable) \<times> 'val) list \<Rightarrow> bool"
-where "bucket_ok len h kvs = (\<forall>k \<in> fst ` set kvs. bounded_hashcode len k = h)"
+where "bucket_ok len h kvs = (\<forall>k \<in> fst ` set kvs. bounded_hashcode_nat len k = h)"
 
 definition ahm_invar_aux :: "nat \<Rightarrow> (('key :: hashable) \<times> 'val) list array \<Rightarrow> bool"
 where
@@ -96,11 +96,12 @@ where
   array_foldl (\<lambda>_ n kvs. n + size kvs) 0 a = n \<and>
   array_length a > 1"
 
+
 primrec ahm_invar :: "('key :: hashable, 'val) hashmap \<Rightarrow> bool"
 where "ahm_invar (HashMap a n) = ahm_invar_aux n a"
 
 definition ahm_\<alpha>_aux :: "(('key :: hashable) \<times> 'val) list array \<Rightarrow> 'key \<Rightarrow> 'val option"
-where [simp]: "ahm_\<alpha>_aux a k = map_of (array_get a (bounded_hashcode (array_length a) k)) k"
+where [simp]: "ahm_\<alpha>_aux a k = map_of (array_get a (bounded_hashcode_nat (array_length a) k)) k"
 
 primrec ahm_\<alpha> :: "('key :: hashable, 'val) hashmap \<Rightarrow> 'key \<Rightarrow> 'val option"
 where
@@ -119,7 +120,7 @@ where
 definition ahm_rehash_aux' :: "nat \<Rightarrow> 'key \<times> 'val \<Rightarrow> (('key :: hashable) \<times> 'val) list array \<Rightarrow> ('key \<times> 'val) list array"
 where
   "ahm_rehash_aux' n kv a =
-   (let h = bounded_hashcode n (fst kv)
+   (let h = bounded_hashcode_nat n (fst kv)
     in array_set a h (kv # array_get a h))"
 
 definition ahm_rehash_aux :: "(('key :: hashable) \<times> 'val) list array \<Rightarrow> nat \<Rightarrow> ('key \<times> 'val) list array"
@@ -138,7 +139,7 @@ where "ahm_filled (HashMap a n) = (array_length a * load_factor \<le> n * 100)"
 primrec ahm_update_aux :: "('key :: hashable, 'val) hashmap \<Rightarrow> 'key \<Rightarrow> 'val \<Rightarrow> ('key, 'val) hashmap"
 where
   "ahm_update_aux (HashMap a n) k v = 
-  (let h = bounded_hashcode (array_length a) k;
+  (let h = bounded_hashcode_nat (array_length a) k;
        m = array_get a h;
        insert = map_of m k = None
    in HashMap (array_set a h (AList.update k v m)) (if insert then n + 1 else n))"
@@ -152,7 +153,7 @@ where
 primrec ahm_delete :: "'key \<Rightarrow> ('key :: hashable, 'val) hashmap \<Rightarrow> ('key, 'val) hashmap"
 where
   "ahm_delete k (HashMap a n) =
-  (let h = bounded_hashcode (array_length a) k;
+  (let h = bounded_hashcode_nat (array_length a) k;
        m = array_get a h;
        deleted = (map_of m k \<noteq> None)
    in HashMap (array_set a h (AList.delete k m)) (if deleted then n - 1 else n))"
@@ -167,11 +168,11 @@ by(simp add: bucket_ok_def)
 
 lemma bucket_okD:
   "\<lbrakk> bucket_ok len h xs; (k, v) \<in> set xs \<rbrakk>
-  \<Longrightarrow> bounded_hashcode len k = h"
+  \<Longrightarrow> bounded_hashcode_nat len k = h"
 by(auto simp add: bucket_ok_def)
 
 lemma bucket_okI:
-  "(\<And>k. k \<in> fst ` set kvs \<Longrightarrow> bounded_hashcode len k = h) \<Longrightarrow> bucket_ok len h kvs"
+  "(\<And>k. k \<in> fst ` set kvs \<Longrightarrow> bounded_hashcode_nat len k = h) \<Longrightarrow> bucket_ok len h kvs"
 by(simp add: bucket_ok_def)
 
 
@@ -220,10 +221,10 @@ proof -
         have "[x\<leftarrow>xs . x \<noteq> []] ! i \<in> set [x\<leftarrow>xs . x \<noteq> []]" by(rule nth_mem)
         with ith have "xs ! i' \<noteq> []" by simp
         then obtain kv where "kv \<in> set (xs ! i')" by(fastforce simp add: neq_Nil_conv)
-        with no_junk[OF `i' < length xs`] have "bounded_hashcode (length xs) (fst kv) = i'"
+        with no_junk[OF `i' < length xs`] have "bounded_hashcode_nat (length xs) (fst kv) = i'"
           by(simp add: bucket_ok_def)
         moreover from eq `kv \<in> set (xs ! i')` have "kv \<in> set (xs ! j')" by simp
-        with no_junk[OF `j' < length xs`] have "bounded_hashcode (length xs) (fst kv) = j'"
+        with no_junk[OF `j' < length xs`] have "bounded_hashcode_nat (length xs) (fst kv) = j'"
           by(simp add: bucket_ok_def)
         ultimately have [simp]: "i' = j'" by simp
         from `i < length [x\<leftarrow>xs . x \<noteq> []]` have "i = length (take i [x\<leftarrow>xs . x \<noteq> []])" by simp
@@ -240,10 +241,10 @@ proof -
       from `y \<in> set xs` obtain j where "xs ! j = y" "j < length xs" unfolding set_conv_nth by fastforce
       from `x \<noteq> []` obtain k v x' where "x = (k, v) # x'" by(cases x) auto
       with no_junk[OF `i < length xs`] `xs ! i = x`
-      have "bounded_hashcode (length xs) k = i" by(auto simp add: bucket_ok_def)
+      have "bounded_hashcode_nat (length xs) k = i" by(auto simp add: bucket_ok_def)
       moreover from `map fst x = map fst y` `x = (k, v) # x'` obtain v' where "(k, v') \<in> set y" by fastforce
       with no_junk[OF `j < length xs`] `xs ! j = y`
-      have "bounded_hashcode (length xs) k = j" by(auto simp add: bucket_ok_def)
+      have "bounded_hashcode_nat (length xs) k = j" by(auto simp add: bucket_ok_def)
       ultimately have "i = j" by simp
       with `xs ! i = x` `xs ! j = y` show "x = y" by simp
     qed
@@ -264,10 +265,10 @@ proof -
       assume "k \<in> fst ` set ys' \<inter> fst ` set zs'"
       then obtain v v' where "(k, v) \<in> set ys'" "(k, v') \<in> set zs'" by(auto)
       from `ys' \<in> set xs` obtain i where "xs ! i = ys'" "i < length xs" unfolding set_conv_nth by fastforce
-      with `(k, v) \<in> set ys'` have "bounded_hashcode (length xs) k = i" by(auto dest: no_junk bucket_okD)
+      with `(k, v) \<in> set ys'` have "bounded_hashcode_nat (length xs) k = i" by(auto dest: no_junk bucket_okD)
       moreover
       from `zs' \<in> set xs` obtain j where "xs ! j = zs'" "j < length xs" unfolding set_conv_nth by fastforce
-      with `(k, v') \<in> set zs'` have "bounded_hashcode (length xs) k = j" by(auto dest: no_junk bucket_okD)
+      with `(k, v') \<in> set zs'` have "bounded_hashcode_nat (length xs) k = j" by(auto dest: no_junk bucket_okD)
       ultimately have "i = j" by simp
       with `xs ! i = ys'` `xs ! j = zs'` have "ys' = zs'" by simp
       with `ys \<noteq> zs` show False by simp
@@ -282,14 +283,14 @@ lemma finite_dom_ahm_\<alpha>_aux:
   assumes "ahm_invar_aux n a"
   shows "finite (dom (ahm_\<alpha>_aux a))"
 proof -
-  have "dom (ahm_\<alpha>_aux a) \<subseteq> (\<Union>h \<in> range (bounded_hashcode (array_length a) :: 'a \<Rightarrow> nat). dom (map_of (array_get a h)))"
+  have "dom (ahm_\<alpha>_aux a) \<subseteq> (\<Union>h \<in> range (bounded_hashcode_nat (array_length a) :: 'a \<Rightarrow> nat). dom (map_of (array_get a h)))"
     by(force simp add: dom_map_of_conv_image_fst ahm_\<alpha>_aux_def dest: map_of_SomeD)
   moreover have "finite \<dots>"
   proof(rule finite_UN_I)
     from `ahm_invar_aux n a` have "array_length a > 1" by(simp add: ahm_invar_aux_def)
-    hence "range (bounded_hashcode (array_length a) :: 'a \<Rightarrow> nat) \<subseteq> {0..<array_length a}"
-      by(auto simp add: bounded_hashcode_bounds)
-    thus "finite (range (bounded_hashcode (array_length a) :: 'a \<Rightarrow> nat))"
+    hence "range (bounded_hashcode_nat (array_length a) :: 'a \<Rightarrow> nat) \<subseteq> {0..<array_length a}"
+      by(auto simp add: bounded_hashcode_nat_bounds)
+    thus "finite (range (bounded_hashcode_nat (array_length a) :: 'a \<Rightarrow> nat))"
       by(rule finite_subset) simp
   qed(rule finite_dom_map_of)
   ultimately show ?thesis by(rule finite_subset)
@@ -304,12 +305,12 @@ proof
   proof(cases "map_of (concat xs) k")
     case None
     hence "k \<notin> fst ` set (concat xs)" by(simp add: map_of_eq_None_iff)
-    hence "k \<notin> fst ` set (xs ! bounded_hashcode (length xs) k)"
+    hence "k \<notin> fst ` set (xs ! bounded_hashcode_nat (length xs) k)"
     proof(rule contrapos_nn)
-      assume "k \<in> fst ` set (xs ! bounded_hashcode (length xs) k)"
-      then obtain v where "(k, v) \<in> set (xs ! bounded_hashcode (length xs) k)" by auto
-      moreover from inv have "bounded_hashcode (length xs) k < length xs"
-        by(simp add: bounded_hashcode_bounds ahm_invar_aux_def)
+      assume "k \<in> fst ` set (xs ! bounded_hashcode_nat (length xs) k)"
+      then obtain v where "(k, v) \<in> set (xs ! bounded_hashcode_nat (length xs) k)" by auto
+      moreover from inv have "bounded_hashcode_nat (length xs) k < length xs"
+        by(simp add: bounded_hashcode_nat_bounds ahm_invar_aux_def)
       ultimately show "k \<in> fst ` set (concat xs)"
         by(force intro: rev_image_eqI)
     qed
@@ -339,7 +340,7 @@ proof(cases a)
   hence "card (dom (map_of (concat xs))) = length (concat xs)"
     by(rule card_dom_map_of)
   also have "length (concat xs) = foldl op + 0 (map length xs)"
-    by (simp add: length_concat foldl_conv_fold add_commute fold_plus_listsum_rev)
+    by (simp add: length_concat foldl_conv_fold add.commute fold_plus_listsum_rev)
   also from inv
   have "\<dots> = n" unfolding foldl_map by(simp add: ahm_invar_aux_def array_foldl_foldl)
   finally show ?thesis by(simp)
@@ -374,7 +375,7 @@ by(auto simp add: ahm_invar_def new_hashmap_with_def intro: ahm_invar_aux_new_ar
 
 lemma ahm_\<alpha>_new_hashmap_with:
   "n > 1 \<Longrightarrow> ahm_\<alpha> (new_hashmap_with n) = empty"
-by(simp add: new_hashmap_with_def bounded_hashcode_bounds fun_eq_iff)
+by(simp add: new_hashmap_with_def bounded_hashcode_nat_bounds fun_eq_iff)
 
 lemma ahm_invar_ahm_empty [simp]: "ahm_invar (ahm_empty ())"
 using def_hashmap_size[where ?'a = 'a]
@@ -439,7 +440,7 @@ by(simp add: ahm_rehash_aux'_def Let_def)
 
 lemma ahm_rehash_aux'_preserves_ahm_invar_aux:
   assumes inv: "ahm_invar_aux n a"
-  and fresh: "k \<notin> fst ` set (array_get a (bounded_hashcode (array_length a) k))"
+  and fresh: "k \<notin> fst ` set (array_get a (bounded_hashcode_nat (array_length a) k))"
   shows "ahm_invar_aux (Suc n) (ahm_rehash_aux' (array_length a) (k, v) a)"
   (is "ahm_invar_aux _ ?a")
 proof(rule ahm_invar_auxI)
@@ -449,7 +450,7 @@ proof(rule ahm_invar_auxI)
   with inv have bucket: "bucket_ok (array_length a) h (array_get a h)"
     and dist: "distinct (map fst (array_get a h))"
     by(auto elim: ahm_invar_auxE)
-  let ?h = "bounded_hashcode (array_length a) k"
+  let ?h = "bounded_hashcode_nat (array_length a) k"
   from hlen bucket show "bucket_ok (array_length ?a) h (array_get ?a h)"
     by(cases "h = ?h")(auto simp add: ahm_rehash_aux'_def Let_def array_length_ahm_rehash_aux' array_get_array_set_other dest: bucket_okD intro!: bucket_okI)
   from dist hlen fresh
@@ -461,11 +462,11 @@ next
     have "foldl ?f n xs = n + foldl ?f 0 xs"
       by(induct xs arbitrary:  rule: rev_induct) simp_all }
   note fold = this
-  let ?h = "bounded_hashcode (array_length a) k"
+  let ?h = "bounded_hashcode_nat (array_length a) k"
 
   obtain xs where a [simp]: "a = Array xs" by(cases a)
-  from inv have [simp]: "bounded_hashcode (length xs) k < length xs"
-    by(simp add: ahm_invar_aux_def bounded_hashcode_bounds)
+  from inv have [simp]: "bounded_hashcode_nat (length xs) k < length xs"
+    by(simp add: ahm_invar_aux_def bounded_hashcode_nat_bounds)
   have xs: "xs = take ?h xs @ (xs ! ?h) # drop (Suc ?h) xs" by(simp add: nth_drop')
   from inv have "n = array_foldl (\<lambda>_ n kvs. n + length kvs) 0 a"
     by(auto elim: ahm_invar_auxE)
@@ -506,11 +507,11 @@ proof -
       fix k
       assume "k \<notin> dom (ahm_\<alpha>_aux a)"
       hence "ahm_\<alpha>_aux a k = None" by auto
-      moreover have "bounded_hashcode sz k < sz" using `1 < sz`
-        by(simp add: bounded_hashcode_bounds)
+      moreover have "bounded_hashcode_nat sz k < sz" using `1 < sz`
+        by(simp add: bounded_hashcode_nat_bounds)
       ultimately have "ahm_\<alpha>_aux (new_array [] sz) k = ahm_\<alpha>_aux a k" by simp }
     ultimately show "?I (dom (ahm_\<alpha>_aux a)) (new_array [] sz)"
-      by(auto simp add: bounded_hashcode_bounds[OF `1 < sz`])
+      by(auto simp add: bounded_hashcode_nat_bounds[OF `1 < sz`])
   next
     fix k :: 'key
       and v :: 'val
@@ -530,7 +531,7 @@ proof -
       by(simp add: ahm_invar_aux_card_dom_ahm_\<alpha>_auxD)
     ultimately have "n - card (it - {k}) = (n - card it) + 1" using `k \<in> it` by auto
     moreover from `k \<in> it` have "ahm_\<alpha>_aux a' k = None" by(rule a'_None)
-    hence "k \<notin> fst ` set (array_get a' (bounded_hashcode (array_length a') k))"
+    hence "k \<notin> fst ` set (array_get a' (bounded_hashcode_nat (array_length a') k))"
       by(simp add: map_of_eq_None_iff)
     ultimately have "ahm_invar_aux (n - card (it - {k})) (ahm_rehash_aux' sz (k, v) a')"
       using inv' by(auto intro: ahm_rehash_aux'_preserves_ahm_invar_aux)
@@ -539,16 +540,16 @@ proof -
     moreover {
       fix k'
       assume "k' \<in> it - {k}"
-      with bounded_hashcode_bounds[OF `1 < sz`, of k'] a'_None[of k']
+      with bounded_hashcode_nat_bounds[OF `1 < sz`, of k'] a'_None[of k']
       have "ahm_\<alpha>_aux (ahm_rehash_aux' sz (k, v) a') k' = None"
-        by(cases "bounded_hashcode sz k = bounded_hashcode sz k'")(auto simp add: array_get_array_set_other ahm_rehash_aux'_def Let_def)
+        by(cases "bounded_hashcode_nat sz k = bounded_hashcode_nat sz k'")(auto simp add: array_get_array_set_other ahm_rehash_aux'_def Let_def)
     } moreover {
       fix k'
       assume "k' \<notin> it - {k}"
-      with bounded_hashcode_bounds[OF `1 < sz`, of k'] bounded_hashcode_bounds[OF `1 < sz`, of k] a'_eq_a[of k'] `k \<in> it`
+      with bounded_hashcode_nat_bounds[OF `1 < sz`, of k'] bounded_hashcode_nat_bounds[OF `1 < sz`, of k] a'_eq_a[of k'] `k \<in> it`
       have "ahm_\<alpha>_aux (ahm_rehash_aux' sz (k, v) a') k' = ahm_\<alpha>_aux a k'"
         unfolding ahm_rehash_aux'_def Let_def using `ahm_\<alpha>_aux a k = Some v`
-        by(cases "bounded_hashcode sz k = bounded_hashcode sz k'")(case_tac [!] "k' = k", simp_all add: array_get_array_set_other) }
+        by(cases "bounded_hashcode_nat sz k = bounded_hashcode_nat sz k'")(case_tac [!] "k' = k", simp_all add: array_get_array_set_other) }
     ultimately show "?I (it - {k}) (ahm_rehash_aux' sz (k, v) a')" by simp
   qed auto
   thus ?thesis1 ?thesis2 unfolding ahm_rehash_aux_def
@@ -572,7 +573,7 @@ lemma ahm_update_aux_correct:
 proof -
   obtain a n where [simp]: "hm = HashMap a n" by(cases hm)
 
-  let ?h = "bounded_hashcode (array_length a) k"
+  let ?h = "bounded_hashcode_nat (array_length a) k"
   let ?a' = "array_set a ?h (AList.update k v (array_get a ?h))"
   let ?n' = "if map_of (array_get a ?h) k = None then n + 1 else n"
 
@@ -585,14 +586,14 @@ proof -
       by(auto elim: ahm_invar_auxE)
     thus "bucket_ok (array_length ?a') h (array_get ?a' h)"
       using `h < array_length a`
-      apply(cases "h = bounded_hashcode (array_length a) k")
+      apply(cases "h = bounded_hashcode_nat (array_length a) k")
       apply(fastforce intro!: bucket_okI simp add: dom_update array_get_array_set_other dest: bucket_okD del: imageE elim: imageE)+
       done
     from `h < array_length a` inv have "distinct (map fst (array_get a h))"
       by(auto elim: ahm_invar_auxE)
     with `h < array_length a`
     show "distinct (map fst (array_get ?a' h))"
-      by(cases "h = bounded_hashcode (array_length a) k")(auto simp add: array_get_array_set_other intro: distinct_update)
+      by(cases "h = bounded_hashcode_nat (array_length a) k")(auto simp add: array_get_array_set_other intro: distinct_update)
   next
     obtain xs where a [simp]: "a = Array xs" by(cases a)
 
@@ -602,8 +603,8 @@ proof -
         by(induct xs arbitrary:  rule: rev_induct) simp_all }
     note fold = this
 
-    from inv have [simp]: "bounded_hashcode (length xs) k < length xs"
-      by(simp add: ahm_invar_aux_def bounded_hashcode_bounds)
+    from inv have [simp]: "bounded_hashcode_nat (length xs) k < length xs"
+      by(simp add: ahm_invar_aux_def bounded_hashcode_nat_bounds)
     have xs: "xs = take ?h xs @ (xs ! ?h) # drop (Suc ?h) xs" by(simp add: nth_drop')
     from inv have "n = array_foldl (\<lambda>_ n kvs. n + length kvs) 0 a"
       by(auto elim: ahm_invar_auxE)
@@ -622,9 +623,9 @@ proof -
   proof
     fix k'
     from inv have "1 < array_length a" by(auto elim: ahm_invar_auxE)
-    with bounded_hashcode_bounds[OF this, of k]
+    with bounded_hashcode_nat_bounds[OF this, of k]
     show "ahm_\<alpha> (ahm_update_aux hm k v) k' = (ahm_\<alpha> hm(k \<mapsto> v)) k'"
-      by(cases "bounded_hashcode (array_length a) k = bounded_hashcode (array_length a) k'")(auto simp add: Let_def update_conv array_get_array_set_other)
+      by(cases "bounded_hashcode_nat (array_length a) k = bounded_hashcode_nat (array_length a) k'")(auto simp add: Let_def update_conv array_get_array_set_other)
   qed
   ultimately show ?thesis1 ?thesis2 by(simp_all add: Let_def)
 qed
@@ -649,9 +650,9 @@ lemma ahm_delete_correct:
 proof -
   obtain a n where hm [simp]: "hm = HashMap a n" by(cases hm)
 
-  let ?h = "bounded_hashcode (array_length a) k"
+  let ?h = "bounded_hashcode_nat (array_length a) k"
   let ?a' = "array_set a ?h (AList.delete k (array_get a ?h))"
-  let ?n' = "if map_of (array_get a (bounded_hashcode (array_length a) k)) k = None then n else n - 1"
+  let ?n' = "if map_of (array_get a (bounded_hashcode_nat (array_length a) k)) k = None then n else n - 1"
   
   have "ahm_invar_aux ?n' ?a'"
   proof(rule ahm_invar_auxI)
@@ -663,8 +664,8 @@ proof -
       and "distinct (map fst (array_get a h))" by(auto elim: ahm_invar_auxE)
     thus "bucket_ok (array_length ?a') h (array_get ?a' h)"
       and "distinct (map fst (array_get ?a' h))"
-      using bounded_hashcode_bounds[of "array_length a" k] 
-      by-(case_tac [!] "h = bounded_hashcode (array_length a) k", auto simp add: array_get_array_set_other set_delete_conv intro!: bucket_okI dest: bucket_okD intro: distinct_delete)
+      using bounded_hashcode_nat_bounds[of "array_length a" k] 
+      by-(case_tac [!] "h = bounded_hashcode_nat (array_length a) k", auto simp add: array_get_array_set_other set_delete_conv intro!: bucket_okI dest: bucket_okD intro: distinct_delete)
   next
     obtain xs where a [simp]: "a = Array xs" by(cases a)
 
@@ -674,8 +675,8 @@ proof -
         by(induct xs arbitrary:  rule: rev_induct) simp_all }
     note fold = this
 
-    from inv have [simp]: "bounded_hashcode (length xs) k < length xs"
-      by(simp add: ahm_invar_aux_def bounded_hashcode_bounds)
+    from inv have [simp]: "bounded_hashcode_nat (length xs) k < length xs"
+      by(simp add: ahm_invar_aux_def bounded_hashcode_nat_bounds)
     from inv have "distinct (map fst (array_get a ?h))" by(auto elim: ahm_invar_auxE)
     moreover
     have xs: "xs = take ?h xs @ (xs ! ?h) # drop (Suc ?h) xs" by(simp add: nth_drop')
@@ -696,10 +697,10 @@ proof -
   have "ahm_\<alpha>_aux ?a' = ahm_\<alpha>_aux a |` (- {k})"
   proof
     fix k' :: 'a
-    from inv have "bounded_hashcode (array_length a) k < array_length a"
-      by(auto elim: ahm_invar_auxE simp add: bounded_hashcode_bounds)
+    from inv have "bounded_hashcode_nat (array_length a) k < array_length a"
+      by(auto elim: ahm_invar_auxE simp add: bounded_hashcode_nat_bounds)
     thus "ahm_\<alpha>_aux ?a' k' = (ahm_\<alpha>_aux a |` (- {k})) k'"
-      by(cases "?h = bounded_hashcode (array_length a) k'")(auto simp add: restrict_map_def array_get_array_set_other delete_conv)
+      by(cases "?h = bounded_hashcode_nat (array_length a) k'")(auto simp add: restrict_map_def array_get_array_set_other delete_conv)
   qed
   thus ?thesis2 by(simp add: Let_def)
 qed

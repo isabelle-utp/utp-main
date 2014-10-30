@@ -34,7 +34,7 @@ definition WF_REL_EXPR :: "'VALUE WF_ALPHA_EXPRESSION set" where
 
 typedef 'a WF_ALPHA_REL = "WF_ALPHA_REL :: 'a uapred set"
   apply (auto simp add:WF_ALPHA_REL_def REL_ALPHABET_def)
-  apply (metis ClosureA_alphabet bot_least fempty.rep_eq pred_alphabet_def)
+  apply (metis TrueA_alphabet le_supI1 utp_alphabet.in_UNDASHED)
 done
 
 definition WF_ALPHA_COND :: "'a uapred set" where
@@ -79,21 +79,21 @@ subsubsection {* Conditional *}
 text {* Should we impose a constraint on b for it to be a condition? *}
 
 lift_definition CondA ::
-  "'VALUE uapred \<Rightarrow>
-   'VALUE uapred \<Rightarrow>
-   'VALUE uapred \<Rightarrow>
-   'VALUE uapred" 
-is "\<lambda> r1 b r2. (\<alpha> r1 \<union>\<^sub>f \<alpha> b \<union>\<^sub>f \<alpha> r2, (\<pi> r1) \<lhd> (\<pi> b) \<rhd> (\<pi> r2))"
+  "'a uapred \<Rightarrow>
+   'a uapred \<Rightarrow>
+   'a uapred \<Rightarrow>
+   'a uapred" 
+is "\<lambda> r1 b r2. (\<alpha> r1 |\<union>| \<alpha> b |\<union>| \<alpha> r2, (\<pi> r1) \<lhd> (\<pi> b) \<rhd> (\<pi> r2))"
   by (auto intro: unrest simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
 
 notation CondA ("_ \<lhd> _ \<rhd>\<^sub>\<alpha> _")
 subsubsection {* Sequential Composition *}
 
 lift_definition SemiA ::
-  "'VALUE uapred \<Rightarrow>
-   'VALUE uapred \<Rightarrow>
-   'VALUE uapred"
-is "\<lambda> p q. (in\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> q) \<union>\<^sub>f nrel\<^sub>\<alpha> (\<alpha> p \<union>\<^sub>f \<alpha> q), (\<pi> p) ;\<^sub>R (\<pi> q))"
+  "'a uapred \<Rightarrow>
+   'a uapred \<Rightarrow>
+   'a uapred"
+is "\<lambda> p q. (in\<^sub>\<alpha> (\<alpha> p) |\<union>| out\<^sub>\<alpha> (\<alpha> q) |\<union>| nrel\<^sub>\<alpha> (\<alpha> p |\<union>| \<alpha> q), (\<pi> p) ;\<^sub>R (\<pi> q))"
   apply (simp add:WF_ALPHA_PREDICATE_def WF_PREDICATE_OVER_def)
   apply (rule UNREST_SemiR_general)
   apply (rule unrest)
@@ -263,11 +263,11 @@ theorem REL_ALPHABET_finsert [closure]:
   by (simp add:REL_ALPHABET_def)
 
 theorem REL_ALPHABET_union [closure]:
-  "\<lbrakk> a1 \<in> REL_ALPHABET; a2 \<in> REL_ALPHABET \<rbrakk> \<Longrightarrow> (a1 \<union>\<^sub>f a2) \<in> REL_ALPHABET"
+  "\<lbrakk> a1 \<in> REL_ALPHABET; a2 \<in> REL_ALPHABET \<rbrakk> \<Longrightarrow> (a1 |\<union>| a2) \<in> REL_ALPHABET"
   by (auto simp add:REL_ALPHABET_def)
 
 theorem REL_ALPHABET_inter [closure]:
-  "\<lbrakk> a1 \<in> REL_ALPHABET; a2 \<in> REL_ALPHABET \<rbrakk> \<Longrightarrow> (a1 \<inter>\<^sub>f a2) \<in> REL_ALPHABET"
+  "\<lbrakk> a1 \<in> REL_ALPHABET; a2 \<in> REL_ALPHABET \<rbrakk> \<Longrightarrow> (a1 |\<inter>| a2) \<in> REL_ALPHABET"
   by (auto simp add:REL_ALPHABET_def)
 
 theorem REL_ALPHABET_minus [closure]:
@@ -279,24 +279,25 @@ theorem HOM_ALPHABET_empty [closure]:
   by (simp add:HOM_ALPHABET_def HOM_ALPHA_unfold)
 
 theorem HOM_ALPHABET_union [closure]:
-  "\<lbrakk> a1 \<in> HOM_ALPHABET; a2 \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> (a1 \<union>\<^sub>f a2) \<in> HOM_ALPHABET"
-  by (simp add:HOM_ALPHABET_def HOM_ALPHA_unfold alphabet_dist)
+  "\<lbrakk> a1 \<in> HOM_ALPHABET; a2 \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> (a1 |\<union>| a2) \<in> HOM_ALPHABET"
+  by (auto simp add:HOM_ALPHABET_def HOM_ALPHA_unfold alphabet_dist)
 
 theorem HOM_ALPHABET_inter [closure]:
-  "\<lbrakk> a1 \<in> HOM_ALPHABET; a2 \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> (a1 \<inter>\<^sub>f a2) \<in> HOM_ALPHABET"
-  by (metis HOMOGENEOUS_HOM_ALPHA HOMOGENEOUS_inter HOM_ALPHABET_def HOM_ALPHA_HOMOGENEOUS finter.rep_eq mem_Collect_eq)
+  "\<lbrakk> a1 \<in> HOM_ALPHABET; a2 \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> (a1 |\<inter>| a2) \<in> HOM_ALPHABET"
+  by (auto simp add:HOM_ALPHABET_def HOM_ALPHA_unfold alphabet_dist)
 
 theorem HOM_ALPHABET_minus [closure]:
   "\<lbrakk> a1 \<in> HOM_ALPHABET; a2 \<in> HOM_ALPHABET \<rbrakk> \<Longrightarrow> (a1 -\<^sub>f a2) \<in> HOM_ALPHABET"
-  by (simp add:HOM_ALPHABET_def HOM_ALPHA_unfold alphabet_dist dash_inj)
+  by (auto simp add:HOM_ALPHABET_def HOM_ALPHA_unfold alphabet_dist)
 
 theorem HOM_ALPHABET_hom_right [closure]: 
   "homr\<^sub>\<alpha> a \<in> HOM_ALPHABET"
-  by (auto simp add:HOM_ALPHABET_def HOM_ALPHA_unfold homr_alpha.rep_eq alphabet_dist)
-
+  by (auto intro!:fset_intro simp add:HOM_ALPHABET_def HOM_ALPHA_unfold homr_alpha.rep_eq alphabet_dist fimage.rep_eq)
+  
+  
 theorem HOM_ALPHABET_hom_left [closure]: 
   "homl\<^sub>\<alpha> a \<in> HOM_ALPHABET"
-  by (auto simp add:HOM_ALPHABET_def HOM_ALPHA_unfold homl_alpha.rep_eq alphabet_dist)
+  by (auto intro!:fset_intro simp add:HOM_ALPHABET_def HOM_ALPHA_unfold homl_alpha.rep_eq alphabet_dist fimage.rep_eq)
 
 theorem NotA_WF_ALPHA_REL [closure] :
 "\<lbrakk>r \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
@@ -465,8 +466,8 @@ lemma SkipRA_closure' [closure]:
 
 theorem AssignA_rep_eq:
   "\<lbrakk> a \<in> REL_ALPHABET
-   ; x \<in>\<^sub>f a; dash x \<in>\<^sub>f a
-   ; \<alpha> v \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow> 
+   ; x |\<in>| a; dash x |\<in>| a
+   ; \<alpha> v |\<subseteq>| a \<rbrakk> \<Longrightarrow> 
    \<langle>x :=\<^bsub>a\<^esub> v\<rangle>\<^sub>\<alpha> = (a, AssignRA x \<langle>a\<rangle>\<^sub>f (\<epsilon> v))"
   apply (subgoal_tac "x \<in> UNDASHED")
   apply (subgoal_tac "(a, x :=\<^bsub>\<langle>a\<rangle>\<^sub>f \<^esub>\<epsilon> v) \<in> WF_ALPHA_PREDICATE")
@@ -475,19 +476,20 @@ theorem AssignA_rep_eq:
   apply (subgoal_tac "UNREST (- ({dash x} \<union> \<langle>a\<rangle>\<^sub>f)) (x :=\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub>\<epsilon> v)")
   apply (subgoal_tac "\<langle>a\<rangle>\<^sub>f = {dash x} \<union> (\<langle>a\<rangle>\<^sub>f - {dash x})")
   apply (force)
-  apply (force)
+  apply (metis Un_Diff_cancel Un_commute Un_insert_right fnmember_intro insert_absorb sup_bot.right_neutral)
   apply (rule unrest)
   apply (simp)
   apply (rule UNREST_EXPR_subset)
   apply (rule unrest)
   apply (auto simp add:REL_ALPHABET_def intro:typing)
+  apply (metis DASHED_dash_elim UNDASHED_dash_DASHED Un_iff dashed_twice_contras(2) fnmember_intro insert_absorb insert_subset)
 done
 
 theorem AssignA_closure [closure] :
   assumes 
    "a \<in> REL_ALPHABET"
-   "x \<in>\<^sub>f a" "dash x \<in>\<^sub>f a"
-   "\<alpha> v \<subseteq>\<^sub>f a"
+   "x |\<in>| a" "dash x |\<in>| a"
+   "\<alpha> v |\<subseteq>| a"
   shows "x :=\<^bsub>a\<^esub> v \<in> WF_ALPHA_REL"
 proof
   from assms show "\<langle>\<alpha> (x :=\<^bsub>a \<^esub>v)\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED"
@@ -504,19 +506,19 @@ done
 
 theorem CondA_closure [closure] :
   assumes "r1 \<in> WF_ALPHA_REL" "r2 \<in> WF_ALPHA_REL"
-    "b \<in> WF_ALPHA_COND" "(\<alpha> r1) = (\<alpha> r2)" "(\<alpha> b) \<subseteq>\<^sub>f (\<alpha> r1)"
+    "b \<in> WF_ALPHA_COND" "(\<alpha> r1) = (\<alpha> r2)" "(\<alpha> b) |\<subseteq>| (\<alpha> r1)"
  shows "(r1 \<lhd> b \<rhd>\<^sub>\<alpha> r2) \<in> WF_ALPHA_REL"
 proof 
   from assms show "\<langle>\<alpha> r1 \<lhd> b \<rhd>\<^sub>\<alpha> r2\<rangle>\<^sub>f \<subseteq> UNDASHED \<union> DASHED"
-    by (simp add: CondA.rep_eq pred_alphabet_def WF_ALPHA_REL_def REL_ALPHABET_def)
+    by (auto simp add: CondA.rep_eq pred_alphabet_def WF_ALPHA_REL_def REL_ALPHABET_def)
 qed
 
 (*
 theorem SemiA_rep_eq:
 "\<lbrakk>r1 \<in> WF_ALPHA_REL;
  r2 \<in> WF_ALPHA_REL\<rbrakk> \<Longrightarrow>
- DestPredA (r1 ;\<^sub>\<alpha> r2) = (in\<^sub>\<alpha> (\<alpha> r1) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r2), (\<pi> r1) ; (\<pi> r2))"
-  apply (subgoal_tac "(in\<^sub>\<alpha> (\<alpha> r1) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> r2), (\<pi> r1) ; (\<pi> r2)) \<in> WF_ALPHA_PREDICATE")
+ DestPredA (r1 ;\<^sub>\<alpha> r2) = (in\<^sub>\<alpha> (\<alpha> r1) |\<union>| out\<^sub>\<alpha> (\<alpha> r2), (\<pi> r1) ; (\<pi> r2))"
+  apply (subgoal_tac "(in\<^sub>\<alpha> (\<alpha> r1) |\<union>| out\<^sub>\<alpha> (\<alpha> r2), (\<pi> r1) ; (\<pi> r2)) \<in> WF_ALPHA_PREDICATE")
   apply (simp add:SemiA_def)
   apply (frule WF_ALPHA_REL_UNREST_UNDASHED)
   apply (frule WF_ALPHA_REL_UNREST_UNDASHED) back
@@ -544,33 +546,33 @@ theorem SkipA_alphabet [alphabet] :
   by (simp add: SkipA.rep_eq)
 
 theorem AssignA_alphabet [alphabet] :
-"\<lbrakk> a \<in> REL_ALPHABET; a \<in> HOM_ALPHABET; x \<in>\<^sub>f in\<^sub>\<alpha>(a); \<alpha> v \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow>
+"\<lbrakk> a \<in> REL_ALPHABET; a \<in> HOM_ALPHABET; x |\<in>| in\<^sub>\<alpha>(a); \<alpha> v |\<subseteq>| a \<rbrakk> \<Longrightarrow>
  \<alpha> (x :=\<^bsub>a\<^esub> v) = a"
   apply (simp add:pred_alphabet_def)
   apply (subst AssignA_rep_eq)
-  apply (simp_all)
+  apply (auto simp add:fmember_def fsubset_eq)
   apply (metis Int_iff in_vars_def)
   apply (metis (mono_tags) Diff_iff HOMOGENEOUS_HOM_ALPHA UNDASHED_minus_in hom_alphabet_undash set_mp utp_var.in_UNDASHED)
 done
 
 theorem CondA_alphabet [alphabet] :
-"\<alpha> (r1 \<lhd> b \<rhd>\<^sub>\<alpha> r2) = (\<alpha> r1 \<union>\<^sub>f \<alpha> b \<union>\<^sub>f \<alpha> r2)"
+"\<alpha> (r1 \<lhd> b \<rhd>\<^sub>\<alpha> r2) = (\<alpha> r1 |\<union>| \<alpha> b |\<union>| \<alpha> r2)"
   by (simp add: CondA.rep_eq)
 
 lemma REL_ALPHABET_nrel_alpha [simp]:
   "a \<in> REL_ALPHABET \<Longrightarrow> nrel\<^sub>\<alpha> a = \<lbrace>\<rbrace>"
-  by (auto simp add:REL_ALPHABET_def var_defs)
+  by (auto simp add:fmember_def fsubset_eq REL_ALPHABET_def var_defs)
 
 lemma WF_ALPHA_REL_nrel_alpha [simp]:
   "p \<in> WF_ALPHA_REL \<Longrightarrow> nrel\<^sub>\<alpha> (\<alpha> p) = \<lbrace>\<rbrace>"
   by (auto simp add:WF_ALPHA_REL_def REL_ALPHABET_def var_defs)
 
 theorem SemiA_alphabet [alphabet] :
-  "\<alpha> (p ;\<^sub>\<alpha> q) = in\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f out\<^sub>\<alpha> (\<alpha> q) \<union>\<^sub>f nrel\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f nrel\<^sub>\<alpha> (\<alpha> q)"
-  by (force simp add: SemiA.rep_eq WF_ALPHA_REL_def REL_ALPHABET_def var_defs)
+  "\<alpha> (p ;\<^sub>\<alpha> q) = in\<^sub>\<alpha> (\<alpha> p) |\<union>| out\<^sub>\<alpha> (\<alpha> q) |\<union>| nrel\<^sub>\<alpha> (\<alpha> p) |\<union>| nrel\<^sub>\<alpha> (\<alpha> q)"
+  by (force simp add: fmember_def fsubset_eq SemiA.rep_eq WF_ALPHA_REL_def REL_ALPHABET_def var_defs)
 
 theorem ConvA_alphabet [alphabet] :
-  "\<alpha> (P\<acute>) = \<langle>SS\<rangle>\<^sub>s `\<^sub>f \<alpha>(P :: 'a uapred)"
+  "\<alpha> (P\<acute>) = \<langle>SS\<rangle>\<^sub>s |`| \<alpha>(P :: 'a uapred)"
   by (metis ConvA_def PermA_alphabet)
 
 lemma VarExtA_alphabet: "\<alpha>(P\<^bsub>+x\<^esub>) = finsert x (finsert x\<acute> (\<alpha>(P)))"
@@ -630,11 +632,11 @@ theorem EvalA_SemiA [evala] :
   by (simp add: EvalA_def SemiA.rep_eq)
 
 theorem EvalA_AssignA [evala] :
-"\<lbrakk> a \<in> REL_ALPHABET; a \<in> HOM_ALPHABET; x \<in>\<^sub>f in\<^sub>\<alpha>(a); \<alpha> v \<subseteq>\<^sub>f a \<rbrakk> \<Longrightarrow>
+"\<lbrakk> a \<in> REL_ALPHABET; a \<in> HOM_ALPHABET; x |\<in>| in\<^sub>\<alpha>(a); \<alpha> v |\<subseteq>| a \<rbrakk> \<Longrightarrow>
  \<lbrakk>x :=\<^bsub>a\<^esub> v\<rbrakk>\<pi> = x :=\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> \<lbrakk>v\<rbrakk>\<epsilon>"
   apply (simp add:AssignA_rep_eq EvalA_def EvalAE_def)
   apply (subst AssignA_rep_eq)
-  apply (simp_all)
+  apply (simp_all add: fmember_def fsubset_eq)
   apply (metis Int_iff in_vars_def)
   apply (metis (mono_tags) Diff_iff HOMOGENEOUS_HOM_ALPHA UNDASHED_minus_in hom_alphabet_undash set_mp utp_var.in_UNDASHED)
 done
@@ -684,7 +686,8 @@ proof -
 
   from assms have ina:"in\<^sub>\<alpha> a = in\<alpha>(P)"
     apply (simp add:HOM_ALPHABET_def HOM_ALPHA_HOMOGENEOUS dash_alpha_def)
-    apply (erule Rep_fset_elim)
+    apply (erule fset_elim)
+    apply (rule fset_intro)
     apply (clarsimp)
     apply (unfold HOMOGENEOUS_dash_in[THEN sym])
     apply (simp only: inj_on_Un_image_eq_iff[of dash, OF dash_inj])
@@ -700,7 +703,7 @@ proof -
 
   ultimately show ?thesis using assms
     apply (utp_alpha_tac)
-    apply (simp add:alphabet_split)
+    apply (metis alphabet_split inf_sup_aci(6))
   done
 qed
 
@@ -711,7 +714,10 @@ theorem SemiA_SkipA_right:
   shows "P ;\<^sub>\<alpha> II\<alpha>\<^bsub>a\<^esub> = P"
 proof -
   from assms have outa:"out\<^sub>\<alpha> a = out\<alpha>(P)"
-    by (force elim!:Rep_fset_elim intro!:Rep_fset_intro simp add:WF_ALPHA_REL_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def HOM_ALPHA_unfold dash_alpha_def)
+    apply (auto elim!:fset_elim intro!:fset_intro simp add:WF_ALPHA_REL_def HOM_ALPHABET_def HOMOGENEOUS_def COMPOSABLE_def REL_ALPHABET_def HOM_ALPHA_unfold dash_alpha_def)
+    apply (metis Int_iff UNDASHED_dash_DASHED dashed_twice_contras(2) image_iff in_vars_def)
+    apply (metis imageI utp_var.not_dash_member_in)
+  done
     
   moreover with assms have "\<lbrakk>P\<rbrakk>\<pi> ;\<^sub>R II\<^bsub>\<langle>a\<rangle>\<^sub>f\<^esub> = \<lbrakk>P\<rbrakk>\<pi>"
     apply (rule_tac SemiR_SkipRA_right)
@@ -723,7 +729,7 @@ proof -
 
   ultimately show ?thesis using assms
     apply (utp_alpha_tac)
-    apply (simp add:alphabet_split)
+    apply (metis alphabet_split inf_sup_aci(6))
   done
 qed
 
@@ -747,27 +753,27 @@ apply (rule unrest, auto)
 done
 
 lemma SS1_alpha_image [urename]: 
-  "a \<in> REL_ALPHABET \<Longrightarrow> \<langle>SS1\<rangle>\<^sub>s `\<^sub>f a = (in\<^sub>\<alpha> a) \<union>\<^sub>f dash `\<^sub>f (out\<^sub>\<alpha> a)"
+  "a \<in> REL_ALPHABET \<Longrightarrow> \<langle>SS1\<rangle>\<^sub>s |`| a = (in\<^sub>\<alpha> a) |\<union>| dash |`| (out\<^sub>\<alpha> a)"
   apply (simp add:REL_ALPHABET_def)
-  apply (clarify)
+  apply (rule fset_intro)
   apply (simp)
   apply (drule SS1_UNDASHED_DASHED_image)
   apply (simp)
 done
 
 lemma SS2_alpha_image [urename]: 
-  "a \<in> REL_ALPHABET \<Longrightarrow> \<langle>SS2\<rangle>\<^sub>s `\<^sub>f a = (dash `\<^sub>f dash `\<^sub>f (in\<^sub>\<alpha> a)) \<union>\<^sub>f (out\<^sub>\<alpha> a)"
+  "a \<in> REL_ALPHABET \<Longrightarrow> \<langle>SS2\<rangle>\<^sub>s |`| a = (dash |`| dash |`| (in\<^sub>\<alpha> a)) |\<union>| (out\<^sub>\<alpha> a)"
   apply (simp add:REL_ALPHABET_def)
-  apply (clarify)
+  apply (rule fset_intro)
   apply (simp)
   apply (drule SS2_UNDASHED_DASHED_image)
-  apply (simp)
+  apply (auto)
 done
 
 lemma SS_alpha_image [urename]: 
-  "a \<in> REL_ALPHABET \<Longrightarrow> \<langle>SS\<rangle>\<^sub>s `\<^sub>f a = dash `\<^sub>f (in\<^sub>\<alpha> a) \<union>\<^sub>f undash `\<^sub>f (out\<^sub>\<alpha> a)"
+  "a \<in> REL_ALPHABET \<Longrightarrow> \<langle>SS\<rangle>\<^sub>s |`| a = dash |`| (in\<^sub>\<alpha> a) |\<union>| undash |`| (out\<^sub>\<alpha> a)"
   apply (simp add:REL_ALPHABET_def)
-  apply (clarify)
+  apply (rule fset_intro)
   apply (simp)
   apply (drule SS_UNDASHED_DASHED_image)
   apply (simp)
@@ -778,10 +784,10 @@ theorem SkipA_unfold :
   shows "II\<alpha>\<^bsub>a\<^esub> = (VarAE (dash x) ==\<^sub>\<alpha> VarAE x) \<and>\<^sub>\<alpha> II\<alpha>\<^bsub>(a -\<^sub>f \<lbrace>x,dash x\<rbrace>)\<^esub>"
   apply (insert assms)
   apply (utp_alpha_tac2)
+  apply (rule fset_intro)
   apply (simp add:HOM_ALPHA_HOMOGENEOUS)
-  apply (subgoal_tac "x \<in> UNDASHED")
-  apply (simp add:SkipRA_unfold)
-  apply (auto simp add:REL_ALPHABET_def)
+  apply (rule SkipRA_unfold)
+  apply (auto simp add:REL_ALPHABET_def HOM_ALPHA_HOMOGENEOUS)
 done
 
 lemma EvalA_CoerceA [evala]: "\<lbrakk>(P)\<^bsub>!A\<^esub>\<rbrakk>\<pi> = (\<exists>\<^sub>p (- \<langle>A\<rangle>\<^sub>f). P)"
@@ -821,10 +827,10 @@ end
 (*
 theorem SemiA_algebraic:
   assumes "p \<in> WF_ALPHA_REL" "q \<in> WF_ALPHA_REL"
-  shows "p ;\<^sub>\<alpha> q = (\<exists>-\<^sub>\<alpha> dash `\<^sub>f out\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha>(\<alpha> q). (SS1\<bullet>p) \<and>\<^sub>\<alpha> (SS2\<bullet>q))"
+  shows "p ;\<^sub>\<alpha> q = (\<exists>-\<^sub>\<alpha> dash |`| out\<^sub>\<alpha> (\<alpha> p) |\<union>| dash |`| dash |`| in\<^sub>\<alpha>(\<alpha> q). (SS1\<bullet>p) \<and>\<^sub>\<alpha> (SS2\<bullet>q))"
 proof -
 
-  from assms have "\<alpha> (p ;\<^sub>\<alpha> q) = \<alpha> (\<exists>-\<^sub>\<alpha> dash `\<^sub>f out\<^sub>\<alpha>(\<alpha> p) \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha>(\<alpha> q). (SS1\<bullet>p) \<and>\<^sub>\<alpha> (SS2\<bullet>q))"
+  from assms have "\<alpha> (p ;\<^sub>\<alpha> q) = \<alpha> (\<exists>-\<^sub>\<alpha> dash |`| out\<^sub>\<alpha>(\<alpha> p) |\<union>| dash |`| dash |`| in\<^sub>\<alpha>(\<alpha> q). (SS1\<bullet>p) \<and>\<^sub>\<alpha> (SS2\<bullet>q))"
     apply (simp add:alphabet SS1_alpha_image SS2_alpha_image closure)
     apply (clarsimp)
     apply (auto simp add:var_simps var_dist var_member var_contra)
@@ -832,7 +838,7 @@ proof -
   done
 
   moreover
-  have "\<lbrakk>p ;\<^sub>\<alpha> q\<rbrakk>\<pi> = \<lbrakk>(\<exists>-\<^sub>\<alpha> dash `\<^sub>f out\<^sub>\<alpha> (\<alpha> p) \<union>\<^sub>f dash `\<^sub>f dash `\<^sub>f in\<^sub>\<alpha>(\<alpha> q). (SS1\<bullet>p) \<and>\<^sub>\<alpha> (SS2\<bullet>q))\<rbrakk>\<pi>"
+  have "\<lbrakk>p ;\<^sub>\<alpha> q\<rbrakk>\<pi> = \<lbrakk>(\<exists>-\<^sub>\<alpha> dash |`| out\<^sub>\<alpha> (\<alpha> p) |\<union>| dash |`| dash |`| in\<^sub>\<alpha>(\<alpha> q). (SS1\<bullet>p) \<and>\<^sub>\<alpha> (SS2\<bullet>q))\<rbrakk>\<pi>"
   proof -
 
     from assms have "\<lbrakk>p ;\<^sub>\<alpha> q\<rbrakk>\<pi> = \<pi> p ; \<pi> q"

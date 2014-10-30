@@ -119,8 +119,8 @@ definition prefs :: "'a::DEFINED \<Rightarrow> 'm::ADDR_SORT itself \<Rightarrow
 (* Does this type need to avoid cyclicity? *)
 
 typedef 'm::ADDR_SORT STORE =
-  "{f :: (ADDR, 'm sigtype) fmap . \<Union>\<^sub>f (refs `\<^sub>f sigvalue `\<^sub>f fran f) \<subseteq>\<^sub>f fdom f}"
-  by (rule_tac x = "0" in exI, simp add: fran.rep_eq zero_fmap.rep_eq)
+  "{f :: (ADDR, 'm sigtype) fmap . \<Union>\<^sub>f (refs |`| sigvalue |`| fran f) |\<subseteq>| fdom f}"
+  by (rule_tac x = "0" in exI, auto simp add: fran.rep_eq zero_fmap.rep_eq fmember.rep_eq)
 
 setup_lifting type_definition_STORE
 
@@ -138,11 +138,11 @@ lemma Rep_STORE_elim [elim] :
 
 lift_definition st_graph ::
   "'m::ADDR_SORT STORE \<Rightarrow> (ADDR \<times> 'm sigtype) fset"
-is "fmap_graph :: (ADDR, 'm sigtype) fmap \<Rightarrow> (ADDR \<times> 'm sigtype) fset" ..
+is "fmap_graph :: (ADDR, 'm sigtype) fmap \<Rightarrow> (ADDR \<times> 'm sigtype) fset" .
 
 lemma st_graph_inj :
   "st_graph(s1) = st_graph(s2) \<Longrightarrow> s1 = s2"
-apply (erule Rep_fset_elim)
+apply (erule fset_elim)
 apply (auto simp add: st_graph.rep_eq fmap_graph.rep_eq)
 apply (metis map_graph_inv)
 done
@@ -150,22 +150,22 @@ done
 instantiation STORE :: (ADDR_SORT) order
 begin
 definition less_eq_STORE :: "'a STORE \<Rightarrow> 'a STORE \<Rightarrow> bool" where
-"s1 \<le> s2 \<longleftrightarrow> st_graph s1 \<subseteq>\<^sub>f st_graph s2"
+"s1 \<le> s2 \<longleftrightarrow> st_graph s1 |\<subseteq>| st_graph s2"
 
 definition less_STORE :: "'a STORE \<Rightarrow> 'a STORE \<Rightarrow> bool" where
-"s1 < s2 \<longleftrightarrow> st_graph s1 \<subset>\<^sub>f st_graph s2"
+"s1 < s2 \<longleftrightarrow> st_graph s1 |\<subset>| st_graph s2"
 
 instance
 apply (intro_classes)
 apply (auto intro: st_graph_inj simp add: less_eq_STORE_def less_STORE_def)
-apply (metis Rep_fset_inject st_graph_inj)
+apply (metis fset_inject st_graph_inj)
 done
 end
 
 lift_definition st_lookup ::
   "'m::ADDR_SORT STORE \<Rightarrow> ADDR \<Rightarrow> 'm sigtype" ("\<langle>_\<rangle>\<^sub>\<mu>")
 is "(\<lambda> s k. the (Rep_fmap s k)) ::
-   (ADDR, 'm sigtype) fmap \<Rightarrow> ADDR \<Rightarrow> 'm sigtype" ..
+   (ADDR, 'm sigtype) fmap \<Rightarrow> ADDR \<Rightarrow> 'm sigtype" .
 
 definition st_lookup_ty ::
   "('m::ADDR_SORT) STORE \<Rightarrow> 'a PADDR \<Rightarrow> 'a" ("\<langle>_\<rangle>\<^sub>&") where
@@ -174,19 +174,19 @@ definition st_lookup_ty ::
     then ProjU(sigvalue(\<langle>s\<rangle>\<^sub>\<mu> (k\<down>))) else undefined)"
 
 lift_definition sdom :: "'m::ADDR_SORT STORE \<Rightarrow> ADDR fset"
-is "fdom :: (ADDR, 'm sigtype) fmap \<Rightarrow> ADDR fset" ..
+is "fdom :: (ADDR, 'm sigtype) fmap \<Rightarrow> ADDR fset" .
 
 lift_definition sran :: "'m::ADDR_SORT STORE \<Rightarrow> 'm uval fset"
-is "\<lambda> x . (sigvalue `\<^sub>f fran x)" ..
+is "\<lambda> x . (sigvalue |`| fran x)" .
 
 lift_definition srefs :: "('m::ADDR_SORT) STORE \<Rightarrow> ADDR fset"
-is "\<lambda> f. \<Union>\<^sub>f (refs `\<^sub>f sigvalue `\<^sub>f fran f)" by (auto)
+is "\<lambda> f. \<Union>\<^sub>f (refs |`| sigvalue |`| fran f)" .
 
 lift_definition st_upd ::
   "'m::ADDR_SORT STORE \<Rightarrow> ADDR \<Rightarrow> 'm sigtype \<Rightarrow> 'm STORE" is
-"\<lambda> f k v. if (refs(sigvalue(v)) \<subseteq>\<^sub>f fdom(f) \<union>\<^sub>f \<lbrace>k\<rbrace>) then fmap_upd f k (Some v) else f"
-  apply (auto)
-  apply (metis (no_types) UN_I fupd_None_fran_subset less_eq_fset.rep_eq subsetD)
+"\<lambda> f k v. if (refs(sigvalue(v)) |\<subseteq>| fdom(f) |\<union>| \<lbrace>k\<rbrace>) then fmap_upd f k (Some v) else f"
+  apply (auto elim!:fBallE simp add:fsubset_eq fmember_def fdom.rep_eq)
+  apply (metis contra_subsetD fupd_None_fran_subset less_eq_fset.rep_eq)
 done
 
 definition st_upd_ty ::
@@ -214,18 +214,18 @@ translations
   "f(x:=\<^sub>&y)" == "CONST st_upd_ty f x y"
 
 lemma st_upd_closed:
-  "\<lbrakk> refs(sigvalue(v)) \<subseteq>\<^sub>f sdom(s) \<union>\<^sub>f \<lbrace>k\<rbrace> \<rbrakk> \<Longrightarrow> Rep_STORE (st_upd s k v) = fmap_upd (Rep_STORE s) k (Some v)"
+  "\<lbrakk> refs(sigvalue(v)) |\<subseteq>| sdom(s) |\<union>| \<lbrace>k\<rbrace> \<rbrakk> \<Longrightarrow> Rep_STORE (st_upd s k v) = fmap_upd (Rep_STORE s) k (Some v)"
   by (auto simp add: st_upd.rep_eq sdom.rep_eq)
 
-lemma st_lookup_upd_1: "refs(sigvalue(v)) \<subseteq>\<^sub>f sdom(s) \<union>\<^sub>f \<lbrace>k\<rbrace> \<Longrightarrow> \<langle>s(k :=\<^sub>\<mu> v)\<rangle>\<^sub>\<mu> k = v"
+lemma st_lookup_upd_1: "refs(sigvalue(v)) |\<subseteq>| sdom(s) |\<union>| \<lbrace>k\<rbrace> \<Longrightarrow> \<langle>s(k :=\<^sub>\<mu> v)\<rangle>\<^sub>\<mu> k = v"
   by (auto simp add:st_lookup_def st_upd_closed)
 
-lemma st_lookup_upd_2: "\<lbrakk> refs(sigvalue(v)) \<subseteq>\<^sub>f sdom(s) \<union>\<^sub>f \<lbrace>k\<rbrace>; k \<noteq> k' \<rbrakk> \<Longrightarrow> \<langle>s(k :=\<^sub>\<mu> v)\<rangle>\<^sub>\<mu> k' = \<langle>s\<rangle>\<^sub>\<mu> k'"
+lemma st_lookup_upd_2: "\<lbrakk> refs(sigvalue(v)) |\<subseteq>| sdom(s) |\<union>| \<lbrace>k\<rbrace>; k \<noteq> k' \<rbrakk> \<Longrightarrow> \<langle>s(k :=\<^sub>\<mu> v)\<rangle>\<^sub>\<mu> k' = \<langle>s\<rangle>\<^sub>\<mu> k'"
   by (simp add:st_lookup_def st_upd_closed)
 
 lemma st_lookup_upd_ty_1:
   fixes s :: "'m::ADDR_SORT STORE" and k :: "'a::{DEFINED,TYPED_MODEL} PADDR"
-  assumes "TYPEUSOUND('a, 'm)" "prefs v TYPE('m) \<subseteq>\<^sub>f sdom(s) \<union>\<^sub>f \<lbrace>k\<down>\<rbrace>"
+  assumes "TYPEUSOUND('a, 'm)" "prefs v TYPE('m) |\<subseteq>| sdom(s) |\<union>| \<lbrace>k\<down>\<rbrace>"
   shows "\<langle>s(k :=\<^sub>& v)\<rangle>\<^sub>& k = v"
   using assms
 apply (simp add:
@@ -235,9 +235,9 @@ done
 lemma st_lookup_upd_ty_2:
   fixes s :: "('m::ADDR_SORT) STORE" and k :: "'a::{DEFINED,TYPED_MODEL} PADDR"
     and k' :: "'b PADDR"
-  assumes "TYPEUSOUND('a, 'm)" "prefs v TYPE('m) \<subseteq>\<^sub>f sdom(s) \<union>\<^sub>f \<lbrace>k\<down>\<rbrace>" "k\<down> = k'\<down>"
+  assumes "TYPEUSOUND('a, 'm)" "prefs v TYPE('m) |\<subseteq>| sdom(s) |\<union>| \<lbrace>k\<down>\<rbrace>" "k\<down> = k'\<down>"
   shows "\<langle>s(k :=\<^sub>& v)\<rangle>\<^sub>& k' = \<langle>s\<rangle>\<^sub>& k'"
-  using assms apply (simp add:st_lookup_ty_def st_upd_ty_def)
+  using assms apply (auto simp add:st_lookup_ty_def st_upd_ty_def)
 oops
 
 instantiation STORE :: (ADDR_SORT) monoid_add
@@ -245,7 +245,7 @@ begin
 
 lift_definition zero_STORE :: "'m::ADDR_SORT STORE"
 is "fmempty :: (ADDR, 'm sigtype) fmap"
-  by (simp add:fran.rep_eq zero_fmap.rep_eq)
+  by (auto simp add:fran.rep_eq zero_fmap.rep_eq fmember.rep_eq)
 
 lift_definition plus_STORE :: "'a STORE \<Rightarrow> 'a STORE \<Rightarrow> 'a STORE"
 is "\<lambda> x y. (x + y :: (ADDR, 'a sigtype) fmap)"
@@ -257,8 +257,8 @@ apply (subgoal_tac
 defer
 apply (auto) [1]
 apply (metis (full_types) Un_iff ran_map_add_subset set_rev_mp)
-apply (auto)
-apply (force)
+apply (auto elim!:fsubset_elim simp add:fmember_def fdom.rep_eq fran.rep_eq fimage.rep_eq plus_fmap.rep_eq)
+apply (force simp add:fmember.rep_eq)
 done
 
 instance
@@ -276,39 +276,39 @@ apply (metis map_add_comm map_add_find_right)
 done
 
 lemma fmap_graph_add:
-"fdom(x) \<inter>\<^sub>f fdom(y) = \<lbrace>\<rbrace> \<Longrightarrow> fmap_graph(x + y) = fmap_graph(x) \<union>\<^sub>f fmap_graph(y)"
-  by (force simp add:fdom.rep_eq fmap_graph.rep_eq plus_fmap.rep_eq map_graph_add)
+"fdom(x) |\<inter>| fdom(y) = \<lbrace>\<rbrace> \<Longrightarrow> fmap_graph(x + y) = fmap_graph(x) |\<union>| fmap_graph(y)"
+  by (auto intro!:fset_intro elim!:fset_elim simp add:fdom.rep_eq fmap_graph.rep_eq plus_fmap.rep_eq map_graph_add)
 
 lemma st_graph_add:
-"sdom(x) \<inter>\<^sub>f sdom(y) = \<lbrace>\<rbrace> \<Longrightarrow> st_graph(x + y) = st_graph(x) \<union>\<^sub>f st_graph(y)"
+"sdom(x) |\<inter>| sdom(y) = \<lbrace>\<rbrace> \<Longrightarrow> st_graph(x + y) = st_graph(x) |\<union>| st_graph(y)"
   by (metis fmap_graph_add plus_STORE.rep_eq sdom.rep_eq st_graph.rep_eq)
 
 lemma st_leq_lub:
   fixes x :: "('m::ADDR_SORT) STORE"
-  assumes "sdom(x) \<inter>\<^sub>f sdom(y) = \<lbrace>\<rbrace>"
+  assumes "sdom(x) |\<inter>| sdom(y) = \<lbrace>\<rbrace>"
   shows "x \<le> y \<longleftrightarrow> x + y \<le> y"
   using assms by (simp add:less_eq_STORE_def st_graph_add)
 
-lemma srefs_subset_sdom : "srefs(\<Gamma>) \<subseteq>\<^sub>f sdom(\<Gamma>)"
+lemma srefs_subset_sdom : "srefs(\<Gamma>) |\<subseteq>| sdom(\<Gamma>)"
 apply (insert Rep_STORE[of "\<Gamma>"])
 apply (auto simp add: sdom.rep_eq srefs.rep_eq)
 done
 
 lemma STORE_add_comm :
-"sdom(s1) \<inter>\<^sub>f sdom(s2) = \<lbrace>\<rbrace> \<Longrightarrow> s1 + s2 = s2 + s1"
+"sdom(s1) |\<inter>| sdom(s2) = \<lbrace>\<rbrace> \<Longrightarrow> s1 + s2 = s2 + s1"
 apply (rule Rep_STORE_intro)
-apply (erule Rep_fset_elim)
+apply (erule fset_elim)
 apply (simp add:plus_STORE.rep_eq)
-apply (metis Rep_fset_intro fempty.rep_eq finter.rep_eq fmap_add_comm sdom.rep_eq)
+apply (metis bot_fset.rep_eq fmap_add_comm fset_intro inf_fset.rep_eq sdom.rep_eq)
 done
 
 lemma sdom_0 [simp] : "sdom(0) = \<lbrace>\<rbrace>"
   by (metis fdom_fmempty sdom.rep_eq zero_STORE.rep_eq)
 
 lemma sran_0 [simp] : "sran(0) = \<lbrace>\<rbrace>"
-  by (auto simp add:sran.rep_eq zero_STORE.rep_eq fran.rep_eq zero_fmap.rep_eq)
+  by (auto elim:fmember_elim simp add:sran.rep_eq zero_STORE.rep_eq fran.rep_eq zero_fmap.rep_eq)
 
-lemma sdom_plus [simp] : "sdom(x + y) = sdom(x) \<union>\<^sub>f sdom(y)"
+lemma sdom_plus [simp] : "sdom(x + y) = sdom(x) |\<union>| sdom(y)"
   by (metis (hide_lams, no_types) fdom_plus plus_STORE.rep_eq sdom.rep_eq)
 
 default_sort TYPED_MODEL

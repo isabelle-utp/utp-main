@@ -28,7 +28,7 @@ subsection {* Standard Setup *}
   lemma param_color[param]:
     "(color.R,color.R)\<in>color_rel"
     "(color.B,color.B)\<in>color_rel"
-    "(color_case,color_case)\<in>R \<rightarrow> R \<rightarrow> color_rel \<rightarrow> R"
+    "(case_color,case_color)\<in>R \<rightarrow> R \<rightarrow> color_rel \<rightarrow> R"
     by (auto 
       intro: color_rel.intros
       elim: color_rel.cases
@@ -65,8 +65,8 @@ subsection {* Standard Setup *}
       color_rel \<rightarrow> \<langle>Ra,Rb\<rangle>rbt_rel \<rightarrow> Ra \<rightarrow> Rb \<rightarrow> \<langle>Ra,Rb\<rangle>rbt_rel \<rightarrow> \<langle>Ra,Rb\<rangle>rbt_rel"
     by (auto intro: rbt_rel_intros)
 
-  lemma param_rbt_case[param]:
-    "(rbt_case,rbt_case) \<in> 
+  lemma param_case_rbt[param]:
+    "(case_rbt,case_rbt) \<in> 
       Ra \<rightarrow> (color_rel \<rightarrow> \<langle>Rb,Rc\<rangle>rbt_rel \<rightarrow> Rb \<rightarrow> Rc \<rightarrow> \<langle>Rb,Rc\<rangle>rbt_rel \<rightarrow> Ra) 
         \<rightarrow> \<langle>Rb,Rc\<rangle>rbt_rel \<rightarrow> Ra"
     apply clarsimp
@@ -76,7 +76,7 @@ subsection {* Standard Setup *}
     apply parametricity
     done
 
-  lemma param_rbt_rec[param]: "(rbt_rec, rbt_rec) \<in> 
+  lemma param_rec_rbt[param]: "(rec_rbt, rec_rbt) \<in> 
     Ra \<rightarrow> (color_rel \<rightarrow> \<langle>Rb,Rc\<rangle>rbt_rel \<rightarrow> Rb \<rightarrow> Rc \<rightarrow> \<langle>Rb,Rc\<rangle>rbt_rel
      \<rightarrow> Ra \<rightarrow> Ra \<rightarrow> Ra) \<rightarrow> \<langle>Rb,Rc\<rangle>rbt_rel \<rightarrow> Ra"
   proof (intro fun_relI)
@@ -250,7 +250,7 @@ subsection {* Standard Setup *}
     "(RBT_Impl.LT,RBT_Impl.LT)\<in>compare_rel"
     "(RBT_Impl.GT,RBT_Impl.GT)\<in>compare_rel"
     "(RBT_Impl.EQ,RBT_Impl.EQ)\<in>compare_rel"
-    "(RBT_Impl.compare_case,RBT_Impl.compare_case)\<in>R\<rightarrow>R\<rightarrow>R\<rightarrow>compare_rel\<rightarrow>R"
+    "(RBT_Impl.case_compare,RBT_Impl.case_compare)\<in>R\<rightarrow>R\<rightarrow>R\<rightarrow>compare_rel\<rightarrow>R"
     by (auto split: RBT_Impl.compare.split)
 
   lemma param_rbtreeify_aux[param]:
@@ -421,8 +421,6 @@ subsection {* Standard Setup *}
     apply (subst RBT_Impl.compare_height.simps)
     apply (subst compare_height.simps)
     apply (auto split: rbt.split)
-
-    apply (rprems, (intro conjI, (rule refl)+)+)+
     done
 
   term RBT_Impl.skip_red
@@ -434,8 +432,8 @@ subsection {* Standard Setup *}
     \<in> \<langle>Rk,Rv\<rangle>rbt_rel \<rightarrow> \<langle>Rk,Rv\<rangle>rbt_rel"
     unfolding RBT_Impl.skip_black_def[abs_def] by parametricity
 
-  term rbt_case
-  lemma param_rbt_case':
+  term case_rbt
+  lemma param_case_rbt':
     assumes "(t,t')\<in>\<langle>Rk,Rv\<rangle>rbt_rel"
     assumes "\<lbrakk>t=rbt.Empty; t'=rbt.Empty\<rbrakk> \<Longrightarrow> (fl,fl')\<in>R"
     assumes "\<And>c l k v r c' l' k' v' r'. \<lbrakk> 
@@ -443,7 +441,7 @@ subsection {* Standard Setup *}
       (c,c')\<in>color_rel;
       (l,l')\<in>\<langle>Rk,Rv\<rangle>rbt_rel; (k,k')\<in>Rk; (v,v')\<in>Rv; (r,r')\<in>\<langle>Rk,Rv\<rangle>rbt_rel
     \<rbrakk> \<Longrightarrow> (fb c l k v r, fb' c' l' k' v' r') \<in> R"
-    shows "(rbt_case fl fb t, rbt_case fl' fb' t') \<in> R"
+    shows "(case_rbt fl fb t, case_rbt fl' fb' t') \<in> R"
     using assms by (auto split: rbt.split elim: rbt_rel_elims)
       
   lemma compare_height_param_aux[param]:
@@ -454,8 +452,7 @@ subsection {* Standard Setup *}
       rule: compare_height.induct)
     apply (subst (2) compare_height.simps)
     apply (subst compare_height.simps)
-    apply (parametricity add: param_prod_case' param_rbt_case',
-      (simp only: Pair_eq, intro conjI, (rule refl)+)+) []
+    apply (parametricity add: param_case_prod' param_case_rbt', (simp only: Pair_eq)+) []
     done
 
   lemma compare_height_param[param]:
@@ -860,7 +857,7 @@ lemma rbt_map_rel_sv[relator_props]:
   apply (rule br_sv)
   done
 
-lemmas [autoref_rel_intf] = REL_INTFI[of "rbt_map_rel x" i_map, standard]
+lemmas [autoref_rel_intf] = REL_INTFI[of "rbt_map_rel x" i_map] for x
 
 
 subsection {* Second Part: Binding *}
@@ -1106,6 +1103,6 @@ lemmas autoref_rbt_rules =
   autoref_rbt_union
 
 lemmas autoref_rbt_rules_linorder[autoref_rules_raw] = 
-  autoref_rbt_rules[where Rk="Rk::(_\<times>_::linorder) set", standard]
+  autoref_rbt_rules[where Rk="Rk"] for Rk :: "(_\<times>_::linorder) set"
 
 end

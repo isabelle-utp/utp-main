@@ -289,14 +289,13 @@ theorem SubstP_AssignR_simple [usubst]:
     "DASHED \<sharp> v"
   shows "(x :=\<^sub>R e)[v/\<^sub>px] = (x :=\<^sub>R (e[v/\<^sub>ex]))"
   using assms 
-  apply (utp_rel_auto_tac)
-  apply (metis (lifting, mono_tags) EvalE_SubstE EvalR_AssignR UNDASHED_not_DASHED UNDASHED_undash_elim UNREST_SubstE_simple WF_REL_BINDING_binding_upd_remove assms(1) assms(2) assms(3) mem_Collect_eq)
-  apply (smt EvalE_SubstE EvalR_AssignR UNDASHED_not_DASHED UNREST_SubstE_simple WF_REL_BINDING_binding_upd mem_Collect_eq)
+  apply (utp_rel_tac)
+  apply (subst evalr)
+  apply (simp_all add: unrest EvalE_SubstE closure)
+  apply (auto)
+  apply (metis WF_REL_BINDING_binding_upd_remove)
+  apply (metis WF_REL_BINDING_binding_upd)
 done
-(*
-Alternative proof requiring typing constraints:
-by (simp add: AssignR_alt_def typing defined usubst unrest)
-*)
 
 theorem SubstP_AssignR_disjoint [usubst]:
   assumes "x \<in> D\<^sub>0" "y \<in> D\<^sub>0" "x \<noteq> y"

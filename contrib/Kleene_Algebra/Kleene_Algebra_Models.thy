@@ -165,12 +165,10 @@ begin
     by (metis lang.simps(2) rangeI)
 
   lift_definition less_eq_reg_lan :: "'a reg_lan \<Rightarrow> 'a reg_lan \<Rightarrow> bool"
-    is less_eq
-    ..
+    is less_eq .
 
   lift_definition less_reg_lan :: "'a reg_lan \<Rightarrow> 'a reg_lan \<Rightarrow> bool"
-    is less
-    ..
+    is less .
 
   lift_definition plus_reg_lan :: "'a reg_lan \<Rightarrow> 'a reg_lan \<Rightarrow> 'a reg_lan"
     is plus

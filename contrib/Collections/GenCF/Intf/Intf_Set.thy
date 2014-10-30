@@ -14,11 +14,17 @@ definition [simp]: "op_set_disjoint a b \<equiv> a\<inter>b={}"
 definition [simp]: "op_set_filter P s \<equiv> {x\<in>s. P x}"
 definition [simp]: "op_set_sel P s \<equiv> SPEC (\<lambda>x. x\<in>s \<and> P x)"
 definition [simp]: "op_set_pick s \<equiv> SPEC (\<lambda>x. x\<in>s)"
+definition [simp]: "op_set_to_sorted_list ordR s 
+  \<equiv> SPEC (\<lambda>l. set l = s \<and> distinct l \<and> sorted_by_rel ordR l)"
+definition [simp]: "op_set_to_list s \<equiv> SPEC (\<lambda>l. set l = s \<and> distinct l)"
+definition [simp]: "op_set_cart x y \<equiv> x \<times> y"
 
 (* TODO: Do op_set_pick_remove (like op_map_pick_remove) *)
 
 context begin interpretation autoref_syn .
 lemma [autoref_op_pat]:
+  fixes s a b :: "'a set" and x::'a and P :: "'a \<Rightarrow> bool"
+  shows
   "s - {x} \<equiv> op_set_delete$x$s"
 
   "s = {} \<equiv> op_set_isEmpty$s"
@@ -42,10 +48,49 @@ lemma [autoref_op_pat]:
   by (auto intro!: eq_reflection simp: card_Suc_eq)
 
 lemma [autoref_op_pat]:
+  "a \<times> b \<equiv> op_set_cart a b"
+  by (auto intro!: eq_reflection simp: card_Suc_eq)
+
+lemma [autoref_op_pat]:
   "SPEC (\<lambda>(u,v). (u,v)\<in>s) \<equiv> op_set_pick$s"
-  "SPEC (\<lambda>(u,v). P u v \<and> (u,v)\<in>s) \<equiv> op_set_sel$(prod_case P)$s"
-  "SPEC (\<lambda>(u,v). (u,v)\<in>s \<and> P u v) \<equiv> op_set_sel$(prod_case P)$s"
+  "SPEC (\<lambda>(u,v). P u v \<and> (u,v)\<in>s) \<equiv> op_set_sel$(case_prod P)$s"
+  "SPEC (\<lambda>(u,v). (u,v)\<in>s \<and> P u v) \<equiv> op_set_sel$(case_prod P)$s"
   by (auto intro!: eq_reflection)
+
+  lemma [autoref_op_pat]:
+    "SPEC (\<lambda>l. set l = s \<and> distinct l \<and> sorted_by_rel ordR l) 
+    \<equiv> OP (op_set_to_sorted_list ordR)$s"
+    "SPEC (\<lambda>l. set l = s \<and> sorted_by_rel ordR l \<and> distinct l) 
+    \<equiv> OP (op_set_to_sorted_list ordR)$s"
+    "SPEC (\<lambda>l. distinct l \<and> set l = s \<and> sorted_by_rel ordR l) 
+    \<equiv> OP (op_set_to_sorted_list ordR)$s"
+    "SPEC (\<lambda>l. distinct l \<and> sorted_by_rel ordR l \<and> set l = s) 
+    \<equiv> OP (op_set_to_sorted_list ordR)$s"
+    "SPEC (\<lambda>l. sorted_by_rel ordR l \<and> distinct l \<and> set l = s) 
+    \<equiv> OP (op_set_to_sorted_list ordR)$s"
+    "SPEC (\<lambda>l. sorted_by_rel ordR l \<and> set l = s \<and> distinct l) 
+    \<equiv> OP (op_set_to_sorted_list ordR)$s"
+
+    "SPEC (\<lambda>l. s = set l \<and> distinct l \<and> sorted_by_rel ordR l) 
+    \<equiv> OP (op_set_to_sorted_list ordR)$s"
+    "SPEC (\<lambda>l. s = set l \<and> sorted_by_rel ordR l \<and> distinct l) 
+    \<equiv> OP (op_set_to_sorted_list ordR)$s"
+    "SPEC (\<lambda>l. distinct l \<and> s = set l \<and> sorted_by_rel ordR l) 
+    \<equiv> OP (op_set_to_sorted_list ordR)$s"
+    "SPEC (\<lambda>l. distinct l \<and> sorted_by_rel ordR l \<and> s = set l) 
+    \<equiv> OP (op_set_to_sorted_list ordR)$s"
+    "SPEC (\<lambda>l. sorted_by_rel ordR l \<and> distinct l \<and> s = set l) 
+    \<equiv> OP (op_set_to_sorted_list ordR)$s"
+    "SPEC (\<lambda>l. sorted_by_rel ordR l \<and> s = set l \<and> distinct l) 
+    \<equiv> OP (op_set_to_sorted_list ordR)$s"
+
+    "SPEC (\<lambda>l. set l = s \<and> distinct l) \<equiv> op_set_to_list$s"
+    "SPEC (\<lambda>l. distinct l \<and> set l = s) \<equiv> op_set_to_list$s"
+
+    "SPEC (\<lambda>l. s = set l \<and> distinct l) \<equiv> op_set_to_list$s"
+    "SPEC (\<lambda>l. distinct l \<and> s = set l) \<equiv> op_set_to_list$s"
+    by (auto intro!: eq_reflection)
+
 end
 
 lemma [autoref_itype]:
@@ -57,8 +102,8 @@ lemma [autoref_itype]:
   "op_set_isSng ::\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i i_bool"
   "op \<union> ::\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i \<langle>I\<rangle>\<^sub>ii_set"
   "op \<inter> ::\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i \<langle>I\<rangle>\<^sub>ii_set"
-  "op - ::\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i \<langle>I\<rangle>\<^sub>ii_set"
-  "op = ::\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i i_bool"
+  "(op - :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set) ::\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i \<langle>I\<rangle>\<^sub>ii_set"
+  "(op = :: 'a set \<Rightarrow> 'a set \<Rightarrow> bool) ::\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i i_bool"
   "op \<subseteq> ::\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i i_bool"
   "op_set_disjoint ::\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i i_bool"
   "Ball ::\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i (I \<rightarrow>\<^sub>i i_bool) \<rightarrow>\<^sub>i i_bool"
@@ -71,6 +116,9 @@ lemma [autoref_itype]:
   "op_set_pick ::\<^sub>i \<langle>I\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i \<langle>I\<rangle>\<^sub>ii_nres"
   "Sigma ::\<^sub>i \<langle>Ia\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i (Ia \<rightarrow>\<^sub>i \<langle>Ib\<rangle>\<^sub>ii_set) \<rightarrow>\<^sub>i \<langle>\<langle>Ia,Ib\<rangle>\<^sub>ii_prod\<rangle>\<^sub>ii_set"
   "op ` ::\<^sub>i (Ia\<rightarrow>\<^sub>iIb) \<rightarrow>\<^sub>i \<langle>Ia\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i \<langle>Ib\<rangle>\<^sub>ii_set"
+  "op_set_cart ::\<^sub>i \<langle>Ix\<rangle>\<^sub>iIsx \<rightarrow>\<^sub>i \<langle>Iy\<rangle>\<^sub>iIsy \<rightarrow>\<^sub>i \<langle>\<langle>Ix, Iy\<rangle>\<^sub>ii_prod\<rangle>\<^sub>iIsp"
+  "Union ::\<^sub>i \<langle>\<langle>I\<rangle>\<^sub>ii_set\<rangle>\<^sub>ii_set \<rightarrow>\<^sub>i \<langle>I\<rangle>\<^sub>ii_set"
+  "atLeastLessThan ::\<^sub>i i_nat \<rightarrow>\<^sub>i i_nat \<rightarrow>\<^sub>i \<langle>i_nat\<rangle>\<^sub>ii_set"
   by simp_all
 
 lemma hom_set1[autoref_hom]:
@@ -87,6 +135,7 @@ lemma hom_set1[autoref_hom]:
   "CONSTRAINT card (\<langle>R\<rangle>Rs\<rightarrow>Id)"
   "CONSTRAINT set (\<langle>R\<rangle>Rl\<rightarrow>\<langle>R\<rangle>Rs)"
   "CONSTRAINT op ` ((Ra\<rightarrow>Rb) \<rightarrow> \<langle>Ra\<rangle>Rs\<rightarrow>\<langle>Rb\<rangle>Rs)"
+  "CONSTRAINT Union (\<langle>\<langle>R\<rangle>Ri\<rangle>Ro \<rightarrow> \<langle>R\<rangle>Ri)"
   by simp_all
 
 lemma hom_set2[autoref_hom]:

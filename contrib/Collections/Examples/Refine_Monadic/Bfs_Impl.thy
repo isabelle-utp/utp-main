@@ -21,7 +21,7 @@ begin
     Isabelle/HOLs code generator to generate ML-code.
 
     The implementation uses the Isabelle Collection Framework (ICF)
-    (Available at \url{http://afp.sourceforge.net/entries/Collections.shtml}),
+    (Available at @{url "http://afp.sourceforge.net/entries/Collections.shtml"}),
     to provide efficient set implementations. We choose a hashset 
     (backed by a Red Black Tree) for the visited set, and lists for
     all other sets. Moreover, we fix the node type to natural numbers.

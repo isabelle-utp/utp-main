@@ -118,11 +118,11 @@ lemma matrix_add_0_left [simp]:
 
 lemma matrix_add_commute [simp]:
   "(A::('a::ab_semigroup_add,'m,'n) matrix) + B = B + A"
-  by (cases A, cases B, simp add: add_commute)
+  by (cases A, cases B, simp add: add.commute)
 
 lemma matrix_add_assoc:
   "(A::('a::semigroup_add,'m,'n) matrix) + B + C = A + (B + C)"
-  by (cases A, cases B, cases C, simp add: add_assoc)
+  by (cases A, cases B, cases C, simp add: add.assoc)
 
 lemma matrix_add_left_commute [simp]:
   "(A::('a::ab_semigroup_add,'m,'n) matrix) + (B + C) = B + (A + C)"
@@ -138,11 +138,11 @@ lemma sqmatrix_add_0_left [simp]:
 
 lemma sqmatrix_add_commute [simp]:
   "(A::('a::ab_semigroup_add,'m) sqmatrix) + B = B + A"
-  by (cases A, cases B, simp add: add_commute)
+  by (cases A, cases B, simp add: add.commute)
 
 lemma sqmatrix_add_assoc:
   "(A::('a::semigroup_add,'m) sqmatrix) + B + C = A + (B + C)"
-  by (cases A, cases B, cases C, simp add: add_assoc)
+  by (cases A, cases B, cases C, simp add: add.assoc)
 
 lemma sqmatrix_add_left_commute [simp]:
   "(A::('a::ab_semigroup_add,'m) sqmatrix) + (B + C) = B + (A + C)"
@@ -241,8 +241,8 @@ lemma matrix_mult_assoc:
  apply (cases A)
  apply (cases B)
  apply (cases C)
- apply (simp add: setsum_left_distrib setsum_right_distrib mult_assoc)
- apply (subst setsum_commute)
+ apply (simp add: setsum_left_distrib setsum_right_distrib mult.assoc)
+ apply (subst setsum.commute)
  apply (rule refl)
 done
 
@@ -275,8 +275,8 @@ lemma sqmatrix_mult_assoc:
  apply (cases A)
  apply (cases B)
  apply (cases C)
- apply (simp add: setsum_left_distrib setsum_right_distrib mult_assoc)
- apply (subst setsum_commute)
+ apply (simp add: setsum_left_distrib setsum_right_distrib mult.assoc)
+ apply (subst setsum.commute)
  apply (rule refl)
 done
 

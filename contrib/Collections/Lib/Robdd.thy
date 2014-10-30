@@ -4,7 +4,7 @@
 *)
 header {* \isaheader{ROBDDs} *}
 theory Robdd
-imports Main "../spec/MapSpec" "../iterator/SetIteratorOperations"
+imports Main "../ICF/spec/MapSpec" "../Iterator/SetIteratorOperations"
         
 begin
 
@@ -85,7 +85,7 @@ lemma subrobdds_alt_def :
 by (cases b) (simp_all add: subrobdds_proper_def)
 
 lemma subobbds_proper_size: 
-  "b1 \<in> subrobdds_proper b2 \<Longrightarrow> robdd_size b1 < robdd_size b2"
+  "b1 \<in> subrobdds_proper b2 \<Longrightarrow> size_robdd b1 < size_robdd b2"
 proof (induct b2 arbitrary: b1)
   case (robdd_leaf f) thus ?case by (simp add: subrobdds_proper_def)
 next
@@ -111,7 +111,7 @@ next
 qed
 
 lemma subrobdds_size: 
-  "b1 \<in> subrobdds b2 \<Longrightarrow> robdd_size b1 \<le> robdd_size b2"
+  "b1 \<in> subrobdds b2 \<Longrightarrow> size_robdd b1 \<le> size_robdd b2"
 unfolding subrobdds_alt_def by simp (metis le_eq_less_or_eq subobbds_proper_size)
 
 lemma subrobdds_refl[simp]:  "b \<in> subrobdds b" by (simp add: subrobdds_alt_def)
@@ -748,7 +748,7 @@ assumes "robdd_invar_vars b1" "robdd_invar_reduced b1"
     and "robdd_\<alpha> b1 = robdd_\<alpha> b2"
 shows "robdd_equiv b1 b2"
 using assms
-proof (induct "(b1, b2)" arbitrary: b1 b2 rule: measure_induct_rule [of "\<lambda>(b1,b2). robdd_size b1 + robdd_size b2"])
+proof (induct "(b1, b2)" arbitrary: b1 b2 rule: measure_induct_rule [of "\<lambda>(b1,b2). size_robdd b1 + size_robdd b2"])
   case less 
   note ind_hyp = less(1)
   note invars_b1 = less(2,3)
@@ -1667,9 +1667,9 @@ locale robdd_locale =
         "b2_r \<in> subrobdds b2" (is ?T12)
         "robdd_get_min_var b1 b2 = v''" (is ?T13)
         "~(robdd_is_leaf b1 \<and> robdd_is_leaf b2) \<longrightarrow>
-         robdd_size b1_l + robdd_size b2_l < robdd_size b1 + robdd_size b2" (is ?T14)
+         size_robdd b1_l + size_robdd b2_l < size_robdd b1 + size_robdd b2" (is ?T14)
         "~(robdd_is_leaf b1 \<and> robdd_is_leaf b2) \<longrightarrow> 
-         robdd_size b1_r + robdd_size b2_r < robdd_size b1 + robdd_size b2" (is ?T15)
+         size_robdd b1_r + size_robdd b2_r < size_robdd b1 + size_robdd b2" (is ?T15)
   proof -
     have "?T1 \<and> ?T2 \<and> ?T3 \<and> ?T4 \<and> ?T5 \<and> ?T6 \<and> ?T7 \<and> ?T8 \<and> ?T9 \<and> ?T10 \<and> ?T11 \<and> ?T12 \<and> ?T13 \<and> ?T14 \<and> ?T15"
     proof (cases b1)
@@ -1745,7 +1745,7 @@ locale robdd_locale =
                      (b, apply_map, rev_map))))"
    by pat_completeness auto
    termination 
-      apply (relation "measure (\<lambda>(_, _, _, b1, b2). robdd_size b1 + robdd_size b2)")
+      apply (relation "measure (\<lambda>(_, _, _, b1, b2). size_robdd b1 + size_robdd b2)")
       apply simp
       apply (clarify, simp) 
       defer
@@ -1755,14 +1755,14 @@ locale robdd_locale =
      assume bop_eq: "bool_op_extend bop (robdd_to_bool b1) (robdd_to_bool b2) = None"
         and next_eq: "(l1, r1, v, l2, r2) = robdd_apply_next b1 b2"
 
-     hence "robdd_size l1 + robdd_size l2 < robdd_size b1 + robdd_size b2 \<and> 
-           robdd_size r1 + robdd_size r2 < robdd_size b1 + robdd_size b2" 
+     hence "size_robdd l1 + size_robdd l2 < size_robdd b1 + size_robdd b2 \<and> 
+           size_robdd r1 + size_robdd r2 < size_robdd b1 + size_robdd b2" 
        apply (case_tac [!] b1)
        apply (case_tac [!] b2)
        apply (simp_all split: if_splits)
      done
-     thus "robdd_size l1 + robdd_size l2 < robdd_size b1 + robdd_size b2" 
-          "robdd_size r1 + robdd_size r2 < robdd_size b1 + robdd_size b2" by simp_all
+     thus "size_robdd l1 + size_robdd l2 < size_robdd b1 + size_robdd b2" 
+          "size_robdd r1 + size_robdd r2 < size_robdd b1 + size_robdd b2" by simp_all
   qed
   declare robdd_apply.simps[simp del]
 
@@ -1853,7 +1853,7 @@ locale robdd_locale =
          (\<forall>a. robdd_\<alpha> b a \<longleftrightarrow> bop (robdd_\<alpha> b1 a) (robdd_\<alpha> b2 a))"         
   using invar_rev_map invar_apply_map b1_invar b2_invar 
   unfolding b_def apply_map'_def rev_map'_def res_def
-  proof (induct "(b1, b2)" arbitrary: b1 b2 bs n apply_map rev_map  rule: measure_induct_rule [of "\<lambda>(b1, b2). robdd_size b1 + robdd_size b2"])
+  proof (induct "(b1, b2)" arbitrary: b1 b2 bs n apply_map rev_map  rule: measure_induct_rule [of "\<lambda>(b1, b2). size_robdd b1 + size_robdd b2"])
     case less
     note indhyp = less(1)
     note invar_rev_map = less(2)
@@ -2760,31 +2760,34 @@ next
   note indhyp_4 = goal3(4)[of False, OF _ _ _ invar_rr red_rr, simplified]
   note indhyp_5 = goal3(5)[OF _ invar_n invar(2), simplified]
 
-  from invar_ll have ll_sem: "\<And>a b. robdd_\<alpha> ll (\<lambda>v. nat_case b a (v - n)) = robdd_\<alpha> ll 
+  from invar_ll have ll_sem: "\<And>a b. robdd_\<alpha> ll (\<lambda>v. case_nat b a (v - n)) = robdd_\<alpha> ll 
                                      (\<lambda>v. a (v - Suc n))"
     apply (rule_tac robdd_\<alpha>_invar_greater [of "Suc n"]) 
     apply (simp_all split: nat.splits)
-    apply (metis diff_Suc nat_case_Suc)
+    apply (metis diff_Suc nat.case(2))
   done
 
-  from invar_rr have rr_sem: "\<And>a b. robdd_\<alpha> rr (\<lambda>v. nat_case b a (v - n)) = robdd_\<alpha> rr 
+  from invar_rr have rr_sem: "\<And>a b. robdd_\<alpha> rr (\<lambda>v. case_nat b a (v - n)) = robdd_\<alpha> rr 
                                      (\<lambda>v. a (v - Suc n))"
     apply (rule_tac robdd_\<alpha>_invar_greater [of "Suc n"]) 
     apply (simp_all split: nat.splits)
-    apply (metis diff_Suc nat_case_Suc)
+    apply (metis diff_Suc nat.case(2))
   done
 
   show ?case
   proof (cases "n = v")
     case False with n_le have n_less: "n < v" by simp
-    hence "v - n = Suc (v - (Suc n))" by auto
+    hence "v - n = Suc (v - (Suc n))" by simp
     with indhyp_5 n_less
-    show ?thesis apply (simp add: Ball_def all_conj_distrib)
+    show ?thesis 
+      apply (simp add: Ball_def all_conj_distrib del: Suc_diff)
       apply (cases b)
       apply (simp_all add: image_iff Bex_def ex_disj_distrib all_conj_distrib imp_conjR
                        shift_assignment_def imp_ex all_simps(6)[symmetric]
-                       ll_sem rr_sem 
-                  del: ex_simps all_simps)
+                       ll_sem rr_sem split: nat.split
+                  del: ex_simps all_simps Suc_diff)
+      
+      
     done
   next
     case True note n_eq[simp] = this

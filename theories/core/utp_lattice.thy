@@ -66,11 +66,11 @@ translations
   "_n_upred_Inf ps"      == "CONST Sup ps"
   "_n_upred_Sup ps"      == "CONST Inf ps"
   "_n_upred_INF1 x y B"  == "SUP x. SUP y. B"
-  "_n_upred_INF1 x B"    == "CONST SUPR CONST UNIV (%x. B)"
-  "_n_upred_INF x A B"   == "CONST SUPR A (%x. B)"
+  "_n_upred_INF1 x B"    == "CONST SUPREMUM CONST UNIV (%x. B)"
+  "_n_upred_INF x A B"   == "CONST SUPREMUM A (%x. B)"
   "_n_upred_SUP1 x y B"  == "INF x. INF y. B"
-  "_n_upred_SUP1 x B"    == "CONST INFI CONST UNIV (%x. B)"
-  "_n_upred_SUP x A B"   == "CONST INFI A (%x. B)"
+  "_n_upred_SUP1 x B"    == "CONST INFIMUM CONST UNIV (%x. B)"
+  "_n_upred_SUP x A B"   == "CONST INFIMUM A (%x. B)"
   "_n_upreds x xs"       => "CONST insert x xs"
   "_n_upreds_end x"      => "{x}"
 
@@ -152,7 +152,11 @@ begin
 
 instance
   apply (intro_classes)
-  apply (utp_pred_auto_tac)+
+  apply (rule EvalP_intro)
+  apply (simp only:eval)
+  apply (utp_pred_tac)
+  apply (simp only:eval)
+  apply (utp_pred_tac)
 done
 end
 
@@ -254,7 +258,7 @@ lemma EvalRR_InfP [evalrr]:
   apply (rule trans)
   apply (rule image_Inter)
   apply (rule subset_inj_on)
-  apply (rule map_pair_inj_on)
+  apply (rule map_prod_inj_on)
   apply (rule MkRelB_inj)
   apply (rule MkRelB_inj)
   apply (smt EvalR_range Sup_le_iff mem_Collect_eq)

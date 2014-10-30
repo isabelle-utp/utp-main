@@ -149,7 +149,7 @@ lemma BindRX_inj:
   apply (erule DestXRelB_elim)+
   apply (simp)
   apply ((erule Rep_binding_elim)+, auto simp add:RenameB_rep_eq binding_equiv_def)
-  apply (smt Compl_eq_Diff_UNIV Diff_iff NON_REL_VAR_def UNDASHED_not_DASHED Un_iff override_on_eq)
+  apply (metis UNDASHED_not_DASHED UNDASHED_not_NON_REL_VAR Un_iff override_on_apply_notin)
   apply (drule_tac x="undash x" and y="undash x" in cong) back
   apply (simp_all)
   apply (subgoal_tac "undash x \<notin> DASHED \<union> NON_REL_VAR")
@@ -185,7 +185,7 @@ lemma BindPX_inverse [simp]: "BindRX (BindPX b) = b"
   apply (rule ext)
   apply (case_tac "x \<in> DASHED \<union> NON_REL_VAR")
   apply (auto)
-  apply (smt DestXRelB_NOT_UNDASHED SS_DASHED_app SS_UNDASHED_app SS_ident_app UNDASHED_dash_DASHED comp_apply override_on_def undash_dash)
+  apply (metis Compl_iff SS_DASHED_app SS_UNDASHED_app UNDASHED_DASHED_inter(16) UNDASHED_dash_DASHED Un_iff comp_eq_dest_lhs override_on_apply_in undash_dash)
 done
 
 lemma BindRX_inverse: "BindPX (BindRX p) \<cong> p on REL_VAR"
@@ -337,7 +337,7 @@ lemma EvalRX_SkipRA [evalrx]:
      \<lbrakk>II\<^bsub>vs\<^esub>\<rbrakk>RX = {(b1,b2) | b1 b2. \<forall> x \<in> vs. \<langle>\<langle>b1\<rangle>\<^sub>x\<rangle>\<^sub>b x = \<langle>\<langle>b2\<rangle>\<^sub>x\<rangle>\<^sub>b x}"
   apply (auto)
   apply (auto simp add:EvalRX_def SkipRA_rep_eq_alt image_Collect BindRX_def RenameB_rep_eq)[1]
-  apply (smt SS_UNDASHED_app Un_iff comp_apply in_member in_mono override_on_def)
+  apply (metis SS_UNDASHED_app SS_ident_app Un_iff comp_apply in_member override_on_apply_in override_on_apply_notin)
   apply (simp add:EvalRX_def SkipRA_rep_eq_alt image_Collect)
   apply (rule_tac x="BindPX (xa, y)" in exI)
   apply (auto)
@@ -471,7 +471,7 @@ lemma EvalRX_ExprP_DASHED [evalrx]:
   apply (auto simp add:image_def BindRX_def)
   apply (rule_tac x="\<langle>xa\<rangle>\<^sub>x \<oplus>\<^sub>b (SS\<bullet>\<langle>y\<rangle>\<^sub>x) on DASHED" in exI)
   apply (auto)
-  apply (smt RenameB_def SS_inv UNDASHED_DASHED_NON_REL_VAR UNREST_EXPR_def Un_assoc Un_commute binding_override_assoc binding_override_minus binding_override_simps(2))
+  apply (metis (erased, lifting) NON_REL_VAR_def UNREST_EXPR_def UNREST_EXPR_unionE binding_override_minus binding_override_overshadow)
   apply (rule, simp)
   apply (metis DestXRelB_binding_equiv binding_override_equiv binding_override_simps(1) binding_override_simps(3))
   apply (rule, simp add:RenameB_override_distr1 urename closure)

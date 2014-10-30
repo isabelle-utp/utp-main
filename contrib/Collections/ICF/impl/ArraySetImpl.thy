@@ -86,6 +86,6 @@ definition test_codegen where "test_codegen \<equiv> (
   ias.to_rev_list
 )"
 
-export_code test_codegen in SML file -
+export_code test_codegen in SML
 
 end

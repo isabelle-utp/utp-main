@@ -383,7 +383,7 @@ proof -
       apply (induct xs)
       apply (simp add: List.map_filter_simps) 
       apply (simp add: List.map_filter_def image_iff inj_on_def Ball_def dom_def)
-      apply (metis not_Some_eq the.simps)
+      apply (metis not_Some_eq option.sel)
     done
   next
     show "{y. \<exists>x. x \<in> S \<and> g x = Some y} =
