@@ -16,7 +16,7 @@ default_sort type
 subsection {* Variable Model *}
 
 record 'm uvar =
-  name :: "name" ("vname")
+  name :: "uname" ("vname")
   type :: "'m utype" ("vtype")
   strict :: "bool" ("aux")
 
@@ -84,7 +84,7 @@ declare less_uvar_ext_def [simp]
 
 subsection {* Constructors *}
 
-definition MkVar :: "name \<Rightarrow> 'm utype \<Rightarrow> bool \<Rightarrow> 'm uvar" where
+definition MkVar :: "uname \<Rightarrow> 'm utype \<Rightarrow> bool \<Rightarrow> 'm uvar" where
 "MkVar n t b = \<lparr>name = n, type = t, strict = b\<rparr>"
 
 abbreviation MkPlain :: "string \<Rightarrow> 'm utype \<Rightarrow> bool \<Rightarrow> 'm uvar" where
@@ -625,19 +625,19 @@ subsubsection {* Simplification Theorems *}
 
 lemma UNDASHED_nempty: "UNDASHED \<noteq> {}"
   apply (auto simp add:var_defs)
-  apply (rule_tac x="MkVar (MkName ''x'' 0 NoSub) some_type False" in exI)
+  apply (rule_tac x="MkVar (MkName ''x'' 0 NoSub) some_utype False" in exI)
   apply (simp)
 done
 
 lemma DASHED_nempty: "DASHED \<noteq> {}"
   apply (auto simp add:var_defs)
-  apply (rule_tac x="MkVar (MkName ''x'' 1 NoSub) some_type False" in exI)
+  apply (rule_tac x="MkVar (MkName ''x'' 1 NoSub) some_utype False" in exI)
   apply (simp)
 done
 
 lemma DASHED_TWICE_nempty: "DASHED_TWICE \<noteq> {}"
   apply (auto simp add:var_defs)
-  apply (rule_tac x="MkVar (MkName ''x'' 2 NoSub) some_type False" in exI)
+  apply (rule_tac x="MkVar (MkName ''x'' 2 NoSub) some_utype False" in exI)
   apply (simp)
 done
 
@@ -648,7 +648,7 @@ lemma dash_neq_reduce:
   apply (case_tac y)
   apply (auto)
   apply (rename_tac n1 n2)
-  apply (metis name.ext_inject name.surjective name.update_convs(2) old.nat.inject)
+  apply (metis (full_types) old.nat.inject old.unit.exhaust uname.select_convs(1) uname.select_convs(2) uname.select_convs(3) uname.surjective uname.update_convs(2))
 done
 
 theorem dash_uniqs:
@@ -1379,12 +1379,11 @@ theorem fresh_var: "\<exists>x::'m uvar. x \<notin> \<langle>xs\<rangle>\<^sub>f
 proof -
 
   obtain n where "n \<notin> name ` \<langle>xs\<rangle>\<^sub>f"
-    by (force intro!: ex_new_if_finite infinite_name)
+    by (force intro!: ex_new_if_finite infinite_uname)
   with assms show ?thesis
     apply (rule_tac x="MkVar n t s" in exI)
     apply (simp)
     apply (metis MkVar_name imageI)
   done
 qed
-
 end

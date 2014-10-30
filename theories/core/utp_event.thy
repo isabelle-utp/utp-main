@@ -11,7 +11,7 @@ theory utp_event
 imports utp_defined
   utp_name
   utp_model
-  utp_sorts_new
+  utp_sorts
 begin
 
 subsection {* Channel Type (HOL) *}
@@ -20,7 +20,7 @@ text {* Do we really need the following type? Remove if not... *}
 
 default_sort type
 
-typedef 'a chan  = "UNIV :: (name * 'a itself) set"
+typedef 'a chan  = "UNIV :: (uname * 'a itself) set"
   morphisms RepChan AbsChan
 apply (rule UNIV_witness)
 done
@@ -30,7 +30,7 @@ declare RepChan_inverse [simp]
 
 subsubsection {* Destructors *}
 
-abbreviation chan_name :: "'a chan \<Rightarrow> name" where
+abbreviation chan_name :: "'a chan \<Rightarrow> uname" where
 "chan_name c \<equiv> fst (RepChan c)"
 
 abbreviation chan_type :: "'a chan \<Rightarrow> 'a itself" where
@@ -40,7 +40,7 @@ subsection {* Channel Type (UTP) *}
 
 default_sort TYPED_MODEL
 
-typedef 'm uchan = "UNIV :: (name * 'm utype) set"
+typedef 'm uchan = "UNIV :: (uname * 'm utype) set"
   morphisms RepUChan AbsUChan
 apply (rule UNIV_witness)
 done
@@ -50,7 +50,7 @@ declare RepUChan_inverse [simp]
 
 subsubsection {* Destructors *}
 
-abbreviation uchan_name :: "'m uchan \<Rightarrow> name" where
+abbreviation uchan_name :: "'m uchan \<Rightarrow> uname" where
 "uchan_name c \<equiv> fst (RepUChan c)"
 
 abbreviation uchan_type :: "'m uchan \<Rightarrow> 'm utype" where
@@ -61,8 +61,8 @@ subsection {* Event Type *}
 typedef 'm event = "{(c :: 'm uchan, v :: 'm uval). v : uchan_type c}"
   morphisms RepEvent AbsEvent
 apply (rule_tac x =
-  "(AbsUChan (bName ''x'', some_type), some_value some_type)" in exI)
-apply (clarsimp)
+  "(AbsUChan (bName ''x'', some_utype), some_value some_utype)" in exI)
+apply (clarsimp simp: typing)
 done
 
 setup_lifting type_definition_event
@@ -78,7 +78,7 @@ done
 
 subsubsection {* Constructors *}
 
-abbreviation Event :: "name \<Rightarrow> 'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a event" where
+abbreviation Event :: "uname \<Rightarrow> 'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a event" where
 "Event n t v \<equiv> AbsEvent (AbsUChan (n, t), v)"
 
 abbreviation EventSet :: "'a uchan set \<Rightarrow> 'a event set" where
@@ -137,35 +137,34 @@ class EVENT_SORT =
   fixes MkEvent :: "'a::TYPED_MODEL event \<Rightarrow> 'a uval"
   fixes DestEvent :: "'a uval \<Rightarrow> 'a event"
   fixes EventType :: "'a utype"
-  assumes INSTANCE : "UTP_BASIC_SORT MkEvent DestEvent UNIV EventType"
+  assumes INSTANCE : "BASIC_SORT MkEvent DestEvent UNIV EventType"
   assumes EventType_monotype [typing] : "monotype EventType"
 begin
 
 subsubsection {* Locale Imports *}
 
+abbreviation EVENT_VALUE :: "'a uval set" where
+"EVENT_VALUE \<equiv> BASIC_SORT.VALUE EventType"
+
+theorems EVENT_VALUE_def = BASIC_SORT.VALUE_def [OF INSTANCE]
+
 abbreviation IsEvent :: "'a uval \<Rightarrow> bool" where
-"IsEvent \<equiv> UTP_BASIC_SORT.IsVal EventType"
+"IsEvent \<equiv> BASIC_SORT.IsVal EventType"
+
+theorems IsEvent_def [simp] = BASIC_SORT.IsVal_def [OF INSTANCE]
 
 theorems
-  IsEvent_def [simp] = UTP_BASIC_SORT.IsVal_def [OF INSTANCE]
+  MkEvent_defined [defined] = BASIC_SORT.MkVal_defined [OF INSTANCE] and
+  MkEvent_typed [simplified, typing] = BASIC_SORT.MkVal_typed [OF INSTANCE] and
+  MkEvent_inverse [simplified, simp] = BASIC_SORT.MkVal_inverse [OF INSTANCE] and
+  DestEvent_inverse [simp] = BASIC_SORT.DestVal_inverse [OF INSTANCE] and
+  inj_on_MkEvent [simp] = BASIC_SORT.inj_on_MkVal [OF INSTANCE] and
+  inj_on_DestEvent [simp] = BASIC_SORT.inj_on_DestVal [OF INSTANCE]
 
 theorems
-  MkEvent_defined [defined] = UTP_BASIC_SORT.MkVal_defined [OF INSTANCE] and
-  MkEvent_typed [simplified, typing] = UTP_BASIC_SORT.MkVal_typed [OF INSTANCE] and
-  MkEvent_inverse [simplified, simp] = UTP_BASIC_SORT.MkVal_inverse [OF INSTANCE] and
-  DestEvent_inverse [simp] = UTP_BASIC_SORT.DestVal_inverse [OF INSTANCE] and
-  MkEvent_inj_on [simp] = UTP_BASIC_SORT.MkVal_inj_on [OF INSTANCE] and
-  DestEvent_inj_on [simp] = UTP_BASIC_SORT.DestVal_inj_on [OF INSTANCE]
-
-theorems
-  dcarrier_EventType = UTP_BASIC_SORT.dcarrier_Type [OF INSTANCE] and
-  DestEvent_dcarrier_image = UTP_BASIC_SORT.DestVal_dcarrier_image [OF INSTANCE] and
-  in_image_EventVal = UTP_BASIC_SORT.in_image_MkVal [OF INSTANCE]
-
-subsubsection {* Event Values *}
-
-definition EVENT_VALUE :: "'a uval set" where
-"EVENT_VALUE = dcarrier EventType"
+  dcarrier_EventType = BASIC_SORT.dcarrier_Type [OF INSTANCE] and
+  DestEvent_dcarrier = BASIC_SORT.DestVal_dcarrier [OF INSTANCE] and
+  in_image_EventVal = BASIC_SORT.in_image_MkVal [OF INSTANCE]
 
 theorem defined_MkEvent [defined] :
 "\<D> (MkEvent e)"

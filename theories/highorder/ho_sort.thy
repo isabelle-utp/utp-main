@@ -3,19 +3,26 @@
 (* File: ho_sort.thy                                                          *)
 (* Author: Frank Zeyda, University of York (UK)                               *)
 (******************************************************************************)
-(* LAST REVIEWED: 25 April 2014 *)
+(* LAST REVIEWED: 9 September 2014 *)
 
 header {* Higher-Order Sorts *}
 
 theory ho_sort
-imports "../utils/maxset"
+imports ho_common
+  "../utils/maxset"
+(* "../utils/fset" *)
   "../core/utp_model"
-  "../core/utp_sorts_new"
+  "../core/utp_sorts"
   "../core/utp_var"
- "../alphapred/utp_pred"
+ "../alpha/utp_alpha_pred"
 begin
 
 default_sort type
+
+no_notation default_binding ("\<B>")
+
+no_syntax "_FinFset" :: "args => 'a fset"    ("\<lbrace>(_)\<rbrace>")
+   syntax "_FinFset" :: "args => 'a fset"    ("{(_)}\<^sub>f")
 
 subsection {* Theorem Attribute *}
 
@@ -110,9 +117,9 @@ definition RankVar :: "'a uvar \<Rightarrow> nat" where
 "RankVar v = RankType (type v)"
 
 definition RankAlpha :: "'a uvar fset \<Rightarrow> nat" where
-"RankAlpha a = MaxSet (RankVar ` \<sim>a)"
+"RankAlpha a = MaxSet (RankVar ` \<langle>a\<rangle>\<^sub>f)"
 
-definition RankP :: "'a PRED \<Rightarrow> nat" where
+definition RankP :: "'a uapred \<Rightarrow> nat" where
 "RankP p = RankAlpha (\<alpha> p)"
 
 declare RankVal_def [ranks]
@@ -187,7 +194,7 @@ apply (simp)
 apply (safe)
 -- {* Subgoal 1 *}
 apply (rule_tac x = "utype_of v" in exI)
-apply (simp add: defined)
+apply (simp add: defined typing)
 -- {* Subgoal 2 *}
 apply (rename_tac t1 t2)
 apply (metis ProgType_monotype)
@@ -200,7 +207,7 @@ apply (simp)
 apply (safe)
 -- {* Subgoal 1 *}
 apply (rule_tac x = "utype_of v" in exI)
-apply (simp add: defined)
+apply (simp add: defined typing)
 -- {* Subgoal 2 *}
 apply (rename_tac t1 t2)
 apply (fold not_IsProgType_iff)
@@ -209,17 +216,13 @@ apply (metis ProgType_monotype)
 done
 end
 
-(***********************)
-(* REVIEWED UNTIL HERE *)
-(***********************)
-
 subsection {* HO Value Sort *}
 
 class HO_SORT =
-  fixes MkProg :: "'a::HO_MODEL PRED \<Rightarrow> 'a VALUE" ("\<lbrace>_\<rbrace>")
-  fixes DestProg :: "'a VALUE \<Rightarrow> 'a PRED"
-  fixes ProgType :: "'a VAR fset \<Rightarrow> 'a UTYPE"
-  fixes DestProgType :: "'a UTYPE \<Rightarrow> 'a VAR fset" ("\<alpha>\<^sub>p\<^sub>t")
+  fixes MkProg :: "'a::HO_MODEL uapred \<Rightarrow> 'a uval" ("\<lbrace>_\<rbrace>")
+  fixes DestProg :: "'a uval \<Rightarrow> 'a uapred"
+  fixes ProgType :: "'a uvar fset \<Rightarrow> 'a utype"
+  fixes DestProgType :: "'a utype \<Rightarrow> 'a uvar fset" ("\<alpha>\<^sub>p\<^sub>t")
   assumes IsProgVal_defined [defined] : "IsProgVal v \<Longrightarrow> \<D> v"
   assumes MkProg_typed [typing] : "\<lbrace>p\<rbrace> : ProgType (\<alpha> p)"
   assumes MkProg_inverse [simp] : "\<B> \<lbrace>p\<rbrace> \<Longrightarrow> DestProg \<lbrace>p\<rbrace> = p"
@@ -255,7 +258,7 @@ apply (rule iffI)
 apply (subgoal_tac "\<exists> a . t = ProgType a")
 -- {* Subgoal 1.1 *}
 apply (clarify)
-apply (rule_tac x = "False\<^sub>p a" in exI)
+apply (rule_tac x = "false\<^bsub>a\<^esub>" in exI)
 apply (rule MkProg_typedI)
 apply (simp add: alphabet)
 -- {* Subgoal 1.2 *}
@@ -308,7 +311,7 @@ apply (assumption)
 done
 
 theorem IsProgValD [elim] :
-fixes v :: "'a VALUE"
+fixes v :: "'a uval"
 shows "IsProgVal v \<Longrightarrow> \<B> v \<Longrightarrow> (\<And> p . v = \<lbrace>p\<rbrace> \<Longrightarrow> P) \<Longrightarrow> P"
 apply (drule_tac x = "DestProg v" in meta_spec)
 apply (simp)
@@ -376,19 +379,19 @@ text {* Augmentation of the value sorts is still somewhat an open issue. *}
 
 class HO_INT_SORT = INT_SORT +
   assumes IsBaseType_IntType [simp] :
-    "IsBaseType (IntType :: 'a::{INT_SORT,HO_MODEL} UTYPE)"
+    "IsBaseType (IntType :: 'a::{INT_SORT,HO_MODEL} utype)"
 
 class HO_BOOL_SORT = BOOL_SORT +
   assumes IsBaseType_BoolType [simp] :
-    "IsBaseType (BoolType :: 'a::{BOOL_SORT,HO_MODEL} UTYPE)"
+    "IsBaseType (BoolType :: 'a::{BOOL_SORT,HO_MODEL} utype)"
 
 class HO_STR_SORT = STR_SORT +
   assumes IsBaseType_StrType [simp] :
-    "IsBaseType (StrType :: 'a::{STR_SORT,HO_MODEL} UTYPE)"
+    "IsBaseType (StrType :: 'a::{STR_SORT,HO_MODEL} utype)"
 
 class HO_REAL_SORT = REAL_SORT +
   assumes IsBaseType_RealType [simp] :
-    "IsBaseType (RealType :: 'a::{REAL_SORT,HO_MODEL} UTYPE)"
+    "IsBaseType (RealType :: 'a::{REAL_SORT,HO_MODEL} utype)"
 
 text {* Do we need the @{term "IsBaseType t"} terms in the antecedents? *}
 
@@ -396,15 +399,15 @@ class HO_PAIR_SORT = PAIR_SORT +
   assumes IsBaseType_PairType [simp] :
     "IsBaseType t1 \<Longrightarrow>
      IsBaseType t2 \<Longrightarrow>
-     IsBaseType ((PairType t1 t2) :: 'a::{PAIR_SORT,HO_MODEL} UTYPE)"
+     IsBaseType ((PairType t1 t2) :: 'a::{PAIR_SORT,HO_MODEL} utype)"
 
 class HO_PAIR_SET = PAIR_SORT +
   assumes IsBaseType_SetType [simp] :
     "IsBaseType t \<Longrightarrow>
-     IsBaseType ((SetType t) :: 'a::{SET_SORT,HO_MODEL} UTYPE)"
+     IsBaseType ((SetType t) :: 'a::{SET_SORT,HO_MODEL} utype)"
 
 class HO_PAIR_LIST = LIST_SORT +
   assumes IsBaseType_ListType [simp] :
     "IsBaseType t \<Longrightarrow>
-     IsBaseType ((ListType t) :: 'a::{LIST_SORT,HO_MODEL} UTYPE)"
+     IsBaseType ((ListType t) :: 'a::{LIST_SORT,HO_MODEL} utype)"
 end

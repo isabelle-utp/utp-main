@@ -396,7 +396,7 @@ proof -
       thus ?thesis 
         by metis
     qed
-  finally show ?thesis ..
+  finally show ?thesis by this
 qed
 
 lemma R2_SemiR_distribute:
@@ -615,7 +615,7 @@ proof -
     apply (simp_all add:unrest typing defined closure)
     apply (simp add:usubst typing defined closure)
     done
-  finally show ?thesis ..
+  finally show ?thesis by this
 qed
 
 lemma R2_ok'_false: "(R2(P))\<^sup>f = R2(P\<^sup>f)"
@@ -631,7 +631,7 @@ proof -
     apply (simp_all add:unrest typing defined closure)
     apply (simp add:usubst typing defined closure)
     done
-  finally show ?thesis ..
+  finally show ?thesis by this
 qed
 
 lemma R2_ok_true: "`(R2(P))[true /ok]` =` R2(P[true/ok])`"
@@ -647,7 +647,7 @@ proof -
     apply (simp_all add:unrest typing defined closure)
     apply (simp add:usubst typing defined closure)
     done
-  finally show ?thesis ..
+  finally show ?thesis by this
 qed
 
 (* L14 commutativity R2-R1 *)

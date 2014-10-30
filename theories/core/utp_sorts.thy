@@ -1,739 +1,808 @@
 (******************************************************************************)
-(* Project: Unifying Theories of Programming in HOL                           *)
+(* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
 (* File: utp_sorts.thy                                                        *)
-(* Author: Frank Zeyda and Simon Foster, University of York (UK)              *)
+(* Authors: Simon Foster & Frank Zeyda, University of York (UK)               *)
 (******************************************************************************)
-
-header {* Value Sorts *}
+(* LAST REVIEWED: 4 September 2014 *)
 
 theory utp_sorts
-imports 
-  "../utp_common" 
-  utp_name
-(* Commented out by Frank Zeyda to avoid clash with utp_model. *)
-(* utp_event *)
-  utp_value
+imports utp_model utp_locales
 begin
 
-text {* Some sorts still need to be developed in terms of their operators. *}
+default_sort type
 
-subsection {* Parametric Type Locale *}
+subsection {* Bottom Sort *}
 
-text {* The following locale allows us to deal generically with single-parametric types.
-  It provides a constructor, destructor, UTP type, set of permissible parameter types
-  and a function to get the elements as a set. We are required to prove that
-  the destructor is inverse of the constructor, that the defined carrier of the type
-  is precisely those values which can be constructed and that the parametric type
-  constructor is injective. *}
-
-locale UTP_PARM_TYPE =
-  (* Constructor *)
-  fixes AbsU     :: "'UTP_VALUE utype \<Rightarrow> 'HOL_VALUE::type \<Rightarrow> 'UTP_VALUE"
-  (* Destructor *)
-  fixes RepU     :: "'UTP_VALUE \<Rightarrow> 'HOL_VALUE"
-  (* Type for constructed values *)
-  fixes TypeU    :: "'UTP_VALUE utype \<Rightarrow> 'UTP_VALUE utype"
-  (* Permissible element types *)
-  fixes PermU    :: "'UTP_VALUE utype set"
-  (* The elements of a composite value *)
-  fixes elemU    :: "'HOL_VALUE \<Rightarrow> 'UTP_VALUE set"
-
-  assumes RepU: "\<lbrakk> a \<in> PermU; elemU x \<subseteq> dcarrier a \<rbrakk> \<Longrightarrow> RepU (AbsU a x) = x"
-  and     TypeU_dcarrier: 
-            "a \<in> PermU \<Longrightarrow> dcarrier (TypeU a) = AbsU a ` {xs . elemU xs \<subseteq> dcarrier a}"
-  (* and     AbsU_type: "a \<in> PermU \<Longrightarrow> AbsU a xs : a" *)
-  and     TypeU_inj: "inj_on TypeU PermU"
-  and     PermU_exists: "\<exists>x. x \<in> PermU"
-begin
-
-definition isTypeU :: "'UTP_VALUE utype \<Rightarrow> bool" where
-"isTypeU a = (\<exists> b. a = TypeU b)"
-
-definition TypeU_param :: "'UTP_VALUE utype \<Rightarrow> 'UTP_VALUE utype" where
-"TypeU_param t = (THE a. t = TypeU a \<and> a \<in> PermU)"
-
-definition DefaultPermU :: "'UTP_VALUE utype" where
-"DefaultPermU = (SOME x. x \<in> PermU)"
-
-lemma isTypeU: "isTypeU (TypeU a)"
-  by (auto simp add:isTypeU_def)
-
-lemma isTypeU_elim: "\<lbrakk> isTypeU a; \<And> b. \<lbrakk> a = TypeU b \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (auto simp add: isTypeU_def)
-
-lemma TypeU_param: "a \<in> PermU \<Longrightarrow> TypeU_param (TypeU a) = a"
-  apply (simp add:TypeU_param_def)
-  apply (rule the_equality)
-  apply (simp)
-  apply (metis TypeU_inj inj_on_eval_simp)
-done
-
-lemma DefaultPermU: "DefaultPermU \<in> PermU"
-  by (metis (full_types) PermU_exists someI_ex DefaultPermU_def)
-
-lemma Defined: 
-  "\<lbrakk> a \<in> PermU; elemU x \<subseteq> dcarrier a \<rbrakk> \<Longrightarrow> \<D> (AbsU a x)"
-  by (smt TypeU_dcarrier dcarrier_def imageI mem_Collect_eq)
-
-lemma AbsU_type:
-  "\<lbrakk> a \<in> PermU; elemU x \<subseteq> dcarrier a \<rbrakk> \<Longrightarrow> AbsU a x :! TypeU a"
-  by (metis (lifting) TypeU_dcarrier dcarrier_dtype imageI mem_Collect_eq)
-
-lemma TypeU_witness:
-  "\<lbrakk> a \<in> PermU; xs :! TypeU a \<rbrakk> \<Longrightarrow> \<exists> ys. elemU ys \<subseteq> dcarrier a \<and> xs = AbsU a ys"
-  apply (unfold dtype_as_dcarrier[THEN sym])
-  apply (unfold TypeU_dcarrier)
-  apply (auto)
-done
-
-lemma TypeU_elim:
-  "\<lbrakk> x :! TypeU a; a \<in> PermU
-   ; \<And> y. \<lbrakk> x = AbsU a y; elemU y \<subseteq> dcarrier a \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (metis TypeU_witness)
-
-end
-
-subsection {* Bottom Element Sort *}
-
-class BOT_SORT = VALUE +
-  fixes ubot :: "'a utype \<Rightarrow> 'a" ("\<bottom>v\<^bsub>_\<^esub>")
-  assumes ubot_ndefined [defined] : "\<D> (\<bottom>v\<^bsub>a\<^esub>) = False"
-  and     ubot_type [typing]: "\<bottom>v\<^bsub>a\<^esub> : a"
+class BOT_SORT =
+  fixes ubot :: "'a::TYPED_MODEL utype \<Rightarrow> 'a uval" ("\<bottom>\<^bsub>_\<^esub>")
+  assumes ubot_undefined [defined] : "\<not> \<D>\<^sub>v \<bottom>\<^bsub>t\<^esub>"
+  and ubot_typed [typing] : "\<bottom>\<^bsub>t\<^esub> : t"
 
 subsubsection {* Theorems *}
 
-theorem Defined_not_eq_bot [simp] :
-"\<D> v \<Longrightarrow> v \<noteq> \<bottom>v\<^bsub>a\<^esub>"
-  by (metis ubot_ndefined)
-
-(*
-subsection {* Coercision Sort *}
-class COERCE_SORT = VALUE +
-  fixes coerce :: "'a \<Rightarrow> 'a utype \<Rightarrow> 'a"
-  assumes coerce_tau: "x :! t \<Longrightarrow> \<tau> (coerce x t) = t"
-*)
-
-subsection {* Integer Sort *}
-
-text {* The @{term "INT_SORT"} and most other sorts in this file
-define three constants and several properties. The constants are an
-injection @{term "MkInt"}, a projection @{term "DestInt"}, and 
-a type. *}
-
-class INT_SORT = VALUE +
-  fixes MkInt   :: "int \<Rightarrow> 'a"
-  fixes DestInt :: "'a \<Rightarrow> int"
-  fixes IntType :: "'a utype"
-  -- {* The injection can always be reversed. *}
-  assumes Inverse [simp] : "DestInt (MkInt i) = i"
-  -- {* The values produced by the injection are precisely the well typed 
-        and defined integer values. *}
-  assumes IntType_dcarrier: "dcarrier IntType = range MkInt"
-begin
-
-text {* The results of the injection are always defined. *}
-
-lemma Defined [defined]: "\<D> (MkInt i)"
-  by (metis IntType_dcarrier dcarrier_defined rangeI)
-
-lemma MkInt_type [typing]: "MkInt n : IntType"
-  by (metis IntType_dcarrier dcarrier_type rangeI)
-
-lemma MkInt_dtype [typing]: "MkInt n :! IntType"
-  by (metis Defined MkInt_type dtype_relI)
-
-lemma MkInt_cases [elim]: 
-  "\<lbrakk> x :! IntType; \<And> i. x = MkInt i \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (metis IntType_dcarrier dtype_as_dcarrier image_iff)
-
-lemma MkInt_inj_simp [simp]: 
-  "(MkInt x = MkInt y) \<longleftrightarrow> x = y"
-  by (metis Inverse)
-
-subsubsection {* Integer Operators *}
-
-definition UMinusV :: "'a \<Rightarrow> 'a" where
-"UMinusV i = MkInt (-DestInt(i))"
-notation UMinusV ("-v _" [81] 80)
-
-definition PlusV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"PlusV i1 i2 = MkInt (DestInt(i1) + DestInt(i2))"
-notation PlusV (infixl "+v" 65)
-
-definition MinusV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"MinusV i1 i2 = MkInt (DestInt(i1) - DestInt(i2))"
-notation MinusV (infixl "-v" 65)
-
-definition MultV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"MultV i1 i2 = MkInt (DestInt(i1) * DestInt(i2))"
-notation MultV (infixl "*v" 70)
-
-definition DivideV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"DivideV i1 i2 = MkInt (DestInt(i1) div DestInt(i2))"
-notation DivideV (infixl "divv" 70)
-
-definition ModulusV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"ModulusV i1 i2 = MkInt (DestInt(i1) mod DestInt(i2))"
-notation ModulusV (infixl "modv" 70)
-
-subsubsection {* Default Simplifications *}
-
-declare UMinusV_def [simp]
-declare PlusV_def [simp]
-declare MinusV_def [simp]
-declare MultV_def [simp]
-declare DivideV_def [simp]
-declare ModulusV_def [simp]
-
-end
-
-subsection {* Name Sort *}
-
-class NAME_SORT = VALUE +
-  fixes MkNm :: "name \<Rightarrow> 'a"
-  fixes DestNm :: "'a \<Rightarrow> name"
-  fixes NmType  :: "'a utype"
-  assumes Inverse [simp] : "DestNm (MkNm b) = b"
-  and     MkNm_dcarrier: "dcarrier NmType = range MkNm"
-  and     NmType_monotype [typing]: "monotype NmType"
+theorem Defined_not_eq_ubot [simp] :
+"\<D>\<^sub>v x \<Longrightarrow> x \<noteq> \<bottom>\<^bsub>t\<^esub>"
+apply (metis ubot_undefined)
+done
 
 subsection {* Boolean Sort *}
 
-class BOOL_SORT = VALUE +
-  fixes MkBool :: "bool \<Rightarrow> 'a"
-  fixes DestBool :: "'a \<Rightarrow> bool"
-  fixes BoolType  :: "'a utype"
-  assumes Inverse [simp] : "DestBool (MkBool b) = b"
-  and     BoolType_dcarrier: "dcarrier BoolType = range MkBool"
-  and     BoolType_monotype [typing]: "monotype BoolType"
+class BOOL_SORT =
+  fixes MkBool :: "bool \<Rightarrow> 'a::TYPED_MODEL uval"
+  fixes DestBool :: "'a uval \<Rightarrow> bool"
+  fixes BoolType :: "'a utype"
+  assumes INSTANCE : "BASIC_SORT MkBool DestBool UNIV BoolType"
 begin
 
-subsubsection {* Derived theorems *}
+subsubsection {* Locale Imports *}
 
-lemma Defined [defined] : "\<D> (MkBool b)"
-  by (metis BoolType_dcarrier dcarrier_defined rangeI)
+abbreviation BOOL_VALUE :: "'a uval set" where
+"BOOL_VALUE \<equiv> BASIC_SORT.VALUE BoolType"
 
-lemma MkBool_type [typing]: "MkBool b : BoolType"
-  by (metis BoolType_dcarrier dcarrier_type rangeI)
+theorems BOOL_VALUE_def = BASIC_SORT.VALUE_def [OF INSTANCE]
 
-lemma MkBool_dtype [typing]: "MkBool b :! BoolType"
-  by (metis Defined MkBool_type dtype_relI)
+abbreviation IsBool :: "'a uval \<Rightarrow> bool" where
+"IsBool \<equiv> BASIC_SORT.IsVal BoolType"
 
-lemma DestBool_inj: "inj_on DestBool (range MkBool)"
-  by (simp add:inj_on_def)
+theorems IsBool_def [simp] = BASIC_SORT.IsVal_def [OF INSTANCE]
 
-lemma MkBool_inj: "inj MkBool"
-  by (smt Inverse injI)
+theorems
+  MkBool_defined [defined] = BASIC_SORT.MkVal_defined [OF INSTANCE] and
+  MkBool_typed [simplified, typing] = BASIC_SORT.MkVal_typed [OF INSTANCE] and
+  MkBool_inverse [simplified, simp] = BASIC_SORT.MkVal_inverse [OF INSTANCE] and
+  DestBool_inverse [simp] = BASIC_SORT.DestVal_inverse [OF INSTANCE] and
+  inj_on_MkBool [simp] = BASIC_SORT.inj_on_MkVal [OF INSTANCE] and
+  inj_on_DestBool [simp] = BASIC_SORT.inj_on_DestVal [OF INSTANCE]
 
-lemma MkBool_inj_simp [simp]:
-  "MkBool x = MkBool y \<longleftrightarrow> x = y"
-  by (metis (full_types) MkBool_inj UNIV_def injD)
+theorems
+  dcarrier_BoolType = BASIC_SORT.dcarrier_Type [OF INSTANCE] and
+  DestBool_dcarrier = BASIC_SORT.DestVal_dcarrier [OF INSTANCE] and
+  in_image_MkBool = BASIC_SORT.in_image_MkVal [OF INSTANCE]
 
-lemma DestBool_inv: "x \<in> range MkBool \<Longrightarrow> MkBool (DestBool x) = x"
-  by (smt DestBool_inj Inverse inj_on_iff rangeI)
+subsubsection {* Constants *}
 
-subsubsection {* Boolean Operators *}
-
-definition TrueV :: "'a" where
+definition TrueV :: "'a uval" ("True\<^sub>v") where
 "TrueV = MkBool True"
 
-definition FalseV :: "'a" where
+definition FalseV :: "'a uval" ("False\<^sub>v") where
 "FalseV = MkBool False"
 
-text {* The precedence of boolean operators is similar to those in HOL. *}
+subsubsection {* Operators *}
 
-definition NotV :: "'a \<Rightarrow> 'a" where
-"NotV x = MkBool (\<not> DestBool x)"
-notation NotV ("\<not>v _" [40] 40)
+definition NegV :: "'a uval \<Rightarrow> 'a uval" where
+"NegV v = MkBool(\<not> DestBool(v))"
 
-definition AndV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"AndV b1 b2 = MkBool (DestBool(b1) \<and> DestBool(b2))"
-notation AndV (infixr "\<and>v" 35)
+notation NegV ("\<not>\<^sub>v _" [40] 40)
 
-definition OrV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"OrV b1 b2 = MkBool (DestBool(b1) \<or> DestBool(b2))"
-notation OrV (infixr "\<and>v" 30)
+definition AndV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"AndV v1 v2 = MkBool(DestBool(v1) \<and> DestBool(v2))"
 
-definition ImpliesV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"ImpliesV b1 b2 = MkBool (DestBool(b1) \<longrightarrow> DestBool(b2))"
-notation OrV (infixr "\<Rightarrow>v" 25)
+notation AndV (infixr "\<and>\<^sub>v" 35)
 
-definition IffV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"IffV b1 b2 = MkBool (DestBool(b1) \<longleftrightarrow> DestBool(b2))"
-notation IffV (infixr "\<Leftrightarrow>v" 25)
+definition OrV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"OrV v1 v2 = MkBool(DestBool(v1) \<or> DestBool(v2))"
 
-subsubsection {* Default Simplifications *}
+notation OrV (infixr "\<or>\<^sub>v" 30)
+
+definition ImpV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"ImpV v1 v2 = MkBool(DestBool(v1) \<longrightarrow> DestBool(v2))"
+
+notation ImpV (infixr "\<Rightarrow>\<^sub>v" 25)
+
+definition IffV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"IffV v1 v2 = MkBool(DestBool(v1) \<longleftrightarrow> DestBool(v2))"
+
+notation IffV (infixr "\<Leftrightarrow>\<^sub>v" 25)
+
+subsubsection {* Proof Support *}
+
+theorem MkBool_eqI [intro!] :
+"x = y \<Longrightarrow> MkBool x = MkBool y"
+apply (erule arg_cong)
+done
+
+paragraph {* Default Simplifications *}
 
 declare TrueV_def [simp]
 declare FalseV_def [simp]
-declare NotV_def [simp]
+declare NegV_def [simp]
 declare AndV_def [simp]
 declare OrV_def [simp]
-declare ImpliesV_def [simp]
+declare ImpV_def [simp]
 declare IffV_def [simp]
-
-lemma MkBool_cases [elim]: 
-  "\<lbrakk> x : BoolType; \<not> \<D> x \<Longrightarrow> P; x = TrueV \<Longrightarrow> P; x = FalseV \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  apply (case_tac "\<D> x")
-  apply (simp)
-  apply (subgoal_tac "x \<in> range MkBool")
-  apply (auto)
-  apply (metis)
-  apply (metis BoolType_dcarrier dcarrierI)
-done
-
-lemma MkBool_cases_defined [elim]:
-  "\<lbrakk> x :! BoolType; x = TrueV \<Longrightarrow> P; x = FalseV \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (metis MkBool_cases dtype_relE)
-
-lemma MkBool_unq [simp]: 
-  "MkBool True \<noteq> MkBool False"
-  "MkBool False \<noteq> MkBool True"
-  by (metis Inverse)+
-
 end
 
-subsection {* Character Sort *}
+subsection {* Integer Sort *}
 
-class CHAR_SORT = VALUE +
-  fixes MkChar :: "char \<Rightarrow> 'a"
-  fixes DestChar :: "'a \<Rightarrow> char"
-  fixes CharType :: "'a utype"
-  assumes Inverse [simp] : "DestChar (MkChar c) = c"
-  assumes MkChar_range: "range MkChar = {x. x : CharType \<and> \<D> x}"
+class INT_SORT =
+  fixes MkInt :: "int \<Rightarrow> 'a::TYPED_MODEL uval"
+  fixes DestInt :: "'a uval \<Rightarrow> int"
+  fixes IntType :: "'a utype"
+  assumes INSTANCE : "BASIC_SORT MkInt DestInt UNIV IntType"
 begin
 
-subsubsection {* Derived theorems *}
+subsubsection {* Locale Imports *}
 
-lemma Defined [simp] : "Defined (MkChar c)"
-  by (metis (lifting) CollectD MkChar_range rangeI)
+abbreviation IsInt :: "'a uval \<Rightarrow> bool" where
+"IsInt \<equiv> BASIC_SORT.IsVal IntType"
 
-lemma MkChar_type [typing] : "MkChar x : CharType"
-  by (metis (lifting) CollectD MkChar_range rangeI)
+theorems
+  IsInt_def [simp] = BASIC_SORT.IsVal_def [OF INSTANCE]
 
+theorems
+  MkInt_defined [defined] = BASIC_SORT.MkVal_defined [OF INSTANCE] and
+  MkInt_typed [simplified, typing] = BASIC_SORT.MkVal_typed [OF INSTANCE] and
+  MkInt_inverse [simplified, simp] = BASIC_SORT.MkVal_inverse [OF INSTANCE] and
+  DestInt_inverse [simp] = BASIC_SORT.DestVal_inverse [OF INSTANCE] and
+  MkInt_inj_on [simp] = BASIC_SORT.inj_on_MkVal [OF INSTANCE] and
+  DestInt_inj_on [simp] = BASIC_SORT.inj_on_DestVal [OF INSTANCE]
+
+theorems
+  dcarrier_IntType = BASIC_SORT.dcarrier_Type [OF INSTANCE] and
+  DestInt_dcarrier_image = BASIC_SORT.DestVal_dcarrier [OF INSTANCE] and
+  in_image_IntVal = BASIC_SORT.in_image_MkVal [OF INSTANCE]
+
+subsubsection {* Integer Values *}
+
+definition INT_VALUE :: "'a uval set" where
+"INT_VALUE = dcarrier IntType"
+
+subsubsection {* Constants *}
+
+subsubsection {* Operators *}
+
+definition UnaryMinusV :: "'a uval \<Rightarrow> 'a uval" where
+"UnaryMinusV v = MkInt(-DestInt(v))"
+notation UnaryMinusV ("-\<^sub>v _" [81] 80)
+
+definition PlusV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"PlusV v1 v2 = MkInt(DestInt(v1) + DestInt(v2))"
+notation PlusV (infixl "+\<^sub>v" 65)
+
+definition MinusV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"MinusV v1 v2 = MkInt(DestInt(v1) - DestInt(v2))"
+notation MinusV (infixl "-\<^sub>v" 65)
+
+definition TimesV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"TimesV v1 v2 = MkInt(DestInt(v1) * DestInt(v2))"
+notation TimesV (infixl "*\<^sub>v" 70)
+
+definition DivideV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"DivideV v1 v2 = MkInt(DestInt(v1) div DestInt(v2))"
+notation DivideV (infixl "div\<^sub>v" 70)
+
+definition ModV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"ModV v1 v2 = MkInt(DestInt(v1) mod DestInt(v2))"
+notation ModV (infixl "mod\<^sub>v" 70)
+
+subsubsection {* Proof Support *}
+
+theorem MkInt_eqI [intro] :
+"x = y \<Longrightarrow> MkInt x = MkInt y"
+apply (erule arg_cong)
+done
+
+paragraph {* Default Simplifications *}
+
+declare UnaryMinusV_def [simp]
+declare PlusV_def [simp]
+declare MinusV_def [simp]
+declare TimesV_def [simp]
+declare DivideV_def [simp]
+declare ModV_def [simp]
+end
+
+subsection {* Real Sort *}
+
+class REAL_SORT =
+  fixes MkReal :: "real \<Rightarrow> 'a::TYPED_MODEL uval"
+  fixes DestReal :: "'a uval \<Rightarrow> real"
+  fixes RealType :: "'a utype" (* ("\<real>") *)
+  assumes INSTANCE : "BASIC_SORT MkReal DestReal UNIV RealType"
+begin
+
+subsubsection {* Locale Imports *}
+
+abbreviation IsReal :: "'a uval \<Rightarrow> bool" where
+"IsReal \<equiv> BASIC_SORT.IsVal RealType"
+
+theorems
+  IsReal_def [simp] = BASIC_SORT.IsVal_def [OF INSTANCE]
+
+theorems
+  MkReal_defined [defined] = BASIC_SORT.MkVal_defined [OF INSTANCE] and
+  MkReal_typed [simplified, typing] = BASIC_SORT.MkVal_typed [OF INSTANCE] and
+  MkReal_inverse [simplified, simp] = BASIC_SORT.MkVal_inverse [OF INSTANCE] and
+  DestReal_inverse [simp] = BASIC_SORT.DestVal_inverse [OF INSTANCE] and
+  MkReal_inj_on [simp] = BASIC_SORT.inj_on_MkVal [OF INSTANCE] and
+  DestReal_inj_on [simp] = BASIC_SORT.inj_on_DestVal [OF INSTANCE]
+
+theorems
+  dcarrier_RealType = BASIC_SORT.dcarrier_Type [OF INSTANCE] and
+  DestReal_dcarrier_image = BASIC_SORT.DestVal_dcarrier [OF INSTANCE] and
+  in_image_RealVal = BASIC_SORT.in_image_MkVal [OF INSTANCE]
+
+subsubsection {* Real Values *}
+
+definition REAL_VALUE :: "'a uval set" where
+"REAL_VALUE = dcarrier RealType"
+
+subsubsection {* Constants *}
+
+subsubsection {* Operators *}
+
+definition UnaryMinusR :: "'a uval \<Rightarrow> 'a uval" where
+"UnaryMinusR v = MkReal(-DestReal(v))"
+notation UnaryMinusR ("-\<^sub>r _" [81] 80)
+
+definition PlusR :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"PlusR v1 v2 = MkReal(DestReal(v1) + DestReal(v2))"
+notation PlusR (infixl "+\<^sub>r" 65)
+
+definition MinusR :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"MinusR v1 v2 = MkReal(DestReal(v1) - DestReal(v2))"
+notation MinusR (infixl "-\<^sub>r" 65)
+
+definition TimesR :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"TimesR v1 v2 = MkReal(DestReal(v1) * DestReal(v2))"
+notation TimesR (infixl "*\<^sub>r" 70)
+
+definition DivideR :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"DivideR v1 v2 = MkReal(DestReal(v1) / DestReal(v2))"
+notation DivideR (infixl "/\<^sub>r" 70)
+
+subsubsection {* Theorems *}
+
+theorem MkReal_strictly_typed [typing] :
+"MkReal n :! RealType"
+apply (metis MkReal_defined MkReal_typed UNIV_I strict_type_rel_def)
+done
+
+text {* TODO: Prove this theorem already in class @{text BASIC_SORT}. *}
+
+theorem MkReal_cases [elim] :
+"\<lbrakk>v :! RealType; \<And> i . v = MkReal i \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+apply (metis DestReal_inverse)
+done
+subsubsection {* Proof Support *}
+
+theorem MkReal_eqI [intro] :
+"x = y \<Longrightarrow> MkReal x = MkReal y"
+apply (erule arg_cong)
+done
+
+paragraph {* Default Simplifications *}
+
+declare UnaryMinusR_def [simp]
+declare PlusR_def [simp]
+declare MinusR_def [simp]
+declare TimesR_def [simp]
+declare DivideR_def [simp]
 end
 
 subsection {* String Sort *}
 
-class STRING_SORT = VALUE +
-  fixes MkStr :: "string \<Rightarrow> 'a"
-  fixes DestStr :: "'a \<Rightarrow> string"
-  fixes StringType :: "'a utype"
-  assumes Inverse [simp] : "DestStr (MkStr s) = s"
-  and     MkStr_range: "range MkStr = {x. x : StringType \<and> \<D> x}"
+class STR_SORT =
+  fixes MkStr :: "string \<Rightarrow> 'a::TYPED_MODEL uval"
+  fixes DestStr :: "'a uval \<Rightarrow> string"
+  fixes StrType :: "'a utype"
+  assumes INSTANCE : "BASIC_SORT MkStr DestStr UNIV StrType"
 begin
 
-subsubsection {* Derived theorems *}
+subsubsection {* Locale Imports *}
 
-lemma Defined [simp] : "\<D> (MkStr s)"
-  by (metis (lifting) MkStr_range mem_Collect_eq rangeI)
+abbreviation STR_VALUE :: "'a uval set" where
+"STR_VALUE \<equiv> BASIC_SORT.VALUE StrType"
 
-lemma MkStr_type [typing] : "MkStr s : StringType"
-  by (metis MkStr_range dcarrier_def dcarrier_type rangeI)
+theorems STR_VALUE_def = BASIC_SORT.VALUE_def [OF INSTANCE]
 
-end
+abbreviation IsStr :: "'a uval \<Rightarrow> bool" where
+"IsStr \<equiv> BASIC_SORT.IsVal StrType"
 
-(*
-subsection {* Order operation class *}
+theorems IsStr_def [simp] = BASIC_SORT.IsVal_def [OF INSTANCE]
 
-class LESS_EQ_SORT = VALUE + BOOL_SORT +
-  fixes ulesseq :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-  assumes ulesseq_type: "ulesseq x y : BoolType"
+theorems
+  MkStr_defined [defined] = BASIC_SORT.MkVal_defined [OF INSTANCE] and
+  MkStr_typed [simplified, typing] = BASIC_SORT.MkVal_typed [OF INSTANCE] and
+  MkStr_inverse [simplified, simp] = BASIC_SORT.MkVal_inverse [OF INSTANCE] and
+  DestStr_inverse [simp] = BASIC_SORT.DestVal_inverse [OF INSTANCE] and
+  inj_on_MkStr [simp] = BASIC_SORT.inj_on_MkVal [OF INSTANCE] and
+  inj_on_DestStr [simp] = BASIC_SORT.inj_on_DestVal [OF INSTANCE]
 
-subsection {* Minus operation class *}
+theorems
+  dcarrier_StrType = BASIC_SORT.dcarrier_Type [OF INSTANCE] and
+  DestStr_dcarrier = BASIC_SORT.DestVal_dcarrier [OF INSTANCE] and
+  in_image_MkStr = BASIC_SORT.in_image_MkVal [OF INSTANCE]
 
-class MINUS_SORT = VALUE +
-  fixes utminus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-*)
+subsubsection {* Constants *}
 
-subsection {* Finite set sort *}
+definition EmptyStrV :: "'a uval" where
+"EmptyStrV = MkStr ''''"
 
-class FSET_SORT = BOOL_SORT +
-  fixes   MkFSet   :: "'a utype \<Rightarrow> 'a fset \<Rightarrow> 'a"
-  and     DestFSet :: "'a \<Rightarrow> 'a fset"
-  and     FSetType :: "'a utype \<Rightarrow> 'a utype"
-  and     FSetPerm :: "'a utype set"
-  assumes FSet_UTP_TYPE: "UTP_PARM_TYPE MkFSet DestFSet FSetType FSetPerm Rep_fset"
-begin
+subsubsection {* Operators *}
 
-theorems 
-  MkFSet_defined [defined]  = UTP_PARM_TYPE.Defined[OF FSet_UTP_TYPE] and
-  MkFSet_inv [simp]         = UTP_PARM_TYPE.RepU[OF FSet_UTP_TYPE] and
-  MkFSet_type [typing]      = UTP_PARM_TYPE.AbsU_type[OF FSet_UTP_TYPE] and
-  FSetType_witness [typing] = UTP_PARM_TYPE.TypeU_witness[OF FSet_UTP_TYPE] and
-  FSetType_elim [elim]      = UTP_PARM_TYPE.TypeU_elim[OF FSet_UTP_TYPE]
+definition ConcatStrV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"ConcatStrV s1 s2 = MkStr ((DestStr s1) @ (DestStr s2))"
 
-definition FEmptyV  :: "'a utype \<Rightarrow> 'a" where
-"FEmptyV a = MkFSet a \<lbrace>\<rbrace>"
+subsubsection {* Theorems *}
 
-definition FInsertV :: "'a utype \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"FInsertV a x xs = MkFSet a (finsert x (DestFSet xs))"
+theorem MkStr_strictly_typed [typing] :
+"MkStr s :! StrType"
+apply (metis MkStr_defined MkStr_typed UNIV_I strict_type_rel_def)
+done
 
-definition FUnionV  :: "'a utype \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"FUnionV a xs ys = MkFSet a (DestFSet xs \<union>\<^sub>f DestFSet ys)"
+text {* TODO: Prove this theorem already in class @{text BASIC_SORT}. *}
 
-definition FInterV  :: "'a utype \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"FInterV a xs ys = MkFSet a (DestFSet xs \<inter>\<^sub>f DestFSet ys)"
+theorem MkStr_cases [elim] :
+"\<lbrakk>v :! StrType; \<And> s . v = MkStr s \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+apply (metis DestStr_inverse)
+done
+subsubsection {* Proof Support *}
 
-definition FSubsetV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"FSubsetV xs ys = MkBool (DestFSet xs \<subseteq>\<^sub>f DestFSet ys)"
+theorem MkStr_eqI [intro] :
+"x = y \<Longrightarrow> MkStr x = MkStr y"
+apply (erule arg_cong)
+done
 
-definition FMemberV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"FMemberV x xs = MkBool (x \<in>\<^sub>f DestFSet xs)"
+paragraph {* Default Simplifications *}
 
-definition FNMemberV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"FNMemberV x xs = MkBool (x \<notin>\<^sub>f DestFSet xs)"
-
-end
-
-class BOOL_FSET_SORT = BOOL_SORT + FSET_SORT +
-  assumes BoolType_FSetPerm [closure]: "BoolType \<in> FSetPerm"
-
-class INT_FSET_SORT = INT_SORT + FSET_SORT +
-  assumes IntType_FSetPerm [closure]: "IntType \<in> FSetPerm"
-
-(* Commented out by Frank Zeyda to avoid clash with utp_model. *)
-
-(* class EVENT_FSET_SORT = EVENT_SORT + FSET_SORT +
-  assumes EventType_FSetPerm [closure]: "EventType \<in> FSetPerm"
-*)
-
-class STRING_FSET_SORT = STRING_SORT + FSET_SORT +
-  assumes StringType_FSetPerm [closure]: "StringType \<in> FSetPerm"
-
-subsection {* Set sort *}
-
-class SET_SORT = BOOL_SORT +
-  fixes   MkSet   :: "'a utype \<Rightarrow> 'a set \<Rightarrow> 'a"
-  and     DestSet :: "'a \<Rightarrow> 'a set"
-  and     SetType :: "'a utype \<Rightarrow> 'a utype"
-  and     SetPerm :: "'a utype set"
-  assumes Set_UTP_TYPE: "UTP_PARM_TYPE MkSet DestSet SetType SetPerm id"
-begin
-
-theorems 
-  MkSet_defined [defined]  = UTP_PARM_TYPE.Defined[OF Set_UTP_TYPE] and
-  MkSet_inv [simp]         = UTP_PARM_TYPE.RepU[OF Set_UTP_TYPE] and
-  MkSet_type [typing]      = UTP_PARM_TYPE.AbsU_type[OF Set_UTP_TYPE] and
-  SetType_witness [typing] = UTP_PARM_TYPE.TypeU_witness[OF Set_UTP_TYPE] and
-  SetType_elim [elim]      = UTP_PARM_TYPE.TypeU_elim[OF Set_UTP_TYPE]
-
-definition EmptyV  :: "'a utype \<Rightarrow> 'a" where
-"EmptyV a = MkSet a {}"
-
-definition InsertV :: "'a utype \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"InsertV a x xs = MkSet a (insert x (DestSet xs))"
-
-definition UnionV  :: "'a utype \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"UnionV a xs ys = MkSet a (DestSet xs \<union> DestSet ys)"
-
-definition InterV  :: "'a utype \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"InterV a xs ys = MkSet a (DestSet xs \<inter> DestSet ys)"
-
-definition SubsetV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"SubsetV xs ys = MkBool (DestSet xs \<subseteq> DestSet ys)"
-
-definition MemberV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"MemberV x xs = MkBool (x \<in> DestSet xs)"
-
-definition NotMemberV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"NotMemberV x xs = MkBool (x \<notin> DestSet xs)"
-
-end
-
-(* Commented out by Frank Zeyda to avoid clash with utp_model. *)
-
-(* class EVENT_SET_SORT = EVENT_SORT + SET_SORT +
-  assumes EventType_SetPerm [closure]: "EventType \<in> SetPerm"
-*)
-
-subsection {* List Sort *}
-
-class LIST_SORT = BOOL_SORT +
-  fixes MkList :: "'a utype \<Rightarrow> 'a list \<Rightarrow> 'a"
-  and   DestList :: "'a \<Rightarrow> 'a list"
-  and   ListType :: "'a utype \<Rightarrow> 'a utype"
-  and   ListPerm :: "'a utype set"
-  assumes List_UTP_TYPE: "UTP_PARM_TYPE MkList DestList ListType ListPerm set"
-begin
-
-abbreviation "isListType \<equiv> UTP_PARM_TYPE.isTypeU ListType"
-abbreviation "ListParam \<equiv> UTP_PARM_TYPE.TypeU_param ListType"
-abbreviation "ListDefaultPerm \<equiv> UTP_PARM_TYPE.DefaultPermU ListPerm"
-
-theorems 
-  isListType [simp]         = UTP_PARM_TYPE.isTypeU[OF List_UTP_TYPE] and
-  isListType_elim [elim]    = UTP_PARM_TYPE.isTypeU_elim[OF List_UTP_TYPE] and
-  ListParam [simp]          = UTP_PARM_TYPE.TypeU_param[OF List_UTP_TYPE] and
-  ListType_dcarrier         = UTP_PARM_TYPE.TypeU_dcarrier[OF List_UTP_TYPE] and
-  ListDefaultPerm           = UTP_PARM_TYPE.DefaultPermU[OF List_UTP_TYPE] and
-  MkList_defined [defined]  = UTP_PARM_TYPE.Defined[OF List_UTP_TYPE] and
-  MkList_inv [simp]         = UTP_PARM_TYPE.RepU[OF List_UTP_TYPE] and
-  MkList_type [typing]      = UTP_PARM_TYPE.AbsU_type[OF List_UTP_TYPE] and
-  ListType_witness [typing] = UTP_PARM_TYPE.TypeU_witness[OF List_UTP_TYPE] and
-  ListType_elim [elim]      = UTP_PARM_TYPE.TypeU_elim[OF List_UTP_TYPE]
-
-subsubsection {* List Operators *}
-
-definition NilV :: "'a utype \<Rightarrow> 'a" where
-"NilV a = MkList a []"
-notation NilV ("[]\<^bsub>_\<^esub>")
-
-definition ConsV :: "'a utype \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"ConsV a x xs = MkList a (x # DestList xs)"
-
-abbreviation ConsV_syn :: "'a \<Rightarrow> 'a utype \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "#\<^bsub>_\<^esub>" 65) where
-"ConsV_syn xs a ys \<equiv> ConsV a xs ys" 
-
-definition ConcatV :: "'a utype \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"ConcatV a xs ys = MkList a (DestList xs @ DestList ys)"
-
-abbreviation ConcatV_syn :: "'a \<Rightarrow> 'a utype \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "@\<^bsub>_\<^esub>" 65) where
-"xs @\<^bsub>a\<^esub> ys \<equiv> ConcatV a xs ys" 
-
-definition PrefixV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"PrefixV xs ys = MkBool (prefixeq (DestList xs) (DestList ys))"
-  
-lemma NilV_type [typing]:
-  "a \<in> ListPerm \<Longrightarrow> NilV a :! ListType a"
-  by (auto intro:typing simp add:NilV_def)
-
-(*
-lemma ConsV_type [typing]:
-  "\<lbrakk> a \<in> ListPerm; x :! a; xs :! ListType a \<rbrakk> 
-     \<Longrightarrow> x #\<^bsub>a\<^esub> xs :! ListType a"
-  apply (auto intro:typing simp add:ConsV_def)
-  apply (rule typing) back
-  apply (auto)
-  apply (rule typing)
-  apply (force intro:typing)
-  apply (auto)
-  apply (force)
-by (metis ListType_witness MkList_inv dtype_as_dcarrier subset_code(1))
-
-lemma ConsV_FUNC2 [closure]: 
-  "a \<in> ListPerm \<Longrightarrow> ConsV a \<in> FUNC2 a (ListType a) (ListType a)"
-  by (auto intro:typing simp add:FUNC2_def)
-
-lemma ConcatV_type [typing]:
-  "\<lbrakk> a \<in> ListPerm; xs :! ListType a; ys :! ListType a \<rbrakk>
-     \<Longrightarrow> xs @\<^bsub>a\<^esub> ys :! ListType a" 
-  by (force intro:typing simp add:ConcatV_def)
-
-lemma ConcatV_FUNC [closure]: 
-  "a \<in> ListPerm \<Longrightarrow> ConcatV a \<in> FUNC2 (ListType a) (ListType a) (ListType a)"
-  by (auto intro:typing simp add:FUNC2_def)
-
-lemma PrefixV_type [typing]:
-  "\<lbrakk> a \<in> ListPerm; xs :! ListType a; ys :! ListType a \<rbrakk>
-     \<Longrightarrow> PrefixV xs ys :! BoolType" 
-  by (force intro:typing simp add:PrefixV_def)
-
-lemma PrefixV_FUNC [closure]:
-  "a \<in> ListPerm \<Longrightarrow> PrefixV \<in> FUNC2 (ListType a) (ListType a) BoolType"
-  by (auto intro:typing simp add:FUNC2_def)
-*)
-
-text {* This lemma is sort of a lifting on the induction rule for lists *}
-
-lemma ListType_cases:
-  assumes "a \<in> ListPerm" "xs :! ListType a"
-  shows "(xs = []\<^bsub>a\<^esub>) \<or> (\<exists> y ys. y :! a \<and> ys :! ListType a \<and> xs = y #\<^bsub>a\<^esub> ys)"
-proof -
-  from assms have "xs \<in> MkList a ` {xs. set xs \<subseteq> dcarrier a}"
-    apply (unfold ListType_dcarrier[THEN sym])
-    apply (unfold dcarrier_def)
-    apply (auto)
-  done
-
-  then obtain ys where xsys: "xs = MkList a ys" and yscarrier: "set ys \<subseteq> dcarrier a"
-    by (auto)
-
-  from assms(1) yscarrier
-  have "MkList a ys = []\<^bsub>a\<^esub> \<or> (\<exists>z zs. z :! a \<and> zs :! ListType a \<and> MkList a ys = z #\<^bsub>a\<^esub> zs)"
-  proof (induct ys)
-    case Nil thus ?case
-      by (simp add:NilV_def)
-  next
-    case (Cons y ys) thus ?case
-      apply (rule_tac disjI2)
-      apply (rule_tac x="y" in exI)
-      apply (rule_tac x="MkList a ys" in exI)
-      apply (auto intro:typing)
-      apply (metis ConsV_def MkList_inv)+
-    done
-  qed
-
-  with xsys show ?thesis
-    by (simp)
-qed
-
-lemma DestList_elem_type:
-  "\<lbrakk> a \<in> ListPerm; xs :! ListType a \<rbrakk> \<Longrightarrow> set (DestList xs) \<subseteq> dcarrier a"
-  by (metis ListType_elim MkList_inv)
-
-lemma DestList_elem_stype:
-  "\<lbrakk> x \<in> set (DestList xs); xs :! ListType t; t \<in> ListPerm \<rbrakk> \<Longrightarrow> x :! t"
-  by (metis DestList_elem_type dcarrier_dtype set_rev_mp)
-
-lemma MkList_inj_simp [simp]:
-  assumes "t \<in> ListPerm" "set xs \<subseteq> dcarrier t" "set ys \<subseteq> dcarrier t"
-  shows "(MkList t xs = MkList t ys) \<longleftrightarrow> xs = ys"
-  by (metis MkList_inv assms)
-
+declare EmptyStrV_def [simp]
+declare ConcatStrV_def [simp]
 end
 
 subsection {* Pair Sort *}
 
-class PAIR_SORT = VALUE +
-  fixes MkPair :: "('a \<times> 'a) \<Rightarrow> 'a"
-  and   DestPair :: "'a \<Rightarrow> ('a \<times> 'a)"
-  and   PairType :: "'a utype \<Rightarrow> 'a utype \<Rightarrow> 'a utype"
-  and   PairPerm :: "'a utype set"
-
-  assumes Inverse [simp] :
-    "\<lbrakk> a \<in> PairPerm; b \<in> PairPerm; x :! a; y :! b \<rbrakk> \<Longrightarrow> DestPair (MkPair (x, y)) = (x, y)"
-  and PairType_dcarrier: 
-    "\<lbrakk> a \<in> PairPerm; b \<in> PairPerm \<rbrakk> \<Longrightarrow> 
-       dcarrier (PairType a b) = MkPair ` (dcarrier a \<times> dcarrier b)"
+class PAIR_SORT =
+  fixes MkPair :: "('a::TYPED_MODEL uval \<times> 'a uval) \<Rightarrow> 'a uval"
+  fixes DestPair :: "'a uval \<Rightarrow> ('a uval \<times> 'a uval)"
+  fixes PairType :: "'a utype \<Rightarrow> 'a utype \<Rightarrow> 'a utype"
+  assumes MkPair_defined [defined] :
+    "\<D>\<^sub>v (MkPair (x, y)) \<longleftrightarrow> (\<D>\<^sub>v x) \<and> (\<D>\<^sub>v y)"
+  assumes MkPair_typing [typing] :
+    "\<lbrakk>x : t1; y : t2\<rbrakk> \<Longrightarrow> MkPair (x, y) : (PartType t1 t2)"
+  assumes MkPair_inverse [simp] :
+    "\<lbrakk>\<D>\<^sub>v x; \<D>\<^sub>v y\<rbrakk> \<Longrightarrow> DestPair (MkPair (x, y)) = (x, y)"
+  assumes DestPair_inverse [simp] :
+    "v :! (PairType t1 t2) \<Longrightarrow> MkPair (DestPair v) = v"
 begin
 
-definition PairV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+definition PairV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
 "PairV x y = MkPair (x, y)"
 
-definition FstV :: "'a \<Rightarrow> 'a" where
+definition FstV :: "'a uval \<Rightarrow> 'a uval" where
 "FstV x = fst (DestPair x)"
 
-definition SndV :: "'a \<Rightarrow> 'a" where
+definition SndV :: "'a uval \<Rightarrow> 'a uval" where
 "SndV x = snd (DestPair x)"
-
 end
 
-class BOOL_LIST_SORT = BOOL_SORT + LIST_SORT +
-  assumes BoolType_ListPerm [closure]: "BoolType \<in> ListPerm"
+subsection {* List Sort *}
 
-class INT_LIST_SORT = INT_SORT + LIST_SORT +
-  assumes IntType_ListPerm [closure]: "IntType \<in> ListPerm"
+text {* We require lists to be well-typed. *}
 
-(* Commented out by Frank Zeyda to avoid clash with utp_model. *)
+definition WT_LIST ::
+  "'m::TYPED_MODEL utype \<Rightarrow> 'm::TYPED_MODEL uval list set" where
+"WT_LIST t = {l . \<forall> x \<in> set l . x :! t}"
 
-(* class EVENT_LIST_SORT = EVENT_SORT + LIST_SORT +
-  assumes EventType_ListPerm [closure]: "EventType \<in> ListPerm"
-*)
+theorem WT_LIST_member [iff] :
+"l \<in> WT_LIST t \<longleftrightarrow> (\<forall> x \<in> set l . x :! t)"
+apply (simp add: WT_LIST_def)
+done
 
-class STRING_LIST_SORT = STRING_SORT + LIST_SORT +
-  assumes StringType_ListPerm [closure]: "StringType \<in> ListPerm"
-
-subsection {* Real Sort *}
-
-class REAL_SORT = VALUE +
-  fixes MkReal :: "real \<Rightarrow> 'a"
-  fixes DestReal :: "'a \<Rightarrow> real"
-  fixes IsReal :: "'a \<Rightarrow> bool"
-  fixes RealType :: "'a utype" ("\<real>")
-  assumes Inverse [simp] : "DestReal (MkReal r) = r"
-  assumes RealType_dcarrier: "dcarrier RealType = range MkReal"
+class LIST_SORT =
+  fixes MkList :: "'a::TYPED_MODEL utype \<Rightarrow> 'a uval list \<Rightarrow> 'a uval"
+  fixes DestList :: "'a uval \<Rightarrow> 'a uval list"
+  fixes ListType :: "'a utype \<Rightarrow> 'a utype"
+  assumes INSTANCE : "PARAM_SORT MkList DestList WT_LIST ListType"
 begin
 
-text {* The results of the injection are always defined. *}
+subsubsection {* Locale Imports *}
 
-lemma Defined [defined]: "\<D> (MkReal i)"
-  by (metis RealType_dcarrier dcarrier_defined rangeI)
+abbreviation IsListType :: "'a utype \<Rightarrow> bool" where
+"IsListType \<equiv> PARAM_SORT.IsType ListType"
 
-lemma MkReal_type [typing]: "MkReal n : RealType"
-  by (metis RealType_dcarrier dcarrier_type rangeI)
+abbreviation DestListType :: "'a utype \<Rightarrow> 'a utype" where
+"DestListType \<equiv> PARAM_SORT.DestType ListType"
 
-lemma MkReal_dtype [typing]: "MkReal n :! RealType"
-  by (metis Defined MkReal_type dtype_relI)
+theorems
+  MkList_defined [defined] = PARAM_SORT.MkVal_defined [OF INSTANCE] and
+  MkList_typed [typing] = PARAM_SORT.MkVal_typed [OF INSTANCE] and
+  MkList_inverse [simp] = PARAM_SORT.MkVal_inverse [OF INSTANCE] and
+  DestList_inverse [simp] = PARAM_SORT.DestVal_inverse [OF INSTANCE] and
+  (* WT_LIST_non_empty = PARAM_SORT.Domain_non_empty [OF INSTANCE] and *)
+  ListType_inj = PARAM_SORT.MkType_inj [OF INSTANCE]
 
-lemma MkReal_cases [elim]: 
-  "\<lbrakk> x :! RealType; \<And> i. x = MkReal i \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (metis RealType_dcarrier dtype_as_dcarrier image_iff)
+theorems
+  MkList_definedI = PARAM_SORT.MkVal_definedI [OF INSTANCE] and
+  MkList_strictly_typed = PARAM_SORT.MkVal_strictly_typed [OF INSTANCE] and
+  MkList_witness = PARAM_SORT.MkVal_witness [OF INSTANCE] and
+  MkList_unique_witness = PARAM_SORT.MkVal_unique_witness [OF INSTANCE] and
+  IsListType_ListType = PARAM_SORT.IsType_MkType [OF INSTANCE] and
+  IsListType_elim = PARAM_SORT.IsType_elim [OF INSTANCE] and
+  ListType_elim = PARAM_SORT.MkType_elim [OF INSTANCE] and
+  ListType_inverse = PARAM_SORT.MkType_inverse [OF INSTANCE] and
+  DestListType_inverse = PARAM_SORT.DestType_inverse [OF INSTANCE]
 
-lemma MkReal_inj_simp [simp]: 
-  "(MkReal x = MkReal y) \<longleftrightarrow> x = y"
-  by (metis Inverse)
+subsubsection {* List Operators *}
 
+definition NilV :: "'a utype \<Rightarrow> 'a uval" where
+"NilV t = MkList t []"
+notation NilV ("[]\<^bsub>_\<^esub>")
+
+definition ConsV :: "'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"ConsV t x xs = MkList t (x # DestList xs)"
+
+abbreviation ConsV_syn :: "'a uval \<Rightarrow> 'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"ConsV_syn xs t ys \<equiv> ConsV t xs ys"
+notation ConsV_syn (infixr "#\<^bsub>_\<^esub>" 65)
+
+definition ConcatV :: "'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"ConcatV t xs ys = MkList t (DestList xs @ DestList ys)"
+
+abbreviation ConcatV_syn :: "'a uval \<Rightarrow> 'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"ConcatV_syn xs t ys \<equiv> ConcatV t xs ys"
+notation ConcatV_syn (infixr "@\<^bsub>_\<^esub>" 65)
+
+definition PrefixV ::
+  "'b::{LIST_SORT,BOOL_SORT} uval \<Rightarrow> 'b uval \<Rightarrow> 'b uval" where
+"PrefixV xs ys = MkBool (prefixeq (DestList xs) (DestList ys))"
+
+paragraph {* Default Simplifications *}
+
+declare NilV_def [simp]
+declare ConsV_def [simp]
+declare ConcatV_def [simp]
+declare PrefixV_def [simp]
+
+subsubsection {* Theorems *}
+
+paragraph {* Well-typed Lists *}
+
+theorem empty_WT_LIST :
+"[] \<in> WT_LIST t"
+apply (simp)
+done
+
+theorem Cons_WT_LIST :
+"(x # l) \<in> WT_LIST t \<longleftrightarrow> (x :! t) \<and> (l \<in> WT_LIST t)"
+apply (simp)
+done
+
+theorem concat_WT_LIST :
+"(l1 @ l2) \<in> WT_LIST t \<longleftrightarrow> (l1 \<in> WT_LIST t) \<and> (l2 \<in> WT_LIST t)"
+apply (induct_tac l1)
+apply (simp_all)
+done
+
+theorem WT_LIST_non_empty :
+"WT_LIST t \<noteq> {}"
+apply (fold ex_in_conv)
+apply (rule_tac x = "[]" in exI)
+apply (rule empty_WT_LIST)
+done
+
+theorem NilV_defined [defined] :
+"\<D>\<^sub>v (NilV t)"
+apply (unfold NilV_def)
+apply (rule MkList_definedI)
+apply (rule empty_WT_LIST)
+done
+
+theorem NilV_typed [typing] :
+"(NilV t) : (ListType t)"
+apply (unfold NilV_def)
+apply (rule MkList_typed)
+apply (rule empty_WT_LIST)
+done
+
+theorem ConsV_typed [typing] :
+"\<lbrakk>x :! t; xs :! ListType t\<rbrakk> \<Longrightarrow> (x #\<^bsub>t\<^esub> xs) :! ListType t"
+apply (metis ConsV_def Cons_WT_LIST
+  DestList_inverse MkList_defined MkList_strictly_typed strict_type_rel_def)
+done
+
+theorem ConcatV_typed [typing] :
+"\<lbrakk>xs :! ListType t; ys :! ListType t\<rbrakk> \<Longrightarrow> (xs @\<^bsub>t\<^esub> ys) :! ListType t"
+apply (metis ConcatV_def concat_WT_LIST
+  DestList_inverse MkList_defined MkList_strictly_typed strict_type_rel_def)
+done
+
+theorem ListType_cases :
+  assumes "xs :! ListType t"
+  shows "(xs = []\<^bsub>t\<^esub>) \<or> (\<exists> y ys . y :! t \<and> ys :! ListType t \<and> xs = y #\<^bsub>t\<^esub> ys)"
+proof -
+  from assms have "xs \<in> (MkList t) ` {l . set l \<subseteq> dcarrier t}"
+    apply (simp add: image_def)
+    apply (rule_tac x = "DestList xs" in exI)
+    apply (simp)
+    apply (rule subsetI)
+    apply (unfold dcarrier_member)
+    apply (metis DestList_inverse MkList_defined WT_LIST_member assms(1))
+  done
+
+  then obtain ys where ys_facts :
+      "xs = MkList t ys" and ys_carrier : "set ys \<subseteq> dcarrier t"
+    by (auto)
+
+  from assms(1) and ys_carrier
+  have "MkList t ys = []\<^bsub>t\<^esub> \<or>
+    (\<exists> z zs . z :! t \<and> zs :! ListType t \<and> MkList t ys = z #\<^bsub>t\<^esub> zs)"
+  proof (induct ys)
+    case Nil thus ?case
+      by (simp)
+  next
+    case (Cons y ys) thus ?case
+      apply (rule_tac disjI2)
+      apply (rule_tac x = "y" in exI)
+      apply (rule_tac x = "MkList t ys" in exI)
+      apply (clarify)
+      apply (simp add: typing defined)
+      apply (metis ConsV_def MkList_inverse MkList_typed WT_LIST_member
+        dcarrier_member set_rev_mp strict_type_rel_def)
+    done
+  qed
+
+  with ys_facts show ?thesis by (simp)
+qed
+
+theorem DestList_subset_dcarrier :
+"xs :! ListType t \<Longrightarrow> set (DestList xs) \<subseteq> dcarrier t"
+apply (metis ListType_elim MkList_inverse WT_LIST_member dcarrier_member subsetI)
+done
+
+theorem in_DestList_strictly_typed :
+"\<lbrakk>x \<in> set (DestList xs); xs :! ListType t\<rbrakk> \<Longrightarrow> x :! t"
+apply (metis DestList_subset_dcarrier dcarrier_member set_rev_mp)
+done
+
+theorem subset_dcarrier_WT_LIST :
+"set xs \<subseteq> dcarrier t \<Longrightarrow> xs \<in> WT_LIST t"
+apply (metis WT_LIST_member dcarrier_member subset_code(1))
+done
+
+theorem MkList_inject [simp]:
+"\<lbrakk>set xs \<subseteq> dcarrier t; set ys \<subseteq> dcarrier t\<rbrakk> \<Longrightarrow>
+  (MkList t xs = MkList t ys) \<longleftrightarrow> xs = ys"
+apply (metis MkList_inverse subset_dcarrier_WT_LIST)
+done
+
+subsubsection {* Proof Support *}
+
+theorem MkList_eqI [intro!] :
+"x = y \<Longrightarrow> MkList x = MkList y"
+apply (erule arg_cong)
+done
 end
+
+subsection {* Set Sort *}
+
+text {* TODO: Use cardinality-bound sets here! *}
+
+text {* We require sets to be well-typed. *}
+
+definition WT_SET ::
+  "'m::TYPED_MODEL utype \<Rightarrow> 'm::TYPED_MODEL uval set set" where
+"WT_SET t = {fs . \<forall> x \<in> fs . x :! t}"
+
+theorem WT_SET_member [iff] :
+"fs \<in> WT_SET t \<longleftrightarrow> (\<forall> x \<in> fs . x :! t)"
+apply (simp add: WT_SET_def)
+done
+
+class SET_SORT = BOOL_SORT +
+  fixes MkSet :: "'a::TYPED_MODEL utype \<Rightarrow> 'a uval set \<Rightarrow> 'a uval"
+  fixes DestSet :: "'a uval \<Rightarrow> 'a uval set"
+  fixes SetType :: "'a utype \<Rightarrow> 'a utype"
+  assumes INSTANCE: "PARAM_SORT MkSet DestSet WT_SET SetType"
+begin
+
+subsubsection {* Locale Imports *}
+
+abbreviation IsSetType :: "'a utype \<Rightarrow> bool" where
+"IsSetType \<equiv> PARAM_SORT.IsType SetType"
+
+abbreviation DestSetType :: "'a utype \<Rightarrow> 'a utype" where
+"DestSetType \<equiv> PARAM_SORT.DestType SetType"
+
+theorems
+  MkSet_defined [defined] = PARAM_SORT.MkVal_defined [OF INSTANCE] and
+  MkSet_typed [typing] = PARAM_SORT.MkVal_typed [OF INSTANCE] and
+  MkSet_inverse [simp] = PARAM_SORT.MkVal_inverse [OF INSTANCE] and
+  DestSet_inverse [simp] = PARAM_SORT.DestVal_inverse [OF INSTANCE] and
+  (* WT_SET_non_empty = PARAM_SORT.Domain_non_empty [OF INSTANCE] and *)
+  SetType_inj = PARAM_SORT.MkType_inj [OF INSTANCE]
+
+theorems
+  MkSet_definedI = PARAM_SORT.MkVal_definedI [OF INSTANCE] and
+  MkSet_strictly_typed = PARAM_SORT.MkVal_strictly_typed [OF INSTANCE] and
+  MkSet_witness = PARAM_SORT.MkVal_witness [OF INSTANCE] and
+  MkSet_unique_witness = PARAM_SORT.MkVal_unique_witness [OF INSTANCE] and
+  IsSetType_SetType = PARAM_SORT.IsType_MkType [OF INSTANCE] and
+  IsSetType_elim = PARAM_SORT.IsType_elim [OF INSTANCE] and
+  SetType_elim = PARAM_SORT.MkType_elim [OF INSTANCE] and
+  SetType_inverse = PARAM_SORT.MkType_inverse [OF INSTANCE] and
+  DestSetType_inverse = PARAM_SORT.DestType_inverse [OF INSTANCE]
+
+subsubsection {* Set Operators *}
+
+definition EmptyV  :: "'a utype \<Rightarrow> 'a uval" where
+"EmptyV t = MkSet t {}"
+
+definition InsertV :: "'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"InsertV t x xs = MkSet t (insert x (DestSet xs))"
+
+definition UnionV  :: "'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"UnionV t xs ys = MkSet t (DestSet xs \<union> DestSet ys)"
+
+definition InterV  :: "'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"InterV t xs ys = MkSet t (DestSet xs \<inter> DestSet ys)"
+
+definition MinusV  :: "'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"MinusV t xs ys = MkSet t (DestSet xs - DestSet ys)"
+
+definition SubsetV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"SubsetV xs ys = MkBool (DestSet xs \<subseteq> DestSet ys)"
+
+definition MemberV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"MemberV x xs = MkBool (x \<in> DestSet xs)"
+
+definition NotMemberV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"NotMemberV x xs = MkBool (x \<notin> DestSet xs)"
+end
+
+subsection {* Finite Set Sort *}
+
+text {* We require finite sets to be well-typed. *}
+
+definition WT_FSET ::
+  "'m::TYPED_MODEL utype \<Rightarrow> 'm::TYPED_MODEL uval fset set" where
+"WT_FSET t = {fs . \<forall> x |\<in>| fs . x :! t}"
+
+theorem WT_FSET_member [iff] :
+"fs \<in> WT_FSET t \<longleftrightarrow> (\<forall> x |\<in>| fs . x :! t)"
+  by (simp add: WT_FSET_def)
+
+class FSET_SORT = BOOL_SORT +
+  fixes MkFSet :: "'a::TYPED_MODEL utype \<Rightarrow> 'a uval fset \<Rightarrow> 'a uval"
+  fixes DestFSet :: "'a uval \<Rightarrow> 'a uval fset"
+  fixes FSetType :: "'a utype \<Rightarrow> 'a utype"
+  assumes INSTANCE: "PARAM_SORT MkFSet DestFSet WT_FSET FSetType"
+begin
+
+subsubsection {* Locale Imports *}
+
+abbreviation IsFSetType :: "'a utype \<Rightarrow> bool" where
+"IsFSetType \<equiv> PARAM_SORT.IsType FSetType"
+
+abbreviation DestFSetType :: "'a utype \<Rightarrow> 'a utype" where
+"DestFSetType \<equiv> PARAM_SORT.DestType FSetType"
+
+theorems
+  MkFSet_defined [defined] = PARAM_SORT.MkVal_defined [OF INSTANCE] and
+  MkFSet_typed [typing] = PARAM_SORT.MkVal_typed [OF INSTANCE] and
+  MkFSet_inverse [simp] = PARAM_SORT.MkVal_inverse [OF INSTANCE] and
+  DestFSet_inverse [simp] = PARAM_SORT.DestVal_inverse [OF INSTANCE] and
+  (* WT_FSET_non_empty = PARAM_SORT.Domain_non_empty [OF INSTANCE] and *)
+  FSetType_inj = PARAM_SORT.MkType_inj [OF INSTANCE]
+
+theorems
+  MkFSet_definedI = PARAM_SORT.MkVal_definedI [OF INSTANCE] and
+  MkFSet_strictly_typed = PARAM_SORT.MkVal_strictly_typed [OF INSTANCE] and
+  MkFSet_witness = PARAM_SORT.MkVal_witness [OF INSTANCE] and
+  MkFSet_unique_witness = PARAM_SORT.MkVal_unique_witness [OF INSTANCE] and
+  IsFSetType_FSetType = PARAM_SORT.IsType_MkType [OF INSTANCE] and
+  IsFSetType_elim = PARAM_SORT.IsType_elim [OF INSTANCE] and
+  FSetType_elim = PARAM_SORT.MkType_elim [OF INSTANCE] and
+  FSetType_inverse = PARAM_SORT.MkType_inverse [OF INSTANCE] and
+  DestFSetType_inverse = PARAM_SORT.DestType_inverse [OF INSTANCE]
+
+subsubsection {* Finite Set Operators *}
+
+definition FEmptyV  :: "'a utype \<Rightarrow> 'a uval" where
+"FEmptyV t = MkFSet t \<lbrace>\<rbrace>"
+
+definition FInsertV :: "'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"FInsertV t x xs = MkFSet t (finsert x (DestFSet xs))"
+
+definition FUnionV  :: "'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"FUnionV t xs ys = MkFSet t (DestFSet xs |\<union>| DestFSet ys)"
+
+definition FInterV  :: "'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"FInterV t xs ys = MkFSet t (DestFSet xs |\<inter>| DestFSet ys)"
+
+definition FMinusV  :: "'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"FMinusV t xs ys = MkFSet t (DestFSet xs -\<^sub>f DestFSet ys)"
+
+definition FSubsetV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"FSubsetV xs ys = MkBool (DestFSet xs |\<subseteq>| DestFSet ys)"
+
+definition FMemberV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"FMemberV x xs = MkBool (x |\<in>| DestFSet xs)"
+
+definition FNotMemberV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"FNotMemberV x xs = MkBool (x |\<notin>| DestFSet xs)"
+end
+
+(***********************)
+(* REVIEWED AFTER HERE *)
+(***********************)
 
 subsection {* Function Sort *}
 
-class FUNCTION_SORT = BOT_SORT +
-  fixes MkFunc   :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"
-  and   DestFunc :: "'a \<Rightarrow> ('a \<Rightarrow> 'a)"
-  and   IsFunc   :: "('a \<Rightarrow> 'a) \<Rightarrow> bool"
-  and   FuncType :: "'a utype \<Rightarrow> 'a utype \<Rightarrow> 'a utype"
-  assumes Inverse [simp]: "IsFunc f \<Longrightarrow> DestFunc (MkFunc f) = f"
-  and     Defined [simp]: "IsFunc f \<Longrightarrow> Defined (MkFunc f)"
-  and     MkFunc_range: "{MkFunc f | f . \<forall> x : a. f x : b \<and> IsFunc f} = dcarrier (FuncType a b)"
-  and     FuncType_inj1: "FuncType a1 b1 = FuncType a2 b2 \<Longrightarrow> a1 = a2"
-  and     FuncType_inj2: "FuncType a1 b1 = FuncType a2 b2 \<Longrightarrow> b1 = b2"
-
+class FUNC_SORT = BOT_SORT +
+  fixes MkFunc :: "('a::TYPED_MODEL uval \<Rightarrow> 'a uval) \<Rightarrow> 'a uval"
+  fixes DestFunc :: "'a uval \<Rightarrow> ('a uval \<Rightarrow> 'a uval)"
+  fixes IsFunc :: "('a uval \<Rightarrow> 'a uval) \<Rightarrow> bool"
+  fixes FuncType :: "'a utype \<Rightarrow> 'a utype \<Rightarrow> 'a utype"
+  assumes MkFunc_inverse [simp] : "IsFunc f \<Longrightarrow> DestFunc (MkFunc f) = f"
+  assumes MkFunc_defined [simp] : "IsFunc f \<Longrightarrow> \<D>\<^sub>v (MkFunc f)"
+  assumes MkFunc_range :
+    "{MkFunc f | f . \<forall> x : a . (f x) : b \<and> IsFunc f} = dcarrier (FuncType a b)"
+  assumes FuncType_inj1 : "FuncType a1 b1 = FuncType a2 b2 \<Longrightarrow> a1 = a2"
+  assumes FuncType_inj2 : "FuncType a1 b1 = FuncType a2 b2 \<Longrightarrow> b1 = b2"
 begin
 
-lemma MkFunc_type [typing]: 
-  "\<lbrakk> \<forall> x : a. f x : b; IsFunc f \<rbrakk> \<Longrightarrow> MkFunc f : FuncType a b"
-  apply (insert MkFunc_range[of a b])
-  apply (auto simp add:dcarrier_def)
-done
-
-lemma DestFunc_type [typing]:
-  "\<lbrakk> f : FuncType a b; x : a; \<D> f \<rbrakk> \<Longrightarrow> DestFunc f x : b"
-  apply (insert MkFunc_range[of a b])
-  apply (auto simp add:dcarrier_def)
-  apply (smt CollectE CollectI Inverse)
-done
+subsubsection {* Type Destructors *}
 
 definition func_inp_type :: "'a utype \<Rightarrow> 'a utype" where
-"func_inp_type t = (SOME a. \<exists> b. t = FuncType a b)"
+"func_inp_type t = (THE a . \<exists> b . t = FuncType a b)"
 
 definition func_out_type :: "'a utype \<Rightarrow> 'a utype" where
-"func_out_type t = (SOME b. \<exists> a. t = FuncType a b)"
+"func_out_type t = (THE b . \<exists> a . t = FuncType a b)"
 
-lemma func_inp_type [simp]:
-  "func_inp_type (FuncType a b) = a"
-  apply (simp add:func_inp_type_def)
-  apply (rule some_equality)
-  apply (auto dest: FuncType_inj1)
+theorem func_inp_type [simp] :
+"func_inp_type (FuncType a b) = a"
+apply (unfold func_inp_type_def)
+apply (rule the1_equality)
+apply (safe)
+-- {* Subgoal 1 *}
+apply (metis)
+-- {* Subgoal 2 *}
+apply (metis FuncType_inj1)
+-- {* Subgoal 3 *}
+apply (metis)
 done
 
-lemma func_out_type [simp]:
-  "func_out_type (FuncType a b) = b"
-  apply (simp add:func_out_type_def)
-  apply (rule some_equality)
-  apply (auto dest: FuncType_inj2)
+theorem func_out_type [simp]:
+"func_out_type (FuncType a b) = b"
+apply (unfold func_out_type_def)
+apply (rule the1_equality)
+apply (safe)
+-- {* Subgoal 1 *}
+apply (metis)
+-- {* Subgoal 2 *}
+apply (metis FuncType_inj2)
+-- {* Subgoal 3 *}
+apply (metis)
 done
 
 subsubsection {* Function Operators *}
 
-definition AppV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"AppV f \<equiv> DestFunc f"
+definition AppV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
+"AppV f = DestFunc f"
 
-definition CompV :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+definition CompV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
 "CompV f g = MkFunc (DestFunc f \<circ> DestFunc g)"
 
 subsubsection {* Default Simplifications *}
 
-declare AppV_def [simp] CompV_def [simp]
+declare AppV_def [simp]
+declare CompV_def [simp]
 
+subsubsection {* Theorems *}
+
+lemma MkFunc_typed [typing] :
+"\<lbrakk>\<forall> x : a . (f x) : b; IsFunc f\<rbrakk> \<Longrightarrow> (MkFunc f) : (FuncType a b)"
+apply (insert MkFunc_range [of a b])
+apply (simp add: set_eq_iff)
+apply (metis)
+done
+
+lemma DestFunc_app_typed [typing] :
+"\<lbrakk>f : FuncType a b; x : a; \<D>\<^sub>v f\<rbrakk> \<Longrightarrow> (DestFunc f) x : b"
+apply (insert MkFunc_range [of a b])
+apply (simp add: set_eq_iff)
+apply (metis MkFunc_inverse)
+done
 end
-
-class BASIC_SORT =
-  INT_SORT + BOOL_SORT + STRING_SORT + REAL_SORT
-
-class COMPOSITE_SORT =
-  BASIC_SORT + PAIR_SORT + SET_SORT + FUNCTION_SORT
-
-class REACTIVE_SORT = 
-  BOOL_SORT + 
-  LIST_SORT + 
-  FSET_SORT + 
-  SET_SORT +
-(* Commented out by Frank Zeyda to avoid clash with utp_model. *)
-(* EVENT_SORT + *)
-(* EVENT_LIST_SORT + *)
-(* EVENT_FSET_SORT + *)
-(* EVENT_SET_SORT + *)
-  assumes FSetPerm_ListPerm [closure]: "a \<in> ListPerm \<Longrightarrow> ListType a \<in> FSetPerm"
-
 end

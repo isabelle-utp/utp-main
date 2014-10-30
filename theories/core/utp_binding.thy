@@ -290,7 +290,7 @@ theorem binding_override_on_eq :
  (\<forall> x . x \<in> a \<longrightarrow> \<langle>g1\<rangle>\<^sub>bx = \<langle>g2\<rangle>\<^sub>bx) \<and>
  (\<forall> x . x \<notin> a \<longrightarrow> \<langle>f1\<rangle>\<^sub>bx = \<langle>f2\<rangle>\<^sub>bx)"
 apply (simp add: binding_override_on_def
-  Abs_binding_inject closure override_on_aux_eq)
+  Abs_binding_inject closure override_on_eq2)
 apply (safe)
 done
 

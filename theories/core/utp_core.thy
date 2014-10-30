@@ -12,7 +12,7 @@ imports
   utp_event
   utp_name
   utp_synonyms
-  utp_sorts_new
+  utp_sorts
 (* utp_value *)
   utp_model
   utp_var

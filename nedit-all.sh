@@ -5,6 +5,7 @@ nedit\
  theories/algebra/*.thy\
  theories/alpha/*.thy\
  theories/core/*.thy\
+ theories/highorder/*.thy\
  theories/laws/*.thy\
  theories/models/*.thy\
  theories/models/utp_cml/*.thy\
@@ -17,4 +18,7 @@ nedit\
  theories/theories/csp/*.thy\
  theories/theories/designs/*.thy\
  theories/theories/reactive/*.thy\
- theories/types/*.thy
+ theories/types/*.thy\
+ theories/utils/*.thy\
+ theories/utils/HOLCF_extra/*.thy\
+ theories/utils/Library_extra/*.thy

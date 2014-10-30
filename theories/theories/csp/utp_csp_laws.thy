@@ -417,7 +417,7 @@ proof -
     apply(utp_poly_auto_tac)
     done
   finally show ?thesis
-    ..
+    by this
 qed
 
 lemma Seq_comp_2: 
@@ -450,7 +450,7 @@ proof -
     apply(utp_poly_auto_tac)
     done
   finally show ?thesis
-    ..
+    by this
 qed
 
 lemma Seq_comp_3: 
@@ -472,7 +472,7 @@ proof -
     apply(utp_poly_auto_tac)
     done
   finally show ?thesis
-    ..
+    by this
 qed
 
 lemma CSP_SemiR_closure: 

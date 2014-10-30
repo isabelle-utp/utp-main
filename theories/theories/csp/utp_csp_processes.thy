@@ -208,7 +208,7 @@ apply(subst SkipRA_unfold_aux_ty[of "tr "],simp_all add:typing closure defined) 
 apply(subst tr_prefix_as_nil[THEN sym])
 apply(utp_poly_tac)
 done
-finally show ?thesis ..
+finally show ?thesis by this
 qed
 
 lemma Skip_CSP1 : "SKIP is CSP1"

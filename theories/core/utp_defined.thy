@@ -1,46 +1,52 @@
 (******************************************************************************)
-(* Project: Unifying Theories of Programming in Isabelle/HOL                  *)
+(* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
 (* File: utp_defined.thy                                                      *)
-(* Author: Simon Foster & Frank Zeyda, University of York (UK)                *)
+(* Authors: Simon Foster & Frank Zeyda, University of York (UK)               *)
 (******************************************************************************)
-(* LAST REVIEWED: 29 July 2014 *)
+(* LAST REVIEWED: 4 September 2014 *)
 
-header {* Generic Definedness *}
+header {* Definedness *}
 
 theory utp_defined
 imports "../utp_common"
 begin
 
+text {* \fixme{Perhaps move this theory into the theory root folder.} *}
+
 default_sort type
 
-text {* We introduce a generic notion of definedness in this theory. *}
-
-subsection {* Theorem Attributes *}
-
-ML {*
-  structure defined = Named_Thms
-    (val name = @{binding defined} val description = "definedness theorems")
+text {*
+  We introduce a generic notion of definedness in this theory. It does not
+  exclusively apply to model values but any kind of mathematical object in
+  the mechanisation where definedness is applicable and useful.
 *}
 
-setup defined.setup
+subsection {* Type class @{text DEFINED} *}
 
-subsection {* Definedness Classes *}
-
-subsubsection {* Type class @{text DEFINED} *}
+text {*
+  The class @{text DEFINED} introduces a definedness predicates for some HOL
+  type. Initially, there are no constraints on that predicate.
+*}
 
 class DEFINED =
   fixes defined :: "'a \<Rightarrow> bool" ("\<D>")
 begin
 
-subsection {* Constants *}
+subsubsection {* Constants *}
+
+text {* Carrier for defined values. *}
 
 definition DEFINED :: "'a set" where
 "DEFINED = {x. \<D> x}"
 
+text {* Carrier for undefined values. *}
+
 definition UNDEFINED :: "'a set" where
 "UNDEFINED = {x. \<not> \<D> x}"
 
-subsection {* Operators *}
+subsubsection {* Operators *}
+
+text {* Domain and range of a function according to definedness. *}
 
 definition Dom :: "('a \<Rightarrow> 'b::DEFINED) \<Rightarrow> 'a set" where
 "Dom f = {x . \<D> (f x)}"
@@ -48,7 +54,7 @@ definition Dom :: "('a \<Rightarrow> 'b::DEFINED) \<Rightarrow> 'a set" where
 definition Ran :: "('a \<Rightarrow> 'b::DEFINED) \<Rightarrow> 'b set" where
 "Ran f = {f x | x . \<D> (f x)}"
 
-subsection {* Theorems *}
+subsubsection {* Theorems *}
 
 theorem DEFINED_member [iff] :
 "x \<in> DEFINED \<longleftrightarrow> \<D> x"
@@ -62,7 +68,7 @@ apply (unfold UNDEFINED_def)
 apply (simp)
 done
 
-lemma DEFINED_UNDEFINED_UNIV :
+theorem DEFINED_UNDEFINED_UNIV :
 "DEFINED \<union> UNDEFINED = UNIV"
 apply (rule Set.set_eqI)
 apply (simp)
@@ -75,12 +81,21 @@ apply (simp)
 done
 end
 
-subsubsection {* Type class @{text DEFINED_NE} *}
+subsection {* Type class @{text DEFINED_NE} *}
+
+text {*
+  The class @{text DEFINED_NE} carries the additional assumption that there
+  must be at least one defined value.
+*}
 
 class DEFINED_NE = DEFINED +
-  assumes defined_nonempty : "\<exists> x. \<D> x"
+  assumes defined_nonempty : "\<exists> x . \<D> x"
 
-subsubsection {* Type class @{text DEFINED_TOTAL} *}
+subsection {* Type class @{text DEFINED_TOTAL} *}
+
+text {*
+  The class @{text DEFINED_TOTAL} requires \emph{all} values are defined.
+*}
 
 class DEFINED_TOTAL = DEFINED +
   assumes defined_total [defined] : "\<D> x"
@@ -91,11 +106,30 @@ apply (rule_tac x = "undefined" in exI)
 apply (metis defined_total)
 done
 
-subsection {* Instantiations of HOL Types *}
+subsection {* Instantiations *}
 
-text {* We instantiate definedness notions for all injectable types. *}
+text {*
+  We instantiate definedness for HOL types that we inject into the UTP model.
+*}
 
-subsubsection {* Definedness of type @{type bool} *}
+text {* \fixme{What about the type @{type fun}? Is it not injected?} *}
+
+paragraph {* Definedness of type @{type unit} *}
+
+instantiation unit :: DEFINED_TOTAL
+begin
+definition defined_unit :: "unit \<Rightarrow> bool" where
+"\<D> (x :: unit) = True"
+instance
+  by (intro_classes, unfold defined_unit_def, simp)
+
+theorem defined_unit [defined] :
+"\<D> (x :: unit)"
+apply (simp add: defined_unit_def)
+done
+end
+
+paragraph {* Definedness of type @{type bool} *}
 
 instantiation bool :: DEFINED_TOTAL
 begin
@@ -110,7 +144,22 @@ apply (simp add: defined_bool_def)
 done
 end
 
-subsubsection {* Definedness of type @{type int} *}
+paragraph {* Definedness of type @{type nat} *}
+
+instantiation nat :: DEFINED_TOTAL
+begin
+definition defined_nat :: "nat \<Rightarrow> bool" where
+"\<D> (x :: nat) = True"
+instance
+  by (intro_classes, unfold defined_nat_def, simp)
+
+theorem defined_nat [defined] :
+"\<D> (x :: nat)"
+apply (simp add: defined_nat_def)
+done
+end
+
+paragraph {* Definedness of type @{type int} *}
 
 instantiation int :: DEFINED_TOTAL
 begin
@@ -125,7 +174,7 @@ apply (simp add: defined_int_def)
 done
 end
 
-subsubsection {* Definedness of type @{type real} *}
+paragraph {* Definedness of type @{type real} *}
 
 instantiation real :: DEFINED_TOTAL
 begin
@@ -140,7 +189,7 @@ apply (simp add: defined_real_def)
 done
 end
 
-subsubsection {* Definedness of type @{type char} *}
+paragraph {* Definedness of type @{type char} *}
 
 instantiation char :: DEFINED_TOTAL
 begin
@@ -155,15 +204,13 @@ apply (simp add: defined_char_def)
 done
 end
 
-subsubsection {* Definedness of type @{type prod} *}
+paragraph {* Definedness of type @{type prod} *}
 
 instantiation prod :: (DEFINED, DEFINED) DEFINED
 begin
 definition defined_prod :: "'a \<times> 'b \<Rightarrow> bool" where
 "defined_prod = (\<lambda> (x, y) . \<D> x \<and> \<D> y)"
-instance
-apply (intro_classes)
-done
+instance by (intro_classes)
 
 theorem defined_prod [defined] :
 "\<D> (x, y) \<longleftrightarrow> \<D> x \<and> \<D> y"
@@ -184,7 +231,33 @@ apply (induct_tac x)
 apply (simp add: defined)
 done
 
-subsubsection {* Definedness of type @{type list} *}
+paragraph {* Definedness of type @{type sum} *}
+
+instantiation sum :: (DEFINED, DEFINED) DEFINED
+begin
+primrec defined_sum :: "'a + 'b \<Rightarrow> bool" where
+"defined_sum (Inl (x :: 'a)) = \<D> x" |
+"defined_sum (Inr (y :: 'b)) = \<D> y"
+instance by (intro_classes)
+
+declare defined_sum.simps [simp del]
+declare defined_sum.simps [defined]
+end
+
+instance sum :: (DEFINED_NE, DEFINED_NE) DEFINED_NE
+apply (intro_classes)
+apply (rule_tac x = "Inl (SOME x . \<D> x)" in exI)
+apply (simp add: defined)
+apply (metis defined_nonempty someI)
+done
+
+instance sum :: (DEFINED_TOTAL, DEFINED_TOTAL) DEFINED_TOTAL
+apply (intro_classes)
+apply (induct_tac x)
+apply (simp_all add: defined)
+done
+
+paragraph {* Definedness of type @{type list} *}
 
 instantiation list :: (DEFINED) DEFINED_NE
 begin
@@ -208,7 +281,7 @@ apply (intro_classes)
 apply (simp_all add: defined)
 done
 
-subsubsection {* Definedness of type @{type set} *}
+paragraph {* Definedness of type @{type set} *}
 
 instantiation set :: (DEFINED) DEFINED_NE
 begin
@@ -232,7 +305,7 @@ apply (intro_classes)
 apply (simp_all add: defined)
 done
 
-subsubsection {* Definedness of type @{type fset} *}
+paragraph {* Definedness of type @{type fset} *}
 
 instantiation fset :: (DEFINED) DEFINED_NE
 begin

@@ -29,7 +29,7 @@ text {* A derivative of normal variables @{typ "'m uvar"} which also carry
         these are simply there to help the type-system and store no
         additional data. *}
 
-typedef ('a, 'm::PRE_TYPED_MODEL) pvar = "UNIV :: (name * bool) set"
+typedef ('a, 'm::PRE_TYPED_MODEL) pvar = "UNIV :: (uname * bool) set"
   by auto
 
 declare Rep_pvar [simp]
@@ -37,7 +37,7 @@ declare Rep_pvar_inverse [simp]
 declare Abs_pvar_inverse [simp]
 
 definition MkPVAR :: 
-  "name \<Rightarrow> bool \<Rightarrow> 'a itself \<Rightarrow> 'm itself \<Rightarrow> ('a, 'm::PRE_TYPED_MODEL) pvar" where
+  "uname \<Rightarrow> bool \<Rightarrow> 'a itself \<Rightarrow> 'm itself \<Rightarrow> ('a, 'm::PRE_TYPED_MODEL) pvar" where
 "MkPVAR n s a t = Abs_pvar (n, s)"
 
 abbreviation MkPlainP ::
@@ -52,7 +52,7 @@ abbreviation "MkIntV n a \<equiv> MkPlainP n a TYPE(int) TYPE('m :: INT_SORT)"
 
 abbreviation "MkRealV n a \<equiv> MkPlainP n a TYPE(real) TYPE('m :: REAL_SORT)"
 
-abbreviation pvname :: "('a, 'm::PRE_TYPED_MODEL) pvar \<Rightarrow> name" where
+abbreviation pvname :: "('a, 'm::PRE_TYPED_MODEL) pvar \<Rightarrow> uname" where
 "pvname x \<equiv> fst (Rep_pvar x)"
 
 abbreviation pvaux :: "('a, 'm::PRE_TYPED_MODEL) pvar \<Rightarrow> bool" where
