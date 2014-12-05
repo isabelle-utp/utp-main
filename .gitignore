@@ -1,0 +1,36 @@
+# Latex #
+###################
+*.aux
+*.idx
+*.out
+*.toc
+*.bbl
+*.blg
+*.ilg
+*.ind
+*.fdb_latexmk
+
+# OS generated files #
+######################
+.DS_Store*
+ehthumbs.db
+Thumbs.db
+
+
+# Backup files #
+################
+*~
+.#*
+\#*#
+
+
+# Vim Metafiles #
+##################
+*.swp
+*.*~
+
+
+# Isabelle jEdit Metafiles #
+############################
+#*.thy#
+
