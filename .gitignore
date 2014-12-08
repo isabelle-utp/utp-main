@@ -33,6 +33,7 @@ Thumbs.db
 # Vim Metafiles #
 ##################
 *.swp
+*.swo
 *.*~
 
 
