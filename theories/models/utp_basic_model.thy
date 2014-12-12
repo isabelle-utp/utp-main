@@ -22,6 +22,9 @@ datatype bval = Bot\<^sub>v btyp | Int\<^sub>v int | Bool\<^sub>v bool | List\<^
 primrec BoolOf :: "bval \<Rightarrow> bool" where
 "BoolOf (Bool\<^sub>v x) = x"
 
+primrec IntOf :: "bval \<Rightarrow> int" where
+"IntOf (Int\<^sub>v x) = x"
+
 text {* Our type space must be countable which we derive here. Moreover, our type and value
         spaces are also linearly ordered. *}
 
@@ -47,6 +50,14 @@ inductive_cases
   List\<^sub>v_cases [elim]: "List\<^sub>v a xs :\<^sub>b t" and
   List\<^sub>t_cases [elim!]: "x :\<^sub>b List\<^sub>t a"
 
+fun default_bval :: "btyp \<Rightarrow> bval" where
+"default_bval(Int\<^sub>t)    = Int\<^sub>v 0" |
+"default_bval(Bool\<^sub>t)   = Bool\<^sub>v True" |
+"default_bval(List\<^sub>t t) = List\<^sub>v t []"
+
+lemma default_bval_type: "default_bval(t) :\<^sub>b t"
+  by (induct t, auto)
+
 text {* We create some useful type synonyms for expressions, predicates, and variables in
         our basic value model. *}
 
@@ -68,16 +79,18 @@ fun defined_bval :: "bval \<Rightarrow> bool" where
 "\<D> (Bot\<^sub>v a) = False" |
 "\<D> (Bool\<^sub>v x) = True" |
 "\<D> (Int\<^sub>v x) = True" |
-"\<D> (List\<^sub>v a xs) = (\<forall> x \<in> set(xs). \<D>(x))"
+"\<D> (List\<^sub>v a xs) = (\<forall> x \<in> set(xs). \<D>(x) \<and> x :\<^sub>b a)"
 instance ..
 end
 
+lemma default_bval_defined: "\<D>(default_bval(t))"
+  by (induct t, simp_all)
+
+lemma defined_bval_typed: "\<D>(x) \<Longrightarrow> \<exists> t. x :\<^sub>b t"
+  by (induct x, auto)
+  
 text {* Then we show that our value space is a valid UTP value space by instantiating
         the VALUE class. This involves a proof that the type space is countable. *}
-
-(***********************)
-(* REVIEWED UNTIL HERE *)
-(***********************)
 
 datatype bmdl =
   bval "bval" |
@@ -96,107 +109,86 @@ definition VALUE_bmdl :: "bmdl set" where
 
 definition UTYPE_bmdl :: "bmdl set" where
 "UTYPE_bmdl = range btyp"
-instance
-apply (intro_classes)
-apply (unfold VALUE_bmdl_def UTYPE_bmdl_def)
-apply (auto)
-done
+instance by (intro_classes, auto simp add: VALUE_bmdl_def UTYPE_bmdl_def)
 end
+
+setup_lifting type_definition_utype
+setup_lifting type_definition_uval
 
 instantiation bmdl :: DEFINED_MODEL
 begin
-definition value_defined_bmdl :: "bmdl uval \<Rightarrow> bool" where
-"value_defined_bmdl v = \<D> (bvalOf (Rep_uval v))"
+lift_definition value_defined_bmdl :: "bmdl uval \<Rightarrow> bool" is
+"\<lambda> v. \<D> (bvalOf v)" .
 
 definition utype_rel_bval :: "bval \<Rightarrow> nat \<Rightarrow> bool" where
 "utype_rel_bval x t \<longleftrightarrow> (\<exists> a. t = to_nat a \<and> x :\<^sub>b a)"
 instance
-apply (intro_classes)
-apply (unfold value_defined_bmdl_def utype_rel_bval_def)
-apply (rule_tac x = "Abs_uval (bval (Bool\<^sub>v undefined))" in exI)
-apply (subst Abs_uval_inverse)
-apply (simp add: VALUE_bmdl_def)
-apply (simp)
+  apply (intro_classes)
+  apply (transfer)
+  apply (metis Collect_mem_eq VALUE_bmdl_def bvalOf.simps defined_bval.simps(2) rangeI)
 done
 end
 
-instance bmdl :: PRE_TYPED_MODEL ..
+instantiation bmdl :: PRE_TYPED_MODEL
+begin
+
+lift_definition type_rel_bmdl :: "bmdl uval \<Rightarrow> bmdl utype \<Rightarrow> bool" is
+"\<lambda> x t. bvalOf x :\<^sub>b btypOf t" .
+
+instance ..
+
+end
 
 instance bmdl :: TYPED_MODEL
-apply (intro_classes)
-apply (unfold value_defined_bmdl_def utype_rel_bval_def)
-sorry
-
-(* I think the stuff below is not needed anymore. *)
-
-(*
-text {* Next we show some useful inverse properties for embedding types. *}
-
-lemma prjTYPE_inv_bty [simp]
-  : "embTYPE ((prjTYPE t) :: btyp) = (t :: bval utype)"
-  by (metis Rep_utype_elim Rep_utype_inverse embTYPE_def from_nat_to_nat prjTYPE_def utype_rel_bval_def)
-
-lemma embTYPE_inv_bty [simp]:
-  "prjTYPE (embTYPE (t :: btyp) :: bval utype) = t"
-  apply (induct t)
-  apply (rule embTYPE_inv[of "Int\<^sub>v 0"])
-  apply (auto simp add: utype_rel_bval_def)
-  apply (rule embTYPE_inv[of "Bool\<^sub>v False"])
-  apply (auto simp add: utype_rel_bval_def)
-  apply (rule_tac v="List\<^sub>v t []" in embTYPE_inv)
-  apply (auto simp add: utype_rel_bval_def)
+  apply (intro_classes)
+  apply (transfer)
+  apply (auto simp add:UTYPE_bmdl_def VALUE_bmdl_def)
+  apply (metis default_bval_defined default_bval_type)
+  apply (transfer)
+  apply (auto simp add:VALUE_bmdl_def UTYPE_bmdl_def)
+  apply (metis defined_bval_typed)
 done
-
-text {* We also show that UTP typing corresponds to our basic type relation. *}
-
-lemma type_rel_btyp [simp]: 
-  "x : t \<longleftrightarrow> x :\<^sub>b prjTYPE t"
-  by (metis (full_types) Rep_utype_elim empty_Collect_eq from_nat_to_nat prjTYPE_def type_rel_def utype_rel_bval_def)
 
 text {* We also instantiate the Boolean and Integer sorts so that we can 
         make use of theories which require them (e.g. Designs). *}
-*)
 
 instantiation bmdl :: BOOL_SORT
 begin
 
-definition MkBool_bmdl :: "bool \<Rightarrow> bmdl uval" where
-"MkBool_bmdl x = Abs_uval (bval (Bool\<^sub>v x))"
+lift_definition MkBool_bmdl :: "bool \<Rightarrow> bmdl uval" is
+"\<lambda> x. bval (Bool\<^sub>v x)" by (simp add:VALUE_bmdl_def)
 
-definition DestBool_bmdl :: "bmdl uval \<Rightarrow> bool" where
-"DestBool_bmdl v = BoolOf (bvalOf (Rep_uval v))" 
+lift_definition DestBool_bmdl :: "bmdl uval \<Rightarrow> bool" is
+"\<lambda> v. BoolOf (bvalOf v)" . 
 
-definition BoolType_bmdl :: "bmdl utype" where
-"BoolType_bmdl = Abs_utype (btyp Bool\<^sub>t)"
-
-instance
-apply (intro_classes)
-apply (unfold_locales)
-apply (unfold MkBool_bmdl_def DestBool_bmdl_def BoolType_bmdl_def)
-apply (simp_all)
-sorry
-end
-
-(***********************)
-(* REVIEWED UNTIL HERE *)
-(***********************)
-
-instantiation bval :: INT_SORT
-begin
-
-definition MkInt_bval :: "int \<Rightarrow> bval" where
-"MkInt_bval x = Int\<^sub>v x"
-
-primrec DestInt_bval :: "bval \<Rightarrow> int" where
-"DestInt_bval (Int\<^sub>v x) = x" 
-
-definition IntType_bval :: "bval utype" where
-"IntType_bval = embTYPE Int\<^sub>t"
+lift_definition BoolType_bmdl :: "bmdl utype" is
+"btyp Bool\<^sub>t" by (simp add:UTYPE_bmdl_def)
 
 instance
   apply (intro_classes)
-  apply (simp add:MkInt_bval_def DestInt_bval_def IntType_bval_def dcarrier_def monotype_def type_rel_def)
-  apply (auto simp add:MkInt_bval_def DestInt_bval_def IntType_bval_def dcarrier_def monotype_def)
+  apply (unfold_locales)
+  apply (auto)
+  apply (transfer, auto simp add:VALUE_bmdl_def)+
+done
+end
+
+instantiation bmdl :: INT_SORT
+begin
+
+lift_definition MkInt_bmdl :: "int \<Rightarrow> bmdl uval" is
+"\<lambda> x. bval (Int\<^sub>v x)" by (simp add:VALUE_bmdl_def)
+
+lift_definition DestInt_bmdl :: "bmdl uval \<Rightarrow> int" is
+"\<lambda> v. IntOf (bvalOf v)" . 
+
+lift_definition IntType_bmdl :: "bmdl utype" is
+"btyp Int\<^sub>t" by (simp add:UTYPE_bmdl_def)
+
+instance
+  apply (intro_classes)
+  apply (unfold_locales)
+  apply (auto)
+  apply (transfer, auto simp add:VALUE_bmdl_def)+
 done
 end
 
