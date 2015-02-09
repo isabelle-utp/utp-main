@@ -20,9 +20,9 @@ subsection {* Type Definition *}
 
 text {* Rename the following type into @{text "'a dset"}. *}
 
-typedef 'a USET = "{s :: 'a set . \<forall> x \<in> s . \<D> x}"
-apply (rule_tac x = "{}" in exI)
-apply (auto)
+typedef 'a USET = "{s :: 'a bset . \<forall> x \<in>\<^sub>b s . \<D> x}"
+apply (rule_tac x = "{}\<^sub>b" in exI)
+apply (auto simp add: bBall_def)
 done
 
 setup_lifting type_definition_USET
@@ -46,55 +46,50 @@ done
 subsection {* Constants *}
 
 lift_definition EmptyUS :: "'a USET"
-is "{}" by (simp)
+is "{}\<^sub>b" by (simp add: bBall_def)
 
 subsection {* Operators *}
 
-definition InsertUS :: "'a \<Rightarrow> 'a USET \<Rightarrow> 'a USET" where
-"InsertUS x xs = Abs_USET (insert x (Rep_USET xs))"
-
-lemma InsertUS_rep_eq :
-"\<D> x \<Longrightarrow> Rep_USET (InsertUS x xs) = insert x (Rep_USET xs)"
-apply (subgoal_tac "\<forall> y \<in> (insert x (Rep_USET xs)) . \<D> y")
-apply (auto simp add: InsertUS_def)
-done
+lift_definition InsertUS :: "'a \<Rightarrow> 'a USET \<Rightarrow> 'a USET" 
+is "\<lambda> x A. if (\<D> x) then bset_insert x A else A"
+  by (auto simp add:bBall_def)
 
 lift_definition MemberUS :: "'a \<Rightarrow> 'a USET \<Rightarrow> bool"
-is "op \<in>" .
+is "bset_member" .
 
 lift_definition NMemberUS :: "'a \<Rightarrow> 'a USET \<Rightarrow> bool"
-is "op \<notin>" .
+is "\<lambda> x A. Not (bset_member x A)" .
 
 lift_definition UnionUS :: "'a USET \<Rightarrow> 'a USET \<Rightarrow> 'a USET"
-is "union" by (auto)
+is "bset_union" by (auto simp add: bBall_def)
 
 lift_definition InterUS :: "'a USET \<Rightarrow> 'a USET \<Rightarrow> 'a USET"
-is "inter" by (auto)
+is "bset_inter" by (auto simp add: bBall_def)
 
 lift_definition MinusUS :: "'a USET \<Rightarrow> 'a USET \<Rightarrow> 'a USET"
-is "minus" by (auto)
+is "bset_minus" by (auto simp add: bBall_def)
 
 lift_definition SubsetUS :: "'a USET \<Rightarrow> 'a USET \<Rightarrow> bool"
-is "subset" .
+is "bset_subset" .
 
 lift_definition SubseteqUS :: "'a USET \<Rightarrow> 'a USET \<Rightarrow> bool"
-is "subset_eq" .
+is "bset_subset_eq" .
 
 lift_definition SetUS :: "'a ULIST \<Rightarrow> 'a USET"
-is "set" by (auto)
+is "bset_set" by (auto)
 
 lift_definition RestrictUS :: "'a ULIST \<Rightarrow> 'a USET \<Rightarrow> 'a ULIST"
-is "\<lambda> xs A . filter (\<lambda> x . x \<notin> A) xs" by (auto)
+is "\<lambda> xs A . filter (\<lambda> x . x \<notin>\<^sub>b A) xs" by (auto)
 
 definition IntersyncUS ::
   "'a USET \<Rightarrow> 'a ULIST \<Rightarrow> 'a ULIST \<Rightarrow> ('a ULIST) USET" where
 "IntersyncUS xs ys zs = Abs_USET
-  (Abs_ULIST ` (intersync (Rep_USET xs) (Rep_ULIST ys) (Rep_ULIST zs)))"
+  (MkBSet (Abs_ULIST ` (intersync (DestBSet (Rep_USET xs)) (Rep_ULIST ys) (Rep_ULIST zs))))"
 
 subsection {* Definedness *}
 
 lemma USET_elems_defined [defined] :
-"x \<in> (Rep_USET xs) \<Longrightarrow> \<D> x"
+"x \<in>\<^sub>b (Rep_USET xs) \<Longrightarrow> \<D> x"
 apply (insert Rep_USET [of xs])
 apply (auto)
 done
@@ -120,7 +115,7 @@ lemma USET_transfer [eval, evale] :
   by (auto)
 
 declare EmptyUS.rep_eq [eval, evale]
-declare InsertUS_rep_eq [eval, evale]
+declare InsertUS.rep_eq [eval, evale]
 declare UnionUS.rep_eq [eval, evale]
 declare InterUS.rep_eq [eval, evale]
 declare MinusUS.rep_eq [eval, evale]

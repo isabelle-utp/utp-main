@@ -120,8 +120,6 @@ begin
 lift_definition value_defined_bmdl :: "bmdl uval \<Rightarrow> bool" is
 "\<lambda> v. \<D> (bvalOf v)" .
 
-definition utype_rel_bval :: "bval \<Rightarrow> nat \<Rightarrow> bool" where
-"utype_rel_bval x t \<longleftrightarrow> (\<exists> a. t = to_nat a \<and> x :\<^sub>b a)"
 instance
   apply (intro_classes)
   apply (transfer)

@@ -390,7 +390,7 @@ lemma "`{} \<subseteq> {<1>}`"
 
 lemma "`({<1>,<2>} - {<1>}) \<subseteq> {<2>}`"
   by (utp_poly_tac)
-
+  
 lemma "`<1> \<in> elems \<langle><4>,<7>,<1>,<9>\<rangle>`"
   by (utp_poly_tac)
 

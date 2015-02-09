@@ -576,22 +576,19 @@ end
 
 subsection {* Set Sort *}
 
-text {* TODO: Use cardinality-bound sets here! *}
-
-text {* We require sets to be well-typed. *}
+text {* We require sets to be well-typed and cardinality bounded. *}
 
 definition WT_SET ::
-  "'m::TYPED_MODEL utype \<Rightarrow> 'm::TYPED_MODEL uval set set" where
-"WT_SET t = {fs . \<forall> x \<in> fs . x :! t}"
+  "'m::TYPED_MODEL utype \<Rightarrow> 'm::TYPED_MODEL uval bset set" where
+"WT_SET t = {fs . \<forall> x \<in>\<^sub>b fs . x :! t}"
 
 theorem WT_SET_member [iff] :
-"fs \<in> WT_SET t \<longleftrightarrow> (\<forall> x \<in> fs . x :! t)"
-apply (simp add: WT_SET_def)
-done
+"fs \<in> WT_SET t \<longleftrightarrow> (\<forall> x \<in>\<^sub>b fs . x :! t)"
+  by (simp add: WT_SET_def)
 
 class SET_SORT = BOOL_SORT +
-  fixes MkSet :: "'a::TYPED_MODEL utype \<Rightarrow> 'a uval set \<Rightarrow> 'a uval"
-  fixes DestSet :: "'a uval \<Rightarrow> 'a uval set"
+  fixes MkSet :: "'a::TYPED_MODEL utype \<Rightarrow> 'a uval bset \<Rightarrow> 'a uval"
+  fixes DestSet :: "'a uval \<Rightarrow> 'a uval bset"
   fixes SetType :: "'a utype \<Rightarrow> 'a utype"
   assumes INSTANCE: "PARAM_SORT MkSet DestSet WT_SET SetType"
 begin
@@ -623,31 +620,51 @@ theorems
   SetType_inverse = PARAM_SORT.MkType_inverse [OF INSTANCE] and
   DestSetType_inverse = PARAM_SORT.DestType_inverse [OF INSTANCE]
 
+theorem DestSet_subset_dcarrier :
+"xs :! SetType t \<Longrightarrow> DestBSet (DestSet xs) \<subseteq> dcarrier t"
+  apply (erule SetType_elim)
+  apply (auto simp add:WT_SET_def bBall_def)
+done
+
+theorem in_DestSet_strictly_typed :
+"\<lbrakk>x \<in>\<^sub>b DestSet xs; xs :! SetType t\<rbrakk> \<Longrightarrow> x :! t"
+  by (metis MkSet_inverse SetType_elim WT_SET_member bBall_def)
+
+theorem subset_dcarrier_WT_SET :
+"DestBSet xs \<subseteq> dcarrier t \<Longrightarrow> xs \<in> WT_SET t"
+  by (auto simp add: WT_SET_member bBall_def)
+
+theorem MkSet_inject [simp]:
+"\<lbrakk>DestBSet xs \<subseteq> dcarrier t; DestBSet ys \<subseteq> dcarrier t\<rbrakk> \<Longrightarrow>
+  (MkSet t xs = MkSet t ys) \<longleftrightarrow> xs = ys"
+apply (metis MkSet_inverse subset_dcarrier_WT_SET)
+done
+
 subsubsection {* Set Operators *}
 
 definition EmptyV  :: "'a utype \<Rightarrow> 'a uval" where
-"EmptyV t = MkSet t {}"
+"EmptyV t = MkSet t {}\<^sub>b"
 
 definition InsertV :: "'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
-"InsertV t x xs = MkSet t (insert x (DestSet xs))"
+"InsertV t x xs = MkSet t (bset_insert x (DestSet xs))"
 
 definition UnionV  :: "'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
-"UnionV t xs ys = MkSet t (DestSet xs \<union> DestSet ys)"
+"UnionV t xs ys = MkSet t (DestSet xs \<union>\<^sub>b DestSet ys)"
 
 definition InterV  :: "'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
-"InterV t xs ys = MkSet t (DestSet xs \<inter> DestSet ys)"
+"InterV t xs ys = MkSet t (DestSet xs \<inter>\<^sub>b DestSet ys)"
 
 definition MinusV  :: "'a utype \<Rightarrow> 'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
-"MinusV t xs ys = MkSet t (DestSet xs - DestSet ys)"
+"MinusV t xs ys = MkSet t (DestSet xs -\<^sub>b DestSet ys)"
 
 definition SubsetV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
-"SubsetV xs ys = MkBool (DestSet xs \<subseteq> DestSet ys)"
+"SubsetV xs ys = MkBool (DestSet xs \<subseteq>\<^sub>b DestSet ys)"
 
 definition MemberV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
-"MemberV x xs = MkBool (x \<in> DestSet xs)"
+"MemberV x xs = MkBool (x \<in>\<^sub>b DestSet xs)"
 
 definition NotMemberV :: "'a uval \<Rightarrow> 'a uval \<Rightarrow> 'a uval" where
-"NotMemberV x xs = MkBool (x \<notin> DestSet xs)"
+"NotMemberV x xs = MkBool (\<not> (x \<in>\<^sub>b DestSet xs))"
 end
 
 subsection {* Finite Set Sort *}

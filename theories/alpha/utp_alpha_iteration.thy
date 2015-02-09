@@ -175,7 +175,6 @@ proof -
   also have "... = ``(\<not>b \<and> (((b \<and> P) ; (b \<and> P)\<^sup>\<star>)  \<or> II\<^bsub>\<alpha>(P)\<^esub>)) \<and> \<not>b\<acute>``"
     by (metis AndA_assoc AndA_comm)
   also have "... = ``(((\<not>b \<and> (b \<and> P)) ; (b \<and> P)\<^sup>\<star>) \<or> (\<not>b \<and> II\<^bsub>\<alpha>(P)\<^esub>)) \<and> \<not>b\<acute>``"
-    sledgehammer
     apply (subst AndA_OrA_distl)
     apply (subst SemiA_AndA_left_precond[THEN sym])
     apply (simp add:assms closure)

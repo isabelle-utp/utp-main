@@ -76,6 +76,7 @@ abbreviation fmempty :: "('a, 'b) fmap"
 where "fmempty \<equiv> 0"
 
 definition "fmap_list f = map (\<lambda> x. (x, the (\<langle>f\<rangle>\<^sub>m x))) (flist (fdom f))"
+
 lift_definition list_fmap :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) fmap" is "map_of"
   by (simp add:fmaps_def finite_dom_map_of)
 

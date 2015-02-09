@@ -77,7 +77,7 @@ declare EvalR_VarOpenP [evalpr]
 declare EvalR_VarCloseP [evalpr]
 
 declare EmptyUS.rep_eq [evalp]
-declare InsertUS_rep_eq [evalp]
+declare InsertUS.rep_eq [evalp]
 declare UnionUS.rep_eq [evalp]
 declare InterUS.rep_eq [evalp]
 declare MinusUS.rep_eq [evalp]

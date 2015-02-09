@@ -64,10 +64,10 @@ lemma graph_map_empty[simp]: "graph_map {} = empty"
 lemma graph_map_insert [simp]: "\<lbrakk>functional g; g``{x} \<subseteq> {y}\<rbrakk> \<Longrightarrow> graph_map (insert (x,y) g) = (graph_map g)(x \<mapsto> y)"
   by (rule ext, auto simp add:graph_map_def)  
 
-lemma dom_map_graph: "dom f = fst ` (map_graph f)"
+lemma dom_map_graph: "dom f = Domain(map_graph f)"
   by (simp add: map_graph_def dom_def image_def)
 
-lemma ran_map_graph: "ran f = snd ` (map_graph f)"
+lemma ran_map_graph: "ran f = Range(map_graph f)"
   by (simp add: map_graph_def ran_def image_def)
 
 lemma ran_map_add_subset:
@@ -75,15 +75,10 @@ lemma ran_map_add_subset:
   by (auto simp add:ran_def)
 
 lemma finite_dom_graph: "finite (dom f) \<Longrightarrow> finite (map_graph f)"
-  apply (simp add:dom_map_graph)
-  apply (drule finite_imageD)
-  apply (simp_all add:inj_on_def map_graph_def)
-done
+  by (metis dom_map_graph finite_imageD fst_eq_Domain functional_def map_graph_functional)
 
 lemma finite_dom_ran [simp]: "finite (dom f) \<Longrightarrow> finite (ran f)"
-  apply (drule finite_dom_graph)
-  apply (simp add:ran_map_graph)
-done
+  by (metis finite_Range finite_dom_graph ran_map_graph)
 
 lemma graph_map_inv [simp]: "functional g \<Longrightarrow> map_graph (graph_map g) = g"
   apply (auto simp add:map_graph_def graph_map_def functional_def)
@@ -491,5 +486,5 @@ done
 
 lemma map_comp_dom: "dom (g \<circ>\<^sub>m f) \<subseteq> dom f"
   by (metis (lifting, full_types) Collect_mono dom_def map_comp_simps(1))
-
+  
 end

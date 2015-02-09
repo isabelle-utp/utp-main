@@ -256,8 +256,8 @@ defs (overloaded)
   ProjU_ULIST [inju] : "ProjU (xs :: 'a::LIST_SORT uval) \<equiv> Abs_ULIST (map ProjU (DestList xs))"
   TypeU_ULIST [simp] : "TypeU (x :: 'a ULIST itself) \<equiv> ListType (TypeU TYPE('a))"
 
-  InjU_USET [inju] : "InjU (xs :: 'a::DEFINED USET) \<equiv> MkSet UTYPE('a) (InjU ` (Rep_USET xs))"
-  ProjU_USET [inju] : "ProjU (xs :: ('a::SET_SORT uval)) \<equiv> Abs_USET (ProjU ` (DestSet xs))"
+  InjU_USET [inju] : "InjU (xs :: 'a::DEFINED USET) \<equiv> MkSet UTYPE('a) (bset_image InjU (Rep_USET xs))"
+  ProjU_USET [inju] : "ProjU (xs :: ('a::SET_SORT uval)) \<equiv> Abs_USET (bset_image ProjU (DestSet xs))"
   TypeU_USET [simp] : "TypeU (x :: ('a USET) itself) \<equiv> SetType (TypeU TYPE('a))"
 
   InjU_UFSET [inju] : "InjU (xs :: 'a::DEFINED UFSET) \<equiv> MkFSet UTYPE('a) (InjU |`| (Rep_UFSET xs))"
@@ -347,27 +347,32 @@ apply (unfold inju TypeU_USET)
 apply (rule MkSet_typed)
 apply (transfer)
 apply (clarsimp)
-apply (metis UTypedef.axm1 UTypedef.axm2)
+apply (auto simp add:bset_image.rep_eq)[1]
+apply (metis UTypedef.axm1)
+apply (metis UTypedef.InjU_defined)
 -- {* Subgoal 2 *}
 apply (subst MkSet_inverse)
 apply (clarsimp)
-apply (metis Rep_USET' UTypedef.axm1 UTypedef.axm2)
-apply (metis Rep_USET_inverse UTypedef.ProjU_image_InjU)
+apply (transfer, simp add: bBall_def)
+apply (transfer)
+apply (auto)[1]
+apply (metis UTypedef.axm1)
+apply (metis UTypedef.InjU_defined)
+apply (metis Rep_USET_inverse UTypedef.ProjU_InjU_comp bset.map_comp bset.map_id)
 -- {* Subgoal 3 *}
 apply (subst MkSet_defined)
 apply (clarsimp)
-apply (metis UTypedef.axm1 UTypedef.axm2 USET_elems_defined)
+apply (simp add: bBall_def bset_image.rep_eq, (auto)[1])
+apply (metis UTypedef.axm1)
+apply (metis USET_elems_defined UTypedef.InjU_defined bset_member.rep_eq)
 -- {* Subgoal 4 *}
 apply (clarsimp)
 apply (metis defined_USET)
 -- {* Subgoal 5 *}
-apply (subst Abs_USET_inverse')
-apply (clarsimp)
-apply (metis (full_types) DestSet_inverse MkSet_defined UTypedef.axm3
-  WT_SET_member strict_type_rel_def)
-apply (clarsimp)
-apply (metis DestSet_inverse MkSet_defined UTypedef.InjU_image_ProjU
-  WT_SET_member dcarrier_member strict_type_rel_def subsetI)
+apply (subst Abs_USET_inverse)
+apply (auto simp add: bBall_def bset_image_def)
+apply (metis UTypedef.ProjU_defined bset_member.rep_eq in_DestSet_strictly_typed strict_type_rel_def)
+apply (metis DestBSet_inverse DestSet_inverse DestSet_subset_dcarrier UTypedef.InjU_image_ProjU strict_type_rel_def)
 done
 
 lemma Abs_UFSET_inverse'' :
