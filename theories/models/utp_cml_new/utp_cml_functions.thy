@@ -59,7 +59,7 @@ definition vexpr_seqcomp :: "('a \<Rightarrow> 'b::{cmlv,linorder} cmle * bool c
 definition vexpr_subseq :: "'a list cmle \<Rightarrow> real cmle \<Rightarrow> real cmle \<Rightarrow> 'a list cmle" where
 "vexpr_subseq = Op3DR {(xs, m, n). m \<ge> 0 \<and> n \<ge> m} (\<lambda> xs m n. sublist xs {nat (floor m) .. nat (floor n)})"
 
-(* declare vexpr_seqcomp_def [evalp] *)
+declare vexpr_seqcomp_def [evalp]
 declare vexpr_subseq_def [evalp]
 
 declare vexpr_hd_def [eval,evalp]
@@ -185,7 +185,7 @@ syntax
   "_vexpr_setrange" :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("{_, ..., _}")
 
 translations
-  "_vexpr_quotev x"    == "CONST LitD (CONST QuoteD IDSTR(x))"
+  "_vexpr_quotev x"    == "CONST LitD (CONST QuoD IDSTR(x))"
   "_vexpr_in_set x xs" == "CONST vexpr_in_set x xs"
   "_vexpr_not_in_set x xs" == "CONST vexpr_not_in_set x xs"
   "_vexpr_union x y"   == "CONST Op2D' CONST bset_union x y"
@@ -515,8 +515,14 @@ done
 
 declare mimpliesI_Some [intro!]
 
+declare bmdom.rep_eq [evalp]
+declare bmran.rep_eq [evalp]
+
+
 lemma "|forall m:@map @nat to @nat @ forall i:@nat @ &i in @set dom(&m) => &m[&i] hasType @nat| = |true|"
-  by (cml_auto_tac)
+  apply (cml_auto_tac)
+  apply (metis contra_subsetD ranI)
+done
 
 term "|{5,...,9}|"
 
@@ -525,33 +531,52 @@ term "|{5,...,9}|"
 thm vexpr_set_range_def
 
 lemma EvalD_vexpr_set_range [evalp]: 
-  "\<lbrakk>vexpr_set_range (NumD m) (NumD n)\<rbrakk>\<^sub>*b = \<lfloor>real `\<^sub>f fatLeastAtMost (hol_floor m) (hol_floor n)\<rfloor>"
+  "\<lbrakk>vexpr_set_range (NumD m) (NumD n)\<rbrakk>\<^sub>*b = \<lfloor>real `\<^sub>b batLeastAtMost (hol_floor m) (hol_floor n)\<rfloor>"
   by (simp add:vexpr_set_range_def evalp)
-
-thm cmle_fset_iter_def
-
-
-lemma fatLeastAtMost_simp_1 [simp]: 
+  
+lemma batLeastAtMost_simp_1 [simp]: 
   "m < n \<Longrightarrow> batLeastAtMost m n = bset_insert m (batLeastAtMost (m + 1) n)"
   by (auto simp add:batLeastAtMost.rep_eq)
 
-lemma fatLeastAtMost_simp_2 [simp]: 
+lemma batLeastAtMost_simp_2 [simp]: 
   "batLeastAtMost m m = {m}\<^sub>b"
   by (auto simp add:batLeastAtMost.rep_eq)
+  
+lemma map_bset_option_empty [simp]:
+  "bset_option {}\<^sub>b = Some {}\<^sub>b"
+  by (simp add:bset_option_def)
 
-lemma map_fset_option_empty [simp]:
-  "map_fset_option \<lbrace>\<rbrace> = Some \<lbrace>\<rbrace>"
-  by (simp add:map_fset_option_def)
-
-lemma map_fset_option_simp [simp]:
-  "map_fset_option (finsert x A) = do { v <- x; vs <- map_fset_option A; Some (finsert v vs) }"
-  apply (auto simp add:map_fset_option_def)
-  apply (metis bind_lunit not_Some_eq the.simps)
+lemma map_bset_option_simp [simp]:
+  "bset_option (bset_insert x A) = do { v <- x; vs <- bset_option A; Some (bset_insert v vs) }"
+  apply (auto simp add:bset_option_def)
+  apply (case_tac x, auto simp add:bset_image.rep_eq)
 done
 
+lemma bset_image_insert [simp]: 
+  "f `\<^sub>b (bset_insert x A) = bset_insert (f x) (f `\<^sub>b A)"
+  by (transfer, auto)
+  
+lemma bset_insert_union [simp]:
+  "bset_union (bset_insert x A) B = bset_insert x (bset_union A B)"
+  by (transfer, auto)
+  
+lemma bset_empty_union [simp]:
+  "bset_union bset_empty A = A"
+  by (transfer, auto)
+ 
+lemma BUnion_empty [simp]:
+  "BUnion {}\<^sub>b = {}\<^sub>b"
+  by (simp add: BUnion_rep_eq)
+  
+lemma BUnion_union [simp]:
+  "BUnion (A \<union>\<^sub>b B) = BUnion A \<union>\<^sub>b BUnion B"
+  by (auto simp add:BUnion_rep_eq)
+  
 lemma "|{ &x | x in @set {1,...,5} @ & x > 0 }| = |{2,1,3,4,5}|"
   by (cml_auto_tac)
-
+  
+declare BUnion_rep_eq [simp del]
+  
 lemma "|[ &x | x in @set {1,...,5} @ true ]| = |[1,2,3,4,5]|"
   by (cml_tac)
 

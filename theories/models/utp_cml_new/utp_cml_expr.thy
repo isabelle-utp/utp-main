@@ -40,10 +40,16 @@ end
 lemma UTypedef_cml [typing]: "UTYPEDEF('a option, cmlm)"
   apply (rule UTypedef_intro)
   apply (lifting)
-  apply (simp_all add: type_rel_cmlm.rep_eq InjU_cml.rep_eq ProjU_cml.rep_eq TypeU_cml.rep_eq typing defined)
+  apply (simp_all add: type_rel_cmlm_def InjU_cml.rep_eq ProjU_cml.rep_eq TypeU_cml.rep_eq typing defined)
   apply (transfer, auto intro:InjCML_type InjCML_defined)
+  apply (simp add:value_defined_cmlm_alt_def type_rel_cmlm_def)
+  apply (transfer, auto simp add:VALUE_cmlm_def)
+  apply (metis InjCML_defined)
+  apply (metis DestCmlt.simps InjCML.simps(2) Inject_type UTYPE_cmlm_def defined_option.simps(1) not_None_eq rangeI)
+  apply (simp add:value_defined_cmlm_alt_def type_rel_cmlm_def)
   apply (transfer, auto simp add:VALUE_cmlm_def)
   apply (metis ProjCML_def Project_def defined_option.simps(2))
+  apply (simp add:value_defined_cmlm_alt_def type_rel_cmlm_def)
   apply (transfer, auto simp add:VALUE_cmlm_def)
   apply (metis InjCML.simps(2) ProjCML_def Project_Inject Project_def option.sel)
 done

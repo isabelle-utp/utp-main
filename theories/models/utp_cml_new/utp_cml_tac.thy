@@ -145,5 +145,6 @@ lemma cml_goal4: "|iota x : @nat @ &x = 5| = |5|"
 *)
 
 declare fcard_def [evalp]
+declare blist.rep_eq [evalp]
 
 end

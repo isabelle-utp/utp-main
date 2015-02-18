@@ -896,7 +896,7 @@ abbreviation EmptyPE :: "('a::DEFINED USET, 'm :: SET_SORT) pexpr" where
 "EmptyPE \<equiv> LitPE EmptyUS"
 
 abbreviation InsertPE :: 
-  "('a :: DEFINED, 'm :: FSET_SORT) pexpr \<Rightarrow> 
+  "('a :: DEFINED, 'm :: SET_SORT) pexpr \<Rightarrow> 
    ('a USET, 'm) pexpr \<Rightarrow> 
    ('a USET, 'm) pexpr" where
 "InsertPE \<equiv> Op2PE InsertUS"

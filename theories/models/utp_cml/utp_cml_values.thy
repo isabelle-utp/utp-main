@@ -64,14 +64,14 @@ text {* We introduce countable values using a normal datatype. This representati
 datatype vbasic 
   = BoolI bool
   | BotI "vbasict"
-  | ChanI NAME "vbasict"
+  | ChanI uname "vbasict"
   | CharI "char"
-  | EvI NAME "vbasict" "vbasic"
+  | EvI uname "vbasict" "vbasic"
   | FinI vbasict "vbasic list"
   | ListI vbasict "vbasic list"
   | MapI vbasict vbasict 
          "(vbasic * vbasic) list" 
-  | NameI "NAME"
+  | NameI uname
   | NumberI "real"
   | OptionI vbasict "vbasic option"
   | PairI vbasic vbasic
@@ -131,9 +131,9 @@ subsection {* Projections *}
 
 text {* Projections functions produce Some value for a correctly formed values,
   and None otherwise *}
-
+  
 fun ProjFSetI :: "vbasic \<Rightarrow> (vbasic fset) option" where
-"ProjFSetI (FinI t xs) = Some (fset xs)" |
+"ProjFSetI (FinI t xs) = Some (finset xs)" |
 "ProjFSetI x = None"
 
 lemma FSetI_inv [simp]:
@@ -142,7 +142,7 @@ lemma FSetI_inv [simp]:
 
 lemma FSetI_inj: "FSetI a f = FSetI b g \<Longrightarrow> f = g"
   apply (simp add:FSetI_def flist_def)
-  apply (metis Rep_fset_finite Rep_fset_inject sorted_list_of_set_inj)
+  apply (metis finite_fset fset_inject sorted_list_of_set_inj)
 done
 
 declare ProjFSetI.simps [simp del]
@@ -176,7 +176,7 @@ lemma FinMapI_inj [simp]: "FinMapI a b f = FinMapI a b g \<Longrightarrow> f = g
   apply (metis fmap_list_inv)
 done
 
-fun ProjNameI :: "vbasic \<Rightarrow> NAME option" where
+fun ProjNameI :: "vbasic \<Rightarrow> uname option" where
 "ProjNameI (NameI n) = Some n" | "ProjNameI _ = None"
 
 fun ProjTypeI :: "vbasic \<Rightarrow> vbasict option" where
@@ -298,29 +298,42 @@ lemma ConsI_type[intro]:
   by (auto)
 
 lemma FSetI_type[intro]:
-  assumes sty: "\<forall>x\<in>\<^sub>fxs. x :\<^sub>b a" 
+  assumes "\<forall>x|\<in>|xs. x :\<^sub>b a" 
   shows "FSetI a xs :\<^sub>b FSetBT a"
-  by (auto simp add:FSetI_def sty)
+  using assms by (force simp add:FSetI_def)
 
-lemma FSetT_type_cases [elim!]: 
-  "\<lbrakk> x :\<^sub>b FSetBT t 
-   ; \<And> xs. \<lbrakk> x = FSetI t xs; \<forall>x\<in>\<^sub>fxs. x :\<^sub>b t \<rbrakk> \<Longrightarrow> P
-   ; x = BotI (FSetBT t) \<Longrightarrow> P\<rbrakk> 
-   \<Longrightarrow> P"
-  apply (erule FinT_type_cases)
-  apply (auto simp add:FSetI_def)
-  apply (metis fset_inv)
-done
+lemma finset_set_member:
+  "x |\<in>| finset(xs) \<Longrightarrow> x \<in> set(xs)"
+  by (metis finset.rep_eq fnmember_intro)
+  
+lemma FSetT_type_cases [elim!]:
+  assumes
+  "x :\<^sub>b FSetBT t" 
+  "\<And> xs. \<lbrakk> x = FSetI t xs; \<forall>x|\<in>|xs. x :\<^sub>b t \<rbrakk> \<Longrightarrow> P"
+  "x = BotI (FSetBT t) \<Longrightarrow> P" 
+  shows "P"
+proof (cases rule: FinT_type_cases[OF assms(1)])
+  assume "x = BotI (FSetBT t)"
+  thus P by (fact assms(3))
+next
+  fix xs
+  assume "x = FinI t xs" "\<forall>x\<in>set xs. x :\<^sub>b t" "sorted xs" "distinct xs"
+  thus P
+    apply (rule_tac assms(2)[of "finset xs"])
+    apply (metis FSetI_def fset_inv)
+    apply (metis fBallI finset_set_member)
+  done
+qed
 
 lemma FSetI_type_cases [elim]:
-  "\<lbrakk>FSetI a xs :\<^sub>b t; \<And>a. \<lbrakk>t = FSetBT a; \<forall>x\<in>\<^sub>fxs. x :\<^sub>b a\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
-  by (auto simp add:FSetI_def)
+  "\<lbrakk>FSetI a xs :\<^sub>b t; \<And>a. \<lbrakk>t = FSetBT a; \<forall>x|\<in>|xs. x :\<^sub>b a\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  by (metis FSetI_def FinI_type_cases fBallI flist_set fmember.rep_eq)
 
 lemma FinMapI_type[intro]: 
-  "\<lbrakk> \<forall> x\<in>\<^sub>ffdom f. x :\<^sub>b a; \<forall> y\<in>\<^sub>ffran f. y :\<^sub>b b \<rbrakk> \<Longrightarrow> FinMapI a b f :\<^sub>b MapBT a b"
-  by (auto intro!:MapI_type simp add:fdom_list fran_list FinMapI_def)
+  "\<lbrakk> \<forall> x|\<in>|fdom f. x :\<^sub>b a; \<forall> y|\<in>|fran f. y :\<^sub>b b \<rbrakk> \<Longrightarrow> FinMapI a b f :\<^sub>b MapBT a b"
+  by (force intro!:MapI_type simp add:fdom_list fran_list FinMapI_def)
 
-  lemma dom_map_of: "x \<in> dom (map_of xs) \<Longrightarrow> \<exists> y. (x,y) \<in> set xs"
+lemma dom_map_of: "x \<in> dom (map_of xs) \<Longrightarrow> \<exists> y. (x,y) \<in> set xs"
   by (auto dest:map_of_SomeD simp add:dom_def)
 
 lemma ran_map_of: "y \<in> ran (map_of xs) \<Longrightarrow> \<exists> x. (x,y) \<in> set xs"
@@ -328,12 +341,13 @@ lemma ran_map_of: "y \<in> ran (map_of xs) \<Longrightarrow> \<exists> x. (x,y) 
 
 lemma FinMapI_type_cases [elim!]:
   "\<lbrakk> x :\<^sub>b MapBT a b; x \<noteq> BotI (MapBT a b); 
-    \<And>f. \<lbrakk>x = FinMapI a b f; \<forall> x\<in>\<^sub>ffdom f. x :\<^sub>b a; \<forall> y\<in>\<^sub>ffran f. y :\<^sub>b b \<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+    \<And>f. \<lbrakk>x = FinMapI a b f; \<forall> x|\<in>|fdom f. x :\<^sub>b a; \<forall> y|\<in>|fran f. y :\<^sub>b b \<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   apply (case_tac x, auto elim!:MapI_type_cases)
   apply (simp add:FinMapI_def fdom_def fran_def)
   apply (subgoal_tac "list = fmap_list (list_fmap list)")
   apply (subgoal_tac "\<forall>x\<in>dom (Rep_fmap (list_fmap list)). x :\<^sub>b a")
   apply (subgoal_tac "\<forall>y\<in>ran (Rep_fmap (list_fmap list)). y :\<^sub>b b")
+  sledgehammer
   apply (metis)
   apply (simp add: list_fmap_def finite_dom_map_of)
   apply (metis Rep_fmap_inverse list_fmap.rep_eq ran_map_of split_conv)

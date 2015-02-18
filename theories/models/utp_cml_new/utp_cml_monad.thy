@@ -20,7 +20,7 @@ type_synonym 'a cmlvar       = "('a option, cmlm) pvar"
 type_synonym cmluvar         = "cmlm uvar"
 type_synonym 'a cmlopb       = "('a option, cmlm) WF_OPERATION"
 type_synonym ('a, 'b) cmlop  = "'b cmlvar \<Rightarrow> 'a \<Rightarrow> cmlp"
-type_synonym cmlev           = "cmlv event"
+type_synonym cmlev           = "cmlm event"
 type_synonym 'a cmlch        = "'a chan"
 
 translations

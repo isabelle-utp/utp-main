@@ -14,7 +14,6 @@ begin
 class REACTIVE_SORT = 
   BOOL_SORT + 
   LIST_SORT + 
-  FSET_SORT + 
   SET_SORT +
   EVENT_SORT
 

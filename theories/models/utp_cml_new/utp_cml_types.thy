@@ -45,7 +45,7 @@ lemma QuoteD_less [simp]:
   by (simp add:less_quote_def)
 *)
   
-abbreviation "QuoteS x \<equiv> {QuoteD x}"
+abbreviation "QuoteS x \<equiv> {QuoD x}"
 
 abbreviation "vty_unit \<equiv> (UNIV :: unit set)"
 abbreviation "vty_bool \<equiv> (UNIV :: bool set)"
