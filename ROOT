@@ -26,7 +26,7 @@ session "HOL-UTP-THY" in "theories/theories" = "HOL-UTP-DES" +
     "utp_reactive"
   files "document/root.tex"
 
-session "HOL-UTP-CML" in "theories/models/utp_cml" = "HOL-UTP-THY" +
+session "HOL-UTP-CML" in "theories/models/utp_cml_new" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
   theories
     "utp_cml"

@@ -86,7 +86,7 @@ lemma TrueP_right_UNREST_DASHED:
 text {* A precondition has true as left identity *}
 
 theorem SemiR_TrueP_precond : 
-  assumes "p \<in> WF_CONDITION"
+  assumes "p \<in> COND"
   shows "p ;\<^sub>R true = p"
   by (metis (lifting) ExistsP_ident TrueP_right_ExistsP WF_CONDITION_def assms mem_Collect_eq)
 
@@ -114,7 +114,7 @@ lemma TrueP_left_UNREST_UNDASHED:
 text {* A postcondition has true as left identity *}
 
 theorem SemiR_TrueP_postcond :
-  assumes "p \<in> WF_POSTCOND"
+  assumes "p \<in> POST"
   shows "true ;\<^sub>R p = p"
   by (metis TrueP_left_UNREST_UNDASHED WF_POSTCOND_def assms mem_Collect_eq)
 
@@ -140,7 +140,7 @@ theorem SemiR_AndP_right_DASHED:
 
 theorem SemiR_AndP_right_precond: 
   assumes 
-    "c \<in> WF_CONDITION"
+    "c \<in> COND"
   shows "p ;\<^sub>R (c \<and>\<^sub>p q) = (p \<and>\<^sub>p c\<acute>) ;\<^sub>R q"
   by (metis SemiR_AndP_right_DASHED SemiR_TrueP_precond TrueP_right_UNREST_DASHED assms)
 
@@ -153,7 +153,7 @@ theorem SemiR_AndP_right_UNDASHED:
 
 theorem SemiR_AndP_right_postcond: 
   assumes
-    "c \<in> WF_POSTCOND"
+    "c \<in> POST"
   shows "p ;\<^sub>R (q \<and>\<^sub>p c) = (p ;\<^sub>R q) \<and>\<^sub>p c"
   using assms
   by (auto intro: SemiR_AndP_right_UNDASHED simp add:WF_POSTCOND_def)
@@ -167,7 +167,7 @@ theorem SemiR_AndP_left_UNDASHED:
 
 theorem SemiR_AndP_left_postcond: 
   assumes
-    "c \<in> WF_POSTCOND"
+    "c \<in> POST"
   shows "(p \<and>\<^sub>p c) ;\<^sub>R q = p ;\<^sub>R (c\<acute> \<and>\<^sub>p q)"
   using assms
   by (auto intro: SemiR_AndP_left_UNDASHED simp add:WF_POSTCOND_def)
@@ -181,15 +181,13 @@ theorem SemiR_AndP_left_DASHED:
 
 theorem SemiR_AndP_left_precond: 
   assumes
-    "p \<in> WF_RELATION" 
-    "q \<in> WF_RELATION"  
-    "c \<in> WF_CONDITION"
+    "p \<in> REL" "q \<in> REL" "c \<in> COND"
   shows "(c \<and>\<^sub>p p) ;\<^sub>R q = c \<and>\<^sub>p (p ;\<^sub>R q)"
   using assms
   by (auto intro: SemiR_AndP_left_DASHED simp add:WF_CONDITION_def)
 
 theorem SemiR_TrueP_right_precond:
-  assumes "P \<in> WF_CONDITION"
+  assumes "P \<in> COND"
   shows "true ;\<^sub>R P = P\<acute> ;\<^sub>R true"
 proof -
   have "true ;\<^sub>R P = true ;\<^sub>R (P \<and>\<^sub>p true)"
@@ -203,7 +201,7 @@ qed
 
 theorem SemiR_precond_left_zero : 
   assumes 
-   "p \<in> WF_CONDITION" 
+   "p \<in> COND" 
    "p \<noteq> false"
   shows "true ;\<^sub>R p = true"
 proof -
@@ -223,7 +221,7 @@ qed
 
 theorem SemiR_postcond_right_zero : 
   assumes 
-    "p \<in> WF_POSTCOND" 
+    "p \<in> POST" 
     "p \<noteq> false"
   shows "p ;\<^sub>R true = true"
 proof -
@@ -243,7 +241,7 @@ qed
 
 theorem SemiR_condition_comp [simp]:
   assumes 
-    "p1 \<in> WF_CONDITION"
+    "p1 \<in> COND"
   shows "\<not>\<^sub>p (\<not>\<^sub>p p1 ;\<^sub>R true) = p1"
   using assms
   by (metis NotP_NotP NotP_cond_closure SemiR_TrueP_precond)
@@ -254,27 +252,27 @@ theorem SemiR_TrueP_TrueP [simp]:
   by (metis SemiR_TrueP_precond TrueP_cond_closure)
 
 theorem SemiR_cond_idem [simp]:
-  assumes "P \<in> WF_CONDITION" 
+  assumes "P \<in> COND" 
   shows "P ;\<^sub>R P = P"
   using assms
   by (metis SemiR_FalseP_left SemiR_TrueP_precond SemiR_assoc SemiR_precond_left_zero)
 
 theorem SemiR_postcond_idem [simp]:
-  assumes "P \<in> WF_POSTCOND"
+  assumes "P \<in> POST"
   shows "P ;\<^sub>R P = P"
   using assms
   by (metis SemiR_FalseP_right SemiR_TrueP_postcond SemiR_assoc SemiR_postcond_right_zero)
 
 theorem TrueP_left_annihilator_unique:
   assumes 
-    "P \<in> WF_RELATION"
+    "P \<in> REL"
     "P ;\<^sub>R true = false"
   shows "P = false"
   using assms
   by (utp_xrel_auto_tac, metis (erased, lifting) case_prodI old.prod.exhaust)
 
 theorem TrueP_right_annihilator_unique:
-  assumes "P \<in> WF_RELATION"
+  assumes "P \<in> REL"
   shows "true ;\<^sub>R P = false \<Longrightarrow> P = false"
   using assms
   by (utp_xrel_auto_tac, metis (erased, lifting) PairE case_prodI)
@@ -283,7 +281,7 @@ text {* A precondition followed by a postcondition is a conjunction *}
 
 theorem SemiR_COND_POSTCOND:
   assumes 
-    "p \<in> WF_CONDITION" "q \<in> WF_POSTCOND"
+    "p \<in> COND" "q \<in> POST"
   shows "p ;\<^sub>R q = p \<and>\<^sub>p q"
 proof -
   from assms have "p ;\<^sub>R true = p" "true ;\<^sub>R q = q"
@@ -293,8 +291,8 @@ proof -
 qed
 
 lemma WF_RELATION_CONDITION_true: 
-  assumes "P \<in> WF_RELATION" "(P ;\<^sub>R true) = P"
-  shows "P \<in> WF_CONDITION"
+  assumes "P \<in> REL" "(P ;\<^sub>R true) = P"
+  shows "P \<in> COND"
 proof -
   have "D\<^sub>1 \<sharp> (P ;\<^sub>R true)"
     by (simp add:unrest closure assms(1))
@@ -304,8 +302,8 @@ proof -
 qed
 
 lemma WF_RELATION_POSTCOND_true: 
-  assumes "P \<in> WF_RELATION" "(true ;\<^sub>R P) = P"
-  shows "P \<in> WF_POSTCOND"
+  assumes "P \<in> REL" "(true ;\<^sub>R P) = P"
+  shows "P \<in> POST"
 proof -
   have "D\<^sub>0 \<sharp> (true ;\<^sub>R P)"
     by (simp add:unrest closure assms(1))
@@ -315,18 +313,18 @@ proof -
 qed
 
 lemma SemiR_first_POSTCOND [closure]:
-  "\<lbrakk> p \<in> WF_POSTCOND; Q \<in> WF_RELATION \<rbrakk> \<Longrightarrow> p ;\<^sub>R Q \<in> WF_POSTCOND"
+  "\<lbrakk> p \<in> POST; Q \<in> REL \<rbrakk> \<Longrightarrow> p ;\<^sub>R Q \<in> POST"
   by (metis (full_types) SemiR_TrueP_postcond SemiR_assoc SemiR_closure WF_POSTCOND_WF_RELATION WF_RELATION_POSTCOND_true)
 
 lemma SemiR_second_CONDITION [closure]:
-  "\<lbrakk> P \<in> WF_RELATION; q \<in> WF_CONDITION \<rbrakk> \<Longrightarrow> P ;\<^sub>R q \<in> WF_CONDITION"
+  "\<lbrakk> P \<in> REL; q \<in> COND \<rbrakk> \<Longrightarrow> P ;\<^sub>R q \<in> COND"
   by (metis SemiR_TrueP_precond SemiR_assoc SemiR_closure WF_CONDITION_WF_RELATION WF_RELATION_CONDITION_true)
 
 text {* This somewhat odd looking property derives from Relation Algebra. It is used,
         for instance, in the theory of designs. *}
 
 theorem SemiR_TrueP_compl [simp]:
-  assumes "P \<in> WF_RELATION"
+  assumes "P \<in> REL"
   shows "\<not>\<^sub>p (P ;\<^sub>R true) ;\<^sub>R true = \<not>\<^sub>p (P ;\<^sub>R true)"
   using assms
   by (utp_xrel_auto_tac)
@@ -631,8 +629,7 @@ done
 
 theorem ExistsP_UNDASHED_expand_SemiR:
   assumes
-    "p \<in> WF_RELATION" 
-    "q \<in> WF_RELATION" 
+    "p \<in> REL" "q \<in> REL" 
     "vs \<subseteq> UNDASHED"
   shows "(\<exists>\<^sub>p vs. p) ;\<^sub>R q = (\<exists>\<^sub>p vs. (p ;\<^sub>R q))"
   using assms
@@ -646,8 +643,7 @@ done
 
 theorem ExistsP_DASHED_expand_SemiR:
   assumes
-    "p \<in> WF_RELATION" 
-    "q \<in> WF_RELATION" 
+    "p \<in> REL" "q \<in> REL" 
     "vs \<subseteq> DASHED"
   shows "p ;\<^sub>R (\<exists>\<^sub>p vs. q) = (\<exists>\<^sub>p vs. (p ;\<^sub>R q))"
   using assms
