@@ -196,45 +196,27 @@ by(simp add: AndP_OrP_distl 2)
 finally show ?thesis .
 qed
 
-lemma Seq_tr_pres:
-  assumes "P \<in> REL" "P is R1" "Q \<in> REL" "Q is R1"
-  shows "`(P;Q)[$tr/tr\<acute>]` = `P[$tr/tr\<acute>];(Q[$tr/tr\<acute>])`"
-proof-
-have 0: "`P;Q` = `\<exists> tr\<acute>\<acute>. (P[$tr\<acute>\<acute>/tr\<acute>];Q[$tr\<acute>\<acute>/tr]) \<and> ($tr\<le> $tr\<acute>\<acute>) \<and> ($tr\<acute>\<acute> \<le> $tr\<acute>)`"
-proof-
-from assms have "`P;Q` = `R1(P);R1(Q)`" by (metis is_healthy_def)
-also have "... = `\<exists> tr\<acute>\<acute>. (P[$tr\<acute>\<acute>/tr\<acute>];Q[$tr\<acute>\<acute>/tr]) \<and> ($tr\<le> $tr\<acute>\<acute>) \<and> ($tr\<acute>\<acute> \<le> $tr\<acute>)`"
-apply(subst SemiR_extract_variable_ty[of "tr" "tr\<acute>\<acute>"],simp_all add:typing defined closure unrest assms)
-apply(simp add:R1_def usubst typing defined closure)
-apply(subst SemiR_AndP_right_UNDASHED,simp add:typing closure defined unrest)
-apply(subst AndP_comm)
-apply(subst SemiR_AndP_left_DASHED,simp add:typing closure defined unrest)
-apply(subst AndP_comm,simp add:AndP_assoc[THEN sym])
-done
-finally show ?thesis .
-qed
-have "`(P;Q)[$tr/tr\<acute>]` = `(\<exists> tr\<acute>\<acute> . (P[$tr\<acute>\<acute>/tr\<acute>] ; Q[$tr\<acute>\<acute>/tr])[$tr/tr\<acute>] \<and> ($tr\<acute>\<acute> = $tr))`"
-apply(subst 0,simp add:usubst typing defined closure)
-apply(subst SubstP_ExistsP,simp add:typing defined closure unrest)
-apply(utp_poly_auto_tac)
-apply(simp add:usubst typing defined closure)
-apply(subst tr_leq_ident,simp)
-done
-also have "... =`(P[$tr\<acute>\<acute>/tr\<acute>] ; Q[$tr\<acute>\<acute>/tr][$tr\<acute>\<acute>/tr\<acute>])[$tr/tr\<acute>\<acute>]`"
-apply(subst SubstP_EqualP_swap)
-apply(subst ExistsP_one_point_ty,simp_all add:typing defined closure unrest)
-apply(subst SubstP_SemiR_right,simp_all add:typing defined closure unrest)
-done
-also have "... = `P[$tr/tr\<acute>] ; (Q[$tr/tr][$tr/tr\<acute>])`"
-apply(subst usubst,simp add:typing closure defined) defer
-apply(subst SubstP_twice_2) defer
-apply(subst SubstP_twice_3,simp_all add:typing closure defined unrest) back
-apply(subst SubstP_twice_2) defer
-apply(simp add:usubst typing defined closure)
-apply(simp_all add:typing defined closure assms unrest)
-sorry
-finally show ?thesis
-by(subst SubstP_ident[of "Q" "tr",THEN sym],simp)
+lemma Seq_tr_preserve:
+  fixes P :: "'m upred"
+  assumes "P \<in> REL" "Q \<in> REL" "`$tr < $tr\<acute>` \<sqsubseteq> P" "Q is R1"
+  shows "`(P ; Q)[$tr/tr\<acute>]` = `false`"
+proof -  
+  have "`(P ; Q)[$tr/tr\<acute>]` = `((P \<and> ($tr < $tr\<acute>)) ; (Q \<and> ($tr \<le> $tr\<acute>)))[$tr/tr\<acute>]`"
+      by (metis AndP_comm R1_def RefP_AndP assms is_healthy_def)
+  also have "... = `(\<exists> tr\<acute>\<acute>. ((($tr < $tr\<acute>\<acute>) \<and> P[$tr\<acute>\<acute>/tr\<acute>]); (Q[$tr\<acute>\<acute>/tr] \<and> ($tr\<acute>\<acute> \<le> $tr\<acute>))))[$tr/tr\<acute>]`"
+    by (simp add: SemiR_extract_variable_ty[of "tr" "tr\<acute>\<acute>"] AndP_comm assms closure typing defined unrest usubst)
+  also have "... = `(\<exists> tr\<acute>\<acute>. (($tr < $tr\<acute>\<acute>) \<and> (P[$tr\<acute>\<acute>/tr\<acute>]; Q[$tr\<acute>\<acute>/tr]) \<and> ($tr\<acute>\<acute> \<le> $tr\<acute>)))[$tr/tr\<acute>]`"
+    by (simp add: SemiR_AndP_left_DASHED SemiR_AndP_right_UNDASHED AndP_assoc typing defined unrest closure)
+  also have "... = `\<exists> tr\<acute>\<acute>. (($tr < $tr\<acute>\<acute>) \<and> (P[$tr\<acute>\<acute>/tr\<acute>]; Q[$tr\<acute>\<acute>/tr])[$tr/tr\<acute>] \<and> ($tr\<acute>\<acute> \<le> $tr))`"
+    by (utp_subst_tac)
+  also have "... = `false`"
+  proof -
+    have "`($tr < $tr\<acute>\<acute>) \<and> ($tr\<acute>\<acute> \<le> $tr)` = (`false` :: 'm upred)"
+      by (utp_poly_auto_tac)
+    thus ?thesis
+      by (simp add: AndP_assoc AndP_comm unrest, metis UNREST_FalseP UNREST_as_ExistsP)
+  qed
+  finally show ?thesis .
 qed
 
 end

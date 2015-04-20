@@ -180,12 +180,12 @@ apply(subst OrP_comm) back
 apply(subst OrP_assoc)
 apply(simp add:SubstP_NotP[THEN sym] SubstP_OrP[THEN sym] SemiR_OrP_distl[THEN sym] ImpliesP_def[THEN sym])
 done
-also have "... = `(((($tr ^ \<langle>a\<rangle> = $tr\<acute>) \<and> II\<^bsub>REL_VAR - REA - OKAY\<^esub>)[$tr/tr\<acute>] ; (CSP_Pre(P) \<Rightarrow> CSP_Post(P))[true/wait\<acute>][$tr/tr\<acute>]) \<or>
-     (a[true/wait\<acute>][$tr/tr\<acute>] \<notin> $ref\<acute>))`"
+also have "... = `(a[true/wait\<acute>][$tr/tr\<acute>] \<notin> $ref\<acute>)`"
 proof-
 have 0: "P = R1(P)" by (metis assms is_healthy_def CSP_is_RHc RHc_is_R1)
 show ?thesis
-apply(subst Seq_tr_pres,simp_all add:assms typing defined closure Z) defer
+apply(subst Seq_tr_preserve)
+apply(simp_all add:assms typing defined closure Z)
 apply(simp add:CSP_Post_def CSP_Pre_def ImpliesP_def)
 apply(rule closure)
 apply(rule closure)
@@ -193,21 +193,16 @@ apply(rule closure)
 apply(rule closure)
 apply(rule closure)
 apply(simp_all add:typing defined closure unrest assms)
+apply(utp_poly_auto_tac)
+apply(metis prefixI')
 apply(simp add:CSP_Pre_def CSP_Post_def ImpliesP_def SubstP_OrP[THEN sym])
 apply(subst 0)
 apply(subst 0) back
 apply(simp add:R1_def usubst typing defined closure AndP_OrP_distr[THEN sym])
 apply(simp add:R1_def[THEN sym])
-apply (metis (lifting, no_types) Healthy_intro R1_idempotent) defer
-apply(subst tr_prefix_as_a[THEN sym])
-apply(simp add:R1_def[THEN sym] R1_extend_AndP)
 apply (metis (lifting, no_types) Healthy_intro R1_idempotent)
 done
 qed
-also have "... = `(a[true/wait\<acute>][$tr/tr\<acute>] \<notin> $ref\<acute>)`"
-apply(simp add:usubst typing defined closure)
-apply(subst tr_diff_neq,simp)
-done
 also have "... = `(a \<notin> $ref\<acute>)`"
 by (metis PSubstPE_VarP_single_UNREST Z(5) Z(7))
 finally have A: "`CSP_Post(a \<rightarrow> P)[true/wait\<acute>][$tr/tr\<acute>]` = `(a \<notin> $ref\<acute>)`" .
@@ -222,12 +217,12 @@ apply(subst OrP_comm) back
 apply(subst OrP_assoc)
 apply(simp add:SubstP_NotP[THEN sym] SubstP_OrP[THEN sym] SemiR_OrP_distl[THEN sym] ImpliesP_def[THEN sym])
 done
-also have "... = `(((($tr ^ \<langle>b\<rangle> = $tr\<acute>) \<and> II\<^bsub>REL_VAR - REA - OKAY\<^esub>)[$tr/tr\<acute>] ; (CSP_Pre(Q) \<Rightarrow> CSP_Post(Q))[true/wait\<acute>][$tr/tr\<acute>]) \<or>
-     (b[true/wait\<acute>][$tr/tr\<acute>] \<notin> $ref\<acute>))`"
+also have "... = `(b[true/wait\<acute>][$tr/tr\<acute>] \<notin> $ref\<acute>)`"
 proof-
 have 0: "Q = R1(Q)" by (metis assms is_healthy_def CSP_is_RHc RHc_is_R1)
 show ?thesis
-apply(subst Seq_tr_pres,simp_all add:assms typing defined closure Z) defer 
+apply(subst Seq_tr_preserve)
+apply(simp_all add:assms typing defined closure Z)
 apply(simp add:CSP_Post_def CSP_Pre_def ImpliesP_def)
 apply(rule closure)
 apply(rule closure)
@@ -235,21 +230,16 @@ apply(rule closure)
 apply(rule closure)
 apply(rule closure)
 apply(simp_all add:typing defined closure unrest assms)
+apply(utp_poly_auto_tac)
+apply(metis prefixI')
 apply(simp add:CSP_Pre_def CSP_Post_def ImpliesP_def SubstP_OrP[THEN sym])
 apply(subst 0)
 apply(subst 0) back
 apply(simp add:R1_def usubst typing defined closure AndP_OrP_distr[THEN sym])
 apply(simp add:R1_def[THEN sym])
 apply (metis (lifting, no_types) Healthy_intro R1_idempotent)
-apply(subst tr_prefix_as_a[THEN sym])
-apply(simp add:R1_def[THEN sym] R1_extend_AndP)
-apply (metis (lifting, no_types) Healthy_intro R1_idempotent)
 done
 qed
-also have "... = `(b[true/wait\<acute>][$tr/tr\<acute>] \<notin> $ref\<acute>)`"
-apply(simp add:usubst typing defined closure)
-apply(subst tr_diff_neq,simp)
-done
 also have "... = `(b \<notin> $ref\<acute>)`"
 by (metis PSubstPE_VarP_single_UNREST Z(6) Z(8))
 finally have B: "`CSP_Post(b \<rightarrow> Q)[true/wait\<acute>][$tr/tr\<acute>]` = `(b \<notin> $ref\<acute>)`" .

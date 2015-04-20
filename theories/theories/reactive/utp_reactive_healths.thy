@@ -13,7 +13,7 @@ begin
 
 text {* R1 ensures that the trace only gets longer *}
 
-definition R1 :: " 'a upred \<Rightarrow> 'a upred" where
+definition R1 :: "'a upred \<Rightarrow> 'a upred" where
 "R1(P) = `P \<and> ($tr \<le> $tr\<acute>)`"
 
 text {* R2s ensures that processes are independent of the history of the trace  *}
@@ -192,15 +192,14 @@ subsection {* R2 Laws *}
 
 lemma R2s_idempotent: "`R2s(R2s(P))` = `R2s(P)`"
   apply (simp add:R2s_def)
-  apply (subst SubstP_twice_2,simp_all add:unrest typing defined closure)
+  apply (subst SubstP_twice_2, simp_all add:unrest typing defined closure)
   apply (simp add:usubst typing defined closure)
 done
 
+declare UTypedef.InjU_inverse [evalp]
+
 lemma R2s_destroys_R1: "R2s (R1 P) = R2s P" 
-  apply (utp_poly_tac)
-  apply (unfold InjU_ULIST)
-  apply (metis InjU_ULIST NilUL.rep_eq UTypedef.axm4 UTypedef_Event UTypedef_ULIST prefixeq_code(1))
-done
+  by (utp_poly_tac)
 
 lemma R2_idempotent: "`R2(R2(P))` = `R2(P)`" 
   by (simp add:R2_def R2s_destroys_R1 R2s_idempotent)

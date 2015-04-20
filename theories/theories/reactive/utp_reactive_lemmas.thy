@@ -266,24 +266,28 @@ apply(simp add:WF_RELATION_def)
 apply(simp add:closure unrest assms typing defined)
 done
 
-lemma prime_ref_a: 
-  assumes "D\<^sub>0 \<sharp> a"
-  shows "`($ref = {a})\<acute>` = `$ref\<acute> = {a}`"
-sorry
-
-lemma less_eq_self: "`($x \<le> $x)` = `true`"
-sorry
+lemma tr_less_eq_self: 
+  fixes x :: "('a::DEFINED ULIST, 'm::REACTIVE_SORT) pvar"  
+  shows "`($x \<le> $x)` = `true`"
+  by (utp_poly_auto_tac)
 
 lemma tr_leq_ident:
-  "`($x \<le> $y) \<and> ($y \<le> $x)` = `$y = $x`"
-sorry
-
+  fixes x :: "('a::DEFINED ULIST, 'm::REACTIVE_SORT) pvar"
+  shows "`($x \<le> $y) \<and> ($y \<le> $x)` = `$y = $x`"
+  by (utp_poly_auto_tac)
+  
 lemma SubstP_EqualP_swap:
-  "`P[$x/y] \<and> ($z = $x)` = `P[$z/y] \<and> ($z = $x)`"
-sorry 
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
+  assumes "UTYPEDEF('a, 'm)" "pvaux x" "pvaux y" "pvaux z"
+  shows "`P[$x/y] \<and> ($z = $x)` = `P[$z/y] \<and> ($z = $x)`"
+  using assms
+  by (utp_poly_auto_tac)
 
 lemma SubstP_ident: 
-  "`P[$x/x]` = `P`"
-sorry
+  fixes x :: "('a :: DEFINED, 'm :: TYPED_MODEL) pvar"
+  assumes "UTYPEDEF('a, 'm)" "pvaux x"
+  shows "`P[$x/x]` = `P`"
+  using assms
+  by (utp_poly_tac)
 
 end

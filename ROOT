@@ -18,12 +18,18 @@ session "HOL-UTP-DES" in "theories/theories/designs" = "HOL-UTP" +
     "utp_designs"
   files "document/root.tex"
 
-session "HOL-UTP-THY" in "theories/theories" = "HOL-UTP-DES" +
-  theories [document = pdf, document_output = "output", quick_and_dirty = true]
+session "HOL-UTP-REA" in "theories/theories/reactive" = "HOL-UTP-DES" +
+  options [document = pdf, document_output = "output"]
+  theories
+    "utp_reactive"
+  files "document/root.tex"
+
+session "HOL-UTP-THY" in "theories/theories" = "HOL-UTP-REA" +
+  options [document = pdf, document_output = "output", quick_and_dirty = true]
+  theories
     "utp_acp"
     "utp_csp"
     "utp_definedness"
-    "utp_reactive"
   files "document/root.tex"
 
 session "HOL-UTP-CML" in "theories/models/utp_cml_new" = "HOL-UTP-THY" +
@@ -32,6 +38,12 @@ session "HOL-UTP-CML" in "theories/models/utp_cml_new" = "HOL-UTP-THY" +
     "utp_cml"
   files "document/root.tex"
 
+session "HOL-UTP-CML-SIMP" in "theories/models/utp_cml_simp" = "HOL-UTP-THY" +
+  options [document = pdf, document_output = "output", quick_and_dirty = true]
+  theories
+    "utp_cml_model"
+  files "document/root.tex"
+  
 session "HOL-UTP-CML-EX" in "theories/models/utp_cml/examples" = "HOL-UTP-CML" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
   theories
