@@ -361,14 +361,36 @@ apply(subst R2_ok_true[THEN sym])
 apply (metis PVAR_VAR_pvdash R2_ok'_true)
 done
 
+lemma RHc_idempotent:
+  "`RHc(RHc(P))` = `RHc(P)`"
+by(simp add: R1_R2_commute R1_R3c_commute R1_idempotent R2_R3c_commute R2_idempotent R3c_idempotent RHc_def)
+
+lemmas R_commutes = R1_R2_commute R1_R3c_commute R2_R3c_commute
+lemmas CSP_R_commutes = CSP1_R1_commute CSP1_R2_commute CSP1_R3c_commute CSP2_R1_commute CSP2_R2_commute CSP2_R3c_commute
+
+lemma DesignD_pre: 
+  assumes "{ok\<down>\<acute>} \<sharp> A"  "{ok\<down>\<acute>} \<sharp> B"
+  shows "`(A \<turnstile> B)[false / ok\<acute>]` = `(\<not> $ok \<or> \<not> A)`"
+by(simp add:DesignD_def usubst typing defined closure SubstP_VarP_single_UNREST assms demorgan2)
+
+lemma DesignD_post: 
+  assumes "{ok\<down>\<acute>} \<sharp> A"  "{ok\<down>\<acute>} \<sharp> B"
+  shows "`(A \<turnstile> B)[true / ok\<acute>]` = `($ok \<and>  A) \<Rightarrow> B`"
+by(simp add:DesignD_def usubst typing defined closure SubstP_VarP_single_UNREST assms)
+
 lemma DesignREA_CSP:
   assumes "{ok\<down>\<acute>} \<sharp> A"  "{ok\<down>\<acute>} \<sharp> B"
   shows "`RHc (A \<turnstile> B)` is CSP"
-apply(simp add:is_healthy_def CSP_def RHc_def R1_R3c_commute R1_R2_commute R1_idempotent R2_R3c_commute R2_idempotent R3c_idempotent CSP2_R3c_commute CSP2_R2_commute CSP2_R1_commute CSP1_R3c_commute CSP1_R2_commute CSP1_R1_commute)
-apply(simp add:DesignD_def H2_split usubst typing defined closure ImpliesP_def demorgan2 CSP1_def R1_def AndP_OrP_distl AndP_OrP_distr AndP_assoc[THEN sym] OrP_assoc[THEN sym] )
-apply(simp add: assms SubstP_VarP_single_UNREST)
-apply(utp_poly_auto_tac)
-done
+proof-
+  have "`CSP(RHc(A \<turnstile> B))` =  `RHc(CSP1(CSP2(A \<turnstile> B)))`"
+    by (metis (no_types) CSP_R_commutes CSP_def RHc_def RHc_idempotent comp_apply)
+  also have "... = `RHc (CSP1 ((\<not>$ok \<or> \<not> A) \<or> (($ok \<and> A) \<Rightarrow> B) \<and> $ok\<acute>))`"
+    by (simp add: H2_split DesignD_pre[simplified] DesignD_post[simplified] assms)
+  also have "... = `RHc(A \<turnstile> B)`"
+    by (utp_poly_auto_tac)
+  finally show ?thesis
+    by (metis Healthy_intro)
+qed
 
 lemma DesignREA_Pre_Post:
   "`RHc(A\<turnstile>B)` = `RHc(A \<turnstile> A \<and> B)`"
