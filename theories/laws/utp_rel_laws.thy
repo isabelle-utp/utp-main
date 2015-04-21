@@ -181,7 +181,7 @@ theorem SemiR_AndP_left_DASHED:
 
 theorem SemiR_AndP_left_precond: 
   assumes
-    "p \<in> REL" "q \<in> REL" "c \<in> COND"
+    "c \<in> COND"
   shows "(c \<and>\<^sub>p p) ;\<^sub>R q = c \<and>\<^sub>p (p ;\<^sub>R q)"
   using assms
   by (auto intro: SemiR_AndP_left_DASHED simp add:WF_CONDITION_def)
@@ -276,7 +276,7 @@ theorem TrueP_right_annihilator_unique:
   shows "true ;\<^sub>R P = false \<Longrightarrow> P = false"
   using assms
   by (utp_xrel_auto_tac, metis (erased, lifting) PairE case_prodI)
-
+  
 text {* A precondition followed by a postcondition is a conjunction *}
 
 theorem SemiR_COND_POSTCOND:
@@ -769,7 +769,6 @@ proof -
     done
 
     thus ?thesis
-      sledgehammer
       by (metis (erased, hide_lams) ExistsP_AndP_expand2)
   qed
 

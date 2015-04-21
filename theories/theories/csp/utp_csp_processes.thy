@@ -296,7 +296,8 @@ proof -
   show ?thesis
     by(metis 1)
 qed
-finally show ?thesis sorry
+finally show ?thesis
+  by (simp)
 qed
 
 lemma Skip_pre: "`CSP_Pre(SKIP)` = `true`"
