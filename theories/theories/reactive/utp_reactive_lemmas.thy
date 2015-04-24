@@ -58,14 +58,11 @@ done
 
 lemma tr_eq_rel_closure[closure]: 
   "`($tr\<acute> = $tr)` \<in> WF_RELATION"
- by (simp add:closure unrest typing)
-
+ by (simp add:closure)
 
 lemma tr_leq_rel_closure[closure]: 
   "`($tr \<le> $tr\<acute>)` \<in> WF_RELATION"
-  apply(simp add:WF_RELATION_def)
-  apply (simp add:closure unrest typing)
-done
+by(simp add: closure)
 
 lemma DestList_event_dcarrier [typing]: 
   fixes xs :: "('m event ULIST, 'm :: REACTIVE_SORT) pvar"
@@ -142,7 +139,7 @@ done
 
 lemma tr_eq_trans:
   "`($tr\<acute> = $tr) ; ($tr\<acute> = $tr)` = `($tr\<acute> = $tr)`"
-  by (simp add:var_eq_trans typing defined closure)
+  by (simp add:var_eq_trans typing closure)
 
 (* () TYPE('m) *)
 
@@ -167,49 +164,36 @@ lemma tr_eq_is_R1:
 
 lemma tr_prefix_as_nil:
   "`($tr\<acute> - $tr) = \<langle>\<rangle> \<and> ($tr \<le> $tr\<acute>)` = `$tr\<acute> = $tr`"
-  apply (subst prefix_eq_nil[of "tr\<acute>" "tr"])
-  apply (simp_all add:typing defined closure PEqualP_sym)
-done
+  by (metis PEqualP_sym UTypedef_Event UTypedef_ULIST prefix_eq_nil)
 
 lemma tr_prefix_app:
   "`($tr ^ \<langle>a\<rangle> = $tr\<acute>) \<and> ($tr \<le> $tr\<acute>)` = `($tr ^ \<langle>a\<rangle> = $tr\<acute>)`"
-  apply (rule prefix_app)
-  apply (simp add:closure typing)
-done
-
+  by (metis UTypedef_Event UTypedef_ULIST prefix_app)
+ 
 lemma Leq_alt: "`($tr \<le> $tr\<acute>)` = `($tr < $tr\<acute>) \<or> ($tr = $tr\<acute>)`"
-by(utp_poly_auto_tac)
+  by(utp_poly_auto_tac)
 
 lemma Subst_NotEq:
   assumes "`P[x/y]` \<noteq> `Q[x/y]`"
   shows "`P` \<noteq> `Q`"
 by (metis assms)
 
-
 lemma Seq_split_ok:
   assumes "P \<in> REL" "Q \<in> REL"
   shows "`P;Q` = `(P[true/ok\<acute>];(Q[true/ok])) \<or> (P[false/ok\<acute>];(Q[false/ok]))`"
 proof-
 have "`P;Q` = `\<exists> ok\<acute>\<acute>. ($ok\<acute>\<acute> \<or> \<not> $ok\<acute>\<acute>) \<and> (P[$ok\<acute>\<acute>/ok\<acute>];(Q[$ok\<acute>\<acute>/ok]))`"
-by(subst SemiR_extract_variable_ty[of "ok" "ok\<acute>\<acute>"],simp_all add:typing defined closure unrest assms OrP_excluded_middle)
-also have "... =`(P[true/ok\<acute>];(Q[true/ok])) \<or> (P[false/ok\<acute>];(Q[false/ok]))`"
-apply(subst PVarPE_VarP[THEN sym])
-apply(subst NotP_PVarPE_VarP[THEN sym])
-apply(subst AndP_comm)
-apply(subst AndP_OrP_distl)
-apply(subst ExistsP_OrP_dist)
-apply(subst EqualP_as_EqualPE,simp add:typing defined closure)+
-apply(subst ExistsP_one_point_ty) defer defer defer defer
-apply(subst ExistsP_one_point_ty)
-apply(simp add:typing defined closure unrest)+ defer
-apply(simp add:typing defined closure unrest)+
-apply(subst usubst) back back back back back back back back back back
-apply(simp_all add:typing defined closure unrest)
-apply(subst usubst) back back back back back back back back back back back
-apply(simp_all add:typing defined closure unrest)
-apply(subst SubstP_twice_2,simp_all add:typing defined closure unrest assms)+
-apply(simp add:usubst typing defined closure)
-done
+  by(subst SemiR_extract_variable_ty[of "ok" "ok\<acute>\<acute>"],simp_all add:typing defined closure unrest assms OrP_excluded_middle)
+also have "... = `(\<exists> ok\<acute>\<acute>. ($ok\<acute>\<acute> \<and> (P[$ok\<acute>\<acute>/ok\<acute>];(Q[$ok\<acute>\<acute>/ok])))) \<or> (\<exists> ok\<acute>\<acute>. (\<not> $ok\<acute>\<acute>\<and> (P[$ok\<acute>\<acute>/ok\<acute>];(Q[$ok\<acute>\<acute>/ok]))))`"
+  by(simp add:AndP_OrP_distr ExistsP_OrP_dist)
+also have "... = `(\<exists> ok\<acute>\<acute>. ((P[$ok\<acute>\<acute>/ok\<acute>];(Q[$ok\<acute>\<acute>/ok])) \<and> $ok\<acute>\<acute>=true)) \<or> (\<exists> ok\<acute>\<acute>. ((P[$ok\<acute>\<acute>/ok\<acute>];(Q[$ok\<acute>\<acute>/ok]))\<and> $ok\<acute>\<acute>=false))`"
+  by(simp add: EqualP_as_EqualPE[THEN sym] typing defined closure AndP_comm)
+also have "... = `(P[$ok\<acute>\<acute>/ok\<acute>];(Q[$ok\<acute>\<acute>/ok]))[true/(ok\<acute>\<acute>)] \<or> (\<exists> ok\<acute>\<acute>. ((P[$ok\<acute>\<acute>/ok\<acute>];(Q[$ok\<acute>\<acute>/ok]))\<and> $ok\<acute>\<acute>=false))`"
+  by(subst ExistsP_one_point_ty[of _ "ok\<acute>\<acute>",THEN sym],simp_all add: typing defined closure unrest)
+also have "... = `(P[$ok\<acute>\<acute>/ok\<acute>];(Q[$ok\<acute>\<acute>/ok]))[true/(ok\<acute>\<acute>)] \<or> (P[$ok\<acute>\<acute>/ok\<acute>];(Q[$ok\<acute>\<acute>/ok]))[false/ok\<acute>\<acute>]`"
+  by(subst ExistsP_one_point_ty[of _ "ok\<acute>\<acute>",THEN sym],simp_all add: typing defined closure unrest)
+also have "... = `(P[true/ok\<acute>];(Q[true/ok])) \<or> (P[false/ok\<acute>];(Q[false/ok]))`"
+  by(simp add: usubst(36) typing defined closure unrest SubstP_twice_2 assms usubst(7) usubst(24))
 finally show ?thesis .
 qed
 
@@ -219,24 +203,16 @@ lemma Seq_split_wait:
 proof-
 have "`P;Q` = `\<exists> wait\<acute>\<acute>. ($wait\<acute>\<acute> \<or> \<not> $wait\<acute>\<acute>) \<and> (P[$wait\<acute>\<acute>/wait\<acute>];(Q[$wait\<acute>\<acute>/wait]))`"
 by(subst SemiR_extract_variable_ty[of "wait" "wait\<acute>\<acute>"],simp_all add:typing defined closure unrest assms OrP_excluded_middle)
-also have "... =`(P[true/wait\<acute>];(Q[true/wait])) \<or> (P[false/wait\<acute>];(Q[false/wait]))`"
-apply(subst PVarPE_VarP[THEN sym])
-apply(subst NotP_PVarPE_VarP[THEN sym])
-apply(subst AndP_comm)
-apply(subst AndP_OrP_distl)
-apply(subst ExistsP_OrP_dist)
-apply(subst EqualP_as_EqualPE,simp add:typing defined closure)+
-apply(subst ExistsP_one_point_ty) defer defer defer defer
-apply(subst ExistsP_one_point_ty)
-apply(simp add:typing defined closure unrest)+ defer
-apply(simp add:typing defined closure unrest)+
-apply(subst usubst) back back back back back back back back back back
-apply(simp_all add:typing defined closure unrest)
-apply(subst usubst) back back back back back back back back back back back
-apply(simp_all add:typing defined closure unrest)
-apply(subst SubstP_twice_2,simp_all add:typing defined closure unrest assms)+
-apply(simp add:usubst typing defined closure)
-done
+also have "... = `(\<exists> wait\<acute>\<acute>. ($wait\<acute>\<acute> \<and> (P[$wait\<acute>\<acute>/wait\<acute>];(Q[$wait\<acute>\<acute>/wait])))) \<or> (\<exists> wait\<acute>\<acute>. (\<not> $wait\<acute>\<acute>\<and> (P[$wait\<acute>\<acute>/wait\<acute>];(Q[$wait\<acute>\<acute>/wait]))))`"
+  by(simp add:AndP_OrP_distr ExistsP_OrP_dist)
+also have "... = `(\<exists> wait\<acute>\<acute>. ((P[$wait\<acute>\<acute>/wait\<acute>];(Q[$wait\<acute>\<acute>/wait])) \<and> $wait\<acute>\<acute>=true)) \<or> (\<exists> wait\<acute>\<acute>. ((P[$wait\<acute>\<acute>/wait\<acute>];(Q[$wait\<acute>\<acute>/wait]))\<and> $wait\<acute>\<acute>=false))`"
+  by(simp add: EqualP_as_EqualPE[THEN sym] typing defined closure AndP_comm)
+also have "... = `(P[$wait\<acute>\<acute>/wait\<acute>];(Q[$wait\<acute>\<acute>/wait]))[true/wait\<acute>\<acute>] \<or> (\<exists> wait\<acute>\<acute>. ((P[$wait\<acute>\<acute>/wait\<acute>];(Q[$wait\<acute>\<acute>/wait]))\<and> $wait\<acute>\<acute>=false))`"
+  by(subst ExistsP_one_point_ty[of _ "wait\<acute>\<acute>",THEN sym],simp_all add: typing defined closure unrest)
+also have "... = `(P[$wait\<acute>\<acute>/wait\<acute>];(Q[$wait\<acute>\<acute>/wait]))[true/wait\<acute>\<acute>] \<or> (P[$wait\<acute>\<acute>/wait\<acute>];(Q[$wait\<acute>\<acute>/wait]))[false/wait\<acute>\<acute>]`"
+  by(subst ExistsP_one_point_ty[of _ "wait\<acute>\<acute>",THEN sym],simp_all add: typing defined closure unrest)
+also have "... = `(P[true/wait\<acute>];(Q[true/wait])) \<or> (P[false/wait\<acute>];(Q[false/wait]))`"
+  by(simp add: usubst(36) typing defined closure unrest SubstP_twice_2 assms usubst(7) usubst(24))
 finally show ?thesis .
 qed
 

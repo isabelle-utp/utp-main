@@ -59,8 +59,7 @@ qed
 (* L2 restricted-identity *)
 
 lemma Skip_identity:
-  assumes "P is RH" "P \<in> WF_RELATION"
-  shows " `II ; P` = P"
+  "`II ; P` = P"
 by (metis SemiR_SkipR_left)
 
 (* L3 R-wait-false *)
@@ -107,92 +106,71 @@ lemma RH_SemiR_closure:
 by (metis R1_SemiR_closure R2_SemiR_closure R3_SemiR_closure RH_is_R1 RH_is_R2 RH_is_R3 R_intro assms(1) assms(2) assms(3) assms(4))
 
 lemma tr_seq_eq:
-  assumes "P is R1" "Q is R1" "P \<in> REL" "Q \<in> REL"
+  assumes "P is R1" "Q is R1" "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
   shows "`(P;Q) \<and> ($tr\<acute>=$tr)` = `(P \<and> ($tr\<acute>=$tr));(Q \<and> ($tr\<acute>=$tr))`"
 proof-
-have 0: "P = R1(P)" "Q = R1(Q)" by (metis assms is_healthy_def)+
-have 1: "`($tr \<le> $tr\<acute>)[$tr\<acute>\<acute>/tr\<acute>]` = `$tr \<le> $tr\<acute>\<acute>`" 
-apply(subst usubst) defer 
-apply(subst usubst)
-apply(subst usubst) defer defer 
-apply(subst usubst) back back
-apply(simp_all add:typing closure defined)
-done
-have 2: "`($tr \<le> $tr\<acute>)[$tr\<acute>\<acute>/tr]` = `$tr\<acute>\<acute> \<le> $tr\<acute>`" 
-apply(subst usubst) defer 
-apply(subst usubst)
-apply(subst usubst) back defer defer 
-apply(subst usubst) back back
-apply(simp_all add:typing closure defined)
-done
+have 4: "`($tr\<acute> = $tr)[$tr\<acute>\<acute>/tr\<acute>]` = `$tr\<acute>\<acute> = $tr`"
+by(simp add:usubst typing defined closure) 
+have 5: "`($tr\<acute> = $tr)[$tr\<acute>\<acute>/tr]` = `$tr\<acute> = $tr\<acute>\<acute>`"
+by(simp add:usubst typing defined closure) 
+  have "`(P \<and> ($tr\<acute>=$tr));(Q \<and> ($tr\<acute>=$tr))` = `\<exists> tr\<acute>\<acute> . (P \<and> ($tr\<acute> = $tr))[$tr\<acute>\<acute>/tr\<acute>] ; (Q \<and> ($tr\<acute> = $tr))[$tr\<acute>\<acute>/tr]`"
+    by(subst SemiR_extract_variable_id[of "tr\<down>"],simp_all add:unrest closure assms typing erasure)
+  also have "... = `\<exists> tr\<acute>\<acute> . (P[$tr\<acute>\<acute>/tr\<acute>] \<and> ($tr\<acute>\<acute> = $tr)) ; (Q[$tr\<acute>\<acute>/tr] \<and> ($tr\<acute> = $tr\<acute>\<acute>))`"
+    by(subst 4[THEN sym], subst 5[THEN sym],simp add:usubst)
+  also have "... = `\<exists> tr\<acute>\<acute> . (($tr\<acute>\<acute> = $tr) \<and> P[$tr\<acute>\<acute>/tr\<acute>]) ; (Q[$tr\<acute>\<acute>/tr] \<and> ($tr\<acute> = $tr\<acute>\<acute>))`"
+    by(utp_poly_auto_tac)
+  also have "... = `\<exists> tr\<acute>\<acute> . ($tr\<acute>\<acute> = $tr) \<and> (P[$tr\<acute>\<acute>/tr\<acute>] ; (Q[$tr\<acute>\<acute>/tr] \<and> ($tr\<acute> = $tr\<acute>\<acute>)))`"
+    by(simp add: SemiR_AndP_left_DASHED typing defined closure unrest)
+  also have "... = `\<exists> tr\<acute>\<acute> . ($tr\<acute>\<acute> = $tr) \<and> (P[$tr\<acute>\<acute>/tr\<acute>] ; Q[$tr\<acute>\<acute>/tr]) \<and> ($tr\<acute> = $tr\<acute>\<acute>)`"
+    by(simp add: SemiR_AndP_right_UNDASHED typing defined closure unrest)
+  finally have A: "`(P \<and> ($tr\<acute>=$tr));(Q \<and> ($tr\<acute>=$tr))` =  `\<exists> tr\<acute>\<acute> . (P[$tr\<acute>\<acute>/tr\<acute>] ; Q[$tr\<acute>\<acute>/tr]) \<and> ($tr\<acute>\<acute> = $tr) \<and> ($tr\<acute> = $tr\<acute>\<acute>)`"
+    by utp_poly_auto_tac
+have 1: "`($tr \<le> $tr\<acute>)[$tr\<acute>\<acute>/tr\<acute>]` = `$tr \<le> $tr\<acute>\<acute>`"
+by(simp add:usubst typing defined closure) 
+have 2: "`($tr \<le> $tr\<acute>)[$tr\<acute>\<acute>/tr]` = `$tr\<acute>\<acute> \<le> $tr\<acute>`"
+by(simp add:usubst typing defined closure) 
 have 3: "`($tr \<le> $tr\<acute>\<acute>) \<and> ($tr\<acute>\<acute> \<le> $tr\<acute>) \<and> ($tr\<acute> = $tr)` = `($tr\<acute>\<acute> = $tr) \<and> ($tr\<acute> = $tr\<acute>\<acute>)`" 
 by(utp_poly_auto_tac)
-have 4: "`($tr\<acute> = $tr)[$tr\<acute>\<acute>/tr\<acute>]` = `$tr\<acute>\<acute> = $tr`" 
-apply(subst usubst) defer 
-apply(subst usubst)
-apply(subst usubst) back defer defer 
-apply(subst usubst) back back
-apply(simp_all add:typing closure defined)
-done
-have 5: "`($tr\<acute> = $tr)[$tr\<acute>\<acute>/tr]` = `$tr\<acute> = $tr\<acute>\<acute>`" 
-apply(subst usubst) defer 
-apply(subst usubst)
-apply(subst usubst) defer defer 
-apply(subst usubst) back back
-apply(simp_all add:typing closure defined)
-done
-have "`(P;Q) \<and> ($tr\<acute>=$tr)` = 
-      `(\<exists> tr\<acute>\<acute> . (P[$tr\<acute>\<acute>/tr\<acute>] \<and> ($tr \<le> $tr\<acute>\<acute>)) ; (Q[$tr\<acute>\<acute>/tr] \<and> ($tr\<acute>\<acute> \<le> $tr\<acute>))) \<and> ($tr\<acute> = $tr)`"
-apply(subst 0,subst 0(2))
-apply(simp add: R1_def)
-apply(subst SemiR_extract_variable_id[of "tr\<down>"],simp_all add:typing closure defined unrest assms)
-apply(simp add:usubst typing defined closure)
-apply(subst 1[THEN sym],subst 2[THEN sym],simp add:erasure typing closure defined)
-done
-also have "... = `(\<exists> tr\<acute>\<acute> . (($tr\<acute>\<acute> = $tr) \<and> P[$tr\<acute>\<acute>/tr\<acute>]) ; (Q[$tr\<acute>\<acute>/tr] \<and> ($tr\<acute> = $tr\<acute>\<acute>)))` "
-apply(subst SemiR_AndP_right_UNDASHED,simp add:typing closure defined unrest)
-apply(subst AndP_comm)
-apply(subst SemiR_AndP_left_DASHED,simp add:typing closure defined unrest)
-apply(subst AndP_comm)
-apply(subst ExistsP_AndP_expand1,simp_all add:AndP_assoc[THEN sym] typing defined closure unrest)
-apply(subst 3,simp add:AndP_assoc)
-apply(subst AndP_comm,simp add:AndP_assoc[THEN sym])
-apply(subst SemiR_AndP_right_UNDASHED,simp add:typing closure defined unrest)
-apply(subst SemiR_AndP_left_DASHED,simp_all add:typing closure defined unrest AndP_assoc[THEN sym])
-done
-also have "... = `(($tr\<acute>=$tr) \<and> P);(Q \<and> ($tr\<acute>=$tr))` "
-apply(subst 4[THEN sym],subst 5[THEN sym],simp add:SubstP_AndP[THEN sym])
-apply(subst SemiR_extract_variable_id[of "tr\<down>"],simp_all add:typing defined closure unrest assms) back
-apply(simp add:typing closure defined erasure)
-done
-finally show ?thesis
-by (metis AndP_comm)
+have "`(P;Q) \<and> ($tr\<acute>=$tr)` = `R1(P);R1(Q) \<and> ($tr\<acute>=$tr)`"
+    by (metis assms is_healthy_def)
+  also have "... = `(\<exists> tr\<acute>\<acute> . (P[$tr\<acute>\<acute>/tr\<acute>] \<and> ($tr \<le> $tr\<acute>\<acute>)) ; (Q[$tr\<acute>\<acute>/tr] \<and> ($tr\<acute>\<acute> \<le> $tr\<acute>))) \<and> ($tr\<acute> = $tr)`"
+    by(simp add:assms typing defined closure unrest SemiR_extract_variable_id[of "tr\<down>"] R1_def usubst erasure 1[THEN sym] 2[THEN sym])
+  also have "... = `(\<exists> tr\<acute>\<acute> . (($tr \<le> $tr\<acute>\<acute>) \<and> P[$tr\<acute>\<acute>/tr\<acute>]) ; (Q[$tr\<acute>\<acute>/tr] \<and> ($tr\<acute>\<acute> \<le> $tr\<acute>))) \<and> ($tr\<acute> = $tr)`"
+    by(metis AndP_comm)
+  also have "... = `(\<exists> tr\<acute>\<acute> . ($tr \<le> $tr\<acute>\<acute>) \<and> (P[$tr\<acute>\<acute>/tr\<acute>] ; (Q[$tr\<acute>\<acute>/tr]\<and> ($tr\<acute>\<acute> \<le> $tr\<acute>)))) \<and> ($tr\<acute> = $tr)`"
+    by(subst SemiR_AndP_left_DASHED, simp_all add:unrest typing defined closure)
+  also have "... = `(\<exists> tr\<acute>\<acute> . ($tr \<le> $tr\<acute>\<acute>) \<and> (P[$tr\<acute>\<acute>/tr\<acute>] ; Q[$tr\<acute>\<acute>/tr])\<and> ($tr\<acute>\<acute> \<le> $tr\<acute>)) \<and> ($tr\<acute> = $tr)`"
+    by(simp add:SemiR_AndP_left_DASHED SemiR_AndP_right_UNDASHED unrest typing defined closure)
+  also have "... = `\<exists> tr\<acute>\<acute> . ($tr \<le> $tr\<acute>\<acute>) \<and> (P[$tr\<acute>\<acute>/tr\<acute>] ; Q[$tr\<acute>\<acute>/tr])\<and> ($tr\<acute>\<acute> \<le> $tr\<acute>) \<and> ($tr\<acute> = $tr)`"
+   by(subst ExistsP_AndP_expand1, simp_all add:unrest typing defined AndP_assoc[THEN sym])
+  also have "... =`\<exists> tr\<acute>\<acute> . (P[$tr\<acute>\<acute>/tr\<acute>] ; Q[$tr\<acute>\<acute>/tr])\<and> ($tr \<le> $tr\<acute>\<acute>) \<and> ($tr\<acute>\<acute> \<le> $tr\<acute>) \<and> ($tr\<acute> = $tr)`"
+    by(utp_poly_auto_tac)
+  finally have B: "`(P;Q) \<and> ($tr\<acute>=$tr)` = `\<exists> tr\<acute>\<acute>. P[$tr\<acute>\<acute>/tr\<acute>] ; Q[$tr\<acute>\<acute>/tr] \<and> ($tr\<acute>\<acute> = $tr) \<and> ($tr\<acute> = $tr\<acute>\<acute>)`" 
+    by(simp add: 3)
+show ?thesis
+  by (metis A B)
 qed
+
+
 
 lemma grow:
   assumes "P \<in> REL" "P is R1" "NON_REL_VAR \<sharp> x"
   shows "`($tr^\<langle>x\<rangle> = $tr\<acute>);P`= `(($tr^\<langle>x\<rangle> = $tr\<acute>);P) \<and> ($tr < $tr\<acute>)`"
 proof-
-have 0: "`($tr^\<langle>x\<rangle> = $tr\<acute>);P` is R1"
-apply(subst R1_SemiR_closure)
-apply(simp_all add:closure assms)
-apply(simp add:R1_def is_healthy_def)
-apply (metis tr_prefix_app)
-done
-have 1: "`($tr^\<langle>x\<rangle>=$tr\<acute>) \<and> ($tr\<acute>=$tr)` = `false`"
-by(utp_poly_auto_tac)
-have 2: "`(($tr^\<langle>x\<rangle> = $tr\<acute>);P) \<and> ($tr\<acute>=$tr)`= `false`"
-apply(subst tr_seq_eq,simp_all add:assms closure)
-apply(simp add:R1_def is_healthy_def)
-apply (metis tr_prefix_app)
-apply(simp add: 1)
-done
-from 0 have "`($tr^\<langle>x\<rangle> = $tr\<acute>);P`= `(($tr^\<langle>x\<rangle> = $tr\<acute>);P) \<and> ($tr \<le> $tr\<acute>)`"
-by(simp add:is_healthy_def R1_def)
-also have "... = `(($tr^\<langle>x\<rangle> = $tr\<acute>);P) \<and> (($tr < $tr\<acute>) \<or> ($tr\<acute> = $tr))`"
-by (metis Leq_alt PEqualP_sym)
-also have "... = ` (($tr ^ \<langle>x\<rangle> = $tr\<acute>) ; P) \<and> ($tr < $tr\<acute>)`"
-by(simp add: AndP_OrP_distl 2)
+  have 1: "`($tr^\<langle>x\<rangle> = $tr\<acute>)` is R1"
+    by(simp add:is_healthy_def R1_def tr_prefix_app)
+  have 0: "`(($tr ^ \<langle>x\<rangle> = $tr\<acute>) ; P) \<and> ($tr = $tr\<acute>)` = `false`"
+proof - have "`(($tr ^ \<langle>x\<rangle> = $tr\<acute>) ; P) \<and> ($tr = $tr\<acute>)` =`(($tr ^ \<langle>x\<rangle> = $tr\<acute>) ; P) \<and> ($tr\<acute> = $tr)`"
+by(simp add:PEqualP_sym)
+also have "... =  ` ((($tr ^ \<langle>x\<rangle> = $tr\<acute>) \<and> ($tr\<acute> = $tr)) ; (P \<and> ($tr\<acute> = $tr)))`"
+by(simp add: tr_seq_eq assms closure 1)
+finally show ?thesis by utp_poly_auto_tac qed
+  have "`($tr^\<langle>x\<rangle> = $tr\<acute>);P` = `R1(($tr^\<langle>x\<rangle> = $tr\<acute>);P)`"
+     by(metis 1 is_healthy_def R1_SemiR_closure assms)   
+  also have "... = `($tr ^ \<langle>x\<rangle> = $tr\<acute>) ; P \<and> (($tr < $tr\<acute>) \<or> ($tr = $tr\<acute>))`"
+    by(simp add:R1_def Leq_alt)
+  also have "... = `($tr ^ \<langle>x\<rangle> = $tr\<acute>) ; P \<and> ($tr < $tr\<acute>)`"
+    by(simp add:AndP_OrP_distl 0)
 finally show ?thesis .
 qed
 

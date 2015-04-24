@@ -151,7 +151,6 @@ lemma R1_by_refinement:
 
 theorem R1_SemiR_closure [closure]:
   assumes
-    "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
     "P is R1" "Q is R1"
   shows "(P ;\<^sub>R Q) is R1"
   using assms
@@ -174,16 +173,18 @@ lemma R1_ok'_false:
   "(R1(P))\<^sup>f = R1(P\<^sup>f)"
 by(simp add:R1_def, utp_poly_auto_tac)
 
-lemma R1_NotP_R1: "`R1(\<not>R1(P))` = `R1(\<not>P)`"by(utp_poly_auto_tac)
+lemma R1_NotP_R1: "`R1(\<not>R1(P))` = `R1(\<not>P)`"
+by(utp_poly_auto_tac)
 
 lemma SemiR_R1_true_right: "`(x;($tr\<le>$tr\<acute>)) \<or> x` = `x;($tr\<le>$tr\<acute>)`"
 proof-
-have 0: "`x` = `x;II`" by simp
-show ?thesis
-apply(subst 0) back
-apply(subst SemiR_OrP_distl[THEN sym])
-apply (metis R1_SkipR_closure R1_by_refinement RefP_OrP)
-done
+  have "`(x;($tr\<le>$tr\<acute>)) \<or> x` = `(x;($tr\<le>$tr\<acute>)) \<or> x;II`"
+    by simp
+  also have "... = `x;(($tr\<le>$tr\<acute>) \<or> II)`"
+    by (metis SemiR_OrP_distl)
+  also have "... = `x;($tr\<le>$tr\<acute>)`"
+    by (metis R1_SkipR_closure R1_by_refinement RefP_OrP)
+  finally show ?thesis .
 qed
 
 subsection {* R2 Laws *}
@@ -264,9 +265,7 @@ by(utp_poly_auto_tac)
 (* L6 R2-cond-closure-1 *)
 
 lemma tr_conserved_is_R2 : "`R2($tr\<acute> = $tr)` = `($tr\<acute> = $tr)`"
-  apply(simp add:R2_def R2s_def R1_def usubst typing defined closure)
-  apply (metis tr_prefix_as_nil)
-done
+  by(simp add:R2_def R2s_def R1_def usubst typing defined closure tr_prefix_as_nil)
 
 lemma R2_CondR_closure_1: 
 assumes "P is R2" "Q is R2"
@@ -661,12 +660,15 @@ lemma R2_monotonic: "P \<sqsubseteq> Q \<Longrightarrow> R2(P) \<sqsubseteq> R2(
   by utp_pred_tac
 
 lemma SkipRA_is_R2 : "`R2(II)` = `II`"
-apply(simp add:SkipR_as_SkipRA)
-apply(subst SkipRA_unfold_aux_ty[of "tr"],simp_all add:typing defined closure)
-apply(subst SkipRA_unfold_aux_ty[of "tr"],simp_all add:typing defined closure)back
-apply(simp add:R2_def R2s_def usubst typing defined closure R1_extend_AndP[THEN sym])
-apply(simp add:R1_def tr_prefix_as_nil)
-done
+proof -
+  have "`R2(II)` = `R2( ($tr\<acute>=$tr) \<and> II\<^bsub>REL_VAR - TR\<^esub>)`"
+    by(simp add: SkipRA_unfold_aux_ty[of "tr",THEN sym] typing defined closure SkipR_as_SkipRA)
+  also have "... = `R1 ($tr\<acute> - $tr = \<langle>\<rangle>) \<and> II\<^bsub>REL_VAR - TR\<^esub>`"
+    by(simp add:R2_def R2s_def usubst typing defined closure R1_extend_AndP)
+  also have "... = II"
+    by(simp add:R1_def tr_prefix_as_nil SkipRA_unfold_aux_ty[of "tr",THEN sym] typing defined closure SkipR_as_SkipRA)
+  finally show ?thesis .
+qed
 
 lemma NotP_R2s: "`\<not>R2s(P)` = `R2s(\<not>P)`"by(simp add:R2s_def usubst typing defined closure)
 
@@ -728,26 +730,37 @@ lemma R3_wait: "`R3(P) \<and> $wait` = `II \<and> $wait`"
   by(utp_poly_auto_tac)
 
 lemma wait_and_II: "`$wait \<and> II` =`$wait \<and> II \<and> $wait\<acute>`"
-  apply(simp add:SkipR_as_SkipRA)
-  apply(subst SkipRA_unfold_aux_ty[of "wait"],simp_all add:typing defined closure)
-  apply(subst SkipRA_unfold_aux_ty[of "wait"],simp_all add:typing defined closure)back
-  apply(utp_poly_auto_tac)
-done
+  proof -
+    have "`$wait \<and> II` = `$wait \<and> ($wait\<acute>=$wait) \<and> II\<^bsub>REL_VAR - {wait\<down>,wait\<down>\<acute>}\<^esub>`"
+      by(subst SkipRA_unfold_aux_ty[of "wait",THEN sym],simp_all add:typing defined closure SkipR_as_SkipRA)
+    also have "... = `$wait \<and> (($wait\<acute>=$wait) \<and> II\<^bsub>REL_VAR - {wait\<down>,wait\<down>\<acute>}\<^esub>) \<and> $wait\<acute>`"
+      by(utp_poly_auto_tac)
+    also have "... = `$wait \<and> II\<^bsub>REL_VAR\<^esub> \<and> $wait\<acute>`"
+      by(subst SkipRA_unfold_aux_ty[of "wait",THEN sym],simp_all add:typing defined closure SkipR_as_SkipRA)
+    finally show ?thesis by (simp add:SkipR_as_SkipRA)
+qed
 
 theorem R3_SemiR_form:
-  assumes
-    "P \<in> WF_RELATION" "Q \<in> WF_RELATION"
   shows "R3(P) ;\<^sub>R R3(Q) = R3(P ;\<^sub>R R3(Q))"
-    apply(simp add:R3_form[of "P"] SemiR_OrP_distr wait_and_II)
-    apply(subst R3_form[of "Q"], simp add:SemiR_OrP_distl) 
-    apply(subst R3_form, simp add:SemiR_AndP_right_precond typing closure defined unrest urename assms SemiR_AndP_left_precond R3_form AndP_assoc[THEN sym] AndP_contra)
-    apply(subst wait_and_II,simp) back
-done
+  proof-
+    have "`R3(P);R3(Q)` = ` (($wait \<and> II \<and> $wait\<acute>) ; R3 (Q)) \<or> (\<not> $wait \<and> P) ; R3 (Q)`"
+      by(simp add:R3_form[of "P"] SemiR_OrP_distr wait_and_II)
+    also have "... = ` (($wait \<and> II) ; ($wait \<and>  R3 (Q))) \<or> (\<not> $wait \<and> P) ; R3 (Q)`"
+      by(subst SemiR_AndP_right_DASHED,simp_all add:typing defined closure unrest urename AndP_assoc)
+    also have " \<dots> = ` (($wait \<and> II) ; ($wait \<and> II)) \<or> (\<not> $wait \<and> P) ; R3 (Q)`"
+      by(metis AndP_comm R3_wait)
+    also have "... = ` ($wait \<and> II) \<or> (\<not> $wait \<and> P) ; R3 (Q)`"
+      by(subst SemiR_AndP_right_DASHED,simp_all add:typing defined closure unrest urename AndP_assoc[THEN sym] wait_and_II)
+    also have "... = ` ($wait \<and> II) \<or> (\<not> $wait \<and> (P ; R3 (Q)))`"
+      by(simp add: SemiR_AndP_left_precond typing defined closure unrest)
+    finally show ?thesis
+      by (metis R3_form)
+qed
 
 lemma R3_SemiR_closure[closure]: 
-  assumes "P \<in> WF_RELATION" "Q \<in> WF_RELATION" "P is R3" "Q is R3"
+  assumes "P is R3" "Q is R3"
   shows "P ;\<^sub>R Q is R3"
-  by (metis Healthy_intro Healthy_simp R3_SemiR_form assms(1) assms(2) assms(3) assms(4))
+  by (metis Healthy_intro Healthy_simp R3_SemiR_form assms)
 
 (* L8 R3-idempotent *)
 
@@ -762,13 +775,8 @@ by(metis R3_def R1_CondR R1_SkipR)
 (* L11 commutativite-R3-R2 *)
 
 theorem R2_R3_commute: 
-  "R2 (R3 P) = R3 (R2 P)" 
-apply(simp add:R3_def R2_CondR SkipR_as_SkipRA,subst R2_def)
-apply(subst SkipRA_unfold_aux_ty[of "tr"],simp_all add:typing defined closure)
-apply(subst SkipRA_unfold_aux_ty[of "tr"],simp_all add:typing defined closure)back
-apply(simp add:R2s_def usubst typing defined closure R1_extend_AndP[THEN sym])
-apply(simp add:R1_def tr_prefix_as_nil)
-done
+  "R2 (R3 P) = R3 (R2 P)"
+    by(simp add:R3_def R2_CondR R2s_def usubst typing defined closure SkipRA_is_R2)
 
 (* Additional Lemmas *)
 
