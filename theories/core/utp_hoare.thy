@@ -182,12 +182,12 @@ theorem HoareP_IterP [hoare]:
   shows "`{p}while b do S od{\<not>b \<and> p}`"
 proof -
   from assms have S_ref: "`p \<and> b \<Rightarrow> p\<acute>` \<sqsubseteq> S"
-    by (force elim: HoareP_elim)
+    by (metis HoareP_elim)
 
   moreover have "`p \<Rightarrow> p\<acute>` \<sqsubseteq> `(b \<and> S)\<^sup>\<star>`"
   proof -
     have "`p \<and> (b \<and> S) ; (p \<Rightarrow> p\<acute>)` = `(p \<and> b \<and> S) ; (p \<Rightarrow> p\<acute>)`"
-      by (metis AndP_rel_closure ConvR_rel_closure ImpliesP_rel_closure SemiR_AndP_left_precond WF_CONDITION_WF_RELATION assms)
+      by (metis SemiR_AndP_left_precond assms)
 
     also from S_ref
     have "... = `(p \<and> b \<and> S \<and> p\<acute>) ; (p \<Rightarrow> p\<acute>)`"
@@ -215,14 +215,11 @@ proof -
     done
   qed
 
+  then have "`\<not> b\<acute> \<and> p\<acute>` \<sqsubseteq> `p \<and> (b \<and> S)\<^sup>\<star> \<and> \<not> b\<acute>`"
+    by (utp_pred_tac)
+  
   thus ?thesis
-    apply (rule_tac HoareP_intro)
-    apply (rule_tac SemiR_spec_refine)
-    apply (simp add:IterP_def urename)
-    apply (rule RefineP_seperation_refine)
-    apply (utp_pred_tac)
-    apply (utp_pred_tac)
-  done
+    by (metis ConvR_AndP ConvR_NotP HoareP_intro IterP_def SemiR_spec_refine)
 qed
 
 theorem HoareP_IterInvP [hoare]:

@@ -91,6 +91,7 @@ declare RestrictUS.rep_eq [evalp]
 declare USET_transfer [evalp]
 
 declare NilUL.rep_eq [evalp]
+declare FrontUL.rep_eq [evalp]
 declare ConsUL_rep_eq [evalp]
 declare AppendUL.rep_eq [evalp]
 declare MinusUL.rep_eq [evalp]

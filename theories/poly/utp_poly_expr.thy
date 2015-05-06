@@ -811,6 +811,10 @@ subsection {* List Expressions *}
 abbreviation NilPE :: "('a::DEFINED ULIST, 'm :: LIST_SORT) pexpr" where
 "NilPE \<equiv> LitPE NilUL"
 
+abbreviation FrontPE :: "('a::DEFINED ULIST, 'm :: LIST_SORT) pexpr \<Rightarrow> 
+                         ('a ULIST, 'm) pexpr" where
+"FrontPE \<equiv> Op1PE FrontUL"                        
+
 abbreviation ConsPE :: 
   "('a :: DEFINED, 'm :: LIST_SORT) pexpr \<Rightarrow> 
    ('a ULIST, 'm) pexpr \<Rightarrow> 

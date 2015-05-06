@@ -225,6 +225,7 @@ syntax
   "_n_pexpr_min"           :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("min'(_, _')")
   "_n_pexpr_list"          :: "n_pexprs \<Rightarrow> n_pexpr" ("\<langle>_\<rangle>")
   "_n_pexpr_list_nil"      :: "n_pexpr" ("\<langle>\<rangle>")
+  "_n_pexpr_list_front"    :: "n_pexpr \<Rightarrow> n_pexpr" ("front'(_')")
   "_n_pexpr_list_append"   :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "^" 65)
   "_n_pexpr_set"           :: "n_pexprs \<Rightarrow> n_pexpr" ("{_}")
   "_n_pexpr_set_empty"     :: "n_pexpr" ("{}")
@@ -291,6 +292,7 @@ translations
   "_n_pexpr_max x y"             == "CONST MaxPE x y"
   "_n_pexpr_min x y"             == "CONST MinPE x y"
   "_n_pexpr_list_nil"            == "CONST NilPE"
+  "_n_pexpr_list_front x"        == "CONST FrontPE x" 
   "_n_pexpr_list_append e f"     == "CONST ConcatPE e f"
   "_n_pexpr_list (_n_pexprs x xs)" == "CONST ConsPE x (_n_pexpr_list xs)"
   "_n_pexpr_list x"              == "CONST ConsPE x (CONST NilPE)"
@@ -398,6 +400,8 @@ lemma "`<1> \<in> elems \<langle><4>,<7>,<1>,<9>\<rangle>`"
 
 lemma "|\<langle><1>,<2>,<3>\<rangle> \<upharpoonright> {\<guillemotleft>2\<guillemotright>}| = |\<langle><1>,<3>\<rangle>|"
   by (auto simp add:evalp typing defined)
+
+term "|front($xs) ^ front($ys)|"
 
 term "`\<Or> i:I. P`"
 

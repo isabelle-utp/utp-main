@@ -49,6 +49,10 @@ is "[]" by (simp)
 
 subsection {* Operators *}
 
+lift_definition FrontUL ::
+  "'a ULIST \<Rightarrow> 'a ULIST"
+is "butlast" by (metis in_set_butlastD)
+
 lift_definition AppendUL ::
   "'a ULIST \<Rightarrow> 'a ULIST \<Rightarrow> 'a ULIST" (infixr "@\<^sub>u" 65)
 is "op @" by (auto)
@@ -97,6 +101,7 @@ lemma ULIST_transfer [eval, evale] :
   by (auto)
 
 declare NilUL.rep_eq [eval, evale]
+declare FrontUL.rep_eq [eval, evale]
 declare ConsUL_rep_eq [eval, evale]
 declare AppendUL.rep_eq [eval, evale]
 declare MinusUL.rep_eq [eval, evale]
