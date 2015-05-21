@@ -1,23 +1,24 @@
 (******************************************************************************)
-(* Project: CML model for Isabelle/UTP                                        *)
-(* File: utp_cml_types.thy                                                    *)
-(* Author: Simon Foster, University of York (UK)                              *)
+(* Project: VDM model for Isabelle/UTP                                        *)
+(* File: utp_vdm_types.thy                                                    *)
+(* Authors: Original CML model by Simon Foster, University of York (UK)       *)
+(*          Adapted to VDM by Luis Diogo Couto, Aarhus University (DK)        *)
 (******************************************************************************)
 
-header {* CML expressions *}
+header {* VDM expressions *}
 
-theory utp_cml_types
+theory utp_vdm_types
 imports 
-  utp_cml_expr
+  utp_vdm_expr
 begin
 
-instantiation quote :: cmlv
+instantiation quote :: vdmv
 begin
 
-primrec Inject_quote :: "quote \<Rightarrow> cmlv" where
+primrec Inject_quote :: "quote \<Rightarrow> vdmv" where
 "Inject (QuoD x) = QuoteD x"
 
-definition Type_quote :: "quote itself \<Rightarrow> cmlt" where
+definition Type_quote :: "quote itself \<Rightarrow> vdmt" where
 "Type_quote x = QuoteT"
 
 instance
@@ -83,9 +84,9 @@ lemma vty_int_members [simp]:
   apply (rule_tac x="- numeral n" in exI, simp)
 done
 
-(* FIXME: It may be that CML types need to be binding dependent
+(* FIXME: It may be that types need to be binding dependent
    as they can potentially depend on UTP variables. *)
-definition InvS :: "'a set \<Rightarrow> ('a \<Rightarrow> bool cmle) \<Rightarrow> 'a set" where
+definition InvS :: "'a set \<Rightarrow> ('a \<Rightarrow> bool vdme) \<Rightarrow> 'a set" where
 "InvS A P = {x. x \<in> A \<and> (\<forall> b. \<lbrakk>P(x)\<rbrakk>\<^sub>* b = Some True)}"
 
 declare InvS_def [eval,evale,evalp]
