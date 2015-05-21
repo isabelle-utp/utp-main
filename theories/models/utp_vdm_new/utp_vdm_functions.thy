@@ -84,7 +84,7 @@ syntax
   "_vexpr_concat"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" (infixr "^" 65)
   "_vexpr_conc"    :: "n_pexpr \<Rightarrow> n_pexpr" ("conc _")
   "_vexpr_seqapp"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_'<_'>")
-  "_vexpr_seqcomp" :: "n_pexpr \<Rightarrow> pttrn \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("[_ | _ in @set _ @/ _]")
+  "_vexpr_seqcomp" :: "n_pexpr \<Rightarrow> pttrn \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("[_ | _ in @set _ &/ _]")
   "_vexpr_subseq"  :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("_'(_, ..., _')")
 
 translations
@@ -181,8 +181,8 @@ syntax
   "_vexpr_fpower"  :: "n_pexpr \<Rightarrow> n_pexpr" ("power _")
   "_vexpr_card"    :: "n_pexpr \<Rightarrow> n_pexpr" ("card _")
 (*  "_vexpr_all_set" :: "pttrn \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("(3forall _ in @set _ @/ _)" [0, 0, 10] 10) *)
-  "_vexpr_collect" :: "n_pexpr \<Rightarrow> pttrn \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("{_ | _ : _ @/ _}")
-  "_vexpr_setcomp" :: "n_pexpr \<Rightarrow> pttrn \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("{_ | _ in @set _ @/ _}")
+  "_vexpr_collect" :: "n_pexpr \<Rightarrow> pttrn \<Rightarrow> vty \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("{_ | _ : _ &/ _}")
+  "_vexpr_setcomp" :: "n_pexpr \<Rightarrow> pttrn \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("{_ | _ in @set _ &/ _}")
   "_vexpr_setrange" :: "n_pexpr \<Rightarrow> n_pexpr \<Rightarrow> n_pexpr" ("{_, ..., _}")
 
 translations
@@ -244,9 +244,9 @@ translations
   "_vexpr_setcomp f x A P" == "CONST vexpr_setcomp (\<lambda> x. (f, P)) A"
   "_vexpr_setrange m n"    == "CONST vexpr_set_range m n"
 
-term "|forall x,y in @set {1,...,5} @ true|"
+term "|forall x,y in @set {1,...,5} & true|"
 
-term "|exists x,y in @set {1,...,5} @ true|"
+term "|exists x,y in @set {1,...,5} & true|"
 
 text {* Map Functions *}
 
@@ -399,10 +399,10 @@ term "|$x in @set {1}|"
 
 term "|mk_prod(1, {})|"
 
-term "|forall x:@nat1 @ ^x^ > 1|"
-term "|forall x in @set {1} @ ^x^ > 5|"
+term "|forall x:@nat1 & ^x^ > 1|"
+term "|forall x in @set {1} & ^x^ > 5|"
 
-lemma "|forall x:@nat1 @ ^x^ > 0| = |true|"
+lemma "|forall x:@nat1 & ^x^ > 0| = |true|"
   by (vdm_tac)
 
 term "|$x > 0|"
@@ -431,7 +431,7 @@ lemma "|{1} : @set of @int| = |{1}|"
 lemma "|{1,2,3} hasType @set of @nat| = |true|"
   by (vdm_tac)
 
-lemma "|forall x : @int @ ^x^ in @set {^x^}| = |true|"
+lemma "|forall x : @int & ^x^ in @set {^x^}| = |true|"
   by (vdm_tac)
 
 lemma "|true => false| = |false|"
@@ -455,9 +455,9 @@ lemma "|5 <= 6| = |true|"
 lemma "|[2,1,5,4]<2>| = |5|"
   by (vdm_tac)
 
-term "|{ &x + 1 | x : @nat @ &x > 1}|"
+term "|{ &x + 1 | x : @nat & &x > 1}|"
 
-lemma "|{ &x | x : @real @ &x in @set &xs}| = |&xs|"
+lemma "|{ &x | x : @real & &x in @set &xs}| = |&xs|"
   apply (simp add:vcollect_ext_def evalp)
   apply (case_tac xs)
   apply (auto simp add:BCollect_def)
@@ -520,7 +520,7 @@ declare bmdom.rep_eq [evalp]
 declare bmran.rep_eq [evalp]
 
 
-lemma "|forall m:@map @nat to @nat @ forall i:@nat @ &i in @set dom(&m) => &m[&i] hasType @nat| = |true|"
+lemma "|forall m:@map @nat to @nat & forall i:@nat & &i in @set dom(&m) => &m[&i] hasType @nat| = |true|"
   apply (vdm_auto_tac)
   apply (metis contra_subsetD ranI)
 done
@@ -573,12 +573,12 @@ lemma BUnion_union [simp]:
   "BUnion (A \<union>\<^sub>b B) = BUnion A \<union>\<^sub>b BUnion B"
   by (auto simp add:BUnion_rep_eq)
   
-lemma "|{ &x | x in @set {1,...,5} @ & x > 0 }| = |{2,1,3,4,5}|"
+lemma "|{ &x | x in @set {1,...,5} & &x > 0 }| = |{2,1,3,4,5}|"
   by (vdm_auto_tac)
   
 declare BUnion_rep_eq [simp del]
   
-lemma "|[ &x | x in @set {1,...,5} @ true ]| = |[1,2,3,4,5]|"
+lemma "|[ &x | x in @set {1,...,5} & true ]| = |[1,2,3,4,5]|"
   by (vdm_tac)
 
 term "|[1,2,3,4,5](2,...,3)|"
