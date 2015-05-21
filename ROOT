@@ -32,11 +32,17 @@ session "HOL-UTP-CML" in "theories/models/utp_cml_new" = "HOL-UTP-THY" +
     "utp_cml"
   files "document/root.tex"
 
+session "HOL-UTP-VDM" in "theories/models/utp_vdm_new" = "HOL-UTP-THY" +
+  options [document = pdf, document_output = "output", quick_and_dirty = true]
+  theories
+    "utp_vdm"
+  files "document/root.tex"
+
 session "HOL-UTP-CML-EX" in "theories/models/utp_cml/examples" = "HOL-UTP-CML" +
   options [document = pdf, document_output = "output", quick_and_dirty = true]
   theories
     "utp_cml_examples"
-  files "document/root.tex"
+  document_files "document/root.tex"
 
 session "utp-hjf-summer-school" in "papers/utp-hjf-summer-school" = "HOL-UTP-THY" +
   options [document = pdf, document_output = "output"]
