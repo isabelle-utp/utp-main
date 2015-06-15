@@ -54,6 +54,9 @@ typedef 'm::BASE_MODEL utype = "UTYPE :: 'm set"
 apply (rule utypes_non_empty)
 done
 
+setup_lifting type_definition_utype
+setup_lifting type_definition_uval
+
 subsubsection {* Some Model Value *}
 
 abbreviation some_uval :: "'m uval" where

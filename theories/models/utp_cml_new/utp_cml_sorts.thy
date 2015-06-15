@@ -20,9 +20,6 @@ primrec DestCmlv :: "cmlm \<Rightarrow> cmlv" where
 primrec DestCmlt :: "cmlm \<Rightarrow> cmlt" where
 "DestCmlt(MkCmlt x) = x"
 
-setup_lifting type_definition_utype
-setup_lifting type_definition_uval
-
 instantiation cmlm :: BASE_MODEL
 begin
 
