@@ -30,6 +30,8 @@ session "UTP" in "utp" = "Kleene_Algebra" +
     utp_rel
     utp_wp
     utp_procedure
+    utp_theory
+    utp_boyle
     utp_designs
     utp_concurrency
     utp_reactive
