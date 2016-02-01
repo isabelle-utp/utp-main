@@ -43,5 +43,5 @@ check out the [proof document](utp/output/document.pdf).
 References
 ----------
 
-* Abderrahmane Feliachi, Marie-Claude Gaudel, and Burkhart Wolf. _Unifying Theories in Isabelle/HOL_. Proc. 3rd UTP Symposium, 2010. <https://www.lri.fr/~wolff/papers/conf/2010-utp-unifying-theories.pdf>
+* Abderrahmane Feliachi, Marie-Claude Gaudel, and Burkhart Wolff. _Unifying Theories in Isabelle/HOL_. Proc. 3rd UTP Symposium, 2010. <https://www.lri.fr/~wolff/papers/conf/2010-utp-unifying-theories.pdf>
 * Simon Foster, Frank Zeyda, and Jim Woodcock. _Isabelle/UTP: A Mechanised Theory Engineering Framework_. Proc. 5th UTP Symposium, 2014. <http://link.springer.com/chapter/10.1007%2F978-3-319-14806-9_2>
