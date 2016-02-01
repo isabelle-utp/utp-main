@@ -20,6 +20,10 @@ typedef ('t, '\<alpha>) uexpr = "UNIV :: ('\<alpha> alphabet \<Rightarrow> 't) s
 
 notation Rep_uexpr ("\<lbrakk>_\<rbrakk>\<^sub>e")
 
+lemma uexpr_eq_iff:
+  "e = f \<longleftrightarrow> (\<forall> b. \<lbrakk>e\<rbrakk>\<^sub>e b = \<lbrakk>f\<rbrakk>\<^sub>e b)"
+  using Rep_uexpr_inject[of e f, THEN sym] by (auto)
+
 setup_lifting type_definition_uexpr
 
 text {* A variable expression corresponds to the lookup function of the variable. *}
@@ -157,6 +161,14 @@ instance uexpr :: (monoid_add, type) monoid_add
 instance uexpr :: (numeral, type) numeral
   by (intro_classes, simp add: plus_uexpr_def, transfer, simp add: add.assoc)
 
+text {* Set up automation for numerals *}
+
+lemma numeral_uexpr_rep_eq: "\<lbrakk>numeral x\<rbrakk>\<^sub>e b = numeral x"
+  by (induct x, simp_all add: plus_uexpr_def one_uexpr_def numeral.simps lit.rep_eq bop.rep_eq)
+
+lemma numeral_uexpr_simp: "numeral x = \<guillemotleft>numeral x\<guillemotright>"
+  by (simp add: uexpr_eq_iff numeral_uexpr_rep_eq lit.rep_eq)
+
 definition eq_upred :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr"
 where "eq_upred x y = bop HOL.eq x y"
 
@@ -214,6 +226,7 @@ lemmas uexpr_defs =
   div_uexpr_def
   mod_uexpr_def
   eq_upred_def
+  numeral_uexpr_simp
 
 lemma var_in_var: "var (in_var x) = $x"
   by (simp add: iuvar_def)

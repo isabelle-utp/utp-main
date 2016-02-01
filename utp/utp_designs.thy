@@ -4,6 +4,7 @@ theory utp_designs
 imports
   utp_rel
   utp_wp
+  utp_theory
 begin
 
 text {* In UTP, in order to explicitly record the termination of a program, 
@@ -59,15 +60,6 @@ where "assign_d x v \<equiv> assigns_d [x \<mapsto>\<^sub>s v]"
 
 definition J :: "'\<alpha> hrelation_d"
 where "J = (($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D)"
-
-type_synonym '\<alpha> Healthiness_condition = "'\<alpha> upred \<Rightarrow> '\<alpha> upred"
-
-definition 
-Healthy::"'\<alpha> upred \<Rightarrow> '\<alpha> Healthiness_condition \<Rightarrow> bool" (infix "is" 30)
-where "P is H \<equiv> (P = H P)"
-
-lemma Healthy_def': "P is H \<longleftrightarrow> (H P = P)"
-  unfolding Healthy_def by auto
 
 definition "H1 (P)  \<equiv>  $ok \<Rightarrow> P"
 
