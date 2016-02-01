@@ -36,6 +36,12 @@ Isabelle/UTP core you can instead invoke the UTP-IMPORTS heap image.
 Usage
 -----
 
-There's little documentation at the moment -- this will follow later. For now check out <utp/utp_boyle.thy>
-for a very basic UTP theory, and then <utp/utp_designs.thy> for the the theory of designs. You can also
-check out the proof document in <utp/output/document.pdf>.
+There's little documentation at the moment -- this will follow later. For now check out [Boyle's law](utp/utp_boyle.thy)
+for a very basic UTP theory, and then the [theory of designs](utp/utp_designs.thy). You can also
+check out the [proof document](utp/output/document.pdf).
+
+References
+----------
+
+* Abderrahmane Feliachi, Marie-Claude Gaudel, and Burkhart Wolf. _Unifying Theories in Isabelle/HOL_. Proc. 3rd UTP Symposium, 2010. <https://www.lri.fr/~wolff/papers/conf/2010-utp-unifying-theories.pdf>
+* Simon Foster, Frank Zeyda, and Jim Woodcock. _Isabelle/UTP: A Mechanised Theory Engineering Framework_. Proc. 5th UTP Symposium, 2014. <http://link.springer.com/chapter/10.1007%2F978-3-319-14806-9_2>
