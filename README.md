@@ -57,9 +57,9 @@ the [UTP expression theory](utp/utp_expr.thy) for more examples.
 Variables are a potential source of confusion. There are three main syntaxes for variables in
 UTP predicates:
 
-* ```&x``` -- a variable in a non-relational predicate
-* ```$x``` -- an input variable in a relational predicate
-* ```$x\<^acute>``` -- an output variable in a relation predicate
+* ``&x`` -- a variable in a non-relational predicate
+* ``$x`` -- an input variable in a relational predicate
+* ``$x\<^acute>`` -- an output variable in a relation predicate
 
 The reason we have to have three is to do with the type system of Isabelle -- since alphabets
 are types, a relation has a different type to a flat predicate and so variables in these constructions
@@ -69,14 +69,28 @@ also have different types.
 
 We employ a number of proof tactics for UTP:
 
-* ```pred_tac``` -- for predicate conjectures
-* ```rel_tac``` -- for relational conjectures
-* ```subst_tac`` -- apply substitution laws in a predicate
+* ``pred_tac`` -- for predicate conjectures
+* ``rel_tac`` -- for relational conjectures
+* ``subst_tac`` -- apply substitution laws in a predicate
 
 There is actually little difference between the predicate and relational tactic; if one doesn't
-work try the other. Additionally there is always **sledgehammer** available which often works
-well when suitable algebraic laws have been proven. You can also try to combine sledgehammer
-with a UTP tactic.
+work try the other. When you define your own operators you need to add them to the tactic's
+simplification set(s) in order for the tactic to correct simplify the construct. You can do this
+for example by writing something like:
+
+``declare my_op_def [utp_pred_defs]``
+
+The simplification sets corresponding to the tactics are, respectively:
+
+* ``upred_defs``
+* ``urel_defs``
+* ``usubst``
+
+We've also loaded a number of equational laws into the simplifier, so try simp out if it seems
+the obvious thing to do. Additionally there is always **sledgehammer** available which often works
+well when suitable algebraic laws have been proven (see <http://isabelle.in.tum.de/dist/doc/sledgehammer.pdf>). 
+You can also try to combine sledgehammer with a UTP tactic. Probably more tactics will be written
+and the existing ones will continue to improve.
 
 Have fun!
 
