@@ -50,8 +50,9 @@ by (adhoc) overloading operators where possible. For example we overload the HOL
 of Isabelle to disambiguate expressions, and so sometimes type annotations are required (though not 
 often). Where it is not possible or feasible to override we instead use the UTP operator with a 
 ``u`` subscript. For example, it does not seem sensible to override the HOL equality operator as this
-would compromise the elegance of Isar for equational proofs, and so we call it =~u. In general
-though where an operator is polymorphic (e.g. arithmetic operators) we just use standard syntax. See
+would compromise the elegance of Isar for equational proofs, and so we call it =_u. Incidentally
+subscripts in Isabelle can be written using the ```\<^sub>``` code. In general where an operator is 
+polymorphic (e.g. arithmetic operators) we just use standard syntax. See
 the [UTP expression theory](utp/utp_expr.thy) for more examples.
 
 Variables are a potential source of confusion. There are three main syntaxes for variables in
