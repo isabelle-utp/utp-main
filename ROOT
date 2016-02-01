@@ -17,7 +17,21 @@ session Kleene_Algebra (AFP) in "contrib/Kleene_Algebra"
     "document/root.bib"
     "document/root.tex"
 
-session "UTP" in "utp" = "Kleene_Algebra" +
+session "UTP-IMPORTS" in "utils" = "Kleene_Algebra" +
+  options [timeout = 300]
+  theories
+    cardinals
+    Continuum
+    finite_bijection
+    Dyadic
+    "Library_extra/Countable_Set_extra" 
+    "Library_extra/Fmap"
+    "Library_extra/FSet_extra"
+    "Library_extra/List_extra"
+    "Library_extra/Sequence"
+    Real_Bit
+
+session "UTP" in "utp" = "UTP-IMPORTS" +
   options [document = pdf, document_output = "output"]
   theories
     utp_var
