@@ -78,7 +78,9 @@ work try the other. When you define your own operators you need to add them to t
 simplification set(s) in order for the tactic to correct simplify the construct. You can do this
 for example by writing something like:
 
-``declare my_op_def [utp_pred_defs]``
+```isabelle
+declare my_op_def [utp_pred_defs]
+```
 
 The simplification sets corresponding to the tactics are, respectively:
 
@@ -86,8 +88,8 @@ The simplification sets corresponding to the tactics are, respectively:
 * ``urel_defs``
 * ``usubst``
 
-We've also loaded a number of equational laws into the simplifier, so try simp out if it seems
-the obvious thing to do. Additionally there is always **sledgehammer** available which often works
+We've also loaded a number of equational laws into the simplifier, so try ``simp`` out if it seems
+the obvious thing to do, or maybe even ``auto``. Additionally there is always **sledgehammer** available which often works
 well when suitable algebraic laws have been proven (see <http://isabelle.in.tum.de/dist/doc/sledgehammer.pdf>). 
 You can also try to combine sledgehammer with a UTP tactic. Probably more tactics will be written
 and the existing ones will continue to improve.
