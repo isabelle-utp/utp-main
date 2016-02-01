@@ -36,6 +36,6 @@ Isabelle/UTP core you can instead invoke the UTP-IMPORTS heap image.
 Usage
 -----
 
-There's little documentation at the moment -- this will follow later. For now check out utp/utp_boyle.thy
-for a very basic UTP theory, and then utp/utp_designs.thy for the the theory of designs. You can also
-check out the proof document in utp/output/document.pdf.
+There's little documentation at the moment -- this will follow later. For now check out <utp/utp_boyle.thy>
+for a very basic UTP theory, and then <utp/utp_designs.thy> for the the theory of designs. You can also
+check out the proof document in <utp/output/document.pdf>.
