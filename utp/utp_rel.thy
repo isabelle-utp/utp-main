@@ -107,6 +107,9 @@ lemma out\<alpha>_uvar [simp]: "uvar out\<alpha>"
 lemma unrest_pre_out\<alpha> [unrest]: "out\<alpha> \<sharp> \<lceil>b\<rceil>\<^sub><"
   by (transfer, auto simp add: out\<alpha>_def)
 
+lemma unrest_post_in\<alpha> [unrest]: "in\<alpha> \<sharp> \<lceil>b\<rceil>\<^sub>>"
+  by (transfer, auto simp add: in\<alpha>_def)
+
 lemma unrest_convr_out\<alpha> [unrest]: 
   "in\<alpha> \<sharp> p \<Longrightarrow> out\<alpha> \<sharp> p\<^sup>-"
   by (transfer, auto simp add: in\<alpha>_def out\<alpha>_def)
@@ -188,6 +191,14 @@ lemma drop_pre_inv [simp]: "\<lbrakk> out\<alpha> \<sharp> p \<rbrakk> \<Longrig
   apply (simp)
 done
 
+abbreviation ustar :: "'\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("_\<^sup>\<star>\<^sub>u" [999] 999) where
+"P\<^sup>\<star>\<^sub>u \<equiv> unital_quantale.qstar II op ;; Sup P"
+
+definition while :: "'\<alpha> condition \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("while _ do _ od") where
+"while b do P od = ((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u \<and> (\<not> \<lceil>b\<rceil>\<^sub>>))"
+
+declare while_def [urel_defs] 
+
 lemma cond_idem:"(P \<triangleleft> b \<triangleright> P) = P" by rel_tac 
 
 lemma cond_symm:"(P \<triangleleft> b \<triangleright> Q) = (Q \<triangleleft> \<not> b \<triangleright> P)" by rel_tac
@@ -240,6 +251,9 @@ lemma seqr_left_zero [simp]:
 lemma seqr_right_zero [simp]:
   "(P ;; false) = false"
   by pred_tac
+
+lemma pre_skip_post: "(\<lceil>b\<rceil>\<^sub>< \<and> II) = (II \<and> \<lceil>b\<rceil>\<^sub>>)"
+  by (rel_tac)
 
 text {* We should be able to generalise this law to arbitrary assignments at some point,
         but that requires additional conversion operators for substitutions that act
@@ -414,5 +428,57 @@ done
 lemma shEx_lift_seq [uquant_lift]: 
   "((\<^bold>\<exists> x \<bullet> P(x)) ;; (\<^bold>\<exists> y \<bullet> Q(y))) = (\<^bold>\<exists> x \<bullet> \<^bold>\<exists> y \<bullet> P(x) ;; Q(y))"
   by pred_tac
+
+text {* While loop laws *}
+
+lemma while_cond_true:
+  "((while b do P od) \<and> \<lceil>b\<rceil>\<^sub><) = ((P \<and> \<lceil>b\<rceil>\<^sub><) ;; while b do P od)"
+proof -
+  have "(while b do P od \<and> \<lceil>b\<rceil>\<^sub><) = (((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u \<and> (\<not> \<lceil>b\<rceil>\<^sub>>)) \<and> \<lceil>b\<rceil>\<^sub><)"
+    by (simp add: while_def)
+  also have "... = (((II \<or> ((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; (\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u)) \<and> \<not> \<lceil>b\<rceil>\<^sub>>) \<and> \<lceil>b\<rceil>\<^sub><)"
+    by (simp add: disj_upred_def)
+  also have "... = ((\<lceil>b\<rceil>\<^sub>< \<and> (II \<or> ((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; (\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u))) \<and> (\<not> \<lceil>b\<rceil>\<^sub>>))"
+    by (simp add: conj_comm utp_pred.inf.left_commute)
+  also have "... = (((\<lceil>b\<rceil>\<^sub>< \<and> II) \<or> (\<lceil>b\<rceil>\<^sub>< \<and> ((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; (\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u))) \<and> (\<not> \<lceil>b\<rceil>\<^sub>>))"
+    by (simp add: conj_disj_distr)
+  also have "... = ((((\<lceil>b\<rceil>\<^sub>< \<and> II) \<or> ((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; (\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u))) \<and> (\<not> \<lceil>b\<rceil>\<^sub>>))"
+    by (subst seqr_pre_out[THEN sym], simp add: unrest, rel_tac)
+  also have "... = ((((II \<and> \<lceil>b\<rceil>\<^sub>>) \<or> ((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; (\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u))) \<and> (\<not> \<lceil>b\<rceil>\<^sub>>))"
+    by (simp add: pre_skip_post)
+  also have "... = ((II \<and> \<lceil>b\<rceil>\<^sub>> \<and> \<not> \<lceil>b\<rceil>\<^sub>>) \<or> (((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; ((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u)) \<and> (\<not> \<lceil>b\<rceil>\<^sub>>)))"
+    by (simp add: utp_pred.inf.assoc utp_pred.inf_sup_distrib2)
+  also have "... = (((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; ((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u)) \<and> (\<not> \<lceil>b\<rceil>\<^sub>>))"
+    by simp
+  also have "... = ((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; (((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u) \<and> (\<not> \<lceil>b\<rceil>\<^sub>>)))"
+    by (simp add: seqr_post_out unrest)
+  also have "... = ((P \<and> \<lceil>b\<rceil>\<^sub><) ;; while b do P od)"
+    by (simp add: utp_pred.inf_commute while_def)
+  finally show ?thesis .
+qed
+
+lemma while_cond_false:
+  "((while b do P od) \<and> (\<not> \<lceil>b\<rceil>\<^sub><)) = (II \<and> \<not> \<lceil>b\<rceil>\<^sub><)"
+proof -
+  have "(while b do P od \<and> (\<not> \<lceil>b\<rceil>\<^sub><)) = (((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u \<and> (\<not> \<lceil>b\<rceil>\<^sub>>)) \<and> (\<not> \<lceil>b\<rceil>\<^sub><))"
+    by (simp add: while_def)
+  also have "... = (((II \<or> ((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; (\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u)) \<and> \<not> \<lceil>b\<rceil>\<^sub>>) \<and> (\<not> \<lceil>b\<rceil>\<^sub><))"
+    by (simp add: disj_upred_def)
+  also have "... = (((II \<and> \<not> \<lceil>b\<rceil>\<^sub>>) \<and> \<not> \<lceil>b\<rceil>\<^sub><) \<or> ((\<not> \<lceil>b\<rceil>\<^sub><) \<and> (((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; ((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u)) \<and> \<not> \<lceil>b\<rceil>\<^sub>>)))"
+    by (simp add: conj_disj_distr utp_pred.inf.commute)
+  also have "... = (((II \<and> \<not> \<lceil>b\<rceil>\<^sub>>) \<and> \<not> \<lceil>b\<rceil>\<^sub><) \<or> ((((\<not> \<lceil>b\<rceil>\<^sub><) \<and> (\<lceil>b\<rceil>\<^sub>< \<and> P) ;; ((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u)) \<and> \<not> \<lceil>b\<rceil>\<^sub>>)))"
+    by (simp add: seqr_pre_out unrest_not unrest_pre_out\<alpha> utp_pred.inf.assoc)
+  also have "... = (((II \<and> \<not> \<lceil>b\<rceil>\<^sub>>) \<and> \<not> \<lceil>b\<rceil>\<^sub><) \<or> (((false ;; ((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u)) \<and> \<not> \<lceil>b\<rceil>\<^sub>>)))"
+    by (simp add: conj_comm utp_pred.inf.left_commute)
+  also have "... = ((II \<and> \<not> \<lceil>b\<rceil>\<^sub>>) \<and> \<not> \<lceil>b\<rceil>\<^sub><)"
+    by simp
+  also have "... = (II \<and> \<not> \<lceil>b\<rceil>\<^sub><)"
+    by rel_tac
+  finally show ?thesis .
+qed
+    
+theorem while_unfold:
+  "while b do P od = ((P ;; while b do P od) \<triangleleft> b \<triangleright> II)"
+  by (metis (no_types, hide_lams) bounded_semilattice_sup_bot_class.sup_bot.left_neutral comp_cond_left_distr cond_def cond_idem disj_comm disj_upred_def seqr_right_zero upred_quantale.bot_zerol utp_pred.inf_bot_right utp_pred.inf_commute while_cond_false while_cond_true)
 
 end

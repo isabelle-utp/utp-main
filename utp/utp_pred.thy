@@ -368,7 +368,7 @@ lemma disj_conj_abs:"((P::'\<alpha> upred) \<or> (P \<and> Q)) = P"
 lemma conj_disj_distr:"((P::'\<alpha> upred) \<and> (Q \<or> R)) = ((P \<and> Q) \<or> (P \<and> R))"
   by pred_tac
 
-lemma disj_conj_dsitr:"((P::'\<alpha> upred) \<or> (Q \<and> R)) = ((P \<or> Q) \<and> (P \<or> R))"
+lemma disj_conj_distr:"((P::'\<alpha> upred) \<or> (Q \<and> R)) = ((P \<or> Q) \<and> (P \<or> R))"
   by pred_tac
 
 lemma true_disj_zero [simp]: 

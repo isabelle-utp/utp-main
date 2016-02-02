@@ -47,8 +47,6 @@ proof -
     by (simp add: order_class.antisym)
 qed
 
-thm lfp_greatest
-
 theorem lfp_fusion_leq [simp]:
   assumes upper_ex: "lower_adjoint f"
   and hiso: "mono h" and kiso: "mono k"
