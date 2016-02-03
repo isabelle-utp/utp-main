@@ -181,6 +181,7 @@ syntax
   "_unil"       :: "('a list, '\<alpha>) uexpr" ("\<langle>\<rangle>")
   "_ulist"      :: "args => ('a list, '\<alpha>) uexpr"    ("\<langle>(_)\<rangle>")
   "_uappend"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" (infixr "^\<^sub>u" 80)
+  "_ulast"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("last\<^sub>u'(_')")
   "_uless"      :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "<\<^sub>u" 50)
   "_uleq"       :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<le>\<^sub>u" 50)
   "_ugreat"     :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix ">\<^sub>u" 50)
@@ -194,6 +195,7 @@ syntax
   "_utuple"     :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('a * 'b, '\<alpha>) uexpr" ("(1'(_,/ _')\<^sub>u)")
   "_utuple_arg"  :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args" ("_")
   "_utuple_args" :: "('a, '\<alpha>) uexpr => utuple_args \<Rightarrow> utuple_args"     ("_,/ _")
+  "_uunit"      :: "('a, '\<alpha>) uexpr" ("'(')\<^sub>u")
   "_ufst"       :: "('a \<times> 'b, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<pi>\<^sub>1'(_')")
   "_usnd"       :: "('a \<times> 'b, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr" ("\<pi>\<^sub>2'(_')")
   "_uapply"     :: "('a \<Rightarrow> 'b, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('b, '\<alpha>) uexpr" ("_\<lparr>_\<rparr>\<^sub>u" [999,0] 999)
@@ -206,6 +208,7 @@ translations
   "\<langle>x, xs\<rangle>"  == "CONST bop (op #) x \<langle>xs\<rangle>"
   "\<langle>x\<rangle>"      == "CONST bop (op #) x \<guillemotleft>[]\<guillemotright>"
   "x ^\<^sub>u y"   == "CONST bop (op @) x y"
+  "last\<^sub>u(xs)" == "CONST uop CONST last xs"
   "x <\<^sub>u y"   == "CONST bop (op <) x y"
   "x \<le>\<^sub>u y"   == "CONST bop (op \<le>) x y" 
   "x >\<^sub>u y"   == "y <\<^sub>u x"
@@ -217,6 +220,7 @@ translations
   "A \<inter>\<^sub>u B"   == "CONST bop Set.inter A B"
   "x \<in>\<^sub>u A"   == "CONST bop (op \<in>) x A"
   "x \<notin>\<^sub>u A"   == "CONST bop (op \<notin>) x A"
+  "()\<^sub>u"      == "\<guillemotleft>()\<guillemotright>"
   "(x, y)\<^sub>u"  == "CONST bop (CONST Pair) x y"
   "_utuple x (_utuple_args y z)" == "_utuple x (_utuple_arg (_utuple y z))"
   "\<pi>\<^sub>1(x)"    == "CONST uop CONST fst x"
@@ -228,9 +232,15 @@ text {* Lifting set intervals *}
 
 syntax
   "_uset_atLeastLessThan" :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("(1{_..<_}\<^sub>u)")
+  "_uset_compr" :: "id \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('b set, '\<alpha>) uexpr" ("(1{_ :/ _ |/ _ \<bullet>/ _}\<^sub>u)")
+
+lift_definition ZedSetCompr :: 
+  "('a set, '\<alpha>) uexpr \<Rightarrow> ('a \<Rightarrow> (bool, '\<alpha>) uexpr \<times> ('b, '\<alpha>) uexpr) \<Rightarrow> ('b set, '\<alpha>) uexpr"
+is "\<lambda> A PF b. { snd (PF x) b | x. x \<in> A b \<and> fst (PF x) b}" .
 
 translations
   "{x..<y}\<^sub>u" == "CONST bop CONST atLeastLessThan x y"
+  "{x : A | P \<bullet> F}\<^sub>u" == "CONST ZedSetCompr A (\<lambda> x. (P, F))" 
 
 lemmas uexpr_defs =
   iuvar_def

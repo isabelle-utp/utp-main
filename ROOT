@@ -49,6 +49,8 @@ session "UTP" in "utp" = "UTP-IMPORTS" +
     utp_designs
     utp_concurrency
     utp_reactive
+    utp_event
+    utp_csp
   document_files 
     "root.tex"
     "document.sty"

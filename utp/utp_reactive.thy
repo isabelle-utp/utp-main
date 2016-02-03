@@ -1,7 +1,9 @@
 section {* Reactive processes *}
 
 theory utp_reactive
-imports utp_concurrency
+imports 
+  utp_concurrency 
+  utp_event
 begin
 
 text {* Following the way of UTP to describe reactive processes, more observational
@@ -53,6 +55,21 @@ definition "ref  = VAR rp_ref"
 declare wait_def [upred_defs]
 declare tr_def [upred_defs]
 declare ref_def [upred_defs]
+
+instantiation alpha_rp_ext :: (type, vst) vst
+begin
+  definition get_vstore_alpha_rp_ext :: "('a, 'b) alpha_rp_ext \<Rightarrow> vstore"
+  where [simp]: "get_vstore_alpha_rp_ext x = get_vstore (alpha_rp.more (alpha_d.extend undefined x))"
+  definition upd_vstore_alpha_rp_ext :: "(vstore \<Rightarrow> vstore) \<Rightarrow> ('a, 'b) alpha_rp_ext \<Rightarrow> ('a, 'b) alpha_rp_ext"
+  where [simp]: "upd_vstore_alpha_rp_ext f x = alpha_d.more (alpha_rp.more_update (upd_vstore f) (alpha_d.extend undefined x))"
+instance
+  apply (intro_classes, auto simp add: upd_store_parm[THEN sym] alpha_rp.defs alpha_d.defs)
+  apply (metis (no_types, lifting) alpha_d.ext_inject alpha_d.surjective alpha_rp.select_convs(4) alpha_rp.surjective alpha_rp.update_convs(4) get_upd_vstore)
+  apply (smt alpha_d.select_convs(2) alpha_rp.surjective alpha_rp.update_convs(4) upd_vstore_comp)
+  apply (metis alpha_d.select_convs(2) alpha_rp.surjective alpha_rp.update_convs(4) upd_vstore_eta)
+  apply (metis alpha_rp.unfold_congs(5) upd_store_parm)
+done
+end
 
 lemma uvar_wait [simp]: "uvar wait"
   by (unfold_locales, simp_all add: wait_def)
