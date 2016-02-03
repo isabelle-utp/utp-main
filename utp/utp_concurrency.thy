@@ -16,15 +16,15 @@ record 'a partition =
   right_alpha :: "'a"
 
 definition design_par :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" (infixr "\<parallel>" 85) where
-"P \<parallel> Q = ((pre\<^sub>D(P) \<and> pre\<^sub>D(Q)) \<turnstile> (post\<^sub>D(P) \<and> post\<^sub>D(Q)))"
+"P \<parallel> Q = ((pre\<^sub>D(P) \<and> pre\<^sub>D(Q)) \<turnstile>\<^sub>r (post\<^sub>D(P) \<and> post\<^sub>D(Q)))"
 
 declare design_par_def [upred_defs]
 
 lemma parallel_zero: "P \<parallel> true = true"
 proof -
-  have "P \<parallel> true = (pre\<^sub>D(P) \<and> pre\<^sub>D(true)) \<turnstile> (post\<^sub>D(P) \<and> post\<^sub>D(true))"
+  have "P \<parallel> true = (pre\<^sub>D(P) \<and> pre\<^sub>D(true)) \<turnstile>\<^sub>r (post\<^sub>D(P) \<and> post\<^sub>D(true))"
     by (simp add: design_par_def)
-  also have "... = (pre\<^sub>D(P) \<and> false) \<turnstile> (post\<^sub>D(P) \<and> true)"
+  also have "... = (pre\<^sub>D(P) \<and> false) \<turnstile>\<^sub>r (post\<^sub>D(P) \<and> true)"
     by rel_tac
   also have "... = true"
     by rel_tac
@@ -40,7 +40,7 @@ lemma parallel_comm: "P \<parallel> Q = Q \<parallel> P"
 lemma parallel_idem: 
   assumes "P is H1" "P is H2"
   shows "P \<parallel> P = P"
-  by (metis H1_H2_is_design assms conj_idem design_par_def)
+  by (metis H1_H2_is_rdesign assms conj_idem design_par_def)
 
 text {* A merge relation is a design that describes how a partitioned state-space should be
         merged into a third state-space. For now the state-spaces for two merged processes

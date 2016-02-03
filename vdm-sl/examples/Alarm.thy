@@ -26,7 +26,7 @@ abbreviation
 
 text {* init_Plant establishes the invariant *}
 
-lemma init_Plant_est: "(true \<turnstile> \<lceil> \<lfloor> inv_Plant \<rfloor>\<^sub>v \<rceil>\<^sub>>) \<sqsubseteq> init_Plant"
+lemma init_Plant_est: "(true \<turnstile>\<^sub>r \<lceil> \<lfloor> inv_Plant \<rfloor>\<^sub>v \<rceil>\<^sub>>) \<sqsubseteq> init_Plant"
   by rel_tac
 
 abbreviation
@@ -39,10 +39,10 @@ abbreviation
                body schedule(&\<^sub>vp) :=\<^sub>v ({&\<^sub>ve}\<^sub>v \<union>\<^sub>v (&\<^sub>vschedule(&\<^sub>vp)\<^sub>v))]\<^sub>v"
 
 lemma Assign_pres_inv:
-  "Assign(e,p) \<sqsubseteq> \<lceil> \<lfloor> inv_Plant \<rfloor>\<^sub>v \<rceil>\<^sub>< \<turnstile> \<lceil> \<lfloor> inv_Plant \<rfloor>\<^sub>v \<rceil>\<^sub>>"
+  "Assign(e,p) \<sqsubseteq> \<lceil> \<lfloor> inv_Plant \<rfloor>\<^sub>v \<rceil>\<^sub>< \<turnstile>\<^sub>r \<lceil> \<lfloor> inv_Plant \<rfloor>\<^sub>v \<rceil>\<^sub>>"
   oops
 
-lemma "(\<lceil> \<lfloor> inv_Plant \<and>\<^sub>v \<guillemotleft>p\<guillemotright>\<^sub>v \<in>\<^sub>v dom\<^sub>v(&\<^sub>vschedule) \<rfloor>\<^sub>v \<rceil>\<^sub>< \<turnstile> \<lceil> \<lfloor> inv_Plant \<rfloor>\<^sub>v \<rceil>\<^sub>>)
+lemma "(\<lceil> \<lfloor> inv_Plant \<and>\<^sub>v \<guillemotleft>p\<guillemotright>\<^sub>v \<in>\<^sub>v dom\<^sub>v(&\<^sub>vschedule) \<rfloor>\<^sub>v \<rceil>\<^sub>< \<turnstile>\<^sub>r \<lceil> \<lfloor> inv_Plant \<rfloor>\<^sub>v \<rceil>\<^sub>>)
        \<sqsubseteq> (schedule(\<guillemotleft>p\<guillemotright>\<^sub>v) :=\<^sub>v ({\<guillemotleft>e\<guillemotright>\<^sub>v}\<^sub>v \<union>\<^sub>v (&\<^sub>vschedule(\<guillemotleft>p\<guillemotright>\<^sub>v)\<^sub>v)))"
        oops
 

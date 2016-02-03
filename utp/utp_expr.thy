@@ -194,6 +194,12 @@ syntax
   "_utuple"     :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('a * 'b, '\<alpha>) uexpr" ("(1'(_,/ _')\<^sub>u)")
   "_utuple_arg"  :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args" ("_")
   "_utuple_args" :: "('a, '\<alpha>) uexpr => utuple_args \<Rightarrow> utuple_args"     ("_,/ _")
+  "_ufst"       :: "('a \<times> 'b, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<pi>\<^sub>1'(_')")
+  "_usnd"       :: "('a \<times> 'b, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr" ("\<pi>\<^sub>2'(_')")
+  "_uapply"     :: "('a \<Rightarrow> 'b, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('b, '\<alpha>) uexpr" ("_\<lparr>_\<rparr>\<^sub>u" [999,0] 999)
+
+definition "fun_apply f x = f x"
+declare fun_apply_def [simp]
 
 translations
   "\<langle>\<rangle>"       == "\<guillemotleft>[]\<guillemotright>"
@@ -213,6 +219,18 @@ translations
   "x \<notin>\<^sub>u A"   == "CONST bop (op \<notin>) x A"
   "(x, y)\<^sub>u"  == "CONST bop (CONST Pair) x y"
   "_utuple x (_utuple_args y z)" == "_utuple x (_utuple_arg (_utuple y z))"
+  "\<pi>\<^sub>1(x)"    == "CONST uop CONST fst x"
+  "\<pi>\<^sub>2(x)"    == "CONST uop CONST snd x"
+  "f\<lparr>x\<rparr>\<^sub>u"    == "CONST bop CONST fun_apply f x"
+  "f\<lparr>x,y\<rparr>\<^sub>u"  == "CONST bop CONST fun_apply f (x,y)\<^sub>u"
+
+text {* Lifting set intervals *}
+
+syntax
+  "_uset_atLeastLessThan" :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("(1{_..<_}\<^sub>u)")
+
+translations
+  "{x..<y}\<^sub>u" == "CONST bop CONST atLeastLessThan x y"
 
 lemmas uexpr_defs =
   iuvar_def

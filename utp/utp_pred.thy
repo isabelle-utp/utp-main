@@ -50,10 +50,12 @@ text {* We set up two versions of each of the quantifiers: @{const uex} / @{cons
         for the HOL versions (achieved by the "bold" escape in Isabelle). *}
 
 syntax
-  "_uex"    :: "svar \<Rightarrow> logic \<Rightarrow> logic" ("\<exists> _ \<bullet> _" [0, 10] 10)
-  "_uall"   :: "svar \<Rightarrow> logic \<Rightarrow> logic" ("\<forall> _ \<bullet> _" [0, 10] 10)
-  "_ushEx"  :: "idt \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<exists> _ \<bullet> _" [0, 10] 10)
-  "_ushAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ \<bullet> _" [0, 10] 10)
+  "_uex"     :: "svar \<Rightarrow> logic \<Rightarrow> logic" ("\<exists> _ \<bullet> _" [0, 10] 10)
+  "_uall"    :: "svar \<Rightarrow> logic \<Rightarrow> logic" ("\<forall> _ \<bullet> _" [0, 10] 10)
+  "_ushEx"   :: "idt \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<exists> _ \<bullet> _" [0, 10] 10)
+  "_ushAll"  :: "idt \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ \<bullet> _" [0, 10] 10)
+  "_ushBEx"  :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<exists> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
+  "_ushBAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
 
 translations
   "\<exists> &x \<bullet> P"  => "CONST uex x P"
@@ -65,7 +67,9 @@ translations
   "\<forall> $x\<acute> \<bullet> P" == "CONST uall (CONST out_var x) P"
   "\<forall> x \<bullet> P"   == "CONST uall x P"
   "\<^bold>\<exists> x \<bullet> P"   == "CONST ushEx (\<lambda> x. P)"
+  "\<^bold>\<exists> x \<in> A \<bullet> P" => "\<^bold>\<exists> x \<bullet> \<guillemotleft>x\<guillemotright> \<in>\<^sub>u A \<and> P"
   "\<^bold>\<forall> x \<bullet> P"   == "CONST ushAll (\<lambda> x. P)"
+  "\<^bold>\<forall> x \<in> A \<bullet> P" => "\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> \<in>\<^sub>u A \<Rightarrow> P"
 
 subsection {* Predicate operators *}
 

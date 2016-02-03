@@ -40,7 +40,7 @@ theorem wp_conj [wp]:
 theorem wp_seq_r [wp]: "(P ;; Q) wp r = P wp (Q wp r)"
   by rel_tac
 
-theorem wp_cond [wp]: "(P \<triangleleft> b \<triangleright> Q) wp r = ((b \<Rightarrow> P wp r) \<and> ((\<not> b) \<Rightarrow> Q wp r))"
+theorem wp_cond [wp]: "(P \<triangleleft> b \<triangleright>\<^sub>r Q) wp r = ((b \<Rightarrow> P wp r) \<and> ((\<not> b) \<Rightarrow> Q wp r))"
   by rel_tac
 
 end

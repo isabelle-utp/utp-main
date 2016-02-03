@@ -43,14 +43,25 @@ lift_definition lift_desr :: "('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<a
 lift_definition drop_desr :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("\<lfloor>_\<rfloor>\<^sub>D") is
 "\<lambda> P (A, A'). P (\<lparr> des_ok = True, \<dots> = A \<rparr>, \<lparr> des_ok = True, \<dots> = A' \<rparr>)" .
 
-definition design::"('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" (infixl "\<turnstile>" 60)
-where "(P \<turnstile> Q) = ($ok \<and> \<lceil>P\<rceil>\<^sub>D \<Rightarrow> $ok\<acute> \<and> \<lceil>Q\<rceil>\<^sub>D)" 
+definition design::"('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" (infixl "\<turnstile>" 60)
+where "P \<turnstile> Q = ($ok \<and> P \<Rightarrow> $ok\<acute> \<and> Q)"
+
+text {* An rdesign is a design that uses the Isabelle type system to prevent reference to ok in the
+        assumption and commitment. *}
+
+definition rdesign::"('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" (infixl "\<turnstile>\<^sub>r" 60)
+where "(P \<turnstile>\<^sub>r Q) = \<lceil>P\<rceil>\<^sub>D \<turnstile> \<lceil>Q\<rceil>\<^sub>D" 
+
+text {* An ndesign is a normal design, i.e. where the assumption is a condition *}
+
+definition ndesign::"'\<alpha> condition \<Rightarrow> ('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" (infixl "\<turnstile>\<^sub>n" 60)
+where "(p \<turnstile>\<^sub>n Q) = (\<lceil>p\<rceil>\<^sub>< \<turnstile>\<^sub>r Q)"
 
 definition skip_d :: "'\<alpha> hrelation_d" ("II\<^sub>D")
-where "II\<^sub>D \<equiv> (true \<turnstile> II)"
+where "II\<^sub>D \<equiv> (true \<turnstile>\<^sub>r II)"
 
 definition assigns_d :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d" 
-where "assigns_d \<sigma> = (true \<turnstile> assigns_r \<sigma>)"
+where "assigns_d \<sigma> = (true \<turnstile>\<^sub>r assigns_r \<sigma>)"
 
 text {* At some point assignment should be generalised to multiple variables and maybe also
         for selectors. *}
@@ -85,6 +96,7 @@ definition wp_design :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> '\<beta>
 "Q wp\<^sub>D r = (\<lfloor>pre\<^sub>D(Q) ;; true\<rfloor>\<^sub>< \<and> (post\<^sub>D(Q) wp r))"
 
 declare design_def [upred_defs]
+declare rdesign_def [upred_defs]
 declare skip_d_def [upred_defs]
 declare J_def [upred_defs]
 declare pre_design_def [upred_defs]
@@ -99,11 +111,40 @@ declare H4_def [upred_defs]
 lemma drop_desr_inv [simp]: "\<lfloor>\<lceil>P\<rceil>\<^sub>D\<rfloor>\<^sub>D = P"
   by (transfer, simp)
 
+lemma lift_desr_inv:
+  "\<lbrakk> $ok \<sharp> P; $ok\<acute> \<sharp> P \<rbrakk> \<Longrightarrow> \<lceil>\<lfloor>P\<rfloor>\<^sub>D\<rceil>\<^sub>D = P"
+  apply (rel_tac)
+  apply (rename_tac P a b)
+  apply (drule_tac x="a" in spec)
+  apply (drule_tac x="b" in spec)
+  apply (drule_tac x="\<lambda> _. True" in spec)
+  apply (metis alpha_d.surjective alpha_d.update_convs(1))
+  apply (drule_tac x="a" in spec)
+  apply (drule_tac x="b" in spec)
+  apply (drule_tac x="\<lambda> _. True" in spec)
+  apply (metis alpha_d.surjective alpha_d.update_convs(1))
+done
+
 subsection {* Design laws *}
 
 lemma lift_desr_unrest_ok [unrest]:
   "$ok \<sharp> \<lceil>P\<rceil>\<^sub>D" "$ok\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>D"
   by (transfer, simp add: ok_def)+
+
+lemma unrest_out_des_lift [unrest]: "out\<alpha> \<sharp> p \<Longrightarrow> out\<alpha> \<sharp> \<lceil>p\<rceil>\<^sub>D"
+  apply (pred_tac)
+  apply (auto simp add: out\<alpha>_def)
+  apply (rename_tac p b v x)
+  apply (drule_tac x="alpha_d.more x" in spec)
+  apply (drule_tac x="alpha_d.more b" in spec)
+  apply (drule_tac x="\<lambda> _. alpha_d.more (v b)" in spec)
+  apply (simp)
+  apply (rename_tac p b v x)
+  apply (drule_tac x="alpha_d.more x" in spec)
+  apply (drule_tac x="alpha_d.more b" in spec)
+  apply (drule_tac x="\<lambda> _. alpha_d.more (v b)" in spec)
+  apply (simp)
+done
 
 lemma lift_dists [simp]:
   "\<lceil>true\<rceil>\<^sub>D = true"
@@ -124,10 +165,16 @@ lemma design_refine:
 theorem design_ok_false [usubst]: "(P \<turnstile> Q)\<lbrakk>false/$ok\<rbrakk> = true"
   by (simp add: design_def usubst)
 
-theorem design_pre [simp]: "pre\<^sub>D(P \<turnstile> Q) = P"
+theorem design_pre: 
+  "$ok\<acute> \<sharp> P \<Longrightarrow> \<not> (P \<turnstile> Q)\<^sup>f = ($ok \<and> P\<^sup>f)"
+  by (simp add: design_def, subst_tac)
+     (metis (no_types, hide_lams) not_conj_deMorgans true_not_false(2) utp_pred.compl_top_eq 
+            utp_pred.sup.idem utp_pred.sup_compl_top var_in_var)
+
+theorem rdesign_pre [simp]: "pre\<^sub>D(P \<turnstile>\<^sub>r Q) = P"
   by pred_tac
 
-theorem design_post [simp]: "post\<^sub>D(P \<turnstile> Q) = (P \<Rightarrow> Q)"
+theorem design_post [simp]: "post\<^sub>D(P \<turnstile>\<^sub>r Q) = (P \<Rightarrow> Q)"
   by pred_tac
 
 theorem design_true_left_zero: "(true ;; (P \<turnstile> Q)) = true"
@@ -144,8 +191,10 @@ proof -
 qed
   
 theorem design_composition:
-  "((P1 \<turnstile> Q1) ;; (P2 \<turnstile> Q2)) = (((\<not> ((\<not> P1) ;; true)) \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile> (Q1 ;; Q2))"
-  using assms
+  assumes 
+    "$ok \<sharp> P1" "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2" "$ok\<acute> \<sharp> P2"
+    "$ok \<sharp> Q1" "$ok\<acute> \<sharp> Q1" "$ok \<sharp> Q2" "$ok\<acute> \<sharp> Q2"
+  shows "((P1 \<turnstile> Q1) ;; (P2 \<turnstile> Q2)) = (((\<not> ((\<not> P1) ;; true)) \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile> (Q1 ;; Q2))"
 proof -
   have "((P1 \<turnstile> Q1) ;; (P2 \<turnstile> Q2)) = (\<^bold>\<exists> ok\<^sub>0 \<bullet> ((P1 \<turnstile> Q1)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<acute>\<rbrakk> ;; (P2 \<turnstile> Q2)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<rbrakk>))"
     by (rule seqr_middle, simp)
@@ -154,49 +203,77 @@ proof -
             \<or> ((P1 \<turnstile> Q1)\<lbrakk>true/$ok\<acute>\<rbrakk> ;; (P2 \<turnstile> Q2)\<lbrakk>true/$ok\<rbrakk>))"
     by (simp add: true_alt_def false_alt_def, pred_tac)
   also from assms
-  have "... = ((($ok \<and> \<lceil>P1\<rceil>\<^sub>D \<Rightarrow> \<lceil>Q1\<rceil>\<^sub>D) ;; (\<lceil>P2\<rceil>\<^sub>D \<Rightarrow> $ok\<acute> \<and> \<lceil>Q2\<rceil>\<^sub>D)) \<or> ((\<not> ($ok \<and> \<lceil>P1\<rceil>\<^sub>D)) ;; true))"
+  have "... = ((($ok \<and> P1 \<Rightarrow> Q1) ;; (P2 \<Rightarrow> $ok\<acute> \<and> Q2)) \<or> ((\<not> ($ok \<and> P1)) ;; true))"
     by (simp add: design_def usubst unrest, pred_tac)
-  also have "... = ((\<not>$ok ;; true\<^sub>h) \<or> (\<not>\<lceil>P1\<rceil>\<^sub>D ;; true) \<or> (\<lceil>Q1\<rceil>\<^sub>D ;; \<not>\<lceil>P2\<rceil>\<^sub>D) \<or> ($ok\<acute> \<and> (\<lceil>Q1\<rceil>\<^sub>D ;; \<lceil>Q2\<rceil>\<^sub>D)))"
+  also have "... = ((\<not>$ok ;; true\<^sub>h) \<or> (\<not>P1 ;; true) \<or> (Q1 ;; \<not>P2) \<or> ($ok\<acute> \<and> (Q1 ;; Q2)))"
     by (rel_tac)
   also have "... = (\<not> (\<not> P1 ;; true) \<and> \<not> (Q1 ;; \<not> P2)) \<turnstile> (Q1 ;; Q2)"
     by (simp add: precond_right_unit design_def unrest, rel_tac)
   finally show ?thesis .
 qed
 
+theorem rdesign_composition:
+  "((P1 \<turnstile>\<^sub>r Q1) ;; (P2 \<turnstile>\<^sub>r Q2)) = (((\<not> ((\<not> P1) ;; true)) \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile>\<^sub>r (Q1 ;; Q2))"
+  by (simp add: rdesign_def design_composition unrest)
+
+lemma skip_d_alt_def: "II\<^sub>D = true \<turnstile> II"
+  by (rel_tac)
+
 theorem design_skip_idem [simp]:
   "(II\<^sub>D ;; II\<^sub>D) = II\<^sub>D"
   by (simp add: skip_d_def urel_defs, pred_tac)
 
 theorem design_composition_cond:
-  assumes "out\<alpha> \<sharp> p1"
+  assumes 
+    "$ok \<sharp> p1" "out\<alpha> \<sharp> p1" "$ok \<sharp> P2" "$ok\<acute> \<sharp> P2"
+    "$ok \<sharp> Q1" "$ok\<acute> \<sharp> Q1" "$ok \<sharp> Q2" "$ok\<acute> \<sharp> Q2"
   shows "((p1 \<turnstile> Q1) ;; (P2 \<turnstile> Q2)) = ((p1 \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile> (Q1 ;; Q2))"
   using assms
   by (simp add: design_composition unrest precond_right_unit)
 
+theorem rdesign_composition_cond:
+  assumes "out\<alpha> \<sharp> p1"
+  shows "((p1 \<turnstile>\<^sub>r Q1) ;; (P2 \<turnstile>\<^sub>r Q2)) = ((p1 \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile>\<^sub>r (Q1 ;; Q2))"
+  using assms
+  by (simp add: rdesign_def design_composition_cond unrest)
+  
+
 theorem design_composition_wp:
-  fixes Q1 Q2 :: "'\<alpha> hrelation"
+  fixes Q1 Q2 :: "'a hrelation_d"
+  assumes 
+    "ok \<sharp> p1" "ok \<sharp> p2"
+    "$ok \<sharp> Q1" "$ok\<acute> \<sharp> Q1" "$ok \<sharp> Q2" "$ok\<acute> \<sharp> Q2"
   shows "((\<lceil>p1\<rceil>\<^sub>< \<turnstile> Q1) ;; (\<lceil>p2\<rceil>\<^sub>< \<turnstile> Q2)) = ((\<lceil>p1 \<and> Q1 wp p2\<rceil>\<^sub><) \<turnstile> (Q1 ;; Q2))"
   using assms
   by (simp add: design_composition_cond unrest, rel_tac)
 
-theorem design_wp [wp]:
-  "(\<lceil>p\<rceil>\<^sub>< \<turnstile> Q) wp\<^sub>D r = (p \<and> Q wp r)"
+theorem rdesign_composition_wp:
+  fixes Q1 Q2 :: "'a hrelation"
+  shows "((\<lceil>p1\<rceil>\<^sub>< \<turnstile>\<^sub>r Q1) ;; (\<lceil>p2\<rceil>\<^sub>< \<turnstile>\<^sub>r Q2)) = ((\<lceil>p1 \<and> Q1 wp p2\<rceil>\<^sub><) \<turnstile>\<^sub>r (Q1 ;; Q2))"
+  by (simp add: rdesign_composition_cond unrest, rel_tac)
+
+theorem rdesign_wp [wp]:
+  "(\<lceil>p\<rceil>\<^sub>< \<turnstile>\<^sub>r Q) wp\<^sub>D r = (p \<and> Q wp r)"
   by rel_tac
 
 theorem wpd_seq_r:
   fixes Q1 Q2 :: "'\<alpha> hrelation"
-  shows "(\<lceil>p1\<rceil>\<^sub>< \<turnstile> Q1 ;; \<lceil>p2\<rceil>\<^sub>< \<turnstile> Q2) wp\<^sub>D r = (\<lceil>p1\<rceil>\<^sub>< \<turnstile> Q1) wp\<^sub>D ((\<lceil>p2\<rceil>\<^sub>< \<turnstile> Q2) wp\<^sub>D r)"
-  by (simp add: design_composition_wp wp, rel_tac)
+  shows "(\<lceil>p1\<rceil>\<^sub>< \<turnstile>\<^sub>r Q1 ;; \<lceil>p2\<rceil>\<^sub>< \<turnstile>\<^sub>r Q2) wp\<^sub>D r = (\<lceil>p1\<rceil>\<^sub>< \<turnstile>\<^sub>r Q1) wp\<^sub>D ((\<lceil>p2\<rceil>\<^sub>< \<turnstile>\<^sub>r Q2) wp\<^sub>D r)"
+  apply (simp add: wp)
+  apply (subst rdesign_composition_wp)
+  apply (simp only: wp)
+  apply (rel_tac)
+done
 
 theorem design_left_unit [simp]:
-  "(II\<^sub>D ;; P \<turnstile> Q) = (P \<turnstile> Q)"
+  "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
   by (simp add: skip_d_def urel_defs, pred_tac)
 
 theorem design_right_cond_unit [simp]:
   assumes "out\<alpha> \<sharp> p"
-  shows "(p \<turnstile> Q ;; II\<^sub>D) = (p \<turnstile> Q)"
+  shows "(p \<turnstile>\<^sub>r Q ;; II\<^sub>D) = (p \<turnstile>\<^sub>r Q)"
   using assms
-  by (simp add: skip_d_def design_composition_cond)
+  by (simp add: skip_d_def rdesign_composition_cond)
 
 lemma lift_des_skip_dr_unit [simp]:
   "(\<lceil>P\<rceil>\<^sub>D ;; \<lceil>II\<rceil>\<^sub>D) = \<lceil>P\<rceil>\<^sub>D"
@@ -361,9 +438,14 @@ lemma H2_equiv:
   using H2_equivalence refBy_order by blast
 
 lemma H2_design:
-  "H2(P \<turnstile> Q) = P \<turnstile> Q"
+  assumes "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$ok \<sharp> Q" "$ok\<acute> \<sharp> Q"
+  shows "H2(P \<turnstile> Q) = P \<turnstile> Q"
   using assms
   by (simp add: H2_split design_def usubst unrest, pred_tac)
+
+lemma H2_rdesign:
+  "H2(P \<turnstile>\<^sub>r Q) = P \<turnstile>\<^sub>r Q"
+  by (simp add: H2_design unrest rdesign_def)
 
 theorem J_idem:
   "(J ;; J) = J"
@@ -408,9 +490,9 @@ lemma ok_pre: "($ok \<and> \<lceil>pre\<^sub>D(P)\<rceil>\<^sub>D) = ($ok \<and>
 lemma ok_post: "($ok \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>D) = ($ok \<and> (P\<^sup>t))"
   by (pred_tac, metis (full_types) alpha_d.surjective alpha_d.update_convs(1))+
 
-theorem H1_H2_is_design:
+theorem H1_H2_is_rdesign:
   assumes "P is H1" "P is H2"
-  shows "P = pre\<^sub>D(P) \<turnstile> post\<^sub>D(P)"
+  shows "P = pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P)"
 proof -
   from assms have "P = ($ok \<Rightarrow> H2(P))"
     by (simp add: H1_def Healthy_def')
@@ -424,8 +506,8 @@ proof -
     by (simp add: ok_post ok_pre)
   also have "... = ($ok \<and> \<lceil>pre\<^sub>D(P)\<rceil>\<^sub>D \<Rightarrow> $ok\<acute> \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>D)"
     by pred_tac
-  also from assms have "... =  pre\<^sub>D(P) \<turnstile> post\<^sub>D(P)"
-    by (simp add: design_def)
+  also from assms have "... =  pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P)"
+    by (simp add: rdesign_def design_def)
   finally show ?thesis .
 qed
 
@@ -437,24 +519,36 @@ theorem H3_idem:
   "H3(H3(P)) = H3(P)"
   by (metis H3_def design_skip_idem seqr_assoc)
 
-theorem H3_iff_pre: 
-  "P \<turnstile> Q is H3 \<longleftrightarrow> P = (P ;; true)"
+theorem rdesign_H3_iff_pre: 
+  "P \<turnstile>\<^sub>r Q is H3 \<longleftrightarrow> P = (P ;; true)"
 proof -
-  have "(P \<turnstile> Q ;; II\<^sub>D) = (P \<turnstile> Q ;; true \<turnstile> II)"
+  have "(P \<turnstile>\<^sub>r Q ;; II\<^sub>D) = (P \<turnstile>\<^sub>r Q ;; true \<turnstile>\<^sub>r II)"
     by (simp add: skip_d_def)
-  also have "... = (\<not> (\<not> P ;; true) \<and> \<not> (Q ;; \<not> true)) \<turnstile> (Q ;; II)"
-    by (fact design_composition)
-  also have "... = (\<not> (\<not> P ;; true) \<and> \<not> (Q ;; \<not> true)) \<turnstile> Q"
+  also from assms have "... = (\<not> (\<not> P ;; true) \<and> \<not> (Q ;; \<not> true)) \<turnstile>\<^sub>r (Q ;; II)"
+    by (simp add: rdesign_composition)
+  also from assms have "... = (\<not> (\<not> P ;; true) \<and> \<not> (Q ;; \<not> true)) \<turnstile>\<^sub>r Q"
     by simp
-  also have "... = (\<not> (\<not> P ;; true)) \<turnstile> Q"
+  also have "... = (\<not> (\<not> P ;; true)) \<turnstile>\<^sub>r Q"
     by pred_tac
-  finally have "P \<turnstile> Q is H3 \<longleftrightarrow> P \<turnstile> Q = (\<not> (\<not> P ;; true)) \<turnstile> Q"
+  finally have "P \<turnstile>\<^sub>r Q is H3 \<longleftrightarrow> P \<turnstile>\<^sub>r Q = (\<not> (\<not> P ;; true)) \<turnstile>\<^sub>r Q"
     by (metis H3_def Healthy_def')
   also have "... \<longleftrightarrow> P = (\<not> (\<not> P ;; true))"
-    by (metis design_pre)
+    by (metis rdesign_pre)
   also have "... \<longleftrightarrow> P = (P ;; true)"
     by (simp add: seqr_true_lemma)
   finally show ?thesis .
+qed
+
+theorem design_H3_iff_pre: 
+  assumes "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$ok \<sharp> Q" "$ok\<acute> \<sharp> Q"
+  shows "P \<turnstile> Q is H3 \<longleftrightarrow> P = (P ;; true)"
+proof -
+  have "P \<turnstile> Q = \<lfloor>P\<rfloor>\<^sub>D \<turnstile>\<^sub>r \<lfloor>Q\<rfloor>\<^sub>D"
+    by (simp add: assms lift_desr_inv rdesign_def)
+  moreover hence "\<lfloor>P\<rfloor>\<^sub>D \<turnstile>\<^sub>r \<lfloor>Q\<rfloor>\<^sub>D is H3 \<longleftrightarrow> \<lfloor>P\<rfloor>\<^sub>D = (\<lfloor>P\<rfloor>\<^sub>D ;; true)"
+    using rdesign_H3_iff_pre by blast
+  ultimately show ?thesis
+    by (metis assms drop_desr_inv lift_desr_inv lift_dist_seq lift_dists(1))
 qed
 
 theorem H1_H3_commute:
@@ -463,20 +557,20 @@ theorem H1_H3_commute:
 
 lemma skip_d_absorb_J_1:
   "(II\<^sub>D ;; J) = II\<^sub>D"
-  by (metis H2_def H2_design skip_d_def)
+  by (metis H2_def H2_rdesign skip_d_def)
 
 lemma skip_d_absorb_J_2:
   "(J ;; II\<^sub>D) = II\<^sub>D"
 proof -
   have "(J ;; II\<^sub>D) = (($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D ;; true \<turnstile> II)"
-    by (simp add: J_def skip_d_def)
+    by (simp add: J_def skip_d_alt_def)
   also have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> (($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<acute>\<rbrakk> ;; (true \<turnstile> II)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<rbrakk>)"
     by (subst seqr_middle[of ok], simp_all)
   also have "... = (((($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D)\<lbrakk>false/$ok\<acute>\<rbrakk> ;; (true \<turnstile> II)\<lbrakk>false/$ok\<rbrakk>)
                   \<or> ((($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D)\<lbrakk>true/$ok\<acute>\<rbrakk> ;; (true \<turnstile> II)\<lbrakk>true/$ok\<rbrakk>))"
     by (simp add: disj_comm false_alt_def true_alt_def)
   also have "... = ((\<not> $ok \<and> \<lceil>II\<rceil>\<^sub>D ;; true) \<or> (\<lceil>II\<rceil>\<^sub>D ;; $ok\<acute> \<and> \<lceil>II\<rceil>\<^sub>D))"
-    by (simp add: usubst unrest design_def iuvar_def ouvar_def)
+    by (simp add: usubst unrest design_def iuvar_def ouvar_def, rel_tac)
   also have "... = II\<^sub>D"
     by rel_tac
   finally show ?thesis .
@@ -495,20 +589,26 @@ theorem H2_H3_commute:
   by (simp add: H2_H3_absorb H3_H2_absorb)
 
 theorem H3_design_pre:
-  assumes "out\<alpha> \<sharp> p"
+  assumes "$ok \<sharp> p" "out\<alpha> \<sharp> p" "$ok \<sharp> Q" "$ok\<acute> \<sharp> Q"
   shows "H3(p \<turnstile> Q) = p \<turnstile> Q"
-  using assms 
+  using assms
+  by (metis Healthy_def' design_H3_iff_pre precond_right_unit unrest_out\<alpha>_var uvar_ok) 
+
+theorem H3_rdesign_pre:
+  assumes "out\<alpha> \<sharp> p"
+  shows "H3(p \<turnstile>\<^sub>r Q) = p \<turnstile>\<^sub>r Q"
+  using assms
   by (simp add: H3_def)
 
-theorem H1_H3_is_design:
+theorem H1_H3_is_rdesign:
   assumes "P is H1" "P is H3"
-  shows "P = pre\<^sub>D(P) \<turnstile> post\<^sub>D(P)"
-  by (metis H1_H2_is_design H2_H3_absorb Healthy_def' assms)
+  shows "P = pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P)"
+  by (metis H1_H2_is_rdesign H2_H3_absorb Healthy_def' assms)
 
 theorem H1_H3_is_normal_design:
   assumes "P is H1" "P is H3"
-  shows "P = \<lceil>\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub><\<rceil>\<^sub>< \<turnstile> post\<^sub>D(P)"
-  by (metis H1_H3_is_design H3_iff_pre assms(1) assms(2) drop_pre_inv precond_equiv)
+  shows "P = \<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P)"
+  by (metis H1_H3_is_rdesign assms drop_pre_inv ndesign_def precond_equiv rdesign_H3_iff_pre)
 
 abbreviation "H1_H3 p \<equiv> H1 (H3 p)"
 
@@ -516,7 +616,7 @@ theorem wpd_seq_r_H1_H2 [wp]:
   fixes P Q :: "'\<alpha> hrelation_d"
   assumes "P is H1_H3" "Q is H1_H3"
   shows "(P ;; Q) wp\<^sub>D r = P wp\<^sub>D (Q wp\<^sub>D r)"
-  by (metis (no_types, lifting) H1_H3_commute H1_H3_is_normal_design H1_idem Healthy_def' assms(1) assms(2) wpd_seq_r)
+  by (smt H1_H3_commute H1_H3_is_rdesign H1_idem Healthy_def' assms(1) assms(2) drop_pre_inv precond_equiv rdesign_H3_iff_pre wpd_seq_r)
 
 subsection {* H4: Feasibility *}
 

@@ -26,9 +26,13 @@ type_synonym '\<alpha> condition       = "'\<alpha> upred"
 type_synonym ('\<alpha>, '\<beta>) relation  = "('\<alpha> \<times> '\<beta>) upred"
 type_synonym '\<alpha> hrelation       = "('\<alpha> \<times> '\<alpha>) upred"
 
-definition cond::"('\<alpha>,  '\<beta>) relation \<Rightarrow> '\<alpha> condition \<Rightarrow> ('\<alpha>,  '\<beta>) relation \<Rightarrow> ('\<alpha>,  '\<beta>) relation" 
+definition cond::"('\<alpha>,  '\<beta>) relation \<Rightarrow> ('\<alpha>,  '\<beta>) relation \<Rightarrow> ('\<alpha>,  '\<beta>) relation \<Rightarrow> ('\<alpha>,  '\<beta>) relation" 
                                                           ("(3_ \<triangleleft> _ \<triangleright> / _)" [14,0,15] 14)
-where " (P \<triangleleft> b \<triangleright> Q) \<equiv> (\<lceil>b\<rceil>\<^sub>< \<and> P) \<or> ((\<not> \<lceil>b\<rceil>\<^sub><) \<and> Q)"
+where "(P \<triangleleft> b \<triangleright> Q) \<equiv> (b \<and> P) \<or> ((\<not> b) \<and> Q)"
+
+abbreviation rcond::"('\<alpha>,  '\<beta>) relation \<Rightarrow> '\<alpha> condition \<Rightarrow> ('\<alpha>,  '\<beta>) relation \<Rightarrow> ('\<alpha>,  '\<beta>) relation" 
+                                                          ("(3_ \<triangleleft> _ \<triangleright>\<^sub>r / _)" [14,0,15] 14)
+where "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<equiv> (P \<triangleleft> \<lceil>b\<rceil>\<^sub>< \<triangleright> Q)"
 
 lift_definition seqr::"(('\<alpha> \<times> '\<beta>) upred) \<Rightarrow> (('\<beta> \<times> '\<gamma>) upred) \<Rightarrow> ('\<alpha> \<times> '\<gamma>) upred"
 is "\<lambda> P Q r. r : ({p. P p} O {q. Q q})" .
@@ -110,6 +114,14 @@ lemma unrest_pre_out\<alpha> [unrest]: "out\<alpha> \<sharp> \<lceil>b\<rceil>\<
 lemma unrest_post_in\<alpha> [unrest]: "in\<alpha> \<sharp> \<lceil>b\<rceil>\<^sub>>"
   by (transfer, auto simp add: in\<alpha>_def)
 
+lemma unrest_pre_in_var [unrest]: 
+  "x \<sharp> p1 \<Longrightarrow> $x \<sharp> \<lceil>p1\<rceil>\<^sub><"
+  by (transfer, simp)
+
+lemma unrest_post_out_var [unrest]: 
+  "x \<sharp> p1 \<Longrightarrow> $x\<acute> \<sharp> \<lceil>p1\<rceil>\<^sub>>"
+  by (transfer, simp)
+
 lemma unrest_convr_out\<alpha> [unrest]: 
   "in\<alpha> \<sharp> p \<Longrightarrow> out\<alpha> \<sharp> p\<^sup>-"
   by (transfer, auto simp add: in\<alpha>_def out\<alpha>_def)
@@ -158,6 +170,26 @@ lemma usubst_seq_right [usubst]:
   apply (drule_tac x="\<lambda>_.y" in spec)
   apply (simp)
 done
+
+subsection {* Lifting laws *}
+
+lemma lift_pre_conj [ulift]: "\<lceil>p \<and> q\<rceil>\<^sub>< = (\<lceil>p\<rceil>\<^sub>< \<and> \<lceil>q\<rceil>\<^sub><)"
+  by (pred_tac)
+
+lemma lift_post_conj [ulift]: "\<lceil>p \<and> q\<rceil>\<^sub>> = (\<lceil>p\<rceil>\<^sub>> \<and> \<lceil>q\<rceil>\<^sub>>)"
+  by (pred_tac)
+
+lemma lift_pre_disj [ulift]: "\<lceil>p \<or> q\<rceil>\<^sub>< = (\<lceil>p\<rceil>\<^sub>< \<or> \<lceil>q\<rceil>\<^sub><)"
+  by (pred_tac)
+
+lemma lift_post_disj [ulift]: "\<lceil>p \<or> q\<rceil>\<^sub>> = (\<lceil>p\<rceil>\<^sub>> \<or> \<lceil>q\<rceil>\<^sub>>)"
+  by (pred_tac)
+
+lemma lift_pre_not [ulift]: "\<lceil>\<not> p\<rceil>\<^sub>< = (\<not> \<lceil>p\<rceil>\<^sub><)"
+  by (pred_tac)
+
+lemma lift_post_not [ulift]: "\<lceil>\<not> p\<rceil>\<^sub>> = (\<not> \<lceil>p\<rceil>\<^sub>>)"
+  by (pred_tac)
 
 subsection {* Relation laws *}
 
@@ -226,7 +258,7 @@ lemma cond_eq_distr:
 "((P \<Leftrightarrow> Q) \<triangleleft> b \<triangleright> (R \<Leftrightarrow> S)) = ((P \<triangleleft> b \<triangleright> R) \<Leftrightarrow> (Q \<triangleleft> b \<triangleright> S))" by rel_tac
 
 lemma comp_cond_left_distr:
-  "((P \<triangleleft> b \<triangleright> Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright> (Q ;; R))"
+  "((P \<triangleleft> b \<triangleright>\<^sub>r Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright>\<^sub>r (Q ;; R))"
   by rel_tac
 
 text {* These laws may seem to duplicate quantale laws, but they don't -- they are
@@ -478,7 +510,7 @@ proof -
 qed
     
 theorem while_unfold:
-  "while b do P od = ((P ;; while b do P od) \<triangleleft> b \<triangleright> II)"
+  "while b do P od = ((P ;; while b do P od) \<triangleleft> b \<triangleright>\<^sub>r II)"
   by (metis (no_types, hide_lams) bounded_semilattice_sup_bot_class.sup_bot.left_neutral comp_cond_left_distr cond_def cond_idem disj_comm disj_upred_def seqr_right_zero upred_quantale.bot_zerol utp_pred.inf_bot_right utp_pred.inf_commute while_cond_false while_cond_true)
 
 end

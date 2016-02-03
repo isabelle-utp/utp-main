@@ -22,6 +22,10 @@ is "\<lambda> p (A, A'). p A'" .
 abbreviation drop_post :: "('a, '\<alpha> \<times> '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<lfloor>_\<rfloor>\<^sub>>")
 where "\<lfloor>b\<rfloor>\<^sub>> \<equiv> \<lfloor>b\<rfloor>\<^sub><"
 
+named_theorems ulift
+
+method ulift_tac = (simp add: ulift)?
+
 subsection {* Lifting laws *}
 
 lemma lift_pre_var [simp]:

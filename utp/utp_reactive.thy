@@ -69,7 +69,15 @@ alphabets. *}
 
 type_synonym ('\<theta>,'\<alpha>) alphabet_rp  = "('\<theta>,'\<alpha>) alpha_rp_scheme alphabet"
 type_synonym ('\<theta>,'\<alpha>,'\<beta>) relation_rp  = "(('\<theta>,'\<alpha>) alphabet_rp, ('\<theta>,'\<beta>) alphabet_rp) relation"
+type_synonym ('\<theta>,'\<alpha>) hrelation_rp  = "(('\<theta>,'\<alpha>) alphabet_rp, ('\<theta>,'\<alpha>) alphabet_rp) relation"
 type_synonym ('\<theta>,'\<sigma>) predicate_rp  = "('\<theta>,'\<sigma>) alphabet_rp upred"
+
+lift_definition lift_rea :: "('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("\<lceil>_\<rceil>\<^sub>R") is
+"\<lambda> P (A, A'). P (more A, more A')" .
+
+lift_definition drop_rea :: "('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("\<lfloor>_\<rfloor>\<^sub>R") is
+"\<lambda> P (A, A'). P (\<lparr> des_ok = True, rp_wait = True, rp_tr = [], rp_ref = {}, \<dots> = A \<rparr>, 
+                 \<lparr> des_ok = True, rp_wait = True, rp_tr = [], rp_ref = {}, \<dots> = A' \<rparr>)" .
 
 definition R1_def [upred_defs]: "R1 (P) =  (P \<and> ($tr \<le>\<^sub>u $tr\<acute>))"
 
@@ -79,9 +87,9 @@ definition skip_rea_def [urel_defs]: "II\<^sub>r = (II \<or> (\<not> $ok \<and> 
 
 text {* There are two versions of R3 in the UTP book. Here we opt for the version that works for CSP *}
 
-definition R3_def [urel_defs]: "R3c (P) = (II\<^sub>r \<triangleleft> &wait \<triangleright> P)"
+definition R3_def [urel_defs]: "R3c (P) = (II\<^sub>r \<triangleleft> $wait \<triangleright> P)"
 
-definition "R(P) = R1(R2(R3c(P)))"
+definition "RH(P) = R1(R2(R3c(P)))"
 
 lemma R1_idem: "R1(R1(P)) = R1(P)"
   by pred_tac

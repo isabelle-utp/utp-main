@@ -590,7 +590,7 @@ consts
   vassign :: "'v \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d"
 
 definition vassign_uvar :: "('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d" where
-"vassign_uvar x v = (\<lceil> \<lfloor> \<D>\<^sub>v(v) \<rfloor>\<^sub>v \<rceil>\<^sub>< \<turnstile> (x := \<lfloor>v\<rfloor>\<^sub>v))"
+"vassign_uvar x v = (\<lceil> \<lfloor> \<D>\<^sub>v(v) \<rfloor>\<^sub>v \<rceil>\<^sub>< \<turnstile>\<^sub>r (x := \<lfloor>v\<rfloor>\<^sub>v))"
 
 definition vassign_dvar :: "'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) vexpr \<Rightarrow> '\<alpha> hrelation_d" where
 "vassign_dvar x v = vassign_uvar (x\<up>) v"
@@ -621,7 +621,7 @@ translations
 lemma H1_H3_vdm_assign [simp]:
   fixes x :: "('a, '\<alpha>) uvar" 
   shows "(x :=\<^sub>v v) is H1_H3"
-  by (metis H1_algebraic_intro H3_design_pre Healthy_def' design_left_unit design_true_left_zero unrest_pre_out\<alpha> vassign_uvar_def)
+  by (metis H1_algebraic_intro H3_rdesign_pre Healthy_def' design_left_unit design_true_left_zero rdesign_def unrest_pre_out\<alpha> vassign_uvar_def)
 
 lemma hd_nil_abort: 
   fixes x :: "('a, '\<alpha>) uvar"
@@ -647,10 +647,10 @@ subsection {* VDM-SL operations *}
 
 definition vdm_sl_op :: "(bool, '\<alpha> \<times> '\<alpha>) vexpr \<Rightarrow> (bool, '\<alpha> \<times> '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d \<Rightarrow> '\<alpha> hrelation_d"
   ("[pre _ post _ body _]\<^sub>v")
-where "[pre pr post po body bd]\<^sub>v = (\<lfloor>\<D>\<^sub>v(pr)\<rfloor>\<^sub>v \<and> \<lfloor>pr\<rfloor>\<^sub>v \<and> pre\<^sub>D(bd)) \<turnstile> (\<lfloor>\<D>\<^sub>v(po)\<rfloor>\<^sub>v \<and> \<lfloor>po\<rfloor>\<^sub>v \<and> post\<^sub>D(bd))"
+where "[pre pr post po body bd]\<^sub>v = (\<lfloor>\<D>\<^sub>v(pr)\<rfloor>\<^sub>v \<and> \<lfloor>pr\<rfloor>\<^sub>v \<and> pre\<^sub>D(bd)) \<turnstile>\<^sub>r (\<lfloor>\<D>\<^sub>v(po)\<rfloor>\<^sub>v \<and> \<lfloor>po\<rfloor>\<^sub>v \<and> post\<^sub>D(bd))"
 
 lemma vdm_sl_op_true_pre_post [simp]:
-  "[pre true\<^sub>v post true\<^sub>v body p \<turnstile> q]\<^sub>v = p \<turnstile> q"
+  "[pre true\<^sub>v post true\<^sub>v body p \<turnstile>\<^sub>r q]\<^sub>v = p \<turnstile>\<^sub>r q"
   by (simp add: vdm_sl_op_def, pred_tac)
 
 lemma vdm_sl_op_false_pre [simp]:
