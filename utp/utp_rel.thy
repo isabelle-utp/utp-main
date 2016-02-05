@@ -75,7 +75,7 @@ adhoc_overloading
   useq seqr and
   uskip skip_r
 
-method rel_tac = ((simp add: upred_defs urel_defs)?, (transfer, (rule_tac ext)?, auto simp add: urel_defs relcomp_unfold)?)
+method rel_tac = ((simp add: upred_defs urel_defs)?, (transfer, (rule_tac ext)?, auto simp add: urel_defs relcomp_unfold fun_eq_iff)?)
 
 text {* A test is like a precondition, except that it identifies to the postcondition. It
         forms the basis for Kleene Algebra with Tests (KAT). *}
@@ -170,6 +170,10 @@ lemma usubst_seq_right [usubst]:
   apply (drule_tac x="\<lambda>_.y" in spec)
   apply (simp)
 done
+
+lemma usubst_condr [usubst]:
+  "\<sigma> \<dagger> (P \<triangleleft> b \<triangleright> Q) = (\<sigma> \<dagger> P \<triangleleft> \<sigma> \<dagger> b \<triangleright> \<sigma> \<dagger> Q)"
+  by rel_tac
 
 subsection {* Lifting laws *}
 
@@ -284,6 +288,10 @@ lemma seqr_right_zero [simp]:
   "(P ;; false) = false"
   by pred_tac
 
+lemma seqr_mono:
+  "\<lbrakk> P\<^sub>1 \<sqsubseteq> P\<^sub>2; Q\<^sub>1 \<sqsubseteq> Q\<^sub>2 \<rbrakk> \<Longrightarrow> (P\<^sub>1 ;; Q\<^sub>1) \<sqsubseteq> (P\<^sub>2 ;; Q\<^sub>2)"
+  by (rel_tac, blast)
+
 lemma pre_skip_post: "(\<lceil>b\<rceil>\<^sub>< \<and> II) = (II \<and> \<lceil>b\<rceil>\<^sub>>)"
   by (rel_tac)
 
@@ -332,10 +340,6 @@ done
 theorem precond_equiv:
   "P = (P ;; true) \<longleftrightarrow> (out\<alpha> \<sharp> P)"
   apply (rel_tac)
-  apply (metis case_prodI)
-  apply (metis case_prodI)
-  apply (rule ext)
-  apply (auto)
   apply (rename_tac P a b y)
   apply (drule_tac x="a" in spec)
   apply (drule_tac x="b" in spec)
@@ -346,10 +350,6 @@ done
 theorem postcond_equiv:
   "P = (true ;; P) \<longleftrightarrow> (in\<alpha> \<sharp> P)"
   apply (rel_tac)
-  apply (metis case_prodI)
-  apply (metis case_prodI)
-  apply (rule ext)
-  apply (auto)
   apply (rename_tac P a b y)
   apply (drule_tac x="a" in spec)
   apply (drule_tac x="b" in spec)
@@ -448,14 +448,7 @@ done
 
 lemma seqr_true_lemma: 
   "(P = (\<not> (\<not> P ;; true))) = (P = (P ;; true))"
-  apply (rel_tac)
-  apply (rule ext)
-  apply (auto)
-  apply (metis case_prodI)
-  apply (rule ext)
-  apply (auto)
-  apply (metis case_prodI)
-done
+  by rel_tac
 
 lemma shEx_lift_seq [uquant_lift]: 
   "((\<^bold>\<exists> x \<bullet> P(x)) ;; (\<^bold>\<exists> y \<bullet> Q(y))) = (\<^bold>\<exists> x \<bullet> \<^bold>\<exists> y \<bullet> P(x) ;; Q(y))"

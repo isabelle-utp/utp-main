@@ -219,7 +219,7 @@ text {* We set up a simple tactic with the help of \emph{Eisbach} that applies p
         applies extensionality (to remove the resulting lambda term) and the applies auto.
         This simple tactic will suffice to prove most of the standard laws. *}
 
-method pred_tac = ((simp only: upred_defs)? ; (transfer, (rule_tac ext)?, auto)?)
+method pred_tac = ((simp only: upred_defs)? ; (transfer, (rule_tac ext)?, auto simp add: fun_eq_iff)?)
 
 declare true_upred_def [upred_defs]
 declare false_upred_def [upred_defs]
@@ -420,7 +420,7 @@ lemma double_negation [simp]: "(\<not> \<not> (P::'\<alpha> upred)) = P"
   by (pred_tac)
 
 lemma true_not_false [simp]: "true \<noteq> false" "false \<noteq> true"
-  by (pred_tac, metis)+
+  by pred_tac+
 
 lemma closure_conj_distr: "([P]\<^sub>u \<and> [Q]\<^sub>u) = [P \<and> Q]\<^sub>u"
   by pred_tac

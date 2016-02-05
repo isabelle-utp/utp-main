@@ -6,18 +6,6 @@ imports
   utp_event
 begin
 
-text {* Following the way of UTP to describe reactive processes, more observational
-variables are needed to record the interaction with the environment. Three observational 
-variables are defined for this subset of relations: $wait$, $tr$ and $ref$.
-The boolean variable $wait$ records if the process is waiting for an interaction
-or has terminated. $tr$ records the list (trace) of interactions the process has
-performed so far. The variable $ref$ contains the set of interactions (events) the
-process may refuse to perform. *}
-
-text {* In this section, we introduce first some preliminary notions, useful for 
- trace manipulations. The definitions of reactive process alphabets and healthiness 
-conditions are also given. Finally, proved lemmas and theorems are listed.*}
-
 subsection {* Preliminaries *}
 
 type_synonym '\<alpha> trace = "'\<alpha> list"
@@ -35,7 +23,6 @@ by (auto)
 
 lemma prefix_subst1 [simp]: "m = l @ t \<Longrightarrow> m - l = t"
 by (auto)
-
 
 text {* The definitions of reactive process alphabets and healthiness conditions are given
 in the following. The healthiness conditions of reactive processes are defined by 
@@ -89,6 +76,12 @@ type_synonym ('\<theta>,'\<alpha>,'\<beta>) relation_rp  = "(('\<theta>,'\<alpha
 type_synonym ('\<theta>,'\<alpha>) hrelation_rp  = "(('\<theta>,'\<alpha>) alphabet_rp, ('\<theta>,'\<alpha>) alphabet_rp) relation"
 type_synonym ('\<theta>,'\<sigma>) predicate_rp  = "('\<theta>,'\<sigma>) alphabet_rp upred"
 
+abbreviation wait_f::"('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("_\<^sub>f" [1000] 1000)
+where "wait_f R \<equiv> R\<lbrakk>false/$wait\<acute>\<rbrakk>"
+
+abbreviation wait_t::"('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("_\<^sub>t" [1000] 1000)
+where "wait_t R \<equiv> R\<lbrakk>true/$wait\<acute>\<rbrakk>"
+
 lift_definition lift_rea :: "('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("\<lceil>_\<rceil>\<^sub>R") is
 "\<lambda> P (A, A'). P (more A, more A')" .
 
@@ -96,23 +89,94 @@ lift_definition drop_rea :: "('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Righ
 "\<lambda> P (A, A'). P (\<lparr> des_ok = True, rp_wait = True, rp_tr = [], rp_ref = {}, \<dots> = A \<rparr>, 
                  \<lparr> des_ok = True, rp_wait = True, rp_tr = [], rp_ref = {}, \<dots> = A' \<rparr>)" .
 
+subsection {* R1: Events cannot be undone *}
+
 definition R1_def [upred_defs]: "R1 (P) =  (P \<and> ($tr \<le>\<^sub>u $tr\<acute>))"
-
-definition R2_def [upred_defs]: "R2 (P) = (P\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>($tr\<acute> - $tr)/ $tr\<acute>\<rbrakk> \<and> ($tr \<le>\<^sub>u $tr\<acute>))"
-
-definition skip_rea_def [urel_defs]: "II\<^sub>r = (II \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
-
-text {* There are two versions of R3 in the UTP book. Here we opt for the version that works for CSP *}
-
-definition R3_def [urel_defs]: "R3c (P) = (II\<^sub>r \<triangleleft> $wait \<triangleright> P)"
-
-definition "RH(P) = R1(R2(R3c(P)))"
 
 lemma R1_idem: "R1(R1(P)) = R1(P)"
   by pred_tac
 
+lemma R1_mono: "P \<sqsubseteq> Q \<Longrightarrow> R1(P) \<sqsubseteq> R1(Q)"
+  by pred_tac
+
+lemma R1_conj: "R1(P \<and> Q) = (R1(P) \<and> R1(Q))"
+  by pred_tac
+
+lemma R1_disj: "R1(P \<or> Q) = (R1(P) \<or> R1(Q))"
+  by pred_tac
+
+lemma R1_extend_conj: "R1(P \<and> Q) = (R1(P) \<and> Q)"
+  by pred_tac
+
+lemma R1_cond: "R1(P \<triangleleft> b \<triangleright> Q) = (R1(P) \<triangleleft> b \<triangleright> R1(Q))"
+  by rel_tac
+
+lemma R1_negate_R1: "R1(\<not> R1(P)) = R1(\<not> P)"
+  by pred_tac
+
+lemma R1_wait_true: "(R1 P)\<^sub>t = R1(P)\<^sub>t"
+  by pred_tac
+
+lemma R1_wait_false: "(R1 P)\<^sub>f = R1(P)\<^sub>f"
+  by pred_tac
+
+lemma R1_skip: "R1(II) = II"
+  by rel_tac
+
+lemma R1_by_refinement:
+  "P is R1 \<longleftrightarrow> (($tr \<le>\<^sub>u $tr\<acute>) \<sqsubseteq> P)"
+  by rel_tac
+
+lemma tr_le_trans:
+  "($tr \<le>\<^sub>u $tr\<acute> ;; $tr \<le>\<^sub>u $tr\<acute>) = ($tr \<le>\<^sub>u $tr\<acute>)"
+  by (rel_tac, metis alpha_rp.select_convs(2) order_refl)
+
+lemma R1_seqr_closure:
+  assumes "P is R1" "Q is R1"
+  shows "(P ;; Q) is R1"
+  using assms unfolding R1_by_refinement
+  by (metis seqr_mono tr_le_trans)
+
+lemma R1_ok'_true: "(R1(P))\<^sup>t = R1(P\<^sup>t)"
+  by pred_tac
+
+lemma R1_ok'_false: "(R1(P))\<^sup>f = R1(P\<^sup>f)"
+  by pred_tac
+
+lemma R1_ok_true: "(R1(P))\<lbrakk>true/$ok\<rbrakk> = R1(P\<lbrakk>true/$ok\<rbrakk>)"
+  by pred_tac
+
+lemma R1_ok_false: "(R1(P))\<lbrakk>false/$ok\<rbrakk> = R1(P\<lbrakk>false/$ok\<rbrakk>)"
+  by pred_tac
+
+lemma seqr_R1_true_right: "((P ;; R1(true)) \<or> P) = (P ;; ($tr \<le>\<^sub>u $tr\<acute>))"
+  by rel_tac
+
+subsection {* R2 *}
+
+definition R2s_def [upred_defs]: "R2s (P) = (P\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>($tr\<acute>-$tr)/$tr\<acute>\<rbrakk>)"
+definition R2_def [upred_defs]: "R2(P) = R1(R2s(P))"
+
+lemma R2s_idem: "R2s(R2s(P)) = R2s(P)"
+  by (pred_tac)
+
 lemma R2_idem: "R2(R2(P)) = R2(P)"
   by (pred_tac)
+
+lemma R2_mono: "P \<sqsubseteq> Q \<Longrightarrow> R2(P) \<sqsubseteq> R2(Q)"
+  by (pred_tac)
+
+lemma R2s_conj: "R2s(P \<and> Q) = (R2s(P) \<and> R2s(Q))"
+  by (pred_tac)
+
+lemma R2_conj: "R2(P \<and> Q) = (R2(P) \<and> R2(Q))"
+  by (pred_tac)
+
+lemma R2s_condr: "R2s(P \<triangleleft> b \<triangleright> Q) = (R2s(P) \<triangleleft> R2s(b) \<triangleright> R2s(Q))"
+  by rel_tac
+
+lemma R2_condr: "R2(P \<triangleleft> b \<triangleright> Q) = (R2(P) \<triangleleft> R2(b) \<triangleright> R2(Q))"
+  by rel_tac
 
 lemma tr_prefix_as_concat: "(xs \<le>\<^sub>u ys) = (\<^bold>\<exists> zs \<bullet> ys =\<^sub>u xs ^\<^sub>u \<guillemotleft>zs\<guillemotright>)"
   by (rel_tac, simp add: less_eq_list_def prefixeq_def)
@@ -167,7 +231,7 @@ proof -
   have "R2(R2(P) ;; R2(Q)) = 
     ((\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)\<lbrakk>($tr\<acute> - $tr)/$tr\<acute>\<rbrakk>
       \<and> $tr\<acute> - $tr =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr)"
-    by (simp add: R2_seqr_form, simp add: R2_def usubst unrest, rel_tac)
+    by (simp add: R2_seqr_form, simp add: R2s_def usubst unrest, rel_tac, blast+)
   also have "... =
     ((\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)\<lbrakk>(\<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)/$tr\<acute>\<rbrakk>
       \<and> $tr\<acute> - $tr =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr)"
@@ -194,6 +258,56 @@ proof -
   finally show ?thesis .
 qed
 
+lemma R1_R2_commute:
+  "R1(R2(P)) = R2(R1(P))"
+  by pred_tac
+
+subsection {* R3 *}
+
+definition skip_rea_def [urel_defs]: "II\<^sub>r = (II \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
+
+definition R3_def [upred_defs]: "R3 (P) = (II \<triangleleft> $wait \<triangleright> P)"
+
+definition R3c_def [upred_defs]: "R3c (P) = (II\<^sub>r \<triangleleft> $wait \<triangleright> P)"
+
+definition RH_def [upred_defs]: "RH(P) = R1(R2(R3c(P)))"
+
+lemma R3_idem: "R3(R3(P)) = R3(P)"
+  by rel_tac
+
+lemma R3_mono: "P \<sqsubseteq> Q \<Longrightarrow> R3(P) \<sqsubseteq> R3(Q)"
+  by rel_tac
+
+lemma R3_conj: "R3(P \<and> Q) = (R3(P) \<and> R3(Q))"
+  by rel_tac
+
+lemma R3_disj: "R3(P \<or> Q) = (R3(P) \<or> R3(Q))"
+  by rel_tac
+
+lemma R3_condr: "R3(P \<triangleleft> b \<triangleright> Q) = (R3(P) \<triangleleft> b \<triangleright> R3(Q))"
+  by rel_tac
+
+lemma R3_skipr: "R3(II) = II"
+  by rel_tac
+
+lemma R3_form: "R3(P) = (($wait \<and> II) \<or> (\<not> $wait \<and> P))"
+  by rel_tac
+
+lemma R3_semir_form:
+  "(R3(P) ;; R3(Q)) = R3(P ;; R3(Q))"
+  by rel_tac
+
+lemma R3_semir_closure:
+  assumes "P is R3" "Q is R3"
+  shows "(P ;; Q) is R3"
+  using assms
+  by (metis Healthy_def' R3_semir_form)
+
+lemma R1_R3_commute: "R1(R3(P)) = R3(R1(P))"
+  by rel_tac
+
+lemma R2_R3_commute: "R2(R3(P)) = R3(R2(P))"
+  by (rel_tac, (metis (no_types, lifting) alpha_rp.surjective alpha_rp.update_convs(2) append_Nil2 prefix_subst strict_prefixE)+)
 
 lemma R3c_idem: "R3c(R3c(P)) = R3c(P)"
   by rel_tac

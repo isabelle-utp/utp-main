@@ -44,19 +44,30 @@ text {* CSP2 is just H2 since the type system will automatically have J identify
 
 definition "CSP2(P) = H2(P)"
 
-definition "SKIP = RH(\<exists> $ref \<bullet> II)"
+definition "STOP = CSP1($ok\<acute> \<and> R3c($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
+
+definition "SKIP = RH(\<exists> $ref \<bullet> CSP1(II))"
 
 definition "CSP3(P) = (SKIP ;; P)"
 
 definition "CSP4(P) = (P ;; SKIP)"
 
+declare 
+  CSP1_def [upred_defs] and 
+  CSP2_def [upred_defs] and 
+  SKIP_def [upred_defs] and
+  CSP3_def [upred_defs] and 
+  CSP4_def [upred_defs]
+
+lemma CSP1_idem:
+  "CSP1(CSP1(P)) = CSP1(P)"
+  by pred_tac
+
+lemma CSP2_idem:
+  "CSP2(CSP2(P)) = CSP2(P)"
+  by (simp add: CSP2_def H2_idem)
+
 subsection {* Process constructs *}
-
-abbreviation wait_f::"('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("_\<^sub>f" [1000] 1000)
-where "wait_f R \<equiv> R\<lbrakk>false/$wait\<acute>\<rbrakk>"
-
-abbreviation wait_t::"('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("_\<^sub>t" [1000] 1000)
-where "wait_t R \<equiv> R\<lbrakk>true/$wait\<acute>\<rbrakk>"
 
 definition "Stop = RH(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
 

@@ -347,7 +347,7 @@ qed
 
 lemma nok_not_false:
   "(\<not> $ok) \<noteq> false"
-  by (simp add:ok_def, pred_tac, simp add: in_var_def, metis alpha_d.select_convs(1) fst_conv)
+  by (pred_tac, metis alpha_d.select_convs(1))
 
 theorem H1_left_zero:
   assumes "P is H1"
