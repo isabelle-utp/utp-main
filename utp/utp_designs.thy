@@ -156,7 +156,33 @@ lemma lift_dist_seq [simp]:
   "\<lceil>P ;; Q\<rceil>\<^sub>D = (\<lceil>P\<rceil>\<^sub>D ;; \<lceil>Q\<rceil>\<^sub>D)"
   by (rel_tac, metis alpha_d.select_convs(2))
 
-lemma design_refine:
+theorem design_refinement:
+  assumes 
+    "$ok \<sharp> P1" "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2" "$ok\<acute> \<sharp> P2"
+    "$ok \<sharp> Q1" "$ok\<acute> \<sharp> Q1" "$ok \<sharp> Q2" "$ok\<acute> \<sharp> Q2"
+  shows "(P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2) \<longleftrightarrow> (`P1 \<Rightarrow> P2` \<and> `P1 \<and> Q2 \<Rightarrow> Q1`)"
+proof -
+  have "(P1 \<turnstile> Q1) \<sqsubseteq> (P2 \<turnstile> Q2) \<longleftrightarrow> `($ok \<and> P2 \<Rightarrow> $ok\<acute> \<and> Q2) \<Rightarrow> ($ok \<and> P1 \<Rightarrow> $ok\<acute> \<and> Q1)`"
+    by pred_tac
+  also with assms have "... = `(P2 \<Rightarrow> $ok\<acute> \<and> Q2) \<Rightarrow> (P1 \<Rightarrow> $ok\<acute> \<and> Q1)`"
+    by (subst subst_bool_split[of "in_var ok"], simp_all, subst_tac, pred_tac)
+  also with assms have "... = `(\<not> P2 \<Rightarrow> \<not> P1) \<and> ((P2 \<Rightarrow> Q2) \<Rightarrow> P1 \<Rightarrow> Q1)`"
+    by (subst subst_bool_split[of "out_var ok"], simp_all, subst_tac)
+  also have "... \<longleftrightarrow> `(P1 \<Rightarrow> P2)` \<and> `P1 \<and> Q2 \<Rightarrow> Q1`"
+    by (pred_tac)
+  finally show ?thesis .
+qed
+
+theorem rdesign_refinement:
+  "(P1 \<turnstile>\<^sub>r Q1 \<sqsubseteq> P2 \<turnstile>\<^sub>r Q2) \<longleftrightarrow> (`P1 \<Rightarrow> P2` \<and> `P1 \<and> Q2 \<Rightarrow> Q1`)"
+  apply (simp add: rdesign_def)
+  apply (subst design_refinement)
+  apply (simp_all add: unrest)
+  apply (pred_tac)
+  apply (metis alpha_d.select_convs(2))+
+done
+
+lemma design_refine_intro:
   assumes "`P1 \<Rightarrow> P2`" "`P1 \<and> Q2 \<Rightarrow> Q1`"
   shows "P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2"
   using assms unfolding upred_defs

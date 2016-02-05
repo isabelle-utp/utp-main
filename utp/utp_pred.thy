@@ -466,7 +466,7 @@ lemma taut_split_subst:
   assumes "uvar x"
   shows "`P` \<longleftrightarrow> (\<forall> v. `P\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>`)"
   using assms
-  by (pred_tac, metis (full_types) uvar.var_update_eta)
+  by (pred_tac, metis uvar_assign_exists)
 
 lemma eq_split:
   assumes "`P \<Rightarrow> Q`" "`Q \<Rightarrow> P`"

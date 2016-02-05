@@ -86,7 +86,7 @@ lemma usubst_lookup_upd [usubst]:
   by (simp add: subst_upd_uvar_def, transfer) (simp)
 
 lemma usubst_upd_idem [usubst]:
-  assumes "uvar x"
+  assumes "semi_uvar x"
   shows " \<sigma>(x \<mapsto>\<^sub>s u, x \<mapsto>\<^sub>s v) = \<sigma>(x \<mapsto>\<^sub>s v)"
   by (simp add: subst_upd_uvar_def assms comp_def)
 

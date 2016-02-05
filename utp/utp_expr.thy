@@ -175,6 +175,9 @@ where "eq_upred x y = bop HOL.eq x y"
 adhoc_overloading
   ueq eq_upred
 
+abbreviation seq_filter :: "'a set \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"seq_filter A \<equiv> filter (\<lambda> x. x \<in> A)"
+
 nonterminal utuple_args
 
 syntax
@@ -182,6 +185,7 @@ syntax
   "_ulist"      :: "args => ('a list, '\<alpha>) uexpr"    ("\<langle>(_)\<rangle>")
   "_uappend"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" (infixr "^\<^sub>u" 80)
   "_ulast"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("last\<^sub>u'(_')")
+  "_ufilter"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" (infixl "\<restriction>\<^sub>u" 75)
   "_uless"      :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "<\<^sub>u" 50)
   "_uleq"       :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<le>\<^sub>u" 50)
   "_ugreat"     :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix ">\<^sub>u" 50)
@@ -192,6 +196,8 @@ syntax
   "_uinter"     :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" (infixl "\<inter>\<^sub>u" 70)
   "_umem"       :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<in>\<^sub>u" 50)
   "_unmem"      :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<notin>\<^sub>u" 50)
+  "_usubset"    :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<subset>\<^sub>u" 50)
+  "_usubseteq"  :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<subseteq>\<^sub>u" 50)
   "_utuple"     :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('a * 'b, '\<alpha>) uexpr" ("(1'(_,/ _')\<^sub>u)")
   "_utuple_arg"  :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args" ("_")
   "_utuple_args" :: "('a, '\<alpha>) uexpr => utuple_args \<Rightarrow> utuple_args"     ("_,/ _")
@@ -209,6 +215,7 @@ translations
   "\<langle>x\<rangle>"      == "CONST bop (op #) x \<guillemotleft>[]\<guillemotright>"
   "x ^\<^sub>u y"   == "CONST bop (op @) x y"
   "last\<^sub>u(xs)" == "CONST uop CONST last xs"
+  "xs \<restriction>\<^sub>u A"   == "CONST bop CONST seq_filter A xs"
   "x <\<^sub>u y"   == "CONST bop (op <) x y"
   "x \<le>\<^sub>u y"   == "CONST bop (op \<le>) x y" 
   "x >\<^sub>u y"   == "y <\<^sub>u x"
@@ -220,6 +227,8 @@ translations
   "A \<inter>\<^sub>u B"   == "CONST bop Set.inter A B"
   "x \<in>\<^sub>u A"   == "CONST bop (op \<in>) x A"
   "x \<notin>\<^sub>u A"   == "CONST bop (op \<notin>) x A"
+  "A \<subset>\<^sub>u B"   == "CONST bop (op \<subset>) A B"
+  "A \<subseteq>\<^sub>u B"   == "CONST bop (op \<subseteq>) A B"
   "()\<^sub>u"      == "\<guillemotleft>()\<guillemotright>"
   "(x, y)\<^sub>u"  == "CONST bop (CONST Pair) x y"
   "_utuple x (_utuple_args y z)" == "_utuple x (_utuple_arg (_utuple y z))"

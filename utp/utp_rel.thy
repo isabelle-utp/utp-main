@@ -61,13 +61,13 @@ syntax
   "_id_list"    :: "id \<Rightarrow> id_list \<Rightarrow> id_list" ("_,/ _")
   "_uexpr_unit" :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list" ("_" [40] 40)
   "_uexpr_list" :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list \<Rightarrow> uexpr_list" ("_,/ _" [40,40] 40)
-  "_assignment" :: "id_list \<Rightarrow> uexpr_list \<Rightarrow> '\<alpha> hrelation"  (infixr ":=" 35)
-  "_mk_usubst"  :: "id_list \<Rightarrow> uexpr_list \<Rightarrow> '\<alpha> usubst"
+  "_assignment" :: "svars \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrelation"  (infixr ":=" 35)
+  "_mk_usubst"  :: "svars \<Rightarrow> uexpr_list \<Rightarrow> '\<alpha> usubst"
 
 translations
-  "_mk_usubst (_id_unit x) (_uexpr_unit v)" == "[x \<mapsto>\<^sub>s v]"
+  "_mk_usubst (_svar x) (_uexpr_unit v)" == "[x \<mapsto>\<^sub>s v]"
   "_mk_usubst (_id_list x xs) (_uexpr_list v vs)" == "(_mk_usubst xs vs)(x \<mapsto>\<^sub>s v)"
-  "_assignment xs vs" => "CONST assigns_r (_mk_usubst xs vs)"
+  "_assignment xs vs" => "CONST assigns_r (_psubst (CONST id) xs vs)"
   "x := v" <= "CONST assign_r x v"
   "x,y := u,v" <= "CONST assign_2_r x y u v"
 
@@ -292,10 +292,10 @@ text {* We should be able to generalise this law to arbitrary assignments at som
         only on @{const "in\<alpha>"}. *}
 
 lemma assign_subst [usubst]:
-  "\<lbrakk> uvar x; uvar y \<rbrakk> \<Longrightarrow> [$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> (y := v) = (y, x := [x \<mapsto>\<^sub>s u] \<dagger> v, u)"
+  "\<lbrakk> uvar x; uvar y \<rbrakk> \<Longrightarrow> [$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> (y := v) = (x, y := u, [x \<mapsto>\<^sub>s u] \<dagger> v)"
   by rel_tac
  
-lemma assigns_idem: "uvar x \<Longrightarrow> (x,x := u,v) = (x := u)"
+lemma assigns_idem: "uvar x \<Longrightarrow> (x,x := u,v) = (x := v)"
   by (simp add: usubst)
 
 lemma assigns_comp: "(assigns_r f ;; assigns_r g) = assigns_r (g \<circ> f)" 

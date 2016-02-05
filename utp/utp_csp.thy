@@ -4,6 +4,54 @@ theory utp_csp
   imports utp_reactive utp_procedure
 begin
 
+subsection {* Preliminaries *}
+
+text {* The following function defines the parallel composition of two CSP event traces *}
+
+fun trpar :: "'\<theta> event set \<Rightarrow> '\<theta> event list \<Rightarrow> '\<theta> event list \<Rightarrow> '\<theta> event list set" where
+"trpar cs [] [] = {[]}" |
+"trpar cs (e # t) [] = (if e \<in> cs then {[]} else {x. hd(x) = e \<and> tl(x) \<in> (trpar cs t [])})" |
+"trpar cs [] (e # t) = (if e \<in> cs then {[]} else {x. hd(x) = e \<and> tl(x) \<in> (trpar cs [] t)})" |
+"trpar cs (e\<^sub>1 # t\<^sub>1) (e\<^sub>2 # t\<^sub>2) =
+    (if (e\<^sub>1 = e\<^sub>2)
+       then 
+         if e\<^sub>1 \<in> cs
+         then {e\<^sub>1 # t | t. t \<in> (trpar cs t\<^sub>1 t\<^sub>2)}
+         else {e\<^sub>1 # t | t. t \<in> (trpar cs t\<^sub>1 (e\<^sub>2 # t\<^sub>2))} \<union> {e\<^sub>1 # t | t. t \<in> (trpar cs (e\<^sub>1 # t\<^sub>1) t\<^sub>2)}
+       else
+         if e\<^sub>1 \<in> cs
+           then
+             if e\<^sub>2 \<in> cs
+               then {[]}
+               else {e\<^sub>2 # t | t. t \<in> trpar cs (e\<^sub>1 # t\<^sub>1) (t\<^sub>2)}
+           else
+             if e\<^sub>2 \<in> cs
+               then {e\<^sub>1 # t | t. t \<in> trpar cs t\<^sub>1 (e\<^sub>2 # t\<^sub>2)}
+               else {e\<^sub>1 # t | t. t \<in> trpar cs t\<^sub>1 (e\<^sub>2 # t\<^sub>2)} \<union> {e\<^sub>2 # t | t. t \<in> trpar cs (e\<^sub>1 # t\<^sub>1) t\<^sub>2})"
+
+syntax
+  "_utrpar" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("trpar\<^sub>u'(_,_,_')")
+
+translations
+  "trpar\<^sub>u(cs,t1,t2)" == "CONST trop CONST trpar cs t1 t2"
+
+subsection {* Healthiness conditions *}
+
+definition "CSP1(P) = (P \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
+
+text {* CSP2 is just H2 since the type system will automatically have J identifying the reactive
+        variables as required. *}
+
+definition "CSP2(P) = H2(P)"
+
+definition "SKIP = RH(\<exists> $ref \<bullet> II)"
+
+definition "CSP3(P) = (SKIP ;; P)"
+
+definition "CSP4(P) = (P ;; SKIP)"
+
+subsection {* Process constructs *}
+
 abbreviation wait_f::"('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("_\<^sub>f" [1000] 1000)
 where "wait_f R \<equiv> R\<lbrakk>false/$wait\<acute>\<rbrakk>"
 
@@ -13,8 +61,6 @@ where "wait_t R \<equiv> R\<lbrakk>true/$wait\<acute>\<rbrakk>"
 definition "Stop = RH(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
 
 definition "Skip = RH(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> (\<not> $wait\<acute>) \<and> \<lceil>II\<rceil>\<^sub>R))"
-
-definition "SKIP = RH(\<exists> $ref \<bullet> II)"
 
 definition "Chaos = RH(false \<turnstile> true)"
 
@@ -60,15 +106,29 @@ translations
   "c \<rightarrow>\<^sub>u A"         == "CONST OutputCSP c ()\<^sub>u A"
   "c?\<^sub>u(x : P) \<rightarrow> A" => "CONST InputCSP c IDSTR(x) (\<lambda> x. P) (\<lambda> x. A)"
 
-definition "CSP1(P) = (P \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
+text {* Merge predicate for CSP *}
 
-text {* CSP2 is just H2 since the type system will automatically have J identifying the reactive
-        variables as required. *}
+definition
+  "CSPMerge(cs) =
+    (($ok\<acute> =\<^sub>u ($0.ok \<and> $1.ok) \<and>
+      $wait\<acute> =\<^sub>u ($0.wait \<or> $1.wait) \<and>
+      $ref\<acute> =\<^sub>u ($0.ref \<union>\<^sub>u $1.ref) \<and>
+      ($tr\<acute> - $\<^sub><tr) \<in>\<^sub>u (trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0.tr - $\<^sub><tr, $1.tr - $\<^sub><tr)) \<and> 
+      $0.tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1.tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>) ;; SKIP)"
 
-definition "CSP2(P) = H2(P)"
+definition ParCSP :: "('\<theta>, '\<alpha>) hrelation_rp \<Rightarrow> '\<theta> event set \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp" (infixl "\<parallel>[_]\<^sub>C\<^sub>S\<^sub>P" 85)
+where "P \<parallel>[cs]\<^sub>C\<^sub>S\<^sub>P Q = P \<parallel>\<^bsub>CSPMerge(cs)\<^esub> Q"
 
-definition "CSP3(P) = (SKIP ;; P)"
+(*
+(* TODO : Circus merge predicate: *)
 
-definition "CSP4(P) = (P ;; SKIP)"
+finition "MSt = undefined"
+
+definition "M(cs) = ((($tr\<acute> - $\<^sub><tr) \<in>\<^sub>u (trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0.tr - $\<^sub><tr, $1.tr - $\<^sub><tr)) \<and> $0.tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1.tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>) \<and> 
+                    (  (($0.wait \<or> $1.wait) \<and> $ref\<acute> \<subseteq>\<^sub>u (($0.ref \<union>\<^sub>u $1.ref) \<inter>\<^sub>u \<guillemotleft>cs\<guillemotright>) \<union>\<^sub>u (($0.ref \<inter>\<^sub>u $1.ref) - \<guillemotleft>cs\<guillemotright>))
+                       \<triangleleft> $wait\<acute> \<triangleright>
+                       (\<not> $1.wait \<and> \<not> $2.wait \<and> MSt)
+                    ))"
+*)
 
 end

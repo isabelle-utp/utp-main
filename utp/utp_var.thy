@@ -53,18 +53,23 @@ text {* In order to allow reasoning about variables generically, we introduce a 
         variables. Moreover, these properties allow us to prove several important UTP laws,
         such as the assignment laws in the theory of alphabetised relations. *}
 
-locale uvar =
+locale semi_uvar =
   fixes x :: "('a, 'r) uvar"
   -- {* Application of two updates should correspond to the composition of update functions *}
   assumes var_update_comp: "var_update x f (var_update x g \<sigma>) = var_update x (f \<circ> g) \<sigma>"
-  -- {* Looking a variable up after updating it corresponds to updating the variable's prior valuation *}
-  and var_update_lookup: "var_lookup x (var_update x f \<sigma>) = f (var_lookup x \<sigma>)"
   -- {* Updating a variable's value to the one it already has is ineffectual *}
   and var_update_eta: "var_update x (\<lambda>_. var_lookup x \<sigma>) \<sigma> = \<sigma>"
 
-declare uvar.var_update_comp [simp]
+locale uvar = semi_uvar +
+  assumes var_update_lookup: "var_lookup x (var_update x f \<sigma>) = f (var_lookup x \<sigma>)"
+
+declare semi_uvar.var_update_comp [simp]
 declare uvar.var_update_lookup [simp]
-declare uvar.var_update_eta [simp]
+declare semi_uvar.var_update_eta [simp]
+
+lemma uvar_semi_var [simp]: "uvar x \<Longrightarrow> semi_uvar x"
+  by (simp add: uvar_def)
+  
 
 text {* In addition to defining the validity of variable, we also need to show how two variables
         are related. Since variables are pairs of functions and have no identifying name that
@@ -115,6 +120,18 @@ definition out_var :: "('a, '\<beta>) uvar \<Rightarrow> ('a, '\<alpha> \<times>
 
 text {* We show that lifted input and output variables are both valid variables, and that input
         and output variables are always independent. *}
+
+lemma in_var_semi_uvar [simp]:
+  assumes "semi_uvar x"
+  shows "semi_uvar (in_var x)"
+  using assms 
+  by (unfold_locales, auto simp add: in_var_def)
+
+lemma out_var_semi_uvar [simp]:
+  assumes "semi_uvar x"
+  shows "semi_uvar (out_var x)"
+  using assms 
+  by (unfold_locales, auto simp add: out_var_def)
 
 lemma in_var_uvar [simp]:
   assumes "uvar x"
