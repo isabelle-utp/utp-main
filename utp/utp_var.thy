@@ -70,7 +70,6 @@ declare semi_uvar.var_update_eta [simp]
 lemma uvar_semi_var [simp]: "uvar x \<Longrightarrow> semi_uvar x"
   by (simp add: uvar_def)
   
-
 text {* In addition to defining the validity of variable, we also need to show how two variables
         are related. Since variables are pairs of functions and have no identifying name that
         we can reason about, and moreover will often have different types, we cannot use the 

@@ -35,6 +35,17 @@ translations
 declare var_block_def [urel_defs]
 declare cnt_parm_def [urel_defs]
   
+declare [[show_sorts]]
+
+lemma subst_var_block: 
+  fixes v :: "('a :: continuum, '\<alpha> :: vst \<times> '\<alpha>) uexpr"
+  assumes "(mk_dvar x :: ('b :: continuum) dvar)\<up> \<bowtie> y" 
+          "unrest (in_var ((mk_dvar x :: ('b :: continuum) dvar)\<up>)) v"
+          "unrest (out_var ((mk_dvar x :: ('b :: continuum) dvar)\<up>)) v"
+  shows "(var_block x (\<lambda> x :: 'b dvar. P))\<lbrakk>v/$y\<rbrakk> = var_block x (\<lambda> x :: 'b dvar. P\<lbrakk>v/$y\<rbrakk>)"
+  using assms
+  by (simp add: var_block_def Let_def usubst uvar_indep_sym)
+
 subsection {* Relational procedures *}
 
 type_synonym ('a, '\<alpha>) uproc = "'a \<Rightarrow> '\<alpha> hrelation"

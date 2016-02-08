@@ -328,6 +328,31 @@ lemma subst_shEx [usubst]: "\<sigma> \<dagger> (\<^bold>\<exists> x \<bullet> P(
 lemma subst_shAll [usubst]: "\<sigma> \<dagger> (\<^bold>\<forall> x \<bullet> P(x)) = (\<^bold>\<forall> x \<bullet> \<sigma> \<dagger> P(x))"
   by pred_tac
 
+text {* TODO: Generalise the quantifier substitution laws to n-ary substitutions *}
+
+lemma subst_ex_same [usubst]:
+  assumes "uvar x"
+  shows "(\<exists> x \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<exists> x \<bullet> P)"
+  by (simp add: assms id_subst subst_unrest unrest_ex_same)
+
+lemma subst_ex_indep [usubst]: 
+  assumes "x \<bowtie> y" "y \<sharp> v"
+  shows "(\<exists> y \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<exists> y \<bullet> P\<lbrakk>v/x\<rbrakk>)" 
+  using assms
+  by (pred_tac, auto simp add: uvar_indep_def)
+
+lemma subst_all_same [usubst]:
+  assumes "uvar x"
+  shows "(\<forall> x \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<forall> x \<bullet> P)"
+  by (simp add: assms id_subst subst_unrest unrest_all_same)
+
+lemma subst_all_indep [usubst]: 
+  assumes "x \<bowtie> y" "y \<sharp> v"
+  shows "(\<forall> y \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<forall> y \<bullet> P\<lbrakk>v/x\<rbrakk>)" 
+  using assms
+  by (pred_tac, auto simp add: uvar_indep_def)
+
+
 subsection {* Predicate Laws *}
 
 text {* Showing that predicates form a Boolean Algebra (under the predicate operators) gives us
