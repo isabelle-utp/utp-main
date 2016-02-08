@@ -36,6 +36,18 @@ text {* The following law demonstrates why we need variable independence: a vari
 lemma unrest_var [unrest]: "\<lbrakk> uvar x; x \<bowtie> y \<rbrakk> \<Longrightarrow> y \<sharp> var x"
   by (transfer, auto)
 
+lemma unrest_iuvar [unrest]: "\<lbrakk> uvar x; x \<bowtie> y \<rbrakk> \<Longrightarrow> $y \<sharp> $x"
+  by (metis in_var_indep in_var_uvar unrest_var var_in_var)
+
+lemma unrest_ouvar [unrest]: "\<lbrakk> uvar x; x \<bowtie> y \<rbrakk> \<Longrightarrow> $y\<acute> \<sharp> $x\<acute>"
+  by (metis out_var_indep out_var_uvar unrest_var var_out_var)
+
+lemma unrest_iuvar_ouvar [unrest]: "uvar y \<Longrightarrow> $x \<sharp> $y\<acute>"
+  by (metis assms out_in_indep out_var_uvar unrest_var var_out_var)
+
+lemma unrest_ouvar_iuvar [unrest]: "uvar y \<Longrightarrow> $x\<acute> \<sharp> $y"
+  by (metis in_out_indep in_var_uvar unrest_var var_in_var)
+
 lemma unrest_uop [unrest]: "x \<sharp> e \<Longrightarrow> x \<sharp> uop f e"
   by (transfer, simp)
 

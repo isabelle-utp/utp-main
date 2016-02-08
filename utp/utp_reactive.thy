@@ -43,6 +43,24 @@ declare wait_def [upred_defs]
 declare tr_def [upred_defs]
 declare ref_def [upred_defs]
 
+lemma tr_ok_indep [simp]: "tr \<bowtie> ok" "ok \<bowtie> tr"
+  by (simp add: uvar_indep_def, pred_tac)+
+
+lemma wait_ok_indep [simp]: "wait \<bowtie> ok" "ok \<bowtie> wait"
+  by (simp add: uvar_indep_def, pred_tac)+
+
+lemma ref_ok_indep [simp]: "ref \<bowtie> ok" "ok \<bowtie> ref"
+  by (simp add: uvar_indep_def, pred_tac)+
+
+lemma tr_wait_indep [simp]: "tr \<bowtie> wait" "wait \<bowtie> tr"
+  by (simp add: uvar_indep_def, pred_tac)+
+
+lemma ref_wait_indep [simp]: "ref \<bowtie> wait" "wait \<bowtie> ref"
+  by (simp add: uvar_indep_def, pred_tac)+
+
+lemma tr_ref_indep [simp]: "ref \<bowtie> tr" "tr \<bowtie> ref"
+  by (simp add: uvar_indep_def, pred_tac)+
+
 instantiation alpha_rp_ext :: (type, vst) vst
 begin
   definition get_vstore_alpha_rp_ext :: "('a, 'b) alpha_rp_ext \<Rightarrow> vstore"
@@ -311,5 +329,13 @@ lemma R2_R3_commute: "R2(R3(P)) = R3(R2(P))"
 
 lemma R3c_idem: "R3c(R3c(P)) = R3c(P)"
   by rel_tac
+
+lemma R1_skip_rea: "R1(II\<^sub>r) = II\<^sub>r"
+  by rel_tac
+
+lemma R2_skip_rea: "R2(II\<^sub>r) = II\<^sub>r"
+  apply (rel_tac)
+  apply (metis (no_types, lifting) alpha_rp.surjective alpha_rp.update_convs(2) append_Nil2 prefix_subst strict_prefixE)
+done
 
 end

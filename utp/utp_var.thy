@@ -153,6 +153,14 @@ lemma out_in_indep [simp]:
   "out_var x \<bowtie> in_var y"
   by (simp add: uvar_indep_def in_var_def out_var_def)
 
+lemma in_var_indep [simp]:
+  "x \<bowtie> y \<Longrightarrow> in_var x \<bowtie> in_var y"
+  by (simp add: uvar_indep_def in_var_def)
+
+lemma out_var_indep [simp]:
+  "x \<bowtie> y \<Longrightarrow> out_var x \<bowtie> out_var y"
+  by (simp add: uvar_indep_def out_var_def)
+
 text {* We also define some lookup abstraction simplifications. *}
 
 lemma var_lookup_in [simp]: "var_lookup (in_var x) (A, A') = var_lookup x A"
