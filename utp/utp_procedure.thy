@@ -4,7 +4,13 @@ theory utp_procedure
 imports utp_rel utp_dvar utp_designs
 begin
 
-subsection {* Variable scopes *}
+subsection {* (Pseudo) Variable scopes *}
+
+text {* In our shallow embedding it is not possible to generically remove a variable from the
+        alphabet, since we use the type system to approximate alphabets and this is beyond
+        the type systems scope. As a result, our variable block operator abstract the variables
+        but does not remove them from the alphabet. This means we can identify more predicates
+        then perhaps we should. *}
 
 definition var_open :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrelation" ("var\<^sub>u") where
 "var_open x = (\<exists> $x \<bullet> II)"
@@ -13,6 +19,31 @@ definition var_close :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrelation"
 "var_close x = (\<exists> $x\<acute> \<bullet> II)"
 
 declare var_open_def [urel_defs] and var_close_def [urel_defs]
+
+text {* An interesting, if slightly unsettling property provable as a consequence of not handling
+        alphabets explicitly in var open/close. We can prove that opening and closing a scope
+        is the same construct, which is true if you don't consider the alphabets. *}
+
+lemma var_open_eq_var_close:
+  assumes "uvar x"
+  shows "var\<^sub>u x = end\<^sub>u x"
+proof -
+  have "var\<^sub>u x = (\<exists> $x \<bullet> II)"
+    by (simp add: var_open_def)
+  also have "... = (\<exists> $x \<bullet> $x =\<^sub>u $x\<acute> \<and> II\<restriction>\<^sub>\<alpha>x)"
+    by (metis assms eq_upred_sym skip_r_unfold)
+  also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>$x\<acute>/$x\<rbrakk>"
+    by (metis conj_comm in_var_uvar one_point unrest_iuvar_ouvar var_in_var)
+  also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>$x/$x\<acute>\<rbrakk>"
+    by subst_tac
+  also have "... = (\<exists> $x\<acute> \<bullet> $x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x)"
+    by (metis assms conj_comm one_point out_var_uvar unrest_out\<alpha>_var utp_rel.unrest_iuvar var_out_var)
+  also have "... = (\<exists> $x\<acute> \<bullet> II)"
+    using assms skip_r_unfold by fastforce
+  also have "... = end\<^sub>u x"
+    by (simp add: var_close_def)
+  finally show ?thesis .
+qed
 
 lemma var_block_expand:
   assumes "uvar x"
@@ -49,8 +80,22 @@ lemma var_open_close_commute:
   assumes "uvar x" "uvar y" "x \<bowtie> y"
   shows "(var\<^sub>u x ;; end\<^sub>u y) = (end\<^sub>u y ;; var\<^sub>u x)"
   using assms
-  apply (simp add: var_open_def var_close_def)
-oops (* Need some additional variable properties to prove this *)
+  by (simp add: ex_commute seqr_exists_right var_close_def var_open_eq_var_close)
+
+lemma var_close_assign:
+  assumes "uvar x" "x \<sharp> v"
+  shows "(end\<^sub>u x ;; x := v) = (x := v)"
+proof -
+  have "(end\<^sub>u x ;; x := v) = ((\<exists> $x \<bullet> II) ;; (x := v))"
+    by (metis assms(1) var_open_def var_open_eq_var_close)
+  also have "... = (\<exists> $x \<bullet> (II ;; (x := v)))"
+    by (simp add: assms(1) seqr_exists_left)
+  also have "... = (\<exists> $x \<bullet> x := v)"
+    by simp
+  also have "... = (x := v)"
+    by (metis assms(1) assms(2) exists_twice in_var_uvar one_point subst_skip_r unrest_pre_in_var)
+  finally show ?thesis .
+qed
 
 lemma assign_var_close:
   assumes "uvar x"

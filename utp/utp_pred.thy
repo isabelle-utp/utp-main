@@ -459,6 +459,12 @@ lemma true_iff [simp]: "(P \<Leftrightarrow> true) = P"
 lemma impl_alt_def: "(P \<Rightarrow> Q) = (\<not> P \<or> Q)"
   by pred_tac
 
+lemma eq_upred_refl [simp]: "(x =\<^sub>u x) = true"
+  by pred_tac
+
+lemma eq_upred_sym: "(x =\<^sub>u y) = (y =\<^sub>u x)"
+  by pred_tac
+
 lemma shEx_bool [simp]: "shEx P = (P True \<or> P False)"
   by (pred_tac, metis (full_types))
 
