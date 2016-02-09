@@ -86,6 +86,13 @@ where "\<lceil>b\<rceil>\<^sub>t = (\<lceil>b\<rceil>\<^sub>< \<and> II)"
 declare cond_def [urel_defs]
 declare skip_r_def [urel_defs]
 
+text {* We implement a poor man's version of alphabet restriction that hides a variable within a relation *}
+
+definition rel_var_res :: "'\<alpha> hrelation \<Rightarrow> ('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrelation" (infix "\<restriction>\<^sub>\<alpha>" 80) where
+"P \<restriction>\<^sub>\<alpha> x = (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P)"
+
+declare rel_var_res_def [urel_defs]
+
 subsection {* Unrestriction Laws *}
 
 lemma unrest_iuvar [unrest]: "uvar x \<Longrightarrow> out\<alpha> \<sharp> $x"
@@ -129,6 +136,14 @@ lemma unrest_convr_out\<alpha> [unrest]:
 lemma unrest_convr_in\<alpha> [unrest]: 
   "out\<alpha> \<sharp> p \<Longrightarrow> in\<alpha> \<sharp> p\<^sup>-"
   by (transfer, auto simp add: in\<alpha>_def out\<alpha>_def)
+
+lemma unrest_in_rel_var_res [unrest]: 
+  "uvar x \<Longrightarrow> $x \<sharp> (P \<restriction>\<^sub>\<alpha> x)"
+  by (simp add: rel_var_res_def unrest)
+
+lemma unrest_out_rel_var_res [unrest]: 
+  "uvar x \<Longrightarrow> $x\<acute> \<sharp> (P \<restriction>\<^sub>\<alpha> x)"
+  by (simp add: rel_var_res_def unrest)
 
 subsection {* Substitution laws *}
 
@@ -174,6 +189,10 @@ done
 lemma usubst_condr [usubst]:
   "\<sigma> \<dagger> (P \<triangleleft> b \<triangleright> Q) = (\<sigma> \<dagger> P \<triangleleft> \<sigma> \<dagger> b \<triangleright> \<sigma> \<dagger> Q)"
   by rel_tac
+
+lemma subst_skip_r [usubst]:
+  "II\<lbrakk>\<lceil>v\<rceil>\<^sub></$x\<rbrakk> = (x := v)"
+  by (rel_tac)
 
 subsection {* Lifting laws *}
 
@@ -295,6 +314,14 @@ lemma seqr_mono:
 lemma pre_skip_post: "(\<lceil>b\<rceil>\<^sub>< \<and> II) = (II \<and> \<lceil>b\<rceil>\<^sub>>)"
   by (rel_tac)
 
+lemma seqr_exists_left:
+  "uvar x \<Longrightarrow> ((\<exists> $x \<bullet> P) ;; Q) = (\<exists> $x \<bullet> (P ;; Q))"
+  by (rel_tac, auto simp add: comp_def)
+
+lemma seqr_exists_right:
+  "uvar x \<Longrightarrow> (P ;; (\<exists> $x\<acute> \<bullet> Q)) = (\<exists> $x\<acute> \<bullet> (P ;; Q))"
+  by (rel_tac, auto simp add: comp_def)
+
 text {* We should be able to generalise this law to arbitrary assignments at some point,
         but that requires additional conversion operators for substitutions that act
         only on @{const "in\<alpha>"}. *}
@@ -317,6 +344,16 @@ lemma assign_r_comp: "uvar x \<Longrightarrow> (x := u ;; P) = ([$x \<mapsto>\<^
 
 lemma assign_test: "uvar x \<Longrightarrow> (x := \<guillemotleft>u\<guillemotright> ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright>)"
   by (simp add: assigns_comp subst_upd_comp subst_lit usubst_upd_idem)
+
+lemma skip_r_unfold:
+  "uvar x \<Longrightarrow> II = ($x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x)"
+  by (rel_tac, blast, metis uvar.var_state_eq_iff uvar.var_update_lookup)
+
+lemma assign_unfold:
+  "uvar x \<Longrightarrow> (x := v) = ($x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub>< \<and> II\<restriction>\<^sub>\<alpha>x)"
+  apply (rel_tac, auto simp add: comp_def )
+  using var_assign_eq apply fastforce
+done
 
 lemma seqr_or_distl:
   "((P \<or> Q) ;; R) = ((P ;; R) \<or> (Q ;; R))"
@@ -358,10 +395,11 @@ theorem postcond_equiv:
 done
 
 lemma precond_right_unit: "out\<alpha> \<sharp> p \<Longrightarrow> (p ;; true) = p"
-  using precond_equiv by force
+  by (metis precond_equiv)
+  
 
 lemma postcond_left_unit: "in\<alpha> \<sharp> p \<Longrightarrow> (true ;; p) = p"
-  using postcond_equiv by force
+  by (metis postcond_equiv)
 
 theorem precond_left_zero:
   assumes "out\<alpha> \<sharp> p" "p \<noteq> false"

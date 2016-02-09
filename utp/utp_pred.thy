@@ -521,6 +521,24 @@ lemma subst_eq_replace:
   shows "(p\<lbrakk>u/x\<rbrakk> \<and> u =\<^sub>u v) = (p\<lbrakk>v/x\<rbrakk> \<and> u =\<^sub>u v)"
   by pred_tac
 
+lemma exists_twice: "uvar x \<Longrightarrow> (\<exists> x \<bullet> \<exists> x \<bullet> P) = (\<exists> x \<bullet> P)"
+  by (pred_tac, auto simp add: comp_def)
+
+lemma all_twice: "uvar x \<Longrightarrow> (\<forall> x \<bullet> \<forall> x \<bullet> P) = (\<forall> x \<bullet> P)"
+  by (pred_tac, auto simp add: comp_def)
+
+lemma ex_commute:
+  assumes "x \<bowtie> y"
+  shows "(\<exists> x \<bullet> \<exists> y \<bullet> P) = (\<exists> y \<bullet> \<exists> x \<bullet> P)"
+  using assms
+  by (pred_tac, auto simp add: uvar_indep_def)
+
+lemma all_commute:
+  assumes "x \<bowtie> y"
+  shows "(\<forall> x \<bullet> \<forall> y \<bullet> P) = (\<forall> y \<bullet> \<forall> x \<bullet> P)"
+  using assms
+  by (pred_tac, auto simp add: uvar_indep_def)
+
 subsection {* Quantifier lifting *}
 
 named_theorems uquant_lift

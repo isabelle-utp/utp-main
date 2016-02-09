@@ -4,6 +4,77 @@ theory utp_procedure
 imports utp_rel utp_dvar utp_designs
 begin
 
+subsection {* Variable scopes *}
+
+definition var_open :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrelation" ("var\<^sub>u") where
+"var_open x = (\<exists> $x \<bullet> II)"
+
+definition var_close :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrelation" ("end\<^sub>u") where
+"var_close x = (\<exists> $x\<acute> \<bullet> II)"
+
+declare var_open_def [urel_defs] and var_close_def [urel_defs]
+
+lemma var_block_expand:
+  assumes "uvar x"
+  shows "(var\<^sub>u x ;; P ;; end\<^sub>u x) = (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P)"
+  by (metis assms seqr_exists_left seqr_exists_right upred_quantale.mult.left_neutral upred_quantale.mult.right_neutral var_close_def var_open_def)
+
+lemma var_open_twice:
+  assumes "uvar x"
+  shows "(var\<^sub>u x ;; var\<^sub>u x) = var\<^sub>u x"
+proof -
+  have "(var\<^sub>u x ;; var\<^sub>u x) = ((\<exists> $x \<bullet> II) ;; (\<exists> $x \<bullet> II))"
+    by (rel_tac)
+  also from assms have "... =  (\<exists> $x \<bullet> (II ;; (\<exists> $x \<bullet> II)))"
+    using seqr_exists_left by blast
+  also have "... = (\<exists> $x \<bullet> (\<exists> $x \<bullet> II))"
+    by simp
+  also from assms have "... = (\<exists> $x \<bullet> II)"
+    by (simp add: exists_twice)
+  finally show ?thesis
+    by (simp add: var_open_def)
+qed
+
+lemma var_close_twice:
+  assumes "uvar x"
+  shows "(end\<^sub>u x ;; end\<^sub>u x) = end\<^sub>u x"
+    by (simp add: assms exists_twice seqr_exists_right var_close_def)
+
+lemma var_block_vacuous:
+  assumes "uvar x"
+  shows "(var\<^sub>u x ;; end\<^sub>u x) = II \<restriction>\<^sub>\<alpha> x"
+  using assms by (simp add: rel_var_res_def seqr_exists_left var_close_def var_open_def)
+
+lemma var_open_close_commute:
+  assumes "uvar x" "uvar y" "x \<bowtie> y"
+  shows "(var\<^sub>u x ;; end\<^sub>u y) = (end\<^sub>u y ;; var\<^sub>u x)"
+  using assms
+  apply (simp add: var_open_def var_close_def)
+oops (* Need some additional variable properties to prove this *)
+
+lemma assign_var_close:
+  assumes "uvar x"
+  shows "(x := v ;; end\<^sub>u x) = end\<^sub>u x"
+proof -
+  from assms have "(x := v ;; end\<^sub>u x) = (\<exists> $x\<acute> \<bullet> x := v)"
+    by (simp add: assigns_r_comp var_close_def usubst unrest)
+  also have "... = (\<exists> $x\<acute> \<bullet> ($x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub>< \<and> II\<restriction>\<^sub>\<alpha>x))"
+    by (simp add: assign_unfold assms)
+  also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>\<lceil>v\<rceil>\<^sub></$x\<acute>\<rbrakk>"
+    by (metis conj_comm one_point out_var_uvar unrest_out\<alpha>_var unrest_pre_out\<alpha> var_out_var)
+  also from assms have "... = (II\<restriction>\<^sub>\<alpha>x)"
+    by subst_tac
+  also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>$x/$x\<acute>\<rbrakk>"
+    by subst_tac
+  also have "... = (\<exists> $x\<acute> \<bullet> ($x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x))"
+    by (simp add: assms conj_comm one_point ouvar_def unrest_out\<alpha>_var utp_rel.unrest_iuvar)
+  also from assms have "... = (\<exists> $x\<acute> \<bullet> II)"
+    using skip_r_unfold by force
+  also have "... = end\<^sub>u x"
+    by (simp add: var_close_def)
+  finally show ?thesis .
+qed
+
 subsection {* Variable blocks and constant parameters *}
 
 text {* Procedures are based solely on deep variables since shallow variables cannot be dynamically created *}
@@ -13,7 +84,7 @@ definition var_block ::
    (('a :: continuum) dvar \<Rightarrow> ('\<alpha>::vst, '\<alpha>) relation) \<Rightarrow> 
    ('\<alpha>, '\<alpha>) relation"
 where "var_block x P = 
-  (let v = mk_dvar x; u = (v\<up> :: ('a, '\<alpha>) uvar) in \<exists> $u \<bullet> \<exists> $u\<acute> \<bullet> P v)"
+  (let v = mk_dvar x; u = (v\<up> :: ('a, '\<alpha>) uvar) in var\<^sub>u u ;; P v ;; end\<^sub>u u)"
 
 definition
   cnt_parm :: "('a \<Rightarrow> ('\<alpha>, '\<beta>) relation) \<Rightarrow> 'a \<Rightarrow> ('\<alpha>, '\<beta>) relation"
@@ -34,8 +105,6 @@ translations
 
 declare var_block_def [urel_defs]
 declare cnt_parm_def [urel_defs]
-  
-declare [[show_sorts]]
 
 lemma subst_var_block: 
   fixes v :: "('a :: continuum, '\<alpha> :: vst \<times> '\<alpha>) uexpr"
@@ -44,7 +113,7 @@ lemma subst_var_block:
           "unrest (out_var ((mk_dvar x :: ('b :: continuum) dvar)\<up>)) v"
   shows "(var_block x (\<lambda> x :: 'b dvar. P))\<lbrakk>v/$y\<rbrakk> = var_block x (\<lambda> x :: 'b dvar. P\<lbrakk>v/$y\<rbrakk>)"
   using assms
-  by (simp add: var_block_def Let_def usubst uvar_indep_sym)
+  by (simp add: var_block_def var_block_expand uvar_dvar Let_def usubst uvar_indep_sym)
 
 subsection {* Relational procedures *}
 
@@ -52,13 +121,13 @@ type_synonym ('a, '\<alpha>) uproc = "'a \<Rightarrow> '\<alpha> hrelation"
 
 definition 
   val_parm :: "string \<Rightarrow> ('a::continuum dvar \<Rightarrow> '\<alpha>::vst hrelation) 
-               \<Rightarrow> ('a, '\<alpha>) uproc"
-where "val_parm x P = (\<lambda> v. (var_block x (\<lambda> x. x := \<guillemotleft>v\<guillemotright> ;; P x)))"
+               \<Rightarrow> (('a, '\<alpha>) uexpr, '\<alpha>) uproc"
+where "val_parm x P = (\<lambda> v. (var_block x (\<lambda> x. x := v ;; P x)))"
 
 definition 
   val_parm_comp :: "string \<Rightarrow> ('a::continuum dvar \<Rightarrow> ('b, '\<alpha>::vst) uproc) 
-               \<Rightarrow> ('a \<times> 'b, '\<alpha>) uproc"
-where "val_parm_comp x P = (\<lambda> (u, v). (var_block x (\<lambda> x. x := \<guillemotleft>u\<guillemotright> ;; P x v)))"
+               \<Rightarrow> (('a, '\<alpha>) uexpr \<times> 'b, '\<alpha>) uproc"
+where "val_parm_comp x P = (\<lambda> (u, v). (var_block x (\<lambda> x. x := u ;; P x v)))"
 
 definition 
   res_parm :: "string \<Rightarrow> ('a::continuum dvar \<Rightarrow> '\<alpha>::vst hrelation) 
@@ -128,11 +197,11 @@ translations
   => "CONST vres_parm_comp IDSTR(x) (\<lambda> x. (_proc_block ps P))"
 
 lemma val_parm_apply [simp]: 
-  "val_parm x P v = var_block x (\<lambda> x. x := \<guillemotleft>v\<guillemotright> ;; P x)"
+  "val_parm x P v = var_block x (\<lambda> x. x := v ;; P x)"
   by (simp add: val_parm_def)
 
 lemma val_parm_comp_apply [simp]: 
-  "(val_parm_comp x P) (u, v) = var_block x (\<lambda> x. x := \<guillemotleft>u\<guillemotright> ;; P x v)"
+  "(val_parm_comp x P) (u, v) = var_block x (\<lambda> x. x := u ;; P x v)"
   by (simp add: val_parm_comp_def)
 
 lemma res_parm_apply [simp]: 

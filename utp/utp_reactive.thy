@@ -78,12 +78,15 @@ end
 
 lemma uvar_wait [simp]: "uvar wait"
   by (unfold_locales, simp_all add: wait_def)
+     (metis (no_types, lifting) alpha_d.ext_inject alpha_rp.ext_inject alpha_rp.surjective alpha_rp.update_convs(1))
 
 lemma uvar_tr [simp]: "uvar tr"
   by (unfold_locales, simp_all add: tr_def)
+     (metis alpha_d.ext_inject alpha_rp.ext_inject alpha_rp.surjective alpha_rp.update_convs(2))
 
 lemma uvar_ref [simp]: "uvar ref"
   by (unfold_locales, simp_all add: ref_def)
+     (metis alpha_d.ext_inject alpha_rp.ext_inject alpha_rp.surjective alpha_rp.update_convs(3))
 
 text{* Note that we define here the class of UTP alphabets that contain
 $wait$, $tr$ and $ref$, or, in other words, we define here the class of reactive process

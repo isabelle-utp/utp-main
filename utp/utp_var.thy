@@ -62,13 +62,24 @@ locale semi_uvar =
 
 locale uvar = semi_uvar +
   assumes var_update_lookup: "var_lookup x (var_update x f \<sigma>) = f (var_lookup x \<sigma>)"
+  and var_state_eq_iff: "\<lbrakk> var_lookup x \<sigma> = var_lookup x \<rho>; var_assign x v \<sigma> = var_assign x v \<rho> \<rbrakk> \<Longrightarrow> \<sigma> = \<rho>"
 
 declare semi_uvar.var_update_comp [simp]
 declare uvar.var_update_lookup [simp]
 declare semi_uvar.var_update_eta [simp]
 
+lemma var_assign_inject: "\<lbrakk> uvar x; var_assign x u \<sigma> = var_assign x v \<sigma> \<rbrakk> \<Longrightarrow> u = v"
+  by (metis uvar.var_update_lookup)
+
 lemma uvar_semi_var [simp]: "uvar x \<Longrightarrow> semi_uvar x"
   by (simp add: uvar_def)
+
+lemma var_assign_eq: 
+  "\<lbrakk> uvar x; var_lookup x b = k; var_assign x u b = var_assign x v a \<rbrakk> \<Longrightarrow> var_assign x k a = b"
+  apply (rule uvar.var_state_eq_iff[of x _ _ v])
+  apply (simp_all add:comp_def)
+  apply (metis uvar.var_update_lookup)
+done
   
 text {* In addition to defining the validity of variable, we also need to show how two variables
         are related. Since variables are pairs of functions and have no identifying name that
@@ -136,13 +147,13 @@ lemma in_var_uvar [simp]:
   assumes "uvar x"
   shows "uvar (in_var x)"
   using assms 
-  by (unfold_locales, auto simp add: in_var_def)
+  by (unfold_locales, auto intro: uvar.var_state_eq_iff simp add: in_var_def)
 
 lemma out_var_uvar [simp]:
   assumes "uvar x"
   shows "uvar (out_var x)"
   using assms 
-  by (unfold_locales, auto simp add: out_var_def)
+  by (unfold_locales, auto intro: uvar.var_state_eq_iff simp add: out_var_def)
 
 lemma in_out_indep [simp]:
   "in_var x \<bowtie> out_var y"

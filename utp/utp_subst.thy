@@ -181,5 +181,6 @@ translations
   "_psubst m (_sinvar x) v"   => "CONST subst_upd m (CONST in_var x) v"
   "_psubst m (_soutvar x) v"  => "CONST subst_upd m (CONST out_var x) v"
   "_psubst m (_svars x xs) (_uexprs v vs)" => "_psubst (_psubst m x v) xs vs"
+  "_subst P e x"              <= "CONST subst (CONST subst_upd (CONST id) x e) P"
 
 end
