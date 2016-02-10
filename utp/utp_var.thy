@@ -213,10 +213,18 @@ syntax
   "_sinvar"   :: "id \<Rightarrow> svar" ("$_" [999] 999)
   "_soutvar"  :: "id \<Rightarrow> svar" ("$_\<acute>" [999] 999)
 
+consts
+  svar :: "'v \<Rightarrow> 'e" 
+  ivar :: "'v \<Rightarrow> 'e"
+  ovar :: "'v \<Rightarrow> 'e"
+
+adhoc_overloading
+  ivar in_var and ovar out_var
+
 translations
   "_svar x" => "x"
   "_spvar x" => "x"
-  "_sinvar x" == "CONST in_var x"
-  "_soutvar x" == "CONST out_var x"
+  "_sinvar x" == "CONST ivar x"
+  "_soutvar x" == "CONST ovar x"
 
 end

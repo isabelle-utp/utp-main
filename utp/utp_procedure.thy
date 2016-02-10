@@ -125,11 +125,10 @@ subsection {* Variable blocks and constant parameters *}
 text {* Procedures are based solely on deep variables since shallow variables cannot be dynamically created *}
 
 definition var_block :: 
-  "string \<Rightarrow> 
-   (('a :: continuum) dvar \<Rightarrow> ('\<alpha>::vst, '\<alpha>) relation) \<Rightarrow> 
+  "('a :: continuum) dvar \<Rightarrow> 
+   ('a dvar \<Rightarrow> ('\<alpha>::vst, '\<alpha>) relation) \<Rightarrow> 
    ('\<alpha>, '\<alpha>) relation"
-where "var_block x P = 
-  (let v = mk_dvar x; u = (v\<up> :: ('a, '\<alpha>) uvar) in var\<^sub>u u ;; P v ;; end\<^sub>u u)"
+where "var_block x P = (var\<^sub>u (x\<up>) ;; P x ;; end\<^sub>u (x\<up>))"
 
 definition
   cnt_parm :: "('a \<Rightarrow> ('\<alpha>, '\<beta>) relation) \<Rightarrow> 'a \<Rightarrow> ('\<alpha>, '\<beta>) relation"
@@ -142,8 +141,8 @@ syntax
   "_cnt_block_ty"  :: "id \<Rightarrow> type \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("cnt _ :: _ \<bullet>/ _" [0,0,999] 999)
 
 translations
-  "var x \<bullet> P" => "CONST var_block IDSTR(x) (\<lambda> x. P)"
-  "var x :: 'a \<bullet> P" => "CONST var_block IDSTR(x) (\<lambda> x :: 'a dvar. P)"
+  "var x \<bullet> P" => "CONST var_block \<lceil>IDSTR(x)\<rceil>\<^sub>d (\<lambda> x. P)"
+  "var x :: 'a \<bullet> P" => "CONST var_block \<lceil>IDSTR(x)\<rceil>\<^sub>d (\<lambda> x :: 'a dvar. P)"
   "var x \<bullet> P" <= "CONST var_block z (\<lambda> x. P)"
   "cnt x \<bullet> P" == "CONST cnt_parm (\<lambda> x. P)"
   "cnt x :: 'a \<bullet> P" == "CONST cnt_parm (\<lambda> x :: 'a. P)"
@@ -152,45 +151,44 @@ declare var_block_def [urel_defs]
 declare cnt_parm_def [urel_defs]
 
 lemma subst_var_block: 
-  fixes v :: "('a :: continuum, '\<alpha> :: vst \<times> '\<alpha>) uexpr"
-  assumes "(mk_dvar x :: ('b :: continuum) dvar)\<up> \<bowtie> y" 
-          "unrest (in_var ((mk_dvar x :: ('b :: continuum) dvar)\<up>)) v"
-          "unrest (out_var ((mk_dvar x :: ('b :: continuum) dvar)\<up>)) v"
-  shows "(var_block x (\<lambda> x :: 'b dvar. P))\<lbrakk>v/$y\<rbrakk> = var_block x (\<lambda> x :: 'b dvar. P\<lbrakk>v/$y\<rbrakk>)"
+  fixes v :: "('a, '\<alpha> :: vst \<times> '\<alpha>) uexpr"
+  and   x :: "'b::continuum dvar"
+  assumes "x\<up> \<bowtie> y" "$x \<sharp> v" "$x\<acute> \<sharp> v"
+  shows "(var_block x P)\<lbrakk>v/$y\<rbrakk> = var_block x (\<lambda> x :: 'b dvar. (P x)\<lbrakk>v/$y\<rbrakk>)"
   using assms
-  by (simp add: var_block_def var_block_expand uvar_dvar Let_def usubst uvar_indep_sym)
+  by (simp add: var_block_def var_block_expand uvar_dvar usubst uvar_indep_sym)
 
 subsection {* Relational procedures *}
 
 type_synonym ('a, '\<alpha>) uproc = "'a \<Rightarrow> '\<alpha> hrelation"
 
 definition 
-  val_parm :: "string \<Rightarrow> ('a::continuum dvar \<Rightarrow> '\<alpha>::vst hrelation) 
+  val_parm :: "'a dvar \<Rightarrow> ('a::continuum dvar \<Rightarrow> '\<alpha>::vst hrelation) 
                \<Rightarrow> (('a, '\<alpha>) uexpr, '\<alpha>) uproc"
 where "val_parm x P = (\<lambda> v. (var_block x (\<lambda> x. x := v ;; P x)))"
 
 definition 
-  val_parm_comp :: "string \<Rightarrow> ('a::continuum dvar \<Rightarrow> ('b, '\<alpha>::vst) uproc) 
+  val_parm_comp :: "'a dvar \<Rightarrow> ('a::continuum dvar \<Rightarrow> ('b, '\<alpha>::vst) uproc) 
                \<Rightarrow> (('a, '\<alpha>) uexpr \<times> 'b, '\<alpha>) uproc"
 where "val_parm_comp x P = (\<lambda> (u, v). (var_block x (\<lambda> x. x := u ;; P x v)))"
 
 definition 
-  res_parm :: "string \<Rightarrow> ('a::continuum dvar \<Rightarrow> '\<alpha>::vst hrelation) 
+  res_parm :: "'a dvar \<Rightarrow> ('a::continuum dvar \<Rightarrow> '\<alpha>::vst hrelation) 
                \<Rightarrow> (('a, '\<alpha>) uvar, '\<alpha>) uproc"
 where "res_parm x P = (\<lambda> y. (var_block x (\<lambda> x. P x ;; y := &x)))"
 
 definition 
-  res_parm_comp :: "string \<Rightarrow> ('a::continuum dvar \<Rightarrow> ('b, '\<alpha>::vst) uproc) 
+  res_parm_comp :: "'a dvar \<Rightarrow> ('a::continuum dvar \<Rightarrow> ('b, '\<alpha>::vst) uproc) 
                \<Rightarrow> (('a, '\<alpha>) uvar \<times> 'b, '\<alpha>) uproc"
 where "res_parm_comp x P = (\<lambda> (u, v). (var_block x (\<lambda> x. P x v ;; u := &x)))"
 
 definition 
-  vres_parm :: "string \<Rightarrow> ('a::continuum dvar \<Rightarrow> '\<alpha>::vst hrelation) 
+  vres_parm :: "'a dvar \<Rightarrow> ('a::continuum dvar \<Rightarrow> '\<alpha>::vst hrelation) 
                \<Rightarrow> (('a, '\<alpha>) uvar, '\<alpha>) uproc"
 where "vres_parm x P = (\<lambda> y. (var_block x (\<lambda> x. x := &y ;; P x ;; y := &x)))"
 
 definition 
-  vres_parm_comp :: "string \<Rightarrow> ('a::continuum dvar \<Rightarrow> ('b, '\<alpha>::vst) uproc) 
+  vres_parm_comp :: "'a dvar \<Rightarrow> ('a::continuum dvar \<Rightarrow> ('b, '\<alpha>::vst) uproc) 
                \<Rightarrow> (('a, '\<alpha>) uvar \<times> 'b, '\<alpha>) uproc"
 where "vres_parm_comp x P = (\<lambda> (u, v). (var_block x (\<lambda> x. x := &u ;; P x v ;; u := &x)))"
 
@@ -220,34 +218,42 @@ in [(@{syntax_const "_uvar_ty"}, K uvar_ty_tr)] end
 
 translations
   (* Parse translations for value parameters *)
-  "_proc_block (_parm (_val_parm x)) P" => "CONST val_parm IDSTR(x) (\<lambda> x. P)"
-  "_proc_block (_parm (_val_parm_ty x a)) P" => "CONST val_parm IDSTR(x) (_abs (_constrain x (_uvar_ty a)) P)"
+  "_proc_block (_parm (_val_parm x)) P" => "CONST val_parm \<lceil>IDSTR(x)\<rceil>\<^sub>d (\<lambda> x. P)"
+  "_proc_block (_parm (_val_parm_ty x a)) P" => "CONST val_parm \<lceil>IDSTR(x)\<rceil>\<^sub>d (_abs (_constrain x (_uvar_ty a)) P)"
   "_proc_block (_parm_list (_val_parm_ty x a) ps) P" 
-  => "CONST val_parm_comp IDSTR(x) (_abs (_constrain x (_uvar_ty a)) (_proc_block ps P))"
+  => "CONST val_parm_comp \<lceil>IDSTR(x)\<rceil>\<^sub>d (_abs (_constrain x (_uvar_ty a)) (_proc_block ps P))"
   "_proc_block (_parm_list (_val_parm x) ps) P" 
-  => "CONST val_parm_comp IDSTR(x) (\<lambda> x. (_proc_block ps P))"
+  => "CONST val_parm_comp \<lceil>IDSTR(x)\<rceil>\<^sub>d (\<lambda> x. (_proc_block ps P))"
   (* Parse translations for result parameters *)
-  "_proc_block (_parm (_res_parm x)) P" => "CONST res_parm IDSTR(x) (\<lambda> x. P)"
-  "_proc_block (_parm (_res_parm_ty x a)) P" => "CONST res_parm IDSTR(x) (_abs (_constrain x (_uvar_ty a)) P)"
+  "_proc_block (_parm (_res_parm x)) P" => "CONST res_parm \<lceil>IDSTR(x)\<rceil>\<^sub>d (\<lambda> x. P)"
+  "_proc_block (_parm (_res_parm_ty x a)) P" => "CONST res_parm \<lceil>IDSTR(x)\<rceil>\<^sub>d (_abs (_constrain x (_uvar_ty a)) P)"
   "_proc_block (_parm_list (_res_parm_ty x a) ps) P" 
-  => "CONST res_parm_comp IDSTR(x) (_abs (_constrain x (_uvar_ty a)) (_proc_block ps P))"
+  => "CONST res_parm_comp \<lceil>IDSTR(x)\<rceil>\<^sub>d (_abs (_constrain x (_uvar_ty a)) (_proc_block ps P))"
   "_proc_block (_parm_list (_res_parm x) ps) P" 
-  => "CONST res_parm_comp IDSTR(x) (\<lambda> x. (_proc_block ps P))"
+  => "CONST res_parm_comp \<lceil>IDSTR(x)\<rceil>\<^sub>d (\<lambda> x. (_proc_block ps P))"
   (* Parse translations for value-result parameters *)
-  "_proc_block (_parm (_vres_parm x)) P" => "CONST vres_parm IDSTR(x) (\<lambda> x. P)"
-  "_proc_block (_parm (_vres_parm_ty x a)) P" => "CONST vres_parm IDSTR(x) (_abs (_constrain x (_uvar_ty a)) P)"
+  "_proc_block (_parm (_vres_parm x)) P" => "CONST vres_parm \<lceil>IDSTR(x)\<rceil>\<^sub>d (\<lambda> x. P)"
+  "_proc_block (_parm (_vres_parm_ty x a)) P" => "CONST vres_parm \<lceil>IDSTR(x)\<rceil>\<^sub>d (_abs (_constrain x (_uvar_ty a)) P)"
   "_proc_block (_parm_list (_vres_parm_ty x a) ps) P" 
-  => "CONST vres_parm_comp IDSTR(x) (_abs (_constrain x (_uvar_ty a)) (_proc_block ps P))"
+  => "CONST vres_parm_comp \<lceil>IDSTR(x)\<rceil>\<^sub>d (_abs (_constrain x (_uvar_ty a)) (_proc_block ps P))"
   "_proc_block (_parm_list (_res_parm x) ps) P" 
-  => "CONST vres_parm_comp IDSTR(x) (\<lambda> x. (_proc_block ps P))"
+  => "CONST vres_parm_comp \<lceil>IDSTR(x)\<rceil>\<^sub>d (\<lambda> x. (_proc_block ps P))"
 
 lemma val_parm_apply [simp]: 
-  "val_parm x P v = var_block x (\<lambda> x. x := v ;; P x)"
-  by (simp add: val_parm_def)
+  "val_parm x P v = var_block x (\<lambda> x. (P x)\<lbrakk>\<lceil>v\<rceil>\<^sub></$x\<rbrakk>)"
+  by (simp add: val_parm_def var_block_def Let_def assign_r_comp uvar_dvar)
 
-lemma val_parm_comp_apply [simp]: 
-  "(val_parm_comp x P) (u, v) = var_block x (\<lambda> x. x := u ;; P x v)"
-  by (simp add: val_parm_comp_def)
+lemma val_parm_comp_apply: 
+  "(val_parm_comp x P) (u, v) = var_block x (\<lambda> x. (P x v)\<lbrakk>\<lceil>u\<rceil>\<^sub></$x\<rbrakk>)"
+  by (simp add: val_parm_comp_def var_block_def Let_def assign_r_comp uvar_dvar)
+
+lemma val_parm_apply_2 [simp]:
+  fixes x y :: "'a::continuum dvar" and u :: "('a, '\<alpha>::vst) uexpr"
+  assumes "(x\<up> :: ('a, '\<alpha>) uvar) \<bowtie> y\<up>" "unrest (x\<up>) v" "unrest (y\<up>) u"
+  shows "val_parm_comp x (\<lambda> x. val_parm y (P x)) (u, v) = 
+         var_block x (\<lambda> x. var_block y (\<lambda> y. (P x y)\<lbrakk>\<lceil>u\<rceil>\<^sub><,\<lceil>v\<rceil>\<^sub></$x,$y\<rbrakk>))"
+  using assms
+  by (simp add: val_parm_comp_apply var_block_def var_block_expand uvar_dvar usubst unrest uvar_indep_sym)
 
 lemma res_parm_apply [simp]: 
   "res_parm x P v = var_block x (\<lambda> x. P x ;; v := &x)"

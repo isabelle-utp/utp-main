@@ -182,6 +182,9 @@ is "\<lambda> n. \<lparr> dname_name = n, dname_card = UCARD('a) \<rparr>"
 lift_definition dvar_name :: "'a::continuum dvar \<Rightarrow> string" is "dname_name" .
 lift_definition dvar_card :: "'a::continuum dvar \<Rightarrow> ucard" is "dname_card" .
 
+lemma dvar_name [simp]: "dvar_name \<lceil>x\<rceil>\<^sub>d = x"
+  by (transfer, simp)
+
 lift_definition vstore_lookup :: "('a::continuum) dvar \<Rightarrow> vstore \<Rightarrow> 'a"
 is "\<lambda> x s. (uproject :: uuniv \<Rightarrow> 'a) (s(x))" .
 
@@ -232,6 +235,12 @@ where "dvar_lift x = \<lparr> var_lookup = \<lambda> v. vstore_lookup x (get_vst
                      , var_update = \<lambda> f s. upd_vstore (vstore_upd x f) s
                      \<rparr>"
 
+definition [simp]: "in_dvar x = in_var (x\<up>)"
+definition [simp]: "out_dvar x = out_var (x\<up>)"
+
+adhoc_overloading
+  ivar in_dvar and ovar out_dvar
+
 lemma vstore_upd_compose [simp]: "vstore_upd x f \<circ> vstore_upd x g = vstore_upd x (f \<circ> g)"
   by (rule ext, simp add: vstore_upd_def, transfer, auto)
 
@@ -281,6 +290,9 @@ proof -
     by (auto simp add: uvar_indep_def dvar_name_def dvar_card_def dvar_lift_def vstore_upd_def)
 qed
 
+lemma dvar_indep_diff_name' [simp]:
+  "x \<noteq> y \<Longrightarrow> \<lceil>x\<rceil>\<^sub>d\<up> \<bowtie> \<lceil>y\<rceil>\<^sub>d\<up>"
+  by (auto intro: dvar_indep_diff_name)
 
 text {* A basic record structure for vstores *}
 

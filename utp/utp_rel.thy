@@ -191,7 +191,8 @@ lemma usubst_condr [usubst]:
   by rel_tac
 
 lemma subst_skip_r [usubst]:
-  "II\<lbrakk>\<lceil>v\<rceil>\<^sub></$x\<rbrakk> = (x := v)"
+  fixes x :: "('a, '\<alpha>) uvar"
+  shows "II\<lbrakk>\<lceil>v\<rceil>\<^sub></$x\<rbrakk> = (x := v)"
   by (rel_tac)
 
 subsection {* Lifting laws *}
