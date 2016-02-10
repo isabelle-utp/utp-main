@@ -59,6 +59,10 @@ syntax
 translations
   "UCARD('a)" == "CONST ucard_of (TYPE('a))"
 
+lemma ucard_non_empty:
+  "\<U>(x) \<noteq> {}"
+  by (induct x, auto)
+
 lemma ucard_of_finite [simp]:
   "finite (UNIV :: 'a::continuum set) \<Longrightarrow> UCARD('a) = fin(card(UNIV :: 'a set) - 1)"
   by (simp add: ucard_of_def)
