@@ -207,6 +207,8 @@ syntax
   "_uapply"     :: "('a \<Rightarrow> 'b, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('b, '\<alpha>) uexpr" ("_\<lparr>_\<rparr>\<^sub>u" [999,0] 999)
   "_udom"       :: "logic \<Rightarrow> logic" ("dom\<^sub>u'(_')")
   "_uran"       :: "logic \<Rightarrow> logic" ("ran\<^sub>u'(_')")
+  "_uinl"       :: "logic \<Rightarrow> logic" ("inl\<^sub>u'(_')")
+  "_uinr"       :: "logic \<Rightarrow> logic" ("inr\<^sub>u'(_')")
   "_umap_empty" :: "logic" ("[]\<^sub>u")
   "_umap_apply" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_\<lparr>_\<rparr>\<^sub>m" [999,0] 999)
   "_umap_plus"  :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<oplus>\<^sub>m" 85)
@@ -253,6 +255,8 @@ translations
   "f\<lparr>x\<rparr>\<^sub>u"    == "CONST bop CONST fun_apply f x"
   "dom\<^sub>u(f)" == "CONST uop CONST dom f"
   "ran\<^sub>u(f)" == "CONST uop CONST ran f"
+  "inl\<^sub>u(x)" == "CONST uop CONST Inl x"
+  "inr\<^sub>u(x)" == "CONST uop CONST Inr x"
   "f\<lparr>x\<rparr>\<^sub>m"   == "CONST bop CONST map_apply f x"
   "f \<oplus>\<^sub>m g" == "CONST bop CONST map_add f g"
   "[]\<^sub>u"     == "\<guillemotleft>Map.empty\<guillemotright>"
@@ -261,7 +265,7 @@ translations
   "_UMap ms"                      == "_UMapUpd (CONST lit CONST empty) ms"
   "_UMap (_UMaplets ms1 ms2)"     <= "_UMapUpd (_UMap ms1) ms2"
   "_UMaplets ms1 (_UMaplets ms2 ms3)" <= "_UMaplets (_UMaplets ms1 ms2) ms3"
-  "f\<lparr>x,y\<rparr>\<^sub>u"  == "CONST bop CONST fun_apply f (x,y)\<^sub>u" 
+  "f\<lparr>x,y\<rparr>\<^sub>u"  == "CONST bop CONST fun_apply f (x,y)\<^sub>u"
 
 text {* Lifting set intervals *}
 
