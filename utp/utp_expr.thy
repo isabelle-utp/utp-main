@@ -178,7 +178,7 @@ adhoc_overloading
 abbreviation seq_filter :: "'a set \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "seq_filter A \<equiv> filter (\<lambda> x. x \<in> A)"
 
-nonterminal utuple_args
+nonterminal utuple_args and umaplet and umaplets
 
 syntax
   "_unil"       :: "('a list, '\<alpha>) uexpr" ("\<langle>\<rangle>")
@@ -205,9 +205,25 @@ syntax
   "_ufst"       :: "('a \<times> 'b, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<pi>\<^sub>1'(_')")
   "_usnd"       :: "('a \<times> 'b, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr" ("\<pi>\<^sub>2'(_')")
   "_uapply"     :: "('a \<Rightarrow> 'b, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('b, '\<alpha>) uexpr" ("_\<lparr>_\<rparr>\<^sub>u" [999,0] 999)
+  "_udom"       :: "logic \<Rightarrow> logic" ("dom\<^sub>u'(_')")
+  "_uran"       :: "logic \<Rightarrow> logic" ("ran\<^sub>u'(_')")
+  "_umap_empty" :: "logic" ("[]\<^sub>u")
+  "_umap_apply" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_\<lparr>_\<rparr>\<^sub>m" [999,0] 999)
+  "_umap_plus"  :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<oplus>\<^sub>m" 85)
+  "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>\<^sub>u/ _")
+  ""            :: "umaplet => umaplets"             ("_")
+  "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
+  "_UMapUpd"    :: "[logic, umaplets] => logic" ("_/'(_')" [900,0] 900)
+  "_UMap"       :: "umaplets => logic" ("(1[_])")
 
 definition "fun_apply f x = f x"
 declare fun_apply_def [simp]
+
+definition "map_upd = (\<lambda> f x v. fun_upd f x (Some v))"
+declare map_upd_def [simp]
+
+definition "map_apply = (\<lambda> f x. the (f x))"
+declare map_apply_def [simp]
 
 translations
   "\<langle>\<rangle>"       == "\<guillemotleft>[]\<guillemotright>"
@@ -235,7 +251,17 @@ translations
   "\<pi>\<^sub>1(x)"    == "CONST uop CONST fst x"
   "\<pi>\<^sub>2(x)"    == "CONST uop CONST snd x"
   "f\<lparr>x\<rparr>\<^sub>u"    == "CONST bop CONST fun_apply f x"
-  "f\<lparr>x,y\<rparr>\<^sub>u"  == "CONST bop CONST fun_apply f (x,y)\<^sub>u"
+  "dom\<^sub>u(f)" == "CONST uop CONST dom f"
+  "ran\<^sub>u(f)" == "CONST uop CONST ran f"
+  "f\<lparr>x\<rparr>\<^sub>m"   == "CONST bop CONST map_apply f x"
+  "f \<oplus>\<^sub>m g" == "CONST bop CONST map_add f g"
+  "[]\<^sub>u"     == "\<guillemotleft>Map.empty\<guillemotright>"
+  "_UMapUpd m (_UMaplets xy ms)" == "_UMapUpd (_UMapUpd m xy) ms"
+  "_UMapUpd m (_umaplet  x y)"   == "CONST trop CONST map_upd m x y"
+  "_UMap ms"                      == "_UMapUpd (CONST lit CONST empty) ms"
+  "_UMap (_UMaplets ms1 ms2)"     <= "_UMapUpd (_UMap ms1) ms2"
+  "_UMaplets ms1 (_UMaplets ms2 ms3)" <= "_UMaplets (_UMaplets ms1 ms2) ms3"
+  "f\<lparr>x,y\<rparr>\<^sub>u"  == "CONST bop CONST fun_apply f (x,y)\<^sub>u" 
 
 text {* Lifting set intervals *}
 
