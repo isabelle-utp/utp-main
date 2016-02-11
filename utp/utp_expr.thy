@@ -228,10 +228,8 @@ declare map_upd_def [simp]
 definition "map_apply = (\<lambda> f x. the (f x))"
 declare map_apply_def [simp]
 
-(* TODO: Defined map substraction *)
-
-definition "map_minus f g = undefined"
-declare map_minus_def [simp] 
+definition map_minus :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)"
+where "map_minus f g = (\<lambda> x. if (f x = g x) then None else f x)" 
 
 translations
   "\<langle>\<rangle>"       == "\<guillemotleft>[]\<guillemotright>"
