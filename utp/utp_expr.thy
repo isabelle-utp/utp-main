@@ -212,6 +212,7 @@ syntax
   "_umap_empty" :: "logic" ("[]\<^sub>u")
   "_umap_apply" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_\<lparr>_\<rparr>\<^sub>m" [999,0] 999)
   "_umap_plus"  :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<oplus>\<^sub>m" 85)
+  "_umap_minus" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<ominus>\<^sub>m" 85)
   "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>\<^sub>u/ _")
   ""            :: "umaplet => umaplets"             ("_")
   "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
@@ -226,6 +227,11 @@ declare map_upd_def [simp]
 
 definition "map_apply = (\<lambda> f x. the (f x))"
 declare map_apply_def [simp]
+
+(* TODO: Defined map substraction *)
+
+definition "map_minus f g = undefined"
+declare map_minus_def [simp] 
 
 translations
   "\<langle>\<rangle>"       == "\<guillemotleft>[]\<guillemotright>"
@@ -259,6 +265,7 @@ translations
   "inr\<^sub>u(x)" == "CONST uop CONST Inr x"
   "f\<lparr>x\<rparr>\<^sub>m"   == "CONST bop CONST map_apply f x"
   "f \<oplus>\<^sub>m g" == "CONST bop CONST map_add f g"
+  "f \<ominus>\<^sub>m g" == "CONST bop CONST map_minus f g"
   "[]\<^sub>u"     == "\<guillemotleft>Map.empty\<guillemotright>"
   "_UMapUpd m (_UMaplets xy ms)" == "_UMapUpd (_UMapUpd m xy) ms"
   "_UMapUpd m (_umaplet  x y)"   == "CONST trop CONST map_upd m x y"
