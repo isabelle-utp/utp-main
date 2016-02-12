@@ -6,6 +6,7 @@ imports
   "../utils/cardinals"
   "../utils/Continuum"
   "../utils/finite_bijection"
+  "../utils/Library_extra/Map_Extra"
   "~~/src/HOL/Library/Prefix_Order"
   "~~/src/HOL/Library/Adhoc_Overloading"
   "~~/src/HOL/Library/Monad_Syntax"

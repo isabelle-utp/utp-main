@@ -716,4 +716,6 @@ proof -
   qed
 qed
 
+declare map_member.simps [simp del]
+
 end

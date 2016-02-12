@@ -310,7 +310,36 @@ lemma var_out_var: "var (out_var x) = $x\<acute>"
 
 (* Map lemmas. TODO: Move to Map extra *)
 
+declare map_member.simps [simp del]
+
 lemma map_minus_apply [simp]: "y \<in> dom(f -- g) \<Longrightarrow> (f -- g)(y)\<^sub>m = f(y)\<^sub>m"
   by (auto simp add: map_minus_def dom_def map_apply_def)
 
+lemma map_add_restrict:
+  "f ++ g = (f |` (- dom g)) ++ g"
+  by (rule ext, auto simp add: map_add_def restrict_map_def)
+
+lemma map_ext:
+  "\<lbrakk> \<And> x y. (x, y) \<in>\<^sub>m A \<longleftrightarrow> (x, y) \<in>\<^sub>m B \<rbrakk> \<Longrightarrow> A = B"
+  by (rule ext, auto simp add: map_member.simps, metis not_Some_eq)
+
+lemma map_member_alt_def:
+  "(x, y) \<in>\<^sub>m A \<longleftrightarrow> (x \<in> dom A \<and> A(x)\<^sub>m = y)"
+  by (auto simp add: map_member.simps map_apply_def)
+
+lemma map_member_plus:
+  "(x, y) \<in>\<^sub>m f ++ g \<longleftrightarrow> ((x \<notin> dom(g) \<and> (x, y) \<in>\<^sub>m f) \<or> (x, y) \<in>\<^sub>m g)"
+  by (auto simp add: map_member.simps map_add_Some_iff)
+
+lemma map_member_minus:
+  "(x, y) \<in>\<^sub>m f -- g \<longleftrightarrow> (x, y) \<in>\<^sub>m f \<and> (\<not> (x, y) \<in>\<^sub>m g)"
+  by (auto simp add: map_member.simps map_minus_def)
+
+lemma map_minus_plus_commute:
+  "dom(g) \<inter> dom(h) = {} \<Longrightarrow> (f -- g) ++ h = (f ++ h) -- g"
+  apply (rule map_ext)
+  apply (auto simp add: map_member_plus map_member_minus)
+  apply (auto simp add: map_member_alt_def)
+done
+ 
 end
