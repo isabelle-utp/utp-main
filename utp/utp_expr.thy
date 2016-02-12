@@ -301,7 +301,6 @@ lemmas uexpr_defs =
   eq_upred_def
   numeral_uexpr_simp
   map_upd_def
-  map_apply_def
 
 lemma var_in_var: "var (in_var x) = $x"
   by (simp add: iuvar_def)
