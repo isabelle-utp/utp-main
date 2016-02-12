@@ -224,7 +224,8 @@ declare fun_apply_def [simp]
 
 definition "map_upd = (\<lambda> f x v. fun_upd f x (Some v))"
 
-definition "map_apply = (\<lambda> f x. the (f x))"
+definition map_apply :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ("_'(_')\<^sub>m" [999,0] 999) where
+"map_apply = (\<lambda> f x. the (f x))"
 
 definition map_minus :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" (infixl "--" 100) 
 where "map_minus f g = (\<lambda> x. if (f x = g x) then None else f x)" 
@@ -270,6 +271,8 @@ translations
   "_UMaplets ms1 (_UMaplets ms2 ms3)" <= "_UMaplets (_UMaplets ms1 ms2) ms3"
   "f\<lparr>x,y\<rparr>\<^sub>u"  == "CONST bop CONST fun_apply f (x,y)\<^sub>u"
 
+term "[1 \<mapsto>\<^sub>u 2]"
+
 text {* Lifting set intervals *}
 
 syntax
@@ -305,5 +308,10 @@ lemma var_in_var: "var (in_var x) = $x"
 
 lemma var_out_var: "var (out_var x) = $x\<acute>"
   by (simp add: ouvar_def)
+
+(* Map lemmas. TODO: Move to Map extra *)
+
+lemma map_minus_apply [simp]: "y \<in> dom(f -- g) \<Longrightarrow> (f -- g)(y)\<^sub>m = f(y)\<^sub>m"
+  by (auto simp add: map_minus_def dom_def map_apply_def)
 
 end
