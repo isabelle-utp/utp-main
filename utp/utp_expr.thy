@@ -271,8 +271,6 @@ translations
   "_UMaplets ms1 (_UMaplets ms2 ms3)" <= "_UMaplets (_UMaplets ms1 ms2) ms3"
   "f\<lparr>x,y\<rparr>\<^sub>u"  == "CONST bop CONST fun_apply f (x,y)\<^sub>u"
 
-term "[1 \<mapsto>\<^sub>u 2]"
-
 text {* Lifting set intervals *}
 
 syntax
@@ -342,4 +340,25 @@ lemma map_minus_plus_commute:
   apply (auto simp add: map_member_alt_def)
 done
  
+lemma map_le_member:
+  "f \<subseteq>\<^sub>m g \<longleftrightarrow> (\<forall> x y. (x,y) \<in>\<^sub>m f \<longrightarrow> (x,y) \<in>\<^sub>m g)"
+  by (force simp add: map_le_def map_member.simps)
+
+lemma map_le_graph: "f \<subseteq>\<^sub>m g \<longleftrightarrow> map_graph f \<subseteq> map_graph g"
+  by (force simp add: map_le_def map_graph_def)
+
+lemma map_graph_minus: "map_graph (f -- g) = map_graph f - map_graph g"
+  by (auto simp add: map_minus_def map_graph_def, (meson option.distinct(1))+)
+
+lemma map_graph_inj:
+  "inj map_graph"
+  by (metis injI map_graph_inv)
+
+lemma map_eq_graph: "f = g \<longleftrightarrow> map_graph f = map_graph g"
+  by (auto simp add: inj_eq map_graph_inj)
+
+lemma map_minus_common_subset:
+  "\<lbrakk> h \<subseteq>\<^sub>m f; h \<subseteq>\<^sub>m g \<rbrakk> \<Longrightarrow> (f -- h = g -- h) = (f = g)"
+  by (auto simp add: map_eq_graph map_graph_minus map_le_graph)
+
 end
