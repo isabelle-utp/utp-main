@@ -223,12 +223,10 @@ definition "fun_apply f x = f x"
 declare fun_apply_def [simp]
 
 definition "map_upd = (\<lambda> f x v. fun_upd f x (Some v))"
-declare map_upd_def [simp]
 
 definition "map_apply = (\<lambda> f x. the (f x))"
-declare map_apply_def [simp]
 
-definition map_minus :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)"
+definition map_minus :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" (infixl "--" 100) 
 where "map_minus f g = (\<lambda> x. if (f x = g x) then None else f x)" 
 
 translations
@@ -299,6 +297,8 @@ lemmas uexpr_defs =
   mod_uexpr_def
   eq_upred_def
   numeral_uexpr_simp
+  map_upd_def
+  map_apply_def
 
 lemma var_in_var: "var (in_var x) = $x"
   by (simp add: iuvar_def)
