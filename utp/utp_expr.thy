@@ -24,6 +24,8 @@ lemma uexpr_eq_iff:
   "e = f \<longleftrightarrow> (\<forall> b. \<lbrakk>e\<rbrakk>\<^sub>e b = \<lbrakk>f\<rbrakk>\<^sub>e b)"
   using Rep_uexpr_inject[of e f, THEN sym] by (auto)
 
+named_theorems ueval
+
 setup_lifting type_definition_uexpr
 
 text {* A variable expression corresponds to the lookup function of the variable. *}
@@ -209,7 +211,7 @@ syntax
   "_uran"       :: "logic \<Rightarrow> logic" ("ran\<^sub>u'(_')")
   "_uinl"       :: "logic \<Rightarrow> logic" ("inl\<^sub>u'(_')")
   "_uinr"       :: "logic \<Rightarrow> logic" ("inr\<^sub>u'(_')")
-  "_umap_empty" :: "logic" ("[]\<^sub>u")
+  "_umap_empty" :: "('a \<rightharpoonup> 'b, '\<alpha>) uexpr" ("[]\<^sub>u")
   "_umap_apply" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_\<lparr>_\<rparr>\<^sub>m" [999,0] 999)
   "_umap_plus"  :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<oplus>\<^sub>m" 85)
   "_umap_minus" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<ominus>\<^sub>m" 85)
@@ -230,6 +232,9 @@ definition map_apply :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a \<Rightarrow
 definition map_minus :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" (infixl "--" 100) 
 where "map_minus f g = (\<lambda> x. if (f x = g x) then None else f x)" 
 
+definition map_empty :: "'a \<rightharpoonup> 'b" ("[]\<^sub>m") where
+"map_empty = Map.empty"
+
 translations
   "\<langle>\<rangle>"       == "\<guillemotleft>[]\<guillemotright>"
   "\<langle>x, xs\<rangle>"  == "CONST bop (op #) x \<langle>xs\<rangle>"
@@ -244,8 +249,8 @@ translations
   "{}\<^sub>u"      == "\<guillemotleft>{}\<guillemotright>"
   "{x, xs}\<^sub>u" == "CONST bop (CONST insert) x {xs}\<^sub>u"
   "{x}\<^sub>u"     == "CONST bop (CONST insert) x \<guillemotleft>{}\<guillemotright>"
-  "A \<union>\<^sub>u B"   == "CONST bop Set.union A B"
-  "A \<inter>\<^sub>u B"   == "CONST bop Set.inter A B"
+  "A \<union>\<^sub>u B"   == "CONST bop (op \<union>) A B"
+  "A \<inter>\<^sub>u B"   == "CONST bop (op \<inter>) A B"
   "x \<in>\<^sub>u A"   == "CONST bop (op \<in>) x A"
   "x \<notin>\<^sub>u A"   == "CONST bop (op \<notin>) x A"
   "A \<subset>\<^sub>u B"   == "CONST bop (op \<subset>) A B"
@@ -263,10 +268,10 @@ translations
   "f\<lparr>x\<rparr>\<^sub>m"   == "CONST bop CONST map_apply f x"
   "f \<oplus>\<^sub>m g" == "CONST bop CONST map_add f g"
   "f \<ominus>\<^sub>m g" == "CONST bop CONST map_minus f g"
-  "[]\<^sub>u"     == "\<guillemotleft>Map.empty\<guillemotright>"
+  "[]\<^sub>u"     == "\<guillemotleft>CONST map_empty\<guillemotright>"
   "_UMapUpd m (_UMaplets xy ms)" == "_UMapUpd (_UMapUpd m xy) ms"
   "_UMapUpd m (_umaplet  x y)"   == "CONST trop CONST map_upd m x y"
-  "_UMap ms"                      == "_UMapUpd (CONST lit CONST empty) ms"
+  "_UMap ms"                      == "_UMapUpd []\<^sub>u ms"
   "_UMap (_UMaplets ms1 ms2)"     <= "_UMapUpd (_UMap ms1) ms2"
   "_UMaplets ms1 (_UMaplets ms2 ms3)" <= "_UMaplets (_UMaplets ms1 ms2) ms3"
   "f\<lparr>x,y\<rparr>\<^sub>u"  == "CONST bop CONST fun_apply f (x,y)\<^sub>u"
@@ -298,6 +303,7 @@ lemmas uexpr_defs =
   mod_uexpr_def
   eq_upred_def
   numeral_uexpr_simp
+  map_empty_def
   map_upd_def
 
 lemma var_in_var: "var (in_var x) = $x"
@@ -360,5 +366,24 @@ lemma map_eq_graph: "f = g \<longleftrightarrow> map_graph f = map_graph g"
 lemma map_minus_common_subset:
   "\<lbrakk> h \<subseteq>\<^sub>m f; h \<subseteq>\<^sub>m g \<rbrakk> \<Longrightarrow> (f -- h = g -- h) = (f = g)"
   by (auto simp add: map_eq_graph map_graph_minus map_le_graph)
+
+subsection {* Evaluation laws for expressions *}
+
+lemma lit_ueval [ueval]: "\<lbrakk>\<guillemotleft>x\<guillemotright>\<rbrakk>\<^sub>eb = x"
+  by (transfer, simp)
+
+lemma var_ueval [ueval]: "\<lbrakk>var x\<rbrakk>\<^sub>eb = var_lookup x b"
+  by (transfer, simp)
+
+lemma uop_ueval [ueval]: "\<lbrakk>uop f x\<rbrakk>\<^sub>eb = f (\<lbrakk>x\<rbrakk>\<^sub>eb)"
+  by (transfer, simp)
+
+lemma bop_ueval [ueval]: "\<lbrakk>bop f x y\<rbrakk>\<^sub>eb = f (\<lbrakk>x\<rbrakk>\<^sub>eb) (\<lbrakk>y\<rbrakk>\<^sub>eb)"
+  by (transfer, simp)
+
+lemma trop_ueval [ueval]: "\<lbrakk>trop f x y z\<rbrakk>\<^sub>eb = f (\<lbrakk>x\<rbrakk>\<^sub>eb) (\<lbrakk>y\<rbrakk>\<^sub>eb) (\<lbrakk>z\<rbrakk>\<^sub>eb)"
+  by (transfer, simp)
+
+declare uexpr_defs [ueval]
 
 end
