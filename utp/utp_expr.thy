@@ -70,6 +70,11 @@ lift_definition trop ::
   "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('c, '\<alpha>) uexpr \<Rightarrow> ('d, '\<alpha>) uexpr" 
   is "\<lambda> f u v w b. f (u b) (v b) (w b)" .
 
+text {* We also define a UTP expression version of function abstract *}
+
+lift_definition ulambda :: "('a \<Rightarrow> ('b, '\<alpha>) uexpr) \<Rightarrow> ('a \<Rightarrow> 'b, '\<alpha>) uexpr"
+is "\<lambda> f A x. f x A" .
+
 text {* We define syntax for expressions using adhoc overloading -- this allows us to later define
         operators on different types if necessary (e.g. when adding types for new UTP theories). *}
 
@@ -207,6 +212,7 @@ syntax
   "_ufst"       :: "('a \<times> 'b, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<pi>\<^sub>1'(_')")
   "_usnd"       :: "('a \<times> 'b, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr" ("\<pi>\<^sub>2'(_')")
   "_uapply"     :: "('a \<Rightarrow> 'b, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('b, '\<alpha>) uexpr" ("_\<lparr>_\<rparr>\<^sub>u" [999,0] 999)
+  "_ulamba"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<lambda> _ \<bullet> _" [0, 10] 10)
   "_udom"       :: "logic \<Rightarrow> logic" ("dom\<^sub>u'(_')")
   "_uran"       :: "logic \<Rightarrow> logic" ("ran\<^sub>u'(_')")
   "_uinl"       :: "logic \<Rightarrow> logic" ("inl\<^sub>u'(_')")
@@ -261,6 +267,7 @@ translations
   "\<pi>\<^sub>1(x)"    == "CONST uop CONST fst x"
   "\<pi>\<^sub>2(x)"    == "CONST uop CONST snd x"
   "f\<lparr>x\<rparr>\<^sub>u"    == "CONST bop CONST fun_apply f x"
+  "\<lambda> x \<bullet> p" == "CONST ulambda (\<lambda> x. p)"
   "dom\<^sub>u(f)" == "CONST uop CONST dom f"
   "ran\<^sub>u(f)" == "CONST uop CONST ran f"
   "inl\<^sub>u(x)" == "CONST uop CONST Inl x"
@@ -278,7 +285,10 @@ translations
 
 text {* Lifting set intervals *}
 
+
+
 syntax
+  "_uset_atLeastAtMost" :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("(1{_.._}\<^sub>u)")
   "_uset_atLeastLessThan" :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("(1{_..<_}\<^sub>u)")
   "_uset_compr" :: "id \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('b set, '\<alpha>) uexpr" ("(1{_ :/ _ |/ _ \<bullet>/ _}\<^sub>u)")
 
@@ -287,6 +297,7 @@ lift_definition ZedSetCompr ::
 is "\<lambda> A PF b. { snd (PF x) b | x. x \<in> A b \<and> fst (PF x) b}" .
 
 translations
+  "{x..y}\<^sub>u" == "CONST bop CONST atLeastAtMost x y"
   "{x..<y}\<^sub>u" == "CONST bop CONST atLeastLessThan x y"
   "{x : A | P \<bullet> F}\<^sub>u" == "CONST ZedSetCompr A (\<lambda> x. (P, F))" 
 
