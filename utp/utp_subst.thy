@@ -87,8 +87,14 @@ lemma usubst_lookup_upd [usubst]:
 
 lemma usubst_upd_idem [usubst]:
   assumes "semi_uvar x"
-  shows " \<sigma>(x \<mapsto>\<^sub>s u, x \<mapsto>\<^sub>s v) = \<sigma>(x \<mapsto>\<^sub>s v)"
+  shows "\<sigma>(x \<mapsto>\<^sub>s u, x \<mapsto>\<^sub>s v) = \<sigma>(x \<mapsto>\<^sub>s v)"
   by (simp add: subst_upd_uvar_def assms comp_def)
+
+lemma usubst_upd_comm:
+  assumes "x \<bowtie> y"
+  shows "\<sigma>(x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v) = \<sigma>(y \<mapsto>\<^sub>s v, x \<mapsto>\<^sub>s u)"
+  using assms
+  by (rule_tac ext, auto simp add: subst_upd_uvar_def assms comp_def uvar_indep_comm)
 
 lemma usubst_lookup_upd_indep [usubst]:
   assumes "uvar x" "x \<bowtie> y"
