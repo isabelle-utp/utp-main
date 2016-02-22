@@ -59,6 +59,10 @@ syntax
 translations
   "UCARD('a)" == "CONST ucard_of (TYPE('a))"
 
+lemma ucard_non_empty:
+  "\<U>(x) \<noteq> {}"
+  by (induct x, auto)
+
 lemma ucard_of_finite [simp]:
   "finite (UNIV :: 'a::continuum set) \<Longrightarrow> UCARD('a) = fin(card(UNIV :: 'a set) - 1)"
   by (simp add: ucard_of_def)
@@ -175,12 +179,15 @@ typedef ('a::continuum) dvar = "{x :: dname. dname_card x = UCARD('a)}"
 
 setup_lifting type_definition_dvar
 
-lift_definition mk_dvar :: "string \<Rightarrow> ('a::continuum) dvar"
+lift_definition mk_dvar :: "string \<Rightarrow> ('a::continuum) dvar" ("\<lceil>_\<rceil>\<^sub>d")
 is "\<lambda> n. \<lparr> dname_name = n, dname_card = UCARD('a) \<rparr>"
   by auto
 
 lift_definition dvar_name :: "'a::continuum dvar \<Rightarrow> string" is "dname_name" .
 lift_definition dvar_card :: "'a::continuum dvar \<Rightarrow> ucard" is "dname_card" .
+
+lemma dvar_name [simp]: "dvar_name \<lceil>x\<rceil>\<^sub>d = x"
+  by (transfer, simp)
 
 lift_definition vstore_lookup :: "('a::continuum) dvar \<Rightarrow> vstore \<Rightarrow> 'a"
 is "\<lambda> x s. (uproject :: uuniv \<Rightarrow> 'a) (s(x))" .
@@ -229,17 +236,48 @@ class vst =
 
 definition dvar_lift :: "'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) uvar" ("_\<up>" [999] 999)
 where "dvar_lift x = \<lparr> var_lookup = \<lambda> v. vstore_lookup x (get_vstore v)
-                     , var_update = \<lambda> f s. upd_vstore (vstore_upd  x f) s
+                     , var_update = \<lambda> f s. upd_vstore (vstore_upd x f) s
                      \<rparr>"
+
+definition [simp]: "in_dvar x = in_var (x\<up>)"
+definition [simp]: "out_dvar x = out_var (x\<up>)"
+
+adhoc_overloading
+  ivar in_dvar and ovar out_dvar
 
 lemma vstore_upd_compose [simp]: "vstore_upd x f \<circ> vstore_upd x g = vstore_upd x (f \<circ> g)"
   by (rule ext, simp add: vstore_upd_def, transfer, auto)
 
+lemma update_vstore_appl: "upd_vstore (\<lambda> x. f (g x)) s = upd_vstore f (upd_vstore g s)"
+  by (metis comp_apply upd_store_parm upd_vstore_comp)
+
+lemma vstore_upd_appl: "vstore_upd x (\<lambda> x. f (g x)) s = vstore_upd x f (vstore_upd x g s)"
+  by (metis (no_types, lifting) vstore_lookup_upd vstore_upd_comp vstore_upd_def)
+
 lemma uvar_dvar: "uvar (x\<up>)"
-  apply (unfold_locales, simp_all add: dvar_lift_def)
-  apply (subst upd_store_parm)
-  apply (simp)
-done
+proof
+  fix f g :: "'a \<Rightarrow> 'a" and \<sigma> :: "'b"
+  show "var_update (x\<up>) f (var_update (x\<up>) g \<sigma>) = var_update (x\<up>) (f \<circ> g) \<sigma>"
+    by (simp add: dvar_lift_def)
+  show "var_assign (x\<up>) (var_lookup (x\<up>) \<sigma>) \<sigma> = \<sigma>"
+    by (simp add: dvar_lift_def, subst upd_store_parm, simp)
+  show "var_lookup (x\<up>) (var_update (x\<up>) f \<sigma>) = f (var_lookup (x\<up>) \<sigma>)"
+    by (simp add: dvar_lift_def)
+  fix \<rho> :: 'b and v :: 'a
+  show "var_lookup (x\<up>) \<sigma> = var_lookup (x\<up>) \<rho> \<Longrightarrow> var_assign (x\<up>) v \<sigma> = var_assign (x\<up>) v \<rho> \<Longrightarrow> \<sigma> = \<rho>"
+  proof -
+    assume vl: "var_lookup (x\<up>) \<sigma> = var_lookup (x\<up>) \<rho>" and va: "var_assign (x\<up>) v \<sigma> = var_assign (x\<up>) v \<rho>"
+
+    have "get_vstore \<sigma> = get_vstore \<rho>"
+      by (metis (no_types, lifting) dvar_lift_def get_upd_vstore uvar.select_convs(1) uvar.select_convs(2) va vl vstore_lookup_upd vstore_upd_comp vstore_upd_def vstore_upd_eta)
+
+    moreover from va have "upd_vstore (\<lambda>_. get_vstore \<rho>) \<sigma> = \<rho>"
+      by (simp add: dvar_lift_def, metis upd_store_parm upd_vstore_eta update_vstore_appl)
+
+    ultimately show ?thesis
+      by (metis upd_vstore_eta)
+  qed
+qed
 
 text {* Deep variables with different names are independent *}
 
@@ -256,6 +294,9 @@ proof -
     by (auto simp add: uvar_indep_def dvar_name_def dvar_card_def dvar_lift_def vstore_upd_def)
 qed
 
+lemma dvar_indep_diff_name' [simp]:
+  "x \<noteq> y \<Longrightarrow> \<lceil>x\<rceil>\<^sub>d\<up> \<bowtie> \<lceil>y\<rceil>\<^sub>d\<up>"
+  by (auto intro: dvar_indep_diff_name)
 
 text {* A basic record structure for vstores *}
 

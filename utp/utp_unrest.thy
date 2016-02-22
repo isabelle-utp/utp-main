@@ -24,6 +24,9 @@ named_theorems unrest
 lift_definition unrest_upred :: "('a, '\<alpha>) uvar \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> bool"
 is "\<lambda> x e. \<forall> b v. e (var_update x v b) = e b" .
 
+definition unrest_dvar_upred :: "'a::continuum dvar \<Rightarrow> ('b, '\<alpha>::vst) uexpr \<Rightarrow> bool" where
+"unrest_dvar_upred x P = unrest_upred (x\<up>) P"
+
 adhoc_overloading
   unrest unrest_upred
 
@@ -42,11 +45,17 @@ lemma unrest_iuvar [unrest]: "\<lbrakk> uvar x; x \<bowtie> y \<rbrakk> \<Longri
 lemma unrest_ouvar [unrest]: "\<lbrakk> uvar x; x \<bowtie> y \<rbrakk> \<Longrightarrow> $y\<acute> \<sharp> $x\<acute>"
   by (metis out_var_indep out_var_uvar unrest_var var_out_var)
 
-lemma unrest_iuvar_ouvar [unrest]: "uvar y \<Longrightarrow> $x \<sharp> $y\<acute>"
+lemma unrest_iuvar_ouvar [unrest]: 
+  fixes x :: "('a, '\<alpha>) uvar"
+  assumes "uvar y"
+  shows "$x \<sharp> $y\<acute>"
   by (metis assms out_in_indep out_var_uvar unrest_var var_out_var)
 
-lemma unrest_ouvar_iuvar [unrest]: "uvar y \<Longrightarrow> $x\<acute> \<sharp> $y"
-  by (metis in_out_indep in_var_uvar unrest_var var_in_var)
+lemma unrest_ouvar_iuvar [unrest]:
+  fixes x :: "('a, '\<alpha>) uvar"
+  assumes "uvar y"
+  shows "$x\<acute> \<sharp> $y"
+  by (metis assms in_out_indep in_var_uvar unrest_var var_in_var)
 
 lemma unrest_uop [unrest]: "x \<sharp> e \<Longrightarrow> x \<sharp> uop f e"
   by (transfer, simp)

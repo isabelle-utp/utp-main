@@ -459,6 +459,12 @@ lemma true_iff [simp]: "(P \<Leftrightarrow> true) = P"
 lemma impl_alt_def: "(P \<Rightarrow> Q) = (\<not> P \<or> Q)"
   by pred_tac
 
+lemma eq_upred_refl [simp]: "(x =\<^sub>u x) = true"
+  by pred_tac
+
+lemma eq_upred_sym: "(x =\<^sub>u y) = (y =\<^sub>u x)"
+  by pred_tac
+
 lemma shEx_bool [simp]: "shEx P = (P True \<or> P False)"
   by (pred_tac, metis (full_types))
 
@@ -520,6 +526,24 @@ lemma subst_eq_replace:
   fixes x :: "('a, '\<alpha>) uvar"
   shows "(p\<lbrakk>u/x\<rbrakk> \<and> u =\<^sub>u v) = (p\<lbrakk>v/x\<rbrakk> \<and> u =\<^sub>u v)"
   by pred_tac
+
+lemma exists_twice: "uvar x \<Longrightarrow> (\<exists> x \<bullet> \<exists> x \<bullet> P) = (\<exists> x \<bullet> P)"
+  by (pred_tac, auto simp add: comp_def)
+
+lemma all_twice: "uvar x \<Longrightarrow> (\<forall> x \<bullet> \<forall> x \<bullet> P) = (\<forall> x \<bullet> P)"
+  by (pred_tac, auto simp add: comp_def)
+
+lemma ex_commute:
+  assumes "x \<bowtie> y"
+  shows "(\<exists> x \<bullet> \<exists> y \<bullet> P) = (\<exists> y \<bullet> \<exists> x \<bullet> P)"
+  using assms
+  by (pred_tac, auto simp add: uvar_indep_def)
+
+lemma all_commute:
+  assumes "x \<bowtie> y"
+  shows "(\<forall> x \<bullet> \<forall> y \<bullet> P) = (\<forall> y \<bullet> \<forall> x \<bullet> P)"
+  using assms
+  by (pred_tac, auto simp add: uvar_indep_def)
 
 subsection {* Quantifier lifting *}
 

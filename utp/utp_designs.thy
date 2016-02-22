@@ -27,7 +27,7 @@ definition "ok = VAR des_ok"
 declare ok_def [upred_defs]
 
 lemma uvar_ok [simp]: "uvar ok"
-  by (unfold_locales, simp_all add: ok_def)
+  by (unfold_locales, simp_all add: ok_def, metis alpha_d.ext_inject alpha_d.surjective alpha_d.update_convs(1))
 
 type_synonym '\<alpha> alphabet_d  = "'\<alpha> alpha_d_scheme alphabet"
 type_synonym ('a, '\<alpha>) uvar_d = "('a, '\<alpha> alphabet_d) uvar"

@@ -36,7 +36,7 @@ definition subst_upd_uvar :: "'\<alpha> usubst \<Rightarrow> ('a, '\<alpha>) uva
 "subst_upd_uvar \<sigma> x v = (\<lambda> b. var_assign x (\<lbrakk>v\<rbrakk>\<^sub>eb) (\<sigma> b))"
 
 definition subst_upd_dvar :: "'\<alpha> usubst \<Rightarrow> 'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) uexpr \<Rightarrow> '\<alpha> usubst" where
-"subst_upd_dvar \<sigma> x v = (\<lambda> b. var_assign (dvar_lift x) (\<lbrakk>v\<rbrakk>\<^sub>eb) (\<sigma> b))"
+"subst_upd_dvar \<sigma> x v = subst_upd_uvar \<sigma> (x\<up>) v"
 
 adhoc_overloading
   subst_upd subst_upd_uvar and subst_upd subst_upd_dvar
@@ -65,7 +65,7 @@ syntax
 
 translations
   "_SubstUpd m (_SMaplets xy ms)"     == "_SubstUpd (_SubstUpd m xy) ms"
-  "_SubstUpd m (_smaplet  x y)"       == "CONST subst_upd m x y"
+  "_SubstUpd m (_smaplet x y)"        == "CONST subst_upd m x y"
   "_Subst ms"                         == "_SubstUpd (CONST id) ms"
   "_Subst (_SMaplets ms1 ms2)"        <= "_SubstUpd (_Subst ms1) ms2"
   "_SMaplets ms1 (_SMaplets ms2 ms3)" <= "_SMaplets (_SMaplets ms1 ms2) ms3"
@@ -87,8 +87,14 @@ lemma usubst_lookup_upd [usubst]:
 
 lemma usubst_upd_idem [usubst]:
   assumes "semi_uvar x"
-  shows " \<sigma>(x \<mapsto>\<^sub>s u, x \<mapsto>\<^sub>s v) = \<sigma>(x \<mapsto>\<^sub>s v)"
+  shows "\<sigma>(x \<mapsto>\<^sub>s u, x \<mapsto>\<^sub>s v) = \<sigma>(x \<mapsto>\<^sub>s v)"
   by (simp add: subst_upd_uvar_def assms comp_def)
+
+lemma usubst_upd_comm:
+  assumes "x \<bowtie> y"
+  shows "\<sigma>(x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v) = \<sigma>(y \<mapsto>\<^sub>s v, x \<mapsto>\<^sub>s u)"
+  using assms
+  by (rule_tac ext, auto simp add: subst_upd_uvar_def assms comp_def uvar_indep_comm)
 
 lemma usubst_lookup_upd_indep [usubst]:
   assumes "uvar x" "x \<bowtie> y"
@@ -118,6 +124,9 @@ lemma subst_uop [usubst]: "\<sigma> \<dagger> uop f v = uop f (\<sigma> \<dagger
   by (transfer, simp)
 
 lemma subst_bop [usubst]: "\<sigma> \<dagger> bop f u v = bop f (\<sigma> \<dagger> u) (\<sigma> \<dagger> v)"
+  by (transfer, simp)
+
+lemma subst_trop [usubst]: "\<sigma> \<dagger> trop f u v w = trop f (\<sigma> \<dagger> u) (\<sigma> \<dagger> v) (\<sigma> \<dagger> w)"
   by (transfer, simp)
 
 lemma subst_plus [usubst]: "\<sigma> \<dagger> (x + y) = \<sigma> \<dagger> x + \<sigma> \<dagger> y"
@@ -155,10 +164,14 @@ lemma subst_drop_id [usubst]: "\<lfloor>id\<rfloor>\<^sub>s = id"
 lemma subst_lift_drop [usubst]: "\<lfloor>\<lceil>\<sigma>\<rceil>\<^sub>s\<rfloor>\<^sub>s = \<sigma>"
   by (simp add: usubst_rel_lift_def usubst_rel_drop_def)
 
-lemma subst_lift_upd [usubst]: "\<lceil>\<sigma>(x \<mapsto>\<^sub>s v)\<rceil>\<^sub>s = \<lceil>\<sigma>\<rceil>\<^sub>s($x \<mapsto>\<^sub>s \<lceil>v\<rceil>\<^sub><)"
+lemma subst_lift_upd [usubst]: 
+  fixes x :: "('a, '\<alpha>) uvar"
+  shows "\<lceil>\<sigma>(x \<mapsto>\<^sub>s v)\<rceil>\<^sub>s = \<lceil>\<sigma>\<rceil>\<^sub>s($x \<mapsto>\<^sub>s \<lceil>v\<rceil>\<^sub><)"
   by (simp add: usubst_rel_lift_def subst_upd_uvar_def, transfer, auto)
 
-lemma subst_drop_upd [usubst]: "\<lfloor>\<sigma>($x \<mapsto>\<^sub>s v)\<rfloor>\<^sub>s = \<lfloor>\<sigma>\<rfloor>\<^sub>s(x \<mapsto>\<^sub>s \<lfloor>v\<rfloor>\<^sub><)"
+lemma subst_drop_upd [usubst]: 
+  fixes x :: "('a, '\<alpha>) uvar"
+  shows "\<lfloor>\<sigma>($x \<mapsto>\<^sub>s v)\<rfloor>\<^sub>s = \<lfloor>\<sigma>\<rfloor>\<^sub>s(x \<mapsto>\<^sub>s \<lfloor>v\<rfloor>\<^sub><)"
   apply (simp add: usubst_rel_drop_def subst_upd_uvar_def, transfer, rule ext, auto simp add:in_var_def)
   apply (rename_tac x v \<sigma> A)
   apply (case_tac "\<sigma> (A, A)", simp)
@@ -178,8 +191,9 @@ translations
   "_subst P es vs"            => "CONST subst (_psubst (CONST id) vs es) P"
   "_psubst m (_svar x) v"     => "CONST subst_upd m x v"
   "_psubst m (_spvar x) v"    => "CONST subst_upd m x v"
-  "_psubst m (_sinvar x) v"   => "CONST subst_upd m (CONST in_var x) v"
-  "_psubst m (_soutvar x) v"  => "CONST subst_upd m (CONST out_var x) v"
+  "_psubst m (_sinvar x) v"   => "CONST subst_upd m (CONST ivar x) v"
+  "_psubst m (_soutvar x) v"  => "CONST subst_upd m (CONST ovar x) v"
   "_psubst m (_svars x xs) (_uexprs v vs)" => "_psubst (_psubst m x v) xs vs"
+  "_subst P e x"              <= "CONST subst (CONST subst_upd (CONST id) x e) P"
 
 end

@@ -24,6 +24,8 @@ lemma uexpr_eq_iff:
   "e = f \<longleftrightarrow> (\<forall> b. \<lbrakk>e\<rbrakk>\<^sub>e b = \<lbrakk>f\<rbrakk>\<^sub>e b)"
   using Rep_uexpr_inject[of e f, THEN sym] by (auto)
 
+named_theorems ueval
+
 setup_lifting type_definition_uexpr
 
 text {* A variable expression corresponds to the lookup function of the variable. *}
@@ -67,6 +69,11 @@ lift_definition bop ::
 lift_definition trop :: 
   "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('c, '\<alpha>) uexpr \<Rightarrow> ('d, '\<alpha>) uexpr" 
   is "\<lambda> f u v w b. f (u b) (v b) (w b)" .
+
+text {* We also define a UTP expression version of function abstract *}
+
+lift_definition ulambda :: "('a \<Rightarrow> ('b, '\<alpha>) uexpr) \<Rightarrow> ('a \<Rightarrow> 'b, '\<alpha>) uexpr"
+is "\<lambda> f A x. f x A" .
 
 text {* We define syntax for expressions using adhoc overloading -- this allows us to later define
         operators on different types if necessary (e.g. when adding types for new UTP theories). *}
@@ -178,7 +185,7 @@ adhoc_overloading
 abbreviation seq_filter :: "'a set \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "seq_filter A \<equiv> filter (\<lambda> x. x \<in> A)"
 
-nonterminal utuple_args
+nonterminal utuple_args and umaplet and umaplets
 
 syntax
   "_unil"       :: "('a list, '\<alpha>) uexpr" ("\<langle>\<rangle>")
@@ -209,9 +216,34 @@ syntax
   "_ufst"       :: "('a \<times> 'b, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<pi>\<^sub>1'(_')" 90)
   "_usnd"       :: "('a \<times> 'b, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr" ("\<pi>\<^sub>2'(_')")
   "_uapply"     :: "('a \<Rightarrow> 'b, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('b, '\<alpha>) uexpr" ("_\<lparr>_\<rparr>\<^sub>u" [999,0] 999)
+  "_ulamba"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<lambda> _ \<bullet> _" [0, 10] 10)
+  "_udom"       :: "logic \<Rightarrow> logic" ("dom\<^sub>u'(_')")
+  "_uran"       :: "logic \<Rightarrow> logic" ("ran\<^sub>u'(_')")
+  "_uinl"       :: "logic \<Rightarrow> logic" ("inl\<^sub>u'(_')")
+  "_uinr"       :: "logic \<Rightarrow> logic" ("inr\<^sub>u'(_')")
+  "_umap_empty" :: "('a \<rightharpoonup> 'b, '\<alpha>) uexpr" ("[]\<^sub>u")
+  "_umap_apply" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_\<lparr>_\<rparr>\<^sub>m" [999,0] 999)
+  "_umap_plus"  :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<oplus>\<^sub>m" 85)
+  "_umap_minus" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<ominus>\<^sub>m" 85)
+  "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>\<^sub>u/ _")
+  ""            :: "umaplet => umaplets"             ("_")
+  "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
+  "_UMapUpd"    :: "[logic, umaplets] => logic" ("_/'(_')" [900,0] 900)
+  "_UMap"       :: "umaplets => logic" ("(1[_])")
 
 definition "fun_apply f x = f x"
 declare fun_apply_def [simp]
+
+definition "map_upd = (\<lambda> f x v. fun_upd f x (Some v))"
+
+definition map_apply :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ("_'(_')\<^sub>m" [999,0] 999) where
+"map_apply = (\<lambda> f x. the (f x))"
+
+definition map_minus :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" (infixl "--" 100) 
+where "map_minus f g = (\<lambda> x. if (f x = g x) then None else f x)" 
+
+definition map_empty :: "'a \<rightharpoonup> 'b" ("[]\<^sub>m") where
+"map_empty = Map.empty"
 
 translations
   "\<langle>\<rangle>"       == "\<guillemotleft>[]\<guillemotright>"
@@ -231,8 +263,8 @@ translations
   "{}\<^sub>u"      == "\<guillemotleft>{}\<guillemotright>"
   "{x, xs}\<^sub>u" == "CONST bop (CONST insert) x {xs}\<^sub>u"
   "{x}\<^sub>u"     == "CONST bop (CONST insert) x \<guillemotleft>{}\<guillemotright>"
-  "A \<union>\<^sub>u B"   == "CONST bop Set.union A B"
-  "A \<inter>\<^sub>u B"   == "CONST bop Set.inter A B"
+  "A \<union>\<^sub>u B"   == "CONST bop (op \<union>) A B"
+  "A \<inter>\<^sub>u B"   == "CONST bop (op \<inter>) A B"
   "x \<in>\<^sub>u A"   == "CONST bop (op \<in>) x A"
   "x \<notin>\<^sub>u A"   == "CONST bop (op \<notin>) x A"
   "A \<subset>\<^sub>u B"   == "CONST bop (op \<subset>) A B"
@@ -243,11 +275,28 @@ translations
   "\<pi>\<^sub>1(x)"    == "CONST uop CONST fst x"
   "\<pi>\<^sub>2(x)"    == "CONST uop CONST snd x"
   "f\<lparr>x\<rparr>\<^sub>u"    == "CONST bop CONST fun_apply f x"
+  "\<lambda> x \<bullet> p" == "CONST ulambda (\<lambda> x. p)"
+  "dom\<^sub>u(f)" == "CONST uop CONST dom f"
+  "ran\<^sub>u(f)" == "CONST uop CONST ran f"
+  "inl\<^sub>u(x)" == "CONST uop CONST Inl x"
+  "inr\<^sub>u(x)" == "CONST uop CONST Inr x"
+  "f\<lparr>x\<rparr>\<^sub>m"   == "CONST bop CONST map_apply f x"
+  "f \<oplus>\<^sub>m g" == "CONST bop CONST map_add f g"
+  "f \<ominus>\<^sub>m g" == "CONST bop CONST map_minus f g"
+  "[]\<^sub>u"     == "\<guillemotleft>CONST map_empty\<guillemotright>"
+  "_UMapUpd m (_UMaplets xy ms)" == "_UMapUpd (_UMapUpd m xy) ms"
+  "_UMapUpd m (_umaplet  x y)"   == "CONST trop CONST map_upd m x y"
+  "_UMap ms"                      == "_UMapUpd []\<^sub>u ms"
+  "_UMap (_UMaplets ms1 ms2)"     <= "_UMapUpd (_UMap ms1) ms2"
+  "_UMaplets ms1 (_UMaplets ms2 ms3)" <= "_UMaplets (_UMaplets ms1 ms2) ms3"
   "f\<lparr>x,y\<rparr>\<^sub>u"  == "CONST bop CONST fun_apply f (x,y)\<^sub>u"
 
 text {* Lifting set intervals *}
 
+
+
 syntax
+  "_uset_atLeastAtMost" :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("(1{_.._}\<^sub>u)")
   "_uset_atLeastLessThan" :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("(1{_..<_}\<^sub>u)")
   "_uset_compr" :: "id \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('b set, '\<alpha>) uexpr" ("(1{_ :/ _ |/ _ \<bullet>/ _}\<^sub>u)")
 
@@ -256,6 +305,7 @@ lift_definition ZedSetCompr ::
 is "\<lambda> A PF b. { snd (PF x) b | x. x \<in> A b \<and> fst (PF x) b}" .
 
 translations
+  "{x..y}\<^sub>u" == "CONST bop CONST atLeastAtMost x y"
   "{x..<y}\<^sub>u" == "CONST bop CONST atLeastLessThan x y"
   "{x : A | P \<bullet> F}\<^sub>u" == "CONST ZedSetCompr A (\<lambda> x. (P, F))" 
 
@@ -272,11 +322,87 @@ lemmas uexpr_defs =
   mod_uexpr_def
   eq_upred_def
   numeral_uexpr_simp
+  map_empty_def
+  map_upd_def
 
 lemma var_in_var: "var (in_var x) = $x"
   by (simp add: iuvar_def)
 
 lemma var_out_var: "var (out_var x) = $x\<acute>"
   by (simp add: ouvar_def)
+
+(* Map lemmas. TODO: Move to Map extra *)
+
+declare map_member.simps [simp del]
+
+lemma map_minus_apply [simp]: "y \<in> dom(f -- g) \<Longrightarrow> (f -- g)(y)\<^sub>m = f(y)\<^sub>m"
+  by (auto simp add: map_minus_def dom_def map_apply_def)
+
+lemma map_add_restrict:
+  "f ++ g = (f |` (- dom g)) ++ g"
+  by (rule ext, auto simp add: map_add_def restrict_map_def)
+
+lemma map_ext:
+  "\<lbrakk> \<And> x y. (x, y) \<in>\<^sub>m A \<longleftrightarrow> (x, y) \<in>\<^sub>m B \<rbrakk> \<Longrightarrow> A = B"
+  by (rule ext, auto simp add: map_member.simps, metis not_Some_eq)
+
+lemma map_member_alt_def:
+  "(x, y) \<in>\<^sub>m A \<longleftrightarrow> (x \<in> dom A \<and> A(x)\<^sub>m = y)"
+  by (auto simp add: map_member.simps map_apply_def)
+
+lemma map_member_plus:
+  "(x, y) \<in>\<^sub>m f ++ g \<longleftrightarrow> ((x \<notin> dom(g) \<and> (x, y) \<in>\<^sub>m f) \<or> (x, y) \<in>\<^sub>m g)"
+  by (auto simp add: map_member.simps map_add_Some_iff)
+
+lemma map_member_minus:
+  "(x, y) \<in>\<^sub>m f -- g \<longleftrightarrow> (x, y) \<in>\<^sub>m f \<and> (\<not> (x, y) \<in>\<^sub>m g)"
+  by (auto simp add: map_member.simps map_minus_def)
+
+lemma map_minus_plus_commute:
+  "dom(g) \<inter> dom(h) = {} \<Longrightarrow> (f -- g) ++ h = (f ++ h) -- g"
+  apply (rule map_ext)
+  apply (auto simp add: map_member_plus map_member_minus)
+  apply (auto simp add: map_member_alt_def)
+done
+ 
+lemma map_le_member:
+  "f \<subseteq>\<^sub>m g \<longleftrightarrow> (\<forall> x y. (x,y) \<in>\<^sub>m f \<longrightarrow> (x,y) \<in>\<^sub>m g)"
+  by (force simp add: map_le_def map_member.simps)
+
+lemma map_le_graph: "f \<subseteq>\<^sub>m g \<longleftrightarrow> map_graph f \<subseteq> map_graph g"
+  by (force simp add: map_le_def map_graph_def)
+
+lemma map_graph_minus: "map_graph (f -- g) = map_graph f - map_graph g"
+  by (auto simp add: map_minus_def map_graph_def, (meson option.distinct(1))+)
+
+lemma map_graph_inj:
+  "inj map_graph"
+  by (metis injI map_graph_inv)
+
+lemma map_eq_graph: "f = g \<longleftrightarrow> map_graph f = map_graph g"
+  by (auto simp add: inj_eq map_graph_inj)
+
+lemma map_minus_common_subset:
+  "\<lbrakk> h \<subseteq>\<^sub>m f; h \<subseteq>\<^sub>m g \<rbrakk> \<Longrightarrow> (f -- h = g -- h) = (f = g)"
+  by (auto simp add: map_eq_graph map_graph_minus map_le_graph)
+
+subsection {* Evaluation laws for expressions *}
+
+lemma lit_ueval [ueval]: "\<lbrakk>\<guillemotleft>x\<guillemotright>\<rbrakk>\<^sub>eb = x"
+  by (transfer, simp)
+
+lemma var_ueval [ueval]: "\<lbrakk>var x\<rbrakk>\<^sub>eb = var_lookup x b"
+  by (transfer, simp)
+
+lemma uop_ueval [ueval]: "\<lbrakk>uop f x\<rbrakk>\<^sub>eb = f (\<lbrakk>x\<rbrakk>\<^sub>eb)"
+  by (transfer, simp)
+
+lemma bop_ueval [ueval]: "\<lbrakk>bop f x y\<rbrakk>\<^sub>eb = f (\<lbrakk>x\<rbrakk>\<^sub>eb) (\<lbrakk>y\<rbrakk>\<^sub>eb)"
+  by (transfer, simp)
+
+lemma trop_ueval [ueval]: "\<lbrakk>trop f x y z\<rbrakk>\<^sub>eb = f (\<lbrakk>x\<rbrakk>\<^sub>eb) (\<lbrakk>y\<rbrakk>\<^sub>eb) (\<lbrakk>z\<rbrakk>\<^sub>eb)"
+  by (transfer, simp)
+
+declare uexpr_defs [ueval]
 
 end

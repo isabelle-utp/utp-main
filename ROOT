@@ -41,6 +41,7 @@ session "UTP" in "utp" = "UTP-IMPORTS" +
     utp_subst
     utp_lift
     utp_pred
+    utp_deduct
     utp_rel
     utp_wp
     utp_procedure

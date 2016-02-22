@@ -67,6 +67,10 @@ lemma CSP2_idem:
   "CSP2(CSP2(P)) = CSP2(P)"
   by (simp add: CSP2_def H2_idem)
 
+lemma CSP1_CSP2_commute:
+  "CSP1(CSP2(P)) = CSP2(CSP1(P))"
+  by (simp add: CSP1_def CSP2_def H2_split usubst, rel_tac)
+
 lemma CSP1_reactive_design: "CSP1(RH(P \<turnstile> Q)) = RH(P \<turnstile> Q)"
   by rel_tac
 
@@ -125,7 +129,7 @@ where "do\<^sub>I c x P = (($tr\<acute> =\<^sub>u $tr \<and> {e : \<guillemotlef
                    (($tr\<acute> - $tr) \<in>\<^sub>u {e : \<guillemotleft>\<delta>\<^sub>u(c)\<guillemotright> | P(e) \<bullet> \<langle>(c,\<guillemotleft>e\<guillemotright>)\<^sub>e\<rangle>}\<^sub>u \<and> (c, $x\<acute>)\<^sub>e =\<^sub>u last\<^sub>u($tr\<acute>)))"
 
 definition InputCSP :: 
-  "('a::continuum, '\<theta>) chan \<Rightarrow> string \<Rightarrow>
+  "('a::continuum, '\<theta>) chan \<Rightarrow> 'a dvar \<Rightarrow>
     ('a \<Rightarrow> ('\<theta>, '\<alpha>::vst) hrelation_rp) \<Rightarrow> 
     ('a dvar \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp) \<Rightarrow>
     ('\<theta>, '\<alpha>) hrelation_rp"
@@ -139,7 +143,7 @@ syntax
 translations
   "c!\<^sub>u(v) \<rightarrow> A"     == "CONST OutputCSP c v A"
   "c \<rightarrow>\<^sub>u A"         == "CONST OutputCSP c ()\<^sub>u A"
-  "c?\<^sub>u(x : P) \<rightarrow> A" => "CONST InputCSP c IDSTR(x) (\<lambda> x. P) (\<lambda> x. A)"
+  "c?\<^sub>u(x : P) \<rightarrow> A" => "CONST InputCSP c \<lceil>IDSTR(x)\<rceil>\<^sub>d (\<lambda> x. P) (\<lambda> x. A)"
 
 text {* Merge predicate for CSP *}
 
