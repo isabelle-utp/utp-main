@@ -225,6 +225,7 @@ syntax
   "_umap_apply" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_\<lparr>_\<rparr>\<^sub>m" [999,0] 999)
   "_umap_plus"  :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<oplus>\<^sub>m" 85)
   "_umap_minus" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<ominus>\<^sub>m" 85)
+  "_umap_subseteq" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<subseteq>\<^sub>M" 85)
   "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>\<^sub>u/ _")
   ""            :: "umaplet => umaplets"             ("_")
   "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
@@ -283,6 +284,7 @@ translations
   "f\<lparr>x\<rparr>\<^sub>m"   == "CONST bop CONST map_apply f x"
   "f \<oplus>\<^sub>m g" == "CONST bop CONST map_add f g"
   "f \<ominus>\<^sub>m g" == "CONST bop CONST map_minus f g"
+  "f \<subseteq>\<^sub>M g" == "CONST bop op \<subseteq>\<^sub>m f g"
   "[]\<^sub>u"     == "\<guillemotleft>CONST map_empty\<guillemotright>"
   "_UMapUpd m (_UMaplets xy ms)" == "_UMapUpd (_UMapUpd m xy) ms"
   "_UMapUpd m (_umaplet  x y)"   == "CONST trop CONST map_upd m x y"
