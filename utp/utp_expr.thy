@@ -295,8 +295,6 @@ translations
 
 text {* Lifting set intervals *}
 
-
-
 syntax
   "_uset_atLeastAtMost" :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("(1{_.._}\<^sub>u)")
   "_uset_atLeastLessThan" :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("(1{_..<_}\<^sub>u)")
@@ -310,6 +308,19 @@ translations
   "{x..y}\<^sub>u" == "CONST bop CONST atLeastAtMost x y"
   "{x..<y}\<^sub>u" == "CONST bop CONST atLeastLessThan x y"
   "{x : A | P \<bullet> F}\<^sub>u" == "CONST ZedSetCompr A (\<lambda> x. (P, F))" 
+
+text {* Lifting limits *}
+
+definition "ulim_left = (\<lambda> p f. Lim (at_left p) f)"
+definition "ulim_right = (\<lambda> p f. Lim (at_right p) f)"
+
+syntax
+  "_ulim_left"  :: "id \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("lim\<^sub>u'(_ \<rightarrow> _\<^sup>-')'(_')")
+  "_ulim_right" :: "id \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("lim\<^sub>u'(_ \<rightarrow> _\<^sup>+')'(_')")
+
+translations
+  "lim\<^sub>u(x \<rightarrow> p\<^sup>-)(e)" == "CONST bop CONST ulim_left p (\<lambda> x \<bullet> e)" 
+  "lim\<^sub>u(x \<rightarrow> p\<^sup>+)(e)" == "CONST bop CONST ulim_right p (\<lambda> x \<bullet> e)"
 
 lemmas uexpr_defs =
   iuvar_def
@@ -326,6 +337,8 @@ lemmas uexpr_defs =
   numeral_uexpr_simp
   map_empty_def
   map_upd_def
+  ulim_left_def
+  ulim_right_def
 
 lemma var_in_var: "var (in_var x) = $x"
   by (simp add: iuvar_def)
