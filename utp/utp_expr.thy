@@ -197,6 +197,9 @@ syntax
   "_utail"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" ("tail\<^sub>u'(_')")
   "_ulength"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> (nat, '\<alpha>) uexpr" ("length\<^sub>u'(_')")
   "_ufilter"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" (infixl "\<restriction>\<^sub>u" 75)
+  "_uelems"     :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("elems\<^sub>u'(_')")
+  "_usorted"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" ("sorted\<^sub>u'(_')")
+  "_udistinct"  :: "('a list, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" ("distinct\<^sub>u'(_')")
   "_uless"      :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "<\<^sub>u" 50)
   "_uleq"       :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<le>\<^sub>u" 50)
   "_ugreat"     :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix ">\<^sub>u" 50)
@@ -232,13 +235,21 @@ syntax
   "_UMapUpd"    :: "[logic, umaplets] => logic" ("_/'(_')" [900,0] 900)
   "_UMap"       :: "umaplets => logic" ("(1[_])")
 
+consts uapply :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
+
 definition "fun_apply f x = f x"
 declare fun_apply_def [simp]
 
 definition "map_upd = (\<lambda> f x v. fun_upd f x (Some v))"
 
+(* TODO: I think it's worth defining our own type for partial functions as then we can
+   make use of things like type classes and adhoc overloading. *)
+
 definition map_apply :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ("_'(_')\<^sub>m" [999,0] 999) where
 "map_apply = (\<lambda> f x. the (f x))"
+
+adhoc_overloading
+  uapply fun_apply and uapply nth
 
 definition map_minus :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" (infixl "--" 100) 
 where "map_minus f g = (\<lambda> x. if (f x = g x) then None else f x)" 
@@ -256,6 +267,9 @@ translations
   "head\<^sub>u(xs)" == "CONST uop CONST hd xs"
   "tail\<^sub>u(xs)" == "CONST uop CONST tl xs"
   "length\<^sub>u(xs)" == "CONST uop CONST length xs"
+  "elems\<^sub>u(xs)" == "CONST uop CONST set xs"
+  "sorted\<^sub>u(xs)" == "CONST uop CONST sorted xs"
+  "distinct\<^sub>u(xs)" == "CONST uop CONST distinct xs"
   "xs \<restriction>\<^sub>u A"   == "CONST bop CONST seq_filter A xs"
   "x <\<^sub>u y"   == "CONST bop (op <) x y"
   "x \<le>\<^sub>u y"   == "CONST bop (op \<le>) x y" 
@@ -275,7 +289,7 @@ translations
   "_utuple x (_utuple_args y z)" == "_utuple x (_utuple_arg (_utuple y z))"
   "\<pi>\<^sub>1(x)"    == "CONST uop CONST fst x"
   "\<pi>\<^sub>2(x)"    == "CONST uop CONST snd x"
-  "f\<lparr>x\<rparr>\<^sub>u"    == "CONST bop CONST fun_apply f x"
+  "f\<lparr>x\<rparr>\<^sub>u"    == "CONST bop CONST uapply f x"
   "\<lambda> x \<bullet> p" == "CONST ulambda (\<lambda> x. p)"
   "dom\<^sub>u(f)" == "CONST uop CONST dom f"
   "ran\<^sub>u(f)" == "CONST uop CONST ran f"
@@ -312,15 +326,18 @@ translations
 text {* Lifting limits *}
 
 definition "ulim_left = (\<lambda> p f. Lim (at_left p) f)"
-definition "ulim_right = (\<lambda> p f. Lim (at_right p) f)"
+definition "ulim_right = (\<lambda> p f. Lim (at_right p) f)" 
+definition "ucont_on = (\<lambda> f A. continuous_on A f)"
 
 syntax
   "_ulim_left"  :: "id \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("lim\<^sub>u'(_ \<rightarrow> _\<^sup>-')'(_')")
   "_ulim_right" :: "id \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("lim\<^sub>u'(_ \<rightarrow> _\<^sup>+')'(_')")
+  "_ucont_on"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infix "cont-on\<^sub>u" 90)
 
 translations
   "lim\<^sub>u(x \<rightarrow> p\<^sup>-)(e)" == "CONST bop CONST ulim_left p (\<lambda> x \<bullet> e)" 
   "lim\<^sub>u(x \<rightarrow> p\<^sup>+)(e)" == "CONST bop CONST ulim_right p (\<lambda> x \<bullet> e)"
+  "f cont-on\<^sub>u A"     == "CONST bop CONST continuous_on A f"
 
 lemmas uexpr_defs =
   iuvar_def
@@ -339,6 +356,7 @@ lemmas uexpr_defs =
   map_upd_def
   ulim_left_def
   ulim_right_def
+  ucont_on_def
 
 lemma var_in_var: "var (in_var x) = $x"
   by (simp add: iuvar_def)

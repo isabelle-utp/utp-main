@@ -125,6 +125,12 @@ lemma subst_ivar [usubst]: "\<sigma> \<dagger> $x = \<langle>\<sigma>\<rangle>\<
 lemma subst_ovar [usubst]: "\<sigma> \<dagger> $x\<acute> = \<langle>\<sigma>\<rangle>\<^sub>s (out_var x)"
   by (simp add: ouvar_def, transfer, simp)
 
+text {* We add the symmetric definition of input and output variables to substitution laws
+        so that the variables are correctly normalised after substitution. *}
+
+declare iuvar_def[THEN sym, usubst]
+declare ouvar_def[THEN sym, usubst]
+
 lemma subst_uop [usubst]: "\<sigma> \<dagger> uop f v = uop f (\<sigma> \<dagger> v)"
   by (transfer, simp)
 

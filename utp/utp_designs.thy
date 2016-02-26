@@ -165,7 +165,7 @@ proof -
   have "(P1 \<turnstile> Q1) \<sqsubseteq> (P2 \<turnstile> Q2) \<longleftrightarrow> `($ok \<and> P2 \<Rightarrow> $ok\<acute> \<and> Q2) \<Rightarrow> ($ok \<and> P1 \<Rightarrow> $ok\<acute> \<and> Q1)`"
     by pred_tac
   also with assms have "... = `(P2 \<Rightarrow> $ok\<acute> \<and> Q2) \<Rightarrow> (P1 \<Rightarrow> $ok\<acute> \<and> Q1)`"
-    by (subst subst_bool_split[of "in_var ok"], simp_all, subst_tac, pred_tac)
+    by (subst subst_bool_split[of "in_var ok"], simp_all, subst_tac)
   also with assms have "... = `(\<not> P2 \<Rightarrow> \<not> P1) \<and> ((P2 \<Rightarrow> Q2) \<Rightarrow> P1 \<Rightarrow> Q1)`"
     by (subst subst_bool_split[of "out_var ok"], simp_all, subst_tac)
   also have "... \<longleftrightarrow> `(P1 \<Rightarrow> P2)` \<and> `P1 \<and> Q2 \<Rightarrow> Q1`"
@@ -486,7 +486,7 @@ proof -
   have "H2 (\<not> $ok) = ((\<not> $ok)\<^sup>f \<or> ((\<not> $ok)\<^sup>t \<and> $ok\<acute>))"
     by (simp add: H2_split)
   also have "... = (\<not> $ok \<or> (\<not> $ok) \<and> $ok\<acute>)"
-    by (subst_tac, simp add: iuvar_def)
+    by (subst_tac)
   also have "... = (\<not> $ok)"
     by pred_tac
   finally show ?thesis .
@@ -596,7 +596,7 @@ proof -
                   \<or> ((($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D)\<lbrakk>true/$ok\<acute>\<rbrakk> ;; (true \<turnstile> II)\<lbrakk>true/$ok\<rbrakk>))"
     by (simp add: disj_comm false_alt_def true_alt_def)
   also have "... = ((\<not> $ok \<and> \<lceil>II\<rceil>\<^sub>D ;; true) \<or> (\<lceil>II\<rceil>\<^sub>D ;; $ok\<acute> \<and> \<lceil>II\<rceil>\<^sub>D))"
-    by (simp add: usubst unrest design_def iuvar_def ouvar_def, rel_tac)
+    by rel_tac
   also have "... = II\<^sub>D"
     by rel_tac
   finally show ?thesis .
