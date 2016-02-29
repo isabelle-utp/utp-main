@@ -188,6 +188,7 @@ abbreviation seq_filter :: "'a set \<Rightarrow> 'a list \<Rightarrow> 'a list" 
 nonterminal utuple_args and umaplet and umaplets
 
 syntax
+  "_ucoerce"    :: "('a, '\<alpha>) uexpr \<Rightarrow> type \<Rightarrow> ('a, '\<alpha>) uexpr" (infix ":\<^sub>u" 50)
   "_unil"       :: "('a list, '\<alpha>) uexpr" ("\<langle>\<rangle>")
   "_ulist"      :: "args => ('a list, '\<alpha>) uexpr"    ("\<langle>(_)\<rangle>")
   "_uappend"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" (infixr "^\<^sub>u" 80)
@@ -258,6 +259,7 @@ definition map_empty :: "'a \<rightharpoonup> 'b" ("[]\<^sub>m") where
 "map_empty = Map.empty"
 
 translations
+  "x :\<^sub>u 'a" == "x :: ('a, _) uexpr"
   "\<langle>\<rangle>"       == "\<guillemotleft>[]\<guillemotright>"
   "\<langle>x, xs\<rangle>"  == "CONST bop (op #) x \<langle>xs\<rangle>"
   "\<langle>x\<rangle>"      == "CONST bop (op #) x \<guillemotleft>[]\<guillemotright>"
