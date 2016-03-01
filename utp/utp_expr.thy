@@ -243,20 +243,14 @@ declare fun_apply_def [simp]
 
 definition "map_upd = (\<lambda> f x v. fun_upd f x (Some v))"
 
+definition map_empty :: "'a \<rightharpoonup> 'b" ("[]\<^sub>m") where
+"map_empty = Map.empty"
+
 (* TODO: I think it's worth defining our own type for partial functions as then we can
    make use of things like type classes and adhoc overloading. *)
 
-definition map_apply :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ("_'(_')\<^sub>m" [999,0] 999) where
-"map_apply = (\<lambda> f x. the (f x))"
-
 adhoc_overloading
   uapply fun_apply and uapply nth
-
-definition map_minus :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" (infixl "--" 100) 
-where "map_minus f g = (\<lambda> x. if (f x = g x) then None else f x)" 
-
-definition map_empty :: "'a \<rightharpoonup> 'b" ("[]\<^sub>m") where
-"map_empty = Map.empty"
 
 translations
   "x :\<^sub>u 'a" == "x :: ('a, _) uexpr"
@@ -365,61 +359,6 @@ lemma var_in_var: "var (in_var x) = $x"
 
 lemma var_out_var: "var (out_var x) = $x\<acute>"
   by (simp add: ouvar_def)
-
-(* Map lemmas. TODO: Move to Map extra *)
-
-declare map_member.simps [simp del]
-
-lemma map_minus_apply [simp]: "y \<in> dom(f -- g) \<Longrightarrow> (f -- g)(y)\<^sub>m = f(y)\<^sub>m"
-  by (auto simp add: map_minus_def dom_def map_apply_def)
-
-lemma map_add_restrict:
-  "f ++ g = (f |` (- dom g)) ++ g"
-  by (rule ext, auto simp add: map_add_def restrict_map_def)
-
-lemma map_ext:
-  "\<lbrakk> \<And> x y. (x, y) \<in>\<^sub>m A \<longleftrightarrow> (x, y) \<in>\<^sub>m B \<rbrakk> \<Longrightarrow> A = B"
-  by (rule ext, auto simp add: map_member.simps, metis not_Some_eq)
-
-lemma map_member_alt_def:
-  "(x, y) \<in>\<^sub>m A \<longleftrightarrow> (x \<in> dom A \<and> A(x)\<^sub>m = y)"
-  by (auto simp add: map_member.simps map_apply_def)
-
-lemma map_member_plus:
-  "(x, y) \<in>\<^sub>m f ++ g \<longleftrightarrow> ((x \<notin> dom(g) \<and> (x, y) \<in>\<^sub>m f) \<or> (x, y) \<in>\<^sub>m g)"
-  by (auto simp add: map_member.simps map_add_Some_iff)
-
-lemma map_member_minus:
-  "(x, y) \<in>\<^sub>m f -- g \<longleftrightarrow> (x, y) \<in>\<^sub>m f \<and> (\<not> (x, y) \<in>\<^sub>m g)"
-  by (auto simp add: map_member.simps map_minus_def)
-
-lemma map_minus_plus_commute:
-  "dom(g) \<inter> dom(h) = {} \<Longrightarrow> (f -- g) ++ h = (f ++ h) -- g"
-  apply (rule map_ext)
-  apply (auto simp add: map_member_plus map_member_minus)
-  apply (auto simp add: map_member_alt_def)
-done
- 
-lemma map_le_member:
-  "f \<subseteq>\<^sub>m g \<longleftrightarrow> (\<forall> x y. (x,y) \<in>\<^sub>m f \<longrightarrow> (x,y) \<in>\<^sub>m g)"
-  by (force simp add: map_le_def map_member.simps)
-
-lemma map_le_graph: "f \<subseteq>\<^sub>m g \<longleftrightarrow> map_graph f \<subseteq> map_graph g"
-  by (force simp add: map_le_def map_graph_def)
-
-lemma map_graph_minus: "map_graph (f -- g) = map_graph f - map_graph g"
-  by (auto simp add: map_minus_def map_graph_def, (meson option.distinct(1))+)
-
-lemma map_graph_inj:
-  "inj map_graph"
-  by (metis injI map_graph_inv)
-
-lemma map_eq_graph: "f = g \<longleftrightarrow> map_graph f = map_graph g"
-  by (auto simp add: inj_eq map_graph_inj)
-
-lemma map_minus_common_subset:
-  "\<lbrakk> h \<subseteq>\<^sub>m f; h \<subseteq>\<^sub>m g \<rbrakk> \<Longrightarrow> (f -- h = g -- h) = (f = g)"
-  by (auto simp add: map_eq_graph map_graph_minus map_le_graph)
 
 subsection {* Evaluation laws for expressions *}
 

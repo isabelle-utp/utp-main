@@ -7,43 +7,7 @@ imports
   "~~/src/HOL/Library/Monad_Syntax"
 begin
 
-subsection {* Preimage *}
-
-definition preimage :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'b set \<Rightarrow> 'a set" where
-"preimage f B = {x \<in> dom(f). the(f(x)) \<in> B}"
-
-lemma preimage_range: "preimage f (ran f) = dom f"
-  by (auto simp add: preimage_def ran_def)
-
-lemma dom_preimage: "dom (m \<circ>\<^sub>m f) = preimage f (dom m)"
-  apply (auto simp add: dom_def preimage_def)
-  apply (meson map_comp_Some_iff)
-  apply (metis map_comp_def option.case_eq_if option.distinct(1))
-done
-
-lemma countable_preimage:
-  "\<lbrakk> countable A; inj_on f (preimage f A) \<rbrakk> \<Longrightarrow> countable (preimage f A)"
-  apply (auto simp add: countable_def)
-  apply (rename_tac g)
-  apply (rule_tac x="g \<circ> the \<circ> f" in exI)
-  apply (rule inj_onI)
-  apply (drule inj_onD)
-  apply (auto simp add: preimage_def inj_onD)
-done
-
-text {* Create some extra intro/elim rules to help dealing with proof about
-        option bind. *}
-
-lemma option_bindSomeE [elim!]: 
-  "\<lbrakk> X \<guillemotright>= F = Some(v); \<And> x. \<lbrakk> X = Some(x); F(x) = Some(v) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (case_tac X, auto)
-
-lemma option_bindSomeI [intro]:
-  "\<lbrakk> X = Some(x); F(x) = Some(y) \<rbrakk> \<Longrightarrow> X >>= F = Some(y)"
-  by (simp)
-
-lemma ifSomeE [elim]: "\<lbrakk> (if c then Some(x) else None) = Some(y); \<lbrakk> c; x = y \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (case_tac c, auto)
+subsection {* Functional relations *}
 
 definition functional :: "('a * 'b) set \<Rightarrow> bool" where
 "functional g = inj_on fst g"
@@ -74,6 +38,8 @@ lemma functional_list: "functional_list xs \<longleftrightarrow> functional (set
   apply (force)
   apply (force)
 done
+
+subsection {* Graphing maps *}
 
 definition map_graph :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a * 'b) set" where
 "map_graph f = {(x,y) | x y. f x = Some y}"
@@ -152,6 +118,13 @@ lemma map_graph_inv' [simp]:
   "graph_map' (map_graph f) = Some f"
   by (simp add: graph_map'_def)
 
+lemma map_graph_inj:
+  "inj map_graph"
+  by (metis injI map_graph_inv)
+
+lemma map_eq_graph: "f = g \<longleftrightarrow> map_graph f = map_graph g"
+  by (auto simp add: inj_eq map_graph_inj)
+
 lemma functional_list_graph: "\<lbrakk>functional_list xs; sorted xs; distinct xs\<rbrakk> \<Longrightarrow> map_of xs = graph_map (set xs)"
   apply (simp add:functional_list)
   apply (induct xs)
@@ -168,6 +141,101 @@ lemma map_graph_list: "\<lbrakk>finite g; functional g\<rbrakk> \<Longrightarrow
   apply (simp add:sorted_list_of_set_sort_remdups distinct_remdups_id sorted_sort_id functional_list_graph)
   apply (auto dest:functional_listD)
 done
+
+lemma map_le_graph: "f \<subseteq>\<^sub>m g \<longleftrightarrow> map_graph f \<subseteq> map_graph g"
+  by (force simp add: map_le_def map_graph_def)
+
+subsection {* Map application *}
+
+definition map_apply :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ("_'(_')\<^sub>m" [999,0] 999) where
+"map_apply = (\<lambda> f x. the (f x))"
+
+subsection {* Map membership *}
+
+fun map_member :: "'a \<times> 'b \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> bool" (infix "\<in>\<^sub>m" 50) where
+"(k, v) \<in>\<^sub>m m \<longleftrightarrow> m(k) = Some(v)"
+
+lemma map_ext:
+  "\<lbrakk> \<And> x y. (x, y) \<in>\<^sub>m A \<longleftrightarrow> (x, y) \<in>\<^sub>m B \<rbrakk> \<Longrightarrow> A = B"
+  by (rule ext, auto, metis not_Some_eq)
+
+lemma map_member_alt_def:
+  "(x, y) \<in>\<^sub>m A \<longleftrightarrow> (x \<in> dom A \<and> A(x)\<^sub>m = y)"
+  by (auto simp add: map_apply_def)
+
+lemma map_le_member:
+  "f \<subseteq>\<^sub>m g \<longleftrightarrow> (\<forall> x y. (x,y) \<in>\<^sub>m f \<longrightarrow> (x,y) \<in>\<^sub>m g)"
+  by (force simp add: map_le_def)
+
+subsection {* Preimage *}
+
+definition preimage :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'b set \<Rightarrow> 'a set" where
+"preimage f B = {x \<in> dom(f). the(f(x)) \<in> B}"
+
+lemma preimage_range: "preimage f (ran f) = dom f"
+  by (auto simp add: preimage_def ran_def)
+
+lemma dom_preimage: "dom (m \<circ>\<^sub>m f) = preimage f (dom m)"
+  apply (auto simp add: dom_def preimage_def)
+  apply (meson map_comp_Some_iff)
+  apply (metis map_comp_def option.case_eq_if option.distinct(1))
+done
+
+lemma countable_preimage:
+  "\<lbrakk> countable A; inj_on f (preimage f A) \<rbrakk> \<Longrightarrow> countable (preimage f A)"
+  apply (auto simp add: countable_def)
+  apply (rename_tac g)
+  apply (rule_tac x="g \<circ> the \<circ> f" in exI)
+  apply (rule inj_onI)
+  apply (drule inj_onD)
+  apply (auto simp add: preimage_def inj_onD)
+done
+
+subsection {* Minus operation for maps *}
+
+definition map_minus :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" (infixl "--" 100) 
+where "map_minus f g = (\<lambda> x. if (f x = g x) then None else f x)" 
+
+lemma map_minus_apply [simp]: "y \<in> dom(f -- g) \<Longrightarrow> (f -- g)(y)\<^sub>m = f(y)\<^sub>m"
+  by (auto simp add: map_minus_def dom_def map_apply_def)
+
+lemma map_member_plus:
+  "(x, y) \<in>\<^sub>m f ++ g \<longleftrightarrow> ((x \<notin> dom(g) \<and> (x, y) \<in>\<^sub>m f) \<or> (x, y) \<in>\<^sub>m g)"
+  by (auto simp add: map_add_Some_iff)
+
+lemma map_member_minus:
+  "(x, y) \<in>\<^sub>m f -- g \<longleftrightarrow> (x, y) \<in>\<^sub>m f \<and> (\<not> (x, y) \<in>\<^sub>m g)"
+  by (auto simp add: map_minus_def)
+
+lemma map_minus_plus_commute:
+  "dom(g) \<inter> dom(h) = {} \<Longrightarrow> (f -- g) ++ h = (f ++ h) -- g"
+  apply (rule map_ext)
+  apply (auto simp add: map_member_plus map_member_minus simp del: map_member.simps)
+  apply (auto simp add: map_member_alt_def)
+done
+
+lemma map_graph_minus: "map_graph (f -- g) = map_graph f - map_graph g"
+  by (auto simp add: map_minus_def map_graph_def, (meson option.distinct(1))+)
+
+lemma map_minus_common_subset:
+  "\<lbrakk> h \<subseteq>\<^sub>m f; h \<subseteq>\<^sub>m g \<rbrakk> \<Longrightarrow> (f -- h = g -- h) = (f = g)"
+  by (auto simp add: map_eq_graph map_graph_minus map_le_graph)
+
+text {* Create some extra intro/elim rules to help dealing with proof about
+        option bind. *}
+
+lemma option_bindSomeE [elim!]: 
+  "\<lbrakk> X \<guillemotright>= F = Some(v); \<And> x. \<lbrakk> X = Some(x); F(x) = Some(v) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (case_tac X, auto)
+
+lemma option_bindSomeI [intro]:
+  "\<lbrakk> X = Some(x); F(x) = Some(y) \<rbrakk> \<Longrightarrow> X >>= F = Some(y)"
+  by (simp)
+
+lemma ifSomeE [elim]: "\<lbrakk> (if c then Some(x) else None) = Some(y); \<lbrakk> c; x = y \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (case_tac c, auto)
+
+
 
 text {* A range restriction operator; only domain restriction is provided in HOL *}
 
@@ -296,6 +364,10 @@ lemma dom_left_map_add [simp]: "x \<in> dom g \<Longrightarrow> (f ++ g) x = g x
 
 lemma dom_right_map_add [simp]: "\<lbrakk> x \<notin> dom g; x \<in> dom f \<rbrakk> \<Longrightarrow> (f ++ g) x = f x"
   by (auto simp add:map_add_def dom_def)
+
+lemma map_add_restrict:
+  "f ++ g = (f |` (- dom g)) ++ g"
+  by (rule ext, auto simp add: map_add_def restrict_map_def)
 
 lemma map_self_adjoin_complete [intro]: 
   assumes "dom f \<inter> ran f = {}" "inj_on f (dom f)"
@@ -655,9 +727,6 @@ subsection {* Map comprehension *}
 
 text {* Map comprehension simply converts a relation built through set comprehension into a map *}
 
-fun map_member :: "'a \<times> 'b \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> bool" (infix "\<in>\<^sub>m" 50) where
-"(k, v) \<in>\<^sub>m m \<longleftrightarrow> m(k) = Some(v)"
-
 syntax
   "_Mapcompr" :: "'a \<Rightarrow> 'b \<Rightarrow> idts \<Rightarrow> bool \<Rightarrow> 'a \<rightharpoonup> 'b"    ("(1[_ \<mapsto> _ |/_./ _])")
   
@@ -717,5 +786,6 @@ proof -
 qed
 
 declare map_member.simps [simp del]
+
 
 end
