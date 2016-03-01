@@ -61,7 +61,7 @@ syntax
   ""          :: "smaplet => smaplets"            ("_")
   "_SMaplets" :: "[smaplet, smaplets] => smaplets" ("_,/ _")
   "_SubstUpd" :: "['m usubst, smaplets] => 'm usubst" ("_/'(_')" [900,0] 900)
-  "_Subst"    :: "smaplets => 'a ~=> 'b"            ("(1[_])")
+  "_Subst"    :: "smaplets => 'a \<rightharpoonup> 'b"            ("(1[_])")
 
 translations
   "_SubstUpd m (_SMaplets xy ms)"     == "_SubstUpd (_SubstUpd m xy) ms"

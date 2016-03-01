@@ -375,11 +375,11 @@ lemma bachmair_dershowitz:
 proof
   assume "(x + y)\<^sup>\<omega> = 0"
   show "x\<^sup>\<omega> + y\<^sup>\<omega> = 0"
-    by (metis `(x + y)\<^sup>\<omega> = (0\<Colon>'a)` add.commute add_zero_r annir omega_sum_unfold)
+    by (metis `(x + y)\<^sup>\<omega> = (0::'a)` add.commute add_zero_r annir omega_sum_unfold)
 next
   assume "x\<^sup>\<omega> + y\<^sup>\<omega> = 0"
   show "(x + y)\<^sup>\<omega> = 0"
-    by (metis `x\<^sup>\<omega> + y\<^sup>\<omega> = (0\<Colon>'a)` assms no_trivial_inverse omega_sum_refine distrib_left star_omega_1)
+    by (metis `x\<^sup>\<omega> + y\<^sup>\<omega> = (0::'a)` assms no_trivial_inverse omega_sum_refine distrib_left star_omega_1)
 qed
 
 text {*

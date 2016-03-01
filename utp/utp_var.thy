@@ -2,7 +2,7 @@ section {* UTP variables *}
 
 theory utp_var
 imports 
-  "../contrib/Kleene_Algebras/Quantales"
+  "../contrib/Kleene_Algebra/Quantales"
   "../utils/cardinals"
   "../utils/Continuum"
   "../utils/finite_bijection"

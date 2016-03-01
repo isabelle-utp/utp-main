@@ -220,7 +220,7 @@ lemma first_t_fusion [simp]: "last x = first y \<Longrightarrow> first (t_fusion
   by (simp add: first_def t_fusion_def)
 
 lemma last_t_fusion [simp]: "last x = first y \<Longrightarrow> last (t_fusion x y) = last y"
-  by (metis (lifting) Dioid_Models.last_append first_def t_fusion_def pair_collapse)
+  by (simp add: first_def t_fusion_def)
 
 text {* Next we show that fusion of traces is associative. *}
 

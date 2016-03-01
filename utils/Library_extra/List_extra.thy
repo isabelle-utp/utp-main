@@ -420,8 +420,7 @@ lemma is_sorted_list_of_set_by_mono:
 
 lemma lexord_mono': 
   "\<lbrakk> (\<And> x y. f x y \<longrightarrow> g x y); (xs, ys) \<in> lexord {(x, y). f x y} \<rbrakk> \<Longrightarrow> (xs, ys) \<in> lexord {(x, y). g x y}"
-  by (metis case_prodI lexord_take_index_conv mem_Collect_eq splitD)
-
+  by (metis case_prodD case_prodI lexord_take_index_conv mem_Collect_eq)
 
 lemma fin_set_lexord_mono [mono]: 
   "(\<And> x y. f x y \<longrightarrow> g x y) \<Longrightarrow> (xs, ys) \<in> fin_set_lexord {(x, y). f x y} \<longrightarrow> (xs, ys) \<in> fin_set_lexord {(x, y). g x y}"
@@ -437,11 +436,8 @@ proof
     apply (auto simp add: fin_set_lexord_def)
     apply (rule_tac x="xsa" in exI)
     apply (auto)
-    apply (metis case_prodI is_sorted_list_of_set_by_def mem_Collect_eq splitD)
-    apply (rule_tac x="ysa" in exI)
-    apply (auto)
-    apply (metis case_prodI is_sorted_list_of_set_by_def mem_Collect_eq splitD)
-    using lexord_mono' apply blast
+    apply (metis case_prodD case_prodI is_sorted_list_of_set_by_def mem_Collect_eq)
+    apply (metis case_prodD case_prodI is_sorted_list_of_set_by_def lexord_mono' mem_Collect_eq)
   done
 qed
 

@@ -251,7 +251,7 @@ qed
 lemma seq_lexord_mono [mono]: 
   "(\<And> x y. f x y \<longrightarrow> g x y) \<Longrightarrow> (xs, ys) \<in> seq_lexord {(x, y). f x y} \<longrightarrow> (xs, ys) \<in> seq_lexord {(x, y). g x y}"
   apply (auto simp add: seq_lexord_def)
-  apply (metis case_prodI lexord_take_index_conv mem_Collect_eq splitD)
+  apply (metis case_prodD case_prodI lexord_take_index_conv mem_Collect_eq)
 done
 
 fun insort_rel :: "'a rel \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where

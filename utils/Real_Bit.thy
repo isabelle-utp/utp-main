@@ -166,9 +166,9 @@ lemma bin_series_geometric:
   "((\<Sum> i\<le>n. 1/2^(i+1)) :: rat) = 1 - (1 / 2^(n + 1))"
 proof -
   have "((\<Sum> i\<le>n. 1/2^(i+1)) :: rat) = (\<Sum> i<n+2. (1/2)^i) - 1"
-    by (induct n, simp_all)
+    by (induct n, simp_all add: power_one_over)
   also have "... = 1 - (1 / 2^(n + 1))"
-    by (subst geometric_sum, simp_all)
+    by (subst geometric_sum, simp_all add: power_one_over)
   finally show ?thesis .
 qed
 
@@ -193,14 +193,16 @@ proof -
   from assms have "((\<Sum>i=m+1..n. 1 / 2 ^ i) :: real) = (\<Sum>i<n+1. 1/2^i) - (\<Sum>i<m+1. 1/2^i)"
     by (subst setsum_minus_triv[THEN sym], simp_all add: lessThan_Suc_atMost)
   also have "... = (\<Sum>i<n+1. (1/2)^i) - (\<Sum>i<m+1. (1/2)^i)"
-    by simp
+    by (simp add: power_one_over)
   also have "... = 2 / 2 ^ (m + 1) - 2 / 2 ^ (n + 1)"
-    by (simp only: geometric_sum, simp)
+    by (simp only: geometric_sum, simp add: power_one_over)
   moreover have "(1/2^m :: real) > 2 / 2 ^ (m + 1) - 2 / 2 ^ (n + 1)"
     by (auto)
   ultimately show ?thesis
     by linarith
 qed
+
+term int
 
 lemma real_bin_ub:
   assumes "m > 0"
@@ -210,8 +212,8 @@ proof -
     by (simp add: le_of_int_ceiling)
   moreover from assms have "2 powr \<lceil>log 2 \<lceil>m\<rceil>\<rceil> \<ge> \<lceil>m\<rceil>"
     by (subst log_le_iff[THEN sym], simp_all)
-  moreover have "2 powr \<lceil>log 2 \<lceil>m\<rceil>\<rceil> = 2 powr (real (int (nat (\<lceil>log 2 \<lceil>m\<rceil>\<rceil> :: int))))"
-    by (smt assms ceiling_zero log_less_zero_cancel_iff nat_0_le real_of_int_le_iff real_of_one zero_less_ceiling)
+  moreover have "2 powr \<lceil>log 2 \<lceil>m\<rceil>\<rceil> = 2 powr (real (nat (\<lceil>log 2 \<lceil>m\<rceil>\<rceil> :: int)))"
+    by (smt assms calculation(2) int_nat_eq of_int_1 of_int_le_iff of_nat_0 of_nat_eq_iff power.simps(1) powr_int powr_mono powr_realpow zero_less_ceiling)
   ultimately have "2 ^ nat \<lceil>log 2 \<lceil>m\<rceil>\<rceil> \<ge> m"
     by (smt powr_as_power)
   with assms have "2 ^ (nat \<lceil>log 2 \<lceil>m\<rceil>\<rceil> + 1) > m"
@@ -333,7 +335,7 @@ term binseq
 
 lemma binseq_rbseq: "binseq (rbseq x) i = (\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) / (2 ^ (i+1))"
   apply (simp add: binseq_def rbseq_def)
-  apply (metis not_mod_2_eq_1_eq_0 of_bit_eq(1) of_bit_eq(2) of_int_of_bit_eq real_of_int_def)
+  apply (metis not_mod_2_eq_0_eq_1 of_bit_eq(1) of_bit_eq(2) of_int_0 of_int_1)
 done
 
 (* lemma "\<lfloor>x * (2^n+1)\<rfloor> mod 2 = 0 \<Longrightarrow> x = (x -  *)
@@ -360,9 +362,9 @@ proof -
   have "(\<Sum> i\<le>n. nth_cont x i) \<le> (\<Sum> i\<le>n. 1 / (2^(i+1)))"
     by (rule setsum_mono, metis nth_cont_cases order_refl zero_le_divide_1_iff zero_le_numeral zero_le_power)
   also have "... = (\<Sum> i<n+2. (1/2)^i) - 1"
-    by (induct n, simp_all)
+    by (induct n, simp_all add: power_one_over)
   also have "... = 1 - (1 / 2^(n + 1))"
-    by (subst geometric_sum, simp_all)
+    by (subst geometric_sum, simp_all add: power_one_over)
   finally show ?thesis .
 qed
 
@@ -381,19 +383,14 @@ next
   with odd show ?thesis
     by (simp add: nth_cont_def, smt pos_less_divide_eq zero_less_power)
 qed
-
-lemma nth_cont_bit_diff_le_one:
-  assumes "0 \<le> x" "x < 1"
-  shows "x - nth_cont x i < 1"
-  by (simp add: nth_cont_def, smt assms(2) divide_nonneg_nonneg not_mod_2_eq_1_eq_0 real_of_int_less_iff real_of_int_zero zero_le_power)
-
+  
 lemma bin_series_geometric':
   "((\<Sum> i\<le>n. 1/2^(i+1)) :: real) = 1 - (1 / 2^(n + 1))"
 proof -
   have "((\<Sum> i\<le>n. 1/2^(i+1)) :: real) = (\<Sum> i<n+2. (1/2)^i) - 1"
-    by (induct n, simp_all)
+    by (induct n, simp_all add: power_one_over)
   also have "... = 1 - (1 / 2^(n + 1))"
-    by (subst geometric_sum, simp_all)
+    by (subst geometric_sum, simp_all add: power_one_over)
   finally show ?thesis .
 qed
 
@@ -426,10 +423,10 @@ proof -
   have "(x - (\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) / (2 ^ (i+1))) * (2 ^ (j+1)) = 
         (x * 2 ^ (j+1)) - ((\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) / (2 ^ (i+1)) * (2 ^ (j+1)))"
     using left_diff_distrib by blast
-  moreover have "x * (2 * 2 ^ j) - 2 ^ j / 2 ^ i = x * (2 * 2 ^ j) - real ((2::int) ^ (j - i))"
-    by (simp add: assms order_less_imp_le power_diff)
-  moreover have "\<lfloor>x * (2 * 2 ^ j) - real ((2::int) ^ (j - i))\<rfloor> = \<lfloor>x * (2 * 2 ^ j)\<rfloor> - ((2::int) ^ (j - i))"
-    using floor_subtract by blast
+  moreover have "x * (2 * 2 ^ j) - 2 ^ j / 2 ^ i = x * (2 * 2 ^ j) - real ((2::nat) ^ (j - i))"
+    by (simp add: assms order_less_imp_le power_diff power_one_over)
+  moreover have "\<lfloor>x * (2 * 2 ^ j) - of_int ((2::nat) ^ (j - i))\<rfloor> = \<lfloor>x * (2 * 2 ^ j)\<rfloor> - ((2::nat) ^ (j - i))"
+    using floor_diff_of_int by blast
   moreover have "(2::int) ^ (j - i) mod 2 = 0"
     by (simp add: assms)
 (*
@@ -501,7 +498,7 @@ proof (induct n)
 next
   case (Suc n) note hyp = this
   have "(\<Sum>i<n. \<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2 * 2 ^ (Suc n - i)) = (\<Sum>i<n. \<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2 * 2 ^ (n - i))*2"
-    by (auto intro: setsum.cong simp add: lemma_realpow_diff setsum_left_distrib) 
+    by (auto intro: setsum.cong simp add: Suc_diff_le setsum_left_distrib) 
   -- {* This can be proven with reference to integer division and modulus *}
   moreover have "\<lfloor>x * (2 ^ (n+1))\<rfloor> * 2 = \<lfloor>x * (2 ^ (n+2))\<rfloor> - \<lfloor>x * (2 ^ (n+2))\<rfloor> mod 2"
   proof -
@@ -538,13 +535,13 @@ theorem modulus_2_via_shift:
 proof -
   have "\<lfloor>(x - (\<Sum>i<n. nth_cont x i))*2^(n+1)\<rfloor> = \<lfloor>(x*2^(n+1) - (\<Sum>i<n. nth_cont x i)*2^(n+1))\<rfloor>"
     by (simp add: left_diff_distrib)
-  moreover have "(\<Sum>i<n. nth_cont x i)*2^(n+1) = real (\<Sum>i<n. (\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) * (2 ^ (n-i)))"
+  moreover have "(\<Sum>i<n. nth_cont x i)*2^(n+1) = of_int (\<Sum>i<n. (\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) * (2 ^ (n-i)))"
   proof -
     have "(\<Sum>i<n. nth_cont x i)*2^(n+1) = (\<Sum>i<n. (\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) / (2 ^ (i+1))) * (2 ^ (n+1))"
       by (simp add: nth_cont_def)
     also have "... = (\<Sum>i<n. (\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) / (2 ^ (i+1)) * (2 ^ (n+1)))"
       by (rule setsum_left_distrib)
-    also have "... = (\<Sum>i<n. (real ((\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) * (2 ^ (n-i)))))"
+    also have "... = (\<Sum>i<n. (of_int ((\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) * (2 ^ (n-i)))))"
       by (rule setsum.cong, auto simp add: power_diff)
     finally show ?thesis
       by auto
@@ -566,13 +563,14 @@ lemma binlist_as_nth_cont:
 proof (induct n)
   case 0 with assms show ?case
     apply (simp add: binlist_def nth_cont_def)
-by (smt mod_pos_pos_trivial of_bit_eq(1) of_bit_eq(2) of_int_0 of_int_1 one_less_floor real_of_int_def zero_le_floor)
+    apply (smt mod_pos_pos_trivial of_bit_eq(1) of_bit_eq(2) of_int_0 of_int_1 one_less_floor zero_le_floor)
+  done
 next
   case (Suc n) note hyp = this
   thus ?case
     using modulus_2_via_shift[of x "Suc n"] assms
     apply (simp add: rbit_def nth_cont_def)
-    apply (metis (no_types, lifting) not_mod_2_eq_1_eq_0 of_bit_eq(1) of_bit_eq(2) of_int_0 of_int_1 real_of_int_def)
+    apply (metis (no_types, lifting) not_mod_2_eq_1_eq_0 of_bit_eq(1) of_bit_eq(2) of_int_0 of_int_1)
   done
 qed
 
@@ -663,7 +661,7 @@ qed
 
 lemma binseq_approaches_real_bin:
   assumes "0 \<le> x" "x < 1"
-  shows "(\<lambda> n. \<Sum> i<n. binseq (real_bin x) i) ----> x"
+  shows "(\<lambda> n. \<Sum> i<n. binseq (real_bin x) i) \<longlonglongrightarrow> x"
 proof (rule LIMSEQ_I, simp)
   fix r :: real
   assume "0 < r"
@@ -723,14 +721,14 @@ next
       apply (simp)
       apply (simp)
       apply (subst setsum_shift_plus_k)
-      apply (simp)
+      apply (simp add: power_one_over)
     done
     also have "... = 1 / 2 ^ k - 1 / 2 ^ (n + k)"
       apply (subst geometric_sum)
       apply (simp)
       apply (subst geometric_sum)
       apply (simp)
-      apply (simp)
+      apply (simp add: power_one_over)
     done
     finally show ?thesis
       by (simp)
@@ -910,7 +908,6 @@ proof -
       apply (auto intro!: setsum_int)
       apply (rename_tac i)
       apply (case_tac "x i", auto)
-      using Ints_1 Ints_diff Ints_minus Ints_power apply fastforce
     done
     thus "dyadic ((\<Sum>i<k. of_bit (x i) * 2 ^ (k - Suc i)) / 2 ^ k)"
       by (auto simp add: dyadic_def)
@@ -922,17 +919,17 @@ lemma terminal_rbseq_drat:
 proof (erule drat_0_1_induct, simp add: rbseq_def terminal_def terminates_at_def)
   fix a :: int and b :: nat
   assume coprime: "coprime a (2 ^ b)"
-  have "\<And> j. j \<ge> b \<Longrightarrow> of_int (\<lfloor>real a * (2 * 2 ^ j) / 2 ^ b\<rfloor> mod 2) = 0"
+  have "\<And> j. j \<ge> b \<Longrightarrow> of_int (\<lfloor>real_of_int a * (2 * 2 ^ j) / 2 ^ b\<rfloor> mod 2) = 0"
   proof -
     fix j
     assume "j \<ge> b"
-    then have "real a * (2 * 2 ^ j) / 2 ^ b = real a * (2 * 2 ^ (j-b))"
+    then have "real_of_int a * (2 * 2 ^ j) / 2 ^ b = real_of_int a * (2 * 2 ^ (j-b))"
       by (simp add: power_diff)
-    moreover have "real a * (2 * 2 ^ (j-b)) \<in> \<int>"
-      by (metis Ints_mult Ints_power Ints_real_of_int real_numeral(1))
-    moreover hence "\<lfloor>real a * (2 * 2 ^ (j-b))\<rfloor> mod 2 = (2 * \<lfloor>real a * 2 ^ (j - b)\<rfloor>) mod 2"
-      by (metis floor_real_of_int linordered_field_class.sign_simps(25) power.simps(2) real_of_int_eq_numeral_power_cancel_iff real_of_int_mult)
-    ultimately show "of_int (\<lfloor>real a * (2 * 2 ^ j) / 2 ^ b\<rfloor> mod 2) = 0"
+    moreover have "real_of_int a * (2 * 2 ^ (j-b)) \<in> \<int>"
+      by simp
+    moreover hence "\<lfloor>real_of_int a * (2 * 2 ^ (j-b))\<rfloor> mod 2 = (2 * \<lfloor>real_of_int a * 2 ^ (j - b)\<rfloor>) mod 2"
+      by (metis floor_of_int linordered_field_class.sign_simps(25) power.simps(2) real_of_int_eq_numeral_power_cancel_iff of_int_mult)
+    ultimately show "of_int (\<lfloor>real_of_int a * (2 * 2 ^ j) / 2 ^ b\<rfloor> mod 2) = 0"
       by simp
   qed
   with coprime show " \<exists>i. \<forall>j\<ge>i. of_int (\<lfloor>of_drat (DFract a b) * ((2::real) * 2 ^ j)\<rfloor> mod 2) = 0"

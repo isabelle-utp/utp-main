@@ -17,6 +17,8 @@ algebra~\cite{conway71regular}. *}
 
 subsection {* Type Definition *}
 
+declare [[typedef_overloaded]] 
+
 typedef 'a atMost = "{..<len_of TYPE('a::len)}"
 by auto
 
@@ -347,5 +349,7 @@ subsection {* Kleene Star for Matrices *}
 
 text {* We currently do not implement the Kleene star of matrices,
 since this is complicated. *}
+
+declare [[typedef_overloaded = false]] 
 
 end

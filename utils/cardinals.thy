@@ -22,7 +22,7 @@ definition equal_card :: "'a set \<Rightarrow> 'b set \<Rightarrow> bool" (infix
 definition less_card :: "'a set \<Rightarrow> 'b set \<Rightarrow> bool" (infix "\<prec>\<^sub>c" 50) where
 "(A \<prec>\<^sub>c B) \<longleftrightarrow> (A \<preceq>\<^sub>c B) \<and> \<not> (A \<equiv>\<^sub>c B)"
 
-theorems card_ord_defs =
+lemmas card_ord_defs =
   leq_card_def
   equal_card_def
   less_card_def
@@ -44,7 +44,7 @@ definition nat_card :: "nat set" ("c\<^sub>\<nat>") where
 definition real_card :: "real set" ("c\<^sub>\<real>") where
 "c\<^sub>\<real> = c\<^sub>\<T> TYPE(real)"
 
-theorems card_defs =
+lemmas card_defs =
   fin_card_def
   type_card_def
   bool_card_def
@@ -85,7 +85,7 @@ apply (unfold ordLess_lemma ordIso_iff_ordLeq)
 apply (rule refl)
 done
 
-theorems card_transfer =
+lemmas card_transfer =
   leq_card_iff_ordLeq
   equal_card_iff_ordIso
   less_card_iff_ordLess

@@ -2,17 +2,17 @@ theory Dyadic
 imports Real Transcendental cardinals 
 begin
 
-definition dyadic :: "'a\<Colon>field_char_0 \<Rightarrow> bool" where
+definition dyadic :: "'a::field_char_0 \<Rightarrow> bool" where
 "dyadic x = (\<exists> a \<in> \<int>. \<exists> b. x = a / 2^b)"
 
-abbreviation Dyadics :: "'a\<Colon>field_char_0 set" ("\<rat>\<^sub>D")
+abbreviation Dyadics :: "'a::field_char_0 set" ("\<rat>\<^sub>D")
 where "\<rat>\<^sub>D \<equiv> {x. dyadic x}"
 
 lemma dyadic_zero: "dyadic 0"
   by (auto simp add: dyadic_def)
 
 lemma dyadic_one: "dyadic 1"
-  by (auto simp add: dyadic_def, metis Ints_1 power_0)
+  by (auto simp add: dyadic_def)
 
 lemma dyadic_plus: 
   assumes "dyadic x" "dyadic y"
@@ -100,7 +100,7 @@ done
 lift_definition dfrac_of :: "drat \<Rightarrow> int \<times> nat" is
 "\<lambda> x. (fst (quotient_of x), nat \<lfloor>log 2 (snd (quotient_of x))\<rfloor>)" .
 
-lemma powr_as_power: "x > 0 \<Longrightarrow> x powr (real (int n)) = x ^ n"
+lemma powr_as_power: "x > 0 \<Longrightarrow> x powr (real n) = x ^ n"
   by (induct n, simp_all, auto simp add: powr_add)
 
 lemma dfrac_of_DFract:
@@ -243,7 +243,7 @@ next
   moreover obtain b' n' where "odd b'" "a' = 2^n' * b'"
     using assms calculation evenE_nat by auto
   ultimately show ?thesis using that
-    by (metis even_int_iff even_minus mult_minus_right of_nat_mult of_nat_numeral zpower_int)
+    by (metis even_int_iff even_minus mult_minus_right of_nat_mult of_nat_numeral of_nat_power)
 qed
 
 lemma rat_of_int_div: "\<lbrakk> y dvd x \<rbrakk> \<Longrightarrow> rat_of_int x / rat_of_int y = rat_of_int (x div y)"
@@ -280,7 +280,7 @@ proof -
     have "rat_of_int a' / rat_of_int (2 ^ b') = (rat_of_int a' / rat_of_int (2^n)) / (rat_of_int (2^b') / rat_of_int (2^n))"
       by simp
     also have "... = rat_of_int (a' div 2^n) / (rat_of_int ((2^b') div (2^n)))"
-      by (simp add: rat_of_int_div tn_dv1 tn_dv2)
+      using rat_of_int_div tn_dv1 tn_dv2 by presburger
     also from kn have "... = rat_of_int k / (rat_of_int ((2^b') div (2^n)))"
       by simp
     also have "... = rat_of_int k / rat_of_int (2 ^ (b' - n))"
@@ -359,7 +359,6 @@ instantiation drat :: linordered_idom
 begin
   lift_definition sgn_drat :: "drat \<Rightarrow> drat" is sgn
     apply (transfer, auto simp add: dyadic_def sgn_rat_def)
-    apply (metis Ints_1 power_0)
     apply (rule_tac x="-1" in bexI, rule_tac x="0" in exI, auto)
   done
   lift_definition abs_drat :: "drat \<Rightarrow> drat" is abs

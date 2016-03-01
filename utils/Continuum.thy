@@ -178,11 +178,11 @@ lemma uncountable_continuum:
   "uncountable (UNIV :: 'a::continuum set) \<Longrightarrow> (\<exists> to_nat_set :: 'a \<Rightarrow> nat set. bij to_nat_set)"
   using countableI ex_continuum_inj by blast
 
-definition to_nat_set :: "'a\<Colon>continuum \<Rightarrow> nat set" where
+definition to_nat_set :: "'a::continuum \<Rightarrow> nat set" where
   "to_nat_set = (if (countable (UNIV::'a set)) then (SOME f. inj f) else (SOME f. bij f))"
 
-definition from_nat_set :: "nat set \<Rightarrow> 'a\<Colon>continuum" where
-  "from_nat_set = inv (to_nat_set \<Colon> 'a \<Rightarrow> nat set)"
+definition from_nat_set :: "nat set \<Rightarrow> 'a::continuum" where
+  "from_nat_set = inv (to_nat_set :: 'a \<Rightarrow> nat set)"
 
 lemma to_nat_set_inj [simp]: "inj to_nat_set"
 proof (cases "countable (UNIV :: 'a set)")
@@ -279,7 +279,7 @@ proof
         fix y :: "nat set"
         have "y = to_nat ` inv to_nat ` y"
           by (simp add: bij_is_surj bij_to_nat image_surj_f_inv_f)            
-        thus "\<exists>x\<Colon>'a set. y = to_nat ` x"
+        thus "\<exists>x::'a set. y = to_nat ` x"
           by (auto)
       qed
       ultimately show ?thesis

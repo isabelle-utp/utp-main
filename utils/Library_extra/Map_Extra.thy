@@ -92,7 +92,7 @@ lemma graph_map_inv [simp]: "functional g \<Longrightarrow> map_graph (graph_map
   apply (auto simp add:map_graph_def graph_map_def functional_def)
   apply (metis (lifting, no_types) image_iff option.distinct(1) option.inject someI surjective_pairing)
   apply (simp add:inj_on_def)
-  apply (metis (lifting) Pair_eq fst_eqD someI)
+  apply (metis fst_conv snd_conv some_equality)
   apply (metis (lifting) fst_conv image_iff)
 done
 
@@ -225,7 +225,7 @@ text {* Create some extra intro/elim rules to help dealing with proof about
         option bind. *}
 
 lemma option_bindSomeE [elim!]: 
-  "\<lbrakk> X \<guillemotright>= F = Some(v); \<And> x. \<lbrakk> X = Some(x); F(x) = Some(v) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  "\<lbrakk> X >>= F = Some(v); \<And> x. \<lbrakk> X = Some(x); F(x) = Some(v) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (case_tac X, auto)
 
 lemma option_bindSomeI [intro]:
@@ -234,8 +234,6 @@ lemma option_bindSomeI [intro]:
 
 lemma ifSomeE [elim]: "\<lbrakk> (if c then Some(x) else None) = Some(y); \<lbrakk> c; x = y \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (case_tac c, auto)
-
-
 
 text {* A range restriction operator; only domain restriction is provided in HOL *}
 
