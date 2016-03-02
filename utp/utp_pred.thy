@@ -465,6 +465,20 @@ lemma eq_upred_refl [simp]: "(x =\<^sub>u x) = true"
 lemma eq_upred_sym: "(x =\<^sub>u y) = (y =\<^sub>u x)"
   by pred_tac
 
+lemma conj_eq_in_var_subst:
+  fixes x :: "('a, '\<alpha>) uvar"
+  assumes "uvar x"
+  shows "(P \<and> $x =\<^sub>u v) = (P\<lbrakk>v/$x\<rbrakk> \<and> $x =\<^sub>u v)"
+  using assms
+  by (pred_tac, (metis semi_uvar.var_update_eta uvar_semi_var)+)
+
+lemma conj_eq_out_var_subst:
+  fixes x :: "('a, '\<alpha>) uvar"
+  assumes "uvar x"
+  shows "(P \<and> $x\<acute> =\<^sub>u v) = (P\<lbrakk>v/$x\<acute>\<rbrakk> \<and> $x\<acute> =\<^sub>u v)"
+  using assms
+  by (pred_tac, (metis semi_uvar.var_update_eta uvar_semi_var)+)
+
 lemma shEx_bool [simp]: "shEx P = (P True \<or> P False)"
   by (pred_tac, metis (full_types))
 
