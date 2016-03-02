@@ -444,4 +444,8 @@ qed
 definition distincts :: "'a set \<Rightarrow> 'a list set" where
 "distincts A = {xs \<in> lists A. distinct(xs)}"
 
+lemma tl_element:
+  "\<lbrakk> x \<in> set xs; x \<noteq> hd(xs) \<rbrakk> \<Longrightarrow> x \<in> set(tl(xs))"
+  by (metis in_set_insert insert_Nil list.collapse list.distinct(2) set_ConsD)
+
 end
