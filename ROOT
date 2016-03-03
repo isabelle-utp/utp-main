@@ -29,6 +29,7 @@ session "UTP-IMPORTS" in "utils" = "Kleene_Algebra" +
     "Library_extra/FSet_extra"
     "Library_extra/List_extra"
     "Library_extra/Sequence"
+    "Library_extra/Derivative_extra"
     Real_Bit
 
 session "UTP" in "utp" = "UTP-IMPORTS" +

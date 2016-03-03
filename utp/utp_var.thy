@@ -7,6 +7,7 @@ imports
   "../utils/Continuum"
   "../utils/finite_bijection"
   "../utils/Library_extra/Map_Extra"
+  "../utils/Library_extra/Derivative_extra"
   "~~/src/HOL/Library/Prefix_Order"
   "~~/src/HOL/Library/Adhoc_Overloading"
   "~~/src/HOL/Library/Monad_Syntax"
@@ -14,6 +15,8 @@ imports
   "~~/src/HOL/Eisbach/Eisbach"
   utp_parser_utils
 begin
+
+no_notation inner (infix "\<bullet>" 70)
 
 text {* This theory describes the foundational structure of UTP variables, upon which the rest
         of our model rests. We start by defining alphabets, which is this shallow model are
