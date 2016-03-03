@@ -145,6 +145,12 @@ done
 lemma map_le_graph: "f \<subseteq>\<^sub>m g \<longleftrightarrow> map_graph f \<subseteq> map_graph g"
   by (force simp add: map_le_def map_graph_def)
 
+lemma map_graph_comp: "map_graph (g \<circ>\<^sub>m f) = (map_graph f) O (map_graph g)"
+  apply (auto simp add: map_comp_def map_graph_def relcomp_unfold)
+  apply (rename_tac a b)
+  apply (case_tac "f a", auto)
+done
+
 subsection {* Map application *}
 
 definition map_apply :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ("_'(_')\<^sub>m" [999,0] 999) where
@@ -234,8 +240,6 @@ lemma option_bindSomeI [intro]:
 
 lemma ifSomeE [elim]: "\<lbrakk> (if c then Some(x) else None) = Some(y); \<lbrakk> c; x = y \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (case_tac c, auto)
-
-
 
 text {* A range restriction operator; only domain restriction is provided in HOL *}
 
