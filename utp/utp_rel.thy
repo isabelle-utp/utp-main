@@ -27,7 +27,7 @@ type_synonym ('\<alpha>, '\<beta>) relation  = "('\<alpha> \<times> '\<beta>) up
 type_synonym '\<alpha> hrelation       = "('\<alpha> \<times> '\<alpha>) upred"
 
 definition cond::"('\<alpha>,  '\<beta>) relation \<Rightarrow> ('\<alpha>,  '\<beta>) relation \<Rightarrow> ('\<alpha>,  '\<beta>) relation \<Rightarrow> ('\<alpha>,  '\<beta>) relation" 
-                                                          ("(3_ \<triangleleft> _ \<triangleright> / _)" [14,0,15] 14)
+                                                          ("(3_ \<triangleleft> _ \<triangleright>/ _)" [14,0,15] 14)
 where "(P \<triangleleft> b \<triangleright> Q) \<equiv> (b \<and> P) \<or> ((\<not> b) \<and> Q)"
 
 abbreviation rcond::"('\<alpha>,  '\<beta>) relation \<Rightarrow> '\<alpha> condition \<Rightarrow> ('\<alpha>,  '\<beta>) relation \<Rightarrow> ('\<alpha>,  '\<beta>) relation" 

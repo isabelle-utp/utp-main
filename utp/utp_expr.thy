@@ -133,6 +133,13 @@ begin
 instance ..
 end
 
+instantiation uexpr :: (inverse, type) inverse
+begin
+  definition inverse_uexpr_def: "inverse u = uop inverse u"
+  definition divide_uexpr_def: "u / v = bop (op /) u v"
+instance ..
+end
+
 instantiation uexpr :: (Divides.div, type) Divides.div
 begin
   definition div_uexpr_def: "u div v = bop (op div) u v"
@@ -164,6 +171,12 @@ instance uexpr :: (semigroup_add, type) semigroup_add
 
 instance uexpr :: (monoid_add, type) monoid_add
   by (intro_classes) (simp add: plus_uexpr_def zero_uexpr_def, transfer, simp)+
+
+instance uexpr :: (semiring, type) semiring
+  by (intro_classes) (simp add: plus_uexpr_def times_uexpr_def, transfer, simp add: fun_eq_iff add.commute semiring_class.distrib_right semiring_class.distrib_left)+
+
+instance uexpr :: (ring_1, type) ring_1
+  by (intro_classes) (simp add: plus_uexpr_def uminus_uexpr_def minus_uexpr_def times_uexpr_def zero_uexpr_def one_uexpr_def, transfer, simp add: fun_eq_iff)+
 
 instance uexpr :: (numeral, type) numeral
   by (intro_classes, simp add: plus_uexpr_def, transfer, simp add: add.assoc)
@@ -344,6 +357,8 @@ lemmas uexpr_defs =
   uminus_uexpr_def
   minus_uexpr_def
   times_uexpr_def
+  inverse_uexpr_def
+  divide_uexpr_def
   div_uexpr_def
   mod_uexpr_def
   eq_upred_def

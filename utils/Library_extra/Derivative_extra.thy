@@ -39,6 +39,6 @@ done
 
 text {* vderiv_tac is a simple tactic for certifying solutions to systems of differential equations *}
 
-method vderiv_tac = (auto intro!: has_vector_derivative_Pair, (rule has_vector_derivative_eq_rhs, force intro: derivative_intros, auto)+)
+method vderiv_tac = (safe intro!: has_vector_derivative_Pair, (rule has_vector_derivative_eq_rhs, (rule derivative_intros; (simp)?)+, simp)+)
 
 end
