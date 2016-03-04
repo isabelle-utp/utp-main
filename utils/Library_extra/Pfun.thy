@@ -8,6 +8,8 @@ text {* I'm not completely satisfied with partial functions as provided by Map.t
         have a unique type and so we can't instantiate classes, make use of adhoc-overloading
         etc. Consequently I've created a new type and derived the laws. *}
 
+subsection {* Partial function type and operations *}
+
 typedef ('a, 'b) pfun = "UNIV :: ('a \<rightharpoonup> 'b) set" ..
 
 setup_lifting type_definition_pfun
@@ -45,6 +47,9 @@ begin
 lift_definition zero_pfun :: "('a, 'b) pfun" is "Map.empty" .
 instance ..
 end
+
+abbreviation pempty :: "('a, 'b) pfun" ("{}\<^sub>p")
+where "pempty \<equiv> 0"
 
 instantiation pfun :: (type, type) plus
 begin
@@ -90,21 +95,18 @@ where "pfun_subset_eq \<equiv> less_eq"
 instance pfun :: (type, type) semilattice_inf
   by (intro_classes, (transfer, auto simp add: map_le_def dom_def)+)
 
-lemma pfun_ext: "\<lbrakk> \<And> x y. (x, y) \<in>\<^sub>p f \<longleftrightarrow> (x, y) \<in>\<^sub>p g \<rbrakk> \<Longrightarrow> f = g"
-  by (transfer, simp add: map_ext)
+syntax   
+  "_PfunUpd"  :: "[('a, 'b) pfun, maplets] => ('a, 'b) pfun" ("_'(_')\<^sub>p" [900,0]900)
+  "_Pfun"     :: "maplets => ('a, 'b) pfun"            ("(1{_}\<^sub>p)")
 
-lemma pfun_member_alt_def:
-  "(x, y) \<in>\<^sub>p f \<longleftrightarrow> (x \<in> pdom f \<and> f(x)\<^sub>p = y)"
-  by (transfer, auto simp add: map_member_alt_def map_apply_def)
+translations
+  "_PfunUpd m (_Maplets xy ms)"  == "_PfunUpd (_PfunUpd m xy) ms"
+  "_PfunUpd m (_maplet  x y)"    == "CONST pfun_upd m x y"
+  "_Pfun ms"                     => "_PfunUpd (CONST pempty) ms"
+  "_Pfun (_Maplets ms1 ms2)"     <= "_PfunUpd (_Pfun ms1) ms2"
+  "_Pfun ms"                     <= "_PfunUpd (CONST pempty) ms"
 
-lemma pdom_zero [simp]: "pdom 0 = {}"
-  by (transfer, simp)
-
-lemma pran_zero [simp]: "pran 0 = {}"
-  by (transfer, simp)
-
-lemma pdom_plus [simp]: "pdom (f + g) = pdom f \<union> pdom g"
-  by (transfer, auto)
+subsection {* Algebraic laws *}
 
 lemma pfun_comp_assoc: "f \<circ>\<^sub>p (g \<circ>\<^sub>p h) = (f \<circ>\<^sub>p g) \<circ>\<^sub>p h"
   by (transfer, simp add: map_comp_assoc)
@@ -128,42 +130,6 @@ lemma pfun_override_dist_comp:
   apply (auto)
 done
 
-lemma pdom_res_alt_def: "A \<lhd>\<^sub>p f =  f \<circ>\<^sub>p pId_on A"
-  by (transfer, rule ext, auto simp add: restrict_map_def)
-
-lemma pran_res_alt_def: "f \<rhd>\<^sub>p A = pId_on A \<circ>\<^sub>p f"
-  by (transfer, rule ext, auto simp add: ran_restrict_map_def)
-
-lemma pdom_res_override: "A \<lhd>\<^sub>p (f + g) = (A \<lhd>\<^sub>p f) + (A \<lhd>\<^sub>p g)"
-  by (transfer, rule ext, auto simp add: map_add_def restrict_map_def)
-
-lemma pran_res_override: "(f + g) \<rhd>\<^sub>p A \<subseteq>\<^sub>p (f \<rhd>\<^sub>p A) + (g \<rhd>\<^sub>p A)"
-  apply (transfer, auto simp add: map_add_def ran_restrict_map_def map_le_def)
-  apply (rename_tac f g A a y x)
-  apply (case_tac "g a")
-  apply (auto)
-done
-
-lemma pdom_pdom_res [simp]: "pdom (A \<lhd>\<^sub>p f) = A \<inter> pdom(f)"
-  by (transfer, auto)
-
-lemma pran_pran_res [simp]: "pran (f \<rhd>\<^sub>p A) = pran(f) \<inter> A"
-  by (transfer, auto)
-
-lemma pdom_res_dist: "(A \<lhd>\<^sub>p f) \<rhd>\<^sub>p B = A \<lhd>\<^sub>p (f \<rhd>\<^sub>p B)"
-  by (transfer, auto simp add: restrict_map_def ran_restrict_map_def)
-
-lemma pdom_res_twice [simp]: "A \<lhd>\<^sub>p (B \<lhd>\<^sub>p f) = (A \<inter> B) \<lhd>\<^sub>p f"
-  by (transfer, auto simp add: Int_commute)
-
-lemma pfun_member_plus:
-  "(x, y) \<in>\<^sub>p f + g \<longleftrightarrow> ((x \<notin> pdom(g) \<and> (x, y) \<in>\<^sub>p f) \<or> (x, y) \<in>\<^sub>p g)"
-  by (transfer, simp add: map_member_plus)
-
-lemma pfun_member_minus:
-  "(x, y) \<in>\<^sub>p f - g \<longleftrightarrow> (x, y) \<in>\<^sub>p f \<and> (\<not> (x, y) \<in>\<^sub>p g)"
-  by (transfer, simp add: map_member_minus)
-
 lemma pfun_minus_unit [simp]:
   fixes f :: "('a, 'b) pfun"
   shows "f - 0 = f"
@@ -182,6 +148,118 @@ lemma pfun_minus_common_subset:
   "\<lbrakk> h \<subseteq>\<^sub>p f; h \<subseteq>\<^sub>p g \<rbrakk> \<Longrightarrow> (f - h = g - h) = (f = g)"
   by (transfer, simp add: map_minus_common_subset)
 
+subsection {* Membership, application, and update *}
+
+lemma pfun_ext: "\<lbrakk> \<And> x y. (x, y) \<in>\<^sub>p f \<longleftrightarrow> (x, y) \<in>\<^sub>p g \<rbrakk> \<Longrightarrow> f = g"
+  by (transfer, simp add: map_ext)
+
+lemma pfun_member_alt_def:
+  "(x, y) \<in>\<^sub>p f \<longleftrightarrow> (x \<in> pdom f \<and> f(x)\<^sub>p = y)"
+  by (transfer, auto simp add: map_member_alt_def map_apply_def)
+
+lemma pfun_member_plus:
+  "(x, y) \<in>\<^sub>p f + g \<longleftrightarrow> ((x \<notin> pdom(g) \<and> (x, y) \<in>\<^sub>p f) \<or> (x, y) \<in>\<^sub>p g)"
+  by (transfer, simp add: map_member_plus)
+
+lemma pfun_member_minus:
+  "(x, y) \<in>\<^sub>p f - g \<longleftrightarrow> (x, y) \<in>\<^sub>p f \<and> (\<not> (x, y) \<in>\<^sub>p g)"
+  by (transfer, simp add: map_member_minus)
+
+lemma pfun_app_upd_1 [simp]: "x = y \<Longrightarrow> (f(x \<mapsto> v)\<^sub>p)(y)\<^sub>p = v"
+  by (transfer, simp)
+
+lemma pfun_app_upd_2 [simp]: "x \<noteq> y \<Longrightarrow> (f(x \<mapsto> v)\<^sub>p)(y)\<^sub>p = f(y)\<^sub>p"
+  by (transfer, simp) 
+
+subsection {* Domain laws *}
+
+lemma pdom_zero [simp]: "pdom 0 = {}"
+  by (transfer, simp)
+
+lemma pdom_pId_on [simp]: "pdom (pId_on A) = A"
+  by (transfer, auto)
+
+lemma pdom_plus [simp]: "pdom (f + g) = pdom f \<union> pdom g"
+  by (transfer, auto)
+
+lemma pdom_inter: "pdom (f \<inter>\<^sub>p g) \<subseteq> pdom f \<inter> pdom g"
+  by (transfer, auto simp add: dom_def)
+
+lemma pdom_comp [simp]: "pdom (g \<circ>\<^sub>p f) = pdom (f \<rhd>\<^sub>p pdom g)"
+  by (transfer, auto simp add: ran_restrict_map_def)
+
+lemma pdom_upd [simp]: "pdom (f(k \<mapsto> v)\<^sub>p) = insert k (pdom f)"
+  by (transfer, simp)
+
+lemma pdom_pdom_res [simp]: "pdom (A \<lhd>\<^sub>p f) = A \<inter> pdom(f)"
+  by (transfer, auto)
+
+lemma pdom_graph_pfun [simp]: "pdom (graph_pfun R) = Domain R"
+  by (transfer, simp add: Domain_fst graph_map_dom)
+
+subsection {* Range laws *}
+
+lemma pran_zero [simp]: "pran 0 = {}"
+  by (transfer, simp)
+
+lemma pran_pId_on [simp]: "pran (pId_on A) = A"
+  by (transfer, auto simp add: ran_def)
+
+lemma pran_upd [simp]: "pran (f(k \<mapsto> v)\<^sub>p) = insert v (pran ((- {k}) \<lhd>\<^sub>p f))"
+  by (transfer, auto simp add: ran_def restrict_map_def)
+
+lemma pran_pran_res [simp]: "pran (f \<rhd>\<^sub>p A) = pran(f) \<inter> A"
+  by (transfer, auto)
+
+lemma pran_comp [simp]: "pran (g \<circ>\<^sub>p f) = pran (pran f \<lhd>\<^sub>p g)"
+  by (transfer, auto simp add: ran_def restrict_map_def)
+
+subsection {* Domain restriction laws *}
+
+lemma pdom_res_zero [simp]: "A \<lhd>\<^sub>p {}\<^sub>p = {}\<^sub>p"
+  by (transfer, auto)
+
+lemma pdom_res_alt_def: "A \<lhd>\<^sub>p f =  f \<circ>\<^sub>p pId_on A"
+  by (transfer, rule ext, auto simp add: restrict_map_def)
+
+lemma pdom_res_override [simp]: "A \<lhd>\<^sub>p (f + g) = (A \<lhd>\<^sub>p f) + (A \<lhd>\<^sub>p g)"
+  by (simp add: pdom_res_alt_def pfun_override_dist_comp)
+
+lemma pdom_res_minus [simp]: "A \<lhd>\<^sub>p (f - g) = (A \<lhd>\<^sub>p f) - g"
+  by (transfer, auto simp add: map_minus_def restrict_map_def)
+
+lemma pdom_res_swap: "(A \<lhd>\<^sub>p f) \<rhd>\<^sub>p B = A \<lhd>\<^sub>p (f \<rhd>\<^sub>p B)"
+  by (transfer, auto simp add: restrict_map_def ran_restrict_map_def)
+
+lemma pdom_res_twice [simp]: "A \<lhd>\<^sub>p (B \<lhd>\<^sub>p f) = (A \<inter> B) \<lhd>\<^sub>p f"
+  by (transfer, auto simp add: Int_commute)
+
+lemma pdom_res_comp [simp]: "A \<lhd>\<^sub>p (g \<circ>\<^sub>p f) =  g \<circ>\<^sub>p (A \<lhd>\<^sub>p f)"
+  by (simp add: pdom_res_alt_def pfun_comp_assoc)
+  
+subsection {* Range restriction laws *}
+
+lemma pran_res_zero [simp]: "{}\<^sub>p \<rhd>\<^sub>p A = {}\<^sub>p"
+  by (transfer, auto simp add: ran_restrict_map_def)
+
+lemma pran_res_upd_1 [simp]: "v \<in> A \<Longrightarrow> f(x \<mapsto> v)\<^sub>p \<rhd>\<^sub>p A = (f \<rhd>\<^sub>p A)(x \<mapsto> v)\<^sub>p"
+  by (transfer, auto simp add: ran_restrict_map_def)
+
+lemma pran_res_upd_2 [simp]: "v \<notin> A \<Longrightarrow> f(x \<mapsto> v)\<^sub>p \<rhd>\<^sub>p A = ((- {x}) \<lhd>\<^sub>p f) \<rhd>\<^sub>p A"
+  by (transfer, auto simp add: ran_restrict_map_def)
+
+lemma pran_res_alt_def: "f \<rhd>\<^sub>p A = pId_on A \<circ>\<^sub>p f"
+  by (transfer, rule ext, auto simp add: ran_restrict_map_def)
+
+lemma pran_res_override: "(f + g) \<rhd>\<^sub>p A \<subseteq>\<^sub>p (f \<rhd>\<^sub>p A) + (g \<rhd>\<^sub>p A)"
+  apply (transfer, auto simp add: map_add_def ran_restrict_map_def map_le_def)
+  apply (rename_tac f g A a y x)
+  apply (case_tac "g a")
+  apply (auto)
+done
+
+subsection {* Graph laws *}
+
 lemma pfun_graph_inv: "graph_pfun (pfun_graph f) = f"
   by (transfer, simp)
 
@@ -198,5 +276,10 @@ lemma pfun_graph_inter: "pfun_graph (f \<inter>\<^sub>p g) = pfun_graph f \<inte
   apply (transfer, auto simp add: map_graph_def)
   apply (metis option.discI)+
 done
+
+text {* Hide implementation details for partial functions *}
   
+lifting_update pfun.lifting
+lifting_forget pfun.lifting
+
 end
