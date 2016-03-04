@@ -10,6 +10,9 @@ text {* An alphabetised predicate is a simply a boolean valued expression *}
 
 type_synonym '\<alpha> upred = "(bool, '\<alpha>) uexpr"
 
+translations
+  (type) "'\<alpha> upred" <= (type) "(bool, '\<alpha>) uexpr"
+
 named_theorems upred_defs
 
 subsection {* Predicate syntax *}
