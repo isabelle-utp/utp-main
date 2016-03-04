@@ -104,7 +104,7 @@ subsection {* Minus on lists *}
 instantiation list :: (type) minus
 begin
 
-definition "xs - ys = (if (prefixeq ys xs) then drop (length ys) xs else xs)"
+definition "xs - ys = (if (prefixeq ys xs) then drop (length ys) xs else undefined)"
 
 instance ..
 end
@@ -113,9 +113,6 @@ lemma minus_cancel [simp]: "xs - xs = []"
   by (simp add: minus_list_def)
 
 lemma append_minus [simp]: "(xs @ ys) - xs = ys"
-  by (simp add: minus_list_def)
-
-lemma minus_left_nil [simp]: "[] - xs = []"
   by (simp add: minus_list_def)
 
 lemma minus_right_nil [simp]: "xs - [] = xs"
