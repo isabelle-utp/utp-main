@@ -171,6 +171,23 @@ lemma pfun_app_upd_1 [simp]: "x = y \<Longrightarrow> (f(x \<mapsto> v)\<^sub>p)
 lemma pfun_app_upd_2 [simp]: "x \<noteq> y \<Longrightarrow> (f(x \<mapsto> v)\<^sub>p)(y)\<^sub>p = f(y)\<^sub>p"
   by (transfer, simp) 
 
+lemma pfun_upd_add [simp]: "f + g(x \<mapsto> v)\<^sub>p = (f + g)(x \<mapsto> v)\<^sub>p"
+  by (transfer, simp)
+
+lemma pfun_upd_twice [simp]: "f(x \<mapsto> u, x \<mapsto> v)\<^sub>p = f(x \<mapsto> v)\<^sub>p"
+  by (transfer, simp)
+
+lemma pfun_upd_comm:
+  assumes "x \<noteq> y"
+  shows "f(y \<mapsto> u, x \<mapsto> v)\<^sub>p = f(x \<mapsto> v, y \<mapsto> u)\<^sub>p"
+  using assms by (transfer, auto)
+
+lemma pfun_upd_comm_linorder [simp]:
+  fixes x y :: "'a :: linorder"
+  assumes "x < y"
+  shows "f(y \<mapsto> u, x \<mapsto> v)\<^sub>p = f(x \<mapsto> v, y \<mapsto> u)\<^sub>p"
+  using assms by (transfer, auto)
+
 subsection {* Domain laws *}
 
 lemma pdom_zero [simp]: "pdom 0 = {}"

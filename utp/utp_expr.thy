@@ -239,31 +239,22 @@ syntax
   "_uinl"       :: "logic \<Rightarrow> logic" ("inl\<^sub>u'(_')")
   "_uinr"       :: "logic \<Rightarrow> logic" ("inr\<^sub>u'(_')")
   "_umap_empty" :: "('a \<rightharpoonup> 'b, '\<alpha>) uexpr" ("[]\<^sub>u")
-  "_umap_apply" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_\<lparr>_\<rparr>\<^sub>m" [999,0] 999)
-  "_umap_plus"  :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<oplus>\<^sub>m" 85)
-  "_umap_minus" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<ominus>\<^sub>m" 85)
-  "_umap_subseteq" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<subseteq>\<^sub>M" 85)
-  "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>\<^sub>u/ _")
+  "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>/ _")
   ""            :: "umaplet => umaplets"             ("_")
   "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
   "_UMapUpd"    :: "[logic, umaplets] => logic" ("_/'(_')" [900,0] 900)
-  "_UMap"       :: "umaplets => logic" ("(1[_])")
+  "_UMap"       :: "umaplets => logic" ("(1[_]\<^sub>u)")
 
 consts uapply :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
+
+translations
+  "f\<lparr>v\<rparr>\<^sub>u" <= "CONST uapply f v"
 
 definition "fun_apply f x = f x"
 declare fun_apply_def [simp]
 
-definition "map_upd = (\<lambda> f x v. fun_upd f x (Some v))"
-
-definition map_empty :: "'a \<rightharpoonup> 'b" ("[]\<^sub>m") where
-"map_empty = Map.empty"
-
-(* TODO: I think it's worth defining our own type for partial functions as then we can
-   make use of things like type classes and adhoc overloading. *)
-
 adhoc_overloading
-  uapply fun_apply and uapply nth
+  uapply fun_apply and uapply nth and uapply pfun_app
 
 translations
   "x :\<^sub>u 'a" == "x :: ('a, _) uexpr"
@@ -291,8 +282,12 @@ translations
   "A \<inter>\<^sub>u B"   == "CONST bop (op \<inter>) A B"
   "x \<in>\<^sub>u A"   == "CONST bop (op \<in>) x A"
   "x \<notin>\<^sub>u A"   == "CONST bop (op \<notin>) x A"
-  "A \<subset>\<^sub>u B"   == "CONST bop (op \<subset>) A B"
-  "A \<subseteq>\<^sub>u B"   == "CONST bop (op \<subseteq>) A B"
+  "A \<subset>\<^sub>u B"   == "CONST bop (op <) A B"
+  "A \<subset>\<^sub>u B"   <= "CONST bop (op \<subset>) A B"
+  "f \<subset>\<^sub>u g"   <= "CONST bop (op \<subset>\<^sub>p) f g"
+  "A \<subseteq>\<^sub>u B"   == "CONST bop (op \<le>) A B"
+  "A \<subseteq>\<^sub>u B"   <= "CONST bop (op \<subseteq>) A B"
+  "f \<subseteq>\<^sub>u g"   <= "CONST bop (op \<subseteq>\<^sub>p) f g"
   "()\<^sub>u"      == "\<guillemotleft>()\<guillemotright>"
   "(x, y)\<^sub>u"  == "CONST bop (CONST Pair) x y"
   "_utuple x (_utuple_args y z)" == "_utuple x (_utuple_arg (_utuple y z))"
@@ -300,21 +295,17 @@ translations
   "\<pi>\<^sub>2(x)"    == "CONST uop CONST snd x"
   "f\<lparr>x\<rparr>\<^sub>u"    == "CONST bop CONST uapply f x"
   "\<lambda> x \<bullet> p" == "CONST ulambda (\<lambda> x. p)"
-  "dom\<^sub>u(f)" == "CONST uop CONST dom f"
-  "ran\<^sub>u(f)" == "CONST uop CONST ran f"
+  "dom\<^sub>u(f)" == "CONST uop CONST pdom f"
+  "ran\<^sub>u(f)" == "CONST uop CONST pran f"
   "inl\<^sub>u(x)" == "CONST uop CONST Inl x"
   "inr\<^sub>u(x)" == "CONST uop CONST Inr x"
-  "f\<lparr>x\<rparr>\<^sub>m"   == "CONST bop CONST map_apply f x"
-  "f \<oplus>\<^sub>m g" == "CONST bop CONST map_add f g"
-  "f \<ominus>\<^sub>m g" == "CONST bop CONST map_minus f g"
-  "f \<subseteq>\<^sub>M g" == "CONST bop op \<subseteq>\<^sub>m f g"
-  "[]\<^sub>u"     == "\<guillemotleft>CONST map_empty\<guillemotright>"
+  "[]\<^sub>u"     == "\<guillemotleft>CONST pempty\<guillemotright>"
   "_UMapUpd m (_UMaplets xy ms)" == "_UMapUpd (_UMapUpd m xy) ms"
-  "_UMapUpd m (_umaplet  x y)"   == "CONST trop CONST map_upd m x y"
+  "_UMapUpd m (_umaplet  x y)"   == "CONST trop CONST pfun_upd m x y"
   "_UMap ms"                      == "_UMapUpd []\<^sub>u ms"
   "_UMap (_UMaplets ms1 ms2)"     <= "_UMapUpd (_UMap ms1) ms2"
   "_UMaplets ms1 (_UMaplets ms2 ms3)" <= "_UMaplets (_UMaplets ms1 ms2) ms3"
-  "f\<lparr>x,y\<rparr>\<^sub>u"  == "CONST bop CONST fun_apply f (x,y)\<^sub>u"
+  "f\<lparr>x,y\<rparr>\<^sub>u"  == "CONST bop CONST uapply f (x,y)\<^sub>u"
 
 text {* Lifting set intervals *}
 
@@ -363,8 +354,6 @@ lemmas uexpr_defs =
   mod_uexpr_def
   eq_upred_def
   numeral_uexpr_simp
-  map_empty_def
-  map_upd_def
   ulim_left_def
   ulim_right_def
   ucont_on_def
