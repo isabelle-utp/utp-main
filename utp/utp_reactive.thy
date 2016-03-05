@@ -330,6 +330,9 @@ lemma R1_R3_commute: "R1(R3(P)) = R3(R1(P))"
 lemma R2_R3_commute: "R2(R3(P)) = R3(R2(P))"
   by (rel_tac, (metis (no_types, lifting) alpha_rp.surjective alpha_rp.update_convs(2) append_Nil2 prefix_subst strict_prefixE)+)
 
+lemma R2_R3c_commute: "R2(R3c(P)) = R3c(R2(P))"
+  by (rel_tac, (metis (no_types, lifting) alpha_rp.surjective alpha_rp.update_convs(2) append_Nil2 append_minus strict_prefixE)+)
+
 lemma R3c_idem: "R3c(R3c(P)) = R3c(P)"
   by rel_tac
 
