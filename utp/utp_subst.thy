@@ -96,6 +96,12 @@ lemma usubst_upd_comm:
   using assms
   by (rule_tac ext, auto simp add: subst_upd_uvar_def assms comp_def uvar_indep_comm)
 
+lemma usubst_upd_comm2:
+  assumes "z \<bowtie> y" and "uvar x"
+  shows "\<sigma>(x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v, z \<mapsto>\<^sub>s s) = \<sigma>(x \<mapsto>\<^sub>s u, z \<mapsto>\<^sub>s s, y \<mapsto>\<^sub>s v)"
+  using assms
+  by (rule_tac ext, auto simp add: subst_upd_uvar_def assms comp_def uvar_indep_comm)
+
 lemma usubst_upd_comm_dash [usubst]: 
   fixes x :: "('a, '\<alpha>) uvar"
   shows "\<sigma>($x\<acute> \<mapsto>\<^sub>s v, $x \<mapsto>\<^sub>s u) = \<sigma>($x \<mapsto>\<^sub>s u, $x\<acute> \<mapsto>\<^sub>s v)"

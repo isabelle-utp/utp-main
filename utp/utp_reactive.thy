@@ -98,10 +98,10 @@ type_synonym ('\<theta>,'\<alpha>) hrelation_rp  = "(('\<theta>,'\<alpha>) alpha
 type_synonym ('\<theta>,'\<sigma>) predicate_rp  = "('\<theta>,'\<sigma>) alphabet_rp upred"
 
 abbreviation wait_f::"('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("_\<^sub>f" [1000] 1000)
-where "wait_f R \<equiv> R\<lbrakk>false/$wait\<acute>\<rbrakk>"
+where "wait_f R \<equiv> R\<lbrakk>false/$wait\<rbrakk>"
 
 abbreviation wait_t::"('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("_\<^sub>t" [1000] 1000)
-where "wait_t R \<equiv> R\<lbrakk>true/$wait\<acute>\<rbrakk>"
+where "wait_t R \<equiv> R\<lbrakk>true/$wait\<rbrakk>"
 
 lift_definition lift_rea :: "('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("\<lceil>_\<rceil>\<^sub>R") is
 "\<lambda> P (A, A'). P (more A, more A')" .
