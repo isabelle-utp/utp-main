@@ -69,4 +69,28 @@ lemma unrest_trop [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v; x \<sharp> w 
 lemma unrest_eq [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> u =\<^sub>u v"
   by (simp add: eq_upred_def, transfer, simp)
 
+lemma unrest_zero [unrest]: "x \<sharp> 0"
+  by (simp add: unrest_lit zero_uexpr_def)
+
+lemma unrest_one [unrest]: "x \<sharp> 1"
+  by (simp add: one_uexpr_def unrest_lit)
+
+lemma unrest_numeral [unrest]: "x \<sharp> (numeral n)"
+  by (simp add: numeral_uexpr_simp unrest_lit)
+
+lemma unrest_plus [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> u + v"
+  by (simp add: plus_uexpr_def unrest)
+
+lemma unrest_uminus [unrest]: "x \<sharp> u \<Longrightarrow> x \<sharp> - u"
+  by (simp add: uminus_uexpr_def unrest)
+
+lemma unrest_minus [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> u - v"
+  by (simp add: minus_uexpr_def unrest)
+
+lemma unrest_times [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> u * v"
+  by (simp add: times_uexpr_def unrest)
+
+lemma unrest_divide [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> u / v"
+  by (simp add: divide_uexpr_def unrest)
+
 end
