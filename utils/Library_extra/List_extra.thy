@@ -451,10 +451,10 @@ lemma tl_element:
 
 subsection {* Z mathematical tool kit for sequences *}
 
-definition seq_dom :: "'a list \<Rightarrow> nat set" where
+definition seq_dom :: "'a list \<Rightarrow> nat set" ("dom\<^sub>l") where
 "seq_dom xs = {0..<length xs}"
 
-abbreviation seq_ran :: "'a list \<Rightarrow> 'a set" where
+abbreviation seq_ran :: "'a list \<Rightarrow> 'a set" ("ran\<^sub>l") where
 "seq_ran xs \<equiv> set xs"
 
 definition seq_extract :: "nat set \<Rightarrow> 'a list \<Rightarrow> 'a list" (infix "\<upharpoonleft>\<^sub>l" 80) where
@@ -472,7 +472,7 @@ lemma seq_extract_ident [simp]: "{0..<length xs} \<upharpoonleft>\<^sub>l xs = x
 
 lemma seq_extract_split:
   assumes "i \<le> length xs"
-  shows "xs = {0..<i} \<upharpoonleft>\<^sub>l xs @ {i..<length xs} \<upharpoonleft>\<^sub>l xs"
+  shows "{0..<i} \<upharpoonleft>\<^sub>l xs @ {i..<length xs} \<upharpoonleft>\<^sub>l xs = xs"
 using assms
 proof (induct xs arbitrary: i)
   case Nil thus ?case by (simp add: seq_extract_def)
@@ -484,6 +484,39 @@ next
     by (auto)
   ultimately show ?case
     using hyp by (force simp add: seq_extract_def sublist_Cons)
+qed
+
+lemma seq_extract_append:
+  "A \<upharpoonleft>\<^sub>l (xs @ ys) = (A \<upharpoonleft>\<^sub>l xs) @ ({j. j + length xs \<in> A} \<upharpoonleft>\<^sub>l ys)"
+  by (simp add: seq_extract_def sublist_append)
+
+lemma seq_extract_out_of_range:
+  "A \<inter> {0..<length xs} = {} \<Longrightarrow> A \<upharpoonleft>\<^sub>l xs = []"
+  apply (auto simp add: seq_extract_def)
+  apply (metis (no_types, lifting) Collect_empty_eq IntI atLeast0LessThan ball_empty card.empty length_0_conv length_sublist lessThan_iff less_irrefl)
+done
+
+lemma seq_append_as_extract:
+  "xs = ys @ zs \<longleftrightarrow> (\<exists> i\<le>length(xs). ys = {0..<i} \<upharpoonleft>\<^sub>l xs \<and> zs = {i..<length(xs)} \<upharpoonleft>\<^sub>l xs)"
+proof
+  assume xs: "xs = ys @ zs"
+  moreover have "ys = {0..<length ys} \<upharpoonleft>\<^sub>l (ys @ zs)"
+    by (simp add: seq_extract_append)
+  moreover have "zs = {length ys..<length ys + length zs} \<upharpoonleft>\<^sub>l (ys @ zs)"
+  proof -
+    have "{length ys..<length ys + length zs} \<inter> {0..<length ys} = {}"
+      by auto
+    moreover have s1: "{j. j < length zs} = {0..<length zs}"
+      by auto
+    ultimately show ?thesis
+      by (simp add: seq_extract_append seq_extract_out_of_range)
+  qed
+  ultimately show "(\<exists> i\<le>length(xs). ys = {0..<i} \<upharpoonleft>\<^sub>l xs \<and> zs = {i..<length(xs)} \<upharpoonleft>\<^sub>l xs)"
+    by (rule_tac x="length ys" in exI, auto)
+next
+  assume "\<exists>i\<le>length xs. ys = {0..<i} \<upharpoonleft>\<^sub>l xs \<and> zs = {i..<length xs} \<upharpoonleft>\<^sub>l xs"
+  thus "xs = ys @ zs"
+    by (auto simp add: seq_extract_split)
 qed
 
 definition seq_filter :: "'a list \<Rightarrow> 'a set \<Rightarrow> 'a list" (infix "\<restriction>\<^sub>l" 80) where
