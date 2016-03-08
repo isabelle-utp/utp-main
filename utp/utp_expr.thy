@@ -238,7 +238,11 @@ syntax
   "_uran"       :: "logic \<Rightarrow> logic" ("ran\<^sub>u'(_')")
   "_uinl"       :: "logic \<Rightarrow> logic" ("inl\<^sub>u'(_')")
   "_uinr"       :: "logic \<Rightarrow> logic" ("inr\<^sub>u'(_')")
-  "_umap_empty" :: "('a \<rightharpoonup> 'b, '\<alpha>) uexpr" ("[]\<^sub>u")
+  "_umap_empty" :: "logic" ("[]\<^sub>u")
+  "_umap_plus"  :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<oplus>\<^sub>u" 85)
+  "_umap_minus" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<ominus>\<^sub>u" 85)
+  "_udom_res"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<lhd>\<^sub>u" 85)
+  "_uran_res"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<rhd>\<^sub>u" 85)
   "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>/ _")
   ""            :: "umaplet => umaplets"             ("_")
   "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
@@ -280,6 +284,8 @@ translations
   "{x}\<^sub>u"     == "CONST bop (CONST insert) x \<guillemotleft>{}\<guillemotright>"
   "A \<union>\<^sub>u B"   == "CONST bop (op \<union>) A B"
   "A \<inter>\<^sub>u B"   == "CONST bop (op \<inter>) A B"
+  "f \<oplus>\<^sub>u g"   => "(f :: ((_, _) pfun, _) uexpr) + g"
+  "f \<ominus>\<^sub>u g"   => "(f :: ((_, _) pfun, _) uexpr) - g"
   "x \<in>\<^sub>u A"   == "CONST bop (op \<in>) x A"
   "x \<notin>\<^sub>u A"   == "CONST bop (op \<notin>) x A"
   "A \<subset>\<^sub>u B"   == "CONST bop (op <) A B"
@@ -300,6 +306,8 @@ translations
   "inl\<^sub>u(x)" == "CONST uop CONST Inl x"
   "inr\<^sub>u(x)" == "CONST uop CONST Inr x"
   "[]\<^sub>u"     == "\<guillemotleft>CONST pempty\<guillemotright>"
+  "A \<lhd>\<^sub>u f" == "CONST bop (op \<lhd>\<^sub>p) A f"
+  "f \<rhd>\<^sub>u A" == "CONST bop (op \<rhd>\<^sub>p) A f"
   "_UMapUpd m (_UMaplets xy ms)" == "_UMapUpd (_UMapUpd m xy) ms"
   "_UMapUpd m (_umaplet  x y)"   == "CONST trop CONST pfun_upd m x y"
   "_UMap ms"                      == "_UMapUpd []\<^sub>u ms"
