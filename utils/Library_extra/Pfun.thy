@@ -191,6 +191,29 @@ lemma pfun_upd_comm_linorder [simp]:
   shows "f(y \<mapsto> u, x \<mapsto> v)\<^sub>p = f(x \<mapsto> v, y \<mapsto> u)\<^sub>p"
   using assms by (transfer, auto)
 
+lemma pfun_app_minus [simp]: "x \<notin> pdom g \<Longrightarrow> (f - g)(x)\<^sub>p = f(x)\<^sub>p"
+  by (transfer, auto simp add: map_minus_def)
+
+lemma pfun_upd_minus [simp]: 
+  "x \<notin> pdom g \<Longrightarrow> (f - g)(x \<mapsto> v)\<^sub>p = (f(x \<mapsto> v)\<^sub>p - g)" 
+  by (transfer, auto simp add: map_minus_def)
+
+lemma pdom_member_minus_iff [simp]:
+  "x \<notin> pdom g \<Longrightarrow> x \<in> pdom(f - g) \<longleftrightarrow> x \<in> pdom(f)"
+  by (transfer, simp add: domIff map_minus_def)
+
+lemma psubseteq_pfun_upd1 [intro]: 
+  "\<lbrakk> f \<subseteq>\<^sub>p g; x \<notin> pdom(g) \<rbrakk> \<Longrightarrow> f \<subseteq>\<^sub>p g(x \<mapsto> v)\<^sub>p"
+  by (transfer, auto simp add: map_le_def dom_def)
+
+lemma psubseteq_pfun_upd2 [intro]: 
+  "\<lbrakk> f \<subseteq>\<^sub>p g; x \<notin> pdom(f) \<rbrakk> \<Longrightarrow> f \<subseteq>\<^sub>p g(x \<mapsto> v)\<^sub>p"
+  by (transfer, auto simp add: map_le_def dom_def)
+
+lemma psubseteq_pfun_upd3 [intro]: 
+  "\<lbrakk> f \<subseteq>\<^sub>p g; g(x)\<^sub>p = v \<rbrakk> \<Longrightarrow> f \<subseteq>\<^sub>p g(x \<mapsto> v)\<^sub>p"
+  by (transfer, auto simp add: map_le_def dom_def)
+
 subsection {* Domain laws *}
 
 lemma pdom_zero [simp]: "pdom 0 = {}"

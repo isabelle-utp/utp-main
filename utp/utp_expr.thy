@@ -201,13 +201,13 @@ declare fun_apply_def [simp]
 consts 
   uapply :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
   udom   :: "'f \<Rightarrow> 'a set"
-  uran   :: "'f \<Rightarrow> 'a set"
+  uran   :: "'f \<Rightarrow> 'b set"
   ucard  :: "'f \<Rightarrow> nat"
 
 adhoc_overloading
   uapply fun_apply and uapply nth and uapply pfun_app and
-  udom pdom and udom seq_dom and
-  uran pran and uran set and
+  udom Domain and udom pdom and udom seq_dom and
+  udom Range and uran pran and uran set and
   ucard card and ucard pcard and ucard length
 
 nonterminal utuple_args and umaplet and umaplets
