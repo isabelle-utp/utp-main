@@ -263,6 +263,9 @@ syntax
 
 translations
   "f\<lparr>v\<rparr>\<^sub>u" <= "CONST uapply f v"
+  "dom\<^sub>u(f)" <= "CONST udom f"
+  "ran\<^sub>u(f)" <= "CONST uran f"
+  "#\<^sub>u(f)" <= "CONST ucard f"
 
 translations
   "x :\<^sub>u 'a" == "x :: ('a, _) uexpr"
