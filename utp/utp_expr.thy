@@ -223,6 +223,7 @@ syntax
   "_utail"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" ("tail\<^sub>u'(_')")
   "_ucard"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> (nat, '\<alpha>) uexpr" ("#\<^sub>u'(_')")
   "_ufilter"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" (infixl "\<restriction>\<^sub>u" 75)
+  "_uextract"   :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" (infixl "\<upharpoonleft>\<^sub>u" 75)
   "_uelems"     :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("elems\<^sub>u'(_')")
   "_usorted"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" ("sorted\<^sub>u'(_')")
   "_udistinct"  :: "('a list, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" ("distinct\<^sub>u'(_')")
@@ -267,6 +268,7 @@ translations
   "ran\<^sub>u(f)" <= "CONST uran f"
   "#\<^sub>u(f)" <= "CONST ucard f"
 
+
 translations
   "x :\<^sub>u 'a" == "x :: ('a, _) uexpr"
   "\<langle>\<rangle>"       == "\<guillemotleft>[]\<guillemotright>"
@@ -281,7 +283,8 @@ translations
   "elems\<^sub>u(xs)" == "CONST uop CONST set xs"
   "sorted\<^sub>u(xs)" == "CONST uop CONST sorted xs"
   "distinct\<^sub>u(xs)" == "CONST uop CONST distinct xs"
-  "xs \<restriction>\<^sub>u A"   == "CONST bop CONST seq_filter A xs"
+  "xs \<restriction>\<^sub>u A"   == "CONST bop CONST seq_filter xs A"
+  "A \<upharpoonleft>\<^sub>u xs"   == "CONST bop (op \<upharpoonleft>\<^sub>l) A xs"
   "x <\<^sub>u y"   == "CONST bop (op <) x y"
   "x \<le>\<^sub>u y"   == "CONST bop (op \<le>) x y" 
   "x >\<^sub>u y"   == "y <\<^sub>u x"
