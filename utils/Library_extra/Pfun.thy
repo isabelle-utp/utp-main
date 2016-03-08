@@ -42,6 +42,9 @@ lift_definition pfun_graph :: "('a, 'b) pfun \<Rightarrow> ('a \<times> 'b) set"
 
 lift_definition graph_pfun :: "('a \<times> 'b) set \<Rightarrow> ('a, 'b) pfun" is graph_map .
 
+definition pcard :: "('a, 'b) pfun \<Rightarrow> nat"
+where "pcard f = card (pdom f)"
+
 instantiation pfun :: (type, type) zero
 begin
 lift_definition zero_pfun :: "('a, 'b) pfun" is "Map.empty" .

@@ -195,8 +195,20 @@ where "eq_upred x y = bop HOL.eq x y"
 adhoc_overloading
   ueq eq_upred
 
-abbreviation seq_filter :: "'a set \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-"seq_filter A \<equiv> filter (\<lambda> x. x \<in> A)"
+definition "fun_apply f x = f x"
+declare fun_apply_def [simp]
+
+consts 
+  uapply :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
+  udom   :: "'f \<Rightarrow> 'a set"
+  uran   :: "'f \<Rightarrow> 'a set"
+  ucard  :: "'f \<Rightarrow> nat"
+
+adhoc_overloading
+  uapply fun_apply and uapply nth and uapply pfun_app and
+  udom pdom and udom seq_dom and
+  uran pran and uran set and
+  ucard card and ucard pcard and ucard length
 
 nonterminal utuple_args and umaplet and umaplets
 
@@ -209,7 +221,7 @@ syntax
   "_ufront"     :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" ("front\<^sub>u'(_')")
   "_uhead"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("head\<^sub>u'(_')")
   "_utail"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" ("tail\<^sub>u'(_')")
-  "_ulength"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> (nat, '\<alpha>) uexpr" ("length\<^sub>u'(_')")
+  "_ucard"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> (nat, '\<alpha>) uexpr" ("#\<^sub>u'(_')")
   "_ufilter"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" (infixl "\<restriction>\<^sub>u" 75)
   "_uelems"     :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("elems\<^sub>u'(_')")
   "_usorted"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" ("sorted\<^sub>u'(_')")
@@ -249,16 +261,8 @@ syntax
   "_UMapUpd"    :: "[logic, umaplets] => logic" ("_/'(_')" [900,0] 900)
   "_UMap"       :: "umaplets => logic" ("(1[_]\<^sub>u)")
 
-consts uapply :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
-
 translations
   "f\<lparr>v\<rparr>\<^sub>u" <= "CONST uapply f v"
-
-definition "fun_apply f x = f x"
-declare fun_apply_def [simp]
-
-adhoc_overloading
-  uapply fun_apply and uapply nth and uapply pfun_app
 
 translations
   "x :\<^sub>u 'a" == "x :: ('a, _) uexpr"
@@ -270,7 +274,7 @@ translations
   "front\<^sub>u(xs)" == "CONST uop CONST butlast xs"
   "head\<^sub>u(xs)" == "CONST uop CONST hd xs"
   "tail\<^sub>u(xs)" == "CONST uop CONST tl xs"
-  "length\<^sub>u(xs)" == "CONST uop CONST length xs"
+  "#\<^sub>u(xs)" == "CONST uop CONST ucard xs"
   "elems\<^sub>u(xs)" == "CONST uop CONST set xs"
   "sorted\<^sub>u(xs)" == "CONST uop CONST sorted xs"
   "distinct\<^sub>u(xs)" == "CONST uop CONST distinct xs"
@@ -301,8 +305,8 @@ translations
   "\<pi>\<^sub>2(x)"    == "CONST uop CONST snd x"
   "f\<lparr>x\<rparr>\<^sub>u"    == "CONST bop CONST uapply f x"
   "\<lambda> x \<bullet> p" == "CONST ulambda (\<lambda> x. p)"
-  "dom\<^sub>u(f)" == "CONST uop CONST pdom f"
-  "ran\<^sub>u(f)" == "CONST uop CONST pran f"
+  "dom\<^sub>u(f)" == "CONST uop CONST udom f"
+  "ran\<^sub>u(f)" == "CONST uop CONST uran f"
   "inl\<^sub>u(x)" == "CONST uop CONST Inl x"
   "inr\<^sub>u(x)" == "CONST uop CONST Inr x"
   "[]\<^sub>u"     == "\<guillemotleft>CONST pempty\<guillemotright>"
