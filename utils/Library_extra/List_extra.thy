@@ -451,8 +451,8 @@ lemma tl_element:
 
 subsection {* Z mathematical tool kit for sequences *}
 
-definition seq_dom :: "'a list \<Rightarrow> nat set" ("dom\<^sub>l") where
-"seq_dom xs = {0..<length xs}"
+abbreviation seq_dom :: "'a list \<Rightarrow> nat set" ("dom\<^sub>l") where
+"seq_dom xs \<equiv> {0..<length xs}"
 
 abbreviation seq_ran :: "'a list \<Rightarrow> 'a set" ("ran\<^sub>l") where
 "seq_ran xs \<equiv> set xs"
@@ -462,6 +462,10 @@ definition seq_extract :: "nat set \<Rightarrow> 'a list \<Rightarrow> 'a list" 
 
 lemma seq_extract_Nil [simp]: "A \<upharpoonleft>\<^sub>l [] = []"
   by (simp add: seq_extract_def)
+
+lemma seq_extract_Cons: 
+  "A \<upharpoonleft>\<^sub>l (x # xs) = (if 0 \<in> A then [x] else []) @ {j. Suc j \<in> A} \<upharpoonleft>\<^sub>l xs"
+  by (simp add: seq_extract_def sublist_Cons)
 
 lemma seq_extract_empty [simp]: "{} \<upharpoonleft>\<^sub>l xs = []"
   by (simp add: seq_extract_def) 
@@ -490,11 +494,14 @@ lemma seq_extract_append:
   "A \<upharpoonleft>\<^sub>l (xs @ ys) = (A \<upharpoonleft>\<^sub>l xs) @ ({j. j + length xs \<in> A} \<upharpoonleft>\<^sub>l ys)"
   by (simp add: seq_extract_def sublist_append)
 
-lemma seq_extract_out_of_range:
-  "A \<inter> {0..<length xs} = {} \<Longrightarrow> A \<upharpoonleft>\<^sub>l xs = []"
-  apply (auto simp add: seq_extract_def)
-  apply (metis (no_types, lifting) Collect_empty_eq IntI atLeast0LessThan ball_empty card.empty length_0_conv length_sublist lessThan_iff less_irrefl)
+lemma seq_extract_range: "A \<upharpoonleft>\<^sub>l xs = (A \<inter> dom\<^sub>l(xs)) \<upharpoonleft>\<^sub>l xs"
+  apply (auto simp add: seq_extract_def sublist_def)
+  apply (metis (no_types, lifting) atLeastLessThan_iff filter_cong in_set_zip nth_mem set_upt)
 done
+
+lemma seq_extract_out_of_range:
+  "A \<inter> dom\<^sub>l(xs) = {} \<Longrightarrow> A \<upharpoonleft>\<^sub>l xs = []"
+  by (metis seq_extract_def seq_extract_range sublist_empty)
 
 lemma seq_append_as_extract:
   "xs = ys @ zs \<longleftrightarrow> (\<exists> i\<le>length(xs). ys = {0..<i} \<upharpoonleft>\<^sub>l xs \<and> zs = {i..<length(xs)} \<upharpoonleft>\<^sub>l xs)"
