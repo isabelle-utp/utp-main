@@ -102,6 +102,9 @@ text {* The following allows simplifying the equality if P \<Rightarrow> Q = R *
 lemma ueqe3_imp: "(\<And> b. \<lbrakk>P\<rbrakk>\<^sub>e b \<Longrightarrow> (\<lbrakk>Q\<rbrakk>\<^sub>e b = \<lbrakk>R\<rbrakk>\<^sub>e b)) \<Longrightarrow> ((R \<and> P) = (Q \<and> P))"
   by pred_tac
 
+lemma ueqe3_imp3: "(\<And> b. \<lbrakk>P\<rbrakk>\<^sub>e b \<Longrightarrow> (\<lbrakk>Q\<rbrakk>\<^sub>e b = \<lbrakk>R\<rbrakk>\<^sub>e b)) \<Longrightarrow> ((P \<and> Q) = (P \<and> R))"
+  by pred_tac
+
 lemma ueqe3_imp2: "\<lbrakk> (\<And> b. \<lbrakk>P0 \<and> P1\<rbrakk>\<^sub>e b \<Longrightarrow> \<lbrakk>Q\<rbrakk>\<^sub>e b \<Longrightarrow> \<lbrakk>R\<rbrakk>\<^sub>e b = \<lbrakk>S\<rbrakk>\<^sub>e b) \<rbrakk> \<Longrightarrow> ((P0 \<and> P1 \<and> (Q \<Rightarrow> R)) = (P0 \<and> P1 \<and> (Q \<Rightarrow> S)))"
   by pred_tac
 

@@ -281,6 +281,12 @@ lemma cond_imp_distr:
 lemma cond_eq_distr: 
 "((P \<Leftrightarrow> Q) \<triangleleft> b \<triangleright> (R \<Leftrightarrow> S)) = ((P \<triangleleft> b \<triangleright> R) \<Leftrightarrow> (Q \<triangleleft> b \<triangleright> S))" by rel_tac
 
+lemma cond_conj_distr:"(P \<and> (Q \<triangleleft> b \<triangleright> S)) = ((P \<and> Q) \<triangleleft> b \<triangleright> (P \<and> S))" by rel_tac
+
+lemma cond_disj_distr:"(P \<or> (Q \<triangleleft> b \<triangleright> S)) = ((P \<or> Q) \<triangleleft> b \<triangleright> (P \<or> S))" by rel_tac
+
+lemma cond_neg: "\<not> (P \<triangleleft> b \<triangleright> Q) = (\<not> P \<triangleleft> b \<triangleright> \<not> Q)" by rel_tac
+
 lemma comp_cond_left_distr:
   "((P \<triangleleft> b \<triangleright>\<^sub>r Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright>\<^sub>r (Q ;; R))"
   by rel_tac

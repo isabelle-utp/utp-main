@@ -21,35 +21,74 @@ declare Healthy_def' [upred_defs]
 
 definition "Idempotent(H) \<longleftrightarrow> (\<forall> P. H(H(P)) = H(P))"
 
+definition "Monotonic(H) \<longleftrightarrow> (\<forall> P Q. Q \<sqsubseteq> P \<longrightarrow> (H(Q) \<sqsubseteq> H(P)))"
+
+definition "IMH(H) \<longleftrightarrow> Idempotent(H) \<and> Monotonic(H)"
+
+definition "Antitone(H) \<longleftrightarrow> (\<forall> P Q. Q \<sqsubseteq> P \<longrightarrow> (H(P) \<sqsubseteq> H(Q)))"
+
+definition NM : "NM(P) = (\<not> P \<and> true)"
+
+lemma "Monotonic(NM)"
+  apply (simp add:Monotonic_def)
+  nitpick (* yes, that fails because it is not monotonic *)
+  oops
+
+lemma "Antitone(NM)"
+  by (simp add:Antitone_def NM)
+
 definition Conjunctive :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where 
-"Conjunctive(H) \<longleftrightarrow> (\<exists> Q. \<forall> P. H(P) = (P \<and> Q))"
+  "Conjunctive(H) \<longleftrightarrow> (\<exists> Q. \<forall> P. H(P) = (P \<and> Q))"
 
 lemma Conjuctive_Idempotent: 
   "Conjunctive(H) \<Longrightarrow> Idempotent(H)"
   by (auto simp add: Conjunctive_def Idempotent_def)
 
-definition Monotonic :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where 
-"Monotonic(H) \<longleftrightarrow> (\<forall> P Q. `(P \<Rightarrow> Q) \<Rightarrow> (H(P) \<Rightarrow> H(Q))`)"
+lemma Conjunctive_Monotonic: 
+  "Conjunctive(H) \<Longrightarrow> Monotonic(H)"
+  unfolding Conjunctive_def Monotonic_def
+  using dual_order.trans by fastforce
 
-definition Antitone :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where 
-"Antitone(H) \<longleftrightarrow> (\<forall> P Q. `(P \<Rightarrow> Q) \<Rightarrow> (H(Q) \<Rightarrow> H(P))`)"
+lemma Conjunctive_conj:
+  assumes "Conjunctive(HC)"
+  shows "HC(P \<and> Q) = (HC(P) \<and> Q)"
+  using assms unfolding Conjunctive_def
+  by (metis utp_pred.inf.assoc utp_pred.inf.commute)
 
-definition NM : "NM(P) = (\<not> P \<and> true)"
+lemma Conjunctive_distr_conj:
+  assumes "Conjunctive(HC)"
+  shows "HC(P \<and> Q) = (HC(P) \<and> HC(Q))"
+  using assms unfolding Conjunctive_def
+  by (metis Conjunctive_conj assms utp_pred.inf.assoc utp_pred.inf_right_idem)
 
-lemma "Monotonic(NM)"
- apply (simp add:Monotonic_def)
- nitpick (* yes, that fails *)
- oops
+lemma Conjunctive_distr_disj:
+  assumes "Conjunctive(HC)"
+  shows "HC(P \<or> Q) = (HC(P) \<or> HC(Q))"
+  using assms unfolding Conjunctive_def
+  using utp_pred.inf_sup_distrib2 by fastforce
 
-lemma "Antitone(NM)"
- apply (simp add:Antitone_def NM)
- by pred_tac
+definition FunctionalConjunctive :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where 
+"FunctionalConjunctive(H) \<longleftrightarrow> (\<exists> F. \<forall> P. H(P) = (P \<and> F(P)) \<and> Monotonic(F))"
 
 definition WeakConjunctive :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where 
-"WeakConjunctive(H) \<longleftrightarrow> (\<forall> P. \<exists> Q. H(P) = (P \<and> Q)) \<and> Monotonic(H)"
+"WeakConjunctive(H) \<longleftrightarrow> (\<forall> P. \<exists> Q. H(P) = (P \<and> Q))"
 
-lemma wkConjunctive_Idempotent:
-  "WeakConjunctive(H) \<Longrightarrow> Idempotent(H)"
-  by (simp add:WeakConjunctive_def Monotonic_def Idempotent_def, pred_tac)
+lemma FunctionalConjunctive_Monotonic:
+  "FunctionalConjunctive(H) \<Longrightarrow> Monotonic(H)"
+  unfolding FunctionalConjunctive_def by (metis Monotonic_def utp_pred.inf_mono)
+
+lemma WeakConjunctive_Refinement:
+  assumes "WeakConjunctive(HC)"
+  shows "P \<sqsubseteq> HC(P)"
+  using assms unfolding WeakConjunctive_def by (metis utp_pred.inf.cobounded1)
+
+lemma WeakCojunctive_Healthy_Refinement:
+  assumes "WeakConjunctive(HC)" and "P is HC"
+  shows "HC(P) \<sqsubseteq> P"
+  using assms unfolding WeakConjunctive_def Healthy_def by simp
+
+lemma WeakConjunctive_implies_WeakConjunctive:
+  "Conjunctive(H) \<Longrightarrow> WeakConjunctive(H)"
+  unfolding WeakConjunctive_def Conjunctive_def by pred_tac
 
 end
