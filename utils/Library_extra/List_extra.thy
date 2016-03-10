@@ -449,4 +449,93 @@ lemma tl_element:
   "\<lbrakk> x \<in> set xs; x \<noteq> hd(xs) \<rbrakk> \<Longrightarrow> x \<in> set(tl(xs))"
   by (metis in_set_insert insert_Nil list.collapse list.distinct(2) set_ConsD)
 
+subsection {* Z mathematical tool kit for sequences *}
+
+abbreviation seq_dom :: "'a list \<Rightarrow> nat set" ("dom\<^sub>l") where
+"seq_dom xs \<equiv> {0..<length xs}"
+
+abbreviation seq_ran :: "'a list \<Rightarrow> 'a set" ("ran\<^sub>l") where
+"seq_ran xs \<equiv> set xs"
+
+definition seq_extract :: "nat set \<Rightarrow> 'a list \<Rightarrow> 'a list" (infix "\<upharpoonleft>\<^sub>l" 80) where
+"seq_extract A xs = sublist xs A"
+
+lemma seq_extract_Nil [simp]: "A \<upharpoonleft>\<^sub>l [] = []"
+  by (simp add: seq_extract_def)
+
+lemma seq_extract_Cons: 
+  "A \<upharpoonleft>\<^sub>l (x # xs) = (if 0 \<in> A then [x] else []) @ {j. Suc j \<in> A} \<upharpoonleft>\<^sub>l xs"
+  by (simp add: seq_extract_def sublist_Cons)
+
+lemma seq_extract_empty [simp]: "{} \<upharpoonleft>\<^sub>l xs = []"
+  by (simp add: seq_extract_def) 
+
+lemma seq_extract_ident [simp]: "{0..<length xs} \<upharpoonleft>\<^sub>l xs = xs"
+  unfolding list_eq_iff_nth_eq
+  by (auto simp add: seq_extract_def length_sublist atLeast0LessThan)
+
+lemma seq_extract_split:
+  assumes "i \<le> length xs"
+  shows "{0..<i} \<upharpoonleft>\<^sub>l xs @ {i..<length xs} \<upharpoonleft>\<^sub>l xs = xs"
+using assms
+proof (induct xs arbitrary: i)
+  case Nil thus ?case by (simp add: seq_extract_def)
+next
+  case (Cons x xs) note hyp = this
+  have "{j. Suc j < i} = {0..<i - 1}"
+    by (auto)
+  moreover have "{j. i \<le> Suc j \<and> j < length xs} = {i - 1..<length xs}"
+    by (auto)
+  ultimately show ?case
+    using hyp by (force simp add: seq_extract_def sublist_Cons)
+qed
+
+lemma seq_extract_append:
+  "A \<upharpoonleft>\<^sub>l (xs @ ys) = (A \<upharpoonleft>\<^sub>l xs) @ ({j. j + length xs \<in> A} \<upharpoonleft>\<^sub>l ys)"
+  by (simp add: seq_extract_def sublist_append)
+
+lemma seq_extract_range: "A \<upharpoonleft>\<^sub>l xs = (A \<inter> dom\<^sub>l(xs)) \<upharpoonleft>\<^sub>l xs"
+  apply (auto simp add: seq_extract_def sublist_def)
+  apply (metis (no_types, lifting) atLeastLessThan_iff filter_cong in_set_zip nth_mem set_upt)
+done
+
+lemma seq_extract_out_of_range:
+  "A \<inter> dom\<^sub>l(xs) = {} \<Longrightarrow> A \<upharpoonleft>\<^sub>l xs = []"
+  by (metis seq_extract_def seq_extract_range sublist_empty)
+
+lemma seq_append_as_extract:
+  "xs = ys @ zs \<longleftrightarrow> (\<exists> i\<le>length(xs). ys = {0..<i} \<upharpoonleft>\<^sub>l xs \<and> zs = {i..<length(xs)} \<upharpoonleft>\<^sub>l xs)"
+proof
+  assume xs: "xs = ys @ zs"
+  moreover have "ys = {0..<length ys} \<upharpoonleft>\<^sub>l (ys @ zs)"
+    by (simp add: seq_extract_append)
+  moreover have "zs = {length ys..<length ys + length zs} \<upharpoonleft>\<^sub>l (ys @ zs)"
+  proof -
+    have "{length ys..<length ys + length zs} \<inter> {0..<length ys} = {}"
+      by auto
+    moreover have s1: "{j. j < length zs} = {0..<length zs}"
+      by auto
+    ultimately show ?thesis
+      by (simp add: seq_extract_append seq_extract_out_of_range)
+  qed
+  ultimately show "(\<exists> i\<le>length(xs). ys = {0..<i} \<upharpoonleft>\<^sub>l xs \<and> zs = {i..<length(xs)} \<upharpoonleft>\<^sub>l xs)"
+    by (rule_tac x="length ys" in exI, auto)
+next
+  assume "\<exists>i\<le>length xs. ys = {0..<i} \<upharpoonleft>\<^sub>l xs \<and> zs = {i..<length xs} \<upharpoonleft>\<^sub>l xs"
+  thus "xs = ys @ zs"
+    by (auto simp add: seq_extract_split)
+qed
+
+definition seq_filter :: "'a list \<Rightarrow> 'a set \<Rightarrow> 'a list" (infix "\<restriction>\<^sub>l" 80) where
+"seq_filter xs A = filter (\<lambda> x. x \<in> A) xs"
+
+lemma seq_filter_Nil [simp]: "[] \<restriction>\<^sub>l A = []"
+  by (simp add: seq_filter_def)
+
+lemma seq_filter_empty [simp]: "xs \<restriction>\<^sub>l {} = []"
+  by (simp add: seq_filter_def)
+
+lemma seq_filter_append: "(xs @ ys) \<restriction>\<^sub>l A = (xs \<restriction>\<^sub>l A) @ (ys \<restriction>\<^sub>l A)"
+  by (simp add: seq_filter_def) 
+
 end
