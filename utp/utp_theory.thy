@@ -67,6 +67,12 @@ lemma Conjunctive_distr_disj:
   using assms unfolding Conjunctive_def
   using utp_pred.inf_sup_distrib2 by fastforce
 
+lemma Conjunctive_distr_cond:
+  assumes "Conjunctive(HC)"
+  shows "HC(P \<triangleleft> b \<triangleright> Q) = (HC(P) \<triangleleft> b \<triangleright> HC(Q))"
+  using assms unfolding Conjunctive_def
+  by (metis cond_conj_distr utp_pred.inf_commute)
+
 definition FunctionalConjunctive :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where 
 "FunctionalConjunctive(H) \<longleftrightarrow> (\<exists> F. \<forall> P. H(P) = (P \<and> F(P)) \<and> Monotonic(F))"
 
@@ -90,5 +96,8 @@ lemma WeakCojunctive_Healthy_Refinement:
 lemma WeakConjunctive_implies_WeakConjunctive:
   "Conjunctive(H) \<Longrightarrow> WeakConjunctive(H)"
   unfolding WeakConjunctive_def Conjunctive_def by pred_tac
+
+declare Conjunctive_def [upred_defs]
+declare Monotonic_def [upred_defs]
 
 end
