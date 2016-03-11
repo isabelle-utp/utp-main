@@ -26,6 +26,20 @@ abbreviation "mapM f \<equiv> sequence \<circ> map f"
 
 subsection {* List lemmas *}
 
+lemma map_nth_Cons_atLeastLessThan:
+  "map (nth (x # xs)) [Suc m..<n] = map (nth xs) [m..<n - 1]"
+proof -
+  have "nth xs = nth (x # xs) \<circ> Suc"
+    by auto
+  hence "map (nth xs) [m..<n - 1] = map (nth (x # xs) \<circ> Suc) [m..<n - 1]"
+    by simp
+  also have "... = map (nth (x # xs)) (map Suc [m..<n - 1])"
+    by simp
+  also have "... = map (nth (x # xs)) [Suc m..<n]"
+    by (metis Suc_diff_1 le_0_eq length_upt list.simps(8) list.size(3) map_Suc_upt not_less upt_0)
+  finally show ?thesis ..
+qed
+
 lemma nth_el_appendl[simp]: "i < length xs \<Longrightarrow> (xs @ ys)\<langle>i\<rangle>\<^sub>l = xs\<langle>i\<rangle>\<^sub>l"
   apply (induct xs arbitrary: i)
   apply simp
@@ -592,7 +606,6 @@ lemma lexord_mono':
   "\<lbrakk> (\<And> x y. f x y \<longrightarrow> g x y); (xs, ys) \<in> lexord {(x, y). f x y} \<rbrakk> \<Longrightarrow> (xs, ys) \<in> lexord {(x, y). g x y}"
   by (metis case_prodI lexord_take_index_conv mem_Collect_eq splitD)
 
-
 lemma fin_set_lexord_mono [mono]: 
   "(\<And> x y. f x y \<longrightarrow> g x y) \<Longrightarrow> (xs, ys) \<in> fin_set_lexord {(x, y). f x y} \<longrightarrow> (xs, ys) \<in> fin_set_lexord {(x, y). g x y}"
 proof
@@ -675,6 +688,55 @@ done
 lemma seq_extract_out_of_range:
   "A \<inter> dom\<^sub>l(xs) = {} \<Longrightarrow> A \<upharpoonleft>\<^sub>l xs = []"
   by (metis seq_extract_def seq_extract_range sublist_empty)
+
+lemma seq_extract_length [simp]:
+  "length (A \<upharpoonleft>\<^sub>l xs) = card (A \<inter> dom\<^sub>l(xs))"
+proof -
+  have "{i. i < length(xs) \<and> i \<in> A} = (A \<inter> {0..<length(xs)})"
+    by (auto)
+  thus ?thesis
+    by (simp add: seq_extract_def length_sublist)
+qed
+
+lemma seq_extract_Cons_atLeastLessThan:
+  assumes "m < n"
+  shows "{m..<n} \<upharpoonleft>\<^sub>l (x # xs) = (if (m = 0) then x # ({0..<n-1} \<upharpoonleft>\<^sub>l xs) else {m-1..<n-1} \<upharpoonleft>\<^sub>l xs)"
+proof -
+  have "{j. Suc j < n} = {0..<n - Suc 0}"
+    by (auto)
+  moreover have "{j. m \<le> Suc j \<and> Suc j < n} = {m - Suc 0..<n - Suc 0}"
+    by (auto)
+
+  ultimately show ?thesis using assms
+    by (auto simp add: seq_extract_Cons)
+qed
+
+lemma seq_extract_singleton:
+  assumes "i < length xs"
+  shows "{i} \<upharpoonleft>\<^sub>l xs = [xs ! i]"
+  using assms
+  apply (induct xs arbitrary: i)
+  apply (auto simp add: seq_extract_Cons)
+  apply (rename_tac xs i)
+  apply (subgoal_tac "{j. Suc j = i} = {i - 1}")
+  apply (auto)
+done
+
+lemma seq_extract_as_map:
+  assumes "m < n" "n \<le> length xs"
+  shows "{m..<n} \<upharpoonleft>\<^sub>l xs = map (nth xs) [m..<n]"
+using assms proof (induct xs arbitrary: m n)
+  case Nil thus ?case by simp
+next
+  case (Cons x xs)
+  have "[m..<n] = m # [m+1..<n]"
+    using Cons.prems(1) upt_eq_Cons_conv by blast
+  moreover have "map (nth (x # xs)) [Suc m..<n] = map (nth xs) [m..<n-1]"
+    by (simp add: map_nth_Cons_atLeastLessThan)
+  ultimately show ?case
+    using Cons upt_rec
+    by (auto simp add: seq_extract_Cons_atLeastLessThan)
+qed    
 
 lemma seq_append_as_extract:
   "xs = ys @ zs \<longleftrightarrow> (\<exists> i\<le>length(xs). ys = {0..<i} \<upharpoonleft>\<^sub>l xs \<and> zs = {i..<length(xs)} \<upharpoonleft>\<^sub>l xs)"
