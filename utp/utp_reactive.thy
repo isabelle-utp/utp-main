@@ -44,49 +44,53 @@ declare tr_def [upred_defs]
 declare ref_def [upred_defs]
 
 lemma tr_ok_indep [simp]: "tr \<bowtie> ok" "ok \<bowtie> tr"
-  by (simp add: uvar_indep_def, pred_tac)+
+  by (simp add: lens_indep_def, pred_tac)+
 
 lemma wait_ok_indep [simp]: "wait \<bowtie> ok" "ok \<bowtie> wait"
-  by (simp add: uvar_indep_def, pred_tac)+
+  by (simp add: lens_indep_def, pred_tac)+
 
 lemma ref_ok_indep [simp]: "ref \<bowtie> ok" "ok \<bowtie> ref"
-  by (simp add: uvar_indep_def, pred_tac)+
+  by (simp add: lens_indep_def, pred_tac)+
 
 lemma tr_wait_indep [simp]: "tr \<bowtie> wait" "wait \<bowtie> tr"
-  by (simp add: uvar_indep_def, pred_tac)+
+  by (simp add: lens_indep_def, pred_tac)+
 
 lemma ref_wait_indep [simp]: "ref \<bowtie> wait" "wait \<bowtie> ref"
-  by (simp add: uvar_indep_def, pred_tac)+
+  by (simp add: lens_indep_def, pred_tac)+
 
 lemma tr_ref_indep [simp]: "ref \<bowtie> tr" "tr \<bowtie> ref"
-  by (simp add: uvar_indep_def, pred_tac)+
+  by (simp add: lens_indep_def, pred_tac)+
+
+term put_vstore
+
+term "alpha_rp.more_update (\<lambda>_. put_vstore x s) "
+
+term alpha_d.more
+term alpha_rp.more_update
+term alpha_d.extend
 
 instantiation alpha_rp_ext :: (type, vst) vst
 begin
   definition get_vstore_alpha_rp_ext :: "('a, 'b) alpha_rp_ext \<Rightarrow> vstore"
   where [simp]: "get_vstore_alpha_rp_ext x = get_vstore (alpha_rp.more (alpha_d.extend undefined x))"
-  definition upd_vstore_alpha_rp_ext :: "(vstore \<Rightarrow> vstore) \<Rightarrow> ('a, 'b) alpha_rp_ext \<Rightarrow> ('a, 'b) alpha_rp_ext"
-  where [simp]: "upd_vstore_alpha_rp_ext f x = alpha_d.more (alpha_rp.more_update (upd_vstore f) (alpha_d.extend undefined x))"
+  definition put_vstore_alpha_rp_ext :: "('a, 'b) alpha_rp_ext \<Rightarrow> vstore \<Rightarrow> ('a, 'b) alpha_rp_ext"
+  where [simp]: "put_vstore_alpha_rp_ext s x = alpha_d.more (alpha_rp.more_update (\<lambda>v. put_vstore v x) (alpha_d.extend undefined s))"
 instance
-  apply (intro_classes, auto simp add: upd_store_parm[THEN sym] alpha_rp.defs alpha_d.defs)
-  apply (metis (no_types, lifting) alpha_d.ext_inject alpha_d.surjective alpha_rp.select_convs(4) alpha_rp.surjective alpha_rp.update_convs(4) get_upd_vstore)
-  apply (smt alpha_d.select_convs(2) alpha_rp.surjective alpha_rp.update_convs(4) upd_vstore_comp)
-  apply (metis alpha_d.select_convs(2) alpha_rp.surjective alpha_rp.update_convs(4) upd_vstore_eta)
-  apply (metis alpha_rp.unfold_congs(5) upd_store_parm)
+  apply (intro_classes, auto simp add: alpha_rp.defs alpha_d.defs)
+  apply (metis alpha_d.select_convs(2) alpha_rp.select_convs(4) alpha_rp.surjective alpha_rp.update_convs(4) put_get_vstore)
+  apply (metis (no_types, lifting) alpha_d.select_convs(2) alpha_rp.surjective alpha_rp.update_convs(4) get_put_vstore)
+  apply (metis (no_types, lifting) alpha_d.select_convs(2) alpha_rp.surjective alpha_rp.update_convs(4) put_put_vstore)
 done
 end
 
 lemma uvar_wait [simp]: "uvar wait"
   by (unfold_locales, simp_all add: wait_def)
-     (metis (no_types, lifting) alpha_d.ext_inject alpha_rp.ext_inject alpha_rp.surjective alpha_rp.update_convs(1))
 
 lemma uvar_tr [simp]: "uvar tr"
   by (unfold_locales, simp_all add: tr_def)
-     (metis alpha_d.ext_inject alpha_rp.ext_inject alpha_rp.surjective alpha_rp.update_convs(2))
 
 lemma uvar_ref [simp]: "uvar ref"
   by (unfold_locales, simp_all add: ref_def)
-     (metis alpha_d.ext_inject alpha_rp.ext_inject alpha_rp.surjective alpha_rp.update_convs(3))
 
 text{* Note that we define here the class of UTP alphabets that contain
 $wait$, $tr$ and $ref$, or, in other words, we define here the class of reactive process

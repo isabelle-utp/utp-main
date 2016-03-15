@@ -27,12 +27,20 @@ definition "ok = VAR des_ok"
 declare ok_def [upred_defs]
 
 lemma uvar_ok [simp]: "uvar ok"
-  by (unfold_locales, simp_all add: ok_def, metis alpha_d.ext_inject alpha_d.surjective alpha_d.update_convs(1))
+  by (unfold_locales, simp_all add: ok_def)
 
 type_synonym '\<alpha> alphabet_d  = "'\<alpha> alpha_d_scheme alphabet"
 type_synonym ('a, '\<alpha>) uvar_d = "('a, '\<alpha> alphabet_d) uvar"
 type_synonym ('\<alpha>, '\<beta>) relation_d = "('\<alpha> alphabet_d, '\<beta> alphabet_d) relation"
 type_synonym '\<alpha> hrelation_d = "'\<alpha> alphabet_d hrelation"
+
+definition des_lens :: "('a, '\<alpha>) lens \<Rightarrow> ('a, '\<alpha> alphabet_d) lens" where
+"des_lens x = \<lparr> lens_get = lens_get x \<circ> more, lens_put = (\<lambda> \<sigma> v. rec_put more_update \<sigma> (lens_put x (more \<sigma>) v)) \<rparr>"
+
+lemma "semi_uvar x \<Longrightarrow> semi_uvar (des_lens x)"
+  apply (unfold_locales)
+  apply (simp_all add: des_lens_def)
+done
 
 text {* It would be nice to be able to prove some general distributivity properties
         about these lifting operators. I don't know if that's possible somehow... *}
@@ -117,11 +125,11 @@ lemma lift_desr_inv:
   apply (rename_tac P a b)
   apply (drule_tac x="a" in spec)
   apply (drule_tac x="b" in spec)
-  apply (drule_tac x="\<lambda> _. True" in spec)
+  apply (drule_tac x="True" in spec)
   apply (metis alpha_d.surjective alpha_d.update_convs(1))
   apply (drule_tac x="a" in spec)
   apply (drule_tac x="b" in spec)
-  apply (drule_tac x="\<lambda> _. True" in spec)
+  apply (drule_tac x="True" in spec)
   apply (metis alpha_d.surjective alpha_d.update_convs(1))
 done
 
@@ -132,19 +140,7 @@ lemma lift_desr_unrest_ok [unrest]:
   by (transfer, simp add: ok_def)+
 
 lemma unrest_out_des_lift [unrest]: "out\<alpha> \<sharp> p \<Longrightarrow> out\<alpha> \<sharp> \<lceil>p\<rceil>\<^sub>D"
-  apply (pred_tac)
-  apply (auto simp add: out\<alpha>_def)
-  apply (rename_tac p b v x)
-  apply (drule_tac x="alpha_d.more x" in spec)
-  apply (drule_tac x="alpha_d.more b" in spec)
-  apply (drule_tac x="\<lambda> _. alpha_d.more (v b)" in spec)
-  apply (simp)
-  apply (rename_tac p b v x)
-  apply (drule_tac x="alpha_d.more x" in spec)
-  apply (drule_tac x="alpha_d.more b" in spec)
-  apply (drule_tac x="\<lambda> _. alpha_d.more (v b)" in spec)
-  apply (simp)
-done
+  by (pred_tac, auto simp add: out\<alpha>_def)
 
 lemma lift_dists [simp]:
   "\<lceil>true\<rceil>\<^sub>D = true"
