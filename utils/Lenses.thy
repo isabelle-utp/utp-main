@@ -47,11 +47,14 @@ begin
   definition update :: "('a \<Rightarrow> 'a) \<Rightarrow> ('\<alpha> \<Rightarrow> '\<alpha>)" where
   "update f \<sigma> = put \<sigma> (f (get \<sigma>))"
 
- lemma get_update: "get (update f \<sigma>) = f (get \<sigma>)"
-   by (simp add: put_get update_def)
+  lemma get_update: "get (update f \<sigma>) = f (get \<sigma>)"
+    by (simp add: put_get update_def)
 
- lemma view_determination: "put \<sigma> u = put \<rho> v \<Longrightarrow> u = v"
-   by (metis put_get)
+  lemma view_determination: "put \<sigma> u = put \<rho> v \<Longrightarrow> u = v"
+    by (metis put_get)
+
+  lemma put_inj: "inj (put \<sigma>)"
+    by (simp add: injI view_determination)
 
 end
 
@@ -66,6 +69,9 @@ begin
   lemma put_twice: "put (put \<sigma> v) v = put \<sigma> v"
     by (metis get_put put_get)
 
+  lemma put_surjectivity: "\<exists> \<rho> v. put \<rho> v = \<sigma>"
+    using get_put by blast
+
   lemma source_stability: "\<exists> v. put \<sigma> v = \<sigma>"
     using get_put by auto
 
@@ -74,7 +80,7 @@ end
 declare wb_lens.get_put [simp]
 
 lemma wb_lens_weak [simp]: "wb_lens x \<Longrightarrow> weak_lens x"
-  by (simp_all add: wb_lens_def)
+  by (simp_all add: wb_lens_def) 
 
 lemma lens_indep_get [simp]:
   assumes "wb_lens x" "x \<bowtie> y"
@@ -95,8 +101,60 @@ lemma id_wb_lens: "wb_lens id_lens"
 lemma comp_wb_lens: "\<lbrakk> wb_lens x; wb_lens y \<rbrakk> \<Longrightarrow> wb_lens (x \<circ>\<^sub>l y)"
   by (unfold_locales, simp_all add: lens_comp_def)
 
+subsection {* Mainly well-behaved lenses *}
+
+locale mwb_lens = weak_lens +
+  assumes put_put: "put (put \<sigma> v) u = put \<sigma> u"
+begin
+
+  lemma update_comp: "update f (update g \<sigma>) = update (f \<circ> g) \<sigma>"
+    by (simp add: put_get put_put update_def)
+
+end
+
+declare mwb_lens.put_put [simp]
+
+lemma mwb_lens_weak [simp]:
+  "mwb_lens x \<Longrightarrow> weak_lens x"
+  by (simp add: mwb_lens_def)
+
+lemma id_mwb_lens: "mwb_lens id_lens"
+  by (unfold_locales, simp_all add: id_lens_def)
+
+lemma comp_mwb_lens: "\<lbrakk> mwb_lens x; mwb_lens y \<rbrakk> \<Longrightarrow> mwb_lens (x \<circ>\<^sub>l y)"
+  by (unfold_locales, simp_all add: lens_comp_def)
+
+subsection {* Very well-behaved lenses *}
+
+locale vwb_lens = wb_lens + mwb_lens
+begin
+
+  lemma source_determination:"get \<sigma> = get \<rho> \<Longrightarrow> put \<sigma> v = put \<rho> v \<Longrightarrow> \<sigma> = \<rho>"
+    by (metis get_put put_put)
+
+ lemma put_eq: 
+   "\<lbrakk> get \<sigma> = k; put \<sigma> u = put \<rho> v \<rbrakk> \<Longrightarrow> put \<rho> k = \<sigma>"
+   by (metis get_put put_put)   
+
+end
+
+lemma vwb_lens_wb [simp]: "vwb_lens x \<Longrightarrow> wb_lens x"
+  by (simp_all add: vwb_lens_def)
+
+lemma vwb_lens_mwb [simp]: "vwb_lens x \<Longrightarrow> mwb_lens x"
+  by (simp_all add: vwb_lens_def)
+
+lemma id_vwb_lens: "vwb_lens id_lens"
+  by (unfold_locales, simp_all add: id_lens_def)
+
+lemma comp_vwb_lens: "\<lbrakk> vwb_lens x; vwb_lens y \<rbrakk> \<Longrightarrow> vwb_lens (x \<circ>\<^sub>l y)"
+  by (unfold_locales, simp_all add: lens_comp_def)
+
+subsection {* Lense implementations *}
+
 definition prod_lens :: "('a, '\<alpha>) lens \<Rightarrow> ('b, '\<alpha>) lens \<Rightarrow> ('a \<times> 'b, '\<alpha>) lens" where
-"prod_lens x y = \<lparr> lens_get = (\<lambda> \<sigma>. (lens_get x \<sigma>, lens_get y \<sigma>)), lens_put = (\<lambda> \<sigma> (u, v). lens_put x (lens_put y \<sigma> v) u) \<rparr>"
+"prod_lens x y = \<lparr> lens_get = (\<lambda> \<sigma>. (lens_get x \<sigma>, lens_get y \<sigma>))
+                 , lens_put = (\<lambda> \<sigma> (u, v). lens_put x (lens_put y \<sigma> v) u) \<rparr>"
 
 lemma prod_wb_lens:
   assumes "wb_lens x" "wb_lens y" "x \<bowtie> y"
@@ -104,6 +162,15 @@ lemma prod_wb_lens:
   using assms
   apply (unfold_locales, simp_all add: prod_lens_def)
   apply (simp add: lens_indep_sym prod.case_eq_if)
+done
+
+lemma prod_vwb_lens:
+  assumes "vwb_lens x" "vwb_lens y" "x \<bowtie> y"
+  shows "vwb_lens (prod_lens x y)"
+  using assms
+  apply (unfold_locales, simp_all add: prod_lens_def)
+  apply (simp add: lens_indep_sym prod.case_eq_if)
+  apply (simp add: lens_indep_def prod.case_eq_if)
 done
 
 definition fst_lens :: "('a, '\<alpha>) lens \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>) lens" where
@@ -133,35 +200,6 @@ lemma snd_lens_pres_indep: "x \<bowtie> y \<Longrightarrow> snd_lens x \<bowtie>
 lemma fst_snd_lens_indep: "fst_lens x \<bowtie> snd_lens y"
   by (simp add: lens_indep_def fst_lens_def snd_lens_def)
 
-definition fun_lens :: "'a \<Rightarrow> ('b, 'a \<Rightarrow> 'b) lens" where
-"fun_lens x = \<lparr> lens_get = (\<lambda> f. f x), lens_put = (\<lambda> f u. f(x := u)) \<rparr>"
-
-lemma fun_wb_lens: "wb_lens (fun_lens x)"
-  by (unfold_locales, simp_all add: fun_lens_def)
-
-subsection {* Mainly well-behaved lenses *}
-
-locale mwb_lens = weak_lens +
-  assumes put_put: "put (put \<sigma> v) u = put \<sigma> u"
-begin
-
-  lemma update_comp: "update f (update g \<sigma>) = update (f \<circ> g) \<sigma>"
-    by (simp add: put_get put_put update_def)
-
-end
-
-declare mwb_lens.put_put [simp]
-
-lemma mwb_lens_weak [simp]:
-  "mwb_lens x \<Longrightarrow> weak_lens x"
-  by (simp add: mwb_lens_def)
-
-lemma id_mwb_lens: "mwb_lens id_lens"
-  by (unfold_locales, simp_all add: id_lens_def)
-
-lemma comp_mwb_lens: "\<lbrakk> mwb_lens x; mwb_lens y \<rbrakk> \<Longrightarrow> mwb_lens (x \<circ>\<^sub>l y)"
-  by (unfold_locales, simp_all add: lens_comp_def)
-
 lemma fst_mwb_lens:
   "mwb_lens x \<Longrightarrow> mwb_lens (fst_lens x)"
   by (unfold_locales, simp_all add: fst_lens_def prod.case_eq_if)
@@ -169,6 +207,20 @@ lemma fst_mwb_lens:
 lemma snd_mwb_lens:
   "mwb_lens x \<Longrightarrow> mwb_lens (snd_lens x)"
   by (unfold_locales, simp_all add: snd_lens_def prod.case_eq_if)
+
+lemma fst_vwb_lens:
+  "vwb_lens x \<Longrightarrow> vwb_lens (fst_lens x)"
+  by (unfold_locales, simp_all add: fst_lens_def prod.case_eq_if)
+
+lemma snd_vwb_lens:
+  "vwb_lens x \<Longrightarrow> vwb_lens (snd_lens x)"
+  by (unfold_locales, simp_all add: snd_lens_def prod.case_eq_if)
+
+definition fun_lens :: "'a \<Rightarrow> ('b, 'a \<Rightarrow> 'b) lens" where
+"fun_lens x = \<lparr> lens_get = (\<lambda> f. f x), lens_put = (\<lambda> f u. f(x := u)) \<rparr>"
+
+lemma fun_wb_lens: "wb_lens (fun_lens x)"
+  by (unfold_locales, simp_all add: fun_lens_def)
 
 definition map_lens :: "'a \<Rightarrow> ('b, 'a \<rightharpoonup> 'b) lens" where
 "map_lens x = \<lparr> lens_get = (\<lambda> f. the (f x)), lens_put = (\<lambda> f u. f(x := Some u)) \<rparr>"
@@ -203,48 +255,4 @@ lemma list_mwb_lens: "mwb_lens (list_lens x)"
   apply (unfold_locales, simp_all add: list_lens_def)
 oops
 
-subsection {* Very well-behaved lenses *}
-
-locale vwb_lens = wb_lens + mwb_lens
-begin
-
-  lemma source_determination:"get \<sigma> = get \<rho> \<Longrightarrow> put \<sigma> v = put \<rho> v \<Longrightarrow> \<sigma> = \<rho>"
-    by (metis get_put put_put)
-
- lemma put_eq: 
-   "\<lbrakk> get \<sigma> = k; put \<sigma> u = put \<rho> v \<rbrakk> \<Longrightarrow> put \<rho> k = \<sigma>"
-   by (metis get_put put_put)   
-
-end
-
-lemma vwb_lens_wb [simp]: "vwb_lens x \<Longrightarrow> wb_lens x"
-  by (simp_all add: vwb_lens_def)
-
-lemma vwb_lens_mwb [simp]: "vwb_lens x \<Longrightarrow> mwb_lens x"
-  by (simp_all add: vwb_lens_def)
-
-lemma id_vwb_lens: "vwb_lens id_lens"
-  by (unfold_locales, simp_all add: id_lens_def)
-
-lemma comp_vwb_lens: "\<lbrakk> vwb_lens x; vwb_lens y \<rbrakk> \<Longrightarrow> vwb_lens (x \<circ>\<^sub>l y)"
-  by (unfold_locales, simp_all add: lens_comp_def)
-
-
-lemma fst_vwb_lens:
-  "vwb_lens x \<Longrightarrow> vwb_lens (fst_lens x)"
-  by (unfold_locales, simp_all add: fst_lens_def prod.case_eq_if)
-
-lemma snd_vwb_lens:
-  "vwb_lens x \<Longrightarrow> vwb_lens (snd_lens x)"
-  by (unfold_locales, simp_all add: snd_lens_def prod.case_eq_if)
-
-lemma prod_vwb_lens:
-  assumes "vwb_lens x" "vwb_lens y" "x \<bowtie> y"
-  shows "vwb_lens (prod_lens x y)"
-  using assms
-  apply (unfold_locales, simp_all add: prod_lens_def)
-  apply (simp add: lens_indep_sym prod.case_eq_if)
-  apply (simp add: lens_indep_def prod.case_eq_if)
-done
-  
 end
