@@ -25,6 +25,9 @@ subsection {* Lens composition and identity *}
 definition lens_comp :: "('a, 'b) lens \<Rightarrow> ('b, 'c) lens \<Rightarrow> ('a, 'c) lens" (infixr "\<circ>\<^sub>l" 80) where
 "lens_comp y x = \<lparr> lens_get = lens_get y \<circ> lens_get x, lens_put = (\<lambda> \<sigma> v. lens_put x \<sigma> (lens_put y (lens_get x \<sigma>) v)) \<rparr>"
 
+definition unit_lens :: "(unit, '\<alpha>) lens" ("0\<^sub>l") where
+"unit_lens = \<lparr> lens_get = (\<lambda> _. ()), lens_put = (\<lambda> \<sigma> x. \<sigma>) \<rparr>"
+
 definition id_lens :: "('\<alpha>, '\<alpha>) lens" ("I\<^sub>l") where
 "id_lens = \<lparr> lens_get = id, lens_put = (\<lambda> _. id) \<rparr>"
 
@@ -152,7 +155,7 @@ lemma comp_vwb_lens: "\<lbrakk> vwb_lens x; vwb_lens y \<rbrakk> \<Longrightarro
 
 subsection {* Lense implementations *}
 
-definition prod_lens :: "('a, '\<alpha>) lens \<Rightarrow> ('b, '\<alpha>) lens \<Rightarrow> ('a \<times> 'b, '\<alpha>) lens" where
+definition prod_lens :: "('a, '\<alpha>) lens \<Rightarrow> ('b, '\<alpha>) lens \<Rightarrow> ('a \<times> 'b, '\<alpha>) lens" (infixr "\<times>\<^sub>l" 75) where
 "prod_lens x y = \<lparr> lens_get = (\<lambda> \<sigma>. (lens_get x \<sigma>, lens_get y \<sigma>))
                  , lens_put = (\<lambda> \<sigma> (u, v). lens_put x (lens_put y \<sigma> v) u) \<rparr>"
 
@@ -254,5 +257,22 @@ definition list_lens :: "nat \<Rightarrow> ('a, 'a list) lens" where
 lemma list_mwb_lens: "mwb_lens (list_lens x)"
   apply (unfold_locales, simp_all add: list_lens_def)
 oops
+
+subsection {* Relations on lenses *}
+
+definition sublens :: "('a, '\<alpha>) lens \<Rightarrow> ('b, '\<alpha>) lens \<Rightarrow> bool" where
+"sublens x y = (\<forall> x \<in> range (\<lambda> v. {\<sigma>. lens_get x \<sigma> = v}). \<exists> y \<in> range (\<lambda> v. {\<sigma>. lens_get y \<sigma> = v}). y \<subseteq> x)"
+
+definition lens_equiv :: "('a, '\<alpha>) lens \<Rightarrow> ('b, '\<alpha>) lens \<Rightarrow> bool" (infix "\<approx>\<^sub>l" 51) where
+"lens_equiv x y = (range (\<lambda> v. {\<sigma>. lens_get x \<sigma> = v}) = range (\<lambda> v. {\<sigma>. lens_get y \<sigma> = v}))"
+
+lemma "(x \<times>\<^sub>l (y \<times>\<^sub>l z)) \<approx>\<^sub>l ((x \<times>\<^sub>l y) \<times>\<^sub>l z)"
+  by (auto simp add: lens_equiv_def prod_lens_def)
+
+lemma "(x \<times>\<^sub>l y) \<approx>\<^sub>l (y \<times>\<^sub>l x)"
+  by (auto simp add: lens_equiv_def prod_lens_def)
+
+lemma "(0\<^sub>l \<times>\<^sub>l x) \<approx>\<^sub>l x"
+  by (auto simp add: lens_equiv_def prod_lens_def unit_lens_def)
 
 end
