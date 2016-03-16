@@ -42,10 +42,10 @@ lemma unrest_var [unrest]: "\<lbrakk> uvar x; x \<bowtie> y \<rbrakk> \<Longrigh
   by (transfer, auto)
 
 lemma unrest_iuvar [unrest]: "\<lbrakk> uvar x; x \<bowtie> y \<rbrakk> \<Longrightarrow> $y \<sharp> $x"
-  by (metis (full_types) fst_wb_lens in_var_def in_var_indep unrest_upred.rep_eq lens_indep_get var.rep_eq var_in_var vwb_lens_wb)
+  by (metis in_var_indep in_var_uvar unrest_var var_in_var)
 
 lemma unrest_ouvar [unrest]: "\<lbrakk> uvar x; x \<bowtie> y \<rbrakk> \<Longrightarrow> $y\<acute> \<sharp> $x\<acute>"
-  by (metis (no_types, hide_lams) out_var_def out_var_indep snd_wb_lens unrest_upred.abs_eq lens_indep_get var.abs_eq var_out_var vwb_lens_wb)
+  by (metis out_var_indep out_var_uvar unrest_var var_out_var)
 
 lemma unrest_iuvar_ouvar [unrest]: 
   fixes x :: "('a, '\<alpha>) uvar"

@@ -78,8 +78,11 @@ definition ind_uvar_1 :: "('a, '\<alpha> alphabet_d) uvar \<Rightarrow> ('a, ('\
                           in \<lparr> des_ok = des_ok A, \<dots> = (fst (more A), (fst (snd (more A)), more A')) \<rparr>) \<rparr>"
 *)
 
+text {* Extract the ith element of the second part *}
 
-definition "ind_uvar i x = x \<circ>\<^sub>l des_lens (snd_lens (list_lens i))"
+definition "ind_uvar i x = x ;\<^sub>l des_lens ;\<^sub>l list_lens i ;\<^sub>l snd\<^sub>l"
+
+definition "pre_uvar x = x ;\<^sub>l des_lens ;\<^sub>l fst\<^sub>l"
 
 (*
 definition ind_uvar :: "nat \<Rightarrow> ('a, '\<alpha> alphabet_d) uvar \<Rightarrow> ('a, ('\<alpha> \<times> '\<alpha> partition) alphabet_d) uvar" where
@@ -89,7 +92,7 @@ definition ind_uvar :: "nat \<Rightarrow> ('a, '\<alpha> alphabet_d) uvar \<Righ
                           in \<lparr> des_ok = des_ok A, \<dots> = (fst (more A), snd (more A)[i := more A']) \<rparr>) \<rparr>"
 *)
 
-definition "pre_uvar x = x \<circ>\<^sub>l des_lens (fst_lens id_lens)"
+
 
 (*
 definition pre_uvar :: "('a, '\<alpha> alphabet_d) uvar \<Rightarrow> ('a, ('\<alpha> \<times> '\<alpha> partition) alphabet_d) uvar" where
@@ -129,6 +132,10 @@ translations
 
 type_synonym '\<alpha> merge = "('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d partition, '\<alpha>) relation_d"
 
+term "$ok\<acute> =\<^sub>u ($0.ok \<and> $1.ok)"
+
+term "($0.ok \<and> $1.ok)"
+
 text {* Separating simulations *}
 
 lift_definition sep_sim :: "nat \<Rightarrow> ('\<alpha>, ('\<alpha> alphabet_d) partition) relation_d" ("U'(_')") is
@@ -144,12 +151,5 @@ term "((P ;; U(0)) \<parallel> (Q ;; U(1)))\<^sub>+"
 definition design_par_by_merge :: 
   "'\<alpha> hrelation_d \<Rightarrow> '\<alpha> merge \<Rightarrow> '\<alpha> hrelation_d \<Rightarrow> '\<alpha> hrelation_d" (infixr "\<parallel>\<^bsub>_\<^esub>" 85) 
 where "P \<parallel>\<^bsub>M\<^esub> Q = (((P ;; U(0)) \<parallel> (Q ;; U(1)))\<^sub>+ ;; M)"
-
-definition "sym_merge M \<longleftrightarrow> (&0.\<Sigma>, &1.\<Sigma> := &1.\<Sigma>, &0.\<Sigma> ;; M) = M"
-
-lemma "sym_merge M \<Longrightarrow> P \<parallel>\<^bsub>M\<^esub> Q = Q \<parallel>\<^bsub>M\<^esub> P"
-  apply (simp add: sym_merge_def design_par_by_merge_def univ_alpha_def ind_uvar_def)
-  apply (rel_tac)
-oops
 
 end

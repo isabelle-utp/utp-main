@@ -34,10 +34,10 @@ type_synonym ('a, '\<alpha>) uvar_d = "('a, '\<alpha> alphabet_d) uvar"
 type_synonym ('\<alpha>, '\<beta>) relation_d = "('\<alpha> alphabet_d, '\<beta> alphabet_d) relation"
 type_synonym '\<alpha> hrelation_d = "'\<alpha> alphabet_d hrelation"
 
-definition des_lens :: "('a, '\<alpha>) lens \<Rightarrow> ('a, '\<alpha> alphabet_d) lens" where
-"des_lens x = \<lparr> lens_get = lens_get x \<circ> more, lens_put = (\<lambda> \<sigma> v. rec_put more_update \<sigma> (lens_put x (more \<sigma>) v)) \<rparr>"
+definition des_lens :: "('\<alpha>, '\<alpha> alphabet_d) lens" where
+"des_lens = \<lparr> lens_get = more, lens_put = rec_put more_update \<rparr>"
 
-lemma "semi_uvar x \<Longrightarrow> semi_uvar (des_lens x)"
+lemma uvar_des_lens: "uvar des_lens"
   apply (unfold_locales)
   apply (simp_all add: des_lens_def)
 done

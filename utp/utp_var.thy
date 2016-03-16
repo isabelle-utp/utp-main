@@ -62,56 +62,56 @@ abbreviation "uvar \<equiv> vwb_lens"
         to a tuple alphabet. *}
 
 definition in_var :: "('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>) uvar" where
-"in_var x = fst_lens x"
+"in_var x = x ;\<^sub>l fst\<^sub>l"
 
 definition out_var :: "('a, '\<beta>) uvar \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>) uvar" where
-"out_var x = snd_lens x"
+"out_var x = x ;\<^sub>l snd\<^sub>l"
 
 lemma in_var_semi_uvar [simp]:
   "semi_uvar x \<Longrightarrow> semi_uvar (in_var x)"
-  by (simp add: fst_mwb_lens in_var_def)
+  by (simp add: comp_mwb_lens fst_vwb_lens in_var_def)
 
 lemma in_var_uvar [simp]:
   "uvar x \<Longrightarrow> uvar (in_var x)"
-  by (simp add: fst_vwb_lens in_var_def)
+  by (simp add: comp_vwb_lens fst_vwb_lens in_var_def)
 
 lemma out_var_semi_uvar [simp]:
   "semi_uvar x \<Longrightarrow> semi_uvar (out_var x)"
-  by (simp add: out_var_def snd_mwb_lens)
+  by (simp add: comp_mwb_lens out_var_def snd_vwb_lens)
 
 lemma out_var_uvar [simp]:
   "uvar x \<Longrightarrow> uvar (out_var x)"
-  by (simp add: out_var_def snd_vwb_lens)
+  by (simp add: comp_vwb_lens out_var_def snd_vwb_lens)
 
 lemma in_out_indep [simp]:
   "in_var x \<bowtie> out_var y"
-  by (simp add: fst_snd_lens_indep in_var_def out_var_def)
+  by (simp add: lens_indep_def in_var_def out_var_def fst_lens_def snd_lens_def lens_comp_def)
 
 lemma out_in_indep [simp]:
   "out_var x \<bowtie> in_var y"
-  by (simp add: lens_indep_sym)
+  by (simp add: lens_indep_def in_var_def out_var_def fst_lens_def snd_lens_def lens_comp_def)
 
 lemma in_var_indep [simp]:
   "x \<bowtie> y \<Longrightarrow> in_var x \<bowtie> in_var y"
-  by (simp add: fst_lens_pres_indep in_var_def)
+  by (simp add: lens_indep_def in_var_def out_var_def fst_lens_def snd_lens_def lens_comp_def)
 
 lemma out_var_indep [simp]:
   "x \<bowtie> y \<Longrightarrow> out_var x \<bowtie> out_var y"
-  by (simp add: out_var_def snd_lens_pres_indep)
+  by (simp add: lens_indep_def in_var_def out_var_def fst_lens_def snd_lens_def lens_comp_def)
 
 text {* We also define some lookup abstraction simplifications. *}
 
 lemma var_lookup_in [simp]: "lens_get (in_var x) (A, A') = lens_get x A"
-  by (simp add: in_var_def fst_lens_def)
+  by (simp add: in_var_def fst_lens_def lens_comp_def)
 
 lemma var_lookup_out [simp]: "lens_get (out_var x) (A, A') = lens_get x A'"
-  by (simp add: out_var_def snd_lens_def)
+  by (simp add: out_var_def snd_lens_def lens_comp_def)
 
 lemma var_update_in [simp]: "lens_put (in_var x) (A, A') v = (lens_put x A v, A')"
-  by (simp add: in_var_def fst_lens_def)
+  by (simp add: in_var_def fst_lens_def lens_comp_def)
 
 lemma var_update_out [simp]: "lens_put (out_var x) (A, A') v = (A, lens_put x A' v)"
-  by (simp add: out_var_def snd_lens_def)
+  by (simp add: out_var_def snd_lens_def lens_comp_def)
 
 text {* Variables can also be used to effectively define sets of variables. Here we define the
         the universal alphabet ($\Sigma$) to be a variable with identity for both the lookup
