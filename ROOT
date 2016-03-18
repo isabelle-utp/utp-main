@@ -24,6 +24,7 @@ session "UTP-IMPORTS" in "utils" = "Kleene_Algebra" +
     Continuum
     finite_bijection
     Dyadic
+    Lenses
     "Library_extra/Countable_Set_extra" 
     "Library_extra/Fmap"
     "Library_extra/FSet_extra"

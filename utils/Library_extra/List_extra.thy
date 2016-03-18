@@ -26,6 +26,20 @@ abbreviation "mapM f \<equiv> sequence \<circ> map f"
 
 subsection {* List lemmas *}
 
+lemma map_nth_Cons_atLeastLessThan:
+  "map (nth (x # xs)) [Suc m..<n] = map (nth xs) [m..<n - 1]"
+proof -
+  have "nth xs = nth (x # xs) \<circ> Suc"
+    by auto
+  hence "map (nth xs) [m..<n - 1] = map (nth (x # xs) \<circ> Suc) [m..<n - 1]"
+    by simp
+  also have "... = map (nth (x # xs)) (map Suc [m..<n - 1])"
+    by simp
+  also have "... = map (nth (x # xs)) [Suc m..<n]"
+    by (metis Suc_diff_1 le_0_eq length_upt list.simps(8) list.size(3) map_Suc_upt not_less upt_0)
+  finally show ?thesis ..
+qed
+
 lemma nth_el_appendl[simp]: "i < length xs \<Longrightarrow> (xs @ ys)\<langle>i\<rangle>\<^sub>l = xs\<langle>i\<rangle>\<^sub>l"
   apply (induct xs arbitrary: i)
   apply simp
@@ -104,7 +118,7 @@ subsection {* Minus on lists *}
 instantiation list :: (type) minus
 begin
 
-definition "xs - ys = (if (prefixeq ys xs) then drop (length ys) xs else xs)"
+definition "xs - ys = (if (prefixeq ys xs) then drop (length ys) xs else undefined)"
 
 instance ..
 end
@@ -115,11 +129,39 @@ lemma minus_cancel [simp]: "xs - xs = []"
 lemma append_minus [simp]: "(xs @ ys) - xs = ys"
   by (simp add: minus_list_def)
 
-lemma minus_left_nil [simp]: "[] - xs = []"
-  by (simp add: minus_list_def)
-
 lemma minus_right_nil [simp]: "xs - [] = xs"
   by (simp add: minus_list_def)
+
+lemma list_concat_minus_list_concat: "(s @ t) - (s @ z) = t - z"
+  by (simp add: minus_list_def)
+
+lemma length_gt_zero_butlast_concat:
+  assumes "length ys > 0"
+  shows "butlast (xs @ ys) = xs @ (butlast ys)"
+  using assms by (metis butlast_append length_greater_0_conv)
+
+lemma length_eq_zero_butlast_concat:
+  assumes "length ys = 0"
+  shows "butlast (xs @ ys) = butlast xs"
+  using assms by (metis append_Nil2 length_0_conv)
+
+lemma butlast_single_element:
+  shows "butlast [e] = []"
+  by (metis butlast.simps(2))
+
+lemma last_single_element:
+  shows "last [e] = e"
+  by (metis last.simps)
+
+lemma length_zero_last_concat:
+  assumes "length t = 0"
+  shows "last (s @ t) = last s"
+  by (metis append_Nil2 assms length_0_conv)
+  
+lemma length_gt_zero_last_concat:
+  assumes "length t > 0"
+  shows "last (s @ t) = last t"
+  by (metis assms last_append length_greater_0_conv)
 
 subsection {* Interleaving operations *}
 
@@ -401,6 +443,148 @@ lemma prefix_consE [elim]:
   "\<lbrakk> prefix (x # xs) ys; \<And> ys'. \<lbrakk> ys = x # ys'; prefix xs ys' \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (metis neq_Nil_conv prefix_order.dual_order.strict_trans prefix_order.less_irrefl prefix_simps(2) prefix_simps(3))
 
+text {* Extra lemmas about prefix and prefixeq *}
+
+lemma prefixeq_concat_minus:
+  assumes "prefixeq xs ys"
+  shows "xs @ (ys - xs) = ys"
+  using assms by (metis minus_list_def prefixeq_drop)
+
+lemma prefixeq_minus_concat:
+  assumes "prefixeq s t"
+  shows "(t - s) @ z = (t @ z) - s"
+  using assms by (simp add: minus_list_def prefixeq_length_le)
+
+lemma prefix_minus_not_empty:
+  assumes "prefix xs ys"
+  shows "ys - xs \<noteq> []"
+  using assms by (metis append_Nil2 prefixE prefixeq_concat_minus)
+
+lemma prefixeq_diff_minus:
+  assumes "prefixeq xs ys" and "xs \<noteq> ys"
+  shows "(ys - xs) \<noteq> []"
+  using assms by (simp add: prefix_minus_not_empty)
+
+lemma prefix_not_empty:
+  assumes "prefix xs ys" and "xs \<noteq> []"
+  shows "ys \<noteq> []"
+  using assms prefix_simps(1) by blast
+
+lemma prefix_not_empty_length_gt_zero:
+  assumes "prefix xs ys" and "xs \<noteq> []"
+  shows "length ys > 0"
+  using assms prefix_not_empty by auto
+
+lemma butlast_prefix_suffix_not_empty:
+  assumes "prefix (butlast xs) ys"
+  shows "ys \<noteq> []"
+  using assms prefix_not_empty_length_gt_zero by fastforce
+
+lemma length_tl_list_minus_butlast_gt_zero:
+  assumes "length s < length t" and "prefix (butlast s) t" and "length s > 0"
+  shows "length (tl (t - (butlast s))) > 0"
+  using assms 
+  by (metis Nitpick.size_list_simp(2) butlast_snoc hd_Cons_tl length_butlast length_greater_0_conv length_tl less_trans nat_neq_iff prefix_minus_not_empty prefix_order.dual_order.strict_implies_order prefixeq_concat_minus)
+  
+lemma prefixeq_and_concat_prefixeq_is_concat_prefixeq:
+  assumes "prefixeq s t" "prefixeq (e @ t) u"
+  shows "prefixeq (e @ s) u"
+  using assms prefix_order.dual_order.trans same_prefixeq_prefixeq by blast
+  
+lemma list_minus_butlast_eq_butlast_list:
+  assumes "length t = length s" and "prefix (butlast s) t"
+  shows "t - (butlast s) = [last t]"
+  using assms
+  by (metis append_butlast_last_id append_eq_append_conv butlast.simps(1) length_butlast less_numeral_extra(3) list.size(3) prefix_order.dual_order.strict_implies_order prefixeq_concat_minus prefixeq_length_less) 
+ 
+lemma prefix_eq_exists:
+  "prefix s t \<longleftrightarrow> (\<exists>xs . s @ xs = t \<and> (length xs) > 0)"
+  by (metis append_minus length_greater_0_conv prefix_def prefix_minus_not_empty prefixeq_def)
+
+lemma prefixeq_eq_exists:
+  "prefixeq s t \<longleftrightarrow> (\<exists>xs . s @ xs = t)"
+  using prefixeq_concat_minus by auto
+  
+lemma butlast_prefix_eq_butlast:
+  assumes "length s = length t" and "prefix (butlast s) t"
+  shows "prefix (butlast s) t \<longleftrightarrow> (butlast s) = (butlast t)"
+  by (metis append_butlast_last_id append_eq_append_conv assms(1) assms(2) length_0_conv length_butlast prefix_eq_exists)
+
+lemma butlast_eq_if_eq_length_and_prefix:
+  assumes "length s > 0" "length z > 0" 
+          "length s = length z" "prefix (butlast s) t" "prefix (butlast z) t"
+  shows   "(butlast s) = (butlast z)"
+  using assms by (auto simp add:prefix_eq_exists)
+
+lemma prefixeq_imp_length_lteq:
+  assumes "prefixeq s t"
+  shows "length s \<le> length t"
+  using assms by (simp add:prefixeq_length_le)
+  
+lemma prefixeq_imp_length_not_gt:
+  assumes "prefixeq s t"
+  shows "\<not> length t < length s"
+  using assms by (simp add: leD prefixeq_length_le)
+  
+lemma prefixeq_and_eq_length_imp_eq_list:
+  assumes "prefixeq s t" and "length t = length s"
+  shows "s=t"
+  using assms by (simp add: prefix_length_eq)  
+
+lemma butlast_prefix_length_lt_imp_last_tl_minus_butlast_eq_last:
+  assumes "length s > 0" "prefix (butlast s) t" "length s < length t"
+  shows "last (tl (t - (butlast s))) = (last t)"
+  using assms by (metis last_append last_tl length_tl_list_minus_butlast_gt_zero less_numeral_extra(3) list.size(3) append_minus prefix_eq_exists)
+
+lemma tl_list_minus_butlast_not_empty:
+  assumes "prefix (butlast s) t" and "length s > 0" and "length t > length s"
+  shows "tl (t - (butlast s)) \<noteq> []"
+  using assms length_tl_list_minus_butlast_gt_zero by fastforce
+
+lemma tl_list_minus_butlast_empty:
+  assumes "prefix (butlast s) t" and "length s > 0" and "length t = length s"
+  shows "tl (t - (butlast s)) = []"
+  using assms by (simp add: list_minus_butlast_eq_butlast_list)
+
+lemma concat_minus_list_concat_butlast_eq_list_minus_butlast:
+  assumes "prefixeq (butlast u) s"
+  shows "(t @ s) - (t @ (butlast u)) = s - (butlast u)"
+  using assms by (metis append_assoc prefixeq_concat_minus append_minus)
+
+lemma tl_list_minus_butlast_eq_empty:
+  assumes "prefix (butlast s) t" and "length s = length t"
+  shows "tl (t - (butlast s)) = []"
+  using assms by (metis list.sel(3) list_minus_butlast_eq_butlast_list)
+
+(* this can be shown using length_tl, but care is needed when list is empty? *)
+lemma prefix_length_tl_minus:
+  assumes "prefix s t"
+  shows "length (tl (t-s)) = (length (t-s)) - 1"
+  by (auto)
+
+lemma length_list_minus:
+  assumes "prefix s t"
+  shows "length(t - s) = length(t) - length(s)"
+  using assms by (simp add: minus_list_def prefix_order.dual_order.strict_implies_order)
+
+lemma butlast_prefix_imp_length_not_gt:
+  assumes "length s > 0" "prefix (butlast s) t"
+  shows "\<not> (length t < length s)"
+  using assms prefixeq_length_less by fastforce
+
+lemma length_not_gt_iff_eq_length:
+  assumes "length s > 0" and "prefix (butlast s) t"
+  shows "(\<not> (length s < length t)) = (length s = length t)"
+proof -
+  have "(\<not> (length s < length t)) = ((length t < length s) \<or> (length s = length t))"
+      by (metis not_less_iff_gr_or_eq)
+  also have "... = (length s = length t)"
+      using assms
+      by (simp add:butlast_prefix_imp_length_not_gt)
+
+  finally show ?thesis .
+qed
+
 text {* Sorting lists according to a relation *}
 
 definition is_sorted_list_of_set_by :: "'a rel \<Rightarrow> 'a set \<Rightarrow> 'a list \<Rightarrow> bool" where
@@ -447,5 +631,143 @@ definition distincts :: "'a set \<Rightarrow> 'a list set" where
 lemma tl_element:
   "\<lbrakk> x \<in> set xs; x \<noteq> hd(xs) \<rbrakk> \<Longrightarrow> x \<in> set(tl(xs))"
   by (metis in_set_insert insert_Nil list.collapse list.distinct(2) set_ConsD)
+
+subsection {* Z mathematical tool kit for sequences *}
+
+abbreviation seq_dom :: "'a list \<Rightarrow> nat set" ("dom\<^sub>l") where
+"seq_dom xs \<equiv> {0..<length xs}"
+
+abbreviation seq_ran :: "'a list \<Rightarrow> 'a set" ("ran\<^sub>l") where
+"seq_ran xs \<equiv> set xs"
+
+definition seq_extract :: "nat set \<Rightarrow> 'a list \<Rightarrow> 'a list" (infix "\<upharpoonleft>\<^sub>l" 80) where
+"seq_extract A xs = sublist xs A"
+
+lemma seq_extract_Nil [simp]: "A \<upharpoonleft>\<^sub>l [] = []"
+  by (simp add: seq_extract_def)
+
+lemma seq_extract_Cons: 
+  "A \<upharpoonleft>\<^sub>l (x # xs) = (if 0 \<in> A then [x] else []) @ {j. Suc j \<in> A} \<upharpoonleft>\<^sub>l xs"
+  by (simp add: seq_extract_def sublist_Cons)
+
+lemma seq_extract_empty [simp]: "{} \<upharpoonleft>\<^sub>l xs = []"
+  by (simp add: seq_extract_def) 
+
+lemma seq_extract_ident [simp]: "{0..<length xs} \<upharpoonleft>\<^sub>l xs = xs"
+  unfolding list_eq_iff_nth_eq
+  by (auto simp add: seq_extract_def length_sublist atLeast0LessThan)
+
+lemma seq_extract_split:
+  assumes "i \<le> length xs"
+  shows "{0..<i} \<upharpoonleft>\<^sub>l xs @ {i..<length xs} \<upharpoonleft>\<^sub>l xs = xs"
+using assms
+proof (induct xs arbitrary: i)
+  case Nil thus ?case by (simp add: seq_extract_def)
+next
+  case (Cons x xs) note hyp = this
+  have "{j. Suc j < i} = {0..<i - 1}"
+    by (auto)
+  moreover have "{j. i \<le> Suc j \<and> j < length xs} = {i - 1..<length xs}"
+    by (auto)
+  ultimately show ?case
+    using hyp by (force simp add: seq_extract_def sublist_Cons)
+qed
+
+lemma seq_extract_append:
+  "A \<upharpoonleft>\<^sub>l (xs @ ys) = (A \<upharpoonleft>\<^sub>l xs) @ ({j. j + length xs \<in> A} \<upharpoonleft>\<^sub>l ys)"
+  by (simp add: seq_extract_def sublist_append)
+
+lemma seq_extract_range: "A \<upharpoonleft>\<^sub>l xs = (A \<inter> dom\<^sub>l(xs)) \<upharpoonleft>\<^sub>l xs"
+  apply (auto simp add: seq_extract_def sublist_def)
+  apply (metis (no_types, lifting) atLeastLessThan_iff filter_cong in_set_zip nth_mem set_upt)
+done
+
+lemma seq_extract_out_of_range:
+  "A \<inter> dom\<^sub>l(xs) = {} \<Longrightarrow> A \<upharpoonleft>\<^sub>l xs = []"
+  by (metis seq_extract_def seq_extract_range sublist_empty)
+
+lemma seq_extract_length [simp]:
+  "length (A \<upharpoonleft>\<^sub>l xs) = card (A \<inter> dom\<^sub>l(xs))"
+proof -
+  have "{i. i < length(xs) \<and> i \<in> A} = (A \<inter> {0..<length(xs)})"
+    by (auto)
+  thus ?thesis
+    by (simp add: seq_extract_def length_sublist)
+qed
+
+lemma seq_extract_Cons_atLeastLessThan:
+  assumes "m < n"
+  shows "{m..<n} \<upharpoonleft>\<^sub>l (x # xs) = (if (m = 0) then x # ({0..<n-1} \<upharpoonleft>\<^sub>l xs) else {m-1..<n-1} \<upharpoonleft>\<^sub>l xs)"
+proof -
+  have "{j. Suc j < n} = {0..<n - Suc 0}"
+    by (auto)
+  moreover have "{j. m \<le> Suc j \<and> Suc j < n} = {m - Suc 0..<n - Suc 0}"
+    by (auto)
+
+  ultimately show ?thesis using assms
+    by (auto simp add: seq_extract_Cons)
+qed
+
+lemma seq_extract_singleton:
+  assumes "i < length xs"
+  shows "{i} \<upharpoonleft>\<^sub>l xs = [xs ! i]"
+  using assms
+  apply (induct xs arbitrary: i)
+  apply (auto simp add: seq_extract_Cons)
+  apply (rename_tac xs i)
+  apply (subgoal_tac "{j. Suc j = i} = {i - 1}")
+  apply (auto)
+done
+
+lemma seq_extract_as_map:
+  assumes "m < n" "n \<le> length xs"
+  shows "{m..<n} \<upharpoonleft>\<^sub>l xs = map (nth xs) [m..<n]"
+using assms proof (induct xs arbitrary: m n)
+  case Nil thus ?case by simp
+next
+  case (Cons x xs)
+  have "[m..<n] = m # [m+1..<n]"
+    using Cons.prems(1) upt_eq_Cons_conv by blast
+  moreover have "map (nth (x # xs)) [Suc m..<n] = map (nth xs) [m..<n-1]"
+    by (simp add: map_nth_Cons_atLeastLessThan)
+  ultimately show ?case
+    using Cons upt_rec
+    by (auto simp add: seq_extract_Cons_atLeastLessThan)
+qed    
+
+lemma seq_append_as_extract:
+  "xs = ys @ zs \<longleftrightarrow> (\<exists> i\<le>length(xs). ys = {0..<i} \<upharpoonleft>\<^sub>l xs \<and> zs = {i..<length(xs)} \<upharpoonleft>\<^sub>l xs)"
+proof
+  assume xs: "xs = ys @ zs"
+  moreover have "ys = {0..<length ys} \<upharpoonleft>\<^sub>l (ys @ zs)"
+    by (simp add: seq_extract_append)
+  moreover have "zs = {length ys..<length ys + length zs} \<upharpoonleft>\<^sub>l (ys @ zs)"
+  proof -
+    have "{length ys..<length ys + length zs} \<inter> {0..<length ys} = {}"
+      by auto
+    moreover have s1: "{j. j < length zs} = {0..<length zs}"
+      by auto
+    ultimately show ?thesis
+      by (simp add: seq_extract_append seq_extract_out_of_range)
+  qed
+  ultimately show "(\<exists> i\<le>length(xs). ys = {0..<i} \<upharpoonleft>\<^sub>l xs \<and> zs = {i..<length(xs)} \<upharpoonleft>\<^sub>l xs)"
+    by (rule_tac x="length ys" in exI, auto)
+next
+  assume "\<exists>i\<le>length xs. ys = {0..<i} \<upharpoonleft>\<^sub>l xs \<and> zs = {i..<length xs} \<upharpoonleft>\<^sub>l xs"
+  thus "xs = ys @ zs"
+    by (auto simp add: seq_extract_split)
+qed
+
+definition seq_filter :: "'a list \<Rightarrow> 'a set \<Rightarrow> 'a list" (infix "\<restriction>\<^sub>l" 80) where
+"seq_filter xs A = filter (\<lambda> x. x \<in> A) xs"
+
+lemma seq_filter_Nil [simp]: "[] \<restriction>\<^sub>l A = []"
+  by (simp add: seq_filter_def)
+
+lemma seq_filter_empty [simp]: "xs \<restriction>\<^sub>l {} = []"
+  by (simp add: seq_filter_def)
+
+lemma seq_filter_append: "(xs @ ys) \<restriction>\<^sub>l A = (xs \<restriction>\<^sub>l A) @ (ys \<restriction>\<^sub>l A)"
+  by (simp add: seq_filter_def) 
 
 end

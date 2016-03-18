@@ -1,8 +1,10 @@
 subsection {* Deep UTP variables *}
 
 theory utp_dvar
-  imports utp_var
+  imports utp_var 
 begin
+
+(* FIXME: Redo also this properly using the function update lens *)
 
 text {* UTP variables represented by record fields are shallow, nameless entities. They are fundamentally
         static in nature, since a new record field can only be introduced definitionally and cannot be
@@ -203,8 +205,11 @@ lemma vstore_upd_comp [simp]:
   "vstore_upd x f (vstore_upd x g s) = vstore_upd x (f \<circ> g) s"
   by (simp add: vstore_upd_def, transfer, simp)
 
+lemma vstore_lookup_put [simp]: "vstore_lookup x (vstore_put x v s) = v"
+  by (transfer, simp)
+
 lemma vstore_lookup_upd [simp]: "vstore_lookup x (vstore_upd x f s) = f (vstore_lookup x s)"
-  by (simp add: vstore_upd_def, transfer, simp)
+  by (simp add: vstore_upd_def)
 
 lemma vstore_upd_eta [simp]: "vstore_upd x (\<lambda> _. vstore_lookup x s) s = s"
   apply (simp add: vstore_upd_def, transfer, auto)
@@ -222,21 +227,29 @@ lemma vstore_put_commute:
   using assms
   by (transfer, fastforce)
 
+lemma vstore_put_put [simp]:
+  "vstore_put x u (vstore_put x v s) = vstore_put x u s"
+  by (transfer, simp)
+
 text {* The vst class provides an interface for extracting a variable store from a state space.
         For now, the state-space is limited to countably infinite types, though we will in
         the future build a more expressive universe. *}
 
 class vst =
   fixes get_vstore :: "'a \<Rightarrow> vstore"
-  and   upd_vstore :: "(vstore \<Rightarrow> vstore) \<Rightarrow> 'a \<Rightarrow> 'a"
-  assumes get_upd_vstore [simp]: "get_vstore (upd_vstore f s) = f (get_vstore s)"
+  and   put_vstore :: "'a \<Rightarrow> vstore \<Rightarrow> 'a" 
+  assumes put_get_vstore [simp]: "get_vstore (put_vstore s x) = x"
+  and get_put_vstore [simp]: "put_vstore s (get_vstore s) = s"
+  and put_put_vstore [simp]: "put_vstore (put_vstore s x) y = put_vstore s y"
+(*
   and upd_vstore_comp [simp]: "upd_vstore f (upd_vstore g s) = upd_vstore (f \<circ> g) s"  
   and upd_vstore_eta [simp]: "upd_vstore (\<lambda> _. get_vstore s) s = s"
   and upd_store_parm: "upd_vstore f s = upd_vstore (\<lambda> _. f (get_vstore s)) s"
+*)
 
 definition dvar_lift :: "'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) uvar" ("_\<up>" [999] 999)
-where "dvar_lift x = \<lparr> var_lookup = \<lambda> v. vstore_lookup x (get_vstore v)
-                     , var_update = \<lambda> f s. upd_vstore (vstore_upd x f) s
+where "dvar_lift x = \<lparr> lens_get = (\<lambda> v. vstore_lookup x (get_vstore v))
+                     , lens_put = (\<lambda> s v. put_vstore s (vstore_put x v (get_vstore s)))
                      \<rparr>"
 
 definition [simp]: "in_dvar x = in_var (x\<up>)"
@@ -245,54 +258,18 @@ definition [simp]: "out_dvar x = out_var (x\<up>)"
 adhoc_overloading
   ivar in_dvar and ovar out_dvar
 
-lemma vstore_upd_compose [simp]: "vstore_upd x f \<circ> vstore_upd x g = vstore_upd x (f \<circ> g)"
-  by (rule ext, simp add: vstore_upd_def, transfer, auto)
-
-lemma update_vstore_appl: "upd_vstore (\<lambda> x. f (g x)) s = upd_vstore f (upd_vstore g s)"
-  by (metis comp_apply upd_store_parm upd_vstore_comp)
-
-lemma vstore_upd_appl: "vstore_upd x (\<lambda> x. f (g x)) s = vstore_upd x f (vstore_upd x g s)"
-  by (metis (no_types, lifting) vstore_lookup_upd vstore_upd_comp vstore_upd_def)
-
 lemma uvar_dvar: "uvar (x\<up>)"
-proof
-  fix f g :: "'a \<Rightarrow> 'a" and \<sigma> :: "'b"
-  show "var_update (x\<up>) f (var_update (x\<up>) g \<sigma>) = var_update (x\<up>) (f \<circ> g) \<sigma>"
-    by (simp add: dvar_lift_def)
-  show "var_assign (x\<up>) (var_lookup (x\<up>) \<sigma>) \<sigma> = \<sigma>"
-    by (simp add: dvar_lift_def, subst upd_store_parm, simp)
-  show "var_lookup (x\<up>) (var_update (x\<up>) f \<sigma>) = f (var_lookup (x\<up>) \<sigma>)"
-    by (simp add: dvar_lift_def)
-  fix \<rho> :: 'b and v :: 'a
-  show "var_lookup (x\<up>) \<sigma> = var_lookup (x\<up>) \<rho> \<Longrightarrow> var_assign (x\<up>) v \<sigma> = var_assign (x\<up>) v \<rho> \<Longrightarrow> \<sigma> = \<rho>"
-  proof -
-    assume vl: "var_lookup (x\<up>) \<sigma> = var_lookup (x\<up>) \<rho>" and va: "var_assign (x\<up>) v \<sigma> = var_assign (x\<up>) v \<rho>"
-
-    have "get_vstore \<sigma> = get_vstore \<rho>"
-      by (metis (no_types, lifting) dvar_lift_def get_upd_vstore uvar.select_convs(1) uvar.select_convs(2) va vl vstore_lookup_upd vstore_upd_comp vstore_upd_def vstore_upd_eta)
-
-    moreover from va have "upd_vstore (\<lambda>_. get_vstore \<rho>) \<sigma> = \<rho>"
-      by (simp add: dvar_lift_def, metis upd_store_parm upd_vstore_eta update_vstore_appl)
-
-    ultimately show ?thesis
-      by (metis upd_vstore_eta)
-  qed
-qed
+  apply (unfold_locales)
+  apply (simp_all add: dvar_lift_def)
+  apply (metis get_put_vstore vstore_upd_def vstore_upd_eta)
+done
 
 text {* Deep variables with different names are independent *}
 
 lemma dvar_indep_diff_name:
   assumes "dvar_name x \<noteq> dvar_name y"
   shows "x\<up> \<bowtie> y\<up>"
-proof -
-  from assms have "\<And> f g. vstore_upd x f \<circ> vstore_upd y g = vstore_upd y g \<circ> vstore_upd x f"
-    apply (auto simp add: comp_def vstore_upd_def)
-    apply (rule ext, subst vstore_put_commute, auto)
-  done
- 
- thus ?thesis
-    by (auto simp add: uvar_indep_def dvar_name_def dvar_card_def dvar_lift_def vstore_upd_def)
-qed
+  by (simp add: assms dvar_lift_def lens_indep_def vstore_put_commute)
 
 lemma dvar_indep_diff_name' [simp]:
   "x \<noteq> y \<Longrightarrow> \<lceil>x\<rceil>\<^sub>d\<up> \<bowtie> \<lceil>y\<rceil>\<^sub>d\<up>"
@@ -306,7 +283,7 @@ record vstore_d =
 instantiation vstore_d_ext :: (type) vst
 begin
   definition [simp]: "get_vstore_vstore_d_ext = vstore"
-  definition [simp]: "upd_vstore_vstore_d_ext = vstore_update"
+  definition [simp]: "put_vstore_vstore_d_ext = (\<lambda> x s. vstore_update (\<lambda>_. s) x)"
 instance
   by (intro_classes, simp_all)
 end

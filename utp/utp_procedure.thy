@@ -156,7 +156,7 @@ lemma subst_var_block:
   assumes "x\<up> \<bowtie> y" "$x \<sharp> v" "$x\<acute> \<sharp> v"
   shows "(var_block x P)\<lbrakk>v/$y\<rbrakk> = var_block x (\<lambda> x :: 'b dvar. (P x)\<lbrakk>v/$y\<rbrakk>)"
   using assms
-  by (simp add: var_block_def var_block_expand uvar_dvar usubst uvar_indep_sym)
+  by (simp add: var_block_def var_block_expand uvar_dvar usubst lens_indep_sym)
 
 subsection {* Relational procedures *}
 
@@ -253,7 +253,7 @@ lemma val_parm_apply_2 [simp]:
   shows "val_parm_comp x (\<lambda> x. val_parm y (P x)) (u, v) = 
          var_block x (\<lambda> x. var_block y (\<lambda> y. (P x y)\<lbrakk>\<lceil>u\<rceil>\<^sub><,\<lceil>v\<rceil>\<^sub></$x,$y\<rbrakk>))"
   using assms
-  by (simp add: val_parm_comp_apply var_block_def var_block_expand uvar_dvar usubst unrest uvar_indep_sym)
+  by (simp add: val_parm_comp_apply var_block_def var_block_expand uvar_dvar usubst unrest lens_indep_sym)
 
 lemma res_parm_apply [simp]: 
   "res_parm x P v = var_block x (\<lambda> x. P x ;; v := &x)"
@@ -273,12 +273,14 @@ lemma vres_parm_comp_apply [simp]:
 
 text {* Instantiate vstore for design alphabets *}
 
+term more_update
+
 instantiation alpha_d_ext :: (vst) vst
 begin
   definition [simp]: "get_vstore_alpha_d_ext x = get_vstore (more x)"
-  definition [simp]: "upd_vstore_alpha_d_ext = more_update \<circ> upd_vstore"
+  definition [simp]: "put_vstore_alpha_d_ext x s = more_update (\<lambda> v. put_vstore v s) x"
 instance
-  by (intro_classes, auto simp add: upd_store_parm[THEN sym])
+  by (intro_classes, auto simp add: alpha_d.defs)
 end
 
 end

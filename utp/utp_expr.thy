@@ -133,16 +133,24 @@ begin
 instance ..
 end
 
+instance uexpr :: (Rings.dvd, type) Rings.dvd ..
+
+instantiation uexpr :: (divide, type) divide
+begin
+  definition divide_uexpr :: "('a, 'b) uexpr \<Rightarrow> ('a, 'b) uexpr \<Rightarrow> ('a, 'b) uexpr" where
+  "divide_uexpr u v = bop divide u v"
+instance ..
+end
+
 instantiation uexpr :: (inverse, type) inverse
 begin
-  definition inverse_uexpr_def: "inverse u = uop inverse u"
-  definition divide_uexpr_def: "u / v = bop (op /) u v"
+  definition inverse_uexpr :: "('a, 'b) uexpr \<Rightarrow> ('a, 'b) uexpr"
+  where "inverse_uexpr u = uop inverse u"
 instance ..
 end
 
 instantiation uexpr :: (Divides.div, type) Divides.div
 begin
-  definition div_uexpr_def: "u div v = bop (op div) u v"
   definition mod_uexpr_def: "u mod v = bop (op mod) u v"
 instance ..
 end
@@ -195,8 +203,20 @@ where "eq_upred x y = bop HOL.eq x y"
 adhoc_overloading
   ueq eq_upred
 
-abbreviation seq_filter :: "'a set \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-"seq_filter A \<equiv> filter (\<lambda> x. x \<in> A)"
+definition "fun_apply f x = f x"
+declare fun_apply_def [simp]
+
+consts 
+  uapply :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
+  udom   :: "'f \<Rightarrow> 'a set"
+  uran   :: "'f \<Rightarrow> 'b set"
+  ucard  :: "'f \<Rightarrow> nat"
+
+adhoc_overloading
+  uapply fun_apply and uapply nth and uapply pfun_app and
+  udom Domain and udom pdom and udom seq_dom and
+  udom Range and uran pran and uran set and
+  ucard card and ucard pcard and ucard length
 
 nonterminal utuple_args and umaplet and umaplets
 
@@ -209,8 +229,9 @@ syntax
   "_ufront"     :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" ("front\<^sub>u'(_')")
   "_uhead"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("head\<^sub>u'(_')")
   "_utail"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" ("tail\<^sub>u'(_')")
-  "_ulength"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> (nat, '\<alpha>) uexpr" ("length\<^sub>u'(_')")
+  "_ucard"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> (nat, '\<alpha>) uexpr" ("#\<^sub>u'(_')")
   "_ufilter"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" (infixl "\<restriction>\<^sub>u" 75)
+  "_uextract"   :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" (infixl "\<upharpoonleft>\<^sub>u" 75)
   "_uelems"     :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("elems\<^sub>u'(_')")
   "_usorted"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" ("sorted\<^sub>u'(_')")
   "_udistinct"  :: "('a list, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" ("distinct\<^sub>u'(_')")
@@ -230,7 +251,7 @@ syntax
   "_utuple_arg"  :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args" ("_")
   "_utuple_args" :: "('a, '\<alpha>) uexpr => utuple_args \<Rightarrow> utuple_args"     ("_,/ _")
   "_uunit"      :: "('a, '\<alpha>) uexpr" ("'(')\<^sub>u")
-  "_ufst"       :: "('a \<times> 'b, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<pi>\<^sub>1'(_')" 90)
+  "_ufst"       :: "('a \<times> 'b, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<pi>\<^sub>1'(_')")
   "_usnd"       :: "('a \<times> 'b, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr" ("\<pi>\<^sub>2'(_')")
   "_uapply"     :: "('a \<Rightarrow> 'b, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('b, '\<alpha>) uexpr" ("_\<lparr>_\<rparr>\<^sub>u" [999,0] 999)
   "_ulamba"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<lambda> _ \<bullet> _" [0, 10] 10)
@@ -238,23 +259,23 @@ syntax
   "_uran"       :: "logic \<Rightarrow> logic" ("ran\<^sub>u'(_')")
   "_uinl"       :: "logic \<Rightarrow> logic" ("inl\<^sub>u'(_')")
   "_uinr"       :: "logic \<Rightarrow> logic" ("inr\<^sub>u'(_')")
-  "_umap_empty" :: "('a \<rightharpoonup> 'b, '\<alpha>) uexpr" ("[]\<^sub>u")
+  "_umap_empty" :: "logic" ("[]\<^sub>u")
+  "_umap_plus"  :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<oplus>\<^sub>u" 85)
+  "_umap_minus" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<ominus>\<^sub>u" 85)
+  "_udom_res"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<lhd>\<^sub>u" 85)
+  "_uran_res"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<rhd>\<^sub>u" 85)
   "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>/ _")
   ""            :: "umaplet => umaplets"             ("_")
   "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
   "_UMapUpd"    :: "[logic, umaplets] => logic" ("_/'(_')" [900,0] 900)
   "_UMap"       :: "umaplets => logic" ("(1[_]\<^sub>u)")
 
-consts uapply :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
-
 translations
   "f\<lparr>v\<rparr>\<^sub>u" <= "CONST uapply f v"
+  "dom\<^sub>u(f)" <= "CONST udom f"
+  "ran\<^sub>u(f)" <= "CONST uran f"
+  "#\<^sub>u(f)" <= "CONST ucard f"
 
-definition "fun_apply f x = f x"
-declare fun_apply_def [simp]
-
-adhoc_overloading
-  uapply fun_apply and uapply nth and uapply pfun_app
 
 translations
   "x :\<^sub>u 'a" == "x :: ('a, _) uexpr"
@@ -266,11 +287,12 @@ translations
   "front\<^sub>u(xs)" == "CONST uop CONST butlast xs"
   "head\<^sub>u(xs)" == "CONST uop CONST hd xs"
   "tail\<^sub>u(xs)" == "CONST uop CONST tl xs"
-  "length\<^sub>u(xs)" == "CONST uop CONST length xs"
+  "#\<^sub>u(xs)" == "CONST uop CONST ucard xs"
   "elems\<^sub>u(xs)" == "CONST uop CONST set xs"
   "sorted\<^sub>u(xs)" == "CONST uop CONST sorted xs"
   "distinct\<^sub>u(xs)" == "CONST uop CONST distinct xs"
-  "xs \<restriction>\<^sub>u A"   == "CONST bop CONST seq_filter A xs"
+  "xs \<restriction>\<^sub>u A"   == "CONST bop CONST seq_filter xs A"
+  "A \<upharpoonleft>\<^sub>u xs"   == "CONST bop (op \<upharpoonleft>\<^sub>l) A xs"
   "x <\<^sub>u y"   == "CONST bop (op <) x y"
   "x \<le>\<^sub>u y"   == "CONST bop (op \<le>) x y" 
   "x >\<^sub>u y"   == "y <\<^sub>u x"
@@ -280,6 +302,8 @@ translations
   "{x}\<^sub>u"     == "CONST bop (CONST insert) x \<guillemotleft>{}\<guillemotright>"
   "A \<union>\<^sub>u B"   == "CONST bop (op \<union>) A B"
   "A \<inter>\<^sub>u B"   == "CONST bop (op \<inter>) A B"
+  "f \<oplus>\<^sub>u g"   => "(f :: ((_, _) pfun, _) uexpr) + g"
+  "f \<ominus>\<^sub>u g"   => "(f :: ((_, _) pfun, _) uexpr) - g"
   "x \<in>\<^sub>u A"   == "CONST bop (op \<in>) x A"
   "x \<notin>\<^sub>u A"   == "CONST bop (op \<notin>) x A"
   "A \<subset>\<^sub>u B"   == "CONST bop (op <) A B"
@@ -295,11 +319,13 @@ translations
   "\<pi>\<^sub>2(x)"    == "CONST uop CONST snd x"
   "f\<lparr>x\<rparr>\<^sub>u"    == "CONST bop CONST uapply f x"
   "\<lambda> x \<bullet> p" == "CONST ulambda (\<lambda> x. p)"
-  "dom\<^sub>u(f)" == "CONST uop CONST pdom f"
-  "ran\<^sub>u(f)" == "CONST uop CONST pran f"
+  "dom\<^sub>u(f)" == "CONST uop CONST udom f"
+  "ran\<^sub>u(f)" == "CONST uop CONST uran f"
   "inl\<^sub>u(x)" == "CONST uop CONST Inl x"
   "inr\<^sub>u(x)" == "CONST uop CONST Inr x"
   "[]\<^sub>u"     == "\<guillemotleft>CONST pempty\<guillemotright>"
+  "A \<lhd>\<^sub>u f" == "CONST bop (op \<lhd>\<^sub>p) A f"
+  "f \<rhd>\<^sub>u A" == "CONST bop (op \<rhd>\<^sub>p) A f"
   "_UMapUpd m (_UMaplets xy ms)" == "_UMapUpd (_UMapUpd m xy) ms"
   "_UMapUpd m (_umaplet  x y)"   == "CONST trop CONST pfun_upd m x y"
   "_UMap ms"                      == "_UMapUpd []\<^sub>u ms"
@@ -350,7 +376,6 @@ lemmas uexpr_defs =
   times_uexpr_def
   inverse_uexpr_def
   divide_uexpr_def
-  div_uexpr_def
   mod_uexpr_def
   eq_upred_def
   numeral_uexpr_simp

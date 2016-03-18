@@ -80,11 +80,11 @@ lemma usubst_lookup_id [usubst]: "\<langle>id\<rangle>\<^sub>s x = var x"
   by (transfer, simp)
 
 lemma usubst_lookup_upd [usubst]:
-  assumes "uvar x"
+  assumes "semi_uvar x"
   shows "\<langle>\<sigma>(x \<mapsto>\<^sub>s v)\<rangle>\<^sub>s x = v"
   using assms
   by (simp add: subst_upd_uvar_def, transfer) (simp)
-
+  
 lemma usubst_upd_idem [usubst]:
   assumes "semi_uvar x"
   shows "\<sigma>(x \<mapsto>\<^sub>s u, x \<mapsto>\<^sub>s v) = \<sigma>(x \<mapsto>\<^sub>s v)"
@@ -94,7 +94,13 @@ lemma usubst_upd_comm:
   assumes "x \<bowtie> y"
   shows "\<sigma>(x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v) = \<sigma>(y \<mapsto>\<^sub>s v, x \<mapsto>\<^sub>s u)"
   using assms
-  by (rule_tac ext, auto simp add: subst_upd_uvar_def assms comp_def uvar_indep_comm)
+  by (rule_tac ext, auto simp add: subst_upd_uvar_def assms comp_def lens_indep_comm)
+
+lemma usubst_upd_comm2:
+  assumes "z \<bowtie> y" and "semi_uvar x"
+  shows "\<sigma>(x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v, z \<mapsto>\<^sub>s s) = \<sigma>(x \<mapsto>\<^sub>s u, z \<mapsto>\<^sub>s s, y \<mapsto>\<^sub>s v)"
+  using assms
+  by (rule_tac ext, auto simp add: subst_upd_uvar_def assms comp_def lens_indep_comm)
 
 lemma usubst_upd_comm_dash [usubst]: 
   fixes x :: "('a, '\<alpha>) uvar"
@@ -184,8 +190,7 @@ lemma subst_drop_upd [usubst]:
   fixes x :: "('a, '\<alpha>) uvar"
   shows "\<lfloor>\<sigma>($x \<mapsto>\<^sub>s v)\<rfloor>\<^sub>s = \<lfloor>\<sigma>\<rfloor>\<^sub>s(x \<mapsto>\<^sub>s \<lfloor>v\<rfloor>\<^sub><)"
   apply (simp add: usubst_rel_drop_def subst_upd_uvar_def, transfer, rule ext, auto simp add:in_var_def)
-  apply (rename_tac x v \<sigma> A)
-  apply (case_tac "\<sigma> (A, A)", simp)
+  apply (metis fst_conv in_var_def prod.collapse var_update_in)
 done
 
 nonterminal uexprs and svars

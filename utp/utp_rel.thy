@@ -14,13 +14,17 @@ consts
   uskip  :: "'a" ("II")
 
 definition in\<alpha> :: "('\<alpha>, '\<alpha> \<times> '\<beta>) uvar" where
-"in\<alpha> = \<lparr> var_lookup = fst, var_update = \<lambda> f (A, A'). (f A, A') \<rparr>"
+"in\<alpha> = \<lparr> lens_get = fst, lens_put = \<lambda> (A, A') v. (v, A') \<rparr>"
 
 definition out\<alpha> :: "('\<beta>, '\<alpha> \<times> '\<beta>) uvar" where
-"out\<alpha> = \<lparr> var_lookup = snd, var_update = \<lambda> f (A, A'). (A, f A') \<rparr>"
+"out\<alpha> = \<lparr> lens_get = snd, lens_put = \<lambda> (A, A') v. (A, v) \<rparr>"
 
 declare in\<alpha>_def [urel_defs]
 declare out\<alpha>_def [urel_defs]
+
+lemma alpha_in_out:
+  "\<Sigma> = in\<alpha> \<circ>\<^sub>v out\<alpha>"
+  by (auto simp add: in\<alpha>_def out\<alpha>_def univ_alpha_def id_lens_def uvar_comp_def prod_lens_def)
 
 type_synonym '\<alpha> condition       = "'\<alpha> upred"
 type_synonym ('\<alpha>, '\<beta>) relation  = "('\<alpha> \<times> '\<beta>) upred"
@@ -157,13 +161,13 @@ lemma usubst_seq_left [usubst]:
   apply (simp)
   apply (drule_tac x="a" in spec)
   apply (drule_tac x="y" in spec)
-  apply (drule_tac x="\<lambda>_.ya" in spec)
+  apply (drule_tac x="ya" in spec)
   apply (simp)
   apply (rename_tac x v P Q a ba y)
   apply (rule_tac x="y" in exI)
   apply (drule_tac x="a" in spec)
   apply (drule_tac x="y" in spec)
-  apply (drule_tac x="\<lambda>_.ba" in spec)
+  apply (drule_tac x="ba" in spec)
   apply (simp)
 done
 
@@ -175,14 +179,14 @@ lemma usubst_seq_right [usubst]:
   apply (simp)
   apply (drule_tac x="ya" in spec)
   apply (drule_tac x="b" in spec)
-  apply (drule_tac x="\<lambda>_.xa" in spec)
+  apply (drule_tac x="xa" in spec)
   apply (simp)
   apply (rename_tac x v P Q b aa y)
   apply (rule_tac x="y" in exI)
   apply (simp)
   apply (drule_tac x="aa" in spec)
   apply (drule_tac x="b" in spec)
-  apply (drule_tac x="\<lambda>_.y" in spec)
+  apply (drule_tac x="y" in spec)
   apply (simp)
 done
 
@@ -239,13 +243,7 @@ apply (rel_tac)
 done
 
 lemma drop_pre_inv [simp]: "\<lbrakk> out\<alpha> \<sharp> p \<rbrakk> \<Longrightarrow> \<lceil>\<lfloor>p\<rfloor>\<^sub><\<rceil>\<^sub>< = p"
-  apply (pred_tac, auto simp add: out\<alpha>_def)
-  apply (rename_tac p a b)
-  apply (drule_tac x="a" in spec)
-  apply (drule_tac x="b" in spec)
-  apply (drule_tac x="\<lambda> _. a" in spec)
-  apply (simp)
-done
+  by (pred_tac, auto simp add: out\<alpha>_def)
 
 abbreviation ustar :: "'\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("_\<^sup>\<star>\<^sub>u" [999] 999) where
 "P\<^sup>\<star>\<^sub>u \<equiv> unital_quantale.qstar II op ;; Sup P"
@@ -280,6 +278,12 @@ lemma cond_imp_distr:
 
 lemma cond_eq_distr: 
 "((P \<Leftrightarrow> Q) \<triangleleft> b \<triangleright> (R \<Leftrightarrow> S)) = ((P \<triangleleft> b \<triangleright> R) \<Leftrightarrow> (Q \<triangleleft> b \<triangleright> S))" by rel_tac
+
+lemma cond_conj_distr:"(P \<and> (Q \<triangleleft> b \<triangleright> S)) = ((P \<and> Q) \<triangleleft> b \<triangleright> (P \<and> S))" by rel_tac
+
+lemma cond_disj_distr:"(P \<or> (Q \<triangleleft> b \<triangleright> S)) = ((P \<or> Q) \<triangleleft> b \<triangleright> (P \<or> S))" by rel_tac
+
+lemma cond_neg: "\<not> (P \<triangleleft> b \<triangleright> Q) = (\<not> P \<triangleleft> b \<triangleright> \<not> Q)" by rel_tac
 
 lemma comp_cond_left_distr:
   "((P \<triangleleft> b \<triangleright>\<^sub>r Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright>\<^sub>r (Q ;; R))"
@@ -348,13 +352,12 @@ lemma assign_test: "uvar x \<Longrightarrow> (x := \<guillemotleft>u\<guillemotr
 
 lemma skip_r_unfold:
   "uvar x \<Longrightarrow> II = ($x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x)"
-  by (rel_tac, blast, metis uvar.var_state_eq_iff uvar.var_update_lookup)
+  by (rel_tac, blast, metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens.get_put)
 
 lemma assign_unfold:
   "uvar x \<Longrightarrow> (x := v) = ($x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub>< \<and> II\<restriction>\<^sub>\<alpha>x)"
-  apply (rel_tac, auto simp add: comp_def )
-  using var_assign_eq apply fastforce
-done
+  apply (rel_tac, auto simp add: comp_def)
+  using vwb_lens.put_eq by fastforce
 
 lemma seqr_or_distl:
   "((P \<or> Q) ;; R) = ((P ;; R) \<or> (Q ;; R))"
@@ -377,28 +380,15 @@ done
 
 theorem precond_equiv:
   "P = (P ;; true) \<longleftrightarrow> (out\<alpha> \<sharp> P)"
-  apply (rel_tac)
-  apply (rename_tac P a b y)
-  apply (drule_tac x="a" in spec)
-  apply (drule_tac x="b" in spec)
-  apply (drule_tac x="\<lambda> _.y" in spec)
-  apply (simp)
-done
+  by (rel_tac)
 
 theorem postcond_equiv:
   "P = (true ;; P) \<longleftrightarrow> (in\<alpha> \<sharp> P)"
-  apply (rel_tac)
-  apply (rename_tac P a b y)
-  apply (drule_tac x="a" in spec)
-  apply (drule_tac x="b" in spec)
-  apply (drule_tac x="\<lambda> _.y" in spec)
-  apply (simp)
-done
+  by (rel_tac)
 
 lemma precond_right_unit: "out\<alpha> \<sharp> p \<Longrightarrow> (p ;; true) = p"
   by (metis precond_equiv)
   
-
 lemma postcond_left_unit: "in\<alpha> \<sharp> p \<Longrightarrow> (true ;; p) = p"
   by (metis postcond_equiv)
 
@@ -411,11 +401,6 @@ theorem precond_left_zero:
   apply (rename_tac p b)
   apply (subgoal_tac "\<exists> b1 b2. p (b1, b2)")
   apply (auto)
-  apply (rule_tac x="b1" in exI)
-  apply (drule_tac x="b1" in spec)
-  apply (drule_tac x="b2" in spec)
-  apply (drule_tac x="\<lambda> _. b" in spec)
-  apply (simp)
 done
 
 subsection {* Converse laws *}
@@ -455,35 +440,16 @@ lemma seqr_convr [simp]: "(p ;; q)\<^sup>- = (q\<^sup>- ;; p\<^sup>-)"
   by rel_tac
 
 theorem seqr_pre_transfer: "in\<alpha> \<sharp> q \<Longrightarrow> ((P \<and> q) ;; R) = (P ;; (q\<^sup>- \<and> R))"
-  apply (rel_tac)
-  apply (rename_tac q P R a b y)
-  apply (rule_tac x="y" in exI, simp)
-  apply (drule_tac x="b" in spec, drule_tac x="y" in spec, drule_tac x="\<lambda>_.a" in spec, simp)
-  apply (rename_tac q P R a b y)
-  apply (rule_tac x="y" in exI, simp)
-  apply (drule_tac x="a" in spec, drule_tac x="y" in spec, drule_tac x="\<lambda>_.b" in spec, simp)
-done
+  by (rel_tac)
 
 theorem seqr_post_out: "in\<alpha> \<sharp> r \<Longrightarrow> (P ;; (Q \<and> r)) = ((P ;; Q) \<and> r)"
-  apply (rel_tac)
-  apply (rename_tac r P Q a b y)
-  apply (drule_tac x="a" in spec, drule_tac x="b" in spec, drule_tac x="\<lambda>_.y" in spec, simp)
-  apply (rename_tac r P Q a b y)
-  apply (rule_tac x="y" in exI)
-  apply (simp, drule_tac x="a" in spec, drule_tac x="b" in spec, drule_tac x="\<lambda>_.y" in spec, simp)
-done
+  by (rel_tac)
 
 theorem seqr_post_transfer: "out\<alpha> \<sharp> q \<Longrightarrow> (P ;; (q \<and> R)) = (P \<and> q\<^sup>- ;; R)"
   by (simp add: seqr_pre_transfer unrest_convr_in\<alpha>)
 
 lemma seqr_pre_out: "out\<alpha> \<sharp> p \<Longrightarrow> ((p \<and> Q) ;; R) = (p \<and> (Q ;; R))"
-  apply (rel_tac)
-  apply (rename_tac p Q R a b y)
-  apply (drule_tac x="a" in spec, drule_tac x="b" in spec, drule_tac x="\<lambda>_.y" in spec, simp)
-  apply (rename_tac p Q R a b y)
-  apply (rule_tac x="y" in exI)
-  apply (simp, drule_tac x="a" in spec, drule_tac x="b" in spec, drule_tac x="\<lambda>_.y" in spec, simp)
-done
+  by (rel_tac)
 
 lemma seqr_true_lemma: 
   "(P = (\<not> (\<not> P ;; true))) = (P = (P ;; true))"

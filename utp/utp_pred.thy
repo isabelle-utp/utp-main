@@ -267,23 +267,23 @@ lemma unrest_not [unrest]: "x \<sharp> P \<Longrightarrow> x \<sharp> (\<not> P)
 
 lemma unrest_ex_same [unrest]:
   "uvar x \<Longrightarrow> x \<sharp> (\<exists> x \<bullet> P)"
-  by (pred_tac, auto simp add: comp_def)
+  by pred_tac
 
 lemma unrest_ex_diff [unrest]:
   assumes "x \<bowtie> y" "y \<sharp> P"
   shows "y \<sharp> (\<exists> x \<bullet> P)"
   using assms 
-  by (pred_tac, auto simp add: uvar_indep_def)
+  by (pred_tac, auto simp add: lens_indep_def)
 
 lemma unrest_all_same [unrest]:
   "uvar x \<Longrightarrow> x \<sharp> (\<forall> x \<bullet> P)"
-  by (pred_tac, auto simp add: comp_def)
+  by pred_tac
 
 lemma unrest_all_diff [unrest]:
   assumes "x \<bowtie> y" "y \<sharp> P"
   shows "y \<sharp> (\<forall> x \<bullet> P)"
   using assms 
-  by (pred_tac, auto simp add: uvar_indep_def)
+  by (pred_tac, auto simp add: lens_indep_def)
 
 lemma unrest_shEx [unrest]: 
   assumes "\<And> y. x \<sharp> P(y)"
@@ -342,7 +342,7 @@ lemma subst_ex_indep [usubst]:
   assumes "x \<bowtie> y" "y \<sharp> v"
   shows "(\<exists> y \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<exists> y \<bullet> P\<lbrakk>v/x\<rbrakk>)" 
   using assms
-  by (pred_tac, auto simp add: uvar_indep_def)
+  by (pred_tac, auto simp add: lens_indep_def)
 
 lemma subst_all_same [usubst]:
   assumes "uvar x"
@@ -353,8 +353,7 @@ lemma subst_all_indep [usubst]:
   assumes "x \<bowtie> y" "y \<sharp> v"
   shows "(\<forall> y \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<forall> y \<bullet> P\<lbrakk>v/x\<rbrakk>)" 
   using assms
-  by (pred_tac, auto simp add: uvar_indep_def)
-
+  by (pred_tac, auto simp add: lens_indep_def)
 
 subsection {* Predicate Laws *}
 
@@ -473,14 +472,14 @@ lemma conj_eq_in_var_subst:
   assumes "uvar x"
   shows "(P \<and> $x =\<^sub>u v) = (P\<lbrakk>v/$x\<rbrakk> \<and> $x =\<^sub>u v)"
   using assms
-  by (pred_tac, (metis semi_uvar.var_update_eta uvar_semi_var)+)
+  by (pred_tac, (metis vwb_lens_wb wb_lens.get_put)+)
 
 lemma conj_eq_out_var_subst:
   fixes x :: "('a, '\<alpha>) uvar"
   assumes "uvar x"
   shows "(P \<and> $x\<acute> =\<^sub>u v) = (P\<lbrakk>v/$x\<acute>\<rbrakk> \<and> $x\<acute> =\<^sub>u v)"
   using assms
-  by (pred_tac, (metis semi_uvar.var_update_eta uvar_semi_var)+)
+  by (pred_tac, (metis vwb_lens_wb wb_lens.get_put)+)
 
 lemma shEx_bool [simp]: "shEx P = (P True \<or> P False)"
   by (pred_tac, metis (full_types))
@@ -545,22 +544,22 @@ lemma subst_eq_replace:
   by pred_tac
 
 lemma exists_twice: "uvar x \<Longrightarrow> (\<exists> x \<bullet> \<exists> x \<bullet> P) = (\<exists> x \<bullet> P)"
-  by (pred_tac, auto simp add: comp_def)
+  by (pred_tac)
 
 lemma all_twice: "uvar x \<Longrightarrow> (\<forall> x \<bullet> \<forall> x \<bullet> P) = (\<forall> x \<bullet> P)"
-  by (pred_tac, auto simp add: comp_def)
+  by (pred_tac)
 
 lemma ex_commute:
   assumes "x \<bowtie> y"
   shows "(\<exists> x \<bullet> \<exists> y \<bullet> P) = (\<exists> y \<bullet> \<exists> x \<bullet> P)"
   using assms
-  by (pred_tac, auto simp add: uvar_indep_def)
+  by (pred_tac, auto simp add: lens_indep_def)
 
 lemma all_commute:
   assumes "x \<bowtie> y"
   shows "(\<forall> x \<bullet> \<forall> y \<bullet> P) = (\<forall> y \<bullet> \<forall> x \<bullet> P)"
   using assms
-  by (pred_tac, auto simp add: uvar_indep_def)
+  by (pred_tac, auto simp add: lens_indep_def)
 
 subsection {* Quantifier lifting *}
 

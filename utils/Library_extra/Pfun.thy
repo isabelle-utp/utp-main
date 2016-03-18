@@ -42,6 +42,9 @@ lift_definition pfun_graph :: "('a, 'b) pfun \<Rightarrow> ('a \<times> 'b) set"
 
 lift_definition graph_pfun :: "('a \<times> 'b) set \<Rightarrow> ('a, 'b) pfun" is graph_map .
 
+definition pcard :: "('a, 'b) pfun \<Rightarrow> nat"
+where "pcard f = card (pdom f)"
+
 instantiation pfun :: (type, type) zero
 begin
 lift_definition zero_pfun :: "('a, 'b) pfun" is "Map.empty" .
@@ -187,6 +190,29 @@ lemma pfun_upd_comm_linorder [simp]:
   assumes "x < y"
   shows "f(y \<mapsto> u, x \<mapsto> v)\<^sub>p = f(x \<mapsto> v, y \<mapsto> u)\<^sub>p"
   using assms by (transfer, auto)
+
+lemma pfun_app_minus [simp]: "x \<notin> pdom g \<Longrightarrow> (f - g)(x)\<^sub>p = f(x)\<^sub>p"
+  by (transfer, auto simp add: map_minus_def)
+
+lemma pfun_upd_minus [simp]: 
+  "x \<notin> pdom g \<Longrightarrow> (f - g)(x \<mapsto> v)\<^sub>p = (f(x \<mapsto> v)\<^sub>p - g)" 
+  by (transfer, auto simp add: map_minus_def)
+
+lemma pdom_member_minus_iff [simp]:
+  "x \<notin> pdom g \<Longrightarrow> x \<in> pdom(f - g) \<longleftrightarrow> x \<in> pdom(f)"
+  by (transfer, simp add: domIff map_minus_def)
+
+lemma psubseteq_pfun_upd1 [intro]: 
+  "\<lbrakk> f \<subseteq>\<^sub>p g; x \<notin> pdom(g) \<rbrakk> \<Longrightarrow> f \<subseteq>\<^sub>p g(x \<mapsto> v)\<^sub>p"
+  by (transfer, auto simp add: map_le_def dom_def)
+
+lemma psubseteq_pfun_upd2 [intro]: 
+  "\<lbrakk> f \<subseteq>\<^sub>p g; x \<notin> pdom(f) \<rbrakk> \<Longrightarrow> f \<subseteq>\<^sub>p g(x \<mapsto> v)\<^sub>p"
+  by (transfer, auto simp add: map_le_def dom_def)
+
+lemma psubseteq_pfun_upd3 [intro]: 
+  "\<lbrakk> f \<subseteq>\<^sub>p g; g(x)\<^sub>p = v \<rbrakk> \<Longrightarrow> f \<subseteq>\<^sub>p g(x \<mapsto> v)\<^sub>p"
+  by (transfer, auto simp add: map_le_def dom_def)
 
 subsection {* Domain laws *}
 
