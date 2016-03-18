@@ -307,37 +307,48 @@ lemma fun_lens_indep:
   by (simp add: fun_lens_def lens_indep_def fun_upd_twist)
 
 definition map_lens :: "'a \<Rightarrow> ('b, 'a \<rightharpoonup> 'b) lens" where
-"map_lens x = \<lparr> lens_get = (\<lambda> f. the (f x)), lens_put = (\<lambda> f u. f(x := Some u)) \<rparr>"
+"map_lens x = \<lparr> lens_get = (\<lambda> f. the (f x)), lens_put = (\<lambda> f u. f(x \<mapsto> u)) \<rparr>"
 
 lemma map_mwb_lens: "mwb_lens (map_lens x)"
   by (unfold_locales, simp_all add: map_lens_def)
 
-fun list_update_alt :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a list" where
-"list_update_alt [] n y = (if (n = 0) then [y] else undefined # list_update_alt [] (n - 1) y)" |
-"list_update_alt (x # xs) n y = (if (n = 0) then y # xs else x # list_update_alt xs (n - 1) y)"
+definition list_pad_out :: "'a list \<Rightarrow> nat \<Rightarrow> 'a list" where
+"list_pad_out xs k = xs @ replicate (k + 1 - length xs) undefined"
 
-declare list_update_alt.simps [simp del]
+definition list_augment :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a list" where
+"list_augment xs k v = (list_pad_out xs k)[k := v]"
 
-lemma nth_list_update_alt: "(list_update_alt xs i x) ! i = x"
-  apply (induct xs)
-  apply (subst list_update_alt.simps)
-  apply (auto)
-  apply (induct i)
-  apply (auto)
-  apply (simp add: list_update_alt.simps(1))
-  apply (subst list_update_alt.simps)
-  apply (auto)
-  apply (induct i)
-  apply (auto)
-  apply (smt One_nat_def diff_Suc_1 less_Suc_eq_le less_numeral_extra(3) less_or_eq_imp_le list_update_alt.elims list_update_alt.simps(2) neq0_conv nth_Cons')
+lemma list_update_append_lemma1: "i < length xs \<Longrightarrow> xs[i := v] @ ys = (xs @ ys)[i := v]"
+  by (simp add: list_update_append)
+
+lemma list_update_append_lemma2: "i < length ys \<Longrightarrow> xs @ ys[i := v] = (xs @ ys)[i + length xs := v]"
+  by (simp add: list_update_append)
+
+lemma list_augment_twice:
+  "list_augment (list_augment xs i u) j v = list_pad_out xs (max i j)[i := u, j := v]"
+  apply (auto simp add: list_augment_def list_pad_out_def list_update_append_lemma1 replicate_add[THEN sym] max_def)
+  apply (metis Suc_le_mono add.commute diff_diff_add diff_le_mono le_add_diff_inverse2)
 done
 
+lemma list_augment_commute:
+  "i \<noteq> j \<Longrightarrow> list_augment (list_augment \<sigma> j v) i u = list_augment (list_augment \<sigma> i u) j v"
+  by (simp add: list_augment_twice list_update_swap max.commute)
+
+lemma nth_list_augment: "list_augment xs k v ! k = v"
+  by (simp add: list_augment_def list_pad_out_def)
+
+lemma list_augment_same_twice: "list_augment (list_augment xs k u) k v = list_augment xs k v"
+  by (simp add: list_augment_def list_pad_out_def)
+
 definition list_lens :: "nat \<Rightarrow> ('a, 'a list) lens" where
-"list_lens i = \<lparr> lens_get = (\<lambda> xs. xs ! i), lens_put = (\<lambda> xs x. list_update_alt xs i x) \<rparr>"
+"list_lens i = \<lparr> lens_get = (\<lambda> xs. xs ! i), lens_put = (\<lambda> xs x. list_augment xs i x) \<rparr>"
 
 lemma list_mwb_lens: "mwb_lens (list_lens x)"
-  apply (unfold_locales, simp_all add: list_lens_def)
-oops
+  by (unfold_locales, simp_all add: list_lens_def nth_list_augment list_augment_same_twice)
+
+lemma list_lens_indep:
+  "i \<noteq> j \<Longrightarrow> list_lens i \<bowtie> list_lens j"
+  by (simp add: list_lens_def lens_indep_def list_augment_commute)
 
 lemma sublens_least: "wb_lens x \<Longrightarrow> 0\<^sub>l \<subseteq>\<^sub>l x"
   using sublens_def unit_wb_lens by fastforce
@@ -352,6 +363,5 @@ lemma lens_comp_le:
 lemma lens_nequiv_intro:
   "\<lbrakk> mwb_lens x; \<forall> u v \<sigma>. lens_put x (lens_put y \<sigma> v) u \<noteq> lens_put x \<sigma> u \<rbrakk> \<Longrightarrow> \<not> (x \<approx>\<^sub>l y)"
   by (meson lens_equiv_def sublens_put_put)
-
 
 end
