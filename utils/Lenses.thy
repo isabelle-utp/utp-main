@@ -8,6 +8,9 @@ record ('a, '\<alpha>) lens =
   lens_get :: "'\<alpha> \<Rightarrow> 'a" ("get\<index>")
   lens_put :: "'\<alpha> \<Rightarrow> 'a \<Rightarrow> '\<alpha>" ("put\<index>")
 
+definition lens_create :: "('a, '\<alpha>) lens \<Rightarrow> 'a \<Rightarrow> '\<alpha>" ("create\<index>") where
+"lens_create x v = lens_put x undefined v"
+
 definition effectual :: "('a, '\<alpha>) lens \<Rightarrow> bool" where
 "effectual x = (\<forall> \<sigma>. \<exists> v. lens_put x \<sigma> v \<noteq> \<sigma>)"
 
@@ -46,6 +49,12 @@ locale weak_lens =
   fixes x :: "('a, '\<alpha>) lens" (structure)
   assumes put_get: "get (put \<sigma> v) = v"
 begin
+
+  lemma create_get: "get (create v) = v"
+    by (simp add: lens_create_def put_get)
+
+  lemma create_inj: "inj create"
+    by (metis create_get injI)
 
   definition update :: "('a \<Rightarrow> 'a) \<Rightarrow> ('\<alpha> \<Rightarrow> '\<alpha>)" where
   "update f \<sigma> = put \<sigma> (f (get \<sigma>))"
@@ -169,9 +178,56 @@ lemma sublens_trans:
   apply (simp add: lens_comp_assoc)
   using comp_wb_lens apply blast
 done
+
+(* 
+lemma "\<lbrakk>  mwb_lens x; y \<subseteq>\<^sub>l x \<rbrakk> \<Longrightarrow> put\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<sigma> (get\<^bsub>x\<^esub> \<rho>)) v = put\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> \<sigma> v) (get\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> \<rho> v))"
+
+lemma sublens_put_put:
+  assumes "vwb_lens x" "vwb_lens y"
+  shows "y \<subseteq>\<^sub>l x \<longleftrightarrow> (\<forall> \<sigma> \<rho> u v. put\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> \<sigma> v) u = put\<^bsub>x\<^esub> \<sigma> u \<and> get\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<sigma> v) = get\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<rho> v))"
+proof
+  assume "y \<subseteq>\<^sub>l x"
+  then obtain z where z: "wb_lens z" "y = z ;\<^sub>l x"
+    by (auto simp add: sublens_def)
+  moreover thus "\<forall> \<sigma> \<rho> u v. put\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> \<sigma> v) u = put\<^bsub>x\<^esub> \<sigma> u \<and> get\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<sigma> v) = get\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<rho> v)"
+    by (simp add: lens_comp_def assms)
+next
+  assume a: "\<forall>\<sigma> \<rho> u v. put\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> \<sigma> v) u = put\<^bsub>x\<^esub> \<sigma> u \<and> get\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<sigma> v) = get\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<rho> v)"
+  
+  let ?z = "\<lparr> lens_get = \<lambda> v. get\<^bsub>y\<^esub> (create\<^bsub>x\<^esub> v)
+            , lens_put = \<lambda> \<sigma> v. get\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> (create\<^bsub>x\<^esub> \<sigma>) v) \<rparr>"
+
+  from a have "wb_lens ?z"
+    apply (unfold_locales)
+    apply (auto simp add: lens_create_def assms)
+    apply (metis assms(1) assms(2) vwb_lens.put_eq vwb_lens_wb wb_lens_weak weak_lens.put_get)
+  done
+
+  moreover from a have "get\<^bsub>y\<^esub> = get\<^bsub>?z ;\<^sub>l x\<^esub>"
+    apply (auto simp add:lens_comp_def comp_def assms)
+by (metis assms(1) lens_create_def vwb_lens_wb wb_lens.get_put)
+
+  moreover from a assms have "put\<^bsub>y\<^esub> = put\<^bsub>?z ;\<^sub>l x\<^esub>"
+    apply (simp add: lens_comp_def)
+    apply (rule ext)
+    apply (rule ext)
+    apply (subgoal_tac "put\<^bsub>y\<^esub> (create\<^bsub>x\<^esub> (get\<^bsub>x\<^esub> \<sigma>)) v = create\<^bsub>x\<^esub> (get\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> \<sigma> v))")
+    apply (metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.create_get)
+    apply (simp add: lens_create_def)
+
+    nitpick
+
+  thus "y \<subseteq>\<^sub>l x"
+    apply (unfold sublens_def)
+    nitpick
+*)
  
 lemma sublens_put_put:
   "\<lbrakk> mwb_lens x; y \<subseteq>\<^sub>l x \<rbrakk> \<Longrightarrow> lens_put x (lens_put y \<sigma> v) u = lens_put x \<sigma> u"
+  by (auto simp add: sublens_def lens_comp_def)
+
+lemma sublens_obs_get:
+  "\<lbrakk> mwb_lens x; y \<subseteq>\<^sub>l x \<rbrakk> \<Longrightarrow>  get\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<sigma> v) = get\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<rho> v)"
   by (auto simp add: sublens_def lens_comp_def)
 
 definition lens_equiv :: "('a, '\<alpha>) lens \<Rightarrow> ('b, '\<alpha>) lens \<Rightarrow> bool" (infix "\<approx>\<^sub>l" 51) where
