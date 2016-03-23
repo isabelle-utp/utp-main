@@ -44,30 +44,22 @@ declare tr_def [upred_defs]
 declare ref_def [upred_defs]
 
 lemma tr_ok_indep [simp]: "tr \<bowtie> ok" "ok \<bowtie> tr"
-  by (simp add: lens_indep_def, pred_tac)+
+  by (auto intro!: lens_indepI, pred_tac+)
 
 lemma wait_ok_indep [simp]: "wait \<bowtie> ok" "ok \<bowtie> wait"
-  by (simp add: lens_indep_def, pred_tac)+
+  by (auto intro!: lens_indepI, pred_tac+)
 
 lemma ref_ok_indep [simp]: "ref \<bowtie> ok" "ok \<bowtie> ref"
-  by (simp add: lens_indep_def, pred_tac)+
+  by (auto intro!: lens_indepI, pred_tac+)
 
 lemma tr_wait_indep [simp]: "tr \<bowtie> wait" "wait \<bowtie> tr"
-  by (simp add: lens_indep_def, pred_tac)+
+  by (auto intro!: lens_indepI, pred_tac+)
 
 lemma ref_wait_indep [simp]: "ref \<bowtie> wait" "wait \<bowtie> ref"
-  by (simp add: lens_indep_def, pred_tac)+
+  by (auto intro!: lens_indepI, pred_tac+)
 
 lemma tr_ref_indep [simp]: "ref \<bowtie> tr" "tr \<bowtie> ref"
-  by (simp add: lens_indep_def, pred_tac)+
-
-term put_vstore
-
-term "alpha_rp.more_update (\<lambda>_. put_vstore x s) "
-
-term alpha_d.more
-term alpha_rp.more_update
-term alpha_d.extend
+  by (auto intro!: lens_indepI, pred_tac+)
 
 instantiation alpha_rp_ext :: (type, vst) vst
 begin
