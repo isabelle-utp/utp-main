@@ -80,30 +80,31 @@ definition ind_uvar_1 :: "('a, '\<alpha> alphabet_d) uvar \<Rightarrow> ('a, ('\
 
 text {* Extract the ith element of the second part *}
 
-definition "ind_uvar i x = x ;\<^sub>l des_lens ;\<^sub>l list_lens i ;\<^sub>l snd\<^sub>l"
+definition "ind_uvar i x = x ;\<^sub>l list_lens i ;\<^sub>l snd\<^sub>l ;\<^sub>l des_lens"
 
-definition "pre_uvar x = x ;\<^sub>l des_lens ;\<^sub>l fst\<^sub>l"
+definition "pre_uvar x = x ;\<^sub>l fst\<^sub>l ;\<^sub>l des_lens"
 
-(*
-definition ind_uvar :: "nat \<Rightarrow> ('a, '\<alpha> alphabet_d) uvar \<Rightarrow> ('a, ('\<alpha> \<times> '\<alpha> partition) alphabet_d) uvar" where
-"ind_uvar i x = 
-  \<lparr> var_lookup = var_lookup x \<circ> (\<lambda> A. \<lparr> des_ok = des_ok A, \<dots> = snd (more A) ! i \<rparr>)
-  , var_update = (\<lambda> f A. let A' = var_update x f \<lparr> des_ok = des_ok A, \<dots> = snd (more A) ! i \<rparr>
-                          in \<lparr> des_ok = des_ok A, \<dots> = (fst (more A), snd (more A)[i := more A']) \<rparr>) \<rparr>"
-*)
+definition "in_ind_uvar i x = in_var (ind_uvar i x)"
 
+definition "out_ind_uvar i x = out_var (ind_uvar i x)"
 
+definition "in_ind_uexpr i x = var (in_ind_uvar i x)"
 
-(*
-definition pre_uvar :: "('a, '\<alpha> alphabet_d) uvar \<Rightarrow> ('a, ('\<alpha> \<times> '\<alpha> partition) alphabet_d) uvar" where
-"pre_uvar x = \<lparr> var_lookup = var_lookup x \<circ> (\<lambda> A. \<lparr> des_ok = des_ok A, \<dots> = fst (more A) \<rparr>)
-              , var_update = undefined \<rparr>"
-*)
+definition "out_ind_uexpr i x = var (out_ind_uvar i x)"
 
-(*
-(\<lambda> f A. let A' = var_update x f \<lparr> des_ok = des_ok A, \<dots> = snd (more A) ! i \<rparr>
-                            in \<lparr> des_ok = des_ok A, \<dots> = (fst (more A), more A[i := more A']) \<rparr>)
-*)
+declare in_ind_uvar_def [upred_defs]
+declare out_ind_uvar_def [upred_defs]
+
+declare in_ind_uexpr_def [upred_defs]
+declare out_ind_uexpr_def [upred_defs]
+
+thm lens_comp_assoc[THEN sym]
+
+lemma ind_uvar_indep:
+  "\<lbrakk>mwb_lens x; i \<noteq> j\<rbrakk> \<Longrightarrow> ind_uvar i x \<bowtie> ind_uvar j x"
+  apply (simp add: ind_uvar_def lens_comp_assoc[THEN sym])
+  apply (metis lens_indep_left_comp lens_indep_right_comp list_lens_indep out_var_def out_var_indep uvar_des_lens vwb_lens_mwb)
+done
 
 lemma ind_uvar_semi_uvar:
   "semi_uvar x \<Longrightarrow> semi_uvar (ind_uvar i x)"
@@ -113,6 +114,7 @@ oops
 
 syntax
   "_uprevar"  :: "('t, '\<alpha>) uvar \<Rightarrow> logic" ("$\<^sub><_" [999] 999)
+  "_upostvar"  :: "('t, '\<alpha>) uvar \<Rightarrow> logic" ("$\<^sub>>_" [999] 999)
   "_udotvar"  :: "nat \<Rightarrow> ('t, '\<alpha>) uvar \<Rightarrow> logic" ("&_._" [0,999] 999)
   "_uidotvar" :: "nat \<Rightarrow> ('t, '\<alpha>) uvar \<Rightarrow> logic" ("$_._" [0,999] 999)
   "_uodotvar" :: "nat \<Rightarrow> ('t, '\<alpha>) uvar \<Rightarrow> logic" ("$_._\<acute>" [999] 999)
@@ -122,9 +124,10 @@ syntax
 
 translations
   "_uprevar x" == "CONST var (CONST in_var (CONST pre_uvar x))"
+  "_upostvar x" == "CONST var (CONST out_var (CONST pre_uvar x))"
   "_udotvar n x" == "CONST var (CONST ind_uvar n x)"
-  "_uidotvar n x" == "CONST var (CONST in_var (CONST ind_uvar n x))"
-  "_uidotvar n x" == "CONST var (CONST out_var (CONST ind_uvar n x))"
+  "_uidotvar n x" == "CONST in_ind_uexpr n x"
+  "_uodotvar n x" == "CONST out_ind_uexpr n x"
   "_sdotvar n x" == "CONST ind_uvar n x"
   "_sin_dotvar n x" == "CONST in_var (CONST ind_uvar n x)"
   "_sout_dotvar n x" == "CONST out_var (CONST ind_uvar n x)"
@@ -132,24 +135,29 @@ translations
 
 type_synonym '\<alpha> merge = "('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d partition, '\<alpha>) relation_d"
 
-term "$ok\<acute> =\<^sub>u ($0.ok \<and> $1.ok)"
+text {* Separating simulations. I assume that the value of ok' should track the value
+  of n.ok'. *}
 
-term "($0.ok \<and> $1.ok)"
+definition sep_sim :: "_ \<Rightarrow> _" ("U'(_')")
+where "U(n) = (($(n).\<Sigma>\<acute> =\<^sub>u $\<Sigma>) \<and> ($ok\<acute> =\<^sub>u $ok))"
 
-text {* Separating simulations *}
+declare sep_sim_def [upred_defs]
 
-lift_definition sep_sim :: "nat \<Rightarrow> ('\<alpha>, ('\<alpha> alphabet_d) partition) relation_d" ("U'(_')") is
-"\<lambda> n (A, A'). des_ok A' = des_ok A \<and> length (alpha_d.more A') > n \<and> alpha_d.more A' ! n = A" .
+lemma var_lookup_univ_alpha [simp]:
+  "var_lookup \<Sigma> = id"
+  by (simp add: univ_alpha_def id_lens_def)
 
-lift_definition alpha_ext :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<alpha> alphabet_d \<times> '\<beta>) relation_d" ("_\<^sub>+" [999] 999) is
-"\<lambda> P (A, A'). P (A, \<lparr> des_ok = des_ok A', \<dots> = snd (more A')\<rparr>) \<and> des_ok A' = des_ok A \<and> fst (more A') = A" .
+text {* The following implementation of parallel by merge is less general than the book version, in
+  that it does not properly partition the alphabet into two disjoint segments. We could actually
+  achieve this specifying lenses into the larger alphabet, but this would complicate the definition
+  of programs. May reconsider later. *}
 
-text {* Parallel by merge *}
-
-term "((P ;; U(0)) \<parallel> (Q ;; U(1)))\<^sub>+"
-
-definition design_par_by_merge :: 
+definition par_by_merge :: 
   "'\<alpha> hrelation_d \<Rightarrow> '\<alpha> merge \<Rightarrow> '\<alpha> hrelation_d \<Rightarrow> '\<alpha> hrelation_d" (infixr "\<parallel>\<^bsub>_\<^esub>" 85) 
-where "P \<parallel>\<^bsub>M\<^esub> Q = (((P ;; U(0)) \<parallel> (Q ;; U(1)))\<^sub>+ ;; M)"
+where "P \<parallel>\<^bsub>M\<^esub> Q = ((((P ;; U(0)) \<parallel> (Q ;; U(1))) \<and> $\<^sub>>\<Sigma> =\<^sub>u $\<Sigma>) ;; M)"
+
+definition "swap\<^sub>m = (($0.\<Sigma>\<acute> =\<^sub>u $1.\<Sigma>) \<and> ($1.\<Sigma>\<acute> =\<^sub>u $0.\<Sigma>) \<and> ($\<^sub><\<Sigma> =\<^sub>u $\<^sub>>\<Sigma>))"
+
+declare swap\<^sub>m_def [upred_defs]
 
 end

@@ -266,24 +266,26 @@ lemma unrest_not [unrest]: "x \<sharp> P \<Longrightarrow> x \<sharp> (\<not> P)
   by (pred_tac)
 
 lemma unrest_ex_same [unrest]:
-  "uvar x \<Longrightarrow> x \<sharp> (\<exists> x \<bullet> P)"
+  "semi_uvar x \<Longrightarrow> x \<sharp> (\<exists> x \<bullet> P)"
   by pred_tac
 
 lemma unrest_ex_diff [unrest]:
   assumes "x \<bowtie> y" "y \<sharp> P"
   shows "y \<sharp> (\<exists> x \<bullet> P)"
   using assms 
-  by (pred_tac, auto simp add: lens_indep_def)
+  apply (pred_tac)
+  using lens_indep_comm apply fastforce+
+done
 
 lemma unrest_all_same [unrest]:
-  "uvar x \<Longrightarrow> x \<sharp> (\<forall> x \<bullet> P)"
+  "semi_uvar x \<Longrightarrow> x \<sharp> (\<forall> x \<bullet> P)"
   by pred_tac
 
 lemma unrest_all_diff [unrest]:
   assumes "x \<bowtie> y" "y \<sharp> P"
   shows "y \<sharp> (\<forall> x \<bullet> P)"
   using assms 
-  by (pred_tac, auto simp add: lens_indep_def)
+  by (pred_tac, simp_all add: lens_indep_comm)
 
 lemma unrest_shEx [unrest]: 
   assumes "\<And> y. x \<sharp> P(y)"
@@ -334,7 +336,7 @@ lemma subst_shAll [usubst]: "\<sigma> \<dagger> (\<^bold>\<forall> x \<bullet> P
 text {* TODO: Generalise the quantifier substitution laws to n-ary substitutions *}
 
 lemma subst_ex_same [usubst]:
-  assumes "uvar x"
+  assumes "semi_uvar x"
   shows "(\<exists> x \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<exists> x \<bullet> P)"
   by (simp add: assms id_subst subst_unrest unrest_ex_same)
 
@@ -342,10 +344,12 @@ lemma subst_ex_indep [usubst]:
   assumes "x \<bowtie> y" "y \<sharp> v"
   shows "(\<exists> y \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<exists> y \<bullet> P\<lbrakk>v/x\<rbrakk>)" 
   using assms
-  by (pred_tac, auto simp add: lens_indep_def)
-
+  apply (pred_tac)
+  using lens_indep_comm apply fastforce+
+done
+ 
 lemma subst_all_same [usubst]:
-  assumes "uvar x"
+  assumes "semi_uvar x"
   shows "(\<forall> x \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<forall> x \<bullet> P)"
   by (simp add: assms id_subst subst_unrest unrest_all_same)
 
@@ -353,7 +357,7 @@ lemma subst_all_indep [usubst]:
   assumes "x \<bowtie> y" "y \<sharp> v"
   shows "(\<forall> y \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<forall> y \<bullet> P\<lbrakk>v/x\<rbrakk>)" 
   using assms
-  by (pred_tac, auto simp add: lens_indep_def)
+  by (pred_tac, simp_all add: lens_indep_comm)
 
 subsection {* Predicate Laws *}
 
@@ -494,7 +498,7 @@ lemma upred_eq_false [simp]: "(p =\<^sub>u false) = (\<not> p)"
   by pred_tac
 
 lemma one_point:
-  assumes "uvar x" "x \<sharp> v"
+  assumes "semi_uvar x" "x \<sharp> v"
   shows "(\<exists> x \<bullet> (P \<and> (var x =\<^sub>u v))) = P\<lbrakk>v/x\<rbrakk>"
   using assms
   by (simp add: upred_defs, transfer, auto)
@@ -543,23 +547,27 @@ lemma subst_eq_replace:
   shows "(p\<lbrakk>u/x\<rbrakk> \<and> u =\<^sub>u v) = (p\<lbrakk>v/x\<rbrakk> \<and> u =\<^sub>u v)"
   by pred_tac
 
-lemma exists_twice: "uvar x \<Longrightarrow> (\<exists> x \<bullet> \<exists> x \<bullet> P) = (\<exists> x \<bullet> P)"
+lemma exists_twice: "semi_uvar x \<Longrightarrow> (\<exists> x \<bullet> \<exists> x \<bullet> P) = (\<exists> x \<bullet> P)"
   by (pred_tac)
 
-lemma all_twice: "uvar x \<Longrightarrow> (\<forall> x \<bullet> \<forall> x \<bullet> P) = (\<forall> x \<bullet> P)"
+lemma all_twice: "semi_uvar x \<Longrightarrow> (\<forall> x \<bullet> \<forall> x \<bullet> P) = (\<forall> x \<bullet> P)"
   by (pred_tac)
 
 lemma ex_commute:
   assumes "x \<bowtie> y"
   shows "(\<exists> x \<bullet> \<exists> y \<bullet> P) = (\<exists> y \<bullet> \<exists> x \<bullet> P)"
   using assms
-  by (pred_tac, auto simp add: lens_indep_def)
+  apply (pred_tac)
+  using lens_indep_comm apply fastforce+
+done
 
 lemma all_commute:
   assumes "x \<bowtie> y"
   shows "(\<forall> x \<bullet> \<forall> y \<bullet> P) = (\<forall> y \<bullet> \<forall> x \<bullet> P)"
   using assms
-  by (pred_tac, auto simp add: lens_indep_def)
+  apply (pred_tac)
+  using lens_indep_comm apply fastforce+
+done
 
 subsection {* Quantifier lifting *}
 

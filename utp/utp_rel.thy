@@ -99,18 +99,18 @@ declare rel_var_res_def [urel_defs]
 
 subsection {* Unrestriction Laws *}
 
-lemma unrest_iuvar [unrest]: "uvar x \<Longrightarrow> out\<alpha> \<sharp> $x"
+lemma unrest_iuvar [unrest]: "semi_uvar x \<Longrightarrow> out\<alpha> \<sharp> $x"
   by (simp add: out\<alpha>_def iuvar_def, transfer, auto)
 
-lemma unrest_ouvar [unrest]: "uvar x \<Longrightarrow> in\<alpha> \<sharp> $x\<acute>"
+lemma unrest_ouvar [unrest]: "semi_uvar x \<Longrightarrow> in\<alpha> \<sharp> $x\<acute>"
   by (simp add: in\<alpha>_def ouvar_def, transfer, auto)
 
 lemma unrest_in\<alpha>_var [unrest]:
-  "\<lbrakk> uvar x; in\<alpha> \<sharp> P \<rbrakk> \<Longrightarrow> $x \<sharp> P"
+  "\<lbrakk> semi_uvar x; in\<alpha> \<sharp> P \<rbrakk> \<Longrightarrow> $x \<sharp> P"
   by (pred_tac, simp add: in\<alpha>_def)
 
 lemma unrest_out\<alpha>_var [unrest]:
-  "\<lbrakk> uvar x; out\<alpha> \<sharp> P \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> P"
+  "\<lbrakk> semi_uvar x; out\<alpha> \<sharp> P \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> P"
   by (pred_tac, simp add: out\<alpha>_def)
 
 lemma in\<alpha>_uvar [simp]: "uvar in\<alpha>"
@@ -154,7 +154,7 @@ subsection {* Substitution laws *}
 text {* It should be possible to substantially generalise the following two laws *}
 
 lemma usubst_seq_left [usubst]: 
-  "\<lbrakk> uvar x; out\<alpha> \<sharp> v \<rbrakk> \<Longrightarrow> (P ;; Q)\<lbrakk>v/$x\<rbrakk> = ((P\<lbrakk>v/$x\<rbrakk>) ;; Q)"
+  "\<lbrakk> semi_uvar x; out\<alpha> \<sharp> v \<rbrakk> \<Longrightarrow> (P ;; Q)\<lbrakk>v/$x\<rbrakk> = ((P\<lbrakk>v/$x\<rbrakk>) ;; Q)"
   apply (rel_tac)
   apply (rename_tac x v P Q a y ya)
   apply (rule_tac x="ya" in exI)
@@ -172,7 +172,7 @@ lemma usubst_seq_left [usubst]:
 done
 
 lemma usubst_seq_right [usubst]: 
-  "\<lbrakk> uvar x; in\<alpha> \<sharp> v \<rbrakk> \<Longrightarrow> (P ;; Q)\<lbrakk>v/$x\<acute>\<rbrakk> = (P ;; Q\<lbrakk>v/$x\<acute>\<rbrakk>)"
+  "\<lbrakk> semi_uvar x; in\<alpha> \<sharp> v \<rbrakk> \<Longrightarrow> (P ;; Q)\<lbrakk>v/$x\<acute>\<rbrakk> = (P ;; Q\<lbrakk>v/$x\<acute>\<rbrakk>)"
   apply (rel_tac)
   apply (rename_tac x v P Q b xa ya)
   apply (rule_tac x="ya" in exI)
@@ -320,11 +320,11 @@ lemma pre_skip_post: "(\<lceil>b\<rceil>\<^sub>< \<and> II) = (II \<and> \<lceil
   by (rel_tac)
 
 lemma seqr_exists_left:
-  "uvar x \<Longrightarrow> ((\<exists> $x \<bullet> P) ;; Q) = (\<exists> $x \<bullet> (P ;; Q))"
+  "semi_uvar x \<Longrightarrow> ((\<exists> $x \<bullet> P) ;; Q) = (\<exists> $x \<bullet> (P ;; Q))"
   by (rel_tac, auto simp add: comp_def)
 
 lemma seqr_exists_right:
-  "uvar x \<Longrightarrow> (P ;; (\<exists> $x\<acute> \<bullet> Q)) = (\<exists> $x\<acute> \<bullet> (P ;; Q))"
+  "semi_uvar x \<Longrightarrow> (P ;; (\<exists> $x\<acute> \<bullet> Q)) = (\<exists> $x\<acute> \<bullet> (P ;; Q))"
   by (rel_tac, auto simp add: comp_def)
 
 text {* We should be able to generalise this law to arbitrary assignments at some point,
@@ -332,22 +332,22 @@ text {* We should be able to generalise this law to arbitrary assignments at som
         only on @{const "in\<alpha>"}. *}
 
 lemma assign_subst [usubst]:
-  "\<lbrakk> uvar x; uvar y \<rbrakk> \<Longrightarrow> [$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> (y := v) = (x, y := u, [x \<mapsto>\<^sub>s u] \<dagger> v)"
+  "\<lbrakk> semi_uvar x; semi_uvar y \<rbrakk> \<Longrightarrow> [$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> (y := v) = (x, y := u, [x \<mapsto>\<^sub>s u] \<dagger> v)"
   by rel_tac
  
-lemma assigns_idem: "uvar x \<Longrightarrow> (x,x := u,v) = (x := v)"
+lemma assigns_idem: "semi_uvar x \<Longrightarrow> (x,x := u,v) = (x := v)"
   by (simp add: usubst)
 
 lemma assigns_comp: "(assigns_r f ;; assigns_r g) = assigns_r (g \<circ> f)" 
   by (transfer, auto simp add:relcomp_unfold)
 
-lemma assigns_r_comp: "uvar x \<Longrightarrow> (\<langle>\<sigma>\<rangle>\<^sub>a ;; P) = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P)"
+lemma assigns_r_comp: "semi_uvar x \<Longrightarrow> (\<langle>\<sigma>\<rangle>\<^sub>a ;; P) = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P)"
   by rel_tac
 
-lemma assign_r_comp: "uvar x \<Longrightarrow> (x := u ;; P) = ([$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> P)"
+lemma assign_r_comp: "semi_uvar x \<Longrightarrow> (x := u ;; P) = ([$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> P)"
   by (simp add: assigns_r_comp usubst)
 
-lemma assign_test: "uvar x \<Longrightarrow> (x := \<guillemotleft>u\<guillemotright> ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright>)"
+lemma assign_test: "semi_uvar x \<Longrightarrow> (x := \<guillemotleft>u\<guillemotright> ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright>)"
   by (simp add: assigns_comp subst_upd_comp subst_lit usubst_upd_idem)
 
 lemma skip_r_unfold:

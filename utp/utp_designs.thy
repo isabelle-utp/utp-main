@@ -399,6 +399,8 @@ qed
 
 subsection {* H2: A specification cannot require non-termination *}
 
+declare [[show_types]]
+
 lemma J_split: 
   shows "(P ;; J) = (P\<^sup>f \<or> (P\<^sup>t \<and> $ok\<acute>))"
 proof -
@@ -417,7 +419,7 @@ proof -
       also have "... = (\<exists> $ok\<acute> \<bullet> P \<and> $ok\<acute> =\<^sub>u false)"
         by (rel_tac, metis (mono_tags, lifting) alpha_d.surjective alpha_d.update_convs(1))
       also have "... = P\<^sup>f"
-        by (metis one_point out_var_uvar ouvar_def unrest_false uvar_ok)
+        by (metis one_point out_var_uvar ouvar_def unrest_false uvar_ok vwb_lens_mwb)
      finally show ?thesis .
     qed
     moreover have "(P ;; ($ok \<and> (\<lceil>II\<rceil>\<^sub>D \<and> $ok\<acute>))) = (P\<^sup>t \<and> $ok\<acute>)"
@@ -614,7 +616,7 @@ theorem H3_design_pre:
   assumes "$ok \<sharp> p" "out\<alpha> \<sharp> p" "$ok \<sharp> Q" "$ok\<acute> \<sharp> Q"
   shows "H3(p \<turnstile> Q) = p \<turnstile> Q"
   using assms
-  by (metis Healthy_def' design_H3_iff_pre precond_right_unit unrest_out\<alpha>_var uvar_ok) 
+  by (metis Healthy_def' design_H3_iff_pre precond_right_unit unrest_out\<alpha>_var uvar_ok vwb_lens_mwb) 
 
 theorem H3_rdesign_pre:
   assumes "out\<alpha> \<sharp> p"

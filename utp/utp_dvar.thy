@@ -269,7 +269,10 @@ text {* Deep variables with different names are independent *}
 lemma dvar_indep_diff_name:
   assumes "dvar_name x \<noteq> dvar_name y"
   shows "x\<up> \<bowtie> y\<up>"
-  by (simp add: assms dvar_lift_def lens_indep_def vstore_put_commute)
+  using assms
+  apply (auto simp add: assms dvar_lift_def lens_indep_def vstore_put_commute)
+  using assms apply auto
+done
 
 lemma dvar_indep_diff_name' [simp]:
   "x \<noteq> y \<Longrightarrow> \<lceil>x\<rceil>\<^sub>d\<up> \<bowtie> \<lceil>y\<rceil>\<^sub>d\<up>"

@@ -93,11 +93,11 @@ lemma out_in_indep [simp]:
 
 lemma in_var_indep [simp]:
   "x \<bowtie> y \<Longrightarrow> in_var x \<bowtie> in_var y"
-  by (simp add: lens_indep_def in_var_def out_var_def fst_lens_def snd_lens_def lens_comp_def)
+  by (simp add: in_var_def out_var_def fst_vwb_lens lens_indep_left_comp)
 
 lemma out_var_indep [simp]:
   "x \<bowtie> y \<Longrightarrow> out_var x \<bowtie> out_var y"
-  by (simp add: lens_indep_def in_var_def out_var_def fst_lens_def snd_lens_def lens_comp_def)
+  by (simp add: lens_indep_left_comp out_var_def snd_vwb_lens)
 
 text {* We also define some lookup abstraction simplifications. *}
 

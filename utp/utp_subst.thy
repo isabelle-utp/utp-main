@@ -108,7 +108,7 @@ lemma usubst_upd_comm_dash [usubst]:
   using in_out_indep usubst_upd_comm by force
 
 lemma usubst_lookup_upd_indep [usubst]:
-  assumes "uvar x" "x \<bowtie> y"
+  assumes "semi_uvar x" "x \<bowtie> y"
   shows "\<langle>\<sigma>(y \<mapsto>\<^sub>s v)\<rangle>\<^sub>s x = \<langle>\<sigma>\<rangle>\<^sub>s x"
   using assms
   by (simp add: subst_upd_uvar_def, transfer, simp)
