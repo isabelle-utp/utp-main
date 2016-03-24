@@ -39,10 +39,8 @@ type_synonym ('a, '\<alpha>) uvar = "('a, '\<alpha>) lens"
 text {* The $VAR$ function is a syntactic translations that allows to retrieve a variable given its 
         name, assuming the variable is a field in a record. *}
 
-abbreviation "rec_put f \<equiv> (\<lambda> \<sigma> u. f (\<lambda>_. u) \<sigma>)"
-
 syntax "_VAR" :: "id \<Rightarrow> ('a, 'r) uvar"  ("VAR _")
-translations "VAR x" => "\<lparr> lens_get = x, lens_put = CONST rec_put (_update_name x) \<rparr>"
+translations "VAR x" => "FLDLENS x"
 
 abbreviation var_lookup :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> \<Rightarrow> 'a" where
 "var_lookup \<equiv> lens_get"

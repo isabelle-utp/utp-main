@@ -209,6 +209,13 @@ lemma lens_indep_right_comp:
   apply (simp add: lens_indep_sym)
 done
   
+lemma lens_indep_left_ext:
+  "y \<bowtie> z \<Longrightarrow> (x ;\<^sub>l y) \<bowtie> z" 
+  apply (auto intro!: lens_indepI simp add: lens_comp_def)
+  apply (simp add: lens_indep_comm)
+  apply (simp add: lens_indep_sym)
+done
+
 subsection {* Very well-behaved lenses *}
 
 locale vwb_lens = wb_lens + mwb_lens
@@ -256,6 +263,23 @@ lemma fst_vwb_lens: "vwb_lens fst\<^sub>l"
 lemma snd_vwb_lens: "vwb_lens snd\<^sub>l"
   by (unfold_locales, simp_all add: snd_lens_def prod.case_eq_if)
 
+subsection {* Bijective lenses *}
+
+locale bij_lens = weak_lens +
+  assumes strong_get_put: "put s (get s') = s'"
+
+sublocale bij_lens \<subseteq> vwb_lens
+proof
+  fix \<sigma> v u
+  show "put \<sigma> (get \<sigma>) = \<sigma>"
+    by (simp add: strong_get_put)
+  show "put (put \<sigma> v) u = put \<sigma> u"
+    by (metis put_get strong_get_put)
+qed
+  
+lemma "bij_lens I\<^sub>l"
+  by (unfold_locales, simp_all add: id_lens_def)
+
 subsection {* Order and equivalence on lenses *}
 
 definition sublens :: "('a, '\<alpha>) lens \<Rightarrow> ('b, '\<alpha>) lens \<Rightarrow> bool" (infix "\<subseteq>\<^sub>l" 55) where
@@ -301,8 +325,107 @@ lemma lens_equiv_trans:
   "\<lbrakk> x \<approx>\<^sub>l y; y \<approx>\<^sub>l z \<rbrakk> \<Longrightarrow> x \<approx>\<^sub>l z"
   by (auto intro: sublens_trans simp add: lens_equiv_def)
 
-lemma unit_lens_indep: "\<not> (x \<approx>\<^sub>l 0\<^sub>l) \<Longrightarrow> 0\<^sub>l \<bowtie> x"
+lemma unit_lens_indep: "0\<^sub>l \<bowtie> x"
   by (auto simp add: unit_lens_def lens_indep_def lens_equiv_def)
+
+lemma fst_snd_id_lens: "fst\<^sub>l \<times>\<^sub>l snd\<^sub>l = I\<^sub>l"
+  by (auto simp add: prod_lens_def fst_lens_def snd_lens_def id_lens_def)
+
+lemma sublens_pres_indep:
+  "\<lbrakk> x \<subseteq>\<^sub>l y; y \<bowtie> z \<rbrakk> \<Longrightarrow> x \<bowtie> z" 
+  apply (auto intro!:lens_indepI simp add: sublens_def lens_comp_def lens_indep_comm)
+  apply (simp add: lens_indep_sym)
+done
+
+lemma prod_pres_lens_indep: "\<lbrakk> x \<bowtie> z; y \<bowtie> z \<rbrakk> \<Longrightarrow> (x \<times>\<^sub>l y) \<bowtie> z"
+  apply (rule lens_indepI)
+  apply (simp_all add: prod_lens_def prod.case_eq_if)
+  apply (simp add: lens_indep_comm)
+  apply (simp add: lens_indep_sym)
+done
+
+lemma prod_lens_distr: "mwb_lens z \<Longrightarrow> (x \<times>\<^sub>l y) ;\<^sub>l z = (x ;\<^sub>l z) \<times>\<^sub>l (y ;\<^sub>l z)"
+  by (auto simp add: lens_comp_def prod_lens_def comp_def)
+
+lemma lens_comp_indep_cong_left:
+  "\<lbrakk> mwb_lens z; x ;\<^sub>l z \<bowtie> y ;\<^sub>l z \<rbrakk> \<Longrightarrow> x \<bowtie> y"
+  apply (rule lens_indepI)
+  apply (rename_tac u v \<sigma>)
+  apply (drule_tac u=u and v=v and \<sigma>="create\<^bsub>z\<^esub> \<sigma>" in lens_indep_comm)
+  apply (simp add: lens_comp_def)
+  apply (meson mwb_lens_weak weak_lens.view_determination)
+  apply (rename_tac v \<sigma>)
+  apply (drule_tac v=v and \<sigma>="create\<^bsub>z\<^esub> \<sigma>" in lens_indep_get)
+  apply (simp add: lens_comp_def)
+  apply (drule lens_indep_sym)
+  apply (rename_tac u \<sigma>)
+  apply (drule_tac v=u and \<sigma>="create\<^bsub>z\<^esub> \<sigma>" in lens_indep_get)
+  apply (simp add: lens_comp_def)
+done
+  
+lemma prod_pred_sublens: "\<lbrakk> mwb_lens z; x \<subseteq>\<^sub>l z; y \<subseteq>\<^sub>l z; x \<bowtie> y \<rbrakk> \<Longrightarrow> (x \<times>\<^sub>l y) \<subseteq>\<^sub>l z"
+  apply (auto simp add: sublens_def)
+  apply (rule_tac x="za \<times>\<^sub>l zaa" in exI)
+  apply (auto intro!: prod_wb_lens)
+  using lens_comp_indep_cong_left apply blast
+  apply (simp add: prod_lens_distr)
+done
+
+lemma lens_prod_sub_assoc_1:
+  "\<lbrakk> x \<bowtie> y; y \<bowtie> z; x \<bowtie> z \<rbrakk> \<Longrightarrow> x \<times>\<^sub>l y \<times>\<^sub>l z \<subseteq>\<^sub>l (x \<times>\<^sub>l y) \<times>\<^sub>l z"
+  apply (simp add: sublens_def)
+  apply (rule_tac x="(fst\<^sub>l ;\<^sub>l fst\<^sub>l) \<times>\<^sub>l (snd\<^sub>l ;\<^sub>l fst\<^sub>l) \<times>\<^sub>l snd\<^sub>l" in exI)
+  apply (auto)
+  apply (rule prod_wb_lens)
+  apply (simp add: comp_vwb_lens fst_vwb_lens)
+  apply (rule prod_wb_lens)
+  apply (simp add: comp_vwb_lens fst_vwb_lens snd_vwb_lens)
+  apply (simp add: snd_vwb_lens)
+  apply (simp add: fst_snd_lens_indep lens_indep_left_ext)
+  apply (rule lens_indep_sym)
+  apply (rule prod_pres_lens_indep)
+  using fst_snd_lens_indep fst_vwb_lens lens_indep_left_comp lens_indep_sym vwb_lens_mwb apply blast
+  using fst_snd_lens_indep lens_indep_left_ext lens_indep_sym apply blast
+  apply (auto simp add: prod_lens_def lens_comp_def fst_lens_def snd_lens_def prod.case_eq_if split_beta')[1]
+done
+
+lemma lens_prod_sub_assoc_2:
+  "\<lbrakk> x \<bowtie> y; y \<bowtie> z; x \<bowtie> z \<rbrakk> \<Longrightarrow> (x \<times>\<^sub>l y) \<times>\<^sub>l z \<subseteq>\<^sub>l  x \<times>\<^sub>l y \<times>\<^sub>l z"
+  apply (simp add: sublens_def)
+  apply (rule_tac x="(fst\<^sub>l \<times>\<^sub>l (fst\<^sub>l ;\<^sub>l snd\<^sub>l)) \<times>\<^sub>l (snd\<^sub>l ;\<^sub>l snd\<^sub>l)" in exI)
+  apply (auto)
+  apply (rule prod_wb_lens)
+  apply (rule prod_wb_lens)
+  apply (simp add: fst_vwb_lens)
+  apply (simp add: comp_vwb_lens fst_vwb_lens snd_vwb_lens)
+  apply (rule lens_indep_sym)
+  apply (rule lens_indep_left_ext)
+  using fst_snd_lens_indep lens_indep_sym apply blast
+  apply (auto intro: comp_wb_lens simp add: snd_vwb_lens)
+  apply (rule prod_pres_lens_indep)
+  apply (simp add: fst_snd_lens_indep lens_indep_left_ext lens_indep_sym)
+  apply (simp add: fst_snd_lens_indep lens_indep_left_comp snd_vwb_lens)
+  apply (auto simp add: prod_lens_def lens_comp_def fst_lens_def snd_lens_def prod.case_eq_if split_beta')[1]
+done
+
+lemma lens_prod_sub_assoc:
+  "\<lbrakk> x \<bowtie> y; y \<bowtie> z; x \<bowtie> z \<rbrakk> \<Longrightarrow> (x \<times>\<^sub>l y) \<times>\<^sub>l z \<approx>\<^sub>l x \<times>\<^sub>l y \<times>\<^sub>l z"
+  by (simp add: lens_equivI lens_prod_sub_assoc_1 lens_prod_sub_assoc_2)
+
+lemma lens_prod_swap:
+  "x \<bowtie> y \<Longrightarrow> (snd\<^sub>l \<times>\<^sub>l fst\<^sub>l) ;\<^sub>l (x \<times>\<^sub>l y) = (y \<times>\<^sub>l x)"
+  by (auto simp add: prod_lens_def fst_lens_def snd_lens_def id_lens_def lens_comp_def lens_indep_comm)
+
+lemma lens_prod_sub_comm: "x \<bowtie> y \<Longrightarrow> x \<times>\<^sub>l y \<subseteq>\<^sub>l y \<times>\<^sub>l x"
+  apply (simp add: sublens_def)
+  apply (rule_tac x="snd\<^sub>l \<times>\<^sub>l fst\<^sub>l" in exI)
+  apply (auto)
+  apply (simp add: fst_snd_lens_indep fst_vwb_lens lens_indep_sym prod_wb_lens snd_vwb_lens)
+  apply (simp add: lens_indep_sym lens_prod_swap)
+done
+  
+lemma lens_prod_comm: "x \<bowtie> y \<Longrightarrow> x \<times>\<^sub>l y \<approx>\<^sub>l y \<times>\<^sub>l x"
+  by (simp add: lens_equivI lens_indep_sym lens_prod_sub_comm)
 
 lemma lens_prod_ub: "wb_lens y \<Longrightarrow> x \<subseteq>\<^sub>l x \<times>\<^sub>l y"
   by (metis fst_lens_prod fst_vwb_lens sublens_def vwb_lens_wb)
@@ -310,13 +433,28 @@ lemma lens_prod_ub: "wb_lens y \<Longrightarrow> x \<subseteq>\<^sub>l x \<times
 lemma lens_comp_lb: "wb_lens x \<Longrightarrow> x ;\<^sub>l y \<subseteq>\<^sub>l y"
   using sublens_def by blast
 
-lemma prod_lens_distr: "mwb_lens z \<Longrightarrow> (x \<times>\<^sub>l y) ;\<^sub>l z = (x ;\<^sub>l z) \<times>\<^sub>l (y ;\<^sub>l z)"
-  by (auto simp add: lens_comp_def prod_lens_def comp_def)
+lemma "x \<subseteq>\<^sub>l 0\<^sub>l \<times>\<^sub>l x"
+  by (metis lens_comp_lb snd_lens_prod snd_vwb_lens unit_lens_indep unit_wb_lens vwb_lens_wb)
+
+lemma lens_unit_prod_sublens: "0\<^sub>l \<times>\<^sub>l x \<subseteq>\<^sub>l x"
+  apply (auto simp add: sublens_def)
+  apply (rule_tac x="0\<^sub>l \<times>\<^sub>l I\<^sub>l" in exI)
+  apply (auto)
+  apply (rule prod_wb_lens)
+  apply (simp add: unit_wb_lens)
+  apply (simp add: id_wb_lens)
+  apply (simp add: unit_lens_indep)
+  apply (auto simp add: prod_lens_def unit_lens_def lens_comp_def id_lens_def prod.case_eq_if comp_def)
+  apply (rule ext)
+  apply (rule ext)
+  apply (auto)
+done
 
 lemma lens_restrict_mwb:
   "\<lbrakk> mwb_lens x; mwb_lens y; x \<subseteq>\<^sub>l y \<rbrakk> \<Longrightarrow> mwb_lens (x \\\<^sub>l y)"
   apply (unfold_locales)
-  apply (auto simp add: lens_restrict_def lens_create_def sublens_def lens_comp_def comp_def)
+  apply (auto simp add: lens_restrict_def lens_create_def sublens_def lens_comp_def comp_def)[1]
+  apply (auto simp add: lens_restrict_def sublens_def lens_comp_def comp_def)
   apply (smt lens.select_convs(2) mwb_lens.put_put mwb_lens_weak weak_lens.put_get)
 done
 
@@ -391,5 +529,12 @@ lemma sublens_least: "wb_lens x \<Longrightarrow> 0\<^sub>l \<subseteq>\<^sub>l 
 lemma lens_nequiv_intro:
   "\<lbrakk> mwb_lens x; \<forall> u v \<sigma>. lens_put x (lens_put y \<sigma> v) u \<noteq> lens_put x \<sigma> u \<rbrakk> \<Longrightarrow> \<not> (x \<approx>\<^sub>l y)"
   by (meson lens_equiv_def sublens_put_put)
+
+subsection {* Record field lenses *}
+
+abbreviation "fld_put f \<equiv> (\<lambda> \<sigma> u. f (\<lambda>_. u) \<sigma>)"
+
+syntax "_FLDLENS" :: "id \<Rightarrow> ('a, 'r) lens"  ("FLDLENS _")
+translations "FLDLENS x" => "\<lparr> lens_get = x, lens_put = CONST fld_put (_update_name x) \<rparr>"
 
 end
