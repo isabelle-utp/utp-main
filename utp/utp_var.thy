@@ -60,10 +60,10 @@ abbreviation "uvar \<equiv> vwb_lens"
         to a tuple alphabet. *}
 
 definition in_var :: "('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>) uvar" where
-"in_var x = x ;\<^sub>l fst\<^sub>l"
+"in_var x = x ;\<^sub>L fst\<^sub>L"
 
 definition out_var :: "('a, '\<beta>) uvar \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>) uvar" where
-"out_var x = x ;\<^sub>l snd\<^sub>l"
+"out_var x = x ;\<^sub>L snd\<^sub>L"
 
 lemma in_var_semi_uvar [simp]:
   "semi_uvar x \<Longrightarrow> semi_uvar (in_var x)"
@@ -116,17 +116,7 @@ text {* Variables can also be used to effectively define sets of variables. Here
         and update functions. Effectively this is just a function directly on the alphabet type. *}
 
 definition univ_alpha :: "('\<alpha>, '\<alpha>) uvar" ("\<Sigma>") where
-"univ_alpha = id_lens"
-
-text {* The following operator attempts to combine two variables to produce a unified projection
-        update pair. I hoped this could be used to define alphabet subsets by allowing
-        a finite composition of variables. However, I don't think it works as the update
-        function can't really be split into it's constituent parts if, e.g. the update of
-        the first component depends on the second etc. You really want to update the two
-        fields in parallel, but I don't think this is possible. *}
-
-definition uvar_comp :: "('a, '\<alpha>) uvar \<Rightarrow> ('b, '\<alpha>) uvar \<Rightarrow> ('a \<times> 'b, '\<alpha>) uvar" (infix "\<circ>\<^sub>v" 65) where
-"uvar_comp x y = prod_lens x y"
+"univ_alpha = 1\<^sub>L"
 
 nonterminal svar
 
