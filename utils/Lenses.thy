@@ -437,6 +437,10 @@ lemma lens_quotient_comp:
   "\<lbrakk> weak_lens Y; X \<subseteq>\<^sub>L Y \<rbrakk> \<Longrightarrow> (X /\<^sub>L Y) ;\<^sub>L Y = X"
   by (auto simp add: lens_quotient_def lens_comp_def comp_def sublens_def)
 
+lemma lens_comp_quotient:
+  "weak_lens Y \<Longrightarrow> (X ;\<^sub>L Y) /\<^sub>L Y = X"
+  by (simp add: lens_quotient_def lens_comp_def)
+
 lemma lens_quotient_id: "weak_lens X \<Longrightarrow> (X /\<^sub>L X) = 1\<^sub>L"
   by (force simp add: lens_quotient_def id_lens_def)
 
@@ -657,6 +661,9 @@ lemma prod_lens_sublens_cong:
   apply (auto simp add: prod_lens_def lens_comp_def prod.case_eq_if)
 done
 
+lemma prod_as_plus: "X \<times>\<^sub>L Y = X ;\<^sub>L fst\<^sub>L +\<^sub>L Y ;\<^sub>L snd\<^sub>L"
+  by (auto simp add: prod_lens_def fst_lens_def snd_lens_def lens_comp_def lens_plus_def)
+
 lemma prod_lens_equiv_cong:
   "\<lbrakk> X\<^sub>1 \<approx>\<^sub>L X\<^sub>2; Y\<^sub>1 \<approx>\<^sub>L Y\<^sub>2 \<rbrakk> \<Longrightarrow> (X\<^sub>1 \<times>\<^sub>L Y\<^sub>1) \<approx>\<^sub>L (X\<^sub>2 \<times>\<^sub>L Y\<^sub>2)"
   by (simp add: lens_equiv_def prod_lens_sublens_cong)
@@ -665,9 +672,35 @@ lemma prod_lens_id_equiv:
   "1\<^sub>L \<times>\<^sub>L 1\<^sub>L = 1\<^sub>L"
   by (auto simp add: prod_lens_def id_lens_def)
 
-(* TODO: Prove this
-lemma "(P\<^sub>1 +\<^sub>L P\<^sub>2) \<times>\<^sub>L (Q\<^sub>1 +\<^sub>L Q\<^sub>2) \<approx>\<^sub>L (P\<^sub>1 \<times>\<^sub>L Q\<^sub>1) +\<^sub>L (P\<^sub>2 \<times>\<^sub>L Q\<^sub>2)"
-*)
+lemma lens_indep_prod:
+  "\<lbrakk> X\<^sub>1 \<bowtie> X\<^sub>2; Y\<^sub>1 \<bowtie> Y\<^sub>2 \<rbrakk> \<Longrightarrow> X\<^sub>1 \<times>\<^sub>L Y\<^sub>1 \<bowtie> X\<^sub>2 \<times>\<^sub>L Y\<^sub>2"
+  apply (rule lens_indepI)
+  apply (auto simp add: prod_lens_def prod.case_eq_if lens_indep_comm map_prod_def)
+  apply (simp_all add: lens_indep_sym)
+done
+
+lemma lens_plus_prod_exchange:
+  "(X\<^sub>1 +\<^sub>L X\<^sub>2) \<times>\<^sub>L (Y\<^sub>1 +\<^sub>L Y\<^sub>2) \<approx>\<^sub>L (X\<^sub>1 \<times>\<^sub>L Y\<^sub>1) +\<^sub>L (X\<^sub>2 \<times>\<^sub>L Y\<^sub>2)"
+proof (rule lens_equivI)
+  show "(X\<^sub>1 +\<^sub>L X\<^sub>2) \<times>\<^sub>L (Y\<^sub>1 +\<^sub>L Y\<^sub>2) \<subseteq>\<^sub>L (X\<^sub>1 \<times>\<^sub>L Y\<^sub>1) +\<^sub>L (X\<^sub>2 \<times>\<^sub>L Y\<^sub>2)"
+    apply (simp add: sublens_def)
+    apply (rule_tac x="((fst\<^sub>L ;\<^sub>L fst\<^sub>L) +\<^sub>L (fst\<^sub>L ;\<^sub>L snd\<^sub>L)) +\<^sub>L ((snd\<^sub>L ;\<^sub>L fst\<^sub>L) +\<^sub>L (snd\<^sub>L ;\<^sub>L snd\<^sub>L))" in exI)
+    apply (auto)
+    apply (auto intro!: plus_vwb_lens comp_vwb_lens fst_vwb_lens snd_vwb_lens lens_indep_right_comp)
+    apply (auto intro!: lens_indepI simp add: lens_comp_def lens_plus_def fst_lens_def snd_lens_def)
+    apply (auto simp add: prod_lens_def lens_plus_def lens_comp_def fst_lens_def snd_lens_def prod.case_eq_if comp_def)[1]
+    apply (rule ext, rule ext, auto simp add: prod.case_eq_if)
+  done  
+  show "(X\<^sub>1 \<times>\<^sub>L Y\<^sub>1) +\<^sub>L (X\<^sub>2 \<times>\<^sub>L Y\<^sub>2) \<subseteq>\<^sub>L (X\<^sub>1 +\<^sub>L X\<^sub>2) \<times>\<^sub>L (Y\<^sub>1 +\<^sub>L Y\<^sub>2)"
+    apply (simp add: sublens_def)
+    apply (rule_tac x="((fst\<^sub>L ;\<^sub>L fst\<^sub>L) +\<^sub>L (fst\<^sub>L ;\<^sub>L snd\<^sub>L)) +\<^sub>L ((snd\<^sub>L ;\<^sub>L fst\<^sub>L) +\<^sub>L (snd\<^sub>L ;\<^sub>L snd\<^sub>L))" in exI)
+    apply (auto)
+    apply (auto intro!: plus_vwb_lens comp_vwb_lens fst_vwb_lens snd_vwb_lens lens_indep_right_comp)
+    apply (auto intro!: lens_indepI simp add: lens_comp_def lens_plus_def fst_lens_def snd_lens_def)
+    apply (auto simp add: prod_lens_def lens_plus_def lens_comp_def fst_lens_def snd_lens_def prod.case_eq_if comp_def)[1]
+    apply (rule ext, rule ext, auto simp add: prod_lens_def prod.case_eq_if)
+  done
+qed
 
 definition fun_lens :: "'a \<Rightarrow> ('b, 'a \<Rightarrow> 'b) lens" where
 "fun_lens x = \<lparr> lens_get = (\<lambda> f. f x), lens_put = (\<lambda> f u. f(x := u)) \<rparr>"
