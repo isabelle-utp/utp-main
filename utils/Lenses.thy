@@ -266,9 +266,10 @@ lemma snd_vwb_lens: "vwb_lens snd\<^sub>l"
 subsection {* Bijective lenses *}
 
 locale bij_lens = weak_lens +
-  assumes strong_get_put: "put s (get s') = s'"
+  assumes strong_get_put: "put \<sigma> (get \<rho>) = \<rho>"
+begin
 
-sublocale bij_lens \<subseteq> vwb_lens
+sublocale vwb_lens
 proof
   fix \<sigma> v u
   show "put \<sigma> (get \<sigma>) = \<sigma>"
@@ -276,9 +277,20 @@ proof
   show "put (put \<sigma> v) u = put \<sigma> u"
     by (metis put_get strong_get_put)
 qed
-  
-lemma "bij_lens I\<^sub>l"
+
+lemma put_is_create: "put \<sigma> v = create v"
+  by (metis create_get strong_get_put)
+
+end
+
+definition lens_inv :: "('a, 'b) lens \<Rightarrow> ('b, 'a) lens" where
+"lens_inv x = \<lparr> lens_get = create\<^bsub>x\<^esub>, lens_put = \<lambda> \<sigma>. get\<^bsub>x\<^esub> \<rparr>"
+
+lemma id_bij_lens: "bij_lens I\<^sub>l"
   by (unfold_locales, simp_all add: id_lens_def)
+
+lemma inv_id_lens: "lens_inv I\<^sub>l = I\<^sub>l"
+  by (auto simp add: lens_inv_def id_lens_def lens_create_def)
 
 subsection {* Order and equivalence on lenses *}
 
@@ -311,7 +323,7 @@ definition lens_equiv :: "('a, '\<alpha>) lens \<Rightarrow> ('b, '\<alpha>) len
 
 lemma lens_equivI [intro]:
   "\<lbrakk> x \<subseteq>\<^sub>l y; y \<subseteq>\<^sub>l x \<rbrakk> \<Longrightarrow> x \<approx>\<^sub>l y"
-  by (simp add: lens_equiv_def)
+  by (simp add: lens_equiv_def) 
 
 lemma lens_equiv_refl:
   "x \<approx>\<^sub>l x"
@@ -433,10 +445,10 @@ lemma lens_prod_ub: "wb_lens y \<Longrightarrow> x \<subseteq>\<^sub>l x \<times
 lemma lens_comp_lb: "wb_lens x \<Longrightarrow> x ;\<^sub>l y \<subseteq>\<^sub>l y"
   using sublens_def by blast
 
-lemma "x \<subseteq>\<^sub>l 0\<^sub>l \<times>\<^sub>l x"
+lemma lens_unit_prod_sublens_1: "x \<subseteq>\<^sub>l 0\<^sub>l \<times>\<^sub>l x"
   by (metis lens_comp_lb snd_lens_prod snd_vwb_lens unit_lens_indep unit_wb_lens vwb_lens_wb)
 
-lemma lens_unit_prod_sublens: "0\<^sub>l \<times>\<^sub>l x \<subseteq>\<^sub>l x"
+lemma lens_unit_prod_sublens_2: "0\<^sub>l \<times>\<^sub>l x \<subseteq>\<^sub>l x"
   apply (auto simp add: sublens_def)
   apply (rule_tac x="0\<^sub>l \<times>\<^sub>l I\<^sub>l" in exI)
   apply (auto)
@@ -456,7 +468,7 @@ lemma lens_restrict_mwb:
   apply (auto simp add: lens_restrict_def lens_create_def sublens_def lens_comp_def comp_def)[1]
   apply (auto simp add: lens_restrict_def sublens_def lens_comp_def comp_def)
   apply (smt lens.select_convs(2) mwb_lens.put_put mwb_lens_weak weak_lens.put_get)
-done
+done  
 
 subsection {* Lense implementations *}
 
