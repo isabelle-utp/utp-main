@@ -13,8 +13,10 @@ record ('a, 'b) lens =
 type_notation
   lens (infixr "\<Longrightarrow>" 0)
 
+named_theorems lens_defs
+
 definition lens_create :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ("create\<index>") where
-"lens_create X v = lens_put X undefined v"
+[lens_defs]: "lens_create X v = lens_put X undefined v"
 
 definition effectual :: "('a \<Longrightarrow> 'b) \<Rightarrow> bool" where
 "effectual X = (\<forall> \<sigma>. \<exists> v. lens_put X \<sigma> v \<noteq> \<sigma>)"
@@ -24,17 +26,18 @@ abbreviation "ineffectual X \<equiv> (\<not> effectual X)"
 subsection {* Lens composition, plus, unit, and identity *}
 
 definition lens_comp :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> ('a \<Longrightarrow> 'c)" (infixr ";\<^sub>L" 80) where
-"lens_comp Y X = \<lparr> lens_get = lens_get Y \<circ> lens_get X, lens_put = (\<lambda> \<sigma> v. lens_put X \<sigma> (lens_put Y (lens_get X \<sigma>) v)) \<rparr>"
+[lens_defs]: "lens_comp Y X = \<lparr> lens_get = lens_get Y \<circ> lens_get X
+                              , lens_put = (\<lambda> \<sigma> v. lens_put X \<sigma> (lens_put Y (lens_get X \<sigma>) v)) \<rparr>"
 
 definition lens_plus :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Longrightarrow> 'c" (infixr "+\<^sub>L" 75) where
-"X +\<^sub>L Y = \<lparr> lens_get = (\<lambda> \<sigma>. (lens_get X \<sigma>, lens_get Y \<sigma>))
-          , lens_put = (\<lambda> \<sigma> (u, v). lens_put X (lens_put Y \<sigma> v) u) \<rparr>"
+[lens_defs]: "X +\<^sub>L Y = \<lparr> lens_get = (\<lambda> \<sigma>. (lens_get X \<sigma>, lens_get Y \<sigma>))
+                       , lens_put = (\<lambda> \<sigma> (u, v). lens_put X (lens_put Y \<sigma> v) u) \<rparr>"
 
 definition fst_lens :: "'a \<Longrightarrow> 'a \<times> 'b" ("fst\<^sub>L") where
-"fst\<^sub>L = \<lparr> lens_get = fst, lens_put = (\<lambda> (\<sigma>, \<rho>) u. (u, \<rho>)) \<rparr>"
+[lens_defs]: "fst\<^sub>L = \<lparr> lens_get = fst, lens_put = (\<lambda> (\<sigma>, \<rho>) u. (u, \<rho>)) \<rparr>"
 
 definition snd_lens :: "'b \<Longrightarrow> 'a \<times> 'b" ("snd\<^sub>L") where
-"snd\<^sub>L = \<lparr> lens_get = snd, lens_put = (\<lambda> (\<sigma>, \<rho>) u. (\<sigma>, u)) \<rparr>"
+[lens_defs]: "snd\<^sub>L = \<lparr> lens_get = snd, lens_put = (\<lambda> (\<sigma>, \<rho>) u. (\<sigma>, u)) \<rparr>"
 
 lemma get_fst_lens [simp]: "get\<^bsub>fst\<^sub>L\<^esub> (x, y) = x"
   by (simp add: fst_lens_def)
@@ -43,7 +46,7 @@ lemma get_snd_lens [simp]: "get\<^bsub>snd\<^sub>L\<^esub> (x, y) = y"
   by (simp add: snd_lens_def)
 
 definition unit_lens :: "unit \<Longrightarrow> 'a" ("0\<^sub>L") where
-"0\<^sub>L = \<lparr> lens_get = (\<lambda> _. ()), lens_put = (\<lambda> \<sigma> x. \<sigma>) \<rparr>"
+[lens_defs]: "0\<^sub>L = \<lparr> lens_get = (\<lambda> _. ()), lens_put = (\<lambda> \<sigma> x. \<sigma>) \<rparr>"
 
 lemma ineffectual_unit_lens: "ineffectual 0\<^sub>L"
   by (auto simp add: effectual_def unit_lens_def)
@@ -52,10 +55,11 @@ text {* The quotient operator $X /_L Y$ shortens lens $X$ by cutting off $Y$ fro
   thus the dual of the composition operator. *} 
 
 definition lens_quotient :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> 'a \<Longrightarrow> 'b" (infixr "'/\<^sub>L" 90) where
-"X /\<^sub>L Y = \<lparr> lens_get = \<lambda> \<sigma>. get\<^bsub>X\<^esub> (create\<^bsub>Y\<^esub> \<sigma>), lens_put = \<lambda> \<sigma> v. get\<^bsub>Y\<^esub> (put\<^bsub>X\<^esub> (create\<^bsub>Y\<^esub> \<sigma>) v) \<rparr>"
+[lens_defs]: "X /\<^sub>L Y = \<lparr> lens_get = \<lambda> \<sigma>. get\<^bsub>X\<^esub> (create\<^bsub>Y\<^esub> \<sigma>)
+                       , lens_put = \<lambda> \<sigma> v. get\<^bsub>Y\<^esub> (put\<^bsub>X\<^esub> (create\<^bsub>Y\<^esub> \<sigma>) v) \<rparr>"
 
 definition id_lens :: "'a \<Longrightarrow> 'a" ("1\<^sub>L") where
-"1\<^sub>L = \<lparr> lens_get = id, lens_put = (\<lambda> _. id) \<rparr>"
+[lens_defs]: "1\<^sub>L = \<lparr> lens_get = id, lens_put = (\<lambda> _. id) \<rparr>"
 
 lemma lens_comp_assoc: "(X ;\<^sub>L Y) ;\<^sub>L Z = X ;\<^sub>L (Y ;\<^sub>L Z)"
   by (auto simp add: lens_comp_def)
@@ -80,7 +84,7 @@ begin
     by (metis create_get injI)
 
   definition update :: "('a \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'b)" where
-  "update f \<sigma> = put \<sigma> (f (get \<sigma>))"
+  [lens_defs]: "update f \<sigma> = put \<sigma> (f (get \<sigma>))"
 
   lemma get_update: "get (update f \<sigma>) = f (get \<sigma>)"
     by (simp add: put_get update_def)
@@ -321,7 +325,7 @@ lemma bij_lens_vwb [simp]: "bij_lens x \<Longrightarrow> vwb_lens x"
   by (unfold_locales, simp_all add: bij_lens.put_is_create)
 
 definition lens_inv :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('b \<Longrightarrow> 'a)" where
-"lens_inv x = \<lparr> lens_get = create\<^bsub>x\<^esub>, lens_put = \<lambda> \<sigma>. get\<^bsub>x\<^esub> \<rparr>"
+[lens_defs]: "lens_inv x = \<lparr> lens_get = create\<^bsub>x\<^esub>, lens_put = \<lambda> \<sigma>. get\<^bsub>x\<^esub> \<rparr>"
 
 lemma id_bij_lens: "bij_lens 1\<^sub>L"
   by (unfold_locales, simp_all add: id_lens_def)
@@ -338,7 +342,7 @@ text {* A lens $X$ is a sub-lens of $Y$ if there is a well-behaved lens $Z$ such
   or in other words if $X$ can be expressed purely in terms of $Y$. *}
 
 definition sublens :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> bool" (infix "\<subseteq>\<^sub>L" 55) where
-"sublens X Y = (\<exists> Z :: ('a, 'b) lens. vwb_lens Z \<and> X = Z ;\<^sub>L Y)"
+[lens_defs]: "sublens X Y = (\<exists> Z :: ('a, 'b) lens. vwb_lens Z \<and> X = Z ;\<^sub>L Y)"
 
 lemma sublens_pres_mwb:
   "\<lbrakk> mwb_lens Y; X \<subseteq>\<^sub>L Y \<rbrakk> \<Longrightarrow> mwb_lens X"
@@ -380,7 +384,7 @@ lemma sublens_obs_get:
   by (auto simp add: sublens_def lens_comp_def)
 
 definition lens_equiv :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> bool" (infix "\<approx>\<^sub>L" 51) where
-"lens_equiv X Y = (X \<subseteq>\<^sub>L Y \<and> Y \<subseteq>\<^sub>L X)"
+[lens_defs]: "lens_equiv X Y = (X \<subseteq>\<^sub>L Y \<and> Y \<subseteq>\<^sub>L X)"
 
 lemma lens_equivI [intro]:
   "\<lbrakk> X \<subseteq>\<^sub>L Y; Y \<subseteq>\<^sub>L X \<rbrakk> \<Longrightarrow> X \<approx>\<^sub>L Y"
@@ -541,7 +545,7 @@ lemma lens_comp_lb: "vwb_lens X \<Longrightarrow> X ;\<^sub>L Y \<subseteq>\<^su
   by (auto simp add: sublens_def)
 
 lemma lens_unit_plus_sublens_1: "X \<subseteq>\<^sub>L 0\<^sub>L +\<^sub>L X"
-  by (metis lens_comp_lb snd_lens_prod snd_vwb_lens unit_lens_indep unit_wb_lens vwb_lens_wb)
+  by (metis lens_comp_lb snd_lens_prod snd_vwb_lens unit_lens_indep unit_wb_lens)
 
 lemma lens_unit_prod_sublens_2: "0\<^sub>L +\<^sub>L x \<subseteq>\<^sub>L x"
   apply (auto simp add: sublens_def)
@@ -580,6 +584,10 @@ lemma bij_lens_equiv_id:
   apply (simp)
   apply (metis (no_types, lifting) vwb_lens_wb wb_lens_weak weak_lens.put_get)
 done
+
+lemma bij_lens_equiv:
+  "\<lbrakk> bij_lens X; X \<approx>\<^sub>L Y \<rbrakk> \<Longrightarrow> bij_lens Y"
+  by (meson bij_lens_equiv_id lens_equiv_def sublens_trans)
 
 lemma lens_id_unique:
   "weak_lens Y \<Longrightarrow> Y = X ;\<^sub>L Y \<Longrightarrow> X = 1\<^sub>L"
@@ -645,8 +653,8 @@ subsection {* Lens implementations *}
 text {* Product functor lens *}
 
 definition prod_lens :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longrightarrow> 'd) \<Rightarrow> ('a \<times> 'b \<Longrightarrow> 'c \<times> 'd)" (infixr "\<times>\<^sub>L" 85) where
-"prod_lens X Y = \<lparr> lens_get = map_prod get\<^bsub>X\<^esub> get\<^bsub>Y\<^esub>
-                 , lens_put = \<lambda> (u, v) (x, y). (put\<^bsub>X\<^esub> u x, put\<^bsub>Y\<^esub> v y) \<rparr>"
+[lens_defs]: "prod_lens X Y = \<lparr> lens_get = map_prod get\<^bsub>X\<^esub> get\<^bsub>Y\<^esub>
+                              , lens_put = \<lambda> (u, v) (x, y). (put\<^bsub>X\<^esub> u x, put\<^bsub>Y\<^esub> v y) \<rparr>"
 
 lemma prod_mwb_lens:
   "\<lbrakk> mwb_lens X; mwb_lens Y \<rbrakk> \<Longrightarrow> mwb_lens (X \<times>\<^sub>L Y)"
@@ -658,6 +666,10 @@ lemma prod_wb_lens:
 
 lemma prod_vwb_lens:
   "\<lbrakk> vwb_lens X; vwb_lens Y \<rbrakk> \<Longrightarrow> vwb_lens (X \<times>\<^sub>L Y)"
+  by (unfold_locales, simp_all add: prod_lens_def prod.case_eq_if)
+
+lemma prod_bij_lens:
+  "\<lbrakk> bij_lens X; bij_lens Y \<rbrakk> \<Longrightarrow> bij_lens (X \<times>\<^sub>L Y)"
   by (unfold_locales, simp_all add: prod_lens_def prod.case_eq_if)
 
 lemma prod_as_plus: "X \<times>\<^sub>L Y = X ;\<^sub>L fst\<^sub>L +\<^sub>L Y ;\<^sub>L snd\<^sub>L"
@@ -714,7 +726,7 @@ proof (rule lens_equivI)
 qed
 
 definition fun_lens :: "'a \<Rightarrow> ('b \<Longrightarrow> ('a \<Rightarrow> 'b))" where
-"fun_lens x = \<lparr> lens_get = (\<lambda> f. f x), lens_put = (\<lambda> f u. f(x := u)) \<rparr>"
+[lens_defs]: "fun_lens x = \<lparr> lens_get = (\<lambda> f. f x), lens_put = (\<lambda> f u. f(x := u)) \<rparr>"
 
 lemma fun_wb_lens: "wb_lens (fun_lens x)"
   by (unfold_locales, simp_all add: fun_lens_def)
@@ -724,7 +736,7 @@ lemma fun_lens_indep:
   by (simp add: fun_lens_def lens_indep_def fun_upd_twist)
 
 definition map_lens :: "'a \<Rightarrow> ('b \<Longrightarrow> ('a \<rightharpoonup> 'b))" where
-"map_lens x = \<lparr> lens_get = (\<lambda> f. the (f x)), lens_put = (\<lambda> f u. f(x \<mapsto> u)) \<rparr>"
+[lens_defs]: "map_lens x = \<lparr> lens_get = (\<lambda> f. the (f x)), lens_put = (\<lambda> f u. f(x \<mapsto> u)) \<rparr>"
 
 lemma map_mwb_lens: "mwb_lens (map_lens x)"
   by (unfold_locales, simp_all add: map_lens_def)
@@ -767,7 +779,8 @@ lemma nth'_list_augment_diff: "i \<noteq> j \<Longrightarrow> nth' (list_augment
   by (auto simp add: list_augment_def list_pad_out_def nth_append nth'_def)
 
 definition list_lens :: "nat \<Rightarrow> ('a \<Longrightarrow> 'a list)" where
-"list_lens i = \<lparr> lens_get = (\<lambda> xs. nth' xs i), lens_put = (\<lambda> xs x. list_augment xs i x) \<rparr>"
+[lens_defs]: "list_lens i = \<lparr> lens_get = (\<lambda> xs. nth' xs i)
+                            , lens_put = (\<lambda> xs x. list_augment xs i x) \<rparr>"
 
 lemma list_mwb_lens: "mwb_lens (list_lens x)"
   by (unfold_locales, simp_all add: list_lens_def nth'_list_augment list_augment_same_twice)

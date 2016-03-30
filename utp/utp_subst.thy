@@ -3,7 +3,6 @@ section {* Substitution *}
 theory utp_subst
 imports 
   utp_expr
-  utp_lift
   utp_unrest
 begin
 
@@ -52,7 +51,7 @@ definition usubst_rel_lift :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<times
 "\<lceil>\<sigma>\<rceil>\<^sub>s = (\<lambda> (A, A'). (\<sigma> A, A'))"
 
 definition usubst_rel_drop :: "('\<alpha> \<times> '\<alpha>) usubst \<Rightarrow> '\<alpha> usubst" ("\<lfloor>_\<rfloor>\<^sub>s") where
-"\<lfloor>\<sigma>\<rfloor>\<^sub>s = (\<lambda> A. fst (\<sigma> (A, A)))"
+"\<lfloor>\<sigma>\<rfloor>\<^sub>s = (\<lambda> A. fst (\<sigma> (A, undefined)))"
 
 nonterminal smaplet and smaplets
 
@@ -180,18 +179,6 @@ lemma subst_drop_id [usubst]: "\<lfloor>id\<rfloor>\<^sub>s = id"
 
 lemma subst_lift_drop [usubst]: "\<lfloor>\<lceil>\<sigma>\<rceil>\<^sub>s\<rfloor>\<^sub>s = \<sigma>"
   by (simp add: usubst_rel_lift_def usubst_rel_drop_def)
-
-lemma subst_lift_upd [usubst]: 
-  fixes x :: "('a, '\<alpha>) uvar"
-  shows "\<lceil>\<sigma>(x \<mapsto>\<^sub>s v)\<rceil>\<^sub>s = \<lceil>\<sigma>\<rceil>\<^sub>s($x \<mapsto>\<^sub>s \<lceil>v\<rceil>\<^sub><)"
-  by (simp add: usubst_rel_lift_def subst_upd_uvar_def, transfer, auto)
-
-lemma subst_drop_upd [usubst]: 
-  fixes x :: "('a, '\<alpha>) uvar"
-  shows "\<lfloor>\<sigma>($x \<mapsto>\<^sub>s v)\<rfloor>\<^sub>s = \<lfloor>\<sigma>\<rfloor>\<^sub>s(x \<mapsto>\<^sub>s \<lfloor>v\<rfloor>\<^sub><)"
-  apply (simp add: usubst_rel_drop_def subst_upd_uvar_def, transfer, rule ext, auto simp add:in_var_def)
-  apply (metis fst_conv in_var_def prod.collapse var_update_in)
-done
 
 nonterminal uexprs and svars
 

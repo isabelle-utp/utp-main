@@ -80,9 +80,9 @@ definition ind_uvar_1 :: "('a, '\<alpha> alphabet_d) uvar \<Rightarrow> ('a, ('\
 
 text {* Extract the ith element of the second part *}
 
-definition "ind_uvar i x = x ;\<^sub>l list_lens i ;\<^sub>l snd\<^sub>l ;\<^sub>l des_lens"
+definition "ind_uvar i x = x ;\<^sub>L list_lens i ;\<^sub>L snd\<^sub>L ;\<^sub>L des_lens"
 
-definition "pre_uvar x = x ;\<^sub>l fst\<^sub>l ;\<^sub>l des_lens"
+definition "pre_uvar x = x ;\<^sub>L fst\<^sub>L ;\<^sub>L des_lens"
 
 definition "in_ind_uvar i x = in_var (ind_uvar i x)"
 

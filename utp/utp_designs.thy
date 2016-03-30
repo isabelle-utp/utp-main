@@ -35,21 +35,27 @@ type_synonym ('\<alpha>, '\<beta>) relation_d = "('\<alpha> alphabet_d, '\<beta>
 type_synonym '\<alpha> hrelation_d = "'\<alpha> alphabet_d hrelation"
 
 definition des_lens :: "('\<alpha>, '\<alpha> alphabet_d) lens" where
-"des_lens = \<lparr> lens_get = more, lens_put = rec_put more_update \<rparr>"
+"des_lens = \<lparr> lens_get = more, lens_put = fld_put more_update \<rparr>"
 
-lemma uvar_des_lens: "uvar des_lens"
-  apply (unfold_locales)
-  apply (simp_all add: des_lens_def)
-done
+declare des_lens_def [upred_defs]
+
+lemma uvar_des_lens [simp]: "uvar des_lens"
+  by (unfold_locales, simp_all add: des_lens_def)
+
+lemma ok_indep_des_lens [simp]: "ok \<bowtie> des_lens" "des_lens \<bowtie> ok"
+  by (rule lens_indepI, simp_all add: ok_def des_lens_def)+
+
+lemma ok_des_bij_lens: "bij_lens (ok +\<^sub>L des_lens)"
+  by (unfold_locales, simp_all add: ok_def des_lens_def lens_plus_def prod.case_eq_if)
 
 text {* It would be nice to be able to prove some general distributivity properties
         about these lifting operators. I don't know if that's possible somehow... *}
 
-lift_definition lift_desr :: "('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" ("\<lceil>_\<rceil>\<^sub>D") is
-"\<lambda> P (A, A'). P (more A, more A')" .
+abbreviation (input) lift_desr :: "('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" ("\<lceil>_\<rceil>\<^sub>D")
+where "\<lceil>P\<rceil>\<^sub>D \<equiv> P \<oplus>\<^sub>p (des_lens \<times>\<^sub>L des_lens)"
 
-lift_definition drop_desr :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("\<lfloor>_\<rfloor>\<^sub>D") is
-"\<lambda> P (A, A'). P (\<lparr> des_ok = True, \<dots> = A \<rparr>, \<lparr> des_ok = True, \<dots> = A' \<rparr>)" .
+abbreviation drop_desr :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("\<lfloor>_\<rfloor>\<^sub>D")
+where "\<lfloor>P\<rfloor>\<^sub>D \<equiv> P \<restriction>\<^sub>p (des_lens \<times>\<^sub>L des_lens)"
 
 definition design::"('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" (infixl "\<turnstile>" 60)
 where "P \<turnstile> Q = ($ok \<and> P \<Rightarrow> $ok\<acute> \<and> Q)"
@@ -95,10 +101,10 @@ abbreviation \<sigma>t::"('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alph
 where "\<sigma>t D \<equiv> D\<lbrakk>true/$ok\<acute>\<rbrakk>"
 
 definition pre_design :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("pre\<^sub>D'(_')") where
-"pre\<^sub>D(P) = \<lfloor>\<not> P\<^sup>f\<rfloor>\<^sub>D"
+"pre\<^sub>D(P) = \<lfloor>\<not> P\<lbrakk>true,false/$ok,$ok\<acute>\<rbrakk>\<rfloor>\<^sub>D"
 
 definition post_design :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("post\<^sub>D'(_')") where
-"post\<^sub>D(P) = \<lfloor>P\<^sup>t\<rfloor>\<^sub>D"
+"post\<^sub>D(P) = \<lfloor>P\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>\<rfloor>\<^sub>D"
 
 definition wp_design :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> '\<beta> condition \<Rightarrow> '\<alpha> condition" (infix "wp\<^sub>D" 60) where
 "Q wp\<^sub>D r = (\<lfloor>pre\<^sub>D(Q) ;; true\<rfloor>\<^sub>< \<and> (post\<^sub>D(Q) wp r))"
@@ -117,36 +123,48 @@ declare H3_def [upred_defs]
 declare H4_def [upred_defs]
 
 lemma drop_desr_inv [simp]: "\<lfloor>\<lceil>P\<rceil>\<^sub>D\<rfloor>\<^sub>D = P"
-  by (transfer, simp)
-
+  by (simp add: arestr_aext prod_mwb_lens)
+  
 lemma lift_desr_inv:
-  "\<lbrakk> $ok \<sharp> P; $ok\<acute> \<sharp> P \<rbrakk> \<Longrightarrow> \<lceil>\<lfloor>P\<rfloor>\<^sub>D\<rceil>\<^sub>D = P"
-  apply (rel_tac)
-  apply (rename_tac P a b)
-  apply (drule_tac x="a" in spec)
-  apply (drule_tac x="b" in spec)
-  apply (drule_tac x="True" in spec)
-  apply (metis alpha_d.surjective alpha_d.update_convs(1))
-  apply (drule_tac x="a" in spec)
-  apply (drule_tac x="b" in spec)
-  apply (drule_tac x="True" in spec)
-  apply (metis alpha_d.surjective alpha_d.update_convs(1))
-done
+  fixes P :: "('\<alpha>, '\<beta>) relation_d"
+  assumes "$ok \<sharp> P" "$ok\<acute> \<sharp> P"
+  shows "\<lceil>\<lfloor>P\<rfloor>\<^sub>D\<rceil>\<^sub>D = P"
+proof -
+  have "bij_lens (des_lens \<times>\<^sub>L des_lens +\<^sub>L (in_var ok +\<^sub>L out_var ok) :: (_, '\<alpha> alpha_d_scheme \<times> '\<beta> alpha_d_scheme) lens)"
+    (is "bij_lens (?P)")
+  proof -
+    have "?P \<approx>\<^sub>L (ok +\<^sub>L des_lens) \<times>\<^sub>L (ok +\<^sub>L des_lens)" (is "?P \<approx>\<^sub>L ?Q")
+      apply (simp add: in_var_def out_var_def prod_as_plus)
+      apply (simp add: prod_as_plus[THEN sym])
+      apply (meson lens_equiv_sym lens_equiv_trans lens_indep_prod lens_plus_comm lens_plus_prod_exchange ok_indep_des_lens)
+    done
+    moreover have "bij_lens ?Q"
+      by (simp add: ok_des_bij_lens prod_bij_lens)
+    ultimately show ?thesis
+      by (metis bij_lens_equiv lens_equiv_sym)
+  qed
+
+  with assms show ?thesis
+    apply (rule_tac aext_arestr[of _ "in_var ok +\<^sub>L out_var ok"])
+    apply (simp add: prod_mwb_lens)
+    apply (simp)
+    apply (metis alpha_in_var lens_indep_prod lens_indep_sym ok_indep_des_lens out_var_def prod_as_plus)
+    using unrest_var_comp apply blast
+  done
+qed
 
 subsection {* Design laws *}
 
-lemma lift_desr_unrest_ok [unrest]:
-  "$ok \<sharp> \<lceil>P\<rceil>\<^sub>D" "$ok\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>D"
-  by (transfer, simp add: ok_def)+
+lemma prod_lens_indep_in_var [simp]:
+  "a \<bowtie> x \<Longrightarrow> a \<times>\<^sub>L b \<bowtie> in_var x"
+  by (metis in_var_def in_var_indep out_in_indep out_var_def plus_pres_lens_indep prod_as_plus)
+
+lemma prod_lens_indep_out_var [simp]:
+  "b \<bowtie> x \<Longrightarrow> a \<times>\<^sub>L b \<bowtie> out_var x"
+  by (metis in_out_indep in_var_def out_var_def out_var_indep plus_pres_lens_indep prod_as_plus)
 
 lemma unrest_out_des_lift [unrest]: "out\<alpha> \<sharp> p \<Longrightarrow> out\<alpha> \<sharp> \<lceil>p\<rceil>\<^sub>D"
-  by (pred_tac, auto simp add: out\<alpha>_def)
-
-lemma lift_dists [simp]:
-  "\<lceil>true\<rceil>\<^sub>D = true"
-  "\<lceil>\<not> P\<rceil>\<^sub>D = (\<not> \<lceil>P\<rceil>\<^sub>D)"
-  "\<lceil>P \<and> Q\<rceil>\<^sub>D = (\<lceil>P\<rceil>\<^sub>D \<and> \<lceil>Q\<rceil>\<^sub>D)" 
-  by (pred_tac)+
+  by (pred_tac, auto simp add: out\<alpha>_def des_lens_def prod_lens_def)
 
 lemma lift_dist_seq [simp]:
   "\<lceil>P ;; Q\<rceil>\<^sub>D = (\<lceil>P\<rceil>\<^sub>D ;; \<lceil>Q\<rceil>\<^sub>D)"
@@ -193,10 +211,15 @@ theorem design_pre:
      (metis (no_types, hide_lams) not_conj_deMorgans true_not_false(2) utp_pred.compl_top_eq 
             utp_pred.sup.idem utp_pred.sup_compl_top var_in_var)
 
+declare des_lens_def [upred_defs]
+declare lens_create_def [upred_defs]
+declare prod_lens_def [upred_defs]
+declare in_var_def [upred_defs]
+
 theorem rdesign_pre [simp]: "pre\<^sub>D(P \<turnstile>\<^sub>r Q) = P"
   by pred_tac
 
-theorem design_post [simp]: "post\<^sub>D(P \<turnstile>\<^sub>r Q) = (P \<Rightarrow> Q)"
+theorem rdesign_post [simp]: "post\<^sub>D(P \<turnstile>\<^sub>r Q) = (P \<Rightarrow> Q)"
   by pred_tac
 
 theorem design_true_left_zero: "(true ;; (P \<turnstile> Q)) = true"
@@ -232,11 +255,11 @@ proof -
   also have "... = (\<not> (\<not> P1 ;; true) \<and> \<not> (Q1 ;; \<not> P2)) \<turnstile> (Q1 ;; Q2)"
     by (simp add: precond_right_unit design_def unrest, rel_tac)
   finally show ?thesis .
-qed
+qed 
 
 theorem rdesign_composition:
-  "((P1 \<turnstile>\<^sub>r Q1) ;; (P2 \<turnstile>\<^sub>r Q2)) = (((\<not> ((\<not> P1) ;; true)) \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile>\<^sub>r (Q1 ;; Q2))"
-  by (simp add: rdesign_def design_composition unrest)
+  "((P1 \<turnstile>\<^sub>r Q1) ;; (P2 \<turnstile>\<^sub>r Q2)) = (((\<not> ((\<not> P1) ;; true\<^sub>h)) \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile>\<^sub>r (Q1 ;; Q2))"
+  by (simp add: rdesign_def design_composition unrest alpha)
 
 lemma skip_d_alt_def: "II\<^sub>D = true \<turnstile> II"
   by (rel_tac)
@@ -257,8 +280,7 @@ theorem rdesign_composition_cond:
   assumes "out\<alpha> \<sharp> p1"
   shows "((p1 \<turnstile>\<^sub>r Q1) ;; (P2 \<turnstile>\<^sub>r Q2)) = ((p1 \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile>\<^sub>r (Q1 ;; Q2))"
   using assms
-  by (simp add: rdesign_def design_composition_cond unrest)
-  
+  by (simp add: rdesign_def design_composition_cond unrest alpha)
 
 theorem design_composition_wp:
   fixes Q1 Q2 :: "'a hrelation_d"
@@ -509,10 +531,12 @@ proof -
 qed
 
 lemma ok_pre: "($ok \<and> \<lceil>pre\<^sub>D(P)\<rceil>\<^sub>D) = ($ok \<and> (\<not> P\<^sup>f))"
-  by (pred_tac, metis (full_types) alpha_d.surjective alpha_d.update_convs(1))+
+  by (pred_tac)
+     (metis (mono_tags, lifting) alpha_d.surjective alpha_d.update_convs(1) alpha_d.update_convs(2))+
 
 lemma ok_post: "($ok \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>D) = ($ok \<and> (P\<^sup>t))"
-  by (pred_tac, metis (full_types) alpha_d.surjective alpha_d.update_convs(1))+
+  by (pred_tac)
+     (metis alpha_d.cases_scheme alpha_d.ext_inject alpha_d.select_convs(1) alpha_d.select_convs(2) alpha_d.update_convs(1) alpha_d.update_convs(2))+
 
 theorem H1_H2_is_rdesign:
   assumes "P is H1" "P is H2"
@@ -572,7 +596,7 @@ proof -
   moreover hence "\<lfloor>P\<rfloor>\<^sub>D \<turnstile>\<^sub>r \<lfloor>Q\<rfloor>\<^sub>D is H3 \<longleftrightarrow> \<lfloor>P\<rfloor>\<^sub>D = (\<lfloor>P\<rfloor>\<^sub>D ;; true)"
     using rdesign_H3_iff_pre by blast
   ultimately show ?thesis
-    by (metis assms drop_desr_inv lift_desr_inv lift_dist_seq lift_dists(1))
+    by (metis assms drop_desr_inv lift_desr_inv lift_dist_seq aext_true)
 qed
 
 theorem H1_H3_commute:

@@ -3,6 +3,7 @@ section {* Alphabetised relations *}
 theory utp_rel
 imports  
   utp_pred
+  utp_lift
 begin
 
 default_sort type
@@ -22,9 +23,11 @@ definition out\<alpha> :: "('\<beta>, '\<alpha> \<times> '\<beta>) uvar" where
 declare in\<alpha>_def [urel_defs]
 declare out\<alpha>_def [urel_defs]
 
+text {* The alphabet of a relation consists of the input and output portions *}
+
 lemma alpha_in_out:
-  "\<Sigma> = in\<alpha> \<circ>\<^sub>v out\<alpha>"
-  by (auto simp add: in\<alpha>_def out\<alpha>_def univ_alpha_def id_lens_def uvar_comp_def prod_lens_def)
+  "\<Sigma> \<approx>\<^sub>L in\<alpha> +\<^sub>L out\<alpha>"
+  by (metis fst_lens_def fst_snd_id_lens in\<alpha>_def lens_equiv_refl out\<alpha>_def snd_lens_def univ_alpha_def)
 
 type_synonym '\<alpha> condition       = "'\<alpha> upred"
 type_synonym ('\<alpha>, '\<beta>) relation  = "('\<alpha> \<times> '\<beta>) upred"
@@ -79,7 +82,7 @@ adhoc_overloading
   useq seqr and
   uskip skip_r
 
-method rel_tac = ((simp add: upred_defs urel_defs)?, (transfer, (rule_tac ext)?, auto simp add: urel_defs relcomp_unfold fun_eq_iff)?)
+method rel_tac = ((simp add: upred_defs urel_defs)?, (transfer, (rule_tac ext)?, auto simp add: lens_defs urel_defs relcomp_unfold fun_eq_iff prod.case_eq_if)?)
 
 text {* A test is like a precondition, except that it identifies to the postcondition. It
         forms the basis for Kleene Algebra with Tests (KAT). *}
@@ -173,22 +176,7 @@ done
 
 lemma usubst_seq_right [usubst]: 
   "\<lbrakk> semi_uvar x; in\<alpha> \<sharp> v \<rbrakk> \<Longrightarrow> (P ;; Q)\<lbrakk>v/$x\<acute>\<rbrakk> = (P ;; Q\<lbrakk>v/$x\<acute>\<rbrakk>)"
-  apply (rel_tac)
-  apply (rename_tac x v P Q b xa ya)
-  apply (rule_tac x="ya" in exI)
-  apply (simp)
-  apply (drule_tac x="ya" in spec)
-  apply (drule_tac x="b" in spec)
-  apply (drule_tac x="xa" in spec)
-  apply (simp)
-  apply (rename_tac x v P Q b aa y)
-  apply (rule_tac x="y" in exI)
-  apply (simp)
-  apply (drule_tac x="aa" in spec)
-  apply (drule_tac x="b" in spec)
-  apply (drule_tac x="y" in spec)
-  apply (simp)
-done
+  by (rel_tac, metis+)
 
 lemma usubst_condr [usubst]:
   "\<sigma> \<dagger> (P \<triangleleft> b \<triangleright> Q) = (\<sigma> \<dagger> P \<triangleleft> \<sigma> \<dagger> b \<triangleright> \<sigma> \<dagger> Q)"
@@ -198,26 +186,6 @@ lemma subst_skip_r [usubst]:
   fixes x :: "('a, '\<alpha>) uvar"
   shows "II\<lbrakk>\<lceil>v\<rceil>\<^sub></$x\<rbrakk> = (x := v)"
   by (rel_tac)
-
-subsection {* Lifting laws *}
-
-lemma lift_pre_conj [ulift]: "\<lceil>p \<and> q\<rceil>\<^sub>< = (\<lceil>p\<rceil>\<^sub>< \<and> \<lceil>q\<rceil>\<^sub><)"
-  by (pred_tac)
-
-lemma lift_post_conj [ulift]: "\<lceil>p \<and> q\<rceil>\<^sub>> = (\<lceil>p\<rceil>\<^sub>> \<and> \<lceil>q\<rceil>\<^sub>>)"
-  by (pred_tac)
-
-lemma lift_pre_disj [ulift]: "\<lceil>p \<or> q\<rceil>\<^sub>< = (\<lceil>p\<rceil>\<^sub>< \<or> \<lceil>q\<rceil>\<^sub><)"
-  by (pred_tac)
-
-lemma lift_post_disj [ulift]: "\<lceil>p \<or> q\<rceil>\<^sub>> = (\<lceil>p\<rceil>\<^sub>> \<or> \<lceil>q\<rceil>\<^sub>>)"
-  by (pred_tac)
-
-lemma lift_pre_not [ulift]: "\<lceil>\<not> p\<rceil>\<^sub>< = (\<not> \<lceil>p\<rceil>\<^sub><)"
-  by (pred_tac)
-
-lemma lift_post_not [ulift]: "\<lceil>\<not> p\<rceil>\<^sub>> = (\<not> \<lceil>p\<rceil>\<^sub>>)"
-  by (pred_tac)
 
 subsection {* Relation laws *}
 
@@ -243,7 +211,7 @@ apply (rel_tac)
 done
 
 lemma drop_pre_inv [simp]: "\<lbrakk> out\<alpha> \<sharp> p \<rbrakk> \<Longrightarrow> \<lceil>\<lfloor>p\<rfloor>\<^sub><\<rceil>\<^sub>< = p"
-  by (pred_tac, auto simp add: out\<alpha>_def)
+  by (pred_tac, auto simp add: out\<alpha>_def lens_create_def fst_lens_def prod.case_eq_if)
 
 abbreviation ustar :: "'\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("_\<^sup>\<star>\<^sub>u" [999] 999) where
 "P\<^sup>\<star>\<^sub>u \<equiv> unital_quantale.qstar II op ;; Sup P"
@@ -443,13 +411,13 @@ theorem seqr_pre_transfer: "in\<alpha> \<sharp> q \<Longrightarrow> ((P \<and> q
   by (rel_tac)
 
 theorem seqr_post_out: "in\<alpha> \<sharp> r \<Longrightarrow> (P ;; (Q \<and> r)) = ((P ;; Q) \<and> r)"
-  by (rel_tac)
+  by (rel_tac, blast+)
 
 theorem seqr_post_transfer: "out\<alpha> \<sharp> q \<Longrightarrow> (P ;; (q \<and> R)) = (P \<and> q\<^sup>- ;; R)"
   by (simp add: seqr_pre_transfer unrest_convr_in\<alpha>)
 
 lemma seqr_pre_out: "out\<alpha> \<sharp> p \<Longrightarrow> ((p \<and> Q) ;; R) = (p \<and> (Q ;; R))"
-  by (rel_tac)
+  by (rel_tac, blast+)
 
 lemma seqr_true_lemma: 
   "(P = (\<not> (\<not> P ;; true))) = (P = (P ;; true))"

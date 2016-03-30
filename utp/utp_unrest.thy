@@ -32,6 +32,10 @@ definition unrest_dvar_upred :: "'a::continuum dvar \<Rightarrow> ('b, '\<alpha>
 adhoc_overloading
   unrest unrest_upred
 
+lemma unrest_var_comp [unrest]:
+  "\<lbrakk> x \<sharp> P; y \<sharp> P \<rbrakk> \<Longrightarrow> x\<cdot>y \<sharp> P"
+  by (transfer, simp add: lens_defs)
+
 lemma unrest_lit [unrest]: "x \<sharp> \<guillemotleft>v\<guillemotright>"
   by (transfer, simp)
 

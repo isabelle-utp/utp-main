@@ -125,6 +125,7 @@ syntax
   "_spvar"    :: "id \<Rightarrow> svar" ("&_" [999] 999)
   "_sinvar"   :: "id \<Rightarrow> svar" ("$_" [999] 999)
   "_soutvar"  :: "id \<Rightarrow> svar" ("$_\<acute>" [999] 999)
+  "_svarcomp" :: "svar \<Rightarrow> svar \<Rightarrow> svar" (infixr "\<cdot>" 75)
 
 consts
   svar :: "'v \<Rightarrow> 'e" 
@@ -139,5 +140,6 @@ translations
   "_spvar x" => "x"
   "_sinvar x" == "CONST ivar x"
   "_soutvar x" == "CONST ovar x"
+  "_svarcomp x y" => "x +\<^sub>L y"
 
 end

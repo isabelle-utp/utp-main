@@ -28,6 +28,11 @@ named_theorems ueval
 
 setup_lifting type_definition_uexpr
 
+text {* Get the alphabet of an expression *}
+
+definition alpha_of :: "('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>, '\<alpha>) lens" ("\<alpha>'(_')") where
+"alpha_of e = 1\<^sub>L"
+
 text {* A variable expression corresponds to the lookup function of the variable. *}
 
 lift_definition var :: "('t, '\<alpha>) uvar \<Rightarrow> ('t, '\<alpha>) uexpr" is var_lookup .
@@ -358,6 +363,7 @@ translations
   "f cont-on\<^sub>u A"     == "CONST bop CONST continuous_on A f"
 
 lemmas uexpr_defs =
+  alpha_of_def
   iuvar_def
   ouvar_def
   zero_uexpr_def
