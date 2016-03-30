@@ -291,6 +291,12 @@ proof
     by (metis put_get strong_get_put)
 qed
 
+  lemma put_surj: "surj (put \<sigma>)"
+    by (metis strong_get_put surj_def)
+
+  lemma put_bij: "bij (put \<sigma>)"
+    by (simp add: bijI put_inj put_surj)
+
   lemma put_is_create: "put \<sigma> v = create v"
     by (metis create_get strong_get_put)
 
@@ -649,6 +655,9 @@ lemma prod_vwb_lens:
   "\<lbrakk> vwb_lens X; vwb_lens Y \<rbrakk> \<Longrightarrow> vwb_lens (X \<times>\<^sub>L Y)"
   by (unfold_locales, simp_all add: prod_lens_def prod.case_eq_if)
 
+lemma prod_as_plus: "X \<times>\<^sub>L Y = X ;\<^sub>L fst\<^sub>L +\<^sub>L Y ;\<^sub>L snd\<^sub>L"
+  by (auto simp add: prod_lens_def fst_lens_def snd_lens_def lens_comp_def lens_plus_def)
+
 lemma prod_lens_sublens_cong:
   "\<lbrakk> X\<^sub>1 \<subseteq>\<^sub>L X\<^sub>2; Y\<^sub>1 \<subseteq>\<^sub>L Y\<^sub>2 \<rbrakk> \<Longrightarrow> (X\<^sub>1 \<times>\<^sub>L Y\<^sub>1) \<subseteq>\<^sub>L (X\<^sub>2 \<times>\<^sub>L Y\<^sub>2)"
   apply (auto simp add: sublens_def)
@@ -660,9 +669,6 @@ lemma prod_lens_sublens_cong:
   apply (rule ext, rule ext)
   apply (auto simp add: prod_lens_def lens_comp_def prod.case_eq_if)
 done
-
-lemma prod_as_plus: "X \<times>\<^sub>L Y = X ;\<^sub>L fst\<^sub>L +\<^sub>L Y ;\<^sub>L snd\<^sub>L"
-  by (auto simp add: prod_lens_def fst_lens_def snd_lens_def lens_comp_def lens_plus_def)
 
 lemma prod_lens_equiv_cong:
   "\<lbrakk> X\<^sub>1 \<approx>\<^sub>L X\<^sub>2; Y\<^sub>1 \<approx>\<^sub>L Y\<^sub>2 \<rbrakk> \<Longrightarrow> (X\<^sub>1 \<times>\<^sub>L Y\<^sub>1) \<approx>\<^sub>L (X\<^sub>2 \<times>\<^sub>L Y\<^sub>2)"
