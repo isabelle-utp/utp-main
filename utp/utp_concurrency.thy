@@ -92,6 +92,9 @@ definition "in_ind_uexpr i x = var (in_ind_uvar i x)"
 
 definition "out_ind_uexpr i x = var (out_ind_uvar i x)"
 
+declare ind_uvar_def [urel_defs]
+declare ind_uvar_def [upred_defs]
+
 declare in_ind_uvar_def [upred_defs]
 declare out_ind_uvar_def [upred_defs]
 
@@ -143,9 +146,9 @@ where "U(n) = (($(n).\<Sigma>\<acute> =\<^sub>u $\<Sigma>) \<and> ($ok\<acute> =
 
 declare sep_sim_def [upred_defs]
 
-lemma var_lookup_univ_alpha [simp]:
-  "var_lookup \<Sigma> = id"
-  by (simp add: univ_alpha_def id_lens_def)
+lemma unrest_sep_sim_other [unrest]:
+  "m \<noteq> n \<Longrightarrow> $(m).\<Sigma>\<acute> \<sharp> U(n)"
+  by (pred_tac, simp_all add: nth'_list_augment_diff)
 
 text {* The following implementation of parallel by merge is less general than the book version, in
   that it does not properly partition the alphabet into two disjoint segments. We could actually

@@ -27,7 +27,7 @@ text {* The alphabet of a relation consists of the input and output portions *}
 
 lemma alpha_in_out:
   "\<Sigma> \<approx>\<^sub>L in\<alpha> +\<^sub>L out\<alpha>"
-  by (metis fst_lens_def fst_snd_id_lens in\<alpha>_def lens_equiv_refl out\<alpha>_def snd_lens_def univ_alpha_def)
+  by (metis fst_lens_def fst_snd_id_lens in\<alpha>_def lens_equiv_refl out\<alpha>_def snd_lens_def)
 
 type_synonym '\<alpha> condition       = "'\<alpha> upred"
 type_synonym ('\<alpha>, '\<beta>) relation  = "('\<alpha> \<times> '\<beta>) upred"
@@ -289,11 +289,11 @@ lemma pre_skip_post: "(\<lceil>b\<rceil>\<^sub>< \<and> II) = (II \<and> \<lceil
 
 lemma seqr_exists_left:
   "semi_uvar x \<Longrightarrow> ((\<exists> $x \<bullet> P) ;; Q) = (\<exists> $x \<bullet> (P ;; Q))"
-  by (rel_tac, auto simp add: comp_def)
+  by (rel_tac)
 
 lemma seqr_exists_right:
   "semi_uvar x \<Longrightarrow> (P ;; (\<exists> $x\<acute> \<bullet> Q)) = (\<exists> $x\<acute> \<bullet> (P ;; Q))"
-  by (rel_tac, auto simp add: comp_def)
+  by (rel_tac)
 
 text {* We should be able to generalise this law to arbitrary assignments at some point,
         but that requires additional conversion operators for substitutions that act
@@ -309,7 +309,7 @@ lemma assigns_idem: "semi_uvar x \<Longrightarrow> (x,x := u,v) = (x := v)"
 lemma assigns_comp: "(assigns_r f ;; assigns_r g) = assigns_r (g \<circ> f)" 
   by (transfer, auto simp add:relcomp_unfold)
 
-lemma assigns_r_comp: "semi_uvar x \<Longrightarrow> (\<langle>\<sigma>\<rangle>\<^sub>a ;; P) = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P)"
+lemma assigns_r_comp: "(\<langle>\<sigma>\<rangle>\<^sub>a ;; P) = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P)"
   by rel_tac
 
 lemma assign_r_comp: "semi_uvar x \<Longrightarrow> (x := u ;; P) = ([$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> P)"

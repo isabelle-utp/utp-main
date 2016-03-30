@@ -33,11 +33,11 @@ proof -
   also have "... = (\<exists> $x \<bullet> $x =\<^sub>u $x\<acute> \<and> II\<restriction>\<^sub>\<alpha>x)"
     by (metis assms eq_upred_sym skip_r_unfold)
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>$x\<acute>/$x\<rbrakk>"
-    by (metis conj_comm in_var_uvar one_point unrest_iuvar_ouvar var_in_var)
+    by (metis conj_comm in_var_semi_uvar one_point unrest_in\<alpha>_var utp_rel.unrest_ouvar var_in_var vwb_lens_mwb)
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>$x/$x\<acute>\<rbrakk>"
     by subst_tac
   also have "... = (\<exists> $x\<acute> \<bullet> $x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x)"
-    by (metis assms conj_comm one_point out_var_uvar unrest_out\<alpha>_var utp_rel.unrest_iuvar var_out_var)
+    by (metis assms conj_comm one_point out_var_semi_uvar unrest_out\<alpha>_var utp_rel.unrest_iuvar var_out_var vwb_lens_mwb)
   also have "... = (\<exists> $x\<acute> \<bullet> II)"
     using assms skip_r_unfold by fastforce
   also have "... = end\<^sub>u x"
@@ -48,7 +48,7 @@ qed
 lemma var_block_expand:
   assumes "uvar x"
   shows "(var\<^sub>u x ;; P ;; end\<^sub>u x) = (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P)"
-  by (metis assms seqr_exists_left seqr_exists_right upred_quantale.mult.left_neutral upred_quantale.mult.right_neutral var_close_def var_open_def)
+  by (metis assms disj_upred_def seqr_exists_left seqr_exists_right seqr_left_zero seqr_right_zero upred_quantale.mult.right_neutral upred_quantale.star_prod_unfold upred_quantale.star_slide utp_pred.sup_bot.right_neutral var_close_def var_open_def vwb_lens_mwb)
 
 lemma var_open_twice:
   assumes "uvar x"
@@ -57,7 +57,7 @@ proof -
   have "(var\<^sub>u x ;; var\<^sub>u x) = ((\<exists> $x \<bullet> II) ;; (\<exists> $x \<bullet> II))"
     by (rel_tac)
   also from assms have "... =  (\<exists> $x \<bullet> (II ;; (\<exists> $x \<bullet> II)))"
-    using seqr_exists_left by blast
+    by (simp add: seqr_exists_left)
   also have "... = (\<exists> $x \<bullet> (\<exists> $x \<bullet> II))"
     by simp
   also from assms have "... = (\<exists> $x \<bullet> II)"
@@ -93,7 +93,7 @@ proof -
   also have "... = (\<exists> $x \<bullet> x := v)"
     by simp
   also have "... = (x := v)"
-    by (metis assms(1) assms(2) exists_twice in_var_uvar one_point subst_skip_r unrest_pre_in_var)
+    by (metis assms(1) assms(2) exists_twice in_var_semi_uvar one_point subst_skip_r unrest_pre_in_var vwb_lens_mwb)
   finally show ?thesis .
 qed
 
@@ -106,7 +106,7 @@ proof -
   also have "... = (\<exists> $x\<acute> \<bullet> ($x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub>< \<and> II\<restriction>\<^sub>\<alpha>x))"
     by (simp add: assign_unfold assms)
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>\<lceil>v\<rceil>\<^sub></$x\<acute>\<rbrakk>"
-    by (metis conj_comm one_point out_var_uvar unrest_out\<alpha>_var unrest_pre_out\<alpha> var_out_var)
+    by (metis conj_comm one_point out_var_semi_uvar unrest_out\<alpha>_var unrest_pre_out\<alpha> var_out_var vwb_lens_mwb)
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x)"
     by subst_tac
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>$x/$x\<acute>\<rbrakk>"

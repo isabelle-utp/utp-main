@@ -421,8 +421,6 @@ qed
 
 subsection {* H2: A specification cannot require non-termination *}
 
-declare [[show_types]]
-
 lemma J_split: 
   shows "(P ;; J) = (P\<^sup>f \<or> (P\<^sup>t \<and> $ok\<acute>))"
 proof -

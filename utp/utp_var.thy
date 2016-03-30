@@ -60,10 +60,10 @@ abbreviation "uvar \<equiv> vwb_lens"
         to a tuple alphabet. *}
 
 definition in_var :: "('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>) uvar" where
-"in_var x = x ;\<^sub>L fst\<^sub>L"
+[lens_defs]: "in_var x = x ;\<^sub>L fst\<^sub>L"
 
 definition out_var :: "('a, '\<beta>) uvar \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>) uvar" where
-"out_var x = x ;\<^sub>L snd\<^sub>L"
+[lens_defs]: "out_var x = x ;\<^sub>L snd\<^sub>L"
 
 lemma in_var_semi_uvar [simp]:
   "semi_uvar x \<Longrightarrow> semi_uvar (in_var x)"
@@ -115,8 +115,8 @@ text {* Variables can also be used to effectively define sets of variables. Here
         the universal alphabet ($\Sigma$) to be a variable with identity for both the lookup
         and update functions. Effectively this is just a function directly on the alphabet type. *}
 
-definition univ_alpha :: "('\<alpha>, '\<alpha>) uvar" ("\<Sigma>") where
-"univ_alpha = 1\<^sub>L"
+abbreviation (input) univ_alpha :: "('\<alpha>, '\<alpha>) uvar" ("\<Sigma>") where
+"univ_alpha \<equiv> 1\<^sub>L"
 
 nonterminal svar
 
