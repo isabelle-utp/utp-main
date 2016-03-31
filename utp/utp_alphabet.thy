@@ -127,8 +127,4 @@ lemma alpha_in_var [alpha]: "x ;\<^sub>L fst\<^sub>L = in_var x"
 lemma alpha_out_var [alpha]: "x ;\<^sub>L snd\<^sub>L = out_var x"
   by (simp add: out_var_def)
 
-declare var_in_var [alpha]
-
-declare var_out_var [alpha]
-
 end

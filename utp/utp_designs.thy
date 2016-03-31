@@ -77,11 +77,11 @@ where "II\<^sub>D \<equiv> (true \<turnstile>\<^sub>r II)"
 definition assigns_d :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d" 
 where "assigns_d \<sigma> = (true \<turnstile>\<^sub>r assigns_r \<sigma>)"
 
-text {* At some point assignment should be generalised to multiple variables and maybe also
-        for selectors. *}
+syntax
+  "_assignmentd" :: "salphas \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr ":=\<^sub>D" 55)
 
-abbreviation assign_d :: "('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrelation_d" (infix ":=\<^sub>D" 40)
-where "assign_d x v \<equiv> assigns_d [x \<mapsto>\<^sub>s v]"
+translations
+  "_assignmentd xs vs" => "CONST assigns_d (_psubst (CONST id) xs vs)"
 
 definition J :: "'\<alpha> hrelation_d"
 where "J = (($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D)"
@@ -209,7 +209,7 @@ theorem design_pre:
   "$ok\<acute> \<sharp> P \<Longrightarrow> \<not> (P \<turnstile> Q)\<^sup>f = ($ok \<and> P\<^sup>f)"
   by (simp add: design_def, subst_tac)
      (metis (no_types, hide_lams) not_conj_deMorgans true_not_false(2) utp_pred.compl_top_eq 
-            utp_pred.sup.idem utp_pred.sup_compl_top var_in_var)
+            utp_pred.sup.idem utp_pred.sup_compl_top)
 
 declare des_lens_def [upred_defs]
 declare lens_create_def [upred_defs]
@@ -439,7 +439,7 @@ proof -
       also have "... = (\<exists> $ok\<acute> \<bullet> P \<and> $ok\<acute> =\<^sub>u false)"
         by (rel_tac, metis (mono_tags, lifting) alpha_d.surjective alpha_d.update_convs(1))
       also have "... = P\<^sup>f"
-        by (metis one_point out_var_uvar ouvar_def unrest_false uvar_ok vwb_lens_mwb)
+        by (metis one_point out_var_uvar unrest_false uvar_ok vwb_lens_mwb)
      finally show ?thesis .
     qed
     moreover have "(P ;; ($ok \<and> (\<lceil>II\<rceil>\<^sub>D \<and> $ok\<acute>))) = (P\<^sup>t \<and> $ok\<acute>)"

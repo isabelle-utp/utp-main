@@ -256,7 +256,7 @@ definition [simp]: "in_dvar x = in_var (x\<up>)"
 definition [simp]: "out_dvar x = out_var (x\<up>)"
 
 adhoc_overloading
-  ivar in_dvar and ovar out_dvar
+  ivar in_dvar and ovar out_dvar and svar dvar_lift
 
 lemma uvar_dvar: "uvar (x\<up>)"
   apply (unfold_locales)

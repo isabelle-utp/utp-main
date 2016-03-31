@@ -43,21 +43,6 @@ declare [[coercion var]]
 definition dvar_exp :: "'t::continuum dvar \<Rightarrow> ('t, '\<alpha>::vst) uexpr"
 where "dvar_exp x = var (dvar_lift x)"
 
-text {* We can then define specific cases for input and output variables, that simply perform
-        tuple lifting. We also have variants for deep variables. *}
-
-definition iuvar :: "('t, '\<alpha>) uvar \<Rightarrow> ('t, '\<alpha> \<times> '\<beta>) uexpr" 
-where "iuvar x = var (in_var x)"
-
-definition ouvar :: "('t, '\<beta>) uvar \<Rightarrow> ('t, '\<alpha> \<times> '\<beta>) uexpr" 
-where "ouvar x = var (out_var x)"
-
-definition idvar :: "'t::continuum dvar \<Rightarrow> ('t, '\<alpha>::vst \<times> '\<beta>) uexpr"
-where "idvar x = var (in_var (dvar_lift x))"
-
-definition odvar :: "'t::continuum dvar \<Rightarrow> ('t, '\<alpha> \<times> '\<beta>::vst) uexpr"
-where "odvar x = var (out_var (dvar_lift x))"
-
 text {* A literal is simply a constant function expression, always returning the same value. *}
 
 lift_definition lit :: "'t \<Rightarrow> ('t, '\<alpha>) uexpr" 
@@ -86,28 +71,18 @@ text {* We define syntax for expressions using adhoc overloading -- this allows 
 consts
   ulit   :: "'t \<Rightarrow> 'e" ("\<guillemotleft>_\<guillemotright>")
   ueq    :: "'a \<Rightarrow> 'a \<Rightarrow> 'b" (infixl "=\<^sub>u" 50)
-  ueuvar :: "'v \<Rightarrow> 'p" 
-  uiuvar :: "'v \<Rightarrow> 'p"
-  uouvar :: "'v \<Rightarrow> 'p"
 
 adhoc_overloading
-  ulit lit and
-  ueuvar var and
-  ueuvar dvar_exp and
-  uiuvar iuvar and
-  uiuvar idvar and
-  uouvar ouvar and
-  uouvar odvar
+  ulit lit
 
-syntax 
-  "_uuvar"  :: "('t, '\<alpha>) uvar \<Rightarrow> logic" ("&_" [999] 999)
-  "_uiuvar" :: "('t, '\<alpha>) uvar \<Rightarrow> logic" ("$_" [999] 999)
-  "_uouvar" :: "('t, '\<alpha>) uvar \<Rightarrow> logic" ("$_\<acute>" [999] 999)
+syntax
+  "_uuvar" :: "svar \<Rightarrow> logic"
 
 translations
-  "&x"  == "CONST ueuvar x"
-  "$x"  == "CONST uiuvar x"
-  "$x\<acute>" == "CONST uouvar x"
+  "_uuvar x" => "CONST var x"
+
+syntax
+  "_uuvar" :: "svar \<Rightarrow> logic" ("_")
 
 text {* We also set up some useful standard arithmetic operators for Isabelle by lifting
         the functions to binary operators. *}
@@ -364,8 +339,6 @@ translations
 
 lemmas uexpr_defs =
   alpha_of_def
-  iuvar_def
-  ouvar_def
   zero_uexpr_def
   one_uexpr_def
   plus_uexpr_def
@@ -381,12 +354,6 @@ lemmas uexpr_defs =
   ulim_left_def
   ulim_right_def
   ucont_on_def
-
-lemma var_in_var: "var (in_var x) = $x"
-  by (simp add: iuvar_def)
-
-lemma var_out_var: "var (out_var x) = $x\<acute>"
-  by (simp add: ouvar_def)
 
 subsection {* Evaluation laws for expressions *}
 

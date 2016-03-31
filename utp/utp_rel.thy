@@ -68,11 +68,11 @@ syntax
   "_id_list"    :: "id \<Rightarrow> id_list \<Rightarrow> id_list" ("_,/ _")
   "_uexpr_unit" :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list" ("_" [40] 40)
   "_uexpr_list" :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list \<Rightarrow> uexpr_list" ("_,/ _" [40,40] 40)
-  "_assignment" :: "svars \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrelation"  (infixr ":=" 35)
-  "_mk_usubst"  :: "svars \<Rightarrow> uexpr_list \<Rightarrow> '\<alpha> usubst"
+  "_assignment" :: "salphas \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrelation"  (infixr ":=" 55)
+  "_mk_usubst"  :: "salphas \<Rightarrow> uexpr_list \<Rightarrow> '\<alpha> usubst"
 
 translations
-  "_mk_usubst (_svar x) (_uexpr_unit v)" == "[x \<mapsto>\<^sub>s v]"
+  "_mk_usubst (_salphaid x) (_uexpr_unit v)" == "[x \<mapsto>\<^sub>s v]"
   "_mk_usubst (_id_list x xs) (_uexpr_list v vs)" == "(_mk_usubst xs vs)(x \<mapsto>\<^sub>s v)"
   "_assignment xs vs" => "CONST assigns_r (_psubst (CONST id) xs vs)"
   "x := v" <= "CONST assign_r x v"
@@ -103,10 +103,10 @@ declare rel_var_res_def [urel_defs]
 subsection {* Unrestriction Laws *}
 
 lemma unrest_iuvar [unrest]: "semi_uvar x \<Longrightarrow> out\<alpha> \<sharp> $x"
-  by (simp add: out\<alpha>_def iuvar_def, transfer, auto)
+  by (simp add: out\<alpha>_def, transfer, auto)
 
 lemma unrest_ouvar [unrest]: "semi_uvar x \<Longrightarrow> in\<alpha> \<sharp> $x\<acute>"
-  by (simp add: in\<alpha>_def ouvar_def, transfer, auto)
+  by (simp add: in\<alpha>_def, transfer, auto)
 
 lemma unrest_in\<alpha>_var [unrest]:
   "\<lbrakk> semi_uvar x; in\<alpha> \<sharp> P \<rbrakk> \<Longrightarrow> $x \<sharp> P"

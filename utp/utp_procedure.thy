@@ -33,11 +33,11 @@ proof -
   also have "... = (\<exists> $x \<bullet> $x =\<^sub>u $x\<acute> \<and> II\<restriction>\<^sub>\<alpha>x)"
     by (metis assms eq_upred_sym skip_r_unfold)
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>$x\<acute>/$x\<rbrakk>"
-    by (metis conj_comm in_var_semi_uvar one_point unrest_in\<alpha>_var utp_rel.unrest_ouvar var_in_var vwb_lens_mwb)
+    by (metis conj_comm in_var_semi_uvar one_point unrest_in\<alpha>_var utp_rel.unrest_ouvar vwb_lens_mwb)
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>$x/$x\<acute>\<rbrakk>"
     by subst_tac
   also have "... = (\<exists> $x\<acute> \<bullet> $x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x)"
-    by (metis assms conj_comm one_point out_var_semi_uvar unrest_out\<alpha>_var utp_rel.unrest_iuvar var_out_var vwb_lens_mwb)
+    by (metis assms conj_comm one_point out_var_semi_uvar unrest_out\<alpha>_var utp_rel.unrest_iuvar vwb_lens_mwb)
   also have "... = (\<exists> $x\<acute> \<bullet> II)"
     using assms skip_r_unfold by fastforce
   also have "... = end\<^sub>u x"
@@ -106,13 +106,13 @@ proof -
   also have "... = (\<exists> $x\<acute> \<bullet> ($x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub>< \<and> II\<restriction>\<^sub>\<alpha>x))"
     by (simp add: assign_unfold assms)
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>\<lceil>v\<rceil>\<^sub></$x\<acute>\<rbrakk>"
-    by (metis conj_comm one_point out_var_semi_uvar unrest_out\<alpha>_var unrest_pre_out\<alpha> var_out_var vwb_lens_mwb)
+    by (metis conj_comm one_point out_var_semi_uvar unrest_out\<alpha>_var unrest_pre_out\<alpha> vwb_lens_mwb)
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x)"
     by subst_tac
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>$x/$x\<acute>\<rbrakk>"
     by subst_tac
   also have "... = (\<exists> $x\<acute> \<bullet> ($x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x))"
-    by (simp add: assms conj_comm one_point ouvar_def unrest_out\<alpha>_var utp_rel.unrest_iuvar)
+    by (simp add: assms conj_comm one_point unrest_out\<alpha>_var utp_rel.unrest_iuvar)
   also from assms have "... = (\<exists> $x\<acute> \<bullet> II)"
     using skip_r_unfold by force
   also have "... = end\<^sub>u x"

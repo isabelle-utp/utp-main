@@ -55,28 +55,17 @@ lemma parallel_mono_2:
 
 subsection {* Parallel by merge *}
 
-text {* We describe the partition of a state space into a n pieces through the use of a list. *}
+text {* We describe the partition of a state space into two pieces. *}
 
-type_synonym '\<alpha> partition = "'\<alpha> list"
+type_synonym '\<alpha> partition = "'\<alpha> \<times> '\<alpha>"
 
-text {* A merge relation is a design that describes how a partitioned state-space should be
-        merged into a third state-space. For now the state-spaces for two merged processes
-        should have the same type. This could potentially be generalised, but that might
-        have an effect on our reasoning capabilities. *}
+definition "left_uvar x = x ;\<^sub>L fst\<^sub>L ;\<^sub>L snd\<^sub>L ;\<^sub>L des_lens"
 
-(*
-definition ind_uvar_0 :: "('a, '\<alpha> alphabet_d) uvar \<Rightarrow> ('a, ('\<alpha> \<times> '\<alpha> partition) alphabet_d) uvar" where
-"ind_uvar_0 x = 
-  \<lparr> var_lookup = var_lookup x \<circ> (\<lambda> A. \<lparr> des_ok = des_ok A, \<dots> = fst (snd (more A)) \<rparr>)
-  , var_update = (\<lambda> f A. let A' = var_update x f \<lparr> des_ok = des_ok A, \<dots> = fst (snd (more A)) \<rparr>
-                          in \<lparr> des_ok = des_ok A, \<dots> = (fst (more A), (more A', snd (snd (more A)))) \<rparr>) \<rparr>"
+definition "right_uvar x = x ;\<^sub>L snd\<^sub>L ;\<^sub>L snd\<^sub>L ;\<^sub>L des_lens"
 
-definition ind_uvar_1 :: "('a, '\<alpha> alphabet_d) uvar \<Rightarrow> ('a, ('\<alpha> \<times> '\<alpha> partition) alphabet_d) uvar" where
-"ind_uvar_1 x = 
-  \<lparr> var_lookup = var_lookup x \<circ> (\<lambda> A. \<lparr> des_ok = des_ok A, \<dots> = snd (snd (more A)) \<rparr>)
-  , var_update = (\<lambda> f A. let A' = var_update x f \<lparr> des_ok = des_ok A, \<dots> = snd (snd (more A)) \<rparr>
-                          in \<lparr> des_ok = des_ok A, \<dots> = (fst (more A), (fst (snd (more A)), more A')) \<rparr>) \<rparr>"
-*)
+declare left_uvar_def [upred_defs]
+
+declare right_uvar_def [upred_defs]
 
 text {* Extract the ith element of the second part *}
 
@@ -88,9 +77,18 @@ definition "in_ind_uvar i x = in_var (ind_uvar i x)"
 
 definition "out_ind_uvar i x = out_var (ind_uvar i x)"
 
+definition "in_pre_uvar x = in_var (pre_uvar x)"
+
+definition "out_pre_uvar x = out_var (pre_uvar x)"
+
 definition "in_ind_uexpr i x = var (in_ind_uvar i x)"
 
 definition "out_ind_uexpr i x = var (out_ind_uvar i x)"
+
+definition "in_pre_uexpr x = var (in_pre_uvar x)"
+
+definition "out_pre_uexpr x = var (out_pre_uvar x)"
+
 
 declare ind_uvar_def [urel_defs]
 declare ind_uvar_def [upred_defs]
@@ -101,54 +99,67 @@ declare out_ind_uvar_def [upred_defs]
 declare in_ind_uexpr_def [upred_defs]
 declare out_ind_uexpr_def [upred_defs]
 
-thm lens_comp_assoc[THEN sym]
+declare in_pre_uexpr_def [upred_defs]
+declare out_pre_uexpr_def [upred_defs]
 
-lemma ind_uvar_indep:
+lemma left_uvar_indep_right_uvar [simp]:
+  "left_uvar x \<bowtie> right_uvar y"
+  apply (simp add: left_uvar_def right_uvar_def lens_comp_assoc[THEN sym])
+  apply (metis in_out_indep in_var_def lens_indep_left_comp out_var_def out_var_indep uvar_des_lens vwb_lens_mwb)
+done
+
+lemma right_uvar_indep_left_uvar [simp]:
+  "right_uvar x \<bowtie> left_uvar y"
+  by (simp add: lens_indep_sym)
+
+lemma left_uvar [simp]: "uvar x \<Longrightarrow> uvar (left_uvar x)"
+  by (simp add: left_uvar_def comp_vwb_lens fst_vwb_lens snd_vwb_lens)
+
+lemma right_uvar [simp]: "uvar x \<Longrightarrow> uvar (right_uvar x)"
+  by (simp add: right_uvar_def comp_vwb_lens fst_vwb_lens snd_vwb_lens)
+
+lemma ind_uvar_indep [simp]:
   "\<lbrakk>mwb_lens x; i \<noteq> j\<rbrakk> \<Longrightarrow> ind_uvar i x \<bowtie> ind_uvar j x"
   apply (simp add: ind_uvar_def lens_comp_assoc[THEN sym])
   apply (metis lens_indep_left_comp lens_indep_right_comp list_lens_indep out_var_def out_var_indep uvar_des_lens vwb_lens_mwb)
 done
 
-lemma ind_uvar_semi_uvar:
+lemma ind_uvar_semi_uvar [simp]:
   "semi_uvar x \<Longrightarrow> semi_uvar (ind_uvar i x)"
-  apply (unfold_locales)
-  apply (simp_all add:ind_uvar_def)
-oops
+  by (auto intro!: comp_mwb_lens list_mwb_lens simp add: ind_uvar_def snd_vwb_lens)
+
+lemma in_ind_uvar_semi_uvar [simp]:
+  "semi_uvar x \<Longrightarrow> semi_uvar (in_ind_uvar i x)"
+  by (simp add: in_ind_uvar_def)
+
+lemma out_ind_uvar_semi_uvar [simp]:
+  "semi_uvar x \<Longrightarrow> semi_uvar (out_ind_uvar i x)"
+  by (simp add: out_ind_uvar_def)
+
+declare id_vwb_lens [simp]  
 
 syntax
-  "_uprevar"  :: "('t, '\<alpha>) uvar \<Rightarrow> logic" ("$\<^sub><_" [999] 999)
-  "_upostvar"  :: "('t, '\<alpha>) uvar \<Rightarrow> logic" ("$\<^sub>>_" [999] 999)
-  "_udotvar"  :: "nat \<Rightarrow> ('t, '\<alpha>) uvar \<Rightarrow> logic" ("&_._" [0,999] 999)
-  "_uidotvar" :: "nat \<Rightarrow> ('t, '\<alpha>) uvar \<Rightarrow> logic" ("$_._" [0,999] 999)
-  "_uodotvar" :: "nat \<Rightarrow> ('t, '\<alpha>) uvar \<Rightarrow> logic" ("$_._\<acute>" [999] 999)
-  "_sdotvar"     :: "nat \<Rightarrow> logic \<Rightarrow> svar" ("&_._" [0,999] 999)
-  "_sin_dotvar"  :: "nat \<Rightarrow> logic \<Rightarrow> svar" ("$_._")
-  "_sout_dotvar" :: "nat \<Rightarrow> logic \<Rightarrow> svar" ("$_._\<acute>")
+  "_svarpre"   :: "svid \<Rightarrow> svid" ("_\<^sub><" [999] 999)
+  "_svarleft"  :: "svid \<Rightarrow> svid" ("0-_" [999] 999)
+  "_svarright" :: "svid \<Rightarrow> svid" ("1-_" [999] 999)
 
 translations
-  "_uprevar x" == "CONST var (CONST in_var (CONST pre_uvar x))"
-  "_upostvar x" == "CONST var (CONST out_var (CONST pre_uvar x))"
-  "_udotvar n x" == "CONST var (CONST ind_uvar n x)"
-  "_uidotvar n x" == "CONST in_ind_uexpr n x"
-  "_uodotvar n x" == "CONST out_ind_uexpr n x"
-  "_sdotvar n x" == "CONST ind_uvar n x"
-  "_sin_dotvar n x" == "CONST in_var (CONST ind_uvar n x)"
-  "_sout_dotvar n x" == "CONST out_var (CONST ind_uvar n x)"
-  "_psubst m (_sdotvar n x) v" => "CONST subst_upd m (CONST ind_uvar n x) v"
+  "_svarpre x" == "CONST pre_uvar x"
+  "_svarleft x" == "CONST left_uvar x"
+  "_svarright x" == "CONST right_uvar x"
 
 type_synonym '\<alpha> merge = "('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d partition, '\<alpha>) relation_d"
 
 text {* Separating simulations. I assume that the value of ok' should track the value
   of n.ok'. *}
 
-definition sep_sim :: "_ \<Rightarrow> _" ("U'(_')")
-where "U(n) = (($(n).\<Sigma>\<acute> =\<^sub>u $\<Sigma>) \<and> ($ok\<acute> =\<^sub>u $ok))"
 
-declare sep_sim_def [upred_defs]
+definition "U0 = (($0-\<Sigma>\<acute> =\<^sub>u $\<Sigma>) \<and> ($ok\<acute> =\<^sub>u $ok))"
 
-lemma unrest_sep_sim_other [unrest]:
-  "m \<noteq> n \<Longrightarrow> $(m).\<Sigma>\<acute> \<sharp> U(n)"
-  by (pred_tac, simp_all add: nth'_list_augment_diff)
+definition "U1 = (($1-\<Sigma>\<acute> =\<^sub>u $\<Sigma>) \<and> ($ok\<acute> =\<^sub>u $ok))"
+
+declare U0_def [upred_defs]
+declare U1_def [upred_defs]
 
 text {* The following implementation of parallel by merge is less general than the book version, in
   that it does not properly partition the alphabet into two disjoint segments. We could actually
@@ -157,10 +168,26 @@ text {* The following implementation of parallel by merge is less general than t
 
 definition par_by_merge :: 
   "'\<alpha> hrelation_d \<Rightarrow> '\<alpha> merge \<Rightarrow> '\<alpha> hrelation_d \<Rightarrow> '\<alpha> hrelation_d" (infixr "\<parallel>\<^bsub>_\<^esub>" 85) 
-where "P \<parallel>\<^bsub>M\<^esub> Q = ((((P ;; U(0)) \<parallel> (Q ;; U(1))) \<and> $\<^sub>>\<Sigma> =\<^sub>u $\<Sigma>) ;; M)"
+where "P \<parallel>\<^bsub>M\<^esub> Q = ((((P ;; U0) \<parallel> (Q ;; U1)) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
 
-definition "swap\<^sub>m = (($0.\<Sigma>\<acute> =\<^sub>u $1.\<Sigma>) \<and> ($1.\<Sigma>\<acute> =\<^sub>u $0.\<Sigma>) \<and> ($\<^sub><\<Sigma> =\<^sub>u $\<^sub>>\<Sigma>))"
+definition "swap\<^sub>m = $0-\<Sigma>, $1-\<Sigma> :=\<^sub>D $1-\<Sigma>, $0-\<Sigma>"
+
+declare One_nat_def [simp del]
 
 declare swap\<^sub>m_def [upred_defs]
+
+(*
+lemma merge_swap_swap: "(swap\<^sub>m ;; swap\<^sub>m) = II\<^sub>D"
+  apply (simp add: swap\<^sub>m_def in_ind_uexpr_def in_ind_uvar_def assigns_comp usubst unrest)
+  apply (subst usubst_upd_comm)
+  apply (simp_all add: usubst_upd_idem)
+  apply (subst usubst_upd_comm)
+  apply (simp_all add: usubst_upd_idem)
+  apply (subst usubst_upd_var_id)
+  apply (simp)
+  apply (simp add: usubst)
+  apply (simp add: skip_r_def)
+done
+*)  
 
 end

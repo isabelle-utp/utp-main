@@ -65,6 +65,9 @@ definition in_var :: "('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha> \<times>
 definition out_var :: "('a, '\<beta>) uvar \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>) uvar" where
 [lens_defs]: "out_var x = x ;\<^sub>L snd\<^sub>L"
 
+definition pr_var :: "('a, '\<beta>) uvar \<Rightarrow> ('a, '\<beta>) uvar" where
+[simp]: "pr_var x = x"
+
 lemma in_var_semi_uvar [simp]:
   "semi_uvar x \<Longrightarrow> semi_uvar (in_var x)"
   by (simp add: comp_mwb_lens fst_vwb_lens in_var_def)
@@ -118,14 +121,17 @@ text {* Variables can also be used to effectively define sets of variables. Here
 abbreviation (input) univ_alpha :: "('\<alpha>, '\<alpha>) uvar" ("\<Sigma>") where
 "univ_alpha \<equiv> 1\<^sub>L"
 
-nonterminal svar
+nonterminal svid and svar and salpha
 
 syntax
-  "_svar"     :: "id \<Rightarrow> svar" ("_" [999] 999)
-  "_spvar"    :: "id \<Rightarrow> svar" ("&_" [999] 999)
-  "_sinvar"   :: "id \<Rightarrow> svar" ("$_" [999] 999)
-  "_soutvar"  :: "id \<Rightarrow> svar" ("$_\<acute>" [999] 999)
-  "_svarcomp" :: "svar \<Rightarrow> svar \<Rightarrow> svar" (infixr "\<cdot>" 75)
+  "_salphaid"    :: "id \<Rightarrow> salpha" ("_" [999] 999)
+  "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [999] 999)
+  "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr "\<cdot>" 75)
+  "_svid"        :: "id \<Rightarrow> svid" ("_" [999] 999)
+  "_svid_alpha"  :: "svid" ("\<Sigma>")
+  "_spvar"       :: "svid \<Rightarrow> svar" ("&_" [999] 999)
+  "_sinvar"      :: "svid \<Rightarrow> svar" ("$_" [999] 999)
+  "_soutvar"     :: "svid \<Rightarrow> svar" ("$_\<acute>" [999] 999)
 
 consts
   svar :: "'v \<Rightarrow> 'e" 
@@ -133,13 +139,16 @@ consts
   ovar :: "'v \<Rightarrow> 'e"
 
 adhoc_overloading
-  ivar in_var and ovar out_var
+  svar pr_var and ivar in_var and ovar out_var
 
 translations
-  "_svar x" => "x"
-  "_spvar x" => "x"
+  "_salphaid x" => "x"
+  "_salphacomp x y" => "x +\<^sub>L y"
+  "_salphavar x" => "x"
+  "_svid_alpha" => "\<Sigma>"
+  "_svid x" => "x"
+  "_spvar x" == "CONST svar x"
   "_sinvar x" == "CONST ivar x"
   "_soutvar x" == "CONST ovar x"
-  "_svarcomp x y" => "x +\<^sub>L y"
 
 end
