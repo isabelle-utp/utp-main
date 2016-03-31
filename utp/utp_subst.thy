@@ -53,6 +53,12 @@ definition usubst_rel_lift :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<times
 definition usubst_rel_drop :: "('\<alpha> \<times> '\<alpha>) usubst \<Rightarrow> '\<alpha> usubst" ("\<lfloor>_\<rfloor>\<^sub>s") where
 "\<lfloor>\<sigma>\<rfloor>\<^sub>s = (\<lambda> A. fst (\<sigma> (A, undefined)))"
 
+definition unrest_usubst :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> usubst \<Rightarrow> bool"
+where "unrest_usubst x \<sigma> = (\<forall> \<rho> v. get\<^bsub>x\<^esub> (\<sigma> (put\<^bsub>x\<^esub> \<rho> v)) = v)"
+
+adhoc_overloading
+  unrest unrest_usubst
+
 nonterminal smaplet and smaplets
 
 syntax
@@ -178,6 +184,16 @@ lemma subst_drop_id [usubst]: "\<lfloor>id\<rfloor>\<^sub>s = id"
 
 lemma subst_lift_drop [usubst]: "\<lfloor>\<lceil>\<sigma>\<rceil>\<^sub>s\<rfloor>\<^sub>s = \<sigma>"
   by (simp add: usubst_rel_lift_def usubst_rel_drop_def)
+
+subsection {* Unrestriction laws *}
+
+lemma unrest_usubst_id [unrest]:
+  "semi_uvar x \<Longrightarrow> x \<sharp> id"
+  by (simp add: unrest_usubst_def)
+
+lemma unrest_usubst_upd [unrest]:
+  "\<lbrakk> x \<bowtie> y; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> x \<sharp> \<sigma>(y \<mapsto>\<^sub>s v)"
+  by (simp add: subst_upd_uvar_def unrest_usubst_def)
 
 nonterminal uexprs and svars and salphas
 

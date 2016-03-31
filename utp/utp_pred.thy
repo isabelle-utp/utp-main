@@ -61,14 +61,8 @@ syntax
   "_ushBAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
 
 translations
-  "\<exists> &x \<bullet> P"  => "CONST uex x P"
-  "\<exists> $x \<bullet> P"  == "CONST uex (CONST in_var x) P"
-  "\<exists> $x\<acute> \<bullet> P" == "CONST uex (CONST out_var x) P"
-  "\<exists> x \<bullet> P"   == "CONST uex x P"
-  "\<forall> &x \<bullet> P"  => "CONST uall x P"
-  "\<forall> $x \<bullet> P"  == "CONST uall (CONST in_var x) P"
-  "\<forall> $x\<acute> \<bullet> P" == "CONST uall (CONST out_var x) P"
-  "\<forall> x \<bullet> P"   == "CONST uall x P"
+  "_uex x P"   == "CONST uex x P"
+  "_uall x P"   == "CONST uall x P"
   "\<^bold>\<exists> x \<bullet> P"   == "CONST ushEx (\<lambda> x. P)"
   "\<^bold>\<exists> x \<in> A \<bullet> P" => "\<^bold>\<exists> x \<bullet> \<guillemotleft>x\<guillemotright> \<in>\<^sub>u A \<and> P"
   "\<^bold>\<forall> x \<bullet> P"   == "CONST ushAll (\<lambda> x. P)"
@@ -250,10 +244,10 @@ lemma unrest_true [unrest]: "x \<sharp> true"
 lemma unrest_false [unrest]: "x \<sharp> false"
   by (pred_tac)
 
-lemma unrest_conj [unrest]: "\<lbrakk> x \<sharp> P; x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<and> Q"
+lemma unrest_conj [unrest]: "\<lbrakk> x \<sharp> (P :: '\<alpha> upred); x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<and> Q"
   by (pred_tac)
 
-lemma unrest_disj [unrest]: "\<lbrakk> x \<sharp> P; x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<or> Q"
+lemma unrest_disj [unrest]: "\<lbrakk> x \<sharp> (P :: '\<alpha> upred); x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<or> Q"
   by (pred_tac)
 
 lemma unrest_impl [unrest]: "\<lbrakk> x \<sharp> P; x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<Rightarrow> Q"
@@ -262,13 +256,38 @@ lemma unrest_impl [unrest]: "\<lbrakk> x \<sharp> P; x \<sharp> Q \<rbrakk> \<Lo
 lemma unrest_iff [unrest]: "\<lbrakk> x \<sharp> P; x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<Leftrightarrow> Q"
   by (pred_tac)
 
-lemma unrest_not [unrest]: "x \<sharp> P \<Longrightarrow> x \<sharp> (\<not> P)"
+lemma unrest_not [unrest]: "x \<sharp> (P :: '\<alpha> upred) \<Longrightarrow> x \<sharp> (\<not> P)"
   by (pred_tac)
 
-lemma unrest_ex_same [unrest]:
-  "semi_uvar x \<Longrightarrow> x \<sharp> (\<exists> x \<bullet> P)"
-  by pred_tac
+lemma unrest_ex_in [unrest]:
+  "\<lbrakk> semi_uvar y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> x \<sharp> (\<exists> y \<bullet> P)"
+  by (pred_tac)
 
+declare sublens_refl [simp]
+declare lens_plus_ub [simp]
+
+lemma lens_plus_right_sublens [simp]:
+  "\<lbrakk> uvar Y; Y \<bowtie> Z; X \<subseteq>\<^sub>L Z \<rbrakk> \<Longrightarrow> X \<subseteq>\<^sub>L Y +\<^sub>L Z"
+  apply (auto simp add: sublens_def)
+  apply (rename_tac Z')
+  apply (rule_tac x="Z' ;\<^sub>L snd\<^sub>L" in exI)
+  apply (auto)
+  apply (metis out_var_def out_var_uvar)
+  apply (simp add: lens_comp_assoc snd_lens_prod)
+done
+
+declare comp_wb_lens [simp]
+declare comp_mwb_lens [simp]
+
+lemma plus_mwb_lens [simp]:
+  assumes "mwb_lens x" "mwb_lens y" "x \<bowtie> y"
+  shows "mwb_lens (x +\<^sub>L y)"
+  using assms
+  apply (unfold_locales)
+  apply (simp_all add: lens_plus_def prod.case_eq_if lens_indep_sym)
+  apply (simp add: lens_indep_comm)
+done
+  
 lemma unrest_ex_diff [unrest]:
   assumes "x \<bowtie> y" "y \<sharp> P"
   shows "y \<sharp> (\<exists> x \<bullet> P)"
@@ -338,7 +357,7 @@ text {* TODO: Generalise the quantifier substitution laws to n-ary substitutions
 lemma subst_ex_same [usubst]:
   assumes "semi_uvar x"
   shows "(\<exists> x \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<exists> x \<bullet> P)"
-  by (simp add: assms id_subst subst_unrest unrest_ex_same)
+  by (simp add: assms id_subst subst_unrest unrest_ex_in)
 
 lemma subst_ex_indep [usubst]: 
   assumes "x \<bowtie> y" "y \<sharp> v"

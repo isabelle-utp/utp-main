@@ -74,14 +74,14 @@ where "(p \<turnstile>\<^sub>n Q) = (\<lceil>p\<rceil>\<^sub>< \<turnstile>\<^su
 definition skip_d :: "'\<alpha> hrelation_d" ("II\<^sub>D")
 where "II\<^sub>D \<equiv> (true \<turnstile>\<^sub>r II)"
 
-definition assigns_d :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d" 
-where "assigns_d \<sigma> = (true \<turnstile>\<^sub>r assigns_r \<sigma>)"
+definition assigns_d :: "('\<alpha> alphabet_d) usubst \<Rightarrow> '\<alpha> hrelation_d" ("\<langle>_\<rangle>\<^sub>D")
+where "assigns_d \<sigma> = (true \<turnstile> assigns_r \<sigma>)"
 
 syntax
-  "_assignmentd" :: "salphas \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr ":=\<^sub>D" 55)
+  "_assignmentd" :: "svid_list \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr ":=\<^sub>D" 55)
 
 translations
-  "_assignmentd xs vs" => "CONST assigns_d (_psubst (CONST id) xs vs)"
+  "_assignmentd xs vs" => "CONST assigns_d (_mk_usubst (CONST id) xs vs)"
 
 definition J :: "'\<alpha> hrelation_d"
 where "J = (($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D)"
@@ -116,6 +116,7 @@ declare J_def [upred_defs]
 declare pre_design_def [upred_defs]
 declare post_design_def [upred_defs]
 declare wp_design_def [upred_defs]
+declare assigns_d_def [upred_defs]
 
 declare H1_def [upred_defs]
 declare H2_def [upred_defs]
@@ -323,6 +324,16 @@ lemma lift_des_skip_dr_unit [simp]:
   "(\<lceil>P\<rceil>\<^sub>D ;; \<lceil>II\<rceil>\<^sub>D) = \<lceil>P\<rceil>\<^sub>D"
   "(\<lceil>II\<rceil>\<^sub>D ;; \<lceil>P\<rceil>\<^sub>D) = \<lceil>P\<rceil>\<^sub>D"
   by rel_tac rel_tac
+
+lemma assigns_d_comp: "ok \<sharp> f \<Longrightarrow> (assigns_d f ;; assigns_d g) = assigns_d (g \<circ> f)" 
+  apply (simp add: assigns_d_def design_def)
+  apply (pred_tac)
+  apply (simp add: relcomp_unfold)
+  apply (auto)
+  apply (simp add: relcomp_unfold)
+  apply (simp add: unrest_usubst_def)
+  apply (metis (full_types) alpha_d.surjective alpha_d.update_convs(1))
+done
 
 subsection {* H1: No observation is allowed before initiation *}
 

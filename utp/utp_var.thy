@@ -126,7 +126,7 @@ nonterminal svid and svar and salpha
 syntax
   "_salphaid"    :: "id \<Rightarrow> salpha" ("_" [999] 999)
   "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [999] 999)
-  "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr "\<cdot>" 75)
+  "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr "," 75)
   "_svid"        :: "id \<Rightarrow> svid" ("_" [999] 999)
   "_svid_alpha"  :: "svid" ("\<Sigma>")
   "_spvar"       :: "svid \<Rightarrow> svar" ("&_" [999] 999)

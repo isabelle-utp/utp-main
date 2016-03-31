@@ -170,7 +170,9 @@ definition par_by_merge ::
   "'\<alpha> hrelation_d \<Rightarrow> '\<alpha> merge \<Rightarrow> '\<alpha> hrelation_d \<Rightarrow> '\<alpha> hrelation_d" (infixr "\<parallel>\<^bsub>_\<^esub>" 85) 
 where "P \<parallel>\<^bsub>M\<^esub> Q = ((((P ;; U0) \<parallel> (Q ;; U1)) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
 
-definition "swap\<^sub>m = $0-\<Sigma>, $1-\<Sigma> :=\<^sub>D $1-\<Sigma>, $0-\<Sigma>"
+term "$0-\<Sigma>"
+
+definition "swap\<^sub>m = 0-\<Sigma>,1-\<Sigma> :=\<^sub>D &1-\<Sigma>, &0-\<Sigma>"
 
 declare One_nat_def [simp del]
 

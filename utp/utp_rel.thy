@@ -61,20 +61,20 @@ abbreviation assign_2_r ::
 where "assign_2_r x y u v \<equiv> assigns_r [x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v]"
 
 nonterminal 
-  id_list and uexpr_list
+  svid_list and uexpr_list
 
 syntax
-  "_id_unit"    :: "id \<Rightarrow> id_list" ("_")
-  "_id_list"    :: "id \<Rightarrow> id_list \<Rightarrow> id_list" ("_,/ _")
+  "_svid_unit"  :: "svid \<Rightarrow> svid_list" ("_")
+  "_svid_list"  :: "svid \<Rightarrow> svid_list \<Rightarrow> svid_list" ("_,/ _")
   "_uexpr_unit" :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list" ("_" [40] 40)
   "_uexpr_list" :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list \<Rightarrow> uexpr_list" ("_,/ _" [40,40] 40)
-  "_assignment" :: "salphas \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrelation"  (infixr ":=" 55)
-  "_mk_usubst"  :: "salphas \<Rightarrow> uexpr_list \<Rightarrow> '\<alpha> usubst"
+  "_assignment" :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrelation"  (infixr ":=" 55)
+  "_mk_usubst"  :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> usubst"
 
 translations
-  "_mk_usubst (_salphaid x) (_uexpr_unit v)" == "[x \<mapsto>\<^sub>s v]"
-  "_mk_usubst (_id_list x xs) (_uexpr_list v vs)" == "(_mk_usubst xs vs)(x \<mapsto>\<^sub>s v)"
-  "_assignment xs vs" => "CONST assigns_r (_psubst (CONST id) xs vs)"
+  "_mk_usubst \<sigma> (_svid_unit x) v" == "\<sigma>(&x \<mapsto>\<^sub>s v)"
+  "_mk_usubst \<sigma> (_svid_list x xs) (_uexprs v vs)" == "(_mk_usubst (\<sigma>(x \<mapsto>\<^sub>s v)) xs vs)"
+  "_assignment xs vs" => "CONST assigns_r (_mk_usubst (CONST id) xs vs)"
   "x := v" <= "CONST assign_r x v"
   "x,y := u,v" <= "CONST assign_2_r x y u v"
 
@@ -109,12 +109,12 @@ lemma unrest_ouvar [unrest]: "semi_uvar x \<Longrightarrow> in\<alpha> \<sharp> 
   by (simp add: in\<alpha>_def, transfer, auto)
 
 lemma unrest_in\<alpha>_var [unrest]:
-  "\<lbrakk> semi_uvar x; in\<alpha> \<sharp> P \<rbrakk> \<Longrightarrow> $x \<sharp> P"
-  by (pred_tac, simp add: in\<alpha>_def)
+  "\<lbrakk> semi_uvar x; in\<alpha> \<sharp> (P :: ('\<alpha>, '\<beta>) relation) \<rbrakk> \<Longrightarrow> $x \<sharp> P"
+  by (pred_tac, simp add: in\<alpha>_def, blast, metis in\<alpha>_def lens.select_convs(2) old.prod.case)
 
 lemma unrest_out\<alpha>_var [unrest]:
-  "\<lbrakk> semi_uvar x; out\<alpha> \<sharp> P \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> P"
-  by (pred_tac, simp add: out\<alpha>_def)
+  "\<lbrakk> semi_uvar x; out\<alpha> \<sharp> (P :: ('\<alpha>, '\<beta>) relation) \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> P"
+  by (pred_tac, simp add: out\<alpha>_def, blast, metis lens.select_convs(2) old.prod.case out\<alpha>_def)
 
 lemma in\<alpha>_uvar [simp]: "uvar in\<alpha>"
   by (unfold_locales, auto simp add: in\<alpha>_def)

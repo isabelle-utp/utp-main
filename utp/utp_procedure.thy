@@ -33,11 +33,11 @@ proof -
   also have "... = (\<exists> $x \<bullet> $x =\<^sub>u $x\<acute> \<and> II\<restriction>\<^sub>\<alpha>x)"
     by (metis assms eq_upred_sym skip_r_unfold)
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>$x\<acute>/$x\<rbrakk>"
-    by (metis conj_comm in_var_semi_uvar one_point unrest_in\<alpha>_var utp_rel.unrest_ouvar vwb_lens_mwb)
+    by (simp add: conj_comm one_point unrest_iuvar_ouvar)
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>$x/$x\<acute>\<rbrakk>"
     by subst_tac
   also have "... = (\<exists> $x\<acute> \<bullet> $x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x)"
-    by (metis assms conj_comm one_point out_var_semi_uvar unrest_out\<alpha>_var utp_rel.unrest_iuvar vwb_lens_mwb)
+    by (simp add: assms conj_comm one_point unrest_ouvar_iuvar)
   also have "... = (\<exists> $x\<acute> \<bullet> II)"
     using assms skip_r_unfold by fastforce
   also have "... = end\<^sub>u x"
@@ -102,17 +102,17 @@ lemma assign_var_close:
   shows "(x := v ;; end\<^sub>u x) = end\<^sub>u x"
 proof -
   from assms have "(x := v ;; end\<^sub>u x) = (\<exists> $x\<acute> \<bullet> x := v)"
-    by (simp add: assigns_r_comp var_close_def usubst unrest)
+    by (simp add: seqr_exists_right var_close_def)
   also have "... = (\<exists> $x\<acute> \<bullet> ($x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub>< \<and> II\<restriction>\<^sub>\<alpha>x))"
-    by (simp add: assign_unfold assms)
+    using assign_unfold assms by fastforce
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>\<lceil>v\<rceil>\<^sub></$x\<acute>\<rbrakk>"
-    by (metis conj_comm one_point out_var_semi_uvar unrest_out\<alpha>_var unrest_pre_out\<alpha> vwb_lens_mwb)
+    by (metis assigns_r_comp calculation pr_var_def subst_lift_id subst_lift_upd subst_unrest unrest_in_rel_var_res unrest_out_rel_var_res var_block_vacuous var_open_eq_var_close var_open_twice)
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x)"
     by subst_tac
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>$x/$x\<acute>\<rbrakk>"
     by subst_tac
   also have "... = (\<exists> $x\<acute> \<bullet> ($x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x))"
-    by (simp add: assms conj_comm one_point unrest_out\<alpha>_var utp_rel.unrest_iuvar)
+    by (simp add: assms conj_comm one_point unrest_ouvar_iuvar)
   also from assms have "... = (\<exists> $x\<acute> \<bullet> II)"
     using skip_r_unfold by force
   also have "... = end\<^sub>u x"
