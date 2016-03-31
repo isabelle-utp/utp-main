@@ -259,34 +259,18 @@ lemma unrest_iff [unrest]: "\<lbrakk> x \<sharp> P; x \<sharp> Q \<rbrakk> \<Lon
 lemma unrest_not [unrest]: "x \<sharp> (P :: '\<alpha> upred) \<Longrightarrow> x \<sharp> (\<not> P)"
   by (pred_tac)
 
+text {* The sublens proviso can be thought of as membership below. *}
+
 lemma unrest_ex_in [unrest]:
   "\<lbrakk> semi_uvar y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> x \<sharp> (\<exists> y \<bullet> P)"
   by (pred_tac)
 
 declare sublens_refl [simp]
 declare lens_plus_ub [simp]
-
-lemma lens_plus_right_sublens [simp]:
-  "\<lbrakk> uvar Y; Y \<bowtie> Z; X \<subseteq>\<^sub>L Z \<rbrakk> \<Longrightarrow> X \<subseteq>\<^sub>L Y +\<^sub>L Z"
-  apply (auto simp add: sublens_def)
-  apply (rename_tac Z')
-  apply (rule_tac x="Z' ;\<^sub>L snd\<^sub>L" in exI)
-  apply (auto)
-  apply (metis out_var_def out_var_uvar)
-  apply (simp add: lens_comp_assoc snd_lens_prod)
-done
-
+declare lens_plus_right_sublens [simp]
 declare comp_wb_lens [simp]
 declare comp_mwb_lens [simp]
-
-lemma plus_mwb_lens [simp]:
-  assumes "mwb_lens x" "mwb_lens y" "x \<bowtie> y"
-  shows "mwb_lens (x +\<^sub>L y)"
-  using assms
-  apply (unfold_locales)
-  apply (simp_all add: lens_plus_def prod.case_eq_if lens_indep_sym)
-  apply (simp add: lens_indep_comm)
-done
+declare plus_mwb_lens [simp]
   
 lemma unrest_ex_diff [unrest]:
   assumes "x \<bowtie> y" "y \<sharp> P"
@@ -296,8 +280,8 @@ lemma unrest_ex_diff [unrest]:
   using lens_indep_comm apply fastforce+
 done
 
-lemma unrest_all_same [unrest]:
-  "semi_uvar x \<Longrightarrow> x \<sharp> (\<forall> x \<bullet> P)"
+lemma unrest_all_in [unrest]:
+  "\<lbrakk> semi_uvar y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> x \<sharp> (\<forall> y \<bullet> P)"
   by pred_tac
 
 lemma unrest_all_diff [unrest]:
@@ -370,7 +354,7 @@ done
 lemma subst_all_same [usubst]:
   assumes "semi_uvar x"
   shows "(\<forall> x \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<forall> x \<bullet> P)"
-  by (simp add: assms id_subst subst_unrest unrest_all_same)
+  by (simp add: assms id_subst subst_unrest unrest_all_in)
 
 lemma subst_all_indep [usubst]: 
   assumes "x \<bowtie> y" "y \<sharp> v"

@@ -211,6 +211,15 @@ lemma mwb_lens_weak [simp]:
 lemma comp_mwb_lens: "\<lbrakk> mwb_lens x; mwb_lens y \<rbrakk> \<Longrightarrow> mwb_lens (x ;\<^sub>L y)"
   by (unfold_locales, simp_all add: lens_comp_def)
 
+lemma plus_mwb_lens:
+  assumes "mwb_lens x" "mwb_lens y" "x \<bowtie> y"
+  shows "mwb_lens (x +\<^sub>L y)"
+  using assms
+  apply (unfold_locales)
+  apply (simp_all add: lens_plus_def prod.case_eq_if lens_indep_sym)
+  apply (simp add: lens_indep_comm)
+done
+
 lemma lens_indep_quasi_irrefl: "\<lbrakk> mwb_lens x; effectual x \<rbrakk> \<Longrightarrow> \<not> (x \<bowtie> x)"
   by (metis effectual_def lens_indep_def mwb_lens.put_put)
 
@@ -540,6 +549,16 @@ lemma lens_plus_comm: "X \<bowtie> Y \<Longrightarrow> X +\<^sub>L Y \<approx>\<
 
 lemma lens_plus_ub: "wb_lens Y \<Longrightarrow> X \<subseteq>\<^sub>L X +\<^sub>L Y"
   by (metis fst_lens_plus fst_vwb_lens sublens_def vwb_lens_wb)
+
+lemma lens_plus_right_sublens:
+  "\<lbrakk> vwb_lens Y; Y \<bowtie> Z; X \<subseteq>\<^sub>L Z \<rbrakk> \<Longrightarrow> X \<subseteq>\<^sub>L Y +\<^sub>L Z"
+  apply (auto simp add: sublens_def)
+  apply (rename_tac Z')
+  apply (rule_tac x="Z' ;\<^sub>L snd\<^sub>L" in exI)
+  apply (auto)
+  using comp_vwb_lens snd_vwb_lens apply blast
+  apply (simp add: lens_comp_assoc snd_lens_prod)
+done
 
 lemma lens_comp_lb: "vwb_lens X \<Longrightarrow> X ;\<^sub>L Y \<subseteq>\<^sub>L Y"
   by (auto simp add: sublens_def)
