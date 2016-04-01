@@ -84,6 +84,13 @@ adhoc_overloading
 
 method rel_tac = ((simp add: upred_defs urel_defs)?, (transfer, (rule_tac ext)?, auto simp add: lens_defs urel_defs relcomp_unfold fun_eq_iff prod.case_eq_if)?)
 
+text {* We describe some properties of relations *}
+
+definition ufunctional :: "('a, 'b) relation \<Rightarrow> bool"
+where "ufunctional R \<longleftrightarrow> (II \<sqsubseteq> (R\<^sup>- ;; R))"
+
+declare ufunctional_def [urel_defs]
+
 text {* A test is like a precondition, except that it identifies to the postcondition. It
         forms the basis for Kleene Algebra with Tests (KAT). *}
 
@@ -309,6 +316,10 @@ lemma assigns_idem: "semi_uvar x \<Longrightarrow> (x,x := u,v) = (x := v)"
 lemma assigns_comp: "(assigns_r f ;; assigns_r g) = assigns_r (g \<circ> f)" 
   by (transfer, auto simp add:relcomp_unfold)
 
+lemma assigns_r_conv:
+  "bij f \<Longrightarrow> \<langle>f\<rangle>\<^sub>a\<^sup>- = \<langle>inv f\<rangle>\<^sub>a"
+  by (rel_tac, simp_all add: bij_is_inj bij_is_surj surj_f_inv_f)
+
 lemma assigns_r_comp: "(\<langle>\<sigma>\<rangle>\<^sub>a ;; P) = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P)"
   by rel_tac
 
@@ -333,6 +344,10 @@ lemma seqr_or_distl:
 
 lemma seqr_or_distr:
   "(P ;; (Q \<or> R)) = ((P ;; Q) \<or> (P ;; R))"
+  by rel_tac
+
+lemma seqr_and_distr_ufunc:
+  "ufunctional P \<Longrightarrow> (P ;; (Q \<and> R)) = ((P ;; Q) \<and> (P ;; R))"
   by rel_tac
 
 lemma seqr_middle: 

@@ -328,19 +328,18 @@ lemma lift_des_skip_dr_unit [simp]:
 lemma assigns_d_id [simp]: "\<langle>id\<rangle>\<^sub>D = II\<^sub>D"
   by (rel_tac)
 
-(*
 lemma assigns_d_comp: 
   assumes "ok \<sharp> f"
   shows "(\<langle>f\<rangle>\<^sub>D ;; \<langle>g\<rangle>\<^sub>D) = \<langle>g \<circ> f\<rangle>\<^sub>D" 
+  using assms
   apply (simp add: assigns_d_def design_def)
   apply (pred_tac)
   apply (simp add: relcomp_unfold)
   apply (auto)
   apply (simp add: relcomp_unfold)
-  using assms apply (simp add: unrest_usubst_def)
+  apply (simp add: unrest_usubst_def)
   apply (metis (full_types) alpha_d.surjective alpha_d.update_convs(1))
 done
-*)
 
 subsection {* H1: No observation is allowed before initiation *}
 

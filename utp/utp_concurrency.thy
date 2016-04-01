@@ -196,7 +196,6 @@ lemma U1_swap: "(U1 ;; swap\<^sub>m) = U0"
   apply (smt alpha_d.select_convs(1) alpha_d.select_convs(2) alpha_d.surjective alpha_d.update_convs(2) fst_conv prod.collapse snd_conv)
 done
 
-
 lemma merge_swap_swap: "(swap\<^sub>m ;; swap\<^sub>m) = II\<^sub>D"
   apply (simp add: swap\<^sub>m_def in_ind_uexpr_def in_ind_uvar_def assigns_d_comp usubst unrest)
   apply (subst usubst_upd_comm)
