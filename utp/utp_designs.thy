@@ -51,7 +51,7 @@ lemma ok_des_bij_lens: "bij_lens (ok +\<^sub>L des_lens)"
 text {* It would be nice to be able to prove some general distributivity properties
         about these lifting operators. I don't know if that's possible somehow... *}
 
-abbreviation (input) lift_desr :: "('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" ("\<lceil>_\<rceil>\<^sub>D")
+abbreviation lift_desr :: "('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" ("\<lceil>_\<rceil>\<^sub>D")
 where "\<lceil>P\<rceil>\<^sub>D \<equiv> P \<oplus>\<^sub>p (des_lens \<times>\<^sub>L des_lens)"
 
 abbreviation drop_desr :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("\<lfloor>_\<rfloor>\<^sub>D")
@@ -238,9 +238,9 @@ qed
   
 theorem design_composition:
   assumes 
-    "$ok \<sharp> P1" "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2" "$ok\<acute> \<sharp> P2"
-    "$ok \<sharp> Q1" "$ok\<acute> \<sharp> Q1" "$ok \<sharp> Q2" "$ok\<acute> \<sharp> Q2"
+    "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2" "$ok\<acute> \<sharp> Q1" "$ok \<sharp> Q2"
   shows "((P1 \<turnstile> Q1) ;; (P2 \<turnstile> Q2)) = (((\<not> ((\<not> P1) ;; true)) \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile> (Q1 ;; Q2))"
+  using assms
 proof -
   have "((P1 \<turnstile> Q1) ;; (P2 \<turnstile> Q2)) = (\<^bold>\<exists> ok\<^sub>0 \<bullet> ((P1 \<turnstile> Q1)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<acute>\<rbrakk> ;; (P2 \<turnstile> Q2)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<rbrakk>))"
     by (rule seqr_middle, simp)
@@ -325,15 +325,22 @@ lemma lift_des_skip_dr_unit [simp]:
   "(\<lceil>II\<rceil>\<^sub>D ;; \<lceil>P\<rceil>\<^sub>D) = \<lceil>P\<rceil>\<^sub>D"
   by rel_tac rel_tac
 
-lemma assigns_d_comp: "ok \<sharp> f \<Longrightarrow> (assigns_d f ;; assigns_d g) = assigns_d (g \<circ> f)" 
+lemma assigns_d_id [simp]: "\<langle>id\<rangle>\<^sub>D = II\<^sub>D"
+  by (rel_tac)
+
+(*
+lemma assigns_d_comp: 
+  assumes "ok \<sharp> f"
+  shows "(\<langle>f\<rangle>\<^sub>D ;; \<langle>g\<rangle>\<^sub>D) = \<langle>g \<circ> f\<rangle>\<^sub>D" 
   apply (simp add: assigns_d_def design_def)
   apply (pred_tac)
   apply (simp add: relcomp_unfold)
   apply (auto)
   apply (simp add: relcomp_unfold)
-  apply (simp add: unrest_usubst_def)
+  using assms apply (simp add: unrest_usubst_def)
   apply (metis (full_types) alpha_d.surjective alpha_d.update_convs(1))
 done
+*)
 
 subsection {* H1: No observation is allowed before initiation *}
 

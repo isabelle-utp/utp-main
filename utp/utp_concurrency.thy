@@ -102,6 +102,10 @@ declare out_ind_uexpr_def [upred_defs]
 declare in_pre_uexpr_def [upred_defs]
 declare out_pre_uexpr_def [upred_defs]
 
+lemma left_uvar_indep_ok [simp]:
+  "left_uvar x \<bowtie> ok" "ok \<bowtie> left_uvar x"
+  by (simp_all add: left_uvar_def lens_indep_left_ext lens_indep_sym)
+
 lemma left_uvar_indep_right_uvar [simp]:
   "left_uvar x \<bowtie> right_uvar y"
   apply (simp add: left_uvar_def right_uvar_def lens_comp_assoc[THEN sym])
@@ -111,6 +115,10 @@ done
 lemma right_uvar_indep_left_uvar [simp]:
   "right_uvar x \<bowtie> left_uvar y"
   by (simp add: lens_indep_sym)
+
+lemma right_uvar_indep_ok [simp]:
+  "right_uvar x \<bowtie> ok" "ok \<bowtie> right_uvar x"
+  by (simp_all add: right_uvar_def lens_indep_left_ext lens_indep_sym)
 
 lemma left_uvar [simp]: "uvar x \<Longrightarrow> uvar (left_uvar x)"
   by (simp add: left_uvar_def comp_vwb_lens fst_vwb_lens snd_vwb_lens)
@@ -154,9 +162,9 @@ text {* Separating simulations. I assume that the value of ok' should track the 
   of n.ok'. *}
 
 
-definition "U0 = (($0-\<Sigma>\<acute> =\<^sub>u $\<Sigma>) \<and> ($ok\<acute> =\<^sub>u $ok))"
+definition "U0 = (true \<turnstile> (($0-\<Sigma>\<acute> =\<^sub>u $\<Sigma>) \<and> ($ok\<acute> =\<^sub>u $ok)))"
 
-definition "U1 = (($1-\<Sigma>\<acute> =\<^sub>u $\<Sigma>) \<and> ($ok\<acute> =\<^sub>u $ok))"
+definition "U1 = (true \<turnstile> (($1-\<Sigma>\<acute> =\<^sub>u $\<Sigma>) \<and> ($ok\<acute> =\<^sub>u $ok)))"
 
 declare U0_def [upred_defs]
 declare U1_def [upred_defs]
@@ -170,26 +178,33 @@ definition par_by_merge ::
   "'\<alpha> hrelation_d \<Rightarrow> '\<alpha> merge \<Rightarrow> '\<alpha> hrelation_d \<Rightarrow> '\<alpha> hrelation_d" (infixr "\<parallel>\<^bsub>_\<^esub>" 85) 
 where "P \<parallel>\<^bsub>M\<^esub> Q = ((((P ;; U0) \<parallel> (Q ;; U1)) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
 
-term "$0-\<Sigma>"
-
 definition "swap\<^sub>m = 0-\<Sigma>,1-\<Sigma> :=\<^sub>D &1-\<Sigma>, &0-\<Sigma>"
 
 declare One_nat_def [simp del]
 
 declare swap\<^sub>m_def [upred_defs]
 
-(*
+lemma U0_swap: "(U0 ;; swap\<^sub>m) = U1"
+  apply (rel_tac)
+  apply (meson alpha_d.select_convs(1))
+  apply (smt alpha_d.select_convs(1) alpha_d.select_convs(2) alpha_d.surjective alpha_d.update_convs(2) fst_conv prod.collapse snd_conv)
+done
+
+lemma U1_swap: "(U1 ;; swap\<^sub>m) = U0"
+  apply (rel_tac)
+  apply (meson alpha_d.select_convs(1))
+  apply (smt alpha_d.select_convs(1) alpha_d.select_convs(2) alpha_d.surjective alpha_d.update_convs(2) fst_conv prod.collapse snd_conv)
+done
+
+
 lemma merge_swap_swap: "(swap\<^sub>m ;; swap\<^sub>m) = II\<^sub>D"
-  apply (simp add: swap\<^sub>m_def in_ind_uexpr_def in_ind_uvar_def assigns_comp usubst unrest)
+  apply (simp add: swap\<^sub>m_def in_ind_uexpr_def in_ind_uvar_def assigns_d_comp usubst unrest)
   apply (subst usubst_upd_comm)
   apply (simp_all add: usubst_upd_idem)
   apply (subst usubst_upd_comm)
   apply (simp_all add: usubst_upd_idem)
   apply (subst usubst_upd_var_id)
-  apply (simp)
-  apply (simp add: usubst)
-  apply (simp add: skip_r_def)
+  apply (simp_all add: usubst)
 done
-*)  
 
 end
