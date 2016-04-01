@@ -79,7 +79,7 @@ syntax
   "_uuvar" :: "svar \<Rightarrow> logic"
 
 translations
-  "_uuvar x" => "CONST var x"
+  "_uuvar x" == "CONST var x"
 
 syntax
   "_uuvar" :: "svar \<Rightarrow> logic" ("_")

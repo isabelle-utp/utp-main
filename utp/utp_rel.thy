@@ -91,6 +91,11 @@ where "ufunctional R \<longleftrightarrow> (II \<sqsubseteq> (R\<^sup>- ;; R))"
 
 declare ufunctional_def [urel_defs]
 
+definition uinj :: "('a, 'b) relation \<Rightarrow> bool"
+where "uinj R \<longleftrightarrow> II \<sqsubseteq> (R ;; R\<^sup>-)"
+
+declare uinj_def [urel_defs]
+
 text {* A test is like a precondition, except that it identifies to the postcondition. It
         forms the basis for Kleene Algebra with Tests (KAT). *}
 
@@ -329,9 +334,19 @@ lemma assign_r_comp: "semi_uvar x \<Longrightarrow> (x := u ;; P) = ([$x \<mapst
 lemma assign_test: "semi_uvar x \<Longrightarrow> (x := \<guillemotleft>u\<guillemotright> ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright>)"
   by (simp add: assigns_comp subst_upd_comp subst_lit usubst_upd_idem)
 
+lemma assigns_r_ufunc: "ufunctional \<langle>f\<rangle>\<^sub>a"
+  by (rel_tac)
+
+lemma assigns_r_uinj: "inj f \<Longrightarrow> uinj \<langle>f\<rangle>\<^sub>a"
+  by (rel_tac, simp add: inj_eq)
+
 lemma skip_r_unfold:
   "uvar x \<Longrightarrow> II = ($x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x)"
   by (rel_tac, blast, metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens.get_put)
+
+lemma skip_r_alpha_eq:
+  "II = ($\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
+  by (rel_tac)
 
 lemma assign_unfold:
   "uvar x \<Longrightarrow> (x := v) = ($x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub>< \<and> II\<restriction>\<^sub>\<alpha>x)"
@@ -348,6 +363,14 @@ lemma seqr_or_distr:
 
 lemma seqr_and_distr_ufunc:
   "ufunctional P \<Longrightarrow> (P ;; (Q \<and> R)) = ((P ;; Q) \<and> (P ;; R))"
+  by rel_tac
+
+lemma seqr_and_distl_uinj:
+  "uinj R \<Longrightarrow> ((P \<and> Q) ;; R) = ((P ;; R) \<and> (Q ;; R))"
+  by (rel_tac, metis)
+
+lemma seqr_unfold:
+  "(P ;; Q) = (\<^bold>\<exists> v \<bullet> P\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<Sigma>\<acute>\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<Sigma>\<rbrakk>)"
   by rel_tac
 
 lemma seqr_middle: 

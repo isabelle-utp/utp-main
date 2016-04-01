@@ -271,8 +271,7 @@ theorem design_skip_idem [simp]:
 
 theorem design_composition_cond:
   assumes 
-    "$ok \<sharp> p1" "out\<alpha> \<sharp> p1" "$ok \<sharp> P2" "$ok\<acute> \<sharp> P2"
-    "$ok \<sharp> Q1" "$ok\<acute> \<sharp> Q1" "$ok \<sharp> Q2" "$ok\<acute> \<sharp> Q2"
+    "out\<alpha> \<sharp> p1" "$ok \<sharp> P2" "$ok\<acute> \<sharp> Q1" "$ok \<sharp> Q2" 
   shows "((p1 \<turnstile> Q1) ;; (P2 \<turnstile> Q2)) = ((p1 \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile> (Q1 ;; Q2))"
   using assms
   by (simp add: design_composition unrest precond_right_unit)
@@ -327,6 +326,16 @@ lemma lift_des_skip_dr_unit [simp]:
 
 lemma assigns_d_id [simp]: "\<langle>id\<rangle>\<^sub>D = II\<^sub>D"
   by (rel_tac)
+
+lemma assign_d_right_comp:
+  "\<lbrakk> out\<alpha> \<sharp> p; ok \<sharp> f \<rbrakk> \<Longrightarrow> ((p \<turnstile> Q) ;; \<langle>f\<rangle>\<^sub>D) = (p \<turnstile> (Q ;; \<langle>f\<rangle>\<^sub>a))"
+  apply (rel_tac)
+  apply blast+
+  apply (meson alpha_d.select_convs(1))
+  apply (meson alpha_d.select_convs(1))
+  apply (simp add: unrest_usubst_def)
+  apply (metis alpha_d.surjective alpha_d.update_convs(1))
+done
 
 lemma assigns_d_comp: 
   assumes "ok \<sharp> f"
@@ -674,6 +683,9 @@ theorem H1_H3_is_normal_design:
   by (metis H1_H3_is_rdesign assms drop_pre_inv ndesign_def precond_equiv rdesign_H3_iff_pre)
 
 abbreviation "H1_H3 p \<equiv> H1 (H3 p)"
+
+lemma H3_unrest_out_alpha [unrest]: "P is H1_H3 \<Longrightarrow> out\<alpha> \<sharp> pre\<^sub>D(P)"
+  by (metis H1_H3_commute H1_H3_is_rdesign H1_idem Healthy_def' precond_equiv rdesign_H3_iff_pre)
 
 theorem wpd_seq_r_H1_H2 [wp]:
   fixes P Q :: "'\<alpha> hrelation_d"

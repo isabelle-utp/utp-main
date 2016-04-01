@@ -241,11 +241,11 @@ translations
 
 lemma val_parm_apply [simp]: 
   "val_parm x P v = var_block x (\<lambda> x. (P x)\<lbrakk>\<lceil>v\<rceil>\<^sub></$x\<rbrakk>)"
-  by (simp add: val_parm_def var_block_def Let_def assign_r_comp uvar_dvar subst_upd_dvar_def)
+  by (simp add: assigns_r_comp subst_lift_id subst_lift_upd val_parm_def)
 
 lemma val_parm_comp_apply:
   "(val_parm_comp x P) (u, v) = var_block x (\<lambda> x. (P x v)\<lbrakk>\<lceil>u\<rceil>\<^sub></$x\<rbrakk>)"
-  by (simp add: val_parm_comp_def var_block_def Let_def assign_r_comp uvar_dvar subst_upd_dvar_def)
+  by (simp add: assigns_r_comp subst_lift_id subst_lift_upd val_parm_comp_def)
 
 lemma val_parm_apply_2 [simp]:
   fixes x y :: "'a::continuum dvar" and u :: "('a, '\<alpha>::vst) uexpr"
@@ -253,7 +253,8 @@ lemma val_parm_apply_2 [simp]:
   shows "val_parm_comp x (\<lambda> x. val_parm y (P x)) (u, v) = 
          var_block x (\<lambda> x. var_block y (\<lambda> y. (P x y)\<lbrakk>\<lceil>u\<rceil>\<^sub><,\<lceil>v\<rceil>\<^sub></$x,$y\<rbrakk>))"
   using assms
-  by (simp add: val_parm_comp_apply var_block_def var_block_expand uvar_dvar usubst unrest lens_indep_sym)
+  apply (simp add: val_parm_comp_apply var_block_def var_block_expand uvar_dvar usubst unrest lens_indep_sym )
+oops
 
 lemma res_parm_apply [simp]: 
   "res_parm x P v = var_block x (\<lambda> x. P x ;; v := &x)"

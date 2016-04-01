@@ -161,7 +161,6 @@ type_synonym '\<alpha> merge = "('\<alpha> alphabet_d \<times> '\<alpha> alphabe
 text {* Separating simulations. I assume that the value of ok' should track the value
   of n.ok'. *}
 
-
 definition "U0 = (true \<turnstile> (($0-\<Sigma>\<acute> =\<^sub>u $\<Sigma>) \<and> ($ok\<acute> =\<^sub>u $ok)))"
 
 definition "U1 = (true \<turnstile> (($1-\<Sigma>\<acute> =\<^sub>u $\<Sigma>) \<and> ($ok\<acute> =\<^sub>u $ok)))"
@@ -183,6 +182,23 @@ definition "swap\<^sub>m = 0-\<Sigma>,1-\<Sigma> :=\<^sub>D &1-\<Sigma>, &0-\<Si
 declare One_nat_def [simp del]
 
 declare swap\<^sub>m_def [upred_defs]
+
+lemma swap_usubst_inj:
+  fixes x y :: "('a, '\<alpha>) uvar"
+  assumes "uvar x" "uvar y" "x \<bowtie> y"
+  shows "inj [x \<mapsto>\<^sub>s &y, y \<mapsto>\<^sub>s &x]"
+  using assms
+  apply (auto simp add: inj_on_def subst_upd_uvar_def)
+  apply (smt lens_indep_get lens_indep_sym var.rep_eq vwb_lens.put_eq vwb_lens_wb wb_lens_weak weak_lens.put_get)
+done
+
+(*
+lemma "\<lbrakk> P is H1_H3; Q is H1_H3 \<rbrakk> \<Longrightarrow> ((P \<parallel> Q) ;; swap\<^sub>m) = (P ;; swap\<^sub>m) \<parallel> (Q ;; swap\<^sub>m)"
+  apply (simp add: design_par_def rdesign_def swap\<^sub>m_def assign_d_right_comp unrest)
+  apply (subst assign_d_right_comp)
+  apply (simp_all add: unrest)
+  apply (rule unrest_out_des_lift)
+*)
 
 lemma U0_swap: "(U0 ;; swap\<^sub>m) = U1"
   apply (rel_tac)

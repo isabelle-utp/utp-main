@@ -145,7 +145,7 @@ translations
   "_salphaid x" => "x"
   "_salphacomp x y" => "x +\<^sub>L y"
   "_salphavar x" => "x"
-  "_svid_alpha" => "\<Sigma>"
+  "_svid_alpha" == "\<Sigma>"
   "_svid x" => "x"
   "_spvar x" == "CONST svar x"
   "_sinvar x" == "CONST ivar x"
