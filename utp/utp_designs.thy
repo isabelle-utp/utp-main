@@ -334,7 +334,7 @@ lemma assign_d_right_comp:
   apply (meson alpha_d.select_convs(1))
   apply (meson alpha_d.select_convs(1))
   apply (simp add: unrest_usubst_def)
-  apply (metis alpha_d.surjective alpha_d.update_convs(1))
+  apply (metis alpha_d.ext_inject alpha_d.surjective alpha_d.update_convs(1))
 done
 
 lemma assigns_d_comp: 

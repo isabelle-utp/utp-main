@@ -340,6 +340,10 @@ lemma assigns_r_ufunc: "ufunctional \<langle>f\<rangle>\<^sub>a"
 lemma assigns_r_uinj: "inj f \<Longrightarrow> uinj \<langle>f\<rangle>\<^sub>a"
   by (rel_tac, simp add: inj_eq)
 
+lemma assigns_r_swap_uinj:
+  "\<lbrakk> uvar x; uvar y; x \<bowtie> y \<rbrakk> \<Longrightarrow> uinj (x,y := &y,&x)"
+  using assigns_r_uinj swap_usubst_inj by auto
+
 lemma skip_r_unfold:
   "uvar x \<Longrightarrow> II = ($x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x)"
   by (rel_tac, blast, metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens.get_put)
@@ -516,5 +520,43 @@ qed
 theorem while_unfold:
   "while b do P od = ((P ;; while b do P od) \<triangleleft> b \<triangleright>\<^sub>r II)"
   by (metis (no_types, hide_lams) bounded_semilattice_sup_bot_class.sup_bot.left_neutral comp_cond_left_distr cond_def cond_idem disj_comm disj_upred_def seqr_right_zero upred_quantale.bot_zerol utp_pred.inf_bot_right utp_pred.inf_commute while_cond_false while_cond_true)
+
+subsection {* Relational unrestriction *}
+
+text {* Relational unrestriction is a slightly weaker notion than standard unrestriction. Essentially
+  it states that the variable is either unrestricted, or it is identity. It is useful in cases
+  where we want to state that a relation doesn't change and is not changed by a particular variable. 
+  Consequently, it has more useful laws for the relational operators. *}
+
+lift_definition unrest_relation :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrelation \<Rightarrow> bool" (infix "\<sharp>\<sharp>" 20)
+is "\<lambda> x e. \<forall> b v. e b \<longrightarrow> e (var_assign (out_var x) v (var_assign (in_var x) v b))" .
+
+lemma runrest_unrest [unrest]:
+  "\<lbrakk> $x \<sharp> P; $x\<acute> \<sharp> P \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> P"
+  by (rel_tac)
+
+lemma seq_r_runrest [unrest]:
+  "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P ;; Q)"
+  by (rel_tac, blast)
+
+lemma skip_d_runrest [unrest]:
+  "uvar x \<Longrightarrow> x \<sharp>\<sharp> II"
+  by (rel_tac)
+
+lemma assigns_d_runrest [unrest]:
+  "x \<sharp> \<sigma> \<Longrightarrow> x \<sharp>\<sharp> \<langle>\<sigma>\<rangle>\<^sub>a"
+  by (rel_tac, simp add: unrest_usubst_def)
+
+lemma false_runrest [unrest]: "x \<sharp>\<sharp> false"
+  by (rel_tac)
+
+lemma true_runrest [unrest]: "x \<sharp>\<sharp> true"
+  by (rel_tac)
+
+lemma and_runrest [unrest]: "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<and> Q)"
+  by (rel_tac)
+
+lemma or_runrest [unrest]: "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<or> Q)"
+  by (rel_tac)
 
 end

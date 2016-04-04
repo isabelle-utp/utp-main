@@ -54,7 +54,7 @@ definition usubst_rel_drop :: "('\<alpha> \<times> '\<alpha>) usubst \<Rightarro
 "\<lfloor>\<sigma>\<rfloor>\<^sub>s = (\<lambda> A. fst (\<sigma> (A, undefined)))"
 
 definition unrest_usubst :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> usubst \<Rightarrow> bool"
-where "unrest_usubst x \<sigma> = (\<forall> \<rho> v. get\<^bsub>x\<^esub> (\<sigma> (put\<^bsub>x\<^esub> \<rho> v)) = v)"
+where "unrest_usubst x \<sigma> = (\<forall> \<rho> v. \<sigma> (put\<^bsub>x\<^esub> \<rho> v) = put\<^bsub>x\<^esub> (\<sigma> \<rho>) v)"
 
 adhoc_overloading
   unrest unrest_usubst
@@ -106,6 +106,15 @@ lemma usubst_upd_comm2:
   shows "\<sigma>(x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v, z \<mapsto>\<^sub>s s) = \<sigma>(x \<mapsto>\<^sub>s u, z \<mapsto>\<^sub>s s, y \<mapsto>\<^sub>s v)"
   using assms
   by (rule_tac ext, auto simp add: subst_upd_uvar_def assms comp_def lens_indep_comm)
+
+lemma swap_usubst_inj:
+  fixes x y :: "('a, '\<alpha>) uvar"
+  assumes "uvar x" "uvar y" "x \<bowtie> y"
+  shows "inj [x \<mapsto>\<^sub>s &y, y \<mapsto>\<^sub>s &x]"
+  using assms
+  apply (auto simp add: inj_on_def subst_upd_uvar_def)
+  apply (smt lens_indep_get lens_indep_sym var.rep_eq vwb_lens.put_eq vwb_lens_wb wb_lens_weak weak_lens.put_get)
+done
 
 lemma usubst_upd_var_id [usubst]: 
   "uvar x \<Longrightarrow> [x \<mapsto>\<^sub>s var x] = id"
@@ -192,8 +201,8 @@ lemma unrest_usubst_id [unrest]:
   by (simp add: unrest_usubst_def)
 
 lemma unrest_usubst_upd [unrest]:
-  "\<lbrakk> x \<bowtie> y; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> x \<sharp> \<sigma>(y \<mapsto>\<^sub>s v)"
-  by (simp add: subst_upd_uvar_def unrest_usubst_def)
+  "\<lbrakk> x \<bowtie> y; x \<sharp> \<sigma>; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> \<sigma>(y \<mapsto>\<^sub>s v)"
+  by (simp add: subst_upd_uvar_def unrest_usubst_def unrest_upred.rep_eq lens_indep_comm)
 
 nonterminal uexprs and svars and salphas
 
