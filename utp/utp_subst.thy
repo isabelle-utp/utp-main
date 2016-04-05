@@ -168,6 +168,9 @@ lemma subst_times [usubst]: "\<sigma> \<dagger> (x * y) = \<sigma> \<dagger> x *
 lemma subst_minus [usubst]: "\<sigma> \<dagger> (x - y) = \<sigma> \<dagger> x - \<sigma> \<dagger> y"
   by (simp add: minus_uexpr_def subst_bop)
 
+lemma subst_uminus [usubst]: "\<sigma> \<dagger> (- x) = - (\<sigma> \<dagger> x)"
+  by (simp add: uminus_uexpr_def subst_uop)
+
 lemma subst_zero [usubst]: "\<sigma> \<dagger> 0 = 0"
   by (simp add: zero_uexpr_def subst_lit)
 

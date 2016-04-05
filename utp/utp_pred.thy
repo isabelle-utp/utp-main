@@ -209,6 +209,12 @@ adhoc_overloading
   ushEx shEx and
   ushAll shAll
 
+syntax
+  "_uneq"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<noteq>\<^sub>u" 50)
+
+translations
+  "x \<noteq>\<^sub>u y" == "CONST unot (x =\<^sub>u y)"
+
 subsection {* Proof support *}
 
 text {* We set up a simple tactic with the help of \emph{Eisbach} that applies predicate

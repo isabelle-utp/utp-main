@@ -98,6 +98,10 @@ where "pfun_subset_eq \<equiv> less_eq"
 instance pfun :: (type, type) semilattice_inf
   by (intro_classes, (transfer, auto simp add: map_le_def dom_def)+)
 
+lemma pfun_subset_eq_least [simp]: 
+  "{}\<^sub>p \<subseteq>\<^sub>p f"
+  by (transfer, auto)
+
 syntax   
   "_PfunUpd"  :: "[('a, 'b) pfun, maplets] => ('a, 'b) pfun" ("_'(_')\<^sub>p" [900,0]900)
   "_Pfun"     :: "maplets => ('a, 'b) pfun"            ("(1{_}\<^sub>p)")
