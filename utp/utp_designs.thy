@@ -235,12 +235,12 @@ proof -
     by (subst_tac, simp add: precond_right_unit unrest)
   finally show ?thesis .
 qed
-  
-theorem design_composition:
+
+theorem design_composition_subst:
   assumes 
-    "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2" "$ok\<acute> \<sharp> Q1" "$ok \<sharp> Q2"
-  shows "((P1 \<turnstile> Q1) ;; (P2 \<turnstile> Q2)) = (((\<not> ((\<not> P1) ;; true)) \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile> (Q1 ;; Q2))"
-  using assms
+    "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2"
+  shows "((P1 \<turnstile> Q1) ;; (P2 \<turnstile> Q2)) = 
+         (((\<not> ((\<not> P1) ;; true)) \<and> \<not> (Q1\<lbrakk>true/$ok\<acute>\<rbrakk> ;; (\<not> P2))) \<turnstile> (Q1\<lbrakk>true/$ok\<acute>\<rbrakk> ;; Q2\<lbrakk>true/$ok\<rbrakk>))"
 proof -
   have "((P1 \<turnstile> Q1) ;; (P2 \<turnstile> Q2)) = (\<^bold>\<exists> ok\<^sub>0 \<bullet> ((P1 \<turnstile> Q1)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<acute>\<rbrakk> ;; (P2 \<turnstile> Q2)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<rbrakk>))"
     by (rule seqr_middle, simp)
@@ -249,14 +249,20 @@ proof -
             \<or> ((P1 \<turnstile> Q1)\<lbrakk>true/$ok\<acute>\<rbrakk> ;; (P2 \<turnstile> Q2)\<lbrakk>true/$ok\<rbrakk>))"
     by (simp add: true_alt_def false_alt_def, pred_tac)
   also from assms
-  have "... = ((($ok \<and> P1 \<Rightarrow> Q1) ;; (P2 \<Rightarrow> $ok\<acute> \<and> Q2)) \<or> ((\<not> ($ok \<and> P1)) ;; true))"
+  have "... = ((($ok \<and> P1 \<Rightarrow> Q1\<lbrakk>true/$ok\<acute>\<rbrakk>) ;; (P2 \<Rightarrow> $ok\<acute> \<and> Q2\<lbrakk>true/$ok\<rbrakk>)) \<or> ((\<not> ($ok \<and> P1)) ;; true))"
     by (simp add: design_def usubst unrest, pred_tac)
-  also have "... = ((\<not>$ok ;; true\<^sub>h) \<or> (\<not>P1 ;; true) \<or> (Q1 ;; \<not>P2) \<or> ($ok\<acute> \<and> (Q1 ;; Q2)))"
+  also have "... = ((\<not>$ok ;; true\<^sub>h) \<or> (\<not>P1 ;; true) \<or> (Q1\<lbrakk>true/$ok\<acute>\<rbrakk> ;; \<not>P2) \<or> ($ok\<acute> \<and> (Q1\<lbrakk>true/$ok\<acute>\<rbrakk> ;; Q2\<lbrakk>true/$ok\<rbrakk>)))"
     by (rel_tac)
-  also have "... = (\<not> (\<not> P1 ;; true) \<and> \<not> (Q1 ;; \<not> P2)) \<turnstile> (Q1 ;; Q2)"
+  also have "... = (((\<not> ((\<not> P1) ;; true)) \<and> \<not> (Q1\<lbrakk>true/$ok\<acute>\<rbrakk> ;; (\<not> P2))) \<turnstile> (Q1\<lbrakk>true/$ok\<acute>\<rbrakk> ;; Q2\<lbrakk>true/$ok\<rbrakk>))"
     by (simp add: precond_right_unit design_def unrest, rel_tac)
   finally show ?thesis .
 qed 
+
+theorem design_composition:
+  assumes 
+    "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2" "$ok\<acute> \<sharp> Q1" "$ok \<sharp> Q2"
+  shows "((P1 \<turnstile> Q1) ;; (P2 \<turnstile> Q2)) = (((\<not> ((\<not> P1) ;; true)) \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile> (Q1 ;; Q2))"
+  using assms by (simp add: design_composition_subst usubst)
 
 theorem rdesign_composition:
   "((P1 \<turnstile>\<^sub>r Q1) ;; (P2 \<turnstile>\<^sub>r Q2)) = (((\<not> ((\<not> P1) ;; true\<^sub>h)) \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile>\<^sub>r (Q1 ;; Q2))"
@@ -328,11 +334,11 @@ lemma assigns_d_id [simp]: "\<langle>id\<rangle>\<^sub>D = II\<^sub>D"
   by (rel_tac)
 
 lemma assign_d_right_comp:
-  "\<lbrakk> out\<alpha> \<sharp> p; ok \<sharp> f \<rbrakk> \<Longrightarrow> ((p \<turnstile> Q) ;; \<langle>f\<rangle>\<^sub>D) = (p \<turnstile> (Q ;; \<langle>f\<rangle>\<^sub>a))"
+  "\<lbrakk> $ok\<acute> \<sharp> P; ok \<sharp> f \<rbrakk> \<Longrightarrow> ((P \<turnstile> Q) ;; \<langle>f\<rangle>\<^sub>D) = ((\<not> (\<not> P ;; true)) \<turnstile> (Q ;; \<langle>f\<rangle>\<^sub>a))"
+  apply (simp add: assigns_d_def)
+  apply (subst design_composition_subst)
+  apply (simp_all add: unrest)
   apply (rel_tac)
-  apply blast+
-  apply (meson alpha_d.select_convs(1))
-  apply (meson alpha_d.select_convs(1))
   apply (simp add: unrest_usubst_def)
   apply (metis alpha_d.ext_inject alpha_d.surjective alpha_d.update_convs(1))
 done
@@ -347,7 +353,7 @@ lemma assigns_d_comp:
   apply (auto)
   apply (simp add: relcomp_unfold)
   apply (simp add: unrest_usubst_def)
-  apply (metis (full_types) alpha_d.surjective alpha_d.update_convs(1))
+  apply (metis alpha_d.select_convs(1) alpha_d.surjective alpha_d.update_convs(1))
 done
 
 subsection {* H1: No observation is allowed before initiation *}
