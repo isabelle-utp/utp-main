@@ -218,6 +218,14 @@ lemma psubseteq_pfun_upd3 [intro]:
   "\<lbrakk> f \<subseteq>\<^sub>p g; g(x)\<^sub>p = v \<rbrakk> \<Longrightarrow> f \<subseteq>\<^sub>p g(x \<mapsto> v)\<^sub>p"
   by (transfer, auto simp add: map_le_def dom_def)
 
+lemma psubseteq_dom_subset:
+  "f \<subseteq>\<^sub>p g \<Longrightarrow> pdom(f) \<subseteq> pdom(g)"
+  by (transfer, auto simp add: map_le_def dom_def)
+
+lemma psubseteq_ran_subset:
+  "f \<subseteq>\<^sub>p g \<Longrightarrow> pran(f) \<subseteq> pran(g)"
+  by (transfer, auto simp add: map_le_def dom_def ran_def, fastforce)
+
 subsection {* Domain laws *}
 
 lemma pdom_zero [simp]: "pdom 0 = {}"
