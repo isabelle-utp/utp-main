@@ -523,40 +523,51 @@ theorem while_unfold:
 
 subsection {* Relational unrestriction *}
 
-text {* Relational unrestriction is a slightly weaker notion than standard unrestriction. Essentially
-  it states that the variable is either unrestricted, or it is identity. It is useful in cases
-  where we want to state that a relation doesn't change and is not changed by a particular variable. 
-  Consequently, it has more useful laws for the relational operators. *}
+text {* Relational unrestriction states that a variable is unchanged by a relation. Eventually
+  I'd also like to have it state that the relation also does not depend on the variable's
+  initial value, but I'm not sure how to state that yet. For now we represent this by
+  the parametric healthiness condition RID. *}
 
-lift_definition unrest_relation :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrelation \<Rightarrow> bool" (infix "\<sharp>\<sharp>" 20)
-is "\<lambda> x e. \<forall> b v. e b \<longrightarrow> e (var_assign (out_var x) v (var_assign (in_var x) v b))" .
+definition RID :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" 
+where "RID x P = (P \<and> $x\<acute> =\<^sub>u $x)"
 
-lemma runrest_unrest [unrest]:
-  "\<lbrakk> $x \<sharp> P; $x\<acute> \<sharp> P \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> P"
-  by (rel_tac)
+declare RID_def [urel_defs]
 
+lemma RID_skip_r:
+  "RID(x)(II) = II"
+  by rel_tac
+
+lemma RID_assigns_r:
+  "\<lbrakk> uvar x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> RID(x)(\<langle>\<sigma>\<rangle>\<^sub>a) = \<langle>\<sigma>\<rangle>\<^sub>a"
+  apply (rel_tac)
+  apply (auto simp add: unrest_usubst_def)
+  apply (metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
+done
+
+definition unrest_relation :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrelation \<Rightarrow> bool" (infix "\<sharp>\<sharp>" 20)
+where "(x \<sharp>\<sharp> P) \<longleftrightarrow> (P = RID(x)(P))"
+
+declare unrest_relation_def [urel_defs]
+
+lemma skip_r_runrest [unrest]:
+  "x \<sharp>\<sharp> II"
+  by rel_tac
+
+lemma assigns_r_runrest:
+  "\<lbrakk> uvar x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> \<langle>\<sigma>\<rangle>\<^sub>a"
+  by (simp add: RID_assigns_r unrest_relation_def)
+ 
 lemma seq_r_runrest [unrest]:
   "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P ;; Q)"
-  by (rel_tac, blast)
-
-lemma skip_d_runrest [unrest]:
-  "uvar x \<Longrightarrow> x \<sharp>\<sharp> II"
-  by (rel_tac)
-
-lemma assigns_d_runrest [unrest]:
-  "x \<sharp> \<sigma> \<Longrightarrow> x \<sharp>\<sharp> \<langle>\<sigma>\<rangle>\<^sub>a"
-  by (rel_tac, simp add: unrest_usubst_def)
+  by (rel_tac, metis)
 
 lemma false_runrest [unrest]: "x \<sharp>\<sharp> false"
   by (rel_tac)
 
-lemma true_runrest [unrest]: "x \<sharp>\<sharp> true"
-  by (rel_tac)
-
 lemma and_runrest [unrest]: "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<and> Q)"
-  by (rel_tac)
+  by (rel_tac, metis)
 
 lemma or_runrest [unrest]: "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<or> Q)"
-  by (rel_tac)
+  by (rel_tac, blast+)
 
 end
