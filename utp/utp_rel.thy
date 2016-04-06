@@ -47,6 +47,12 @@ is "\<lambda> P Q r. r : ({p. P p} O {q. Q q})" .
 lift_definition conv_r :: "('a, '\<alpha> \<times> '\<beta>) uexpr \<Rightarrow> ('a, '\<beta> \<times> '\<alpha>) uexpr" ("_\<^sup>-" [999] 999)
 is "\<lambda> e (b1, b2). e (b2, b1)" .
 
+definition skip_ra :: "('\<beta>, '\<alpha>) lens \<Rightarrow>'\<alpha> hrelation" ("II\<^bsub>_\<^esub>") where
+"skip_ra v = ($v\<acute> =\<^sub>u $v)"
+
+definition assigns_ra :: "'\<alpha> usubst \<Rightarrow> ('\<beta>, '\<alpha>) lens \<Rightarrow> '\<alpha> hrelation" ("\<langle>_\<rangle>\<^bsub>_\<^esub>") where
+"\<langle>\<sigma>\<rangle>\<^bsub>a\<^esub> = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> II\<^bsub>a\<^esub>)"
+
 lift_definition assigns_r :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrelation" ("\<langle>_\<rangle>\<^sub>a")
   is "\<lambda> \<sigma> (A, A'). A' = \<sigma>(A)" .
 

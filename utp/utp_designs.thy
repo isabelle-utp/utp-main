@@ -94,11 +94,13 @@ definition "H3 (P)  \<equiv>  P ;; II\<^sub>D"
 
 definition "H4 (P)  \<equiv> ((P;;true) \<Rightarrow> P)"
 
-abbreviation \<sigma>f::"('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" ("_\<^sup>f" [1000] 1000)
-where "\<sigma>f D \<equiv> D\<lbrakk>false/$ok\<acute>\<rbrakk>"
+syntax
+  "_ok_f" :: "logic \<Rightarrow> logic" ("_\<^sup>f" [1000] 1000)
+  "_ok_t" :: "logic \<Rightarrow> logic" ("_\<^sup>t" [1000] 1000)
 
-abbreviation \<sigma>t::"('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" ("_\<^sup>t" [1000] 1000)
-where "\<sigma>t D \<equiv> D\<lbrakk>true/$ok\<acute>\<rbrakk>"
+translations
+  "P\<^sup>f" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST ovar CONST ok) false) P"
+  "P\<^sup>t" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST ovar CONST ok) true) P"
 
 definition pre_design :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("pre\<^sub>D'(_')") where
 "pre\<^sub>D(P) = \<lfloor>\<not> P\<lbrakk>true,false/$ok,$ok\<acute>\<rbrakk>\<rfloor>\<^sub>D"
@@ -568,6 +570,23 @@ lemma ok_post: "($ok \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>D) = ($ok \<an
   by (pred_tac)
      (metis alpha_d.cases_scheme alpha_d.ext_inject alpha_d.select_convs(1) alpha_d.select_convs(2) alpha_d.update_convs(1) alpha_d.update_convs(2))+
 
+theorem H1_H2_is_design:
+  assumes "P is H1" "P is H2"
+  shows "P = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
+proof -
+  from assms have "P = ($ok \<Rightarrow> H2(P))"
+    by (simp add: H1_def Healthy_def')
+  also have "... = ($ok \<Rightarrow> (P\<^sup>f \<or> (P\<^sup>t \<and> $ok\<acute>)))"
+    by (metis H2_split)
+  also have "... = ($ok \<and> (\<not> P\<^sup>f) \<Rightarrow> $ok\<acute> \<and> P\<^sup>t)"
+    by pred_tac
+  also have "... = ($ok \<and> (\<not> P\<^sup>f) \<Rightarrow> $ok\<acute> \<and> $ok \<and> P\<^sup>t)"
+    by pred_tac
+  also have "... = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
+    by pred_tac
+  finally show ?thesis .
+qed
+  
 theorem H1_H2_is_rdesign:
   assumes "P is H1" "P is H2"
   shows "P = pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P)"
