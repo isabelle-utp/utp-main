@@ -210,10 +210,10 @@ lemma unrest_usubst_upd [unrest]:
 nonterminal uexprs and svars and salphas
 
 syntax
-  "_psubst"  :: "['\<alpha> usubst, svars, uexprs] \<Rightarrow> logic"
-  "_subst"   :: "('a, '\<alpha>) uexpr \<Rightarrow> uexprs \<Rightarrow> salphas \<Rightarrow> ('a, '\<alpha>) uexpr" ("(_\<lbrakk>_'/_\<rbrakk>)" [999,999] 1000)
-  "_uexprs"  :: "[('a, '\<alpha>) uexpr, uexprs] => uexprs" ("_,/ _")
-  ""         :: "('a, '\<alpha>) uexpr => uexprs" ("_")
+  "_psubst"  :: "[logic, svars, uexprs] \<Rightarrow> logic"
+  "_subst"   :: "logic \<Rightarrow> uexprs \<Rightarrow> salphas \<Rightarrow> logic" ("(_\<lbrakk>_'/_\<rbrakk>)" [999,999] 1000)
+  "_uexprs"  :: "[logic, uexprs] => uexprs" ("_,/ _")
+  ""         :: "logic => uexprs" ("_")
   "_svars"   :: "[svar, svars] => svars" ("_,/ _")
   ""         :: "svar => svars" ("_")
   "_salphas" :: "[salpha, salpha] => salphas" ("_,/ _")
@@ -223,6 +223,7 @@ translations
   "_subst P es vs" => "CONST subst (_psubst (CONST id) vs es) P"
   "_psubst m (_salphas x xs) (_uexprs v vs)" => "_psubst (_psubst m x v) xs vs"
   "_psubst m x v"  => "CONST subst_upd m x v"
-  "P\<lbrakk>v/x\<rbrakk>"         <= "[x \<mapsto>\<^sub>s v] \<dagger> P"
+  "P\<lbrakk>v/$x\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) (CONST ivar x) v) P"
+  "P\<lbrakk>v/$x\<acute>\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) (CONST ovar x) v) P"
 
 end
