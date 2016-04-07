@@ -59,9 +59,9 @@ text {* We describe the partition of a state space into two pieces. *}
 
 type_synonym '\<alpha> partition = "'\<alpha> \<times> '\<alpha>"
 
-definition "left_uvar x = x ;\<^sub>L fst\<^sub>L ;\<^sub>L snd\<^sub>L ;\<^sub>L des_lens"
+definition "left_uvar x = x ;\<^sub>L fst\<^sub>L ;\<^sub>L snd\<^sub>L"
 
-definition "right_uvar x = x ;\<^sub>L snd\<^sub>L ;\<^sub>L snd\<^sub>L ;\<^sub>L des_lens"
+definition "right_uvar x = x ;\<^sub>L snd\<^sub>L ;\<^sub>L snd\<^sub>L"
 
 declare left_uvar_def [upred_defs]
 
@@ -71,7 +71,7 @@ text {* Extract the ith element of the second part *}
 
 definition "ind_uvar i x = x ;\<^sub>L list_lens i ;\<^sub>L snd\<^sub>L ;\<^sub>L des_lens"
 
-definition "pre_uvar x = x ;\<^sub>L fst\<^sub>L ;\<^sub>L des_lens"
+definition "pre_uvar x = x ;\<^sub>L fst\<^sub>L"
 
 definition "in_ind_uvar i x = in_var (ind_uvar i x)"
 
@@ -89,9 +89,8 @@ definition "in_pre_uexpr x = var (in_pre_uvar x)"
 
 definition "out_pre_uexpr x = var (out_pre_uvar x)"
 
-
-declare ind_uvar_def [urel_defs]
 declare ind_uvar_def [upred_defs]
+declare pre_uvar_def [upred_defs]
 
 declare in_ind_uvar_def [upred_defs]
 declare out_ind_uvar_def [upred_defs]
@@ -102,10 +101,6 @@ declare out_ind_uexpr_def [upred_defs]
 declare in_pre_uexpr_def [upred_defs]
 declare out_pre_uexpr_def [upred_defs]
 
-lemma left_uvar_indep_ok [simp]:
-  "left_uvar x \<bowtie> ok" "ok \<bowtie> left_uvar x"
-  by (simp_all add: left_uvar_def lens_indep_left_ext lens_indep_sym)
-
 lemma left_uvar_indep_right_uvar [simp]:
   "left_uvar x \<bowtie> right_uvar y"
   apply (simp add: left_uvar_def right_uvar_def lens_comp_assoc[THEN sym])
@@ -115,10 +110,6 @@ done
 lemma right_uvar_indep_left_uvar [simp]:
   "right_uvar x \<bowtie> left_uvar y"
   by (simp add: lens_indep_sym)
-
-lemma right_uvar_indep_ok [simp]:
-  "right_uvar x \<bowtie> ok" "ok \<bowtie> right_uvar x"
-  by (simp_all add: right_uvar_def lens_indep_left_ext lens_indep_sym)
 
 lemma left_uvar [simp]: "uvar x \<Longrightarrow> uvar (left_uvar x)"
   by (simp add: left_uvar_def comp_vwb_lens fst_vwb_lens snd_vwb_lens)
@@ -156,18 +147,18 @@ translations
   "_svarleft x" == "CONST left_uvar x"
   "_svarright x" == "CONST right_uvar x"
 
-type_synonym '\<alpha> merge = "('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d partition, '\<alpha>) relation_d"
+type_synonym '\<alpha> merge = "('\<alpha> \<times> '\<alpha> partition, '\<alpha>) relation_d"
 
 text {* Separating simulations. I assume that the value of ok' should track the value
   of n.ok'. *}
 
-definition "U0 = (true \<turnstile> (($0-\<Sigma>\<acute> =\<^sub>u $\<Sigma>) \<and> ($ok\<acute> =\<^sub>u $ok)))"
+definition "U0 = (true \<turnstile>\<^sub>r ($0-\<Sigma>\<acute> =\<^sub>u $\<Sigma> \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>))"
 
-definition "U1 = (true \<turnstile> (($1-\<Sigma>\<acute> =\<^sub>u $\<Sigma>) \<and> ($ok\<acute> =\<^sub>u $ok)))"
+definition "U1 = (true \<turnstile>\<^sub>r ($1-\<Sigma>\<acute> =\<^sub>u $\<Sigma> \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>))"
 
 declare U0_def [upred_defs]
 declare U1_def [upred_defs]
-
+  
 text {* The following implementation of parallel by merge is less general than the book version, in
   that it does not properly partition the alphabet into two disjoint segments. We could actually
   achieve this specifying lenses into the larger alphabet, but this would complicate the definition
@@ -175,51 +166,69 @@ text {* The following implementation of parallel by merge is less general than t
 
 definition par_by_merge :: 
   "'\<alpha> hrelation_d \<Rightarrow> '\<alpha> merge \<Rightarrow> '\<alpha> hrelation_d \<Rightarrow> '\<alpha> hrelation_d" (infixr "\<parallel>\<^bsub>_\<^esub>" 85) 
-where "P \<parallel>\<^bsub>M\<^esub> Q = ((((P ;; U0) \<parallel> (Q ;; U1)) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
+where "P \<parallel>\<^bsub>M\<^esub> Q = ((((P ;; U0) \<parallel> (Q ;; U1))) ;; M)"
 
-definition "swap\<^sub>m = 0-\<Sigma>,1-\<Sigma> :=\<^sub>D &1-\<Sigma>, &0-\<Sigma>"
+definition "swap\<^sub>m = true \<turnstile>\<^sub>r (0-\<Sigma>,1-\<Sigma> := &1-\<Sigma>, &0-\<Sigma>)"
 
 declare One_nat_def [simp del]
 
 declare swap\<^sub>m_def [upred_defs]
 
-lemma swap_usubst_inj:
-  fixes x y :: "('a, '\<alpha>) uvar"
-  assumes "uvar x" "uvar y" "x \<bowtie> y"
-  shows "inj [x \<mapsto>\<^sub>s &y, y \<mapsto>\<^sub>s &x]"
-  using assms
-  apply (auto simp add: inj_on_def subst_upd_uvar_def)
-  apply (smt lens_indep_get lens_indep_sym var.rep_eq vwb_lens.put_eq vwb_lens_wb wb_lens_weak weak_lens.put_get)
-done
-
-(*
-lemma "\<lbrakk> P is H1_H3; Q is H1_H3 \<rbrakk> \<Longrightarrow> ((P \<parallel> Q) ;; swap\<^sub>m) = (P ;; swap\<^sub>m) \<parallel> (Q ;; swap\<^sub>m)"
-  apply (simp add: design_par_def rdesign_def swap\<^sub>m_def assign_d_right_comp unrest)
-  apply (subst assign_d_right_comp)
-  apply (simp_all add: unrest)
-  apply (rule unrest_out_des_lift)
-*)
-
 lemma U0_swap: "(U0 ;; swap\<^sub>m) = U1"
+  apply (simp add: U0_def swap\<^sub>m_def rdesign_composition)
+  apply (subst seqr_and_distl_uinj)
+  using assigns_r_swap_uinj id_vwb_lens left_uvar right_uvar apply fastforce
   apply (rel_tac)
-  apply (meson alpha_d.select_convs(1))
-  apply (smt alpha_d.select_convs(1) alpha_d.select_convs(2) alpha_d.surjective alpha_d.update_convs(2) fst_conv prod.collapse snd_conv)
+  apply (metis prod.collapse)+
 done
 
 lemma U1_swap: "(U1 ;; swap\<^sub>m) = U0"
+  apply (simp add: U1_def swap\<^sub>m_def rdesign_composition)
+  apply (subst seqr_and_distl_uinj)
+  using assigns_r_swap_uinj id_vwb_lens left_uvar right_uvar apply fastforce
   apply (rel_tac)
-  apply (meson alpha_d.select_convs(1))
-  apply (smt alpha_d.select_convs(1) alpha_d.select_convs(2) alpha_d.surjective alpha_d.update_convs(2) fst_conv prod.collapse snd_conv)
+  apply (metis prod.collapse)+
 done
 
-lemma merge_swap_swap: "(swap\<^sub>m ;; swap\<^sub>m) = II\<^sub>D"
-  apply (simp add: swap\<^sub>m_def in_ind_uexpr_def in_ind_uvar_def assigns_d_comp usubst unrest)
-  apply (subst usubst_upd_comm)
-  apply (simp_all add: usubst_upd_idem)
-  apply (subst usubst_upd_comm)
-  apply (simp_all add: usubst_upd_idem)
-  apply (subst usubst_upd_var_id)
-  apply (simp_all add: usubst)
-done
+lemma swap_merge_par_distl:
+  assumes "P is H1_H2" "Q is H1_H2"
+  shows "((P \<parallel> Q) ;; swap\<^sub>m) = (P ;; swap\<^sub>m) \<parallel> (Q ;; swap\<^sub>m)"
+proof -
+  obtain P\<^sub>1 P\<^sub>2 where P: "P = P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2"
+    by (metis H1_H2_commute H1_H2_is_rdesign H2_idem Healthy_def assms(1))
+  obtain Q\<^sub>1 Q\<^sub>2 where Q: "Q = Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2"
+   by (metis H1_H2_commute H1_H2_is_rdesign H2_idem Healthy_def assms(2))
+  have "(((P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) \<parallel> (Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2)) ;; swap\<^sub>m) = 
+        (\<not> (\<not> P\<^sub>1 \<or> \<not> Q\<^sub>1 ;; true)) \<turnstile>\<^sub>r ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2) ;; \<langle>[&0-\<Sigma> \<mapsto>\<^sub>s &1-\<Sigma>, &1-\<Sigma> \<mapsto>\<^sub>s &0-\<Sigma>]\<rangle>\<^sub>a)"
+    by (simp add: design_par_def swap\<^sub>m_def rdesign_composition)
+  also have "... =  (\<not> (\<not> P\<^sub>1 \<or> \<not> Q\<^sub>1 ;; true)) \<turnstile>\<^sub>r (((P\<^sub>1 \<Rightarrow> P\<^sub>2) ;; \<langle>[&0-\<Sigma> \<mapsto>\<^sub>s &1-\<Sigma>, &1-\<Sigma> \<mapsto>\<^sub>s &0-\<Sigma>]\<rangle>\<^sub>a) \<and> ((Q\<^sub>1 \<Rightarrow> Q\<^sub>2) ;; \<langle>[&0-\<Sigma> \<mapsto>\<^sub>s &1-\<Sigma>, &1-\<Sigma> \<mapsto>\<^sub>s &0-\<Sigma>]\<rangle>\<^sub>a))"
+    apply (subst seqr_and_distl_uinj)
+    using assigns_r_swap_uinj id_vwb_lens left_uvar right_uvar apply fastforce
+    apply (simp)
+  done
 
+  also have "... = ((P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) ;; swap\<^sub>m) \<parallel> ((Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2) ;; swap\<^sub>m)"
+    by (simp add: design_par_def swap\<^sub>m_def rdesign_composition, rel_tac)
+
+  finally show ?thesis
+    using P Q by blast
+qed
+
+lemma par_by_merge_commute:
+  assumes "P is H1_H2" "Q is H1_H2" "M = (swap\<^sub>m ;; M)"
+  shows "P \<parallel>\<^bsub>M\<^esub> Q = Q \<parallel>\<^bsub>M\<^esub> P"
+proof -
+  have "P \<parallel>\<^bsub>M\<^esub> Q = (((P ;; U0) \<parallel> (Q ;; U1)) ;; M)"
+    by (simp add: par_by_merge_def)
+  also have "... = ((((P ;; U0) \<parallel> (Q ;; U1)) ;; swap\<^sub>m) ;; M)"
+    by (metis assms(3) seqr_assoc)
+  also have "... = (((P ;; U0 ;; swap\<^sub>m) \<parallel> (Q ;; U1 ;; swap\<^sub>m)) ;; M)"
+    by (simp add: U0_def U1_def assms(1) assms(2) rdesign_is_H1_H2 seq_r_H1_H2_closed seqr_assoc swap_merge_par_distl)
+  also have "... = (((P ;; U1) \<parallel> (Q ;; U0)) ;; M)"
+    by (simp add: U0_swap U1_swap)
+  also have "... = Q \<parallel>\<^bsub>M\<^esub> P"
+    by (simp add: par_by_merge_def parallel_comm)
+  finally show ?thesis .
+qed
+    
 end
