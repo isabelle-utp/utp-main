@@ -35,9 +35,18 @@ record '\<theta> alpha_rp  = alpha_d +
                          rp_tr   :: "'\<theta> trace"
                          rp_ref  :: "'\<theta> refusal"
 
+type_synonym ('\<theta>,'\<alpha>) alphabet_rp  = "('\<theta>,'\<alpha>) alpha_rp_scheme alphabet"
+type_synonym ('\<theta>,'\<alpha>,'\<beta>) relation_rp  = "(('\<theta>,'\<alpha>) alphabet_rp, ('\<theta>,'\<beta>) alphabet_rp) relation"
+type_synonym ('\<theta>,'\<alpha>) hrelation_rp  = "(('\<theta>,'\<alpha>) alphabet_rp, ('\<theta>,'\<alpha>) alphabet_rp) relation"
+type_synonym ('\<theta>,'\<sigma>) predicate_rp  = "('\<theta>,'\<sigma>) alphabet_rp upred"
+
 definition "wait = VAR rp_wait"
 definition "tr   = VAR rp_tr"
 definition "ref  = VAR rp_ref"
+
+definition "wait\<^sub>R = (wait /\<^sub>L \<Sigma>\<^sub>D)"
+definition "tr\<^sub>R   = (tr /\<^sub>L \<Sigma>\<^sub>D)"
+definition "ref\<^sub>R  = (ref /\<^sub>L \<Sigma>\<^sub>D)"
 
 declare wait_def [upred_defs]
 declare tr_def [upred_defs]
@@ -83,15 +92,6 @@ lemma uvar_tr [simp]: "uvar tr"
 
 lemma uvar_ref [simp]: "uvar ref"
   by (unfold_locales, simp_all add: ref_def)
-
-text{* Note that we define here the class of UTP alphabets that contain
-$wait$, $tr$ and $ref$, or, in other words, we define here the class of reactive process
-alphabets. *}
-
-type_synonym ('\<theta>,'\<alpha>) alphabet_rp  = "('\<theta>,'\<alpha>) alpha_rp_scheme alphabet"
-type_synonym ('\<theta>,'\<alpha>,'\<beta>) relation_rp  = "(('\<theta>,'\<alpha>) alphabet_rp, ('\<theta>,'\<beta>) alphabet_rp) relation"
-type_synonym ('\<theta>,'\<alpha>) hrelation_rp  = "(('\<theta>,'\<alpha>) alphabet_rp, ('\<theta>,'\<alpha>) alphabet_rp) relation"
-type_synonym ('\<theta>,'\<sigma>) predicate_rp  = "('\<theta>,'\<sigma>) alphabet_rp upred"
 
 abbreviation wait_f::"('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("_\<^sub>f" [1000] 1000)
 where "wait_f R \<equiv> R\<lbrakk>false/$wait\<rbrakk>"

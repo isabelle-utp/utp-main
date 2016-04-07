@@ -149,11 +149,10 @@ text {* Merge predicate for CSP *}
 
 definition
   "CSPMerge(cs) =
-    (($ok\<acute> =\<^sub>u ($0-ok \<and> $1-ok) \<and>
-      $wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and>
-      $ref\<acute> =\<^sub>u ($0-ref \<union>\<^sub>u $1-ref) \<and>
-      ($tr\<acute> - $tr\<^sub><) \<in>\<^sub>u (trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0-tr - $tr\<^sub><, $1-tr - $tr\<^sub><)) \<and> 
-      $0-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>) ;; SKIP)"
+    ((true \<turnstile>\<^sub>r (($wait\<^sub>R\<acute> =\<^sub>u ($0-wait\<^sub>R \<or> $1-wait\<^sub>R) \<and>
+      $ref\<^sub>R\<acute> =\<^sub>u ($0-ref\<^sub>R \<union>\<^sub>u $1-ref\<^sub>R) \<and>
+      ($tr\<^sub>R\<acute> - $tr\<^sub>R\<^sub><) \<in>\<^sub>u (trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0-tr\<^sub>R - $tr\<^sub>R\<^sub><, $1-tr\<^sub>R - $tr\<^sub>R\<^sub><)) \<and> 
+      $0-tr\<^sub>R \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1-tr\<^sub>R \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>))) ;; SKIP)"
 
 definition ParCSP :: "('\<theta>, '\<alpha>) hrelation_rp \<Rightarrow> '\<theta> event set \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp" (infixl "\<parallel>[_]\<^sub>C\<^sub>S\<^sub>P" 85)
 where "P \<parallel>[cs]\<^sub>C\<^sub>S\<^sub>P Q = P \<parallel>\<^bsub>CSPMerge(cs)\<^esub> Q"
