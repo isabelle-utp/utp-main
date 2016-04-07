@@ -34,8 +34,14 @@ type_synonym ('a, '\<alpha>) uvar_d = "('a, '\<alpha> alphabet_d) uvar"
 type_synonym ('\<alpha>, '\<beta>) relation_d = "('\<alpha> alphabet_d, '\<beta> alphabet_d) relation"
 type_synonym '\<alpha> hrelation_d = "'\<alpha> alphabet_d hrelation"
 
-definition des_lens :: "('\<alpha>, '\<alpha> alphabet_d) lens" where
+definition des_lens :: "('\<alpha>, '\<alpha> alphabet_d) lens" ("\<Sigma>\<^sub>D") where
 "des_lens = \<lparr> lens_get = more, lens_put = fld_put more_update \<rparr>"
+
+syntax
+  "_svid_alpha_d"  :: "svid" ("\<Sigma>\<^sub>D")
+
+translations
+  "_svid_alpha_d" => "\<Sigma>\<^sub>D"
 
 declare des_lens_def [upred_defs]
 
@@ -267,7 +273,7 @@ theorem design_composition:
   using assms by (simp add: design_composition_subst usubst)
 
 theorem rdesign_composition:
-  "((P1 \<turnstile>\<^sub>r Q1) ;; (P2 \<turnstile>\<^sub>r Q2)) = (((\<not> ((\<not> P1) ;; true\<^sub>h)) \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile>\<^sub>r (Q1 ;; Q2))"
+  "((P1 \<turnstile>\<^sub>r Q1) ;; (P2 \<turnstile>\<^sub>r Q2)) = (((\<not> ((\<not> P1) ;; true)) \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile>\<^sub>r (Q1 ;; Q2))"
   by (simp add: rdesign_def design_composition unrest alpha)
 
 lemma skip_d_alt_def: "II\<^sub>D = true \<turnstile> II"
@@ -453,6 +459,14 @@ proof -
   finally show ?thesis .
 qed
 
+lemma H1_design:
+  "H1(P \<turnstile> Q) = (P \<turnstile> Q)"
+  by (rel_tac)
+
+lemma H1_rdesign:
+  "H1(P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
+  by (rel_tac)
+
 subsection {* H2: A specification cannot require non-termination *}
 
 lemma J_split: 
@@ -609,6 +623,23 @@ proof -
 qed
 
 abbreviation "H1_H2 P \<equiv> H1 (H2 P)"
+
+lemma rdesign_is_H1_H2:
+  "(P \<turnstile>\<^sub>r Q) is H1_H2"
+  by (simp add: Healthy_def H1_rdesign H2_rdesign)
+
+lemma seq_r_H1_H2_closed:
+  assumes "P is H1_H2" "Q is H1_H2"
+  shows "(P ;; Q) is H1_H2"
+proof -
+  obtain P\<^sub>1 P\<^sub>2 where "P = P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2"
+    by (metis H1_H2_commute H1_H2_is_rdesign H2_idem Healthy_def assms(1))
+  moreover obtain Q\<^sub>1 Q\<^sub>2 where "Q = Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2"
+   by (metis H1_H2_commute H1_H2_is_rdesign H2_idem Healthy_def assms(2))
+  moreover have "((P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) ;; (Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2)) is H1_H2"
+    by (simp add: rdesign_composition rdesign_is_H1_H2)
+  ultimately show ?thesis by simp
+qed
 
 subsection {* H3: The design assumption is a precondition *}
 
