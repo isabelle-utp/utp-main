@@ -174,6 +174,9 @@ declare One_nat_def [simp del]
 
 declare swap\<^sub>m_def [upred_defs]
 
+lemma U0_H1_H2: "U0 is H1_H2"
+  by (simp add: U0_def rdesign_is_H1_H2)
+
 lemma U0_swap: "(U0 ;; swap\<^sub>m) = U1"
   apply (simp add: U0_def swap\<^sub>m_def rdesign_composition)
   apply (subst seqr_and_distl_uinj)
@@ -181,6 +184,9 @@ lemma U0_swap: "(U0 ;; swap\<^sub>m) = U1"
   apply (rel_tac)
   apply (metis prod.collapse)+
 done
+
+lemma U1_H1_H2: "U1 is H1_H2"
+  by (simp add: U1_def rdesign_is_H1_H2)
 
 lemma U1_swap: "(U1 ;; swap\<^sub>m) = U0"
   apply (simp add: U1_def swap\<^sub>m_def rdesign_composition)
@@ -214,6 +220,30 @@ proof -
     using P Q by blast
 qed
 
+lemma par_by_merge_left_zero:
+  assumes "M is H1"
+  shows "true \<parallel>\<^bsub>M\<^esub> P = true"
+proof -
+  have "true \<parallel>\<^bsub>M\<^esub> P = ((true ;; U0) \<parallel> (P ;; U1) ;; M)" (is "_ = ((?P \<parallel> ?Q) ;; ?M)")
+    by (simp add: par_by_merge_def)
+  moreover have "?P = true"
+    by (rel_tac, meson alpha_d.select_convs(1))
+  ultimately show ?thesis
+    by (metis H1_left_zero assms parallel_comm parallel_zero)
+qed
+
+lemma par_by_merge_right_zero:
+  assumes "M is H1"
+  shows "P \<parallel>\<^bsub>M\<^esub> true = true"
+proof -
+  have "P \<parallel>\<^bsub>M\<^esub> true = ((P ;; U0) \<parallel> (true ;; U1) ;; M)" (is "_ = ((?P \<parallel> ?Q) ;; ?M)")
+    by (simp add: par_by_merge_def)
+  moreover have "?Q = true"
+    by (rel_tac, meson alpha_d.select_convs(1))
+  ultimately show ?thesis
+    by (metis H1_left_zero assms parallel_comm parallel_zero)
+qed
+  
 lemma par_by_merge_commute:
   assumes "P is H1_H2" "Q is H1_H2" "M = (swap\<^sub>m ;; M)"
   shows "P \<parallel>\<^bsub>M\<^esub> Q = Q \<parallel>\<^bsub>M\<^esub> P"
@@ -230,5 +260,18 @@ proof -
     by (simp add: par_by_merge_def parallel_comm)
   finally show ?thesis .
 qed
-    
+
+lemma par_by_merge_mono_1:
+  assumes "P\<^sub>1 \<sqsubseteq> P\<^sub>2" "P\<^sub>1 is H1_H2" "P\<^sub>2 is H1_H2"
+  shows "P\<^sub>1 \<parallel>\<^bsub>M\<^esub> Q \<sqsubseteq> P\<^sub>2 \<parallel>\<^bsub>M\<^esub> Q"
+  using assms
+  by (auto intro:seqr_mono parallel_mono_1 seq_r_H1_H2_closed U0_H1_H2 U1_H1_H2 simp add: par_by_merge_def)
+
+lemma par_by_merge_mono_2:
+  assumes "Q\<^sub>1 \<sqsubseteq> Q\<^sub>2" "Q\<^sub>1 is H1_H2" "Q\<^sub>2 is H1_H2"
+  shows "P \<parallel>\<^bsub>M\<^esub> Q\<^sub>1 \<sqsubseteq> P \<parallel>\<^bsub>M\<^esub> Q\<^sub>2"
+  using assms
+  by (auto intro:seqr_mono parallel_mono_2 seq_r_H1_H2_closed U0_H1_H2 U1_H1_H2 simp add: par_by_merge_def)
+
+ 
 end

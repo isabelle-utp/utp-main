@@ -409,17 +409,19 @@ lemma nok_not_false:
 
 theorem H1_left_zero:
   assumes "P is H1"
-  shows "(true\<^sub>h ;; P) = true\<^sub>h"
+  shows "(true ;; P) = true"
 proof -
-  from assms have "(true\<^sub>h ;; P) = (true\<^sub>h ;; ($ok \<Rightarrow> P))"
+  from assms have "(true ;; P) = (true ;; ($ok \<Rightarrow> P))"
     by (simp add: H1_def Healthy_def')
-  also from assms have "... = (true\<^sub>h ;; (\<not> $ok \<or> P))"
+  (* The next step ensures we get the right alphabet for true by copying it *)
+  also from assms have "... = (true ;; (\<not> $ok \<or> P))" (is "_ = (?true ;; _)")
     by (simp add: impl_alt_def)
-  also from assms have "... = ((true\<^sub>h ;; \<not> $ok) \<or> (true\<^sub>h ;; P))"
+  also from assms have "... = ((?true ;; \<not> $ok) \<or> (?true ;; P))"
     using seqr_or_distr by blast
   also from assms have "... = (true \<or> (true ;; P))"
     by (simp add: nok_not_false precond_left_zero unrest)
-  finally show ?thesis by rel_tac
+  finally show ?thesis 
+    by (rel_tac)
 qed
 
 theorem H1_left_unit:
