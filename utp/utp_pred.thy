@@ -86,13 +86,17 @@ text {* Since, on the whole, lattices in UTP are the opposite way up to the stan
         in HOL, we syntactically invert the lattice operators. This is the one exception where
         we do steal HOL syntax, but I think it makes sense for UTP. *}
 
+no_notation inf (infixl "\<sqinter>" 70)
 notation inf (infixl "\<squnion>" 70)
+no_notation sup (infixl "\<squnion>" 65)
 notation sup (infixl "\<sqinter>" 65)
 
 notation Inf ("\<Squnion>_" [900] 900)
 notation Sup ("\<Sqinter>_" [900] 900)
 
+no_notation bot ("\<bottom>")
 notation bot ("\<top>")
+no_notation top ("\<top>")
 notation top ("\<bottom>")
 
 text {* We now introduce a partial order on expressions. Note this is more general than refinement

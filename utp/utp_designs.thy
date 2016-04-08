@@ -244,6 +244,18 @@ proof -
   finally show ?thesis .
 qed
 
+theorem design_choice:
+  "(P\<^sub>1 \<turnstile> P\<^sub>2) \<sqinter> (Q\<^sub>1 \<turnstile> Q\<^sub>2) = ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<or> Q\<^sub>2))"
+  by rel_tac
+
+theorem rdesign_choice:
+  "(P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) \<sqinter> (Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2) = ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile>\<^sub>r (P\<^sub>2 \<or> Q\<^sub>2))"
+  by rel_tac
+
+theorem design_condr:
+  "((P\<^sub>1 \<turnstile> P\<^sub>2) \<triangleleft> b \<triangleright> (Q\<^sub>1 \<turnstile> Q\<^sub>2)) = ((P\<^sub>1 \<triangleleft> b \<triangleright> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<triangleleft> b \<triangleright> Q\<^sub>2))"
+  by rel_tac
+
 theorem design_composition_subst:
   assumes 
     "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2"
@@ -363,6 +375,16 @@ lemma assigns_d_comp:
   apply (simp add: unrest_usubst_def)
   apply (metis alpha_d.select_convs(1) alpha_d.surjective alpha_d.update_convs(1))
 done
+
+subsection {* Design preconditions *}
+
+lemma design_pre_choice [simp]:
+  "pre\<^sub>D(P \<sqinter> Q) = (pre\<^sub>D(P) \<and> pre\<^sub>D(Q))"
+  by (rel_tac)
+
+lemma design_post_choice [simp]:
+  "post\<^sub>D(P \<sqinter> Q) = (post\<^sub>D(P) \<or> post\<^sub>D(Q))"
+  by (rel_tac)
 
 subsection {* H1: No observation is allowed before initiation *}
 

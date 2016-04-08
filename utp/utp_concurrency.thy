@@ -53,6 +53,10 @@ lemma parallel_mono_2:
   shows "P \<parallel> Q\<^sub>1 \<sqsubseteq> P \<parallel> Q\<^sub>2"
   by (metis assms parallel_comm parallel_mono_1)
 
+lemma parallel_choice:
+  "(P \<sqinter> Q) \<parallel> R = ((P \<parallel> R) \<sqinter> (Q \<parallel> R))"
+  by (simp add: design_par_def rdesign_choice conj_assoc inf_left_commute inf_sup_distrib2)
+
 subsection {* Parallel by merge *}
 
 text {* We describe the partition of a state space into two pieces. *}
@@ -273,5 +277,4 @@ lemma par_by_merge_mono_2:
   using assms
   by (auto intro:seqr_mono parallel_mono_2 seq_r_H1_H2_closed U0_H1_H2 U1_H1_H2 simp add: par_by_merge_def)
 
- 
 end
