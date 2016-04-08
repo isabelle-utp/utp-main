@@ -14,6 +14,29 @@ definition design_par :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alp
 
 declare design_par_def [upred_defs]
 
+lemma design_par_is_H1_H2: "(P \<parallel> Q) is H1_H2"
+  by (simp add: design_par_def rdesign_is_H1_H2)
+  
+lemma design_par_skip_d_distl:
+  assumes "P is H1_H2" "Q is H1_H2"
+  shows "((P ;; II\<^sub>D) \<parallel> (Q ;; II\<^sub>D)) = ((P \<parallel> Q) ;; II\<^sub>D)"
+proof -
+  obtain P\<^sub>1 P\<^sub>2 where P: "P = P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2"
+    by (metis H1_H2_commute H1_H2_is_rdesign H2_idem Healthy_def assms(1))
+  moreover obtain Q\<^sub>1 Q\<^sub>2 where Q: "Q = Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2"
+   by (metis H1_H2_commute H1_H2_is_rdesign H2_idem Healthy_def assms(2))
+  moreover have "(((P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) ;; II\<^sub>D) \<parallel> ((Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2) ;; II\<^sub>D)) = (((P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) \<parallel> (Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2)) ;; II\<^sub>D)"
+    by (simp add: design_par_def skip_d_def rdesign_composition, rel_tac)
+  ultimately show ?thesis
+    by simp
+qed
+
+lemma design_par_H3_closure:
+  assumes "P is H1_H3" "Q is H1_H3"
+  shows "(P \<parallel> Q) is H3"
+  using assms
+  by (simp add: H3_unrest_out_alpha design_par_def precond_right_unit rdesign_H3_iff_pre seqr_pre_out)
+
 lemma parallel_zero: "P \<parallel> true = true"
 proof -
   have "P \<parallel> true = (pre\<^sub>D(P) \<and> pre\<^sub>D(true)) \<turnstile>\<^sub>r (post\<^sub>D(P) \<and> post\<^sub>D(true))"
@@ -53,9 +76,13 @@ lemma parallel_mono_2:
   shows "P \<parallel> Q\<^sub>1 \<sqsubseteq> P \<parallel> Q\<^sub>2"
   by (metis assms parallel_comm parallel_mono_1)
 
-lemma parallel_choice:
+lemma parallel_choice_distr:
   "(P \<sqinter> Q) \<parallel> R = ((P \<parallel> R) \<sqinter> (Q \<parallel> R))"
   by (simp add: design_par_def rdesign_choice conj_assoc inf_left_commute inf_sup_distrib2)
+
+lemma parallel_condr_distr:
+  "(P \<triangleleft> \<lceil>b\<rceil>\<^sub>D \<triangleright> Q) \<parallel> R = ((P \<parallel> R) \<triangleleft> \<lceil>b\<rceil>\<^sub>D \<triangleright> (Q \<parallel> R))"
+  by (simp add: design_par_def rdesign_def alpha cond_conj_distr conj_comm design_condr)
 
 subsection {* Parallel by merge *}
 
@@ -273,7 +300,7 @@ lemma par_by_merge_mono_1:
 
 lemma par_by_merge_mono_2:
   assumes "Q\<^sub>1 \<sqsubseteq> Q\<^sub>2" "Q\<^sub>1 is H1_H2" "Q\<^sub>2 is H1_H2"
-  shows "P \<parallel>\<^bsub>M\<^esub> Q\<^sub>1 \<sqsubseteq> P \<parallel>\<^bsub>M\<^esub> Q\<^sub>2"
+  shows "(P \<parallel>\<^bsub>M\<^esub> Q\<^sub>1) \<sqsubseteq> (P \<parallel>\<^bsub>M\<^esub> Q\<^sub>2)"
   using assms
   by (auto intro:seqr_mono parallel_mono_2 seq_r_H1_H2_closed U0_H1_H2 U1_H1_H2 simp add: par_by_merge_def)
 

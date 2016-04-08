@@ -179,6 +179,14 @@ lemma lift_dist_seq [simp]:
   "\<lceil>P ;; Q\<rceil>\<^sub>D = (\<lceil>P\<rceil>\<^sub>D ;; \<lceil>Q\<rceil>\<^sub>D)"
   by (rel_tac, metis alpha_d.select_convs(2))
 
+lemma true_is_design:
+  "(false \<turnstile> true) = true"
+  by rel_tac
+
+lemma true_is_rdesign:
+  "(false \<turnstile>\<^sub>r true) = true"
+  by rel_tac
+
 theorem design_refinement:
   assumes 
     "$ok \<sharp> P1" "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2" "$ok\<acute> \<sharp> P2"
@@ -384,6 +392,14 @@ lemma design_pre_choice [simp]:
 
 lemma design_post_choice [simp]:
   "post\<^sub>D(P \<sqinter> Q) = (post\<^sub>D(P) \<or> post\<^sub>D(Q))"
+  by (rel_tac)
+
+lemma design_pre_condr [simp]:
+  "pre\<^sub>D(P \<triangleleft> \<lceil>b\<rceil>\<^sub>D \<triangleright> Q) = (pre\<^sub>D(P) \<triangleleft> b \<triangleright> pre\<^sub>D(Q))"
+  by (rel_tac)
+
+lemma design_post_condr [simp]:
+  "post\<^sub>D(P \<triangleleft> \<lceil>b\<rceil>\<^sub>D \<triangleright> Q) = (post\<^sub>D(P) \<triangleleft> b \<triangleright> post\<^sub>D(Q))"
   by (rel_tac)
 
 subsection {* H1: No observation is allowed before initiation *}
@@ -763,6 +779,9 @@ theorem H1_H3_is_normal_design:
   by (metis H1_H3_is_rdesign assms drop_pre_inv ndesign_def precond_equiv rdesign_H3_iff_pre)
 
 abbreviation "H1_H3 p \<equiv> H1 (H3 p)"
+
+lemma H1_H3_impl_H2: "P is H1_H3 \<Longrightarrow> P is H1_H2"
+  by (metis H1_H2_commute H1_idem H2_H3_absorb Healthy_def')
 
 lemma H3_unrest_out_alpha [unrest]: "P is H1_H3 \<Longrightarrow> out\<alpha> \<sharp> pre\<^sub>D(P)"
   by (metis H1_H3_commute H1_H3_is_rdesign H1_idem Healthy_def' precond_equiv rdesign_H3_iff_pre)
