@@ -18,11 +18,6 @@ named_theorems lens_defs
 definition lens_create :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ("create\<index>") where
 [lens_defs]: "lens_create X v = lens_put X undefined v"
 
-definition effectual :: "('a \<Longrightarrow> 'b) \<Rightarrow> bool" where
-"effectual X = (\<forall> \<sigma>. \<exists> v. lens_put X \<sigma> v \<noteq> \<sigma>)"
-
-abbreviation "ineffectual X \<equiv> (\<not> effectual X)"
-
 subsection {* Lens composition, plus, unit, and identity *}
 
 definition lens_comp :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> ('a \<Longrightarrow> 'c)" (infixr ";\<^sub>L" 80) where
@@ -47,9 +42,6 @@ lemma get_snd_lens [simp]: "get\<^bsub>snd\<^sub>L\<^esub> (x, y) = y"
 
 definition unit_lens :: "unit \<Longrightarrow> 'a" ("0\<^sub>L") where
 [lens_defs]: "0\<^sub>L = \<lparr> lens_get = (\<lambda> _. ()), lens_put = (\<lambda> \<sigma> x. \<sigma>) \<rparr>"
-
-lemma ineffectual_unit_lens: "ineffectual 0\<^sub>L"
-  by (auto simp add: effectual_def unit_lens_def)
 
 text {* The quotient operator $X /_L Y$ shortens lens $X$ by cutting off $Y$ from the end. It is
   thus the dual of the composition operator. *} 
@@ -100,12 +92,6 @@ end
 declare weak_lens.put_get [simp]
 declare weak_lens.create_get [simp]
 
-lemma ineffectual_const_get:
-  "\<lbrakk> weak_lens x; ineffectual x \<rbrakk> \<Longrightarrow> \<exists> v.  \<forall> \<sigma>. lens_get x \<sigma> = v"
-  apply (auto simp add: effectual_def)
-  apply (metis weak_lens.put_get)
-done
-
 subsection {* Well-behaved lenses *}
 
 locale wb_lens = weak_lens +
@@ -136,6 +122,84 @@ lemma unit_wb_lens: "wb_lens unit_lens"
 
 lemma comp_wb_lens: "\<lbrakk> wb_lens x; wb_lens y \<rbrakk> \<Longrightarrow> wb_lens (x ;\<^sub>L y)"
   by (unfold_locales, simp_all add: lens_comp_def)
+
+subsection {* Mainly well-behaved lenses *}
+
+locale mwb_lens = weak_lens +
+  assumes put_put: "put (put \<sigma> v) u = put \<sigma> u"
+begin
+
+  lemma update_comp: "update f (update g \<sigma>) = update (f \<circ> g) \<sigma>"
+    by (simp add: put_get put_put update_def)
+
+end
+
+declare mwb_lens.put_put [simp]
+
+lemma mwb_lens_weak [simp]:
+  "mwb_lens x \<Longrightarrow> weak_lens x"
+  by (simp add: mwb_lens_def)
+
+lemma comp_mwb_lens: "\<lbrakk> mwb_lens x; mwb_lens y \<rbrakk> \<Longrightarrow> mwb_lens (x ;\<^sub>L y)"
+  by (unfold_locales, simp_all add: lens_comp_def)
+
+subsection {* Very well-behaved lenses *}
+
+locale vwb_lens = wb_lens + mwb_lens
+begin
+
+  lemma source_determination:"get \<sigma> = get \<rho> \<Longrightarrow> put \<sigma> v = put \<rho> v \<Longrightarrow> \<sigma> = \<rho>"
+    by (metis get_put put_put)
+
+ lemma put_eq: 
+   "\<lbrakk> get \<sigma> = k; put \<sigma> u = put \<rho> v \<rbrakk> \<Longrightarrow> put \<rho> k = \<sigma>"
+   by (metis get_put put_put)   
+
+end
+
+lemma vwb_lens_wb [simp]: "vwb_lens x \<Longrightarrow> wb_lens x"
+  by (simp_all add: vwb_lens_def)
+
+lemma vwb_lens_mwb [simp]: "vwb_lens x \<Longrightarrow> mwb_lens x"
+  by (simp_all add: vwb_lens_def)
+
+lemma id_vwb_lens: "vwb_lens 1\<^sub>L"
+  by (unfold_locales, simp_all add: id_lens_def)
+
+lemma unit_vwb_lens: "vwb_lens 0\<^sub>L"
+  by (unfold_locales, simp_all add: unit_lens_def)
+
+lemma comp_vwb_lens: "\<lbrakk> vwb_lens x; vwb_lens y \<rbrakk> \<Longrightarrow> vwb_lens (x ;\<^sub>L y)"
+  by (unfold_locales, simp_all add: lens_comp_def)
+
+lemma lens_comp_anhil [simp]: "wb_lens x \<Longrightarrow> 0\<^sub>L ;\<^sub>L x = 0\<^sub>L"
+  by (simp add: unit_lens_def lens_comp_def comp_def)
+
+subsection {* Ineffectual lenses *}
+
+locale ief_lens = weak_lens +
+  assumes put_inef: "put \<sigma> v = \<sigma>"
+begin
+
+sublocale vwb_lens
+proof
+  fix \<sigma> v u
+  show "put \<sigma> (get \<sigma>) = \<sigma>"
+    by (simp add: put_inef)  
+  show "put (put \<sigma> v) u = put \<sigma> u"
+    by (simp add: put_inef)
+qed
+
+lemma ineffectual_const_get:
+  "\<exists> v.  \<forall> \<sigma>. get \<sigma> = v"
+  by (metis create_get lens_create_def put_inef)
+
+end
+
+lemma unit_ief_lens: "ief_lens 0\<^sub>L"
+  by (unfold_locales, simp_all add: unit_lens_def)
+
+abbreviation "eff_lens X \<equiv> (weak_lens X \<and> (\<not> ief_lens X))"
 
 subsection {* Lens independence *}
 
@@ -191,26 +255,6 @@ lemma snd_lens_prod:
   apply (simp_all)
 done
 
-subsection {* Mainly well-behaved lenses *}
-
-locale mwb_lens = weak_lens +
-  assumes put_put: "put (put \<sigma> v) u = put \<sigma> u"
-begin
-
-  lemma update_comp: "update f (update g \<sigma>) = update (f \<circ> g) \<sigma>"
-    by (simp add: put_get put_put update_def)
-
-end
-
-declare mwb_lens.put_put [simp]
-
-lemma mwb_lens_weak [simp]:
-  "mwb_lens x \<Longrightarrow> weak_lens x"
-  by (simp add: mwb_lens_def)
-
-lemma comp_mwb_lens: "\<lbrakk> mwb_lens x; mwb_lens y \<rbrakk> \<Longrightarrow> mwb_lens (x ;\<^sub>L y)"
-  by (unfold_locales, simp_all add: lens_comp_def)
-
 lemma plus_mwb_lens:
   assumes "mwb_lens x" "mwb_lens y" "x \<bowtie> y"
   shows "mwb_lens (x +\<^sub>L y)"
@@ -220,8 +264,13 @@ lemma plus_mwb_lens:
   apply (simp add: lens_indep_comm)
 done
 
-lemma lens_indep_quasi_irrefl: "\<lbrakk> mwb_lens x; effectual x \<rbrakk> \<Longrightarrow> \<not> (x \<bowtie> x)"
-  by (metis effectual_def lens_indep_def mwb_lens.put_put)
+lemma lens_indep_quasi_irrefl: "\<lbrakk> wb_lens x; eff_lens x \<rbrakk> \<Longrightarrow> \<not> (x \<bowtie> x)"
+  apply (auto simp add: lens_indep_def ief_lens_def ief_lens_axioms_def)
+  apply (rule_tac x="get\<^bsub>x\<^esub> \<sigma>" in exI)
+  apply (rule_tac x="v" in exI)
+  apply (rule_tac x="put\<^bsub>x\<^esub> \<sigma> v" in exI)
+  apply (auto)
+done
 
 lemma lens_indep_left_comp:
   "\<lbrakk> mwb_lens z; x \<bowtie> y \<rbrakk> \<Longrightarrow> (x ;\<^sub>L z) \<bowtie> (y ;\<^sub>L z)"
@@ -244,38 +293,6 @@ lemma lens_indep_left_ext:
   apply (simp add: lens_indep_comm)
   apply (simp add: lens_indep_sym)
 done
-
-subsection {* Very well-behaved lenses *}
-
-locale vwb_lens = wb_lens + mwb_lens
-begin
-
-  lemma source_determination:"get \<sigma> = get \<rho> \<Longrightarrow> put \<sigma> v = put \<rho> v \<Longrightarrow> \<sigma> = \<rho>"
-    by (metis get_put put_put)
-
- lemma put_eq: 
-   "\<lbrakk> get \<sigma> = k; put \<sigma> u = put \<rho> v \<rbrakk> \<Longrightarrow> put \<rho> k = \<sigma>"
-   by (metis get_put put_put)   
-
-end
-
-lemma vwb_lens_wb [simp]: "vwb_lens x \<Longrightarrow> wb_lens x"
-  by (simp_all add: vwb_lens_def)
-
-lemma vwb_lens_mwb [simp]: "vwb_lens x \<Longrightarrow> mwb_lens x"
-  by (simp_all add: vwb_lens_def)
-
-lemma id_vwb_lens: "vwb_lens 1\<^sub>L"
-  by (unfold_locales, simp_all add: id_lens_def)
-
-lemma unit_vwb_lens: "vwb_lens 0\<^sub>L"
-  by (unfold_locales, simp_all add: unit_lens_def)
-
-lemma comp_vwb_lens: "\<lbrakk> vwb_lens x; vwb_lens y \<rbrakk> \<Longrightarrow> vwb_lens (x ;\<^sub>L y)"
-  by (unfold_locales, simp_all add: lens_comp_def)
-
-lemma lens_comp_anhil [simp]: "wb_lens x \<Longrightarrow> 0\<^sub>L ;\<^sub>L x = 0\<^sub>L"
-  by (simp add: unit_lens_def lens_comp_def comp_def)
 
 lemma plus_vwb_lens:
   assumes "vwb_lens x" "vwb_lens y" "x \<bowtie> y"
