@@ -169,6 +169,9 @@ lemma R1_ok_false: "(R1(P))\<lbrakk>false/$ok\<rbrakk> = R1(P\<lbrakk>false/$ok\
 lemma seqr_R1_true_right: "((P ;; R1(true)) \<or> P) = (P ;; ($tr \<le>\<^sub>u $tr\<acute>))"
   by rel_tac
 
+lemma R1_H2_commute: "R1(H2(P)) = H2(R1(P))"
+  by (simp add: H2_split R1_def usubst, rel_tac)
+
 subsection {* R2 *}
 
 definition R2s_def [upred_defs]: "R2s (P) = (P\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>($tr\<acute>-$tr)/$tr\<acute>\<rbrakk>)"
@@ -279,6 +282,14 @@ lemma R1_R2_commute:
   "R1(R2(P)) = R2(R1(P))"
   by pred_tac
 
+lemma R2s_H1_commute:
+  "R2s(H1(P)) = H1(R2s(P))"
+  by rel_tac
+
+lemma R2s_H2_commute:
+  "R2s(H2(P)) = H2(R2s(P))"
+  by (simp add: H2_split R2s_def usubst, smt out_in_indep out_var_indep tr_ok_indep(1) usubst_upd_comm)
+
 subsection {* R3 *}
 
 definition skip_rea_def [urel_defs]: "II\<^sub>r = (II \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
@@ -287,7 +298,7 @@ definition R3_def [upred_defs]: "R3 (P) = (II \<triangleleft> $wait \<triangleri
 
 definition R3c_def [upred_defs]: "R3c (P) = (II\<^sub>r \<triangleleft> $wait \<triangleright> P)"
 
-definition RH_def [upred_defs]: "RH(P) = R1(R2(R3c(P)))"
+definition RH_def [upred_defs]: "RH(P) = R1(R2s(R3c(P)))"
 
 lemma R3_idem: "R3(R3(P)) = R3(P)"
   by rel_tac
@@ -320,6 +331,9 @@ lemma R3_semir_closure:
   using assms
   by (metis Healthy_def' R3_semir_form)
 
+lemma R3c_subst_wait: "R3c(P) = R3c(P \<^sub>f)"
+  by (metis R3c_def cond_var_subst_right uvar_wait)
+
 lemma R1_R3_commute: "R1(R3(P)) = R3(R1(P))"
   by rel_tac
 
@@ -328,6 +342,13 @@ lemma R2_R3_commute: "R2(R3(P)) = R3(R2(P))"
 
 lemma R2_R3c_commute: "R2(R3c(P)) = R3c(R2(P))"
   by (rel_tac, (metis (no_types, lifting) alpha_rp.surjective alpha_rp.update_convs(2) append_Nil2 append_minus strict_prefixE)+)
+
+lemma R1_H1_R3c_commute:
+  "R1(H1(R3c(P))) = R3c(R1(H1(P)))"
+  by rel_tac
+
+lemma R3c_H2_commute: "R3c(H2(P)) = H2(R3c(P))"
+  by (simp add: H2_split R3c_def usubst, rel_tac)
 
 lemma R3c_idem: "R3c(R3c(P)) = R3c(P)"
   by rel_tac

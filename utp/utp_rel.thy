@@ -282,6 +282,16 @@ lemma comp_cond_left_distr:
   "((P \<triangleleft> b \<triangleright>\<^sub>r Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright>\<^sub>r (Q ;; R))"
   by rel_tac
 
+lemma cond_var_subst_left:
+  assumes "uvar x"
+  shows "(P \<triangleleft> $x \<triangleright> Q) = (P\<lbrakk>true/$x\<rbrakk> \<triangleleft> $x \<triangleright> Q)"
+  using assms by (metis cond_def conj_pos_var_subst) 
+
+lemma cond_var_subst_right:
+  assumes "uvar x"
+  shows "(P \<triangleleft> $x \<triangleright> Q) = (P \<triangleleft> $x \<triangleright> Q\<lbrakk>false/$x\<rbrakk>)"
+  using assms by (metis cond_def conj_neg_var_subst) 
+
 text {* These laws may seem to duplicate quantale laws, but they don't -- they are
         applicable to non-homogeneous relations as well, which will become important
         later. *}

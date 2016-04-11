@@ -498,6 +498,18 @@ lemma conj_eq_out_var_subst:
   using assms
   by (pred_tac, (metis vwb_lens_wb wb_lens.get_put)+)
 
+lemma conj_pos_var_subst:
+  assumes "uvar x"
+  shows "($x \<and> Q) = ($x \<and> Q\<lbrakk>true/$x\<rbrakk>)"
+  using assms
+  by (pred_tac, metis (full_types) vwb_lens_wb wb_lens.get_put, metis (full_types) vwb_lens_wb wb_lens.get_put)
+
+lemma conj_neg_var_subst:
+  assumes "uvar x"
+  shows "(\<not> $x \<and> Q) = (\<not> $x \<and> Q\<lbrakk>false/$x\<rbrakk>)"
+  using assms
+  by (pred_tac, metis (full_types) vwb_lens_wb wb_lens.get_put, metis (full_types) vwb_lens_wb wb_lens.get_put)
+
 lemma shEx_bool [simp]: "shEx P = (P True \<or> P False)"
   by (pred_tac, metis (full_types))
 
