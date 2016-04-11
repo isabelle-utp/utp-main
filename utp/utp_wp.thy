@@ -1,7 +1,7 @@
 subsection {* Weakest precondition calculus *}
 
 theory utp_wp
-imports utp_rel
+imports utp_hoare
 begin
 
 text {* A very quick implementation of wp -- more laws still needed! *}
@@ -22,7 +22,7 @@ adhoc_overloading
 declare wp_upred_def [urel_defs]
 
 theorem wp_assigns_r [wp]: 
-  "(assigns_r \<sigma>) wp r = \<sigma> \<dagger> r"
+  "\<langle>\<sigma>\<rangle>\<^sub>a wp r = \<sigma> \<dagger> r"
   by rel_tac
 
 theorem wp_skip_r [wp]:
@@ -41,6 +41,10 @@ theorem wp_seq_r [wp]: "(P ;; Q) wp r = P wp (Q wp r)"
   by rel_tac
 
 theorem wp_cond [wp]: "(P \<triangleleft> b \<triangleright>\<^sub>r Q) wp r = ((b \<Rightarrow> P wp r) \<and> ((\<not> b) \<Rightarrow> Q wp r))"
+  by rel_tac
+
+theorem wp_hoare_link: 
+  "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u \<longleftrightarrow> (Q wp r \<sqsubseteq> p)"
   by rel_tac
 
 end
