@@ -252,6 +252,14 @@ lemma pdom_pdom_res [simp]: "pdom (A \<lhd>\<^sub>p f) = A \<inter> pdom(f)"
 lemma pdom_graph_pfun [simp]: "pdom (graph_pfun R) = Domain R"
   by (transfer, simp add: Domain_fst graph_map_dom)
 
+lemma pdom_pran_res_finite [simp]:
+  "finite (pdom f) \<Longrightarrow> finite (pdom (f \<rhd>\<^sub>p A))"
+  by (transfer, auto)
+
+lemma pdom_pfun_graph_finite [simp]: 
+  "finite (pdom f) \<Longrightarrow> finite (pfun_graph f)"
+  by (transfer, simp add: finite_dom_graph)
+
 subsection {* Range laws *}
 
 lemma pran_zero [simp]: "pran 0 = {}"
@@ -268,6 +276,9 @@ lemma pran_pran_res [simp]: "pran (f \<rhd>\<^sub>p A) = pran(f) \<inter> A"
 
 lemma pran_comp [simp]: "pran (g \<circ>\<^sub>p f) = pran (pran f \<lhd>\<^sub>p g)"
   by (transfer, auto simp add: ran_def restrict_map_def)
+
+lemma pran_finite [simp]: "finite (pdom f) \<Longrightarrow> finite (pran f)"
+  by (transfer, auto)
 
 subsection {* Domain restriction laws *}
 
