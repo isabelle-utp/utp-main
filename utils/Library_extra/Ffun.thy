@@ -1,7 +1,7 @@
 section {* Finite functions *}
 
 theory Ffun
-imports Map_Extra Pfun Fset_extra
+imports Map_Extra Pfun FSet_extra
 begin
 
 subsection {* Finite function type and operations *}
