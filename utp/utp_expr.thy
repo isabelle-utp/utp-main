@@ -178,16 +178,24 @@ adhoc_overloading
 definition "fun_apply f x = f x"
 declare fun_apply_def [simp]
 
-consts 
-  uapply :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
-  udom   :: "'f \<Rightarrow> 'a set"
-  uran   :: "'f \<Rightarrow> 'b set"
-  ucard  :: "'f \<Rightarrow> nat"
+consts
+  uempty  :: "'f"
+  uapply  :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
+  uupd    :: "'f \<Rightarrow> 'k \<Rightarrow> 'v \<Rightarrow> 'f"
+  udom    :: "'f \<Rightarrow> 'a set"
+  uran    :: "'f \<Rightarrow> 'b set"
+  udomres :: "'a set \<Rightarrow> 'f \<Rightarrow> 'f"
+  uranres :: "'f \<Rightarrow> 'b set \<Rightarrow> 'f"
+  ucard   :: "'f \<Rightarrow> nat"
 
 adhoc_overloading
-  uapply fun_apply and uapply nth and uapply pfun_app and
-  udom Domain and udom pdom and udom seq_dom and
-  udom Range and uran pran and uran set and
+  uempty 0 and uempty Nil and
+  uapply fun_apply and uapply nth and uapply pfun_app and uapply ffun_app and
+  uupd pfun_upd and uupd ffun_upd and uupd list_update and
+  udom Domain and udom pdom and udom fdom and udom seq_dom and
+  udom Range and uran pran and uran fran and uran set and
+  udomres pdom_res and udomres fdom_res and
+  uranres pran_res and udomres fran_res and
   ucard card and ucard pcard and ucard length
 
 nonterminal utuple_args and umaplet and umaplets
@@ -216,7 +224,6 @@ syntax
   "_uunion"     :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" (infixl "\<union>\<^sub>u" 65)
   "_uinter"     :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" (infixl "\<inter>\<^sub>u" 70)
   "_umem"       :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<in>\<^sub>u" 50)
-  "_unmem"      :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<notin>\<^sub>u" 50)
   "_usubset"    :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<subset>\<^sub>u" 50)
   "_usubseteq"  :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<subseteq>\<^sub>u" 50)
   "_utuple"     :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('a * 'b, '\<alpha>) uexpr" ("(1'(_,/ _')\<^sub>u)")
@@ -239,15 +246,17 @@ syntax
   "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>/ _")
   ""            :: "umaplet => umaplets"             ("_")
   "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
-  "_UMapUpd"    :: "[logic, umaplets] => logic" ("_/'(_')" [900,0] 900)
+  "_UMapUpd"    :: "[logic, umaplets] => logic" ("_/'(_')\<^sub>u" [900,0] 900)
   "_UMap"       :: "umaplets => logic" ("(1[_]\<^sub>u)")
 
 translations
   "f\<lparr>v\<rparr>\<^sub>u" <= "CONST uapply f v"
   "dom\<^sub>u(f)" <= "CONST udom f"
   "ran\<^sub>u(f)" <= "CONST uran f"
+  "A \<lhd>\<^sub>u f" <= "CONST udomres A f"
+  "f \<rhd>\<^sub>u A" <= "CONST uranres f A"
   "#\<^sub>u(f)" <= "CONST ucard f"
-
+  "f(k \<mapsto> v)\<^sub>u" <= "CONST uupd f k v"
 
 translations
   "x :\<^sub>u 'a" == "x :: ('a, _) uexpr"
@@ -277,13 +286,14 @@ translations
   "f \<oplus>\<^sub>u g"   => "(f :: ((_, _) pfun, _) uexpr) + g"
   "f \<ominus>\<^sub>u g"   => "(f :: ((_, _) pfun, _) uexpr) - g"
   "x \<in>\<^sub>u A"   == "CONST bop (op \<in>) x A"
-  "x \<notin>\<^sub>u A"   == "CONST bop (op \<notin>) x A"
   "A \<subset>\<^sub>u B"   == "CONST bop (op <) A B"
   "A \<subset>\<^sub>u B"   <= "CONST bop (op \<subset>) A B"
   "f \<subset>\<^sub>u g"   <= "CONST bop (op \<subset>\<^sub>p) f g"
+  "f \<subset>\<^sub>u g"   <= "CONST bop (op \<subset>\<^sub>f) f g"
   "A \<subseteq>\<^sub>u B"   == "CONST bop (op \<le>) A B"
   "A \<subseteq>\<^sub>u B"   <= "CONST bop (op \<subseteq>) A B"
   "f \<subseteq>\<^sub>u g"   <= "CONST bop (op \<subseteq>\<^sub>p) f g"
+  "f \<subseteq>\<^sub>u g"   <= "CONST bop (op \<subseteq>\<^sub>f) f g"
   "()\<^sub>u"      == "\<guillemotleft>()\<guillemotright>"
   "(x, y)\<^sub>u"  == "CONST bop (CONST Pair) x y"
   "_utuple x (_utuple_args y z)" == "_utuple x (_utuple_arg (_utuple y z))"
@@ -295,11 +305,11 @@ translations
   "ran\<^sub>u(f)" == "CONST uop CONST uran f"
   "inl\<^sub>u(x)" == "CONST uop CONST Inl x"
   "inr\<^sub>u(x)" == "CONST uop CONST Inr x"
-  "[]\<^sub>u"     == "\<guillemotleft>CONST pempty\<guillemotright>"
-  "A \<lhd>\<^sub>u f" == "CONST bop (op \<lhd>\<^sub>p) A f"
-  "f \<rhd>\<^sub>u A" == "CONST bop (op \<rhd>\<^sub>p) A f"
+  "[]\<^sub>u"     == "\<guillemotleft>CONST uempty\<guillemotright>"
+  "A \<lhd>\<^sub>u f" == "CONST bop (CONST udomres) A f"
+  "f \<rhd>\<^sub>u A" == "CONST bop (CONST uranres) f A"
   "_UMapUpd m (_UMaplets xy ms)" == "_UMapUpd (_UMapUpd m xy) ms"
-  "_UMapUpd m (_umaplet  x y)"   == "CONST trop CONST pfun_upd m x y"
+  "_UMapUpd m (_umaplet  x y)"   == "CONST trop CONST uupd m x y"
   "_UMap ms"                      == "_UMapUpd []\<^sub>u ms"
   "_UMap (_UMaplets ms1 ms2)"     <= "_UMapUpd (_UMap ms1) ms2"
   "_UMaplets ms1 (_UMaplets ms2 ms3)" <= "_UMaplets (_UMaplets ms1 ms2) ms3"

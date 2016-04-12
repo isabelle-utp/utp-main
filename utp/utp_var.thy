@@ -8,6 +8,7 @@ imports
   "../utils/finite_bijection"
   "../utils/Lenses"
   "../utils/Library_extra/Pfun"
+  "../utils/Library_extra/Ffun"
   "../utils/Library_extra/Derivative_extra"
   "~~/src/HOL/Library/Prefix_Order"
   "~~/src/HOL/Library/Adhoc_Overloading"

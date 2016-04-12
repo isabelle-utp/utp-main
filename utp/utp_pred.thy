@@ -59,6 +59,7 @@ syntax
   "_ushAll"  :: "idt \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ \<bullet> _" [0, 10] 10)
   "_ushBEx"  :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<exists> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
   "_ushBAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
+  "_ushGAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ | _ \<bullet> _" [0, 0, 10] 10)
 
 translations
   "_uex x P"   == "CONST uex x P"
@@ -67,6 +68,7 @@ translations
   "\<^bold>\<exists> x \<in> A \<bullet> P" => "\<^bold>\<exists> x \<bullet> \<guillemotleft>x\<guillemotright> \<in>\<^sub>u A \<and> P"
   "\<^bold>\<forall> x \<bullet> P"   == "CONST ushAll (\<lambda> x. P)"
   "\<^bold>\<forall> x \<in> A \<bullet> P" => "\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> \<in>\<^sub>u A \<Rightarrow> P"
+  "\<^bold>\<forall> x | P \<bullet> Q" => "\<^bold>\<forall> x \<bullet> P \<Rightarrow> Q"
 
 subsection {* Predicate operators *}
 
@@ -171,6 +173,29 @@ definition "disj_upred  = (sup :: '\<alpha> upred \<Rightarrow> '\<alpha> upred 
 definition "not_upred   = (uminus :: '\<alpha> upred \<Rightarrow> '\<alpha> upred)"
 definition "diff_upred  = (minus :: '\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred)"
 
+lift_definition USUP :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('b::complete_lattice, '\<alpha>) uexpr) \<Rightarrow> ('b, '\<alpha>) uexpr"
+is "\<lambda> P F b. Sup {\<lbrakk>F x\<rbrakk>\<^sub>eb | x. \<lbrakk>P x\<rbrakk>\<^sub>eb}" .
+
+lift_definition UINF :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('b::complete_lattice, '\<alpha>) uexpr) \<Rightarrow> ('b, '\<alpha>) uexpr"
+is "\<lambda> P F b. Inf {\<lbrakk>F x\<rbrakk>\<^sub>eb | x. \<lbrakk>P x\<rbrakk>\<^sub>eb}" .
+
+declare USUP_def [upred_defs]
+declare UINF_def [upred_defs]
+
+syntax
+  "_USup"  :: "idt \<Rightarrow> logic \<Rightarrow> logic"   ("\<Sqinter> _ \<bullet> _" [0, 10] 10)
+  "_USUP"  :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Sqinter> _ | _ \<bullet> _" [0, 0, 10] 10)
+  "_UInf"  :: "idt \<Rightarrow> logic \<Rightarrow> logic"   ("\<Squnion> _ \<bullet> _" [0, 10] 10)
+  "_UINF"  :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Squnion> _ | _ \<bullet> _" [0, 10] 10)
+
+translations
+  "\<Sqinter> x | P \<bullet> F" => "CONST USUP (\<lambda> x. P) (\<lambda> x. F)"
+  "\<Sqinter> x \<bullet> F"     == "\<Sqinter> x | true \<bullet> F"
+  "\<Sqinter> x | P \<bullet> F" <= "CONST USUP (\<lambda> x. P) (\<lambda> y. F)" 
+  "\<Squnion> x | P \<bullet> F" => "CONST UINF (\<lambda> x. P) (\<lambda> x. F)"
+  "\<Squnion> x \<bullet> F"     == "\<Squnion> x | true \<bullet> F"
+  "\<Squnion> x | P \<bullet> F" <= "CONST UINF (\<lambda> x. P) (\<lambda> y. F)" 
+
 text {* We also define the other predicate operators *}
 
 lift_definition impl::"'\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
@@ -215,9 +240,11 @@ adhoc_overloading
 
 syntax
   "_uneq"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<noteq>\<^sub>u" 50)
+  "_unmem"      :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<notin>\<^sub>u" 50)
 
 translations
   "x \<noteq>\<^sub>u y" == "CONST unot (x =\<^sub>u y)"
+  "x \<notin>\<^sub>u A" == "CONST unot (CONST bop (op \<in>) x A)"
 
 subsection {* Proof support *}
 

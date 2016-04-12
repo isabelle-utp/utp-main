@@ -33,6 +33,26 @@ lemma aext_bop [alpha]: "bop f u v \<oplus>\<^sub>p a = bop f (u \<oplus>\<^sub>
 lemma aext_trop [alpha]: "trop f u v w \<oplus>\<^sub>p a = trop f (u \<oplus>\<^sub>p a) (v \<oplus>\<^sub>p a) (w \<oplus>\<^sub>p a)"
   by (pred_tac)
 
+lemma aext_plus [alpha]:
+  "(x + y) \<oplus>\<^sub>p a = (x \<oplus>\<^sub>p a) + (y \<oplus>\<^sub>p a)" 
+  by (pred_tac)
+
+lemma aext_minus [alpha]:
+  "(x - y) \<oplus>\<^sub>p a = (x \<oplus>\<^sub>p a) - (y \<oplus>\<^sub>p a)"
+  by (pred_tac)
+
+lemma aext_uminus [simp]:
+  "(- x) \<oplus>\<^sub>p a = - (x \<oplus>\<^sub>p a)"
+  by (pred_tac)
+
+lemma aext_times [alpha]:
+  "(x * y) \<oplus>\<^sub>p a = (x \<oplus>\<^sub>p a) * (y \<oplus>\<^sub>p a)"
+  by (pred_tac)
+
+lemma aext_divide [alpha]:
+  "(x / y) \<oplus>\<^sub>p a = (x \<oplus>\<^sub>p a) / (y \<oplus>\<^sub>p a)"
+  by (pred_tac)
+
 lemma aext_var [alpha]:
   "var x \<oplus>\<^sub>p a = var (x ;\<^sub>L a)"
   by (pred_tac)

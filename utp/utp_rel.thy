@@ -81,7 +81,7 @@ translations
   "_mk_usubst \<sigma> (_svid_unit x) v" == "\<sigma>(&x \<mapsto>\<^sub>s v)"
   "_mk_usubst \<sigma> (_svid_list x xs) (_uexprs v vs)" == "(_mk_usubst (\<sigma>(x \<mapsto>\<^sub>s v)) xs vs)"
   "_assignment xs vs" => "CONST assigns_r (_mk_usubst (CONST id) xs vs)"
-  "x := v" <= "CONST assign_r x v"
+  "x := v" <= "CONST assigns_r (CONST subst_upd (CONST id) x v)"
   "x,y := u,v" <= "CONST assign_2_r x y u v"
 
 adhoc_overloading
