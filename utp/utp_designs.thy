@@ -223,7 +223,7 @@ theorem design_ok_false [usubst]: "(P \<turnstile> Q)\<lbrakk>false/$ok\<rbrakk>
   by (simp add: design_def usubst)
 
 theorem design_pre: 
-  "$ok\<acute> \<sharp> P \<Longrightarrow> \<not> (P \<turnstile> Q)\<^sup>f = ($ok \<and> P\<^sup>f)"
+  "\<not> (P \<turnstile> Q)\<^sup>f = ($ok \<and> P\<^sup>f)"
   by (simp add: design_def, subst_tac)
      (metis (no_types, hide_lams) not_conj_deMorgans true_not_false(2) utp_pred.compl_top_eq 
             utp_pred.sup.idem utp_pred.sup_compl_top)
@@ -570,7 +570,7 @@ lemma H2_equiv:
   using H2_equivalence refBy_order by blast
 
 lemma H2_design:
-  assumes "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$ok \<sharp> Q" "$ok\<acute> \<sharp> Q"
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q"
   shows "H2(P \<turnstile> Q) = P \<turnstile> Q"
   using assms
   by (simp add: H2_split design_def usubst unrest, pred_tac)
@@ -663,6 +663,10 @@ proof -
 qed
 
 abbreviation "H1_H2 P \<equiv> H1 (H2 P)"
+
+lemma design_is_H1_H2:
+  "\<lbrakk> $ok\<acute> \<sharp> P; $ok\<acute> \<sharp> Q \<rbrakk> \<Longrightarrow> (P \<turnstile> Q) is H1_H2"
+  by (simp add: H1_design H2_design Healthy_def')
 
 lemma rdesign_is_H1_H2:
   "(P \<turnstile>\<^sub>r Q) is H1_H2"

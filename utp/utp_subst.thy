@@ -197,16 +197,6 @@ lemma subst_drop_id [usubst]: "\<lfloor>id\<rfloor>\<^sub>s = id"
 lemma subst_lift_drop [usubst]: "\<lfloor>\<lceil>\<sigma>\<rceil>\<^sub>s\<rfloor>\<^sub>s = \<sigma>"
   by (simp add: usubst_rel_lift_def usubst_rel_drop_def)
 
-subsection {* Unrestriction laws *}
-
-lemma unrest_usubst_id [unrest]:
-  "semi_uvar x \<Longrightarrow> x \<sharp> id"
-  by (simp add: unrest_usubst_def)
-
-lemma unrest_usubst_upd [unrest]:
-  "\<lbrakk> x \<bowtie> y; x \<sharp> \<sigma>; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> \<sigma>(y \<mapsto>\<^sub>s v)"
-  by (simp add: subst_upd_uvar_def unrest_usubst_def unrest_upred.rep_eq lens_indep_comm)
-
 nonterminal uexprs and svars and salphas
 
 syntax
@@ -225,5 +215,20 @@ translations
   "_psubst m x v"  => "CONST subst_upd m x v"
   "P\<lbrakk>v/$x\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) (CONST ivar x) v) P"
   "P\<lbrakk>v/$x\<acute>\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) (CONST ovar x) v) P"
+
+subsection {* Unrestriction laws *}
+
+lemma unrest_usubst_single [unrest]:
+  "\<lbrakk> semi_uvar x; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> P\<lbrakk>v/x\<rbrakk>"
+  by (transfer, auto simp add: subst_upd_uvar_def unrest_upred_def)
+
+lemma unrest_usubst_id [unrest]:
+  "semi_uvar x \<Longrightarrow> x \<sharp> id"
+  by (simp add: unrest_usubst_def)
+
+lemma unrest_usubst_upd [unrest]:
+  "\<lbrakk> x \<bowtie> y; x \<sharp> \<sigma>; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> \<sigma>(y \<mapsto>\<^sub>s v)"
+  by (simp add: subst_upd_uvar_def unrest_usubst_def unrest_upred.rep_eq lens_indep_comm)
+
 
 end
