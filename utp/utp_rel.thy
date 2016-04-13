@@ -126,6 +126,18 @@ lemma unrest_iuvar [unrest]: "semi_uvar x \<Longrightarrow> out\<alpha> \<sharp>
 lemma unrest_ouvar [unrest]: "semi_uvar x \<Longrightarrow> in\<alpha> \<sharp> $x\<acute>"
   by (simp add: in\<alpha>_def, transfer, auto)
 
+lemma unrest_semir_undash [unrest]:
+  fixes x :: "('a, '\<alpha>) uvar"
+  assumes "$x \<sharp> P"
+  shows "$x \<sharp> (P ;; Q)"
+  using assms by (rel_tac)
+
+lemma unrest_semir_dash [unrest]:
+  fixes x :: "('a, '\<alpha>) uvar"
+  assumes "$x\<acute> \<sharp> Q"
+  shows "$x\<acute> \<sharp> (P ;; Q)"
+  using assms by (rel_tac)
+
 lemma unrest_in\<alpha>_var [unrest]:
   "\<lbrakk> semi_uvar x; in\<alpha> \<sharp> (P :: ('\<alpha>, '\<beta>) relation) \<rbrakk> \<Longrightarrow> $x \<sharp> P"
   by (pred_tac, simp add: in\<alpha>_def, blast, metis in\<alpha>_def lens.select_convs(2) old.prod.case)
@@ -334,9 +346,12 @@ lemma seqr_exists_right:
   "semi_uvar x \<Longrightarrow> (P ;; (\<exists> $x\<acute> \<bullet> Q)) = (\<exists> $x\<acute> \<bullet> (P ;; Q))"
   by (rel_tac)
 
-text {* We should be able to generalise this law to arbitrary assignments at some point,
-        but that requires additional conversion operators for substitutions that act
-        only on @{const "in\<alpha>"}. *}
+lemma assigns_subst [usubst]:
+  "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> \<langle>\<rho>\<rangle>\<^sub>a = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>a"
+  by (rel_tac)
+
+lemma assigns_r_comp: "(\<langle>\<sigma>\<rangle>\<^sub>a ;; P) = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P)"
+  by rel_tac
 
 lemma assign_subst [usubst]:
   "\<lbrakk> semi_uvar x; semi_uvar y \<rbrakk> \<Longrightarrow> [$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> (y := v) = (x, y := u, [x \<mapsto>\<^sub>s u] \<dagger> v)"
@@ -345,15 +360,12 @@ lemma assign_subst [usubst]:
 lemma assigns_idem: "semi_uvar x \<Longrightarrow> (x,x := u,v) = (x := v)"
   by (simp add: usubst)
 
-lemma assigns_comp: "(assigns_r f ;; assigns_r g) = assigns_r (g \<circ> f)" 
-  by (transfer, auto simp add:relcomp_unfold)
+lemma assigns_comp: "(\<langle>f\<rangle>\<^sub>a ;; \<langle>g\<rangle>\<^sub>a) = \<langle>g \<circ> f\<rangle>\<^sub>a"
+  by (simp add: assigns_r_comp usubst) 
 
 lemma assigns_r_conv:
   "bij f \<Longrightarrow> \<langle>f\<rangle>\<^sub>a\<^sup>- = \<langle>inv f\<rangle>\<^sub>a"
   by (rel_tac, simp_all add: bij_is_inj bij_is_surj surj_f_inv_f)
-
-lemma assigns_r_comp: "(\<langle>\<sigma>\<rangle>\<^sub>a ;; P) = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P)"
-  by rel_tac
 
 lemma assign_r_comp: "semi_uvar x \<Longrightarrow> (x := u ;; P) = ([$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> P)"
   by (simp add: assigns_r_comp usubst)

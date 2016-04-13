@@ -361,6 +361,18 @@ lemma lift_des_skip_dr_unit [simp]:
 lemma assigns_d_id [simp]: "\<langle>id\<rangle>\<^sub>D = II\<^sub>D"
   by (rel_tac)
 
+lemma assign_d_left_comp:
+  "\<lbrakk> $ok \<sharp> P; ok \<sharp> f \<rbrakk> \<Longrightarrow> (\<langle>f\<rangle>\<^sub>D ;; (P \<turnstile> Q)) = (\<lceil>f\<rceil>\<^sub>s \<dagger> P \<turnstile> \<lceil>f\<rceil>\<^sub>s \<dagger> Q)"
+  apply (simp add: assigns_d_def)
+  apply (subst design_composition_subst)
+  apply (simp_all add: unrest usubst)
+  apply (rel_tac)
+  apply (simp_all add: unrest_usubst_def)
+  apply (metis alpha_d.surjective alpha_d.update_convs(1))
+  apply (metis alpha_d.surjective alpha_d.update_convs(1))
+  apply (metis (full_types) alpha_d.surjective alpha_d.update_convs(1))+
+done
+
 lemma assign_d_right_comp:
   "\<lbrakk> $ok\<acute> \<sharp> P; ok \<sharp> f \<rbrakk> \<Longrightarrow> ((P \<turnstile> Q) ;; \<langle>f\<rangle>\<^sub>D) = ((\<not> (\<not> P ;; true)) \<turnstile> (Q ;; \<langle>f\<rangle>\<^sub>a))"
   apply (simp add: assigns_d_def)
