@@ -1,3 +1,5 @@
+section {* Theory of invariants *}
+
 theory utp_invariants
   imports utp_designs
 begin
