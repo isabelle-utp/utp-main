@@ -27,6 +27,10 @@ lemma OIH_idem:
   using assms
   by (simp add: OIH_design design_is_H1_H2 unrest) (simp add: design_def usubst, rel_tac)
 
+lemma OIH_of_design:
+  "$ok\<acute> \<sharp> P \<Longrightarrow> OIH(\<psi>)(P \<turnstile> Q) = (P \<turnstile> (Q \<and> \<psi>))"
+  by (simp add: OIH_def design_def usubst, rel_tac)
+
 subsection {* State invariants *}
 
 definition "ISH(\<psi>)(D) = (D \<or> ($ok \<and> \<not> D\<^sup>f \<and> \<lceil>\<psi>\<rceil>\<^sub>< \<Rightarrow> $ok\<acute> \<and> D\<^sup>t))"
@@ -61,6 +65,8 @@ lemma OSH_of_design:
   by (simp add: OSH_design design_is_H1_H2 unrest, simp add: design_def usubst, pred_tac)  
 
 definition "SIH(\<psi>) = ISH(\<psi>) \<circ> OSH(\<psi>)"
+
+declare SIH_def [upred_defs]
 
 lemma SIH_of_design:
   "\<lbrakk> $ok\<acute> \<sharp> P; $ok\<acute> \<sharp> Q; ok \<sharp> \<psi> \<rbrakk> \<Longrightarrow> SIH(\<psi>)(P \<turnstile> Q) = ((P \<and> \<lceil>\<psi>\<rceil>\<^sub><) \<turnstile> (Q \<and> \<lceil>\<psi>\<rceil>\<^sub>>))"
