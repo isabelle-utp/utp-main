@@ -264,6 +264,12 @@ theorem design_condr:
   "((P\<^sub>1 \<turnstile> P\<^sub>2) \<triangleleft> b \<triangleright> (Q\<^sub>1 \<turnstile> Q\<^sub>2)) = ((P\<^sub>1 \<triangleleft> b \<triangleright> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<triangleleft> b \<triangleright> Q\<^sub>2))"
   by rel_tac
 
+lemma design_USUP: "(\<Sqinter> i \<bullet> P\<guillemotleft>i\<guillemotright> \<turnstile> Q\<guillemotleft>i\<guillemotright>) = (\<Squnion> i \<bullet> P\<guillemotleft>i\<guillemotright>) \<turnstile> (\<Sqinter> i \<bullet> Q\<guillemotleft>i\<guillemotright>)"
+  by rel_tac
+
+lemma design_UINF: "(\<Squnion> i \<bullet> P\<guillemotleft>i\<guillemotright> \<turnstile> Q\<guillemotleft>i\<guillemotright>) = (\<Sqinter> i \<bullet> P\<guillemotleft>i\<guillemotright>) \<turnstile> (\<Squnion> i \<bullet> P\<guillemotleft>i\<guillemotright> \<Rightarrow> Q\<guillemotleft>i\<guillemotright>)"
+  by rel_tac
+
 theorem design_composition_subst:
   assumes 
     "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2"
