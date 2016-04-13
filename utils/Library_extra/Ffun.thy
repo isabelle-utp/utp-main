@@ -253,6 +253,14 @@ subsection {* Domain restriction laws *}
 lemma fdom_res_zero [simp]: "A \<lhd>\<^sub>f {}\<^sub>f = {}\<^sub>f"
   by (transfer, auto)
 
+lemma pdom_res_upd_in [simp]: 
+  "k \<in> A \<Longrightarrow> A \<lhd>\<^sub>f f(k \<mapsto> v)\<^sub>f = (A \<lhd>\<^sub>f f)(k \<mapsto> v)\<^sub>f"
+  by (transfer, auto)
+
+lemma pdom_res_upd_out [simp]: 
+  "k \<notin> A \<Longrightarrow> A \<lhd>\<^sub>f f(k \<mapsto> v)\<^sub>f = A \<lhd>\<^sub>f f"
+  by (transfer, auto)
+
 lemma fdom_res_override [simp]: "A \<lhd>\<^sub>f (f + g) = (A \<lhd>\<^sub>f f) + (A \<lhd>\<^sub>f g)"
   by (metis fdom_res.rep_eq pdom_res_override pfun_of_inject plus_ffun.rep_eq)
 

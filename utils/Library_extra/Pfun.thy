@@ -292,6 +292,14 @@ lemma pdom_res_zero [simp]: "A \<lhd>\<^sub>p {}\<^sub>p = {}\<^sub>p"
 lemma pdom_res_alt_def: "A \<lhd>\<^sub>p f =  f \<circ>\<^sub>p pId_on A"
   by (transfer, rule ext, auto simp add: restrict_map_def)
 
+lemma pdom_res_upd_in [simp]: 
+  "k \<in> A \<Longrightarrow> A \<lhd>\<^sub>p f(k \<mapsto> v)\<^sub>p = (A \<lhd>\<^sub>p f)(k \<mapsto> v)\<^sub>p"
+  by (transfer, auto)
+
+lemma pdom_res_upd_out [simp]: 
+  "k \<notin> A \<Longrightarrow> A \<lhd>\<^sub>p f(k \<mapsto> v)\<^sub>p = A \<lhd>\<^sub>p f"
+  by (transfer, auto)
+
 lemma pdom_res_override [simp]: "A \<lhd>\<^sub>p (f + g) = (A \<lhd>\<^sub>p f) + (A \<lhd>\<^sub>p g)"
   by (simp add: pdom_res_alt_def pfun_override_dist_comp)
 
