@@ -151,6 +151,10 @@ lemma pfun_minus_plus_commute:
   "pdom(g) \<inter> pdom(h) = {} \<Longrightarrow> (f - g) + h = (f + h) - g"
   by (transfer, simp add: map_minus_plus_commute)
 
+lemma pfun_plus_minus:
+  "f \<subseteq>\<^sub>p g \<Longrightarrow> (g - f) + f = g"
+  by (transfer, rule ext, auto simp add: map_le_def map_minus_def map_add_def option.case_eq_if)
+  
 lemma pfun_minus_common_subset:
   "\<lbrakk> h \<subseteq>\<^sub>p f; h \<subseteq>\<^sub>p g \<rbrakk> \<Longrightarrow> (f - h = g - h) = (f = g)"
   by (transfer, simp add: map_minus_common_subset)

@@ -131,6 +131,10 @@ lemma ffun_minus_plus_commute:
   "fdom(g) \<inter> fdom(h) = {} \<Longrightarrow> (f - g) + h = (f + h) - g"
   by (transfer, simp add: pfun_minus_plus_commute)
 
+lemma ffun_plus_minus:
+  "f \<subseteq>\<^sub>f g \<Longrightarrow> (g - f) + f = g"
+  by (transfer, simp add: pfun_plus_minus)
+
 lemma ffun_minus_common_subset:
   "\<lbrakk> h \<subseteq>\<^sub>f f; h \<subseteq>\<^sub>f g \<rbrakk> \<Longrightarrow> (f - h = g - h) = (f = g)"
   by (transfer, simp add: pfun_minus_common_subset)
