@@ -73,7 +73,7 @@ lift_definition vsubst_lookup :: "'\<alpha> usubst \<Rightarrow> ('a, '\<alpha>)
 is "\<lambda> \<sigma> x b. Some (var_lookup x (\<sigma> b))" .
 
 lift_definition unrest_vexpr :: "('a, '\<alpha>) uvar \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> bool"
-is "\<lambda> x e. (\<forall>b v. e(var_update x v b) = e b)" .
+is "\<lambda> x e. (\<forall>b v. e(var_assign x v b) = e b)" .
 
 adhoc_overloading
   unrest unrest_vexpr
@@ -557,9 +557,6 @@ lemma vdefined_vmap_update [simp]:
   apply (transfer)
   apply (rule ext)
   apply (auto)
-  apply (meson bind_eq_Some_conv)
-  apply (meson bind_eq_Some_conv)
-  apply (meson bind_eq_Some_conv)
   apply (simp add: vdefined_tpfun vmap_update_def)
 done
 
