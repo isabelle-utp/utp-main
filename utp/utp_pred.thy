@@ -93,7 +93,9 @@ notation inf (infixl "\<squnion>" 70)
 no_notation sup (infixl "\<squnion>" 65)
 notation sup (infixl "\<sqinter>" 65)
 
+no_notation Inf ("\<Sqinter>_" [900] 900)
 notation Inf ("\<Squnion>_" [900] 900)
+no_notation Sup ("\<Squnion>_" [900] 900)
 notation Sup ("\<Sqinter>_" [900] 900)
 
 no_notation bot ("\<bottom>")
@@ -183,17 +185,22 @@ declare USUP_def [upred_defs]
 declare UINF_def [upred_defs]
 
 syntax
-  "_USup"  :: "idt \<Rightarrow> logic \<Rightarrow> logic"   ("\<Sqinter> _ \<bullet> _" [0, 10] 10)
-  "_USUP"  :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Sqinter> _ | _ \<bullet> _" [0, 0, 10] 10)
-  "_UInf"  :: "idt \<Rightarrow> logic \<Rightarrow> logic"   ("\<Squnion> _ \<bullet> _" [0, 10] 10)
-  "_UINF"  :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Squnion> _ | _ \<bullet> _" [0, 10] 10)
+  "_USup"     :: "idt \<Rightarrow> logic \<Rightarrow> logic"            ("\<Sqinter> _ \<bullet> _" [0, 10] 10)
+  "_USup_mem" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Sqinter> _ \<in> _ \<bullet> _" [0, 10] 10)
+  "_USUP"     :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Sqinter> _ | _ \<bullet> _" [0, 0, 10] 10)
+  "_UInf"     :: "idt \<Rightarrow> logic \<Rightarrow> logic"            ("\<Squnion> _ \<bullet> _" [0, 10] 10)
+  "_UInf_mem" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Squnion> _ \<in> _ \<bullet> _" [0, 10] 10)
+  "_UINF"     :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Squnion> _ | _ \<bullet> _" [0, 10] 10)
 
 translations
   "\<Sqinter> x | P \<bullet> F" => "CONST USUP (\<lambda> x. P) (\<lambda> x. F)"
   "\<Sqinter> x \<bullet> F"     == "\<Sqinter> x | true \<bullet> F"
+  "\<Sqinter> x \<bullet> F"     == "\<Sqinter> x | true \<bullet> F"
+  "\<Sqinter> x \<in> A \<bullet> F" => "\<Sqinter> x | \<guillemotleft>x\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> F"
   "\<Sqinter> x | P \<bullet> F" <= "CONST USUP (\<lambda> x. P) (\<lambda> y. F)" 
   "\<Squnion> x | P \<bullet> F" => "CONST UINF (\<lambda> x. P) (\<lambda> x. F)"
   "\<Squnion> x \<bullet> F"     == "\<Squnion> x | true \<bullet> F"
+  "\<Squnion> x \<in> A \<bullet> F" => "\<Squnion> x | \<guillemotleft>x\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> F"
   "\<Squnion> x | P \<bullet> F" <= "CONST UINF (\<lambda> x. P) (\<lambda> y. F)" 
 
 text {* We also define the other predicate operators *}
@@ -364,6 +371,12 @@ lemma subst_disj [usubst]: "\<sigma> \<dagger> (P \<or> Q) = (\<sigma> \<dagger>
 lemma subst_conj [usubst]: "\<sigma> \<dagger> (P \<and> Q) = (\<sigma> \<dagger> P \<and> \<sigma> \<dagger> Q)"
   by (pred_tac)
 
+lemma subst_USUP [usubst]: "\<sigma> \<dagger> (\<Sqinter> i | P(i) \<bullet> Q(i)) = (\<Sqinter> i | (\<sigma> \<dagger> P(i)) \<bullet> (\<sigma> \<dagger> Q(i)))"
+  by (simp add: USUP_def, pred_tac)
+
+lemma subst_UINF [usubst]: "\<sigma> \<dagger> (\<Squnion> i | P(i) \<bullet> Q(i)) = (\<Squnion> i | (\<sigma> \<dagger> P(i)) \<bullet> (\<sigma> \<dagger> Q(i)))"
+  by (simp add: UINF_def, pred_tac)
+
 lemma subst_closure [usubst]: "\<sigma> \<dagger> [P]\<^sub>u = [P]\<^sub>u"
   by (pred_tac)
 
@@ -503,6 +516,22 @@ lemma USUP_cong_eq:
   "\<lbrakk> \<And> x. P\<^sub>1(x) = P\<^sub>2(x); \<And> x. `P\<^sub>1(x) \<Rightarrow> Q\<^sub>1(x) =\<^sub>u Q\<^sub>2(x)` \<rbrakk> \<Longrightarrow>
         (\<Sqinter> x | P\<^sub>1(x) \<bullet> Q\<^sub>1(x)) = (\<Sqinter> x | P\<^sub>2(x) \<bullet> Q\<^sub>2(x))"
   by (simp add: USUP_def, pred_tac, metis)
+
+lemma USUP_as_Sup: "(\<Sqinter> P \<in> \<P> \<bullet> P) = \<Sqinter> \<P>"
+  apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
+  apply (pred_tac)
+  apply (unfold SUP_def)
+  apply (rule cong[of "Sup"])
+  apply (auto)
+done
+
+lemma UInf_as_Inf: "(\<Squnion> P \<in> \<P> \<bullet> P) = \<Squnion> \<P>"
+  apply (simp add: upred_defs bop.rep_eq lit.rep_eq Inf_uexpr_def)
+  apply (pred_tac)
+  apply (unfold INF_def)
+  apply (rule cong[of "Inf"])
+  apply (auto)
+done
 
 lemma true_iff [simp]: "(P \<Leftrightarrow> true) = P"
   by pred_tac

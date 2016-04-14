@@ -3,7 +3,6 @@ section {* Alphabet manipulation *}
 theory utp_alphabet
   imports 
     utp_pred
-    utp_unrest
 begin
 
 named_theorems alpha
