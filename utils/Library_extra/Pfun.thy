@@ -98,6 +98,10 @@ where "pfun_subset_eq \<equiv> less_eq"
 instance pfun :: (type, type) semilattice_inf
   by (intro_classes, (transfer, auto simp add: map_le_def dom_def)+)
 
+lemma pfun_subset_eq_least [simp]: 
+  "{}\<^sub>p \<subseteq>\<^sub>p f"
+  by (transfer, auto)
+
 syntax   
   "_PfunUpd"  :: "[('a, 'b) pfun, maplets] => ('a, 'b) pfun" ("_'(_')\<^sub>p" [900,0]900)
   "_Pfun"     :: "maplets => ('a, 'b) pfun"            ("(1{_}\<^sub>p)")
@@ -147,6 +151,10 @@ lemma pfun_minus_plus_commute:
   "pdom(g) \<inter> pdom(h) = {} \<Longrightarrow> (f - g) + h = (f + h) - g"
   by (transfer, simp add: map_minus_plus_commute)
 
+lemma pfun_plus_minus:
+  "f \<subseteq>\<^sub>p g \<Longrightarrow> (g - f) + f = g"
+  by (transfer, rule ext, auto simp add: map_le_def map_minus_def map_add_def option.case_eq_if)
+  
 lemma pfun_minus_common_subset:
   "\<lbrakk> h \<subseteq>\<^sub>p f; h \<subseteq>\<^sub>p g \<rbrakk> \<Longrightarrow> (f - h = g - h) = (f = g)"
   by (transfer, simp add: map_minus_common_subset)
@@ -214,6 +222,14 @@ lemma psubseteq_pfun_upd3 [intro]:
   "\<lbrakk> f \<subseteq>\<^sub>p g; g(x)\<^sub>p = v \<rbrakk> \<Longrightarrow> f \<subseteq>\<^sub>p g(x \<mapsto> v)\<^sub>p"
   by (transfer, auto simp add: map_le_def dom_def)
 
+lemma psubseteq_dom_subset:
+  "f \<subseteq>\<^sub>p g \<Longrightarrow> pdom(f) \<subseteq> pdom(g)"
+  by (transfer, auto simp add: map_le_def dom_def)
+
+lemma psubseteq_ran_subset:
+  "f \<subseteq>\<^sub>p g \<Longrightarrow> pran(f) \<subseteq> pran(g)"
+  by (transfer, auto simp add: map_le_def dom_def ran_def, fastforce)
+
 subsection {* Domain laws *}
 
 lemma pdom_zero [simp]: "pdom 0 = {}"
@@ -240,6 +256,14 @@ lemma pdom_pdom_res [simp]: "pdom (A \<lhd>\<^sub>p f) = A \<inter> pdom(f)"
 lemma pdom_graph_pfun [simp]: "pdom (graph_pfun R) = Domain R"
   by (transfer, simp add: Domain_fst graph_map_dom)
 
+lemma pdom_pran_res_finite [simp]:
+  "finite (pdom f) \<Longrightarrow> finite (pdom (f \<rhd>\<^sub>p A))"
+  by (transfer, auto)
+
+lemma pdom_pfun_graph_finite [simp]: 
+  "finite (pdom f) \<Longrightarrow> finite (pfun_graph f)"
+  by (transfer, simp add: finite_dom_graph)
+
 subsection {* Range laws *}
 
 lemma pran_zero [simp]: "pran 0 = {}"
@@ -257,6 +281,9 @@ lemma pran_pran_res [simp]: "pran (f \<rhd>\<^sub>p A) = pran(f) \<inter> A"
 lemma pran_comp [simp]: "pran (g \<circ>\<^sub>p f) = pran (pran f \<lhd>\<^sub>p g)"
   by (transfer, auto simp add: ran_def restrict_map_def)
 
+lemma pran_finite [simp]: "finite (pdom f) \<Longrightarrow> finite (pran f)"
+  by (transfer, auto)
+
 subsection {* Domain restriction laws *}
 
 lemma pdom_res_zero [simp]: "A \<lhd>\<^sub>p {}\<^sub>p = {}\<^sub>p"
@@ -264,6 +291,14 @@ lemma pdom_res_zero [simp]: "A \<lhd>\<^sub>p {}\<^sub>p = {}\<^sub>p"
 
 lemma pdom_res_alt_def: "A \<lhd>\<^sub>p f =  f \<circ>\<^sub>p pId_on A"
   by (transfer, rule ext, auto simp add: restrict_map_def)
+
+lemma pdom_res_upd_in [simp]: 
+  "k \<in> A \<Longrightarrow> A \<lhd>\<^sub>p f(k \<mapsto> v)\<^sub>p = (A \<lhd>\<^sub>p f)(k \<mapsto> v)\<^sub>p"
+  by (transfer, auto)
+
+lemma pdom_res_upd_out [simp]: 
+  "k \<notin> A \<Longrightarrow> A \<lhd>\<^sub>p f(k \<mapsto> v)\<^sub>p = A \<lhd>\<^sub>p f"
+  by (transfer, auto)
 
 lemma pdom_res_override [simp]: "A \<lhd>\<^sub>p (f + g) = (A \<lhd>\<^sub>p f) + (A \<lhd>\<^sub>p g)"
   by (simp add: pdom_res_alt_def pfun_override_dist_comp)

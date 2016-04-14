@@ -33,11 +33,11 @@ proof -
   also have "... = (\<exists> $x \<bullet> $x =\<^sub>u $x\<acute> \<and> II\<restriction>\<^sub>\<alpha>x)"
     by (metis assms eq_upred_sym skip_r_unfold)
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>$x\<acute>/$x\<rbrakk>"
-    by (metis conj_comm in_var_uvar one_point unrest_iuvar_ouvar var_in_var)
+    by (simp add: conj_comm one_point unrest_iuvar_ouvar)
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>$x/$x\<acute>\<rbrakk>"
     by subst_tac
   also have "... = (\<exists> $x\<acute> \<bullet> $x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x)"
-    by (metis assms conj_comm one_point out_var_uvar unrest_out\<alpha>_var utp_rel.unrest_iuvar var_out_var)
+    by (simp add: assms conj_comm one_point unrest_ouvar_iuvar)
   also have "... = (\<exists> $x\<acute> \<bullet> II)"
     using assms skip_r_unfold by fastforce
   also have "... = end\<^sub>u x"
@@ -48,7 +48,7 @@ qed
 lemma var_block_expand:
   assumes "uvar x"
   shows "(var\<^sub>u x ;; P ;; end\<^sub>u x) = (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P)"
-  by (metis assms seqr_exists_left seqr_exists_right upred_quantale.mult.left_neutral upred_quantale.mult.right_neutral var_close_def var_open_def)
+  by (metis assms disj_upred_def seqr_exists_left seqr_exists_right seqr_left_zero seqr_right_zero upred_quantale.mult.right_neutral upred_quantale.star_prod_unfold upred_quantale.star_slide utp_pred.sup_bot.right_neutral var_close_def var_open_def vwb_lens_mwb)
 
 lemma var_open_twice:
   assumes "uvar x"
@@ -57,7 +57,7 @@ proof -
   have "(var\<^sub>u x ;; var\<^sub>u x) = ((\<exists> $x \<bullet> II) ;; (\<exists> $x \<bullet> II))"
     by (rel_tac)
   also from assms have "... =  (\<exists> $x \<bullet> (II ;; (\<exists> $x \<bullet> II)))"
-    using seqr_exists_left by blast
+    by (simp add: seqr_exists_left)
   also have "... = (\<exists> $x \<bullet> (\<exists> $x \<bullet> II))"
     by simp
   also from assms have "... = (\<exists> $x \<bullet> II)"
@@ -93,7 +93,7 @@ proof -
   also have "... = (\<exists> $x \<bullet> x := v)"
     by simp
   also have "... = (x := v)"
-    by (metis assms(1) assms(2) exists_twice in_var_uvar one_point subst_skip_r unrest_pre_in_var)
+    by (metis assms(1) assms(2) exists_twice in_var_semi_uvar one_point subst_skip_r unrest_pre_in_var vwb_lens_mwb)
   finally show ?thesis .
 qed
 
@@ -102,17 +102,17 @@ lemma assign_var_close:
   shows "(x := v ;; end\<^sub>u x) = end\<^sub>u x"
 proof -
   from assms have "(x := v ;; end\<^sub>u x) = (\<exists> $x\<acute> \<bullet> x := v)"
-    by (simp add: assigns_r_comp var_close_def usubst unrest)
+    by (simp add: seqr_exists_right var_close_def)
   also have "... = (\<exists> $x\<acute> \<bullet> ($x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub>< \<and> II\<restriction>\<^sub>\<alpha>x))"
-    by (simp add: assign_unfold assms)
+    using assign_unfold assms by fastforce
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>\<lceil>v\<rceil>\<^sub></$x\<acute>\<rbrakk>"
-    by (metis conj_comm one_point out_var_uvar unrest_out\<alpha>_var unrest_pre_out\<alpha> var_out_var)
+    by (metis assigns_r_comp calculation pr_var_def subst_lift_id subst_lift_upd subst_unrest unrest_in_rel_var_res unrest_out_rel_var_res var_block_vacuous var_open_eq_var_close var_open_twice)
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x)"
     by subst_tac
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>$x/$x\<acute>\<rbrakk>"
     by subst_tac
   also have "... = (\<exists> $x\<acute> \<bullet> ($x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x))"
-    by (simp add: assms conj_comm one_point ouvar_def unrest_out\<alpha>_var utp_rel.unrest_iuvar)
+    by (simp add: assms conj_comm one_point unrest_ouvar_iuvar)
   also from assms have "... = (\<exists> $x\<acute> \<bullet> II)"
     using skip_r_unfold by force
   also have "... = end\<^sub>u x"
@@ -241,11 +241,11 @@ translations
 
 lemma val_parm_apply [simp]: 
   "val_parm x P v = var_block x (\<lambda> x. (P x)\<lbrakk>\<lceil>v\<rceil>\<^sub></$x\<rbrakk>)"
-  by (simp add: val_parm_def var_block_def Let_def assign_r_comp uvar_dvar subst_upd_dvar_def)
+  by (simp add: assigns_r_comp subst_lift_id subst_lift_upd val_parm_def)
 
 lemma val_parm_comp_apply:
   "(val_parm_comp x P) (u, v) = var_block x (\<lambda> x. (P x v)\<lbrakk>\<lceil>u\<rceil>\<^sub></$x\<rbrakk>)"
-  by (simp add: val_parm_comp_def var_block_def Let_def assign_r_comp uvar_dvar subst_upd_dvar_def)
+  by (simp add: assigns_r_comp subst_lift_id subst_lift_upd val_parm_comp_def)
 
 lemma val_parm_apply_2 [simp]:
   fixes x y :: "'a::continuum dvar" and u :: "('a, '\<alpha>::vst) uexpr"
@@ -253,7 +253,8 @@ lemma val_parm_apply_2 [simp]:
   shows "val_parm_comp x (\<lambda> x. val_parm y (P x)) (u, v) = 
          var_block x (\<lambda> x. var_block y (\<lambda> y. (P x y)\<lbrakk>\<lceil>u\<rceil>\<^sub><,\<lceil>v\<rceil>\<^sub></$x,$y\<rbrakk>))"
   using assms
-  by (simp add: val_parm_comp_apply var_block_def var_block_expand uvar_dvar usubst unrest lens_indep_sym)
+  apply (simp add: val_parm_comp_apply var_block_def var_block_expand uvar_dvar usubst unrest lens_indep_sym )
+oops
 
 lemma res_parm_apply [simp]: 
   "res_parm x P v = var_block x (\<lambda> x. P x ;; v := &x)"

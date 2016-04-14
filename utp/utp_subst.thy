@@ -3,7 +3,6 @@ section {* Substitution *}
 theory utp_subst
 imports 
   utp_expr
-  utp_lift
   utp_unrest
 begin
 
@@ -52,12 +51,18 @@ definition usubst_rel_lift :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<times
 "\<lceil>\<sigma>\<rceil>\<^sub>s = (\<lambda> (A, A'). (\<sigma> A, A'))"
 
 definition usubst_rel_drop :: "('\<alpha> \<times> '\<alpha>) usubst \<Rightarrow> '\<alpha> usubst" ("\<lfloor>_\<rfloor>\<^sub>s") where
-"\<lfloor>\<sigma>\<rfloor>\<^sub>s = (\<lambda> A. fst (\<sigma> (A, A)))"
+"\<lfloor>\<sigma>\<rfloor>\<^sub>s = (\<lambda> A. fst (\<sigma> (A, undefined)))"
+
+definition unrest_usubst :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> usubst \<Rightarrow> bool"
+where "unrest_usubst x \<sigma> = (\<forall> \<rho> v. \<sigma> (put\<^bsub>x\<^esub> \<rho> v) = put\<^bsub>x\<^esub> (\<sigma> \<rho>) v)"
+
+adhoc_overloading
+  unrest unrest_usubst
 
 nonterminal smaplet and smaplets
 
 syntax
-  "_smaplet"  :: "[svar, 'a] => smaplet"             ("_ /\<mapsto>\<^sub>s/ _")
+  "_smaplet"  :: "[salpha, 'a] => smaplet"             ("_ /\<mapsto>\<^sub>s/ _")
   ""          :: "smaplet => smaplets"            ("_")
   "_SMaplets" :: "[smaplet, smaplets] => smaplets" ("_,/ _")
   "_SubstUpd" :: "['m usubst, smaplets] => 'm usubst" ("_/'(_')" [900,0] 900)
@@ -102,13 +107,30 @@ lemma usubst_upd_comm2:
   using assms
   by (rule_tac ext, auto simp add: subst_upd_uvar_def assms comp_def lens_indep_comm)
 
+lemma swap_usubst_inj:
+  fixes x y :: "('a, '\<alpha>) uvar"
+  assumes "uvar x" "uvar y" "x \<bowtie> y"
+  shows "inj [x \<mapsto>\<^sub>s &y, y \<mapsto>\<^sub>s &x]"
+  using assms
+  apply (auto simp add: inj_on_def subst_upd_uvar_def)
+  apply (smt lens_indep_get lens_indep_sym var.rep_eq vwb_lens.put_eq vwb_lens_wb wb_lens_weak weak_lens.put_get)
+done
+
+lemma usubst_upd_var_id [usubst]: 
+  "uvar x \<Longrightarrow> [x \<mapsto>\<^sub>s var x] = id"
+  apply (simp add: subst_upd_uvar_def)
+  apply (transfer)
+  apply (rule ext)
+  apply (auto)
+done
+
 lemma usubst_upd_comm_dash [usubst]: 
   fixes x :: "('a, '\<alpha>) uvar"
   shows "\<sigma>($x\<acute> \<mapsto>\<^sub>s v, $x \<mapsto>\<^sub>s u) = \<sigma>($x \<mapsto>\<^sub>s u, $x\<acute> \<mapsto>\<^sub>s v)"
   using in_out_indep usubst_upd_comm by force
 
 lemma usubst_lookup_upd_indep [usubst]:
-  assumes "uvar x" "x \<bowtie> y"
+  assumes "semi_uvar x" "x \<bowtie> y"
   shows "\<langle>\<sigma>(y \<mapsto>\<^sub>s v)\<rangle>\<^sub>s x = \<langle>\<sigma>\<rangle>\<^sub>s x"
   using assms
   by (simp add: subst_upd_uvar_def, transfer, simp)
@@ -125,17 +147,8 @@ lemma subst_lit [usubst]: "\<sigma> \<dagger> \<guillemotleft>v\<guillemotright>
 lemma subst_var [usubst]: "\<sigma> \<dagger> var x = \<langle>\<sigma>\<rangle>\<^sub>s x"
   by (transfer, simp)
 
-lemma subst_ivar [usubst]: "\<sigma> \<dagger> $x = \<langle>\<sigma>\<rangle>\<^sub>s (in_var x)"
-  by (simp add: iuvar_def, transfer, simp)
-
-lemma subst_ovar [usubst]: "\<sigma> \<dagger> $x\<acute> = \<langle>\<sigma>\<rangle>\<^sub>s (out_var x)"
-  by (simp add: ouvar_def, transfer, simp)
-
 text {* We add the symmetric definition of input and output variables to substitution laws
         so that the variables are correctly normalised after substitution. *}
-
-declare iuvar_def[THEN sym, usubst]
-declare ouvar_def[THEN sym, usubst]
 
 lemma subst_uop [usubst]: "\<sigma> \<dagger> uop f v = uop f (\<sigma> \<dagger> v)"
   by (transfer, simp)
@@ -154,6 +167,9 @@ lemma subst_times [usubst]: "\<sigma> \<dagger> (x * y) = \<sigma> \<dagger> x *
 
 lemma subst_minus [usubst]: "\<sigma> \<dagger> (x - y) = \<sigma> \<dagger> x - \<sigma> \<dagger> y"
   by (simp add: minus_uexpr_def subst_bop)
+
+lemma subst_uminus [usubst]: "\<sigma> \<dagger> (- x) = - (\<sigma> \<dagger> x)"
+  by (simp add: uminus_uexpr_def subst_uop)
 
 lemma subst_zero [usubst]: "\<sigma> \<dagger> 0 = 0"
   by (simp add: zero_uexpr_def subst_lit)
@@ -181,35 +197,38 @@ lemma subst_drop_id [usubst]: "\<lfloor>id\<rfloor>\<^sub>s = id"
 lemma subst_lift_drop [usubst]: "\<lfloor>\<lceil>\<sigma>\<rceil>\<^sub>s\<rfloor>\<^sub>s = \<sigma>"
   by (simp add: usubst_rel_lift_def usubst_rel_drop_def)
 
-lemma subst_lift_upd [usubst]: 
-  fixes x :: "('a, '\<alpha>) uvar"
-  shows "\<lceil>\<sigma>(x \<mapsto>\<^sub>s v)\<rceil>\<^sub>s = \<lceil>\<sigma>\<rceil>\<^sub>s($x \<mapsto>\<^sub>s \<lceil>v\<rceil>\<^sub><)"
-  by (simp add: usubst_rel_lift_def subst_upd_uvar_def, transfer, auto)
-
-lemma subst_drop_upd [usubst]: 
-  fixes x :: "('a, '\<alpha>) uvar"
-  shows "\<lfloor>\<sigma>($x \<mapsto>\<^sub>s v)\<rfloor>\<^sub>s = \<lfloor>\<sigma>\<rfloor>\<^sub>s(x \<mapsto>\<^sub>s \<lfloor>v\<rfloor>\<^sub><)"
-  apply (simp add: usubst_rel_drop_def subst_upd_uvar_def, transfer, rule ext, auto simp add:in_var_def)
-  apply (metis fst_conv in_var_def prod.collapse var_update_in)
-done
-
-nonterminal uexprs and svars
+nonterminal uexprs and svars and salphas
 
 syntax
-  "_psubst"  :: "['\<alpha> usubst, svars, uexprs] \<Rightarrow> logic"
-  "_subst"   :: "('a, '\<alpha>) uexpr \<Rightarrow> uexprs \<Rightarrow> svars \<Rightarrow> ('a, '\<alpha>) uexpr" ("(_\<lbrakk>_'/_\<rbrakk>)" [999,999] 1000)
-  "_uexprs"  :: "[('a, '\<alpha>) uexpr, uexprs] => uexprs" ("_,/ _")
-  ""         :: "('a, '\<alpha>) uexpr => uexprs" ("_")
+  "_psubst"  :: "[logic, svars, uexprs] \<Rightarrow> logic"
+  "_subst"   :: "logic \<Rightarrow> uexprs \<Rightarrow> salphas \<Rightarrow> logic" ("(_\<lbrakk>_'/_\<rbrakk>)" [999,999] 1000)
+  "_uexprs"  :: "[logic, uexprs] => uexprs" ("_,/ _")
+  ""         :: "logic => uexprs" ("_")
   "_svars"   :: "[svar, svars] => svars" ("_,/ _")
   ""         :: "svar => svars" ("_")
+  "_salphas" :: "[salpha, salpha] => salphas" ("_,/ _")
+  ""         :: "salpha => salphas" ("_")
 
 translations
-  "_subst P es vs"            => "CONST subst (_psubst (CONST id) vs es) P"
-  "_psubst m (_svar x) v"     => "CONST subst_upd m x v"
-  "_psubst m (_spvar x) v"    => "CONST subst_upd m x v"
-  "_psubst m (_sinvar x) v"   => "CONST subst_upd m (CONST ivar x) v"
-  "_psubst m (_soutvar x) v"  => "CONST subst_upd m (CONST ovar x) v"
-  "_psubst m (_svars x xs) (_uexprs v vs)" => "_psubst (_psubst m x v) xs vs"
-  "_subst P e x"              <= "CONST subst (CONST subst_upd (CONST id) x e) P"
+  "_subst P es vs" => "CONST subst (_psubst (CONST id) vs es) P"
+  "_psubst m (_salphas x xs) (_uexprs v vs)" => "_psubst (_psubst m x v) xs vs"
+  "_psubst m x v"  => "CONST subst_upd m x v"
+  "P\<lbrakk>v/$x\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) (CONST ivar x) v) P"
+  "P\<lbrakk>v/$x\<acute>\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) (CONST ovar x) v) P"
+
+subsection {* Unrestriction laws *}
+
+lemma unrest_usubst_single [unrest]:
+  "\<lbrakk> semi_uvar x; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> P\<lbrakk>v/x\<rbrakk>"
+  by (transfer, auto simp add: subst_upd_uvar_def unrest_upred_def)
+
+lemma unrest_usubst_id [unrest]:
+  "semi_uvar x \<Longrightarrow> x \<sharp> id"
+  by (simp add: unrest_usubst_def)
+
+lemma unrest_usubst_upd [unrest]:
+  "\<lbrakk> x \<bowtie> y; x \<sharp> \<sigma>; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> \<sigma>(y \<mapsto>\<^sub>s v)"
+  by (simp add: subst_upd_uvar_def unrest_usubst_def unrest_upred.rep_eq lens_indep_comm)
+
 
 end

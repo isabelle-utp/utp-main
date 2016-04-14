@@ -73,7 +73,7 @@ lift_definition vsubst_lookup :: "'\<alpha> usubst \<Rightarrow> ('a, '\<alpha>)
 is "\<lambda> \<sigma> x b. Some (var_lookup x (\<sigma> b))" .
 
 lift_definition unrest_vexpr :: "('a, '\<alpha>) uvar \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> bool"
-is "\<lambda> x e. (\<forall>b v. e(var_update x v b) = e b)" .
+is "\<lambda> x e. (\<forall>b v. e(var_assign x v b) = e b)" .
 
 adhoc_overloading
   unrest unrest_vexpr
@@ -309,6 +309,7 @@ translations
   "_vmap_enum (_vmaplets_unit (_vmaplet k v))" == "CONST vbop (CONST bpfun' (CONST map_upd Map.empty)) k v"
   "_vmap_enum (_vmaplets (_vmaplet k v) m)" == "CONST vtop (CONST tpfun' CONST map_upd) (_vmap_enum m) k v"
   "_vdot e k" => "CONST vuop (CONST upfun' k) e"
+  "\<lbrace>\<mapsto>\<rbrace>\<^sub>v"     <=   "CONST vlit CONST Map.empty"
 
 abbreviation "vforallSet A P \<equiv> vforall UNIV (\<lambda> x. \<guillemotleft>x\<guillemotright>\<^sub>v \<in>\<^sub>v A \<Rightarrow>\<^sub>v P x)"
 abbreviation "vexistsSet A P \<equiv> vexists UNIV (\<lambda> x. \<guillemotleft>x\<guillemotright>\<^sub>v \<in>\<^sub>v A \<Rightarrow>\<^sub>v P x)"
@@ -557,9 +558,6 @@ lemma vdefined_vmap_update [simp]:
   apply (transfer)
   apply (rule ext)
   apply (auto)
-  apply (meson bind_eq_Some_conv)
-  apply (meson bind_eq_Some_conv)
-  apply (meson bind_eq_Some_conv)
   apply (simp add: vdefined_tpfun vmap_update_def)
 done
 

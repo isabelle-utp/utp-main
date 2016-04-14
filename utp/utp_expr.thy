@@ -28,6 +28,11 @@ named_theorems ueval
 
 setup_lifting type_definition_uexpr
 
+text {* Get the alphabet of an expression *}
+
+definition alpha_of :: "('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>, '\<alpha>) lens" ("\<alpha>'(_')") where
+"alpha_of e = 1\<^sub>L"
+
 text {* A variable expression corresponds to the lookup function of the variable. *}
 
 lift_definition var :: "('t, '\<alpha>) uvar \<Rightarrow> ('t, '\<alpha>) uexpr" is var_lookup .
@@ -37,21 +42,6 @@ declare [[coercion var]]
 
 definition dvar_exp :: "'t::continuum dvar \<Rightarrow> ('t, '\<alpha>::vst) uexpr"
 where "dvar_exp x = var (dvar_lift x)"
-
-text {* We can then define specific cases for input and output variables, that simply perform
-        tuple lifting. We also have variants for deep variables. *}
-
-definition iuvar :: "('t, '\<alpha>) uvar \<Rightarrow> ('t, '\<alpha> \<times> '\<beta>) uexpr" 
-where "iuvar x = var (in_var x)"
-
-definition ouvar :: "('t, '\<beta>) uvar \<Rightarrow> ('t, '\<alpha> \<times> '\<beta>) uexpr" 
-where "ouvar x = var (out_var x)"
-
-definition idvar :: "'t::continuum dvar \<Rightarrow> ('t, '\<alpha>::vst \<times> '\<beta>) uexpr"
-where "idvar x = var (in_var (dvar_lift x))"
-
-definition odvar :: "'t::continuum dvar \<Rightarrow> ('t, '\<alpha> \<times> '\<beta>::vst) uexpr"
-where "odvar x = var (out_var (dvar_lift x))"
 
 text {* A literal is simply a constant function expression, always returning the same value. *}
 
@@ -81,28 +71,18 @@ text {* We define syntax for expressions using adhoc overloading -- this allows 
 consts
   ulit   :: "'t \<Rightarrow> 'e" ("\<guillemotleft>_\<guillemotright>")
   ueq    :: "'a \<Rightarrow> 'a \<Rightarrow> 'b" (infixl "=\<^sub>u" 50)
-  ueuvar :: "'v \<Rightarrow> 'p" 
-  uiuvar :: "'v \<Rightarrow> 'p"
-  uouvar :: "'v \<Rightarrow> 'p"
 
 adhoc_overloading
-  ulit lit and
-  ueuvar var and
-  ueuvar dvar_exp and
-  uiuvar iuvar and
-  uiuvar idvar and
-  uouvar ouvar and
-  uouvar odvar
+  ulit lit
 
-syntax 
-  "_uuvar"  :: "('t, '\<alpha>) uvar \<Rightarrow> logic" ("&_" [999] 999)
-  "_uiuvar" :: "('t, '\<alpha>) uvar \<Rightarrow> logic" ("$_" [999] 999)
-  "_uouvar" :: "('t, '\<alpha>) uvar \<Rightarrow> logic" ("$_\<acute>" [999] 999)
+syntax
+  "_uuvar" :: "svar \<Rightarrow> logic"
 
 translations
-  "&x"  == "CONST ueuvar x"
-  "$x"  == "CONST uiuvar x"
-  "$x\<acute>" == "CONST uouvar x"
+  "_uuvar x" == "CONST var x"
+
+syntax
+  "_uuvar" :: "svar \<Rightarrow> logic" ("_")
 
 text {* We also set up some useful standard arithmetic operators for Isabelle by lifting
         the functions to binary operators. *}
@@ -206,16 +186,24 @@ adhoc_overloading
 definition "fun_apply f x = f x"
 declare fun_apply_def [simp]
 
-consts 
-  uapply :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
-  udom   :: "'f \<Rightarrow> 'a set"
-  uran   :: "'f \<Rightarrow> 'b set"
-  ucard  :: "'f \<Rightarrow> nat"
+consts
+  uempty  :: "'f"
+  uapply  :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
+  uupd    :: "'f \<Rightarrow> 'k \<Rightarrow> 'v \<Rightarrow> 'f"
+  udom    :: "'f \<Rightarrow> 'a set"
+  uran    :: "'f \<Rightarrow> 'b set"
+  udomres :: "'a set \<Rightarrow> 'f \<Rightarrow> 'f"
+  uranres :: "'f \<Rightarrow> 'b set \<Rightarrow> 'f"
+  ucard   :: "'f \<Rightarrow> nat"
 
 adhoc_overloading
-  uapply fun_apply and uapply nth and uapply pfun_app and
-  udom Domain and udom pdom and udom seq_dom and
-  udom Range and uran pran and uran set and
+  uempty 0 and uempty Nil and
+  uapply fun_apply and uapply nth and uapply pfun_app and uapply ffun_app and
+  uupd pfun_upd and uupd ffun_upd and uupd list_update and
+  udom Domain and udom pdom and udom fdom and udom seq_dom and
+  udom Range and uran pran and uran fran and uran set and
+  udomres pdom_res and udomres fdom_res and
+  uranres pran_res and udomres fran_res and
   ucard card and ucard pcard and ucard length
 
 nonterminal utuple_args and umaplet and umaplets
@@ -244,7 +232,6 @@ syntax
   "_uunion"     :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" (infixl "\<union>\<^sub>u" 65)
   "_uinter"     :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" (infixl "\<inter>\<^sub>u" 70)
   "_umem"       :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<in>\<^sub>u" 50)
-  "_unmem"      :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<notin>\<^sub>u" 50)
   "_usubset"    :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<subset>\<^sub>u" 50)
   "_usubseteq"  :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<subseteq>\<^sub>u" 50)
   "_utuple"     :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('a * 'b, '\<alpha>) uexpr" ("(1'(_,/ _')\<^sub>u)")
@@ -267,15 +254,17 @@ syntax
   "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>/ _")
   ""            :: "umaplet => umaplets"             ("_")
   "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
-  "_UMapUpd"    :: "[logic, umaplets] => logic" ("_/'(_')" [900,0] 900)
+  "_UMapUpd"    :: "[logic, umaplets] => logic" ("_/'(_')\<^sub>u" [900,0] 900)
   "_UMap"       :: "umaplets => logic" ("(1[_]\<^sub>u)")
 
 translations
   "f\<lparr>v\<rparr>\<^sub>u" <= "CONST uapply f v"
   "dom\<^sub>u(f)" <= "CONST udom f"
   "ran\<^sub>u(f)" <= "CONST uran f"
+  "A \<lhd>\<^sub>u f" <= "CONST udomres A f"
+  "f \<rhd>\<^sub>u A" <= "CONST uranres f A"
   "#\<^sub>u(f)" <= "CONST ucard f"
-
+  "f(k \<mapsto> v)\<^sub>u" <= "CONST uupd f k v"
 
 translations
   "x :\<^sub>u 'a" == "x :: ('a, _) uexpr"
@@ -305,13 +294,14 @@ translations
   "f \<oplus>\<^sub>u g"   => "(f :: ((_, _) pfun, _) uexpr) + g"
   "f \<ominus>\<^sub>u g"   => "(f :: ((_, _) pfun, _) uexpr) - g"
   "x \<in>\<^sub>u A"   == "CONST bop (op \<in>) x A"
-  "x \<notin>\<^sub>u A"   == "CONST bop (op \<notin>) x A"
   "A \<subset>\<^sub>u B"   == "CONST bop (op <) A B"
   "A \<subset>\<^sub>u B"   <= "CONST bop (op \<subset>) A B"
   "f \<subset>\<^sub>u g"   <= "CONST bop (op \<subset>\<^sub>p) f g"
+  "f \<subset>\<^sub>u g"   <= "CONST bop (op \<subset>\<^sub>f) f g"
   "A \<subseteq>\<^sub>u B"   == "CONST bop (op \<le>) A B"
   "A \<subseteq>\<^sub>u B"   <= "CONST bop (op \<subseteq>) A B"
   "f \<subseteq>\<^sub>u g"   <= "CONST bop (op \<subseteq>\<^sub>p) f g"
+  "f \<subseteq>\<^sub>u g"   <= "CONST bop (op \<subseteq>\<^sub>f) f g"
   "()\<^sub>u"      == "\<guillemotleft>()\<guillemotright>"
   "(x, y)\<^sub>u"  == "CONST bop (CONST Pair) x y"
   "_utuple x (_utuple_args y z)" == "_utuple x (_utuple_arg (_utuple y z))"
@@ -323,11 +313,11 @@ translations
   "ran\<^sub>u(f)" == "CONST uop CONST uran f"
   "inl\<^sub>u(x)" == "CONST uop CONST Inl x"
   "inr\<^sub>u(x)" == "CONST uop CONST Inr x"
-  "[]\<^sub>u"     == "\<guillemotleft>CONST pempty\<guillemotright>"
-  "A \<lhd>\<^sub>u f" == "CONST bop (op \<lhd>\<^sub>p) A f"
-  "f \<rhd>\<^sub>u A" == "CONST bop (op \<rhd>\<^sub>p) A f"
+  "[]\<^sub>u"     == "\<guillemotleft>CONST uempty\<guillemotright>"
+  "A \<lhd>\<^sub>u f" == "CONST bop (CONST udomres) A f"
+  "f \<rhd>\<^sub>u A" == "CONST bop (CONST uranres) f A"
   "_UMapUpd m (_UMaplets xy ms)" == "_UMapUpd (_UMapUpd m xy) ms"
-  "_UMapUpd m (_umaplet  x y)"   == "CONST trop CONST pfun_upd m x y"
+  "_UMapUpd m (_umaplet  x y)"   == "CONST trop CONST uupd m x y"
   "_UMap ms"                      == "_UMapUpd []\<^sub>u ms"
   "_UMap (_UMaplets ms1 ms2)"     <= "_UMapUpd (_UMap ms1) ms2"
   "_UMaplets ms1 (_UMaplets ms2 ms3)" <= "_UMaplets (_UMaplets ms1 ms2) ms3"
@@ -366,8 +356,7 @@ translations
   "f cont-on\<^sub>u A"     == "CONST bop CONST continuous_on A f"
 
 lemmas uexpr_defs =
-  iuvar_def
-  ouvar_def
+  alpha_of_def
   zero_uexpr_def
   one_uexpr_def
   plus_uexpr_def
@@ -382,12 +371,6 @@ lemmas uexpr_defs =
   ulim_left_def
   ulim_right_def
   ucont_on_def
-
-lemma var_in_var: "var (in_var x) = $x"
-  by (simp add: iuvar_def)
-
-lemma var_out_var: "var (out_var x) = $x\<acute>"
-  by (simp add: ouvar_def)
 
 subsection {* Evaluation laws for expressions *}
 

@@ -35,39 +35,40 @@ record '\<theta> alpha_rp  = alpha_d +
                          rp_tr   :: "'\<theta> trace"
                          rp_ref  :: "'\<theta> refusal"
 
+type_synonym ('\<theta>,'\<alpha>) alphabet_rp  = "('\<theta>,'\<alpha>) alpha_rp_scheme alphabet"
+type_synonym ('\<theta>,'\<alpha>,'\<beta>) relation_rp  = "(('\<theta>,'\<alpha>) alphabet_rp, ('\<theta>,'\<beta>) alphabet_rp) relation"
+type_synonym ('\<theta>,'\<alpha>) hrelation_rp  = "(('\<theta>,'\<alpha>) alphabet_rp, ('\<theta>,'\<alpha>) alphabet_rp) relation"
+type_synonym ('\<theta>,'\<sigma>) predicate_rp  = "('\<theta>,'\<sigma>) alphabet_rp upred"
+
 definition "wait = VAR rp_wait"
 definition "tr   = VAR rp_tr"
 definition "ref  = VAR rp_ref"
+
+definition "wait\<^sub>R = (wait /\<^sub>L \<Sigma>\<^sub>D)"
+definition "tr\<^sub>R   = (tr /\<^sub>L \<Sigma>\<^sub>D)"
+definition "ref\<^sub>R  = (ref /\<^sub>L \<Sigma>\<^sub>D)"
 
 declare wait_def [upred_defs]
 declare tr_def [upred_defs]
 declare ref_def [upred_defs]
 
 lemma tr_ok_indep [simp]: "tr \<bowtie> ok" "ok \<bowtie> tr"
-  by (simp add: lens_indep_def, pred_tac)+
+  by (auto intro!: lens_indepI, pred_tac+)
 
 lemma wait_ok_indep [simp]: "wait \<bowtie> ok" "ok \<bowtie> wait"
-  by (simp add: lens_indep_def, pred_tac)+
+  by (auto intro!: lens_indepI, pred_tac+)
 
 lemma ref_ok_indep [simp]: "ref \<bowtie> ok" "ok \<bowtie> ref"
-  by (simp add: lens_indep_def, pred_tac)+
+  by (auto intro!: lens_indepI, pred_tac+)
 
 lemma tr_wait_indep [simp]: "tr \<bowtie> wait" "wait \<bowtie> tr"
-  by (simp add: lens_indep_def, pred_tac)+
+  by (auto intro!: lens_indepI, pred_tac+)
 
 lemma ref_wait_indep [simp]: "ref \<bowtie> wait" "wait \<bowtie> ref"
-  by (simp add: lens_indep_def, pred_tac)+
+  by (auto intro!: lens_indepI, pred_tac+)
 
 lemma tr_ref_indep [simp]: "ref \<bowtie> tr" "tr \<bowtie> ref"
-  by (simp add: lens_indep_def, pred_tac)+
-
-term put_vstore
-
-term "alpha_rp.more_update (\<lambda>_. put_vstore x s) "
-
-term alpha_d.more
-term alpha_rp.more_update
-term alpha_d.extend
+  by (auto intro!: lens_indepI, pred_tac+)
 
 instantiation alpha_rp_ext :: (type, vst) vst
 begin
@@ -91,15 +92,6 @@ lemma uvar_tr [simp]: "uvar tr"
 
 lemma uvar_ref [simp]: "uvar ref"
   by (unfold_locales, simp_all add: ref_def)
-
-text{* Note that we define here the class of UTP alphabets that contain
-$wait$, $tr$ and $ref$, or, in other words, we define here the class of reactive process
-alphabets. *}
-
-type_synonym ('\<theta>,'\<alpha>) alphabet_rp  = "('\<theta>,'\<alpha>) alpha_rp_scheme alphabet"
-type_synonym ('\<theta>,'\<alpha>,'\<beta>) relation_rp  = "(('\<theta>,'\<alpha>) alphabet_rp, ('\<theta>,'\<beta>) alphabet_rp) relation"
-type_synonym ('\<theta>,'\<alpha>) hrelation_rp  = "(('\<theta>,'\<alpha>) alphabet_rp, ('\<theta>,'\<alpha>) alphabet_rp) relation"
-type_synonym ('\<theta>,'\<sigma>) predicate_rp  = "('\<theta>,'\<sigma>) alphabet_rp upred"
 
 abbreviation wait_f::"('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("_\<^sub>f" [1000] 1000)
 where "wait_f R \<equiv> R\<lbrakk>false/$wait\<rbrakk>"
@@ -142,7 +134,7 @@ lemma R1_negate_R1: "R1(\<not> R1(P)) = R1(\<not> P)"
 lemma R1_wait_true: "(R1 P)\<^sub>t = R1(P)\<^sub>t"
   by pred_tac
 
-lemma R1_wait_false: "(R1 P)\<^sub>f = R1(P)\<^sub>f"
+lemma R1_wait_false: "(R1 P) \<^sub>f = R1(P) \<^sub>f"
   by pred_tac
 
 lemma R1_skip: "R1(II) = II"
@@ -176,6 +168,9 @@ lemma R1_ok_false: "(R1(P))\<lbrakk>false/$ok\<rbrakk> = R1(P\<lbrakk>false/$ok\
 
 lemma seqr_R1_true_right: "((P ;; R1(true)) \<or> P) = (P ;; ($tr \<le>\<^sub>u $tr\<acute>))"
   by rel_tac
+
+lemma R1_H2_commute: "R1(H2(P)) = H2(R1(P))"
+  by (simp add: H2_split R1_def usubst, rel_tac)
 
 subsection {* R2 *}
 
@@ -229,7 +224,7 @@ proof -
   also have "... =
        (\<^bold>\<exists> tr\<^sub>0 \<bullet> \<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright>) ;; 
                                 (Q\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)))"
-    by (simp add: R2_form usubst unrest uquant_lift var_in_var var_out_var, rel_tac)
+    by (simp add: R2_form usubst unrest uquant_lift, rel_tac)
   also have "... =
        (\<^bold>\<exists> tr\<^sub>0 \<bullet> \<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> P\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; 
                                 (Q\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)))"
@@ -256,7 +251,7 @@ proof -
   have "R2(R2(P) ;; R2(Q)) = 
     ((\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)\<lbrakk>($tr\<acute> - $tr)/$tr\<acute>\<rbrakk>
       \<and> $tr\<acute> - $tr =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr)"
-    by (simp add: R2_seqr_form, simp add: R2s_def usubst unrest, rel_tac, blast+)
+    by (simp add: R2_seqr_form, simp add: R2s_def usubst unrest, rel_tac)
   also have "... =
     ((\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)\<lbrakk>(\<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)/$tr\<acute>\<rbrakk>
       \<and> $tr\<acute> - $tr =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr)"
@@ -287,6 +282,14 @@ lemma R1_R2_commute:
   "R1(R2(P)) = R2(R1(P))"
   by pred_tac
 
+lemma R2s_H1_commute:
+  "R2s(H1(P)) = H1(R2s(P))"
+  by rel_tac
+
+lemma R2s_H2_commute:
+  "R2s(H2(P)) = H2(R2s(P))"
+  by (simp add: H2_split R2s_def usubst, smt out_in_indep out_var_indep tr_ok_indep(1) usubst_upd_comm)
+
 subsection {* R3 *}
 
 definition skip_rea_def [urel_defs]: "II\<^sub>r = (II \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
@@ -295,7 +298,7 @@ definition R3_def [upred_defs]: "R3 (P) = (II \<triangleleft> $wait \<triangleri
 
 definition R3c_def [upred_defs]: "R3c (P) = (II\<^sub>r \<triangleleft> $wait \<triangleright> P)"
 
-definition RH_def [upred_defs]: "RH(P) = R1(R2(R3c(P)))"
+definition RH_def [upred_defs]: "RH(P) = R1(R2s(R3c(P)))"
 
 lemma R3_idem: "R3(R3(P)) = R3(P)"
   by rel_tac
@@ -328,6 +331,9 @@ lemma R3_semir_closure:
   using assms
   by (metis Healthy_def' R3_semir_form)
 
+lemma R3c_subst_wait: "R3c(P) = R3c(P \<^sub>f)"
+  by (metis R3c_def cond_var_subst_right uvar_wait)
+
 lemma R1_R3_commute: "R1(R3(P)) = R3(R1(P))"
   by rel_tac
 
@@ -336,6 +342,13 @@ lemma R2_R3_commute: "R2(R3(P)) = R3(R2(P))"
 
 lemma R2_R3c_commute: "R2(R3c(P)) = R3c(R2(P))"
   by (rel_tac, (metis (no_types, lifting) alpha_rp.surjective alpha_rp.update_convs(2) append_Nil2 append_minus strict_prefixE)+)
+
+lemma R1_H1_R3c_commute:
+  "R1(H1(R3c(P))) = R3c(R1(H1(P)))"
+  by rel_tac
+
+lemma R3c_H2_commute: "R3c(H2(P)) = H2(R3c(P))"
+  by (simp add: H2_split R3c_def usubst, rel_tac)
 
 lemma R3c_idem: "R3c(R3c(P)) = R3c(P)"
   by rel_tac

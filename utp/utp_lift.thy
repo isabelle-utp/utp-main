@@ -2,70 +2,56 @@ section {* Lifting expressions *}
 
 theory utp_lift
   imports 
-    utp_expr
-    utp_unrest
+    utp_alphabet
 begin
 
 subsection {* Lifting definitions *}
 
 text {* We define operators for converting an expression to and from a relational state space *}
 
-lift_definition lift_pre :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>) uexpr" ("\<lceil>_\<rceil>\<^sub><")
-is "\<lambda> p (A, A'). p A" .
+abbreviation lift_pre :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>) uexpr" ("\<lceil>_\<rceil>\<^sub><")
+where "\<lceil>P\<rceil>\<^sub>< \<equiv> P \<oplus>\<^sub>p fst\<^sub>L"
 
-lift_definition drop_pre :: "('a, '\<alpha> \<times> '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<lfloor>_\<rfloor>\<^sub><")
-is "\<lambda> p A. p (A, A)" .
+abbreviation drop_pre :: "('\<alpha> \<times> '\<alpha>) upred \<Rightarrow> '\<alpha> upred" ("\<lfloor>_\<rfloor>\<^sub><")
+where "\<lfloor>P\<rfloor>\<^sub>< \<equiv> P \<restriction>\<^sub>p fst\<^sub>L"
 
-lift_definition lift_post :: "('a, '\<beta>) uexpr \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>) uexpr" ("\<lceil>_\<rceil>\<^sub>>")
-is "\<lambda> p (A, A'). p A'" .
+abbreviation lift_post :: "('a, '\<beta>) uexpr \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>) uexpr" ("\<lceil>_\<rceil>\<^sub>>")
+where "\<lceil>P\<rceil>\<^sub>> \<equiv> P \<oplus>\<^sub>p snd\<^sub>L"
 
-abbreviation drop_post :: "('a, '\<alpha> \<times> '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<lfloor>_\<rfloor>\<^sub>>")
-where "\<lfloor>b\<rfloor>\<^sub>> \<equiv> \<lfloor>b\<rfloor>\<^sub><"
-
-named_theorems ulift
-
-method ulift_tac = (simp add: ulift)?
+abbreviation drop_post :: "('\<alpha> \<times> '\<alpha>) upred \<Rightarrow> '\<alpha> upred" ("\<lfloor>_\<rfloor>\<^sub>>")
+where "\<lfloor>P\<rfloor>\<^sub>> \<equiv> P \<restriction>\<^sub>p snd\<^sub>L"
 
 subsection {* Lifting laws *}
 
 lemma lift_pre_var [simp]:
   "\<lceil>var x\<rceil>\<^sub>< = $x"
-  by (simp add: iuvar_def, transfer, auto)
+  by (alpha_tac)
 
 lemma lift_post_var [simp]:
   "\<lceil>var x\<rceil>\<^sub>> = $x\<acute>"
-  by (simp add: ouvar_def, transfer, auto)
+  by (alpha_tac)
 
-lemma lift_pre_lit [simp]:
-  "\<lceil>\<guillemotleft>v\<guillemotright>\<rceil>\<^sub>< = \<guillemotleft>v\<guillemotright>"
-  by (transfer, auto)
+subsection {* Substitution laws *}
 
-lemma lift_post_lit [simp]:
-  "\<lceil>\<guillemotleft>v\<guillemotright>\<rceil>\<^sub>> = \<guillemotleft>v\<guillemotright>"
-  by (transfer, auto)
+lemma subst_lift_upd [usubst]: 
+  fixes x :: "('a, '\<alpha>) uvar"
+  shows "\<lceil>\<sigma>(x \<mapsto>\<^sub>s v)\<rceil>\<^sub>s = \<lceil>\<sigma>\<rceil>\<^sub>s($x \<mapsto>\<^sub>s \<lceil>v\<rceil>\<^sub><)"
+  by (simp add: usubst_rel_lift_def subst_upd_uvar_def, transfer, auto simp add: fst_lens_def)
 
-lemma lift_pre_uop [simp]:
-  "\<lceil>uop f v\<rceil>\<^sub>< = uop f \<lceil>v\<rceil>\<^sub><"
-  by (transfer, auto)
-
-lemma lift_post_uop [simp]:
-  "\<lceil>uop f v\<rceil>\<^sub>> = uop f \<lceil>v\<rceil>\<^sub>>"
-  by (transfer, auto)
-
-lemma lift_pre_bop [simp]:
-  "\<lceil>bop f u v\<rceil>\<^sub>< = bop f \<lceil>u\<rceil>\<^sub>< \<lceil>v\<rceil>\<^sub><"
-  by (transfer, auto)
-
-lemma lift_post_bop [simp]:
-  "\<lceil>bop f u v\<rceil>\<^sub>> = bop f \<lceil>u\<rceil>\<^sub>> \<lceil>v\<rceil>\<^sub>>"
-  by (transfer, auto)
-
-lemma lift_pre_trop [simp]:
-  "\<lceil>trop f u v w\<rceil>\<^sub>< = trop f \<lceil>u\<rceil>\<^sub>< \<lceil>v\<rceil>\<^sub>< \<lceil>w\<rceil>\<^sub><"
-  by (transfer, auto)
-
-lemma lift_post_trop [simp]:
-  "\<lceil>trop f u v w\<rceil>\<^sub>> = trop f \<lceil>u\<rceil>\<^sub>> \<lceil>v\<rceil>\<^sub>> \<lceil>w\<rceil>\<^sub>>"
-  by (transfer, auto)
+(*
+lemma subst_drop_upd [usubst]: 
+  fixes x :: "('a, '\<alpha>) uvar"
+  assumes "out\<alpha> \<sharp> v"
+  shows "\<lfloor>\<sigma>($x \<mapsto>\<^sub>s v)\<rfloor>\<^sub>s = \<lfloor>\<sigma>\<rfloor>\<^sub>s(x \<mapsto>\<^sub>s \<lfloor>v\<rfloor>\<^sub><)"
+  using assms
+  apply (simp add: usubst_rel_drop_def subst_upd_uvar_def, transfer)
+  apply (rule ext, auto simp add:in_var_def fst_lens_def lens_create_def lens_comp_def prod.case_eq_if)
+  apply (subgoal_tac "\<forall> x x'. (v (A, x)) = (v (A, x'))")
+  apply metis
+  apply (simp)
+  apply (simp)
+thm prod.case_eq_if
+done
+*)
 
 end

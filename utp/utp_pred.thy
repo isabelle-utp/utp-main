@@ -53,26 +53,22 @@ text {* We set up two versions of each of the quantifiers: @{const uex} / @{cons
         for the HOL versions (achieved by the "bold" escape in Isabelle). *}
 
 syntax
-  "_uex"     :: "svar \<Rightarrow> logic \<Rightarrow> logic" ("\<exists> _ \<bullet> _" [0, 10] 10)
-  "_uall"    :: "svar \<Rightarrow> logic \<Rightarrow> logic" ("\<forall> _ \<bullet> _" [0, 10] 10)
+  "_uex"     :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<exists> _ \<bullet> _" [0, 10] 10)
+  "_uall"    :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<forall> _ \<bullet> _" [0, 10] 10)
   "_ushEx"   :: "idt \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<exists> _ \<bullet> _" [0, 10] 10)
   "_ushAll"  :: "idt \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ \<bullet> _" [0, 10] 10)
   "_ushBEx"  :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<exists> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
   "_ushBAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
+  "_ushGAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ | _ \<bullet> _" [0, 0, 10] 10)
 
 translations
-  "\<exists> &x \<bullet> P"  => "CONST uex x P"
-  "\<exists> $x \<bullet> P"  == "CONST uex (CONST in_var x) P"
-  "\<exists> $x\<acute> \<bullet> P" == "CONST uex (CONST out_var x) P"
-  "\<exists> x \<bullet> P"   == "CONST uex x P"
-  "\<forall> &x \<bullet> P"  => "CONST uall x P"
-  "\<forall> $x \<bullet> P"  == "CONST uall (CONST in_var x) P"
-  "\<forall> $x\<acute> \<bullet> P" == "CONST uall (CONST out_var x) P"
-  "\<forall> x \<bullet> P"   == "CONST uall x P"
+  "_uex x P"   == "CONST uex x P"
+  "_uall x P"   == "CONST uall x P"
   "\<^bold>\<exists> x \<bullet> P"   == "CONST ushEx (\<lambda> x. P)"
   "\<^bold>\<exists> x \<in> A \<bullet> P" => "\<^bold>\<exists> x \<bullet> \<guillemotleft>x\<guillemotright> \<in>\<^sub>u A \<and> P"
   "\<^bold>\<forall> x \<bullet> P"   == "CONST ushAll (\<lambda> x. P)"
   "\<^bold>\<forall> x \<in> A \<bullet> P" => "\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> \<in>\<^sub>u A \<Rightarrow> P"
+  "\<^bold>\<forall> x | P \<bullet> Q" => "\<^bold>\<forall> x \<bullet> P \<Rightarrow> Q"
 
 subsection {* Predicate operators *}
 
@@ -92,13 +88,19 @@ text {* Since, on the whole, lattices in UTP are the opposite way up to the stan
         in HOL, we syntactically invert the lattice operators. This is the one exception where
         we do steal HOL syntax, but I think it makes sense for UTP. *}
 
+no_notation inf (infixl "\<sqinter>" 70)
 notation inf (infixl "\<squnion>" 70)
+no_notation sup (infixl "\<squnion>" 65)
 notation sup (infixl "\<sqinter>" 65)
 
+no_notation Inf ("\<Sqinter>_" [900] 900)
 notation Inf ("\<Squnion>_" [900] 900)
+no_notation Sup ("\<Squnion>_" [900] 900)
 notation Sup ("\<Sqinter>_" [900] 900)
 
+no_notation bot ("\<bottom>")
 notation bot ("\<top>")
+no_notation top ("\<top>")
 notation top ("\<bottom>")
 
 text {* We now introduce a partial order on expressions. Note this is more general than refinement
@@ -173,6 +175,34 @@ definition "disj_upred  = (sup :: '\<alpha> upred \<Rightarrow> '\<alpha> upred 
 definition "not_upred   = (uminus :: '\<alpha> upred \<Rightarrow> '\<alpha> upred)"
 definition "diff_upred  = (minus :: '\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred)"
 
+lift_definition USUP :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('b::complete_lattice, '\<alpha>) uexpr) \<Rightarrow> ('b, '\<alpha>) uexpr"
+is "\<lambda> P F b. Sup {\<lbrakk>F x\<rbrakk>\<^sub>eb | x. \<lbrakk>P x\<rbrakk>\<^sub>eb}" .
+
+lift_definition UINF :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('b::complete_lattice, '\<alpha>) uexpr) \<Rightarrow> ('b, '\<alpha>) uexpr"
+is "\<lambda> P F b. Inf {\<lbrakk>F x\<rbrakk>\<^sub>eb | x. \<lbrakk>P x\<rbrakk>\<^sub>eb}" .
+
+declare USUP_def [upred_defs]
+declare UINF_def [upred_defs]
+
+syntax
+  "_USup"     :: "idt \<Rightarrow> logic \<Rightarrow> logic"            ("\<Sqinter> _ \<bullet> _" [0, 10] 10)
+  "_USup_mem" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Sqinter> _ \<in> _ \<bullet> _" [0, 10] 10)
+  "_USUP"     :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Sqinter> _ | _ \<bullet> _" [0, 0, 10] 10)
+  "_UInf"     :: "idt \<Rightarrow> logic \<Rightarrow> logic"            ("\<Squnion> _ \<bullet> _" [0, 10] 10)
+  "_UInf_mem" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Squnion> _ \<in> _ \<bullet> _" [0, 10] 10)
+  "_UINF"     :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Squnion> _ | _ \<bullet> _" [0, 10] 10)
+
+translations
+  "\<Sqinter> x | P \<bullet> F" => "CONST USUP (\<lambda> x. P) (\<lambda> x. F)"
+  "\<Sqinter> x \<bullet> F"     == "\<Sqinter> x | true \<bullet> F"
+  "\<Sqinter> x \<bullet> F"     == "\<Sqinter> x | true \<bullet> F"
+  "\<Sqinter> x \<in> A \<bullet> F" => "\<Sqinter> x | \<guillemotleft>x\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> F"
+  "\<Sqinter> x | P \<bullet> F" <= "CONST USUP (\<lambda> x. P) (\<lambda> y. F)" 
+  "\<Squnion> x | P \<bullet> F" => "CONST UINF (\<lambda> x. P) (\<lambda> x. F)"
+  "\<Squnion> x \<bullet> F"     == "\<Squnion> x | true \<bullet> F"
+  "\<Squnion> x \<in> A \<bullet> F" => "\<Squnion> x | \<guillemotleft>x\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> F"
+  "\<Squnion> x | P \<bullet> F" <= "CONST UINF (\<lambda> x. P) (\<lambda> y. F)" 
+
 text {* We also define the other predicate operators *}
 
 lift_definition impl::"'\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
@@ -215,6 +245,14 @@ adhoc_overloading
   ushEx shEx and
   ushAll shAll
 
+syntax
+  "_uneq"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<noteq>\<^sub>u" 50)
+  "_unmem"      :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<notin>\<^sub>u" 50)
+
+translations
+  "x \<noteq>\<^sub>u y" == "CONST unot (x =\<^sub>u y)"
+  "x \<notin>\<^sub>u A" == "CONST unot (CONST bop (op \<in>) x A)"
+
 subsection {* Proof support *}
 
 text {* We set up a simple tactic with the help of \emph{Eisbach} that applies predicate
@@ -222,7 +260,7 @@ text {* We set up a simple tactic with the help of \emph{Eisbach} that applies p
         applies extensionality (to remove the resulting lambda term) and the applies auto.
         This simple tactic will suffice to prove most of the standard laws. *}
 
-method pred_tac = ((simp only: upred_defs)? ; (transfer, (rule_tac ext)?, auto simp add: fun_eq_iff)?)
+method pred_tac = ((simp only: upred_defs)? ; (transfer, (rule_tac ext)?, auto simp add: lens_defs fun_eq_iff prod.case_eq_if)?)
 
 declare true_upred_def [upred_defs]
 declare false_upred_def [upred_defs]
@@ -250,11 +288,19 @@ lemma unrest_true [unrest]: "x \<sharp> true"
 lemma unrest_false [unrest]: "x \<sharp> false"
   by (pred_tac)
 
-lemma unrest_conj [unrest]: "\<lbrakk> x \<sharp> P; x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<and> Q"
+lemma unrest_conj [unrest]: "\<lbrakk> x \<sharp> (P :: '\<alpha> upred); x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<and> Q"
   by (pred_tac)
 
-lemma unrest_disj [unrest]: "\<lbrakk> x \<sharp> P; x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<or> Q"
+lemma unrest_disj [unrest]: "\<lbrakk> x \<sharp> (P :: '\<alpha> upred); x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<or> Q"
   by (pred_tac)
+
+lemma unrest_USUP [unrest]: 
+  "\<lbrakk> (\<And> i. x \<sharp> P(i)); (\<And> i. x \<sharp> Q(i)) \<rbrakk> \<Longrightarrow> x \<sharp> (\<Sqinter> i | P(i) \<bullet> Q(i))"
+  by (simp add: USUP_def, pred_tac)
+
+lemma unrest_UINF [unrest]: 
+  "\<lbrakk> (\<And> i. x \<sharp> P(i)); (\<And> i. x \<sharp> Q(i)) \<rbrakk> \<Longrightarrow> x \<sharp> (\<Squnion> i | P(i) \<bullet> Q(i))"
+  by (simp add: UINF_def, pred_tac)
 
 lemma unrest_impl [unrest]: "\<lbrakk> x \<sharp> P; x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<Rightarrow> Q"
   by (pred_tac)
@@ -262,28 +308,39 @@ lemma unrest_impl [unrest]: "\<lbrakk> x \<sharp> P; x \<sharp> Q \<rbrakk> \<Lo
 lemma unrest_iff [unrest]: "\<lbrakk> x \<sharp> P; x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<Leftrightarrow> Q"
   by (pred_tac)
 
-lemma unrest_not [unrest]: "x \<sharp> P \<Longrightarrow> x \<sharp> (\<not> P)"
+lemma unrest_not [unrest]: "x \<sharp> (P :: '\<alpha> upred) \<Longrightarrow> x \<sharp> (\<not> P)"
   by (pred_tac)
 
-lemma unrest_ex_same [unrest]:
-  "uvar x \<Longrightarrow> x \<sharp> (\<exists> x \<bullet> P)"
-  by pred_tac
+text {* The sublens proviso can be thought of as membership below. *}
 
+lemma unrest_ex_in [unrest]:
+  "\<lbrakk> semi_uvar y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> x \<sharp> (\<exists> y \<bullet> P)"
+  by (pred_tac)
+
+declare sublens_refl [simp]
+declare lens_plus_ub [simp]
+declare lens_plus_right_sublens [simp]
+declare comp_wb_lens [simp]
+declare comp_mwb_lens [simp]
+declare plus_mwb_lens [simp]
+  
 lemma unrest_ex_diff [unrest]:
   assumes "x \<bowtie> y" "y \<sharp> P"
   shows "y \<sharp> (\<exists> x \<bullet> P)"
   using assms 
-  by (pred_tac, auto simp add: lens_indep_def)
+  apply (pred_tac)
+  using lens_indep_comm apply fastforce+
+done
 
-lemma unrest_all_same [unrest]:
-  "uvar x \<Longrightarrow> x \<sharp> (\<forall> x \<bullet> P)"
+lemma unrest_all_in [unrest]:
+  "\<lbrakk> semi_uvar y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> x \<sharp> (\<forall> y \<bullet> P)"
   by pred_tac
 
 lemma unrest_all_diff [unrest]:
   assumes "x \<bowtie> y" "y \<sharp> P"
   shows "y \<sharp> (\<forall> x \<bullet> P)"
   using assms 
-  by (pred_tac, auto simp add: lens_indep_def)
+  by (pred_tac, simp_all add: lens_indep_comm)
 
 lemma unrest_shEx [unrest]: 
   assumes "\<And> y. x \<sharp> P(y)"
@@ -322,6 +379,12 @@ lemma subst_disj [usubst]: "\<sigma> \<dagger> (P \<or> Q) = (\<sigma> \<dagger>
 lemma subst_conj [usubst]: "\<sigma> \<dagger> (P \<and> Q) = (\<sigma> \<dagger> P \<and> \<sigma> \<dagger> Q)"
   by (pred_tac)
 
+lemma subst_USUP [usubst]: "\<sigma> \<dagger> (\<Sqinter> i | P(i) \<bullet> Q(i)) = (\<Sqinter> i | (\<sigma> \<dagger> P(i)) \<bullet> (\<sigma> \<dagger> Q(i)))"
+  by (simp add: USUP_def, pred_tac)
+
+lemma subst_UINF [usubst]: "\<sigma> \<dagger> (\<Squnion> i | P(i) \<bullet> Q(i)) = (\<Squnion> i | (\<sigma> \<dagger> P(i)) \<bullet> (\<sigma> \<dagger> Q(i)))"
+  by (simp add: UINF_def, pred_tac)
+
 lemma subst_closure [usubst]: "\<sigma> \<dagger> [P]\<^sub>u = [P]\<^sub>u"
   by (pred_tac)
 
@@ -334,26 +397,28 @@ lemma subst_shAll [usubst]: "\<sigma> \<dagger> (\<^bold>\<forall> x \<bullet> P
 text {* TODO: Generalise the quantifier substitution laws to n-ary substitutions *}
 
 lemma subst_ex_same [usubst]:
-  assumes "uvar x"
+  assumes "semi_uvar x"
   shows "(\<exists> x \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<exists> x \<bullet> P)"
-  by (simp add: assms id_subst subst_unrest unrest_ex_same)
+  by (simp add: assms id_subst subst_unrest unrest_ex_in)
 
 lemma subst_ex_indep [usubst]: 
   assumes "x \<bowtie> y" "y \<sharp> v"
   shows "(\<exists> y \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<exists> y \<bullet> P\<lbrakk>v/x\<rbrakk>)" 
   using assms
-  by (pred_tac, auto simp add: lens_indep_def)
-
+  apply (pred_tac)
+  using lens_indep_comm apply fastforce+
+done
+ 
 lemma subst_all_same [usubst]:
-  assumes "uvar x"
+  assumes "semi_uvar x"
   shows "(\<forall> x \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<forall> x \<bullet> P)"
-  by (simp add: assms id_subst subst_unrest unrest_all_same)
+  by (simp add: assms id_subst subst_unrest unrest_all_in)
 
 lemma subst_all_indep [usubst]: 
   assumes "x \<bowtie> y" "y \<sharp> v"
   shows "(\<forall> y \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<forall> y \<bullet> P\<lbrakk>v/x\<rbrakk>)" 
   using assms
-  by (pred_tac, auto simp add: lens_indep_def)
+  by (pred_tac, simp_all add: lens_indep_comm)
 
 subsection {* Predicate Laws *}
 
@@ -455,6 +520,27 @@ lemma closure_conj_distr: "([P]\<^sub>u \<and> [Q]\<^sub>u) = [P \<and> Q]\<^sub
 lemma closure_imp_distr: "`[P \<Rightarrow> Q]\<^sub>u \<Rightarrow> [P]\<^sub>u \<Rightarrow> [Q]\<^sub>u`"
   by pred_tac
 
+lemma USUP_cong_eq:
+  "\<lbrakk> \<And> x. P\<^sub>1(x) = P\<^sub>2(x); \<And> x. `P\<^sub>1(x) \<Rightarrow> Q\<^sub>1(x) =\<^sub>u Q\<^sub>2(x)` \<rbrakk> \<Longrightarrow>
+        (\<Sqinter> x | P\<^sub>1(x) \<bullet> Q\<^sub>1(x)) = (\<Sqinter> x | P\<^sub>2(x) \<bullet> Q\<^sub>2(x))"
+  by (simp add: USUP_def, pred_tac, metis)
+
+lemma USUP_as_Sup: "(\<Sqinter> P \<in> \<P> \<bullet> P) = \<Sqinter> \<P>"
+  apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
+  apply (pred_tac)
+  apply (unfold SUP_def)
+  apply (rule cong[of "Sup"])
+  apply (auto)
+done
+
+lemma UInf_as_Inf: "(\<Squnion> P \<in> \<P> \<bullet> P) = \<Squnion> \<P>"
+  apply (simp add: upred_defs bop.rep_eq lit.rep_eq Inf_uexpr_def)
+  apply (pred_tac)
+  apply (unfold INF_def)
+  apply (rule cong[of "Inf"])
+  apply (auto)
+done
+
 lemma true_iff [simp]: "(P \<Leftrightarrow> true) = P"
   by pred_tac
 
@@ -481,6 +567,18 @@ lemma conj_eq_out_var_subst:
   using assms
   by (pred_tac, (metis vwb_lens_wb wb_lens.get_put)+)
 
+lemma conj_pos_var_subst:
+  assumes "uvar x"
+  shows "($x \<and> Q) = ($x \<and> Q\<lbrakk>true/$x\<rbrakk>)"
+  using assms
+  by (pred_tac, metis (full_types) vwb_lens_wb wb_lens.get_put, metis (full_types) vwb_lens_wb wb_lens.get_put)
+
+lemma conj_neg_var_subst:
+  assumes "uvar x"
+  shows "(\<not> $x \<and> Q) = (\<not> $x \<and> Q\<lbrakk>false/$x\<rbrakk>)"
+  using assms
+  by (pred_tac, metis (full_types) vwb_lens_wb wb_lens.get_put, metis (full_types) vwb_lens_wb wb_lens.get_put)
+
 lemma shEx_bool [simp]: "shEx P = (P True \<or> P False)"
   by (pred_tac, metis (full_types))
 
@@ -494,7 +592,7 @@ lemma upred_eq_false [simp]: "(p =\<^sub>u false) = (\<not> p)"
   by pred_tac
 
 lemma one_point:
-  assumes "uvar x" "x \<sharp> v"
+  assumes "semi_uvar x" "x \<sharp> v"
   shows "(\<exists> x \<bullet> (P \<and> (var x =\<^sub>u v))) = P\<lbrakk>v/x\<rbrakk>"
   using assms
   by (simp add: upred_defs, transfer, auto)
@@ -543,23 +641,27 @@ lemma subst_eq_replace:
   shows "(p\<lbrakk>u/x\<rbrakk> \<and> u =\<^sub>u v) = (p\<lbrakk>v/x\<rbrakk> \<and> u =\<^sub>u v)"
   by pred_tac
 
-lemma exists_twice: "uvar x \<Longrightarrow> (\<exists> x \<bullet> \<exists> x \<bullet> P) = (\<exists> x \<bullet> P)"
+lemma exists_twice: "semi_uvar x \<Longrightarrow> (\<exists> x \<bullet> \<exists> x \<bullet> P) = (\<exists> x \<bullet> P)"
   by (pred_tac)
 
-lemma all_twice: "uvar x \<Longrightarrow> (\<forall> x \<bullet> \<forall> x \<bullet> P) = (\<forall> x \<bullet> P)"
+lemma all_twice: "semi_uvar x \<Longrightarrow> (\<forall> x \<bullet> \<forall> x \<bullet> P) = (\<forall> x \<bullet> P)"
   by (pred_tac)
 
 lemma ex_commute:
   assumes "x \<bowtie> y"
   shows "(\<exists> x \<bullet> \<exists> y \<bullet> P) = (\<exists> y \<bullet> \<exists> x \<bullet> P)"
   using assms
-  by (pred_tac, auto simp add: lens_indep_def)
+  apply (pred_tac)
+  using lens_indep_comm apply fastforce+
+done
 
 lemma all_commute:
   assumes "x \<bowtie> y"
   shows "(\<forall> x \<bullet> \<forall> y \<bullet> P) = (\<forall> y \<bullet> \<forall> x \<bullet> P)"
   using assms
-  by (pred_tac, auto simp add: lens_indep_def)
+  apply (pred_tac)
+  using lens_indep_comm apply fastforce+
+done
 
 subsection {* Quantifier lifting *}
 

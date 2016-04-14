@@ -256,7 +256,7 @@ definition [simp]: "in_dvar x = in_var (x\<up>)"
 definition [simp]: "out_dvar x = out_var (x\<up>)"
 
 adhoc_overloading
-  ivar in_dvar and ovar out_dvar
+  ivar in_dvar and ovar out_dvar and svar dvar_lift
 
 lemma uvar_dvar: "uvar (x\<up>)"
   apply (unfold_locales)
@@ -269,7 +269,10 @@ text {* Deep variables with different names are independent *}
 lemma dvar_indep_diff_name:
   assumes "dvar_name x \<noteq> dvar_name y"
   shows "x\<up> \<bowtie> y\<up>"
-  by (simp add: assms dvar_lift_def lens_indep_def vstore_put_commute)
+  using assms
+  apply (auto simp add: assms dvar_lift_def lens_indep_def vstore_put_commute)
+  using assms apply auto
+done
 
 lemma dvar_indep_diff_name' [simp]:
   "x \<noteq> y \<Longrightarrow> \<lceil>x\<rceil>\<^sub>d\<up> \<bowtie> \<lceil>y\<rceil>\<^sub>d\<up>"

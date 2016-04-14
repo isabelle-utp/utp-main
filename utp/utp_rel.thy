@@ -3,6 +3,7 @@ section {* Alphabetised relations *}
 theory utp_rel
 imports  
   utp_pred
+  utp_lift
 begin
 
 default_sort type
@@ -22,9 +23,11 @@ definition out\<alpha> :: "('\<beta>, '\<alpha> \<times> '\<beta>) uvar" where
 declare in\<alpha>_def [urel_defs]
 declare out\<alpha>_def [urel_defs]
 
+text {* The alphabet of a relation consists of the input and output portions *}
+
 lemma alpha_in_out:
-  "\<Sigma> = in\<alpha> \<circ>\<^sub>v out\<alpha>"
-  by (auto simp add: in\<alpha>_def out\<alpha>_def univ_alpha_def id_lens_def uvar_comp_def prod_lens_def)
+  "\<Sigma> \<approx>\<^sub>L in\<alpha> +\<^sub>L out\<alpha>"
+  by (metis fst_lens_def fst_snd_id_lens in\<alpha>_def lens_equiv_refl out\<alpha>_def snd_lens_def)
 
 type_synonym '\<alpha> condition       = "'\<alpha> upred"
 type_synonym ('\<alpha>, '\<beta>) relation  = "('\<alpha> \<times> '\<beta>) upred"
@@ -44,6 +47,12 @@ is "\<lambda> P Q r. r : ({p. P p} O {q. Q q})" .
 lift_definition conv_r :: "('a, '\<alpha> \<times> '\<beta>) uexpr \<Rightarrow> ('a, '\<beta> \<times> '\<alpha>) uexpr" ("_\<^sup>-" [999] 999)
 is "\<lambda> e (b1, b2). e (b2, b1)" .
 
+definition skip_ra :: "('\<beta>, '\<alpha>) lens \<Rightarrow>'\<alpha> hrelation" ("II\<^bsub>_\<^esub>") where
+"skip_ra v = ($v\<acute> =\<^sub>u $v)"
+
+definition assigns_ra :: "'\<alpha> usubst \<Rightarrow> ('\<beta>, '\<alpha>) lens \<Rightarrow> '\<alpha> hrelation" ("\<langle>_\<rangle>\<^bsub>_\<^esub>") where
+"\<langle>\<sigma>\<rangle>\<^bsub>a\<^esub> = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> II\<^bsub>a\<^esub>)"
+
 lift_definition assigns_r :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrelation" ("\<langle>_\<rangle>\<^sub>a")
   is "\<lambda> \<sigma> (A, A'). A' = \<sigma>(A)" .
 
@@ -58,28 +67,40 @@ abbreviation assign_2_r ::
 where "assign_2_r x y u v \<equiv> assigns_r [x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v]"
 
 nonterminal 
-  id_list and uexpr_list
+  svid_list and uexpr_list
 
 syntax
-  "_id_unit"    :: "id \<Rightarrow> id_list" ("_")
-  "_id_list"    :: "id \<Rightarrow> id_list \<Rightarrow> id_list" ("_,/ _")
+  "_svid_unit"  :: "svid \<Rightarrow> svid_list" ("_")
+  "_svid_list"  :: "svid \<Rightarrow> svid_list \<Rightarrow> svid_list" ("_,/ _")
   "_uexpr_unit" :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list" ("_" [40] 40)
   "_uexpr_list" :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list \<Rightarrow> uexpr_list" ("_,/ _" [40,40] 40)
-  "_assignment" :: "svars \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrelation"  (infixr ":=" 35)
-  "_mk_usubst"  :: "svars \<Rightarrow> uexpr_list \<Rightarrow> '\<alpha> usubst"
+  "_assignment" :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrelation"  (infixr ":=" 55)
+  "_mk_usubst"  :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> usubst"
 
 translations
-  "_mk_usubst (_svar x) (_uexpr_unit v)" == "[x \<mapsto>\<^sub>s v]"
-  "_mk_usubst (_id_list x xs) (_uexpr_list v vs)" == "(_mk_usubst xs vs)(x \<mapsto>\<^sub>s v)"
-  "_assignment xs vs" => "CONST assigns_r (_psubst (CONST id) xs vs)"
-  "x := v" <= "CONST assign_r x v"
+  "_mk_usubst \<sigma> (_svid_unit x) v" == "\<sigma>(&x \<mapsto>\<^sub>s v)"
+  "_mk_usubst \<sigma> (_svid_list x xs) (_uexprs v vs)" == "(_mk_usubst (\<sigma>(x \<mapsto>\<^sub>s v)) xs vs)"
+  "_assignment xs vs" => "CONST assigns_r (_mk_usubst (CONST id) xs vs)"
+  "x := v" <= "CONST assigns_r (CONST subst_upd (CONST id) x v)"
   "x,y := u,v" <= "CONST assign_2_r x y u v"
 
 adhoc_overloading
   useq seqr and
   uskip skip_r
 
-method rel_tac = ((simp add: upred_defs urel_defs)?, (transfer, (rule_tac ext)?, auto simp add: urel_defs relcomp_unfold fun_eq_iff)?)
+method rel_tac = ((simp add: upred_defs urel_defs)?, (transfer, (rule_tac ext)?, auto simp add: lens_defs urel_defs relcomp_unfold fun_eq_iff prod.case_eq_if)?)
+
+text {* We describe some properties of relations *}
+
+definition ufunctional :: "('a, 'b) relation \<Rightarrow> bool"
+where "ufunctional R \<longleftrightarrow> (II \<sqsubseteq> (R\<^sup>- ;; R))"
+
+declare ufunctional_def [urel_defs]
+
+definition uinj :: "('a, 'b) relation \<Rightarrow> bool"
+where "uinj R \<longleftrightarrow> II \<sqsubseteq> (R ;; R\<^sup>-)"
+
+declare uinj_def [urel_defs]
 
 text {* A test is like a precondition, except that it identifies to the postcondition. It
         forms the basis for Kleene Algebra with Tests (KAT). *}
@@ -99,19 +120,31 @@ declare rel_var_res_def [urel_defs]
 
 subsection {* Unrestriction Laws *}
 
-lemma unrest_iuvar [unrest]: "uvar x \<Longrightarrow> out\<alpha> \<sharp> $x"
-  by (simp add: out\<alpha>_def iuvar_def, transfer, auto)
+lemma unrest_iuvar [unrest]: "semi_uvar x \<Longrightarrow> out\<alpha> \<sharp> $x"
+  by (simp add: out\<alpha>_def, transfer, auto)
 
-lemma unrest_ouvar [unrest]: "uvar x \<Longrightarrow> in\<alpha> \<sharp> $x\<acute>"
-  by (simp add: in\<alpha>_def ouvar_def, transfer, auto)
+lemma unrest_ouvar [unrest]: "semi_uvar x \<Longrightarrow> in\<alpha> \<sharp> $x\<acute>"
+  by (simp add: in\<alpha>_def, transfer, auto)
+
+lemma unrest_semir_undash [unrest]:
+  fixes x :: "('a, '\<alpha>) uvar"
+  assumes "$x \<sharp> P"
+  shows "$x \<sharp> (P ;; Q)"
+  using assms by (rel_tac)
+
+lemma unrest_semir_dash [unrest]:
+  fixes x :: "('a, '\<alpha>) uvar"
+  assumes "$x\<acute> \<sharp> Q"
+  shows "$x\<acute> \<sharp> (P ;; Q)"
+  using assms by (rel_tac)
 
 lemma unrest_in\<alpha>_var [unrest]:
-  "\<lbrakk> uvar x; in\<alpha> \<sharp> P \<rbrakk> \<Longrightarrow> $x \<sharp> P"
-  by (pred_tac, simp add: in\<alpha>_def)
+  "\<lbrakk> semi_uvar x; in\<alpha> \<sharp> (P :: ('\<alpha>, '\<beta>) relation) \<rbrakk> \<Longrightarrow> $x \<sharp> P"
+  by (pred_tac, simp add: in\<alpha>_def, blast, metis in\<alpha>_def lens.select_convs(2) old.prod.case)
 
 lemma unrest_out\<alpha>_var [unrest]:
-  "\<lbrakk> uvar x; out\<alpha> \<sharp> P \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> P"
-  by (pred_tac, simp add: out\<alpha>_def)
+  "\<lbrakk> semi_uvar x; out\<alpha> \<sharp> (P :: ('\<alpha>, '\<beta>) relation) \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> P"
+  by (pred_tac, simp add: out\<alpha>_def, blast, metis lens.select_convs(2) old.prod.case out\<alpha>_def)
 
 lemma in\<alpha>_uvar [simp]: "uvar in\<alpha>"
   by (unfold_locales, auto simp add: in\<alpha>_def)
@@ -154,7 +187,7 @@ subsection {* Substitution laws *}
 text {* It should be possible to substantially generalise the following two laws *}
 
 lemma usubst_seq_left [usubst]: 
-  "\<lbrakk> uvar x; out\<alpha> \<sharp> v \<rbrakk> \<Longrightarrow> (P ;; Q)\<lbrakk>v/$x\<rbrakk> = ((P\<lbrakk>v/$x\<rbrakk>) ;; Q)"
+  "\<lbrakk> semi_uvar x; out\<alpha> \<sharp> v \<rbrakk> \<Longrightarrow> (P ;; Q)\<lbrakk>v/$x\<rbrakk> = ((P\<lbrakk>v/$x\<rbrakk>) ;; Q)"
   apply (rel_tac)
   apply (rename_tac x v P Q a y ya)
   apply (rule_tac x="ya" in exI)
@@ -172,23 +205,8 @@ lemma usubst_seq_left [usubst]:
 done
 
 lemma usubst_seq_right [usubst]: 
-  "\<lbrakk> uvar x; in\<alpha> \<sharp> v \<rbrakk> \<Longrightarrow> (P ;; Q)\<lbrakk>v/$x\<acute>\<rbrakk> = (P ;; Q\<lbrakk>v/$x\<acute>\<rbrakk>)"
-  apply (rel_tac)
-  apply (rename_tac x v P Q b xa ya)
-  apply (rule_tac x="ya" in exI)
-  apply (simp)
-  apply (drule_tac x="ya" in spec)
-  apply (drule_tac x="b" in spec)
-  apply (drule_tac x="xa" in spec)
-  apply (simp)
-  apply (rename_tac x v P Q b aa y)
-  apply (rule_tac x="y" in exI)
-  apply (simp)
-  apply (drule_tac x="aa" in spec)
-  apply (drule_tac x="b" in spec)
-  apply (drule_tac x="y" in spec)
-  apply (simp)
-done
+  "\<lbrakk> semi_uvar x; in\<alpha> \<sharp> v \<rbrakk> \<Longrightarrow> (P ;; Q)\<lbrakk>v/$x\<acute>\<rbrakk> = (P ;; Q\<lbrakk>v/$x\<acute>\<rbrakk>)"
+  by (rel_tac, metis+)
 
 lemma usubst_condr [usubst]:
   "\<sigma> \<dagger> (P \<triangleleft> b \<triangleright> Q) = (\<sigma> \<dagger> P \<triangleleft> \<sigma> \<dagger> b \<triangleright> \<sigma> \<dagger> Q)"
@@ -198,26 +216,6 @@ lemma subst_skip_r [usubst]:
   fixes x :: "('a, '\<alpha>) uvar"
   shows "II\<lbrakk>\<lceil>v\<rceil>\<^sub></$x\<rbrakk> = (x := v)"
   by (rel_tac)
-
-subsection {* Lifting laws *}
-
-lemma lift_pre_conj [ulift]: "\<lceil>p \<and> q\<rceil>\<^sub>< = (\<lceil>p\<rceil>\<^sub>< \<and> \<lceil>q\<rceil>\<^sub><)"
-  by (pred_tac)
-
-lemma lift_post_conj [ulift]: "\<lceil>p \<and> q\<rceil>\<^sub>> = (\<lceil>p\<rceil>\<^sub>> \<and> \<lceil>q\<rceil>\<^sub>>)"
-  by (pred_tac)
-
-lemma lift_pre_disj [ulift]: "\<lceil>p \<or> q\<rceil>\<^sub>< = (\<lceil>p\<rceil>\<^sub>< \<or> \<lceil>q\<rceil>\<^sub><)"
-  by (pred_tac)
-
-lemma lift_post_disj [ulift]: "\<lceil>p \<or> q\<rceil>\<^sub>> = (\<lceil>p\<rceil>\<^sub>> \<or> \<lceil>q\<rceil>\<^sub>>)"
-  by (pred_tac)
-
-lemma lift_pre_not [ulift]: "\<lceil>\<not> p\<rceil>\<^sub>< = (\<not> \<lceil>p\<rceil>\<^sub><)"
-  by (pred_tac)
-
-lemma lift_post_not [ulift]: "\<lceil>\<not> p\<rceil>\<^sub>> = (\<not> \<lceil>p\<rceil>\<^sub>>)"
-  by (pred_tac)
 
 subsection {* Relation laws *}
 
@@ -243,7 +241,7 @@ apply (rel_tac)
 done
 
 lemma drop_pre_inv [simp]: "\<lbrakk> out\<alpha> \<sharp> p \<rbrakk> \<Longrightarrow> \<lceil>\<lfloor>p\<rfloor>\<^sub><\<rceil>\<^sub>< = p"
-  by (pred_tac, auto simp add: out\<alpha>_def)
+  by (pred_tac, auto simp add: out\<alpha>_def lens_create_def fst_lens_def prod.case_eq_if)
 
 abbreviation ustar :: "'\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("_\<^sup>\<star>\<^sub>u" [999] 999) where
 "P\<^sup>\<star>\<^sub>u \<equiv> unital_quantale.qstar II op ;; Sup P"
@@ -252,6 +250,13 @@ definition while :: "'\<alpha> condition \<Rightarrow> '\<alpha> hrelation \<Rig
 "while b do P od = ((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u \<and> (\<not> \<lceil>b\<rceil>\<^sub>>))"
 
 declare while_def [urel_defs] 
+
+text {* While loops with invariant decoration *}
+
+definition while_inv :: "'\<alpha> condition \<Rightarrow> '\<alpha> condition \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("while _ invr _ do _ od") where
+"while b invr p do S od = while b do S od"
+
+declare while_inv_def
 
 lemma cond_idem:"(P \<triangleleft> b \<triangleright> P) = P" by rel_tac 
 
@@ -289,6 +294,16 @@ lemma comp_cond_left_distr:
   "((P \<triangleleft> b \<triangleright>\<^sub>r Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright>\<^sub>r (Q ;; R))"
   by rel_tac
 
+lemma cond_var_subst_left:
+  assumes "uvar x"
+  shows "(P \<triangleleft> $x \<triangleright> Q) = (P\<lbrakk>true/$x\<rbrakk> \<triangleleft> $x \<triangleright> Q)"
+  using assms by (metis cond_def conj_pos_var_subst) 
+
+lemma cond_var_subst_right:
+  assumes "uvar x"
+  shows "(P \<triangleleft> $x \<triangleright> Q) = (P \<triangleleft> $x \<triangleright> Q\<lbrakk>false/$x\<rbrakk>)"
+  using assms by (metis cond_def conj_neg_var_subst) 
+
 text {* These laws may seem to duplicate quantale laws, but they don't -- they are
         applicable to non-homogeneous relations as well, which will become important
         later. *}
@@ -316,43 +331,65 @@ lemma seqr_mono:
   "\<lbrakk> P\<^sub>1 \<sqsubseteq> P\<^sub>2; Q\<^sub>1 \<sqsubseteq> Q\<^sub>2 \<rbrakk> \<Longrightarrow> (P\<^sub>1 ;; Q\<^sub>1) \<sqsubseteq> (P\<^sub>2 ;; Q\<^sub>2)"
   by (rel_tac, blast)
 
+lemma spec_refine:
+  "Q \<sqsubseteq> (P \<and> R) \<Longrightarrow> (P \<Rightarrow> Q) \<sqsubseteq> R"
+  by (rel_tac)
+
 lemma pre_skip_post: "(\<lceil>b\<rceil>\<^sub>< \<and> II) = (II \<and> \<lceil>b\<rceil>\<^sub>>)"
   by (rel_tac)
 
 lemma seqr_exists_left:
-  "uvar x \<Longrightarrow> ((\<exists> $x \<bullet> P) ;; Q) = (\<exists> $x \<bullet> (P ;; Q))"
-  by (rel_tac, auto simp add: comp_def)
+  "semi_uvar x \<Longrightarrow> ((\<exists> $x \<bullet> P) ;; Q) = (\<exists> $x \<bullet> (P ;; Q))"
+  by (rel_tac)
 
 lemma seqr_exists_right:
-  "uvar x \<Longrightarrow> (P ;; (\<exists> $x\<acute> \<bullet> Q)) = (\<exists> $x\<acute> \<bullet> (P ;; Q))"
-  by (rel_tac, auto simp add: comp_def)
+  "semi_uvar x \<Longrightarrow> (P ;; (\<exists> $x\<acute> \<bullet> Q)) = (\<exists> $x\<acute> \<bullet> (P ;; Q))"
+  by (rel_tac)
 
-text {* We should be able to generalise this law to arbitrary assignments at some point,
-        but that requires additional conversion operators for substitutions that act
-        only on @{const "in\<alpha>"}. *}
+lemma assigns_subst [usubst]:
+  "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> \<langle>\<rho>\<rangle>\<^sub>a = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>a"
+  by (rel_tac)
+
+lemma assigns_r_comp: "(\<langle>\<sigma>\<rangle>\<^sub>a ;; P) = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P)"
+  by rel_tac
 
 lemma assign_subst [usubst]:
-  "\<lbrakk> uvar x; uvar y \<rbrakk> \<Longrightarrow> [$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> (y := v) = (x, y := u, [x \<mapsto>\<^sub>s u] \<dagger> v)"
+  "\<lbrakk> semi_uvar x; semi_uvar y \<rbrakk> \<Longrightarrow> [$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> (y := v) = (x, y := u, [x \<mapsto>\<^sub>s u] \<dagger> v)"
   by rel_tac
  
-lemma assigns_idem: "uvar x \<Longrightarrow> (x,x := u,v) = (x := v)"
+lemma assigns_idem: "semi_uvar x \<Longrightarrow> (x,x := u,v) = (x := v)"
   by (simp add: usubst)
 
-lemma assigns_comp: "(assigns_r f ;; assigns_r g) = assigns_r (g \<circ> f)" 
-  by (transfer, auto simp add:relcomp_unfold)
+lemma assigns_comp: "(\<langle>f\<rangle>\<^sub>a ;; \<langle>g\<rangle>\<^sub>a) = \<langle>g \<circ> f\<rangle>\<^sub>a"
+  by (simp add: assigns_r_comp usubst) 
 
-lemma assigns_r_comp: "uvar x \<Longrightarrow> (\<langle>\<sigma>\<rangle>\<^sub>a ;; P) = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P)"
-  by rel_tac
+lemma assigns_r_conv:
+  "bij f \<Longrightarrow> \<langle>f\<rangle>\<^sub>a\<^sup>- = \<langle>inv f\<rangle>\<^sub>a"
+  by (rel_tac, simp_all add: bij_is_inj bij_is_surj surj_f_inv_f)
 
-lemma assign_r_comp: "uvar x \<Longrightarrow> (x := u ;; P) = ([$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> P)"
+lemma assign_r_comp: "semi_uvar x \<Longrightarrow> (x := u ;; P) = ([$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> P)"
   by (simp add: assigns_r_comp usubst)
 
-lemma assign_test: "uvar x \<Longrightarrow> (x := \<guillemotleft>u\<guillemotright> ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright>)"
+lemma assign_test: "semi_uvar x \<Longrightarrow> (x := \<guillemotleft>u\<guillemotright> ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright>)"
   by (simp add: assigns_comp subst_upd_comp subst_lit usubst_upd_idem)
+
+lemma assigns_r_ufunc: "ufunctional \<langle>f\<rangle>\<^sub>a"
+  by (rel_tac)
+
+lemma assigns_r_uinj: "inj f \<Longrightarrow> uinj \<langle>f\<rangle>\<^sub>a"
+  by (rel_tac, simp add: inj_eq)
+
+lemma assigns_r_swap_uinj:
+  "\<lbrakk> uvar x; uvar y; x \<bowtie> y \<rbrakk> \<Longrightarrow> uinj (x,y := &y,&x)"
+  using assigns_r_uinj swap_usubst_inj by auto
 
 lemma skip_r_unfold:
   "uvar x \<Longrightarrow> II = ($x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x)"
   by (rel_tac, blast, metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens.get_put)
+
+lemma skip_r_alpha_eq:
+  "II = ($\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
+  by (rel_tac)
 
 lemma assign_unfold:
   "uvar x \<Longrightarrow> (x := v) = ($x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub>< \<and> II\<restriction>\<^sub>\<alpha>x)"
@@ -365,6 +402,18 @@ lemma seqr_or_distl:
 
 lemma seqr_or_distr:
   "(P ;; (Q \<or> R)) = ((P ;; Q) \<or> (P ;; R))"
+  by rel_tac
+
+lemma seqr_and_distr_ufunc:
+  "ufunctional P \<Longrightarrow> (P ;; (Q \<and> R)) = ((P ;; Q) \<and> (P ;; R))"
+  by rel_tac
+
+lemma seqr_and_distl_uinj:
+  "uinj R \<Longrightarrow> ((P \<and> Q) ;; R) = ((P ;; R) \<and> (Q ;; R))"
+  by (rel_tac, metis)
+
+lemma seqr_unfold:
+  "(P ;; Q) = (\<^bold>\<exists> v \<bullet> P\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<Sigma>\<acute>\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<Sigma>\<rbrakk>)"
   by rel_tac
 
 lemma seqr_middle: 
@@ -443,13 +492,13 @@ theorem seqr_pre_transfer: "in\<alpha> \<sharp> q \<Longrightarrow> ((P \<and> q
   by (rel_tac)
 
 theorem seqr_post_out: "in\<alpha> \<sharp> r \<Longrightarrow> (P ;; (Q \<and> r)) = ((P ;; Q) \<and> r)"
-  by (rel_tac)
+  by (rel_tac, blast+)
 
 theorem seqr_post_transfer: "out\<alpha> \<sharp> q \<Longrightarrow> (P ;; (q \<and> R)) = (P \<and> q\<^sup>- ;; R)"
   by (simp add: seqr_pre_transfer unrest_convr_in\<alpha>)
 
 lemma seqr_pre_out: "out\<alpha> \<sharp> p \<Longrightarrow> ((p \<and> Q) ;; R) = (p \<and> (Q ;; R))"
-  by (rel_tac)
+  by (rel_tac, blast+)
 
 lemma seqr_true_lemma: 
   "(P = (\<not> (\<not> P ;; true))) = (P = (P ;; true))"
@@ -510,5 +559,60 @@ qed
 theorem while_unfold:
   "while b do P od = ((P ;; while b do P od) \<triangleleft> b \<triangleright>\<^sub>r II)"
   by (metis (no_types, hide_lams) bounded_semilattice_sup_bot_class.sup_bot.left_neutral comp_cond_left_distr cond_def cond_idem disj_comm disj_upred_def seqr_right_zero upred_quantale.bot_zerol utp_pred.inf_bot_right utp_pred.inf_commute while_cond_false while_cond_true)
+
+subsection {* Relational unrestriction *}
+
+text {* Relational unrestriction states that a variable is unchanged by a relation. Eventually
+  I'd also like to have it state that the relation also does not depend on the variable's
+  initial value, but I'm not sure how to state that yet. For now we represent this by
+  the parametric healthiness condition RID. *}
+
+definition RID :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" 
+where "RID x P = (P \<and> $x\<acute> =\<^sub>u $x)"
+
+declare RID_def [urel_defs]
+
+lemma RID_skip_r:
+  "RID(x)(II) = II"
+  by rel_tac
+
+lemma RID_assigns_r:
+  "\<lbrakk> uvar x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> RID(x)(\<langle>\<sigma>\<rangle>\<^sub>a) = \<langle>\<sigma>\<rangle>\<^sub>a"
+  apply (rel_tac)
+  apply (auto simp add: unrest_usubst_def)
+  apply (metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
+done
+
+definition unrest_relation :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrelation \<Rightarrow> bool" (infix "\<sharp>\<sharp>" 20)
+where "(x \<sharp>\<sharp> P) \<longleftrightarrow> (P = RID(x)(P))"
+
+declare unrest_relation_def [urel_defs]
+
+lemma skip_r_runrest [unrest]:
+  "x \<sharp>\<sharp> II"
+  by rel_tac
+
+lemma assigns_r_runrest:
+  "\<lbrakk> uvar x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> \<langle>\<sigma>\<rangle>\<^sub>a"
+  by (simp add: RID_assigns_r unrest_relation_def)
+ 
+lemma seq_r_runrest [unrest]:
+  "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P ;; Q)"
+  by (rel_tac, metis)
+
+lemma false_runrest [unrest]: "x \<sharp>\<sharp> false"
+  by (rel_tac)
+
+lemma and_runrest [unrest]: "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<and> Q)"
+  by (rel_tac, metis)
+
+lemma or_runrest [unrest]: "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<or> Q)"
+  by (rel_tac, blast+)
+
+subsection {* Alphabet laws *}
+
+lemma aext_cond [alpha]: 
+  "(P \<triangleleft> b \<triangleright> Q) \<oplus>\<^sub>p a = ((P \<oplus>\<^sub>p a) \<triangleleft> (b \<oplus>\<^sub>p a) \<triangleright> (Q \<oplus>\<^sub>p a))"
+  by rel_tac
 
 end

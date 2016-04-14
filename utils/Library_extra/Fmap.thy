@@ -131,8 +131,8 @@ lemma map_graph_set: "\<lbrakk>distinct (map fst xs); sorted xs\<rbrakk> \<Longr
   apply (simp add:map_graph_def)
   apply (auto)
   apply (force)
-  apply (metis (lifting) map_of_is_SomeD option.inject snd_conv)
-  using sorted_Cons apply blast
+  apply (metis map_of_SomeD option.inject snd_conv)
+  using sorted_Cons apply auto
 done
 
 lemma fdom_fmap_list [simp]: "fdom (list_fmap xs) = finset (map fst xs)"
@@ -344,7 +344,7 @@ definition fmap_ranr' :: "'b fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a,
 "fmap_ranr' s f = fmap_ranr (fran f -\<^sub>f s) f"
 
 lemma finite_dom_map_of:
-  fixes f :: "('a::linorder ~=> 'b)"
+  fixes f :: "('a::linorder \<rightharpoonup> 'b)"
   assumes "finite (dom f)" 
   shows "\<exists> xs. f = map_of xs"
   by (metis Abs_fmap_inv assms fmap_list_inv list_fmap.rep_eq)
@@ -411,7 +411,7 @@ end
 
 lift_definition map_fmap :: "('a \<Rightarrow> 'b) \<Rightarrow> ('d, 'a) fmap \<Rightarrow> ('d, 'b) fmap"
 is "\<lambda> f m x. Option.bind (m x) (Some \<circ> f)" 
-  by (simp add: fmaps_def, metis (mono_tags, lifting) bind_lzero domIff rev_finite_subset subsetI)
+  by (simp add: fmaps_def, metis (no_types, lifting) bind_eq_None_conv domIff finite_subset subsetI)
 
 lift_definition set_fmap :: "('d, 'a) fmap \<Rightarrow> 'a set" is ran .
 
