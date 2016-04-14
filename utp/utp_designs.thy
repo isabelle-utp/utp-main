@@ -256,6 +256,10 @@ theorem design_choice:
   "(P\<^sub>1 \<turnstile> P\<^sub>2) \<sqinter> (Q\<^sub>1 \<turnstile> Q\<^sub>2) = ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<or> Q\<^sub>2))"
   by rel_tac
 
+theorem design_inf:
+  "(P\<^sub>1 \<turnstile> P\<^sub>2) \<squnion> (Q\<^sub>1 \<turnstile> Q\<^sub>2) = ((P\<^sub>1 \<or> Q\<^sub>1) \<turnstile> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)))"
+  by rel_tac
+
 theorem rdesign_choice:
   "(P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) \<sqinter> (Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2) = ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile>\<^sub>r (P\<^sub>2 \<or> Q\<^sub>2))"
   by rel_tac
@@ -264,10 +268,13 @@ theorem design_condr:
   "((P\<^sub>1 \<turnstile> P\<^sub>2) \<triangleleft> b \<triangleright> (Q\<^sub>1 \<turnstile> Q\<^sub>2)) = ((P\<^sub>1 \<triangleleft> b \<triangleright> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<triangleleft> b \<triangleright> Q\<^sub>2))"
   by rel_tac
 
-lemma design_USUP: "(\<Sqinter> i \<bullet> P\<guillemotleft>i\<guillemotright> \<turnstile> Q\<guillemotleft>i\<guillemotright>) = (\<Squnion> i \<bullet> P\<guillemotleft>i\<guillemotright>) \<turnstile> (\<Sqinter> i \<bullet> Q\<guillemotleft>i\<guillemotright>)"
-  by rel_tac
+lemma design_USUP: 
+  assumes "A \<noteq> {}"
+  shows "(\<Sqinter> i \<in> A \<bullet> P(i) \<turnstile> Q(i)) = (\<Squnion> i \<in> A \<bullet> P(i)) \<turnstile> (\<Sqinter> i \<in> A \<bullet> Q(i))"
+  using assms by rel_tac
 
-lemma design_UINF: "(\<Squnion> i \<bullet> P\<guillemotleft>i\<guillemotright> \<turnstile> Q\<guillemotleft>i\<guillemotright>) = (\<Sqinter> i \<bullet> P\<guillemotleft>i\<guillemotright>) \<turnstile> (\<Squnion> i \<bullet> P\<guillemotleft>i\<guillemotright> \<Rightarrow> Q\<guillemotleft>i\<guillemotright>)"
+lemma design_UINF: 
+  "(\<Squnion> i \<in> A \<bullet> P(i) \<turnstile> Q(i)) = (\<Sqinter> i \<in> A \<bullet> P(i)) \<turnstile> (\<Squnion> i \<in> A \<bullet> P(i) \<Rightarrow> Q(i))"
   by rel_tac
 
 theorem design_composition_subst:
@@ -525,6 +532,15 @@ lemma H1_rdesign:
   "H1(P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
   by (rel_tac)
 
+lemma H1_USUP:
+  assumes "A \<noteq> {}"
+  shows "H1(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> H1(P(i)))"
+  using assms by (rel_tac)
+
+lemma H1_UINF:
+  shows "H1(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> H1(P(i)))"
+  by (rel_tac)
+
 subsection {* H2: A specification cannot require non-termination *}
 
 lemma J_split: 
@@ -615,6 +631,10 @@ proof -
     by pred_tac
   finally show ?thesis .
 qed
+
+lemma H2_USUP:
+  shows "H2(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> H2(P(i)))"
+  using assms by (rel_tac)
 
 theorem H1_H2_commute: 
   "H1 (H2 P) = H2 (H1 P)"
