@@ -548,7 +548,7 @@ lemma vdefined_vmap_apply [simp]:
   apply (rename_tac m x b)
   apply (case_tac "x b")
   apply (auto simp add: dom_def)
-  apply (meson is_none_bind is_none_def)
+  apply (simp add: bind_eq_None_conv)
   apply (case_tac "m b")
   apply (auto simp add: dom_def)
 done
