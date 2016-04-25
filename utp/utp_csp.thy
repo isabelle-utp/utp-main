@@ -102,7 +102,7 @@ lemma CSP1_R1_H1:
   by rel_tac
 
 lemma wait_false_design:
-  "(P \<turnstile> Q)\<^sub>f = ((P \<^sub>f) \<turnstile> (Q \<^sub>f))"
+  "(P \<turnstile> Q) \<^sub>f = ((P \<^sub>f) \<turnstile> (Q \<^sub>f))"
   by (rel_tac)
 
 lemma CSP_reactive_design:
