@@ -174,8 +174,18 @@ lemma R1_H2_commute: "R1(H2(P)) = H2(R1(P))"
 
 subsection {* R2 *}
 
+definition R2a_def [upred_defs]: "R2a (P) = (\<Sqinter> s \<bullet> P\<lbrakk>\<guillemotleft>s\<guillemotright>,\<guillemotleft>s\<guillemotright>^\<^sub>u($tr\<acute>-$tr)/$tr,$tr\<acute>\<rbrakk>)"
 definition R2s_def [upred_defs]: "R2s (P) = (P\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>($tr\<acute>-$tr)/$tr\<acute>\<rbrakk>)"
 definition R2_def [upred_defs]: "R2(P) = R1(R2s(P))"
+
+lemma R2a_R2s: "R2a(R2s(P)) = R2s(P)"
+  by rel_tac
+
+lemma R2s_R2a: "R2s(R2a(P)) = R2a(P)"
+  by rel_tac
+
+lemma R2a_equiv_R2s: "P is R2a \<longleftrightarrow> P is R2s"
+  by (metis Healthy_def' R2a_R2s R2s_R2a)
 
 lemma R2s_idem: "R2s(R2s(P)) = R2s(P)"
   by (pred_tac)
