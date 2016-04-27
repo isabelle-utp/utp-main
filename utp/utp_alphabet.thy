@@ -120,6 +120,10 @@ qed
 lemma arestr_lit [alpha]: "\<guillemotleft>v\<guillemotright> \<restriction>\<^sub>p a = \<guillemotleft>v\<guillemotright>"
   by (pred_tac)
 
+lemma arestr_var [alpha]:
+  "var x \<restriction>\<^sub>p a = var (x /\<^sub>L a)"
+  by (pred_tac)
+
 lemma arestr_true [alpha]: "true \<restriction>\<^sub>p a = true"
   by (pred_tac)
 
