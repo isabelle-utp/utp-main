@@ -33,28 +33,19 @@ definition "traj = VAR htraj"
 declare time_def [upred_defs] and disc_def [upred_defs] and traj_def [upred_defs]
 
 lemma uvar_time [simp]: "uvar time"
-  apply (unfold_locales)
-  apply (auto simp add: time_def)
-  apply (metis hyflst.select_convs(1) hyst.select_convs(2) hyst.select_convs(3) hyst.surjective hyst.update_convs(1))
-done
+  by (unfold_locales, auto simp add: time_def)
 
 lemma uvar_disc [simp]: "uvar disc"
-  apply (unfold_locales)
-  apply (auto simp add: disc_def)
-  apply (metis hyflst.surjective hyflst.update_convs(1))
-done
+  by (unfold_locales, auto simp add: disc_def)
 
 lemma uvar_traj [simp]: "uvar traj"
-  apply (unfold_locales)
-  apply (auto simp add: traj_def)
-  apply (metis hyflst.ext_inject hyst.ext_inject hyst.surjective hyst.update_convs(2))
-done
+  by (unfold_locales, auto simp add: traj_def)
 
 lemma hyst_indeps [simp]:
   "time \<bowtie> disc" "disc \<bowtie> time"
   "time \<bowtie> traj" "traj \<bowtie> time"
   "disc \<bowtie> traj" "traj \<bowtie> disc"
-  by (simp add: uvar_indep_def, pred_tac)+
+  by (auto intro: lens_indepI simp add: time_def disc_def traj_def)
 
 definition cont_var :: "('a, 'c) uvar \<Rightarrow> ('a, 'd \<times> 'c) uvar" ("[_]\<^sub>c") where
 "cont_var x = out_var x"
@@ -74,15 +65,17 @@ definition "HCT1(P) = (P \<and> $time \<ge>\<^sub>u 0 \<and> $time \<le>\<^sub>u
 definition "HCT2(P) = (P \<and> ($time\<acute> >\<^sub>u $time \<Rightarrow> 
                               (\<^bold>\<exists> I \<bullet> elems\<^sub>u(\<guillemotleft>I\<guillemotright>) \<subseteq>\<^sub>u {$time .. $time\<acute>}\<^sub>u 
                                    \<and> {$time, $time\<acute>}\<^sub>u \<subseteq>\<^sub>u elems\<^sub>u(\<guillemotleft>I\<guillemotright>)
-                                   \<and> (\<^bold>\<forall> n \<bullet> \<guillemotleft>n\<guillemotright> <\<^sub>u length\<^sub>u(\<guillemotleft>I\<guillemotright>) - 1
+                                   \<and> (\<^bold>\<forall> n \<bullet> \<guillemotleft>n\<guillemotright> <\<^sub>u #\<^sub>u(\<guillemotleft>I\<guillemotright>) - 1
                                        \<Rightarrow> $traj cont-on\<^sub>u {\<guillemotleft>I\<guillemotright>\<lparr>\<guillemotleft>n\<guillemotright>\<rparr>\<^sub>u ..< \<guillemotleft>I\<guillemotright>\<lparr>\<guillemotleft>n\<guillemotright>+1\<rparr>\<^sub>u}\<^sub>u)
                                    \<and> sorted\<^sub>u(\<guillemotleft>I\<guillemotright>) \<and> distinct\<^sub>u(\<guillemotleft>I\<guillemotright>))))"
 
+definition "HCT3(P) = (\<Sqinter> t | \<guillemotleft>t\<guillemotright> \<in>\<^sub>u {$time ..< $time\<acute>}\<^sub>u \<bullet> \<Sqinter> v \<bullet> (P \<and> $traj\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u =\<^sub>u \<guillemotleft>v\<guillemotright>))" 
+
 definition "HTRAJ(P) = (P \<and> $traj =\<^sub>u $traj\<acute>)"
 
-declare HCT1_def [upred_defs] and HCT2_def [upred_defs] and HTRAJ_def [upred_defs]
+declare HCT1_def [upred_defs] and HCT2_def [upred_defs] and HCT3_def [upred_defs] and HTRAJ_def [upred_defs]
 
-abbreviation "HCT(P) \<equiv> HCT1(HCT2(HTRAJ(P)))"
+abbreviation "HCT(P) \<equiv> HCT1(HCT2(HCT3(HTRAJ(P))))"
 
 subsection {* Hybrid relational operators *}
 
@@ -102,7 +95,7 @@ lift_definition cont_lift :: "(real \<Rightarrow> ('d \<times> 'c) condition) \<
 is "\<lambda> P t (A, A'). P (t (A, A')) (fst (hdisc A), htraj A (t (A, A')))" .
 
 definition hInt :: "(real \<Rightarrow> ('d \<times> 'c :: topological_space) condition) \<Rightarrow> ('d, 'c) hyrel"
-where "hInt P = HCT($time\<acute> >\<^sub>u $time \<and> (\<^bold>\<forall> t \<in> {$time ..< $time\<acute>}\<^sub>u \<bullet> P @\<^sub>u \<guillemotleft>t\<guillemotright>))"
+where "hInt P = HCT2(HTRAJ($time\<acute> >\<^sub>u $time \<and> (\<^bold>\<forall> t \<in> {$time ..< $time\<acute>}\<^sub>u \<bullet> P @\<^sub>u \<guillemotleft>t\<guillemotright>)))"
 
 definition hDisInt :: "(real \<Rightarrow> ('d \<times> 'c :: t2_space) condition) \<Rightarrow> ('d, 'c) hyrel"
 where "hDisInt P = (hInt P \<and> 
@@ -155,6 +148,22 @@ definition hODE_init :: "('c, 'd, 'c) hyrexpr \<Rightarrow> ('c :: real_normed_v
 
 declare hODE_def [urel_defs] and hDAE_def [urel_defs] and hODE_init_def [urel_defs]
 
+lemma HCT1_idempotent:
+  "HCT1(HCT1(P)) = HCT1(P)"
+  by rel_tac
+
+lemma HCT2_idempotent:
+  "HCT2(HCT2(P)) = HCT2(P)"
+  by rel_tac
+
+lemma HCT3_idempotent:
+  "HCT3(HCT3(P)) = HCT3(P)"
+  by rel_tac
+
+lemma HTRAJ_idempotent:
+  "HTRAJ(HTRAJ(P)) = HTRAJ(P)"
+  by rel_tac
+
 lemma HCT_idempotent:
   "HCT(HCT(P)) = HCT(P)"
   by (rel_tac)
@@ -181,12 +190,18 @@ lemma HCT_disj: "HCT(P \<or> Q) = (HCT(P) \<or> HCT(Q))"
 lemma HCT_cond_r: "HCT(P \<triangleleft> b \<triangleright> Q) = (HCT(P) \<triangleleft> b \<triangleright> HCT(Q))"
   by (rel_tac)
 
+(*
 lemma HCT_hSkip: "HCT(II\<^sub>H) = II\<^sub>H"
   by (rel_tac)
 
 lemma HCT_hAssigns: "HCT(hAssigns \<sigma>) = hAssigns \<sigma>"
   by (rel_tac)
+*)
 
+lemma HCT3_seq_r: "HCT3(HCT3(P) ;; HCT3(Q)) = (HCT3(P) ;; HCT3(Q))"
+  by rel_tac
+
+(*
 lemma HCT_seq_r: "HCT(HCT(P) ;; HCT(Q)) = (HCT(P) ;; HCT(Q))"
   apply (rel_tac)
   apply blast
@@ -233,15 +248,18 @@ lemma HCT_seq_r: "HCT(HCT(P) ;; HCT(Q)) = (HCT(P) ;; HCT(Q))"
   apply (smt Suc_pred antisym_conv atLeastAtMost_iff hd_conv_nth in_set_conv_nth le0 length_pos_if_in_set list.size(3) old.nat.distinct(2) sorted_nth_mono subsetCE)
 done
 
+
 lemma seq_r_HCT_closed:
   assumes "P is HCT" "Q is HCT"
   shows "(P ;; Q) is HCT"
   by (metis HCT_seq_r Healthy_def' assms(1) assms(2))
+*)
 
 declare hInt_def [urel_defs]
 declare hDisInt_def [urel_defs]
 
 lemma HCT_hInt: "HCT(\<lceil>P\<rceil>\<^sub>H) = \<lceil>P\<rceil>\<^sub>H"
+  apply (rel_tac)
   by (simp add: HCT_idempotent hInt_def)
 
 lemma HCT_hDisInt: "HCT(\<lceil>|P|\<rceil>\<^sub>H) = \<lceil>|P|\<rceil>\<^sub>H"
