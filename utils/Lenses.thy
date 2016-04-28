@@ -62,6 +62,9 @@ lemma lens_comp_left_id [simp]: "1\<^sub>L ;\<^sub>L X = X"
 lemma lens_comp_right_id [simp]: "X ;\<^sub>L 1\<^sub>L = X"
   by (simp add: id_lens_def lens_comp_def)
 
+definition lens_override :: "'a \<Rightarrow> 'a \<Rightarrow> ('b \<Longrightarrow> 'a) \<Rightarrow> 'a" ("_ \<oplus>\<^sub>L _ on _" [95,0,96] 95) where
+"S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on X = put\<^bsub>X\<^esub> S\<^sub>1 (get\<^bsub>X\<^esub> S\<^sub>2)"
+
 subsection {* Weak lenses *}
 
 locale weak_lens =
@@ -86,7 +89,6 @@ begin
 
   lemma put_inj: "inj (put \<sigma>)"
     by (simp add: injI view_determination)
-
 end
 
 declare weak_lens.put_get [simp]
@@ -487,7 +489,7 @@ lemma lens_quotient_id: "weak_lens X \<Longrightarrow> (X /\<^sub>L X) = 1\<^sub
 
 lemma lens_quotient_id_denom: "X /\<^sub>L 1\<^sub>L = X"
   by (simp add: lens_quotient_def id_lens_def lens_create_def)
-
+ 
 lemma lens_quotient_unit: "weak_lens X \<Longrightarrow> (0\<^sub>L /\<^sub>L X) = 0\<^sub>L"
   by (simp add: lens_quotient_def unit_lens_def)
 
@@ -683,6 +685,36 @@ lemma lens_equiv_iff_bij:
   apply (metis assms lens_comp_assoc lens_id_unique)
   using lens_equiv_via_bij apply blast
 done
+
+text {* Lens override laws *}
+
+lemma lens_override_id:
+  "S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on 1\<^sub>L = S\<^sub>2"
+  by (simp add: lens_override_def id_lens_def)
+
+lemma lens_override_unit:
+  "S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on 0\<^sub>L = S\<^sub>1"
+  by (simp add: lens_override_def unit_lens_def)
+
+lemma lens_override_overshadow:
+  assumes "mwb_lens Y"  "X \<subseteq>\<^sub>L Y"
+  shows "(S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on X) \<oplus>\<^sub>L S\<^sub>3 on Y = S\<^sub>1 \<oplus>\<^sub>L S\<^sub>3 on Y"
+  using assms by (simp add: lens_override_def sublens_put_put)
+
+(*
+lemma lens_override_commute:
+  assumes "bij_lens (X +\<^sub>L Y)" "vwb_lens X" "vwb_lens Y" "X \<bowtie> Y"
+  shows "S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on X = S\<^sub>2 \<oplus>\<^sub>L S\<^sub>1 on Y"
+proof -
+  have "1\<^sub>L \<subseteq>\<^sub>L X +\<^sub>L Y"
+    using assms(1) bij_lens_equiv_id lens_equiv_def by blast
+  with assms show ?thesis
+    apply (simp add: lens_override_def)
+*)
+
+lemma lens_override_plus:
+  "X \<bowtie> Y \<Longrightarrow> S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on (X +\<^sub>L Y) = (S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on X) \<oplus>\<^sub>L S\<^sub>2 on Y"
+  by (simp add: lens_indep_comm lens_override_def lens_plus_def)
 
 subsection {* Lens implementations *}
 
