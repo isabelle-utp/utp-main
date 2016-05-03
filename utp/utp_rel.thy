@@ -504,8 +504,12 @@ lemma seqr_true_lemma:
   "(P = (\<not> (\<not> P ;; true))) = (P = (P ;; true))"
   by rel_tac
 
-lemma shEx_lift_seq [uquant_lift]: 
-  "((\<^bold>\<exists> x \<bullet> P(x)) ;; (\<^bold>\<exists> y \<bullet> Q(y))) = (\<^bold>\<exists> x \<bullet> \<^bold>\<exists> y \<bullet> P(x) ;; Q(y))"
+lemma shEx_lift_seq_1 [uquant_lift]: 
+  "((\<^bold>\<exists> x \<bullet> P x) ;; Q) = (\<^bold>\<exists> x \<bullet> (P x ;; Q))"
+  by pred_tac
+
+lemma shEx_lift_seq_2 [uquant_lift]: 
+  "(P ;; (\<^bold>\<exists> x \<bullet> Q x)) = (\<^bold>\<exists> x \<bullet> (P ;; Q x))"
   by pred_tac
 
 text {* While loop laws *}

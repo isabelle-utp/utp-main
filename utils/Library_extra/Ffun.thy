@@ -127,6 +127,11 @@ lemma ffun_minus_zero [simp]:
   shows "0 - f = 0"
   by (transfer, simp)
 
+lemma ffun_minus_self [simp]:
+  fixes f :: "('a, 'b) ffun"
+  shows "f - f = 0"
+  by (transfer, simp)
+
 lemma ffun_minus_plus_commute:
   "fdom(g) \<inter> fdom(h) = {} \<Longrightarrow> (f - g) + h = (f + h) - g"
   by (transfer, simp add: pfun_minus_plus_commute)
@@ -138,6 +143,10 @@ lemma ffun_plus_minus:
 lemma ffun_minus_common_subset:
   "\<lbrakk> h \<subseteq>\<^sub>f f; h \<subseteq>\<^sub>f g \<rbrakk> \<Longrightarrow> (f - h = g - h) = (f = g)"
   by (transfer, simp add: pfun_minus_common_subset)
+
+lemma ffun_minus_plus:
+  "fdom(f) \<inter> fdom(g) = {} \<Longrightarrow> (f + g) - g = f"
+  by (transfer, simp add: pfun_minus_plus)
 
 subsection {* Membership, application, and update *}
 

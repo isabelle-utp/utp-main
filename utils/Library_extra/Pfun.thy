@@ -147,6 +147,11 @@ lemma pfun_minus_zero [simp]:
   shows "0 - f = 0"
   by (transfer, simp add: map_minus_def)
 
+lemma pfun_minus_self [simp]:
+  fixes f :: "('a, 'b) pfun"
+  shows "f - f = 0"
+  by (transfer, simp add: map_minus_def)
+
 lemma pfun_minus_plus_commute:
   "pdom(g) \<inter> pdom(h) = {} \<Longrightarrow> (f - g) + h = (f + h) - g"
   by (transfer, simp add: map_minus_plus_commute)
@@ -158,6 +163,11 @@ lemma pfun_plus_minus:
 lemma pfun_minus_common_subset:
   "\<lbrakk> h \<subseteq>\<^sub>p f; h \<subseteq>\<^sub>p g \<rbrakk> \<Longrightarrow> (f - h = g - h) = (f = g)"
   by (transfer, simp add: map_minus_common_subset)
+
+lemma pfun_minus_plus:
+  "pdom(f) \<inter> pdom(g) = {} \<Longrightarrow> (f + g) - g = f"
+  by (transfer, simp add: map_add_def map_minus_def option.case_eq_if, rule ext, auto)
+     (metis Int_commute domIff insert_disjoint(1) insert_dom)
 
 subsection {* Membership, application, and update *}
 
