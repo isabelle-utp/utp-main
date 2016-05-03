@@ -663,6 +663,40 @@ lemma all_commute:
   using lens_indep_comm apply fastforce+
 done
 
+subsection {* Cylindric algebra *}
+
+lemma C1: "(\<exists> x \<bullet> false) = false"
+  by (pred_tac)
+
+lemma C2: "wb_lens x \<Longrightarrow> `P \<Rightarrow> (\<exists> x \<bullet> P)`"
+  by (pred_tac, metis wb_lens.get_put)
+
+lemma C3: "mwb_lens x \<Longrightarrow> (\<exists> x \<bullet> (P \<and> (\<exists> x \<bullet> Q))) = ((\<exists> x \<bullet> P) \<and> (\<exists> x \<bullet> Q))"
+  by (pred_tac)
+
+lemma C4a: "x \<approx>\<^sub>L y \<Longrightarrow> (\<exists> x \<bullet> \<exists> y \<bullet> P) = (\<exists> y \<bullet> \<exists> x \<bullet> P)"
+  by (pred_tac, metis (no_types, lifting) lens.select_convs(2))+
+
+lemma C4b: "x \<bowtie> y \<Longrightarrow> (\<exists> x \<bullet> \<exists> y \<bullet> P) = (\<exists> y \<bullet> \<exists> x \<bullet> P)"
+  using ex_commute by blast
+
+lemma C5: 
+  fixes x :: "('a, '\<alpha>) uvar"
+  shows "(&x =\<^sub>u &x) = true"
+  by pred_tac
+
+lemma C6:
+  assumes "wb_lens x" "x \<bowtie> y" "x \<bowtie> z"
+  shows "(&y =\<^sub>u &z) = (\<exists> x \<bullet> &y =\<^sub>u &x \<and> &x =\<^sub>u &z)"
+  using assms
+  by (pred_tac, (metis lens_indep_def)+)
+
+lemma C7:
+  assumes "weak_lens x" "x \<bowtie> y"
+  shows "((\<exists> x \<bullet> &x =\<^sub>u &y \<and> P) \<and> (\<exists> x \<bullet> &x =\<^sub>u &y \<and> \<not> P)) = false"
+  using assms
+  by (pred_tac, simp add: lens_indep_sym)
+
 subsection {* Quantifier lifting *}
 
 named_theorems uquant_lift
