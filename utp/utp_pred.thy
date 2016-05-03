@@ -647,6 +647,12 @@ lemma exists_twice: "semi_uvar x \<Longrightarrow> (\<exists> x \<bullet> \<exis
 lemma all_twice: "semi_uvar x \<Longrightarrow> (\<forall> x \<bullet> \<forall> x \<bullet> P) = (\<forall> x \<bullet> P)"
   by (pred_tac)
 
+lemma exists_sub: "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> (\<exists> x \<bullet> \<exists> y \<bullet> P) = (\<exists> y \<bullet> P)"
+  by pred_tac
+
+lemma all_sub: "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> (\<forall> x \<bullet> \<forall> y \<bullet> P) = (\<forall> y \<bullet> P)"
+  by pred_tac
+
 lemma ex_commute:
   assumes "x \<bowtie> y"
   shows "(\<exists> x \<bullet> \<exists> y \<bullet> P) = (\<exists> y \<bullet> \<exists> x \<bullet> P)"
@@ -662,6 +668,38 @@ lemma all_commute:
   apply (pred_tac)
   using lens_indep_comm apply fastforce+
 done
+
+lemma ex_equiv:
+  assumes "x \<approx>\<^sub>L y"
+  shows "(\<exists> x \<bullet> P) = (\<exists> y \<bullet> P)"
+  using assms
+  by (pred_tac, metis (no_types, lifting) lens.select_convs(2))
+
+lemma all_equiv:
+  assumes "x \<approx>\<^sub>L y"
+  shows "(\<forall> x \<bullet> P) = (\<forall> y \<bullet> P)"
+  using assms
+  by (pred_tac, metis (no_types, lifting) lens.select_convs(2))
+
+lemma ex_zero:
+  "(\<exists> &\<emptyset> \<bullet> P) = P"
+  by pred_tac
+
+lemma all_zero:
+  "(\<forall> &\<emptyset> \<bullet> P) = P"
+  by pred_tac
+
+lemma ex_plus:
+  "(\<exists> y,x \<bullet> P) = (\<exists> x \<bullet> \<exists> y \<bullet> P)"
+  by pred_tac
+
+lemma all_plus:
+  "(\<forall> y,x \<bullet> P) = (\<forall> x \<bullet> \<forall> y \<bullet> P)"
+  by pred_tac
+
+lemma closure_all:
+  "[P]\<^sub>u = (\<forall> &\<Sigma> \<bullet> P)"
+  by pred_tac
 
 subsection {* Cylindric algebra *}
 

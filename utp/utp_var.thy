@@ -130,6 +130,7 @@ syntax
   "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr "," 75)
   "_svid"        :: "id \<Rightarrow> svid" ("_" [999] 999)
   "_svid_alpha"  :: "svid" ("\<Sigma>")
+  "_svid_empty"  :: "svid" ("\<emptyset>")
   "_spvar"       :: "svid \<Rightarrow> svar" ("&_" [999] 999)
   "_sinvar"      :: "svid \<Rightarrow> svar" ("$_" [999] 999)
   "_soutvar"     :: "svid \<Rightarrow> svar" ("$_\<acute>" [999] 999)
@@ -147,6 +148,7 @@ translations
   "_salphacomp x y" => "x +\<^sub>L y"
   "_salphavar x" => "x"
   "_svid_alpha" == "\<Sigma>"
+  "_svid_empty" == "0\<^sub>L"
   "_svid x" => "x"
   "_spvar x" == "CONST svar x"
   "_sinvar x" == "CONST ivar x"
