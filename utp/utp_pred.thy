@@ -701,6 +701,10 @@ lemma closure_all:
   "[P]\<^sub>u = (\<forall> &\<Sigma> \<bullet> P)"
   by pred_tac
 
+lemma unrest_as_exists:
+  "vwb_lens x \<Longrightarrow> (x \<sharp> P) \<longleftrightarrow> ((\<exists> x \<bullet> P) = P)"
+  by (pred_tac, metis vwb_lens.put_eq)
+
 subsection {* Cylindric algebra *}
 
 lemma C1: "(\<exists> x \<bullet> false) = false"
