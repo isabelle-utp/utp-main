@@ -593,9 +593,9 @@ lemma upred_eq_false [simp]: "(p =\<^sub>u false) = (\<not> p)"
 
 lemma one_point:
   assumes "semi_uvar x" "x \<sharp> v"
-  shows "(\<exists> x \<bullet> (P \<and> (var x =\<^sub>u v))) = P\<lbrakk>v/x\<rbrakk>"
+  shows "(\<exists> x \<bullet> P \<and> &x =\<^sub>u v) = P\<lbrakk>v/x\<rbrakk>"
   using assms
-  by (simp add: upred_defs, transfer, auto)
+  by (pred_tac)
 
 lemma uvar_assign_exists:
   "uvar x \<Longrightarrow> \<exists> v. b = var_assign x v b"

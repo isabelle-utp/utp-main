@@ -373,6 +373,18 @@ lemma assign_r_comp: "semi_uvar x \<Longrightarrow> (x := u ;; P) = ([$x \<mapst
 lemma assign_test: "semi_uvar x \<Longrightarrow> (x := \<guillemotleft>u\<guillemotright> ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright>)"
   by (simp add: assigns_comp subst_upd_comp subst_lit usubst_upd_idem)
 
+lemma assign_commute:
+  assumes "x \<bowtie> y" "x \<sharp> f" "y \<sharp> e"
+  shows "(x := e ;; y := f) = (y := f ;; x := e)"
+  using assms
+  by (rel_tac, simp_all add: lens_indep_comm)
+
+
+lemma assign_cond_r:
+  fixes x :: "('a, '\<alpha>) uvar"
+  shows "(x := e ;; (P \<triangleleft> b \<triangleright>\<^sub>r Q)) = ((x := e ;; P) \<triangleleft> (b\<lbrakk>e/x\<rbrakk>) \<triangleright>\<^sub>r (x := e ;; Q))"
+  by rel_tac
+
 lemma assigns_r_ufunc: "ufunctional \<langle>f\<rangle>\<^sub>a"
   by (rel_tac)
 
@@ -618,5 +630,28 @@ subsection {* Alphabet laws *}
 lemma aext_cond [alpha]: 
   "(P \<triangleleft> b \<triangleright> Q) \<oplus>\<^sub>p a = ((P \<oplus>\<^sub>p a) \<triangleleft> (b \<oplus>\<^sub>p a) \<triangleright> (Q \<oplus>\<^sub>p a))"
   by rel_tac
+
+subsection {* Relation algebra laws *}
+
+theorem RA1: "(P ;; (Q ;; R)) = ((P ;; Q) ;; R)"
+  using seqr_assoc by auto
+
+theorem RA2: "(P ;; II) = P" "(II ;; P) = P"
+  by simp_all
+
+theorem RA3: "P\<^sup>-\<^sup>- = P"
+  by simp
+
+theorem RA4: "(P ;; Q)\<^sup>- = (Q\<^sup>- ;; P\<^sup>-)"
+  by simp
+
+theorem RA5: "(P \<or> Q)\<^sup>- = (P\<^sup>- \<or> Q\<^sup>-)"
+  by rel_tac
+
+theorem RA6: "((P \<or> Q) ;; R) = ((P;;R) \<or> (Q;;R))"
+  using seqr_or_distl by blast
+
+theorem RA7: "((P\<^sup>- ;; (\<not>(P ;; Q))) \<or> (\<not>Q)) = (\<not>Q)"
+  by (rel_tac)
 
 end
