@@ -1,7 +1,7 @@
 section {* Lenses *}
 
 theory Lenses
-imports Main
+imports Two
 begin
 
 subsection {* Lens signature *}
@@ -793,15 +793,25 @@ proof (rule lens_equivI)
   done
 qed
 
-definition fun_lens :: "'a \<Rightarrow> ('b \<Longrightarrow> ('a \<Rightarrow> 'b))" where
+text {* We require that range type of a lens function has cardinality of at least 2; this ensures
+        that properties of independence are provable. *}
+
+definition fun_lens :: "'a \<Rightarrow> ('b::two \<Longrightarrow> ('a \<Rightarrow> 'b))" where
 [lens_defs]: "fun_lens x = \<lparr> lens_get = (\<lambda> f. f x), lens_put = (\<lambda> f u. f(x := u)) \<rparr>"
 
 lemma fun_wb_lens: "wb_lens (fun_lens x)"
   by (unfold_locales, simp_all add: fun_lens_def)
 
+declare [[show_types]]
+
 lemma fun_lens_indep:
-  "x \<noteq> y \<Longrightarrow> fun_lens x \<bowtie> fun_lens y"
-  by (simp add: fun_lens_def lens_indep_def fun_upd_twist)
+  "fun_lens x \<bowtie> fun_lens y \<longleftrightarrow> x \<noteq> y"
+proof -
+  obtain u v :: "'a::two" where "u \<noteq> v"
+    using two_diff by auto
+  thus ?thesis
+    by (auto simp add: fun_lens_def lens_indep_def, meson)
+qed
 
 definition map_lens :: "'a \<Rightarrow> ('b \<Longrightarrow> ('a \<rightharpoonup> 'b))" where
 [lens_defs]: "map_lens x = \<lparr> lens_get = (\<lambda> f. the (f x)), lens_put = (\<lambda> f u. f(x \<mapsto> u)) \<rparr>"
@@ -846,7 +856,7 @@ lemma list_augment_same_twice: "list_augment (list_augment xs k u) k v = list_au
 lemma nth'_list_augment_diff: "i \<noteq> j \<Longrightarrow> nth' (list_augment \<sigma> i v) j = nth' \<sigma> j"
   by (auto simp add: list_augment_def list_pad_out_def nth_append nth'_def)
 
-definition list_lens :: "nat \<Rightarrow> ('a \<Longrightarrow> 'a list)" where
+definition list_lens :: "nat \<Rightarrow> ('a::two \<Longrightarrow> 'a list)" where
 [lens_defs]: "list_lens i = \<lparr> lens_get = (\<lambda> xs. nth' xs i)
                             , lens_put = (\<lambda> xs x. list_augment xs i x) \<rparr>"
 
