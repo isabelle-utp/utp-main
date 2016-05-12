@@ -33,11 +33,11 @@ proof -
   also have "... = (\<exists> $x \<bullet> $x =\<^sub>u $x\<acute> \<and> II\<restriction>\<^sub>\<alpha>x)"
     by (metis assms eq_upred_sym skip_r_unfold)
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>$x\<acute>/$x\<rbrakk>"
-    by (simp add: conj_comm one_point unrest_iuvar_ouvar)
+    by (metis in_var_semi_uvar one_point pr_var_def unrest_iuvar_ouvar utp_pred.inf_commute vwb_lens_mwb)
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>$x/$x\<acute>\<rbrakk>"
     by subst_tac
   also have "... = (\<exists> $x\<acute> \<bullet> $x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x)"
-    by (simp add: assms conj_comm one_point unrest_ouvar_iuvar)
+    by (metis assms one_point out_var_semi_uvar pr_var_def unrest_ouvar_iuvar utp_pred.inf_commute vwb_lens_mwb)
   also have "... = (\<exists> $x\<acute> \<bullet> II)"
     using assms skip_r_unfold by fastforce
   also have "... = end\<^sub>u x"
@@ -112,7 +112,7 @@ proof -
   also from assms have "... = (II\<restriction>\<^sub>\<alpha>x) \<lbrakk>$x/$x\<acute>\<rbrakk>"
     by subst_tac
   also have "... = (\<exists> $x\<acute> \<bullet> ($x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x))"
-    by (simp add: assms conj_comm one_point unrest_ouvar_iuvar)
+    by (metis assms one_point out_var_semi_uvar pr_var_def unrest_ouvar_iuvar utp_pred.inf_commute vwb_lens_mwb)
   also from assms have "... = (\<exists> $x\<acute> \<bullet> II)"
     using skip_r_unfold by force
   also have "... = end\<^sub>u x"
@@ -128,20 +128,24 @@ definition var_block ::
   "('a :: continuum) dvar \<Rightarrow> 
    ('a dvar \<Rightarrow> ('\<alpha>::vst, '\<alpha>) relation) \<Rightarrow> 
    ('\<alpha>, '\<alpha>) relation"
-where "var_block x P = (var\<^sub>u (x\<up>) ;; P x ;; end\<^sub>u (x\<up>))"
+where "var_block x P = RID(x\<up>)(P x)"
 
 definition
   cnt_parm :: "('a \<Rightarrow> ('\<alpha>, '\<beta>) relation) \<Rightarrow> 'a \<Rightarrow> ('\<alpha>, '\<beta>) relation"
 where "cnt_parm P = (\<lambda> x. P(x))"
 
+(* TODO: Allow the parser to support multiple variables in blocks supported by the lens operations *)
+
 syntax
-  "_var_block" :: "id \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("var _ \<bullet>/ _" [0,999] 999)
-  "_var_block_ty" :: "id \<Rightarrow> type \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("var _ :: _ \<bullet>/ _" [0,999] 999)
-  "_cnt_block"     :: "id \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("cnt _ \<bullet>/ _" [0,999] 999)
-  "_cnt_block_ty"  :: "id \<Rightarrow> type \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("cnt _ :: _ \<bullet>/ _" [0,0,999] 999)
+  "_var_block" :: "id \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("var _ \<bullet>/ _" [0,10] 10)
+  "_var_block_assign" :: "id \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("var _ := _ \<bullet>/ _" [0,0,10] 10)
+  "_var_block_ty" :: "id \<Rightarrow> type \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("var _ :: _ \<bullet>/ _" [0,10] 10)
+  "_cnt_block"     :: "id \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("cnt _ \<bullet>/ _" [0,10] 10)
+  "_cnt_block_ty"  :: "id \<Rightarrow> type \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("cnt _ :: _ \<bullet>/ _" [0,0,10] 10)
 
 translations
   "var x \<bullet> P" => "CONST var_block \<lceil>IDSTR(x)\<rceil>\<^sub>d (\<lambda> x. P)"
+  "var x := v \<bullet> P" => "var x \<bullet> (x := v ;; P)"
   "var x :: 'a \<bullet> P" => "CONST var_block \<lceil>IDSTR(x)\<rceil>\<^sub>d (\<lambda> x :: 'a dvar. P)"
   "var x \<bullet> P" <= "CONST var_block z (\<lambda> x. P)"
   "cnt x \<bullet> P" == "CONST cnt_parm (\<lambda> x. P)"
@@ -150,13 +154,37 @@ translations
 declare var_block_def [urel_defs]
 declare cnt_parm_def [urel_defs]
 
-lemma subst_var_block: 
+lemma var_block_collapse:
+  "d\<up> \<sharp>\<sharp> P \<Longrightarrow> var_block d (\<lambda> x. P) = P"
+  by (simp add: unrest_relation_def var_block_def)
+
+lemma var_block_skip:
+  "var_block d (\<lambda> _. II) = II"
+  by (simp add: var_block_def RID_skip_r uvar_dvar)
+
+lemma var_block_assign_r_same:
+  "var_block d (\<lambda> x. x := v) = II"
+  by (metis RID_assign_r_same pr_var_def uvar_dvar var_block_def)
+
+lemma var_block_idem:
+  "var_block d (\<lambda> x. var_block d P) = var_block d P"
+  by (simp add: var_block_def RID_idem uvar_dvar)
+
+lemma var_block_out_left:
+  "d\<up> \<sharp>\<sharp> P \<Longrightarrow> var_block d (\<lambda> x. P ;; Q x) = (P ;; (var_block d Q))"
+  by (metis (no_types, lifting) RID_seq_left unrest_relation_def uvar_dvar var_block_def)
+
+lemma var_block_out_right:
+  "d\<up> \<sharp>\<sharp> Q \<Longrightarrow> var_block d (\<lambda> x. P x ;; Q) = ((var_block d P) ;; Q)"
+  by (metis (no_types, lifting) RID_seq_right unrest_relation_def uvar_dvar var_block_def)
+
+lemma subst_var_block [usubst]: 
   fixes v :: "('a, '\<alpha> :: vst \<times> '\<alpha>) uexpr"
-  and   x :: "'b::continuum dvar"
-  assumes "x\<up> \<bowtie> y" "$x \<sharp> v" "$x\<acute> \<sharp> v"
-  shows "(var_block x P)\<lbrakk>v/$y\<rbrakk> = var_block x (\<lambda> x :: 'b dvar. (P x)\<lbrakk>v/$y\<rbrakk>)"
+  and   d :: "'b::continuum dvar"
+  assumes "d\<up> \<bowtie> y" "$d \<sharp> v" "$d\<acute> \<sharp> v"
+  shows "(var_block d P)\<lbrakk>v/$y\<rbrakk> = var_block d (\<lambda> x :: 'b dvar. (P x)\<lbrakk>v/$y\<rbrakk>)"
   using assms
-  by (simp add: var_block_def var_block_expand uvar_dvar usubst lens_indep_sym)
+  by (simp add: var_block_def RID_def uvar_dvar usubst lens_indep_sym)
 
 subsection {* Relational procedures *}
 
@@ -274,14 +302,11 @@ lemma vres_parm_comp_apply [simp]:
 
 text {* Instantiate vstore for design alphabets *}
 
-term more_update
-
 instantiation alpha_d_ext :: (vst) vst
 begin
-  definition [simp]: "get_vstore_alpha_d_ext x = get_vstore (more x)"
-  definition [simp]: "put_vstore_alpha_d_ext x s = more_update (\<lambda> v. put_vstore v s) x"
+  definition "vstore_lens_alpha_d_ext = \<V> ;\<^sub>L \<Sigma>\<^sub>D"
 instance
-  by (intro_classes, auto simp add: alpha_d.defs)
+  by (intro_classes, auto simp add: vstore_lens_alpha_d_ext_def comp_vwb_lens)
 end
 
 end
