@@ -465,6 +465,10 @@ lemma lens_comp_indep_cong_left:
   apply (simp add: lens_comp_def)
 done
   
+lemma lens_comp_indep_cong:
+  "\<lbrakk> mwb_lens x; mwb_lens y; mwb_lens z \<rbrakk> \<Longrightarrow> (x ;\<^sub>L z) \<bowtie> (y ;\<^sub>L z) \<longleftrightarrow> x \<bowtie> y"
+  using lens_comp_indep_cong_left lens_indep_left_comp by blast
+
 lemma lens_quotient_mwb:
   "\<lbrakk> mwb_lens Y; X \<subseteq>\<^sub>L Y \<rbrakk> \<Longrightarrow> mwb_lens (X /\<^sub>L Y)"
   by (unfold_locales, auto simp add: lens_quotient_def lens_create_def sublens_def lens_comp_def comp_def)  
@@ -801,8 +805,6 @@ definition fun_lens :: "'a \<Rightarrow> ('b::two \<Longrightarrow> ('a \<Righta
 
 lemma fun_wb_lens: "wb_lens (fun_lens x)"
   by (unfold_locales, simp_all add: fun_lens_def)
-
-declare [[show_types]]
 
 lemma fun_lens_indep:
   "fun_lens x \<bowtie> fun_lens y \<longleftrightarrow> x \<noteq> y"

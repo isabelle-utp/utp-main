@@ -177,11 +177,12 @@ done
 setup_lifting type_definition_vstore
 
 typedef ('a::continuum) dvar = "{x :: dname. dname_card x = UCARD('a)}"
+  morphisms dvar_dname Abs_dvar
   by (auto, meson dname.select_convs(2))
 
 setup_lifting type_definition_dvar
 
-lift_definition mk_dvar :: "string \<Rightarrow> ('a::continuum) dvar" ("\<lceil>_\<rceil>\<^sub>d")
+lift_definition mk_dvar :: "string \<Rightarrow> ('a::{continuum,two}) dvar" ("\<lceil>_\<rceil>\<^sub>d")
 is "\<lambda> n. \<lparr> dname_name = n, dname_card = UCARD('a) \<rparr>"
   by auto
 
@@ -191,66 +192,61 @@ lift_definition dvar_card :: "'a::continuum dvar \<Rightarrow> ucard" is "dname_
 lemma dvar_name [simp]: "dvar_name \<lceil>x\<rceil>\<^sub>d = x"
   by (transfer, simp)
 
-lift_definition vstore_lookup :: "('a::continuum) dvar \<Rightarrow> vstore \<Rightarrow> 'a"
+term fun_lens
+
+setup_lifting type_definition_lens_ext
+
+lift_definition dvar_get :: "('a::continuum) dvar \<Rightarrow> vstore \<Rightarrow> 'a"
 is "\<lambda> x s. (uproject :: uuniv \<Rightarrow> 'a) (s(x))" .
 
-lift_definition vstore_put :: "('a::continuum) dvar \<Rightarrow> 'a \<Rightarrow> vstore \<Rightarrow> vstore"
-is "\<lambda> (x :: dname) (v :: 'a) f . f(x := uinject v)"
+lift_definition dvar_put :: "('a::continuum) dvar \<Rightarrow> vstore \<Rightarrow> 'a \<Rightarrow> vstore"
+is "\<lambda> (x :: dname) f (v :: 'a) . f(x := uinject v)"
   by (auto)
 
-definition vstore_upd :: "('a::continuum) dvar \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> vstore \<Rightarrow> vstore"
-where "vstore_upd x f s = vstore_put x (f (vstore_lookup x s)) s"
+definition dvar_lens :: "('a::continuum) dvar \<Rightarrow> ('a \<Longrightarrow> vstore)" where
+"dvar_lens x = \<lparr> lens_get = dvar_get x, lens_put = dvar_put x \<rparr>"
 
-lemma vstore_upd_comp [simp]:
-  "vstore_upd x f (vstore_upd x g s) = vstore_upd x (f \<circ> g) s"
-  by (simp add: vstore_upd_def, transfer, simp)
-
-lemma vstore_lookup_put [simp]: "vstore_lookup x (vstore_put x v s) = v"
-  by (transfer, simp)
-
-lemma vstore_lookup_upd [simp]: "vstore_lookup x (vstore_upd x f s) = f (vstore_lookup x s)"
-  by (simp add: vstore_upd_def)
-
-lemma vstore_upd_eta [simp]: "vstore_upd x (\<lambda> _. vstore_lookup x s) s = s"
-  apply (simp add: vstore_upd_def, transfer, auto)
-  apply (metis Domainp_iff dvar.domain fun_upd_idem_iff uproject_inv)
+lemma vstore_vwb_lens [simp]:
+  "vwb_lens (dvar_lens x)"
+  apply (unfold_locales)
+  apply (simp_all add: dvar_lens_def)
+  apply (transfer, auto)
+  apply (transfer)
+  apply (metis fun_upd_idem uproject_inv)
+  apply (transfer, simp)
 done
 
-lemma vstore_lookup_put_diff_var [simp]:
-  assumes "dvar_name x \<noteq> dvar_name y"
-  shows "vstore_lookup x (vstore_put y v s) = vstore_lookup x s"
-  using assms by (transfer, auto)
+lemma dvar_lens_indep_iff: 
+  fixes x :: "'a::{continuum,two} dvar" and y :: "'b::{continuum,two} dvar"
+  shows "dvar_lens x \<bowtie> dvar_lens y \<longleftrightarrow> (dvar_dname x \<noteq> dvar_dname y)"
+proof -
+  obtain v1 v2 :: "'b::{continuum,two}" where v:"v1 \<noteq> v2"
+    using two_diff by auto
+  obtain u :: "'a::{continuum,two}" and v :: "'b::{continuum,two}"
+    where uv: "uinject u \<noteq> uinject v"
+    by (metis (full_types) uinject_inv v)
+  show ?thesis
+  proof (simp add: dvar_lens_def lens_indep_def, transfer, auto simp add: fun_upd_twist)
+    fix ya :: dname
+    assume a1: "ucard_of (TYPE('b)::'b itself) = ucard_of (TYPE('a)::'a itself)"
+    assume "dname_card ya = ucard_of (TYPE('a)::'a itself)"
+    assume a2: "\<forall>u v \<sigma>. (\<forall>x. \<sigma> x \<in> \<U>(dname_card x)) \<longrightarrow> \<sigma>(ya := uinject (u::'a)) = \<sigma>(ya := uinject (v::'b)) \<and> (uproject (uinject v)::'a) = uproject (\<sigma> ya) \<and> (uproject (uinject u)::'b) = uproject (\<sigma> ya)"
+    obtain NN :: "vstore \<Rightarrow> dname \<Rightarrow> nat set" where
+      "\<And>v. \<forall>d. NN v d \<in> \<U>(dname_card d)"
+      by (metis (lifting) Abs_vstore_cases mem_Collect_eq)
+    then show False
+      using a2 a1 by (metis uinject_card uproject_inv uv)
+  qed
+qed
 
-lemma vstore_put_commute:
-  assumes "dvar_name x \<noteq> dvar_name y"
-  shows "vstore_put x u (vstore_put y v s) = vstore_put y v (vstore_put x u s)"
-  using assms
-  by (transfer, fastforce)
-
-lemma vstore_put_put [simp]:
-  "vstore_put x u (vstore_put x v s) = vstore_put x u s"
-  by (transfer, simp)
-
-text {* The vst class provides an interface for extracting a variable store from a state space.
-        For now, the state-space is limited to countably infinite types, though we will in
-        the future build a more expressive universe. *}
+text {* The vst class provides the location of the store in a larger type via a lens *}
 
 class vst =
-  fixes get_vstore :: "'a \<Rightarrow> vstore"
-  and   put_vstore :: "'a \<Rightarrow> vstore \<Rightarrow> 'a" 
-  assumes put_get_vstore [simp]: "get_vstore (put_vstore s x) = x"
-  and get_put_vstore [simp]: "put_vstore s (get_vstore s) = s"
-  and put_put_vstore [simp]: "put_vstore (put_vstore s x) y = put_vstore s y"
-(*
-  and upd_vstore_comp [simp]: "upd_vstore f (upd_vstore g s) = upd_vstore (f \<circ> g) s"  
-  and upd_vstore_eta [simp]: "upd_vstore (\<lambda> _. get_vstore s) s = s"
-  and upd_store_parm: "upd_vstore f s = upd_vstore (\<lambda> _. f (get_vstore s)) s"
-*)
+  fixes vstore_lens :: "vstore \<Longrightarrow> 'a" ("\<V>")
+  assumes vstore_vwb_lens [simp]: "vwb_lens vstore_lens"
 
-definition dvar_lift :: "'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) uvar" ("_\<up>" [999] 999)
-where "dvar_lift x = \<lparr> lens_get = (\<lambda> v. vstore_lookup x (get_vstore v))
-                     , lens_put = (\<lambda> s v. put_vstore s (vstore_put x v (get_vstore s)))
-                     \<rparr>"
+definition dvar_lift :: "'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) uvar" ("_\<up>" [999] 999) where
+"dvar_lift x = dvar_lens x ;\<^sub>L vstore_lens"
 
 definition [simp]: "in_dvar x = in_var (x\<up>)"
 definition [simp]: "out_dvar x = out_var (x\<up>)"
@@ -259,24 +255,24 @@ adhoc_overloading
   ivar in_dvar and ovar out_dvar and svar dvar_lift
 
 lemma uvar_dvar: "uvar (x\<up>)"
-  apply (unfold_locales)
-  apply (simp_all add: dvar_lift_def)
-  apply (metis get_put_vstore vstore_upd_def vstore_upd_eta)
-done
+  by (auto intro: comp_vwb_lens simp add: dvar_lift_def)
 
 text {* Deep variables with different names are independent *}
 
-lemma dvar_indep_diff_name:
-  assumes "dvar_name x \<noteq> dvar_name y"
-  shows "x\<up> \<bowtie> y\<up>"
-  using assms
-  apply (auto simp add: assms dvar_lift_def lens_indep_def vstore_put_commute)
-  using assms apply auto
-done
-
+lemma dvar_lift_indep_iff:
+  fixes x :: "'a::{continuum,two} dvar" and y :: "'b::{continuum,two} dvar"
+  shows "x\<up> \<bowtie> y\<up> \<longleftrightarrow> dvar_dname x \<noteq> dvar_dname y"
+proof -
+  have "x\<up> \<bowtie> y\<up> \<longleftrightarrow> dvar_lens x \<bowtie> dvar_lens y"
+    by (metis dvar_lift_def lens_comp_indep_cong_left lens_indep_left_comp vst_class.vstore_vwb_lens vwb_lens_mwb)
+  also have "... \<longleftrightarrow> dvar_dname x \<noteq> dvar_dname y"
+    by (simp add: dvar_lens_indep_iff)
+  finally show ?thesis .
+qed
+    
 lemma dvar_indep_diff_name' [simp]:
   "x \<noteq> y \<Longrightarrow> \<lceil>x\<rceil>\<^sub>d\<up> \<bowtie> \<lceil>y\<rceil>\<^sub>d\<up>"
-  by (auto intro: dvar_indep_diff_name)
+  by (simp add: dvar_lift_indep_iff mk_dvar.rep_eq)
 
 text {* A basic record structure for vstores *}
 
@@ -285,10 +281,9 @@ record vstore_d =
 
 instantiation vstore_d_ext :: (type) vst
 begin
-  definition [simp]: "get_vstore_vstore_d_ext = vstore"
-  definition [simp]: "put_vstore_vstore_d_ext = (\<lambda> x s. vstore_update (\<lambda>_. s) x)"
+  definition "vstore_lens_vstore_d_ext = VAR vstore"
 instance
-  by (intro_classes, simp_all)
+  by (intro_classes, unfold_locales, simp_all add: vstore_lens_vstore_d_ext_def)
 end
 
 end
