@@ -584,20 +584,86 @@ text {* Relational unrestriction states that a variable is unchanged by a relati
   the parametric healthiness condition RID. *}
 
 definition RID :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" 
-where "RID x P = (P \<and> $x\<acute> =\<^sub>u $x)"
+where "RID x P = ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x)"
 
 declare RID_def [urel_defs]
 
 lemma RID_skip_r:
-  "RID(x)(II) = II"
+  "uvar x \<Longrightarrow> RID(x)(II) = II"
+  apply rel_tac
+using vwb_lens.put_eq apply fastforce
+by auto
+
+lemma RID_disj:
+  "RID(x)(P \<or> Q) = (RID(x)(P) \<or> RID(x)(Q))"
   by rel_tac
 
-lemma RID_assigns_r:
+lemma RID_conj:
+  "uvar x \<Longrightarrow> RID(x)(RID(x)(P) \<and> RID(x)(Q)) = (RID(x)(P) \<and> RID(x)(Q))"
+  by rel_tac
+
+lemma RID_assigns_r_diff:
   "\<lbrakk> uvar x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> RID(x)(\<langle>\<sigma>\<rangle>\<^sub>a) = \<langle>\<sigma>\<rangle>\<^sub>a"
   apply (rel_tac)
   apply (auto simp add: unrest_usubst_def)
+  apply (metis vwb_lens.put_eq)
   apply (metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
 done
+
+lemma RID_assign_r_same:
+  "uvar x \<Longrightarrow> RID(x)(x := v) = II"
+  apply (rel_tac)
+  using vwb_lens.put_eq apply fastforce
+  apply blast
+done
+
+lemma RID_seq_left:
+  assumes "uvar x"
+  shows "RID(x)(RID(x)(P) ;; Q) = (RID(x)(P) ;; RID(x)(Q))"
+proof -
+  have "RID(x)(RID(x)(P) ;; Q) = ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x ;; Q) \<and> $x\<acute> =\<^sub>u $x)"
+    by (simp add: RID_def usubst)
+  also from assms have "... = (((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> (\<exists> $x \<bullet> $x\<acute> =\<^sub>u $x) ;; (\<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
+    by (rel_tac)
+  also from assms have "... = (((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
+    apply (rel_tac)
+    apply (metis vwb_lens.put_eq)
+    apply (metis mwb_lens.put_put vwb_lens_mwb)
+  done
+  also from assms have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
+    by (rel_tac, metis (full_types) mwb_lens.put_put vwb_lens_def wb_lens_weak weak_lens.put_get)
+  also have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> $x\<acute> =\<^sub>u $x)) \<and> $x\<acute> =\<^sub>u $x)"
+    by (rel_tac, fastforce)
+  also have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> $x\<acute> =\<^sub>u $x)))"
+    by rel_tac
+  also have "... = (RID(x)(P) ;; RID(x)(Q))"
+    by rel_tac
+  finally show ?thesis .
+qed
+
+lemma RID_seq_right:
+  assumes "uvar x"
+  shows "RID(x)(P ;; RID(x)(Q)) = (RID(x)(P) ;; RID(x)(Q))"
+proof -
+  have "RID(x)(P ;; RID(x)(Q)) = ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> $x\<acute> =\<^sub>u $x) \<and> $x\<acute> =\<^sub>u $x)"
+    by (simp add: RID_def usubst)
+  also from assms have "... = (((\<exists> $x \<bullet>  P) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> (\<exists> $x\<acute> \<bullet> $x\<acute> =\<^sub>u $x)) \<and> $x\<acute> =\<^sub>u $x)"
+    by (rel_tac)
+  also from assms have "... = (((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
+    apply (rel_tac)
+    apply (metis vwb_lens.put_eq)
+    apply (metis mwb_lens.put_put vwb_lens_mwb)
+  done
+  also from assms have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
+    by (rel_tac, metis (full_types) mwb_lens.put_put vwb_lens_def wb_lens_weak weak_lens.put_get)
+  also have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> $x\<acute> =\<^sub>u $x)) \<and> $x\<acute> =\<^sub>u $x)"
+    by (rel_tac, fastforce)
+  also have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> $x\<acute> =\<^sub>u $x)))"
+    by rel_tac
+  also have "... = (RID(x)(P) ;; RID(x)(Q))"
+    by rel_tac
+  finally show ?thesis .
+qed
 
 definition unrest_relation :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrelation \<Rightarrow> bool" (infix "\<sharp>\<sharp>" 20)
 where "(x \<sharp>\<sharp> P) \<longleftrightarrow> (P = RID(x)(P))"
@@ -605,25 +671,26 @@ where "(x \<sharp>\<sharp> P) \<longleftrightarrow> (P = RID(x)(P))"
 declare unrest_relation_def [urel_defs]
 
 lemma skip_r_runrest [unrest]:
-  "x \<sharp>\<sharp> II"
-  by rel_tac
+  "uvar x \<Longrightarrow> x \<sharp>\<sharp> II"
+  by (simp add: RID_skip_r unrest_relation_def)
 
 lemma assigns_r_runrest:
   "\<lbrakk> uvar x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> \<langle>\<sigma>\<rangle>\<^sub>a"
-  by (simp add: RID_assigns_r unrest_relation_def)
+  by (simp add: RID_assigns_r_diff unrest_relation_def)
  
 lemma seq_r_runrest [unrest]:
-  "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P ;; Q)"
-  by (rel_tac, metis)
+  assumes "uvar x" "x \<sharp>\<sharp> P" "x \<sharp>\<sharp> Q"
+  shows "x \<sharp>\<sharp> (P ;; Q)"
+  by (metis RID_seq_left assms unrest_relation_def)
 
 lemma false_runrest [unrest]: "x \<sharp>\<sharp> false"
   by (rel_tac)
 
-lemma and_runrest [unrest]: "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<and> Q)"
-  by (rel_tac, metis)
+lemma and_runrest [unrest]: "\<lbrakk> uvar x; x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<and> Q)"
+  by (metis RID_conj unrest_relation_def)
 
 lemma or_runrest [unrest]: "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<or> Q)"
-  by (rel_tac, blast+)
+  by (simp add: RID_disj unrest_relation_def)
 
 subsection {* Alphabet laws *}
 

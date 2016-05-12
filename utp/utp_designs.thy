@@ -559,7 +559,7 @@ proof -
       also have "... = (\<exists> $ok\<acute> \<bullet> P \<and> $ok\<acute> =\<^sub>u false)"
         by (rel_tac, metis (mono_tags, lifting) alpha_d.surjective alpha_d.update_convs(1))
       also have "... = P\<^sup>f"
-        by (metis one_point out_var_uvar unrest_false uvar_ok vwb_lens_mwb)
+        by (metis C1 one_point out_var_uvar pr_var_def unrest_as_exists uvar_ok vwb_lens_mwb)
      finally show ?thesis .
     qed
     moreover have "(P ;; ($ok \<and> (\<lceil>II\<rceil>\<^sub>D \<and> $ok\<acute>))) = (P\<^sup>t \<and> $ok\<acute>)"
