@@ -588,6 +588,14 @@ where "RID x P = ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<an
 
 declare RID_def [urel_defs]
 
+lemma RID_idem:
+  "semi_uvar x \<Longrightarrow> RID(x)(RID(x)(P)) = RID(x)(P)"
+  by rel_tac
+
+lemma RID_mono:
+  "P \<sqsubseteq> Q \<Longrightarrow> RID(x)(P) \<sqsubseteq> RID(x)(Q)"
+  by rel_tac
+
 lemma RID_skip_r:
   "uvar x \<Longrightarrow> RID(x)(II) = II"
   apply rel_tac
