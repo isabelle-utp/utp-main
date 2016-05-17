@@ -367,11 +367,14 @@ lemma assigns_r_conv:
   "bij f \<Longrightarrow> \<langle>f\<rangle>\<^sub>a\<^sup>- = \<langle>inv f\<rangle>\<^sub>a"
   by (rel_tac, simp_all add: bij_is_inj bij_is_surj surj_f_inv_f)
 
-lemma assign_r_comp: "semi_uvar x \<Longrightarrow> (x := u ;; P) = ([$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> P)"
+lemma assign_r_comp: "semi_uvar x \<Longrightarrow> (x := u ;; P) = P\<lbrakk>\<lceil>u\<rceil>\<^sub></$x\<rbrakk>"
   by (simp add: assigns_r_comp usubst)
 
 lemma assign_test: "semi_uvar x \<Longrightarrow> (x := \<guillemotleft>u\<guillemotright> ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright>)"
   by (simp add: assigns_comp subst_upd_comp subst_lit usubst_upd_idem)
+
+lemma assign_twice: "\<lbrakk> uvar x; x \<sharp> f \<rbrakk> \<Longrightarrow> (x := e ;; x := f) = (x := f)"
+  by (simp add: assigns_comp usubst)
 
 lemma assign_commute:
   assumes "x \<bowtie> y" "x \<sharp> f" "y \<sharp> e"
@@ -379,10 +382,20 @@ lemma assign_commute:
   using assms
   by (rel_tac, simp_all add: lens_indep_comm)
 
+lemma assign_cond:
+  fixes x :: "('a, '\<alpha>) uvar"
+  assumes "out\<alpha> \<sharp> b"
+  shows "(x := e ;; (P \<triangleleft> b \<triangleright> Q)) = ((x := e ;; P) \<triangleleft> (b\<lbrakk>\<lceil>e\<rceil>\<^sub></$x\<rbrakk>) \<triangleright> (x := e ;; Q))"
+  by rel_tac
 
-lemma assign_cond_r:
+lemma assign_rcond:
   fixes x :: "('a, '\<alpha>) uvar"
   shows "(x := e ;; (P \<triangleleft> b \<triangleright>\<^sub>r Q)) = ((x := e ;; P) \<triangleleft> (b\<lbrakk>e/x\<rbrakk>) \<triangleright>\<^sub>r (x := e ;; Q))"
+  by rel_tac
+
+lemma assign_r_alt_def:
+  fixes x :: "('a, '\<alpha>) uvar"
+  shows "x := v = II\<lbrakk>\<lceil>v\<rceil>\<^sub></$x\<rbrakk>"
   by rel_tac
 
 lemma assigns_r_ufunc: "ufunctional \<langle>f\<rangle>\<^sub>a"
