@@ -603,6 +603,12 @@ lemma lens_unit_prod_sublens_2: "0\<^sub>L +\<^sub>L x \<subseteq>\<^sub>L x"
   apply (auto)
 done
 
+lemma lens_plus_left_unit: "0\<^sub>L +\<^sub>L X \<approx>\<^sub>L X"
+  by (simp add: lens_equivI lens_unit_plus_sublens_1 lens_unit_prod_sublens_2)
+  
+lemma lens_plus_right_unit: "X +\<^sub>L 0\<^sub>L \<approx>\<^sub>L X"
+  using lens_equiv_trans lens_indep_sym lens_plus_comm lens_plus_left_unit unit_lens_indep by blast
+
 lemma bij_lens_inv_left:
   "bij_lens X \<Longrightarrow> lens_inv X ;\<^sub>L X = 1\<^sub>L"
   by (auto simp add: lens_inv_def lens_comp_def comp_def id_lens_def, rule ext, auto)
