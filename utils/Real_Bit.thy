@@ -6,6 +6,8 @@ imports
   Dyadic
 begin
 
+declare [[linarith_split_limit=12]]
+
 definition bits_to_nats :: "(nat \<Rightarrow> bit) \<Rightarrow> nat set" where
 "bits_to_nats f = {x. f x = 1}"
 
@@ -1205,9 +1207,9 @@ proof -
     by (simp add: real_nats_bij_def, metis someI_ex)
 qed
 
-term BitSeqs
-
 lemma "|BitSeqs| =o |UNIV :: bit set| ^c |UNIV :: nat set|"
   by (simp add: card_of_Func_UNIV_UNIV cexp_def ordIso_symmetric)
+
+declare [[linarith_split_limit=10]]
 
 end
