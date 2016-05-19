@@ -80,16 +80,16 @@ lemma H2_R1_comm: "H2(R1(P)) = R1(H2(P))"
   by (simp add: H2_split R1_def usubst, rel_tac)
 
 lemma H2_R2s_comm: "H2(R2s(P)) = R2s(H2(P))"
- apply (simp add: H2_split R2s_def usubst)
- apply (rel_tac)
- apply (metis alpha_d.update_convs(1) alpha_rp.surjective alpha_rp.update_convs(2))+
+  apply (simp add: H2_split R2s_def usubst)
+  apply (rel_tac)  
+  apply (metis (no_types, lifting) alpha_d.surjective alpha_d.update_convs(1) alpha_d.update_convs(2))+
 done
 
 lemma H2_R2_comm: "H2(R2(P)) = R2(H2(P))"
   by (simp add: H2_R1_comm H2_R2s_comm R2_def)
 
 lemma H2_R3_comm: "H2(R3c(P)) = R3c(H2(P))"
-  by (simp add: H2_split R3c_def usubst, rel_tac)
+  by (simp add: R3c_H2_commute)
 
 lemma CSP2_reactive_design:
   assumes "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$ok \<sharp> Q" "$ok\<acute> \<sharp> Q"
@@ -201,10 +201,10 @@ text {* Merge predicate for CSP *}
 
 definition
   "CSPMerge(cs) =
-    ((true \<turnstile>\<^sub>r (($wait\<^sub>R\<acute> =\<^sub>u ($0-wait\<^sub>R \<or> $1-wait\<^sub>R) \<and>
-      $ref\<^sub>R\<acute> =\<^sub>u ($0-ref\<^sub>R \<union>\<^sub>u $1-ref\<^sub>R) \<and>
-      ($tr\<^sub>R\<acute> - $tr\<^sub>R\<^sub><) \<in>\<^sub>u (trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0-tr\<^sub>R - $tr\<^sub>R\<^sub><, $1-tr\<^sub>R - $tr\<^sub>R\<^sub><)) \<and> 
-      $0-tr\<^sub>R \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1-tr\<^sub>R \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>))) ;; SKIP)"
+    ((true \<turnstile>\<^sub>r (($wait\<^sub>r\<acute> =\<^sub>u ($0-wait\<^sub>r \<or> $1-wait\<^sub>r) \<and>
+      $ref\<^sub>r\<acute> =\<^sub>u ($0-ref\<^sub>r \<union>\<^sub>u $1-ref\<^sub>r) \<and>
+      ($tr\<^sub>r\<acute> - $tr\<^sub>r\<^sub><) \<in>\<^sub>u (trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0-tr\<^sub>r - $tr\<^sub>r\<^sub><, $1-tr\<^sub>r - $tr\<^sub>r\<^sub><)) \<and> 
+      $0-tr\<^sub>r \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1-tr\<^sub>r \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>))) ;; SKIP)"
 
 definition ParCSP :: "('\<theta>, '\<alpha>) hrelation_rp \<Rightarrow> '\<theta> event set \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp" (infixl "\<parallel>[_]\<^sub>C\<^sub>S\<^sub>P" 85)
 where "P \<parallel>[cs]\<^sub>C\<^sub>S\<^sub>P Q = P \<parallel>\<^bsub>CSPMerge(cs)\<^esub> Q"

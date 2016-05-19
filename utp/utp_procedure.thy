@@ -227,7 +227,7 @@ syntax
   "_parm"         :: "parm \<Rightarrow> parm_list" ("(_)")
   "_parm_list"    :: "parm \<Rightarrow> parm_list \<Rightarrow> parm_list" ("_ ,/ _")
   "_tparm"        :: "parm_list \<Rightarrow> logic" ("_")
-  "_proc_block"   :: "parm_list \<Rightarrow> logic \<Rightarrow> ('a, '\<alpha>) uproc" ("_ \<bullet>/ _" [0,999] 999)
+  "_proc_block"   :: "parm_list \<Rightarrow> logic \<Rightarrow> ('a, '\<alpha>) uproc" ("_ \<bullet>/ _" [0,10] 10)
   "_val_parm"     :: "id \<Rightarrow> parm" ("val _" [999] 999)
   "_val_parm_ty"  :: "id \<Rightarrow> type \<Rightarrow> parm" ("val _ :: _")
   "_res_parm"     :: "id \<Rightarrow> parm" ("res _" [999] 999)

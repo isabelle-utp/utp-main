@@ -30,68 +30,96 @@ $R1$, $R2$, $R3$ and their composition $R$.*}
 
 type_synonym '\<theta> refusal = "'\<theta> set"
   
-record '\<theta> alpha_rp  = alpha_d + 
-                         rp_wait :: bool
-                         rp_tr   :: "'\<theta> trace"
-                         rp_ref  :: "'\<theta> refusal"
+record '\<theta> alpha_rp'  = rp_wait :: bool
+                       rp_tr   :: "'\<theta> trace"
+                       rp_ref  :: "'\<theta> refusal"
+
+type_synonym ('\<theta>, '\<alpha>) alpha_rp_scheme = "('\<theta>, '\<alpha>) alpha_rp'_scheme alpha_d_scheme"
 
 type_synonym ('\<theta>,'\<alpha>) alphabet_rp  = "('\<theta>,'\<alpha>) alpha_rp_scheme alphabet"
 type_synonym ('\<theta>,'\<alpha>,'\<beta>) relation_rp  = "(('\<theta>,'\<alpha>) alphabet_rp, ('\<theta>,'\<beta>) alphabet_rp) relation"
 type_synonym ('\<theta>,'\<alpha>) hrelation_rp  = "(('\<theta>,'\<alpha>) alphabet_rp, ('\<theta>,'\<alpha>) alphabet_rp) relation"
 type_synonym ('\<theta>,'\<sigma>) predicate_rp  = "('\<theta>,'\<sigma>) alphabet_rp upred"
 
-definition "wait = VAR rp_wait"
-definition "tr   = VAR rp_tr"
-definition "ref  = VAR rp_ref"
+definition "wait\<^sub>r = VAR rp_wait"
+definition "tr\<^sub>r   = VAR rp_tr"
+definition "ref\<^sub>r  = VAR rp_ref"
+definition "\<Sigma>\<^sub>r    = VAR more"
 
-definition "wait\<^sub>R = (wait /\<^sub>L \<Sigma>\<^sub>D)"
-definition "tr\<^sub>R   = (tr /\<^sub>L \<Sigma>\<^sub>D)"
-definition "ref\<^sub>R  = (ref /\<^sub>L \<Sigma>\<^sub>D)"
+declare wait\<^sub>r_def [upred_defs]
+declare tr\<^sub>r_def [upred_defs]
+declare ref\<^sub>r_def [upred_defs]
+declare \<Sigma>\<^sub>r_def [upred_defs]
+
+lemma wait\<^sub>r_uvar [simp]: "uvar wait\<^sub>r"
+  by (unfold_locales, simp_all add: wait\<^sub>r_def)
+
+lemma tr\<^sub>r_uvar [simp]: "uvar tr\<^sub>r"
+  by (unfold_locales, simp_all add: tr\<^sub>r_def)
+
+lemma ref\<^sub>r_uvar [simp]: "uvar ref\<^sub>r"
+  by (unfold_locales, simp_all add: ref\<^sub>r_def)
+
+lemma rea_lens_uvar [simp]: "uvar \<Sigma>\<^sub>r"
+  by (unfold_locales, simp_all add: \<Sigma>\<^sub>r_def)
+  
+definition "wait = (wait\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
+definition "tr   = (tr\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
+definition "ref  = (ref\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
+definition "\<Sigma>\<^sub>R   = (\<Sigma>\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
+
+lemma wait_uvar [simp]: "uvar wait"
+  by (simp add: comp_vwb_lens wait_def)
+
+lemma tr_uvar [simp]: "uvar tr"
+  by (simp add: comp_vwb_lens tr_def)
+
+lemma ref_uvar [simp]: "uvar ref"
+  by (simp add: comp_vwb_lens ref_def)
+
+lemma rea_lens_under_des_lens: "\<Sigma>\<^sub>R \<subseteq>\<^sub>L \<Sigma>\<^sub>D"
+  by (simp add: \<Sigma>\<^sub>R_def lens_comp_lb)
 
 declare wait_def [upred_defs]
 declare tr_def [upred_defs]
 declare ref_def [upred_defs]
 
+thm lens_indep_left_ext
+
 lemma tr_ok_indep [simp]: "tr \<bowtie> ok" "ok \<bowtie> tr"
-  by (auto intro!: lens_indepI, pred_tac+)
+  by (simp_all add: lens_indep_left_ext lens_indep_sym tr_def)
 
 lemma wait_ok_indep [simp]: "wait \<bowtie> ok" "ok \<bowtie> wait"
-  by (auto intro!: lens_indepI, pred_tac+)
+  by (simp_all add: lens_indep_left_ext lens_indep_sym wait_def)
 
 lemma ref_ok_indep [simp]: "ref \<bowtie> ok" "ok \<bowtie> ref"
-  by (auto intro!: lens_indepI, pred_tac+)
+  by (simp_all add: lens_indep_left_ext lens_indep_sym ref_def)
 
+lemma tr\<^sub>r_wait\<^sub>r_indep [simp]: "tr\<^sub>r \<bowtie> wait\<^sub>r" "wait\<^sub>r \<bowtie> tr\<^sub>r"
+  by (auto intro!:lens_indepI simp add: tr\<^sub>r_def wait\<^sub>r_def)  
+  
 lemma tr_wait_indep [simp]: "tr \<bowtie> wait" "wait \<bowtie> tr"
-  by (auto intro!: lens_indepI, pred_tac+)
+  by (auto intro: lens_indep_left_comp simp add: tr_def wait_def)
+
+lemma ref\<^sub>r_wait\<^sub>r_indep [simp]: "ref\<^sub>r \<bowtie> wait\<^sub>r" "wait\<^sub>r \<bowtie> ref\<^sub>r"
+  by (auto intro!:lens_indepI simp add: ref\<^sub>r_def wait\<^sub>r_def)
 
 lemma ref_wait_indep [simp]: "ref \<bowtie> wait" "wait \<bowtie> ref"
-  by (auto intro!: lens_indepI, pred_tac+)
+  by (auto intro: lens_indep_left_comp simp add: ref_def wait_def)
+
+lemma tr\<^sub>r_ref\<^sub>r_indep [simp]: "ref\<^sub>r \<bowtie> tr\<^sub>r" "tr\<^sub>r \<bowtie> ref\<^sub>r"
+  by (auto intro!:lens_indepI simp add: ref\<^sub>r_def tr\<^sub>r_def)
 
 lemma tr_ref_indep [simp]: "ref \<bowtie> tr" "tr \<bowtie> ref"
-  by (auto intro!: lens_indepI, pred_tac+)
+  by (auto intro: lens_indep_left_comp simp add: ref_def tr_def)
 
-instantiation alpha_rp_ext :: (type, vst) vst
+instantiation alpha_rp'_ext :: (type, vst) vst
 begin
-  definition get_vstore_alpha_rp_ext :: "('a, 'b) alpha_rp_ext \<Rightarrow> vstore"
-  where [simp]: "get_vstore_alpha_rp_ext x = get_vstore (alpha_rp.more (alpha_d.extend undefined x))"
-  definition put_vstore_alpha_rp_ext :: "('a, 'b) alpha_rp_ext \<Rightarrow> vstore \<Rightarrow> ('a, 'b) alpha_rp_ext"
-  where [simp]: "put_vstore_alpha_rp_ext s x = alpha_d.more (alpha_rp.more_update (\<lambda>v. put_vstore v x) (alpha_d.extend undefined s))"
+  definition vstore_lens_alpha_rp'_ext :: "vstore \<Longrightarrow> ('a, 'b) alpha_rp'_scheme"
+  where "vstore_lens_alpha_rp'_ext = \<V> ;\<^sub>L \<Sigma>\<^sub>r"
 instance
-  apply (intro_classes, auto simp add: alpha_rp.defs alpha_d.defs)
-  apply (metis alpha_d.select_convs(2) alpha_rp.select_convs(4) alpha_rp.surjective alpha_rp.update_convs(4) put_get_vstore)
-  apply (metis (no_types, lifting) alpha_d.select_convs(2) alpha_rp.surjective alpha_rp.update_convs(4) get_put_vstore)
-  apply (metis (no_types, lifting) alpha_d.select_convs(2) alpha_rp.surjective alpha_rp.update_convs(4) put_put_vstore)
-done
+  by (intro_classes, simp add: vstore_lens_alpha_rp'_ext_def comp_vwb_lens)
 end
-
-lemma uvar_wait [simp]: "uvar wait"
-  by (unfold_locales, simp_all add: wait_def)
-
-lemma uvar_tr [simp]: "uvar tr"
-  by (unfold_locales, simp_all add: tr_def)
-
-lemma uvar_ref [simp]: "uvar ref"
-  by (unfold_locales, simp_all add: ref_def)
 
 abbreviation wait_f::"('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("_\<^sub>f" [1000] 1000)
 where "wait_f R \<equiv> R\<lbrakk>false/$wait\<rbrakk>"
@@ -99,12 +127,11 @@ where "wait_f R \<equiv> R\<lbrakk>false/$wait\<rbrakk>"
 abbreviation wait_t::"('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("_\<^sub>t" [1000] 1000)
 where "wait_t R \<equiv> R\<lbrakk>true/$wait\<rbrakk>"
 
-lift_definition lift_rea :: "('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("\<lceil>_\<rceil>\<^sub>R") is
-"\<lambda> P (A, A'). P (more A, more A')" .
+definition lift_rea :: "('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("\<lceil>_\<rceil>\<^sub>R") where
+"\<lceil>P\<rceil>\<^sub>R = P \<oplus>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
 
-lift_definition drop_rea :: "('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("\<lfloor>_\<rfloor>\<^sub>R") is
-"\<lambda> P (A, A'). P (\<lparr> des_ok = True, rp_wait = True, rp_tr = [], rp_ref = {}, \<dots> = A \<rparr>, 
-                 \<lparr> des_ok = True, rp_wait = True, rp_tr = [], rp_ref = {}, \<dots> = A' \<rparr>)" .
+definition drop_rea :: "('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("\<lfloor>_\<rfloor>\<^sub>R") where
+"\<lfloor>P\<rfloor>\<^sub>R = P \<restriction>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
 
 subsection {* R1: Events cannot be undone *}
 
@@ -146,7 +173,7 @@ lemma R1_by_refinement:
 
 lemma tr_le_trans:
   "($tr \<le>\<^sub>u $tr\<acute> ;; $tr \<le>\<^sub>u $tr\<acute>) = ($tr \<le>\<^sub>u $tr\<acute>)"
-  by (rel_tac, metis alpha_rp.select_convs(2) order_refl)
+  by (rel_tac, metis alpha_d.select_convs(2) alpha_rp'.select_convs(2) eq_refl)
 
 lemma R1_seqr_closure:
   assumes "P is R1" "Q is R1"
@@ -342,23 +369,25 @@ lemma R3_semir_closure:
   by (metis Healthy_def' R3_semir_form)
 
 lemma R3c_subst_wait: "R3c(P) = R3c(P \<^sub>f)"
-  by (metis R3c_def cond_var_subst_right uvar_wait)
+  by (metis R3c_def cond_var_subst_right wait_uvar)
 
 lemma R1_R3_commute: "R1(R3(P)) = R3(R1(P))"
   by rel_tac
 
 lemma R2_R3_commute: "R2(R3(P)) = R3(R2(P))"
-  by (rel_tac, (metis (no_types, lifting) alpha_rp.surjective alpha_rp.update_convs(2) append_Nil2 prefix_subst strict_prefixE)+)
+  by (rel_tac, (smt alpha_d.surjective alpha_d.update_convs(2) alpha_rp'.surjective alpha_rp'.update_convs(2) append_Nil2 append_minus strict_prefixE)+)
 
 lemma R2_R3c_commute: "R2(R3c(P)) = R3c(R2(P))"
-  by (rel_tac, (metis (no_types, lifting) alpha_rp.surjective alpha_rp.update_convs(2) append_Nil2 append_minus strict_prefixE)+)
+  by (rel_tac, (smt alpha_d.surjective alpha_d.update_convs(2) alpha_rp'.surjective alpha_rp'.update_convs(2) append_minus append_self_conv strict_prefixE)+)
 
 lemma R1_H1_R3c_commute:
   "R1(H1(R3c(P))) = R3c(R1(H1(P)))"
   by rel_tac
 
 lemma R3c_H2_commute: "R3c(H2(P)) = H2(R3c(P))"
-  by (simp add: H2_split R3c_def usubst, rel_tac)
+  apply (simp add: H2_split R3c_def usubst, rel_tac)
+  apply (metis (mono_tags, lifting) alpha_d.surjective alpha_d.update_convs(1))+
+done
 
 lemma R3c_idem: "R3c(R3c(P)) = R3c(P)"
   by rel_tac
@@ -368,7 +397,7 @@ lemma R1_skip_rea: "R1(II\<^sub>r) = II\<^sub>r"
 
 lemma R2_skip_rea: "R2(II\<^sub>r) = II\<^sub>r"
   apply (rel_tac)
-  apply (metis (no_types, lifting) alpha_rp.surjective alpha_rp.update_convs(2) append_Nil2 prefix_subst strict_prefixE)
+  apply (smt alpha_d.surjective alpha_d.update_convs(2) alpha_rp'.surjective alpha_rp'.update_convs(2) append_Nil2 append_minus strict_prefixE)
 done
 
 end
