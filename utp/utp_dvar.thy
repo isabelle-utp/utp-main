@@ -286,4 +286,12 @@ instance
   by (intro_classes, unfold_locales, simp_all add: vstore_lens_vstore_d_ext_def)
 end
 
+syntax 
+  "_sin_dvar"  :: "id \<Rightarrow> svar" ("%_" [999] 999)
+  "_sout_dvar" :: "id \<Rightarrow> svar" ("%_\<acute>" [999] 999)
+
+translations
+  "_sin_dvar x"  => "CONST in_dvar (CONST mk_dvar IDSTR(x))"
+  "_sout_dvar x" => "CONST out_dvar (CONST mk_dvar IDSTR(x))"
+
 end
