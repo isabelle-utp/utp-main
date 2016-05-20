@@ -32,6 +32,14 @@ lemma seq_skip_trel:
   "(\<sigma>, II ;; P) \<rightarrow>\<^sub>u (\<sigma>, P)"
   by simp
 
+lemma nondet_left_trel:
+  "(\<sigma>, P \<sqinter> Q) \<rightarrow>\<^sub>u (\<sigma>, P)"
+  by (simp add: upred_quantale.subdistl)
+
+lemma nondet_right_trel:
+  "(\<sigma>, P \<sqinter> Q) \<rightarrow>\<^sub>u (\<sigma>, Q)"
+  using nondet_left_trel by force
+
 lemma rcond_true_trel:
   assumes "\<sigma> \<dagger> b = true"
   shows "(\<sigma>, P \<triangleleft> b \<triangleright>\<^sub>r Q) \<rightarrow>\<^sub>u (\<sigma>, P)"
@@ -53,5 +61,7 @@ lemma while_false_trel:
   assumes "\<sigma> \<dagger> b = false"
   shows "(\<sigma>, while b do P od) \<rightarrow>\<^sub>u (\<sigma>, II)"
   by (metis assms rcond_false_trel while_unfold)
+
+declare trel.simps [simp del]
 
 end
