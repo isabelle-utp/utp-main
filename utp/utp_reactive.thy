@@ -248,10 +248,7 @@ lemma uconc_left_unit [simp]: "\<langle>\<rangle> ^\<^sub>u e = e"
 lemma uconc_right_unit [simp]: "e ^\<^sub>u \<langle>\<rangle> = e"
   by pred_tac
 
-text {* This laws is proven only for homogeneous relations, can it be generalised? *}
-
 lemma R2_seqr_form: 
-  fixes P Q :: "('\<theta>,'\<alpha>,'\<alpha>) relation_rp"
   shows "(R2(P) ;; R2(Q)) = 
          (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)) 
                         \<and> ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>))"
@@ -269,7 +266,7 @@ proof -
   also have "... =
        (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> \<^bold>\<exists> tr\<^sub>0 \<bullet> ((P\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)) 
                                 \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
-    by (simp add: seqr_pre_out seqr_post_out unrest, rel_tac)
+    by rel_tac
   also have "... =
        (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)) 
                         \<and> (\<^bold>\<exists> tr\<^sub>0 \<bullet> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>))"
@@ -282,7 +279,7 @@ proof -
 qed
 
 lemma R2_seqr_distribute: 
-  fixes P Q :: "('\<theta>,'\<alpha>,'\<alpha>) relation_rp"
+  fixes P :: "('\<theta>,'\<alpha>,'\<beta>) relation_rp" and Q :: "('\<theta>,'\<beta>,'\<gamma>) relation_rp"
   shows "R2(R2(P) ;; R2(Q)) = (R2(P) ;; R2(Q))"
 proof -
   have "R2(R2(P) ;; R2(Q)) = 
@@ -296,7 +293,7 @@ proof -
   also have "... =
     ((\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
       \<and> $tr\<acute> - $tr =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr)"
-      by (simp add: usubst unrest)
+      by (rel_tac)
   also have "... =
     (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
       \<and> ($tr\<acute> - $tr =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr\<acute> \<ge>\<^sub>u $tr))"
@@ -305,7 +302,7 @@ proof -
     ((\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
       \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>))"
   proof -
-    have "\<And> tt\<^sub>1 tt\<^sub>2. ((($tr\<acute> - $tr =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr) :: ('\<theta>,'\<alpha>,'\<alpha>) relation_rp)
+    have "\<And> tt\<^sub>1 tt\<^sub>2. ((($tr\<acute> - $tr =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr) :: ('\<theta>,'\<alpha>,'\<gamma>) relation_rp)
            = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
       by (rel_tac, metis prefix_subst strict_prefixE)
     thus ?thesis by simp
@@ -314,6 +311,11 @@ proof -
     by (simp add: R2_seqr_form)
   finally show ?thesis .
 qed
+
+lemma R2_seqr_closure:
+  assumes "P is R2" "Q is R2"
+  shows "(P ;; Q) is R2"
+  by (metis Healthy_def' R2_seqr_distribute assms(1) assms(2))
 
 lemma R1_R2_commute:
   "R1(R2(P)) = R2(R1(P))"
@@ -334,8 +336,6 @@ definition skip_rea_def [urel_defs]: "II\<^sub>r = (II \<or> (\<not> $ok \<and> 
 definition R3_def [upred_defs]: "R3 (P) = (II \<triangleleft> $wait \<triangleright> P)"
 
 definition R3c_def [upred_defs]: "R3c (P) = (II\<^sub>r \<triangleleft> $wait \<triangleright> P)"
-
-definition RH_def [upred_defs]: "RH(P) = R1(R2s(R3c(P)))"
 
 lemma R3_idem: "R3(R3(P)) = R3(P)"
   by rel_tac
@@ -368,6 +368,15 @@ lemma R3_semir_closure:
   using assms
   by (metis Healthy_def' R3_semir_form)
 
+lemma R3c_semir_form:
+  "(R3c(P) ;; R3c(R1(Q))) = R3c(P ;; R3c(R1(Q)))"
+  by rel_tac
+
+lemma R3c_seq_closure:
+  assumes "P is R3c" "Q is R3c" "Q is R1"
+  shows "(P ;; Q) is R3c"
+  by (metis Healthy_def' R3c_semir_form assms)
+
 lemma R3c_subst_wait: "R3c(P) = R3c(P \<^sub>f)"
   by (metis R3c_def cond_var_subst_right wait_uvar)
 
@@ -399,5 +408,29 @@ lemma R2_skip_rea: "R2(II\<^sub>r) = II\<^sub>r"
   apply (rel_tac)
   apply (smt alpha_d.surjective alpha_d.update_convs(2) alpha_rp'.surjective alpha_rp'.update_convs(2) append_Nil2 append_minus strict_prefixE)
 done
+  
+subsection {* RH laws *}
+
+definition RH_def [upred_defs]: "RH(P) = R1(R2s(R3c(P)))"
+
+lemma RH_alt_def:
+  "RH(P) = R1(R2(R3c(P)))"
+  by (simp add: R1_idem R2_def RH_def)
+
+lemma RH_intro:
+  "\<lbrakk> P is R1; P is R2; P is R3c \<rbrakk> \<Longrightarrow> P is RH"
+  by (simp add: Healthy_def' R2_def RH_def)
+  
+lemma RH_seq_closure:
+  assumes "P is RH" "Q is RH"
+  shows "(P ;; Q) is RH"
+proof (rule RH_intro)
+  show "(P ;; Q) is R1"
+    by (metis Healthy_def' R1_seqr_closure R2_def RH_alt_def RH_def assms(1) assms(2))
+  show "(P ;; Q) is R2"
+    by (metis Healthy_def' R2_def R2_idem R2_seqr_closure RH_def assms(1) assms(2))
+  show "(P ;; Q) is R3c"
+    by (metis Healthy_def' R2_R3c_commute R2_def R3c_idem R3c_seq_closure RH_alt_def RH_def assms(1) assms(2))
+qed
 
 end
