@@ -267,7 +267,12 @@ next
   from srt hyps(2) have "distinct xs"
     by (simp add: is_sorted_list_of_set_def)
   with isl show "distinct (x # xs)"
-    by (smt One_nat_def `sorted (x # xs)` antisym diff_Suc_1 distinct.simps(2) distinct_singleton is_sorted_list_of_set_def length_Cons length_pos_if_in_set list.sel(3) list.size(3) list.size(4) not_less_iff_gr_or_eq nth_Cons_0 nth_tl set_ConsD sorted.simps sorted_many_eq)
+  proof -
+    have "(\<forall>n. \<not> n < length (x # xs) - 1 \<or> (x # xs) ! n < (x # xs) ! (n + 1)) \<and> set (x # xs) = A"
+      by (meson \<open>is_sorted_list_of_set A (x # xs)\<close> is_sorted_list_of_set_def)
+  then show ?thesis
+      by (metis Nat.add_0_right One_nat_def \<open>distinct xs\<close> \<open>sorted (x # xs)\<close> add_Suc_right diff_Suc_Suc diff_zero distinct.simps(2) insert_iff length_pos_if_in_set linorder_not_less list.set(2) list.simps(1) list.simps(3) list.size(3) list.size(4) not_less_iff_gr_or_eq nth_Cons_0 nth_Cons_Suc sorted.cases)
+  qed
 qed
 
 lemma is_sorted_list_of_set_alt_def:
