@@ -229,6 +229,15 @@ lemma R2s_conj: "R2s(P \<and> Q) = (R2s(P) \<and> R2s(Q))"
 lemma R2_conj: "R2(P \<and> Q) = (R2(P) \<and> R2(Q))"
   by (pred_tac)
 
+lemma R2s_disj: "R2s(P \<or> Q) = (R2s(P) \<or> R2s(Q))"
+  by pred_tac
+
+lemma R2_disj: "R2(P \<or> Q) = (R2(P) \<or> R2(Q))"
+  by (pred_tac)
+
+lemma R2s_not: "R2s(\<not> P) = (\<not> R2s(P))"
+  by pred_tac
+
 lemma R2s_condr: "R2s(P \<triangleleft> b \<triangleright> Q) = (R2s(P) \<triangleleft> R2s(b) \<triangleright> R2s(Q))"
   by rel_tac
 
@@ -416,6 +425,14 @@ definition RH_def [upred_defs]: "RH(P) = R1(R2s(R3c(P)))"
 lemma RH_alt_def:
   "RH(P) = R1(R2(R3c(P)))"
   by (simp add: R1_idem R2_def RH_def)
+
+lemma RH_idem:
+  "RH(RH(P)) = RH(P)"
+  by (metis R2_R3c_commute R2_def R2_idem R3c_idem RH_def)
+
+lemma RH_monotone:
+  "P \<sqsubseteq> Q \<Longrightarrow> RH(P) \<sqsubseteq> RH(Q)"
+  by rel_tac
 
 lemma RH_intro:
   "\<lbrakk> P is R1; P is R2; P is R3c \<rbrakk> \<Longrightarrow> P is RH"
