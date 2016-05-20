@@ -38,6 +38,9 @@ lemma subst_lift_upd [usubst]:
   shows "\<lceil>\<sigma>(x \<mapsto>\<^sub>s v)\<rceil>\<^sub>s = \<lceil>\<sigma>\<rceil>\<^sub>s($x \<mapsto>\<^sub>s \<lceil>v\<rceil>\<^sub><)"
   by (simp add: usubst_rel_lift_def subst_upd_uvar_def, transfer, auto simp add: fst_lens_def)
 
+lemma subst_lift_pre [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> \<lceil>b\<rceil>\<^sub>< = \<lceil>\<sigma> \<dagger> b\<rceil>\<^sub><"
+  by pred_tac
+
 (*
 lemma subst_drop_upd [usubst]: 
   fixes x :: "('a, '\<alpha>) uvar"
