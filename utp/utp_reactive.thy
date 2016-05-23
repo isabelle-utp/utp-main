@@ -84,8 +84,6 @@ declare wait_def [upred_defs]
 declare tr_def [upred_defs]
 declare ref_def [upred_defs]
 
-thm lens_indep_left_ext
-
 lemma tr_ok_indep [simp]: "tr \<bowtie> ok" "ok \<bowtie> tr"
   by (simp_all add: lens_indep_left_ext lens_indep_sym tr_def)
 
@@ -133,6 +131,8 @@ definition lift_rea :: "('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<theta>,
 definition drop_rea :: "('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("\<lfloor>_\<rfloor>\<^sub>R") where
 "\<lfloor>P\<rfloor>\<^sub>R = P \<restriction>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
 
+definition skip_rea_def [urel_defs]: "II\<^sub>r = (II \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
+
 subsection {* R1: Events cannot be undone *}
 
 definition R1_def [upred_defs]: "R1 (P) =  (P \<and> ($tr \<le>\<^sub>u $tr\<acute>))"
@@ -165,6 +165,9 @@ lemma R1_wait_false: "(R1 P) \<^sub>f = R1(P) \<^sub>f"
   by pred_tac
 
 lemma R1_skip: "R1(II) = II"
+  by rel_tac
+
+lemma R1_skip_rea: "R1(II\<^sub>r) = II\<^sub>r"
   by rel_tac
 
 lemma R1_by_refinement:
@@ -243,6 +246,44 @@ lemma R2s_condr: "R2s(P \<triangleleft> b \<triangleright> Q) = (R2s(P) \<triang
 
 lemma R2_condr: "R2(P \<triangleleft> b \<triangleright> Q) = (R2(P) \<triangleleft> R2(b) \<triangleright> R2(Q))"
   by rel_tac
+
+lemma R2_condr': "R2(P \<triangleleft> b \<triangleright> Q) = (R2(P) \<triangleleft> R2s(b) \<triangleright> R2(Q))"
+  by rel_tac
+
+lemma R2s_wait: "R2s($wait) = $wait"
+  by rel_tac
+
+lemma R2_skip_rea: "R2(II\<^sub>r) = II\<^sub>r"
+proof (rel_tac)
+  fix a :: "('a, 'b) alpha_rp'_scheme alpha_d_ext" and b :: "('a, 'b) alpha_rp'_scheme alpha_d_ext"
+  assume a1: "\<not> b = a"
+  assume a2: "rp_tr (alpha_d.more a) \<le> rp_tr (alpha_d.more b)"
+  assume a3: "b\<lparr>alpha_d.more := alpha_d.more b \<lparr>rp_tr := rp_tr (alpha_d.more b) - rp_tr (alpha_d.more a)\<rparr>\<rparr> = a\<lparr>alpha_d.more := alpha_d.more a \<lparr>rp_tr := uempty\<rparr>\<rparr>"
+  assume a4: "des_ok a"
+  obtain aas :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+    "\<forall>x0 x1. (\<exists>v2. x0 = x1 @ v2) = (x0 = x1 @ aas x0 x1)"
+    by moura
+  then have f5: "\<forall>as asa. \<not> as \<le> asa \<or> asa = as @ aas asa as"
+    by (meson strict_prefixE)
+  have "\<lparr>des_ok = True, rp_wait = rp_wait (alpha_d.more a), rp_tr = rp_tr (alpha_d.more a), rp_ref = rp_ref (alpha_d.more a), \<dots> = alpha_rp'.more (alpha_d.more a)\<rparr> = \<lparr>des_ok = des_ok a, \<dots> = alpha_d.more a\<rparr>"
+    by (simp add: a4)
+  then have "\<lparr>des_ok = True, rp_wait = rp_wait (alpha_d.more a), rp_tr = rp_tr (alpha_d.more a), rp_ref = rp_ref (alpha_d.more a), \<dots> = alpha_rp'.more (alpha_d.more a)\<rparr> = a"
+    by (metis alpha_d.surjective)
+  then have f6: "\<lparr>des_ok = True, \<dots> = alpha_d.more a\<lparr>rp_tr := uempty\<rparr>\<rparr> = b\<lparr>alpha_d.more := alpha_d.more b \<lparr>rp_tr := rp_tr (alpha_d.more b) - rp_tr (alpha_d.more a)\<rparr>\<rparr>"
+    using a3 by (metis (no_types) alpha_d.update_convs(2))
+  have f7: "\<lparr>des_ok = des_ok b, rp_wait = rp_wait (alpha_d.more b), rp_tr = rp_tr (alpha_d.more b), rp_ref = rp_ref (alpha_d.more b), \<dots> = alpha_rp'.more (alpha_d.more b)\<rparr> = b"
+    by (metis (full_types) alpha_d.surjective alpha_rp'.surjective)
+  have f8: "aas (rp_tr (alpha_d.more b)) (rp_tr (alpha_d.more a)) = rp_tr (alpha_d.more b) - rp_tr (alpha_d.more a)"
+    using f5 a2 by (metis (no_types) append_minus)
+  have "\<lparr>rp_wait = rp_wait (alpha_d.more b), rp_tr = rp_tr (alpha_d.more a) @ aas (rp_tr (alpha_d.more b)) (rp_tr (alpha_d.more a)), rp_ref = rp_ref (alpha_d.more b), \<dots> = alpha_rp'.more (alpha_d.more b)\<rparr> = alpha_d.more b"
+    using f5 a2 by simp
+  then have "b = \<lparr>des_ok = True, \<dots> = rp_tr_update (op @ (rp_tr (alpha_d.more a))) (alpha_d.more a\<lparr>rp_tr := uempty\<rparr>)\<rparr>"
+    using f8 f7 f6 by (metis (no_types) alpha_d.surjective alpha_d.update_convs(2) alpha_rp'.update_convs(2))
+  then have "b = \<lparr>des_ok = des_ok a, \<dots> = alpha_d.more a\<rparr>"
+    using a4 by simp
+  then show False
+    using a1 by (metis (no_types) alpha_d.surjective)
+qed
 
 lemma tr_prefix_as_concat: "(xs \<le>\<^sub>u ys) = (\<^bold>\<exists> zs \<bullet> ys =\<^sub>u xs ^\<^sub>u \<guillemotleft>zs\<guillemotright>)"
   by (rel_tac, simp add: less_eq_list_def prefixeq_def)
@@ -340,8 +381,6 @@ lemma R2s_H2_commute:
 
 subsection {* R3 *}
 
-definition skip_rea_def [urel_defs]: "II\<^sub>r = (II \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
-
 definition R3_def [upred_defs]: "R3 (P) = (II \<triangleleft> $wait \<triangleright> P)"
 
 definition R3c_def [upred_defs]: "R3c (P) = (II\<^sub>r \<triangleleft> $wait \<triangleright> P)"
@@ -409,14 +448,6 @@ done
 
 lemma R3c_idem: "R3c(R3c(P)) = R3c(P)"
   by rel_tac
-
-lemma R1_skip_rea: "R1(II\<^sub>r) = II\<^sub>r"
-  by rel_tac
-
-lemma R2_skip_rea: "R2(II\<^sub>r) = II\<^sub>r"
-  apply (rel_tac)
-  apply (smt alpha_d.surjective alpha_d.update_convs(2) alpha_rp'.surjective alpha_rp'.update_convs(2) append_Nil2 append_minus strict_prefixE)
-done
   
 subsection {* RH laws *}
 
@@ -425,6 +456,10 @@ definition RH_def [upred_defs]: "RH(P) = R1(R2s(R3c(P)))"
 lemma RH_alt_def:
   "RH(P) = R1(R2(R3c(P)))"
   by (simp add: R1_idem R2_def RH_def)
+
+lemma RH_alt_def':
+  "RH(P) = R2(R3c(P))"
+  by (simp add: R2_def RH_def)
 
 lemma RH_idem:
   "RH(RH(P)) = RH(P)"
