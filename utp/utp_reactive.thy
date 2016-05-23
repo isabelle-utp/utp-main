@@ -44,7 +44,7 @@ type_synonym ('\<theta>,'\<sigma>) predicate_rp  = "('\<theta>,'\<sigma>) alphab
 definition "wait\<^sub>r = VAR rp_wait"
 definition "tr\<^sub>r   = VAR rp_tr"
 definition "ref\<^sub>r  = VAR rp_ref"
-definition "\<Sigma>\<^sub>r    = VAR more"
+definition [upred_defs]: "\<Sigma>\<^sub>r    = VAR more"
 
 declare wait\<^sub>r_def [upred_defs]
 declare tr\<^sub>r_def [upred_defs]
@@ -66,7 +66,7 @@ lemma rea_lens_uvar [simp]: "uvar \<Sigma>\<^sub>r"
 definition "wait = (wait\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
 definition "tr   = (tr\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
 definition "ref  = (ref\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
-definition "\<Sigma>\<^sub>R   = (\<Sigma>\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
+definition [upred_defs]: "\<Sigma>\<^sub>R   = (\<Sigma>\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
 
 lemma wait_uvar [simp]: "uvar wait"
   by (simp add: comp_vwb_lens wait_def)
@@ -126,12 +126,16 @@ abbreviation wait_t::"('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow>
 where "wait_t R \<equiv> R\<lbrakk>true/$wait\<rbrakk>"
 
 definition lift_rea :: "('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("\<lceil>_\<rceil>\<^sub>R") where
-"\<lceil>P\<rceil>\<^sub>R = P \<oplus>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
+[upred_defs]: "\<lceil>P\<rceil>\<^sub>R = P \<oplus>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
 
 definition drop_rea :: "('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("\<lfloor>_\<rfloor>\<^sub>R") where
-"\<lfloor>P\<rfloor>\<^sub>R = P \<restriction>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
+[upred_defs]: "\<lfloor>P\<rfloor>\<^sub>R = P \<restriction>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
 
 definition skip_rea_def [urel_defs]: "II\<^sub>r = (II \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
+
+lemma unrest_tr_lift_rea [unrest]:
+  "$tr \<sharp> \<lceil>P\<rceil>\<^sub>R" "$tr\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>R"
+  by (pred_tac)+
 
 subsection {* R1: Events cannot be undone *}
 
@@ -252,6 +256,24 @@ lemma R2_condr': "R2(P \<triangleleft> b \<triangleright> Q) = (R2(P) \<triangle
 
 lemma R2s_wait: "R2s($wait) = $wait"
   by rel_tac
+
+lemma R2s_wait': "R2s($wait\<acute>) = $wait\<acute>"
+  by rel_tac
+
+lemma R2s_tr'_eq_tr: "R2s($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u $tr)"
+  apply (pred_tac)
+  using list_minus_anhil apply blast
+done
+
+lemma R2s_true: "R2s(true) = true"
+  by pred_tac
+
+lemma true_is_R2s:
+  "true is R2s"
+  by (simp add: Healthy_def R2s_true)
+
+lemma R2s_lift_rea: "R2s(\<lceil>P\<rceil>\<^sub>R) = \<lceil>P\<rceil>\<^sub>R"
+  by (simp add: R2s_def usubst unrest)
 
 lemma R2_skip_rea: "R2(II\<^sub>r) = II\<^sub>r"
 proof (rel_tac)
