@@ -13,6 +13,21 @@ lemma R2s_ok': "R2s($ok\<acute>) = $ok\<acute>"
 lemma R2s_nok: "R2s(\<not> $ok) = (\<not> $ok)"
   by (pred_tac)
 
+lemma H2_R1_comm: "H2(R1(P)) = R1(H2(P))"
+  by (simp add: H2_split R1_def usubst, rel_tac)
+
+lemma H2_R2s_comm: "H2(R2s(P)) = R2s(H2(P))"
+  apply (simp add: H2_split R2s_def usubst)
+  apply (rel_tac)  
+  apply (metis (no_types, lifting) alpha_d.surjective alpha_d.update_convs(1) alpha_d.update_convs(2))+
+done
+
+lemma H2_R2_comm: "H2(R2(P)) = R2(H2(P))"
+  by (simp add: H2_R1_comm H2_R2s_comm R2_def)
+
+lemma H2_R3_comm: "H2(R3c(P)) = R3c(H2(P))"
+  by (simp add: R3c_H2_commute)
+
 text {* Pedro's proof for R1 design composition *}
 
 lemma R1_design_composition:
@@ -92,6 +107,38 @@ proof -
     by (simp add: design_def)
   finally show ?thesis .
 qed
+
+thm R3c_def
+
+definition [upred_defs]: "R3c_pre(P) = (true \<triangleleft> $wait \<triangleright> P)"
+
+definition [upred_defs]: "R3c_post(P) = (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> P)"
+
+
+lemma R1_R3c_design:
+  "R1(R3c(P \<turnstile> Q)) = R1(R3c_pre(P) \<turnstile> R3c_post(Q))"
+  by (rel_tac, simp_all add: alpha_d.equality)
+
+lemma [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R3c_pre(P)"
+  by (simp add: R3c_pre_def cond_def unrest)
+
+lemma [unrest]: "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> R3c_pre(P)"
+  by (simp add: R3c_pre_def cond_def unrest)
+
+lemma [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R3c_post(P)"
+  by (simp add: R3c_post_def cond_def unrest)
+
+lemma [unrest]: "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> R3c_post(P)"
+  by (simp add: R3c_post_def cond_def unrest)
+
+lemma 
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok \<sharp> R" "$ok \<sharp> S"
+  shows "(R3c(R1(P \<turnstile> Q)) ;; R3c(R1(R \<turnstile> S))) = 
+       R3c(R1((\<not> (R1(\<not> P) ;; R1(true)) \<and> \<not> ((R1(Q) \<and> \<not> $wait\<acute>) ;; R1(\<not> R))) \<turnstile> (R1(Q) ;; (II\<^sub>r \<triangleleft> $wait \<triangleright> R1(S)))))"
+  apply (simp add: R3c_semir_form R1_R3c_commute[THEN sym] R1_R3c_design unrest )
+  apply (subst R1_design_composition)
+  apply (simp_all add: unrest assms)
+oops
 
 text {* Marcel's proof for reactive design composition *}
 

@@ -76,21 +76,6 @@ lemma CSP1_CSP2_commute:
 lemma CSP1_reactive_design: "CSP1(RH(P \<turnstile> Q)) = RH(P \<turnstile> Q)"
   by rel_tac
 
-lemma H2_R1_comm: "H2(R1(P)) = R1(H2(P))"
-  by (simp add: H2_split R1_def usubst, rel_tac)
-
-lemma H2_R2s_comm: "H2(R2s(P)) = R2s(H2(P))"
-  apply (simp add: H2_split R2s_def usubst)
-  apply (rel_tac)  
-  apply (metis (no_types, lifting) alpha_d.surjective alpha_d.update_convs(1) alpha_d.update_convs(2))+
-done
-
-lemma H2_R2_comm: "H2(R2(P)) = R2(H2(P))"
-  by (simp add: H2_R1_comm H2_R2s_comm R2_def)
-
-lemma H2_R3_comm: "H2(R3c(P)) = R3c(H2(P))"
-  by (simp add: R3c_H2_commute)
-
 lemma CSP2_reactive_design:
   assumes "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$ok \<sharp> Q" "$ok\<acute> \<sharp> Q"
   shows "CSP2(RH(P \<turnstile> Q)) = RH(P \<turnstile> Q)"

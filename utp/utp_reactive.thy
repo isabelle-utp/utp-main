@@ -471,6 +471,9 @@ lemma R3c_subst_wait: "R3c(P) = R3c(P \<^sub>f)"
 lemma R1_R3_commute: "R1(R3(P)) = R3(R1(P))"
   by rel_tac
 
+lemma R1_R3c_commute: "R1(R3c(P)) = R3c(R1(P))"
+  by rel_tac
+
 lemma R2_R3_commute: "R2(R3(P)) = R3(R2(P))"
   by (rel_tac, (smt alpha_d.surjective alpha_d.update_convs(2) alpha_rp'.surjective alpha_rp'.update_convs(2) append_Nil2 append_minus strict_prefixE)+)
 
