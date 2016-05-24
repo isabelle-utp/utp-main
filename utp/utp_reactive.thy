@@ -193,6 +193,10 @@ lemma tr_le_trans:
   "($tr \<le>\<^sub>u $tr\<acute> ;; $tr \<le>\<^sub>u $tr\<acute>) = ($tr \<le>\<^sub>u $tr\<acute>)"
   by (rel_tac, metis alpha_d.select_convs(2) alpha_rp'.select_convs(2) eq_refl)
 
+lemma R1_seqr:
+  "R1(R1(P) ;; R1(Q)) = (R1(P) ;; R1(Q))"
+  by (rel_tac)
+
 lemma R1_seqr_closure:
   assumes "P is R1" "Q is R1"
   shows "(P ;; Q) is R1"
