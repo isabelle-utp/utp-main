@@ -3,7 +3,7 @@ section {* Hybrid reactive designs *}
 theory utp_hrd
 imports 
   utp_designs
-  utp_reactive
+  utp_rea_designs
 begin
 
 record 't::linordered_semidom htime =
@@ -42,10 +42,19 @@ definition "\<L> = $time\<acute> - $time"
 
 definition "HR1(P) = (P \<and> $time \<le>\<^sub>u $time\<acute>)"
 
-definition "HR = HR1 \<circ> RH"
+definition "HR2(P) = (P\<lbrakk>0/$time\<rbrakk>\<lbrakk>($time\<acute>-$time)/$time\<acute>\<rbrakk>)"
 
-definition wait'_cond :: "_ \<Rightarrow> _ \<Rightarrow> _" (infix "\<diamondop>" 65) where
-"P \<diamondop> Q = (P \<triangleleft> $wait\<acute> \<triangleright> Q)"
+declare HR1_def [upred_defs]
+
+declare HR2_def [upred_defs]
+
+lemma HR1_idem: "HR1(HR1(P)) = HR1(P)"
+  by rel_tac
+
+lemma HR2_idem: "HR2(HR2(P)) = HR2(P)"
+  by rel_tac
+
+definition "HR = RH \<circ> HR2 \<circ> HR1"
 
 definition "Wait n = HR(true \<turnstile> ((\<L> <\<^sub>u n) \<diamondop> (\<L> =\<^sub>u n)) \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> $tr\<acute> =\<^sub>u $tr)"
 
@@ -53,6 +62,17 @@ definition "hlift(s) = HR(true \<turnstile> \<lceil>\<langle>s\<rangle>\<^sub>a\
 
 fun time_trel :: "_ \<times> _ \<Rightarrow> _ \<Rightarrow> _ \<times> _ \<Rightarrow> bool" (infix "\<leadsto>[_]\<^sub>h" 85) where
 "(\<sigma>, P) \<leadsto>[t]\<^sub>h (\<rho>, Q) \<longleftrightarrow> (hlift(\<sigma>) ;; P) \<sqsubseteq> (hlift(\<rho>) ;; Wait t ;; Q)"
+
+lemma HR1_seq: "HR1(HR1(P) ;; HR1(Q)) = (HR1(P) ;; HR1(Q))"
+  by (rel_tac)
+
+lemma hrd_composition:
+  assumes "out\<alpha> \<sharp> p\<^sub>1" "p\<^sub>1 is R2" "P\<^sub>2 is R2" "Q\<^sub>1 is R2" "Q\<^sub>2 is R2"
+  shows
+  "(HR(p\<^sub>1 \<turnstile> Q\<^sub>1) ;; HR(P\<^sub>2 \<turnstile> Q\<^sub>2)) = 
+    HR((p\<^sub>1 \<and> \<not> (($ok\<acute> \<and> \<not> $wait\<acute> \<and> Q\<^sub>1) ;; R1 (\<not> P\<^sub>2)))
+       \<turnstile> ((($wait\<acute> \<and> Q\<^sub>1) \<or> (($ok\<acute> \<and> \<not> $wait\<acute> \<and> Q\<^sub>1) ;; Q\<^sub>2))))" (is "?lhs = ?rhs")
+
 
 lemma "(Wait m ;; Wait n) = Wait (m + n)"
   oops

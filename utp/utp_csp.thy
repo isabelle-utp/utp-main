@@ -1,7 +1,7 @@
 section {* Theory of CSP *}
 
 theory utp_csp
-  imports utp_reactive utp_procedure
+  imports utp_rea_designs utp_procedure
 begin
 
 subsection {* Preliminaries *}
@@ -208,6 +208,97 @@ definition
 
 definition ParCSP :: "('\<theta>, '\<alpha>) hrelation_rp \<Rightarrow> '\<theta> event set \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp" (infixl "\<parallel>[_]\<^sub>C\<^sub>S\<^sub>P" 85)
 where "P \<parallel>[cs]\<^sub>C\<^sub>S\<^sub>P Q = P \<parallel>\<^bsub>CSPMerge(cs)\<^esub> Q"
+
+subsection {* CSP laws *}
+
+lemma Stop_left_zero:
+  assumes "P is R2s" "Q is R2s"
+  shows "(Stop ;; RH(P \<turnstile> Q)) = Stop"
+proof -
+  from assms
+  have "(Stop ;; RH(P \<turnstile> Q)) =
+        RH ((\<not> ($ok\<acute> \<and> \<not> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> ;; R1 (\<not> P))) \<turnstile>
+            ($wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<or> ($ok\<acute> \<and> \<not> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> ;; R1 Q)))"
+       (is "_ = RH (?P \<turnstile> ?Q)")
+  proof -
+    have "$tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> is R2s"
+      by (simp add: Healthy_def R2s_def usubst, pred_tac)
+    moreover have "true is R2s"
+      by (simp add: Healthy_def' R2s_true)
+    ultimately show ?thesis using assms
+      apply (simp add: Stop_def unrest)
+      apply (subst reactive_design_composition)
+      apply (simp_all add: unrest)
+    done
+  qed
+  moreover have "?P = true"
+    by pred_tac
+  moreover have "?Q = ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)"
+    by pred_tac
+  ultimately show ?thesis
+    by (simp add: Stop_def)
+qed
+
+lemma tr_rea_alpha_id:
+  "(($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) ;; P) = (\<exists> $ok \<bullet> \<exists> $wait \<bullet> \<exists> $ref \<bullet> P)"
+  apply (rel_tac)
+  apply (rule_tac x="des_ok y" in exI)
+  apply (rule_tac x="rp_wait (alpha_d.more y)" in exI)
+  apply (rule_tac x="rp_ref (alpha_d.more y)" in exI)
+  apply (smt alpha_d.surjective alpha_d.update_convs(1) alpha_d.update_convs(2) alpha_rp'.surjective alpha_rp'.update_convs(1) alpha_rp'.update_convs(3))
+  using alpha_rp'.surjective apply fastforce
+done
+
+(*  
+lemma Skip_left_unit:
+  assumes "P is R2s" "Q is R2s"
+  shows "(Skip ;; RH(P \<turnstile> Q)) = RH(P \<turnstile> Q)"
+proof -
+  have "(Skip ;; RH(P \<turnstile> Q)) = 
+        RH ((\<not> ($ok\<acute> \<and> \<not> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R ;; R1 (\<not> P))) \<turnstile>
+            ($wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R \<or>
+            ($ok\<acute> \<and> \<not> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R ;; R1 Q)))"
+  using assms
+    apply (simp add: Skip_def)
+    apply (subst reactive_design_composition)
+    apply (simp_all add: unrest R2s_true R2s_conj Healthy_def R2s_tr'_eq_tr R2s_lift_rea R2s_not R2s_wait')
+  done
+  have "($ok\<acute> \<and> \<not> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R ;; R1 (\<not> P))
+       = (\<exists> $ok \<bullet> \<exists> $wait \<bullet> \<exists> $ref \<bullet> $ok \<and> \<not> $wait \<and> R1 (\<not> P))"
+  proof -
+    have "($ok\<acute> \<and> \<not> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R ;; R1 (\<not> P))
+       = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R ;; ($ok \<and> \<not> $wait \<and> R1 (\<not> P)))"
+      by rel_tac
+    also have "... = (($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) ;; ($ok \<and> \<not> $wait \<and> R1 (\<not> P)))"
+      by rel_tac
+    also have "... = (\<exists> $ok \<bullet> \<exists> $wait \<bullet> \<exists> $ref \<bullet> $ok \<and> \<not> $wait \<and> R1 (\<not> P))"
+      using tr_rea_alpha_id by blast
+    also have "... = (\<exists> $ok \<bullet> (\<exists> $wait \<bullet> \<exists> $ref \<bullet> (R1 (\<not> P) \<and> $wait =\<^sub>u false)) \<and> $ok =\<^sub>u true)"
+      by pred_tac
+    also have "... = (\<exists> $wait \<bullet> \<exists> $ref \<bullet> (R1 (\<not> P\<lbrakk>true/$ok\<rbrakk>)) \<and> $wait =\<^sub>u false)"
+      apply (subst one_point[of "in_var ok" _, simplified])
+      apply (simp_all add: usubst unrest R1_def)
+    done
+    also have "... = (\<exists> $wait \<bullet> (\<exists> $ref \<bullet> (R1 (\<not> P\<lbrakk>true/$ok\<rbrakk>))) \<and> $wait =\<^sub>u false)"
+      by (pred_tac)
+    also have "... = (\<exists> $ref \<bullet> (R1 (\<not> P\<lbrakk>true/$ok\<rbrakk>\<lbrakk>false/$wait\<rbrakk>)))"
+      apply (subst one_point[of "in_var wait" _, simplified])
+      apply (simp_all add: usubst unrest R1_def)
+    done
+
+      term "utp_expr.var (in_var x) =\<^sub>u $x"
+      apply (subst one_point[of "in_var ok"])
+
+    also have "... = (\<exists> $wait \<bullet> \<exists> $ref \<bullet> R1 (\<not> P\<lbrakk>true/$ok\<rbrakk>))"
+      
+      thm one_point
+      using tr_rea_alpha_id by blast
+
+
+    finally show ?thesis .
+  qed
+*)    
+
 
 (*
 (* TODO : Circus merge predicate: *)

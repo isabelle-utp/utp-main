@@ -133,9 +133,20 @@ definition drop_rea :: "('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarro
 
 definition skip_rea_def [urel_defs]: "II\<^sub>r = (II \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
 
+subsection {* Reactive lemmas *}
+
 lemma unrest_tr_lift_rea [unrest]:
   "$tr \<sharp> \<lceil>P\<rceil>\<^sub>R" "$tr\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>R"
   by (pred_tac)+
+
+lemma tr'_minus_tr_prefix [simp]:
+  "($tr\<acute> - $tr =\<^sub>u []\<^sub>u) = ($tr =\<^sub>u $tr\<acute>)"
+  apply (pred_tac)
+  using list_minus_anhil apply fastforce
+done
+
+lemma tr_prefix_as_concat: "(xs \<le>\<^sub>u ys) = (\<^bold>\<exists> zs \<bullet> ys =\<^sub>u xs ^\<^sub>u \<guillemotleft>zs\<guillemotright>)"
+  by (rel_tac, simp add: less_eq_list_def prefixeq_def)
 
 subsection {* R1: Events cannot be undone *}
 
@@ -307,8 +318,8 @@ proof (rel_tac)
     using a1 by (metis (no_types) alpha_d.surjective)
 qed
 
-lemma tr_prefix_as_concat: "(xs \<le>\<^sub>u ys) = (\<^bold>\<exists> zs \<bullet> ys =\<^sub>u xs ^\<^sub>u \<guillemotleft>zs\<guillemotright>)"
-  by (rel_tac, simp add: less_eq_list_def prefixeq_def)
+lemma R2_tr_prefix: "R2($tr \<le>\<^sub>u $tr\<acute>) = ($tr \<le>\<^sub>u $tr\<acute>)"
+  by (pred_tac)
 
 lemma R2_form:
   "R2(P) = (\<^bold>\<exists> tt \<bullet> P\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<guillemotright>)"
@@ -392,6 +403,9 @@ lemma R2_seqr_closure:
 lemma R1_R2_commute:
   "R1(R2(P)) = R2(R1(P))"
   by pred_tac
+
+lemma R2_R1_form: "R2(R1(P)) = R1(R2s(P))"
+  by (rel_tac)
 
 lemma R2s_H1_commute:
   "R2s(H1(P)) = H1(R2s(P))"
