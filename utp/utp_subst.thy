@@ -230,5 +230,8 @@ lemma unrest_usubst_upd [unrest]:
   "\<lbrakk> x \<bowtie> y; x \<sharp> \<sigma>; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> \<sigma>(y \<mapsto>\<^sub>s v)"
   by (simp add: subst_upd_uvar_def unrest_usubst_def unrest_upred.rep_eq lens_indep_comm)
 
+lemma unrest_subst [unrest]:
+  "\<lbrakk> x \<sharp> P; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> x \<sharp> (\<sigma> \<dagger> P)"
+  by (transfer, simp add: unrest_usubst_def)
 
 end

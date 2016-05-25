@@ -419,6 +419,10 @@ lemma R2s_H2_commute:
   "R2s(H2(P)) = H2(R2s(P))"
   by (simp add: H2_split R2s_def usubst, smt out_in_indep out_var_indep tr_ok_indep(1) usubst_upd_comm)
 
+lemma R2_R1_seq_drop_left:
+  "R2(R1(P) ;; R1(Q)) = R2(P ;; R1(Q))"
+  by rel_tac
+
 subsection {* R3 *}
 
 definition R3_def [upred_defs]: "R3 (P) = (II \<triangleleft> $wait \<triangleright> P)"
