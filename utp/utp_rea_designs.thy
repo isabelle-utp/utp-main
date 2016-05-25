@@ -305,23 +305,6 @@ proof -
     by (metis RH_R2c_def RH_def)
 qed
 
-
-
-
-    also have "... = (\<not> R2(R2 (\<not> P) ;; R2 true))"
-      
-      apply (simp add: R2s_not)
-        
-
-(* (\<not> (R1 (\<not> R2s P) ;; R1 true) \<and> \<not> (R1 (R2s Q) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R))) *)
-    
-  apply (simp add: RH_def)
-
-lemma "RH(((R1(Q\<^sub>1)) ;; (R1(P\<^sub>2))) \<or> ((R1(Q\<^sub>1)) ;; (R2(Q\<^sub>2))))
-       = RH((Q\<^sub>1 ;; (R1(P\<^sub>2))) \<or> ((Q\<^sub>1) ;; (R2(Q\<^sub>2))))"
-  apply (rel_tac)
-
-
 text {* Marcel's proof for reactive design composition *}
 
 lemma reactive_design_composition:

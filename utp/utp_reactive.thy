@@ -80,6 +80,11 @@ lemma ref_uvar [simp]: "uvar ref"
 lemma rea_lens_under_des_lens: "\<Sigma>\<^sub>R \<subseteq>\<^sub>L \<Sigma>\<^sub>D"
   by (simp add: \<Sigma>\<^sub>R_def lens_comp_lb)
 
+lemma rea_lens_indep_ok [simp]: "\<Sigma>\<^sub>R \<bowtie> ok" "ok \<bowtie> \<Sigma>\<^sub>R"
+  using ok_indep_des_lens(2) rea_lens_under_des_lens sublens_pres_indep apply blast
+  using lens_indep_sym ok_indep_des_lens(2) rea_lens_under_des_lens sublens_pres_indep apply blast
+done
+
 declare wait_def [upred_defs]
 declare tr_def [upred_defs]
 declare ref_def [upred_defs]
@@ -110,6 +115,18 @@ lemma tr\<^sub>r_ref\<^sub>r_indep [simp]: "ref\<^sub>r \<bowtie> tr\<^sub>r" "t
 
 lemma tr_ref_indep [simp]: "ref \<bowtie> tr" "tr \<bowtie> ref"
   by (auto intro: lens_indep_left_comp simp add: ref_def tr_def)
+
+lemma rea_indep_wait [simp]: "\<Sigma>\<^sub>r \<bowtie> wait\<^sub>r" "wait\<^sub>r \<bowtie> \<Sigma>\<^sub>r"
+  by (auto intro!:lens_indepI simp add: wait\<^sub>r_def \<Sigma>\<^sub>r_def)
+
+lemma rea_lens_indep_wait [simp]: "\<Sigma>\<^sub>R \<bowtie> wait" "wait \<bowtie> \<Sigma>\<^sub>R"
+  by (auto intro: lens_indep_left_comp simp add: wait_def \<Sigma>\<^sub>R_def)
+
+lemma rea_indep_tr [simp]: "\<Sigma>\<^sub>r \<bowtie> tr\<^sub>r" "tr\<^sub>r \<bowtie> \<Sigma>\<^sub>r"
+  by (auto intro!:lens_indepI simp add: tr\<^sub>r_def \<Sigma>\<^sub>r_def)
+
+lemma rea_lens_indep_tr [simp]: "\<Sigma>\<^sub>R \<bowtie> tr" "tr \<bowtie> \<Sigma>\<^sub>R"
+  by (auto intro: lens_indep_left_comp simp add: tr_def \<Sigma>\<^sub>R_def)
 
 instantiation alpha_rp'_ext :: (type, vst) vst
 begin
