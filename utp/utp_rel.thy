@@ -138,6 +138,10 @@ lemma unrest_semir_dash [unrest]:
   shows "$x\<acute> \<sharp> (P ;; Q)"
   using assms by (rel_tac)
 
+lemma unrest_cond [unrest]:
+  "\<lbrakk> x \<sharp> P; x \<sharp> b; x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> (P \<triangleleft> b \<triangleright> Q)"
+  by (rel_tac)
+
 lemma unrest_in\<alpha>_var [unrest]:
   "\<lbrakk> semi_uvar x; in\<alpha> \<sharp> (P :: ('\<alpha>, '\<beta>) relation) \<rbrakk> \<Longrightarrow> $x \<sharp> P"
   by (pred_tac, simp add: in\<alpha>_def, blast, metis in\<alpha>_def lens.select_convs(2) old.prod.case)
@@ -304,6 +308,14 @@ lemma cond_var_subst_right:
   shows "(P \<triangleleft> $x \<triangleright> Q) = (P \<triangleleft> $x \<triangleright> Q\<lbrakk>false/$x\<rbrakk>)"
   using assms by (metis cond_def conj_neg_var_subst) 
 
+lemma cond_seq_left_distr:
+  "out\<alpha> \<sharp> b \<Longrightarrow> ((P \<triangleleft> b \<triangleright> Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright> (Q ;; R))"
+  by (rel_tac, blast+)
+
+lemma cond_seq_right_distr:
+  "in\<alpha> \<sharp> b \<Longrightarrow> (P ;; (Q \<triangleleft> b \<triangleright> R)) = ((P ;; Q) \<triangleleft> b \<triangleright> (P ;; R))"
+  by (rel_tac, blast+)
+
 text {* These laws may seem to duplicate quantale laws, but they don't -- they are
         applicable to non-homogeneous relations as well, which will become important
         later. *}
@@ -451,6 +463,24 @@ lemma seqr_middle:
   apply (rule_tac x="y" in exI)
   apply (simp)
 done
+
+lemma seqr_left_one_point:
+  assumes "uvar x"
+  shows "(P \<and> ($x\<acute> =\<^sub>u \<guillemotleft>v\<guillemotright>) ;; Q) = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
+  using assms
+  by (rel_tac, metis vwb_lens_wb wb_lens.get_put)
+
+lemma seqr_right_one_point:
+  assumes "uvar x"
+  shows "(P ;; ($x =\<^sub>u \<guillemotleft>v\<guillemotright>) \<and> Q) = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
+  using assms
+  by (rel_tac, metis vwb_lens_wb wb_lens.get_put)
+
+lemma seq_var_ident_lift:
+  assumes "uvar x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
+  shows "(($x\<acute> =\<^sub>u $x \<and> P) ;; ($x\<acute> =\<^sub>u $x) \<and> Q) = ($x\<acute> =\<^sub>u $x \<and> (P ;; Q))"
+  using assms apply (rel_tac)
+  by (metis (no_types, lifting) vwb_lens_wb wb_lens_weak weak_lens.put_get)
 
 theorem precond_equiv:
   "P = (P ;; true) \<longleftrightarrow> (out\<alpha> \<sharp> P)"

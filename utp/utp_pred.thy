@@ -103,28 +103,7 @@ notation bot ("\<top>")
 no_notation top ("\<top>")
 notation top ("\<bottom>")
 
-text {* We now introduce a partial order on expressions. Note this is more general than refinement
-        since it lifts an order on any expression type (not just Boolean). However, the Boolean
-        version does equate to refinement. *}
-
-instantiation uexpr :: (order, type) order
-begin
-  lift_definition less_eq_uexpr :: "('a, 'b) uexpr \<Rightarrow> ('a, 'b) uexpr \<Rightarrow> bool"
-  is "\<lambda> P Q. (\<forall> A. P A \<le> Q A)" .
-  definition less_uexpr :: "('a, 'b) uexpr \<Rightarrow> ('a, 'b) uexpr \<Rightarrow> bool"
-  where "less_uexpr P Q = (P \<le> Q \<and> \<not> Q \<le> P)"
-instance proof
-  fix x y z :: "('a, 'b) uexpr"
-  show "(x < y) = (x \<le> y \<and> \<not> y \<le> x)" by (simp add: less_uexpr_def)
-  show "x \<le> x" by (transfer, auto)
-  show "x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z" 
-    by (transfer, blast intro:order.trans)
-  show "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
-    by (transfer, rule ext, simp add: eq_iff)
-qed
-end
-
-text {* We also trivially instantiate our refinement class *}
+text {* We trivially instantiate our refinement class *}
 
 instance uexpr :: (order, type) refine ..
 

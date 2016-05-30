@@ -135,6 +135,18 @@ begin
 instance ..
 end
 
+instantiation uexpr :: (sgn, type) sgn
+begin
+  definition sgn_uexpr_def: "sgn u = uop sgn u"
+instance ..
+end
+
+instantiation uexpr :: (abs, type) abs
+begin
+  definition abs_uexpr_def: "abs u = uop abs u"
+instance ..
+end
+
 instantiation uexpr :: (zero, type) zero
 begin
   definition zero_uexpr_def: "0 = lit 0"
@@ -159,6 +171,49 @@ instance uexpr :: (semigroup_add, type) semigroup_add
 
 instance uexpr :: (monoid_add, type) monoid_add
   by (intro_classes) (simp add: plus_uexpr_def zero_uexpr_def, transfer, simp)+
+
+instance uexpr :: (ab_semigroup_add, type) ab_semigroup_add
+  by (intro_classes) (simp add: plus_uexpr_def, transfer, simp add: add.commute)+
+
+instance uexpr :: (cancel_semigroup_add, type) cancel_semigroup_add
+  by (intro_classes) (simp add: plus_uexpr_def, transfer, simp add: fun_eq_iff)+
+
+instance uexpr :: (cancel_ab_semigroup_add, type) cancel_ab_semigroup_add
+  by (intro_classes) (simp add: plus_uexpr_def minus_uexpr_def, transfer, simp add: fun_eq_iff add.commute diff_diff_add)+
+
+instance uexpr :: (group_add, type) group_add
+  by (intro_classes)
+     (simp add: plus_uexpr_def uminus_uexpr_def minus_uexpr_def zero_uexpr_def, transfer, simp)+
+
+instance uexpr :: (ab_group_add, type) ab_group_add
+  by (intro_classes)
+     (simp add: plus_uexpr_def uminus_uexpr_def minus_uexpr_def zero_uexpr_def, transfer, simp)+
+
+instantiation uexpr :: (order, type) order
+begin
+  lift_definition less_eq_uexpr :: "('a, 'b) uexpr \<Rightarrow> ('a, 'b) uexpr \<Rightarrow> bool"
+  is "\<lambda> P Q. (\<forall> A. P A \<le> Q A)" .
+  definition less_uexpr :: "('a, 'b) uexpr \<Rightarrow> ('a, 'b) uexpr \<Rightarrow> bool"
+  where "less_uexpr P Q = (P \<le> Q \<and> \<not> Q \<le> P)"
+instance proof
+  fix x y z :: "('a, 'b) uexpr"
+  show "(x < y) = (x \<le> y \<and> \<not> y \<le> x)" by (simp add: less_uexpr_def)
+  show "x \<le> x" by (transfer, auto)
+  show "x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z" 
+    by (transfer, blast intro:order.trans)
+  show "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
+    by (transfer, rule ext, simp add: eq_iff)
+qed
+end
+
+instance uexpr :: (ordered_ab_group_add, type) ordered_ab_group_add
+  by (intro_classes) (simp add: plus_uexpr_def, transfer, simp)
+
+instance uexpr :: (ordered_ab_group_add_abs, type) ordered_ab_group_add_abs
+  apply (intro_classes)
+  apply (simp add: abs_uexpr_def zero_uexpr_def plus_uexpr_def uminus_uexpr_def, transfer, simp add: abs_ge_self abs_le_iff abs_triangle_ineq)+
+  apply (metis abs_ge_self abs_le_iff abs_minus_cancel abs_triangle_ineq4 add_mono)
+done
 
 instance uexpr :: (semiring, type) semiring
   by (intro_classes) (simp add: plus_uexpr_def times_uexpr_def, transfer, simp add: fun_eq_iff add.commute semiring_class.distrib_right semiring_class.distrib_left)+
