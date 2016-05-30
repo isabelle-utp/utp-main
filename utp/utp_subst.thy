@@ -171,6 +171,12 @@ lemma subst_minus [usubst]: "\<sigma> \<dagger> (x - y) = \<sigma> \<dagger> x -
 lemma subst_uminus [usubst]: "\<sigma> \<dagger> (- x) = - (\<sigma> \<dagger> x)"
   by (simp add: uminus_uexpr_def subst_uop)
 
+lemma usubst_sgn [usubst]: "\<sigma> \<dagger> sgn x = sgn (\<sigma> \<dagger> x)"
+  by (simp add: sgn_uexpr_def subst_uop)
+
+lemma usubst_abs [usubst]: "\<sigma> \<dagger> abs x = abs (\<sigma> \<dagger> x)"
+  by (simp add: abs_uexpr_def subst_uop)
+
 lemma subst_zero [usubst]: "\<sigma> \<dagger> 0 = 0"
   by (simp add: zero_uexpr_def subst_lit)
 

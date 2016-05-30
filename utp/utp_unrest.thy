@@ -82,6 +82,12 @@ lemma unrest_one [unrest]: "x \<sharp> 1"
 lemma unrest_numeral [unrest]: "x \<sharp> (numeral n)"
   by (simp add: numeral_uexpr_simp unrest_lit)
 
+lemma unrest_sgn [unrest]: "x \<sharp> u \<Longrightarrow> x \<sharp> sgn u"
+  by (simp add: sgn_uexpr_def unrest_uop)
+
+lemma unrest_abs [unrest]: "x \<sharp> u \<Longrightarrow> x \<sharp> abs u"
+  by (simp add: abs_uexpr_def unrest_uop)
+
 lemma unrest_plus [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> u + v"
   by (simp add: plus_uexpr_def unrest)
 
