@@ -420,6 +420,8 @@ lemmas uexpr_defs =
   times_uexpr_def
   inverse_uexpr_def
   divide_uexpr_def
+  sgn_uexpr_def
+  abs_uexpr_def
   mod_uexpr_def
   eq_upred_def
   numeral_uexpr_simp

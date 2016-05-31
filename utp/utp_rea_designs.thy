@@ -5,7 +5,7 @@ theory utp_rea_designs
 begin
 
 definition wait'_cond :: "_ \<Rightarrow> _ \<Rightarrow> _" (infix "\<diamondop>" 65) where
-"P \<diamondop> Q = (P \<triangleleft> $wait\<acute> \<triangleright> Q)"
+[upred_defs]: "P \<diamondop> Q = (P \<triangleleft> $wait\<acute> \<triangleright> Q)"
 
 lemma R2s_ok': "R2s($ok\<acute>) = $ok\<acute>"
   by pred_tac
@@ -114,6 +114,10 @@ definition [upred_defs]: "R3c_post(P) = (\<lceil>II\<rceil>\<^sub>D \<trianglele
 
 lemma R3c_pre_conj: "R3c_pre(P \<and> Q) = (R3c_pre(P) \<and> R3c_pre(Q))"
   by rel_tac
+
+lemma R3c_pre_seq:
+  "(true ;; Q) = true \<Longrightarrow> R3c_pre(P ;; Q) = (R3c_pre(P) ;; Q)"
+  by (rel_tac)
 
 lemma R2s_design: "R2s(P \<turnstile> Q) = (R2s(P) \<turnstile> R2s(Q))"
   by (simp add: R2s_def design_def usubst)

@@ -532,6 +532,12 @@ lemma eq_upred_refl [simp]: "(x =\<^sub>u x) = true"
 lemma eq_upred_sym: "(x =\<^sub>u y) = (y =\<^sub>u x)"
   by pred_tac
 
+lemma eq_cong_left:
+  assumes "uvar x" "$x \<sharp> Q" "$x\<acute> \<sharp> Q" "$x \<sharp> R" "$x\<acute> \<sharp> R"
+  shows "(($x\<acute> =\<^sub>u $x \<and> Q) = ($x\<acute> =\<^sub>u $x \<and> R)) \<longleftrightarrow> (Q = R)"
+  using assms
+  by (pred_tac, (meson mwb_lens_def vwb_lens_mwb weak_lens_def)+)
+
 lemma conj_eq_in_var_subst:
   fixes x :: "('a, '\<alpha>) uvar"
   assumes "uvar x"
@@ -557,6 +563,11 @@ lemma conj_neg_var_subst:
   shows "(\<not> $x \<and> Q) = (\<not> $x \<and> Q\<lbrakk>false/$x\<rbrakk>)"
   using assms
   by (pred_tac, metis (full_types) vwb_lens_wb wb_lens.get_put, metis (full_types) vwb_lens_wb wb_lens.get_put)
+
+lemma le_pred_refl [simp]:
+  fixes x :: "('a::preorder, '\<alpha>) uexpr"
+  shows "(x \<le>\<^sub>u x) = true"
+  by (pred_tac)
 
 lemma shEx_bool [simp]: "shEx P = (P True \<or> P False)"
   by (pred_tac, metis (full_types))

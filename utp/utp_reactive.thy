@@ -60,7 +60,7 @@ lemma tr\<^sub>r_uvar [simp]: "uvar tr\<^sub>r"
 lemma ref\<^sub>r_uvar [simp]: "uvar ref\<^sub>r"
   by (unfold_locales, simp_all add: ref\<^sub>r_def)
 
-lemma rea_lens_uvar [simp]: "uvar \<Sigma>\<^sub>r"
+lemma rea_uvar [simp]: "uvar \<Sigma>\<^sub>r"
   by (unfold_locales, simp_all add: \<Sigma>\<^sub>r_def)
   
 definition "wait = (wait\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
@@ -76,6 +76,9 @@ lemma tr_uvar [simp]: "uvar tr"
 
 lemma ref_uvar [simp]: "uvar ref"
   by (simp add: comp_vwb_lens ref_def)
+
+lemma rea_lens_uvar [simp]: "uvar \<Sigma>\<^sub>R"
+  by (simp add: \<Sigma>\<^sub>R_def comp_vwb_lens)
 
 lemma rea_lens_under_des_lens: "\<Sigma>\<^sub>R \<subseteq>\<^sub>L \<Sigma>\<^sub>D"
   by (simp add: \<Sigma>\<^sub>R_def lens_comp_lb)
@@ -127,6 +130,12 @@ lemma rea_indep_tr [simp]: "\<Sigma>\<^sub>r \<bowtie> tr\<^sub>r" "tr\<^sub>r \
 
 lemma rea_lens_indep_tr [simp]: "\<Sigma>\<^sub>R \<bowtie> tr" "tr \<bowtie> \<Sigma>\<^sub>R"
   by (auto intro: lens_indep_left_comp simp add: tr_def \<Sigma>\<^sub>R_def)
+
+lemma rea_indep_ref [simp]: "\<Sigma>\<^sub>r \<bowtie> ref\<^sub>r" "ref\<^sub>r \<bowtie> \<Sigma>\<^sub>r"
+  by (auto intro!:lens_indepI simp add: ref\<^sub>r_def \<Sigma>\<^sub>r_def)
+
+lemma rea_lens_indep_ref [simp]: "\<Sigma>\<^sub>R \<bowtie> ref" "ref \<bowtie> \<Sigma>\<^sub>R"
+  by (auto intro: lens_indep_left_comp simp add: ref_def \<Sigma>\<^sub>R_def)
 
 instantiation alpha_rp'_ext :: (type, vst) vst
 begin
@@ -182,6 +191,9 @@ lemma R1_disj: "R1(P \<or> Q) = (R1(P) \<or> R1(Q))"
   by pred_tac
 
 lemma R1_extend_conj: "R1(P \<and> Q) = (R1(P) \<and> Q)"
+  by pred_tac
+
+lemma R1_extend_conj': "R1(P \<and> Q) = (P \<and> R1(Q))"
   by pred_tac
 
 lemma R1_cond: "R1(P \<triangleleft> b \<triangleright> Q) = (R1(P) \<triangleleft> b \<triangleright> R1(Q))"

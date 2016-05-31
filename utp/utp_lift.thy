@@ -41,6 +41,13 @@ lemma subst_lift_upd [usubst]:
 lemma subst_lift_pre [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> \<lceil>b\<rceil>\<^sub>< = \<lceil>\<sigma> \<dagger> b\<rceil>\<^sub><"
   by pred_tac
 
+subsection {* Unrestriction laws *}
+
+lemma unrest_dash_var_pre [unrest]:
+  fixes x :: "('a, '\<alpha>) uvar"
+  shows "$x\<acute> \<sharp> \<lceil>p\<rceil>\<^sub><"
+  by (pred_tac)
+
 (*
 lemma subst_drop_upd [usubst]: 
   fixes x :: "('a, '\<alpha>) uvar"
