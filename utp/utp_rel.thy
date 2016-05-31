@@ -79,10 +79,10 @@ syntax
 
 translations
   "_mk_usubst \<sigma> (_svid_unit x) v" == "\<sigma>(&x \<mapsto>\<^sub>s v)"
-  "_mk_usubst \<sigma> (_svid_list x xs) (_uexprs v vs)" == "(_mk_usubst (\<sigma>(x \<mapsto>\<^sub>s v)) xs vs)"
+  "_mk_usubst \<sigma> (_svid_list x xs) (_uexprs v vs)" == "(_mk_usubst (\<sigma>(&x \<mapsto>\<^sub>s v)) xs vs)"
   "_assignment xs vs" => "CONST assigns_r (_mk_usubst (CONST id) xs vs)"
-  "x := v" <= "CONST assigns_r (CONST subst_upd (CONST id) x v)"
-  "x,y := u,v" <= "CONST assign_2_r x y u v"
+  "x := v" <= "CONST assigns_r (CONST subst_upd (CONST id) (CONST svar x) v)"
+  "x,y := u,v" <= "CONST assigns_r (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
 
 adhoc_overloading
   useq seqr and
