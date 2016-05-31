@@ -88,6 +88,7 @@ adhoc_overloading
   useq seqr and
   uskip skip_r
 
+method rel_simp = ((simp add: upred_defs urel_defs)?, (transfer, (rule_tac ext)?, simp_all add: lens_defs urel_defs relcomp_unfold fun_eq_iff prod.case_eq_if)?)
 method rel_tac = ((simp add: upred_defs urel_defs)?, (transfer, (rule_tac ext)?, auto simp add: lens_defs urel_defs relcomp_unfold fun_eq_iff prod.case_eq_if)?)
 
 text {* We describe some properties of relations *}

@@ -30,13 +30,7 @@ definition lvar_lift :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('a, '\<alpha>)
 "lvar_lift X = \<lparr> lens_get = \<lambda> s. \<lparr> lvar\<^sub>u = get\<^bsub>X\<^esub> (lvar\<^sub>u s), \<dots> = more s \<rparr>
                , lens_put = \<lambda> s v. \<lparr> lvar\<^sub>u = put\<^bsub>X\<^esub> (lvar\<^sub>u s) (lvar\<^sub>u v), \<dots> = more v \<rparr> \<rparr>"
 
-term "lvar_lift x \<times>\<^sub>L lvar_lift x"
-
-term "lvar_lift snd\<^sub>L"
-
-term "(lvar_lift snd\<^sub>L \<times>\<^sub>L lvar_lift snd\<^sub>L)"
-
-term "P \<restriction>\<^sub>p (lvar_lift snd\<^sub>L \<times>\<^sub>L lvar_lift snd\<^sub>L)"
+declare lvar_lift_def [upred_defs]
 
 abbreviation lvlift :: "_ \<Rightarrow> _" ("\<lceil>_\<rceil>\<^sub>l") where "\<lceil>P\<rceil>\<^sub>l \<equiv> P \<oplus>\<^sub>p (lvar_lift snd\<^sub>L \<times>\<^sub>L lvar_lift snd\<^sub>L)"
 abbreviation lvdrop :: "_ \<Rightarrow> _" ("\<lfloor>_\<rfloor>\<^sub>l") where "\<lfloor>P\<rfloor>\<^sub>l \<equiv> P \<restriction>\<^sub>p (lvar_lift snd\<^sub>L \<times>\<^sub>L lvar_lift snd\<^sub>L)"
@@ -66,7 +60,7 @@ lemma lvar_indep_gvar [simp]: "lvar \<bowtie> gvar" "gvar \<bowtie> lvar"
 definition var_scope :: 
   "(('a \<Longrightarrow> ('a \<times> '\<L>, '\<alpha>) lvar_scheme) \<Rightarrow> (('a \<times> '\<L>, '\<alpha>) lvar_scheme) hrelation) \<Rightarrow>
    (('\<L>, '\<alpha>) lvar_scheme) hrelation" where
-"var_scope P = (\<^bold>+(lvar_lift snd\<^sub>L) ;; P (fst\<^sub>L ;\<^sub>L lvar) ;; \<^bold>-(lvar_lift snd\<^sub>L))"
+[upred_defs]: "var_scope P = (\<^bold>+(lvar_lift snd\<^sub>L) ;; P (fst\<^sub>L ;\<^sub>L lvar) ;; \<^bold>-(lvar_lift snd\<^sub>L))"
 
 syntax
   "_var_scope" :: "id \<Rightarrow> logic \<Rightarrow> logic" ("var _ \<bullet> _" [0,10] 10)
@@ -78,16 +72,22 @@ translations
 
 lemma lvar_assign_null:
   "(var x \<bullet> x := v) = II"
-  apply (simp add: var_scope_def lvar_lift_def upred_defs urel_defs relcomp_unfold lens_comp_def fst_lens_def snd_lens_def)
-  apply (transfer, simp add: relcomp_unfold, rule ext, simp add:prod.case_eq_if)
-  apply (metis (no_types, lifting) fst_conv lvar.equality lvar.ext_inject lvar.select_convs(1) lvar.update_convs(1) sndI)
-done
+  by (rel_simp, metis (no_types, lifting) fst_conv lvar.equality lvar.ext_inject lvar.select_convs(1) lvar.update_convs(1) sndI)
 
-lemma "\<lbrakk> $lvar \<sharp> Q; $lvar\<acute> \<sharp> Q \<rbrakk> \<Longrightarrow> (var x \<bullet> P x ;; Q) = ((var x \<bullet> P x) ;; \<lfloor>Q\<rfloor>\<^sub>l)"
-  apply (simp add: var_scope_def lvar_lift_def upred_defs urel_defs relcomp_unfold lens_comp_def fst_lens_def snd_lens_def prod_lens_def prod.case_eq_if)
-  apply (transfer, simp add: relcomp_unfold prod.case_eq_if lens_create_def comp_def, rule ext)
-  apply (safe)
-  apply (simp)
-  oops
+lemma lvlift_var_commute:
+  "(\<^bold>+(lvar_lift snd\<^sub>L) ;; \<lceil>P\<rceil>\<^sub>l) = (P ;; \<^bold>+(lvar_lift snd\<^sub>L))"
+  by (rel_simp, metis lvar.select_convs(1) lvar.select_convs(2) lvar.surjective prod.collapse snd_conv)
+  
+lemma lvlift_end_commute:
+  "(\<lceil>P\<rceil>\<^sub>l ;; \<^bold>-(lvar_lift snd\<^sub>L)) = (\<^bold>-(lvar_lift snd\<^sub>L) ;; P)"
+  by (rel_simp, metis lvar.select_convs(1) lvar.select_convs(2) lvar.surjective prod.collapse snd_conv)
+
+lemma lvlift_out_right:
+  "(var x \<bullet> P x ;; \<lceil>Q\<rceil>\<^sub>l) = ((var x \<bullet> P x) ;; Q)"
+  by (simp add: var_scope_def, metis lvlift_end_commute seqr_assoc)
+
+lemma lvlift_out_left:
+  "(var x \<bullet> \<lceil>P\<rceil>\<^sub>l ;; Q x) = (P ;; (var x \<bullet> Q x))"
+  by (simp add: var_scope_def, simp add: lvlift_var_commute seqr_assoc)
 
 end
