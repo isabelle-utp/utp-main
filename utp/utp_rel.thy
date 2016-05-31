@@ -274,6 +274,10 @@ lemma cond_unit_T:"(P \<triangleleft> true \<triangleright> Q) = P" by rel_tac
 
 lemma cond_unit_F:"(P \<triangleleft> false \<triangleright> Q) = Q" by rel_tac
 
+lemma cond_and_T_integrate:
+  "((P \<and> b) \<or> (Q \<triangleleft> b \<triangleright> R)) = ((P \<or> Q) \<triangleleft> b \<triangleright> R)"
+  by (rel_tac)
+
 lemma cond_L6: "(P \<triangleleft> b \<triangleright> (Q \<triangleleft> b \<triangleright> R)) = (P \<triangleleft> b \<triangleright> R)" by rel_tac
 
 lemma cond_L7: "(P \<triangleleft> b \<triangleright> (P \<triangleleft> c \<triangleright> Q)) = (P \<triangleleft> b \<or> c \<triangleright> Q)" by rel_tac
