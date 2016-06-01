@@ -20,6 +20,10 @@ begin
 
 no_notation inner (infix "\<bullet>" 70)
 
+no_notation
+  Set.member  ("op :") and
+  Set.member  ("(_/ : _)" [51, 51] 50)
+
 text {* This theory describes the foundational structure of UTP variables, upon which the rest
         of our model rests. We start by defining alphabets, which is this shallow model are
         simple represented as types, though by convention usually a record type where each
@@ -128,6 +132,7 @@ syntax
   "_salphaid"    :: "id \<Rightarrow> salpha" ("_" [999] 999)
   "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [999] 999)
   "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr "," 75)
+  "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr ";" 75)
   "_svid"        :: "id \<Rightarrow> svid" ("_" [999] 999)
   "_svid_alpha"  :: "svid" ("\<Sigma>")
   "_svid_empty"  :: "svid" ("\<emptyset>")

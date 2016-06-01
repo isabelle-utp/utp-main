@@ -42,13 +42,19 @@ abbreviation rcond::"('\<alpha>,  '\<beta>) relation \<Rightarrow> '\<alpha> con
 where "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<equiv> (P \<triangleleft> \<lceil>b\<rceil>\<^sub>< \<triangleright> Q)"
 
 lift_definition seqr::"(('\<alpha> \<times> '\<beta>) upred) \<Rightarrow> (('\<beta> \<times> '\<gamma>) upred) \<Rightarrow> ('\<alpha> \<times> '\<gamma>) upred"
-is "\<lambda> P Q r. r : ({p. P p} O {q. Q q})" .
+is "\<lambda> P Q r. r \<in> ({p. P p} O {q. Q q})" .
 
 lift_definition conv_r :: "('a, '\<alpha> \<times> '\<beta>) uexpr \<Rightarrow> ('a, '\<beta> \<times> '\<alpha>) uexpr" ("_\<^sup>-" [999] 999)
 is "\<lambda> e (b1, b2). e (b2, b1)" .
 
-definition skip_ra :: "('\<beta>, '\<alpha>) lens \<Rightarrow>'\<alpha> hrelation" ("II\<^bsub>_\<^esub>") where
-"skip_ra v = ($v\<acute> =\<^sub>u $v)"
+definition skip_ra :: "('\<beta>, '\<alpha>) lens \<Rightarrow>'\<alpha> hrelation" where
+[urel_defs]: "skip_ra v = ($v\<acute> =\<^sub>u $v)"
+
+syntax
+  "_skip_ra" :: "salpha \<Rightarrow> logic" ("II\<^bsub>_\<^esub>")
+
+translations
+  "_skip_ra v" == "CONST skip_ra v"
 
 definition assigns_ra :: "'\<alpha> usubst \<Rightarrow> ('\<beta>, '\<alpha>) lens \<Rightarrow> '\<alpha> hrelation" ("\<langle>_\<rangle>\<^bsub>_\<^esub>") where
 "\<langle>\<sigma>\<rangle>\<^bsub>a\<^esub> = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> II\<^bsub>a\<^esub>)"
@@ -433,6 +439,17 @@ lemma skip_r_alpha_eq:
   "II = ($\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
   by (rel_tac)
 
+lemma skip_ra_unfold:
+  "II\<^bsub>x,y\<^esub> = ($x\<acute> =\<^sub>u $x \<and> II\<^bsub>y\<^esub>)"
+  by (rel_tac)
+
+lemma skip_res_as_ra:
+  "\<lbrakk> vwb_lens y; x +\<^sub>L y \<approx>\<^sub>L 1\<^sub>L; x \<bowtie> y \<rbrakk> \<Longrightarrow> II\<restriction>\<^sub>\<alpha>x = II\<^bsub>y\<^esub>"
+  apply (rel_tac)
+  apply (metis (no_types, lifting) lens_indep_def)
+  apply (metis vwb_lens.put_eq)
+done
+
 lemma assign_unfold:
   "uvar x \<Longrightarrow> (x := v) = ($x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub>< \<and> II\<restriction>\<^sub>\<alpha>x)"
   apply (rel_tac, auto simp add: comp_def)
@@ -571,6 +588,23 @@ lemma shEx_lift_seq_1 [uquant_lift]:
 lemma shEx_lift_seq_2 [uquant_lift]: 
   "(P ;; (\<^bold>\<exists> x \<bullet> Q x)) = (\<^bold>\<exists> x \<bullet> (P ;; Q x))"
   by pred_tac
+
+text {* Antiframe *}
+
+definition id_on :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> \<Rightarrow> '\<alpha>" where
+[upred_defs]: "id_on x = (\<lambda> s. undefined \<oplus>\<^sub>L s on x)"
+
+definition alpha_coerce :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred"
+where [upred_defs]: "alpha_coerce x P = id_on x \<dagger> P"
+
+syntax
+  "_alpha_coerce" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("!\<^sub>\<alpha> _ \<bullet> _" [0, 10] 10)
+
+translations
+  "_alpha_coerce P x" == "CONST alpha_coerce P x"
+
+definition antiframe :: "('a, '\<alpha>) lens \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("_:[_]" [80,0] 80) where
+[urel_defs]: "x:[P] = (II\<restriction>\<^sub>\<alpha>x \<and> (!\<^sub>\<alpha> $x,$x\<acute> \<bullet> P))"
 
 text {* While loop laws *}
 
