@@ -842,6 +842,20 @@ lemma list_update_append_lemma1: "i < length xs \<Longrightarrow> xs[i := v] @ y
 lemma list_update_append_lemma2: "i < length ys \<Longrightarrow> xs @ ys[i := v] = (xs @ ys)[i + length xs := v]"
   by (simp add: list_update_append)
 
+lemma nth'_0 [simp]: "nth' (x # xs) 0 = x"
+  by (simp add: nth'_def)
+
+lemma nth'_Suc [simp]: "nth' (x # xs) (Suc n) = nth' xs n"
+  by (simp add: nth'_def)
+
+lemma list_augment_0 [simp]:
+  "list_augment (x # xs) 0 y = y # xs"
+  by (simp add: list_augment_def list_pad_out_def)
+
+lemma list_augment_Suc [simp]:
+  "list_augment (x # xs) (Suc n) y = x # list_augment xs n y"
+  by (simp add: list_augment_def list_pad_out_def)
+
 lemma list_augment_twice:
   "list_augment (list_augment xs i u) j v = list_pad_out xs (max i j)[i := u, j := v]"
   apply (auto simp add: list_augment_def list_pad_out_def list_update_append_lemma1 replicate_add[THEN sym] max_def)
@@ -868,12 +882,31 @@ definition list_lens :: "nat \<Rightarrow> ('a::two \<Longrightarrow> 'a list)" 
 [lens_defs]: "list_lens i = \<lparr> lens_get = (\<lambda> xs. nth' xs i)
                             , lens_put = (\<lambda> xs x. list_augment xs i x) \<rparr>"
 
+abbreviation "hd_lens \<equiv> list_lens 0"
+
+definition tl_lens :: "'a list \<Longrightarrow> 'a list" where
+[lens_defs]: "tl_lens = \<lparr> lens_get = (\<lambda> xs. tl xs)
+                        , lens_put = (\<lambda> xs xs'. hd xs # xs') \<rparr>"
+
 lemma list_mwb_lens: "mwb_lens (list_lens x)"
   by (unfold_locales, simp_all add: list_lens_def nth'_list_augment list_augment_same_twice)
+
+lemma tail_lens_mwb: 
+  "mwb_lens tl_lens"
+  by (unfold_locales, simp_all add: tl_lens_def)
 
 lemma list_lens_indep:
   "i \<noteq> j \<Longrightarrow> list_lens i \<bowtie> list_lens j"
   by (simp add: list_lens_def lens_indep_def list_augment_commute nth'_list_augment_diff)
+
+lemma hd_tl_lens_indep [simp]:
+  "hd_lens \<bowtie> tl_lens"
+  apply (rule lens_indepI)
+  apply (simp_all add: list_lens_def tl_lens_def)
+  apply (metis hd_conv_nth hd_def length_greater_0_conv list.case(1) nth'_def nth'_list_augment)
+  apply (metis (full_types) hd_conv_nth hd_def length_greater_0_conv list.case(1) nth'_def)
+  apply (metis Nitpick.size_list_simp(2) One_nat_def add_Suc_right append.simps(1) append_Nil2 diff_Suc_Suc diff_zero hd_Cons_tl list.inject list.size(4) list_augment_0 list_augment_def list_augment_same_twice list_pad_out_def nth_list_augment replicate.simps(1) replicate.simps(2) tl_Nil)
+done
 
 subsection {* Record field lenses *}
 
