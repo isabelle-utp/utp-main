@@ -36,16 +36,18 @@ lemma top_rest_var_indep [simp]:
   by (simp add: lens_indep_left_comp rest_var_def top_var_def)
 
 syntax
-  "_top_var"      :: "id \<Rightarrow> svid" ("@_" [999] 999)
-  "_rest_var"     :: "id \<Rightarrow> svid" ("\<down>_" [999] 999)
-  "_var_scope"    :: "id \<Rightarrow> logic \<Rightarrow> logic" ("var _ \<bullet> _" [0,10] 10)
-  "_var_scope_ty" :: "id \<Rightarrow> type \<Rightarrow> logic \<Rightarrow> logic" ("var _ : _ \<bullet> _" [0,0,10] 10)
+  "_top_var"             :: "id \<Rightarrow> svid" ("@_" [999] 999)
+  "_rest_var"            :: "id \<Rightarrow> svid" ("\<down>_" [999] 999)
+  "_var_scope"           :: "id \<Rightarrow> logic \<Rightarrow> logic" ("var _ \<bullet> _" [0,10] 10)
+  "_var_scope_ty"        :: "id \<Rightarrow> type \<Rightarrow> logic \<Rightarrow> logic" ("var _ : _ \<bullet> _" [0,0,10] 10)
+  "_var_scope_ty_assign" :: "id \<Rightarrow> type \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("var _ : _ := _ \<bullet> _" [0,0,0,10] 10)
 
 translations
   "_top_var x" == "CONST top_var x"
   "_rest_var x" == "CONST rest_var x"
   "var x \<bullet> P" => "var x ;; ((\<lambda> x. P) (CONST top_var x)) ;; end x"
   "var x : 'a \<bullet> P" => "var x ;; ((\<lambda> x :: ('a, _) uvar. P) (CONST top_var x)) ;; end x"
+  "var x : 'a := v \<bullet> P" => "var x : 'a \<bullet> x := v ;; P"
 
 lemma var_open_end:
   "uvar x \<Longrightarrow> (var x ;; end x) = II"
