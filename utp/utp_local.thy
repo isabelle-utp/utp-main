@@ -109,6 +109,40 @@ lemma var_open_refine: "var x \<sqsubseteq> x := \<langle>\<guillemotleft>v\<gui
 lemma var_open_vlet: "uvar x \<Longrightarrow> (var x ;; vlet x) = var x"
   by (rel_tac)
 
+lemma var_RID_commute:
+  "uvar x \<Longrightarrow> (var x ;; RID(x)(P)) = (RID(x)(P) ;; var x)"
+  apply (rel_tac)
+  apply (smt mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
+  apply (metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens_weak weak_lens.put_get)
+done
+
+lemma var_runrest_commute:
+  "\<lbrakk> uvar x; x \<sharp>\<sharp> P \<rbrakk> \<Longrightarrow> (var x ;; P) = (P ;; var x)"
+  by (metis unrest_relation_def var_RID_commute)
+
+lemma end_RID_commute:
+  "uvar x \<Longrightarrow> (RID(x)(P) ;; end x) = (end x ;; RID(x)(P))"
+  apply (rel_tac)
+  apply (smt vwb_lens.put_eq vwb_lens_wb wb_lens_weak weak_lens.put_get)
+  apply (metis mwb_lens_axioms_def mwb_lens_def vwb_lens_mwb weak_lens.put_get)
+done
+
+lemma end_runrest_commute:
+  "\<lbrakk> uvar x; x \<sharp>\<sharp> P \<rbrakk> \<Longrightarrow> (P ;; end x) = (end x ;; P)"
+  by (metis end_RID_commute unrest_relation_def)
+
+lemma var_block_collapse:
+  "\<lbrakk> uvar x; x \<sharp>\<sharp> P \<rbrakk> \<Longrightarrow> (var x \<bullet> P) = P"
+  by (simp add: end_runrest_commute seqr_assoc var_open_end)
+
+lemma var_block_out_left:
+  "\<lbrakk> uvar x; x \<sharp>\<sharp> P \<rbrakk> \<Longrightarrow> (var x \<bullet> P ;; Q x) = (P ;; (var x \<bullet> Q x))"
+  by (simp add: seqr_assoc var_runrest_commute)
+
+lemma var_block_out_right:
+  "\<lbrakk> uvar x; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> (var x \<bullet> P x ;; Q) = ((var x \<bullet> P x) ;; Q)"
+  by (metis end_runrest_commute seqr_assoc)
+
 lemma var_block_assign: "uvar x \<Longrightarrow> (var x \<bullet> x := v) = II"
   apply (rel_tac)
   apply (metis list.inject mwb_lens_weak vwb_lens.put_eq vwb_lens_mwb weak_lens.view_determination)
