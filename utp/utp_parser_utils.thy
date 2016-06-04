@@ -51,7 +51,37 @@ fun string_ast_tr [Ast.Variable str] =
   | string_ast_tr asts = raise Ast.AST ("string_tr", asts);
 
 end
-*} 
+
+signature NAME_UTILS =
+sig
+  val deep_unmark_const : term -> term
+  val right_crop_by : int -> string -> string
+  val last_char_str : string -> string
+  val repeat_char : char -> int -> string
+  val mk_id : string -> term
+end;
+
+structure Name_Utils : NAME_UTILS =
+struct
+  fun unmark_const_term (Const (name, typ)) =
+    Const (Lexicon.unmark_const name, typ)
+  | unmark_const_term term = term;
+
+  val deep_unmark_const =
+    (map_aterms unmark_const_term);
+
+  fun right_crop_by n s =
+    String.substring (s, 0, (String.size s) - n);
+
+  fun last_char_str s =
+    String.str (String.sub (s, (String.size s) - 1));
+
+  fun repeat_char c n =
+    if n > 0 then (String.str c) ^ (repeat_char c (n - 1)) else "";
+
+  fun mk_id name = Free (name, dummyT);
+end;
+*}
 
 parse_translation {*
 let 
@@ -63,8 +93,5 @@ in
 end
 *}
 
-term "x :: nat"
-
-term "IDSTR(x)"
-
 end
+

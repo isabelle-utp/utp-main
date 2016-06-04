@@ -22,7 +22,7 @@ translations
 named_theorems unrest
 
 lift_definition unrest_upred :: "('a, '\<alpha>) uvar \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> bool"
-is "\<lambda> x e. \<forall> b v. e (var_assign x v b) = e b" .
+is "\<lambda> x e. \<forall> b v. e (put\<^bsub>x\<^esub> b v) = e b" .
 
 definition unrest_dvar_upred :: "'a::continuum dvar \<Rightarrow> ('b, '\<alpha>::vst) uexpr \<Rightarrow> bool" where
 "unrest_dvar_upred x P = unrest_upred (x\<up>) P"

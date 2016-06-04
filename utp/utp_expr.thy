@@ -35,7 +35,7 @@ definition alpha_of :: "('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>, '\<alpha
 
 text {* A variable expression corresponds to the lookup function of the variable. *}
 
-lift_definition var :: "('t, '\<alpha>) uvar \<Rightarrow> ('t, '\<alpha>) uexpr" is var_lookup .
+lift_definition var :: "('t, '\<alpha>) uvar \<Rightarrow> ('t, '\<alpha>) uexpr" is lens_get .
 
 declare [[coercion_enabled]]
 declare [[coercion var]]
@@ -251,8 +251,10 @@ consts
   uranres :: "'f \<Rightarrow> 'b set \<Rightarrow> 'f"
   ucard   :: "'f \<Rightarrow> nat"
 
+definition "LNil = Nil"
+
 adhoc_overloading
-  uempty 0 and uempty Nil and
+  uempty 0 and uempty LNil and
   uapply fun_apply and uapply nth and uapply pfun_app and uapply ffun_app and
   uupd pfun_upd and uupd ffun_upd and uupd list_update and
   udom Domain and udom pdom and udom fdom and udom seq_dom and
@@ -428,13 +430,14 @@ lemmas uexpr_defs =
   ulim_left_def
   ulim_right_def
   ucont_on_def
+  LNil_def
 
 subsection {* Evaluation laws for expressions *}
 
 lemma lit_ueval [ueval]: "\<lbrakk>\<guillemotleft>x\<guillemotright>\<rbrakk>\<^sub>eb = x"
   by (transfer, simp)
 
-lemma var_ueval [ueval]: "\<lbrakk>var x\<rbrakk>\<^sub>eb = var_lookup x b"
+lemma var_ueval [ueval]: "\<lbrakk>var x\<rbrakk>\<^sub>eb = get\<^bsub>x\<^esub> b"
   by (transfer, simp)
 
 lemma uop_ueval [ueval]: "\<lbrakk>uop f x\<rbrakk>\<^sub>eb = f (\<lbrakk>x\<rbrakk>\<^sub>eb)"
@@ -447,5 +450,7 @@ lemma trop_ueval [ueval]: "\<lbrakk>trop f x y z\<rbrakk>\<^sub>eb = f (\<lbrakk
   by (transfer, simp)
 
 declare uexpr_defs [ueval]
+
+term "$\<guillemotleft>x::int\<guillemotright>"
 
 end

@@ -191,13 +191,13 @@ lift_definition iff_upred ::"'\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rig
 "\<lambda> P Q A. P A \<longleftrightarrow> Q A" .
 
 lift_definition ex :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
-"\<lambda> x P b. (\<exists> v. P(var_assign x v b))" .
+"\<lambda> x P b. (\<exists> v. P(put\<^bsub>x\<^esub> b v))" .
 
 lift_definition shEx ::"['\<beta> \<Rightarrow>'\<alpha> upred] \<Rightarrow> '\<alpha> upred" is
 "\<lambda> P A. \<exists> x. (P x) A" .
 
 lift_definition all :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
-"\<lambda> x P b. (\<forall> v. P(var_assign x v b))" .
+"\<lambda> x P b. (\<forall> v. P(put\<^bsub>x\<^esub> b v))" .
 
 lift_definition shAll ::"['\<beta> \<Rightarrow>'\<alpha> upred] \<Rightarrow> '\<alpha> upred" is
 "\<lambda> P A. \<forall> x. (P x) A" .
@@ -588,12 +588,12 @@ lemma one_point:
   by (pred_tac)
 
 lemma uvar_assign_exists:
-  "uvar x \<Longrightarrow> \<exists> v. b = var_assign x v b"
-  by (rule_tac x="var_lookup x b" in exI, simp)
+  "uvar x \<Longrightarrow> \<exists> v. b = put\<^bsub>x\<^esub> b v"
+  by (rule_tac x="get\<^bsub>x\<^esub> b" in exI, simp)
 
 lemma uvar_obtain_assign:
   assumes "uvar x"
-  obtains v where "b = var_assign x v b"
+  obtains v where "b = put\<^bsub>x\<^esub> b v"
   using assms
   by (drule_tac uvar_assign_exists[of _ b], auto)
 

@@ -32,7 +32,7 @@ text {* Update the value of a variable to an expression in a substitution *}
 consts subst_upd :: "'\<alpha> usubst \<Rightarrow> 'v \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> '\<alpha> usubst"
 
 definition subst_upd_uvar :: "'\<alpha> usubst \<Rightarrow> ('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> '\<alpha> usubst" where
-"subst_upd_uvar \<sigma> x v = (\<lambda> b. var_assign x (\<lbrakk>v\<rbrakk>\<^sub>eb) (\<sigma> b))"
+"subst_upd_uvar \<sigma> x v = (\<lambda> b. put\<^bsub>x\<^esub> (\<sigma> b) (\<lbrakk>v\<rbrakk>\<^sub>eb))"
 
 definition subst_upd_dvar :: "'\<alpha> usubst \<Rightarrow> 'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) uexpr \<Rightarrow> '\<alpha> usubst" where
 "subst_upd_dvar \<sigma> x v = subst_upd_uvar \<sigma> (x\<up>) v"
@@ -43,7 +43,7 @@ adhoc_overloading
 text {* Lookup the expression associated with a variable in a substitution *}
 
 lift_definition usubst_lookup :: "'\<alpha> usubst \<Rightarrow> ('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<langle>_\<rangle>\<^sub>s")
-is "\<lambda> \<sigma> x b. var_lookup x (\<sigma> b)" .
+is "\<lambda> \<sigma> x b. get\<^bsub>x\<^esub> (\<sigma> b)" .
 
 text {* Relational lifting of a substitution to the first element of the state space *}
 

@@ -10,7 +10,9 @@ imports
   "../utils/Library_extra/Pfun"
   "../utils/Library_extra/Ffun"
   "../utils/Library_extra/Derivative_extra"
+  "../utils/Library_extra/List_lexord_alt"
   "~~/src/HOL/Library/Prefix_Order"
+  "~~/src/HOL/Library/Char_ord"
   "~~/src/HOL/Library/Adhoc_Overloading"
   "~~/src/HOL/Library/Monad_Syntax"
   "~~/src/HOL/Library/Countable"
@@ -46,15 +48,6 @@ text {* The $VAR$ function is a syntactic translations that allows to retrieve a
 
 syntax "_VAR" :: "id \<Rightarrow> ('a, 'r) uvar"  ("VAR _")
 translations "VAR x" => "FLDLENS x"
-
-abbreviation var_lookup :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> \<Rightarrow> 'a" where
-"var_lookup \<equiv> lens_get"
-
-abbreviation var_assign :: "('a, '\<alpha>) uvar \<Rightarrow> 'a \<Rightarrow> ('\<alpha> \<Rightarrow> '\<alpha>)" where
-"var_assign x v \<sigma> \<equiv> lens_put x \<sigma> v"
-
-abbreviation var_update :: "('a, '\<alpha>) uvar \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('\<alpha> \<Rightarrow> '\<alpha>)" where
-"var_update \<equiv> weak_lens.update"
 
 abbreviation "semi_uvar \<equiv> mwb_lens"
 
@@ -158,5 +151,17 @@ translations
   "_spvar x" == "CONST svar x"
   "_sinvar x" == "CONST ivar x"
   "_soutvar x" == "CONST ovar x"
+
+text {* Syntactic function to construct a uvar type given a return type *}
+
+syntax
+  "_uvar_ty"      :: "type \<Rightarrow> type \<Rightarrow> type"
+
+parse_translation {*
+let
+  fun uvar_ty_tr [ty] = Syntax.const @{type_syntax uvar} $ ty $ Syntax.const @{type_syntax dummy}
+    | uvar_ty_tr ts = raise TERM ("uvar_ty_tr", ts);
+in [(@{syntax_const "_uvar_ty"}, K uvar_ty_tr)] end
+*}
 
 end

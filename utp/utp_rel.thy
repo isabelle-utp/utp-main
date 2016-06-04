@@ -481,7 +481,7 @@ lemma seqr_middle:
   using assms
   apply (rel_tac)
   apply (rename_tac xa P Q a b y)
-  apply (rule_tac x="var_lookup xa y" in exI)
+  apply (rule_tac x="get\<^bsub>xa\<^esub> y" in exI)
   apply (rule_tac x="y" in exI)
   apply (simp)
 done

@@ -294,4 +294,38 @@ translations
   "_sin_dvar x"  => "CONST in_dvar (CONST mk_dvar IDSTR(x))"
   "_sout_dvar x" => "CONST out_dvar (CONST mk_dvar IDSTR(x))"
 
+definition "MkDVar x = \<lceil>x\<rceil>\<^sub>d\<up>"
+
+lemma uvar_MkDVar [simp]: "uvar (MkDVar x)"
+  by (simp add: MkDVar_def uvar_dvar)
+
+lemma MkDVar_indep [simp]: "x \<noteq> y \<Longrightarrow> MkDVar x \<bowtie> MkDVar y"
+  apply (rule lens_indepI)
+  apply (simp_all add: MkDVar_def)
+  apply (meson dvar_indep_diff_name' lens_indep_comm)
+done
+
+lemma MkDVar_put_comm [simp]:
+  "m <\<^sub>l n \<Longrightarrow> put\<^bsub>MkDVar n\<^esub> (put\<^bsub>MkDVar m\<^esub> s u) v = put\<^bsub>MkDVar m\<^esub> (put\<^bsub>MkDVar n\<^esub> s v) u"
+  by (simp add: lens_indep_comm)
+
+text {* Set up parsing and pretty printing for deep variables *}
+
+syntax 
+  "_dvar" :: "id \<Rightarrow> svid" ("\<guillemotleft>_\<guillemotright>")
+  "_dvar_ty" :: "id \<Rightarrow> type \<Rightarrow> svid" ("\<guillemotleft>_::_\<guillemotright>")
+
+translations 
+  "_dvar x" => "CONST MkDVar IDSTR(x)"
+  "_dvar_ty x a" => "_constrain (CONST MkDVar IDSTR(x)) (_uvar_ty a)"
+
+print_translation {*
+let fun MkDVar_tr' _ [name] =
+       Const (@{syntax_const "_dvar"}, dummyT) $
+         Name_Utils.mk_id (HOLogic.dest_string (Name_Utils.deep_unmark_const name))
+    | MkDVar_tr' _ _ = raise Match in
+  [(@{const_syntax "MkDVar"}, MkDVar_tr')]
+end
+*}
+
 end
