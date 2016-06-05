@@ -312,12 +312,16 @@ lemma MkDVar_put_comm [simp]:
 text {* Set up parsing and pretty printing for deep variables *}
 
 syntax 
-  "_dvar" :: "id \<Rightarrow> svid" ("\<guillemotleft>_\<guillemotright>")
-  "_dvar_ty" :: "id \<Rightarrow> type \<Rightarrow> svid" ("\<guillemotleft>_::_\<guillemotright>")
+  "_dvar"     :: "id \<Rightarrow> svid" ("<_>")
+  "_dvar_ty"  :: "id \<Rightarrow> type \<Rightarrow> svid" ("<_::_>")
+  "_dvard"    :: "id \<Rightarrow> logic" ("<_>\<^sub>d")
+  "_dvar_tyd" :: "id \<Rightarrow> type \<Rightarrow> logic" ("<_::_>\<^sub>d")
 
 translations 
   "_dvar x" => "CONST MkDVar IDSTR(x)"
   "_dvar_ty x a" => "_constrain (CONST MkDVar IDSTR(x)) (_uvar_ty a)"
+  "_dvard x" => "CONST MkDVar IDSTR(x)"
+  "_dvar_tyd x a" => "_constrain (CONST MkDVar IDSTR(x)) (_uvar_ty a)"
 
 print_translation {*
 let fun MkDVar_tr' _ [name] =

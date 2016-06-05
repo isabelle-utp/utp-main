@@ -29,6 +29,7 @@ session "UTP-IMPORTS" in "utils" = "Kleene_Algebra" +
     "Library_extra/Fmap"
     "Library_extra/FSet_extra"
     "Library_extra/List_extra"
+    "Library_extra/List_lexord_alt"
     "Library_extra/Sequence"
     "Library_extra/Pfun"
     "Library_extra/Ffun"

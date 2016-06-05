@@ -501,7 +501,7 @@ proof -
     moreover
     have "((HR1 (HR2s Q\<^sub>1) \<and> $wait\<acute>) \<or> ((HR1 (HR2s Q\<^sub>2)) ;; (HR1 (HR2s S\<^sub>1) \<diamondop> HR1 (HR2s S\<^sub>2))))
           = (HR1 (HR2s Q\<^sub>1) \<or> (HR1 (HR2s Q\<^sub>2) ;; HR1 (HR2s S\<^sub>1))) \<diamondop> ((HR1 (HR2s Q\<^sub>2) ;; HR1 (HR2s S\<^sub>2)))"
-      by (simp add: wait'_cond_def cond_seq_right_distr cond_and_TT_integrate unrest)
+      by (simp add: wait'_cond_def cond_seq_right_distr cond_and_T_integrate unrest)
 
     ultimately show ?thesis
       by (simp add: HR2s_wait'_cond HR1_wait'_cond wait'_cond_seq)
@@ -531,6 +531,9 @@ lemma R1_extend_conj_unrest': "\<lbrakk> $tr \<sharp> P; $tr\<acute> \<sharp> P 
 lemma R1_tr'_eq_tr: "R1($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u $tr)"
   by (rel_tac)
 
+lemma hy_lift_unrest [unrest]: "$\<Sigma>\<^sub>H\<acute> \<sharp> \<lceil>\<lceil>P\<rceil>\<^sub><\<rceil>\<^sub>H"
+  by (rel_tac)
+
 lemma "(Wait m ;; Wait n) = Wait (\<bar>m\<bar> + \<bar>n\<bar>)"
   apply (simp add: Wait_def)
   apply (subst HR_design_tri_composition)
@@ -540,7 +543,16 @@ lemma "(Wait m ;; Wait n) = Wait (\<bar>m\<bar> + \<bar>n\<bar>)"
   apply (rule HR_des_tri_eqI)
   apply (simp)
   apply (simp add: HR1_def R1_extend_conj_unrest R1_extend_conj_unrest' R1_tr'_eq_tr TI1_conj_right unrest)
-  apply (simp_all add: seq_var_ident_lift HR1_extend_conj' unrest pred_eq_cong_left conj_disj_distr[THEN sym] TI1_idem)
+  apply (subst seq_var_ident_lift)
+  apply (simp_all add: unrest)
+  apply (rule unrest)
+  apply (simp_all add: unrest)
+  apply (rule unrest)
+  apply (simp_all add: unrest)
+  apply (rule unrest) back
+  apply (rule unrest) back
+  apply (simp_all add: unrest)
+  apply (simp_all add: seq_var_ident_lift HR1_extend_conj' unrest eq_cong_left conj_disj_distr[THEN sym] TI1_idem)
   oops
 
 lemma "(\<sigma>, Wait (m + n)) \<leadsto>[m]\<^sub>h (\<sigma>, Wait n)"                                                      

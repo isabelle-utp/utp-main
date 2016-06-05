@@ -165,6 +165,10 @@ next
     by (auto simp add: continuum_def)
 qed
 
+lemma continuum_bij_betw:
+  "\<lbrakk> continuum A; bij_betw f A B \<rbrakk> \<Longrightarrow> continuum B"
+  by (simp add: continuum_as_card, meson bij_betw_inv_into card_of_ordIsoI ordIso_ordLeq_trans ordIso_transitive)
+
 subsection {* Continuum class *}
 
 class continuum =
@@ -173,6 +177,9 @@ begin
   lemma continuum: "continuum (UNIV :: 'a set)"
     by (simp add: continuum_def ex_continuum_inj)
 end
+
+lemma continuum_classI: "continuum (UNIV :: 'a set) \<Longrightarrow> OFCLASS('a, continuum_class)"
+  by (intro_classes, simp add: continuum_def)
 
 lemma uncountable_continuum:
   "uncountable (UNIV :: 'a::continuum set) \<Longrightarrow> (\<exists> to_nat_set :: 'a \<Rightarrow> nat set. bij to_nat_set)"

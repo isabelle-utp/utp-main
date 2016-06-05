@@ -451,6 +451,4 @@ lemma trop_ueval [ueval]: "\<lbrakk>trop f x y z\<rbrakk>\<^sub>eb = f (\<lbrakk
 
 declare uexpr_defs [ueval]
 
-term "$\<guillemotleft>x::int\<guillemotright>"
-
 end

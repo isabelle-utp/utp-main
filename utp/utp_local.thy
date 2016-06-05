@@ -1,3 +1,5 @@
+subsection {* Variable blocks *}
+
 theory utp_local
 imports utp_rel Char_ord
 begin
@@ -68,9 +70,10 @@ translations
   "_top_var x" == "CONST top_var x"
   "_rest_var x" == "CONST rest_var x"
   "var x \<bullet> P" => "var x ;; ((\<lambda> x. P) (CONST top_var x)) ;; end x"
-  "var \<guillemotleft>x\<guillemotright> \<bullet> P" => "var \<guillemotleft>x\<guillemotright> ;; ((\<lambda> x. P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end \<guillemotleft>x\<guillemotright>"
-  "var \<guillemotleft>x\<guillemotright> :: 'a \<bullet> P" => "var \<guillemotleft>x::'a list\<guillemotright> ;; ((\<lambda> x :: ('a, _) uvar. P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end \<guillemotleft>x::'a list\<guillemotright>"
-  "var \<guillemotleft>x\<guillemotright>  :: 'a := v \<bullet> P" => "var \<guillemotleft>x\<guillemotright> :: 'a \<bullet> x := v ;; P"
+  "var x \<bullet> P" => "var x ;; ((\<lambda> x. P) (CONST top_var x)) ;; end x"
+  "var <x> \<bullet> P" => "var <x> ;; ((\<lambda> x. P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end <x>"
+  "var <x> :: 'a \<bullet> P" => "var <x::'a list> ;; ((\<lambda> x :: ('a, _) uvar. P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end <x::'a list>"
+  "var <x>  :: 'a := v \<bullet> P" => "var <x> :: 'a \<bullet> x := v ;; P"
 
 lemma var_open_end:
   "uvar x \<Longrightarrow> (var x ;; end x) = II"
@@ -158,7 +161,7 @@ done
 
 text {* Example of "deep" variable blocks *}
 
-lemma "(var \<guillemotleft>x\<guillemotright> :: int \<bullet> (x := 1 ;; \<guillemotleft>y::int\<guillemotright> := &x + 2)) = \<guillemotleft>y::int\<guillemotright> := 3"
+lemma "(var <x> :: int \<bullet> (x := 1 ;; <y::int> := &x + 2)) = <y::int> := 3"
   apply (subst assign_r_comp)
   apply (simp add: usubst unrest)
   apply (subst assign_subst)
