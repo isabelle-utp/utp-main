@@ -80,8 +80,8 @@ where "(p \<turnstile>\<^sub>n Q) = (\<lceil>p\<rceil>\<^sub>< \<turnstile>\<^su
 definition skip_d :: "'\<alpha> hrelation_d" ("II\<^sub>D")
 where "II\<^sub>D \<equiv> (true \<turnstile>\<^sub>r II)"
 
-definition assigns_d :: "('\<alpha> alphabet_d) usubst \<Rightarrow> '\<alpha> hrelation_d" ("\<langle>_\<rangle>\<^sub>D")
-where "assigns_d \<sigma> = (true \<turnstile> assigns_r \<sigma>)"
+definition assigns_d :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d" ("\<langle>_\<rangle>\<^sub>D")
+where "assigns_d \<sigma> = (true \<turnstile>\<^sub>r assigns_r \<sigma>)"
 
 syntax
   "_assignmentd" :: "svid_list \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr ":=\<^sub>D" 55)
@@ -375,37 +375,17 @@ lemma assigns_d_id [simp]: "\<langle>id\<rangle>\<^sub>D = II\<^sub>D"
   by (rel_tac)
 
 lemma assign_d_left_comp:
-  "\<lbrakk> $ok \<sharp> P; ok \<sharp> f \<rbrakk> \<Longrightarrow> (\<langle>f\<rangle>\<^sub>D ;; (P \<turnstile> Q)) = (\<lceil>f\<rceil>\<^sub>s \<dagger> P \<turnstile> \<lceil>f\<rceil>\<^sub>s \<dagger> Q)"
-  apply (simp add: assigns_d_def)
-  apply (subst design_composition_subst)
-  apply (simp_all add: unrest usubst)
-  apply (rel_tac)
-  apply (simp_all add: unrest_usubst_def)
-  apply (metis alpha_d.surjective alpha_d.update_convs(1))
-  apply (metis alpha_d.surjective alpha_d.update_convs(1))
-  apply (metis (full_types) alpha_d.surjective alpha_d.update_convs(1))+
-done
+  "(\<langle>f\<rangle>\<^sub>D ;; (P \<turnstile>\<^sub>r Q)) = (\<lceil>f\<rceil>\<^sub>s \<dagger> P \<turnstile>\<^sub>r \<lceil>f\<rceil>\<^sub>s \<dagger> Q)"
+  by (simp add: assigns_d_def rdesign_composition assigns_r_comp subst_not)
 
 lemma assign_d_right_comp:
-  "\<lbrakk> $ok\<acute> \<sharp> P; ok \<sharp> f \<rbrakk> \<Longrightarrow> ((P \<turnstile> Q) ;; \<langle>f\<rangle>\<^sub>D) = ((\<not> (\<not> P ;; true)) \<turnstile> (Q ;; \<langle>f\<rangle>\<^sub>a))"
-  apply (simp add: assigns_d_def)
-  apply (subst design_composition_subst)
-  apply (simp_all add: unrest)
-  apply (rel_tac)
-  apply (simp add: unrest_usubst_def)
-  apply (metis alpha_d.ext_inject alpha_d.surjective alpha_d.update_convs(1))
-done
+  "((P \<turnstile>\<^sub>r Q) ;; \<langle>f\<rangle>\<^sub>D) = ((\<not> (\<not> P ;; true)) \<turnstile>\<^sub>r (Q ;; \<langle>f\<rangle>\<^sub>a))"
+  by (simp add: assigns_d_def rdesign_composition)
 
 lemma assigns_d_comp: 
-  assumes "ok \<sharp> f"
-  shows "(\<langle>f\<rangle>\<^sub>D ;; \<langle>g\<rangle>\<^sub>D) = \<langle>g \<circ> f\<rangle>\<^sub>D" 
+  "(\<langle>f\<rangle>\<^sub>D ;; \<langle>g\<rangle>\<^sub>D) = \<langle>g \<circ> f\<rangle>\<^sub>D" 
   using assms
-  apply (simp add: assigns_d_def design_def)
-  apply (pred_tac)
-  apply (simp add: relcomp_unfold)
-  apply (simp add: unrest_usubst_def)
-  apply (metis alpha_d.select_convs(1) alpha_d.surjective alpha_d.update_convs(1))
-done
+  by (simp add: assigns_d_def rdesign_composition assigns_comp)
 
 subsection {* Design preconditions *}
 
@@ -837,5 +817,19 @@ subsection {* H4: Feasibility *}
 theorem H4_idem:
   "H4(H4(P)) = H4(P)"
   by pred_tac
+
+lemma is_H4_alt_def:
+  "P is H4 \<longleftrightarrow> (P ;; true) = true"
+  by (rel_tac)
+
+lemma H4_assigns_d: "\<langle>\<sigma>\<rangle>\<^sub>D is H4"
+proof -
+  have "(\<langle>\<sigma>\<rangle>\<^sub>D ;; (false \<turnstile>\<^sub>r true\<^sub>h)) = (false \<turnstile>\<^sub>r true)"
+    by (simp add: assigns_d_def rdesign_composition assigns_r_feasible)
+  moreover have "... = true"
+    by (rel_tac)
+  ultimately show ?thesis
+    using is_H4_alt_def by auto
+qed
 
 end

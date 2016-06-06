@@ -166,11 +166,11 @@ where "do\<^sub>I c x P = (($tr\<acute> =\<^sub>u $tr \<and> {e : \<guillemotlef
                    (($tr\<acute> - $tr) \<in>\<^sub>u {e : \<guillemotleft>\<delta>\<^sub>u(c)\<guillemotright> | P(e) \<bullet> \<langle>(c,\<guillemotleft>e\<guillemotright>)\<^sub>e\<rangle>}\<^sub>u \<and> (c, $x\<acute>)\<^sub>e =\<^sub>u last\<^sub>u($tr\<acute>)))"
 
 definition InputCSP :: 
-  "('a::continuum, '\<theta>) chan \<Rightarrow> 'a dvar \<Rightarrow>
-    ('a \<Rightarrow> ('\<theta>, '\<alpha>::vst) hrelation_rp) \<Rightarrow> 
-    ('a dvar \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp) \<Rightarrow>
+  "('a::two, '\<theta>) chan \<Rightarrow> _ \<Rightarrow>
+    ('a \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp) \<Rightarrow> 
+    (_ \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp) \<Rightarrow>
     ('\<theta>, '\<alpha>) hrelation_rp"
-where "InputCSP c x P A = (var_block x (\<lambda> x. RH(true \<turnstile> do\<^sub>I c (x\<up>) P \<and> \<lceil>II\<rceil>\<^sub>R) ;; A(x)))"
+where "InputCSP c x P A = (var x \<bullet> RH(true \<turnstile> do\<^sub>I c x P \<and> \<lceil>II\<rceil>\<^sub>R) ;; A(x))"
 
 syntax
   "_csp_event"  :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<rightarrow>\<^sub>u _" [80,79] 80)
@@ -207,7 +207,8 @@ proof -
        (is "_ = RH (?P \<turnstile> ?Q)")
   proof -
     have "$tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> is R2s"
-      by (simp add: Healthy_def R2s_def usubst, pred_tac)
+      apply (simp add: Healthy_def R2s_def usubst, rel_tac)
+      using list_minus_anhil by blast
     moreover have "true is R2s"
       by (simp add: Healthy_def' R2s_true)
     ultimately show ?thesis using assms

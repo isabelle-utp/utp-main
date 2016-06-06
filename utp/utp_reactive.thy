@@ -319,34 +319,28 @@ lemma true_is_R2s:
 lemma R2s_lift_rea: "R2s(\<lceil>P\<rceil>\<^sub>R) = \<lceil>P\<rceil>\<^sub>R"
   by (simp add: R2s_def usubst unrest)
 
-lemma R2_skip_rea: "R2(II\<^sub>r) = II\<^sub>r"
+lemma R2_skip_rea: "R2(II\<^sub>r) = II\<^sub>r" 
 proof (rel_tac)
   fix a :: "('a, 'b) alpha_rp'_scheme alpha_d_ext" and b :: "('a, 'b) alpha_rp'_scheme alpha_d_ext"
   assume a1: "\<not> b = a"
   assume a2: "rp_tr (alpha_d.more a) \<le> rp_tr (alpha_d.more b)"
-  assume a3: "b\<lparr>alpha_d.more := alpha_d.more b \<lparr>rp_tr := rp_tr (alpha_d.more b) - rp_tr (alpha_d.more a)\<rparr>\<rparr> = a\<lparr>alpha_d.more := alpha_d.more a \<lparr>rp_tr := uempty\<rparr>\<rparr>"
+  assume a3: "b\<lparr>alpha_d.more := alpha_d.more b \<lparr>rp_tr := rp_tr (alpha_d.more b) - rp_tr (alpha_d.more a)\<rparr>\<rparr> = a\<lparr>alpha_d.more := alpha_d.more a\<lparr>rp_tr := []\<rparr>\<rparr>"
   assume a4: "des_ok a"
   obtain aas :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
     "\<forall>x0 x1. (\<exists>v2. x0 = x1 @ v2) = (x0 = x1 @ aas x0 x1)"
     by moura
   then have f5: "\<forall>as asa. \<not> as \<le> asa \<or> asa = as @ aas asa as"
     by (meson strict_prefixE)
+  then have f6: "b = \<lparr>des_ok = des_ok b, \<dots> = rp_tr_update (op @ (rp_tr (alpha_d.more a))) \<lparr>rp_wait = rp_wait (alpha_d.more b), rp_tr = aas (rp_tr (alpha_d.more b)) (rp_tr (alpha_d.more a)), rp_ref = rp_ref (alpha_d.more b), \<dots> = alpha_rp'.more (alpha_d.more b)\<rparr>\<rparr>"
+    using a2 by (metis (full_types) alpha_d.surjective alpha_rp'.surjective alpha_rp'.update_convs(2))
   have "\<lparr>des_ok = True, rp_wait = rp_wait (alpha_d.more a), rp_tr = rp_tr (alpha_d.more a), rp_ref = rp_ref (alpha_d.more a), \<dots> = alpha_rp'.more (alpha_d.more a)\<rparr> = \<lparr>des_ok = des_ok a, \<dots> = alpha_d.more a\<rparr>"
-    by (simp add: a4)
-  then have "\<lparr>des_ok = True, rp_wait = rp_wait (alpha_d.more a), rp_tr = rp_tr (alpha_d.more a), rp_ref = rp_ref (alpha_d.more a), \<dots> = alpha_rp'.more (alpha_d.more a)\<rparr> = a"
-    by (metis alpha_d.surjective)
-  then have f6: "\<lparr>des_ok = True, \<dots> = alpha_d.more a\<lparr>rp_tr := uempty\<rparr>\<rparr> = b\<lparr>alpha_d.more := alpha_d.more b \<lparr>rp_tr := rp_tr (alpha_d.more b) - rp_tr (alpha_d.more a)\<rparr>\<rparr>"
-    using a3 by (metis (no_types) alpha_d.update_convs(2))
-  have f7: "\<lparr>des_ok = des_ok b, rp_wait = rp_wait (alpha_d.more b), rp_tr = rp_tr (alpha_d.more b), rp_ref = rp_ref (alpha_d.more b), \<dots> = alpha_rp'.more (alpha_d.more b)\<rparr> = b"
-    by (metis (full_types) alpha_d.surjective alpha_rp'.surjective)
-  have f8: "aas (rp_tr (alpha_d.more b)) (rp_tr (alpha_d.more a)) = rp_tr (alpha_d.more b) - rp_tr (alpha_d.more a)"
-    using f5 a2 by (metis (no_types) append_minus)
-  have "\<lparr>rp_wait = rp_wait (alpha_d.more b), rp_tr = rp_tr (alpha_d.more a) @ aas (rp_tr (alpha_d.more b)) (rp_tr (alpha_d.more a)), rp_ref = rp_ref (alpha_d.more b), \<dots> = alpha_rp'.more (alpha_d.more b)\<rparr> = alpha_d.more b"
-    using f5 a2 by simp
-  then have "b = \<lparr>des_ok = True, \<dots> = rp_tr_update (op @ (rp_tr (alpha_d.more a))) (alpha_d.more a\<lparr>rp_tr := uempty\<rparr>)\<rparr>"
-    using f8 f7 f6 by (metis (no_types) alpha_d.surjective alpha_d.update_convs(2) alpha_rp'.update_convs(2))
+    by (metis alpha_rp'.surjective) (* > 1.0 s, timed out *)
+  then have "\<lparr>des_ok = True, \<dots> = alpha_d.more a\<lparr>rp_tr := []\<rparr>\<rparr> = \<lparr>des_ok = des_ok b, rp_wait = rp_wait (alpha_d.more b), rp_tr = aas (rp_tr (alpha_d.more b)) (rp_tr (alpha_d.more a)), rp_ref = rp_ref (alpha_d.more b), \<dots> = alpha_rp'.more (alpha_d.more b)\<rparr>"
+    using f5 a3 a2 by (metis (no_types) alpha_d.surjective alpha_d.update_convs(2) alpha_rp'.surjective alpha_rp'.update_convs(2) append_minus)
+  then have "b = \<lparr>des_ok = True, \<dots> = rp_tr_update (op @ (rp_tr (alpha_d.more a))) (alpha_d.more a\<lparr>rp_tr := []\<rparr>)\<rparr>"
+    using f6 by simp
   then have "b = \<lparr>des_ok = des_ok a, \<dots> = alpha_d.more a\<rparr>"
-    using a4 by simp
+    using a4 by (simp add: alpha_rp'.surjective)
   then show False
     using a1 by (metis (no_types) alpha_d.surjective)
 qed

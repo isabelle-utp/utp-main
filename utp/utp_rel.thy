@@ -376,6 +376,10 @@ lemma assigns_subst [usubst]:
 lemma assigns_r_comp: "(\<langle>\<sigma>\<rangle>\<^sub>a ;; P) = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P)"
   by rel_tac
 
+lemma assigns_r_feasible:
+  "(\<langle>\<sigma>\<rangle>\<^sub>a ;; true) = true"
+  by (rel_tac)
+
 lemma assign_subst [usubst]:
   "\<lbrakk> semi_uvar x; semi_uvar y \<rbrakk> \<Longrightarrow> [$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> (y := v) = (x, y := u, [x \<mapsto>\<^sub>s u] \<dagger> v)"
   by rel_tac
