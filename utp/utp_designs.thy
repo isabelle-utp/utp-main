@@ -101,12 +101,16 @@ definition "H3 (P)  \<equiv>  P ;; II\<^sub>D"
 definition "H4 (P)  \<equiv> ((P;;true) \<Rightarrow> P)"
 
 syntax
-  "_ok_f" :: "logic \<Rightarrow> logic" ("_\<^sup>f" [1000] 1000)
-  "_ok_t" :: "logic \<Rightarrow> logic" ("_\<^sup>t" [1000] 1000)
+  "_ok_f"  :: "logic \<Rightarrow> logic" ("_\<^sup>f" [1000] 1000)
+  "_ok_t"  :: "logic \<Rightarrow> logic" ("_\<^sup>t" [1000] 1000)
+  "_top_d" :: "logic" ("\<top>\<^sub>D")
+  "_bot_d" :: "logic" ("\<bottom>\<^sub>D")
 
 translations
   "P\<^sup>f" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST ovar CONST ok) false) P"
   "P\<^sup>t" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST ovar CONST ok) true) P"
+  "\<top>\<^sub>D" => "CONST not_upred (CONST var (CONST ivar CONST ok))"
+  "\<bottom>\<^sub>D" => "true"
 
 definition pre_design :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("pre\<^sub>D'(_')") where
 "pre\<^sub>D(P) = \<lfloor>\<not> P\<lbrakk>true,false/$ok,$ok\<acute>\<rbrakk>\<rfloor>\<^sub>D"
@@ -267,6 +271,14 @@ theorem rdesign_choice:
 theorem design_condr:
   "((P\<^sub>1 \<turnstile> P\<^sub>2) \<triangleleft> b \<triangleright> (Q\<^sub>1 \<turnstile> Q\<^sub>2)) = ((P\<^sub>1 \<triangleleft> b \<triangleright> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<triangleleft> b \<triangleright> Q\<^sub>2))"
   by rel_tac
+
+lemma design_top:
+  "(P \<turnstile> Q) \<sqsubseteq> \<top>\<^sub>D"
+  by rel_tac
+
+lemma design_bottom:
+  "\<bottom>\<^sub>D \<sqsubseteq> (P \<turnstile> Q)"
+  by simp
 
 lemma design_USUP: 
   assumes "A \<noteq> {}"
@@ -814,7 +826,18 @@ proof -
     by (simp add: design_is_H1_H2 unrest)
   finally show ?thesis .
 qed
-  
+
+definition design_sup :: "('\<alpha>, '\<beta>) relation_d set \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" ("\<Sqinter>\<^sub>D_" [900] 900) where
+"\<Sqinter>\<^sub>D A = (if (A = {}) then \<top>\<^sub>D else \<Sqinter> A)"
+
+lemma design_sup_H1_H2_closed:
+  assumes "\<forall> P \<in> A. P is H1_H2"
+  shows "(\<Sqinter>\<^sub>D A) is H1_H2"
+  apply (auto simp add: design_sup_def)
+  apply (simp add: H1_def H2_not_okay Healthy_def impl_alt_def)
+  using USUP_H1_H2_closed assms apply blast
+done
+
 lemma UINF_H1_H2_closed:
   assumes "\<forall> P \<in> A. P is H1_H2"
   shows "(\<Squnion> A) is H1_H2"
@@ -833,6 +856,9 @@ proof -
     by (simp add: design_is_H1_H2 unrest)
   finally show ?thesis .
 qed
+
+abbreviation design_inf :: "('\<alpha>, '\<beta>) relation_d set \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" ("\<Squnion>\<^sub>D_" [900] 900) where
+"\<Squnion>\<^sub>D A \<equiv> \<Squnion> A"
 
 subsection {* H3: The design assumption is a precondition *}
 
