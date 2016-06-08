@@ -334,7 +334,7 @@ proof (rel_tac)
   then have f6: "b = \<lparr>des_ok = des_ok b, \<dots> = rp_tr_update (op @ (rp_tr (alpha_d.more a))) \<lparr>rp_wait = rp_wait (alpha_d.more b), rp_tr = aas (rp_tr (alpha_d.more b)) (rp_tr (alpha_d.more a)), rp_ref = rp_ref (alpha_d.more b), \<dots> = alpha_rp'.more (alpha_d.more b)\<rparr>\<rparr>"
     using a2 by (metis (full_types) alpha_d.surjective alpha_rp'.surjective alpha_rp'.update_convs(2))
   have "\<lparr>des_ok = True, rp_wait = rp_wait (alpha_d.more a), rp_tr = rp_tr (alpha_d.more a), rp_ref = rp_ref (alpha_d.more a), \<dots> = alpha_rp'.more (alpha_d.more a)\<rparr> = \<lparr>des_ok = des_ok a, \<dots> = alpha_d.more a\<rparr>"
-    by (metis alpha_rp'.surjective) (* > 1.0 s, timed out *)
+    by (simp add: a4)
   then have "\<lparr>des_ok = True, \<dots> = alpha_d.more a\<lparr>rp_tr := []\<rparr>\<rparr> = \<lparr>des_ok = des_ok b, rp_wait = rp_wait (alpha_d.more b), rp_tr = aas (rp_tr (alpha_d.more b)) (rp_tr (alpha_d.more a)), rp_ref = rp_ref (alpha_d.more b), \<dots> = alpha_rp'.more (alpha_d.more b)\<rparr>"
     using f5 a3 a2 by (metis (no_types) alpha_d.surjective alpha_d.update_convs(2) alpha_rp'.surjective alpha_rp'.update_convs(2) append_minus)
   then have "b = \<lparr>des_ok = True, \<dots> = rp_tr_update (op @ (rp_tr (alpha_d.more a))) (alpha_d.more a\<lparr>rp_tr := []\<rparr>)\<rparr>"

@@ -28,6 +28,12 @@ lemma H2_R2_comm: "H2(R2(P)) = R2(H2(P))"
 lemma H2_R3_comm: "H2(R3c(P)) = R3c(H2(P))"
   by (simp add: R3c_H2_commute)
 
+lemma R3c_via_H1: "R1(R3c(H1(P))) = R1(H1(R3(P)))"
+  by rel_tac
+
+lemma skip_rea_via_H1: "II\<^sub>r = R1(H1(R3(II)))"
+  by rel_tac
+
 text {* Pedro's proof for R1 design composition *}
 
 lemma R1_design_composition:

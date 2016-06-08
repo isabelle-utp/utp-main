@@ -73,6 +73,12 @@ lemma CSP1_CSP2_commute:
   "CSP1(CSP2(P)) = CSP2(CSP1(P))"
   by (simp add: CSP1_def CSP2_def H2_split usubst, rel_tac)
 
+lemma CSP1_via_H1: "R1(H1(P)) = R1(CSP1(P))"
+  by rel_tac
+
+lemma CSP1_R3c: "CSP1(R3(P)) = R3c(CSP1(P))"
+  by rel_tac
+
 lemma CSP1_reactive_design: "CSP1(RH(P \<turnstile> Q)) = RH(P \<turnstile> Q)"
   by rel_tac
 
