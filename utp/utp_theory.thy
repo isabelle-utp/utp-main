@@ -100,4 +100,38 @@ lemma WeakConjunctive_implies_WeakConjunctive:
 declare Conjunctive_def [upred_defs]
 declare Monotonic_def [upred_defs]
 
+subsection {* UTP theory hierarchy *}
+
+record '\<alpha> utp_theory = 
+  HCond :: "'\<alpha> Healthiness_condition" ("\<H>\<index>")
+
+record '\<alpha> utp_theory_hrel = "('\<alpha> \<times> '\<alpha>) utp_theory" +
+  Ident :: "'\<alpha> hrelation" ("\<I>\<I>\<index>")
+
+definition utp_order :: "('\<alpha>, 't) utp_theory_scheme \<Rightarrow> '\<alpha> upred gorder" where
+"utp_order T = \<lparr> carrier = {P. P is HCond T}, eq = (op =), le = op \<sqsubseteq> \<rparr>"
+
+locale utp_theory =
+  fixes \<T> :: "('\<alpha>, 't) utp_theory_scheme" (structure)
+  assumes HCond_Idem: "\<H>(\<H>(P)) =\<H>(P)"
+begin
+  sublocale partial_order "utp_order \<T>"
+    by (unfold_locales, simp_all add: utp_order_def)
+end
+
+
+locale utp_theory_lattice = utp_theory +
+  assumes HCond_complete_lattice: "complete_lattice (utp_order \<T>)"
+
+
+locale utp_theory_left_unital = 
+  utp_theory \<T> for \<T> :: "('\<alpha>, 't) utp_theory_hrel_scheme" (structure) +
+  assumes Left_Ident: "P is \<H> \<Longrightarrow> (\<I>\<I> ;; P) = P"
+  
+locale utp_theory_right_unital = 
+  utp_theory \<T> for \<T> :: "('\<alpha>, 't) utp_theory_hrel_scheme" (structure) +
+  assumes Right_Ident: "P is \<H> \<Longrightarrow> (P ;; \<I>\<I>) = P" 
+
+locale utp_theory_unital = utp_theory_left_unital + utp_theory_right_unital
+
 end

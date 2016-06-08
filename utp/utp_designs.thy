@@ -470,6 +470,10 @@ lemma H1_monotone:
   "P \<sqsubseteq> Q \<Longrightarrow> H1(P) \<sqsubseteq> H1(Q)"
   by pred_tac
 
+lemma H1_below_top:
+  "H1(P) \<sqsubseteq> \<top>\<^sub>D"
+  by pred_tac
+
 lemma H1_design_skip:
   "H1(II) = II\<^sub>D"
   by rel_tac
@@ -838,6 +842,12 @@ lemma design_sup_H1_H2_closed:
   using USUP_H1_H2_closed assms apply blast
 done
 
+lemma design_sup_empty [simp]: "\<Sqinter>\<^sub>D {} = \<top>\<^sub>D"
+  by (simp add: design_sup_def)
+
+lemma design_sup_non_empty [simp]: "A \<noteq> {} \<Longrightarrow> \<Sqinter>\<^sub>D A = \<Sqinter> A"
+  by (simp add: design_sup_def)
+
 lemma UINF_H1_H2_closed:
   assumes "\<forall> P \<in> A. P is H1_H2"
   shows "(\<Squnion> A) is H1_H2"
@@ -990,5 +1000,37 @@ proof -
   ultimately show ?thesis
     using is_H4_alt_def by auto
 qed
+
+subsection {* UTP theories *}
+
+definition DES :: "('\<alpha> alphabet_d) utp_theory_hrel" where
+"DES = \<lparr> HCond = H1_H2, Ident = II\<^sub>D \<rparr>"
+
+definition NDES :: "('\<alpha> alphabet_d) utp_theory_hrel" where
+"NDES = \<lparr> HCond = H1_H3, Ident = II\<^sub>D \<rparr>"
+
+interpretation design_complete_lattice: utp_theory_lattice DES
+  apply (unfold_locales, simp_all add: DES_def utp_order_def)
+  apply (simp add: H1_H2_commute H1_idem H2_idem)
+  apply (rule_tac x="\<Squnion>\<^sub>D A" in exI)
+  apply (auto simp add: least_def Upper_def)
+  using Inf_lower apply blast
+  apply (simp add: Ball_Collect UINF_H1_H2_closed)
+  apply (meson Ball_Collect Inf_greatest)
+  apply (rule_tac x="\<Sqinter>\<^sub>D A" in exI)
+  apply (case_tac "A = {}")
+  apply (auto simp add: greatest_def Lower_def)
+  using design_sup_H1_H2_closed apply fastforce
+  apply (metis H1_below_top Healthy_def')
+  using Sup_upper apply blast
+  apply (metis (mono_tags, lifting) Ball_Collect USUP_H1_H2_closed empty_iff)
+  apply (meson Ball_Collect Sup_least)
+done
+
+interpretation utlu_DES: utp_theory_left_unital DES
+  apply (unfold_locales, simp_all add: DES_def)
+  apply (metis H1_idem H1_left_unit Healthy_def')
+done
+
 
 end

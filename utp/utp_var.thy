@@ -3,6 +3,7 @@ section {* UTP variables *}
 theory utp_var
 imports 
   "../contrib/Kleene_Algebra/Quantales"
+  "../contrib/HOL-Algebra2/Complete_Lattice"
   "../utils/cardinals"
   "../utils/Continuum"
   "../utils/finite_bijection"
@@ -21,6 +22,8 @@ imports
 begin
 
 no_notation inner (infix "\<bullet>" 70)
+
+no_notation le (infixl "\<sqsubseteq>\<index>" 50)
 
 no_notation
   Set.member  ("op :") and
