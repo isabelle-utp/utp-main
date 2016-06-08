@@ -103,6 +103,18 @@ notation bot ("\<top>")
 no_notation top ("\<top>")
 notation top ("\<bottom>")
 
+no_syntax
+  "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
+  "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sqinter>_\<in>_./ _)" [0, 0, 10] 10)
+  "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Squnion>_./ _)" [0, 10] 10)
+  "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
+
+syntax
+  "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Squnion>_./ _)" [0, 10] 10)
+  "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
+  "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
+  "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sqinter>_\<in>_./ _)" [0, 0, 10] 10)
+
 text {* We trivially instantiate our refinement class *}
 
 instance uexpr :: (order, type) refine ..
@@ -358,6 +370,12 @@ lemma subst_disj [usubst]: "\<sigma> \<dagger> (P \<or> Q) = (\<sigma> \<dagger>
 lemma subst_conj [usubst]: "\<sigma> \<dagger> (P \<and> Q) = (\<sigma> \<dagger> P \<and> \<sigma> \<dagger> Q)"
   by (pred_tac)
 
+lemma subst_sup [usubst]: "\<sigma> \<dagger> (P \<sqinter> Q) = (\<sigma> \<dagger> P \<sqinter> \<sigma> \<dagger> Q)"
+  by (pred_tac)
+
+lemma subst_inf [usubst]: "\<sigma> \<dagger> (P \<squnion> Q) = (\<sigma> \<dagger> P \<squnion> \<sigma> \<dagger> Q)"
+  by (pred_tac)
+
 lemma subst_USUP [usubst]: "\<sigma> \<dagger> (\<Sqinter> i | P(i) \<bullet> Q(i)) = (\<Sqinter> i | (\<sigma> \<dagger> P(i)) \<bullet> (\<sigma> \<dagger> Q(i)))"
   by (simp add: USUP_def, pred_tac)
 
@@ -512,7 +530,37 @@ lemma USUP_as_Sup: "(\<Sqinter> P \<in> \<P> \<bullet> P) = \<Sqinter> \<P>"
   apply (auto)
 done
 
-lemma UInf_as_Inf: "(\<Squnion> P \<in> \<P> \<bullet> P) = \<Squnion> \<P>"
+lemma USUP_as_Sup_collect: "(\<Sqinter>P\<in>A \<bullet> f(P)) = (\<Sqinter>P\<in>A. f(P))"
+  apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
+  apply (unfold SUP_def)
+  apply (pred_tac)
+  apply (simp add: Setcompr_eq_image)
+done
+
+lemma USUP_as_Sup_image: "(\<Sqinter> P | \<guillemotleft>P\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> f(P)) = \<Sqinter> (f ` A)"
+  apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
+  apply (pred_tac)
+  apply (unfold SUP_def)
+  apply (rule cong[of "Sup"])
+  apply (auto)
+done
+
+lemma UINF_as_Inf: "(\<Squnion> P \<in> \<P> \<bullet> P) = \<Squnion> \<P>"
+  apply (simp add: upred_defs bop.rep_eq lit.rep_eq Inf_uexpr_def)
+  apply (pred_tac)
+  apply (unfold INF_def)
+  apply (rule cong[of "Inf"])
+  apply (auto)
+done
+
+lemma UINF_as_Inf_collect: "(\<Squnion>P\<in>A \<bullet> f(P)) = (\<Squnion>P\<in>A. f(P))"
+  apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
+  apply (unfold INF_def)
+  apply (pred_tac)
+  apply (simp add: Setcompr_eq_image)
+done
+
+lemma UINF_as_Inf_image: "(\<Squnion> P \<in> \<P> \<bullet> f(P)) = \<Squnion> (f ` \<P>)"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Inf_uexpr_def)
   apply (pred_tac)
   apply (unfold INF_def)

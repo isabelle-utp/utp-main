@@ -299,11 +299,54 @@ proof -
   finally show ?thesis .
 qed 
 
+lemma design_export_ok:
+  "P \<turnstile> Q = (P \<turnstile> ($ok \<and> Q))"
+  by (rel_tac)
+
+lemma design_export_ok':
+  "P \<turnstile> Q = (P \<turnstile> ($ok\<acute> \<and> Q))"
+  by (rel_tac)
+
 theorem design_composition:
   assumes 
     "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2" "$ok\<acute> \<sharp> Q1" "$ok \<sharp> Q2"
   shows "((P1 \<turnstile> Q1) ;; (P2 \<turnstile> Q2)) = (((\<not> ((\<not> P1) ;; true)) \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile> (Q1 ;; Q2))"
   using assms by (simp add: design_composition_subst usubst)
+
+lemma runrest_ident_var:
+  assumes "x \<sharp>\<sharp> P"
+  shows "($x \<and> P) = (P \<and> $x\<acute>)"
+proof -
+  have "P = ($x\<acute> =\<^sub>u $x \<and> P)"
+    by (metis (no_types, lifting) RID_def assms conj_idem unrest_relation_def utp_pred.inf.left_commute)
+  moreover have "($x\<acute> =\<^sub>u $x \<and> ($x \<and> P)) = ($x\<acute> =\<^sub>u $x \<and> (P \<and> $x\<acute>))"
+    by (rel_tac)
+  ultimately show ?thesis
+    by (metis utp_pred.inf.assoc utp_pred.inf_left_commute)
+qed
+
+theorem design_composition_runrest:
+  assumes 
+    "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2" "ok \<sharp>\<sharp> Q1" "ok \<sharp>\<sharp> Q2"
+  shows "((P1 \<turnstile> Q1) ;; (P2 \<turnstile> Q2)) = (((\<not> ((\<not> P1) ;; true)) \<and> \<not> (Q1\<^sup>t ;; (\<not> P2))) \<turnstile> (Q1 ;; Q2))"
+proof -
+  have "($ok \<and> $ok\<acute> \<and> (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>)) = ($ok \<and> $ok\<acute> \<and> (Q1 ;; Q2))"
+  proof -
+    have "($ok \<and> $ok\<acute> \<and> (Q1 ;; Q2)) = ($ok \<and> Q1 ;; Q2 \<and> $ok\<acute>)"
+      by (metis (no_types, hide_lams) seqr_post_out seqr_pre_out utp_pred.inf.commute utp_rel.unrest_iuvar utp_rel.unrest_ouvar uvar_ok vwb_lens_mwb) 
+    also have "... = (Q1 \<and> $ok\<acute> ;; $ok \<and> Q2)"
+      by (simp add: assms(3) assms(4) runrest_ident_var)
+    also have "... = (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>)"
+      by (metis seqr_left_one_point seqr_post_transfer true_alt_def uivar_convr upred_eq_true utp_pred.inf.cobounded2 utp_pred.inf.orderE utp_rel.unrest_iuvar uvar_ok vwb_lens_mwb)
+    finally show ?thesis
+      by (metis utp_pred.inf.left_commute utp_pred.inf_left_idem)
+  qed
+  moreover have "(\<not> (\<not> P1 ;; true) \<and> \<not> (Q1\<^sup>t ;; \<not> P2)) \<turnstile> (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>) =
+                 (\<not> (\<not> P1 ;; true) \<and> \<not> (Q1\<^sup>t ;; \<not> P2)) \<turnstile> ($ok \<and> $ok\<acute> \<and> (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>))"
+    by (metis design_export_ok design_export_ok')   
+  ultimately show ?thesis using assms
+    by (simp add: design_composition_subst usubst, metis design_export_ok design_export_ok')
+qed
 
 theorem rdesign_composition:
   "((P1 \<turnstile>\<^sub>r Q1) ;; (P2 \<turnstile>\<^sub>r Q2)) = (((\<not> ((\<not> P1) ;; true)) \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile>\<^sub>r (Q1 ;; Q2))"
@@ -510,14 +553,42 @@ lemma H1_rdesign:
   "H1(P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
   by (rel_tac)
 
+lemma H1_choice_closed:
+  "\<lbrakk> P is H1; Q is H1 \<rbrakk> \<Longrightarrow> P \<sqinter> Q is H1"
+  by (simp add: H1_def Healthy_def' disj_upred_def impl_alt_def semilattice_sup_class.sup_left_commute)
+
+lemma H1_inf_closed:
+  "\<lbrakk> P is H1; Q is H1 \<rbrakk> \<Longrightarrow> P \<squnion> Q is H1"
+  by (rel_tac, blast+)
+  
 lemma H1_USUP:
   assumes "A \<noteq> {}"
   shows "H1(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> H1(P(i)))"
   using assms by (rel_tac)
 
+lemma H1_Sup: 
+  assumes "A \<noteq> {}" "\<forall> P \<in> A. P is H1"
+  shows "(\<Sqinter> A) is H1"
+proof -
+  from assms(2) have "H1 ` A = A"
+    by (auto simp add: Healthy_def)
+  with H1_USUP[of A id, OF assms(1)] show ?thesis 
+    by (simp add: USUP_as_Sup_image Healthy_def)
+qed
+  
 lemma H1_UINF:
   shows "H1(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> H1(P(i)))"
   by (rel_tac)
+
+lemma H1_Inf: 
+  assumes "\<forall> P \<in> A. P is H1"
+  shows "(\<Squnion> A) is H1"
+proof -
+  from assms have "H1 ` A = A"
+    by (auto simp add: Healthy_def)
+  with H1_UINF[of A id] show ?thesis 
+    by (simp add: UINF_as_Inf_image Healthy_def)
+qed
 
 subsection {* H2: A specification cannot require non-termination *}
 
@@ -610,6 +681,22 @@ proof -
   finally show ?thesis .
 qed
 
+lemma H2_choice_closed:
+  "\<lbrakk> P is H2; Q is H2 \<rbrakk> \<Longrightarrow> P \<sqinter> Q is H2"
+  by (metis H2_def Healthy_def' disj_upred_def seqr_or_distl)
+
+lemma H2_inf_closed:
+  assumes "P is H2" "Q is H2"
+  shows "P \<squnion> Q is H2"
+proof -
+  have "P \<squnion> Q = (P\<^sup>f \<or> P\<^sup>t \<and> $ok\<acute>) \<squnion> (Q\<^sup>f \<or> Q\<^sup>t \<and> $ok\<acute>)"
+    by (metis H2_def Healthy_def J_split assms(1) assms(2))
+  moreover have "H2(...) = ..."
+    by (simp add: H2_split usubst, pred_tac)
+  ultimately show ?thesis
+    by (simp add: Healthy_def)
+qed
+
 lemma H2_USUP:
   shows "H2(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> H2(P(i)))"
   using assms by (rel_tac)
@@ -656,6 +743,14 @@ proof -
     by pred_tac
   finally show ?thesis .
 qed
+
+lemma H1_H2_eq_design:
+  "H1 (H2 P) = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
+  apply (subst H1_H2_is_design)
+  apply (simp_all add: Healthy_def H1_idem H2_idem H1_H2_commute)
+  apply (simp add: H2_split H1_def usubst)
+  apply (rel_tac)
+done
   
 theorem H1_H2_is_rdesign:
   assumes "P is H1" "P is H2"
@@ -699,6 +794,44 @@ proof -
   moreover have "((P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) ;; (Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2)) is H1_H2"
     by (simp add: rdesign_composition rdesign_is_H1_H2)
   ultimately show ?thesis by simp
+qed
+
+lemma USUP_H1_H2_closed:
+  assumes "A \<noteq> {}" "\<forall> P \<in> A. P is H1_H2"
+  shows "(\<Sqinter> A) is H1_H2"
+proof -
+  from assms have A: "A = H1_H2 ` A"
+    by (auto simp add: Healthy_def)
+  also have "(\<Sqinter> ...) = (\<Sqinter> P \<in> A. H1_H2(P))"
+    by auto
+  also have "... = (\<Sqinter> P \<in> A \<bullet> H1_H2(P))"
+    by (simp add: USUP_as_Sup_collect)
+  also have "... = (\<Sqinter> P \<in> A \<bullet> (\<not> P\<^sup>f) \<turnstile> P\<^sup>t)"
+    by (meson H1_H2_eq_design)
+  also have "... = (\<Squnion> P \<in> A \<bullet> \<not> P\<^sup>f) \<turnstile> (\<Sqinter> P \<in> A \<bullet> P\<^sup>t)"  
+    by (simp add: design_USUP assms)
+  also have "... is H1_H2"
+    by (simp add: design_is_H1_H2 unrest)
+  finally show ?thesis .
+qed
+  
+lemma UINF_H1_H2_closed:
+  assumes "\<forall> P \<in> A. P is H1_H2"
+  shows "(\<Squnion> A) is H1_H2"
+proof -
+  from assms have A: "A = H1_H2 ` A"
+    by (auto simp add: Healthy_def)
+  also have "(\<Squnion> ...) = (\<Squnion> P \<in> A. H1_H2(P))"
+    by auto
+  also have "... = (\<Squnion> P \<in> A \<bullet> H1_H2(P))"
+    by (simp add: UINF_as_Inf_collect)
+  also have "... = (\<Squnion> P \<in> A \<bullet> (\<not> P\<^sup>f) \<turnstile> P\<^sup>t)"
+    by (meson H1_H2_eq_design)
+  also have "... = (\<Sqinter> P \<in> A \<bullet> \<not> P\<^sup>f) \<turnstile> (\<Squnion> P \<in> A \<bullet> \<not> P\<^sup>f \<Rightarrow> P\<^sup>t)"
+    by (simp add: design_UINF)
+  also have "... is H1_H2"
+    by (simp add: design_is_H1_H2 unrest)
+  finally show ?thesis .
 qed
 
 subsection {* H3: The design assumption is a precondition *}
