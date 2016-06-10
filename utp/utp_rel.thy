@@ -593,22 +593,35 @@ lemma shEx_lift_seq_2 [uquant_lift]:
   "(P ;; (\<^bold>\<exists> x \<bullet> Q x)) = (\<^bold>\<exists> x \<bullet> (P ;; Q x))"
   by pred_tac
 
-text {* Antiframe *}
+text {* Frame and antiframe *}
 
-definition id_on :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> \<Rightarrow> '\<alpha>" where
-[upred_defs]: "id_on x = (\<lambda> s. undefined \<oplus>\<^sub>L s on x)"
+definition frame :: "('a, '\<alpha>) lens \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" where
+[urel_defs]: "frame x P = (II\<^bsub>x\<^esub> \<and> P)"
 
-definition alpha_coerce :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred"
-where [upred_defs]: "alpha_coerce x P = id_on x \<dagger> P"
+definition antiframe :: "('a, '\<alpha>) lens \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" where
+[urel_defs]: "antiframe x P = (II\<restriction>\<^sub>\<alpha>x \<and> P)"
 
 syntax
-  "_alpha_coerce" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("!\<^sub>\<alpha> _ \<bullet> _" [0, 10] 10)
+  "_frame"     :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:\<lbrakk>_\<rbrakk>" [64,0] 80)
+  "_antiframe" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]" [64,0] 80)
 
 translations
-  "_alpha_coerce P x" == "CONST alpha_coerce P x"
+  "_frame x P" == "CONST frame x P"
+  "_antiframe x P" == "CONST antiframe x P"
 
-definition antiframe :: "('a, '\<alpha>) lens \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("_:[_]" [80,0] 80) where
-[urel_defs]: "x:[P] = (II\<restriction>\<^sub>\<alpha>x \<and> (!\<^sub>\<alpha> $x,$x\<acute> \<bullet> P))"
+lemma frame_disj: "(x:\<lbrakk>P\<rbrakk> \<or> x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P \<or> Q\<rbrakk>"
+  by (rel_tac)
+
+lemma frame_conj: "(x:\<lbrakk>P\<rbrakk> \<and> x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P \<and> Q\<rbrakk>"
+  by (rel_tac)
+
+lemma frame_seq:
+  "\<lbrakk> uvar x; $x\<acute> \<sharp> P; $x \<sharp> Q \<rbrakk>  \<Longrightarrow> (x:\<lbrakk>P\<rbrakk> ;; x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P ;; Q\<rbrakk>"
+  by (rel_tac, metis vwb_lens_def wb_lens_weak weak_lens.put_get)
+
+lemma antiframe_to_frame:
+  "\<lbrakk> x \<bowtie> y; x +\<^sub>L y = 1\<^sub>L \<rbrakk> \<Longrightarrow> x:[P] = y:\<lbrakk>P\<rbrakk>"
+  by (rel_tac, metis lens_indep_def, metis lens_indep_def surj_pair)
 
 text {* While loop laws *}
 

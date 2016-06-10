@@ -150,4 +150,18 @@ lemma alpha_in_var [alpha]: "x ;\<^sub>L fst\<^sub>L = in_var x"
 lemma alpha_out_var [alpha]: "x ;\<^sub>L snd\<^sub>L = out_var x"
   by (simp add: out_var_def)
 
+subsection {* Alphabet coercion *}
+
+definition id_on :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> \<Rightarrow> '\<alpha>" where
+[upred_defs]: "id_on x = (\<lambda> s. undefined \<oplus>\<^sub>L s on x)"
+
+definition alpha_coerce :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred"
+where [upred_defs]: "alpha_coerce x P = id_on x \<dagger> P"
+
+syntax
+  "_alpha_coerce" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("!\<^sub>\<alpha> _ \<bullet> _" [0, 10] 10)
+
+translations
+  "_alpha_coerce P x" == "CONST alpha_coerce P x"
+
 end
