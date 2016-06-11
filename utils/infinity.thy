@@ -112,6 +112,7 @@ text {*
 
 instance nat :: infinite by (intro_classes, simp)
 instance int :: infinite by (intro_classes, metis infinite_UNIV_int)
+instance real :: infinite by (intro_classes, auto)
 instance "fun" :: (type, infinite) infinite by (intro_classes, simp)
 instance set :: (infinite) infinite by (intro_classes, simp)
 instance prod :: (infinite, infinite) infinite by (intro_classes, simp)

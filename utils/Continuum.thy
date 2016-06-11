@@ -50,6 +50,10 @@ lemma countable_continuum:
   "countable A \<Longrightarrow> continuum A"
   by (simp add: continuum_def countable_def)
 
+lemma continuum_bij_betw:
+  "\<lbrakk> continuum A; bij_betw f A B \<rbrakk> \<Longrightarrow> continuum B"
+  by (simp add: continuum_as_card, meson bij_betw_inv_into card_of_ordIsoI ordIso_ordLeq_trans ordIso_transitive)
+
 lemma continuum_prod_lemma:
   assumes "A \<noteq> {}" "|A| \<le>o |\<N>|" "|B| =o |\<P>\<N>|"
   shows "|A \<times> B| =o |\<P>\<N>|"
@@ -121,6 +125,13 @@ next
   done
 qed
 
+text {* A list of continuum sets is in the continuum *}
+
+lemma continuum_lists:
+  assumes "continuum A"
+  shows "continuum (lists A)"
+  by (meson assms bij_betw_inv continuum_bij_betw countable_continuum countable_lists lists_infinite_bij_betw uncountable_infinite)
+
 text {* A countable set over a type of cardinality up to $\mathfrak{c}$ has cardinality up to $\mathfrak{c}$. *}
 
 lemma continuum_csets:
@@ -164,10 +175,6 @@ next
   thus ?thesis
     by (auto simp add: continuum_def)
 qed
-
-lemma continuum_bij_betw:
-  "\<lbrakk> continuum A; bij_betw f A B \<rbrakk> \<Longrightarrow> continuum B"
-  by (simp add: continuum_as_card, meson bij_betw_inv_into card_of_ordIsoI ordIso_ordLeq_trans ordIso_transitive)
 
 subsection {* Continuum class *}
 
@@ -308,6 +315,18 @@ proof
   hence "continuum (UNIV :: ('a \<times> 'b) set)"
     by simp
   thus "(\<exists>to_nat :: ('a\<times>'b) \<Rightarrow> nat. inj to_nat) \<or> (\<exists>to_nat_set :: ('a\<times>'b) \<Rightarrow> nat set. bij to_nat_set)"
+    by (simp add: continuum_def)
+qed
+
+text {* A list over a continuum type is within the continuum *}
+
+instance list :: (continuum) continuum
+proof
+  have "continuum (UNIV :: 'a set)"
+    by (simp_all add: continuum)
+  hence "continuum (lists (UNIV :: 'a set))"
+    using continuum_lists by blast
+  thus "(\<exists>to_nat::'a list \<Rightarrow> nat. inj to_nat) \<or> (\<exists>to_nat_set::'a list \<Rightarrow> nat set. bij to_nat_set)"
     by (simp add: continuum_def)
 qed
 
