@@ -828,4 +828,29 @@ theorem RA6: "((P \<or> Q) ;; R) = ((P;;R) \<or> (Q;;R))"
 theorem RA7: "((P\<^sup>- ;; (\<not>(P ;; Q))) \<or> (\<not>Q)) = (\<not>Q)"
   by (rel_tac)
 
+subsection {* Relational alphabet extension *}
+
+lift_definition rel_alpha_ext :: "'\<beta> hrelation \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrelation" (infix "\<oplus>\<^sub>R" 65)
+is "\<lambda> P x (b1, b2). P (get\<^bsub>x\<^esub> b1, get\<^bsub>x\<^esub> b2) \<and> (\<forall> b. b1 \<oplus>\<^sub>L b on x = b2 \<oplus>\<^sub>L b on x)" .
+
+lemma rel_alpha_ext_alt_def:
+  assumes "uvar y" "x +\<^sub>L y \<approx>\<^sub>L 1\<^sub>L" "x \<bowtie> y"
+  shows "P \<oplus>\<^sub>R x = (P \<oplus>\<^sub>p (x \<times>\<^sub>L x) \<and> $y\<acute> =\<^sub>u $y)"
+  using assms
+  apply (rel_tac, simp_all add: lens_override_def)
+  apply (metis lens_indep_get lens_indep_sym)
+  apply (metis vwb_lens_def wb_lens.get_put wb_lens_def weak_lens.put_get)
+done
+
+subsection {* Program values *}
+  
+abbreviation prog_val :: "'\<alpha> hrelation \<Rightarrow> ('\<alpha> hrelation, '\<alpha>) uexpr" ("\<lbrace>_\<rbrace>\<^sub>u")
+where "\<lbrace>P\<rbrace>\<^sub>u \<equiv> \<guillemotleft>P\<guillemotright>"
+
+lift_definition call :: "('\<alpha> hrelation, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrelation"
+is "\<lambda> P b. P (fst b) b" .
+
+lemma call_prog_val: "call \<lbrace>P\<rbrace>\<^sub>u = P"
+  by (simp add: call_def urel_defs lit.rep_eq Rep_uexpr_inverse)
+
 end
