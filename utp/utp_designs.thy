@@ -256,6 +256,9 @@ proof -
   finally show ?thesis .
 qed
 
+theorem design_top_left_zero: "(\<top>\<^sub>D ;; (P \<turnstile> Q)) = \<top>\<^sub>D"
+  by (rel_tac, meson alpha_d.select_convs(1))
+
 theorem design_choice:
   "(P\<^sub>1 \<turnstile> P\<^sub>2) \<sqinter> (Q\<^sub>1 \<turnstile> Q\<^sub>2) = ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<or> Q\<^sub>2))"
   by rel_tac
@@ -876,6 +879,20 @@ theorem H3_idem:
   "H3(H3(P)) = H3(P)"
   by (metis H3_def design_skip_idem seqr_assoc)
 
+theorem design_condition_is_H3:
+  assumes "out\<alpha> \<sharp> p"
+  shows "(p \<turnstile> Q) is H3"
+proof -
+  have "((p \<turnstile> Q) ;; II\<^sub>D) = (\<not> (\<not> p ;; true)) \<turnstile> (Q\<^sup>t ;; II\<lbrakk>true/$ok\<rbrakk>)"
+    by (simp add: skip_d_alt_def design_composition_subst unrest assms)
+  also have "... = p \<turnstile> (Q\<^sup>t ;; II\<lbrakk>true/$ok\<rbrakk>)"
+    using assms precond_equiv seqr_true_lemma by force
+  also have "... = p \<turnstile> Q"
+    by (rel_tac, metis (full_types) alpha_d.cases_scheme alpha_d.select_convs(1) alpha_d.update_convs(1))
+  finally show ?thesis
+    by (simp add: H3_def Healthy_def')
+qed
+
 theorem rdesign_H3_iff_pre: 
   "P \<turnstile>\<^sub>r Q is H3 \<longleftrightarrow> P = (P ;; true)"
 proof -
@@ -957,6 +974,11 @@ theorem H3_rdesign_pre:
   using assms
   by (simp add: H3_def)
 
+theorem H1_H3_is_design:
+  assumes "P is H1" "P is H3"
+  shows "P = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
+  by (metis H1_H2_eq_design H2_H3_absorb Healthy_def' assms(1) assms(2))
+
 theorem H1_H3_is_rdesign:
   assumes "P is H1" "P is H3"
   shows "P = pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P)"
@@ -972,6 +994,27 @@ abbreviation "H1_H3 p \<equiv> H1 (H3 p)"
 lemma H1_H3_impl_H2: "P is H1_H3 \<Longrightarrow> P is H1_H2"
   by (metis H1_H2_commute H1_idem H2_H3_absorb Healthy_def')
 
+lemma H1_H3_eq_design_d_comp: "H1 (H3 P) = ((\<not> P\<^sup>f) \<turnstile> P\<^sup>t ;; II\<^sub>D)"
+  by (metis H1_H2_eq_design H1_H3_commute H3_H2_absorb H3_def)
+
+lemma H1_H3_eq_design: "H1 (H3 P) = (\<not> (P\<^sup>f ;; true)) \<turnstile> P\<^sup>t"
+  apply (simp add: H1_H3_eq_design_d_comp skip_d_alt_def)
+  apply (subst design_composition_subst)
+  apply (simp_all add: usubst unrest)
+  apply (rel_tac)
+done
+
+lemma H3_unrest_out_alpha_nok [unrest]: 
+  assumes "P is H1_H3"
+  shows "out\<alpha> \<sharp> P\<^sup>f"
+proof -
+  have "P = (\<not> (P\<^sup>f ;; true)) \<turnstile> P\<^sup>t"
+    by (metis H1_H3_eq_design Healthy_def assms)
+  also have "out\<alpha> \<sharp> (...\<^sup>f)"
+    by (simp add: design_def usubst unrest, rel_tac)
+  finally show ?thesis .
+qed
+ 
 lemma H3_unrest_out_alpha [unrest]: "P is H1_H3 \<Longrightarrow> out\<alpha> \<sharp> pre\<^sub>D(P)"
   by (metis H1_H3_commute H1_H3_is_rdesign H1_idem Healthy_def' precond_equiv rdesign_H3_iff_pre)
 
