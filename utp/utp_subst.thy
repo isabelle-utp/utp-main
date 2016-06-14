@@ -75,6 +75,11 @@ translations
   "_Subst (_SMaplets ms1 ms2)"        <= "_SubstUpd (_Subst ms1) ms2"
   "_SMaplets ms1 (_SMaplets ms2 ms3)" <= "_SMaplets (_SMaplets ms1 ms2) ms3"
 
+text {* Deletion of a substitution maplet *}
+
+definition subst_del :: "'\<alpha> usubst \<Rightarrow> ('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> usubst" (infix "-\<^sub>s" 85) where
+"subst_del \<sigma> x = \<sigma>(x \<mapsto>\<^sub>s &x)"
+
 subsection {* Substitution laws *}
 
 text {* We set up a simple substitution tactic that applies substitution and unrestriction laws *}
@@ -135,6 +140,18 @@ lemma usubst_lookup_upd_indep [usubst]:
   using assms
   by (simp add: subst_upd_uvar_def, transfer, simp)
 
+lemma subst_del_id [usubst]: 
+  "uvar x \<Longrightarrow> id -\<^sub>s x = id"
+  by (simp add: subst_del_def subst_upd_uvar_def, transfer, auto)
+
+lemma subst_del_upd_same [usubst]: 
+  "semi_uvar x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) -\<^sub>s x = \<sigma> -\<^sub>s x"
+  by (simp add: subst_del_def subst_upd_uvar_def)
+
+lemma subst_del_upd_diff [usubst]: 
+  "x \<bowtie> y \<Longrightarrow> \<sigma>(y \<mapsto>\<^sub>s v) -\<^sub>s x = (\<sigma> -\<^sub>s x)(y \<mapsto>\<^sub>s v)"
+  by (simp add: subst_del_def subst_upd_uvar_def lens_indep_comm)
+
 lemma subst_unrest [usubst] : "x \<sharp> P \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> P = \<sigma> \<dagger> P"
   by (simp add: subst_upd_uvar_def, transfer, auto)
 
@@ -146,6 +163,28 @@ lemma subst_lit [usubst]: "\<sigma> \<dagger> \<guillemotleft>v\<guillemotright>
 
 lemma subst_var [usubst]: "\<sigma> \<dagger> var x = \<langle>\<sigma>\<rangle>\<^sub>s x"
   by (transfer, simp)
+
+lemma unrest_usubst_del [unrest]: "\<lbrakk> uvar x; x \<sharp> (\<langle>\<sigma>\<rangle>\<^sub>s x); x \<sharp> \<sigma> -\<^sub>s x \<rbrakk> \<Longrightarrow>  x \<sharp> (\<sigma> \<dagger> P)"
+  by (simp add: subst_del_def subst_upd_uvar_def unrest_upred_def unrest_usubst_def subst.rep_eq usubst_lookup.rep_eq)
+     (metis vwb_lens.put_eq)
+
+text {* We set up a purely syntactic order on variable lenses which is useful for the substitution
+        normal form. *}
+
+definition var_name_ord :: "('a, '\<alpha>) uvar \<Rightarrow> ('b, '\<alpha>) uvar \<Rightarrow> bool" where
+[no_atp]: "var_name_ord x y = True"
+
+syntax
+  "_var_name_ord" :: "salpha \<Rightarrow> salpha \<Rightarrow> bool" (infix "<\<^sub>v" 65)
+
+translations
+  "_var_name_ord x y" == "CONST var_name_ord x y"
+
+lemma usubst_upd_comm_ord [usubst]:
+  assumes "x \<bowtie> y" "y <\<^sub>v x"
+  shows "\<sigma>(x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v) = \<sigma>(y \<mapsto>\<^sub>s v, x \<mapsto>\<^sub>s u)"
+  by (simp add: assms(1) usubst_upd_comm)
+
 
 text {* We add the symmetric definition of input and output variables to substitution laws
         so that the variables are correctly normalised after substitution. *}
