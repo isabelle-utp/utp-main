@@ -361,6 +361,11 @@ lemma spec_refine:
 lemma pre_skip_post: "(\<lceil>b\<rceil>\<^sub>< \<and> II) = (II \<and> \<lceil>b\<rceil>\<^sub>>)"
   by (rel_tac)
 
+lemma skip_var:
+  fixes x :: "(bool, '\<alpha>) uvar"
+  shows "($x \<and> II) = (II \<and> $x\<acute>)"
+  by (rel_tac)
+
 lemma seqr_exists_left:
   "semi_uvar x \<Longrightarrow> ((\<exists> $x \<bullet> P) ;; Q) = (\<exists> $x \<bullet> (P ;; Q))"
   by (rel_tac)
@@ -569,17 +574,33 @@ lemma conj_convr [simp]: "(p \<and> q)\<^sup>- = (q\<^sup>- \<and> p\<^sup>-)"
 lemma seqr_convr [simp]: "(p ;; q)\<^sup>- = (q\<^sup>- ;; p\<^sup>-)"
   by rel_tac
 
+lemma pre_convr [simp]: "\<lceil>p\<rceil>\<^sub><\<^sup>- = \<lceil>p\<rceil>\<^sub>>"
+  by (rel_tac)
+
+lemma post_convr [simp]: "\<lceil>p\<rceil>\<^sub>>\<^sup>- = \<lceil>p\<rceil>\<^sub><"
+  by (rel_tac)
+
 theorem seqr_pre_transfer: "in\<alpha> \<sharp> q \<Longrightarrow> ((P \<and> q) ;; R) = (P ;; (q\<^sup>- \<and> R))"
   by (rel_tac)
 
 theorem seqr_post_out: "in\<alpha> \<sharp> r \<Longrightarrow> (P ;; (Q \<and> r)) = ((P ;; Q) \<and> r)"
   by (rel_tac, blast+)
 
+lemma seqr_post_var_out: 
+  fixes x :: "(bool, '\<alpha>) uvar"
+  shows "(P ;; (Q \<and> $x\<acute>)) = ((P ;; Q) \<and> $x\<acute>)"
+  by (rel_tac)
+
 theorem seqr_post_transfer: "out\<alpha> \<sharp> q \<Longrightarrow> (P ;; (q \<and> R)) = (P \<and> q\<^sup>- ;; R)"
   by (simp add: seqr_pre_transfer unrest_convr_in\<alpha>)
 
 lemma seqr_pre_out: "out\<alpha> \<sharp> p \<Longrightarrow> ((p \<and> Q) ;; R) = (p \<and> (Q ;; R))"
   by (rel_tac, blast+)
+
+lemma seqr_pre_var_out: 
+  fixes x :: "(bool, '\<alpha>) uvar"
+  shows "(($x \<and> P) ;; Q) = ($x \<and> (P ;; Q))"
+  by (rel_tac)
 
 lemma seqr_true_lemma: 
   "(P = (\<not> (\<not> P ;; true))) = (P = (P ;; true))"
