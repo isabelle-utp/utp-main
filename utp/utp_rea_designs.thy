@@ -7,6 +7,10 @@ begin
 definition wait'_cond :: "_ \<Rightarrow> _ \<Rightarrow> _" (infix "\<diamondop>" 65) where
 [upred_defs]: "P \<diamondop> Q = (P \<triangleleft> $wait\<acute> \<triangleright> Q)"
 
+lemma wait_false_design:
+  "(P \<turnstile> Q) \<^sub>f = ((P \<^sub>f) \<turnstile> (Q \<^sub>f))"
+  by (rel_tac)
+
 lemma R2s_ok': "R2s($ok\<acute>) = $ok\<acute>"
   by pred_tac
 
