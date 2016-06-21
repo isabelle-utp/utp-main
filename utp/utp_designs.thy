@@ -815,6 +815,22 @@ proof -
   ultimately show ?thesis by simp
 qed
 
+lemma assigns_d_comp_ext:
+  fixes P :: "'\<alpha> hrelation_d"
+  assumes "P is H1_H2"
+  shows "(\<langle>\<sigma>\<rangle>\<^sub>D ;; P) = \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D\<rceil>\<^sub>s \<dagger> P"
+proof -
+  have "(\<langle>\<sigma>\<rangle>\<^sub>D ;; P) = (\<langle>\<sigma>\<rangle>\<^sub>D ;; pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P))"
+    by (metis H1_H2_commute H1_H2_is_rdesign H2_idem Healthy_def' assms)
+  also have "... = \<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> pre\<^sub>D(P) \<turnstile>\<^sub>r \<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> post\<^sub>D(P)"
+    by (simp add: assign_d_left_comp)
+  also have "... = \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D\<rceil>\<^sub>s \<dagger> (pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P))"
+    by (rel_tac)
+  also have "... = \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D\<rceil>\<^sub>s \<dagger> P"
+    by (metis H1_H2_commute H1_H2_is_rdesign H2_idem Healthy_def' assms)
+  finally show ?thesis .
+qed
+
 lemma USUP_H1_H2_closed:
   assumes "A \<noteq> {}" "\<forall> P \<in> A. P is H1_H2"
   shows "(\<Sqinter> A) is H1_H2"
@@ -1046,15 +1062,57 @@ qed
 
 subsection {* UTP theories *}
 
-definition DES :: "('\<alpha> alphabet_d) utp_theory_hrel" where
-"DES = \<lparr> HCond = H1_H2, Ident = II\<^sub>D \<rparr>"
+typedef DES  = "UNIV :: unit set" by simp
+typedef NDES = "UNIV :: unit set" by simp
 
-definition NDES :: "('\<alpha> alphabet_d) utp_theory_hrel" where
-"NDES = \<lparr> HCond = H1_H3, Ident = II\<^sub>D \<rparr>"
+abbreviation "DES \<equiv> TYPE(DES \<times> '\<alpha>)"
+abbreviation "NDES \<equiv> TYPE(NDES \<times> '\<alpha>)"
 
-interpretation design_complete_lattice: utp_theory_lattice DES
-  apply (unfold_locales, simp_all add: DES_def utp_order_def)
-  apply (simp add: H1_H2_commute H1_idem H2_idem)
+overloading
+  des_hcond == "utp_hcond :: (DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition"
+  des_unit == "utp_unit :: (DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> hrelation_d"
+
+  ndes_hcond == "utp_hcond :: (NDES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition"
+  ndes_unit == "utp_unit :: (NDES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> hrelation_d"
+
+begin
+  definition des_hcond :: "(DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition" where
+  "des_hcond t = H1_H2"  
+
+  definition des_unit :: "(DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> hrelation_d" where
+  "des_unit t = II\<^sub>D"
+
+  definition ndes_hcond :: "(NDES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition" where
+  "ndes_hcond t = H1_H3"  
+
+  definition ndes_unit :: "(NDES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> hrelation_d" where
+  "ndes_unit t = II\<^sub>D"
+
+end
+
+interpretation des_utp_theory: utp_theory "TYPE(DES \<times> '\<alpha> alphabet_d)"
+  by (simp add: H1_H2_commute H1_idem H2_idem des_hcond_def utp_theory_def)
+
+interpretation ndes_utp_theory: utp_theory "TYPE(NDES \<times> '\<alpha> alphabet_d)"
+  by (simp add: H1_H3_commute H1_idem H3_idem ndes_hcond_def utp_theory.intro)
+
+interpretation des_left_unital: utp_theory_left_unital "TYPE(DES \<times> '\<alpha> alphabet_d)"
+  apply (unfold_locales)
+  apply (simp_all add: des_hcond_def des_unit_def)
+  apply (simp add: rdesign_is_H1_H2 skip_d_def)
+  apply (metis H1_idem H1_left_unit Healthy_def')
+done
+
+interpretation ndes_unital: utp_theory_unital "TYPE(NDES \<times> ('\<alpha> alphabet_d))"
+  apply (unfold_locales, simp_all add: ndes_hcond_def ndes_unit_def)
+  apply (metis H1_rdesign H3_def Healthy_def' design_skip_idem skip_d_def)
+  apply (metis H1_idem H1_left_unit Healthy_def')
+  apply (metis H1_H3_commute H3_def H3_idem Healthy_def')
+done
+
+interpretation design_complete_lattice: utp_theory_lattice "TYPE(DES \<times> '\<alpha> alphabet_d)"
+  apply (unfold_locales)
+  apply (simp_all add: des_hcond_def utp_order_def H1_idem H2_idem)
   apply (rule_tac x="\<Squnion>\<^sub>D A" in exI)
   apply (auto simp add: least_def Upper_def)
   using Inf_lower apply blast
@@ -1066,14 +1124,8 @@ interpretation design_complete_lattice: utp_theory_lattice DES
   using design_sup_H1_H2_closed apply fastforce
   apply (metis H1_below_top Healthy_def')
   using Sup_upper apply blast
-  apply (metis (mono_tags, lifting) Ball_Collect USUP_H1_H2_closed empty_iff)
+  apply (metis (no_types) USUP_H1_H2_closed contra_subsetD emptyE mem_Collect_eq)
   apply (meson Ball_Collect Sup_least)
 done
-
-interpretation utlu_DES: utp_theory_left_unital DES
-  apply (unfold_locales, simp_all add: DES_def)
-  apply (metis H1_idem H1_left_unit Healthy_def')
-done
-
 
 end

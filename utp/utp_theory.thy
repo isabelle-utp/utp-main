@@ -102,36 +102,65 @@ declare Monotonic_def [upred_defs]
 
 subsection {* UTP theory hierarchy *}
 
-record '\<alpha> utp_theory = 
-  HCond :: "'\<alpha> Healthiness_condition" ("\<H>\<index>")
+text {* Unfortunately we can currently only characterise UTP theories of homogeneous relations;
+        this is due to restrictions in the instantiation of Isabelle's polymorphic constants. *}
 
-record '\<alpha> utp_theory_hrel = "('\<alpha> \<times> '\<alpha>) utp_theory" +
-  Ident :: "'\<alpha> hrelation" ("\<I>\<I>\<index>")
+consts
+  utp_hcond :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('\<alpha> \<times> '\<alpha>) Healthiness_condition" ("\<H>\<index>")
+  utp_unit  :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> '\<alpha> hrelation" ("\<I>\<I>\<index>")
 
-definition utp_order :: "('\<alpha>, 't) utp_theory_scheme \<Rightarrow> '\<alpha> upred gorder" where
-"utp_order T = \<lparr> carrier = {P. P is HCond T}, eq = (op =), le = op \<sqsubseteq> \<rparr>"
+definition utp_order :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> '\<alpha> hrelation gorder" where
+"utp_order T = \<lparr> carrier = {P. P is \<H>\<^bsub>T\<^esub>}, eq = (op =), le = op \<sqsubseteq> \<rparr>"
 
 locale utp_theory =
-  fixes \<T> :: "('\<alpha>, 't) utp_theory_scheme" (structure)
-  assumes HCond_Idem: "\<H>(\<H>(P)) =\<H>(P)"
+  fixes \<T> :: "('\<T> \<times> '\<alpha>) itself" (structure)
+  assumes HCond_Idem: "\<H>(\<H>(P)) = \<H>(P)"
 begin
   sublocale partial_order "utp_order \<T>"
     by (unfold_locales, simp_all add: utp_order_def)
 end
 
-
 locale utp_theory_lattice = utp_theory +
-  assumes HCond_complete_lattice: "complete_lattice (utp_order \<T>)"
-
+  assumes utp_theory_lattice: "complete_lattice (utp_order \<T>)"
 
 locale utp_theory_left_unital = 
-  utp_theory \<T> for \<T> :: "('\<alpha>, 't) utp_theory_hrel_scheme" (structure) +
-  assumes Left_Ident: "P is \<H> \<Longrightarrow> (\<I>\<I> ;; P) = P"
-  
-locale utp_theory_right_unital = 
-  utp_theory \<T> for \<T> :: "('\<alpha>, 't) utp_theory_hrel_scheme" (structure) +
-  assumes Right_Ident: "P is \<H> \<Longrightarrow> (P ;; \<I>\<I>) = P" 
+  utp_theory +
+  assumes Healthy_Left_Unit: "\<I>\<I> is \<H>"
+  and Left_Unit: "P is \<H> \<Longrightarrow> (\<I>\<I> ;; P) = P"
 
-locale utp_theory_unital = utp_theory_left_unital + utp_theory_right_unital
+locale utp_theory_right_unital = 
+  utp_theory +
+  assumes Healthy_Right_Unit: "\<I>\<I> is \<H>"
+  and Right_Unit: "P is \<H> \<Longrightarrow> (P ;; \<I>\<I>) = P"
+
+locale utp_theory_unital =
+  utp_theory +
+  assumes Healthy_Unit: "\<I>\<I> is \<H>"
+  and Unit_Left: "P is \<H> \<Longrightarrow> (\<I>\<I> ;; P) = P" 
+  and Unit_Right: "P is \<H> \<Longrightarrow> (P ;; \<I>\<I>) = P"
+
+sublocale utp_theory_unital \<subseteq> utp_theory_left_unital
+  by (simp add: Healthy_Unit Unit_Left utp_theory_axioms utp_theory_left_unital_axioms_def utp_theory_left_unital_def)
+
+sublocale utp_theory_unital \<subseteq> utp_theory_right_unital
+  by (simp add: Healthy_Unit Unit_Right utp_theory_axioms utp_theory_right_unital_axioms_def utp_theory_right_unital_def)
+
+typedef REL = "UNIV :: unit set" ..
+
+abbreviation "REL \<equiv> TYPE(REL \<times> '\<alpha>)"
+
+overloading
+  rel_hcond == "utp_hcond :: (REL \<times> '\<alpha>) itself \<Rightarrow> ('\<alpha> \<times> '\<alpha>) Healthiness_condition"
+  rel_unit == "utp_unit :: (REL \<times> '\<alpha>) itself \<Rightarrow> '\<alpha> hrelation"
+begin
+  definition rel_hcond :: "(REL \<times> '\<alpha>) itself \<Rightarrow> ('\<alpha> \<times> '\<alpha>) upred \<Rightarrow> ('\<alpha> \<times> '\<alpha>) upred" where
+  "rel_hcond T = id"
+
+  definition rel_unit :: "(REL \<times> '\<alpha>) itself \<Rightarrow> '\<alpha> hrelation" where
+  "rel_unit T = II"
+end
+
+interpretation rel_theory: utp_theory_unital REL
+  by (unfold_locales, simp_all add: rel_hcond_def rel_unit_def Healthy_def)
 
 end
