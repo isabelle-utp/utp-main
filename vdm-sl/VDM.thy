@@ -30,7 +30,7 @@ consts
   vouvar :: "'v \<Rightarrow> 'p" ("$\<^sub>v_\<acute>" [999] 999)
 
 lift_definition vvar :: "('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) vexpr"  
-  is "\<lambda> x b. Some (var_lookup x b)" .
+  is "\<lambda> x b. Some (get\<^bsub>x\<^esub> b)" .
 
 definition vvar_dvar :: "'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) vexpr"
 where "vvar_dvar x = vvar (x\<up>)"
@@ -70,10 +70,10 @@ adhoc_overloading
   usubst vsubst
 
 lift_definition vsubst_lookup :: "'\<alpha> usubst \<Rightarrow> ('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) vexpr" ("\<langle>_\<rangle>\<^sub>v")
-is "\<lambda> \<sigma> x b. Some (var_lookup x (\<sigma> b))" .
+is "\<lambda> \<sigma> x b. Some (get\<^bsub>x\<^esub> (\<sigma> b))" .
 
 lift_definition unrest_vexpr :: "('a, '\<alpha>) uvar \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> bool"
-is "\<lambda> x e. (\<forall>b v. e(var_assign x v b) = e b)" .
+is "\<lambda> x e. (\<forall>b v. e(put\<^bsub>x\<^esub> b v) = e b)" .
 
 adhoc_overloading
   unrest unrest_vexpr
