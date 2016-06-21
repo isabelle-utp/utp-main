@@ -1,40 +1,42 @@
 subsection {* Variable blocks *}
 
 theory utp_local
-imports utp_rel Char_ord
+imports utp_theory utp_designs
 begin
 
 type_synonym ('a, '\<alpha>) lvar = "('a list, '\<alpha>) uvar"
 
-lift_definition xex :: "('a, '\<alpha>) lvar \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
-"\<lambda> x P b. (\<exists> v. P (put\<^bsub>x\<^esub> b (v # get\<^bsub>x\<^esub> b)))" .
+
+consts 
+  pvar         :: "'\<beta> \<Longrightarrow> '\<alpha>" ("\<^bold>v")
+  pvar_assigns :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> '\<beta> usubst \<Rightarrow> '\<alpha> hrelation" ("\<^bold>\<langle>_\<^bold>\<rangle>\<index>")
 
 syntax
-  "_xex" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<exists>\<^sub>+ _ \<bullet> _" [0, 10] 10)
+  "_svid_pvar" :: "svid" ("\<^bold>v")
+  "_thy_asgn"  :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> svid_list \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr "::=\<index>" 55)
 
 translations
-  "_xex x P" == "CONST xex x P"
+  "_svid_pvar" => "CONST pvar"
+  "_thy_asgn T xs vs" => "CONST pvar_assigns T (_mk_usubst (CONST id) xs vs)"
 
-definition var_begin :: "('a, '\<alpha>) lvar \<Rightarrow> '\<alpha> hrelation" where
-[urel_defs]: "var_begin x = (\<exists>\<^sub>+ $x \<bullet> II)"
+definition var_begin :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('a, '\<beta>) lvar \<Rightarrow> '\<alpha> hrelation" where
+[urel_defs]: "var_begin T x = x ::=\<^bsub>T\<^esub> \<langle>\<guillemotleft>undefined\<guillemotright>\<rangle> ^\<^sub>u &x"
 
-definition var_end :: "('a, '\<alpha>) lvar \<Rightarrow> '\<alpha> hrelation" where
-[urel_defs]: "var_end x = (\<exists>\<^sub>+ $x\<acute> \<bullet> II)"
+definition var_end :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('a, '\<beta>) lvar \<Rightarrow> '\<alpha> hrelation" where
+[urel_defs]: "var_end T x = (x ::=\<^bsub>T\<^esub> tail\<^sub>u(&x))"
 
-text {* vlet ensures that there is a variable on the top of the stack *}
-
-definition var_vlet :: "('a, '\<alpha>) lvar \<Rightarrow> '\<alpha> hrelation" where
-[urel_defs]: "var_vlet x = (($x \<noteq>\<^sub>u \<langle>\<rangle>) \<and> II)"
+definition var_vlet :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('a, '\<alpha>) lvar \<Rightarrow> '\<alpha> hrelation" where
+[urel_defs]: "var_vlet T x = (($x \<noteq>\<^sub>u \<langle>\<rangle>) \<and> \<I>\<I>\<^bsub>T\<^esub>)"
 
 syntax
-  "_var_begin"  :: "svid \<Rightarrow> logic" ("var _" [100] 100)
-  "_var_end"    :: "svid \<Rightarrow> logic" ("end _" [100] 100)
-  "_var_vlet" :: "svid \<Rightarrow> logic" ("vlet _" [100] 100)
+  "_var_begin"  :: "logic \<Rightarrow> svid \<Rightarrow> logic" ("var\<index> _" [100] 100)
+  "_var_end"    :: "logic \<Rightarrow> svid \<Rightarrow> logic" ("end\<index> _" [100] 100)
+  "_var_vlet" :: "logic \<Rightarrow> svid \<Rightarrow> logic" ("vlet\<index> _" [100] 100)
 
 translations
-  "_var_begin x" == "CONST var_begin x"
-  "_var_end x" == "CONST var_end x"
-  "_var_vlet x" == "CONST var_vlet x"
+  "_var_begin T x" == "CONST var_begin T x"
+  "_var_end T x" == "CONST var_end T x"
+  "_var_vlet T x" == "CONST var_vlet T x"
 
 text {* The variable at the top of the local variable stack *}
 
@@ -62,22 +64,85 @@ lemma top_var_pres_indep [simp]:
 syntax
   "_top_var"             :: "svid \<Rightarrow> svid" ("@_" [999] 999)
   "_rest_var"            :: "svid \<Rightarrow> svid" ("\<down>_" [999] 999)
-  "_var_scope"           :: "svid \<Rightarrow> logic \<Rightarrow> logic" ("var _ \<bullet> _" [0,10] 10)
-  "_var_scope_ty"        :: "svid \<Rightarrow> type \<Rightarrow> logic \<Rightarrow> logic" ("var _ :: _ \<bullet> _" [0,0,10] 10)
-  "_var_scope_ty_assign" :: "svid \<Rightarrow> type \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("var _ :: _ := _ \<bullet> _" [0,0,0,10] 10)
+  "_var_scope"           :: "logic \<Rightarrow> svid \<Rightarrow> logic \<Rightarrow> logic" ("var\<index> _ \<bullet> _" [0,10] 10)
+  "_var_scope_ty"        :: "logic \<Rightarrow> svid \<Rightarrow> type \<Rightarrow> logic \<Rightarrow> logic" ("var\<index> _ :: _ \<bullet> _" [0,0,10] 10)
+  "_var_scope_ty_assign" :: "logic \<Rightarrow> svid \<Rightarrow> type \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("var\<index> _ :: _ := _ \<bullet> _" [0,0,0,10] 10)
 
 translations
   "_top_var x" == "CONST top_var x"
   "_rest_var x" == "CONST rest_var x"
-  "var x \<bullet> P" => "var x ;; ((\<lambda> x. P) (CONST top_var x)) ;; end x"
-  "var x \<bullet> P" => "var x ;; ((\<lambda> x. P) (CONST top_var x)) ;; end x"
-  "var <x> \<bullet> P" => "var <x> ;; ((\<lambda> x. P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end <x>"
-  "var <x> :: 'a \<bullet> P" => "var <x::'a list> ;; ((\<lambda> x :: ('a, _) uvar. P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end <x::'a list>"
-  "var <x>  :: 'a := v \<bullet> P" => "var <x> :: 'a \<bullet> x := v ;; P"
+  "var\<^bsub>T\<^esub> x \<bullet> P" => "var\<^bsub>T\<^esub> x ;; ((\<lambda> x. P) (CONST top_var x)) ;; end\<^bsub>T\<^esub> x"
+  "var\<^bsub>T\<^esub> x \<bullet> P" => "var\<^bsub>T\<^esub> x ;; ((\<lambda> x. P) (CONST top_var x)) ;; end\<^bsub>T\<^esub> x"
+  "var\<^bsub>T\<^esub> <x> \<bullet> P" => "var\<^bsub>T\<^esub> <x> ;; ((\<lambda> x. P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end\<^bsub>T\<^esub> <x>"
+  "var\<^bsub>T\<^esub> <x> :: 'a \<bullet> P" => "var\<^bsub>T\<^esub> <x::'a list> ;; ((\<lambda> x :: ('a, _) uvar. P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end <x::'a list>"
+  "var\<^bsub>T\<^esub> <x>  :: 'a := v \<bullet> P" => "var\<^bsub>T\<^esub> <x> :: 'a \<bullet> x := v ;; P"
 
-lemma var_open_end:
-  "uvar x \<Longrightarrow> (var x ;; end x) = II"
-  by (rel_tac, metis list.inject mwb_lens_weak vwb_lens.put_eq vwb_lens_mwb weak_lens.view_determination, blast)
+overloading
+  des_pvar == "pvar :: '\<alpha> \<Longrightarrow> '\<alpha> alphabet_d"
+  des_assigns == "pvar_assigns :: (DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d"
+begin
+  definition des_pvar :: "'\<alpha> \<Longrightarrow> '\<alpha> alphabet_d" where
+  "des_pvar = \<Sigma>\<^sub>D"
+  definition des_assigns :: "(DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d" where
+  "des_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>D"
+end
+
+locale utp_prog_var = utp_theory \<T> for \<T> :: "('\<T> \<times> '\<alpha>) itself" (structure) +
+  fixes V :: "'\<beta> itself"
+  assumes pvar_uvar: "uvar (\<^bold>v :: '\<beta> \<Longrightarrow> '\<alpha>)"
+  and Healthy_pvar_assign: "\<^bold>\<langle>\<sigma> :: '\<beta> usubst\<^bold>\<rangle> is \<H>"
+  and pvar_assign_comp: "P is \<H> \<Longrightarrow> (\<^bold>\<langle>\<sigma>\<^bold>\<rangle> ;; P :: '\<alpha> hrelation) = \<lceil>\<sigma> \<oplus>\<^sub>s \<^bold>v\<rceil>\<^sub>s \<dagger> P"
+  and pvar_assign_subst [usubst]: "\<lceil>\<sigma> \<oplus>\<^sub>s \<^bold>v\<rceil>\<^sub>s \<dagger> \<^bold>\<langle>\<rho>\<^bold>\<rangle> = \<^bold>\<langle>\<rho> \<circ> \<sigma>\<^bold>\<rangle>"
+
+interpretation des_prog_var: utp_prog_var "TYPE(DES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>)"
+  apply (unfold_locales, simp_all add: des_pvar_def des_assigns_def des_hcond_def)
+  apply (simp add: assigns_d_def rdesign_is_H1_H2)
+  apply (simp add: assigns_d_comp_ext)
+  apply (rel_tac)
+done
+
+locale utp_local_var = utp_prog_var \<T> V + utp_theory_left_unital \<T> for \<T> :: "('\<T> \<times> '\<alpha>) itself" (structure) and V :: "'\<beta> itself" +
+  assumes pvar_assign_unit: "\<^bold>\<langle>id :: '\<beta> usubst\<^bold>\<rangle> = \<I>\<I>"
+begin
+
+lemma var_begin_healthy: 
+  fixes x :: "('a, '\<beta>) lvar"
+  shows "var x is \<H>"
+  by (simp add: var_begin_def Healthy_pvar_assign)
+
+lemma var_end_healthy: 
+  fixes x :: "('a, '\<beta>) lvar"
+  shows "end x is \<H>"
+  by (simp add: var_end_def Healthy_pvar_assign)
+
+lemma var_open_close:
+  fixes x :: "('a, '\<beta>) lvar"
+  assumes "uvar x"
+  shows "(var x ;; end x) = \<I>\<I>"
+  by (simp add: var_begin_def var_end_def shEx_lift_seq_1 Healthy_pvar_assign pvar_assign_comp pvar_assign_unit usubst assms)
+
+lemma var_open_close_commute:
+  fixes x :: "('a, '\<beta>) lvar" and y :: "('b, '\<beta>) lvar"
+  assumes "uvar x" "uvar y" "x \<bowtie> y"
+  shows "(var x ;; end y) = (end y ;; var x)"
+  by (simp add: var_begin_def var_end_def shEx_lift_seq_1 shEx_lift_seq_2 
+                Healthy_pvar_assign pvar_assign_comp pvar_assign_subst 
+                assms usubst unrest  lens_indep_sym, simp add: assms usubst_upd_comm)
+
+lemma var_block_vacuous: 
+  fixes x :: "('a::two, '\<beta>) lvar"
+  assumes "uvar x"
+  shows "(var x \<bullet> \<I>\<I>) = \<I>\<I>"
+  by (simp add: Left_Unit assms var_end_healthy var_open_close)
+
+end
+
+interpretation des_local_var: utp_local_var "TYPE(DES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>)"
+  by (unfold_locales, simp_all add: des_unit_def des_assigns_def)
+
+(*
+term "var\<^bsub>REL\<^esub> x \<bullet> P"
+
   
 lemma var_open_close_commute:
   assumes "uvar x" "uvar y" "x \<bowtie> y"
@@ -175,5 +240,6 @@ lemma "(var <x> :: int \<bullet> (x := 1 ;; <y::int> := &x + 2)) = <y::int> := 3
   apply (simp add: unrest)
   apply (simp)
 done
+*)
 
 end
