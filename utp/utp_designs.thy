@@ -1065,8 +1065,8 @@ subsection {* UTP theories *}
 typedef DES  = "UNIV :: unit set" by simp
 typedef NDES = "UNIV :: unit set" by simp
 
-abbreviation "DES \<equiv> TYPE(DES \<times> '\<alpha>)"
-abbreviation "NDES \<equiv> TYPE(NDES \<times> '\<alpha>)"
+abbreviation "DES \<equiv> TYPE(DES \<times> '\<alpha> alphabet_d)"
+abbreviation "NDES \<equiv> TYPE(NDES \<times> '\<alpha> alphabet_d)"
 
 overloading
   des_hcond == "utp_hcond :: (DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition"

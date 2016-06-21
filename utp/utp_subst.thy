@@ -47,12 +47,6 @@ is "\<lambda> \<sigma> x b. get\<^bsub>x\<^esub> (\<sigma> b)" .
 
 text {* Relational lifting of a substitution to the first element of the state space *}
 
-definition usubst_rel_lift :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<times> '\<beta>) usubst" ("\<lceil>_\<rceil>\<^sub>s") where
-"\<lceil>\<sigma>\<rceil>\<^sub>s = (\<lambda> (A, A'). (\<sigma> A, A'))"
-
-definition usubst_rel_drop :: "('\<alpha> \<times> '\<alpha>) usubst \<Rightarrow> '\<alpha> usubst" ("\<lfloor>_\<rfloor>\<^sub>s") where
-"\<lfloor>\<sigma>\<rfloor>\<^sub>s = (\<lambda> A. fst (\<sigma> (A, undefined)))"
-
 definition unrest_usubst :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> usubst \<Rightarrow> bool"
 where "unrest_usubst x \<sigma> = (\<forall> \<rho> v. \<sigma> (put\<^bsub>x\<^esub> \<rho> v) = put\<^bsub>x\<^esub> (\<sigma> \<rho>) v)"
 
@@ -175,13 +169,13 @@ definition var_name_ord :: "('a, '\<alpha>) uvar \<Rightarrow> ('b, '\<alpha>) u
 [no_atp]: "var_name_ord x y = True"
 
 syntax
-  "_var_name_ord" :: "salpha \<Rightarrow> salpha \<Rightarrow> bool" (infix "<\<^sub>v" 65)
+  "_var_name_ord" :: "salpha \<Rightarrow> salpha \<Rightarrow> bool" (infix "\<prec>\<^sub>v" 65)
 
 translations
   "_var_name_ord x y" == "CONST var_name_ord x y"
 
 lemma usubst_upd_comm_ord [usubst]:
-  assumes "x \<bowtie> y" "y <\<^sub>v x"
+  assumes "x \<bowtie> y" "y \<prec>\<^sub>v x"
   shows "\<sigma>(x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v) = \<sigma>(y \<mapsto>\<^sub>s v, x \<mapsto>\<^sub>s u)"
   by (simp add: assms(1) usubst_upd_comm)
 
@@ -232,15 +226,6 @@ lemma subst_upd_comp [usubst]:
   fixes x :: "('a, '\<alpha>) uvar"
   shows "\<rho>(x \<mapsto>\<^sub>s v) \<circ> \<sigma> = (\<rho> \<circ> \<sigma>)(x \<mapsto>\<^sub>s \<sigma> \<dagger> v)"
   by (rule ext, simp add:uexpr_defs subst_upd_uvar_def, transfer, simp)
-
-lemma subst_lift_id [usubst]: "\<lceil>id\<rceil>\<^sub>s = id"
-  by (simp add: usubst_rel_lift_def)
-
-lemma subst_drop_id [usubst]: "\<lfloor>id\<rfloor>\<^sub>s = id"
-  by (auto simp add: usubst_rel_drop_def)
-
-lemma subst_lift_drop [usubst]: "\<lfloor>\<lceil>\<sigma>\<rceil>\<^sub>s\<rfloor>\<^sub>s = \<sigma>"
-  by (simp add: usubst_rel_lift_def usubst_rel_drop_def)
 
 nonterminal uexprs and svars and salphas
 

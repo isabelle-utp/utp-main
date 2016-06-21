@@ -6,7 +6,6 @@ begin
 
 type_synonym ('a, '\<alpha>) lvar = "('a list, '\<alpha>) uvar"
 
-
 consts 
   pvar         :: "'\<beta> \<Longrightarrow> '\<alpha>" ("\<^bold>v")
   pvar_assigns :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> '\<beta> usubst \<Rightarrow> '\<alpha> hrelation" ("\<^bold>\<langle>_\<^bold>\<rangle>\<index>")
@@ -18,25 +17,6 @@ syntax
 translations
   "_svid_pvar" => "CONST pvar"
   "_thy_asgn T xs vs" => "CONST pvar_assigns T (_mk_usubst (CONST id) xs vs)"
-
-definition var_begin :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('a, '\<beta>) lvar \<Rightarrow> '\<alpha> hrelation" where
-[urel_defs]: "var_begin T x = x ::=\<^bsub>T\<^esub> \<langle>\<guillemotleft>undefined\<guillemotright>\<rangle> ^\<^sub>u &x"
-
-definition var_end :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('a, '\<beta>) lvar \<Rightarrow> '\<alpha> hrelation" where
-[urel_defs]: "var_end T x = (x ::=\<^bsub>T\<^esub> tail\<^sub>u(&x))"
-
-definition var_vlet :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('a, '\<alpha>) lvar \<Rightarrow> '\<alpha> hrelation" where
-[urel_defs]: "var_vlet T x = (($x \<noteq>\<^sub>u \<langle>\<rangle>) \<and> \<I>\<I>\<^bsub>T\<^esub>)"
-
-syntax
-  "_var_begin"  :: "logic \<Rightarrow> svid \<Rightarrow> logic" ("var\<index> _" [100] 100)
-  "_var_end"    :: "logic \<Rightarrow> svid \<Rightarrow> logic" ("end\<index> _" [100] 100)
-  "_var_vlet" :: "logic \<Rightarrow> svid \<Rightarrow> logic" ("vlet\<index> _" [100] 100)
-
-translations
-  "_var_begin T x" == "CONST var_begin T x"
-  "_var_end T x" == "CONST var_end T x"
-  "_var_vlet T x" == "CONST var_vlet T x"
 
 text {* The variable at the top of the local variable stack *}
 
@@ -64,18 +44,40 @@ lemma top_var_pres_indep [simp]:
 syntax
   "_top_var"             :: "svid \<Rightarrow> svid" ("@_" [999] 999)
   "_rest_var"            :: "svid \<Rightarrow> svid" ("\<down>_" [999] 999)
+
+translations
+  "_top_var x" == "CONST top_var x"
+  "_rest_var x" == "CONST rest_var x"
+
+
+definition var_begin :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('a, '\<beta>) lvar \<Rightarrow> '\<alpha> hrelation" where
+[urel_defs]: "var_begin T x = x ::=\<^bsub>T\<^esub> \<langle>\<guillemotleft>undefined\<guillemotright>\<rangle> ^\<^sub>u &x"
+
+definition var_end :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('a, '\<beta>) lvar \<Rightarrow> '\<alpha> hrelation" where
+[urel_defs]: "var_end T x = (x ::=\<^bsub>T\<^esub> tail\<^sub>u(&x))"
+
+definition var_vlet :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('a, '\<alpha>) lvar \<Rightarrow> '\<alpha> hrelation" where
+[urel_defs]: "var_vlet T x = (($x \<noteq>\<^sub>u \<langle>\<rangle>) \<and> \<I>\<I>\<^bsub>T\<^esub>)"
+
+syntax
+  "_var_begin"     :: "logic \<Rightarrow> svid \<Rightarrow> logic" ("var\<index> _" [100] 100)
+  "_var_begin_asn" :: "logic \<Rightarrow> svid \<Rightarrow> logic \<Rightarrow> logic" ("var\<index> _ := _")
+  "_var_end"       :: "logic \<Rightarrow> svid \<Rightarrow> logic" ("end\<index> _" [100] 100)
+  "_var_vlet"      :: "logic \<Rightarrow> svid \<Rightarrow> logic" ("vlet\<index> _" [100] 100)
   "_var_scope"           :: "logic \<Rightarrow> svid \<Rightarrow> logic \<Rightarrow> logic" ("var\<index> _ \<bullet> _" [0,10] 10)
   "_var_scope_ty"        :: "logic \<Rightarrow> svid \<Rightarrow> type \<Rightarrow> logic \<Rightarrow> logic" ("var\<index> _ :: _ \<bullet> _" [0,0,10] 10)
   "_var_scope_ty_assign" :: "logic \<Rightarrow> svid \<Rightarrow> type \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("var\<index> _ :: _ := _ \<bullet> _" [0,0,0,10] 10)
 
 translations
-  "_top_var x" == "CONST top_var x"
-  "_rest_var x" == "CONST rest_var x"
+  "_var_begin T x"       == "CONST var_begin T x"
+  "_var_begin_asn T x e" => "var\<^bsub>T\<^esub> x ;; @x ::=\<^bsub>T\<^esub> e"
+  "_var_end T x"         == "CONST var_end T x"
+  "_var_vlet T x"        == "CONST var_vlet T x"
   "var\<^bsub>T\<^esub> x \<bullet> P" => "var\<^bsub>T\<^esub> x ;; ((\<lambda> x. P) (CONST top_var x)) ;; end\<^bsub>T\<^esub> x"
   "var\<^bsub>T\<^esub> x \<bullet> P" => "var\<^bsub>T\<^esub> x ;; ((\<lambda> x. P) (CONST top_var x)) ;; end\<^bsub>T\<^esub> x"
   "var\<^bsub>T\<^esub> <x> \<bullet> P" => "var\<^bsub>T\<^esub> <x> ;; ((\<lambda> x. P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end\<^bsub>T\<^esub> <x>"
-  "var\<^bsub>T\<^esub> <x> :: 'a \<bullet> P" => "var\<^bsub>T\<^esub> <x::'a list> ;; ((\<lambda> x :: ('a, _) uvar. P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end <x::'a list>"
-  "var\<^bsub>T\<^esub> <x>  :: 'a := v \<bullet> P" => "var\<^bsub>T\<^esub> <x> :: 'a \<bullet> x := v ;; P"
+  "var\<^bsub>T\<^esub> <x> :: 'a \<bullet> P" => "var\<^bsub>T\<^esub> <x::'a list> ;; ((\<lambda> x :: ('a, _) uvar. P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end\<^bsub>T\<^esub> <x::'a list>"
+  "var\<^bsub>T\<^esub> <x>  :: 'a := v \<bullet> P" => "var\<^bsub>T\<^esub> <x> :: 'a \<bullet> x ::=\<^bsub>T\<^esub> v ;; P"
 
 overloading
   des_pvar == "pvar :: '\<alpha> \<Longrightarrow> '\<alpha> alphabet_d"
@@ -88,20 +90,20 @@ begin
 end
 
 locale utp_prog_var = utp_theory \<T> for \<T> :: "('\<T> \<times> '\<alpha>) itself" (structure) +
-  fixes V :: "'\<beta> itself"
+  fixes \<V>\<T> :: "'\<beta>::vst itself"
   assumes pvar_uvar: "uvar (\<^bold>v :: '\<beta> \<Longrightarrow> '\<alpha>)"
   and Healthy_pvar_assign: "\<^bold>\<langle>\<sigma> :: '\<beta> usubst\<^bold>\<rangle> is \<H>"
   and pvar_assign_comp: "P is \<H> \<Longrightarrow> (\<^bold>\<langle>\<sigma>\<^bold>\<rangle> ;; P :: '\<alpha> hrelation) = \<lceil>\<sigma> \<oplus>\<^sub>s \<^bold>v\<rceil>\<^sub>s \<dagger> P"
   and pvar_assign_subst [usubst]: "\<lceil>\<sigma> \<oplus>\<^sub>s \<^bold>v\<rceil>\<^sub>s \<dagger> \<^bold>\<langle>\<rho>\<^bold>\<rangle> = \<^bold>\<langle>\<rho> \<circ> \<sigma>\<^bold>\<rangle>"
 
-interpretation des_prog_var: utp_prog_var "TYPE(DES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>)"
+interpretation des_prog_var: utp_prog_var "TYPE(DES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
   apply (unfold_locales, simp_all add: des_pvar_def des_assigns_def des_hcond_def)
   apply (simp add: assigns_d_def rdesign_is_H1_H2)
   apply (simp add: assigns_d_comp_ext)
   apply (rel_tac)
 done
 
-locale utp_local_var = utp_prog_var \<T> V + utp_theory_left_unital \<T> for \<T> :: "('\<T> \<times> '\<alpha>) itself" (structure) and V :: "'\<beta> itself" +
+locale utp_local_var = utp_prog_var \<T> V + utp_theory_left_unital \<T> for \<T> :: "('\<T> \<times> '\<alpha>) itself" (structure) and V :: "'\<beta>::vst itself" +
   assumes pvar_assign_unit: "\<^bold>\<langle>id :: '\<beta> usubst\<^bold>\<rangle> = \<I>\<I>"
 begin
 
@@ -137,7 +139,7 @@ lemma var_block_vacuous:
 
 end
 
-interpretation des_local_var: utp_local_var "TYPE(DES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>)"
+interpretation des_local_var: utp_local_var "TYPE(DES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
   by (unfold_locales, simp_all add: des_unit_def des_assigns_def)
 
 (*
