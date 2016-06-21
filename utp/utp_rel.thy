@@ -56,6 +56,13 @@ syntax
 translations
   "_skip_ra v" == "CONST skip_ra v"
 
+abbreviation usubst_rel_lift :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<times> '\<beta>) usubst" ("\<lceil>_\<rceil>\<^sub>s") where
+"\<lceil>\<sigma>\<rceil>\<^sub>s \<equiv> \<sigma> \<oplus>\<^sub>s in\<alpha>"
+
+abbreviation usubst_rel_drop :: "('\<alpha> \<times> '\<alpha>) usubst \<Rightarrow> '\<alpha> usubst" ("\<lfloor>_\<rfloor>\<^sub>s") where
+"\<lfloor>\<sigma>\<rfloor>\<^sub>s \<equiv> \<sigma> \<restriction>\<^sub>s in\<alpha>"
+
+
 definition assigns_ra :: "'\<alpha> usubst \<Rightarrow> ('\<beta>, '\<alpha>) lens \<Rightarrow> '\<alpha> hrelation" ("\<langle>_\<rangle>\<^bsub>_\<^esub>") where
 "\<langle>\<sigma>\<rangle>\<^bsub>a\<^esub> = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> II\<^bsub>a\<^esub>)"
 
@@ -227,6 +234,22 @@ lemma subst_skip_r [usubst]:
   fixes x :: "('a, '\<alpha>) uvar"
   shows "II\<lbrakk>\<lceil>v\<rceil>\<^sub></$x\<rbrakk> = (x := v)"
   by (rel_tac)
+
+lemma usubst_upd_in_comp [usubst]:
+  "\<sigma>(&in\<alpha>:x \<mapsto>\<^sub>s v) = \<sigma>($x \<mapsto>\<^sub>s v)"
+  by (simp add: fst_lens_def in\<alpha>_def in_var_def)
+
+lemma usubst_upd_out_comp [usubst]:
+  "\<sigma>(&out\<alpha>:x \<mapsto>\<^sub>s v) = \<sigma>($x\<acute> \<mapsto>\<^sub>s v)"
+  by (simp add: out\<alpha>_def out_var_def snd_lens_def)
+
+lemma subst_lift_upd [usubst]: 
+  fixes x :: "('a, '\<alpha>) uvar"
+  shows "\<lceil>\<sigma>(x \<mapsto>\<^sub>s v)\<rceil>\<^sub>s = \<lceil>\<sigma>\<rceil>\<^sub>s($x \<mapsto>\<^sub>s \<lceil>v\<rceil>\<^sub><)"
+  by (simp add: alpha usubst, simp add: fst_lens_def in\<alpha>_def in_var_def)
+
+lemma subst_lift_pre [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> \<lceil>b\<rceil>\<^sub>< = \<lceil>\<sigma> \<dagger> b\<rceil>\<^sub><"
+  by (metis apply_subst_ext fst_lens_def fst_vwb_lens in\<alpha>_def)
 
 subsection {* Relation laws *}
 

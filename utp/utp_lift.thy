@@ -31,16 +31,6 @@ lemma lift_post_var [simp]:
   "\<lceil>var x\<rceil>\<^sub>> = $x\<acute>"
   by (alpha_tac)
 
-subsection {* Substitution laws *}
-
-lemma subst_lift_upd [usubst]: 
-  fixes x :: "('a, '\<alpha>) uvar"
-  shows "\<lceil>\<sigma>(x \<mapsto>\<^sub>s v)\<rceil>\<^sub>s = \<lceil>\<sigma>\<rceil>\<^sub>s($x \<mapsto>\<^sub>s \<lceil>v\<rceil>\<^sub><)"
-  by (simp add: usubst_rel_lift_def subst_upd_uvar_def, transfer, auto simp add: fst_lens_def)
-
-lemma subst_lift_pre [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> \<lceil>b\<rceil>\<^sub>< = \<lceil>\<sigma> \<dagger> b\<rceil>\<^sub><"
-  by pred_tac
-
 subsection {* Unrestriction laws *}
 
 lemma unrest_dash_var_pre [unrest]:

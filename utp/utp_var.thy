@@ -125,16 +125,17 @@ abbreviation (input) univ_alpha :: "('\<alpha>, '\<alpha>) uvar" ("\<Sigma>") wh
 nonterminal svid and svar and salpha
 
 syntax
-  "_salphaid"    :: "id \<Rightarrow> salpha" ("_" [999] 999)
-  "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [999] 999)
+  "_salphaid"    :: "id \<Rightarrow> salpha" ("_" [998] 998)
+  "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [998] 998)
   "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr "," 75)
   "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr ";" 75)
   "_svid"        :: "id \<Rightarrow> svid" ("_" [999] 999)
   "_svid_alpha"  :: "svid" ("\<Sigma>")
   "_svid_empty"  :: "svid" ("\<emptyset>")
-  "_spvar"       :: "svid \<Rightarrow> svar" ("&_" [999] 999)
-  "_sinvar"      :: "svid \<Rightarrow> svar" ("$_" [999] 999)
-  "_soutvar"     :: "svid \<Rightarrow> svar" ("$_\<acute>" [999] 999)
+  "_svid_dot"    :: "svid \<Rightarrow> svid \<Rightarrow> svid" ("_:_" [999,998] 999)
+  "_spvar"       :: "svid \<Rightarrow> svar" ("&_" [998] 998)
+  "_sinvar"      :: "svid \<Rightarrow> svar" ("$_" [998] 998)
+  "_soutvar"     :: "svid \<Rightarrow> svar" ("$_\<acute>" [998] 998)
 
 consts
   svar :: "'v \<Rightarrow> 'e" 
@@ -150,7 +151,10 @@ translations
   "_salphavar x" => "x"
   "_svid_alpha" == "\<Sigma>"
   "_svid_empty" == "0\<^sub>L"
+  "_svid_dot x y" => "y ;\<^sub>L x"
   "_svid x" => "x"
+  "_sinvar (_svid_dot x y)" <= "CONST ivar (CONST lens_comp y x)"
+  "_soutvar (_svid_dot x y)" <= "CONST ovar (CONST lens_comp y x)"
   "_spvar x" == "CONST svar x"
   "_sinvar x" == "CONST ivar x"
   "_soutvar x" == "CONST ovar x"

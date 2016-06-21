@@ -453,4 +453,9 @@ lemma trop_ueval [ueval]: "\<lbrakk>trop f x y z\<rbrakk>\<^sub>eb = f (\<lbrakk
 
 declare uexpr_defs [ueval]
 
+subsection {* Misc laws *}
+
+lemma tail_cons [simp]: "tail\<^sub>u(\<langle>x\<rangle> ^\<^sub>u xs) = xs"
+  by (transfer, simp)
+
 end

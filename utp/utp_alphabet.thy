@@ -164,4 +164,39 @@ syntax
 translations
   "_alpha_coerce P x" == "CONST alpha_coerce P x"
 
+subsection {* Substitution alphabet extension *}
+
+definition subst_ext :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> '\<beta> usubst" (infix "\<oplus>\<^sub>s" 65) where
+[upred_defs]: "\<sigma> \<oplus>\<^sub>s x = (\<lambda> s. put\<^bsub>x\<^esub> s (\<sigma> (get\<^bsub>x\<^esub> s)))"
+
+lemma id_subst_ext [usubst,alpha]: 
+  "uvar x \<Longrightarrow> id \<oplus>\<^sub>s x = id"
+  by pred_tac
+
+lemma upd_subst_ext [alpha]: 
+  "uvar x \<Longrightarrow> \<sigma>(y \<mapsto>\<^sub>s v) \<oplus>\<^sub>s x = (\<sigma> \<oplus>\<^sub>s x)(&x:y \<mapsto>\<^sub>s v \<oplus>\<^sub>p x)"
+  by pred_tac
+
+lemma apply_subst_ext [alpha]: 
+  "uvar x \<Longrightarrow> (\<sigma> \<dagger> e) \<oplus>\<^sub>p x = (\<sigma> \<oplus>\<^sub>s x) \<dagger> (e \<oplus>\<^sub>p x)"
+  by (pred_tac)
+
+subsection {* Substitution alphabet restriction *}
+
+definition subst_res :: "'\<alpha> usubst \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> usubst" (infix "\<restriction>\<^sub>s" 65) where
+[upred_defs]: "\<sigma> \<restriction>\<^sub>s x = (\<lambda> s. get\<^bsub>x\<^esub> (\<sigma> (create\<^bsub>x\<^esub> s)))"
+
+lemma id_subst_res [alpha,usubst]:
+  "semi_uvar x \<Longrightarrow> id \<restriction>\<^sub>s x = id"
+  by pred_tac
+
+lemma upd_subst_res [alpha]: 
+  "uvar x \<Longrightarrow> \<sigma>(&x:y \<mapsto>\<^sub>s v) \<restriction>\<^sub>s x = (\<sigma> \<restriction>\<^sub>s x)(&y \<mapsto>\<^sub>s v \<restriction>\<^sub>p x)"
+  by (pred_tac)
+
+lemma subst_ext_res [alpha,usubst]:
+  "uvar x \<Longrightarrow> (\<sigma> \<oplus>\<^sub>s x) \<restriction>\<^sub>s x = \<sigma>"
+  by (pred_tac)
+
+
 end

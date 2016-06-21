@@ -262,8 +262,6 @@ declare diff_upred_def [upred_defs]
 declare subst_upd_uvar_def [upred_defs]
 declare subst_upd_dvar_def [upred_defs]
 declare uexpr_defs [upred_defs]
-declare usubst_rel_lift_def [upred_defs]
-declare usubst_rel_drop_def [upred_defs]
 
 lemma true_alt_def: "true = \<guillemotleft>True\<guillemotright>"
   by (pred_tac)
@@ -616,6 +614,9 @@ lemma le_pred_refl [simp]:
   fixes x :: "('a::preorder, '\<alpha>) uexpr"
   shows "(x \<le>\<^sub>u x) = true"
   by (pred_tac)
+
+lemma shEx_unbound [simp]: "(\<^bold>\<exists> x \<bullet> P) = P"
+  by pred_tac
 
 lemma shEx_bool [simp]: "shEx P = (P True \<or> P False)"
   by (pred_tac, metis (full_types))
