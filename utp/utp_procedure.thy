@@ -7,72 +7,77 @@ begin
 type_synonym ('a, '\<alpha>) uproc = "'a \<Rightarrow> '\<alpha> hrelation"
 
 definition 
-  val_parm :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> '\<alpha> hrelation) 
+  val_parm :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> '\<alpha> hrelation) 
                \<Rightarrow> (('a, '\<beta>) uexpr, '\<alpha>) uproc"
-where "val_parm T x P = (\<lambda> v. (var\<^bsub>T\<^esub> x \<bullet> (x ::=\<^bsub>T\<^esub> v ;; P x)))"
+where "val_parm T x P = (\<lambda> v. (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> v ;; P x)))"
 
 definition 
-  val_parm_comp :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> ('b, '\<alpha>) uproc) 
+  val_parm_comp :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> ('b, '\<alpha>) uproc) 
                \<Rightarrow> (('a, '\<beta>) uexpr \<times> 'b, '\<alpha>) uproc"
-where "val_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>T\<^esub> x \<bullet> (x ::=\<^bsub>T\<^esub> u ;; P x v)))"
+where "val_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> u ;; P x v)))"
 
 definition 
-  res_parm :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> '\<alpha> hrelation) 
+  res_parm :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> '\<alpha> hrelation) 
                \<Rightarrow> (('a, '\<beta>) uvar, '\<alpha>) uproc"
-where "res_parm T x P = (\<lambda> y. (var\<^bsub>T\<^esub> x \<bullet> (P x ;; y ::=\<^bsub>T\<^esub> &x)))"
+where "res_parm T x P = (\<lambda> y. (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (P x ;; y ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
 
 definition 
-  res_parm_comp :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> ('b, '\<alpha>) uproc) 
+  res_parm_comp :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> ('b, '\<alpha>) uproc) 
                \<Rightarrow> (('a, '\<beta>) uvar \<times> 'b, '\<alpha>) uproc"
-where "res_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>T\<^esub> x \<bullet> (P x v ;; u ::=\<^bsub>T\<^esub> &x)))"
+where "res_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (P x v ;; u ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
 
 definition
-  vres_parm :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> '\<alpha> hrelation) 
+  vres_parm :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> '\<alpha> hrelation) 
                \<Rightarrow> (('a, '\<beta>) uvar, '\<alpha>) uproc"
-where "vres_parm T x P = (\<lambda> y. (var\<^bsub>T\<^esub> x \<bullet> (x ::=\<^bsub>T\<^esub> &y ;; P x ;; y ::=\<^bsub>T\<^esub> &x)))"
+where "vres_parm T x P = (\<lambda> y. (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &y ;; P x ;; y ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
 
 definition 
-  vres_parm_comp :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> ('b, '\<alpha>) uproc) 
+  vres_parm_comp :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> ('b, '\<alpha>) uproc) 
                \<Rightarrow> (('a, '\<beta>) uvar \<times> 'b, '\<alpha>) uproc"
-where "vres_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>T\<^esub> x \<bullet> (x ::=\<^bsub>T\<^esub> &u ;; P x v ;; u ::=\<^bsub>T\<^esub> &x)))"
+where "vres_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &u ;; P x v ;; u ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
 
 nonterminal parm and parm_list
+
+abbreviation "DAL \<equiv> TYPE(DES \<times> '\<alpha> alphabet_d \<times> '\<alpha>)"
 
 syntax
   "_uvar_ty"      :: "type \<Rightarrow> type"
   "_parm"         :: "parm \<Rightarrow> parm_list" ("(_)")
   "_parm_list"    :: "parm \<Rightarrow> parm_list \<Rightarrow> parm_list" ("_ ,/ _")
   "_tparm"        :: "parm_list \<Rightarrow> logic" ("_")
-  "_proc_block"   :: "parm_list \<Rightarrow> logic \<Rightarrow> ('a, '\<alpha>) uproc" ("_ \<bullet>/ _" [0,10] 10)
-  "_val_parm"     :: "logic \<Rightarrow> id \<Rightarrow> parm" ("val\<index> _" [999] 999)
-  "_val_parm_ty"  :: "logic \<Rightarrow> id \<Rightarrow> type \<Rightarrow> parm" ("val\<index> _ :: _")
-  "_res_parm"     :: "logic \<Rightarrow> id \<Rightarrow> parm" ("res\<index> _" [999] 999)
-  "_res_parm_ty"  :: "logic \<Rightarrow> id \<Rightarrow> type \<Rightarrow> parm" ("res\<index> _ :: _")
-  "_vres_parm"    :: "logic \<Rightarrow> id \<Rightarrow> parm" ("vres\<index> _" [999] 999)
-  "_vres_parm_ty" :: "logic \<Rightarrow> id \<Rightarrow> type \<Rightarrow> parm" ("vres\<index> _ :: _" [0,999] 999)
+  "_proc_block"   :: "logic \<Rightarrow> parm_list \<Rightarrow> logic \<Rightarrow> ('a, '\<alpha>) uproc" ("_ \<bullet>\<index>/ _" [0,10] 10)
+  "_val_parm"     :: "id \<Rightarrow> parm" ("val _" [999] 999)
+  "_val_parm_ty"  :: "id \<Rightarrow> type \<Rightarrow> parm" ("val _ :: _")
+  "_res_parm"     :: "id \<Rightarrow> parm" ("res _" [999] 999)
+  "_res_parm_ty"  :: "id \<Rightarrow> type \<Rightarrow> parm" ("res _ :: _")
+  "_vres_parm"    :: "id \<Rightarrow> parm" ("vres _" [999] 999)
+  "_vres_parm_ty" :: "id \<Rightarrow> type \<Rightarrow> parm" ("vres _ :: _" [0,999] 999)
+  "_dproc_block"  :: "parm_list \<Rightarrow> logic \<Rightarrow> ('a, '\<alpha>) uproc" ("_ \<bullet>\<^sub>D/ _" [0,10] 10)
 
 translations
   (* Parse translations for value parameters *)
-  "_proc_block (_parm (_val_parm T x)) P" => "CONST val_parm T <x>\<^sub>d (\<lambda> x. P)"
-  "_proc_block (_parm (_val_parm_ty T x a)) P" => "CONST val_parm T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) P)"
-  "_proc_block (_parm_list (_val_parm_ty T x a) ps) P" 
-  => "CONST val_parm_comp T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) (_proc_block ps P))"
-  "_proc_block (_parm_list (_val_parm T x) ps) P" 
-  => "CONST val_parm_comp T <x>\<^sub>d (\<lambda> x. (_proc_block ps P))"
+  "_proc_block T (_parm (_val_parm x)) P" => "CONST val_parm T <x>\<^sub>d (\<lambda> x. P)"
+  "_proc_block T (_parm (_val_parm_ty x a)) P" => "CONST val_parm T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) P)"
+  "_proc_block T (_parm_list (_val_parm_ty x a) ps) P" 
+  => "CONST val_parm_comp T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) (_proc_block T ps P))"
+  "_proc_block T (_parm_list (_val_parm x) ps) P" 
+  => "CONST val_parm_comp T <x>\<^sub>d (\<lambda> x. (_proc_block T ps P))"
   (* Parse translations for result parameters *)
-  "_proc_block (_parm (_res_parm T x)) P" => "CONST res_parm T <x>\<^sub>d (\<lambda> x. P)"
-  "_proc_block (_parm (_res_parm_ty T x a)) P" => "CONST res_parm T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) P)"
-  "_proc_block (_parm_list (_res_parm_ty T x a) ps) P" 
-  => "CONST res_parm_comp T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) (_proc_block ps P))"
-  "_proc_block (_parm_list (_res_parm T x) ps) P" 
-  => "CONST res_parm_comp T <x>\<^sub>d (\<lambda> x. (_proc_block ps P))"
+  "_proc_block T (_parm (_res_parm x)) P" => "CONST res_parm T <x>\<^sub>d (\<lambda> x. P)"
+  "_proc_block T (_parm (_res_parm_ty x a)) P" => "CONST res_parm T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) P)"
+  "_proc_block T (_parm_list (_res_parm_ty x a) ps) P" 
+  => "CONST res_parm_comp T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) (_proc_block T ps P))"
+  "_proc_block T (_parm_list (_res_parm x) ps) P" 
+  => "CONST res_parm_comp T <x>\<^sub>d (\<lambda> x. (_proc_block T ps P))"
   (* Parse translations for value-result parameters *)
-  "_proc_block (_parm (_vres_parm T x)) P" => "CONST vres_parm T <x>\<^sub>d (\<lambda> x. P)"
-  "_proc_block (_parm (_vres_parm_ty T x a)) P" => "CONST vres_parm T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) P)"
-  "_proc_block (_parm_list (_vres_parm_ty T x a) ps) P" 
-  => "CONST vres_parm_comp T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) (_proc_block ps P))"
-  "_proc_block (_parm_list (_res_parm T x) ps) P" 
-  => "CONST vres_parm_comp T <x>\<^sub>d (\<lambda> x. (_proc_block ps P))"
+(*
+  "_proc_block T (_parm (_vres_parm x)) P" => "CONST vres_parm T <x>\<^sub>d (\<lambda> x. P)"
+  "_proc_block T (_parm (_vres_parm_ty x a)) P" => "CONST vres_parm T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) P)"
+  "_proc_block T (_parm_list (_vres_parm_ty x a) ps) P" 
+  => "CONST vres_parm_comp T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) (_proc_block T ps P))"
+  "_proc_block (_parm_list (_res_parm x) ps) P" 
+  => "CONST vres_parm_comp T <x>\<^sub>d (\<lambda> x. (_proc_block T ps P))" *)
+  "_dproc_block ps P" => "_proc_block (CONST DAL) ps P"
 
 (*
 context utp_local_var
