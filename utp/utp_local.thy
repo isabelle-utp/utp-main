@@ -92,13 +92,18 @@ end
 locale utp_prog_var = utp_theory \<T> for \<T> :: "('\<T> \<times> '\<alpha>) itself" (structure) +
   fixes \<V>\<T> :: "'\<beta>::vst itself"
   assumes pvar_uvar: "uvar (\<^bold>v :: '\<beta> \<Longrightarrow> '\<alpha>)"
-  and Healthy_pvar_assign: "\<^bold>\<langle>\<sigma> :: '\<beta> usubst\<^bold>\<rangle> is \<H>"
-  and pvar_assign_comp: "P is \<H> \<Longrightarrow> (\<^bold>\<langle>\<sigma>\<^bold>\<rangle> ;; P :: '\<alpha> hrelation) = \<lceil>\<sigma> \<oplus>\<^sub>s \<^bold>v\<rceil>\<^sub>s \<dagger> P"
+  and Healthy_pvar_assigns: "\<^bold>\<langle>\<sigma> :: '\<beta> usubst\<^bold>\<rangle> is \<H>"
+  and pvar_assigns_comp: "(\<^bold>\<langle>\<sigma>\<^bold>\<rangle> ;; \<^bold>\<langle>\<rho>\<^bold>\<rangle>) = \<^bold>\<langle>\<rho> \<circ> \<sigma>\<^bold>\<rangle>"
+
+lemma assigns_d_is_H1_H2:
+  "\<langle>\<sigma>\<rangle>\<^sub>D is H1_H2"
+  by (simp add: assigns_d_def rdesign_is_H1_H2) 
 
 interpretation des_prog_var: utp_prog_var "TYPE(DES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
   apply (unfold_locales, simp_all add: des_pvar_def des_assigns_def des_hcond_def)
   apply (simp add: assigns_d_def rdesign_is_H1_H2)
-  apply (simp add: assigns_d_comp_ext)
+  apply (simp add: assigns_d_comp_ext assigns_d_is_H1_H2)
+  apply (rel_tac)
 done
 
 locale utp_local_var = utp_prog_var \<T> V + utp_theory_left_unital \<T> for \<T> :: "('\<T> \<times> '\<alpha>) itself" (structure) and V :: "'\<beta>::vst itself" +
@@ -108,25 +113,25 @@ begin
 lemma var_begin_healthy: 
   fixes x :: "('a, '\<beta>) lvar"
   shows "var x is \<H>"
-  by (simp add: var_begin_def Healthy_pvar_assign)
+  by (simp add: var_begin_def Healthy_pvar_assigns)
 
 lemma var_end_healthy: 
   fixes x :: "('a, '\<beta>) lvar"
   shows "end x is \<H>"
-  by (simp add: var_end_def Healthy_pvar_assign)
+  by (simp add: var_end_def Healthy_pvar_assigns)
 
 lemma var_open_close:
   fixes x :: "('a, '\<beta>) lvar"
   assumes "uvar x"
   shows "(var x ;; end x) = \<I>\<I>"
-  by (simp add: var_begin_def var_end_def shEx_lift_seq_1 Healthy_pvar_assign pvar_assign_comp pvar_assign_unit usubst assms)
+  by (simp add: var_begin_def var_end_def shEx_lift_seq_1 Healthy_pvar_assigns pvar_assigns_comp pvar_assign_unit usubst assms)
 
 lemma var_open_close_commute:
   fixes x :: "('a, '\<beta>) lvar" and y :: "('b, '\<beta>) lvar"
   assumes "uvar x" "uvar y" "x \<bowtie> y"
   shows "(var x ;; end y) = (end y ;; var x)"
   by (simp add: var_begin_def var_end_def shEx_lift_seq_1 shEx_lift_seq_2 
-                Healthy_pvar_assign pvar_assign_comp pvar_assign_subst 
+                Healthy_pvar_assigns pvar_assigns_comp
                 assms usubst unrest  lens_indep_sym, simp add: assms usubst_upd_comm)
 
 lemma var_block_vacuous: 
