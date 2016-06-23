@@ -8,7 +8,7 @@ type_synonym '\<alpha> Healthiness_condition = "'\<alpha> upred \<Rightarrow> '\
 
 definition 
 Healthy::"'\<alpha> upred \<Rightarrow> '\<alpha> Healthiness_condition \<Rightarrow> bool" (infix "is" 30)
-where "P is H \<equiv> (P = H P)"
+where "P is H \<equiv> (H P = P)"
 
 lemma Healthy_def': "P is H \<longleftrightarrow> (H P = P)"
   unfolding Healthy_def by auto

@@ -134,6 +134,10 @@ lemma usubst_lookup_upd_indep [usubst]:
   using assms
   by (simp add: subst_upd_uvar_def, transfer, simp)
 
+lemma usubst_apply_unrest [usubst]:
+  "\<lbrakk> uvar x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s x = var x"
+  by (simp add: unrest_usubst_def, transfer, auto simp add: fun_eq_iff, metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
+
 lemma subst_del_id [usubst]: 
   "uvar x \<Longrightarrow> id -\<^sub>s x = id"
   by (simp add: subst_del_def subst_upd_uvar_def, transfer, auto)

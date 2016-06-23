@@ -3,6 +3,7 @@ section {* Hybrid reactive designs *}
 theory utp_hrd
 imports 
   utp_designs
+  utp_local
   utp_rea_designs
 begin
 
@@ -791,7 +792,7 @@ abbreviation "peri\<^sub>H(P) \<equiv> (P\<lbrakk>true,true/$ok,$ok\<acute>\<rbr
 abbreviation "post\<^sub>H(P) \<equiv> (P\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>\<lbrakk>false,false/$wait,$wait\<acute>\<rbrakk>)"
 
 lemma cond_var_split:
-  "uvar x \<Longrightarrow> (P\<lbrakk>true/x\<rbrakk> \<triangleleft> var x \<triangleright> P\<lbrakk>false/x\<rbrakk>) = P"
+  "uvar x \<Longrightarrow> (P\<lbrakk>true/x\<rbrakk> \<triangleleft> utp_expr.var x \<triangleright> P\<lbrakk>false/x\<rbrakk>) = P"
   by (rel_tac, (metis (full_types) vwb_lens.put_eq)+)
 
 lemma wait'_cond_split: "P\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> P\<lbrakk>false/$wait\<acute>\<rbrakk> = P"
@@ -802,7 +803,7 @@ lemma HCSP_hybrid_reactive_tri_design:
   shows "P = HR((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> P\<^sup>t\<^sub>f\<lbrakk>false/$wait\<acute>\<rbrakk>)"
   by (simp add: HCSP_hybrid_reactive_design assms wait'_cond_split)
 
-lemma conj_var_subst: "uvar x \<Longrightarrow> (var x \<and> P\<lbrakk>true/x\<rbrakk>) = (var x \<and> P)"
+lemma conj_var_subst: "uvar x \<Longrightarrow> (utp_expr.var x \<and> P\<lbrakk>true/x\<rbrakk>) = (utp_expr.var x \<and> P)"
   by (pred_tac, (metis (full_types) vwb_lens_def wb_lens_axioms_def wb_lens_def)+)
 
 lemma design_subst_ok_ok':
@@ -1291,6 +1292,42 @@ proof -
     by (simp add: Healthy_def')
 qed
 
+lemma HR3_idem: "HR3(HR3(P)) = HR3(P)"
+  by (rel_tac)
+
+lemma HR_idem: "HR(HR(P)) = HR(P)"
+  by (simp add: HR_R2c_def HR1_HR2c_commute HR1_HR3_commute HR1_idem HR2c_HR3_commute HR2c_idem HR3_idem)
+
+lemma HCSP1_HR1_commute: "HCSP1(HR1(P)) = HR1(HCSP1(P))"
+  by (rel_tac)
+
+lemma HCSP1_HR2c_commute: "HCSP1(HR2c(P)) = HR2c(HCSP1(P))"
+  by (rel_tac)
+
+lemma HCSP1_HR3_commute: "HCSP1(HR3(P)) = HR3(HCSP1(P))"
+  by (rel_tac)
+
+lemma HCSP1_HR_commute: "HCSP1(HR(P)) = HR(HCSP1(P))"
+  by (simp add: HR_R2c_def HCSP1_HR1_commute HCSP1_HR2c_commute HCSP1_HR3_commute)
+
+lemma H2_HR1_commute: "H2(HR1(P)) = HR1(H2(P))"
+  by (rel_tac)
+
+lemma hskip_J: "(II\<^sub>H ;; J) = II\<^sub>H"
+  by (rel_tac, simp add: alpha_d.equality)
+
+lemma H2_HR3_commute: "H2(HR3(P)) = HR3(H2(P))"
+  by (simp add: H2_def HR3_def cond_def seqr_or_distl hskip_J seqr_pre_out unrest)
+  
+lemma H2_HR_commute: "H2(HR(P)) = HR(H2(P))"
+  by (simp add: HR_R2c_def H2_HR1_commute HR2c_H2_commute[THEN sym] H2_HR3_commute)
+
+lemma HCSP1_H2_commute: "HCSP1(H2(P)) = H2(HCSP1(P))"
+  by (rel_tac)
+
+lemma HCSP_idem: "HCSP(HCSP(P)) = HCSP(P)"
+  by (simp add: HCSP_def H2_HR_commute HCSP1_HR_commute HCSP1_H2_commute HR_idem H2_idem HCSP1_idem)
+
 lemma HR1_peri_post:
   assumes "P is HR1"
   shows "peri\<^sub>H(P) is HR1" "post\<^sub>H(P) is HR1"
@@ -1339,22 +1376,48 @@ proof -
   finally show ?thesis .
 qed
 
-(*
-lemma "(\<langle>\<sigma>\<rangle>\<^sub>H ;; P) = (\<langle>\<sigma>\<rangle>\<^sub>H ;; (\<not> $wait \<and> P))"
-  apply (simp add: assigns_h_def)
-*)
+lemma subst_hyb_apply_lift [usubst]:
+  "\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> \<lceil>P\<rceil>\<^sub>H = \<lceil>\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P\<rceil>\<^sub>H"
+  by (rel_tac)
 
-lemma assigns_h_comp_HCSP:
-  assumes "P is HCSP"
-  shows "(\<langle>\<sigma>\<rangle>\<^sub>H ;; P) = (\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> P)"
+lemma 
+  "(\<langle>\<sigma>\<rangle>\<^sub>H ;; \<langle>\<rho>\<rangle>\<^sub>H) = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>H"
 proof -
-  from assms have "(\<langle>\<sigma>\<rangle>\<^sub>H ;; P) = (\<langle>\<sigma>\<rangle>\<^sub>H ;; HR (pre\<^sub>H(P) \<turnstile> (peri\<^sub>H(P) \<diamondop> post\<^sub>H(P))))"
-    by (simp add: HCSP_hybrid_reactive_tri_design'[THEN sym])
-  also have "... = HR (\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> pre\<^sub>H(P) \<turnstile> (\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> peri\<^sub>H(P) \<diamondop> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> post\<^sub>H(P)))"      
-    by (subst assigns_h_comp)
-       (simp_all add: unrest HR1_peri_post HR2c_pre_peri_post HCSP_is_HR1 HCSP_is_HR2c assms
-       , simp_all add: unrest usubst)
-  also have "... = \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> HR (pre\<^sub>H(P) \<turnstile> (peri\<^sub>H(P) \<diamondop> post\<^sub>H(P)))" (is "?lhs = \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> ?rhs")
-    oops      
+  have "(\<langle>\<sigma>\<rangle>\<^sub>H ;; \<langle>\<rho>\<rangle>\<^sub>H) = (\<langle>\<sigma>\<rangle>\<^sub>H ;; HR (true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>\<rho>\<rangle>\<^sub>a\<rceil>\<^sub>H)))"
+    by (simp add: assigns_h_def)
+  also have "... = HR (true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>H))"
+      apply (subst assigns_h_comp)
+      apply (simp_all add: unrest usubst Healthy_def' HR1_false HR2c_false HR2c_true)
+      apply (rel_tac)[1]
+      apply (simp add: HR2c_def R2c_def R2s_def TI2_def usubst R1_def unrest)
+      apply (rel_tac)[1]
+      using list_minus_anhil apply blast
+  done
+  also have "... = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>H"
+    by (simp add: assigns_h_def)
+  finally show ?thesis .
+qed
+
+typedef HRD = "UNIV :: unit set" ..
+
+overloading
+  hrd_hcond == "utp_hcond :: (HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> (('t, '\<theta>, '\<alpha>) alphabet_hrd \<times> ('t, '\<theta>, '\<alpha>) alphabet_hrd) Healthiness_condition"
+  hrd_unit == "utp_unit :: (HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd"
+  hrd_pvar == "pvar :: '\<alpha> \<Longrightarrow> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd"
+  hrd_assigns == "pvar_assigns :: (HRD \<times> ('t, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd"
+begin
+  definition hrd_hcond :: "(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> (('t, '\<theta>, '\<alpha>) alphabet_hrd \<times> ('t, '\<theta>, '\<alpha>) alphabet_hrd) Healthiness_condition" where
+  "hrd_hcond T = HCSP"
+  definition hrd_unit :: "(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" where
+  "hrd_unit T = II\<^sub>H"
+  definition hrd_pvar :: "'\<alpha> \<Longrightarrow> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd" where
+  "hrd_pvar = \<Sigma>\<^sub>H"
+  definition hrd_assigns :: "(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" where
+  "hrd_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>H"
+end
+
+interpretation hrd_prog_var: utp_prog_var "TYPE(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd)" "TYPE('\<alpha>::vst)"
+  apply (unfold_locales, simp_all add: hrd_pvar_def hrd_assigns_def hrd_hcond_def HCSP_idem)
+  oops
 
 end

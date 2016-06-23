@@ -94,13 +94,11 @@ locale utp_prog_var = utp_theory \<T> for \<T> :: "('\<T> \<times> '\<alpha>) it
   assumes pvar_uvar: "uvar (\<^bold>v :: '\<beta> \<Longrightarrow> '\<alpha>)"
   and Healthy_pvar_assign: "\<^bold>\<langle>\<sigma> :: '\<beta> usubst\<^bold>\<rangle> is \<H>"
   and pvar_assign_comp: "P is \<H> \<Longrightarrow> (\<^bold>\<langle>\<sigma>\<^bold>\<rangle> ;; P :: '\<alpha> hrelation) = \<lceil>\<sigma> \<oplus>\<^sub>s \<^bold>v\<rceil>\<^sub>s \<dagger> P"
-  and pvar_assign_subst [usubst]: "\<lceil>\<sigma> \<oplus>\<^sub>s \<^bold>v\<rceil>\<^sub>s \<dagger> \<^bold>\<langle>\<rho>\<^bold>\<rangle> = \<^bold>\<langle>\<rho> \<circ> \<sigma>\<^bold>\<rangle>"
 
 interpretation des_prog_var: utp_prog_var "TYPE(DES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
   apply (unfold_locales, simp_all add: des_pvar_def des_assigns_def des_hcond_def)
   apply (simp add: assigns_d_def rdesign_is_H1_H2)
   apply (simp add: assigns_d_comp_ext)
-  apply (rel_tac)
 done
 
 locale utp_local_var = utp_prog_var \<T> V + utp_theory_left_unital \<T> for \<T> :: "('\<T> \<times> '\<alpha>) itself" (structure) and V :: "'\<beta>::vst itself" +
