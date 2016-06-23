@@ -296,7 +296,7 @@ translations
   "\<Union>\<^sub>v A"     == "CONST vuop (CONST upfun' CONST Union) A"
   "\<Inter>\<^sub>v A"     == "CONST vuop (CONST upfun' CONST Inter) A"
   "x \<in>\<^sub>v A" == "CONST vbop (CONST bpfun' (op \<in>)) x A"
-  "x \<notin>\<^sub>v A" == "CONST vbop (CONST bpfun' (op \<notin>)) x A"
+  "x \<notin>\<^sub>v A" => "\<not>\<^sub>v (x \<in>\<^sub>v A)"
   "A \<subset>\<^sub>v B" == "CONST vbop (CONST bpfun' (op \<subset>)) A B"
   "A \<subseteq>\<^sub>v B" == "CONST vbop (CONST bpfun' (op \<subseteq>)) A B"
   "(x, y)\<^sub>v" == "CONST vbop (CONST bpfun' CONST Pair) x y"
@@ -310,6 +310,8 @@ translations
   "_vmap_enum (_vmaplets (_vmaplet k v) m)" == "CONST vtop (CONST tpfun' CONST map_upd) (_vmap_enum m) k v"
   "_vdot e k" => "CONST vuop (CONST upfun' k) e"
   "\<lbrace>\<mapsto>\<rbrace>\<^sub>v"     <=   "CONST vlit CONST Map.empty"
+
+term "x \<notin>\<^sub>v A" 
 
 abbreviation "vforallSet A P \<equiv> vforall UNIV (\<lambda> x. \<guillemotleft>x\<guillemotright>\<^sub>v \<in>\<^sub>v A \<Rightarrow>\<^sub>v P x)"
 abbreviation "vexistsSet A P \<equiv> vexists UNIV (\<lambda> x. \<guillemotleft>x\<guillemotright>\<^sub>v \<in>\<^sub>v A \<Rightarrow>\<^sub>v P x)"

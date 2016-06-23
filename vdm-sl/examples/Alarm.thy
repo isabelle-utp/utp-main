@@ -15,8 +15,8 @@ declare Plant.defs [simp]
 
 abbreviation "mk_Plant \<equiv> vuop (bpfun' Plant.make)"
 
-abbreviation "staff    \<equiv> VAR Plant_staff"
-abbreviation "schedule \<equiv> VAR Plant_schedule"
+definition [upred_defs]: "staff = VAR Plant_staff"
+definition [upred_defs]: "schedule \<equiv> VAR Plant_schedule"
 
 abbreviation 
   "inv_Plant \<equiv> (\<Union>\<^sub>v (rng\<^sub>v(&\<^sub>vschedule)) \<subseteq>\<^sub>v &\<^sub>vstaff \<and>\<^sub>v (\<forall>\<^sub>v exs \<in> rng\<^sub>v(&\<^sub>vschedule) \<bullet> \<guillemotleft>exs\<guillemotright>\<^sub>v <>\<^sub>v {}\<^sub>v))"
