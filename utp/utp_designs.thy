@@ -29,6 +29,10 @@ declare ok_def [upred_defs]
 lemma uvar_ok [simp]: "uvar ok"
   by (unfold_locales, simp_all add: ok_def)
 
+lemma ok_ord [usubst]:
+  "$ok \<prec>\<^sub>v $ok\<acute>"
+  by (simp add: var_name_ord_def)
+
 type_synonym '\<alpha> alphabet_d  = "'\<alpha> alpha_d_scheme alphabet"
 type_synonym ('a, '\<alpha>) uvar_d = "('a, '\<alpha> alphabet_d) uvar"
 type_synonym ('\<alpha>, '\<beta>) relation_d = "('\<alpha> alphabet_d, '\<beta> alphabet_d) relation"

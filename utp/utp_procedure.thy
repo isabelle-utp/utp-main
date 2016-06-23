@@ -1,7 +1,7 @@
 subsection {* Procedures *}
 
 theory utp_procedure
-imports utp_rel utp_dvar utp_designs utp_local
+imports utp_rel utp_dvar utp_local
 begin
 
 type_synonym ('a, '\<alpha>) uproc = "'a \<Rightarrow> '\<alpha> hrelation"
@@ -70,13 +70,12 @@ translations
   "_proc_block T (_parm_list (_res_parm x) ps) P" 
   => "CONST res_parm_comp T <x>\<^sub>d (\<lambda> x. (_proc_block T ps P))"
   (* Parse translations for value-result parameters *)
-(*
   "_proc_block T (_parm (_vres_parm x)) P" => "CONST vres_parm T <x>\<^sub>d (\<lambda> x. P)"
   "_proc_block T (_parm (_vres_parm_ty x a)) P" => "CONST vres_parm T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) P)"
   "_proc_block T (_parm_list (_vres_parm_ty x a) ps) P" 
   => "CONST vres_parm_comp T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) (_proc_block T ps P))"
-  "_proc_block (_parm_list (_res_parm x) ps) P" 
-  => "CONST vres_parm_comp T <x>\<^sub>d (\<lambda> x. (_proc_block T ps P))" *)
+  "_proc_block T (_parm_list (_res_parm x) ps) P" 
+  => "CONST vres_parm_comp T <x>\<^sub>d (\<lambda> x. (_proc_block T ps P))"
   "_dproc_block ps P" => "_proc_block (CONST DAL) ps P"
 
 (*
@@ -84,6 +83,13 @@ context utp_local_var
 begin
 
 declare [[show_types]]
+
+declare [[show_sorts]]
+
+
+term "val_parm (MkDVar ''x'')"
+
+term "val x :: real \<bullet> P"
 
 lemma val_parm_apply [simp]: 
   "val_parm \<T> x P v = (var x \<bullet> (P x)\<lbrakk>\<lceil>v\<rceil>\<^sub></$x\<rbrakk>)"

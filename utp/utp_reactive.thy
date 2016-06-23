@@ -137,6 +137,14 @@ lemma rea_indep_ref [simp]: "\<Sigma>\<^sub>r \<bowtie> ref\<^sub>r" "ref\<^sub>
 lemma rea_lens_indep_ref [simp]: "\<Sigma>\<^sub>R \<bowtie> ref" "ref \<bowtie> \<Sigma>\<^sub>R"
   by (auto intro: lens_indep_left_comp simp add: ref_def \<Sigma>\<^sub>R_def)
 
+lemma rea_var_ords [usubst]:
+  "$tr \<prec>\<^sub>v $tr\<acute>" "$wait \<prec>\<^sub>v $wait\<acute>" "$ref \<prec>\<^sub>v $ref\<acute>" 
+  "$ok \<prec>\<^sub>v $tr" "$ok\<acute> \<prec>\<^sub>v $tr\<acute>" "$ok \<prec>\<^sub>v $tr\<acute>" "$ok\<acute> \<prec>\<^sub>v $tr"
+  "$ok \<prec>\<^sub>v $ref" "$ok\<acute> \<prec>\<^sub>v $ref\<acute>" "$ok \<prec>\<^sub>v $ref\<acute>" "$ok\<acute> \<prec>\<^sub>v $ref"
+  "$ok \<prec>\<^sub>v $wait" "$ok\<acute> \<prec>\<^sub>v $wait\<acute>" "$ok \<prec>\<^sub>v $wait\<acute>" "$ok\<acute> \<prec>\<^sub>v $wait"
+  "$tr \<prec>\<^sub>v $wait" "$tr\<acute> \<prec>\<^sub>v $wait\<acute>" "$tr \<prec>\<^sub>v $wait\<acute>" "$tr\<acute> \<prec>\<^sub>v $wait"
+  by (simp_all add: var_name_ord_def)
+
 instantiation alpha_rp'_ext :: (type, vst) vst
 begin
   definition vstore_lens_alpha_rp'_ext :: "vstore \<Longrightarrow> ('a, 'b) alpha_rp'_scheme"
@@ -145,11 +153,20 @@ instance
   by (intro_classes, simp add: vstore_lens_alpha_rp'_ext_def comp_vwb_lens)
 end
 
-abbreviation wait_f::"('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("_\<^sub>f" [1000] 1000)
+abbreviation wait_f::"('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp"
 where "wait_f R \<equiv> R\<lbrakk>false/$wait\<rbrakk>"
 
-abbreviation wait_t::"('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("_\<^sub>t" [1000] 1000)
+abbreviation wait_t::"('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp"
 where "wait_t R \<equiv> R\<lbrakk>true/$wait\<rbrakk>"
+
+syntax
+  "_wait_f"  :: "logic \<Rightarrow> logic" ("_\<^sub>f" [1000] 1000)
+  "_wait_t"  :: "logic \<Rightarrow> logic" ("_\<^sub>t" [1000] 1000)
+
+translations
+  "P \<^sub>f" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST ivar CONST wait) false) P"
+  "P \<^sub>t" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST ivar CONST wait) true) P"
+
 
 definition lift_rea :: "('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("\<lceil>_\<rceil>\<^sub>R") where
 [upred_defs]: "\<lceil>P\<rceil>\<^sub>R = P \<oplus>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
@@ -440,7 +457,7 @@ lemma R2s_H1_commute:
 
 lemma R2s_H2_commute:
   "R2s(H2(P)) = H2(R2s(P))"
-  by (simp add: H2_split R2s_def usubst, smt out_in_indep out_var_indep tr_ok_indep(1) usubst_upd_comm)
+  by (simp add: H2_split R2s_def usubst)
 
 lemma R2_R1_seq_drop_left:
   "R2(R1(P) ;; R1(Q)) = R2(P ;; R1(Q))"

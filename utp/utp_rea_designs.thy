@@ -11,6 +11,10 @@ lemma wait_false_design:
   "(P \<turnstile> Q) \<^sub>f = ((P \<^sub>f) \<turnstile> (Q \<^sub>f))"
   by (rel_tac)
 
+lemma wait'_cond_subst [usubst]:
+  "$wait\<acute> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P \<diamondop> Q) = (\<sigma> \<dagger> P) \<diamondop> (\<sigma> \<dagger> Q)"
+  by (simp add: wait'_cond_def usubst unrest)
+
 lemma R2s_ok': "R2s($ok\<acute>) = $ok\<acute>"
   by pred_tac
 
@@ -21,10 +25,7 @@ lemma H2_R1_comm: "H2(R1(P)) = R1(H2(P))"
   by (simp add: H2_split R1_def usubst, rel_tac)
 
 lemma H2_R2s_comm: "H2(R2s(P)) = R2s(H2(P))"
-  apply (simp add: H2_split R2s_def usubst)
-  apply (rel_tac)  
-  apply (metis (no_types, lifting) alpha_d.surjective alpha_d.update_convs(1) alpha_d.update_convs(2))+
-done
+  by (simp add: H2_split R2s_def usubst, rel_tac)  
 
 lemma H2_R2_comm: "H2(R2(P)) = R2(H2(P))"
   by (simp add: H2_R1_comm H2_R2s_comm R2_def)
@@ -210,39 +211,27 @@ lemma R1_des_lift_skip: "R1(\<lceil>II\<rceil>\<^sub>D) = \<lceil>II\<rceil>\<^s
 
 lemma R2s_subst_wait_true [usubst]:
   "(R2s(P))\<lbrakk>true/$wait\<rbrakk> = R2s(P\<lbrakk>true/$wait\<rbrakk>)"
-  apply (simp add: R2s_def usubst unrest)
-  apply (metis (no_types, hide_lams) in_out_indep in_var_indep tr_wait_indep(2) usubst_upd_comm)
-done
+  by (simp add: R2s_def usubst unrest)
 
 lemma R2s_subst_wait'_true [usubst]:
   "(R2s(P))\<lbrakk>true/$wait\<acute>\<rbrakk> = R2s(P\<lbrakk>true/$wait\<acute>\<rbrakk>)"
-  apply (simp add: R2s_def usubst unrest)
-  apply (metis (no_types, hide_lams) in_out_indep out_var_indep tr_wait_indep(1) usubst_upd_comm)
-done
+  by (simp add: R2s_def usubst unrest)
 
 lemma R2_subst_wait_true [usubst]:
   "(R2(P))\<lbrakk>true/$wait\<rbrakk> = R2(P\<lbrakk>true/$wait\<rbrakk>)"
-  apply (simp add: R2_def R1_def R2s_def usubst unrest)
-  apply (metis (no_types, hide_lams) in_out_indep in_var_indep tr_wait_indep(2) usubst_upd_comm)
-done
+  by (simp add: R2_def R1_def R2s_def usubst unrest)
 
 lemma R2_subst_wait'_true [usubst]:
   "(R2(P))\<lbrakk>true/$wait\<acute>\<rbrakk> = R2(P\<lbrakk>true/$wait\<acute>\<rbrakk>)"
-  apply (simp add: R2_def R1_def R2s_def usubst unrest)
-  apply (metis (no_types, hide_lams) in_out_indep out_var_indep tr_wait_indep(1) usubst_upd_comm)
-done
+  by (simp add: R2_def R1_def R2s_def usubst unrest)
 
 lemma R2_subst_wait_false [usubst]:
   "(R2(P))\<lbrakk>false/$wait\<rbrakk> = R2(P\<lbrakk>false/$wait\<rbrakk>)"
-  apply (simp add: R2_def R1_def R2s_def usubst unrest)
-  apply (metis (no_types, hide_lams) in_out_indep in_var_indep tr_wait_indep(2) usubst_upd_comm)
-done
+  by (simp add: R2_def R1_def R2s_def usubst unrest)
 
 lemma R2_subst_wait'_false [usubst]:
   "(R2(P))\<lbrakk>false/$wait\<acute>\<rbrakk> = R2(P\<lbrakk>false/$wait\<acute>\<rbrakk>)"
-  apply (simp add: R2_def R1_def R2s_def usubst unrest)
-  apply (metis (no_types, hide_lams) in_out_indep out_var_indep tr_wait_indep(1) usubst_upd_comm)
-done
+  by (simp add: R2_def R1_def R2s_def usubst unrest)
 
 lemma R2_des_lift_skip:
   "R2(\<lceil>II\<rceil>\<^sub>D) = \<lceil>II\<rceil>\<^sub>D"

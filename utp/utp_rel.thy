@@ -588,6 +588,9 @@ lemma bop_convr [simp]: "(bop f u v)\<^sup>- = bop f (u\<^sup>-) (v\<^sup>-)"
 lemma eq_convr [simp]: "(p =\<^sub>u q)\<^sup>- = (p\<^sup>- =\<^sub>u q\<^sup>-)"
   by (pred_tac)
 
+lemma not_convr [simp]: "(\<not> p)\<^sup>- = (\<not> p\<^sup>-)"
+  by (pred_tac)
+
 lemma disj_convr [simp]: "(p \<or> q)\<^sup>- = (q\<^sup>- \<or> p\<^sup>-)"
   by (pred_tac)
 
