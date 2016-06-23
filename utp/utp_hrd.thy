@@ -747,12 +747,14 @@ lemma HR1_H1_HR3_commute: "HR1(H1(HR3(P))) = HR3(HR1(H1(P)))"
 lemma HR3_subst_wait: "HR3(P) = HR3(P\<lbrakk>false/$wait\<rbrakk>)"
   by (metis HR3_def cond_var_subst_right wait_uvar)
 
-lemma HCSP_hybrid_reactive_design:
-  assumes "P is HCSP"
-  shows "P = HR((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
+lemma HR1_H1_HR1: "HR1(H1(HR1(P))) = HR1(H1(P))"
+  by (rel_tac)
+
+lemma HCSP_hybrid_reactive_design_form:
+  "HCSP(P) = HR((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
 proof -
-  have "P = HCSP1(H2(HR1(HR2s(HR3(P)))))"
-    by (metis HCSP_def HR_def Healthy_def assms)
+  have "HCSP(P) = HCSP1(H2(HR1(HR2s(HR3(P)))))"
+    by (metis HCSP_def HR_def assms)
   also have "... = HCSP1(HR1(H2(HR2s(HR3(P)))))"
     by (simp add: HR1_H2_commute)
   also have "... = HR1(H1(HR1(H2(HR2s(HR3(P))))))"
@@ -767,10 +769,10 @@ proof -
     by (simp add: HR1_HR2_commute HR1_HR2s)
   also have "... = HR2(HR3(HR1(H1(H2(HR1(P))))))"
     by (simp add: HR1_H1_HR3_commute)
-  also have "... = HR(H1_H2(HR1(P)))"
-    by (simp add: HR1_HR2_commute HR1_HR2s HR1_HR3_commute HR_def)
+  also have "... = HR2(HR3(HR1(H1(H2(P)))))"
+    by (simp add: HCSP1_HR1_H1 HR1_H2_commute HR1_idem)
   also have "... = HR(H1_H2(P))"
-    by (metis HR1_idem HR_def calculation)
+    by (simp add: HR1_HR2_commute HR1_HR2s HR1_HR3_commute HR_def)
   also have "... = HR((\<not> P\<^sup>f) \<turnstile> P\<^sup>t)"
   proof -
     have 0:"(\<not> (H1_H2(P))\<^sup>f) = ($ok \<and> \<not> P\<^sup>f)"
@@ -786,6 +788,11 @@ proof -
     by (metis HR3_subst_wait HR_def subst_not wait_false_design)
   finally show ?thesis .
 qed
+
+lemma HCSP_hybrid_reactive_design:
+  assumes "P is HCSP"
+  shows "P = HR((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
+  by (metis HCSP_hybrid_reactive_design_form Healthy_def' assms)
 
 abbreviation "pre\<^sub>H(P) \<equiv> (\<not> (P\<lbrakk>true,false/$ok,$ok\<acute>\<rbrakk>\<lbrakk>false/$wait\<rbrakk>))" 
 abbreviation "peri\<^sub>H(P) \<equiv> (P\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>\<lbrakk>false,true/$wait,$wait\<acute>\<rbrakk>)"
@@ -1328,6 +1335,23 @@ lemma HCSP1_H2_commute: "HCSP1(H2(P)) = H2(HCSP1(P))"
 lemma HCSP_idem: "HCSP(HCSP(P)) = HCSP(P)"
   by (simp add: HCSP_def H2_HR_commute HCSP1_HR_commute HCSP1_H2_commute HR_idem H2_idem HCSP1_idem)
 
+thm H2_design
+
+lemma H1_HR2s_commute: "H1(HR2s(P)) = HR2s(H1(P))"
+  by (simp add: HR2s_def R2s_def TI2_def H1_def usubst)
+
+lemma H1_HR2c_commute: "H1(HR2c(P)) = HR2c(H1(P))"
+  by (simp add: H1_def HR2c_def R2c_def R2s_def TI2_def usubst, rel_tac)
+
+lemma HCSP1_HR_H1: "HCSP1(HR(P)) = HR(H1(P))"
+  apply (simp add: HR_R2c_def HCSP1_HR1_H1[THEN sym] HR2c_HR3_commute HR1_H1_HR3_commute)
+  apply (simp add: H1_HR2c_commute HR1_HR3_commute)
+done
+  
+lemma hybrid_reactive_design_is_HCSP:
+  "\<lbrakk> $ok\<acute> \<sharp> P; $ok\<acute> \<sharp> Q \<rbrakk> \<Longrightarrow> HCSP(HR(P \<turnstile> Q)) = HR(P \<turnstile> Q)"
+  by (simp add: HCSP_def HR_idem H2_HR_commute H2_design HCSP1_HR_H1 H1_design)
+
 lemma HR1_peri_post:
   assumes "P is HR1"
   shows "peri\<^sub>H(P) is HR1" "post\<^sub>H(P) is HR1"
@@ -1380,7 +1404,16 @@ lemma subst_hyb_apply_lift [usubst]:
   "\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> \<lceil>P\<rceil>\<^sub>H = \<lceil>\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P\<rceil>\<^sub>H"
   by (rel_tac)
 
-lemma 
+lemma unrest_wait'_cond [unrest]:
+  "\<lbrakk> x \<sharp> P; x \<sharp> Q; (out_var wait) \<bowtie> x \<rbrakk> \<Longrightarrow> x \<sharp> (P \<diamondop> Q)"
+  by (simp add: wait'_cond_def unrest)
+
+
+lemma assigns_h_HCSP:
+  "\<langle>\<sigma>\<rangle>\<^sub>H is HCSP"
+  by (simp add: Healthy_def' assigns_h_def hybrid_reactive_design_is_HCSP unrest)
+
+lemma assigns_h_merge:
   "(\<langle>\<sigma>\<rangle>\<^sub>H ;; \<langle>\<rho>\<rangle>\<^sub>H) = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>H"
 proof -
   have "(\<langle>\<sigma>\<rangle>\<^sub>H ;; \<langle>\<rho>\<rangle>\<^sub>H) = (\<langle>\<sigma>\<rangle>\<^sub>H ;; HR (true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>\<rho>\<rangle>\<^sub>a\<rceil>\<^sub>H)))"
@@ -1417,7 +1450,6 @@ begin
 end
 
 interpretation hrd_prog_var: utp_prog_var "TYPE(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd)" "TYPE('\<alpha>::vst)"
-  apply (unfold_locales, simp_all add: hrd_pvar_def hrd_assigns_def hrd_hcond_def HCSP_idem)
-  oops
+  by (unfold_locales, simp_all add: hrd_pvar_def hrd_assigns_def hrd_hcond_def HCSP_idem assigns_h_HCSP assigns_h_merge)
 
 end
