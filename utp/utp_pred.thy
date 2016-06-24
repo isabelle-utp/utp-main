@@ -632,9 +632,9 @@ lemma upred_eq_false [simp]: "(p =\<^sub>u false) = (\<not> p)"
 
 lemma conj_var_subst: 
   assumes "uvar x"
-  shows "(P \<and> &x =\<^sub>u v) = (P\<lbrakk>v/x\<rbrakk> \<and> &x =\<^sub>u v)"
+  shows "(P \<and> var x =\<^sub>u v) = (P\<lbrakk>v/x\<rbrakk> \<and> var x =\<^sub>u v)"
   using assms
-  by (pred_tac, (metis (no_types, lifting) vwb_lens.put_eq)+)
+  by (pred_tac, (metis (full_types) vwb_lens_def wb_lens.get_put)+)
 
 lemma one_point:
   assumes "semi_uvar x" "x \<sharp> v"

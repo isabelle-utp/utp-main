@@ -187,6 +187,9 @@ lemma lift_dist_seq [simp]:
   "\<lceil>P ;; Q\<rceil>\<^sub>D = (\<lceil>P\<rceil>\<^sub>D ;; \<lceil>Q\<rceil>\<^sub>D)"
   by (rel_tac, metis alpha_d.select_convs(2))
 
+lemma lift_des_skip_dr_unit_unrest: "$ok\<acute> \<sharp> P \<Longrightarrow> (P ;; \<lceil>II\<rceil>\<^sub>D) = P"
+  by (rel_tac, metis alpha_d.surjective alpha_d.update_convs(1))
+
 lemma true_is_design:
   "(false \<turnstile> true) = true"
   by rel_tac

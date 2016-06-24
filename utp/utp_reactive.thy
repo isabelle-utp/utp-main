@@ -264,6 +264,15 @@ lemma R1_ok_false: "(R1(P))\<lbrakk>false/$ok\<rbrakk> = R1(P\<lbrakk>false/$ok\
 lemma seqr_R1_true_right: "((P ;; R1(true)) \<or> P) = (P ;; ($tr \<le>\<^sub>u $tr\<acute>))"
   by rel_tac
 
+lemma R1_extend_conj_unrest: "\<lbrakk> $tr \<sharp> Q; $tr\<acute> \<sharp> Q \<rbrakk> \<Longrightarrow> R1(P \<and> Q) = (R1(P) \<and> Q)"
+  by pred_tac
+
+lemma R1_extend_conj_unrest': "\<lbrakk> $tr \<sharp> P; $tr\<acute> \<sharp> P \<rbrakk> \<Longrightarrow> R1(P \<and> Q) = (P \<and> R1(Q))"
+  by pred_tac
+
+lemma R1_tr'_eq_tr: "R1($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u $tr)"
+  by (rel_tac)
+
 lemma R1_H2_commute: "R1(H2(P)) = H2(R1(P))"
   by (simp add: H2_split R1_def usubst, rel_tac)
 
@@ -271,7 +280,8 @@ subsection {* R2 *}
 
 definition R2a_def [upred_defs]: "R2a (P) = (\<Sqinter> s \<bullet> P\<lbrakk>\<guillemotleft>s\<guillemotright>,\<guillemotleft>s\<guillemotright>^\<^sub>u($tr\<acute>-$tr)/$tr,$tr\<acute>\<rbrakk>)"
 definition R2s_def [upred_defs]: "R2s (P) = (P\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>($tr\<acute>-$tr)/$tr\<acute>\<rbrakk>)"
-definition R2_def [upred_defs]: "R2(P) = R1(R2s(P))"
+definition R2_def  [upred_defs]: "R2(P) = R1(R2s(P))"
+definition R2c_def [upred_defs]: "R2c(P) = (R2s(P) \<triangleleft> R1(true) \<triangleright> P)"
 
 lemma R2a_R2s: "R2a(R2s(P)) = R2s(P)"
   by rel_tac
@@ -315,6 +325,12 @@ lemma R2_condr: "R2(P \<triangleleft> b \<triangleright> Q) = (R2(P) \<trianglel
 lemma R2_condr': "R2(P \<triangleleft> b \<triangleright> Q) = (R2(P) \<triangleleft> R2s(b) \<triangleright> R2(Q))"
   by rel_tac
 
+lemma R2s_ok: "R2s($ok) = $ok"
+  by rel_tac
+
+lemma R2s_ok': "R2s($ok\<acute>) = $ok\<acute>"
+  by rel_tac
+
 lemma R2s_wait: "R2s($wait) = $wait"
   by rel_tac
 
@@ -336,31 +352,26 @@ lemma true_is_R2s:
 lemma R2s_lift_rea: "R2s(\<lceil>P\<rceil>\<^sub>R) = \<lceil>P\<rceil>\<^sub>R"
   by (simp add: R2s_def usubst unrest)
 
-lemma R2_skip_rea: "R2(II\<^sub>r) = II\<^sub>r" 
-proof (rel_tac)
-  fix a :: "('a, 'b) alpha_rp'_scheme alpha_d_ext" and b :: "('a, 'b) alpha_rp'_scheme alpha_d_ext"
-  assume a1: "\<not> b = a"
-  assume a2: "rp_tr (alpha_d.more a) \<le> rp_tr (alpha_d.more b)"
-  assume a3: "b\<lparr>alpha_d.more := alpha_d.more b \<lparr>rp_tr := rp_tr (alpha_d.more b) - rp_tr (alpha_d.more a)\<rparr>\<rparr> = a\<lparr>alpha_d.more := alpha_d.more a\<lparr>rp_tr := []\<rparr>\<rparr>"
-  assume a4: "des_ok a"
-  obtain aas :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-    "\<forall>x0 x1. (\<exists>v2. x0 = x1 @ v2) = (x0 = x1 @ aas x0 x1)"
-    by moura
-  then have f5: "\<forall>as asa. \<not> as \<le> asa \<or> asa = as @ aas asa as"
-    by (meson strict_prefixE)
-  then have f6: "b = \<lparr>des_ok = des_ok b, \<dots> = rp_tr_update (op @ (rp_tr (alpha_d.more a))) \<lparr>rp_wait = rp_wait (alpha_d.more b), rp_tr = aas (rp_tr (alpha_d.more b)) (rp_tr (alpha_d.more a)), rp_ref = rp_ref (alpha_d.more b), \<dots> = alpha_rp'.more (alpha_d.more b)\<rparr>\<rparr>"
-    using a2 by (metis (full_types) alpha_d.surjective alpha_rp'.surjective alpha_rp'.update_convs(2))
-  have "\<lparr>des_ok = True, rp_wait = rp_wait (alpha_d.more a), rp_tr = rp_tr (alpha_d.more a), rp_ref = rp_ref (alpha_d.more a), \<dots> = alpha_rp'.more (alpha_d.more a)\<rparr> = \<lparr>des_ok = des_ok a, \<dots> = alpha_d.more a\<rparr>"
-    by (simp add: a4)
-  then have "\<lparr>des_ok = True, \<dots> = alpha_d.more a\<lparr>rp_tr := []\<rparr>\<rparr> = \<lparr>des_ok = des_ok b, rp_wait = rp_wait (alpha_d.more b), rp_tr = aas (rp_tr (alpha_d.more b)) (rp_tr (alpha_d.more a)), rp_ref = rp_ref (alpha_d.more b), \<dots> = alpha_rp'.more (alpha_d.more b)\<rparr>"
-    using f5 a3 a2 by (metis (no_types) alpha_d.surjective alpha_d.update_convs(2) alpha_rp'.surjective alpha_rp'.update_convs(2) append_minus)
-  then have "b = \<lparr>des_ok = True, \<dots> = rp_tr_update (op @ (rp_tr (alpha_d.more a))) (alpha_d.more a\<lparr>rp_tr := []\<rparr>)\<rparr>"
-    using f6 by simp
-  then have "b = \<lparr>des_ok = des_ok a, \<dots> = alpha_d.more a\<rparr>"
-    using a4 by (simp add: alpha_rp'.surjective)
-  then show False
-    using a1 by (metis (no_types) alpha_d.surjective)
+lemma R2s_skip_r: "R2s(II) = II"
+proof -
+  have "R2s(II) = R2s($tr\<acute> =\<^sub>u $tr \<and> II\<restriction>\<^sub>\<alpha>tr)"
+    by (subst skip_r_unfold[of tr], simp_all)
+  also have "... = (R2s($tr\<acute> =\<^sub>u $tr) \<and> II\<restriction>\<^sub>\<alpha>tr)"
+    by (simp add: R2s_def usubst unrest)
+  also have "... = ($tr\<acute> =\<^sub>u $tr \<and> II\<restriction>\<^sub>\<alpha>tr)"
+    by (simp add: R2s_tr'_eq_tr)
+  finally show ?thesis
+    by (subst skip_r_unfold[of tr], simp_all)
 qed
+
+lemma R2_skip: "R2(II) = II"
+  by (simp add: R1_skip R2_def R2s_skip_r)
+
+lemma R2_skip_rea: "R2(II\<^sub>r) = II\<^sub>r" 
+  apply (simp add: skip_rea_def R2_disj R2_skip)
+  apply (simp add: R2_def R2s_conj R2s_not R2s_ok R1_extend_conj')
+  apply (rel_tac)
+done
 
 lemma R2_tr_prefix: "R2($tr \<le>\<^sub>u $tr\<acute>) = ($tr \<le>\<^sub>u $tr\<acute>)"
   by (pred_tac)
@@ -462,6 +473,52 @@ lemma R2s_H2_commute:
 lemma R2_R1_seq_drop_left:
   "R2(R1(P) ;; R1(Q)) = R2(P ;; R1(Q))"
   by rel_tac
+
+lemma R2c_and: "R2c(P \<and> Q) = (R2c(P) \<and> R2c(Q))"
+  by (rel_tac)
+
+lemma R2c_disj: "R2c(P \<or> Q) = (R2c(P) \<or> R2c(Q))"
+  by (rel_tac)
+
+lemma R2c_not: "R2c(\<not> P) = (\<not> R2c(P))"
+  by (rel_tac)
+
+lemma R2c_ok: "R2c($ok) = ($ok)"
+  by (rel_tac)
+
+lemma R2c_wait: "R2c($wait) = $wait"
+  by (rel_tac)
+
+lemma R2c_idem: "R2c(R2c(P)) = R2c(P)"
+  by (rel_tac)
+
+lemma R1_R2c_commute: "R1(R2c(P)) = R2c(R1(P))"
+  by (rel_tac)
+
+lemma R1_R2c_is_R2: "R1(R2c(P)) = R2(P)"
+  by (rel_tac)
+  
+lemma R2c_seq: "R2c(R2(P) ;; R2(Q)) = (R2(P) ;; R2(Q))"
+  by (metis R1_R2c_commute R1_R2c_is_R2 R2_seqr_distribute R2c_idem)
+
+lemma R2c_tr'_minus_tr: "R2c($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u $tr)"
+  apply (rel_tac) using list_minus_anhil by blast
+
+lemma R2c_condr: "R2c(P \<triangleleft> b \<triangleright> Q) = (R2c(P) \<triangleleft> R2c(b) \<triangleright> R2c(Q))"
+  by (rel_tac)
+
+lemma R2c_skip_r: "R2c(II) = II"
+proof -
+  have "R2c(II) = R2c($tr\<acute> =\<^sub>u $tr \<and> II\<restriction>\<^sub>\<alpha>tr)"
+    by (subst skip_r_unfold[of tr], simp_all)
+  also have "... = (R2c($tr\<acute> =\<^sub>u $tr) \<and> II\<restriction>\<^sub>\<alpha>tr)"
+    by (simp add: R2c_def R2s_def usubst unrest, 
+        metis LNil_def cond_idem eq_upred_sym tr'_minus_tr_prefix)
+  also have "... = ($tr\<acute> =\<^sub>u $tr \<and> II\<restriction>\<^sub>\<alpha>tr)"
+    by (simp add: R2c_tr'_minus_tr)
+  finally show ?thesis
+    by (subst skip_r_unfold[of tr], simp_all)
+qed
 
 subsection {* R3 *}
 
@@ -571,5 +628,11 @@ proof (rule RH_intro)
   show "(P ;; Q) is R3c"
     by (metis Healthy_def' R2_R3c_commute R2_def R3c_idem R3c_seq_closure RH_alt_def RH_def assms(1) assms(2))
 qed
+
+lemma RH_R2c_def: "RH(P) = R3c(R1(R2c(P)))"
+  by (simp add: R1_R2c_is_R2 R2_R3c_commute RH_alt_def')
+
+lemma RH_absorbs_R2c: "RH(R2c(P)) = RH(P)"
+  by (metis R1_R2_commute R1_R2c_is_R2 R1_R3c_commute R2_R3c_commute R2_idem RH_alt_def RH_alt_def')
 
 end

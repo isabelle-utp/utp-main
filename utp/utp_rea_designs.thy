@@ -15,11 +15,17 @@ lemma wait'_cond_subst [usubst]:
   "$wait\<acute> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P \<diamondop> Q) = (\<sigma> \<dagger> P) \<diamondop> (\<sigma> \<dagger> Q)"
   by (simp add: wait'_cond_def usubst unrest)
 
-lemma R2s_ok': "R2s($ok\<acute>) = $ok\<acute>"
-  by pred_tac
+lemma wait'_cond_left_false: "false \<diamondop> P = (\<not> $wait\<acute> \<and> P)"
+  by (rel_tac)
 
-lemma R2s_nok: "R2s(\<not> $ok) = (\<not> $ok)"
-  by (pred_tac)
+lemma wait'_cond_seq: "((P \<diamondop> Q) ;; R) = ((P ;; $wait \<and> R) \<or> (Q ;; \<not>$wait \<and> R))"
+  by (simp add: wait'_cond_def cond_def seqr_or_distl, rel_tac)
+
+lemma subst_wait'_cond_true [usubst]: "(P \<diamondop> Q)\<lbrakk>true/$wait\<acute>\<rbrakk> = P\<lbrakk>true/$wait\<acute>\<rbrakk>"
+  by rel_tac
+
+lemma subst_wait'_cond_false [usubst]: "(P \<diamondop> Q)\<lbrakk>false/$wait\<acute>\<rbrakk> = Q\<lbrakk>false/$wait\<acute>\<rbrakk>"
+  by rel_tac  
 
 lemma H2_R1_comm: "H2(R1(P)) = R1(H2(P))"
   by (simp add: H2_split R1_def usubst, rel_tac)
@@ -174,37 +180,8 @@ proof -
   done
 qed
 
-definition [upred_defs]: "R2c(P) = (R2s(P) \<triangleleft> R1(true) \<triangleright> P)"
-
-lemma R2c_and: "R2c(P \<and> Q) = (R2c(P) \<and> R2c(Q))"
-  by (rel_tac)
-
-lemma R2c_disj: "R2c(P \<or> Q) = (R2c(P) \<or> R2c(Q))"
-  by (rel_tac)
-
-lemma R2c_not: "R2c(\<not> P) = (\<not> R2c(P))"
-  by (rel_tac)
-
 lemma R2c_design: "R2c(P \<turnstile> Q) = R2c(P) \<turnstile> R2c(Q)"
   by (rel_tac)
-
-lemma R2c_idem: "R2c(R2c(P)) = R2c(P)"
-  by (rel_tac)
-
-lemma R1_R2c_commute: "R1(R2c(P)) = R2c(R1(P))"
-  by (rel_tac)
-
-lemma R1_R2c_is_R2: "R1(R2c(P)) = R2(P)"
-  by (rel_tac)
-
-lemma RH_R2c_def: "RH(P) = R3c(R1(R2c(P)))"
-  by (simp add: R1_R2c_is_R2 R2_R3c_commute RH_alt_def')
-
-lemma RH_absorbs_R2c: "RH(R2c(P)) = RH(P)"
-  by (metis R1_R2_commute R1_R2c_is_R2 R1_R3c_commute R2_R3c_commute R2_idem RH_alt_def RH_alt_def')
-  
-lemma R2c_seq: "R2c(R2(P) ;; R2(Q)) = (R2(P) ;; R2(Q))"
-  by (metis R1_R2c_commute R1_R2c_is_R2 R2_seqr_distribute R2c_idem)
 
 lemma R1_des_lift_skip: "R1(\<lceil>II\<rceil>\<^sub>D) = \<lceil>II\<rceil>\<^sub>D"
   by (rel_tac)
@@ -322,7 +299,7 @@ proof -
   also have "... = RH ((R2 \<circ> R1) (p\<^sub>1 \<turnstile> Q\<^sub>1) ;; RH (P\<^sub>2 \<turnstile> Q\<^sub>2))"
     by (metis R1_R2_commute R1_idem R2_R3c_commute R2_def R3c_idem R3c_semir_form RH_def comp_apply)
   also have "... = RH (R1 ((\<not> $ok \<or> R2s (\<not> p\<^sub>1)) \<or> $ok\<acute> \<and> R2s Q\<^sub>1) ;; RH(P\<^sub>2 \<turnstile> Q\<^sub>2))"
-    by (simp add: design_def R2_R1_form impl_alt_def R2s_nok R2s_disj R2s_conj R2s_ok')
+    by (simp add: design_def R2_R1_form impl_alt_def R2s_not R2s_ok R2s_disj R2s_conj R2s_ok')
   also have "... = RH(((\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>) ;; RH(P\<^sub>2 \<turnstile> Q\<^sub>2))
                       \<or> ((\<not> R2s(p\<^sub>1) \<and> $tr \<le>\<^sub>u $tr\<acute>) ;; RH(P\<^sub>2 \<turnstile> Q\<^sub>2))
                       \<or> (($ok\<acute> \<and> R2s(Q\<^sub>1) \<and> $tr \<le>\<^sub>u $tr\<acute>) ;; RH(P\<^sub>2 \<turnstile> Q\<^sub>2)))"

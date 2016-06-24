@@ -150,8 +150,11 @@ lemma subst_del_upd_diff [usubst]:
   "x \<bowtie> y \<Longrightarrow> \<sigma>(y \<mapsto>\<^sub>s v) -\<^sub>s x = (\<sigma> -\<^sub>s x)(y \<mapsto>\<^sub>s v)"
   by (simp add: subst_del_def subst_upd_uvar_def lens_indep_comm)
 
-lemma subst_unrest [usubst] : "x \<sharp> P \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> P = \<sigma> \<dagger> P"
+lemma subst_unrest [usubst]: "x \<sharp> P \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> P = \<sigma> \<dagger> P"
   by (simp add: subst_upd_uvar_def, transfer, auto)
+
+lemma subst_compose_upd [usubst]: "\<lbrakk> uvar x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<circ> \<rho>(x \<mapsto>\<^sub>s v) = (\<sigma> \<circ> \<rho>)(x \<mapsto>\<^sub>s v) "
+  by (simp add: subst_upd_uvar_def, transfer, auto simp add: unrest_usubst_def)
 
 lemma id_subst [usubst]: "id \<dagger> v = v"
   by (transfer, simp)
@@ -182,7 +185,6 @@ lemma usubst_upd_comm_ord [usubst]:
   assumes "x \<bowtie> y" "y \<prec>\<^sub>v x"
   shows "\<sigma>(x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v) = \<sigma>(y \<mapsto>\<^sub>s v, x \<mapsto>\<^sub>s u)"
   by (simp add: assms(1) usubst_upd_comm)
-
 
 text {* We add the symmetric definition of input and output variables to substitution laws
         so that the variables are correctly normalised after substitution. *}

@@ -181,6 +181,10 @@ lemma apply_subst_ext [alpha]:
   "uvar x \<Longrightarrow> (\<sigma> \<dagger> e) \<oplus>\<^sub>p x = (\<sigma> \<oplus>\<^sub>s x) \<dagger> (e \<oplus>\<^sub>p x)"
   by (pred_tac)
 
+lemma aext_upred_eq [alpha]:
+  "((e =\<^sub>u f) \<oplus>\<^sub>p a) = ((e \<oplus>\<^sub>p a) =\<^sub>u (f \<oplus>\<^sub>p a))"
+  by (pred_tac)
+
 subsection {* Substitution alphabet restriction *}
 
 definition subst_res :: "'\<alpha> usubst \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> usubst" (infix "\<restriction>\<^sub>s" 65) where
@@ -198,5 +202,8 @@ lemma subst_ext_res [alpha,usubst]:
   "uvar x \<Longrightarrow> (\<sigma> \<oplus>\<^sub>s x) \<restriction>\<^sub>s x = \<sigma>"
   by (pred_tac)
 
+lemma unrest_subst_alpha_ext [unrest]:
+  "x \<bowtie> y \<Longrightarrow> x \<sharp> (P \<oplus>\<^sub>s y)"
+  by (pred_tac, auto simp add: unrest_usubst_def, metis lens_indep_def)
 
 end

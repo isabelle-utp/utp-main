@@ -251,6 +251,15 @@ lemma subst_lift_upd [usubst]:
 lemma subst_lift_pre [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> \<lceil>b\<rceil>\<^sub>< = \<lceil>\<sigma> \<dagger> b\<rceil>\<^sub><"
   by (metis apply_subst_ext fst_lens_def fst_vwb_lens in\<alpha>_def)
 
+lemma unrest_usubst_lift_in [unrest]:
+  "x \<sharp> P \<Longrightarrow> $x \<sharp> \<lceil>P\<rceil>\<^sub>s"
+  by (pred_tac, auto simp add: unrest_usubst_def in\<alpha>_def)
+
+lemma unrest_usubst_lift_out [unrest]:
+  fixes x :: "('a, '\<alpha>) uvar"
+  shows "$x\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>s"
+  by (pred_tac, auto simp add: unrest_usubst_def in\<alpha>_def)
+
 subsection {* Relation laws *}
 
 text {* Homogeneous relations form a quantale *}
@@ -529,6 +538,12 @@ lemma seqr_right_one_point:
   shows "(P ;; ($x =\<^sub>u \<guillemotleft>v\<guillemotright>) \<and> Q) = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
   using assms
   by (rel_tac, metis vwb_lens_wb wb_lens.get_put)
+
+lemma seqr_insert_ident:
+  assumes "uvar x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
+  shows "(($x\<acute> =\<^sub>u $x \<and> P) ;; Q) = (P ;; Q)"
+  using assms
+  by (rel_tac, meson vwb_lens_wb wb_lens_weak weak_lens.put_get)
 
 lemma seq_var_ident_lift:
   assumes "uvar x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
@@ -851,6 +866,10 @@ subsection {* Alphabet laws *}
 lemma aext_cond [alpha]: 
   "(P \<triangleleft> b \<triangleright> Q) \<oplus>\<^sub>p a = ((P \<oplus>\<^sub>p a) \<triangleleft> (b \<oplus>\<^sub>p a) \<triangleright> (Q \<oplus>\<^sub>p a))"
   by rel_tac
+
+lemma aext_seq [alpha]:
+  "wb_lens a \<Longrightarrow> ((P ;; Q) \<oplus>\<^sub>p (a \<times>\<^sub>L a)) = ((P \<oplus>\<^sub>p (a \<times>\<^sub>L a)) ;; (Q \<oplus>\<^sub>p (a \<times>\<^sub>L a)))"
+  by (rel_tac, metis wb_lens_weak weak_lens.put_get)
 
 subsection {* Relation algebra laws *}
 
