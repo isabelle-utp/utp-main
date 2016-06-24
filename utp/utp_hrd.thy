@@ -309,6 +309,9 @@ lemma TI2_HR3_commute:
 lemma HR1_idem: "HR1(HR1(P)) = HR1(P)"
   by (rel_tac)
 
+lemma HR1_mono: "P \<sqsubseteq> Q \<Longrightarrow> HR1(P) \<sqsubseteq> HR1(Q)"
+  by (rel_tac)
+
 lemma HR1_disj: "HR1(P \<or> Q) = (HR1(P) \<or> HR1(Q))"
   by (rel_tac)
 
@@ -317,6 +320,12 @@ lemma HR1_extend_conj: "HR1(P \<and> Q) = (HR1(P) \<and> Q)"
 
 lemma HR1_extend_conj': "HR1(P \<and> Q) = (P \<and> HR1(Q))"
   by (rel_tac)
+
+lemma HR1_not_HR1: "HR1(\<not> HR1(P)) = HR1(\<not> P)"
+  by (rel_tac)
+
+lemma HR1_true_comp: "(HR1(true) ;; HR1(true)) = HR1(true)"
+  by (rel_tac, metis alpha_d.select_convs(2) alpha_rp'.select_convs(2) alpha_rp'.select_convs(4) eq_iff htime.select_convs(1))
 
 lemma HR1_HR3_commute: "HR1(HR3(P)) = HR3(HR1(P))"
   by (rel_tac)
@@ -358,25 +367,12 @@ lemma HCSP1_idem: "HCSP1(HCSP1(P)) = HCSP1(P)"
 lemma HCSP1_hskip: "HCSP1(II\<^sub>H) = II\<^sub>H"
   by (rel_tac)
 
-
 lemma HR1_H2_commute: "HR1(H2(P)) = H2(HR1(P))"
   by (simp add: HR1_def R1_H2_commute TI1_H2_commute)
 
 lemma HCSP1_HR1_H1: 
   "HR1(H1(P)) = HCSP1(HR1(P))"
   by rel_tac
-
-definition assigns_h :: "'\<alpha> usubst \<Rightarrow> ('t::linordered_ring, '\<theta>, '\<alpha>) hhrd" ("\<langle>_\<rangle>\<^sub>H") where
-"assigns_h \<sigma> = HR(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>H))"
-
-definition
-  "Wait n = HR(true \<turnstile> ((($ref\<acute> =\<^sub>u $ref \<and> $tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> TI1(\<L> <\<^sub>u \<lceil>\<lceil>\<bar>n\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)) \<diamondop> 
-                        ($ref\<acute> =\<^sub>u $ref \<and> $tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> TI1(\<L> =\<^sub>u \<lceil>\<lceil>\<bar>n\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)))))"
-
-definition "hlift(s) = HR(true \<turnstile> false \<diamondop> ($ref\<acute> =\<^sub>u $ref \<and> $tr\<acute> =\<^sub>u $tr \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>s\<rangle>\<^sub>a\<rceil>\<^sub>H))"
-
-fun time_trel :: "_ \<times> _ \<Rightarrow> _ \<Rightarrow> _ \<times> _ \<Rightarrow> bool" (infix "\<leadsto>[_]\<^sub>h" 85) where
-"(\<sigma>, P) \<leadsto>[t]\<^sub>h (\<rho>, Q) \<longleftrightarrow> (hlift(\<sigma>) ;; P) \<sqsubseteq> (Wait t ;; hlift(\<rho>) ;; Q)"
 
 lemma HR1_HR3_design:
   "HR1(HR3(P \<turnstile> Q)) = HR1(R3c_pre(P) \<turnstile> R3c_post(Q))"
@@ -551,6 +547,9 @@ lemma HR2_HR1_true: "HR2(HR1(true)) = HR1(true)"
 
 lemma HR1_HR2s: "HR1(HR2s(P)) = HR1(HR2(P))"
   by (simp add: HR1_def HR2_alt_def R1_idem)
+
+lemma HR2c_false: "HR2c(false) = false"
+  by (rel_tac)
 
 lemma HR2c_true: "HR2c(true) = true"
   by (rel_tac)
@@ -751,9 +750,9 @@ lemma HCSP_hybrid_reactive_design:
   shows "P = HR((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
   by (metis HCSP_hybrid_reactive_design_form Healthy_def' assms)
 
-abbreviation "pre\<^sub>H(P) \<equiv> (\<not> (P\<lbrakk>true,false/$ok,$ok\<acute>\<rbrakk>\<lbrakk>false/$wait\<rbrakk>))" 
-abbreviation "peri\<^sub>H(P) \<equiv> (P\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>\<lbrakk>false,true/$wait,$wait\<acute>\<rbrakk>)"
-abbreviation "post\<^sub>H(P) \<equiv> (P\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>\<lbrakk>false,false/$wait,$wait\<acute>\<rbrakk>)"
+definition [upred_defs]: "pre\<^sub>H(P)  = (\<not> (P\<lbrakk>true,false/$ok,$ok\<acute>\<rbrakk>\<lbrakk>false/$wait\<rbrakk>))" 
+definition [upred_defs]: "peri\<^sub>H(P) = (P\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>\<lbrakk>false,true/$wait,$wait\<acute>\<rbrakk>)"
+definition [upred_defs]: "post\<^sub>H(P) = (P\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>\<lbrakk>false,false/$wait,$wait\<acute>\<rbrakk>)"
 
 lemma cond_var_split:
   "uvar x \<Longrightarrow> (P\<lbrakk>true/x\<rbrakk> \<triangleleft> utp_expr.var x \<triangleright> P\<lbrakk>false/x\<rbrakk>) = P"
@@ -787,7 +786,7 @@ lemma HCSP_hybrid_reactive_tri_design':
   apply (subst HCSP_hybrid_reactive_tri_design[OF assms])
   apply (simp add: usubst)
   apply (subst design_subst_ok_ok')
-  apply (simp add: usubst unrest)
+  apply (simp add: pre\<^sub>H_def peri\<^sub>H_def post\<^sub>H_def usubst unrest)
 done
 
 (* TODO: Do this proof properly *)
@@ -907,6 +906,334 @@ lemma hy_lift_unrest [unrest]: "$\<Sigma>\<^sub>H\<acute> \<sharp> \<lceil>\<lce
 lemma skip_h_lift_def:
   "\<lceil>II\<rceil>\<^sub>H = ($\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H)"
   by (rel_tac)
+
+
+lemma HR2c_ok: "HR2c($ok) = $ok"
+  by (simp add: HR2c_def TI2_ok R2c_ok)
+
+lemma HR2c_wait: "HR2c($wait) = $wait"
+  by (simp add: HR2c_def TI2_wait R2c_wait)
+
+lemma HR2c_cond: "HR2c(P \<triangleleft> b \<triangleright> Q) = (HR2c(P) \<triangleleft> HR2c(b) \<triangleright> HR2c(Q))"
+  by (simp add: HR2c_def TI2_cond R2c_condr)
+
+lemma HR1_HR2c_frame:
+  "HR1 (HR2c ($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>P\<rceil>\<^sub>H)) =
+       ($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>P\<rceil>\<^sub>H)"
+    apply (simp add: HR2c_def R2c_def R2s_def TI2_def usubst unrest HR1_def TI1_def R1_def)
+    apply (rel_tac)
+    using list_minus_anhil apply blast
+done
+
+lemma assigns_lift_hy_unfold:
+  "($time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>H) =  \<lceil>\<langle>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>h\<rangle>\<^sub>a\<rceil>\<^sub>R"
+  by (rel_tac)
+
+lemma assigns_lift_rea_unfold:
+  "($wait\<acute> =\<^sub>u $wait \<and> $tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>R) = \<lceil>\<langle>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>r\<rangle>\<^sub>a\<rceil>\<^sub>D"
+  by (rel_tac)
+
+lemma assigns_lift_des_unfold:
+  "($ok\<acute> =\<^sub>u $ok \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>D) = \<langle>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D\<rangle>\<^sub>a"
+  by (rel_tac)
+
+lemma assigns_hy_comp_lemma: 
+  assumes "$ok \<sharp> P" "$wait \<sharp> P"
+  shows "(($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>H) ;; P)
+         = (\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> P)"
+proof -
+  have "(($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>H) ;; P) = 
+        (($ok\<acute> =\<^sub>u $ok \<and> $wait\<acute> =\<^sub>u $wait \<and> $tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>H) ;; P)"
+    by (simp add: seqr_insert_ident unrest assms)
+  also have "... = (\<langle>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rangle>\<^sub>a ;; P)"
+    by (simp add: assigns_lift_hy_unfold assigns_lift_rea_unfold assigns_lift_des_unfold, rel_tac)
+  also have "... = (\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> P)"
+    by (simp add: assigns_r_comp)
+  finally show ?thesis .
+qed
+
+lemma hrd_HR1_neg_precond: "HR((\<not> HR1(\<not> P)) \<turnstile> Q) = HR(P \<turnstile> Q)"
+  by (rel_tac)
+
+lemma HR2c_unrest [unrest]:
+  assumes "uvar x" "x \<sharp> P" "x \<bowtie> in_var tr" "x \<bowtie> out_var tr" "x \<bowtie> in_var time" "x \<bowtie> out_var time"
+  shows "x \<sharp> HR2c(P)"
+  using assms by (simp add: HR2c_def R2c_def TI2_def R2s_def R1_def unrest usubst lens_indep_sym)
+
+lemma HR1_HCSP1_commute: "HR1(HCSP1(P)) = HCSP1(HR1(P))"
+  by (rel_tac)
+
+lemma HR2c_HCSP1_commute: "HR2c(HCSP1(P)) = HCSP1(HR2c(P))"
+  by (rel_tac)
+
+lemma HR2c_H2_commute:"HR2c(H2(P)) = H2(HR2c(P))"
+  by (simp add: H2_split HR2c_def usubst R2c_def TI2_def R2s_def R1_def, rel_tac)
+
+lemma R2c_TI2_commute: "R2c(TI2(P)) = TI2(R2c(P))"
+  by (simp add: R2c_def TI2_def R2s_def R1_def usubst)
+
+lemma HR2c_idem: "HR2c(HR2c(P)) = HR2c(P)"
+  by (simp add: HR2c_def R2c_TI2_commute R2c_idem TI2_idem)
+
+lemma HR2c_mono: "P \<sqsubseteq> Q \<Longrightarrow> HR2c(P) \<sqsubseteq> HR2c(Q)"
+  by (rel_tac)
+
+lemma HR1_HR2c_commute: "HR1(HR2c(P)) = HR2c(HR1(P))"
+  by (metis HR1_HR2_commute HR1_HR2s HR1_HR2s_HR2c HR2c_HR1)
+
+lemma HR2c_HR3_commute: "HR2c(HR3(P)) = HR3(HR2c(P))"
+  by (simp add: HR2c_def HR3_def usubst TI2_cond R2c_condr TI2_skip_ti R2c_hskip TI2_wait R2c_wait)
+
+lemma HR1_HR: "HR1(HR(P)) = HR(P)"
+  by (simp add: HR_def HR1_idem)
+
+lemma HR1_HCSP: "HR1(HCSP(P)) = HCSP(P)"
+  by (simp add: HCSP_def HR1_HCSP1_commute HR1_H2_commute HR1_HR)
+
+lemma HR2c_HR: "HR2c(HR(P)) = HR(P)"
+  by (simp add: HR_HR2c_def HR2c_HR3_commute HR1_HR2c_commute HR2c_idem)
+
+lemma HR2c_HCSP: "HR2c(HCSP(P)) = HCSP(P)"
+  by (simp add: HCSP_def HR2c_HCSP1_commute HR2c_H2_commute HR2c_HR)
+
+lemma list_ge_nil [simp]: "(x \<ge>\<^sub>u \<langle>\<rangle>) = true"
+  by (pred_tac)
+
+lemma HR2c_subst: 
+  "\<lbrakk> $time \<sharp> \<sigma>; $time\<acute> \<sharp> \<sigma>; $tr \<sharp> \<sigma>; $tr\<acute> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> HR2c(\<sigma> \<dagger> P) = (\<sigma> \<dagger> (HR2c P))"
+  by (simp add: HR2c_def TI2_def R2c_def R2s_def R1_def usubst unrest)
+
+lemma HR2c_pre: "HR2c(pre\<^sub>H(HR2c(P))) = pre\<^sub>H(HR2c(P))"
+  by (simp add: HR2c_not HR2c_subst HR2c_idem pre\<^sub>H_def unrest)
+
+lemma HR2c_peri: "HR2c(peri\<^sub>H(HR2c(P))) = peri\<^sub>H(HR2c(P))"
+  by (simp add: HR2c_subst HR2c_idem peri\<^sub>H_def unrest)
+
+lemma HR2c_post: "HR2c(post\<^sub>H(HR2c(P))) = post\<^sub>H(HR2c(P))"
+  by (simp add: HR2c_subst HR2c_idem post\<^sub>H_def unrest)
+
+lemma HR1_peri: "HR1(peri\<^sub>H(HR1(P))) = peri\<^sub>H(HR1(P))"
+  by (rel_tac)
+  
+lemma HR1_post: "HR1(post\<^sub>H(HR1(P))) = post\<^sub>H(HR1(P))"
+  by (rel_tac)
+
+lemma HCSP_is_HR1:
+  assumes "P is HCSP" 
+  shows "P is HR1"
+proof -
+  from assms have "P = HCSP(P)"
+    by (simp add: Healthy_def')
+  moreover have "... = HR1(HCSP(P))"
+    by (simp add: HR1_HCSP)
+  ultimately show ?thesis
+    by (simp add: Healthy_def')
+qed
+
+lemma HCSP_is_HR2c:
+  assumes "P is HCSP" 
+  shows "P is HR2c"
+proof -
+  from assms have "P = HCSP(P)"
+    by (simp add: Healthy_def')
+  moreover have "... = HR2c(HCSP(P))"
+    by (simp add: HR2c_HCSP)
+  ultimately show ?thesis
+    by (simp add: Healthy_def')
+qed
+
+lemma HR3_idem: "HR3(HR3(P)) = HR3(P)"
+  by (rel_tac)
+
+lemma HR3_mono: "P \<sqsubseteq> Q \<Longrightarrow> HR3(P) \<sqsubseteq> HR3(Q)"
+  by (rel_tac)
+
+lemma HR_idem: "HR(HR(P)) = HR(P)"
+  by (simp add: HR_R2c_def HR1_HR2c_commute HR1_HR3_commute HR1_idem HR2c_HR3_commute HR2c_idem HR3_idem)
+
+lemma HR_mono: "P \<sqsubseteq> Q \<Longrightarrow> HR(P) \<sqsubseteq> HR(Q)"
+  by (simp add: HR_R2c_def HR3_mono HR2c_mono HR1_mono)
+
+lemma HCSP1_HR1_commute: "HCSP1(HR1(P)) = HR1(HCSP1(P))"
+  by (rel_tac)
+
+lemma HCSP1_HR2c_commute: "HCSP1(HR2c(P)) = HR2c(HCSP1(P))"
+  by (rel_tac)
+
+lemma HCSP1_HR3_commute: "HCSP1(HR3(P)) = HR3(HCSP1(P))"
+  by (rel_tac)
+
+lemma HCSP1_HR_commute: "HCSP1(HR(P)) = HR(HCSP1(P))"
+  by (simp add: HR_R2c_def HCSP1_HR1_commute HCSP1_HR2c_commute HCSP1_HR3_commute)
+
+lemma H2_HR1_commute: "H2(HR1(P)) = HR1(H2(P))"
+  by (rel_tac)
+
+lemma hskip_J: "(II\<^sub>H ;; J) = II\<^sub>H"
+  by (rel_tac, simp add: alpha_d.equality)
+
+lemma H2_HR3_commute: "H2(HR3(P)) = HR3(H2(P))"
+  by (simp add: H2_def HR3_def cond_def seqr_or_distl hskip_J seqr_pre_out unrest)
+  
+lemma H2_HR_commute: "H2(HR(P)) = HR(H2(P))"
+  by (simp add: HR_R2c_def H2_HR1_commute HR2c_H2_commute[THEN sym] H2_HR3_commute)
+
+lemma HCSP1_H2_commute: "HCSP1(H2(P)) = H2(HCSP1(P))"
+  by (rel_tac)
+
+lemma HCSP_idem: "HCSP(HCSP(P)) = HCSP(P)"
+  by (simp add: HCSP_def H2_HR_commute HCSP1_HR_commute HCSP1_H2_commute HR_idem H2_idem HCSP1_idem)
+
+lemma H1_HR2s_commute: "H1(HR2s(P)) = HR2s(H1(P))"
+  by (simp add: HR2s_def R2s_def TI2_def H1_def usubst)
+
+lemma H1_HR2c_commute: "H1(HR2c(P)) = HR2c(H1(P))"
+  by (simp add: H1_def HR2c_def R2c_def R2s_def TI2_def usubst, rel_tac)
+
+lemma HCSP1_HR_H1: "HCSP1(HR(P)) = HR(H1(P))"
+  apply (simp add: HR_R2c_def HCSP1_HR1_H1[THEN sym] HR2c_HR3_commute HR1_H1_HR3_commute)
+  apply (simp add: H1_HR2c_commute HR1_HR3_commute)
+done
+  
+lemma hybrid_reactive_design_is_HCSP:
+  "\<lbrakk> $ok\<acute> \<sharp> P; $ok\<acute> \<sharp> Q \<rbrakk> \<Longrightarrow> HCSP(HR(P \<turnstile> Q)) = HR(P \<turnstile> Q)"
+  by (simp add: HCSP_def HR_idem H2_HR_commute H2_design HCSP1_HR_H1 H1_design)
+
+lemma HR1_peri_post:
+  assumes "P is HR1"
+  shows "peri\<^sub>H(P) is HR1" "post\<^sub>H(P) is HR1"
+  using assms
+  by (metis HR1_peri HR1_post Healthy_def')+
+
+lemma HR2c_pre_peri_post:
+  assumes "P is HR2c"
+  shows "pre\<^sub>H(P) is HR2c" "peri\<^sub>H(P) is HR2c" "post\<^sub>H(P) is HR2c"
+  using assms
+  by (metis HR2c_pre HR2c_peri HR2c_post Healthy_def')+
+
+lemma prog_subst_HR1: 
+  "\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> HR1(P) = HR1(\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> P)"
+  by (simp add: HR_def HR1_def TI1_def R1_def usubst unrest)
+
+lemma prog_subst_H2c [usubst]:
+  "\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> HR2c(P) = HR2c(\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> P)"
+  by (simp add: HR2c_def R2c_def R2s_def R1_def TI2_def usubst unrest)
+
+lemma HR_start_instant:
+  "($ok \<and> \<not> $wait \<and> HR(true \<turnstile> false \<diamondop> Q\<^sub>2)) = ($ok \<and> \<not> $wait \<and> HR(true \<turnstile> false \<diamondop> Q\<^sub>2) \<and> \<not> $wait\<acute>)"
+  by (rel_tac)
+
+lemma nok_HR_design: "(\<not> $ok \<and> HR(P \<turnstile> Q)) = (\<not> $ok \<and> HR(true))"
+  by (rel_tac)
+
+lemma wait_HR3: "($wait \<and> HR3(P)) = ($wait \<and> II\<^sub>H)"
+  by (rel_tac)
+
+lemma wait_HR: "($wait \<and> HR(P)) = ($wait \<and> II\<^sub>H)"
+proof -
+  have "($wait \<and> HR(P)) = HR1($wait \<and> HR2c(HR3(P)))"
+    by (simp add: HR_R2c_def HR1_extend_conj')
+  also have "... = HR1(HR2c($wait \<and> HR3(P)))"
+    by (simp add: HR2c_conj HR2c_wait)
+  also have "... = HR1(HR2c($wait \<and> II\<^sub>H))"
+    by (simp add: wait_HR3)
+  also have "... = HR1($wait \<and> II\<^sub>H)"
+    by (simp add: HR2c_conj HR2c_wait HR2c_hskip)
+  also have "... = ($wait \<and> II\<^sub>H)"
+    by (simp add: HR1_extend_conj' HR1_hskip)
+  finally show ?thesis .
+qed
+
+lemma subst_hyb_apply_lift [usubst]:
+  "\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> \<lceil>P\<rceil>\<^sub>H = \<lceil>\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P\<rceil>\<^sub>H"
+  by (rel_tac)
+
+lemma unrest_wait'_cond [unrest]:
+  "\<lbrakk> x \<sharp> P; x \<sharp> Q; (out_var wait) \<bowtie> x \<rbrakk> \<Longrightarrow> x \<sharp> (P \<diamondop> Q)"
+  by (simp add: wait'_cond_def unrest)
+
+
+definition assigns_h :: "'\<alpha> usubst \<Rightarrow> ('t::linordered_ring, '\<theta>, '\<alpha>) hhrd" ("\<langle>_\<rangle>\<^sub>H") where
+"assigns_h \<sigma> = HR(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>H))"
+
+definition htop :: "('t::linordered_ring, '\<theta>, '\<alpha>) hhrd" ("\<top>\<^sub>H") where
+"htop = HR(true \<turnstile> false \<diamondop> false)"
+
+definition "Chaos = HR(false \<turnstile> true \<diamondop> true)"
+
+lemma htop_greatest:
+  assumes "P is HCSP"
+  shows "P \<sqsubseteq> \<top>\<^sub>H"
+proof -
+  have "P = HR (pre\<^sub>H(P) \<turnstile> peri\<^sub>H(P) \<diamondop> post\<^sub>H(P))"
+    by (metis HCSP_hybrid_reactive_tri_design' assms)
+  also have "... \<sqsubseteq> HR(true \<turnstile> false)"
+    by (rule HR_mono, rel_tac)
+  also have "HR(true \<turnstile> false) = HR(true \<turnstile> false \<diamondop> false)"
+    by (simp add: wait'_cond_def cond_def)
+  finally show ?thesis
+    by (simp add: htop_def)
+qed
+   
+lemma Chaos_least:
+  assumes "P is HCSP"
+  shows "Chaos \<sqsubseteq> P"
+proof -
+  have "Chaos = HR(true)"
+    by (simp add: Chaos_def design_def)   
+  also have "... \<sqsubseteq> HR(pre\<^sub>H(P) \<turnstile> peri\<^sub>H(P) \<diamondop> post\<^sub>H(P))"
+    by (simp add: HR_mono)
+  also have "HR(pre\<^sub>H(P) \<turnstile> peri\<^sub>H(P) \<diamondop> post\<^sub>H(P)) = P"
+    using HCSP_hybrid_reactive_tri_design' assms by fastforce
+  finally show ?thesis .
+qed
+
+lemma htop_left_zero:
+  assumes "P is HCSP"
+  shows "(\<top>\<^sub>H ;; P) = \<top>\<^sub>H"
+proof -
+  have "(\<top>\<^sub>H ;; P) = (HR(true \<turnstile> false \<diamondop> false) ;; HR (pre\<^sub>H(P) \<turnstile> peri\<^sub>H(P) \<diamondop> post\<^sub>H(P)))"
+    by (metis htop_def HCSP_hybrid_reactive_tri_design' assms)
+  also have "... = HR (true \<turnstile> false \<diamondop> false)"
+    by (simp add: HR_design_tri_composition' HR1_false HR2c_false HR2c_true HR1_true_comp  pre\<^sub>H_def post\<^sub>H_def peri\<^sub>H_def unrest usubst)
+  also have "... = \<top>\<^sub>H"
+    by (simp add: htop_def)
+  finally show ?thesis .
+qed
+
+lemma Chaos_left_zero:
+  assumes "P is HCSP"
+  shows "(Chaos ;; P) = Chaos"
+proof -
+  have "(Chaos ;; P) = (HR(false \<turnstile> true \<diamondop> true) ;; HR (pre\<^sub>H(P) \<turnstile> peri\<^sub>H(P) \<diamondop> post\<^sub>H(P)))"
+    by (metis Chaos_def HCSP_hybrid_reactive_tri_design' assms)
+  also have "... = HR ((\<not> HR1 true \<and> \<not> (HR1 true \<and> \<not> $wait\<acute> ;; HR1 (\<not> HR2c (pre\<^sub>H P)))) \<turnstile>
+                       (HR1 true \<or> (HR1 true ;; HR1 (HR2c (peri\<^sub>H P)))) \<diamondop> (HR1 true ;; HR1 (HR2c (post\<^sub>H P))))"
+    by (simp add: HR_design_tri_composition' HR2c_false HR2c_true HR1_true_comp  pre\<^sub>H_def post\<^sub>H_def peri\<^sub>H_def unrest usubst)
+  also have "... = HR ((\<not> $ok \<or> HR1 true \<or> (HR1 true \<and> \<not> $wait\<acute> ;; HR1 (\<not> HR2c (pre\<^sub>H P)))) \<or>
+                       $ok\<acute> \<and> (HR1 true \<or> (HR1 true ;; HR1 (HR2c (peri\<^sub>H P)))) \<diamondop> (HR1 true ;; HR1 (HR2c (post\<^sub>H P))))"
+    by (simp add: design_def impl_alt_def)
+  also have "... = HR(HR1((\<not> $ok \<or> HR1 true \<or> (HR1 true \<and> \<not> $wait\<acute> ;; HR1 (\<not> HR2c (pre\<^sub>H P)))) \<or>
+                      $ok\<acute> \<and> (HR1 true \<or> (HR1 true ;; HR1 (HR2c (peri\<^sub>H P)))) \<diamondop> (HR1 true ;; HR1 (HR2c (post\<^sub>H P)))))"
+    by (simp add: HR1_HR2_commute HR1_HR2s HR1_HR3_commute HR1_idem HR_def)
+  also have "... = HR(HR1((\<not> $ok \<or> true \<or> (HR1 true \<and> \<not> $wait\<acute> ;; HR1 (\<not> HR2c (pre\<^sub>H P)))) \<or>
+                      $ok\<acute> \<and> (HR1 true \<or> (HR1 true ;; HR1 (HR2c (peri\<^sub>H P)))) \<diamondop> (HR1 true ;; HR1 (HR2c (post\<^sub>H P)))))"
+    by (metis (no_types, hide_lams) HR1_disj HR1_idem)
+  also have "... = HR(true)"
+    by (simp add: HR1_HR2_commute HR1_HR2s HR1_HR3_commute HR1_idem HR_def)
+  also have "... = Chaos"
+    by (simp add: Chaos_def design_def)
+  finally show ?thesis .
+qed
+
+definition
+  "Wait n = HR(true \<turnstile> ((($ref\<acute> =\<^sub>u $ref \<and> $tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> TI1(\<L> <\<^sub>u \<lceil>\<lceil>\<bar>n\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)) \<diamondop> 
+                        ($ref\<acute> =\<^sub>u $ref \<and> $tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> TI1(\<L> =\<^sub>u \<lceil>\<lceil>\<bar>n\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)))))"
+
+definition "hlift(s) = HR(true \<turnstile> false \<diamondop> ($ref\<acute> =\<^sub>u $ref \<and> $tr\<acute> =\<^sub>u $tr \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>s\<rangle>\<^sub>a\<rceil>\<^sub>H))"
+
+fun time_trel :: "_ \<times> _ \<Rightarrow> _ \<Rightarrow> _ \<times> _ \<Rightarrow> bool" (infix "\<leadsto>[_]\<^sub>h" 85) where
+"(\<sigma>, P) \<leadsto>[t]\<^sub>h (\<rho>, Q) \<longleftrightarrow> (\<langle>\<sigma>\<rangle>\<^sub>H ;; P) \<sqsubseteq> (Wait t ;; \<langle>\<rho>\<rangle>\<^sub>H ;; Q)"
 
 lemma Wait_pericondition_lemma1:
   "(($\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> TI1($time\<acute> - $time =\<^sub>u \<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)) ;;\<^sub>h 
@@ -1032,52 +1359,10 @@ proof -
   finally show ?thesis .
 qed
 
-lemma HR1_HR2c_frame:
-  "HR1 (HR2c ($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>P\<rceil>\<^sub>H)) =
-       ($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>P\<rceil>\<^sub>H)"
-    apply (simp add: HR2c_def R2c_def R2s_def TI2_def usubst unrest HR1_def TI1_def R1_def)
-    apply (rel_tac)
-    using list_minus_anhil apply blast
-done
 
-lemma assigns_lift_hy_unfold:
-  "($time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>H) =  \<lceil>\<langle>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>h\<rangle>\<^sub>a\<rceil>\<^sub>R"
-  by (rel_tac)
-
-lemma assigns_lift_rea_unfold:
-  "($wait\<acute> =\<^sub>u $wait \<and> $tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>R) = \<lceil>\<langle>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>r\<rangle>\<^sub>a\<rceil>\<^sub>D"
-  by (rel_tac)
-
-lemma assigns_lift_des_unfold:
-  "($ok\<acute> =\<^sub>u $ok \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>D) = \<langle>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D\<rangle>\<^sub>a"
-  by (rel_tac)
-
-lemma assigns_hy_comp_lemma: 
-  assumes "$ok \<sharp> P" "$wait \<sharp> P"
-  shows "(($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>H) ;; P)
-         = (\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> P)"
-proof -
-  have "(($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>H) ;; P) = 
-        (($ok\<acute> =\<^sub>u $ok \<and> $wait\<acute> =\<^sub>u $wait \<and> $tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>H) ;; P)"
-    by (simp add: seqr_insert_ident unrest assms)
-  also have "... = (\<langle>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rangle>\<^sub>a ;; P)"
-    by (simp add: assigns_lift_hy_unfold assigns_lift_rea_unfold assigns_lift_des_unfold, rel_tac)
-  also have "... = (\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> P)"
-    by (simp add: assigns_r_comp)
-  finally show ?thesis .
-qed
-
-lemma hrd_HR1_neg_precond: "HR((\<not> HR1(\<not> P)) \<turnstile> Q) = HR(P \<turnstile> Q)"
-  by (rel_tac)
-
-lemma HR2c_unrest [unrest]:
-  assumes "uvar x" "x \<sharp> P" "x \<bowtie> in_var tr" "x \<bowtie> out_var tr" "x \<bowtie> in_var time" "x \<bowtie> out_var time"
-  shows "x \<sharp> HR2c(P)"
-  using assms by (simp add: HR2c_def R2c_def TI2_def R2s_def R1_def unrest usubst lens_indep_sym)
-
-lemma HR2c_false:
-  "HR2c(false) = false"
-  by (rel_tac)
+lemma assigns_h_HCSP:
+  "\<langle>\<sigma>\<rangle>\<^sub>H is HCSP"
+  by (simp add: Healthy_def' assigns_h_def hybrid_reactive_design_is_HCSP unrest)
 
 lemma assigns_h_comp:
   assumes "$ok \<sharp> P" "$ok \<sharp> Q\<^sub>1" "$ok \<sharp> Q\<^sub>2" "$wait \<sharp> P" "$wait \<sharp> Q\<^sub>1" "$wait \<sharp> Q\<^sub>2"
@@ -1111,196 +1396,6 @@ proof -
   finally show ?thesis .
 qed
 
-lemma HR1_HCSP1_commute: "HR1(HCSP1(P)) = HCSP1(HR1(P))"
-  by (rel_tac)
-
-lemma HR2c_HCSP1_commute: "HR2c(HCSP1(P)) = HCSP1(HR2c(P))"
-  by (rel_tac)
-
-lemma HR2c_H2_commute:"HR2c(H2(P)) = H2(HR2c(P))"
-  by (simp add: H2_split HR2c_def usubst R2c_def TI2_def R2s_def R1_def, rel_tac)
-
-lemma R2c_TI2_commute: "R2c(TI2(P)) = TI2(R2c(P))"
-  by (simp add: R2c_def TI2_def R2s_def R1_def usubst)
-
-lemma HR2c_idem: "HR2c(HR2c(P)) = HR2c(P)"
-  by (simp add: HR2c_def R2c_TI2_commute R2c_idem TI2_idem)
-
-lemma HR1_HR2c_commute: "HR1(HR2c(P)) = HR2c(HR1(P))"
-  by (metis HR1_HR2_commute HR1_HR2s HR1_HR2s_HR2c HR2c_HR1)
-
-lemma HR2c_HR3_commute: "HR2c(HR3(P)) = HR3(HR2c(P))"
-  by (simp add: HR2c_def HR3_def usubst TI2_cond R2c_condr TI2_skip_ti R2c_hskip TI2_wait R2c_wait)
-
-lemma HR1_HR: "HR1(HR(P)) = HR(P)"
-  by (simp add: HR_def HR1_idem)
-
-lemma HR1_HCSP: "HR1(HCSP(P)) = HCSP(P)"
-  by (simp add: HCSP_def HR1_HCSP1_commute HR1_H2_commute HR1_HR)
-
-lemma HR2c_HR: "HR2c(HR(P)) = HR(P)"
-  by (simp add: HR_HR2c_def HR2c_HR3_commute HR1_HR2c_commute HR2c_idem)
-
-lemma HR2c_HCSP: "HR2c(HCSP(P)) = HCSP(P)"
-  by (simp add: HCSP_def HR2c_HCSP1_commute HR2c_H2_commute HR2c_HR)
-
-lemma list_ge_nil [simp]: "(x \<ge>\<^sub>u \<langle>\<rangle>) = true"
-  by (pred_tac)
-
-lemma HR2c_subst: 
-  "\<lbrakk> $time \<sharp> \<sigma>; $time\<acute> \<sharp> \<sigma>; $tr \<sharp> \<sigma>; $tr\<acute> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> HR2c(\<sigma> \<dagger> P) = (\<sigma> \<dagger> (HR2c P))"
-  by (simp add: HR2c_def TI2_def R2c_def R2s_def R1_def usubst unrest)
-
-lemma HR2c_pre: "HR2c(pre\<^sub>H(HR2c(P))) = pre\<^sub>H(HR2c(P))"
-  by (simp add: HR2c_not HR2c_subst HR2c_idem unrest)
-
-lemma HR2c_peri: "HR2c(peri\<^sub>H(HR2c(P))) = peri\<^sub>H(HR2c(P))"
-  by (simp add: HR2c_subst HR2c_idem unrest)
-
-lemma HR2c_post: "HR2c(post\<^sub>H(HR2c(P))) = post\<^sub>H(HR2c(P))"
-  by (simp add: HR2c_subst HR2c_idem unrest)
-
-lemma HR1_peri: "HR1(peri\<^sub>H(HR1(P))) = peri\<^sub>H(HR1(P))"
-  by (rel_tac)
-  
-lemma HR1_post: "HR1(post\<^sub>H(HR1(P))) = post\<^sub>H(HR1(P))"
-  by (rel_tac)
-
-lemma HCSP_is_HR1:
-  assumes "P is HCSP" 
-  shows "P is HR1"
-proof -
-  from assms have "P = HCSP(P)"
-    by (simp add: Healthy_def')
-  moreover have "... = HR1(HCSP(P))"
-    by (simp add: HR1_HCSP)
-  ultimately show ?thesis
-    by (simp add: Healthy_def')
-qed
-
-lemma HCSP_is_HR2c:
-  assumes "P is HCSP" 
-  shows "P is HR2c"
-proof -
-  from assms have "P = HCSP(P)"
-    by (simp add: Healthy_def')
-  moreover have "... = HR2c(HCSP(P))"
-    by (simp add: HR2c_HCSP)
-  ultimately show ?thesis
-    by (simp add: Healthy_def')
-qed
-
-lemma HR3_idem: "HR3(HR3(P)) = HR3(P)"
-  by (rel_tac)
-
-lemma HR_idem: "HR(HR(P)) = HR(P)"
-  by (simp add: HR_R2c_def HR1_HR2c_commute HR1_HR3_commute HR1_idem HR2c_HR3_commute HR2c_idem HR3_idem)
-
-lemma HCSP1_HR1_commute: "HCSP1(HR1(P)) = HR1(HCSP1(P))"
-  by (rel_tac)
-
-lemma HCSP1_HR2c_commute: "HCSP1(HR2c(P)) = HR2c(HCSP1(P))"
-  by (rel_tac)
-
-lemma HCSP1_HR3_commute: "HCSP1(HR3(P)) = HR3(HCSP1(P))"
-  by (rel_tac)
-
-lemma HCSP1_HR_commute: "HCSP1(HR(P)) = HR(HCSP1(P))"
-  by (simp add: HR_R2c_def HCSP1_HR1_commute HCSP1_HR2c_commute HCSP1_HR3_commute)
-
-lemma H2_HR1_commute: "H2(HR1(P)) = HR1(H2(P))"
-  by (rel_tac)
-
-lemma hskip_J: "(II\<^sub>H ;; J) = II\<^sub>H"
-  by (rel_tac, simp add: alpha_d.equality)
-
-lemma H2_HR3_commute: "H2(HR3(P)) = HR3(H2(P))"
-  by (simp add: H2_def HR3_def cond_def seqr_or_distl hskip_J seqr_pre_out unrest)
-  
-lemma H2_HR_commute: "H2(HR(P)) = HR(H2(P))"
-  by (simp add: HR_R2c_def H2_HR1_commute HR2c_H2_commute[THEN sym] H2_HR3_commute)
-
-lemma HCSP1_H2_commute: "HCSP1(H2(P)) = H2(HCSP1(P))"
-  by (rel_tac)
-
-lemma HCSP_idem: "HCSP(HCSP(P)) = HCSP(P)"
-  by (simp add: HCSP_def H2_HR_commute HCSP1_HR_commute HCSP1_H2_commute HR_idem H2_idem HCSP1_idem)
-
-lemma H1_HR2s_commute: "H1(HR2s(P)) = HR2s(H1(P))"
-  by (simp add: HR2s_def R2s_def TI2_def H1_def usubst)
-
-lemma H1_HR2c_commute: "H1(HR2c(P)) = HR2c(H1(P))"
-  by (simp add: H1_def HR2c_def R2c_def R2s_def TI2_def usubst, rel_tac)
-
-lemma HCSP1_HR_H1: "HCSP1(HR(P)) = HR(H1(P))"
-  apply (simp add: HR_R2c_def HCSP1_HR1_H1[THEN sym] HR2c_HR3_commute HR1_H1_HR3_commute)
-  apply (simp add: H1_HR2c_commute HR1_HR3_commute)
-done
-  
-lemma hybrid_reactive_design_is_HCSP:
-  "\<lbrakk> $ok\<acute> \<sharp> P; $ok\<acute> \<sharp> Q \<rbrakk> \<Longrightarrow> HCSP(HR(P \<turnstile> Q)) = HR(P \<turnstile> Q)"
-  by (simp add: HCSP_def HR_idem H2_HR_commute H2_design HCSP1_HR_H1 H1_design)
-
-lemma HR1_peri_post:
-  assumes "P is HR1"
-  shows "peri\<^sub>H(P) is HR1" "post\<^sub>H(P) is HR1"
-  using assms
-  by (metis HR1_peri HR1_post Healthy_def')+
-
-lemma HR2c_pre_peri_post:
-  assumes "P is HR2c"
-  shows "pre\<^sub>H(P) is HR2c" "peri\<^sub>H(P) is HR2c" "post\<^sub>H(P) is HR2c"
-  using assms
-  by (metis HR2c_pre HR2c_peri HR2c_post Healthy_def')+
-
-lemma prog_subst_HR1: 
-  "\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> HR1(P) = HR1(\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> P)"
-  by (simp add: HR_def HR1_def TI1_def R1_def usubst unrest)
-
-lemma prog_subst_H2c [usubst]:
-  "\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> HR2c(P) = HR2c(\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> P)"
-  by (simp add: HR2c_def R2c_def R2s_def R1_def TI2_def usubst unrest)
-
-lemma HR_start_instant:
-  "($ok \<and> \<not> $wait \<and> HR(true \<turnstile> false \<diamondop> Q\<^sub>2)) = ($ok \<and> \<not> $wait \<and> HR(true \<turnstile> false \<diamondop> Q\<^sub>2) \<and> \<not> $wait\<acute>)"
-  by (rel_tac)
-
-lemma nok_HR_design: "(\<not> $ok \<and> HR(P \<turnstile> Q)) = (\<not> $ok \<and> HR(true))"
-  by (rel_tac)
-
-lemma wait_HR3: "($wait \<and> HR3(P)) = ($wait \<and> II\<^sub>H)"
-  by (rel_tac)
-
-lemma HR2c_wait: "HR2c($wait) = $wait"
-  by (rel_tac)
-
-lemma wait_HR: "($wait \<and> HR(P)) = ($wait \<and> II\<^sub>H)"
-proof -
-  have "($wait \<and> HR(P)) = HR1($wait \<and> HR2c(HR3(P)))"
-    by (simp add: HR_R2c_def HR1_extend_conj')
-  also have "... = HR1(HR2c($wait \<and> HR3(P)))"
-    by (simp add: HR2c_conj HR2c_wait)
-  also have "... = HR1(HR2c($wait \<and> II\<^sub>H))"
-    by (simp add: wait_HR3)
-  also have "... = HR1($wait \<and> II\<^sub>H)"
-    by (simp add: HR2c_conj HR2c_wait HR2c_hskip)
-  also have "... = ($wait \<and> II\<^sub>H)"
-    by (simp add: HR1_extend_conj' HR1_hskip)
-  finally show ?thesis .
-qed
-
-lemma subst_hyb_apply_lift [usubst]:
-  "\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> \<lceil>P\<rceil>\<^sub>H = \<lceil>\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P\<rceil>\<^sub>H"
-  by (rel_tac)
-
-lemma unrest_wait'_cond [unrest]:
-  "\<lbrakk> x \<sharp> P; x \<sharp> Q; (out_var wait) \<bowtie> x \<rbrakk> \<Longrightarrow> x \<sharp> (P \<diamondop> Q)"
-  by (simp add: wait'_cond_def unrest)
-
-
-lemma assigns_h_HCSP:
-  "\<langle>\<sigma>\<rangle>\<^sub>H is HCSP"
-  by (simp add: Healthy_def' assigns_h_def hybrid_reactive_design_is_HCSP unrest)
 
 lemma assigns_h_merge:
   "(\<langle>\<sigma>\<rangle>\<^sub>H ;; \<langle>\<rho>\<rangle>\<^sub>H) = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>H"
