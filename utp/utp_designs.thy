@@ -597,7 +597,7 @@ lemma H1_Sup:
   shows "(\<Sqinter> A) is H1"
 proof -
   from assms(2) have "H1 ` A = A"
-    by (auto simp add: Healthy_def)
+    by (auto simp add: Healthy_def rev_image_eqI)
   with H1_USUP[of A id, OF assms(1)] show ?thesis 
     by (simp add: USUP_as_Sup_image Healthy_def)
 qed
@@ -611,7 +611,7 @@ lemma H1_Inf:
   shows "(\<Squnion> A) is H1"
 proof -
   from assms have "H1 ` A = A"
-    by (auto simp add: Healthy_def)
+    by (auto simp add: Healthy_def rev_image_eqI)
   with H1_UINF[of A id] show ?thesis 
     by (simp add: UINF_as_Inf_image Healthy_def)
 qed
@@ -843,7 +843,7 @@ lemma USUP_H1_H2_closed:
   shows "(\<Sqinter> A) is H1_H2"
 proof -
   from assms have A: "A = H1_H2 ` A"
-    by (auto simp add: Healthy_def)
+    by (auto simp add: Healthy_def rev_image_eqI)
   also have "(\<Sqinter> ...) = (\<Sqinter> P \<in> A. H1_H2(P))"
     by auto
   also have "... = (\<Sqinter> P \<in> A \<bullet> H1_H2(P))"
@@ -879,7 +879,7 @@ lemma UINF_H1_H2_closed:
   shows "(\<Squnion> A) is H1_H2"
 proof -
   from assms have A: "A = H1_H2 ` A"
-    by (auto simp add: Healthy_def)
+    by (auto simp add: Healthy_def rev_image_eqI)
   also have "(\<Squnion> ...) = (\<Squnion> P \<in> A. H1_H2(P))"
     by auto
   also have "... = (\<Squnion> P \<in> A \<bullet> H1_H2(P))"

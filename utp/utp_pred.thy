@@ -652,6 +652,17 @@ lemma uvar_obtain_assign:
   using assms
   by (drule_tac uvar_assign_exists[of _ b], auto)
 
+lemma eq_split_subst:
+  assumes "uvar x"
+  shows "(P = Q) \<longleftrightarrow> (\<forall> v. P\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk> = Q\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>)"
+  using assms
+  by (pred_tac, metis uvar_assign_exists)
+
+lemma eq_split_substI:
+  assumes "uvar x" "\<And> v. P\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk> = Q\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>"
+  shows "P = Q"
+  using assms(1) assms(2) eq_split_subst by blast
+
 lemma taut_split_subst:
   assumes "uvar x"
   shows "`P` \<longleftrightarrow> (\<forall> v. `P\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>`)"

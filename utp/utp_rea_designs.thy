@@ -21,6 +21,12 @@ lemma wait'_cond_left_false: "false \<diamondop> P = (\<not> $wait\<acute> \<and
 lemma wait'_cond_seq: "((P \<diamondop> Q) ;; R) = ((P ;; $wait \<and> R) \<or> (Q ;; \<not>$wait \<and> R))"
   by (simp add: wait'_cond_def cond_def seqr_or_distl, rel_tac)
 
+lemma wait'_cond_true: "(P \<diamondop> Q \<and> $wait\<acute>) = (P \<and> $wait\<acute>)" 
+  by (rel_tac)
+
+lemma wait'_cond_false: "(P \<diamondop> Q \<and> (\<not>$wait\<acute>)) = (Q \<and> (\<not>$wait\<acute>))" 
+  by (rel_tac)    
+
 lemma subst_wait'_cond_true [usubst]: "(P \<diamondop> Q)\<lbrakk>true/$wait\<acute>\<rbrakk> = P\<lbrakk>true/$wait\<acute>\<rbrakk>"
   by rel_tac
 

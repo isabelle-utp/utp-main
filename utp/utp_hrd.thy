@@ -7,6 +7,8 @@ imports
   utp_rea_designs
 begin
 
+subsection {* Alphabet and types *}
+
 record 't::linordered_ring htime =
   htime :: 't
 
@@ -86,6 +88,33 @@ abbreviation drop_hrd :: "_ \<Rightarrow> _" ("\<lfloor>_\<rfloor>\<^sub>H") whe
 
 abbreviation "\<L> \<equiv> $time\<acute> - $time"
 
+lemma lift_hrd_unrests [unrest]:
+  "$ok \<sharp> \<lceil>P\<rceil>\<^sub>H" "$ok\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>H" "$wait \<sharp> \<lceil>P\<rceil>\<^sub>H" "$wait\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>H"
+  "$tr \<sharp> \<lceil>P\<rceil>\<^sub>H" "$tr\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>H" "$ref \<sharp> \<lceil>P\<rceil>\<^sub>H" "$ref\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>H"
+  "$time \<sharp> \<lceil>P\<rceil>\<^sub>H" "$time\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>H"
+  by (simp_all add: unrest_aext_indep)
+
+lemma time_ords [usubst]: "$time \<prec>\<^sub>v $time\<acute>"
+  by (simp add: var_name_ord_def)
+
+lemma ok_time_ords [usubst]:
+  "$ok \<prec>\<^sub>v $time" "$ok\<acute> \<prec>\<^sub>v $time" "$ok \<prec>\<^sub>v $time\<acute>" "$ok\<acute> \<prec>\<^sub>v $time\<acute>"
+  by (simp_all add: var_name_ord_def)
+
+lemma time_tr_ords [usubst]:
+  "$time \<prec>\<^sub>v $tr" "$time\<acute> \<prec>\<^sub>v $tr\<acute>" "$time \<prec>\<^sub>v $tr\<acute>" "$time\<acute> \<prec>\<^sub>v $tr"
+  by (simp_all add: var_name_ord_def)
+
+lemma time_wait_ords [usubst]: 
+  "$time \<prec>\<^sub>v $wait" "$time\<acute> \<prec>\<^sub>v $wait\<acute>" "$time \<prec>\<^sub>v $wait\<acute>" "$time\<acute> \<prec>\<^sub>v $wait"
+  by (simp_all add: var_name_ord_def)
+
+lemma time_ref_ords [usubst]: 
+  "$time \<prec>\<^sub>v $ref" "$time\<acute> \<prec>\<^sub>v $ref\<acute>" "$time \<prec>\<^sub>v $ref\<acute>" "$time\<acute> \<prec>\<^sub>v $ref"
+  by (simp_all add: var_name_ord_def)
+
+subsection {* Healthiness conditions *}
+
 definition [upred_defs]: "TI1(P) = (P \<and> $time \<le>\<^sub>u $time\<acute>)"
 
 definition [upred_defs]: "HR1(P) = TI1(R1(P))"
@@ -104,12 +133,14 @@ definition [urel_defs]: "II\<^sub>H = (II \<or> (\<not> $ok \<and> HR1(true)))"
 
 definition [upred_defs]: "HR3(P) = (II\<^sub>H \<triangleleft> $wait \<triangleright> P)" 
 
-lemma lift_hrd_unrests [unrest]:
-  "$ok \<sharp> \<lceil>P\<rceil>\<^sub>H" "$ok\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>H" "$wait \<sharp> \<lceil>P\<rceil>\<^sub>H" "$wait\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>H"
-  "$tr \<sharp> \<lceil>P\<rceil>\<^sub>H" "$tr\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>H" "$ref \<sharp> \<lceil>P\<rceil>\<^sub>H" "$ref\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>H"
-  "$time \<sharp> \<lceil>P\<rceil>\<^sub>H" "$time\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>H"
-  by (simp_all add: unrest_aext_indep)
-  
+definition [upred_defs]: "HR(P) = HR1(HR2s(HR3(P)))"
+
+definition [upred_defs]: "HCSP1(P) = (P \<or> \<not> $ok \<and> HR1(true))"
+
+abbreviation (input) "HCSP2(P) \<equiv> H2(P)"
+
+definition "HCSP(P) = HCSP1(HCSP2(HR(P)))"
+
 lemma TI1_idem: "TI1(TI1(P)) = TI1(P)"
   by rel_tac
 
@@ -149,6 +180,15 @@ lemma TI1_skip_ti:
   "TI1(II\<^sub>H) = II\<^sub>H"
   by rel_tac
 
+lemma TI1_H2_commute: "TI1(H2(P)) = H2(TI1(P))"
+  by (rel_tac)
+
+lemma TI1_unrest [unrest]: "\<lbrakk> x \<sharp> P; in_var time \<bowtie> x; out_var time \<bowtie> x \<rbrakk> \<Longrightarrow> x \<sharp> TI1(P)"
+  by (simp add: TI1_def R1_def unrest)
+
+lemma TI1_time_diff_abs: "TI1($time\<acute> - $time =\<^sub>u \<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H) = ($time\<acute> - $time =\<^sub>u \<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)"
+  by (rel_tac, metis abs_ge_zero less_iff_diff_less_0 not_le)
+
 lemma TI2_idem: "TI2(TI2(P)) = TI2(P)"
   by rel_tac
 
@@ -167,6 +207,10 @@ lemma TI2_disj:
 lemma TI2_cond:
   "TI2(P \<triangleleft> b \<triangleright> Q) = (TI2(P) \<triangleleft> TI2(b) \<triangleright> TI2(Q))"
   by (simp add: cond_def TI2_disj TI2_conj TI2_not)
+
+lemma TI2_ok:
+  "TI2($ok) = $ok"
+  by (rel_tac)
   
 lemma TI2_wait:
   "TI2($wait) = $wait"
@@ -186,19 +230,77 @@ proof -
   finally show ?thesis .
 qed
 
-lemma TI2_not_ok: "TI2(\<not>$ok) = (\<not>$ok)"
+lemma TI2_form:
+  "TI2(P) = (\<^bold>\<exists> t \<bullet> P\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<guillemotright>/$time\<acute>\<rbrakk> \<and> $time\<acute> =\<^sub>u $time + \<guillemotleft>t\<guillemotright>)"
   by (rel_tac)
+
+lemma TI1_TI2_form:
+  "TI1(TI2(P)) = (\<^bold>\<exists> t \<bullet> P\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<guillemotright>/$time\<acute>\<rbrakk> \<and> $time\<acute> =\<^sub>u $time + \<guillemotleft>t\<guillemotright> \<and> \<guillemotleft>t\<guillemotright> \<ge>\<^sub>u 0)"
+  by (rel_tac)
+
+lemma TI2_seqr_form: 
+  shows "(TI2(P) ;; TI2(Q)) = 
+         (\<^bold>\<exists> t\<^sub>1 \<bullet> \<^bold>\<exists> t\<^sub>2 \<bullet> ((P\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>1\<guillemotright>/$time\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>2\<guillemotright>/$time\<acute>\<rbrakk>)) 
+                        \<and> ($time\<acute> =\<^sub>u $time + \<guillemotleft>t\<^sub>1\<guillemotright> + \<guillemotleft>t\<^sub>2\<guillemotright>))"
+proof -
+  have "(TI2(P) ;; TI2(Q)) = (\<^bold>\<exists> t\<^sub>0 \<bullet> (TI2(P))\<lbrakk>\<guillemotleft>t\<^sub>0\<guillemotright>/$time\<acute>\<rbrakk> ;; (TI2(Q))\<lbrakk>\<guillemotleft>t\<^sub>0\<guillemotright>/$time\<rbrakk>)"
+    by (subst seqr_middle[of time], simp_all)
+  also have "... =
+       (\<^bold>\<exists> t\<^sub>0 \<bullet> \<^bold>\<exists> t\<^sub>1 \<bullet> \<^bold>\<exists> t\<^sub>2 \<bullet> ((P\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>1\<guillemotright>/$time\<acute>\<rbrakk> \<and> \<guillemotleft>t\<^sub>0\<guillemotright> =\<^sub>u $time + \<guillemotleft>t\<^sub>1\<guillemotright>) ;; 
+                             (Q\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>2\<guillemotright>/$time\<acute>\<rbrakk> \<and> $time\<acute> =\<^sub>u \<guillemotleft>t\<^sub>0\<guillemotright> + \<guillemotleft>t\<^sub>2\<guillemotright>)))"
+    by (simp add: TI2_form usubst unrest, rel_tac)
+  also have "... =
+       (\<^bold>\<exists> t\<^sub>1 \<bullet> \<^bold>\<exists> t\<^sub>2 \<bullet> \<^bold>\<exists> t\<^sub>0 \<bullet> ((P\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>1\<guillemotright>/$time\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>2\<guillemotright>/$time\<acute>\<rbrakk>)) 
+                             \<and> \<guillemotleft>t\<^sub>0\<guillemotright> =\<^sub>u $time + \<guillemotleft>t\<^sub>1\<guillemotright> \<and> $time\<acute> =\<^sub>u \<guillemotleft>t\<^sub>0\<guillemotright> + \<guillemotleft>t\<^sub>2\<guillemotright>)"
+    by rel_tac
+  also have "... =
+       (\<^bold>\<exists> t\<^sub>1 \<bullet> \<^bold>\<exists> t\<^sub>2 \<bullet> ((P\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>1\<guillemotright>/$time\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>2\<guillemotright>/$time\<acute>\<rbrakk>)) 
+                        \<and> (\<^bold>\<exists> tr\<^sub>0 \<bullet> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $time + \<guillemotleft>t\<^sub>1\<guillemotright> \<and> $time\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>t\<^sub>2\<guillemotright>))"
+    by rel_tac
+  also have "... =
+       (\<^bold>\<exists> t\<^sub>1 \<bullet> \<^bold>\<exists> t\<^sub>2 \<bullet> ((P\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>1\<guillemotright>/$time\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>2\<guillemotright>/$time\<acute>\<rbrakk>)) 
+                        \<and> ($time\<acute> =\<^sub>u $time + \<guillemotleft>t\<^sub>1\<guillemotright> + \<guillemotleft>t\<^sub>2\<guillemotright>))"
+    by rel_tac
+  finally show ?thesis .
+qed
+
+lemma TI1_TI2_seqr_form:
+  "(TI1(TI2(P)) ;; TI1(TI2(Q))) 
+        = (\<^bold>\<exists> t\<^sub>1 \<bullet> \<^bold>\<exists> t\<^sub>2 \<bullet> ((P\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>1\<guillemotright>/$time\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>2\<guillemotright>/$time\<acute>\<rbrakk>)) 
+                       \<and> ($time\<acute> =\<^sub>u $time + \<guillemotleft>t\<^sub>1\<guillemotright> + \<guillemotleft>t\<^sub>2\<guillemotright>) \<and> \<guillemotleft>t\<^sub>1\<guillemotright> \<ge>\<^sub>u 0 \<and> \<guillemotleft>t\<^sub>2\<guillemotright> \<ge>\<^sub>u 0)"
+  apply (simp add: TI1_TI2_commute TI2_seqr_form)
+  apply (simp add: TI1_def usubst)
+  apply (rel_tac)
+done
+ 
+lemma time'_minus_form: "($time\<acute> - $time =\<^sub>u v) = ($time\<acute> =\<^sub>u $time + v)"
+  by (pred_tac, metis add.commute diff_add_cancel)
 
 lemma TI2_HR1_true: "TI2(HR1(true)) = HR1(true)"
   by (rel_tac)
 
 lemma TI2_skip_ti:
   "TI2(II\<^sub>H) = II\<^sub>H"
-  by (simp add: II\<^sub>H_def TI2_conj TI2_disj TI2_skip TI2_not_ok TI2_HR1_true TI1_TI2_commute[THEN sym] usubst)
+  by (simp add: II\<^sub>H_def TI2_conj TI2_disj TI2_skip TI2_not TI2_ok TI2_HR1_true TI1_TI2_commute[THEN sym] usubst)
 
 lemma TI2_R1_commute:
   "TI2(R1(P)) = R1(TI2(P))"
   by rel_tac
+
+lemma TI2_seq:
+  "TI2(TI2(P) ;; TI2(Q)) = (TI2(P) ;; TI2(Q))"
+  apply (simp add: TI2_seqr_form)
+  apply (simp add: TI2_def usubst unrest time'_minus_form add.assoc)
+done
+
+lemma TI2_H2_commute: "TI2(H2(P)) = H2(TI2(P))"
+  by (simp add: H2_split TI2_def usubst unrest)
+
+lemma R2s_TI2_commute: "R2s(TI2(P)) = TI2(R2s(P))"
+  by (simp add: R2s_def TI2_def usubst)
+  
+lemma R2_TI2_commute: "R2(TI2(P)) = TI2(R2(P))"
+  by (simp add: R2_def R2s_TI2_commute TI2_R1_commute)
 
 lemma TI2_HR3_commute:
   "TI2(HR3(P)) = HR3(TI2(P))"
@@ -222,8 +324,6 @@ lemma HR1_HR3_commute: "HR1(HR3(P)) = HR3(HR1(P))"
 lemma HR2s_TI1_commute: "HR2s(TI1(P)) = TI1(HR2s(P))"
   by (rel_tac)
 
-definition [upred_defs]: "HR(P) = HR1(HR2s(HR3(P)))"
-
 lemma HR_R2c_def: "HR(P) = HR1(HR2c(HR3(P)))"
   by (rel_tac)
 
@@ -240,7 +340,7 @@ lemma R2c_hskip:
 
 lemma HR2c_hskip:
   "HR2c(II\<^sub>H) = II\<^sub>H"
-  by (simp add: II\<^sub>H_def HR2c_def TI2_disj TI2_conj TI2_not_ok TI2_HR1_true TI2_skip  
+  by (simp add: II\<^sub>H_def HR2c_def TI2_disj TI2_conj TI2_not TI2_ok TI2_HR1_true TI2_skip  
                 R2c_disj R2c_and R2c_skip_r R2c_HR1_true R2c_not R2c_ok)
 
 lemma HR3_hskip: "HR3(II\<^sub>H) = II\<^sub>H"
@@ -252,20 +352,12 @@ lemma HR_hskip: "HR(II\<^sub>H) = II\<^sub>H"
 lemma H2_hskip: "H2(II\<^sub>H) = II\<^sub>H"
   by (rel_tac, simp add: alpha_d.equality)
 
-definition [upred_defs]: "HCSP1(P) = (P \<or> \<not> $ok \<and> HR1(true))"
-
 lemma HCSP1_idem: "HCSP1(HCSP1(P)) = HCSP1(P)"
   by (rel_tac)
 
 lemma HCSP1_hskip: "HCSP1(II\<^sub>H) = II\<^sub>H"
   by (rel_tac)
 
-abbreviation (input) "HCSP2(P) \<equiv> H2(P)"
-
-definition "HCSP(P) = HCSP1(HCSP2(HR(P)))"
-
-lemma TI1_H2_commute: "TI1(H2(P)) = H2(TI1(P))"
-  by (rel_tac)
 
 lemma HR1_H2_commute: "HR1(H2(P)) = H2(HR1(P))"
   by (simp add: HR1_def R1_H2_commute TI1_H2_commute)
@@ -450,83 +542,6 @@ lemma unrest_ok_HR2s [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> HR
 lemma unrest_ok'_HR2s [unrest]: "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> HR2s(P)"
   by (simp add: HR2s_def R2s_def TI2_def unrest)
 
-lemma TI2_form:
-  "TI2(P) = (\<^bold>\<exists> t \<bullet> P\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<guillemotright>/$time\<acute>\<rbrakk> \<and> $time\<acute> =\<^sub>u $time + \<guillemotleft>t\<guillemotright>)"
-  by (rel_tac)
-
-lemma TI1_TI2_form:
-  "TI1(TI2(P)) = (\<^bold>\<exists> t \<bullet> P\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<guillemotright>/$time\<acute>\<rbrakk> \<and> $time\<acute> =\<^sub>u $time + \<guillemotleft>t\<guillemotright> \<and> \<guillemotleft>t\<guillemotright> \<ge>\<^sub>u 0)"
-  by (rel_tac)
-
-lemma TI2_seqr_form: 
-  shows "(TI2(P) ;; TI2(Q)) = 
-         (\<^bold>\<exists> t\<^sub>1 \<bullet> \<^bold>\<exists> t\<^sub>2 \<bullet> ((P\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>1\<guillemotright>/$time\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>2\<guillemotright>/$time\<acute>\<rbrakk>)) 
-                        \<and> ($time\<acute> =\<^sub>u $time + \<guillemotleft>t\<^sub>1\<guillemotright> + \<guillemotleft>t\<^sub>2\<guillemotright>))"
-proof -
-  have "(TI2(P) ;; TI2(Q)) = (\<^bold>\<exists> t\<^sub>0 \<bullet> (TI2(P))\<lbrakk>\<guillemotleft>t\<^sub>0\<guillemotright>/$time\<acute>\<rbrakk> ;; (TI2(Q))\<lbrakk>\<guillemotleft>t\<^sub>0\<guillemotright>/$time\<rbrakk>)"
-    by (subst seqr_middle[of time], simp_all)
-  also have "... =
-       (\<^bold>\<exists> t\<^sub>0 \<bullet> \<^bold>\<exists> t\<^sub>1 \<bullet> \<^bold>\<exists> t\<^sub>2 \<bullet> ((P\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>1\<guillemotright>/$time\<acute>\<rbrakk> \<and> \<guillemotleft>t\<^sub>0\<guillemotright> =\<^sub>u $time + \<guillemotleft>t\<^sub>1\<guillemotright>) ;; 
-                             (Q\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>2\<guillemotright>/$time\<acute>\<rbrakk> \<and> $time\<acute> =\<^sub>u \<guillemotleft>t\<^sub>0\<guillemotright> + \<guillemotleft>t\<^sub>2\<guillemotright>)))"
-    by (simp add: TI2_form usubst unrest, rel_tac)
-  also have "... =
-       (\<^bold>\<exists> t\<^sub>1 \<bullet> \<^bold>\<exists> t\<^sub>2 \<bullet> \<^bold>\<exists> t\<^sub>0 \<bullet> ((P\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>1\<guillemotright>/$time\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>2\<guillemotright>/$time\<acute>\<rbrakk>)) 
-                             \<and> \<guillemotleft>t\<^sub>0\<guillemotright> =\<^sub>u $time + \<guillemotleft>t\<^sub>1\<guillemotright> \<and> $time\<acute> =\<^sub>u \<guillemotleft>t\<^sub>0\<guillemotright> + \<guillemotleft>t\<^sub>2\<guillemotright>)"
-    by rel_tac
-  also have "... =
-       (\<^bold>\<exists> t\<^sub>1 \<bullet> \<^bold>\<exists> t\<^sub>2 \<bullet> ((P\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>1\<guillemotright>/$time\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>2\<guillemotright>/$time\<acute>\<rbrakk>)) 
-                        \<and> (\<^bold>\<exists> tr\<^sub>0 \<bullet> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $time + \<guillemotleft>t\<^sub>1\<guillemotright> \<and> $time\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>t\<^sub>2\<guillemotright>))"
-    by rel_tac
-  also have "... =
-       (\<^bold>\<exists> t\<^sub>1 \<bullet> \<^bold>\<exists> t\<^sub>2 \<bullet> ((P\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>1\<guillemotright>/$time\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>2\<guillemotright>/$time\<acute>\<rbrakk>)) 
-                        \<and> ($time\<acute> =\<^sub>u $time + \<guillemotleft>t\<^sub>1\<guillemotright> + \<guillemotleft>t\<^sub>2\<guillemotright>))"
-    by rel_tac
-  finally show ?thesis .
-qed
-
-lemma TI1_TI2_seqr_form:
-  "(TI1(TI2(P)) ;; TI1(TI2(Q))) 
-        = (\<^bold>\<exists> t\<^sub>1 \<bullet> \<^bold>\<exists> t\<^sub>2 \<bullet> ((P\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>1\<guillemotright>/$time\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$time\<rbrakk>\<lbrakk>\<guillemotleft>t\<^sub>2\<guillemotright>/$time\<acute>\<rbrakk>)) 
-                       \<and> ($time\<acute> =\<^sub>u $time + \<guillemotleft>t\<^sub>1\<guillemotright> + \<guillemotleft>t\<^sub>2\<guillemotright>) \<and> \<guillemotleft>t\<^sub>1\<guillemotright> \<ge>\<^sub>u 0 \<and> \<guillemotleft>t\<^sub>2\<guillemotright> \<ge>\<^sub>u 0)"
-  apply (simp add: TI1_TI2_commute TI2_seqr_form)
-  apply (simp add: TI1_def usubst)
-  apply (rel_tac)
-done
- 
-lemma time'_minus_form: "($time\<acute> - $time =\<^sub>u v) = ($time\<acute> =\<^sub>u $time + v)"
-  by (pred_tac, metis add.commute diff_add_cancel)
-
-lemma TI2_seq:
-  "TI2(TI2(P) ;; TI2(Q)) = (TI2(P) ;; TI2(Q))"
-  apply (simp add: TI2_seqr_form)
-  apply (simp add: TI2_def usubst unrest time'_minus_form add.assoc)
-done
-
-lemma time_ords [usubst]: "$time \<prec>\<^sub>v $time\<acute>"
-  by (simp add: var_name_ord_def)
-
-lemma ok_time_ords [usubst]:
-  "$ok \<prec>\<^sub>v $time" "$ok\<acute> \<prec>\<^sub>v $time" "$ok \<prec>\<^sub>v $time\<acute>" "$ok\<acute> \<prec>\<^sub>v $time\<acute>"
-  by (simp_all add: var_name_ord_def)
-
-lemma time_tr_ords [usubst]:
-  "$time \<prec>\<^sub>v $tr" "$time\<acute> \<prec>\<^sub>v $tr\<acute>" "$time \<prec>\<^sub>v $tr\<acute>" "$time\<acute> \<prec>\<^sub>v $tr"
-  by (simp_all add: var_name_ord_def)
-
-lemma time_wait_ords [usubst]: 
-  "$time \<prec>\<^sub>v $wait" "$time\<acute> \<prec>\<^sub>v $wait\<acute>" "$time \<prec>\<^sub>v $wait\<acute>" "$time\<acute> \<prec>\<^sub>v $wait"
-  by (simp_all add: var_name_ord_def)
-
-lemma time_ref_ords [usubst]: 
-  "$time \<prec>\<^sub>v $ref" "$time\<acute> \<prec>\<^sub>v $ref\<acute>" "$time \<prec>\<^sub>v $ref\<acute>" "$time\<acute> \<prec>\<^sub>v $ref"
-  by (simp_all add: var_name_ord_def)
-
-lemma R2s_TI2_commute: "R2s(TI2(P)) = TI2(R2s(P))"
-  by (simp add: R2s_def TI2_def usubst)
-  
-lemma R2_TI2_commute: "R2(TI2(P)) = TI2(R2(P))"
-  by (simp add: R2_def R2s_TI2_commute TI2_R1_commute)
-
 lemma HR2_seq:
   "HR2(HR2(P) ;; HR2(Q)) = (HR2(P) ;; HR2(Q))"
   by (metis (no_types, lifting) HR2_def R2_TI2_commute R2_seqr_distribute TI2_seq)
@@ -611,12 +626,6 @@ proof -
     by (metis HR_HR2c_def HR_def)
 qed
 
-lemma wait'_cond_true: "(P \<diamondop> Q \<and> $wait\<acute>) = (P \<and> $wait\<acute>)" 
-  by (rel_tac)
-
-lemma wait'_cond_false: "(P \<diamondop> Q \<and> (\<not>$wait\<acute>)) = (Q \<and> (\<not>$wait\<acute>))" 
-  by (rel_tac)    
-
 lemma HR1_false: "HR1(false) = false"
   by (pred_tac)
 
@@ -670,9 +679,6 @@ lemma HR1_wait'_cond: "HR1(P \<diamondop> Q) = HR1(P) \<diamondop> HR1(Q)"
 lemma HR2s_wait'_cond: "HR2s(P \<diamondop> Q) = HR2s(P) \<diamondop> HR2s(Q)"
   by (simp add: wait'_cond_def HR2s_def R2s_def TI2_def usubst)
 
-lemma TI1_unrest [unrest]: "\<lbrakk> x \<sharp> P; in_var time \<bowtie> x; out_var time \<bowtie> x \<rbrakk> \<Longrightarrow> x \<sharp> TI1(P)"
-  by (simp add: TI1_def R1_def unrest)
-
 lemma HR1_unrest [unrest]: "\<lbrakk> x \<sharp> P; in_var tr \<bowtie> x; out_var tr \<bowtie> x; in_var time \<bowtie> x; out_var time \<bowtie> x \<rbrakk> \<Longrightarrow> x \<sharp> HR1(P)"
   by (simp add: HR1_def TI1_def R1_def unrest)
 
@@ -681,9 +687,6 @@ lemma HR2s_unrest [unrest]: "\<lbrakk> uvar x; x \<sharp> P; in_var tr \<bowtie>
 
 lemma HR2s_H1_commute: "HR2s(H1(P)) = H1(HR2s(P))"
   by (rel_tac)
-
-lemma TI2_H2_commute: "TI2(H2(P)) = H2(TI2(P))"
-  by (simp add: H2_split TI2_def usubst unrest)
 
 lemma HR2s_H2_commute: "HR2s(H2(P)) = H2(HR2s(P))"
   by (simp add: HR2s_def TI2_H2_commute R2s_H2_commute)
@@ -793,7 +796,7 @@ lemma hskip_reactive_design:
   "II\<^sub>H = HR(true \<turnstile> II)"
 proof -
   have 1:"TI2 (true \<turnstile> II) = (true \<turnstile> II)"
-    by (simp add: design_def impl_alt_def TI2_disj TI2_not_ok TI2_conj TI2_skip, rel_tac)
+    by (simp add: design_def impl_alt_def TI2_disj TI2_not TI2_ok TI2_conj TI2_skip, rel_tac)
   have 2:"R2c (true \<turnstile> II) = (true \<turnstile> II)"
     by (rel_tac, smt alpha_d.surjective alpha_d.update_convs(2) alpha_rp'.surjective alpha_rp'.update_convs(2) append_Nil2 prefix_subst1 strict_prefixE)
   have 3: "HR1(II\<^sub>H \<triangleleft> $wait \<triangleright> true \<turnstile> II) = II\<^sub>H"
@@ -904,9 +907,6 @@ lemma hy_lift_unrest [unrest]: "$\<Sigma>\<^sub>H\<acute> \<sharp> \<lceil>\<lce
 lemma skip_h_lift_def:
   "\<lceil>II\<rceil>\<^sub>H = ($\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H)"
   by (rel_tac)
-
-lemma TI1_time_diff_abs: "TI1($time\<acute> - $time =\<^sub>u \<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H) = ($time\<acute> - $time =\<^sub>u \<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)"
-  by (rel_tac, metis abs_ge_zero less_iff_diff_less_0 not_le)
 
 lemma Wait_pericondition_lemma1:
   "(($\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> TI1($time\<acute> - $time =\<^sub>u \<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)) ;;\<^sub>h 
