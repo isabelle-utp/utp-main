@@ -1118,6 +1118,7 @@ interpretation ndes_unital: utp_theory_unital "TYPE(NDES \<times> ('\<alpha> alp
 done
 
 interpretation design_complete_lattice: utp_theory_lattice "TYPE(DES \<times> '\<alpha> alphabet_d)"
+  rewrites "carrier (utp_order DES) = \<lbrakk>H1_H2\<rbrakk>"
   apply (unfold_locales)
   apply (simp_all add: des_hcond_def utp_order_def H1_idem H2_idem)
   apply (rule_tac x="\<Squnion>\<^sub>D A" in exI)
@@ -1134,5 +1135,11 @@ interpretation design_complete_lattice: utp_theory_lattice "TYPE(DES \<times> '\
   apply (metis (no_types) USUP_H1_H2_closed contra_subsetD emptyE mem_Collect_eq)
   apply (meson Ball_Collect Sup_least)
 done
+
+abbreviation design_lfp :: "_ \<Rightarrow> _" ("\<mu>\<^sub>D") where
+"\<mu>\<^sub>D F \<equiv> \<mu>\<^bsub>utp_order DES\<^esub> F"
+
+abbreviation design_gfp :: "_ \<Rightarrow> _" ("\<nu>\<^sub>D") where
+"\<nu>\<^sub>D F \<equiv> \<nu>\<^bsub>utp_order DES\<^esub> F"
 
 end

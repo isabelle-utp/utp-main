@@ -207,6 +207,15 @@ lemma R1_conj: "R1(P \<and> Q) = (R1(P) \<and> R1(Q))"
 lemma R1_disj: "R1(P \<or> Q) = (R1(P) \<or> R1(Q))"
   by pred_tac
 
+lemma R1_USUP:
+  "R1(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> R1(P(i)))"
+  by (rel_tac)
+
+lemma R1_UINF:
+  assumes "A \<noteq> {}"
+  shows "R1(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> R1(P(i)))"
+  using assms by (rel_tac)
+
 lemma R1_extend_conj: "R1(P \<and> Q) = (R1(P) \<and> Q)"
   by pred_tac
 
@@ -309,6 +318,14 @@ lemma R2_conj: "R2(P \<and> Q) = (R2(P) \<and> R2(Q))"
 
 lemma R2s_disj: "R2s(P \<or> Q) = (R2s(P) \<or> R2s(Q))"
   by pred_tac
+
+lemma R2s_USUP:
+  "R2s(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> R2s(P(i)))"
+  by (simp add: R2s_def usubst)
+
+lemma R2s_UINF:
+  "R2s(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> R2s(P(i)))"
+  by (simp add: R2s_def usubst)
 
 lemma R2_disj: "R2(P \<or> Q) = (R2(P) \<or> R2(Q))"
   by (pred_tac)
@@ -537,6 +554,16 @@ lemma R3_conj: "R3(P \<and> Q) = (R3(P) \<and> R3(Q))"
 
 lemma R3_disj: "R3(P \<or> Q) = (R3(P) \<or> R3(Q))"
   by rel_tac
+
+lemma R3_USUP:
+  assumes "A \<noteq> {}"
+  shows "R3(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> R3(P(i)))"
+  using assms by (rel_tac)
+
+lemma R3_UINF:
+  assumes "A \<noteq> {}"
+  shows "R3(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> R3(P(i)))"
+  using assms by (rel_tac)
 
 lemma R3_condr: "R3(P \<triangleleft> b \<triangleright> Q) = (R3(P) \<triangleleft> b \<triangleright> R3(Q))"
   by rel_tac

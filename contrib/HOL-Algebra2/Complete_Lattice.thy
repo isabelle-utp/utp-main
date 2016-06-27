@@ -415,9 +415,25 @@ lemma LFP_unfold:
   "\<lbrakk> Mono f; f \<in> carrier L \<rightarrow> carrier L \<rbrakk> \<Longrightarrow> \<mu> f = f (\<mu> f)"
   using eq_is_equal weak.LFP_weak_unfold by auto
 
+lemma LFP_const:
+  "t \<in> carrier L \<Longrightarrow> \<mu> (\<lambda> x. t) = t"
+  by (simp add: local.le_antisym weak.LFP_greatest weak.LFP_lowerbound)
+
+lemma LFP_id:
+  "\<mu> id = \<bottom>"
+  by (simp add: local.le_antisym weak.LFP_lowerbound weak.bottom_closed weak.bottom_lower)
+
 lemma GFP_unfold:
   "\<lbrakk> Mono f; f \<in> carrier L \<rightarrow> carrier L \<rbrakk> \<Longrightarrow> \<nu> f = f (\<nu> f)"
   using eq_is_equal weak.GFP_weak_unfold by auto
+
+lemma GFP_const:
+  "t \<in> carrier L \<Longrightarrow> \<nu> (\<lambda> x. t) = t"
+  by (simp add: local.le_antisym weak.GFP_least weak.GFP_upperbound)
+
+lemma GFP_id:
+  "\<nu> id = \<top>"
+  using weak.GFP_upperbound by auto
 
 end
 

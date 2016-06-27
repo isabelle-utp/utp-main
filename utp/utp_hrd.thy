@@ -160,6 +160,15 @@ lemma TI1_disj:
   "TI1(P \<or> Q) = (TI1(P) \<or> TI1(Q))"
   by (rel_tac)
 
+lemma TI1_USUP:
+  "TI1(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> TI1(P(i)))"
+  by (rel_tac)
+
+lemma TI1_UINF:
+  assumes "A \<noteq> {}"
+  shows "TI1(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> TI1(P(i)))"
+  using assms by (rel_tac)
+
 lemma TI1_HR1:
   "TI1(HR1(P)) = HR1(P)"
   by (rel_tac)
@@ -207,6 +216,14 @@ lemma TI2_disj:
 lemma TI2_cond:
   "TI2(P \<triangleleft> b \<triangleright> Q) = (TI2(P) \<triangleleft> TI2(b) \<triangleright> TI2(Q))"
   by (simp add: cond_def TI2_disj TI2_conj TI2_not)
+
+lemma TI2_USUP:
+  "TI2(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> TI2(P(i)))"
+  by (simp add: TI2_def usubst)
+
+lemma TI2_UINF:
+  "TI2(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> TI2(P(i)))"
+  by (simp add: TI2_def usubst)
 
 lemma TI2_ok:
   "TI2($ok) = $ok"
@@ -320,6 +337,15 @@ lemma HR1_extend_conj: "HR1(P \<and> Q) = (HR1(P) \<and> Q)"
 
 lemma HR1_extend_conj': "HR1(P \<and> Q) = (P \<and> HR1(Q))"
   by (rel_tac)
+
+lemma HR1_USUP:
+  "HR1(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> HR1(P(i)))"
+  by (simp add: HR1_def TI1_USUP R1_USUP)
+
+lemma HR1_UINF:
+  assumes "A \<noteq> {}"
+  shows "HR1(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> HR1(P(i)))"
+  by (simp add: HR1_def R1_UINF TI1_UINF assms)
 
 lemma HR1_not_HR1: "HR1(\<not> HR1(P)) = HR1(\<not> P)"
   by (rel_tac)
@@ -508,6 +534,14 @@ lemma HR2s_disj: "HR2s(P \<or> Q) = (HR2s(P) \<or> HR2s(Q))"
 
 lemma HR2s_conj: "HR2s(P \<and> Q) = (HR2s(P) \<and> HR2s(Q))"
   by (rel_tac)
+
+lemma HR2s_USUP:
+  "HR2s(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> HR2s(P(i)))"
+  by (simp add: HR2s_def TI2_USUP R2s_USUP)
+
+lemma HR2s_UINF:
+  "HR2s(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> HR2s(P(i)))"
+  by (simp add: HR2s_def TI2_UINF R2s_UINF)
 
 lemma HR2s_not: "HR2s(\<not> P) = (\<not> (HR2s P))"
   by (rel_tac)
@@ -1048,11 +1082,37 @@ lemma HR3_idem: "HR3(HR3(P)) = HR3(P)"
 lemma HR3_mono: "P \<sqsubseteq> Q \<Longrightarrow> HR3(P) \<sqsubseteq> HR3(Q)"
   by (rel_tac)
 
+lemma HR3_disj: "HR3(P \<or> Q) = (HR3(P) \<or> HR3(Q))"
+  by (rel_tac)
+
+lemma HR3_USUP:
+  assumes "A \<noteq> {}"
+  shows "HR3(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> HR3(P(i)))"
+  using assms by (rel_tac)
+
+lemma HR3_UINF:
+  assumes "A \<noteq> {}"
+  shows "HR3(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> HR3(P(i)))"
+  using assms by (rel_tac)
+
 lemma HR_idem: "HR(HR(P)) = HR(P)"
   by (simp add: HR_R2c_def HR1_HR2c_commute HR1_HR3_commute HR1_idem HR2c_HR3_commute HR2c_idem HR3_idem)
 
 lemma HR_mono: "P \<sqsubseteq> Q \<Longrightarrow> HR(P) \<sqsubseteq> HR(Q)"
   by (simp add: HR_R2c_def HR3_mono HR2c_mono HR1_mono)
+
+lemma HR_disj: "HR(P \<or> Q) = (HR(P) \<or> HR(Q))"
+  by (simp add: HR_def HR1_disj HR2s_disj HR3_disj)
+
+lemma HR_USUP:
+  assumes "A \<noteq> {}"
+  shows "HR(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> HR(P(i)))"
+  using assms by (simp add: HR_def HR1_USUP HR2s_USUP HR3_USUP)
+
+lemma HR_UINF:
+  assumes "A \<noteq> {}"
+  shows "HR(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> HR(P(i)))"
+  using assms by (simp add: HR_def HR1_UINF HR2s_UINF HR3_UINF)
 
 lemma HCSP1_HR1_commute: "HCSP1(HR1(P)) = HR1(HCSP1(P))"
   by (rel_tac)
@@ -1160,6 +1220,12 @@ definition htop :: "('t::linordered_ring, '\<theta>, '\<alpha>) hhrd" ("\<top>\<
 
 definition "Chaos = HR(false \<turnstile> true \<diamondop> true)"
 
+definition hrd_sup :: "('t::linordered_ring, '\<theta>, '\<alpha>) hhrd set \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" ("\<Sqinter>\<^sub>H") where
+"\<Sqinter>\<^sub>H A = (if (A = {}) then \<top>\<^sub>H else \<Sqinter> A)"
+
+definition hrd_inf :: "('t::linordered_ring, '\<theta>, '\<alpha>) hhrd set \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" ("\<Squnion>\<^sub>H") where
+"\<Squnion>\<^sub>H A = (if (A = {}) then Chaos else \<Squnion> A)"
+
 definition
   "Wait n = HR(true \<turnstile> ((($ref\<acute> =\<^sub>u $ref \<and> $tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> TI1(\<L> <\<^sub>u \<lceil>\<lceil>\<bar>n\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)) \<diamondop> 
                         ($ref\<acute> =\<^sub>u $ref \<and> $tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> TI1(\<L> =\<^sub>u \<lceil>\<lceil>\<bar>n\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)))))"
@@ -1231,6 +1297,135 @@ proof -
     by (simp add: Chaos_def design_def)
   finally show ?thesis .
 qed
+
+lemma hybrid_design_choice:
+  "(HR(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) \<sqinter> HR(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2)) = HR((P \<and> R) \<turnstile> ((Q\<^sub>1 \<or> S\<^sub>1) \<diamondop> (Q\<^sub>2 \<or> S\<^sub>2)))"
+proof -
+  have "(HR(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) \<sqinter> HR(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2)) = HR((P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) \<sqinter> (R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2))"
+    by (simp add: disj_upred_def[THEN sym] HR_disj[THEN sym])
+  also have "... = HR ((P \<and> R) \<turnstile> (Q\<^sub>1 \<diamondop> Q\<^sub>2 \<or> S\<^sub>1 \<diamondop> S\<^sub>2))"
+    by (simp add: design_choice)
+  also have "... = HR ((P \<and> R) \<turnstile> ((Q\<^sub>1 \<or> S\<^sub>1) \<diamondop> (Q\<^sub>2 \<or> S\<^sub>2)))"
+  proof -
+    have "(Q\<^sub>1 \<diamondop> Q\<^sub>2 \<or> S\<^sub>1 \<diamondop> S\<^sub>2) = ((Q\<^sub>1 \<or> S\<^sub>1) \<diamondop> (Q\<^sub>2 \<or> S\<^sub>2))"
+      by (rel_tac)
+    thus ?thesis by simp
+  qed
+  finally show ?thesis .
+qed
+
+lemma USUP_HCSP_closed:
+  assumes "A \<noteq> {}" "\<forall> P \<in> A. P is HCSP"
+  shows "(\<Sqinter> A) is HCSP"
+proof -
+  from assms have A: "A = HCSP ` A"
+    by (auto simp add: Healthy_def rev_image_eqI)
+  also have "(\<Sqinter> ...) = (\<Sqinter> P \<in> A. HCSP(P))"
+    by auto
+  also have "... = (\<Sqinter> P \<in> A \<bullet> HCSP(P))"
+    by (simp add: USUP_as_Sup_collect)
+  also have "... = (\<Sqinter> P \<in> A \<bullet> HR((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f))"
+    by (simp add: HCSP_hybrid_reactive_design_form)
+  also have "... = HR(\<Sqinter> P \<in> A \<bullet> (\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
+    by (simp add: HR_USUP assms(1))
+  also have "... = HR((\<Squnion> P \<in> A \<bullet> \<not> P\<^sup>f\<^sub>f) \<turnstile> (\<Sqinter> P \<in> A \<bullet> P\<^sup>t\<^sub>f))"
+    by (simp add: design_USUP assms)
+  also have "... = HCSP(...)"
+    by (simp add: hybrid_reactive_design_is_HCSP unrest)
+  finally show ?thesis
+    by (simp add: Healthy_def HCSP_idem)
+qed
+
+lemma UINF_HCSP_closed:
+  assumes "A \<noteq> {}" "\<forall> P \<in> A. P is HCSP"
+  shows "(\<Squnion> A) is HCSP"
+proof -
+  from assms have A: "A = HCSP ` A"
+    by (auto simp add: Healthy_def rev_image_eqI)
+  also have "(\<Squnion> ...) = (\<Squnion> P \<in> A. HCSP(P))"
+    by auto
+  also have "... = (\<Squnion> P \<in> A \<bullet> HCSP(P))"
+    by (simp add: UINF_as_Inf_collect)
+  also have "... = (\<Squnion> P \<in> A \<bullet> HR((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f))"
+    by (simp add: HCSP_hybrid_reactive_design_form)
+  also have "... = HR(\<Squnion> P \<in> A \<bullet> (\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
+    by (simp add: HR_UINF assms(1))
+  also have "... = HR ((\<Sqinter> P \<in> A \<bullet> \<not> P\<^sup>f\<^sub>f) \<turnstile> (\<Squnion> P \<in> A \<bullet> \<not> P\<^sup>f\<^sub>f \<Rightarrow> P\<^sup>t\<^sub>f))"
+    by (simp add: design_UINF)
+  also have "... = HCSP(...)"
+    by (simp add: hybrid_reactive_design_is_HCSP unrest)
+  finally show ?thesis
+    by (simp add: Healthy_def HCSP_idem)
+qed
+
+lemma HCSP_sup_closed:
+  assumes "\<forall> P \<in> A. P is HCSP"
+  shows "(\<Sqinter>\<^sub>H A) is HCSP"
+proof (cases "A = {}")
+  case True
+  moreover have "\<top>\<^sub>H is HCSP"
+    by (simp add: htop_def Healthy_def hybrid_reactive_design_is_HCSP unrest)
+  ultimately show ?thesis
+    by (simp add: hrd_sup_def)
+next
+  case False
+  with USUP_HCSP_closed assms show ?thesis
+    by (auto simp add: hrd_sup_def)
+qed
+
+lemma HCSP_sup_below:
+  assumes "\<forall> Q \<in> A. Q is HCSP" "P \<in> A"
+  shows "\<Sqinter>\<^sub>H A \<sqsubseteq> P"
+  using assms
+  by (auto simp add: hrd_sup_def Sup_upper)
+
+lemma HCSP_sup_upper_bound:
+  assumes "\<forall> Q \<in> A. Q is HCSP" "\<forall> Q \<in> A. P \<sqsubseteq> Q" "P is HCSP"
+  shows "P \<sqsubseteq> \<Sqinter>\<^sub>H A"
+proof (cases "A = {}")
+  case True
+  thus ?thesis
+    by (simp add: hrd_sup_def htop_greatest assms)
+next
+  case False
+  thus ?thesis
+    by (simp add: hrd_sup_def cSup_least assms)
+qed
+
+lemma HCSP_inf_closed:
+  assumes "\<forall> P \<in> A. P is HCSP"
+  shows "(\<Squnion>\<^sub>H A) is HCSP"
+proof (cases "A = {}")
+  case True
+  moreover have "Chaos is HCSP"
+    by (simp add: Chaos_def Healthy_def hybrid_reactive_design_is_HCSP unrest)
+  ultimately show ?thesis
+    by (simp add: hrd_inf_def)
+next
+  case False
+  with UINF_HCSP_closed assms show ?thesis
+    by (auto simp add: hrd_inf_def)
+qed
+
+lemma HCSP_inf_above:
+  assumes "\<forall> Q \<in> A. Q is HCSP" "P \<in> A"
+  shows "P \<sqsubseteq> \<Squnion>\<^sub>H A"
+  using assms
+  by (auto simp add: hrd_inf_def Inf_lower)
+
+lemma HCSP_inf_lower_bound:
+  assumes "\<forall> P \<in> A. P is HCSP" "\<forall> P \<in> A. P \<sqsubseteq> Q" "Q is HCSP"
+  shows "\<Squnion>\<^sub>H A \<sqsubseteq> Q"
+proof (cases "A = {}")
+  case True
+  thus ?thesis
+    by (simp add: hrd_inf_def Chaos_least assms)
+next
+  case False
+  thus ?thesis
+    by (simp add: hrd_inf_def cInf_greatest assms)
+qed
+
 
 lemma Wait_pericondition_lemma1:
   "(($\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> TI1($time\<acute> - $time =\<^sub>u \<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)) ;;\<^sub>h 
@@ -1356,7 +1551,6 @@ proof -
   finally show ?thesis .
 qed
 
-
 lemma assigns_h_HCSP:
   "\<langle>\<sigma>\<rangle>\<^sub>H is HCSP"
   by (simp add: Healthy_def' assigns_h_def hybrid_reactive_design_is_HCSP unrest)
@@ -1414,23 +1608,61 @@ qed
 
 typedef HRD = "UNIV :: unit set" ..
 
+abbreviation "HRD \<equiv> TYPE(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd)"
+
 overloading
-  hrd_hcond == "utp_hcond :: (HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> (('t, '\<theta>, '\<alpha>) alphabet_hrd \<times> ('t, '\<theta>, '\<alpha>) alphabet_hrd) Healthiness_condition"
-  hrd_unit == "utp_unit :: (HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd"
-  hrd_pvar == "pvar :: '\<alpha> \<Longrightarrow> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd"
+  hrd_hcond   == "utp_hcond :: (HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> (('t, '\<theta>, '\<alpha>) alphabet_hrd \<times> ('t, '\<theta>, '\<alpha>) alphabet_hrd) Healthiness_condition"
+  hrd_unit    == "utp_unit :: (HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd"
+  hrd_pvar    == "pvar :: '\<alpha> \<Longrightarrow> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd"
   hrd_assigns == "pvar_assigns :: (HRD \<times> ('t, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd"
 begin
   definition hrd_hcond :: "(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> (('t, '\<theta>, '\<alpha>) alphabet_hrd \<times> ('t, '\<theta>, '\<alpha>) alphabet_hrd) Healthiness_condition" where
-  "hrd_hcond T = HCSP"
+  [upred_defs]: "hrd_hcond T = HCSP"
   definition hrd_unit :: "(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" where
-  "hrd_unit T = II\<^sub>H"
+  [upred_defs]: "hrd_unit T = II\<^sub>H"
   definition hrd_pvar :: "'\<alpha> \<Longrightarrow> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd" where
-  "hrd_pvar = \<Sigma>\<^sub>H"
+  [upred_defs]: "hrd_pvar = \<Sigma>\<^sub>H"
   definition hrd_assigns :: "(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" where
-  "hrd_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>H"
+  [upred_defs]: "hrd_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>H"
 end
 
+interpretation hrd_theory: utp_theory "TYPE(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd)"
+  by (unfold_locales, simp_all add: hrd_hcond_def HCSP_idem)
+
+lemma htop_is_top: "\<top>\<^bsub>utp_order HRD\<^esub> = \<top>\<^sub>H"
+  apply (auto intro!:some_equality simp add: atop_def some_equality greatest_def utp_order_def hrd_hcond_def)
+  apply (metis HCSP_sup_closed emptyE hrd_sup_def)
+  using htop_greatest apply blast
+  apply (metis HCSP_sup_closed dual_order.antisym equals0D hrd_sup_def htop_greatest)
+done
+
+lemma Chaos_is_bot: "\<bottom>\<^bsub>utp_order HRD\<^esub> = Chaos"
+  apply (auto intro!:some_equality simp add: abottom_def some_equality least_def utp_order_def hrd_hcond_def)
+  apply (metis HCSP_inf_closed emptyE hrd_inf_def)
+  using Chaos_least apply blast
+  apply (metis Chaos_least HCSP_inf_closed dual_order.antisym equals0D hrd_inf_def)
+done
+
+interpretation hrd_lattice: utp_theory_lattice "TYPE(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd)"
+  rewrites "carrier (utp_order HRD) = \<lbrakk>HCSP\<rbrakk>"
+  and "\<top>\<^bsub>utp_order HRD\<^esub> = \<top>\<^sub>H"
+  and "\<bottom>\<^bsub>utp_order HRD\<^esub> = Chaos"
+  apply (unfold_locales)
+  apply (simp_all add: htop_is_top Chaos_is_bot)
+  apply (simp_all add: utp_order_def hrd_hcond_def)
+  apply (rename_tac A)
+  apply (rule_tac x="\<Squnion>\<^sub>H A" in exI, auto intro:HCSP_inf_above HCSP_inf_lower_bound HCSP_inf_closed simp add: least_def Upper_def HCSP_inf_above)
+  apply (rename_tac A)
+  apply (rule_tac x="\<Sqinter>\<^sub>H A" in exI, auto intro:HCSP_sup_below HCSP_sup_upper_bound HCSP_sup_closed simp add: greatest_def Lower_def HCSP_inf_above)
+done
+
+abbreviation hrd_lfp :: "_ \<Rightarrow> _" ("\<mu>\<^sub>H") where
+"\<mu>\<^sub>H F \<equiv> \<mu>\<^bsub>utp_order HRD\<^esub> F"
+
+abbreviation hrd_gfp :: "_ \<Rightarrow> _" ("\<nu>\<^sub>H") where
+"\<nu>\<^sub>H F \<equiv> \<nu>\<^bsub>utp_order HRD\<^esub> F"
+
 interpretation hrd_prog_var: utp_prog_var "TYPE(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd)" "TYPE('\<alpha>::vst)"
-  by (unfold_locales, simp_all add: hrd_pvar_def hrd_assigns_def hrd_hcond_def HCSP_idem assigns_h_HCSP assigns_h_merge)
+  by (unfold_locales, simp_all add: hrd_pvar_def hrd_assigns_def hrd_hcond_def assigns_h_HCSP assigns_h_merge)
 
 end
