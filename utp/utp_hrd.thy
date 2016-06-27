@@ -1152,7 +1152,6 @@ lemma unrest_wait'_cond [unrest]:
   "\<lbrakk> x \<sharp> P; x \<sharp> Q; (out_var wait) \<bowtie> x \<rbrakk> \<Longrightarrow> x \<sharp> (P \<diamondop> Q)"
   by (simp add: wait'_cond_def unrest)
 
-
 definition assigns_h :: "'\<alpha> usubst \<Rightarrow> ('t::linordered_ring, '\<theta>, '\<alpha>) hhrd" ("\<langle>_\<rangle>\<^sub>H") where
 "assigns_h \<sigma> = HR(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>H))"
 
@@ -1160,6 +1159,13 @@ definition htop :: "('t::linordered_ring, '\<theta>, '\<alpha>) hhrd" ("\<top>\<
 "htop = HR(true \<turnstile> false \<diamondop> false)"
 
 definition "Chaos = HR(false \<turnstile> true \<diamondop> true)"
+
+definition
+  "Wait n = HR(true \<turnstile> ((($ref\<acute> =\<^sub>u $ref \<and> $tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> TI1(\<L> <\<^sub>u \<lceil>\<lceil>\<bar>n\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)) \<diamondop> 
+                        ($ref\<acute> =\<^sub>u $ref \<and> $tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> TI1(\<L> =\<^sub>u \<lceil>\<lceil>\<bar>n\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)))))"
+
+fun time_trel :: "_ \<times> _ \<Rightarrow> _ \<Rightarrow> _ \<times> _ \<Rightarrow> bool" (infix "\<leadsto>[_]\<^sub>h" 85) where
+"(\<sigma>, P) \<leadsto>[t]\<^sub>h (\<rho>, Q) \<longleftrightarrow> (\<langle>\<sigma>\<rangle>\<^sub>H ;; P) \<sqsubseteq> (Wait t ;; \<langle>\<rho>\<rangle>\<^sub>H ;; Q)"
 
 lemma htop_greatest:
   assumes "P is HCSP"
@@ -1225,15 +1231,6 @@ proof -
     by (simp add: Chaos_def design_def)
   finally show ?thesis .
 qed
-
-definition
-  "Wait n = HR(true \<turnstile> ((($ref\<acute> =\<^sub>u $ref \<and> $tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> TI1(\<L> <\<^sub>u \<lceil>\<lceil>\<bar>n\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)) \<diamondop> 
-                        ($ref\<acute> =\<^sub>u $ref \<and> $tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> TI1(\<L> =\<^sub>u \<lceil>\<lceil>\<bar>n\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)))))"
-
-definition "hlift(s) = HR(true \<turnstile> false \<diamondop> ($ref\<acute> =\<^sub>u $ref \<and> $tr\<acute> =\<^sub>u $tr \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>s\<rangle>\<^sub>a\<rceil>\<^sub>H))"
-
-fun time_trel :: "_ \<times> _ \<Rightarrow> _ \<Rightarrow> _ \<times> _ \<Rightarrow> bool" (infix "\<leadsto>[_]\<^sub>h" 85) where
-"(\<sigma>, P) \<leadsto>[t]\<^sub>h (\<rho>, Q) \<longleftrightarrow> (\<langle>\<sigma>\<rangle>\<^sub>H ;; P) \<sqsubseteq> (Wait t ;; \<langle>\<rho>\<rangle>\<^sub>H ;; Q)"
 
 lemma Wait_pericondition_lemma1:
   "(($\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> TI1($time\<acute> - $time =\<^sub>u \<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)) ;;\<^sub>h 
