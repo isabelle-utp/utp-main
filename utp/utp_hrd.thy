@@ -1158,17 +1158,49 @@ lemma hybrid_reactive_design_is_HCSP:
   "\<lbrakk> $ok\<acute> \<sharp> P; $ok\<acute> \<sharp> Q \<rbrakk> \<Longrightarrow> HCSP(HR(P \<turnstile> Q)) = HR(P \<turnstile> Q)"
   by (simp add: HCSP_def HR_idem H2_HR_commute H2_design HCSP1_HR_H1 H1_design)
 
+lemma HR1_peri: "HR1(peri\<^sub>H(P)) = peri\<^sub>H(HR1(P))"
+  by (rel_tac)
+  
+lemma HR1_post: "HR1(post\<^sub>H(P)) = post\<^sub>H(HR1(P))"
+  by (rel_tac)
+
 lemma HR1_peri_post:
   assumes "P is HR1"
   shows "peri\<^sub>H(P) is HR1" "post\<^sub>H(P) is HR1"
   using assms
   by (metis HR1_peri HR1_post Healthy_def')+
 
+lemma HR2c_pre: "HR2c(pre\<^sub>H(P)) = pre\<^sub>H(HR2c(P))"
+  by (simp add: HR2c_not HR2c_subst HR2c_idem pre\<^sub>H_def unrest)
+
+lemma HR2c_peri: "HR2c(peri\<^sub>H(P)) = peri\<^sub>H(HR2c(P))"
+  by (simp add: HR2c_subst HR2c_idem peri\<^sub>H_def unrest)
+
+lemma HR2c_post: "HR2c(post\<^sub>H(P)) = post\<^sub>H(HR2c(P))"
+  by (simp add: HR2c_subst HR2c_idem post\<^sub>H_def unrest)
+
 lemma HR2c_pre_peri_post:
   assumes "P is HR2c"
   shows "pre\<^sub>H(P) is HR2c" "peri\<^sub>H(P) is HR2c" "post\<^sub>H(P) is HR2c"
   using assms
   by (metis HR2c_pre HR2c_peri HR2c_post Healthy_def')+
+
+lemma pre\<^sub>H_HR3: "pre\<^sub>H(HR3(P)) = pre\<^sub>H(P)"
+  by (simp add: HR3_def pre\<^sub>H_def usubst unrest cond_unit_F)
+
+lemma peri\<^sub>H_HR3: "peri\<^sub>H(HR3(P)) = peri\<^sub>H(P)"
+  by (simp add: HR3_def peri\<^sub>H_def usubst unrest cond_unit_F)
+
+lemma post\<^sub>H_HR3: "post\<^sub>H(HR3(P)) = post\<^sub>H(P)"
+  by (simp add: HR3_def post\<^sub>H_def usubst unrest cond_unit_F)
+  
+lemma prog_subst_HR1: 
+  "\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> HR1(P) = HR1(\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> P)"
+  by (simp add: HR_def HR1_def TI1_def R1_def usubst unrest)
+
+lemma prog_subst_H2c [usubst]:
+  "\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> HR2c(P) = HR2c(\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> P)"
+  by (simp add: HR2c_def R2c_def R2s_def R1_def TI2_def usubst unrest)
 
 lemma npre\<^sub>H_HR:
   "npre\<^sub>H(HR(P)) = HR1(HR2s(npre\<^sub>H(P)))"
@@ -1192,37 +1224,6 @@ lemma post\<^sub>H_hrd:
   apply (simp add: design_def post\<^sub>H_def usubst wait'_cond_def cond_unit_F)
 done
 
-lemma HR2c_pre: "HR2c(pre\<^sub>H(P)) = pre\<^sub>H(HR2c(P))"
-  by (simp add: HR2c_not HR2c_subst HR2c_idem pre\<^sub>H_def unrest)
-
-lemma HR2c_peri: "HR2c(peri\<^sub>H(P)) = peri\<^sub>H(HR2c(P))"
-  by (simp add: HR2c_subst HR2c_idem peri\<^sub>H_def unrest)
-
-lemma HR2c_post: "HR2c(post\<^sub>H(P)) = post\<^sub>H(HR2c(P))"
-  by (simp add: HR2c_subst HR2c_idem post\<^sub>H_def unrest)
-
-lemma HR1_peri: "HR1(peri\<^sub>H(P)) = peri\<^sub>H(HR1(P))"
-  by (rel_tac)
-  
-lemma HR1_post: "HR1(post\<^sub>H(P)) = post\<^sub>H(HR1(P))"
-  by (rel_tac)
-
-lemma pre\<^sub>H_HR3: "pre\<^sub>H(HR3(P)) = pre\<^sub>H(P)"
-  by (simp add: HR3_def pre\<^sub>H_def usubst unrest cond_unit_F)
-
-lemma peri\<^sub>H_HR3: "peri\<^sub>H(HR3(P)) = peri\<^sub>H(P)"
-  by (simp add: HR3_def peri\<^sub>H_def usubst unrest cond_unit_F)
-
-lemma post\<^sub>H_HR3: "post\<^sub>H(HR3(P)) = post\<^sub>H(P)"
-  by (simp add: HR3_def post\<^sub>H_def usubst unrest cond_unit_F)
-  
-lemma prog_subst_HR1: 
-  "\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> HR1(P) = HR1(\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> P)"
-  by (simp add: HR_def HR1_def TI1_def R1_def usubst unrest)
-
-lemma prog_subst_H2c [usubst]:
-  "\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> HR2c(P) = HR2c(\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> P)"
-  by (simp add: HR2c_def R2c_def R2s_def R1_def TI2_def usubst unrest)
 
 lemma HR_start_instant:
   "($ok \<and> \<not> $wait \<and> HR(true \<turnstile> false \<diamondop> Q\<^sub>2)) = ($ok \<and> \<not> $wait \<and> HR(true \<turnstile> false \<diamondop> Q\<^sub>2) \<and> \<not> $wait\<acute>)"
@@ -1333,16 +1334,16 @@ proof -
   have "(Chaos ;; P) = (HR(false \<turnstile> true \<diamondop> true) ;; HR (pre\<^sub>H(P) \<turnstile> peri\<^sub>H(P) \<diamondop> post\<^sub>H(P)))"
     by (metis Chaos_def HCSP_hybrid_reactive_tri_design' assms)
   also have "... = HR ((\<not> HR1 true \<and> \<not> (HR1 true \<and> \<not> $wait\<acute> ;; HR1 (\<not> HR2c (pre\<^sub>H P)))) \<turnstile>
-                       (HR1 true \<or> (HR1 true ;; HR1 (HR2c (peri\<^sub>H P)))) \<diamondop> (HR1 true ;; HR1 (HR2c (post\<^sub>H P))))"
+                       (true \<or> (HR1 true ;; HR1 (HR2c (peri\<^sub>H P)))) \<diamondop> (HR1 true ;; HR1 (HR2c (post\<^sub>H P))))"
     by (simp add: HR_design_tri_composition' HR2c_false HR2c_true HR1_true_comp  pre\<^sub>H_def post\<^sub>H_def peri\<^sub>H_def unrest usubst)
   also have "... = HR ((\<not> $ok \<or> HR1 true \<or> (HR1 true \<and> \<not> $wait\<acute> ;; HR1 (\<not> HR2c (pre\<^sub>H P)))) \<or>
-                       $ok\<acute> \<and> (HR1 true \<or> (HR1 true ;; HR1 (HR2c (peri\<^sub>H P)))) \<diamondop> (HR1 true ;; HR1 (HR2c (post\<^sub>H P))))"
+                       $ok\<acute> \<and> (true \<or> (HR1 true ;; HR1 (HR2c (peri\<^sub>H P)))) \<diamondop> (HR1 true ;; HR1 (HR2c (post\<^sub>H P))))"
     by (simp add: design_def impl_alt_def)
   also have "... = HR(HR1((\<not> $ok \<or> HR1 true \<or> (HR1 true \<and> \<not> $wait\<acute> ;; HR1 (\<not> HR2c (pre\<^sub>H P)))) \<or>
-                      $ok\<acute> \<and> (HR1 true \<or> (HR1 true ;; HR1 (HR2c (peri\<^sub>H P)))) \<diamondop> (HR1 true ;; HR1 (HR2c (post\<^sub>H P)))))"
+                      $ok\<acute> \<and> (true \<or> (HR1 true ;; HR1 (HR2c (peri\<^sub>H P)))) \<diamondop> (HR1 true ;; HR1 (HR2c (post\<^sub>H P)))))"
     by (simp add: HR1_HR2_commute HR1_HR2s HR1_HR3_commute HR1_idem HR_def)
   also have "... = HR(HR1((\<not> $ok \<or> true \<or> (HR1 true \<and> \<not> $wait\<acute> ;; HR1 (\<not> HR2c (pre\<^sub>H P)))) \<or>
-                      $ok\<acute> \<and> (HR1 true \<or> (HR1 true ;; HR1 (HR2c (peri\<^sub>H P)))) \<diamondop> (HR1 true ;; HR1 (HR2c (post\<^sub>H P)))))"
+                      $ok\<acute> \<and> (true \<or> (HR1 true ;; HR1 (HR2c (peri\<^sub>H P)))) \<diamondop> (HR1 true ;; HR1 (HR2c (post\<^sub>H P)))))"
     by (metis (no_types, hide_lams) HR1_disj HR1_idem)
   also have "... = HR(true)"
     by (simp add: HR1_HR2_commute HR1_HR2s HR1_HR3_commute HR1_idem HR_def)
@@ -1726,10 +1727,12 @@ proof -
     using HCSP_hybrid_reactive_tri_design' assms by force
   also have "... = (HR(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H) \<diamondop> false) ;; HR (pre\<^sub>H P \<turnstile> peri\<^sub>H P \<diamondop> post\<^sub>H P))"
     by (simp add: Stop_def)
-  also have "... = HR (true \<turnstile> HR1 (HR2c ($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H)) \<diamondop> false)"
+  also have "... = HR (true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H) \<diamondop> false)"
     by (simp add: HR_design_tri_composition' unrest pre\<^sub>H_def peri\<^sub>H_def post\<^sub>H_def usubst HR2c_true HR1_false HR2c_false)
   also have "... = Stop"
-    apply (simp add: HR2c_conj)
+    by (simp add: Stop_def)
+  finally show ?thesis .
+qed
 
 lemma Guard_false: "false &\<^sub>u P = Stop"
   by (simp add: Guard_def Stop_def alpha cond_unit_F)
@@ -1746,6 +1749,5 @@ proof -
     using HCSP_hybrid_reactive_tri_design' assms by force
   finally show ?thesis .
 qed
-
 
 end
