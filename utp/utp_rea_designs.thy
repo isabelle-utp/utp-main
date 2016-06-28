@@ -33,6 +33,12 @@ lemma subst_wait'_cond_true [usubst]: "(P \<diamondop> Q)\<lbrakk>true/$wait\<ac
 lemma subst_wait'_cond_false [usubst]: "(P \<diamondop> Q)\<lbrakk>false/$wait\<acute>\<rbrakk> = Q\<lbrakk>false/$wait\<acute>\<rbrakk>"
   by rel_tac  
 
+lemma subst_wait'_left_subst: "(P\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> Q) = (P \<diamondop> Q)"
+  by (metis wait'_cond_def cond_def conj_comm conj_eq_out_var_subst upred_eq_true wait_uvar)
+
+lemma subst_wait'_right_subst: "(P \<diamondop> Q\<lbrakk>false/$wait\<acute>\<rbrakk>) = (P \<diamondop> Q)"
+  by (metis cond_def conj_eq_out_var_subst upred_eq_false utp_pred.inf.commute wait'_cond_def wait_uvar)
+
 lemma H2_R1_comm: "H2(R1(P)) = R1(H2(P))"
   by (simp add: H2_split R1_def usubst, rel_tac)
 

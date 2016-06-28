@@ -234,6 +234,10 @@ lemma TI2_wait:
   "TI2($wait) = $wait"
   by (rel_tac)
 
+lemma TI2_wait':
+  "TI2($wait\<acute>) = $wait\<acute>"
+  by (rel_tac)
+
 lemma TI2_skip:
   "TI2(II) = II"
 proof -
@@ -336,6 +340,9 @@ lemma HR1_disj: "HR1(P \<or> Q) = (HR1(P) \<or> HR1(Q))"
 lemma HR1_cond: "HR1(P \<triangleleft> b \<triangleright> Q) = (HR1(P) \<triangleleft> HR1(b) \<triangleright> HR1(Q))"
   by (rel_tac)
 
+lemma HR1_conj: "HR1(P \<and> Q) = (HR1(P) \<and> HR1(Q))"
+  by (rel_tac)
+
 lemma HR1_extend_conj: "HR1(P \<and> Q) = (HR1(P) \<and> Q)"
   by (rel_tac)
 
@@ -387,6 +394,12 @@ lemma HR2c_ok: "HR2c($ok) = $ok"
 
 lemma HR2c_wait: "HR2c($wait) = $wait"
   by (simp add: HR2c_def TI2_wait R2c_wait)
+
+lemma R2c_wait': "R2c($wait\<acute>) = $wait\<acute>"
+  by (rel_tac)
+
+lemma HR2c_wait': "HR2c($wait\<acute>) = $wait\<acute>"
+  by (simp add: HR2c_def TI2_wait' R2c_wait')
 
 lemma HR2c_cond: "HR2c(P \<triangleleft> b \<triangleright> Q) = (HR2c(P) \<triangleleft> HR2c(b) \<triangleright> HR2c(Q))"
   by (simp add: HR2c_def TI2_cond R2c_condr)
@@ -1009,7 +1022,33 @@ qed
 lemma HR_design_wait_false: "HR(P \<^sub>f \<turnstile> Q \<^sub>f) = HR(P \<turnstile> Q)"
   by (metis HR3_subst_wait HR_R2c_def wait_false_design)
 
-declare [[show_sorts]]
+lemma design_okay_true: "(P\<lbrakk>true/$ok\<rbrakk> \<turnstile> Q\<lbrakk>true/$ok\<rbrakk>) = (P \<turnstile> Q)"
+proof -
+  have "(P\<lbrakk>true/$ok\<rbrakk> \<turnstile> Q\<lbrakk>true/$ok\<rbrakk>) = ($ok \<and> P\<lbrakk>true/$ok\<rbrakk> \<Rightarrow> $ok\<acute> \<and> Q\<lbrakk>true/$ok\<rbrakk>)"
+    by (simp add: design_def)
+  also have "... = ($ok \<and> P \<Rightarrow> $ok\<acute> \<and> Q\<lbrakk>true/$ok\<rbrakk>)"
+    by (metis conj_pos_var_subst uvar_ok)
+  also have "... = ($ok \<and> P \<Rightarrow> $ok\<acute> \<and> $ok \<and> Q\<lbrakk>true/$ok\<rbrakk>)"
+    by (pred_tac)
+  also have "... = ($ok \<and> P \<Rightarrow> $ok\<acute> \<and> $ok \<and> Q)"
+    by (metis conj_pos_var_subst uvar_ok)
+  also have "... = ($ok \<and> P \<Rightarrow> $ok\<acute> \<and> Q)"
+    by (pred_tac)
+  also have "... = (P \<turnstile> Q)"
+    by (simp add: design_def)
+  finally show ?thesis .
+qed
+
+lemma HR_design_okay_true: "HR(P\<lbrakk>true,false/$ok,$wait\<rbrakk> \<turnstile> Q\<lbrakk>true,false/$ok,$wait\<rbrakk>) = HR(P \<turnstile> Q)"
+proof -
+  have "HR(P \<turnstile> Q) = HR(P\<lbrakk>true/$ok\<rbrakk> \<turnstile> Q\<lbrakk>true/$ok\<rbrakk>)"
+    by (simp add: design_okay_true)
+  also have "... = HR(P\<lbrakk>true/$ok\<rbrakk>\<^sub>f \<turnstile> Q\<lbrakk>true/$ok\<rbrakk>\<^sub>f)"
+    by (simp add: HR_design_wait_false)
+  also have "... = HR(P\<lbrakk>true,false/$ok,$wait\<rbrakk> \<turnstile> Q\<lbrakk>true,false/$ok,$wait\<rbrakk>)"
+    by (simp add: usubst)
+  finally show ?thesis ..
+qed
 
 lemma hskip_reactive_tri_design:
   "II\<^sub>H = HR(true \<turnstile> false \<diamondop> II)"
@@ -1293,13 +1332,13 @@ definition htop :: "('t::linordered_ring, '\<theta>, '\<alpha>) hhrd" ("\<top>\<
 
 definition "Chaos = HR(false \<turnstile> true \<diamondop> true)"
 
-definition "Stop = HR(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H) \<diamondop> false)"
+definition "Stop = HR(true \<turnstile> ($tr\<acute> =\<^sub>u $tr) \<diamondop> false)"
 
 definition Guard :: "('t::linordered_ring, '\<theta>, '\<alpha>) hrdp \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" (infix "&\<^sub>u" 65)
-where "g &\<^sub>u A = HR((\<lceil>g\<rceil>\<^sub>< \<Rightarrow> pre\<^sub>H(A)) \<turnstile> ((peri\<^sub>H(A) \<triangleleft> \<lceil>g\<rceil>\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H)) \<diamondop> (\<lceil>g\<rceil>\<^sub>< \<and> post\<^sub>H(A))))"
+where "g &\<^sub>u A = HR((\<lceil>g\<rceil>\<^sub>< \<Rightarrow> pre\<^sub>H(A)) \<turnstile> ((peri\<^sub>H(A) \<triangleleft> \<lceil>g\<rceil>\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)) \<diamondop> (\<lceil>g\<rceil>\<^sub>< \<and> post\<^sub>H(A))))"
 
 definition ExtChoice :: "('t::linordered_ring, '\<theta>, '\<alpha>) hhrd \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" (infixl "\<box>" 65)
-where "P \<box> Q = HR((pre\<^sub>H(P) \<and> pre\<^sub>H(Q)) \<turnstile> ((\<exists> $\<Sigma>\<^sub>H\<acute> \<bullet> peri\<^sub>H(P)) \<and> (\<exists> $\<Sigma>\<^sub>H\<acute> \<bullet> peri\<^sub>H(Q)) \<and> $tr\<acute> =\<^sub>u $tr) \<diamondop> ((post\<^sub>H(P) \<or> post\<^sub>H(Q)) \<and> $tr\<acute> \<noteq>\<^sub>u $tr))"
+where "P \<box> Q = HR((\<not> P\<^sup>f\<^sub>f \<and> \<not> Q\<^sup>f\<^sub>f) \<turnstile> ((P\<^sup>t\<^sub>f \<and> Q\<^sup>t\<^sub>f) \<triangleleft> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<triangleright> (P\<^sup>t\<^sub>f \<or> Q\<^sup>t\<^sub>f)))"
 
 definition hrd_sup :: "('t::linordered_ring, '\<theta>, '\<alpha>) hhrd set \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" ("\<Sqinter>\<^sub>H") where
 "\<Sqinter>\<^sub>H A = (if (A = {}) then \<top>\<^sub>H else \<Sqinter> A)"
@@ -1752,9 +1791,9 @@ lemma Stop_left_unit:
 proof -
   have "(Stop ;; P) = (Stop ;; HR (pre\<^sub>H P \<turnstile> peri\<^sub>H P \<diamondop> post\<^sub>H P))"
     using HCSP_hybrid_reactive_tri_design' assms by force
-  also have "... = (HR(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H) \<diamondop> false) ;; HR (pre\<^sub>H P \<turnstile> peri\<^sub>H P \<diamondop> post\<^sub>H P))"
+  also have "... = (HR(true \<turnstile> ($tr\<acute> =\<^sub>u $tr) \<diamondop> false) ;; HR (pre\<^sub>H P \<turnstile> peri\<^sub>H P \<diamondop> post\<^sub>H P))"
     by (simp add: Stop_def)
-  also have "... = HR (true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H) \<diamondop> false)"
+  also have "... = HR (true \<turnstile> ($tr\<acute> =\<^sub>u $tr) \<diamondop> false)"
     by (simp add: HR_design_tri_composition' unrest pre\<^sub>H_def peri\<^sub>H_def post\<^sub>H_def usubst HR2c_true HR1_false HR2c_false)
   also have "... = Stop"
     by (simp add: Stop_def)
@@ -1768,7 +1807,7 @@ lemma Guard_true:
   assumes "P is HCSP"
   shows "true &\<^sub>u P = P"
 proof -
-  have "true &\<^sub>u P = HR (pre\<^sub>H P \<turnstile> (peri\<^sub>H P \<triangleleft> true \<triangleright> $tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H) \<diamondop> post\<^sub>H P)"
+  have "true &\<^sub>u P = HR (pre\<^sub>H P \<turnstile> (peri\<^sub>H P \<triangleleft> true \<triangleright> $tr\<acute> =\<^sub>u $tr) \<diamondop> post\<^sub>H P)"
     by (simp add: Guard_def alpha)
   also have "... = HR (pre\<^sub>H P \<turnstile> peri\<^sub>H P \<diamondop> post\<^sub>H P)"
     by (simp add: cond_unit_T)
@@ -1802,7 +1841,7 @@ lemma HR2c_tr'_eq_tr: "HR2c($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u 
 lemma HR1_tr'_eq_tr: "HR1($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u $tr \<and> $time \<le>\<^sub>u $time\<acute>)"
   by (rel_tac)
 
-lemma peri\<^sub>H_Stop: "peri\<^sub>H(Stop) = ($tr\<acute> =\<^sub>u $tr \<and> $time\<acute> \<ge>\<^sub>u $time \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H)"
+lemma peri\<^sub>H_Stop: "peri\<^sub>H(Stop) = HR1($tr\<acute> =\<^sub>u $tr)"
   apply (simp add: Stop_def pre\<^sub>H_hrd peri\<^sub>H_hrd post\<^sub>H_hrd usubst peri\<^sub>H_true)
   apply (simp add: peri\<^sub>H_def usubst HR2c_conj HR2c_tr'_eq_tr HR2c_hyst'_eq_hyst HR1_extend_conj HR1_tr'_eq_tr)
   apply (rel_tac)
@@ -1817,11 +1856,117 @@ lemma pre\<^sub>H_Skip: "pre\<^sub>H(II\<^sub>H) = true"
 lemma peri\<^sub>H_Skip: "peri\<^sub>H(II\<^sub>H) = false"
   by (simp add: hskip_reactive_tri_design peri\<^sub>H_hrd peri\<^sub>H_true peri\<^sub>H_false usubst HR2c_false HR1_false)
 
-lemma "Stop \<box> II\<^sub>H = II\<^sub>H"
-  apply (simp add: ExtChoice_def pre\<^sub>H_Stop peri\<^sub>H_Stop peri\<^sub>H_Skip post\<^sub>H_Stop)
-  oops
+lemma ExtChoice_tri_form:
+  "P \<box> Q = HR((pre\<^sub>H(P) \<and> pre\<^sub>H(Q)) \<turnstile> ((peri\<^sub>H(P) \<and> peri\<^sub>H(Q)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (peri\<^sub>H(P) \<or> peri\<^sub>H(Q))) 
+                                      \<diamondop> (post\<^sub>H(P) \<or> post\<^sub>H(Q)))" (is "?lhs = ?rhs")
+proof -                                    
+  have "?rhs =
+        HR((pre\<^sub>H(P) \<and> pre\<^sub>H(Q))\<lbrakk>true,false/$ok,$wait\<rbrakk> \<turnstile> 
+           (((peri\<^sub>H(P) \<and> peri\<^sub>H(Q)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (peri\<^sub>H(P) \<or> peri\<^sub>H(Q))) \<diamondop> 
+             (post\<^sub>H(P) \<or> post\<^sub>H(Q)))\<lbrakk>true,false/$ok,$wait\<rbrakk>)"
+    by (simp add: HR_design_okay_true)
+  also have "... =
+        HR((\<not> P\<^sup>f\<^sub>f \<and> \<not> Q\<^sup>f\<^sub>f)\<lbrakk>true,false/$ok,$wait\<rbrakk> \<turnstile> 
+           (((peri\<^sub>H(P) \<and> peri\<^sub>H(Q)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (peri\<^sub>H(P) \<or> peri\<^sub>H(Q))) \<diamondop> 
+             (post\<^sub>H(P) \<or> post\<^sub>H(Q)))\<lbrakk>true,false/$ok,$wait\<rbrakk>)"
+    by (simp add: usubst pre\<^sub>H_def)
+  also have "... =
+        HR((\<not> P\<^sup>f\<^sub>f \<and> \<not> Q\<^sup>f\<^sub>f)\<lbrakk>true,false/$ok,$wait\<rbrakk> \<turnstile> 
+           (((peri\<^sub>H(P) \<and> peri\<^sub>H(Q)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (peri\<^sub>H(P) \<or> peri\<^sub>H(Q)))\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> 
+             (post\<^sub>H(P) \<or> post\<^sub>H(Q))\<lbrakk>false/$wait\<acute>\<rbrakk>)\<lbrakk>true,false/$ok,$wait\<rbrakk>)"
+    by (simp add: subst_wait'_left_subst subst_wait'_right_subst)
+  also have "... =
+        HR((\<not> P\<^sup>f\<^sub>f \<and> \<not> Q\<^sup>f\<^sub>f)\<lbrakk>true,false/$ok,$wait\<rbrakk> \<turnstile> 
+           (((P\<^sup>t\<^sub>f \<and> Q\<^sup>t\<^sub>f) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (P\<^sup>t\<^sub>f \<or> Q\<^sup>t\<^sub>f))\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> 
+             ((P\<^sup>t\<^sub>f \<or> Q\<^sup>t\<^sub>f)\<lbrakk>false/$wait\<acute>\<rbrakk>))\<lbrakk>true,false/$ok,$wait\<rbrakk>)"
+    by (simp add: post\<^sub>H_def peri\<^sub>H_def usubst unrest)
+  also have "... =
+        HR((\<not> P\<^sup>f\<^sub>f \<and> \<not> Q\<^sup>f\<^sub>f) \<turnstile> 
+           (((P\<^sup>t\<^sub>f \<and> Q\<^sup>t\<^sub>f) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (P\<^sup>t\<^sub>f \<or> Q\<^sup>t\<^sub>f)) \<diamondop> 
+             ((P\<^sup>t\<^sub>f \<or> Q\<^sup>t\<^sub>f))))"
+    by (simp add: subst_wait'_left_subst subst_wait'_right_subst HR_design_okay_true)
+  also have "... = HR ((\<not> P\<^sup>f\<^sub>f \<and> \<not> Q\<^sup>f\<^sub>f) \<turnstile> (P\<^sup>t\<^sub>f \<and> Q\<^sup>t\<^sub>f \<triangleleft> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<triangleright> (P\<^sup>t\<^sub>f \<or> Q\<^sup>t\<^sub>f)))"
+  proof -
+    have "(((P\<^sup>t\<^sub>f \<and> Q\<^sup>t\<^sub>f) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (P\<^sup>t\<^sub>f \<or> Q\<^sup>t\<^sub>f)) \<diamondop> ((P\<^sup>t\<^sub>f \<or> Q\<^sup>t\<^sub>f))) =
+          (P\<^sup>t\<^sub>f \<and> Q\<^sup>t\<^sub>f \<triangleleft> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<triangleright> (P\<^sup>t\<^sub>f \<or> Q\<^sup>t\<^sub>f))"
+      by (simp add: wait'_cond_def cond_assoc cond_idem conj_comm)
+    thus ?thesis by simp
+  qed
+  also have "... = P \<box> Q"
+    by (simp add: ExtChoice_def)
+  finally show ?thesis ..
+qed
+
+lemma design_pre_ff: "(P \<turnstile> Q)\<^sup>f\<^sub>f = ($ok \<Rightarrow> \<not> P\<^sup>f\<^sub>f)"
+  by (simp add: design_def usubst impl_alt_def)
+
+lemma design_post_tf: "(P \<turnstile> Q)\<^sup>t\<^sub>f = ($ok \<and> P\<^sup>t\<^sub>f \<Rightarrow> Q\<^sup>t\<^sub>f)"
+  by (simp add: design_def usubst impl_alt_def)
+
+lemma HR_pre_ff: "(HR(P))\<^sup>f\<^sub>f = HR1(HR2c(P\<^sup>f\<^sub>f))"
+  by (simp add: HR_R2c_def HR1_def TI1_def R1_def R2c_def TI2_def R2s_def HR2c_def HR3_def usubst cond_unit_F)
+
+lemma HR_post_tf: "(HR(P))\<^sup>t\<^sub>f = HR1(HR2c(P\<^sup>t\<^sub>f))"
+  by (simp add: HR_R2c_def HR1_def TI1_def R1_def R2c_def TI2_def R2s_def HR2c_def HR3_def usubst cond_unit_F)
+
+lemma Stop_pre_ff: "Stop\<^sup>f\<^sub>f = HR1 (\<not> $ok)"
+  apply (simp add: Stop_def HR_pre_ff design_pre_ff impl_alt_def HR2c_disj HR2c_not HR2c_ok)
+  apply (simp add: usubst HR2c_true)
+done
+
+lemma Stop_post_tf: "Stop\<^sup>t\<^sub>f = (HR1(\<not> $ok) \<or> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> $time\<acute> \<ge>\<^sub>u $time)"
+  apply (simp add: Stop_def HR_post_tf design_post_tf impl_alt_def HR2c_disj HR2c_not HR2c_ok)
+  apply (simp add: usubst wait'_cond_def cond_def HR2c_true HR2c_conj HR2c_wait HR2c_tr'_eq_tr HR2c_wait' HR1_extend_conj' HR1_disj HR1_tr'_eq_tr)
+done
+
+lemma HR1_subst [usubst]:
+  "\<lbrakk> $tr \<sharp> \<sigma>; $tr\<acute> \<sharp> \<sigma>; $time \<sharp> \<sigma>; $time\<acute> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow>  \<sigma> \<dagger> HR1(P) = HR1(\<sigma> \<dagger> P)"
+  by (simp add: HR1_def TI1_def R1_def usubst)
+
+lemma HR2c_subst :
+  "\<lbrakk> $tr \<sharp> \<sigma>; $tr\<acute> \<sharp> \<sigma>; $time \<sharp> \<sigma>; $time\<acute> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow>  \<sigma> \<dagger> HR2c(P) = HR2c(\<sigma> \<dagger> P)"
+  by (simp add: HR2c_def R2c_def TI2_def R2s_def R1_def usubst)
+
+lemma "HR(P \<turnstile> Q) \<box> HR(R \<turnstile> S) = HR ((P \<and> Q) \<turnstile> (Q \<and> S \<triangleleft> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<triangleright> Q \<or> S))"
+  apply (simp add: ExtChoice_def HR_pre_ff HR_post_tf design_pre_ff design_post_tf)
+  apply (subst design_okay_true[THEN sym])
+  apply 
+  apply (simp add: usubst unrest)
+  apply (subst HR2c_subst)
+  apply (subst subst_impl)
+  
+  apply (subst impl_subst)
 
 lemma "Stop \<box> P = P"
+proof -
+  have "((HR1 (\<not> $ok) \<or> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> $time\<acute> \<ge>\<^sub>u $time) \<and> P\<^sup>t\<^sub>f \<triangleleft> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<triangleright>
+              (HR1 (\<not> $ok) \<or> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> $time\<acute> \<ge>\<^sub>u $time) \<or> P\<^sup>t\<^sub>f) =
+        ((HR1 (\<not> $ok)) \<and> P\<^sup>t\<^sub>f \<triangleleft> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<triangleright>
+              (HR1 (\<not> $ok) \<or> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> $time\<acute> \<ge>\<^sub>u $time) \<or> P\<^sup>t\<^sub>f)"
+    
+
+
+  have "Stop \<box> P =
+        HR ((\<not> HR1 (\<not> $ok) \<and> \<not> P\<^sup>f\<^sub>f) \<turnstile>
+          ((HR1 (\<not> $ok) \<or> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> $time\<acute> \<ge>\<^sub>u $time) \<and> P\<^sup>t\<^sub>f \<triangleleft> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<triangleright>
+              (HR1 (\<not> $ok) \<or> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> $time\<acute> \<ge>\<^sub>u $time) \<or> P\<^sup>t\<^sub>f))"
+    by (simp add: ExtChoice_def Stop_pre_ff Stop_post_tf)
+  apply (subst design_okay_true[THEN sym])
+  apply (simp add: usubst unrest)
+proof -
+  have "HR1(HR1 ($tr\<acute> =\<^sub>u $tr) \<and> peri\<^sub>H P \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> HR1 ($tr\<acute> =\<^sub>u $tr) \<or> peri\<^sub>H P) =
+        HR1(peri\<^sub>H(P))"
+
+  have "(($tr\<acute> =\<^sub>u $tr \<and> $time\<acute> \<ge>\<^sub>u $time) \<and> peri\<^sub>H P \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> $tr\<acute> =\<^sub>u $tr \<and> $time\<acute> \<ge>\<^sub>u $time \<or> peri\<^sub>H P)
+        = 
+
+   proof -
+    have "(($tr\<acute> =\<^sub>u $tr \<and> $time\<acute> \<ge>\<^sub>u $time \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H) \<and> peri\<^sub>H P \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright>
+            $tr\<acute> =\<^sub>u $tr \<and> $time\<acute> \<ge>\<^sub>u $time \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<or> peri\<^sub>H P) =
+          (($tr\<acute> =\<^sub>u $tr \<and> $time\<acute> \<ge>\<^sub>u $time \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H) \<and> peri\<^sub>H P \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright>
+            peri\<^sub>H P)"
+     by (rel_tac)
+    also have 
   apply (simp add: ExtChoice_def pre\<^sub>H_Stop peri\<^sub>H_Stop post\<^sub>H_Stop)
   oops
 
