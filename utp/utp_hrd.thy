@@ -1006,6 +1006,33 @@ proof -
     by (simp add: HR2c_def TI2_cond TI2_wait TI2_skip_ti HR_R2c_def HR3_def R2c_condr R2c_hskip R2c_wait 1 2 3)
 qed
 
+lemma HR_design_wait_false: "HR(P \<^sub>f \<turnstile> Q \<^sub>f) = HR(P \<turnstile> Q)"
+  by (metis HR3_subst_wait HR_R2c_def wait_false_design)
+
+declare [[show_sorts]]
+
+lemma hskip_reactive_tri_design:
+  "II\<^sub>H = HR(true \<turnstile> false \<diamondop> II)"
+proof -
+  have "II\<^sub>H = HR(true \<turnstile> II)" 
+    by (simp add: hskip_reactive_design)
+  also have "... = HR(true \<^sub>f \<turnstile> II \<^sub>f)"
+    by (metis HR_design_wait_false)
+  also have "... = HR(true \<^sub>f \<turnstile> (\<not> $wait\<acute> \<and> II) \<^sub>f)" (is "HR(_ \<turnstile> ?II) = ?rhs")
+  proof -
+    have "?II = ($wait\<acute> =\<^sub>u $wait \<and> II\<restriction>\<^sub>\<alpha>wait) \<^sub>f"
+      by (subst skip_r_unfold[of wait], simp_all)
+    also have "... = ($wait\<acute> =\<^sub>u false \<and> $wait\<acute> =\<^sub>u $wait \<and> II\<restriction>\<^sub>\<alpha>wait) \<^sub>f"
+      by (simp add: usubst)
+    also have "... = ($wait\<acute> =\<^sub>u false \<and> II) \<^sub>f"
+      by (metis (no_types, lifting) skip_r_unfold upred_eq_false utp_pred.conj_assoc wait_uvar)
+    finally show ?thesis by simp
+  qed
+  also have "... = HR(true \<turnstile> false \<diamondop> II)"
+    by (simp add: wait'_cond_def cond_def HR_design_wait_false)
+  finally show ?thesis .
+qed
+   
 lemma HR_design_lemma1:
   "HR(P \<turnstile> (HR1(HR2c(Q)) \<or> R) \<diamondop> S) = HR(P \<turnstile> (Q \<or> R) \<diamondop> S)"
   by (simp add: design_def impl_alt_def wait'_cond_def HR_R2c_def HR2c_HR3_commute HR1_HR3_commute HR1_disj HR2c_disj HR2c_conj HR1_cond HR2c_cond HR1_HR2c_commute HR2c_idem HR1_extend_conj' HR1_idem)
@@ -1272,7 +1299,7 @@ definition Guard :: "('t::linordered_ring, '\<theta>, '\<alpha>) hrdp \<Rightarr
 where "g &\<^sub>u A = HR((\<lceil>g\<rceil>\<^sub>< \<Rightarrow> pre\<^sub>H(A)) \<turnstile> ((peri\<^sub>H(A) \<triangleleft> \<lceil>g\<rceil>\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H)) \<diamondop> (\<lceil>g\<rceil>\<^sub>< \<and> post\<^sub>H(A))))"
 
 definition ExtChoice :: "('t::linordered_ring, '\<theta>, '\<alpha>) hhrd \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" (infixl "\<box>" 65)
-where "A\<^sub>1 \<box> A\<^sub>2 = HR((\<not> A\<^sub>1\<^sup>f\<^sub>f \<and> \<not> A\<^sub>2\<^sup>f\<^sub>f) \<turnstile> ((A\<^sub>1\<^sup>t\<^sub>f \<and> A\<^sub>2\<^sup>t\<^sub>f) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (A\<^sub>1\<^sup>t\<^sub>f \<or> A\<^sub>2\<^sup>t\<^sub>f)))"
+where "P \<box> Q = HR((pre\<^sub>H(P) \<and> pre\<^sub>H(Q)) \<turnstile> ((\<exists> $\<Sigma>\<^sub>H\<acute> \<bullet> peri\<^sub>H(P)) \<and> (\<exists> $\<Sigma>\<^sub>H\<acute> \<bullet> peri\<^sub>H(Q)) \<and> $tr\<acute> =\<^sub>u $tr) \<diamondop> ((post\<^sub>H(P) \<or> post\<^sub>H(Q)) \<and> $tr\<acute> \<noteq>\<^sub>u $tr))"
 
 definition hrd_sup :: "('t::linordered_ring, '\<theta>, '\<alpha>) hhrd set \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" ("\<Sqinter>\<^sub>H") where
 "\<Sqinter>\<^sub>H A = (if (A = {}) then \<top>\<^sub>H else \<Sqinter> A)"
@@ -1749,5 +1776,53 @@ proof -
     using HCSP_hybrid_reactive_tri_design' assms by force
   finally show ?thesis .
 qed
+
+lemma peri\<^sub>H_true: "peri\<^sub>H(true) = true"
+  by (simp add: peri\<^sub>H_def usubst)
+
+lemma peri\<^sub>H_false: "peri\<^sub>H(false) = false"
+  by (simp add: peri\<^sub>H_def usubst)
+
+lemma post\<^sub>H_true: "post\<^sub>H(true) = true"
+  by (simp add: post\<^sub>H_def usubst)
+
+lemma post\<^sub>H_false: "post\<^sub>H(false) = false"
+  by (simp add: post\<^sub>H_def usubst)
+
+
+lemma pre\<^sub>H_Stop: "pre\<^sub>H(Stop) = true"
+  by (simp add: Stop_def pre\<^sub>H_hrd peri\<^sub>H_hrd post\<^sub>H_hrd usubst HR2s_false HR1_false)
+
+lemma HR2c_hyst'_eq_hyst: "HR2c($\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H) = ($\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H)"
+  by (simp add: HR2c_def TI2_def usubst R2c_def R2s_def, rel_tac)
+
+lemma HR2c_tr'_eq_tr: "HR2c($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u $tr)"
+  by (simp add: HR2c_def TI2_def usubst R2c_tr'_minus_tr)
+
+lemma HR1_tr'_eq_tr: "HR1($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u $tr \<and> $time \<le>\<^sub>u $time\<acute>)"
+  by (rel_tac)
+
+lemma peri\<^sub>H_Stop: "peri\<^sub>H(Stop) = ($tr\<acute> =\<^sub>u $tr \<and> $time\<acute> \<ge>\<^sub>u $time \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H)"
+  apply (simp add: Stop_def pre\<^sub>H_hrd peri\<^sub>H_hrd post\<^sub>H_hrd usubst peri\<^sub>H_true)
+  apply (simp add: peri\<^sub>H_def usubst HR2c_conj HR2c_tr'_eq_tr HR2c_hyst'_eq_hyst HR1_extend_conj HR1_tr'_eq_tr)
+  apply (rel_tac)
+done
+
+lemma post\<^sub>H_Stop: "post\<^sub>H(Stop) = false"
+  by (simp add: Stop_def post\<^sub>H_hrd usubst post\<^sub>H_true post\<^sub>H_false HR2c_false HR1_false)
+
+lemma pre\<^sub>H_Skip: "pre\<^sub>H(II\<^sub>H) = true"
+  by (simp add: hskip_reactive_tri_design pre\<^sub>H_hrd usubst HR2s_false HR1_false)
+
+lemma peri\<^sub>H_Skip: "peri\<^sub>H(II\<^sub>H) = false"
+  by (simp add: hskip_reactive_tri_design peri\<^sub>H_hrd peri\<^sub>H_true peri\<^sub>H_false usubst HR2c_false HR1_false)
+
+lemma "Stop \<box> II\<^sub>H = II\<^sub>H"
+  apply (simp add: ExtChoice_def pre\<^sub>H_Stop peri\<^sub>H_Stop peri\<^sub>H_Skip post\<^sub>H_Stop)
+  oops
+
+lemma "Stop \<box> P = P"
+  apply (simp add: ExtChoice_def pre\<^sub>H_Stop peri\<^sub>H_Stop post\<^sub>H_Stop)
+  oops
 
 end
