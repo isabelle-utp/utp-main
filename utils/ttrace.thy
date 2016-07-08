@@ -562,7 +562,6 @@ proof -
     using piecewise_continuous_cat_right by auto
 qed
 
-
 lemma continuous_on_cgf_prefix:
   "\<lbrakk> f \<subseteq>\<^sub>C g; 0 \<le> i; i < j; j \<le> end\<^sub>C f; continuous_on {i..<j} \<langle>g\<rangle>\<^sub>C \<rbrakk> \<Longrightarrow> continuous_on {i..<j} \<langle>f\<rangle>\<^sub>C"
   apply (transfer, auto)
@@ -576,198 +575,6 @@ lemma continuous_on_cgf_prefix:
   apply (metis atLeastLessThan_iff cSup_atLeastLessThan domIff le_cases le_less_trans not_less_iff_gr_or_eq)
 done 
 
-
-(*
-lemma end_0_empty: "end\<^sub>C g = 0 \<Longrightarrow> g = []\<^sub>C"
-  by (transfer, auto, metis (full_types) atLeastLessThan_empty cSup_atLeastLessThan domIff empty_iff less_eq_real_def)
-
-
-lemma 
-  assumes "piecewise_continuous f" "f = g @\<^sub>C h"
-  shows "piecewise_continuous g \<and> piecewise_continuous h"
-proof (cases "h = []\<^sub>C")
-  case True with assms show ?thesis by (simp)
-next
-  case False
-  note hne = this
-  from assms obtain I
-  where I:"ran\<^sub>l I \<subseteq> {0..end\<^sub>C f}" "0 \<in> ran\<^sub>l I" "end\<^sub>C f \<in> ran\<^sub>l I" "sorted I" "distinct I"
-           "\<forall>i<length I - Suc 0. continuous_on {I ! i..<I ! Suc i} \<langle>f\<rangle>\<^sub>C"
-    by (metis One_nat_def insert_subset piecewise_continuous_def)
-
-  obtain I\<^sub>1 I\<^sub>2 where I_split: "I = I\<^sub>1 @ I\<^sub>2" "set(I\<^sub>1) \<subseteq> {0..end\<^sub>C g}" "set(I\<^sub>2) \<subseteq> {end\<^sub>C g<..end\<^sub>C g+end\<^sub>C h}"
-  proof -
-    have "I = takeWhile (\<lambda> x. x \<le> end\<^sub>C g) I @ dropWhile (\<lambda> x. x \<le> end\<^sub>C g) I"
-      by simp
-    moreover have "set(takeWhile (\<lambda> x. x \<le> end\<^sub>C g) I) \<subseteq> {0..end\<^sub>C g}"
-      by (auto, meson I(1) atLeastAtMost_iff set_takeWhileD subsetCE, meson set_takeWhileD)
-    moreover have "set(dropWhile (\<lambda> x. x \<le> end\<^sub>C g) I) \<subseteq> {end\<^sub>C g<..end\<^sub>C g+end\<^sub>C h}"
-      by (auto intro!: I(4) dropWhile_sorted_le_above[of I], metis I(1) assms(2) atLeastAtMost_iff cgf_end_cat set_dropWhileD subset_code(1)) 
-    ultimately show ?thesis using that by blast
-  qed
-
-  have I\<^sub>1_zero: "0 \<in> set I\<^sub>1"
-  proof -
-    from I I_split have "0 \<in> set(I\<^sub>1 @ I\<^sub>2)"
-      by (simp)
-    with I_split(3) show ?thesis
-      by (auto, metis Set.set_insert cgf_end_empty cgf_prefix_least cgf_sub_end greaterThanAtMost_iff insert_subset not_less)
-  qed
-
-  have I\<^sub>2_end_gh: "end\<^sub>C g+end\<^sub>C h \<in> set I\<^sub>2"
-  proof -
-    from I I_split have "end\<^sub>C g+end\<^sub>C h \<in> set(I\<^sub>1 @ I\<^sub>2)"
-      by (simp add: assms(2) cgf_end_cat)
-    with I_split(2) show ?thesis
-      by (auto, metis add.right_neutral add_left_cancel atLeastAtMost_iff cgf_end_cat cgf_prefix_cat cgf_sub_end contra_subsetD dual_order.antisym end_0_empty hne)
-  qed
-
-  have I\<^sub>1_sd: "sorted I\<^sub>1" "distinct I\<^sub>1"
-    using I(4,5) I_split(1) sorted_append distinct_append by blast+
-
-  have I\<^sub>2_sd: "sorted I\<^sub>2" "distinct I\<^sub>2"
-    using I(4,5) I_split(1) sorted_append distinct_append by blast+
-
-  have "piecewise_continuous g"
-  proof (cases "end\<^sub>C g \<in> set(I\<^sub>1)")
-    case True note ef = this
-    have last_I\<^sub>1: "last(I\<^sub>1) = end\<^sub>C g"
-      by (metis I\<^sub>1_sd(1) I_split(2) atLeastAtMost_iff contra_subsetD ef last_in_set length_greater_0_conv length_pos_if_in_set less_eq_real_def not_le sorted_last)
-      
-    from ef show ?thesis
-    proof (simp add: piecewise_continuous_def, rule_tac x="I\<^sub>1" in exI, clarsimp simp add: assms I_split I\<^sub>1_zero I\<^sub>1_sd)
-      fix i
-      assume i: "i < length I\<^sub>1 - Suc 0"
-      have "0 \<le> I\<^sub>1 ! i"
-        by (meson I_split(2) i atLeastAtMost_iff diff_le_self less_le_trans nth_mem subsetCE)
-      moreover have "I\<^sub>1 ! i < I\<^sub>1 ! Suc i"
-        by (metis I\<^sub>1_sd(1) I\<^sub>1_sd(2) One_nat_def add.right_neutral add_Suc_right i sorted_distinct)
-      moreover have "I\<^sub>1 ! Suc i \<le> end\<^sub>C g"
-        by (metis I\<^sub>1_sd(1) Suc_mono Suc_pred ef i last_I\<^sub>1 length_pos_if_in_set nth_mem sorted_last)
-      moreover have "continuous_on {I\<^sub>1 ! i..<I\<^sub>1 ! Suc i} \<langle>f\<rangle>\<^sub>C"
-      proof -
-        have "I\<^sub>1 ! i = I ! i"
-          by (metis I_split(1) diff_le_self i less_le_trans nth_append)
-        moreover have "I\<^sub>1 ! Suc i = I ! Suc i"
-          by (metis I_split(1) Suc_mono Suc_pred ef i length_pos_if_in_set nth_append)
-        ultimately show ?thesis
-          using I(6) I_split(1) i by auto
-      qed
-
-      ultimately show "continuous_on {I\<^sub>1 ! i..<I\<^sub>1 ! Suc i} \<langle>g\<rangle>\<^sub>C"
-        by (rule_tac continuous_on_cgf_prefix[of _ f], simp_all add: assms)
-   qed
-   next        
-     case False note ef = this
-     hence "sorted (I\<^sub>1 @ [end\<^sub>C g])"
-       using I\<^sub>1_sd(1) I_split(2) sorted_append by fastforce
-     with ef show ?thesis
-    apply (simp add: piecewise_continuous_def, rule_tac x="I\<^sub>1 @ [end\<^sub>C g]" in exI, clarsimp simp add: assms I_split I\<^sub>1_zero I\<^sub>1_sd)
-    apply (rule_tac continuous_on_cgf_prefix[of _ f])
-
-  case True with assms show ?thesis
-    by (auto dest: end_0_empty)
-next
-  case False 
-  note ef = this with assms show ?thesis
-  proof (cases "end\<^sub>C h = 0")
-    case True with assms show ?thesis
-      by (auto dest: end_0_empty)
-
-
-lemma 
-  assumes "piecewise_continuous g" "f \<subseteq>\<^sub>C g"
-  shows "piecewise_continuous f"
-proof (cases "end\<^sub>C f = 0")
-  case True thus ?thesis
-    by (simp add: piecewise_continuous_def)
-next
-  case False 
-  note ef = this with assms show ?thesis
-  proof (cases "end\<^sub>C g = 0")
-    case True with assms show ?thesis
-      by (auto simp add: piecewise_continuous_def, metis (full_types) cgf_end_empty cgf_prefix_least cgf_sub_end dual_order.antisym)
-  next
-    case False with ef assms show ?thesis
-    proof (clarsimp simp add: piecewise_continuous_def)
-
-    fix I
-    assume I:"ran\<^sub>l I \<subseteq> {0..end\<^sub>C g}" "0 \<in> ran\<^sub>l I" "end\<^sub>C g \<in> ran\<^sub>l I" "sorted I" "distinct I"
-             "\<forall>i<length I - Suc 0. continuous_on {I ! i..<I ! Suc i} \<langle>g\<rangle>\<^sub>C"
-
-    obtain I\<^sub>1 I\<^sub>2 where I_split: "I = I\<^sub>1 @ I\<^sub>2" "set(I\<^sub>1) \<subseteq> {0..end\<^sub>C f}" "set(I\<^sub>2) \<subseteq> {end\<^sub>C f<..end\<^sub>C g}"
-    proof -
-      have "I = takeWhile (\<lambda> x. x \<le> end\<^sub>C f) I @ dropWhile (\<lambda> x. x \<le> end\<^sub>C f) I"
-        by simp
-      moreover have "set(takeWhile (\<lambda> x. x \<le> end\<^sub>C f) I) \<subseteq> {0..end\<^sub>C f}"
-        by (auto, meson I(1) atLeastAtMost_iff set_takeWhileD subsetCE, meson set_takeWhileD)
-      moreover have "set(dropWhile (\<lambda> x. x \<le> end\<^sub>C f) I) \<subseteq> {end\<^sub>C f<..end\<^sub>C g}"
-        by (auto intro!: I(4) dropWhile_sorted_le_above[of I], meson I(1) atLeastAtMost_iff set_dropWhileD subsetCE) 
-      ultimately show ?thesis using that by blast
-    qed
-
-    have I\<^sub>1_zero: "0 \<in> set I\<^sub>1"
-    proof -
-      from I I_split have "0 \<in> set(I\<^sub>1 @ I\<^sub>2)"
-        by (simp)
-      with I_split(3) show ?thesis
-        by (auto, metis Set.set_insert cgf_end_empty cgf_prefix_least cgf_sub_end greaterThanAtMost_iff insert_subset not_less)
-    qed
-
-    have I\<^sub>1_sd: "sorted I\<^sub>1" "distinct I\<^sub>1"
-      using I(4,5) I_split(1) sorted_append distinct_append by blast+
-
-    show "\<exists>I. ran\<^sub>l I \<subseteq> {0..end\<^sub>C f} \<and> 
-              0 \<in> ran\<^sub>l I \<and> 
-              end\<^sub>C f \<in> ran\<^sub>l I \<and> 
-              sorted I \<and> distinct I \<and> 
-              (\<forall>i<length I - Suc 0. continuous_on {I ! i..<I ! Suc i} \<langle>f\<rangle>\<^sub>C)"
-    proof (cases "end\<^sub>C f \<in> set(I\<^sub>1)")
-      case True note ef = this
-      have last_I\<^sub>1: "last(I\<^sub>1) = end\<^sub>C f"
-      proof (rule ccontr)
-        assume "last(I\<^sub>1) \<noteq> end\<^sub>C f"
-        hence "last(I\<^sub>1) > end\<^sub>C f"
-          by (simp add: I\<^sub>1_sd(1) ef order.not_eq_order_implies_strict)
-        moreover have "last(I\<^sub>1) \<in> set(I\<^sub>1)"
-          using ef length_pos_if_in_set by force
-        ultimately show False
-          using I_split(2) by auto
-      qed
-      from ef show ?thesis
-      proof (rule_tac x="I\<^sub>1" in exI, clarsimp simp add: assms I_split I\<^sub>1_zero I\<^sub>1_sd)
-        fix i
-        assume i: "i < length I\<^sub>1 - Suc 0"
-        have "0 \<le> I\<^sub>1 ! i"
-          by (meson I_split(2) i atLeastAtMost_iff diff_le_self less_le_trans nth_mem subsetCE)
-        moreover have "I\<^sub>1 ! i < I\<^sub>1 ! Suc i"
-          by (metis I\<^sub>1_sd(1) I\<^sub>1_sd(2) One_nat_def add.right_neutral add_Suc_right i sorted_distinct)
-        moreover have "I\<^sub>1 ! Suc i \<le> end\<^sub>C f"
-          by (metis I\<^sub>1_sd(1) Suc_mono Suc_pred ef i last_I\<^sub>1 length_pos_if_in_set nth_mem sorted_last)
-        moreover have "continuous_on {I\<^sub>1 ! i..<I\<^sub>1 ! Suc i} \<langle>g\<rangle>\<^sub>C"
-        proof -
-          have "I\<^sub>1 ! i = I ! i"
-            by (metis I_split(1) diff_le_self i less_le_trans nth_append)
-          moreover have "I\<^sub>1 ! Suc i = I ! Suc i"
-            by (metis I_split(1) Suc_mono Suc_pred ef i length_pos_if_in_set nth_append)
-          ultimately show ?thesis
-            using I(6) I_split(1) i by auto
-        qed
-
-        ultimately show "continuous_on {I\<^sub>1 ! i..<I\<^sub>1 ! Suc i} \<langle>f\<rangle>\<^sub>C"
-          by (rule_tac continuous_on_cgf_prefix[of _ g], simp_all add: assms)
-     qed
-   next        
-     case False note ef = this
-     thus ?thesis
-      apply (rule_tac x="I\<^sub>1 @ [end\<^sub>C f]" in exI, auto simp add: assms I_split I\<^sub>1_zero I\<^sub>1_sd)
-using I\<^sub>1_zero I_split(2) atLeastAtMost_iff apply blast
-using I\<^sub>1_sd(1) I_split(2) sorted_append apply fastforce
-      
-
-oops
-*)  
-
 typedef (overloaded) 'a::topological_space ttrace = 
   "{f :: 'a cgf. piecewise_continuous f}"
   by (rule_tac x="[]\<^sub>C" in exI, simp)
@@ -776,6 +583,18 @@ setup_lifting type_definition_ttrace
 
 lift_definition tt_empty :: "'a::topological_space ttrace" ("[]\<^sub>t") is cgf_empty
   by simp
+
+lift_definition tt_cat :: "'a::topological_space ttrace \<Rightarrow> 'a ttrace \<Rightarrow> 'a ttrace" (infixl "@\<^sub>t" 85)
+is "op @\<^sub>C" by (simp add: piecewise_continuous_cat)
+
+lemma tt_cat_left_zero: "[]\<^sub>t @\<^sub>t t = t"
+  by (transfer, simp)
+
+lemma tt_cat_right_zero: "t @\<^sub>t []\<^sub>t = t"
+  by (transfer, simp)
+
+lemma tt_cat_assoc: "(f @\<^sub>t g) @\<^sub>t h = f @\<^sub>t (g @\<^sub>t h)"
+  by (transfer, simp add: cgf_cat_assoc)
 
 instantiation ttrace :: (topological_space) order
 begin
@@ -800,5 +619,11 @@ begin
   instance ..
 
 end
+
+lemma tt_self_cancel [simp]: "t - t = []\<^sub>t"
+  by (transfer, simp)
+
+lemma tt_append_cancel [simp]: "(x @\<^sub>t y) - x = y"
+  by (transfer, auto)
 
 end
