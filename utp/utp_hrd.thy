@@ -9,10 +9,89 @@ begin
 
 subsection {* Alphabet and types *}
 
-record 't::linordered_ring htime =
+class time = linordered_idom + linordered_ring
+
+instance real :: time ..
+
+record 't::time htime =
   htime :: 't
 
-type_synonym ('t, '\<theta>, '\<alpha>) alphabet_hrd = "('\<theta>, ('t, '\<alpha>) htime_scheme) alphabet_rp"
+typedef (overloaded) 'a nz = "{n::'a::time. n > 0}" morphisms nz_of nz
+  by (metis mem_Collect_eq zero_less_one)
+
+lemma real_of_nz_gez [simp]: "nz_of x > 0"
+  by (metis mem_Collect_eq nz_of)
+
+context notes [[typedef_overloaded]]
+begin
+
+datatype ('t, '\<theta>) tevent = Tock "'t nz" "'\<theta> set" | Event '\<theta>
+
+end
+
+fun period :: "('t::time,'\<theta>) tevent list \<Rightarrow> 't" where
+"period [] = 0" |
+"period (Tock n A # t) = nz_of n + period t" |
+"period (Event x # t) = period(t)"
+
+lemma period_ge_zero [simp]: "period t \<ge> 0"
+  apply (induct t, simp_all)
+  apply (rename_tac a t, case_tac a)
+  apply (auto, metis add_nonneg_nonneg le_less real_of_nz_gez)
+done
+
+lemma Cons_prefixE: "\<lbrakk> (x # xs) \<le> ys; \<And> ys'. \<lbrakk> ys = x # ys'; xs \<le> ys' \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (metis Cons_prefix_Cons append_Cons strict_prefixE)
+
+lemma period_mono: "t1 \<le> t2 \<Longrightarrow> period t1 \<le> period t2"
+  apply (induct t1 arbitrary: t2, auto)
+  apply (rename_tac a t1 t2)
+  apply (erule Cons_prefixE)
+  apply (case_tac a)
+  apply (auto)
+done
+
+lemma minus_list_Cons [simp]:
+  "(x # ys) - (x # xs) = ys - xs"
+  by (simp add: minus_list_def)
+
+lemma period_minus [simp]: "t2 \<le> t1 \<Longrightarrow> period (t1 - t2) = period(t1) - period(t2)"
+  apply (induct t1 arbitrary: t2, auto)
+  apply (simp add: prefix_Cons)
+  apply (auto)
+  apply (rename_tac a t1 t2')
+  apply (case_tac a)
+  apply (simp_all)
+done
+
+fun events :: "('t, '\<theta>) tevent list \<Rightarrow> '\<theta> list" where
+"events [] = []" |
+"events (Tock n A # t) = events t" |
+"events (Event x # t) = (x # events t)"
+
+fun refusals :: "('t, '\<theta>) tevent list \<Rightarrow> '\<theta> set" where
+"refusals [] = {}" |
+"refusals (Tock n A # t) = A \<union> refusals t" |
+"refusals (Event x # t) = refusals t"
+
+fun idleprefix :: "('t, '\<theta>) tevent list \<Rightarrow> ('t, '\<theta>) tevent list" where
+"idleprefix [] = []" |
+"idleprefix (Tock n A # t) = (Tock n A # idleprefix t)" |
+"idleprefix (Event x # t) = []"
+
+syntax 
+  "_period" :: "logic \<Rightarrow> logic" ("period\<^sub>u'(_')")
+  "_events" :: "logic \<Rightarrow> logic" ("events\<^sub>u'(_')")
+  "_refusals" :: "logic \<Rightarrow> logic" ("refusals\<^sub>u'(_')")
+  "_idleprefix" :: "logic \<Rightarrow> logic" ("idleprefix\<^sub>u'(_')")
+
+translations
+  "period\<^sub>u(t)" == "CONST uop CONST period t"
+  "events\<^sub>u(t)" == "CONST uop CONST events t"
+  "refusals\<^sub>u(t)" == "CONST uop CONST refusals t"
+  "idleprefix\<^sub>u(t)" == "CONST uop CONST idleprefix t"
+
+type_synonym ('t, '\<theta>, '\<alpha>) alphabet_hrd = "(('t, '\<theta>) tevent, ('t, '\<alpha>) htime_scheme) alphabet_rp"
 type_synonym ('a, 't, '\<theta>, '\<alpha>) hrde = "('a, ('t, '\<theta>, '\<alpha>) alphabet_hrd) uexpr"
 type_synonym ('t, '\<theta>, '\<alpha>) hrdp = "(('t, '\<theta>, '\<alpha>) alphabet_hrd) upred"
 type_synonym ('t, '\<theta>, '\<alpha>, '\<beta>) hrd = "(('t, '\<theta>, '\<alpha>) alphabet_hrd, ('t, '\<theta>, '\<beta>) alphabet_hrd) relation"
@@ -118,7 +197,9 @@ subsection {* Healthiness conditions *}
 
 definition [upred_defs]: "TI1(P) = (P \<and> $time \<le>\<^sub>u $time\<acute>)"
 
-definition [upred_defs]: "HR1(P) = TI1(R1(P))"
+definition [upred_defs]: "HTI(P) = (P \<and> period\<^sub>u($tr\<acute> - $tr) =\<^sub>u $time\<acute> - $time)"
+
+definition [upred_defs]: "HR1(P) = HTI(TI1(R1(P)))"
 
 definition [upred_defs]: "TI2(P) = P\<lbrakk>0,($time\<acute>-$time)/$time,$time\<acute>\<rbrakk>"
 
@@ -197,7 +278,7 @@ lemma TI1_unrest [unrest]: "\<lbrakk> x \<sharp> P; in_var time \<bowtie> x; out
   by (simp add: TI1_def R1_def unrest)
 
 lemma TI1_time_diff_abs: "TI1($time\<acute> - $time =\<^sub>u \<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H) = ($time\<acute> - $time =\<^sub>u \<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)"
-  by (rel_tac, metis abs_ge_zero less_iff_diff_less_0 not_le)
+  by (rel_tac)
 
 lemma TI2_idem: "TI2(TI2(P)) = TI2(P)"
   by rel_tac
@@ -296,7 +377,7 @@ lemma TI1_TI2_seqr_form:
 done
  
 lemma time'_minus_form: "($time\<acute> - $time =\<^sub>u v) = ($time\<acute> =\<^sub>u $time + v)"
-  by (pred_tac, metis add.commute diff_add_cancel)
+  by (pred_tac)
 
 lemma TI2_HR1_true: "TI2(HR1(true)) = HR1(true)"
   by (rel_tac)
@@ -328,6 +409,27 @@ lemma TI2_HR3_commute:
   "TI2(HR3(P)) = HR3(TI2(P))"
   by (simp add: HR3_def usubst TI2_cond TI2_skip_ti TI2_wait)
 
+lemma HTI_idem: "HTI(HTI(P)) = HTI(P)"
+  by rel_tac
+
+lemma HTI_R1_commute: "HTI(R1(P)) = R1(HTI(P))"
+  by rel_tac
+
+lemma HTI_TI1_commute: "HTI(TI1(P)) = TI1(HTI(P))"
+  by rel_tac
+
+lemma HTI_H2_commute: "HTI(H2(P)) = H2(HTI(P))"
+  by rel_tac
+
+lemma HTI_USUP:
+  "HTI(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> HTI(P(i)))"
+  by rel_tac
+
+lemma HTI_UINF:
+  assumes "A \<noteq> {}"
+  shows "HTI(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> HTI(P(i)))"
+  using assms by rel_tac
+
 lemma HR1_idem: "HR1(HR1(P)) = HR1(P)"
   by (rel_tac)
 
@@ -351,18 +453,45 @@ lemma HR1_extend_conj': "HR1(P \<and> Q) = (P \<and> HR1(Q))"
 
 lemma HR1_USUP:
   "HR1(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> HR1(P(i)))"
-  by (simp add: HR1_def TI1_USUP R1_USUP)
+  by (simp add: HR1_def TI1_USUP HTI_USUP R1_USUP)
 
 lemma HR1_UINF:
   assumes "A \<noteq> {}"
   shows "HR1(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> HR1(P(i)))"
-  by (simp add: HR1_def R1_UINF TI1_UINF assms)
+  by (simp add: HR1_def R1_UINF HTI_UINF TI1_UINF assms)
 
 lemma HR1_not_HR1: "HR1(\<not> HR1(P)) = HR1(\<not> P)"
   by (rel_tac)
 
 lemma HR1_true_comp: "(HR1(true) ;; HR1(true)) = HR1(true)"
-  by (rel_tac, metis alpha_d.select_convs(2) alpha_rp'.select_convs(2) alpha_rp'.select_convs(4) eq_iff htime.select_convs(1))
+proof (rel_tac)
+  fix a :: "(('a, 'b) tevent, ('a, 'c) htime_scheme) alpha_rp'_ext alpha_d_ext" and b :: "(('a, 'b) tevent, ('a, 'd) htime_scheme) alpha_rp'_ext alpha_d_ext"
+  assume a1: "rp_tr (alpha_d.more a) \<le> rp_tr (alpha_d.more b)"
+  assume a2: "htime (alpha_rp'.more (alpha_d.more a)) \<le> htime (alpha_rp'.more (alpha_d.more b))"
+  assume a3: "period (rp_tr (alpha_d.more b)) - period (rp_tr (alpha_d.more a)) = htime (alpha_rp'.more (alpha_d.more b)) - htime (alpha_rp'.more (alpha_d.more a))"
+  have f4: "period (rp_tr (alpha_d.more b) - rp_tr (alpha_d.more a)) = period (rp_tr (alpha_d.more b)) - period (rp_tr (alpha_d.more a))"
+    using a1 by (metis period_minus)
+  have "\<And>ts. period ((ts::('a, 'b) tevent list) - ts) = 0"
+    by (metis cancel_comm_monoid_add_class.diff_cancel order_refl period_minus)
+  then show "\<exists>aa. rp_tr (alpha_d.more a) \<le> rp_tr (alpha_d.more aa) \<and> htime (alpha_rp'.more (alpha_d.more a)) \<le> htime (alpha_rp'.more (alpha_d.more aa)::('a, 'e) htime_scheme) \<and> period (rp_tr (alpha_d.more aa) - rp_tr (alpha_d.more a)) = htime (alpha_rp'.more (alpha_d.more aa)) - htime (alpha_rp'.more (alpha_d.more a)) \<and> rp_tr (alpha_d.more aa) \<le> rp_tr (alpha_d.more b) \<and> htime (alpha_rp'.more (alpha_d.more aa)) \<le> htime (alpha_rp'.more (alpha_d.more b)) \<and> period (rp_tr (alpha_d.more b) - rp_tr (alpha_d.more aa)) = htime (alpha_rp'.more (alpha_d.more b)) - htime (alpha_rp'.more (alpha_d.more aa))"
+    using f4 a3 a2 a1 by (metis alpha_d.select_convs(2) alpha_rp'.select_convs(2) alpha_rp'.select_convs(4) cancel_comm_monoid_add_class.diff_cancel htime.select_convs(1) order_refl)
+qed
+
+lemma HR1_not_ok_true:
+  "((HR1(\<not> $ok) :: ('t::time,'\<theta>,'\<alpha>,'\<beta>) hrd) ;; HR1(true)) = 
+        (HR1(\<not> $ok) :: ('t,'\<theta>,'\<alpha>,'\<gamma>) hrd)" 
+proof (rel_tac)
+  fix a :: "(('t, '\<theta>) tevent, ('t, '\<alpha>) htime_scheme) alpha_rp'_ext alpha_d_ext" and b :: "(('t, '\<theta>) tevent, ('t, '\<gamma>) htime_scheme) alpha_rp'_ext alpha_d_ext"
+  assume a1: "rp_tr (alpha_d.more a) \<le> rp_tr (alpha_d.more b)"
+  assume a2: "htime (alpha_rp'.more (alpha_d.more a)) \<le> htime (alpha_rp'.more (alpha_d.more b))"
+  assume a3: "period (rp_tr (alpha_d.more b)) - period (rp_tr (alpha_d.more a)) = htime (alpha_rp'.more (alpha_d.more b)) - htime (alpha_rp'.more (alpha_d.more a))"
+  have f4: "period (rp_tr (alpha_d.more b)) - period (rp_tr (alpha_d.more a)) = period (rp_tr (alpha_d.more b) - rp_tr (alpha_d.more a))"
+    using a1 by (metis period_minus)
+  have "\<And>ts. 0 = period ((ts::('t, '\<theta>) tevent list) - ts)"
+    by (metis cancel_comm_monoid_add_class.diff_cancel order_refl period_minus)
+  then show "\<exists>aa. rp_tr (alpha_d.more a) \<le> rp_tr (alpha_d.more aa) \<and> htime (alpha_rp'.more (alpha_d.more a)) \<le> htime (alpha_rp'.more (alpha_d.more aa)::('t, '\<beta>) htime_scheme) \<and> period (rp_tr (alpha_d.more aa) - rp_tr (alpha_d.more a)) = htime (alpha_rp'.more (alpha_d.more aa)) - htime (alpha_rp'.more (alpha_d.more a)) \<and> rp_tr (alpha_d.more aa) \<le> rp_tr (alpha_d.more b) \<and> htime (alpha_rp'.more (alpha_d.more aa)) \<le> htime (alpha_rp'.more (alpha_d.more b)) \<and> period (rp_tr (alpha_d.more b) - rp_tr (alpha_d.more aa)) = htime (alpha_rp'.more (alpha_d.more b)) - htime (alpha_rp'.more (alpha_d.more aa))"
+    using f4 a3 a2 a1 by (metis alpha_d.select_convs(2) alpha_rp'.select_convs(2) alpha_rp'.select_convs(4) cancel_comm_monoid_add_class.diff_cancel htime.select_convs(1) order_refl)
+qed
 
 lemma HR1_HR3_commute: "HR1(HR3(P)) = HR3(HR1(P))"
   by (rel_tac)
@@ -420,7 +549,7 @@ lemma HCSP1_hskip: "HCSP1(II\<^sub>H) = II\<^sub>H"
   by (rel_tac)
 
 lemma HR1_H2_commute: "HR1(H2(P)) = H2(HR1(P))"
-  by (simp add: HR1_def R1_H2_commute TI1_H2_commute)
+  by (simp add: HR1_def R1_H2_commute TI1_H2_commute HTI_H2_commute)
 
 lemma HCSP1_HR1_H1: 
   "HR1(H1(P)) = HCSP1(HR1(P))"
@@ -434,7 +563,7 @@ lemma HR1_seq: "HR1(HR1(P) ;; HR1(Q)) = (HR1(P) ;; HR1(Q))"
   by (rel_tac)
 
 lemma HR1_design_composition:
-  fixes P Q :: "('t::linordered_ring, '\<theta>, '\<alpha>, '\<beta>) hrd"
+  fixes P Q :: "('t::time, '\<theta>, '\<alpha>, '\<beta>) hrd"
   and R S :: "('t, '\<theta>, '\<beta>, '\<gamma>) hrd"
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok \<sharp> R" "$ok \<sharp> S"
   shows
@@ -444,7 +573,7 @@ proof -
   have "(HR1(P \<turnstile> Q) ;; HR1(R \<turnstile> S)) = (\<^bold>\<exists> ok\<^sub>0 \<bullet> (HR1(P \<turnstile> Q))\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<acute>\<rbrakk> ;; (HR1(R \<turnstile> S))\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<rbrakk>)"
     using seqr_middle uvar_ok by blast
   also from assms have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> HR1(($ok \<and> P) \<Rightarrow> (\<guillemotleft>ok\<^sub>0\<guillemotright> \<and> Q)) ;; HR1((\<guillemotleft>ok\<^sub>0\<guillemotright>  \<and> R) \<Rightarrow> ($ok\<acute> \<and> S)))"
-    by (simp add: design_def HR1_def TI1_def R1_def usubst unrest)
+    by (simp add: design_def HR1_def TI1_def R1_def HTI_def usubst unrest)
   also from assms have "... = ((HR1(($ok \<and> P) \<Rightarrow> (true \<and> Q)) ;; HR1((true \<and> R) \<Rightarrow> ($ok\<acute> \<and> S)))
                              \<or> (HR1(($ok \<and> P) \<Rightarrow> (false \<and> Q)) ;; HR1((false \<and> R) \<Rightarrow> ($ok\<acute> \<and> S))))"
     by (simp add: false_alt_def true_alt_def)
@@ -463,7 +592,7 @@ proof -
     by (simp add: seqr_or_distl utp_pred.sup.assoc)
   also from assms have "... = ((HR1(Q) ;; HR1(\<not> R \<or> ($ok\<acute> \<and> S))) 
                                \<or> (HR1(\<not> $ok \<or> \<not> P) ;; HR1(true)))"
-    by rel_tac
+    by rel_tac (* Slow *)
   also from assms have "... = ((HR1(Q) ;; (HR1(\<not> R) \<or> HR1(S) \<and> $ok\<acute>)) 
                                \<or> (HR1(\<not> $ok \<or> \<not> P) ;; HR1(true)))"
     by (simp add: HR1_disj HR1_extend_conj utp_pred.inf_commute)
@@ -477,7 +606,7 @@ proof -
   proof -
     have "((HR1(\<not> $ok) :: ('t,'\<theta>,'\<alpha>,'\<beta>) hrd) ;; HR1(true)) = 
            (HR1(\<not> $ok) :: ('t,'\<theta>,'\<alpha>,'\<gamma>) hrd)"
-      by (rel_tac, metis alpha_d.select_convs(2) alpha_rp'.select_convs(2) alpha_rp'.select_convs(4) htime.select_convs(1) order_refl)
+      by (metis HR1_not_ok_true)
     thus ?thesis
       by simp
   qed
@@ -575,9 +704,12 @@ lemma HR2s_UINF:
 lemma HR2s_not: "HR2s(\<not> P) = (\<not> (HR2s P))"
   by (rel_tac)
 
+lemma R2s_HTI_commute: "R2s(HTI(P)) = HTI(R2s(P))"
+  by (rel_tac)
+
 lemma R2_skip_ti: "R2(II\<^sub>H) = II\<^sub>H"
   apply (simp add: II\<^sub>H_def R2_def R2s_conj R2s_disj R2s_skip_r R2s_not R2s_ok)
-  apply (metis (mono_tags, hide_lams) HR1_def HR2s_TI1_commute HR2s_def HR3_hskip HR_def HR_hskip II\<^sub>H_def R2s_conj R2s_disj R2s_not R2s_ok R2s_skip_r TI1_R1_commute TI1_skip_ti TI2_skip_ti)
+  apply (rel_tac)
 done
 
 lemma R2_HR3_commute: "R2(HR3(P)) = HR3(R2(P))"
@@ -742,7 +874,7 @@ lemma HR2s_wait'_cond: "HR2s(P \<diamondop> Q) = HR2s(P) \<diamondop> HR2s(Q)"
   by (simp add: wait'_cond_def HR2s_def R2s_def TI2_def usubst)
 
 lemma HR1_unrest [unrest]: "\<lbrakk> x \<sharp> P; in_var tr \<bowtie> x; out_var tr \<bowtie> x; in_var time \<bowtie> x; out_var time \<bowtie> x \<rbrakk> \<Longrightarrow> x \<sharp> HR1(P)"
-  by (simp add: HR1_def TI1_def R1_def unrest)
+  by (simp add: HR1_def TI1_def R1_def HTI_def unrest)
 
 lemma HR2s_unrest [unrest]: "\<lbrakk> uvar x; x \<sharp> P; in_var tr \<bowtie> x; out_var tr \<bowtie> x; in_var time \<bowtie> x; out_var time \<bowtie> x \<rbrakk> \<Longrightarrow> x \<sharp> HR2s(P)"
   by (simp add: HR2s_def R2s_def TI2_def unrest lens_indep_sym)
@@ -1196,7 +1328,7 @@ lemma HR2c_hyst'_eq_hyst: "HR2c($\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^
 lemma HR2c_tr'_eq_tr: "HR2c($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u $tr)"
   by (simp add: HR2c_def TI2_def usubst R2c_tr'_minus_tr)
 
-lemma HR1_tr'_eq_tr: "HR1($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u $tr \<and> $time \<le>\<^sub>u $time\<acute>)"
+lemma HR1_tr'_eq_tr: "HR1($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u $tr \<and> $time =\<^sub>u $time\<acute>)"
   by (rel_tac)
  
 lemma hy_lift_unrest [unrest]: "$\<Sigma>\<^sub>H\<acute> \<sharp> \<lceil>\<lceil>P\<rceil>\<^sub><\<rceil>\<^sub>H"
@@ -1288,7 +1420,7 @@ lemma post\<^sub>H_HR3: "post\<^sub>H(HR3(P)) = post\<^sub>H(P)"
   
 lemma prog_subst_HR1: 
   "\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> HR1(P) = HR1(\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> P)"
-  by (simp add: HR_def HR1_def TI1_def R1_def usubst unrest)
+  by (simp add: HR_def HR1_def TI1_def HTI_def R1_def usubst unrest)
 
 lemma prog_subst_H2c [usubst]:
   "\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> HR2c(P) = HR2c(\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> P)"
@@ -1296,7 +1428,7 @@ lemma prog_subst_H2c [usubst]:
 
 lemma npre\<^sub>H_HR:
   "npre\<^sub>H(HR(P)) = HR1(HR2s(npre\<^sub>H(P)))"
-  by (simp add: HR_def HR1_def TI1_def R1_def R2s_def TI2_def usubst cond_unit_F HR2c_def HR2s_def HR3_def)
+  by (simp add: HR_def HR1_def TI1_def HTI_def R1_def R2s_def TI2_def usubst cond_unit_F HR2c_def HR2s_def HR3_def)
 
 lemma npre\<^sub>H_tri_design: "npre\<^sub>H(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) = (\<not> P\<lbrakk>true,false/$ok,$ok\<acute>\<rbrakk>\<lbrakk>false/$wait\<rbrakk>)"
   by (simp add: pre\<^sub>H_def design_def usubst)
@@ -1350,26 +1482,25 @@ lemma unrest_wait'_cond [unrest]:
   "\<lbrakk> x \<sharp> P; x \<sharp> Q; (out_var wait) \<bowtie> x \<rbrakk> \<Longrightarrow> x \<sharp> (P \<diamondop> Q)"
   by (simp add: wait'_cond_def unrest)
 
-definition assigns_h :: "'\<alpha> usubst \<Rightarrow> ('t::linordered_ring, '\<theta>, '\<alpha>) hhrd" ("\<langle>_\<rangle>\<^sub>H") where
+definition assigns_h :: "'\<alpha> usubst \<Rightarrow> ('t::time, '\<theta>, '\<alpha>) hhrd" ("\<langle>_\<rangle>\<^sub>H") where
 "assigns_h \<sigma> = HR(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>H))"
 
-definition htop :: "('t::linordered_ring, '\<theta>, '\<alpha>) hhrd" ("\<top>\<^sub>H") where
-"htop = HR(true \<turnstile> false \<diamondop> false)"
+definition "Miracle = HR(true \<turnstile> false \<diamondop> false)"
 
 definition "Chaos = HR(false \<turnstile> true \<diamondop> true)"
 
-definition "Stop = HR(true \<turnstile> ($tr\<acute> =\<^sub>u $tr) \<diamondop> false)"
+definition "Stop = HR(true \<turnstile> (events\<^sub>u($tr\<acute> - $tr) =\<^sub>u \<langle>\<rangle>) \<diamondop> false)"
 
-definition Guard :: "('t::linordered_ring, '\<theta>, '\<alpha>) hrdp \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" (infix "&\<^sub>u" 65)
-where "g &\<^sub>u A = HR((\<lceil>g\<rceil>\<^sub>< \<Rightarrow> pre\<^sub>H(A)) \<turnstile> ((peri\<^sub>H(A) \<triangleleft> \<lceil>g\<rceil>\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)) \<diamondop> (\<lceil>g\<rceil>\<^sub>< \<and> post\<^sub>H(A))))"
+definition Guard :: "('t::time, '\<theta>, '\<alpha>) hrdp \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" (infix "&\<^sub>u" 65)
+where "g &\<^sub>u A = HR((\<lceil>g\<rceil>\<^sub>< \<Rightarrow> pre\<^sub>H(A)) \<turnstile> ((peri\<^sub>H(A) \<triangleleft> \<lceil>g\<rceil>\<^sub>< \<triangleright> (events\<^sub>u($tr\<acute> - $tr) =\<^sub>u \<langle>\<rangle>)) \<diamondop> (\<lceil>g\<rceil>\<^sub>< \<and> post\<^sub>H(A))))"
 
-definition ExtChoice :: "('t::linordered_ring, '\<theta>, '\<alpha>) hhrd \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" (infixl "\<box>" 65)
+definition ExtChoice :: "('t::time, '\<theta>, '\<alpha>) hhrd \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" (infixl "\<box>" 65)
 where "P \<box> Q = HR((\<not> P\<^sup>f\<^sub>f \<and> \<not> Q\<^sup>f\<^sub>f) \<turnstile> ((P\<^sup>t\<^sub>f \<and> Q\<^sup>t\<^sub>f) \<triangleleft> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<triangleright> (P\<^sup>t\<^sub>f \<or> Q\<^sup>t\<^sub>f)))"
 
-definition hrd_sup :: "('t::linordered_ring, '\<theta>, '\<alpha>) hhrd set \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" ("\<Sqinter>\<^sub>H") where
-"\<Sqinter>\<^sub>H A = (if (A = {}) then \<top>\<^sub>H else \<Sqinter> A)"
+definition hrd_sup :: "('t::time, '\<theta>, '\<alpha>) hhrd set \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" ("\<Sqinter>\<^sub>H") where
+"\<Sqinter>\<^sub>H A = (if (A = {}) then Miracle else \<Sqinter> A)"
 
-definition hrd_inf :: "('t::linordered_ring, '\<theta>, '\<alpha>) hhrd set \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" ("\<Squnion>\<^sub>H") where
+definition hrd_inf :: "('t::time, '\<theta>, '\<alpha>) hhrd set \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" ("\<Squnion>\<^sub>H") where
 "\<Squnion>\<^sub>H A = (if (A = {}) then Chaos else \<Squnion> A)"
 
 definition
@@ -1379,9 +1510,9 @@ definition
 fun time_trel :: "_ \<times> _ \<Rightarrow> _ \<Rightarrow> _ \<times> _ \<Rightarrow> bool" (infix "\<leadsto>[_]\<^sub>h" 85) where
 "(\<sigma>, P) \<leadsto>[t]\<^sub>h (\<rho>, Q) \<longleftrightarrow> (\<langle>\<sigma>\<rangle>\<^sub>H ;; P) \<sqsubseteq> (Wait t ;; \<langle>\<rho>\<rangle>\<^sub>H ;; Q)"
 
-lemma htop_greatest:
+lemma Miracle_greatest:
   assumes "P is HCSP"
-  shows "P \<sqsubseteq> \<top>\<^sub>H"
+  shows "P \<sqsubseteq> Miracle"
 proof -
   have "P = HR (pre\<^sub>H(P) \<turnstile> peri\<^sub>H(P) \<diamondop> post\<^sub>H(P))"
     by (metis HCSP_hybrid_reactive_tri_design' assms)
@@ -1390,7 +1521,7 @@ proof -
   also have "HR(true \<turnstile> false) = HR(true \<turnstile> false \<diamondop> false)"
     by (simp add: wait'_cond_def cond_def)
   finally show ?thesis
-    by (simp add: htop_def)
+    by (simp add: Miracle_def)
 qed
    
 lemma Chaos_least:
@@ -1406,16 +1537,16 @@ proof -
   finally show ?thesis .
 qed
 
-lemma htop_left_zero:
+lemma Miracle_left_zero:
   assumes "P is HCSP"
-  shows "(\<top>\<^sub>H ;; P) = \<top>\<^sub>H"
+  shows "(Miracle ;; P) = Miracle"
 proof -
-  have "(\<top>\<^sub>H ;; P) = (HR(true \<turnstile> false \<diamondop> false) ;; HR (pre\<^sub>H(P) \<turnstile> peri\<^sub>H(P) \<diamondop> post\<^sub>H(P)))"
-    by (metis htop_def HCSP_hybrid_reactive_tri_design' assms)
+  have "(Miracle ;; P) = (HR(true \<turnstile> false \<diamondop> false) ;; HR (pre\<^sub>H(P) \<turnstile> peri\<^sub>H(P) \<diamondop> post\<^sub>H(P)))"
+    by (metis Miracle_def HCSP_hybrid_reactive_tri_design' assms)
   also have "... = HR (true \<turnstile> false \<diamondop> false)"
     by (simp add: HR_design_tri_composition' HR1_false HR2c_false HR2c_true HR1_true_comp  pre\<^sub>H_def post\<^sub>H_def peri\<^sub>H_def unrest usubst)
-  also have "... = \<top>\<^sub>H"
-    by (simp add: htop_def)
+  also have "... = Miracle"
+    by (simp add: Miracle_def)
   finally show ?thesis .
 qed
 
@@ -1509,8 +1640,8 @@ lemma HCSP_sup_closed:
   shows "(\<Sqinter>\<^sub>H A) is HCSP"
 proof (cases "A = {}")
   case True
-  moreover have "\<top>\<^sub>H is HCSP"
-    by (simp add: htop_def Healthy_def hybrid_reactive_design_is_HCSP unrest)
+  moreover have "Miracle is HCSP"
+    by (simp add: Miracle_def Healthy_def hybrid_reactive_design_is_HCSP unrest)
   ultimately show ?thesis
     by (simp add: hrd_sup_def)
 next
@@ -1531,7 +1662,7 @@ lemma HCSP_sup_upper_bound:
 proof (cases "A = {}")
   case True
   thus ?thesis
-    by (simp add: hrd_sup_def htop_greatest assms)
+    by (simp add: hrd_sup_def Miracle_greatest assms)
 next
   case False
   thus ?thesis
@@ -1624,13 +1755,13 @@ proof -
     by (rel_tac)
 
   also have "... = ((\<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H + \<lceil>\<lceil>\<bar>n\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H >\<^sub>u $time\<acute> - $time) \<and> $time\<acute> - $time  \<ge>\<^sub>u \<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)"
-    by (rel_tac, simp_all add: add.commute diff_less_eq)
+    by (rel_tac)
 
   also have "... = ((\<lceil>\<lceil>\<bar>m\<bar> + \<bar>n\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H >\<^sub>u $time\<acute> - $time) \<and> $time\<acute> - $time  \<ge>\<^sub>u \<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H)"
     by (simp add: alpha)
 
   also have "... = (TI1($time\<acute> - $time  \<ge>\<^sub>u \<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H \<and> \<lceil>\<lceil>\<bar>m\<bar> + \<bar>n\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H >\<^sub>u $time\<acute> - $time))"
-    by (rel_tac, meson abs_ge_zero less_iff_diff_less_0 less_le_trans not_less)
+    by (rel_tac)
 
   finally show ?thesis .
 qed    
@@ -1639,7 +1770,7 @@ lemma Wait_pericondition_lemma2:
   "(TI1 (\<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H >\<^sub>u $time\<acute> - $time) \<or>
         (TI1(\<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H \<le>\<^sub>u $time\<acute> - $time \<and> $time\<acute> - $time <\<^sub>u \<lceil>\<lceil>\<bar>m\<bar> + \<bar>n\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H))) =
     (TI1 (\<lceil>\<lceil>\<bar>m\<bar> + \<bar>n\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H >\<^sub>u $time\<acute> - $time))"
-  by (rel_tac, meson abs_ge_zero leD leI le_add_same_cancel1 order.trans)
+  by (rel_tac)
 
 lemma Wait_postcondition_lemma:
   "($\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> TI1 (\<L> =\<^sub>u \<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H) ;;\<^sub>h
@@ -1667,11 +1798,11 @@ proof -
   also have "... = ($\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> $time\<acute> =\<^sub>u $time + \<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H + \<lceil>\<lceil>\<bar>n\<bar>\<rceil>\<^sub>>\<rceil>\<^sub>H)" 
     by (rel_tac)
   also have "... = ($\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> \<lceil>\<lceil>\<bar>m\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H + \<lceil>\<lceil>\<bar>n\<bar>\<rceil>\<^sub>>\<rceil>\<^sub>H =\<^sub>u $time\<acute> - $time)"
-    by (rel_tac, simp add: add.commute add.left_commute)
+    by (rel_tac)
   also have "... = ($\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> \<lceil>\<lceil>\<bar>m\<bar> + \<bar>n\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H =\<^sub>u $time\<acute> - $time)"
     by (simp add: alpha skip_h_lift_def, rel_tac)
   also have "... = ($\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> TI1(\<L> =\<^sub>u \<lceil>\<lceil>\<bar>m\<bar> + \<bar>n\<bar>\<rceil>\<^sub><\<rceil>\<^sub>H))"
-    by (rel_tac, metis abs_ge_zero add_nonneg_nonneg diff_ge_0_iff_ge)
+    by (rel_tac)
   finally show ?thesis .
 qed
 
@@ -1686,16 +1817,19 @@ lemma Wait_m_plus_n:
   apply (simp)
   apply (simp add: HR1_def R1_extend_conj_unrest R1_extend_conj_unrest' R1_tr'_eq_tr TI1_conj_right unrest)
   apply (simp add: seq_var_ident_lift HR1_extend_conj' unrest eq_cong_left conj_disj_distr[THEN sym] TI1_idem)
+oops
+(*
   apply (simp add: Wait_pericondition_lemma1 Wait_pericondition_lemma2)
   apply (simp add: HR1_def R1_extend_conj_unrest R1_extend_conj_unrest' R1_tr'_eq_tr TI1_conj_right unrest)
   apply (simp add: seq_var_ident_lift HR1_extend_conj' unrest eq_cong_left conj_disj_distr[THEN sym] TI1_idem)
   using Wait_postcondition_lemma by blast
+*)
 
 lemma skip_hy_conj:
   "($ok\<acute> =\<^sub>u $ok \<and> $wait\<acute> =\<^sub>u $wait \<and> $ref\<acute> =\<^sub>u $ref \<and> $tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> $time\<acute> =\<^sub>u $time) = II"
   by (rel_tac, simp_all add: alpha_d.equality alpha_rp'.equality)
 
-lemma Wait_0: "Wait 0 = (II\<^sub>H :: ('t::linordered_ring, '\<theta>, '\<alpha>) hhrd)" (is "?lhs = ?rhs")
+lemma Wait_0: "Wait 0 = (II\<^sub>H :: ('t::time, '\<theta>, '\<alpha>) hhrd)" (is "?lhs = ?rhs")
 proof -
   have 1:"TI1 (\<lceil>\<lceil>0\<rceil>\<^sub><\<rceil>\<^sub>H >\<^sub>u $time\<acute> - $time) = (false :: ('t, '\<theta>, '\<alpha>) hhrd)"
     by (rel_tac)
@@ -1738,11 +1872,11 @@ proof -
     by (simp add: seqr_left_one_point false_alt_def)
   also have "... = HR ((\<not> (($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $time\<acute> =\<^sub>u $time \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>H) ;; 
                        (HR1 (\<not> P)))) \<turnstile> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> Q\<^sub>1 \<diamondop> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> Q\<^sub>2)"
-    by (simp add: usubst unrest HR1_def TI1_def R1_def assms)
+    by (simp add: usubst unrest HR1_def TI1_def HTI_def R1_def assms)
   also have "... = HR ((\<not> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> HR1 (\<not> P)) \<turnstile> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> Q\<^sub>1 \<diamondop> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> Q\<^sub>2)"
     by (simp add: assigns_hy_comp_lemma assms unrest)
   also have "... = HR ((\<not> HR1 (\<not> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> P)) \<turnstile> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> Q\<^sub>1 \<diamondop> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> Q\<^sub>2)"
-    by (simp add: HR1_def TI1_def R1_def usubst unrest)
+    by (simp add: HR1_def TI1_def R1_def HTI_def usubst unrest)
   also have "... = HR ((\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> P) \<turnstile> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> Q\<^sub>1 \<diamondop> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>H\<rceil>\<^sub>s \<dagger> Q\<^sub>2)"
     by (simp add: hrd_HR1_neg_precond)
   finally show ?thesis .
@@ -1769,32 +1903,32 @@ qed
 
 typedef HRD = "UNIV :: unit set" ..
 
-abbreviation "HRD \<equiv> TYPE(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd)"
+abbreviation "HRD \<equiv> TYPE(HRD \<times> ('t::time, '\<theta>, '\<alpha>) alphabet_hrd)"
 
 overloading
-  hrd_hcond   == "utp_hcond :: (HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> (('t, '\<theta>, '\<alpha>) alphabet_hrd \<times> ('t, '\<theta>, '\<alpha>) alphabet_hrd) Healthiness_condition"
-  hrd_unit    == "utp_unit :: (HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd"
-  hrd_pvar    == "pvar :: '\<alpha> \<Longrightarrow> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd"
+  hrd_hcond   == "utp_hcond :: (HRD \<times> ('t::time, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> (('t, '\<theta>, '\<alpha>) alphabet_hrd \<times> ('t, '\<theta>, '\<alpha>) alphabet_hrd) Healthiness_condition"
+  hrd_unit    == "utp_unit :: (HRD \<times> ('t::time, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd"
+  hrd_pvar    == "pvar :: '\<alpha> \<Longrightarrow> ('t::time, '\<theta>, '\<alpha>) alphabet_hrd"
   hrd_assigns == "pvar_assigns :: (HRD \<times> ('t, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd"
 begin
-  definition hrd_hcond :: "(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> (('t, '\<theta>, '\<alpha>) alphabet_hrd \<times> ('t, '\<theta>, '\<alpha>) alphabet_hrd) Healthiness_condition" where
+  definition hrd_hcond :: "(HRD \<times> ('t::time, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> (('t, '\<theta>, '\<alpha>) alphabet_hrd \<times> ('t, '\<theta>, '\<alpha>) alphabet_hrd) Healthiness_condition" where
   [upred_defs]: "hrd_hcond T = HCSP"
-  definition hrd_unit :: "(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" where
+  definition hrd_unit :: "(HRD \<times> ('t::time, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" where
   [upred_defs]: "hrd_unit T = II\<^sub>H"
-  definition hrd_pvar :: "'\<alpha> \<Longrightarrow> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd" where
+  definition hrd_pvar :: "'\<alpha> \<Longrightarrow> ('t::time, '\<theta>, '\<alpha>) alphabet_hrd" where
   [upred_defs]: "hrd_pvar = \<Sigma>\<^sub>H"
-  definition hrd_assigns :: "(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" where
+  definition hrd_assigns :: "(HRD \<times> ('t::time, '\<theta>, '\<alpha>) alphabet_hrd) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" where
   [upred_defs]: "hrd_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>H"
 end
 
-interpretation hrd_theory: utp_theory "TYPE(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd)"
+interpretation hrd_theory: utp_theory "TYPE(HRD \<times> ('t::time, '\<theta>, '\<alpha>) alphabet_hrd)"
   by (unfold_locales, simp_all add: hrd_hcond_def HCSP_idem)
 
-lemma htop_is_top: "\<top>\<^bsub>utp_order HRD\<^esub> = \<top>\<^sub>H"
+lemma Miracle_is_top: "\<top>\<^bsub>utp_order HRD\<^esub> = Miracle"
   apply (auto intro!:some_equality simp add: atop_def some_equality greatest_def utp_order_def hrd_hcond_def)
   apply (metis HCSP_sup_closed emptyE hrd_sup_def)
-  using htop_greatest apply blast
-  apply (metis HCSP_sup_closed dual_order.antisym equals0D hrd_sup_def htop_greatest)
+  using Miracle_greatest apply blast
+  apply (metis HCSP_sup_closed dual_order.antisym equals0D hrd_sup_def Miracle_greatest)
 done
 
 lemma Chaos_is_bot: "\<bottom>\<^bsub>utp_order HRD\<^esub> = Chaos"
@@ -1804,12 +1938,12 @@ lemma Chaos_is_bot: "\<bottom>\<^bsub>utp_order HRD\<^esub> = Chaos"
   apply (metis Chaos_least HCSP_inf_closed dual_order.antisym equals0D hrd_inf_def)
 done
 
-interpretation hrd_lattice: utp_theory_lattice "TYPE(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd)"
+interpretation hrd_lattice: utp_theory_lattice "TYPE(HRD \<times> ('t::time, '\<theta>, '\<alpha>) alphabet_hrd)"
   rewrites "carrier (utp_order HRD) = \<lbrakk>HCSP\<rbrakk>"
-  and "\<top>\<^bsub>utp_order HRD\<^esub> = \<top>\<^sub>H"
+  and "\<top>\<^bsub>utp_order HRD\<^esub> = Miracle"
   and "\<bottom>\<^bsub>utp_order HRD\<^esub> = Chaos"
   apply (unfold_locales)
-  apply (simp_all add: htop_is_top Chaos_is_bot)
+  apply (simp_all add: Miracle_is_top Chaos_is_bot)
   apply (simp_all add: utp_order_def hrd_hcond_def)
   apply (rename_tac A)
   apply (rule_tac x="\<Squnion>\<^sub>H A" in exI, auto intro:HCSP_inf_above HCSP_inf_lower_bound HCSP_inf_closed simp add: least_def Upper_def HCSP_inf_above)
@@ -1823,7 +1957,7 @@ abbreviation hrd_lfp :: "_ \<Rightarrow> _" ("\<mu>\<^sub>H") where
 abbreviation hrd_gfp :: "_ \<Rightarrow> _" ("\<nu>\<^sub>H") where
 "\<nu>\<^sub>H F \<equiv> \<nu>\<^bsub>utp_order HRD\<^esub> F"
 
-interpretation hrd_prog_var: utp_prog_var "TYPE(HRD \<times> ('t::linordered_ring, '\<theta>, '\<alpha>) alphabet_hrd)" "TYPE('\<alpha>::vst)"
+interpretation hrd_prog_var: utp_prog_var "TYPE(HRD \<times> ('t::time, '\<theta>, '\<alpha>) alphabet_hrd)" "TYPE('\<alpha>::vst)"
   by (unfold_locales, simp_all add: hrd_pvar_def hrd_assigns_def hrd_hcond_def assigns_h_HCSP assigns_h_merge)
 
 lemma Stop_left_unit:
@@ -1832,9 +1966,9 @@ lemma Stop_left_unit:
 proof -
   have "(Stop ;; P) = (Stop ;; HR (pre\<^sub>H P \<turnstile> peri\<^sub>H P \<diamondop> post\<^sub>H P))"
     using HCSP_hybrid_reactive_tri_design' assms by force
-  also have "... = (HR(true \<turnstile> ($tr\<acute> =\<^sub>u $tr) \<diamondop> false) ;; HR (pre\<^sub>H P \<turnstile> peri\<^sub>H P \<diamondop> post\<^sub>H P))"
+  also have "... = (HR(true \<turnstile> (events\<^sub>u($tr\<acute> - $tr) =\<^sub>u \<langle>\<rangle>) \<diamondop> false) ;; HR (pre\<^sub>H P \<turnstile> peri\<^sub>H P \<diamondop> post\<^sub>H P))"
     by (simp add: Stop_def)
-  also have "... = HR (true \<turnstile> ($tr\<acute> =\<^sub>u $tr) \<diamondop> false)"
+  also have "... = HR (true \<turnstile> (events\<^sub>u($tr\<acute> - $tr) =\<^sub>u \<langle>\<rangle>) \<diamondop> false)"
     by (simp add: HR_design_tri_composition' unrest pre\<^sub>H_def peri\<^sub>H_def post\<^sub>H_def usubst HR2c_true HR1_false HR2c_false)
   also have "... = Stop"
     by (simp add: Stop_def)
@@ -1848,7 +1982,7 @@ lemma Guard_true:
   assumes "P is HCSP"
   shows "true &\<^sub>u P = P"
 proof -
-  have "true &\<^sub>u P = HR (pre\<^sub>H P \<turnstile> (peri\<^sub>H P \<triangleleft> true \<triangleright> $tr\<acute> =\<^sub>u $tr) \<diamondop> post\<^sub>H P)"
+  have "true &\<^sub>u P = HR (pre\<^sub>H P \<turnstile> (peri\<^sub>H P \<triangleleft> true \<triangleright> (events\<^sub>u($tr\<acute> - $tr) =\<^sub>u \<langle>\<rangle>)) \<diamondop> post\<^sub>H P)"
     by (simp add: Guard_def alpha)
   also have "... = HR (pre\<^sub>H P \<turnstile> peri\<^sub>H P \<diamondop> post\<^sub>H P)"
     by (simp add: cond_unit_T)
@@ -1873,7 +2007,7 @@ lemma post\<^sub>H_false: "post\<^sub>H(false) = false"
 lemma pre\<^sub>H_Stop: "pre\<^sub>H(Stop) = true"
   by (simp add: Stop_def pre\<^sub>H_hrd peri\<^sub>H_hrd post\<^sub>H_hrd usubst HR2s_false HR1_false)
 
-lemma peri\<^sub>H_Stop: "peri\<^sub>H(Stop) = HR1($tr\<acute> =\<^sub>u $tr)"
+lemma peri\<^sub>H_Stop: "peri\<^sub>H(Stop) = HR1(events\<^sub>u($tr\<acute> - $tr) =\<^sub>u \<langle>\<rangle>)"
   apply (simp add: Stop_def pre\<^sub>H_hrd peri\<^sub>H_hrd post\<^sub>H_hrd usubst peri\<^sub>H_true)
   apply (simp add: peri\<^sub>H_def usubst HR2c_conj HR2c_tr'_eq_tr HR2c_hyst'_eq_hyst HR1_extend_conj HR1_tr'_eq_tr)
   apply (rel_tac)
@@ -1936,19 +2070,22 @@ lemma design_post_tf: "(P \<turnstile> Q)\<^sup>t\<^sub>f = ($ok \<and> P\<^sup>
   by (simp add: design_def usubst impl_alt_def)
 
 lemma HR_pre_ff: "(HR(P))\<^sup>f\<^sub>f = HR1(HR2c(P\<^sup>f\<^sub>f))"
-  by (simp add: HR_R2c_def HR1_def TI1_def R1_def R2c_def TI2_def R2s_def HR2c_def HR3_def usubst cond_unit_F)
+  by (simp add: HR_R2c_def HR1_def TI1_def R1_def HTI_def R2c_def TI2_def R2s_def HR2c_def HR3_def usubst cond_unit_F)
 
 lemma HR_post_tf: "(HR(P))\<^sup>t\<^sub>f = HR1(HR2c(P\<^sup>t\<^sub>f))"
-  by (simp add: HR_R2c_def HR1_def TI1_def R1_def R2c_def TI2_def R2s_def HR2c_def HR3_def usubst cond_unit_F)
+  by (simp add: HR_R2c_def HR1_def TI1_def R1_def HTI_def R2c_def TI2_def R2s_def HR2c_def HR3_def usubst cond_unit_F)
 
 lemma Stop_pre_ff: "Stop\<^sup>f\<^sub>f = HR1 (\<not> $ok)"
   apply (simp add: Stop_def HR_pre_ff design_pre_ff impl_alt_def HR2c_disj HR2c_not HR2c_ok)
   apply (simp add: usubst HR2c_true)
 done
 
-lemma Stop_post_tf: "Stop\<^sup>t\<^sub>f = (HR1(\<not> $ok) \<or> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> $time\<acute> \<ge>\<^sub>u $time)"
+lemma HR2c_events_empty: "HR2c(events\<^sub>u($tr\<acute> - $tr) =\<^sub>u \<langle>\<rangle>) = (events\<^sub>u($tr\<acute> - $tr) =\<^sub>u \<langle>\<rangle>)"
+  by (simp add: HR2c_def TI2_def usubst R2c_def R2s_def usubst, rel_tac)
+
+lemma Stop_post_tf: "Stop\<^sup>t\<^sub>f = (HR1(\<not> $ok) \<or> $wait\<acute> \<and> HR1(events\<^sub>u($tr\<acute> - $tr) =\<^sub>u \<langle>\<rangle>))"
   apply (simp add: Stop_def HR_post_tf design_post_tf impl_alt_def HR2c_disj HR2c_not HR2c_ok)
-  apply (simp add: usubst wait'_cond_def cond_def HR2c_true HR2c_conj HR2c_wait HR2c_tr'_eq_tr HR2c_wait' HR1_extend_conj' HR1_disj HR1_tr'_eq_tr)
+  apply (simp add: usubst wait'_cond_def cond_def HR2c_true HR2c_conj HR2c_wait HR2c_events_empty HR2c_wait' HR1_extend_conj' HR1_disj HR1_tr'_eq_tr)
 done
 
 lemma HR_neg_healthy_pre: "HR((\<not> HR1(HR2c(P))) \<turnstile> Q) = HR((\<not> P) \<turnstile> Q)"
@@ -1959,7 +2096,7 @@ lemma HR_healthy_post: "HR(P \<turnstile> HR1(HR2c(Q))) = HR(P \<turnstile> Q)"
 
 lemma HR1_subst [usubst]:
   "\<lbrakk> $tr \<sharp> \<sigma>; $tr\<acute> \<sharp> \<sigma>; $time \<sharp> \<sigma>; $time\<acute> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow>  \<sigma> \<dagger> HR1(P) = HR1(\<sigma> \<dagger> P)"
-  by (simp add: HR1_def TI1_def R1_def usubst)
+  by (simp add: HR1_def TI1_def R1_def HTI_def usubst)
 
 lemma HR_design_ExtChoice:
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> R"
@@ -2075,26 +2212,30 @@ lemma Chaos_HR_true:
   "Chaos = HR(true)"
   by (simp add: Chaos_def design_def)
 
+(*
 lemma Stop_ExtChoice_unit:
   assumes "P is HCSP"
   shows "Stop \<box> P = P"
 proof -
-  have "Stop \<box> P = HR (true \<turnstile> ($tr\<acute> =\<^sub>u $tr) \<diamondop> false) \<box> HR(pre\<^sub>H(P) \<turnstile> peri\<^sub>H(P) \<diamondop> post\<^sub>H(P))"
+  have "Stop \<box> P = HR (true \<turnstile> (events\<^sub>u($tr\<acute> - $tr) =\<^sub>u \<langle>\<rangle>) \<diamondop> false) \<box> HR(pre\<^sub>H(P) \<turnstile> peri\<^sub>H(P) \<diamondop> post\<^sub>H(P))"
     by (simp add: Stop_def HCSP_hybrid_reactive_tri_design'[THEN sym] assms)
   also have "... = 
-             HR ((true \<and> pre\<^sub>H P) \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> peri\<^sub>H P \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> $tr\<acute> =\<^sub>u $tr \<or> peri\<^sub>H P) 
+             HR ((true \<and> pre\<^sub>H P) \<turnstile> (events\<^sub>u($tr\<acute> - $tr) =\<^sub>u \<langle>\<rangle> \<and> peri\<^sub>H P 
+                                     \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> 
+                                    events\<^sub>u($tr\<acute> - $tr) =\<^sub>u \<langle>\<rangle> \<or> peri\<^sub>H P) 
                                  \<diamondop> (false \<or> post\<^sub>H P))"
     by (simp add: HR_tri_design_ExtChoice unrest)
   also have "... = HR(pre\<^sub>H(P) \<turnstile> peri\<^sub>H(P) \<diamondop> post\<^sub>H(P))"
   proof -
-    have "($tr\<acute> =\<^sub>u $tr \<and> peri\<^sub>H P \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> $tr\<acute> =\<^sub>u $tr \<or> peri\<^sub>H P) = peri\<^sub>H(P)"
-      by (rel_tac)
+    have "(events\<^sub>u($tr\<acute> - $tr) =\<^sub>u \<langle>\<rangle> \<and> peri\<^sub>H P \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> events\<^sub>u($tr\<acute> - $tr) =\<^sub>u \<langle>\<rangle> \<or> peri\<^sub>H P) = peri\<^sub>H(P)"
+      apply (rel_tac)
     thus ?thesis by simp
   qed
   also have "... = P"
     by (simp add: HCSP_hybrid_reactive_tri_design'[THEN sym] assms)
   finally show ?thesis .
 qed
+*)
 
 lemma Chaos_ExtChoice_zero:
   assumes "P is HCSP"

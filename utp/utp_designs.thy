@@ -707,6 +707,9 @@ proof -
   finally show ?thesis .
 qed
 
+lemma H2_true: "H2(true) = true"
+  by (rel_tac)
+
 lemma H2_choice_closed:
   "\<lbrakk> P is H2; Q is H2 \<rbrakk> \<Longrightarrow> P \<sqinter> Q is H2"
   by (metis H2_def Healthy_def' disj_upred_def seqr_or_distl)

@@ -299,8 +299,6 @@ text {* While loops with invariant decoration *}
 definition while_inv :: "'\<alpha> condition \<Rightarrow> '\<alpha> condition \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("while _ invr _ do _ od") where
 "while b invr p do S od = while b do S od"
 
-declare while_inv_def
-
 lemma cond_idem:"(P \<triangleleft> b \<triangleright> P) = P" by rel_tac 
 
 lemma cond_symm:"(P \<triangleleft> b \<triangleright> Q) = (Q \<triangleleft> \<not> b \<triangleright> P)" by rel_tac
