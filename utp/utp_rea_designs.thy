@@ -4,40 +4,7 @@ theory utp_rea_designs
   imports utp_reactive
 begin
 
-definition wait'_cond :: "_ \<Rightarrow> _ \<Rightarrow> _" (infix "\<diamondop>" 65) where
-[upred_defs]: "P \<diamondop> Q = (P \<triangleleft> $wait\<acute> \<triangleright> Q)"
-
-lemma wait_false_design:
-  "(P \<turnstile> Q) \<^sub>f = ((P \<^sub>f) \<turnstile> (Q \<^sub>f))"
-  by (rel_tac)
-
-lemma wait'_cond_subst [usubst]:
-  "$wait\<acute> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P \<diamondop> Q) = (\<sigma> \<dagger> P) \<diamondop> (\<sigma> \<dagger> Q)"
-  by (simp add: wait'_cond_def usubst unrest)
-
-lemma wait'_cond_left_false: "false \<diamondop> P = (\<not> $wait\<acute> \<and> P)"
-  by (rel_tac)
-
-lemma wait'_cond_seq: "((P \<diamondop> Q) ;; R) = ((P ;; $wait \<and> R) \<or> (Q ;; \<not>$wait \<and> R))"
-  by (simp add: wait'_cond_def cond_def seqr_or_distl, rel_tac)
-
-lemma wait'_cond_true: "(P \<diamondop> Q \<and> $wait\<acute>) = (P \<and> $wait\<acute>)" 
-  by (rel_tac)
-
-lemma wait'_cond_false: "(P \<diamondop> Q \<and> (\<not>$wait\<acute>)) = (Q \<and> (\<not>$wait\<acute>))" 
-  by (rel_tac)    
-
-lemma subst_wait'_cond_true [usubst]: "(P \<diamondop> Q)\<lbrakk>true/$wait\<acute>\<rbrakk> = P\<lbrakk>true/$wait\<acute>\<rbrakk>"
-  by rel_tac
-
-lemma subst_wait'_cond_false [usubst]: "(P \<diamondop> Q)\<lbrakk>false/$wait\<acute>\<rbrakk> = Q\<lbrakk>false/$wait\<acute>\<rbrakk>"
-  by rel_tac  
-
-lemma subst_wait'_left_subst: "(P\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> Q) = (P \<diamondop> Q)"
-  by (metis wait'_cond_def cond_def conj_comm conj_eq_out_var_subst upred_eq_true wait_uvar)
-
-lemma subst_wait'_right_subst: "(P \<diamondop> Q\<lbrakk>false/$wait\<acute>\<rbrakk>) = (P \<diamondop> Q)"
-  by (metis cond_def conj_eq_out_var_subst upred_eq_false utp_pred.inf.commute wait'_cond_def wait_uvar)
+subsection {* Commutativity properties *}
 
 lemma H2_R1_comm: "H2(R1(P)) = R1(H2(P))"
   by (simp add: H2_split R1_def usubst, rel_tac)
@@ -56,6 +23,8 @@ lemma R3c_via_H1: "R1(R3c(H1(P))) = R1(H1(R3(P)))"
 
 lemma skip_rea_via_H1: "II\<^sub>r = R1(H1(R3(II)))"
   by rel_tac
+
+subsection {* Reactive design composition *}
 
 text {* Pedro's proof for R1 design composition *}
 
@@ -294,7 +263,7 @@ proof -
                               (R1 (R2s Q) ;; (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s S))))))"
     by (simp add: R2c_design R2c_and R2c_not 1 2 3)
   finally show ?thesis
-    by (metis RH_R2c_def RH_def)
+    by (metis R1_R2s_R2c R1_R3c_commute R2c_R3c_commute RH_R2c_def)
 qed
 
 text {* Marcel's proof for reactive design composition *}
@@ -400,5 +369,436 @@ proof -
 
   finally show ?thesis .
 qed
+
+subsection {* Healthiness conditions *}
+
+definition [upred_defs]: "CSP1(P) = (P \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
+
+text {* CSP2 is just H2 since the type system will automatically have J identifying the reactive
+        variables as required. *}
+
+definition [upred_defs]: "CSP2(P) = H2(P)"
+
+abbreviation "CSP(P) \<equiv> CSP1(CSP2(RH(P)))"
+
+lemma CSP1_idem:
+  "CSP1(CSP1(P)) = CSP1(P)"
+  by pred_tac
+
+lemma CSP2_idem:
+  "CSP2(CSP2(P)) = CSP2(P)"
+  by (simp add: CSP2_def H2_idem)
+
+lemma CSP1_CSP2_commute:
+  "CSP1(CSP2(P)) = CSP2(CSP1(P))"
+  by (simp add: CSP1_def CSP2_def H2_split usubst, rel_tac)
+
+lemma CSP1_via_H1: "R1(H1(P)) = R1(CSP1(P))"
+  by rel_tac
+
+lemma CSP1_R3c: "CSP1(R3(P)) = R3c(CSP1(P))"
+  by rel_tac
+
+lemma CSP1_reactive_design: "CSP1(RH(P \<turnstile> Q)) = RH(P \<turnstile> Q)"
+  by rel_tac
+
+lemma CSP2_reactive_design:
+  assumes "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$ok \<sharp> Q" "$ok\<acute> \<sharp> Q"
+  shows "CSP2(RH(P \<turnstile> Q)) = RH(P \<turnstile> Q)"
+  using assms
+  by (simp add: CSP2_def H2_R1_comm H2_R2_comm H2_R3_comm H2_design RH_def H2_R2s_comm)
+
+lemma CSP1_R1_H1: 
+  "R1(H1(P)) = CSP1(R1(P))"
+  by rel_tac
+
+lemma wait_false_design:
+  "(P \<turnstile> Q) \<^sub>f = ((P \<^sub>f) \<turnstile> (Q \<^sub>f))"
+  by (rel_tac)
+
+lemma CSP_reactive_design:
+  assumes "P is CSP"
+  shows "RH((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f) = P"
+proof -
+  have "P = CSP1(CSP2(R1(R2s(R3c(P)))))"
+    by (metis Healthy_def' RH_def assms)
+  also have "... = CSP1(H2(R1(R2s(R3c(P)))))"
+    by (simp add: CSP2_def)
+  also have "... = CSP1(R1(H2(R2s(R3c(P)))))"
+    by (simp add: R1_H2_commute)
+  also have "... = R1(H1(R1(H2(R2s(R3c(P))))))"
+    by (simp add: CSP1_R1_H1 R1_idem)
+  also have "... = R1(H1(H2(R2s(R3c(R1(P))))))"
+    by (metis CSP1_R1_H1 R1_H2_commute R1_R2_commute R1_idem R2_R3c_commute R2_def)
+  also have "... = R1(R2s(H1(H2(R3c(R1(P))))))"
+    by (simp add: R2s_H1_commute R2s_H2_commute)
+  also have "... = R1(R2s(H1(R3c(H2(R1(P))))))"
+    by (simp add: R3c_H2_commute)
+  also have "... = R2(R1(H1(R3c(H2(R1(P))))))"
+    by (metis R1_R2_commute R1_idem R2_def)
+  also have "... = R2(R3c(R1(H1(H2(R1(P))))))"
+    by (simp add: R1_H1_R3c_commute)
+  also have "... = RH(H1_H2(R1(P)))"
+    by (metis R1_R2_commute R1_idem R2_R3c_commute R2_def RH_def)
+  also have "... = RH(H1_H2(P))"
+    by (metis R1_idem RH_def calculation)
+  also have "... = RH((\<not> P\<^sup>f) \<turnstile> P\<^sup>t)"
+  proof -
+    have 0:"(\<not> (H1_H2(P))\<^sup>f) = ($ok \<and> \<not> P\<^sup>f)"
+      by (simp add: H1_def H2_split, pred_tac)
+    have 1:"(H1_H2(P))\<^sup>t = ($ok \<Rightarrow> (P\<^sup>f \<or> P\<^sup>t))"
+      by (simp add: H1_def H2_split, pred_tac)
+    have "(\<not> (H1_H2(P))\<^sup>f) \<turnstile> (H1_H2(P))\<^sup>t = ((\<not> P\<^sup>f) \<turnstile> P\<^sup>t)"
+      by (simp add: 0 1, pred_tac)
+    thus ?thesis
+      by (metis H1_H2_commute H1_H2_is_design H1_idem H2_idem Healthy_def')
+  qed
+  also have "... = RH((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
+    by (metis R3c_subst_wait RH_def subst_not wait_false_design)
+  finally show ?thesis by simp
+qed
+
+subsection {* Reactive design triples *}
+
+definition wait'_cond :: "_ \<Rightarrow> _ \<Rightarrow> _" (infix "\<diamondop>" 65) where
+[upred_defs]: "P \<diamondop> Q = (P \<triangleleft> $wait\<acute> \<triangleright> Q)"
+
+lemma wait'_cond_subst [usubst]:
+  "$wait\<acute> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P \<diamondop> Q) = (\<sigma> \<dagger> P) \<diamondop> (\<sigma> \<dagger> Q)"
+  by (simp add: wait'_cond_def usubst unrest)
+
+lemma wait'_cond_left_false: "false \<diamondop> P = (\<not> $wait\<acute> \<and> P)"
+  by (rel_tac)
+
+lemma wait'_cond_seq: "((P \<diamondop> Q) ;; R) = ((P ;; $wait \<and> R) \<or> (Q ;; \<not>$wait \<and> R))"
+  by (simp add: wait'_cond_def cond_def seqr_or_distl, rel_tac)
+
+lemma wait'_cond_true: "(P \<diamondop> Q \<and> $wait\<acute>) = (P \<and> $wait\<acute>)" 
+  by (rel_tac)
+
+lemma wait'_cond_false: "(P \<diamondop> Q \<and> (\<not>$wait\<acute>)) = (Q \<and> (\<not>$wait\<acute>))" 
+  by (rel_tac)    
+
+lemma subst_wait'_cond_true [usubst]: "(P \<diamondop> Q)\<lbrakk>true/$wait\<acute>\<rbrakk> = P\<lbrakk>true/$wait\<acute>\<rbrakk>"
+  by rel_tac
+
+lemma subst_wait'_cond_false [usubst]: "(P \<diamondop> Q)\<lbrakk>false/$wait\<acute>\<rbrakk> = Q\<lbrakk>false/$wait\<acute>\<rbrakk>"
+  by rel_tac  
+
+lemma subst_wait'_left_subst: "(P\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> Q) = (P \<diamondop> Q)"
+  by (metis wait'_cond_def cond_def conj_comm conj_eq_out_var_subst upred_eq_true wait_uvar)
+
+lemma subst_wait'_right_subst: "(P \<diamondop> Q\<lbrakk>false/$wait\<acute>\<rbrakk>) = (P \<diamondop> Q)"
+  by (metis cond_def conj_eq_out_var_subst upred_eq_false utp_pred.inf.commute wait'_cond_def wait_uvar)
+
+lemma wait'_cond_split: "P\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> P\<lbrakk>false/$wait\<acute>\<rbrakk> = P"
+  by (simp add: wait'_cond_def cond_var_split)
+
+lemma R1_wait'_cond: "R1(P \<diamondop> Q) = R1(P) \<diamondop> R1(Q)"
+  by rel_tac
+
+lemma R2s_wait'_cond: "R2s(P \<diamondop> Q) = R2s(P) \<diamondop> R2s(Q)"
+  by (simp add: wait'_cond_def R2s_def R2s_def usubst)
+
+lemma RH_design_lemma1:
+  "RH(P \<turnstile> (R1(R2c(Q)) \<or> R) \<diamondop> S) = RH(P \<turnstile> (Q \<or> R) \<diamondop> S)"
+  by (simp add: design_def impl_alt_def wait'_cond_def RH_R2c_def R2c_R3c_commute R1_R3c_commute R1_disj R2c_disj R2c_and R1_cond R2c_condr R1_R2c_commute R2c_idem R1_extend_conj' R1_idem)
+
+lemma RH_tri_design_composition: 
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>2" "$ok \<sharp> R" "$ok \<sharp> S\<^sub>1" "$ok \<sharp> S\<^sub>2"
+           "$wait\<acute> \<sharp> Q\<^sub>2" "$wait \<sharp> S\<^sub>1" "$wait \<sharp> S\<^sub>2"
+  shows "(RH(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) ;; RH(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2)) = 
+       RH((\<not> (R1 (\<not> R2s P) ;; R1 true) \<and> \<not> (R1 (R2s Q\<^sub>2) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R))) \<turnstile>
+                       ((Q\<^sub>1 \<or> (R1 (R2s Q\<^sub>2) ;; R1 (R2s S\<^sub>1))) \<diamondop> ((R1 (R2s Q\<^sub>2) ;; R1 (R2s S\<^sub>2)))))"
+proof -
+  have 1:"(\<not> (R1 (R2s (Q\<^sub>1 \<diamondop> Q\<^sub>2)) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R))) = 
+        (\<not> (R1 (R2s Q\<^sub>2) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R)))"
+    by (metis R1_extend_conj R2s_conj R2s_not R2s_wait' wait'_cond_false)
+  have 2: "(R1 (R2s (Q\<^sub>1 \<diamondop> Q\<^sub>2)) ;; (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s (S\<^sub>1 \<diamondop> S\<^sub>2)))) =
+                 ((R1 (R2s Q\<^sub>1) \<or> (R1 (R2s Q\<^sub>2) ;; R1 (R2s S\<^sub>1))) \<diamondop> (R1 (R2s Q\<^sub>2) ;; R1 (R2s S\<^sub>2)))"
+  proof -
+    have "(R1 (R2s Q\<^sub>1) ;; $wait \<and> (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s S\<^sub>1) \<diamondop> R1 (R2s S\<^sub>2)))
+                       = (R1 (R2s Q\<^sub>1) \<and> $wait\<acute>)"
+    proof -
+      have "(R1 (R2s Q\<^sub>1) ;; $wait \<and> (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s S\<^sub>1) \<diamondop> R1 (R2s S\<^sub>2))) 
+           = (R1 (R2s Q\<^sub>1) ;; $wait \<and> \<lceil>II\<rceil>\<^sub>D)"
+        by (rel_tac)
+      also have "... = ((R1 (R2s Q\<^sub>1) ;; \<lceil>II\<rceil>\<^sub>D) \<and> $wait\<acute>)"
+        by (rel_tac)
+      also from assms(2) have "... = ((R1 (R2s Q\<^sub>1)) \<and> $wait\<acute>)"
+        by (simp add: lift_des_skip_dr_unit_unrest unrest)
+      finally show ?thesis .
+    qed
+ 
+    moreover have "(R1 (R2s Q\<^sub>2) ;; \<not> $wait \<and> (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s S\<^sub>1) \<diamondop> R1 (R2s S\<^sub>2)))
+                  = ((R1 (R2s Q\<^sub>2)) ;; (R1 (R2s S\<^sub>1) \<diamondop> R1 (R2s S\<^sub>2)))"
+    proof - 
+      have "(R1 (R2s Q\<^sub>2) ;; \<not> $wait \<and> (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s S\<^sub>1) \<diamondop> R1 (R2s S\<^sub>2)))
+            = (R1 (R2s Q\<^sub>2) ;; \<not> $wait \<and> (R1 (R2s S\<^sub>1) \<diamondop> R1 (R2s S\<^sub>2)))"
+        by (metis (no_types, lifting) cond_def conj_disj_not_abs utp_pred.double_compl utp_pred.inf.left_idem utp_pred.sup_assoc utp_pred.sup_inf_absorb)
+
+      also have "... = ((R1 (R2s Q\<^sub>2))\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (R1 (R2s S\<^sub>1) \<diamondop> R1 (R2s S\<^sub>2))\<lbrakk>false/$wait\<rbrakk>)"
+        by (metis false_alt_def seqr_right_one_point upred_eq_false wait_uvar)
+
+      also have "... = ((R1 (R2s Q\<^sub>2)) ;; (R1 (R2s S\<^sub>1) \<diamondop> R1 (R2s S\<^sub>2)))"
+        by (simp add: wait'_cond_def usubst unrest assms)
+      
+      finally show ?thesis .
+    qed
+      
+    moreover
+    have "((R1 (R2s Q\<^sub>1) \<and> $wait\<acute>) \<or> ((R1 (R2s Q\<^sub>2)) ;; (R1 (R2s S\<^sub>1) \<diamondop> R1 (R2s S\<^sub>2))))
+          = (R1 (R2s Q\<^sub>1) \<or> (R1 (R2s Q\<^sub>2) ;; R1 (R2s S\<^sub>1))) \<diamondop> ((R1 (R2s Q\<^sub>2) ;; R1 (R2s S\<^sub>2)))"
+      by (simp add: wait'_cond_def cond_seq_right_distr cond_and_T_integrate unrest)
+
+    ultimately show ?thesis
+      by (simp add: R2s_wait'_cond R1_wait'_cond wait'_cond_seq)
+  qed
+
+  show ?thesis
+    apply (subst RH_design_composition)
+    apply (simp_all add: assms)
+    apply (simp add: assms wait'_cond_def unrest)
+    apply (simp add: assms wait'_cond_def unrest)
+    apply (simp add: 1 2)
+    apply (simp add: R1_R2s_R2c RH_design_lemma1)
+  done
+qed
+
+text {* Syntax for pre-, post-, and periconditions *}
+
+abbreviation "pre\<^sub>s  \<equiv> [$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s false, $wait \<mapsto>\<^sub>s false]"
+abbreviation "peri\<^sub>s \<equiv> [$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s false, $wait\<acute> \<mapsto>\<^sub>s true]"
+abbreviation "post\<^sub>s \<equiv> [$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s false, $wait\<acute> \<mapsto>\<^sub>s false]"
+
+abbreviation "npre\<^sub>R(P) \<equiv> pre\<^sub>s \<dagger> P"
+
+definition [upred_defs]: "pre\<^sub>R(P)  = (\<not> (npre\<^sub>R(P)))" 
+definition [upred_defs]: "peri\<^sub>R(P) = (peri\<^sub>s \<dagger> P)"
+definition [upred_defs]: "post\<^sub>R(P) = (post\<^sub>s \<dagger> P)"
+
+lemma ok_pre_unrest [unrest]: "$ok \<sharp> pre\<^sub>R P"
+  by (simp add: pre\<^sub>R_def unrest usubst)
+
+lemma ok_peri_unrest [unrest]: "$ok \<sharp> peri\<^sub>R P"
+  by (simp add: peri\<^sub>R_def unrest usubst)
+
+lemma ok_post_unrest [unrest]: "$ok \<sharp> post\<^sub>R P"
+  by (simp add: post\<^sub>R_def unrest usubst)
+
+lemma ok'_pre_unrest [unrest]: "$ok\<acute> \<sharp> pre\<^sub>R P"
+  by (simp add: pre\<^sub>R_def unrest usubst)
+
+lemma ok'_peri_unrest [unrest]: "$ok\<acute> \<sharp> peri\<^sub>R P"
+  by (simp add: peri\<^sub>R_def unrest usubst)
+
+lemma ok'_post_unrest [unrest]: "$ok\<acute> \<sharp> post\<^sub>R P"
+  by (simp add: post\<^sub>R_def unrest usubst)
+
+lemma wait_pre_unrest [unrest]: "$wait \<sharp> pre\<^sub>R P"
+  by (simp add: pre\<^sub>R_def unrest usubst)
+
+lemma wait_peri_unrest [unrest]: "$wait \<sharp> peri\<^sub>R P"
+  by (simp add: peri\<^sub>R_def unrest usubst)
+
+lemma wait_post_unrest [unrest]: "$wait \<sharp> post\<^sub>R P"
+  by (simp add: post\<^sub>R_def unrest usubst)
+
+lemma wait'_peri_unrest [unrest]: "$wait\<acute> \<sharp> peri\<^sub>R P"
+  by (simp add: peri\<^sub>R_def unrest usubst)
+
+lemma wait'_post_unrest [unrest]: "$wait\<acute> \<sharp> post\<^sub>R P"
+  by (simp add: post\<^sub>R_def unrest usubst)
+
+lemma CSP_reactive_tri_design_lemma:
+  assumes "P is CSP"
+  shows "RH((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> P\<^sup>t\<^sub>f\<lbrakk>false/$wait\<acute>\<rbrakk>) = P"
+  by (simp add: CSP_reactive_design assms wait'_cond_split)
+
+lemma CSP_reactive_tri_design:
+  assumes "P is CSP"
+  shows "RH(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) = P"
+proof -
+  have "P = RH((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> P\<^sup>t\<^sub>f\<lbrakk>false/$wait\<acute>\<rbrakk>)"
+    by (simp add: CSP_reactive_tri_design_lemma assms)
+  also have "... = RH(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
+    apply (simp add: usubst)
+    apply (subst design_subst_ok_ok'[THEN sym])
+    apply (simp add: pre\<^sub>R_def peri\<^sub>R_def post\<^sub>R_def usubst unrest)
+  done
+  finally show ?thesis ..
+qed
+
+lemma skip_rea_reactive_design:
+  "II\<^sub>r = RH(true \<turnstile> II)"
+proof -
+  have "RH(true \<turnstile> II) = R1(R2c(R3c(true \<turnstile> II)))"
+    by (metis RH_R2c_def)
+  also have "... = R1(R3c(R2c(true \<turnstile> II)))"
+    by (metis R2c_R3c_commute RH_R2c_def)
+  also have "... = R1(R3c(true \<turnstile> II))"
+    by (simp add: design_def impl_alt_def R2c_disj R2c_not R2c_ok R2c_and R2c_skip_r R2c_ok')
+  also have "... = R1(II\<^sub>r \<triangleleft> $wait \<triangleright> true \<turnstile> II)"
+    by (metis R3c_def)
+  also have "... = II\<^sub>r"
+    by (rel_tac)
+  finally show ?thesis ..
+qed
+
+lemma skip_rea_reactive_design':
+  "II\<^sub>r = RH(true \<turnstile> \<lceil>II\<rceil>\<^sub>D)"
+  by (metis aext_true rdesign_def skip_d_alt_def skip_d_def skip_rea_reactive_design)
+
+lemma RH_design_subst_wait: "RH(P \<^sub>f \<turnstile> Q \<^sub>f) = RH(P \<turnstile> Q)"
+  by (metis RH_subst_wait wait_false_design)
+
+lemma skip_rea_reactive_tri_design:
+  "II\<^sub>r = RH(true \<turnstile> false \<diamondop> \<lceil>II\<rceil>\<^sub>D)" (is "?lhs = ?rhs")
+proof -
+  have "?rhs = RH (true \<turnstile> (\<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>D))"
+    by (simp add: wait'_cond_def cond_def)
+  have "... = RH (true \<turnstile> (\<not> $wait \<and> \<lceil>II\<rceil>\<^sub>D))" (is "RH (true \<turnstile> ?Q1) = RH (true \<turnstile> ?Q2)")
+  proof -
+    have "?Q1 = ?Q2"
+      by (rel_tac)
+    thus ?thesis by simp
+  qed
+  also have "... = RH (true \<turnstile> \<lceil>II\<rceil>\<^sub>D)"
+    by (rel_tac)
+  finally show ?thesis
+    by (simp add: skip_rea_reactive_design' wait'_cond_def cond_def)
+qed
+
+lemma skip_d_lift_rea: 
+  "\<lceil>II\<rceil>\<^sub>D = ($wait\<acute> =\<^sub>u $wait \<and> $tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R)"
+  by (rel_tac)
+
+lemma skip_rea_reactive_tri_design':
+  "II\<^sub>r = RH(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R))" (is "?lhs = ?rhs")
+proof -
+  have "?rhs = RH (true \<turnstile> (\<not> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R))"
+    by (simp add: wait'_cond_def cond_def)
+  also have "... = RH (true \<turnstile> ($wait\<acute> =\<^sub>u $wait \<and> $tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R))" (is "RH (true \<turnstile> ?Q1) = RH (true \<turnstile> ?Q2)")
+  proof -
+    have "?Q1 \<^sub>f = ?Q2 \<^sub>f"
+      by (rel_tac)
+    thus ?thesis
+      by (metis RH_design_subst_wait)
+  qed
+  also have "... = RH (true \<turnstile> \<lceil>II\<rceil>\<^sub>D)"
+    by (metis skip_d_lift_rea)
+  finally show ?thesis
+    by (simp add: skip_rea_reactive_design')
+qed
+
+lemma R1_neg_pre: "R1 (\<not> pre\<^sub>R P) = (\<not> pre\<^sub>R (R1(P)))"
+  by (simp add: pre\<^sub>R_def R1_def usubst)
+
+lemma R1_peri: "R1 (peri\<^sub>R P) = peri\<^sub>R (R1(P))"
+  by (simp add: peri\<^sub>R_def R1_def usubst)
+
+lemma R1_post: "R1 (post\<^sub>R P) = post\<^sub>R (R1(P))"
+  by (simp add: post\<^sub>R_def R1_def usubst)
+
+lemma R2s_pre:
+  "R2s (pre\<^sub>R P) = pre\<^sub>R (R2s P)"
+  by (simp add: pre\<^sub>R_def R2s_def usubst)
+
+lemma R2s_peri: "R2s (peri\<^sub>R P) = peri\<^sub>R (R2s P)"
+  by (simp add: peri\<^sub>R_def R2s_def usubst)
+
+lemma R2s_post: "R2s (post\<^sub>R P) = post\<^sub>R (R2s P)"
+  by (simp add: post\<^sub>R_def R2s_def usubst)
+
+lemma CSP_R1_R2s: "P is CSP \<Longrightarrow> R1 (R2s P) = P"
+  by (metis CSP_reactive_design R1_R2c_is_R2 R1_R2s_R2c R2_idem RH_alt_def')
+
+lemma R1_R2s_tr_diff_conj: "(R1 (R2s ($tr\<acute> =\<^sub>u $tr \<and> P))) = ($tr\<acute> =\<^sub>u $tr \<and> R2s(P))"
+  by (rel_tac, metis list_minus_anhil)
+
+lemma R2s_ref'_eq_ref: "R2s ($ref\<acute> =\<^sub>u $ref) = ($ref\<acute> =\<^sub>u $ref)"
+  by (simp add: R2s_def usubst)
+
+lemma R2s_state'_eq_state: "R2s ($\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) = ($\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R)"
+  by (simp add: R2s_def usubst)
+
+lemma skip_r_rea: "II = ($ok\<acute> =\<^sub>u $ok \<and> $wait\<acute> =\<^sub>u $wait \<and> $tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R)"
+  by (rel_tac, simp_all add: alpha_d.equality alpha_rp'.equality)
+
+lemma wait_pre_lemma:
+  assumes "$wait\<acute> \<sharp> P"
+  shows "(P \<and> \<not> $wait\<acute> ;; \<not> pre\<^sub>R Q) = (P ;; \<not> pre\<^sub>R Q)"
+proof -
+  have "(P \<and> \<not> $wait\<acute> ;; \<not> pre\<^sub>R Q) = (P \<and> $wait\<acute> =\<^sub>u false ;; \<not> pre\<^sub>R Q)"
+    by (rel_tac)
+  also have "... = (P\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (\<not> pre\<^sub>R Q)\<lbrakk>false/$wait\<rbrakk>)"
+    by (metis false_alt_def seqr_left_one_point wait_uvar)
+  also have "... = (P ;; \<not> pre\<^sub>R Q)"
+    by (simp add: usubst unrest assms)
+  finally show ?thesis .
+qed
+
+lemma rea_left_unit_lemma:
+  assumes "$ok  \<sharp> P" "$wait \<sharp> P"
+  shows "(($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) ;; P) = P"
+proof -
+  have "P = (II ;; P)"
+    by simp
+  also have "... = (($ok\<acute> =\<^sub>u $ok \<and> $wait\<acute> =\<^sub>u $wait \<and> $tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) ;; P)"
+    by (metis skip_r_rea)
+  also from assms have "... = (($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) ;; P)"
+    by (simp add: seqr_insert_ident_left assms unrest)
+  finally show ?thesis ..
+qed
+
+lemma rea_right_unit_lemma:
+  assumes "$ok\<acute>  \<sharp> P" "$wait\<acute> \<sharp> P"
+  shows "(P ;; ($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R)) = P"
+proof -
+  have "P = (P ;; II)"
+    by simp
+  also have "... = (P ;; ($ok\<acute> =\<^sub>u $ok \<and> $wait\<acute> =\<^sub>u $wait \<and> $tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R))"
+    by (metis skip_r_rea)
+  also from assms have "... = (P ;; ($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R))"
+    by (simp add: seqr_insert_ident_right assms unrest)
+  finally show ?thesis ..
+qed
+
+lemma skip_rea_left_unit:
+  assumes "P is CSP"
+  shows "(II\<^sub>r ;; P) = P"
+proof -
+  have "(II\<^sub>r ;; P) = (II\<^sub>r ;; RH (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P))"
+    by (metis CSP_reactive_tri_design assms)
+  also have "... = (RH(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R)) ;; RH (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P))"
+    by (metis skip_rea_reactive_tri_design')
+  also have "... = RH (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P)"
+    apply (subst RH_tri_design_composition)
+    apply (simp_all add: unrest R2s_true R1_false R1_neg_pre R1_peri R1_post R2s_pre R2s_peri R2s_post CSP_R1_R2s R1_R2s_tr_diff_conj assms)
+    apply (simp add: R2s_conj R2s_ref'_eq_ref R2s_state'_eq_state wait_pre_lemma rea_left_unit_lemma unrest)
+  done
+  also have "... = P"
+    by (metis CSP_reactive_tri_design assms)
+  finally show ?thesis .
+qed
+
+lemma skip_rea_left_semi_unit:
+  assumes "P is CSP" "out\<alpha> \<sharp> pre\<^sub>R P"
+  shows "(P ;; II\<^sub>r) = RH ((\<not> (\<not> pre\<^sub>R P ;; R1 true)) \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P)"
+proof -
+  have "(P ;; II\<^sub>r) = (RH (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P) ;; II\<^sub>r)"
+    by (metis CSP_reactive_tri_design assms)
+  also have "... = (RH (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P) ;; RH(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $ref\<acute> =\<^sub>u $ref \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R)))"
+    by (metis skip_rea_reactive_tri_design')
+  also have "... = RH ((\<not> (\<not> pre\<^sub>R P ;; R1 true)) \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P)"
+    apply (subst RH_tri_design_composition)
+    apply (simp_all add: unrest R2s_true R1_false R2s_false R1_neg_pre R1_peri R1_post R2s_pre R2s_peri R2s_post CSP_R1_R2s R1_R2s_tr_diff_conj assms)
+    apply (simp add: R2s_conj R2s_ref'_eq_ref R2s_state'_eq_state wait_pre_lemma rea_right_unit_lemma unrest)
+  done
+  finally show ?thesis .
+qed
+
+lemma HR_design_wait_false: "RH(P \<^sub>f \<turnstile> Q \<^sub>f) = RH(P \<turnstile> Q)"
+  by (metis R3c_subst_wait RH_R2c_def wait_false_design)
 
 end

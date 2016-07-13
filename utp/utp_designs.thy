@@ -421,6 +421,32 @@ theorem wpd_seq_r:
   apply (rel_tac)
 done
 
+lemma design_subst_ok_ok':
+  "(P\<lbrakk>true/$ok\<rbrakk> \<turnstile> Q\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>) = (P \<turnstile> Q)"
+proof -
+  have "(P \<turnstile> Q) = (($ok \<and> P) \<turnstile> ($ok \<and> $ok\<acute> \<and> Q))"
+    by (pred_tac)
+  also have "... = (($ok \<and> P\<lbrakk>true/$ok\<rbrakk>) \<turnstile> ($ok \<and> ($ok\<acute> \<and> Q\<lbrakk>true/$ok\<acute>\<rbrakk>)\<lbrakk>true/$ok\<rbrakk>))"
+    by (metis conj_eq_out_var_subst conj_pos_var_subst upred_eq_true utp_pred.inf_commute uvar_ok)
+  also have "... = (($ok \<and> P\<lbrakk>true/$ok\<rbrakk>) \<turnstile> ($ok \<and> $ok\<acute> \<and> Q\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>))"
+    by (simp add: usubst)  
+  also have "... = (P\<lbrakk>true/$ok\<rbrakk> \<turnstile> Q\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>)"
+    by (pred_tac)
+  finally show ?thesis ..
+qed
+
+lemma design_subst_ok':
+  "(P \<turnstile> Q\<lbrakk>true/$ok\<acute>\<rbrakk>) = (P \<turnstile> Q)"
+proof -
+  have "(P \<turnstile> Q) = (P \<turnstile> ($ok\<acute> \<and> Q))"
+    by (pred_tac)
+  also have "... = (P \<turnstile> ($ok\<acute> \<and> Q\<lbrakk>true/$ok\<acute>\<rbrakk>))"
+    by (metis conj_eq_out_var_subst upred_eq_true utp_pred.inf_commute uvar_ok)
+  also have "... = (P \<turnstile> Q\<lbrakk>true/$ok\<acute>\<rbrakk>)"
+    by (pred_tac)
+  finally show ?thesis ..
+qed
+
 theorem design_left_unit [simp]:
   "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
   by (simp add: skip_d_def urel_defs, pred_tac)

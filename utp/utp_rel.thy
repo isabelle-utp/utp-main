@@ -349,6 +349,10 @@ lemma cond_var_subst_right:
   shows "(P \<triangleleft> $x \<triangleright> Q) = (P \<triangleleft> $x \<triangleright> Q\<lbrakk>false/$x\<rbrakk>)"
   using assms by (metis cond_def conj_neg_var_subst) 
 
+lemma cond_var_split:
+  "uvar x \<Longrightarrow> (P\<lbrakk>true/x\<rbrakk> \<triangleleft> var x \<triangleright> P\<lbrakk>false/x\<rbrakk>) = P"
+  by (rel_tac, (metis (full_types) vwb_lens.put_eq)+)
+
 lemma cond_seq_left_distr:
   "out\<alpha> \<sharp> b \<Longrightarrow> ((P \<triangleleft> b \<triangleright> Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright> (Q ;; R))"
   by (rel_tac, blast+)
@@ -540,11 +544,17 @@ lemma seqr_right_one_point:
   using assms
   by (rel_tac, metis vwb_lens_wb wb_lens.get_put)
 
-lemma seqr_insert_ident:
+lemma seqr_insert_ident_left:
   assumes "uvar x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
   shows "(($x\<acute> =\<^sub>u $x \<and> P) ;; Q) = (P ;; Q)"
   using assms
   by (rel_tac, meson vwb_lens_wb wb_lens_weak weak_lens.put_get)
+
+lemma seqr_insert_ident_right:
+  assumes "uvar x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
+  shows "(P ;; ($x\<acute> =\<^sub>u $x \<and> Q)) = (P ;; Q)"
+  using assms
+  by (rel_tac, metis (no_types, hide_lams) vwb_lens_def wb_lens_def weak_lens.put_get)
 
 lemma seq_var_ident_lift:
   assumes "uvar x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"

@@ -201,6 +201,12 @@ lemma R1_idem: "R1(R1(P)) = R1(P)"
 lemma R1_mono: "P \<sqsubseteq> Q \<Longrightarrow> R1(P) \<sqsubseteq> R1(Q)"
   by pred_tac
 
+lemma R1_unrest [unrest]: "\<lbrakk> x \<bowtie> in_var tr; x \<bowtie> out_var tr; x \<sharp> P \<rbrakk> \<Longrightarrow> x \<sharp> R1(P)"
+  by (metis R1_def in_var_uvar lens_indep_sym out_var_uvar tr_uvar unrest_bop unrest_conj unrest_var)
+
+lemma R1_false: "R1(false) = false"
+  by pred_tac
+
 lemma R1_conj: "R1(P \<and> Q) = (R1(P) \<and> R1(Q))"
   by pred_tac
 
@@ -304,6 +310,9 @@ lemma R2a_equiv_R2s: "P is R2a \<longleftrightarrow> P is R2s"
 lemma R2s_idem: "R2s(R2s(P)) = R2s(P)"
   by (pred_tac)
 
+lemma R2s_unrest [unrest]: "\<lbrakk> uvar x; x \<bowtie> in_var tr; x \<bowtie> out_var tr; x \<sharp> P \<rbrakk> \<Longrightarrow> x \<sharp> R2s(P)"
+  by (simp add: R2s_def unrest usubst lens_indep_sym)
+
 lemma R2_idem: "R2(R2(P)) = R2(P)"
   by (pred_tac)
 
@@ -360,6 +369,9 @@ lemma R2s_tr'_eq_tr: "R2s($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u $t
 done
 
 lemma R2s_true: "R2s(true) = true"
+  by pred_tac
+
+lemma R2s_false: "R2s(false) = false"
   by pred_tac
 
 lemma true_is_R2s:
@@ -503,6 +515,9 @@ lemma R2c_not: "R2c(\<not> P) = (\<not> R2c(P))"
 lemma R2c_ok: "R2c($ok) = ($ok)"
   by (rel_tac)
 
+lemma R2c_ok': "R2c($ok\<acute>) = ($ok\<acute>)"
+  by (rel_tac)
+
 lemma R2c_wait: "R2c($wait) = $wait"
   by (rel_tac)
 
@@ -536,6 +551,13 @@ proof -
   finally show ?thesis
     by (subst skip_r_unfold[of tr], simp_all)
 qed
+
+
+lemma R2c_skip_rea: "R2c II\<^sub>r = II\<^sub>r"
+  by (metis R1_R2c_commute R1_R2c_is_R2 R1_skip_rea R2_skip_rea)
+
+lemma R1_R2s_R2c: "R1(R2s(P)) = R1(R2c(P))"
+  by (rel_tac)
 
 subsection {* R3 *}
 
@@ -608,6 +630,9 @@ lemma R2_R3_commute: "R2(R3(P)) = R3(R2(P))"
 lemma R2_R3c_commute: "R2(R3c(P)) = R3c(R2(P))"
   by (rel_tac, (smt alpha_d.surjective alpha_d.update_convs(2) alpha_rp'.surjective alpha_rp'.update_convs(2) append_minus append_self_conv strict_prefixE)+)
 
+lemma R2c_R3c_commute: "R2c(R3c(P)) = R3c(R2c(P))"
+  by (simp add: R3c_def R2c_condr R2c_wait R2c_skip_rea)
+
 lemma R1_H1_R3c_commute:
   "R1(H1(R3c(P))) = R3c(R1(H1(P)))"
   by rel_tac
@@ -656,10 +681,13 @@ proof (rule RH_intro)
     by (metis Healthy_def' R2_R3c_commute R2_def R3c_idem R3c_seq_closure RH_alt_def RH_def assms(1) assms(2))
 qed
 
-lemma RH_R2c_def: "RH(P) = R3c(R1(R2c(P)))"
-  by (simp add: R1_R2c_is_R2 R2_R3c_commute RH_alt_def')
+lemma RH_R2c_def: "RH(P) = R1(R2c(R3c(P)))"
+  by (rel_tac)
 
 lemma RH_absorbs_R2c: "RH(R2c(P)) = RH(P)"
   by (metis R1_R2_commute R1_R2c_is_R2 R1_R3c_commute R2_R3c_commute R2_idem RH_alt_def RH_alt_def')
+
+lemma RH_subst_wait: "RH(P \<^sub>f) = RH(P)"
+  by (metis R3c_subst_wait RH_alt_def')
 
 end
