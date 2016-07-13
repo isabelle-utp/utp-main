@@ -1,5 +1,5 @@
 theory Order
-imports Congruence FType
+imports Congruence FuncSet
 begin
 
 section {* Orders and Lattices *}
@@ -478,12 +478,8 @@ lemma isotoneI [intro?]:
   shows "isotone L1 L2 f"
   using assms by (auto simp add:isotone_def)
 
-context weak_partial_order
-begin
-
-abbreviation "Mono f \<equiv> isotone L L f"
-
-end
+abbreviation Monotone :: "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" ("Mono\<index>") where
+"Monotone L f \<equiv> isotone L L f"
 
 lemma use_iso1: "\<lbrakk>isotone A A f; x \<in> carrier A; y \<in> carrier A; x \<sqsubseteq>\<^bsub>A\<^esub> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq>\<^bsub>A\<^esub> f y"
   by (simp add: isotone_def)
@@ -492,7 +488,7 @@ lemma use_iso2: "\<lbrakk>isotone A B f; x \<in> carrier A; y \<in> carrier A; x
   by (simp add: isotone_def)
 
 lemma iso_compose: "\<lbrakk>f \<in> carrier A \<rightarrow> carrier B; isotone A B f; g \<in> carrier B \<rightarrow> carrier C; isotone B C g\<rbrakk> \<Longrightarrow> isotone A C (g \<circ> f)"
-  by (simp add: isotone_def, safe, metis (full_types) typed_application)
+  by (simp add: isotone_def, safe, metis Pi_iff)
 
 lemma (in weak_partial_order) inv_isotone [simp]: 
   "isotone (inv_gorder A) (inv_gorder B) f = isotone A B f"

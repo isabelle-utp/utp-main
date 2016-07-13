@@ -165,4 +165,15 @@ end
 interpretation rel_theory: utp_theory_unital REL
   by (unfold_locales, simp_all add: rel_hcond_def rel_unit_def Healthy_def)
 
+lemma utp_partial_order: "partial_order (utp_order T)"
+  by (unfold_locales, simp_all add: utp_order_def)
+
+lemma mono_Monotone_utp_order:
+  "mono f \<Longrightarrow> Monotone (utp_order T) f"
+  apply (auto simp add: isotone_def)
+  apply (metis partial_order_def utp_partial_order)
+  apply (simp add: utp_order_def)
+  apply (metis monoD)
+done
+
 end

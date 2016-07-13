@@ -393,6 +393,21 @@ lemma CSP1_CSP2_commute:
   "CSP1(CSP2(P)) = CSP2(CSP1(P))"
   by (simp add: CSP1_def CSP2_def H2_split usubst, rel_tac)
 
+lemma CSP1_R1_commute:
+  "CSP1(R1(P)) = R1(CSP1(P))"
+  by (rel_tac)
+
+lemma CSP1_R2c_commute:
+  "CSP1(R2c(P)) = R2c(CSP1(P))"
+  by (rel_tac)
+
+lemma CSP1_R3c_commute:
+  "CSP1(R3c(P)) = R3c(CSP1(P))"
+  by (rel_tac)
+
+lemma CSP_idem: "CSP(CSP(P)) = CSP(P)"
+  by (metis CSP1_CSP2_commute CSP1_R1_commute CSP1_R2c_commute CSP1_R3c_commute CSP1_idem CSP2_def H2_R2_comm H2_idem R2_def R3c_H2_commute RH_R2c_def RH_def RH_idem)
+
 lemma CSP1_via_H1: "R1(H1(P)) = R1(CSP1(P))"
   by rel_tac
 
@@ -403,7 +418,7 @@ lemma CSP1_reactive_design: "CSP1(RH(P \<turnstile> Q)) = RH(P \<turnstile> Q)"
   by rel_tac
 
 lemma CSP2_reactive_design:
-  assumes "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$ok \<sharp> Q" "$ok\<acute> \<sharp> Q"
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q"
   shows "CSP2(RH(P \<turnstile> Q)) = RH(P \<turnstile> Q)"
   using assms
   by (simp add: CSP2_def H2_R1_comm H2_R2_comm H2_R3_comm H2_design RH_def H2_R2s_comm)
@@ -416,11 +431,10 @@ lemma wait_false_design:
   "(P \<turnstile> Q) \<^sub>f = ((P \<^sub>f) \<turnstile> (Q \<^sub>f))"
   by (rel_tac)
 
-lemma CSP_reactive_design:
-  assumes "P is CSP"
-  shows "RH((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f) = P"
+lemma CSP_RH_design_form:
+  "CSP(P) = RH((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
 proof -
-  have "P = CSP1(CSP2(R1(R2s(R3c(P)))))"
+  have "CSP(P) = CSP1(CSP2(R1(R2s(R3c(P)))))"
     by (metis Healthy_def' RH_def assms)
   also have "... = CSP1(H2(R1(R2s(R3c(P)))))"
     by (simp add: CSP2_def)
@@ -441,7 +455,7 @@ proof -
   also have "... = RH(H1_H2(R1(P)))"
     by (metis R1_R2_commute R1_idem R2_R3c_commute R2_def RH_def)
   also have "... = RH(H1_H2(P))"
-    by (metis R1_idem RH_def calculation)
+    by (metis CSP1_R1_H1 R1_H2_commute R1_R2_commute R1_R3c_commute R1_idem RH_alt_def)
   also have "... = RH((\<not> P\<^sup>f) \<turnstile> P\<^sup>t)"
   proof -
     have 0:"(\<not> (H1_H2(P))\<^sup>f) = ($ok \<and> \<not> P\<^sup>f)"
@@ -455,13 +469,27 @@ proof -
   qed
   also have "... = RH((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
     by (metis R3c_subst_wait RH_def subst_not wait_false_design)
-  finally show ?thesis by simp
+  finally show ?thesis .
 qed
+
+lemma CSP_reactive_design:
+  assumes "P is CSP"
+  shows "RH((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f) = P"
+  by (metis CSP_RH_design_form Healthy_def' assms)
+
+lemma CSP_RH_design: 
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q"
+  shows "CSP(RH(P \<turnstile> Q)) = RH(P \<turnstile> Q)"
+  by (metis CSP1_reactive_design CSP2_reactive_design RH_idem assms(1) assms(2))
 
 subsection {* Reactive design triples *}
 
 definition wait'_cond :: "_ \<Rightarrow> _ \<Rightarrow> _" (infix "\<diamondop>" 65) where
 [upred_defs]: "P \<diamondop> Q = (P \<triangleleft> $wait\<acute> \<triangleright> Q)"
+
+lemma wait'_cond_unrest [unrest]:
+  "\<lbrakk> out_var wait \<bowtie> x; x \<sharp> P; x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> (P \<diamondop> Q)"
+  by (simp add: wait'_cond_def unrest)
 
 lemma wait'_cond_subst [usubst]:
   "$wait\<acute> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P \<diamondop> Q) = (\<sigma> \<dagger> P) \<diamondop> (\<sigma> \<dagger> Q)"
@@ -807,6 +835,12 @@ definition "Miracle = RH(true \<turnstile> false \<diamondop> false)"
 
 definition "Chaos = RH(false \<turnstile> true \<diamondop> true)"
 
+definition reactive_sup :: "_ set \<Rightarrow> _" ("\<Sqinter>\<^sub>R") where
+"\<Sqinter>\<^sub>R A = (if (A = {}) then Miracle else \<Sqinter> A)"
+
+definition reactive_inf :: "_ set \<Rightarrow> _" ("\<Squnion>\<^sub>R") where
+"\<Squnion>\<^sub>R A = (if (A = {}) then Chaos else \<Squnion> A)"
+
 lemma Miracle_greatest:
   assumes "P is CSP"
   shows "P \<sqsubseteq> Miracle"
@@ -871,5 +905,188 @@ proof -
     by (simp add: Chaos_def design_def)
   finally show ?thesis .
 qed
+
+lemma RH_design_choice:
+  "(RH(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) \<sqinter> RH(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2)) = RH((P \<and> R) \<turnstile> ((Q\<^sub>1 \<or> S\<^sub>1) \<diamondop> (Q\<^sub>2 \<or> S\<^sub>2)))"
+proof -
+  have "(RH(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) \<sqinter> RH(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2)) = RH((P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) \<sqinter> (R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2))"
+    by (simp add: disj_upred_def[THEN sym] RH_disj[THEN sym])
+  also have "... = RH ((P \<and> R) \<turnstile> (Q\<^sub>1 \<diamondop> Q\<^sub>2 \<or> S\<^sub>1 \<diamondop> S\<^sub>2))"
+    by (simp add: design_choice)
+  also have "... = RH ((P \<and> R) \<turnstile> ((Q\<^sub>1 \<or> S\<^sub>1) \<diamondop> (Q\<^sub>2 \<or> S\<^sub>2)))"
+  proof -
+    have "(Q\<^sub>1 \<diamondop> Q\<^sub>2 \<or> S\<^sub>1 \<diamondop> S\<^sub>2) = ((Q\<^sub>1 \<or> S\<^sub>1) \<diamondop> (Q\<^sub>2 \<or> S\<^sub>2))"
+      by (rel_tac)
+    thus ?thesis by simp
+  qed
+  finally show ?thesis .
+qed
+
+lemma USUP_CSP_closed:
+  assumes "A \<noteq> {}" "\<forall> P \<in> A. P is CSP"
+  shows "(\<Sqinter> A) is CSP"
+proof -
+  from assms have A: "A = CSP ` A"
+    by (auto simp add: Healthy_def rev_image_eqI)
+  also have "(\<Sqinter> ...) = (\<Sqinter> P \<in> A. CSP(P))"
+    by auto
+  also have "... = (\<Sqinter> P \<in> A \<bullet> CSP(P))"
+    by (simp add: USUP_as_Sup_collect)
+  also have "... = (\<Sqinter> P \<in> A \<bullet> RH((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f))"
+    by (metis CSP_RH_design_form)
+  also have "... = RH(\<Sqinter> P \<in> A \<bullet> (\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
+    by (simp add: RH_USUP assms(1))
+  also have "... = RH((\<Squnion> P \<in> A \<bullet> \<not> P\<^sup>f\<^sub>f) \<turnstile> (\<Sqinter> P \<in> A \<bullet> P\<^sup>t\<^sub>f))"
+    by (simp add: design_USUP assms)
+  also have "... = CSP(...)"
+    by (simp add: CSP_RH_design unrest)
+  finally show ?thesis
+    by (simp add: Healthy_def CSP_idem)
+qed
+
+lemma UINF_CSP_closed:
+  assumes "A \<noteq> {}" "\<forall> P \<in> A. P is CSP"
+  shows "(\<Squnion> A) is CSP"
+proof -
+  from assms have A: "A = CSP ` A"
+    by (auto simp add: Healthy_def rev_image_eqI)
+  also have "(\<Squnion> ...) = (\<Squnion> P \<in> A. CSP(P))"
+    by auto
+  also have "... = (\<Squnion> P \<in> A \<bullet> CSP(P))"
+    by (simp add: UINF_as_Inf_collect)
+  also have "... = (\<Squnion> P \<in> A \<bullet> RH((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f))"
+    by (simp add: CSP_RH_design_form)
+  also have "... = RH(\<Squnion> P \<in> A \<bullet> (\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
+    by (simp add: RH_UINF assms(1))
+  also have "... = RH ((\<Sqinter> P \<in> A \<bullet> \<not> P\<^sup>f\<^sub>f) \<turnstile> (\<Squnion> P \<in> A \<bullet> \<not> P\<^sup>f\<^sub>f \<Rightarrow> P\<^sup>t\<^sub>f))"
+    by (simp add: design_UINF)
+  also have "... = CSP(...)"
+    by (simp add: CSP_RH_design unrest)
+  finally show ?thesis
+    by (simp add: Healthy_def CSP_idem)
+qed
+
+lemma CSP_sup_closed:
+  assumes "\<forall> P \<in> A. P is CSP"
+  shows "(\<Sqinter>\<^sub>R A) is CSP"
+proof (cases "A = {}")
+  case True
+  moreover have "Miracle is CSP"
+    by (simp add: Miracle_def Healthy_def CSP_RH_design unrest)
+  ultimately show ?thesis
+    by (simp add: reactive_sup_def)
+next
+  case False
+  with USUP_CSP_closed assms show ?thesis
+    by (auto simp add: reactive_sup_def)
+qed
+
+lemma CSP_sup_below:
+  assumes "\<forall> Q \<in> A. Q is CSP" "P \<in> A"
+  shows "\<Sqinter>\<^sub>R A \<sqsubseteq> P"
+  using assms
+  by (auto simp add: reactive_sup_def Sup_upper)
+
+lemma CSP_sup_upper_bound:
+  assumes "\<forall> Q \<in> A. Q is CSP" "\<forall> Q \<in> A. P \<sqsubseteq> Q" "P is CSP"
+  shows "P \<sqsubseteq> \<Sqinter>\<^sub>R A"
+proof (cases "A = {}")
+  case True
+  thus ?thesis
+    by (simp add: reactive_sup_def Miracle_greatest assms)
+next
+  case False
+  thus ?thesis
+    by (simp add: reactive_sup_def cSup_least assms)
+qed
+
+lemma CSP_inf_closed:
+  assumes "\<forall> P \<in> A. P is CSP"
+  shows "(\<Squnion>\<^sub>R A) is CSP"
+proof (cases "A = {}")
+  case True
+  moreover have "Chaos is CSP"
+    by (simp add: Chaos_def Healthy_def CSP_RH_design unrest)
+  ultimately show ?thesis
+    by (simp add: reactive_inf_def)
+next
+  case False
+  with UINF_CSP_closed assms show ?thesis
+    by (auto simp add: reactive_inf_def)
+qed
+
+lemma CSP_inf_above:
+  assumes "\<forall> Q \<in> A. Q is CSP" "P \<in> A"
+  shows "P \<sqsubseteq> \<Squnion>\<^sub>R A"
+  using assms
+  by (auto simp add: reactive_inf_def Inf_lower)
+
+lemma CSP_inf_lower_bound:
+  assumes "\<forall> P \<in> A. P is CSP" "\<forall> P \<in> A. P \<sqsubseteq> Q" "Q is CSP"
+  shows "\<Squnion>\<^sub>R A \<sqsubseteq> Q"
+proof (cases "A = {}")
+  case True
+  thus ?thesis
+    by (simp add: reactive_inf_def Chaos_least assms)
+next
+  case False
+  thus ?thesis
+    by (simp add: reactive_inf_def cInf_greatest assms)
+qed
+
+subsection {* Complete lattice *}
+
+typedef RDES = "UNIV :: unit set" ..
+
+abbreviation "RDES \<equiv> TYPE(RDES \<times> ('\<theta>,'\<alpha>) alphabet_rp)"
+
+overloading
+  rdes_hcond   == "utp_hcond :: (RDES \<times> ('\<theta>,'\<alpha>) alphabet_rp) itself \<Rightarrow> (('\<theta>,'\<alpha>) alphabet_rp \<times> ('\<theta>,'\<alpha>) alphabet_rp) Healthiness_condition"
+begin
+  definition rdes_hcond :: "(RDES \<times> ('\<theta>,'\<alpha>) alphabet_rp) itself \<Rightarrow> (('\<theta>,'\<alpha>) alphabet_rp \<times> ('\<theta>,'\<alpha>) alphabet_rp) Healthiness_condition" where
+  [upred_defs]: "rdes_hcond T = CSP"
+end
+
+interpretation rdes_theory: utp_theory "TYPE(RDES \<times> ('\<theta>,'\<alpha>) alphabet_rp)"
+  by (unfold_locales, simp_all add: rdes_hcond_def CSP_idem)
+
+lemma Miracle_is_top: "\<top>\<^bsub>utp_order RDES\<^esub> = Miracle"
+  apply (auto intro!:some_equality simp add: atop_def some_equality greatest_def utp_order_def rdes_hcond_def)
+  apply (metis CSP_sup_closed emptyE reactive_sup_def)
+  using Miracle_greatest apply blast
+  apply (metis CSP_sup_closed dual_order.antisym equals0D reactive_sup_def Miracle_greatest)
+done
+
+lemma Chaos_is_bot: "\<bottom>\<^bsub>utp_order RDES\<^esub> = Chaos"
+  apply (auto intro!:some_equality simp add: abottom_def some_equality least_def utp_order_def rdes_hcond_def)
+  apply (metis CSP_inf_closed emptyE reactive_inf_def)
+  using Chaos_least apply blast
+  apply (metis Chaos_least CSP_inf_closed dual_order.antisym equals0D reactive_inf_def)
+done
+
+interpretation hrd_lattice: utp_theory_lattice "TYPE(RDES \<times> ('\<theta>,'\<alpha>) alphabet_rp)"
+  rewrites "carrier (utp_order RDES) = \<lbrakk>CSP\<rbrakk>"
+  and "\<top>\<^bsub>utp_order RDES\<^esub> = Miracle"
+  and "\<bottom>\<^bsub>utp_order RDES\<^esub> = Chaos"
+  apply (unfold_locales)
+  apply (simp_all add: Miracle_is_top Chaos_is_bot)
+  apply (simp_all add: utp_order_def rdes_hcond_def)
+  apply (rename_tac A)
+  apply (rule_tac x="\<Squnion>\<^sub>R A" in exI, auto intro:CSP_inf_above CSP_inf_lower_bound CSP_inf_closed simp add: least_def Upper_def CSP_inf_above)
+  apply (rename_tac A)
+  apply (rule_tac x="\<Sqinter>\<^sub>R A" in exI, auto intro:CSP_sup_below CSP_sup_upper_bound CSP_sup_closed simp add: greatest_def Lower_def CSP_inf_above)
+done
+
+abbreviation rdes_lfp :: "_ \<Rightarrow> _" ("\<mu>\<^sub>R") where
+"\<mu>\<^sub>R F \<equiv> \<mu>\<^bsub>utp_order RDES\<^esub> F"
+
+abbreviation rdes_gfp :: "_ \<Rightarrow> _" ("\<nu>\<^sub>R") where
+"\<nu>\<^sub>R F \<equiv> \<nu>\<^bsub>utp_order RDES\<^esub> F"
+
+lemma rdes_lfp_copy: "\<lbrakk> mono F; F \<in> \<lbrakk>CSP\<rbrakk> \<rightarrow> \<lbrakk>CSP\<rbrakk> \<rbrakk> \<Longrightarrow> \<mu>\<^sub>R F = F (\<mu>\<^sub>R F)"
+  by (metis hrd_lattice.LFP_unfold mono_Monotone_utp_order)
+
+lemma rdes_gfp_copy: "\<lbrakk> mono F; F \<in> \<lbrakk>CSP\<rbrakk> \<rightarrow> \<lbrakk>CSP\<rbrakk> \<rbrakk> \<Longrightarrow> \<nu>\<^sub>R F = F (\<nu>\<^sub>R F)"
+  by (metis hrd_lattice.GFP_unfold mono_Monotone_utp_order)
 
 end

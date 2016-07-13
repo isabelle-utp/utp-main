@@ -539,6 +539,9 @@ lemma R1_R2c_commute: "R1(R2c(P)) = R2c(R1(P))"
 lemma R1_R2c_is_R2: "R1(R2c(P)) = R2(P)"
   by (rel_tac)
   
+lemma R2c_H2_commute: "R2c(H2(P)) = H2(R2c(P))"
+  by (simp add: H2_split R2c_disj R2c_def R2s_def usubst, rel_tac)
+
 lemma R2c_seq: "R2c(R2(P) ;; R2(Q)) = (R2(P) ;; R2(Q))"
   by (metis R1_R2c_commute R1_R2c_is_R2 R2_seqr_distribute R2c_idem)
 
@@ -654,6 +657,19 @@ done
 lemma R3c_idem: "R3c(R3c(P)) = R3c(P)"
   by rel_tac
   
+lemma R3c_disj: "R3c(P \<or> Q) = (R3c(P) \<or> R3c(Q))"
+  by rel_tac
+
+lemma R3c_USUP:
+  assumes "A \<noteq> {}"
+  shows "R3c(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> R3c(P(i)))"
+  using assms by (rel_tac)
+
+lemma R3c_UINF:
+  assumes "A \<noteq> {}"
+  shows "R3c(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> R3c(P(i)))"
+  using assms by (rel_tac)
+
 subsection {* RH laws *}
 
 definition RH_def [upred_defs]: "RH(P) = R1(R2s(R3c(P)))"
@@ -673,6 +689,19 @@ lemma RH_idem:
 lemma RH_monotone:
   "P \<sqsubseteq> Q \<Longrightarrow> RH(P) \<sqsubseteq> RH(Q)"
   by rel_tac
+
+lemma RH_disj: "RH(P \<or> Q) = (RH(P) \<or> RH(Q))"
+  by (simp add: RH_def R3c_disj R2s_disj R1_disj)
+
+lemma RH_USUP:
+  assumes "A \<noteq> {}"
+  shows "RH(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> RH(P(i)))"
+  using assms by (rel_tac)
+
+lemma RH_UINF:
+  assumes "A \<noteq> {}"
+  shows "RH(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> RH(P(i)))"
+  using assms by (rel_tac)
 
 lemma RH_intro:
   "\<lbrakk> P is R1; P is R2; P is R3c \<rbrakk> \<Longrightarrow> P is RH"

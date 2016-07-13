@@ -1,5 +1,5 @@
 theory Complete_Lattice
-imports Lattice FType
+imports Lattice FuncSet
 begin
 
 subsection {* Complete Lattices *}
@@ -268,7 +268,7 @@ lemma LFP_lemma2:
   assumes "Mono f" "f \<in> carrier L \<rightarrow> carrier L"
   shows "f (\<mu> f) \<sqsubseteq> \<mu> f"
   using assms
-  apply (auto simp add:ftype_def)
+  apply (auto simp add:Pi_def)
   apply (rule LFP_greatest)
   apply (metis LFP_closed)
   apply (metis LFP_closed LFP_lowerbound le_trans use_iso1)
@@ -278,13 +278,13 @@ lemma LFP_lemma3:
   assumes "Mono f" "f \<in> carrier L \<rightarrow> carrier L"
   shows "\<mu> f \<sqsubseteq> f (\<mu> f)"
   using assms
-  apply (auto simp add:ftype_def)
+  apply (auto simp add:Pi_def)
   apply (metis LFP_closed LFP_lemma2 LFP_lowerbound assms(2) use_iso2)
 done
 
 lemma ftype_carrier [intro]:
   "\<lbrakk> x \<in> carrier L; f \<in> carrier L \<rightarrow> carrier L \<rbrakk> \<Longrightarrow> f(x) \<in> carrier L"
-  by (simp add: typed_application)
+  by (metis Pi_iff)
 
 lemma LFP_weak_unfold: 
   "\<lbrakk> Mono f; f \<in> carrier L \<rightarrow> carrier L \<rbrakk> \<Longrightarrow> \<mu> f .= f (\<mu> f)"
@@ -309,7 +309,7 @@ lemma GFP_lemma2:
   assumes "Mono f" "f \<in> carrier L \<rightarrow> carrier L"
   shows "\<nu> f \<sqsubseteq> f (\<nu> f)"
   using assms
-  apply (auto simp add:ftype_def)
+  apply (auto simp add:Pi_def)
   apply (rule GFP_least)
   apply (metis GFP_closed assms(2))
   apply (metis GFP_closed GFP_upperbound assms le_trans use_iso2)
