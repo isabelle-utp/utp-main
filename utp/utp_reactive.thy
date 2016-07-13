@@ -264,6 +264,9 @@ lemma R1_seqr_closure:
   using assms unfolding R1_by_refinement
   by (metis seqr_mono tr_le_trans)
 
+lemma R1_true_comp: "(R1(true) ;; R1(true)) = R1(true)"
+  by (rel_tac, metis alpha_d.select_convs(2) alpha_rp'.select_convs(2) order_refl)
+
 lemma R1_ok'_true: "(R1(P))\<^sup>t = R1(P\<^sup>t)"
   by pred_tac
 
@@ -501,6 +504,12 @@ lemma R2s_H2_commute:
 
 lemma R2_R1_seq_drop_left:
   "R2(R1(P) ;; R1(Q)) = R2(P ;; R1(Q))"
+  by rel_tac
+
+lemma R2c_true: "R2c(true) = true"
+  by rel_tac
+
+lemma R2c_false: "R2c(false) = false"
   by rel_tac
 
 lemma R2c_and: "R2c(P \<and> Q) = (R2c(P) \<and> R2c(Q))"

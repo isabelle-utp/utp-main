@@ -801,4 +801,75 @@ qed
 lemma HR_design_wait_false: "RH(P \<^sub>f \<turnstile> Q \<^sub>f) = RH(P \<turnstile> Q)"
   by (metis R3c_subst_wait RH_R2c_def wait_false_design)
 
+subsection {* Signature *}
+
+definition "Miracle = RH(true \<turnstile> false \<diamondop> false)"
+
+definition "Chaos = RH(false \<turnstile> true \<diamondop> true)"
+
+lemma Miracle_greatest:
+  assumes "P is CSP"
+  shows "P \<sqsubseteq> Miracle"
+proof -
+  have "P = RH (pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
+    by (metis CSP_reactive_tri_design assms)
+  also have "... \<sqsubseteq> RH(true \<turnstile> false)"
+    by (rule RH_monotone, rel_tac)
+  also have "RH(true \<turnstile> false) = RH(true \<turnstile> false \<diamondop> false)"
+    by (simp add: wait'_cond_def cond_def)
+  finally show ?thesis
+    by (simp add: Miracle_def)
+qed
+   
+lemma Chaos_least:
+  assumes "P is CSP"
+  shows "Chaos \<sqsubseteq> P"
+proof -
+  have "Chaos = RH(true)"
+    by (simp add: Chaos_def design_def)   
+  also have "... \<sqsubseteq> RH(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
+    by (simp add: RH_monotone)
+  also have "RH(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) = P"
+    by (metis CSP_reactive_tri_design assms)
+  finally show ?thesis .
+qed
+
+lemma Miracle_left_zero:
+  assumes "P is CSP"
+  shows "(Miracle ;; P) = Miracle"
+proof -
+  have "(Miracle ;; P) = (RH(true \<turnstile> false \<diamondop> false) ;; RH (pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)))"
+    by (metis CSP_reactive_tri_design Miracle_def assms)
+  also have "... = RH(true \<turnstile> false \<diamondop> false)"
+    by (simp add: RH_tri_design_composition R1_false R2s_true R2s_false R2c_true R1_true_comp unrest usubst)
+  also have "... = Miracle"
+    by (simp add: Miracle_def)
+  finally show ?thesis .
+qed
+
+lemma Chaos_left_zero:
+  assumes "P is CSP"
+  shows "(Chaos ;; P) = Chaos"
+proof -
+  have "(Chaos ;; P) = (RH(false \<turnstile> true \<diamondop> true) ;; RH (pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)))"
+    by (metis CSP_reactive_tri_design Chaos_def assms)
+  also have "... = RH ((\<not> R1 true \<and> \<not> (R1 true \<and> \<not> $wait\<acute> ;; R1 (\<not> R2c (pre\<^sub>R P)))) \<turnstile>
+                       (true \<or> (R1 true ;; R1 (R2c (peri\<^sub>R P)))) \<diamondop> (R1 true ;; R1 (R2c (post\<^sub>R P))))"
+    by (simp add: RH_tri_design_composition R2s_true R1_true_comp R2s_false unrest, metis R1_R2s_R2c R1_negate_R1) 
+  also have "... = RH ((\<not> $ok \<or> R1 true \<or> (R1 true \<and> \<not> $wait\<acute> ;; R1 (\<not> R2c (pre\<^sub>R P)))) \<or>
+                       $ok\<acute> \<and> (true \<or> (R1 true ;; R1 (R2c (peri\<^sub>R P)))) \<diamondop> (R1 true ;; R1 (R2c (post\<^sub>R P))))"
+    by (simp add: design_def impl_alt_def)
+  also have "... = RH(R1((\<not> $ok \<or> R1 true \<or> (R1 true \<and> \<not> $wait\<acute> ;; R1 (\<not> R2c (pre\<^sub>R P)))) \<or>
+                      $ok\<acute> \<and> (true \<or> (R1 true ;; R1 (R2c (peri\<^sub>R P)))) \<diamondop> (R1 true ;; R1 (R2c (post\<^sub>R P)))))"
+    by (simp add: R1_R2c_commute R1_R3c_commute R1_idem RH_R2c_def)
+  also have "... = RH(R1((\<not> $ok \<or> true \<or> (R1 true \<and> \<not> $wait\<acute> ;; R1 (\<not> R2c (pre\<^sub>R P)))) \<or>
+                      $ok\<acute> \<and> (true \<or> (R1 true ;; R1 (R2c (peri\<^sub>R P)))) \<diamondop> (R1 true ;; R1 (R2c (post\<^sub>R P)))))"
+    by (metis (no_types, hide_lams) R1_disj R1_idem)
+  also have "... = RH(true)"
+    by (simp add: R1_R2c_commute R1_R3c_commute R1_idem RH_R2c_def)
+  also have "... = Chaos"
+    by (simp add: Chaos_def design_def)
+  finally show ?thesis .
+qed
+
 end
