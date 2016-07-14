@@ -168,15 +168,23 @@ translations
   "P \<^sub>t" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST ivar CONST wait) true) P"
 
 
-definition lift_rea :: "('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<theta>, '\<alpha>, '\<beta>) relation_rp" ("\<lceil>_\<rceil>\<^sub>R") where
-[upred_defs]: "\<lceil>P\<rceil>\<^sub>R = P \<oplus>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
+abbreviation lift_rea :: "_ \<Rightarrow> _" ("\<lceil>_\<rceil>\<^sub>R") where
+"\<lceil>P\<rceil>\<^sub>R \<equiv> P \<oplus>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
 
-definition drop_rea :: "('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("\<lfloor>_\<rfloor>\<^sub>R") where
-[upred_defs]: "\<lfloor>P\<rfloor>\<^sub>R = P \<restriction>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
+abbreviation drop_rea :: "('\<theta>, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("\<lfloor>_\<rfloor>\<^sub>R") where
+"\<lfloor>P\<rfloor>\<^sub>R \<equiv> P \<restriction>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
 
 definition skip_rea_def [urel_defs]: "II\<^sub>r = (II \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
 
 subsection {* Reactive lemmas *}
+
+lemma unrest_ok_lift_rea [unrest]:
+  "$ok \<sharp> \<lceil>P\<rceil>\<^sub>R" "$ok\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>R"
+  by (pred_tac)+
+
+lemma unrest_wait_lift_rea [unrest]:
+  "$wait \<sharp> \<lceil>P\<rceil>\<^sub>R" "$wait\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>R"
+  by (pred_tac)+
 
 lemma unrest_tr_lift_rea [unrest]:
   "$tr \<sharp> \<lceil>P\<rceil>\<^sub>R" "$tr\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>R"
