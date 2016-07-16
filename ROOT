@@ -30,6 +30,7 @@ session "UTP-IMPORTS" in "utils" = "Kleene_Algebra" +
     "Library_extra/FSet_extra"
     "Library_extra/List_extra"
     "Library_extra/List_lexord_alt"
+    "Library_extra/Monoid_extra"
     "Library_extra/Sequence"
     "Library_extra/Pfun"
     "Library_extra/Ffun"
@@ -44,10 +45,12 @@ session "UTP" in "utp" = "UTP-IMPORTS" +
     utp_expr
     utp_unrest
     utp_subst
+    utp_alphabet
     utp_lift
     utp_pred
     utp_deduct
     utp_rel
+    utp_hoare
     utp_wp
     utp_procedure
     utp_theory
@@ -55,6 +58,8 @@ session "UTP" in "utp" = "UTP-IMPORTS" +
     utp_designs
     utp_concurrency
     utp_reactive
+    utp_rea_designs
+    utp_rel_opsem
     utp_event
     utp_csp
   document_files 
