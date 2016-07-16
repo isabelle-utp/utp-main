@@ -4,7 +4,38 @@ theory utp_csp
   imports utp_rea_designs utp_procedure
 begin
 
-subsection {* Preliminaries *}
+subsection {* Preliminaries *} 
+
+record '\<phi> alpha_csp' = 
+  csp_ref :: "'\<phi> set"
+
+type_synonym ('\<phi>, '\<alpha>) alpha_csp_scheme = "('\<phi> list, ('\<phi>, '\<alpha>) alpha_csp'_scheme) alpha_rp_scheme"
+
+type_synonym ('\<phi>,'\<alpha>) alphabet_csp  = "('\<phi>,'\<alpha>) alpha_csp_scheme alphabet"
+type_synonym ('\<phi>,'\<alpha>,'\<beta>) relation_csp  = "(('\<phi>,'\<alpha>) alphabet_csp, ('\<phi>,'\<beta>) alphabet_csp) relation"
+type_synonym ('\<phi>,'\<alpha>) hrelation_csp  = "(('\<phi>,'\<alpha>) alphabet_csp, ('\<phi>,'\<alpha>) alphabet_csp) relation"
+type_synonym ('\<phi>,'\<sigma>) predicate_csp  = "('\<phi>,'\<sigma>) alphabet_csp upred"
+
+definition "ref\<^sub>c = VAR csp_ref"
+definition [upred_defs]: "\<Sigma>\<^sub>c    = VAR more"
+
+declare ref\<^sub>c_def [upred_defs]
+declare \<Sigma>\<^sub>c_def [upred_defs]
+
+lemma ref\<^sub>c_uvar [simp]: "uvar ref\<^sub>c"
+  by (unfold_locales, simp_all add: ref\<^sub>c_def)
+
+lemma csp_uvar [simp]: "uvar \<Sigma>\<^sub>c"
+  by (unfold_locales, simp_all add: \<Sigma>\<^sub>c_def)
+  
+definition "ref = (ref\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
+definition [upred_defs]: "\<Sigma>\<^sub>C   = (\<Sigma>\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
+
+lemma ref_uvar [simp]: "uvar ref"
+  by (simp add: comp_vwb_lens ref_def)
+
+lemma csp_lens_uvar [simp]: "uvar \<Sigma>\<^sub>C"
+  by (simp add: \<Sigma>\<^sub>C_def comp_vwb_lens)
 
 text {* The following function defines the parallel composition of two CSP event traces *}
 
@@ -58,39 +89,37 @@ definition "Stop = RH(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> $wait\
 
 definition "Skip = RH(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> (\<not> $wait\<acute>) \<and> \<lceil>II\<rceil>\<^sub>R))"
 
-definition "Chaos = RH(false \<turnstile> true)"
-
-definition Guard :: "('\<theta>, '\<alpha>) hrelation_rp \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp" (infix "&\<^sub>u" 65)
+definition Guard :: "('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp" (infix "&\<^sub>u" 65)
 where "g &\<^sub>u A = RH((g \<Rightarrow> \<not> A\<^sup>f\<^sub>f) \<turnstile> ((g \<and> A\<^sup>t\<^sub>f) \<or> ((\<not> g) \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)))"
 
-definition ExtChoice :: "('\<theta>, '\<alpha>) hrelation_rp \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp" (infixl "\<box>" 65)
+definition ExtChoice :: "('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp" (infixl "\<box>" 65)
 where "A\<^sub>1 \<box> A\<^sub>2 = RH(\<not> A\<^sub>1\<^sup>f\<^sub>f \<and> \<not> A\<^sub>2\<^sup>f\<^sub>f \<turnstile> (A\<^sub>1\<^sup>t\<^sub>f \<and> A\<^sub>2\<^sup>t\<^sub>f) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (A\<^sub>1\<^sup>t\<^sub>f \<or> A\<^sub>2\<^sup>t\<^sub>f))"
 
-definition do\<^sub>u :: "('\<theta> event, ('\<theta>,'\<alpha>) alphabet_rp \<times> ('\<theta>,'\<alpha>) alphabet_rp) uexpr \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp" where
+definition do\<^sub>u :: "('\<theta> event, ('\<theta>,'\<alpha>) alphabet_csp \<times> ('\<theta>,'\<alpha>) alphabet_csp) uexpr \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp" where
 "do\<^sub>u(e) = ($tr\<acute> =\<^sub>u $tr \<and> e \<notin>\<^sub>u $ref\<acute> \<triangleleft> $wait\<acute> \<triangleright> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>e\<rangle>)"
 
 definition OutputCSP ::
   "('a, '\<theta>) chan \<Rightarrow> 
-    ('a, ('\<theta>,'\<alpha>) alphabet_rp \<times> ('\<theta>,'\<alpha>) alphabet_rp) uexpr \<Rightarrow> 
-    ('\<theta>, '\<alpha>) hrelation_rp \<Rightarrow>
-    ('\<theta>, '\<alpha>) hrelation_rp" where
+    ('a, ('\<theta>,'\<alpha>) alphabet_csp \<times> ('\<theta>,'\<alpha>) alphabet_csp) uexpr \<Rightarrow> 
+    ('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow>
+    ('\<theta>, '\<alpha>) hrelation_csp" where
 "OutputCSP c v A = (RH(true \<turnstile> do\<^sub>u (c, v)\<^sub>e) ;; A)"
 
 definition do\<^sub>I :: 
   "('a, '\<theta>) chan \<Rightarrow> 
-    ('a, ('\<theta>,'\<alpha>) alphabet_rp) uvar \<Rightarrow>
-    ('a \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp) \<Rightarrow>
-    ('\<theta>, '\<alpha>) hrelation_rp"
+    ('a, ('\<theta>,'\<alpha>) alphabet_csp) uvar \<Rightarrow>
+    ('a \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp) \<Rightarrow>
+    ('\<theta>, '\<alpha>) hrelation_csp"
 where "do\<^sub>I c x P = (($tr\<acute> =\<^sub>u $tr \<and> {e : \<guillemotleft>\<delta>\<^sub>u(c)\<guillemotright> | P(e) \<bullet> (c,\<guillemotleft>e\<guillemotright>)\<^sub>e}\<^sub>u \<inter>\<^sub>u $ref\<acute> =\<^sub>u {}\<^sub>u)
                    \<triangleleft> $wait\<acute> \<triangleright>
                    (($tr\<acute> - $tr) \<in>\<^sub>u {e : \<guillemotleft>\<delta>\<^sub>u(c)\<guillemotright> | P(e) \<bullet> \<langle>(c,\<guillemotleft>e\<guillemotright>)\<^sub>e\<rangle>}\<^sub>u \<and> (c, $x\<acute>)\<^sub>e =\<^sub>u last\<^sub>u($tr\<acute>)))"
 
 definition InputCSP :: 
   "('a::two, '\<theta>) chan \<Rightarrow> _ \<Rightarrow>
-    ('a \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp) \<Rightarrow> 
-    (_ \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp) \<Rightarrow>
-    ('\<theta>, '\<alpha>) hrelation_rp"
-where "InputCSP c x P A = (var x \<bullet> RH(true \<turnstile> do\<^sub>I c x P \<and> \<lceil>II\<rceil>\<^sub>R) ;; A(x))"
+    ('a \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp) \<Rightarrow> 
+    (_ \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp) \<Rightarrow>
+    ('\<theta>, '\<alpha>) hrelation_csp"
+where "InputCSP c x P A = (var\<^bsub>RDES\<^esub> x \<bullet> RH(true \<turnstile> do\<^sub>I c x P \<and> \<lceil>II\<rceil>\<^sub>R) ;; A(x))"
 
 syntax
   "_csp_event"  :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<rightarrow>\<^sub>u _" [80,79] 80)
@@ -104,6 +133,7 @@ translations
 
 text {* Merge predicate for CSP *}
 
+(*
 definition
   "CSPMerge(cs) =
     ((true \<turnstile>\<^sub>r (($wait\<^sub>r\<acute> =\<^sub>u ($0-wait\<^sub>r \<or> $1-wait\<^sub>r) \<and>
@@ -113,47 +143,9 @@ definition
 
 definition ParCSP :: "('\<theta>, '\<alpha>) hrelation_rp \<Rightarrow> '\<theta> event set \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp" (infixl "\<parallel>[_]\<^sub>C\<^sub>S\<^sub>P" 85)
 where "P \<parallel>[cs]\<^sub>C\<^sub>S\<^sub>P Q = P \<parallel>\<^bsub>CSPMerge(cs)\<^esub> Q"
+*)
 
 subsection {* CSP laws *}
-
-lemma Stop_left_zero:
-  assumes "P is R2s" "Q is R2s"
-  shows "(Stop ;; RH(P \<turnstile> Q)) = Stop"
-proof -
-  from assms
-  have "(Stop ;; RH(P \<turnstile> Q)) =
-        RH ((\<not> ($ok\<acute> \<and> \<not> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> ;; R1 (\<not> P))) \<turnstile>
-            ($wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<or> ($ok\<acute> \<and> \<not> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> ;; R1 Q)))"
-       (is "_ = RH (?P \<turnstile> ?Q)")
-  proof -
-    have "$tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> is R2s"
-      apply (simp add: Healthy_def R2s_def usubst, rel_tac)
-      using list_minus_anhil by blast
-    moreover have "true is R2s"
-      by (simp add: Healthy_def' R2s_true)
-    ultimately show ?thesis using assms
-      apply (simp add: Stop_def unrest)
-      apply (subst reactive_design_composition)
-      apply (simp_all add: unrest)
-    done
-  qed
-  moreover have "?P = true"
-    by pred_tac
-  moreover have "?Q = ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)"
-    by pred_tac
-  ultimately show ?thesis
-    by (simp add: Stop_def)
-qed
-
-lemma tr_rea_alpha_id:
-  "(($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) ;; P) = (\<exists> $ok \<bullet> \<exists> $wait \<bullet> \<exists> $ref \<bullet> P)"
-  apply (rel_tac)
-  apply (rule_tac x="des_ok y" in exI)
-  apply (rule_tac x="rp_wait (alpha_d.more y)" in exI)
-  apply (rule_tac x="rp_ref (alpha_d.more y)" in exI)
-  apply (smt alpha_d.surjective alpha_d.update_convs(1) alpha_d.update_convs(2) alpha_rp'.surjective alpha_rp'.update_convs(1) alpha_rp'.update_convs(3))
-  using alpha_rp'.surjective apply fastforce
-done
 
 (*  
 lemma Skip_left_unit:
