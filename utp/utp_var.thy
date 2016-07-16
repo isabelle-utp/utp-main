@@ -12,6 +12,7 @@ imports
   "../utils/Library_extra/Ffun"
   "../utils/Library_extra/Derivative_extra"
   "../utils/Library_extra/List_lexord_alt"
+  "../utils/Library_extra/Monoid_extra"
   "~~/src/HOL/Library/Prefix_Order"
   "~~/src/HOL/Library/Char_ord"
   "~~/src/HOL/Library/Adhoc_Overloading"
