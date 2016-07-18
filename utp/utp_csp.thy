@@ -37,6 +37,9 @@ lemma ref_uvar [simp]: "uvar ref"
 lemma csp_lens_uvar [simp]: "uvar \<Sigma>\<^sub>C"
   by (simp add: \<Sigma>\<^sub>C_def comp_vwb_lens)
 
+abbreviation lift_csp :: "_ \<Rightarrow> _" ("\<lceil>_\<rceil>\<^sub>C") where
+"\<lceil>P\<rceil>\<^sub>C \<equiv> P \<oplus>\<^sub>p (\<Sigma>\<^sub>C \<times>\<^sub>L \<Sigma>\<^sub>C)"
+
 text {* The following function defines the parallel composition of two CSP event traces *}
 
 fun trpar :: "'\<theta> event set \<Rightarrow> '\<theta> event list \<Rightarrow> '\<theta> event list \<Rightarrow> '\<theta> event list set" where
