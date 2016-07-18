@@ -37,6 +37,16 @@ lemma ref_uvar [simp]: "uvar ref"
 lemma csp_lens_uvar [simp]: "uvar \<Sigma>\<^sub>C"
   by (simp add: \<Sigma>\<^sub>C_def comp_vwb_lens)
 
+lemma csp_lens_indep_ok [simp]: "\<Sigma>\<^sub>C \<bowtie> ok" "ok \<bowtie> \<Sigma>\<^sub>C"
+  apply (metis \<Sigma>\<^sub>C_def csp_uvar lens_comp_lb rea_lens_indep_ok(1) sublens_pres_indep)
+  apply (simp add: \<Sigma>\<^sub>C_def lens_indep_left_ext lens_indep_sym)
+done
+
+lemma csp_lens_indep_wait [simp]: "\<Sigma>\<^sub>C \<bowtie> wait" "wait \<bowtie> \<Sigma>\<^sub>C"
+  apply (metis \<Sigma>\<^sub>C_def csp_uvar lens_comp_lb rea_lens_indep_wait(1) sublens_pres_indep)
+  apply (simp add: \<Sigma>\<^sub>C_def lens_indep_left_ext lens_indep_sym)
+done
+
 abbreviation lift_csp :: "_ \<Rightarrow> _" ("\<lceil>_\<rceil>\<^sub>C") where
 "\<lceil>P\<rceil>\<^sub>C \<equiv> P \<oplus>\<^sub>p (\<Sigma>\<^sub>C \<times>\<^sub>L \<Sigma>\<^sub>C)"
 

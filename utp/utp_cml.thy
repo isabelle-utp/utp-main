@@ -78,4 +78,16 @@ definition "Prefix a = RH(true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<lang
 definition "Wait n = RH(true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) <\<^sub>u \<lceil>n\<rceil>\<^sub>C\<^sub><) 
                              \<diamondop> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>n\<rceil>\<^sub>C\<^sub>< \<and> $\<Sigma>\<^sub>C\<acute> =\<^sub>u $\<Sigma>\<^sub>C))"
 
+abbreviation hseqr :: "'\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" (infixr ";;\<^sub>h" 15) where
+"(P ;;\<^sub>h Q) \<equiv> ((P::'\<alpha> hrelation) ;; (Q::'\<alpha> hrelation))"
+
+lemma rea_lift_skip_alpha [alpha]: "\<lceil>II\<rceil>\<^sub>R = ($\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R)"
+  by (rel_tac)
+
+lemma Wait_m_plus_n: "(Wait m ;; Wait n) = (Wait (m + n))"
+  apply (simp add: Wait_def)
+  apply (subst RH_tri_design_composition)
+  apply (simp_all add: unrest R2s_true R1_false R2_def[THEN sym])
+oops
+
 end
