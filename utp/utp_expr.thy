@@ -181,6 +181,9 @@ instance uexpr :: (cancel_semigroup_add, type) cancel_semigroup_add
 instance uexpr :: (cancel_ab_semigroup_add, type) cancel_ab_semigroup_add
   by (intro_classes) (simp add: plus_uexpr_def minus_uexpr_def, transfer, simp add: fun_eq_iff add.commute diff_diff_add)+
 
+instance uexpr :: (cancel_monoid_add, type) cancel_monoid_add
+  by (intro_classes, simp_all add: plus_uexpr_def minus_uexpr_def zero_uexpr_def) (transfer, auto)+
+
 instance uexpr :: (group_add, type) group_add
   by (intro_classes)
      (simp add: plus_uexpr_def uminus_uexpr_def minus_uexpr_def zero_uexpr_def, transfer, simp)+
@@ -275,6 +278,8 @@ syntax
   "_ufront"     :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" ("front\<^sub>u'(_')")
   "_uhead"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("head\<^sub>u'(_')")
   "_utail"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" ("tail\<^sub>u'(_')")
+  "_utake"      :: "(nat, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" ("take\<^sub>u'(_,/ _')")
+  "_udrop"      :: "(nat, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" ("drop\<^sub>u'(_,/ _')")
   "_ucard"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> (nat, '\<alpha>) uexpr" ("#\<^sub>u'(_')")
   "_ufilter"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" (infixl "\<restriction>\<^sub>u" 75)
   "_uextract"   :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" (infixl "\<upharpoonleft>\<^sub>u" 75)
@@ -334,6 +339,8 @@ translations
   "front\<^sub>u(xs)" == "CONST uop CONST butlast xs"
   "head\<^sub>u(xs)" == "CONST uop CONST hd xs"
   "tail\<^sub>u(xs)" == "CONST uop CONST tl xs"
+  "drop\<^sub>u(n,xs)" == "CONST bop CONST drop n xs"
+  "take\<^sub>u(n,xs)" == "CONST bop CONST take n xs"
   "#\<^sub>u(xs)" == "CONST uop CONST ucard xs"
   "elems\<^sub>u(xs)" == "CONST uop CONST set xs"
   "sorted\<^sub>u(xs)" == "CONST uop CONST sorted xs"
@@ -433,6 +440,7 @@ lemmas uexpr_defs =
   ucont_on_def
   LNil_def
   LZero_def
+  plus_list_def
 
 subsection {* Evaluation laws for expressions *}
 

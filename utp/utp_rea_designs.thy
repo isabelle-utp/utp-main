@@ -274,6 +274,15 @@ proof -
     by (simp add: R1_R2s_R2c R1_R3c_commute R2c_R3c_commute RH_R2c_def)
 qed
 
+lemma RH_design_export_R1: "RH(P \<turnstile> Q) = RH(P \<turnstile> R1(Q))"
+  by (rel_tac)
+
+lemma RH_design_export_R2s: "RH(P \<turnstile> Q) = RH(P \<turnstile> R2s(Q))"
+  by (rel_tac)
+
+lemma RH_design_export_R2: "RH(P \<turnstile> Q) = RH(P \<turnstile> R2(Q))"
+  by (metis R2_def RH_design_export_R1 RH_design_export_R2s)
+
 text {* Marcel's proof for reactive design composition *}
 
 lemma reactive_design_composition:
@@ -535,6 +544,9 @@ lemma R1_wait'_cond: "R1(P \<diamondop> Q) = R1(P) \<diamondop> R1(Q)"
 
 lemma R2s_wait'_cond: "R2s(P \<diamondop> Q) = R2s(P) \<diamondop> R2s(Q)"
   by (simp add: wait'_cond_def R2s_def R2s_def usubst)
+
+lemma R2_wait'_cond: "R2(P \<diamondop> Q) = R2(P) \<diamondop> R2(Q)"
+  by (simp add: R2_def R2s_wait'_cond R1_wait'_cond)
 
 lemma RH_design_lemma1:
   "RH(P \<turnstile> (R1(R2c(Q)) \<or> R) \<diamondop> S) = RH(P \<turnstile> (Q \<or> R) \<diamondop> S)"
