@@ -120,6 +120,9 @@ lemma R3c_pre_seq:
 lemma R2s_design: "R2s(P \<turnstile> Q) = (R2s(P) \<turnstile> R2s(Q))"
   by (simp add: R2s_def design_def usubst)
 
+lemma R2c_design: "R2c(P \<turnstile> Q) = (R2c(P) \<turnstile> R2c(Q))"
+  by (simp add: design_def impl_alt_def R2c_disj R2c_not R2c_ok R2c_and R2c_ok')
+
 lemma R1_R3c_design:
   "R1(R3c(P \<turnstile> Q)) = R1(R3c_pre(P) \<turnstile> R3c_post(Q))"
   by (rel_tac, simp_all add: alpha_d.equality)
@@ -161,9 +164,6 @@ proof -
   done
 qed
 
-lemma R2c_design: "R2c(P \<turnstile> Q) = R2c(P) \<turnstile> R2c(Q)"
-  by (rel_tac)
-
 lemma R1_des_lift_skip: "R1(\<lceil>II\<rceil>\<^sub>D) = \<lceil>II\<rceil>\<^sub>D"
   by (rel_tac)
 
@@ -190,14 +190,6 @@ lemma R2_subst_wait_false [usubst]:
 lemma R2_subst_wait'_false [usubst]:
   "(R2(P))\<lbrakk>false/$wait\<acute>\<rbrakk> = R2(P\<lbrakk>false/$wait\<acute>\<rbrakk>)"
   by (simp add: R2_def R1_def R2s_def usubst unrest)
-
-thm append_Nil2
-
-thm append_minus
-
-thm strict_prefixE
-
-thm alpha_rp'.surjective
 
 lemma R2_des_lift_skip:
   "R2(\<lceil>II\<rceil>\<^sub>D) = \<lceil>II\<rceil>\<^sub>D"
@@ -846,11 +838,17 @@ qed
 lemma HR_design_wait_false: "RH(P \<^sub>f \<turnstile> Q \<^sub>f) = RH(P \<turnstile> Q)"
   by (metis R3c_subst_wait RH_R2c_def wait_false_design)
 
+lemma RH_design_R1_neg_precond: "RH((\<not> R1(\<not> P)) \<turnstile> Q) = RH(P \<turnstile> Q)"
+  by (rel_tac)
+
 subsection {* Signature *}
 
 definition "Miracle = RH(true \<turnstile> false \<diamondop> false)"
 
 definition "Chaos = RH(false \<turnstile> true \<diamondop> true)"
+
+definition assigns_rea :: "'\<alpha> usubst \<Rightarrow> ('t::ordered_cancel_monoid_diff, '\<alpha>) hrelation_rp" ("\<langle>_\<rangle>\<^sub>R") where
+"assigns_rea \<sigma> = RH(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>R))"
 
 definition reactive_sup :: "_ set \<Rightarrow> _" ("\<Sqinter>\<^sub>R") where
 "\<Sqinter>\<^sub>R A = (if (A = {}) then Miracle else \<Sqinter> A)"
@@ -1049,6 +1047,65 @@ next
   case False
   thus ?thesis
     by (simp add: reactive_inf_def cInf_greatest assms)
+qed
+
+lemma assigns_lift_rea_unfold:
+  "($wait\<acute> =\<^sub>u $wait \<and> $tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>R) = \<lceil>\<langle>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>r\<rangle>\<^sub>a\<rceil>\<^sub>D"
+  by (rel_tac)
+
+lemma assigns_lift_des_unfold:
+  "($ok\<acute> =\<^sub>u $ok \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>D) = \<langle>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D\<rangle>\<^sub>a"
+  by (rel_tac)
+
+lemma assigns_rea_comp_lemma: 
+  assumes "$ok \<sharp> P" "$wait \<sharp> P"
+  shows "(($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>R) ;; P) = (\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> P)"
+proof -
+  have "(($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>R) ;; P) = 
+        (($ok\<acute> =\<^sub>u $ok \<and> $wait\<acute> =\<^sub>u $wait \<and> $tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>R) ;; P)"
+    by (simp add: seqr_insert_ident_left unrest assms)
+  also have "... = (\<langle>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rangle>\<^sub>a ;; P)"
+    by (simp add: assigns_lift_rea_unfold assigns_lift_des_unfold, rel_tac)
+  also have "... = (\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> P)"
+    by (simp add: assigns_r_comp)
+  finally show ?thesis .
+qed
+
+lemma R1_R2s_frame:
+  "R1 (R2s ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>P\<rceil>\<^sub>R)) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>P\<rceil>\<^sub>R)"
+    apply (rel_tac) 
+    using minus_zero_eq apply blast
+done
+
+lemma Healthy_if: "P is H \<Longrightarrow> (H P = P)"
+  unfolding Healthy_def by auto
+
+lemma assigns_rea_comp:
+  assumes "$ok \<sharp> P" "$ok \<sharp> Q\<^sub>1" "$ok \<sharp> Q\<^sub>2" "$wait \<sharp> P" "$wait \<sharp> Q\<^sub>1" "$wait \<sharp> Q\<^sub>2"
+          "Q\<^sub>1 is R1" "Q\<^sub>2 is R1" "P is R2s" "Q\<^sub>1 is R2s" "Q\<^sub>2 is R2s"
+  shows "(\<langle>\<sigma>\<rangle>\<^sub>R ;; RH(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2)) = RH(\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> P \<turnstile> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> Q\<^sub>1 \<diamondop> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> Q\<^sub>2)"
+proof -
+  have "(\<langle>\<sigma>\<rangle>\<^sub>R ;; RH(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2)) = 
+        (RH (true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>R)) ;; RH (P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2))"
+    by (simp add: assigns_rea_def)
+  also have "... = RH ((\<not> (($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>R) \<and> \<not> $wait\<acute> ;; 
+                       R1 (\<not> P))) \<turnstile> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> Q\<^sub>1 \<diamondop> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> Q\<^sub>2)"
+    by (simp add: RH_tri_design_composition unrest assms R2s_true R1_false R1_R2s_frame Healthy_if assigns_rea_comp_lemma)
+  also have "... = RH ((\<not> (($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>R) \<and> $wait\<acute> =\<^sub>u \<guillemotleft>False\<guillemotright> ;; 
+                       R1 (\<not> P))) \<turnstile> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> Q\<^sub>1 \<diamondop> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> Q\<^sub>2)"
+    by (simp add: false_alt_def[THEN sym])
+  also have "... = RH ((\<not> (($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>R)\<lbrakk>false/$wait\<acute>\<rbrakk> ;; 
+                       (R1 (\<not> P))\<lbrakk>false/$wait\<rbrakk>)) \<turnstile> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> Q\<^sub>1 \<diamondop> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> Q\<^sub>2)"
+    by (simp add: seqr_left_one_point false_alt_def)
+  also have "... = RH ((\<not> (($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>R) ;; (R1 (\<not> P)))) \<turnstile> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> Q\<^sub>1 \<diamondop> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> Q\<^sub>2)"
+    by (simp add: R1_def usubst unrest assms)
+  also have "... = RH ((\<not> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> R1 (\<not> P)) \<turnstile> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> Q\<^sub>1 \<diamondop> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> Q\<^sub>2)"
+    by (simp add: assigns_rea_comp_lemma assms unrest)
+  also have "... = RH ((\<not> R1 (\<not> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> P)) \<turnstile> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> Q\<^sub>1 \<diamondop> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> Q\<^sub>2)"
+    by (simp add: R1_def usubst unrest)
+  also have "... = RH ((\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> P) \<turnstile> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> Q\<^sub>1 \<diamondop> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> Q\<^sub>2)"
+    by (simp add: RH_design_R1_neg_precond)
+  finally show ?thesis .
 qed
 
 subsection {* Complete lattice *}
