@@ -8,6 +8,15 @@ subsection {* Preliminaries *}
 
 datatype '\<theta> tevent = Tock "'\<theta> set" | Event '\<theta>
 
+type_synonym ('\<theta>, '\<alpha>) alpha_cml_scheme = "('\<theta> tevent list, '\<alpha>) alpha_rp_scheme"
+
+type_synonym ('\<theta>,'\<alpha>) alphabet_cml  = "('\<theta>,'\<alpha>) alpha_cml_scheme alphabet"
+type_synonym ('\<theta>,'\<alpha>,'\<beta>) relation_cml  = "(('\<theta>,'\<alpha>) alphabet_cml, ('\<theta>,'\<beta>) alphabet_cml) relation"
+type_synonym ('a,'\<theta>,'\<alpha>,'\<beta>) expr_cml  = "('a, ('\<theta>,'\<alpha>) alphabet_cml \<times> ('\<theta>,'\<beta>) alphabet_cml) uexpr"
+type_synonym ('\<theta>,'\<alpha>) hrelation_cml  = "(('\<theta>,'\<alpha>) alphabet_cml, ('\<theta>,'\<alpha>) alphabet_cml) relation"
+type_synonym ('\<theta>,'\<sigma>) predicate_cml  = "('\<theta>,'\<sigma>) alphabet_cml upred"
+
+
 fun events :: "'\<theta> tevent list \<Rightarrow> '\<theta> list" where
 "events [] = []" |
 "events (Tock A # t) = events t" |
@@ -57,7 +66,7 @@ translations
 
 subsection {* Signature *}
 
-abbreviation trace :: "_" ("tt") where
+abbreviation trace :: "('\<theta> tevent list,'\<theta>,'\<alpha>,'\<beta>) expr_cml" ("tt") where
 "tt \<equiv> $tr\<acute> - $tr"
 
 abbreviation time_length :: "_" ("\<^bold>l")
@@ -82,15 +91,27 @@ abbreviation hseqr :: "'\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation \<R
 lemma rea_lift_skip_alpha [alpha]: "\<lceil>II\<rceil>\<^sub>R = ($\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R)"
   by (rel_tac)
 
+lemma length_list_minus [simp]: "ys \<le> xs \<Longrightarrow> length(xs - ys) = length(xs) - length(ys)"
+  by (auto simp add: minus_list_def less_eq_list_def)
+
 lemma Wait_0: "Wait 0 = II\<^sub>r"
 proof -
-  have "Wait 0 = RH (true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>0\<rceil>\<^sub>R\<^sub>< >\<^sub>u #\<^sub>u(tt)) \<diamondop> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>0\<rceil>\<^sub>R\<^sub>< \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R))"
+  have "Wait 0 = RH (true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> 0 >\<^sub>u #\<^sub>u(tt)) \<diamondop> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u 0 \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R))"
     (is "?lhs = RH(?P \<turnstile> ?Q \<diamondop> ?R)")
-    by (simp add: Wait_def)
-  have "?Q = false"
-    by (pred_tac)
-  have "?R = (tt =\<^sub>u \<langle>\<rangle>)"
-oops
+    by (simp add: Wait_def alpha)
+  also have "... = RH (true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R))"
+  proof -
+    have 1:"?Q = false"
+      by (pred_tac)
+    have 2:"R1(?R) = ($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R)"
+      apply (rel_tac) using list_minus_anhil by blast
+    show ?thesis
+      by (metis (no_types, lifting) "1" "2" R1_false R1_wait'_cond RH_design_export_R1)
+  qed
+  also have "... = II\<^sub>r"
+    by (simp add: skip_rea_reactive_tri_design')
+  finally show ?thesis .
+qed
 
 lemma Wait_m_plus_n: "(Wait m ;; Wait n) = (Wait (m + n))"
 proof -

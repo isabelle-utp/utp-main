@@ -23,6 +23,15 @@ lemma aext_id [alpha]: "P \<oplus>\<^sub>p 1\<^sub>L = P"
 lemma aext_lit [alpha]: "\<guillemotleft>v\<guillemotright> \<oplus>\<^sub>p a = \<guillemotleft>v\<guillemotright>"
   by (pred_tac)
 
+lemma aext_zero [alpha]: "0 \<oplus>\<^sub>p a = 0"
+  by (pred_tac)
+
+lemma aext_one [alpha]: "1 \<oplus>\<^sub>p a = 1"
+  by (pred_tac)
+
+lemma aext_numeral [alpha]: "numeral n \<oplus>\<^sub>p a = numeral n" 
+  by (pred_tac)
+
 lemma aext_uop [alpha]: "uop f u \<oplus>\<^sub>p a = uop f (u \<oplus>\<^sub>p a)"
   by (pred_tac)
 
