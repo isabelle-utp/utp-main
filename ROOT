@@ -35,7 +35,9 @@ session "UTP-IMPORTS" in "utils" = "Kleene_Algebra" +
     "Library_extra/Pfun"
     "Library_extra/Ffun"
     "Library_extra/Derivative_extra"
+    Positive
     Real_Bit
+    ttrace
 
 session "UTP" in "utp" = "UTP-IMPORTS" +
   options [document = pdf, document_output = "output"]

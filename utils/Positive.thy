@@ -48,6 +48,8 @@ instance pos :: ("{ordered_ab_semigroup_add,monoid_add}") monoid_add
 instance pos :: ("{ordered_ab_semigroup_add,comm_monoid_add}") comm_monoid_add
   by (intro_classes, metis add.left_neutral)
 
+instance real :: ordered_ab_semigroup_add ..
+
 instantiation pos :: (linordered_semidom) linordered_semidom
 begin
 

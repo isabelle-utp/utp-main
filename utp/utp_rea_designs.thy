@@ -477,7 +477,7 @@ proof -
       by (metis H1_H2_commute H1_H2_is_design H1_idem H2_idem Healthy_def')
   qed
   also have "... = RH((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
-    by (metis R3c_subst_wait RH_def subst_not wait_false_design)
+    by (metis (no_types, lifting) RH_subst_wait subst_not wait_false_design)
   finally show ?thesis .
 qed
 
@@ -649,6 +649,46 @@ lemma wait'_peri_unrest [unrest]: "$wait\<acute> \<sharp> peri\<^sub>R P"
 
 lemma wait'_post_unrest [unrest]: "$wait\<acute> \<sharp> post\<^sub>R P"
   by (simp add: post\<^sub>R_def unrest usubst)
+
+lemma pre\<^sub>s_design: "pre\<^sub>s \<dagger> (P \<turnstile> Q) = (\<not> pre\<^sub>s \<dagger> P)"
+  by (simp add: design_def pre\<^sub>R_def usubst)
+
+lemma peri\<^sub>s_design: "peri\<^sub>s \<dagger> (P \<turnstile> Q \<diamondop> R) = peri\<^sub>s \<dagger> (P \<Rightarrow> Q)"
+  by (simp add: design_def usubst wait'_cond_def)
+
+lemma post\<^sub>s_design: "post\<^sub>s \<dagger> (P \<turnstile> Q \<diamondop> R) = post\<^sub>s \<dagger> (P \<Rightarrow> R)"
+  by (simp add: design_def usubst wait'_cond_def)
+
+lemma pre\<^sub>s_R1 [usubst]: "pre\<^sub>s \<dagger> R1(P) = R1(pre\<^sub>s \<dagger> P)"
+  by (simp add: R1_def usubst)
+
+lemma pre\<^sub>s_R2c [usubst]: "pre\<^sub>s \<dagger> R2c(P) = R2c(pre\<^sub>s \<dagger> P)"
+  by (simp add: R2c_def R2s_def usubst)
+
+lemma peri\<^sub>s_R1 [usubst]: "peri\<^sub>s \<dagger> R1(P) = R1(peri\<^sub>s \<dagger> P)"
+  by (simp add: R1_def usubst)
+
+lemma peri\<^sub>s_R2c [usubst]: "peri\<^sub>s \<dagger> R2c(P) = R2c(peri\<^sub>s \<dagger> P)"
+  by (simp add: R2c_def R2s_def usubst)
+
+lemma post\<^sub>s_R1 [usubst]: "post\<^sub>s \<dagger> R1(P) = R1(post\<^sub>s \<dagger> P)"
+  by (simp add: R1_def usubst)
+
+lemma post\<^sub>s_R2c [usubst]: "post\<^sub>s \<dagger> R2c(P) = R2c(post\<^sub>s \<dagger> P)"
+  by (simp add: R2c_def R2s_def usubst)
+
+lemma rea_pre_RH_design: "pre\<^sub>R(RH(P \<turnstile> Q)) = (\<not> R1(R2c(pre\<^sub>s \<dagger> (\<not> P))))"
+  by (simp add: RH_R2c_def usubst R3c_def pre\<^sub>R_def pre\<^sub>s_design)
+
+lemma rea_peri_RH_design: "peri\<^sub>R(RH(P \<turnstile> Q \<diamondop> R)) = R1(R2c(peri\<^sub>s \<dagger> (P \<Rightarrow> Q)))"
+  by (simp add:RH_R2c_def usubst peri\<^sub>R_def R3c_def peri\<^sub>s_design)
+
+lemma rea_post_RH_design: "post\<^sub>R(RH(P \<turnstile> Q \<diamondop> R)) = R1(R2c(post\<^sub>s \<dagger> (P \<Rightarrow> R)))"
+  by (simp add:RH_R2c_def usubst post\<^sub>R_def R3c_def post\<^sub>s_design)
+
+lemma "RH(pre\<^sub>R(RH(P \<turnstile> Q \<diamondop> R)) \<turnstile> peri\<^sub>R(RH(P \<turnstile> Q \<diamondop> R)) \<diamondop> post\<^sub>R(RH(P \<turnstile> Q \<diamondop> R))) = RH(P \<turnstile> Q \<diamondop> R)"
+  apply (simp add: rea_pre_RH_design rea_peri_RH_design rea_post_RH_design)
+oops
 
 lemma CSP_reactive_tri_design_lemma:
   assumes "P is CSP"
@@ -843,9 +883,9 @@ lemma RH_design_R1_neg_precond: "RH((\<not> R1(\<not> P)) \<turnstile> Q) = RH(P
 
 subsection {* Signature *}
 
-definition "Miracle = RH(true \<turnstile> false \<diamondop> false)"
+definition [urel_defs]: "Miracle = RH(true \<turnstile> false \<diamondop> false)"
 
-definition "Chaos = RH(false \<turnstile> true \<diamondop> true)"
+definition [urel_defs]: "Chaos = RH(false \<turnstile> true \<diamondop> true)"
 
 definition assigns_rea :: "'\<alpha> usubst \<Rightarrow> ('t::ordered_cancel_monoid_diff, '\<alpha>) hrelation_rp" ("\<langle>_\<rangle>\<^sub>R") where
 "assigns_rea \<sigma> = RH(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>R))"

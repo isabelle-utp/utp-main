@@ -12,16 +12,17 @@ text {* We introduce a polymorphic constant that will be used to represent appli
         a substitution, and also a set of theorems to represent laws. *}
 
 consts
-  usubst :: "'s \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "\<dagger>" 80)
+  usubst :: "'s \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "\<dagger>" 80)
 
 named_theorems usubst
 
 text {* A substitution is simply a transformation on the alphabet; it shows how variables
         should be mapped to different values. *}
 
+type_synonym ('\<alpha>,'\<beta>) psubst = "'\<alpha> alphabet \<Rightarrow> '\<beta> alphabet"
 type_synonym '\<alpha> usubst = "'\<alpha> alphabet \<Rightarrow> '\<alpha> alphabet"
 
-lift_definition subst :: "'\<alpha> usubst \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" is
+lift_definition subst :: "('\<alpha>, '\<beta>) psubst \<Rightarrow> ('a, '\<beta>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" is
 "\<lambda> \<sigma> e b. e (\<sigma> b)" .
 
 adhoc_overloading
@@ -29,12 +30,12 @@ adhoc_overloading
 
 text {* Update the value of a variable to an expression in a substitution *}
 
-consts subst_upd :: "'\<alpha> usubst \<Rightarrow> 'v \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> '\<alpha> usubst"
+consts subst_upd :: "('\<alpha>,'\<beta>) psubst \<Rightarrow> 'v \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>,'\<beta>) psubst"
 
-definition subst_upd_uvar :: "'\<alpha> usubst \<Rightarrow> ('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> '\<alpha> usubst" where
+definition subst_upd_uvar :: "('\<alpha>,'\<beta>) psubst \<Rightarrow> ('a, '\<beta>) uvar \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>,'\<beta>) psubst" where
 "subst_upd_uvar \<sigma> x v = (\<lambda> b. put\<^bsub>x\<^esub> (\<sigma> b) (\<lbrakk>v\<rbrakk>\<^sub>eb))"
 
-definition subst_upd_dvar :: "'\<alpha> usubst \<Rightarrow> 'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) uexpr \<Rightarrow> '\<alpha> usubst" where
+definition subst_upd_dvar :: "('\<alpha>,'\<beta>::vst) psubst \<Rightarrow> 'a::continuum dvar \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>,'\<beta>) psubst" where
 "subst_upd_dvar \<sigma> x v = subst_upd_uvar \<sigma> (x\<up>) v"
 
 adhoc_overloading
@@ -42,7 +43,7 @@ adhoc_overloading
 
 text {* Lookup the expression associated with a variable in a substitution *}
 
-lift_definition usubst_lookup :: "'\<alpha> usubst \<Rightarrow> ('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<langle>_\<rangle>\<^sub>s")
+lift_definition usubst_lookup :: "('\<alpha>,'\<beta>) psubst \<Rightarrow> ('a, '\<beta>) uvar \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<langle>_\<rangle>\<^sub>s")
 is "\<lambda> \<sigma> x b. get\<^bsub>x\<^esub> (\<sigma> b)" .
 
 text {* Relational lifting of a substitution to the first element of the state space *}

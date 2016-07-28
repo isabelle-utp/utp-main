@@ -8,6 +8,8 @@ imports
   "../utils/Continuum"
   "../utils/finite_bijection"
   "../utils/Lenses"
+  "../utils/Positive"
+  "../utils/ttrace"
   "../utils/Library_extra/Pfun"
   "../utils/Library_extra/Ffun"
   "../utils/Library_extra/Derivative_extra"

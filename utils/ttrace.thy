@@ -1,7 +1,13 @@
 section {* Timed traces *}
 
 theory ttrace
-  imports Real_Vector_Spaces Map_Extra List_extra "Library_extra/Monoid_extra" Topology_Euclidean_Space 
+  imports 
+  Real_Vector_Spaces
+  Positive
+  "Library_extra/Map_Extra" 
+  "Library_extra/List_extra" 
+  "Library_extra/Monoid_extra" 
+  "~~/src/HOL/Multivariate_Analysis/Topology_Euclidean_Space"
 begin
 
 lemma dom_shift_plus: 
@@ -36,9 +42,10 @@ typedef 'a cgf =
 
 setup_lifting type_definition_cgf
 
-lift_definition cgf_apply :: "'a cgf \<Rightarrow> real \<Rightarrow> 'a" ("\<langle>_\<rangle>\<^sub>C") is "\<lambda> f x. the (f x)" .
-lift_definition cgf_dom :: "'a cgf \<Rightarrow> real set" ("dom\<^sub>C") is dom .
-lift_definition cgf_end :: "'a cgf \<Rightarrow> real" ("end\<^sub>C") is "\<lambda> f. if (dom(f) = {}) then 0 else Sup(dom(f))" .
+lift_definition cgf_apply :: "'a cgf \<Rightarrow> preal \<Rightarrow> 'a" ("\<langle>_\<rangle>\<^sub>C") is "\<lambda> f x. the (f x)" .
+lift_definition cgf_dom :: "'a cgf \<Rightarrow> preal set" ("dom\<^sub>C") is dom by (auto)
+lift_definition cgf_end :: "'a cgf \<Rightarrow> preal" ("end\<^sub>C") is "\<lambda> f. if (dom(f) = {}) then 0 else Sup(dom(f))" 
+  using less_eq_real_def by auto
 
 instantiation cgf :: (type) zero
 begin
@@ -46,7 +53,7 @@ begin
 instance ..
 end
 
-abbreviation cgf_empty :: "'a cgf" ("[]\<^sub>C") where "[]\<^sub>C \<equiv> 0"
+abbreviation (input) cgf_empty :: "'a cgf" ("[]\<^sub>C") where "[]\<^sub>C \<equiv> 0"
 
 instantiation cgf :: (type) plus
 begin
@@ -64,7 +71,7 @@ instance ..
 
 end
 
-abbreviation cgf_cat :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cgf" (infixl "@\<^sub>C" 85) where "xs @\<^sub>C ys \<equiv> xs + ys"
+abbreviation (input) cgf_cat :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cgf" (infixl "@\<^sub>C" 85) where "xs @\<^sub>C ys \<equiv> xs + ys"
 
 lemma cgf_cat_left_unit [simp]: "[]\<^sub>C @\<^sub>C t = t"
   by (transfer, rule ext, auto, metis (full_types) atLeastLessThan_iff domIff not_le)
@@ -90,10 +97,9 @@ lemma cgf_eqI: "\<lbrakk> end\<^sub>C f = end\<^sub>C g; \<forall> x<end\<^sub>C
   using less_eq_real_def apply auto[1]
   apply (case_tac "f = Map.empty")
   apply (auto)
-  using less_eq_real_def apply auto[1]
   apply (rule map_eqI)
-  using less_eq_real_def apply auto
-  apply (metis (mono_tags) cSup_atLeastLessThan dual_order.strict_trans less_irrefl)
+  apply (metis atLeastLessThan_empty_iff2 cSup_atLeastLessThan dom_eq_empty_conv not_less)
+  apply (metis (mono_tags) atLeastLessThan_empty atLeastLessThan_iff cSup_atLeastLessThan dom_eq_empty_conv less_eq_real_def)
 done
 
 lemma cgf_end_ge_0 [simp]: "end\<^sub>C(f) \<ge> 0"
@@ -101,8 +107,6 @@ lemma cgf_end_ge_0 [simp]: "end\<^sub>C(f) \<ge> 0"
 
 lemma cgf_end_empty [simp]: "end\<^sub>C([]\<^sub>C) = 0"
   by (transfer, simp)
-
-thm antisym_conv2
 
 lemma cgf_end_0_iff: "end\<^sub>C(f) = 0 \<longleftrightarrow> f = []\<^sub>C"
   by (transfer, force simp add: antisym_conv2)
@@ -137,13 +141,13 @@ lemma cgf_cat_ext_last: "x \<ge> end\<^sub>C f \<Longrightarrow> \<langle>f @\<^
   by (transfer, auto, metis (mono_tags, hide_lams) atLeastLessThan_empty_iff2 cSup_atLeastLessThan domIff empty_iff less_le_not_le)
 
 lemma cgf_cat_assoc: "(f @\<^sub>C g) @\<^sub>C h = f @\<^sub>C (g @\<^sub>C h)"
-proof (rule cgf_eqI, simp_all add: cgf_end_cat, clarify)
+proof (rule cgf_eqI, simp_all add: cgf_end_cat add.assoc, clarify)
   fix x
   assume x: "x < end\<^sub>C f + (end\<^sub>C g + end\<^sub>C h)" 
   show "\<langle>f @\<^sub>C g @\<^sub>C h\<rangle>\<^sub>C x = \<langle>f @\<^sub>C (g @\<^sub>C h)\<rangle>\<^sub>C x"
   proof (cases "x < end\<^sub>C f")
     case True thus ?thesis
-      by (simp add: cgf_cat_ext_first cgf_end_cat less_le_trans)
+      by (metis (mono_tags, hide_lams) add.right_neutral add_less_cancel_left cgf_cat_ext_first cgf_end_cat cgf_end_ge_0 le_less_trans not_le)
   next
     case False 
     hence x_gef: "x \<ge> end\<^sub>C f"
@@ -151,13 +155,17 @@ proof (rule cgf_eqI, simp_all add: cgf_end_cat, clarify)
     thus ?thesis
     proof (cases "x < end\<^sub>C f+end\<^sub>C g")
       case True thus ?thesis
-        by (simp add: add.commute  cgf_cat_ext_first cgf_cat_ext_last cgf_end_cat x_gef)
+        apply (simp add: add.commute add_less_imp_less_left cgf_cat_ext_first cgf_cat_ext_last cgf_end_cat x_gef)
+        apply (subst cgf_cat_ext_first)
+        apply (metis add_less_imp_less_left le_add_diff_inverse x_gef)
+        apply (simp)
+      done
     next
       case False 
       hence x_gefg: "x \<ge> end\<^sub>C f+end\<^sub>C g"
         by auto
       thus ?thesis
-        by (simp add:  cgf_cat_ext_last cgf_end_cat diff_diff_add x_gef)
+        by (simp add: add.commute cgf_cat_ext_last cgf_end_cat diff_diff_add add_le_imp_le_diff x_gef)
     qed
   qed
 qed
@@ -177,7 +185,7 @@ instance
 done
 end
 
-abbreviation cgf_prefix :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" (infix "\<subseteq>\<^sub>C" 50)
+abbreviation (input) cgf_prefix :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" (infix "\<subseteq>\<^sub>C" 50)
 where "f \<subseteq>\<^sub>C g \<equiv> f \<le> g"
 
 lemma cgf_prefix_least [simp]: "[]\<^sub>C \<le> f"
@@ -276,6 +284,12 @@ lemma cgf_prefix_iff: "f \<le> g \<longleftrightarrow> (\<exists> h. g = f @\<^s
   apply (simp add: cgf_cat_minus_prefix)
 done
 
+lemma cgf_apply_minus [simp]: "f \<le> g \<Longrightarrow> \<langle>g - f\<rangle>\<^sub>C x = \<langle>g\<rangle>\<^sub>C (x + end\<^sub>C(f))"
+  apply (transfer, auto)
+  apply (metis (full_types) atLeastLessThan_iff domIff less_eq_real_def)
+  apply (metis (full_types) atLeastLessThan_empty_iff2 atLeastLessThan_iff domIff less_diff_eq)
+done
+
 lemma cgf_end_minus: "g \<le> f \<Longrightarrow> end\<^sub>C(f-g) = end\<^sub>C(f)-end\<^sub>C(g)"
   by (auto simp add: cgf_prefix_iff cgf_end_cat)
 
@@ -298,6 +312,7 @@ instance cgf :: (type) ordered_cancel_monoid_diff
   apply (simp_all add: cgf_cat_assoc list_concat_minus_list_concat cgf_prefix_iff)
 done
 
+(*
 locale pc_interval =
   fixes I :: "real list" and f :: "'a::topological_space cgf"
   assumes I_range: "set(I) \<subseteq> {0 .. end\<^sub>C f}"
@@ -687,5 +702,15 @@ lemma tt_minus_empty [simp]: "t - []\<^sub>t = t"
 
 lemma tt_append_cancel [simp]: "(x @\<^sub>t y) - x = y"
   by (transfer, auto)
+*)
+text {* Hide implementation details for cgfs and ttraces *}
+  
+lifting_update cgf.lifting
+lifting_forget cgf.lifting
+
+(*
+lifting_update ttrace.lifting
+lifting_forget ttrace.lifting
+*)
 
 end

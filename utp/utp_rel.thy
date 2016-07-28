@@ -307,9 +307,9 @@ lemma cond_assoc: "((P \<triangleleft> b \<triangleright> Q) \<triangleleft> c \
 
 lemma cond_distr: "(P \<triangleleft> b \<triangleright> (Q \<triangleleft> c \<triangleright> R)) = ((P \<triangleleft> b \<triangleright> Q) \<triangleleft> c \<triangleright> (P \<triangleleft> b \<triangleright> R))" by rel_tac
 
-lemma cond_unit_T:"(P \<triangleleft> true \<triangleright> Q) = P" by rel_tac
+lemma cond_unit_T [simp]:"(P \<triangleleft> true \<triangleright> Q) = P" by rel_tac
 
-lemma cond_unit_F:"(P \<triangleleft> false \<triangleright> Q) = Q" by rel_tac
+lemma cond_unit_F [simp]:"(P \<triangleleft> false \<triangleright> Q) = Q" by rel_tac
 
 lemma cond_and_T_integrate:
   "((P \<and> b) \<or> (Q \<triangleleft> b \<triangleright> R)) = ((P \<or> Q) \<triangleleft> b \<triangleright> R)"
