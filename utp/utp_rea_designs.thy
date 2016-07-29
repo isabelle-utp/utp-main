@@ -133,6 +133,12 @@ lemma unrest_ok_R2s [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R2s
 lemma unrest_ok'_R2s [unrest]: "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> R2s(P)"
   by (simp add: R2s_def unrest)
 
+lemma unrest_ok_R2c [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R2c(P)"
+  by (simp add: R2c_def unrest)
+
+lemma unrest_ok'_R2c [unrest]: "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> R2c(P)"
+  by (simp add: R2c_def unrest)
+
 lemma unrest_ok_R3c_pre [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R3c_pre(P)"
   by (simp add: R3c_pre_def cond_def unrest)
 
@@ -194,6 +200,17 @@ lemma R2_subst_wait'_false [usubst]:
 lemma R2_des_lift_skip:
   "R2(\<lceil>II\<rceil>\<^sub>D) = \<lceil>II\<rceil>\<^sub>D"
   by (rel_tac, metis alpha_rp'.cases_scheme alpha_rp'.select_convs(2) alpha_rp'.update_convs(2)  minus_zero_eq)
+
+lemma R2c_R2s_absorb: "R2c(R2s(P)) = R2s(P)"
+  by (rel_tac)
+
+lemma R2_design_composition: 
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok \<sharp> R" "$ok \<sharp> S"
+  shows "(R2(P \<turnstile> Q) ;; R2(R \<turnstile> S)) = 
+       R2((\<not> (R1 (\<not> R2c P) ;; R1 true) \<and> \<not> (R1 (R2c Q) ;; R1 (\<not> R2c R))) \<turnstile> (R1 (R2c Q) ;; R1 (R2c S)))"
+  apply (simp add: R2_R2c_def R2c_design R1_design_composition assms unrest R2c_not R2c_and R2c_disj R1_R2c_commute[THEN sym] R2c_idem R2c_R1_seq)
+  apply (metis (no_types, lifting) R2c_R1_seq R2c_not R2c_true)
+done
 
 lemma RH_design_composition: 
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok \<sharp> R" "$ok \<sharp> S"
@@ -274,6 +291,18 @@ lemma RH_design_export_R2s: "RH(P \<turnstile> Q) = RH(P \<turnstile> R2s(Q))"
 
 lemma RH_design_export_R2: "RH(P \<turnstile> Q) = RH(P \<turnstile> R2(Q))"
   by (metis R2_def RH_design_export_R1 RH_design_export_R2s)
+
+lemma RH_design_pre_neg_R1: "RH((\<not> R1 P) \<turnstile> Q) = RH((\<not> P) \<turnstile> Q)"
+  by (metis (no_types, lifting) R1_R2c_commute R1_R3c_commute R1_def R1_disj RH_R2c_def design_def impl_alt_def not_conj_deMorgans utp_pred.double_compl utp_pred.inf.orderE utp_pred.inf_le2)
+  
+lemma RH_design_pre_R2s: "RH((R2s P) \<turnstile> Q) = RH(P \<turnstile> Q)"
+  by (metis (no_types, lifting) R1_R2c_is_R2 R1_R2s_R2c R2_R3c_commute R2s_design R2s_idem RH_alt_def')
+
+lemma RH_design_pre_R2c: "RH((R2c P) \<turnstile> Q) = RH(P \<turnstile> Q)"
+  by (metis (no_types, lifting) R2c_design R2c_idem RH_absorbs_R2c)
+
+lemma RH_design_pre_neg_R1_R2c: "RH((\<not> R1 (R2c P)) \<turnstile> Q) = RH((\<not> P) \<turnstile> Q)"
+  by (simp add: RH_design_pre_neg_R1, metis R2c_not RH_design_pre_R2c)
 
 text {* Marcel's proof for reactive design composition *}
 
@@ -540,6 +569,24 @@ lemma R2s_wait'_cond: "R2s(P \<diamondop> Q) = R2s(P) \<diamondop> R2s(Q)"
 lemma R2_wait'_cond: "R2(P \<diamondop> Q) = R2(P) \<diamondop> R2(Q)"
   by (simp add: R2_def R2s_wait'_cond R1_wait'_cond)
 
+lemma RH_design_peri_R1: "RH(P \<turnstile> R1(Q) \<diamondop> R) = RH(P \<turnstile> Q \<diamondop> R)"
+  by (metis (no_types, lifting) R1_idem R1_wait'_cond RH_design_export_R1)
+
+lemma RH_design_post_R1: "RH(P \<turnstile> Q \<diamondop> R1(R)) = RH(P \<turnstile> Q \<diamondop> R)"
+  by (metis R1_wait'_cond RH_design_export_R1 RH_design_peri_R1)
+
+lemma RH_design_peri_R2s: "RH(P \<turnstile> R2s(Q) \<diamondop> R) = RH(P \<turnstile> Q \<diamondop> R)"
+  by (metis (no_types, lifting) R2s_idem R2s_wait'_cond RH_design_export_R2s)
+
+lemma RH_design_post_R2s: "RH(P \<turnstile> Q \<diamondop> R2s(R)) = RH(P \<turnstile> Q \<diamondop> R)"
+  by (metis (no_types, lifting) R2s_idem R2s_wait'_cond RH_design_export_R2s)
+
+lemma RH_design_peri_R2c: "RH(P \<turnstile> R2c(Q) \<diamondop> R) = RH(P \<turnstile> Q \<diamondop> R)"
+  by (metis (no_types, lifting) R1_R2c_is_R2 R2_wait'_cond R2c_idem RH_design_export_R2)
+  
+lemma RH_design_post_R2c: "RH(P \<turnstile> Q \<diamondop> R2c(R)) = RH(P \<turnstile> Q \<diamondop> R)"
+  by (metis (no_types, lifting) R1_R2c_is_R2 R2_wait'_cond R2c_idem RH_design_export_R2)
+
 lemma RH_design_lemma1:
   "RH(P \<turnstile> (R1(R2c(Q)) \<or> R) \<diamondop> S) = RH(P \<turnstile> (Q \<or> R) \<diamondop> S)"
   by (simp add: design_def impl_alt_def wait'_cond_def RH_R2c_def R2c_R3c_commute R1_R3c_commute R1_disj R2c_disj R2c_and R1_cond R2c_condr R1_R2c_commute R2c_idem R1_extend_conj' R1_idem)
@@ -686,10 +733,6 @@ lemma rea_peri_RH_design: "peri\<^sub>R(RH(P \<turnstile> Q \<diamondop> R)) = R
 lemma rea_post_RH_design: "post\<^sub>R(RH(P \<turnstile> Q \<diamondop> R)) = R1(R2c(post\<^sub>s \<dagger> (P \<Rightarrow> R)))"
   by (simp add:RH_R2c_def usubst post\<^sub>R_def R3c_def post\<^sub>s_design)
 
-lemma "RH(pre\<^sub>R(RH(P \<turnstile> Q \<diamondop> R)) \<turnstile> peri\<^sub>R(RH(P \<turnstile> Q \<diamondop> R)) \<diamondop> post\<^sub>R(RH(P \<turnstile> Q \<diamondop> R))) = RH(P \<turnstile> Q \<diamondop> R)"
-  apply (simp add: rea_pre_RH_design rea_peri_RH_design rea_post_RH_design)
-oops
-
 lemma CSP_reactive_tri_design_lemma:
   assumes "P is CSP"
   shows "RH((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> P\<^sup>t\<^sub>f\<lbrakk>false/$wait\<acute>\<rbrakk>) = P"
@@ -731,6 +774,24 @@ lemma skip_rea_reactive_design':
 
 lemma RH_design_subst_wait: "RH(P \<^sub>f \<turnstile> Q \<^sub>f) = RH(P \<turnstile> Q)"
   by (metis RH_subst_wait wait_false_design)
+
+lemma RH_design_subst_wait_pre: "RH(P \<^sub>f \<turnstile> Q) = RH(P \<turnstile> Q)"
+  by (subst RH_design_subst_wait[THEN sym], simp add: usubst RH_design_subst_wait)
+
+lemma RH_design_subst_wait_post: "RH(P \<turnstile> Q \<^sub>f) = RH(P \<turnstile> Q)"
+  by (subst RH_design_subst_wait[THEN sym], simp add: usubst RH_design_subst_wait)
+
+lemma RH_peri_subst_false_wait: "RH(P \<turnstile> Q \<^sub>f \<diamondop> R) = RH(P \<turnstile> Q \<diamondop> R)"
+  apply (subst RH_design_subst_wait_post[THEN sym])
+  apply (simp add: usubst unrest)
+  apply (metis RH_design_subst_wait RH_design_subst_wait_pre out_in_indep out_var_uvar unrest_false unrest_usubst_id unrest_usubst_upd vwb_lens.axioms(2) wait'_cond_subst wait_uvar)
+done
+
+lemma RH_post_subst_false_wait: "RH(P \<turnstile> Q \<diamondop> R \<^sub>f) = RH(P \<turnstile> Q \<diamondop> R)"
+  apply (subst RH_design_subst_wait_post[THEN sym])
+  apply (simp add: usubst unrest)
+  apply (metis RH_design_subst_wait RH_design_subst_wait_pre out_in_indep out_var_uvar unrest_false unrest_usubst_id unrest_usubst_upd vwb_lens.axioms(2) wait'_cond_subst wait_uvar)
+done
 
 lemma skip_rea_reactive_tri_design:
   "II\<^sub>r = RH(true \<turnstile> false \<diamondop> \<lceil>II\<rceil>\<^sub>D)" (is "?lhs = ?rhs")
@@ -789,6 +850,61 @@ lemma R2s_peri: "R2s (peri\<^sub>R P) = peri\<^sub>R (R2s P)"
 
 lemma R2s_post: "R2s (post\<^sub>R P) = post\<^sub>R (R2s P)"
   by (simp add: post\<^sub>R_def R2s_def usubst)
+
+lemma RH_pre_RH_design:
+  "$ok\<acute> \<sharp> P \<Longrightarrow> RH(pre\<^sub>R(RH(P \<turnstile> Q)) \<turnstile> R) = RH(P \<turnstile> R)"
+  apply (simp add: rea_pre_RH_design RH_design_pre_neg_R1_R2c usubst)
+  apply (subst subst_to_singleton)
+  apply (simp add: unrest)
+  apply (simp add: RH_design_subst_wait_pre)
+  apply (simp add: usubst)
+  apply (metis conj_pos_var_subst design_def uvar_ok)
+done
+
+lemma RH_postcondition: "(RH(P \<turnstile> Q))\<^sup>t\<^sub>f = R1(R2s($ok \<and> P\<^sup>t\<^sub>f \<Rightarrow> Q\<^sup>t\<^sub>f))"
+  by (simp add: RH_def R1_def R3c_def usubst R2s_def design_def)
+
+lemma RH_postcondition_RH: "RH(P \<turnstile> (RH(P \<turnstile> Q))\<^sup>t\<^sub>f) = RH(P \<turnstile> Q)"
+proof -
+  have "RH(P \<turnstile> (RH(P \<turnstile> Q))\<^sup>t\<^sub>f) = RH (P \<turnstile> ($ok \<and> P\<^sup>t\<^sub>f \<Rightarrow> Q\<^sup>t\<^sub>f))"
+    by (simp add: RH_postcondition RH_design_export_R1[THEN sym] RH_design_export_R2s[THEN sym])
+  also have "... = RH (P \<turnstile> ($ok \<and> P\<^sup>t \<Rightarrow> Q\<^sup>t))"
+    by (subst RH_design_subst_wait_post[THEN sym, of _ "($ok \<and> P\<^sup>t \<Rightarrow> Q\<^sup>t)"], simp add: usubst)
+  also have "... = RH (P \<turnstile> (P\<^sup>t \<Rightarrow> Q\<^sup>t))"
+    by (rel_tac)
+  also have "... = RH (P \<turnstile> (P \<Rightarrow> Q))"
+    by (subst design_subst_ok'[THEN sym, of _ "P \<Rightarrow> Q"], simp add: usubst)
+  also have "... = RH (P \<turnstile> Q)"
+    by (rel_tac)
+  finally show ?thesis .
+qed
+
+lemma peri\<^sub>R_alt_def: "peri\<^sub>R(P) = (P\<^sup>t\<^sub>f)\<lbrakk>true/$ok\<rbrakk>\<lbrakk>true/$wait\<acute>\<rbrakk>"
+  by (simp add: peri\<^sub>R_def usubst)
+
+lemma post\<^sub>R_alt_def: "post\<^sub>R(P) = (P\<^sup>t\<^sub>f)\<lbrakk>true/$ok\<rbrakk>\<lbrakk>false/$wait\<acute>\<rbrakk>"
+  by (simp add: post\<^sub>R_def usubst)
+
+lemma design_export_ok_true: "P \<turnstile> Q\<lbrakk>true/$ok\<rbrakk> = P \<turnstile> Q"
+  by (metis conj_pos_var_subst design_export_ok uvar_ok)
+
+lemma design_export_peri_ok_true: "P \<turnstile> Q\<lbrakk>true/$ok\<rbrakk> \<diamondop> R = P \<turnstile> Q \<diamondop> R"
+  apply (subst design_export_ok_true[THEN sym])
+  apply (simp add: usubst unrest)
+  apply (metis design_export_ok_true out_in_indep out_var_uvar unrest_true unrest_usubst_id unrest_usubst_upd vwb_lens_mwb wait'_cond_subst wait_uvar)
+done
+
+lemma design_export_post_ok_true: "P \<turnstile> Q \<diamondop> R\<lbrakk>true/$ok\<rbrakk> = P \<turnstile> Q \<diamondop> R"
+  apply (subst design_export_ok_true[THEN sym])
+  apply (simp add: usubst unrest)
+  apply (metis design_export_ok_true out_in_indep out_var_uvar unrest_true unrest_usubst_id unrest_usubst_upd vwb_lens_mwb wait'_cond_subst wait_uvar)
+done
+
+lemma RH_peri_RH_design:
+  "RH(P \<turnstile> peri\<^sub>R(RH(P \<turnstile> Q \<diamondop> R)) \<diamondop> S) = RH(P \<turnstile> Q \<diamondop> S)"
+  apply (simp add: peri\<^sub>R_alt_def subst_wait'_left_subst design_export_peri_ok_true RH_postcondition)
+  apply (simp add: rea_peri_RH_design RH_design_peri_R1 RH_design_peri_R2s)
+oops
 
 lemma CSP_R1_R2s: "P is CSP \<Longrightarrow> R1 (R2s P) = P"
   by (metis (no_types) CSP_reactive_design R1_R2c_is_R2 R1_R2s_R2c R2_idem RH_alt_def')

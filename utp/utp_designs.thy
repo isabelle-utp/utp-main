@@ -233,11 +233,19 @@ lemma design_refine_intro:
 theorem design_ok_false [usubst]: "(P \<turnstile> Q)\<lbrakk>false/$ok\<rbrakk> = true"
   by (simp add: design_def usubst)
 
+theorem design_npre: 
+  "(P \<turnstile> Q)\<^sup>f = (\<not> $ok \<or> \<not> P\<^sup>f)"
+  by (rel_tac)
+
 theorem design_pre: 
   "\<not> (P \<turnstile> Q)\<^sup>f = ($ok \<and> P\<^sup>f)"
   by (simp add: design_def, subst_tac)
      (metis (no_types, hide_lams) not_conj_deMorgans true_not_false(2) utp_pred.compl_top_eq 
             utp_pred.sup.idem utp_pred.sup_compl_top)
+
+theorem design_post: 
+  "(P \<turnstile> Q)\<^sup>t = (($ok \<and> P\<^sup>t) \<Rightarrow> Q\<^sup>t)"
+  by (rel_tac)
 
 declare des_lens_def [upred_defs]
 declare lens_create_def [upred_defs]

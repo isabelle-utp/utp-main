@@ -253,6 +253,15 @@ translations
   "P\<lbrakk>v/$x\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) (CONST ivar x) v) P"
   "P\<lbrakk>v/$x\<acute>\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) (CONST ovar x) v) P"
 
+lemma subst_singleton: 
+  fixes x :: "('a, '\<alpha>) uvar"
+  assumes "x \<sharp> \<sigma>"
+  shows "\<sigma>(x \<mapsto>\<^sub>s v) \<dagger> P = (\<sigma> \<dagger> P)\<lbrakk>v/x\<rbrakk>"
+  using assms
+  by (simp add: usubst, metis comp_apply id_apply subst_upd_uvar_def unrest_usubst_def)
+
+lemmas subst_to_singleton = subst_singleton id_subst
+
 subsection {* Unrestriction laws *}
 
 lemma unrest_usubst_single [unrest]:
