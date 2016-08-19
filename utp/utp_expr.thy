@@ -259,7 +259,8 @@ definition "LZero = 0"
 
 adhoc_overloading
   uempty LZero and uempty LNil and
-  uapply fun_apply and uapply nth and uapply pfun_app and uapply ffun_app and
+  uapply fun_apply and uapply nth and uapply pfun_app and 
+  uapply ffun_app and uapply cgf_apply and
   uupd pfun_upd and uupd ffun_upd and uupd list_update and
   udom Domain and udom pdom and udom fdom and udom seq_dom and
   udom Range and uran pran and uran fran and uran set and

@@ -27,6 +27,9 @@ instance
   by (intro_classes, (transfer, auto)+)
 end
 
+lemma pos_positive [simp]: "0 \<le> (x::'a::{zero,order} pos)"
+  by (transfer, simp)
+
 instantiation pos :: ("{ordered_ab_semigroup_add,monoid_add}") ordered_ab_semigroup_add
 begin
 

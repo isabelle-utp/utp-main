@@ -1,7 +1,7 @@
 section {* Lenses *}
 
 theory Lenses
-imports Two
+imports Two ttrace
 begin
 
 subsection {* Lens signature *}
@@ -821,6 +821,29 @@ proof -
     by (auto simp add: fun_lens_def lens_indep_def, meson)
 qed
 
+text {* The function range lens allows us to focus on a particular region on a functions range *}
+
+definition fun_ran_lens :: "('c \<Longrightarrow> 'b) \<Rightarrow> (('a \<Rightarrow> 'b) \<Longrightarrow> '\<alpha>) \<Rightarrow> (('a \<Rightarrow> 'c) \<Longrightarrow> '\<alpha>)" where
+[lens_defs]: "fun_ran_lens X Y = \<lparr> lens_get = \<lambda> s. get\<^bsub>X\<^esub> \<circ> get\<^bsub>Y\<^esub> s
+                                 , lens_put = \<lambda> s v. put\<^bsub>Y\<^esub> s (\<lambda> x::'a. put\<^bsub>X\<^esub> (get\<^bsub>Y\<^esub> s x) (v x)) \<rparr>"
+
+lemma fun_ran_mwb_lens: "\<lbrakk> mwb_lens X; mwb_lens Y \<rbrakk> \<Longrightarrow> mwb_lens (fun_ran_lens X Y)"
+  by (unfold_locales, auto simp add: fun_ran_lens_def)
+
+lemma fun_ran_wb_lens: "\<lbrakk> wb_lens X; wb_lens Y \<rbrakk> \<Longrightarrow> wb_lens (fun_ran_lens X Y)"
+  by (unfold_locales, auto simp add: fun_ran_lens_def)
+
+lemma fun_ran_vwb_lens: "\<lbrakk> vwb_lens X; vwb_lens Y \<rbrakk> \<Longrightarrow> vwb_lens (fun_ran_lens X Y)"
+  by (unfold_locales, auto simp add: fun_ran_lens_def)
+
+definition cgf_lens :: "('a cgf \<Longrightarrow> '\<alpha>) \<Rightarrow> ('b \<Longrightarrow> 'a) \<Rightarrow> ('b cgf \<Longrightarrow> '\<alpha>)" where
+[lens_defs]: "cgf_lens X Y = 
+  \<lparr> lens_get = \<lambda> s. map'\<^sub>C get\<^bsub>Y\<^esub> (get\<^bsub>X\<^esub> s)
+  , lens_put = \<lambda> s v. put\<^bsub>X\<^esub> s (map\<^sub>C (\<lambda> (i, x). put\<^bsub>Y\<^esub> x (\<langle>v\<rangle>\<^sub>C i)) (get\<^bsub>X\<^esub> s !\<^sub>C (end\<^sub>C v))) \<rparr>"
+
+lemma cgf_weak_lens: "\<lbrakk> weak_lens X; weak_lens Y \<rbrakk> \<Longrightarrow> weak_lens (cgf_lens X Y)"
+  by (unfold_locales, auto simp add: cgf_lens_def cgf_map_map cgf_map_indep)
+
 definition map_lens :: "'a \<Rightarrow> ('b \<Longrightarrow> ('a \<rightharpoonup> 'b))" where
 [lens_defs]: "map_lens x = \<lparr> lens_get = (\<lambda> f. the (f x)), lens_put = (\<lambda> f u. f(x \<mapsto> u)) \<rparr>"
 
@@ -914,5 +937,6 @@ abbreviation (input) "fld_put f \<equiv> (\<lambda> \<sigma> u. f (\<lambda>_. u
 
 syntax "_FLDLENS" :: "id \<Rightarrow> ('a \<Longrightarrow> 'r)"  ("FLDLENS _")
 translations "FLDLENS x" => "\<lparr> lens_get = x, lens_put = CONST fld_put (_update_name x) \<rparr>"
+
 
 end
