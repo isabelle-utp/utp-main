@@ -84,12 +84,16 @@ syntax
   "_events" :: "logic \<Rightarrow> logic" ("events\<^sub>u'(_')")
   "_refusals" :: "logic \<Rightarrow> logic" ("refusals\<^sub>u'(_')")
   "_idleprefix" :: "logic \<Rightarrow> logic" ("idleprefix\<^sub>u'(_')")
+  "_ev"         :: "logic \<Rightarrow> logic" ("ev\<^sub>u'(_')")
+  "_tock"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("tock\<^sub>u'(_,_')")
 
 translations
   "period\<^sub>u(t)" == "CONST uop CONST period t"
   "events\<^sub>u(t)" == "CONST uop CONST events t"
   "refusals\<^sub>u(t)" == "CONST uop CONST refusals t"
   "idleprefix\<^sub>u(t)" == "CONST uop CONST idleprefix t"
+  "ev\<^sub>u(e)" == "CONST uop CONST Event e"
+  "tock\<^sub>u(t,A)" == "CONST bop CONST Tock t A"
 
 type_synonym ('t, '\<theta>, '\<alpha>) alphabet_hrd = "(('t, '\<theta>) tevent, ('t, '\<alpha>) htime_scheme) alphabet_rp"
 type_synonym ('a, 't, '\<theta>, '\<alpha>) hrde = "('a, ('t, '\<theta>, '\<alpha>) alphabet_hrd) uexpr"
@@ -1106,43 +1110,10 @@ definition [upred_defs]: "pre\<^sub>H(P)  = (\<not> (npre\<^sub>H(P)))"
 definition [upred_defs]: "peri\<^sub>H(P) = (peri\<^sub>s \<dagger> P)"
 definition [upred_defs]: "post\<^sub>H(P) = (post\<^sub>s \<dagger> P)"
 
-lemma cond_var_split:
-  "uvar x \<Longrightarrow> (P\<lbrakk>true/x\<rbrakk> \<triangleleft> utp_expr.var x \<triangleright> P\<lbrakk>false/x\<rbrakk>) = P"
-  by (rel_tac, (metis (full_types) vwb_lens.put_eq)+)
-
-lemma wait'_cond_split: "P\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> P\<lbrakk>false/$wait\<acute>\<rbrakk> = P"
-  by (simp add: wait'_cond_def cond_var_split)
-
 lemma HCSP_hybrid_reactive_tri_design:
   assumes "P is HCSP"
   shows "P = HR((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> P\<^sup>t\<^sub>f\<lbrakk>false/$wait\<acute>\<rbrakk>)"
   by (simp add: HCSP_hybrid_reactive_design assms wait'_cond_split)
-
-lemma design_subst_ok_ok':
-  "(P\<lbrakk>true/$ok\<rbrakk> \<turnstile> Q\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>) = (P \<turnstile> Q)"
-proof -
-  have "(P \<turnstile> Q) = (($ok \<and> P) \<turnstile> ($ok \<and> $ok\<acute> \<and> Q))"
-    by (pred_tac)
-  also have "... = (($ok \<and> P\<lbrakk>true/$ok\<rbrakk>) \<turnstile> ($ok \<and> ($ok\<acute> \<and> Q\<lbrakk>true/$ok\<acute>\<rbrakk>)\<lbrakk>true/$ok\<rbrakk>))"
-    by (metis conj_eq_out_var_subst conj_pos_var_subst upred_eq_true utp_pred.inf_commute uvar_ok)
-  also have "... = (($ok \<and> P\<lbrakk>true/$ok\<rbrakk>) \<turnstile> ($ok \<and> $ok\<acute> \<and> Q\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>))"
-    by (simp add: usubst)  
-  also have "... = (P\<lbrakk>true/$ok\<rbrakk> \<turnstile> Q\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>)"
-    by (pred_tac)
-  finally show ?thesis ..
-qed
-
-lemma design_subst_ok':
-  "(P \<turnstile> Q\<lbrakk>true/$ok\<acute>\<rbrakk>) = (P \<turnstile> Q)"
-proof -
-  have "(P \<turnstile> Q) = (P \<turnstile> ($ok\<acute> \<and> Q))"
-    by (pred_tac)
-  also have "... = (P \<turnstile> ($ok\<acute> \<and> Q\<lbrakk>true/$ok\<acute>\<rbrakk>))"
-    by (metis conj_eq_out_var_subst upred_eq_true utp_pred.inf_commute uvar_ok)
-  also have "... = (P \<turnstile> Q\<lbrakk>true/$ok\<acute>\<rbrakk>)"
-    by (pred_tac)
-  finally show ?thesis ..
-qed
 
 lemma HCSP_hybrid_reactive_tri_design':
   assumes "P is HCSP"
@@ -1490,6 +1461,9 @@ definition "Miracle = HR(true \<turnstile> false \<diamondop> false)"
 definition "Chaos = HR(false \<turnstile> true \<diamondop> true)"
 
 definition "Stop = HR(true \<turnstile> (events\<^sub>u($tr\<acute> - $tr) =\<^sub>u \<langle>\<rangle>) \<diamondop> false)"
+
+definition "Prefix a = HR(true \<turnstile> (events\<^sub>u($tr\<acute>-$tr) =\<^sub>u \<langle>\<rangle> \<and> a \<notin>\<^sub>u refusals\<^sub>u($tr\<acute>-$tr) \<and> ev\<^sub>u(a) \<notin>\<^sub>u $ref\<acute>) 
+                               \<diamondop> ($tr\<acute>-$tr =\<^sub>u idleprefix\<^sub>u($tr\<acute>-$tr) ^\<^sub>u \<langle>ev\<^sub>u(a)\<rangle> \<and> $\<Sigma>\<^sub>H\<acute> =\<^sub>u $\<Sigma>\<^sub>H \<and> a \<notin>\<^sub>u refusals\<^sub>u($tr\<acute>-$tr)))"
 
 definition Guard :: "('t::time, '\<theta>, '\<alpha>) hrdp \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd \<Rightarrow> ('t, '\<theta>, '\<alpha>) hhrd" (infix "&\<^sub>u" 65)
 where "g &\<^sub>u A = HR((\<lceil>g\<rceil>\<^sub>< \<Rightarrow> pre\<^sub>H(A)) \<turnstile> ((peri\<^sub>H(A) \<triangleleft> \<lceil>g\<rceil>\<^sub>< \<triangleright> (events\<^sub>u($tr\<acute> - $tr) =\<^sub>u \<langle>\<rangle>)) \<diamondop> (\<lceil>g\<rceil>\<^sub>< \<and> post\<^sub>H(A))))"

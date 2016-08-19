@@ -13,7 +13,7 @@ definition "Wait(n) = R2(true \<turnstile> ($time\<acute> =\<^sub>u $time + \<lc
 
 definition "Override(n)(P) = (Wait(n) ;; Instant(P))"
 
-definition "Deadline(n)(P) = (RH(pre\<^sub>R(P) \<turnstile> false \<diamondop> post\<^sub>R(P) \<and> $time\<acute> - $time \<le>\<^sub>u \<lceil>n\<rceil>\<^sub>R\<^sub><))"
+definition "Deadline(n)(P) = (R2((\<not> P\<^sup>f) \<turnstile> (P\<^sup>t \<and> $time\<acute> - $time \<le>\<^sub>u \<lceil>n\<rceil>\<^sub>R\<^sub><)))"
 
 lemma R2_ok_true [usubst]: "(R2 P)\<^sup>t = R2(P\<^sup>t)"
   by (simp add: R1_def R2_def R2s_def usubst)

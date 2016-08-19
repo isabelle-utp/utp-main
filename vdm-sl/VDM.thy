@@ -543,18 +543,6 @@ lemma vdefined_upfunI:
   shows "\<D>\<^sub>v(vuop (upfun A f) x) = (\<D>\<^sub>v(x) \<and>\<^sub>v P(x))"
   using assms by (simp add: vdefined_upfun hd_pre_def)
 
-lemma vdefined_vmap_apply [simp]:
-  "\<D>\<^sub>v(m(x)\<^sub>v) = (\<D>\<^sub>v(x) \<and>\<^sub>v \<D>\<^sub>v(m) \<and>\<^sub>v x \<in>\<^sub>v dom\<^sub>v(m))"
-  apply (transfer, simp add:upfun_def bpfun_def vmap_apply_def)
-  apply (rule ext)
-  apply (rename_tac m x b)
-  apply (case_tac "x b")
-  apply (auto simp add: dom_def)
-  apply (simp add: bind_eq_None_conv)
-  apply (case_tac "m b")
-  apply (auto simp add: dom_def)
-done
-
 lemma vdefined_vmap_update [simp]:
   "\<D>\<^sub>v(vtop vmap_update m k v) = (\<D>\<^sub>v(m) \<and>\<^sub>v \<D>\<^sub>v(k) \<and>\<^sub>v \<D>\<^sub>v(v))"
   apply (transfer)
@@ -567,6 +555,18 @@ lemma vdefined_vvar [simp]:
   fixes x :: "('a, '\<alpha>) uvar" 
   shows "\<D>\<^sub>v(&\<^sub>vx) = true\<^sub>v"
   by (transfer, simp)
+
+lemma vdefined_vmap_apply [simp]:
+  "\<D>\<^sub>v(m(x)\<^sub>v) = (\<D>\<^sub>v(x) \<and>\<^sub>v \<D>\<^sub>v(m) \<and>\<^sub>v x \<in>\<^sub>v dom\<^sub>v(m))"
+  apply (transfer, simp add:upfun_def bpfun_def vmap_apply_def)
+  apply (rule ext)
+  apply (rename_tac m x b)
+  apply (case_tac "x b")
+  apply (auto simp add: dom_def)
+  apply (simp add: bind_eq_None_conv)
+  apply (case_tac "m b")
+  apply (auto simp add: dom_def)
+done
 
 lemma vdefined_divide [simp]: "\<D>\<^sub>v(x / y) = (\<D>\<^sub>v(x) \<and>\<^sub>v \<D>\<^sub>v(y) \<and>\<^sub>v y <>\<^sub>v 0)"
   apply (simp add: upred_defs divide_vexpr_def zero_vexpr_def vdefined_bpfun)
@@ -583,17 +583,17 @@ lemma vdefined_vtl [simp]: "\<D>\<^sub>v(tl\<^sub>v(xs)) = (\<D>\<^sub>v(xs) \<a
 
 subsection {* VDM-SL programs *}
 
-text {* Assignment requires that the expression assigned to the expression be defined, otherwise
-        and abort will result. *}
-
-consts
-  vassign :: "'v \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d"
+text {* Assignment requires that the expression assigned to the 
+        expression be defined, otherwise an abort will result. *}
 
 definition vassign_uvar :: "('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d" where
 "vassign_uvar x v = (\<lceil> \<lfloor> \<D>\<^sub>v(v) \<rfloor>\<^sub>v \<rceil>\<^sub>< \<turnstile>\<^sub>r (x := \<lfloor>v\<rfloor>\<^sub>v))"
 
 definition vassign_dvar :: "'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) vexpr \<Rightarrow> '\<alpha> hrelation_d" where
 "vassign_dvar x v = vassign_uvar (x\<up>) v"
+
+consts
+  vassign :: "'v \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d"
 
 declare vassign_uvar_def [urel_defs]
 declare vassign_dvar_def [urel_defs]
@@ -628,7 +628,8 @@ lemma hd_nil_abort:
   shows "(x :=\<^sub>v hd\<^sub>v([]\<^sub>v)) = true"
   by rel_tac  
 
-text {* Here we augment the set of design weakest precondition laws with the VDM assignment operator *}
+text {* Here we augment the set of design weakest precondition laws 
+        with the VDM assignment operator *}
 
 theorem wpd_vdm_assign [wp]:
   fixes x :: "('a, '\<alpha>) uvar"
@@ -636,11 +637,13 @@ theorem wpd_vdm_assign [wp]:
   by (simp add: vassign_uvar_def wp)
 
 lemma wp_calc_test_1:
-  "\<lbrakk> uvar x; uvar y \<rbrakk> \<Longrightarrow> (y :=\<^sub>v hd\<^sub>v(&\<^sub>vx)) wp\<^sub>D true = \<lfloor>\<D>\<^sub>v(&\<^sub>vx) \<and>\<^sub>v len\<^sub>v(&\<^sub>vx) >\<^sub>v \<guillemotleft>0\<guillemotright>\<^sub>v\<rfloor>\<^sub>v"
+  "\<lbrakk> uvar x; uvar y \<rbrakk> \<Longrightarrow> (y :=\<^sub>v hd\<^sub>v(&\<^sub>vx)) wp\<^sub>D true 
+                          = \<lfloor>\<D>\<^sub>v(&\<^sub>vx) \<and>\<^sub>v len\<^sub>v(&\<^sub>vx) >\<^sub>v \<guillemotleft>0\<guillemotright>\<^sub>v\<rfloor>\<^sub>v"
   by (simp add: wp usubst)
 
 lemma wp_calc_test_2:
-  "\<lbrakk> uvar x; uvar y \<rbrakk> \<Longrightarrow> (y :=\<^sub>v 1 / hd\<^sub>v(&\<^sub>vx)) wp\<^sub>D true = \<lfloor>len\<^sub>v(&\<^sub>vx) >\<^sub>v \<guillemotleft>0\<guillemotright>\<^sub>v \<and>\<^sub>v hd\<^sub>v(&\<^sub>vx) <>\<^sub>v 0\<rfloor>\<^sub>v"
+  "\<lbrakk> uvar x; uvar y \<rbrakk> \<Longrightarrow> (y :=\<^sub>v 1 / hd\<^sub>v(&\<^sub>vx)) wp\<^sub>D true 
+                          = \<lfloor>len\<^sub>v(&\<^sub>vx) >\<^sub>v \<guillemotleft>0\<guillemotright>\<^sub>v \<and>\<^sub>v hd\<^sub>v(&\<^sub>vx) <>\<^sub>v 0\<rfloor>\<^sub>v"
   by (simp add: wp usubst)
 
 subsection {* VDM-SL operations *}
