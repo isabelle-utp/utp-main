@@ -18,7 +18,7 @@ session Kleene_Algebra (AFP) in "contrib/Kleene_Algebra"
     "document/root.tex"
 
 session "UTP-IMPORTS" in "utils" = "Kleene_Algebra" +
-  options [timeout = 300]
+  options [timeout = 600]
   theories
     cardinals
     Continuum
@@ -40,7 +40,7 @@ session "UTP-IMPORTS" in "utils" = "Kleene_Algebra" +
     ttrace
 
 session "UTP" in "utp" = "UTP-IMPORTS" +
-  options [document = pdf, document_output = "output"]
+  options [document = pdf, document_output = "output", timeout = 1000]
   theories
     utp_var
     utp_dvar
