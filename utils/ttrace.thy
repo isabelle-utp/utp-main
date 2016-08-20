@@ -44,23 +44,25 @@ print_theorems
 
 setup_lifting type_definition_cgf
 
-lift_definition cgf_apply :: "'a cgf \<Rightarrow> preal \<Rightarrow> 'a" ("\<langle>_\<rangle>\<^sub>C") is "\<lambda> f x. the (f x)" .
-lift_definition cgf_dom :: "'a cgf \<Rightarrow> preal set" ("dom\<^sub>C") is dom by (auto)
-lift_definition cgf_end :: "'a cgf \<Rightarrow> preal" ("end\<^sub>C") is "\<lambda> f. if (dom(f) = {}) then 0 else Sup(dom(f))" 
-  using less_eq_real_def by auto
-lift_definition cgf_map :: "(preal \<times> 'a \<Rightarrow> 'b) \<Rightarrow> 'a cgf \<Rightarrow> 'b cgf" ("map\<^sub>C") 
+lift_definition cgf_apply :: "'a cgf \<Rightarrow> real \<Rightarrow> 'a" ("\<langle>_\<rangle>\<^sub>C") is "\<lambda> f x. the (f x)" .
+lift_definition cgf_dom :: "'a cgf \<Rightarrow> real set" ("dom\<^sub>C") is dom .
+lift_definition cgf_end :: "'a cgf \<Rightarrow> real" ("end\<^sub>C") is "\<lambda> f. if (dom(f) = {}) then 0 else Sup(dom(f))" .
+lift_definition cgf_map :: "(real \<times> 'a \<Rightarrow> 'b) \<Rightarrow> 'a cgf \<Rightarrow> 'b cgf" ("map\<^sub>C") 
   is "\<lambda> f g x. if (x \<in> dom(g)) then Some (f (x, the(g(x)))) else None" 
   by (auto simp add: dom_if)
 
 abbreviation "map'\<^sub>C f \<equiv> cgf_map (\<lambda> (i, x). f x)"
 
-lift_definition cgf_restrict :: "'a cgf \<Rightarrow> preal \<Rightarrow> 'a cgf" (infix "\<restriction>\<^sub>C" 85)
-is "\<lambda> f i. f |` {0..<i}"
-  by (auto simp add: min_def) 
+lift_definition cgf_restrict :: "'a cgf \<Rightarrow> real \<Rightarrow> 'a cgf" (infix "\<restriction>\<^sub>C" 85)
+is "\<lambda> f i. f |` {0..<i}" 
+  by (auto simp add: min_def, blast, metis atLeastLessThan_empty_iff2 less_eq_real_def less_irrefl) 
 
-lift_definition cgf_force :: "'a cgf \<Rightarrow> preal \<Rightarrow> 'a cgf" (infix "!\<^sub>C" 85)
+lift_definition cgf_force :: "'a cgf \<Rightarrow> real \<Rightarrow> 'a cgf" (infix "!\<^sub>C" 85)
 is "\<lambda> f i x. if (0 \<le> x \<and> x < i) then Some(the(f(x))) else None"
-  by (auto simp add: dom_if) 
+  apply (rename_tac f n)
+  apply (case_tac "n \<ge> 0")
+  apply (auto simp add: dom_if)
+done
 
 instantiation cgf :: (type) zero
 begin
@@ -170,11 +172,7 @@ proof (rule cgf_eqI, simp_all add: cgf_end_cat add.assoc, clarify)
     thus ?thesis
     proof (cases "x < end\<^sub>C f+end\<^sub>C g")
       case True thus ?thesis
-        apply (simp add: add.commute add_less_imp_less_left cgf_cat_ext_first cgf_cat_ext_last cgf_end_cat x_gef)
-        apply (subst cgf_cat_ext_first)
-        apply (metis add_less_imp_less_left le_add_diff_inverse x_gef)
-        apply (simp)
-      done
+        by (simp add: add_less_imp_less_left cgf_cat_ext_first cgf_cat_ext_last cgf_end_cat x_gef)
     next
       case False 
       hence x_gefg: "x \<ge> end\<^sub>C f+end\<^sub>C g"
@@ -195,7 +193,8 @@ lemma cgf_dom: "dom\<^sub>C(f) = {0..<end\<^sub>C f}"
   apply (cases "f = []\<^sub>C")
   apply (auto)
   apply (transfer, auto)
-  apply (metis Sup'_def Sup'_interval atLeastLessThan_empty_iff2 atLeastLessThan_iff domIff option.distinct(1))
+  apply (transfer, auto)
+  using less_eq_real_def apply auto[1]
   apply (transfer, auto)
   using less_eq_real_def apply auto
 done
@@ -203,14 +202,14 @@ done
 lemma cgf_restrict_empty [simp]: "[]\<^sub>C \<restriction>\<^sub>C n = []\<^sub>C"
   by (transfer, simp)
 
-lemma cgf_end_restrict [simp]: "n \<le> end\<^sub>C f \<Longrightarrow> end\<^sub>C (f \<restriction>\<^sub>C n) = n"
+lemma cgf_end_restrict [simp]: "\<lbrakk> 0 \<le> n; n \<le> end\<^sub>C f \<rbrakk> \<Longrightarrow> end\<^sub>C (f \<restriction>\<^sub>C n) = n"
   apply (transfer, auto)
-  apply (metis (mono_tags) atLeastLessThan_empty_iff cSup_atLeastLessThan dom_eq_empty_conv le_less_trans min.absorb2 option.simps(3))
+  apply (metis (mono_tags) atLeastLessThan_empty_iff2 cSup_atLeastLessThan domI empty_iff le_less_trans min.absorb_iff2 not_less_iff_gr_or_eq)
 done
 
-lemma cgf_end_force [simp]: "end\<^sub>C (f !\<^sub>C n) = n"
+lemma cgf_end_force [simp]: "n \<ge> 0 \<Longrightarrow> end\<^sub>C (f !\<^sub>C n) = n"
   apply (transfer, auto simp add: dom_if)
-  apply (rename_tac f n i x)
+  apply (rename_tac n f i x)
   apply (subgoal_tac "{x. 0 \<le> x \<and> x < n} = {0..<n}")
   apply (auto)
 done
@@ -239,7 +238,7 @@ lemma cgf_map_empty [simp]:
   by (transfer, simp)
 
 lemma cgf_map_apply [simp]:
-  assumes "x < end\<^sub>C(g)"
+  assumes "0 \<le> x" "x < end\<^sub>C(g)"
   shows "\<langle>map\<^sub>C f g\<rangle>\<^sub>C x = f (x, \<langle>g\<rangle>\<^sub>C x)"
 proof -
   have "x \<in> dom\<^sub>C(g)"
@@ -365,7 +364,7 @@ lemma cgf_prefix_iff: "f \<le> g \<longleftrightarrow> (\<exists> h. g = f @\<^s
   apply (simp add: cgf_cat_minus_prefix)
 done
 
-lemma cgf_apply_minus [simp]: "f \<le> g \<Longrightarrow> \<langle>g - f\<rangle>\<^sub>C x = \<langle>g\<rangle>\<^sub>C (x + end\<^sub>C(f))"
+lemma cgf_apply_minus [simp]: "\<lbrakk> 0 \<le> x; f \<le> g \<rbrakk> \<Longrightarrow> \<langle>g - f\<rangle>\<^sub>C x = \<langle>g\<rangle>\<^sub>C (x + end\<^sub>C(f))"
   apply (transfer, auto)
   apply (metis (full_types) atLeastLessThan_iff domIff less_eq_real_def)
   apply (metis (full_types) atLeastLessThan_empty_iff2 atLeastLessThan_iff domIff less_diff_eq)

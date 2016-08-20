@@ -1,228 +1,210 @@
-section {* Timed reactive designs *}
+section {* Continuous time reactive designs *}
 
 theory utp_trd
 imports utp_rea_designs
 begin
 
-subsection {* Time events *}
+type_synonym ('d, 'c) alpha_trd_scheme = "('c cgf, 'd \<times> 'c) alpha_rp_scheme"
 
-class time = linordered_semidom
+type_synonym ('d,'c) alphabet_trd  = "('d,'c) alpha_trd_scheme alphabet"
+type_synonym ('d,'c) relation_trd = "(('d,'c) alphabet_trd, ('d,'c) alphabet_trd) relation"
+type_synonym ('a,'d,'c) expr_trd  = "('a, ('d,'c) alphabet_trd \<times> ('d,'c) alphabet_trd) uexpr"
+type_synonym ('d,'c) predicate_cml  = "('d,'c) alphabet_trd upred"
 
-typedef (overloaded) 'a nz = "{n::'a::time. n > 0}" morphisms nz_of nz
-  by (metis mem_Collect_eq zero_less_one)
-
-setup_lifting type_definition_nz
-
-instantiation nz :: (time) linorder
-begin
- 
-lift_definition less_eq_nz :: "'a nz \<Rightarrow> 'a nz \<Rightarrow> bool" is "op \<le>" .
-lift_definition less_nz :: "'a nz \<Rightarrow> 'a nz \<Rightarrow> bool" is "op <" .
-
-instance by (intro_classes, (transfer, auto)+)
-
-end
-
-instantiation nz :: (time) ordered_ab_semigroup_add
-begin
-
-lift_definition plus_nz :: "'a nz \<Rightarrow> 'a nz \<Rightarrow> 'a nz" is "op +"
-  by (metis pos_add_strict)
-
-instance
-  apply (intro_classes)
-  apply (transfer, auto simp add: add.assoc)
-  apply (transfer, auto simp add: add.commute)
-  apply (transfer, auto simp add: add.commute)
-done
-
-end
-
-lemma real_of_nz_gez [simp]: "nz_of x > 0"
-  by (metis mem_Collect_eq nz_of)
-
-context notes [[typedef_overloaded]]
-begin
-datatype ('t, '\<theta>) tevent = Tock "'t nz" "'\<theta> set" | Event '\<theta>
-end
-
-fun period :: "('t::time,'\<theta>) tevent list \<Rightarrow> 't" where
-"period [] = 0" |
-"period (Tock n A # t) = nz_of n + period t" |
-"period (Event x # t) = period(t)"
-
-lemma period_ge_zero [simp]: "period t \<ge> 0"
-  apply (induct t, simp_all)
-  apply (rename_tac a t, case_tac a)
-  apply (auto, metis add_nonneg_nonneg le_less real_of_nz_gez)
-done
-
-lemma Cons_prefixE: "\<lbrakk> (x # xs) \<le> ys; \<And> ys'. \<lbrakk> ys = x # ys'; xs \<le> ys' \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (metis Cons_prefix_Cons append_Cons strict_prefixE)
-
-lemma period_mono: "t1 \<le> t2 \<Longrightarrow> period t1 \<le> period t2"
-  apply (induct t1 arbitrary: t2, auto)
-  apply (rename_tac a t1 t2)
-  apply (erule Cons_prefixE)
-  apply (case_tac a)
-  apply (auto)
-done
-
-lemma period_append [simp]: "period (t1 @ t2) = period(t1) + period(t2)"
-  apply (induct t1)
-  apply (simp_all)
-  apply (rename_tac x t1)
-  apply (case_tac x)
-  apply (auto simp add: add.assoc)
-done
-
-lemma minus_list_Cons [simp]:
-  "(x # ys) - (x # xs) = ys - xs"
-  by (simp add: minus_list_def)
-
-lemma period_minus [simp]: "t2 \<le> t1 \<Longrightarrow> period (t1 - t2) = period(t1) - period(t2)"
-  apply (induct t1 arbitrary: t2, auto)
-  apply (simp add: prefix_Cons)
-  apply (auto)
-  apply (rename_tac a t1 t2')
-  apply (case_tac a)
-  apply (simp_all)
-done
-
-fun events :: "('t, '\<theta>) tevent list \<Rightarrow> '\<theta> list" where
-"events [] = []" |
-"events (Tock n A # t) = events t" |
-"events (Event x # t) = (x # events t)"
-
-lemma events_append [simp]: "events (xs @ ys) = events(xs) @ events(ys)"
-  apply (induct xs, simp_all)
-  apply (rename_tac x xs)
-  apply (case_tac x)
-  apply (simp_all)
-done
-
-fun refusals :: "('t, '\<theta>) tevent list \<Rightarrow> '\<theta> set" where
-"refusals [] = {}" |
-"refusals (Tock n A # t) = A \<union> refusals t" |
-"refusals (Event x # t) = refusals t"
-
-fun idleprefix :: "('t, '\<theta>) tevent list \<Rightarrow> ('t, '\<theta>) tevent list" where
-"idleprefix [] = []" |
-"idleprefix (Tock n A # t) = (Tock n A # idleprefix t)" |
-"idleprefix (Event x # t) = []"
-
-syntax 
-  "_period" :: "logic \<Rightarrow> logic" ("period\<^sub>u'(_')")
-  "_events" :: "logic \<Rightarrow> logic" ("events\<^sub>u'(_')")
-  "_refusals" :: "logic \<Rightarrow> logic" ("refusals\<^sub>u'(_')")
-  "_idleprefix" :: "logic \<Rightarrow> logic" ("idleprefix\<^sub>u'(_')")
-  "_ev"         :: "logic \<Rightarrow> logic" ("ev\<^sub>u'(_')")
-  "_tock"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("tock\<^sub>u'(_,_')")
+syntax
+  "_ulens_expr" :: "logic \<Rightarrow> svid \<Rightarrow> logic" ("_:'(_')" [100,100] 100)
 
 translations
-  "period\<^sub>u(t)" == "CONST uop CONST period t"
-  "events\<^sub>u(t)" == "CONST uop CONST events t"
-  "refusals\<^sub>u(t)" == "CONST uop CONST refusals t"
-  "idleprefix\<^sub>u(t)" == "CONST uop CONST idleprefix t"
-  "ev\<^sub>u(e)" == "CONST uop CONST Event e"
-  "tock\<^sub>u(t,A)" == "CONST bop CONST Tock t A"
+  "_ulens_expr e x" == "CONST uop get\<^bsub>x\<^esub> e"
 
-subsection {* Types *}
-
-type_synonym ('t, '\<theta>, '\<alpha>) alphabet_trd = "(('t, '\<theta>) tevent, '\<alpha>) alphabet_rp"
-type_synonym ('a, 't, '\<theta>, '\<alpha>) trde = "('a, ('t, '\<theta>, '\<alpha>) alphabet_trd) uexpr"
-type_synonym ('t, '\<theta>, '\<alpha>) trdp = "(('t, '\<theta>, '\<alpha>) alphabet_trd) upred"
-type_synonym ('t, '\<theta>, '\<alpha>, '\<beta>) trd = "(('t, '\<theta>, '\<alpha>) alphabet_trd, ('t, '\<theta>, '\<beta>) alphabet_trd) relation"
-type_synonym ('t, '\<theta>, '\<alpha>) htrd = "(('t, '\<theta>, '\<alpha>) alphabet_trd, ('t, '\<theta>, '\<alpha>) alphabet_trd) relation"
-
-subsection {* Signature *}
-
-abbreviation trace :: "_" ("tt") where
-"tt \<equiv> $tr\<acute> - $tr"
+abbreviation trace :: "('c cgf, 'd, 'c) expr_trd" ("\<phi>") where
+"\<phi> \<equiv> $tr\<acute> - $tr"
 
 abbreviation time_length :: "_" ("\<^bold>l")
-where "\<^bold>l \<equiv> period\<^sub>u(tt)"
+where "\<^bold>l \<equiv> uop end\<^sub>C trace"
 
-abbreviation rea_pre_lift :: "_ \<Rightarrow> _" ("\<lceil>_\<rceil>\<^sub>R\<^sub><") where "\<lceil>n\<rceil>\<^sub>R\<^sub>< \<equiv> \<lceil>\<lceil>n\<rceil>\<^sub><\<rceil>\<^sub>R"
+no_notation Not  ("~ _" [40] 40)
+
+abbreviation cvar :: "_ \<Rightarrow> _ \<Rightarrow> _" ("_~'(_')" [999,0] 999) where
+"x~(t) \<equiv> \<phi>\<lparr>t\<rparr>\<^sub>u:(x)"
 
 translations
-  "\<^bold>l" <= "CONST uop CONST period (CONST minus (CONST var (CONST ovar CONST tr)) (CONST var (CONST ivar CONST tr)))"
-  "tt" <= "CONST minus (CONST var (CONST ovar CONST tr)) (CONST var (CONST ivar CONST tr))"
+  "\<phi>" <= "CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr))"
+  "x~(t)" <= "CONST uop (CONST lens_get x) (CONST bop (CONST uapply) (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr))) t)"
+  "\<^bold>l" <= "CONST uop end\<^sub>C (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr)))"
 
+definition disc_alpha :: "_" ("\<^bold>d") where
+[upred_defs]: "disc_alpha = fst\<^sub>L ;\<^sub>L \<Sigma>\<^sub>R"
 
-definition "Stop = RH(true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle>) \<diamondop> false)"
+definition cont_alpha :: "_" ("\<^bold>c") where
+[upred_defs]: "cont_alpha = snd\<^sub>L ;\<^sub>L \<Sigma>\<^sub>R"
 
-definition "Prefix a = RH(true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> a \<notin>\<^sub>u refusals\<^sub>u(tt) \<and> ev\<^sub>u(a) \<notin>\<^sub>u $ref\<acute>) 
-                               \<diamondop> (tt =\<^sub>u idleprefix\<^sub>u(tt) ^\<^sub>u \<langle>ev\<^sub>u(a)\<rangle> \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R \<and> a \<notin>\<^sub>u refusals\<^sub>u(tt)))"
+lemma disc_alpha_uvar [simp]: "uvar \<^bold>d"
+  by (simp add: comp_vwb_lens disc_alpha_def fst_vwb_lens)
 
-fun Wait :: "('t::time, '\<alpha>) uexpr \<times> ('t, '\<alpha>) uexpr \<Rightarrow> ('t, '\<theta>, '\<alpha>) htrd" where
-"Wait (m, n) = (RH(true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<^bold>l <\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub><)
-                        \<diamondop> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<^bold>l \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub>< \<and> \<^bold>l <\<^sub>u \<lceil>n\<rceil>\<^sub>R\<^sub>< \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R)))"
+lemma disc_indep_tr [simp]: "\<^bold>d \<bowtie> tr" "tr \<bowtie> \<^bold>d"
+  by (simp_all add: disc_alpha_def lens_indep_left_ext lens_indep_sym)
 
-lemma ulist_minus_empty [simp]: "e - \<langle>\<rangle> = e"
+lemma cont_alpha_uvar [simp]: "uvar \<^bold>c"
+  by (simp add: comp_vwb_lens cont_alpha_def snd_vwb_lens)
+
+lemma cont_indep_tr [simp]: "\<^bold>c \<bowtie> tr" "tr \<bowtie> \<^bold>c"
+  by (simp_all add: cont_alpha_def lens_indep_left_ext lens_indep_sym)
+
+abbreviation disc_lift :: "('a, 'd \<times> 'd) uexpr \<Rightarrow> ('a, 'd, 'c) expr_trd" ("\<lceil>_\<rceil>\<^sub>\<delta>") where
+"\<lceil>P\<rceil>\<^sub>\<delta> \<equiv> P \<oplus>\<^sub>p (\<^bold>d \<times>\<^sub>L \<^bold>d)"
+
+abbreviation cont_lift :: "('a, 'c \<times> 'c) uexpr \<Rightarrow> ('a, 'd, 'c) expr_trd" ("\<lceil>_\<rceil>\<^sub>C") where
+"\<lceil>P\<rceil>\<^sub>C \<equiv> P \<oplus>\<^sub>p (\<^bold>c \<times>\<^sub>L \<^bold>c)"
+
+abbreviation cont_pre_lift :: "('a, 'c) uexpr \<Rightarrow> ('a,'d,'c) expr_trd" ("\<lceil>_\<rceil>\<^sub>C\<^sub><") where
+"\<lceil>P\<rceil>\<^sub>C\<^sub>< \<equiv> P \<oplus>\<^sub>p (ivar \<^bold>c)"
+
+syntax
+  "_cont_alpha" :: "svid" ("\<^bold>c")
+
+translations
+  "_cont_alpha" == "CONST cont_alpha"
+  "\<lceil>P\<rceil>\<^sub>C\<^sub><" <= "CONST aext P (CONST ivar CONST cont_alpha)"
+
+lemma var_in_var_prod [simp]:
+  fixes x :: "('a, '\<alpha>) uvar"
+  shows "var ((in_var x) ;\<^sub>L X \<times>\<^sub>L Y) = $X:(x)"
+  by (pred_tac)
+
+lemma var_out_var_prod [simp]:
+  fixes x :: "('a, '\<alpha>) uvar"
+  shows "var ((out_var x) ;\<^sub>L X \<times>\<^sub>L Y) = $Y\<acute>:(x)"
+  by (pred_tac)
+
+definition ufloor :: "'a::{floor_ceiling} \<Rightarrow> 'a" 
+where [upred_defs]: "ufloor = of_int \<circ> floor"
+
+definition uceiling :: "'a::{floor_ceiling} \<Rightarrow> 'a"
+where [upred_defs]: "uceiling = of_int \<circ> floor"
+
+syntax
+  "_ufloor"   :: "logic \<Rightarrow> logic" ("\<lfloor>_\<rfloor>\<^sub>u")
+  "_uceiling" :: "logic \<Rightarrow> logic" ("\<lceil>_\<rceil>\<^sub>u")
+
+translations
+  "\<lfloor>x\<rfloor>\<^sub>u" == "CONST uop CONST ufloor x"
+  "\<lceil>x\<rceil>\<^sub>u" == "CONST uop CONST uceiling x"
+
+lemma rea_var_ords [usubst]:
+  "$\<^bold>c \<prec>\<^sub>v $tr" "$\<^bold>c \<prec>\<^sub>v $tr\<acute>" "$\<^bold>c\<acute> \<prec>\<^sub>v $tr" "$\<^bold>c\<acute> \<prec>\<^sub>v $tr\<acute>"
+  by (simp_all add: var_name_ord_def)
+
+lemma zero_least_uexpr [simp]:
+  "0 \<le>\<^sub>u (x::('a::ordered_cancel_monoid_diff, '\<alpha>) uexpr) = true"
   by (rel_tac)
 
-lemma R2s_events_tt_empty:
-  "R2s(events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle>) = (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle>)"
-  by (simp add: R2s_def usubst unrest)
+syntax
+  "_uend" :: "logic \<Rightarrow> logic" ("end\<^sub>u'(_')")
+  "_time" :: "logic" ("time")
+  "_time'" :: "logic" ("time'")
 
-lemma R2s_time_length_eq: "R2s (\<^bold>l =\<^sub>u \<lceil>m\<rceil>\<^sub>R) = (\<^bold>l =\<^sub>u \<lceil>m\<rceil>\<^sub>R)"
-  by (simp add: R2s_def usubst unrest)
+translations
+  "time"  == "CONST uop end\<^sub>C (CONST var (CONST ivar CONST tr))"
+  "time'" == "CONST uop end\<^sub>C (CONST var (CONST ovar CONST tr))"
+  "end\<^sub>u(t)" == "CONST uop end\<^sub>C t"
 
-lemma R2s_time_length_geq: "R2s (\<^bold>l \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>R) = (\<^bold>l \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>R)"
-  by (simp add: R2s_def usubst unrest)
+(* Need to lift the continuous predicate to a relation *)
 
-lemma R2s_time_length_less: "R2s (\<^bold>l <\<^sub>u \<lceil>m\<rceil>\<^sub>R) = (\<^bold>l <\<^sub>u \<lceil>m\<rceil>\<^sub>R)"
-  by (simp add: R2s_def usubst unrest)
+definition at :: "('a, 'c) uexpr \<Rightarrow> real \<Rightarrow> ('a, 'd, 'c) expr_trd" (infix "@\<^sub>u" 60) where
+[upred_defs]: "P @\<^sub>u t = [$\<^bold>c \<mapsto>\<^sub>s \<phi>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u] \<dagger> \<lceil>P\<rceil>\<^sub>C\<^sub><" 
 
-abbreviation hseqr :: "'\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" (infixr ";;\<^sub>h" 15) where
-"(P ;;\<^sub>h Q) \<equiv> ((P::'\<alpha> hrelation) ;; (Q::'\<alpha> hrelation))"
+lemma R2c_at: "R2c(P @\<^sub>u t) = P @\<^sub>u t"
+  by (simp add: at_def R2c_def cond_idem usubst unrest R2s_def)
 
-lemma rea_lift_skip_alpha [alpha]: "\<lceil>II\<rceil>\<^sub>R = ($\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R)"
+lemma at_true [simp]: "true @\<^sub>u t = true"
+  by (simp add: at_def alpha usubst)
+
+lemma at_false [simp]: "false @\<^sub>u t = false"
+  by (simp add: at_def alpha usubst)
+
+lemma at_conj [simp]: "(P \<and> Q) @\<^sub>u t = (P @\<^sub>u t \<and> Q @\<^sub>u t)"
+  by (simp add: at_def alpha usubst)
+
+lemma at_disj [simp]: "(P \<or> Q) @\<^sub>u t = (P @\<^sub>u t \<or> Q @\<^sub>u t)"
+  by (simp add: at_def alpha usubst)
+
+lemma at_ueq [simp]: "(x =\<^sub>u y) @\<^sub>u t = (x @\<^sub>u t =\<^sub>u y @\<^sub>u t)"
+  by (simp add: at_def usubst alpha)
+
+definition hInt :: "(real \<Rightarrow> 'c upred) \<Rightarrow> ('d,'c) relation_trd" where
+[urel_defs]: "hInt P = ($tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
+
+lemma uend_0 [simp]: "end\<^sub>u(0) = 0"
+  by (simp add: upred_defs lit_def uop_def Abs_uexpr_inverse)
+
+lifting_update pos.lifting
+lifting_forget pos.lifting
+
+lemma R2c_time_range: "R2c (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<time'-time}\<^sub>u) = (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<time'-time}\<^sub>u)"
+  by (rel_tac ; simp add: cgf_end_minus)
+
+lemma R2c_time_length: "R2c (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u) = (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u)"
+  by (rel_tac ; simp add: cgf_end_minus)
+
+syntax
+  "_time_var" :: "logic"
+  "_hInt"     :: "logic \<Rightarrow> logic" ("\<lceil>_\<rceil>\<^sub>H")
+  "_hInt"     :: "logic \<Rightarrow> logic" ("\<lceil>_\<rceil>\<^sub>H")
+
+parse_translation {*
+let
+  fun time_var_tr [] = Syntax.free "\<tau>"
+    | time_var_tr _  = raise Match;
+in
+[(@{syntax_const "_time_var"}, K time_var_tr)]
+end
+*}
+
+translations
+  "\<lceil>P\<rceil>\<^sub>H"   == "CONST hInt (\<lambda> _time_var. P)"
+
+lemma R2c_tr_less_tr': "R2c($tr <\<^sub>u $tr\<acute>) = ($tr <\<^sub>u $tr\<acute>)"
+  apply (rel_tac)
+  using le_imp_less_or_eq apply fastforce
+  using dual_order.strict_iff_order minus_zero_eq apply fastforce
+done
+
+lemma R2c_shAll: "R2c (\<^bold>\<forall> x \<bullet> P x) = (\<^bold>\<forall> x \<bullet> R2c(P x))"
   by (rel_tac)
 
-lemma Wait_m_plus_n: "(Wait (m\<^sub>1, m\<^sub>2) ;; Wait (n\<^sub>1, n\<^sub>2)) = (Wait (m\<^sub>1 + n\<^sub>1, m\<^sub>2 + n\<^sub>2))"
-  apply (simp)
-  apply (subst RH_tri_design_composition)
-  apply (simp_all add: unrest R2s_true R1_false R2_def[THEN sym])
+lemma R2c_impl: "R2c(P \<Rightarrow> Q) = (R2c(P) \<Rightarrow> R2c(Q))"
+  by (metis (no_types, lifting) R2c_and R2c_not double_negation impl_alt_def not_conj_deMorgans)
 
-proof -
-  have "(R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m\<^sub>1\<rceil>\<^sub>R\<^sub>< \<le>\<^sub>u \<^bold>l \<and> \<^bold>l <\<^sub>u \<lceil>m\<^sub>2\<rceil>\<^sub>R\<^sub>< \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) ;; R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<^bold>l <\<^sub>u \<lceil>n\<^sub>1\<rceil>\<^sub>R\<^sub><)) =
-        R2(events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m\<^sub>1\<rceil>\<^sub>R\<^sub>< \<le>\<^sub>u \<^bold>l \<and> \<^bold>l <\<^sub>u \<lceil>m\<^sub>2\<rceil>\<^sub>R\<^sub>< + \<lceil>n\<^sub>1\<rceil>\<^sub>R\<^sub><)" (is "?lhs = ?rhs")
-    apply (simp add: R2_seqr_form usubst unrest)
+lemma R1_tr_less_tr': "R1($tr <\<^sub>u $tr\<acute>) = ($tr <\<^sub>u $tr\<acute>)"
+  by (rel_tac)
 
-  proof -
-    have "?lhs = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> period\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub>< \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R ;;\<^sub>h
-                                   \<lceil>n\<rceil>\<^sub>R\<^sub>< >\<^sub>u period\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle>) \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
-      by (simp add: R2_seqr_form conj_comm usubst unrest)        
-    also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> period\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub>< \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R ;;\<^sub>h \<lceil>n\<rceil>\<^sub>R\<^sub>< >\<^sub>u period\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>)) \<and>
-                                   events\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
-      by (simp add: seqr_post_out unrest conj_assoc)
-    also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (period\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub>< \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R ;;\<^sub>h \<lceil>n\<rceil>\<^sub>R\<^sub>< >\<^sub>u period\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>)) 
-                                    \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
-      by (simp add: seqr_pre_out unrest, subst conj_comm, simp add: conj_assoc)
-    also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (\<lceil>period\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>< \<and> II ;; \<lceil>n\<rceil>\<^sub>< >\<^sub>u period\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>)\<rceil>\<^sub>R) 
-                                    \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
-      by (simp add: alpha unrest)
-    also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (\<lceil>II \<and> period\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>> ;; \<lceil>n\<rceil>\<^sub>< >\<^sub>u period\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>)\<rceil>\<^sub>R) 
-                                    \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
-      by (simp add: cond_skip unrest)
-    also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> \<lceil>period\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>< \<and> \<lceil>n\<rceil>\<^sub>< >\<^sub>u period\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>)\<rceil>\<^sub>R 
-                                    \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
-      by (simp add: seqr_pre_transfer unrest)
-    also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> period\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub>< \<and> \<lceil>n\<rceil>\<^sub>R\<^sub>< >\<^sub>u period\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) 
-                                    \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
-      by (simp add: alpha conj_assoc)
-    also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> period\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub>< \<and> \<lceil>n\<rceil>\<^sub>R\<^sub>< >\<^sub>u period\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>)
-                                    \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
-      by ((rule shEx_cong)+, rel_tac)
-    also have "... = (\<^bold>\<exists> tt\<^sub>0 \<bullet> \<lceil>m\<rceil>\<^sub>R\<^sub>< \<le>\<^sub>u period\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) \<and> period\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) <\<^sub>u (\<lceil>m\<rceil>\<^sub>R\<^sub>< + \<lceil>n\<rceil>\<^sub>R\<^sub><)
-                                    \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright>)"
-      apply (rel_tac)
-      apply (simp add: add_increasing2)
-      
+lemma R1_hInt: "R1(\<lceil>P(\<tau>)\<rceil>\<^sub>H) = \<lceil>P(\<tau>)\<rceil>\<^sub>H"
+  by (simp add: hInt_def R1_extend_conj R1_tr_less_tr')
 
+lemma R2s_hInt: "R2c(\<lceil>P(\<tau>)\<rceil>\<^sub>H) = \<lceil>P(\<tau>)\<rceil>\<^sub>H"
+  by (simp add: hInt_def R2c_and R2c_tr_less_tr' R2c_shAll R2c_impl R2c_time_length R2c_at)
 
-oops
+lemma hInt_false: "\<lceil>false\<rceil>\<^sub>H = false"
+  apply (simp add: hInt_def, rel_tac)
+by (metis cgf_end_0_iff cgf_end_ge_0 cgf_end_minus dual_order.strict_iff_order minus_zero_eq)
+
+lemma hInt_conj: "\<lceil>P(\<tau>) \<and> Q(\<tau>)\<rceil>\<^sub>H = (\<lceil>P(\<tau>)\<rceil>\<^sub>H \<and> \<lceil>Q(\<tau>)\<rceil>\<^sub>H)"
+  by (rel_tac)
+
+lemma at_plus [simp]:
+  "(x + y) @\<^sub>u t = ((x @\<^sub>u t) + (y @\<^sub>u t))"
+  by (simp add: at_def alpha usubst)
+
+lemma at_var [simp]:
+  fixes x :: "('a, 'c) uvar"
+  shows "var x @\<^sub>u t = \<phi>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u:(x)"
+  by (pred_tac)
+
+type_synonym 'c ODE = "real \<times> 'c \<Rightarrow> 'c"
+
+lift_definition hasDerivAt :: 
+  "(real \<Rightarrow> 'c :: real_normed_vector) \<Rightarrow> ('c ODE, '\<alpha>) uexpr \<Rightarrow> real \<Rightarrow> '\<alpha> upred" ("_ has-deriv _ at _" [90, 0, 91] 90)
+is "\<lambda> \<F> \<F>' \<tau> A. (\<F> has_vector_derivative (\<F>' A (\<tau>, \<F> \<tau>))) (at \<tau> within {0..})" .
 
 end
