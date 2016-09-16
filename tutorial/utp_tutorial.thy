@@ -20,6 +20,30 @@ lemma uvar_y [simp]: "vwb_lens y"
 lemma my_state_indeps [simp]: "x \<bowtie> y" "y \<bowtie> x"
   by (simp_all add: lens_indep_def x_def y_def)
 
+lemma "(true \<and> false) = false"
+  by (pred_tac)
+
+lemma "x \<sharp> true"
+  by unrest_tac
+
+lemma "x \<sharp> &y"
+  by unrest_tac
+
+lemma "(&x =\<^sub>u 1 \<and> &y =\<^sub>u &x) = (&x =\<^sub>u 1 \<and> &y =\<^sub>u 1)"
+  by (pred_tac)
+
+lemma "(&x =\<^sub>u 1 \<and> &y =\<^sub>u &x)\<lbrakk>2/x\<rbrakk> = false"
+  apply (subst_tac)
+  apply (pred_tac)
+done
+
+lemma "(\<forall> x \<bullet> &x =\<^sub>u &x) = true"
+  by (pred_tac)
+
+lemma "(1 :\<^sub>u nat) + 1 = 2"
+  by (pred_tac)
+
+
 lemma "(x := 1 ;; x := &x + 1) = (x := 2)"
   by (rel_tac)
 

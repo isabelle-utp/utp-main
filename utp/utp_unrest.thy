@@ -21,6 +21,8 @@ translations
 
 named_theorems unrest
 
+method unrest_tac = (simp add: unrest)?
+
 lift_definition unrest_upred :: "('a, '\<alpha>) uvar \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> bool"
 is "\<lambda> x e. \<forall> b v. e (put\<^bsub>x\<^esub> b v) = e b" .
 
