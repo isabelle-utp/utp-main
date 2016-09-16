@@ -215,7 +215,7 @@ instance uexpr :: (ordered_ab_group_add, type) ordered_ab_group_add
 instance uexpr :: (ordered_ab_group_add_abs, type) ordered_ab_group_add_abs
   apply (intro_classes)
   apply (simp add: abs_uexpr_def zero_uexpr_def plus_uexpr_def uminus_uexpr_def, transfer, simp add: abs_ge_self abs_le_iff abs_triangle_ineq)+
-  apply (metis abs_ge_self abs_le_iff abs_minus_cancel abs_triangle_ineq4 add_mono)
+  apply (metis ab_group_add_class.ab_diff_conv_add_uminus abs_ge_minus_self abs_ge_self add_mono_thms_linordered_semiring(1))
 done
 
 instance uexpr :: (semiring, type) semiring
