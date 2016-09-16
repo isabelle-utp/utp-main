@@ -23,6 +23,12 @@ definition out\<alpha> :: "('\<beta>, '\<alpha> \<times> '\<beta>) uvar" where
 declare in\<alpha>_def [urel_defs]
 declare out\<alpha>_def [urel_defs]
 
+lemma var_in_alpha [simp]: "x ;\<^sub>L in\<alpha> = ivar x"
+  by (simp add: fst_lens_def in\<alpha>_def in_var_def)
+
+lemma var_out_alpha [simp]: "x ;\<^sub>L out\<alpha> = ovar x"
+  by (simp add: out\<alpha>_def out_var_def snd_lens_def)
+
 text {* The alphabet of a relation consists of the input and output portions *}
 
 lemma alpha_in_out:
@@ -87,7 +93,7 @@ syntax
   "_svid_list"  :: "svid \<Rightarrow> svid_list \<Rightarrow> svid_list" ("_,/ _")
   "_uexpr_unit" :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list" ("_" [40] 40)
   "_uexpr_list" :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list \<Rightarrow> uexpr_list" ("_,/ _" [40,40] 40)
-  "_assignment" :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrelation"  (infixr ":=" 55)
+  "_assignment" :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrelation"  (infixr ":=" 62)
   "_mk_usubst"  :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> usubst"
 
 translations
@@ -95,6 +101,7 @@ translations
   "_mk_usubst \<sigma> (_svid_list x xs) (_uexprs v vs)" == "(_mk_usubst (\<sigma>(&x \<mapsto>\<^sub>s v)) xs vs)"
   "_assignment xs vs" => "CONST assigns_r (_mk_usubst (CONST id) xs vs)"
   "x := v" <= "CONST assigns_r (CONST subst_upd (CONST id) (CONST svar x) v)"
+  "x := v" <= "CONST assigns_r (CONST subst_upd (CONST id) x v)"
   "x,y := u,v" <= "CONST assigns_r (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
 
 adhoc_overloading

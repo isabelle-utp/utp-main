@@ -92,6 +92,9 @@ syntax
 
 translations
   "_assignmentd xs vs" => "CONST assigns_d (_mk_usubst (CONST id) xs vs)"
+  "x :=\<^sub>D v" <= "CONST assigns_d (CONST subst_upd (CONST id) (CONST svar x) v)"
+  "x :=\<^sub>D v" <= "CONST assigns_d (CONST subst_upd (CONST id) x v)"
+  "x,y :=\<^sub>D u,v" <= "CONST assigns_d (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
 
 definition J :: "'\<alpha> hrelation_d"
 where "J = (($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D)"
@@ -127,6 +130,7 @@ definition wp_design :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> '\<beta>
 
 declare design_def [upred_defs]
 declare rdesign_def [upred_defs]
+declare ndesign_def [upred_defs]
 declare skip_d_def [upred_defs]
 declare J_def [upred_defs]
 declare pre_design_def [upred_defs]
@@ -196,6 +200,18 @@ lemma true_is_design:
 
 lemma true_is_rdesign:
   "(false \<turnstile>\<^sub>r true) = true"
+  by rel_tac
+
+lemma design_false_pre:
+  "(false \<turnstile> P) = true"
+  by rel_tac
+
+lemma rdesign_false_pre:
+  "(false \<turnstile>\<^sub>r P) = true"
+  by rel_tac
+
+lemma ndesign_false_pre:
+  "(false \<turnstile>\<^sub>n P) = true"
   by rel_tac
 
 theorem design_refinement:
@@ -416,9 +432,18 @@ theorem rdesign_composition_wp:
   shows "((\<lceil>p1\<rceil>\<^sub>< \<turnstile>\<^sub>r Q1) ;; (\<lceil>p2\<rceil>\<^sub>< \<turnstile>\<^sub>r Q2)) = ((\<lceil>p1 \<and> Q1 wp p2\<rceil>\<^sub><) \<turnstile>\<^sub>r (Q1 ;; Q2))"
   by (simp add: rdesign_composition_cond unrest, rel_tac)
 
+theorem ndesign_composition_wp:
+  fixes Q1 Q2 :: "'a hrelation"
+  shows "((p1 \<turnstile>\<^sub>n Q1) ;; (p2 \<turnstile>\<^sub>n Q2)) = ((p1 \<and> Q1 wp p2) \<turnstile>\<^sub>n (Q1 ;; Q2))"
+  by (simp add: ndesign_def rdesign_composition_wp)
+
 theorem rdesign_wp [wp]:
   "(\<lceil>p\<rceil>\<^sub>< \<turnstile>\<^sub>r Q) wp\<^sub>D r = (p \<and> Q wp r)"
   by rel_tac
+
+theorem ndesign_wp [wp]:
+  "(p \<turnstile>\<^sub>n Q) wp\<^sub>D r = (p \<and> Q wp r)"
+  by (simp add: ndesign_def rdesign_wp)
 
 theorem wpd_seq_r:
   fixes Q1 Q2 :: "'\<alpha> hrelation"
@@ -428,6 +453,11 @@ theorem wpd_seq_r:
   apply (simp only: wp)
   apply (rel_tac)
 done
+
+theorem wpnd_seq_r [wp]:
+  fixes Q1 Q2 :: "'\<alpha> hrelation"
+  shows "(p1 \<turnstile>\<^sub>n Q1 ;; p2 \<turnstile>\<^sub>n Q2) wp\<^sub>D r = (p1 \<turnstile>\<^sub>n Q1) wp\<^sub>D ((p2 \<turnstile>\<^sub>n Q2) wp\<^sub>D r)"
+  by (simp add: ndesign_def wpd_seq_r)
 
 lemma design_subst_ok_ok':
   "(P\<lbrakk>true/$ok\<rbrakk> \<turnstile> Q\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>) = (P \<turnstile> Q)"
