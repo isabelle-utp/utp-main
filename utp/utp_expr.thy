@@ -291,6 +291,9 @@ syntax
   "_uleq"       :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<le>\<^sub>u" 50)
   "_ugreat"     :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix ">\<^sub>u" 50)
   "_ugeq"       :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<ge>\<^sub>u" 50)
+  "_umin"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("min\<^sub>u'(_, _')")
+  "_umax"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("max\<^sub>u'(_, _')")
+  "_ugcd"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("gcd\<^sub>u'(_, _')")
   "_uempset"    :: "('a set, '\<alpha>) uexpr" ("{}\<^sub>u")
   "_uset"       :: "args => ('a set, '\<alpha>) uexpr" ("{(_)}\<^sub>u")
   "_uunion"     :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" (infixl "\<union>\<^sub>u" 65)
@@ -352,6 +355,9 @@ translations
   "x \<le>\<^sub>u y"   == "CONST bop (op \<le>) x y" 
   "x >\<^sub>u y"   == "y <\<^sub>u x"
   "x \<ge>\<^sub>u y"   == "y \<le>\<^sub>u x" 
+  "min\<^sub>u(x, y)"  == "CONST bop (CONST min) x y" 
+  "max\<^sub>u(x, y)"  == "CONST bop (CONST max) x y"
+  "gcd\<^sub>u(x, y)"  == "CONST bop (CONST gcd) x y"
   "{}\<^sub>u"      == "\<guillemotleft>{}\<guillemotright>"
   "{x, xs}\<^sub>u" == "CONST bop (CONST insert) x {xs}\<^sub>u"
   "{x}\<^sub>u"     == "CONST bop (CONST insert) x \<guillemotleft>{}\<guillemotright>"

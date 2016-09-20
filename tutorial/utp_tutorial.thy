@@ -7,9 +7,11 @@ begin
 record my_state =
   st_x :: int
   st_y :: int
+  st_z :: int
 
 definition "x = VAR st_x"
 definition "y = VAR st_y"
+definition "z = VAR st_z"
 
 lemma uvar_x [simp]: "vwb_lens x"
   by (unfold_locales, auto simp add: x_def)
@@ -17,8 +19,11 @@ lemma uvar_x [simp]: "vwb_lens x"
 lemma uvar_y [simp]: "vwb_lens y"
   by (unfold_locales, auto simp add: y_def)
 
-lemma my_state_indeps [simp]: "x \<bowtie> y" "y \<bowtie> x"
-  by (simp_all add: lens_indep_def x_def y_def)
+lemma uvar_z [simp]: "vwb_lens z"
+  by (unfold_locales, auto simp add: z_def)
+
+lemma my_state_indeps [simp]: "x \<bowtie> y" "y \<bowtie> x" "x \<bowtie> z" "z \<bowtie> x" "y \<bowtie> z" "z \<bowtie> y"
+  by (simp_all add: lens_indep_def x_def y_def z_def)
 
 (* Beginning of exercises *)
 
@@ -67,11 +72,30 @@ lemma "($x\<acute> >\<^sub>u $x \<and> $y\<acute> <\<^sub>u $y) \<sqsubseteq> x,
 lemma "false \<sqsubseteq> x, y := &x + 1, &y"
   oops
 
+lemma "(true ;; x := \<guillemotleft>c\<guillemotright>) = ($x\<acute> =\<^sub>u \<guillemotleft>c\<guillemotright>)"
+  oops (* Modified Jim's property *)
+
 lemma "(x := 1 ;; (y := 7 \<triangleleft> $x >\<^sub>u 0 \<triangleright> y := 8)) = (x,y := 1,7)"
   oops
 
 lemma "(x := 1 ;; (y := 7 \<triangleleft> $x >\<^sub>u 0 \<triangleright> y := 8)) = (x,y := 1,7)"
   oops (* Redo above as Isar proof *)
+
+lemma hoare_ex_1:
+  "\<lbrace>true\<rbrace>(z := &x) \<triangleleft> (&x \<ge>\<^sub>u &y) \<triangleright>\<^sub>r (z := &y)\<lbrace>&z =\<^sub>u max\<^sub>u(&x, &y)\<rbrace>\<^sub>u"
+  oops
+
+lemma hoare_ex_2:
+  assumes "X > 0" "Y > 0"
+  shows
+  "\<lbrace>&x =\<^sub>u \<guillemotleft>X\<guillemotright> \<and> &y =\<^sub>u \<guillemotleft>Y\<guillemotright>\<rbrace>
+    while \<not>(&x =\<^sub>u &y)
+    invr &x >\<^sub>u 0 \<and> &y >\<^sub>u 0 \<and> (gcd\<^sub>u(&x,&y) =\<^sub>u gcd\<^sub>u(\<guillemotleft>X\<guillemotright>,\<guillemotleft>Y\<guillemotright>))
+    do 
+       (x := &x - &y) \<triangleleft> (&x >\<^sub>u &y) \<triangleright>\<^sub>r (y := &y - &x)
+    od
+    \<lbrace>&x =\<^sub>u gcd\<^sub>u(\<guillemotleft>X\<guillemotright>, \<guillemotleft>Y\<guillemotright>)\<rbrace>\<^sub>u"
+  oops
 
 lemma "(x :=\<^sub>D 1 ;; x :=\<^sub>D &x + 1) = (x :=\<^sub>D 2)"
   oops (* Rule required: assigns_d_comp *)
