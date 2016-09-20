@@ -43,6 +43,9 @@ lemma "(&x =\<^sub>u 1 \<and> &y =\<^sub>u &x)\<lbrakk>2/x\<rbrakk> = false"
 lemma "(\<forall> x \<bullet> &x =\<^sub>u &x) = true"
   oops
 
+lemma "(\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> =\<^sub>u \<guillemotleft>x\<guillemotright>) = true"
+  oops
+
 lemma "(1 :\<^sub>u nat) + 1 = 2"
   oops
 
@@ -51,6 +54,18 @@ lemma "(x := 1 ;; x := &x + 1) = (x := 2)"
 
 lemma "(x := 1 ;; x := &x + 1) = (x := 2)"
   oops (* Redo above as Isar proof *)
+
+lemma "true \<sqsubseteq> x, y := &x + 1, &y"
+  oops
+
+lemma "($x\<acute> >\<^sub>u $x \<and> $y\<acute> =\<^sub>u $y) \<sqsubseteq> x, y := &x + 1, &y"
+  oops (* Jim's refinement example *)
+
+lemma "($x\<acute> >\<^sub>u $x \<and> $y\<acute> <\<^sub>u $y) \<sqsubseteq> x, y := &x + 1, &y"
+  oops
+
+lemma "false \<sqsubseteq> x, y := &x + 1, &y"
+  oops
 
 lemma "(x := 1 ;; (y := 7 \<triangleleft> $x >\<^sub>u 0 \<triangleright> y := 8)) = (x,y := 1,7)"
   oops
