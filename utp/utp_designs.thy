@@ -1064,6 +1064,10 @@ theorem H3_rdesign_pre:
   using assms
   by (simp add: H3_def)
 
+theorem H3_ndesign:
+  "H3(p \<turnstile>\<^sub>n Q) = (p \<turnstile>\<^sub>n Q)"
+  by (simp add: H3_def ndesign_def unrest_pre_out\<alpha>)
+
 theorem H1_H3_is_design:
   assumes "P is H1" "P is H3"
   shows "P = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
