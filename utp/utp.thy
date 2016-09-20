@@ -14,7 +14,6 @@ theory utp
     utp_wp
     utp_procedure
     utp_theory
-    utp_boyle
     utp_designs
     utp_concurrency
     utp_reactive
