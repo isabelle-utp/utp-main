@@ -62,6 +62,15 @@ begin
   lemma "1 + 1 = 2" (* Correct this goal so it can be discharged *)
     oops
 
+  lemma "[1] @ [2] @ [3] = [1,2,3]"
+    oops
+
+  lemma "(xs @ ys) @ zs = xs @ (ys @ zs)"
+    oops
+
+  lemma "[1] @ [2] @ [3] = [1,2,3]" (* Prove manually using subst and append.simps *)
+    oops
+
   lemma "\<forall> x. P x"
     oops
 
