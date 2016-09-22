@@ -246,6 +246,18 @@ lemma design_refine_intro:
   using assms unfolding upred_defs
   by pred_tac
 
+lemma rdesign_refine_intro:
+  assumes "`P1 \<Rightarrow> P2`" "`P1 \<and> Q2 \<Rightarrow> Q1`"
+  shows "P1 \<turnstile>\<^sub>r Q1 \<sqsubseteq> P2 \<turnstile>\<^sub>r Q2"
+  using assms unfolding upred_defs
+  by pred_tac
+
+lemma ndesign_refine_intro:
+  assumes "`p1 \<Rightarrow> p2`" "`\<lceil>p1\<rceil>\<^sub>< \<and> Q2 \<Rightarrow> Q1`"
+  shows "p1 \<turnstile>\<^sub>n Q1 \<sqsubseteq> p2 \<turnstile>\<^sub>n Q2"
+  using assms unfolding upred_defs
+  by pred_tac
+
 theorem design_ok_false [usubst]: "(P \<turnstile> Q)\<lbrakk>false/$ok\<rbrakk> = true"
   by (simp add: design_def usubst)
 

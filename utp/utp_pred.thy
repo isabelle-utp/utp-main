@@ -624,6 +624,9 @@ lemma shEx_bool [simp]: "shEx P = (P True \<or> P False)"
 lemma shEx_cong: "\<lbrakk> \<And> x. P x = Q x \<rbrakk> \<Longrightarrow> shEx P = shEx Q"
   by (pred_tac)
 
+lemma shAll_unbound [simp]: "(\<^bold>\<forall> x \<bullet> P) = P"
+  by pred_tac
+
 lemma shAll_bool [simp]: "shAll P = (P True \<and> P False)"
   by (pred_tac, metis (full_types))
 

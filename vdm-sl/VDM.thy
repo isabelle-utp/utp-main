@@ -11,6 +11,8 @@ subsection {* Core operator definitions *}
 
 typedef ('a, '\<alpha>) vexpr = "UNIV :: ('\<alpha> \<Rightarrow> 'a option) set" ..
 
+type_synonym '\<alpha> vpred = "(bool, '\<alpha>) vexpr"
+
 type_synonym 'a vtype = "'a set"
 
 setup_lifting type_definition_vexpr
@@ -23,6 +25,9 @@ lift_definition visdefined :: "('a, '\<alpha>) vexpr \<Rightarrow> (bool, '\<alp
 
 lift_definition vexpr :: "('a, '\<alpha>) vexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<lfloor>_\<rfloor>\<^sub>v") is
 "\<lambda> e b. the(e b)" .
+
+lift_definition vlift :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) vexpr" ("\<lceil>_\<rceil>\<^sub>v") is
+"\<lambda> e b. Some (e b)" .
 
 consts
   veuvar :: "'v \<Rightarrow> 'p" ("&\<^sub>v_" [999] 999)
@@ -109,21 +114,21 @@ is "\<lambda> p. \<forall> b. [p b]\<^sub>3" .
 declare [[coercion vtaut]]
 
 definition upfun :: "'a::type set \<Rightarrow> ('a \<Rightarrow> 'b::type) \<Rightarrow> ('a \<rightharpoonup> 'b)" where
-"upfun A f = ((\<lambda> v. Some (f v)) |` A)"
+[upred_defs]: "upfun A f = ((\<lambda> v. Some (f v)) |` A)"
 
 abbreviation "upfun' \<equiv> upfun UNIV"
 
 abbreviation (input) "vuop' f \<equiv> vuop (upfun' f)"
 
 definition bpfun :: "('a::type * 'b::type) set \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c::type) \<Rightarrow> ('a * 'b \<rightharpoonup> 'c)" where
-"bpfun AB f \<equiv> (\<lambda> (v1, v2). Some (f v1 v2)) |` AB"
+[upred_defs]: "bpfun AB f = (\<lambda> (v1, v2). Some (f v1 v2)) |` AB"
 
 abbreviation "bpfun' \<equiv> bpfun UNIV"
 
 abbreviation (input) "vbop' f \<equiv> vbop (bpfun' f)"
 
 definition tpfun :: "('a::type * 'b::type * 'c::type) set \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd::type) \<Rightarrow> ('a * 'b * 'c \<rightharpoonup> 'd)" where
-"tpfun ABC f \<equiv> (\<lambda> (v1, v2, v3). Some (f v1 v2 v3)) |` ABC"
+[upred_defs]: "tpfun ABC f = (\<lambda> (v1, v2, v3). Some (f v1 v2 v3)) |` ABC"
 
 abbreviation "tpfun' \<equiv> tpfun UNIV"
 
@@ -140,21 +145,21 @@ is "\<lambda> A P b. (\<forall>\<^sub>k x. P x b)" .
 
 instantiation vexpr :: (zero, type) zero
 begin
-  lift_definition zero_vexpr :: "('a, 'b) vexpr" is "vlit 0" .
+  definition zero_vexpr :: "('a, 'b) vexpr" where [upred_defs]: "zero_vexpr = vlit 0"
   instance ..
 end
 
 instantiation vexpr :: (one, type) one
 begin
-  lift_definition one_vexpr :: "('a, 'b) vexpr" is "vlit 1" .
+  definition one_vexpr :: "('a, 'b) vexpr" where [upred_defs]: "one_vexpr = vlit 1"
   instance ..
 end
 
 instantiation vexpr :: (plus, type) plus
 begin
 
-  lift_definition plus_vexpr :: "('a, 'b) vexpr \<Rightarrow> ('a, 'b) vexpr \<Rightarrow> ('a, 'b) vexpr"
-  is "vbop (bpfun' (op +))" .
+  definition plus_vexpr :: "('a, 'b) vexpr \<Rightarrow> ('a, 'b) vexpr \<Rightarrow> ('a, 'b) vexpr"
+  where [upred_defs]: "plus_vexpr x y = vbop (bpfun' (op +)) x y"
 
 instance ..
 end
@@ -162,8 +167,8 @@ end
 instantiation vexpr :: (minus, type) minus
 begin
 
-  lift_definition minus_vexpr :: "('a, 'b) vexpr \<Rightarrow> ('a, 'b) vexpr \<Rightarrow> ('a, 'b) vexpr"
-  is "vbop (bpfun' (op -))" .
+  definition minus_vexpr :: "('a, 'b) vexpr \<Rightarrow> ('a, 'b) vexpr \<Rightarrow> ('a, 'b) vexpr"
+  where [upred_defs]: "minus_vexpr x y = vbop (bpfun' (op -)) x y"
 
 instance ..
 end
@@ -171,8 +176,8 @@ end
 instantiation vexpr :: (times, type) times
 begin
 
-  lift_definition times_vexpr :: "('a, 'b) vexpr \<Rightarrow> ('a, 'b) vexpr \<Rightarrow> ('a, 'b) vexpr"
-  is "vbop (bpfun' (op *))" .
+  definition times_vexpr :: "('a, 'b) vexpr \<Rightarrow> ('a, 'b) vexpr \<Rightarrow> ('a, 'b) vexpr"
+  where [upred_defs]: "times_vexpr x y = vbop (bpfun' (op *)) x y"
 
 instance ..
 end
@@ -181,11 +186,11 @@ text {* We augment inverse and divide so that it is undefined when the divisor i
 
 instantiation vexpr :: ("{zero,inverse}", type) inverse
 begin
-  lift_definition inverse_vexpr :: "('a, 'b) vexpr \<Rightarrow> ('a, 'b) vexpr"
-  is "vuop (upfun {x. x \<noteq> 0} inverse)" .
+  definition inverse_vexpr :: "('a, 'b) vexpr \<Rightarrow> ('a, 'b) vexpr"
+  where [upred_defs]: "inverse_vexpr n = vuop (upfun {x. x \<noteq> 0} inverse) n"
 
-  lift_definition divide_vexpr :: "('a, 'b) vexpr \<Rightarrow> ('a, 'b) vexpr \<Rightarrow> ('a, 'b) vexpr"
-  is "vbop (bpfun {(x,y). y \<noteq> 0} divide)" .
+  definition divide_vexpr :: "('a, 'b) vexpr \<Rightarrow> ('a, 'b) vexpr \<Rightarrow> ('a, 'b) vexpr"
+  where [upred_defs]: "divide_vexpr m n = vbop (bpfun {(x,y). y \<noteq> 0} divide) m n"
 
 instance ..
 end
@@ -262,7 +267,7 @@ syntax
   "_vmap_enum"     :: "vmaplets \<Rightarrow> ('a \<rightharpoonup> 'b, '\<alpha>) vexpr" ("\<lbrace>_\<rbrace>\<^sub>v")
   "_vdot" :: "('a, '\<alpha>) vexpr \<Rightarrow> id \<Rightarrow> ('b, '\<alpha>) vexpr" ("_.\<^sub>v_" [998,998] 998)
   
-definition "hd_pre = {x. length x > 0}"
+definition [upred_defs]: "hd_pre = {x. length x > 0}"
 
 abbreviation "map_upd f k v \<equiv> fun_upd f k (Some v)"
 
@@ -310,8 +315,6 @@ translations
   "_vmap_enum (_vmaplets (_vmaplet k v) m)" == "CONST vtop (CONST tpfun' CONST map_upd) (_vmap_enum m) k v"
   "_vdot e k" => "CONST vuop (CONST upfun' k) e"
   "\<lbrace>\<mapsto>\<rbrace>\<^sub>v"     <=   "CONST vlit CONST Map.empty"
-
-term "x \<notin>\<^sub>v A" 
 
 abbreviation "vforallSet A P \<equiv> vforall UNIV (\<lambda> x. \<guillemotleft>x\<guillemotright>\<^sub>v \<in>\<^sub>v A \<Rightarrow>\<^sub>v P x)"
 abbreviation "vexistsSet A P \<equiv> vexists UNIV (\<lambda> x. \<guillemotleft>x\<guillemotright>\<^sub>v \<in>\<^sub>v A \<Rightarrow>\<^sub>v P x)"
@@ -466,10 +469,10 @@ lemma bpfun'_simp [simp]: "bpfun' f (x, y) = Some (f x y)"
 text {* Here we are using introduction / elimination to prove some simple properties *}
 
 lemma example1: "(\<forall>\<^sub>v x : Nats \<bullet> \<guillemotleft>x\<guillemotright>\<^sub>v >\<^sub>v \<guillemotleft>1 :: nat\<guillemotright>\<^sub>v) = false\<^sub>v"
-  by (transfer, force)
+  by pred_tac
 
 lemma example2: "(\<exists>\<^sub>v x : Nats \<bullet> \<guillemotleft>x\<guillemotright>\<^sub>v >\<^sub>v \<guillemotleft>1 :: nat\<guillemotright>\<^sub>v) = true\<^sub>v"
-  by (transfer, force)
+  by pred_tac
 
 subsection {* Definedness laws *}
 
@@ -551,6 +554,10 @@ lemma vdefined_vmap_update [simp]:
   apply (simp add: vdefined_tpfun vmap_update_def)
 done
 
+lemma vdefined_undef [simp]:
+  "\<D>\<^sub>v(\<bottom>\<^sub>v) = false\<^sub>v"
+  by (pred_tac)
+
 lemma vdefined_vvar [simp]: 
   fixes x :: "('a, '\<alpha>) uvar" 
   shows "\<D>\<^sub>v(&\<^sub>vx) = true\<^sub>v"
@@ -571,7 +578,6 @@ done
 lemma vdefined_divide [simp]: "\<D>\<^sub>v(x / y) = (\<D>\<^sub>v(x) \<and>\<^sub>v \<D>\<^sub>v(y) \<and>\<^sub>v y <>\<^sub>v 0)"
   apply (simp add: upred_defs divide_vexpr_def zero_vexpr_def vdefined_bpfun)
   apply (transfer, rule ext, auto)
-  apply (case_tac "x b", auto)
   apply (case_tac "y b", auto simp add: domIff)
 done
 
@@ -587,16 +593,13 @@ text {* Assignment requires that the expression assigned to the
         expression be defined, otherwise an abort will result. *}
 
 definition vassign_uvar :: "('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d" where
-"vassign_uvar x v = (\<lceil> \<lfloor> \<D>\<^sub>v(v) \<rfloor>\<^sub>v \<rceil>\<^sub>< \<turnstile>\<^sub>r (x := \<lfloor>v\<rfloor>\<^sub>v))"
+[urel_defs]: "vassign_uvar x v = (\<lfloor> \<D>\<^sub>v(v) \<rfloor>\<^sub>v \<turnstile>\<^sub>n (x := \<lfloor>v\<rfloor>\<^sub>v))"
 
 definition vassign_dvar :: "'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) vexpr \<Rightarrow> '\<alpha> hrelation_d" where
-"vassign_dvar x v = vassign_uvar (x\<up>) v"
+[urel_defs]: "vassign_dvar x v = vassign_uvar (x\<up>) v"
 
 consts
   vassign :: "'v \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d"
-
-declare vassign_uvar_def [urel_defs]
-declare vassign_dvar_def [urel_defs]
 
 adhoc_overloading
   vassign vassign_uvar and vassign vassign_dvar
@@ -618,15 +621,23 @@ translations
   "x.\<^sub>vf :=\<^sub>v v" == "CONST vassign_upd x (_update_name f) v"
   "m(k) :=\<^sub>v v" => "CONST vassign m (CONST vtop CONST vupdate (&\<^sub>vm) k v)"
 
+lemma vassign_undef:
+  fixes x :: "('a, '\<alpha>) uvar"
+  shows "(x :=\<^sub>v \<bottom>\<^sub>v) = \<bottom>\<^sub>D"
+  by rel_tac
+
 lemma H1_H3_vdm_assign [simp]:
   fixes x :: "('a, '\<alpha>) uvar" 
   shows "(x :=\<^sub>v v) is H1_H3"
-  by (metis H1_algebraic_intro H3_rdesign_pre Healthy_def' design_left_unit design_true_left_zero rdesign_def unrest_pre_out\<alpha> vassign_uvar_def)
+  by (metis H1_rdesign H3_ndesign Healthy_def ndesign_def vassign_uvar_def)
 
 lemma hd_nil_abort: 
   fixes x :: "('a, '\<alpha>) uvar"
   shows "(x :=\<^sub>v hd\<^sub>v([]\<^sub>v)) = true"
   by rel_tac  
+
+definition wp_vdm :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> '\<beta> vpred \<Rightarrow> '\<alpha> vpred" (infix "wp\<^sub>v" 60)
+where "Q wp\<^sub>v r = \<lceil>Q wp\<^sub>D \<lfloor>r\<rfloor>\<^sub>v\<rceil>\<^sub>v"
 
 text {* Here we augment the set of design weakest precondition laws 
         with the VDM assignment operator *}
@@ -638,7 +649,7 @@ theorem wpd_vdm_assign [wp]:
 
 lemma wp_calc_test_1:
   "\<lbrakk> uvar x; uvar y \<rbrakk> \<Longrightarrow> (y :=\<^sub>v hd\<^sub>v(&\<^sub>vx)) wp\<^sub>D true 
-                          = \<lfloor>\<D>\<^sub>v(&\<^sub>vx) \<and>\<^sub>v len\<^sub>v(&\<^sub>vx) >\<^sub>v \<guillemotleft>0\<guillemotright>\<^sub>v\<rfloor>\<^sub>v"
+                          = \<lfloor>len\<^sub>v(&\<^sub>vx) >\<^sub>v \<guillemotleft>0\<guillemotright>\<^sub>v\<rfloor>\<^sub>v"
   by (simp add: wp usubst)
 
 lemma wp_calc_test_2:
@@ -650,14 +661,16 @@ subsection {* VDM-SL operations *}
 
 definition vdm_sl_op :: "(bool, '\<alpha> \<times> '\<alpha>) vexpr \<Rightarrow> (bool, '\<alpha> \<times> '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d \<Rightarrow> '\<alpha> hrelation_d"
   ("[pre _ post _ body _]\<^sub>v")
-where "[pre pr post po body bd]\<^sub>v = (\<lfloor>\<D>\<^sub>v(pr)\<rfloor>\<^sub>v \<and> \<lfloor>pr\<rfloor>\<^sub>v \<and> pre\<^sub>D(bd)) \<turnstile>\<^sub>r (\<lfloor>\<D>\<^sub>v(po)\<rfloor>\<^sub>v \<and> \<lfloor>po\<rfloor>\<^sub>v \<and> post\<^sub>D(bd))"
+where "[pre pr post po body bd]\<^sub>v = (\<lfloor>\<D>\<^sub>v(pr)\<rfloor>\<^sub>v \<and> \<lfloor>pr\<rfloor>\<^sub>v) \<turnstile>\<^sub>r (\<lfloor>\<D>\<^sub>v(po)\<rfloor>\<^sub>v \<and> \<lfloor>po\<rfloor>\<^sub>v \<and> post\<^sub>D(bd))"
 
+(*
 lemma vdm_sl_op_true_pre_post [simp]:
-  "[pre true\<^sub>v post true\<^sub>v body p \<turnstile>\<^sub>r q]\<^sub>v = p \<turnstile>\<^sub>r q"
+  "[pre true\<^sub>v post true\<^sub>v body p \<turnstile>\<^sub>r q]\<^sub>v = true \<turnstile>\<^sub>r q"
   by (simp add: vdm_sl_op_def, pred_tac)
 
 lemma vdm_sl_op_false_pre [simp]:
   "[pre false\<^sub>v post p body b]\<^sub>v = true"
   by (simp add: vdm_sl_op_def, pred_tac)
+*)
 
 end
