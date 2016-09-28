@@ -126,6 +126,9 @@ text {* The first task in setting up proof automation is automate definedness ch
         are probably weakened forms of each of these rules, but I haven't the time to
         figure them out right now. *}
 
+lemma tvl_defined_alt_def: "\<D>\<^sub>3(p) = [p]\<^sub>3 \<or> [\<not>\<^sub>k p]\<^sub>3"
+  by (auto simp add: tvl_defined_def knot_def tvl_taut_def)
+
 lemma knot_defined [simp]: "\<D>\<^sub>3 (\<not>\<^sub>k p) = \<D>\<^sub>3 p"
   by (cases p rule: tvl_cases, simp_all add: knot_def tvl_defined_def)
 
