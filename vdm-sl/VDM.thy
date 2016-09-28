@@ -586,6 +586,11 @@ lemma vdefined_vhd [simp]: "\<D>\<^sub>v(hd\<^sub>v(xs)) = (\<D>\<^sub>v(xs) \<a
 
 lemma vdefined_vtl [simp]: "\<D>\<^sub>v(tl\<^sub>v(xs)) = (\<D>\<^sub>v(xs) \<and>\<^sub>v len\<^sub>v(xs) >\<^sub>v \<guillemotleft>0\<guillemotright>\<^sub>v)"
   by (rule vdefined_upfunI, transfer, simp add: vdefined_upfun upfun_def bpfun_def hd_pre_def)
+subsection {* Deduction rules *}
+
+lemma vdm_bind_on_dom_1 [intro]:
+  "\<D>\<^sub>3 (\<lfloor>b \<in> dom p\<rfloor> \<and>\<^sub>k p b)"
+  by (auto simp add: kand_def)
 
 subsection {* VDM-SL programs *}
 
