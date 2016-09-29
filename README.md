@@ -14,16 +14,16 @@ are doing on EU H2020 project "INTO-CPS" (Grant agreement 644047) -- see <http:/
 for more information.
 
 Isabelle/UTP is very much still a work in progress, and currently requires some Isabelle expertise to use
-effectively. For viewing the git repository I highly recommend the _Matisa_ plugin by York colleague Pedro Ribeiro which
+effectively. For viewing the git repository I highly recommend the _Matisa_ plugin by York colleague [Pedro Ribeiro](https://www-users.cs.york.ac.uk/~pfr/) which
 allows Isabelle symbols to be pretty-printed in the browser and can be obtained from the [Google Chrome
-store](https://chrome.google.com/webstore/detail/matisa/jkpdfeicbjekckenhpippdllibmbcinf?hl=en-GB) or (Firefox
-Add-ons)[https://addons.mozilla.org/en-US/firefox/addon/matisa/].
+store](https://chrome.google.com/webstore/detail/matisa/jkpdfeicbjekckenhpippdllibmbcinf?hl=en-GB) or [Firefox
+Add-ons](https://addons.mozilla.org/en-US/firefox/addon/matisa/).
 
 Installation
 ------------
 
 Installation requires that you have already installed the latest version of Isabelle on your
-system from <http://isabelle.in.tum.de/> (at time of writing this is Isabelle2015). We provide
+system from <http://isabelle.in.tum.de/> (at time of writing this is Isabelle2016). We provide
 a ROOT file in this repository with a number of heap images. If you wish to develop something
 using UTP, then you can use the heap image called "UTP", that can be loaded by invoking
 
@@ -33,7 +33,7 @@ isabelle jedit -d. -l UTP
 
 from the command line in the installed directory. Alternatively you can configure your main Isabelle
 ROOTS file so that it knows about the location of Isabelle/UTP 
-(see <https://isabelle.in.tum.de/dist/Isabelle2015/doc/system.pdf>). If you're developing the
+(see <https://isabelle.in.tum.de/dist/Isabelle2016/doc/system.pdf>). If you're developing the
 Isabelle/UTP core you can instead invoke the UTP-IMPORTS heap image.
 
 Usage
