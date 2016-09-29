@@ -39,11 +39,14 @@ abbreviation
                body schedule(&\<^sub>vp) :=\<^sub>v ({&\<^sub>ve}\<^sub>v \<union>\<^sub>v (&\<^sub>vschedule(&\<^sub>vp)\<^sub>v))]\<^sub>v"
 
 lemma Assign_pres_inv:
-  "Assign(e,p) \<sqsubseteq> \<lceil> \<lfloor> inv_Plant \<rfloor>\<^sub>v \<rceil>\<^sub>< \<turnstile>\<^sub>r \<lceil> \<lfloor> inv_Plant \<rfloor>\<^sub>v \<rceil>\<^sub>>"
+  "Assign(e,p) \<sqsubseteq> \<lfloor> inv_Plant \<rfloor>\<^sub>v \<turnstile>\<^sub>n \<lceil> \<lfloor> inv_Plant \<rfloor>\<^sub>v \<rceil>\<^sub>>"
   oops
 
-lemma "(\<lceil> \<lfloor> inv_Plant \<and>\<^sub>v \<guillemotleft>p\<guillemotright>\<^sub>v \<in>\<^sub>v dom\<^sub>v(&\<^sub>vschedule) \<rfloor>\<^sub>v \<rceil>\<^sub>< \<turnstile>\<^sub>r \<lceil> \<lfloor> inv_Plant \<rfloor>\<^sub>v \<rceil>\<^sub>>)
+lemma "(\<lfloor> inv_Plant \<and>\<^sub>v \<guillemotleft>p\<guillemotright>\<^sub>v \<in>\<^sub>v dom\<^sub>v(&\<^sub>vschedule) \<rfloor>\<^sub>v \<turnstile>\<^sub>n \<lceil> \<lfloor> inv_Plant \<rfloor>\<^sub>v \<rceil>\<^sub>>)
        \<sqsubseteq> (schedule(\<guillemotleft>p\<guillemotright>\<^sub>v) :=\<^sub>v ({\<guillemotleft>e\<guillemotright>\<^sub>v}\<^sub>v \<union>\<^sub>v (&\<^sub>vschedule(\<guillemotleft>p\<guillemotright>\<^sub>v)\<^sub>v)))"
-       oops
+   apply (simp add: vassign_uvar_def)
+   apply (rule ndesign_refine_intro)
+   apply (pred_tac)
+oops
 
 end
