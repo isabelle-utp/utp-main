@@ -1,13 +1,13 @@
-Isabelle/UTP Shallow
-====================
+Isabelle/UTP
+============
 
-This is a semantic embedding of Hoare and He's _Unifying Theories of Programming_ (UTP) in
-the Isabelle/HOL proof assistant. We base this particular implementation on the shallow embedding
-first created by Feliachi, Gaudel, and Wolff (2010), but we also integrates a number of ideas
-from the alternative deep model of the UTP in Isabelle by Foster, Zeyda, and Woodcock (2015).
-In particular we add semantic approximations of syntactic notions like fresh variables 
-(unrestriction) and substitution, and also add a form of "deep variables" that provides a more
-flexible form of alphabet extension (whilst being subject to certain cardinality constraints).
+This is a semantic embedding of Hoare and He's _Unifying Theories of Programming_ (UTP) in the Isabelle/HOL proof
+assistant. We base this particular implementation on the shallow embedding first created by Feliachi, Gaudel, and Wolff
+(2010), but we also integrates a number of ideas from the alternative deep model of the UTP in Isabelle by Foster,
+Zeyda, and Woodcock (2015).  In particular we recast variables to characterised by lenses (see Foster, Zeyda, and
+Woodcock (2016)), and add semantic approximations of syntactic notions like fresh variables (unrestriction) and
+substitution, and also add a form of "deep variables" that provides a more flexible form of alphabet extension (whilst
+being subject to certain cardinality constraints).
 
 Our aim is to use this version of Isabelle/UTP to support the mechanised semantics work we
 are doing on EU H2020 project "INTO-CPS" (Grant agreement 644047) -- see <http://into-cps.au.dk/>
@@ -101,5 +101,6 @@ References
 ----------
 
 * C. A. R. Hoare and He Jifeng. _Unifying Theories of Programming_. Prentice Hall 1998. <http://unifyingtheories.org/>
+* Simon Foster, Frank Zeyda, and Jim Woodcock. _Unifying Heterogeneous State-Spaces with Lenses_. Proc. 13th Intl. Colloquium on Theoretical Aspects of Computing (ICTAC 2016).
 * Abderrahmane Feliachi, Marie-Claude Gaudel, and Burkhart Wolff. _Unifying Theories in Isabelle/HOL_. Proc. 3rd UTP Symposium, 2010. <https://www.lri.fr/~wolff/papers/conf/2010-utp-unifying-theories.pdf>
 * Simon Foster, Frank Zeyda, and Jim Woodcock. _Isabelle/UTP: A Mechanised Theory Engineering Framework_. Proc. 5th UTP Symposium, 2014. <http://link.springer.com/chapter/10.1007%2F978-3-319-14806-9_2>
