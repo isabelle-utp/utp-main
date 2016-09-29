@@ -4,6 +4,17 @@ theory Monoid_extra
   imports List_extra "~~/src/HOL/Library/Prefix_Order"
 begin
 
+class ordered_semigroup = semigroup_add + order +
+  assumes add_left_mono: "a \<le> b \<Longrightarrow> c + a \<le> c + b"
+  and add_right_mono: "a \<le> b \<Longrightarrow> a + c \<le> b + c"
+begin
+
+lemma add_mono:
+  "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> a + c \<le> b + d"
+  using local.add_left_mono local.add_right_mono local.order.trans by blast
+
+end
+
 class cancel_monoid_add = monoid_add + minus +
   assumes add_diff_cancel_left [simp]: "(c + a) - (c + b) = a - b"
   and diff_zero [simp]: "a - 0 = a"
