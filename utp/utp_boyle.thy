@@ -48,15 +48,15 @@ lemma B_monotone:
 text {* We also create some example observations; the first satisfies Boyle's law and the second
         doesn't. *}
 
-definition "\<phi>\<^sub>1 = ((&p =\<^sub>u 10) \<and> (&V =\<^sub>u 5) \<and> (&k =\<^sub>u 50))"
+definition [upred_defs]: "\<phi>\<^sub>1 = ((&p =\<^sub>u 10) \<and> (&V =\<^sub>u 5) \<and> (&k =\<^sub>u 50))"
 
-definition "\<phi>\<^sub>2 = ((&p =\<^sub>u 10) \<and> (&V =\<^sub>u 5) \<and> (&k =\<^sub>u 100))"
+definition [upred_defs]: "\<phi>\<^sub>2 = ((&p =\<^sub>u 10) \<and> (&V =\<^sub>u 5) \<and> (&k =\<^sub>u 100))"
 
 text {* We prove that @{const "\<phi>\<^sub>1"} satisfied by Boyle's law by simplication of its definitional
         equation and then application of the predicate tactic. *}
 
 lemma B_\<phi>\<^sub>1: "\<phi>\<^sub>1 is B"
-  by (simp add: \<phi>\<^sub>1_def, pred_tac)
+  by (pred_tac)
 
 text {* We prove that @{const "\<phi>\<^sub>2"} does not satisfy Boyle's law by showing it's in fact equal
         to @{const "\<phi>\<^sub>1"}. We do this via an automated Isar proof. *}

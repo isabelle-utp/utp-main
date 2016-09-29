@@ -62,9 +62,11 @@ abbreviation cont_pre_lift :: "('a, 'c) uexpr \<Rightarrow> ('a,'d,'c) expr_trd"
 
 syntax
   "_cont_alpha" :: "svid" ("\<^bold>c")
+  "_disc_alpha" :: "svid" ("\<^bold>d")
 
 translations
   "_cont_alpha" == "CONST cont_alpha"
+  "_disc_alpha" == "CONST disc_alpha"
   "\<lceil>P\<rceil>\<^sub>C\<^sub><" <= "CONST aext P (CONST ivar CONST cont_alpha)"
 
 lemma var_in_var_prod [simp]:
@@ -132,25 +134,25 @@ lemma at_disj [simp]: "(P \<or> Q) @\<^sub>u t = (P @\<^sub>u t \<or> Q @\<^sub>
 lemma at_ueq [simp]: "(x =\<^sub>u y) @\<^sub>u t = (x @\<^sub>u t =\<^sub>u y @\<^sub>u t)"
   by (simp add: at_def usubst alpha)
 
+lemma at_plus [simp]:
+  "(x + y) @\<^sub>u t = ((x @\<^sub>u t) + (y @\<^sub>u t))"
+  by (simp add: at_def alpha usubst)
+
+lemma at_var [simp]:
+  fixes x :: "('a, 'c) uvar"
+  shows "var x @\<^sub>u t = \<phi>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u:(x)"
+  by (pred_tac)
+
 definition hInt :: "(real \<Rightarrow> 'c upred) \<Rightarrow> ('d,'c) relation_trd" where
 [urel_defs]: "hInt P = ($tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
 
-lemma uend_0 [simp]: "end\<^sub>u(0) = 0"
-  by (simp add: upred_defs lit_def uop_def Abs_uexpr_inverse)
-
-lifting_update pos.lifting
-lifting_forget pos.lifting
-
-lemma R2c_time_range: "R2c (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<time'-time}\<^sub>u) = (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<time'-time}\<^sub>u)"
-  by (rel_tac ; simp add: cgf_end_minus)
-
-lemma R2c_time_length: "R2c (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u) = (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u)"
-  by (rel_tac ; simp add: cgf_end_minus)
+definition hDisInt :: "(real \<Rightarrow> 'c::t2_space upred) \<Rightarrow> ('d, 'c) relation_trd" where 
+[urel_defs]: "hDisInt P = (hInt P \<and> $\<^bold>c =\<^sub>u \<phi>\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<phi>\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
 
 syntax
   "_time_var" :: "logic"
   "_hInt"     :: "logic \<Rightarrow> logic" ("\<lceil>_\<rceil>\<^sub>H")
-  "_hInt"     :: "logic \<Rightarrow> logic" ("\<lceil>_\<rceil>\<^sub>H")
+  "_hDisInt"  :: "logic \<Rightarrow> logic" ("\<lceil>|_|\<rceil>\<^sub>H")
 
 parse_translation {*
 let
@@ -163,6 +165,21 @@ end
 
 translations
   "\<lceil>P\<rceil>\<^sub>H"   == "CONST hInt (\<lambda> _time_var. P)"
+  "\<lceil>|P|\<rceil>\<^sub>H" == "CONST hDisInt (\<lambda> _time_var. P)"
+
+definition hPreempt :: 
+  "('d, 'c::topological_space) relation_trd \<Rightarrow> 'c upred \<Rightarrow> 
+    ('d,'c) relation_trd \<Rightarrow> ('d,'c) relation_trd" ("_ \<lbrakk>_\<rbrakk>\<^sub>H _" [64,0,65] 64)
+where "P \<lbrakk>B\<rbrakk>\<^sub>H Q = (((Q \<triangleleft> B @\<^sub>u 0 \<triangleright> (P \<and> \<lceil>\<not> B\<rceil>\<^sub>H)) \<or> ((\<lceil>\<not> B\<rceil>\<^sub>H \<and> P) ;; ((B @\<^sub>u 0) \<and> Q))))"
+
+lemma uend_0 [simp]: "end\<^sub>u(0) = 0"
+  by (simp add: upred_defs lit_def uop_def Abs_uexpr_inverse)
+
+lemma R2c_time_range: "R2c (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<time'-time}\<^sub>u) = (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<time'-time}\<^sub>u)"
+  by (rel_tac ; simp add: cgf_end_minus)
+
+lemma R2c_time_length: "R2c (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u) = (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u)"
+  by (rel_tac ; simp add: cgf_end_minus)
 
 lemma R2c_tr_less_tr': "R2c($tr <\<^sub>u $tr\<acute>) = ($tr <\<^sub>u $tr\<acute>)"
   apply (rel_tac)
@@ -185,26 +202,76 @@ lemma R1_hInt: "R1(\<lceil>P(\<tau>)\<rceil>\<^sub>H) = \<lceil>P(\<tau>)\<rceil
 lemma R2s_hInt: "R2c(\<lceil>P(\<tau>)\<rceil>\<^sub>H) = \<lceil>P(\<tau>)\<rceil>\<^sub>H"
   by (simp add: hInt_def R2c_and R2c_tr_less_tr' R2c_shAll R2c_impl R2c_time_length R2c_at)
 
+lemma R2_hInt: "R2(\<lceil>P(\<tau>)\<rceil>\<^sub>H) = \<lceil>P(\<tau>)\<rceil>\<^sub>H"
+  by (metis R1_R2c_is_R2 R1_hInt R2s_hInt)
+
 lemma hInt_false: "\<lceil>false\<rceil>\<^sub>H = false"
   apply (simp add: hInt_def, rel_tac)
 by (metis cgf_end_0_iff cgf_end_ge_0 cgf_end_minus dual_order.strict_iff_order minus_zero_eq)
 
-lemma hInt_conj: "\<lceil>P(\<tau>) \<and> Q(\<tau>)\<rceil>\<^sub>H = (\<lceil>P(\<tau>)\<rceil>\<^sub>H \<and> \<lceil>Q(\<tau>)\<rceil>\<^sub>H)"
+
+lemma seqr_to_conj: "\<lbrakk> out\<alpha> \<sharp> P; in\<alpha> \<sharp> Q \<rbrakk> \<Longrightarrow> (P ;; Q) = (P \<and> Q)"
+  by (metis postcond_left_unit seqr_pre_out utp_pred.inf_top.right_neutral)
+
+lemma unrest_lift_cont_subst [unrest]:
+  "\<lbrakk> uvar x; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> (\<lceil>P\<rceil>\<^sub>C\<^sub><)\<lbrakk>v/$\<^bold>c\<rbrakk>"
   by (rel_tac)
 
-lemma at_plus [simp]:
-  "(x + y) @\<^sub>u t = ((x @\<^sub>u t) + (y @\<^sub>u t))"
-  by (simp add: at_def alpha usubst)
+lemma hInt_refine: "`\<^bold>\<forall> \<tau> \<bullet> P(\<tau>) \<Rightarrow> Q(\<tau>)` \<Longrightarrow> \<lceil>Q(\<tau>)\<rceil>\<^sub>H \<sqsubseteq> \<lceil>P(\<tau>)\<rceil>\<^sub>H"
+  by (rel_tac)
 
-lemma at_var [simp]:
-  fixes x :: "('a, 'c) uvar"
-  shows "var x @\<^sub>u t = \<phi>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u:(x)"
-  by (pred_tac)
+lemma hInt_seq_r: "(\<lceil>P\<rceil>\<^sub>H ;; \<lceil>P\<rceil>\<^sub>H) = \<lceil>P\<rceil>\<^sub>H"
+proof -
+  have "(\<lceil>P\<rceil>\<^sub>H ;; \<lceil>P\<rceil>\<^sub>H) = (R2(\<lceil>P\<rceil>\<^sub>H) ;; R2(\<lceil>P\<rceil>\<^sub>H))"
+    by (simp add: R2_hInt)
+  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<lceil>P\<rceil>\<^sub>H)\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; (\<lceil>P\<rceil>\<^sub>H)\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
+    by (simp add: R2_seqr_form)
+  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (\<guillemotleft>tt\<^sub>1\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>) ;;
+                                     \<guillemotleft>tt\<^sub>2\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>)) \<and>
+                         $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
+    by (simp add: hInt_def at_def usubst unrest)
+  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<guillemotleft>tt\<^sub>1\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>)) \<and>
+                                     (\<guillemotleft>tt\<^sub>2\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and>
+                         $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
+    by (simp add: seqr_to_conj unrest)
+  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<guillemotleft>tt\<^sub>1\<guillemotright> >\<^sub>u 0 \<and> \<guillemotleft>tt\<^sub>2\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>(\<guillemotleft>tt\<^sub>1\<guillemotright>+\<guillemotleft>tt\<^sub>2\<guillemotright>)\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and>
+                         $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
+    apply (rule shEx_cong)
+    apply (rule shEx_cong)
+    apply (rel_tac)
+    apply (auto simp add: cgf_end_cat)
+    apply (case_tac "xb < end\<^sub>C x")
+    apply (auto simp add: cgf_cat_ext_first cgf_cat_ext_last)
+    apply (metis add.right_neutral add_less_le_mono cgf_cat_ext_first cgf_end_ge_0)
+    apply (smt cgf_apply_minus cgf_cat_minus cgf_end_ge_0 cgf_prefix_cat)
+  done
+  also have "... = (\<^bold>\<exists> tt \<bullet> ((\<guillemotleft>tt\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>(\<guillemotleft>tt\<guillemotright>)\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<guillemotright>)"
+    apply (rel_tac)
+    using add.assoc cgf_prefix_cat less_le_trans apply blast
+    sorry (* Need to show that any non-zero length trajectory can be divided into two non-zero length parts *)
+  also have "... = R2(\<lceil>P\<rceil>\<^sub>H)"
+    by (simp add: R2_form hInt_def at_def usubst unrest)
+  also have "... = \<lceil>P\<rceil>\<^sub>H"
+    by (simp add: R2_hInt)
+  finally show ?thesis .
+qed
+
+lemma hInt_true: "\<lceil>true\<rceil>\<^sub>H = ($tr <\<^sub>u $tr\<acute>)"
+  by (rel_tac)
+
+lemma "P \<lbrakk>true\<rbrakk>\<^sub>H Q = Q"
+  by (simp add: hPreempt_def hInt_false)
+
+lemma "P \<lbrakk>false\<rbrakk>\<^sub>H Q = (P \<and> $tr <\<^sub>u $tr\<acute>)"
+  by (simp add: hPreempt_def hInt_true)
+
+lemma hInt_conj: "\<lceil>P(\<tau>) \<and> Q(\<tau>)\<rceil>\<^sub>H = (\<lceil>P(\<tau>)\<rceil>\<^sub>H \<and> \<lceil>Q(\<tau>)\<rceil>\<^sub>H)"
+  by (rel_tac)
 
 type_synonym 'c ODE = "real \<times> 'c \<Rightarrow> 'c"
 
 lift_definition hasDerivAt :: 
-  "(real \<Rightarrow> 'c :: real_normed_vector) \<Rightarrow> ('c ODE, '\<alpha>) uexpr \<Rightarrow> real \<Rightarrow> '\<alpha> upred" ("_ has-deriv _ at _" [90, 0, 91] 90)
-is "\<lambda> \<F> \<F>' \<tau> A. (\<F> has_vector_derivative (\<F>' A (\<tau>, \<F> \<tau>))) (at \<tau> within {0..})" .
+  "((real \<Rightarrow> 'c :: real_normed_vector), '\<alpha>) uexpr \<Rightarrow> ('c ODE, '\<alpha>) uexpr \<Rightarrow> real \<Rightarrow> '\<alpha> upred" ("_ has-deriv _ at _" [90, 0, 91] 90)
+is "\<lambda> \<F> \<F>' \<tau> A. (\<F> A has_vector_derivative (\<F>' A (\<tau>, \<F> A \<tau>))) (at \<tau> within {0..})" .
 
 end
