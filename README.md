@@ -13,8 +13,11 @@ Our aim is to use this version of Isabelle/UTP to support the mechanised semanti
 are doing on EU H2020 project "INTO-CPS" (Grant agreement 644047) -- see <http://into-cps.au.dk/>
 for more information.
 
-Isabelle/UTP is very much still a work in progress, and currently requires some Isabelle expertise
-to use effectively.
+Isabelle/UTP is very much still a work in progress, and currently requires some Isabelle expertise to use
+effectively. For viewing the git repository I highly recommend the _Matisa_ plugin by York colleague Pedro Ribeiro which
+allows Isabelle symbols to be pretty-printed in the browser and can be obtained from the [Google Chrome
+store](https://chrome.google.com/webstore/detail/matisa/jkpdfeicbjekckenhpippdllibmbcinf?hl=en-GB) or (Firefox
+Add-ons)[https://addons.mozilla.org/en-US/firefox/addon/matisa/].
 
 Installation
 ------------
