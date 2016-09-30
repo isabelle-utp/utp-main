@@ -9,6 +9,7 @@ type_synonym ('d, 'c) alpha_trd_scheme = "('c cgf, 'd \<times> 'c) alpha_rp_sche
 type_synonym ('d,'c) alphabet_trd  = "('d,'c) alpha_trd_scheme alphabet"
 type_synonym ('d,'c) relation_trd = "(('d,'c) alphabet_trd, ('d,'c) alphabet_trd) relation"
 type_synonym ('a,'d,'c) expr_trd  = "('a, ('d,'c) alphabet_trd \<times> ('d,'c) alphabet_trd) uexpr"
+type_synonym ('a,'d,'c) cond_trd  = "('a, ('d,'c) alphabet_trd) uexpr"
 type_synonym ('d,'c) predicate_cml  = "('d,'c) alphabet_trd upred"
 
 syntax
@@ -50,6 +51,12 @@ lemma cont_alpha_uvar [simp]: "uvar \<^bold>c"
 
 lemma cont_indep_tr [simp]: "\<^bold>c \<bowtie> tr" "tr \<bowtie> \<^bold>c"
   by (simp_all add: cont_alpha_def lens_indep_left_ext lens_indep_sym)
+
+lemma cont_indep_disc [simp]: "\<^bold>c \<bowtie> \<^bold>d" "\<^bold>d \<bowtie> \<^bold>c"
+  apply (simp_all add: disc_alpha_def cont_alpha_def lens_indep_left_ext)
+  using fst_snd_lens_indep lens_indep_left_comp lens_indep_sym rea_lens_uvar vwb_lens_mwb apply blast
+  using fst_snd_lens_indep lens_indep_left_comp lens_indep_sym rea_lens_uvar vwb_lens_mwb apply blast
+done
 
 abbreviation disc_lift :: "('a, 'd \<times> 'd) uexpr \<Rightarrow> ('a, 'd, 'c) expr_trd" ("\<lceil>_\<rceil>\<^sub>\<delta>") where
 "\<lceil>P\<rceil>\<^sub>\<delta> \<equiv> P \<oplus>\<^sub>p (\<^bold>d \<times>\<^sub>L \<^bold>d)"
@@ -118,6 +125,9 @@ definition at :: "('a, 'c) uexpr \<Rightarrow> real \<Rightarrow> ('a, 'd, 'c) e
 
 lemma R2c_at: "R2c(P @\<^sub>u t) = P @\<^sub>u t"
   by (simp add: at_def R2c_def cond_idem usubst unrest R2s_def)
+
+lemma at_unrest_cont [unrest]: "$\<^bold>c \<sharp> (P @\<^sub>u t)"
+  by (simp add: at_def unrest)
 
 lemma at_true [simp]: "true @\<^sub>u t = true"
   by (simp add: at_def alpha usubst)
@@ -196,6 +206,9 @@ lemma R2c_impl: "R2c(P \<Rightarrow> Q) = (R2c(P) \<Rightarrow> R2c(Q))"
 lemma R1_tr_less_tr': "R1($tr <\<^sub>u $tr\<acute>) = ($tr <\<^sub>u $tr\<acute>)"
   by (rel_tac)
 
+lemma hInt_unrest_cont [unrest]: "$\<^bold>c \<sharp> \<lceil>P(\<tau>)\<rceil>\<^sub>H"
+  by (simp add: hInt_def unrest)
+
 lemma R1_hInt: "R1(\<lceil>P(\<tau>)\<rceil>\<^sub>H) = \<lceil>P(\<tau>)\<rceil>\<^sub>H"
   by (simp add: hInt_def R1_extend_conj R1_tr_less_tr')
 
@@ -207,8 +220,7 @@ lemma R2_hInt: "R2(\<lceil>P(\<tau>)\<rceil>\<^sub>H) = \<lceil>P(\<tau>)\<rceil
 
 lemma hInt_false: "\<lceil>false\<rceil>\<^sub>H = false"
   apply (simp add: hInt_def, rel_tac)
-by (metis cgf_end_0_iff cgf_end_ge_0 cgf_end_minus dual_order.strict_iff_order minus_zero_eq)
-
+  by (metis cgf_end_0_iff cgf_end_ge_0 cgf_end_minus dual_order.strict_iff_order minus_zero_eq)
 
 lemma seqr_to_conj: "\<lbrakk> out\<alpha> \<sharp> P; in\<alpha> \<sharp> Q \<rbrakk> \<Longrightarrow> (P ;; Q) = (P \<and> Q)"
   by (metis postcond_left_unit seqr_pre_out utp_pred.inf_top.right_neutral)
@@ -273,5 +285,33 @@ type_synonym 'c ODE = "real \<times> 'c \<Rightarrow> 'c"
 lift_definition hasDerivAt :: 
   "((real \<Rightarrow> 'c :: real_normed_vector), '\<alpha>) uexpr \<Rightarrow> ('c ODE, '\<alpha>) uexpr \<Rightarrow> real \<Rightarrow> '\<alpha> upred" ("_ has-deriv _ at _" [90, 0, 91] 90)
 is "\<lambda> \<F> \<F>' \<tau> A. (\<F> A has_vector_derivative (\<F>' A (\<tau>, \<F> A \<tau>))) (at \<tau> within {0..})" .
+
+definition hODE :: "('a::real_normed_vector \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) relation_trd" ("\<langle>_ \<bullet> _\<rangle>\<^sub>H") where
+[urel_defs]: "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H = (\<^bold>\<exists> \<F> \<bullet> \<lceil>| \<guillemotleft>\<F>\<guillemotright> has-deriv \<F>' at \<tau> \<and> &x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u |\<rceil>\<^sub>H)"
+
+definition hODE_ivp :: "('a, 'd, 'c) cond_trd \<Rightarrow> ('a::real_normed_vector \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) relation_trd" ("_ \<Turnstile> \<langle>_ \<bullet> _\<rangle>\<^sub>H") where
+[urel_defs]: "\<I> \<Turnstile> \<langle>x \<bullet> \<F>'\<rangle>\<^sub>H = \<langle>x \<bullet> \<F>'\<rangle>\<^sub>H\<lbrakk>\<lceil>\<I>\<rceil>\<^sub></$\<^bold>c:x\<rbrakk>"
+
+abbreviation hODE_state :: "('c ODE, 'c::real_normed_vector) uexpr \<Rightarrow> ('d, 'c) relation_trd" ("\<langle>_\<rangle>\<^sub>H") where
+"\<langle>\<F>'\<rangle>\<^sub>H \<equiv> \<langle>\<Sigma> \<bullet> \<F>'\<rangle>\<^sub>H"
+
+abbreviation hODE_state_ivp :: "('c, 'd, 'c) cond_trd \<Rightarrow> ('c ODE, 'c::real_normed_vector) uexpr \<Rightarrow> ('d, 'c) relation_trd" ("_ \<Turnstile> \<langle>_\<rangle>\<^sub>H") where
+"\<I> \<Turnstile> \<langle>\<F>'\<rangle>\<^sub>H \<equiv> \<I> \<Turnstile> \<langle>\<Sigma> \<bullet> \<F>'\<rangle>\<^sub>H"
+
+lemma assign_ivp:
+  "(\<^bold>c:x := \<I> ;; \<langle>x \<bullet> \<F>'\<rangle>\<^sub>H) = \<I> \<Turnstile> \<langle>x \<bullet> \<F>'\<rangle>\<^sub>H"
+  by (simp add: assigns_r_comp hODE_def hODE_ivp_def usubst)
+
+lemma gravity_ode_refine:
+  "((\<guillemotleft>v\<^sub>0\<guillemotright>, \<guillemotleft>h\<^sub>0\<guillemotright>)\<^sub>u \<Turnstile> \<langle>\<lambda> (t, v, h) \<bullet> (- \<guillemotleft>g\<guillemotright>, \<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>\<^sub>H) \<sqsubseteq>
+   (\<lceil>| &\<Sigma> =\<^sub>u (\<guillemotleft>v\<^sub>0\<guillemotright> - \<guillemotleft>g\<guillemotright>*\<guillemotleft>\<tau>\<guillemotright>, \<guillemotleft>v\<^sub>0\<guillemotright>*\<guillemotleft>\<tau>\<guillemotright> - \<guillemotleft>g\<guillemotright>*(\<guillemotleft>\<tau>\<guillemotright>*\<guillemotleft>\<tau>\<guillemotright>) / 2 + \<guillemotleft>h\<^sub>0\<guillemotright>)\<^sub>u |\<rceil>\<^sub>H)"
+  apply (rel_tac)
+  apply (rule exI)
+  apply (auto)
+  apply (safe intro!: has_vector_derivative_Pair, (rule has_vector_derivative_eq_rhs, (rule derivative_intros; (simp)?)+, simp)+)
+  apply (drule_tac x="0" in spec)
+  apply (auto)
+  apply (metis cgf_end_0_iff cgf_end_ge_0 dual_order.strict_iff_order minus_zero_eq)
+done
 
 end

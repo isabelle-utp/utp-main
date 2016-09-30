@@ -105,4 +105,8 @@ lemma unrest_times [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v \<rbrakk> \<L
 lemma unrest_divide [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> u / v"
   by (simp add: divide_uexpr_def unrest)
 
+lemma unrest_ulambda [unrest]:
+  "\<lbrakk> uvar v; \<And> x. v \<sharp> F x \<rbrakk> \<Longrightarrow> v \<sharp> (\<lambda> x \<bullet> F x)"
+  by (transfer, simp)
+
 end
