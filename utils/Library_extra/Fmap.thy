@@ -122,25 +122,8 @@ lemma fmap_list_nth:
   "i < fcard(fdom(f)) \<Longrightarrow> fmap_list f ! i = (let k = flist (fdom f) ! i in (k, the (\<langle>f\<rangle>\<^sub>m k)))"
   by (simp add: fmap_list_def Let_def fcard_flist)
 
-lemma map_graph_set: "\<lbrakk>distinct (map fst xs); sorted xs\<rbrakk> \<Longrightarrow> set xs = map_graph (map_of xs)"
-  apply (induct xs)
-  apply (simp add:map_graph_def)
-  apply (simp)
-  apply (subgoal_tac "sorted xs")
-  apply (simp)
-  apply (simp add:map_graph_def)
-  apply (auto)
-  apply (force)
-  apply (metis map_of_SomeD option.inject snd_conv)
-  using sorted_Cons apply auto
-done
-
 lemma fdom_fmap_list [simp]: "fdom (list_fmap xs) = finset (map fst xs)"
   by (force intro:fmember_intro elim:fmember_elim simp add:fdom.rep_eq finset.rep_eq list_fmap.rep_eq dom_map_of_conv_image_fst)
-
-lemma list_fmap_inv[simp]:
-  "\<lbrakk>distinct (map fst xs); sorted (map fst xs)\<rbrakk> \<Longrightarrow> fmap_list (list_fmap xs) = xs"
-  by (auto intro!:map_idI simp add:list_fmap.rep_eq fmap_list_def map_graph_list finite_dom_graph Rep_fmap_inverse finite_dom_map_of)
 
 lemma map_fst_fmap_list [simp]:
   "map fst (fmap_list f) = flist (fdom f)"
@@ -174,24 +157,6 @@ lemma fdomD: "a |\<in>| fdom m \<Longrightarrow> \<exists>b. \<langle>m\<rangle>
 
 lemma fdomIff [iff, simp del]: "(a |\<in>| fdom m) = (\<langle>m\<rangle>\<^sub>m a ~= None)"
   by (auto simp add:fdom_def fmember.rep_eq)
-
-lemma fmap_list_fdom_fran:
-  assumes "(x, y) \<in> set (fmap_list f)" 
-  shows "x |\<in>| fdom f" "y |\<in>| fran f"
-proof -
-
-  obtain xs where 
-    "f = list_fmap xs" "distinct (map fst xs)" "sorted (map fst xs)"
-    by (metis fmap_list_inv fmap_list_props)
-
-  with assms show "x |\<in>| fdom f" "y |\<in>| fran f"
-    apply (simp_all add:fran.rep_eq list_fmap.rep_eq)
-    apply (metis fdomI fdom_fmap_list list_fmap.rep_eq weak_map_of_SomeI)
-    apply (rule fmember_intro)
-    apply (simp add:fran.rep_eq list_fmap.rep_eq)
-    apply (metis Some_eq_map_of_iff ranI)
-  done
-qed
 
 nonterminal mupdbinds and mupdbind
 

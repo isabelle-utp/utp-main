@@ -392,7 +392,6 @@ instance cgf :: (type) ordered_cancel_monoid_diff
   apply (simp_all add: cgf_cat_assoc list_concat_minus_list_concat cgf_prefix_iff)
 done
 
-(*
 locale pc_interval =
   fixes I :: "real list" and f :: "'a::topological_space cgf"
   assumes I_range: "set(I) \<subseteq> {0 .. end\<^sub>C f}"
@@ -735,20 +734,26 @@ typedef (overloaded) 'a::topological_space ttrace =
 
 setup_lifting type_definition_ttrace
 
-lift_definition tt_empty :: "'a::topological_space ttrace" ("[]\<^sub>t") is cgf_empty
-  by simp
+instantiation ttrace :: (topological_space) zero
+begin
+  lift_definition zero_ttrace :: "'a ttrace" is 0 by auto
+instance ..
+end
 
-lift_definition tt_cat :: "'a::topological_space ttrace \<Rightarrow> 'a ttrace \<Rightarrow> 'a ttrace" (infixl "@\<^sub>t" 85)
-is "op @\<^sub>C" by (simp add: piecewise_continuous_cat)
+abbreviation (input) tt_empty :: "'a::topological_space ttrace" ("[]\<^sub>t") where "[]\<^sub>t \<equiv> 0"
 
-lemma tt_cat_left_zero: "[]\<^sub>t @\<^sub>t t = t"
-  by (transfer, simp)
+instantiation ttrace :: (topological_space) plus
+begin
 
-lemma tt_cat_right_zero: "t @\<^sub>t []\<^sub>t = t"
-  by (transfer, simp)
+lift_definition plus_ttrace :: "'a ttrace \<Rightarrow> 'a ttrace \<Rightarrow> 'a ttrace"
+is "op +" by (simp add: piecewise_continuous_cat)
 
-lemma tt_cat_assoc: "(f @\<^sub>t g) @\<^sub>t h = f @\<^sub>t (g @\<^sub>t h)"
-  by (transfer, simp add: cgf_cat_assoc)
+instance ..
+
+end
+
+abbreviation (input) tt_cat :: "'a::topological_space ttrace \<Rightarrow> 'a ttrace \<Rightarrow> 'a ttrace" (infixl "@\<^sub>t" 85) 
+where "xs @\<^sub>t ys \<equiv> xs + ys"
 
 instantiation ttrace :: (topological_space) order
 begin
@@ -767,8 +772,7 @@ instantiation ttrace :: (topological_space) minus
 begin
 
   lift_definition minus_ttrace :: "'a ttrace \<Rightarrow> 'a ttrace \<Rightarrow> 'a ttrace" 
-  is "\<lambda> s t. if (t \<le> s) then s - t else s"
-    by (auto, simp add: piecewise_continuous_minus)
+  is "op -" using piecewise_continuous_minus by fastforce
 
   instance ..
 
@@ -782,15 +786,52 @@ lemma tt_minus_empty [simp]: "t - []\<^sub>t = t"
 
 lemma tt_append_cancel [simp]: "(x @\<^sub>t y) - x = y"
   by (transfer, auto)
-*)
+
+instance ttrace :: (topological_space) ordered_cancel_monoid_diff
+  apply (intro_classes)
+  apply (transfer, simp add: add.assoc)
+  apply (transfer, simp)
+  apply (transfer, simp)
+  apply (transfer, simp)
+  apply (transfer, simp)
+  apply (transfer, metis cgf_prefix_iff mem_Collect_eq piecewise_continuous_cat_right)
+done
+
+lift_definition tt_end :: "'a::topological_space ttrace \<Rightarrow> real" ("end\<^sub>t") is "cgf_end" .
+
+lemma tt_end_ge_0 [simp]: "end\<^sub>t(f) \<ge> 0" by (transfer, simp)
+
+lemma tt_end_empty [simp]: "end\<^sub>t([]\<^sub>t) = 0" by (transfer, simp)
+
+lemma tt_end_0_iff: "end\<^sub>t(f) = 0 \<longleftrightarrow> f = []\<^sub>t"
+  by (transfer, simp add: cgf_end_0_iff)
+
+lemma tt_end_cat: "end\<^sub>t(f @\<^sub>t g) = end\<^sub>t(f)+end\<^sub>t(g)"
+  by (transfer, simp add: cgf_end_cat)
+
+lemma tt_end_minus: "g \<le> f \<Longrightarrow> end\<^sub>t(f-g) = end\<^sub>t(f)-end\<^sub>t(g)"
+  by (transfer, simp add: cgf_end_minus)
+
+lift_definition tt_apply :: "'a::topological_space ttrace \<Rightarrow> real \<Rightarrow> 'a" ("\<langle>_\<rangle>\<^sub>t") is cgf_apply .
+
+lemma tt_apply_minus [simp]: "\<lbrakk> 0 \<le> x; f \<le> g \<rbrakk> \<Longrightarrow> \<langle>g - f\<rangle>\<^sub>t x = \<langle>g\<rangle>\<^sub>t (x + end\<^sub>t(f))"
+  by (transfer, simp)
+
+lemma tt_cat_ext_first: "x < end\<^sub>t f \<Longrightarrow> \<langle>f @\<^sub>t g\<rangle>\<^sub>t x = \<langle>f\<rangle>\<^sub>t x"
+  by (transfer, simp add: cgf_cat_ext_first)
+
+lemma tt_cat_ext_last: "x \<ge> end\<^sub>t f \<Longrightarrow> \<langle>f @\<^sub>t g\<rangle>\<^sub>t x = \<langle>g\<rangle>\<^sub>t (x - end\<^sub>t f)"
+  by (transfer, simp add: cgf_cat_ext_last)
+
+lemma tt_prefix_cat: "f \<le> f @\<^sub>t g"
+  using ordered_cancel_monoid_diff_class.le_iff_add by blast
+
 text {* Hide implementation details for cgfs and ttraces *}
   
 lifting_update cgf.lifting
 lifting_forget cgf.lifting
 
-(*
 lifting_update ttrace.lifting
 lifting_forget ttrace.lifting
-*)
 
 end

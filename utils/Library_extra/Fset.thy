@@ -8,7 +8,7 @@ header {* Finite set type *}
 
 theory Fset
 imports Main 
-  "../../../contrib/HOL-Algebra2/Complete_Lattice"
+  "../../contrib/HOL-Algebra2/Complete_Lattice"
   List_lexord
   Countable
   List_extra
@@ -57,8 +57,8 @@ lift_definition fempty :: "'a fset" ("\<lbrace>\<rbrace>") is "{}"
 
 declare fempty.rep_eq [simp]
 
-lift_definition fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" is "op \<in>" ..
-lift_definition fnmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" is "op \<notin>" ..
+lift_definition fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" is "op \<in>" .
+lift_definition fnmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" is "op \<notin>" .
 
 declare fmember.rep_eq [simp]
 declare fnmember.rep_eq [simp]
@@ -100,11 +100,9 @@ declare finsert.rep_eq [simp]
 instantiation fset :: (type) ord
 begin
 
-lift_definition less_eq_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" is "subset_eq"
-  by (simp add:fsets_def)
+lift_definition less_eq_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" is "subset_eq" .
 
-lift_definition less_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" is "subset"
-  by (simp add:fsets_def)
+lift_definition less_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" is "subset" .
 
 instance ..
 

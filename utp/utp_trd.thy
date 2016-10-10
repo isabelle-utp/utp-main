@@ -4,7 +4,7 @@ theory utp_trd
 imports utp_rea_designs
 begin
 
-type_synonym ('d, 'c) alpha_trd_scheme = "('c cgf, 'd \<times> 'c) alpha_rp_scheme"
+type_synonym ('d, 'c) alpha_trd_scheme = "('c ttrace, 'd \<times> 'c) alpha_rp_scheme"
 
 type_synonym ('d,'c) alphabet_trd  = "('d,'c) alpha_trd_scheme alphabet"
 type_synonym ('d,'c) relation_trd = "(('d,'c) alphabet_trd, ('d,'c) alphabet_trd) relation"
@@ -16,13 +16,13 @@ syntax
   "_ulens_expr" :: "logic \<Rightarrow> svid \<Rightarrow> logic" ("_:'(_')" [100,100] 100)
 
 translations
-  "_ulens_expr e x" == "CONST uop get\<^bsub>x\<^esub> e"
+  "_ulens_expr e x" == "CONST uop get\<^bsub>x\<^esub> e"                                                                                                                                                                 
 
-abbreviation trace :: "('c cgf, 'd, 'c) expr_trd" ("\<phi>") where
+abbreviation trace :: "('c::topological_space ttrace, 'd, 'c) expr_trd" ("\<phi>") where
 "\<phi> \<equiv> $tr\<acute> - $tr"
 
 abbreviation time_length :: "_" ("\<^bold>l")
-where "\<^bold>l \<equiv> uop end\<^sub>C trace"
+where "\<^bold>l \<equiv> uop end\<^sub>t trace"
 
 no_notation Not  ("~ _" [40] 40)
 
@@ -32,7 +32,7 @@ abbreviation cvar :: "_ \<Rightarrow> _ \<Rightarrow> _" ("_~'(_')" [999,0] 999)
 translations
   "\<phi>" <= "CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr))"
   "x~(t)" <= "CONST uop (CONST lens_get x) (CONST bop (CONST uapply) (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr))) t)"
-  "\<^bold>l" <= "CONST uop end\<^sub>C (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr)))"
+  "\<^bold>l" <= "CONST uop end\<^sub>t (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr)))"
 
 definition disc_alpha :: "_" ("\<^bold>d") where
 [upred_defs]: "disc_alpha = fst\<^sub>L ;\<^sub>L \<Sigma>\<^sub>R"
@@ -58,13 +58,13 @@ lemma cont_indep_disc [simp]: "\<^bold>c \<bowtie> \<^bold>d" "\<^bold>d \<bowti
   using fst_snd_lens_indep lens_indep_left_comp lens_indep_sym rea_lens_uvar vwb_lens_mwb apply blast
 done
 
-abbreviation disc_lift :: "('a, 'd \<times> 'd) uexpr \<Rightarrow> ('a, 'd, 'c) expr_trd" ("\<lceil>_\<rceil>\<^sub>\<delta>") where
+abbreviation disc_lift :: "('a, 'd \<times> 'd) uexpr \<Rightarrow> ('a, 'd, 'c::topological_space) expr_trd" ("\<lceil>_\<rceil>\<^sub>\<delta>") where
 "\<lceil>P\<rceil>\<^sub>\<delta> \<equiv> P \<oplus>\<^sub>p (\<^bold>d \<times>\<^sub>L \<^bold>d)"
 
-abbreviation cont_lift :: "('a, 'c \<times> 'c) uexpr \<Rightarrow> ('a, 'd, 'c) expr_trd" ("\<lceil>_\<rceil>\<^sub>C") where
+abbreviation cont_lift :: "('a, 'c \<times> 'c) uexpr \<Rightarrow> ('a, 'd, 'c::topological_space) expr_trd" ("\<lceil>_\<rceil>\<^sub>C") where
 "\<lceil>P\<rceil>\<^sub>C \<equiv> P \<oplus>\<^sub>p (\<^bold>c \<times>\<^sub>L \<^bold>c)"
 
-abbreviation cont_pre_lift :: "('a, 'c) uexpr \<Rightarrow> ('a,'d,'c) expr_trd" ("\<lceil>_\<rceil>\<^sub>C\<^sub><") where
+abbreviation cont_pre_lift :: "('a, 'c) uexpr \<Rightarrow> ('a,'d,'c::topological_space) expr_trd" ("\<lceil>_\<rceil>\<^sub>C\<^sub><") where
 "\<lceil>P\<rceil>\<^sub>C\<^sub>< \<equiv> P \<oplus>\<^sub>p (ivar \<^bold>c)"
 
 syntax
@@ -114,13 +114,13 @@ syntax
   "_time'" :: "logic" ("time'")
 
 translations
-  "time"  == "CONST uop end\<^sub>C (CONST var (CONST ivar CONST tr))"
-  "time'" == "CONST uop end\<^sub>C (CONST var (CONST ovar CONST tr))"
-  "end\<^sub>u(t)" == "CONST uop end\<^sub>C t"
+  "time"  == "CONST uop end\<^sub>t (CONST var (CONST ivar CONST tr))"
+  "time'" == "CONST uop end\<^sub>t (CONST var (CONST ovar CONST tr))"
+  "end\<^sub>u(t)" == "CONST uop end\<^sub>t t"
 
 (* Need to lift the continuous predicate to a relation *)
 
-definition at :: "('a, 'c) uexpr \<Rightarrow> real \<Rightarrow> ('a, 'd, 'c) expr_trd" (infix "@\<^sub>u" 60) where
+definition at :: "('a, 'c::topological_space) uexpr \<Rightarrow> real \<Rightarrow> ('a, 'd, 'c) expr_trd" (infix "@\<^sub>u" 60) where
 [upred_defs]: "P @\<^sub>u t = [$\<^bold>c \<mapsto>\<^sub>s \<phi>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u] \<dagger> \<lceil>P\<rceil>\<^sub>C\<^sub><" 
 
 lemma R2c_at: "R2c(P @\<^sub>u t) = P @\<^sub>u t"
@@ -149,11 +149,11 @@ lemma at_plus [simp]:
   by (simp add: at_def alpha usubst)
 
 lemma at_var [simp]:
-  fixes x :: "('a, 'c) uvar"
+  fixes x :: "('a, 'c::topological_space) uvar"
   shows "var x @\<^sub>u t = \<phi>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u:(x)"
   by (pred_tac)
 
-definition hInt :: "(real \<Rightarrow> 'c upred) \<Rightarrow> ('d,'c) relation_trd" where
+definition hInt :: "(real \<Rightarrow> 'c::topological_space upred) \<Rightarrow> ('d,'c) relation_trd" where
 [urel_defs]: "hInt P = ($tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
 
 definition hDisInt :: "(real \<Rightarrow> 'c::t2_space upred) \<Rightarrow> ('d, 'c) relation_trd" where 
@@ -186,10 +186,10 @@ lemma uend_0 [simp]: "end\<^sub>u(0) = 0"
   by (simp add: upred_defs lit_def uop_def Abs_uexpr_inverse)
 
 lemma R2c_time_range: "R2c (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<time'-time}\<^sub>u) = (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<time'-time}\<^sub>u)"
-  by (rel_tac ; simp add: cgf_end_minus)
+  by (rel_tac ; simp add: tt_end_minus)
 
 lemma R2c_time_length: "R2c (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u) = (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u)"
-  by (rel_tac ; simp add: cgf_end_minus)
+  by (rel_tac ; simp add: tt_end_minus)
 
 lemma R2c_tr_less_tr': "R2c($tr <\<^sub>u $tr\<acute>) = ($tr <\<^sub>u $tr\<acute>)"
   apply (rel_tac)
@@ -219,8 +219,7 @@ lemma R2_hInt: "R2(\<lceil>P(\<tau>)\<rceil>\<^sub>H) = \<lceil>P(\<tau>)\<rceil
   by (metis R1_R2c_is_R2 R1_hInt R2s_hInt)
 
 lemma hInt_false: "\<lceil>false\<rceil>\<^sub>H = false"
-  apply (simp add: hInt_def, rel_tac)
-  by (metis cgf_end_0_iff cgf_end_ge_0 cgf_end_minus dual_order.strict_iff_order minus_zero_eq)
+  by (simp add: hInt_def, rel_tac, metis dual_order.strict_iff_order minus_zero_eq tt_end_0_iff tt_end_ge_0)
 
 lemma seqr_to_conj: "\<lbrakk> out\<alpha> \<sharp> P; in\<alpha> \<sharp> Q \<rbrakk> \<Longrightarrow> (P ;; Q) = (P \<and> Q)"
   by (metis postcond_left_unit seqr_pre_out utp_pred.inf_top.right_neutral)
@@ -251,15 +250,15 @@ proof -
     apply (rule shEx_cong)
     apply (rule shEx_cong)
     apply (rel_tac)
-    apply (auto simp add: cgf_end_cat)
-    apply (case_tac "xb < end\<^sub>C x")
-    apply (auto simp add: cgf_cat_ext_first cgf_cat_ext_last)
-    apply (metis add.right_neutral add_less_le_mono cgf_cat_ext_first cgf_end_ge_0)
-    apply (smt cgf_apply_minus cgf_cat_minus cgf_end_ge_0 cgf_prefix_cat)
+    apply (auto simp add: tt_end_cat)
+    apply (case_tac "xb < end\<^sub>t x")
+    apply (auto simp add: tt_cat_ext_first tt_cat_ext_last)
+    apply (metis add.right_neutral add_less_le_mono tt_cat_ext_first tt_end_ge_0)
+    apply (smt tt_apply_minus tt_append_cancel tt_end_ge_0 tt_prefix_cat)
   done
   also have "... = (\<^bold>\<exists> tt \<bullet> ((\<guillemotleft>tt\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>(\<guillemotleft>tt\<guillemotright>)\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<guillemotright>)"
     apply (rel_tac)
-    using add.assoc cgf_prefix_cat less_le_trans apply blast
+    using add.assoc tt_prefix_cat less_le_trans apply blast
     sorry (* Need to show that any non-zero length trajectory can be divided into two non-zero length parts *)
   also have "... = R2(\<lceil>P\<rceil>\<^sub>H)"
     by (simp add: R2_form hInt_def at_def usubst unrest)
@@ -311,7 +310,7 @@ lemma gravity_ode_refine:
   apply (safe intro!: has_vector_derivative_Pair, (rule has_vector_derivative_eq_rhs, (rule derivative_intros; (simp)?)+, simp)+)
   apply (drule_tac x="0" in spec)
   apply (auto)
-  apply (metis cgf_end_0_iff cgf_end_ge_0 dual_order.strict_iff_order minus_zero_eq)
+  apply (metis tt_end_0_iff tt_end_ge_0 dual_order.strict_iff_order minus_zero_eq)
 done
 
 end

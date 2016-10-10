@@ -3,7 +3,7 @@ imports
   Main 
   "~~/src/HOL/Library/Char_ord" 
   Countable_Set_extra
-  Prod_lexorder_alt
+  
   "~~/src/HOL/Library/Monad_Syntax"
 begin
 
@@ -18,8 +18,10 @@ definition functional_list :: "('a * 'b) list \<Rightarrow> bool" where
 lemma functional_insert [simp]: "functional (insert (x,y) g) \<longleftrightarrow> (g``{x} \<subseteq> {y} \<and> functional g)"
   by (auto simp add:functional_def inj_on_def image_def)
 
+(*
 lemma functional_listD: "\<lbrakk>finite g; functional g\<rbrakk> \<Longrightarrow> functional_list (sorted_list_of_set g)"
   by (force simp add:functional_list_def ListMem_iff functional_def inj_on_def)
+*)
 
 lemma functional_list_nil[simp]: "functional_list []"
   by (simp add:functional_list_def ListMem_iff)
@@ -125,6 +127,7 @@ lemma map_graph_inj:
 lemma map_eq_graph: "f = g \<longleftrightarrow> map_graph f = map_graph g"
   by (auto simp add: inj_eq map_graph_inj)
 
+(*
 lemma functional_list_graph: "\<lbrakk>functional_list xs; sorted xs; distinct xs\<rbrakk> \<Longrightarrow> map_of xs = graph_map (set xs)"
   apply (simp add:functional_list)
   apply (induct xs)
@@ -141,6 +144,7 @@ lemma map_graph_list: "\<lbrakk>finite g; functional g\<rbrakk> \<Longrightarrow
   apply (simp add:sorted_list_of_set_sort_remdups distinct_remdups_id sorted_sort_id functional_list_graph)
   apply (auto dest:functional_listD)
 done
+*)
 
 lemma map_le_graph: "f \<subseteq>\<^sub>m g \<longleftrightarrow> map_graph f \<subseteq> map_graph g"
   by (force simp add: map_le_def map_graph_def)
