@@ -106,7 +106,7 @@ is "\<lambda> P x b. P (create\<^bsub>x\<^esub> b)" .
 lemma arestr_id [alpha]: "P \<restriction>\<^sub>p 1\<^sub>L = P"
   by (pred_tac)
 
-lemma arestr_aext [alpha]: "mwb_lens a \<Longrightarrow> (P \<oplus>\<^sub>p a) \<restriction>\<^sub>p a = P"
+lemma arestr_aext [simp]: "mwb_lens a \<Longrightarrow> (P \<oplus>\<^sub>p a) \<restriction>\<^sub>p a = P"
   by (pred_tac)
 
 text {* If an expression's alphabet can be divided into two disjoint sections and the expression
@@ -127,6 +127,15 @@ proof -
 qed
 
 lemma arestr_lit [alpha]: "\<guillemotleft>v\<guillemotright> \<restriction>\<^sub>p a = \<guillemotleft>v\<guillemotright>"
+  by (pred_tac)
+
+lemma arestr_zero [alpha]: "0 \<restriction>\<^sub>p a = 0"
+  by (pred_tac)
+
+lemma arestr_one [alpha]: "1 \<restriction>\<^sub>p a = 1"
+  by (pred_tac)
+
+lemma arestr_numeral [alpha]: "numeral n \<restriction>\<^sub>p a = numeral n"
   by (pred_tac)
 
 lemma arestr_var [alpha]:

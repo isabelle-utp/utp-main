@@ -473,4 +473,7 @@ subsection {* Misc laws *}
 lemma tail_cons [simp]: "tail\<^sub>u(\<langle>x\<rangle> ^\<^sub>u xs) = xs"
   by (transfer, simp)
 
+lemma lit_num_simps: "\<guillemotleft>0\<guillemotright> = 0" "\<guillemotleft>1\<guillemotright> = 1" "\<guillemotleft>numeral n\<guillemotright> = numeral n" "\<guillemotleft>- x\<guillemotright> = - \<guillemotleft>x\<guillemotright>"
+  by (simp_all add: ueval, transfer, simp)
+
 end

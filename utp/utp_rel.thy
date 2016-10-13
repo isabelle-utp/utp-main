@@ -235,9 +235,8 @@ lemma usubst_condr [usubst]:
   by rel_tac
 
 lemma subst_skip_r [usubst]:
-  fixes x :: "('a, '\<alpha>) uvar"
-  shows "II\<lbrakk>\<lceil>v\<rceil>\<^sub></$x\<rbrakk> = (x := v)"
-  by (rel_tac)
+  "out\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> II = \<langle>\<lfloor>\<sigma>\<rfloor>\<^sub>s\<rangle>\<^sub>a"
+  by (rel_tac, auto simp add: unrest_usubst_def, (metis (mono_tags, lifting) case_prod_conv prod.sel(1) sndI surjective_pairing)+)
 
 lemma usubst_upd_in_comp [usubst]:
   "\<sigma>(&in\<alpha>:x \<mapsto>\<^sub>s v) = \<sigma>($x \<mapsto>\<^sub>s v)"
@@ -251,6 +250,11 @@ lemma subst_lift_upd [usubst]:
   fixes x :: "('a, '\<alpha>) uvar"
   shows "\<lceil>\<sigma>(x \<mapsto>\<^sub>s v)\<rceil>\<^sub>s = \<lceil>\<sigma>\<rceil>\<^sub>s($x \<mapsto>\<^sub>s \<lceil>v\<rceil>\<^sub><)"
   by (simp add: alpha usubst, simp add: fst_lens_def in\<alpha>_def in_var_def)
+
+lemma subst_drop_upd [usubst]: 
+  fixes x :: "('a, '\<alpha>) uvar"
+  shows "\<lfloor>\<sigma>($x \<mapsto>\<^sub>s v)\<rfloor>\<^sub>s = \<lfloor>\<sigma>\<rfloor>\<^sub>s(x \<mapsto>\<^sub>s \<lfloor>v\<rfloor>\<^sub><)"
+  by (pred_tac, simp add: in\<alpha>_def prod.case_eq_if)
 
 lemma subst_lift_pre [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> \<lceil>b\<rceil>\<^sub>< = \<lceil>\<sigma> \<dagger> b\<rceil>\<^sub><"
   by (metis apply_subst_ext fst_lens_def fst_vwb_lens in\<alpha>_def)

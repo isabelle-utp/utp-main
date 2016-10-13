@@ -32,6 +32,9 @@ no_notation
   Set.member  ("op :") and
   Set.member  ("(_/ : _)" [51, 51] 50)
 
+declare fst_vwb_lens [simp]
+declare snd_vwb_lens [simp]
+
 text {* This theory describes the foundational structure of UTP variables, upon which the rest
         of our model rests. We start by defining alphabets, which is this shallow model are
         simple represented as types, though by convention usually a record type where each
