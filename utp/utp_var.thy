@@ -2,7 +2,7 @@ section {* UTP variables *}
 
 theory utp_var
 imports 
-  "../contrib/Kleene_Algebra/Quantales"
+  "../contrib/Kleene_Algebra/Quantales" 
   "../contrib/HOL-Algebra2/Complete_Lattice"
   "../utils/cardinals"
   "../utils/Continuum"
@@ -130,7 +130,7 @@ nonterminal svid and svar and salpha
 syntax
   "_salphaid"    :: "id \<Rightarrow> salpha" ("_" [998] 998)
   "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [998] 998)
-  "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr "," 75)
+(*  "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr "," 75) *)
   "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr ";" 75)
   "_svid"        :: "id \<Rightarrow> svid" ("_" [999] 999)
   "_svid_alpha"  :: "svid" ("\<Sigma>")

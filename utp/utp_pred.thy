@@ -755,11 +755,11 @@ lemma all_zero:
   by pred_tac
 
 lemma ex_plus:
-  "(\<exists> y,x \<bullet> P) = (\<exists> x \<bullet> \<exists> y \<bullet> P)"
+  "(\<exists> y;x \<bullet> P) = (\<exists> x \<bullet> \<exists> y \<bullet> P)"
   by pred_tac
 
 lemma all_plus:
-  "(\<forall> y,x \<bullet> P) = (\<forall> x \<bullet> \<forall> y \<bullet> P)"
+  "(\<forall> y;x \<bullet> P) = (\<forall> x \<bullet> \<forall> y \<bullet> P)"
   by pred_tac
 
 lemma closure_all:

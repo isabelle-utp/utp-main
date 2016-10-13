@@ -29,6 +29,14 @@ lemma var_in_alpha [simp]: "x ;\<^sub>L in\<alpha> = ivar x"
 lemma var_out_alpha [simp]: "x ;\<^sub>L out\<alpha> = ovar x"
   by (simp add: out\<alpha>_def out_var_def snd_lens_def)
 
+lemma out_alpha_in_indep [simp]: 
+  "out\<alpha> \<bowtie> in_var x" "in_var x \<bowtie> out\<alpha>"
+  by (simp_all add: in_var_def out\<alpha>_def lens_indep_def fst_lens_def lens_comp_def)
+
+lemma in_alpha_out_indep [simp]: 
+  "in\<alpha> \<bowtie> out_var x" "out_var x \<bowtie> in\<alpha>"
+  by (simp_all add: in_var_def in\<alpha>_def lens_indep_def fst_lens_def lens_comp_def)
+
 text {* The alphabet of a relation consists of the input and output portions *}
 
 lemma alpha_in_out:
@@ -44,7 +52,7 @@ definition cond::"'\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\
 where "(P \<triangleleft> b \<triangleright> Q) \<equiv> (b \<and> P) \<or> ((\<not> b) \<and> Q)"
 
 abbreviation rcond::"('\<alpha>,  '\<beta>) relation \<Rightarrow> '\<alpha> condition \<Rightarrow> ('\<alpha>,  '\<beta>) relation \<Rightarrow> ('\<alpha>,  '\<beta>) relation" 
-                                                          ("(3_ \<triangleleft> _ \<triangleright>\<^sub>r / _)" [14,0,15] 14)
+                                                          ("(3_ \<triangleleft> _ \<triangleright>\<^sub>r/ _)" [14,0,15] 14)
 where "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<equiv> (P \<triangleleft> \<lceil>b\<rceil>\<^sub>< \<triangleright> Q)"
 
 lift_definition seqr::"(('\<alpha> \<times> '\<beta>) upred) \<Rightarrow> (('\<beta> \<times> '\<gamma>) upred) \<Rightarrow> ('\<alpha> \<times> '\<gamma>) upred"
@@ -67,7 +75,6 @@ abbreviation usubst_rel_lift :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<tim
 
 abbreviation usubst_rel_drop :: "('\<alpha> \<times> '\<alpha>) usubst \<Rightarrow> '\<alpha> usubst" ("\<lfloor>_\<rfloor>\<^sub>s") where
 "\<lfloor>\<sigma>\<rfloor>\<^sub>s \<equiv> \<sigma> \<restriction>\<^sub>s in\<alpha>"
-
 
 definition assigns_ra :: "'\<alpha> usubst \<Rightarrow> ('\<beta>, '\<alpha>) lens \<Rightarrow> '\<alpha> hrelation" ("\<langle>_\<rangle>\<^bsub>_\<^esub>") where
 "\<langle>\<sigma>\<rangle>\<^bsub>a\<^esub> = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> II\<^bsub>a\<^esub>)"
@@ -107,6 +114,12 @@ translations
 adhoc_overloading
   useq seqr and
   uskip skip_r
+
+definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrelation" ("_\<^sup>\<top>" [999] 999) where
+[urel_defs]: "rassume c = (II \<triangleleft> c \<triangleright>\<^sub>r false)"
+
+definition rassert :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrelation" ("_\<^sub>\<bottom>" [999] 999) where
+[urel_defs]: "rassert c = (II \<triangleleft> c \<triangleright>\<^sub>r true)"
 
 method rel_simp = ((simp add: upred_defs urel_defs)?, (transfer, (rule_tac ext)?, simp_all add: lens_defs urel_defs relcomp_unfold fun_eq_iff prod.case_eq_if)?)
 method rel_tac = ((simp add: upred_defs urel_defs)?, (transfer, (rule_tac ext)?, auto simp add: lens_defs urel_defs relcomp_unfold fun_eq_iff prod.case_eq_if)?)
@@ -209,29 +222,13 @@ lemma unrest_out_rel_var_res [unrest]:
 
 subsection {* Substitution laws *}
 
-text {* It should be possible to substantially generalise the following two laws *}
+lemma subst_seq_left [usubst]:
+  "out\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P ;; Q) = ((\<sigma> \<dagger> P) ;; Q)"
+  by (rel_tac, simp_all add: unrest_usubst_def, (metis (no_types, lifting) Pair_inject old.prod.case surjective_pairing)+)
 
-lemma usubst_seq_left [usubst]: 
-  "\<lbrakk> semi_uvar x; out\<alpha> \<sharp> v \<rbrakk> \<Longrightarrow> (P ;; Q)\<lbrakk>v/$x\<rbrakk> = ((P\<lbrakk>v/$x\<rbrakk>) ;; Q)"
-  apply (rel_tac)
-  apply (rename_tac x v P Q a y ya)
-  apply (rule_tac x="ya" in exI)
-  apply (simp)
-  apply (drule_tac x="a" in spec)
-  apply (drule_tac x="y" in spec)
-  apply (drule_tac x="ya" in spec)
-  apply (simp)
-  apply (rename_tac x v P Q a ba y)
-  apply (rule_tac x="y" in exI)
-  apply (drule_tac x="a" in spec)
-  apply (drule_tac x="y" in spec)
-  apply (drule_tac x="ba" in spec)
-  apply (simp)
-done
-
-lemma usubst_seq_right [usubst]: 
-  "\<lbrakk> semi_uvar x; in\<alpha> \<sharp> v \<rbrakk> \<Longrightarrow> (P ;; Q)\<lbrakk>v/$x\<acute>\<rbrakk> = (P ;; Q\<lbrakk>v/$x\<acute>\<rbrakk>)"
-  by (rel_tac, metis+)
+lemma subst_seq_right [usubst]:
+  "in\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P ;; Q) = (P ;; (\<sigma> \<dagger> Q))"
+  by (rel_tac, simp_all add: unrest_usubst_def, (metis (no_types, lifting) Pair_inject old.prod.case surjective_pairing)+)
 
 lemma usubst_condr [usubst]:
   "\<sigma> \<dagger> (P \<triangleleft> b \<triangleright> Q) = (\<sigma> \<dagger> P \<triangleleft> \<sigma> \<dagger> b \<triangleright> \<sigma> \<dagger> Q)"
@@ -493,7 +490,7 @@ lemma skip_r_alpha_eq:
   by (rel_tac)
 
 lemma skip_ra_unfold:
-  "II\<^bsub>x,y\<^esub> = ($x\<acute> =\<^sub>u $x \<and> II\<^bsub>y\<^esub>)"
+  "II\<^bsub>x;y\<^esub> = ($x\<acute> =\<^sub>u $x \<and> II\<^bsub>y\<^esub>)"
   by (rel_tac)
 
 lemma skip_res_as_ra:
@@ -673,7 +670,15 @@ lemma shEx_lift_seq_2 [uquant_lift]:
   "(P ;; (\<^bold>\<exists> x \<bullet> Q x)) = (\<^bold>\<exists> x \<bullet> (P ;; Q x))"
   by pred_tac
 
-text {* Frame and antiframe *}
+subsection {* Assertions and assumptions *}
+
+lemma assume_twice: "(b\<^sup>\<top> ;; c\<^sup>\<top>) = (b \<and> c)\<^sup>\<top>"
+  by (rel_tac)
+
+lemma assert_twice: "(b\<^sub>\<bottom> ;; c\<^sub>\<bottom>) = (b \<and> c)\<^sub>\<bottom>"
+  by (rel_tac)
+
+subsection {* Frame and antiframe *}
 
 definition frame :: "('a, '\<alpha>) lens \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" where
 [urel_defs]: "frame x P = (II\<^bsub>x\<^esub> \<and> P)"

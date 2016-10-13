@@ -238,12 +238,12 @@ nonterminal uexprs and svars and salphas
 
 syntax
   "_psubst"  :: "[logic, svars, uexprs] \<Rightarrow> logic"
-  "_subst"   :: "logic \<Rightarrow> uexprs \<Rightarrow> salphas \<Rightarrow> logic" ("(_\<lbrakk>_'/_\<rbrakk>)" [999,999] 1000)
+  "_subst"   :: "logic \<Rightarrow> uexprs \<Rightarrow> salphas \<Rightarrow> logic" ("(_\<lbrakk>_'/_\<rbrakk>)" [999,0,0] 1000)
   "_uexprs"  :: "[logic, uexprs] => uexprs" ("_,/ _")
   ""         :: "logic => uexprs" ("_")
   "_svars"   :: "[svar, svars] => svars" ("_,/ _")
   ""         :: "svar => svars" ("_")
-  "_salphas" :: "[salpha, salpha] => salphas" ("_,/ _")
+  "_salphas" :: "[salpha, salphas] => salphas" ("_,/ _")
   ""         :: "salpha => salphas" ("_")
 
 translations
