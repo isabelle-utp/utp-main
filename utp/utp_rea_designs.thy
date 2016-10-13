@@ -304,6 +304,11 @@ lemma RH_design_pre_R2c: "RH((R2c P) \<turnstile> Q) = RH(P \<turnstile> Q)"
 lemma RH_design_pre_neg_R1_R2c: "RH((\<not> R1 (R2c P)) \<turnstile> Q) = RH((\<not> P) \<turnstile> Q)"
   by (simp add: RH_design_pre_neg_R1, metis R2c_not RH_design_pre_R2c)
 
+lemma RH_design_refine_intro:
+  assumes "`P\<^sub>1 \<Rightarrow> P\<^sub>2`" "`P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> Q\<^sub>1`"
+  shows "RH(P\<^sub>1 \<turnstile> Q\<^sub>1) \<sqsubseteq> RH(P\<^sub>2 \<turnstile> Q\<^sub>2)"
+  by (simp add: RH_monotone assms(1) assms(2) design_refine_intro)
+
 text {* Marcel's proof for reactive design composition *}
 
 lemma reactive_design_composition:
@@ -544,6 +549,13 @@ lemma wait'_cond_true: "(P \<diamondop> Q \<and> $wait\<acute>) = (P \<and> $wai
 
 lemma wait'_cond_false: "(P \<diamondop> Q \<and> (\<not>$wait\<acute>)) = (Q \<and> (\<not>$wait\<acute>))" 
   by (rel_tac)    
+
+lemma wait'_cond_idem: "P \<diamondop> P = P"
+  by (rel_tac)
+
+lemma wait'_cond_conj_exchange:
+  "((P \<diamondop> Q) \<and> (R \<diamondop> S)) = (P \<and> R) \<diamondop> (Q \<and> S)"
+  by rel_tac
 
 lemma subst_wait'_cond_true [usubst]: "(P \<diamondop> Q)\<lbrakk>true/$wait\<acute>\<rbrakk> = P\<lbrakk>true/$wait\<acute>\<rbrakk>"
   by rel_tac
@@ -997,6 +1009,9 @@ lemma HR_design_wait_false: "RH(P \<^sub>f \<turnstile> Q \<^sub>f) = RH(P \<tur
 lemma RH_design_R1_neg_precond: "RH((\<not> R1(\<not> P)) \<turnstile> Q) = RH(P \<turnstile> Q)"
   by (rel_tac)
 
+lemma RH_design_pre_neg_conj_R1: "RH((\<not> R1 P \<and> \<not> R1 Q) \<turnstile> R) = RH((\<not> P \<and> \<not> Q) \<turnstile> R)"
+  by (rel_tac)
+
 subsection {* Signature *}
 
 definition [urel_defs]: "Miracle = RH(true \<turnstile> false \<diamondop> false)"
@@ -1011,6 +1026,9 @@ definition reactive_sup :: "_ set \<Rightarrow> _" ("\<Sqinter>\<^sub>R") where
 
 definition reactive_inf :: "_ set \<Rightarrow> _" ("\<Squnion>\<^sub>R") where
 "\<Squnion>\<^sub>R A = (if (A = {}) then Chaos else \<Squnion> A)"
+
+definition rea_design_par :: "_ \<Rightarrow> _ \<Rightarrow> _" (infixr "\<parallel>\<^sub>R" 85) where
+"P \<parallel>\<^sub>R Q = RH((pre\<^sub>R(P)  \<and> pre\<^sub>R(Q)) \<turnstile> (P\<^sup>t\<^sub>f \<and> Q\<^sup>t\<^sub>f))"
 
 lemma Miracle_greatest:
   assumes "P is CSP"
@@ -1261,6 +1279,56 @@ proof -
     by (simp add: R1_def usubst unrest)
   also have "... = RH ((\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> P) \<turnstile> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> Q\<^sub>1 \<diamondop> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>R\<rceil>\<^sub>s \<dagger> Q\<^sub>2)"
     by (simp add: RH_design_R1_neg_precond)
+  finally show ?thesis .
+qed
+
+lemma RH_design_par:
+  assumes 
+    "$ok\<acute> \<sharp> P\<^sub>1" "$wait \<sharp> P\<^sub>1" "$ok\<acute> \<sharp> P\<^sub>2" "$wait \<sharp> P\<^sub>2"
+    "$ok\<acute> \<sharp> Q\<^sub>1" "$wait \<sharp> Q\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>2" "$wait \<sharp> Q\<^sub>2"
+  shows "RH(P\<^sub>1 \<turnstile> Q\<^sub>1) \<parallel>\<^sub>R RH(P\<^sub>2 \<turnstile> Q\<^sub>2) = RH((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (Q\<^sub>1 \<and> Q\<^sub>2))"
+proof -
+  have "RH(P\<^sub>1 \<turnstile> Q\<^sub>1) \<parallel>\<^sub>R RH(P\<^sub>2 \<turnstile> Q\<^sub>2) = 
+        RH ((\<not> R1 (R2c (\<not> P\<^sub>1\<lbrakk>true/$ok\<rbrakk>)) \<and> \<not> R1 (R2c (\<not> P\<^sub>2\<lbrakk>true/$ok\<rbrakk>))) \<turnstile>
+            (R1 (R2s ($ok \<and> P\<^sub>1 \<Rightarrow> Q\<^sub>1)) \<and> R1 (R2s ($ok \<and> P\<^sub>2 \<Rightarrow> Q\<^sub>2))))"
+    by (simp add: rea_design_par_def rea_pre_RH_design RH_postcondition, simp add: usubst assms)
+  also have "... = 
+        RH ((P\<^sub>1\<lbrakk>true/$ok\<rbrakk> \<and> P\<^sub>2\<lbrakk>true/$ok\<rbrakk>) \<turnstile>
+            (R1 (R2s ($ok \<and> P\<^sub>1 \<Rightarrow> Q\<^sub>1)) \<and> R1 (R2s ($ok \<and> P\<^sub>2 \<Rightarrow> Q\<^sub>2))))"
+    by (metis (no_types, hide_lams) R2c_and R2c_not RH_design_pre_R2c RH_design_pre_neg_conj_R1 double_negation)
+  also have "... = RH ((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (R1 (R2s ($ok \<and> P\<^sub>1 \<Rightarrow> Q\<^sub>1)) \<and> R1 (R2s ($ok \<and> P\<^sub>2 \<Rightarrow> Q\<^sub>2))))"
+    by (metis conj_pos_var_subst design_def subst_conj uvar_ok)
+  also have "... = RH ((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (R1 (R2s (($ok \<and> P\<^sub>1 \<Rightarrow> Q\<^sub>1) \<and> ($ok \<and> P\<^sub>2 \<Rightarrow> Q\<^sub>2)))))"
+    by (simp add: R1_conj R2s_conj)
+  also have "... = RH ((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (($ok \<and> P\<^sub>1 \<Rightarrow> Q\<^sub>1) \<and> ($ok \<and> P\<^sub>2 \<Rightarrow> Q\<^sub>2)))"
+        by (metis (mono_tags, lifting) RH_design_export_R1 RH_design_export_R2s)
+  also have "... = RH ((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (Q\<^sub>1 \<and> Q\<^sub>2))"
+    by (rel_tac)
+  finally show ?thesis .
+qed 
+
+lemma RH_tri_design_par:
+  assumes 
+    "$ok\<acute> \<sharp> P\<^sub>1" "$wait \<sharp> P\<^sub>1" "$ok\<acute> \<sharp> P\<^sub>2" "$wait \<sharp> P\<^sub>2"
+    "$ok\<acute> \<sharp> Q\<^sub>1" "$wait \<sharp> Q\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>2" "$wait \<sharp> Q\<^sub>2"
+    "$ok\<acute> \<sharp> R\<^sub>1" "$wait \<sharp> R\<^sub>1" "$ok\<acute> \<sharp> R\<^sub>2" "$wait \<sharp> R\<^sub>2"
+  shows "RH(P\<^sub>1 \<turnstile> Q\<^sub>1 \<diamondop> R\<^sub>1) \<parallel>\<^sub>R RH(P\<^sub>2 \<turnstile> Q\<^sub>2 \<diamondop> R\<^sub>2) = RH((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (Q\<^sub>1 \<and> Q\<^sub>2) \<diamondop> (R\<^sub>1 \<and> R\<^sub>2))"
+  by (simp add: RH_design_par assms unrest wait'_cond_conj_exchange)
+
+lemma RH_design_par_comm:
+  "P \<parallel>\<^sub>R Q = Q \<parallel>\<^sub>R P"
+  by (simp add: rea_design_par_def utp_pred.inf_commute)
+
+lemma RH_design_par_zero:
+  assumes "P is CSP"
+  shows "Chaos \<parallel>\<^sub>R P = Chaos"
+proof -
+  have "Chaos \<parallel>\<^sub>R P = RH (false \<turnstile> true \<diamondop> true) \<parallel>\<^sub>R RH (pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
+    by (simp add: Chaos_def CSP_reactive_tri_design assms)
+  also have "... = RH (false \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P)"
+    by (simp add: RH_tri_design_par unrest)
+  also have "... = Chaos"
+    by (simp add: Chaos_def design_false_pre)
   finally show ?thesis .
 qed
 

@@ -43,11 +43,23 @@ definition cont_alpha :: "_" ("\<^bold>c") where
 lemma disc_alpha_uvar [simp]: "uvar \<^bold>d"
   by (simp add: comp_vwb_lens disc_alpha_def fst_vwb_lens)
 
+lemma disc_indep_ok [simp]: "\<^bold>d \<bowtie> ok" "ok \<bowtie> \<^bold>d"
+  by (simp_all add: disc_alpha_def lens_indep_left_ext lens_indep_sym)
+
+lemma disc_indep_wait [simp]: "\<^bold>d \<bowtie> wait" "wait \<bowtie> \<^bold>d"
+  by (simp_all add: disc_alpha_def lens_indep_left_ext lens_indep_sym)
+
 lemma disc_indep_tr [simp]: "\<^bold>d \<bowtie> tr" "tr \<bowtie> \<^bold>d"
   by (simp_all add: disc_alpha_def lens_indep_left_ext lens_indep_sym)
 
 lemma cont_alpha_uvar [simp]: "uvar \<^bold>c"
   by (simp add: comp_vwb_lens cont_alpha_def snd_vwb_lens)
+
+lemma cont_indep_ok [simp]: "\<^bold>c \<bowtie> ok" "ok \<bowtie> \<^bold>c"
+  by (simp_all add: cont_alpha_def lens_indep_left_ext lens_indep_sym)
+
+lemma cont_indep_wait [simp]: "\<^bold>c \<bowtie> wait" "wait \<bowtie> \<^bold>c"
+  by (simp_all add: cont_alpha_def lens_indep_left_ext lens_indep_sym)
 
 lemma cont_indep_tr [simp]: "\<^bold>c \<bowtie> tr" "tr \<bowtie> \<^bold>c"
   by (simp_all add: cont_alpha_def lens_indep_left_ext lens_indep_sym)
@@ -129,6 +141,12 @@ lemma R2c_at: "R2c(P @\<^sub>u t) = P @\<^sub>u t"
 lemma at_unrest_cont [unrest]: "$\<^bold>c \<sharp> (P @\<^sub>u t)"
   by (simp add: at_def unrest)
 
+lemma at_unrest_ok [unrest]: "$ok \<sharp> (P @\<^sub>u t)" "$ok\<acute> \<sharp> (P @\<^sub>u t)"
+  by (simp_all add: at_def unrest alpha)
+
+lemma at_unrest_wait [unrest]: "$wait \<sharp> (P @\<^sub>u t)" "$wait\<acute> \<sharp> (P @\<^sub>u t)"
+  by (simp_all add: at_def unrest alpha)
+
 lemma at_true [simp]: "true @\<^sub>u t = true"
   by (simp add: at_def alpha usubst)
 
@@ -155,6 +173,12 @@ lemma at_var [simp]:
 
 definition hInt :: "(real \<Rightarrow> 'c::topological_space upred) \<Rightarrow> ('d,'c) relation_trd" where
 [urel_defs]: "hInt P = ($tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
+
+lemma hInt_unrest_ok [unrest]: "$ok \<sharp> hInt P" "$ok\<acute> \<sharp> hInt P"
+  by (simp_all add: hInt_def unrest)
+
+lemma hInt_unrest_wait [unrest]: "$wait \<sharp> hInt P" "$wait\<acute> \<sharp> hInt P"
+  by (simp_all add: hInt_def unrest)
 
 definition hDisInt :: "(real \<Rightarrow> 'c::t2_space upred) \<Rightarrow> ('d, 'c) relation_trd" where 
 [urel_defs]: "hDisInt P = (hInt P \<and> $\<^bold>c =\<^sub>u \<phi>\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<phi>\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
@@ -285,6 +309,9 @@ lift_definition hasDerivAt ::
   "((real \<Rightarrow> 'c :: real_normed_vector), '\<alpha>) uexpr \<Rightarrow> ('c ODE, '\<alpha>) uexpr \<Rightarrow> real \<Rightarrow> '\<alpha> upred" ("_ has-deriv _ at _" [90, 0, 91] 90)
 is "\<lambda> \<F> \<F>' \<tau> A. (\<F> A has_vector_derivative (\<F>' A (\<tau>, \<F> A \<tau>))) (at \<tau> within {0..})" .
 
+lemma hasDerivAt_unrest [unrest]: "\<lbrakk> uvar x; x \<sharp> f; x \<sharp> f' \<rbrakk> \<Longrightarrow> x \<sharp> f has-deriv f' at \<tau>"
+  by (pred_tac, presburger+)
+
 definition hODE :: "('a::real_normed_vector \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) relation_trd" ("\<langle>_ \<bullet> _\<rangle>\<^sub>H") where
 [urel_defs]: "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H = (\<^bold>\<exists> \<F> \<bullet> \<lceil>| \<guillemotleft>\<F>\<guillemotright> has-deriv \<F>' at \<tau> \<and> &x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u |\<rceil>\<^sub>H)"
 
@@ -300,6 +327,12 @@ abbreviation hODE_state_ivp :: "('c, 'd, 'c) cond_trd \<Rightarrow> ('c ODE, 'c:
 lemma assign_ivp:
   "(\<^bold>c:x := \<I> ;; \<langle>x \<bullet> \<F>'\<rangle>\<^sub>H) = \<I> \<Turnstile> \<langle>x \<bullet> \<F>'\<rangle>\<^sub>H"
   by (simp add: assigns_r_comp hODE_def hODE_ivp_def usubst)
+
+lemma cont_rea_design_par:
+  assumes 
+    "$ok\<acute> \<sharp> P\<^sub>1" "$wait \<sharp> P\<^sub>1" "$ok\<acute> \<sharp> P\<^sub>2" "$wait \<sharp> P\<^sub>2"
+  shows "RH(P\<^sub>1 \<turnstile> \<lceil>Q\<^sub>1(\<tau>)\<rceil>\<^sub>H) \<parallel>\<^sub>R RH(P\<^sub>2 \<turnstile> \<lceil>Q\<^sub>2(\<tau>)\<rceil>\<^sub>H) = RH((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (\<lceil>Q\<^sub>1(\<tau>) \<and> Q\<^sub>2(\<tau>)\<rceil>\<^sub>H))"
+  by (simp add: RH_design_par assms unrest hInt_conj)
 
 lemma gravity_ode_refine:
   "((\<guillemotleft>v\<^sub>0\<guillemotright>, \<guillemotleft>h\<^sub>0\<guillemotright>)\<^sub>u \<Turnstile> \<langle>\<lambda> (t, v, h) \<bullet> (- \<guillemotleft>g\<guillemotright>, \<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>\<^sub>H) \<sqsubseteq>
