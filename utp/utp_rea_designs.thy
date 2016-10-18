@@ -1018,6 +1018,8 @@ definition [urel_defs]: "Miracle = RH(true \<turnstile> false \<diamondop> false
 
 definition [urel_defs]: "Chaos = RH(false \<turnstile> true \<diamondop> true)"
 
+definition [urel_defs]: "Term = RH(true \<turnstile> true \<diamondop> true)"
+
 definition assigns_rea :: "'\<alpha> usubst \<Rightarrow> ('t::ordered_cancel_monoid_diff, '\<alpha>) hrelation_rp" ("\<langle>_\<rangle>\<^sub>R") where
 "assigns_rea \<sigma> = RH(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>R))"
 
@@ -1329,6 +1331,19 @@ proof -
     by (simp add: RH_tri_design_par unrest)
   also have "... = Chaos"
     by (simp add: Chaos_def design_false_pre)
+  finally show ?thesis .
+qed
+
+lemma RH_design_par_unit:
+  assumes "P is CSP"
+  shows "Term \<parallel>\<^sub>R P = P"
+proof -
+  have "Term \<parallel>\<^sub>R P = RH (true \<turnstile> true \<diamondop> true) \<parallel>\<^sub>R RH (pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
+    by (simp add: Term_def CSP_reactive_tri_design assms)
+  also have "... = RH (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P)"
+    by (simp add: RH_tri_design_par unrest)
+  also have "... = P"
+    by (simp add: CSP_reactive_tri_design assms)
   finally show ?thesis .
 qed
 

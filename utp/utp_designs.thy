@@ -126,7 +126,7 @@ definition post_design :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<al
 "post\<^sub>D(P) = \<lfloor>P\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>\<rfloor>\<^sub>D"
 
 definition wp_design :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> '\<beta> condition \<Rightarrow> '\<alpha> condition" (infix "wp\<^sub>D" 60) where
-"Q wp\<^sub>D r = (\<lfloor>pre\<^sub>D(Q) ;; true\<rfloor>\<^sub>< \<and> (post\<^sub>D(Q) wp r))"
+"Q wp\<^sub>D r = (\<lfloor>pre\<^sub>D(Q) ;; true :: ('\<alpha>, '\<beta>) relation\<rfloor>\<^sub>< \<and> (post\<^sub>D(Q) wp r))"
 
 declare design_def [upred_defs]
 declare rdesign_def [upred_defs]

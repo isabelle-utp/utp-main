@@ -26,7 +26,8 @@ where "\<^bold>l \<equiv> uop end\<^sub>t trace"
 
 no_notation Not  ("~ _" [40] 40)
 
-abbreviation cvar :: "_ \<Rightarrow> _ \<Rightarrow> _" ("_~'(_')" [999,0] 999) where
+abbreviation cvar :: 
+  "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real, 'd, 'c) expr_trd \<Rightarrow> ('a, 'd, 'c) expr_trd" ("_~'(_')" [999,0] 999) where
 "x~(t) \<equiv> \<phi>\<lparr>t\<rparr>\<^sub>u:(x)"
 
 translations
