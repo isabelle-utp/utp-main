@@ -1072,6 +1072,11 @@ proof -
   finally show ?thesis .
 qed
 
+thm CSP_reactive_design
+
+lemma Chaos_def': "Chaos = RH(false \<turnstile> true)"
+  by (simp add: Chaos_def design_false_pre)
+
 lemma Chaos_left_zero:
   assumes "P is CSP"
   shows "(Chaos ;; P) = Chaos"

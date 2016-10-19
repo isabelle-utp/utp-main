@@ -497,6 +497,24 @@ proof -
   finally show ?thesis ..
 qed
 
+theorem design_left_unit_hom:
+  fixes P Q :: "'\<alpha> hrelation_d"
+  shows "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
+proof -
+  have "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (true \<turnstile>\<^sub>r II ;; P \<turnstile>\<^sub>r Q)"
+    by (simp add: skip_d_def)
+  also have "... = (true \<and> \<not> (II ;; \<not> P)) \<turnstile>\<^sub>r (II ;; Q)"
+  proof -
+    have "out\<alpha> \<sharp> true"
+      by unrest_tac
+    thus ?thesis
+      using rdesign_composition_cond by blast
+  qed
+  also have "... = (\<not> (\<not> P)) \<turnstile>\<^sub>r Q"
+    by simp
+  finally show ?thesis by simp
+qed
+
 theorem design_left_unit [simp]:
   "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
   by (simp add: skip_d_def urel_defs, pred_tac)
@@ -832,30 +850,24 @@ lemma ok_post: "($ok \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>D) = ($ok \<an
   by (pred_tac)
      (metis alpha_d.cases_scheme alpha_d.ext_inject alpha_d.select_convs(1) alpha_d.select_convs(2) alpha_d.update_convs(1) alpha_d.update_convs(2))+
 
-theorem H1_H2_is_design:
-  assumes "P is H1" "P is H2"
-  shows "P = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
+theorem H1_H2_eq_design:
+  "H1 (H2 P) = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
 proof -
-  from assms have "P = ($ok \<Rightarrow> H2(P))"
-    by (simp add: H1_def Healthy_def')
+  have "H1 (H2 P) = ($ok \<Rightarrow> H2(P))"
+    by (simp add: H1_def)
   also have "... = ($ok \<Rightarrow> (P\<^sup>f \<or> (P\<^sup>t \<and> $ok\<acute>)))"
     by (metis H2_split)
-  also have "... = ($ok \<and> (\<not> P\<^sup>f) \<Rightarrow> $ok\<acute> \<and> P\<^sup>t)"
-    by pred_tac
   also have "... = ($ok \<and> (\<not> P\<^sup>f) \<Rightarrow> $ok\<acute> \<and> $ok \<and> P\<^sup>t)"
-    by pred_tac
+    by rel_tac
   also have "... = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
-    by pred_tac
+    by rel_tac
   finally show ?thesis .
 qed
 
-lemma H1_H2_eq_design:
-  "H1 (H2 P) = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
-  apply (subst H1_H2_is_design)
-  apply (simp_all add: Healthy_def H1_idem H2_idem H1_H2_commute)
-  apply (simp add: H2_split H1_def usubst)
-  apply (rel_tac)
-done
+theorem H1_H2_is_design:
+  assumes "P is H1" "P is H2"
+  shows "P = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
+  using assms by (metis H1_H2_eq_design Healthy_def)
   
 theorem H1_H2_is_rdesign:
   assumes "P is H1" "P is H2"

@@ -43,7 +43,8 @@ session "UTP" in "utp" = "UTP-IMPORTS" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     utp
-  document_files 
+  document_files
+    "root.bib"
     "root.tex"
     "document.sty"
 

@@ -36,9 +36,9 @@ declare fst_vwb_lens [simp]
 declare snd_vwb_lens [simp]
 
 text {* This theory describes the foundational structure of UTP variables, upon which the rest
-        of our model rests. We start by defining alphabets, which is this shallow model are
-        simple represented as types, though by convention usually a record type where each
-        field corresponds to a variable. *}
+        of our model rests. We start by defining alphabets, which following~\cite{Feliachi2010,Feliachi2012} 
+        in this shallow model are simply represented as types, though by convention usually a record 
+        type where each field corresponds to a variable. *}
 
 type_synonym '\<alpha> "alphabet"  = "'\<alpha>"
 
@@ -52,7 +52,7 @@ text {* UTP variables carry two type parameters, $'a$ that corresponds to the va
 
 type_synonym ('a, '\<alpha>) uvar = "('a, '\<alpha>) lens"
 
-text {* The $VAR$ function is a syntactic translations that allows to retrieve a variable given its 
+text {* The $VAR$ function~\cite{Feliachi2010} is a syntactic translations that allows to retrieve a variable given its 
         name, assuming the variable is a field in a record. *}
 
 syntax "_VAR" :: "id \<Rightarrow> ('a, 'r) uvar"  ("VAR _")

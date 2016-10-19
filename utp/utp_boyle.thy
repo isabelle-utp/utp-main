@@ -6,7 +6,7 @@ begin
 (*>*)
 
 text {* In order to exemplify the use of Isabelle/UTP, we mechanise a simple theory representing
-        Boyle's law. Boyle's law states that for an ideal gas at fixed temperature that pressure @{term p} is inversely 
+        Boyle's law. Boyle's law states that, for an ideal gas at fixed temperature, pressure @{term p} is inversely 
         proportional to volume @{term V}, or more formally that for @{term "k = p\<cdot>V"} is invariant, for 
         constant @{term k}. We here encode this as a simple UTP theory. We first create a record to 
         represent the alphabet of the theory consisting of the three variables \emph{k}, \emph{p} 
@@ -17,8 +17,8 @@ record alpha_boyle =
   boyle_p :: real
   boyle_V :: real
 
-text {* For now we have to explicitly cast the fields to lenses using the VAR syntactic
-        transformation function -- in future this will be automated. We also have to
+text {* \noindent For now we have to explicitly cast the fields to lenses using the VAR syntactic
+        transformation function~\cite{Feliachi2010} -- in the future this will be automated. We also have to
         add the definitional equations for these variables to the simplification set for predicates
         to enable automated proof through our tactics. *}
 
@@ -40,6 +40,7 @@ lemma vwb_lens_p [simp]: "vwb_lens p"
 lemma vwb_lens_V [simp]: "vwb_lens V"
   by (unfold_locales, simp_all add: V_def)
 (*>*)
+
 lemma boyle_indeps [simp]:
   "k \<bowtie> p" "p \<bowtie> k" "k \<bowtie> V" "V \<bowtie> k" "p \<bowtie> V" "V \<bowtie> p"
   by (simp_all add: k_def p_def V_def lens_indep_def)
@@ -53,20 +54,17 @@ subsection {* Static invariant *}
 
 text {* We first create a simple UTP theory representing Boyle's laws on a single state, as a static
         invariant healthiness condition. We state Boyle's law using the function \emph{B}, which recalculates
-        the value of the constant @{term k} based on @{term p} and @{term V}. The syntax differs a 
-        little from UTP; we try not to override HOL constants and so UTP predicate equality is subscripted.
-        Moreover to distinguish variables denoting a predicate (like $\phi$) from variables
-        denoting UTP variables we have to prepend the latter with an ampersand. *}
+        the value of the constant @{term k} based on @{term p} and @{term V}. *}
 
 definition "B(\<phi>) = ((\<exists> k \<bullet> \<phi>) \<and> (&k =\<^sub>u &p\<cdot>&V))"
 (*<*) 
 declare B_def [upred_defs]
 (*>*)
 
-text {* We can then prove that B is both idempotent and monotone simply by application of
+text {* \noindent We can then prove that B is both idempotent and monotone simply by application of
         the predicate tactic. Idempotence means that healthy predicates cannot be made
-        more healthy. Monotonicity ensures that image of the healthiness functions forms
-        a complete lattice, which is useful to allow the representation of recursive and
+        more healthy. Together with idempotence, monotonicity ensures that image of the healthiness functions 
+        forms a complete lattice, which is useful to allow the representation of recursive and
         iterative constructions with the theory. *}
 
 lemma B_idempotent: "B(B(P)) = B(P)"
@@ -81,12 +79,14 @@ text {* We also create some example observations; the first (@{term "\<phi>\<^su
 definition(*<*)[upred_defs]:(*>*) "\<phi>\<^sub>1 = ((&p =\<^sub>u 10) \<and> (&V =\<^sub>u 5) \<and> (&k =\<^sub>u 50))"
 definition(*<*)[upred_defs]:(*>*) "\<phi>\<^sub>2 = ((&p =\<^sub>u 10) \<and> (&V =\<^sub>u 5) \<and> (&k =\<^sub>u 100))"
 
-text {* We first prove an obvious property: that these two predicates are different observations. *}
+text {* We first prove an obvious property: that these two predicates are different observations. We must
+        show that there exists a valuation of one which is not of the other. This is achieved through
+        application of \emph{pred-tac}, followed by \emph{sledgehammer}~\cite{Blanchette2011} which yields a \emph{metis} proof. *}
 
 lemma \<phi>\<^sub>1_diff_\<phi>\<^sub>2: "\<phi>\<^sub>1 \<noteq> \<phi>\<^sub>2"
   by (pred_tac, metis select_convs num.distinct(5) numeral_eq_iff semiring_norm(87))
 
-text {* We prove that @{const "\<phi>\<^sub>1"} satisfied by Boyle's law by application of the predicate calculus
+text {* We prove that @{const "\<phi>\<^sub>1"} satisfies Boyle's law by application of the predicate calculus
         tactic, \emph{pred-tac}. *}
 
 lemma B_\<phi>\<^sub>1: "\<phi>\<^sub>1 is B"
@@ -144,6 +144,7 @@ definition(*<*)[upred_defs]:(*>*) "InitSys ip iV
 
 definition(*<*)[upred_defs]:(*>*) "ChPres dp 
   = ((&p + \<guillemotleft>dp\<guillemotright> >\<^sub>u 0)\<^sup>\<top> ;; p := &p + \<guillemotleft>dp\<guillemotright> ;; V := (&k/&p))"
+
 definition(*<*)[upred_defs]:(*>*) "ChVol dV 
   = ((&V + \<guillemotleft>dV\<guillemotright> >\<^sub>u 0)\<^sup>\<top> ;; V := &V + \<guillemotleft>dV\<guillemotright> ;; p := (&k/&V))"
 
@@ -164,7 +165,7 @@ lemma D1_InitSystem: "D1 (InitSys ip iV) = InitSys ip iV"
 
 text {* @{const InitSys} is @{const D1}, since it establishes the invariant for the system. However,
   it is not @{const D2} since it sets the global value of $k$ and thus can change its value. We can
-  however show that the both @{const ChPres} and @{const ChVol} are both healthy relations. *}
+  however show that both @{const ChPres} and @{const ChVol} are healthy relations. *}
 
 lemma D1: "D1 (ChPres dp) = ChPres dp" and "D1 (ChVol dV) = ChVol dV"
   by (rel_tac, rel_tac)

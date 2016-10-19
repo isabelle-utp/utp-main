@@ -270,7 +270,8 @@ lemma unrest_usubst_lift_out [unrest]:
 
 subsection {* Relation laws *}
 
-text {* Homogeneous relations form a quantale *}
+text {* Homogeneous relations form a quantale. This allows us to import a large number of laws
+        from Struth and Armstrong's Kleene Algebra theory~\cite{Armstrong2015}. *}
 
 abbreviation truer :: "'\<alpha> hrelation" ("true\<^sub>h") where
 "truer \<equiv> true"
