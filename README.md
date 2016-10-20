@@ -36,6 +36,26 @@ ROOTS file so that it knows about the location of Isabelle/UTP
 (see <https://isabelle.in.tum.de/dist/Isabelle2016/doc/system.pdf>). If you're developing the
 Isabelle/UTP core you can instead invoke the UTP-IMPORTS heap image.
 
+Repository overview
+-------------------
+
+The main UTP Isabelle theories are located under the ``utp/`` directory. In particular, this contains 
+the following key UTP theories:
+
+* ``utp_pred.thy`` -- alphabetised predicate calculus and laws
+* ``utp_rel.thy`` -- alphabetised relational calculus and laws
+* ``utp_designs.thy`` -- theory of designs, including signature, healthiness conditions, and laws
+* ``utp_reactive.thy`` -- theory of reactive processes
+* ``utp_rea_designs.thy`` -- theory of reactive designs
+* ``utp_csp.thy`` -- theory of CSP process algebra
+* ``utp_hybrid.thy`` - theory of hybrid relations
+
+This repository is constantly a work in progress, so not all laws have yet been proved, though the number
+is constantly growing. Additionally to the UTP theories there is a number of contributed UTP theories included
+under the ``contrib/`` directory. Notably this includes an adapted version of Armstrong and Struth's 
+[Kleene Algebra library](https://www.isa-afp.org/entries/Kleene_Algebra.shtml), which is a dependency and
+thus is included for convenience.
+
 Usage
 -----
 
