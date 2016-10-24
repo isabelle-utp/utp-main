@@ -252,6 +252,7 @@ translations
   "_psubst m x v"  => "CONST subst_upd m x v"
   "P\<lbrakk>v/$x\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) (CONST ivar x) v) P"
   "P\<lbrakk>v/$x\<acute>\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) (CONST ovar x) v) P"
+  "P\<lbrakk>v/x\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) x v) P"
 
 lemma subst_singleton: 
   fixes x :: "('a, '\<alpha>) uvar"
