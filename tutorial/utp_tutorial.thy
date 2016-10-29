@@ -28,13 +28,13 @@ lemma my_state_indeps [simp]: "x \<bowtie> y" "y \<bowtie> x" "x \<bowtie> z" "z
 (* Beginning of exercises *)
 
 lemma "(true \<and> false) = false"
-  oops
+  by simp
 
 lemma "true = false"
   oops
 
 lemma "x \<sharp> true"
-  oops
+  oops (* Use unrest_tac *)
 
 lemma "x \<sharp> &y"
   oops
@@ -43,7 +43,7 @@ lemma "(&x =\<^sub>u 1 \<and> &y =\<^sub>u &x) = (&x =\<^sub>u 1 \<and> &y =\<^s
   oops
 
 lemma "(&x =\<^sub>u 1 \<and> &y =\<^sub>u &x)\<lbrakk>2/x\<rbrakk> = false"
-  oops
+  oops (* Use subst_tac *)
 
 lemma "(\<forall> x \<bullet> &x =\<^sub>u &x) = true"
   oops
@@ -81,6 +81,28 @@ lemma "(x := 1 ;; (y := 7 \<triangleleft> $x >\<^sub>u 0 \<triangleright> y := 8
 lemma "(x := 1 ;; (y := 7 \<triangleleft> $x >\<^sub>u 0 \<triangleright> y := 8)) = (x,y := 1,7)"
   oops (* Redo above as Isar proof *)
 
+lemma wp_ex_1: "(x := &x - 5) wp (&x >\<^sub>u 10) = (&x >\<^sub>u 15)"
+  oops (* Use wp_tac, subst_tac, and pred_tac *)
+
+lemma wp_ex_2: "(x := &x - 5 ;; x := &x div 2) wp (&x >\<^sub>u 20) = (&x >\<^sub>u 46)"
+  oops
+
+lemma wp_ex_3:
+      "(x := \<guillemotleft>X\<guillemotright> ;; 
+        y := \<guillemotleft>Y\<guillemotright> ;; 
+        x := &x + &y ;; 
+        y := &x - &y ;; 
+        x := &x - y) wp (&x =\<^sub>u \<guillemotleft>Y\<guillemotright> \<and> &y =\<^sub>u \<guillemotleft>X\<guillemotright>) = true" 
+  oops
+
+lemma wp_ex_4: 
+      "(x := \<guillemotleft>X\<guillemotright> ;; 
+        y := \<guillemotleft>Y\<guillemotright> ;; 
+        x := &x * &y ;; 
+        y := &x div &y ;; 
+        x := &x div &y) wp (&x =\<^sub>u \<guillemotleft>Y\<guillemotright> \<and> &y =\<^sub>u \<guillemotleft>X\<guillemotright>) = true" 
+  oops (* Additional assumptions are needed *)
+
 lemma hoare_ex_1:
   "\<lbrace>true\<rbrace>(z := &x) \<triangleleft> (&x \<ge>\<^sub>u &y) \<triangleright>\<^sub>r (z := &y)\<lbrace>&z =\<^sub>u max\<^sub>u(&x, &y)\<rbrace>\<^sub>u"
   oops
@@ -103,6 +125,8 @@ lemma "(x :=\<^sub>D 1 ;; x :=\<^sub>D &x + 1) = (x :=\<^sub>D 2)"
 lemma violate_precond:
   "(true \<turnstile>\<^sub>n x := 1 ;; (&x >\<^sub>u 1) \<turnstile>\<^sub>n y := 2) = \<bottom>\<^sub>D"
   oops (* Prove using Isar *)
+
+
 
 end
 
