@@ -445,6 +445,12 @@ lemma assigns_r_conv:
   "bij f \<Longrightarrow> \<langle>f\<rangle>\<^sub>a\<^sup>- = \<langle>inv f\<rangle>\<^sub>a"
   by (rel_tac, simp_all add: bij_is_inj bij_is_surj surj_f_inv_f)
 
+lemma assign_pred_transfer: 
+  fixes x :: "('a, '\<alpha>) uvar"
+  assumes "$x \<sharp> b" "out\<alpha> \<sharp> b"
+  shows "(b \<and> x := v) = (x := v \<and> b\<^sup>-)"
+  using assms by (rel_tac, blast+)
+
 lemma assign_r_comp: "semi_uvar x \<Longrightarrow> (x := u ;; P) = P\<lbrakk>\<lceil>u\<rceil>\<^sub></$x\<rbrakk>"
   by (simp add: assigns_r_comp usubst)
 
@@ -946,5 +952,26 @@ is "\<lambda> P b. P (fst b) b" .
 
 lemma call_prog_val: "call \<lbrace>P\<rbrace>\<^sub>u = P"
   by (simp add: call_def urel_defs lit.rep_eq Rep_uexpr_inverse)
+
+(*
+lift_definition prs :: "'\<alpha> hrelation \<Rightarrow> ('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> '\<beta> hrelation"
+is "\<lambda> R x (s, s'). R (get\<^bsub>x\<^esub> s, get\<^bsub>x\<^esub> s') \<and> (\<forall> v. put\<^bsub>x\<^esub> s' v = put\<^bsub>x\<^esub> s v)" . 
+
+lift_definition promote :: "'b hrelation \<Rightarrow> (('a \<rightharpoonup> 'b) \<Longrightarrow> '\<alpha>) \<Rightarrow> ('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrelation"
+is "\<lambda> R f x (b, b'). (get\<^bsub>x\<^esub> b \<in> dom(get\<^bsub>f\<^esub> b) \<and> get\<^bsub>x\<^esub> b \<in> dom(get\<^bsub>f\<^esub> b') 
+                     \<and> R (the ((get\<^bsub>f\<^esub> b)(get\<^bsub>x\<^esub> b)), the ((get\<^bsub>f\<^esub> b')(get\<^bsub>x\<^esub> b)))
+                     \<and> get\<^bsub>f\<^esub> b |` {get\<^bsub>x\<^esub> b} = get\<^bsub>f\<^esub> b' |` {get\<^bsub>x\<^esub> b} 
+                     \<and> (\<forall> v. put\<^bsub>f\<^esub> b' v = put\<^bsub>f\<^esub> b v))" .
+
+lemma "\<lbrakk> uvar f; uvar x \<rbrakk> \<Longrightarrow> promote II f x = II"
+  apply (rel_tac)
+
+
+lemma "uvar x \<Longrightarrow> prs II x = II"
+  by (rel_tac, metis vwb_lens_wb wb_lens.get_put)
+
+lemma "prs false x = false"
+  by (rel_tac)
+*)
 
 end

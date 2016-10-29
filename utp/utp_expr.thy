@@ -294,6 +294,7 @@ syntax
   "_umin"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("min\<^sub>u'(_, _')")
   "_umax"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("max\<^sub>u'(_, _')")
   "_ugcd"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("gcd\<^sub>u'(_, _')")
+  "_ufinite"    :: "logic \<Rightarrow> logic" ("finite\<^sub>u'(_')")
   "_uempset"    :: "('a set, '\<alpha>) uexpr" ("{}\<^sub>u")
   "_uset"       :: "args => ('a set, '\<alpha>) uexpr" ("{(_)}\<^sub>u")
   "_uunion"     :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" (infixl "\<union>\<^sub>u" 65)
@@ -358,6 +359,7 @@ translations
   "min\<^sub>u(x, y)"  == "CONST bop (CONST min) x y" 
   "max\<^sub>u(x, y)"  == "CONST bop (CONST max) x y"
   "gcd\<^sub>u(x, y)"  == "CONST bop (CONST gcd) x y"
+  "finite\<^sub>u(x)" == "CONST uop (CONST finite) x"
   "{}\<^sub>u"      == "\<guillemotleft>{}\<guillemotright>"
   "{x, xs}\<^sub>u" == "CONST bop (CONST insert) x {xs}\<^sub>u"
   "{x}\<^sub>u"     == "CONST bop (CONST insert) x \<guillemotleft>{}\<guillemotright>"

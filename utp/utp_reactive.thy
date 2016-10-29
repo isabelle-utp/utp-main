@@ -532,6 +532,14 @@ lemma R3_skipr: "R3(II) = II"
 lemma R3_form: "R3(P) = (($wait \<and> II) \<or> (\<not> $wait \<and> P))"
   by rel_tac
 
+lemma wait_R3:
+  "($wait \<and> R3(P)) = (II \<and> $wait\<acute>)"
+  by (rel_tac)
+
+lemma nwait_R3:
+  "(\<not>$wait \<and> R3(P)) = (\<not>$wait \<and> P)"
+  by (rel_tac)
+
 lemma R3_semir_form:
   "(R3(P) ;; R3(Q)) = R3(P ;; R3(Q))"
   by rel_tac
@@ -563,7 +571,6 @@ lemma R1_R3c_commute: "R1(R3c(P)) = R3c(R1(P))"
 lemma R2_R3_commute: "R2(R3(P)) = R3(R2(P))"
   by (rel_tac, (smt add.right_neutral alpha_d.surjective alpha_d.update_convs(2) alpha_rp'.surjective alpha_rp'.update_convs(2) cancel_monoid_add_class.add_diff_cancel_left' ordered_cancel_monoid_diff_class.le_iff_add)+)
 
-
 lemma R2_R3c_commute: "R2(R3c(P)) = R3c(R2(P))"
   by (rel_tac, (smt add.right_neutral alpha_d.surjective alpha_d.update_convs(2) alpha_rp'.surjective alpha_rp'.update_convs(2) cancel_monoid_add_class.add_diff_cancel_left' ordered_cancel_monoid_diff_class.le_iff_add)+)
 
@@ -581,6 +588,9 @@ done
 
 lemma R3c_idem: "R3c(R3c(P)) = R3c(P)"
   by rel_tac
+
+lemma R3c_conj: "R3c(P \<and> Q) = (R3c(P) \<and> R3c(Q))"
+  by (rel_tac)
   
 lemma R3c_disj: "R3c(P \<or> Q) = (R3c(P) \<or> R3c(Q))"
   by rel_tac

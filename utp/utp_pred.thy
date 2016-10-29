@@ -423,6 +423,9 @@ text {* Showing that predicates form a Boolean Algebra (under the predicate oper
 interpretation boolean_algebra diff_upred not_upred conj_upred "op \<le>" "op <" disj_upred false_upred true_upred
   by (unfold_locales, pred_tac+)
 
+lemma taut_true [simp]: "`true`"
+  by (pred_tac)
+
 lemma refBy_order: "P \<sqsubseteq> Q = `Q \<Rightarrow> P`"
   by (transfer, auto)
 
@@ -647,7 +650,7 @@ lemma conj_var_subst:
 
 lemma one_point:
   assumes "semi_uvar x" "x \<sharp> v"
-  shows "(\<exists> x \<bullet> P \<and> &x =\<^sub>u v) = P\<lbrakk>v/x\<rbrakk>"
+  shows "(\<exists> x \<bullet> P \<and> var x =\<^sub>u v) = P\<lbrakk>v/x\<rbrakk>"
   using assms
   by (pred_tac)
 

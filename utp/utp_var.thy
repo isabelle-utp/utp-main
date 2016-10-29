@@ -34,6 +34,10 @@ no_notation
 
 declare fst_vwb_lens [simp]
 declare snd_vwb_lens [simp]
+declare lens_indep_left_comp [simp]
+declare comp_vwb_lens [simp]
+declare lens_indep_left_ext [simp]
+declare lens_indep_right_ext [simp]
 
 text {* This theory describes the foundational structure of UTP variables, upon which the rest
         of our model rests. We start by defining alphabets, which following~\cite{Feliachi2010,Feliachi2012} 

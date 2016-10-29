@@ -168,6 +168,19 @@ lemma alpha_in_var [alpha]: "x ;\<^sub>L fst\<^sub>L = in_var x"
 lemma alpha_out_var [alpha]: "x ;\<^sub>L snd\<^sub>L = out_var x"
   by (simp add: out_var_def)
 
+lemma in_var_prod_lens [alpha]:
+  "wb_lens Y \<Longrightarrow> in_var x ;\<^sub>L (X \<times>\<^sub>L Y) = in_var (x ;\<^sub>L X)"
+  by (simp add: in_var_def prod_as_plus lens_comp_assoc fst_lens_plus)
+
+lemma out_var_prod_lens [alpha]:
+  "wb_lens X \<Longrightarrow> out_var x ;\<^sub>L (X \<times>\<^sub>L Y) = out_var (x ;\<^sub>L Y)"
+  apply (simp add: out_var_def prod_as_plus lens_comp_assoc)
+  apply (subst snd_lens_prod)
+  using comp_wb_lens fst_vwb_lens vwb_lens_wb apply blast
+  apply (simp add: alpha_in_var alpha_out_var)
+  apply (simp)
+done
+
 subsection {* Alphabet coercion *}
 
 definition id_on :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> \<Rightarrow> '\<alpha>" where

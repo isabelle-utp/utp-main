@@ -64,6 +64,12 @@ text {* It would be nice to be able to prove some general distributivity propert
 abbreviation lift_desr :: "('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" ("\<lceil>_\<rceil>\<^sub>D")
 where "\<lceil>P\<rceil>\<^sub>D \<equiv> P \<oplus>\<^sub>p (des_lens \<times>\<^sub>L des_lens)"
 
+abbreviation lift_pre_desr :: "'\<alpha> upred \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" ("\<lceil>_\<rceil>\<^sub>D\<^sub><")
+where "\<lceil>p\<rceil>\<^sub>D\<^sub>< \<equiv> \<lceil>\<lceil>p\<rceil>\<^sub><\<rceil>\<^sub>D"
+
+abbreviation lift_post_desr :: "'\<beta> upred \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" ("\<lceil>_\<rceil>\<^sub>D\<^sub>>")
+where "\<lceil>p\<rceil>\<^sub>D\<^sub>> \<equiv> \<lceil>\<lceil>p\<rceil>\<^sub>>\<rceil>\<^sub>D"
+
 abbreviation drop_desr :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("\<lfloor>_\<rfloor>\<^sub>D")
 where "\<lfloor>P\<rfloor>\<^sub>D \<equiv> P \<restriction>\<^sub>p (des_lens \<times>\<^sub>L des_lens)"
 
@@ -257,6 +263,10 @@ lemma ndesign_refine_intro:
   shows "p1 \<turnstile>\<^sub>n Q1 \<sqsubseteq> p2 \<turnstile>\<^sub>n Q2"
   using assms unfolding upred_defs
   by pred_tac
+
+lemma design_subst [usubst]: 
+  "\<lbrakk> $ok \<sharp> \<sigma>; $ok\<acute> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> (P \<turnstile> Q) = (\<sigma> \<dagger> P) \<turnstile> (\<sigma> \<dagger> Q)"
+  by (simp add: design_def usubst)
 
 theorem design_ok_false [usubst]: "(P \<turnstile> Q)\<lbrakk>false/$ok\<rbrakk> = true"
   by (simp add: design_def usubst)

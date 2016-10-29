@@ -296,6 +296,11 @@ lemma lens_indep_left_ext:
   apply (simp add: lens_indep_sym)
 done
 
+lemma lens_indep_right_ext:
+  "x \<bowtie> z \<Longrightarrow> x \<bowtie> (y ;\<^sub>L z)"
+  by (simp add: lens_indep_left_ext lens_indep_sym) 
+
+
 lemma plus_vwb_lens:
   assumes "vwb_lens x" "vwb_lens y" "x \<bowtie> y"
   shows "vwb_lens (x +\<^sub>L y)"
