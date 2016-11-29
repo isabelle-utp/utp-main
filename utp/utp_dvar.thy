@@ -230,7 +230,10 @@ proof -
     fix ya :: dname
     assume a1: "ucard_of (TYPE('b)::'b itself) = ucard_of (TYPE('a)::'a itself)"
     assume "dname_card ya = ucard_of (TYPE('a)::'a itself)"
-    assume a2: "\<forall>u v \<sigma>. (\<forall>x. \<sigma> x \<in> \<U>(dname_card x)) \<longrightarrow> \<sigma>(ya := uinject (u::'a)) = \<sigma>(ya := uinject (v::'b)) \<and> (uproject (uinject v)::'a) = uproject (\<sigma> ya) \<and> (uproject (uinject u)::'b) = uproject (\<sigma> ya)"
+    assume a2: 
+      "\<forall>\<sigma>. (\<forall>x. \<sigma> x \<in> \<U>(dname_card x)) \<longrightarrow> \<sigma>(ya := uinject (u::'a)) = \<sigma>(ya := uinject (v::'b))"
+      "\<forall> \<sigma>. (uproject (uinject v)::'a) = uproject (\<sigma> ya)"
+      "\<forall> \<sigma>. (uproject (uinject u)::'b) = uproject (\<sigma> ya)"
     obtain NN :: "vstore \<Rightarrow> dname \<Rightarrow> nat set" where
       "\<And>v. \<forall>d. NN v d \<in> \<U>(dname_card d)"
       by (metis (lifting) Abs_vstore_cases mem_Collect_eq)

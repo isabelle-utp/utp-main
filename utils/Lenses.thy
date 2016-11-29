@@ -1,7 +1,8 @@
 section {* Lenses *}
 
-theory Lenses
+theory Lenses 
 imports Two ttrace
+keywords "alphabet" :: "thy_decl_block"
 begin
 
 subsection {* Lens signature *}
@@ -205,12 +206,14 @@ abbreviation "eff_lens X \<equiv> (weak_lens X \<and> (\<not> ief_lens X))"
 
 subsection {* Lens independence *}
 
-(* FIXME: Should this be another locale? *)
+locale lens_indep =
+  fixes X :: "'a \<Longrightarrow> 'c" and Y :: "'b \<Longrightarrow> 'c"
+  assumes lens_put_comm: "lens_put X (lens_put Y \<sigma> v) u = lens_put Y (lens_put X \<sigma> u) v"
+  and lens_put_irr1: "lens_get X (lens_put Y \<sigma> v) = lens_get X \<sigma>"
+  and lens_put_irr2: "lens_get Y (lens_put X \<sigma> u) = lens_get Y \<sigma>"
 
-definition lens_indep :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> bool" (infix "\<bowtie>" 50) where
-"x \<bowtie> y \<longleftrightarrow> (\<forall> u v \<sigma>. lens_put x (lens_put y \<sigma> v) u = lens_put y (lens_put x \<sigma> u) v
-                    \<and> lens_get x (lens_put y \<sigma> v) = lens_get x \<sigma>
-                    \<and> lens_get y (lens_put x \<sigma> u) = lens_get y \<sigma>)"
+notation lens_indep (infix "\<bowtie>" 50)
+
 
 lemma lens_indepI:
   "\<lbrakk> \<And> u v \<sigma>. lens_put x (lens_put y \<sigma> v) u = lens_put y (lens_put x \<sigma> u) v;
@@ -267,12 +270,7 @@ lemma plus_mwb_lens:
 done
 
 lemma lens_indep_quasi_irrefl: "\<lbrakk> wb_lens x; eff_lens x \<rbrakk> \<Longrightarrow> \<not> (x \<bowtie> x)"
-  apply (auto simp add: lens_indep_def ief_lens_def ief_lens_axioms_def)
-  apply (rule_tac x="get\<^bsub>x\<^esub> \<sigma>" in exI)
-  apply (rule_tac x="v" in exI)
-  apply (rule_tac x="put\<^bsub>x\<^esub> \<sigma> v" in exI)
-  apply (auto)
-done
+  by (auto simp add: lens_indep_def ief_lens_def ief_lens_axioms_def, metis (full_types) wb_lens.get_put)
 
 lemma lens_indep_left_comp:
   "\<lbrakk> mwb_lens z; x \<bowtie> y \<rbrakk> \<Longrightarrow> (x ;\<^sub>L z) \<bowtie> (y ;\<^sub>L z)"
@@ -823,7 +821,7 @@ proof -
   obtain u v :: "'a::two" where "u \<noteq> v"
     using two_diff by auto
   thus ?thesis
-    by (auto simp add: fun_lens_def lens_indep_def, meson)
+    by (auto simp add: fun_lens_def lens_indep_def)
 qed
 
 text {* The function range lens allows us to focus on a particular region on a functions range *}
@@ -943,5 +941,15 @@ abbreviation (input) "fld_put f \<equiv> (\<lambda> \<sigma> u. f (\<lambda>_. u
 syntax "_FLDLENS" :: "id \<Rightarrow> ('a \<Longrightarrow> 'r)"  ("FLDLENS _")
 translations "FLDLENS x" => "\<lparr> lens_get = x, lens_put = CONST fld_put (_update_name x) \<rparr>"
 
+(* Introduce the alphabet command that creates a record with lenses for each field *)
+
+ML_file "Lenses.ML"
+
+(*
+alphabet mylens =
+  x :: nat
+  y :: string
+  z :: real
+*)
 
 end
