@@ -227,18 +227,18 @@ proof -
     by (metis (full_types) uinject_inv v)
   show ?thesis
   proof (simp add: dvar_lens_def lens_indep_def, transfer, auto simp add: fun_upd_twist)
-    fix ya :: dname
+    fix y :: dname
     assume a1: "ucard_of (TYPE('b)::'b itself) = ucard_of (TYPE('a)::'a itself)"
-    assume "dname_card ya = ucard_of (TYPE('a)::'a itself)"
+    assume "dname_card y = ucard_of (TYPE('a)::'a itself)"
     assume a2: 
-      "\<forall>\<sigma>. (\<forall>x. \<sigma> x \<in> \<U>(dname_card x)) \<longrightarrow> \<sigma>(ya := uinject (u::'a)) = \<sigma>(ya := uinject (v::'b))"
-      "\<forall> \<sigma>. (uproject (uinject v)::'a) = uproject (\<sigma> ya)"
-      "\<forall> \<sigma>. (uproject (uinject u)::'b) = uproject (\<sigma> ya)"
+      "\<forall> \<sigma>. (\<forall>x. \<sigma> x \<in> \<U>(dname_card x)) \<longrightarrow> (\<forall> v u. \<sigma>(y := uinject (u::'a)) = \<sigma>(y := uinject (v::'b)))"
+      "\<forall> \<sigma>. (\<forall>x. \<sigma> x \<in> \<U>(dname_card x)) \<longrightarrow> (\<forall> v. (uproject (uinject v)::'a) = uproject (\<sigma> y))"
+      "\<forall> \<sigma>. (\<forall>x. \<sigma> x \<in> \<U>(dname_card x)) \<longrightarrow> (\<forall> u. (uproject (uinject u)::'b) = uproject (\<sigma> y))"
     obtain NN :: "vstore \<Rightarrow> dname \<Rightarrow> nat set" where
       "\<And>v. \<forall>d. NN v d \<in> \<U>(dname_card d)"
       by (metis (lifting) Abs_vstore_cases mem_Collect_eq)
     then show False
-      using a2 a1 by (metis uinject_card uproject_inv uv)
+      using a2 a1 by (metis fun_upd_same uv) 
   qed
 qed
 
