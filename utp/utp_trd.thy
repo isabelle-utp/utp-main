@@ -36,10 +36,10 @@ translations
   "\<^bold>l" <= "CONST uop end\<^sub>t (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr)))"
 
 definition disc_alpha :: "_" ("\<^bold>d") where
-[upred_defs]: "disc_alpha = fst\<^sub>L ;\<^sub>L \<Sigma>\<^sub>R"
+[uvar_defs]: "disc_alpha = fst\<^sub>L ;\<^sub>L \<Sigma>\<^sub>R"
 
 definition cont_alpha :: "_" ("\<^bold>c") where
-[upred_defs]: "cont_alpha = snd\<^sub>L ;\<^sub>L \<Sigma>\<^sub>R"
+[uvar_defs]: "cont_alpha = snd\<^sub>L ;\<^sub>L \<Sigma>\<^sub>R"
 
 lemma disc_alpha_vwb_lens [simp]: "vwb_lens \<^bold>d"
   by (simp add: comp_vwb_lens disc_alpha_def fst_vwb_lens)

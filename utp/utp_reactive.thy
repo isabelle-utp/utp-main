@@ -21,9 +21,9 @@ definition "wait\<^sub>r = VAR rp_wait"
 definition "tr\<^sub>r   = VAR rp_tr"
 definition [upred_defs]: "\<Sigma>\<^sub>r    = VAR more"
 
-declare wait\<^sub>r_def [upred_defs]
-declare tr\<^sub>r_def [upred_defs]
-declare \<Sigma>\<^sub>r_def [upred_defs]
+declare wait\<^sub>r_def [uvar_defs]
+declare tr\<^sub>r_def [uvar_defs]
+declare \<Sigma>\<^sub>r_def [uvar_defs]
 
 lemma wait\<^sub>r_vwb_lens [simp]: "vwb_lens wait\<^sub>r"
   by (unfold_locales, simp_all add: wait\<^sub>r_def)
@@ -34,9 +34,9 @@ lemma tr\<^sub>r_vwb_lens [simp]: "vwb_lens tr\<^sub>r"
 lemma rea_vwb_lens [simp]: "vwb_lens \<Sigma>\<^sub>r"
   by (unfold_locales, simp_all add: \<Sigma>\<^sub>r_def)
   
-definition "wait = (wait\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
-definition "tr   = (tr\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
-definition [upred_defs]: "\<Sigma>\<^sub>R   = (\<Sigma>\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
+definition [uvar_defs]: "wait = (wait\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
+definition [uvar_defs]: "tr   = (tr\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
+definition [uvar_defs]: "\<Sigma>\<^sub>R   = (\<Sigma>\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
 
 lemma wait_vwb_lens [simp]: "vwb_lens wait"
   by (simp add: comp_vwb_lens wait_def)
@@ -54,9 +54,6 @@ lemma rea_lens_indep_ok [simp]: "\<Sigma>\<^sub>R \<bowtie> ok" "ok \<bowtie> \<
   using ok_indep_des_lens(2) rea_lens_under_des_lens sublens_pres_indep apply blast
   using lens_indep_sym ok_indep_des_lens(2) rea_lens_under_des_lens sublens_pres_indep apply blast
 done
-
-declare wait_def [upred_defs]
-declare tr_def [upred_defs]
 
 lemma tr_ok_indep [simp]: "tr \<bowtie> ok" "ok \<bowtie> tr"
   by (simp_all add: lens_indep_left_ext lens_indep_sym tr_def)

@@ -24,7 +24,7 @@ text {* The ok variable is defined using the syntactic translation \emph{VAR} *}
 
 definition "ok = VAR des_ok"
 
-declare ok_def [upred_defs]
+declare ok_def [uvar_defs]
 
 lemma vwb_lens_ok [simp]: "vwb_lens ok"
   by (unfold_locales, simp_all add: ok_def)
@@ -39,15 +39,13 @@ type_synonym ('\<alpha>, '\<beta>) relation_d = "('\<alpha> alphabet_d, '\<beta>
 type_synonym '\<alpha> hrelation_d = "'\<alpha> alphabet_d hrelation"
 
 definition des_lens :: "('\<alpha>, '\<alpha> alphabet_d) lens" ("\<Sigma>\<^sub>D") where
-"des_lens = \<lparr> lens_get = more, lens_put = fld_put more_update \<rparr>"
+[uvar_defs]: "des_lens = \<lparr> lens_get = more, lens_put = fld_put more_update \<rparr>"
 
 syntax
   "_svid_alpha_d"  :: "svid" ("\<Sigma>\<^sub>D")
 
 translations
   "_svid_alpha_d" => "\<Sigma>\<^sub>D"
-
-declare des_lens_def [upred_defs]
 
 lemma vwb_des_lens [simp]: "vwb_lens des_lens"
   by (unfold_locales, simp_all add: des_lens_def)
@@ -286,8 +284,6 @@ theorem design_post:
   by (rel_tac)
 
 declare des_lens_def [upred_defs]
-declare lens_create_def [upred_defs]
-declare prod_lens_def [upred_defs]
 declare in_var_def [upred_defs]
 
 theorem rdesign_pre [simp]: "pre\<^sub>D(P \<turnstile>\<^sub>r Q) = P"

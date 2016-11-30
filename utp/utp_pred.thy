@@ -251,7 +251,7 @@ text {* We set up a simple tactic with the help of \emph{Eisbach} that applies p
         applies extensionality (to remove the resulting lambda term) and the applies auto.
         This simple tactic will suffice to prove most of the standard laws. *}
 
-method pred_tac = ((simp only: upred_defs)? ; (transfer, (rule_tac ext)?, auto simp add: lens_defs fun_eq_iff prod.case_eq_if)?)
+method pred_tac = ((simp only: upred_defs)? ; (transfer, (rule_tac ext)?, auto simp add: uvar_defs lens_defs fun_eq_iff prod.case_eq_if)?)
 
 declare true_upred_def [upred_defs]
 declare false_upred_def [upred_defs]

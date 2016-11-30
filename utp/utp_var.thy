@@ -179,6 +179,6 @@ in [(@{syntax_const "_uvar_ty"}, K uvar_ty_tr)] end
 
 (* Collection of UTP variable definitions *)
 
-named_theorems var_defs
+named_theorems uvar_defs
 
 end

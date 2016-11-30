@@ -121,8 +121,8 @@ definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrelation" ("_\<^
 definition rassert :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrelation" ("_\<^sub>\<bottom>" [999] 999) where
 [urel_defs]: "rassert c = (II \<triangleleft> c \<triangleright>\<^sub>r true)"
 
-method rel_simp = ((simp add: upred_defs urel_defs)?, (transfer, (rule_tac ext)?, simp_all add: lens_defs urel_defs relcomp_unfold fun_eq_iff prod.case_eq_if)?)
-method rel_tac = ((simp add: upred_defs urel_defs)?, (transfer, (rule_tac ext)?, auto simp add: lens_defs urel_defs relcomp_unfold fun_eq_iff prod.case_eq_if)?)
+method rel_simp = ((simp add: upred_defs urel_defs)?, (transfer, (rule_tac ext)?, simp_all add: uvar_defs lens_defs urel_defs relcomp_unfold fun_eq_iff prod.case_eq_if)?)
+method rel_tac = ((simp add: upred_defs urel_defs)?, (transfer, (rule_tac ext)?, auto simp add: uvar_defs lens_defs urel_defs relcomp_unfold fun_eq_iff prod.case_eq_if)?)
 
 text {* We describe some properties of relations *}
 

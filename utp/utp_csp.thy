@@ -16,11 +16,8 @@ type_synonym ('\<phi>,'\<alpha>,'\<beta>) relation_csp  = "(('\<phi>,'\<alpha>) 
 type_synonym ('\<phi>,'\<alpha>) hrelation_csp  = "(('\<phi>,'\<alpha>) alphabet_csp, ('\<phi>,'\<alpha>) alphabet_csp) relation"
 type_synonym ('\<phi>,'\<sigma>) predicate_csp  = "('\<phi>,'\<sigma>) alphabet_csp upred"
 
-definition "ref\<^sub>c = VAR csp_ref"
-definition [upred_defs]: "\<Sigma>\<^sub>c    = VAR more"
-
-declare ref\<^sub>c_def [upred_defs]
-declare \<Sigma>\<^sub>c_def [upred_defs]
+definition [uvar_defs]: "ref\<^sub>c = VAR csp_ref"
+definition [uvar_defs]: "\<Sigma>\<^sub>c    = VAR more"
 
 lemma ref\<^sub>c_vwb_lens [simp]: "vwb_lens ref\<^sub>c"
   by (unfold_locales, simp_all add: ref\<^sub>c_def)
@@ -29,7 +26,7 @@ lemma csp_vwb_lens [simp]: "vwb_lens \<Sigma>\<^sub>c"
   by (unfold_locales, simp_all add: \<Sigma>\<^sub>c_def)
   
 definition "ref = (ref\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
-definition [upred_defs]: "\<Sigma>\<^sub>C   = (\<Sigma>\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
+definition [uvar_defs]: "\<Sigma>\<^sub>C   = (\<Sigma>\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
 
 lemma ref_vwb_lens [simp]: "vwb_lens ref"
   by (simp add: comp_vwb_lens ref_def)
