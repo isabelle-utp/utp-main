@@ -62,10 +62,6 @@ text {* The $VAR$ function~\cite{Feliachi2010} is a syntactic translations that 
 syntax "_VAR" :: "id \<Rightarrow> ('a, 'r) uvar"  ("VAR _")
 translations "VAR x" => "FLDLENS x"
 
-abbreviation "semi_uvar \<equiv> mwb_lens"
-
-abbreviation "uvar \<equiv> vwb_lens"
-
  text {* We also define some lifting functions for variables to create input and output variables.
         These simply lift the alphabet to a tuple type since relations will ultimately be defined
         to a tuple alphabet. *}
@@ -80,19 +76,19 @@ definition pr_var :: "('a, '\<beta>) uvar \<Rightarrow> ('a, '\<beta>) uvar" whe
 [simp]: "pr_var x = x"
 
 lemma in_var_semi_uvar [simp]:
-  "semi_uvar x \<Longrightarrow> semi_uvar (in_var x)"
+  "mwb_lens x \<Longrightarrow> mwb_lens (in_var x)"
   by (simp add: comp_mwb_lens fst_vwb_lens in_var_def)
 
 lemma in_var_uvar [simp]:
-  "uvar x \<Longrightarrow> uvar (in_var x)"
+  "vwb_lens x \<Longrightarrow> vwb_lens (in_var x)"
   by (simp add: comp_vwb_lens fst_vwb_lens in_var_def)
 
 lemma out_var_semi_uvar [simp]:
-  "semi_uvar x \<Longrightarrow> semi_uvar (out_var x)"
+  "mwb_lens x \<Longrightarrow> mwb_lens (out_var x)"
   by (simp add: comp_mwb_lens out_var_def snd_vwb_lens)
 
 lemma out_var_uvar [simp]:
-  "uvar x \<Longrightarrow> uvar (out_var x)"
+  "vwb_lens x \<Longrightarrow> vwb_lens (out_var x)"
   by (simp add: comp_vwb_lens out_var_def snd_vwb_lens)
 
 lemma in_out_indep [simp]:
@@ -180,5 +176,9 @@ let
     | uvar_ty_tr ts = raise TERM ("uvar_ty_tr", ts);
 in [(@{syntax_const "_uvar_ty"}, K uvar_ty_tr)] end
 *}
+
+(* Collection of UTP variable definitions *)
+
+named_theorems var_defs
 
 end

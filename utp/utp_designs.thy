@@ -26,7 +26,7 @@ definition "ok = VAR des_ok"
 
 declare ok_def [upred_defs]
 
-lemma uvar_ok [simp]: "uvar ok"
+lemma vwb_lens_ok [simp]: "vwb_lens ok"
   by (unfold_locales, simp_all add: ok_def)
 
 lemma ok_ord [usubst]:
@@ -49,7 +49,7 @@ translations
 
 declare des_lens_def [upred_defs]
 
-lemma uvar_des_lens [simp]: "uvar des_lens"
+lemma vwb_des_lens [simp]: "vwb_lens des_lens"
   by (unfold_locales, simp_all add: des_lens_def)
 
 lemma ok_indep_des_lens [simp]: "ok \<bowtie> des_lens" "des_lens \<bowtie> ok"
@@ -401,11 +401,11 @@ proof -
   have "($ok \<and> $ok\<acute> \<and> (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>)) = ($ok \<and> $ok\<acute> \<and> (Q1 ;; Q2))"
   proof -
     have "($ok \<and> $ok\<acute> \<and> (Q1 ;; Q2)) = ($ok \<and> Q1 ;; Q2 \<and> $ok\<acute>)"
-      by (metis (no_types, hide_lams) seqr_post_out seqr_pre_out utp_pred.inf.commute utp_rel.unrest_iuvar utp_rel.unrest_ouvar uvar_ok vwb_lens_mwb) 
+      by (metis (no_types, hide_lams) seqr_post_out seqr_pre_out utp_pred.inf.commute utp_rel.unrest_iuvar utp_rel.unrest_ouvar vwb_lens_ok vwb_lens_mwb) 
     also have "... = (Q1 \<and> $ok\<acute> ;; $ok \<and> Q2)"
       by (simp add: assms(3) assms(4) runrest_ident_var)
     also have "... = (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>)"
-      by (metis seqr_left_one_point seqr_post_transfer true_alt_def uivar_convr upred_eq_true utp_pred.inf.cobounded2 utp_pred.inf.orderE utp_rel.unrest_iuvar uvar_ok vwb_lens_mwb)
+      by (metis seqr_left_one_point seqr_post_transfer true_alt_def uivar_convr upred_eq_true utp_pred.inf.cobounded2 utp_pred.inf.orderE utp_rel.unrest_iuvar vwb_lens_ok vwb_lens_mwb)
     finally show ?thesis
       by (metis utp_pred.inf.left_commute utp_pred.inf_left_idem)
   qed
@@ -487,7 +487,7 @@ proof -
   have "(P \<turnstile> Q) = (($ok \<and> P) \<turnstile> ($ok \<and> $ok\<acute> \<and> Q))"
     by (pred_tac)
   also have "... = (($ok \<and> P\<lbrakk>true/$ok\<rbrakk>) \<turnstile> ($ok \<and> ($ok\<acute> \<and> Q\<lbrakk>true/$ok\<acute>\<rbrakk>)\<lbrakk>true/$ok\<rbrakk>))"
-    by (metis conj_eq_out_var_subst conj_pos_var_subst upred_eq_true utp_pred.inf_commute uvar_ok)
+    by (metis conj_eq_out_var_subst conj_pos_var_subst upred_eq_true utp_pred.inf_commute vwb_lens_ok)
   also have "... = (($ok \<and> P\<lbrakk>true/$ok\<rbrakk>) \<turnstile> ($ok \<and> $ok\<acute> \<and> Q\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>))"
     by (simp add: usubst)  
   also have "... = (P\<lbrakk>true/$ok\<rbrakk> \<turnstile> Q\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>)"
@@ -501,7 +501,7 @@ proof -
   have "(P \<turnstile> Q) = (P \<turnstile> ($ok\<acute> \<and> Q))"
     by (pred_tac)
   also have "... = (P \<turnstile> ($ok\<acute> \<and> Q\<lbrakk>true/$ok\<acute>\<rbrakk>))"
-    by (metis conj_eq_out_var_subst upred_eq_true utp_pred.inf_commute uvar_ok)
+    by (metis conj_eq_out_var_subst upred_eq_true utp_pred.inf_commute vwb_lens_ok)
   also have "... = (P \<turnstile> Q\<lbrakk>true/$ok\<acute>\<rbrakk>)"
     by (pred_tac)
   finally show ?thesis ..
@@ -740,7 +740,7 @@ proof -
       also have "... = (\<exists> $ok\<acute> \<bullet> P \<and> $ok\<acute> =\<^sub>u false)"
         by (rel_tac, metis (mono_tags, lifting) alpha_d.surjective alpha_d.update_convs(1))
       also have "... = P\<^sup>f"
-        by (metis C1 one_point out_var_uvar pr_var_def unrest_as_exists uvar_ok vwb_lens_mwb)
+        by (metis C1 one_point out_var_uvar pr_var_def unrest_as_exists vwb_lens_ok vwb_lens_mwb)
      finally show ?thesis .
     qed
     moreover have "(P ;; ($ok \<and> (\<lceil>II\<rceil>\<^sub>D \<and> $ok\<acute>))) = (P\<^sup>t \<and> $ok\<acute>)"
@@ -1090,7 +1090,7 @@ theorem H3_design_pre:
   assumes "$ok \<sharp> p" "out\<alpha> \<sharp> p" "$ok \<sharp> Q" "$ok\<acute> \<sharp> Q"
   shows "H3(p \<turnstile> Q) = p \<turnstile> Q"
   using assms
-  by (metis Healthy_def' design_H3_iff_pre precond_right_unit unrest_out\<alpha>_var uvar_ok vwb_lens_mwb) 
+  by (metis Healthy_def' design_H3_iff_pre precond_right_unit unrest_out\<alpha>_var vwb_lens_ok vwb_lens_mwb) 
 
 theorem H3_rdesign_pre:
   assumes "out\<alpha> \<sharp> p"

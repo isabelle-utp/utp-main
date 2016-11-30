@@ -154,10 +154,10 @@ declare rel_var_res_def [urel_defs]
 
 subsection {* Unrestriction Laws *}
 
-lemma unrest_iuvar [unrest]: "semi_uvar x \<Longrightarrow> out\<alpha> \<sharp> $x"
+lemma unrest_iuvar [unrest]: "mwb_lens x \<Longrightarrow> out\<alpha> \<sharp> $x"
   by (simp add: out\<alpha>_def, transfer, auto)
 
-lemma unrest_ouvar [unrest]: "semi_uvar x \<Longrightarrow> in\<alpha> \<sharp> $x\<acute>"
+lemma unrest_ouvar [unrest]: "mwb_lens x \<Longrightarrow> in\<alpha> \<sharp> $x\<acute>"
   by (simp add: in\<alpha>_def, transfer, auto)
 
 lemma unrest_semir_undash [unrest]:
@@ -177,17 +177,17 @@ lemma unrest_cond [unrest]:
   by (rel_tac)
 
 lemma unrest_in\<alpha>_var [unrest]:
-  "\<lbrakk> semi_uvar x; in\<alpha> \<sharp> (P :: ('\<alpha>, '\<beta>) relation) \<rbrakk> \<Longrightarrow> $x \<sharp> P"
+  "\<lbrakk> mwb_lens x; in\<alpha> \<sharp> (P :: ('\<alpha>, '\<beta>) relation) \<rbrakk> \<Longrightarrow> $x \<sharp> P"
   by (pred_tac, simp add: in\<alpha>_def, blast, metis in\<alpha>_def lens.select_convs(2) old.prod.case)
 
 lemma unrest_out\<alpha>_var [unrest]:
-  "\<lbrakk> semi_uvar x; out\<alpha> \<sharp> (P :: ('\<alpha>, '\<beta>) relation) \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> P"
+  "\<lbrakk> mwb_lens x; out\<alpha> \<sharp> (P :: ('\<alpha>, '\<beta>) relation) \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> P"
   by (pred_tac, simp add: out\<alpha>_def, blast, metis lens.select_convs(2) old.prod.case out\<alpha>_def)
 
-lemma in\<alpha>_uvar [simp]: "uvar in\<alpha>"
+lemma in\<alpha>_uvar [simp]: "vwb_lens in\<alpha>"
   by (unfold_locales, auto simp add: in\<alpha>_def)
 
-lemma out\<alpha>_uvar [simp]: "uvar out\<alpha>"
+lemma out\<alpha>_uvar [simp]: "vwb_lens out\<alpha>"
   by (unfold_locales, auto simp add: out\<alpha>_def)
 
 lemma unrest_pre_out\<alpha> [unrest]: "out\<alpha> \<sharp> \<lceil>b\<rceil>\<^sub><"
@@ -213,11 +213,11 @@ lemma unrest_convr_in\<alpha> [unrest]:
   by (transfer, auto simp add: in\<alpha>_def out\<alpha>_def)
 
 lemma unrest_in_rel_var_res [unrest]: 
-  "uvar x \<Longrightarrow> $x \<sharp> (P \<restriction>\<^sub>\<alpha> x)"
+  "vwb_lens x \<Longrightarrow> $x \<sharp> (P \<restriction>\<^sub>\<alpha> x)"
   by (simp add: rel_var_res_def unrest)
 
 lemma unrest_out_rel_var_res [unrest]: 
-  "uvar x \<Longrightarrow> $x\<acute> \<sharp> (P \<restriction>\<^sub>\<alpha> x)"
+  "vwb_lens x \<Longrightarrow> $x\<acute> \<sharp> (P \<restriction>\<^sub>\<alpha> x)"
   by (simp add: rel_var_res_def unrest)
 
 subsection {* Substitution laws *}
@@ -349,17 +349,17 @@ lemma comp_cond_left_distr:
   by rel_tac
 
 lemma cond_var_subst_left:
-  assumes "uvar x"
+  assumes "vwb_lens x"
   shows "(P \<triangleleft> $x \<triangleright> Q) = (P\<lbrakk>true/$x\<rbrakk> \<triangleleft> $x \<triangleright> Q)"
   using assms by (metis cond_def conj_pos_var_subst) 
 
 lemma cond_var_subst_right:
-  assumes "uvar x"
+  assumes "vwb_lens x"
   shows "(P \<triangleleft> $x \<triangleright> Q) = (P \<triangleleft> $x \<triangleright> Q\<lbrakk>false/$x\<rbrakk>)"
   using assms by (metis cond_def conj_neg_var_subst) 
 
 lemma cond_var_split:
-  "uvar x \<Longrightarrow> (P\<lbrakk>true/x\<rbrakk> \<triangleleft> var x \<triangleright> P\<lbrakk>false/x\<rbrakk>) = P"
+  "vwb_lens x \<Longrightarrow> (P\<lbrakk>true/x\<rbrakk> \<triangleleft> var x \<triangleright> P\<lbrakk>false/x\<rbrakk>) = P"
   by (rel_tac, (metis (full_types) vwb_lens.put_eq)+)
 
 lemma cond_seq_left_distr:
@@ -413,11 +413,11 @@ lemma skip_var:
   by (rel_tac)
 
 lemma seqr_exists_left:
-  "semi_uvar x \<Longrightarrow> ((\<exists> $x \<bullet> P) ;; Q) = (\<exists> $x \<bullet> (P ;; Q))"
+  "mwb_lens x \<Longrightarrow> ((\<exists> $x \<bullet> P) ;; Q) = (\<exists> $x \<bullet> (P ;; Q))"
   by (rel_tac)
 
 lemma seqr_exists_right:
-  "semi_uvar x \<Longrightarrow> (P ;; (\<exists> $x\<acute> \<bullet> Q)) = (\<exists> $x\<acute> \<bullet> (P ;; Q))"
+  "mwb_lens x \<Longrightarrow> (P ;; (\<exists> $x\<acute> \<bullet> Q)) = (\<exists> $x\<acute> \<bullet> (P ;; Q))"
   by (rel_tac)
 
 lemma assigns_subst [usubst]:
@@ -432,10 +432,10 @@ lemma assigns_r_feasible:
   by (rel_tac)
 
 lemma assign_subst [usubst]:
-  "\<lbrakk> semi_uvar x; semi_uvar y \<rbrakk> \<Longrightarrow> [$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> (y := v) = (x, y := u, [x \<mapsto>\<^sub>s u] \<dagger> v)"
+  "\<lbrakk> mwb_lens x; mwb_lens y \<rbrakk> \<Longrightarrow> [$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> (y := v) = (x, y := u, [x \<mapsto>\<^sub>s u] \<dagger> v)"
   by rel_tac
  
-lemma assigns_idem: "semi_uvar x \<Longrightarrow> (x,x := u,v) = (x := v)"
+lemma assigns_idem: "mwb_lens x \<Longrightarrow> (x,x := u,v) = (x := v)"
   by (simp add: usubst)
 
 lemma assigns_comp: "(\<langle>f\<rangle>\<^sub>a ;; \<langle>g\<rangle>\<^sub>a) = \<langle>g \<circ> f\<rangle>\<^sub>a"
@@ -451,13 +451,13 @@ lemma assign_pred_transfer:
   shows "(b \<and> x := v) = (x := v \<and> b\<^sup>-)"
   using assms by (rel_tac, blast+)
 
-lemma assign_r_comp: "semi_uvar x \<Longrightarrow> (x := u ;; P) = P\<lbrakk>\<lceil>u\<rceil>\<^sub></$x\<rbrakk>"
+lemma assign_r_comp: "mwb_lens x \<Longrightarrow> (x := u ;; P) = P\<lbrakk>\<lceil>u\<rceil>\<^sub></$x\<rbrakk>"
   by (simp add: assigns_r_comp usubst)
 
-lemma assign_test: "semi_uvar x \<Longrightarrow> (x := \<guillemotleft>u\<guillemotright> ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright>)"
+lemma assign_test: "mwb_lens x \<Longrightarrow> (x := \<guillemotleft>u\<guillemotright> ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright>)"
   by (simp add: assigns_comp subst_upd_comp subst_lit usubst_upd_idem)
 
-lemma assign_twice: "\<lbrakk> uvar x; x \<sharp> f \<rbrakk> \<Longrightarrow> (x := e ;; x := f) = (x := f)"
+lemma assign_twice: "\<lbrakk> vwb_lens x; x \<sharp> f \<rbrakk> \<Longrightarrow> (x := e ;; x := f) = (x := f)"
   by (simp add: assigns_comp usubst)
 
 lemma assign_commute:
@@ -489,11 +489,11 @@ lemma assigns_r_uinj: "inj f \<Longrightarrow> uinj \<langle>f\<rangle>\<^sub>a"
   by (rel_tac, simp add: inj_eq)
 
 lemma assigns_r_swap_uinj:
-  "\<lbrakk> uvar x; uvar y; x \<bowtie> y \<rbrakk> \<Longrightarrow> uinj (x,y := &y,&x)"
+  "\<lbrakk> vwb_lens x; vwb_lens y; x \<bowtie> y \<rbrakk> \<Longrightarrow> uinj (x,y := &y,&x)"
   using assigns_r_uinj swap_usubst_inj by auto
 
 lemma skip_r_unfold:
-  "uvar x \<Longrightarrow> II = ($x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x)"
+  "vwb_lens x \<Longrightarrow> II = ($x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x)"
   by (rel_tac, blast, metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens.get_put)
 
 lemma skip_r_alpha_eq:
@@ -512,7 +512,7 @@ lemma skip_res_as_ra:
 done
 
 lemma assign_unfold:
-  "uvar x \<Longrightarrow> (x := v) = ($x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub>< \<and> II\<restriction>\<^sub>\<alpha>x)"
+  "vwb_lens x \<Longrightarrow> (x := v) = ($x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub>< \<and> II\<restriction>\<^sub>\<alpha>x)"
   apply (rel_tac, auto simp add: comp_def)
   using vwb_lens.put_eq by fastforce
 
@@ -537,7 +537,7 @@ lemma seqr_unfold:
   by rel_tac
 
 lemma seqr_middle: 
-  assumes "uvar x"
+  assumes "vwb_lens x"
   shows "(P ;; Q) = (\<^bold>\<exists> v \<bullet> P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
   using assms
   apply (rel_tac)
@@ -548,31 +548,31 @@ lemma seqr_middle:
 done
 
 lemma seqr_left_one_point:
-  assumes "uvar x"
+  assumes "vwb_lens x"
   shows "(P \<and> ($x\<acute> =\<^sub>u \<guillemotleft>v\<guillemotright>) ;; Q) = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
   using assms
   by (rel_tac, metis vwb_lens_wb wb_lens.get_put)
 
 lemma seqr_right_one_point:
-  assumes "uvar x"
+  assumes "vwb_lens x"
   shows "(P ;; ($x =\<^sub>u \<guillemotleft>v\<guillemotright>) \<and> Q) = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
   using assms
   by (rel_tac, metis vwb_lens_wb wb_lens.get_put)
 
 lemma seqr_insert_ident_left:
-  assumes "uvar x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
+  assumes "vwb_lens x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
   shows "(($x\<acute> =\<^sub>u $x \<and> P) ;; Q) = (P ;; Q)"
   using assms
   by (rel_tac, meson vwb_lens_wb wb_lens_weak weak_lens.put_get)
 
 lemma seqr_insert_ident_right:
-  assumes "uvar x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
+  assumes "vwb_lens x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
   shows "(P ;; ($x\<acute> =\<^sub>u $x \<and> Q)) = (P ;; Q)"
   using assms
   by (rel_tac, metis (no_types, hide_lams) vwb_lens_def wb_lens_def weak_lens.put_get)
 
 lemma seq_var_ident_lift:
-  assumes "uvar x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
+  assumes "vwb_lens x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
   shows "(($x\<acute> =\<^sub>u $x \<and> P) ;; ($x\<acute> =\<^sub>u $x) \<and> Q) = ($x\<acute> =\<^sub>u $x \<and> (P ;; Q))"
   using assms apply (rel_tac)
   by (metis (no_types, lifting) vwb_lens_wb wb_lens_weak weak_lens.put_get)
@@ -712,7 +712,7 @@ lemma frame_conj: "(x:\<lbrakk>P\<rbrakk> \<and> x:\<lbrakk>Q\<rbrakk>) = x:\<lb
   by (rel_tac)
 
 lemma frame_seq:
-  "\<lbrakk> uvar x; $x\<acute> \<sharp> P; $x \<sharp> Q \<rbrakk>  \<Longrightarrow> (x:\<lbrakk>P\<rbrakk> ;; x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P ;; Q\<rbrakk>"
+  "\<lbrakk> vwb_lens x; $x\<acute> \<sharp> P; $x \<sharp> Q \<rbrakk>  \<Longrightarrow> (x:\<lbrakk>P\<rbrakk> ;; x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P ;; Q\<rbrakk>"
   by (rel_tac, metis vwb_lens_def wb_lens_weak weak_lens.put_get)
 
 lemma antiframe_to_frame:
@@ -784,7 +784,7 @@ where "RID x P = ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<an
 declare RID_def [urel_defs]
 
 lemma RID_idem:
-  "semi_uvar x \<Longrightarrow> RID(x)(RID(x)(P)) = RID(x)(P)"
+  "mwb_lens x \<Longrightarrow> RID(x)(RID(x)(P)) = RID(x)(P)"
   by rel_tac
 
 lemma RID_mono:
@@ -792,7 +792,7 @@ lemma RID_mono:
   by rel_tac
 
 lemma RID_skip_r:
-  "uvar x \<Longrightarrow> RID(x)(II) = II"
+  "vwb_lens x \<Longrightarrow> RID(x)(II) = II"
   apply rel_tac
 using vwb_lens.put_eq apply fastforce
 by auto
@@ -802,11 +802,11 @@ lemma RID_disj:
   by rel_tac
 
 lemma RID_conj:
-  "uvar x \<Longrightarrow> RID(x)(RID(x)(P) \<and> RID(x)(Q)) = (RID(x)(P) \<and> RID(x)(Q))"
+  "vwb_lens x \<Longrightarrow> RID(x)(RID(x)(P) \<and> RID(x)(Q)) = (RID(x)(P) \<and> RID(x)(Q))"
   by rel_tac
 
 lemma RID_assigns_r_diff:
-  "\<lbrakk> uvar x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> RID(x)(\<langle>\<sigma>\<rangle>\<^sub>a) = \<langle>\<sigma>\<rangle>\<^sub>a"
+  "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> RID(x)(\<langle>\<sigma>\<rangle>\<^sub>a) = \<langle>\<sigma>\<rangle>\<^sub>a"
   apply (rel_tac)
   apply (auto simp add: unrest_usubst_def)
   apply (metis vwb_lens.put_eq)
@@ -814,14 +814,14 @@ lemma RID_assigns_r_diff:
 done
 
 lemma RID_assign_r_same:
-  "uvar x \<Longrightarrow> RID(x)(x := v) = II"
+  "vwb_lens x \<Longrightarrow> RID(x)(x := v) = II"
   apply (rel_tac)
   using vwb_lens.put_eq apply fastforce
   apply blast
 done
 
 lemma RID_seq_left:
-  assumes "uvar x"
+  assumes "vwb_lens x"
   shows "RID(x)(RID(x)(P) ;; Q) = (RID(x)(P) ;; RID(x)(Q))"
 proof -
   have "RID(x)(RID(x)(P) ;; Q) = ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x ;; Q) \<and> $x\<acute> =\<^sub>u $x)"
@@ -845,7 +845,7 @@ proof -
 qed
 
 lemma RID_seq_right:
-  assumes "uvar x"
+  assumes "vwb_lens x"
   shows "RID(x)(P ;; RID(x)(Q)) = (RID(x)(P) ;; RID(x)(Q))"
 proof -
   have "RID(x)(P ;; RID(x)(Q)) = ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> $x\<acute> =\<^sub>u $x) \<and> $x\<acute> =\<^sub>u $x)"
@@ -874,22 +874,22 @@ where "(x \<sharp>\<sharp> P) \<longleftrightarrow> (P = RID(x)(P))"
 declare unrest_relation_def [urel_defs]
 
 lemma skip_r_runrest [unrest]:
-  "uvar x \<Longrightarrow> x \<sharp>\<sharp> II"
+  "vwb_lens x \<Longrightarrow> x \<sharp>\<sharp> II"
   by (simp add: RID_skip_r unrest_relation_def)
 
 lemma assigns_r_runrest:
-  "\<lbrakk> uvar x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> \<langle>\<sigma>\<rangle>\<^sub>a"
+  "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> \<langle>\<sigma>\<rangle>\<^sub>a"
   by (simp add: RID_assigns_r_diff unrest_relation_def)
  
 lemma seq_r_runrest [unrest]:
-  assumes "uvar x" "x \<sharp>\<sharp> P" "x \<sharp>\<sharp> Q"
+  assumes "vwb_lens x" "x \<sharp>\<sharp> P" "x \<sharp>\<sharp> Q"
   shows "x \<sharp>\<sharp> (P ;; Q)"
   by (metis RID_seq_left assms unrest_relation_def)
 
 lemma false_runrest [unrest]: "x \<sharp>\<sharp> false"
   by (rel_tac)
 
-lemma and_runrest [unrest]: "\<lbrakk> uvar x; x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<and> Q)"
+lemma and_runrest [unrest]: "\<lbrakk> vwb_lens x; x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<and> Q)"
   by (metis RID_conj unrest_relation_def)
 
 lemma or_runrest [unrest]: "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<or> Q)"
@@ -934,7 +934,7 @@ lift_definition rel_alpha_ext :: "'\<beta> hrelation \<Rightarrow> ('\<beta> \<L
 is "\<lambda> P x (b1, b2). P (get\<^bsub>x\<^esub> b1, get\<^bsub>x\<^esub> b2) \<and> (\<forall> b. b1 \<oplus>\<^sub>L b on x = b2 \<oplus>\<^sub>L b on x)" .
 
 lemma rel_alpha_ext_alt_def:
-  assumes "uvar y" "x +\<^sub>L y \<approx>\<^sub>L 1\<^sub>L" "x \<bowtie> y"
+  assumes "vwb_lens y" "x +\<^sub>L y \<approx>\<^sub>L 1\<^sub>L" "x \<bowtie> y"
   shows "P \<oplus>\<^sub>R x = (P \<oplus>\<^sub>p (x \<times>\<^sub>L x) \<and> $y\<acute> =\<^sub>u $y)"
   using assms
   apply (rel_tac, simp_all add: lens_override_def)
@@ -963,11 +963,11 @@ is "\<lambda> R f x (b, b'). (get\<^bsub>x\<^esub> b \<in> dom(get\<^bsub>f\<^es
                      \<and> get\<^bsub>f\<^esub> b |` {get\<^bsub>x\<^esub> b} = get\<^bsub>f\<^esub> b' |` {get\<^bsub>x\<^esub> b} 
                      \<and> (\<forall> v. put\<^bsub>f\<^esub> b' v = put\<^bsub>f\<^esub> b v))" .
 
-lemma "\<lbrakk> uvar f; uvar x \<rbrakk> \<Longrightarrow> promote II f x = II"
+lemma "\<lbrakk> uvar f; vwb_lens x \<rbrakk> \<Longrightarrow> promote II f x = II"
   apply (rel_tac)
 
 
-lemma "uvar x \<Longrightarrow> prs II x = II"
+lemma "vwb_lens x \<Longrightarrow> prs II x = II"
   by (rel_tac, metis vwb_lens_wb wb_lens.get_put)
 
 lemma "prs false x = false"

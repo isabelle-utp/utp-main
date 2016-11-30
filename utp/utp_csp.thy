@@ -22,28 +22,28 @@ definition [upred_defs]: "\<Sigma>\<^sub>c    = VAR more"
 declare ref\<^sub>c_def [upred_defs]
 declare \<Sigma>\<^sub>c_def [upred_defs]
 
-lemma ref\<^sub>c_uvar [simp]: "uvar ref\<^sub>c"
+lemma ref\<^sub>c_vwb_lens [simp]: "vwb_lens ref\<^sub>c"
   by (unfold_locales, simp_all add: ref\<^sub>c_def)
 
-lemma csp_uvar [simp]: "uvar \<Sigma>\<^sub>c"
+lemma csp_vwb_lens [simp]: "vwb_lens \<Sigma>\<^sub>c"
   by (unfold_locales, simp_all add: \<Sigma>\<^sub>c_def)
   
 definition "ref = (ref\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
 definition [upred_defs]: "\<Sigma>\<^sub>C   = (\<Sigma>\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
 
-lemma ref_uvar [simp]: "uvar ref"
+lemma ref_vwb_lens [simp]: "vwb_lens ref"
   by (simp add: comp_vwb_lens ref_def)
 
-lemma csp_lens_uvar [simp]: "uvar \<Sigma>\<^sub>C"
+lemma csp_lens_vwb_lens [simp]: "vwb_lens \<Sigma>\<^sub>C"
   by (simp add: \<Sigma>\<^sub>C_def comp_vwb_lens)
 
 lemma csp_lens_indep_ok [simp]: "\<Sigma>\<^sub>C \<bowtie> ok" "ok \<bowtie> \<Sigma>\<^sub>C"
-  apply (metis \<Sigma>\<^sub>C_def csp_uvar lens_comp_lb rea_lens_indep_ok(1) sublens_pres_indep)
+  apply (metis \<Sigma>\<^sub>C_def csp_vwb_lens lens_comp_lb rea_lens_indep_ok(1) sublens_pres_indep)
   apply (simp add: \<Sigma>\<^sub>C_def lens_indep_left_ext lens_indep_sym)
 done
 
 lemma csp_lens_indep_wait [simp]: "\<Sigma>\<^sub>C \<bowtie> wait" "wait \<bowtie> \<Sigma>\<^sub>C"
-  apply (metis \<Sigma>\<^sub>C_def csp_uvar lens_comp_lb rea_lens_indep_wait(1) sublens_pres_indep)
+  apply (metis \<Sigma>\<^sub>C_def csp_vwb_lens lens_comp_lb rea_lens_indep_wait(1) sublens_pres_indep)
   apply (simp add: \<Sigma>\<^sub>C_def lens_indep_left_ext lens_indep_sym)
 done
 

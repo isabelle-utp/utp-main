@@ -85,13 +85,13 @@ lemma usubst_lookup_id [usubst]: "\<langle>id\<rangle>\<^sub>s x = var x"
   by (transfer, simp)
 
 lemma usubst_lookup_upd [usubst]:
-  assumes "semi_uvar x"
+  assumes "mwb_lens x"
   shows "\<langle>\<sigma>(x \<mapsto>\<^sub>s v)\<rangle>\<^sub>s x = v"
   using assms
   by (simp add: subst_upd_uvar_def, transfer) (simp)
   
 lemma usubst_upd_idem [usubst]:
-  assumes "semi_uvar x"
+  assumes "mwb_lens x"
   shows "\<sigma>(x \<mapsto>\<^sub>s u, x \<mapsto>\<^sub>s v) = \<sigma>(x \<mapsto>\<^sub>s v)"
   by (simp add: subst_upd_uvar_def assms comp_def)
 
@@ -102,14 +102,14 @@ lemma usubst_upd_comm:
   by (rule_tac ext, auto simp add: subst_upd_uvar_def assms comp_def lens_indep_comm)
 
 lemma usubst_upd_comm2:
-  assumes "z \<bowtie> y" and "semi_uvar x"
+  assumes "z \<bowtie> y" and "mwb_lens x"
   shows "\<sigma>(x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v, z \<mapsto>\<^sub>s s) = \<sigma>(x \<mapsto>\<^sub>s u, z \<mapsto>\<^sub>s s, y \<mapsto>\<^sub>s v)"
   using assms
   by (rule_tac ext, auto simp add: subst_upd_uvar_def assms comp_def lens_indep_comm)
 
 lemma swap_usubst_inj:
   fixes x y :: "('a, '\<alpha>) uvar"
-  assumes "uvar x" "uvar y" "x \<bowtie> y"
+  assumes "vwb_lens x" "vwb_lens y" "x \<bowtie> y"
   shows "inj [x \<mapsto>\<^sub>s &y, y \<mapsto>\<^sub>s &x]"
   using assms
   apply (auto simp add: inj_on_def subst_upd_uvar_def)
@@ -117,7 +117,7 @@ lemma swap_usubst_inj:
 done
 
 lemma usubst_upd_var_id [usubst]: 
-  "uvar x \<Longrightarrow> [x \<mapsto>\<^sub>s var x] = id"
+  "vwb_lens x \<Longrightarrow> [x \<mapsto>\<^sub>s var x] = id"
   apply (simp add: subst_upd_uvar_def)
   apply (transfer)
   apply (rule ext)
@@ -130,21 +130,21 @@ lemma usubst_upd_comm_dash [usubst]:
   using in_out_indep usubst_upd_comm by force
 
 lemma usubst_lookup_upd_indep [usubst]:
-  assumes "semi_uvar x" "x \<bowtie> y"
+  assumes "mwb_lens x" "x \<bowtie> y"
   shows "\<langle>\<sigma>(y \<mapsto>\<^sub>s v)\<rangle>\<^sub>s x = \<langle>\<sigma>\<rangle>\<^sub>s x"
   using assms
   by (simp add: subst_upd_uvar_def, transfer, simp)
 
 lemma usubst_apply_unrest [usubst]:
-  "\<lbrakk> uvar x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s x = var x"
+  "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s x = var x"
   by (simp add: unrest_usubst_def, transfer, auto simp add: fun_eq_iff, metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
 
 lemma subst_del_id [usubst]: 
-  "uvar x \<Longrightarrow> id -\<^sub>s x = id"
+  "vwb_lens x \<Longrightarrow> id -\<^sub>s x = id"
   by (simp add: subst_del_def subst_upd_uvar_def, transfer, auto)
 
 lemma subst_del_upd_same [usubst]: 
-  "semi_uvar x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) -\<^sub>s x = \<sigma> -\<^sub>s x"
+  "mwb_lens x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) -\<^sub>s x = \<sigma> -\<^sub>s x"
   by (simp add: subst_del_def subst_upd_uvar_def)
 
 lemma subst_del_upd_diff [usubst]: 
@@ -154,7 +154,7 @@ lemma subst_del_upd_diff [usubst]:
 lemma subst_unrest [usubst]: "x \<sharp> P \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> P = \<sigma> \<dagger> P"
   by (simp add: subst_upd_uvar_def, transfer, auto)
 
-lemma subst_compose_upd [usubst]: "\<lbrakk> uvar x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<circ> \<rho>(x \<mapsto>\<^sub>s v) = (\<sigma> \<circ> \<rho>)(x \<mapsto>\<^sub>s v) "
+lemma subst_compose_upd [usubst]: "x \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<circ> \<rho>(x \<mapsto>\<^sub>s v) = (\<sigma> \<circ> \<rho>)(x \<mapsto>\<^sub>s v) "
   by (simp add: subst_upd_uvar_def, transfer, auto simp add: unrest_usubst_def)
 
 lemma id_subst [usubst]: "id \<dagger> v = v"
@@ -166,7 +166,7 @@ lemma subst_lit [usubst]: "\<sigma> \<dagger> \<guillemotleft>v\<guillemotright>
 lemma subst_var [usubst]: "\<sigma> \<dagger> var x = \<langle>\<sigma>\<rangle>\<^sub>s x"
   by (transfer, simp)
 
-lemma unrest_usubst_del [unrest]: "\<lbrakk> uvar x; x \<sharp> (\<langle>\<sigma>\<rangle>\<^sub>s x); x \<sharp> \<sigma> -\<^sub>s x \<rbrakk> \<Longrightarrow>  x \<sharp> (\<sigma> \<dagger> P)"
+lemma unrest_usubst_del [unrest]: "\<lbrakk> vwb_lens x; x \<sharp> (\<langle>\<sigma>\<rangle>\<^sub>s x); x \<sharp> \<sigma> -\<^sub>s x \<rbrakk> \<Longrightarrow>  x \<sharp> (\<sigma> \<dagger> P)"
   by (simp add: subst_del_def subst_upd_uvar_def unrest_upred_def unrest_usubst_def subst.rep_eq usubst_lookup.rep_eq)
      (metis vwb_lens.put_eq)
 
@@ -265,18 +265,18 @@ lemma subst_singleton:
   assumes "x \<sharp> \<sigma>"
   shows "\<sigma>(x \<mapsto>\<^sub>s v) \<dagger> P = (\<sigma> \<dagger> P)\<lbrakk>v/x\<rbrakk>"
   using assms
-  by (simp add: usubst, metis comp_apply id_apply subst_upd_uvar_def unrest_usubst_def)
+  by (simp add: usubst)
 
 lemmas subst_to_singleton = subst_singleton id_subst
 
 subsection {* Unrestriction laws *}
 
 lemma unrest_usubst_single [unrest]:
-  "\<lbrakk> semi_uvar x; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> P\<lbrakk>v/x\<rbrakk>"
+  "\<lbrakk> mwb_lens x; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> P\<lbrakk>v/x\<rbrakk>"
   by (transfer, auto simp add: subst_upd_uvar_def unrest_upred_def)
 
 lemma unrest_usubst_id [unrest]:
-  "semi_uvar x \<Longrightarrow> x \<sharp> id"
+  "mwb_lens x \<Longrightarrow> x \<sharp> id"
   by (simp add: unrest_usubst_def)
 
 lemma unrest_usubst_upd [unrest]:

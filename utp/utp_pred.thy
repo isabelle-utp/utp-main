@@ -303,7 +303,7 @@ lemma unrest_not [unrest]: "x \<sharp> (P :: '\<alpha> upred) \<Longrightarrow> 
 text {* The sublens proviso can be thought of as membership below. *}
 
 lemma unrest_ex_in [unrest]:
-  "\<lbrakk> semi_uvar y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> x \<sharp> (\<exists> y \<bullet> P)"
+  "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> x \<sharp> (\<exists> y \<bullet> P)"
   by (pred_tac)
 
 declare sublens_refl [simp]
@@ -322,7 +322,7 @@ lemma unrest_ex_diff [unrest]:
 done
 
 lemma unrest_all_in [unrest]:
-  "\<lbrakk> semi_uvar y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> x \<sharp> (\<forall> y \<bullet> P)"
+  "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> x \<sharp> (\<forall> y \<bullet> P)"
   by pred_tac
 
 lemma unrest_all_diff [unrest]:
@@ -392,7 +392,7 @@ lemma subst_shAll [usubst]: "\<sigma> \<dagger> (\<^bold>\<forall> x \<bullet> P
 text {* TODO: Generalise the quantifier substitution laws to n-ary substitutions *}
 
 lemma subst_ex_same [usubst]:
-  assumes "semi_uvar x"
+  assumes "mwb_lens x"
   shows "(\<exists> x \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<exists> x \<bullet> P)"
   by (simp add: assms id_subst subst_unrest unrest_ex_in)
 
@@ -405,7 +405,7 @@ lemma subst_ex_indep [usubst]:
 done
  
 lemma subst_all_same [usubst]:
-  assumes "semi_uvar x"
+  assumes "mwb_lens x"
   shows "(\<forall> x \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<forall> x \<bullet> P)"
   by (simp add: assms id_subst subst_unrest unrest_all_in)
 
@@ -582,33 +582,33 @@ lemma eq_upred_sym: "(x =\<^sub>u y) = (y =\<^sub>u x)"
   by pred_tac
 
 lemma eq_cong_left:
-  assumes "uvar x" "$x \<sharp> Q" "$x\<acute> \<sharp> Q" "$x \<sharp> R" "$x\<acute> \<sharp> R"
+  assumes "vwb_lens x" "$x \<sharp> Q" "$x\<acute> \<sharp> Q" "$x \<sharp> R" "$x\<acute> \<sharp> R"
   shows "(($x\<acute> =\<^sub>u $x \<and> Q) = ($x\<acute> =\<^sub>u $x \<and> R)) \<longleftrightarrow> (Q = R)"
   using assms
   by (pred_tac, (meson mwb_lens_def vwb_lens_mwb weak_lens_def)+)
 
 lemma conj_eq_in_var_subst:
   fixes x :: "('a, '\<alpha>) uvar"
-  assumes "uvar x"
+  assumes "vwb_lens x"
   shows "(P \<and> $x =\<^sub>u v) = (P\<lbrakk>v/$x\<rbrakk> \<and> $x =\<^sub>u v)"
   using assms
   by (pred_tac, (metis vwb_lens_wb wb_lens.get_put)+)
 
 lemma conj_eq_out_var_subst:
   fixes x :: "('a, '\<alpha>) uvar"
-  assumes "uvar x"
+  assumes "vwb_lens x"
   shows "(P \<and> $x\<acute> =\<^sub>u v) = (P\<lbrakk>v/$x\<acute>\<rbrakk> \<and> $x\<acute> =\<^sub>u v)"
   using assms
   by (pred_tac, (metis vwb_lens_wb wb_lens.get_put)+)
 
 lemma conj_pos_var_subst:
-  assumes "uvar x"
+  assumes "vwb_lens x"
   shows "($x \<and> Q) = ($x \<and> Q\<lbrakk>true/$x\<rbrakk>)"
   using assms
   by (pred_tac, metis (full_types) vwb_lens_wb wb_lens.get_put, metis (full_types) vwb_lens_wb wb_lens.get_put)
 
 lemma conj_neg_var_subst:
-  assumes "uvar x"
+  assumes "vwb_lens x"
   shows "(\<not> $x \<and> Q) = (\<not> $x \<and> Q\<lbrakk>false/$x\<rbrakk>)"
   using assms
   by (pred_tac, metis (full_types) vwb_lens_wb wb_lens.get_put, metis (full_types) vwb_lens_wb wb_lens.get_put)
@@ -643,40 +643,40 @@ lemma upred_eq_false [simp]: "(p =\<^sub>u false) = (\<not> p)"
   by pred_tac
 
 lemma conj_var_subst: 
-  assumes "uvar x"
+  assumes "vwb_lens x"
   shows "(P \<and> var x =\<^sub>u v) = (P\<lbrakk>v/x\<rbrakk> \<and> var x =\<^sub>u v)"
   using assms
   by (pred_tac, (metis (full_types) vwb_lens_def wb_lens.get_put)+)
 
 lemma one_point:
-  assumes "semi_uvar x" "x \<sharp> v"
+  assumes "mwb_lens x" "x \<sharp> v"
   shows "(\<exists> x \<bullet> P \<and> var x =\<^sub>u v) = P\<lbrakk>v/x\<rbrakk>"
   using assms
   by (pred_tac)
 
 lemma uvar_assign_exists:
-  "uvar x \<Longrightarrow> \<exists> v. b = put\<^bsub>x\<^esub> b v"
+  "vwb_lens x \<Longrightarrow> \<exists> v. b = put\<^bsub>x\<^esub> b v"
   by (rule_tac x="get\<^bsub>x\<^esub> b" in exI, simp)
 
 lemma uvar_obtain_assign:
-  assumes "uvar x"
+  assumes "vwb_lens x"
   obtains v where "b = put\<^bsub>x\<^esub> b v"
   using assms
   by (drule_tac uvar_assign_exists[of _ b], auto)
 
 lemma eq_split_subst:
-  assumes "uvar x"
+  assumes "vwb_lens x"
   shows "(P = Q) \<longleftrightarrow> (\<forall> v. P\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk> = Q\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>)"
   using assms
   by (pred_tac, metis uvar_assign_exists)
 
 lemma eq_split_substI:
-  assumes "uvar x" "\<And> v. P\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk> = Q\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>"
+  assumes "vwb_lens x" "\<And> v. P\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk> = Q\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>"
   shows "P = Q"
   using assms(1) assms(2) eq_split_subst by blast
 
 lemma taut_split_subst:
-  assumes "uvar x"
+  assumes "vwb_lens x"
   shows "`P` \<longleftrightarrow> (\<forall> v. `P\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>`)"
   using assms
   by (pred_tac, metis uvar_assign_exists)
@@ -688,7 +688,7 @@ lemma eq_split:
   by (pred_tac)
 
 lemma subst_bool_split:
-  assumes "uvar x"
+  assumes "vwb_lens x"
   shows "`P` = `(P\<lbrakk>false/x\<rbrakk> \<and> P\<lbrakk>true/x\<rbrakk>)`"
 proof -
   from assms have "`P` = (\<forall> v. `P\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>`)"
@@ -709,10 +709,10 @@ lemma subst_eq_replace:
   shows "(p\<lbrakk>u/x\<rbrakk> \<and> u =\<^sub>u v) = (p\<lbrakk>v/x\<rbrakk> \<and> u =\<^sub>u v)"
   by pred_tac
 
-lemma exists_twice: "semi_uvar x \<Longrightarrow> (\<exists> x \<bullet> \<exists> x \<bullet> P) = (\<exists> x \<bullet> P)"
+lemma exists_twice: "mwb_lens x \<Longrightarrow> (\<exists> x \<bullet> \<exists> x \<bullet> P) = (\<exists> x \<bullet> P)"
   by (pred_tac)
 
-lemma all_twice: "semi_uvar x \<Longrightarrow> (\<forall> x \<bullet> \<forall> x \<bullet> P) = (\<forall> x \<bullet> P)"
+lemma all_twice: "mwb_lens x \<Longrightarrow> (\<forall> x \<bullet> \<forall> x \<bullet> P) = (\<forall> x \<bullet> P)"
   by (pred_tac)
 
 lemma exists_sub: "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> (\<exists> x \<bullet> \<exists> y \<bullet> P) = (\<exists> y \<bullet> P)"

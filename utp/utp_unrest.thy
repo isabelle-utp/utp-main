@@ -42,24 +42,24 @@ lemma unrest_lit [unrest]: "x \<sharp> \<guillemotleft>v\<guillemotright>"
 text {* The following law demonstrates why we need variable independence: a variable 
         expression is unrestricted by another variable only when the two variables are independent. *}
 
-lemma unrest_var [unrest]: "\<lbrakk> uvar x; x \<bowtie> y \<rbrakk> \<Longrightarrow> y \<sharp> var x"
+lemma unrest_var [unrest]: "\<lbrakk> vwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> y \<sharp> var x"
   by (transfer, auto)
 
-lemma unrest_iuvar [unrest]: "\<lbrakk> uvar x; x \<bowtie> y \<rbrakk> \<Longrightarrow> $y \<sharp> $x"
+lemma unrest_iuvar [unrest]: "\<lbrakk> vwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> $y \<sharp> $x"
   by (metis in_var_indep in_var_uvar unrest_var)
 
-lemma unrest_ouvar [unrest]: "\<lbrakk> uvar x; x \<bowtie> y \<rbrakk> \<Longrightarrow> $y\<acute> \<sharp> $x\<acute>"
+lemma unrest_ouvar [unrest]: "\<lbrakk> vwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> $y\<acute> \<sharp> $x\<acute>"
   by (metis out_var_indep out_var_uvar unrest_var)
 
 lemma unrest_iuvar_ouvar [unrest]: 
   fixes x :: "('a, '\<alpha>) uvar"
-  assumes "uvar y"
+  assumes "vwb_lens y"
   shows "$x \<sharp> $y\<acute>"
   by (metis prod.collapse unrest_upred.rep_eq var.rep_eq var_lookup_out var_update_in)
 
 lemma unrest_ouvar_iuvar [unrest]:
   fixes x :: "('a, '\<alpha>) uvar"
-  assumes "uvar y"
+  assumes "vwb_lens y"
   shows "$x\<acute> \<sharp> $y"
   by (metis prod.collapse unrest_upred.rep_eq var.rep_eq var_lookup_in var_update_out)
 

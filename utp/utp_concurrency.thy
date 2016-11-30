@@ -135,35 +135,35 @@ declare out_pre_uexpr_def [upred_defs]
 lemma left_uvar_indep_right_uvar [simp]:
   "left_uvar x \<bowtie> right_uvar y"
   apply (simp add: left_uvar_def right_uvar_def lens_comp_assoc[THEN sym])
-  apply (metis in_out_indep in_var_def lens_indep_left_comp out_var_def out_var_indep uvar_des_lens vwb_lens_mwb)
+  apply (metis in_out_indep in_var_def lens_indep_left_comp out_var_def out_var_indep vwb_des_lens vwb_lens_mwb)
 done
 
 lemma right_uvar_indep_left_uvar [simp]:
   "right_uvar x \<bowtie> left_uvar y"
   by (simp add: lens_indep_sym)
 
-lemma left_uvar [simp]: "uvar x \<Longrightarrow> uvar (left_uvar x)"
+lemma left_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (left_uvar x)"
   by (simp add: left_uvar_def comp_vwb_lens fst_vwb_lens snd_vwb_lens)
 
-lemma right_uvar [simp]: "uvar x \<Longrightarrow> uvar (right_uvar x)"
+lemma right_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (right_uvar x)"
   by (simp add: right_uvar_def comp_vwb_lens fst_vwb_lens snd_vwb_lens)
 
 lemma ind_uvar_indep [simp]:
   "\<lbrakk>mwb_lens x; i \<noteq> j\<rbrakk> \<Longrightarrow> ind_uvar i x \<bowtie> ind_uvar j x"
   apply (simp add: ind_uvar_def lens_comp_assoc[THEN sym])
-  apply (metis lens_indep_left_comp lens_indep_right_comp list_lens_indep out_var_def out_var_indep uvar_des_lens vwb_lens_mwb)
+  apply (metis lens_indep_left_comp lens_indep_right_comp list_lens_indep out_var_def out_var_indep vwb_des_lens vwb_lens_mwb)
 done
 
-lemma ind_uvar_semi_uvar [simp]:
-  "semi_uvar x \<Longrightarrow> semi_uvar (ind_uvar i x)"
+lemma ind_uvar_mwb_lens [simp]:
+  "mwb_lens x \<Longrightarrow> mwb_lens (ind_uvar i x)"
   by (auto intro!: comp_mwb_lens list_mwb_lens simp add: ind_uvar_def snd_vwb_lens)
 
-lemma in_ind_uvar_semi_uvar [simp]:
-  "semi_uvar x \<Longrightarrow> semi_uvar (in_ind_uvar i x)"
+lemma in_ind_uvar_mwb_lens [simp]:
+  "mwb_lens x \<Longrightarrow> mwb_lens (in_ind_uvar i x)"
   by (simp add: in_ind_uvar_def)
 
-lemma out_ind_uvar_semi_uvar [simp]:
-  "semi_uvar x \<Longrightarrow> semi_uvar (out_ind_uvar i x)"
+lemma out_ind_uvar_mwb_lens [simp]:
+  "mwb_lens x \<Longrightarrow> mwb_lens (out_ind_uvar i x)"
   by (simp add: out_ind_uvar_def)
 
 declare id_vwb_lens [simp]  

@@ -201,15 +201,15 @@ definition subst_ext :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<Longrightar
 [upred_defs]: "\<sigma> \<oplus>\<^sub>s x = (\<lambda> s. put\<^bsub>x\<^esub> s (\<sigma> (get\<^bsub>x\<^esub> s)))"
 
 lemma id_subst_ext [usubst,alpha]: 
-  "uvar x \<Longrightarrow> id \<oplus>\<^sub>s x = id"
+  "vwb_lens x \<Longrightarrow> id \<oplus>\<^sub>s x = id"
   by pred_tac
 
 lemma upd_subst_ext [alpha]: 
-  "uvar x \<Longrightarrow> \<sigma>(y \<mapsto>\<^sub>s v) \<oplus>\<^sub>s x = (\<sigma> \<oplus>\<^sub>s x)(&x:y \<mapsto>\<^sub>s v \<oplus>\<^sub>p x)"
+  "vwb_lens x \<Longrightarrow> \<sigma>(y \<mapsto>\<^sub>s v) \<oplus>\<^sub>s x = (\<sigma> \<oplus>\<^sub>s x)(&x:y \<mapsto>\<^sub>s v \<oplus>\<^sub>p x)"
   by pred_tac
 
 lemma apply_subst_ext [alpha]: 
-  "uvar x \<Longrightarrow> (\<sigma> \<dagger> e) \<oplus>\<^sub>p x = (\<sigma> \<oplus>\<^sub>s x) \<dagger> (e \<oplus>\<^sub>p x)"
+  "vwb_lens x \<Longrightarrow> (\<sigma> \<dagger> e) \<oplus>\<^sub>p x = (\<sigma> \<oplus>\<^sub>s x) \<dagger> (e \<oplus>\<^sub>p x)"
   by (pred_tac)
 
 lemma aext_upred_eq [alpha]:
@@ -222,15 +222,15 @@ definition subst_res :: "'\<alpha> usubst \<Rightarrow> ('\<beta> \<Longrightarr
 [upred_defs]: "\<sigma> \<restriction>\<^sub>s x = (\<lambda> s. get\<^bsub>x\<^esub> (\<sigma> (create\<^bsub>x\<^esub> s)))"
 
 lemma id_subst_res [alpha,usubst]:
-  "semi_uvar x \<Longrightarrow> id \<restriction>\<^sub>s x = id"
+  "mwb_lens x \<Longrightarrow> id \<restriction>\<^sub>s x = id"
   by pred_tac
 
 lemma upd_subst_res [alpha]: 
-  "uvar x \<Longrightarrow> \<sigma>(&x:y \<mapsto>\<^sub>s v) \<restriction>\<^sub>s x = (\<sigma> \<restriction>\<^sub>s x)(&y \<mapsto>\<^sub>s v \<restriction>\<^sub>p x)"
+  "vwb_lens x \<Longrightarrow> \<sigma>(&x:y \<mapsto>\<^sub>s v) \<restriction>\<^sub>s x = (\<sigma> \<restriction>\<^sub>s x)(&y \<mapsto>\<^sub>s v \<restriction>\<^sub>p x)"
   by (pred_tac)
 
 lemma subst_ext_res [alpha,usubst]:
-  "uvar x \<Longrightarrow> (\<sigma> \<oplus>\<^sub>s x) \<restriction>\<^sub>s x = \<sigma>"
+  "vwb_lens x \<Longrightarrow> (\<sigma> \<oplus>\<^sub>s x) \<restriction>\<^sub>s x = \<sigma>"
   by (pred_tac)
 
 lemma unrest_subst_alpha_ext [unrest]:

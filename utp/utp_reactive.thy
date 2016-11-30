@@ -25,26 +25,26 @@ declare wait\<^sub>r_def [upred_defs]
 declare tr\<^sub>r_def [upred_defs]
 declare \<Sigma>\<^sub>r_def [upred_defs]
 
-lemma wait\<^sub>r_uvar [simp]: "uvar wait\<^sub>r"
+lemma wait\<^sub>r_vwb_lens [simp]: "vwb_lens wait\<^sub>r"
   by (unfold_locales, simp_all add: wait\<^sub>r_def)
 
-lemma tr\<^sub>r_uvar [simp]: "uvar tr\<^sub>r"
+lemma tr\<^sub>r_vwb_lens [simp]: "vwb_lens tr\<^sub>r"
   by (unfold_locales, simp_all add: tr\<^sub>r_def)
 
-lemma rea_uvar [simp]: "uvar \<Sigma>\<^sub>r"
+lemma rea_vwb_lens [simp]: "vwb_lens \<Sigma>\<^sub>r"
   by (unfold_locales, simp_all add: \<Sigma>\<^sub>r_def)
   
 definition "wait = (wait\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
 definition "tr   = (tr\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
 definition [upred_defs]: "\<Sigma>\<^sub>R   = (\<Sigma>\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
 
-lemma wait_uvar [simp]: "uvar wait"
+lemma wait_vwb_lens [simp]: "vwb_lens wait"
   by (simp add: comp_vwb_lens wait_def)
 
-lemma tr_uvar [simp]: "uvar tr"
+lemma tr_vwb_lens [simp]: "vwb_lens tr"
   by (simp add: comp_vwb_lens tr_def)
 
-lemma rea_lens_uvar [simp]: "uvar \<Sigma>\<^sub>R"
+lemma rea_lens_vwb_lens [simp]: "vwb_lens \<Sigma>\<^sub>R"
   by (simp add: \<Sigma>\<^sub>R_def comp_vwb_lens)
 
 lemma rea_lens_under_des_lens: "\<Sigma>\<^sub>R \<subseteq>\<^sub>L \<Sigma>\<^sub>D"
@@ -142,7 +142,7 @@ lemma R1_mono: "P \<sqsubseteq> Q \<Longrightarrow> R1(P) \<sqsubseteq> R1(Q)"
   by pred_tac
 
 lemma R1_unrest [unrest]: "\<lbrakk> x \<bowtie> in_var tr; x \<bowtie> out_var tr; x \<sharp> P \<rbrakk> \<Longrightarrow> x \<sharp> R1(P)"
-  by (metis R1_def in_var_uvar lens_indep_sym out_var_uvar tr_uvar unrest_bop unrest_conj unrest_var)
+  by (metis R1_def in_var_uvar lens_indep_sym out_var_uvar tr_vwb_lens unrest_bop unrest_conj unrest_var)
 
 lemma R1_false: "R1(false) = false"
   by pred_tac
@@ -253,7 +253,7 @@ lemma R2a_equiv_R2s: "P is R2a \<longleftrightarrow> P is R2s"
 lemma R2s_idem: "R2s(R2s(P)) = R2s(P)"
   by (pred_tac)
 
-lemma R2s_unrest [unrest]: "\<lbrakk> uvar x; x \<bowtie> in_var tr; x \<bowtie> out_var tr; x \<sharp> P \<rbrakk> \<Longrightarrow> x \<sharp> R2s(P)"
+lemma R2s_unrest [unrest]: "\<lbrakk> vwb_lens x; x \<bowtie> in_var tr; x \<bowtie> out_var tr; x \<sharp> P \<rbrakk> \<Longrightarrow> x \<sharp> R2s(P)"
   by (simp add: R2s_def unrest usubst lens_indep_sym)
 
 lemma R2_idem: "R2(R2(P)) = R2(P)"
@@ -560,7 +560,7 @@ lemma R3c_seq_closure:
   by (metis Healthy_def' R3c_semir_form assms)
 
 lemma R3c_subst_wait: "R3c(P) = R3c(P \<^sub>f)"
-  by (metis R3c_def cond_var_subst_right wait_uvar)
+  by (metis R3c_def cond_var_subst_right wait_vwb_lens)
 
 lemma R1_R3_commute: "R1(R3(P)) = R3(R1(P))"
   by rel_tac

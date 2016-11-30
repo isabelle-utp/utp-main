@@ -257,7 +257,7 @@ definition [simp]: "out_dvar x = out_var (x\<up>)"
 adhoc_overloading
   ivar in_dvar and ovar out_dvar and svar dvar_lift
 
-lemma uvar_dvar: "uvar (x\<up>)"
+lemma uvar_dvar: "vwb_lens (x\<up>)"
   by (auto intro: comp_vwb_lens simp add: dvar_lift_def)
 
 text {* Deep variables with different names are independent *}
@@ -299,7 +299,7 @@ translations
 
 definition "MkDVar x = \<lceil>x\<rceil>\<^sub>d\<up>"
 
-lemma uvar_MkDVar [simp]: "uvar (MkDVar x)"
+lemma uvar_MkDVar [simp]: "vwb_lens (MkDVar x)"
   by (simp add: MkDVar_def uvar_dvar)
 
 lemma MkDVar_indep [simp]: "x \<noteq> y \<Longrightarrow> MkDVar x \<bowtie> MkDVar y"

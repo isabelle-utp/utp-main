@@ -37,7 +37,7 @@ lemma R1_design_composition:
    R1((\<not> (R1(\<not> P) ;; R1(true)) \<and> \<not> (R1(Q) ;; R1(\<not> R))) \<turnstile> (R1(Q) ;; R1(S)))"
 proof -
   have "(R1(P \<turnstile> Q) ;; R1(R \<turnstile> S)) = (\<^bold>\<exists> ok\<^sub>0 \<bullet> (R1(P \<turnstile> Q))\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<acute>\<rbrakk> ;; (R1(R \<turnstile> S))\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<rbrakk>)"
-    using seqr_middle uvar_ok by blast
+    using seqr_middle vwb_lens_ok by blast
   also from assms have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> R1(($ok \<and> P) \<Rightarrow> (\<guillemotleft>ok\<^sub>0\<guillemotright> \<and> Q)) ;; R1((\<guillemotleft>ok\<^sub>0\<guillemotright>  \<and> R) \<Rightarrow> ($ok\<acute> \<and> S)))"
     by (simp add: design_def R1_def usubst unrest)
   also from assms have "... = ((R1(($ok \<and> P) \<Rightarrow> (true \<and> Q)) ;; R1((true \<and> R) \<Rightarrow> ($ok\<acute> \<and> S)))
@@ -564,10 +564,10 @@ lemma subst_wait'_cond_false [usubst]: "(P \<diamondop> Q)\<lbrakk>false/$wait\<
   by rel_tac  
 
 lemma subst_wait'_left_subst: "(P\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> Q) = (P \<diamondop> Q)"
-  by (metis wait'_cond_def cond_def conj_comm conj_eq_out_var_subst upred_eq_true wait_uvar)
+  by (metis wait'_cond_def cond_def conj_comm conj_eq_out_var_subst upred_eq_true wait_vwb_lens)
 
 lemma subst_wait'_right_subst: "(P \<diamondop> Q\<lbrakk>false/$wait\<acute>\<rbrakk>) = (P \<diamondop> Q)"
-  by (metis cond_def conj_eq_out_var_subst upred_eq_false utp_pred.inf.commute wait'_cond_def wait_uvar)
+  by (metis cond_def conj_eq_out_var_subst upred_eq_false utp_pred.inf.commute wait'_cond_def wait_vwb_lens)
 
 lemma wait'_cond_split: "P\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> P\<lbrakk>false/$wait\<acute>\<rbrakk> = P"
   by (simp add: wait'_cond_def cond_var_split)
@@ -637,7 +637,7 @@ proof -
         by (metis (no_types, lifting) cond_def conj_disj_not_abs utp_pred.double_compl utp_pred.inf.left_idem utp_pred.sup_assoc utp_pred.sup_inf_absorb)
 
       also have "... = ((R1 (R2s Q\<^sub>2))\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (R1 (R2s S\<^sub>1) \<diamondop> R1 (R2s S\<^sub>2))\<lbrakk>false/$wait\<rbrakk>)"
-        by (metis false_alt_def seqr_right_one_point upred_eq_false wait_uvar)
+        by (metis false_alt_def seqr_right_one_point upred_eq_false wait_vwb_lens)
 
       also have "... = ((R1 (R2s Q\<^sub>2)) ;; (R1 (R2s S\<^sub>1) \<diamondop> R1 (R2s S\<^sub>2)))"
         by (simp add: wait'_cond_def usubst unrest assms)
@@ -796,13 +796,13 @@ lemma RH_design_subst_wait_post: "RH(P \<turnstile> Q \<^sub>f) = RH(P \<turnsti
 lemma RH_peri_subst_false_wait: "RH(P \<turnstile> Q \<^sub>f \<diamondop> R) = RH(P \<turnstile> Q \<diamondop> R)"
   apply (subst RH_design_subst_wait_post[THEN sym])
   apply (simp add: usubst unrest)
-  apply (metis RH_design_subst_wait RH_design_subst_wait_pre out_in_indep out_var_uvar unrest_false unrest_usubst_id unrest_usubst_upd vwb_lens.axioms(2) wait'_cond_subst wait_uvar)
+  apply (metis RH_design_subst_wait RH_design_subst_wait_pre out_in_indep out_var_uvar unrest_false unrest_usubst_id unrest_usubst_upd vwb_lens.axioms(2) wait'_cond_subst wait_vwb_lens)
 done
 
 lemma RH_post_subst_false_wait: "RH(P \<turnstile> Q \<diamondop> R \<^sub>f) = RH(P \<turnstile> Q \<diamondop> R)"
   apply (subst RH_design_subst_wait_post[THEN sym])
   apply (simp add: usubst unrest)
-  apply (metis RH_design_subst_wait RH_design_subst_wait_pre out_in_indep out_var_uvar unrest_false unrest_usubst_id unrest_usubst_upd vwb_lens.axioms(2) wait'_cond_subst wait_uvar)
+  apply (metis RH_design_subst_wait RH_design_subst_wait_pre out_in_indep out_var_uvar unrest_false unrest_usubst_id unrest_usubst_upd vwb_lens.axioms(2) wait'_cond_subst wait_vwb_lens)
 done
 
 lemma skip_rea_reactive_tri_design:
@@ -870,7 +870,7 @@ lemma RH_pre_RH_design:
   apply (simp add: unrest)
   apply (simp add: RH_design_subst_wait_pre)
   apply (simp add: usubst)
-  apply (metis conj_pos_var_subst design_def uvar_ok)
+  apply (metis conj_pos_var_subst design_def vwb_lens_ok)
 done
 
 lemma RH_postcondition: "(RH(P \<turnstile> Q))\<^sup>t\<^sub>f = R1(R2s($ok \<and> P\<^sup>t\<^sub>f \<Rightarrow> Q\<^sup>t\<^sub>f))"
@@ -898,18 +898,18 @@ lemma post\<^sub>R_alt_def: "post\<^sub>R(P) = (P\<^sup>t\<^sub>f)\<lbrakk>true/
   by (simp add: post\<^sub>R_def usubst)
 
 lemma design_export_ok_true: "P \<turnstile> Q\<lbrakk>true/$ok\<rbrakk> = P \<turnstile> Q"
-  by (metis conj_pos_var_subst design_export_ok uvar_ok)
+  by (metis conj_pos_var_subst design_export_ok vwb_lens_ok)
 
 lemma design_export_peri_ok_true: "P \<turnstile> Q\<lbrakk>true/$ok\<rbrakk> \<diamondop> R = P \<turnstile> Q \<diamondop> R"
   apply (subst design_export_ok_true[THEN sym])
   apply (simp add: usubst unrest)
-  apply (metis design_export_ok_true out_in_indep out_var_uvar unrest_true unrest_usubst_id unrest_usubst_upd vwb_lens_mwb wait'_cond_subst wait_uvar)
+  apply (metis design_export_ok_true out_in_indep out_var_uvar unrest_true unrest_usubst_id unrest_usubst_upd vwb_lens_mwb wait'_cond_subst wait_vwb_lens)
 done
 
 lemma design_export_post_ok_true: "P \<turnstile> Q \<diamondop> R\<lbrakk>true/$ok\<rbrakk> = P \<turnstile> Q \<diamondop> R"
   apply (subst design_export_ok_true[THEN sym])
   apply (simp add: usubst unrest)
-  apply (metis design_export_ok_true out_in_indep out_var_uvar unrest_true unrest_usubst_id unrest_usubst_upd vwb_lens_mwb wait'_cond_subst wait_uvar)
+  apply (metis design_export_ok_true out_in_indep out_var_uvar unrest_true unrest_usubst_id unrest_usubst_upd vwb_lens_mwb wait'_cond_subst wait_vwb_lens)
 done
 
 lemma RH_peri_RH_design:
@@ -937,7 +937,7 @@ proof -
   have "(P \<and> \<not> $wait\<acute> ;; \<not> pre\<^sub>R Q) = (P \<and> $wait\<acute> =\<^sub>u false ;; \<not> pre\<^sub>R Q)"
     by (rel_tac)
   also have "... = (P\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (\<not> pre\<^sub>R Q)\<lbrakk>false/$wait\<rbrakk>)"
-    by (metis false_alt_def seqr_left_one_point wait_uvar)
+    by (metis false_alt_def seqr_left_one_point wait_vwb_lens)
   also have "... = (P ;; \<not> pre\<^sub>R Q)"
     by (simp add: usubst unrest assms)
   finally show ?thesis .
@@ -1304,7 +1304,7 @@ proof -
             (R1 (R2s ($ok \<and> P\<^sub>1 \<Rightarrow> Q\<^sub>1)) \<and> R1 (R2s ($ok \<and> P\<^sub>2 \<Rightarrow> Q\<^sub>2))))"
     by (metis (no_types, hide_lams) R2c_and R2c_not RH_design_pre_R2c RH_design_pre_neg_conj_R1 double_negation)
   also have "... = RH ((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (R1 (R2s ($ok \<and> P\<^sub>1 \<Rightarrow> Q\<^sub>1)) \<and> R1 (R2s ($ok \<and> P\<^sub>2 \<Rightarrow> Q\<^sub>2))))"
-    by (metis conj_pos_var_subst design_def subst_conj uvar_ok)
+    by (metis conj_pos_var_subst design_def subst_conj vwb_lens_ok)
   also have "... = RH ((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (R1 (R2s (($ok \<and> P\<^sub>1 \<Rightarrow> Q\<^sub>1) \<and> ($ok \<and> P\<^sub>2 \<Rightarrow> Q\<^sub>2)))))"
     by (simp add: R1_conj R2s_conj)
   also have "... = RH ((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (($ok \<and> P\<^sub>1 \<Rightarrow> Q\<^sub>1) \<and> ($ok \<and> P\<^sub>2 \<Rightarrow> Q\<^sub>2)))"

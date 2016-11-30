@@ -30,11 +30,11 @@ definition rest_var :: "('a::two, '\<alpha>) lvar \<Rightarrow> ('a list, '\<alp
 
 text {* The top most variable is independent of the rest of the stack *}
 
-lemma top_semi_uvar [simp]: "uvar x \<Longrightarrow> semi_uvar (top_var x)"
+lemma top_mwb_lens [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (top_var x)"
   by (simp add: list_mwb_lens top_var_def)
 
 lemma top_rest_var_indep [simp]:  
-  "uvar x \<Longrightarrow> top_var x \<bowtie> rest_var x"
+  "mwb_lens x \<Longrightarrow> top_var x \<bowtie> rest_var x"
   by (simp add: lens_indep_left_comp rest_var_def top_var_def)
 
 lemma top_var_pres_indep [simp]:
@@ -91,7 +91,7 @@ end
 
 locale utp_prog_var = utp_theory \<T> for \<T> :: "('\<T> \<times> '\<alpha>) itself" (structure) +
   fixes \<V>\<T> :: "'\<beta>::vst itself"
-  assumes pvar_uvar: "uvar (\<^bold>v :: '\<beta> \<Longrightarrow> '\<alpha>)"
+  assumes pvar_uvar: "vwb_lens (\<^bold>v :: '\<beta> \<Longrightarrow> '\<alpha>)"
   and Healthy_pvar_assigns: "\<^bold>\<langle>\<sigma> :: '\<beta> usubst\<^bold>\<rangle> is \<H>"
   and pvar_assigns_comp: "(\<^bold>\<langle>\<sigma>\<^bold>\<rangle> ;; \<^bold>\<langle>\<rho>\<^bold>\<rangle>) = \<^bold>\<langle>\<rho> \<circ> \<sigma>\<^bold>\<rangle>"
 
@@ -122,13 +122,13 @@ lemma var_end_healthy:
 
 lemma var_open_close:
   fixes x :: "('a, '\<beta>) lvar"
-  assumes "uvar x"
+  assumes "vwb_lens x"
   shows "(var x ;; end x) = \<I>\<I>"
   by (simp add: var_begin_def var_end_def shEx_lift_seq_1 Healthy_pvar_assigns pvar_assigns_comp pvar_assign_unit usubst assms)
 
 lemma var_open_close_commute:
   fixes x :: "('a, '\<beta>) lvar" and y :: "('b, '\<beta>) lvar"
-  assumes "uvar x" "uvar y" "x \<bowtie> y"
+  assumes "vwb_lens x" "vwb_lens y" "x \<bowtie> y"
   shows "(var x ;; end y) = (end y ;; var x)"
   by (simp add: var_begin_def var_end_def shEx_lift_seq_1 shEx_lift_seq_2 
                 Healthy_pvar_assigns pvar_assigns_comp
@@ -136,7 +136,7 @@ lemma var_open_close_commute:
 
 lemma var_block_vacuous: 
   fixes x :: "('a::two, '\<beta>) lvar"
-  assumes "uvar x"
+  assumes "vwb_lens x"
   shows "(var x \<bullet> \<I>\<I>) = \<I>\<I>"
   by (simp add: Left_Unit assms var_end_healthy var_open_close)
 

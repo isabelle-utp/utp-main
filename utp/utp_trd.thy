@@ -41,7 +41,7 @@ definition disc_alpha :: "_" ("\<^bold>d") where
 definition cont_alpha :: "_" ("\<^bold>c") where
 [upred_defs]: "cont_alpha = snd\<^sub>L ;\<^sub>L \<Sigma>\<^sub>R"
 
-lemma disc_alpha_uvar [simp]: "uvar \<^bold>d"
+lemma disc_alpha_vwb_lens [simp]: "vwb_lens \<^bold>d"
   by (simp add: comp_vwb_lens disc_alpha_def fst_vwb_lens)
 
 lemma disc_indep_ok [simp]: "\<^bold>d \<bowtie> ok" "ok \<bowtie> \<^bold>d"
@@ -53,7 +53,7 @@ lemma disc_indep_wait [simp]: "\<^bold>d \<bowtie> wait" "wait \<bowtie> \<^bold
 lemma disc_indep_tr [simp]: "\<^bold>d \<bowtie> tr" "tr \<bowtie> \<^bold>d"
   by (simp_all add: disc_alpha_def lens_indep_left_ext lens_indep_sym)
 
-lemma cont_alpha_uvar [simp]: "uvar \<^bold>c"
+lemma cont_alpha_uvar [simp]: "vwb_lens \<^bold>c"
   by (simp add: comp_vwb_lens cont_alpha_def snd_vwb_lens)
 
 lemma cont_indep_ok [simp]: "\<^bold>c \<bowtie> ok" "ok \<bowtie> \<^bold>c"
@@ -67,8 +67,8 @@ lemma cont_indep_tr [simp]: "\<^bold>c \<bowtie> tr" "tr \<bowtie> \<^bold>c"
 
 lemma cont_indep_disc [simp]: "\<^bold>c \<bowtie> \<^bold>d" "\<^bold>d \<bowtie> \<^bold>c"
   apply (simp_all add: disc_alpha_def cont_alpha_def lens_indep_left_ext)
-  using fst_snd_lens_indep lens_indep_left_comp lens_indep_sym rea_lens_uvar vwb_lens_mwb apply blast
-  using fst_snd_lens_indep lens_indep_left_comp lens_indep_sym rea_lens_uvar vwb_lens_mwb apply blast
+  using fst_snd_lens_indep lens_indep_left_comp lens_indep_sym rea_lens_vwb_lens vwb_lens_mwb apply blast
+  using fst_snd_lens_indep lens_indep_left_comp lens_indep_sym rea_lens_vwb_lens vwb_lens_mwb apply blast
 done
 
 abbreviation disc_lift :: "('a, 'd \<times> 'd) uexpr \<Rightarrow> ('a, 'd, 'c::topological_space) expr_trd" ("\<lceil>_\<rceil>\<^sub>\<delta>") where
@@ -250,7 +250,7 @@ lemma seqr_to_conj: "\<lbrakk> out\<alpha> \<sharp> P; in\<alpha> \<sharp> Q \<r
   by (metis postcond_left_unit seqr_pre_out utp_pred.inf_top.right_neutral)
 
 lemma unrest_lift_cont_subst [unrest]:
-  "\<lbrakk> uvar x; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> (\<lceil>P\<rceil>\<^sub>C\<^sub><)\<lbrakk>v/$\<^bold>c\<rbrakk>"
+  "\<lbrakk> vwb_lens x; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> (\<lceil>P\<rceil>\<^sub>C\<^sub><)\<lbrakk>v/$\<^bold>c\<rbrakk>"
   by (rel_tac)
 
 lemma hInt_refine: "`\<^bold>\<forall> \<tau> \<bullet> P(\<tau>) \<Rightarrow> Q(\<tau>)` \<Longrightarrow> \<lceil>Q(\<tau>)\<rceil>\<^sub>H \<sqsubseteq> \<lceil>P(\<tau>)\<rceil>\<^sub>H"
