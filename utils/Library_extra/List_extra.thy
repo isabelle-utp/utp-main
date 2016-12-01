@@ -786,4 +786,25 @@ lemma seq_filter_empty [simp]: "xs \<restriction>\<^sub>l {} = []"
 lemma seq_filter_append: "(xs @ ys) \<restriction>\<^sub>l A = (xs \<restriction>\<^sub>l A) @ (ys \<restriction>\<^sub>l A)"
   by (simp add: seq_filter_def) 
 
+text {* Distributive concatenation *}
+
+definition uncurry :: "('a \<Rightarrow> 'b \<Rightarrow>  'c) \<Rightarrow> ('a \<times> 'b \<Rightarrow> 'c)" where
+[simp]: "uncurry f = (\<lambda>(x, y). f x y)"
+
+definition dist_concat ::
+  "'a list set \<Rightarrow> 'a list set \<Rightarrow> 'a list set" (infixr "\<^sup>\<frown>" 100) where
+"dist_concat ls1 ls2 = (uncurry (op @) ` (ls1 \<times> ls2))"
+
+lemma dist_concat_left_empty [simp]:
+  "{} \<^sup>\<frown> ys = {}"
+  by (simp add: dist_concat_def)
+
+lemma dist_concat_right_empty:
+  "xs \<^sup>\<frown> {} = {}"
+  by (simp add: dist_concat_def)
+
+lemma dist_concat_insert [simp] :
+"insert l ls1 \<^sup>\<frown> ls2 = ((op @ l) ` ( ls2)) \<union> (ls1 \<^sup>\<frown> ls2)"
+  by (auto simp add: dist_concat_def)
+
 end
