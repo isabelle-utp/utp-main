@@ -31,45 +31,56 @@ lemma "(true \<and> false) = false"
   by simp
 
 lemma "true = false"
-  oops
+  oops (* Not provable: show pred_tac produces False *)
 
 lemma "x \<sharp> true"
-  oops (* Use unrest_tac *)
+  by unrest_tac
 
 lemma "x \<sharp> &y"
-  oops
+  by unrest_tac
 
 lemma "(&x =\<^sub>u 1 \<and> &y =\<^sub>u &x) = (&x =\<^sub>u 1 \<and> &y =\<^sub>u 1)"
-  oops
+  by pred_tac
 
 lemma "(&x =\<^sub>u 1 \<and> &y =\<^sub>u &x)\<lbrakk>2/x\<rbrakk> = false"
-  oops (* Use subst_tac *)
+  apply (subst_tac)
+  apply (pred_tac)
+done
+
+(* The next two examples illustrate UTP and shallow lifted quantification *)
 
 lemma "(\<forall> x \<bullet> &x =\<^sub>u &x) = true"
-  oops
+  by (pred_tac)
 
 lemma "(\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> =\<^sub>u \<guillemotleft>x\<guillemotright>) = true"
-  oops
-
+  by (pred_tac)
+  
 lemma "(1 :\<^sub>u nat) + 1 = 2"
-  oops
+  by (pred_tac)
 
 lemma "(x := 1 ;; x := &x + 1) = (x := 2)"
-  oops
+  by (rel_tac)
 
 lemma "(x := 1 ;; x := &x + 1) = (x := 2)"
-  oops (* Redo above as Isar proof *)
+proof -
+  have "(x := 1 ;; x := &x + 1) = (x := &x + 1)\<lbrakk>1/$x\<rbrakk>"
+    by (simp add: assigns_r_comp alpha)
+  also have "... = x := 1 + 1" 
+    by (rel_tac)
+  also have "... = x := 2"
+    by (simp)
+  finally show ?thesis .
+qed
 
 lemma "true \<sqsubseteq> x, y := &x + 1, &y"
-  oops
+  by (rel_tac)
 
-lemma "($x\<acute> >\<^sub>u $x \<and> $y\<acute> =\<^sub>u $y) \<sqsubseteq> x, y := &x + 1, &y"
-  oops (* Jim's refinement example *)
-
+(* Need to change y' < y to y' = y or similar to discharge with rel_tac *)
 lemma "($x\<acute> >\<^sub>u $x \<and> $y\<acute> <\<^sub>u $y) \<sqsubseteq> x, y := &x + 1, &y"
   oops
 
 lemma "false \<sqsubseteq> x, y := &x + 1, &y"
+  apply (rel_tac)
   oops
 
 lemma "(true ;; x := \<guillemotleft>c\<guillemotright>) = ($x\<acute> =\<^sub>u \<guillemotleft>c\<guillemotright>)"

@@ -7,8 +7,8 @@ imports
 begin
 
 record 't::ordered_cancel_monoid_diff alpha_rp' = 
-  rp_wait :: bool
-  rp_tr   :: "'t"
+  wait\<^sub>v :: bool
+  tr\<^sub>v   :: "'t"
 
 type_synonym ('t, '\<alpha>) alpha_rp_scheme = "('t, '\<alpha>) alpha_rp'_scheme alpha_d_scheme"
 
@@ -17,13 +17,14 @@ type_synonym ('t,'\<alpha>,'\<beta>) relation_rp  = "(('t,'\<alpha>) alphabet_rp
 type_synonym ('t,'\<alpha>) hrelation_rp  = "(('t,'\<alpha>) alphabet_rp, ('t,'\<alpha>) alphabet_rp) relation"
 type_synonym ('t,'\<sigma>) predicate_rp  = "('t,'\<sigma>) alphabet_rp upred"
 
-definition "wait\<^sub>r = VAR rp_wait"
-definition "tr\<^sub>r   = VAR rp_tr"
-definition [upred_defs]: "\<Sigma>\<^sub>r    = VAR more"
+definition "wait\<^sub>r = VAR wait\<^sub>v"
+definition "tr\<^sub>r   = VAR tr\<^sub>v"
+definition "\<Sigma>\<^sub>r    = VAR more"
 
 declare wait\<^sub>r_def [uvar_defs]
 declare tr\<^sub>r_def [uvar_defs]
 declare \<Sigma>\<^sub>r_def [uvar_defs]
+declare alpha_rp'.splits [alpha_splits]
 
 lemma wait\<^sub>r_vwb_lens [simp]: "vwb_lens wait\<^sub>r"
   by (unfold_locales, simp_all add: wait\<^sub>r_def)
@@ -39,13 +40,13 @@ definition [uvar_defs]: "tr   = (tr\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
 definition [uvar_defs]: "\<Sigma>\<^sub>R   = (\<Sigma>\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
 
 lemma wait_vwb_lens [simp]: "vwb_lens wait"
-  by (simp add: comp_vwb_lens wait_def)
+  by (simp add: wait_def)
 
 lemma tr_vwb_lens [simp]: "vwb_lens tr"
-  by (simp add: comp_vwb_lens tr_def)
+  by (simp add: tr_def)
 
 lemma rea_lens_vwb_lens [simp]: "vwb_lens \<Sigma>\<^sub>R"
-  by (simp add: \<Sigma>\<^sub>R_def comp_vwb_lens)
+  by (simp add: \<Sigma>\<^sub>R_def)
 
 lemma rea_lens_under_des_lens: "\<Sigma>\<^sub>R \<subseteq>\<^sub>L \<Sigma>\<^sub>D"
   by (simp add: \<Sigma>\<^sub>R_def lens_comp_lb)
@@ -185,11 +186,11 @@ lemma R1_skip_rea: "R1(II\<^sub>r) = II\<^sub>r"
 
 lemma R1_by_refinement:
   "P is R1 \<longleftrightarrow> (($tr \<le>\<^sub>u $tr\<acute>) \<sqsubseteq> P)"
-  by rel_tac
+  by rel_blast
 
 lemma tr_le_trans:
   "($tr \<le>\<^sub>u $tr\<acute> ;; $tr \<le>\<^sub>u $tr\<acute>) = ($tr \<le>\<^sub>u $tr\<acute>)"
-  by (rel_tac, metis alpha_d.select_convs(2) alpha_rp'.select_convs(2) eq_refl)
+  by (rel_tac)
 
 lemma R1_seqr:
   "R1(R1(P) ;; R1(Q)) = (R1(P) ;; R1(Q))"
@@ -202,7 +203,7 @@ lemma R1_seqr_closure:
   by (metis seqr_mono tr_le_trans)
 
 lemma R1_true_comp: "(R1(true) ;; R1(true)) = R1(true)"
-  by (rel_tac, metis alpha_d.select_convs(2) alpha_rp'.select_convs(2) order_refl)
+  by (rel_tac)
 
 lemma R1_ok'_true: "(R1(P))\<^sup>t = R1(P\<^sup>t)"
   by pred_tac
@@ -396,7 +397,7 @@ proof -
   also have "... =
        (\<^bold>\<exists> tr\<^sub>0 \<bullet> \<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright>) ;; 
                                 (Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)))"
-    by (simp add: R2_form usubst unrest uquant_lift, rel_tac)
+    by (simp add: R2_form usubst unrest uquant_lift, rel_blast)
   also have "... =
        (\<^bold>\<exists> tr\<^sub>0 \<bullet> \<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; 
                                 (Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)))"
@@ -404,7 +405,7 @@ proof -
   also have "... =
        (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> \<^bold>\<exists> tr\<^sub>0 \<bullet> ((P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)) 
                                 \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
-    by rel_tac
+    by rel_blast
   also have "... =
        (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)) 
                         \<and> (\<^bold>\<exists> tr\<^sub>0 \<bullet> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
@@ -549,7 +550,7 @@ lemma R3_semir_closure:
 
 lemma R3c_semir_form:
   "(R3c(P) ;; R3c(R1(Q))) = R3c(P ;; R3c(R1(Q)))"
-  by rel_tac
+  by (rel_simp, safe, auto intro: order_trans)
 
 lemma R3c_seq_closure:
   assumes "P is R3c" "Q is R3c" "Q is R1"
@@ -579,9 +580,7 @@ lemma R1_H1_R3c_commute:
   by rel_tac
 
 lemma R3c_H2_commute: "R3c(H2(P)) = H2(R3c(P))"
-  apply (simp add: H2_split R3c_def usubst, rel_tac)
-  apply (metis (mono_tags, lifting) alpha_d.surjective alpha_d.update_convs(1))+
-done
+  by (simp add: H2_split R3c_def usubst, rel_tac)
 
 lemma R3c_idem: "R3c(R3c(P)) = R3c(P)"
   by rel_tac

@@ -163,6 +163,8 @@ record dname =
   dname_name :: "string"
   dname_card :: "ucard"
 
+declare dname.splits [alpha_splits]
+
 text {* A vstore is a function mapping deep variable names to corresponding values in the universe, such
         that the deep variables specified cardinality is matched by the value it points to. *}
 

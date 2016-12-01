@@ -235,6 +235,6 @@ lemma subst_ext_res [alpha,usubst]:
 
 lemma unrest_subst_alpha_ext [unrest]:
   "x \<bowtie> y \<Longrightarrow> x \<sharp> (P \<oplus>\<^sub>s y)"
-  by (pred_tac, auto simp add: unrest_usubst_def, metis lens_indep_def)
+  by (pred_tac, metis lens_indep_def)
 
 end

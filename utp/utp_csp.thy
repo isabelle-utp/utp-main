@@ -19,6 +19,8 @@ type_synonym ('\<phi>,'\<sigma>) predicate_csp  = "('\<phi>,'\<sigma>) alphabet_
 definition [uvar_defs]: "ref\<^sub>c = VAR csp_ref"
 definition [uvar_defs]: "\<Sigma>\<^sub>c    = VAR more"
 
+declare alpha_csp'.splits [alpha_splits]
+
 lemma ref\<^sub>c_vwb_lens [simp]: "vwb_lens ref\<^sub>c"
   by (unfold_locales, simp_all add: ref\<^sub>c_def)
 
@@ -29,14 +31,14 @@ definition "ref = (ref\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
 definition [uvar_defs]: "\<Sigma>\<^sub>C   = (\<Sigma>\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
 
 lemma ref_vwb_lens [simp]: "vwb_lens ref"
-  by (simp add: comp_vwb_lens ref_def)
+  by (simp add: ref_def)
 
 lemma csp_lens_vwb_lens [simp]: "vwb_lens \<Sigma>\<^sub>C"
-  by (simp add: \<Sigma>\<^sub>C_def comp_vwb_lens)
+  by (simp add: \<Sigma>\<^sub>C_def)
 
 lemma csp_lens_indep_ok [simp]: "\<Sigma>\<^sub>C \<bowtie> ok" "ok \<bowtie> \<Sigma>\<^sub>C"
   apply (metis \<Sigma>\<^sub>C_def csp_vwb_lens lens_comp_lb rea_lens_indep_ok(1) sublens_pres_indep)
-  apply (simp add: \<Sigma>\<^sub>C_def lens_indep_left_ext lens_indep_sym)
+  apply (simp add: \<Sigma>\<^sub>C_def lens_indep_sym)
 done
 
 lemma csp_lens_indep_wait [simp]: "\<Sigma>\<^sub>C \<bowtie> wait" "wait \<bowtie> \<Sigma>\<^sub>C"

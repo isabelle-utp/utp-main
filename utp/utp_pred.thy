@@ -251,7 +251,15 @@ text {* We set up a simple tactic with the help of \emph{Eisbach} that applies p
         applies extensionality (to remove the resulting lambda term) and the applies auto.
         This simple tactic will suffice to prove most of the standard laws. *}
 
-method pred_tac = ((simp only: upred_defs)? ; (transfer, (rule_tac ext)?, auto simp add: uvar_defs lens_defs fun_eq_iff prod.case_eq_if)?)
+method pred_simp = (
+  (unfold upred_defs)?,
+  (transfer),
+  (simp add: fun_eq_iff lens_defs uvar_defs upred_defs alpha_splits Product_Type.split_beta)?,
+--{* It would be nice to rename meta and bound variables here. *}
+  (clarsimp)?)
+
+method pred_tac = (
+  pred_simp, auto?)
 
 declare true_upred_def [upred_defs]
 declare false_upred_def [upred_defs]
@@ -261,6 +269,7 @@ declare not_upred_def [upred_defs]
 declare diff_upred_def [upred_defs]
 declare subst_upd_uvar_def [upred_defs]
 declare subst_upd_dvar_def [upred_defs]
+declare unrest_usubst_def [upred_defs]
 declare uexpr_defs [upred_defs]
 
 lemma true_alt_def: "true = \<guillemotleft>True\<guillemotright>"
@@ -285,11 +294,11 @@ lemma unrest_disj [unrest]: "\<lbrakk> x \<sharp> (P :: '\<alpha> upred); x \<sh
 
 lemma unrest_USUP [unrest]: 
   "\<lbrakk> (\<And> i. x \<sharp> P(i)); (\<And> i. x \<sharp> Q(i)) \<rbrakk> \<Longrightarrow> x \<sharp> (\<Sqinter> i | P(i) \<bullet> Q(i))"
-  by (simp add: USUP_def, pred_tac)
+  by pred_tac
 
 lemma unrest_UINF [unrest]: 
   "\<lbrakk> (\<And> i. x \<sharp> P(i)); (\<And> i. x \<sharp> Q(i)) \<rbrakk> \<Longrightarrow> x \<sharp> (\<Squnion> i | P(i) \<bullet> Q(i))"
-  by (simp add: UINF_def, pred_tac)
+  by pred_tac
 
 lemma unrest_impl [unrest]: "\<lbrakk> x \<sharp> P; x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<Rightarrow> Q"
   by (pred_tac)
@@ -467,11 +476,11 @@ lemma disj_conj_distr:"((P::'\<alpha> upred) \<or> (Q \<and> R)) = ((P \<or> Q) 
 
 lemma true_disj_zero [simp]: 
   "(P \<or> true) = true" "(true \<or> P) = true"
-  by (pred_tac) (pred_tac)
+  by pred_tac
 
 lemma true_conj_zero [simp]:
   "(P \<and> false) = false" "(false \<and> P) = false"
-  by (pred_tac) (pred_tac)
+  by pred_tac
 
 lemma imp_vacuous [simp]: "(false \<Rightarrow> u) = true"
   by pred_tac

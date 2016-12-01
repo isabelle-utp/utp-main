@@ -181,4 +181,8 @@ in [(@{syntax_const "_uvar_ty"}, K uvar_ty_tr)] end
 
 named_theorems uvar_defs
 
+(* The following theorem attribute stores splitting theorems for alphabet types *)
+
+named_theorems alpha_splits
+
 end

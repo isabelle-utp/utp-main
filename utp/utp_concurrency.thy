@@ -213,7 +213,6 @@ lemma U0_swap: "(U0 ;; swap\<^sub>m) = U1"
   apply (subst seqr_and_distl_uinj)
   using assigns_r_swap_uinj id_vwb_lens left_uvar right_uvar apply fastforce
   apply (rel_tac)
-  apply (metis prod.collapse)+
 done
 
 lemma U1_H1_H2: "U1 is H1_H2"
@@ -224,7 +223,6 @@ lemma U1_swap: "(U1 ;; swap\<^sub>m) = U0"
   apply (subst seqr_and_distl_uinj)
   using assigns_r_swap_uinj id_vwb_lens left_uvar right_uvar apply fastforce
   apply (rel_tac)
-  apply (metis prod.collapse)+
 done
 
 lemma swap_merge_par_distl:
@@ -258,7 +256,7 @@ proof -
   have "true \<parallel>\<^bsub>M\<^esub> P = ((true ;; U0) \<parallel> (P ;; U1) ;; M)" (is "_ = ((?P \<parallel> ?Q) ;; ?M)")
     by (simp add: par_by_merge_def)
   moreover have "?P = true"
-    by (rel_tac, meson alpha_d.select_convs(1))
+    by (rel_tac)
   ultimately show ?thesis
     by (metis H1_left_zero assms parallel_comm parallel_zero)
 qed
@@ -270,7 +268,7 @@ proof -
   have "P \<parallel>\<^bsub>M\<^esub> true = ((P ;; U0) \<parallel> (true ;; U1) ;; M)" (is "_ = ((?P \<parallel> ?Q) ;; ?M)")
     by (simp add: par_by_merge_def)
   moreover have "?Q = true"
-    by (rel_tac, meson alpha_d.select_convs(1))
+    by (rel_tac)
   ultimately show ?thesis
     by (metis H1_left_zero assms parallel_comm parallel_zero)
 qed

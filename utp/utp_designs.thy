@@ -18,13 +18,15 @@ text {* In the following, the definitions of designs alphabets, designs and
 healthiness (well-formedness) conditions are given. The healthiness conditions of
 designs are defined by $H1$, $H2$, $H3$ and $H4$.*}
 
-record alpha_d = des_ok::bool
+record alpha_d = ok\<^sub>v::bool
 
 text {* The ok variable is defined using the syntactic translation \emph{VAR} *}
 
-definition "ok = VAR des_ok"
+definition "ok = VAR ok\<^sub>v"
 
 declare ok_def [uvar_defs]
+
+declare alpha_d.splits [alpha_splits]
 
 lemma vwb_lens_ok [simp]: "vwb_lens ok"
   by (unfold_locales, simp_all add: ok_def)
@@ -191,12 +193,14 @@ lemma prod_lens_indep_out_var [simp]:
 lemma unrest_out_des_lift [unrest]: "out\<alpha> \<sharp> p \<Longrightarrow> out\<alpha> \<sharp> \<lceil>p\<rceil>\<^sub>D"
   by (pred_tac, auto simp add: out\<alpha>_def des_lens_def prod_lens_def)
 
+thm alpha_d.select_convs
+
 lemma lift_dist_seq [simp]:
   "\<lceil>P ;; Q\<rceil>\<^sub>D = (\<lceil>P\<rceil>\<^sub>D ;; \<lceil>Q\<rceil>\<^sub>D)"
-  by (rel_tac, metis alpha_d.select_convs(2))
+  by (rel_tac)
 
 lemma lift_des_skip_dr_unit_unrest: "$ok\<acute> \<sharp> P \<Longrightarrow> (P ;; \<lceil>II\<rceil>\<^sub>D) = P"
-  by (rel_tac, metis alpha_d.surjective alpha_d.update_convs(1))
+  by (rel_tac)
 
 lemma true_is_design:
   "(false \<turnstile> true) = true"
@@ -237,12 +241,7 @@ qed
 
 theorem rdesign_refinement:
   "(P1 \<turnstile>\<^sub>r Q1 \<sqsubseteq> P2 \<turnstile>\<^sub>r Q2) \<longleftrightarrow> (`P1 \<Rightarrow> P2` \<and> `P1 \<and> Q2 \<Rightarrow> Q1`)"
-  apply (simp add: rdesign_def)
-  apply (subst design_refinement)
-  apply (simp_all add: unrest)
-  apply (pred_tac)
-  apply (metis alpha_d.select_convs(2))+
-done
+  by rel_tac
 
 lemma design_refine_intro:
   assumes "`P1 \<Rightarrow> P2`" "`P1 \<and> Q2 \<Rightarrow> Q1`"
@@ -283,9 +282,6 @@ theorem design_post:
   "(P \<turnstile> Q)\<^sup>t = (($ok \<and> P\<^sup>t) \<Rightarrow> Q\<^sup>t)"
   by (rel_tac)
 
-declare des_lens_def [upred_defs]
-declare in_var_def [upred_defs]
-
 theorem rdesign_pre [simp]: "pre\<^sub>D(P \<turnstile>\<^sub>r Q) = P"
   by pred_tac
 
@@ -306,7 +302,7 @@ proof -
 qed
 
 theorem design_top_left_zero: "(\<top>\<^sub>D ;; (P \<turnstile> Q)) = \<top>\<^sub>D"
-  by (rel_tac, meson alpha_d.select_convs(1))
+  by rel_tac
 
 theorem design_choice:
   "(P\<^sub>1 \<turnstile> P\<^sub>2) \<sqinter> (Q\<^sub>1 \<turnstile> Q\<^sub>2) = ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<or> Q\<^sub>2))"
@@ -421,7 +417,7 @@ lemma skip_d_alt_def: "II\<^sub>D = true \<turnstile> II"
 
 theorem design_skip_idem [simp]:
   "(II\<^sub>D ;; II\<^sub>D) = II\<^sub>D"
-  by (simp add: skip_d_def urel_defs, pred_tac)
+  by (rel_tac)
 
 theorem design_composition_cond:
   assumes 
@@ -523,7 +519,7 @@ qed
 
 theorem design_left_unit [simp]:
   "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
-  by (simp add: skip_d_def urel_defs, pred_tac)
+  by rel_tac
 
 theorem design_right_cond_unit [simp]:
   assumes "out\<alpha> \<sharp> p"
@@ -615,7 +611,7 @@ qed
 
 lemma nok_not_false:
   "(\<not> $ok) \<noteq> false"
-  by (pred_tac, metis alpha_d.select_convs(1))
+  by pred_tac
 
 theorem H1_left_zero:
   assumes "P is H1"
@@ -631,7 +627,7 @@ proof -
   also from assms have "... = (true \<or> (true ;; P))"
     by (simp add: nok_not_false precond_left_zero unrest)
   finally show ?thesis 
-    by (rel_tac)
+    by (simp add: upred_defs urel_defs)
 qed
 
 theorem H1_left_unit:
@@ -685,7 +681,7 @@ lemma H1_choice_closed:
 
 lemma H1_inf_closed:
   "\<lbrakk> P is H1; Q is H1 \<rbrakk> \<Longrightarrow> P \<squnion> Q is H1"
-  by (rel_tac, blast+)
+  by rel_blast
   
 lemma H1_USUP:
   assumes "A \<noteq> {}"
@@ -734,7 +730,7 @@ proof -
       have "(P ;; (\<not> $ok \<and> \<lceil>II\<rceil>\<^sub>D)) = ((P \<and> \<not> $ok\<acute>) ;; \<lceil>II\<rceil>\<^sub>D)"
         by rel_tac
       also have "... = (\<exists> $ok\<acute> \<bullet> P \<and> $ok\<acute> =\<^sub>u false)"
-        by (rel_tac, metis (mono_tags, lifting) alpha_d.surjective alpha_d.update_convs(1))
+        by rel_tac
       also have "... = P\<^sup>f"
         by (metis C1 one_point out_var_uvar pr_var_def unrest_as_exists vwb_lens_ok vwb_lens_mwb)
      finally show ?thesis .
@@ -742,9 +738,9 @@ proof -
     moreover have "(P ;; ($ok \<and> (\<lceil>II\<rceil>\<^sub>D \<and> $ok\<acute>))) = (P\<^sup>t \<and> $ok\<acute>)"
     proof -
       have "(P ;; ($ok \<and> (\<lceil>II\<rceil>\<^sub>D \<and> $ok\<acute>))) = (P ;; ($ok \<and> II))"
-        by (rel_tac, metis alpha_d.equality)
+        by rel_tac
       also have "... = (P\<^sup>t \<and> $ok\<acute>)"
-        by (rel_tac, metis (full_types) alpha_d.surjective alpha_d.update_convs(1))+
+        by rel_tac
       finally show ?thesis .
     qed
     ultimately show ?thesis
@@ -790,7 +786,7 @@ lemma H2_rdesign:
 
 theorem J_idem:
   "(J ;; J) = J"
-  by (simp add: J_def urel_defs, pred_tac)
+  by rel_tac
 
 theorem H2_idem:
   "H2(H2(P)) = H2(P)"
@@ -854,7 +850,7 @@ lemma ok_pre: "($ok \<and> \<lceil>pre\<^sub>D(P)\<rceil>\<^sub>D) = ($ok \<and>
 
 lemma ok_post: "($ok \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>D) = ($ok \<and> (P\<^sup>t))"
   by (pred_tac)
-     (metis alpha_d.cases_scheme alpha_d.ext_inject alpha_d.select_convs(1) alpha_d.select_convs(2) alpha_d.update_convs(1) alpha_d.update_convs(2))+
+     (metis alpha_d.cases_scheme alpha_d.select_convs(2) alpha_d.update_convs(1) alpha_d.update_convs(2))+
 
 theorem H1_H2_eq_design:
   "H1 (H2 P) = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
@@ -1008,7 +1004,7 @@ proof -
   also have "... = p \<turnstile> (Q\<^sup>t ;; II\<lbrakk>true/$ok\<rbrakk>)"
     using assms precond_equiv seqr_true_lemma by force
   also have "... = p \<turnstile> Q"
-    by (rel_tac, metis (full_types) alpha_d.cases_scheme alpha_d.select_convs(1) alpha_d.update_convs(1))
+    by (rel_tac)
   finally show ?thesis
     by (simp add: H3_def Healthy_def')
 qed

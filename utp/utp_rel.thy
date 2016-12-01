@@ -121,8 +121,16 @@ definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrelation" ("_\<^
 definition rassert :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrelation" ("_\<^sub>\<bottom>" [999] 999) where
 [urel_defs]: "rassert c = (II \<triangleleft> c \<triangleright>\<^sub>r true)"
 
-method rel_simp = ((simp add: upred_defs urel_defs)?, (transfer, (rule_tac ext)?, simp_all add: uvar_defs lens_defs urel_defs relcomp_unfold fun_eq_iff prod.case_eq_if)?)
-method rel_tac = ((simp add: upred_defs urel_defs)?, (transfer, (rule_tac ext)?, auto simp add: uvar_defs lens_defs urel_defs relcomp_unfold fun_eq_iff prod.case_eq_if)?)
+method rel_simp = (
+  (unfold upred_defs urel_defs)?,
+  (transfer),
+  (simp add: fun_eq_iff relcomp_unfold OO_def lens_defs uvar_defs upred_defs alpha_splits Product_Type.split_beta)?,
+--{* It would be nice to rename meta and bound variables here. *}
+  (clarsimp)?)
+
+method rel_tac = (rel_simp, auto?)
+method rel_blast = (rel_simp; blast)
+
 
 text {* We describe some properties of relations *}
 
@@ -224,11 +232,11 @@ subsection {* Substitution laws *}
 
 lemma subst_seq_left [usubst]:
   "out\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P ;; Q) = ((\<sigma> \<dagger> P) ;; Q)"
-  by (rel_tac, simp_all add: unrest_usubst_def, (metis (no_types, lifting) Pair_inject old.prod.case surjective_pairing)+)
+  by (rel_tac, (metis (no_types, lifting) Pair_inject surjective_pairing)+)
 
 lemma subst_seq_right [usubst]:
   "in\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P ;; Q) = (P ;; (\<sigma> \<dagger> Q))"
-  by (rel_tac, simp_all add: unrest_usubst_def, (metis (no_types, lifting) Pair_inject old.prod.case surjective_pairing)+)
+  by (rel_tac, (metis (no_types, lifting) Pair_inject surjective_pairing)+)
 
 lemma usubst_condr [usubst]:
   "\<sigma> \<dagger> (P \<triangleleft> b \<triangleright> Q) = (\<sigma> \<dagger> P \<triangleleft> \<sigma> \<dagger> b \<triangleright> \<sigma> \<dagger> Q)"
@@ -236,7 +244,7 @@ lemma usubst_condr [usubst]:
 
 lemma subst_skip_r [usubst]:
   "out\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> II = \<langle>\<lfloor>\<sigma>\<rfloor>\<^sub>s\<rangle>\<^sub>a"
-  by (rel_tac, auto simp add: unrest_usubst_def, (metis (mono_tags, lifting) case_prod_conv prod.sel(1) sndI surjective_pairing)+)
+  by (rel_tac, (metis (mono_tags, lifting) prod.sel(1) sndI surjective_pairing)+)
 
 lemma usubst_upd_in_comp [usubst]:
   "\<sigma>(&in\<alpha>:x \<mapsto>\<^sub>s v) = \<sigma>($x \<mapsto>\<^sub>s v)"
@@ -282,14 +290,14 @@ abbreviation falser :: "'\<alpha> hrelation" ("false\<^sub>h") where
 interpretation upred_quantale: unital_quantale_plus
   where times = seqr and one = skip_r and Sup = Sup and Inf = Inf and inf = inf and less_eq = less_eq and less = less
   and sup = sup and bot = bot and top = top
-apply (unfold_locales)
-apply (rel_tac)
-apply (unfold SUP_def, transfer, auto)
-apply (unfold SUP_def, transfer, auto)
-apply (unfold INF_def, transfer, auto)
-apply (unfold INF_def, transfer, auto)
-apply (rel_tac)
-apply (rel_tac)
+  apply (unfold_locales)
+  apply (rel_tac)
+  apply (unfold SUP_def, transfer, auto)
+  apply (unfold SUP_def, transfer, auto)
+  apply (unfold INF_def, transfer, auto)
+  apply (unfold INF_def, transfer, auto)
+  apply (rel_tac)
+  apply (rel_tac)
 done
 
 lemma drop_pre_inv [simp]: "\<lbrakk> out\<alpha> \<sharp> p \<rbrakk> \<Longrightarrow> \<lceil>\<lfloor>p\<rfloor>\<^sub><\<rceil>\<^sub>< = p"
@@ -364,11 +372,11 @@ lemma cond_var_split:
 
 lemma cond_seq_left_distr:
   "out\<alpha> \<sharp> b \<Longrightarrow> ((P \<triangleleft> b \<triangleright> Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright> (Q ;; R))"
-  by (rel_tac, blast+)
+  by rel_tac
 
 lemma cond_seq_right_distr:
   "in\<alpha> \<sharp> b \<Longrightarrow> (P ;; (Q \<triangleleft> b \<triangleright> R)) = ((P ;; Q) \<triangleleft> b \<triangleright> (P ;; R))"
-  by (rel_tac, blast+)
+  by rel_tac
 
 text {* These laws may seem to duplicate quantale laws, but they don't -- they are
         applicable to non-homogeneous relations as well, which will become important
@@ -395,7 +403,7 @@ lemma seqr_right_zero [simp]:
 
 lemma seqr_mono:
   "\<lbrakk> P\<^sub>1 \<sqsubseteq> P\<^sub>2; Q\<^sub>1 \<sqsubseteq> Q\<^sub>2 \<rbrakk> \<Longrightarrow> (P\<^sub>1 ;; Q\<^sub>1) \<sqsubseteq> (P\<^sub>2 ;; Q\<^sub>2)"
-  by (rel_tac, blast)
+  by (rel_blast)
 
 lemma spec_refine:
   "Q \<sqsubseteq> (P \<and> R) \<Longrightarrow> (P \<Rightarrow> Q) \<sqsubseteq> R"
@@ -449,7 +457,7 @@ lemma assign_pred_transfer:
   fixes x :: "('a, '\<alpha>) uvar"
   assumes "$x \<sharp> b" "out\<alpha> \<sharp> b"
   shows "(b \<and> x := v) = (x := v \<and> b\<^sup>-)"
-  using assms by (rel_tac, blast+)
+  using assms by (rel_blast)
 
 lemma assign_r_comp: "mwb_lens x \<Longrightarrow> (x := u ;; P) = P\<lbrakk>\<lceil>u\<rceil>\<^sub></$x\<rbrakk>"
   by (simp add: assigns_r_comp usubst)
@@ -494,7 +502,7 @@ lemma assigns_r_swap_uinj:
 
 lemma skip_r_unfold:
   "vwb_lens x \<Longrightarrow> II = ($x\<acute> =\<^sub>u $x \<and> II\<restriction>\<^sub>\<alpha>x)"
-  by (rel_tac, blast, metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens.get_put)
+  by (rel_tac, metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens.get_put)
 
 lemma skip_r_alpha_eq:
   "II = ($\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
@@ -530,7 +538,7 @@ lemma seqr_and_distr_ufunc:
 
 lemma seqr_and_distl_uinj:
   "uinj R \<Longrightarrow> ((P \<and> Q) ;; R) = ((P ;; R) \<and> (Q ;; R))"
-  by (rel_tac, metis)
+  by (rel_tac)
 
 lemma seqr_unfold:
   "(P ;; Q) = (\<^bold>\<exists> v \<bullet> P\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<Sigma>\<acute>\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<Sigma>\<rbrakk>)"
@@ -651,7 +659,7 @@ theorem seqr_pre_transfer: "in\<alpha> \<sharp> q \<Longrightarrow> ((P \<and> q
   by (rel_tac)
 
 theorem seqr_post_out: "in\<alpha> \<sharp> r \<Longrightarrow> (P ;; (Q \<and> r)) = ((P ;; Q) \<and> r)"
-  by (rel_tac, blast+)
+  by (rel_blast)
 
 lemma seqr_post_var_out: 
   fixes x :: "(bool, '\<alpha>) uvar"
@@ -662,7 +670,7 @@ theorem seqr_post_transfer: "out\<alpha> \<sharp> q \<Longrightarrow> (P ;; (q \
   by (simp add: seqr_pre_transfer unrest_convr_in\<alpha>)
 
 lemma seqr_pre_out: "out\<alpha> \<sharp> p \<Longrightarrow> ((p \<and> Q) ;; R) = (p \<and> (Q ;; R))"
-  by (rel_tac, blast+)
+  by (rel_blast)
 
 lemma seqr_pre_var_out: 
   fixes x :: "(bool, '\<alpha>) uvar"
@@ -733,7 +741,7 @@ proof -
   also have "... = (((\<lceil>b\<rceil>\<^sub>< \<and> II) \<or> (\<lceil>b\<rceil>\<^sub>< \<and> ((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; (\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u))) \<and> (\<not> \<lceil>b\<rceil>\<^sub>>))"
     by (simp add: conj_disj_distr)
   also have "... = ((((\<lceil>b\<rceil>\<^sub>< \<and> II) \<or> ((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; (\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u))) \<and> (\<not> \<lceil>b\<rceil>\<^sub>>))"
-    by (subst seqr_pre_out[THEN sym], simp add: unrest, rel_tac)
+    by (subst seqr_pre_out[THEN sym], simp add: unrest, simp add: upred_defs urel_defs)
   also have "... = ((((II \<and> \<lceil>b\<rceil>\<^sub>>) \<or> ((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; (\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u))) \<and> (\<not> \<lceil>b\<rceil>\<^sub>>))"
     by (simp add: pre_skip_post)
   also have "... = ((II \<and> \<lceil>b\<rceil>\<^sub>> \<and> \<not> \<lceil>b\<rceil>\<^sub>>) \<or> (((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; ((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u)) \<and> (\<not> \<lceil>b\<rceil>\<^sub>>)))"
@@ -793,9 +801,7 @@ lemma RID_mono:
 
 lemma RID_skip_r:
   "vwb_lens x \<Longrightarrow> RID(x)(II) = II"
-  apply rel_tac
-using vwb_lens.put_eq apply fastforce
-by auto
+  apply rel_tac using vwb_lens.put_eq by fastforce
 
 lemma RID_disj:
   "RID(x)(P \<or> Q) = (RID(x)(P) \<or> RID(x)(Q))"
@@ -808,7 +814,6 @@ lemma RID_conj:
 lemma RID_assigns_r_diff:
   "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> RID(x)(\<langle>\<sigma>\<rangle>\<^sub>a) = \<langle>\<sigma>\<rangle>\<^sub>a"
   apply (rel_tac)
-  apply (auto simp add: unrest_usubst_def)
   apply (metis vwb_lens.put_eq)
   apply (metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
 done
@@ -817,7 +822,6 @@ lemma RID_assign_r_same:
   "vwb_lens x \<Longrightarrow> RID(x)(x := v) = II"
   apply (rel_tac)
   using vwb_lens.put_eq apply fastforce
-  apply blast
 done
 
 lemma RID_seq_left:
