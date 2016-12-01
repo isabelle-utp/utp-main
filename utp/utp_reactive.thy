@@ -17,6 +17,10 @@ type_synonym ('t,'\<alpha>,'\<beta>) relation_rp  = "(('t,'\<alpha>) alphabet_rp
 type_synonym ('t,'\<alpha>) hrelation_rp  = "(('t,'\<alpha>) alphabet_rp, ('t,'\<alpha>) alphabet_rp) relation"
 type_synonym ('t,'\<sigma>) predicate_rp  = "('t,'\<sigma>) alphabet_rp upred"
 
+translations 
+  (type) "('t, '\<alpha>) alphabet_rp" <= (type) "('t, '\<alpha>) alpha_rp'_scheme alpha_d_ext"
+  (type) "('t, '\<alpha>) alphabet_rp" <= (type) "('t, '\<alpha>) alpha_rp'_ext alpha_d_ext"
+
 definition "wait\<^sub>r = VAR wait\<^sub>v"
 definition "tr\<^sub>r   = VAR tr\<^sub>v"
 definition "\<Sigma>\<^sub>r    = VAR more"

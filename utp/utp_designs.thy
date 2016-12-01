@@ -433,23 +433,19 @@ theorem rdesign_composition_cond:
   by (simp add: rdesign_def design_composition_cond unrest alpha)
 
 theorem design_composition_wp:
-  fixes Q1 Q2 :: "'a hrelation_d"
   assumes 
     "ok \<sharp> p1" "ok \<sharp> p2"
     "$ok \<sharp> Q1" "$ok\<acute> \<sharp> Q1" "$ok \<sharp> Q2" "$ok\<acute> \<sharp> Q2"
   shows "((\<lceil>p1\<rceil>\<^sub>< \<turnstile> Q1) ;; (\<lceil>p2\<rceil>\<^sub>< \<turnstile> Q2)) = ((\<lceil>p1 \<and> Q1 wp p2\<rceil>\<^sub><) \<turnstile> (Q1 ;; Q2))"
-  using assms
-  by (simp add: design_composition_cond unrest, rel_tac)
+  using assms by (rel_blast)
 
 theorem rdesign_composition_wp:
-  fixes Q1 Q2 :: "'a hrelation"
-  shows "((\<lceil>p1\<rceil>\<^sub>< \<turnstile>\<^sub>r Q1) ;; (\<lceil>p2\<rceil>\<^sub>< \<turnstile>\<^sub>r Q2)) = ((\<lceil>p1 \<and> Q1 wp p2\<rceil>\<^sub><) \<turnstile>\<^sub>r (Q1 ;; Q2))"
-  by (simp add: rdesign_composition_cond unrest, rel_tac)
+  "((\<lceil>p1\<rceil>\<^sub>< \<turnstile>\<^sub>r Q1) ;; (\<lceil>p2\<rceil>\<^sub>< \<turnstile>\<^sub>r Q2)) = ((\<lceil>p1 \<and> Q1 wp p2\<rceil>\<^sub><) \<turnstile>\<^sub>r (Q1 ;; Q2))"
+  by rel_blast
 
 theorem ndesign_composition_wp:
-  fixes Q1 Q2 :: "'a hrelation"
-  shows "((p1 \<turnstile>\<^sub>n Q1) ;; (p2 \<turnstile>\<^sub>n Q2)) = ((p1 \<and> Q1 wp p2) \<turnstile>\<^sub>n (Q1 ;; Q2))"
-  by (simp add: ndesign_def rdesign_composition_wp)
+  "((p1 \<turnstile>\<^sub>n Q1) ;; (p2 \<turnstile>\<^sub>n Q2)) = ((p1 \<and> Q1 wp p2) \<turnstile>\<^sub>n (Q1 ;; Q2))"
+  by rel_blast
 
 theorem rdesign_wp [wp]:
   "(\<lceil>p\<rceil>\<^sub>< \<turnstile>\<^sub>r Q) wp\<^sub>D r = (p \<and> Q wp r)"

@@ -16,6 +16,9 @@ type_synonym ('\<phi>,'\<alpha>,'\<beta>) relation_csp  = "(('\<phi>,'\<alpha>) 
 type_synonym ('\<phi>,'\<alpha>) hrelation_csp  = "(('\<phi>,'\<alpha>) alphabet_csp, ('\<phi>,'\<alpha>) alphabet_csp) relation"
 type_synonym ('\<phi>,'\<sigma>) predicate_csp  = "('\<phi>,'\<sigma>) alphabet_csp upred"
 
+translations
+  (type) "('\<phi>,'\<alpha>) alphabet_csp" <= (type) "('\<phi> list, ('b, '\<alpha>) alpha_csp'_scheme) alphabet_rp"
+
 definition [uvar_defs]: "ref\<^sub>c = VAR csp_ref"
 definition [uvar_defs]: "\<Sigma>\<^sub>c    = VAR more"
 
@@ -28,6 +31,7 @@ lemma csp_vwb_lens [simp]: "vwb_lens \<Sigma>\<^sub>c"
   by (unfold_locales, simp_all add: \<Sigma>\<^sub>c_def)
   
 definition [uvar_defs]: "ref = (ref\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
+definition [uvar_defs]: "ref\<^sub>r = (ref\<^sub>c ;\<^sub>L \<Sigma>\<^sub>r)"
 definition [uvar_defs]: "\<Sigma>\<^sub>C   = (\<Sigma>\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
 
 lemma ref_vwb_lens [simp]: "vwb_lens ref"
@@ -134,17 +138,15 @@ translations
 
 text {* Merge predicate for CSP *}
 
-(*
-definition
+definition [upred_defs]:
   "CSPMerge(cs) =
     ((true \<turnstile>\<^sub>r (($wait\<^sub>r\<acute> =\<^sub>u ($0-wait\<^sub>r \<or> $1-wait\<^sub>r) \<and>
       $ref\<^sub>r\<acute> =\<^sub>u ($0-ref\<^sub>r \<union>\<^sub>u $1-ref\<^sub>r) \<and>
       ($tr\<^sub>r\<acute> - $tr\<^sub>r\<^sub><) \<in>\<^sub>u (trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0-tr\<^sub>r - $tr\<^sub>r\<^sub><, $1-tr\<^sub>r - $tr\<^sub>r\<^sub><)) \<and> 
       $0-tr\<^sub>r \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1-tr\<^sub>r \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>))) ;; SKIP)"
 
-definition ParCSP :: "('\<theta>, '\<alpha>) hrelation_rp \<Rightarrow> '\<theta> event set \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_rp" (infixl "\<parallel>[_]\<^sub>C\<^sub>S\<^sub>P" 85)
-where "P \<parallel>[cs]\<^sub>C\<^sub>S\<^sub>P Q = P \<parallel>\<^bsub>CSPMerge(cs)\<^esub> Q"
-*)
+definition ParCSP :: "('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow> '\<theta> event set \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp" (infixl "\<parallel>[_]\<^sub>C\<^sub>S\<^sub>P" 85)
+where [upred_defs]: "P \<parallel>[cs]\<^sub>C\<^sub>S\<^sub>P Q = P \<parallel>\<^bsub>CSPMerge(cs)\<^esub> Q"
 
 subsection {* CSP laws *}
 

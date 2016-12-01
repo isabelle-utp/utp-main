@@ -199,7 +199,9 @@ definition par_by_merge ::
   "'\<alpha> hrelation_d \<Rightarrow> '\<alpha> merge \<Rightarrow> '\<alpha> hrelation_d \<Rightarrow> '\<alpha> hrelation_d" (infixr "\<parallel>\<^bsub>_\<^esub>" 85) 
 where "P \<parallel>\<^bsub>M\<^esub> Q = ((((P ;; U0) \<parallel> (Q ;; U1))) ;; M)"
 
-definition "swap\<^sub>m = true \<turnstile>\<^sub>r (0-\<Sigma>,1-\<Sigma> := &1-\<Sigma>, &0-\<Sigma>)"
+text {* swap is a predicate that the swaps the left and right indices; it is used to specify commutativity of the parallel operator *}
+
+definition "swap\<^sub>m = (0-\<Sigma>,1-\<Sigma> :=\<^sub>D &1-\<Sigma>, &0-\<Sigma>)"
 
 declare One_nat_def [simp del]
 
@@ -209,21 +211,13 @@ lemma U0_H1_H2: "U0 is H1_H2"
   by (simp add: U0_def rdesign_is_H1_H2)
 
 lemma U0_swap: "(U0 ;; swap\<^sub>m) = U1"
-  apply (simp add: U0_def swap\<^sub>m_def rdesign_composition)
-  apply (subst seqr_and_distl_uinj)
-  using assigns_r_swap_uinj id_vwb_lens left_uvar right_uvar apply fastforce
-  apply (rel_tac)
-done
+  by (rel_tac)
 
 lemma U1_H1_H2: "U1 is H1_H2"
   by (simp add: U1_def rdesign_is_H1_H2)
 
 lemma U1_swap: "(U1 ;; swap\<^sub>m) = U0"
-  apply (simp add: U1_def swap\<^sub>m_def rdesign_composition)
-  apply (subst seqr_and_distl_uinj)
-  using assigns_r_swap_uinj id_vwb_lens left_uvar right_uvar apply fastforce
-  apply (rel_tac)
-done
+  by (rel_tac)
 
 lemma swap_merge_par_distl:
   assumes "P is H1_H2" "Q is H1_H2"
@@ -235,16 +229,11 @@ proof -
    by (metis H1_H2_commute H1_H2_is_rdesign H2_idem Healthy_def assms(2))
   have "(((P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) \<parallel> (Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2)) ;; swap\<^sub>m) = 
         (\<not> (\<not> P\<^sub>1 \<or> \<not> Q\<^sub>1 ;; true)) \<turnstile>\<^sub>r ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2) ;; \<langle>[&0-\<Sigma> \<mapsto>\<^sub>s &1-\<Sigma>, &1-\<Sigma> \<mapsto>\<^sub>s &0-\<Sigma>]\<rangle>\<^sub>a)"
-    by (simp add: design_par_def swap\<^sub>m_def rdesign_composition)
+    by (simp add: design_par_def swap\<^sub>m_def assigns_d_def rdesign_composition)
   also have "... =  (\<not> (\<not> P\<^sub>1 \<or> \<not> Q\<^sub>1 ;; true)) \<turnstile>\<^sub>r (((P\<^sub>1 \<Rightarrow> P\<^sub>2) ;; \<langle>[&0-\<Sigma> \<mapsto>\<^sub>s &1-\<Sigma>, &1-\<Sigma> \<mapsto>\<^sub>s &0-\<Sigma>]\<rangle>\<^sub>a) \<and> ((Q\<^sub>1 \<Rightarrow> Q\<^sub>2) ;; \<langle>[&0-\<Sigma> \<mapsto>\<^sub>s &1-\<Sigma>, &1-\<Sigma> \<mapsto>\<^sub>s &0-\<Sigma>]\<rangle>\<^sub>a))"
-    apply (subst seqr_and_distl_uinj)
-    using assigns_r_swap_uinj id_vwb_lens left_uvar right_uvar apply fastforce
-    apply (simp)
-  done
-
+    by (rel_tac)
   also have "... = ((P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) ;; swap\<^sub>m) \<parallel> ((Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2) ;; swap\<^sub>m)"
-    by (simp add: design_par_def swap\<^sub>m_def rdesign_composition, rel_tac)
-
+    by (simp add: design_par_def swap\<^sub>m_def assigns_d_def rdesign_composition, rel_tac)
   finally show ?thesis
     using P Q by blast
 qed

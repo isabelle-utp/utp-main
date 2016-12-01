@@ -49,7 +49,7 @@ is "\<lambda> \<sigma> x b. get\<^bsub>x\<^esub> (\<sigma> b)" .
 text {* Relational lifting of a substitution to the first element of the state space *}
 
 definition unrest_usubst :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> usubst \<Rightarrow> bool"
-where [upred_defs]: "unrest_usubst x \<sigma> = (\<forall> \<rho> v. \<sigma> (put\<^bsub>x\<^esub> \<rho> v) = put\<^bsub>x\<^esub> (\<sigma> \<rho>) v)"
+where "unrest_usubst x \<sigma> = (\<forall> \<rho> v. \<sigma> (put\<^bsub>x\<^esub> \<rho> v) = put\<^bsub>x\<^esub> (\<sigma> \<rho>) v)"
 
 adhoc_overloading
   unrest unrest_usubst
