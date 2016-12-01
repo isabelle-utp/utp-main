@@ -605,6 +605,8 @@ subsection {* RH laws *}
 
 definition RH_def [upred_defs]: "RH(P) = R1(R2s(R3c(P)))"
 
+notation RH ("\<^bold>R'(_')")
+
 lemma RH_alt_def:
   "RH(P) = R1(R2(R3c(P)))"
   by (simp add: R1_idem R2_def RH_def)

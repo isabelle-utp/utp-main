@@ -27,7 +27,7 @@ lemma ref\<^sub>c_vwb_lens [simp]: "vwb_lens ref\<^sub>c"
 lemma csp_vwb_lens [simp]: "vwb_lens \<Sigma>\<^sub>c"
   by (unfold_locales, simp_all add: \<Sigma>\<^sub>c_def)
   
-definition "ref = (ref\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
+definition [uvar_defs]: "ref = (ref\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
 definition [uvar_defs]: "\<Sigma>\<^sub>C   = (\<Sigma>\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
 
 lemma ref_vwb_lens [simp]: "vwb_lens ref"
@@ -37,14 +37,10 @@ lemma csp_lens_vwb_lens [simp]: "vwb_lens \<Sigma>\<^sub>C"
   by (simp add: \<Sigma>\<^sub>C_def)
 
 lemma csp_lens_indep_ok [simp]: "\<Sigma>\<^sub>C \<bowtie> ok" "ok \<bowtie> \<Sigma>\<^sub>C"
-  apply (metis \<Sigma>\<^sub>C_def csp_vwb_lens lens_comp_lb rea_lens_indep_ok(1) sublens_pres_indep)
-  apply (simp add: \<Sigma>\<^sub>C_def lens_indep_sym)
-done
+  by (simp_all add: \<Sigma>\<^sub>C_def)
 
 lemma csp_lens_indep_wait [simp]: "\<Sigma>\<^sub>C \<bowtie> wait" "wait \<bowtie> \<Sigma>\<^sub>C"
-  apply (metis \<Sigma>\<^sub>C_def csp_vwb_lens lens_comp_lb rea_lens_indep_wait(1) sublens_pres_indep)
-  apply (simp add: \<Sigma>\<^sub>C_def lens_indep_left_ext lens_indep_sym)
-done
+  by (simp_all add: \<Sigma>\<^sub>C_def)
 
 abbreviation lift_csp :: "_ \<Rightarrow> _" ("\<lceil>_\<rceil>\<^sub>C") where
 "\<lceil>P\<rceil>\<^sub>C \<equiv> P \<oplus>\<^sub>p (\<Sigma>\<^sub>C \<times>\<^sub>L \<Sigma>\<^sub>C)"
@@ -78,28 +74,21 @@ syntax
 translations
   "trpar\<^sub>u(cs,t1,t2)" == "CONST trop CONST trpar cs t1 t2"
 
-subsection {* Healthiness conditions *}
+subsection {* Extra healthiness conditions and dependencies *}
 
-definition "STOP = CSP1($ok\<acute> \<and> R3c($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
+definition [upred_defs]: "STOP = CSP1($ok\<acute> \<and> R3c($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
 
-definition "SKIP = RH(\<exists> $ref \<bullet> CSP1(II))"
+definition [upred_defs]: "SKIP = RH(\<exists> $ref \<bullet> CSP1(II))"
 
-definition "CSP3(P) = (SKIP ;; P)"
+definition [upred_defs]: "CSP3(P) = (SKIP ;; P)"
 
-definition "CSP4(P) = (P ;; SKIP)"
-
-declare 
-  CSP1_def [upred_defs] and 
-  CSP2_def [upred_defs] and 
-  SKIP_def [upred_defs] and
-  CSP3_def [upred_defs] and 
-  CSP4_def [upred_defs]
+definition [upred_defs]: "CSP4(P) = (P ;; SKIP)"
 
 subsection {* Process constructs *}
 
-definition "Stop = RH(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
+definition [upred_defs]: "Stop = RH(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
 
-definition "Skip = RH(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> (\<not> $wait\<acute>) \<and> \<lceil>II\<rceil>\<^sub>R))"
+definition [upred_defs]: "Skip = RH(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> (\<not> $wait\<acute>) \<and> \<lceil>II\<rceil>\<^sub>R))"
 
 definition Guard :: "('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp" (infix "&\<^sub>u" 65)
 where "g &\<^sub>u A = RH((g \<Rightarrow> \<not> A\<^sup>f\<^sub>f) \<turnstile> ((g \<and> A\<^sup>t\<^sub>f) \<or> ((\<not> g) \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)))"
@@ -159,57 +148,14 @@ where "P \<parallel>[cs]\<^sub>C\<^sub>S\<^sub>P Q = P \<parallel>\<^bsub>CSPMer
 
 subsection {* CSP laws *}
 
-(*  
-lemma Skip_left_unit:
-  assumes "P is R2s" "Q is R2s"
-  shows "(Skip ;; RH(P \<turnstile> Q)) = RH(P \<turnstile> Q)"
-proof -
-  have "(Skip ;; RH(P \<turnstile> Q)) = 
-        RH ((\<not> ($ok\<acute> \<and> \<not> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R ;; R1 (\<not> P))) \<turnstile>
-            ($wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R \<or>
-            ($ok\<acute> \<and> \<not> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R ;; R1 Q)))"
-  using assms
-    apply (simp add: Skip_def)
-    apply (subst reactive_design_composition)
-    apply (simp_all add: unrest R2s_true R2s_conj Healthy_def R2s_tr'_eq_tr R2s_lift_rea R2s_not R2s_wait')
-  done
-  have "($ok\<acute> \<and> \<not> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R ;; R1 (\<not> P))
-       = (\<exists> $ok \<bullet> \<exists> $wait \<bullet> \<exists> $ref \<bullet> $ok \<and> \<not> $wait \<and> R1 (\<not> P))"
-  proof -
-    have "($ok\<acute> \<and> \<not> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R ;; R1 (\<not> P))
-       = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R ;; ($ok \<and> \<not> $wait \<and> R1 (\<not> P)))"
-      by rel_tac
-    also have "... = (($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) ;; ($ok \<and> \<not> $wait \<and> R1 (\<not> P)))"
-      by rel_tac
-    also have "... = (\<exists> $ok \<bullet> \<exists> $wait \<bullet> \<exists> $ref \<bullet> $ok \<and> \<not> $wait \<and> R1 (\<not> P))"
-      using tr_rea_alpha_id by blast
-    also have "... = (\<exists> $ok \<bullet> (\<exists> $wait \<bullet> \<exists> $ref \<bullet> (R1 (\<not> P) \<and> $wait =\<^sub>u false)) \<and> $ok =\<^sub>u true)"
-      by pred_tac
-    also have "... = (\<exists> $wait \<bullet> \<exists> $ref \<bullet> (R1 (\<not> P\<lbrakk>true/$ok\<rbrakk>)) \<and> $wait =\<^sub>u false)"
-      apply (subst one_point[of "in_var ok" _, simplified])
-      apply (simp_all add: usubst unrest R1_def)
-    done
-    also have "... = (\<exists> $wait \<bullet> (\<exists> $ref \<bullet> (R1 (\<not> P\<lbrakk>true/$ok\<rbrakk>))) \<and> $wait =\<^sub>u false)"
-      by (pred_tac)
-    also have "... = (\<exists> $ref \<bullet> (R1 (\<not> P\<lbrakk>true/$ok\<rbrakk>\<lbrakk>false/$wait\<rbrakk>)))"
-      apply (subst one_point[of "in_var wait" _, simplified])
-      apply (simp_all add: usubst unrest R1_def)
-    done
+theorem STOP_is_Stop: "STOP = Stop"
+  apply (rel_tac) 
+  using minus_zero_eq apply blast+
+done
 
-      term "utp_expr.var (in_var x) =\<^sub>u $x"
-      apply (subst one_point[of "in_var ok"])
-
-    also have "... = (\<exists> $wait \<bullet> \<exists> $ref \<bullet> R1 (\<not> P\<lbrakk>true/$ok\<rbrakk>))"
-      
-      thm one_point
-      using tr_rea_alpha_id by blast
-
-
-    finally show ?thesis .
-  qed
-*)    
-
-
+lemma Skip_is_rea_skip: "Skip = II\<^sub>r"
+  apply (rel_tac) using minus_zero_eq by blast+
+  
 (*
 (* TODO : Circus merge predicate: *)
 
