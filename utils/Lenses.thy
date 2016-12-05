@@ -41,6 +41,9 @@ lemma get_fst_lens [simp]: "get\<^bsub>fst\<^sub>L\<^esub> (x, y) = x"
 lemma get_snd_lens [simp]: "get\<^bsub>snd\<^sub>L\<^esub> (x, y) = y"
   by (simp add: snd_lens_def)
 
+abbreviation swap_lens :: "'a \<times> 'b \<Longrightarrow> 'b \<times> 'a" ("swap\<^sub>L") where
+"swap\<^sub>L \<equiv> snd\<^sub>L +\<^sub>L fst\<^sub>L"
+
 definition unit_lens :: "unit \<Longrightarrow> 'a" ("0\<^sub>L") where
 [lens_defs]: "0\<^sub>L = \<lparr> lens_get = (\<lambda> _. ()), lens_put = (\<lambda> \<sigma> x. \<sigma>) \<rparr>"
 
@@ -298,6 +301,10 @@ lemma lens_indep_right_ext:
   "x \<bowtie> z \<Longrightarrow> x \<bowtie> (y ;\<^sub>L z)"
   by (simp add: lens_indep_left_ext lens_indep_sym) 
 
+lemma split_prod_lens_indep:
+  assumes "mwb_lens X"
+  shows "(fst\<^sub>L ;\<^sub>L X) \<bowtie> (snd\<^sub>L ;\<^sub>L X)"
+  using assms fst_snd_lens_indep lens_indep_left_comp vwb_lens_mwb by blast
 
 lemma plus_vwb_lens:
   assumes "vwb_lens x" "vwb_lens y" "x \<bowtie> y"
@@ -698,6 +705,18 @@ lemma lens_equiv_iff_bij:
   apply (metis assms lens_comp_assoc lens_id_unique)
   using lens_equiv_via_bij apply blast
 done
+
+lemma swap_bij_lens: "bij_lens swap\<^sub>L"
+  by (metis bij_lens_equiv_id fst_snd_id_lens fst_snd_lens_indep lens_indep_sym lens_plus_comm)
+
+lemma swap_lens_idem: "swap\<^sub>L ;\<^sub>L swap\<^sub>L = 1\<^sub>L"
+  by (simp add: fst_snd_id_lens fst_snd_lens_indep lens_indep_sym lens_plus_swap)
+
+lemma swap_lens_fst: "fst\<^sub>L ;\<^sub>L swap\<^sub>L = snd\<^sub>L"
+  by (simp add: fst_lens_plus fst_vwb_lens)
+
+lemma swap_lens_snd: "snd\<^sub>L ;\<^sub>L swap\<^sub>L = fst\<^sub>L"
+  by (simp add: fst_snd_lens_indep lens_indep_sym snd_lens_prod snd_vwb_lens)
 
 text {* Lens override laws *}
 

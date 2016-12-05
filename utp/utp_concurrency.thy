@@ -84,6 +84,34 @@ lemma parallel_condr_distr:
   "(P \<triangleleft> \<lceil>b\<rceil>\<^sub>D \<triangleright> Q) \<parallel> R = ((P \<parallel> R) \<triangleleft> \<lceil>b\<rceil>\<^sub>D \<triangleright> (Q \<parallel> R))"
   by (simp add: design_par_def rdesign_def alpha cond_conj_distr conj_comm design_condr)
 
+lemma parallel_exchange:
+  assumes "P is H1_H2" "Q is H1_H2" "R is H1_H2" "S is H1_H2"
+  shows "((P ;; Q) \<parallel> (R ;; S)) \<sqsubseteq> ((P \<parallel> R) ;; (Q \<parallel> S))"
+proof -
+  obtain P\<^sub>1 P\<^sub>2 Q\<^sub>1 Q\<^sub>2 R\<^sub>1 R\<^sub>2 S\<^sub>1 S\<^sub>2 where
+    P: "P = P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2" and Q: "Q = Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2" and
+    R: "R = R\<^sub>1 \<turnstile>\<^sub>r R\<^sub>2" and S: "S = S\<^sub>1 \<turnstile>\<^sub>r S\<^sub>2"
+    by (metis H1_H2_commute H1_H2_is_rdesign H2_idem Healthy_def assms)
+  hence "((P ;; Q) \<parallel> (R ;; S)) = ((P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2 ;; Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2) \<parallel> (R\<^sub>1 \<turnstile>\<^sub>r R\<^sub>2 ;; S\<^sub>1 \<turnstile>\<^sub>r S\<^sub>2))"
+    by simp
+  also have "... = ((\<not> (\<not> P\<^sub>1 ;; true) \<and> \<not> (P\<^sub>2 ;; \<not> Q\<^sub>1)) \<and> \<not> (\<not> R\<^sub>1 ;; true) \<and> \<not> (R\<^sub>2 ;; \<not> S\<^sub>1)) \<turnstile>\<^sub>r
+                   ((\<not> (\<not> P\<^sub>1 ;; true) \<and> \<not> (P\<^sub>2 ;; \<not> Q\<^sub>1) \<Rightarrow> (P\<^sub>2 ;; Q\<^sub>2)) \<and> (\<not> (\<not> R\<^sub>1 ;; true) \<and> \<not> (R\<^sub>2 ;; \<not> S\<^sub>1) \<Rightarrow> (R\<^sub>2 ;; S\<^sub>2)))"
+    by (simp add: rdesign_composition design_par_def)
+  also have "... \<sqsubseteq> (\<not> (\<not> P\<^sub>1 \<or> \<not> R\<^sub>1 ;; true) \<and> \<not> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (R\<^sub>1 \<Rightarrow> R\<^sub>2) ;; \<not> Q\<^sub>1 \<or> \<not> S\<^sub>1)) \<turnstile>\<^sub>r
+                    ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (R\<^sub>1 \<Rightarrow> R\<^sub>2) ;; (Q\<^sub>1 \<Rightarrow> Q\<^sub>2) \<and> (S\<^sub>1 \<Rightarrow> S\<^sub>2))"
+  proof (rule rdesign_refine_intro)
+    show "`(\<not> (\<not> P\<^sub>1 ;; true) \<and> \<not> (P\<^sub>2 ;; \<not> Q\<^sub>1)) \<and> \<not> (\<not> R\<^sub>1 ;; true) \<and> \<not> (R\<^sub>2 ;; \<not> S\<^sub>1) \<Rightarrow>
+           \<not> (\<not> P\<^sub>1 \<or> \<not> R\<^sub>1 ;; true) \<and> \<not> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (R\<^sub>1 \<Rightarrow> R\<^sub>2) ;; \<not> Q\<^sub>1 \<or> \<not> S\<^sub>1)`"
+      by (rel_tac)
+    show "`((\<not> (\<not> P\<^sub>1 ;; true) \<and> \<not> (P\<^sub>2 ;; \<not> Q\<^sub>1)) \<and> \<not> (\<not> R\<^sub>1 ;; true) \<and> \<not> (R\<^sub>2 ;; \<not> S\<^sub>1)) \<and>
+           ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (R\<^sub>1 \<Rightarrow> R\<^sub>2) ;; (Q\<^sub>1 \<Rightarrow> Q\<^sub>2) \<and> (S\<^sub>1 \<Rightarrow> S\<^sub>2)) \<Rightarrow>
+           (\<not> (\<not> P\<^sub>1 ;; true) \<and> \<not> (P\<^sub>2 ;; \<not> Q\<^sub>1) \<Rightarrow> (P\<^sub>2 ;; Q\<^sub>2)) \<and> (\<not> (\<not> R\<^sub>1 ;; true) \<and> \<not> (R\<^sub>2 ;; \<not> S\<^sub>1) \<Rightarrow> (R\<^sub>2 ;; S\<^sub>2))`"
+      by (rel_tac)
+  qed
+  finally show ?thesis
+    by (simp add: design_par_def rdesign_composition P Q R S)
+qed
+
 subsection {* Parallel by merge *}
 
 text {* We describe the partition of a state space into two pieces. *}
