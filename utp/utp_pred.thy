@@ -2,7 +2,6 @@ section {* Alphabetised Predicates *}
 
 theory utp_pred
 imports
-  interp
   utp_expr
   utp_subst
 begin

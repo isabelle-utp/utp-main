@@ -4,7 +4,6 @@ theory utp_expr
 imports
   utp_var
   utp_dvar
-  Profiling
 begin
 
 text {* Before building the predicate model, we will build a model of expressions that generalise
