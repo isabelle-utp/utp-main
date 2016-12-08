@@ -63,6 +63,11 @@ type_synonym ('a, '\<alpha>) uvar_d = "('a, '\<alpha> alphabet_d) uvar"
 type_synonym ('\<alpha>, '\<beta>) relation_d = "('\<alpha> alphabet_d, '\<beta> alphabet_d) relation"
 type_synonym '\<alpha> hrelation_d = "'\<alpha> alphabet_d hrelation"
 
+translations 
+  (type) "'\<alpha> alphabet_d" <= (type) "'\<alpha> alpha_d_scheme"
+  (type) "'\<alpha> alphabet_d" <= (type) "'\<alpha> alpha_d_ext"
+  (type) "('\<alpha>, '\<beta>) relation_d" <= (type) "('\<alpha> alpha_d_scheme, '\<beta> alpha_d_scheme) relation"
+
 definition des_lens :: "('\<alpha>, '\<alpha> alphabet_d) lens" ("\<Sigma>\<^sub>D") where
 [uvar_defs]: "des_lens = \<lparr> lens_get = more, lens_put = fld_put more_update \<rparr>"
 
