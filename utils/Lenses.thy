@@ -968,7 +968,10 @@ ML_file "Lenses.ML"
 alphabet mylens =
   x :: nat
   y :: string
-  z :: real
+
+alphabet mylens_2 = mylens +
+  z :: int
+  k :: "string list"
 *)
 
 end
