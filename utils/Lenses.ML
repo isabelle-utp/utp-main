@@ -78,31 +78,67 @@ fun indep_proof thy (x, y) =
                                     , PARALLEL_ALLGOALS 
                                         (asm_simp_tac (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def")) (Simplifier.add_simp (Global_Theory.get_thm thy (y ^ "_def")) context)))])
 
+(*
 fun parent_indep_proof thy y x =
   Goal.prove_global thy [] []
       (hd (Type_Infer_Context.infer_types 
               (Proof_Context.init_global thy) 
-              [ Const (imp, dummyT) $ 
-                (Const (Trueprop, dummyT) 
-                $ ( Const (lens_indep, dummyT) 
-                  $ Free ("X", dummyT)
-                  $ Const (y, dummyT)
-                  )
-                )
-              $
-                (Const (Trueprop, dummyT) 
-                $ ( Const (lens_indep, dummyT) 
-                  $ Free ("X", dummyT)
-                  $ Const (Context.theory_name thy ^ "." ^ x, dummyT)
-                  )
-                )
-              ]))
+              [ Const ("Pure.all", dummyT) $ (Abs ("x", dummyT, Const (Trueprop, dummyT) $ (Const ("HOL.eq", dummyT) $ Bound 0 $ Bound 0))) ]
+      ))
       (fn {context, prems} => 
           EVERY [ PARALLEL_ALLGOALS 
                     (asm_simp_tac 
                         (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def")) 
                         (Simplifier.add_simp @{thm lens_indep_left_ext} 
                         (Simplifier.add_simp @{thm lens_indep_right_ext} context))))])
+*)
+
+fun parent_indep_proof_1 thy y x =
+  Goal.prove_global thy [] []
+      (hd (Type_Infer_Context.infer_types 
+              (Proof_Context.init_global thy) 
+              [ Const ("Pure.all", dummyT) $ (Abs ("x", dummyT, (
+                Const (imp, dummyT) $ 
+                (Const (Trueprop, dummyT) 
+                $ ( Const (lens_indep, dummyT) 
+                  $ Bound 0
+                  $ Const (y, dummyT)
+                  )
+                )
+              $
+                (Const (Trueprop, dummyT) 
+                $ ( Const (lens_indep, dummyT) 
+                  $ Bound 0
+                  $ Const (Context.theory_name thy ^ "." ^ x, dummyT)
+                  )
+                ))))
+              ]))
+      (fn {context, prems} => 
+          EVERY [(auto_tac (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def")) context))])
+
+fun parent_indep_proof_2 thy y x =
+  Goal.prove_global thy [] []
+      (hd (Type_Infer_Context.infer_types 
+              (Proof_Context.init_global thy) 
+              [ Const ("Pure.all", dummyT) $ (Abs ("x", dummyT, (
+                Const (imp, dummyT) $ 
+                (Const (Trueprop, dummyT) 
+                $ ( Const (lens_indep, dummyT) 
+                  $ Const (y, dummyT)
+                  $ Bound 0
+                  )
+                )
+              $
+                (Const (Trueprop, dummyT) 
+                $ ( Const (lens_indep, dummyT) 
+                  $ Const (Context.theory_name thy ^ "." ^ x, dummyT)
+                  $ Bound 0
+                  )
+                ))))
+              ]))
+      (fn {context, prems} => 
+          EVERY [(auto_tac (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def")) context))])
+
 
 fun sublens_proof thy y x =
       Goal.prove_global thy [] [] 
@@ -153,7 +189,7 @@ fun add_alphabet_cmd overloaded (raw_params, binding) raw_parent raw_fields thy 
               (fold (fn x => snd o Specification.definition_cmd (NONE, ((Attrib.empty_binding, x))) true) pldefs)
          |> fold (fn x => fn thy => snd (Global_Theory.add_thm ((Binding.make (x ^ vwb_lens_suffix, Position.none), lens_proof x thy), [Simplifier.simp_add]) thy)) ((map ldef_name lnames) @ [mldef_name])
          |> (fn thy => snd (Global_Theory.add_thmss 
-              [((Binding.make (Binding.name_of binding ^ indeps_suffix, Position.none), map (indep_proof thy) (pairings ((map ldef_name lnames) @ [mldef_name])) (* @ map (parent_indep_proof thy plchild) plnames *)), [Simplifier.simp_add])] thy))
+              [((Binding.make (Binding.name_of binding ^ indeps_suffix, Position.none), map (indep_proof thy) (pairings ((map ldef_name lnames) @ [mldef_name])) @ map (parent_indep_proof_1 thy plchild) plnames @ map (parent_indep_proof_2 thy plchild) plnames), [Simplifier.simp_add])] thy))
          |> fold (fn x => fn thy => snd (Global_Theory.add_thm ((Binding.make (x ^ vwb_lens_suffix, Position.none), lens_child_proof thy x), [Simplifier.simp_add]) thy)) plnames
          |> (fn thy => snd (Global_Theory.add_thmss [((Binding.make (Binding.name_of binding ^ sublens_suffix, Position.none), map (sublens_proof thy plchild) plnames), [Simplifier.simp_add])] thy))
   end;

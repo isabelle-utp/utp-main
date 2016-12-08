@@ -127,7 +127,7 @@ done
 lemma usubst_upd_comm_dash [usubst]: 
   fixes x :: "('a, '\<alpha>) uvar"
   shows "\<sigma>($x\<acute> \<mapsto>\<^sub>s v, $x \<mapsto>\<^sub>s u) = \<sigma>($x \<mapsto>\<^sub>s u, $x\<acute> \<mapsto>\<^sub>s v)"
-  using in_out_indep usubst_upd_comm by force
+  using out_in_indep usubst_upd_comm by blast  
 
 lemma usubst_lookup_upd_indep [usubst]:
   assumes "mwb_lens x" "x \<bowtie> y"

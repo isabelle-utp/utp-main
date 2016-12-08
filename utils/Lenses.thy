@@ -290,14 +290,14 @@ lemma lens_indep_right_comp:
   apply (simp add: lens_indep_sym)
 done
 
-lemma lens_indep_left_ext:
+lemma lens_indep_left_ext [intro]:
   "y \<bowtie> z \<Longrightarrow> (x ;\<^sub>L y) \<bowtie> z"
   apply (auto intro!: lens_indepI simp add: lens_comp_def)
   apply (simp add: lens_indep_comm)
   apply (simp add: lens_indep_sym)
 done
 
-lemma lens_indep_right_ext:
+lemma lens_indep_right_ext [intro]:
   "x \<bowtie> z \<Longrightarrow> x \<bowtie> (y ;\<^sub>L z)"
   by (simp add: lens_indep_left_ext lens_indep_sym)
 
@@ -961,6 +961,14 @@ syntax "_FLDLENS" :: "id \<Rightarrow> ('a \<Longrightarrow> 'r)"  ("FLDLENS _")
 translations "FLDLENS x" => "\<lparr> lens_get = x, lens_put = CONST fld_put (_update_name x) \<rparr>"
 
 (* Introduce the alphabet command that creates a record with lenses for each field *)
+
+(* Collection of UTP variable definitions *)
+
+named_theorems uvar_defs
+
+(* The following theorem attribute stores splitting theorems for alphabet types *)
+
+named_theorems alpha_splits
 
 ML_file "Lenses.ML"
 
