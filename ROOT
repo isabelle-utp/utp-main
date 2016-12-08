@@ -25,7 +25,8 @@ session "UTP-IMPORTS" in "utils" = "Kleene_Algebra" +
     finite_bijection
     Dyadic
     Lenses
-    "Library_extra/Countable_Set_extra" 
+    Profiling
+    "Library_extra/Countable_Set_extra"
     "Library_extra/Fmap"
     "Library_extra/FSet_extra"
     "Library_extra/List_extra"
@@ -38,6 +39,7 @@ session "UTP-IMPORTS" in "utils" = "Kleene_Algebra" +
     Positive
     Real_Bit
     ttrace
+    interp
 
 session "UTP" in "utp" = "UTP-IMPORTS" +
   options [document = pdf, document_output = "output", timeout = 1000]

@@ -330,27 +330,27 @@ text {* Unrestriction is effectively semantic freshness; an expression is unrest
 
 lemma vexpr_unrest [unrest]:
   "x \<sharp> v \<Longrightarrow> x \<sharp> \<lfloor>v\<rfloor>\<^sub>v"
-  by pred_tac
+  by pred_auto
 
 lemma vvar_unrest [unrest]:
   "\<lbrakk> uvar x; x \<bowtie> y \<rbrakk> \<Longrightarrow> y \<sharp> &\<^sub>vx"
-  by pred_tac
+  by pred_auto
 
 lemma vlit_unrest [unrest]:
   "x \<sharp> \<guillemotleft>v\<guillemotright>\<^sub>v"
-  by pred_tac
+  by pred_auto
 
 lemma vuop_unrest [unrest]:
   "x \<sharp> v \<Longrightarrow> x \<sharp> vuop f v"
-  by pred_tac
+  by pred_auto
 
 lemma vbop_unrest [unrest]:
   "\<lbrakk> x \<sharp> u; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> vbop f u v"
-  by pred_tac
+  by pred_auto
 
 lemma vtop_unrest [unrest]:
   "\<lbrakk> x \<sharp> u; x \<sharp> v; x \<sharp> w \<rbrakk> \<Longrightarrow> x \<sharp> vtop f u v w"
-  by pred_tac
+  by pred_auto
 
 subsection {* VDM Substitution *}
 
@@ -373,35 +373,35 @@ lemma vvar_subst [usubst]: "\<sigma> \<dagger> &\<^sub>vx = \<langle>\<sigma>\<r
 
 lemma vsubst_vnot [usubst]:
   "\<sigma> \<dagger> (\<not>\<^sub>v p ) = (\<not>\<^sub>v (\<sigma> \<dagger> p))"
-  by pred_tac
+  by pred_auto
 
 lemma vsubst_vconj [usubst]:
   "\<sigma> \<dagger> (p \<and>\<^sub>v q) = (\<sigma> \<dagger> p \<and>\<^sub>v \<sigma> \<dagger> q)"
-  by pred_tac
+  by pred_auto
 
 lemma vsubst_vdisj [usubst]:
   "\<sigma> \<dagger> (p \<or>\<^sub>v q) = (\<sigma> \<dagger> p \<or>\<^sub>v \<sigma> \<dagger> q)"
-  by pred_tac
+  by pred_auto
 
 lemma vsubst_vlit [usubst]:
   "\<sigma> \<dagger> \<guillemotleft>v\<guillemotright>\<^sub>v = \<guillemotleft>v\<guillemotright>\<^sub>v"
-  by pred_tac
+  by pred_auto
 
 lemma vsubst_vuop [usubst]: 
   "\<sigma> \<dagger> (vuop f x) = vuop f (\<sigma> \<dagger> x)"
-  by pred_tac
+  by pred_auto
 
 lemma vsubst_vbop [usubst]: 
   "\<sigma> \<dagger> (vbop f x y) = vbop f (\<sigma> \<dagger> x) (\<sigma> \<dagger> y)"
-  by pred_tac
+  by pred_auto
 
 lemma vsubst_vtop [usubst]: 
   "\<sigma> \<dagger> (vtop f x y z) = vtop f (\<sigma> \<dagger> x) (\<sigma> \<dagger> y) (\<sigma> \<dagger> z)"
-  by pred_tac
+  by pred_auto
 
 lemma vsubst_vexpr [usubst]:
   "\<sigma> \<dagger> \<lfloor>v\<rfloor>\<^sub>v = \<lfloor>\<sigma> \<dagger> v\<rfloor>\<^sub>v"
-  by pred_tac
+  by pred_auto
 
 subsection {* Proof setup *}
 
@@ -434,10 +434,10 @@ lemma bpfun'_defined [intro,simp]:
 text {* We also set up some useful default simplifications. *}
 
 lemma true_vdm [simp]: "\<lfloor>true\<^sub>v\<rfloor>\<^sub>v = true"
-  by pred_tac
+  by pred_auto
 
 lemma false_vdm [simp]: "\<lfloor>false\<^sub>v\<rfloor>\<^sub>v = false"
-  by pred_tac
+  by pred_auto
 
 lemma vconj_left_unit [simp]: "(true\<^sub>v \<and>\<^sub>v p) = p"
   by (transfer, simp)
@@ -469,10 +469,10 @@ lemma bpfun'_simp [simp]: "bpfun' f (x, y) = Some (f x y)"
 text {* Here we are using introduction / elimination to prove some simple properties *}
 
 lemma example1: "(\<forall>\<^sub>v x : Nats \<bullet> \<guillemotleft>x\<guillemotright>\<^sub>v >\<^sub>v \<guillemotleft>1 :: nat\<guillemotright>\<^sub>v) = false\<^sub>v"
-  by pred_tac
+  by pred_auto
 
 lemma example2: "(\<exists>\<^sub>v x : Nats \<bullet> \<guillemotleft>x\<guillemotright>\<^sub>v >\<^sub>v \<guillemotleft>1 :: nat\<guillemotright>\<^sub>v) = true\<^sub>v"
-  by pred_tac
+  by pred_auto
 
 subsection {* Definedness laws *}
 
@@ -556,7 +556,7 @@ done
 
 lemma vdefined_undef [simp]:
   "\<D>\<^sub>v(\<bottom>\<^sub>v) = false\<^sub>v"
-  by (pred_tac)
+  by (pred_auto)
 
 lemma vdefined_vvar [simp]: 
   fixes x :: "('a, '\<alpha>) uvar" 
@@ -629,7 +629,7 @@ translations
 lemma vassign_undef:
   fixes x :: "('a, '\<alpha>) uvar"
   shows "(x :=\<^sub>v \<bottom>\<^sub>v) = \<bottom>\<^sub>D"
-  by rel_tac
+  by rel_auto
 
 lemma H1_H3_vdm_assign [simp]:
   fixes x :: "('a, '\<alpha>) uvar" 
@@ -639,7 +639,7 @@ lemma H1_H3_vdm_assign [simp]:
 lemma hd_nil_abort: 
   fixes x :: "('a, '\<alpha>) uvar"
   shows "(x :=\<^sub>v hd\<^sub>v([]\<^sub>v)) = true"
-  by rel_tac  
+  by rel_auto  
 
 definition wp_vdm :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> '\<beta> vpred \<Rightarrow> '\<alpha> vpred" (infix "wp\<^sub>v" 60)
 where "Q wp\<^sub>v r = \<lceil>Q wp\<^sub>D \<lfloor>r\<rfloor>\<^sub>v\<rceil>\<^sub>v"
@@ -671,11 +671,11 @@ where "[pre pr post po body bd]\<^sub>v = (\<lfloor>\<D>\<^sub>v(pr)\<rfloor>\<^
 (*
 lemma vdm_sl_op_true_pre_post [simp]:
   "[pre true\<^sub>v post true\<^sub>v body p \<turnstile>\<^sub>r q]\<^sub>v = true \<turnstile>\<^sub>r q"
-  by (simp add: vdm_sl_op_def, pred_tac)
+  by (simp add: vdm_sl_op_def, pred_auto)
 
 lemma vdm_sl_op_false_pre [simp]:
   "[pre false\<^sub>v post p body b]\<^sub>v = true"
-  by (simp add: vdm_sl_op_def, pred_tac)
+  by (simp add: vdm_sl_op_def, pred_auto)
 *)
 
 end

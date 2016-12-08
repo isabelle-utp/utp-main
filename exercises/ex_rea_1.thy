@@ -10,7 +10,7 @@ definition rassign :: "('a, '\<alpha>) uvar \<Rightarrow> _ \<Rightarrow> _" (in
 "rassign x v = (R3(\<Sigma>\<^sub>R:x := v))"
 
 lemma DEAD_wait': "(DEAD \<and> $wait\<acute>) = DEAD"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma 
   assumes "P is R3"
@@ -25,7 +25,7 @@ proof -
   also have "... = (DEAD ;; ($wait \<and> (II \<triangleleft> $wait \<triangleright> P)))"
     by (simp add: seqr_post_transfer utp_rel.unrest_iuvar)
   also have "... = (DEAD ;; II)"
-    by (rel_tac)
+    by (rel_auto)
   also have "... = DEAD"
     by simp
   finally show ?thesis .

@@ -26,7 +26,7 @@ proof -
   moreover obtain Q\<^sub>1 Q\<^sub>2 where Q: "Q = Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2"
    by (metis H1_H2_commute H1_H2_is_rdesign H2_idem Healthy_def assms(2))
   moreover have "(((P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) ;; II\<^sub>D) \<parallel> ((Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2) ;; II\<^sub>D)) = (((P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) \<parallel> (Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2)) ;; II\<^sub>D)"
-    by (simp add: design_par_def skip_d_def rdesign_composition, rel_tac)
+    by (simp add: design_par_def skip_d_def rdesign_composition, rel_auto)
   ultimately show ?thesis
     by simp
 qed
@@ -42,17 +42,17 @@ proof -
   have "P \<parallel> true = (pre\<^sub>D(P) \<and> pre\<^sub>D(true)) \<turnstile>\<^sub>r (post\<^sub>D(P) \<and> post\<^sub>D(true))"
     by (simp add: design_par_def)
   also have "... = (pre\<^sub>D(P) \<and> false) \<turnstile>\<^sub>r (post\<^sub>D(P) \<and> true)"
-    by rel_tac
+    by rel_auto
   also have "... = true"
-    by rel_tac
+    by rel_auto
   finally show ?thesis .
 qed
 
 lemma parallel_assoc: "P \<parallel> Q \<parallel> R = (P \<parallel> Q) \<parallel> R"
-  by rel_tac
+  by rel_auto
 
 lemma parallel_comm: "P \<parallel> Q = Q \<parallel> P"
-  by pred_tac
+  by pred_auto
   
 lemma parallel_idem: 
   assumes "P is H1" "P is H2"
@@ -66,7 +66,7 @@ proof -
   have "pre\<^sub>D(P\<^sub>1) \<turnstile>\<^sub>r post\<^sub>D(P\<^sub>1) \<sqsubseteq> pre\<^sub>D(P\<^sub>2) \<turnstile>\<^sub>r post\<^sub>D(P\<^sub>2)"
     by (metis H1_H2_commute H1_H2_is_rdesign H1_idem Healthy_def' assms)
   hence "(pre\<^sub>D(P\<^sub>1) \<turnstile>\<^sub>r post\<^sub>D(P\<^sub>1)) \<parallel> Q \<sqsubseteq> (pre\<^sub>D(P\<^sub>2) \<turnstile>\<^sub>r post\<^sub>D(P\<^sub>2)) \<parallel> Q" 
-    by (auto simp add: rdesign_refinement design_par_def) (pred_tac+)
+    by (auto simp add: rdesign_refinement design_par_def) (pred_auto+)
   thus ?thesis
     by (metis H1_H2_commute H1_H2_is_rdesign H1_idem Healthy_def' assms)
 qed
@@ -211,13 +211,13 @@ lemma U0_H1_H2: "U0 is H1_H2"
   by (simp add: U0_def rdesign_is_H1_H2)
 
 lemma U0_swap: "(U0 ;; swap\<^sub>m) = U1"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma U1_H1_H2: "U1 is H1_H2"
   by (simp add: U1_def rdesign_is_H1_H2)
 
 lemma U1_swap: "(U1 ;; swap\<^sub>m) = U0"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma swap_merge_par_distl:
   assumes "P is H1_H2" "Q is H1_H2"
@@ -231,9 +231,9 @@ proof -
         (\<not> (\<not> P\<^sub>1 \<or> \<not> Q\<^sub>1 ;; true)) \<turnstile>\<^sub>r ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2) ;; \<langle>[&0-\<Sigma> \<mapsto>\<^sub>s &1-\<Sigma>, &1-\<Sigma> \<mapsto>\<^sub>s &0-\<Sigma>]\<rangle>\<^sub>a)"
     by (simp add: design_par_def swap\<^sub>m_def assigns_d_def rdesign_composition)
   also have "... =  (\<not> (\<not> P\<^sub>1 \<or> \<not> Q\<^sub>1 ;; true)) \<turnstile>\<^sub>r (((P\<^sub>1 \<Rightarrow> P\<^sub>2) ;; \<langle>[&0-\<Sigma> \<mapsto>\<^sub>s &1-\<Sigma>, &1-\<Sigma> \<mapsto>\<^sub>s &0-\<Sigma>]\<rangle>\<^sub>a) \<and> ((Q\<^sub>1 \<Rightarrow> Q\<^sub>2) ;; \<langle>[&0-\<Sigma> \<mapsto>\<^sub>s &1-\<Sigma>, &1-\<Sigma> \<mapsto>\<^sub>s &0-\<Sigma>]\<rangle>\<^sub>a))"
-    by (rel_tac)
+    by (rel_auto)
   also have "... = ((P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) ;; swap\<^sub>m) \<parallel> ((Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2) ;; swap\<^sub>m)"
-    by (simp add: design_par_def swap\<^sub>m_def assigns_d_def rdesign_composition, rel_tac)
+    by (simp add: design_par_def swap\<^sub>m_def assigns_d_def rdesign_composition, rel_auto)
   finally show ?thesis
     using P Q by blast
 qed
@@ -245,7 +245,7 @@ proof -
   have "true \<parallel>\<^bsub>M\<^esub> P = ((true ;; U0) \<parallel> (P ;; U1) ;; M)" (is "_ = ((?P \<parallel> ?Q) ;; ?M)")
     by (simp add: par_by_merge_def)
   moreover have "?P = true"
-    by (rel_tac)
+    by (rel_auto)
   ultimately show ?thesis
     by (metis H1_left_zero assms parallel_comm parallel_zero)
 qed
@@ -257,7 +257,7 @@ proof -
   have "P \<parallel>\<^bsub>M\<^esub> true = ((P ;; U0) \<parallel> (true ;; U1) ;; M)" (is "_ = ((?P \<parallel> ?Q) ;; ?M)")
     by (simp add: par_by_merge_def)
   moreover have "?Q = true"
-    by (rel_tac)
+    by (rel_auto)
   ultimately show ?thesis
     by (metis H1_left_zero assms parallel_comm parallel_zero)
 qed

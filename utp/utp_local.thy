@@ -103,7 +103,7 @@ interpretation des_prog_var: utp_prog_var "TYPE(DES \<times> '\<alpha> alphabet_
   apply (unfold_locales, simp_all add: des_pvar_def des_assigns_def des_hcond_def)
   apply (simp add: assigns_d_def rdesign_is_H1_H2)
   apply (simp add: assigns_d_comp_ext assigns_d_is_H1_H2)
-  apply (rel_tac)
+  apply (rel_auto)
 done
 
 locale utp_local_var = utp_prog_var \<T> V + utp_theory_left_unital \<T> for \<T> :: "('\<T> \<times> '\<alpha>) itself" (structure) and V :: "'\<beta>::vst itself" +
@@ -153,7 +153,7 @@ lemma var_open_close_commute:
   assumes "uvar x" "uvar y" "x \<bowtie> y"
   shows "(var x ;; end y) = (end y ;; var x)"
   using assms
-  apply (rel_tac)
+  apply (rel_auto)
   apply (smt lens_indep_comm vwb_lens.put_eq vwb_lens_wb wb_lens_def weak_lens.put_get)
   apply (metis lens_indep_def)
 done
@@ -163,28 +163,28 @@ lemma var_block_vacuous:
   by (simp add: var_open_end)
 
 lemma assign_var_end: "uvar x \<Longrightarrow> (vlet x ;; @x := v ;; end x) = end x"
-  apply (rel_tac)
+  apply (rel_auto)
   apply (metis list_augment_0 mwb_lens_weak neq_Nil_conv vwb_lens.put_eq vwb_lens_mwb weak_lens.view_determination)
   apply (auto)
 done
 
 lemma var_open_alt_def: "var x = (\<^bold>\<exists> v \<bullet> x := \<langle>\<guillemotleft>v\<guillemotright>\<rangle> ^\<^sub>u &x)"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma var_close_alt_def: "uvar x \<Longrightarrow> end x = (x := tail\<^sub>u(&x) \<triangleleft> $x \<noteq>\<^sub>u \<langle>\<rangle> \<triangleright> false)"
-  apply (rel_tac)
+  apply (rel_auto)
   apply (metis hd_Cons_tl vwb_lens.put_eq)
 done
   
 lemma var_open_refine: "var x \<sqsubseteq> x := \<langle>\<guillemotleft>v\<guillemotright>\<rangle> ^\<^sub>u &x"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma var_open_vlet: "uvar x \<Longrightarrow> (var x ;; vlet x) = var x"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma var_RID_commute:
   "uvar x \<Longrightarrow> (var x ;; RID(x)(P)) = (RID(x)(P) ;; var x)"
-  apply (rel_tac)
+  apply (rel_auto)
   apply (smt mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
   apply (metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens_weak weak_lens.put_get)
 done
@@ -195,7 +195,7 @@ lemma var_runrest_commute:
 
 lemma end_RID_commute:
   "uvar x \<Longrightarrow> (RID(x)(P) ;; end x) = (end x ;; RID(x)(P))"
-  apply (rel_tac)
+  apply (rel_auto)
   apply (smt vwb_lens.put_eq vwb_lens_wb wb_lens_weak weak_lens.put_get)
   apply (metis mwb_lens_axioms_def mwb_lens_def vwb_lens_mwb weak_lens.put_get)
 done
@@ -217,13 +217,13 @@ lemma var_block_out_right:
   by (metis end_runrest_commute seqr_assoc)
 
 lemma var_block_assign: "uvar x \<Longrightarrow> (var x \<bullet> x := v) = II"
-  apply (rel_tac)
+  apply (rel_auto)
   apply (metis list.inject mwb_lens_weak vwb_lens.put_eq vwb_lens_mwb weak_lens.view_determination)
   apply force
 done
 
 lemma var_block_assigns: "\<lbrakk> uvar x; &x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> (var x \<bullet> \<langle>\<sigma>(x \<mapsto>\<^sub>s v)\<rangle>\<^sub>a) = \<langle>\<sigma>\<rangle>\<^sub>a"
-  apply (rel_tac)
+  apply (rel_auto)
   apply (auto simp add: comp_def unrest_usubst_def)
   apply (metis (no_types, lifting) list.inject mwb_lens_weak vwb_lens.put_eq vwb_lens_mwb weak_lens.view_determination)
   apply (metis list_augment_0 mwb_lens.put_put mwb_lens_weak vwb_lens_mwb vwb_lens_wb wb_lens.get_put weak_lens.put_get)

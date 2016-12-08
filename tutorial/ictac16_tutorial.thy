@@ -17,21 +17,21 @@ theorem seqr_left_zero: "(false ;; P) = false" oops
 theorem cond_seq_left_distr:
   assumes "out\<alpha> \<sharp> b"
   shows "((P \<triangleleft> b \<triangleright> Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright> (Q ;; R))"
-  using assms by (rel_tac, blast+)
+  using assms by (rel_auto, blast+)
 
 theorem assign_twice: 
   assumes "uvar x" "x \<sharp> f" 
   shows "(x := e ;; x := f) = (x := f)"
-  using assms by rel_tac
+  using assms by rel_auto
 
 theorem assign_commute:
   assumes "x \<bowtie> y" "x \<sharp> f" "y \<sharp> e"
   shows "(x := e ;; y := f) = (y := f ;; x := e)"
-  using assms by (rel_tac, simp_all add: lens_indep_comm)
+  using assms by (rel_auto, simp_all add: lens_indep_comm)
 
 subsection {* Design laws *}
 
-theorem design_false_pre: "(false \<turnstile> P) = true" by rel_tac
+theorem design_false_pre: "(false \<turnstile> P) = true" by rel_auto
 
 theorem design_true_left_zero: "(true ;; (P \<turnstile> Q)) = true"
 proof -
@@ -40,7 +40,7 @@ proof -
   also have "... = ((true\<lbrakk>false/$ok\<acute>\<rbrakk> ;; (P \<turnstile> Q)\<lbrakk>false/$ok\<rbrakk>) \<or> (true\<lbrakk>true/$ok\<acute>\<rbrakk> ;; (P \<turnstile> Q)\<lbrakk>true/$ok\<rbrakk>))"
     by (simp add: disj_comm false_alt_def true_alt_def)
   also have "... = ((true\<lbrakk>false/$ok\<acute>\<rbrakk> ;; true\<^sub>h) \<or> (true ;; ((P \<turnstile> Q)\<lbrakk>true/$ok\<rbrakk>)))"
-    by (subst_tac, rel_tac)
+    by (subst_tac, rel_auto)
   also have "... = true"
     by (subst_tac, simp add: precond_right_unit unrest)
   finally show ?thesis .
@@ -116,7 +116,7 @@ lemma violate_precond:
   apply (simp)
   apply (wp_tac)
   apply (subst_tac)
-  apply (rel_tac)
+  apply (rel_auto)
 done
 
 end

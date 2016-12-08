@@ -27,7 +27,7 @@ abbreviation
 text {* init_Plant establishes the invariant *}
 
 lemma init_Plant_est: "(true \<turnstile>\<^sub>r \<lceil> \<lfloor> inv_Plant \<rfloor>\<^sub>v \<rceil>\<^sub>>) \<sqsubseteq> init_Plant"
-  by rel_tac
+  by rel_auto
 
 abbreviation
   "addExpert \<equiv> val e :: Expert \<bullet>\<^sub>D [pre $\<^sub>ve \<notin>\<^sub>v $\<^sub>vstaff post true\<^sub>v body staff :=\<^sub>v &\<^sub>vstaff \<union>\<^sub>v {&\<^sub>ve}\<^sub>v]\<^sub>v"
@@ -46,7 +46,7 @@ lemma "(\<lfloor> inv_Plant \<and>\<^sub>v \<guillemotleft>p\<guillemotright>\<^
        \<sqsubseteq> (schedule(\<guillemotleft>p\<guillemotright>\<^sub>v) :=\<^sub>v ({\<guillemotleft>e\<guillemotright>\<^sub>v}\<^sub>v \<union>\<^sub>v (&\<^sub>vschedule(\<guillemotleft>p\<guillemotright>\<^sub>v)\<^sub>v)))"
    apply (simp add: vassign_uvar_def)
    apply (rule ndesign_refine_intro)
-   apply (pred_tac)
+   apply (pred_auto)
 oops
 
 end

@@ -98,7 +98,7 @@ lemma WeakCojunctive_Healthy_Refinement:
 
 lemma WeakConjunctive_implies_WeakConjunctive:
   "Conjunctive(H) \<Longrightarrow> WeakConjunctive(H)"
-  unfolding WeakConjunctive_def Conjunctive_def by pred_tac
+  unfolding WeakConjunctive_def Conjunctive_def by pred_auto
 
 declare Conjunctive_def [upred_defs]
 declare Monotonic_def [upred_defs]

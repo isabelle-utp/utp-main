@@ -152,81 +152,81 @@ declare hODE_def [urel_defs] and hDAE_def [urel_defs] and hODE_init_def [urel_de
 
 lemma HCT1_idempotent:
   "HCT1(HCT1(P)) = HCT1(P)"
-  by rel_tac
+  by rel_auto
 
 lemma HCT2_idempotent:
   "HCT2(HCT2(P)) = HCT2(P)"
-  by rel_tac
+  by rel_auto
 
 lemma HCT3_idempotent:
   "HCT3(HCT3(P)) = HCT3(P)"
-  by rel_tac
+  by rel_auto
 
 lemma HTRAJ_idempotent:
   "HTRAJ(HTRAJ(P)) = HTRAJ(P)"
-  by rel_tac
+  by rel_auto
 
 lemma HCT_idempotent:
   "HCT(HCT(P)) = HCT(P)"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma HCT_monotone:
   "P \<sqsubseteq> Q \<Longrightarrow> HCT(P) \<sqsubseteq> HCT(Q)"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma HCT1_HCT2_commute:
   "HCT1(HCT2(P)) = HCT2(HCT1(P))"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma HCT1_HCT3_commute:
   "HCT1(HCT3(P)) = HCT3(HCT1(P))"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma HCT1_HTRAJ_commute:
   "HCT1(HTRAJ(P)) = HTRAJ(HCT1(P))"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma HCT2_HCT3_commute:
   "HCT2(HCT3(P)) = HCT3(HCT2(P))"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma HCT2_HTRAJ_commute:
   "HCT2(HTRAJ(P)) = HTRAJ(HCT2(P))"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma HCT3_HTRAJ_commute:
   "HCT3(HTRAJ(P)) = HTRAJ(HCT3(P))"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma HCT_hTrue: "HCT(true\<^sub>H) = true\<^sub>H"
   by (simp add: HCT_idempotent hTrue_def)
 
 lemma hTrue_HCT_top: "P is HCT \<Longrightarrow> true\<^sub>H \<sqsubseteq> P"
-  by (rel_tac, blast)
+  by (rel_auto, blast)
 
 lemma HCT_false: "HCT(false) = false"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma HCT_conj: "HCT(P \<and> Q) = (HCT(P) \<and> HCT(Q))"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma HCT_disj: "HCT(P \<or> Q) = (HCT(P) \<or> HCT(Q))"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma HCT_cond_r: "HCT(P \<triangleleft> b \<triangleright> Q) = (HCT(P) \<triangleleft> b \<triangleright> HCT(Q))"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma HCT_hSkip: "HCT3(II\<^sub>H) = II\<^sub>H"
-  by rel_tac
+  by rel_auto
 
 lemma HCT_hAssigns: "HCT(hAssigns \<sigma>) = hAssigns \<sigma>"
-  by rel_tac
+  by rel_auto
 
 lemma HCT3_seq_r: "HCT3(HCT3(P) ;; HCT3(Q)) = (HCT3(P) ;; HCT3(Q))"
-  by rel_tac
+  by rel_auto
 
 lemma HCT'_seq_r: "HCT'(HCT'(P) ;; HCT'(Q)) = (HCT'(P) ;; HCT'(Q))"
-  apply (rel_tac)
+  apply (rel_auto)
   apply blast
   apply blast
   apply (rename_tac P Q b b' b\<^sub>0 I\<^sub>1 I\<^sub>2)
@@ -288,39 +288,39 @@ declare hInt_def [urel_defs]
 declare hDisInt_def [urel_defs]
 
 lemma HCT_hInt: "HCT(\<lceil>P\<rceil>\<^sub>H) = \<lceil>P\<rceil>\<^sub>H"
-  by rel_tac
+  by rel_auto
 
 lemma HCT_hDisInt: "HCT(\<lceil>|P|\<rceil>\<^sub>H) = \<lceil>|P|\<rceil>\<^sub>H"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma hInt_true: "\<lceil>true\<rceil>\<^sub>H = HCT($time\<acute> >\<^sub>u $time)"
-  by rel_tac
+  by rel_auto
 
 lemma hDisInt_false: "\<lceil>|false|\<rceil>\<^sub>H = false"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma hDisInt_conj: "\<lceil>|P(\<tau>) \<and> Q(\<tau>)|\<rceil>\<^sub>H = (\<lceil>|P(\<tau>)|\<rceil>\<^sub>H \<and> \<lceil>|Q(\<tau>)|\<rceil>\<^sub>H)"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma hInt_false: "\<lceil>false\<rceil>\<^sub>H = false"
-  by rel_tac
+  by rel_auto
 
 lemma hInt_disj: "\<lceil>P(\<tau>) \<or> Q(\<tau>)\<rceil>\<^sub>H \<sqsubseteq> (\<lceil>P(\<tau>)\<rceil>\<^sub>H \<or> \<lceil>Q(\<tau>)\<rceil>\<^sub>H)"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma hInt_conj: "\<lceil>P(\<tau>) \<and> Q(\<tau>)\<rceil>\<^sub>H = (\<lceil>P(\<tau>)\<rceil>\<^sub>H \<and> \<lceil>Q(\<tau>)\<rceil>\<^sub>H)"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma hDisInt_refine_strengthen:
   "\<lbrakk> \<And> \<tau>. `Q(\<tau>) \<Rightarrow> P(\<tau>)` \<rbrakk> \<Longrightarrow> \<lceil>|P(\<tau>)|\<rceil>\<^sub>H \<sqsubseteq> \<lceil>|Q(\<tau>)|\<rceil>\<^sub>H"
-  by rel_tac
+  by rel_auto
 
 lemma hPreempt_HCT_closed:
   assumes "P is HCT" "Q is HCT"
   shows "P\<lbrakk>B\<rbrakk>\<^sub>uQ is HCT"
 proof -
   have "(\<lceil>B\<rceil>\<^sub>H \<and> ((\<lambda>_.B) @\<^sub>u $time) \<and> P) is HCT"
-    by (rel_tac)
+    by (rel_auto)
   hence "HCT((\<lceil>B\<rceil>\<^sub>H \<and> ((\<lambda>_.B) @\<^sub>u $time) \<and> P) ;; Q) = ((\<lceil>B\<rceil>\<^sub>H \<and> ((\<lambda>_.B) @\<^sub>u $time) \<and> P) ;; Q)"
     by (metis HCT_seq_r Healthy_def' assms(2))
   with assms show ?thesis
@@ -330,7 +330,7 @@ qed
 lemma gravity_ode_refine:
   "((\<guillemotleft>v\<^sub>0\<guillemotright>, \<guillemotleft>h\<^sub>0\<guillemotright>)\<^sub>u \<Turnstile> \<langle>\<lambda> (t, v, h). (- g, v)\<rangle>\<^sub>H \<and> $time =\<^sub>u 0) \<sqsubseteq> 
    (\<lceil>| &con\<alpha> =\<^sub>u (\<guillemotleft>v\<^sub>0\<guillemotright> - \<guillemotleft>g\<guillemotright>*\<guillemotleft>\<tau>\<guillemotright>, \<guillemotleft>v\<^sub>0\<guillemotright>*\<guillemotleft>\<tau>\<guillemotright> - \<guillemotleft>g\<guillemotright>*(\<guillemotleft>\<tau>\<guillemotright>*\<guillemotleft>\<tau>\<guillemotright>) / 2 + \<guillemotleft>h\<^sub>0\<guillemotright>)\<^sub>u |\<rceil>\<^sub>H \<and> $time =\<^sub>u 0)"
-  apply (rel_tac)
+  apply (rel_auto)
   apply (rule exI)
   apply (auto)
   apply (safe intro!: has_vector_derivative_Pair, (rule has_vector_derivative_eq_rhs, (rule derivative_intros; (simp)?)+, simp)+)

@@ -1,13 +1,48 @@
+(******************************************************************************)
+(* Project: The Isabelle/UTP Proof System                                     *)
+(* File: utp_cps.thy                                                          *)
+(* Authors: Simon Foster and Frank Zeyda                                      *)
+(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
+(******************************************************************************)
+(* LAST REVIEWED: 8/12/2016 *)
+
 section {* Theory of CSP *}
 
 theory utp_csp
   imports utp_rea_designs utp_procedure
 begin
 
-subsection {* Preliminaries *} 
+subsection {* Preliminaries *}
 
-record '\<phi> alpha_csp' = 
-  csp_ref :: "'\<phi> set"
+record '\<phi> alpha_csp' =
+  ref\<^sub>v :: "'\<phi> set"
+
+declare alpha_csp'.splits [alpha_splits]
+
+text {*
+  The two locale interpretations below are a technicality to improve automatic
+  proof support via the predicate and relational tactics. This is to enable the
+  (re-)interpretation of state spaces to remove any occurrences of lens types
+  after the proof tactics @{method pred_simp} and @{method rel_simp}, or any
+  of their derivatives have been applied. Eventually, it would be desirable to
+  automate both interpretations as part of a custom outer command for defining
+  alphabets.
+*}
+
+interpretation alphabet_csp_prd:
+  lens_interp "\<lambda>(ok, wait, tr, r). (ok, wait, tr, ref\<^sub>v r, more r)"
+apply (unfold_locales)
+apply (rule injI)
+apply (clarsimp)
+done
+
+interpretation alphabet_csp_rel:
+  lens_interp "\<lambda>(ok, ok', wait, wait', tr, tr', r, r'). (ok, ok',
+  wait, wait', tr, tr', ref\<^sub>v r, ref\<^sub>v r', more r, more r')"
+apply (unfold_locales)
+apply (rule injI)
+apply (clarsimp)
+done
 
 type_synonym ('\<phi>, '\<alpha>) alpha_csp_scheme = "('\<phi> list, ('\<phi>, '\<alpha>) alpha_csp'_scheme) alpha_rp_scheme"
 
@@ -19,8 +54,8 @@ type_synonym ('\<phi>,'\<sigma>) predicate_csp  = "('\<phi>,'\<sigma>) alphabet_
 translations
   (type) "('\<phi>,'\<alpha>) alphabet_csp" <= (type) "('\<phi> list, ('b, '\<alpha>) alpha_csp'_scheme) alphabet_rp"
 
-definition [uvar_defs]: "ref\<^sub>c = VAR csp_ref"
-definition [uvar_defs]: "\<Sigma>\<^sub>c    = VAR more"
+definition [uvar_defs]: "ref\<^sub>c = VAR ref\<^sub>v"
+definition [uvar_defs]: "\<Sigma>\<^sub>c = VAR more"
 
 declare alpha_csp'.splits [alpha_splits]
 
@@ -29,7 +64,7 @@ lemma ref\<^sub>c_vwb_lens [simp]: "vwb_lens ref\<^sub>c"
 
 lemma csp_vwb_lens [simp]: "vwb_lens \<Sigma>\<^sub>c"
   by (unfold_locales, simp_all add: \<Sigma>\<^sub>c_def)
-  
+
 definition [uvar_defs]: "ref = (ref\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
 definition [uvar_defs]: "ref\<^sub>r = (ref\<^sub>c ;\<^sub>L \<Sigma>\<^sub>r)"
 definition [uvar_defs]: "\<Sigma>\<^sub>C   = (\<Sigma>\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
@@ -108,14 +143,14 @@ definition do\<^sub>u :: "('\<theta> event, ('\<theta>,'\<alpha>) alphabet_csp \
 "do\<^sub>u(e) = ($tr\<acute> =\<^sub>u $tr \<and> e \<notin>\<^sub>u $ref\<acute> \<triangleleft> $wait\<acute> \<triangleright> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>e\<rangle>)"
 
 definition OutputCSP ::
-  "('a, '\<theta>) chan \<Rightarrow> 
-    ('a, ('\<theta>,'\<alpha>) alphabet_csp \<times> ('\<theta>,'\<alpha>) alphabet_csp) uexpr \<Rightarrow> 
+  "('a, '\<theta>) chan \<Rightarrow>
+    ('a, ('\<theta>,'\<alpha>) alphabet_csp \<times> ('\<theta>,'\<alpha>) alphabet_csp) uexpr \<Rightarrow>
     ('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow>
     ('\<theta>, '\<alpha>) hrelation_csp" where
 "OutputCSP c v A = (RH(true \<turnstile> do\<^sub>u (c, v)\<^sub>e) ;; A)"
 
-definition do\<^sub>I :: 
-  "('a, '\<theta>) chan \<Rightarrow> 
+definition do\<^sub>I ::
+  "('a, '\<theta>) chan \<Rightarrow>
     ('a, ('\<theta>,'\<alpha>) alphabet_csp) uvar \<Rightarrow>
     ('a \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp) \<Rightarrow>
     ('\<theta>, '\<alpha>) hrelation_csp"
@@ -123,9 +158,9 @@ where "do\<^sub>I c x P = (($tr\<acute> =\<^sub>u $tr \<and> {e : \<guillemotlef
                    \<triangleleft> $wait\<acute> \<triangleright>
                    (($tr\<acute> - $tr) \<in>\<^sub>u {e : \<guillemotleft>\<delta>\<^sub>u(c)\<guillemotright> | P(e) \<bullet> \<langle>(c,\<guillemotleft>e\<guillemotright>)\<^sub>e\<rangle>}\<^sub>u \<and> (c, $x\<acute>)\<^sub>e =\<^sub>u last\<^sub>u($tr\<acute>)))"
 
-definition InputCSP :: 
+definition InputCSP ::
   "('a::two, '\<theta>) chan \<Rightarrow> _ \<Rightarrow>
-    ('a \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp) \<Rightarrow> 
+    ('a \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp) \<Rightarrow>
     (_ \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp) \<Rightarrow>
     ('\<theta>, '\<alpha>) hrelation_csp"
 where "InputCSP c x P A = (var\<^bsub>RDES\<^esub> x \<bullet> RH(true \<turnstile> do\<^sub>I c x P \<and> \<lceil>II\<rceil>\<^sub>R) ;; A(x))"
@@ -146,7 +181,7 @@ definition [upred_defs]:
   "CSPMerge(cs) =
     ((true \<turnstile>\<^sub>r (($wait\<^sub>r\<acute> =\<^sub>u ($0-wait\<^sub>r \<or> $1-wait\<^sub>r) \<and>
       $ref\<^sub>r\<acute> =\<^sub>u ($0-ref\<^sub>r \<union>\<^sub>u $1-ref\<^sub>r) \<and>
-      ($tr\<^sub>r\<acute> - $tr\<^sub>r\<^sub><) \<in>\<^sub>u (trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0-tr\<^sub>r - $tr\<^sub>r\<^sub><, $1-tr\<^sub>r - $tr\<^sub>r\<^sub><)) \<and> 
+      ($tr\<^sub>r\<acute> - $tr\<^sub>r\<^sub><) \<in>\<^sub>u (trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0-tr\<^sub>r - $tr\<^sub>r\<^sub><, $1-tr\<^sub>r - $tr\<^sub>r\<^sub><)) \<and>
       $0-tr\<^sub>r \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1-tr\<^sub>r \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>))) ;; SKIP)"
 
 definition ParCSP :: "('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow> '\<theta> event set \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp" (infixl "\<parallel>[_]\<^sub>C\<^sub>S\<^sub>P" 85)
@@ -155,23 +190,22 @@ where [upred_defs]: "P \<parallel>[cs]\<^sub>C\<^sub>S\<^sub>P Q = P \<parallel>
 subsection {* CSP laws *}
 
 theorem STOP_is_Stop: "STOP = Stop"
-  apply (rel_tac) 
+  apply (rel_auto)
   using minus_zero_eq apply blast+
 done
 
 lemma Skip_is_rea_skip: "Skip = II\<^sub>r"
-  apply (rel_tac) using minus_zero_eq by blast+
-  
+  apply (rel_auto) using minus_zero_eq by blast+
+
 (*
 (* TODO : Circus merge predicate: *)
 
 finition "MSt = undefined"
 
-definition "M(cs) = ((($tr\<acute> - $\<^sub><tr) \<in>\<^sub>u (trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0.tr - $\<^sub><tr, $1.tr - $\<^sub><tr)) \<and> $0.tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1.tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>) \<and> 
+definition "M(cs) = ((($tr\<acute> - $\<^sub><tr) \<in>\<^sub>u (trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0.tr - $\<^sub><tr, $1.tr - $\<^sub><tr)) \<and> $0.tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1.tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>) \<and>
                     (  (($0.wait \<or> $1.wait) \<and> $ref\<acute> \<subseteq>\<^sub>u (($0.ref \<union>\<^sub>u $1.ref) \<inter>\<^sub>u \<guillemotleft>cs\<guillemotright>) \<union>\<^sub>u (($0.ref \<inter>\<^sub>u $1.ref) - \<guillemotleft>cs\<guillemotright>))
                        \<triangleleft> $wait\<acute> \<triangleright>
                        (\<not> $1.wait \<and> \<not> $2.wait \<and> MSt)
                     ))"
 *)
-
 end

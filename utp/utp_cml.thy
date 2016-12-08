@@ -89,7 +89,7 @@ abbreviation hseqr :: "'\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation \<R
 "(P ;;\<^sub>h Q) \<equiv> ((P::'\<alpha> hrelation) ;; (Q::'\<alpha> hrelation))"
 
 lemma rea_lift_skip_alpha [alpha]: "\<lceil>II\<rceil>\<^sub>R = ($\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R)"
-  by (rel_tac)
+  by (rel_auto)
 
 lemma length_list_minus [simp]: "ys \<le> xs \<Longrightarrow> length(xs - ys) = length(xs) - length(ys)"
   by (auto simp add: minus_list_def less_eq_list_def)
@@ -102,9 +102,9 @@ proof -
   also have "... = RH (true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R))"
   proof -
     have 1:"?Q = false"
-      by (pred_tac)
+      by (pred_auto)
     have 2:"R1(?R) = ($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R)"
-      apply (rel_tac) using list_minus_anhil by blast
+      apply (rel_auto) using list_minus_anhil by blast
     show ?thesis
       by (metis (no_types, lifting) "1" "2" R1_false R1_wait'_cond RH_design_export_R1)
   qed
@@ -145,15 +145,15 @@ proof -
     also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> \<^bold>\<exists> tt\<^sub>0 \<bullet> #\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub>< \<and> \<lceil>n\<rceil>\<^sub>R\<^sub>< >\<^sub>u #\<^sub>u(drop\<^sub>u(#\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>), \<guillemotleft>tt\<^sub>0\<guillemotright>)) \<and> 
                                       events\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and>
                                       \<guillemotleft>tt\<^sub>1\<guillemotright> =\<^sub>u take\<^sub>u(#\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>), \<guillemotleft>tt\<^sub>0\<guillemotright>) \<and> \<guillemotleft>tt\<^sub>2\<guillemotright> =\<^sub>u drop\<^sub>u(#\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>), \<guillemotleft>tt\<^sub>0\<guillemotright>))"
-      by ((rule shEx_cong)+, rel_tac)
+      by ((rule shEx_cong)+, rel_auto)
     also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> \<^bold>\<exists> tt\<^sub>0 \<bullet> \<lceil>n\<rceil>\<^sub>R\<^sub>< >\<^sub>u #\<^sub>u(drop\<^sub>u(\<lceil>m\<rceil>\<^sub>R\<^sub><, \<guillemotleft>tt\<^sub>0\<guillemotright>)) \<and> 
                                       events\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and>
                                       \<guillemotleft>tt\<^sub>1\<guillemotright> =\<^sub>u take\<^sub>u(\<lceil>m\<rceil>\<^sub>R\<^sub><, \<guillemotleft>tt\<^sub>0\<guillemotright>) \<and> \<guillemotleft>tt\<^sub>2\<guillemotright> =\<^sub>u drop\<^sub>u(\<lceil>m\<rceil>\<^sub>R\<^sub><, \<guillemotleft>tt\<^sub>0\<guillemotright>) \<and> #\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub><)"
-      by ((rule shEx_cong)+, rel_tac, simp_all add: min_absorb2)
+      by ((rule shEx_cong)+, rel_auto, simp_all add: min_absorb2)
     also have "... = (\<^bold>\<exists> tt\<^sub>0 \<bullet> \<lceil>m + n\<rceil>\<^sub>R\<^sub>< >\<^sub>u #\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> #\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub><)"
-      by (rel_tac)
+      by (rel_auto)
     also have "... = R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m\<rceil>\<^sub>R\<^sub>< \<le>\<^sub>u #\<^sub>u(tt) \<and> #\<^sub>u(tt) <\<^sub>u \<lceil>m + n\<rceil>\<^sub>R\<^sub><)"
-      by (simp add: R2_form usubst unrest, rel_tac)
+      by (simp add: R2_form usubst unrest, rel_auto)
     finally show ?thesis .
   qed
   have 2:"(R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub>< \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) ;; R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>n\<rceil>\<^sub>R\<^sub>< \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R)) =
@@ -164,7 +164,7 @@ proof -
       by (simp add: R2_seqr_form usubst unrest)
     also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (#\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub>< \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R ;;\<^sub>h #\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<lceil>n\<rceil>\<^sub>R\<^sub>< \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) \<and>
                             events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
-      by (rel_tac)
+      by (rel_auto)
     also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (\<lceil>\<lceil>#\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u m\<rceil>\<^sub>< \<and> II ;;\<^sub>h #\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<lceil>n\<rceil>\<^sub>< \<and> II\<rceil>\<^sub>R) \<and>
                             events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
       by (simp add: alpha)
@@ -176,22 +176,22 @@ proof -
       by (simp add: alpha)
     also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> \<^bold>\<exists> tt\<^sub>0 \<bullet> (#\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub>< \<and> #\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<lceil>n\<rceil>\<^sub>R\<^sub>< \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) \<and>
                             events\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
-      by (rel_tac)
+      by (rel_auto)
     also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> \<^bold>\<exists> tt\<^sub>0 \<bullet> (#\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub>< \<and> #\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<lceil>n\<rceil>\<^sub>R\<^sub>< \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) \<and>
                             events\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> #\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub>< \<and>
                             \<guillemotleft>tt\<^sub>1\<guillemotright> =\<^sub>u take\<^sub>u(\<lceil>m\<rceil>\<^sub>R\<^sub><, \<guillemotleft>tt\<^sub>0\<guillemotright>) \<and> \<guillemotleft>tt\<^sub>2\<guillemotright> =\<^sub>u drop\<^sub>u(\<lceil>m\<rceil>\<^sub>R\<^sub><, \<guillemotleft>tt\<^sub>0\<guillemotright>))"
-      by ((rule shEx_cong)+, rel_tac)
+      by ((rule shEx_cong)+, rel_auto)
     also have "... = (\<^bold>\<exists> tt\<^sub>0 \<bullet> (#\<^sub>u(drop\<^sub>u(\<lceil>m\<rceil>\<^sub>R\<^sub><, \<guillemotleft>tt\<^sub>0\<guillemotright>)) =\<^sub>u \<lceil>n\<rceil>\<^sub>R\<^sub>< \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) \<and>
                             events\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> #\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub><)"
-      by (rel_tac)
+      by (rel_auto)
     also have "... = (\<^bold>\<exists> tt\<^sub>0 \<bullet> (#\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) - \<lceil>m\<rceil>\<^sub>R\<^sub>< =\<^sub>u \<lceil>n\<rceil>\<^sub>R\<^sub>< \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) \<and>
                             events\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> #\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub><)"
-      by (rel_tac)
+      by (rel_auto)
     also have "... = (\<^bold>\<exists> tt\<^sub>0 \<bullet> (#\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) =\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub>< + \<lceil>n\<rceil>\<^sub>R\<^sub>< \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) \<and>
                             events\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> #\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>R\<^sub><)"
-      by (rel_tac)
+      by (rel_auto)
     also have "... = ?rhs"
-      by (simp add: R2_form usubst unrest, rel_tac)
+      by (simp add: R2_form usubst unrest, rel_auto)
     finally show ?thesis .
   qed
   show ?thesis
@@ -215,7 +215,7 @@ proof -
     also have "... = RH (true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m + n\<rceil>\<^sub>R\<^sub>< >\<^sub>u #\<^sub>u(tt)) \<diamondop> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>m + n\<rceil>\<^sub>R\<^sub>< \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R))"
     proof -
       have 1:"?Q = (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m + n\<rceil>\<^sub>R\<^sub>< >\<^sub>u #\<^sub>u(tt))"
-        by (pred_tac)
+        by (pred_auto)
       show ?thesis
         by (simp add: 1)
     qed

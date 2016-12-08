@@ -1,16 +1,17 @@
 section {* UTP expressions *}
 
 theory utp_expr
-imports 
+imports
   utp_var
   utp_dvar
+  Profiling
 begin
 
 text {* Before building the predicate model, we will build a model of expressions that generalise
         alphabetised predicates. Expressions are represented semantically as mapping from
         the alphabet to the expression's type. This general model will allow us to unify
         all constructions under one type. All definitions in the file are given using
-        the \emph{lifting} package. 
+        the \emph{lifting} package.
 
         Since we have two kinds of variable (deep and shallow) in the model, we will also need
         two versions of each construct that takes a variable. We make use of adhoc-overloading
@@ -45,19 +46,19 @@ where "dvar_exp x = var (dvar_lift x)"
 
 text {* A literal is simply a constant function expression, always returning the same value. *}
 
-lift_definition lit :: "'t \<Rightarrow> ('t, '\<alpha>) uexpr" 
+lift_definition lit :: "'t \<Rightarrow> ('t, '\<alpha>) uexpr"
   is "\<lambda> v b. v" .
 
 text {* We define lifting for unary, binary, and ternary functions, that simply apply
         the function to all possible results of the expressions. *}
 
-lift_definition uop :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr" 
+lift_definition uop :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr"
   is "\<lambda> f e b. f (e b)" .
-lift_definition bop :: 
-  "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('c, '\<alpha>) uexpr" 
+lift_definition bop ::
+  "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('c, '\<alpha>) uexpr"
   is "\<lambda> f u v b. f (u b) (v b)" .
-lift_definition trop :: 
-  "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('c, '\<alpha>) uexpr \<Rightarrow> ('d, '\<alpha>) uexpr" 
+lift_definition trop ::
+  "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('c, '\<alpha>) uexpr \<Rightarrow> ('d, '\<alpha>) uexpr"
   is "\<lambda> f u v w b. f (u b) (v b) (w b)" .
 
 text {* We also define a UTP expression version of function abstract *}
@@ -202,7 +203,7 @@ instance proof
   fix x y z :: "('a, 'b) uexpr"
   show "(x < y) = (x \<le> y \<and> \<not> y \<le> x)" by (simp add: less_uexpr_def)
   show "x \<le> x" by (transfer, auto)
-  show "x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z" 
+  show "x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z"
     by (transfer, blast intro:order.trans)
   show "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
     by (transfer, rule ext, simp add: eq_iff)
@@ -259,7 +260,7 @@ definition "LZero = 0"
 
 adhoc_overloading
   uempty LZero and uempty LNil and
-  uapply fun_apply and uapply nth and uapply pfun_app and 
+  uapply fun_apply and uapply nth and uapply pfun_app and
   uapply ffun_app and uapply cgf_apply and uapply tt_apply and
   uupd pfun_upd and uupd ffun_upd and uupd list_update and
   udom Domain and udom pdom and udom fdom and udom seq_dom and
@@ -353,10 +354,10 @@ translations
   "xs \<restriction>\<^sub>u A"   == "CONST bop CONST seq_filter xs A"
   "A \<upharpoonleft>\<^sub>u xs"   == "CONST bop (op \<upharpoonleft>\<^sub>l) A xs"
   "x <\<^sub>u y"   == "CONST bop (op <) x y"
-  "x \<le>\<^sub>u y"   == "CONST bop (op \<le>) x y" 
+  "x \<le>\<^sub>u y"   == "CONST bop (op \<le>) x y"
   "x >\<^sub>u y"   == "y <\<^sub>u x"
-  "x \<ge>\<^sub>u y"   == "y \<le>\<^sub>u x" 
-  "min\<^sub>u(x, y)"  == "CONST bop (CONST min) x y" 
+  "x \<ge>\<^sub>u y"   == "y \<le>\<^sub>u x"
+  "min\<^sub>u(x, y)"  == "CONST bop (CONST min) x y"
   "max\<^sub>u(x, y)"  == "CONST bop (CONST max) x y"
   "gcd\<^sub>u(x, y)"  == "CONST bop (CONST gcd) x y"
   "finite\<^sub>u(x)" == "CONST uop (CONST finite) x"
@@ -404,19 +405,19 @@ syntax
   "_uset_atLeastLessThan" :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("(1{_..<_}\<^sub>u)")
   "_uset_compr" :: "id \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('b set, '\<alpha>) uexpr" ("(1{_ :/ _ |/ _ \<bullet>/ _}\<^sub>u)")
 
-lift_definition ZedSetCompr :: 
+lift_definition ZedSetCompr ::
   "('a set, '\<alpha>) uexpr \<Rightarrow> ('a \<Rightarrow> (bool, '\<alpha>) uexpr \<times> ('b, '\<alpha>) uexpr) \<Rightarrow> ('b set, '\<alpha>) uexpr"
 is "\<lambda> A PF b. { snd (PF x) b | x. x \<in> A b \<and> fst (PF x) b}" .
 
 translations
   "{x..y}\<^sub>u" == "CONST bop CONST atLeastAtMost x y"
   "{x..<y}\<^sub>u" == "CONST bop CONST atLeastLessThan x y"
-  "{x : A | P \<bullet> F}\<^sub>u" == "CONST ZedSetCompr A (\<lambda> x. (P, F))" 
+  "{x : A | P \<bullet> F}\<^sub>u" == "CONST ZedSetCompr A (\<lambda> x. (P, F))"
 
 text {* Lifting limits *}
 
 definition "ulim_left = (\<lambda> p f. Lim (at_left p) f)"
-definition "ulim_right = (\<lambda> p f. Lim (at_right p) f)" 
+definition "ulim_right = (\<lambda> p f. Lim (at_right p) f)"
 definition "ucont_on = (\<lambda> f A. continuous_on A f)"
 
 syntax
@@ -425,7 +426,7 @@ syntax
   "_ucont_on"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infix "cont-on\<^sub>u" 90)
 
 translations
-  "lim\<^sub>u(x \<rightarrow> p\<^sup>-)(e)" == "CONST bop CONST ulim_left p (\<lambda> x \<bullet> e)" 
+  "lim\<^sub>u(x \<rightarrow> p\<^sup>-)(e)" == "CONST bop CONST ulim_left p (\<lambda> x \<bullet> e)"
   "lim\<^sub>u(x \<rightarrow> p\<^sup>+)(e)" == "CONST bop CONST ulim_right p (\<lambda> x \<bullet> e)"
   "f cont-on\<^sub>u A"     == "CONST bop CONST continuous_on A f"
 

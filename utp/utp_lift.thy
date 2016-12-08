@@ -36,7 +36,7 @@ subsection {* Unrestriction laws *}
 lemma unrest_dash_var_pre [unrest]:
   fixes x :: "('a, '\<alpha>) uvar"
   shows "$x\<acute> \<sharp> \<lceil>p\<rceil>\<^sub><"
-  by (pred_tac)
+  by (pred_auto)
 
 (*
 lemma subst_drop_upd [usubst]: 
