@@ -4,34 +4,16 @@ theory utp_concurrency
   imports utp_rel
 begin
 
-text {* We describe the partition of a state space into two pieces. *}
+text {* In parallel-by-merge constructions, a merge predicate defines the behaviour following execution of
+        of parallel processes, P || Q, as a relation that merges the output of P and Q. In order to achieve
+        this we need to separate the variable values output from P and Q, and in addition the variable values 
+        before execution. The following three constructs do these separations. *}
 
-type_synonym '\<alpha> partition = "'\<alpha> \<times> '\<alpha>"
+definition [upred_defs]: "left_uvar x = x ;\<^sub>L fst\<^sub>L ;\<^sub>L snd\<^sub>L"
 
-definition "left_uvar x = x ;\<^sub>L fst\<^sub>L ;\<^sub>L snd\<^sub>L"
+definition [upred_defs]: "right_uvar x = x ;\<^sub>L snd\<^sub>L ;\<^sub>L snd\<^sub>L"
 
-definition "right_uvar x = x ;\<^sub>L snd\<^sub>L ;\<^sub>L snd\<^sub>L"
-
-declare left_uvar_def [upred_defs]
-
-declare right_uvar_def [upred_defs]
-
-text {* Extract the ith element of the second part *}
-
-definition "pre_uvar x = x ;\<^sub>L fst\<^sub>L"
-
-definition "in_pre_uvar x = in_var (pre_uvar x)"
-
-definition "out_pre_uvar x = out_var (pre_uvar x)"
-
-definition "in_pre_uexpr x = var (in_pre_uvar x)"
-
-definition "out_pre_uexpr x = var (out_pre_uvar x)"
-
-declare pre_uvar_def [upred_defs]
-
-declare in_pre_uexpr_def [upred_defs]
-declare out_pre_uexpr_def [upred_defs]
+definition [upred_defs]: "pre_uvar x = x ;\<^sub>L fst\<^sub>L"
 
 lemma left_uvar_indep_right_uvar [simp]:
   "left_uvar x \<bowtie> right_uvar y"
@@ -44,10 +26,10 @@ lemma right_uvar_indep_left_uvar [simp]:
   by (simp add: lens_indep_sym)
 
 lemma left_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (left_uvar x)"
-  by (simp add: left_uvar_def comp_vwb_lens fst_vwb_lens snd_vwb_lens)
+  by (simp add: left_uvar_def )
 
 lemma right_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (right_uvar x)"
-  by (simp add: right_uvar_def comp_vwb_lens fst_vwb_lens snd_vwb_lens)
+  by (simp add: right_uvar_def)
 
 syntax
   "_svarpre"   :: "svid \<Rightarrow> svid" ("_\<^sub><" [999] 999)
@@ -61,20 +43,17 @@ translations
 
 type_synonym '\<alpha> merge = "('\<alpha> \<times> ('\<alpha> \<times> '\<alpha>), '\<alpha>) relation"
 
-record ('\<alpha>, '\<beta>, '\<gamma>) amerge =
-  mrel   :: "('\<alpha> \<times> ('\<beta> \<times> '\<gamma>), '\<alpha>) relation"
-  mleft  :: "'\<beta> \<Longrightarrow> '\<alpha>"
-  mright :: "'\<gamma> \<Longrightarrow> '\<alpha>"
+text {* U0 and U1 are relations that index all input variables x to 0-x and 1-x, respectively. *}
 
-text {* Separating simulations. I assume that the value of ok' should track the value
-  of n.ok'. *}
+definition [upred_defs]: "U0 = ($0-\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
 
-definition "U0 = ($0-\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
+definition [upred_defs]: "U1 = ($1-\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
 
-definition "U1 = ($1-\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
+text {* As shown below, separating simulations can also be expressed using the following two alphabet extrusions *}
 
-declare U0_def [upred_defs]
-declare U1_def [upred_defs]
+definition U0_alpha ("\<lceil>_\<rceil>\<^sub>0") where [upred_defs]: "\<lceil>P\<rceil>\<^sub>0 = P \<oplus>\<^sub>p (1\<^sub>L \<times>\<^sub>L out_var fst\<^sub>L)"
+
+definition U1_alpha ("\<lceil>_\<rceil>\<^sub>1") where [upred_defs]: "\<lceil>P\<rceil>\<^sub>1 \<equiv> P \<oplus>\<^sub>p (1\<^sub>L \<times>\<^sub>L out_var snd\<^sub>L)"
   
 text {* The following implementation of parallel by merge is less general than the book version, in
   that it does not properly partition the alphabet into two disjoint segments. We could actually
@@ -91,10 +70,30 @@ definition "swap\<^sub>m = (0-\<Sigma>,1-\<Sigma> := &1-\<Sigma>,&0-\<Sigma>)"
 declare swap\<^sub>m_def [upred_defs]
 
 lemma U0_swap: "(U0 ;; swap\<^sub>m) = U1"
-  by (rel_auto)
+  by rel_auto
 
 lemma U1_swap: "(U1 ;; swap\<^sub>m) = U0"
+  by rel_auto
+
+text {* We can equivalently express separating simulations using alphabet extrusion *}
+
+lemma U0_as_alpha: "(P ;; U0) = \<lceil>P\<rceil>\<^sub>0"
+  by rel_auto
+
+lemma U1_as_alpha: "(P ;; U1) = \<lceil>P\<rceil>\<^sub>1"
+  by rel_auto
+
+lemma U0_alpha_out_var [alpha]: "\<lceil>$x\<acute>\<rceil>\<^sub>0 = $0-x\<acute>"
   by (rel_auto)
+
+lemma U1_alpha_out_var [alpha]: "\<lceil>$x\<acute>\<rceil>\<^sub>1 = $1-x\<acute>"
+  by (rel_auto)
+
+lemma U0_seq_subst: "(P ;; U0)\<lbrakk>\<guillemotleft>v\<guillemotright>/$0-x\<acute>\<rbrakk> = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; U0)" 
+  by rel_auto
+
+lemma U1_seq_subst: "(P ;; U1)\<lbrakk>\<guillemotleft>v\<guillemotright>/$1-x\<acute>\<rbrakk> = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; U1)"
+  by rel_auto
 
 lemma par_by_merge_commute:
   assumes "(swap\<^sub>m ;; M) = M"
