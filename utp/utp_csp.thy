@@ -203,6 +203,9 @@ definition CSPMerge' ("N\<^sub>C\<^sub>S\<^sub>P") where
       $ok\<acute> =\<^sub>u ($0-ok \<and> $1-ok) \<and>
       $wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and>
       $ref\<acute> =\<^sub>u ($0-ref \<union>\<^sub>u $1-ref) \<and>
+      $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and>
+      $tr\<^sub>< \<le>\<^sub>u $0-tr \<and>
+      $tr\<^sub>< \<le>\<^sub>u $1-tr \<and>
       ($tr\<acute> - $tr\<^sub><) \<in>\<^sub>u trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0-tr - $tr\<^sub><, $1-tr - $tr\<^sub><) \<and> 
       $0-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> \<and>
       $\<Sigma>\<^sub>C\<acute> =\<^sub>u $0-\<Sigma>\<^sub>C \<and> $\<Sigma>\<^sub>C\<acute> =\<^sub>u $1-\<Sigma>\<^sub>C)"
@@ -215,6 +218,81 @@ where [upred_defs]: "P \<parallel>[cs]\<^sub>C\<^sub>S\<^sub>P Q = P \<parallel>
 
 definition [upred_defs]: "M_CSP_ok(cs) = (M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,true,true/$ok\<^sub><,$0-ok,$1-ok\<rbrakk>"
 definition [upred_defs]: "M_CSP_not_ok(cs) = (M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,false,false/$ok\<^sub><,$0-ok,$1-ok\<rbrakk>"
+
+lemma SKIP_no_start: "(SKIP\<lbrakk>false/$ok\<rbrakk>) = R1(true)"
+  by (rel_auto)
+
+subsection {* CSP laws *}
+
+(*
+lemma "(M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk> = undefined"
+  apply (simp add: CSPMerge_def CSPMerge'_def)
+
+lemma "((N\<^sub>C\<^sub>S\<^sub>P cs) ;; SKIP)\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk> = true" (is "?lhs = ?rhs")
+proof -
+  have "?lhs = 
+        (($ok\<acute> =\<^sub>u false \<and>
+         $wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and>
+         $ref\<acute> =\<^sub>u ($0-ref \<union>\<^sub>u $1-ref) \<and>
+         $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and>
+         $tr\<^sub>< \<le>\<^sub>u $0-tr \<and>
+         $tr\<^sub>< \<le>\<^sub>u $1-tr \<and>
+         ($tr\<acute> - $tr\<^sub><) \<in>\<^sub>u trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0-tr - $tr\<^sub><, $1-tr - $tr\<^sub><) \<and> 
+         $0-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>) ;; R1(true\<^sub>h))"  
+    by (rel_auto)  
+    also have "... = 
+        (\<^bold>\<exists> ok\<^sub>0 \<bullet> \<^bold>\<exists> wait\<^sub>0 \<bullet> \<^bold>\<exists> tr\<^sub>0 \<bullet> \<^bold>\<exists> ref\<^sub>0 \<bullet>
+        ((\<guillemotleft>ok\<^sub>0\<guillemotright> =\<^sub>u false \<and>
+         \<guillemotleft>wait\<^sub>0\<guillemotright> =\<^sub>u ($0-wait \<or> $1-wait) \<and>
+         \<guillemotleft>ref\<^sub>0\<guillemotright> =\<^sub>u ($0-ref \<union>\<^sub>u $1-ref) \<and>
+         $tr\<^sub>< \<le>\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> \<and>
+         $tr\<^sub>< \<le>\<^sub>u $0-tr \<and>
+         $tr\<^sub>< \<le>\<^sub>u $1-tr \<and>
+         (\<guillemotleft>tr\<^sub>0\<guillemotright> - $tr\<^sub><) \<in>\<^sub>u trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0-tr - $tr\<^sub><, $1-tr - $tr\<^sub><) \<and> 
+         $0-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>) ;; ((R1(true\<^sub>h))\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<rbrakk>)))"  
+    by (rel_auto)
+    also have "... = 
+        (\<^bold>\<exists> tr\<^sub>0 \<bullet> $tr\<^sub>< \<le>\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> \<and> $tr\<^sub>< \<le>\<^sub>u $0-tr \<and> $tr\<^sub>< \<le>\<^sub>u $1-tr \<and>
+                 ((\<guillemotleft>tr\<^sub>0\<guillemotright> - $tr\<^sub><) \<in>\<^sub>u trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0-tr - $tr\<^sub><, $1-tr - $tr\<^sub><) \<and> 
+                 $0-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>) ;; ((R1(true\<^sub>h))\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<rbrakk>))"  
+      by (rel_auto)
+    also have "... = ($0-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and> $tr\<^sub>< \<le>\<^sub>u $0-tr \<and> $tr\<^sub>< \<le>\<^sub>u $1-tr)"
+      apply (rel_auto)
+      apply (rule_tac x="tr\<^sub>v" in exI)
+      apply (simp)
+
+lemma 
+  assumes "P is CSP2" "Q is CSP2"
+  shows "P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q = P\<^sup>t \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t"
+proof -
+  have "P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q = (((P ;; U0) \<and> (Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M\<^sub>C\<^sub>S\<^sub>P(cs))"
+    by (simp add: par_by_merge_def)
+  also have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> ((P ;; U0) \<and> (Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$0-ok\<acute>\<rbrakk> ;; M\<^sub>C\<^sub>S\<^sub>P(cs)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$0-ok\<rbrakk>)"
+    using seqr_middle left_uvar vwb_lens_ok by blast
+  also have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> \<^bold>\<exists> ok\<^sub>1 \<bullet> (((P ;; U0) \<and> (Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$0-ok\<acute>\<rbrakk>\<lbrakk>\<guillemotleft>ok\<^sub>1\<guillemotright>/$1-ok\<acute>\<rbrakk>) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$0-ok\<rbrakk>\<lbrakk>\<guillemotleft>ok\<^sub>1\<guillemotright>/$1-ok\<rbrakk>))"
+    by (subst seqr_middle[of "right_uvar ok"], simp_all)
+  also have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> \<^bold>\<exists> ok\<^sub>1 \<bullet> (((P\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<acute>\<rbrakk> ;; U0) \<and> (Q\<lbrakk>\<guillemotleft>ok\<^sub>1\<guillemotright>/$ok\<acute>\<rbrakk> ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>,\<guillemotleft>ok\<^sub>1\<guillemotright>/$0-ok,$1-ok\<rbrakk>))" 
+    by (rel_auto)
+  also have "... = ((((P\<^sup>t ;; U0) \<and> (Q\<^sup>t ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+                    (((P\<^sup>f ;; U0) \<and> (Q\<^sup>t ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+                    (((P\<^sup>t ;; U0) \<and> (Q\<^sup>f ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk>)) \<or>
+                    (((P\<^sup>f ;; U0) \<and> (Q\<^sup>f ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk>)))"
+    by (simp add: true_alt_def[THEN sym] false_alt_def[THEN sym] disj_assoc utp_pred.sup.left_commute utp_pred.sup_commute)
+
+  from assms have P: "`P\<^sup>f \<Rightarrow> P\<^sup>t`"
+    by (metis CSP2_def H2_equivalence Healthy_def')
+
+  have "`(M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,true,true,false,false/$0-ok,$1-ok,$ok\<acute>\<rbrakk> \<Rightarrow> (M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,true,true,false,false/$0-ok,$1-ok,$ok\<acute>\<rbrakk>`"
+    apply (rel_auto)
+
+  have "`(((P\<^sup>f ;; U0) \<and> (Q\<^sup>t ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,true,true/$0-ok,$1-ok,$ok\<acute>\<rbrakk>)) \<Rightarrow>
+        (((P\<^sup>t ;; U0) \<and> (Q\<^sup>t ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,true,true/$0-ok,$1-ok,$ok\<acute>\<rbrakk>))`"
+    apply (rule impl_mono)
+    using P
+    apply (rel_auto)[1]
+    apply (rel_auto)
+    apply (simp add: CSPMerge_def CSPMerge'_def usubst)
+*)
 
 (*
 lemma 
@@ -250,8 +328,6 @@ proof -
 
   apply (rel_tac)
 *)
-
-subsection {* CSP laws *}
 
 theorem STOP_is_Stop: "STOP = Stop"
   apply (rel_auto)
