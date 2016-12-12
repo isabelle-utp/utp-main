@@ -210,6 +210,10 @@ definition "disj_upred  = (sup :: '\<alpha> upred \<Rightarrow> '\<alpha> upred 
 definition "not_upred   = (uminus :: '\<alpha> upred \<Rightarrow> '\<alpha> upred)"
 definition "diff_upred  = (minus :: '\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred)"
 
+notation
+  conj_upred (infixr "\<and>\<^sub>p" 35) and
+  disj_upred (infixr "\<or>\<^sub>p" 30)
+
 lift_definition USUP :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('b::complete_lattice, '\<alpha>) uexpr) \<Rightarrow> ('b, '\<alpha>) uexpr"
 is "\<lambda> P F b. Sup {\<lbrakk>F x\<rbrakk>\<^sub>eb | x. \<lbrakk>P x\<rbrakk>\<^sub>eb}" .
 

@@ -76,7 +76,10 @@ lemma ref_vwb_lens [simp]: "vwb_lens ref"
 lemma csp_lens_vwb_lens [simp]: "vwb_lens \<Sigma>\<^sub>C"
   by (simp add: \<Sigma>\<^sub>C_def)
 
-lemma ok_indep_ref [simp]: "ok \<bowtie> ref" "ok \<bowtie> tr"
+lemma ok_indep_ref [simp]: "ok \<bowtie> ref" "ref \<bowtie> ok"
+  by (simp_all add: ref_def)
+
+lemma wait_indep_ref [simp]: "wait \<bowtie> ref" "ref \<bowtie> wait"
   by (simp_all add: ref_def)
 
 lemma tr_indep_ref [simp]: "tr \<bowtie> ref" "ref \<bowtie> tr"
@@ -197,11 +200,10 @@ term "c?\<^sub>u(x : true) \<rightarrow> (x := 1)"
 
 text {* Merge predicate for CSP *}
 
-definition CSPMerge' ("N\<^sub>C\<^sub>S\<^sub>P") where
+definition N0 where
   [upred_defs]:
-  "CSPMerge'(cs) = (
-      $ok\<acute> =\<^sub>u ($0-ok \<and> $1-ok) \<and>
-      $wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and>
+  "N0(cs) =
+     ($wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and>
       $ref\<acute> =\<^sub>u ($0-ref \<union>\<^sub>u $1-ref) \<and>
       $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and>
       $tr\<^sub>< \<le>\<^sub>u $0-tr \<and>
@@ -209,6 +211,10 @@ definition CSPMerge' ("N\<^sub>C\<^sub>S\<^sub>P") where
       ($tr\<acute> - $tr\<^sub><) \<in>\<^sub>u trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0-tr - $tr\<^sub><, $1-tr - $tr\<^sub><) \<and> 
       $0-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> \<and>
       $\<Sigma>\<^sub>C\<acute> =\<^sub>u $0-\<Sigma>\<^sub>C \<and> $\<Sigma>\<^sub>C\<acute> =\<^sub>u $1-\<Sigma>\<^sub>C)"
+
+definition CSPMerge' ("N\<^sub>C\<^sub>S\<^sub>P") where
+  [upred_defs]:
+  "CSPMerge'(cs) = ($ok\<acute> =\<^sub>u ($0-ok \<and> $1-ok) \<and> N0(cs))"
 
 definition CSPMerge ("M\<^sub>C\<^sub>S\<^sub>P") where
   [upred_defs]: "CSPMerge(cs) = (N\<^sub>C\<^sub>S\<^sub>P(cs) ;; SKIP)"
@@ -224,75 +230,152 @@ lemma SKIP_no_start: "(SKIP\<lbrakk>false/$ok\<rbrakk>) = R1(true)"
 
 subsection {* CSP laws *}
 
-(*
-lemma "(M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk> = undefined"
-  apply (simp add: CSPMerge_def CSPMerge'_def)
+lemma JL1: "(M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk>\<^sup>t = (N0(cs) ;; R1(true))"
+  by rel_auto
 
-lemma "((N\<^sub>C\<^sub>S\<^sub>P cs) ;; SKIP)\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk> = true" (is "?lhs = ?rhs")
-proof -
-  have "?lhs = 
-        (($ok\<acute> =\<^sub>u false \<and>
-         $wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and>
-         $ref\<acute> =\<^sub>u ($0-ref \<union>\<^sub>u $1-ref) \<and>
-         $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and>
-         $tr\<^sub>< \<le>\<^sub>u $0-tr \<and>
-         $tr\<^sub>< \<le>\<^sub>u $1-tr \<and>
-         ($tr\<acute> - $tr\<^sub><) \<in>\<^sub>u trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0-tr - $tr\<^sub><, $1-tr - $tr\<^sub><) \<and> 
-         $0-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>) ;; R1(true\<^sub>h))"  
-    by (rel_auto)  
-    also have "... = 
-        (\<^bold>\<exists> ok\<^sub>0 \<bullet> \<^bold>\<exists> wait\<^sub>0 \<bullet> \<^bold>\<exists> tr\<^sub>0 \<bullet> \<^bold>\<exists> ref\<^sub>0 \<bullet>
-        ((\<guillemotleft>ok\<^sub>0\<guillemotright> =\<^sub>u false \<and>
-         \<guillemotleft>wait\<^sub>0\<guillemotright> =\<^sub>u ($0-wait \<or> $1-wait) \<and>
-         \<guillemotleft>ref\<^sub>0\<guillemotright> =\<^sub>u ($0-ref \<union>\<^sub>u $1-ref) \<and>
-         $tr\<^sub>< \<le>\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> \<and>
-         $tr\<^sub>< \<le>\<^sub>u $0-tr \<and>
-         $tr\<^sub>< \<le>\<^sub>u $1-tr \<and>
-         (\<guillemotleft>tr\<^sub>0\<guillemotright> - $tr\<^sub><) \<in>\<^sub>u trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0-tr - $tr\<^sub><, $1-tr - $tr\<^sub><) \<and> 
-         $0-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>) ;; ((R1(true\<^sub>h))\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<rbrakk>)))"  
-    by (rel_auto)
-    also have "... = 
-        (\<^bold>\<exists> tr\<^sub>0 \<bullet> $tr\<^sub>< \<le>\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> \<and> $tr\<^sub>< \<le>\<^sub>u $0-tr \<and> $tr\<^sub>< \<le>\<^sub>u $1-tr \<and>
-                 ((\<guillemotleft>tr\<^sub>0\<guillemotright> - $tr\<^sub><) \<in>\<^sub>u trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0-tr - $tr\<^sub><, $1-tr - $tr\<^sub><) \<and> 
-                 $0-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>) ;; ((R1(true\<^sub>h))\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<rbrakk>))"  
-      by (rel_auto)
-    also have "... = ($0-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1-tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and> $tr\<^sub>< \<le>\<^sub>u $0-tr \<and> $tr\<^sub>< \<le>\<^sub>u $1-tr)"
-      apply (rel_auto)
-      apply (rule_tac x="tr\<^sub>v" in exI)
-      apply (simp)
+lemma JL2: "(M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk>\<^sup>t = (N0(cs) ;; R1(true))"
+  by rel_auto
 
-lemma 
-  assumes "P is CSP2" "Q is CSP2"
-  shows "P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q = P\<^sup>t \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t"
+lemma JL3: "(M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk>\<^sup>t = (N0(cs) ;; R1(true))"
+  by rel_auto
+
+lemma seqr_ok'_true [usubst]: "(P ;; Q)\<^sup>t = (P ;; Q\<^sup>t)"
+  by rel_auto
+
+lemma seqr_ok'_false [usubst]: "(P ;; Q)\<^sup>f = (P ;; Q\<^sup>f)"
+  by rel_auto
+
+lemma seqr_wait_true [usubst]: "(P ;; Q) \<^sub>t = (P \<^sub>t ;; Q)"
+  by rel_auto
+
+lemma seqr_wait_false [usubst]: "(P ;; Q) \<^sub>f = (P \<^sub>f ;; Q)"
+  by rel_auto
+
+lemma subsumption1:
+  "`P \<Rightarrow> Q` \<Longrightarrow> (P \<or> Q) = Q"
+  by (pred_auto)
+
+lemma subsumption2:
+  "`Q \<Rightarrow> P` \<Longrightarrow> (P \<or> Q) = P"
+  by (pred_auto)  
+
+lemma SKIP_pre: "SKIP\<^sup>f = R1(\<not> $ok)"
+  by (rel_auto)
+
+lemma parallel_ok_cases:
+  "((P \<parallel>\<^sub>s Q) ;; M) = (((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>t) ;; (M\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+                            ((P\<^sup>f \<parallel>\<^sub>s Q\<^sup>t) ;; (M\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+                            ((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>f) ;; (M\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk>)) \<or>
+                            ((P\<^sup>f \<parallel>\<^sub>s Q\<^sup>f) ;; (M\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk>)))"
 proof -
-  have "P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q = (((P ;; U0) \<and> (Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M\<^sub>C\<^sub>S\<^sub>P(cs))"
-    by (simp add: par_by_merge_def)
-  also have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> ((P ;; U0) \<and> (Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$0-ok\<acute>\<rbrakk> ;; M\<^sub>C\<^sub>S\<^sub>P(cs)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$0-ok\<rbrakk>)"
-    using seqr_middle left_uvar vwb_lens_ok by blast
-  also have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> \<^bold>\<exists> ok\<^sub>1 \<bullet> (((P ;; U0) \<and> (Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$0-ok\<acute>\<rbrakk>\<lbrakk>\<guillemotleft>ok\<^sub>1\<guillemotright>/$1-ok\<acute>\<rbrakk>) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$0-ok\<rbrakk>\<lbrakk>\<guillemotleft>ok\<^sub>1\<guillemotright>/$1-ok\<rbrakk>))"
+  have "((P \<parallel>\<^sub>s Q) ;; M) = (\<^bold>\<exists> ok\<^sub>0 \<bullet> (P \<parallel>\<^sub>s Q)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$0-ok\<acute>\<rbrakk> ;; M\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$0-ok\<rbrakk>)"
+    by (subst seqr_middle[of "left_uvar ok"], simp_all)
+  also have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> \<^bold>\<exists> ok\<^sub>1 \<bullet> ((P \<parallel>\<^sub>s Q)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$0-ok\<acute>\<rbrakk>\<lbrakk>\<guillemotleft>ok\<^sub>1\<guillemotright>/$1-ok\<acute>\<rbrakk>) ;; (M\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$0-ok\<rbrakk>\<lbrakk>\<guillemotleft>ok\<^sub>1\<guillemotright>/$1-ok\<rbrakk>))"
     by (subst seqr_middle[of "right_uvar ok"], simp_all)
-  also have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> \<^bold>\<exists> ok\<^sub>1 \<bullet> (((P\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<acute>\<rbrakk> ;; U0) \<and> (Q\<lbrakk>\<guillemotleft>ok\<^sub>1\<guillemotright>/$ok\<acute>\<rbrakk> ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>,\<guillemotleft>ok\<^sub>1\<guillemotright>/$0-ok,$1-ok\<rbrakk>))" 
+  also have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> \<^bold>\<exists> ok\<^sub>1 \<bullet> (P\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<acute>\<rbrakk> \<parallel>\<^sub>s Q\<lbrakk>\<guillemotleft>ok\<^sub>1\<guillemotright>/$ok\<acute>\<rbrakk>) ;; (M\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>,\<guillemotleft>ok\<^sub>1\<guillemotright>/$0-ok,$1-ok\<rbrakk>))" 
     by (rel_auto)
-  also have "... = ((((P\<^sup>t ;; U0) \<and> (Q\<^sup>t ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
-                    (((P\<^sup>f ;; U0) \<and> (Q\<^sup>t ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk>)) \<or>
-                    (((P\<^sup>t ;; U0) \<and> (Q\<^sup>f ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk>)) \<or>
-                    (((P\<^sup>f ;; U0) \<and> (Q\<^sup>f ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk>)))"
-    by (simp add: true_alt_def[THEN sym] false_alt_def[THEN sym] disj_assoc utp_pred.sup.left_commute utp_pred.sup_commute)
+  also have "... = (((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>t) ;; (M\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+                    ((P\<^sup>f \<parallel>\<^sub>s Q\<^sup>t) ;; (M\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+                    ((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>f) ;; (M\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk>)) \<or>
+                    ((P\<^sup>f \<parallel>\<^sub>s Q\<^sup>f) ;; (M\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk>)))"
+    by (simp add: true_alt_def[THEN sym] false_alt_def[THEN sym] disj_assoc utp_pred.sup.left_commute utp_pred.sup_commute usubst)
+  finally show ?thesis .
+qed
 
-  from assms have P: "`P\<^sup>f \<Rightarrow> P\<^sup>t`"
-    by (metis CSP2_def H2_equivalence Healthy_def')
+lemma parallel_precondition:
+  assumes "P is CSP2"
+  shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>f\<^sub>f = ((P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(\<not> $ok)\<^esub> Q\<^sup>t\<^sub>f) \<or>
+                               (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(\<not> $ok)\<^esub> Q\<^sup>f\<^sub>f))"
+proof -
 
-  have "`(M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,true,true,false,false/$0-ok,$1-ok,$ok\<acute>\<rbrakk> \<Rightarrow> (M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,true,true,false,false/$0-ok,$1-ok,$ok\<acute>\<rbrakk>`"
-    apply (rel_auto)
+  have "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>f\<^sub>f = ((P \<parallel>\<^sub>s Q) ;; M\<^sub>C\<^sub>S\<^sub>P(cs))\<^sup>f\<^sub>f"
+    by (simp add: par_by_merge_def)
+    
+  also have "... = (((P \<^sub>f \<parallel>\<^sub>s Q \<^sub>f) ;; N\<^sub>C\<^sub>S\<^sub>P cs) ;; R1(\<not> $ok))"
+    by rel_blast
+  also have "... = ((((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+                     ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+                     ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk>)) \<or>
+                     ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk>))) ;; R1(\<not> $ok))"
+    by (subst parallel_ok_cases, subst_tac)
+  also have "... = ((((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk> ;; R1(\<not> $ok))) \<or>
+                     ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk> ;; R1(\<not> $ok))) \<or>
+                     ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk> ;; R1(\<not> $ok))) \<or>
+                     ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk> ;; R1(\<not> $ok)))) )"
+    (is "_ = (?C1 \<or>\<^sub>p ?C2 \<or>\<^sub>p ?C3 \<or>\<^sub>p ?C4)")
+    by (simp add: seqr_or_distl seqr_assoc)
+  also have "... = (?C2 \<or> ?C3)"
+  proof -
+    have "?C1 = false"
+      by (rel_auto)
+    moreover have "`?C4 \<Rightarrow> ?C3`" (is "`(?A ;; ?B) \<Rightarrow> (?C ;; ?D)`")
+    proof -
+      from assms have "`P\<^sup>f \<Rightarrow> P\<^sup>t`"
+        by (metis CSP2_def H2_equivalence Healthy_def')
+      hence P: "`P\<^sup>f\<^sub>f \<Rightarrow> P\<^sup>t\<^sub>f`"
+        by (rel_auto)
+      have "`?A \<Rightarrow> ?C`"
+        using P by rel_auto
+      moreover have "`?B \<Rightarrow> ?D`"
+        by (rel_auto)
+      ultimately show ?thesis
+        by (simp add: impl_seqr_mono)
+    qed
+    ultimately show ?thesis
+      by (simp add: subsumption2)
+  qed
+  also have "... = (((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N0 cs ;; R1(\<not> $ok)))) \<or>
+                    ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N0 cs ;; R1(\<not> $ok)))))"
+    by (rel_blast)
+  also have "... = ((P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(\<not> $ok)\<^esub> Q\<^sup>t\<^sub>f) \<or>
+                    (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(\<not> $ok)\<^esub> Q\<^sup>f\<^sub>f))"
+    by (simp add: par_by_merge_def)
+  finally show ?thesis .
+qed
 
-  have "`(((P\<^sup>f ;; U0) \<and> (Q\<^sup>t ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,true,true/$0-ok,$1-ok,$ok\<acute>\<rbrakk>)) \<Rightarrow>
-        (((P\<^sup>t ;; U0) \<and> (Q\<^sup>t ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,true,true/$0-ok,$1-ok,$ok\<acute>\<rbrakk>))`"
-    apply (rule impl_mono)
-    using P
-    apply (rel_auto)[1]
-    apply (rel_auto)
-    apply (simp add: CSPMerge_def CSPMerge'_def usubst)
-*)
+lemma parallel_postcondition_l1:
+  assumes "P is CSP2"
+  shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>t = (((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>t) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)\<^sup>t) \<or>
+                              ((P\<^sup>f \<parallel>\<^sub>s Q\<^sup>t) ;; (N0(cs) ;; R1(true))) \<or>
+                              ((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>f) ;; (N0(cs) ;; R1(true))))"
+proof -
+  have "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>t = ((P \<parallel>\<^sub>s Q) ;; M\<^sub>C\<^sub>S\<^sub>P(cs))\<^sup>t"
+    by (simp add: par_by_merge_def)
+  also have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> (P \<parallel>\<^sub>s Q)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$0-ok\<acute>\<rbrakk> ;; M\<^sub>C\<^sub>S\<^sub>P(cs)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$0-ok\<rbrakk>)\<^sup>t"
+    by (subst seqr_middle[of "left_uvar ok"], simp_all)
+  also have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> \<^bold>\<exists> ok\<^sub>1 \<bullet> ((P \<parallel>\<^sub>s Q)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$0-ok\<acute>\<rbrakk>\<lbrakk>\<guillemotleft>ok\<^sub>1\<guillemotright>/$1-ok\<acute>\<rbrakk>) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$0-ok\<rbrakk>\<lbrakk>\<guillemotleft>ok\<^sub>1\<guillemotright>/$1-ok\<rbrakk>))\<^sup>t"
+    by (subst seqr_middle[of "right_uvar ok"], simp_all)
+  also have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> \<^bold>\<exists> ok\<^sub>1 \<bullet> (P\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<acute>\<rbrakk> \<parallel>\<^sub>s Q\<lbrakk>\<guillemotleft>ok\<^sub>1\<guillemotright>/$ok\<acute>\<rbrakk>) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>,\<guillemotleft>ok\<^sub>1\<guillemotright>/$0-ok,$1-ok\<rbrakk>))\<^sup>t" 
+    by (rel_auto)
+  also have "... = (((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>t) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)\<^sup>t) \<or>
+                    ((P\<^sup>f \<parallel>\<^sub>s Q\<^sup>t) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk>)\<^sup>t) \<or>
+                    ((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>f) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk>)\<^sup>t) \<or>
+                    ((P\<^sup>f \<parallel>\<^sub>s Q\<^sup>f) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk>)\<^sup>t))"
+    by (simp add: true_alt_def[THEN sym] false_alt_def[THEN sym] disj_assoc utp_pred.sup.left_commute utp_pred.sup_commute usubst)
+  also have "... = (((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>t) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)\<^sup>t) \<or>
+                    ((P\<^sup>f \<parallel>\<^sub>s Q\<^sup>t) ;; (N0(cs) ;; R1(true))) \<or>
+                    ((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>f) ;; (N0(cs) ;; R1(true))) \<or>
+                    ((P\<^sup>f \<parallel>\<^sub>s Q\<^sup>f) ;; (N0(cs) ;; R1(true))))"
+     (is "_ = (?C1 \<or>\<^sub>p ?C2 \<or>\<^sub>p ?C3 \<or>\<^sub>p ?C4)")
+      by (simp add: JL1 JL2 JL3)
+  also have "... = (((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>t) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)\<^sup>t) \<or>
+                    ((P\<^sup>f \<parallel>\<^sub>s Q\<^sup>t) ;; (N0(cs) ;; R1(true))) \<or>
+                    ((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>f) ;; (N0(cs) ;; R1(true))))"
+  proof -
+    from assms have P: "`P\<^sup>f \<Rightarrow> P\<^sup>t`"
+      by (metis CSP2_def H2_equivalence Healthy_def')
+    have "`?C4 \<Rightarrow> ?C3`" (is "`(?A ;; ?B) \<Rightarrow> (?C ;; ?D)`")
+    proof -
+      have "`?A \<Rightarrow> ?C`"
+        using P by rel_auto
+      thus ?thesis
+        by (simp add: impl_seqr_mono)
+    qed
+    thus ?thesis
+      by (simp add: subsumption2)
+  qed
+  finally show ?thesis .
+qed
 
 (*
 lemma 
@@ -342,6 +425,8 @@ lemma SKIP_alt_def: "SKIP = \<^bold>R(\<exists> $ref \<bullet> II\<^sub>r)"
 
 lemma SKIP_rea_des: "SKIP = \<^bold>R(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute>))"
   by rel_auto
+
+
 
 lemma wait_f_seqr_left: "(P ;; Q) \<^sub>f  = (P \<^sub>f ;; Q)"
   by (rel_auto)

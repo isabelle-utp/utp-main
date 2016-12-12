@@ -54,14 +54,20 @@ text {* As shown below, separating simulations can also be expressed using the f
 definition U0_alpha ("\<lceil>_\<rceil>\<^sub>0") where [upred_defs]: "\<lceil>P\<rceil>\<^sub>0 = P \<oplus>\<^sub>p (1\<^sub>L \<times>\<^sub>L out_var fst\<^sub>L)"
 
 definition U1_alpha ("\<lceil>_\<rceil>\<^sub>1") where [upred_defs]: "\<lceil>P\<rceil>\<^sub>1 \<equiv> P \<oplus>\<^sub>p (1\<^sub>L \<times>\<^sub>L out_var snd\<^sub>L)"
+
+text {* We implement the following useful abbreviation for separating of two parallel processes and
+  copying of the before variables, all to act as input to the merge predicate. *}
   
+abbreviation par_sep (infixl "\<parallel>\<^sub>s" 85) where
+"P \<parallel>\<^sub>s Q \<equiv> (P ;; U0) \<and> (Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>"
+
 text {* The following implementation of parallel by merge is less general than the book version, in
   that it does not properly partition the alphabet into two disjoint segments. We could actually
   achieve this specifying lenses into the larger alphabet, but this would complicate the definition
   of programs. May reconsider later. *}
 
 definition par_by_merge  ("_ \<parallel>\<^bsub>_\<^esub> _" [85,0,86] 85) 
-where [upred_defs]: "P \<parallel>\<^bsub>M\<^esub> Q = ((((P ;; U0) \<and> (Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)) ;; M)"
+where [upred_defs]: "P \<parallel>\<^bsub>M\<^esub> Q = (P \<parallel>\<^sub>s Q ;; M)"
 
 text {* swap is a predicate that the swaps the left and right indices; it is used to specify commutativity of the parallel operator *}
 
