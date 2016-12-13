@@ -962,15 +962,13 @@ translations "FLDLENS x" => "\<lparr> lens_get = x, lens_put = CONST fld_put (_u
 
 (* Introduce the alphabet command that creates a record with lenses for each field *)
 
-(* Collection of UTP variable definitions *)
+ML_file "Lenses.ML"
 
 named_theorems uvar_defs
 
 (* The following theorem attribute stores splitting theorems for alphabet types *)
 
 named_theorems alpha_splits
-
-ML_file "Lenses.ML"
 
 (*
 alphabet mylens =
@@ -981,6 +979,8 @@ alphabet mylens_2 = mylens +
   z :: int
   k :: "string list"
 *)
+
+(* Collection of UTP variable definitions *)
 
 subsection {* Lens Interpretation *}
 

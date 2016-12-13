@@ -22,6 +22,9 @@ val lens_comp = lens_thy ^ ".lens_comp"
 val sublens = lens_thy ^ ".sublens"
 val lens_suffix = "\<^sub>v"
 val ext_suffix = "\<^sub>a"
+val uvar_defs = (Binding.empty, [Token.make_src ("uvar_defs", Position.none) []])
+val alpha_splits = [Token.make_src ("alpha_splits", Position.none) []]
+val splits_suffix = ".splits"
 
 fun read_parent NONE ctxt = (NONE, ctxt)
   | read_parent (SOME raw_T) ctxt =
@@ -183,10 +186,11 @@ fun add_alphabet_cmd overloaded (raw_params, binding) raw_parent raw_fields thy 
     val mldef = mldef_name ^ " = " ^ FLDLENS ^ " more";
     val plnames = if (raw_parent = NONE) then [] else lnames  @ [tname ^ child_lens_suffix];
  in thy |> add_record_cmd {overloaded = false} (raw_params, binding) NONE fields 
+         |> Named_Target.theory_map (snd o Specification.theorems_cmd "" [(Attrib.empty_binding, [(Facts.named (tname ^ splits_suffix), alpha_splits)])] [] false)
          |> Named_Target.theory_map 
-              (fold (fn x => snd o Specification.definition_cmd (NONE, ((Attrib.empty_binding, x))) true) (ldefs @ [mldef]))
+              (fold (fn x => snd o Specification.definition_cmd (NONE, ((uvar_defs, x))) true) (ldefs @ [mldef]))
          |> Named_Target.theory_map 
-              (fold (fn x => snd o Specification.definition_cmd (NONE, ((Attrib.empty_binding, x))) true) pldefs)
+              (fold (fn x => snd o Specification.definition_cmd (NONE, ((uvar_defs, x))) true) pldefs)
          |> fold (fn x => fn thy => snd (Global_Theory.add_thm ((Binding.make (x ^ vwb_lens_suffix, Position.none), lens_proof x thy), [Simplifier.simp_add]) thy)) ((map ldef_name lnames) @ [mldef_name])
          |> (fn thy => snd (Global_Theory.add_thmss 
               [((Binding.make (Binding.name_of binding ^ indeps_suffix, Position.none), map (indep_proof thy) (pairings ((map ldef_name lnames) @ [mldef_name])) @ map (parent_indep_proof_1 thy plchild) plnames @ map (parent_indep_proof_2 thy plchild) plnames), [Simplifier.simp_add])] thy))
