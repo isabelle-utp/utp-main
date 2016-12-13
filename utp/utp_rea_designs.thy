@@ -1385,7 +1385,7 @@ lemma Chaos_is_bot: "\<bottom>\<^bsub>utp_order RDES\<^esub> = Chaos"
 done
 
 interpretation hrd_lattice: utp_theory_lattice "TYPE(RDES \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
-  rewrites "carrier (utp_order RDES) = \<lbrakk>CSP\<rbrakk>"
+  rewrites "carrier (utp_order RDES) = \<lbrakk>CSP\<rbrakk>\<^sub>H"
   and "\<top>\<^bsub>utp_order RDES\<^esub> = Miracle"
   and "\<bottom>\<^bsub>utp_order RDES\<^esub> = Chaos"
   apply (unfold_locales)
@@ -1403,10 +1403,10 @@ abbreviation rdes_lfp :: "_ \<Rightarrow> _" ("\<mu>\<^sub>R") where
 abbreviation rdes_gfp :: "_ \<Rightarrow> _" ("\<nu>\<^sub>R") where
 "\<nu>\<^sub>R F \<equiv> \<nu>\<^bsub>utp_order RDES\<^esub> F"
 
-lemma rdes_lfp_copy: "\<lbrakk> mono F; F \<in> \<lbrakk>CSP\<rbrakk> \<rightarrow> \<lbrakk>CSP\<rbrakk> \<rbrakk> \<Longrightarrow> \<mu>\<^sub>R F = F (\<mu>\<^sub>R F)"
+lemma rdes_lfp_copy: "\<lbrakk> mono F; F \<in> \<lbrakk>CSP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>CSP\<rbrakk>\<^sub>H \<rbrakk> \<Longrightarrow> \<mu>\<^sub>R F = F (\<mu>\<^sub>R F)"
   by (metis hrd_lattice.LFP_unfold mono_Monotone_utp_order)
 
-lemma rdes_gfp_copy: "\<lbrakk> mono F; F \<in> \<lbrakk>CSP\<rbrakk> \<rightarrow> \<lbrakk>CSP\<rbrakk> \<rbrakk> \<Longrightarrow> \<nu>\<^sub>R F = F (\<nu>\<^sub>R F)"
+lemma rdes_gfp_copy: "\<lbrakk> mono F; F \<in> \<lbrakk>CSP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>CSP\<rbrakk>\<^sub>H \<rbrakk> \<Longrightarrow> \<nu>\<^sub>R F = F (\<nu>\<^sub>R F)"
   by (metis hrd_lattice.GFP_unfold mono_Monotone_utp_order)
 
 end

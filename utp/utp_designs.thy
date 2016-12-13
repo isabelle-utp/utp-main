@@ -1239,7 +1239,7 @@ interpretation ndes_unital: utp_theory_unital "TYPE(NDES \<times> ('\<alpha> alp
 done
 
 interpretation design_complete_lattice: utp_theory_lattice "TYPE(DES \<times> '\<alpha> alphabet_d)"
-  rewrites "carrier (utp_order DES) = \<lbrakk>H1_H2\<rbrakk>"
+  rewrites "carrier (utp_order DES) = \<lbrakk>H1_H2\<rbrakk>\<^sub>H"
   apply (unfold_locales)
   apply (simp_all add: des_hcond_def utp_order_def H1_idem H2_idem)
   apply (rule_tac x="\<Squnion>\<^sub>D A" in exI)

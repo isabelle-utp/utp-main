@@ -552,6 +552,14 @@ lemma not_disj_deMorgans [simp]: "(\<not> ((P::'\<alpha> upred) \<or> Q)) = ((\<
 lemma conj_disj_not_abs [simp]: "((P::'\<alpha> upred) \<and> ((\<not>P) \<or> Q)) = (P \<and> Q)"
   by (pred_auto)
 
+lemma subsumption1:
+  "`P \<Rightarrow> Q` \<Longrightarrow> (P \<or> Q) = Q"
+  by (pred_auto)
+
+lemma subsumption2:
+  "`Q \<Rightarrow> P` \<Longrightarrow> (P \<or> Q) = P"
+  by (pred_auto)  
+
 lemma double_negation [simp]: "(\<not> \<not> (P::'\<alpha> upred)) = P"
   by (pred_auto)
 
@@ -669,6 +677,9 @@ lemma shEx_unbound [simp]: "(\<^bold>\<exists> x \<bullet> P) = P"
 
 lemma shEx_bool [simp]: "shEx P = (P True \<or> P False)"
   by (pred_auto, metis (full_types))
+
+lemma shEx_commute: "(\<^bold>\<exists> x \<bullet> \<^bold>\<exists> y \<bullet> P x y) = (\<^bold>\<exists> y \<bullet> \<^bold>\<exists> x \<bullet> P x y)"
+  by pred_auto
 
 lemma shEx_cong: "\<lbrakk> \<And> x. P x = Q x \<rbrakk> \<Longrightarrow> shEx P = shEx Q"
   by (pred_auto)

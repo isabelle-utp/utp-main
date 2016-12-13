@@ -15,8 +15,8 @@ lemma Healthy_def': "P is H \<longleftrightarrow> (H P = P)"
 
 declare Healthy_def' [upred_defs]
 
-abbreviation Healthy_carrier :: "'\<alpha> Healthiness_condition \<Rightarrow> '\<alpha> upred set" ("\<lbrakk>_\<rbrakk>")
-where "\<lbrakk>H\<rbrakk> \<equiv> {P. P is H}"
+abbreviation Healthy_carrier :: "'\<alpha> Healthiness_condition \<Rightarrow> '\<alpha> upred set" ("\<lbrakk>_\<rbrakk>\<^sub>H")
+where "\<lbrakk>H\<rbrakk>\<^sub>H \<equiv> {P. P is H}"
 
 (* FIXME: To be reviewed with Simon.
           Considered an attempt at defining Conjunctive/WeakConjunctive & Monotonic
