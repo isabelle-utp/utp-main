@@ -51,9 +51,13 @@ definition [upred_defs]: "U1 = ($1-\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
 
 text {* As shown below, separating simulations can also be expressed using the following two alphabet extrusions *}
 
-definition U0_alpha ("\<lceil>_\<rceil>\<^sub>0") where [upred_defs]: "\<lceil>P\<rceil>\<^sub>0 = P \<oplus>\<^sub>p (1\<^sub>L \<times>\<^sub>L out_var fst\<^sub>L)"
+definition U0\<alpha> where [upred_defs]: "U0\<alpha> = (1\<^sub>L \<times>\<^sub>L out_var fst\<^sub>L)"
 
-definition U1_alpha ("\<lceil>_\<rceil>\<^sub>1") where [upred_defs]: "\<lceil>P\<rceil>\<^sub>1 \<equiv> P \<oplus>\<^sub>p (1\<^sub>L \<times>\<^sub>L out_var snd\<^sub>L)"
+definition U1\<alpha> where [upred_defs]: "U1\<alpha> = (1\<^sub>L \<times>\<^sub>L out_var snd\<^sub>L)"
+
+abbreviation U0_alpha_lift ("\<lceil>_\<rceil>\<^sub>0") where "\<lceil>P\<rceil>\<^sub>0 \<equiv> P \<oplus>\<^sub>p U0\<alpha>"
+
+abbreviation U1_alpha_lift ("\<lceil>_\<rceil>\<^sub>1") where "\<lceil>P\<rceil>\<^sub>1 \<equiv> P \<oplus>\<^sub>p U1\<alpha>"
 
 text {* We implement the following useful abbreviation for separating of two parallel processes and
   copying of the before variables, all to act as input to the merge predicate. *}
@@ -89,11 +93,29 @@ lemma U0_as_alpha: "(P ;; U0) = \<lceil>P\<rceil>\<^sub>0"
 lemma U1_as_alpha: "(P ;; U1) = \<lceil>P\<rceil>\<^sub>1"
   by rel_auto
 
+lemma U0\<alpha>_vwb_lens [simp]: "vwb_lens U0\<alpha>"
+  by (simp add: U0\<alpha>_def id_vwb_lens prod_vwb_lens)
+
+lemma U1\<alpha>_vwb_lens [simp]: "vwb_lens U1\<alpha>"
+  by (simp add: U1\<alpha>_def id_vwb_lens prod_vwb_lens)
+
 lemma U0_alpha_out_var [alpha]: "\<lceil>$x\<acute>\<rceil>\<^sub>0 = $0-x\<acute>"
   by (rel_auto)
 
 lemma U1_alpha_out_var [alpha]: "\<lceil>$x\<acute>\<rceil>\<^sub>1 = $1-x\<acute>"
   by (rel_auto)
+
+lemma U0\<alpha>_comp_in_var [alpha]: "(in_var x) ;\<^sub>L U0\<alpha> = in_var x"
+  by (simp add: U0\<alpha>_def alpha_in_var in_var_prod_lens pre_uvar_def)
+
+lemma U0\<alpha>_comp_out_var [alpha]: "(out_var x) ;\<^sub>L U0\<alpha> = out_var (left_uvar x)"
+  by (simp add: U0\<alpha>_def alpha_out_var id_wb_lens left_uvar_def out_var_prod_lens)
+
+lemma U1\<alpha>_comp_in_var [alpha]: "(in_var x) ;\<^sub>L U1\<alpha> = in_var x"
+  by (simp add: U1\<alpha>_def alpha_in_var in_var_prod_lens pre_uvar_def)
+
+lemma U1\<alpha>_comp_out_var [alpha]: "(out_var x) ;\<^sub>L U1\<alpha> = out_var (right_uvar x)"
+  by (simp add: U1\<alpha>_def alpha_out_var id_wb_lens right_uvar_def out_var_prod_lens)
 
 lemma U0_seq_subst: "(P ;; U0)\<lbrakk>\<guillemotleft>v\<guillemotright>/$0-x\<acute>\<rbrakk> = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; U0)" 
   by rel_auto
@@ -118,6 +140,12 @@ proof -
   finally show ?thesis .
 qed
 
+lemma shEx_pbm_left: "((\<^bold>\<exists> x \<bullet> P x) \<parallel>\<^bsub>M\<^esub> Q) = (\<^bold>\<exists> x \<bullet> (P x \<parallel>\<^bsub>M\<^esub> Q))"
+  by (rel_auto)
+
+lemma shEx_pbm_right: "(P \<parallel>\<^bsub>M\<^esub> (\<^bold>\<exists> x \<bullet> Q x)) = (\<^bold>\<exists> x \<bullet> (P \<parallel>\<^bsub>M\<^esub> Q x))"
+  by (rel_auto)
+
 lemma par_by_merge_mono_1:
   assumes "P\<^sub>1 \<sqsubseteq> P\<^sub>2"
   shows "P\<^sub>1 \<parallel>\<^bsub>M\<^esub> Q \<sqsubseteq> P\<^sub>2 \<parallel>\<^bsub>M\<^esub> Q"
@@ -127,4 +155,5 @@ lemma par_by_merge_mono_2:
   assumes "Q\<^sub>1 \<sqsubseteq> Q\<^sub>2"
   shows "(P \<parallel>\<^bsub>M\<^esub> Q\<^sub>1) \<sqsubseteq> (P \<parallel>\<^bsub>M\<^esub> Q\<^sub>2)"
   using assms by rel_blast
+
 end
