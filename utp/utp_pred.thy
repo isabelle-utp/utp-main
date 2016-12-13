@@ -95,23 +95,29 @@ text {* We set up two versions of each of the quantifiers: @{const uex} / @{cons
         needed at various points. Syntactically they are distinguish by a boldface quantifier
         for the HOL versions (achieved by the "bold" escape in Isabelle). *}
 
+nonterminal idt_list
+
 syntax
+  "_idt_el"  :: "idt \<Rightarrow> idt_list" ("_")
+  "_idt_list" :: "idt \<Rightarrow> idt_list \<Rightarrow> idt_list" ("(_,/ _)" [0, 1])
   "_uex"     :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<exists> _ \<bullet> _" [0, 10] 10)
   "_uall"    :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<forall> _ \<bullet> _" [0, 10] 10)
-  "_ushEx"   :: "idt \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<exists> _ \<bullet> _" [0, 10] 10)
-  "_ushAll"  :: "idt \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ \<bullet> _" [0, 10] 10)
+  "_ushEx"   :: "idt_list \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<exists> _ \<bullet> _" [0, 10] 10)
+  "_ushAll"  :: "idt_list \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ \<bullet> _" [0, 10] 10)
   "_ushBEx"  :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<exists> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
   "_ushBAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
   "_ushGAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ | _ \<bullet> _" [0, 0, 10] 10)
 
 translations
-  "_uex x P"   == "CONST uex x P"
-  "_uall x P"   == "CONST uall x P"
-  "\<^bold>\<exists> x \<bullet> P"   == "CONST ushEx (\<lambda> x. P)"
-  "\<^bold>\<exists> x \<in> A \<bullet> P" => "\<^bold>\<exists> x \<bullet> \<guillemotleft>x\<guillemotright> \<in>\<^sub>u A \<and> P"
-  "\<^bold>\<forall> x \<bullet> P"   == "CONST ushAll (\<lambda> x. P)"
-  "\<^bold>\<forall> x \<in> A \<bullet> P" => "\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> \<in>\<^sub>u A \<Rightarrow> P"
-  "\<^bold>\<forall> x | P \<bullet> Q" => "\<^bold>\<forall> x \<bullet> P \<Rightarrow> Q"
+  "_uex x P"                   == "CONST uex x P"
+  "_uall x P"                  == "CONST uall x P"
+  "_ushEx (_idt_el x) P"       == "CONST ushEx (\<lambda> x. P)"
+  "_ushEx (_idt_list x y) P"   => "CONST ushEx (\<lambda> x. (_ushEx y P))"
+  "\<^bold>\<exists> x \<in> A \<bullet> P"                => "\<^bold>\<exists> x \<bullet> \<guillemotleft>x\<guillemotright> \<in>\<^sub>u A \<and> P"
+  "_ushAll (_idt_el x) P"      == "CONST ushAll (\<lambda> x. P)"
+  "_ushAll (_idt_list x y) P"  => "CONST ushAll (\<lambda> x. (_ushAll y P))"
+  "\<^bold>\<forall> x \<in> A \<bullet> P"                => "\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> \<in>\<^sub>u A \<Rightarrow> P"
+  "\<^bold>\<forall> x | P \<bullet> Q"                => "\<^bold>\<forall> x \<bullet> P \<Rightarrow> Q"
 
 subsection {* Predicate operators *}
 
