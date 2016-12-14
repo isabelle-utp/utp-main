@@ -285,12 +285,71 @@ lemma SKIP_is_R2: "SKIP is R2"
 
 lemma SKIP_is_R3c: "SKIP is R3c"
   apply (rel_auto)
-apply (simp_all add: zero_list_def)
-using list_minus_anhil by blast
+  apply (simp_all add: zero_list_def)
+  using list_minus_anhil by blast
+
+definition [upred_defs]: "R1m(M) = (M \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute>)"
+definition [upred_defs]: "R2m(M) = (M\<lbrakk>0,$tr\<acute> - $tr\<^sub></$tr\<^sub><,$tr\<acute>\<rbrakk> \<triangleleft> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<triangleright> M)"
+definition [upred_defs]: "R3m(M) = (($\<Sigma>\<acute> =\<^sub>u $\<Sigma>\<^sub>< \<or> \<not> $ok\<^sub>< \<and> $tr\<acute> \<ge>\<^sub>u $tr\<^sub><) \<triangleleft> $wait\<^sub>< \<triangleright> M)"
+
+lemma R1_par_by_merge:
+  "M is R1m \<Longrightarrow> (P \<parallel>\<^bsub>M\<^esub> Q) is R1"
+  by (rel_blast)
+
+lemma R2s_par_by_merge:
+  "\<lbrakk> P is R2c; Q is R2c; M is R2m \<rbrakk> \<Longrightarrow> (P \<parallel>\<^bsub>M\<^esub> Q) is R2c"
+  oops
+
+(*
+lemma "(II\<^sub>r \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> II\<^sub>r) = II\<^sub>r"
+  apply (rel_auto)
+  using list_minus_anhil apply blast
+  apply (rename_tac cs ok wait tr ref more)
+  apply (rule_tac x="ok" in exI)
+  apply (rule_tac x="wait" in exI)
+  apply (rule_tac x="tr" in exI)
+  apply (rule_tac x="ref" in exI)
+  apply (rule_tac x="more" in exI)
+  apply (rule_tac x="ok" in exI)
+  apply (rule_tac x="wait" in exI)
+  apply (rule_tac x="tr" in exI)
+  apply (rule_tac x="ref" in exI)
+  apply (rule_tac x="more" in exI)
+  apply (simp)
+  apply (rule_tac x="ok" in exI)
+  apply (rule_tac x="wait" in exI)
+  apply (rule_tac x="tr" in exI)
+  apply (rule_tac x="ref" in exI)
+  apply (simp)
+  apply (force)
+  apply (rename_tac cs ok wait tr ref more ok' wait' tr' ref' more')
+  apply (rule_tac x="False" in exI)
+  apply (rule_tac x="wait" in exI)
+  apply (rule_tac x="tr" in exI)
+  apply (rule_tac x="ref" in exI)
+  apply (rule_tac x="more" in exI)
+  apply (auto)
+  apply (rule_tac x="False" in exI)
+  apply (rule_tac x="wait" in exI)
+  apply (rule_tac x="tr" in exI)
+  apply (rule_tac x="ref" in exI)
+  apply (rule_tac x="more" in exI)
+  apply (simp)
+  apply (rule_tac x="False" in exI)
+  apply (rule_tac x="wait" in exI)
+  apply (rule_tac x="tr" in exI)
+  apply (rule_tac x="ref" in exI)
+  apply (auto)
+  apply (rule_tac x="more" in exI)
+*)
+
+lemma R3c_par_by_merge:
+  "\<lbrakk> P is R3c; Q is R3c \<rbrakk> \<Longrightarrow> (P \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R3c"
+  oops
 
 lemma parallel'_is_R1:
   "(P \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R1"
-  by (rel_blast)
+  by (rule R1_par_by_merge, rel_auto)
 
 lemma CSPMerge'_alt_def:
   "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) = ((P \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) ;; SKIP)"
