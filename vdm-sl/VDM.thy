@@ -333,7 +333,7 @@ lemma vexpr_unrest [unrest]:
   by pred_auto
 
 lemma vvar_unrest [unrest]:
-  "\<lbrakk> uvar x; x \<bowtie> y \<rbrakk> \<Longrightarrow> y \<sharp> &\<^sub>vx"
+  "x \<bowtie> y \<Longrightarrow> y \<sharp> &\<^sub>vx"
   by pred_auto
 
 lemma vlit_unrest [unrest]:
@@ -355,7 +355,7 @@ lemma vtop_unrest [unrest]:
 subsection {* VDM Substitution *}
 
 lemma vsubst_lookup_upd [usubst]:
-  assumes "uvar x" "\<D>\<^sub>v(v) = true\<^sub>v"
+  assumes "vwb_lens x" "\<D>\<^sub>v(v) = true\<^sub>v"
   shows "\<langle>\<sigma>(x \<mapsto>\<^sub>s \<lfloor>v\<rfloor>\<^sub>v)\<rangle>\<^sub>v x = v"
   using assms
   apply (simp add: subst_upd_uvar_def, transfer)
@@ -363,7 +363,7 @@ lemma vsubst_lookup_upd [usubst]:
 done
 
 lemma vsubst_lookup_upd_indep [usubst]:
-  assumes "uvar x" "x \<bowtie> y"
+  assumes "vwb_lens x" "x \<bowtie> y"
   shows "\<langle>\<sigma>(y \<mapsto>\<^sub>s v)\<rangle>\<^sub>v x = \<langle>\<sigma>\<rangle>\<^sub>v x"
   using assms
   by (simp add: subst_upd_uvar_def, transfer, simp)
@@ -653,13 +653,13 @@ theorem wpd_vdm_assign [wp]:
   by (simp add: vassign_uvar_def wp)
 
 lemma wp_calc_test_1:
-  "\<lbrakk> uvar x; uvar y \<rbrakk> \<Longrightarrow> (y :=\<^sub>v hd\<^sub>v(&\<^sub>vx)) wp\<^sub>D true 
-                          = \<lfloor>len\<^sub>v(&\<^sub>vx) >\<^sub>v \<guillemotleft>0\<guillemotright>\<^sub>v\<rfloor>\<^sub>v"
+  "\<lbrakk> vwb_lens x; vwb_lens y \<rbrakk> \<Longrightarrow> (y :=\<^sub>v hd\<^sub>v(&\<^sub>vx)) wp\<^sub>D true 
+                                  = \<lfloor>len\<^sub>v(&\<^sub>vx) >\<^sub>v \<guillemotleft>0\<guillemotright>\<^sub>v\<rfloor>\<^sub>v"
   by (simp add: wp usubst)
 
 lemma wp_calc_test_2:
-  "\<lbrakk> uvar x; uvar y \<rbrakk> \<Longrightarrow> (y :=\<^sub>v 1 / hd\<^sub>v(&\<^sub>vx)) wp\<^sub>D true 
-                          = \<lfloor>len\<^sub>v(&\<^sub>vx) >\<^sub>v \<guillemotleft>0\<guillemotright>\<^sub>v \<and>\<^sub>v hd\<^sub>v(&\<^sub>vx) <>\<^sub>v 0\<rfloor>\<^sub>v"
+  "\<lbrakk> vwb_lens x; vwb_lens y \<rbrakk> \<Longrightarrow> (y :=\<^sub>v 1 / hd\<^sub>v(&\<^sub>vx)) wp\<^sub>D true 
+                                  = \<lfloor>len\<^sub>v(&\<^sub>vx) >\<^sub>v \<guillemotleft>0\<guillemotright>\<^sub>v \<and>\<^sub>v hd\<^sub>v(&\<^sub>vx) <>\<^sub>v 0\<rfloor>\<^sub>v"
   by (simp add: wp usubst)
 
 subsection {* VDM-SL operations *}
