@@ -395,10 +395,111 @@ lemma R3c_par_by_merge:
   shows "(P \<parallel>\<^bsub>M\<^esub> Q) is R3c"
   oops
 
+thm CSP1_def
+
+(* definition [upred_defs]: "CSP1m(P) = (P \<or> \<not> ($0-ok \<and> $1-ok) \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute>)" *)
+(* definition [upred_defs]: "CSP1m(M) = (M \<triangleleft> $0-ok \<and> $1-ok \<triangleright> (\<^bold>\<exists> tr\<^sub>0 \<bullet> (M\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> ;; true) \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute>))" *)
+definition [upred_defs]: "CSP1m(M) = (M \<or> (\<not> ($0-ok \<and> $1-ok) \<and> (\<^bold>\<exists> tr\<^sub>0 \<bullet> (M\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> ;; true) \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute>)))"
+
+lemma R1_true_left_zero_R: "(R1(true) ;; \<^bold>R(P)) = R1(true)"
+  by (rel_auto)
+
+lemma CSP1_R1_H1: "CSP1(R1(P)) = R1(H1(R1(P)))"
+  by (rel_auto)
+
+lemma skip_rea_R1_lemma: "II\<^sub>r = R1($ok \<Rightarrow> II)"
+  by (rel_auto)
+
+lemma CSP1_algebraic_intro:
+  assumes 
+    "P is R1" "(R1(true\<^sub>h) ;; P) = R1(true\<^sub>h)" "(II\<^sub>r ;; P) = P"
+  shows "P is CSP1"
+proof -
+  have "P = (II\<^sub>r ;; P)"
+    by (simp add: assms(3))
+  also have "... = (R1($ok \<Rightarrow> II) ;; P)"
+    by (simp add: skip_rea_R1_lemma)
+  also have "... = (((\<not> $ok \<and> R1(true)) ;; P) \<or> P)"
+    by (metis (no_types, lifting) R1_def seqr_left_unit seqr_or_distl skip_rea_R1_lemma skip_rea_def utp_pred.inf_top_left utp_pred.sup_commute)
+  also have "... = (((R1(\<not> $ok) ;; R1(true\<^sub>h)) ;; P) \<or> P)"
+    by (rel_auto, metis order_trans)
+  also have "... = ((R1(\<not> $ok) ;; (R1(true\<^sub>h) ;; P)) \<or> P)"
+    by (simp add: seqr_assoc)
+  also have "... = ((R1(\<not> $ok) ;; R1(true\<^sub>h)) \<or> P)"
+    by (simp add: assms(2))
+  also have "... = (R1(\<not> $ok) \<or> P)"
+    by (rel_auto)
+  also have "... = CSP1(P)"
+    by (rel_auto)
+  finally show ?thesis 
+    by (simp add: Healthy_def)
+qed
+
+theorem CSP1_left_zero:
+  assumes "P is R1" "P is CSP1"
+  shows "(R1(true) ;; P) = R1(true)"
+proof -
+  have "(R1(true) ;; R1(CSP1(P))) = R1(true)"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms(1) assms(2))
+qed
+
+theorem CSP1_left_unit:
+  assumes "P is R1" "P is CSP1"
+  shows "(II\<^sub>r ;; P) = P"
+proof -
+  have "(II\<^sub>r ;; R1(CSP1(P))) = R1(CSP1(P))"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms(1) assms(2))
+qed
+
+lemma CSP1_alt_def: 
+  assumes "P is R1"
+  shows "CSP1(P) = (P \<triangleleft> $ok \<triangleright> R1(true))"
+  using assms
+proof -
+  have "CSP1(R1(P)) = (R1(P) \<triangleleft> $ok \<triangleright> R1(true))"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+theorem CSP1_algebraic:
+  assumes "P is R1"
+  shows "P is CSP1 \<longleftrightarrow> (R1(true\<^sub>h) ;; P) = R1(true\<^sub>h) \<and> (II\<^sub>r ;; P) = P"
+  using CSP1_algebraic_intro CSP1_left_unit CSP1_left_zero assms by blast
+
+lemma R3c_cases: "R3c(P) = ((II \<triangleleft> $ok \<triangleright> R1(true)) \<triangleleft> $wait \<triangleright> P)"
+  by (rel_auto)
+
+definition [upred_defs]: "tt\<^sub>m = ($tr \<le>\<^sub>u $0-tr\<acute> \<and> $tr \<le>\<^sub>u $1-tr\<acute> \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)"
+
 lemma CSP1_par_by_merge:
-  assumes "P is CSP1" "Q is CSP1"
+  assumes "P is R1" "Q is R1" "P is CSP1" "Q is CSP1" "M is R1m" "(tt\<^sub>m ;; M) = R1(true)"
   shows "(P \<parallel>\<^bsub>M\<^esub> Q) is CSP1"
-  oops
+proof -
+  have "(P \<parallel>\<^bsub>M\<^esub> Q) = ((P \<parallel>\<^bsub>M\<^esub> Q) \<triangleleft> $ok \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk>)"
+    by (metis cond_idem cond_var_subst_right vwb_lens_ok)
+  also have "... = ((P \<parallel>\<^bsub>M\<^esub> Q) \<triangleleft> $ok \<triangleright> R1(true))"
+  proof -
+    have "(P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk> = ((P \<triangleleft> $ok \<triangleright> R1(true)) \<parallel>\<^bsub>M\<^esub> (Q \<triangleleft> $ok \<triangleright> R1(true)))\<lbrakk>false/$ok\<rbrakk>"
+      by (metis CSP1_alt_def Healthy_if assms)
+    also have "... = (R1(true) \<parallel>\<^bsub>M\<lbrakk>false/$ok\<^sub><\<rbrakk>\<^esub> R1(true))"
+      by (rel_auto, metis, metis)
+    also have "... = (tt\<^sub>m ;; M)\<lbrakk>false/$ok\<rbrakk>"
+      by (rel_auto, metis, metis)
+    also have "... = (R1(true))\<lbrakk>false/$ok\<rbrakk>"
+      by (simp add: assms(6))
+    also have "... = (R1(true))"
+      by rel_auto
+    finally show ?thesis
+      by simp
+  qed
+  finally show ?thesis
+    by (metis CSP1_alt_def Healthy_def R1_par_by_merge assms(5))
+qed
 
 lemma CSP2_par_by_merge:
   assumes "M is CSP2"
@@ -415,9 +516,6 @@ proof -
   finally show ?thesis
     by (simp add: Healthy_def')
 qed
-  
-
-
 
 lemma parallel'_is_R1:
   "(P \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R1"
