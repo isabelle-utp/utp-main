@@ -361,10 +361,63 @@ proof -
   finally show ?thesis
     by (simp add: Healthy_def)
 qed
-    
+  
+
+lemma "((II\<^sub>r \<parallel>\<^bsub>CSPMerge'(cs)\<^esub> II\<^sub>r)) = II\<^sub>r"
+  apply (rel_auto)
+  using list_minus_anhil apply blast
+  apply (rename_tac cs ok wait tr ref)
+  apply (rule_tac x="ok" in exI)
+  apply (rule_tac x="wait" in exI)
+  apply (rule_tac x="tr" in exI)
+  apply (rule_tac x="ref" in exI)
+  apply (rule_tac x="ok" in exI)
+  apply (rule_tac x="wait" in exI)
+  apply (rule_tac x="tr" in exI)
+  apply (rule_tac x="ref" in exI)
+  apply (simp)
+  apply (rule_tac x="ok" in exI)
+  apply (rule_tac x="wait" in exI)
+  apply (rule_tac x="tr" in exI)
+  apply (rule_tac x="ref" in exI)
+  apply (simp)
+  apply (rename_tac cs ok wait tr ref ok' wait' tr' ref')
+  apply (rule_tac x="False" in exI)
+  apply (simp)
+  apply (rule_tac x="wait" in exI)
+  apply (rule_tac x="tr" in exI)
+  apply (rule_tac x="ref" in exI)
+  apply (simp)
+oops
+
 lemma R3c_par_by_merge:
-  "\<lbrakk> P is R3c; Q is R3c \<rbrakk> \<Longrightarrow> (P \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R3c"
+  assumes "P is R3c" "Q is R3c"
+  shows "(P \<parallel>\<^bsub>M\<^esub> Q) is R3c"
   oops
+
+lemma CSP1_par_by_merge:
+  assumes "P is CSP1" "Q is CSP1"
+  shows "(P \<parallel>\<^bsub>M\<^esub> Q) is CSP1"
+  oops
+
+lemma CSP2_par_by_merge:
+  assumes "M is CSP2"
+  shows "(P \<parallel>\<^bsub>M\<^esub> Q) is CSP2"
+proof -
+  have "(P \<parallel>\<^bsub>M\<^esub> Q) = ((P \<parallel>\<^sub>s Q) ;; M)"
+    by (simp add: par_by_merge_def)
+  also from assms have "... = ((P \<parallel>\<^sub>s Q) ;; (M ;; J))"
+    by (simp add: Healthy_def' CSP2_def H2_def)
+  also from assms have "... = (((P \<parallel>\<^sub>s Q) ;; M) ;; J)"
+    by (meson seqr_assoc)
+  also from assms have "... = CSP2(P \<parallel>\<^bsub>M\<^esub> Q)"
+    by (simp add: CSP2_def H2_def par_by_merge_def)
+  finally show ?thesis
+    by (simp add: Healthy_def')
+qed
+  
+
+
 
 lemma parallel'_is_R1:
   "(P \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R1"
