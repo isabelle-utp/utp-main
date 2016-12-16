@@ -1205,16 +1205,16 @@ overloading
 
 begin
   definition des_hcond :: "(DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition" where
-  "des_hcond t = H1_H2"
+  [upred_defs]: "des_hcond t = H1_H2"
 
   definition des_unit :: "(DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> hrelation_d" where
-  "des_unit t = II\<^sub>D"
+  [upred_defs]: "des_unit t = II\<^sub>D"
 
   definition ndes_hcond :: "(NDES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition" where
-  "ndes_hcond t = H1_H3"
+  [upred_defs]: "ndes_hcond t = H1_H3"
 
   definition ndes_unit :: "(NDES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> hrelation_d" where
-  "ndes_unit t = II\<^sub>D"
+  [upred_defs]: "ndes_unit t = II\<^sub>D"
 
 end
 

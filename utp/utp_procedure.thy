@@ -9,32 +9,32 @@ type_synonym ('a, '\<alpha>) uproc = "'a \<Rightarrow> '\<alpha> hrelation"
 definition 
   val_parm :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> '\<alpha> hrelation) 
                \<Rightarrow> (('a, '\<beta>) uexpr, '\<alpha>) uproc"
-where "val_parm T x P = (\<lambda> v. (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> v ;; P x)))"
+where [upred_defs]: "val_parm T x P = (\<lambda> v. (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> v ;; P x)))"
 
 definition 
   val_parm_comp :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> ('b, '\<alpha>) uproc) 
                \<Rightarrow> (('a, '\<beta>) uexpr \<times> 'b, '\<alpha>) uproc"
-where "val_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> u ;; P x v)))"
+where [upred_defs]: "val_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> u ;; P x v)))"
 
 definition 
   res_parm :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> '\<alpha> hrelation) 
                \<Rightarrow> (('a, '\<beta>) uvar, '\<alpha>) uproc"
-where "res_parm T x P = (\<lambda> y. (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (P x ;; y ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
+where [upred_defs]: "res_parm T x P = (\<lambda> y. (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (P x ;; y ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
 
 definition 
   res_parm_comp :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> ('b, '\<alpha>) uproc) 
                \<Rightarrow> (('a, '\<beta>) uvar \<times> 'b, '\<alpha>) uproc"
-where "res_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (P x v ;; u ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
+where [upred_defs]: "res_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (P x v ;; u ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
 
 definition
   vres_parm :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> '\<alpha> hrelation) 
                \<Rightarrow> (('a, '\<beta>) uvar, '\<alpha>) uproc"
-where "vres_parm T x P = (\<lambda> y. (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &y ;; P x ;; y ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
+where [upred_defs]: "vres_parm T x P = (\<lambda> y. (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &y ;; P x ;; y ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
 
 definition 
   vres_parm_comp :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> ('b, '\<alpha>) uproc) 
                \<Rightarrow> (('a, '\<beta>) uvar \<times> 'b, '\<alpha>) uproc"
-where "vres_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &u ;; P x v ;; u ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
+where [upred_defs]: "vres_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &u ;; P x v ;; u ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
 
 nonterminal parm and parm_list
 
