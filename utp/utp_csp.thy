@@ -287,7 +287,11 @@ lemma SKIP_is_R3c: "SKIP is R3c"
   apply (simp_all add: zero_list_def)
   using list_minus_anhil by blast
 
-thm R2_def
+lemma SKIP_is_CSP1: "SKIP is CSP1"
+  by (rel_auto)
+
+lemma SKIP_is_CSP2: "SKIP is CSP2"
+  by (rel_auto)
 
 definition [upred_defs]: "R1m(M) = (M \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute>)"
 definition [upred_defs]: "R1m'(M) = (M \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and> $tr\<^sub>< \<le>\<^sub>u $0-tr \<and> $tr\<^sub>< \<le>\<^sub>u $1-tr)"
@@ -362,41 +366,6 @@ proof -
     by (simp add: Healthy_def)
 qed
   
-
-lemma "((II\<^sub>r \<parallel>\<^bsub>CSPMerge'(cs)\<^esub> II\<^sub>r)) = II\<^sub>r"
-  apply (rel_auto)
-  using list_minus_anhil apply blast
-  apply (rename_tac cs ok wait tr ref)
-  apply (rule_tac x="ok" in exI)
-  apply (rule_tac x="wait" in exI)
-  apply (rule_tac x="tr" in exI)
-  apply (rule_tac x="ref" in exI)
-  apply (rule_tac x="ok" in exI)
-  apply (rule_tac x="wait" in exI)
-  apply (rule_tac x="tr" in exI)
-  apply (rule_tac x="ref" in exI)
-  apply (simp)
-  apply (rule_tac x="ok" in exI)
-  apply (rule_tac x="wait" in exI)
-  apply (rule_tac x="tr" in exI)
-  apply (rule_tac x="ref" in exI)
-  apply (simp)
-  apply (rename_tac cs ok wait tr ref ok' wait' tr' ref')
-  apply (rule_tac x="False" in exI)
-  apply (simp)
-  apply (rule_tac x="wait" in exI)
-  apply (rule_tac x="tr" in exI)
-  apply (rule_tac x="ref" in exI)
-  apply (simp)
-oops
-
-lemma R3c_par_by_merge:
-  assumes "P is R3c" "Q is R3c"
-  shows "(P \<parallel>\<^bsub>M\<^esub> Q) is R3c"
-  oops
-
-thm CSP1_def
-
 (* definition [upred_defs]: "CSP1m(P) = (P \<or> \<not> ($0-ok \<and> $1-ok) \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute>)" *)
 (* definition [upred_defs]: "CSP1m(M) = (M \<triangleleft> $0-ok \<and> $1-ok \<triangleright> (\<^bold>\<exists> tr\<^sub>0 \<bullet> (M\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> ;; true) \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute>))" *)
 definition [upred_defs]: "CSP1m(M) = (M \<or> (\<not> ($0-ok \<and> $1-ok) \<and> (\<^bold>\<exists> tr\<^sub>0 \<bullet> (M\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> ;; true) \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute>)))"
@@ -471,13 +440,142 @@ theorem CSP1_algebraic:
   shows "P is CSP1 \<longleftrightarrow> (R1(true\<^sub>h) ;; P) = R1(true\<^sub>h) \<and> (II\<^sub>r ;; P) = P"
   using CSP1_algebraic_intro CSP1_left_unit CSP1_left_zero assms by blast
 
+lemma R3_cases: "R3(P) = (II \<triangleleft> $wait \<triangleright> P)"
+  by (rel_auto)
+
+lemma R3c_R3_left_seq_closure:
+  assumes "P is R3" "Q is R3c"
+  shows "(P ;; Q) is R3c"
+proof -
+  have "(P ;; Q) = ((P ;; Q)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (metis cond_var_split cond_var_subst_right in_var_uvar wait_vwb_lens)
+  also have "... = (((II \<triangleleft> $wait \<triangleright> P) ;; Q)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (metis Healthy_def' R3_def assms(1))
+  also have "... = ((II\<lbrakk>true/$wait\<rbrakk> ;; Q) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (subst_tac)
+  also have "... = ((II \<and> $wait\<acute> ;; Q) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (metis (no_types, lifting) cond_def conj_pos_var_subst seqr_pre_var_out skip_var utp_pred.inf_left_idem wait_vwb_lens)
+  also have "... = ((II\<lbrakk>true/$wait\<acute>\<rbrakk> ;; Q\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (metis seqr_pre_transfer seqr_right_one_point true_alt_def uovar_convr upred_eq_true utp_rel.unrest_ouvar vwb_lens_mwb wait_vwb_lens)
+  also have "... = ((II\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (II\<^sub>r \<triangleleft> $wait \<triangleright> Q)\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (metis Healthy_def' R3c_def assms(2))
+  also have "... = ((II\<lbrakk>true/$wait\<acute>\<rbrakk> ;; II\<^sub>r\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (subst_tac)
+  also have "... = ((II \<and> $wait\<acute> ;; II\<^sub>r) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (metis seqr_pre_transfer seqr_right_one_point true_alt_def uovar_convr upred_eq_true utp_rel.unrest_ouvar vwb_lens_mwb wait_vwb_lens)
+  also have "... = ((II ;; II\<^sub>r) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (simp add: cond_def seqr_pre_transfer utp_rel.unrest_ouvar)
+  also have "... = (II\<^sub>r \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by simp
+  also have "... = R3c(P ;; Q)"
+    by (simp add: R3c_def)
+  finally show ?thesis
+    by (simp add: Healthy_def') 
+qed
+
+
 lemma R3c_cases: "R3c(P) = ((II \<triangleleft> $ok \<triangleright> R1(true)) \<triangleleft> $wait \<triangleright> P)"
   by (rel_auto)
 
-definition [upred_defs]: "tt\<^sub>m = ($tr \<le>\<^sub>u $0-tr\<acute> \<and> $tr \<le>\<^sub>u $1-tr\<acute> \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)"
+definition [upred_defs]: "skip\<^sub>m = ($0-\<Sigma>\<acute> =\<^sub>u $\<Sigma> \<and> $1-\<Sigma>\<acute> =\<^sub>u $\<Sigma> \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)"
+
+lemma CSP1_R3c_comm: "CSP1(R3c(P)) = R3c(CSP1(P))"
+  by (rel_auto)
+
+lemma CSP1_R3_is_R3c: "CSP1(R3(P)) = R3c(CSP1(P))"
+  by (rel_auto)
+
+definition [upred_defs]: "nil\<^sub>m = ($\<Sigma>\<acute> =\<^sub>u $\<Sigma>\<^sub><)"
+definition [upred_defs]: "nil\<^sub>r\<^sub>m = (nil\<^sub>m \<triangleleft> $0-ok \<and> $1-ok \<triangleright> $tr\<^sub>< \<le>\<^sub>u $tr\<acute>)"
+
+definition [upred_defs]: "R3Mc(M) = (M \<or> ((\<not> $0-ok \<or> \<not> $1-ok) \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute>) \<or> (($0-wait \<or> $1-wait) \<and> nil\<^sub>m))"
+
+lemma R3_par_by_merge:
+  assumes 
+    "P is R3" "Q is R3" "(skip\<^sub>m ;; M) = II"
+  shows "(P \<parallel>\<^bsub>M\<^esub> Q) is R3"
+proof -
+  have "(P \<parallel>\<^bsub>M\<^esub> Q) = ((P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (metis cond_L6 cond_var_split in_var_uvar wait_vwb_lens)
+  also have "... = ((P\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> Q\<lbrakk>true/$wait\<rbrakk>)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (rel_auto)
+  also have "... = ((P\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> Q\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (metis cond_var_subst_left wait_vwb_lens)
+  also have "... = (((II \<triangleleft> $wait \<triangleright> P)\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> (II \<triangleleft> $wait \<triangleright> Q)\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (metis Healthy_if R3_def assms(1) assms(2))
+  also have "... = ((II\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> II\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (subst_tac)
+  also have "... = ((II \<parallel>\<^bsub>M\<^esub> II) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (rel_auto)
+  also have "... = ((skip\<^sub>m ;; M) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (rel_auto)
+  also have "... = (II \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (simp add: assms(3))
+  also have "... = R3(P \<parallel>\<^bsub>M\<^esub> Q)"
+    by (simp add: R3_def)
+  finally show ?thesis
+    by (simp add: Healthy_def')
+qed
+
+definition [upred_defs]: "div\<^sub>m = ($tr \<le>\<^sub>u $0-tr\<acute> \<and> $tr \<le>\<^sub>u $1-tr\<acute> \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)"
+
+definition [upred_defs]: "wait\<^sub>m = skip\<^sub>m\<lbrakk>true,true/$ok,$wait\<rbrakk>"
+
+lemma R3c_par_by_merge:
+  assumes 
+    "P is R1" "Q is R1" "P is CSP1" "Q is CSP1" "P is R3c" "Q is R3c" 
+    "(wait\<^sub>m ;; M) = II\<lbrakk>true,true/$ok,$wait\<rbrakk>" "(div\<^sub>m ;; M) = R1(true)"
+  shows "(P \<parallel>\<^bsub>M\<^esub> Q) is R3c"
+proof -
+  have "(P \<parallel>\<^bsub>M\<^esub> Q) = (((P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true/$ok\<rbrakk> \<triangleleft> $ok \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk>)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (metis cond_idem cond_var_subst_left cond_var_subst_right vwb_lens_ok wait_vwb_lens)
+  also have "... = (((P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true,true/$ok,$wait\<rbrakk> \<triangleleft> $ok \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk>)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (subst_tac)
+  also have "... = (((P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true,true/$ok,$wait\<rbrakk> \<triangleleft> $ok \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (metis cond_var_subst_left wait_vwb_lens)
+  also have "... = ((II\<lbrakk>true,true/$ok,$wait\<rbrakk> \<triangleleft> $ok \<triangleright> R1(true)) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+  proof -
+    have "(P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk> = R1(true)"
+    proof -
+      have "(P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk> = ((P \<triangleleft> $ok \<triangleright> R1(true)) \<parallel>\<^bsub>M\<^esub> (Q \<triangleleft> $ok \<triangleright> R1(true)))\<lbrakk>false/$ok\<rbrakk>"
+        by (metis CSP1_alt_def Healthy_if assms)
+      also have "... = (R1(true) \<parallel>\<^bsub>M\<lbrakk>false/$ok\<^sub><\<rbrakk>\<^esub> R1(true))"
+        by (rel_auto, metis, metis)
+      also have "... = (div\<^sub>m ;; M)\<lbrakk>false/$ok\<rbrakk>"
+        by (rel_auto, metis, metis)
+      also have "... = (R1(true))\<lbrakk>false/$ok\<rbrakk>"
+        by (simp add: assms(8))
+      also have "... = (R1(true))"
+        by rel_auto
+      finally show ?thesis
+        by simp
+    qed
+    moreover have "(P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true,true/$ok,$wait\<rbrakk> = II\<lbrakk>true,true/$ok,$wait\<rbrakk>"
+    proof -
+      have "(P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true,true/$ok,$wait\<rbrakk> = (P\<lbrakk>true,true/$ok,$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> Q\<lbrakk>true,true/$ok,$wait\<rbrakk>)\<lbrakk>true,true/$ok,$wait\<rbrakk>"
+        by (rel_auto)
+      also have "... = (((II \<triangleleft> $ok \<triangleright> R1(true)) \<triangleleft> $wait \<triangleright> P)\<lbrakk>true,true/$ok,$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> ((II \<triangleleft> $ok \<triangleright> R1(true)) \<triangleleft> $wait \<triangleright> Q)\<lbrakk>true,true/$ok,$wait\<rbrakk>)\<lbrakk>true,true/$ok,$wait\<rbrakk>"
+        by (metis Healthy_def' R3c_cases assms(5) assms(6))
+      also have "... = (II\<lbrakk>true,true/$ok,$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> II\<lbrakk>true,true/$ok,$wait\<rbrakk>)\<lbrakk>true,true/$ok,$wait\<rbrakk>"
+        by (subst_tac)
+      also have "... = (wait\<^sub>m ;; M)\<lbrakk>true,true/$ok,$wait\<rbrakk>"
+        by (rel_auto)
+      also have "... = II\<lbrakk>true,true/$ok,$wait\<rbrakk>"
+        by (simp add: assms usubst)
+      finally show ?thesis .
+    qed
+    ultimately show ?thesis by simp
+  qed
+  also have "... = ((II \<triangleleft> $ok \<triangleright> R1(true)) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (rel_auto)
+  also have "... = R3c(P \<parallel>\<^bsub>M\<^esub> Q)"
+    by (simp add: R3c_cases)
+  finally show ?thesis
+    by (simp add: Healthy_def')
+qed
 
 lemma CSP1_par_by_merge:
-  assumes "P is R1" "Q is R1" "P is CSP1" "Q is CSP1" "M is R1m" "(tt\<^sub>m ;; M) = R1(true)"
+  assumes "P is R1" "Q is R1" "P is CSP1" "Q is CSP1" "M is R1m" "(div\<^sub>m ;; M) = R1(true)"
   shows "(P \<parallel>\<^bsub>M\<^esub> Q) is CSP1"
 proof -
   have "(P \<parallel>\<^bsub>M\<^esub> Q) = ((P \<parallel>\<^bsub>M\<^esub> Q) \<triangleleft> $ok \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk>)"
@@ -488,7 +586,7 @@ proof -
       by (metis CSP1_alt_def Healthy_if assms)
     also have "... = (R1(true) \<parallel>\<^bsub>M\<lbrakk>false/$ok\<^sub><\<rbrakk>\<^esub> R1(true))"
       by (rel_auto, metis, metis)
-    also have "... = (tt\<^sub>m ;; M)\<lbrakk>false/$ok\<rbrakk>"
+    also have "... = (div\<^sub>m ;; M)\<lbrakk>false/$ok\<rbrakk>"
       by (rel_auto, metis, metis)
     also have "... = (R1(true))\<lbrakk>false/$ok\<rbrakk>"
       by (simp add: assms(6))
@@ -517,9 +615,17 @@ proof -
     by (simp add: Healthy_def')
 qed
 
+lemma CSPMerge'_is_R1m:
+  "CSPMerge'(cs) is R1m"
+  by rel_auto
+
+lemma CSPMerge_is_R1m:
+  "CSPMerge(cs) is R1m"
+  by (rel_auto)
+
 lemma parallel'_is_R1:
   "(P \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R1"
-  by (rule R1_par_by_merge, rel_auto)
+  by (simp add: CSPMerge'_is_R1m R1_par_by_merge)
 
 lemma CSPMerge'_alt_def:
   "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) = ((P \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) ;; SKIP)"
@@ -529,77 +635,120 @@ lemma parallel_is_R1:
   "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R1"
   by (simp add: CSPMerge'_alt_def R1_seqr_closure SKIP_is_R1 parallel'_is_R1)
 
-lemma parallel_R2_lemma_1:
-  "($0-tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> $1-tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) = 
-   ($0-tr\<acute> =\<^sub>u $tr\<^sub><\<acute> + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> $1-tr\<acute> =\<^sub>u $tr\<^sub><\<acute> + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)"
-  by (rel_auto)
-
 lemma parallel'_is_R2:
   assumes "P is R2" "Q is R2"
   shows "(P \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R2"
 proof -
-  have "P \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q = (\<^bold>\<exists> tt\<^sub>0 \<bullet> P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>)
-                         \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub>
-                         (\<^bold>\<exists> tt\<^sub>1 \<bullet> Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)"
-    by (metis (mono_tags, lifting) Healthy_def R2_form assms)
-  also have "... = (\<^bold>\<exists> tt\<^sub>0, tt\<^sub>1 \<bullet>
-                   ((P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>)
-                    \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub>
-                    (Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)))"
-    by (simp add: shEx_pbm_right shEx_pbm_left, subst shEx_commute, simp)
-  also have "... = (\<^bold>\<exists> tt\<^sub>0, tt\<^sub>1 \<bullet>
-                   (  (P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>) 
-                   \<parallel>\<^sub>s (Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright>))
-                    ;; N\<^sub>C\<^sub>S\<^sub>P(cs))"
-    by (simp add: par_by_merge_def)
-  also have "... = (\<^bold>\<exists> tt\<^sub>0 \<bullet> \<^bold>\<exists> tt\<^sub>1 \<bullet> ((\<lceil>P\<rceil>\<^sub>0\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$0-tr\<acute>\<rbrakk> \<and> $0-tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>) \<and>
-                                     (\<lceil>Q\<rceil>\<^sub>1\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$1-tr\<acute>\<rbrakk> \<and> $1-tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<and> 
-                                      $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; N\<^sub>C\<^sub>S\<^sub>P cs)"
-    by (simp add: U0_as_alpha U1_as_alpha alpha)
-  also have "... = (\<^bold>\<exists> tt\<^sub>0 \<bullet> \<^bold>\<exists> tt\<^sub>1 \<bullet> (\<lceil>P\<rceil>\<^sub>0\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$0-tr\<acute>\<rbrakk> \<and> (($0-tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and>
-                                     \<lceil>Q\<rceil>\<^sub>1\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$1-tr\<acute>\<rbrakk>) \<and> $1-tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<and> 
-                                      $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; N\<^sub>C\<^sub>S\<^sub>P cs)"
-    by (simp add: conj_assoc)
-  also have "... = (\<^bold>\<exists> tt\<^sub>0 \<bullet> \<^bold>\<exists> tt\<^sub>1 \<bullet> (\<lceil>P\<rceil>\<^sub>0\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$0-tr\<acute>\<rbrakk> \<and> ((\<lceil>Q\<rceil>\<^sub>1\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$1-tr\<acute>\<rbrakk> \<and>
-                                     $0-tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>) \<and> $1-tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<and> 
-                                      $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; N\<^sub>C\<^sub>S\<^sub>P cs)"
-    by (simp add: conj_comm)
-  also have "... = (\<^bold>\<exists> tt\<^sub>0 \<bullet> \<^bold>\<exists> tt\<^sub>1 \<bullet> ((\<lceil>P\<rceil>\<^sub>0\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$0-tr\<acute>\<rbrakk> \<and> \<lceil>Q\<rceil>\<^sub>1\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$1-tr\<acute>\<rbrakk>) \<and>
-                                     ($0-tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> $1-tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)) 
-                                     ;; N\<^sub>C\<^sub>S\<^sub>P cs)"
-    by (simp add: conj_assoc)
-  also have "... =  (\<^bold>\<exists> tt\<^sub>0 \<bullet> \<^bold>\<exists> tt\<^sub>1 \<bullet> ((\<lceil>P\<rceil>\<^sub>0\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$0-tr\<acute>\<rbrakk> \<and> \<lceil>Q\<rceil>\<^sub>1\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$1-tr\<acute>\<rbrakk>) \<and>
-                                     ($0-tr\<acute> =\<^sub>u $tr\<^sub><\<acute> + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> $1-tr\<acute> =\<^sub>u $tr\<^sub><\<acute> + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)) 
-                                     ;; N\<^sub>C\<^sub>S\<^sub>P cs)"
-    by (simp add: parallel_R2_lemma_1)
-  also have "... =  (\<^bold>\<exists> tt\<^sub>0 \<bullet> \<^bold>\<exists> tt\<^sub>1 \<bullet> ((\<lceil>P\<rceil>\<^sub>0\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$0-tr\<acute>\<rbrakk> \<and> \<lceil>Q\<rceil>\<^sub>1\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$1-tr\<acute>\<rbrakk> \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) \<and>
-                                      ($0-tr\<acute> =\<^sub>u $tr\<^sub><\<acute> + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> $1-tr\<acute> =\<^sub>u $tr\<^sub><\<acute> + \<guillemotleft>tt\<^sub>1\<guillemotright>))
-                                     ;; N\<^sub>C\<^sub>S\<^sub>P cs)"
-    by (rel_blast)
-  also have "... =  (\<^bold>\<exists> tt\<^sub>0 \<bullet> \<^bold>\<exists> tt\<^sub>1 \<bullet> ((\<lceil>P\<rceil>\<^sub>0\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$0-tr\<acute>\<rbrakk> \<and> \<lceil>Q\<rceil>\<^sub>1\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$1-tr\<acute>\<rbrakk> \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) \<and>
-                                      (\<lceil>&0-tr =\<^sub>u &tr\<^sub>< + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> &1-tr =\<^sub>u &tr\<^sub>< + \<guillemotleft>tt\<^sub>1\<guillemotright>\<rceil>\<^sub>>))
-                                     ;; N\<^sub>C\<^sub>S\<^sub>P cs)"
-    by (simp add: alpha)
-  also have "... =  (\<^bold>\<exists> tt\<^sub>0 \<bullet> \<^bold>\<exists> tt\<^sub>1 \<bullet> ((\<lceil>P\<rceil>\<^sub>0\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$0-tr\<acute>\<rbrakk> \<and> \<lceil>Q\<rceil>\<^sub>1\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$1-tr\<acute>\<rbrakk> \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)
-                                     ;; (($0-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> $1-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<and> N\<^sub>C\<^sub>S\<^sub>P cs)))"
-    by (subst seqr_pre_transfer', simp add: alpha)
-
-  have "\<And> tt\<^sub>0 tt\<^sub>1.
-     (($0-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> $1-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<and> N\<^sub>C\<^sub>S\<^sub>P cs) = 
-     ($0-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> $1-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and>
-      $ok\<acute> =\<^sub>u ($0-ok \<and> $1-ok) \<and>
-      $wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and>
-      $ref\<acute> =\<^sub>u ($0-ref \<union>\<^sub>u $1-ref) \<and>
-      $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and>
-      ($tr\<acute> - $tr\<^sub><) \<in>\<^sub>u trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, \<guillemotleft>tt\<^sub>0\<guillemotright>, \<guillemotleft>tt\<^sub>1\<guillemotright>) \<and> 
-      \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> \<and>
-      $\<Sigma>\<^sub>C\<acute> =\<^sub>u $0-\<Sigma>\<^sub>C \<and> $\<Sigma>\<^sub>C\<acute> =\<^sub>u $1-\<Sigma>\<^sub>C)"
+  have "N\<^sub>C\<^sub>S\<^sub>P cs is R2m"
     by (rel_auto)
-oops
+  thus ?thesis
+    using R2_par_by_merge assms(1) assms(2) by blast
+qed
+
+theorem parallel_is_R2:
+  assumes "P is R2" "Q is R2"
+  shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R2"
+  by (simp add: CSPMerge'_alt_def R2_seqr_closure SKIP_is_R2 assms(1) assms(2) parallel'_is_R2)
+
+lemma R3c_CSP1_form:
+  "P is R1 \<Longrightarrow> R3c(CSP1(P)) = (R1(true) \<triangleleft> \<not>$ok \<triangleright> (II \<triangleleft> $wait \<triangleright> P))"
+  by (rel_blast)
+
+lemma parallel'_is_R3:
+  assumes "P is R3" "Q is R3"
+  shows "(P \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R3"
+proof -
+  have "(skip\<^sub>m ;; N\<^sub>C\<^sub>S\<^sub>P(cs)) = II"
+    apply (rel_auto) using list_minus_anhil by blast
+  thus ?thesis
+    by (simp add: R3_par_by_merge assms)
+qed
+
+lemma R3c_via_CSP1_R3:
+  "\<lbrakk> P is CSP1; P is R3 \<rbrakk> \<Longrightarrow> P is R3c"
+  by (metis CSP1_R3c Healthy_def')
+
+lemma CSPMerge_div_prop: "(div\<^sub>m ;; CSPMerge(cs)) = R1 true"
+  apply (rel_auto)
+  apply (rename_tac cs ok wait tr ref ok' wait' tr' ref')
+  apply (rule_tac x="ok" in exI)
+  apply (rule_tac x="wait" in exI)
+  apply (rule_tac x="tr" in exI)
+  apply (rule_tac x="ref" in exI)
+  apply (simp)
+  apply (metis minus_cancel order_refl singletonI tr_par.simps(1))
+done
+
+lemma skip_rea_form: "II\<^sub>r = (II \<triangleleft> $ok \<triangleright> R1(true))"
+  by rel_auto
+
+lemma CSPMerge_wait_prop: "(wait\<^sub>m ;; M\<^sub>C\<^sub>S\<^sub>P(cs)) = II\<lbrakk>true,true/$ok,$wait\<rbrakk>"
+  apply (rel_auto)
+  apply (metis list_minus_anhil zero_list_def)
+  using zero_list_def apply auto
+done
+
+lemma parallel_is_R3c:
+  assumes "P is R1" "Q is R1" "P is CSP1" "Q is CSP1" "P is R3c" "Q is R3c"
+  shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R3c"
+  by (simp add: CSPMerge_div_prop CSPMerge_wait_prop R3c_par_by_merge assms)
+
+lemma parallel_is_CSP1:
+  assumes "P is R1" "Q is R1" "P is CSP1" "Q is CSP1"
+  shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is CSP1"
+  by (simp add: CSP1_par_by_merge CSPMerge_div_prop CSPMerge_is_R1m assms)
+
+lemma parallel_is_CSP2:
+  "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is CSP2"
+proof -
+  have "M\<^sub>C\<^sub>S\<^sub>P(cs) is CSP2"
+  proof -
+    have "CSP2(M\<^sub>C\<^sub>S\<^sub>P(cs)) = (M\<^sub>C\<^sub>S\<^sub>P(cs) ;; J)"
+      by (simp add: CSP2_def H2_def)
+    also have "... = ((N\<^sub>C\<^sub>S\<^sub>P(cs) ;; SKIP) ;; J)"
+      by (simp add: CSPMerge_def)
+    also have "... = (N\<^sub>C\<^sub>S\<^sub>P(cs) ;; (SKIP ;; J))"
+      by (simp add: seqr_assoc)
+    also have "... = (N\<^sub>C\<^sub>S\<^sub>P(cs) ;; (CSP2(SKIP)))"
+      by (simp add: CSP2_def H2_def)
+    also have "... = (N\<^sub>C\<^sub>S\<^sub>P(cs) ;; SKIP)"
+      by (simp add: Healthy_if SKIP_is_CSP2)
+    finally show ?thesis
+      by (simp add: Healthy_def' CSPMerge_def)
+  qed
+  thus ?thesis
+    using CSP2_par_by_merge by blast
+qed
+
+lemma CSP2_R3c_commute: "CSP2(R3c(P)) = R3c(CSP2(P))"
+  by (rel_auto)
+
+lemma R3c_CSP: "R3c(CSP(P)) = CSP(P)"
+  by (simp add: CSP1_R3c_commute CSP2_R3c_commute R2_R3c_commute R3c_idem RH_alt_def')
+
+lemma CSP_healths:
+  assumes "P is CSP"
+  shows "P is R1" "P is R2" "P is R3c" "P is CSP1" "P is CSP2"
+  apply (metis (mono_tags) CSP_R1_R2s Healthy_def' R1_idem assms(1))
+  apply (metis CSP_R1_R2s Healthy_def R2_def assms)
+  apply (metis Healthy_def R3c_CSP assms)
+  apply (metis CSP1_idem Healthy_def' assms)
+  apply (metis CSP1_CSP2_commute CSP2_idem Healthy_def' assms)
+done
+
+lemma CSP_intro:
+  assumes "P is R1" "P is R2" "P is R3c" "P is CSP1" "P is CSP2"
+  shows "P is CSP"
+  by (metis Healthy_def RH_alt_def' assms(2) assms(3) assms(4) assms(5))
+
+lemma parallel_is_CSP:
+  assumes "P is CSP" "Q is CSP"
+  shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is CSP"
+  by (metis CSP_healths CSP_intro assms parallel_is_CSP1 parallel_is_CSP2 parallel_is_R1 parallel_is_R2 parallel_is_R3c)
     
 lemma parallel_precondition:
   assumes "P is CSP2"
-  shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>f\<^sub>f = ((P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(\<not> $ok)\<^esub> Q\<^sup>t\<^sub>f) \<or> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(\<not> $ok)\<^esub> Q\<^sup>f\<^sub>f))"
+  shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>f\<^sub>f = ((P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<or> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))"
 proof -
 
   have "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>f\<^sub>f = ((P \<parallel>\<^sub>s Q) ;; M\<^sub>C\<^sub>S\<^sub>P(cs))\<^sup>f\<^sub>f"
@@ -642,7 +791,18 @@ proof -
     by (rel_blast)
   also have "... = ((P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(\<not> $ok)\<^esub> Q\<^sup>t\<^sub>f) \<or>
                     (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(\<not> $ok)\<^esub> Q\<^sup>f\<^sub>f))"
+    (is "_ = ((P\<^sup>f\<^sub>f \<parallel>\<^bsub>?M1\<^esub> Q\<^sup>t\<^sub>f) \<or> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>?M2\<^esub> Q\<^sup>f\<^sub>f))")
     by (simp add: par_by_merge_def)
+  also have "... = ((P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<or>
+                    (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))"
+  proof -
+    have "?M1 = (N0 cs ;; R1(true))"
+      by (rel_auto)
+    moreover have "?M2 = (N0 cs ;; R1(true))"
+      by (rel_auto)
+    ultimately show ?thesis by simp
+  qed
+
   finally show ?thesis .
 qed
 
@@ -688,6 +848,43 @@ proof -
   finally show ?thesis
     by (simp add: par_by_merge_def)
 qed
+
+lemma design_export_pre: "P \<turnstile> (P \<and> Q) = P \<turnstile> Q"
+  by (rel_auto)
+
+lemma neg_conj_cancel1: "(\<not> P \<and> (P \<or> Q)) = (\<not> P \<and> Q :: '\<alpha> upred)"
+  by (pred_auto)
+
+lemma neg_conj_cancel2: "(\<not> Q \<and> (P \<or> Q)) = (\<not> Q \<and> P :: '\<alpha> upred)"
+  by (pred_auto)
+
+theorem parallel_reactive_design:
+  assumes "P is CSP" "Q is CSP"
+  shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) = \<^bold>R((\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<and> \<not> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f)) \<turnstile>
+                                 (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f))"
+proof -
+  have "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) = \<^bold>R((\<not> (P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>f\<^sub>f) \<turnstile> (P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>t\<^sub>f)"
+    by (simp add: CSP_reactive_design assms parallel_is_CSP)
+  also have "... = \<^bold>R((\<not> ((P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 (true)\<^esub> Q\<^sup>t\<^sub>f) \<or> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 (true)\<^esub> Q\<^sup>f\<^sub>f))) \<turnstile>
+                      (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f \<or>
+                       P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>t\<^sub>f \<or> 
+                       P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>f\<^sub>f))"
+    by (simp add: parallel_precondition parallel_postcondition CSP_healths(5) assms(1))
+  also have "... = \<^bold>R((\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 (true)\<^esub> Q\<^sup>t\<^sub>f) \<and> \<not> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f)) \<turnstile>
+                      ((\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 (true)\<^esub> Q\<^sup>t\<^sub>f \<or> P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f)) \<and>
+                      (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f \<or>
+                       P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>t\<^sub>f \<or> 
+                       P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>f\<^sub>f)))"
+    by (simp add: design_export_pre)
+  also have "... = \<^bold>R((\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<and> \<not> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f)) \<turnstile>
+                      ((\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f \<or> P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f)) \<and>
+                      (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f)))"
+    by (subst neg_conj_cancel2, simp)
+  also have "... = \<^bold>R((\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<and> \<not> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f)) \<turnstile>
+                        (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f))"
+    by (simp add: design_export_pre)
+  finally show ?thesis by simp
+qed 
 
 theorem STOP_is_Stop: "STOP = Stop"
   apply (rel_auto)
