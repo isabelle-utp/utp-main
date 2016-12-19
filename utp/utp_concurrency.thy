@@ -73,11 +73,13 @@ text {* The following implementation of parallel by merge is less general than t
 definition par_by_merge  ("_ \<parallel>\<^bsub>_\<^esub> _" [85,0,86] 85) 
 where [upred_defs]: "P \<parallel>\<^bsub>M\<^esub> Q = (P \<parallel>\<^sub>s Q ;; M)"
 
+text {* nil is the merge predicate which ignores the output of both parallel predicates *}
+
+definition [upred_defs]: "nil\<^sub>m = ($\<Sigma>\<acute> =\<^sub>u $\<Sigma>\<^sub><)"
+
 text {* swap is a predicate that the swaps the left and right indices; it is used to specify commutativity of the parallel operator *}
 
-definition "swap\<^sub>m = (0-\<Sigma>,1-\<Sigma> := &1-\<Sigma>,&0-\<Sigma>)"
-
-declare swap\<^sub>m_def [upred_defs]
+definition [upred_defs]: "swap\<^sub>m = (0-\<Sigma>,1-\<Sigma> := &1-\<Sigma>,&0-\<Sigma>)"
 
 lemma U0_swap: "(U0 ;; swap\<^sub>m) = U1"
   by rel_auto

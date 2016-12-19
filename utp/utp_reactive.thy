@@ -168,6 +168,12 @@ lemma unrest_tr_lift_rea [unrest]:
 lemma tr_prefix_as_concat: "(xs \<le>\<^sub>u ys) = (\<^bold>\<exists> zs \<bullet> ys =\<^sub>u xs ^\<^sub>u \<guillemotleft>zs\<guillemotright>)"
   by (rel_auto, simp add: less_eq_list_def prefixeq_def)
 
+lemma seqr_wait_true [usubst]: "(P ;; Q) \<^sub>t = (P \<^sub>t ;; Q)"
+  by rel_auto
+
+lemma seqr_wait_false [usubst]: "(P ;; Q) \<^sub>f = (P \<^sub>f ;; Q)"
+  by rel_auto
+
 subsection {* R1: Events cannot be undone *}
 
 definition R1_def [upred_defs]: "R1 (P) =  (P \<and> ($tr \<le>\<^sub>u $tr\<acute>))"
@@ -221,6 +227,9 @@ lemma R1_skip: "R1(II) = II"
   by rel_auto
 
 lemma R1_skip_rea: "R1(II\<^sub>r) = II\<^sub>r"
+  by rel_auto
+
+lemma skip_rea_form: "II\<^sub>r = (II \<triangleleft> $ok \<triangleright> R1(true))"
   by rel_auto
 
 lemma R1_by_refinement:
@@ -596,6 +605,39 @@ lemma R3c_seq_closure:
   shows "(P ;; Q) is R3c"
   by (metis Healthy_def' R3c_semir_form assms)
 
+lemma R3c_R3_left_seq_closure:
+  assumes "P is R3" "Q is R3c"
+  shows "(P ;; Q) is R3c"
+proof -
+  have "(P ;; Q) = ((P ;; Q)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (metis cond_var_split cond_var_subst_right in_var_uvar wait_vwb_lens)
+  also have "... = (((II \<triangleleft> $wait \<triangleright> P) ;; Q)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (metis Healthy_def' R3_def assms(1))
+  also have "... = ((II\<lbrakk>true/$wait\<rbrakk> ;; Q) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (subst_tac)
+  also have "... = ((II \<and> $wait\<acute> ;; Q) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (metis (no_types, lifting) cond_def conj_pos_var_subst seqr_pre_var_out skip_var utp_pred.inf_left_idem wait_vwb_lens)
+  also have "... = ((II\<lbrakk>true/$wait\<acute>\<rbrakk> ;; Q\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (metis seqr_pre_transfer seqr_right_one_point true_alt_def uovar_convr upred_eq_true utp_rel.unrest_ouvar vwb_lens_mwb wait_vwb_lens)
+  also have "... = ((II\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (II\<^sub>r \<triangleleft> $wait \<triangleright> Q)\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (metis Healthy_def' R3c_def assms(2))
+  also have "... = ((II\<lbrakk>true/$wait\<acute>\<rbrakk> ;; II\<^sub>r\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (subst_tac)
+  also have "... = ((II \<and> $wait\<acute> ;; II\<^sub>r) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (metis seqr_pre_transfer seqr_right_one_point true_alt_def uovar_convr upred_eq_true utp_rel.unrest_ouvar vwb_lens_mwb wait_vwb_lens)
+  also have "... = ((II ;; II\<^sub>r) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (simp add: cond_def seqr_pre_transfer utp_rel.unrest_ouvar)
+  also have "... = (II\<^sub>r \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by simp
+  also have "... = R3c(P ;; Q)"
+    by (simp add: R3c_def)
+  finally show ?thesis
+    by (simp add: Healthy_def') 
+qed
+
+lemma R3c_cases: "R3c(P) = ((II \<triangleleft> $ok \<triangleright> R1(true)) \<triangleleft> $wait \<triangleright> P)"
+  by (rel_auto)
+
 lemma R3c_subst_wait: "R3c(P) = R3c(P \<^sub>f)"
   by (metis R3c_def cond_var_subst_right wait_vwb_lens)
 
@@ -644,44 +686,47 @@ subsection {* RH laws *}
 
 definition RH_def [upred_defs]: "RH(P) = R1(R2s(R3c(P)))"
 
-notation RH ("\<^bold>R'(_')")
+notation RH ("\<^bold>R")
 
 lemma RH_alt_def:
-  "RH(P) = R1(R2(R3c(P)))"
+  "\<^bold>R(P) = R1(R2(R3c(P)))"
   by (simp add: R1_idem R2_def RH_def)
 
 lemma RH_alt_def':
-  "RH(P) = R2(R3c(P))"
+  "\<^bold>R(P) = R2(R3c(P))"
   by (simp add: R2_def RH_def)
 
 lemma RH_idem:
-  "RH(RH(P)) = RH(P)"
+  "\<^bold>R(\<^bold>R(P)) = \<^bold>R(P)"
   by (metis R2_R3c_commute R2_def R2_idem R3c_idem RH_def)
 
 lemma RH_monotone:
-  "P \<sqsubseteq> Q \<Longrightarrow> RH(P) \<sqsubseteq> RH(Q)"
+  "P \<sqsubseteq> Q \<Longrightarrow> \<^bold>R(P) \<sqsubseteq> \<^bold>R(Q)"
   by rel_auto
 
-lemma RH_disj: "RH(P \<or> Q) = (RH(P) \<or> RH(Q))"
+lemma RH_disj: "\<^bold>R(P \<or> Q) = (\<^bold>R(P) \<or> \<^bold>R(Q))"
   by (simp add: RH_def R3c_disj R2s_disj R1_disj)
 
 lemma RH_USUP:
   assumes "A \<noteq> {}"
-  shows "RH(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> RH(P(i)))"
+  shows "\<^bold>R(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> \<^bold>R(P(i)))"
   using assms by (rel_auto)
 
 lemma RH_UINF:
   assumes "A \<noteq> {}"
-  shows "RH(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> RH(P(i)))"
+  shows "\<^bold>R(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> \<^bold>R(P(i)))"
   using assms by (rel_auto)
 
 lemma RH_intro:
-  "\<lbrakk> P is R1; P is R2; P is R3c \<rbrakk> \<Longrightarrow> P is RH"
+  "\<lbrakk> P is R1; P is R2; P is R3c \<rbrakk> \<Longrightarrow> P is \<^bold>R"
   by (simp add: Healthy_def' R2_def RH_def)
 
+lemma R1_true_left_zero_R: "(R1(true) ;; \<^bold>R(P)) = R1(true)"
+  by (rel_auto)
+
 lemma RH_seq_closure:
-  assumes "P is RH" "Q is RH"
-  shows "(P ;; Q) is RH"
+  assumes "P is \<^bold>R" "Q is \<^bold>R"
+  shows "(P ;; Q) is \<^bold>R"
 proof (rule RH_intro)
   show "(P ;; Q) is R1"
     by (metis Healthy_def' R1_seqr_closure R2_def RH_alt_def RH_def assms(1) assms(2))
@@ -691,13 +736,138 @@ proof (rule RH_intro)
     by (metis Healthy_def' R2_R3c_commute R2_def R3c_idem R3c_seq_closure RH_alt_def RH_def assms(1) assms(2))
 qed
 
-lemma RH_R2c_def: "RH(P) = R1(R2c(R3c(P)))"
+lemma RH_R2c_def: "\<^bold>R(P) = R1(R2c(R3c(P)))"
   by (rel_auto)
 
-lemma RH_absorbs_R2c: "RH(R2c(P)) = RH(P)"
+lemma RH_absorbs_R2c: "\<^bold>R(R2c(P)) = \<^bold>R(P)"
   by (metis R1_R2_commute R1_R2c_is_R2 R1_R3c_commute R2_R3c_commute R2_idem RH_alt_def RH_alt_def')
 
-lemma RH_subst_wait: "RH(P \<^sub>f) = RH(P)"
+lemma RH_subst_wait: "\<^bold>R(P \<^sub>f) = \<^bold>R(P)"
   by (metis R3c_subst_wait RH_alt_def')
+
+subsection {* Reactive parallel-by-merge *}
+
+text {* We show closure of parallel by merge under the reactive healthiness conditions by means
+  of suitable restrictions on the merge predicate. We first define healthiness conditions
+  for R1 and R2 merge predicates. *}
+
+definition [upred_defs]: "R1m(M) = (M \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute>)"
+
+definition [upred_defs]: "R1m'(M) = (M \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and> $tr\<^sub>< \<le>\<^sub>u $0-tr \<and> $tr\<^sub>< \<le>\<^sub>u $1-tr)"
+
+text {* A merge predicate can access the history through $tr$, as usual, but also through $0.tr$ and
+  $1.tr$. Thus we have to remove the latter two histories as well to satisfy R2 for the overall
+  construction. *}
+
+definition [upred_defs]: "R2m(M) = R1m(M\<lbrakk>0,$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)"
+
+definition [upred_defs]: "R2m'(M) = R1m'(M\<lbrakk>0,$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)"
+
+lemma R2m'_form: 
+  "R2m'(M) = 
+  (\<^bold>\<exists> tt, tt\<^sub>0, tt\<^sub>1 \<bullet> M\<lbrakk>0,\<guillemotleft>tt\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk> 
+                  \<and> $tr\<acute> =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<guillemotright> 
+                  \<and> $0-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>0\<guillemotright> 
+                  \<and> $1-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>1\<guillemotright>)"
+  apply (rel_auto)
+  apply (metis diff_add_cancel_left')
+  using ordered_cancel_monoid_diff_class.le_iff_add apply blast+
+done
+
+lemma R1_par_by_merge:
+  "M is R1m \<Longrightarrow> (P \<parallel>\<^bsub>M\<^esub> Q) is R1"
+  by (rel_blast)
+
+lemma R2_par_by_merge:
+  assumes "P is R2" "Q is R2" "M is R2m"
+  shows "(P \<parallel>\<^bsub>M\<^esub> Q) is R2"
+proof -
+  have "(P \<parallel>\<^bsub>M\<^esub> Q) = (P \<parallel>\<^bsub>R2m(M)\<^esub> Q)"
+    by (metis Healthy_def' assms(3))
+  also have "... = (R2(P) \<parallel>\<^bsub>R2m(M)\<^esub> R2(Q))"
+    using assms by (simp add: Healthy_def')
+  also have "... = (R2(P) \<parallel>\<^bsub>R2m'(M)\<^esub> R2(Q))"
+    by (rel_blast)
+  also have "... = (P \<parallel>\<^bsub>R2m'(M)\<^esub> Q)"
+    using assms by (simp add: Healthy_def')
+  also have "... = ((P \<parallel>\<^sub>s Q) ;;
+                   (\<^bold>\<exists> tt, tt\<^sub>0, tt\<^sub>1 \<bullet> M\<lbrakk>0,\<guillemotleft>tt\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk> 
+                                     \<and> $tr\<acute> =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<guillemotright> 
+                                     \<and> $0-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>0\<guillemotright> 
+                                     \<and> $1-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>1\<guillemotright>))"
+    by (simp add: par_by_merge_def R2m'_form)
+  also have "... = (\<^bold>\<exists> tt, tt\<^sub>0, tt\<^sub>1 \<bullet> ((P \<parallel>\<^sub>s Q) ;; (M\<lbrakk>0,\<guillemotleft>tt\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk> 
+                                                  \<and> $tr\<acute> =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<guillemotright> 
+                                                  \<and> $0-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>0\<guillemotright> 
+                                                  \<and> $1-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>1\<guillemotright>)))"
+    by (rel_blast)
+  also have "... = (\<^bold>\<exists> tt, tt\<^sub>0, tt\<^sub>1 \<bullet> ((P \<parallel>\<^sub>s Q) \<and> $0-tr\<acute> =\<^sub>u $tr\<^sub><\<acute> + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> $1-tr\<acute> =\<^sub>u $tr\<^sub><\<acute> + \<guillemotleft>tt\<^sub>1\<guillemotright> ;; 
+                                      (M\<lbrakk>0,\<guillemotleft>tt\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<guillemotright>)))"
+    by (rel_blast)
+  also have "... = (\<^bold>\<exists> tt, tt\<^sub>0, tt\<^sub>1 \<bullet> ((P \<parallel>\<^sub>s Q) \<and> $0-tr\<acute> =\<^sub>u $tr\<^sub><\<acute> + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> $1-tr\<acute> =\<^sub>u $tr\<^sub><\<acute> + \<guillemotleft>tt\<^sub>1\<guillemotright> ;; 
+                                      (M\<lbrakk>0,\<guillemotleft>tt\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<guillemotright>)"
+    by (rel_blast)
+  also have "... = (\<^bold>\<exists> tt, tt\<^sub>0, tt\<^sub>1 \<bullet> (((P \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>) \<parallel>\<^sub>s (Q \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)) ;; 
+                                      (M\<lbrakk>0,\<guillemotleft>tt\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<guillemotright>)"
+    by (rel_blast)
+  also have "... = (\<^bold>\<exists> tt, tt\<^sub>0, tt\<^sub>1 \<bullet> (((R2(P) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>) \<parallel>\<^sub>s (R2(Q) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)) ;; 
+                                      (M\<lbrakk>0,\<guillemotleft>tt\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<guillemotright>)"
+    using assms(1-2) by (simp add: Healthy_def')                                      
+  also have "... = (\<^bold>\<exists> tt, tt\<^sub>0, tt\<^sub>1 \<bullet> ((   ((\<^bold>\<exists> tt\<^sub>0' \<bullet> P\<lbrakk>0,\<guillemotleft>tt\<^sub>0'\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0'\<guillemotright>) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>) 
+                                       \<parallel>\<^sub>s ((\<^bold>\<exists> tt\<^sub>1' \<bullet> Q\<lbrakk>0,\<guillemotleft>tt\<^sub>1'\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1'\<guillemotright>) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)) ;; 
+                                      (M\<lbrakk>0,\<guillemotleft>tt\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<guillemotright>)"
+    by (simp add: R2_form usubst)
+  also have "... = (\<^bold>\<exists> tt, tt\<^sub>0, tt\<^sub>1 \<bullet> ((   (P\<lbrakk>0,\<guillemotleft>tt\<^sub>0\<guillemotright>/$tr,$tr\<acute>\<rbrakk>  \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>) 
+                                       \<parallel>\<^sub>s (Q\<lbrakk>0,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)) ;; 
+                                      (M\<lbrakk>0,\<guillemotleft>tt\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<guillemotright>)"
+    apply (rel_auto)
+    apply (metis cancel_monoid_add_class.add_left_imp_eq)
+    apply blast
+  done
+  also have "... = R2(P \<parallel>\<^bsub>M\<^esub> Q)"
+    apply (rel_auto)
+    apply blast
+    using ordered_cancel_monoid_diff_class.le_iff_add apply blast
+    using diff_add_cancel_left' by fastforce
+
+  finally show ?thesis
+    by (simp add: Healthy_def)
+qed
+
+text {* For R3, we can't easily define an idempotent healthiness function of mege predicates. Thus
+  we define some units and anhilators instead. Each of these defines the behaviour of an indexed 
+  parallel system of predicates to be merged. *}
+
+definition [upred_defs]: "skip\<^sub>m = ($0-\<Sigma>\<acute> =\<^sub>u $\<Sigma> \<and> $1-\<Sigma>\<acute> =\<^sub>u $\<Sigma> \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)"
+
+text {* @{term "skip\<^sub>m"} is the system which does nothing to the variables in both predicates. A merge
+  predicate which is R3 must yield @{term II} when composed with it. *}
+
+lemma R3_par_by_merge:
+  assumes 
+    "P is R3" "Q is R3" "(skip\<^sub>m ;; M) = II"
+  shows "(P \<parallel>\<^bsub>M\<^esub> Q) is R3"
+proof -
+  have "(P \<parallel>\<^bsub>M\<^esub> Q) = ((P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (metis cond_L6 cond_var_split in_var_uvar wait_vwb_lens)
+  also have "... = ((P\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> Q\<lbrakk>true/$wait\<rbrakk>)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (rel_auto)
+  also have "... = ((P\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> Q\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (metis cond_var_subst_left wait_vwb_lens)
+  also have "... = (((II \<triangleleft> $wait \<triangleright> P)\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> (II \<triangleleft> $wait \<triangleright> Q)\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (metis Healthy_if R3_def assms(1) assms(2))
+  also have "... = ((II\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> II\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (subst_tac)
+  also have "... = ((II \<parallel>\<^bsub>M\<^esub> II) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (rel_auto)
+  also have "... = ((skip\<^sub>m ;; M) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (rel_auto)
+  also have "... = (II \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (simp add: assms(3))
+  also have "... = R3(P \<parallel>\<^bsub>M\<^esub> Q)"
+    by (simp add: R3_def)
+  finally show ?thesis
+    by (simp add: Healthy_def')
+qed
 
 end

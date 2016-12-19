@@ -13,6 +13,9 @@ where "P is H \<equiv> (H P = P)"
 lemma Healthy_def': "P is H \<longleftrightarrow> (H P = P)"
   unfolding Healthy_def by auto
 
+lemma Healthy_if: "P is H \<Longrightarrow> (H P = P)"
+  unfolding Healthy_def by auto
+
 declare Healthy_def' [upred_defs]
 
 abbreviation Healthy_carrier :: "'\<alpha> Healthiness_condition \<Rightarrow> '\<alpha> upred set" ("\<lbrakk>_\<rbrakk>\<^sub>H")

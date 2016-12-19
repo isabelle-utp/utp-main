@@ -560,6 +560,12 @@ lemma subsumption2:
   "`Q \<Rightarrow> P` \<Longrightarrow> (P \<or> Q) = P"
   by (pred_auto)  
 
+lemma neg_conj_cancel1: "(\<not> P \<and> (P \<or> Q)) = (\<not> P \<and> Q :: '\<alpha> upred)"
+  by (pred_auto)
+
+lemma neg_conj_cancel2: "(\<not> Q \<and> (P \<or> Q)) = (\<not> Q \<and> P :: '\<alpha> upred)"
+  by (pred_auto)
+
 lemma double_negation [simp]: "(\<not> \<not> (P::'\<alpha> upred)) = P"
   by (pred_auto)
 
