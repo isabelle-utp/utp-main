@@ -310,12 +310,6 @@ theorem design_post:
   "(P \<turnstile> Q)\<^sup>t = (($ok \<and> P\<^sup>t) \<Rightarrow> Q\<^sup>t)"
   by (rel_auto)
 
-lemma seqr_ok'_true [usubst]: "(P ;; Q)\<^sup>t = (P ;; Q\<^sup>t)"
-  by rel_auto
-
-lemma seqr_ok'_false [usubst]: "(P ;; Q)\<^sup>f = (P ;; Q\<^sup>f)"
-  by rel_auto
-
 theorem rdesign_pre [simp]: "pre\<^sub>D(P \<turnstile>\<^sub>r Q) = P"
   by pred_auto
 

@@ -125,6 +125,18 @@ lemma U0_seq_subst: "(P ;; U0)\<lbrakk>\<guillemotleft>v\<guillemotright>/$0-x\<
 lemma U1_seq_subst: "(P ;; U1)\<lbrakk>\<guillemotleft>v\<guillemotright>/$1-x\<acute>\<rbrakk> = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; U1)"
   by rel_auto
 
+lemma par_by_merge_false [simp]:
+  "P \<parallel>\<^bsub>false\<^esub> Q = false"
+  by (rel_auto)
+
+lemma par_by_merge_left_false [simp]:
+  "false \<parallel>\<^bsub>M\<^esub> Q = false"
+  by (rel_auto)
+
+lemma par_by_merge_right_false [simp]:
+  "P \<parallel>\<^bsub>M\<^esub> false = false"
+  by (rel_auto)
+
 lemma par_by_merge_commute:
   assumes "(swap\<^sub>m ;; M) = M"
   shows "P \<parallel>\<^bsub>M\<^esub> Q = Q \<parallel>\<^bsub>M\<^esub> P"
@@ -157,5 +169,30 @@ lemma par_by_merge_mono_2:
   assumes "Q\<^sub>1 \<sqsubseteq> Q\<^sub>2"
   shows "(P \<parallel>\<^bsub>M\<^esub> Q\<^sub>1) \<sqsubseteq> (P \<parallel>\<^bsub>M\<^esub> Q\<^sub>2)"
   using assms by rel_blast
+
+lemma bool_pbm_laws [usubst]:
+  fixes x :: "(bool \<Longrightarrow> '\<alpha>)"
+  shows 
+    "\<And> P Q M \<sigma>. \<sigma>($x \<mapsto>\<^sub>s true) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> ((P\<lbrakk>true/$x\<rbrakk>) \<parallel>\<^bsub>M\<lbrakk>true/$x\<^sub><\<rbrakk>\<^esub> (Q\<lbrakk>true/$x\<rbrakk>))"
+    "\<And> P Q M \<sigma>. \<sigma>($x \<mapsto>\<^sub>s false) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> ((P\<lbrakk>false/$x\<rbrakk>) \<parallel>\<^bsub>M\<lbrakk>false/$x\<^sub><\<rbrakk>\<^esub> (Q\<lbrakk>false/$x\<rbrakk>))"
+    "\<And> P Q M \<sigma>. \<sigma>($x\<acute> \<mapsto>\<^sub>s true) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> (P \<parallel>\<^bsub>M\<lbrakk>true/$x\<acute>\<rbrakk>\<^esub> Q)"
+    "\<And> P Q M \<sigma>. \<sigma>($x\<acute> \<mapsto>\<^sub>s false) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> (P \<parallel>\<^bsub>M\<lbrakk>false/$x\<acute>\<rbrakk>\<^esub> Q)"
+  by (rel_auto)+
+
+lemma zero_one_pbm_laws [usubst]:
+  fixes x :: "(_ \<Longrightarrow> '\<alpha>)"
+  shows 
+    "\<And> P Q M \<sigma>. \<sigma>($x \<mapsto>\<^sub>s 0) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> ((P\<lbrakk>0/$x\<rbrakk>) \<parallel>\<^bsub>M\<lbrakk>0/$x\<^sub><\<rbrakk>\<^esub> (Q\<lbrakk>0/$x\<rbrakk>))"
+    "\<And> P Q M \<sigma>. \<sigma>($x \<mapsto>\<^sub>s 1) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> ((P\<lbrakk>1/$x\<rbrakk>) \<parallel>\<^bsub>M\<lbrakk>1/$x\<^sub><\<rbrakk>\<^esub> (Q\<lbrakk>1/$x\<rbrakk>))"
+    "\<And> P Q M \<sigma>. \<sigma>($x\<acute> \<mapsto>\<^sub>s 0) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> (P \<parallel>\<^bsub>M\<lbrakk>0/$x\<acute>\<rbrakk>\<^esub> Q)"
+    "\<And> P Q M \<sigma>. \<sigma>($x\<acute> \<mapsto>\<^sub>s 1) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> (P \<parallel>\<^bsub>M\<lbrakk>1/$x\<acute>\<rbrakk>\<^esub> Q)"
+  by (rel_auto)+
+
+lemma numeral_pbm_laws [usubst]:
+  fixes x :: "(_ \<Longrightarrow> '\<alpha>)"
+  shows 
+    "\<And> P Q M \<sigma>. \<sigma>($x \<mapsto>\<^sub>s numeral n) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> ((P\<lbrakk>numeral n/$x\<rbrakk>) \<parallel>\<^bsub>M\<lbrakk>numeral n/$x\<^sub><\<rbrakk>\<^esub> (Q\<lbrakk>numeral n/$x\<rbrakk>))"
+    "\<And> P Q M \<sigma>. \<sigma>($x\<acute> \<mapsto>\<^sub>s numeral n) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> (P \<parallel>\<^bsub>M\<lbrakk>numeral n/$x\<acute>\<rbrakk>\<^esub> Q)"
+  by (rel_auto)+
 
 end

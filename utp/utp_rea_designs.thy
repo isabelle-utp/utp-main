@@ -597,6 +597,11 @@ lemma CSP_RH_design:
   shows "CSP(RH(P \<turnstile> Q)) = RH(P \<turnstile> Q)"
   by (metis CSP1_reactive_design CSP2_reactive_design RH_idem assms(1) assms(2))
 
+lemma RH_design_is_CSP:
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q"
+  shows "\<^bold>R(P \<turnstile> Q) is CSP"
+  by (simp add: CSP_RH_design Healthy_def' assms(1) assms(2))
+
 lemma CSP2_R3c_commute: "CSP2(R3c(P)) = R3c(CSP2(P))"
   by (rel_auto)
 
@@ -771,12 +776,14 @@ qed
 text {* Syntax for pre-, post-, and periconditions *}
 
 abbreviation "pre\<^sub>s  \<equiv> [$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s false, $wait \<mapsto>\<^sub>s false]"
+abbreviation "cmt\<^sub>s  \<equiv> [$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s false]"
 abbreviation "peri\<^sub>s \<equiv> [$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s false, $wait\<acute> \<mapsto>\<^sub>s true]"
 abbreviation "post\<^sub>s \<equiv> [$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s false, $wait\<acute> \<mapsto>\<^sub>s false]"
 
 abbreviation "npre\<^sub>R(P) \<equiv> pre\<^sub>s \<dagger> P"
 
 definition [upred_defs]: "pre\<^sub>R(P)  = (\<not> (npre\<^sub>R(P)))" 
+definition [upred_defs]: "cmt\<^sub>R(P)  = (cmt\<^sub>s \<dagger> P)"
 definition [upred_defs]: "peri\<^sub>R(P) = (peri\<^sub>s \<dagger> P)"
 definition [upred_defs]: "post\<^sub>R(P) = (post\<^sub>s \<dagger> P)"
 
@@ -1536,7 +1543,7 @@ proof -
   have "(P \<parallel>\<^bsub>M\<^esub> Q) = (((P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true/$ok\<rbrakk> \<triangleleft> $ok \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk>)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
     by (metis cond_idem cond_var_subst_left cond_var_subst_right vwb_lens_ok wait_vwb_lens)
   also have "... = (((P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true,true/$ok,$wait\<rbrakk> \<triangleleft> $ok \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk>)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
-    by (subst_tac)
+    by (rel_auto)
   also have "... = (((P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true,true/$ok,$wait\<rbrakk> \<triangleleft> $ok \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
     by (metis cond_var_subst_left wait_vwb_lens)
   also have "... = ((II\<lbrakk>true,true/$ok,$wait\<rbrakk> \<triangleleft> $ok \<triangleright> R1(true)) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
