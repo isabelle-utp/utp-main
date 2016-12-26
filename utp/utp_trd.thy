@@ -187,7 +187,7 @@ definition hDisInt :: "(real \<Rightarrow> 'c::t2_space upred) \<Rightarrow> ('d
 syntax
   "_time_var" :: "logic"
   "_hInt"     :: "logic \<Rightarrow> logic" ("\<lceil>_\<rceil>\<^sub>H")
-  "_hDisInt"  :: "logic \<Rightarrow> logic" ("\<lceil>|_|\<rceil>\<^sub>H")
+  "_hDisInt"  :: "logic \<Rightarrow> logic" ("\<^bold>\<lceil>_\<^bold>\<rceil>\<^sub>H")
 
 parse_translation {*
 let
@@ -199,8 +199,8 @@ end
 *}
 
 translations
-  "\<lceil>P\<rceil>\<^sub>H"   == "CONST hInt (\<lambda> _time_var. P)"
-  "\<lceil>|P|\<rceil>\<^sub>H" == "CONST hDisInt (\<lambda> _time_var. P)"
+  "\<lceil>P\<rceil>\<^sub>H" == "CONST hInt (\<lambda> _time_var. P)"
+  "\<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>H" == "CONST hDisInt (\<lambda> _time_var. P)"
 
 definition hPreempt :: 
   "('d, 'c::topological_space) relation_trd \<Rightarrow> 'c upred \<Rightarrow> 
@@ -310,11 +310,11 @@ lift_definition hasDerivAt ::
   "((real \<Rightarrow> 'c :: real_normed_vector), '\<alpha>) uexpr \<Rightarrow> ('c ODE, '\<alpha>) uexpr \<Rightarrow> real \<Rightarrow> '\<alpha> upred" ("_ has-deriv _ at _" [90, 0, 91] 90)
 is "\<lambda> \<F> \<F>' \<tau> A. (\<F> A has_vector_derivative (\<F>' A (\<tau>, \<F> A \<tau>))) (at \<tau> within {0..})" .
 
-lemma hasDerivAt_unrest [unrest]: "\<lbrakk> uvar x; x \<sharp> f; x \<sharp> f' \<rbrakk> \<Longrightarrow> x \<sharp> f has-deriv f' at \<tau>"
+lemma hasDerivAt_unrest [unrest]: "\<lbrakk> vwb_lens x; x \<sharp> f; x \<sharp> f' \<rbrakk> \<Longrightarrow> x \<sharp> f has-deriv f' at \<tau>"
   by (pred_auto, presburger+)
 
 definition hODE :: "('a::real_normed_vector \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) relation_trd" ("\<langle>_ \<bullet> _\<rangle>\<^sub>H") where
-[urel_defs]: "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H = (\<^bold>\<exists> \<F> \<bullet> \<lceil>| \<guillemotleft>\<F>\<guillemotright> has-deriv \<F>' at \<tau> \<and> &x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u |\<rceil>\<^sub>H)"
+[urel_defs]: "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H = (\<^bold>\<exists> \<F> \<bullet> \<^bold>\<lceil> \<guillemotleft>\<F>\<guillemotright> has-deriv \<F>' at \<tau> \<and> &x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u \<^bold>\<rceil>\<^sub>H)"
 
 definition hODE_ivp :: "('a, 'd, 'c) cond_trd \<Rightarrow> ('a::real_normed_vector \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) relation_trd" ("_ \<Turnstile> \<langle>_ \<bullet> _\<rangle>\<^sub>H") where
 [urel_defs]: "\<I> \<Turnstile> \<langle>x \<bullet> \<F>'\<rangle>\<^sub>H = \<langle>x \<bullet> \<F>'\<rangle>\<^sub>H\<lbrakk>\<lceil>\<I>\<rceil>\<^sub></$\<^bold>c:x\<rbrakk>"
@@ -337,7 +337,7 @@ lemma cont_rea_design_par:
 
 lemma gravity_ode_refine:
   "((\<guillemotleft>v\<^sub>0\<guillemotright>, \<guillemotleft>h\<^sub>0\<guillemotright>)\<^sub>u \<Turnstile> \<langle>\<lambda> (t, v, h) \<bullet> (- \<guillemotleft>g\<guillemotright>, \<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>\<^sub>H) \<sqsubseteq>
-   (\<lceil>| &\<Sigma> =\<^sub>u (\<guillemotleft>v\<^sub>0\<guillemotright> - \<guillemotleft>g\<guillemotright>*\<guillemotleft>\<tau>\<guillemotright>, \<guillemotleft>v\<^sub>0\<guillemotright>*\<guillemotleft>\<tau>\<guillemotright> - \<guillemotleft>g\<guillemotright>*(\<guillemotleft>\<tau>\<guillemotright>*\<guillemotleft>\<tau>\<guillemotright>) / 2 + \<guillemotleft>h\<^sub>0\<guillemotright>)\<^sub>u |\<rceil>\<^sub>H)"
+   (\<^bold>\<lceil> &\<Sigma> =\<^sub>u (\<guillemotleft>v\<^sub>0\<guillemotright> - \<guillemotleft>g\<guillemotright>*\<guillemotleft>\<tau>\<guillemotright>, \<guillemotleft>v\<^sub>0\<guillemotright>*\<guillemotleft>\<tau>\<guillemotright> - \<guillemotleft>g\<guillemotright>*(\<guillemotleft>\<tau>\<guillemotright>*\<guillemotleft>\<tau>\<guillemotright>) / 2 + \<guillemotleft>h\<^sub>0\<guillemotright>)\<^sub>u \<^bold>\<rceil>\<^sub>H)"
   apply (rel_auto)
   apply (rule exI)
   apply (auto)

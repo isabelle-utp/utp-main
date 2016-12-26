@@ -1,5 +1,5 @@
 session Kleene_Algebra (AFP) in "contrib/Kleene_Algebra"
-  = "HOL-Library" +
+  = "Ordinary_Differential_Equations" +
   options [timeout = 300]
   theories
     Action_Algebra
@@ -17,7 +17,21 @@ session Kleene_Algebra (AFP) in "contrib/Kleene_Algebra"
     "document/root.bib"
     "document/root.tex"
 
-session "UTP-IMPORTS" in "utils" = "Kleene_Algebra" +
+session "UTP-DEPS" = "Kleene_Algebra" +
+  options [timeout = 600]
+  theories
+    "~~/src/HOL/Cardinals/Cardinals"
+    "~~/src/HOL/Eisbach/Eisbach"
+    "~~/src/HOL/Library/Adhoc_Overloading"
+    "~~/src/HOL/Library/Char_ord"
+    "~~/src/HOL/Library/Countable_Set_Type"
+    "~~/src/HOL/Library/FSet"
+    "~~/src/HOL/Library/Monad_Syntax"
+    "~~/src/HOL/Library/Prefix_Order"
+    "~~/src/HOL/Library/Sublist"
+    "contrib/HOL-Algebra2/Complete_Lattice"
+
+session "UTP-IMPORTS" in "utils" = "UTP-DEPS" +
   options [timeout = 600]
   theories
     cardinals
