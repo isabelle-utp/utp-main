@@ -199,6 +199,9 @@ lemma subst_bop [usubst]: "\<sigma> \<dagger> bop f u v = bop f (\<sigma> \<dagg
 lemma subst_trop [usubst]: "\<sigma> \<dagger> trop f u v w = trop f (\<sigma> \<dagger> u) (\<sigma> \<dagger> v) (\<sigma> \<dagger> w)"
   by (transfer, simp)
 
+lemma subst_qtop [usubst]: "\<sigma> \<dagger> qtop f u v w x = qtop f (\<sigma> \<dagger> u) (\<sigma> \<dagger> v) (\<sigma> \<dagger> w) (\<sigma> \<dagger> x)"
+  by (transfer, simp)
+
 lemma subst_plus [usubst]: "\<sigma> \<dagger> (x + y) = \<sigma> \<dagger> x + \<sigma> \<dagger> y"
   by (simp add: plus_uexpr_def subst_bop)
 
