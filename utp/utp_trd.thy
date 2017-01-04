@@ -16,7 +16,7 @@ syntax
   "_ulens_expr" :: "logic \<Rightarrow> svid \<Rightarrow> logic" ("_:'(_')" [100,100] 100)
 
 translations
-  "_ulens_expr e x" == "CONST uop get\<^bsub>x\<^esub> e"                                                                                                                                                                 
+  "_ulens_expr e x" == "CONST uop get\<^bsub>x\<^esub> e"                                                                                                                                       
 
 abbreviation trace :: "('c::topological_space ttrace, 'd, 'c) expr_trd" ("\<phi>") where
 "\<phi> \<equiv> $tr\<acute> - $tr"
@@ -307,44 +307,259 @@ lemma hInt_conj: "\<lceil>P(\<tau>) \<and> Q(\<tau>)\<rceil>\<^sub>H = (\<lceil>
 type_synonym 'c ODE = "real \<times> 'c \<Rightarrow> 'c"
 
 lift_definition hasDerivAt :: 
-  "((real \<Rightarrow> 'c :: real_normed_vector), '\<alpha>) uexpr \<Rightarrow> ('c ODE, '\<alpha>) uexpr \<Rightarrow> real \<Rightarrow> '\<alpha> upred" ("_ has-deriv _ at _" [90, 0, 91] 90)
-is "\<lambda> \<F> \<F>' \<tau> A. (\<F> A has_vector_derivative (\<F>' A (\<tau>, \<F> A \<tau>))) (at \<tau> within {0..})" .
+  "((real \<Rightarrow> 'c :: real_normed_vector), '\<alpha>) uexpr \<Rightarrow> 
+   ('c ODE, '\<alpha>) uexpr \<Rightarrow> real \<Rightarrow> real \<Rightarrow> '\<alpha> upred" ("_ has-deriv _ at _ < _" [90, 0, 91] 90)
+is "\<lambda> \<F> \<F>' \<tau> l A. (\<F> A has_vector_derivative (\<F>' A (\<tau>, \<F> A \<tau>))) (at \<tau> within {0..l})" .
 
-lemma hasDerivAt_unrest [unrest]: "\<lbrakk> vwb_lens x; x \<sharp> f; x \<sharp> f' \<rbrakk> \<Longrightarrow> x \<sharp> f has-deriv f' at \<tau>"
+lemma hasDerivAt_unrest [unrest]: "\<lbrakk> vwb_lens x; x \<sharp> f; x \<sharp> f' \<rbrakk> \<Longrightarrow> x \<sharp> f has-deriv f' at \<tau> < l"
   by (pred_auto, presburger+)
 
-definition hODE :: "('a::real_normed_vector \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) relation_trd" ("\<langle>_ \<bullet> _\<rangle>\<^sub>H") where
-[urel_defs]: "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H = (\<^bold>\<exists> \<F> \<bullet> \<^bold>\<lceil> \<guillemotleft>\<F>\<guillemotright> has-deriv \<F>' at \<tau> \<and> &x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u \<^bold>\<rceil>\<^sub>H)"
+definition mk_IVP ("IVP'(_,_,_')") where
+[upred_defs]: "mk_IVP = trop (\<lambda> f t' x\<^sub>0. ivp.make f 0 x\<^sub>0 {0..t'} UNIV)"
 
-definition hODE_ivp :: "('a, 'd, 'c) cond_trd \<Rightarrow> ('a::real_normed_vector \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) relation_trd" ("_ \<Turnstile> \<langle>_ \<bullet> _\<rangle>\<^sub>H") where
+definition is_solution ("_ has-solution _" [90, 91] 90) where 
+[upred_defs]: "is_solution = bop ivp.is_solution"
+
+definition hODE :: "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) relation_trd" ("\<langle>_ \<bullet> _\<rangle>\<^sub>H") where
+[urel_defs]: "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H = (\<^bold>\<exists> \<F>, l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<^bold>\<lceil> \<guillemotleft>\<F>\<guillemotright> has-deriv \<F>' at \<tau> < l \<and> &x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u \<^bold>\<rceil>\<^sub>H)"
+
+(*
+definition hODE_ivp :: "('a, 'd, 'c) cond_trd \<Rightarrow> ('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) relation_trd" ("_ \<Turnstile> \<langle>_ \<bullet> _\<rangle>\<^sub>H") where
 [urel_defs]: "\<I> \<Turnstile> \<langle>x \<bullet> \<F>'\<rangle>\<^sub>H = \<langle>x \<bullet> \<F>'\<rangle>\<^sub>H\<lbrakk>\<lceil>\<I>\<rceil>\<^sub></$\<^bold>c:x\<rbrakk>"
 
-abbreviation hODE_state :: "('c ODE, 'c::real_normed_vector) uexpr \<Rightarrow> ('d, 'c) relation_trd" ("\<langle>_\<rangle>\<^sub>H") where
-"\<langle>\<F>'\<rangle>\<^sub>H \<equiv> \<langle>\<Sigma> \<bullet> \<F>'\<rangle>\<^sub>H"
 
-abbreviation hODE_state_ivp :: "('c, 'd, 'c) cond_trd \<Rightarrow> ('c ODE, 'c::real_normed_vector) uexpr \<Rightarrow> ('d, 'c) relation_trd" ("_ \<Turnstile> \<langle>_\<rangle>\<^sub>H") where
-"\<I> \<Turnstile> \<langle>\<F>'\<rangle>\<^sub>H \<equiv> \<I> \<Turnstile> \<langle>\<Sigma> \<bullet> \<F>'\<rangle>\<^sub>H"
+definition hODE :: 
+  "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> 
+   ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) relation_trd" ("\<langle>_ \<bullet> _\<rangle>\<^sub>H") where
+  [upred_defs]:
+  "hODE x \<F>' = (\<^bold>\<exists> \<F> \<bullet> ($tr <\<^sub>u $tr\<acute>
+                       \<and> IVP(\<lceil>\<F>'\<rceil>\<^sub>C\<^sub><, \<^bold>l, $\<^bold>c:x) has-solution \<guillemotleft>\<F>\<guillemotright>
+                       \<and> (\<^bold>\<forall> t\<in>{0..<\<^bold>l}\<^sub>u \<bullet> x~(\<guillemotleft>t\<guillemotright>) =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u)
+                       \<and> $\<^bold>c:x\<acute> =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<^bold>l\<rparr>\<^sub>u))"
+*)
 
-lemma assign_ivp:
-  "(\<^bold>c:x := \<I> ;; \<langle>x \<bullet> \<F>'\<rangle>\<^sub>H) = \<I> \<Turnstile> \<langle>x \<bullet> \<F>'\<rangle>\<^sub>H"
-  by (simp add: assigns_r_comp hODE_def hODE_ivp_def usubst)
+abbreviation hODE_IVP ("\<langle>_ := _ \<bullet> _\<rangle>\<^sub>H") where
+"\<langle>x := x\<^sub>0 \<bullet> \<F>'\<rangle>\<^sub>H \<equiv> (\<^bold>c:x := x\<^sub>0 ;; \<langle>x \<bullet> \<F>'\<rangle>\<^sub>H)"
 
-lemma cont_rea_design_par:
-  assumes 
-    "$ok\<acute> \<sharp> P\<^sub>1" "$wait \<sharp> P\<^sub>1" "$ok\<acute> \<sharp> P\<^sub>2" "$wait \<sharp> P\<^sub>2"
-  shows "RH(P\<^sub>1 \<turnstile> \<lceil>Q\<^sub>1(\<tau>)\<rceil>\<^sub>H) \<parallel>\<^sub>R RH(P\<^sub>2 \<turnstile> \<lceil>Q\<^sub>2(\<tau>)\<rceil>\<^sub>H) = RH((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (\<lceil>Q\<^sub>1(\<tau>) \<and> Q\<^sub>2(\<tau>)\<rceil>\<^sub>H))"
-  by (simp add: RH_design_par assms unrest hInt_conj)
+lemma is_ivp_make: "0 \<in> T \<Longrightarrow> ivp (ivp.make \<F>' 0 x\<^sub>0 T UNIV)"
+  by (unfold_locales, simp_all add: ivp.make_def)
 
-lemma gravity_ode_refine:
-  "((\<guillemotleft>v\<^sub>0\<guillemotright>, \<guillemotleft>h\<^sub>0\<guillemotright>)\<^sub>u \<Turnstile> \<langle>\<lambda> (t, v, h) \<bullet> (- \<guillemotleft>g\<guillemotright>, \<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>\<^sub>H) \<sqsubseteq>
-   (\<^bold>\<lceil> &\<Sigma> =\<^sub>u (\<guillemotleft>v\<^sub>0\<guillemotright> - \<guillemotleft>g\<guillemotright>*\<guillemotleft>\<tau>\<guillemotright>, \<guillemotleft>v\<^sub>0\<guillemotright>*\<guillemotleft>\<tau>\<guillemotright> - \<guillemotleft>g\<guillemotright>*(\<guillemotleft>\<tau>\<guillemotright>*\<guillemotleft>\<tau>\<guillemotright>) / 2 + \<guillemotleft>h\<^sub>0\<guillemotright>)\<^sub>u \<^bold>\<rceil>\<^sub>H)"
+lemma at_left_from_zero:
+  "n > 0 \<Longrightarrow> at_left n = at n within {0::real ..< n}"
+  by (rule at_within_nhd[of _ "{0<..<n+1}"], auto)
+
+lemma ivp_solution_refine:
+  "\<lbrakk> vwb_lens x; \<forall> l > 0. ivp.is_solution (ivp.make \<F>' 0 x\<^sub>0 {0..l} UNIV) \<F> \<rbrakk> 
+   \<Longrightarrow> \<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H \<sqsubseteq> (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>H)"
+proof (rel_auto)
+  fix x :: "'a \<Longrightarrow> 'b" and \<F>' x\<^sub>0 \<F> tr b tr' v
+  assume assms:
+    "vwb_lens x" "\<forall>l>0. ivp.is_solution (ivp.make \<F>' 0 x\<^sub>0 {0..l} UNIV) \<F>"
+    "tr < tr'" "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) = \<F> t"
+    "put\<^bsub>x\<^esub> b v = \<langle>tr'\<rangle>\<^sub>t(end\<^sub>t tr)"
+
+  let ?l = "end\<^sub>t (tr' - tr)"
+
+  have etr_nz: "?l > 0"
+    by (metis assms less_le minus_zero_eq tt_end_0_iff tt_end_ge_0)
+
+  have tr_f: "\<forall>t. 0 \<le> t \<and> t < ?l \<longrightarrow> (get\<^bsub>x\<^esub> \<circ> \<langle>tr' - tr\<rangle>\<^sub>t) t = \<F> t"
+    by (simp add: assms less_imp_le)
+
+(*
+  obtain L where L:"(\<langle>tr' - tr\<rangle>\<^sub>t \<longlongrightarrow> L) (at ?l within {0..<?l})"
+    using at_left_from_zero etr_nz ttrace_convergent_end by fastforce
+
+  hence "((get\<^bsub>x\<^esub> \<circ> \<langle>tr' - tr\<rangle>\<^sub>t) \<longlongrightarrow> get\<^bsub>x\<^esub> L) (at ?l within {0..<?l})"
+    by (force intro: continuous_on_tendsto_compose[of UNIV "get\<^bsub>x\<^esub>"] simp add: comp_def assms) 
+
+  moreover have "((get\<^bsub>x\<^esub> \<circ> \<langle>tr' - tr\<rangle>\<^sub>t) \<longlongrightarrow> get\<^bsub>x\<^esub> L) (at ?l within {0..<?l}) 
+                 \<longleftrightarrow>
+                 (\<F> \<longlongrightarrow> get\<^bsub>x\<^esub> L) (at ?l within {0..<?l})"
+    using tr_f by (rule_tac Lim_cong_within, auto)
+
+  moreover have "(\<F> \<longlongrightarrow> \<F> (end\<^sub>t (tr' - tr))) (at ?l within {0..<?l})"
+  proof -
+    have "continuous_on {0..end\<^sub>t(tr'-tr)} \<F>"
+    proof -
+      have 1:"ivp (ivp.make \<F>' 0 x\<^sub>0 {0..end\<^sub>t (tr' - tr)} UNIV)"
+        by (simp add: is_ivp_make)  
+      have 2:"ivp.is_solution (ivp.make \<F>' 0 x\<^sub>0 {0..end\<^sub>t (tr' - tr)} UNIV) \<F>"
+        using assms(3) etr_nz by blast
+      show ?thesis
+        using ivp.solution_continuous_on[OF 1 2] by (simp add: ivp.make_def)
+    qed
+    thus ?thesis
+      by (simp add: etr_nz at_left_from_zero, meson atLeastAtMost_iff atLeastLessThan_subseteq_atLeastAtMost_iff continuous_on etr_nz less_le order_refl tendsto_within_subset)
+  qed
+
+  ultimately have "get\<^bsub>x\<^esub> L = \<F> (end\<^sub>t (tr' - tr))"
+    by (metis at_left_from_zero etr_nz tendsto_Lim trivial_limit_at_left_real)
+*)
+
+  have ivp:"ivp (ivp.make \<F>' 0 x\<^sub>0 {0..end\<^sub>t (tr' - tr)} UNIV)"
+    by (simp add: is_ivp_make)
+
+  have sol: "ivp.is_solution (ivp.make \<F>' 0 x\<^sub>0 {0..end\<^sub>t (tr' - tr)} UNIV) \<F>"
+    using assms etr_nz by blast
+    
+  have "get\<^bsub>x\<^esub> (\<langle>tr' - tr\<rangle>\<^sub>t 0) = x\<^sub>0"
+    using sol etr_nz tr_f
+    by (auto simp add: ivp.is_solution_def[OF ivp, of \<F>], simp add: ivp.make_def)
+  thus "put\<^bsub>x\<^esub> b x\<^sub>0 = \<langle>tr'\<rangle>\<^sub>t(end\<^sub>t tr)"
+    by (metis add.left_neutral assms(1) assms(4) assms(5) comp_def etr_nz mwb_lens.axioms(1) order_refl tr_f vwb_lens.axioms(2) weak_lens.put_get)
+
+  with etr_nz assms show
+    "\<exists> f. \<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow>
+            (f has_vector_derivative \<F>' (t, f t)) (at t within {0..?l}) \<and> \<F> t = f t"
+  proof (rule_tac x="\<F>" in exI, safe)
+    fix t
+    assume t: "0 \<le> t" "t < end\<^sub>t (tr' - tr)"
+    
+    show "(\<F> has_vector_derivative \<F>' (t, \<F> t)) (at t within {0..?l})"
+      using sol t
+      by (auto simp add: ivp.is_solution_def[OF ivp, of \<F>], simp add: ivp.make_def)
+  qed
+qed
+
+lemma "(\<^bold>\<lceil>P(\<tau>)\<^bold>\<rceil>\<^sub>H ;; \<^bold>\<lceil>P(\<tau>)\<^bold>\<rceil>\<^sub>H) = \<^bold>\<lceil>P(\<tau>)\<^bold>\<rceil>\<^sub>H"
   apply (rel_auto)
-  apply (rule exI)
-  apply (auto)
-  apply (safe intro!: has_vector_derivative_Pair, (rule has_vector_derivative_eq_rhs, (rule derivative_intros; (simp)?)+, simp)+)
-  apply (drule_tac x="0" in spec)
-  apply (auto)
-  apply (metis tt_end_0_iff tt_end_ge_0 dual_order.strict_iff_order minus_zero_eq)
-done
+oops
+
+lemma ivp_uniq_solution_refine:
+  "\<lbrakk> vwb_lens x; 
+     \<forall> l > 0. ivp.is_solution (ivp.make \<F>' 0 x\<^sub>0 {0..l} UNIV) \<F>;
+     \<forall> l > 0. unique_solution (ivp.make \<F>' 0 x\<^sub>0 {0..l} UNIV) \<rbrakk> 
+   \<Longrightarrow> (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>H) \<sqsubseteq> (\<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H)"
+proof (rel_auto)
+  fix x :: "'a \<Longrightarrow> 'b" and \<F>' x\<^sub>0 \<F> tr b tr' \<G> t
+  assume assms:
+    "vwb_lens x" "\<forall>l>0. ivp.is_solution (ivp.make \<F>' 0 x\<^sub>0 {0..l} UNIV) \<F>"
+    "\<forall>l>0. unique_solution (ivp.make \<F>' 0 x\<^sub>0 {0..l} UNIV)"
+    "tr < tr'"
+    "put\<^bsub>x\<^esub> b x\<^sub>0 = \<langle>tr'\<rangle>\<^sub>t (end\<^sub>t tr)"
+    "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow>
+         (\<G> has_vector_derivative \<F>' (t, \<G> t)) (at t within {0..end\<^sub>t (tr' - tr)}) \<and>
+         get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t (t + end\<^sub>t tr)) = \<G> t"
+    "0 \<le> t" "t < end\<^sub>t (tr' - tr)"
+
+  let ?l = "end\<^sub>t (tr' - tr)"
+
+  have etr_nz: "?l > 0"
+    by (metis assms less_le minus_zero_eq tt_end_0_iff tt_end_ge_0)
+
+  interpret usol: unique_solution "(ivp.make \<F>' 0 x\<^sub>0 {0..?l} UNIV)"
+    using assms(3) etr_nz by blast
+
+  have init: "get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t (end\<^sub>t tr)) = x\<^sub>0"
+    by (subst assms(5)[THEN sym], simp add: assms(1))
+
+  have ivp: "ivp (ivp.make \<F>' 0 x\<^sub>0 {0..<?l} UNIV)"
+    by (simp add: etr_nz is_ivp_make)
+
+  have G_sol: "ivp.is_solution (ivp.make \<F>' 0 x\<^sub>0 {0..<?l} UNIV) \<G>"
+  proof (rule ivp.is_solutionI, simp add: is_ivp_make etr_nz, auto simp add: ivp.make_def)
+    show "\<G> 0 = x\<^sub>0"
+      using assms(6) etr_nz init by auto
+  next
+    fix t
+    assume "0 \<le> t" "t < end\<^sub>t (tr' - tr)"
+    thus "(\<G> has_vector_derivative \<F>' (t, \<G> t)) (at t within {0..<end\<^sub>t (tr' - tr)})"
+      by (meson assms(6) atLeastLessThan_subseteq_atLeastAtMost_iff has_vector_derivative_within_subset order_refl)
+  qed
+
+  have F_0: "\<F>(0) = x\<^sub>0"
+  proof -
+    have "ivp.is_solution (ivp.make \<F>' 0 x\<^sub>0 {0..?l} UNIV) \<F>"
+      using assms(2) etr_nz by blast
+    thus ?thesis
+      by (simp add: usol.is_solution_def, simp add: ivp.make_def)
+  qed
+      
+  have G_0: "\<G>(0) = x\<^sub>0"
+    using assms(6) etr_nz init by auto
+
+  show "\<G> t = \<F> t"
+  proof (cases "t = 0")
+    case True thus ?thesis
+      by (simp add: F_0 G_0)
+  next
+    case False 
+    hence t: "t > 0"
+      using assms(7) by linarith
+    have "ivp.is_solution ((ivp.make \<F>' 0 x\<^sub>0 {0..<?l} UNIV)\<lparr>ivp_T := {0..t}\<rparr>) \<G>"
+      using G_sol assms(8) by (auto intro!: ivp.solution_on_subset simp add: ivp, auto simp add: ivp.make_def, simp add: assms)
+    hence 1:"ivp.is_solution (ivp.make \<F>' 0 x\<^sub>0 {0..t} UNIV) \<G>"  
+      by (simp add: ivp.make_def)
+    have 2: "ivp.is_solution (ivp.make \<F>' 0 x\<^sub>0 {0..t} UNIV) \<F>"
+      using assms(2) t by blast
+    have 3:"unique_solution (ivp.make \<F>' 0 x\<^sub>0 {0..t} UNIV)"
+      using assms(3) t by blast
+    show ?thesis
+      using unique_solution.unique_solution[OF 3 1, of t] unique_solution.unique_solution[OF 3 2, of t]
+      by (simp add: ivp.make_def assms)
+  qed
+qed
+
+theorem ivp_to_solution:
+  fixes \<F> :: "real \<Rightarrow> 'a::ordered_euclidean_space"
+  assumes
+    "vwb_lens x"  
+    "\<forall> l > 0. ivp.is_solution (ivp.make \<F>' 0 x\<^sub>0 {0..l} UNIV) \<F>"
+    "\<forall> l > 0. unique_solution (ivp.make \<F>' 0 x\<^sub>0 {0..l} UNIV)"
+  shows "(\<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H) = (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>H)"
+proof (rule antisym)
+  from assms show "(\<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H) \<sqsubseteq> (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>H)"
+    by (blast intro: ivp_solution_refine)
+next
+  from assms show "(\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>H) \<sqsubseteq> (\<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H)"
+    by (rule ivp_uniq_solution_refine)
+qed
+
+theorem ivp_to_solution':
+  fixes \<F> :: "real \<Rightarrow> 'a::ordered_euclidean_space"
+  assumes
+    "vwb_lens x"  
+    "\<forall> l > 0. ivp.is_solution (ivp.make \<F>' 0 x\<^sub>0 {0..l} UNIV) \<F>"
+    "\<forall> l > 0. unique_solution (ivp.make \<F>' 0 x\<^sub>0 {0..l} UNIV)"
+  shows "(\<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H) = (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>(\<tau>)\<guillemotright>\<^bold>\<rceil>\<^sub>H)"
+proof -
+  have "(\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>H) = (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>(\<tau>)\<guillemotright>\<^bold>\<rceil>\<^sub>H)"
+    by (rel_auto)
+  thus ?thesis
+    by (subst ivp_to_solution, simp_all add: assms)
+qed
+
+lemma uos_impl_uniq_sol:
+  assumes "unique_on_strip i x y"
+  shows "unique_solution i"
+proof -
+  interpret uos: unique_on_strip i x y
+    by (simp add: assms)
+  show ?thesis
+    by (simp add: uos.unique_solution_axioms)
+qed
+
+(* Example of solving an ODE *)
+
+lemma gravity_ode_example:
+  assumes "vwb_lens x"
+  shows "(\<langle>x := \<guillemotleft>(v\<^sub>0, h\<^sub>0)\<guillemotright> \<bullet> \<guillemotleft>(\<lambda> (t, v, h). (- g, v))\<guillemotright>\<rangle>\<^sub>H) =
+         (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil> &x =\<^sub>u \<guillemotleft>(v\<^sub>0 - g * \<tau>, v\<^sub>0*\<tau> - g*(\<tau>*\<tau>) / 2 + h\<^sub>0)\<guillemotright> \<^bold>\<rceil>\<^sub>H)"
+proof (rule ivp_to_solution')
+  have "\<forall>l>0. unique_on_strip (ivp.make (\<lambda>(t, v, h). (- g, v)) 0 (v\<^sub>0, h\<^sub>0) {0..l} UNIV) l 1"
+    by (auto, unfold_locales, auto intro!: continuous_on_Pair continuous_on_const Product_Vector.continuous_on_fst continuous_on_snd simp add: ivp.make_def lipschitz_def dist_Pair_Pair prod.case_eq_if)
+  thus "\<forall>l>0. unique_solution (ivp.make (\<lambda>(t, v, h). (- g, v)) 0 (v\<^sub>0, h\<^sub>0) {0..l} UNIV)"
+    using uos_impl_uniq_sol by blast
+  show "\<forall>l>0. ivp.is_solution (ivp.make (\<lambda>(t, v, h). (- g, v)) 0 (v\<^sub>0, h\<^sub>0) {0..l} UNIV)
+                              (\<lambda>\<tau>. (v\<^sub>0 - g \<cdot> \<tau>, v\<^sub>0 \<cdot> \<tau> - g \<cdot> (\<tau> \<cdot> \<tau>) / 2 + h\<^sub>0))"
+    apply (simp add: ivp.is_solution_def is_ivp_make, auto intro: derivative_intros simp add: ivp.make_def)
+    apply (rule has_vector_derivative_eq_rhs) 
+    apply (rule derivative_intros)+
+    apply (auto intro!: derivative_intros)
+  done
+  show "vwb_lens x"
+    by (simp add: assms)
+qed
 
 end
