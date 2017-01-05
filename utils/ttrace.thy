@@ -1232,6 +1232,22 @@ lemma tt_restrict_empty [simp]: "[]\<^sub>t \<restriction>\<^sub>t n = []\<^sub>
 lemma tt_end_restrict [simp]: "\<lbrakk> 0 \<le> n; n \<le> end\<^sub>t f \<rbrakk> \<Longrightarrow> end\<^sub>t (f \<restriction>\<^sub>t n) = n"
   by (transfer, simp)
 
+(* A non-empty timed trace can always be divided into two non-empty sections *)
+
+lemma ttrace_divisible: 
+  assumes "end\<^sub>t(t) > 0"
+  obtains t\<^sub>1 t\<^sub>2 where "t = t\<^sub>1 + t\<^sub>2" "end\<^sub>t(t\<^sub>1) > 0" "end\<^sub>t(t\<^sub>2) > 0"
+proof -
+  have "t = t \<restriction>\<^sub>t (end\<^sub>t t / 2) @\<^sub>t (t - t \<restriction>\<^sub>t (end\<^sub>t t / 2))"
+    by (metis cancel_monoid_add_class.add_diff_cancel_left' ordered_cancel_monoid_diff_class.le_iff_add tt_restrict_le)
+  moreover have "end\<^sub>t(t \<restriction>\<^sub>t (end\<^sub>t t / 2)) > 0"
+    by (simp add: assms)
+  moreover have "end\<^sub>t(t - t \<restriction>\<^sub>t (end\<^sub>t t / 2)) > 0"
+    by (simp add: tt_end_minus tt_restrict_le assms)
+  ultimately show ?thesis
+    using that by blast
+qed
+
 lemma piecewise_convergent_end:
   assumes "piecewise_convergent t" "0 < end\<^sub>C t"
   obtains l where "(\<langle>t\<rangle>\<^sub>C \<longlongrightarrow> l) (at_left (end\<^sub>C t))"
