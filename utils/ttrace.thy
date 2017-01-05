@@ -294,6 +294,12 @@ lemma cgf_prefix_dom:
   "f \<subseteq>\<^sub>C g \<Longrightarrow> dom\<^sub>C(f) \<subseteq> dom\<^sub>C(g)"
   by (transfer, auto simp add: map_le_def, metis domI)
 
+lemma cgf_restrict_le: "t \<restriction>\<^sub>C n \<le> t"
+  by (transfer, auto simp add: map_le_def)
+
+lemma cgf_restrict_less: "\<lbrakk> 0 \<le> n ; n < end\<^sub>C(t) \<rbrakk> \<Longrightarrow> t \<restriction>\<^sub>C n < t"
+  by (metis cgf_end_restrict cgf_restrict_le dual_order.strict_iff_order)
+
 instantiation cgf :: (type) minus
 begin
 
@@ -472,6 +478,16 @@ proof -
     by (simp add: assms)
 qed
 
+lemma continuous_on_cgf_cat_left:
+  assumes "j \<le> end\<^sub>C f" "continuous_on {i..<j} \<langle>f @\<^sub>C g\<rangle>\<^sub>C"
+  shows "continuous_on {i..<j} \<langle>f\<rangle>\<^sub>C"
+proof -
+  have "continuous_on {i..<j} \<langle>f @\<^sub>C g\<rangle>\<^sub>C \<longleftrightarrow> continuous_on {i..<j} \<langle>f\<rangle>\<^sub>C"
+    by (rule continuous_on_cong, auto, meson assms(1) cgf_cat_ext_first le_less_trans not_le)
+  thus ?thesis
+    using assms by blast
+qed
+
 lemma continuous_on_cgf_cat_right:
   assumes "0 \<le> i" "continuous_on {i+end\<^sub>C(f)..<j+end\<^sub>C(f)} \<langle>f @\<^sub>C g\<rangle>\<^sub>C"
   shows "continuous_on {i..<j} \<langle>g\<rangle>\<^sub>C"
@@ -529,7 +545,25 @@ lemma set_dropWhile_le:
   using sorted_Cons apply auto
 done
 
+definition "left_pc_interval n I = (takeWhile (\<lambda> x. x < n) I) @ [n]"
+
 definition "right_pc_interval n I = 0 # map (\<lambda> x. x - n) (dropWhile (\<lambda> x. x \<le> n) I)"
+
+thm set_takeWhileD
+
+lemma set_takeWhile_less_sorted: 
+  "\<lbrakk> sorted I; x \<in> set I; x < n \<rbrakk> \<Longrightarrow> x \<in> set (takeWhile (\<lambda>x. x < n) I)"
+proof (induct I arbitrary: x)
+  case Nil thus ?case
+    by (simp)
+next
+  case (Cons a I) thus ?case
+    by (auto, (meson le_less_trans sorted_Cons)+)
+qed
+
+lemma set_left_pc_interval:
+  "sorted I \<Longrightarrow> set (left_pc_interval n I) = insert n {x |x. x \<in> ran\<^sub>l I \<and> n > x}"
+  by (auto dest: set_takeWhileD simp add: left_pc_interval_def set_dropWhile_le image_Collect set_takeWhile_less_sorted)
 
 lemma set_right_pc_interval:
   "sorted I \<Longrightarrow> set (right_pc_interval n I) = insert 0 {x - n |x. x \<in> ran\<^sub>l I \<and> n < x}"
@@ -543,6 +577,73 @@ lemma nth_le_takeWhile_ord: "\<lbrakk> sorted xs; i \<ge> length (takeWhile (\<l
   apply (metis One_nat_def Suc_eq_plus1 le_less_linear le_less_trans less_imp_le list.size(4) nth_mem set_ConsD)
 done
 
+lemma length_takeWhile_less:
+  "\<lbrakk> a \<in> set xs; \<not> P a \<rbrakk> \<Longrightarrow> length (takeWhile P xs) < length xs"
+  by (metis in_set_conv_nth length_takeWhile_le nat_neq_iff not_less set_takeWhileD takeWhile_nth)
+
+lemma nth_length_takeWhile_less:
+  "\<lbrakk> sorted xs; distinct xs; (\<exists> a \<in> set xs. a \<ge> n) \<rbrakk> \<Longrightarrow> xs ! length (takeWhile (\<lambda>x. x < n) xs) \<ge> n"
+  apply (induct xs, auto)
+  using sorted_Cons by blast
+
+lemma pc_interval_left:
+  assumes "pc_interval I (f @\<^sub>C g)"
+  shows "pc_interval (left_pc_interval (end\<^sub>C f) I) f"
+proof
+  interpret I: pc_interval I "(f @\<^sub>C g)" by (simp add: assms)
+  show "set (left_pc_interval (end\<^sub>C f) I) \<subseteq> {0..end\<^sub>C f}"
+    by (auto simp add: set_left_pc_interval)
+  show "{0, end\<^sub>C f} \<subseteq> ran\<^sub>l (left_pc_interval (end\<^sub>C f) I)"
+    by (auto simp add: set_left_pc_interval dual_order.strict_iff_order)
+  show "sorted (left_pc_interval (end\<^sub>C f) I)"
+    by (auto simp add: left_pc_interval_def sorted_takeWhile sorted_append, meson less_eq_real_def set_takeWhileD)
+  show "distinct (left_pc_interval (end\<^sub>C f) I)"
+    by (auto simp add: left_pc_interval_def, meson less_irrefl set_takeWhileD)
+  show "\<And>i. i < length (left_pc_interval (end\<^sub>C f) I) - 1 \<Longrightarrow>
+         continuous_on {left_pc_interval (end\<^sub>C f) I ! i..<left_pc_interval (end\<^sub>C f) I ! Suc i} \<langle>f\<rangle>\<^sub>C"
+  proof (rule continuous_on_cgf_cat_left[of _ _ _ g])
+    fix i
+    assume i:"i < length (left_pc_interval (end\<^sub>C f) I) - 1"
+    hence ef_nz: "end\<^sub>C f > 0"
+      by (auto simp add: left_pc_interval_def nth_append takeWhile_nth, metis I.nth_I_nz le_less_trans length_takeWhile_le not_less nth_mem set_takeWhileD takeWhile_nth)
+    from i show "left_pc_interval (end\<^sub>C f) I ! Suc i \<le> end\<^sub>C f"
+      by (auto simp add: left_pc_interval_def nth_append, meson less_eq_real_def nth_mem set_takeWhileD)
+    from i show "continuous_on {left_pc_interval (end\<^sub>C f) I ! i..<left_pc_interval (end\<^sub>C f) I ! Suc i} \<langle>f + g\<rangle>\<^sub>C"
+    proof (cases "Suc i < length (takeWhile (\<lambda>x. x < end\<^sub>C f) I)")
+      case True
+      with i show ?thesis
+        by (auto simp add: left_pc_interval_def nth_append, metis I.I_length I.continuous_segments One_nat_def Suc_lessD Suc_less_eq Suc_pred length_takeWhile_le less_le_trans takeWhile_nth)
+    next
+      case False
+      let ?l = "length (takeWhile (\<lambda>x. x < end\<^sub>C f) I)"
+      from False i have i_def: "i = ?l - 1"
+        by (auto simp add: left_pc_interval_def nth_append takeWhile_nth)
+      have lI: "last I \<ge> end\<^sub>C f"
+        by (simp add: I.I_last cgf_sub_end)
+      have ltI: "?l > 0"
+          by (metis One_nat_def add.left_neutral cancel_comm_monoid_add_class.diff_zero diff_Suc_Suc i left_pc_interval_def length_append length_greater_0_conv less_nat_zero_code list.size(3) list.size(4))
+      hence I_ge_end:"I ! Suc (?l - 1) \<ge> end\<^sub>C f"
+      proof -
+        from lI have "I ! length (takeWhile (\<lambda>x. x < end\<^sub>C f) I) \<ge> end\<^sub>C f"
+          by (rule_tac nth_length_takeWhile_less, auto, metis I.I_z empty_iff last_in_set list.set(1))
+        with ltI show ?thesis
+          by simp
+      qed
+      have c: "continuous_on {I ! (?l - 1)..<I ! Suc(?l - 1)} \<langle>f + g\<rangle>\<^sub>C"
+      proof -
+        have "length (takeWhile (\<lambda>x. x < end\<^sub>C f) I) < length I"
+          using I.I_length lI last_in_set length_takeWhile_less by fastforce
+        thus ?thesis
+          using ltI by (rule_tac I.continuous_segments, auto, linarith)
+      qed
+      have "continuous_on {I ! (?l - 1)..<end\<^sub>C f} \<langle>f + g\<rangle>\<^sub>C"
+        by (rule continuous_on_subset[OF c], auto, metis I_ge_end One_nat_def)
+      with False i i_def show ?thesis
+        by (auto simp add: left_pc_interval_def nth_append takeWhile_nth)
+    qed
+  qed
+qed
+    
 lemma pc_interval_right:
   assumes "pc_interval I (f @\<^sub>C g)"
   shows "pc_interval (right_pc_interval (end\<^sub>C f) I) g"
@@ -627,6 +728,90 @@ proof -
   finally show ?thesis .
 qed
 
+
+
+lemma pc_cvg_interval_left:
+  assumes "pc_cvg_interval I (f @\<^sub>C g)"
+  shows "pc_cvg_interval (left_pc_interval (end\<^sub>C f) I) f" (is "pc_cvg_interval ?RI f")
+proof -
+  interpret I: pc_cvg_interval I "(f @\<^sub>C g)" by (simp add: assms) 
+  interpret lI: pc_interval "(left_pc_interval (end\<^sub>C f) I)" f
+    using I.pc_interval_axioms pc_interval_left by auto
+  have "\<And>i. i < length (left_pc_interval (end\<^sub>C f) I) - 1 \<Longrightarrow>
+         \<exists>L. (\<langle>f\<rangle>\<^sub>C \<longlongrightarrow> L)
+             (at (left_pc_interval (end\<^sub>C f) I ! Suc i) within {left_pc_interval (end\<^sub>C f) I ! i..<left_pc_interval (end\<^sub>C f) I ! Suc i})"
+  proof -
+    let ?i' = "length (takeWhile (\<lambda>x. x < end\<^sub>C f) I)"
+    fix i
+    assume i: "i < length (left_pc_interval (end\<^sub>C f) I) - 1"
+    hence ef_nz: "end\<^sub>C f > 0"
+      by (auto simp add: left_pc_interval_def nth_append takeWhile_nth, metis I.nth_I_nz le_less_trans length_takeWhile_le not_less nth_mem set_takeWhileD takeWhile_nth)
+
+    show "\<exists>L. (\<langle>f\<rangle>\<^sub>C \<longlongrightarrow> L)
+               (at (left_pc_interval (end\<^sub>C f) I ! Suc i) within {left_pc_interval (end\<^sub>C f) I ! i..<left_pc_interval (end\<^sub>C f) I ! Suc i})"
+    proof (cases "Suc i < ?i'")
+      case True
+      hence "left_pc_interval (end\<^sub>C f) I ! i = I ! i"
+        by (auto simp add: left_pc_interval_def nth_append takeWhile_nth)
+      moreover have "left_pc_interval (end\<^sub>C f) I ! Suc i = I ! Suc i"
+        by (auto simp add: left_pc_interval_def nth_append takeWhile_nth True)
+      moreover obtain L where "((\<langle>f + g\<rangle>\<^sub>C \<longlongrightarrow> L) (at (I ! Suc i) within {I ! i..<I ! Suc i}))"
+        by (metis I.I_length One_nat_def Suc_less_eq Suc_pred True assms length_takeWhile_le less_le_trans pc_cvg_interval.cvg_segments)
+      moreover have "(\<langle>f + g\<rangle>\<^sub>C \<longlongrightarrow> L) (at (I ! Suc i) within {I ! i..<I ! Suc i}) \<longleftrightarrow> (\<langle>f\<rangle>\<^sub>C \<longlongrightarrow> L) (at (I ! Suc i) within {I ! i..<I ! Suc i})"
+        by (rule Lim_cong_within, auto, metis True cgf_cat_ext_first le_less_trans not_le nth_mem order.asym set_takeWhileD takeWhile_nth)
+      ultimately show ?thesis
+        by auto
+    next
+      case False
+      have lI: "last I \<ge> end\<^sub>C f"
+        by (simp add: I.I_last cgf_sub_end)
+      have ltI: "?i' > 0"
+          by (metis One_nat_def add.left_neutral cancel_comm_monoid_add_class.diff_zero diff_Suc_Suc i left_pc_interval_def length_append length_greater_0_conv less_nat_zero_code list.size(3) list.size(4))       
+      from False i have i_def: "i = ?i' - 1"
+        by (auto simp add: left_pc_interval_def nth_append takeWhile_nth)
+      have "left_pc_interval (end\<^sub>C f) I ! i = I ! i"
+        by (auto simp add: left_pc_interval_def nth_append takeWhile_nth, metis Suc_eq_plus1_left add.commute add.right_neutral cancel_ab_semigroup_add_class.add_diff_cancel_left' i left_pc_interval_def length_append list.size(3) list.size(4))
+      moreover from False have "left_pc_interval (end\<^sub>C f) I ! Suc i = end\<^sub>C f"
+        by (auto simp add: left_pc_interval_def nth_append takeWhile_nth, metis (no_types) Suc_eq_plus1_left Suc_leI add.commute add.left_neutral cancel_comm_monoid_add_class.diff_zero diff_Suc_Suc diff_is_0_eq i left_pc_interval_def length_append list.size(3) list.size(4) nth_Cons')
+      moreover have Ii: "I ! i < end\<^sub>C f"
+        by (metis Suc_eq_plus1_left add.commute calculation(1) calculation(2) i lI.I_distinct lI.I_sorted sorted_distinct)
+      moreover have I_ge_end:"I ! Suc i \<ge> end\<^sub>C f"
+      proof -
+        from lI have "I ! length (takeWhile (\<lambda>x. x < end\<^sub>C f) I) \<ge> end\<^sub>C f"
+          by (rule_tac nth_length_takeWhile_less, auto, metis I.I_z empty_iff last_in_set list.set(1))
+        with ltI show ?thesis
+          by (simp add: i_def)
+      qed
+      obtain L where "(\<langle>f + g\<rangle>\<^sub>C \<longlongrightarrow> L) (at (end\<^sub>C f) within {I ! i..<end\<^sub>C f})"
+      proof -
+        have "I ! Suc i > end\<^sub>C f \<Longrightarrow> \<exists>L. (\<langle>f + g\<rangle>\<^sub>C \<longlongrightarrow> L) (at (end\<^sub>C f) within {I ! i..<end\<^sub>C f})"
+        proof (rule_tac x="\<langle>g\<rangle>\<^sub>C 0" in exI)
+          assume a:"I ! Suc i > end\<^sub>C f"
+          have "continuous_on {I ! i..<I ! Suc i} \<langle>f + g\<rangle>\<^sub>C"
+            by (rule I.continuous_segments, metis I.I_length Suc_diff_1 Suc_eq_plus1_left add.commute i_def lI last_in_set length_takeWhile_less less_diff_conv list.size(3) ltI nat.simps(3) not_less)
+          thus "(\<langle>f + g\<rangle>\<^sub>C \<longlongrightarrow> \<langle>g\<rangle>\<^sub>C 0) (at (end\<^sub>C f) within {I ! i..<end\<^sub>C f})"
+            apply (simp add: continuous_on_def)
+            apply (drule_tac x="end\<^sub>C f" in bspec)
+            apply (metis Suc_diff_1 a atLeastLessThan_iff calculation(1) i_def left_pc_interval_def lessI ltI not_less nth_append nth_mem order.asym set_takeWhileD)
+            apply (simp add: I_ge_end cgf_cat_ext_last tendsto_within_subset)
+          done
+        qed
+        moreover have "\<exists>L. (\<langle>f + g\<rangle>\<^sub>C \<longlongrightarrow> L) (at (I ! Suc i) within {I ! i..<I ! Suc i})"
+          by (metis (full_types) I.cvg_segments Ii Suc_le_eq Suc_pred' i_def lI last_conv_nth length_takeWhile_le less_SucE list.size(3) ltI not_le not_less0)
+
+        ultimately show ?thesis using that I_ge_end
+          by (fastforce)
+      qed
+      moreover have "(\<langle>f + g\<rangle>\<^sub>C \<longlongrightarrow> L) (at (end\<^sub>C f) within {I ! i..<end\<^sub>C f}) \<longleftrightarrow> (\<langle>f\<rangle>\<^sub>C \<longlongrightarrow> L) (at (end\<^sub>C f) within {I ! i..<end\<^sub>C f})"
+        by (rule Lim_cong_within, auto, simp add: cgf_cat_ext_first)
+      ultimately show ?thesis
+        by (auto)      
+    qed
+  qed
+  thus ?thesis
+    by (unfold_locales, simp)
+qed
+
 lemma pc_cvg_interval_right:
   assumes "pc_cvg_interval I (f @\<^sub>C g)"
   shows "pc_cvg_interval (right_pc_interval (end\<^sub>C f) I) g" (is "pc_cvg_interval ?RI g")
@@ -691,7 +876,17 @@ proof -
     qed    
   qed
 qed
-          
+
+lemma piecewise_continuous_cat_left:
+  assumes "piecewise_continuous (f @\<^sub>C g)"
+  shows "piecewise_continuous f"
+  using assms pc_interval_left by (auto simp add: piecewise_continuous_def)
+
+lemma piecewise_convergent_cat_left:
+  assumes "piecewise_convergent (f @\<^sub>C g)"
+  shows "piecewise_convergent f"
+  using assms pc_cvg_interval_left by (auto simp add: piecewise_convergent_def)
+
 lemma piecewise_continuous_cat_right:
   assumes "piecewise_continuous (f @\<^sub>C g)"
   shows "piecewise_continuous g"
@@ -804,6 +999,10 @@ lemma piecewise_continuous_cat:
   using assms
   by (auto intro: pc_interval_cat simp add: piecewise_continuous_def)
      
+lemma piecewise_continuous_cat_iff:
+  "piecewise_continuous (f @\<^sub>C g) \<longleftrightarrow> piecewise_continuous f \<and> piecewise_continuous g"
+  using piecewise_continuous_cat piecewise_continuous_cat_left piecewise_continuous_cat_right by blast
+
 lemma pc_cvg_interval_cat:
   assumes "pc_cvg_interval I\<^sub>1 f" "pc_cvg_interval I\<^sub>2 g"
   shows "pc_cvg_interval (I\<^sub>1 @ map (op + (end\<^sub>C f)) (tl I\<^sub>2)) (f @\<^sub>C g)"
@@ -877,6 +1076,10 @@ lemma piecewise_convergent_cat:
   shows "piecewise_convergent (f @\<^sub>C g)"
   using assms
   by (auto intro: pc_cvg_interval_cat simp add: piecewise_convergent_def)
+
+lemma piecewise_convergent_cat_iff:
+  "piecewise_convergent (f @\<^sub>C g) \<longleftrightarrow> piecewise_convergent f \<and> piecewise_convergent g"
+  using piecewise_convergent_cat piecewise_convergent_cat_left piecewise_convergent_cat_right by blast
 
 lemma piecewise_continuous_minus:
   assumes "piecewise_continuous f" "piecewise_continuous g" "f \<le> g"
@@ -1008,6 +1211,26 @@ lemma tt_cat_ext_last: "x \<ge> end\<^sub>t f \<Longrightarrow> \<langle>f @\<^s
 
 lemma tt_prefix_cat: "f \<le> f @\<^sub>t g"
   using ordered_cancel_monoid_diff_class.le_iff_add by blast
+
+lift_definition tt_restrict :: "'a::topological_space ttrace \<Rightarrow> real \<Rightarrow> 'a ttrace" (infix "\<restriction>\<^sub>t" 85)
+is "\<lambda> f n. f \<restriction>\<^sub>C n"
+proof -
+  fix f :: "'a cgf" and n
+  assume a: "piecewise_convergent f"
+  have "f = (f \<restriction>\<^sub>C n) @\<^sub>C (f - (f \<restriction>\<^sub>C n))"
+    by (simp add: cgf_cat_minus_prefix cgf_restrict_le)
+  with a show "piecewise_convergent (f \<restriction>\<^sub>C n)"
+    by (metis piecewise_convergent_cat_left)
+qed
+
+lemma tt_restrict_le: "t \<restriction>\<^sub>t n \<le> t"
+  by (transfer, simp add: cgf_restrict_le)
+
+lemma tt_restrict_empty [simp]: "[]\<^sub>t \<restriction>\<^sub>t n = []\<^sub>t"
+  by (transfer, simp)
+
+lemma tt_end_restrict [simp]: "\<lbrakk> 0 \<le> n; n \<le> end\<^sub>t f \<rbrakk> \<Longrightarrow> end\<^sub>t (f \<restriction>\<^sub>t n) = n"
+  by (transfer, simp)
 
 lemma piecewise_convergent_end:
   assumes "piecewise_convergent t" "0 < end\<^sub>C t"
