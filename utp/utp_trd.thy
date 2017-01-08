@@ -282,9 +282,24 @@ proof -
     apply (smt tt_apply_minus tt_append_cancel tt_end_ge_0 tt_prefix_cat)
   done
   also have "... = (\<^bold>\<exists> tt \<bullet> ((\<guillemotleft>tt\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>(\<guillemotleft>tt\<guillemotright>)\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<guillemotright>)"
-    apply (rel_auto)
-    using add.assoc tt_prefix_cat less_le_trans apply blast
-    sorry (* Need to show that any non-zero length trajectory can be divided into two non-zero length parts *)
+  proof (rel_auto)
+    fix P tr and tt\<^sub>1 tt\<^sub>2 :: "'a ttrace"
+    assume  "0 < tt\<^sub>1" "0 < tt\<^sub>2" "\<forall>i. 0 \<le> i \<and> i < end\<^sub>t (tt\<^sub>1 + tt\<^sub>2) \<longrightarrow> P (\<langle>tt\<^sub>1 + tt\<^sub>2\<rangle>\<^sub>t i)"
+    thus "\<exists> tt. 0 < tt \<and> (\<forall> i. 0 \<le> i \<and> i < end\<^sub>t tt \<longrightarrow> P (\<langle>tt\<rangle>\<^sub>ti)) \<and> tr + tt\<^sub>1 + tt\<^sub>2 = tr + tt"
+      using add.assoc tt_prefix_cat less_le_trans by blast
+  next
+    fix P tr and tt :: "'a ttrace"
+    assume "0 < tt" "\<forall>i. 0 \<le> i \<and> i < end\<^sub>t tt \<longrightarrow> P (\<langle>tt\<rangle>\<^sub>t i)"
+    moreover then obtain tt\<^sub>1 tt\<^sub>2 where "tt = tt\<^sub>1 + tt\<^sub>2" "end\<^sub>t tt\<^sub>1 > 0" "end\<^sub>t tt\<^sub>2 > 0"
+      by (metis dual_order.strict_iff_order tt_end_0_iff tt_end_ge_0 ttrace_divisible)
+    moreover hence "tt\<^sub>1 > 0" "tt\<^sub>2 > 0"
+      by (simp_all add: less_le tt_end_0_iff ttrace_min)
+    ultimately show 
+      "\<exists>tt\<^sub>1. 0 < tt\<^sub>1 \<and>
+            (\<exists>tt\<^sub>2. 0 < tt\<^sub>2 \<and>
+                  (\<forall>i. 0 \<le> i \<and> i < end\<^sub>t (tt\<^sub>1 + tt\<^sub>2) \<longrightarrow> P (\<langle>tt\<^sub>1 + tt\<^sub>2\<rangle>\<^sub>t i)) \<and> tr + tt = tr + tt\<^sub>1 + tt\<^sub>2)"
+      by (metis add.assoc)
+  qed
   also have "... = R2(\<lceil>P\<rceil>\<^sub>H)"
     by (simp add: R2_form hInt_def at_def usubst unrest)
   also have "... = \<lceil>P\<rceil>\<^sub>H"

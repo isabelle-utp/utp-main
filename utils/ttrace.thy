@@ -10,8 +10,6 @@ theory ttrace
   "~~/src/HOL/Multivariate_Analysis/Topology_Euclidean_Space"
 begin
 
-subsection {* Contiguous functions *}
-
 abbreviation rshift :: "('a::ring \<rightharpoonup> 'b) \<Rightarrow> 'a \<Rightarrow> ('a \<rightharpoonup> 'b)" (infixr "\<ggreater>" 66) where
 "rshift f n \<equiv> (\<lambda> x. f (x - n))"
 
@@ -41,6 +39,35 @@ lemma Sup'_empty [simp]: "Sup' {} = 0"
 
 lemma Sup'_interval [simp]: "Sup' {0..<m} = (if (m > 0) then m else 0)"
   by (simp add: Sup'_def)
+
+lemma map_eqI:
+  "\<lbrakk> dom f = dom g; \<forall> x\<in>dom(f). the(f x) = the(g x) \<rbrakk> \<Longrightarrow> f = g"
+  by (metis domIff map_le_antisym map_le_def option.expand)
+
+lemma atLeastLessThan_inter_nzero [simp]: "{0..<i::real} \<inter> {x. \<not> x < 0} = {0..<i}" 
+  by auto
+
+lemma atLeastLessThan_inter_nless [simp]: "{i..<j::real} \<inter> {x. \<not> x < i} = {i..<j}" 
+  by auto
+
+lemma atLeastLessThan_inter_less [simp]: "(j::real) \<ge> i \<Longrightarrow> {0..<i} \<inter> {x. x < j} = {0..<i}"
+  by (auto)
+
+lemma atLeastLessThan_inter_greater [simp]: "(j::real) \<le> i \<Longrightarrow> {0..<i} \<inter> {x. x < j} = {0..<j}"
+  by (auto)
+
+lemma atLeastLessThan_union_disj [simp]: "\<lbrakk> 0 \<le> i; i \<le> j \<rbrakk> \<Longrightarrow> {0..<i::real} \<union> {i..<j} = {0..<j}"
+  by (auto)
+
+lemma map_restrict_dom_compl: "f |` (- dom f) = Map.empty"
+  by (metis dom_eq_empty_conv dom_restrict inf_compl_bot)
+
+lemma restrict_map_neg_disj:
+  "dom(f) \<inter> A = {} \<Longrightarrow> f |` (- A) = f"
+  by (auto simp add: restrict_map_def, rule ext, auto, metis disjoint_iff_not_equal domIff)
+
+lemma map_plus_restrict_dist: "(f ++ g) |` A = (f |` A) ++ (g |` A)"
+  by (auto simp add: restrict_map_def map_add_def)
 
 subsection {* Contiguous functions *}
 
@@ -88,16 +115,6 @@ is "\<lambda> f g. (g \<ggreater> Sup'(dom(f))) ++ f"
  apply (rule_tac x="i + j" in exI)
  apply (auto simp add: image_Collect)
 done
-(*
-lift_definition plus_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cgf"
-is "\<lambda> f g. (\<lambda> x. if (x < Sup'(dom(f))) then f x else g (x - Sup'(dom(f))))"
-  apply (auto simp add: dom_if)
-  apply (rename_tac f g i j)
-  apply (simp add: dom_shift_minus plus_image_atLeastLessThan)
-  apply (rule_tac x="j + i" in exI)
-  apply (auto)
-done
-*)
 
 instance ..
 
@@ -107,14 +124,9 @@ abbreviation (input) cgf_cat :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cg
 
 lemma cgf_cat_left_unit [simp]: "[]\<^sub>C @\<^sub>C t = t"
   by (transfer, simp)
-(*  by (transfer, rule ext, auto, metis (full_types) atLeastLessThan_iff domIff not_le) *)
 
 lemma cgf_cat_right_unit [simp]: "t @\<^sub>C []\<^sub>C = t"
   by (transfer, auto)
-
-lemma map_eqI:
-  "\<lbrakk> dom f = dom g; \<forall> x\<in>dom(f). the(f x) = the(g x) \<rbrakk> \<Longrightarrow> f = g"
-  by (metis domIff map_le_antisym map_le_def option.expand)
 
 lemma cgf_eqI: "\<lbrakk> end\<^sub>C f = end\<^sub>C g; \<forall> x<end\<^sub>C g. \<langle>f\<rangle>\<^sub>C x = \<langle>g\<rangle>\<^sub>C x \<rbrakk> \<Longrightarrow> f = g"
   apply (transfer)
@@ -139,20 +151,6 @@ lemma cgf_end_empty [simp]: "end\<^sub>C([]\<^sub>C) = 0"
 lemma cgf_end_0_iff: "end\<^sub>C(f) = 0 \<longleftrightarrow> f = []\<^sub>C"
   by (transfer, force simp add: antisym_conv2)
 
-lemma atLeastLessThan_inter_nzero [simp]: "{0..<i::real} \<inter> {x. \<not> x < 0} = {0..<i}" 
-  by auto
-
-lemma atLeastLessThan_inter_nless [simp]: "{i..<j::real} \<inter> {x. \<not> x < i} = {i..<j}" 
-  by auto
-
-lemma atLeastLessThan_inter_less [simp]: "(j::real) \<ge> i \<Longrightarrow> {0..<i} \<inter> {x. x < j} = {0..<i}"
-  by (auto)
-
-lemma atLeastLessThan_inter_greater [simp]: "(j::real) \<le> i \<Longrightarrow> {0..<i} \<inter> {x. x < j} = {0..<j}"
-  by (auto)
-
-lemma atLeastLessThan_union_disj [simp]: "\<lbrakk> 0 \<le> i; i \<le> j \<rbrakk> \<Longrightarrow> {0..<i::real} \<union> {i..<j} = {0..<j}"
-  by (auto)
 
 lemma cgf_end_cat: "end\<^sub>C(f @\<^sub>C g) = end\<^sub>C(f)+end\<^sub>C(g)"
   apply (case_tac "f = []\<^sub>C")
@@ -345,47 +343,18 @@ next
   thus "\<exists> j\<ge>0. {x. 0 \<le> x \<and> x < i} = {0..<j}"
     by (rule_tac x="i" in exI, auto)
 qed
-(*
-(\<lambda> x. if (x \<ge> 0 \<and> x < (Sup'(dom f) - Sup'(dom g))) 
-                               then f (x + Sup'(dom g)) else None) 
-
-
-lift_definition minus_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cgf" is
-"\<lambda> f g. if (g \<subseteq>\<^sub>m f) then (\<lambda> x. if (x \<ge> 0 \<and> x < (Sup'(dom f) - Sup'(dom g))) 
-                               then f (x + Sup'(dom g)) else None) 
-        else Map.empty"
-  apply (auto simp add: dom_shift_plus dom_if)
-  apply (rename_tac f g i j)
-  apply (rule_tac x="i - j" in exI)
-  apply (auto)
-  using map_le_implies_dom_le apply fastforce
-  apply (metis add.commute add_less_cancel_left diff_add_cancel le_diff_eq less_eq_real_def less_iff_diff_less_0 less_trans not_less order_refl order_trans)
-  apply (rename_tac f i)  
-  apply (rule_tac x="i" in exI, auto)
-done 
-*)
 
 instance ..
 end
 
 lemma cgf_minus_nprefix [simp]: "\<not> g \<le> f \<Longrightarrow> f - g = []\<^sub>C"
   by (transfer, simp)
-
-lemma map_restrict_dom_compl: "f |` (- dom f) = Map.empty"
-  by (metis dom_eq_empty_conv dom_restrict inf_compl_bot)
   
 lemma cgf_minus_self [simp]: "f - f = []\<^sub>C"
   by (transfer, simp add: map_restrict_dom_compl)
 
 lemma cgf_minus_empty [simp]: "f - []\<^sub>C = f"
   by (transfer, simp)
-
-lemma restrict_map_neg_disj:
-  "dom(f) \<inter> A = {} \<Longrightarrow> f |` (- A) = f"
-  by (auto simp add: restrict_map_def, rule ext, auto, metis disjoint_iff_not_equal domIff)
-
-lemma map_plus_restrict_dist: "(f ++ g) |` A = (f |` A) ++ (g |` A)"
-  by (auto simp add: restrict_map_def map_add_def)
 
 lemma cgf_cat_minus [simp]: "f @\<^sub>C g - f = g"
   apply (transfer, auto simp add: map_plus_restrict_dist map_restrict_dom_compl)
