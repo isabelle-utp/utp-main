@@ -15,8 +15,6 @@ lemma add_mono:
 
 end
 
-thm cancel_semigroup_add_axioms
-
 class left_cancel_monoid = monoid_add +
   assumes add_left_imp_eq: "a + b = a + c \<Longrightarrow> b = c"
 
@@ -96,6 +94,9 @@ done
 
 end
 
+instance cancel_monoid \<subseteq> cancel_semigroup_add
+  by (intro_classes, metis add_left_imp_eq, metis add_right_imp_eq)
+
 class ordered_cancel_monoid_diff = cancel_monoid + ord + minus +
   assumes le_is_monoid_le: "a \<le> b \<longleftrightarrow> (a \<le>\<^sub>m b)"
   and less_iff: "a < b \<longleftrightarrow> a \<le> b \<and> \<not> (b \<le> a)"
@@ -129,6 +130,9 @@ begin
   lemma diff_zero [simp]: "a - 0 = a"
     by (metis local.add_0_left local.add_diff_cancel_left)
 
+  lemma zero_diff [simp]: "0 - a = 0"
+    by (metis local.diff_zero local.le_iff_add local.zero_sum not_le_minus)
+
   lemma diff_cancel [simp]: "a - a = 0"
     by (metis local.add_0_right local.add_diff_cancel_left)
 
@@ -146,6 +150,9 @@ begin
     case False thus ?thesis
       using local.add_le_imp_le_left not_le_minus by blast
   qed
+
+  lemma diff_diff_add: "a - b - c = a - (b + c)"
+    by (metis local.add_0_right local.add_diff_cancel_left' local.diff_zero local.le_iff_add local.le_is_monoid_le local.monoid_le_antisym local.monoid_le_trans not_le_minus)
 
   lemma minus_zero_eq: "\<lbrakk> b \<le> a; a - b = 0 \<rbrakk> \<Longrightarrow> a = b"
     using local.le_iff_add local.monoid_le_def by auto

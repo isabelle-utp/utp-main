@@ -139,6 +139,13 @@ definition at :: "('a, 'c::topological_space) uexpr \<Rightarrow> real \<Rightar
 lemma R2c_at: "R2c(P @\<^sub>u t) = P @\<^sub>u t"
   by (simp add: at_def R2c_def cond_idem usubst unrest R2s_def)
 
+definition until ("_ until _" [85,86] 85) where
+[upred_defs]: "P until l = ((\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> (P t) @\<^sub>u t) \<and> $tr \<le>\<^sub>u $tr\<acute> \<and> \<^bold>l =\<^sub>u \<guillemotleft>l\<guillemotright>)"
+
+lemma R2_until:
+  "R2(P until t) = P until t"
+  by (rel_auto)
+
 lemma at_unrest_cont [unrest]: "$\<^bold>c \<sharp> (P @\<^sub>u t)"
   by (simp add: at_def unrest)
 
