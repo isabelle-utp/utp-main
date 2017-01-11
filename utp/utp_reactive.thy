@@ -430,10 +430,7 @@ lemma R2_tr_prefix: "R2($tr \<le>\<^sub>u $tr\<acute>) = ($tr \<le>\<^sub>u $tr\
 
 lemma R2_form:
   "R2(P) = (\<^bold>\<exists> tt \<bullet> P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<guillemotright>)"
-  apply (rel_auto)
-  apply (metis cancel_monoid_add_class.add_diff_cancel_left' ordered_cancel_monoid_diff_class.le_iff_add)
-  using ordered_cancel_monoid_diff_class.le_iff_add apply blast
-done
+  by (rel_auto, metis ordered_cancel_monoid_diff_class.add_diff_cancel_left ordered_cancel_monoid_diff_class.le_iff_add)
 
 lemma R2_seqr_form:
   shows "(R2(P) ;; R2(Q)) =
@@ -492,9 +489,10 @@ proof -
     have "\<And> tt\<^sub>1 tt\<^sub>2. ((($tr\<acute> - $tr =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr) :: ('t,'\<alpha>,'\<gamma>) relation_rp)
            = ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
       apply (rel_auto)
-      apply (metis add.assoc cancel_monoid_add_class.add_diff_cancel_left' ordered_cancel_monoid_diff_class.le_iff_add)
+      apply (metis add.assoc diff_add_cancel_left')
       apply (simp add: add.assoc)
-      using add.assoc ordered_cancel_monoid_diff_class.le_iff_add by blast
+      apply (meson le_add order_trans)
+    done
     thus ?thesis by simp
   qed
   also have "... = (R2(P) ;; R2(Q))"
@@ -648,10 +646,14 @@ lemma R1_R3c_commute: "R1(R3c(P)) = R3c(R1(P))"
   by rel_auto
 
 lemma R2_R3_commute: "R2(R3(P)) = R3(R2(P))"
-  by (rel_auto, (smt add.right_neutral alpha_d.surjective alpha_d.update_convs(2) alpha_rp'.surjective alpha_rp'.update_convs(2) cancel_monoid_add_class.add_diff_cancel_left' ordered_cancel_monoid_diff_class.le_iff_add)+)
+  apply (rel_auto)
+  using minus_zero_eq apply blast+
+done
 
 lemma R2_R3c_commute: "R2(R3c(P)) = R3c(R2(P))"
-  by (rel_auto, (smt add.right_neutral alpha_d.surjective alpha_d.update_convs(2) alpha_rp'.surjective alpha_rp'.update_convs(2) cancel_monoid_add_class.add_diff_cancel_left' ordered_cancel_monoid_diff_class.le_iff_add)+)
+  apply (rel_auto)
+  using minus_zero_eq apply blast+
+done
 
 lemma R2c_R3c_commute: "R2c(R3c(P)) = R3c(R2c(P))"
   by (simp add: R3c_def R2c_condr R2c_wait R2c_skip_rea)
@@ -769,10 +771,7 @@ lemma R2m'_form:
                   \<and> $tr\<acute> =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<guillemotright> 
                   \<and> $0-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>0\<guillemotright> 
                   \<and> $1-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>1\<guillemotright>)"
-  apply (rel_auto)
-  apply (metis diff_add_cancel_left')
-  using ordered_cancel_monoid_diff_class.le_iff_add apply blast+
-done
+  by (rel_auto, metis diff_add_cancel_left')
 
 lemma R1_par_by_merge:
   "M is R1m \<Longrightarrow> (P \<parallel>\<^bsub>M\<^esub> Q) is R1"
@@ -820,16 +819,9 @@ proof -
   also have "... = (\<^bold>\<exists> tt, tt\<^sub>0, tt\<^sub>1 \<bullet> ((   (P\<lbrakk>0,\<guillemotleft>tt\<^sub>0\<guillemotright>/$tr,$tr\<acute>\<rbrakk>  \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>) 
                                        \<parallel>\<^sub>s (Q\<lbrakk>0,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)) ;; 
                                       (M\<lbrakk>0,\<guillemotleft>tt\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<guillemotright>)"
-    apply (rel_auto)
-    apply (metis cancel_monoid_add_class.add_left_imp_eq)
-    apply blast
-  done
+    by (rel_auto, metis left_cancel_monoid_class.add_left_imp_eq, blast)
   also have "... = R2(P \<parallel>\<^bsub>M\<^esub> Q)"
-    apply (rel_auto)
-    apply blast
-    using ordered_cancel_monoid_diff_class.le_iff_add apply blast
-    using diff_add_cancel_left' by fastforce
-
+    by (rel_auto, blast, metis diff_add_cancel_left')
   finally show ?thesis
     by (simp add: Healthy_def)
 qed

@@ -179,6 +179,74 @@ qed
 lemma cgf_cat_ext_last: "x \<ge> end\<^sub>C f \<Longrightarrow> \<langle>f @\<^sub>C g\<rangle>\<^sub>C x = \<langle>g\<rangle>\<^sub>C (x - end\<^sub>C f)"
   by (transfer, auto simp add: map_add_dom_app_simps(3))
 
+lemma map_plus_eq_left:
+  assumes "f ++ h = g ++ h" 
+  shows "(f |` (- dom h)) = (g |` (- dom h))"
+proof -
+  have "h |` (- dom h) = Map.empty"
+    by (metis Compl_disjoint dom_eq_empty_conv dom_restrict)
+  then have f2: "f |` (- dom h) = (f ++ h) |` (- dom h)"
+    by (simp add: map_plus_restrict_dist)
+  have "h |` (- dom h) = Map.empty"
+    by (metis (no_types) Compl_disjoint dom_eq_empty_conv dom_restrict)
+  then show ?thesis
+    using f2 assms by (simp add: map_plus_restrict_dist)
+qed
+
+lemma shift_minus_cong: "f \<ggreater> n = g \<ggreater> n \<Longrightarrow> f = g"
+  apply (auto simp add: fun_eq_iff)
+  apply (drule_tac x="x + n" in spec)
+  apply (simp)
+done
+
+lemma cgf_zero_sum_left:
+  "f @\<^sub>C g = []\<^sub>C \<Longrightarrow> f = []\<^sub>C"
+  by (metis cgf_cat_right_unit cgf_end_0_iff cgf_end_cat cgf_end_ge_0 dual_order.antisym le_add_same_cancel2)
+
+lemma cgf_cat_left_imp_eq: "f @\<^sub>C g = f @\<^sub>C h \<Longrightarrow> g = h"
+  apply (transfer, auto)
+  apply (rename_tac f g h i j k)
+  apply (case_tac "i > 0", auto)
+  apply (drule map_plus_eq_left)
+  apply (simp add: restrict_map_neg_disj)
+  apply (subgoal_tac "dom(g \<ggreater> i) \<inter> {0..<i} = {}")
+  apply (subgoal_tac "dom(h \<ggreater> i) \<inter> {0..<i} = {}")
+  apply (auto dest: shift_minus_cong simp add: restrict_map_neg_disj dom_shift_minus)
+done
+
+lemma cgf_cat_right_imp_eq: 
+  assumes "f @\<^sub>C h = g @\<^sub>C h"
+  shows "f = g"
+proof -
+  have ends: "end\<^sub>C(f) = end\<^sub>C(g)"
+    by (metis add.commute add_left_cancel assms cgf_end_cat)
+  show ?thesis
+  proof (cases "f = []\<^sub>C")
+    case True
+    hence "g = []\<^sub>C"
+      using cgf_end_0_iff ends by auto
+    with True show ?thesis ..
+  next
+    case False
+    with assms ends show ?thesis
+    proof (transfer) 
+      fix f g h :: "real \<rightharpoonup> 'a"
+      assume a: "\<exists>i\<ge>0. dom f = {0..<i}" "\<exists>i\<ge>0. dom g = {0..<i}" "\<exists>i\<ge>0. dom h = {0..<i}"
+             "(h \<ggreater> Sup' (dom f)) ++ f = (h \<ggreater> Sup' (dom g)) ++ g"
+             "(if dom f = {} then 0 else Sup (dom f)) = (if dom g = {} then 0 else Sup (dom g))"
+             "f \<noteq> Map.empty"
+      hence "dom f = dom g"
+        by (metis (mono_tags, hide_lams) atLeastLessThan_empty cSup_atLeastLessThan less_eq_real_def)
+      with a obtain i j where "dom f = {0..<i}" "dom g = {0..<i}" "dom h = {0..<j}"
+        by (auto)
+      moreover with a have "i > 0"
+        by (auto)
+      ultimately show "f = g" using a(4)
+        by (simp, metis (mono_tags, lifting) map_eqI map_le_def map_le_map_add)
+    qed
+  qed
+qed
+
 lemma cgf_cat_assoc: "(f @\<^sub>C g) @\<^sub>C h = f @\<^sub>C (g @\<^sub>C h)"
 proof (rule cgf_eqI, simp_all add: cgf_end_cat add.assoc, clarify)
   fix x
@@ -204,6 +272,57 @@ proof (rule cgf_eqI, simp_all add: cgf_end_cat add.assoc, clarify)
     qed
   qed
 qed
+
+instance cgf :: (type) monoid_add
+  by (intro_classes, simp_all add: cgf_cat_assoc)  
+
+instantiation cgf :: (type) ord
+begin
+  lift_definition less_eq_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" is 
+  "op \<subseteq>\<^sub>m" .
+  definition less_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" where
+  "less_cgf x y = (x \<le> y \<and> \<not> y \<le> x)"
+instance ..
+end
+
+lemma map_add_split:
+  "dom(f) = A \<union> B \<Longrightarrow> (f |` A) ++ (f |` B) = f"
+  by (rule ext, auto simp add: map_add_def restrict_map_def option.case_eq_if)
+
+lemma map_le_via_restrict:
+  "f \<subseteq>\<^sub>m g \<longleftrightarrow> g |` dom(f) = f"
+  by (auto simp add: map_le_def restrict_map_def dom_def fun_eq_iff)
+
+lemma monoid_le_ttrace:
+  "(f :: 'a cgf) \<le>\<^sub>m g \<longleftrightarrow> f \<le> g"
+  apply (simp add: monoid_le_def, transfer, auto)
+  apply (rename_tac g f i j)
+  apply (rule_tac x="j \<lless> (g |` {j..<i})" in exI)
+  apply (auto simp add: dom_shift_plus)
+  apply (rule_tac x="i-j" in exI)
+  apply (auto)
+  using map_le_implies_dom_le apply fastforce
+  apply (metis add.commute add_increasing cancel_ab_semigroup_add_class.add_diff_cancel_left' less_diff_eq less_eq_real_def)
+  apply (subgoal_tac "f = g |` {0..<j}")
+  apply (simp)
+  apply (subst map_add_split, auto)
+  apply (simp add: map_le_via_restrict)
+done
+
+instantiation cgf :: (type) ordered_cancel_monoid_diff
+begin
+  definition minus_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cgf" where
+  "minus_cgf x y = x -\<^sub>m y"
+instance
+  apply (intro_classes)
+  using cgf_cat_left_imp_eq apply blast
+  using cgf_zero_sum_left apply blast
+  using cgf_cat_right_imp_eq apply blast
+  apply (simp add: monoid_le_ttrace)
+  apply (simp add: less_cgf_def)
+  apply (simp add: minus_cgf_def)
+done
+end
 
 lemma cgf_end_map [simp]: "end\<^sub>C (map\<^sub>C f g) = end\<^sub>C g"
   by (transfer, auto simp add: dom_if)
@@ -272,47 +391,22 @@ qed
 lemma cgf_map_map: "map\<^sub>C f (map\<^sub>C g h) = map\<^sub>C (\<lambda> (i, x). f (i, g (i, x))) h"
   by (transfer, auto simp add: dom_if)
 
-instantiation cgf :: (type) order
-begin
-  lift_definition less_eq_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" is 
-  "op \<subseteq>\<^sub>m" .
-  definition less_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" where
-  "less_cgf x y = (x \<le> y \<and> \<not> y \<le> x)"
-instance
-  apply (intro_classes)
-  apply (simp add: less_cgf_def)
-  apply (transfer, auto)
-  apply (transfer, auto intro: map_le_trans)
-  apply (transfer, auto simp add: map_le_antisym)
-done
-end
-
 abbreviation (input) cgf_prefix :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" (infix "\<subseteq>\<^sub>C" 50)
 where "f \<subseteq>\<^sub>C g \<equiv> f \<le> g"
 
-lemma cgf_prefix_least [simp]: "[]\<^sub>C \<le> f"
-  by (transfer, auto)
-
-lemma cgf_prefix_cat [simp]: "f \<le> f @\<^sub>C g"
-  by (transfer, auto simp add: map_le_def) 
-
 lemma cgf_sub_end:
-  "f \<le> g \<Longrightarrow> end\<^sub>C f \<le> end\<^sub>C g"
-  apply (cases "dom\<^sub>C(f) = {}")
-  apply (transfer, auto)
-  apply (metis atLeastLessThan_empty_iff2 cSup_atLeastLessThan dom_eq_empty_conv)
-  apply (transfer, auto)
-  apply (rename_tac x f g i j y)
-  apply (subgoal_tac "f \<noteq> Map.empty")
-  apply (subgoal_tac "g \<noteq> Map.empty")
-  apply (auto)
-  apply (metis (mono_tags, hide_lams) atLeastLessThan_empty_iff2 cSup_atLeastLessThan dom_eq_empty_conv ivl_subset map_le_implies_dom_le order_trans)
-  using map_le_antisym map_le_empty apply blast
-done
-
+  assumes "f \<le> g"
+  shows "end\<^sub>C f \<le> end\<^sub>C g"
+proof -
+  obtain f' where "g = f + f'"
+    by (meson assms monoid_le_def monoid_le_ttrace)
+  thus ?thesis
+    by (simp add: cgf_end_cat)
+qed
+    
 lemma cgf_prefix_dom:
   "f \<subseteq>\<^sub>C g \<Longrightarrow> dom\<^sub>C(f) \<subseteq> dom\<^sub>C(g)"
-  by (transfer, auto simp add: map_le_def, metis domI)
+  by (simp add: cgf_dom cgf_sub_end)
 
 lemma cgf_restrict_le: "t \<restriction>\<^sub>C n \<le> t"
   by (transfer, auto simp add: map_le_def)
@@ -320,102 +414,27 @@ lemma cgf_restrict_le: "t \<restriction>\<^sub>C n \<le> t"
 lemma cgf_restrict_less: "\<lbrakk> 0 \<le> n ; n < end\<^sub>C(t) \<rbrakk> \<Longrightarrow> t \<restriction>\<^sub>C n < t"
   by (metis cgf_end_restrict cgf_restrict_le dual_order.strict_iff_order)
 
-instantiation cgf :: (type) minus
-begin
-
-lift_definition minus_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cgf" is
-"\<lambda> f g. if (g \<subseteq>\<^sub>m f) then Sup' (dom g) \<lless> (f |` (- dom(g))) else Map.empty"
-proof (auto simp add: dom_shift_plus)
-  fix f g  :: "real \<rightharpoonup> 'a" and i j
-  assume a: "0 \<le> i" "dom f = {0..<i}" "dom g = {0..<j}" "g \<subseteq>\<^sub>m f" "0 < j"
-  hence i: "i \<ge> j"
-    using map_le_implies_dom_le by fastforce
-  with a have "{x - j |x. 0 \<le> x \<and> x < i \<and> \<not> x < j} = {0..<i-j}"
-    by (auto, rename_tac x, rule_tac x="x + j" in exI, simp)
-  moreover with i have "i-j \<ge> 0"
-    by simp
-   
-  ultimately show "\<exists>k\<ge>0. {x - j |x. 0 \<le> x \<and> x < i \<and> (0 \<le> x \<longrightarrow> \<not> x < j)} = {0..<k}"
-    by (rule_tac x="i-j" in exI, auto)
-next
-  fix f  :: "real \<rightharpoonup> 'a" and i
-  assume "0 \<le> i" "dom f = {0..<i}"
-  thus "\<exists> j\<ge>0. {x. 0 \<le> x \<and> x < i} = {0..<j}"
-    by (rule_tac x="i" in exI, auto)
-qed
-
-instance ..
-end
-
-lemma cgf_minus_nprefix [simp]: "\<not> g \<le> f \<Longrightarrow> f - g = []\<^sub>C"
-  by (transfer, simp)
-  
-lemma cgf_minus_self [simp]: "f - f = []\<^sub>C"
-  by (transfer, simp add: map_restrict_dom_compl)
-
-lemma cgf_minus_empty [simp]: "f - []\<^sub>C = f"
-  by (transfer, simp)
-
-lemma cgf_cat_minus [simp]: "f @\<^sub>C g - f = g"
-  apply (transfer, auto simp add: map_plus_restrict_dist map_restrict_dom_compl)
-  apply (subst restrict_map_neg_disj)
-  apply (auto)
-  apply (metis atLeastLessThan_iff domI less_eq_real_def less_iff_diff_less_0 not_less_iff_gr_or_eq)
-done
-
 lemma cgf_cat_minus_prefix:
   "f \<le> g \<Longrightarrow> g = f @\<^sub>C (g - f)"
-  apply (case_tac "f = []\<^sub>C")
-  apply (simp)
-  apply (transfer, auto simp add: dom_if)
-  apply (metis map_add_empty map_add_le_mapI map_add_restrict map_le_antisym map_le_iff_map_add_commute map_le_map_add map_le_trans)
-done
+  by (simp add: diff_add_cancel_left')
 
 lemma dom_range_nempty [simp]: "\<lbrakk> dom(f) = {0..<(i::real)}; f \<noteq> Map.empty \<rbrakk> \<Longrightarrow> i > 0"
   by (auto)
   
 lemma cgf_prefix_iff: "f \<le> g \<longleftrightarrow> (\<exists> h. g = f @\<^sub>C h)"
-  apply (auto)
-  apply (rule_tac x="g - f" in exI)
-  apply (simp add: cgf_cat_minus_prefix)
-done
+  using cgf_cat_minus_prefix le_add by blast
 
 lemma cgf_apply_minus [simp]: "\<lbrakk> 0 \<le> x; f \<le> g \<rbrakk> \<Longrightarrow> \<langle>g - f\<rangle>\<^sub>C x = \<langle>g\<rangle>\<^sub>C (x + end\<^sub>C(f))"
-  by (transfer, auto)
-
+  by (metis add_diff_cancel cgf_cat_ext_last cgf_cat_minus_prefix le_add_same_cancel2)
+  
 lemma cgf_end_minus: "g \<le> f \<Longrightarrow> end\<^sub>C(f-g) = end\<^sub>C(f)-end\<^sub>C(g)"
   by (auto simp add: cgf_prefix_iff cgf_end_cat)
 
 lemma cgf_left_mono_iff: "f @\<^sub>C g \<le> f @\<^sub>C h \<longleftrightarrow> g \<le> h"
-  apply (auto simp add: cgf_prefix_iff)
-  apply (metis cgf_cat_assoc cgf_cat_minus)
-  apply (metis cgf_cat_assoc)
-done
-
-lemma map_le_plus_eq_iff:
-  "f ++ h \<subseteq>\<^sub>m g ++ h \<longleftrightarrow> (f |` (-dom h)) \<subseteq>\<^sub>m (g |` (-dom h))"
-  apply (auto simp add: map_le_def)
-  apply (metis (mono_tags) UnCI domI map_add_def not_None_eq option.simps(4))
-  apply (metis (no_types, lifting) ComplI IntI domI map_add_dom_app_simps(1) map_add_dom_app_simps(3))
-done
+  using add_le_imp_le_left add_left_mono by blast
 
 lemma list_concat_minus_list_concat: "(f @\<^sub>C g) - (f @\<^sub>C h) = g - h"
-proof (cases "h \<le> g")
-  case False
-  thus ?thesis
-    by (simp add: cgf_minus_nprefix cgf_left_mono_iff)
-next
-  case True
-  then obtain h' where "g = h @\<^sub>C h'"
-    using cgf_prefix_iff by blast
-  thus ?thesis
-    by (simp, metis cgf_cat_assoc cgf_cat_minus)
-qed
-
-instance cgf :: (type) ordered_cancel_monoid_diff
-  apply (intro_classes)
-  apply (simp_all add: cgf_cat_assoc list_concat_minus_list_concat cgf_prefix_iff)
-done
+  using ordered_cancel_monoid_diff_class.add_diff_cancel_left' by blast
 
 subsection {* Piecewise continuous and convergent functions *}
 
@@ -470,11 +489,6 @@ definition piecewise_convergent :: "'a::topological_space cgf \<Rightarrow> bool
 
 lemma sorted_map: "\<lbrakk> sorted xs; mono f \<rbrakk> \<Longrightarrow> sorted (map f xs)"
   by (simp add: monoD sorted_equals_nth_mono)
-
-(*
-lemma "\<lbrakk> i \<ge> end\<^sub>C(f); i < end\<^sub>C(f)+end\<^sub>C(g) \<rbrakk> \<Longrightarrow> \<langle>f @\<^sub>C g\<rangle>\<^sub>C i = \<langle>g\<rangle>\<^sub>C (i - end\<^sub>C(f))"
-*)
-
 
 lemma continuous_on_linear: 
   fixes A :: "real set"
@@ -694,7 +708,7 @@ proof
     proof (cases "i = 0")
       case True 
       have "?i' < length I"
-        by (metis I.I_last I.I_length add.right_neutral add_left_cancel append_Nil2 egnz cgf_end_cat cgf_prefix_cat cgf_sub_end last_in_set le_less_trans length_0_conv length_append length_takeWhile_le not_less_iff_gr_or_eq set_takeWhileD takeWhile_dropWhile_id)
+        by (metis I.I_last I.I_length add.right_neutral add_left_cancel append_Nil2 egnz cgf_end_cat le_add cgf_sub_end last_in_set le_less_trans length_0_conv length_append length_takeWhile_le not_less_iff_gr_or_eq set_takeWhileD takeWhile_dropWhile_id)
       moreover have "?i' > 0"
         by (metis I.I_sorted I.I_z Un_iff cgf_end_ge_0 dropWhile_sorted_le_above empty_iff length_greater_0_conv list.set(1) not_less set_append takeWhile_dropWhile_id)
       moreover have "continuous_on {I ! (?i'-1)..<I ! Suc(?i'-1)} \<langle>f + g\<rangle>\<^sub>C"
@@ -854,7 +868,7 @@ proof -
       proof (cases "i = 0")
         case True 
         have "?i' < length I"
-          by (metis I.I_last I.I_length add.right_neutral add_left_cancel append_Nil2 egnz cgf_end_cat cgf_prefix_cat cgf_sub_end last_in_set le_less_trans length_0_conv length_append length_takeWhile_le not_less_iff_gr_or_eq set_takeWhileD takeWhile_dropWhile_id)
+          by (metis I.I_last I.I_length add.right_neutral add_left_cancel append_Nil2 egnz cgf_end_cat le_add cgf_sub_end last_in_set le_less_trans length_0_conv length_append length_takeWhile_le not_less_iff_gr_or_eq set_takeWhileD takeWhile_dropWhile_id)
         moreover have "?i' > 0"
           by (metis I.I_sorted I.I_z Un_iff cgf_end_ge_0 dropWhile_sorted_le_above empty_iff length_greater_0_conv list.set(1) not_less set_append takeWhile_dropWhile_id)
         moreover have "length (dropWhile (\<lambda>x. x \<le> end\<^sub>C f) I) > 0"
@@ -1090,7 +1104,6 @@ proof -
   thus ?thesis
     by (unfold_locales, auto)
 qed   
-  
 
 lemma piecewise_convergent_cat:
   assumes "piecewise_convergent f" "piecewise_convergent g"
@@ -1101,26 +1114,6 @@ lemma piecewise_convergent_cat:
 lemma piecewise_convergent_cat_iff:
   "piecewise_convergent (f @\<^sub>C g) \<longleftrightarrow> piecewise_convergent f \<and> piecewise_convergent g"
   using piecewise_convergent_cat piecewise_convergent_cat_left piecewise_convergent_cat_right by blast
-
-lemma piecewise_continuous_minus:
-  assumes "piecewise_continuous f" "piecewise_continuous g" "f \<le> g"
-  shows "piecewise_continuous (g - f)"
-proof -
-  obtain h where "g = f @\<^sub>C h"
-    using assms(3) cgf_prefix_iff by blast
-  with assms show ?thesis
-    using piecewise_continuous_cat_right by auto
-qed
-
-lemma piecewise_convergent_minus:
-  assumes "piecewise_convergent f" "piecewise_convergent g" "f \<le> g"
-  shows "piecewise_convergent (g - f)"
-proof -
-  obtain h where "g = f @\<^sub>C h"
-    using assms(3) cgf_prefix_iff by blast
-  with assms show ?thesis
-    using piecewise_convergent_cat_right by auto
-qed
 
 lemma continuous_on_cgf_prefix:
   "\<lbrakk> f \<subseteq>\<^sub>C g; 0 \<le> i; i < j; j \<le> end\<^sub>C f; continuous_on {i..<j} \<langle>g\<rangle>\<^sub>C \<rbrakk> \<Longrightarrow> continuous_on {i..<j} \<langle>f\<rangle>\<^sub>C"
@@ -1159,49 +1152,40 @@ instance ..
 
 end
 
+instance ttrace :: (topological_space) monoid_add
+  by (intro_classes, (transfer, simp add: add.assoc)+)
+
 abbreviation (input) tt_cat :: "'a::topological_space ttrace \<Rightarrow> 'a ttrace \<Rightarrow> 'a ttrace" (infixl "@\<^sub>t" 85) 
 where "xs @\<^sub>t ys \<equiv> xs + ys"
 
-instantiation ttrace :: (topological_space) order
+instantiation ttrace :: (topological_space) ord
 begin
 
-lift_definition less_eq_ttrace :: "'a ttrace \<Rightarrow> 'a ttrace \<Rightarrow> bool" is "op \<le>" .
-lift_definition less_ttrace :: "'a ttrace \<Rightarrow> 'a ttrace \<Rightarrow> bool" is "op <" .
+definition less_eq_ttrace :: "'a ttrace \<Rightarrow> 'a ttrace \<Rightarrow> bool" 
+where "less_eq_ttrace = op \<le>\<^sub>m"
+definition less_ttrace :: "'a ttrace \<Rightarrow> 'a ttrace \<Rightarrow> bool" 
+where "less_ttrace a b = (a \<le> b \<and> \<not> b \<le> a)"
 
-instance by (intro_classes, (transfer, simp add: less_cgf_def)+)
+instance ..
 
 end
-
-lemma ttrace_min: "[]\<^sub>t \<le> t"
-  by (transfer, simp)
 
 instantiation ttrace :: (topological_space) minus
 begin
 
-  lift_definition minus_ttrace :: "'a ttrace \<Rightarrow> 'a ttrace \<Rightarrow> 'a ttrace" 
-  is "op -" using piecewise_convergent_minus by fastforce
+  definition minus_ttrace :: "'a ttrace \<Rightarrow> 'a ttrace \<Rightarrow> 'a ttrace"
+  where "minus_ttrace f g = f -\<^sub>m g"
 
   instance ..
 
 end
 
-lemma tt_self_cancel [simp]: "t - t = []\<^sub>t"
-  by (transfer, simp)
-
-lemma tt_minus_empty [simp]: "t - []\<^sub>t = t"
-  by (transfer, simp)
-
-lemma tt_append_cancel [simp]: "(x @\<^sub>t y) - x = y"
-  by (transfer, auto)
-
 instance ttrace :: (topological_space) ordered_cancel_monoid_diff
   apply (intro_classes)
-  apply (transfer, simp add: add.assoc)
-  apply (transfer, simp)
-  apply (transfer, simp)
-  apply (transfer, simp)
-  apply (transfer, simp)
-  apply (transfer, metis cgf_prefix_iff mem_Collect_eq piecewise_convergent_cat_right)
+  apply (transfer, metis add_monoid_diff_cancel_left)
+  apply (transfer, metis cgf_zero_sum_left)
+  apply (transfer, metis cgf_cat_right_imp_eq)
+  apply (simp_all add: less_eq_ttrace_def less_ttrace_def minus_ttrace_def)
 done
 
 lift_definition tt_end :: "'a::topological_space ttrace \<Rightarrow> real" ("end\<^sub>t") is "cgf_end" .
@@ -1217,21 +1201,25 @@ lemma tt_end_cat: "end\<^sub>t(f @\<^sub>t g) = end\<^sub>t(f)+end\<^sub>t(g)"
   by (transfer, simp add: cgf_end_cat)
 
 lemma tt_end_minus: "g \<le> f \<Longrightarrow> end\<^sub>t(f-g) = end\<^sub>t(f)-end\<^sub>t(g)"
-  by (transfer, simp add: cgf_end_minus)
+  by (metis add.commute diff_add_cancel_left' diff_eq_eq tt_end_cat)
 
 lift_definition tt_apply :: "'a::topological_space ttrace \<Rightarrow> real \<Rightarrow> 'a" ("\<langle>_\<rangle>\<^sub>t") is cgf_apply .
 
-lemma tt_apply_minus [simp]: "\<lbrakk> 0 \<le> x; f \<le> g \<rbrakk> \<Longrightarrow> \<langle>g - f\<rangle>\<^sub>t x = \<langle>g\<rangle>\<^sub>t (x + end\<^sub>t(f))"
-  by (transfer, simp)
-
-lemma tt_cat_ext_first: "x < end\<^sub>t f \<Longrightarrow> \<langle>f @\<^sub>t g\<rangle>\<^sub>t x = \<langle>f\<rangle>\<^sub>t x"
+lemma tt_cat_ext_first [simp]: "x < end\<^sub>t f \<Longrightarrow> \<langle>f @\<^sub>t g\<rangle>\<^sub>t x = \<langle>f\<rangle>\<^sub>t x"
   by (transfer, simp add: cgf_cat_ext_first)
 
-lemma tt_cat_ext_last: "x \<ge> end\<^sub>t f \<Longrightarrow> \<langle>f @\<^sub>t g\<rangle>\<^sub>t x = \<langle>g\<rangle>\<^sub>t (x - end\<^sub>t f)"
+lemma tt_cat_ext_last [simp]: "x \<ge> end\<^sub>t f \<Longrightarrow> \<langle>f @\<^sub>t g\<rangle>\<^sub>t x = \<langle>g\<rangle>\<^sub>t (x - end\<^sub>t f)"
   by (transfer, simp add: cgf_cat_ext_last)
 
-lemma tt_prefix_cat: "f \<le> f @\<^sub>t g"
-  using ordered_cancel_monoid_diff_class.le_iff_add by blast
+lemma tt_apply_minus [simp]: 
+  assumes "0 \<le> x" "f \<le> g"
+  shows "\<langle>g - f\<rangle>\<^sub>t x = \<langle>g\<rangle>\<^sub>t (x + end\<^sub>t(f))"
+proof -
+  obtain f' where f': "g = f + f'"
+    using assms(2) le_iff_add by blast
+  thus ?thesis
+    by (simp add: assms(1))
+qed 
 
 lift_definition tt_restrict :: "'a::topological_space ttrace \<Rightarrow> real \<Rightarrow> 'a ttrace" (infix "\<restriction>\<^sub>t" 85)
 is "\<lambda> f n. f \<restriction>\<^sub>C n"
@@ -1245,7 +1233,8 @@ proof -
 qed
 
 lemma tt_restrict_le: "t \<restriction>\<^sub>t n \<le> t"
-  by (transfer, simp add: cgf_restrict_le)
+  by (simp add: less_eq_ttrace_def monoid_le_def, transfer)
+     (metis cgf_restrict_le mem_Collect_eq ordered_cancel_monoid_diff_class.le_iff_add piecewise_convergent_cat_iff)
 
 lemma tt_restrict_empty [simp]: "[]\<^sub>t \<restriction>\<^sub>t n = []\<^sub>t"
   by (transfer, simp)
@@ -1260,7 +1249,7 @@ lemma ttrace_divisible:
   obtains t\<^sub>1 t\<^sub>2 where "t = t\<^sub>1 + t\<^sub>2" "end\<^sub>t(t\<^sub>1) > 0" "end\<^sub>t(t\<^sub>2) > 0"
 proof -
   have "t = t \<restriction>\<^sub>t (end\<^sub>t t / 2) @\<^sub>t (t - t \<restriction>\<^sub>t (end\<^sub>t t / 2))"
-    by (metis cancel_monoid_add_class.add_diff_cancel_left' ordered_cancel_monoid_diff_class.le_iff_add tt_restrict_le)
+    by (simp add: diff_add_cancel_left' tt_restrict_le)
   moreover have "end\<^sub>t(t \<restriction>\<^sub>t (end\<^sub>t t / 2)) > 0"
     by (simp add: assms)
   moreover have "end\<^sub>t(t - t \<restriction>\<^sub>t (end\<^sub>t t / 2)) > 0"

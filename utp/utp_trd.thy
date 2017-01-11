@@ -276,24 +276,27 @@ proof -
     apply (rule shEx_cong)
     apply (rel_auto)
     apply (auto simp add: tt_end_cat)
+    apply (rename_tac x xa P xb)
     apply (case_tac "xb < end\<^sub>t x")
     apply (auto simp add: tt_cat_ext_first tt_cat_ext_last)
     apply (metis add.right_neutral add_less_le_mono tt_cat_ext_first tt_end_ge_0)
-    apply (smt tt_apply_minus tt_append_cancel tt_end_ge_0 tt_prefix_cat)
+    apply (rename_tac x xa P xb)
+    apply (drule_tac x="end\<^sub>t x + xb" in spec)
+    apply (simp)
   done
   also have "... = (\<^bold>\<exists> tt \<bullet> ((\<guillemotleft>tt\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>(\<guillemotleft>tt\<guillemotright>)\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<guillemotright>)"
   proof (rel_auto)
     fix P tr and tt\<^sub>1 tt\<^sub>2 :: "'a ttrace"
     assume  "0 < tt\<^sub>1" "0 < tt\<^sub>2" "\<forall>i. 0 \<le> i \<and> i < end\<^sub>t (tt\<^sub>1 + tt\<^sub>2) \<longrightarrow> P (\<langle>tt\<^sub>1 + tt\<^sub>2\<rangle>\<^sub>t i)"
     thus "\<exists> tt. 0 < tt \<and> (\<forall> i. 0 \<le> i \<and> i < end\<^sub>t tt \<longrightarrow> P (\<langle>tt\<rangle>\<^sub>ti)) \<and> tr + tt\<^sub>1 + tt\<^sub>2 = tr + tt"
-      using add.assoc tt_prefix_cat less_le_trans by blast
+      using add.assoc le_add less_le_trans by blast
   next
     fix P tr and tt :: "'a ttrace"
     assume "0 < tt" "\<forall>i. 0 \<le> i \<and> i < end\<^sub>t tt \<longrightarrow> P (\<langle>tt\<rangle>\<^sub>t i)"
     moreover then obtain tt\<^sub>1 tt\<^sub>2 where "tt = tt\<^sub>1 + tt\<^sub>2" "end\<^sub>t tt\<^sub>1 > 0" "end\<^sub>t tt\<^sub>2 > 0"
       by (metis dual_order.strict_iff_order tt_end_0_iff tt_end_ge_0 ttrace_divisible)
     moreover hence "tt\<^sub>1 > 0" "tt\<^sub>2 > 0"
-      by (simp_all add: less_le tt_end_0_iff ttrace_min)
+      by (simp_all add: least_zero less_le tt_end_0_iff)
     ultimately show 
       "\<exists>tt\<^sub>1. 0 < tt\<^sub>1 \<and>
             (\<exists>tt\<^sub>2. 0 < tt\<^sub>2 \<and>
