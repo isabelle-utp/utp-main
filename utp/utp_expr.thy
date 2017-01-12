@@ -186,9 +186,6 @@ instance uexpr :: (cancel_semigroup_add, type) cancel_semigroup_add
 instance uexpr :: (cancel_ab_semigroup_add, type) cancel_ab_semigroup_add
   by (intro_classes) (simp add: plus_uexpr_def minus_uexpr_def, transfer, simp add: fun_eq_iff add.commute diff_diff_add)+
 
-instance uexpr :: (cancel_monoid_add, type) cancel_monoid_add
-  by (intro_classes, simp_all add: plus_uexpr_def minus_uexpr_def zero_uexpr_def) (transfer, auto)+
-
 instance uexpr :: (group_add, type) group_add
   by (intro_classes)
      (simp add: plus_uexpr_def uminus_uexpr_def minus_uexpr_def zero_uexpr_def, transfer, simp)+
@@ -197,13 +194,18 @@ instance uexpr :: (ab_group_add, type) ab_group_add
   by (intro_classes)
      (simp add: plus_uexpr_def uminus_uexpr_def minus_uexpr_def zero_uexpr_def, transfer, simp)+
 
-instantiation uexpr :: (order, type) order
+instantiation uexpr :: (ord, type) ord
 begin
   lift_definition less_eq_uexpr :: "('a, 'b) uexpr \<Rightarrow> ('a, 'b) uexpr \<Rightarrow> bool"
   is "\<lambda> P Q. (\<forall> A. P A \<le> Q A)" .
   definition less_uexpr :: "('a, 'b) uexpr \<Rightarrow> ('a, 'b) uexpr \<Rightarrow> bool"
   where "less_uexpr P Q = (P \<le> Q \<and> \<not> Q \<le> P)"
-instance proof
+instance ..
+end
+
+
+instance uexpr :: (order, type) order
+proof
   fix x y z :: "('a, 'b) uexpr"
   show "(x < y) = (x \<le> y \<and> \<not> y \<le> x)" by (simp add: less_uexpr_def)
   show "x \<le> x" by (transfer, auto)
@@ -212,7 +214,6 @@ instance proof
   show "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
     by (transfer, rule ext, simp add: eq_iff)
 qed
-end
 
 instance uexpr :: (ordered_ab_group_add, type) ordered_ab_group_add
   by (intro_classes) (simp add: plus_uexpr_def, transfer, simp)
@@ -222,6 +223,16 @@ instance uexpr :: (ordered_ab_group_add_abs, type) ordered_ab_group_add_abs
   apply (simp add: abs_uexpr_def zero_uexpr_def plus_uexpr_def uminus_uexpr_def, transfer, simp add: abs_ge_self abs_le_iff abs_triangle_ineq)+
   apply (metis ab_group_add_class.ab_diff_conv_add_uminus abs_ge_minus_self abs_ge_self add_mono_thms_linordered_semiring(1))
 done
+
+lemma uexpr_diff_zero [simp]: 
+  fixes a :: "('\<alpha>::ordered_cancel_monoid_diff, 'a) uexpr"
+  shows "a - 0 = a"
+  by (simp add: minus_uexpr_def zero_uexpr_def, transfer, auto)
+
+lemma uexpr_add_diff_cancel_left [simp]: 
+  fixes a b :: "('\<alpha>::ordered_cancel_monoid_diff, 'a) uexpr"
+  shows "(a + b) - a = b"
+  by (simp add: minus_uexpr_def plus_uexpr_def, transfer, auto)
 
 instance uexpr :: (semiring, type) semiring
   by (intro_classes) (simp add: plus_uexpr_def times_uexpr_def, transfer, simp add: fun_eq_iff add.commute semiring_class.distrib_right semiring_class.distrib_left)+

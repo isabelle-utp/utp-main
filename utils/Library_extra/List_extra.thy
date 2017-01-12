@@ -124,7 +124,7 @@ text {* We define list minus so that if the second list is not a prefix of the f
         list longer than the combined length is produced. Thus we can always determined from the output
         whether the minus is defined or not. *}
 
-definition "xs - ys = (if (prefixeq ys xs) then drop (length ys) xs else [undefined])"
+definition "xs - ys = (if (prefixeq ys xs) then drop (length ys) xs else [])"
 
 instance ..
 end
@@ -132,10 +132,12 @@ end
 lemma minus_cancel [simp]: "xs - xs = []"
   by (simp add: minus_list_def)
 
+(*
 lemma list_minus_anhil: "xs - ys = [] \<Longrightarrow> xs = ys"
   apply (auto simp add: minus_list_def)
   apply (metis append_Nil2 list.simps(3) prefixeq_drop)
 done
+*)
 
 lemma append_minus [simp]: "(xs @ ys) - xs = ys"
   by (simp add: minus_list_def)
