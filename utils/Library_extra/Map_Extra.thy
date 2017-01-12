@@ -795,5 +795,42 @@ qed
 
 declare map_member.simps [simp del]
 
+subsection {* Extra map lemmas *}
+
+lemma map_eqI:
+  "\<lbrakk> dom f = dom g; \<forall> x\<in>dom(f). the(f x) = the(g x) \<rbrakk> \<Longrightarrow> f = g"
+  by (metis domIff map_le_antisym map_le_def option.expand)
+
+lemma map_restrict_dom_compl: "f |` (- dom f) = Map.empty"
+  by (metis dom_eq_empty_conv dom_restrict inf_compl_bot)
+
+lemma restrict_map_neg_disj:
+  "dom(f) \<inter> A = {} \<Longrightarrow> f |` (- A) = f"
+  by (auto simp add: restrict_map_def, rule ext, auto, metis disjoint_iff_not_equal domIff)
+
+lemma map_plus_restrict_dist: "(f ++ g) |` A = (f |` A) ++ (g |` A)"
+  by (auto simp add: restrict_map_def map_add_def)
+
+lemma map_plus_eq_left:
+  assumes "f ++ h = g ++ h" 
+  shows "(f |` (- dom h)) = (g |` (- dom h))"
+proof -
+  have "h |` (- dom h) = Map.empty"
+    by (metis Compl_disjoint dom_eq_empty_conv dom_restrict)
+  then have f2: "f |` (- dom h) = (f ++ h) |` (- dom h)"
+    by (simp add: map_plus_restrict_dist)
+  have "h |` (- dom h) = Map.empty"
+    by (metis (no_types) Compl_disjoint dom_eq_empty_conv dom_restrict)
+  then show ?thesis
+    using f2 assms by (simp add: map_plus_restrict_dist)
+qed
+
+lemma map_add_split:
+  "dom(f) = A \<union> B \<Longrightarrow> (f |` A) ++ (f |` B) = f"
+  by (rule ext, auto simp add: map_add_def restrict_map_def option.case_eq_if)
+
+lemma map_le_via_restrict:
+  "f \<subseteq>\<^sub>m g \<longleftrightarrow> g |` dom(f) = f"
+  by (auto simp add: map_le_def restrict_map_def dom_def fun_eq_iff)
 
 end
