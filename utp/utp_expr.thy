@@ -24,7 +24,7 @@ lemma uexpr_eq_iff:
   "e = f \<longleftrightarrow> (\<forall> b. \<lbrakk>e\<rbrakk>\<^sub>e b = \<lbrakk>f\<rbrakk>\<^sub>e b)"
   using Rep_uexpr_inject[of e f, THEN sym] by (auto)
 
-named_theorems ueval
+named_theorems ueval and lit_simps
 
 setup_lifting type_definition_uexpr
 
@@ -494,7 +494,44 @@ subsection {* Misc laws *}
 lemma tail_cons [simp]: "tail\<^sub>u(\<langle>x\<rangle> ^\<^sub>u xs) = xs"
   by (transfer, simp)
 
-lemma lit_num_simps: "\<guillemotleft>0\<guillemotright> = 0" "\<guillemotleft>1\<guillemotright> = 1" "\<guillemotleft>numeral n\<guillemotright> = numeral n" "\<guillemotleft>- x\<guillemotright> = - \<guillemotleft>x\<guillemotright>"
+subsection {* Literalise tactics *}
+
+text {* The following tactic converts literal HOL expressions to UTP expressions and vice-versa
+        via a collection of simplification rules. The two tactics are called "literalise", which
+        converts UTP to expressions to HOL expressions -- i.e. it pushes them into literals --
+        and unliteralise that reverses this. We collect the equations in a theorem attribute
+        called "lit_simps". *}
+
+lemma lit_num_simps [lit_simps]: "\<guillemotleft>0\<guillemotright> = 0" "\<guillemotleft>1\<guillemotright> = 1" "\<guillemotleft>numeral n\<guillemotright> = numeral n" "\<guillemotleft>- x\<guillemotright> = - \<guillemotleft>x\<guillemotright>"
   by (simp_all add: ueval, transfer, simp)
 
+lemma lit_arith_simps [lit_simps]:
+  "\<guillemotleft>- x\<guillemotright> = - \<guillemotleft>x\<guillemotright>"
+  "\<guillemotleft>x + y\<guillemotright> = \<guillemotleft>x\<guillemotright> + \<guillemotleft>y\<guillemotright>" "\<guillemotleft>x - y\<guillemotright> = \<guillemotleft>x\<guillemotright> - \<guillemotleft>y\<guillemotright>" 
+  "\<guillemotleft>x * y\<guillemotright> = \<guillemotleft>x\<guillemotright> * \<guillemotleft>y\<guillemotright>" "\<guillemotleft>x / y\<guillemotright> = \<guillemotleft>x\<guillemotright> / \<guillemotleft>y\<guillemotright>"
+  "\<guillemotleft>x div y\<guillemotright> = \<guillemotleft>x\<guillemotright> div \<guillemotleft>y\<guillemotright>"
+  by (simp add: uexpr_defs, transfer, simp)+
+
+lemma lit_fun_simps [lit_simps]: 
+  "\<guillemotleft>i x y z u\<guillemotright> = qtop i \<guillemotleft>x\<guillemotright> \<guillemotleft>y\<guillemotright> \<guillemotleft>z\<guillemotright> \<guillemotleft>u\<guillemotright>"
+  "\<guillemotleft>h x y z\<guillemotright> = trop h \<guillemotleft>x\<guillemotright> \<guillemotleft>y\<guillemotright> \<guillemotleft>z\<guillemotright>"
+  "\<guillemotleft>g x y\<guillemotright> = bop g \<guillemotleft>x\<guillemotright> \<guillemotleft>y\<guillemotright>"
+  "\<guillemotleft>f x\<guillemotright> = uop f \<guillemotleft>x\<guillemotright>"
+  by (transfer, simp)+ 
+
+text {* In general unliteralising converts function applications to corresponding expression
+  liftings. Since some operators, like + and *, have specific operators we also have to
+  use uexpr_defs in reverse to correctly interpret these. Moreover, numerals must be handled
+  separately by first simplifying them and then converting them into UTP expression numerals;
+  hence the following two simplification rules. *}
+
+lemma lit_numeral_1: "uop numeral x = Abs_uexpr (\<lambda>b. numeral (\<lbrakk>x\<rbrakk>\<^sub>e b))"
+  by (simp add: uop_def)
+
+lemma lit_numeral_2: "Abs_uexpr (\<lambda> b. numeral v) = numeral v"
+  by (metis lit.abs_eq lit_num_simps(3))
+
+method literalise = (unfold lit_simps[THEN sym])
+method unliteralise = (unfold lit_simps uexpr_defs[THEN sym]; 
+                     (unfold lit_numeral_1 ; (unfold ueval); (unfold lit_numeral_2))?)+
 end
