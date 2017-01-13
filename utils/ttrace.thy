@@ -59,7 +59,7 @@ setup_lifting type_definition_cgf
 
 lift_definition cgf_apply :: "'a cgf \<Rightarrow> real \<Rightarrow> 'a" ("\<langle>_\<rangle>\<^sub>C") is "\<lambda> f x. the (f x)" .
 lift_definition cgf_dom :: "'a cgf \<Rightarrow> real set" ("dom\<^sub>C") is dom .
-lift_definition cgf_end :: "'a cgf \<Rightarrow> real" ("end\<^sub>C") is "\<lambda> f. if (dom(f) = {}) then 0 else Sup(dom(f))" .
+lift_definition cgf_end :: "'a cgf \<Rightarrow> real" ("end\<^sub>C") is "\<lambda> f. Sup'(dom(f))" .
 lift_definition cgf_map :: "(real \<times> 'a \<Rightarrow> 'b) \<Rightarrow> 'a cgf \<Rightarrow> 'b cgf" ("map\<^sub>C") 
   is "\<lambda> f g x. if (x \<in> dom(g)) then Some (f (x, the(g(x)))) else None" 
   by (auto simp add: dom_if)
@@ -103,16 +103,15 @@ lemma cgf_cat_right_unit [simp]: "t @\<^sub>C []\<^sub>C = t"
 
 lemma cgf_eqI: "\<lbrakk> end\<^sub>C f = end\<^sub>C g; \<forall> x<end\<^sub>C g. \<langle>f\<rangle>\<^sub>C x = \<langle>g\<rangle>\<^sub>C x \<rbrakk> \<Longrightarrow> f = g"
   apply (transfer)
-  apply (rename_tac f g)
   apply (auto)[1]
-  apply (case_tac "g = Map.empty")
+  apply (rename_tac f g i j)
+  apply (case_tac "i = 0")
   apply (simp_all)
   using less_eq_real_def apply auto[1]
-  apply (case_tac "f = Map.empty")
+  apply (case_tac "j = 0")
   apply (auto)
   apply (rule map_eqI)
-  apply (metis atLeastLessThan_empty_iff2 cSup_atLeastLessThan dom_eq_empty_conv not_less)
-  apply (metis (mono_tags) atLeastLessThan_empty atLeastLessThan_iff cSup_atLeastLessThan dom_eq_empty_conv less_eq_real_def)
+  apply (auto)
 done
 
 lemma cgf_end_ge_0 [simp]: "end\<^sub>C(f) \<ge> 0"
@@ -124,13 +123,11 @@ lemma cgf_end_empty [simp]: "end\<^sub>C([]\<^sub>C) = 0"
 lemma cgf_end_0_iff: "end\<^sub>C(f) = 0 \<longleftrightarrow> f = []\<^sub>C"
   by (transfer, force simp add: antisym_conv2)
 
-
 lemma cgf_end_cat: "end\<^sub>C(f @\<^sub>C g) = end\<^sub>C(f)+end\<^sub>C(g)"
   apply (case_tac "f = []\<^sub>C")
   apply (simp)
   apply (transfer)
   apply (auto simp add: dom_shift_minus plus_image_atLeastLessThan)
-  using less_eq_real_def apply auto
 done
 
 lemma cgf_cat_ext_first: 
@@ -186,10 +183,10 @@ proof -
       fix f g h :: "real \<rightharpoonup> 'a"
       assume a: "\<exists>i\<ge>0. dom f = {0..<i}" "\<exists>i\<ge>0. dom g = {0..<i}" "\<exists>i\<ge>0. dom h = {0..<i}"
              "(h \<ggreater> Sup' (dom f)) ++ f = (h \<ggreater> Sup' (dom g)) ++ g"
-             "(if dom f = {} then 0 else Sup (dom f)) = (if dom g = {} then 0 else Sup (dom g))"
+             "(Sup' (dom f)) = (Sup' (dom g))"
              "f \<noteq> Map.empty"
       hence "dom f = dom g"
-        by (metis (mono_tags, hide_lams) atLeastLessThan_empty cSup_atLeastLessThan less_eq_real_def)
+        by (metis Sup'_interval atLeastLessThan_empty not_le)
       with a obtain i j where "dom f = {0..<i}" "dom g = {0..<i}" "dom h = {0..<j}"
         by (auto)
       moreover with a have "i > 0"
@@ -289,16 +286,14 @@ lemma cgf_restrict_empty [simp]: "[]\<^sub>C \<restriction>\<^sub>C n = []\<^sub
   by (transfer, simp)
 
 lemma cgf_end_restrict [simp]: "\<lbrakk> 0 \<le> n; n \<le> end\<^sub>C f \<rbrakk> \<Longrightarrow> end\<^sub>C (f \<restriction>\<^sub>C n) = n"
-  apply (transfer, auto)
-  apply (metis (mono_tags) atLeastLessThan_empty_iff2 cSup_atLeastLessThan domI empty_iff le_less_trans min.absorb_iff2 not_less_iff_gr_or_eq)
-done
+  by (transfer, auto)
 
 lemma cgf_map_indep:
   "end\<^sub>C f = end\<^sub>C g \<Longrightarrow> map\<^sub>C (\<lambda>(i, x). \<langle>g\<rangle>\<^sub>C i) f = g"
   apply (transfer, auto, rule ext, auto)
-  apply (metis atLeastLessThan_iff cSup_atLeastLessThan domIff le_less_trans not_less_iff_gr_or_eq option.collapse)
+  apply (metis (mono_tags) atLeastLessThan_iff domD not_le option.sel)
   apply fastforce
-  apply (metis (no_types) atLeastLessThan_iff cSup_atLeastLessThan domIff min.absorb_iff2 min_def not_less)
+  apply (metis atLeastLessThan_iff domIff less_eq_real_def)
 done
 
 lemma cgf_restrict_map [simp]: "(map\<^sub>C f g) \<restriction>\<^sub>C n = map\<^sub>C f (g \<restriction>\<^sub>C n)"
@@ -1068,7 +1063,7 @@ lemma continuous_on_cgf_prefix:
   apply (simp)
   apply (rule continuous_on_cong)
   apply (simp)
-  apply (metis atLeastLessThan_iff cSup_atLeastLessThan domIff le_cases le_less_trans not_less_iff_gr_or_eq)
+  apply (metis (full_types) atLeastLessThan_iff less_le_trans not_le)
 done 
 
 typedef (overloaded) 'a::topological_space ttrace = 
