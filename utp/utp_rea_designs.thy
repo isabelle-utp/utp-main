@@ -1131,10 +1131,10 @@ definition [urel_defs]: "Term = RH(true \<turnstile> true \<diamondop> true)"
 definition assigns_rea :: "'\<alpha> usubst \<Rightarrow> ('t::ordered_cancel_monoid_diff, '\<alpha>) hrelation_rp" ("\<langle>_\<rangle>\<^sub>R") where
 "assigns_rea \<sigma> = RH(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>R))"
 
-definition reactive_sup :: "_ set \<Rightarrow> _" ("\<Sqinter>\<^sub>R") where
+definition rea_design_sup :: "_ set \<Rightarrow> _" ("\<Sqinter>\<^sub>R") where
 "\<Sqinter>\<^sub>R A = (if (A = {}) then Miracle else \<Sqinter> A)"
 
-definition reactive_inf :: "_ set \<Rightarrow> _" ("\<Squnion>\<^sub>R") where
+definition rea_design_inf :: "_ set \<Rightarrow> _" ("\<Squnion>\<^sub>R") where
 "\<Squnion>\<^sub>R A = (if (A = {}) then Chaos else \<Squnion> A)"
 
 definition rea_design_par :: "_ \<Rightarrow> _ \<Rightarrow> _" (infixr "\<parallel>\<^sub>R" 85) where
@@ -1180,10 +1180,14 @@ proof -
   finally show ?thesis .
 qed
 
-thm CSP_reactive_design
-
 lemma Chaos_def': "Chaos = RH(false \<turnstile> true)"
   by (simp add: Chaos_def design_false_pre)
+
+lemma Miracle_CSP_false: "Miracle = CSP(false)"
+  by (rel_auto)
+
+lemma Chaos_CSP_true: "Chaos = CSP(true)"
+  by (rel_auto)
 
 lemma Chaos_left_zero:
   assumes "P is CSP"
