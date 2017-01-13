@@ -321,9 +321,17 @@ lemma R2s_USUP:
   "R2s(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> R2s(P(i)))"
   by (simp add: R2s_def usubst)
 
+lemma R2c_USUP:
+  "R2c(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> R2c(P(i)))"
+  by (rel_auto)
+
 lemma R2s_UINF:
   "R2s(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> R2s(P(i)))"
   by (simp add: R2s_def usubst)
+
+lemma R2c_UINF:
+  "R2c(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> R2c(P(i)))"
+  by (rel_auto)
 
 lemma R2_disj: "R2(P \<or> Q) = (R2(P) \<or> R2(Q))"
   by (pred_auto)
@@ -690,6 +698,12 @@ definition RH_def [upred_defs]: "RH(P) = R1(R2s(R3c(P)))"
 
 notation RH ("\<^bold>R")
 
+definition reactive_sup :: "_ set \<Rightarrow> _" ("\<Sqinter>\<^sub>r") where
+"\<Sqinter>\<^sub>r A = (if (A = {}) then \<^bold>R(false) else \<Sqinter> A)"
+
+definition reactive_inf :: "_ set \<Rightarrow> _" ("\<Squnion>\<^sub>r") where
+"\<Squnion>\<^sub>r A = (if (A = {}) then \<^bold>R(true) else \<Squnion> A)"
+
 lemma RH_alt_def:
   "\<^bold>R(P) = R1(R2(R3c(P)))"
   by (simp add: R1_idem R2_def RH_def)
@@ -746,6 +760,20 @@ lemma RH_absorbs_R2c: "\<^bold>R(R2c(P)) = \<^bold>R(P)"
 
 lemma RH_subst_wait: "\<^bold>R(P \<^sub>f) = \<^bold>R(P)"
   by (metis R3c_subst_wait RH_alt_def')
+
+lemma RH_false: "\<^bold>R(false) = ($wait \<and> II\<^sub>r)"
+  by (rel_auto, metis minus_zero_eq)
+
+lemma RH_true: "\<^bold>R(true) = (II\<^sub>r \<triangleleft> $wait \<triangleright> $tr \<le>\<^sub>u $tr\<acute>)"
+  by (rel_auto, metis minus_zero_eq)
+
+lemma RH_false_top:
+  "\<^bold>R(P) \<sqsubseteq> \<^bold>R(false)"
+  by (simp add: RH_monotone)
+
+lemma RH_false_bottom:
+  "\<^bold>R(true) \<sqsubseteq> \<^bold>R(P)"
+  by (simp add: RH_monotone)
 
 subsection {* Reactive parallel-by-merge *}
 
