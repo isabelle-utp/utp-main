@@ -26,10 +26,19 @@ lemma dom_shift_minus:
   shows "dom (f \<ggreater> n) = op + n ` dom f"
   by (simp add: dom_def image_Collect, force)
 
+lemma shift_minus_cong: "f \<ggreater> n = g \<ggreater> n \<Longrightarrow> f = g"
+  apply (auto simp add: fun_eq_iff)
+  apply (drule_tac x="x + n" in spec)
+  apply (simp)
+done
+
 lemma plus_image_atLeastLessThan:
   fixes m n k :: "real"
   shows "op + k ` {m..<n} = {m+k..<n+k}"
   by (auto, metis add.commute atLeastLessThan_iff diff_add_cancel diff_less_eq imageI le_diff_eq)
+
+lemma atLeastLessThan_union_disj [simp]: "\<lbrakk> 0 \<le> i; i \<le> j \<rbrakk> \<Longrightarrow> {0..<i::real} \<union> {i..<j} = {0..<j}"
+  by (auto)
 
 definition Sup' :: "real set \<Rightarrow> real" where
 "Sup' A = (if (A = {}) then 0 else Sup A)"
@@ -39,35 +48,6 @@ lemma Sup'_empty [simp]: "Sup' {} = 0"
 
 lemma Sup'_interval [simp]: "Sup' {0..<m} = (if (m > 0) then m else 0)"
   by (simp add: Sup'_def)
-
-lemma map_eqI:
-  "\<lbrakk> dom f = dom g; \<forall> x\<in>dom(f). the(f x) = the(g x) \<rbrakk> \<Longrightarrow> f = g"
-  by (metis domIff map_le_antisym map_le_def option.expand)
-
-lemma atLeastLessThan_inter_nzero [simp]: "{0..<i::real} \<inter> {x. \<not> x < 0} = {0..<i}" 
-  by auto
-
-lemma atLeastLessThan_inter_nless [simp]: "{i..<j::real} \<inter> {x. \<not> x < i} = {i..<j}" 
-  by auto
-
-lemma atLeastLessThan_inter_less [simp]: "(j::real) \<ge> i \<Longrightarrow> {0..<i} \<inter> {x. x < j} = {0..<i}"
-  by (auto)
-
-lemma atLeastLessThan_inter_greater [simp]: "(j::real) \<le> i \<Longrightarrow> {0..<i} \<inter> {x. x < j} = {0..<j}"
-  by (auto)
-
-lemma atLeastLessThan_union_disj [simp]: "\<lbrakk> 0 \<le> i; i \<le> j \<rbrakk> \<Longrightarrow> {0..<i::real} \<union> {i..<j} = {0..<j}"
-  by (auto)
-
-lemma map_restrict_dom_compl: "f |` (- dom f) = Map.empty"
-  by (metis dom_eq_empty_conv dom_restrict inf_compl_bot)
-
-lemma restrict_map_neg_disj:
-  "dom(f) \<inter> A = {} \<Longrightarrow> f |` (- A) = f"
-  by (auto simp add: restrict_map_def, rule ext, auto, metis disjoint_iff_not_equal domIff)
-
-lemma map_plus_restrict_dist: "(f ++ g) |` A = (f |` A) ++ (g |` A)"
-  by (auto simp add: restrict_map_def map_add_def)
 
 subsection {* Contiguous functions *}
 
@@ -89,13 +69,6 @@ abbreviation "map'\<^sub>C f \<equiv> cgf_map (\<lambda> (i, x). f x)"
 lift_definition cgf_restrict :: "'a cgf \<Rightarrow> real \<Rightarrow> 'a cgf" (infix "\<restriction>\<^sub>C" 85)
 is "\<lambda> f i. f |` {0..<i}" 
   by (auto simp add: min_def, blast, metis atLeastLessThan_empty_iff2 less_eq_real_def less_irrefl) 
-
-lift_definition cgf_force :: "'a cgf \<Rightarrow> real \<Rightarrow> 'a cgf" (infix "!\<^sub>C" 85)
-is "\<lambda> f i x. if (0 \<le> x \<and> x < i) then Some(the(f(x))) else None"
-  apply (rename_tac f n)
-  apply (case_tac "n \<ge> 0")
-  apply (auto simp add: dom_if)
-done
 
 instantiation cgf :: (type) zero
 begin
@@ -179,26 +152,6 @@ qed
 lemma cgf_cat_ext_last: "x \<ge> end\<^sub>C f \<Longrightarrow> \<langle>f @\<^sub>C g\<rangle>\<^sub>C x = \<langle>g\<rangle>\<^sub>C (x - end\<^sub>C f)"
   by (transfer, auto simp add: map_add_dom_app_simps(3))
 
-lemma map_plus_eq_left:
-  assumes "f ++ h = g ++ h" 
-  shows "(f |` (- dom h)) = (g |` (- dom h))"
-proof -
-  have "h |` (- dom h) = Map.empty"
-    by (metis Compl_disjoint dom_eq_empty_conv dom_restrict)
-  then have f2: "f |` (- dom h) = (f ++ h) |` (- dom h)"
-    by (simp add: map_plus_restrict_dist)
-  have "h |` (- dom h) = Map.empty"
-    by (metis (no_types) Compl_disjoint dom_eq_empty_conv dom_restrict)
-  then show ?thesis
-    using f2 assms by (simp add: map_plus_restrict_dist)
-qed
-
-lemma shift_minus_cong: "f \<ggreater> n = g \<ggreater> n \<Longrightarrow> f = g"
-  apply (auto simp add: fun_eq_iff)
-  apply (drule_tac x="x + n" in spec)
-  apply (simp)
-done
-
 lemma cgf_zero_sum_left:
   "f @\<^sub>C g = []\<^sub>C \<Longrightarrow> f = []\<^sub>C"
   by (metis cgf_cat_right_unit cgf_end_0_iff cgf_end_cat cgf_end_ge_0 dual_order.antisym le_add_same_cancel2)
@@ -268,7 +221,7 @@ proof (rule cgf_eqI, simp_all add: cgf_end_cat add.assoc, clarify)
       hence x_gefg: "x \<ge> end\<^sub>C f+end\<^sub>C g"
         by auto
       thus ?thesis
-        by (simp add: add.commute cgf_cat_ext_last cgf_end_cat diff_diff_add add_le_imp_le_diff x_gef)
+        by (simp add: cgf_cat_ext_last cgf_end_cat cancel_ab_semigroup_add_class.diff_diff_add add_le_imp_le_diff x_gef)
     qed
   qed
 qed
@@ -284,14 +237,6 @@ begin
   "less_cgf x y = (x \<le> y \<and> \<not> y \<le> x)"
 instance ..
 end
-
-lemma map_add_split:
-  "dom(f) = A \<union> B \<Longrightarrow> (f |` A) ++ (f |` B) = f"
-  by (rule ext, auto simp add: map_add_def restrict_map_def option.case_eq_if)
-
-lemma map_le_via_restrict:
-  "f \<subseteq>\<^sub>m g \<longleftrightarrow> g |` dom(f) = f"
-  by (auto simp add: map_le_def restrict_map_def dom_def fun_eq_iff)
 
 lemma monoid_le_ttrace:
   "(f :: 'a cgf) \<le>\<^sub>m g \<longleftrightarrow> f \<le> g"
@@ -346,13 +291,6 @@ lemma cgf_restrict_empty [simp]: "[]\<^sub>C \<restriction>\<^sub>C n = []\<^sub
 lemma cgf_end_restrict [simp]: "\<lbrakk> 0 \<le> n; n \<le> end\<^sub>C f \<rbrakk> \<Longrightarrow> end\<^sub>C (f \<restriction>\<^sub>C n) = n"
   apply (transfer, auto)
   apply (metis (mono_tags) atLeastLessThan_empty_iff2 cSup_atLeastLessThan domI empty_iff le_less_trans min.absorb_iff2 not_less_iff_gr_or_eq)
-done
-
-lemma cgf_end_force [simp]: "n \<ge> 0 \<Longrightarrow> end\<^sub>C (f !\<^sub>C n) = n"
-  apply (transfer, auto simp add: dom_if)
-  apply (rename_tac n f i x)
-  apply (subgoal_tac "{x. 0 \<le> x \<and> x < n} = {0..<n}")
-  apply (auto)
 done
 
 lemma cgf_map_indep:
@@ -417,9 +355,6 @@ lemma cgf_restrict_less: "\<lbrakk> 0 \<le> n ; n < end\<^sub>C(t) \<rbrakk> \<L
 lemma cgf_cat_minus_prefix:
   "f \<le> g \<Longrightarrow> g = f @\<^sub>C (g - f)"
   by (simp add: diff_add_cancel_left')
-
-lemma dom_range_nempty [simp]: "\<lbrakk> dom(f) = {0..<(i::real)}; f \<noteq> Map.empty \<rbrakk> \<Longrightarrow> i > 0"
-  by (auto)
   
 lemma cgf_prefix_iff: "f \<le> g \<longleftrightarrow> (\<exists> h. g = f @\<^sub>C h)"
   using cgf_cat_minus_prefix le_add by blast
@@ -1093,10 +1028,18 @@ proof -
             ((\<langle>f @\<^sub>C g\<rangle>\<^sub>C \<circ> (\<lambda> x. x + end\<^sub>C(f))) \<longlongrightarrow> L) ?F1"
         by (simp add: tendsto_compose_filtermap filtermap_within_range_plus)
       also have "... \<longleftrightarrow> (\<langle>g\<rangle>\<^sub>C \<longlongrightarrow> L) ?F1"
-          apply (rule Lim_cong_within)
+      proof -
+        have "i - (length I\<^sub>1 - Suc 0) < length I\<^sub>2"
+            using I\<^sub>2.I_length i by linarith
+
+        thus ?thesis
+          apply (rule_tac Lim_cong_within)
           apply (auto simp add: Ii ISi)
-          apply (smt False i I\<^sub>1.I_length I\<^sub>2.nth_I_nz Nat.add_diff_assoc2 One_nat_def Suc_leI add_diff_inverse_nat add_less_cancel_left cgf_cat_ext_last diff_le_self less_le_trans)
-      done
+          apply (subst cgf_cat_ext_last)
+          apply (auto)
+          apply (meson I\<^sub>2.nth_I_nz le_less_linear le_less_trans less_numeral_extra(3))
+        done
+      qed
       finally show ?thesis
         using L by blast
     qed
