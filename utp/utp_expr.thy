@@ -184,7 +184,7 @@ instance uexpr :: (cancel_semigroup_add, type) cancel_semigroup_add
   by (intro_classes) (simp add: plus_uexpr_def, transfer, simp add: fun_eq_iff)+
 
 instance uexpr :: (cancel_ab_semigroup_add, type) cancel_ab_semigroup_add
-  by (intro_classes) (simp add: plus_uexpr_def minus_uexpr_def, transfer, simp add: fun_eq_iff add.commute diff_diff_add)+
+  by (intro_classes, (simp add: plus_uexpr_def minus_uexpr_def, transfer, simp add: fun_eq_iff add.commute cancel_ab_semigroup_add_class.diff_diff_add)+)
 
 instance uexpr :: (group_add, type) group_add
   by (intro_classes)

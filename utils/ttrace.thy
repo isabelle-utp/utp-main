@@ -70,6 +70,13 @@ lift_definition cgf_restrict :: "'a cgf \<Rightarrow> real \<Rightarrow> 'a cgf"
 is "\<lambda> f i. f |` {0..<i}" 
   by (auto simp add: min_def, blast, metis atLeastLessThan_empty_iff2 less_eq_real_def less_irrefl) 
 
+lift_definition cgf_force :: "'a cgf \<Rightarrow> real \<Rightarrow> 'a cgf" (infix "!\<^sub>C" 85)
+is "\<lambda> f i x. if (0 \<le> x \<and> x < i) then Some(the(f(x))) else None"
+  apply (rename_tac f n)
+  apply (case_tac "n \<ge> 0")
+  apply (auto simp add: dom_if)
+done
+
 instantiation cgf :: (type) zero
 begin
   lift_definition zero_cgf :: "'a cgf" is Map.empty by (auto)
@@ -287,6 +294,13 @@ lemma cgf_restrict_empty [simp]: "[]\<^sub>C \<restriction>\<^sub>C n = []\<^sub
 
 lemma cgf_end_restrict [simp]: "\<lbrakk> 0 \<le> n; n \<le> end\<^sub>C f \<rbrakk> \<Longrightarrow> end\<^sub>C (f \<restriction>\<^sub>C n) = n"
   by (transfer, auto)
+
+lemma cgf_end_force [simp]: "n \<ge> 0 \<Longrightarrow> end\<^sub>C (f !\<^sub>C n) = n"
+  apply (transfer, auto simp add: dom_if)
+  apply (rename_tac n f i x)  
+  apply (subgoal_tac "{x. 0 \<le> x \<and> x < n} = {0..<n}")
+  apply (auto)
+done
 
 lemma cgf_map_indep:
   "end\<^sub>C f = end\<^sub>C g \<Longrightarrow> map\<^sub>C (\<lambda>(i, x). \<langle>g\<rangle>\<^sub>C i) f = g"
