@@ -1280,8 +1280,8 @@ lemma Des_design: "Des(R) = true \<turnstile>\<^sub>r R"
 lemma Rel_design: "Rel(P \<turnstile>\<^sub>r Q) = (P \<Rightarrow> Q)"
   by (rel_auto)
 
-interpretation Des_Rel_galcon:
-  galois_connection "\<lparr> orderA = utp_order DES, orderB = utp_order REL, lower = Rel, upper = Des \<rparr>"
+interpretation Des_Rel_coretract:
+  coretract "\<lparr> orderA = utp_order DES, orderB = utp_order REL, lower = Rel, upper = Des \<rparr>"
   rewrites
     "\<And> x. x \<in> carrier \<X>\<^bsub>\<lparr>orderA = utp_order DES, orderB = utp_order REL, lower = Rel, upper = Des\<rparr>\<^esub> = (x is \<^bold>H)" and
     "\<And> x. x \<in> carrier \<Y>\<^bsub>\<lparr>orderA = utp_order DES, orderB = utp_order REL, lower = Rel, upper = Des\<rparr>\<^esub> = True" and
@@ -1292,12 +1292,19 @@ interpretation Des_Rel_galcon:
 proof (unfold_locales, simp_all add: utp_order_def rel_hcond_def des_hcond_def)
   show "\<And>x. x is id"
     by (simp add: Healthy_def)
+next
   show "Rel \<in> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>id\<rbrakk>\<^sub>H"
     by (auto simp add: Rel_def rel_hcond_def Healthy_def)
+next
   show "Des \<in> \<lbrakk>id\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
     by (auto simp add: Des_def des_hcond_def Healthy_def H1_H2_commute H1_idem H2_idem)
+next
+  fix R :: "'a hrelation"
+  show "R \<sqsubseteq> Rel (Des R)"
+    by (simp add: Des_design Rel_design)
+next
   fix R :: "'a hrelation" and D :: "'a hrelation_d"
-  assume a: "D is \<^bold>H" "Des(R) is \<^bold>H"
+  assume a: "D is \<^bold>H"
   then obtain D\<^sub>1 D\<^sub>2 where D: "D = D\<^sub>1 \<turnstile>\<^sub>r D\<^sub>2"
     by (metis H1_H2_commute H1_H2_is_rdesign H1_idem Healthy_def')
   show "(Rel D \<sqsubseteq> R) = (D \<sqsubseteq> Des R)"
@@ -1317,9 +1324,9 @@ qed
 text {* From this interpretation we gain many Galois theorems. Some require simplification to
         remove superfluous assumptions. *}
 
-thm Des_Rel_galcon.deflation[simplified]
-thm Des_Rel_galcon.inflation
-thm Des_Rel_galcon.upper_comp[simplified]
-thm Des_Rel_galcon.lower_comp
+thm Des_Rel_coretract.deflation[simplified]
+thm Des_Rel_coretract.inflation
+thm Des_Rel_coretract.upper_comp[simplified]
+thm Des_Rel_coretract.lower_comp
 
 end

@@ -22,13 +22,15 @@ where "G \<circ>\<^sub>g F = \<lparr> orderA = orderA F, orderB = orderB G, lowe
 lemma funcset_pred: "(f \<in> A \<rightarrow> B) = (\<forall>x. x \<in> A \<longrightarrow> f x \<in> B)"
   by blast
 
-locale galois_connection =
+locale connection =
   fixes G (structure)
   assumes is_order_A: "partial_order \<X>"
   and is_order_B: "partial_order \<Y>"
   and lower_closure: "\<pi>\<^sup>* \<in> carrier \<X> \<rightarrow> carrier \<Y>"
   and upper_closure: "\<pi>\<^sub>* \<in> carrier \<Y> \<rightarrow> carrier \<X>"
-  and galois_property: "\<lbrakk>\<pi>\<^sup>* x \<in> carrier \<Y>; x \<in> carrier \<X>; y \<in> carrier \<Y>; \<pi>\<^sub>* y \<in> carrier \<X>\<rbrakk> \<Longrightarrow> \<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> y \<longleftrightarrow> x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* y"
+
+locale galois_connection = connection +
+  assumes galois_property: "\<lbrakk>x \<in> carrier \<X>; y \<in> carrier \<Y>\<rbrakk> \<Longrightarrow> \<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> y \<longleftrightarrow> x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* y"
 begin
 
   lemma is_weak_order_A: "weak_partial_order \<X>"
@@ -45,10 +47,10 @@ begin
     show ?thesis ..
   qed
 
-  lemma right: "\<lbrakk>\<pi>\<^sup>* x \<in> carrier \<Y>; x \<in> carrier \<X>; y \<in> carrier \<Y>; \<pi>\<^sub>* y \<in> carrier \<X>; \<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> y\<rbrakk> \<Longrightarrow> x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* y"
+  lemma right: "\<lbrakk>x \<in> carrier \<X>; y \<in> carrier \<Y>; \<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> y\<rbrakk> \<Longrightarrow> x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* y"
     by (metis galois_property)
 
-  lemma left: "\<lbrakk>\<pi>\<^sup>* x \<in> carrier \<Y>; x \<in> carrier \<X>; y \<in> carrier \<Y>; \<pi>\<^sub>* y \<in> carrier \<X>; x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* y\<rbrakk> \<Longrightarrow> \<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> y"
+  lemma left: "\<lbrakk>x \<in> carrier \<X>; y \<in> carrier \<Y>; x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* y\<rbrakk> \<Longrightarrow> \<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> y"
     by (metis galois_property)
 
   lemma deflation: "y \<in> carrier \<Y> \<Longrightarrow> \<pi>\<^sup>* (\<pi>\<^sub>* y) \<sqsubseteq>\<^bsub>\<Y>\<^esub> y"
@@ -125,7 +127,7 @@ end
 
 lemma dual_galois [simp]: " galois_connection \<lparr> orderA = inv_gorder B, orderB = inv_gorder A, lower = f, upper = g \<rparr> 
                           = galois_connection \<lparr> orderA = A, orderB = B, lower = g, upper = f \<rparr>"
-  by (auto simp add: galois_connection_def dual_order_iff)
+  by (auto simp add: galois_connection_def galois_connection_axioms_def connection_def dual_order_iff)
 
 definition lower_adjoint :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
   "lower_adjoint A B f \<equiv> \<exists>g. galois_connection \<lparr> orderA = A, orderB = B, lower = f, upper = g \<rparr>"
@@ -140,13 +142,13 @@ lemma upper_adjoint_dual [simp]: "upper_adjoint (inv_gorder A) (inv_gorder B) f 
   by (simp add: lower_adjoint_def upper_adjoint_def)
 
 lemma lower_type: "lower_adjoint A B f \<Longrightarrow> f \<in> carrier A \<rightarrow> carrier B"
-  by (auto simp add:lower_adjoint_def funcset_pred galois_connection_def)
+  by (auto simp add:lower_adjoint_def funcset_pred galois_connection_def galois_connection_axioms_def connection_def)
 
 lemma upper_type: "upper_adjoint A B g \<Longrightarrow> g \<in> carrier B \<rightarrow> carrier A"
-  by (auto simp add:upper_adjoint_def funcset_pred galois_connection_def)
+  by (auto simp add:upper_adjoint_def funcset_pred galois_connection_def galois_connection_axioms_def connection_def)
 
 lemma id_galois: "partial_order A \<Longrightarrow> galois_connection \<lparr> orderA = A, orderB = A, lower = id, upper = id \<rparr>"
-  by (simp add: galois_connection_def)
+  by (simp add: galois_connection_def galois_connection_axioms_def connection_def)
 
 (*
 lemma galois_connectionI:
@@ -175,5 +177,25 @@ lemma galois_connectionI':
   using assms
   by (unfold galois_connection_def,auto, (meson isotone_def typed_application weak_partial_order.le_trans)+)
 *)
+
+locale retract = galois_connection +
+  assumes retract_property: "x \<in> carrier \<X> \<Longrightarrow> \<pi>\<^sub>* (\<pi>\<^sup>* x) \<sqsubseteq>\<^bsub>\<X>\<^esub> x"
+begin
+  lemma retract_inverse: "x \<in> carrier \<X> \<Longrightarrow> \<pi>\<^sub>* (\<pi>\<^sup>* x) = x"
+    by (meson funcset_pred inflation is_order_A lower_closure partial_order.le_antisym retract_axioms retract_axioms_def retract_def upper_closure)
+
+  lemma retract_injective: "inj_on \<pi>\<^sup>* (carrier \<X>)"
+    by (metis inj_onI retract_inverse)
+end  
+
+locale coretract = galois_connection +
+  assumes coretract_property: "y \<in> carrier \<Y> \<Longrightarrow> y \<sqsubseteq>\<^bsub>\<Y>\<^esub> \<pi>\<^sup>* (\<pi>\<^sub>* y)"
+begin
+  lemma coretract_inverse: "y \<in> carrier \<Y> \<Longrightarrow> \<pi>\<^sup>* (\<pi>\<^sub>* y) = y"
+    by (meson coretract_axioms coretract_axioms_def coretract_def deflation funcset_pred is_order_B lower_closure partial_order.le_antisym upper_closure)
+ 
+  lemma retract_injective: "inj_on \<pi>\<^sub>* (carrier \<Y>)"
+    by (metis coretract_inverse inj_onI)
+end  
 
 end
