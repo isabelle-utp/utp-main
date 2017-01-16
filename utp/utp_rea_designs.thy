@@ -1096,7 +1096,7 @@ proof -
 qed
 
 lemma skip_rea_left_semi_unit:
-  assumes "P is CSP" "out\<alpha> \<sharp> pre\<^sub>R P"
+  assumes "P is CSP"
   shows "(P ;; II\<^sub>r) = RH ((\<not> (\<not> pre\<^sub>R P ;; R1 true)) \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P)"
 proof -
   have "(P ;; II\<^sub>r) = (RH (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P) ;; II\<^sub>r)"
@@ -1282,18 +1282,18 @@ proof (cases "A = {}")
   moreover have "Miracle is CSP"
     by (simp add: Miracle_def Healthy_def CSP_RH_design unrest)
   ultimately show ?thesis
-    by (simp add: reactive_sup_def)
+    by (simp add: rea_design_sup_def)
 next
   case False
   with USUP_CSP_closed assms show ?thesis
-    by (auto simp add: reactive_sup_def)
+    by (auto simp add: rea_design_sup_def)
 qed
 
 lemma CSP_sup_below:
   assumes "\<forall> Q \<in> A. Q is CSP" "P \<in> A"
   shows "\<Sqinter>\<^sub>R A \<sqsubseteq> P"
   using assms
-  by (auto simp add: reactive_sup_def Sup_upper)
+  by (auto simp add: rea_design_sup_def Sup_upper)
 
 lemma CSP_sup_upper_bound:
   assumes "\<forall> Q \<in> A. Q is CSP" "\<forall> Q \<in> A. P \<sqsubseteq> Q" "P is CSP"
@@ -1301,11 +1301,11 @@ lemma CSP_sup_upper_bound:
 proof (cases "A = {}")
   case True
   thus ?thesis
-    by (simp add: reactive_sup_def Miracle_greatest assms)
+    by (simp add: rea_design_sup_def Miracle_greatest assms)
 next
   case False
   thus ?thesis
-    by (simp add: reactive_sup_def cSup_least assms)
+    by (simp add: rea_design_sup_def cSup_least assms)
 qed
 
 lemma CSP_inf_closed:
@@ -1316,18 +1316,18 @@ proof (cases "A = {}")
   moreover have "Chaos is CSP"
     by (simp add: Chaos_def Healthy_def CSP_RH_design unrest)
   ultimately show ?thesis
-    by (simp add: reactive_inf_def)
+    by (simp add: rea_design_inf_def)
 next
   case False
   with UINF_CSP_closed assms show ?thesis
-    by (auto simp add: reactive_inf_def)
+    by (auto simp add: rea_design_inf_def)
 qed
 
 lemma CSP_inf_above:
   assumes "\<forall> Q \<in> A. Q is CSP" "P \<in> A"
   shows "P \<sqsubseteq> \<Squnion>\<^sub>R A"
   using assms
-  by (auto simp add: reactive_inf_def Inf_lower)
+  by (auto simp add: rea_design_inf_def Inf_lower)
 
 lemma CSP_inf_lower_bound:
   assumes "\<forall> P \<in> A. P is CSP" "\<forall> P \<in> A. P \<sqsubseteq> Q" "Q is CSP"
@@ -1335,11 +1335,11 @@ lemma CSP_inf_lower_bound:
 proof (cases "A = {}")
   case True
   thus ?thesis
-    by (simp add: reactive_inf_def Chaos_least assms)
+    by (simp add: rea_design_inf_def Chaos_least assms)
 next
   case False
   thus ?thesis
-    by (simp add: reactive_inf_def cInf_greatest assms)
+    by (simp add: rea_design_inf_def cInf_greatest assms)
 qed
 
 lemma assigns_lift_rea_unfold:
@@ -1479,16 +1479,16 @@ interpretation rdes_theory: utp_theory "TYPE(RDES \<times> ('t::ordered_cancel_m
 
 lemma Miracle_is_top: "\<top>\<^bsub>utp_order RDES\<^esub> = Miracle"
   apply (auto intro!:some_equality simp add: atop_def some_equality greatest_def utp_order_def rdes_hcond_def)
-  apply (metis CSP_sup_closed emptyE reactive_sup_def)
+  apply (metis CSP_sup_closed emptyE rea_design_sup_def)
   using Miracle_greatest apply blast
-  apply (metis CSP_sup_closed dual_order.antisym equals0D reactive_sup_def Miracle_greatest)
+  apply (metis CSP_sup_closed dual_order.antisym equals0D rea_design_sup_def Miracle_greatest)
 done
 
 lemma Chaos_is_bot: "\<bottom>\<^bsub>utp_order RDES\<^esub> = Chaos"
   apply (auto intro!:some_equality simp add: abottom_def some_equality least_def utp_order_def rdes_hcond_def)
-  apply (metis CSP_inf_closed emptyE reactive_inf_def)
+  apply (metis CSP_inf_closed emptyE rea_design_inf_def)
   using Chaos_least apply blast
-  apply (metis Chaos_least CSP_inf_closed dual_order.antisym equals0D reactive_inf_def)
+  apply (metis Chaos_least CSP_inf_closed dual_order.antisym equals0D rea_design_inf_def)
 done
 
 interpretation hrd_lattice: utp_theory_lattice "TYPE(RDES \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
