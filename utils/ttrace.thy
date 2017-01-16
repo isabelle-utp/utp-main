@@ -10,20 +10,31 @@ theory ttrace
   "~~/src/HOL/Multivariate_Analysis/Topology_Euclidean_Space"
 begin
 
+text {* In this section we describe our theory of timed traces, which will be used as the basis for
+  our hybrid relational calculus. We will define a type to represent contiguous functions with
+  a real domain, which will be used to represent trajectories, together with suitable algebraic
+  operators. We then specialise this to piecewise continuous and convergent functions, and show
+  closure of the algebraic operators. *}
+
+subsection {* Preliminaries *}
+
+text {* We first define two functions that a shift a partial function to the left and the right by
+  a value $n$, respectively, by a suitable minus or addition on the input. These functions will
+  allow us to define concatenation of two timed traces. *}
+
 abbreviation rshift :: "('a::ring \<rightharpoonup> 'b) \<Rightarrow> 'a \<Rightarrow> ('a \<rightharpoonup> 'b)" (infixr "\<ggreater>" 66) where
 "rshift f n \<equiv> (\<lambda> x. f (x - n))"
 
 abbreviation lshift :: "'a \<Rightarrow> ('a::ring \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" (infixl "\<lless>" 65) where
 "lshift n f \<equiv> (\<lambda> x. f (x + n))"
 
-lemma dom_shift_plus: 
-  fixes n :: "'a::ring"
-  shows "dom (n \<lless> f) = {x - n | x. x \<in> dom f}"
+text {* We can then show the following two results that give the domain of left and right shifted
+  functions. *}
+
+lemma dom_shift_plus: "dom (n \<lless> f) = {x - n | x. x \<in> dom f}"
   by (auto simp add: dom_def, force)
 
-lemma dom_shift_minus: 
-  fixes n :: "'a::ring"
-  shows "dom (f \<ggreater> n) = op + n ` dom f"
+lemma dom_shift_minus: "dom (f \<ggreater> n) = op + n ` dom f"
   by (simp add: dom_def image_Collect, force)
 
 lemma shift_minus_cong: "f \<ggreater> n = g \<ggreater> n \<Longrightarrow> f = g"
@@ -43,6 +54,10 @@ lemma atLeastLessThan_union_disj [simp]: "\<lbrakk> 0 \<le> i; i \<le> j \<rbrak
 definition Sup' :: "real set \<Rightarrow> real" where
 "Sup' A = (if (A = {}) then 0 else Sup A)"
 
+text {* We also define the @{term Sup} operator that gives the supremum of a set of positive real numbers.
+  Specifically, if the set is empty then it is 0, otherwise it is the built-in supremum for
+  real numbers. We can then prove some properties about such suprema. *}
+
 lemma Sup'_empty [simp]: "Sup' {} = 0"
   by (simp add: Sup'_def)
 
@@ -53,9 +68,21 @@ subsection {* Contiguous functions *}
 
 typedef 'a cgf = 
   "{f :: real \<rightharpoonup> 'a. (\<exists> i. i \<ge> 0 \<and> dom(f) = {0..<i})}"
-  by (rule_tac x="Map.empty" in exI, auto)
+proof
+  have "\<exists>i::real\<ge>0. {} = {0..<i}"
+    by (rule_tac x="0" in exI, auto)
+  thus "Map.empty \<in> {f. \<exists>i\<ge>0::real. dom f = {0..<i}}"
+    by (auto)
+qed
 
 setup_lifting type_definition_cgf
+
+text {* We begin our definition of contiguous functions by defining the core type, @{typ "'a cgf"}
+  using the Isabelle \textbf{typedef} command. Such a definition creates a new type from a subset
+  of an existing type, assuming the subset is non-empty. A contiguous function is partial function
+  from real number to some range type @{typ "'a"}, such that there is a non-negative @{term i} that gives
+  the "end point" of the contiguous function. Specifically, the domain is the right-open interval
+  @{term "{0..<i}"}, which in pure mathematics is usually written as [0,i). *}
 
 lift_definition cgf_apply :: "'a cgf \<Rightarrow> real \<Rightarrow> 'a" ("\<langle>_\<rangle>\<^sub>C") is "\<lambda> f x. the (f x)" .
 lift_definition cgf_dom :: "'a cgf \<Rightarrow> real set" ("dom\<^sub>C") is dom .
@@ -77,6 +104,16 @@ is "\<lambda> f i x. if (0 \<le> x \<and> x < i) then Some(the(f(x))) else None"
   apply (auto simp add: dom_if)
 done
 
+text {* We also create functions that allow various manipulations on contiguous functions by
+  lifting functions on the underlying partial function type. Function @{term cgf_apply}, also 
+  written as @{term "\<langle>f\<rangle>\<^sub>C"}, allows the application of a contiguous function to an input real number.
+  When the input is outside of the domain, and arbitrary value is returned. @{term cgf_dom} 
+  (@{term "dom\<^sub>C(f)"}) gives the domain of function, and @{term cgf_end} (@{term "end\<^sub>C(f)"}) returns 
+  the end point. @{term cgf_map} (@{term "map\<^sub>C f g"}) applies a function to every element
+  in the range, like a typical map function. Finally, @{term cgf_restrict} (@{term "f \<restriction>\<^sub>C i"}) restricts
+  the domain of a contiguous function to the interval [0,i), and @{term cgf_force} (@{term "f !\<^sub>C i"}) has
+  a similar effect but forces the function to get longer is necessary. *}
+
 instantiation cgf :: (type) zero
 begin
   lift_definition zero_cgf :: "'a cgf" is Map.empty by (auto)
@@ -85,28 +122,53 @@ end
 
 abbreviation (input) cgf_empty :: "'a cgf" ("[]\<^sub>C") where "[]\<^sub>C \<equiv> 0"
 
+text {* We will now define the algebraic operators of timed traces, with which we will be able to
+  instantiate our theory of generalised reactive designs, and thence produce timed reactive designs. We do
+  this by instantiating various type classes. The zero element is the empty contiguous function, obtained
+  by lifting the empty partial function, and demonstrating (as before) that this satisfies the invariant
+  of a contiguous function. We also give the zero element the syntax @{term "[]\<^sub>C"}. *}
+
 instantiation cgf :: (type) plus
 begin
 
 lift_definition plus_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cgf"
 is "\<lambda> f g. (g \<ggreater> Sup'(dom(f))) ++ f"
- apply (auto simp add: dom_shift_minus plus_image_atLeastLessThan)
- apply (rename_tac f g i j)
- apply (rule_tac x="i + j" in exI)
- apply (auto simp add: image_Collect)
-done
-
+proof -
+  fix f g :: "real \<rightharpoonup> 'a"
+  assume "\<exists>i\<ge>0. dom f = {0..<i}" "\<exists>j\<ge>0. dom g = {0..<j}"
+  then obtain i j where ij: "i \<ge> 0" "j \<ge> 0" "dom f = {0..<i}" "dom g = {0..<j}"
+    by auto
+  let ?k = "i + j"
+  from ij have "?k \<ge> 0"
+    by auto
+  moreover from ij have "dom ((g \<ggreater> Sup' (dom f)) ++ f) = {0..<?k}"
+    by (auto simp add: dom_shift_minus plus_image_atLeastLessThan)
+  ultimately show "\<exists>i\<ge>0. dom ((g \<ggreater> Sup' (dom f)) ++ f) = {0..<i}"
+    by force
+qed
 instance ..
 
 end
 
-abbreviation (input) cgf_cat :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cgf" (infixl "@\<^sub>C" 85) where "xs @\<^sub>C ys \<equiv> xs + ys"
+abbreviation (input) cgf_cat :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cgf" (infixl "@\<^sub>C" 85) 
+where "xs @\<^sub>C ys \<equiv> xs + ys"
+
+text {* We next define the concatenation operator, which is our algebra is a plus operator. The 
+  concatentation of functions, @{term "f @\<^sub>C g"}, takes @{term g}, shifts it to the right by
+  the length of @{term f}, and finally unions this with @{term f} using the partial function
+  operator @{term "op ++"}. It is necessary to show that this definition is closed under contiguous functions,
+  i.e. we must demonstrate an $k$ such that the domain of @{term "f @\<^sub>C g"} is $[0..k)$, which we do
+  using an Isar proof. Since we're concatentating two functions of length $i$ and $j$, respectively,
+  then their combined length will be $i + j$, which our proof confirms. *}
 
 lemma cgf_cat_left_unit [simp]: "[]\<^sub>C @\<^sub>C t = t"
   by (transfer, simp)
 
 lemma cgf_cat_right_unit [simp]: "t @\<^sub>C []\<^sub>C = t"
   by (transfer, auto)
+
+text {* We can then show that the concatenation operator has @{term "[]\<^sub>C"} as its left and right
+  zeros. *}
 
 lemma cgf_eqI: "\<lbrakk> end\<^sub>C f = end\<^sub>C g; \<forall> x<end\<^sub>C g. \<langle>f\<rangle>\<^sub>C x = \<langle>g\<rangle>\<^sub>C x \<rbrakk> \<Longrightarrow> f = g"
   apply (transfer)
@@ -121,6 +183,10 @@ lemma cgf_eqI: "\<lbrakk> end\<^sub>C f = end\<^sub>C g; \<forall> x<end\<^sub>C
   apply (auto)
 done
 
+text {* Lemma @{thm cgf_eqI} is an extensionality principle for contiguous functions. If two
+  $f$ and $g$ have the same end points, and they agree on every value before these end points
+  then the two functions are the same. *}
+
 lemma cgf_end_ge_0 [simp]: "end\<^sub>C(f) \<ge> 0"
   by (transfer, auto simp add: less_eq_real_def)
 
@@ -131,11 +197,12 @@ lemma cgf_end_0_iff: "end\<^sub>C(f) = 0 \<longleftrightarrow> f = []\<^sub>C"
   by (transfer, force simp add: antisym_conv2)
 
 lemma cgf_end_cat: "end\<^sub>C(f @\<^sub>C g) = end\<^sub>C(f)+end\<^sub>C(g)"
-  apply (case_tac "f = []\<^sub>C")
-  apply (simp)
-  apply (transfer)
-  apply (auto simp add: dom_shift_minus plus_image_atLeastLessThan)
-done
+  by (transfer, auto simp add: dom_shift_minus plus_image_atLeastLessThan)
+
+text {* Next we demonstrate some properties about the @{term end\<^sub>C} function. It always returns
+  a positive value (@{thm cgf_end_ge_0}), the end of the empty function is 0 (@{thm cgf_end_empty}),
+  if a function has 0 as its end then it is equal to @{term "[]\<^sub>C"} (@{thm cgf_end_0_iff}), and the
+  end of a concatenation is the sum of the two ends (@{thm cgf_end_cat}). *}
 
 lemma cgf_cat_ext_first: 
   assumes "x < end\<^sub>C f" 
@@ -145,31 +212,53 @@ proof (cases "f = []\<^sub>C")
     by (transfer, auto, metis atLeastLessThan_iff domIff less_le_not_le)
 next
   case False with assms show ?thesis
-    apply (transfer, auto, subst map_add_comm)
-    apply (auto)
-    apply (metis atLeastLessThan_iff domI less_eq_real_def less_iff_diff_less_0 not_less_iff_gr_or_eq)
-    apply (metis atLeastLessThan_iff domIff less_iff_diff_less_0 less_le_not_le map_add_def option.case(1))
-  done
-       
+    by (transfer, auto simp add: map_add_def option.case_eq_if)
+       (metis atLeastLessThan_iff domIff less_iff_diff_less_0 not_less)
 qed
 
 lemma cgf_cat_ext_last: "x \<ge> end\<^sub>C f \<Longrightarrow> \<langle>f @\<^sub>C g\<rangle>\<^sub>C x = \<langle>g\<rangle>\<^sub>C (x - end\<^sub>C f)"
   by (transfer, auto simp add: map_add_dom_app_simps(3))
 
+text {* Lemmas @{thm cgf_cat_ext_first} and @{thm cgf_cat_ext_last} show the effect of applying 
+  an input $x$ to an appended trace. If $x$ is less than the end of the first trace, then this 
+  is equivalent to applying it to the first trace. Otherwise, if $x$ is greater than or equal
+  to the end of the first, then the result is to apply to the second, but with the input shifted. *}
+
 lemma cgf_zero_sum_left:
   "f @\<^sub>C g = []\<^sub>C \<Longrightarrow> f = []\<^sub>C"
   by (metis cgf_cat_right_unit cgf_end_0_iff cgf_end_cat cgf_end_ge_0 dual_order.antisym le_add_same_cancel2)
 
-lemma cgf_cat_left_imp_eq: "f @\<^sub>C g = f @\<^sub>C h \<Longrightarrow> g = h"
-  apply (transfer, auto)
-  apply (rename_tac f g h i j k)
-  apply (case_tac "i > 0", auto)
-  apply (drule map_plus_eq_left)
-  apply (simp add: restrict_map_neg_disj)
-  apply (subgoal_tac "dom(g \<ggreater> i) \<inter> {0..<i} = {}")
-  apply (subgoal_tac "dom(h \<ggreater> i) \<inter> {0..<i} = {}")
-  apply (auto dest: shift_minus_cong simp add: restrict_map_neg_disj dom_shift_minus)
-done
+text {* The next lemma tells us that if two functions concatenate to become the empty function then the 
+  first must be empty. Now by the fact that @{term "[]\<^sub>C"} is a left unit we can also show that
+  the second must also be empty. *}
+
+lemma cgf_cat_left_imp_eq: 
+  assumes "f @\<^sub>C g = f @\<^sub>C h"
+  shows "g = h"
+using assms proof (transfer)
+  fix f g h :: "real \<rightharpoonup> 'a"
+  assume a: 
+    "\<exists>i\<ge>0. dom f = {0..<i}" "\<exists>i\<ge>0. dom g = {0..<i}" "\<exists>i\<ge>0. dom h = {0..<i}"
+    "(g \<ggreater> Sup' (dom f)) ++ f = (h \<ggreater> Sup' (dom f)) ++ f"
+  then obtain i j k where ijk: 
+    "i \<ge> 0" "j \<ge> 0" "k \<ge> 0" "dom f = {0..<i}" "dom g = {0..<j}" "dom h = {0..<k}"
+    by auto
+  show "g = h"
+  proof (cases "i > 0")
+    case False with ijk a(4) show ?thesis
+      by (auto)
+  next
+    case True 
+    with ijk have "dom(g \<ggreater> i) \<inter> {0..<i} = {}"
+      by (auto simp add: dom_shift_minus)
+    moreover from True ijk have "dom(h \<ggreater> i) \<inter> {0..<i} = {}"
+      by (auto simp add: dom_shift_minus)
+    ultimately show ?thesis using True ijk a(4)
+      by (auto dest!: map_plus_eq_left shift_minus_cong simp add: restrict_map_neg_disj dom_shift_minus)
+  qed
+qed
+
+text {* Lemma @{thm cgf_cat_left_imp_eq} shows that concatenation is cancellative in its first argument. *}
 
 lemma cgf_cat_right_imp_eq: 
   assumes "f @\<^sub>C h = g @\<^sub>C h"
@@ -297,7 +386,7 @@ lemma cgf_end_restrict [simp]: "\<lbrakk> 0 \<le> n; n \<le> end\<^sub>C f \<rbr
 
 lemma cgf_end_force [simp]: "n \<ge> 0 \<Longrightarrow> end\<^sub>C (f !\<^sub>C n) = n"
   apply (transfer, auto simp add: dom_if)
-  apply (rename_tac n f i x)  
+  apply (rename_tac n f i)  
   apply (subgoal_tac "{x. 0 \<le> x \<and> x < n} = {0..<n}")
   apply (auto)
 done

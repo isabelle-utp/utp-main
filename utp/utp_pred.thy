@@ -319,6 +319,9 @@ lemma true_alt_def: "true = \<guillemotleft>True\<guillemotright>"
 lemma false_alt_def: "false = \<guillemotleft>False\<guillemotright>"
   by (pred_auto)
 
+declare true_alt_def[THEN sym,lit_simps]
+declare false_alt_def[THEN sym,lit_simps]
+
 subsection {* Unrestriction Laws *}
 
 lemma unrest_true [unrest]: "x \<sharp> true"
@@ -884,5 +887,6 @@ lemma shEx_lift_conj_1 [uquant_lift]:
 
 lemma shEx_lift_conj_2 [uquant_lift]:
   "(P \<and> (\<^bold>\<exists> x \<bullet> Q(x))) = (\<^bold>\<exists> x \<bullet> P \<and> Q(x))"
-  by pred_auto
+  by pred_auto  
+
 end

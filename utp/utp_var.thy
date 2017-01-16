@@ -4,6 +4,7 @@ theory utp_var
 imports 
   "../contrib/Kleene_Algebra/Quantales" 
   "../contrib/HOL-Algebra2/Complete_Lattice"
+  "../contrib/HOL-Algebra2/Galois_Connection"
   "../utils/cardinals"
   "../utils/Continuum"
   "../utils/finite_bijection"

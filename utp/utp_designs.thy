@@ -921,6 +921,8 @@ qed
 
 abbreviation "H1_H2 P \<equiv> H1 (H2 P)"
 
+notation H1_H2 ("\<^bold>H")
+
 lemma design_is_H1_H2:
   "\<lbrakk> $ok\<acute> \<sharp> P; $ok\<acute> \<sharp> Q \<rbrakk> \<Longrightarrow> (P \<turnstile> Q) is H1_H2"
   by (simp add: H1_design H2_design Healthy_def')
@@ -1265,4 +1267,59 @@ abbreviation design_lfp :: "_ \<Rightarrow> _" ("\<mu>\<^sub>D") where
 
 abbreviation design_gfp :: "_ \<Rightarrow> _" ("\<nu>\<^sub>D") where
 "\<nu>\<^sub>D F \<equiv> \<nu>\<^bsub>utp_order DES\<^esub> F"
+
+text {* Example Galois connection between designs and relations. Based on Jim's example in COMPASS
+        deliverable D23.5. *}
+
+definition [upred_defs]: "Des(R) = \<^bold>H(\<lceil>R\<rceil>\<^sub>D \<and> $ok\<acute>)"
+definition [upred_defs]: "Rel(D) = \<lfloor>D\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>\<rfloor>\<^sub>D"
+
+lemma Des_design: "Des(R) = true \<turnstile>\<^sub>r R"
+  by (rel_auto)
+
+lemma Rel_design: "Rel(P \<turnstile>\<^sub>r Q) = (P \<Rightarrow> Q)"
+  by (rel_auto)
+
+interpretation Des_Rel_galcon:
+  galois_connection "\<lparr> orderA = utp_order DES, orderB = utp_order REL, lower = Rel, upper = Des \<rparr>"
+  rewrites
+    "\<And> x. x \<in> carrier \<X>\<^bsub>\<lparr>orderA = utp_order DES, orderB = utp_order REL, lower = Rel, upper = Des\<rparr>\<^esub> = (x is \<^bold>H)" and
+    "\<And> x. x \<in> carrier \<Y>\<^bsub>\<lparr>orderA = utp_order DES, orderB = utp_order REL, lower = Rel, upper = Des\<rparr>\<^esub> = True" and
+    "\<pi>\<^sub>*\<^bsub>\<lparr>orderA = utp_order DES, orderB = utp_order REL, lower = Rel, upper = Des\<rparr>\<^esub> = Des" and
+    "\<pi>\<^sup>*\<^bsub>\<lparr>orderA = utp_order DES, orderB = utp_order REL, lower = Rel, upper = Des\<rparr>\<^esub> = Rel" and
+    "le \<X>\<^bsub>\<lparr>orderA = utp_order DES, orderB = utp_order REL, lower = Rel, upper = Des\<rparr>\<^esub> = op \<sqsubseteq>" and
+    "le \<Y>\<^bsub>\<lparr>orderA = utp_order DES, orderB = utp_order REL, lower = Rel, upper = Des\<rparr>\<^esub> = op \<sqsubseteq>"
+proof (unfold_locales, simp_all add: utp_order_def rel_hcond_def des_hcond_def)
+  show "\<And>x. x is id"
+    by (simp add: Healthy_def)
+  show "Rel \<in> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>id\<rbrakk>\<^sub>H"
+    by (auto simp add: Rel_def rel_hcond_def Healthy_def)
+  show "Des \<in> \<lbrakk>id\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
+    by (auto simp add: Des_def des_hcond_def Healthy_def H1_H2_commute H1_idem H2_idem)
+  fix R :: "'a hrelation" and D :: "'a hrelation_d"
+  assume a: "D is \<^bold>H" "Des(R) is \<^bold>H"
+  then obtain D\<^sub>1 D\<^sub>2 where D: "D = D\<^sub>1 \<turnstile>\<^sub>r D\<^sub>2"
+    by (metis H1_H2_commute H1_H2_is_rdesign H1_idem Healthy_def')
+  show "(Rel D \<sqsubseteq> R) = (D \<sqsubseteq> Des R)"
+  proof -
+    have "(D \<sqsubseteq> Des R) = (D\<^sub>1 \<turnstile>\<^sub>r D\<^sub>2 \<sqsubseteq> true \<turnstile>\<^sub>r R)"
+      by (simp add: D Des_design)
+    also have "... = `D\<^sub>1 \<and> R \<Rightarrow> D\<^sub>2`"
+      by (simp add: rdesign_refinement)
+    also have "... = ((D\<^sub>1 \<Rightarrow> D\<^sub>2) \<sqsubseteq> R)"
+      by (rel_auto)
+    also have "... = (Rel D \<sqsubseteq> R)"
+      by (simp add: D Rel_design)
+    finally show ?thesis ..
+  qed
+qed
+
+text {* From this interpretation we gain many Galois theorems. Some require simplification to
+        remove superfluous assumptions. *}
+
+thm Des_Rel_galcon.deflation[simplified]
+thm Des_Rel_galcon.inflation
+thm Des_Rel_galcon.upper_comp[simplified]
+thm Des_Rel_galcon.lower_comp
+
 end
