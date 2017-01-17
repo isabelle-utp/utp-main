@@ -1,5 +1,5 @@
 theory Galois_Connection
-  imports Lattice
+  imports Complete_Lattice
 begin
 
 section {* Galois connections *}
@@ -18,6 +18,9 @@ abbreviation "inv_galcon G \<equiv> \<lparr> orderA = inv_gorder \<Y>\<^bsub>G\<
 
 definition comp_galcon :: "('b, 'c) galois \<Rightarrow> ('a, 'b) galois \<Rightarrow> ('a, 'c) galois" (infixr "\<circ>\<^sub>g" 85)
 where "G \<circ>\<^sub>g F = \<lparr> orderA = orderA F, orderB = orderB G, lower = lower G \<circ> lower F, upper = upper F \<circ> upper G \<rparr>"
+
+definition id_galcon :: "'a gorder \<Rightarrow> ('a, 'a) galois" ("I\<^sub>g") where
+"I\<^sub>g(A) = \<lparr> orderA = A, orderB = A, lower = id, upper = id \<rparr>"
 
 lemma funcset_pred: "(f \<in> A \<rightarrow> B) = (\<forall>x. x \<in> A \<longrightarrow> f x \<in> B)"
   by blast
@@ -123,6 +126,84 @@ begin
   lemma semi_inverse2: "x \<in> carrier \<Y> \<Longrightarrow> \<pi>\<^sub>* x = \<pi>\<^sub>* (\<pi>\<^sup>* (\<pi>\<^sub>* x))"
     by (metis upper_comp)
 
+  theorem lower_by_complete_lattice:
+    assumes "complete_lattice \<Y>" "x \<in> carrier \<X>"
+    shows "\<pi>\<^sup>*(x) = \<Sqinter>\<^bsub>\<Y>\<^esub> { y \<in> carrier \<Y>. x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>*(y) }"
+  proof -
+    interpret Y: complete_lattice \<Y>
+      by (simp add: assms)
+
+    show ?thesis
+    proof (rule Y.le_antisym)
+      show x: "\<pi>\<^sup>* x \<in> carrier \<Y>"
+        using assms(2) lower_closure by blast
+      show "\<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> \<Sqinter>\<^bsub>\<Y>\<^esub>{y \<in> carrier \<Y>. x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* y}"
+      proof (rule Y.weak.inf_greatest)
+        show "{y \<in> carrier \<Y>. x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* y} \<subseteq> carrier \<Y>"
+          by auto
+        show "\<pi>\<^sup>* x \<in> carrier \<Y>" by (fact x)
+        fix z
+        assume "z \<in> {y \<in> carrier \<Y>. x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* y}" 
+        thus "\<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> z"
+          using assms(2) left by auto
+      qed
+      show "\<Sqinter>\<^bsub>\<Y>\<^esub>{y \<in> carrier \<Y>. x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* y} \<sqsubseteq>\<^bsub>\<Y>\<^esub> \<pi>\<^sup>* x"
+      proof (rule Y.weak.inf_lower)
+        show "{y \<in> carrier \<Y>. x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* y} \<subseteq> carrier \<Y>"
+          by auto
+        show "\<pi>\<^sup>* x \<in> {y \<in> carrier \<Y>. x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* y}"
+        proof (auto)
+          show "\<pi>\<^sup>* x \<in> carrier \<Y>" by (fact x)
+          show "x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* (\<pi>\<^sup>* x)"
+            using assms(2) inflation by blast
+        qed
+      qed
+      show "\<Sqinter>\<^bsub>\<Y>\<^esub>{y \<in> carrier \<Y>. x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* y} \<in> carrier \<Y>"
+       by (auto intro: Y.weak.inf_closed)
+    qed
+  qed
+
+  theorem upper_by_complete_lattice:
+    assumes "complete_lattice \<X>" "y \<in> carrier \<Y>"
+    shows "\<pi>\<^sub>*(y) = \<Squnion>\<^bsub>\<X>\<^esub> { x \<in> carrier \<X>. \<pi>\<^sup>*(x) \<sqsubseteq>\<^bsub>\<Y>\<^esub> y }"
+  proof -
+    interpret X: complete_lattice \<X>
+      by (simp add: assms)
+    show ?thesis
+    proof (rule X.le_antisym)
+      show y: "\<pi>\<^sub>* y \<in> carrier \<X>"
+        using assms(2) upper_closure by blast
+      show "\<pi>\<^sub>* y \<sqsubseteq>\<^bsub>\<X>\<^esub> \<Squnion>\<^bsub>\<X>\<^esub>{x \<in> carrier \<X>. \<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> y}"
+      proof (rule X.weak.sup_upper)
+        show "{x \<in> carrier \<X>. \<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> y} \<subseteq> carrier \<X>"
+          by auto
+        show "\<pi>\<^sub>* y \<in> {x \<in> carrier \<X>. \<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> y}"
+        proof (auto)
+          show "\<pi>\<^sub>* y \<in> carrier \<X>" by (fact y)
+          show "\<pi>\<^sup>* (\<pi>\<^sub>* y) \<sqsubseteq>\<^bsub>\<Y>\<^esub> y"
+            by (simp add: assms(2) deflation)
+        qed
+      qed
+      show "\<Squnion>\<^bsub>\<X>\<^esub>{x \<in> carrier \<X>. \<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> y} \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* y"
+      proof (rule X.weak.sup_least)
+        show "{x \<in> carrier \<X>. \<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> y} \<subseteq> carrier \<X>"
+          by auto
+        show "\<pi>\<^sub>* y \<in> carrier \<X>" by (fact y)
+        fix z
+        assume "z \<in> {x \<in> carrier \<X>. \<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> y}" 
+        thus "z \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* y"
+          by (simp add: assms(2) right)
+      qed
+      show "\<Squnion>\<^bsub>\<X>\<^esub>{x \<in> carrier \<X>. \<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> y} \<in> carrier \<X>"
+       by (auto intro: X.weak.sup_closed)
+    qed
+  qed
+
+  lemma 
+    assumes "complete_lattice \<X>" "complete_lattice \<Y>" "X \<subseteq> carrier \<X>"
+    shows "\<pi>\<^sup>*(\<Squnion>\<^bsub>\<X>\<^esub> X) = \<Squnion>\<^bsub>\<Y>\<^esub> {\<pi>\<^sup>*(x) | x. x \<in> X}"
+    oops (* TODO *)
+
 end
 
 lemma dual_galois [simp]: " galois_connection \<lparr> orderA = inv_gorder B, orderB = inv_gorder A, lower = f, upper = g \<rparr> 
@@ -147,8 +228,8 @@ lemma lower_type: "lower_adjoint A B f \<Longrightarrow> f \<in> carrier A \<rig
 lemma upper_type: "upper_adjoint A B g \<Longrightarrow> g \<in> carrier B \<rightarrow> carrier A"
   by (auto simp add:upper_adjoint_def funcset_pred galois_connection_def galois_connection_axioms_def connection_def)
 
-lemma id_galois: "partial_order A \<Longrightarrow> galois_connection \<lparr> orderA = A, orderB = A, lower = id, upper = id \<rparr>"
-  by (simp add: galois_connection_def galois_connection_axioms_def connection_def)
+lemma id_galois: "partial_order A \<Longrightarrow> galois_connection (I\<^sub>g(A))"
+  by (simp add: id_galcon_def galois_connection_def galois_connection_axioms_def connection_def)
 
 lemma comp_galcon_closed:
   assumes "galois_connection G" "galois_connection F" "\<Y>\<^bsub>F\<^esub> = \<X>\<^bsub>G\<^esub>"
@@ -174,6 +255,12 @@ proof -
   ultimately show ?thesis
     by (simp add: comp_galcon_def galois_connection_def galois_connection_axioms_def connection_def)
 qed
+
+lemma comp_galcon_right_unit [simp]: "F \<circ>\<^sub>g I\<^sub>g(\<X>\<^bsub>F\<^esub>) = F"
+  by (simp add: comp_galcon_def id_galcon_def)
+
+lemma comp_galcon_left_unit [simp]: "I\<^sub>g(\<Y>\<^bsub>F\<^esub>) \<circ>\<^sub>g F = F"
+  by (simp add: comp_galcon_def id_galcon_def)
 
 (*
 lemma galois_connectionI:
