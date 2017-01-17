@@ -437,6 +437,210 @@ lemma GFP_id:
 
 end
 
+lemma equivalence_subset:
+  assumes "equivalence L" "A \<subseteq> carrier L"
+  shows "equivalence (L\<lparr> carrier := A \<rparr>)"
+proof -
+  interpret L: equivalence L
+    by (simp add: assms)
+  show ?thesis
+    by (unfold_locales, simp_all add: L.sym assms rev_subsetD, meson L.trans assms(2) contra_subsetD)
+qed
+
+lemma weak_partial_order_subset:
+  assumes "weak_partial_order L" "A \<subseteq> carrier L"
+  shows "weak_partial_order (L\<lparr> carrier := A \<rparr>)"
+proof -
+  interpret L: weak_partial_order L
+    by (simp add: assms)
+  interpret equivalence "(L\<lparr> carrier := A \<rparr>)"
+    by (simp add: L.equivalence_axioms assms(2) equivalence_subset)
+  show ?thesis
+    apply (unfold_locales, simp_all)
+    using assms(2) apply auto[1]
+    using assms(2) apply auto[1]
+    apply (meson L.le_trans assms(2) contra_subsetD)
+    apply (meson L.le_cong assms(2) subsetCE)
+  done
+qed
+
+context weak_complete_lattice
+begin
+
+  lemma at_least_at_most_upper [dest]:
+    "x \<in> \<lbrace>a..b\<rbrace> \<Longrightarrow> x \<sqsubseteq> b"
+    by (simp add: at_least_at_most_def)
+
+  lemma at_least_at_most_lower [dest]:
+    "x \<in> \<lbrace>a..b\<rbrace> \<Longrightarrow> a \<sqsubseteq> x"
+    by (simp add: at_least_at_most_def)
+
+  lemma at_least_at_most_closed: "\<lbrace>a..b\<rbrace> \<subseteq> carrier L"
+    by (auto simp add: at_least_at_most_def)
+
+  lemma at_least_at_most_member [intro]: 
+    "\<lbrakk> x \<in> carrier L; a \<sqsubseteq> x; x \<sqsubseteq> b \<rbrakk> \<Longrightarrow> x \<in> \<lbrace>a..b\<rbrace>"
+    by (simp add: at_least_at_most_def)
+
+  lemma at_least_at_most_Sup:
+    "\<lbrakk> a \<in> carrier L; b \<in> carrier L; a \<sqsubseteq> b \<rbrakk> \<Longrightarrow> \<Squnion> \<lbrace>a..b\<rbrace> .= b"
+    apply (rule weak_le_antisym)
+    apply (rule sup_least)
+    apply (auto simp add: at_least_at_most_closed)
+    apply (rule sup_upper)
+    apply (auto simp add: at_least_at_most_closed)
+  done
+
+  lemma at_least_at_most_Inf:
+    "\<lbrakk> a \<in> carrier L; b \<in> carrier L; a \<sqsubseteq> b \<rbrakk> \<Longrightarrow> \<Sqinter> \<lbrace>a..b\<rbrace> .= a"
+    apply (rule weak_le_antisym)
+    apply (rule inf_lower)
+    apply (auto simp add: at_least_at_most_closed)
+    apply (rule inf_greatest)
+    apply (auto simp add: at_least_at_most_closed)
+  done
+
+end
+
+lemma weak_complete_lattice_interval:
+  assumes "weak_complete_lattice L" "a \<in> carrier L" "b \<in> carrier L" "a \<sqsubseteq>\<^bsub>L\<^esub> b"
+  shows "weak_complete_lattice (L \<lparr> carrier := \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub> \<rparr>)"
+proof -
+  interpret L: weak_complete_lattice L
+    by (simp add: assms)
+  interpret weak_partial_order "L \<lparr> carrier := \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub> \<rparr>"
+  proof -
+    have "\<lbrace>a..b\<rbrace>\<^bsub>L\<^esub> \<subseteq> carrier L"
+      by (auto, simp add: at_least_at_most_def)
+    thus "weak_partial_order (L\<lparr>carrier := \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>\<rparr>)"
+      by (simp add: L.weak_partial_order_axioms weak_partial_order_subset)
+  qed
+
+  show ?thesis
+  proof
+    fix A
+    assume a: "A \<subseteq> carrier (L\<lparr>carrier := \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>\<rparr>)"
+    show "\<exists>s. is_lub (L\<lparr>carrier := \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>\<rparr>) s A"
+    proof (cases "A = {}")
+      case True
+      thus ?thesis
+        by (rule_tac x="a" in exI, auto simp add: least_def assms)
+    next
+      case False
+      show ?thesis
+      proof (rule_tac x="\<Squnion>\<^bsub>L\<^esub> A" in exI, rule least_UpperI, simp_all)
+        show "\<And> x. x \<in> A \<Longrightarrow> x \<sqsubseteq>\<^bsub>L\<^esub> \<Squnion>\<^bsub>L\<^esub>A"
+          using a by (auto intro: L.sup_upper, meson L.at_least_at_most_closed L.sup_upper subset_trans)
+        show "\<And>y. y \<in> Upper (L\<lparr>carrier := \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>\<rparr>) A \<Longrightarrow> \<Squnion>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> y"
+          using a L.at_least_at_most_closed by (rule_tac L.sup_least, auto simp add: Upper_def)
+        from a show "A \<subseteq> \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>"
+          by (auto)
+        from a show "\<Squnion>\<^bsub>L\<^esub>A \<in> \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>"
+          apply (rule_tac L.at_least_at_most_member)
+          apply (auto)
+          apply (meson L.at_least_at_most_closed L.sup_closed subset_trans)
+          apply (meson False L.at_least_at_most_closed L.le_trans L.sup_closed L.sup_upper L.weak_complete_lattice_axioms assms(2) ex_in_conv set_rev_mp subset_trans weak_complete_lattice.at_least_at_most_lower)
+          apply (rule L.sup_least)
+          apply (auto simp add: assms)
+          using L.at_least_at_most_closed apply blast
+        done
+      qed
+    qed
+    show "\<exists>s. is_glb (L\<lparr>carrier := \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>\<rparr>) s A"
+    proof (cases "A = {}")
+      case True
+      thus ?thesis
+        by (rule_tac x="b" in exI, auto simp add: greatest_def assms)
+    next
+      case False
+      show ?thesis
+      proof (rule_tac x="\<Sqinter>\<^bsub>L\<^esub> A" in exI, rule greatest_LowerI, simp_all)
+        show "\<And>x. x \<in> A \<Longrightarrow> \<Sqinter>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> x"
+          using a L.at_least_at_most_closed by (auto intro!: L.inf_lower)
+        show "\<And>y. y \<in> Lower (L\<lparr>carrier := \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>\<rparr>) A \<Longrightarrow> y \<sqsubseteq>\<^bsub>L\<^esub> \<Sqinter>\<^bsub>L\<^esub>A"
+           using a L.at_least_at_most_closed by (rule_tac L.inf_greatest, auto simp add: Lower_def)
+        from a show "A \<subseteq> \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>"
+          by (auto)
+        from a show "\<Sqinter>\<^bsub>L\<^esub>A \<in> \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>"
+          apply (rule_tac L.at_least_at_most_member)
+          apply (auto)
+          apply (meson L.at_least_at_most_closed L.inf_closed subset_trans)
+          apply (meson L.at_least_at_most_closed L.at_least_at_most_lower L.inf_greatest assms(2) set_rev_mp subset_trans)
+          apply (meson False L.at_least_at_most_closed L.inf_closed L.inf_lower L.le_trans L.weak_complete_lattice_axioms assms(3) ex_in_conv rev_subsetD subset_trans weak_complete_lattice.at_least_at_most_upper)          
+        done
+      qed
+    qed
+  qed
+qed
+
+theorem Knaster_Tarski:
+  assumes "weak_complete_lattice L" "f \<in> carrier L \<rightarrow> carrier L" "isotone L L f"
+  shows "weak_complete_lattice (L\<lparr> carrier := {x \<in> carrier L. f x .=\<^bsub>L\<^esub> x} \<rparr>)"
+  (is "weak_complete_lattice ?L'")
+proof -
+  interpret L: weak_complete_lattice L
+    by (simp add: assms)
+
+  interpret weak_partial_order ?L'
+  proof -
+    have "{x \<in> carrier L. f x .=\<^bsub>L\<^esub> x} \<subseteq> carrier L"
+      by (auto)
+    thus "weak_partial_order ?L'"
+      by (simp add: L.weak_partial_order_axioms weak_partial_order_subset)
+  qed
+
+  have lub: "is_lub ?L' (\<nu>\<^bsub>L\<^esub> f) {x \<in> carrier L. f x .=\<^bsub>L\<^esub> x}"
+    apply (rule least_UpperI, auto simp add: Upper_def)
+    apply (simp add: L.GFP_upperbound L.ftype_carrier L.sym assms(2))
+    apply (meson L.GFP_closed L.GFP_lemma2 L.GFP_lemma3 L.ftype_carrier L.weak_le_antisym assms(2) assms(3))
+    apply (simp add: L.GFP_weak_unfold L.ftype_carrier L.sym assms(2) assms(3))
+  done
+
+  have glb: "is_glb ?L' (\<mu>\<^bsub>L\<^esub> f) {x \<in> carrier L. f x .=\<^bsub>L\<^esub> x}"
+    apply (rule greatest_LowerI, auto simp add: Lower_def)
+    apply (simp add: L.LFP_lowerbound L.ftype_carrier assms(2))
+    using L.LFP_closed L.LFP_lemma2 L.LFP_lemma3 L.ftype_carrier L.weak_le_antisym assms(2) assms(3) apply presburger
+    apply (simp add: L.LFP_weak_unfold L.ftype_carrier L.sym assms(2) assms(3))
+  done
+
+
+  show ?thesis
+  proof (unfold_locales, simp_all)
+    fix A
+    assume a: "A \<subseteq> {x \<in> carrier L. f x .=\<^bsub>L\<^esub> x}"
+    with assms(2) have AL: "A \<subseteq> carrier L"
+      by (auto)
+    let ?w = "\<Squnion>\<^bsub>L\<^esub> A"
+    have "f ` \<lbrace>?w..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub> \<subseteq> \<lbrace>?w..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub>"
+    proof (auto simp add: at_least_at_most_def)
+      fix x
+      assume b: "x \<in> carrier L" "\<Squnion>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> x"
+      from b show fx: "f x \<in> carrier L"
+        using assms(2) by blast
+      show "\<Squnion>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> f x"
+      proof -
+        from a have "?w \<sqsubseteq>\<^bsub>L\<^esub> f ?w"
+        proof (rule_tac L.sup_least, auto simp add: AL L.ftype_carrier assms(2))
+          fix y
+          assume c: "y \<in> A" "A \<subseteq> {x \<in> carrier L. f x .=\<^bsub>L\<^esub> x}" 
+          hence "y .=\<^bsub>L\<^esub> f y"
+            by (metis (mono_tags, lifting) L.equivalence_axioms L.ftype_carrier assms(2) equivalence.sym mem_Collect_eq set_rev_mp)
+          moreover have "y \<sqsubseteq>\<^bsub>L\<^esub> \<Squnion>\<^bsub>L\<^esub>A"
+            by (simp add: AL L.sup_upper c(1))
+          ultimately show "y \<sqsubseteq>\<^bsub>L\<^esub> f (\<Squnion>\<^bsub>L\<^esub>A)"
+            by (meson AL L.ftype_carrier L.refl L.weak_complete_lattice_axioms assms(2) assms(3) c(1) isotone_def rev_subsetD weak_complete_lattice.sup_closed weak_partial_order.le_cong)
+        qed
+        thus ?thesis
+          by (meson AL L.ftype_carrier L.le_trans L.sup_closed assms(2) assms(3) b(1) b(2) use_iso2)
+     qed
+   
+     show "f x \<sqsubseteq>\<^bsub>L\<^esub> \<top>\<^bsub>L\<^esub>"
+       by (simp add: fx)
+   qed
+
+   oops
+
+
 subsection {* Examples *}
 
 subsubsection {* The Powerset of a Set is a Complete Lattice *}

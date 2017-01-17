@@ -462,6 +462,12 @@ next
     by (metis weak_partial_order.dual_weak_order)
 qed
 
+subsubsection {* Intervals *}
+
+definition
+  at_least_at_most :: "('a, 'c) gorder_scheme \<Rightarrow> 'a => 'a => 'a set" ("(1\<lbrace>_.._\<rbrace>\<index>)") where
+  "\<lbrace>l..u\<rbrace>\<^bsub>A\<^esub> = {x \<in> carrier A. l \<sqsubseteq>\<^bsub>A\<^esub> x \<and> x \<sqsubseteq>\<^bsub>A\<^esub> u}"
+
 subsubsection {* Isotone functions *}
 
 definition isotone :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
