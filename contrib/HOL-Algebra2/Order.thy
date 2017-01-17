@@ -497,6 +497,14 @@ lemma (in weak_partial_order) inv_isotone [simp]:
 definition idempotent :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" where
   "idempotent A f \<equiv> \<forall>x\<in>A. (f \<circ> f) x = f x"
 
+definition order_emb :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
+  "order_emb A B f \<equiv> weak_partial_order A 
+                   \<and> weak_partial_order B 
+                   \<and> (\<forall>x\<in>carrier A. \<forall>y\<in>carrier A. f x \<sqsubseteq>\<^bsub>B\<^esub> f y \<longleftrightarrow> x \<sqsubseteq>\<^bsub>A\<^esub> y )"
+
+lemma order_emb_isotone: "order_emb A B f \<Longrightarrow> isotone A B f"
+  by (auto simp add: isotone_def order_emb_def)
+
 subsection {* Orders and Lattices where @{text eq} is the Equality *}
 
 locale partial_order = weak_partial_order +

@@ -150,6 +150,31 @@ lemma upper_type: "upper_adjoint A B g \<Longrightarrow> g \<in> carrier B \<rig
 lemma id_galois: "partial_order A \<Longrightarrow> galois_connection \<lparr> orderA = A, orderB = A, lower = id, upper = id \<rparr>"
   by (simp add: galois_connection_def galois_connection_axioms_def connection_def)
 
+lemma comp_galcon_closed:
+  assumes "galois_connection G" "galois_connection F" "\<Y>\<^bsub>F\<^esub> = \<X>\<^bsub>G\<^esub>"
+  shows "galois_connection (G \<circ>\<^sub>g F)"
+proof -
+  interpret F: galois_connection F
+    by (simp add: assms)
+  interpret G: galois_connection G
+    by (simp add: assms)
+  
+  have "partial_order \<X>\<^bsub>G \<circ>\<^sub>g F\<^esub>"
+    by (simp add: F.is_order_A comp_galcon_def)
+  moreover have "partial_order \<Y>\<^bsub>G \<circ>\<^sub>g F\<^esub>"
+    by (simp add: G.is_order_B comp_galcon_def)
+  moreover have "\<pi>\<^sup>*\<^bsub>G\<^esub> \<circ> \<pi>\<^sup>*\<^bsub>F\<^esub> \<in> carrier \<X>\<^bsub>F\<^esub> \<rightarrow> carrier \<Y>\<^bsub>G\<^esub>"
+    using F.lower_closure G.lower_closure assms(3) by auto
+  moreover have "\<pi>\<^sub>*\<^bsub>F\<^esub> \<circ> \<pi>\<^sub>*\<^bsub>G\<^esub> \<in> carrier \<Y>\<^bsub>G\<^esub> \<rightarrow> carrier \<X>\<^bsub>F\<^esub>"
+    using F.upper_closure G.upper_closure assms(3) by auto
+  moreover 
+  have "\<And> x y. \<lbrakk>x \<in> carrier \<X>\<^bsub>F\<^esub>; y \<in> carrier \<Y>\<^bsub>G\<^esub> \<rbrakk> \<Longrightarrow> 
+               (\<pi>\<^sup>*\<^bsub>G\<^esub> (\<pi>\<^sup>*\<^bsub>F\<^esub> x) \<sqsubseteq>\<^bsub>\<Y>\<^bsub>G\<^esub>\<^esub> y) = (x \<sqsubseteq>\<^bsub>\<X>\<^bsub>F\<^esub>\<^esub> \<pi>\<^sub>*\<^bsub>F\<^esub> (\<pi>\<^sub>*\<^bsub>G\<^esub> y))"
+    by (metis F.galois_property F.lower_closure G.galois_property G.upper_closure assms(3) funcset_pred)
+  ultimately show ?thesis
+    by (simp add: comp_galcon_def galois_connection_def galois_connection_axioms_def connection_def)
+qed
+
 (*
 lemma galois_connectionI:
   assumes
@@ -160,11 +185,6 @@ lemma galois_connectionI:
     "\<forall> X \<in> carrier(B). L(R(X)) \<sqsubseteq>\<^bsub>B\<^esub> X"
     "\<forall> X \<in> carrier(A). X \<sqsubseteq>\<^bsub>A\<^esub> R(L(X))"
   shows "galois_connection \<lparr> orderA = A, orderB = B, lower = L, upper = R \<rparr>"
-
-
-lemma galois_comp_closed:
-  "\<lbrakk> galois_connection G; galois_connection F \<rbrakk> \<Longrightarrow> galois_connection (G \<circ>\<^sub>g F)"
-  apply (unfold galois_connection_def)
 
 lemma galois_connectionI':
   assumes
