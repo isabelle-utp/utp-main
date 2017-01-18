@@ -57,6 +57,18 @@ lemma (in weak_complete_lattice) sup_closed [simp]:
   "A \<subseteq> carrier L ==> \<Squnion>A \<in> carrier L"
   by (rule supI) simp_all
 
+lemma (in weak_complete_lattice) sup_cong:
+  assumes "A \<subseteq> carrier L" "B \<subseteq> carrier L" "A {.=} B"
+  shows "\<Squnion> A .= \<Squnion> B"
+proof -
+  have "\<And> x. is_lub L x A \<longleftrightarrow> is_lub L x B"
+    by (rule least_Upper_cong_r, simp_all add: assms)
+  moreover have "\<Squnion> B \<in> carrier L"
+    by (simp add: assms(2))
+  ultimately show ?thesis
+    by (simp add: asup_def)
+qed
+
 sublocale weak_complete_lattice \<subseteq> weak_bounded_lattice
   apply (unfold_locales)
   apply (metis Upper_empty empty_subsetI sup_exists)
@@ -77,6 +89,18 @@ qed
 lemma (in weak_complete_lattice) inf_closed [simp]:
   "A \<subseteq> carrier L ==> \<Sqinter>A \<in> carrier L"
   by (rule infI) simp_all
+
+lemma (in weak_complete_lattice) inf_cong:
+  assumes "A \<subseteq> carrier L" "B \<subseteq> carrier L" "A {.=} B"
+  shows "\<Sqinter> A .= \<Sqinter> B"
+proof -
+  have "\<And> x. is_glb L x A \<longleftrightarrow> is_glb L x B"
+    by (rule greatest_Lower_cong_r, simp_all add: assms)
+  moreover have "\<Sqinter> B \<in> carrier L"
+    by (simp add: assms(2))
+  ultimately show ?thesis
+    by (simp add: ainf_def)
+qed
 
 theorem (in weak_partial_order) weak_complete_lattice_criterion1:
   assumes top_exists: "EX g. greatest L g (carrier L)"
@@ -573,14 +597,75 @@ proof -
   qed
 qed
 
+text {* Fixed points of a lattice *}
+
+definition "fps L f = {x \<in> carrier L. f x .=\<^bsub>L\<^esub> x}"
+
+lemma fps_carrier [simp]:
+  "fps L f \<subseteq> carrier L"
+  by (auto simp add: fps_def)
+
+lemma (in weak_complete_lattice) LFP_fixed_point [intro]:
+  assumes "Mono f" "f \<in> carrier L \<rightarrow> carrier L"
+  shows "\<mu> f \<in> fps L f"
+  using assms
+proof -
+  have "f (\<mu> f) \<in> carrier L"
+    using assms(2) by blast
+  with assms show ?thesis
+    by (simp add: LFP_closed LFP_weak_unfold fps_def local.sym mem_Collect_eq)
+qed
+
+lemma (in weak_complete_lattice) GFP_fixed_point [intro]:
+  assumes "Mono f" "f \<in> carrier L \<rightarrow> carrier L"
+  shows "\<nu> f \<in> fps L f"
+  using assms
+proof -
+  have "f (\<nu> f) \<in> carrier L"
+    using assms(2) by blast
+  with assms show ?thesis
+    by (simp add: GFP_closed GFP_weak_unfold fps_def local.sym mem_Collect_eq)
+qed
+
+lemma (in weak_complete_lattice) fps_sup_image: 
+  assumes "f \<in> carrier L \<rightarrow> carrier L" "A \<subseteq> fps L f" 
+  shows "\<Squnion> (f ` A) .= \<Squnion> A"
+proof -
+  from assms(2) have AL: "A \<subseteq> carrier L"
+    by (auto simp add: fps_def)
+  
+  show ?thesis
+  proof (rule sup_cong, simp_all add: AL)
+    from assms(1) AL show "f ` A \<subseteq> carrier L"
+      by (auto)
+    from assms(2) show "f ` A {.=} A"
+      apply (auto simp add: fps_def)
+      apply (rule set_eqI2)
+      apply blast
+      apply (rename_tac b)
+      apply (rule_tac x="f b" in bexI)
+      apply (metis (mono_tags, lifting) Ball_Collect assms(1) ftype_carrier local.sym)
+      apply (auto)
+    done
+  qed
+qed
+
+lemma (in weak_complete_lattice) fps_idem:
+  "\<lbrakk> f \<in> carrier L \<rightarrow> carrier L; idempotent (carrier L) f \<rbrakk> \<Longrightarrow> fps L f {.=} f ` carrier L"
+  apply (rule set_eqI2)
+  apply (auto simp add: idempotent_def fps_def)
+  using local.sym apply blast
+  apply (metis ftype_carrier local.refl)
+done
+
+text {* The set of fixed points of a complete lattice is itself a complete lattice *}
+
 theorem Knaster_Tarski:
   assumes "weak_complete_lattice L" "f \<in> carrier L \<rightarrow> carrier L" "isotone L L f"
-  shows "weak_complete_lattice (L\<lparr> carrier := {x \<in> carrier L. f x .=\<^bsub>L\<^esub> x} \<rparr>)"
-  (is "weak_complete_lattice ?L'")
+  shows "weak_complete_lattice (L\<lparr>carrier := fps L f\<rparr>)" (is "weak_complete_lattice ?L'")
 proof -
   interpret L: weak_complete_lattice L
     by (simp add: assms)
-
   interpret weak_partial_order ?L'
   proof -
     have "{x \<in> carrier L. f x .=\<^bsub>L\<^esub> x} \<subseteq> carrier L"
@@ -588,58 +673,244 @@ proof -
     thus "weak_partial_order ?L'"
       by (simp add: L.weak_partial_order_axioms weak_partial_order_subset)
   qed
-
-  have lub: "is_lub ?L' (\<nu>\<^bsub>L\<^esub> f) {x \<in> carrier L. f x .=\<^bsub>L\<^esub> x}"
-    apply (rule least_UpperI, auto simp add: Upper_def)
-    apply (simp add: L.GFP_upperbound L.ftype_carrier L.sym assms(2))
-    apply (meson L.GFP_closed L.GFP_lemma2 L.GFP_lemma3 L.ftype_carrier L.weak_le_antisym assms(2) assms(3))
-    apply (simp add: L.GFP_weak_unfold L.ftype_carrier L.sym assms(2) assms(3))
-  done
-
-  have glb: "is_glb ?L' (\<mu>\<^bsub>L\<^esub> f) {x \<in> carrier L. f x .=\<^bsub>L\<^esub> x}"
-    apply (rule greatest_LowerI, auto simp add: Lower_def)
-    apply (simp add: L.LFP_lowerbound L.ftype_carrier assms(2))
-    using L.LFP_closed L.LFP_lemma2 L.LFP_lemma3 L.ftype_carrier L.weak_le_antisym assms(2) assms(3) apply presburger
-    apply (simp add: L.LFP_weak_unfold L.ftype_carrier L.sym assms(2) assms(3))
-  done
-
-
   show ?thesis
   proof (unfold_locales, simp_all)
     fix A
-    assume a: "A \<subseteq> {x \<in> carrier L. f x .=\<^bsub>L\<^esub> x}"
-    with assms(2) have AL: "A \<subseteq> carrier L"
-      by (auto)
-    let ?w = "\<Squnion>\<^bsub>L\<^esub> A"
-    have "f ` \<lbrace>?w..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub> \<subseteq> \<lbrace>?w..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub>"
-    proof (auto simp add: at_least_at_most_def)
-      fix x
-      assume b: "x \<in> carrier L" "\<Squnion>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> x"
-      from b show fx: "f x \<in> carrier L"
-        using assms(2) by blast
-      show "\<Squnion>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> f x"
-      proof -
-        from a have "?w \<sqsubseteq>\<^bsub>L\<^esub> f ?w"
-        proof (rule_tac L.sup_least, auto simp add: AL L.ftype_carrier assms(2))
-          fix y
-          assume c: "y \<in> A" "A \<subseteq> {x \<in> carrier L. f x .=\<^bsub>L\<^esub> x}" 
-          hence "y .=\<^bsub>L\<^esub> f y"
-            by (metis (mono_tags, lifting) L.equivalence_axioms L.ftype_carrier assms(2) equivalence.sym mem_Collect_eq set_rev_mp)
-          moreover have "y \<sqsubseteq>\<^bsub>L\<^esub> \<Squnion>\<^bsub>L\<^esub>A"
-            by (simp add: AL L.sup_upper c(1))
-          ultimately show "y \<sqsubseteq>\<^bsub>L\<^esub> f (\<Squnion>\<^bsub>L\<^esub>A)"
-            by (meson AL L.ftype_carrier L.refl L.weak_complete_lattice_axioms assms(2) assms(3) c(1) isotone_def rev_subsetD weak_complete_lattice.sup_closed weak_partial_order.le_cong)
+    assume A: "A \<subseteq> fps L f"
+    show "\<exists>s. is_lub (L\<lparr>carrier := fps L f\<rparr>) s A"
+    proof
+      from A have AL: "A \<subseteq> carrier L"
+        by (meson fps_carrier subset_eq)
+
+      let ?w = "\<Squnion>\<^bsub>L\<^esub> A"
+      have w: "f (\<Squnion>\<^bsub>L\<^esub>A) \<in> carrier L"
+        by (simp add: AL L.ftype_carrier assms(2))
+
+      have pf_w: "(\<Squnion>\<^bsub>L\<^esub> A) \<sqsubseteq>\<^bsub>L\<^esub> f (\<Squnion>\<^bsub>L\<^esub> A)"
+      proof (rule L.sup_least, simp_all add: AL w)
+        fix x
+        assume xA: "x \<in> A"
+        hence "x \<in> fps L f"
+          using A subsetCE by blast
+        hence "f x .=\<^bsub>L\<^esub> x"
+          by (auto simp add: fps_def)
+        moreover have "f x \<sqsubseteq>\<^bsub>L\<^esub> f (\<Squnion>\<^bsub>L\<^esub>A)"
+          by (meson AL L.sup_closed L.sup_upper assms(3) subsetCE use_iso1 xA)
+        ultimately show "x \<sqsubseteq>\<^bsub>L\<^esub> f (\<Squnion>\<^bsub>L\<^esub>A)"
+          by (meson AL L.ftype_carrier L.le_cong L.refl assms(2) subsetCE w xA)
+      qed
+
+      have f_top_chain: "f ` \<lbrace>?w..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub> \<subseteq> \<lbrace>?w..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub>"
+      proof (auto simp add: at_least_at_most_def)
+        fix x
+        assume b: "x \<in> carrier L" "\<Squnion>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> x"
+        from b show fx: "f x \<in> carrier L"
+          using assms(2) by blast
+        show "\<Squnion>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> f x"
+        proof -
+          have "?w \<sqsubseteq>\<^bsub>L\<^esub> f ?w"
+          proof (rule_tac L.sup_least, simp_all add: AL w)
+            fix y
+            assume c: "y \<in> A" 
+            with assms have "y .=\<^bsub>L\<^esub> f y"
+              by (metis (no_types, lifting) A L.ftype_carrier L.sym fps_def mem_Collect_eq subset_eq)
+            moreover have "y \<sqsubseteq>\<^bsub>L\<^esub> \<Squnion>\<^bsub>L\<^esub>A"
+              by (simp add: AL L.sup_upper c(1))
+            ultimately show "y \<sqsubseteq>\<^bsub>L\<^esub> f (\<Squnion>\<^bsub>L\<^esub>A)"
+              by (meson fps_def AL L.ftype_carrier L.refl L.weak_complete_lattice_axioms assms(2) assms(3) c(1) isotone_def rev_subsetD weak_complete_lattice.sup_closed weak_partial_order.le_cong)
+          qed
+          thus ?thesis
+            by (meson AL L.ftype_carrier L.le_trans L.sup_closed assms(2) assms(3) b(1) b(2) use_iso2)
         qed
-        thus ?thesis
-          by (meson AL L.ftype_carrier L.le_trans L.sup_closed assms(2) assms(3) b(1) b(2) use_iso2)
-     qed
    
-     show "f x \<sqsubseteq>\<^bsub>L\<^esub> \<top>\<^bsub>L\<^esub>"
-       by (simp add: fx)
-   qed
+        show "f x \<sqsubseteq>\<^bsub>L\<^esub> \<top>\<^bsub>L\<^esub>"
+          by (simp add: fx)
+      qed
+  
+      let ?L' = "L\<lparr> carrier := \<lbrace>?w..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub> \<rparr>"
 
-   oops
+      interpret L': weak_complete_lattice ?L'
+        by (auto intro: weak_complete_lattice_interval simp add: L.weak_complete_lattice_axioms AL)
 
+      let ?L'' = "L\<lparr> carrier := fps L f \<rparr>"
+
+      show "is_lub ?L'' (\<mu>\<^bsub>?L'\<^esub> f) A"
+      proof (rule least_UpperI, simp_all)
+        fix x
+        assume "x \<in> Upper ?L'' A"
+        hence "\<mu>\<^bsub>?L'\<^esub> f \<sqsubseteq>\<^bsub>?L'\<^esub> x"
+          apply (rule_tac L'.LFP_lowerbound)
+          apply (auto simp add: Upper_def)
+          apply (simp add: A AL L.at_least_at_most_member L.sup_least set_rev_mp)          
+          apply (simp add: L.ftype_carrier assms(2) fps_def)
+        done
+        thus " \<mu>\<^bsub>?L'\<^esub> f \<sqsubseteq>\<^bsub>L\<^esub> x"
+          by (simp)
+      next
+        fix x
+        assume xA: "x \<in> A"
+        show "x \<sqsubseteq>\<^bsub>L\<^esub> \<mu>\<^bsub>?L'\<^esub> f"
+        proof -
+          have "\<mu>\<^bsub>?L'\<^esub> f \<in> carrier ?L'"
+            by blast
+          thus ?thesis
+            by (simp, meson AL L.at_least_at_most_closed L.at_least_at_most_lower L.le_trans L.sup_closed L.sup_upper xA subsetCE)
+        qed
+      next
+        show "A \<subseteq> fps L f"
+          by (simp add: A)
+      next
+        show "\<mu>\<^bsub>?L'\<^esub> f \<in> fps L f"
+        proof (auto simp add: fps_def)
+          have "\<mu>\<^bsub>?L'\<^esub> f \<in> carrier ?L'"
+            by (rule L'.LFP_closed)
+          thus c:"\<mu>\<^bsub>?L'\<^esub> f \<in> carrier L"
+             by (auto simp add: at_least_at_most_def)
+          have "\<mu>\<^bsub>?L'\<^esub> f .=\<^bsub>?L'\<^esub> f (\<mu>\<^bsub>?L'\<^esub> f)"
+          proof (rule "L'.LFP_weak_unfold", simp_all)
+            show "f \<in> \<lbrace>\<Squnion>\<^bsub>L\<^esub>A..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub> \<rightarrow> \<lbrace>\<Squnion>\<^bsub>L\<^esub>A..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub>"
+              apply (auto simp add: Pi_def at_least_at_most_def)
+              using assms(2) apply blast
+              apply (meson AL L.ftype_carrier L.le_trans L.sup_closed assms(2) assms(3) pf_w use_iso2)
+              using assms(2) apply blast
+            done
+            from assms(3) show "Mono\<^bsub>L\<lparr>carrier := \<lbrace>\<Squnion>\<^bsub>L\<^esub>A..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub>\<rparr>\<^esub> f"
+              apply (auto simp add: isotone_def)
+              using L'.weak_partial_order_axioms apply blast
+              using L.at_least_at_most_closed apply blast
+            done
+          qed
+          thus "f (\<mu>\<^bsub>?L'\<^esub> f) .=\<^bsub>L\<^esub> \<mu>\<^bsub>?L'\<^esub> f"
+            by (simp add: L.equivalence_axioms L.ftype_carrier c assms(2) equivalence.sym) 
+        qed
+      qed
+    qed
+    show "\<exists>i. is_glb (L\<lparr>carrier := fps L f\<rparr>) i A"
+    proof
+      from A have AL: "A \<subseteq> carrier L"
+        by (meson fps_carrier subset_eq)
+
+      let ?w = "\<Sqinter>\<^bsub>L\<^esub> A"
+      have w: "f (\<Sqinter>\<^bsub>L\<^esub>A) \<in> carrier L"
+        by (simp add: AL L.ftype_carrier assms(2))
+
+      have pf_w: "f (\<Sqinter>\<^bsub>L\<^esub> A) \<sqsubseteq>\<^bsub>L\<^esub> (\<Sqinter>\<^bsub>L\<^esub> A)"
+      proof (rule L.inf_greatest, simp_all add: AL w)
+        fix x
+        assume xA: "x \<in> A"
+        hence "x \<in> fps L f"
+          using A subsetCE by blast
+        hence "f x .=\<^bsub>L\<^esub> x"
+          by (auto simp add: fps_def)
+        moreover have "f (\<Sqinter>\<^bsub>L\<^esub>A) \<sqsubseteq>\<^bsub>L\<^esub> f x"
+          by (meson AL L.inf_closed L.inf_lower assms(3) subsetCE use_iso2 xA)
+        ultimately show "f (\<Sqinter>\<^bsub>L\<^esub>A) \<sqsubseteq>\<^bsub>L\<^esub> x"
+          by (meson AL L.ftype_carrier L.le_cong L.refl assms(2) subsetCE w xA)
+      qed
+
+      have f_bot_chain: "f ` \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub> \<subseteq> \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub>"
+      proof (auto simp add: at_least_at_most_def)
+        fix x
+        assume b: "x \<in> carrier L" "x \<sqsubseteq>\<^bsub>L\<^esub> \<Sqinter>\<^bsub>L\<^esub>A"
+        from b show fx: "f x \<in> carrier L"
+          using assms(2) by blast
+        show "f x \<sqsubseteq>\<^bsub>L\<^esub> \<Sqinter>\<^bsub>L\<^esub>A"
+        proof -
+          have "f ?w \<sqsubseteq>\<^bsub>L\<^esub> ?w"
+          proof (rule_tac L.inf_greatest, simp_all add: AL w)
+            fix y
+            assume c: "y \<in> A" 
+            with assms have "y .=\<^bsub>L\<^esub> f y"
+              by (metis (no_types, lifting) A L.ftype_carrier L.sym fps_def mem_Collect_eq subset_eq)
+            moreover have "\<Sqinter>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> y"
+              by (simp add: AL L.inf_lower c)
+            ultimately show "f (\<Sqinter>\<^bsub>L\<^esub>A) \<sqsubseteq>\<^bsub>L\<^esub> y"
+              by (meson AL L.inf_closed L.le_trans c pf_w set_rev_mp w)
+          qed
+          thus ?thesis
+            by (meson AL L.inf_closed L.le_trans assms(3) b(1) b(2) fx use_iso2 w)
+        qed
+   
+        show "\<bottom>\<^bsub>L\<^esub> \<sqsubseteq>\<^bsub>L\<^esub> f x"
+          by (simp add: L.bottom_lower fx)
+      qed
+  
+      let ?L' = "L\<lparr> carrier := \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub> \<rparr>"
+
+      interpret L': weak_complete_lattice ?L'
+        by (auto intro!: weak_complete_lattice_interval simp add: L.weak_complete_lattice_axioms AL L.bottom_closed L.bottom_lower)
+
+      let ?L'' = "L\<lparr> carrier := fps L f \<rparr>"
+
+      show "is_glb ?L'' (\<nu>\<^bsub>?L'\<^esub> f) A"
+      proof (rule greatest_LowerI, simp_all)
+        fix x
+        assume "x \<in> Lower ?L'' A"
+        hence "x \<sqsubseteq>\<^bsub>?L'\<^esub> \<nu>\<^bsub>?L'\<^esub> f"
+          apply (rule_tac L'.GFP_upperbound)
+          apply (auto simp add: Lower_def)
+          apply (meson A AL L.at_least_at_most_member L.bottom_lower L.weak_complete_lattice_axioms fps_carrier subsetCE weak_complete_lattice.inf_greatest)
+          apply (simp add: L.ftype_carrier L.sym assms(2) fps_def)          
+        done
+        thus "x \<sqsubseteq>\<^bsub>L\<^esub> \<nu>\<^bsub>?L'\<^esub> f"
+          by (simp)
+      next
+        fix x
+        assume xA: "x \<in> A"
+        show "\<nu>\<^bsub>?L'\<^esub> f \<sqsubseteq>\<^bsub>L\<^esub> x"
+        proof -
+          have "\<nu>\<^bsub>?L'\<^esub> f \<in> carrier ?L'"
+            by blast
+          thus ?thesis
+            by (simp, meson AL L.at_least_at_most_closed L.at_least_at_most_upper L.inf_closed L.inf_lower L.le_trans subsetCE xA)     
+        qed
+      next
+        show "A \<subseteq> fps L f"
+          by (simp add: A)
+      next
+        show "\<nu>\<^bsub>?L'\<^esub> f \<in> fps L f"
+        proof (auto simp add: fps_def)
+          have "\<nu>\<^bsub>?L'\<^esub> f \<in> carrier ?L'"
+            by (rule L'.GFP_closed)
+          thus c:"\<nu>\<^bsub>?L'\<^esub> f \<in> carrier L"
+             by (auto simp add: at_least_at_most_def)
+          have "\<nu>\<^bsub>?L'\<^esub> f .=\<^bsub>?L'\<^esub> f (\<nu>\<^bsub>?L'\<^esub> f)"
+          proof (rule "L'.GFP_weak_unfold", simp_all)
+            show "f \<in> \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub> \<rightarrow> \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub>"
+              apply (auto simp add: Pi_def at_least_at_most_def)
+              using assms(2) apply blast
+              apply (simp add: L.bottom_lower L.ftype_carrier assms(2))
+              apply (meson AL L.ftype_carrier L.inf_closed L.le_trans assms(2) assms(3) pf_w use_iso2)
+            done
+            from assms(3) show "Mono\<^bsub>L\<lparr>carrier := \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub>\<rparr>\<^esub> f"
+              apply (auto simp add: isotone_def)
+              using L'.weak_partial_order_axioms apply blast
+              using L.at_least_at_most_closed apply blast
+            done
+          qed
+          thus "f (\<nu>\<^bsub>?L'\<^esub> f) .=\<^bsub>L\<^esub> \<nu>\<^bsub>?L'\<^esub> f"
+            by (simp add: L.equivalence_axioms L.ftype_carrier c assms(2) equivalence.sym) 
+        qed
+      qed
+    qed
+  qed
+qed
+  
+theorem Knaster_Tarski_idem:
+  assumes "complete_lattice L" "f \<in> carrier L \<rightarrow> carrier L" "isotone L L f" "idempotent (carrier L) f"
+  shows "complete_lattice (L\<lparr>carrier := f ` carrier L\<rparr>)"
+proof -
+  interpret L: complete_lattice L
+    by (simp add: assms)
+  have "fps L f = f ` carrier L"
+    using L.weak.fps_idem[OF assms(2) assms(4)]
+    by (simp add: L.set_eq_is_eq)
+  then interpret L': weak_complete_lattice "(L\<lparr>carrier := f ` carrier L\<rparr>)"
+    by (metis Knaster_Tarski L.weak.weak_complete_lattice_axioms assms(2) assms(3))
+  show ?thesis
+    using L'.sup_exists L'.inf_exists
+    by (unfold_locales, auto simp add: L.eq_is_equal)
+qed
 
 subsection {* Examples *}
 

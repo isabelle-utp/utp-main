@@ -511,6 +511,9 @@ definition order_emb :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_sc
 lemma order_emb_isotone: "order_emb A B f \<Longrightarrow> isotone A B f"
   by (auto simp add: isotone_def order_emb_def)
 
+definition commuting :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" where
+"commuting A f g = (\<forall>x\<in>A. (f \<circ> g) x = (g \<circ> f) x)"
+
 subsection {* Orders and Lattices where @{text eq} is the Equality *}
 
 locale partial_order = weak_partial_order +
@@ -532,6 +535,9 @@ lemma lless_asym:
     and "a \<sqsubset> b" "b \<sqsubset> a"
   shows "P"
   using assms unfolding lless_eq by auto
+
+lemma set_eq_is_eq: "A {.=} B \<longleftrightarrow> A = B"
+  by (auto simp add: set_eq_def elem_def eq_is_equal)
 
 end
 
