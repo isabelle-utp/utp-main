@@ -298,7 +298,8 @@ lemma SKIP_is_R2: "SKIP is R2"
 lemma SKIP_is_R3c: "SKIP is R3c"
   apply (rel_auto)
   apply (simp_all add: zero_list_def)
-  using list_minus_anhil by blast
+  apply (metis append_Nil2 append_minus strict_prefixE)
+done
 
 lemma SKIP_is_CSP1: "SKIP is CSP1"
   by (rel_auto)
@@ -346,7 +347,7 @@ lemma parallel'_is_R3:
   shows "(P \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R3"
 proof -
   have "(skip\<^sub>m ;; N\<^sub>C\<^sub>S\<^sub>P(cs)) = II"
-    apply (rel_auto) using list_minus_anhil by blast
+    apply (rel_auto) using strict_prefixE by fastforce 
   thus ?thesis
     by (simp add: R3_par_by_merge assms)
 qed
@@ -364,7 +365,7 @@ done
 
 lemma CSPMerge_wait_prop: "(wait\<^sub>m ;; M\<^sub>C\<^sub>S\<^sub>P(cs)) = II\<lbrakk>true,true/$ok,$wait\<rbrakk>"
   apply (rel_auto)
-  apply (metis list_minus_anhil zero_list_def)
+  apply (metis minus_zero_eq zero_list_def)
   using zero_list_def apply auto
 done
 
