@@ -712,6 +712,10 @@ lemma RH_alt_def':
   "\<^bold>R(P) = R2(R3c(P))"
   by (simp add: R2_def RH_def)
 
+lemma RH_alt_def'':
+  "\<^bold>R(P) = R1(R2c(R3c(P)))"
+  by (simp add: R1_R2s_R2c RH_def)
+
 lemma RH_idem:
   "\<^bold>R(\<^bold>R(P)) = \<^bold>R(P)"
   by (metis R2_R3c_commute R2_def R2_idem R3c_idem RH_def)
@@ -774,6 +778,43 @@ lemma RH_false_top:
 lemma RH_false_bottom:
   "\<^bold>R(true) \<sqsubseteq> \<^bold>R(P)"
   by (simp add: RH_monotone)
+
+subsection {* UTP theory *}
+
+typedef REA = "UNIV :: unit set" by simp
+
+abbreviation "REA \<equiv> TYPE(REA \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
+
+overloading
+  rea_hcond == "utp_hcond :: (REA \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp) itself \<Rightarrow> (('t,'\<alpha>) alphabet_rp \<times> ('t,'\<alpha>) alphabet_rp) Healthiness_condition"
+begin
+  definition rea_hcond :: "(REA \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp) itself \<Rightarrow> (('t,'\<alpha>) alphabet_rp \<times> ('t,'\<alpha>) alphabet_rp) Healthiness_condition" where
+  [upred_defs]: "rea_hcond t = \<^bold>R"
+end
+
+interpretation rea_utp_theory: utp_theory "TYPE(REA \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
+  by (simp add: rea_hcond_def utp_theory_def RH_idem)
+
+interpretation rea_utp_theory_mono: utp_theory_mono "TYPE(REA \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
+  by (unfold_locales, simp add: Monotonic_def RH_monotone rea_hcond_def)
+
+lemma rea_top: "\<^bold>\<top>\<^bsub>REA\<^esub> = ($wait \<and> II\<^sub>r)"
+proof -
+  have "\<^bold>\<top>\<^bsub>REA\<^esub> = \<^bold>R(false)"
+    by (simp add: rea_hcond_def rea_utp_theory_mono.healthy_top)
+  also have "... = ($wait \<and> II\<^sub>r)"
+    by (rel_auto, metis minus_zero_eq)
+  finally show ?thesis .
+qed
+
+lemma rea_bottom: "\<^bold>\<bottom>\<^bsub>REA\<^esub> = R1($wait \<Rightarrow> II\<^sub>r)"
+proof -
+  have "\<^bold>\<bottom>\<^bsub>REA\<^esub> = \<^bold>R(true)"
+    by (simp add: rea_hcond_def rea_utp_theory_mono.healthy_bottom)
+  also have "... = R1($wait \<Rightarrow> II\<^sub>r)"
+    by (rel_auto, metis minus_zero_eq)
+  finally show ?thesis .
+qed
 
 subsection {* Reactive parallel-by-merge *}
 
