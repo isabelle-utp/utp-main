@@ -923,6 +923,12 @@ abbreviation "H1_H2 P \<equiv> H1 (H2 P)"
 
 notation H1_H2 ("\<^bold>H")
 
+lemma H1_H2_idempotent: "\<^bold>H (\<^bold>H P) = \<^bold>H P"
+  by (simp add: H1_H2_commute H1_idem H2_idem)
+
+lemma H1_H2_monotonic: "Monotonic \<^bold>H"
+  by (simp add: H1_monotone H2_def Monotonic_def seqr_mono)
+
 lemma design_is_H1_H2:
   "\<lbrakk> $ok\<acute> \<sharp> P; $ok\<acute> \<sharp> Q \<rbrakk> \<Longrightarrow> (P \<turnstile> Q) is H1_H2"
   by (simp add: H1_design H2_design Healthy_def')
@@ -1243,6 +1249,11 @@ interpretation ndes_unital: utp_theory_unital "TYPE(NDES \<times> ('\<alpha> alp
   apply (metis H1_H3_commute H3_def H3_idem Healthy_def')
 done
 
+interpretation design_theory_mono: utp_theory_mono "TYPE(DES \<times> '\<alpha> alphabet_d)"
+  rewrites "carrier (utp_order DES) = \<lbrakk>H1_H2\<rbrakk>\<^sub>H" 
+  by (unfold_locales, simp_all add: des_hcond_def H1_H2_monotonic utp_order_def)
+
+(*
 interpretation design_complete_lattice: utp_theory_lattice "TYPE(DES \<times> '\<alpha> alphabet_d)"
   rewrites "carrier (utp_order DES) = \<lbrakk>H1_H2\<rbrakk>\<^sub>H"
   apply (unfold_locales)
@@ -1261,12 +1272,22 @@ interpretation design_complete_lattice: utp_theory_lattice "TYPE(DES \<times> '\
   apply (metis (no_types) USUP_H1_H2_closed contra_subsetD emptyE mem_Collect_eq)
   apply (meson Ball_Collect Sup_least)
 done
+*)
+
+lemma design_lat_top: "\<^bold>\<top>\<^bsub>DES\<^esub> = \<^bold>H(false)"
+  by (simp add: des_hcond_def design_theory_mono.healthy_top)
+
+lemma design_lat_bottom: "\<^bold>\<bottom>\<^bsub>DES\<^esub> = \<^bold>H(true)"
+  by (simp add: des_hcond_def design_theory_mono.healthy_bottom)
 
 abbreviation design_lfp :: "_ \<Rightarrow> _" ("\<mu>\<^sub>D") where
 "\<mu>\<^sub>D F \<equiv> \<mu>\<^bsub>utp_order DES\<^esub> F"
 
 abbreviation design_gfp :: "_ \<Rightarrow> _" ("\<nu>\<^sub>D") where
 "\<nu>\<^sub>D F \<equiv> \<nu>\<^bsub>utp_order DES\<^esub> F"
+
+thm design_theory_mono.GFP_unfold
+thm design_theory_mono.LFP_unfold
 
 text {* Example Galois connection between designs and relations. Based on Jim's example in COMPASS
         deliverable D23.5. *}

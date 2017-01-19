@@ -4,6 +4,43 @@ theory utp_theory
 imports utp_rel
 begin
 
+subsection {* Complete lattice of predicates *}
+
+definition upred_lattice :: "('\<alpha> upred) gorder" ("\<P>") where
+"upred_lattice = \<lparr> carrier = UNIV, eq = (op =), le = op \<sqsubseteq> \<rparr>"
+
+interpretation upred_lattice: complete_lattice \<P>
+proof (unfold_locales, simp_all add: upred_lattice_def)
+  fix A :: "'\<alpha> upred set"
+  show "\<exists>s. is_lub \<lparr>carrier = UNIV, eq = op =, le = op \<sqsubseteq>\<rparr> s A"
+    apply (rule_tac x="\<Squnion> A" in exI)
+    apply (rule least_UpperI)
+    apply (auto intro: Inf_greatest simp add: Inf_lower Upper_def)
+  done
+  show "\<exists>i. is_glb \<lparr>carrier = UNIV, eq = op =, le = op \<sqsubseteq>\<rparr> i A"
+    apply (rule_tac x="\<Sqinter> A" in exI)
+    apply (rule greatest_LowerI)
+    apply (auto intro: Sup_least simp add: Sup_upper Lower_def)
+  done
+qed
+
+lemma upred_weak_complete_lattice [simp]: "weak_complete_lattice \<P>"
+  by (simp add: upred_lattice.weak.weak_complete_lattice_axioms)
+
+lemma upred_lattice_eq [simp]:
+  "op .=\<^bsub>\<P>\<^esub> = op ="
+  by (simp add: upred_lattice_def)
+
+lemma upred_lattice_le [simp]:
+  "le \<P> P Q = (P \<sqsubseteq> Q)"
+  by (simp add: upred_lattice_def)
+
+lemma upred_lattice_carrier [simp]:
+  "carrier \<P> = UNIV"
+  by (simp add: upred_lattice_def)
+
+subsection {* Healthiness conditions *}
+
 type_synonym '\<alpha> Healthiness_condition = "'\<alpha> upred \<Rightarrow> '\<alpha> upred"
 
 definition 
@@ -32,6 +69,9 @@ definition "Monotonic(H) \<longleftrightarrow> (\<forall> P Q. Q \<sqsubseteq> P
 definition "IMH(H) \<longleftrightarrow> Idempotent(H) \<and> Monotonic(H)"
 
 definition "Antitone(H) \<longleftrightarrow> (\<forall> P Q. Q \<sqsubseteq> P \<longrightarrow> (H(P) \<sqsubseteq> H(Q)))"
+
+lemma Monotonic_id [simp]: "Monotonic id"
+  by (simp add: Monotonic_def)
 
 definition NM : "NM(P) = (\<not> P \<and> true)"
 
@@ -106,6 +146,15 @@ lemma WeakConjunctive_implies_WeakConjunctive:
 declare Conjunctive_def [upred_defs]
 declare Monotonic_def [upred_defs]
 
+lemma Healthy_fixed_points [simp]: "fps \<P> H = \<lbrakk>H\<rbrakk>\<^sub>H"
+  by (simp add: fps_def upred_lattice_def Healthy_def)
+
+lemma upred_lattice_Idempotent [simp]: "Idem\<^bsub>\<P>\<^esub> H = Idempotent H"
+  using upred_lattice.weak_partial_order_axioms by (auto simp add: idempotent_def Idempotent_def)
+
+lemma upred_lattice_Monotonic [simp]: "Mono\<^bsub>\<P>\<^esub> H = Monotonic H"
+  using upred_lattice.weak_partial_order_axioms by (auto simp add: isotone_def Monotonic_def)
+
 subsection {* UTP theory hierarchy *}
 
 text {* Unfortunately we can currently only characterise UTP theories of homogeneous relations;
@@ -118,15 +167,102 @@ consts
 definition utp_order :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> '\<alpha> hrelation gorder" where
 "utp_order T = \<lparr> carrier = {P. P is \<H>\<^bsub>T\<^esub>}, eq = (op =), le = op \<sqsubseteq> \<rparr>"
 
+text {* UTP order is the fixed point lattice *}
+
+lemma utp_order_fpl: "utp_order T = fpl \<P> (\<H>\<^bsub>T\<^esub>)"
+  by (auto simp add: utp_order_def upred_lattice_def fps_def Healthy_def)
+
 locale utp_theory =
   fixes \<T> :: "('\<T> \<times> '\<alpha>) itself" (structure)
   assumes HCond_Idem: "\<H>(\<H>(P)) = \<H>(P)"
 begin
+  lemma HCond_Idempotent [intro]: "Idempotent \<H>"
+    by (simp add: Idempotent_def HCond_Idem)
+
   sublocale partial_order "utp_order \<T>"
     by (unfold_locales, simp_all add: utp_order_def)
 end
 
 locale utp_theory_lattice = utp_theory \<T> + complete_lattice "utp_order \<T>" for \<T> :: "('\<T> \<times> '\<alpha>) itself" (structure)
+  
+abbreviation utp_top ("\<^bold>\<top>\<index>")
+where "utp_top \<T> \<equiv> atop (utp_order \<T>)"
+
+abbreviation utp_bottom ("\<^bold>\<bottom>\<index>")
+where "utp_bottom \<T> \<equiv> abottom (utp_order \<T>)"
+
+lemma upred_top: "\<top>\<^bsub>\<P>\<^esub> = false"
+  using ball_UNIV greatest_def by fastforce
+
+lemma upred_bottom: "\<bottom>\<^bsub>\<P>\<^esub> = true"
+  by fastforce
+
+locale utp_theory_mono = utp_theory + 
+  assumes HCond_Mono [intro]: "Monotonic \<H>"
+begin
+  interpretation utp_theory_lattice
+  proof -
+    text {* Use Knaster-Tarski theorem to obtain complete lattice *}
+
+    interpret weak_complete_lattice "fpl \<P> \<H>"
+      by (rule Knaster_Tarski, auto simp add: upred_lattice.weak.weak_complete_lattice_axioms)
+  
+    have "complete_lattice (fpl \<P> \<H>)"
+      by (unfold_locales, simp add: fps_def sup_exists, (blast intro: sup_exists inf_exists)+)
+
+    hence "complete_lattice (utp_order \<T>)"
+      by (simp add: utp_order_def, simp add: upred_lattice_def)
+
+    thus "utp_theory_lattice \<T>"
+      by (simp add: utp_theory_axioms utp_theory_lattice_def)
+  qed
+end
+
+sublocale utp_theory_mono \<subseteq> utp_theory_lattice
+proof -
+  text {* Use Knaster-Tarski theorem to obtain complete lattice *}
+
+  interpret weak_complete_lattice "fpl \<P> \<H>"
+    by (rule Knaster_Tarski, auto simp add: upred_lattice.weak.weak_complete_lattice_axioms)
+  
+  have "complete_lattice (fpl \<P> \<H>)"
+    by (unfold_locales, simp add: fps_def sup_exists, (blast intro: sup_exists inf_exists)+)
+
+  hence "complete_lattice (utp_order \<T>)"
+    by (simp add: utp_order_def, simp add: upred_lattice_def)
+
+  thus "utp_theory_lattice \<T>"
+    by (simp add: utp_theory_axioms utp_theory_lattice_def)
+qed
+
+context utp_theory_mono
+begin
+
+  lemma healthy_top: "\<^bold>\<top> = \<H>(false)"
+  proof -
+    have "\<^bold>\<top> = \<top>\<^bsub>fpl \<P> \<H>\<^esub>"
+      by (simp add: utp_order_fpl)
+    also have "... = \<H> \<top>\<^bsub>\<P>\<^esub>"
+      using Knaster_Tarski_idem_extremes(1)[of \<P> \<H>]  
+      by (simp add: HCond_Idempotent HCond_Mono)
+    also have "... = \<H> false"
+      by (simp add: upred_top)
+    finally show ?thesis .
+  qed
+
+  lemma healthy_bottom: "\<^bold>\<bottom> = \<H>(true)"
+  proof -
+    have "\<^bold>\<bottom> = \<bottom>\<^bsub>fpl \<P> \<H>\<^esub>"
+      by (simp add: utp_order_fpl)
+    also have "... = \<H> \<bottom>\<^bsub>\<P>\<^esub>"
+      using Knaster_Tarski_idem_extremes(2)[of \<P> \<H>]  
+      by (simp add: HCond_Idempotent HCond_Mono)
+    also have "... = \<H> true"
+      by (simp add: upred_bottom)
+    finally show ?thesis .
+  qed
+
+end
 
 locale utp_theory_left_unital = 
   utp_theory +
@@ -143,6 +279,8 @@ locale utp_theory_unital =
   assumes Healthy_Unit: "\<I>\<I> is \<H>"
   and Unit_Left: "P is \<H> \<Longrightarrow> (\<I>\<I> ;; P) = P" 
   and Unit_Right: "P is \<H> \<Longrightarrow> (P ;; \<I>\<I>) = P"
+
+locale utp_theory_mono_unital = utp_theory_mono + utp_theory_unital
 
 sublocale utp_theory_unital \<subseteq> utp_theory_left_unital
   by (simp add: Healthy_Unit Unit_Left utp_theory_axioms utp_theory_left_unital_axioms_def utp_theory_left_unital_def)
@@ -165,7 +303,7 @@ begin
   "rel_unit T = II"
 end
 
-interpretation rel_theory: utp_theory_unital REL
+interpretation rel_theory: utp_theory_mono_unital REL
   by (unfold_locales, simp_all add: rel_hcond_def rel_unit_def Healthy_def)
 
 lemma utp_partial_order: "partial_order (utp_order T)"
@@ -178,5 +316,11 @@ lemma mono_Monotone_utp_order:
   apply (simp add: utp_order_def)
   apply (metis monoD)
 done
+
+lemma REL_top: "\<^bold>\<top>\<^bsub>REL\<^esub> = false"
+  by (simp add: rel_hcond_def rel_theory.healthy_top)
+
+lemma REL_bottom: "\<^bold>\<bottom>\<^bsub>REL\<^esub> = true"
+  by (simp add: rel_hcond_def rel_theory.healthy_bottom)
 
 end
