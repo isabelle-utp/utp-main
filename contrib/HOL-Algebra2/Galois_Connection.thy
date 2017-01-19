@@ -22,9 +22,6 @@ where "G \<circ>\<^sub>g F = \<lparr> orderA = orderA F, orderB = orderB G, lowe
 definition id_galcon :: "'a gorder \<Rightarrow> ('a, 'a) galois" ("I\<^sub>g") where
 "I\<^sub>g(A) = \<lparr> orderA = A, orderB = A, lower = id, upper = id \<rparr>"
 
-lemma funcset_pred: "(f \<in> A \<rightarrow> B) = (\<forall>x. x \<in> A \<longrightarrow> f x \<in> B)"
-  by blast
-
 locale connection =
   fixes G (structure)
   assumes is_order_A: "partial_order \<X>"
@@ -57,7 +54,7 @@ begin
     by (metis galois_property)
 
   lemma deflation: "y \<in> carrier \<Y> \<Longrightarrow> \<pi>\<^sup>* (\<pi>\<^sub>* y) \<sqsubseteq>\<^bsub>\<Y>\<^esub> y"
-    by (metis funcset_pred is_weak_order_A left lower_closure upper_closure weak_partial_order.le_refl)
+    by (metis Pi_iff is_weak_order_A left lower_closure upper_closure weak_partial_order.le_refl)
 
   lemma inflation: "x \<in> carrier \<X> \<Longrightarrow> x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* (\<pi>\<^sup>* x)"
     by (metis (no_types, lifting) PiE galois_connection.right galois_connection_axioms is_weak_order_B lower_closure upper_closure weak_partial_order.le_refl)
@@ -77,7 +74,7 @@ begin
     then have "x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* (\<pi>\<^sup>* y)"
       by (meson a inflation is_weak_order_A weak_partial_order.le_trans)
     thus "\<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> \<pi>\<^sup>* y"
-      by (meson b a(1) funcset_pred galois_property lower_closure upper_closure)
+      by (meson b a(1) Pi_iff galois_property lower_closure upper_closure)
   qed
 
   lemma upper_iso: "isotone \<Y> \<X> \<pi>\<^sub>*"
@@ -96,7 +93,7 @@ begin
   lemma upper_comp: "y \<in> carrier \<Y> \<Longrightarrow> \<pi>\<^sub>* (\<pi>\<^sup>* (\<pi>\<^sub>* y)) = \<pi>\<^sub>* y"
   proof -
     assume a1: "y \<in> carrier \<Y>"
-    hence f1: "\<pi>\<^sub>* y \<in> carrier \<X>" using funcset_pred upper_closure by blast 
+    hence f1: "\<pi>\<^sub>* y \<in> carrier \<X>" using upper_closure by blast 
     have f2: "\<pi>\<^sup>* (\<pi>\<^sub>* y) \<sqsubseteq>\<^bsub>\<Y>\<^esub> y" using a1 deflation by blast
     have f3: "\<pi>\<^sub>* (\<pi>\<^sup>* (\<pi>\<^sub>* y)) \<in> carrier \<X>"
       using f1 lower_closure upper_closure by auto 
@@ -108,11 +105,11 @@ begin
   lemma upper_comp': "y \<in> carrier \<Y> \<Longrightarrow> (\<pi>\<^sub>* \<circ> \<pi>\<^sup>* \<circ> \<pi>\<^sub>*) y = \<pi>\<^sub>* y"
     by (simp add: upper_comp)
 
-  lemma adjoint_idem1: "idempotent (carrier \<Y>) (\<pi>\<^sup>* \<circ> \<pi>\<^sub>*)"
-    by (metis (no_types, hide_lams) comp_apply idempotent_def upper_comp)
+  lemma adjoint_idem1: "idempotent \<Y> (\<pi>\<^sup>* \<circ> \<pi>\<^sub>*)"
+    by (simp add: idempotent_def is_order_B partial_order.eq_is_equal upper_comp)
 
-  lemma adjoint_idem2: "idempotent (carrier \<X>) (\<pi>\<^sub>* \<circ> \<pi>\<^sup>*)"
-    by (metis (mono_tags, hide_lams) comp_apply idempotent_def lower_comp)
+  lemma adjoint_idem2: "idempotent \<X> (\<pi>\<^sub>* \<circ> \<pi>\<^sup>*)"
+    by (simp add: idempotent_def is_order_A partial_order.eq_is_equal lower_comp)
 
   lemma fg_iso: "isotone \<Y> \<Y> (\<pi>\<^sup>* \<circ> \<pi>\<^sub>*)"
     by (metis iso_compose lower_closure lower_iso upper_closure upper_iso)
@@ -223,10 +220,10 @@ lemma upper_adjoint_dual [simp]: "upper_adjoint (inv_gorder A) (inv_gorder B) f 
   by (simp add: lower_adjoint_def upper_adjoint_def)
 
 lemma lower_type: "lower_adjoint A B f \<Longrightarrow> f \<in> carrier A \<rightarrow> carrier B"
-  by (auto simp add:lower_adjoint_def funcset_pred galois_connection_def galois_connection_axioms_def connection_def)
+  by (auto simp add:lower_adjoint_def galois_connection_def galois_connection_axioms_def connection_def)
 
 lemma upper_type: "upper_adjoint A B g \<Longrightarrow> g \<in> carrier B \<rightarrow> carrier A"
-  by (auto simp add:upper_adjoint_def funcset_pred galois_connection_def galois_connection_axioms_def connection_def)
+  by (auto simp add:upper_adjoint_def galois_connection_def galois_connection_axioms_def connection_def)
 
 lemma id_galois: "partial_order A \<Longrightarrow> galois_connection (I\<^sub>g(A))"
   by (simp add: id_galcon_def galois_connection_def galois_connection_axioms_def connection_def)
@@ -251,7 +248,7 @@ proof -
   moreover 
   have "\<And> x y. \<lbrakk>x \<in> carrier \<X>\<^bsub>F\<^esub>; y \<in> carrier \<Y>\<^bsub>G\<^esub> \<rbrakk> \<Longrightarrow> 
                (\<pi>\<^sup>*\<^bsub>G\<^esub> (\<pi>\<^sup>*\<^bsub>F\<^esub> x) \<sqsubseteq>\<^bsub>\<Y>\<^bsub>G\<^esub>\<^esub> y) = (x \<sqsubseteq>\<^bsub>\<X>\<^bsub>F\<^esub>\<^esub> \<pi>\<^sub>*\<^bsub>F\<^esub> (\<pi>\<^sub>*\<^bsub>G\<^esub> y))"
-    by (metis F.galois_property F.lower_closure G.galois_property G.upper_closure assms(3) funcset_pred)
+    by (metis F.galois_property F.lower_closure G.galois_property G.upper_closure assms(3) Pi_iff)
   ultimately show ?thesis
     by (simp add: comp_galcon_def galois_connection_def galois_connection_axioms_def connection_def)
 qed
@@ -262,16 +259,14 @@ lemma comp_galcon_right_unit [simp]: "F \<circ>\<^sub>g I\<^sub>g(\<X>\<^bsub>F\
 lemma comp_galcon_left_unit [simp]: "I\<^sub>g(\<Y>\<^bsub>F\<^esub>) \<circ>\<^sub>g F = F"
   by (simp add: comp_galcon_def id_galcon_def)
 
-(*
 lemma galois_connectionI:
   assumes
     "partial_order A" "partial_order B"
     "L \<in> carrier A \<rightarrow> carrier B" "R \<in> carrier B \<rightarrow> carrier A"
     "isotone A B L" "isotone B A R" 
-    "\<And> x. \<lbrakk>L x \<in> carrier B; R x \<in> carrier A; y \<in> carrier B; R y \<in> carrier B\<rbrakk> \<Longrightarrow> \<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> y \<longleftrightarrow> x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* y"
-    "\<forall> X \<in> carrier(B). L(R(X)) \<sqsubseteq>\<^bsub>B\<^esub> X"
-    "\<forall> X \<in> carrier(A). X \<sqsubseteq>\<^bsub>A\<^esub> R(L(X))"
+    "\<And> x y. \<lbrakk> x \<in> carrier A; y \<in> carrier B \<rbrakk> \<Longrightarrow> L x \<sqsubseteq>\<^bsub>B\<^esub> y \<longleftrightarrow> x \<sqsubseteq>\<^bsub>A\<^esub> R y"
   shows "galois_connection \<lparr> orderA = A, orderB = B, lower = L, upper = R \<rparr>"
+  using assms by (simp add: galois_connection_def connection_def galois_connection_axioms_def)
 
 lemma galois_connectionI':
   assumes
@@ -282,14 +277,13 @@ lemma galois_connectionI':
     "\<forall> X \<in> carrier(A). X \<sqsubseteq>\<^bsub>A\<^esub> R(L(X))"
   shows "galois_connection \<lparr> orderA = A, orderB = B, lower = L, upper = R \<rparr>"
   using assms
-  by (unfold galois_connection_def,auto, (meson isotone_def typed_application weak_partial_order.le_trans)+)
-*)
+  by (auto simp add: galois_connection_def connection_def galois_connection_axioms_def, (meson PiE isotone_def weak_partial_order.le_trans)+)
 
 locale retract = galois_connection +
   assumes retract_property: "x \<in> carrier \<X> \<Longrightarrow> \<pi>\<^sub>* (\<pi>\<^sup>* x) \<sqsubseteq>\<^bsub>\<X>\<^esub> x"
 begin
   lemma retract_inverse: "x \<in> carrier \<X> \<Longrightarrow> \<pi>\<^sub>* (\<pi>\<^sup>* x) = x"
-    by (meson funcset_pred inflation is_order_A lower_closure partial_order.le_antisym retract_axioms retract_axioms_def retract_def upper_closure)
+    by (meson funcset_mem inflation is_order_A lower_closure partial_order.le_antisym retract_axioms retract_axioms_def retract_def upper_closure)
 
   lemma retract_injective: "inj_on \<pi>\<^sup>* (carrier \<X>)"
     by (metis inj_onI retract_inverse)
@@ -299,7 +293,7 @@ locale coretract = galois_connection +
   assumes coretract_property: "y \<in> carrier \<Y> \<Longrightarrow> y \<sqsubseteq>\<^bsub>\<Y>\<^esub> \<pi>\<^sup>* (\<pi>\<^sub>* y)"
 begin
   lemma coretract_inverse: "y \<in> carrier \<Y> \<Longrightarrow> \<pi>\<^sup>* (\<pi>\<^sub>* y) = y"
-    by (meson coretract_axioms coretract_axioms_def coretract_def deflation funcset_pred is_order_B lower_closure partial_order.le_antisym upper_closure)
+    by (meson coretract_axioms coretract_axioms_def coretract_def deflation funcset_mem is_order_B lower_closure partial_order.le_antisym upper_closure)
  
   lemma retract_injective: "inj_on \<pi>\<^sub>* (carrier \<Y>)"
     by (metis coretract_inverse inj_onI)
