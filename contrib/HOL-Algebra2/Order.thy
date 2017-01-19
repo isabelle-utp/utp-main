@@ -500,8 +500,13 @@ lemma (in weak_partial_order) inv_isotone [simp]:
   "isotone (inv_gorder A) (inv_gorder B) f = isotone A B f"
   by (auto simp add:isotone_def dual_weak_order dual_weak_order_iff)
 
-definition idempotent :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" where
-  "idempotent A f \<equiv> \<forall>x\<in>A. (f \<circ> f) x = f x"
+definition idempotent :: 
+  "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" ("Idem\<index>") where
+"idempotent L f \<equiv> \<forall>x\<in>carrier L. f (f x) .=\<^bsub>L\<^esub> f x"
+
+lemma (in weak_partial_order) idempotent:
+  "\<lbrakk> Idem f; x \<in> carrier L \<rbrakk> \<Longrightarrow> f (f x) .= f x"
+  by (auto simp add: idempotent_def)
 
 definition order_emb :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
   "order_emb A B f \<equiv> weak_partial_order A 
@@ -604,11 +609,11 @@ proof -
     by (auto intro:someI2 simp add:abottom_def)
 qed
 
-lemma bottom_closed:
+lemma bottom_closed [simp, intro]:
   "\<bottom> \<in> carrier L"
   by (metis bottom_least least_mem)
 
-lemma bottom_lower:
+lemma bottom_lower [simp, intro]:
   "x \<in> carrier L \<Longrightarrow> \<bottom> \<sqsubseteq> x"
   by (metis bottom_least least_le)
 
