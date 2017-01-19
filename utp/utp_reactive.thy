@@ -816,6 +816,14 @@ proof -
   finally show ?thesis .
 qed
 
+interpretation Des_Rel_retract: retract "DES \<leftarrow>\<langle>\<^bold>H,\<^bold>R\<rangle>\<rightarrow> REA"
+proof (unfold_locales, simp_all add: utp_order_def rea_hcond_def des_hcond_def)
+  fix P Q :: "('t::ordered_cancel_monoid_diff,'\<alpha>) hrelation_rp"
+  assume "P is \<^bold>H" "Q is \<^bold>R" 
+  show "(\<^bold>R P \<sqsubseteq> Q) \<longleftrightarrow> (P \<sqsubseteq> \<^bold>H Q)"
+  proof (rule iffI)
+  oops
+
 subsection {* Reactive parallel-by-merge *}
 
 text {* We show closure of parallel by merge under the reactive healthiness conditions by means

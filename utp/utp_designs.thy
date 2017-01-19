@@ -1302,14 +1302,14 @@ lemma Rel_design: "Rel(P \<turnstile>\<^sub>r Q) = (P \<Rightarrow> Q)"
   by (rel_auto)
 
 interpretation Des_Rel_coretract:
-  coretract "\<lparr> orderA = utp_order DES, orderB = utp_order REL, lower = Rel, upper = Des \<rparr>"
+  coretract "DES \<leftarrow>\<langle>Des,Rel\<rangle>\<rightarrow> REL"
   rewrites
-    "\<And> x. x \<in> carrier \<X>\<^bsub>\<lparr>orderA = utp_order DES, orderB = utp_order REL, lower = Rel, upper = Des\<rparr>\<^esub> = (x is \<^bold>H)" and
-    "\<And> x. x \<in> carrier \<Y>\<^bsub>\<lparr>orderA = utp_order DES, orderB = utp_order REL, lower = Rel, upper = Des\<rparr>\<^esub> = True" and
-    "\<pi>\<^sub>*\<^bsub>\<lparr>orderA = utp_order DES, orderB = utp_order REL, lower = Rel, upper = Des\<rparr>\<^esub> = Des" and
-    "\<pi>\<^sup>*\<^bsub>\<lparr>orderA = utp_order DES, orderB = utp_order REL, lower = Rel, upper = Des\<rparr>\<^esub> = Rel" and
-    "le \<X>\<^bsub>\<lparr>orderA = utp_order DES, orderB = utp_order REL, lower = Rel, upper = Des\<rparr>\<^esub> = op \<sqsubseteq>" and
-    "le \<Y>\<^bsub>\<lparr>orderA = utp_order DES, orderB = utp_order REL, lower = Rel, upper = Des\<rparr>\<^esub> = op \<sqsubseteq>"
+    "\<And> x. x \<in> carrier \<X>\<^bsub>DES \<leftarrow>\<langle>Des,Rel\<rangle>\<rightarrow> REL\<^esub> = (x is \<^bold>H)" and
+    "\<And> x. x \<in> carrier \<Y>\<^bsub>DES \<leftarrow>\<langle>Des,Rel\<rangle>\<rightarrow> REL\<^esub> = True" and
+    "\<pi>\<^sub>*\<^bsub>DES \<leftarrow>\<langle>Des,Rel\<rangle>\<rightarrow> REL\<^esub> = Des" and
+    "\<pi>\<^sup>*\<^bsub>DES \<leftarrow>\<langle>Des,Rel\<rangle>\<rightarrow> REL\<^esub> = Rel" and
+    "le \<X>\<^bsub>DES \<leftarrow>\<langle>Des,Rel\<rangle>\<rightarrow> REL\<^esub> = op \<sqsubseteq>" and
+    "le \<Y>\<^bsub>DES \<leftarrow>\<langle>Des,Rel\<rangle>\<rightarrow> REL\<^esub> = op \<sqsubseteq>"
 proof (unfold_locales, simp_all add: utp_order_def rel_hcond_def des_hcond_def)
   show "\<And>x. x is id"
     by (simp add: Healthy_def)

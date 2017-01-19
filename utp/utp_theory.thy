@@ -323,4 +323,21 @@ lemma REL_top: "\<^bold>\<top>\<^bsub>REL\<^esub> = false"
 lemma REL_bottom: "\<^bold>\<bottom>\<^bsub>REL\<^esub> = true"
   by (simp add: rel_hcond_def rel_theory.healthy_bottom)
 
+subsection {* Theory links *}
+
+definition mk_conn ("_ \<leftarrow>\<langle>_,_\<rangle>\<rightarrow> _" [90,0,0,91] 91)  where
+"T1 \<leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<rightarrow> T2 \<equiv> \<lparr> orderA = utp_order T1, orderB = utp_order T2, lower = \<H>\<^sub>2, upper = \<H>\<^sub>1 \<rparr>"
+
+lemma mk_conn_orderA [simp]: "\<X>\<^bsub>T1 \<leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<rightarrow> T2\<^esub> = utp_order T1" 
+  by (simp add:mk_conn_def)
+
+lemma mk_conn_orderB [simp]: "\<Y>\<^bsub>T1 \<leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<rightarrow> T2\<^esub> = utp_order T2" 
+  by (simp add:mk_conn_def)
+
+lemma mk_conn_lower [simp]:  "\<pi>\<^sub>*\<^bsub>T1 \<leftarrow>\<langle>H\<^sub>1,H\<^sub>2\<rangle>\<rightarrow> T2\<^esub> = H\<^sub>1"
+  by (simp add: mk_conn_def)
+
+lemma mk_conn_upper [simp]:  "\<pi>\<^sup>*\<^bsub>T1 \<leftarrow>\<langle>H\<^sub>1,H\<^sub>2\<rangle>\<rightarrow> T2\<^esub> = H\<^sub>2"
+  by (simp add: mk_conn_def)
+
 end

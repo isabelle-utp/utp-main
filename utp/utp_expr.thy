@@ -521,7 +521,7 @@ lemma lit_fun_simps [lit_simps]:
 
 text {* In general unliteralising converts function applications to corresponding expression
   liftings. Since some operators, like + and *, have specific operators we also have to
-  use uexpr_defs in reverse to correctly interpret these. Moreover, numerals must be handled
+  use @{thm uexpr_defs} in reverse to correctly interpret these. Moreover, numerals must be handled
   separately by first simplifying them and then converting them into UTP expression numerals;
   hence the following two simplification rules. *}
 
