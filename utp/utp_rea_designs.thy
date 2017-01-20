@@ -462,6 +462,9 @@ lemma CSP1_R3c_commute:
 lemma CSP_idem: "CSP(CSP(P)) = CSP(P)"
   by (metis (no_types, hide_lams) CSP1_CSP2_commute CSP1_R1_commute CSP1_R2c_commute CSP1_R3c_commute CSP1_idem CSP2_def CSP2_idem R1_H2_commute R2c_H2_commute R3c_H2_commute RH_R2c_def RH_idem)
 
+lemma CSP_Idempotent: "Idempotent CSP"
+  by (simp add: CSP_idem Idempotent_def)
+
 lemma CSP1_via_H1: "R1(H1(P)) = R1(CSP1(P))"
   by rel_auto
 
@@ -1464,6 +1467,19 @@ qed
 subsection {* Complete lattice *}
 
 typedef RDES = "UNIV :: unit set" ..
+typedef R1DES = "UNIV :: unit set" ..
+
+abbreviation "R1DES \<equiv> TYPE(R1DES \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
+
+overloading
+  r1des_hcond   == "utp_hcond :: (R1DES \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp) itself \<Rightarrow> (('t,'\<alpha>) alphabet_rp \<times> ('t,'\<alpha>) alphabet_rp) Healthiness_condition"
+begin
+  definition r1des_hcond :: "(R1DES \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp) itself \<Rightarrow> (('t,'\<alpha>) alphabet_rp \<times> ('t,'\<alpha>) alphabet_rp) Healthiness_condition" where
+  [upred_defs]: "r1des_hcond T = R1 \<circ> \<^bold>H"
+end
+
+interpretation r1des_theory: utp_theory "TYPE(R1DES \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
+  by (unfold_locales, simp_all add: r1des_hcond_def, metis CSP1_R1_H1 H1_H2_idempotent H2_R1_comm R1_idem)
 
 abbreviation "RDES \<equiv> TYPE(RDES \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
 
@@ -1515,6 +1531,61 @@ lemma rdes_lfp_copy: "\<lbrakk> mono F; F \<in> \<lbrakk>CSP\<rbrakk>\<^sub>H \<
 
 lemma rdes_gfp_copy: "\<lbrakk> mono F; F \<in> \<lbrakk>CSP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>CSP\<rbrakk>\<^sub>H \<rbrakk> \<Longrightarrow> \<nu>\<^sub>R F = F (\<nu>\<^sub>R F)"
   by (metis hrd_lattice.GFP_unfold mono_Monotone_utp_order)
+
+lemma RH_H1_H2_eq_CSP: "\<^bold>R (\<^bold>H P) = CSP P"
+  by (metis (no_types, lifting) CSP1_R1_H1 CSP1_R2c_commute CSP1_R3c_commute CSP2_def R1_H2_commute R1_R2c_commute R1_R2c_is_R2 R2_R3c_commute R2c_H2_commute R3c_H2_commute RH_alt_def'')
+
+lemma Des_Rea_galois_lemma_1: "R1(\<^bold>H(R1(P))) \<sqsubseteq> R1(P)"
+  by (rel_auto)
+
+lemma "\<^bold>R(CSP(P)) = CSP(P)"
+  by (rel_auto)
+
+lemma Des_Rea_galois_lemma_2: "CSP(P) \<sqsubseteq> \<^bold>H(\<^bold>R(CSP(P)))"
+  apply (rel_auto)
+oops  
+
+lemma R2c_H1_H2_commute: "R2c(\<^bold>H(P)) = \<^bold>H(R2c(P))"
+  by (rel_auto)
+
+lemma funcset_into_Idempotent: "Idempotent H \<Longrightarrow> H \<in> X \<rightarrow> \<lbrakk>H\<rbrakk>\<^sub>H"
+  by (simp add: Healthy_def' Idempotent_def)
+
+interpretation galois_connection "R1DES \<leftarrow>\<langle>id,R2c \<circ> R3c\<rangle>\<rightarrow> RDES"
+proof (simp add: mk_conn_def, rule galois_connectionI', simp_all add: utp_partial_order r1des_hcond_def rdes_hcond_def r1des_hcond_def)
+  show "R2c \<circ> R3c \<in> \<lbrakk>R1 \<circ> \<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>CSP\<rbrakk>\<^sub>H"
+    by (simp add: Pi_iff Healthy_def', metis R1_R2c_commute R1_R3c_commute R3c_idem RH_H1_H2_eq_CSP RH_absorbs_R2c RH_alt_def'')
+  show "id \<in> \<lbrakk>CSP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>R1 \<circ> \<^bold>H\<rbrakk>\<^sub>H"
+    by (simp add: Pi_iff Healthy_def', metis CSP1_via_H1 CSP2_def RH_H1_H2_eq_CSP RH_alt_def RH_alt_def' RH_idem)
+  show "isotone (utp_order R1DES) (utp_order RDES) (R2c \<circ> R3c)"
+    by (auto intro: isotone_utp_orderI Monotonic_comp R2c_Monotonic R3c_Monotonic)
+  show "isotone (utp_order RDES) (utp_order R1DES) id"
+    by (auto intro: isotone_utp_orderI Monotonic_comp Monotonic_id)
+  show "\<forall>P. P is CSP \<longrightarrow> R2c (R3c P) \<sqsubseteq> P"
+    by (metis (no_types, lifting) CSP_R1_R2s CSP_healths(3) Healthy_def' R1_R2c_commute R2c_R2s_absorb eq_refl)
+  show "\<forall>P. P is R1 \<circ> \<^bold>H \<longrightarrow> P \<sqsubseteq> R2c (R3c P)"
+oops
+
+interpretation Des_Rea_galois: galois_connection "DES \<leftarrow>\<langle>\<^bold>H,\<^bold>R\<rangle>\<rightarrow> RDES"
+proof (simp add: mk_conn_def, rule galois_connectionI', simp_all add: utp_partial_order rdes_hcond_def des_hcond_def)
+  show "\<^bold>R \<in> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>CSP\<rbrakk>\<^sub>H"
+    by (metis (no_types, lifting) CSP_idem Healthy_def' Pi_I' RH_H1_H2_eq_CSP mem_Collect_eq)
+  show "\<^bold>H \<in> \<lbrakk>CSP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
+    by (rule funcset_into_Idempotent, rule H1_H2_Idempotent)
+  show "isotone (utp_order DES) (utp_order RDES) \<^bold>R"
+    by (rule isotone_utp_orderI, metis rea_hcond_def rea_utp_theory_mono.HCond_Mono)
+  show "isotone (utp_order RDES) (utp_order DES) \<^bold>H"
+    by (rule isotone_utp_orderI, simp add: H1_H2_monotonic)
+  show "\<forall>X. X is CSP \<longrightarrow> \<^bold>R (\<^bold>H X) \<sqsubseteq> X"
+    by (simp add: CSP_RH_design_form CSP_reactive_design RH_H1_H2_eq_CSP)
+  show "\<forall>X. X is \<^bold>H \<longrightarrow> X \<sqsubseteq> \<^bold>H (\<^bold>R X)"
+  proof (auto)
+    fix P :: "('t::ordered_cancel_monoid_diff,'\<alpha>) hrelation_rp"
+    assume "P is \<^bold>H"
+    hence "(P \<sqsubseteq> \<^bold>H (\<^bold>R P)) \<longleftrightarrow> (\<^bold>H(P) \<sqsubseteq> \<^bold>H(\<^bold>R(\<^bold>H(P))))"
+      by (simp add: Healthy_def')
+    also have "... \<longleftrightarrow> (\<^bold>H(P) \<sqsubseteq> \<^bold>H(R1(\<^bold>H(P))))"
+      oops
 
 subsection {* Reactive design parallel-by-merge *}
 

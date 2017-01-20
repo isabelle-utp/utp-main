@@ -70,8 +70,19 @@ definition "IMH(H) \<longleftrightarrow> Idempotent(H) \<and> Monotonic(H)"
 
 definition "Antitone(H) \<longleftrightarrow> (\<forall> P Q. Q \<sqsubseteq> P \<longrightarrow> (H(P) \<sqsubseteq> H(Q)))"
 
+lemma Idempotent_id [simp]: "Idempotent id"
+  by (simp add: Idempotent_def)
+
+lemma Idempotent_comp [intro]:
+  "\<lbrakk> Idempotent f; Idempotent g; f \<circ> g = g \<circ> f \<rbrakk> \<Longrightarrow> Idempotent (f \<circ> g)"
+  by (auto simp add: Idempotent_def comp_def, metis)
+
 lemma Monotonic_id [simp]: "Monotonic id"
   by (simp add: Monotonic_def)
+
+lemma Monotonic_comp [intro]:
+  "\<lbrakk> Monotonic f; Monotonic g \<rbrakk> \<Longrightarrow> Monotonic (f \<circ> g)"
+  by (auto simp add: Monotonic_def)
 
 definition NM : "NM(P) = (\<not> P \<and> true)"
 
@@ -166,6 +177,34 @@ consts
 
 definition utp_order :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> '\<alpha> hrelation gorder" where
 "utp_order T = \<lparr> carrier = {P. P is \<H>\<^bsub>T\<^esub>}, eq = (op =), le = op \<sqsubseteq> \<rparr>"
+
+lemma utp_order_carrier [simp]:
+  "carrier (utp_order T) = \<lbrakk>\<H>\<^bsub>T\<^esub>\<rbrakk>\<^sub>H"
+  by (simp add: utp_order_def)
+
+lemma utp_order_eq [simp]:
+  "eq (utp_order T) = op ="
+  by (simp add: utp_order_def)
+
+lemma utp_order_le [simp]:
+  "le (utp_order T) = op \<sqsubseteq>"
+  by (simp add: utp_order_def)
+
+lemma utp_partial_order: "partial_order (utp_order T)"
+  by (unfold_locales, simp_all add: utp_order_def)
+
+lemma utp_weak_partial_order: "weak_partial_order (utp_order T)"
+  by (unfold_locales, simp_all add: utp_order_def)
+
+lemma mono_Monotone_utp_order:
+  "mono f \<Longrightarrow> Monotone (utp_order T) f"
+  apply (auto simp add: isotone_def)
+  apply (metis partial_order_def utp_partial_order)
+  apply (metis monoD)
+done
+
+lemma isotone_utp_orderI: "Monotonic H \<Longrightarrow> isotone (utp_order X) (utp_order Y) H"
+  by (auto simp add: Monotonic_def isotone_def utp_weak_partial_order)
 
 text {* UTP order is the fixed point lattice *}
 
@@ -305,17 +344,6 @@ end
 
 interpretation rel_theory: utp_theory_mono_unital REL
   by (unfold_locales, simp_all add: rel_hcond_def rel_unit_def Healthy_def)
-
-lemma utp_partial_order: "partial_order (utp_order T)"
-  by (unfold_locales, simp_all add: utp_order_def)
-
-lemma mono_Monotone_utp_order:
-  "mono f \<Longrightarrow> Monotone (utp_order T) f"
-  apply (auto simp add: isotone_def)
-  apply (metis partial_order_def utp_partial_order)
-  apply (simp add: utp_order_def)
-  apply (metis monoD)
-done
 
 lemma REL_top: "\<^bold>\<top>\<^bsub>REL\<^esub> = false"
   by (simp add: rel_hcond_def rel_theory.healthy_top)

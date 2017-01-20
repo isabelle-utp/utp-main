@@ -926,6 +926,9 @@ notation H1_H2 ("\<^bold>H")
 lemma H1_H2_idempotent: "\<^bold>H (\<^bold>H P) = \<^bold>H P"
   by (simp add: H1_H2_commute H1_idem H2_idem)
 
+lemma H1_H2_Idempotent: "Idempotent \<^bold>H"
+  by (simp add: Idempotent_def H1_H2_idempotent)
+
 lemma H1_H2_monotonic: "Monotonic \<^bold>H"
   by (simp add: H1_monotone H2_def Monotonic_def seqr_mono)
 

@@ -181,8 +181,14 @@ definition R1_def [upred_defs]: "R1 (P) =  (P \<and> ($tr \<le>\<^sub>u $tr\<acu
 lemma R1_idem: "R1(R1(P)) = R1(P)"
   by pred_auto
 
+lemma R1_Idempotent: "Idempotent R1"
+  by (simp add: Idempotent_def R1_idem)
+
 lemma R1_mono: "P \<sqsubseteq> Q \<Longrightarrow> R1(P) \<sqsubseteq> R1(Q)"
   by pred_auto
+
+lemma R1_Monotonic: "Monotonic R1"
+  by (simp add: Monotonic_def R1_mono)
 
 lemma R1_unrest [unrest]: "\<lbrakk> x \<bowtie> in_var tr; x \<bowtie> out_var tr; x \<sharp> P \<rbrakk> \<Longrightarrow> x \<sharp> R1(P)"
   by (metis R1_def in_var_uvar lens_indep_sym out_var_uvar tr_vwb_lens unrest_bop unrest_conj unrest_var)
@@ -535,6 +541,12 @@ lemma R2_R1_seq_drop_left:
 lemma R2c_idem: "R2c(R2c(P)) = R2c(P)"
   by (rel_auto)
 
+lemma R2c_Idempotent: "Idempotent R2c"
+  by (simp add: Idempotent_def R2c_idem)
+
+lemma R2c_Monotonic: "Monotonic R2c"
+  by (rel_auto)
+
 lemma R2c_H2_commute: "R2c(H2(P)) = H2(R2c(P))"
   by (simp add: H2_split R2c_disj R2c_def R2s_def usubst, rel_auto)
 
@@ -556,8 +568,14 @@ definition R3c_def [upred_defs]: "R3c (P) = (II\<^sub>r \<triangleleft> $wait \<
 lemma R3_idem: "R3(R3(P)) = R3(P)"
   by rel_auto
 
+lemma R3_Idempotent: "Idempotent R3"
+  by (simp add: Idempotent_def R3_idem)
+
 lemma R3_mono: "P \<sqsubseteq> Q \<Longrightarrow> R3(P) \<sqsubseteq> R3(Q)"
   by rel_auto
+
+lemma R3_Monotonic: "Monotonic R3"
+  by (simp add: Monotonic_def R3_mono)
 
 lemma R3_conj: "R3(P \<and> Q) = (R3(P) \<and> R3(Q))"
   by rel_auto
@@ -676,6 +694,15 @@ lemma R3c_H2_commute: "R3c(H2(P)) = H2(R3c(P))"
 lemma R3c_idem: "R3c(R3c(P)) = R3c(P)"
   by rel_auto
 
+lemma R3c_Idempotent: "Idempotent R3c"
+  using Idempotent_def R3c_idem by blast
+
+lemma R3c_mono: "P \<sqsubseteq> Q \<Longrightarrow> R3c(P) \<sqsubseteq> R3c(Q)"
+  by rel_auto
+
+lemma R3c_Monotonic: "Monotonic R3c"
+  by (simp add: Monotonic_def R3c_mono)
+
 lemma R3c_conj: "R3c(P \<and> Q) = (R3c(P) \<and> R3c(Q))"
   by (rel_auto)
 
@@ -719,6 +746,9 @@ lemma RH_alt_def'':
 lemma RH_idem:
   "\<^bold>R(\<^bold>R(P)) = \<^bold>R(P)"
   by (metis R2_R3c_commute R2_def R2_idem R3c_idem RH_def)
+
+lemma RH_Idempotent: "Idempotent \<^bold>R"
+  by (simp add: Idempotent_def RH_idem)
 
 lemma RH_monotone:
   "P \<sqsubseteq> Q \<Longrightarrow> \<^bold>R(P) \<sqsubseteq> \<^bold>R(Q)"
@@ -815,14 +845,6 @@ proof -
     by (rel_auto, metis minus_zero_eq)
   finally show ?thesis .
 qed
-
-interpretation Des_Rel_retract: retract "DES \<leftarrow>\<langle>\<^bold>H,\<^bold>R\<rangle>\<rightarrow> REA"
-proof (unfold_locales, simp_all add: utp_order_def rea_hcond_def des_hcond_def)
-  fix P Q :: "('t::ordered_cancel_monoid_diff,'\<alpha>) hrelation_rp"
-  assume "P is \<^bold>H" "Q is \<^bold>R" 
-  show "(\<^bold>R P \<sqsubseteq> Q) \<longleftrightarrow> (P \<sqsubseteq> \<^bold>H Q)"
-  proof (rule iffI)
-  oops
 
 subsection {* Reactive parallel-by-merge *}
 
