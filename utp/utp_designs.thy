@@ -879,10 +879,14 @@ lemma ok_post: "($ok \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>D) = ($ok \<an
 apply (pred_auto)
 done
 
+abbreviation "H1_H2 P \<equiv> H1 (H2 P)"
+
+notation H1_H2 ("\<^bold>H")
+
 theorem H1_H2_eq_design:
-  "H1 (H2 P) = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
+  "\<^bold>H(P) = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
 proof -
-  have "H1 (H2 P) = ($ok \<Rightarrow> H2(P))"
+  have "\<^bold>H(P) = ($ok \<Rightarrow> H2(P))"
     by (simp add: H1_def)
   also have "... = ($ok \<Rightarrow> (P\<^sup>f \<or> (P\<^sup>t \<and> $ok\<acute>)))"
     by (metis H2_split)
@@ -898,11 +902,10 @@ theorem H1_H2_is_design:
   shows "P = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
   using assms by (metis H1_H2_eq_design Healthy_def)
 
-theorem H1_H2_is_rdesign:
-  assumes "P is H1" "P is H2"
-  shows "P = pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P)"
+theorem H1_H2_eq_rdesign:
+  "\<^bold>H(P) = pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P)"
 proof -
-  from assms have "P = ($ok \<Rightarrow> H2(P))"
+  have "\<^bold>H(P) = ($ok \<Rightarrow> H2(P))"
     by (simp add: H1_def Healthy_def')
   also have "... = ($ok \<Rightarrow> (P\<^sup>f \<or> (P\<^sup>t \<and> $ok\<acute>)))"
     by (metis H2_split)
@@ -919,9 +922,10 @@ proof -
   finally show ?thesis .
 qed
 
-abbreviation "H1_H2 P \<equiv> H1 (H2 P)"
-
-notation H1_H2 ("\<^bold>H")
+theorem H1_H2_is_rdesign:
+  assumes "P is H1" "P is H2"
+  shows "P = pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P)"
+  by (metis H1_H2_eq_rdesign Healthy_def assms(1) assms(2))
 
 lemma H1_H2_idempotent: "\<^bold>H (\<^bold>H P) = \<^bold>H P"
   by (simp add: H1_H2_commute H1_idem H2_idem)
@@ -933,29 +937,29 @@ lemma H1_H2_monotonic: "Monotonic \<^bold>H"
   by (simp add: H1_monotone H2_def Monotonic_def seqr_mono)
 
 lemma design_is_H1_H2:
-  "\<lbrakk> $ok\<acute> \<sharp> P; $ok\<acute> \<sharp> Q \<rbrakk> \<Longrightarrow> (P \<turnstile> Q) is H1_H2"
+  "\<lbrakk> $ok\<acute> \<sharp> P; $ok\<acute> \<sharp> Q \<rbrakk> \<Longrightarrow> (P \<turnstile> Q) is \<^bold>H"
   by (simp add: H1_design H2_design Healthy_def')
 
 lemma rdesign_is_H1_H2:
-  "(P \<turnstile>\<^sub>r Q) is H1_H2"
+  "(P \<turnstile>\<^sub>r Q) is \<^bold>H"
   by (simp add: Healthy_def H1_rdesign H2_rdesign)
 
 lemma seq_r_H1_H2_closed:
-  assumes "P is H1_H2" "Q is H1_H2"
-  shows "(P ;; Q) is H1_H2"
+  assumes "P is \<^bold>H" "Q is \<^bold>H"
+  shows "(P ;; Q) is \<^bold>H"
 proof -
   obtain P\<^sub>1 P\<^sub>2 where "P = P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2"
     by (metis H1_H2_commute H1_H2_is_rdesign H2_idem Healthy_def assms(1))
   moreover obtain Q\<^sub>1 Q\<^sub>2 where "Q = Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2"
    by (metis H1_H2_commute H1_H2_is_rdesign H2_idem Healthy_def assms(2))
-  moreover have "((P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) ;; (Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2)) is H1_H2"
+  moreover have "((P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) ;; (Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2)) is \<^bold>H"
     by (simp add: rdesign_composition rdesign_is_H1_H2)
   ultimately show ?thesis by simp
 qed
 
 lemma assigns_d_comp_ext:
   fixes P :: "'\<alpha> hrelation_d"
-  assumes "P is H1_H2"
+  assumes "P is \<^bold>H"
   shows "(\<langle>\<sigma>\<rangle>\<^sub>D ;; P) = \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D\<rceil>\<^sub>s \<dagger> P"
 proof -
   have "(\<langle>\<sigma>\<rangle>\<^sub>D ;; P) = (\<langle>\<sigma>\<rangle>\<^sub>D ;; pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P))"
@@ -970,7 +974,7 @@ proof -
 qed
 
 lemma USUP_H1_H2_closed:
-  assumes "A \<noteq> {}" "\<forall> P \<in> A. P is H1_H2"
+  assumes "A \<noteq> {}" "\<forall> P \<in> A. P is \<^bold>H"
   shows "(\<Sqinter> A) is H1_H2"
 proof -
   from assms have A: "A = H1_H2 ` A"
@@ -992,8 +996,8 @@ definition design_sup :: "('\<alpha>, '\<beta>) relation_d set \<Rightarrow> ('\
 "\<Sqinter>\<^sub>D A = (if (A = {}) then \<top>\<^sub>D else \<Sqinter> A)"
 
 lemma design_sup_H1_H2_closed:
-  assumes "\<forall> P \<in> A. P is H1_H2"
-  shows "(\<Sqinter>\<^sub>D A) is H1_H2"
+  assumes "\<forall> P \<in> A. P is \<^bold>H"
+  shows "(\<Sqinter>\<^sub>D A) is \<^bold>H"
   apply (auto simp add: design_sup_def)
   apply (simp add: H1_def H2_not_okay Healthy_def impl_alt_def)
   using USUP_H1_H2_closed assms apply blast
@@ -1006,20 +1010,20 @@ lemma design_sup_non_empty [simp]: "A \<noteq> {} \<Longrightarrow> \<Sqinter>\<
   by (simp add: design_sup_def)
 
 lemma UINF_H1_H2_closed:
-  assumes "\<forall> P \<in> A. P is H1_H2"
-  shows "(\<Squnion> A) is H1_H2"
+  assumes "\<forall> P \<in> A. P is \<^bold>H"
+  shows "(\<Squnion> A) is \<^bold>H"
 proof -
-  from assms have A: "A = H1_H2 ` A"
+  from assms have A: "A = \<^bold>H ` A"
     by (auto simp add: Healthy_def rev_image_eqI)
-  also have "(\<Squnion> ...) = (\<Squnion> P \<in> A. H1_H2(P))"
+  also have "(\<Squnion> ...) = (\<Squnion> P \<in> A. \<^bold>H(P))"
     by auto
-  also have "... = (\<Squnion> P \<in> A \<bullet> H1_H2(P))"
+  also have "... = (\<Squnion> P \<in> A \<bullet> \<^bold>H(P))"
     by (simp add: UINF_as_Inf_collect)
   also have "... = (\<Squnion> P \<in> A \<bullet> (\<not> P\<^sup>f) \<turnstile> P\<^sup>t)"
     by (meson H1_H2_eq_design)
   also have "... = (\<Sqinter> P \<in> A \<bullet> \<not> P\<^sup>f) \<turnstile> (\<Squnion> P \<in> A \<bullet> \<not> P\<^sup>f \<Rightarrow> P\<^sup>t)"
     by (simp add: design_UINF)
-  also have "... is H1_H2"
+  also have "... is \<^bold>H"
     by (simp add: design_is_H1_H2 unrest)
   finally show ?thesis .
 qed

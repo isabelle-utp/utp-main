@@ -353,7 +353,7 @@ lemma REL_bottom: "\<^bold>\<bottom>\<^bsub>REL\<^esub> = true"
 
 subsection {* Theory links *}
 
-definition mk_conn ("_ \<leftarrow>\<langle>_,_\<rangle>\<rightarrow> _" [90,0,0,91] 91)  where
+definition mk_conn ("_ \<leftarrow>\<langle>_,_\<rangle>\<rightarrow> _" [90,0,0,91] 91) where
 "T1 \<leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<rightarrow> T2 \<equiv> \<lparr> orderA = utp_order T1, orderB = utp_order T2, lower = \<H>\<^sub>2, upper = \<H>\<^sub>1 \<rparr>"
 
 lemma mk_conn_orderA [simp]: "\<X>\<^bsub>T1 \<leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<rightarrow> T2\<^esub> = utp_order T1" 
@@ -367,5 +367,8 @@ lemma mk_conn_lower [simp]:  "\<pi>\<^sub>*\<^bsub>T1 \<leftarrow>\<langle>H\<^s
 
 lemma mk_conn_upper [simp]:  "\<pi>\<^sup>*\<^bsub>T1 \<leftarrow>\<langle>H\<^sub>1,H\<^sub>2\<rangle>\<rightarrow> T2\<^esub> = H\<^sub>2"
   by (simp add: mk_conn_def)
+
+lemma galois_comp: "(T\<^sub>2 \<leftarrow>\<langle>\<H>\<^sub>3,\<H>\<^sub>4\<rangle>\<rightarrow> T\<^sub>3) \<circ>\<^sub>g (T\<^sub>1 \<leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<rightarrow> T\<^sub>2) = T\<^sub>1 \<leftarrow>\<langle>\<H>\<^sub>1\<circ>\<H>\<^sub>3,\<H>\<^sub>4\<circ>\<H>\<^sub>2\<rangle>\<rightarrow> T\<^sub>3"
+  by (simp add: comp_galcon_def mk_conn_def)
 
 end
