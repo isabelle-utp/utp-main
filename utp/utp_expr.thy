@@ -500,7 +500,7 @@ text {* The following tactic converts literal HOL expressions to UTP expressions
         via a collection of simplification rules. The two tactics are called "literalise", which
         converts UTP to expressions to HOL expressions -- i.e. it pushes them into literals --
         and unliteralise that reverses this. We collect the equations in a theorem attribute
-        called "lit_simps". *}
+        called "lit\_simps". *}
 
 lemma lit_num_simps [lit_simps]: "\<guillemotleft>0\<guillemotright> = 0" "\<guillemotleft>1\<guillemotright> = 1" "\<guillemotleft>numeral n\<guillemotright> = numeral n" "\<guillemotleft>- x\<guillemotright> = - \<guillemotleft>x\<guillemotright>"
   by (simp_all add: ueval, transfer, simp)
