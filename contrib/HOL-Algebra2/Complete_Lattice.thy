@@ -271,6 +271,10 @@ lemma weak_sup_insert [simp]:
   apply (auto intro: sup_upper sup_least sup_closed)
 done
 
+lemma funcset_carrier [intro]:
+  "\<lbrakk> f \<in> carrier L \<rightarrow> carrier L; x \<in> carrier L \<rbrakk> \<Longrightarrow> f x \<in> carrier L"
+  by (fact funcset_mem)
+
 end
 
 text {* Fixed points of a lattice *}
@@ -315,15 +319,50 @@ lemma (in weak_complete_lattice) fps_idem:
   apply (rule set_eqI2)
   apply (auto simp add: idempotent_def fps_def)
   apply (metis Pi_iff local.sym)
-  apply (meson PiE local.refl)
 done
 
 context weak_complete_lattice
 begin
 
-lemma funcset_carrier [intro]:
-  "\<lbrakk> f \<in> carrier L \<rightarrow> carrier L; x \<in> carrier L \<rbrakk> \<Longrightarrow> f x \<in> carrier L"
-  by (fact funcset_mem)
+lemma weak_sup_pre_fixed_point: 
+  assumes "f \<in> carrier L \<rightarrow> carrier L" "isotone L L f" "A \<subseteq> fps L f"
+  shows "(\<Squnion>\<^bsub>L\<^esub> A) \<sqsubseteq>\<^bsub>L\<^esub> f (\<Squnion>\<^bsub>L\<^esub> A)"
+proof (rule sup_least)
+  from assms(3) show AL: "A \<subseteq> carrier L"
+    by (auto simp add: fps_def)
+  thus fA: "f (\<Squnion>A) \<in> carrier L"
+    by (simp add: assms funcset_carrier[of f])
+  fix x
+  assume xA: "x \<in> A"
+  hence "x \<in> fps L f"
+    using assms subsetCE by blast
+  hence "f x .=\<^bsub>L\<^esub> x"
+    by (auto simp add: fps_def)
+  moreover have "f x \<sqsubseteq>\<^bsub>L\<^esub> f (\<Squnion>\<^bsub>L\<^esub>A)"
+    by (meson AL assms(2) subsetCE sup_closed sup_upper use_iso1 xA)
+  ultimately show "x \<sqsubseteq>\<^bsub>L\<^esub> f (\<Squnion>\<^bsub>L\<^esub>A)"
+    by (meson AL fA assms(1) funcset_carrier le_cong local.refl subsetCE xA)
+qed
+
+lemma weak_sup_post_fixed_point: 
+  assumes "f \<in> carrier L \<rightarrow> carrier L" "isotone L L f" "A \<subseteq> fps L f"
+  shows "f (\<Sqinter>\<^bsub>L\<^esub> A) \<sqsubseteq>\<^bsub>L\<^esub> (\<Sqinter>\<^bsub>L\<^esub> A)"
+proof (rule inf_greatest)
+  from assms(3) show AL: "A \<subseteq> carrier L"
+    by (auto simp add: fps_def)
+  thus fA: "f (\<Sqinter>A) \<in> carrier L"
+    by (simp add: assms funcset_carrier[of f])
+  fix x
+  assume xA: "x \<in> A"
+  hence "x \<in> fps L f"
+    using assms subsetCE by blast
+  hence "f x .=\<^bsub>L\<^esub> x"
+    by (auto simp add: fps_def)
+  moreover have "f (\<Sqinter>\<^bsub>L\<^esub>A) \<sqsubseteq>\<^bsub>L\<^esub> f x"
+    by (meson AL assms(2) inf_closed inf_lower subsetCE use_iso1 xA)   
+  ultimately show "f (\<Sqinter>\<^bsub>L\<^esub>A) \<sqsubseteq>\<^bsub>L\<^esub> x"
+    by (meson AL assms(1) fA funcset_carrier le_cong_r subsetCE xA)
+qed
 
 text {* Least fixed points *}
 
@@ -770,18 +809,7 @@ proof -
         by (rule funcset_mem[of f "carrier L"], simp_all add: AL assms(2))
 
       have pf_w: "(\<Squnion>\<^bsub>L\<^esub> A) \<sqsubseteq>\<^bsub>L\<^esub> f (\<Squnion>\<^bsub>L\<^esub> A)"
-      proof (rule L.sup_least, simp_all add: AL w)
-        fix x
-        assume xA: "x \<in> A"
-        hence "x \<in> fps L f"
-          using A subsetCE by blast
-        hence "f x .=\<^bsub>L\<^esub> x"
-          by (auto simp add: fps_def)
-        moreover have "f x \<sqsubseteq>\<^bsub>L\<^esub> f (\<Squnion>\<^bsub>L\<^esub>A)"
-          by (meson AL L.sup_closed L.sup_upper assms(3) subsetCE use_iso1 xA)
-        ultimately show "x \<sqsubseteq>\<^bsub>L\<^esub> f (\<Squnion>\<^bsub>L\<^esub>A)"
-          by (meson AL funcset_mem L.le_cong L.refl assms(2) subsetCE w xA)
-      qed
+        by (simp add: A L.weak_sup_pre_fixed_point assms(2) assms(3))
 
       have f_top_chain: "f ` \<lbrace>?w..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub> \<subseteq> \<lbrace>?w..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub>"
       proof (auto simp add: at_least_at_most_def)
@@ -889,18 +917,7 @@ proof -
         by (simp add: AL L.funcset_carrier assms(2))
 
       have pf_w: "f (\<Sqinter>\<^bsub>L\<^esub> A) \<sqsubseteq>\<^bsub>L\<^esub> (\<Sqinter>\<^bsub>L\<^esub> A)"
-      proof (rule L.inf_greatest, simp_all add: AL w)
-        fix x
-        assume xA: "x \<in> A"
-        hence "x \<in> fps L f"
-          using A subsetCE by blast
-        hence "f x .=\<^bsub>L\<^esub> x"
-          by (auto simp add: fps_def)
-        moreover have "f (\<Sqinter>\<^bsub>L\<^esub>A) \<sqsubseteq>\<^bsub>L\<^esub> f x"
-          by (meson AL L.inf_closed L.inf_lower assms(3) subsetCE use_iso2 xA)
-        ultimately show "f (\<Sqinter>\<^bsub>L\<^esub>A) \<sqsubseteq>\<^bsub>L\<^esub> x"
-          by (meson AL L.funcset_carrier L.le_cong L.refl assms(2) subsetCE w xA)
-      qed
+        by (simp add: A L.weak_sup_post_fixed_point assms(2) assms(3))
 
       have f_bot_chain: "f ` \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub> \<subseteq> \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub>"
       proof (auto simp add: at_least_at_most_def)
