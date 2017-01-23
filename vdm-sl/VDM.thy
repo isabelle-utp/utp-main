@@ -664,9 +664,13 @@ lemma wp_calc_test_2:
 
 subsection {* VDM-SL operations *}
 
-definition vdm_sl_op :: "(bool, '\<alpha> \<times> '\<alpha>) vexpr \<Rightarrow> (bool, '\<alpha> \<times> '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d \<Rightarrow> '\<alpha> hrelation_d"
+definition vdm_sl_op :: "(bool, '\<alpha>) vexpr \<Rightarrow> (bool, '\<alpha> \<times> '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d \<Rightarrow> '\<alpha> hrelation_d"
   ("[pre _ post _ body _]\<^sub>v")
-where "[pre pr post po body bd]\<^sub>v = (\<lfloor>\<D>\<^sub>v(pr)\<rfloor>\<^sub>v \<and> \<lfloor>pr\<rfloor>\<^sub>v) \<turnstile>\<^sub>r (\<lfloor>\<D>\<^sub>v(po)\<rfloor>\<^sub>v \<and> \<lfloor>po\<rfloor>\<^sub>v \<and> post\<^sub>D(bd))"
+where [upred_defs]: "[pre pr post po body bd]\<^sub>v = (\<lfloor>\<D>\<^sub>v(pr)\<rfloor>\<^sub>v \<and> \<lfloor>pr\<rfloor>\<^sub>v) \<turnstile>\<^sub>n (\<lfloor>\<D>\<^sub>v(po)\<rfloor>\<^sub>v \<and> \<lfloor>po\<rfloor>\<^sub>v \<and> post\<^sub>D(bd))"
+
+lemma vdm_sl_op_H1_H3 [closure]:
+  "[pre p post Q body R]\<^sub>v is \<^bold>N"
+  by (simp add: vdm_sl_op_def, metis H1_rdesign H3_ndesign Healthy_def ndesign_def)
 
 (*
 lemma vdm_sl_op_true_pre_post [simp]:
@@ -677,5 +681,17 @@ lemma vdm_sl_op_false_pre [simp]:
   "[pre false\<^sub>v post p body b]\<^sub>v = true"
   by (simp add: vdm_sl_op_def, pred_auto)
 *)
+
+subsection {* Support for local variables *}
+
+alphabet vlocal = 
+  vlocals :: "vstore"
+
+instantiation vlocal_ext :: (type) vst
+begin
+  definition [simp]: "vstore_lens_vlocal_ext = vlocals"
+instance
+  by (intro_classes, unfold_locales, simp_all)
+end
 
 end

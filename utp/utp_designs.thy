@@ -86,19 +86,16 @@ lemma ok_indep_des_lens [simp]: "ok \<bowtie> des_lens" "des_lens \<bowtie> ok"
 lemma ok_des_bij_lens: "bij_lens (ok +\<^sub>L des_lens)"
   by (unfold_locales, simp_all add: ok_def des_lens_def lens_plus_def prod.case_eq_if)
 
-text {* It would be nice to be able to prove some general distributivity properties
-        about these lifting operators. I don't know if that's possible somehow... *}
-
-abbreviation lift_desr :: "('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" ("\<lceil>_\<rceil>\<^sub>D")
+abbreviation lift_desr ("\<lceil>_\<rceil>\<^sub>D")
 where "\<lceil>P\<rceil>\<^sub>D \<equiv> P \<oplus>\<^sub>p (des_lens \<times>\<^sub>L des_lens)"
 
-abbreviation lift_pre_desr :: "'\<alpha> upred \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" ("\<lceil>_\<rceil>\<^sub>D\<^sub><")
+abbreviation lift_pre_desr ("\<lceil>_\<rceil>\<^sub>D\<^sub><")
 where "\<lceil>p\<rceil>\<^sub>D\<^sub>< \<equiv> \<lceil>\<lceil>p\<rceil>\<^sub><\<rceil>\<^sub>D"
 
-abbreviation lift_post_desr :: "'\<beta> upred \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" ("\<lceil>_\<rceil>\<^sub>D\<^sub>>")
+abbreviation lift_post_desr ("\<lceil>_\<rceil>\<^sub>D\<^sub>>")
 where "\<lceil>p\<rceil>\<^sub>D\<^sub>> \<equiv> \<lceil>\<lceil>p\<rceil>\<^sub>>\<rceil>\<^sub>D"
 
-abbreviation drop_desr :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("\<lfloor>_\<rfloor>\<^sub>D")
+abbreviation drop_desr ("\<lfloor>_\<rfloor>\<^sub>D")
 where "\<lfloor>P\<rfloor>\<^sub>D \<equiv> P \<restriction>\<^sub>p (des_lens \<times>\<^sub>L des_lens)"
 
 definition design::"('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" (infixl "\<turnstile>" 60)
@@ -936,15 +933,19 @@ lemma H1_H2_Idempotent: "Idempotent \<^bold>H"
 lemma H1_H2_monotonic: "Monotonic \<^bold>H"
   by (simp add: H1_monotone H2_def Monotonic_def seqr_mono)
 
-lemma design_is_H1_H2:
+lemma design_is_H1_H2 [closure]:
   "\<lbrakk> $ok\<acute> \<sharp> P; $ok\<acute> \<sharp> Q \<rbrakk> \<Longrightarrow> (P \<turnstile> Q) is \<^bold>H"
   by (simp add: H1_design H2_design Healthy_def')
 
-lemma rdesign_is_H1_H2:
+lemma rdesign_is_H1_H2 [closure]:
   "(P \<turnstile>\<^sub>r Q) is \<^bold>H"
   by (simp add: Healthy_def H1_rdesign H2_rdesign)
 
-lemma seq_r_H1_H2_closed:
+lemma assigns_d_is_H1_H2 [closure]:
+  "\<langle>\<sigma>\<rangle>\<^sub>D is \<^bold>H"
+  by (simp add: assigns_d_def rdesign_is_H1_H2) 
+
+lemma seq_r_H1_H2_closed [closure]:
   assumes "P is \<^bold>H" "Q is \<^bold>H"
   shows "(P ;; Q) is \<^bold>H"
 proof -
@@ -1036,6 +1037,14 @@ subsection {* H3: The design assumption is a precondition *}
 theorem H3_idem:
   "H3(H3(P)) = H3(P)"
   by (metis H3_def design_skip_idem seqr_assoc)
+
+theorem H3_mono:
+  "P \<sqsubseteq> Q \<Longrightarrow> H3(P) \<sqsubseteq> H3(Q)"
+  by (simp add: H3_def seqr_mono)
+  
+theorem H3_Monotonic:
+  "Monotonic H3"
+  by (simp add: H3_mono Monotonic_def)
 
 theorem design_condition_is_H3:
   assumes "out\<alpha> \<sharp> p"
@@ -1153,6 +1162,17 @@ theorem H1_H3_is_normal_design:
 
 abbreviation "H1_H3 p \<equiv> H1 (H3 p)"
 
+notation H1_H3 ("\<^bold>N")
+
+lemma H1_H3_idempotent: "\<^bold>N (\<^bold>N P) = \<^bold>N P"
+  by (simp add: H1_H3_commute H1_idem H3_idem)
+
+lemma H1_H3_Idempotent: "Idempotent \<^bold>N"
+  by (simp add: Idempotent_def H1_H3_idempotent)
+
+lemma H1_H3_monotonic: "Monotonic \<^bold>N"
+  by (simp add: H1_monotone H3_mono Monotonic_def)
+
 lemma H1_H3_impl_H2: "P is H1_H3 \<Longrightarrow> P is H1_H2"
   by (metis H1_H2_commute H1_idem H2_H3_absorb Healthy_def')
 
@@ -1180,11 +1200,31 @@ qed
 lemma H3_unrest_out_alpha [unrest]: "P is H1_H3 \<Longrightarrow> out\<alpha> \<sharp> pre\<^sub>D(P)"
   by (metis H1_H3_commute H1_H3_is_rdesign H1_idem Healthy_def' precond_equiv rdesign_H3_iff_pre)
 
+lemma des_bot_H1_H3 [closure]: "\<bottom>\<^sub>D is \<^bold>N"
+  by (metis H1_design H3_def Healthy_def' design_false_pre design_true_left_zero skip_d_alt_def)
+
+lemma assigns_d_H1_H3 [closure]: "\<langle>\<sigma>\<rangle>\<^sub>D is \<^bold>N"
+  by (metis H1_rdesign H3_ndesign Healthy_def' aext_true assigns_d_def ndesign_def)
+
+lemma seq_r_H1_H3_closed [closure]:
+  assumes "P is \<^bold>N" "Q is \<^bold>N"
+  shows "(P ;; Q) is \<^bold>N"
+  by (metis (no_types) H1_H2_eq_design H1_H3_eq_design_d_comp H1_H3_impl_H2 Healthy_def assms(1) assms(2) seq_r_H1_H2_closed seqr_assoc)
+
 theorem wpd_seq_r_H1_H2 [wp]:
   fixes P Q :: "'\<alpha> hrelation_d"
   assumes "P is H1_H3" "Q is H1_H3"
   shows "(P ;; Q) wp\<^sub>D r = P wp\<^sub>D (Q wp\<^sub>D r)"
   by (smt H1_H3_commute H1_H3_is_rdesign H1_idem Healthy_def' assms(1) assms(2) drop_pre_inv precond_equiv rdesign_H3_iff_pre wpd_seq_r)
+
+text {* If two normal designs have the same weakest precondition for any given postcondition, then
+  the two designs are equivalent. *}
+
+theorem wpd_eq_intro: "\<lbrakk> \<And> r. (p\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>1) wp\<^sub>D r = (p\<^sub>2 \<turnstile>\<^sub>n Q\<^sub>2) wp\<^sub>D r \<rbrakk> \<Longrightarrow> (p\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>1) = (p\<^sub>2 \<turnstile>\<^sub>n Q\<^sub>2)"
+  by (rel_auto, (metis curry_conv)+)
+
+theorem wpd_H3_eq_intro: "\<lbrakk> P is H1_H3; Q is H1_H3; \<And> r. P wp\<^sub>D r = Q wp\<^sub>D r \<rbrakk> \<Longrightarrow> P = Q"
+  by (metis H1_H3_commute H1_H3_is_normal_design H3_idem Healthy_def' wpd_eq_intro)
 
 subsection {* H4: Feasibility *}
 
@@ -1245,12 +1285,14 @@ interpretation ndes_utp_theory: utp_theory "TYPE(NDES \<times> '\<alpha> alphabe
 interpretation des_left_unital: utp_theory_left_unital "TYPE(DES \<times> '\<alpha> alphabet_d)"
   apply (unfold_locales)
   apply (simp_all add: des_hcond_def des_unit_def)
+  using seq_r_H1_H2_closed apply blast
   apply (simp add: rdesign_is_H1_H2 skip_d_def)
   apply (metis H1_idem H1_left_unit Healthy_def')
 done
 
 interpretation ndes_unital: utp_theory_unital "TYPE(NDES \<times> ('\<alpha> alphabet_d))"
   apply (unfold_locales, simp_all add: ndes_hcond_def ndes_unit_def)
+  using seq_r_H1_H3_closed apply blast
   apply (metis H1_rdesign H3_def Healthy_def' design_skip_idem skip_d_def)
   apply (metis H1_idem H1_left_unit Healthy_def')
   apply (metis H1_H3_commute H3_def H3_idem Healthy_def')
@@ -1259,6 +1301,10 @@ done
 interpretation design_theory_mono: utp_theory_mono "TYPE(DES \<times> '\<alpha> alphabet_d)"
   rewrites "carrier (utp_order DES) = \<lbrakk>H1_H2\<rbrakk>\<^sub>H" 
   by (unfold_locales, simp_all add: des_hcond_def H1_H2_monotonic utp_order_def)
+
+interpretation normal_design_theory_mono: utp_theory_mono "TYPE(NDES \<times> '\<alpha> alphabet_d)"
+  rewrites "carrier (utp_order NDES) = \<lbrakk>H1_H3\<rbrakk>\<^sub>H" 
+  by (unfold_locales, simp_all add: ndes_hcond_def H1_H3_monotonic utp_order_def)
 
 (*
 interpretation design_complete_lattice: utp_theory_lattice "TYPE(DES \<times> '\<alpha> alphabet_d)"

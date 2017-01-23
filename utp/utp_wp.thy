@@ -47,4 +47,10 @@ theorem wp_hoare_link:
   "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u \<longleftrightarrow> (Q wp r \<sqsubseteq> p)"
   by rel_auto
 
+text {* If two programs have the same weakest precondition for any postcondition then the programs
+  are the same. *}
+
+theorem wp_eq_intro: "\<lbrakk> \<And> r. P wp r = Q wp r \<rbrakk> \<Longrightarrow> P = Q"
+  by (rel_auto, fastforce+)
+
 end

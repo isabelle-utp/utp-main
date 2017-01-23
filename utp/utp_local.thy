@@ -82,11 +82,15 @@ translations
 overloading
   des_pvar == "pvar :: '\<alpha> \<Longrightarrow> '\<alpha> alphabet_d"
   des_assigns == "pvar_assigns :: (DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d"
+  ndes_assigns == "pvar_assigns :: (NDES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d"
 begin
   definition des_pvar :: "'\<alpha> \<Longrightarrow> '\<alpha> alphabet_d" where
-  "des_pvar = \<Sigma>\<^sub>D"
+  [upred_defs]: "des_pvar = \<Sigma>\<^sub>D"
   definition des_assigns :: "(DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d" where
-  "des_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>D"
+  [upred_defs]: "des_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>D"
+  definition ndes_assigns :: "(NDES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d" where
+  [upred_defs]: "ndes_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>D"
+
 end
 
 locale utp_prog_var = utp_theory \<T> for \<T> :: "('\<T> \<times> '\<alpha>) itself" (structure) +
@@ -95,14 +99,18 @@ locale utp_prog_var = utp_theory \<T> for \<T> :: "('\<T> \<times> '\<alpha>) it
   and Healthy_pvar_assigns: "\<^bold>\<langle>\<sigma> :: '\<beta> usubst\<^bold>\<rangle> is \<H>"
   and pvar_assigns_comp: "(\<^bold>\<langle>\<sigma>\<^bold>\<rangle> ;; \<^bold>\<langle>\<rho>\<^bold>\<rangle>) = \<^bold>\<langle>\<rho> \<circ> \<sigma>\<^bold>\<rangle>"
 
-lemma assigns_d_is_H1_H2:
-  "\<langle>\<sigma>\<rangle>\<^sub>D is H1_H2"
-  by (simp add: assigns_d_def rdesign_is_H1_H2) 
-
 interpretation des_prog_var: utp_prog_var "TYPE(DES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
+  rewrites "\<H>\<^bsub>DES\<^esub> = \<^bold>H"
   apply (unfold_locales, simp_all add: des_pvar_def des_assigns_def des_hcond_def)
   apply (simp add: assigns_d_def rdesign_is_H1_H2)
   apply (simp add: assigns_d_comp_ext assigns_d_is_H1_H2)
+  apply (rel_auto)
+done
+
+interpretation ndes_prog_var: utp_prog_var "TYPE(NDES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
+  rewrites "\<H>\<^bsub>NDES\<^esub> = \<^bold>N"
+  apply (unfold_locales, simp_all add: des_pvar_def ndes_assigns_def ndes_hcond_def)
+  apply (simp add: assigns_d_H1_H3)
   apply (rel_auto)
 done
 
@@ -110,12 +118,12 @@ locale utp_local_var = utp_prog_var \<T> V + utp_theory_left_unital \<T> for \<T
   assumes pvar_assign_unit: "\<^bold>\<langle>id :: '\<beta> usubst\<^bold>\<rangle> = \<I>\<I>"
 begin
 
-lemma var_begin_healthy: 
+lemma var_begin_healthy [closure]: 
   fixes x :: "('a, '\<beta>) lvar"
   shows "var x is \<H>"
   by (simp add: var_begin_def Healthy_pvar_assigns)
 
-lemma var_end_healthy: 
+lemma var_end_healthy [closure]: 
   fixes x :: "('a, '\<beta>) lvar"
   shows "end x is \<H>"
   by (simp add: var_end_def Healthy_pvar_assigns)
@@ -143,7 +151,12 @@ lemma var_block_vacuous:
 end
 
 interpretation des_local_var: utp_local_var "TYPE(DES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
-  by (unfold_locales, simp_all add: des_unit_def des_assigns_def)
+  rewrites "\<H>\<^bsub>DES\<^esub> = \<^bold>H"
+  by (unfold_locales, simp_all add: des_unit_def des_assigns_def des_hcond_def)
+
+interpretation ndes_local_var: utp_local_var "TYPE(NDES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
+  rewrites "\<H>\<^bsub>NDES\<^esub> = \<^bold>N"
+  by (unfold_locales, simp_all add: ndes_unit_def ndes_assigns_def ndes_hcond_def)
 
 (*
 term "var\<^bsub>REL\<^esub> x \<bullet> P"

@@ -4,6 +4,10 @@ theory utp_theory
 imports utp_rel
 begin
 
+text {* Closure laws for theories *}
+
+named_theorems closure
+
 subsection {* Complete lattice of predicates *}
 
 definition upred_lattice :: "('\<alpha> upred) gorder" ("\<P>") where
@@ -303,29 +307,33 @@ begin
 
 end
 
-locale utp_theory_left_unital = 
+locale utp_theory_rel =
   utp_theory +
-  assumes Healthy_Left_Unit: "\<I>\<I> is \<H>"
+  assumes Healthy_Sequence [closure]: "\<lbrakk> P is \<H>; Q is \<H> \<rbrakk> \<Longrightarrow> (P ;; Q) is \<H>"
+
+locale utp_theory_left_unital = 
+  utp_theory_rel +
+  assumes Healthy_Left_Unit [closure]: "\<I>\<I> is \<H>"
   and Left_Unit: "P is \<H> \<Longrightarrow> (\<I>\<I> ;; P) = P"
 
 locale utp_theory_right_unital = 
-  utp_theory +
-  assumes Healthy_Right_Unit: "\<I>\<I> is \<H>"
+  utp_theory_rel +
+  assumes Healthy_Right_Unit [closure]: "\<I>\<I> is \<H>"
   and Right_Unit: "P is \<H> \<Longrightarrow> (P ;; \<I>\<I>) = P"
 
 locale utp_theory_unital =
-  utp_theory +
-  assumes Healthy_Unit: "\<I>\<I> is \<H>"
+  utp_theory_rel +
+  assumes Healthy_Unit [closure]: "\<I>\<I> is \<H>"
   and Unit_Left: "P is \<H> \<Longrightarrow> (\<I>\<I> ;; P) = P" 
   and Unit_Right: "P is \<H> \<Longrightarrow> (P ;; \<I>\<I>) = P"
 
 locale utp_theory_mono_unital = utp_theory_mono + utp_theory_unital
 
 sublocale utp_theory_unital \<subseteq> utp_theory_left_unital
-  by (simp add: Healthy_Unit Unit_Left utp_theory_axioms utp_theory_left_unital_axioms_def utp_theory_left_unital_def)
+  by (simp add: Healthy_Unit Unit_Left Healthy_Sequence utp_theory_rel_def utp_theory_axioms utp_theory_rel_axioms_def utp_theory_left_unital_axioms_def utp_theory_left_unital_def)
 
 sublocale utp_theory_unital \<subseteq> utp_theory_right_unital
-  by (simp add: Healthy_Unit Unit_Right utp_theory_axioms utp_theory_right_unital_axioms_def utp_theory_right_unital_def)
+  by (simp add: Healthy_Unit Unit_Right Healthy_Sequence utp_theory_rel_def utp_theory_axioms utp_theory_rel_axioms_def utp_theory_right_unital_axioms_def utp_theory_right_unital_def)
 
 typedef REL = "UNIV :: unit set" ..
 

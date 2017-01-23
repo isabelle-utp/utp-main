@@ -7,16 +7,13 @@ begin
 type_synonym Period = real
 type_synonym Expert = real
 
-record Plant = vstore_d +
-  Plant_staff    :: "Expert set"
-  Plant_schedule :: "Period \<rightharpoonup> Expert set"
+alphabet Plant = vlocal +
+  staff    :: "Expert set"
+  schedule :: "Period \<rightharpoonup> Expert set"
 
 declare Plant.defs [simp]
 
 abbreviation "mk_Plant \<equiv> vuop (bpfun' Plant.make)"
-
-definition [upred_defs]: "staff = VAR Plant_staff"
-definition [upred_defs]: "schedule \<equiv> VAR Plant_schedule"
 
 abbreviation 
   "inv_Plant \<equiv> (\<Union>\<^sub>v (rng\<^sub>v(&\<^sub>vschedule)) \<subseteq>\<^sub>v &\<^sub>vstaff \<and>\<^sub>v (\<forall>\<^sub>v exs \<in> rng\<^sub>v(&\<^sub>vschedule) \<bullet> \<guillemotleft>exs\<guillemotright>\<^sub>v <>\<^sub>v {}\<^sub>v))"
@@ -27,14 +24,14 @@ abbreviation
 text {* init_Plant establishes the invariant *}
 
 lemma init_Plant_est: "(true \<turnstile>\<^sub>r \<lceil> \<lfloor> inv_Plant \<rfloor>\<^sub>v \<rceil>\<^sub>>) \<sqsubseteq> init_Plant"
-  by rel_auto
+  by (rel_auto, simp add: ran_def)
 
 abbreviation
-  "addExpert \<equiv> val e :: Expert \<bullet>\<^sub>D [pre $\<^sub>ve \<notin>\<^sub>v $\<^sub>vstaff post true\<^sub>v body staff :=\<^sub>v &\<^sub>vstaff \<union>\<^sub>v {&\<^sub>ve}\<^sub>v]\<^sub>v"
+  "addExpert \<equiv> val e :: Expert \<bullet>\<^sub>D [pre &\<^sub>ve \<notin>\<^sub>v &\<^sub>vstaff post true\<^sub>v body staff :=\<^sub>v &\<^sub>vstaff \<union>\<^sub>v {&\<^sub>ve}\<^sub>v]\<^sub>v"
 
 abbreviation
   "Assign \<equiv> val e :: Expert, val p :: Period \<bullet>\<^sub>D 
-              [pre ($\<^sub>ve \<in>\<^sub>v $\<^sub>vstaff \<and>\<^sub>v $\<^sub>vp \<in>\<^sub>v dom\<^sub>v($\<^sub>vschedule))
+              [pre (&\<^sub>ve \<in>\<^sub>v &\<^sub>vstaff \<and>\<^sub>v &\<^sub>vp \<in>\<^sub>v dom\<^sub>v(&\<^sub>vschedule))
                post $\<^sub>ve\<acute> \<in>\<^sub>v $\<^sub>vschedule\<acute>($\<^sub>vp)\<^sub>v
                body schedule(&\<^sub>vp) :=\<^sub>v ({&\<^sub>ve}\<^sub>v \<union>\<^sub>v (&\<^sub>vschedule(&\<^sub>vp)\<^sub>v))]\<^sub>v"
 

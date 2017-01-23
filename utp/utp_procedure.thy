@@ -78,6 +78,17 @@ translations
   => "CONST vres_parm_comp T <x>\<^sub>d (\<lambda> x. (_proc_block T ps P))"
   "_dproc_block ps P" => "_proc_block (CONST DAL) ps P"
 
+context utp_local_var
+begin
+
+lemma val_parm_healthy [closure]:
+  fixes x :: "('a::two, '\<beta>::vst) lvar"
+  assumes "\<And> x. P x is \<H>"
+  shows "val_parm T x P v is \<H>"
+  oops
+
+end
+
 (*
 context utp_local_var
 begin
