@@ -5,6 +5,8 @@ imports
   utp_rel
   utp_wp
   utp_theory
+  utp_local
+  utp_procedure
 begin
 
 text {* In UTP, in order to explicitly record the termination of a program,
@@ -147,7 +149,7 @@ syntax
 translations
   "P\<^sup>f" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST ovar CONST ok) false) P"
   "P\<^sup>t" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST ovar CONST ok) true) P"
-  "\<top>\<^sub>D" => "CONST not_upred (CONST var (CONST ivar CONST ok))"
+  "\<top>\<^sub>D" => "CONST not_upred (CONST utp_expr.var (CONST ivar CONST ok))"
   "\<bottom>\<^sub>D" => "true"
 
 definition pre_design :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("pre\<^sub>D'(_')") where
@@ -1341,6 +1343,64 @@ abbreviation design_gfp :: "_ \<Rightarrow> _" ("\<nu>\<^sub>D") where
 
 thm design_theory_mono.GFP_unfold
 thm design_theory_mono.LFP_unfold
+
+text {* We also set up local variables for designs. *}
+
+overloading
+  des_pvar == "pvar :: '\<alpha> \<Longrightarrow> '\<alpha> alphabet_d"
+  des_assigns == "pvar_assigns :: (DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d"
+  ndes_assigns == "pvar_assigns :: (NDES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d"
+begin
+  definition des_pvar :: "'\<alpha> \<Longrightarrow> '\<alpha> alphabet_d" where
+  [upred_defs]: "des_pvar = \<Sigma>\<^sub>D"
+  definition des_assigns :: "(DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d" where
+  [upred_defs]: "des_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>D"
+  definition ndes_assigns :: "(NDES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d" where
+  [upred_defs]: "ndes_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>D"
+
+end
+
+interpretation des_prog_var: utp_prog_var "TYPE(DES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
+  rewrites "\<H>\<^bsub>DES\<^esub> = \<^bold>H"
+  apply (unfold_locales, simp_all add: des_pvar_def des_assigns_def des_hcond_def)
+  apply (simp add: assigns_d_def rdesign_is_H1_H2)
+  apply (simp add: assigns_d_comp_ext assigns_d_is_H1_H2)
+  apply (rel_auto)
+done
+
+interpretation ndes_prog_var: utp_prog_var "TYPE(NDES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
+  rewrites "\<H>\<^bsub>NDES\<^esub> = \<^bold>N"
+  apply (unfold_locales, simp_all add: des_pvar_def ndes_assigns_def ndes_hcond_def)
+  apply (simp add: assigns_d_H1_H3)
+  apply (rel_auto)
+done
+
+interpretation des_local_var: utp_local_var "TYPE(DES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
+  rewrites "\<H>\<^bsub>DES\<^esub> = \<^bold>H"
+  by (unfold_locales, simp_all add: des_unit_def des_assigns_def des_hcond_def)
+
+interpretation ndes_local_var: utp_local_var "TYPE(NDES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
+  rewrites "\<H>\<^bsub>NDES\<^esub> = \<^bold>N"
+  by (unfold_locales, simp_all add: ndes_unit_def ndes_assigns_def ndes_hcond_def)
+
+text {* We also set up procedures for the theory of designs. *}
+
+abbreviation "DAL \<equiv> TYPE(DES \<times> '\<alpha> alphabet_d \<times> '\<alpha>)"
+
+translations
+  "_proc_block T (_parm_list (_res_parm x) ps) P" 
+  => "CONST vres_parm_comp T <x>\<^sub>d (\<lambda> x. (_proc_block T ps P))"
+  "_dproc_block ps P" => "_proc_block (CONST DAL) ps P"
+
+text {* Instantiate vstore for design alphabets, which enables the use of deep variables
+  to represent local variables. *}
+
+instantiation alpha_d_ext :: (vst) vst
+begin
+  definition "vstore_lens_alpha_d_ext = \<V> ;\<^sub>L \<Sigma>\<^sub>D"
+instance
+  by (intro_classes, auto simp add: vstore_lens_alpha_d_ext_def comp_vwb_lens)
+end
 
 text {* Example Galois connection between designs and relations. Based on Jim's example in COMPASS
         deliverable D23.5. *}

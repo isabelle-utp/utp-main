@@ -60,6 +60,9 @@ lemma sorted_last [simp]: "\<lbrakk> x \<in> set xs; sorted xs \<rbrakk> \<Longr
   apply (metis last_in_set sorted_Cons)+
 done
 
+lemma sorted_map: "\<lbrakk> sorted xs; mono f \<rbrakk> \<Longrightarrow> sorted (map f xs)"
+  by (simp add: monoD sorted_equals_nth_mono)
+
 lemma prefix_length_eq:
   "\<lbrakk> length xs = length ys; prefixeq xs ys \<rbrakk> \<Longrightarrow> xs = ys"
   by (metis not_equal_is_parallel parallel_def)
@@ -602,6 +605,57 @@ proof -
 
   finally show ?thesis .
 qed
+
+lemma dropWhile_sorted_le_above:
+  "\<lbrakk> sorted xs; x \<in> set (dropWhile (\<lambda> x. x \<le> n) xs) \<rbrakk> \<Longrightarrow> x > n"
+  apply (induct xs)
+  apply (auto)
+  apply (rename_tac a xs)
+  apply (case_tac "a \<le> n")
+  apply (simp_all)
+  using sorted_Cons apply blast
+  apply (meson dual_order.trans not_less sorted_Cons)
+done
+
+lemma set_dropWhile_le:
+  "sorted xs \<Longrightarrow> set (dropWhile (\<lambda> x. x \<le> n) xs) = {x\<in>set xs. x > n}"
+  apply (induct xs)
+  apply (simp)
+  apply (rename_tac x xs)
+  apply (subgoal_tac "sorted xs")
+  apply (simp)
+  apply (safe)
+  apply (simp_all)
+  apply (meson not_less order_trans sorted_Cons)
+  using sorted_Cons apply auto
+done
+
+lemma set_takeWhile_less_sorted: 
+  "\<lbrakk> sorted I; x \<in> set I; x < n \<rbrakk> \<Longrightarrow> x \<in> set (takeWhile (\<lambda>x. x < n) I)"
+proof (induct I arbitrary: x)
+  case Nil thus ?case
+    by (simp)
+next
+  case (Cons a I) thus ?case
+    by (auto, (meson le_less_trans sorted_Cons)+)
+qed
+
+lemma nth_le_takeWhile_ord: "\<lbrakk> sorted xs; i \<ge> length (takeWhile (\<lambda> x. x \<le> n) xs); i < length xs \<rbrakk> \<Longrightarrow> n \<le> xs ! i"
+  apply (induct xs arbitrary: i, auto)
+  apply (rename_tac x xs i)
+  apply (case_tac "x \<le> n")
+  apply (auto simp add: sorted_Cons)
+  apply (metis One_nat_def Suc_eq_plus1 le_less_linear le_less_trans less_imp_le list.size(4) nth_mem set_ConsD)
+done
+
+lemma length_takeWhile_less:
+  "\<lbrakk> a \<in> set xs; \<not> P a \<rbrakk> \<Longrightarrow> length (takeWhile P xs) < length xs"
+  by (metis in_set_conv_nth length_takeWhile_le nat_neq_iff not_less set_takeWhileD takeWhile_nth)
+
+lemma nth_length_takeWhile_less:
+  "\<lbrakk> sorted xs; distinct xs; (\<exists> a \<in> set xs. a \<ge> n) \<rbrakk> \<Longrightarrow> xs ! length (takeWhile (\<lambda>x. x < n) xs) \<ge> n"
+  apply (induct xs, auto)
+  using sorted_Cons by blast
 
 text {* Sorting lists according to a relation *}
 

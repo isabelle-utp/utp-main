@@ -234,6 +234,12 @@ where "utp_top \<T> \<equiv> atop (utp_order \<T>)"
 abbreviation utp_bottom ("\<^bold>\<bottom>\<index>")
 where "utp_bottom \<T> \<equiv> abottom (utp_order \<T>)"
 
+abbreviation utp_join (infixl "\<^bold>\<squnion>\<index>" 65) where
+"utp_join \<T> \<equiv> join (utp_order \<T>)"
+
+abbreviation utp_meet (infixl "\<^bold>\<sqinter>\<index>" 70) where
+"utp_meet \<T> \<equiv> meet (utp_order \<T>)"
+
 lemma upred_top: "\<top>\<^bsub>\<P>\<^esub> = false"
   using ball_UNIV greatest_def by fastforce
 

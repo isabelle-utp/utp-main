@@ -38,8 +38,6 @@ where [upred_defs]: "vres_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>TYPE(
 
 nonterminal parm and parm_list
 
-abbreviation "DAL \<equiv> TYPE(DES \<times> '\<alpha> alphabet_d \<times> '\<alpha>)"
-
 syntax
   "_uvar_ty"      :: "type \<Rightarrow> type"
   "_parm"         :: "parm \<Rightarrow> parm_list" ("(_)")
@@ -74,9 +72,6 @@ translations
   "_proc_block T (_parm (_vres_parm_ty x a)) P" => "CONST vres_parm T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) P)"
   "_proc_block T (_parm_list (_vres_parm_ty x a) ps) P" 
   => "CONST vres_parm_comp T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) (_proc_block T ps P))"
-  "_proc_block T (_parm_list (_res_parm x) ps) P" 
-  => "CONST vres_parm_comp T <x>\<^sub>d (\<lambda> x. (_proc_block T ps P))"
-  "_dproc_block ps P" => "_proc_block (CONST DAL) ps P"
 
 context utp_local_var
 begin
@@ -126,15 +121,5 @@ lemma vres_parm_comp_apply [simp]:
   "(vres_parm_comp x P) (u, v) = (var x \<bullet> x := &u ;; P x v ;; u := &x)"
   by (simp add: vres_parm_comp_def)
 *)
-
-text {* Instantiate vstore for design alphabets *}
-
-instantiation alpha_d_ext :: (vst) vst
-begin
-  definition "vstore_lens_alpha_d_ext = \<V> ;\<^sub>L \<Sigma>\<^sub>D"
-instance
-  by (intro_classes, auto simp add: vstore_lens_alpha_d_ext_def comp_vwb_lens)
-end
-
 
 end

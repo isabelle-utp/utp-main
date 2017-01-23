@@ -112,7 +112,8 @@ text {* We also create functions that allow various manipulations on contiguous 
   the end point. @{term cgf_map} (@{term "map\<^sub>C f g"}) applies a function to every element
   in the range, like a typical map function. Finally, @{term cgf_restrict} (@{term "f \<restriction>\<^sub>C i"}) restricts
   the domain of a contiguous function to the interval [0,i), and @{term cgf_force} (@{term "f !\<^sub>C i"}) has
-  a similar effect but forces the function to get longer is necessary. *}
+  a similar effect but forces the function to get longer is necessary. If the function is required
+  to become longer then the range will be filled with arbitrary values. *}
 
 instantiation cgf :: (type) zero
 begin
@@ -124,9 +125,11 @@ abbreviation (input) cgf_empty :: "'a cgf" ("[]\<^sub>C") where "[]\<^sub>C \<eq
 
 text {* We will now define the algebraic operators of timed traces, with which we will be able to
   instantiate our theory of generalised reactive designs, and thence produce timed reactive designs. We do
-  this by instantiating various type classes. The zero element is the empty contiguous function, obtained
-  by lifting the empty partial function, and demonstrating (as before) that this satisfies the invariant
-  of a contiguous function. We also give the zero element the syntax @{term "[]\<^sub>C"}. *}
+  this by instantiating various type classes towards showing that contiguous functions form a 
+  cancellative monoid, which is the underlying trace algebra. The zero element is the empty 
+  contiguous function, obtained by lifting the empty partial function, 
+  and demonstrating (as before) that this satisfies the invariant of a contiguous function. We 
+  also give the zero element the syntax @{term "[]\<^sub>C"}. *}
 
 instantiation cgf :: (type) plus
 begin
@@ -258,7 +261,9 @@ using assms proof (transfer)
   qed
 qed
 
-text {* Lemma @{thm cgf_cat_left_imp_eq} shows that concatenation is cancellative in its first argument. *}
+text {* Lemma @{thm cgf_cat_left_imp_eq} shows that concatenation is cancellative in its first argument.
+  Intuitively this means that a trace can be uniquely decomposed into its constituent parts and
+  is one of the key properties of the trace algebra of generalised reactive processes. *}
 
 lemma cgf_cat_right_imp_eq: 
   assumes "f @\<^sub>C h = g @\<^sub>C h"
@@ -293,6 +298,8 @@ proof -
   qed
 qed
 
+text {* Similarly, we show that concatenation is cancellative in its second argument. *}
+
 lemma cgf_cat_assoc: "(f @\<^sub>C g) @\<^sub>C h = f @\<^sub>C (g @\<^sub>C h)"
 proof (rule cgf_eqI, simp_all add: cgf_end_cat add.assoc, clarify)
   fix x
@@ -319,6 +326,11 @@ proof (rule cgf_eqI, simp_all add: cgf_end_cat add.assoc, clarify)
   qed
 qed
 
+text {* Another key property is associativity of concatenation, which is demonstrated above. We prove
+  this by extensionality, and split the proof into values of the index $x$ that fall within the 
+  three concatenated sections of the contiguous function. This allows us to show, below, that 
+  contiguous functions form a monoid. *}
+
 instance cgf :: (type) monoid_add
   by (intro_classes, simp_all add: cgf_cat_assoc)  
 
@@ -330,6 +342,10 @@ begin
   "less_cgf x y = (x \<le> y \<and> \<not> y \<le> x)"
 instance ..
 end
+
+text {* We can also construct a suitably order relation on contiguous functions by lifting of the
+  corresponding order on partial functions, @{term "op \<subseteq>\<^sub>m"}, which corresponds to the subset
+  operator when considering the function as a relation. *}
 
 lemma monoid_le_ttrace:
   "(f :: 'a cgf) \<le>\<^sub>m g \<longleftrightarrow> f \<le> g"
@@ -347,6 +363,10 @@ lemma monoid_le_ttrace:
   apply (simp add: map_le_via_restrict)
 done
 
+text {* At this point we also need to show that the order relation corresponds to the monoidal order 
+  relation which is constructed as $(x \le_m y) \iff (\exists z. y = x \cat z)$. This will allow us
+  to link to the proofs about this order relation. *}
+
 instantiation cgf :: (type) ordered_cancel_monoid_diff
 begin
   definition minus_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cgf" where
@@ -362,9 +382,26 @@ instance
 done
 end
 
-lemma cgf_end_map [simp]: "end\<^sub>C (map\<^sub>C f g) = end\<^sub>C g"
-  by (transfer, auto simp add: dom_if)
+text {* Thus we can show that our operators do indeed form an ordered cancellative monoid, which
+  then gives the trace algebra. In order to show this we also have to construct the subtraction
+  operator which we obtain from the derived monoidal subtraction, $x -_m y$. *}
 
+abbreviation (input) cgf_prefix :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" (infix "\<subseteq>\<^sub>C" 50)
+where "f \<subseteq>\<^sub>C g \<equiv> f \<le> g"
+
+text {* We give the alternative notation of @{term "f \<subseteq>\<^sub>C g"} to the function order to highlight
+  its role as a subset-like operator. *}
+
+lemma cgf_sub_end:
+  assumes "f \<le> g"
+  shows "end\<^sub>C f \<le> end\<^sub>C g"
+proof -
+  obtain f' where "g = f + f'"
+    by (meson assms monoid_le_def monoid_le_ttrace)
+  thus ?thesis
+    by (simp add: cgf_end_cat)
+qed
+    
 lemma cgf_dom_empty [simp]: "dom\<^sub>C([]\<^sub>C) = {}"
   by (transfer, simp)
 
@@ -378,11 +415,48 @@ lemma cgf_dom: "dom\<^sub>C(f) = {0..<end\<^sub>C f}"
   using less_eq_real_def apply auto
 done
 
-lemma cgf_restrict_empty [simp]: "[]\<^sub>C \<restriction>\<^sub>C n = []\<^sub>C"
-  by (transfer, simp)
+text {* We now show a few more properties about the domain of a contiguous function, namely that
+  the @{term "map\<^sub>C"} function is domain preserving, that the domain of an empty function is empty,
+  and that the domain of a function is the set [0..end(f)). *}
+
+lemma cgf_prefix_dom:
+  "f \<subseteq>\<^sub>C g \<Longrightarrow> dom\<^sub>C(f) \<subseteq> dom\<^sub>C(g)"
+  by (simp add: cgf_dom cgf_sub_end)
+
+text {* If function $f$ is a subfunction of $g$ then $f$ can be no longer than $g$. Similarly,
+  the domeain of the $f$ would be a subset of the domain of $g$. *}
+
+lemma cgf_restrict_le: "t \<restriction>\<^sub>C n \<le> t"
+  by (transfer, auto simp add: map_le_def)
 
 lemma cgf_end_restrict [simp]: "\<lbrakk> 0 \<le> n; n \<le> end\<^sub>C f \<rbrakk> \<Longrightarrow> end\<^sub>C (f \<restriction>\<^sub>C n) = n"
   by (transfer, auto)
+
+lemma cgf_restrict_less: "\<lbrakk> 0 \<le> n ; n < end\<^sub>C(t) \<rbrakk> \<Longrightarrow> t \<restriction>\<^sub>C n < t"
+  by (metis cgf_end_restrict cgf_restrict_le dual_order.strict_iff_order)
+
+text {* Restriction yields a function which is guaranteed to be no longer than the original,
+  and is strictly less than the original provided that $n$ is positive and is less than the original 
+  length. *}
+
+lemma cgf_prefix_iff: "f \<le> g \<longleftrightarrow> (\<exists> h. g = f @\<^sub>C h)"
+  by (simp add: ordered_cancel_monoid_diff_class.le_iff_add)
+
+lemma cgf_left_mono_iff: "f @\<^sub>C g \<le> f @\<^sub>C h \<longleftrightarrow> g \<le> h"
+  using add_le_imp_le_left add_left_mono by blast
+
+text {* The next two facts are simply derived from the trace algebra: the alternative definition
+  of prefix, and that concatenation is monotone in its second argument. *}
+
+lemma cgf_end_map [simp]: "end\<^sub>C (map\<^sub>C f g) = end\<^sub>C g"
+  by (transfer, auto simp add: dom_if)
+
+lemma cgf_restrict_empty [simp]: "[]\<^sub>C \<restriction>\<^sub>C n = []\<^sub>C"
+  by (transfer, simp)
+
+text {* We also show some properties about the restriction operator: restricting an empty
+  function has no effect, and the end of a restricted function yields the request end value,
+  provided that the function is no shorter than this value. *}
 
 lemma cgf_end_force [simp]: "n \<ge> 0 \<Longrightarrow> end\<^sub>C (f !\<^sub>C n) = n"
   apply (transfer, auto simp add: dom_if)
@@ -390,6 +464,9 @@ lemma cgf_end_force [simp]: "n \<ge> 0 \<Longrightarrow> end\<^sub>C (f !\<^sub>
   apply (subgoal_tac "{x. 0 \<le> x \<and> x < n} = {0..<n}")
   apply (auto)
 done
+
+text {* Conversley, forcing a function to be a particular length will always yield a function of
+  that length. *}
 
 lemma cgf_map_indep:
   "end\<^sub>C f = end\<^sub>C g \<Longrightarrow> map\<^sub>C (\<lambda>(i, x). \<langle>g\<rangle>\<^sub>C i) f = g"
@@ -399,10 +476,15 @@ lemma cgf_map_indep:
   apply (metis atLeastLessThan_iff domIff less_eq_real_def)
 done
 
+text {* The above property shows that mapping a function to take the values of another function
+  of the same length will yield exactly the latter contiguous function. *}
+
 lemma cgf_restrict_map [simp]: "(map\<^sub>C f g) \<restriction>\<^sub>C n = map\<^sub>C f (g \<restriction>\<^sub>C n)"
   apply (transfer, auto simp add: restrict_map_def, rule ext, auto simp add: domD)
   apply (metis atLeastLessThan_iff domI option.distinct(1))
 done
+
+text {* Restriction also distributes through contiguous function maps. *}
 
 lemma cgf_restrict_restrict [simp]: "(g \<restriction>\<^sub>C m) \<restriction>\<^sub>C n = g \<restriction>\<^sub>C (min m n)"
   apply (auto simp add: min_def)
@@ -410,9 +492,13 @@ lemma cgf_restrict_restrict [simp]: "(g \<restriction>\<^sub>C m) \<restriction>
   apply (transfer, auto simp add: min_def)
 done
 
+text {* Restricting a function twice yields a restriction with the minimum value of the two restrictions. *}
+
 lemma cgf_map_empty [simp]:
   "map\<^sub>C f []\<^sub>C = []\<^sub>C"
   by (transfer, simp)
+
+text {* Mapping over an empty function yields an empty function. *}
 
 lemma cgf_map_apply [simp]:
   assumes "0 \<le> x" "x < end\<^sub>C(g)"
@@ -424,52 +510,33 @@ proof -
     by (transfer, auto simp add: dom_if)
 qed
 
+text {* Application of a value $x$ to a contiguous function mapped through $g$ is equivalent to
+  applying the function to the given value and function value at that point. *}
+
 lemma cgf_map_map: "map\<^sub>C f (map\<^sub>C g h) = map\<^sub>C (\<lambda> (i, x). f (i, g (i, x))) h"
   by (transfer, auto simp add: dom_if)
-
-abbreviation (input) cgf_prefix :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" (infix "\<subseteq>\<^sub>C" 50)
-where "f \<subseteq>\<^sub>C g \<equiv> f \<le> g"
-
-lemma cgf_sub_end:
-  assumes "f \<le> g"
-  shows "end\<^sub>C f \<le> end\<^sub>C g"
-proof -
-  obtain f' where "g = f + f'"
-    by (meson assms monoid_le_def monoid_le_ttrace)
-  thus ?thesis
-    by (simp add: cgf_end_cat)
-qed
-    
-lemma cgf_prefix_dom:
-  "f \<subseteq>\<^sub>C g \<Longrightarrow> dom\<^sub>C(f) \<subseteq> dom\<^sub>C(g)"
-  by (simp add: cgf_dom cgf_sub_end)
-
-lemma cgf_restrict_le: "t \<restriction>\<^sub>C n \<le> t"
-  by (transfer, auto simp add: map_le_def)
-
-lemma cgf_restrict_less: "\<lbrakk> 0 \<le> n ; n < end\<^sub>C(t) \<rbrakk> \<Longrightarrow> t \<restriction>\<^sub>C n < t"
-  by (metis cgf_end_restrict cgf_restrict_le dual_order.strict_iff_order)
 
 lemma cgf_cat_minus_prefix:
   "f \<le> g \<Longrightarrow> g = f @\<^sub>C (g - f)"
   by (simp add: diff_add_cancel_left')
   
-lemma cgf_prefix_iff: "f \<le> g \<longleftrightarrow> (\<exists> h. g = f @\<^sub>C h)"
-  using cgf_cat_minus_prefix le_add by blast
-
 lemma cgf_apply_minus [simp]: "\<lbrakk> 0 \<le> x; f \<le> g \<rbrakk> \<Longrightarrow> \<langle>g - f\<rangle>\<^sub>C x = \<langle>g\<rangle>\<^sub>C (x + end\<^sub>C(f))"
   by (metis add_diff_cancel cgf_cat_ext_last cgf_cat_minus_prefix le_add_same_cancel2)
   
 lemma cgf_end_minus: "g \<le> f \<Longrightarrow> end\<^sub>C(f-g) = end\<^sub>C(f)-end\<^sub>C(g)"
   by (auto simp add: cgf_prefix_iff cgf_end_cat)
 
-lemma cgf_left_mono_iff: "f @\<^sub>C g \<le> f @\<^sub>C h \<longleftrightarrow> g \<le> h"
-  using add_le_imp_le_left add_left_mono by blast
-
 lemma list_concat_minus_list_concat: "(f @\<^sub>C g) - (f @\<^sub>C h) = g - h"
   using ordered_cancel_monoid_diff_class.add_diff_cancel_left' by blast
 
+text {* Finally we show a few properties about subtraction that are also derived from the trace
+  algebra. *}
+
 subsection {* Piecewise continuous and convergent functions *}
+
+text {* With the foundation of contiguous functions established, we can now proceed to define
+  piecewise continuous and convergent functions. We begin with a locale that gives the necessary
+  invariants on a piecewise continuous function. *}
 
 locale pc_interval =
   fixes I :: "real list" and f :: "'a::topological_space cgf"
@@ -480,11 +547,33 @@ locale pc_interval =
   and continuous_segments [intro]: "\<And> i. i < length(I) - 1 \<Longrightarrow> continuous_on {I!i ..< I!(Suc i)} \<langle>f\<rangle>\<^sub>C"
 begin
 
+  text {* Piecewise continuity means that there exists an ordered list $I$ of points (equivalently 
+    a finite set) within in the contiguous function $f$, such that each inter-point segment is 
+    continuous. This list can therefore be thought of as as a finite set of segments.
+    In order to allow the specification of continuity we require that the range type of $f$ is a suitable topological
+    space, via a type class restriction. We characterise piecewise continuity with five axioms which 
+    are given above. These require, respectively, that:
+
+    \begin{itemize}
+      \item the points within $I$ are all within the function domain;
+      \item the beginning and end point are both within the domain;
+      \item $I$ is sorted list;
+      \item no point in $I$ appears twice -- it is a distinct list;
+      \item $f$ is continuous between each point $i$ and its successor.
+    \end{itemize}
+
+    The function predicate @{term "continuous_on g A"} describes that a function $g$ is continuous
+    on the sub-domain $A$. From these axioms we can derive some theorems, which are listed below.
+ *}
+
   lemma I_length [simp]: "length(I) > 0"
     using I_bounds by auto
 
   lemma ne_f_I_length [simp]: "f \<noteq> []\<^sub>C \<Longrightarrow> length(I) > Suc 0"
     by (metis I_bounds I_length Suc_lessI cgf_end_0_iff in_set_conv_nth insert_subset less_Suc0)
+
+  text {* The length of the point list cannot be empty, and assuming the contiguous function is non-empty
+    then there must be more than one point. *}
 
   lemma I_hd [simp]: "hd(I) = 0"
     by (metis I_bounds I_range I_sorted atLeastAtMost_iff atLeastLessThan_empty atLeastLessThan_empty_iff contra_subsetD empty_iff hd_in_set insert_subset less_eq_real_def list.exhaust_sel list.set(1) sorted_Cons tl_element)
@@ -492,14 +581,20 @@ begin
   lemma I_last: "last(I) = end\<^sub>C(f)"
     by (metis I_bounds I_range I_sorted atLeastAtMost_iff dual_order.antisym empty_iff insert_subset last_in_set list.set(1) sorted_last subsetCE)
     
+  text {* The first point is always 0, and the final point is the end point of the function. *}
+
   lemma tl_I_ge_0 [simp]: "x \<in> set (tl I) \<Longrightarrow> x > 0"
     by (metis I_distinct I_hd I_length I_sorted distinct.simps(2) hd_Cons_tl length_greater_0_conv less_eq_real_def sorted_Cons)
+
+  text {* Any point after the initial point must be strictly positive. *}
 
   lemma I_z [simp]: "0 \<in> set(I)"
     using I_bounds by blast
 
   lemma I_nz [simp]: "x \<in> set(I) \<Longrightarrow> 0 \<le> x"
     using I_range atLeastAtMost_iff by blast
+
+  text {* One of the points is 0, and every element is no less than 0. *}
 
   lemma nth_I_nz: "i < length I \<Longrightarrow> 0 \<le> I!i"
     by simp
@@ -509,10 +604,17 @@ begin
 
 end
 
+text {* In addition to piecewise continuous function we also define the following locale that
+  characterises piecewise convergent functions. Specifically, it characterises functions where
+  each continuous segment also converges to a given limit. *}
+
 locale pc_cvg_interval = pc_interval +
   -- {* The following assumption requires that each continuous segment also converges to a limit *}
   assumes cvg_segments [intro]: 
     "\<And> i. i < length(I) - 1 \<Longrightarrow> \<exists> L. (\<langle>f\<rangle>\<^sub>C \<longlongrightarrow> L) (at (I!(Suc i)) within {I!i ..< I!(Suc i)})"
+
+text {* We characterise piecewise convergent functions $f$ by requiring that for each segment $(i, i+1)$ 
+  there exists a limit $L$ which the function tends to at point $i+1$. *}
 
 definition piecewise_continuous :: "'a::topological_space cgf \<Rightarrow> bool" where
 "piecewise_continuous f = (\<exists> I. pc_interval I f)"
@@ -520,8 +622,9 @@ definition piecewise_continuous :: "'a::topological_space cgf \<Rightarrow> bool
 definition piecewise_convergent :: "'a::topological_space cgf \<Rightarrow> bool" where
 "piecewise_convergent f = (\<exists> I. pc_cvg_interval I f)"
 
-lemma sorted_map: "\<lbrakk> sorted xs; mono f \<rbrakk> \<Longrightarrow> sorted (map f xs)"
-  by (simp add: monoD sorted_equals_nth_mono)
+text {* Functions are respectively piecewise continuous or convergent, if there exists an $I$
+  that characterises the piecewise segments. We next prove some continuity properties 
+  about transformed functions. *}
 
 lemma continuous_on_linear: 
   fixes A :: "real set"
@@ -531,6 +634,8 @@ proof (clarsimp simp add: continuous_on_def)
   show "((\<lambda>x. m * x + a) \<longlongrightarrow> m * x + a) (at x within A)"
     by (force intro: tendsto_add[of "(\<lambda>x. m * x)" "m * x" "at x within A" "\<lambda>_. a" a, simplified] tendsto_mult)
 qed
+
+text {* This property states that any linear function on real number is everywhere continuous. *}
 
 lemma continuous_on_shift:
   fixes f :: "real \<Rightarrow> 'b::topological_space"
@@ -545,6 +650,9 @@ proof -
   using continuous_on_compose[of "{x + y | x. x \<in> A}" "\<lambda> x. x - y" f]
     by (simp add: assms)
 qed
+
+text {* This property shows that, given a continuous function $f$ on $A$, then if we shift the 
+  the function to right by $y$, the resulting function is continuous on a shifted domain. *}
 
 lemma continuous_on_cgf_cat_left:
   assumes "j \<le> end\<^sub>C f" "continuous_on {i..<j} \<langle>f @\<^sub>C g\<rangle>\<^sub>C"
@@ -583,16 +691,8 @@ proof -
   ultimately show ?thesis by blast
 qed
 
-lemma dropWhile_sorted_le_above:
-  "\<lbrakk> sorted xs; x \<in> set (dropWhile (\<lambda> x. x \<le> n) xs) \<rbrakk> \<Longrightarrow> x > n"
-  apply (induct xs)
-  apply (auto)
-  apply (rename_tac a xs)
-  apply (case_tac "a \<le> n")
-  apply (simp_all)
-  using sorted_Cons apply blast
-  apply (meson dual_order.trans not_less sorted_Cons)
-done
+text {* These previous three theorems show that if the concatenation of two contiguous functions is continuous,
+  then the functions themselves must also be continuous. *}
 
 lemma piecewise_continuous_empty [simp]: "piecewise_continuous []\<^sub>C"
   by (auto simp add: piecewise_continuous_def, rule_tac x="[0]" in exI, simp add: pc_interval_def cgf_end_empty)
@@ -600,34 +700,27 @@ lemma piecewise_continuous_empty [simp]: "piecewise_continuous []\<^sub>C"
 lemma piecewise_convergent_empty [simp]: "piecewise_convergent []\<^sub>C"
    by (auto simp add: piecewise_convergent_def, rule_tac x="[0]" in exI, simp add: pc_interval_def pc_cvg_interval_def pc_cvg_interval_axioms_def cgf_end_empty)
 
-lemma set_dropWhile_le:
-  "sorted xs \<Longrightarrow> set (dropWhile (\<lambda> x. x \<le> n) xs) = {x\<in>set xs. x > n}"
-  apply (induct xs)
-  apply (simp)
-  apply (rename_tac x xs)
-  apply (subgoal_tac "sorted xs")
-  apply (simp)
-  apply (safe)
-  apply (simp_all)
-  apply (meson not_less order_trans sorted_Cons)
-  using sorted_Cons apply auto
-done
+text {* Empty contiguous functions are both piecewise continuous and piecewise convergent. *}
 
 definition "left_pc_interval n I = (takeWhile (\<lambda> x. x < n) I) @ [n]"
 
 definition "right_pc_interval n I = 0 # map (\<lambda> x. x - n) (dropWhile (\<lambda> x. x \<le> n) I)"
 
-thm set_takeWhileD
+text {* An important part of manipulating timed traces is that we can decompose them. In order to do
+  this, and ensure closure of the operators, we need to show that decomposition of a piecewise
+  continuous function results in two piecewise continuous segments, each of which will be characterised
+  by its own piecewise continuous segment set. These two functions extract the 
+  set of left and right segments, respectively, of the corresponding segment set $I$ about a point $n$. 
+  The tricky part is when $n$ falls within one of the segments in $I$. This being the case the
+  segment must be split, with one half placed in the left and half in the right segment set. 
 
-lemma set_takeWhile_less_sorted: 
-  "\<lbrakk> sorted I; x \<in> set I; x < n \<rbrakk> \<Longrightarrow> x \<in> set (takeWhile (\<lambda>x. x < n) I)"
-proof (induct I arbitrary: x)
-  case Nil thus ?case
-    by (simp)
-next
-  case (Cons a I) thus ?case
-    by (auto, (meson le_less_trans sorted_Cons)+)
-qed
+  Function @{term left_pc_interval} is written in terms of the @{term "takeWhile P xs"} function which
+  builds a list corresponding to the maximal prefix of $xs$ with elements which satisfy the predicate $P$.
+  In this instance we extract the elements that are strictly less than the given point, and then add
+  the point on the end to complete the final interval. The second function, @{term right_pc_interval}, 
+  conversely takes the remainder of the list, and shifts each element to the left by $n$ (so as to
+  construct a segment set for the right trace only). Finally, it prepends the list with $0$ to denote
+  the beginning of the first segment. *}
 
 lemma set_left_pc_interval:
   "sorted I \<Longrightarrow> set (left_pc_interval n I) = insert n {x |x. x \<in> ran\<^sub>l I \<and> n > x}"
@@ -637,22 +730,9 @@ lemma set_right_pc_interval:
   "sorted I \<Longrightarrow> set (right_pc_interval n I) = insert 0 {x - n |x. x \<in> ran\<^sub>l I \<and> n < x}"
   by (simp add: right_pc_interval_def set_dropWhile_le image_Collect)
 
-lemma nth_le_takeWhile_ord: "\<lbrakk> sorted xs; i \<ge> length (takeWhile (\<lambda> x. x \<le> n) xs); i < length xs \<rbrakk> \<Longrightarrow> n \<le> xs ! i"
-  apply (induct xs arbitrary: i, auto)
-  apply (rename_tac x xs i)
-  apply (case_tac "x \<le> n")
-  apply (auto simp add: sorted_Cons)
-  apply (metis One_nat_def Suc_eq_plus1 le_less_linear le_less_trans less_imp_le list.size(4) nth_mem set_ConsD)
-done
-
-lemma length_takeWhile_less:
-  "\<lbrakk> a \<in> set xs; \<not> P a \<rbrakk> \<Longrightarrow> length (takeWhile P xs) < length xs"
-  by (metis in_set_conv_nth length_takeWhile_le nat_neq_iff not_less set_takeWhileD takeWhile_nth)
-
-lemma nth_length_takeWhile_less:
-  "\<lbrakk> sorted xs; distinct xs; (\<exists> a \<in> set xs. a \<ge> n) \<rbrakk> \<Longrightarrow> xs ! length (takeWhile (\<lambda>x. x < n) xs) \<ge> n"
-  apply (induct xs, auto)
-  using sorted_Cons by blast
+text {* These two properties show the set of points that will be present in the left and right
+  segment sets, respectively. We will next prove that both the left and right segment sets characterise
+  piecewise continuity for the elements of a decomposed piecewise continuous functions. *}
 
 lemma pc_interval_left:
   assumes "pc_interval I (f @\<^sub>C g)"
@@ -795,8 +875,6 @@ proof -
     by (simp add: filtermap_within_range_minus tendsto_compose_filtermap)
   finally show ?thesis .
 qed
-
-
 
 lemma pc_cvg_interval_left:
   assumes "pc_cvg_interval I (f @\<^sub>C g)"
