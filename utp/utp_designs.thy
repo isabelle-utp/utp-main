@@ -1213,7 +1213,10 @@ lemma seq_r_H1_H3_closed [closure]:
   shows "(P ;; Q) is \<^bold>N"
   by (metis (no_types) H1_H2_eq_design H1_H3_eq_design_d_comp H1_H3_impl_H2 Healthy_def assms(1) assms(2) seq_r_H1_H2_closed seqr_assoc)
 
-theorem wpd_seq_r_H1_H2 [wp]:
+lemma wp_assigns_d [wp]: "\<langle>\<sigma>\<rangle>\<^sub>D wp\<^sub>D r = \<sigma> \<dagger> r"
+  by (rel_auto)
+
+theorem wpd_seq_r_H1_H3 [wp]:
   fixes P Q :: "'\<alpha> hrelation_d"
   assumes "P is H1_H3" "Q is H1_H3"
   shows "(P ;; Q) wp\<^sub>D r = P wp\<^sub>D (Q wp\<^sub>D r)"
@@ -1383,14 +1386,30 @@ interpretation ndes_local_var: utp_local_var "TYPE(NDES \<times> '\<alpha> alpha
   rewrites "\<H>\<^bsub>NDES\<^esub> = \<^bold>N"
   by (unfold_locales, simp_all add: ndes_unit_def ndes_assigns_def ndes_hcond_def)
 
+text {* Weakest precondition laws for design variable scopes *}
+
+lemma wpd_var_begin [wp]:
+  fixes x :: "'a list \<Longrightarrow> '\<alpha>" and r :: "'\<alpha> upred"
+  shows "(var_begin NDES x) wp\<^sub>D r = r\<lbrakk>\<langle>\<guillemotleft>undefined\<guillemotright>\<rangle> ^\<^sub>u x/x\<rbrakk>"
+  by (simp add: var_begin_def ndes_assigns_def wp)
+
+lemma wpd_var_end [wp]:
+  fixes x :: "'a list \<Longrightarrow> '\<alpha>" and r :: "'\<alpha> upred"
+  shows "(var_end NDES x) wp\<^sub>D r = r\<lbrakk>tail\<^sub>u(x)/x\<rbrakk>"
+  by (simp add: var_end_def ndes_assigns_def wp)
+
 text {* We also set up procedures for the theory of designs. *}
 
 abbreviation "DAL \<equiv> TYPE(DES \<times> '\<alpha> alphabet_d \<times> '\<alpha>)"
+abbreviation "NDAL \<equiv> TYPE(NDES \<times> '\<alpha> alphabet_d \<times> '\<alpha>)"
+
+syntax
+ "_dproc_block"  :: "parm_list \<Rightarrow> logic \<Rightarrow> ('a, '\<alpha>) uproc" ("_ \<bullet>\<^sub>D/ _" [0,10] 10)
+ "_nproc_block"  :: "parm_list \<Rightarrow> logic \<Rightarrow> ('a, '\<alpha>) uproc" ("_ \<bullet>\<^sub>N/ _" [0,10] 10)
 
 translations
-  "_proc_block T (_parm_list (_res_parm x) ps) P" 
-  => "CONST vres_parm_comp T <x>\<^sub>d (\<lambda> x. (_proc_block T ps P))"
   "_dproc_block ps P" => "_proc_block (CONST DAL) ps P"
+  "_nproc_block ps P" => "_proc_block (CONST NDAL) ps P"
 
 text {* Instantiate vstore for design alphabets, which enables the use of deep variables
   to represent local variables. *}

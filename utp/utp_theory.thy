@@ -217,7 +217,8 @@ lemma utp_order_fpl: "utp_order T = fpl \<P> (\<H>\<^bsub>T\<^esub>)"
 
 locale utp_theory =
   fixes \<T> :: "('\<T> \<times> '\<alpha>) itself" (structure)
-  assumes HCond_Idem: "\<H>(\<H>(P)) = \<H>(P)"
+  assumes ThTag_def: "TYPE('\<T> \<times> '\<alpha>) = \<T>"
+  and HCond_Idem: "\<H>(\<H>(P)) = \<H>(P)"
 begin
   lemma HCond_Idempotent [intro]: "Idempotent \<H>"
     by (simp add: Idempotent_def HCond_Idem)
@@ -360,7 +361,7 @@ interpretation rel_theory: utp_theory_mono_unital REL
   by (unfold_locales, simp_all add: rel_hcond_def rel_unit_def Healthy_def)
 
 lemma REL_top: "\<^bold>\<top>\<^bsub>REL\<^esub> = false"
-  by (simp add: rel_hcond_def rel_theory.healthy_top)
+  by(simp add: rel_hcond_def rel_theory.healthy_top)
 
 lemma REL_bottom: "\<^bold>\<bottom>\<^bsub>REL\<^esub> = true"
   by (simp add: rel_hcond_def rel_theory.healthy_bottom)

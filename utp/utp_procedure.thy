@@ -50,7 +50,6 @@ syntax
   "_res_parm_ty"  :: "id \<Rightarrow> type \<Rightarrow> parm" ("res _ :: _")
   "_vres_parm"    :: "id \<Rightarrow> parm" ("vres _" [999] 999)
   "_vres_parm_ty" :: "id \<Rightarrow> type \<Rightarrow> parm" ("vres _ :: _" [0,999] 999)
-  "_dproc_block"  :: "parm_list \<Rightarrow> logic \<Rightarrow> ('a, '\<alpha>) uproc" ("_ \<bullet>\<^sub>D/ _" [0,10] 10)
 
 translations
   (* Parse translations for value parameters *)
@@ -72,6 +71,9 @@ translations
   "_proc_block T (_parm (_vres_parm_ty x a)) P" => "CONST vres_parm T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) P)"
   "_proc_block T (_parm_list (_vres_parm_ty x a) ps) P" 
   => "CONST vres_parm_comp T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) (_proc_block T ps P))"
+  "_proc_block T (_parm_list (_res_parm x) ps) P" 
+  => "CONST vres_parm_comp T <x>\<^sub>d (\<lambda> x. (_proc_block T ps P))"
+
 
 context utp_local_var
 begin
@@ -79,8 +81,14 @@ begin
 lemma val_parm_healthy [closure]:
   fixes x :: "('a::two, '\<beta>::vst) lvar"
   assumes "\<And> x. P x is \<H>"
-  shows "val_parm T x P v is \<H>"
-  oops
+  shows "val_parm (T :: ('\<T> \<times> '\<alpha> \<times> '\<beta>) itself) x P v is \<H>"
+  by (simp add: val_parm_def ThTag_def closure assms)
+
+lemma val_parm_comp_healthy [closure]:
+  fixes x :: "('a::two, '\<beta>::vst) lvar"
+  assumes "\<And> x y. P x y is \<H>"
+  shows "val_parm_comp (T :: ('\<T> \<times> '\<alpha> \<times> '\<beta>) itself) x P v is \<H>"
+  by (simp add: val_parm_comp_def ThTag_def prod.case_eq_if closure assms)
 
 end
 
