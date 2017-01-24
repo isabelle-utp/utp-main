@@ -74,6 +74,10 @@ definition "IMH(H) \<longleftrightarrow> Idempotent(H) \<and> Monotonic(H)"
 
 definition "Antitone(H) \<longleftrightarrow> (\<forall> P Q. Q \<sqsubseteq> P \<longrightarrow> (H(P) \<sqsubseteq> H(Q)))"
 
+lemma Healthy_Idempotent [closure]: 
+  "Idempotent H \<Longrightarrow> H(P) is H"
+  by (simp add: Healthy_def Idempotent_def)
+
 lemma Idempotent_id [simp]: "Idempotent id"
   by (simp add: Idempotent_def)
 
@@ -220,7 +224,7 @@ locale utp_theory =
   assumes ThTag_def: "TYPE('\<T> \<times> '\<alpha>) = \<T>"
   and HCond_Idem: "\<H>(\<H>(P)) = \<H>(P)"
 begin
-  lemma HCond_Idempotent [intro]: "Idempotent \<H>"
+  lemma HCond_Idempotent [closure,intro]: "Idempotent \<H>"
     by (simp add: Idempotent_def HCond_Idem)
 
   sublocale partial_order "utp_order \<T>"
@@ -241,6 +245,45 @@ abbreviation utp_join (infixl "\<^bold>\<squnion>\<index>" 65) where
 abbreviation utp_meet (infixl "\<^bold>\<sqinter>\<index>" 70) where
 "utp_meet \<T> \<equiv> meet (utp_order \<T>)"
 
+abbreviation utp_gfp ("\<^bold>\<nu>\<index>") where
+"utp_gfp \<T> \<equiv> \<nu>\<^bsub>utp_order \<T>\<^esub>"
+
+abbreviation utp_lfp ("\<^bold>\<mu>\<index>") where
+"utp_lfp \<T> \<equiv> \<mu>\<^bsub>utp_order \<T>\<^esub>"
+
+context utp_theory_lattice
+begin
+
+  lemma LFP_healthy_comp: "\<^bold>\<mu> F = \<^bold>\<mu> (F \<circ> \<H>)"
+  proof -
+    have "{P. (P is \<H>) \<and> F P \<sqsubseteq> P} = {P. (P is \<H>) \<and> F (\<H> P) \<sqsubseteq> P}"
+      by (auto simp add: Healthy_def)
+    thus ?thesis
+      by (simp add: LFP_def)
+  qed
+
+  lemma GFP_healthy_comp: "\<^bold>\<nu> F = \<^bold>\<nu> (F \<circ> \<H>)"
+  proof -
+    have "{P. (P is \<H>) \<and> P \<sqsubseteq> F P} = {P. (P is \<H>) \<and> P \<sqsubseteq> F (\<H> P)}"
+      by (auto simp add: Healthy_def)
+    thus ?thesis
+      by (simp add: GFP_def)
+  qed
+
+  lemma top_healthy [closure]: "\<^bold>\<top> is \<H>"
+    using weak.top_closed by auto
+
+  lemma bottom_healthy [closure]: "\<^bold>\<bottom> is \<H>"
+    using weak.bottom_closed by auto
+    
+  lemma utp_top: "P is \<H> \<Longrightarrow> P \<sqsubseteq> \<^bold>\<top>"
+    using weak.top_higher by auto
+
+  lemma utp_bottom: "P is \<H> \<Longrightarrow> \<^bold>\<bottom> \<sqsubseteq> P"
+    using weak.bottom_lower by auto
+
+end
+
 lemma upred_top: "\<top>\<^bsub>\<P>\<^esub> = false"
   using ball_UNIV greatest_def by fastforce
 
@@ -248,25 +291,7 @@ lemma upred_bottom: "\<bottom>\<^bsub>\<P>\<^esub> = true"
   by fastforce
 
 locale utp_theory_mono = utp_theory + 
-  assumes HCond_Mono [intro]: "Monotonic \<H>"
-begin
-  interpretation utp_theory_lattice
-  proof -
-    text {* Use Knaster-Tarski theorem to obtain complete lattice *}
-
-    interpret weak_complete_lattice "fpl \<P> \<H>"
-      by (rule Knaster_Tarski, auto simp add: upred_lattice.weak.weak_complete_lattice_axioms)
-  
-    have "complete_lattice (fpl \<P> \<H>)"
-      by (unfold_locales, simp add: fps_def sup_exists, (blast intro: sup_exists inf_exists)+)
-
-    hence "complete_lattice (utp_order \<T>)"
-      by (simp add: utp_order_def, simp add: upred_lattice_def)
-
-    thus "utp_theory_lattice \<T>"
-      by (simp add: utp_theory_axioms utp_theory_lattice_def)
-  qed
-end
+  assumes HCond_Mono [closure,intro]: "Monotonic \<H>"
 
 sublocale utp_theory_mono \<subseteq> utp_theory_lattice
 proof -
@@ -335,6 +360,20 @@ locale utp_theory_unital =
   and Unit_Right: "P is \<H> \<Longrightarrow> (P ;; \<I>\<I>) = P"
 
 locale utp_theory_mono_unital = utp_theory_mono + utp_theory_unital
+
+definition utp_star ("_\<^bold>\<star>\<index>" [999] 999) where
+"utp_star \<T> P = (\<^bold>\<nu>\<^bsub>\<T>\<^esub> (\<lambda> X. (P ;; X) \<^bold>\<sqinter>\<^bsub>\<T>\<^esub> \<I>\<I>\<^bsub>\<T>\<^esub>))"
+
+definition utp_omega ("_\<^bold>\<omega>\<index>" [999] 999) where
+"utp_omega \<T> P = (\<mu>\<^bsub>\<T>\<^esub> (\<lambda> X. (P ;; X)))"
+
+locale utp_pre_left_quantale = utp_theory_lattice + utp_theory_left_unital
+begin
+
+  lemma star_healthy [closure]: "P\<^bold>\<star> is \<H>"
+    by (metis mem_Collect_eq utp_order_carrier utp_star_def weak.GFP_closed)
+
+end
 
 sublocale utp_theory_unital \<subseteq> utp_theory_left_unital
   by (simp add: Healthy_Unit Unit_Left Healthy_Sequence utp_theory_rel_def utp_theory_axioms utp_theory_rel_axioms_def utp_theory_left_unital_axioms_def utp_theory_left_unital_def)

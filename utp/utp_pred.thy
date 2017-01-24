@@ -400,6 +400,11 @@ lemma unrest_closure [unrest]:
 
 subsection {* Substitution Laws *}
 
+text {* Substitution is monotone *}
+
+lemma subst_mono: "P \<sqsubseteq> Q \<Longrightarrow> (\<sigma> \<dagger> P) \<sqsubseteq> (\<sigma> \<dagger> Q)"
+  by (pred_auto)
+
 lemma subst_true [usubst]: "\<sigma> \<dagger> true = true"
   by (pred_auto)
 
