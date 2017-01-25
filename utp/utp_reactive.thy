@@ -289,6 +289,7 @@ lemma R1_H2_commute: "R1(H2(P)) = H2(R1(P))"
 subsection {* R2 *}
 
 definition R2a_def [upred_defs]: "R2a (P) = (\<Sqinter> s \<bullet> P\<lbrakk>\<guillemotleft>s\<guillemotright>,\<guillemotleft>s\<guillemotright>+($tr\<acute>-$tr)/$tr,$tr\<acute>\<rbrakk>)"
+definition R2a'_def [upred_defs]: "R2a' (P) = (R2a(P) \<triangleleft> R1(true) \<triangleright> P)"
 definition R2s_def [upred_defs]: "R2s (P) = (P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>($tr\<acute>-$tr)/$tr\<acute>\<rbrakk>)"
 definition R2_def  [upred_defs]: "R2(P) = R1(R2s(P))"
 definition R2c_def [upred_defs]: "R2c(P) = (R2s(P) \<triangleleft> R1(true) \<triangleright> P)"
@@ -301,6 +302,25 @@ lemma R2s_R2a: "R2s(R2a(P)) = R2a(P)"
 
 lemma R2a_equiv_R2s: "P is R2a \<longleftrightarrow> P is R2s"
   by (metis Healthy_def' R2a_R2s R2s_R2a)
+
+lemma R2a_idem: "R2a(R2a(P)) = R2a(P)"
+  by (rel_auto)
+
+lemma R2a'_idem: "R2a'(R2a'(P)) = R2a'(P)"
+  by (rel_auto)
+
+lemma R2a_mono: "P \<sqsubseteq> Q \<Longrightarrow> R2a(P) \<sqsubseteq> R2a(Q)"
+  by (rel_auto, rule Sup_mono, blast)
+
+lemma R2a'_mono: "P \<sqsubseteq> Q \<Longrightarrow> R2a'(P) \<sqsubseteq> R2a'(Q)"
+  by (rel_auto, blast)
+
+lemma R2a'_weakening: "R2a'(P) \<sqsubseteq> P"
+  apply (rel_auto)
+  apply (rename_tac ok wait tr more ok' wait' tr' more')
+  apply (rule_tac x="tr" in exI)
+  apply (simp add: diff_add_cancel_left')
+done
 
 lemma R2s_idem: "R2s(R2s(P)) = R2s(P)"
   by (pred_auto)
