@@ -1421,7 +1421,7 @@ interpretation Des_Rel_coretract:
     "\<pi>\<^sup>*\<^bsub>DES \<leftarrow>\<langle>Des,Rel\<rangle>\<rightarrow> REL\<^esub> = Rel" and
     "le \<X>\<^bsub>DES \<leftarrow>\<langle>Des,Rel\<rangle>\<rightarrow> REL\<^esub> = op \<sqsubseteq>" and
     "le \<Y>\<^bsub>DES \<leftarrow>\<langle>Des,Rel\<rangle>\<rightarrow> REL\<^esub> = op \<sqsubseteq>"
-proof (unfold_locales, simp_all add: utp_order_def rel_hcond_def des_hcond_def)
+proof (unfold_locales, simp_all add: rel_hcond_def des_hcond_def)
   show "\<And>x. x is id"
     by (simp add: Healthy_def)
 next
