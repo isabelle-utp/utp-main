@@ -1304,24 +1304,24 @@ interpretation ndes_unital: utp_theory_unital NDES
 done
 
 interpretation design_theory_mono: utp_theory_mono DES
-  rewrites "carrier (utp_order DES) = \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H" 
+  rewrites "carrier (uthy_order DES) = \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H" 
   by (unfold_locales, simp_all add: des_hcond_def H1_H2_monotonic utp_order_def)
 
 interpretation normal_design_theory_mono: utp_theory_mono NDES
-  rewrites "carrier (utp_order NDES) = \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H" 
+  rewrites "carrier (uthy_order NDES) = \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H" 
   by (unfold_locales, simp_all add: ndes_hcond_def H1_H3_monotonic utp_order_def)
 
 lemma design_lat_top: "\<^bold>\<top>\<^bsub>DES\<^esub> = \<^bold>H(false)"
-  by (simp add: des_hcond_def design_theory_mono.healthy_top)
+  by (simp add: design_theory_mono.healthy_top, simp add: des_hcond_def)
 
 lemma design_lat_bottom: "\<^bold>\<bottom>\<^bsub>DES\<^esub> = \<^bold>H(true)"
-  by (simp add: des_hcond_def design_theory_mono.healthy_bottom)
+  by (simp add: design_theory_mono.healthy_bottom, simp add: des_hcond_def)
 
 abbreviation design_lfp :: "_ \<Rightarrow> _" ("\<mu>\<^sub>D") where
-"\<mu>\<^sub>D F \<equiv> \<mu>\<^bsub>utp_order DES\<^esub> F"
+"\<mu>\<^sub>D F \<equiv> \<mu>\<^bsub>uthy_order DES\<^esub> F"
 
 abbreviation design_gfp :: "_ \<Rightarrow> _" ("\<nu>\<^sub>D") where
-"\<nu>\<^sub>D F \<equiv> \<nu>\<^bsub>utp_order DES\<^esub> F"
+"\<nu>\<^sub>D F \<equiv> \<nu>\<^bsub>uthy_order DES\<^esub> F"
 
 thm design_theory_mono.GFP_unfold
 thm design_theory_mono.LFP_unfold

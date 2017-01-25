@@ -1508,9 +1508,9 @@ lemma Chaos_is_bot: "\<^bold>\<bottom>\<^bsub>RDES\<^esub> = Chaos"
 done
 
 interpretation hrd_lattice: utp_theory_lattice "UTHY(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
-  rewrites "carrier (utp_order RDES) = \<lbrakk>CSP\<rbrakk>\<^sub>H"
-  and "\<top>\<^bsub>utp_order RDES\<^esub> = Miracle"
-  and "\<bottom>\<^bsub>utp_order RDES\<^esub> = Chaos"
+  rewrites "carrier (uthy_order RDES) = \<lbrakk>CSP\<rbrakk>\<^sub>H"
+  and "\<top>\<^bsub>uthy_order RDES\<^esub> = Miracle"
+  and "\<bottom>\<^bsub>uthy_order RDES\<^esub> = Chaos"
   apply (unfold_locales)
   apply (simp_all add: Miracle_is_top Chaos_is_bot)
   apply (simp_all add: utp_order_def rdes_hcond_def)
@@ -1521,10 +1521,10 @@ interpretation hrd_lattice: utp_theory_lattice "UTHY(RDES, ('t::ordered_cancel_m
 done
 
 abbreviation rdes_lfp :: "_ \<Rightarrow> _" ("\<mu>\<^sub>R") where
-"\<mu>\<^sub>R F \<equiv> \<mu>\<^bsub>utp_order RDES\<^esub> F"
+"\<mu>\<^sub>R F \<equiv> \<mu>\<^bsub>uthy_order RDES\<^esub> F"
 
 abbreviation rdes_gfp :: "_ \<Rightarrow> _" ("\<nu>\<^sub>R") where
-"\<nu>\<^sub>R F \<equiv> \<nu>\<^bsub>utp_order RDES\<^esub> F"
+"\<nu>\<^sub>R F \<equiv> \<nu>\<^bsub>uthy_order RDES\<^esub> F"
 
 lemma rdes_lfp_copy: "\<lbrakk> mono F; F \<in> \<lbrakk>CSP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>CSP\<rbrakk>\<^sub>H \<rbrakk> \<Longrightarrow> \<mu>\<^sub>R F = F (\<mu>\<^sub>R F)"
   by (metis hrd_lattice.LFP_unfold mono_Monotone_utp_order)
@@ -1541,6 +1541,22 @@ lemma Des_Rea_galois_lemma_1: "R1(\<^bold>H(R1(P))) \<sqsubseteq> R1(P)"
 lemma "\<^bold>R(CSP(P)) = CSP(P)"
   by (rel_auto)
 
+lemma "galois_connection (R2a' \<Leftarrow>\<langle>R2a',id\<rangle>\<Rightarrow> id)"
+proof (simp add: mk_conn_def, rule galois_connectionI', simp_all add: utp_partial_order)
+  show "id \<in> \<lbrakk>R2a'\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>id\<rbrakk>\<^sub>H"
+    using Healthy_Idempotent Idempotent_id by blast
+  show "R2a' \<in> \<lbrakk>id\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>R2a'\<rbrakk>\<^sub>H"
+    by (simp add: Healthy_def R2a'_idem)
+  show "isotone (utp_order R2a') (utp_order id) id"
+    by (simp add: isotone_utp_orderI)
+  show "isotone (utp_order id) (utp_order R2a') R2a'"
+  by (simp add: Monotonic_def R2a'_mono isotone_utp_orderI)
+  show "\<forall>X. X is id \<longrightarrow> R2a' X \<sqsubseteq> X"
+    using R2a'_weakening by blast
+  show "\<forall>X. X is R2a' \<longrightarrow> X \<sqsubseteq> R2a' X"
+    by (simp add: Healthy_def)
+qed
+    
 lemma Des_Rea_galois_lemma_2: "CSP(P) \<sqsubseteq> \<^bold>H(\<^bold>R(CSP(P)))"
   apply (rel_auto)
 oops  
@@ -1548,18 +1564,20 @@ oops
 lemma R2c_H1_H2_commute: "R2c(\<^bold>H(P)) = \<^bold>H(R2c(P))"
   by (rel_auto)
 
+
+
 lemma funcset_into_Idempotent: "Idempotent H \<Longrightarrow> H \<in> X \<rightarrow> \<lbrakk>H\<rbrakk>\<^sub>H"
   by (simp add: Healthy_def' Idempotent_def)
 
 interpretation galois_connection "R1DES \<leftarrow>\<langle>id,R2c \<circ> R3c\<rangle>\<rightarrow> RDES"
-proof (simp add: mk_conn_def, rule galois_connectionI', simp_all add: utp_partial_order r1des_hcond_def rdes_hcond_def r1des_hcond_def)
+proof (simp add: mk_conn_def, rule galois_connectionI', simp_all add: utp_partial_order r1des_hcond_def rdes_hcond_def)
   show "R2c \<circ> R3c \<in> \<lbrakk>R1 \<circ> \<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>CSP\<rbrakk>\<^sub>H"
     by (simp add: Pi_iff Healthy_def', metis R1_R2c_commute R1_R3c_commute R3c_idem RH_H1_H2_eq_CSP RH_absorbs_R2c RH_alt_def'')
   show "id \<in> \<lbrakk>CSP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>R1 \<circ> \<^bold>H\<rbrakk>\<^sub>H"
     by (simp add: Pi_iff Healthy_def', metis CSP1_via_H1 CSP2_def RH_H1_H2_eq_CSP RH_alt_def RH_alt_def' RH_idem)
-  show "isotone (utp_order R1DES) (utp_order RDES) (R2c \<circ> R3c)"
+  show "isotone (utp_order (R1 \<circ> \<^bold>H)) (utp_order CSP) (R2c \<circ> R3c)"
     by (auto intro: isotone_utp_orderI Monotonic_comp R2c_Monotonic R3c_Monotonic)
-  show "isotone (utp_order RDES) (utp_order R1DES) id"
+  show "isotone (utp_order CSP) (utp_order (R1 \<circ> \<^bold>H)) id"
     by (auto intro: isotone_utp_orderI Monotonic_comp Monotonic_id)
   show "\<forall>P. P is CSP \<longrightarrow> R2c (R3c P) \<sqsubseteq> P"
     by (metis (no_types, lifting) CSP_R1_R2s CSP_healths(3) Healthy_def' R1_R2c_commute R2c_R2s_absorb eq_refl)
@@ -1572,9 +1590,9 @@ proof (simp add: mk_conn_def, rule galois_connectionI', simp_all add: utp_partia
     by (metis (no_types, lifting) CSP_idem Healthy_def' Pi_I' RH_H1_H2_eq_CSP mem_Collect_eq)
   show "\<^bold>H \<in> \<lbrakk>CSP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
     by (rule funcset_into_Idempotent, rule H1_H2_Idempotent)
-  show "isotone (utp_order DES) (utp_order RDES) \<^bold>R"
+  show "isotone (utp_order \<^bold>H) (utp_order CSP) \<^bold>R"
     by (rule isotone_utp_orderI, metis rea_hcond_def rea_utp_theory_mono.HCond_Mono)
-  show "isotone (utp_order RDES) (utp_order DES) \<^bold>H"
+  show "isotone (utp_order CSP) (utp_order \<^bold>H) \<^bold>H"
     by (rule isotone_utp_orderI, simp add: H1_H2_monotonic)
   show "\<forall>X. X is CSP \<longrightarrow> \<^bold>R (\<^bold>H X) \<sqsubseteq> X"
     by (simp add: CSP_RH_design_form CSP_reactive_design RH_H1_H2_eq_CSP)

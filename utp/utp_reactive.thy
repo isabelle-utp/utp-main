@@ -850,7 +850,7 @@ interpretation rea_utp_theory_mono: utp_theory_mono "UTHY(REA, ('t::ordered_canc
 lemma rea_top: "\<^bold>\<top>\<^bsub>REA\<^esub> = ($wait \<and> II\<^sub>r)"
 proof -
   have "\<^bold>\<top>\<^bsub>REA\<^esub> = \<^bold>R(false)"
-    by (simp add: rea_hcond_def rea_utp_theory_mono.healthy_top)
+    by (simp add: rea_utp_theory_mono.healthy_top, simp add: rea_hcond_def)
   also have "... = ($wait \<and> II\<^sub>r)"
     by (rel_auto, metis minus_zero_eq)
   finally show ?thesis .
@@ -859,7 +859,7 @@ qed
 lemma rea_bottom: "\<^bold>\<bottom>\<^bsub>REA\<^esub> = R1($wait \<Rightarrow> II\<^sub>r)"
 proof -
   have "\<^bold>\<bottom>\<^bsub>REA\<^esub> = \<^bold>R(true)"
-    by (simp add: rea_hcond_def rea_utp_theory_mono.healthy_bottom)
+    by (simp add: rea_utp_theory_mono.healthy_bottom, simp add: rea_hcond_def)
   also have "... = R1($wait \<Rightarrow> II\<^sub>r)"
     by (rel_auto, metis minus_zero_eq)
   finally show ?thesis .

@@ -204,15 +204,17 @@ text {* We set up polymorphic constants to denote the healthiness conditions ass
 consts
   utp_hcond :: "('\<T>, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) Healthiness_condition" ("\<H>\<index>")
 
-definition utp_order :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrelation gorder" where
-"utp_order T = \<lparr> carrier = {P. P is \<H>\<^bsub>T\<^esub>}, eq = (op =), le = op \<sqsubseteq> \<rparr>"
+definition utp_order :: "('\<alpha> \<times> '\<alpha>) Healthiness_condition \<Rightarrow> '\<alpha> hrelation gorder" where
+"utp_order H = \<lparr> carrier = {P. P is H}, eq = (op =), le = op \<sqsubseteq> \<rparr>"
+
+abbreviation "uthy_order T \<equiv> utp_order \<H>\<^bsub>T\<^esub>"
 
 text {* Constant @{term utp_order} obtains the order structure associated with a UTP theory. 
   Its carrier is the set of healthy predicates, equality is HOL equality, and the order is
   refinement. *}
 
 lemma utp_order_carrier [simp]:
-  "carrier (utp_order T) = \<lbrakk>\<H>\<^bsub>T\<^esub>\<rbrakk>\<^sub>H"
+  "carrier (utp_order H) = \<lbrakk>H\<rbrakk>\<^sub>H"
   by (simp add: utp_order_def)
 
 lemma utp_order_eq [simp]:
@@ -241,8 +243,35 @@ lemma isotone_utp_orderI: "Monotonic H \<Longrightarrow> isotone (utp_order X) (
 
 text {* The UTP order can equivalently be characterised as the fixed point lattice, @{const fpl}. *}
 
-lemma utp_order_fpl: "utp_order T = fpl \<P> (\<H>\<^bsub>T\<^esub>)"
+lemma utp_order_fpl: "utp_order H = fpl \<P> H"
   by (auto simp add: utp_order_def upred_lattice_def fps_def Healthy_def)
+
+definition uth_eq :: "('T\<^sub>1, '\<alpha>) uthy \<Rightarrow> ('T\<^sub>2, '\<alpha>) uthy \<Rightarrow> bool" (infix "\<approx>\<^sub>T" 50) where
+"T\<^sub>1 \<approx>\<^sub>T T\<^sub>2 \<longleftrightarrow> \<lbrakk>\<H>\<^bsub>T\<^sub>1\<^esub>\<rbrakk>\<^sub>H = \<lbrakk>\<H>\<^bsub>T\<^sub>2\<^esub>\<rbrakk>\<^sub>H"
+
+lemma uth_eq_refl: "T \<approx>\<^sub>T T"
+  by (simp add: uth_eq_def)
+
+lemma uth_eq_sym: "T\<^sub>1 \<approx>\<^sub>T T\<^sub>2 \<longleftrightarrow> T\<^sub>2 \<approx>\<^sub>T T\<^sub>1"
+  by (auto simp add: uth_eq_def)
+
+lemma uth_eq_trans: "\<lbrakk> T\<^sub>1 \<approx>\<^sub>T T\<^sub>2; T\<^sub>2 \<approx>\<^sub>T T\<^sub>3 \<rbrakk> \<Longrightarrow> T\<^sub>1 \<approx>\<^sub>T T\<^sub>3"
+  by (auto simp add: uth_eq_def)
+
+definition uthy_plus :: "('T\<^sub>1, '\<alpha>) uthy \<Rightarrow> ('T\<^sub>2, '\<alpha>) uthy \<Rightarrow> ('T\<^sub>1 \<times> 'T\<^sub>2, '\<alpha>) uthy" (infixl "+\<^sub>T" 65) where
+"uthy_plus T\<^sub>1 T\<^sub>2 = uthy"
+
+overloading
+  prod_hcond == "utp_hcond :: ('T\<^sub>1 \<times> 'T\<^sub>2, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) Healthiness_condition"
+begin
+
+  text {* The healthiness condition of a relation is simply identity, since every alphabetised
+    relation is healthy. *}
+
+  definition prod_hcond :: "('T\<^sub>1 \<times> 'T\<^sub>2, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) upred \<Rightarrow> ('\<alpha> \<times> '\<alpha>) upred" where
+  "prod_hcond T = \<H>\<^bsub>UTHY('T\<^sub>1, '\<alpha>)\<^esub> \<circ> \<H>\<^bsub>UTHY('T\<^sub>2, '\<alpha>)\<^esub>"
+
+end
 
 subsection {* UTP theory hierarchy *}
 
@@ -264,39 +293,57 @@ begin
   lemma HCond_Idempotent [closure,intro]: "Idempotent \<H>"
     by (simp add: Idempotent_def HCond_Idem)
 
-  sublocale partial_order "utp_order \<T>"
+  sublocale partial_order "uthy_order \<T>"
     by (unfold_locales, simp_all add: utp_order_def)
 end
 
-locale utp_theory_lattice = utp_theory \<T> + complete_lattice "utp_order \<T>" for \<T> :: "('\<T>, '\<alpha>) uthy" (structure)
+text {* Theory summation is commutative provided the healthiness conditions commute. *}
+
+lemma uthy_plus_comm: 
+  assumes "\<H>\<^bsub>T\<^sub>1\<^esub> \<circ> \<H>\<^bsub>T\<^sub>2\<^esub> = \<H>\<^bsub>T\<^sub>2\<^esub> \<circ> \<H>\<^bsub>T\<^sub>1\<^esub>"
+  shows "T\<^sub>1 +\<^sub>T T\<^sub>2 \<approx>\<^sub>T T\<^sub>2 +\<^sub>T T\<^sub>1"
+proof -
+  have "T\<^sub>1 = uthy" "T\<^sub>2 = uthy"
+    by blast+
+  thus ?thesis
+    using assms by (simp add: uth_eq_def prod_hcond_def)
+qed
+
+lemma uthy_plus_assoc: "T\<^sub>1 +\<^sub>T (T\<^sub>2 +\<^sub>T T\<^sub>3) \<approx>\<^sub>T (T\<^sub>1 +\<^sub>T T\<^sub>2) +\<^sub>T T\<^sub>3"
+  by (simp add: uth_eq_def prod_hcond_def comp_def) 
+
+lemma uthy_plus_idem: "utp_theory T \<Longrightarrow> T +\<^sub>T T \<approx>\<^sub>T T"
+  by (simp add: uth_eq_def prod_hcond_def Healthy_def utp_theory.HCond_Idem utp_theory.uthy_simp)
+
+locale utp_theory_lattice = utp_theory \<T> + complete_lattice "uthy_order \<T>" for \<T> :: "('\<T>, '\<alpha>) uthy" (structure)
   
 text {* The healthiness conditions of a UTP theory lattice form a complete lattice, and allows us to make
   use of complete lattice results from HOL-Algebra, such as the Knaster-Tarski theorem. We can also 
   retrieve lattice operators as below. *}
 
 abbreviation utp_top ("\<^bold>\<top>\<index>")
-where "utp_top \<T> \<equiv> atop (utp_order \<T>)"
+where "utp_top \<T> \<equiv> atop (uthy_order \<T>)"
 
 abbreviation utp_bottom ("\<^bold>\<bottom>\<index>")
-where "utp_bottom \<T> \<equiv> abottom (utp_order \<T>)"
+where "utp_bottom \<T> \<equiv> abottom (uthy_order \<T>)"
 
 abbreviation utp_join (infixl "\<^bold>\<squnion>\<index>" 65) where
-"utp_join \<T> \<equiv> join (utp_order \<T>)"
+"utp_join \<T> \<equiv> join (uthy_order \<T>)"
 
 abbreviation utp_meet (infixl "\<^bold>\<sqinter>\<index>" 70) where
-"utp_meet \<T> \<equiv> meet (utp_order \<T>)"
+"utp_meet \<T> \<equiv> meet (uthy_order \<T>)"
 
 abbreviation utp_sup ("\<^bold>\<Squnion>\<index>_" [90] 90) where
-"utp_sup \<T> \<equiv> asup (utp_order \<T>)"
+"utp_sup \<T> \<equiv> asup (uthy_order \<T>)"
 
 abbreviation utp_inf ("\<^bold>\<Sqinter>\<index>_" [90] 90) where
-"utp_inf \<T> \<equiv> ainf (utp_order \<T>)"
+"utp_inf \<T> \<equiv> ainf (uthy_order \<T>)"
 
 abbreviation utp_gfp ("\<^bold>\<nu>\<index>") where
-"utp_gfp \<T> \<equiv> \<nu>\<^bsub>utp_order \<T>\<^esub>"
+"utp_gfp \<T> \<equiv> \<nu>\<^bsub>uthy_order \<T>\<^esub>"
 
 abbreviation utp_lfp ("\<^bold>\<mu>\<index>") where
-"utp_lfp \<T> \<equiv> \<mu>\<^bsub>utp_order \<T>\<^esub>"
+"utp_lfp \<T> \<equiv> \<mu>\<^bsub>uthy_order \<T>\<^esub>"
 
 text {* We can then derive a number of properties about these operators, as below. *}
 
@@ -356,7 +403,7 @@ proof -
   have "complete_lattice (fpl \<P> \<H>)"
     by (unfold_locales, simp add: fps_def sup_exists, (blast intro: sup_exists inf_exists)+)
 
-  hence "complete_lattice (utp_order \<T>)"
+  hence "complete_lattice (uthy_order \<T>)"
     by (simp add: utp_order_def, simp add: upred_lattice_def)
 
   thus "utp_theory_lattice \<T>"
@@ -484,16 +531,16 @@ text {* Finally we can show that relations are a monotone and unital theory usin
   set of healthy predicates. *}
 
 interpretation rel_theory: utp_theory_mono_unital REL
-  rewrites "carrier (utp_order REL) = \<lbrakk>id\<rbrakk>\<^sub>H"
+  rewrites "carrier (uthy_order REL) = \<lbrakk>id\<rbrakk>\<^sub>H"
   by (unfold_locales, simp_all add: rel_hcond_def rel_unit_def Healthy_def)
 
 text {* We can then, for instance, determine what the top and bottom of our new theory is. *}
 
 lemma REL_top: "\<^bold>\<top>\<^bsub>REL\<^esub> = false"
-  by (simp add: rel_hcond_def rel_theory.healthy_top)
+  by (simp add: rel_theory.healthy_top, simp add: rel_hcond_def)
 
 lemma REL_bottom: "\<^bold>\<bottom>\<^bsub>REL\<^esub> = true"
-  by (simp add: rel_hcond_def rel_theory.healthy_bottom)
+  by (simp add: rel_theory.healthy_bottom, simp add: rel_hcond_def)
 
 text {* A number of theorems have been exported, such at the fixed point unfolding laws. *}
 
@@ -504,22 +551,25 @@ subsection {* Theory links *}
 text {* We can also describe links between theories, such a Galois connections and retractions,
   using the following notation. *}
 
-definition mk_conn ("_ \<leftarrow>\<langle>_,_\<rangle>\<rightarrow> _" [90,0,0,91] 91) where
-"T1 \<leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<rightarrow> T2 \<equiv> \<lparr> orderA = utp_order T1, orderB = utp_order T2, lower = \<H>\<^sub>2, upper = \<H>\<^sub>1 \<rparr>"
+definition mk_conn ("_ \<Leftarrow>\<langle>_,_\<rangle>\<Rightarrow> _" [90,0,0,91] 91) where
+"H1 \<Leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<Rightarrow> H2 \<equiv> \<lparr> orderA = utp_order H1, orderB = utp_order H2, lower = \<H>\<^sub>2, upper = \<H>\<^sub>1 \<rparr>"
 
-lemma mk_conn_orderA [simp]: "\<X>\<^bsub>T1 \<leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<rightarrow> T2\<^esub> = utp_order T1" 
+abbreviation mk_conn' ("_ \<leftarrow>\<langle>_,_\<rangle>\<rightarrow> _" [90,0,0,91] 91) where
+"T1 \<leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<rightarrow> T2 \<equiv> \<H>\<^bsub>T1\<^esub> \<Leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<Rightarrow> \<H>\<^bsub>T2\<^esub>"
+
+lemma mk_conn_orderA [simp]: "\<X>\<^bsub>H1 \<Leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<Rightarrow> H2\<^esub> = utp_order H1" 
   by (simp add:mk_conn_def)
 
-lemma mk_conn_orderB [simp]: "\<Y>\<^bsub>T1 \<leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<rightarrow> T2\<^esub> = utp_order T2" 
+lemma mk_conn_orderB [simp]: "\<Y>\<^bsub>H1 \<Leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<Rightarrow> H2\<^esub> = utp_order H2" 
   by (simp add:mk_conn_def)
 
-lemma mk_conn_lower [simp]:  "\<pi>\<^sub>*\<^bsub>T1 \<leftarrow>\<langle>H\<^sub>1,H\<^sub>2\<rangle>\<rightarrow> T2\<^esub> = H\<^sub>1"
+lemma mk_conn_lower [simp]:  "\<pi>\<^sub>*\<^bsub>H1 \<Leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<Rightarrow> H2\<^esub> = \<H>\<^sub>1"
   by (simp add: mk_conn_def)
 
-lemma mk_conn_upper [simp]:  "\<pi>\<^sup>*\<^bsub>T1 \<leftarrow>\<langle>H\<^sub>1,H\<^sub>2\<rangle>\<rightarrow> T2\<^esub> = H\<^sub>2"
+lemma mk_conn_upper [simp]:  "\<pi>\<^sup>*\<^bsub>H1 \<Leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<Rightarrow> H2\<^esub> = \<H>\<^sub>2"
   by (simp add: mk_conn_def)
 
-lemma galois_comp: "(T\<^sub>2 \<leftarrow>\<langle>\<H>\<^sub>3,\<H>\<^sub>4\<rangle>\<rightarrow> T\<^sub>3) \<circ>\<^sub>g (T\<^sub>1 \<leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<rightarrow> T\<^sub>2) = T\<^sub>1 \<leftarrow>\<langle>\<H>\<^sub>1\<circ>\<H>\<^sub>3,\<H>\<^sub>4\<circ>\<H>\<^sub>2\<rangle>\<rightarrow> T\<^sub>3"
+lemma galois_comp: "(H\<^sub>2 \<Leftarrow>\<langle>\<H>\<^sub>3,\<H>\<^sub>4\<rangle>\<Rightarrow> H\<^sub>3) \<circ>\<^sub>g (H\<^sub>1 \<Leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<Rightarrow> H\<^sub>2) = H\<^sub>1 \<Leftarrow>\<langle>\<H>\<^sub>1\<circ>\<H>\<^sub>3,\<H>\<^sub>4\<circ>\<H>\<^sub>2\<rangle>\<Rightarrow> H\<^sub>3"
   by (simp add: comp_galcon_def mk_conn_def)
 
 end
