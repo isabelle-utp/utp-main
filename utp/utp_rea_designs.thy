@@ -1466,48 +1466,48 @@ qed
 
 subsection {* Complete lattice *}
 
-typedef RDES = "UNIV :: unit set" ..
-typedef R1DES = "UNIV :: unit set" ..
+typedecl RDES
+typedecl R1DES
 
-abbreviation "R1DES \<equiv> TYPE(R1DES \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
+abbreviation "R1DES \<equiv> UTHY(R1DES, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
 
 overloading
-  r1des_hcond   == "utp_hcond :: (R1DES \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp) itself \<Rightarrow> (('t,'\<alpha>) alphabet_rp \<times> ('t,'\<alpha>) alphabet_rp) Healthiness_condition"
+  r1des_hcond   == "utp_hcond :: (R1DES, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp) uthy \<Rightarrow> (('t,'\<alpha>) alphabet_rp \<times> ('t,'\<alpha>) alphabet_rp) Healthiness_condition"
 begin
-  definition r1des_hcond :: "(R1DES \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp) itself \<Rightarrow> (('t,'\<alpha>) alphabet_rp \<times> ('t,'\<alpha>) alphabet_rp) Healthiness_condition" where
+  definition r1des_hcond :: "(R1DES, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp) uthy \<Rightarrow> (('t,'\<alpha>) alphabet_rp \<times> ('t,'\<alpha>) alphabet_rp) Healthiness_condition" where
   [upred_defs]: "r1des_hcond T = R1 \<circ> \<^bold>H"
 end
 
-interpretation r1des_theory: utp_theory "TYPE(R1DES \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
+interpretation r1des_theory: utp_theory "UTHY(R1DES, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
   by (unfold_locales, simp_all add: r1des_hcond_def, metis CSP1_R1_H1 H1_H2_idempotent H2_R1_comm R1_idem)
 
-abbreviation "RDES \<equiv> TYPE(RDES \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
+abbreviation "RDES \<equiv> UTHY(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
 
 overloading
-  rdes_hcond   == "utp_hcond :: (RDES \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp) itself \<Rightarrow> (('t,'\<alpha>) alphabet_rp \<times> ('t,'\<alpha>) alphabet_rp) Healthiness_condition"
+  rdes_hcond   == "utp_hcond :: (RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp) uthy \<Rightarrow> (('t,'\<alpha>) alphabet_rp \<times> ('t,'\<alpha>) alphabet_rp) Healthiness_condition"
 begin
-  definition rdes_hcond :: "(RDES \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp) itself \<Rightarrow> (('t,'\<alpha>) alphabet_rp \<times> ('t,'\<alpha>) alphabet_rp) Healthiness_condition" where
+  definition rdes_hcond :: "(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp) uthy \<Rightarrow> (('t,'\<alpha>) alphabet_rp \<times> ('t,'\<alpha>) alphabet_rp) Healthiness_condition" where
   [upred_defs]: "rdes_hcond T = CSP"
 end
 
-interpretation rdes_theory: utp_theory "TYPE(RDES \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
+interpretation rdes_theory: utp_theory "UTHY(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
   by (unfold_locales, simp_all add: rdes_hcond_def CSP_idem)
 
-lemma Miracle_is_top: "\<top>\<^bsub>utp_order RDES\<^esub> = Miracle"
+lemma Miracle_is_top: "\<^bold>\<top>\<^bsub>RDES\<^esub> = Miracle"
   apply (auto intro!:some_equality simp add: atop_def some_equality greatest_def utp_order_def rdes_hcond_def)
   apply (metis CSP_sup_closed emptyE rea_design_sup_def)
   using Miracle_greatest apply blast
   apply (metis CSP_sup_closed dual_order.antisym equals0D rea_design_sup_def Miracle_greatest)
 done
 
-lemma Chaos_is_bot: "\<bottom>\<^bsub>utp_order RDES\<^esub> = Chaos"
+lemma Chaos_is_bot: "\<^bold>\<bottom>\<^bsub>RDES\<^esub> = Chaos"
   apply (auto intro!:some_equality simp add: abottom_def some_equality least_def utp_order_def rdes_hcond_def)
   apply (metis CSP_inf_closed emptyE rea_design_inf_def)
   using Chaos_least apply blast
   apply (metis Chaos_least CSP_inf_closed dual_order.antisym equals0D rea_design_inf_def)
 done
 
-interpretation hrd_lattice: utp_theory_lattice "TYPE(RDES \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
+interpretation hrd_lattice: utp_theory_lattice "UTHY(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
   rewrites "carrier (utp_order RDES) = \<lbrakk>CSP\<rbrakk>\<^sub>H"
   and "\<top>\<^bsub>utp_order RDES\<^esub> = Miracle"
   and "\<bottom>\<^bsub>utp_order RDES\<^esub> = Chaos"

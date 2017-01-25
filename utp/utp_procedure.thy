@@ -9,32 +9,32 @@ type_synonym ('a, '\<alpha>) uproc = "'a \<Rightarrow> '\<alpha> hrelation"
 definition 
   val_parm :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> '\<alpha> hrelation) 
                \<Rightarrow> (('a, '\<beta>) uexpr, '\<alpha>) uproc"
-where [upred_defs]: "val_parm T x P = (\<lambda> v. (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> v ;; P x)))"
+where [upred_defs]: "val_parm T x P = (\<lambda> v. (var\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> v ;; P x)))"
 
 definition 
   val_parm_comp :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> ('b, '\<alpha>) uproc) 
                \<Rightarrow> (('a, '\<beta>) uexpr \<times> 'b, '\<alpha>) uproc"
-where [upred_defs]: "val_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> u ;; P x v)))"
+where [upred_defs]: "val_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> u ;; P x v)))"
 
 definition 
   res_parm :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> '\<alpha> hrelation) 
                \<Rightarrow> (('a, '\<beta>) uvar, '\<alpha>) uproc"
-where [upred_defs]: "res_parm T x P = (\<lambda> y. (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (P x ;; y ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
+where [upred_defs]: "res_parm T x P = (\<lambda> y. (var\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> x \<bullet> (P x ;; y ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> &x)))"
 
 definition 
   res_parm_comp :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> ('b, '\<alpha>) uproc) 
                \<Rightarrow> (('a, '\<beta>) uvar \<times> 'b, '\<alpha>) uproc"
-where [upred_defs]: "res_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (P x v ;; u ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
+where [upred_defs]: "res_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> x \<bullet> (P x v ;; u ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> &x)))"
 
 definition
   vres_parm :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> '\<alpha> hrelation) 
                \<Rightarrow> (('a, '\<beta>) uvar, '\<alpha>) uproc"
-where [upred_defs]: "vres_parm T x P = (\<lambda> y. (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &y ;; P x ;; y ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
+where [upred_defs]: "vres_parm T x P = (\<lambda> y. (var\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> &y ;; P x ;; y ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> &x)))"
 
 definition 
   vres_parm_comp :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> ('b, '\<alpha>) uproc) 
                \<Rightarrow> (('a, '\<beta>) uvar \<times> 'b, '\<alpha>) uproc"
-where [upred_defs]: "vres_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &u ;; P x v ;; u ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
+where [upred_defs]: "vres_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> &u ;; P x v ;; u ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> &x)))"
 
 nonterminal parm and parm_list
 
@@ -82,13 +82,13 @@ lemma val_parm_healthy [closure]:
   fixes x :: "('a::two, '\<beta>::vst) lvar"
   assumes "\<And> x. P x is \<H>"
   shows "val_parm (T :: ('\<T> \<times> '\<alpha> \<times> '\<beta>) itself) x P v is \<H>"
-  by (simp add: val_parm_def ThTag_def closure assms)
+  by (simp add: val_parm_def uthy_simp closure assms)
 
 lemma val_parm_comp_healthy [closure]:
   fixes x :: "('a::two, '\<beta>::vst) lvar"
   assumes "\<And> x y. P x y is \<H>"
   shows "val_parm_comp (T :: ('\<T> \<times> '\<alpha> \<times> '\<beta>) itself) x P v is \<H>"
-  by (simp add: val_parm_comp_def ThTag_def prod.case_eq_if closure assms)
+  by (simp add: val_parm_comp_def uthy_simp prod.case_eq_if closure assms)
 
 end
 

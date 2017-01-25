@@ -1253,41 +1253,41 @@ qed
 
 subsection {* UTP theories *}
 
-typedef DES  = "UNIV :: unit set" by simp
-typedef NDES = "UNIV :: unit set" by simp
+typedecl DES
+typedecl NDES
 
-abbreviation "DES \<equiv> TYPE(DES \<times> '\<alpha> alphabet_d)"
-abbreviation "NDES \<equiv> TYPE(NDES \<times> '\<alpha> alphabet_d)"
+abbreviation "DES \<equiv> UTHY(DES, '\<alpha> alphabet_d)"
+abbreviation "NDES \<equiv> UTHY(NDES, '\<alpha> alphabet_d)"
 
 overloading
-  des_hcond == "utp_hcond :: (DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition"
-  des_unit == "utp_unit :: (DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> hrelation_d"
+  des_hcond == "utp_hcond :: (DES, '\<alpha> alphabet_d) uthy \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition"
+  des_unit == "utp_unit :: (DES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> hrelation_d"
 
-  ndes_hcond == "utp_hcond :: (NDES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition"
-  ndes_unit == "utp_unit :: (NDES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> hrelation_d"
+  ndes_hcond == "utp_hcond :: (NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition"
+  ndes_unit == "utp_unit :: (NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> hrelation_d"
 
 begin
-  definition des_hcond :: "(DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition" where
+  definition des_hcond :: "(DES, '\<alpha> alphabet_d) uthy \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition" where
   [upred_defs]: "des_hcond t = H1_H2"
 
-  definition des_unit :: "(DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> hrelation_d" where
+  definition des_unit :: "(DES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> hrelation_d" where
   [upred_defs]: "des_unit t = II\<^sub>D"
 
-  definition ndes_hcond :: "(NDES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition" where
+  definition ndes_hcond :: "(NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition" where
   [upred_defs]: "ndes_hcond t = H1_H3"
 
-  definition ndes_unit :: "(NDES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> hrelation_d" where
+  definition ndes_unit :: "(NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> hrelation_d" where
   [upred_defs]: "ndes_unit t = II\<^sub>D"
 
 end
 
-interpretation des_utp_theory: utp_theory "TYPE(DES \<times> '\<alpha> alphabet_d)"
+interpretation des_utp_theory: utp_theory DES
   by (simp add: H1_H2_commute H1_idem H2_idem des_hcond_def utp_theory_def)
 
-interpretation ndes_utp_theory: utp_theory "TYPE(NDES \<times> '\<alpha> alphabet_d)"
+interpretation ndes_utp_theory: utp_theory NDES
   by (simp add: H1_H3_commute H1_idem H3_idem ndes_hcond_def utp_theory.intro)
 
-interpretation des_left_unital: utp_theory_left_unital "TYPE(DES \<times> '\<alpha> alphabet_d)"
+interpretation des_left_unital: utp_theory_left_unital DES
   apply (unfold_locales)
   apply (simp_all add: des_hcond_def des_unit_def)
   using seq_r_H1_H2_closed apply blast
@@ -1295,7 +1295,7 @@ interpretation des_left_unital: utp_theory_left_unital "TYPE(DES \<times> '\<alp
   apply (metis H1_idem H1_left_unit Healthy_def')
 done
 
-interpretation ndes_unital: utp_theory_unital "TYPE(NDES \<times> ('\<alpha> alphabet_d))"
+interpretation ndes_unital: utp_theory_unital NDES
   apply (unfold_locales, simp_all add: ndes_hcond_def ndes_unit_def)
   using seq_r_H1_H3_closed apply blast
   apply (metis H1_rdesign H3_def Healthy_def' design_skip_idem skip_d_def)
@@ -1303,34 +1303,13 @@ interpretation ndes_unital: utp_theory_unital "TYPE(NDES \<times> ('\<alpha> alp
   apply (metis H1_H3_commute H3_def H3_idem Healthy_def')
 done
 
-interpretation design_theory_mono: utp_theory_mono "TYPE(DES \<times> '\<alpha> alphabet_d)"
-  rewrites "carrier (utp_order DES) = \<lbrakk>H1_H2\<rbrakk>\<^sub>H" 
+interpretation design_theory_mono: utp_theory_mono DES
+  rewrites "carrier (utp_order DES) = \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H" 
   by (unfold_locales, simp_all add: des_hcond_def H1_H2_monotonic utp_order_def)
 
-interpretation normal_design_theory_mono: utp_theory_mono "TYPE(NDES \<times> '\<alpha> alphabet_d)"
-  rewrites "carrier (utp_order NDES) = \<lbrakk>H1_H3\<rbrakk>\<^sub>H" 
+interpretation normal_design_theory_mono: utp_theory_mono NDES
+  rewrites "carrier (utp_order NDES) = \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H" 
   by (unfold_locales, simp_all add: ndes_hcond_def H1_H3_monotonic utp_order_def)
-
-(*
-interpretation design_complete_lattice: utp_theory_lattice "TYPE(DES \<times> '\<alpha> alphabet_d)"
-  rewrites "carrier (utp_order DES) = \<lbrakk>H1_H2\<rbrakk>\<^sub>H"
-  apply (unfold_locales)
-  apply (simp_all add: des_hcond_def utp_order_def H1_idem H2_idem)
-  apply (rule_tac x="\<Squnion>\<^sub>D A" in exI)
-  apply (auto simp add: least_def Upper_def)
-  using Inf_lower apply blast
-  apply (simp add: Ball_Collect UINF_H1_H2_closed)
-  apply (meson Ball_Collect Inf_greatest)
-  apply (rule_tac x="\<Sqinter>\<^sub>D A" in exI)
-  apply (case_tac "A = {}")
-  apply (auto simp add: greatest_def Lower_def)
-  using design_sup_H1_H2_closed apply fastforce
-  apply (metis H1_below_top Healthy_def')
-  using Sup_upper apply blast
-  apply (metis (no_types) USUP_H1_H2_closed contra_subsetD emptyE mem_Collect_eq)
-  apply (meson Ball_Collect Sup_least)
-done
-*)
 
 lemma design_lat_top: "\<^bold>\<top>\<^bsub>DES\<^esub> = \<^bold>H(false)"
   by (simp add: des_hcond_def design_theory_mono.healthy_top)
@@ -1351,19 +1330,19 @@ text {* We also set up local variables for designs. *}
 
 overloading
   des_pvar == "pvar :: '\<alpha> \<Longrightarrow> '\<alpha> alphabet_d"
-  des_assigns == "pvar_assigns :: (DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d"
-  ndes_assigns == "pvar_assigns :: (NDES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d"
+  des_assigns == "pvar_assigns :: (DES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d"
+  ndes_assigns == "pvar_assigns :: (NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d"
 begin
   definition des_pvar :: "'\<alpha> \<Longrightarrow> '\<alpha> alphabet_d" where
   [upred_defs]: "des_pvar = \<Sigma>\<^sub>D"
-  definition des_assigns :: "(DES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d" where
+  definition des_assigns :: "(DES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d" where
   [upred_defs]: "des_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>D"
-  definition ndes_assigns :: "(NDES \<times> '\<alpha> alphabet_d) itself \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d" where
+  definition ndes_assigns :: "(NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d" where
   [upred_defs]: "ndes_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>D"
 
 end
 
-interpretation des_prog_var: utp_prog_var "TYPE(DES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
+interpretation des_prog_var: utp_prog_var "UTHY(DES, '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
   rewrites "\<H>\<^bsub>DES\<^esub> = \<^bold>H"
   apply (unfold_locales, simp_all add: des_pvar_def des_assigns_def des_hcond_def)
   apply (simp add: assigns_d_def rdesign_is_H1_H2)
@@ -1371,18 +1350,18 @@ interpretation des_prog_var: utp_prog_var "TYPE(DES \<times> '\<alpha> alphabet_
   apply (rel_auto)
 done
 
-interpretation ndes_prog_var: utp_prog_var "TYPE(NDES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
+interpretation ndes_prog_var: utp_prog_var "UTHY(NDES, '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
   rewrites "\<H>\<^bsub>NDES\<^esub> = \<^bold>N"
   apply (unfold_locales, simp_all add: des_pvar_def ndes_assigns_def ndes_hcond_def)
   apply (simp add: assigns_d_H1_H3)
   apply (rel_auto)
 done
 
-interpretation des_local_var: utp_local_var "TYPE(DES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
+interpretation des_local_var: utp_local_var "UTHY(DES, '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
   rewrites "\<H>\<^bsub>DES\<^esub> = \<^bold>H"
   by (unfold_locales, simp_all add: des_unit_def des_assigns_def des_hcond_def)
 
-interpretation ndes_local_var: utp_local_var "TYPE(NDES \<times> '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
+interpretation ndes_local_var: utp_local_var "UTHY(NDES, '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
   rewrites "\<H>\<^bsub>NDES\<^esub> = \<^bold>N"
   by (unfold_locales, simp_all add: ndes_unit_def ndes_assigns_def ndes_hcond_def)
 

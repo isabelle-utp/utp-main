@@ -831,21 +831,20 @@ lemma RH_false_bottom:
 
 subsection {* UTP theory *}
 
-typedef REA = "UNIV :: unit set" by simp
-
-abbreviation "REA \<equiv> TYPE(REA \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
+typedecl REA
+abbreviation "REA \<equiv> UTHY(REA, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
 
 overloading
-  rea_hcond == "utp_hcond :: (REA \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp) itself \<Rightarrow> (('t,'\<alpha>) alphabet_rp \<times> ('t,'\<alpha>) alphabet_rp) Healthiness_condition"
+  rea_hcond == "utp_hcond :: (REA, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp) uthy \<Rightarrow> (('t,'\<alpha>) alphabet_rp \<times> ('t,'\<alpha>) alphabet_rp) Healthiness_condition"
 begin
-  definition rea_hcond :: "(REA \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp) itself \<Rightarrow> (('t,'\<alpha>) alphabet_rp \<times> ('t,'\<alpha>) alphabet_rp) Healthiness_condition" where
+  definition rea_hcond :: "(REA, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp) uthy \<Rightarrow> (('t,'\<alpha>) alphabet_rp \<times> ('t,'\<alpha>) alphabet_rp) Healthiness_condition" where
   [upred_defs]: "rea_hcond t = \<^bold>R"
 end
 
-interpretation rea_utp_theory: utp_theory "TYPE(REA \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
+interpretation rea_utp_theory: utp_theory "UTHY(REA, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
   by (simp add: rea_hcond_def utp_theory_def RH_idem)
 
-interpretation rea_utp_theory_mono: utp_theory_mono "TYPE(REA \<times> ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
+interpretation rea_utp_theory_mono: utp_theory_mono "UTHY(REA, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
   by (unfold_locales, simp add: Monotonic_def RH_monotone rea_hcond_def)
 
 lemma rea_top: "\<^bold>\<top>\<^bsub>REA\<^esub> = ($wait \<and> II\<^sub>r)"
