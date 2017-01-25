@@ -35,6 +35,14 @@ definition
 
 subsubsection {* The order relation *}
 
+lemma funcset_carrier:
+  "\<lbrakk> f \<in> carrier X \<rightarrow> carrier Y; x \<in> carrier X \<rbrakk> \<Longrightarrow> f x \<in> carrier Y"
+  by (fact funcset_mem)
+
+lemma funcset_carrier':
+  "\<lbrakk> f \<in> carrier A \<rightarrow> carrier A; x \<in> carrier A \<rbrakk> \<Longrightarrow> f x \<in> carrier A"
+  by (fact funcset_mem)
+
 context weak_partial_order
 begin
 
@@ -476,7 +484,7 @@ definition isotone :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_sche
                  \<and> (\<forall>x\<in>carrier A. \<forall>y\<in>carrier A. x \<sqsubseteq>\<^bsub>A\<^esub> y \<longrightarrow> f x \<sqsubseteq>\<^bsub>B\<^esub> f y)"
 
 lemma isotoneI [intro?]:
-  fixes f :: "'a \<Rightarrow> 'a"
+  fixes f :: "'a \<Rightarrow> 'b"
   assumes "weak_partial_order L1"
           "weak_partial_order L2"
           "(\<And>x y. \<lbrakk> x \<in> carrier L1; y \<in> carrier L1; x \<sqsubseteq>\<^bsub>L1\<^esub> y \<rbrakk> 
@@ -500,6 +508,8 @@ lemma (in weak_partial_order) inv_isotone [simp]:
   "isotone (inv_gorder A) (inv_gorder B) f = isotone A B f"
   by (auto simp add:isotone_def dual_weak_order dual_weak_order_iff)
 
+subsubsection {* Idempotent functions *}
+
 definition idempotent :: 
   "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" ("Idem\<index>") where
 "idempotent L f \<equiv> \<forall>x\<in>carrier L. f (f x) .=\<^bsub>L\<^esub> f x"
@@ -507,6 +517,8 @@ definition idempotent ::
 lemma (in weak_partial_order) idempotent:
   "\<lbrakk> Idem f; x \<in> carrier L \<rbrakk> \<Longrightarrow> f (f x) .= f x"
   by (auto simp add: idempotent_def)
+
+subsubsection {* Order embeddings *}
 
 definition order_emb :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
   "order_emb A B f \<equiv> weak_partial_order A 

@@ -271,10 +271,6 @@ lemma weak_sup_insert [simp]:
   apply (auto intro: sup_upper sup_least sup_closed)
 done
 
-lemma funcset_carrier [intro]:
-  "\<lbrakk> f \<in> carrier L \<rightarrow> carrier L; x \<in> carrier L \<rbrakk> \<Longrightarrow> f x \<in> carrier L"
-  by (fact funcset_mem)
-
 end
 
 text {* Fixed points of a lattice *}
@@ -314,11 +310,32 @@ proof -
   qed
 qed
 
+lemma (in weak_lattice) weak_le_iff_join:
+  assumes "x \<in> carrier L" "y \<in> carrier L"
+  shows "x \<sqsubseteq> y \<longleftrightarrow> x .= (x \<sqinter> y)"
+  by (meson assms(1) assms(2) local.le_refl local.le_trans meet_closed meet_le meet_left meet_right weak_le_antisym weak_refl)
+
+lemma (in lattice) le_iff_join:
+  assumes "x \<in> carrier L" "y \<in> carrier L"
+  shows "x \<sqsubseteq> y \<longleftrightarrow> x = (x \<sqinter> y)"
+  by (simp add: assms(1) assms(2) eq_is_equal weak_le_iff_join)
+
+lemma (in weak_lattice) weak_le_iff_meet:
+  assumes "x \<in> carrier L" "y \<in> carrier L"
+  shows "x \<sqsubseteq> y \<longleftrightarrow> (x \<squnion> y) .= y"
+  by (meson assms(1) assms(2) join_closed join_le join_left join_right le_cong_r local.le_refl weak_le_antisym)
+
+lemma (in lattice) le_iff_meet:
+  assumes "x \<in> carrier L" "y \<in> carrier L"
+  shows "x \<sqsubseteq> y \<longleftrightarrow> (x \<squnion> y) = y"
+  by (simp add: assms(1) assms(2) eq_is_equal weak_le_iff_meet)
+
 lemma (in weak_complete_lattice) fps_idem:
   "\<lbrakk> f \<in> carrier L \<rightarrow> carrier L; Idem f \<rbrakk> \<Longrightarrow> fps L f {.=} f ` carrier L"
   apply (rule set_eqI2)
   apply (auto simp add: idempotent_def fps_def)
   apply (metis Pi_iff local.sym)
+  apply force
 done
 
 context weak_complete_lattice
@@ -331,7 +348,7 @@ proof (rule sup_least)
   from assms(3) show AL: "A \<subseteq> carrier L"
     by (auto simp add: fps_def)
   thus fA: "f (\<Squnion>A) \<in> carrier L"
-    by (simp add: assms funcset_carrier[of f])
+    by (simp add: assms funcset_carrier[of f L L])
   fix x
   assume xA: "x \<in> A"
   hence "x \<in> fps L f"
@@ -351,7 +368,7 @@ proof (rule inf_greatest)
   from assms(3) show AL: "A \<subseteq> carrier L"
     by (auto simp add: fps_def)
   thus fA: "f (\<Sqinter>A) \<in> carrier L"
-    by (simp add: assms funcset_carrier[of f])
+    by (simp add: assms funcset_carrier[of f L L])
   fix x
   assume xA: "x \<in> A"
   hence "x \<in> fps L f"
@@ -363,6 +380,39 @@ proof (rule inf_greatest)
   ultimately show "f (\<Sqinter>\<^bsub>L\<^esub>A) \<sqsubseteq>\<^bsub>L\<^esub> x"
     by (meson AL assms(1) fA funcset_carrier le_cong_r subsetCE xA)
 qed
+
+end
+
+definition join_pres :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
+"join_pres X Y f \<equiv> lattice X \<and> lattice Y \<and> (\<forall> x \<in> carrier X. \<forall> y \<in> carrier X. f (x \<squnion>\<^bsub>X\<^esub> y) = f x \<squnion>\<^bsub>Y\<^esub> f y)"
+
+definition meet_pres :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
+"meet_pres X Y f \<equiv> lattice X \<and> lattice Y \<and> (\<forall> x \<in> carrier X. \<forall> y \<in> carrier X. f (x \<sqinter>\<^bsub>X\<^esub> y) = f x \<sqinter>\<^bsub>Y\<^esub> f y)"
+
+lemma join_pres_isotone:
+  assumes "f \<in> carrier X \<rightarrow> carrier Y" "join_pres X Y f"
+  shows "isotone X Y f"
+  using assms
+  apply (rule_tac isotoneI)
+  apply (auto simp add: join_pres_def lattice.le_iff_meet funcset_carrier)
+  using lattice_def partial_order_def upper_semilattice_def apply blast
+  using lattice_def partial_order_def upper_semilattice_def apply blast
+  apply fastforce
+done
+
+lemma meet_pres_isotone:
+  assumes "f \<in> carrier X \<rightarrow> carrier Y" "meet_pres X Y f"
+  shows "isotone X Y f"
+  using assms
+  apply (rule_tac isotoneI)
+  apply (auto simp add: meet_pres_def lattice.le_iff_join funcset_carrier)
+  using lattice_def partial_order_def upper_semilattice_def apply blast
+  using lattice_def partial_order_def upper_semilattice_def apply blast
+  apply fastforce
+done
+
+context weak_complete_lattice
+begin
 
 text {* Least fixed points *}
 
@@ -558,6 +608,16 @@ qed
 
 sublocale complete_lattice < weak: weak_complete_lattice
   by standard (auto intro: sup_exists inf_exists)
+
+lemma complete_lattice_lattice [simp]: 
+  assumes "complete_lattice X"
+  shows "lattice X"
+proof -
+  interpret c: complete_lattice X
+    by (simp add: assms)
+  show ?thesis
+    by (unfold_locales)
+qed
 
 text {* Introduction rule: the usual definition of complete lattice *}
 
@@ -763,9 +823,9 @@ proof -
       show ?thesis
       proof (rule_tac x="\<Sqinter>\<^bsub>L\<^esub> A" in exI, rule greatest_LowerI, simp_all)
         show "\<And>x. x \<in> A \<Longrightarrow> \<Sqinter>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> x"
-          using a L.at_least_at_most_closed by (auto intro!: L.inf_lower)
+          using a L.at_least_at_most_closed by (force intro!: L.inf_lower)
         show "\<And>y. y \<in> Lower (L\<lparr>carrier := \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>\<rparr>) A \<Longrightarrow> y \<sqsubseteq>\<^bsub>L\<^esub> \<Sqinter>\<^bsub>L\<^esub>A"
-           using a L.at_least_at_most_closed by (rule_tac L.inf_greatest, auto simp add: Lower_def)
+           using a L.at_least_at_most_closed by (rule_tac L.inf_greatest, auto intro: funcset_carrier' simp add: Lower_def)
         from a show "A \<subseteq> \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>"
           by (auto)
         from a show "\<Sqinter>\<^bsub>L\<^esub>A \<in> \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>"
@@ -903,7 +963,7 @@ proof -
             done
           qed
           thus "f (\<mu>\<^bsub>?L'\<^esub> f) .=\<^bsub>L\<^esub> \<mu>\<^bsub>?L'\<^esub> f"
-            by (simp add: L.equivalence_axioms L.funcset_carrier c assms(2) equivalence.sym) 
+            by (simp add: L.equivalence_axioms funcset_carrier' c assms(2) equivalence.sym) 
         qed
       qed
     qed
@@ -914,7 +974,7 @@ proof -
 
       let ?w = "\<Sqinter>\<^bsub>L\<^esub> A"
       have w: "f (\<Sqinter>\<^bsub>L\<^esub>A) \<in> carrier L"
-        by (simp add: AL L.funcset_carrier assms(2))
+        by (simp add: AL funcset_carrier' assms(2))
 
       have pf_w: "f (\<Sqinter>\<^bsub>L\<^esub> A) \<sqsubseteq>\<^bsub>L\<^esub> (\<Sqinter>\<^bsub>L\<^esub> A)"
         by (simp add: A L.weak_sup_post_fixed_point assms(2) assms(3))
@@ -932,7 +992,7 @@ proof -
             fix y
             assume c: "y \<in> A" 
             with assms have "y .=\<^bsub>L\<^esub> f y"
-              by (metis (no_types, lifting) A L.funcset_carrier L.sym fps_def mem_Collect_eq subset_eq)
+              by (metis (no_types, lifting) A funcset_carrier'[OF assms(2)] L.sym fps_def mem_Collect_eq subset_eq)
             moreover have "\<Sqinter>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> y"
               by (simp add: AL L.inf_lower c)
             ultimately show "f (\<Sqinter>\<^bsub>L\<^esub>A) \<sqsubseteq>\<^bsub>L\<^esub> y"
@@ -961,7 +1021,7 @@ proof -
           apply (rule_tac L'.GFP_upperbound)
           apply (auto simp add: Lower_def)
           apply (meson A AL L.at_least_at_most_member L.bottom_lower L.weak_complete_lattice_axioms fps_carrier subsetCE weak_complete_lattice.inf_greatest)
-          apply (simp add: L.funcset_carrier L.sym assms(2) fps_def)          
+          apply (simp add: funcset_carrier' L.sym assms(2) fps_def)          
         done
         thus "x \<sqsubseteq>\<^bsub>L\<^esub> \<nu>\<^bsub>?L'\<^esub> f"
           by (simp)
@@ -990,17 +1050,17 @@ proof -
             show "f \<in> \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub> \<rightarrow> \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub>"
               apply (auto simp add: Pi_def at_least_at_most_def)
               using assms(2) apply blast
-              apply (simp add: L.bottom_lower L.funcset_carrier assms(2))
-              apply (meson AL L.funcset_carrier L.inf_closed L.le_trans assms(2) assms(3) pf_w use_iso2)
+              apply (simp add: L.bottom_lower funcset_carrier' assms(2))
+              apply (meson AL funcset_carrier L.inf_closed L.le_trans assms(2) assms(3) pf_w use_iso2)
             done
             from assms(3) show "Mono\<^bsub>L\<lparr>carrier := \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub>\<rparr>\<^esub> f"
               apply (auto simp add: isotone_def)
               using L'.weak_partial_order_axioms apply blast
-              using L.at_least_at_most_closed apply blast
+              using L.at_least_at_most_closed apply (blast intro: funcset_carrier')
             done
           qed
           thus "f (\<nu>\<^bsub>?L'\<^esub> f) .=\<^bsub>L\<^esub> \<nu>\<^bsub>?L'\<^esub> f"
-            by (simp add: L.equivalence_axioms L.funcset_carrier c assms(2) equivalence.sym) 
+            by (simp add: L.equivalence_axioms funcset_carrier' c assms(2) equivalence.sym) 
         qed
       qed
     qed
@@ -1161,5 +1221,47 @@ qed
 
 text {* An other example, that of the lattice of subgroups of a group,
   can be found in Group theory (Section~\ref{sec:subgroup-lattice}). *}
+
+text {* Limit preserving functions *}
+
+definition weak_sup_pres :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
+"weak_sup_pres X Y f \<equiv> complete_lattice X \<and> complete_lattice Y \<and> (\<forall> A \<subseteq> carrier X. A \<noteq> {} \<longrightarrow> f (\<Squnion>\<^bsub>X\<^esub> A) = (\<Squnion>\<^bsub>Y\<^esub> (f ` A)))"
+
+definition sup_pres :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
+"sup_pres X Y f \<equiv> complete_lattice X \<and> complete_lattice Y \<and> (\<forall> A \<subseteq> carrier X. f (\<Squnion>\<^bsub>X\<^esub> A) = (\<Squnion>\<^bsub>Y\<^esub> (f ` A)))"
+
+definition weak_inf_pres :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
+"weak_inf_pres X Y f \<equiv> complete_lattice X \<and> complete_lattice Y \<and> (\<forall> A \<subseteq> carrier X. A \<noteq> {} \<longrightarrow> f (\<Sqinter>\<^bsub>X\<^esub> A) = (\<Sqinter>\<^bsub>Y\<^esub> (f ` A)))"
+
+definition inf_pres :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
+"inf_pres X Y f \<equiv> complete_lattice X \<and> complete_lattice Y \<and> (\<forall> A \<subseteq> carrier X. f (\<Sqinter>\<^bsub>X\<^esub> A) = (\<Sqinter>\<^bsub>Y\<^esub> (f ` A)))"
+
+lemma weak_sup_pres:
+  "sup_pres X Y f \<Longrightarrow> weak_sup_pres X Y f"
+  by (simp add: sup_pres_def weak_sup_pres_def)
+
+lemma weak_inf_pres:
+  "inf_pres X Y f \<Longrightarrow> weak_inf_pres X Y f"
+  by (simp add: inf_pres_def weak_inf_pres_def)
+
+lemma sup_pres_is_join_pres:
+  assumes "weak_sup_pres X Y f"
+  shows "join_pres X Y f"
+  using assms
+  apply (simp add: join_pres_def weak_sup_pres_def, safe)
+  apply (rename_tac x y)
+  apply (drule_tac x="{x, y}" in spec)
+  apply (auto simp add: join_def)
+done
+
+lemma inf_pres_is_meet_pres:
+  assumes "weak_inf_pres X Y f"
+  shows "meet_pres X Y f"
+  using assms
+  apply (simp add: meet_pres_def weak_inf_pres_def, safe)
+  apply (rename_tac x y)
+  apply (drule_tac x="{x, y}" in spec)
+  apply (auto simp add: meet_def)
+done
 
 end
