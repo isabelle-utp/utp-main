@@ -18,7 +18,7 @@ text {* Different UTP theories have different assignment operators; consequently
 
 consts 
   pvar         :: "'\<beta> \<Longrightarrow> '\<alpha>" ("\<^bold>v")
-  pvar_assigns :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> '\<beta> usubst \<Rightarrow> '\<alpha> hrelation" ("\<^bold>\<langle>_\<^bold>\<rangle>\<index>")
+  pvar_assigns :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<beta> usubst \<Rightarrow> '\<alpha> hrelation" ("\<^bold>\<langle>_\<^bold>\<rangle>\<index>")
 
 text {* @{const pvar} is a lens from the program state, @{typ "'\<beta>"}, to the overall global state
   @{typ "'\<alpha>"}, which also contains none user-space information, such as observational variables. 
@@ -28,7 +28,7 @@ text {* @{const pvar} is a lens from the program state, @{typ "'\<beta>"}, to th
 
 syntax
   "_svid_pvar" :: "svid" ("\<^bold>v")
-  "_thy_asgn"  :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> svid_list \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr "::=\<index>" 55)
+  "_thy_asgn"  :: "('\<T>, '\<alpha>) uthy \<Rightarrow> svid_list \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr "::=\<index>" 55)
 
 translations
   "_svid_pvar" => "CONST pvar"
@@ -71,17 +71,17 @@ translations
 text {* With operators to represent local variables, assignments, and stack manipulation defined, 
   we can go about defining variable blocks themselves. *}
 
-definition var_begin :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('a, '\<beta>) lvar \<Rightarrow> '\<alpha> hrelation" where
+definition var_begin :: "('\<T>, '\<alpha>) uthy \<Rightarrow> ('a, '\<beta>) lvar \<Rightarrow> '\<alpha> hrelation" where
 [urel_defs]: "var_begin T x = x ::=\<^bsub>T\<^esub> \<langle>\<guillemotleft>undefined\<guillemotright>\<rangle> ^\<^sub>u &x"
 
-definition var_end :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('a, '\<beta>) lvar \<Rightarrow> '\<alpha> hrelation" where
+definition var_end :: "('\<T>, '\<alpha>) uthy \<Rightarrow> ('a, '\<beta>) lvar \<Rightarrow> '\<alpha> hrelation" where
 [urel_defs]: "var_end T x = (x ::=\<^bsub>T\<^esub> tail\<^sub>u(&x))"
 
 text {* @{const var_begin} takes as parameters a UTP theory and a local variable, and uses the 
   theory assignment operator to push and undefined value onto the variable stack. @{const var_end}
   removes the top most variable from the stack in a similar way. *}
 
-definition var_vlet :: "('\<T> \<times> '\<alpha>) itself \<Rightarrow> ('a, '\<alpha>) lvar \<Rightarrow> '\<alpha> hrelation" where
+definition var_vlet :: "('\<T>, '\<alpha>) uthy \<Rightarrow> ('a, '\<alpha>) lvar \<Rightarrow> '\<alpha> hrelation" where
 [urel_defs]: "var_vlet T x = (($x \<noteq>\<^sub>u \<langle>\<rangle>) \<and> \<I>\<I>\<^bsub>T\<^esub>)"
 
 text {* Next we set up the typical UTP variable block syntax, though with a suitable subscript index
@@ -110,7 +110,7 @@ translations
 text {* In order to substantiate standard variable block laws, we need some underlying laws about
   assignments, which is the purpose of the following locales. *}
 
-locale utp_prog_var = utp_theory \<T> for \<T> :: "('\<T> \<times> '\<alpha>) itself" (structure) +
+locale utp_prog_var = utp_theory \<T> for \<T> :: "('\<T>, '\<alpha>) uthy" (structure) +
   fixes \<V>\<T> :: "'\<beta>::vst itself"
   assumes pvar_uvar: "vwb_lens (\<^bold>v :: '\<beta> \<Longrightarrow> '\<alpha>)"
   and Healthy_pvar_assigns [closure]: "\<^bold>\<langle>\<sigma> :: '\<beta> usubst\<^bold>\<rangle> is \<H>"
@@ -120,7 +120,7 @@ text {* We require that (1) the user-space variable is a very well-behaved lens,
   assignment operator is healthy, and (3) that composing two assignments is equivalent to
   composing their substitutions. The next locale extends this with a left unit. *}
 
-locale utp_local_var = utp_prog_var \<T> V + utp_theory_left_unital \<T> for \<T> :: "('\<T> \<times> '\<alpha>) itself" (structure) and V :: "'\<beta>::vst itself" +
+locale utp_local_var = utp_prog_var \<T> V + utp_theory_left_unital \<T> for \<T> :: "('\<T>, '\<alpha>) uthy" (structure) and V :: "'\<beta>::vst itself" +
   assumes pvar_assign_unit: "\<^bold>\<langle>id :: '\<beta> usubst\<^bold>\<rangle> = \<I>\<I>"
 begin
 
