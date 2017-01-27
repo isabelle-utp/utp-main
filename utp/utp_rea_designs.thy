@@ -224,7 +224,7 @@ done
 lemma RH_design_composition: 
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok \<sharp> R" "$ok \<sharp> S"
   shows "(RH(P \<turnstile> Q) ;; RH(R \<turnstile> S)) = 
-       RH((\<not> (R1 (\<not> R2s P) ;; R1 true) \<and> \<not> (R1 (R2s Q) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R))) \<turnstile>
+       RH((\<not> (R1 (\<not> R2s P) ;; R1 true) \<and> \<not> (R1 (R2s Q) \<and> (\<not> $wait\<acute>) ;; R1 (\<not> R2s R))) \<turnstile>
                        (R1 (R2s Q) ;; (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s S))))"
 proof -
   have 1: "R2c (R1 (\<not> R2s P) ;; R1 true) = (R1 (\<not> R2s P) ;; R1 true)"
@@ -878,6 +878,40 @@ proof -
   finally show ?thesis ..
 qed
 
+lemma R2c_pre_RH:
+  assumes "P is CSP"
+  shows "pre\<^sub>R(P) is R2c"
+proof -
+  have "pre\<^sub>R(P) = pre\<^sub>R(RH(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)))"
+    by (simp add: CSP_reactive_tri_design assms)
+  also have "... = (\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> pre\<^sub>R P))))"
+    by (simp add: rea_pre_RH_design)
+  also have "... = R2c(\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> pre\<^sub>R P))))"
+    by (simp add: R2c_not R1_R2c_commute R2c_idem)
+  finally show ?thesis
+    by (metis Healthy_def R2c_idem)
+qed
+
+lemma R1_peri_RH:
+  assumes "P is CSP"
+  shows "peri\<^sub>R(P) is R1"
+  by (metis CSP_healths(1) Healthy_def assms peri\<^sub>R_def peri\<^sub>s_R1)
+
+lemma R2c_peri_RH:
+  assumes "P is CSP"
+  shows "peri\<^sub>R(P) is R2c"
+  by (metis (no_types, lifting) CSP_R1_R2s Healthy_def' R1_R2c_commute R1_R2s_R2c R1_peri_RH assms peri\<^sub>R_def peri\<^sub>s_R1 peri\<^sub>s_R2c)
+
+lemma R1_post_RH:
+  assumes "P is CSP"
+  shows "post\<^sub>R(P) is R1"
+  by (metis CSP_healths(1) Healthy_def' assms post\<^sub>R_def post\<^sub>s_R1)
+  
+lemma R2c_post_RH:
+  assumes "P is CSP"
+  shows "post\<^sub>R(P) is R2c"
+  by (metis (no_types, lifting) CSP_R1_R2s Healthy_def' R1_R2c_commute R1_R2s_R2c R1_post_RH assms post\<^sub>R_def post\<^sub>s_R1 post\<^sub>s_R2c)
+
 lemma skip_rea_reactive_design:
   "II\<^sub>r = RH(true \<turnstile> II)"
 proof -
@@ -1097,6 +1131,15 @@ proof -
     by (metis CSP_reactive_tri_design assms)
   finally show ?thesis .
 qed
+
+text {* This theorem tells us that processes 
+
+ which have R1 as a right unit are precisely those
+  consisting of a conjoined precondition and an inequality restriction on the trace. *}
+
+lemma R1_true_right_unit_form:
+  "out\<alpha> \<sharp> c \<Longrightarrow> (\<not> (c \<and> \<not> ($tr\<acute> \<ge>\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<guillemotright>)) ;; R1(true)) = (\<not> (c \<and> \<not> ($tr\<acute> \<ge>\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<guillemotright>)))"
+  by (rel_auto, blast)
 
 lemma skip_rea_left_semi_unit:
   assumes "P is CSP"

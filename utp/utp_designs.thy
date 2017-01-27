@@ -547,6 +547,10 @@ theorem design_left_unit [simp]:
   "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
   by rel_auto
 
+theorem design_right_semi_unit:
+  "(P \<turnstile>\<^sub>r Q ;; II\<^sub>D) = ((\<not> (\<not> P ;; true)) \<turnstile>\<^sub>r Q)"
+  by (simp add: skip_d_def rdesign_composition)
+
 theorem design_right_cond_unit [simp]:
   assumes "out\<alpha> \<sharp> p"
   shows "(p \<turnstile>\<^sub>r Q ;; II\<^sub>D) = (p \<turnstile>\<^sub>r Q)"
