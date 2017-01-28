@@ -5,7 +5,7 @@
 (******************************************************************************)
 (* LAST REVIEWED: 4 September 2014 *)
 
-header {* Infinity Supplement *}
+section {* Infinity Supplement *}
 
 theory infinity
 imports Main Real Infinite_Set "~~/src/HOL/Cardinals/Cardinals"

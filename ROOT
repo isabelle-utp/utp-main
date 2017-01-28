@@ -33,7 +33,7 @@ session "UTP-DEPS" = "Kleene_Algebra" +
     "contrib/HOL-Algebra2/Galois_Connection"
 
 session "UTP-IMPORTS" in "utils" = "UTP-DEPS" +
-  options [timeout = 600]
+  options [document = pdf, document_output = "output", timeout = 1000]
   theories
     cardinals
     Continuum
@@ -55,6 +55,10 @@ session "UTP-IMPORTS" in "utils" = "UTP-DEPS" +
     Real_Bit
     ttrace
     interp
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty"
 
 session "UTP" in "utp" = "UTP-IMPORTS" +
   options [document = pdf, document_output = "output", timeout = 1000]

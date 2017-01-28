@@ -5,7 +5,7 @@
 (******************************************************************************)
 (* LAST REVIEWED: 27 March 2014 *)
 
-header {* Type Universe *}
+section {* Type Universe *}
 
 theory UNIV_TYPE
 imports Main

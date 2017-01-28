@@ -1,3 +1,5 @@
+section {* Finite sets: extra functions and properties *}
+
 theory FSet_extra
 imports
   FSet

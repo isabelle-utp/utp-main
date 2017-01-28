@@ -14,7 +14,7 @@ subsection {* Cardinality $\mathfrak{c}$ *}
 text {* This theory introduces definitions and type class that group Isabelle types that have
         cardinality of up to the cardinality of the continuum (i.e. $|\mathbb{R}| = \mathfrak{c}$). We can
         then use the type class to exhibit injections into a universe of types of up to cardinality
-        $\mathfrak{c}, which we can then can then be used to introduce deeply encoded types into the UTP model.
+        $\mathfrak{c}$, which we can then can then be used to introduce deeply encoded types into the UTP model.
         Though restricting ourselves to types of cardinality $\mathfrak{c}$ may seem limiting, this seems
         to be a decently large universe that even for instance includes countable sets of real numbers.
 
@@ -245,7 +245,7 @@ text {* Every countable type is within the continuum *}
 instance countable \<subseteq> continuum
   by (intro_classes, simp add: countable_infinite_type_inj_ex)
 
-text {* We construct bijective versions of {@const to_nat_set} and {@const from_nat_set} *}
+text {* We construct bijective versions of @{const to_nat_set} and @{const from_nat_set} *}
 
 definition to_nat_set_bij :: "'a::{continuum, infinite} \<Rightarrow> nat set" where
 "to_nat_set_bij = (SOME f. bij f)"

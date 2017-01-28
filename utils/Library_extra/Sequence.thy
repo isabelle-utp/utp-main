@@ -1,3 +1,5 @@
+section {* Infinite sequences *}
+
 theory Sequence
 imports 
   Real

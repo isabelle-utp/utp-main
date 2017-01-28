@@ -1,3 +1,5 @@
+section {* Map type: extra functions and properties *}
+
 theory Map_Extra
 imports 
   Main 

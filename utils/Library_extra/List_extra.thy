@@ -1,3 +1,5 @@
+section {* Lists: extra functions and properties *}
+
 theory List_extra
 imports
   Main

@@ -13,7 +13,7 @@ definition is_to_nat_ind :: "'a \<Rightarrow> nat \<Rightarrow> bool" where
                         sorted_list_of_set (to_nat_on (UNIV :: 'a set) ` (UNIV :: 'a set)) ! i = to_nat_on (UNIV :: 'a set) x)"
 
 text {* The function @{const to_nat} from the countable class makes no guarantees about
-        which natural numbers will be picked for each element. Nevertheless is guaranatees
+        which natural numbers will be picked for each element. Nevertheless it guaranatees
         a unique natural for each element. We use this to map each of these elements to
         a number in the range 0..|A| by creating a sorted list of the corresponding naturals
         from @{const to_nat} and then assigning each element its index in this list. Thus
