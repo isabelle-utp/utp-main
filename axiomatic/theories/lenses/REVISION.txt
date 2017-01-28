@@ -1,0 +1,5 @@
+commit 287c596fc883721dd8d911210dd014a674423ff7
+Author: Simon Foster <simon.foster@york.ac.uk>
+Date:   Fri Jan 27 13:39:46 2017 +0000
+
+    Proved some reactive design pre/postcondition laws

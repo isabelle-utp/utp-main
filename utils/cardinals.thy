@@ -8,7 +8,7 @@
 header {* Lightweight Cardinals *}
 
 theory cardinals
-imports Main Real Countable_Set "~~/src/HOL/Cardinals/Cardinals" infinity UNIV_TYPE
+imports Main Real Countable_Set "~~/src/HOL/Cardinals/Cardinals" Infinity UNIV_TYPE
 begin
 
 subsection {* Cardinal Order *}

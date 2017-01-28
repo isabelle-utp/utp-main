@@ -1,7 +1,7 @@
 section {* Types of cardinality 2 or greater *}
 
 theory Two
-imports Main Infinity
+imports Main "../utils/Infinity"
 begin
 
 class two =

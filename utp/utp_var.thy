@@ -1,14 +1,14 @@
 section {* UTP variables *}
 
 theory utp_var
-imports 
+imports
   "../contrib/Kleene_Algebra/Quantales" 
   "../contrib/HOL-Algebra2/Complete_Lattice"
   "../contrib/HOL-Algebra2/Galois_Connection"
   "../utils/cardinals"
   "../utils/Continuum"
   "../utils/finite_bijection"
- "../utils/interp"
+  "../utils/interp"
   "../utils/Lenses"
   "../utils/Positive"
   "../utils/Profiling"
@@ -80,19 +80,19 @@ definition pr_var :: "('a, '\<beta>) uvar \<Rightarrow> ('a, '\<beta>) uvar" whe
 
 lemma in_var_semi_uvar [simp]:
   "mwb_lens x \<Longrightarrow> mwb_lens (in_var x)"
-  by (simp add: comp_mwb_lens fst_vwb_lens in_var_def)
+  by (simp add: comp_mwb_lens in_var_def)
 
 lemma in_var_uvar [simp]:
   "vwb_lens x \<Longrightarrow> vwb_lens (in_var x)"
-  by (simp add: comp_vwb_lens fst_vwb_lens in_var_def)
+  by (simp add: in_var_def)
 
 lemma out_var_semi_uvar [simp]:
   "mwb_lens x \<Longrightarrow> mwb_lens (out_var x)"
-  by (simp add: comp_mwb_lens out_var_def snd_vwb_lens)
+  by (simp add: comp_mwb_lens out_var_def)
 
 lemma out_var_uvar [simp]:
   "vwb_lens x \<Longrightarrow> vwb_lens (out_var x)"
-  by (simp add: comp_vwb_lens out_var_def snd_vwb_lens)
+  by (simp add: out_var_def)
 
 lemma in_out_indep [simp]:
   "in_var x \<bowtie> out_var y"
@@ -104,11 +104,11 @@ lemma out_in_indep [simp]:
 
 lemma in_var_indep [simp]:
   "x \<bowtie> y \<Longrightarrow> in_var x \<bowtie> in_var y"
-  by (simp add: in_var_def out_var_def fst_vwb_lens lens_indep_left_comp)
+  by (simp add: in_var_def out_var_def)
 
 lemma out_var_indep [simp]:
   "x \<bowtie> y \<Longrightarrow> out_var x \<bowtie> out_var y"
-  by (simp add: lens_indep_left_comp out_var_def snd_vwb_lens)
+  by (simp add: out_var_def)
 
 text {* We also define some lookup abstraction simplifications. *}
 

@@ -31,6 +31,7 @@ session "UTP-DEPS" = "Kleene_Algebra" +
     "~~/src/HOL/Library/Sublist"
     "contrib/HOL-Algebra2/Complete_Lattice"
     "contrib/HOL-Algebra2/Galois_Connection"
+    "axiomatic/theories/core/ulens"
 
 session "UTP-IMPORTS" in "utils" = "UTP-DEPS" +
   options [timeout = 600]

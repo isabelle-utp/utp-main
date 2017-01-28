@@ -229,6 +229,22 @@ proof -
     by rel_auto
   finally show ?thesis .
 qed
+
+(************************)
+(* Added by Frank Zeyda *)
+(************************)
+
+lemma "(<x::nat> := 1 ;; <x::nat> := &<x::nat> + 1) = <x::nat> := 2"
+apply (rel_auto)
+apply (simp add: numeral_2_eq_2)
+apply (simp add: numeral_2_eq_2)
+done
+
+lemma "({x::nat}\<^sub>x := 1 ;; {x::nat}\<^sub>x := &{x::nat}\<^sub>x + 1) = {x::nat}\<^sub>x := 2"
+apply (rel_auto)
+apply (simp add: numeral_2_eq_2)
+apply (simp add: numeral_2_eq_2)
+done
 (*<*)
 end
 (*>*)

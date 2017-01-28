@@ -2,6 +2,7 @@ theory utp
   imports
     utp_var
     utp_dvar
+    utp_avar
     utp_expr
     utp_unrest
     utp_subst

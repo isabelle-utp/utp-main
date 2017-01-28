@@ -4,7 +4,10 @@ theory utp_expr
 imports
   utp_var
   utp_dvar
+  utp_avar
 begin
+
+no_notation BNF_Def.convol ("\<langle>(_,/ _)\<rangle>")
 
 text {* Before building the predicate model, we will build a model of expressions that generalise
         alphabetised predicates. Expressions are represented semantically as mapping from
@@ -246,7 +249,11 @@ instance uexpr :: (numeral, type) numeral
 text {* Set up automation for numerals *}
 
 lemma numeral_uexpr_rep_eq: "\<lbrakk>numeral x\<rbrakk>\<^sub>e b = numeral x"
-  by (induct x, simp_all add: plus_uexpr_def one_uexpr_def numeral.simps lit.rep_eq bop.rep_eq)
+apply (induct x)
+apply (simp add: lit.rep_eq one_uexpr_def)
+apply (simp add: bop.rep_eq numeral_Bit0 plus_uexpr_def)
+apply (simp add: bop.rep_eq lit.rep_eq numeral_code(3) one_uexpr_def plus_uexpr_def)
+done
 
 lemma numeral_uexpr_simp: "numeral x = \<guillemotleft>numeral x\<guillemotright>"
   by (simp add: uexpr_eq_iff numeral_uexpr_rep_eq lit.rep_eq)
