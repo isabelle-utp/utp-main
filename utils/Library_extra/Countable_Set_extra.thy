@@ -1,3 +1,5 @@
+section {* Countable sets: Extra functions and properties *}
+
 theory Countable_Set_extra
 imports 
   Countable_Set_Type

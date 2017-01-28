@@ -1,6 +1,11 @@
+section {* Dyadic rational numbers *}
+
 theory Dyadic
 imports Real Transcendental cardinals 
 begin
+
+text {* A dyadic rational is a rational whose denominator is a power of 2. They are precisely the
+  rational numbers that can be encoded in binary. *}
 
 definition dyadic :: "'a::field_char_0 \<Rightarrow> bool" where
 "dyadic x = (\<exists> a \<in> \<int>. \<exists> b. x = a / 2^b)"

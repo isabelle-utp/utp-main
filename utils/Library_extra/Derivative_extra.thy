@@ -1,4 +1,4 @@
-section {* Extra laws and tactics for vector derivatives *}
+section {* Derivatives: extra laws and tactics *}
 
 theory Derivative_extra
 imports 
@@ -6,6 +6,20 @@ imports
   "~~/src/HOL/Library/Product_Vector"
   "~~/src/HOL/Multivariate_Analysis/Derivative"
 begin
+
+subsection {* Properties of filters *}
+
+lemma filtermap_within_range_minus: "filtermap (\<lambda> x. x - n::real) (at y within {x..<y}) = (at (y - n) within ({x-n..<y-n}))"
+  by (simp add: filter_eq_iff eventually_filtermap eventually_at_filter filtermap_nhds_shift[symmetric])
+
+lemma filtermap_within_range_plus: "filtermap (\<lambda> x. x + n::real) (at y within {x..<y}) = (at (y + n) within ({x+n..<y+n}))"
+  using filtermap_within_range_minus[of "-n"] by simp
+
+lemma filter_upto_contract:
+  "\<lbrakk> (x::real) \<le> y; y < z \<rbrakk> \<Longrightarrow> (at z within {x..<z}) = (at z within {y..<z})"
+  by (rule at_within_nhd[of _ "{y<..<z+1}"], auto)
+
+subsection {* Extra derivative rules *}
 
 lemma has_vector_derivative_Pair [derivative_intros]:
   "\<lbrakk> (f has_vector_derivative f') (at x within s); (g has_vector_derivative g') (at x within s) \<rbrakk> \<Longrightarrow>
@@ -37,7 +51,7 @@ lemma has_vector_derivative_divide[simp, derivative_intros]:
   apply (auto simp add: divide_inverse real_vector.scale_right_diff_distrib)
 done
 
-text {* vderiv_tac is a simple tactic for certifying solutions to systems of differential equations *}
+text {* vderiv\_tac is a simple tactic for certifying solutions to systems of differential equations *}
 
 method vderiv_tac = (safe intro!: has_vector_derivative_Pair, (rule has_vector_derivative_eq_rhs, (rule derivative_intros; (simp)?)+, simp)+)
 

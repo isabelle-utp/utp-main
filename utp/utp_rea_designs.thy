@@ -878,40 +878,56 @@ proof -
   finally show ?thesis ..
 qed
 
-lemma R2c_pre_RH:
+lemma R1_neg_R2s_pre_RH:
   assumes "P is CSP"
-  shows "pre\<^sub>R(P) is R2c"
+  shows "R1 (\<not> R2s(pre\<^sub>R(P))) = (\<not> (pre\<^sub>R(P)))"
 proof -
-  have "pre\<^sub>R(P) = pre\<^sub>R(RH(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)))"
+  have "(\<not> pre\<^sub>R(P)) = (\<not> pre\<^sub>R(RH(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))))"
     by (simp add: CSP_reactive_tri_design assms)
-  also have "... = (\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> pre\<^sub>R P))))"
-    by (simp add: rea_pre_RH_design)
-  also have "... = R2c(\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> pre\<^sub>R P))))"
-    by (simp add: R2c_not R1_R2c_commute R2c_idem)
-  finally show ?thesis
-    by (metis Healthy_def R2c_idem)
+  also have "... = R1(R2s(\<not> pre\<^sub>R(RH(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)))))"
+    by (rel_auto)
+  also have "... = R1 (\<not> R2s(pre\<^sub>R(RH(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)))))"
+    by (simp add: R2s_not)
+  also have "... = R1 (\<not> R2s(pre\<^sub>R(P)))"
+    by (simp add: CSP_reactive_tri_design assms)
+  finally show ?thesis ..
 qed
 
-lemma R1_peri_RH:
+lemma R1_R2s_peri_RH:
   assumes "P is CSP"
-  shows "peri\<^sub>R(P) is R1"
-  by (metis CSP_healths(1) Healthy_def assms peri\<^sub>R_def peri\<^sub>s_R1)
-
-lemma R2c_peri_RH:
-  assumes "P is CSP"
-  shows "peri\<^sub>R(P) is R2c"
-  by (metis (no_types, lifting) CSP_R1_R2s Healthy_def' R1_R2c_commute R1_R2s_R2c R1_peri_RH assms peri\<^sub>R_def peri\<^sub>s_R1 peri\<^sub>s_R2c)
-
-lemma R1_post_RH:
-  assumes "P is CSP"
-  shows "post\<^sub>R(P) is R1"
-  by (metis CSP_healths(1) Healthy_def' assms post\<^sub>R_def post\<^sub>s_R1)
+  shows "R1(R2s(peri\<^sub>R(P))) = peri\<^sub>R(P)"
+  by (metis (mono_tags, lifting) CSP_R1_R2s R1_R2s_R2c assms peri\<^sub>R_def peri\<^sub>s_R1 peri\<^sub>s_R2c)
   
-lemma R2c_post_RH:
+lemma R1_R2s_post_RH:
   assumes "P is CSP"
-  shows "post\<^sub>R(P) is R2c"
-  by (metis (no_types, lifting) CSP_R1_R2s Healthy_def' R1_R2c_commute R1_R2s_R2c R1_post_RH assms post\<^sub>R_def post\<^sub>s_R1 post\<^sub>s_R2c)
+  shows "R1(R2s(post\<^sub>R(P))) = post\<^sub>R(P)"
+  by (metis (mono_tags, lifting) CSP_R1_R2s R1_R2s_R2c assms post\<^sub>R_def post\<^sub>s_R1 post\<^sub>s_R2c)
 
+lemma CSP_composition:
+  assumes "P is CSP" "Q is CSP"
+  shows "(P ;; Q) = \<^bold>R ((\<not> (\<not> pre\<^sub>R P ;; R1 true) \<and> \<not> (post\<^sub>R P \<and> \<not> $wait\<acute> ;; \<not> pre\<^sub>R Q)) \<turnstile>
+                       (peri\<^sub>R P \<or> (post\<^sub>R P ;; peri\<^sub>R Q)) \<diamondop> (post\<^sub>R P ;; post\<^sub>R Q))"
+proof -
+  have "(P ;; Q) = (\<^bold>R(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) ;; \<^bold>R(pre\<^sub>R(Q) \<turnstile> peri\<^sub>R(Q) \<diamondop> post\<^sub>R(Q)))"
+    by (simp add: CSP_reactive_tri_design assms(1) assms(2))
+  also from assms have "... = \<^bold>R ((\<not> (\<not> pre\<^sub>R P ;; R1 true) \<and> \<not> (post\<^sub>R P \<and> \<not> $wait\<acute> ;; \<not> pre\<^sub>R Q)) \<turnstile>
+        (peri\<^sub>R P \<or> (post\<^sub>R P ;; peri\<^sub>R Q)) \<diamondop> (post\<^sub>R P ;; post\<^sub>R Q))"
+    by (simp add: RH_tri_design_composition unrest R1_R2s_peri_RH R1_R2s_post_RH R1_neg_R2s_pre_RH)
+  finally show ?thesis .
+qed
+
+lemma CSP_seqr_closure:
+  assumes "P is CSP" "Q is CSP"
+  shows "(P ;; Q) is CSP"
+proof -
+  have "(P ;; Q) = \<^bold>R ((\<not> (\<not> pre\<^sub>R P ;; R1 true) \<and> \<not> (post\<^sub>R P \<and> \<not> $wait\<acute> ;; \<not> pre\<^sub>R Q)) \<turnstile>
+                       (peri\<^sub>R P \<or> (post\<^sub>R P ;; peri\<^sub>R Q)) \<diamondop> (post\<^sub>R P ;; post\<^sub>R Q))"
+    by (simp add: CSP_composition assms(1) assms(2))
+  also have "... is CSP"
+    by (simp add: RH_design_is_CSP add: unrest)
+  finally show ?thesis .
+qed 
+                      
 lemma skip_rea_reactive_design:
   "II\<^sub>r = RH(true \<turnstile> II)"
 proof -

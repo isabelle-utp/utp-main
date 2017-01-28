@@ -1,3 +1,5 @@
+subsection {* Alternative list lexicographic order *}
+
 theory List_lexord_alt
   imports "~~/src/HOL/Library/Char_ord"
 begin

@@ -6,7 +6,7 @@
 (******************************************************************************)
 (* LAST REVIEWED: 16 Jan 2016 *)
 
-section {* Infinity Class *}
+section {* Infinity Supplement *}
 
 theory Infinity
 imports Main Real

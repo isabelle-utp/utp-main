@@ -1,4 +1,4 @@
-section {* Extra monoid variants for traces *}
+section {* Monoid variants and extra properties *}
 
 theory Monoid_extra
   imports List_extra "~~/src/HOL/Library/Prefix_Order"

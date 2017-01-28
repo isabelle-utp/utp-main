@@ -1,3 +1,5 @@
+section {* Encoding real numbers as bit sequences *}
+
 theory Real_Bit
 imports
   Transcendental
@@ -5,6 +7,12 @@ imports
   "~~/src/HOL/Library/Sublist"
   Dyadic
 begin
+
+text {* The objective of this theory is to show how every real number can be encoded as an infinite
+  sequences of bits. Whilst being an interesting property in its own right, this in particular
+  means that we can show that the real numbers can be encoded as a a set of natural numbers
+  (i.e. a function of type @{typ "nat \<Rightarrow> bool"} -- a bit sequence), and thus have the same
+  cardinality. *}
 
 declare [[linarith_split_limit=12]]
 
