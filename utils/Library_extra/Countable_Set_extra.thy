@@ -1,8 +1,8 @@
 section {* Countable sets: Extra functions and properties *}
 
 theory Countable_Set_extra
-imports 
-  Countable_Set_Type
+imports
+  "~~/src/HOL/Library/Countable_Set_Type"
   Sequence
   FSet_extra
   "~~/src/HOL/Library/Bit"
