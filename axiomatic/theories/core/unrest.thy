@@ -20,13 +20,13 @@ done
 
 subsection {* Theorems *}
 
-theorem TrueP_unrest [unrest] :
+theorem TrueP_unrest (*[unrest]*):
 "v \<sharp> TrueP"
 apply (transfer)
 apply (simp)
 done
 
-theorem FalseP_unrest [unrest] :
+theorem FalseP_unrest (*[unrest]*):
 "v \<sharp> FalseP"
 apply (transfer)
 apply (simp)

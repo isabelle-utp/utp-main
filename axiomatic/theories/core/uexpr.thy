@@ -173,43 +173,43 @@ text {* \todo{What about substitution?} *}
 
 subsection {* Alphabet Theorems *}
 
-lemma alpha_lit [alpha]:
+lemma alpha_lit [alphabet]:
 "\<alpha> (lit_uexpr c) = {}"
 apply (transfer')
 apply (clarsimp)
 done
 
-lemma alpha_uvar [alpha]:
+lemma alpha_uvar [alphabet]:
 "\<alpha> (uvar_uexpr v) = {v}"
 apply (transfer')
 apply (clarsimp)
 done
 
-lemma alpha_var [alpha]:
+lemma alpha_var [alphabet]:
 "\<alpha> (var_uexpr v) = {v\<down>}"
 apply (transfer')
 apply (clarsimp)
 done
 
-lemma alpha_uop [alpha]:
+lemma alpha_uop [alphabet]:
 "\<alpha> (uop_uexpr f e) = (\<alpha> e)"
 apply (transfer')
 apply (clarsimp)
 done
 
-lemma alpha_bop [alpha]:
+lemma alpha_bop [alphabet]:
 "\<alpha> (bop_uexpr f e\<^sub>1 e\<^sub>2) = (\<alpha> e\<^sub>1) \<union> (\<alpha> e\<^sub>2)"
 apply (transfer')
 apply (clarsimp)
 done
 
-lemma alpha_trop [alpha]:
+lemma alpha_trop [alphabet]:
 "\<alpha> (trop_uexpr f e\<^sub>1 e\<^sub>2 e\<^sub>3) = (\<alpha> e\<^sub>1) \<union> (\<alpha> e\<^sub>2) \<union> (\<alpha> e\<^sub>3)"
 apply (transfer')
 apply (clarsimp)
 done
 
-lemma alpha_binder [alpha]:
+lemma alpha_binder [alphabet]:
 "\<alpha> (binder_uexpr b f) = (\<Union>x. \<alpha> (f \<guillemotleft>x\<guillemotright>))"
 apply (transfer')
 apply (clarsimp)

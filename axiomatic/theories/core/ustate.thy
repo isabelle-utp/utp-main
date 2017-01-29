@@ -10,7 +10,6 @@ section {* State Space *}
 
 theory ustate
 imports utype uval uvar
-  "../lenses/Lenses"
 begin
 
 text {*

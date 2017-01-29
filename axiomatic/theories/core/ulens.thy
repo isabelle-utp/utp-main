@@ -6,11 +6,13 @@
 (******************************************************************************)
 (* LAST REVIEWED: 26 Jan 2017 *)
 
-section {* Variables Lenses *}
+section {* Variable Lenses *}
 
 theory ulens
-imports "../lenses/Lenses" ustate
+imports ustate
 begin
+
+text {* Perhaps this file should be part of Isabelle/UTP. *}
 
 default_sort type
 

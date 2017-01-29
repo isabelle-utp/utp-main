@@ -143,7 +143,7 @@ struct
   fun refine_free ctx term =
     if not (Term_Position.is_position term) then
       (case term of Free (name, _) =>
-        (* In Isabelle 2105 the below throws Par_Exn rather than ERROR. *)
+        (* Since Isabelle 2015, the below throws Par_Exn rather than ERROR. *)
         (Free (name, refine_type ctx name) handle (* ERROR *) _ => term)
       | anything => anything)
     else term;

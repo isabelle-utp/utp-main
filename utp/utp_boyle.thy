@@ -111,7 +111,7 @@ text {* We first prove an obvious property: that these two predicates are differ
         application of \emph{pred-tac}, followed by \emph{sledgehammer}~\cite{Blanchette2011} which yields a \emph{metis} proof. *}
 
 lemma \<phi>\<^sub>1_diff_\<phi>\<^sub>2: "\<phi>\<^sub>1 \<noteq> \<phi>\<^sub>2"
-  by (pred_auto, metis select_convs num.distinct(5) numeral_eq_iff semiring_norm(87))
+  by (pred_auto, fastforce)
 
 text {* We prove that @{const "\<phi>\<^sub>1"} satisfies Boyle's law by application of the predicate calculus
         tactic, \emph{pred-tac}. *}
@@ -203,6 +203,8 @@ lemma D2: "D2 (ChPres dp) = ChPres dp" and "D2 (ChVol dV) = ChVol dV"
 text {* Finally we show a calculation a simple animation of Boyle's law, where the initial pressure
   and volume are set to 10 and 4, respectively, and then the pressure is lowered by 2. *}
 
+(* There are some ambiguities warnings below; fix this! [TODO] *)
+
 lemma ChPres_example:
   "(InitSys 10 4 ;; ChPres (-2)) = p,V,k := 8,5,40"
 proof -
@@ -234,6 +236,7 @@ qed
 (* Added by Frank Zeyda *)
 (************************)
 
+(*
 lemma "(<x::nat> := 1 ;; <x::nat> := &<x::nat> + 1) = <x::nat> := 2"
 apply (rel_auto)
 apply (simp add: numeral_2_eq_2)
@@ -245,6 +248,7 @@ apply (rel_auto)
 apply (simp add: numeral_2_eq_2)
 apply (simp add: numeral_2_eq_2)
 done
+*)
 (*<*)
 end
 (*>*)

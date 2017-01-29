@@ -1,7 +1,8 @@
 (******************************************************************************)
-(* Project: Unifying Theories of Programming in HOL                           *)
+(* Project: The Isabelle/UTP Proof System                                     *)
 (* File: utp_parser_utils.thy                                                 *)
-(* Author: Frank Zeyda and Simon Foster, University of York (UK)              *)
+(* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
+(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
 
 section {* Parser Utilities *}

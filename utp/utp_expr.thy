@@ -4,7 +4,7 @@ theory utp_expr
 imports
   utp_var
   utp_dvar
-  utp_avar
+  (* utp_avar *)
 begin
 
 no_notation BNF_Def.convol ("\<langle>(_,/ _)\<rangle>")

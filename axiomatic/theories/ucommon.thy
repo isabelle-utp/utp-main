@@ -11,14 +11,15 @@ section {* Common Definitions *}
 theory ucommon
 imports uimports document
   "core/uattrib"
-  "lenses/Lenses"
   "utils/flat_orders"
-  "utils/Infinity"
+  (* "utils/Infinity" *)
   "utils/Normalise"
   "utils/Sum_Order"
   "utils/Transfer_Plus"
   (* "utils/Typedep" *)
   "utils/Typerep_ind"
+  (* Provided by UTP-IMPORTS *)
+  Lenses Infinity
 begin
 
 text {* ML Utility Functions *}

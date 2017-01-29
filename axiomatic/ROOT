@@ -1,6 +1,6 @@
 session "UTP-AXM-IMPORTS" = "HOL-Cardinals" +
   options [browser_info = true, document = false]
-  theories "theories/uimports"
+  theories "theories/uimports" "../utils/Lenses"
 
 session "UTP-AXM-CORE" = "UTP-AXM-IMPORTS" +
   options [browser_info = true,
