@@ -18,7 +18,7 @@ subsection {* Named Theorems *}
 
 named_theorems typing "typing theorems"
 named_theorems vars "variable theorems"
-named_theorems alphabet "alphabet theorems"
+named_theorems alphas "alphabet theorems"
 (* named_theorems unrest "unrestriction laws" *)
 (* named_theorems closure "closure theorems" *)
 named_theorems refine "refinement laws"
@@ -28,7 +28,7 @@ subsection {* Attribute Structures *}
 ML {*
   structure typing = Named_Attrib(val name = @{named_theorems typing});
   structure vars = Named_Attrib(val name = @{named_theorems vars});
-  structure alphabet = Named_Attrib(val name = @{named_theorems alphabet});
+  structure alphas = Named_Attrib(val name = @{named_theorems alphas});
   (* structure unrest = Named_Attrib(val name = @{named_theorems unrest}); *)
   (* structure closure = Named_Attrib(val name = @{named_theorems closure}); *)
   structure refine = Named_Attrib(val name = @{named_theorems refine});
