@@ -7,9 +7,9 @@ imports
   "../utils/cardinals"
   "../utils/Continuum"
   "../utils/finite_bijection"
- "../utils/interp"
+  "../utils/interp"
   "../utils/Lenses"
-  "../utils/Positive"
+  "../utils/Positive_New"
   "../utils/Profiling"
   "../utils/ttrace"
   "../utils/Library_extra/Pfun"
@@ -130,6 +130,14 @@ text {* Variables can also be used to effectively define sets of variables. Here
 abbreviation (input) univ_alpha :: "('\<alpha>, '\<alpha>) uvar" ("\<Sigma>") where
 "univ_alpha \<equiv> 1\<^sub>L"
 
+(*
+  Nonterminals:
+    svid: is an identifier soely used for variables
+    svar: is a potentially decorated variable (but does not need to be?!)
+    salpha: is to construct alphabets (variable sets). This can only be done
+    through lense composition due to typing restrictions.
+*)
+
 nonterminal svid and svar and salpha
 
 syntax
@@ -145,8 +153,17 @@ syntax
   "_sinvar"      :: "svid \<Rightarrow> svar" ("$_" [998] 998)
   "_soutvar"     :: "svid \<Rightarrow> svar" ("$_\<acute>" [998] 998)
 
+(*
+  The functions below turn a representation of a variable (type 'v) including
+  its name and type. And 'e is typically some lense type. So the functions
+  below bridge between then model/encoding of the variable and its interpretation
+  as a lense in order to integrate it into the general lense-based framework.
+  Overriding the below is all we need to make use of any kind of variables in
+  terms of interfacing it with the system.
+*)
+
 consts
-  svar :: "'v \<Rightarrow> 'e" 
+  svar :: "'v \<Rightarrow> 'e"
   ivar :: "'v \<Rightarrow> 'e"
   ovar :: "'v \<Rightarrow> 'e"
 
