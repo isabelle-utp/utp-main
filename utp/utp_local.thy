@@ -17,7 +17,7 @@ text {* Different UTP theories have different assignment operators; consequently
   of a UTP theory. *}
 
 consts 
-  pvar         :: "'\<beta> \<Longrightarrow> '\<alpha>" ("\<^bold>v")
+  pvar         :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<beta> \<Longrightarrow> '\<alpha>" ("\<^bold>v\<index>")
   pvar_assigns :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<beta> usubst \<Rightarrow> '\<alpha> hrelation" ("\<^bold>\<langle>_\<^bold>\<rangle>\<index>")
 
 text {* @{const pvar} is a lens from the program state, @{typ "'\<beta>"}, to the overall global state
@@ -27,11 +27,11 @@ text {* @{const pvar} is a lens from the program state, @{typ "'\<beta>"}, to th
   state. We now set up some syntax translations for these operators. *}
 
 syntax
-  "_svid_pvar" :: "svid" ("\<^bold>v")
+  "_svid_pvar" :: "('\<T>, '\<alpha>) uthy \<Rightarrow> svid" ("\<^bold>v\<index>")
   "_thy_asgn"  :: "('\<T>, '\<alpha>) uthy \<Rightarrow> svid_list \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr "::=\<index>" 55)
 
 translations
-  "_svid_pvar" => "CONST pvar"
+  "_svid_pvar T" => "CONST pvar T"
   "_thy_asgn T xs vs" => "CONST pvar_assigns T (_mk_usubst (CONST id) xs vs)"
 
 text {* Next, we define constants to represent the top most variable on the local variable stack,

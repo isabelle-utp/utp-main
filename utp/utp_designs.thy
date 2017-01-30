@@ -1265,10 +1265,10 @@ abbreviation "NDES \<equiv> UTHY(NDES, '\<alpha> alphabet_d)"
 
 overloading
   des_hcond == "utp_hcond :: (DES, '\<alpha> alphabet_d) uthy \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition"
-  des_unit == "utp_unit :: (DES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> hrelation_d"
+  des_unit == "utp_unit :: (DES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> hrelation_d" (unchecked)
 
   ndes_hcond == "utp_hcond :: (NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition"
-  ndes_unit == "utp_unit :: (NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> hrelation_d"
+  ndes_unit == "utp_unit :: (NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> hrelation_d" (unchecked)
 
 begin
   definition des_hcond :: "(DES, '\<alpha> alphabet_d) uthy \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition" where
@@ -1333,14 +1333,17 @@ thm design_theory_mono.LFP_unfold
 text {* We also set up local variables for designs. *}
 
 overloading
-  des_pvar == "pvar :: '\<alpha> \<Longrightarrow> '\<alpha> alphabet_d"
+  des_pvar == "pvar :: (DES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> alphabet_d"
   des_assigns == "pvar_assigns :: (DES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d"
+  ndes_pvar == "pvar :: (NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> alphabet_d"
   ndes_assigns == "pvar_assigns :: (NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d"
 begin
-  definition des_pvar :: "'\<alpha> \<Longrightarrow> '\<alpha> alphabet_d" where
-  [upred_defs]: "des_pvar = \<Sigma>\<^sub>D"
+  definition des_pvar :: "(DES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> alphabet_d" where
+  [upred_defs]: "des_pvar T = \<Sigma>\<^sub>D"
   definition des_assigns :: "(DES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d" where
   [upred_defs]: "des_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>D"
+  definition ndes_pvar :: "(NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> alphabet_d" where
+  [upred_defs]: "ndes_pvar T = \<Sigma>\<^sub>D"
   definition ndes_assigns :: "(NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d" where
   [upred_defs]: "ndes_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>D"
 
@@ -1356,7 +1359,7 @@ done
 
 interpretation ndes_prog_var: utp_prog_var "UTHY(NDES, '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
   rewrites "\<H>\<^bsub>NDES\<^esub> = \<^bold>N"
-  apply (unfold_locales, simp_all add: des_pvar_def ndes_assigns_def ndes_hcond_def)
+  apply (unfold_locales, simp_all add: ndes_pvar_def ndes_assigns_def ndes_hcond_def)
   apply (simp add: assigns_d_H1_H3)
   apply (rel_auto)
 done

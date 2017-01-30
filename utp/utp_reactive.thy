@@ -581,9 +581,52 @@ lemma R2c_R1_seq: "R2c(R1(R2c(P)) ;; R1(R2c(Q))) = (R1(R2c(P)) ;; R1(R2c(Q)))"
 
 subsection {* R3 *}
 
-definition R3_def [upred_defs]: "R3 (P) = (II \<triangleleft> $wait \<triangleright> P)"
+definition R3_def [upred_defs]: "R3(P) = (II \<triangleleft> $wait \<triangleright> P)"
 
-definition R3c_def [upred_defs]: "R3c (P) = (II\<^sub>r \<triangleleft> $wait \<triangleright> P)"
+definition R3c_def [upred_defs]: "R3c(P) = (II\<^sub>r \<triangleleft> $wait \<triangleright> P)"
+
+text {* R3 as presented in the UTP book and related publications is not sensitive to state, for
+  this we need a modification from Butterfield et al. (2009) that explicitly states that intermediate
+  waiting states do not propogate final state variables. In order to do this we need an additional
+  observational variable that capture the program state that we call $st$. *}
+
+record 's alpha_state =
+  st\<^sub>v :: 's
+
+declare alpha_state.splits [alpha_splits]
+
+interpretation alphabet_state:
+  lens_interp "\<lambda>(ok, wait, tr, r). (ok, wait, tr, st\<^sub>v r, more r)"
+apply (unfold_locales)
+apply (rule injI)
+apply (clarsimp)
+done
+
+interpretation alphabet_state_rel: lens_interp "\<lambda>(ok, ok', wait, wait', tr, tr', r, r').
+  (ok, ok', wait, wait', tr, tr', st\<^sub>v r, st\<^sub>v r', more r, more r')"
+apply (unfold_locales)
+apply (rule injI)
+apply (clarsimp)
+done
+
+definition "st\<^sub>r = VAR st\<^sub>v"
+definition "\<Sigma>\<^sub>s    = VAR more"
+
+declare st\<^sub>r_def [uvar_defs]
+declare \<Sigma>\<^sub>s_def [uvar_defs]
+
+lemma st\<^sub>r_vwb_lens [simp]: "vwb_lens st\<^sub>r"
+  by (unfold_locales, simp_all add: st\<^sub>r_def)
+
+lemma stext_vwb_lens [simp]: "vwb_lens \<Sigma>\<^sub>s"
+  by (unfold_locales, simp_all add: \<Sigma>\<^sub>s_def)
+
+definition [uvar_defs]: "st = (st\<^sub>r ;\<^sub>L \<Sigma>\<^sub>R)"
+
+lemma st_vwb_lens [simp]: "vwb_lens st"
+  by (simp add: st_def)
+
+definition R3h_def [upred_defs]: "R3h(P) = ((\<exists> $st \<bullet> II\<^sub>r) \<triangleleft> $wait \<triangleright> P)"
 
 lemma R3_idem: "R3(R3(P)) = R3(P)"
   by rel_auto
@@ -644,10 +687,19 @@ lemma R3c_semir_form:
   "(R3c(P) ;; R3c(R1(Q))) = R3c(P ;; R3c(R1(Q)))"
   by (rel_simp, safe, auto intro: order_trans)
 
+lemma R3h_semir_form:
+  "(R3h(P) ;; R3h(R1(Q))) = R3h(P ;; R3h(R1(Q)))"
+  by (rel_simp, safe, auto intro: order_trans, blast+)
+
 lemma R3c_seq_closure:
   assumes "P is R3c" "Q is R3c" "Q is R1"
   shows "(P ;; Q) is R3c"
   by (metis Healthy_def' R3c_semir_form assms)
+
+lemma R3h_seq_closure:
+  assumes "P is R3h" "Q is R3h" "Q is R1"
+  shows "(P ;; Q) is R3h"
+  by (metis Healthy_def' R3h_semir_form assms)
 
 lemma R3c_R3_left_seq_closure:
   assumes "P is R3" "Q is R3c"
@@ -685,10 +737,16 @@ lemma R3c_cases: "R3c(P) = ((II \<triangleleft> $ok \<triangleright> R1(true)) \
 lemma R3c_subst_wait: "R3c(P) = R3c(P \<^sub>f)"
   by (metis R3c_def cond_var_subst_right wait_vwb_lens)
 
+lemma R3h_subst_wait: "R3h(P) = R3h(P \<^sub>f)"
+  by (metis R3h_def cond_var_subst_right wait_vwb_lens)
+
 lemma R1_R3_commute: "R1(R3(P)) = R3(R1(P))"
   by rel_auto
 
 lemma R1_R3c_commute: "R1(R3c(P)) = R3c(R1(P))"
+  by rel_auto
+
+lemma R1_R3h_commute: "R1(R3h(P)) = R3h(R1(P))"
   by rel_auto
 
 lemma R2_R3_commute: "R2(R3(P)) = R3(R2(P))"
@@ -701,15 +759,33 @@ lemma R2_R3c_commute: "R2(R3c(P)) = R3c(R2(P))"
   using minus_zero_eq apply blast+
 done
 
+lemma R2_R3h_commute: "R2(R3h(P)) = R3h(R2(P))"
+  apply (rel_auto)
+  using minus_zero_eq apply blast+
+done
+
 lemma R2c_R3c_commute: "R2c(R3c(P)) = R3c(R2c(P))"
   by (simp add: R3c_def R2c_condr R2c_wait R2c_skip_rea)
+
+lemma R2c_ex_st': "R2c(\<exists> $st \<bullet> P) = (\<exists> $st \<bullet> R2c(P))"
+  by (rel_auto)
+
+lemma R2c_R3h_commute: "R2c(R3h(P)) = R3h(R2c(P))"
+  by (simp add: R3h_def R2c_condr R2c_wait R2c_ex_st' R2c_skip_rea)
 
 lemma R1_H1_R3c_commute:
   "R1(H1(R3c(P))) = R3c(R1(H1(P)))"
   by rel_auto
 
+lemma R1_H1_R3h_commute:
+  "R1(H1(R3h(P))) = R3h(R1(H1(P)))"
+  by rel_auto
+
 lemma R3c_H2_commute: "R3c(H2(P)) = H2(R3c(P))"
   by (simp add: H2_split R3c_def usubst, rel_auto)
+
+lemma R3h_H2_commute: "R3h(H2(P)) = H2(R3h(P))"
+  by (simp add: H2_split R3h_def usubst, rel_auto)
 
 lemma R3c_idem: "R3c(R3c(P)) = R3c(P)"
   by rel_auto
@@ -722,6 +798,18 @@ lemma R3c_mono: "P \<sqsubseteq> Q \<Longrightarrow> R3c(P) \<sqsubseteq> R3c(Q)
 
 lemma R3c_Monotonic: "Monotonic R3c"
   by (simp add: Monotonic_def R3c_mono)
+
+lemma R3h_idem: "R3h(R3h(P)) = R3h(P)"
+  by rel_auto
+
+lemma R3h_Idempotent: "Idempotent R3h"
+  using Idempotent_def R3h_idem by blast
+
+lemma R3h_mono: "P \<sqsubseteq> Q \<Longrightarrow> R3h(P) \<sqsubseteq> R3h(Q)"
+  by rel_auto
+
+lemma R3h_Monotonic: "Monotonic R3h"
+  by (simp add: Monotonic_def R3h_mono)
 
 lemma R3c_conj: "R3c(P \<and> Q) = (R3c(P) \<and> R3c(Q))"
   by (rel_auto)
@@ -739,11 +827,29 @@ lemma R3c_UINF:
   shows "R3c(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> R3c(P(i)))"
   using assms by (rel_auto)
 
+lemma R3h_conj: "R3h(P \<and> Q) = (R3h(P) \<and> R3h(Q))"
+  by (rel_auto)
+
+lemma R3h_disj: "R3h(P \<or> Q) = (R3h(P) \<or> R3h(Q))"
+  by rel_auto
+
+lemma R3h_USUP:
+  assumes "A \<noteq> {}"
+  shows "R3h(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> R3h(P(i)))"
+  using assms by (rel_auto)
+
+lemma R3h_UINF:
+  assumes "A \<noteq> {}"
+  shows "R3h(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> R3h(P(i)))"
+  using assms by (rel_auto)
+
 subsection {* RH laws *}
 
 definition RH_def [upred_defs]: "RH(P) = R1(R2s(R3c(P)))"
+definition RHS_def [upred_defs]: "RHS(P) = R1(R2s(R3h(P)))"
 
 notation RH ("\<^bold>R")
+notation RHS ("\<^bold>R\<^sub>s")
 
 definition reactive_sup :: "_ set \<Rightarrow> _" ("\<Sqinter>\<^sub>r") where
 "\<Sqinter>\<^sub>r A = (if (A = {}) then \<^bold>R(false) else \<Sqinter> A)"

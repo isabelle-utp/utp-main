@@ -948,6 +948,9 @@ lemma skip_rea_reactive_design':
   "II\<^sub>r = RH(true \<turnstile> \<lceil>II\<rceil>\<^sub>D)"
   by (metis aext_true rdesign_def skip_d_alt_def skip_d_def skip_rea_reactive_design)
 
+lemma skip_rea_CSP1_skip: "II\<^sub>r = CSP1(II)"
+  by (rel_auto)
+
 lemma RH_design_subst_wait: "RH(P \<^sub>f \<turnstile> Q \<^sub>f) = RH(P \<turnstile> Q)"
   by (metis RH_subst_wait wait_false_design)
 
@@ -1148,10 +1151,8 @@ proof -
   finally show ?thesis .
 qed
 
-text {* This theorem tells us that processes 
-
- which have R1 as a right unit are precisely those
-  consisting of a conjoined precondition and an inequality restriction on the trace. *}
+text {* This theorem tells us that processes consisting of a precondition and upward closed
+  predicate over tr have R1(true) as a right unit. *}
 
 lemma R1_true_right_unit_form:
   "out\<alpha> \<sharp> c \<Longrightarrow> (\<not> (c \<and> \<not> ($tr\<acute> \<ge>\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<guillemotright>)) ;; R1(true)) = (\<not> (c \<and> \<not> ($tr\<acute> \<ge>\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<guillemotright>)))"
