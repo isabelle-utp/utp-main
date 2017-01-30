@@ -626,7 +626,18 @@ definition [uvar_defs]: "st = (st\<^sub>r ;\<^sub>L \<Sigma>\<^sub>R)"
 lemma st_vwb_lens [simp]: "vwb_lens st"
   by (simp add: st_def)
 
+lemma st_ok_indep [simp]: "st \<bowtie> ok" "ok \<bowtie> st"
+  by (simp_all add: lens_indep_left_ext lens_indep_sym st_def)
+
+lemma st_wait_indep [simp]: "st \<bowtie> wait" "wait \<bowtie> st"
+  by (simp_all add: lens_indep_left_ext lens_indep_sym st_def)
+
+lemma st_tr_indep [simp]: "st \<bowtie> tr" "tr \<bowtie> st"
+  by (simp_all add: lens_indep_left_ext lens_indep_sym st_def)
+
 definition R3h_def [upred_defs]: "R3h(P) = ((\<exists> $st \<bullet> II\<^sub>r) \<triangleleft> $wait \<triangleright> P)"
+
+definition skip_rea3_def [urel_defs]: "II\<^sub>R = ((\<exists> $st \<bullet> II\<^sub>r) \<triangleleft> $wait \<triangleright> II\<^sub>r)"
 
 lemma R3_idem: "R3(R3(P)) = R3(P)"
   by rel_auto

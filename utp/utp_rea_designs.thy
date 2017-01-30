@@ -18,6 +18,9 @@ lemma H2_R2_comm: "H2(R2(P)) = R2(H2(P))"
 lemma H2_R3_comm: "H2(R3c(P)) = R3c(H2(P))"
   by (simp add: R3c_H2_commute)
 
+lemma H2_R3h_comm: "H2(R3h(P)) = R3h(H2(P))"
+  by (rel_auto)
+
 lemma R3c_via_H1: "R1(R3c(H1(P))) = R1(H1(R3(P)))"
   by rel_auto
 
@@ -119,6 +122,8 @@ definition [upred_defs]: "R3c_pre(P) = (true \<triangleleft> $wait \<trianglerig
 
 definition [upred_defs]: "R3c_post(P) = (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> P)"
 
+definition [upred_defs]: "R3h_post(P) = ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> P)"
+
 lemma R3c_pre_conj: "R3c_pre(P \<and> Q) = (R3c_pre(P) \<and> R3c_pre(Q))"
   by rel_auto
 
@@ -134,6 +139,10 @@ lemma R2c_design: "R2c(P \<turnstile> Q) = (R2c(P) \<turnstile> R2c(Q))"
 
 lemma R1_R3c_design:
   "R1(R3c(P \<turnstile> Q)) = R1(R3c_pre(P) \<turnstile> R3c_post(Q))"
+  by (rel_auto)
+
+lemma R1_R3h_design:
+  "R1(R3h(P \<turnstile> Q)) = R1(R3c_pre(P) \<turnstile> R3h_post(Q))"
   by (rel_auto)
 
 lemma unrest_ok_R2s [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R2s(P)"
@@ -160,6 +169,12 @@ lemma unrest_ok_R3c_post [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp
 lemma unrest_ok_R3c_post' [unrest]: "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> R3c_post(P)"
   by (simp add: R3c_post_def cond_def unrest)
 
+lemma unrest_ok_R3h_post [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R3h_post(P)"
+  by (simp add: R3h_post_def cond_def unrest)
+
+lemma unrest_ok_R3h_post' [unrest]: "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> R3h_post(P)"
+  by (simp add: R3h_post_def cond_def unrest)
+
 lemma R3c_R1_design_composition: 
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok \<sharp> R" "$ok \<sharp> S"
   shows "(R3c(R1(P \<turnstile> Q)) ;; R3c(R1(R \<turnstile> S))) = 
@@ -174,6 +189,25 @@ proof -
     by (rel_auto)
   show ?thesis
     apply (simp add: R3c_semir_form R1_R3c_commute[THEN sym] R1_R3c_design unrest )
+    apply (subst R1_design_composition)
+    apply (simp_all add: unrest assms R3c_pre_conj 1 2 3)
+  done
+qed
+
+lemma R3h_R1_design_composition: 
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok \<sharp> R" "$ok \<sharp> S"
+  shows "(R3h(R1(P \<turnstile> Q)) ;; R3h(R1(R \<turnstile> S))) = 
+       R3h(R1((\<not> (R1(\<not> P) ;; R1(true)) \<and> \<not> ((R1(Q) \<and> \<not> $wait\<acute>) ;; R1(\<not> R))) 
+       \<turnstile> (R1(Q) ;; ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1(S)))))"
+proof -
+  have 1:"(\<not> (R1 (\<not> R3c_pre P) ;; R1 true)) = (R3c_pre (\<not> (R1 (\<not> P) ;; R1 true)))"
+   by (rel_auto, blast+)
+  have 2:"(\<not> (R1 (R3h_post Q) ;; R1 (\<not> R3c_pre R))) = R3c_pre(\<not> (R1 Q \<and> \<not> $wait\<acute> ;; R1 (\<not> R)))"
+    by (rel_auto, blast+)
+  have 3:"(R1 (R3h_post Q) ;; R1 (R3h_post S)) = R3h_post (R1 Q ;; ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 S))"
+    by (rel_auto, blast+)
+  show ?thesis
+    apply (simp add: R3h_semir_form R1_R3h_commute[THEN sym] R1_R3h_design unrest )
     apply (subst R1_design_composition)
     apply (simp_all add: unrest assms R3c_pre_conj 1 2 3)
   done
