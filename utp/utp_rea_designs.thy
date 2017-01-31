@@ -493,6 +493,10 @@ lemma CSP1_R3c_commute:
   "CSP1(R3c(P)) = R3c(CSP1(P))"
   by (rel_auto)
 
+lemma CSP1_R3h_commute:
+  "CSP1(R3h(P)) = R3h(CSP1(P))"
+  by (rel_auto)
+
 lemma CSP_idem: "CSP(CSP(P)) = CSP(P)"
   by (metis (no_types, hide_lams) CSP1_CSP2_commute CSP1_R1_commute CSP1_R2c_commute CSP1_R3c_commute CSP1_idem CSP2_def CSP2_idem R1_H2_commute R2c_H2_commute R3c_H2_commute RH_R2c_def RH_idem)
 
@@ -640,6 +644,9 @@ lemma RH_design_is_CSP:
   by (simp add: CSP_RH_design Healthy_def' assms(1) assms(2))
 
 lemma CSP2_R3c_commute: "CSP2(R3c(P)) = R3c(CSP2(P))"
+  by (rel_auto)
+
+lemma CSP2_R3h_commute: "CSP2(R3h(P)) = R3h(CSP2(P))"
   by (rel_auto)
 
 lemma R3c_via_CSP1_R3:
