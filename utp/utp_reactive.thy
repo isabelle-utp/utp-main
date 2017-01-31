@@ -1036,27 +1036,8 @@ interpretation srea_utp_theory: utp_theory "UTHY(SREA, ('s,'t::ordered_cancel_mo
 interpretation srea_utp_theory_mono: utp_theory_mono "UTHY(SREA, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rsp)"
   by (unfold_locales, simp add: Monotonic_def RHS_monotone srea_hcond_def)
 
-lemma rea_srea_bij: "bij_betw R3h \<lbrakk>\<^bold>R\<rbrakk>\<^sub>H \<lbrakk>\<^bold>R\<^sub>s\<rbrakk>\<^sub>H"
-proof (rule bij_betwI[of _ _ _ R3c])
-  show "R3c \<in> \<lbrakk>\<^bold>R\<^sub>s\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>R\<rbrakk>\<^sub>H"
-    by (simp add: Pi_iff Healthy_def RH_def R3c_idem RHS_def)
-       (metis R1_R3c_commute R2_R1_form R2_R3c_commute R3c_absorbs_R3h)
-  show "R3h \<in> \<lbrakk>\<^bold>R\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>R\<^sub>s\<rbrakk>\<^sub>H"
-    by (simp add: Pi_iff Healthy_def RH_def R3h_idem RHS_def)
-       (metis R1_R3h_commute R2_R1_form R2_R3h_commute R3h_absorbs_R3c)
-  fix P :: "('s, 't::ordered_cancel_monoid_diff, '\<alpha>) hrelation_rsp"
-  assume "P \<in> \<lbrakk>\<^bold>R\<rbrakk>\<^sub>H"
-  thus "R3c (R3h P) = P"
-    by (metis (no_types, lifting) Healthy_def' R2_R3c_commute R3c_absorbs_R3h R3h_absorbs_R3c RH_alt_def' mem_Collect_eq)
-next
-  fix Q :: "('s, 't::ordered_cancel_monoid_diff, '\<alpha>) hrelation_rsp"
-  assume "Q \<in> \<lbrakk>\<^bold>R\<^sub>s\<rbrakk>\<^sub>H"
-  thus "R3h (R3c Q) = Q"
-    by (metis (no_types) Healthy_def R2_R3h_commute R2_def R3h_absorbs_R3c R3h_idem RHS_def mem_Collect_eq)
-qed
-  
-interpretation rea_srea_retract:
-  retract "SREA \<leftarrow>\<langle>R3h,R3c\<rangle>\<rightarrow> REA"
+interpretation rea_srea_bijection:
+  galois_bijection "REA \<leftarrow>\<langle>R3c,R3h\<rangle>\<rightarrow> SREA"
 proof (unfold_locales, simp_all add: rea_hcond_def srea_hcond_def)
   show "R3c \<in> \<lbrakk>\<^bold>R\<^sub>s\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>R\<rbrakk>\<^sub>H"
     by (simp add: Pi_iff Healthy_def RH_def R3c_idem RHS_def)
@@ -1064,28 +1045,29 @@ proof (unfold_locales, simp_all add: rea_hcond_def srea_hcond_def)
   show "R3h \<in> \<lbrakk>\<^bold>R\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>R\<^sub>s\<rbrakk>\<^sub>H"
     by (simp add: Pi_iff Healthy_def RH_def R3h_idem RHS_def)
        (metis R1_R3h_commute R2_R1_form R2_R3h_commute R3h_absorbs_R3c)
-  fix P Q :: "('s, 't::ordered_cancel_monoid_diff, '\<alpha>) hrelation_rsp"
-  assume a: "P is \<^bold>R\<^sub>s" "Q is \<^bold>R"
-  show "(R3c P \<sqsubseteq> Q) = (P \<sqsubseteq> R3h Q)"
-  proof
-    assume "R3c P \<sqsubseteq> Q"
-    hence "\<^bold>R\<^sub>s(P) \<sqsubseteq> R3h(\<^bold>R(Q))"
-      by (metis (no_types, lifting) R1_R3h_commute R2c_R3h_commute R3h_absorbs_R3c RHS_alt_def RHS_monotone RH_alt_def'')
-    with a show "P \<sqsubseteq> R3h Q"
-      by (simp add: Healthy_def')
-  next
-    assume "P \<sqsubseteq> R3h Q"
-    hence "R3c(\<^bold>R\<^sub>s(P)) \<sqsubseteq> \<^bold>R(Q)"
-      by (metis (no_types, hide_lams) R2_R3c_commute R2_def R3c_absorbs_R3h RHS_def RH_alt_def' RH_monotone)
-    with a show "R3c P \<sqsubseteq> Q"
-      by (simp add: Healthy_def')
-  qed
-next
+  show "isotone (utp_order \<^bold>R\<^sub>s) (utp_order \<^bold>R) R3c"
+    by (simp add: R3c_Monotonic isotone_utp_orderI)
+  show "isotone (utp_order \<^bold>R) (utp_order \<^bold>R\<^sub>s) R3h"
+    by (simp add: R3h_Monotonic isotone_utp_orderI)
   fix P :: "('s, 't::ordered_cancel_monoid_diff, '\<alpha>) hrelation_rsp"
-  assume a: "P is \<^bold>R\<^sub>s"
-  show "R3h (R3c P) \<sqsubseteq> P"
-    by (simp add: R3h_absorbs_R3c, metis Healthy_if R2_R3h_commute R2_def R3h_idem RHS_def a eq_iff)
-qed 
+  assume "P is \<^bold>R\<^sub>s"
+  thus "R3h (R3c P) = P"
+    by (metis Healthy_if R2_R3h_commute R2_def R3h_absorbs_R3c R3h_idem RHS_def)    
+next
+  fix Q :: "('s, 't::ordered_cancel_monoid_diff, '\<alpha>) hrelation_rsp"
+  assume "Q is \<^bold>R"
+  thus "R3c (R3h Q) = Q"
+  by (metis Healthy_if R2_R3c_commute R3c_absorbs_R3h R3h_absorbs_R3c RH_alt_def')
+qed
+
+(*
+interpretation rea_srea_retract:
+  retract "(ex (in_var st) \<circ> R3c) \<Leftarrow>\<langle>ex (in_var st) \<circ> R3c,R3h\<rangle>\<Rightarrow> R3h"
+proof -
+  have "retract ((ex (in_var st) \<circ> R3c) \<Leftarrow>\<langle>ex (in_var st),R3c\<rangle>\<Rightarrow> R3c)"
+    apply (rule ex_retract, simp_all add: R3c_Idempotent fun_eq_iff)
+    apply (rel_auto)
+*)
 
 subsection {* Reactive parallel-by-merge *}
 

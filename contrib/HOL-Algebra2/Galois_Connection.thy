@@ -28,6 +28,15 @@ locale connection =
   and is_order_B: "partial_order \<Y>"
   and lower_closure: "\<pi>\<^sup>* \<in> carrier \<X> \<rightarrow> carrier \<Y>"
   and upper_closure: "\<pi>\<^sub>* \<in> carrier \<Y> \<rightarrow> carrier \<X>"
+begin
+
+  lemma lower_closed: "x \<in> carrier \<X> \<Longrightarrow> \<pi>\<^sup>* x \<in> carrier \<Y>"
+    using lower_closure by auto
+
+  lemma upper_closed: "y \<in> carrier \<Y> \<Longrightarrow> \<pi>\<^sub>* y \<in> carrier \<X>"
+    using upper_closure by auto
+
+end
 
 locale galois_connection = connection +
   assumes galois_property: "\<lbrakk>x \<in> carrier \<X>; y \<in> carrier \<Y>\<rbrakk> \<Longrightarrow> \<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> y \<longleftrightarrow> x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* y"
@@ -273,8 +282,8 @@ lemma galois_connectionI':
     "partial_order A" "partial_order B"
     "L \<in> carrier A \<rightarrow> carrier B" "R \<in> carrier B \<rightarrow> carrier A"
     "isotone A B L" "isotone B A R" 
-    "\<forall> X \<in> carrier(B). L(R(X)) \<sqsubseteq>\<^bsub>B\<^esub> X"
-    "\<forall> X \<in> carrier(A). X \<sqsubseteq>\<^bsub>A\<^esub> R(L(X))"
+    "\<And> X. X \<in> carrier(B) \<Longrightarrow> L(R(X)) \<sqsubseteq>\<^bsub>B\<^esub> X"
+    "\<And> X. X \<in> carrier(A) \<Longrightarrow> X \<sqsubseteq>\<^bsub>A\<^esub> R(L(X))"
   shows "galois_connection \<lparr> orderA = A, orderB = B, lower = L, upper = R \<rparr>"
   using assms
   by (auto simp add: galois_connection_def connection_def galois_connection_axioms_def, (meson PiE isotone_def weak_partial_order.le_trans)+)
@@ -298,5 +307,98 @@ begin
   lemma retract_injective: "inj_on \<pi>\<^sub>* (carrier \<Y>)"
     by (metis coretract_inverse inj_onI)
 end  
+
+locale galois_bijection = connection +
+  assumes lower_iso: "isotone \<X> \<Y> \<pi>\<^sup>*" 
+  and upper_iso: "isotone \<Y> \<X> \<pi>\<^sub>*"
+  and lower_inv_eq: "x \<in> carrier \<X> \<Longrightarrow> \<pi>\<^sub>* (\<pi>\<^sup>* x) = x"
+  and upper_inv_eq: "y \<in> carrier \<Y> \<Longrightarrow> \<pi>\<^sup>* (\<pi>\<^sub>* y) = y"
+begin
+
+  lemma lower_bij: "bij_betw \<pi>\<^sup>* (carrier \<X>) (carrier \<Y>)"
+    by (rule bij_betwI[where g="\<pi>\<^sub>*"], auto intro: upper_inv_eq lower_inv_eq upper_closed lower_closed)  
+
+  lemma upper_bij: "bij_betw \<pi>\<^sub>* (carrier \<Y>) (carrier \<X>)"
+    by (rule bij_betwI[where g="\<pi>\<^sup>*"], auto intro: upper_inv_eq lower_inv_eq upper_closed lower_closed)  
+
+sublocale gal_bij_conn: galois_connection
+  apply (unfold_locales, auto)
+  using lower_closed lower_inv_eq upper_iso use_iso2 apply fastforce
+  using lower_iso upper_closed upper_inv_eq use_iso2 apply fastforce
+done
+
+sublocale gal_bij_ret: retract
+  by (unfold_locales, simp add: gal_bij_conn.is_weak_order_A lower_inv_eq weak_partial_order.le_refl)
+
+sublocale gal_bij_coret: coretract
+  by (unfold_locales, simp add: gal_bij_conn.is_weak_order_B upper_inv_eq weak_partial_order.le_refl)
+
+end
+
+theorem comp_retract_closed:
+  assumes "retract G" "retract F" "\<Y>\<^bsub>F\<^esub> = \<X>\<^bsub>G\<^esub>"
+  shows "retract (G \<circ>\<^sub>g F)"
+proof -
+  interpret f: retract F
+    by (simp add: assms)
+  interpret g: retract G
+    by (simp add: assms)
+  interpret gf: galois_connection "(G \<circ>\<^sub>g F)"
+    by (simp add: assms(1) assms(2) assms(3) comp_galcon_closed retract.axioms(1))
+  show ?thesis
+  proof
+    fix x
+    assume "x \<in> carrier \<X>\<^bsub>G \<circ>\<^sub>g F\<^esub>"
+    thus "le \<X>\<^bsub>G \<circ>\<^sub>g F\<^esub> (\<pi>\<^sub>*\<^bsub>G \<circ>\<^sub>g F\<^esub> (\<pi>\<^sup>*\<^bsub>G \<circ>\<^sub>g F\<^esub> x)) x"
+      using assms(3) f.inflation f.lower_closed f.retract_inverse g.retract_inverse by (auto simp add: comp_galcon_def)
+  qed
+qed
+
+theorem comp_coretract_closed:
+  assumes "coretract G" "coretract F" "\<Y>\<^bsub>F\<^esub> = \<X>\<^bsub>G\<^esub>"
+  shows "coretract (G \<circ>\<^sub>g F)"
+proof -
+  interpret f: coretract F
+    by (simp add: assms)
+  interpret g: coretract G
+    by (simp add: assms)
+  interpret gf: galois_connection "(G \<circ>\<^sub>g F)"
+    by (simp add: assms(1) assms(2) assms(3) comp_galcon_closed coretract.axioms(1))
+  show ?thesis
+  proof
+    fix y
+    assume "y \<in> carrier \<Y>\<^bsub>G \<circ>\<^sub>g F\<^esub>"
+    thus "le \<Y>\<^bsub>G \<circ>\<^sub>g F\<^esub> y (\<pi>\<^sup>*\<^bsub>G \<circ>\<^sub>g F\<^esub> (\<pi>\<^sub>*\<^bsub>G \<circ>\<^sub>g F\<^esub> y))"
+      by (simp add: comp_galcon_def assms(3) f.coretract_inverse g.coretract_property g.upper_closed)
+  qed
+qed
+
+theorem comp_galois_bijection_closed:
+  assumes "galois_bijection G" "galois_bijection F" "\<Y>\<^bsub>F\<^esub> = \<X>\<^bsub>G\<^esub>"
+  shows "galois_bijection (G \<circ>\<^sub>g F)"
+proof -
+  interpret f: galois_bijection F
+    by (simp add: assms)
+  interpret g: galois_bijection G
+    by (simp add: assms)
+  interpret gf: galois_connection "(G \<circ>\<^sub>g F)"
+    by (simp add: assms(3) comp_galcon_closed f.gal_bij_conn.galois_connection_axioms g.gal_bij_conn.galois_connection_axioms galois_connection.axioms(1))
+  show ?thesis
+  proof
+    show "isotone \<X>\<^bsub>G \<circ>\<^sub>g F\<^esub> \<Y>\<^bsub>G \<circ>\<^sub>g F\<^esub> \<pi>\<^sup>*\<^bsub>G \<circ>\<^sub>g F\<^esub>"
+      by (simp add: comp_galcon_def, metis comp_galcon_def galcon.select_convs(1) galcon.select_convs(2) galcon.select_convs(3) gf.lower_iso)
+    show "isotone \<Y>\<^bsub>G \<circ>\<^sub>g F\<^esub> \<X>\<^bsub>G \<circ>\<^sub>g F\<^esub> \<pi>\<^sub>*\<^bsub>G \<circ>\<^sub>g F\<^esub>"
+      by (simp add: gf.upper_iso)
+    fix x
+    assume "x \<in> carrier \<X>\<^bsub>G \<circ>\<^sub>g F\<^esub>"
+    thus "\<pi>\<^sub>*\<^bsub>G \<circ>\<^sub>g F\<^esub> (\<pi>\<^sup>*\<^bsub>G \<circ>\<^sub>g F\<^esub> x) = x"
+      using assms(3) f.lower_closed f.lower_inv_eq g.lower_inv_eq by (auto simp add: comp_galcon_def)
+  next
+    fix y
+    assume "y \<in> carrier \<Y>\<^bsub>G \<circ>\<^sub>g F\<^esub>"
+    thus "\<pi>\<^sup>*\<^bsub>G \<circ>\<^sub>g F\<^esub> (\<pi>\<^sub>*\<^bsub>G \<circ>\<^sub>g F\<^esub> y) = y"
+      by (simp add: comp_galcon_def assms(3) f.upper_inv_eq g.upper_closed g.upper_inv_eq)
+  qed
+qed
 
 end

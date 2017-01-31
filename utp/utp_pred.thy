@@ -848,6 +848,18 @@ lemma unrest_as_exists:
   "vwb_lens x \<Longrightarrow> (x \<sharp> P) \<longleftrightarrow> ((\<exists> x \<bullet> P) = P)"
   by (pred_auto, metis vwb_lens.put_eq)
 
+lemma ex_mono: "P \<sqsubseteq> Q \<Longrightarrow> (\<exists> x \<bullet> P) \<sqsubseteq> (\<exists> x \<bullet> Q)"
+  by (pred_auto)
+
+lemma ex_weakens: "wb_lens x \<Longrightarrow> (\<exists> x \<bullet> P) \<sqsubseteq> P"
+  by (pred_auto, metis wb_lens.get_put)
+
+lemma all_mono: "P \<sqsubseteq> Q \<Longrightarrow> (\<forall> x \<bullet> P) \<sqsubseteq> (\<forall> x \<bullet> Q)"
+  by (pred_auto)
+
+lemma all_strengthens: "wb_lens x \<Longrightarrow> P \<sqsubseteq> (\<forall> x \<bullet> P)"
+  by (pred_auto, metis wb_lens.get_put)
+
 subsection {* Cylindric algebra *}
 
 lemma C1: "(\<exists> x \<bullet> false) = false"
