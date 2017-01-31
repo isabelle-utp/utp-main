@@ -1652,9 +1652,9 @@ proof (simp add: mk_conn_def, rule galois_connectionI', simp_all add: utp_partia
     by (simp add: isotone_utp_orderI)
   show "isotone (utp_order id) (utp_order R2a') R2a'"
   by (simp add: Monotonic_def R2a'_mono isotone_utp_orderI)
-  show "\<forall>X. X is id \<longrightarrow> R2a' X \<sqsubseteq> X"
+  show "\<And> X. X is id \<Longrightarrow> R2a' X \<sqsubseteq> X"
     using R2a'_weakening by blast
-  show "\<forall>X. X is R2a' \<longrightarrow> X \<sqsubseteq> R2a' X"
+  show "\<And> X. X is R2a' \<Longrightarrow> X \<sqsubseteq> R2a' X"
     by (simp add: Healthy_def)
 qed
     
@@ -1664,8 +1664,6 @@ oops
 
 lemma R2c_H1_H2_commute: "R2c(\<^bold>H(P)) = \<^bold>H(R2c(P))"
   by (rel_auto)
-
-
 
 lemma funcset_into_Idempotent: "Idempotent H \<Longrightarrow> H \<in> X \<rightarrow> \<lbrakk>H\<rbrakk>\<^sub>H"
   by (simp add: Healthy_def' Idempotent_def)
@@ -1680,9 +1678,9 @@ proof (simp add: mk_conn_def, rule galois_connectionI', simp_all add: utp_partia
     by (auto intro: isotone_utp_orderI Monotonic_comp R2c_Monotonic R3c_Monotonic)
   show "isotone (utp_order CSP) (utp_order (R1 \<circ> \<^bold>H)) id"
     by (auto intro: isotone_utp_orderI Monotonic_comp Monotonic_id)
-  show "\<forall>P. P is CSP \<longrightarrow> R2c (R3c P) \<sqsubseteq> P"
+  show "\<And> P. P is CSP \<Longrightarrow> R2c (R3c P) \<sqsubseteq> P"
     by (metis (no_types, lifting) CSP_R1_R2s CSP_healths(3) Healthy_def' R1_R2c_commute R2c_R2s_absorb eq_refl)
-  show "\<forall>P. P is R1 \<circ> \<^bold>H \<longrightarrow> P \<sqsubseteq> R2c (R3c P)"
+  show "\<And> P. P is R1 \<circ> \<^bold>H \<Longrightarrow> P \<sqsubseteq> R2c (R3c P)"
 oops
 
 interpretation Des_Rea_galois: galois_connection "DES \<leftarrow>\<langle>\<^bold>H,\<^bold>R\<rangle>\<rightarrow> RDES"
@@ -1695,10 +1693,10 @@ proof (simp add: mk_conn_def, rule galois_connectionI', simp_all add: utp_partia
     by (rule isotone_utp_orderI, metis rea_hcond_def rea_utp_theory_mono.HCond_Mono)
   show "isotone (utp_order CSP) (utp_order \<^bold>H) \<^bold>H"
     by (rule isotone_utp_orderI, simp add: H1_H2_monotonic)
-  show "\<forall>X. X is CSP \<longrightarrow> \<^bold>R (\<^bold>H X) \<sqsubseteq> X"
+  show "\<And> X. X is CSP \<Longrightarrow> \<^bold>R (\<^bold>H X) \<sqsubseteq> X"
     by (simp add: CSP_RH_design_form CSP_reactive_design RH_H1_H2_eq_CSP)
-  show "\<forall>X. X is \<^bold>H \<longrightarrow> X \<sqsubseteq> \<^bold>H (\<^bold>R X)"
-  proof (auto)
+  show "\<And> X. X is \<^bold>H \<Longrightarrow> X \<sqsubseteq> \<^bold>H (\<^bold>R X)"
+  proof -
     fix P :: "('t::ordered_cancel_monoid_diff,'\<alpha>) hrelation_rp"
     assume "P is \<^bold>H"
     hence "(P \<sqsubseteq> \<^bold>H (\<^bold>R P)) \<longleftrightarrow> (\<^bold>H(P) \<sqsubseteq> \<^bold>H(\<^bold>R(\<^bold>H(P))))"
