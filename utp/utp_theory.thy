@@ -572,4 +572,42 @@ lemma mk_conn_upper [simp]:  "\<pi>\<^sup>*\<^bsub>H1 \<Leftarrow>\<langle>\<H>\
 lemma galois_comp: "(H\<^sub>2 \<Leftarrow>\<langle>\<H>\<^sub>3,\<H>\<^sub>4\<rangle>\<Rightarrow> H\<^sub>3) \<circ>\<^sub>g (H\<^sub>1 \<Leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<Rightarrow> H\<^sub>2) = H\<^sub>1 \<Leftarrow>\<langle>\<H>\<^sub>1\<circ>\<H>\<^sub>3,\<H>\<^sub>4\<circ>\<H>\<^sub>2\<rangle>\<Rightarrow> H\<^sub>3"
   by (simp add: comp_galcon_def mk_conn_def)
 
+text {* Example Galois connection / retract: Existential quantification *}
+
+lemma Idempotent_ex: "mwb_lens x \<Longrightarrow> Idempotent (ex x)"
+  by (simp add: Idempotent_def exists_twice)
+
+lemma Monotonic_ex: "mwb_lens x \<Longrightarrow> Monotonic (ex x)"
+  by (simp add: Monotonic_def ex_mono)
+
+lemma ex_closed_unrest:
+  "vwb_lens x \<Longrightarrow> \<lbrakk>ex x\<rbrakk>\<^sub>H = {P. x \<sharp> P}"
+  by (simp add: Healthy_def unrest_as_exists)
+
+text {* Any theory can be composed with an existential quantification to produce a Galois connection *}
+
+theorem ex_retract:  
+  assumes "vwb_lens x" "Idempotent H" "ex x \<circ> H = H \<circ> ex x"
+  shows "retract ((ex x \<circ> H) \<Leftarrow>\<langle>ex x, H\<rangle>\<Rightarrow> H)"
+proof (unfold_locales, simp_all)
+  show "H \<in> \<lbrakk>ex x \<circ> H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>H\<rbrakk>\<^sub>H"
+    using Healthy_Idempotent assms by blast
+  from assms(1) assms(3)[THEN sym] show "ex x \<in> \<lbrakk>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>ex x \<circ> H\<rbrakk>\<^sub>H"
+    by (simp add: Pi_iff Healthy_def fun_eq_iff exists_twice)
+  fix P Q
+  assume "P is (ex x \<circ> H)" "Q is H"
+  thus "(H P \<sqsubseteq> Q) = (P \<sqsubseteq> (\<exists> x \<bullet> Q))"
+    by (metis (no_types, lifting) Healthy_Idempotent Healthy_if assms comp_apply dual_order.trans ex_weakens utp_pred.ex_mono vwb_lens_wb)    
+next
+  fix P
+  assume "P is (ex x \<circ> H)"
+  thus "(\<exists> x \<bullet> H P) \<sqsubseteq> P"
+    by (simp add: Healthy_def)
+qed
+    
+corollary ex_retract_id:
+  assumes "vwb_lens x"
+  shows "retract (ex x \<Leftarrow>\<langle>ex x, id\<rangle>\<Rightarrow> id)"
+  using assms ex_retract[where H="id"] by (auto)  
+
 end

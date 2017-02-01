@@ -593,6 +593,15 @@ text {* R3 as presented in the UTP book and related publications is not sensitiv
 record 's alpha_state =
   st\<^sub>v :: 's
 
+type_synonym ('s, 't, '\<alpha>) alpha_rsp_scheme = "('t, ('s, '\<alpha>) alpha_state_scheme) alpha_rp'_scheme alpha_d_scheme"
+
+type_synonym ('s, 't,'\<alpha>) alphabet_rsp = "('s, 't,'\<alpha>) alpha_rsp_scheme alphabet"
+type_synonym ('s,'t,'\<alpha>,'\<beta>) relation_rsp  = "(('s,'t,'\<alpha>) alphabet_rsp, ('s,'t,'\<beta>) alphabet_rsp) relation"
+type_synonym ('s,'t,'\<alpha>) hrelation_rsp  = "(('s,'t,'\<alpha>) alphabet_rsp, ('s,'t,'\<alpha>) alphabet_rsp) relation"
+
+translations
+  (type) "('s, 't, '\<alpha>) alphabet_rsp" <= (type) "('t, ('s, '\<alpha>) alpha_state_scheme) alpha_rp'_scheme alpha_d_scheme"
+
 declare alpha_state.splits [alpha_splits]
 
 interpretation alphabet_state:
@@ -626,7 +635,21 @@ definition [uvar_defs]: "st = (st\<^sub>r ;\<^sub>L \<Sigma>\<^sub>R)"
 lemma st_vwb_lens [simp]: "vwb_lens st"
   by (simp add: st_def)
 
+lemma st_ok_indep [simp]: "st \<bowtie> ok" "ok \<bowtie> st"
+  by (simp_all add: lens_indep_left_ext lens_indep_sym st_def)
+
+lemma st_wait_indep [simp]: "st \<bowtie> wait" "wait \<bowtie> st"
+  by (simp_all add: lens_indep_left_ext lens_indep_sym st_def)
+
+lemma st_tr_indep [simp]: "st \<bowtie> tr" "tr \<bowtie> st"
+  by (simp_all add: lens_indep_left_ext lens_indep_sym st_def)
+
 definition R3h_def [upred_defs]: "R3h(P) = ((\<exists> $st \<bullet> II\<^sub>r) \<triangleleft> $wait \<triangleright> P)"
+
+definition skip_rea3_def [urel_defs]: "II\<^sub>R = ((\<exists> $st \<bullet> II\<^sub>r) \<triangleleft> $wait \<triangleright> II\<^sub>r)"
+
+lemma R2c_skip_rea3: "R2c(II\<^sub>R) = II\<^sub>R"
+  apply (rel_auto) using minus_zero_eq by blast+
 
 lemma R3_idem: "R3(R3(P)) = R3(P)"
   by rel_auto
@@ -843,6 +866,18 @@ lemma R3h_UINF:
   shows "R3h(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> R3h(P(i)))"
   using assms by (rel_auto)
 
+lemma R3c_refines_R3h: "R3h(P) \<sqsubseteq> R3c(P)"
+  by (rel_auto)
+
+lemma R3c_absorbs_R3h: "R3c(R3h(P)) = R3c(P)"
+  by (rel_auto)
+
+lemma R3h_absorbs_R3c: "R3h(R3c(P)) = R3h(P)"
+  by (rel_auto)
+
+lemma R1_skip_rea3: "R1(II\<^sub>R) = II\<^sub>R"
+  by (rel_auto)
+
 subsection {* RH laws *}
 
 definition RH_def [upred_defs]: "RH(P) = R1(R2s(R3c(P)))"
@@ -869,6 +904,10 @@ lemma RH_alt_def'':
   "\<^bold>R(P) = R1(R2c(R3c(P)))"
   by (simp add: R1_R2s_R2c RH_def)
 
+lemma RHS_alt_def:
+  "\<^bold>R\<^sub>s(P) = R1(R2c(R3h(P)))"
+  by (simp add: RHS_def R1_R2s_R2c)  
+
 lemma RH_idem:
   "\<^bold>R(\<^bold>R(P)) = \<^bold>R(P)"
   by (metis R2_R3c_commute R2_def R2_idem R3c_idem RH_def)
@@ -878,6 +917,17 @@ lemma RH_Idempotent: "Idempotent \<^bold>R"
 
 lemma RH_monotone:
   "P \<sqsubseteq> Q \<Longrightarrow> \<^bold>R(P) \<sqsubseteq> \<^bold>R(Q)"
+  by rel_auto
+
+lemma RHS_idem:
+  "\<^bold>R\<^sub>s(\<^bold>R\<^sub>s(P)) = \<^bold>R\<^sub>s(P)"
+  by (metis (no_types, hide_lams) R2_R3h_commute R2_def R2_idem R3h_idem RHS_def)
+  
+lemma RHS_Idempotent: "Idempotent \<^bold>R\<^sub>s"
+  by (simp add: Idempotent_def RHS_idem)
+
+lemma RHS_monotone:
+  "P \<sqsubseteq> Q \<Longrightarrow> \<^bold>R\<^sub>s(P) \<sqsubseteq> \<^bold>R\<^sub>s(Q)"
   by rel_auto
 
 lemma RH_disj: "\<^bold>R(P \<or> Q) = (\<^bold>R(P) \<or> \<^bold>R(Q))"
@@ -935,16 +985,25 @@ lemma RH_false_bottom:
   "\<^bold>R(true) \<sqsubseteq> \<^bold>R(P)"
   by (simp add: RH_monotone)
 
-subsection {* UTP theory *}
+subsection {* UTP theories *}
 
 typedecl REA
 abbreviation "REA \<equiv> UTHY(REA, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
 
+typedecl SREA
+abbreviation "SREA \<equiv> UTHY(SREA, ('s, 't::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rsp)"
+
 overloading
   rea_hcond == "utp_hcond :: (REA, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp) uthy \<Rightarrow> (('t,'\<alpha>) alphabet_rp \<times> ('t,'\<alpha>) alphabet_rp) Healthiness_condition"
+  srea_hcond == "utp_hcond :: (SREA, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) alphabet_rsp \<times> ('s,'t,'\<alpha>) alphabet_rsp) Healthiness_condition"
+
 begin
   definition rea_hcond :: "(REA, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp) uthy \<Rightarrow> (('t,'\<alpha>) alphabet_rp \<times> ('t,'\<alpha>) alphabet_rp) Healthiness_condition" where
   [upred_defs]: "rea_hcond t = \<^bold>R"
+
+  definition srea_hcond :: "(SREA, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) alphabet_rsp \<times> ('s,'t,'\<alpha>) alphabet_rsp) Healthiness_condition" where
+  [upred_defs]: "srea_hcond t = \<^bold>R\<^sub>s"
+
 end
 
 interpretation rea_utp_theory: utp_theory "UTHY(REA, ('t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rp)"
@@ -970,6 +1029,45 @@ proof -
     by (rel_auto, metis minus_zero_eq)
   finally show ?thesis .
 qed
+
+interpretation srea_utp_theory: utp_theory "UTHY(SREA, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rsp)"
+  by (simp add: srea_hcond_def utp_theory_def RHS_idem)
+
+interpretation srea_utp_theory_mono: utp_theory_mono "UTHY(SREA, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) alphabet_rsp)"
+  by (unfold_locales, simp add: Monotonic_def RHS_monotone srea_hcond_def)
+
+interpretation rea_srea_bijection:
+  galois_bijection "REA \<leftarrow>\<langle>R3c,R3h\<rangle>\<rightarrow> SREA"
+proof (unfold_locales, simp_all add: rea_hcond_def srea_hcond_def)
+  show "R3c \<in> \<lbrakk>\<^bold>R\<^sub>s\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>R\<rbrakk>\<^sub>H"
+    by (simp add: Pi_iff Healthy_def RH_def R3c_idem RHS_def)
+       (metis R1_R3c_commute R2_R1_form R2_R3c_commute R3c_absorbs_R3h)
+  show "R3h \<in> \<lbrakk>\<^bold>R\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>R\<^sub>s\<rbrakk>\<^sub>H"
+    by (simp add: Pi_iff Healthy_def RH_def R3h_idem RHS_def)
+       (metis R1_R3h_commute R2_R1_form R2_R3h_commute R3h_absorbs_R3c)
+  show "isotone (utp_order \<^bold>R\<^sub>s) (utp_order \<^bold>R) R3c"
+    by (simp add: R3c_Monotonic isotone_utp_orderI)
+  show "isotone (utp_order \<^bold>R) (utp_order \<^bold>R\<^sub>s) R3h"
+    by (simp add: R3h_Monotonic isotone_utp_orderI)
+  fix P :: "('s, 't::ordered_cancel_monoid_diff, '\<alpha>) hrelation_rsp"
+  assume "P is \<^bold>R\<^sub>s"
+  thus "R3h (R3c P) = P"
+    by (metis Healthy_if R2_R3h_commute R2_def R3h_absorbs_R3c R3h_idem RHS_def)    
+next
+  fix Q :: "('s, 't::ordered_cancel_monoid_diff, '\<alpha>) hrelation_rsp"
+  assume "Q is \<^bold>R"
+  thus "R3c (R3h Q) = Q"
+  by (metis Healthy_if R2_R3c_commute R3c_absorbs_R3h R3h_absorbs_R3c RH_alt_def')
+qed
+
+(*
+interpretation rea_srea_retract:
+  retract "(ex (in_var st) \<circ> R3c) \<Leftarrow>\<langle>ex (in_var st) \<circ> R3c,R3h\<rangle>\<Rightarrow> R3h"
+proof -
+  have "retract ((ex (in_var st) \<circ> R3c) \<Leftarrow>\<langle>ex (in_var st),R3c\<rangle>\<Rightarrow> R3c)"
+    apply (rule ex_retract, simp_all add: R3c_Idempotent fun_eq_iff)
+    apply (rel_auto)
+*)
 
 subsection {* Reactive parallel-by-merge *}
 
