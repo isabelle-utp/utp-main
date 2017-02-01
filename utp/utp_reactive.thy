@@ -965,6 +965,9 @@ qed
 lemma RH_R2c_def: "\<^bold>R(P) = R1(R2c(R3c(P)))"
   by (rel_auto)
 
+lemma RHS_R2c_def: "\<^bold>R\<^sub>s(P) = R1(R2c(R3h(P)))"
+  by (rel_auto)
+
 lemma RH_absorbs_R2c: "\<^bold>R(R2c(P)) = \<^bold>R(P)"
   by (metis R1_R2_commute R1_R2c_is_R2 R1_R3c_commute R2_R3c_commute R2_idem RH_alt_def RH_alt_def')
 
