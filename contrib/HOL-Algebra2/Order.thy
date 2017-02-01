@@ -35,6 +35,14 @@ definition
 
 subsubsection {* The order relation *}
 
+lemma funcset_carrier:
+  "\<lbrakk> f \<in> carrier X \<rightarrow> carrier Y; x \<in> carrier X \<rbrakk> \<Longrightarrow> f x \<in> carrier Y"
+  by (fact funcset_mem)
+
+lemma funcset_carrier':
+  "\<lbrakk> f \<in> carrier A \<rightarrow> carrier A; x \<in> carrier A \<rbrakk> \<Longrightarrow> f x \<in> carrier A"
+  by (fact funcset_mem)
+
 context weak_partial_order
 begin
 
@@ -462,6 +470,12 @@ next
     by (metis weak_partial_order.dual_weak_order)
 qed
 
+subsubsection {* Intervals *}
+
+definition
+  at_least_at_most :: "('a, 'c) gorder_scheme \<Rightarrow> 'a => 'a => 'a set" ("(1\<lbrace>_.._\<rbrace>\<index>)") where
+  "\<lbrace>l..u\<rbrace>\<^bsub>A\<^esub> = {x \<in> carrier A. l \<sqsubseteq>\<^bsub>A\<^esub> x \<and> x \<sqsubseteq>\<^bsub>A\<^esub> u}"
+
 subsubsection {* Isotone functions *}
 
 definition isotone :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
@@ -470,7 +484,7 @@ definition isotone :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_sche
                  \<and> (\<forall>x\<in>carrier A. \<forall>y\<in>carrier A. x \<sqsubseteq>\<^bsub>A\<^esub> y \<longrightarrow> f x \<sqsubseteq>\<^bsub>B\<^esub> f y)"
 
 lemma isotoneI [intro?]:
-  fixes f :: "'a \<Rightarrow> 'a"
+  fixes f :: "'a \<Rightarrow> 'b"
   assumes "weak_partial_order L1"
           "weak_partial_order L2"
           "(\<And>x y. \<lbrakk> x \<in> carrier L1; y \<in> carrier L1; x \<sqsubseteq>\<^bsub>L1\<^esub> y \<rbrakk> 
@@ -494,8 +508,28 @@ lemma (in weak_partial_order) inv_isotone [simp]:
   "isotone (inv_gorder A) (inv_gorder B) f = isotone A B f"
   by (auto simp add:isotone_def dual_weak_order dual_weak_order_iff)
 
-definition idempotent :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" where
-  "idempotent A f \<equiv> \<forall>x\<in>A. (f \<circ> f) x = f x"
+subsubsection {* Idempotent functions *}
+
+definition idempotent :: 
+  "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" ("Idem\<index>") where
+"idempotent L f \<equiv> \<forall>x\<in>carrier L. f (f x) .=\<^bsub>L\<^esub> f x"
+
+lemma (in weak_partial_order) idempotent:
+  "\<lbrakk> Idem f; x \<in> carrier L \<rbrakk> \<Longrightarrow> f (f x) .= f x"
+  by (auto simp add: idempotent_def)
+
+subsubsection {* Order embeddings *}
+
+definition order_emb :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
+  "order_emb A B f \<equiv> weak_partial_order A 
+                   \<and> weak_partial_order B 
+                   \<and> (\<forall>x\<in>carrier A. \<forall>y\<in>carrier A. f x \<sqsubseteq>\<^bsub>B\<^esub> f y \<longleftrightarrow> x \<sqsubseteq>\<^bsub>A\<^esub> y )"
+
+lemma order_emb_isotone: "order_emb A B f \<Longrightarrow> isotone A B f"
+  by (auto simp add: isotone_def order_emb_def)
+
+definition commuting :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" where
+"commuting A f g = (\<forall>x\<in>A. (f \<circ> g) x = (g \<circ> f) x)"
 
 subsection {* Orders and Lattices where @{text eq} is the Equality *}
 
@@ -518,6 +552,9 @@ lemma lless_asym:
     and "a \<sqsubset> b" "b \<sqsubset> a"
   shows "P"
   using assms unfolding lless_eq by auto
+
+lemma set_eq_is_eq: "A {.=} B \<longleftrightarrow> A = B"
+  by (auto simp add: set_eq_def elem_def eq_is_equal)
 
 end
 
@@ -584,11 +621,11 @@ proof -
     by (auto intro:someI2 simp add:abottom_def)
 qed
 
-lemma bottom_closed:
+lemma bottom_closed [simp, intro]:
   "\<bottom> \<in> carrier L"
   by (metis bottom_least least_mem)
 
-lemma bottom_lower:
+lemma bottom_lower [simp, intro]:
   "x \<in> carrier L \<Longrightarrow> \<bottom> \<sqsubseteq> x"
   by (metis bottom_least least_le)
 

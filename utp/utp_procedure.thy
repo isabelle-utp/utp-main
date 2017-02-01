@@ -9,36 +9,34 @@ type_synonym ('a, '\<alpha>) uproc = "'a \<Rightarrow> '\<alpha> hrelation"
 definition 
   val_parm :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> '\<alpha> hrelation) 
                \<Rightarrow> (('a, '\<beta>) uexpr, '\<alpha>) uproc"
-where [upred_defs]: "val_parm T x P = (\<lambda> v. (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> v ;; P x)))"
+where [upred_defs]: "val_parm T x P = (\<lambda> v. (var\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> v ;; P x)))"
 
 definition 
   val_parm_comp :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> ('b, '\<alpha>) uproc) 
                \<Rightarrow> (('a, '\<beta>) uexpr \<times> 'b, '\<alpha>) uproc"
-where [upred_defs]: "val_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> u ;; P x v)))"
+where [upred_defs]: "val_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> u ;; P x v)))"
 
 definition 
   res_parm :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> '\<alpha> hrelation) 
                \<Rightarrow> (('a, '\<beta>) uvar, '\<alpha>) uproc"
-where [upred_defs]: "res_parm T x P = (\<lambda> y. (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (P x ;; y ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
+where [upred_defs]: "res_parm T x P = (\<lambda> y. (var\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> x \<bullet> (P x ;; y ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> &x)))"
 
 definition 
   res_parm_comp :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> ('b, '\<alpha>) uproc) 
                \<Rightarrow> (('a, '\<beta>) uvar \<times> 'b, '\<alpha>) uproc"
-where [upred_defs]: "res_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (P x v ;; u ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
+where [upred_defs]: "res_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> x \<bullet> (P x v ;; u ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> &x)))"
 
 definition
   vres_parm :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> '\<alpha> hrelation) 
                \<Rightarrow> (('a, '\<beta>) uvar, '\<alpha>) uproc"
-where [upred_defs]: "vres_parm T x P = (\<lambda> y. (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &y ;; P x ;; y ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
+where [upred_defs]: "vres_parm T x P = (\<lambda> y. (var\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> &y ;; P x ;; y ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> &x)))"
 
 definition 
   vres_parm_comp :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> ('b, '\<alpha>) uproc) 
                \<Rightarrow> (('a, '\<beta>) uvar \<times> 'b, '\<alpha>) uproc"
-where [upred_defs]: "vres_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &u ;; P x v ;; u ::=\<^bsub>TYPE('\<T> \<times> '\<alpha>)\<^esub> &x)))"
+where [upred_defs]: "vres_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> &u ;; P x v ;; u ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> &x)))"
 
 nonterminal parm and parm_list
-
-abbreviation "DAL \<equiv> TYPE(DES \<times> '\<alpha> alphabet_d \<times> '\<alpha>)"
 
 syntax
   "_uvar_ty"      :: "type \<Rightarrow> type"
@@ -52,7 +50,6 @@ syntax
   "_res_parm_ty"  :: "id \<Rightarrow> type \<Rightarrow> parm" ("res _ :: _")
   "_vres_parm"    :: "id \<Rightarrow> parm" ("vres _" [999] 999)
   "_vres_parm_ty" :: "id \<Rightarrow> type \<Rightarrow> parm" ("vres _ :: _" [0,999] 999)
-  "_dproc_block"  :: "parm_list \<Rightarrow> logic \<Rightarrow> ('a, '\<alpha>) uproc" ("_ \<bullet>\<^sub>D/ _" [0,10] 10)
 
 translations
   (* Parse translations for value parameters *)
@@ -76,7 +73,24 @@ translations
   => "CONST vres_parm_comp T <x>\<^sub>d (_abs (_constrain x (_uvar_ty a)) (_proc_block T ps P))"
   "_proc_block T (_parm_list (_res_parm x) ps) P" 
   => "CONST vres_parm_comp T <x>\<^sub>d (\<lambda> x. (_proc_block T ps P))"
-  "_dproc_block ps P" => "_proc_block (CONST DAL) ps P"
+
+
+context utp_local_var
+begin
+
+lemma val_parm_healthy [closure]:
+  fixes x :: "('a::two, '\<beta>::vst) lvar"
+  assumes "\<And> x. P x is \<H>"
+  shows "val_parm (T :: ('\<T> \<times> '\<alpha> \<times> '\<beta>) itself) x P v is \<H>"
+  by (simp add: val_parm_def uthy_simp closure assms)
+
+lemma val_parm_comp_healthy [closure]:
+  fixes x :: "('a::two, '\<beta>::vst) lvar"
+  assumes "\<And> x y. P x y is \<H>"
+  shows "val_parm_comp (T :: ('\<T> \<times> '\<alpha> \<times> '\<beta>) itself) x P v is \<H>"
+  by (simp add: val_parm_comp_def uthy_simp prod.case_eq_if closure assms)
+
+end
 
 (*
 context utp_local_var
@@ -115,15 +129,5 @@ lemma vres_parm_comp_apply [simp]:
   "(vres_parm_comp x P) (u, v) = (var x \<bullet> x := &u ;; P x v ;; u := &x)"
   by (simp add: vres_parm_comp_def)
 *)
-
-text {* Instantiate vstore for design alphabets *}
-
-instantiation alpha_d_ext :: (vst) vst
-begin
-  definition "vstore_lens_alpha_d_ext = \<V> ;\<^sub>L \<Sigma>\<^sub>D"
-instance
-  by (intro_classes, auto simp add: vstore_lens_alpha_d_ext_def comp_vwb_lens)
-end
-
 
 end

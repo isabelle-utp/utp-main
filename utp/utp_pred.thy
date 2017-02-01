@@ -319,6 +319,9 @@ lemma true_alt_def: "true = \<guillemotleft>True\<guillemotright>"
 lemma false_alt_def: "false = \<guillemotleft>False\<guillemotright>"
   by (pred_auto)
 
+declare true_alt_def[THEN sym,lit_simps]
+declare false_alt_def[THEN sym,lit_simps]
+
 subsection {* Unrestriction Laws *}
 
 lemma unrest_true [unrest]: "x \<sharp> true"
@@ -396,6 +399,11 @@ lemma unrest_closure [unrest]:
   by pred_auto
 
 subsection {* Substitution Laws *}
+
+text {* Substitution is monotone *}
+
+lemma subst_mono: "P \<sqsubseteq> Q \<Longrightarrow> (\<sigma> \<dagger> P) \<sqsubseteq> (\<sigma> \<dagger> Q)"
+  by (pred_auto)
 
 lemma subst_true [usubst]: "\<sigma> \<dagger> true = true"
   by (pred_auto)
@@ -884,5 +892,6 @@ lemma shEx_lift_conj_1 [uquant_lift]:
 
 lemma shEx_lift_conj_2 [uquant_lift]:
   "(P \<and> (\<^bold>\<exists> x \<bullet> Q(x))) = (\<^bold>\<exists> x \<bullet> P \<and> Q(x))"
-  by pred_auto
+  by pred_auto  
+
 end

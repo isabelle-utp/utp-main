@@ -1,0 +1,5 @@
+(1) Think about how to best implement the HO model, considering all options and previous experience(s).
+
+(2) Think about the idea of a monadic model for alphabetised predicates. Talk about this to Jim Woodcock and Simon Foster.
+
+(3) Integrating the axiomatic work with Leo's/Diego's RG theories; there appeared to be some issues due to a change in precedence of function application. Perhaps reconsider that change; it is quite invasive [DONE].

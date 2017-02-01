@@ -5,10 +5,10 @@
 (******************************************************************************)
 (* LAST REVIEWED: 27 March 2014 *)
 
-header {* Lightweight Cardinals *}
+section {* Lightweight Cardinals *}
 
 theory cardinals
-imports Main Real Countable_Set "~~/src/HOL/Cardinals/Cardinals" infinity UNIV_TYPE
+imports Main Real Countable_Set "~~/src/HOL/Cardinals/Cardinals" Infinity UNIV_TYPE
 begin
 
 subsection {* Cardinal Order *}
@@ -412,7 +412,7 @@ done
 theorem Nats_countable: "\<nat> \<preceq>\<^sub>c c\<^sub>\<T> TYPE(nat)"
   by (metis Nats_def UNIV_TYPE_def leq_card_refl leq_image_mono type_card_def)
 
-text {* We construct bijective versions of {@const to_nat} and {@const from_nat} *}
+text {* We construct bijective versions of @{const to_nat} and @{const from_nat} *}
 
 definition to_nat_bij :: "'a::{countable, infinite} \<Rightarrow> nat" where
 "to_nat_bij = (SOME f. bij f)"

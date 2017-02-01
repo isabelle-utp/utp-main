@@ -4,7 +4,7 @@
 (* Authors: Simon Foster and Frank Zeyda (University of York, UK)             *)
 (* Emails: simon.foster@york.ac.uk frank.zeyda@york.ac.uk                     *)
 (******************************************************************************)
-(* LAST REVIEWED: 9 Jan 2017 *)
+(* LAST REVIEWED: 30 Jan 2017 *)
 
 section {* UTP Events *}
 
@@ -12,58 +12,54 @@ theory utp_event
 imports utp_pred
 begin
 
-text {*
-  Like values, it is difficult to introduce events and channels generically
-  due to the fact that channels can have arbitrary parametrisations in terms
-  of HOL types. Hence, they have to be constructed in an \textit{ad hoc}
-  manner for each CSP model. A generic model may be realisable if we added
-  support for something like `open datatypes' (in analogy to open records).
-  Such, however, constitutes a considerable implementation effort. Another
-  possibility would be a deep model of channels, making use of the axiomatic
-  value model; but this would forfeit the benefit of host-level typing. A
-  fully compositional solution for channel declarations is pending work.
-*}
-
 subsection {* Events *}
 
-text {*
-  Events of some (event) type @{typ "'\<theta>"} are just the elements of that type.
-*}
+text {* Events of some type @{typ "'\<theta>"} are just the elements of that type. *}
 
 type_synonym '\<theta> event = "'\<theta>"
 
 subsection {* Channels *}
 
 text {*
-  Typed channels are modelled by functions. Below, @{typ "'a"} determines the
-  channel type and @{typ "'\<theta>"} the underlying event type. Hence as we expect,
-  applying a channel to an element of its type yields an event. We note that
-  @{typ "'\<theta>"} may potentially encode the events of several channels. Although
-  this is not formalised, we may also claim that the function is an injection.
+  Typed channels are modelled as functions. Below, @{typ "'a"} determines the
+  channel type and @{typ "'\<theta>"} the underlying event type. As with values, it
+  is difficult to introduce channels as monomorphic types due to the fact that
+  they can have arbitrary parametrisations in term of @{typ "'a"}. Applying a
+  channel to an element of its type yields an event, as we may expect. Though
+  this is not formalised here, we may also sensibly assume that all channel-
+  representing functions are injective. Note: is there benefit in formalising
+  this here?
 *}
 
 type_synonym ('a, '\<theta>) chan = "'a \<Rightarrow> '\<theta> event"
 
-paragraph {* Channel Operators *}
-
 text {*
-  The (Z) type of a channel corresponds to the entire carrier of the underlying
-  HOL type of that channel. Note: Ask Simon why he defined this function!
+  A downside of the approach is that the event type @{typ "'\<theta>"} must be able
+  to encode \emph{all} events of a process model, and hence cannot be fixed
+  upfront for a single channel or channel set. To do so, we actually require
+  a notion of `extensible' datatypes, in analogy to extensible record types.
+  Another solution is to encode a notion of channel scoping that namely uses
+  @{type sum} types to lift channel types into extensible ones, that is using
+  channel-set specific scoping operators. This is a current work in progress.
 *}
 
-definition chan_type :: "('a, '\<theta>) chan \<Rightarrow> 'a set" ("\<delta>\<^sub>u")
-where "\<delta>\<^sub>u c = UNIV"
+subsubsection {* Operators *}
 
 text {*
-  The next function creates an expression that yields a channel event, from
-  an expression on the channels type @{typ "'a"}. Note: I believe that naming
-  is not quite consistent here i.e.~why is a subscript @{text "\<^sub>e"} used rather
-  than @{text "\<^sub>u"} as it is usually the case for expressions? Perhaps a better
-  name for the function may be @{text "chan_event"} or @{text "chan_apply"}.
-  Lastly, I am not convinced of the syntax @{text "(c, e)\<^sub>e"}.
+  The Z type of a channel corresponds to the entire carrier of the underlying
+  HOL type of that channel. Strictly, the function is redundant but was added
+  to mirror the mathematical account in [?]. (TODO: Ask Simon Foster for [?])
 *}
 
-definition event ::
-  "('a, '\<theta>) chan \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<theta> event, '\<alpha>) uexpr" ("'(_,/ _')\<^sub>e") where
-[upred_defs]: "(c, e)\<^sub>e = \<guillemotleft>c\<guillemotright>\<lparr>e\<rparr>\<^sub>u"
+definition chan_type :: "('a, '\<theta>) chan \<Rightarrow> 'a set" ("\<delta>\<^sub>u") where
+"\<delta>\<^sub>u c = UNIV"
+
+text {*
+  The next lifted function creates an expression that yields a channel event,
+  from an expression on the channel type @{typ "'a"}.
+*}
+
+definition chan_apply ::
+  "('a, '\<theta>) chan \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<theta> event, '\<alpha>) uexpr" ("'(_\<cdot>/_')\<^sub>u") where
+[upred_defs]: "(c\<cdot>e)\<^sub>u = \<guillemotleft>c\<guillemotright>\<lparr>e\<rparr>\<^sub>u"
 end

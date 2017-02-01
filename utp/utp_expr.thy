@@ -4,7 +4,10 @@ theory utp_expr
 imports
   utp_var
   utp_dvar
+  (* utp_avar *)
 begin
+
+no_notation BNF_Def.convol ("\<langle>(_,/ _)\<rangle>")
 
 text {* Before building the predicate model, we will build a model of expressions that generalise
         alphabetised predicates. Expressions are represented semantically as mapping from
@@ -24,7 +27,7 @@ lemma uexpr_eq_iff:
   "e = f \<longleftrightarrow> (\<forall> b. \<lbrakk>e\<rbrakk>\<^sub>e b = \<lbrakk>f\<rbrakk>\<^sub>e b)"
   using Rep_uexpr_inject[of e f, THEN sym] by (auto)
 
-named_theorems ueval
+named_theorems ueval and lit_simps
 
 setup_lifting type_definition_uexpr
 
@@ -184,10 +187,7 @@ instance uexpr :: (cancel_semigroup_add, type) cancel_semigroup_add
   by (intro_classes) (simp add: plus_uexpr_def, transfer, simp add: fun_eq_iff)+
 
 instance uexpr :: (cancel_ab_semigroup_add, type) cancel_ab_semigroup_add
-  by (intro_classes) (simp add: plus_uexpr_def minus_uexpr_def, transfer, simp add: fun_eq_iff add.commute diff_diff_add)+
-
-instance uexpr :: (cancel_monoid_add, type) cancel_monoid_add
-  by (intro_classes, simp_all add: plus_uexpr_def minus_uexpr_def zero_uexpr_def) (transfer, auto)+
+  by (intro_classes, (simp add: plus_uexpr_def minus_uexpr_def, transfer, simp add: fun_eq_iff add.commute cancel_ab_semigroup_add_class.diff_diff_add)+)
 
 instance uexpr :: (group_add, type) group_add
   by (intro_classes)
@@ -197,13 +197,18 @@ instance uexpr :: (ab_group_add, type) ab_group_add
   by (intro_classes)
      (simp add: plus_uexpr_def uminus_uexpr_def minus_uexpr_def zero_uexpr_def, transfer, simp)+
 
-instantiation uexpr :: (order, type) order
+instantiation uexpr :: (ord, type) ord
 begin
   lift_definition less_eq_uexpr :: "('a, 'b) uexpr \<Rightarrow> ('a, 'b) uexpr \<Rightarrow> bool"
   is "\<lambda> P Q. (\<forall> A. P A \<le> Q A)" .
   definition less_uexpr :: "('a, 'b) uexpr \<Rightarrow> ('a, 'b) uexpr \<Rightarrow> bool"
   where "less_uexpr P Q = (P \<le> Q \<and> \<not> Q \<le> P)"
-instance proof
+instance ..
+end
+
+
+instance uexpr :: (order, type) order
+proof
   fix x y z :: "('a, 'b) uexpr"
   show "(x < y) = (x \<le> y \<and> \<not> y \<le> x)" by (simp add: less_uexpr_def)
   show "x \<le> x" by (transfer, auto)
@@ -212,7 +217,6 @@ instance proof
   show "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
     by (transfer, rule ext, simp add: eq_iff)
 qed
-end
 
 instance uexpr :: (ordered_ab_group_add, type) ordered_ab_group_add
   by (intro_classes) (simp add: plus_uexpr_def, transfer, simp)
@@ -222,6 +226,16 @@ instance uexpr :: (ordered_ab_group_add_abs, type) ordered_ab_group_add_abs
   apply (simp add: abs_uexpr_def zero_uexpr_def plus_uexpr_def uminus_uexpr_def, transfer, simp add: abs_ge_self abs_le_iff abs_triangle_ineq)+
   apply (metis ab_group_add_class.ab_diff_conv_add_uminus abs_ge_minus_self abs_ge_self add_mono_thms_linordered_semiring(1))
 done
+
+lemma uexpr_diff_zero [simp]: 
+  fixes a :: "('\<alpha>::ordered_cancel_monoid_diff, 'a) uexpr"
+  shows "a - 0 = a"
+  by (simp add: minus_uexpr_def zero_uexpr_def, transfer, auto)
+
+lemma uexpr_add_diff_cancel_left [simp]: 
+  fixes a b :: "('\<alpha>::ordered_cancel_monoid_diff, 'a) uexpr"
+  shows "(a + b) - a = b"
+  by (simp add: minus_uexpr_def plus_uexpr_def, transfer, auto)
 
 instance uexpr :: (semiring, type) semiring
   by (intro_classes) (simp add: plus_uexpr_def times_uexpr_def, transfer, simp add: fun_eq_iff add.commute semiring_class.distrib_right semiring_class.distrib_left)+
@@ -235,7 +249,11 @@ instance uexpr :: (numeral, type) numeral
 text {* Set up automation for numerals *}
 
 lemma numeral_uexpr_rep_eq: "\<lbrakk>numeral x\<rbrakk>\<^sub>e b = numeral x"
-  by (induct x, simp_all add: plus_uexpr_def one_uexpr_def numeral.simps lit.rep_eq bop.rep_eq)
+apply (induct x)
+apply (simp add: lit.rep_eq one_uexpr_def)
+apply (simp add: bop.rep_eq numeral_Bit0 plus_uexpr_def)
+apply (simp add: bop.rep_eq lit.rep_eq numeral_code(3) one_uexpr_def plus_uexpr_def)
+done
 
 lemma numeral_uexpr_simp: "numeral x = \<guillemotleft>numeral x\<guillemotright>"
   by (simp add: uexpr_eq_iff numeral_uexpr_rep_eq lit.rep_eq)
@@ -483,7 +501,44 @@ subsection {* Misc laws *}
 lemma tail_cons [simp]: "tail\<^sub>u(\<langle>x\<rangle> ^\<^sub>u xs) = xs"
   by (transfer, simp)
 
-lemma lit_num_simps: "\<guillemotleft>0\<guillemotright> = 0" "\<guillemotleft>1\<guillemotright> = 1" "\<guillemotleft>numeral n\<guillemotright> = numeral n" "\<guillemotleft>- x\<guillemotright> = - \<guillemotleft>x\<guillemotright>"
+subsection {* Literalise tactics *}
+
+text {* The following tactic converts literal HOL expressions to UTP expressions and vice-versa
+        via a collection of simplification rules. The two tactics are called "literalise", which
+        converts UTP to expressions to HOL expressions -- i.e. it pushes them into literals --
+        and unliteralise that reverses this. We collect the equations in a theorem attribute
+        called "lit\_simps". *}
+
+lemma lit_num_simps [lit_simps]: "\<guillemotleft>0\<guillemotright> = 0" "\<guillemotleft>1\<guillemotright> = 1" "\<guillemotleft>numeral n\<guillemotright> = numeral n" "\<guillemotleft>- x\<guillemotright> = - \<guillemotleft>x\<guillemotright>"
   by (simp_all add: ueval, transfer, simp)
 
+lemma lit_arith_simps [lit_simps]:
+  "\<guillemotleft>- x\<guillemotright> = - \<guillemotleft>x\<guillemotright>"
+  "\<guillemotleft>x + y\<guillemotright> = \<guillemotleft>x\<guillemotright> + \<guillemotleft>y\<guillemotright>" "\<guillemotleft>x - y\<guillemotright> = \<guillemotleft>x\<guillemotright> - \<guillemotleft>y\<guillemotright>" 
+  "\<guillemotleft>x * y\<guillemotright> = \<guillemotleft>x\<guillemotright> * \<guillemotleft>y\<guillemotright>" "\<guillemotleft>x / y\<guillemotright> = \<guillemotleft>x\<guillemotright> / \<guillemotleft>y\<guillemotright>"
+  "\<guillemotleft>x div y\<guillemotright> = \<guillemotleft>x\<guillemotright> div \<guillemotleft>y\<guillemotright>"
+  by (simp add: uexpr_defs, transfer, simp)+
+
+lemma lit_fun_simps [lit_simps]: 
+  "\<guillemotleft>i x y z u\<guillemotright> = qtop i \<guillemotleft>x\<guillemotright> \<guillemotleft>y\<guillemotright> \<guillemotleft>z\<guillemotright> \<guillemotleft>u\<guillemotright>"
+  "\<guillemotleft>h x y z\<guillemotright> = trop h \<guillemotleft>x\<guillemotright> \<guillemotleft>y\<guillemotright> \<guillemotleft>z\<guillemotright>"
+  "\<guillemotleft>g x y\<guillemotright> = bop g \<guillemotleft>x\<guillemotright> \<guillemotleft>y\<guillemotright>"
+  "\<guillemotleft>f x\<guillemotright> = uop f \<guillemotleft>x\<guillemotright>"
+  by (transfer, simp)+ 
+
+text {* In general unliteralising converts function applications to corresponding expression
+  liftings. Since some operators, like + and *, have specific operators we also have to
+  use @{thm uexpr_defs} in reverse to correctly interpret these. Moreover, numerals must be handled
+  separately by first simplifying them and then converting them into UTP expression numerals;
+  hence the following two simplification rules. *}
+
+lemma lit_numeral_1: "uop numeral x = Abs_uexpr (\<lambda>b. numeral (\<lbrakk>x\<rbrakk>\<^sub>e b))"
+  by (simp add: uop_def)
+
+lemma lit_numeral_2: "Abs_uexpr (\<lambda> b. numeral v) = numeral v"
+  by (metis lit.abs_eq lit_num_simps(3))
+
+method literalise = (unfold lit_simps[THEN sym])
+method unliteralise = (unfold lit_simps uexpr_defs[THEN sym]; 
+                     (unfold lit_numeral_1 ; (unfold ueval); (unfold lit_numeral_2))?)+
 end

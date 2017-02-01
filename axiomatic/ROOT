@@ -1,0 +1,25 @@
+session "UTP-AXM-IMPORTS" = "HOL-Cardinals" +
+  options [browser_info = true, document = false]
+  theories "theories/uimports" "lenses/Lenses"
+
+session "UTP-AXM-CORE" = "UTP-AXM-IMPORTS" +
+  options [browser_info = true,
+    document = pdf,
+    document_variants = "document:outline=/proof,/ML",
+    (* document_graph = true, *)
+    document_output = "output"]
+  theories "theories/meta/ucore"
+  document_files "root.tex" "document.sty"
+
+session "UTP-AXM-RANKED" = "UTP-AXM-IMPORTS" +
+  options [browser_info = true,
+    document = pdf,
+    document_variants = "document:outline=/proof,/ML",
+    (* document_graph = true, *)
+    document_output = "hierarchy/output"]
+  theories "theories/meta/uranked"
+  document_files (in hierarchy) "root.tex" "document.sty"
+
+session "UTP-AXM-SYSTEM" = "UTP-AXM-CORE" +
+  options [browser_info = true, document = false]
+  theories "theories/meta/usystem"

@@ -1,10 +1,10 @@
 (******************************************************************************)
 (* Project: The Isabelle/UTP Proof System                                     *)
-(* File: utp_cps.thy                                                          *)
-(* Authors: Simon Foster & Frank Zeyda (University of York, UK)               *)
-(* Emails: simon.foster@york.ac.uk frank.zeyda@york.ac.uk                     *)
+(* File: utp_csp.thy                                                          *)
+(* Authors: Simon Foster and Frank Zeyda (University of York, UK)             *)
+(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
 (******************************************************************************)
-(* LAST REVIEWED: 11 Jan 2017 *)
+(* LAST REVIEWED: 31 Jan 2017 *)
 
 section {* Theory of CSP *}
 
@@ -12,26 +12,23 @@ theory utp_csp
 imports utp_rea_designs utp_procedure utp_tactics
 begin
 
-text {* Simon, why is the precedence of the following operator so low? *}
+subsection {* Preliminaries *}
+
+text {*
+  Simon, why is the precedence of the following operator so low? My view is
+  that non-logical operator should not have a precedence below 51, otherwise
+  they bind, for instance, weaker than equality. On the other hand, perhaps
+  you want equality to bind stronger than the sequence. Could we have a chat
+  about this? Precedence of other UTP operators may need need discussion too.
+*}
 
 no_notation useq (infixr ";;" 15)
    notation useq (infixr ";;" 51)
 
 text {*
-  I believe the following notation is better for an expression that is used for
-  instantiating a parametrised channel. The existing notation is moreover not
-  consistent with the use of subscripts @{text "\<^sub>u"} for expression operators.
-  See if Simon agrees and, if so, change this throughout all Isabelle theories.
-*}
-
-no_notation event ("'(_,/ _')\<^sub>e")
-   notation event ("'(_\<cdot>/_')\<^sub>u")
-
-text {*
-  Simon, you can use the notation @{term "R(P)"} without having to forfeit use
-  of of @{term R} as a variable. The trick is to make the parenthesis part of
-  the syntax (using @{term "\<^bold>R"} is is little cumbersome in terms of typing).
-  The same, I believe, applies to the UTP conditional. There must be a reason?
+  We can indeed use the notation @{term "R(P)"} without having to forfeit use
+  of @{term R} as a variable. The trick is to make the parentheses part of the
+  syntax of @{text "R(_)"}. TODO: Alter this in theory @{theory utp_reactive}.
 *}
 
 no_notation RH ("\<^bold>R")
@@ -42,9 +39,9 @@ subsection {* CSP Alphabet *}
 text {* We note that the type @{typ "'\<phi>"} below is the event type. *}
 
 text {*
-  Why is @{typ "'\<phi>"} used below rather than @{typ "'\<theta>"} as in the theory
-  @{theory utp_event}? Of course, it does not affect the model but maybe
-  Ask Simon Foster why consistent naming has not been adopted here.
+  Why is the type name @{typ "'\<phi>"} used below rather than @{typ "'\<theta>"}, as in
+  the theory @{theory utp_event}? Of course, it does not affect the model but
+  perhaps free type names should be used consistenctly to avoid confusion.
 *}
 
 record '\<phi> alpha_csp' =
@@ -54,11 +51,11 @@ declare alpha_csp'.splits [alpha_splits]
 
 text {*
   The following two locale interpretations are a technicality to improve the
-  behaviour of the automatic tactics. They enable (re-)interpretation of state
+  behaviour of the automatic tactics. They enable (re)interpretation of state
   spaces in order to remove any occurrences of lens types, replacing them by
   tuple types after the tactics @{method pred_simp} and @{method rel_simp}
-  have been applied. Eventually, it would be desirable to automate those
-  interpretations as part of a custom outer command for defining alphabets.
+  are applied. Eventually, it would be desirable to automate preform these
+  interpretations automatically as part of the @{command alphabet} command.
 *}
 
 interpretation alphabet_csp_prd:
@@ -77,8 +74,9 @@ apply (clarsimp)
 done
 
 text {*
-  The type @{typ "'\<phi>"} is used for events and type @{typ "'\<alpha>"} provides the
-  state for program variables.
+  Type @{typ "'\<phi>"} is used for events and type @{typ "'\<alpha>"} determines the
+  program state. The trace type of the underlying reactive process model is
+  instantiated as HOL @{type "list"}s of events @{typ "'\<phi>"}.
 *}
 
 type_synonym ('\<phi>, '\<alpha>) alpha_csp_scheme =
@@ -87,12 +85,12 @@ type_synonym ('\<phi>, '\<alpha>) alpha_csp_scheme =
 type_synonym ('\<phi>, '\<alpha>) alphabet_csp = "('\<phi>, '\<alpha>) alpha_csp_scheme alphabet"
 
 translations (type) "('\<phi>, '\<alpha>) alphabet_csp" \<leftharpoondown>
-  (type) "('\<phi> list, ('b, '\<alpha>) alpha_csp'_scheme) alphabet_rp"
+  (type) "(_ list, ('\<phi>, '\<alpha>) alpha_csp'_scheme) alphabet_rp"
 
 type_synonym ('\<phi>, '\<alpha>) rel_alphabet_csp = -- {* Added by Frank Zeyda *}
   "('\<phi>, '\<alpha>) alphabet_csp \<times> ('\<phi>, '\<alpha>) alphabet_csp"
 
--- {* Why is @{text "'\<sigma>"} used below rather than @{text "'\<alpha>"} as above? *}
+text {* Why is @{text "'\<sigma>"} used below rather than @{text "'\<alpha>"} as above? *}
 
 type_synonym ('\<phi>, '\<sigma>) predicate_csp  = "('\<phi>, '\<sigma>) alphabet_csp upred"
 
@@ -101,6 +99,8 @@ type_synonym ('\<phi>, '\<alpha>, '\<beta>) relation_csp  =
 
 type_synonym ('\<phi>, '\<alpha>) hrelation_csp  = "('\<phi>, '\<alpha>, '\<alpha>) relation_csp"
 
+text {* By default, CSP processes do not have program state. *}
+
 type_synonym '\<phi> csp = "('\<phi>, unit) hrelation_csp"
 
 subsection {* CSP Variables *}
@@ -108,9 +108,9 @@ subsection {* CSP Variables *}
 text {*
   It is not quite obvious why we need so many definitions for each variable,
   and what the purpose of the various definitions is. For instance, what is
-  the different between @{text "ref"} and @{text "ref\<^sub>r"}? Talk to Simon about
-  this at some point and see if we can insert comments that clarify this.
-  Maybe we can do with introducing less definitions for variables below?!
+  the different between @{text "ref"} and @{text "ref\<^sub>r"}? Ask Simon Foster if
+  he could insert some comments here. to clarify this. Maybe we can do with
+  introducing less definitions?! Unless all of them are needed at some point.
 *}
 
 definition [uvar_defs]: "ref\<^sub>c = VAR ref\<^sub>v"
@@ -119,7 +119,9 @@ definition [uvar_defs]: "ref = (ref\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
 definition [uvar_defs]: "ref\<^sub>r = (ref\<^sub>c ;\<^sub>L \<Sigma>\<^sub>r)"
 definition [uvar_defs]: "\<Sigma>\<^sub>C = (\<Sigma>\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
 
-subsubsection {* Lens Membership Laws *}
+subsubsection {* Lens Laws *}
+
+paragraph {* Lens Membership *}
 
 lemma ref\<^sub>c_vwb_lens
 [simp]: "vwb_lens ref\<^sub>c"
@@ -153,7 +155,7 @@ apply (unfold \<Sigma>\<^sub>C_def)
 apply (simp)
 done
 
-subsubsection {* Lens Independence Laws *}
+paragraph {* Lens Independence *}
 
 lemma ok_indep_ref
 [simp]: "ok \<bowtie> ref" "ref \<bowtie> ok"
@@ -186,26 +188,25 @@ apply (simp_all)
 done
 
 text {*
-  Omitting detailed type information (@{text "_"} below) might save typing but
-  overall it is not very helpful for someone reading the theories and trying to
-  make sense of the definitions. I.e. just by looking at the Isabelle/HOL code,
-  I struggle to see what the below achieves. In particular, that there are no
-  comments that give a clue. I believe the purpose is to coerce a relational
-  expression on the state variables only into a lifted (relational) expression
-  on the entire CSP alphabet.
+  Omitting detailed type information (@{text "_"} below) might save effort in
+  writing but overall it is not very helpful for someone reading the theories
+  and trying to understand its definitions. I.e. just by looking at the code I
+  struggle to see what the below achieves. In particular, that no comments are
+  included. I believe the purpose is to coerce a relational expression on the
+  state variables alone into a lifted relational expression on the entire CSP
+  alphabet. Is that true? If so, maybe put a comment here to explain. Also,
+  the name is not well chosen i.e.~what kind of lifting is performed here?
 *}
 
 abbreviation lift_csp :: "_ \<Rightarrow> _" ("\<lceil>_\<rceil>\<^sub>C") where
 "\<lceil>P\<rceil>\<^sub>C \<equiv> P \<oplus>\<^sub>p (\<Sigma>\<^sub>C \<times>\<^sub>L \<Sigma>\<^sub>C)"
 
-subsubsection {* Instantiation of Class @{class vst} *}
+subsubsection {* Instantiations *}
 
 text {*
-  We note that the class @{class vst} is used to define a lens for storing
-  deep variables. This cannot be done uniformly, since it depends on where
-  the program state type, which is expected to already instantiate @{class vst}
-  is located within the type construction of the source type that we consider
-  i.e.~the state space of CSP.
+  Class @{class vst} has to be instantiated in order to located the store for
+  deep variables within the type @{typ "('\<phi>, '\<alpha>) alpha_csp'_ext"}. This is to
+  support deep variables in CSP processes.
 *}
 
 instantiation alpha_csp'_ext :: (type, vst) vst
@@ -223,20 +224,18 @@ end
 subsection {* CSP Trace Merge *}
 
 text {*
-  The following function defines the parallel composition of two CSP event
-  traces. It is parametrised by the set of events on which the two traces must
-  synchronise. The definition is given in terms of distributed concatenation
-  @{term "ls1 \<^sup>\<frown> ls2"} of (sets of) lists. We note that type @{typ "'\<theta> event"}
-  is a synonym for @{typ "'\<theta>"}.
+  The function below defines the parallel composition of two CSP event traces.
+  It is parametrised by the set of events on which the traces must synchronise.
+  The definition is given in terms of distributed concatenation @{term "op \<^sup>\<frown>"}
+  of (sets of) lists. We note that type @{typ "'\<theta> event"} is synonymous for
+  @{typ "'\<theta>"} (see theory @{theory utp_event}).
 *}
 
 fun tr_par ::
   "'\<theta> event set \<Rightarrow> '\<theta> event list \<Rightarrow> '\<theta> event list \<Rightarrow> '\<theta> event list set" where
 "tr_par cs [] [] = {[]}" |
-"tr_par cs (e # t) [] =
-  (if e \<in> cs then {[]} else {[e]} \<^sup>\<frown> (tr_par cs t []))" |
-"tr_par cs [] (e # t) =
-  (if e \<in> cs then {[]} else {[e]} \<^sup>\<frown> (tr_par cs [] t))" |
+"tr_par cs (e # t) [] = (if e \<in> cs then {[]} else {[e]} \<^sup>\<frown> (tr_par cs t []))" |
+"tr_par cs [] (e # t) = (if e \<in> cs then {[]} else {[e]} \<^sup>\<frown> (tr_par cs [] t))" |
 "tr_par cs (e\<^sub>1 # t\<^sub>1) (e\<^sub>2 # t\<^sub>2) =
   (if e\<^sub>1 = e\<^sub>2
     then
@@ -257,11 +256,10 @@ fun tr_par ::
           {[e\<^sub>1]} \<^sup>\<frown> (tr_par cs t\<^sub>1 (e\<^sub>2 # t\<^sub>2)) \<union>
           {[e\<^sub>2]} \<^sup>\<frown> (tr_par cs (e\<^sub>1 # t\<^sub>1) t\<^sub>2))"
 
-paragraph {* Expression Lifting *}
+subsubsection {* Lifted Trace Merge *}
 
-syntax
-  "_utr_par" ::
-    "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(_ \<star>\<^bsub>_\<^esub>/ _)" [100, 0, 101] 100)
+syntax "_utr_par" ::
+  "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(_ \<star>\<^bsub>_\<^esub>/ _)" [100, 0, 101] 100)
 
 text {* The function @{const trop} is used to lift ternary operators. *}
 
@@ -271,12 +269,12 @@ translations
 subsubsection {* Trace Merge Lemmas *}
 
 lemma tr_par_empty:
-"tr_par cs t\<^sub>1 [] = {takeWhile (\<lambda>x. x \<notin> cs) t\<^sub>1}"
-"tr_par cs [] t\<^sub>2 = {takeWhile (\<lambda>x. x \<notin> cs) t\<^sub>2}"
+"tr_par cs t1 [] = {takeWhile (\<lambda>x. x \<notin> cs) t1}"
+"tr_par cs [] t2 = {takeWhile (\<lambda>x. x \<notin> cs) t2}"
 -- {* Subgoal 1 *}
-apply (induct t\<^sub>1; simp)
+apply (induct t1; simp)
 -- {* Subgoal 2 *}
-apply (induct t\<^sub>2; simp)
+apply (induct t2; simp)
 done
 
 lemma tr_par_sym:
@@ -295,12 +293,13 @@ done
 
 subsection {* Healthiness Conditions *}
 
-text {* Below we define extra healthiness conditions for the theory of CSP. *}
+text {* We here define extra healthiness conditions for CSP processes. *}
 
 text {*
-  Simon, the definition below did not give the type @{typ "'\<phi> csp"} which I
-  added myself. Was there a reason? Is it true that neither @{text STOP} nor
-  @{text SKIP} consider program state variables?
+  Simon, the definition below did not explicitly include type information. I
+  think it is good practice to specify types in all definitions, I thus added
+  the type @{typ "'\<phi> csp"}. Is that correct? I suppose pure CSP processes do
+  not consider program state?!
 *}
 
 definition STOP :: "'\<phi> csp" where
@@ -314,8 +313,8 @@ text {*
   as well. Are both consider to be part of the theory of reactive designs? Or
   is it just so that laws can be proved in the theory @{theory utp_rea_designs}
   that refer to them? If the latter is the case, perhaps some the of those laws
-  could be proved here instead? That might give us a clean division between the
-  theory of reactive designs and the theory of CSP...
+  could be proved here instead? That might give us a cleaner separation between
+  the theory of reactive designs and the theory of CSP.
 *}
 
 (* definition [upred_defs]: "CSP1(P) = (P \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))" *)
@@ -325,8 +324,13 @@ definition [upred_defs]: "CSP4(P) = (P ;; SKIP)"
 
 subsection {* CSP Constructs *}
 
-definition [upred_defs]: "Stop = R(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
-definition [upred_defs]: "Skip = R(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> (\<not> $wait\<acute>) \<and> \<lceil>II\<rceil>\<^sub>R))"
+definition [upred_defs]:
+"Stop = R(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
+
+definition [upred_defs]:
+"Skip = R(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> (\<not> $wait\<acute>) \<and> \<lceil>II\<rceil>\<^sub>R))"
+
+text {* Simon, why is none of the below tagged with @{attribute upred_defs}? *}
 
 definition Guard ::
   "('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow>
@@ -341,102 +345,100 @@ definition ExtChoice ::
 "A\<^sub>1 \<box> A\<^sub>2 =
   R(\<not> A\<^sub>1\<^sup>f\<^sub>f \<and> \<not> A\<^sub>2\<^sup>f\<^sub>f \<turnstile> (A\<^sub>1\<^sup>t\<^sub>f \<and> A\<^sub>2\<^sup>t\<^sub>f) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (A\<^sub>1\<^sup>t\<^sub>f \<or> A\<^sub>2\<^sup>t\<^sub>f))"
 
-definition do\<^sub>u ::
-  "('\<theta> event, ('\<theta>, '\<alpha>) rel_alphabet_csp) uexpr \<Rightarrow>
-   ('\<theta>, '\<alpha>) hrelation_csp" where
-"do\<^sub>u e = ($tr\<acute> =\<^sub>u $tr \<and> e \<notin>\<^sub>u $ref\<acute> \<triangleleft> $wait\<acute> \<triangleright> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>e\<rangle>)"
+text {*
+  Simon, I changed the type of the parameter @{term e} of @{text "do\<^sub>u"} to
+  an expression over undashed variable only rather then relational ones. I
+  considered changing it to @{typ "'\<alpha>"} but realised that this causes some
+  inconveniences as increasing the need for explicit coercions of alphabet
+  types, for instance, if variables used in @{term e} have a state-space
+  type consistent with the theory of CSP rather than plain program states.
+  Intuitively, we may want to exclude that expression @{term e} refers to
+  dashed or auxiliary variables though, which motivated my use @{typ "'\<alpha>"}.
+*}
 
-definition OutputCSP :: "('a, '\<theta>) chan \<Rightarrow>
-  ('a, ('\<theta>, '\<alpha>) rel_alphabet_csp) uexpr \<Rightarrow>
+definition do\<^sub>u ::
+  "('\<theta>, (*'\<alpha>*) ('\<theta>, '\<alpha>) alphabet_csp) uexpr \<Rightarrow>
+   ('\<theta>, '\<alpha>) hrelation_csp" where
+"do\<^sub>u e = (let e\<^sub>r = \<lceil>e\<rceil>\<^sub>< in
+  ($tr\<acute> =\<^sub>u $tr \<and> e\<^sub>r \<notin>\<^sub>u $ref\<acute> \<triangleleft> $wait\<acute> \<triangleright> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>e\<^sub>r\<rangle>))"
+
+text {*
+  Simon, I believe we need a conjunction with @{term "\<lceil>II\<rceil>\<^sub>R"} here too, namely
+  if we assume the operator will be used in the context of stateful processes.
+  Otherwise, anything might happen to the program variables after the output
+  communication was performed. Do you agree with this? If yes, just remove the
+  comment with the next commit. If not, perhaps catch me and we talk about it!
+*}
+
+definition OutputCSP ::
+  "('a, '\<theta>) chan \<Rightarrow>
+  ('a, (*'\<alpha>*) ('\<theta>, '\<alpha>) alphabet_csp) uexpr \<Rightarrow>
   ('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow>
   ('\<theta>, '\<alpha>) hrelation_csp" where
-"OutputCSP c v A = (R(true \<turnstile> do\<^sub>u (c\<cdot>v)\<^sub>u) ;; A)"
+"OutputCSP c v A = (R(true \<turnstile> (do\<^sub>u (c\<cdot>v)\<^sub>u \<and> \<lceil>II\<rceil>\<^sub>R)) ;; A)"
 
-text {*
-  I understand that @{term "\<delta>\<^sub>u(c)"} is just @{const UNIV}. Why bother with it
-  at all? Are there some plans to define channels whose type is a subtype of
-  some HOL type? If not, it may be worth to consider removing @{term "\<delta>\<^sub>u"} from
-  the mechanisation.
-*}
 
-text {*
-  A point of interest. The parameter @{text P} yields something of type
-  type @{typ "('\<theta>, '\<alpha>) hrelation_csp"}, hence it may also refer to the
-  auxiliary variables of the theory (of CSP). I presume that our intention
-  is only to refer to state variables here, so perhaps this should be a
-  (homogeneous) relation over @{typ "'a upred"} alone? Perhaps there is a
-  reason using the entire state space here. Ask Simon Foster about this.
-*}
-
-definition do\<^sub>I :: "('a, '\<theta>) chan \<Rightarrow>
-  ('a, ('\<theta>, '\<alpha>) alphabet_csp) uvar \<Rightarrow>
-  ('a \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp) \<Rightarrow>
+definition do\<^sub>I :: "
+  ('a, '\<theta>) chan \<Rightarrow>
+  ('a, (*'\<alpha>*) ('\<theta>, '\<alpha>) alphabet_csp) uvar \<Rightarrow>
+  ('a \<Rightarrow> (*'\<alpha>*) ('\<theta>, '\<alpha>) hrelation_csp) \<Rightarrow>
   ('\<theta>, '\<alpha>) hrelation_csp" where
 "do\<^sub>I c x P = (
   ($tr\<acute> =\<^sub>u $tr \<and> {e : \<guillemotleft>\<delta>\<^sub>u(c)\<guillemotright> | P(e) \<bullet> (c\<cdot>\<guillemotleft>e\<guillemotright>)\<^sub>u}\<^sub>u \<inter>\<^sub>u $ref\<acute> =\<^sub>u {}\<^sub>u)
     \<triangleleft> $wait\<acute> \<triangleright>
-  (($tr\<acute> - $tr) \<in>\<^sub>u {e : \<guillemotleft>\<delta>\<^sub>u(c)\<guillemotright> | P(e) \<bullet> \<langle>(c\<cdot>\<guillemotleft>e\<guillemotright>)\<^sub>u\<rangle>}\<^sub>u \<and> (c\<cdot>$x\<acute>)\<^sub>u =\<^sub>u last\<^sub>u($tr\<acute>)))"
-
-declare [[show_types]]
+  ($tr\<acute> - $tr) \<in>\<^sub>u {e : \<guillemotleft>\<delta>\<^sub>u(c)\<guillemotright> | P(e) \<bullet> \<langle>(c\<cdot>\<guillemotleft>e\<guillemotright>)\<^sub>u\<rangle>}\<^sub>u \<and> (c\<cdot>$x\<acute>)\<^sub>u =\<^sub>u last\<^sub>u($tr\<acute>))"
 
 text {*
-  There is a slight inhomogeneity in the types of parameters below: while the
-  parameter @{term P} is a function from a value (of @{typ "'a"}), parameter
-  A is a function on a lens (of @{typ "('a \<Longrightarrow> ('\<theta>, '\<alpha>) alphabet_csp)"}). I
-  wonder who this affects parsing, and if they should not be both functions
-  on a lens. A second issue is the conjunction with @{term "\<lceil>II\<rceil>\<^sub>R"} which may
-  also put a constraint on the variable @{term x}. I emailed Simon about this.
+  Simon, I believe there was an earlier problem here due to the conjunction
+  with @{term "\<lceil>II\<rceil>\<^sub>R"} as this also puts a constraint on variable @{term x}.
+  If you agree with the fix below, feel free to remove this comments. Below
+  I also highlighted places where we could consider using the plain program
+  state type @{typ "'\<alpha>"}. I did not adopt this for the same reason as noted
+  above, making usage more error-prone due to additional need for coercions.
 *}
 
 definition InputCSP ::
-  "('a::{continuum,two}, '\<theta>) chan \<Rightarrow>
-    ('a list \<Longrightarrow> ('\<theta>, '\<alpha>) alphabet_csp) \<Rightarrow>
-    ('a \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp) \<Rightarrow>
-    (('a \<Longrightarrow> ('\<theta>, '\<alpha>) alphabet_csp) \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp) \<Rightarrow>
-    ('\<theta>, '\<alpha>) hrelation_csp" where
-"InputCSP c x P A = (var\<^bsub>RDES\<^esub> x \<bullet> R(true \<turnstile> do\<^sub>I c x P \<and> \<lceil>II\<rceil>\<^sub>R) ;; A(x))"
-
-text {* I the mixfix annotations below to correctly capture associativity. *}
+  "('a::{continuum, two}, '\<theta>) chan \<Rightarrow>
+    ('a, (*'\<alpha>*) ('\<theta>, '\<alpha>) alphabet_csp) lvar \<Rightarrow>
+    ('a \<Rightarrow> (*'\<alpha>*) ('\<theta>, '\<alpha>) hrelation_csp) \<Rightarrow>
+    (('a, ('\<theta>, '\<alpha>) alphabet_csp) uvar \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp) \<Rightarrow>
+    ('\<theta>, (*'\<alpha>*) '\<alpha>) hrelation_csp" where
+"InputCSP c x P A = (var\<^bsub>RDES\<^esub> x \<bullet> R(true \<turnstile> ((do\<^sub>I c x P) \<and> (\<exists> $x\<acute> \<bullet> II))) ;; A(x))"
 
 syntax
   "_csp_sync" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<rightarrow>\<^sub>u _" [81, 80] 80)
-  "_csp_output" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_!\<^sub>u'(_') \<rightarrow> _" [81, 0, 80] 80)
-  "_csp_input"  :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_?\<^sub>u'(_ :/ _') \<rightarrow> _" [81, 0, 0, 80] 80)
+  "_csp_output" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"
+    ("_!\<^sub>u'(_') \<rightarrow> _" [81, 0, 80] 80)
+  "_csp_input"  :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"
+    ("_?\<^sub>u'(_ :/ _') \<rightarrow> _" [81, 0, 0, 80] 80)
 
 text {*
-  It is possible to support pretty-printing of output prefixes if we replace
-  the two parameters by a single parameter i.e.~corresponding to a lens type.
+  Simon, I think @{text "(CONST top_var \<dots>"} below was a bug since the result
+  is not a type instance of @{typ "('a, '\<alpha>) lvar"} but @{typ "('a, '\<alpha>) uvar"}.
+  Could you perhaps check with the previous version of the translation rules?
+  Pretty-printing of input prefixes now soft of works, although there is still
+  an issue with eta-contractions (@{text "Syntax_Trans.preserve_binder_abs_\<dots>"}
+  only handles the suppression of eta-contraction up to the second argument.
 *}
 
 translations
-  "c!\<^sub>u(v) \<rightarrow> A"     \<rightleftharpoons> "CONST OutputCSP c v A"
-  "c \<rightarrow>\<^sub>u A"         \<rightleftharpoons> "CONST OutputCSP c ()\<^sub>u A"
-  "c?\<^sub>u(x : P) \<rightarrow> A" \<rightharpoonup> "CONST InputCSP c
-                      (CONST top_var (CONST MkDVar IDSTR(x))) (\<lambda>x. P) (\<lambda>x. A)"
-
-text {*
-  Strange that @{term x} has different types in the lambda terms, one being
-  a value and the other being a lens.
-*}
-
-declare [[show_types]]
-
-term "c?\<^sub>u(x : true) \<rightarrow> (Skip \<triangleleft> $x =\<^sub>u \<guillemotleft>1\<guillemotright> \<triangleright> Stop)"
-
-declare [[show_types=false]]
+  "c \<rightarrow>\<^sub>u A"         \<rightleftharpoons> "(CONST OutputCSP) c ()\<^sub>u A"
+  "c!\<^sub>u(v) \<rightarrow> A"     \<rightleftharpoons> "(CONST OutputCSP) c v A"
+  "c?\<^sub>u(x : P) \<rightarrow> A" \<rightharpoonup> "(CONST InputCSP) c
+    (*(CONST top_var \<dots>*) (CONST MkDVar IDSTR(x)) (\<lambda>x. P) (\<lambda>x. A)"
+  "c?\<^sub>u(x : P) \<rightarrow> A" \<leftharpoondown> "(CONST InputCSP) c x (\<lambda>v. P) (\<lambda>w. A)"
 
 subsection {* Parallel Composition *}
 
-text {*
-  Is it true that both operands must be waiting for the parallel composition
-  to wait? I would have thought that one operand waiting is sufficient since
-  @{text "(Stop || Skip) = Stop"}. Also, why @{term "$tr\<acute> \<le>\<^sub>u $tr\<^sub><"} and not
-  @{term "$tr\<^sub>< \<le>\<^sub>u $tr\<acute>"}? Lastly, since the function below is the merge for
-  reactive designs, would it not be better placed / introduced in the theory
-  @{theory utp_rea_designs}?
-*}
-
 subsection {* Merge Predicates *}
+
+text {*
+  Simon, why @{term "$tr\<acute> \<le>\<^sub>u $tr\<^sub><"} and not @{term "$tr\<^sub>< \<le>\<^sub>u $tr\<acute>"} below?
+  Also as the function appears to be the merge operation for reactive designs
+  (subscript @{text "R"}), would it conceptually not be better placed in the
+  theory @{theory utp_rea_designs}? Strangely, the function below appears not
+  to be used anywhere else. Is it redundant now? If so, perhaps remove it!
+*}
 
 definition merge_rd ("M\<^sub>R") where
 [upred_defs]: "M\<^sub>R(M) =
@@ -444,40 +446,46 @@ definition merge_rd ("M\<^sub>R") where
 
 text {*
   I wonder if there is a possibility that the terms @{term "$0-tr - $tr\<^sub><"} and
-  @{term "$1-tr - $tr\<^sub><"} may be undefined. What ensures, for instance, that
+  @{term "$1-tr - $tr\<^sub><"} could be undefined. What ensures, for instance, that
   @{term "$tr\<^sub>< \<le>\<^sub>u $0-tr"} holds? I presume this is guaranteed by both operand
-  processes of the parallel composition being healthy. Furthermore, I am not
-  so sure about the conjunct @{term "$ref\<acute> =\<^sub>u ($0-ref \<union>\<^sub>u $1-ref)"}. Do we not
-  need to take @{term cs} into account here too? I.e.~for events that are not
-  in @{term cs}, they are enabled if one of the operands permits them.
+  processes of the parallel composition being healthy, right? So maybe we do
+  not have to worry about it here. Another issues may be the constraint on the
+  refusal set. Do we not need to take into account @{term cs} as well in order
+  to calculate the refusals @{term "$ref\<acute>"} of the composition? Ask Simon!
 *}
 
 definition N0 :: "'\<psi> set \<Rightarrow> (('\<psi>, unit) alphabet_csp) merge" where
 [upred_defs]: "N0(cs) = (
   $wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and>
+  (* Not sure about the next line... (Frank) *)
   $ref\<acute> =\<^sub>u ($0-ref \<union>\<^sub>u $1-ref) \<and>
   $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and>
   ($tr\<acute> - $tr\<^sub><) \<in>\<^sub>u ($0-tr - $tr\<^sub><) \<star>\<^bsub>\<guillemotleft>cs\<guillemotright>\<^esub> ($1-tr - $tr\<^sub><) \<and>
   ($0-tr - $tr\<^sub><) \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u ($1-tr - $tr\<^sub><) \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>)"
 
-definition
+text {* The definition below does not seem to be used anywhere... Remove? *}
+
+definition M0 :: "'\<psi> set \<Rightarrow> (('\<psi>, unit) alphabet_csp) merge" where
 [upred_defs]: "M0(cs) = (N0(cs) ;; SKIP)"
 
 definition CSPMerge' ("N\<^sub>C\<^sub>S\<^sub>P") where
 [upred_defs]: "CSPMerge'(cs) = ($ok\<acute> =\<^sub>u ($0-ok \<and> $1-ok) \<and> N0(cs))"
 
 text {*
-  I suppose composition with Skip is to remove and constraints on the refusal
-  set after termination, and thus make the process CSP-healthy. Check with Jim
-  and Simon.
+  I suppose composition with @{term SKIP} is to remove and constraints on the
+  refusal set after termination, and thus make the process CSP-healthy.
 *}
 
 definition CSPMerge ("M\<^sub>C\<^sub>S\<^sub>P") where
 [upred_defs]: "CSPMerge(cs) = (N\<^sub>C\<^sub>S\<^sub>P(cs) ;; SKIP)"
 
-text {* So we are not considering programs state below?  *}
-
 subsection {* Parallel Operator *}
+
+text {*
+  So we are not considering processes with program state. Is there a way to
+  generalise the definition below to cater fro state too? Or are there some
+  semantic issues associated with this, beyond merging the state spaces?
+*}
 
 abbreviation ParCSP ::
   "'\<theta> csp \<Rightarrow> '\<theta> event set \<Rightarrow> '\<theta> csp \<Rightarrow> '\<theta> csp" (infixl "[|_|]" 85) where
@@ -502,10 +510,6 @@ lemma SKIP_no_start: "(SKIP\<lbrakk>false/$ok\<rbrakk>) = R1(true)"
 lemma SKIP_pre: "SKIP\<^sup>f = R1(\<not> $ok)"
   by (fast_rel_auto)
 
-(***********************)
-(* REVIEWED UNTIL HERE *)
-(***********************)
-
 lemma parallel_ok_cases:
 "((P \<parallel>\<^sub>s Q) ;; M) = (
   ((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>t) ;; (M\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
@@ -520,11 +524,12 @@ proof -
   also have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> \<^bold>\<exists> ok\<^sub>1 \<bullet> (P\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<acute>\<rbrakk> \<parallel>\<^sub>s Q\<lbrakk>\<guillemotleft>ok\<^sub>1\<guillemotright>/$ok\<acute>\<rbrakk>) ;; (M\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>,\<guillemotleft>ok\<^sub>1\<guillemotright>/$0-ok,$1-ok\<rbrakk>))"
     by (rel_auto)
   also have "... = (
-    ((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>t) ;; (M\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
-    ((P\<^sup>f \<parallel>\<^sub>s Q\<^sup>t) ;; (M\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk>)) \<or>
-    ((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>f) ;; (M\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk>)) \<or>
-    ((P\<^sup>f \<parallel>\<^sub>s Q\<^sup>f) ;; (M\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk>)))"
-    by (simp add: true_alt_def[THEN sym] false_alt_def[THEN sym] disj_assoc utp_pred.sup.left_commute utp_pred.sup_commute usubst)
+      ((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>t) ;; (M\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+      ((P\<^sup>f \<parallel>\<^sub>s Q\<^sup>t) ;; (M\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+      ((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>f) ;; (M\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk>)) \<or>
+      ((P\<^sup>f \<parallel>\<^sub>s Q\<^sup>f) ;; (M\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk>)))"
+    by (simp add: true_alt_def[THEN sym] false_alt_def[THEN sym] disj_assoc
+      utp_pred.sup.left_commute utp_pred.sup_commute usubst)
   finally show ?thesis .
 qed
 
@@ -541,9 +546,10 @@ lemma SKIP_is_R2: "SKIP is R2"
   by (fast_rel_auto)
 
 lemma SKIP_is_R3c: "SKIP is R3c"
-  apply (fast_rel_auto)
-  apply (simp_all add: zero_list_def)
-  using list_minus_anhil by blast
+apply (fast_rel_auto)
+apply (simp_all add: zero_list_def)
+apply (metis append_Nil2 append_minus strict_prefixE)
+done
 
 lemma SKIP_is_CSP1: "SKIP is CSP1"
   by (fast_rel_auto)
@@ -591,41 +597,42 @@ assumes "P is R3" "Q is R3"
 shows "(P \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R3"
 proof -
   have "(skip\<^sub>m ;; N\<^sub>C\<^sub>S\<^sub>P(cs)) = II"
-    apply (fast_rel_auto) using list_minus_anhil by blast
+    apply (fast_rel_auto) using strict_prefixE by fastforce
   thus ?thesis
     by (simp add: R3_par_by_merge assms)
 qed
 
 lemma CSPMerge_div_prop:
 "(div\<^sub>m ;; CSPMerge(cs)) = R1 true"
-  apply (fast_rel_auto)
-  apply (rename_tac ok wait tr ref ok' wait' tr' ref')
-  apply (rule_tac x="ok" in exI)
-  apply (rule_tac x="wait" in exI)
-  apply (rule_tac x="tr" in exI)
-  apply (rule_tac x="ref" in exI)
-  apply (simp)
-  apply (metis minus_cancel order_refl singletonI tr_par.simps(1))
+apply (fast_rel_auto)
+apply (rename_tac ok wait tr ref ok' wait' tr' ref')
+apply (rule_tac x = "ok" in exI)
+apply (rule_tac x = "wait" in exI)
+apply (rule_tac x = "tr" in exI)
+apply (rule_tac x = "ref" in exI)
+apply (simp)
+apply (metis minus_cancel order_refl singletonI tr_par.simps(1))
 done
 
-lemma CSPMerge_wait_prop: "(wait\<^sub>m ;; M\<^sub>C\<^sub>S\<^sub>P(cs)) = II\<lbrakk>true,true/$ok,$wait\<rbrakk>"
-  apply (fast_rel_auto)
-  apply (metis list_minus_anhil zero_list_def)
-  using zero_list_def apply auto
+lemma CSPMerge_wait_prop:
+"(wait\<^sub>m ;; M\<^sub>C\<^sub>S\<^sub>P(cs)) = II\<lbrakk>true,true/$ok,$wait\<rbrakk>"
+apply (fast_rel_auto)
+apply (metis minus_zero_eq zero_list_def)
+using zero_list_def apply auto
 done
 
 lemma parallel_is_R3c:
-  assumes "P is R1" "Q is R1" "P is CSP1" "Q is CSP1" "P is R3c" "Q is R3c"
-  shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R3c"
+assumes "P is R1" "Q is R1" "P is CSP1" "Q is CSP1" "P is R3c" "Q is R3c"
+shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R3c"
   by (simp add: CSPMerge_div_prop CSPMerge_wait_prop R3c_par_by_merge assms)
 
 lemma parallel_is_CSP1:
-  assumes "P is R1" "Q is R1" "P is CSP1" "Q is CSP1"
-  shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is CSP1"
+assumes "P is R1" "Q is R1" "P is CSP1" "Q is CSP1"
+shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is CSP1"
   by (simp add: CSP1_par_by_merge CSPMerge_div_prop CSPMerge_is_R1m assms)
 
 lemma parallel_is_CSP2:
-  "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is CSP2"
+"(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is CSP2"
 proof -
   have "M\<^sub>C\<^sub>S\<^sub>P(cs) is CSP2"
   proof -
@@ -647,28 +654,30 @@ proof -
 qed
 
 lemma parallel_is_CSP:
-  assumes "P is CSP" "Q is CSP"
-  shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is CSP"
-  by (metis CSP_healths(1-4) CSP_intro assms parallel_is_CSP1 parallel_is_CSP2 parallel_is_R1 parallel_is_R2 parallel_is_R3c)
+assumes "P is CSP" "Q is CSP"
+shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is CSP"
+  by (metis CSP_healths(1-4) CSP_intro assms parallel_is_CSP1 parallel_is_CSP2
+    parallel_is_R1 parallel_is_R2 parallel_is_R3c)
 
 lemma parallel_precondition:
-  assumes "P is CSP2"
-  shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>f\<^sub>f = ((P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0(cs) ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<or> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0(cs) ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))"
+assumes "P is CSP2"
+shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>f\<^sub>f = ((P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0(cs) ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<or> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0(cs) ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))"
 proof -
-
   have "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>f\<^sub>f = ((P \<parallel>\<^sub>s Q) ;; M\<^sub>C\<^sub>S\<^sub>P(cs))\<^sup>f\<^sub>f"
     by (simp add: par_by_merge_def)
   also have "... = (((P \<^sub>f \<parallel>\<^sub>s Q \<^sub>f) ;; N\<^sub>C\<^sub>S\<^sub>P(cs)) ;; R1(\<not> $ok))"
     by fast_rel_blast
-  also have "... = ((((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
-                     ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk>)) \<or>
-                     ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk>)) \<or>
-                     ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk>))) ;; R1(\<not> $ok))"
+  also have "... = ((
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+      ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk>)) \<or>
+      ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk>))) ;; R1(\<not> $ok))"
     by (subst parallel_ok_cases, subst_tac)
-  also have "... = ((((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk> ;; R1(\<not> $ok))) \<or>
-                     ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk> ;; R1(\<not> $ok))) \<or>
-                     ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk> ;; R1(\<not> $ok))) \<or>
-                     ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk> ;; R1(\<not> $ok)))) )"
+  also have "... = ((
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk> ;; R1(\<not> $ok))) \<or>
+      ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk> ;; R1(\<not> $ok))) \<or>
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk> ;; R1(\<not> $ok))) \<or>
+      ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk> ;; R1(\<not> $ok)))) )"
     (is "_ = (?C1 \<or>\<^sub>p ?C2 \<or>\<^sub>p ?C3 \<or>\<^sub>p ?C4)")
     by (simp add: seqr_or_distl seqr_assoc)
   also have "... = (?C2 \<or> ?C3)"
@@ -691,15 +700,18 @@ proof -
     ultimately show ?thesis
       by (simp add: subsumption2)
   qed
-  also have "... = (((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N0 cs ;; R1(\<not> $ok)))) \<or>
-                    ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N0 cs ;; R1(\<not> $ok)))))"
+  also have "... = (
+      ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N0 cs ;; R1(\<not> $ok)))) \<or>
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N0 cs ;; R1(\<not> $ok)))))"
     by (fast_rel_blast)
-  also have "... = ((P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(\<not> $ok)\<^esub> Q\<^sup>t\<^sub>f) \<or>
-                    (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(\<not> $ok)\<^esub> Q\<^sup>f\<^sub>f))"
+  also have "... = (
+      (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(\<not> $ok)\<^esub> Q\<^sup>t\<^sub>f) \<or>
+      (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(\<not> $ok)\<^esub> Q\<^sup>f\<^sub>f))"
     (is "_ = ((P\<^sup>f\<^sub>f \<parallel>\<^bsub>?M1\<^esub> Q\<^sup>t\<^sub>f) \<or> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>?M2\<^esub> Q\<^sup>f\<^sub>f))")
     by (simp add: par_by_merge_def)
-  also have "... = ((P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<or>
-                    (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))"
+  also have "... = (
+      (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<or>
+      (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))"
   proof -
     have "?M1 = (N0 cs ;; R1(true))"
       by (fast_rel_auto)
@@ -712,29 +724,33 @@ proof -
 qed
 
 lemma parallel_postcondition:
-  assumes "P is CSP2"
-  shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>t\<^sub>f = ((P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f)
-                             \<or> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0(cs) ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f)
-                             \<or> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0(cs) ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))"
+assumes "P is CSP2"
+shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>t\<^sub>f = (
+  (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f) \<or>
+  (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0(cs) ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<or>
+  (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0(cs) ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))"
 proof -
   have "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>t\<^sub>f = ((P \<parallel>\<^sub>s Q) ;; M\<^sub>C\<^sub>S\<^sub>P(cs))\<^sup>t\<^sub>f"
     by (simp add: par_by_merge_def)
   also have "... = ((P \<^sub>f \<parallel>\<^sub>s Q \<^sub>f) ;; (M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t)"
     by (fast_rel_blast)
-  also have "... = (((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
-                    ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk>)) \<or>
-                    ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk>)) \<or>
-                    ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk>)))"
+  also have "... = (
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+      ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk>)) \<or>
+      ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk>)))"
     by (subst parallel_ok_cases, subst_tac)
-  also have "... = (((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
-                    ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; (N0(cs) ;; R1(true))) \<or>
-                    ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; (N0(cs) ;; R1(true))) \<or>
-                    ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; (N0(cs) ;; R1(true))))"
-     (is "_ = (?C1 \<or>\<^sub>p ?C2 \<or>\<^sub>p ?C3 \<or>\<^sub>p ?C4)")
+  also have "... = (
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+      ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; (N0(cs) ;; R1(true))) \<or>
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; (N0(cs) ;; R1(true))) \<or>
+      ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; (N0(cs) ;; R1(true))))"
+      (is "_ = (?C1 \<or>\<^sub>p ?C2 \<or>\<^sub>p ?C3 \<or>\<^sub>p ?C4)")
     by (simp add: JL1 JL2 JL3)
-  also have "... = (((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
-                    ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; (N0(cs) ;; R1(true))) \<or>
-                    ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; (N0(cs) ;; R1(true))))"
+  also have "... = (
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+      ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; (N0(cs) ;; R1(true))) \<or>
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; (N0(cs) ;; R1(true))))"
   proof -
     from assms have "`P\<^sup>f \<Rightarrow> P\<^sup>t`"
       by (metis CSP2_def H2_equivalence Healthy_def')
@@ -755,29 +771,39 @@ proof -
 qed
 
 theorem parallel_reactive_design:
-  assumes "P is CSP" "Q is CSP"
-  shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) = R((\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<and> \<not> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f)) \<turnstile>
-                                 (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f))"
+assumes "P is CSP" "Q is CSP"
+shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) = R(
+  (\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<and> \<not> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))
+    \<turnstile>
+  (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f))"
 proof -
   have "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) = R((\<not> (P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>f\<^sub>f) \<turnstile> (P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>t\<^sub>f)"
     by (simp add: CSP_reactive_design assms parallel_is_CSP)
-  also have "... = R((\<not> ((P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 (true)\<^esub> Q\<^sup>t\<^sub>f) \<or> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 (true)\<^esub> Q\<^sup>f\<^sub>f))) \<turnstile>
-                      (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f \<or>
-                       P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>t\<^sub>f \<or>
-                       P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>f\<^sub>f))"
+  also have "... = R(
+    (\<not> ((P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 (true)\<^esub> Q\<^sup>t\<^sub>f) \<or> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 (true)\<^esub> Q\<^sup>f\<^sub>f)))
+      \<turnstile>
+    (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f \<or>
+     P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>t\<^sub>f \<or>
+     P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>f\<^sub>f))"
     by (simp add: parallel_precondition parallel_postcondition CSP_healths(5) assms(1))
-  also have "... = R((\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 (true)\<^esub> Q\<^sup>t\<^sub>f) \<and> \<not> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f)) \<turnstile>
-                      ((\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 (true)\<^esub> Q\<^sup>t\<^sub>f \<or> P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f)) \<and>
-                      (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f \<or>
-                       P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>t\<^sub>f \<or>
-                       P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>f\<^sub>f)))"
+  also have "... = R(
+    (\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 (true)\<^esub> Q\<^sup>t\<^sub>f) \<and> \<not> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f)) 
+      \<turnstile>
+    ((\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 (true)\<^esub> Q\<^sup>t\<^sub>f \<or> P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f)) \<and>
+    (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f \<or>
+     P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>t\<^sub>f \<or>
+     P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>f\<^sub>f)))"
     by (simp add: design_export_pre)
-  also have "... = R((\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<and> \<not> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f)) \<turnstile>
-                      ((\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f \<or> P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f)) \<and>
-                      (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f)))"
+  also have "... = R(
+    (\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<and> \<not> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))
+      \<turnstile>
+    ((\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f \<or> P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f)) \<and>
+      (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f)))"
     by (subst neg_conj_cancel2, simp)
-  also have "... = R((\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<and> \<not> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f)) \<turnstile>
-                        (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f))"
+  also have "... = R(
+    (\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<and> \<not> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))
+      \<turnstile>
+    (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f))"
     by (simp add: design_export_pre)
   finally show ?thesis by simp
 qed
@@ -787,11 +813,11 @@ lemma design_subst_ok_ok: "(P\<lbrakk>true/$ok\<rbrakk> \<turnstile> Q\<lbrakk>t
 
 theorem parallel_reactive_design':
   assumes "P is CSP" "Q is CSP"
-  shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) = R((\<not> ((\<not> pre\<^sub>R(P)) \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> cmt\<^sub>R(Q))
-                             \<and> \<not> (cmt\<^sub>R(P) \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> (\<not> pre\<^sub>R(Q)))) \<turnstile>
-                                 (cmt\<^sub>R(P) \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> cmt\<^sub>R(Q)))"
+  shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) = R(
+    (\<not> ((\<not> pre\<^sub>R(P)) \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> cmt\<^sub>R(Q)) \<and>
+     \<not> (cmt\<^sub>R(P) \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> (\<not> pre\<^sub>R(Q)))) \<turnstile>
+    (cmt\<^sub>R(P) \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> cmt\<^sub>R(Q)))"
 proof -
-
   have 1:"(P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>t\<^sub>f)\<lbrakk>true/$ok\<rbrakk> = (\<not> pre\<^sub>R(P)) \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> cmt\<^sub>R(Q)"
     by (fast_rel_blast)
 
@@ -799,23 +825,25 @@ proof -
     by (fast_rel_blast)
 
   have 3:"(P\<^sup>t\<^sub>f \<parallel>\<^bsub>[$0-ok \<mapsto>\<^sub>s true, $1-ok \<mapsto>\<^sub>s true] \<dagger> (M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<^esub> Q\<^sup>t\<^sub>f)\<lbrakk>true/$ok\<rbrakk> =
-                 cmt\<^sub>R P \<parallel>\<^bsub>[$0-ok \<mapsto>\<^sub>s true, $1-ok \<mapsto>\<^sub>s true] \<dagger> (M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<^esub> cmt\<^sub>R Q"
+      cmt\<^sub>R P \<parallel>\<^bsub>[$0-ok \<mapsto>\<^sub>s true, $1-ok \<mapsto>\<^sub>s true] \<dagger> (M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<^esub> cmt\<^sub>R Q"
     by (fast_rel_blast)
 
   have "R((\<not> P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>t\<^sub>f \<and> \<not> P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>f\<^sub>f) \<turnstile>
-            P\<^sup>t\<^sub>f \<parallel>\<^bsub>[$0-ok \<mapsto>\<^sub>s true, $1-ok \<mapsto>\<^sub>s true] \<dagger> (M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<^esub> Q\<^sup>t\<^sub>f) =
+             P\<^sup>t\<^sub>f \<parallel>\<^bsub>[$0-ok \<mapsto>\<^sub>s true, $1-ok \<mapsto>\<^sub>s true] \<dagger> (M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<^esub> Q\<^sup>t\<^sub>f) =
         R((\<not> P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>t\<^sub>f \<and> \<not> P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>f\<^sub>f)\<lbrakk>true/$ok\<rbrakk> \<turnstile>
             (P\<^sup>t\<^sub>f \<parallel>\<^bsub>[$0-ok \<mapsto>\<^sub>s true, $1-ok \<mapsto>\<^sub>s true] \<dagger> (M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<^esub> Q\<^sup>t\<^sub>f)\<lbrakk>true/$ok\<rbrakk>)"
     by (simp add: design_subst_ok_ok)
 
   also have "... =
-          R((\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>t\<^sub>f)\<lbrakk>true/$ok\<rbrakk> \<and> \<not> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>f\<^sub>f)\<lbrakk>true/$ok\<rbrakk>) \<turnstile>
-            (P\<^sup>t\<^sub>f \<parallel>\<^bsub>[$0-ok \<mapsto>\<^sub>s true, $1-ok \<mapsto>\<^sub>s true] \<dagger> (M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<^esub> Q\<^sup>t\<^sub>f)\<lbrakk>true/$ok\<rbrakk>)"
+      R((\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>t\<^sub>f)\<lbrakk>true/$ok\<rbrakk> \<and>
+         \<not> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>f\<^sub>f)\<lbrakk>true/$ok\<rbrakk>) \<turnstile>
+        (P\<^sup>t\<^sub>f \<parallel>\<^bsub>[$0-ok \<mapsto>\<^sub>s true, $1-ok \<mapsto>\<^sub>s true] \<dagger> (M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<^esub> Q\<^sup>t\<^sub>f)\<lbrakk>true/$ok\<rbrakk>)"
     by (simp add: usubst)
 
-  also have "... = R((\<not> ((\<not> pre\<^sub>R(P)) \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> cmt\<^sub>R(Q))
-                        \<and> \<not> (cmt\<^sub>R(P) \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> (\<not> pre\<^sub>R(Q)))) \<turnstile>
-                        (cmt\<^sub>R(P) \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> cmt\<^sub>R(Q)))"
+  also have "... =
+      R((\<not> ((\<not> pre\<^sub>R(P)) \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> cmt\<^sub>R(Q)) \<and>
+         \<not> (cmt\<^sub>R(P) \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> (\<not> pre\<^sub>R(Q)))) \<turnstile>
+        (cmt\<^sub>R(P) \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> cmt\<^sub>R(Q)))"
     by (simp add: 1 2 3)
 
   finally show ?thesis
@@ -829,10 +857,10 @@ apply (metis minus_cancel minus_zero_eq order_refl zero_list_def)
 done
 
 lemma Skip_is_rea_skip: "Skip = II\<^sub>r"
-  apply (rel_auto) using minus_zero_eq by blast+
+apply (fast_rel_auto) using minus_zero_eq by (blast)+
 
 lemma swap_CSPMerge': "(swap\<^sub>m ;; N\<^sub>C\<^sub>S\<^sub>P cs) = N\<^sub>C\<^sub>S\<^sub>P cs"
-  by (rel_auto, (metis tr_par_sym)+)
+  by (fast_rel_auto, (metis tr_par_sym)+)
 
 lemma swap_CSPMerge: "(swap\<^sub>m ;; M\<^sub>C\<^sub>S\<^sub>P cs) = M\<^sub>C\<^sub>S\<^sub>P cs"
   by (simp add: CSPMerge_def seqr_assoc swap_CSPMerge')
@@ -852,16 +880,4 @@ lemma STOP_reactive_design: "STOP = R(true \<turnstile> ($tr\<acute> =\<^sub>u $
 
 lemma STOP_is_CSP: "STOP is CSP"
   by (simp add: STOP_reactive_design RH_design_is_CSP unrest)
-
-(*
-(* TODO : Circus merge predicate: *)
-
-finition "MSt = undefined"
-
-definition "M(cs) = ((($tr\<acute> - $\<^sub><tr) \<in>\<^sub>u (trpar\<^sub>u(\<guillemotleft>cs\<guillemotright>, $0.tr - $\<^sub><tr, $1.tr - $\<^sub><tr)) \<and> $0.tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u $1.tr \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>) \<and>
-                    (  (($0.wait \<or> $1.wait) \<and> $ref\<acute> \<subseteq>\<^sub>u (($0.ref \<union>\<^sub>u $1.ref) \<inter>\<^sub>u \<guillemotleft>cs\<guillemotright>) \<union>\<^sub>u (($0.ref \<inter>\<^sub>u $1.ref) - \<guillemotleft>cs\<guillemotright>))
-                       \<triangleleft> $wait\<acute> \<triangleright>
-                       (\<not> $1.wait \<and> \<not> $2.wait \<and> MSt)
-                    ))"
-*)
 end
