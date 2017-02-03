@@ -7,17 +7,19 @@ begin
 
 text {* In order to exemplify the use of Isabelle/UTP, we mechanise a simple theory representing
         Boyle's law. Boyle's law states that, for an ideal gas at fixed temperature, pressure @{term p} is inversely
-        proportional to volume @{term V}, or more formally that for @{term "k = p\<cdot>V"} is invariant, for
+        proportional to volume @{term V}, or more formally that for @{term "k = p*V"} is invariant, for
         constant @{term k}. We here encode this as a simple UTP theory. We first create a record to
         represent the alphabet of the theory consisting of the three variables \emph{k}, \emph{p}
         and \emph{V}. *}
 
-record alpha_boyle =
-  boyle_k :: real
-  boyle_p :: real
-  boyle_V :: real
+alphabet boyle =
+  k :: real
+  p :: real
+  V :: real
 
-declare alpha_boyle.splits [alpha_splits]
+type_synonym boyle_rel = "boyle hrel"
+
+declare boyle.splits [alpha_splits]
 
 text {*
   The two locale interpretations below are a technicality to improve automatic
@@ -29,53 +31,24 @@ text {*
   alphabets.
 *}
 
-interpretation alpha_boyle_prd: -- {* Closed records are sufficient here. *}
-  lens_interp "\<lambda>r::alpha_boyle. (boyle_k r, boyle_p r, boyle_V r)"
+interpretation boyle_prd: -- {* Closed records are sufficient here. *}
+  lens_interp "\<lambda>r::boyle. (k\<^sub>v r, p\<^sub>v r, V\<^sub>v r)"
 apply (unfold_locales)
 apply (rule injI)
 apply (clarsimp)
 done
 
-interpretation alpha_boyle_rel: -- {* Closed records are sufficient here. *}
-  lens_interp "\<lambda>(r::alpha_boyle, r'::alpha_boyle).
-    (boyle_k r, boyle_k r', boyle_p r, boyle_p r', boyle_V r, boyle_V r')"
+interpretation boyle_rel: -- {* Closed records are sufficient here. *}
+  lens_interp "\<lambda>(r::boyle, r'::boyle).
+    (k\<^sub>v r, k\<^sub>v r', p\<^sub>v r, p\<^sub>v r', V\<^sub>v r, V\<^sub>v r')"
 apply (unfold_locales)
 apply (rule injI)
 apply (clarsimp)
 done
 
-text {* \noindent For now we have to explicitly cast the fields to lenses using the VAR syntactic
-        transformation function~\cite{Feliachi2010} -- in the future this will be automated. We also have to
-        add the definitional equations for these variables to the simplification set for predicates
-        to enable automated proof through our tactics. *}
-
-definition k :: "real \<Longrightarrow> alpha_boyle" where "k = VAR boyle_k"
-definition p :: "real \<Longrightarrow> alpha_boyle" where "p = VAR boyle_p"
-definition V :: "real \<Longrightarrow> alpha_boyle" where "V = VAR boyle_V"
-
-declare k_def [upred_defs] and p_def [upred_defs] and V_def [upred_defs]
-
-text {* We also prove that our new lenses are well-behaved and independent of each other. A selection
-        of these properties are shown below. *}
-
-lemma vwb_lens_k [simp]: "vwb_lens k"
-  by (unfold_locales, simp_all add: k_def)
-(*<*)
-lemma vwb_lens_p [simp]: "vwb_lens p"
-  by (unfold_locales, simp_all add: p_def)
-
-lemma vwb_lens_V [simp]: "vwb_lens V"
-  by (unfold_locales, simp_all add: V_def)
-(*>*)
-
-lemma boyle_indeps [simp]:
-  "k \<bowtie> p" "p \<bowtie> k" "k \<bowtie> V" "V \<bowtie> k" "p \<bowtie> V" "V \<bowtie> p"
-  by (simp_all add: k_def p_def V_def lens_indep_def)
-(*<*)
 lemma boyle_var_ords [usubst]:
   "k \<prec>\<^sub>v p" "p \<prec>\<^sub>v V"
   by (simp_all add: var_name_ord_def)
-(*>*)
 
 subsection {* Static invariant *}
 
@@ -83,7 +56,7 @@ text {* We first create a simple UTP theory representing Boyle's laws on a singl
         invariant healthiness condition. We state Boyle's law using the function \emph{B}, which recalculates
         the value of the constant @{term k} based on @{term p} and @{term V}. *}
 
-definition "B(\<phi>) = ((\<exists> k \<bullet> \<phi>) \<and> (&k =\<^sub>u &p\<cdot>&V))"
+definition "B(\<phi>) = ((\<exists> k \<bullet> \<phi>) \<and> (&k =\<^sub>u &p*&V))"
 (*<*)
 declare B_def [upred_defs]
 (*>*)
@@ -95,10 +68,10 @@ text {* \noindent We can then prove that B is both idempotent and monotone simpl
         iterative constructions with the theory. *}
 
 lemma B_idempotent: "B(B(P)) = B(P)"
-  by pred_auto'
+  by pred_auto
 
 lemma B_monotone: "X \<sqsubseteq> Y \<Longrightarrow> B(X) \<sqsubseteq> B(Y)"
-  by pred_auto'
+  by pred_blast
 
 text {* We also create some example observations; the first (@{term "\<phi>\<^sub>1"}) satisfies Boyle's law and
         the second doesn't (@{term "\<phi>\<^sub>2"}). *}
@@ -126,9 +99,9 @@ lemma B_\<phi>\<^sub>2: "B(\<phi>\<^sub>2) = \<phi>\<^sub>1"
 proof -
   have "B(\<phi>\<^sub>2) = B(&p =\<^sub>u 10 \<and> &V =\<^sub>u 5 \<and> &k =\<^sub>u 100)"
     by (simp add: \<phi>\<^sub>2_def)
-  also have "... = ((\<exists> k \<bullet> &p =\<^sub>u 10 \<and> &V =\<^sub>u 5 \<and> &k =\<^sub>u 100) \<and> &k =\<^sub>u &p\<cdot>&V)"
+  also have "... = ((\<exists> k \<bullet> &p =\<^sub>u 10 \<and> &V =\<^sub>u 5 \<and> &k =\<^sub>u 100) \<and> &k =\<^sub>u &p*&V)"
     by (simp add: B_def)
-  also have "... = (&p =\<^sub>u 10 \<and> &V =\<^sub>u 5 \<and> &k =\<^sub>u &p\<cdot>&V)"
+  also have "... = (&p =\<^sub>u 10 \<and> &V =\<^sub>u 5 \<and> &k =\<^sub>u &p*&V)"
     by pred_auto
   also have "... = (&p =\<^sub>u 10 \<and> &V =\<^sub>u 5 \<and> &k =\<^sub>u 50)"
     by pred_auto
@@ -142,7 +115,7 @@ subsection {* Dynamic invariants *}
 text {* Next we build a relational theory that allows the pressure and volume to be changed,
         whilst still respecting Boyle's law. We create two dynamic invariants for this purpose. *}
 
-definition "D1(P) = (($k =\<^sub>u $p\<cdot>$V \<Rightarrow> $k\<acute> =\<^sub>u $p\<acute>\<cdot>$V\<acute>) \<and> P)"
+definition "D1(P) = (($k =\<^sub>u $p*$V \<Rightarrow> $k\<acute> =\<^sub>u $p\<acute>*$V\<acute>) \<and> P)"
 definition "D2(P) = ($k\<acute> =\<^sub>u $k \<and> P)"
 (*<*)
 declare D1_def [upred_defs]
@@ -166,13 +139,16 @@ lemma D2_monotone: "X \<sqsubseteq> Y \<Longrightarrow> D2(X) \<sqsubseteq> D2(Y
 text {* Since these properties are relational, we discharge them using our relational calculus tactic
         \emph{rel-tac}. Next we specify three operations that make up the signature of the theory. *}
 
-definition(*<*)[upred_defs]:(*>*) "InitSys ip iV
-  = ((\<guillemotleft>ip\<guillemotright> >\<^sub>u 0 \<and> \<guillemotleft>iV\<guillemotright> >\<^sub>u 0)\<^sup>\<top> ;; p,V,k := \<guillemotleft>ip\<guillemotright>,\<guillemotleft>iV\<guillemotright>,(\<guillemotleft>ip\<guillemotright>\<cdot>\<guillemotleft>iV\<guillemotright>))"
+definition InitSys :: "real \<Rightarrow> real \<Rightarrow> boyle_rel" where
+  (*<*)[upred_defs]:(*>*) "InitSys ip iV
+  = ((\<guillemotleft>ip\<guillemotright> >\<^sub>u 0 \<and> \<guillemotleft>iV\<guillemotright> >\<^sub>u 0)\<^sup>\<top> ;; p,V,k := \<guillemotleft>ip\<guillemotright>,\<guillemotleft>iV\<guillemotright>,(\<guillemotleft>ip\<guillemotright>*\<guillemotleft>iV\<guillemotright>))"
 
-definition(*<*)[upred_defs]:(*>*) "ChPres dp
+definition ChPres :: "real \<Rightarrow> boyle_rel" where
+  (*<*)[upred_defs]:(*>*) "ChPres dp
   = ((&p + \<guillemotleft>dp\<guillemotright> >\<^sub>u 0)\<^sup>\<top> ;; p := &p + \<guillemotleft>dp\<guillemotright> ;; V := (&k/&p))"
 
-definition(*<*)[upred_defs]:(*>*) "ChVol dV
+definition ChVol :: "real \<Rightarrow> boyle_rel" where
+  (*<*)[upred_defs]:(*>*) "ChVol dV
   = ((&V + \<guillemotleft>dV\<guillemotright> >\<^sub>u 0)\<^sup>\<top> ;; V := &V + \<guillemotleft>dV\<guillemotright> ;; p := (&k/&V))"
 
 text {* @{const InitSys} initialises the system with a given initial pressure ($ip$) and volume ($iV$).
@@ -232,23 +208,6 @@ proof -
   finally show ?thesis .
 qed
 
-(************************)
-(* Added by Frank Zeyda *)
-(************************)
-
-(*
-lemma "(<x::nat> := 1 ;; <x::nat> := &<x::nat> + 1) = <x::nat> := 2"
-apply (rel_auto)
-apply (simp add: numeral_2_eq_2)
-apply (simp add: numeral_2_eq_2)
-done
-
-lemma "({x::nat}\<^sub>x := 1 ;; {x::nat}\<^sub>x := &{x::nat}\<^sub>x + 1) = {x::nat}\<^sub>x := 2"
-apply (rel_auto)
-apply (simp add: numeral_2_eq_2)
-apply (simp add: numeral_2_eq_2)
-done
-*)
 (*<*)
 end
 (*>*)

@@ -35,11 +35,8 @@ consts subst_upd :: "('\<alpha>,'\<beta>) psubst \<Rightarrow> 'v \<Rightarrow> 
 definition subst_upd_uvar :: "('\<alpha>,'\<beta>) psubst \<Rightarrow> ('a, '\<beta>) uvar \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>,'\<beta>) psubst" where
 "subst_upd_uvar \<sigma> x v = (\<lambda> b. put\<^bsub>x\<^esub> (\<sigma> b) (\<lbrakk>v\<rbrakk>\<^sub>eb))"
 
-definition subst_upd_dvar :: "('\<alpha>,'\<beta>::vst) psubst \<Rightarrow> 'a::continuum dvar \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>,'\<beta>) psubst" where
-"subst_upd_dvar \<sigma> x v = subst_upd_uvar \<sigma> (x\<up>) v"
-
 adhoc_overloading
-  subst_upd subst_upd_uvar and subst_upd subst_upd_dvar
+  subst_upd subst_upd_uvar
 
 text {* Lookup the expression associated with a variable in a substitution *}
 

@@ -210,6 +210,14 @@ instance
      (transfer, auto intro: INF_lower SUP_upper simp add: INF_greatest SUP_least)+
 end
 
+syntax
+  "_mu" :: "idt \<Rightarrow> logic \<Rightarrow> logic" ("\<mu> _ \<bullet> _" [0, 10] 10)
+  "_nu" :: "idt \<Rightarrow> logic \<Rightarrow> logic" ("\<nu> _ \<bullet> _" [0, 10] 10)
+
+translations
+  "\<nu> X \<bullet> P" == "CONST lfp (\<lambda> X. P)"
+  "\<mu> X \<bullet> P" == "CONST gfp (\<lambda> X. P)"
+
 text {* With the lattice operators defined, we can proceed to give definitions for the
         standard predicate operators in terms of them. *}
 
@@ -309,7 +317,6 @@ declare disj_upred_def [upred_defs]
 declare not_upred_def [upred_defs]
 declare diff_upred_def [upred_defs]
 declare subst_upd_uvar_def [upred_defs]
-declare subst_upd_dvar_def [upred_defs]
 declare unrest_usubst_def [upred_defs]
 declare uexpr_defs [upred_defs]
 

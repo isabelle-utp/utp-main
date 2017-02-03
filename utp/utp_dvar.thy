@@ -1,7 +1,7 @@
 subsection {* Deep UTP variables *}
 
 theory utp_dvar
-  imports utp_var 
+  imports utp_pred
 begin
 
 (* FIXME: Redo also this properly using the function update lens *)
@@ -336,5 +336,27 @@ let fun MkDVar_tr' _ [name] =
   [(@{const_syntax "MkDVar"}, MkDVar_tr')]
 end
 *}
+
+definition dvar_exp :: "'t::continuum dvar \<Rightarrow> ('t, '\<alpha>::vst) uexpr"
+where "dvar_exp x = var (dvar_lift x)"
+
+definition unrest_dvar_upred :: "'a::continuum dvar \<Rightarrow> ('b, '\<alpha>::vst) uexpr \<Rightarrow> bool" where
+"unrest_dvar_upred x P = unrest_upred (x\<up>) P"
+
+definition subst_upd_dvar :: "('\<alpha>,'\<beta>::vst) psubst \<Rightarrow> 'a::continuum dvar \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>,'\<beta>) psubst" where
+"subst_upd_dvar \<sigma> x v = subst_upd_uvar \<sigma> (x\<up>) v"
+
+adhoc_overloading
+  subst_upd subst_upd_dvar
+
+declare subst_upd_dvar_def [upred_defs]
+
+text {* Set up deep variable blocks *}
+
+translations
+  "var\<^bsub>T\<^esub> <x> \<bullet> P" => "var\<^bsub>T\<^esub> <x> ;; ((\<lambda> x. P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end\<^bsub>T\<^esub> <x>"
+  "var\<^bsub>T\<^esub> <x> :: 'a \<bullet> P" => "var\<^bsub>T\<^esub> <x::'a list> ;; ((\<lambda> x :: ('a, _) uvar. P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end\<^bsub>T\<^esub> <x::'a list>"
+  "var\<^bsub>T\<^esub> <x>  :: 'a := v \<bullet> P" => "var\<^bsub>T\<^esub> <x> :: 'a \<bullet> x ::=\<^bsub>T\<^esub> v ;; P"
+
 
 end

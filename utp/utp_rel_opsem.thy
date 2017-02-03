@@ -4,7 +4,7 @@ theory utp_rel_opsem
   imports utp_rel
 begin
 
-fun trel :: "'\<alpha> usubst \<times> '\<alpha> hrelation \<Rightarrow> '\<alpha> usubst \<times> '\<alpha> hrelation \<Rightarrow> bool" (infix "\<rightarrow>\<^sub>u" 85) where
+fun trel :: "'\<alpha> usubst \<times> '\<alpha> hrel \<Rightarrow> '\<alpha> usubst \<times> '\<alpha> hrel \<Rightarrow> bool" (infix "\<rightarrow>\<^sub>u" 85) where
 "(\<sigma>, P) \<rightarrow>\<^sub>u (\<rho>, Q) \<longleftrightarrow> (\<langle>\<sigma>\<rangle>\<^sub>a ;; P) \<sqsubseteq> (\<langle>\<rho>\<rangle>\<^sub>a ;; Q)"
 
 lemma trans_trel:
@@ -26,7 +26,7 @@ lemma assign_trel:
 lemma seq_trel:
   assumes "(\<sigma>, P) \<rightarrow>\<^sub>u (\<rho>, Q)"
   shows "(\<sigma>, P ;; R) \<rightarrow>\<^sub>u (\<rho>, Q ;; R)"
-  by (metis (no_types, lifting) assms seqr_assoc trel.simps upred_quantale.mult_isor)
+  by (metis (no_types, lifting) assms order_refl seqr_assoc seqr_mono trel.simps)
  
 lemma seq_skip_trel:
   "(\<sigma>, II ;; P) \<rightarrow>\<^sub>u (\<sigma>, P)"
@@ -34,11 +34,11 @@ lemma seq_skip_trel:
 
 lemma nondet_left_trel:
   "(\<sigma>, P \<sqinter> Q) \<rightarrow>\<^sub>u (\<sigma>, P)"
-  by (simp add: upred_quantale.subdistl)
+  by (metis (no_types, hide_lams) disj_comm disj_upred_def semilattice_sup_class.sup.absorb_iff1 semilattice_sup_class.sup.left_idem seqr_or_distr trel.simps)
 
 lemma nondet_right_trel:
   "(\<sigma>, P \<sqinter> Q) \<rightarrow>\<^sub>u (\<sigma>, Q)"
-  using nondet_left_trel by force
+  by (simp add: seqr_mono)
 
 lemma rcond_true_trel:
   assumes "\<sigma> \<dagger> b = true"

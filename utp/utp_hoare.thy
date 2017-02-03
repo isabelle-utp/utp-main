@@ -6,7 +6,7 @@ begin
 
 named_theorems hoare
 
-definition hoare_r :: "'\<alpha> condition \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> condition \<Rightarrow> bool" ("\<lbrace>_\<rbrace>_\<lbrace>_\<rbrace>\<^sub>u") where
+definition hoare_r :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> cond \<Rightarrow> bool" ("\<lbrace>_\<rbrace>_\<lbrace>_\<rbrace>\<^sub>u") where
 "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u = ((\<lceil>p\<rceil>\<^sub>< \<Rightarrow> \<lceil>r\<rceil>\<^sub>>) \<sqsubseteq> Q)"
 
 declare hoare_r_def [upred_defs]
@@ -32,19 +32,8 @@ lemma cond_hoare_r [hoare]: "\<lbrakk> \<lbrace>b \<and> p\<rbrace>S\<lbrace>q\<
 lemma while_hoare_r [hoare]: 
   assumes "\<lbrace>p \<and> b\<rbrace>S\<lbrace>p\<rbrace>\<^sub>u"
   shows "\<lbrace>p\<rbrace>while b do S od\<lbrace>\<not>b \<and> p\<rbrace>\<^sub>u"
-proof -
-  from assms have "(\<lceil>p\<rceil>\<^sub>< \<Rightarrow> \<lceil>p\<rceil>\<^sub>>) \<sqsubseteq> (II \<sqinter> ((\<lceil>b\<rceil>\<^sub>< \<and> S) ;; (\<lceil>p\<rceil>\<^sub>< \<Rightarrow> \<lceil>p\<rceil>\<^sub>>)))"
-    by (simp add: hoare_r_def) (rel_auto)  
-  hence p: "(\<lceil>p\<rceil>\<^sub>< \<Rightarrow> \<lceil>p\<rceil>\<^sub>>) \<sqsubseteq> (\<lceil>b\<rceil>\<^sub>< \<and> S)\<^sup>\<star>\<^sub>u"
-    by (rule upred_quantale.star_inductl_one[rule_format])
-  have "(\<not>\<lceil>b\<rceil>\<^sub>> \<and> \<lceil>p\<rceil>\<^sub>>) \<sqsubseteq> ((\<lceil>p\<rceil>\<^sub>< \<and> (\<lceil>p\<rceil>\<^sub>< \<Rightarrow> \<lceil>p\<rceil>\<^sub>>)) \<and> (\<not>\<lceil>b\<rceil>\<^sub>>))"
-    by (rel_auto)
-  with p have "(\<not>\<lceil>b\<rceil>\<^sub>> \<and> \<lceil>p\<rceil>\<^sub>>) \<sqsubseteq> ((\<lceil>p\<rceil>\<^sub>< \<and> (\<lceil>b\<rceil>\<^sub>< \<and> S)\<^sup>\<star>\<^sub>u) \<and> (\<not>\<lceil>b\<rceil>\<^sub>>))"
-    by (meson order_refl order_trans utp_pred.inf_mono)
-  thus ?thesis
-    unfolding hoare_r_def while_def
-    by (auto intro: spec_refine simp add: alpha utp_pred.conj_assoc)
-qed
+  using assms
+  by (simp add: while_def hoare_r_def, rule_tac lfp_lowerbound) (rel_auto)
 
 lemma while_invr_hoare_r [hoare]:
   assumes "\<lbrace>p \<and> b\<rbrace>S\<lbrace>p\<rbrace>\<^sub>u" "`pre \<Rightarrow> p`" "`(\<not>b \<and> p) \<Rightarrow> post`"

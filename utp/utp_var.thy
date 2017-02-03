@@ -2,20 +2,15 @@ section {* UTP variables *}
 
 theory utp_var
 imports
-  "../contrib/Kleene_Algebra/Quantales" 
   "../contrib/HOL-Algebra2/Complete_Lattice"
   "../contrib/HOL-Algebra2/Galois_Connection"
-  "../utils/cardinals"
-  "../utils/Continuum"
   "../utils/finite_bijection"
   "../utils/interp"
   "../utils/Lenses"
-  "../utils/Positive_New"
   "../utils/Profiling"
-  "../utils/ttrace"
+(* "../utils/ttrace" *)
   "../utils/Library_extra/Pfun"
   "../utils/Library_extra/Ffun"
-  "../utils/Library_extra/Derivative_extra"
   "../utils/Library_extra/List_lexord_alt"
   "../utils/Library_extra/Monoid_extra"
   "~~/src/HOL/Library/Prefix_Order"
@@ -27,13 +22,15 @@ imports
   utp_parser_utils
 begin
 
-no_notation inner (infix "\<bullet>" 70)
+text {* We will overload both the bullet and the square order relation with refinement so
+  we will turn of thss notation. *}
 
+no_notation inner (infix "\<bullet>" 70)
 no_notation le (infixl "\<sqsubseteq>\<index>" 50)
 
-no_notation
-  Set.member  ("op :") and
-  Set.member  ("(_/ : _)" [51, 51] 50)
+text {* We hide HOL's built-in relation type since we will replace it with our own *}
+
+hide_type rel
 
 declare fst_vwb_lens [simp]
 declare snd_vwb_lens [simp]
@@ -49,21 +46,11 @@ text {* This theory describes the foundational structure of UTP variables, upon 
 
 type_synonym '\<alpha> "alphabet"  = "'\<alpha>"
 
-text {* UTP variables carry two type parameters, $'a$ that corresponds to the variable's type
-        and $'\alpha$ that corresponds to alphabet of which the variable is a type. There
-        is a thus a strong link between alphabets and variables in this model. Variable are characterized 
-        by two functions, \emph{var-lookup} and \emph{var-update}, that respectively lookup and update 
-        the variable's value in some alphabetised state space. These functions can readily be extracted
-        from an Isabelle record type.
-*}
+text {* UTP variables in this frame are simply modelled as lenses, where the view type
+  @{typ "'a"} is the variable type, and the source type @{text "'\<alpha>"} is the state-space
+  type. *}
 
 type_synonym ('a, '\<alpha>) uvar = "('a, '\<alpha>) lens"
-
-text {* The $VAR$ function~\cite{Feliachi2010} is a syntactic translations that allows to retrieve a variable given its 
-        name, assuming the variable is a field in a record. *}
-
-syntax "_VAR" :: "id \<Rightarrow> ('a, 'r) uvar"  ("VAR _")
-translations "VAR x" => "FLDLENS x"
 
  text {* We also define some lifting functions for variables to create input and output variables.
         These simply lift the alphabet to a tuple type since relations will ultimately be defined
@@ -144,7 +131,6 @@ nonterminal svid and svar and salpha
 syntax
   "_salphaid"    :: "id \<Rightarrow> salpha" ("_" [998] 998)
   "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [998] 998)
-(*  "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr "," 75) *)
   "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr ";" 75)
   "_svid"        :: "id \<Rightarrow> svid" ("_" [999] 999)
   "_svid_alpha"  :: "svid" ("\<Sigma>")

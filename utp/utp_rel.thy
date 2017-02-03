@@ -86,18 +86,18 @@ lemma alpha_in_out:
   "\<Sigma> \<approx>\<^sub>L in\<alpha> +\<^sub>L out\<alpha>"
   by (metis fst_lens_def fst_snd_id_lens in\<alpha>_def lens_equiv_refl out\<alpha>_def snd_lens_def)
 
-type_synonym '\<alpha> condition       = "'\<alpha> upred"
-type_synonym ('\<alpha>, '\<beta>) relation  = "('\<alpha> \<times> '\<beta>) upred"
-type_synonym '\<alpha> hrelation       = "('\<alpha> \<times> '\<alpha>) upred"
+type_synonym '\<alpha> cond      = "'\<alpha> upred"
+type_synonym ('\<alpha>, '\<beta>) rel = "('\<alpha> \<times> '\<beta>) upred"
+type_synonym '\<alpha> hrel      = "('\<alpha> \<times> '\<alpha>) upred"
 
 translations
-  (type) "('\<alpha>, '\<beta>) relation" <= (type) "('\<alpha> \<times> '\<beta>) upred"
+  (type) "('\<alpha>, '\<beta>) rel" <= (type) "('\<alpha> \<times> '\<beta>) upred"
 
 definition cond::"'\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred"
                                                           ("(3_ \<triangleleft> _ \<triangleright>/ _)" [14,0,15] 14)
 where "(P \<triangleleft> b \<triangleright> Q) \<equiv> (b \<and> P) \<or> ((\<not> b) \<and> Q)"
 
-abbreviation rcond::"('\<alpha>,  '\<beta>) relation \<Rightarrow> '\<alpha> condition \<Rightarrow> ('\<alpha>,  '\<beta>) relation \<Rightarrow> ('\<alpha>,  '\<beta>) relation"
+abbreviation rcond::"('\<alpha>,  '\<beta>) rel \<Rightarrow> '\<alpha> cond \<Rightarrow> ('\<alpha>,  '\<beta>) rel \<Rightarrow> ('\<alpha>,  '\<beta>) rel"
                                                           ("(3_ \<triangleleft> _ \<triangleright>\<^sub>r/ _)" [14,0,15] 14)
 where "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<equiv> (P \<triangleleft> \<lceil>b\<rceil>\<^sub>< \<triangleright> Q)"
 
@@ -107,7 +107,7 @@ is "\<lambda> P Q r. r \<in> ({p. P p} O {q. Q q})" .
 lift_definition conv_r :: "('a, '\<alpha> \<times> '\<beta>) uexpr \<Rightarrow> ('a, '\<beta> \<times> '\<alpha>) uexpr" ("_\<^sup>-" [999] 999)
 is "\<lambda> e (b1, b2). e (b2, b1)" .
 
-definition skip_ra :: "('\<beta>, '\<alpha>) lens \<Rightarrow>'\<alpha> hrelation" where
+definition skip_ra :: "('\<beta>, '\<alpha>) lens \<Rightarrow>'\<alpha> hrel" where
 [urel_defs]: "skip_ra v = ($v\<acute> =\<^sub>u $v)"
 
 syntax
@@ -122,20 +122,20 @@ abbreviation usubst_rel_lift :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<tim
 abbreviation usubst_rel_drop :: "('\<alpha> \<times> '\<alpha>) usubst \<Rightarrow> '\<alpha> usubst" ("\<lfloor>_\<rfloor>\<^sub>s") where
 "\<lfloor>\<sigma>\<rfloor>\<^sub>s \<equiv> \<sigma> \<restriction>\<^sub>s in\<alpha>"
 
-definition assigns_ra :: "'\<alpha> usubst \<Rightarrow> ('\<beta>, '\<alpha>) lens \<Rightarrow> '\<alpha> hrelation" ("\<langle>_\<rangle>\<^bsub>_\<^esub>") where
+definition assigns_ra :: "'\<alpha> usubst \<Rightarrow> ('\<beta>, '\<alpha>) lens \<Rightarrow> '\<alpha> hrel" ("\<langle>_\<rangle>\<^bsub>_\<^esub>") where
 "\<langle>\<sigma>\<rangle>\<^bsub>a\<^esub> = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> II\<^bsub>a\<^esub>)"
 
-lift_definition assigns_r :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrelation" ("\<langle>_\<rangle>\<^sub>a")
+lift_definition assigns_r :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrel" ("\<langle>_\<rangle>\<^sub>a")
   is "\<lambda> \<sigma> (A, A'). A' = \<sigma>(A)" .
 
-definition skip_r :: "'\<alpha> hrelation" where
+definition skip_r :: "'\<alpha> hrel" where
 "skip_r = assigns_r id"
 
-abbreviation assign_r :: "('t, '\<alpha>) uvar \<Rightarrow> ('t, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrelation"
+abbreviation assign_r :: "('t, '\<alpha>) uvar \<Rightarrow> ('t, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrel"
 where "assign_r x v \<equiv> assigns_r [x \<mapsto>\<^sub>s v]"
 
 abbreviation assign_2_r ::
-  "('t1, '\<alpha>) uvar \<Rightarrow> ('t2, '\<alpha>) uvar \<Rightarrow> ('t1, '\<alpha>) uexpr \<Rightarrow> ('t2, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrelation"
+  "('t1, '\<alpha>) uvar \<Rightarrow> ('t2, '\<alpha>) uvar \<Rightarrow> ('t1, '\<alpha>) uexpr \<Rightarrow> ('t2, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrel"
 where "assign_2_r x y u v \<equiv> assigns_r [x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v]"
 
 nonterminal
@@ -146,7 +146,7 @@ syntax
   "_svid_list"  :: "svid \<Rightarrow> svid_list \<Rightarrow> svid_list" ("_,/ _")
   "_uexpr_unit" :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list" ("_" [40] 40)
   "_uexpr_list" :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list \<Rightarrow> uexpr_list" ("_,/ _" [40,40] 40)
-  "_assignment" :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrelation"  (infixr ":=" 62)
+  "_assignment" :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  (infixr ":=" 62)
   "_mk_usubst"  :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> usubst"
 
 translations
@@ -161,20 +161,20 @@ adhoc_overloading
   useq seqr and
   uskip skip_r
 
-definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrelation" ("_\<^sup>\<top>" [999] 999) where
+definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<top>" [999] 999) where
 [urel_defs]: "rassume c = (II \<triangleleft> c \<triangleright>\<^sub>r false)"
 
-definition rassert :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrelation" ("_\<^sub>\<bottom>" [999] 999) where
+definition rassert :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("_\<^sub>\<bottom>" [999] 999) where
 [urel_defs]: "rassert c = (II \<triangleleft> c \<triangleright>\<^sub>r true)"
 
 text {* We describe some properties of relations *}
 
-definition ufunctional :: "('a, 'b) relation \<Rightarrow> bool"
+definition ufunctional :: "('a, 'b) rel \<Rightarrow> bool"
 where "ufunctional R \<longleftrightarrow> (II \<sqsubseteq> (R\<^sup>- ;; R))"
 
 declare ufunctional_def [urel_defs]
 
-definition uinj :: "('a, 'b) relation \<Rightarrow> bool"
+definition uinj :: "('a, 'b) rel \<Rightarrow> bool"
 where "uinj R \<longleftrightarrow> II \<sqsubseteq> (R ;; R\<^sup>-)"
 
 declare uinj_def [urel_defs]
@@ -182,7 +182,7 @@ declare uinj_def [urel_defs]
 text {* A test is like a precondition, except that it identifies to the postcondition. It
         forms the basis for Kleene Algebra with Tests (KAT). *}
 
-definition lift_test :: "'\<alpha> condition \<Rightarrow> '\<alpha> hrelation" ("\<lceil>_\<rceil>\<^sub>t")
+definition lift_test :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel" ("\<lceil>_\<rceil>\<^sub>t")
 where "\<lceil>b\<rceil>\<^sub>t = (\<lceil>b\<rceil>\<^sub>< \<and> II)"
 
 declare cond_def [urel_defs]
@@ -190,7 +190,7 @@ declare skip_r_def [urel_defs]
 
 text {* We implement a poor man's version of alphabet restriction that hides a variable within a relation *}
 
-definition rel_var_res :: "'\<alpha> hrelation \<Rightarrow> ('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrelation" (infix "\<restriction>\<^sub>\<alpha>" 80) where
+definition rel_var_res :: "'\<alpha> hrel \<Rightarrow> ('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrel" (infix "\<restriction>\<^sub>\<alpha>" 80) where
 "P \<restriction>\<^sub>\<alpha> x = (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P)"
 
 declare rel_var_res_def [urel_defs]
@@ -220,11 +220,11 @@ lemma unrest_cond [unrest]:
   by (rel_auto)
 
 lemma unrest_in\<alpha>_var [unrest]:
-  "\<lbrakk> mwb_lens x; in\<alpha> \<sharp> (P :: ('\<alpha>, '\<beta>) relation) \<rbrakk> \<Longrightarrow> $x \<sharp> P"
+  "\<lbrakk> mwb_lens x; in\<alpha> \<sharp> (P :: ('\<alpha>, '\<beta>) rel) \<rbrakk> \<Longrightarrow> $x \<sharp> P"
   by (pred_auto, simp add: in\<alpha>_def, blast, metis in\<alpha>_def lens.select_convs(2) old.prod.case)
 
 lemma unrest_out\<alpha>_var [unrest]:
-  "\<lbrakk> mwb_lens x; out\<alpha> \<sharp> (P :: ('\<alpha>, '\<beta>) relation) \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> P"
+  "\<lbrakk> mwb_lens x; out\<alpha> \<sharp> (P :: ('\<alpha>, '\<beta>) rel) \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> P"
   by (pred_auto, simp add: out\<alpha>_def, blast, metis lens.select_convs(2) old.prod.case out\<alpha>_def)
 
 lemma in\<alpha>_uvar [simp]: "vwb_lens in\<alpha>"
@@ -346,39 +346,23 @@ subsection {* Relation laws *}
 text {* Homogeneous relations form a quantale. This allows us to import a large number of laws
         from Struth and Armstrong's Kleene Algebra theory~\cite{Armstrong2015}. *}
 
-abbreviation truer :: "'\<alpha> hrelation" ("true\<^sub>h") where
+abbreviation truer :: "'\<alpha> hrel" ("true\<^sub>h") where
 "truer \<equiv> true"
 
-abbreviation falser :: "'\<alpha> hrelation" ("false\<^sub>h") where
+abbreviation falser :: "'\<alpha> hrel" ("false\<^sub>h") where
 "falser \<equiv> false"
-
-interpretation upred_quantale: unital_quantale_plus
-  where times = seqr and one = skip_r and Sup = Sup and Inf = Inf and inf = inf and less_eq = less_eq and less = less
-  and sup = sup and bot = bot and top = top
-  apply (unfold_locales)
-  apply (rel_auto)
-  apply (unfold SUP_def, transfer, auto)
-  apply (unfold SUP_def, transfer, auto)
-  apply (unfold INF_def, transfer, auto)
-  apply (unfold INF_def, transfer, auto)
-  apply (rel_auto)
-  apply (rel_auto)
-done
 
 lemma drop_pre_inv [simp]: "\<lbrakk> out\<alpha> \<sharp> p \<rbrakk> \<Longrightarrow> \<lceil>\<lfloor>p\<rfloor>\<^sub><\<rceil>\<^sub>< = p"
   by (pred_auto, auto simp add: out\<alpha>_def lens_create_def fst_lens_def prod.case_eq_if)
 
-abbreviation ustar :: "'\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("_\<^sup>\<star>\<^sub>u" [999] 999) where
-"P\<^sup>\<star>\<^sub>u \<equiv> unital_quantale.qstar II op ;; Sup P"
-
-definition while :: "'\<alpha> condition \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("while _ do _ od") where
-"while b do P od = ((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u \<and> (\<not> \<lceil>b\<rceil>\<^sub>>))"
+definition while :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while _ do _ od") where
+"while b do P od = (\<nu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
 
 declare while_def [urel_defs]
 
 text {* While loops with invariant decoration *}
 
-definition while_inv :: "'\<alpha> condition \<Rightarrow> '\<alpha> condition \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" ("while _ invr _ do _ od") where
+definition while_inv :: "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while _ invr _ do _ od") where
 "while b invr p do S od = while b do S od"
 
 lemma cond_idem:"(P \<triangleleft> b \<triangleright> P) = P" by rel_auto
@@ -472,6 +456,18 @@ lemma impl_seqr_mono: "\<lbrakk> `P \<Rightarrow> Q`; `R \<Rightarrow> S` \<rbra
 lemma seqr_mono:
   "\<lbrakk> P\<^sub>1 \<sqsubseteq> P\<^sub>2; Q\<^sub>1 \<sqsubseteq> Q\<^sub>2 \<rbrakk> \<Longrightarrow> (P\<^sub>1 ;; Q\<^sub>1) \<sqsubseteq> (P\<^sub>2 ;; Q\<^sub>2)"
   by (rel_blast)
+
+lemma seqr_monotonic: 
+  "\<lbrakk> mono P; mono Q \<rbrakk> \<Longrightarrow> mono (\<lambda> X. P X ;; Q X)"
+  by (simp add: mono_def, rel_blast)
+
+lemma cond_mono:
+  "\<lbrakk> P\<^sub>1 \<sqsubseteq> P\<^sub>2; Q\<^sub>1 \<sqsubseteq> Q\<^sub>2 \<rbrakk> \<Longrightarrow> (P\<^sub>1 \<triangleleft> b \<triangleright> Q\<^sub>1) \<sqsubseteq> (P\<^sub>2 \<triangleleft> b \<triangleright> Q\<^sub>2)"
+  by (rel_auto)
+
+lemma cond_monotonic:
+  "\<lbrakk> mono P; mono Q \<rbrakk> \<Longrightarrow> mono (\<lambda> X. P X \<triangleleft> b \<triangleright> Q X)"
+  by (simp add: mono_def, rel_blast)
 
 lemma spec_refine:
   "Q \<sqsubseteq> (P \<and> R) \<Longrightarrow> (P \<Rightarrow> Q) \<sqsubseteq> R"
@@ -771,10 +767,10 @@ lemma assert_twice: "(b\<^sub>\<bottom> ;; c\<^sub>\<bottom>) = (b \<and> c)\<^s
 
 subsection {* Frame and antiframe *}
 
-definition frame :: "('a, '\<alpha>) lens \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" where
+definition frame :: "('a, '\<alpha>) lens \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
 [urel_defs]: "frame x P = (II\<^bsub>x\<^esub> \<and> P)"
 
-definition antiframe :: "('a, '\<alpha>) lens \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation" where
+definition antiframe :: "('a, '\<alpha>) lens \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
 [urel_defs]: "antiframe x P = (II\<restriction>\<^sub>\<alpha>x \<and> P)"
 
 syntax
@@ -801,55 +797,19 @@ lemma antiframe_to_frame:
 
 text {* While loop laws *}
 
-lemma while_cond_true:
-  "((while b do P od) \<and> \<lceil>b\<rceil>\<^sub><) = ((P \<and> \<lceil>b\<rceil>\<^sub><) ;; while b do P od)"
-proof -
-  have "(while b do P od \<and> \<lceil>b\<rceil>\<^sub><) = (((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u \<and> (\<not> \<lceil>b\<rceil>\<^sub>>)) \<and> \<lceil>b\<rceil>\<^sub><)"
-    by (simp add: while_def)
-  also have "... = (((II \<or> ((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; (\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u)) \<and> \<not> \<lceil>b\<rceil>\<^sub>>) \<and> \<lceil>b\<rceil>\<^sub><)"
-    by (simp add: disj_upred_def)
-  also have "... = ((\<lceil>b\<rceil>\<^sub>< \<and> (II \<or> ((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; (\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u))) \<and> (\<not> \<lceil>b\<rceil>\<^sub>>))"
-    by (simp add: conj_comm utp_pred.inf.left_commute)
-  also have "... = (((\<lceil>b\<rceil>\<^sub>< \<and> II) \<or> (\<lceil>b\<rceil>\<^sub>< \<and> ((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; (\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u))) \<and> (\<not> \<lceil>b\<rceil>\<^sub>>))"
-    by (simp add: conj_disj_distr)
-  also have "... = ((((\<lceil>b\<rceil>\<^sub>< \<and> II) \<or> ((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; (\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u))) \<and> (\<not> \<lceil>b\<rceil>\<^sub>>))"
-    by (subst seqr_pre_out[THEN sym], simp add: unrest, simp add: upred_defs urel_defs)
-  also have "... = ((((II \<and> \<lceil>b\<rceil>\<^sub>>) \<or> ((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; (\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u))) \<and> (\<not> \<lceil>b\<rceil>\<^sub>>))"
-    by (simp add: pre_skip_post)
-  also have "... = ((II \<and> \<lceil>b\<rceil>\<^sub>> \<and> \<not> \<lceil>b\<rceil>\<^sub>>) \<or> (((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; ((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u)) \<and> (\<not> \<lceil>b\<rceil>\<^sub>>)))"
-    by (simp add: utp_pred.inf.assoc utp_pred.inf_sup_distrib2)
-  also have "... = (((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; ((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u)) \<and> (\<not> \<lceil>b\<rceil>\<^sub>>))"
-    by simp
-  also have "... = ((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; (((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u) \<and> (\<not> \<lceil>b\<rceil>\<^sub>>)))"
-    by (simp add: seqr_post_out unrest)
-  also have "... = ((P \<and> \<lceil>b\<rceil>\<^sub><) ;; while b do P od)"
-    by (simp add: utp_pred.inf_commute while_def)
-  finally show ?thesis .
-qed
-
-lemma while_cond_false:
-  "((while b do P od) \<and> (\<not> \<lceil>b\<rceil>\<^sub><)) = (II \<and> \<not> \<lceil>b\<rceil>\<^sub><)"
-proof -
-  have "(while b do P od \<and> (\<not> \<lceil>b\<rceil>\<^sub><)) = (((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u \<and> (\<not> \<lceil>b\<rceil>\<^sub>>)) \<and> (\<not> \<lceil>b\<rceil>\<^sub><))"
-    by (simp add: while_def)
-  also have "... = (((II \<or> ((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; (\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u)) \<and> \<not> \<lceil>b\<rceil>\<^sub>>) \<and> (\<not> \<lceil>b\<rceil>\<^sub><))"
-    by (simp add: disj_upred_def)
-  also have "... = (((II \<and> \<not> \<lceil>b\<rceil>\<^sub>>) \<and> \<not> \<lceil>b\<rceil>\<^sub><) \<or> ((\<not> \<lceil>b\<rceil>\<^sub><) \<and> (((\<lceil>b\<rceil>\<^sub>< \<and> P) ;; ((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u)) \<and> \<not> \<lceil>b\<rceil>\<^sub>>)))"
-    by (simp add: conj_disj_distr utp_pred.inf.commute)
-  also have "... = (((II \<and> \<not> \<lceil>b\<rceil>\<^sub>>) \<and> \<not> \<lceil>b\<rceil>\<^sub><) \<or> ((((\<not> \<lceil>b\<rceil>\<^sub><) \<and> (\<lceil>b\<rceil>\<^sub>< \<and> P) ;; ((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u)) \<and> \<not> \<lceil>b\<rceil>\<^sub>>)))"
-    by (simp add: seqr_pre_out unrest_not unrest_pre_out\<alpha> utp_pred.inf.assoc)
-  also have "... = (((II \<and> \<not> \<lceil>b\<rceil>\<^sub>>) \<and> \<not> \<lceil>b\<rceil>\<^sub><) \<or> (((false ;; ((\<lceil>b\<rceil>\<^sub>< \<and> P)\<^sup>\<star>\<^sub>u)) \<and> \<not> \<lceil>b\<rceil>\<^sub>>)))"
-    by (simp add: conj_comm utp_pred.inf.left_commute)
-  also have "... = ((II \<and> \<not> \<lceil>b\<rceil>\<^sub>>) \<and> \<not> \<lceil>b\<rceil>\<^sub><)"
-    by simp
-  also have "... = (II \<and> \<not> \<lceil>b\<rceil>\<^sub><)"
-    by rel_auto
-  finally show ?thesis .
-qed
-
 theorem while_unfold:
   "while b do P od = ((P ;; while b do P od) \<triangleleft> b \<triangleright>\<^sub>r II)"
-  by (metis (no_types, hide_lams) bounded_semilattice_sup_bot_class.sup_bot.left_neutral comp_cond_left_distr cond_def cond_idem disj_comm disj_upred_def seqr_right_zero upred_quantale.bot_zerol utp_pred.inf_bot_right utp_pred.inf_commute while_cond_false while_cond_true)
+proof -
+  have m:"mono (\<lambda>X. P ;; X \<triangleleft> b \<triangleright>\<^sub>r II)"
+    by (auto intro: monoI seqr_mono cond_mono)
+  have "(while b do P od) = (\<nu> X \<bullet> P ;; X \<triangleleft> b \<triangleright>\<^sub>r II)"
+    by (simp add: while_def)
+  also have "... = (P ;; (\<nu> X \<bullet> P ;; X \<triangleleft> b \<triangleright>\<^sub>r II) \<triangleleft> b \<triangleright>\<^sub>r II)"
+    by (subst lfp_unfold, simp_all add: m)
+  also have "... = ((P ;; while b do P od) \<triangleleft> b \<triangleright>\<^sub>r II)"
+    by (simp add: while_def)
+  finally show ?thesis .
+qed
 
 subsection {* Relational unrestriction *}
 
@@ -858,7 +818,7 @@ text {* Relational unrestriction states that a variable is unchanged by a relati
   initial value, but I'm not sure how to state that yet. For now we represent this by
   the parametric healthiness condition RID. *}
 
-definition RID :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrelation \<Rightarrow> '\<alpha> hrelation"
+definition RID :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel"
 where "RID x P = ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x)"
 
 declare RID_def [urel_defs]
@@ -944,7 +904,7 @@ proof -
   finally show ?thesis .
 qed
 
-definition unrest_relation :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrelation \<Rightarrow> bool" (infix "\<sharp>\<sharp>" 20)
+definition unrest_relation :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrel \<Rightarrow> bool" (infix "\<sharp>\<sharp>" 20)
 where "(x \<sharp>\<sharp> P) \<longleftrightarrow> (P = RID(x)(P))"
 
 declare unrest_relation_def [urel_defs]
@@ -1006,7 +966,7 @@ theorem RA7: "((P\<^sup>- ;; (\<not>(P ;; Q))) \<or> (\<not>Q)) = (\<not>Q)"
 
 subsection {* Relational alphabet extension *}
 
-lift_definition rel_alpha_ext :: "'\<beta> hrelation \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrelation" (infix "\<oplus>\<^sub>R" 65)
+lift_definition rel_alpha_ext :: "'\<beta> hrel \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel" (infix "\<oplus>\<^sub>R" 65)
 is "\<lambda> P x (b1, b2). P (get\<^bsub>x\<^esub> b1, get\<^bsub>x\<^esub> b2) \<and> (\<forall> b. b1 \<oplus>\<^sub>L b on x = b2 \<oplus>\<^sub>L b on x)" .
 
 lemma rel_alpha_ext_alt_def:
@@ -1020,33 +980,13 @@ done
 
 subsection {* Program values *}
 
-abbreviation prog_val :: "'\<alpha> hrelation \<Rightarrow> ('\<alpha> hrelation, '\<alpha>) uexpr" ("\<lbrace>_\<rbrace>\<^sub>u")
+abbreviation prog_val :: "'\<alpha> hrel \<Rightarrow> ('\<alpha> hrel, '\<alpha>) uexpr" ("\<lbrace>_\<rbrace>\<^sub>u")
 where "\<lbrace>P\<rbrace>\<^sub>u \<equiv> \<guillemotleft>P\<guillemotright>"
 
-lift_definition call :: "('\<alpha> hrelation, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrelation"
+lift_definition call :: "('\<alpha> hrel, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrel"
 is "\<lambda> P b. P (fst b) b" .
 
 lemma call_prog_val: "call \<lbrace>P\<rbrace>\<^sub>u = P"
   by (simp add: call_def urel_defs lit.rep_eq Rep_uexpr_inverse)
 
-(*
-lift_definition prs :: "'\<alpha> hrelation \<Rightarrow> ('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> '\<beta> hrelation"
-is "\<lambda> R x (s, s'). R (get\<^bsub>x\<^esub> s, get\<^bsub>x\<^esub> s') \<and> (\<forall> v. put\<^bsub>x\<^esub> s' v = put\<^bsub>x\<^esub> s v)" .
-
-lift_definition promote :: "'b hrelation \<Rightarrow> (('a \<rightharpoonup> 'b) \<Longrightarrow> '\<alpha>) \<Rightarrow> ('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrelation"
-is "\<lambda> R f x (b, b'). (get\<^bsub>x\<^esub> b \<in> dom(get\<^bsub>f\<^esub> b) \<and> get\<^bsub>x\<^esub> b \<in> dom(get\<^bsub>f\<^esub> b')
-                     \<and> R (the ((get\<^bsub>f\<^esub> b)(get\<^bsub>x\<^esub> b)), the ((get\<^bsub>f\<^esub> b')(get\<^bsub>x\<^esub> b)))
-                     \<and> get\<^bsub>f\<^esub> b |` {get\<^bsub>x\<^esub> b} = get\<^bsub>f\<^esub> b' |` {get\<^bsub>x\<^esub> b}
-                     \<and> (\<forall> v. put\<^bsub>f\<^esub> b' v = put\<^bsub>f\<^esub> b v))" .
-
-lemma "\<lbrakk> uvar f; vwb_lens x \<rbrakk> \<Longrightarrow> promote II f x = II"
-  apply (rel_auto)
-
-
-lemma "vwb_lens x \<Longrightarrow> prs II x = II"
-  by (rel_auto, metis vwb_lens_wb wb_lens.get_put)
-
-lemma "prs false x = false"
-  by (rel_auto)
-*)
 end

@@ -38,11 +38,11 @@ lemma lift_post_var [simp]:
   by (alpha_tac)
 
 lemma lift_cond_pre_var [simp]:
-  "\<lceil>in_var x\<rceil>\<^sub>\<leftarrow> = $x"
+  "\<lceil>$x\<rceil>\<^sub>\<leftarrow> = $x"
   by (pred_auto)
 
 lemma lift_cond_post_var [simp]:
-  "\<lceil>out_var x\<rceil>\<^sub>\<rightarrow> = $x\<acute>"
+  "\<lceil>$x\<acute>\<rceil>\<^sub>\<rightarrow> = $x\<acute>"
   by (pred_auto)
 
 subsection {* Unrestriction laws *}
@@ -56,22 +56,5 @@ lemma unrest_dash_var_cond_pre [unrest]:
   fixes x :: "('a, '\<alpha>) uvar"
   shows "$x\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>\<leftarrow>"
   by (pred_auto)
-
-
-(*
-lemma subst_drop_upd [usubst]: 
-  fixes x :: "('a, '\<alpha>) uvar"
-  assumes "out\<alpha> \<sharp> v"
-  shows "\<lfloor>\<sigma>($x \<mapsto>\<^sub>s v)\<rfloor>\<^sub>s = \<lfloor>\<sigma>\<rfloor>\<^sub>s(x \<mapsto>\<^sub>s \<lfloor>v\<rfloor>\<^sub><)"
-  using assms
-  apply (simp add: usubst_rel_drop_def subst_upd_uvar_def, transfer)
-  apply (rule ext, auto simp add:in_var_def fst_lens_def lens_create_def lens_comp_def prod.case_eq_if)
-  apply (subgoal_tac "\<forall> x x'. (v (A, x)) = (v (A, x'))")
-  apply metis
-  apply (simp)
-  apply (simp)
-thm prod.case_eq_if
-done
-*)
 
 end

@@ -41,7 +41,7 @@ translations
   "_svarleft x" == "CONST left_uvar x"
   "_svarright x" == "CONST right_uvar x"
 
-type_synonym '\<alpha> merge = "('\<alpha> \<times> ('\<alpha> \<times> '\<alpha>), '\<alpha>) relation"
+type_synonym '\<alpha> merge = "('\<alpha> \<times> ('\<alpha> \<times> '\<alpha>), '\<alpha>) rel"
 
 text {* U0 and U1 are relations that index all input variables x to 0-x and 1-x, respectively. *}
 

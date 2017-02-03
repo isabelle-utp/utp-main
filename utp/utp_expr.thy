@@ -3,8 +3,6 @@ section {* UTP expressions *}
 theory utp_expr
 imports
   utp_var
-  utp_dvar
-  (* utp_avar *)
 begin
 
 no_notation BNF_Def.convol ("\<langle>(_,/ _)\<rangle>")
@@ -39,12 +37,6 @@ definition alpha_of :: "('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>, '\<alpha
 text {* A variable expression corresponds to the lookup function of the variable. *}
 
 lift_definition var :: "('t, '\<alpha>) uvar \<Rightarrow> ('t, '\<alpha>) uexpr" is lens_get .
-
-declare [[coercion_enabled]]
-declare [[coercion var]]
-
-definition dvar_exp :: "'t::continuum dvar \<Rightarrow> ('t, '\<alpha>::vst) uexpr"
-where "dvar_exp x = var (dvar_lift x)"
 
 text {* A literal is simply a constant function expression, always returning the same value. *}
 

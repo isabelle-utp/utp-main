@@ -6,7 +6,6 @@ imports
   utp_wp
   utp_theory
   utp_local
-  utp_procedure
 begin
 
 text {* In UTP, in order to explicitly record the termination of a program,
@@ -20,9 +19,10 @@ text {* In the following, the definitions of designs alphabets, designs and
 healthiness (well-formedness) conditions are given. The healthiness conditions of
 designs are defined by $H1$, $H2$, $H3$ and $H4$.*}
 
-record alpha_d = ok\<^sub>v :: "bool"
+alphabet des_vars =
+  ok :: bool
 
-declare alpha_d.splits [alpha_splits]
+declare des_vars.splits [alpha_splits]
 
 text {*
   The two locale interpretations below are a technicality to improve automatic
@@ -34,62 +34,42 @@ text {*
   alphabets.
 *}
 
-interpretation alpha_d: lens_interp "\<lambda>r. (ok\<^sub>v r, more r)"
+interpretation des_vars: lens_interp "\<lambda>r. (ok\<^sub>v r, more r)"
 apply (unfold_locales)
 apply (rule injI)
 apply (clarsimp)
 done
 
-interpretation alpha_d_rel:
+interpretation des_vars_rel:
   lens_interp "\<lambda>(r, r'). (ok\<^sub>v r, ok\<^sub>v r', more r, more r')"
 apply (unfold_locales)
 apply (rule injI)
 apply (clarsimp)
 done
 
-text {* The ok variable is defined using the syntactic translation \emph{VAR} *}
-
-definition "ok = VAR ok\<^sub>v"
-
-declare ok_def [uvar_defs]
-
-lemma vwb_lens_ok [simp]: "vwb_lens ok"
-  by (unfold_locales, simp_all add: ok_def)
-
 lemma ok_ord [usubst]:
   "$ok \<prec>\<^sub>v $ok\<acute>"
   by (simp add: var_name_ord_def)
 
-type_synonym '\<alpha> alphabet_d  = "'\<alpha> alpha_d_scheme alphabet"
-type_synonym ('a, '\<alpha>) uvar_d = "('a, '\<alpha> alphabet_d) uvar"
-type_synonym ('\<alpha>, '\<beta>) relation_d = "('\<alpha> alphabet_d, '\<beta> alphabet_d) relation"
-type_synonym '\<alpha> hrelation_d = "'\<alpha> alphabet_d hrelation"
+type_synonym '\<alpha> des  = "'\<alpha> des_vars_scheme"
+type_synonym ('\<alpha>, '\<beta>) rel_des = "('\<alpha> des, '\<beta> des) rel"
+type_synonym '\<alpha> hrel_des = "('\<alpha> des) hrel"
 
 translations 
-  (type) "'\<alpha> alphabet_d" <= (type) "'\<alpha> alpha_d_scheme"
-  (type) "'\<alpha> alphabet_d" <= (type) "'\<alpha> alpha_d_ext"
-  (type) "('\<alpha>, '\<beta>) relation_d" <= (type) "('\<alpha> alpha_d_scheme, '\<beta> alpha_d_scheme) relation"
+  (type) "'\<alpha> des" <= (type) "'\<alpha> des_vars_scheme"
+  (type) "'\<alpha> des" <= (type) "'\<alpha> des_vars_ext"
+  (type) "('\<alpha>, '\<beta>) rel_des" <= (type) "('\<alpha> des, '\<beta> des) rel"
 
-definition des_lens :: "('\<alpha>, '\<alpha> alphabet_d) lens" ("\<Sigma>\<^sub>D") where
-[uvar_defs]: "des_lens = \<lparr> lens_get = more, lens_put = fld_put more_update \<rparr>"
+notation des_vars_child_lens ("\<Sigma>\<^sub>D")
 
-syntax
-  "_svid_alpha_d"  :: "svid" ("\<Sigma>\<^sub>D")
+lemma ok_des_bij_lens: "bij_lens (ok +\<^sub>L \<Sigma>\<^sub>D)"
+  by (unfold_locales, simp_all add: ok_def des_vars_child_lens_def lens_plus_def prod.case_eq_if)
 
-translations
-  "_svid_alpha_d" => "\<Sigma>\<^sub>D"
-
-lemma vwb_des_lens [simp]: "vwb_lens des_lens"
-  by (unfold_locales, simp_all add: des_lens_def)
-
-lemma ok_indep_des_lens [simp]: "ok \<bowtie> des_lens" "des_lens \<bowtie> ok"
-  by (rule lens_indepI, simp_all add: ok_def des_lens_def)+
-
-lemma ok_des_bij_lens: "bij_lens (ok +\<^sub>L des_lens)"
-  by (unfold_locales, simp_all add: ok_def des_lens_def lens_plus_def prod.case_eq_if)
+text {* The following notations define liftings from non-design predicates into design
+  predicates using alphabet extensions. *}
 
 abbreviation lift_desr ("\<lceil>_\<rceil>\<^sub>D")
-where "\<lceil>P\<rceil>\<^sub>D \<equiv> P \<oplus>\<^sub>p (des_lens \<times>\<^sub>L des_lens)"
+where "\<lceil>P\<rceil>\<^sub>D \<equiv> P \<oplus>\<^sub>p (\<Sigma>\<^sub>D \<times>\<^sub>L \<Sigma>\<^sub>D)"
 
 abbreviation lift_pre_desr ("\<lceil>_\<rceil>\<^sub>D\<^sub><")
 where "\<lceil>p\<rceil>\<^sub>D\<^sub>< \<equiv> \<lceil>\<lceil>p\<rceil>\<^sub><\<rceil>\<^sub>D"
@@ -98,26 +78,26 @@ abbreviation lift_post_desr ("\<lceil>_\<rceil>\<^sub>D\<^sub>>")
 where "\<lceil>p\<rceil>\<^sub>D\<^sub>> \<equiv> \<lceil>\<lceil>p\<rceil>\<^sub>>\<rceil>\<^sub>D"
 
 abbreviation drop_desr ("\<lfloor>_\<rfloor>\<^sub>D")
-where "\<lfloor>P\<rfloor>\<^sub>D \<equiv> P \<restriction>\<^sub>p (des_lens \<times>\<^sub>L des_lens)"
+where "\<lfloor>P\<rfloor>\<^sub>D \<equiv> P \<restriction>\<^sub>p (\<Sigma>\<^sub>D \<times>\<^sub>L \<Sigma>\<^sub>D)"
 
-definition design::"('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" (infixl "\<turnstile>" 60)
+definition design::"('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" (infixl "\<turnstile>" 60)
 where "P \<turnstile> Q = ($ok \<and> P \<Rightarrow> $ok\<acute> \<and> Q)"
 
 text {* An rdesign is a design that uses the Isabelle type system to prevent reference to ok in the
         assumption and commitment. *}
 
-definition rdesign::"('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" (infixl "\<turnstile>\<^sub>r" 60)
+definition rdesign::"('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" (infixl "\<turnstile>\<^sub>r" 60)
 where "(P \<turnstile>\<^sub>r Q) = \<lceil>P\<rceil>\<^sub>D \<turnstile> \<lceil>Q\<rceil>\<^sub>D"
 
 text {* An ndesign is a normal design, i.e. where the assumption is a condition *}
 
-definition ndesign::"'\<alpha> condition \<Rightarrow> ('\<alpha>, '\<beta>) relation \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" (infixl "\<turnstile>\<^sub>n" 60)
+definition ndesign::"'\<alpha> cond \<Rightarrow> ('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" (infixl "\<turnstile>\<^sub>n" 60)
 where "(p \<turnstile>\<^sub>n Q) = (\<lceil>p\<rceil>\<^sub>< \<turnstile>\<^sub>r Q)"
 
-definition skip_d :: "'\<alpha> hrelation_d" ("II\<^sub>D")
+definition skip_d :: "'\<alpha> hrel_des" ("II\<^sub>D")
 where "II\<^sub>D \<equiv> (true \<turnstile>\<^sub>r II)"
 
-definition assigns_d :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d" ("\<langle>_\<rangle>\<^sub>D")
+definition assigns_d :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrel_des" ("\<langle>_\<rangle>\<^sub>D")
 where "assigns_d \<sigma> = (true \<turnstile>\<^sub>r assigns_r \<sigma>)"
 
 syntax
@@ -129,7 +109,7 @@ translations
   "x :=\<^sub>D v" <= "CONST assigns_d (CONST subst_upd (CONST id) x v)"
   "x,y :=\<^sub>D u,v" <= "CONST assigns_d (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
 
-definition J :: "'\<alpha> hrelation_d"
+definition J :: "'\<alpha> hrel_des"
 where "J = (($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D)"
 
 definition "H1 (P)  \<equiv>  $ok \<Rightarrow> P"
@@ -152,14 +132,14 @@ translations
   "\<top>\<^sub>D" => "CONST not_upred (CONST utp_expr.var (CONST ivar CONST ok))"
   "\<bottom>\<^sub>D" => "true"
 
-definition pre_design :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("pre\<^sub>D'(_')") where
+definition pre_design :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel" ("pre\<^sub>D'(_')") where
 "pre\<^sub>D(P) = \<lfloor>\<not> P\<lbrakk>true,false/$ok,$ok\<acute>\<rbrakk>\<rfloor>\<^sub>D"
 
-definition post_design :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("post\<^sub>D'(_')") where
+definition post_design :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel" ("post\<^sub>D'(_')") where
 "post\<^sub>D(P) = \<lfloor>P\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>\<rfloor>\<^sub>D"
 
-definition wp_design :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> '\<beta> condition \<Rightarrow> '\<alpha> condition" (infix "wp\<^sub>D" 60) where
-"Q wp\<^sub>D r = (\<lfloor>pre\<^sub>D(Q) ;; true :: ('\<alpha>, '\<beta>) relation\<rfloor>\<^sub>< \<and> (post\<^sub>D(Q) wp r))"
+definition wp_design :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> '\<beta> cond \<Rightarrow> '\<alpha> cond" (infix "wp\<^sub>D" 60) where
+"Q wp\<^sub>D r = (\<lfloor>pre\<^sub>D(Q) ;; true :: ('\<alpha>, '\<beta>) rel\<rfloor>\<^sub>< \<and> (post\<^sub>D(Q) wp r))"
 
 declare design_def [upred_defs]
 declare rdesign_def [upred_defs]
@@ -180,17 +160,17 @@ lemma drop_desr_inv [simp]: "\<lfloor>\<lceil>P\<rceil>\<^sub>D\<rfloor>\<^sub>D
   by (simp add: arestr_aext prod_mwb_lens)
 
 lemma lift_desr_inv:
-  fixes P :: "('\<alpha>, '\<beta>) relation_d"
+  fixes P :: "('\<alpha>, '\<beta>) rel_des"
   assumes "$ok \<sharp> P" "$ok\<acute> \<sharp> P"
   shows "\<lceil>\<lfloor>P\<rfloor>\<^sub>D\<rceil>\<^sub>D = P"
 proof -
-  have "bij_lens (des_lens \<times>\<^sub>L des_lens +\<^sub>L (in_var ok +\<^sub>L out_var ok) :: (_, '\<alpha> alpha_d_scheme \<times> '\<beta> alpha_d_scheme) lens)"
+  have "bij_lens (\<Sigma>\<^sub>D \<times>\<^sub>L \<Sigma>\<^sub>D +\<^sub>L (in_var ok +\<^sub>L out_var ok) :: (_, '\<alpha> des_vars_scheme \<times> '\<beta> des_vars_scheme) lens)"
     (is "bij_lens (?P)")
   proof -
-    have "?P \<approx>\<^sub>L (ok +\<^sub>L des_lens) \<times>\<^sub>L (ok +\<^sub>L des_lens)" (is "?P \<approx>\<^sub>L ?Q")
+    have "?P \<approx>\<^sub>L (ok +\<^sub>L \<Sigma>\<^sub>D) \<times>\<^sub>L (ok +\<^sub>L \<Sigma>\<^sub>D)" (is "?P \<approx>\<^sub>L ?Q")
       apply (simp add: in_var_def out_var_def prod_as_plus)
       apply (simp add: prod_as_plus[THEN sym])
-      apply (meson lens_equiv_sym lens_equiv_trans lens_indep_prod lens_plus_comm lens_plus_prod_exchange ok_indep_des_lens)
+      apply (meson lens_equiv_sym lens_equiv_trans lens_indep_prod lens_plus_comm lens_plus_prod_exchange des_vars_indeps(1))
     done
     moreover have "bij_lens ?Q"
       by (simp add: ok_des_bij_lens prod_bij_lens)
@@ -202,7 +182,7 @@ proof -
     apply (rule_tac aext_arestr[of _ "in_var ok +\<^sub>L out_var ok"])
     apply (simp add: prod_mwb_lens)
     apply (simp)
-    apply (metis alpha_in_var lens_indep_prod lens_indep_sym ok_indep_des_lens out_var_def prod_as_plus)
+    apply (metis alpha_in_var lens_indep_prod lens_indep_sym des_vars_indeps(1) out_var_def prod_as_plus)
     using unrest_var_comp apply blast
   done
 qed
@@ -218,9 +198,8 @@ lemma prod_lens_indep_out_var [simp]:
   by (metis in_out_indep in_var_def out_var_def out_var_indep plus_pres_lens_indep prod_as_plus)
 
 lemma unrest_out_des_lift [unrest]: "out\<alpha> \<sharp> p \<Longrightarrow> out\<alpha> \<sharp> \<lceil>p\<rceil>\<^sub>D"
-  by (pred_auto, auto simp add: out\<alpha>_def des_lens_def prod_lens_def)
+  by (pred_auto, auto simp add: out\<alpha>_def des_vars_child_lens_def prod_lens_def)
 
-thm alpha_d.select_convs
 
 lemma lift_dist_seq [simp]:
   "\<lceil>P ;; Q\<rceil>\<^sub>D = (\<lceil>P\<rceil>\<^sub>D ;; \<lceil>Q\<rceil>\<^sub>D)"
@@ -408,7 +387,7 @@ lemma runrest_ident_var:
   shows "($x \<and> P) = (P \<and> $x\<acute>)"
 proof -
   have "P = ($x\<acute> =\<^sub>u $x \<and> P)"
-    by (metis (no_types, lifting) RID_def assms conj_idem unrest_relation_def utp_pred.inf.left_commute)
+    by (metis RID_def assms unrest_relation_def utp_pred.inf.cobounded2 utp_pred.inf_absorb2)
   moreover have "($x\<acute> =\<^sub>u $x \<and> ($x \<and> P)) = ($x\<acute> =\<^sub>u $x \<and> (P \<and> $x\<acute>))"
     by (rel_auto)
   ultimately show ?thesis
@@ -423,11 +402,11 @@ proof -
   have "($ok \<and> $ok\<acute> \<and> (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>)) = ($ok \<and> $ok\<acute> \<and> (Q1 ;; Q2))"
   proof -
     have "($ok \<and> $ok\<acute> \<and> (Q1 ;; Q2)) = ($ok \<and> Q1 ;; Q2 \<and> $ok\<acute>)"
-      by (metis (no_types, hide_lams) seqr_post_out seqr_pre_out utp_pred.inf.commute utp_rel.unrest_iuvar utp_rel.unrest_ouvar vwb_lens_ok vwb_lens_mwb)
+      by (metis (no_types, lifting) conj_comm seqr_post_var_out seqr_pre_var_out)
     also have "... = (Q1 \<and> $ok\<acute> ;; $ok \<and> Q2)"
       by (simp add: assms(3) assms(4) runrest_ident_var)
     also have "... = (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>)"
-      by (metis seqr_left_one_point seqr_post_transfer true_alt_def uivar_convr upred_eq_true utp_pred.inf.cobounded2 utp_pred.inf.orderE utp_rel.unrest_iuvar vwb_lens_ok vwb_lens_mwb)
+      by (metis ok_vwb_lens seqr_pre_transfer seqr_right_one_point true_alt_def uovar_convr upred_eq_true utp_pred.inf.left_idem utp_rel.unrest_ouvar vwb_lens_mwb)
     finally show ?thesis
       by (metis utp_pred.inf.left_commute utp_pred.inf_left_idem)
   qed
@@ -486,7 +465,7 @@ theorem ndesign_wp [wp]:
   by (simp add: ndesign_def rdesign_wp)
 
 theorem wpd_seq_r:
-  fixes Q1 Q2 :: "'\<alpha> hrelation"
+  fixes Q1 Q2 :: "'\<alpha> hrel"
   shows "(\<lceil>p1\<rceil>\<^sub>< \<turnstile>\<^sub>r Q1 ;; \<lceil>p2\<rceil>\<^sub>< \<turnstile>\<^sub>r Q2) wp\<^sub>D r = (\<lceil>p1\<rceil>\<^sub>< \<turnstile>\<^sub>r Q1) wp\<^sub>D ((\<lceil>p2\<rceil>\<^sub>< \<turnstile>\<^sub>r Q2) wp\<^sub>D r)"
   apply (simp add: wp)
   apply (subst rdesign_composition_wp)
@@ -495,7 +474,7 @@ theorem wpd_seq_r:
 done
 
 theorem wpnd_seq_r [wp]:
-  fixes Q1 Q2 :: "'\<alpha> hrelation"
+  fixes Q1 Q2 :: "'\<alpha> hrel"
   shows "(p1 \<turnstile>\<^sub>n Q1 ;; p2 \<turnstile>\<^sub>n Q2) wp\<^sub>D r = (p1 \<turnstile>\<^sub>n Q1) wp\<^sub>D ((p2 \<turnstile>\<^sub>n Q2) wp\<^sub>D r)"
   by (simp add: ndesign_def wpd_seq_r)
 
@@ -505,7 +484,7 @@ proof -
   have "(P \<turnstile> Q) = (($ok \<and> P) \<turnstile> ($ok \<and> $ok\<acute> \<and> Q))"
     by (pred_auto)
   also have "... = (($ok \<and> P\<lbrakk>true/$ok\<rbrakk>) \<turnstile> ($ok \<and> ($ok\<acute> \<and> Q\<lbrakk>true/$ok\<acute>\<rbrakk>)\<lbrakk>true/$ok\<rbrakk>))"
-    by (metis conj_eq_out_var_subst conj_pos_var_subst upred_eq_true utp_pred.inf_commute vwb_lens_ok)
+    by (metis conj_eq_out_var_subst conj_pos_var_subst upred_eq_true utp_pred.inf_commute ok_vwb_lens)
   also have "... = (($ok \<and> P\<lbrakk>true/$ok\<rbrakk>) \<turnstile> ($ok \<and> $ok\<acute> \<and> Q\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>))"
     by (simp add: usubst)
   also have "... = (P\<lbrakk>true/$ok\<rbrakk> \<turnstile> Q\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>)"
@@ -519,14 +498,14 @@ proof -
   have "(P \<turnstile> Q) = (P \<turnstile> ($ok\<acute> \<and> Q))"
     by (pred_auto)
   also have "... = (P \<turnstile> ($ok\<acute> \<and> Q\<lbrakk>true/$ok\<acute>\<rbrakk>))"
-    by (metis conj_eq_out_var_subst upred_eq_true utp_pred.inf_commute vwb_lens_ok)
+    by (metis conj_eq_out_var_subst upred_eq_true utp_pred.inf_commute ok_vwb_lens)
   also have "... = (P \<turnstile> Q\<lbrakk>true/$ok\<acute>\<rbrakk>)"
     by (pred_auto)
   finally show ?thesis ..
 qed
 
 theorem design_left_unit_hom:
-  fixes P Q :: "'\<alpha> hrelation_d"
+  fixes P Q :: "'\<alpha> hrel_des"
   shows "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
 proof -
   have "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (true \<turnstile>\<^sub>r II ;; P \<turnstile>\<^sub>r Q)"
@@ -661,7 +640,7 @@ proof -
 qed
 
 theorem H1_left_unit:
-  fixes P :: "'\<alpha> hrelation_d"
+  fixes P :: "'\<alpha> hrel_des"
   assumes "P is H1"
   shows "(II\<^sub>D ;; P) = P"
 proof -
@@ -684,7 +663,7 @@ theorem H1_algebraic:
   using H1_algebraic_intro H1_left_unit H1_left_zero by blast
 
 theorem H1_nok_left_zero:
-  fixes P :: "'\<alpha> hrelation_d"
+  fixes P :: "'\<alpha> hrel_des"
   assumes "P is H1"
   shows "(\<not> $ok ;; P) = (\<not> $ok)"
 proof -
@@ -762,7 +741,7 @@ proof -
       also have "... = (\<exists> $ok\<acute> \<bullet> P \<and> $ok\<acute> =\<^sub>u false)"
         by rel_auto
       also have "... = P\<^sup>f"
-        by (metis C1 one_point out_var_uvar pr_var_def unrest_as_exists vwb_lens_ok vwb_lens_mwb)
+        by (metis C1 one_point out_var_uvar pr_var_def unrest_as_exists ok_vwb_lens vwb_lens_mwb)
      finally show ?thesis .
     qed
     moreover have "(P ;; ($ok \<and> (\<lceil>II\<rceil>\<^sub>D \<and> $ok\<acute>))) = (P\<^sup>t \<and> $ok\<acute>)"
@@ -965,7 +944,7 @@ proof -
 qed
 
 lemma assigns_d_comp_ext:
-  fixes P :: "'\<alpha> hrelation_d"
+  fixes P :: "'\<alpha> hrel_des"
   assumes "P is \<^bold>H"
   shows "(\<langle>\<sigma>\<rangle>\<^sub>D ;; P) = \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D\<rceil>\<^sub>s \<dagger> P"
 proof -
@@ -999,7 +978,7 @@ proof -
   finally show ?thesis .
 qed
 
-definition design_sup :: "('\<alpha>, '\<beta>) relation_d set \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" ("\<Sqinter>\<^sub>D_" [900] 900) where
+definition design_sup :: "('\<alpha>, '\<beta>) rel_des set \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" ("\<Sqinter>\<^sub>D_" [900] 900) where
 "\<Sqinter>\<^sub>D A = (if (A = {}) then \<top>\<^sub>D else \<Sqinter> A)"
 
 lemma design_sup_H1_H2_closed:
@@ -1035,7 +1014,7 @@ proof -
   finally show ?thesis .
 qed
 
-abbreviation design_inf :: "('\<alpha>, '\<beta>) relation_d set \<Rightarrow> ('\<alpha>, '\<beta>) relation_d" ("\<Squnion>\<^sub>D_" [900] 900) where
+abbreviation design_inf :: "('\<alpha>, '\<beta>) rel_des set \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" ("\<Squnion>\<^sub>D_" [900] 900) where
 "\<Squnion>\<^sub>D A \<equiv> \<Squnion> A"
 
 subsection {* H3: The design assumption is a precondition *}
@@ -1139,7 +1118,7 @@ theorem H3_design_pre:
   assumes "$ok \<sharp> p" "out\<alpha> \<sharp> p" "$ok \<sharp> Q" "$ok\<acute> \<sharp> Q"
   shows "H3(p \<turnstile> Q) = p \<turnstile> Q"
   using assms
-  by (metis Healthy_def' design_H3_iff_pre precond_right_unit unrest_out\<alpha>_var vwb_lens_ok vwb_lens_mwb)
+  by (metis Healthy_def' design_H3_iff_pre precond_right_unit unrest_out\<alpha>_var ok_vwb_lens vwb_lens_mwb)
 
 theorem H3_rdesign_pre:
   assumes "out\<alpha> \<sharp> p"
@@ -1221,7 +1200,7 @@ lemma wp_assigns_d [wp]: "\<langle>\<sigma>\<rangle>\<^sub>D wp\<^sub>D r = \<si
   by (rel_auto)
 
 theorem wpd_seq_r_H1_H3 [wp]:
-  fixes P Q :: "'\<alpha> hrelation_d"
+  fixes P Q :: "'\<alpha> hrel_des"
   assumes "P is H1_H3" "Q is H1_H3"
   shows "(P ;; Q) wp\<^sub>D r = P wp\<^sub>D (Q wp\<^sub>D r)"
   by (smt H1_H3_commute H1_H3_is_rdesign H1_idem Healthy_def' assms(1) assms(2) drop_pre_inv precond_equiv rdesign_H3_iff_pre wpd_seq_r)
@@ -1260,27 +1239,27 @@ subsection {* UTP theories *}
 typedecl DES
 typedecl NDES
 
-abbreviation "DES \<equiv> UTHY(DES, '\<alpha> alphabet_d)"
-abbreviation "NDES \<equiv> UTHY(NDES, '\<alpha> alphabet_d)"
+abbreviation "DES \<equiv> UTHY(DES, '\<alpha> des)"
+abbreviation "NDES \<equiv> UTHY(NDES, '\<alpha> des)"
 
 overloading
-  des_hcond == "utp_hcond :: (DES, '\<alpha> alphabet_d) uthy \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition"
-  des_unit == "utp_unit :: (DES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> hrelation_d" (unchecked)
+  des_hcond == "utp_hcond :: (DES, '\<alpha> des) uthy \<Rightarrow> ('\<alpha> des \<times> '\<alpha> des) health"
+  des_unit == "utp_unit :: (DES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> hrel_des" (unchecked)
 
-  ndes_hcond == "utp_hcond :: (NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition"
-  ndes_unit == "utp_unit :: (NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> hrelation_d" (unchecked)
+  ndes_hcond == "utp_hcond :: (NDES, '\<alpha> des) uthy \<Rightarrow> ('\<alpha> des \<times> '\<alpha> des) health"
+  ndes_unit == "utp_unit :: (NDES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> hrel_des" (unchecked)
 
 begin
-  definition des_hcond :: "(DES, '\<alpha> alphabet_d) uthy \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition" where
+  definition des_hcond :: "(DES, '\<alpha> des) uthy \<Rightarrow> ('\<alpha> des \<times> '\<alpha> des) health" where
   [upred_defs]: "des_hcond t = H1_H2"
 
-  definition des_unit :: "(DES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> hrelation_d" where
+  definition des_unit :: "(DES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> hrel_des" where
   [upred_defs]: "des_unit t = II\<^sub>D"
 
-  definition ndes_hcond :: "(NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> ('\<alpha> alphabet_d \<times> '\<alpha> alphabet_d) Healthiness_condition" where
+  definition ndes_hcond :: "(NDES, '\<alpha> des) uthy \<Rightarrow> ('\<alpha> des \<times> '\<alpha> des) health" where
   [upred_defs]: "ndes_hcond t = H1_H3"
 
-  definition ndes_unit :: "(NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> hrelation_d" where
+  definition ndes_unit :: "(NDES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> hrel_des" where
   [upred_defs]: "ndes_unit t = II\<^sub>D"
 
 end
@@ -1321,10 +1300,10 @@ lemma design_lat_top: "\<^bold>\<top>\<^bsub>DES\<^esub> = \<^bold>H(false)"
 lemma design_lat_bottom: "\<^bold>\<bottom>\<^bsub>DES\<^esub> = \<^bold>H(true)"
   by (simp add: design_theory_mono.healthy_bottom, simp add: des_hcond_def)
 
-abbreviation design_lfp :: "_ \<Rightarrow> _" ("\<mu>\<^sub>D") where
+abbreviation design_lfp :: "('\<alpha> hrel_des \<Rightarrow> '\<alpha> hrel_des) \<Rightarrow> '\<alpha> hrel_des" ("\<mu>\<^sub>D") where
 "\<mu>\<^sub>D F \<equiv> \<mu>\<^bsub>uthy_order DES\<^esub> F"
 
-abbreviation design_gfp :: "_ \<Rightarrow> _" ("\<nu>\<^sub>D") where
+abbreviation design_gfp :: "('\<alpha> hrel_des \<Rightarrow> '\<alpha> hrel_des) \<Rightarrow> '\<alpha> hrel_des" ("\<nu>\<^sub>D") where
 "\<nu>\<^sub>D F \<equiv> \<nu>\<^bsub>uthy_order DES\<^esub> F"
 
 thm design_theory_mono.GFP_unfold
@@ -1333,23 +1312,23 @@ thm design_theory_mono.LFP_unfold
 text {* We also set up local variables for designs. *}
 
 overloading
-  des_pvar == "pvar :: (DES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> alphabet_d"
-  des_assigns == "pvar_assigns :: (DES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d"
-  ndes_pvar == "pvar :: (NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> alphabet_d"
-  ndes_assigns == "pvar_assigns :: (NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d"
+  des_pvar == "pvar :: (DES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> des"
+  des_assigns == "pvar_assigns :: (DES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel_des"
+  ndes_pvar == "pvar :: (NDES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> des"
+  ndes_assigns == "pvar_assigns :: (NDES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel_des"
 begin
-  definition des_pvar :: "(DES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> alphabet_d" where
+  definition des_pvar :: "(DES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> des" where
   [upred_defs]: "des_pvar T = \<Sigma>\<^sub>D"
-  definition des_assigns :: "(DES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d" where
+  definition des_assigns :: "(DES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel_des" where
   [upred_defs]: "des_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>D"
-  definition ndes_pvar :: "(NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> alphabet_d" where
+  definition ndes_pvar :: "(NDES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> des" where
   [upred_defs]: "ndes_pvar T = \<Sigma>\<^sub>D"
-  definition ndes_assigns :: "(NDES, '\<alpha> alphabet_d) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrelation_d" where
+  definition ndes_assigns :: "(NDES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel_des" where
   [upred_defs]: "ndes_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>D"
 
 end
 
-interpretation des_prog_var: utp_prog_var "UTHY(DES, '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
+interpretation des_prog_var: utp_prog_var "UTHY(DES, '\<alpha> des)" "TYPE('\<alpha>)"
   rewrites "\<H>\<^bsub>DES\<^esub> = \<^bold>H"
   apply (unfold_locales, simp_all add: des_pvar_def des_assigns_def des_hcond_def)
   apply (simp add: assigns_d_def rdesign_is_H1_H2)
@@ -1357,18 +1336,18 @@ interpretation des_prog_var: utp_prog_var "UTHY(DES, '\<alpha> alphabet_d)" "TYP
   apply (rel_auto)
 done
 
-interpretation ndes_prog_var: utp_prog_var "UTHY(NDES, '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
+interpretation ndes_prog_var: utp_prog_var "UTHY(NDES, '\<alpha> des)" "TYPE('\<alpha>)"
   rewrites "\<H>\<^bsub>NDES\<^esub> = \<^bold>N"
   apply (unfold_locales, simp_all add: ndes_pvar_def ndes_assigns_def ndes_hcond_def)
   apply (simp add: assigns_d_H1_H3)
   apply (rel_auto)
 done
 
-interpretation des_local_var: utp_local_var "UTHY(DES, '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
+interpretation des_local_var: utp_local_var "UTHY(DES, '\<alpha> des)" "TYPE('\<alpha>)"
   rewrites "\<H>\<^bsub>DES\<^esub> = \<^bold>H"
   by (unfold_locales, simp_all add: des_unit_def des_assigns_def des_hcond_def)
 
-interpretation ndes_local_var: utp_local_var "UTHY(NDES, '\<alpha> alphabet_d)" "TYPE('\<alpha>::vst)"
+interpretation ndes_local_var: utp_local_var "UTHY(NDES, '\<alpha> des)" "TYPE('\<alpha>)"
   rewrites "\<H>\<^bsub>NDES\<^esub> = \<^bold>N"
   by (unfold_locales, simp_all add: ndes_unit_def ndes_assigns_def ndes_hcond_def)
 
@@ -1376,36 +1355,13 @@ text {* Weakest precondition laws for design variable scopes *}
 
 lemma wpd_var_begin [wp]:
   fixes x :: "'a list \<Longrightarrow> '\<alpha>" and r :: "'\<alpha> upred"
-  shows "(var_begin NDES x) wp\<^sub>D r = r\<lbrakk>\<langle>\<guillemotleft>undefined\<guillemotright>\<rangle> ^\<^sub>u x/x\<rbrakk>"
+  shows "(var_begin NDES x) wp\<^sub>D r = r\<lbrakk>\<langle>\<guillemotleft>undefined\<guillemotright>\<rangle> ^\<^sub>u &x/x\<rbrakk>"
   by (simp add: var_begin_def ndes_assigns_def wp)
 
 lemma wpd_var_end [wp]:
   fixes x :: "'a list \<Longrightarrow> '\<alpha>" and r :: "'\<alpha> upred"
-  shows "(var_end NDES x) wp\<^sub>D r = r\<lbrakk>tail\<^sub>u(x)/x\<rbrakk>"
+  shows "(var_end NDES x) wp\<^sub>D r = r\<lbrakk>tail\<^sub>u(&x)/x\<rbrakk>"
   by (simp add: var_end_def ndes_assigns_def wp)
-
-text {* We also set up procedures for the theory of designs. *}
-
-abbreviation "DAL \<equiv> TYPE(DES \<times> '\<alpha> alphabet_d \<times> '\<alpha>)"
-abbreviation "NDAL \<equiv> TYPE(NDES \<times> '\<alpha> alphabet_d \<times> '\<alpha>)"
-
-syntax
- "_dproc_block"  :: "parm_list \<Rightarrow> logic \<Rightarrow> ('a, '\<alpha>) uproc" ("_ \<bullet>\<^sub>D/ _" [0,10] 10)
- "_nproc_block"  :: "parm_list \<Rightarrow> logic \<Rightarrow> ('a, '\<alpha>) uproc" ("_ \<bullet>\<^sub>N/ _" [0,10] 10)
-
-translations
-  "_dproc_block ps P" => "_proc_block (CONST DAL) ps P"
-  "_nproc_block ps P" => "_proc_block (CONST NDAL) ps P"
-
-text {* Instantiate vstore for design alphabets, which enables the use of deep variables
-  to represent local variables. *}
-
-instantiation alpha_d_ext :: (vst) vst
-begin
-  definition "vstore_lens_alpha_d_ext = \<V> ;\<^sub>L \<Sigma>\<^sub>D"
-instance
-  by (intro_classes, auto simp add: vstore_lens_alpha_d_ext_def comp_vwb_lens)
-end
 
 text {* Example Galois connection between designs and relations. Based on Jim's example in COMPASS
         deliverable D23.5. *}
@@ -1438,11 +1394,11 @@ next
   show "Des \<in> \<lbrakk>id\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
     by (auto simp add: Des_def des_hcond_def Healthy_def H1_H2_commute H1_idem H2_idem)
 next
-  fix R :: "'a hrelation"
+  fix R :: "'a hrel"
   show "R \<sqsubseteq> Rel (Des R)"
     by (simp add: Des_design Rel_design)
 next
-  fix R :: "'a hrelation" and D :: "'a hrelation_d"
+  fix R :: "'a hrel" and D :: "'a hrel_des"
   assume a: "D is \<^bold>H"
   then obtain D\<^sub>1 D\<^sub>2 where D: "D = D\<^sub>1 \<turnstile>\<^sub>r D\<^sub>2"
     by (metis H1_H2_commute H1_H2_is_rdesign H1_idem Healthy_def')

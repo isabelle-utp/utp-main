@@ -7,11 +7,11 @@ imports
   utp_event
 begin
 
-record 't::ordered_cancel_monoid_diff alpha_rp' =
-  wait\<^sub>v :: bool
-  tr\<^sub>v   :: "'t"
+alphabet 't::ordered_cancel_monoid_diff rp_vars = des_vars +
+  wait :: bool
+  tr   :: "'t"
 
-declare alpha_rp'.splits [alpha_splits]
+declare rp_vars.splits [alpha_splits]
 
 text {*
   The two locale interpretations below are a technicality to improve automatic
@@ -23,92 +23,30 @@ text {*
   alphabets.
 *}
 
-interpretation alphabet_rp:
+interpretation rp_vars:
   lens_interp "\<lambda>(ok, r). (ok, wait\<^sub>v r, tr\<^sub>v r, more r)"
 apply (unfold_locales)
 apply (rule injI)
 apply (clarsimp)
 done
 
-interpretation alphabet_rp_rel: lens_interp "\<lambda>(ok, ok', r, r').
+interpretation rp_vars_rel: lens_interp "\<lambda>(ok, ok', r, r').
   (ok, ok', wait\<^sub>v r, wait\<^sub>v r', tr\<^sub>v r, tr\<^sub>v r', more r, more r')"
 apply (unfold_locales)
 apply (rule injI)
 apply (clarsimp)
 done
 
-type_synonym ('t, '\<alpha>) alpha_rp_scheme = "('t, '\<alpha>) alpha_rp'_scheme alpha_d_scheme"
+type_synonym ('t, '\<alpha>) rp = "('t, '\<alpha>) rp_vars_scheme des"
 
-type_synonym ('t,'\<alpha>) alphabet_rp  = "('t,'\<alpha>) alpha_rp_scheme alphabet"
-type_synonym ('t,'\<alpha>,'\<beta>) relation_rp  = "(('t,'\<alpha>) alphabet_rp, ('t,'\<beta>) alphabet_rp) relation"
-type_synonym ('t,'\<alpha>) hrelation_rp  = "(('t,'\<alpha>) alphabet_rp, ('t,'\<alpha>) alphabet_rp) relation"
-type_synonym ('t,'\<sigma>) predicate_rp  = "('t,'\<sigma>) alphabet_rp upred"
+type_synonym ('t,'\<alpha>,'\<beta>) rel_rp  = "(('t,'\<alpha>) rp, ('t,'\<beta>) rp) rel"
+type_synonym ('t,'\<alpha>) hrel_rp  = "('t,'\<alpha>) rp hrel"
 
-translations
-  (type) "('t, '\<alpha>) alphabet_rp" <= (type) "('t, '\<alpha>) alpha_rp'_scheme alpha_d_ext"
-  (type) "('t, '\<alpha>) alphabet_rp" <= (type) "('t, '\<alpha>) alpha_rp'_ext alpha_d_ext"
+translations 
+  (type) "('t,'\<alpha>) rp" <= (type) "('t, '\<alpha>) rp_vars_scheme des"
+  (type) "('t,'\<alpha>,'\<beta>) rel_rp" <= (type) "(('t,'\<alpha>) rp, (_,'\<beta>) rp) rel"
 
-definition "wait\<^sub>r = VAR wait\<^sub>v"
-definition "tr\<^sub>r   = VAR tr\<^sub>v"
-definition "\<Sigma>\<^sub>r    = VAR more"
-
-declare wait\<^sub>r_def [uvar_defs]
-declare tr\<^sub>r_def [uvar_defs]
-declare \<Sigma>\<^sub>r_def [uvar_defs]
-
-lemma wait\<^sub>r_vwb_lens [simp]: "vwb_lens wait\<^sub>r"
-  by (unfold_locales, simp_all add: wait\<^sub>r_def)
-
-lemma tr\<^sub>r_vwb_lens [simp]: "vwb_lens tr\<^sub>r"
-  by (unfold_locales, simp_all add: tr\<^sub>r_def)
-
-lemma rea_vwb_lens [simp]: "vwb_lens \<Sigma>\<^sub>r"
-  by (unfold_locales, simp_all add: \<Sigma>\<^sub>r_def)
-
-definition [uvar_defs]: "wait = (wait\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
-definition [uvar_defs]: "tr   = (tr\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
-definition [uvar_defs]: "\<Sigma>\<^sub>R   = (\<Sigma>\<^sub>r ;\<^sub>L \<Sigma>\<^sub>D)"
-
-lemma wait_vwb_lens [simp]: "vwb_lens wait"
-  by (simp add: wait_def)
-
-lemma tr_vwb_lens [simp]: "vwb_lens tr"
-  by (simp add: tr_def)
-
-lemma rea_lens_vwb_lens [simp]: "vwb_lens \<Sigma>\<^sub>R"
-  by (simp add: \<Sigma>\<^sub>R_def)
-
-lemma rea_lens_under_des_lens: "\<Sigma>\<^sub>R \<subseteq>\<^sub>L \<Sigma>\<^sub>D"
-  by (simp add: \<Sigma>\<^sub>R_def lens_comp_lb)
-
-lemma rea_lens_indep_ok [simp]: "\<Sigma>\<^sub>R \<bowtie> ok" "ok \<bowtie> \<Sigma>\<^sub>R"
-  using ok_indep_des_lens(2) rea_lens_under_des_lens sublens_pres_indep apply blast
-  using lens_indep_sym ok_indep_des_lens(2) rea_lens_under_des_lens sublens_pres_indep apply blast
-done
-
-lemma tr_ok_indep [simp]: "tr \<bowtie> ok" "ok \<bowtie> tr"
-  by (simp_all add: lens_indep_left_ext lens_indep_sym tr_def)
-
-lemma wait_ok_indep [simp]: "wait \<bowtie> ok" "ok \<bowtie> wait"
-  by (simp_all add: lens_indep_left_ext lens_indep_sym wait_def)
-
-lemma tr\<^sub>r_wait\<^sub>r_indep [simp]: "tr\<^sub>r \<bowtie> wait\<^sub>r" "wait\<^sub>r \<bowtie> tr\<^sub>r"
-  by (auto intro!:lens_indepI simp add: tr\<^sub>r_def wait\<^sub>r_def)
-
-lemma tr_wait_indep [simp]: "tr \<bowtie> wait" "wait \<bowtie> tr"
-  by (auto intro: lens_indep_left_comp simp add: tr_def wait_def)
-
-lemma rea_indep_wait [simp]: "\<Sigma>\<^sub>r \<bowtie> wait\<^sub>r" "wait\<^sub>r \<bowtie> \<Sigma>\<^sub>r"
-  by (auto intro!:lens_indepI simp add: wait\<^sub>r_def \<Sigma>\<^sub>r_def)
-
-lemma rea_lens_indep_wait [simp]: "\<Sigma>\<^sub>R \<bowtie> wait" "wait \<bowtie> \<Sigma>\<^sub>R"
-  by (auto intro: lens_indep_left_comp simp add: wait_def \<Sigma>\<^sub>R_def)
-
-lemma rea_indep_tr [simp]: "\<Sigma>\<^sub>r \<bowtie> tr\<^sub>r" "tr\<^sub>r \<bowtie> \<Sigma>\<^sub>r"
-  by (auto intro!:lens_indepI simp add: tr\<^sub>r_def \<Sigma>\<^sub>r_def)
-
-lemma rea_lens_indep_tr [simp]: "\<Sigma>\<^sub>R \<bowtie> tr" "tr \<bowtie> \<Sigma>\<^sub>R"
-  by (auto intro: lens_indep_left_comp simp add: tr_def \<Sigma>\<^sub>R_def)
+notation rp_vars_child_lens ("\<Sigma>\<^sub>R")
 
 lemma rea_var_ords [usubst]:
   "$tr \<prec>\<^sub>v $tr\<acute>" "$wait \<prec>\<^sub>v $wait\<acute>"
@@ -117,10 +55,10 @@ lemma rea_var_ords [usubst]:
   "$tr \<prec>\<^sub>v $wait" "$tr\<acute> \<prec>\<^sub>v $wait\<acute>" "$tr \<prec>\<^sub>v $wait\<acute>" "$tr\<acute> \<prec>\<^sub>v $wait"
   by (simp_all add: var_name_ord_def)
 
-abbreviation wait_f::"('t::ordered_cancel_monoid_diff, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) relation_rp"
+abbreviation wait_f::"('t::ordered_cancel_monoid_diff, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp"
 where "wait_f R \<equiv> R\<lbrakk>false/$wait\<rbrakk>"
 
-abbreviation wait_t::"('t::ordered_cancel_monoid_diff, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) relation_rp"
+abbreviation wait_t::"('t::ordered_cancel_monoid_diff, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp"
 where "wait_t R \<equiv> R\<lbrakk>true/$wait\<rbrakk>"
 
 syntax
@@ -134,7 +72,7 @@ translations
 abbreviation lift_rea :: "_ \<Rightarrow> _" ("\<lceil>_\<rceil>\<^sub>R") where
 "\<lceil>P\<rceil>\<^sub>R \<equiv> P \<oplus>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
 
-abbreviation drop_rea :: "('t::ordered_cancel_monoid_diff, '\<alpha>, '\<beta>) relation_rp \<Rightarrow> ('\<alpha>, '\<beta>) relation" ("\<lfloor>_\<rfloor>\<^sub>R") where
+abbreviation drop_rea :: "('t::ordered_cancel_monoid_diff, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('\<alpha>, '\<beta>) rel" ("\<lfloor>_\<rfloor>\<^sub>R") where
 "\<lfloor>P\<rfloor>\<^sub>R \<equiv> P \<restriction>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
 
 abbreviation rea_pre_lift :: "_ \<Rightarrow> _" ("\<lceil>_\<rceil>\<^sub>R\<^sub><") where "\<lceil>n\<rceil>\<^sub>R\<^sub>< \<equiv> \<lceil>\<lceil>n\<rceil>\<^sub><\<rceil>\<^sub>R"
@@ -497,7 +435,7 @@ proof -
 qed
 
 lemma R2_seqr_distribute:
-  fixes P :: "('t::ordered_cancel_monoid_diff,'\<alpha>,'\<beta>) relation_rp" and Q :: "('t,'\<beta>,'\<gamma>) relation_rp"
+  fixes P :: "('t::ordered_cancel_monoid_diff,'\<alpha>,'\<beta>) rel_rp" and Q :: "('t,'\<beta>,'\<gamma>) rel_rp"
   shows "R2(R2(P) ;; R2(Q)) = (R2(P) ;; R2(Q))"
 proof -
   have "R2(R2(P) ;; R2(Q)) =
@@ -520,7 +458,7 @@ proof -
     ((\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
       \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
   proof -
-    have "\<And> tt\<^sub>1 tt\<^sub>2. ((($tr\<acute> - $tr =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr) :: ('t,'\<alpha>,'\<gamma>) relation_rp)
+    have "\<And> tt\<^sub>1 tt\<^sub>2. ((($tr\<acute> - $tr =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr) :: ('t,'\<alpha>,'\<gamma>) rel_rp)
            = ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
       apply (rel_auto)
       apply (metis add.assoc diff_add_cancel_left')

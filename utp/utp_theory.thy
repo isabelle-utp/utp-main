@@ -48,10 +48,10 @@ lemma upred_lattice_carrier [simp]:
 
 subsection {* Healthiness conditions *}
 
-type_synonym '\<alpha> Healthiness_condition = "'\<alpha> upred \<Rightarrow> '\<alpha> upred"
+type_synonym '\<alpha> health = "'\<alpha> upred \<Rightarrow> '\<alpha> upred"
 
 definition 
-  Healthy::"'\<alpha> upred \<Rightarrow> '\<alpha> Healthiness_condition \<Rightarrow> bool" (infix "is" 30)
+  Healthy::"'\<alpha> upred \<Rightarrow> '\<alpha> health \<Rightarrow> bool" (infix "is" 30)
 where "P is H \<equiv> (H P = P)"
 
 lemma Healthy_def': "P is H \<longleftrightarrow> (H P = P)"

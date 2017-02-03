@@ -1,7 +1,7 @@
 subsection {* Procedures *}
 
 theory utp_procedure
-imports utp_rel utp_dvar utp_local
+imports utp_rel utp_local
 begin
 
 type_synonym ('a, '\<alpha>) uproc = "'a \<Rightarrow> '\<alpha> hrelation"
@@ -129,5 +129,28 @@ lemma vres_parm_comp_apply [simp]:
   "(vres_parm_comp x P) (u, v) = (var x \<bullet> x := &u ;; P x v ;; u := &x)"
   by (simp add: vres_parm_comp_def)
 *)
+
+text {* We also set up procedures for the theory of designs. *}
+
+abbreviation "DAL \<equiv> TYPE(DES \<times> '\<alpha> des \<times> '\<alpha>)"
+abbreviation "NDAL \<equiv> TYPE(NDES \<times> '\<alpha> des \<times> '\<alpha>)"
+
+syntax
+ "_dproc_block"  :: "parm_list \<Rightarrow> logic \<Rightarrow> ('a, '\<alpha>) uproc" ("_ \<bullet>\<^sub>D/ _" [0,10] 10)
+ "_nproc_block"  :: "parm_list \<Rightarrow> logic \<Rightarrow> ('a, '\<alpha>) uproc" ("_ \<bullet>\<^sub>N/ _" [0,10] 10)
+
+translations
+  "_dproc_block ps P" => "_proc_block (CONST DAL) ps P"
+  "_nproc_block ps P" => "_proc_block (CONST NDAL) ps P"
+
+text {* Instantiate vstore for design alphabets, which enables the use of deep variables
+  to represent local variables. *}
+
+instantiation des_vars_ext :: (vst) vst
+begin
+  definition "vstore_lens_des_vars_ext = \<V> ;\<^sub>L \<Sigma>\<^sub>D"
+instance
+  by (intro_classes, auto simp add: vstore_lens_des_vars_ext_def comp_vwb_lens)
+end
 
 end
