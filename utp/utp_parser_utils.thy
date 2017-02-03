@@ -29,7 +29,7 @@ struct
 
 val mk_nib =
   Ast.Constant o Lexicon.mark_const o
-    fst o Term.dest_Const o HOLogic.mk_nibble;
+    fst o Term.dest_Const o HOLogic.mk_char;
 
 fun mk_char s =
   if Symbol.is_ascii s then

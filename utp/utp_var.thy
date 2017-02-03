@@ -8,24 +8,23 @@ imports
   "../utils/interp"
   "../utils/Lenses"
   "../utils/Profiling"
-(* "../utils/ttrace" *)
   "../utils/Library_extra/Pfun"
   "../utils/Library_extra/Ffun"
   "../utils/Library_extra/List_lexord_alt"
   "../utils/Library_extra/Monoid_extra"
   "~~/src/HOL/Library/Prefix_Order"
   "~~/src/HOL/Library/Char_ord"
-  "~~/src/HOL/Library/Adhoc_Overloading"
+  "~~/src/Tools/Adhoc_Overloading"
   "~~/src/HOL/Library/Monad_Syntax"
   "~~/src/HOL/Library/Countable"
   "~~/src/HOL/Eisbach/Eisbach"
   utp_parser_utils
+  Deriv
 begin
 
 text {* We will overload both the bullet and the square order relation with refinement so
-  we will turn of thss notation. *}
+  we will turn of this notation. *}
 
-no_notation inner (infix "\<bullet>" 70)
 no_notation le (infixl "\<sqsubseteq>\<index>" 50)
 
 text {* We hide HOL's built-in relation type since we will replace it with our own *}

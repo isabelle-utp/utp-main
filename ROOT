@@ -7,8 +7,39 @@
 
 (* Third-party Contributions *)
 
+session "HOL-Algebra2" (main timing) in "contrib/Algebra" = HOL +
+  description {*
+    Author: Clemens Ballarin, started 24 September 1999
+
+    The Isabelle Algebraic Library.
+  *}
+  theories [document = false]
+    (* Preliminaries from set and number theory *)
+    "~~/src/HOL/Library/FuncSet"
+    "~~/src/HOL/Number_Theory/Primes"
+    "~~/src/HOL/Library/Permutation"
+  theories [document = pdf]
+    (*** New development, based on explicit structures ***)    
+    (* Groups *)
+    FiniteProduct        (* Product operator for commutative groups *)
+    Sylow                (* Sylow's theorem *)
+    Bij                  (* Automorphism Groups *)
+
+    (* Orders and Lattices *)
+    Order
+    Lattice
+    Complete_Lattice
+    Galois_Connection
+
+    (* Rings *)
+    Divisibility         (* Rings *)
+    IntRing              (* Ideals and residue classes *)
+    UnivPoly             (* Polynomials *)
+  document_files "root.bib" "root.tex"
+
+
 session Kleene_Algebra (AFP) in "contrib/Kleene_Algebra"
-  = "HOL-Multivariate_Analysis" +
+  = "HOL-Library" +
   options [timeout = 300]
   theories
     Action_Algebra
@@ -45,13 +76,10 @@ session "UTP-DEPS" = "Kleene_Algebra" +
 
 (* UTP library imports *)
 
-session "UTP-IMPORTS" in "utils" = "UTP-DEPS" +
+session "UTP-IMPORTS" in "utils" = "HOL" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
-    cardinals
-    Continuum
     finite_bijection
-    Dyadic
     Lenses
     Profiling
     "Library_extra/Countable_Set_extra"
@@ -63,10 +91,7 @@ session "UTP-IMPORTS" in "utils" = "UTP-DEPS" +
     "Library_extra/Sequence"
     "Library_extra/Pfun"
     "Library_extra/Ffun"
-    "Library_extra/Derivative_extra"
     Positive
-    Real_Bit
-    ttrace
     interp
   document_files
     "root.bib"

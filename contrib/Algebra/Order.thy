@@ -1,12 +1,20 @@
+(*  Title:      HOL/Algebra/Order.thy
+    Author:     Clemens Ballarin, started 7 November 2003
+    Copyright:  Clemens Ballarin
+
+Most congruence rules by Stephan Hohe. With additional contributions from Alasdair Armstrong
+and Simon Foster.
+*)
+
 theory Order
 imports 
   "~~/src/HOL/Library/FuncSet"
   Congruence
 begin
 
-section {* Orders and Lattices *}
+section \<open> Orders \<close>
 
-subsection {* Partial Orders *}
+subsection \<open> Partial Orders \<close>
 
 record 'a gorder = "'a eq_object" +
   le :: "['a, 'a] => bool" (infixl "\<sqsubseteq>\<index>" 50)
@@ -35,15 +43,7 @@ definition
   lless :: "[_, 'a, 'a] => bool" (infixl "\<sqsubset>\<index>" 50)
   where "x \<sqsubset>\<^bsub>L\<^esub> y \<longleftrightarrow> x \<sqsubseteq>\<^bsub>L\<^esub> y & x .\<noteq>\<^bsub>L\<^esub> y"
 
-subsubsection {* The order relation *}
-
-lemma funcset_carrier:
-  "\<lbrakk> f \<in> carrier X \<rightarrow> carrier Y; x \<in> carrier X \<rbrakk> \<Longrightarrow> f x \<in> carrier Y"
-  by (fact funcset_mem)
-
-lemma funcset_carrier':
-  "\<lbrakk> f \<in> carrier A \<rightarrow> carrier A; x \<in> carrier A \<rbrakk> \<Longrightarrow> f x \<in> carrier A"
-  by (fact funcset_mem)
+subsubsection \<open> The order relation \<close>
 
 context weak_partial_order
 begin
@@ -113,8 +113,24 @@ lemma (in weak_partial_order) lless_trans [trans]:
   shows "a \<sqsubset> c"
   using assms unfolding lless_def by (blast dest: le_trans intro: sym)
 
-
-subsubsection {* Upper and lower bounds of a set *}
+lemma weak_partial_order_subset:
+  assumes "weak_partial_order L" "A \<subseteq> carrier L"
+  shows "weak_partial_order (L\<lparr> carrier := A \<rparr>)"
+proof -
+  interpret L: weak_partial_order L
+    by (simp add: assms)
+  interpret equivalence "(L\<lparr> carrier := A \<rparr>)"
+    by (simp add: L.equivalence_axioms assms(2) equivalence_subset)
+  show ?thesis
+    apply (unfold_locales, simp_all)
+    using assms(2) apply auto[1]
+    using assms(2) apply auto[1]
+    apply (meson L.le_trans assms(2) contra_subsetD)
+    apply (meson L.le_cong assms(2) subsetCE)
+  done
+qed
+    
+subsubsection \<open> Upper and lower bounds of a set \<close>
 
 definition
   Upper :: "[_, 'a set] => 'a set"
@@ -286,7 +302,7 @@ next
   finally show "x \<sqsubseteq> a" by (simp add: carr subsetD[OF A'carr a'A'])
 qed
 
-text {* Jacobson: Theorem 8.1 *}
+text \<open> Jacobson: Theorem 8.1 \<close>
 
 lemma Lower_empty [simp]:
   "Lower L {} = carrier L"
@@ -296,7 +312,7 @@ lemma Upper_empty [simp]:
   "Upper L {} = carrier L"
   by (unfold Upper_def) simp
 
-subsubsection {* Least and greatest, as predicate *}
+subsubsection \<open> Least and greatest, as predicate \<close>
 
 definition
   least :: "[_, 'a, 'a set] => bool"
@@ -472,12 +488,32 @@ next
     by (metis weak_partial_order.dual_weak_order)
 qed
 
-subsubsection {* Intervals *}
+subsubsection \<open> Intervals \<close>
 
 definition
   at_least_at_most :: "('a, 'c) gorder_scheme \<Rightarrow> 'a => 'a => 'a set" ("(1\<lbrace>_.._\<rbrace>\<index>)") where
   "\<lbrace>l..u\<rbrace>\<^bsub>A\<^esub> = {x \<in> carrier A. l \<sqsubseteq>\<^bsub>A\<^esub> x \<and> x \<sqsubseteq>\<^bsub>A\<^esub> u}"
 
+context weak_partial_order
+begin
+  
+  lemma at_least_at_most_upper [dest]:
+    "x \<in> \<lbrace>a..b\<rbrace> \<Longrightarrow> x \<sqsubseteq> b"
+    by (simp add: at_least_at_most_def)
+
+  lemma at_least_at_most_lower [dest]:
+    "x \<in> \<lbrace>a..b\<rbrace> \<Longrightarrow> a \<sqsubseteq> x"
+    by (simp add: at_least_at_most_def)
+
+  lemma at_least_at_most_closed: "\<lbrace>a..b\<rbrace> \<subseteq> carrier L"
+    by (auto simp add: at_least_at_most_def)
+
+  lemma at_least_at_most_member [intro]: 
+    "\<lbrakk> x \<in> carrier L; a \<sqsubseteq> x; x \<sqsubseteq> b \<rbrakk> \<Longrightarrow> x \<in> \<lbrace>a..b\<rbrace>"
+    by (simp add: at_least_at_most_def)
+
+end
+  
 subsubsection {* Isotone functions *}
 
 definition isotone :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
@@ -510,7 +546,7 @@ lemma (in weak_partial_order) inv_isotone [simp]:
   "isotone (inv_gorder A) (inv_gorder B) f = isotone A B f"
   by (auto simp add:isotone_def dual_weak_order dual_weak_order_iff)
 
-subsubsection {* Idempotent functions *}
+subsubsection \<open> Idempotent functions \<close>
 
 definition idempotent :: 
   "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" ("Idem\<index>") where
@@ -520,7 +556,7 @@ lemma (in weak_partial_order) idempotent:
   "\<lbrakk> Idem f; x \<in> carrier L \<rbrakk> \<Longrightarrow> f (f x) .= f x"
   by (auto simp add: idempotent_def)
 
-subsubsection {* Order embeddings *}
+subsubsection \<open> Order embeddings \<close>
 
 definition order_emb :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
   "order_emb A B f \<equiv> weak_partial_order A 
@@ -530,10 +566,12 @@ definition order_emb :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_sc
 lemma order_emb_isotone: "order_emb A B f \<Longrightarrow> isotone A B f"
   by (auto simp add: isotone_def order_emb_def)
 
-definition commuting :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" where
-"commuting A f g = (\<forall>x\<in>A. (f \<circ> g) x = (g \<circ> f) x)"
+subsubsection \<open> Commuting functions \<close>
+    
+definition commuting :: "('a, 'c) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" where
+"commuting A f g = (\<forall>x\<in>carrier A. (f \<circ> g) x .=\<^bsub>A\<^esub> (g \<circ> f) x)"
 
-subsection {* Orders and Lattices where @{text eq} is the Equality *}
+subsection \<open> Partial orders where @{text eq} is the Equality \<close>
 
 locale partial_order = weak_partial_order +
   assumes eq_is_equal: "op .= = op ="
@@ -590,7 +628,7 @@ next
     by (metis partial_order.dual_order)
 qed
 
-text {* Least and greatest, as predicate *}
+subsubsection \<open> Least and greatest, as predicate \<close>
 
 lemma (in partial_order) least_unique:
   "[| least L x A; least L y A |] ==> x = y"
@@ -600,7 +638,7 @@ lemma (in partial_order) greatest_unique:
   "[| greatest L x A; greatest L y A |] ==> x = y"
   using weak_greatest_unique unfolding eq_is_equal .
 
-subsection {* Bounded Orders *}
+subsection \<open> Bounded Orders \<close>
 
 definition
   atop :: "_ => 'a" ("\<top>\<index>")
@@ -656,30 +694,30 @@ lemma top_higher [simp, intro]:
 
 end
 
-subsection {* Total Orders *}
+subsection \<open> Total Orders \<close>
 
 locale weak_total_order = weak_partial_order +
-  assumes total: "[| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
+  assumes total: "\<lbrakk> x \<in> carrier L; y \<in> carrier L \<rbrakk> \<Longrightarrow> x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
 
 text {* Introduction rule: the usual definition of total order *}
 
 lemma (in weak_partial_order) weak_total_orderI:
-  assumes total: "!!x y. [| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
+  assumes total: "!!x y. \<lbrakk> x \<in> carrier L; y \<in> carrier L \<rbrakk> \<Longrightarrow> x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
   shows "weak_total_order L"
   by unfold_locales (rule total)
 
-text {* Total Orders *}
+subsection \<open> Total orders where @{text eq} is the Equality \<close>
 
 locale total_order = partial_order +
-  assumes total_order_total: "[| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
+  assumes total_order_total: "\<lbrakk> x \<in> carrier L; y \<in> carrier L \<rbrakk> \<Longrightarrow> x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
 
 sublocale total_order < weak: weak_total_order
   by unfold_locales (rule total_order_total)
 
-text {* Introduction rule: the usual definition of total order *}
+text \<open> Introduction rule: the usual definition of total order \<close>
 
 lemma (in partial_order) total_orderI:
-  assumes total: "!!x y. [| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
+  assumes total: "!!x y. \<lbrakk> x \<in> carrier L; y \<in> carrier L \<rbrakk> \<Longrightarrow> x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
   shows "total_order L"
   by unfold_locales (rule total)
 

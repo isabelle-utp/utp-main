@@ -62,30 +62,30 @@ lemma Healthy_if: "P is H \<Longrightarrow> (H P = P)"
 
 declare Healthy_def' [upred_defs]
 
-abbreviation Healthy_carrier :: "'\<alpha> Healthiness_condition \<Rightarrow> '\<alpha> upred set" ("\<lbrakk>_\<rbrakk>\<^sub>H")
+abbreviation Healthy_carrier :: "'\<alpha> health \<Rightarrow> '\<alpha> upred set" ("\<lbrakk>_\<rbrakk>\<^sub>H")
 where "\<lbrakk>H\<rbrakk>\<^sub>H \<equiv> {P. P is H}"
 
 subsection {* Properties of healthiness conditions *}
 
-definition Idempotent :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where 
+definition Idempotent :: "'\<alpha> health \<Rightarrow> bool" where 
   "Idempotent(H) \<longleftrightarrow> (\<forall> P. H(H(P)) = H(P))"
 
-definition Monotonic :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where
+definition Monotonic :: "'\<alpha> health \<Rightarrow> bool" where
   "Monotonic(H) \<longleftrightarrow> (\<forall> P Q. Q \<sqsubseteq> P \<longrightarrow> (H(Q) \<sqsubseteq> H(P)))"
 
-definition IMH :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where
+definition IMH :: "'\<alpha> health \<Rightarrow> bool" where
   "IMH(H) \<longleftrightarrow> Idempotent(H) \<and> Monotonic(H)"
 
-definition Antitone :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where
+definition Antitone :: "'\<alpha> health \<Rightarrow> bool" where
   "Antitone(H) \<longleftrightarrow> (\<forall> P Q. Q \<sqsubseteq> P \<longrightarrow> (H(P) \<sqsubseteq> H(Q)))"
 
-definition Conjunctive :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where 
+definition Conjunctive :: "'\<alpha> health \<Rightarrow> bool" where 
   "Conjunctive(H) \<longleftrightarrow> (\<exists> Q. \<forall> P. H(P) = (P \<and> Q))"
 
-definition FunctionalConjunctive :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where 
+definition FunctionalConjunctive :: "'\<alpha> health \<Rightarrow> bool" where 
   "FunctionalConjunctive(H) \<longleftrightarrow> (\<exists> F. \<forall> P. H(P) = (P \<and> F(P)) \<and> Monotonic(F))"
 
-definition WeakConjunctive :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where 
+definition WeakConjunctive :: "'\<alpha> health \<Rightarrow> bool" where 
   "WeakConjunctive(H) \<longleftrightarrow> (\<forall> P. \<exists> Q. H(P) = (P \<and> Q))"
 
 lemma Healthy_Idempotent [closure]: 
@@ -202,9 +202,9 @@ text {* We set up polymorphic constants to denote the healthiness conditions ass
   which apparently cannot specialise types in this way. *}
 
 consts
-  utp_hcond :: "('\<T>, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) Healthiness_condition" ("\<H>\<index>")
+  utp_hcond :: "('\<T>, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) health" ("\<H>\<index>")
 
-definition utp_order :: "('\<alpha> \<times> '\<alpha>) Healthiness_condition \<Rightarrow> '\<alpha> hrelation gorder" where
+definition utp_order :: "('\<alpha> \<times> '\<alpha>) health \<Rightarrow> '\<alpha> hrel gorder" where
 "utp_order H = \<lparr> carrier = {P. P is H}, eq = (op =), le = op \<sqsubseteq> \<rparr>"
 
 abbreviation "uthy_order T \<equiv> utp_order \<H>\<^bsub>T\<^esub>"
@@ -262,7 +262,7 @@ definition uthy_plus :: "('T\<^sub>1, '\<alpha>) uthy \<Rightarrow> ('T\<^sub>2,
 "uthy_plus T\<^sub>1 T\<^sub>2 = uthy"
 
 overloading
-  prod_hcond == "utp_hcond :: ('T\<^sub>1 \<times> 'T\<^sub>2, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) Healthiness_condition"
+  prod_hcond == "utp_hcond :: ('T\<^sub>1 \<times> 'T\<^sub>2, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) health"
 begin
 
   text {* The healthiness condition of a relation is simply identity, since every alphabetised
@@ -453,7 +453,7 @@ text {* There also exist UTP theories with units, and the following operator is 
   operator for them. *}
 
 consts
-  utp_unit  :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrelation" ("\<I>\<I>\<index>")
+  utp_unit  :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrel" ("\<I>\<I>\<index>")
 
 text {* Not all theories have both a left and a right unit (e.g. H1-H2 designs) and so we split
   up the locale into two cases. *}
@@ -509,8 +509,8 @@ text {* We declare the type @{type REL} to be the tag for this theory. We need k
   constants. *}
 
 overloading
-  rel_hcond == "utp_hcond :: (REL, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) Healthiness_condition"
-  rel_unit == "utp_unit :: (REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrelation"
+  rel_hcond == "utp_hcond :: (REL, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) health"
+  rel_unit == "utp_unit :: (REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrel"
 begin
 
   text {* The healthiness condition of a relation is simply identity, since every alphabetised
@@ -521,7 +521,7 @@ begin
 
   text {* The unit of the theory is simply the relational unit. *}
 
-  definition rel_unit :: "(REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrelation" where
+  definition rel_unit :: "(REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrel" where
   "rel_unit T = II"
 end
 

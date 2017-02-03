@@ -4,18 +4,27 @@
 *)
 
 theory Congruence
-imports Main
+imports 
+  Main
+  "~~/src/HOL/Library/FuncSet"
 begin
 
-section {* Objects *}
+section \<open>Objects\<close>
 
-subsection {* Structure with Carrier Set. *}
+subsection \<open>Structure with Carrier Set.\<close>
 
 record 'a partial_object =
   carrier :: "'a set"
 
+lemma funcset_carrier:
+  "\<lbrakk> f \<in> carrier X \<rightarrow> carrier Y; x \<in> carrier X \<rbrakk> \<Longrightarrow> f x \<in> carrier Y"
+  by (fact funcset_mem)
 
-subsection {* Structure with Carrier and Equivalence Relation @{text eq} *}
+lemma funcset_carrier':
+  "\<lbrakk> f \<in> carrier A \<rightarrow> carrier A; x \<in> carrier A \<rbrakk> \<Longrightarrow> f x \<in> carrier A"
+  by (fact funcset_mem)
+  
+subsection \<open>Structure with Carrier and Equivalence Relation \<open>eq\<close>\<close>
 
 record 'a eq_object = "'a partial_object" +
   eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl ".=\<index>" 50)
@@ -370,4 +379,57 @@ proof -
       show "P" by (rule r)
 qed
 
+(*
+lemma (in equivalence) classes_consistent:
+  assumes Acarr: "A \<subseteq> carrier S"
+  shows "is_closed (closure_of A)"
+apply (blast intro: elemI elim elemE)
+using assms
+apply (intro is_closedI closure_of_memI, simp)
+ apply (elim elemE closure_of_memE)
+proof -
+  fix x a' a''
+  assume carr: "x \<in> carrier S" "a' \<in> carrier S"
+  assume a''A: "a'' \<in> A"
+  with Acarr have "a'' \<in> carrier S" by fast
+  note [simp] = carr this Acarr
+
+  assume "x .= a'"
+  also assume "a' .= a''"
+  also from a''A
+       have "a'' .\<in> A" by (simp add: elem_exact)
+  finally show "x .\<in> A" by simp
+qed
+*)
+(*
+lemma (in equivalence) classes_small:
+  assumes "is_closed B"
+    and "A \<subseteq> B"
+  shows "closure_of A \<subseteq> B"
+using assms
+by (blast dest: is_closedD2 elem_subsetD elim: closure_of_memE)
+
+lemma (in equivalence) classes_eq:
+  assumes "A \<subseteq> carrier S"
+  shows "A {.=} closure_of A"
+using assms
+by (blast intro: set_eqI elem_exact closure_of_memI elim: closure_of_memE)
+
+lemma (in equivalence) complete_classes:
+  assumes c: "is_closed A"
+  shows "A = closure_of A"
+using assms
+by (blast intro: closure_of_memI elem_exact dest: is_closedD1 is_closedD2 closure_of_memE)
+*)
+
+lemma equivalence_subset:
+  assumes "equivalence L" "A \<subseteq> carrier L"
+  shows "equivalence (L\<lparr> carrier := A \<rparr>)"
+proof -
+  interpret L: equivalence L
+    by (simp add: assms)
+  show ?thesis
+    by (unfold_locales, simp_all add: L.sym assms rev_subsetD, meson L.trans assms(2) contra_subsetD)
+qed
+  
 end

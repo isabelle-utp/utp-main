@@ -88,11 +88,7 @@ lemma monoid_le_add_left_mono: "a \<le>\<^sub>m b \<Longrightarrow> c + a \<le>\
   using add_assoc by (auto simp add: monoid_le_def)
 
 lemma add_monoid_diff_cancel_left [simp]: "(a + b) -\<^sub>m a = b"
-  apply (auto simp add: monoid_subtract_def monoid_le_add)
-  apply (rule the_equality)
-  apply (simp)
-  using local.add_left_imp_eq apply blast
-done
+  by (auto simp add: monoid_subtract_def monoid_le_add)
 
 end
 

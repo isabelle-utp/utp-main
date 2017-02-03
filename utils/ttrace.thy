@@ -4,6 +4,7 @@ theory ttrace
   imports 
   Real_Vector_Spaces
   Positive
+  Lenses
   "Library_extra/Map_Extra" 
   "Library_extra/List_extra" 
   "Library_extra/Monoid_extra" 
@@ -521,6 +522,14 @@ text {* Application of a value $x$ to a contiguous function mapped through $g$ i
 
 lemma cgf_map_map: "map\<^sub>C f (map\<^sub>C g h) = map\<^sub>C (\<lambda> (i, x). f (i, g (i, x))) h"
   by (transfer, auto simp add: dom_if)
+
+definition cgf_lens :: "('a cgf \<Longrightarrow> '\<alpha>) \<Rightarrow> ('b \<Longrightarrow> 'a) \<Rightarrow> ('b cgf \<Longrightarrow> '\<alpha>)" where
+[lens_defs]: "cgf_lens X Y =
+  \<lparr> lens_get = \<lambda> s. map'\<^sub>C get\<^bsub>Y\<^esub> (get\<^bsub>X\<^esub> s)
+  , lens_put = \<lambda> s v. put\<^bsub>X\<^esub> s (map\<^sub>C (\<lambda> (i, x). put\<^bsub>Y\<^esub> x (\<langle>v\<rangle>\<^sub>C i)) (get\<^bsub>X\<^esub> s !\<^sub>C (end\<^sub>C v))) \<rparr>"
+
+lemma cgf_weak_lens: "\<lbrakk> weak_lens X; weak_lens Y \<rbrakk> \<Longrightarrow> weak_lens (cgf_lens X Y)"
+  by (unfold_locales, auto simp add: cgf_lens_def cgf_map_map cgf_map_indep)
 
 lemma cgf_cat_minus_prefix:
   "f \<le> g \<Longrightarrow> g = f @\<^sub>C (g - f)"

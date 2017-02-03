@@ -359,4 +359,14 @@ translations
   "var\<^bsub>T\<^esub> <x>  :: 'a := v \<bullet> P" => "var\<^bsub>T\<^esub> <x> :: 'a \<bullet> x ::=\<^bsub>T\<^esub> v ;; P"
 
 
+(* Instantiate the vstore for reactive alphabets *)
+
+instantiation alpha_rp'_ext :: (ordered_cancel_monoid_diff,vst) vst
+begin
+  definition vstore_lens_alpha_rp'_ext :: "vstore \<Longrightarrow> ('a, 'b) alpha_rp'_scheme" where
+  "vstore_lens_alpha_rp'_ext = \<V> ;\<^sub>L \<Sigma>\<^sub>r"
+instance
+  by (intro_classes, simp add: vstore_lens_alpha_rp'_ext_def)
+end
+
 end
