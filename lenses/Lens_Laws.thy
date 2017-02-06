@@ -1,5 +1,8 @@
-theory lens_laws
-imports "../utils/Two" "../utils/interp"
+section \<open>Core Lens Laws\<close>
+
+theory Lens_Laws
+imports 
+  Two Interp
 begin
 
 subsection \<open>Lens signature\<close>
@@ -179,7 +182,6 @@ locale lens_indep =
 
 notation lens_indep (infix "\<bowtie>" 50)
 
-
 lemma lens_indepI:
   "\<lbrakk> \<And> u v \<sigma>. lens_put x (lens_put y \<sigma> v) u = lens_put y (lens_put x \<sigma> u) v;
      \<And> v \<sigma>. lens_get x (lens_put y \<sigma> v) = lens_get x \<sigma>;
@@ -199,7 +201,5 @@ lemma lens_indep_get [simp]:
   assumes "x \<bowtie> y"
   shows "lens_get x (lens_put y \<sigma> v) = lens_get x \<sigma>"
   using assms lens_indep_def by fastforce
-
-
 
 end

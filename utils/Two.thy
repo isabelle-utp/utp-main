@@ -1,7 +1,7 @@
 section {* Types of cardinality 2 or greater *}
 
 theory Two
-imports Main Infinity
+imports Real
 begin
 
 class two =
@@ -30,7 +30,19 @@ end
 instance bool :: two
   by (intro_classes, auto)
 
-instance infinite \<subseteq> two
+instance nat :: two
   by (intro_classes, auto)
 
+instance int :: two
+  by (intro_classes, auto simp add: infinite_UNIV_int)
+
+instance rat :: two
+  by (intro_classes, auto simp add: infinite_UNIV_char_0)
+
+instance real :: two
+  by (intro_classes, auto simp add: infinite_UNIV_char_0)
+    
+instance list :: (type) two
+  by (intro_classes, auto simp add: infinite_UNIV_listI)
+    
 end

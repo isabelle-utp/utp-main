@@ -554,7 +554,6 @@ lemma assign_d_right_comp:
 
 lemma assigns_d_comp:
   "(\<langle>f\<rangle>\<^sub>D ;; \<langle>g\<rangle>\<^sub>D) = \<langle>g \<circ> f\<rangle>\<^sub>D"
-  using assms
   by (simp add: assigns_d_def rdesign_composition assigns_comp)
 
 subsection {* Design preconditions *}
@@ -704,7 +703,7 @@ proof -
   from assms(2) have "H1 ` A = A"
     by (auto simp add: Healthy_def rev_image_eqI)
   with H1_USUP[of A id, OF assms(1)] show ?thesis
-    by (simp add: USUP_as_Sup_image Healthy_def)
+    by (simp add: USUP_as_Sup_image Healthy_def, presburger)
 qed
 
 lemma H1_UINF:
@@ -718,7 +717,7 @@ proof -
   from assms have "H1 ` A = A"
     by (auto simp add: Healthy_def rev_image_eqI)
   with H1_UINF[of A id] show ?thesis
-    by (simp add: UINF_as_Inf_image Healthy_def)
+    by (simp add: UINF_as_Inf_image Healthy_def, presburger)
 qed
 
 subsection {* H2: A specification cannot require non-termination *}
@@ -767,15 +766,15 @@ theorem H2_equivalence:
 proof -
   have "`P \<Leftrightarrow> (P ;; J)` \<longleftrightarrow> `P \<Leftrightarrow> (P\<^sup>f \<or> (P\<^sup>t \<and> $ok\<acute>))`"
     by (simp add: J_split)
-  also from assms have "... \<longleftrightarrow> `(P \<Leftrightarrow> P\<^sup>f \<or> P\<^sup>t \<and> $ok\<acute>)\<^sup>f \<and> (P \<Leftrightarrow> P\<^sup>f \<or> P\<^sup>t \<and> $ok\<acute>)\<^sup>t`"
+  also have "... \<longleftrightarrow> `(P \<Leftrightarrow> P\<^sup>f \<or> P\<^sup>t \<and> $ok\<acute>)\<^sup>f \<and> (P \<Leftrightarrow> P\<^sup>f \<or> P\<^sup>t \<and> $ok\<acute>)\<^sup>t`"
     by (simp add: subst_bool_split)
-  also from assms have "... = `(P\<^sup>f \<Leftrightarrow> P\<^sup>f) \<and> (P\<^sup>t \<Leftrightarrow> P\<^sup>f \<or> P\<^sup>t)`"
+  also have "... = `(P\<^sup>f \<Leftrightarrow> P\<^sup>f) \<and> (P\<^sup>t \<Leftrightarrow> P\<^sup>f \<or> P\<^sup>t)`"
     by subst_tac
   also have "... = `P\<^sup>t \<Leftrightarrow> (P\<^sup>f \<or> P\<^sup>t)`"
     by pred_auto
   also have "... = `(P\<^sup>f \<Rightarrow> P\<^sup>t)`"
     by pred_auto
-  finally show ?thesis using assms
+  finally show ?thesis
     by (metis H2_def Healthy_def' taut_iff_eq)
 qed
 
@@ -833,14 +832,14 @@ qed
 
 lemma H2_USUP:
   shows "H2(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> H2(P(i)))"
-  using assms by (rel_auto)
+  by (rel_auto)
 
 theorem H1_H2_commute:
   "H1 (H2 P) = H2 (H1 P)"
 proof -
   have "H2 (H1 P) = (($ok \<Rightarrow> P) ;; J)"
     by (simp add: H1_def H2_def)
-  also from assms have "... = ((\<not> $ok \<or> P) ;; J)"
+  also have "... = ((\<not> $ok \<or> P) ;; J)"
     by rel_auto
   also have "... = ((\<not> $ok ;; J) \<or> (P ;; J))"
     using seqr_or_distl by blast
@@ -854,12 +853,10 @@ proof -
 qed
 
 lemma ok_pre: "($ok \<and> \<lceil>pre\<^sub>D(P)\<rceil>\<^sub>D) = ($ok \<and> (\<not> P\<^sup>f))"
-apply (pred_auto)
-done
+  by (pred_auto)
 
 lemma ok_post: "($ok \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>D) = ($ok \<and> (P\<^sup>t))"
-apply (pred_auto)
-done
+  by (pred_auto)
 
 abbreviation "H1_H2 P \<equiv> H1 (H2 P)"
 
@@ -899,7 +896,7 @@ proof -
     by (simp add: ok_post ok_pre)
   also have "... = ($ok \<and> \<lceil>pre\<^sub>D(P)\<rceil>\<^sub>D \<Rightarrow> $ok\<acute> \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>D)"
     by pred_auto
-  also from assms have "... =  pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P)"
+  also have "... =  pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P)"
     by (simp add: rdesign_def design_def)
   finally show ?thesis .
 qed
@@ -965,9 +962,7 @@ lemma USUP_H1_H2_closed:
 proof -
   from assms have A: "A = H1_H2 ` A"
     by (auto simp add: Healthy_def rev_image_eqI)
-  also have "(\<Sqinter> ...) = (\<Sqinter> P \<in> A. H1_H2(P))"
-    by auto
-  also have "... = (\<Sqinter> P \<in> A \<bullet> H1_H2(P))"
+  also have "(\<Sqinter> ...) = (\<Sqinter> P \<in> A \<bullet> H1_H2(P))"
     by (simp add: USUP_as_Sup_collect)
   also have "... = (\<Sqinter> P \<in> A \<bullet> (\<not> P\<^sup>f) \<turnstile> P\<^sup>t)"
     by (meson H1_H2_eq_design)
@@ -1001,9 +996,7 @@ lemma UINF_H1_H2_closed:
 proof -
   from assms have A: "A = \<^bold>H ` A"
     by (auto simp add: Healthy_def rev_image_eqI)
-  also have "(\<Squnion> ...) = (\<Squnion> P \<in> A. \<^bold>H(P))"
-    by auto
-  also have "... = (\<Squnion> P \<in> A \<bullet> \<^bold>H(P))"
+  also have "(\<Squnion> ...) = (\<Squnion> P \<in> A \<bullet> \<^bold>H(P))"
     by (simp add: UINF_as_Inf_collect)
   also have "... = (\<Squnion> P \<in> A \<bullet> (\<not> P\<^sup>f) \<turnstile> P\<^sup>t)"
     by (meson H1_H2_eq_design)
@@ -1050,9 +1043,9 @@ theorem rdesign_H3_iff_pre:
 proof -
   have "(P \<turnstile>\<^sub>r Q ;; II\<^sub>D) = (P \<turnstile>\<^sub>r Q ;; true \<turnstile>\<^sub>r II)"
     by (simp add: skip_d_def)
-  also from assms have "... = (\<not> (\<not> P ;; true) \<and> \<not> (Q ;; \<not> true)) \<turnstile>\<^sub>r (Q ;; II)"
+  also have "... = (\<not> (\<not> P ;; true) \<and> \<not> (Q ;; \<not> true)) \<turnstile>\<^sub>r (Q ;; II)"
     by (simp add: rdesign_composition)
-  also from assms have "... = (\<not> (\<not> P ;; true) \<and> \<not> (Q ;; \<not> true)) \<turnstile>\<^sub>r Q"
+  also have "... = (\<not> (\<not> P ;; true) \<and> \<not> (Q ;; \<not> true)) \<turnstile>\<^sub>r Q"
     by simp
   also have "... = (\<not> (\<not> P ;; true)) \<turnstile>\<^sub>r Q"
     by pred_auto

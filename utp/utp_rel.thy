@@ -28,7 +28,7 @@ method rel_simp' = (
   (unfold upred_defs urel_defs)?,
   (transfer),
   (simp add: fun_eq_iff relcomp_unfold OO_def
-    lens_defs uvar_defs upred_defs alpha_splits Product_Type.split_beta)?,
+    lens_defs upred_defs alpha_splits Product_Type.split_beta)?,
   (clarsimp)?)
 
 text {* Variations that adjoin @{method rel_simp'} with automatic tactics. *}
@@ -42,7 +42,7 @@ method rel_simp = (
   (unfold upred_defs urel_defs)?,
   (transfer),
   (simp add: fun_eq_iff relcomp_unfold OO_def
-    lens_defs uvar_defs upred_defs alpha_splits Product_Type.split_beta)?,
+    lens_defs upred_defs alpha_splits Product_Type.split_beta)?,
   (simp add: lens_interp_laws)?,
   (clarsimp)?)
 

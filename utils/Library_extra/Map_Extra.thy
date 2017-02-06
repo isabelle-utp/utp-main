@@ -3,9 +3,8 @@ section {* Map type: extra functions and properties *}
 theory Map_Extra
 imports 
   Main 
-  "~~/src/HOL/Library/Char_ord" 
-  Countable_Set_extra
-  
+  "~~/src/HOL/Library/Countable_Set"
+  "~~/src/HOL/Library/Char_ord"
   "~~/src/HOL/Library/Monad_Syntax"
 begin
 

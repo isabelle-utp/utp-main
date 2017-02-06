@@ -87,6 +87,19 @@ syntax
 text {* We also set up some useful standard arithmetic operators for Isabelle by lifting
         the functions to binary operators. *}
 
+instantiation uexpr :: (zero, type) zero
+begin
+  definition zero_uexpr_def: "0 = lit 0"
+instance ..
+end
+
+instantiation uexpr :: (one, type) one
+begin
+  definition one_uexpr_def: "1 = lit 1"
+instance ..
+
+end
+
 instantiation uexpr :: (plus, type) plus
 begin
   definition plus_uexpr_def: "u + v = bop (op +) u v"
@@ -129,12 +142,12 @@ begin
 instance ..
 end
 
-instantiation uexpr :: (Divides.div, type) Divides.div
+instantiation uexpr :: (modulo, type) modulo
 begin
   definition mod_uexpr_def: "u mod v = bop (op mod) u v"
 instance ..
 end
-
+  
 instantiation uexpr :: (sgn, type) sgn
 begin
   definition sgn_uexpr_def: "sgn u = uop sgn u"
@@ -145,19 +158,6 @@ instantiation uexpr :: (abs, type) abs
 begin
   definition abs_uexpr_def: "abs u = uop abs u"
 instance ..
-end
-
-instantiation uexpr :: (zero, type) zero
-begin
-  definition zero_uexpr_def: "0 = lit 0"
-instance ..
-end
-
-instantiation uexpr :: (one, type) one
-begin
-  definition one_uexpr_def: "1 = lit 1"
-instance ..
-
 end
 
 instance uexpr :: (semigroup_mult, type) semigroup_mult
@@ -198,7 +198,6 @@ begin
 instance ..
 end
 
-
 instance uexpr :: (order, type) order
 proof
   fix x y z :: "('a, 'b) uexpr"
@@ -218,7 +217,7 @@ instance uexpr :: (ordered_ab_group_add_abs, type) ordered_ab_group_add_abs
   apply (simp add: abs_uexpr_def zero_uexpr_def plus_uexpr_def uminus_uexpr_def, transfer, simp add: abs_ge_self abs_le_iff abs_triangle_ineq)+
   apply (metis ab_group_add_class.ab_diff_conv_add_uminus abs_ge_minus_self abs_ge_self add_mono_thms_linordered_semiring(1))
 done
-
+  
 lemma uexpr_diff_zero [simp]: 
   fixes a :: "('\<alpha>::ordered_cancel_monoid_diff, 'a) uexpr"
   shows "a - 0 = a"

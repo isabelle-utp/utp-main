@@ -97,7 +97,7 @@ lemma ueqe2: "(\<lbrakk>P\<rbrakk>\<^sub>e b \<Longrightarrow> (\<lbrakk>Q\<rbra
 lemma ueqe3: "\<lbrakk> \<lbrakk>P\<rbrakk>\<^sub>e b \<Longrightarrow> (\<lbrakk>Q\<rbrakk>\<^sub>e b = \<lbrakk>R\<rbrakk>\<^sub>e b) \<rbrakk> \<Longrightarrow> (\<lbrakk>R \<and> P\<rbrakk>\<^sub>e b = \<lbrakk>Q \<and> P\<rbrakk>\<^sub>e b)"
   by pred_auto
 
-text {* The following allows simplifying the equality if P \<Rightarrow> Q = R *}
+text {* The following allows simplifying the equality if $P \Rightarrow Q = R$ *}
 
 lemma ueqe3_imp: "(\<And> b. \<lbrakk>P\<rbrakk>\<^sub>e b \<Longrightarrow> (\<lbrakk>Q\<rbrakk>\<^sub>e b = \<lbrakk>R\<rbrakk>\<^sub>e b)) \<Longrightarrow> ((R \<and> P) = (Q \<and> P))"
   by pred_auto

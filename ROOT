@@ -57,46 +57,38 @@ session Kleene_Algebra (AFP) in "contrib/Kleene_Algebra"
     "document/root.bib"
     "document/root.tex"
 
-(* HOL library imports *)
-
-session "UTP-DEPS" = "Kleene_Algebra" +
-  options [timeout = 600]
+session "Optics" in "lenses" 
+  = "HOL-Algebra2" +
+  options [timeout = 300]
   theories
-    "~~/src/HOL/Cardinals/Cardinals"
+    Interp
+    Two
+    Lens_Laws
+    Lens_Algebra
+    Lens_Order
+    Lens_Instances
+    Lenses
+
+(* UTP library imports *)
+
+session "UTP-IMPORTS" in "utils" = "Optics" +
+  options [document = false, timeout = 1000]
+  theories
     "~~/src/HOL/Eisbach/Eisbach"
     "~~/src/Tools/Adhoc_Overloading"
     "~~/src/HOL/Library/Char_ord"
-    "~~/src/HOL/Library/Countable_Set_Type"
+    "~~/src/HOL/Library/Countable_Set"
     "~~/src/HOL/Library/FSet"
     "~~/src/HOL/Library/Monad_Syntax"
     "~~/src/HOL/Library/Prefix_Order"
     "~~/src/HOL/Library/Sublist"
-    "contrib/HOL-Algebra2/Complete_Lattice"
-    "contrib/HOL-Algebra2/Galois_Connection"
-
-(* UTP library imports *)
-
-session "UTP-IMPORTS" in "utils" = "HOL" +
-  options [document = pdf, document_output = "output", timeout = 1000]
-  theories
-    finite_bijection
-    Lenses
     Profiling
-    "Library_extra/Countable_Set_extra"
-    "Library_extra/Fmap"
     "Library_extra/FSet_extra"
     "Library_extra/List_extra"
     "Library_extra/List_lexord_alt"
     "Library_extra/Monoid_extra"
-    "Library_extra/Sequence"
     "Library_extra/Pfun"
     "Library_extra/Ffun"
-    Positive
-    interp
-  document_files
-    "root.bib"
-    "root.tex"
-    "document.sty"
 
 (* Imports including the axiomatic value model *)
 

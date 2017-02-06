@@ -33,7 +33,7 @@ method pred_simp' = (
   (unfold upred_defs)?,
   (transfer),
   (simp add: fun_eq_iff
-    lens_defs uvar_defs upred_defs alpha_splits Product_Type.split_beta)?,
+    lens_defs upred_defs alpha_splits Product_Type.split_beta)?,
   (clarsimp)?)
 
 text {* Variations that adjoin @{method pred_simp'} with automatic tactics. *}
@@ -47,7 +47,7 @@ method pred_simp = (
   (unfold upred_defs)?,
   (transfer),
   (simp add: fun_eq_iff
-    lens_defs uvar_defs upred_defs alpha_splits Product_Type.split_beta)?,
+    lens_defs upred_defs alpha_splits Product_Type.split_beta)?,
   (simp add: lens_interp_laws)?,
   (clarsimp)?)
 
@@ -605,14 +605,12 @@ lemma USUP_cong_eq:
 lemma USUP_as_Sup: "(\<Sqinter> P \<in> \<P> \<bullet> P) = \<Sqinter> \<P>"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_auto)
-  apply (unfold SUP_def)
   apply (rule cong[of "Sup"])
   apply (auto)
 done
 
 lemma USUP_as_Sup_collect: "(\<Sqinter>P\<in>A \<bullet> f(P)) = (\<Sqinter>P\<in>A. f(P))"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
-  apply (unfold SUP_def)
   apply (pred_auto)
   apply (simp add: Setcompr_eq_image)
 done
@@ -620,7 +618,6 @@ done
 lemma USUP_as_Sup_image: "(\<Sqinter> P | \<guillemotleft>P\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> f(P)) = \<Sqinter> (f ` A)"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_auto)
-  apply (unfold SUP_def)
   apply (rule cong[of "Sup"])
   apply (auto)
 done
@@ -628,14 +625,12 @@ done
 lemma UINF_as_Inf: "(\<Squnion> P \<in> \<P> \<bullet> P) = \<Squnion> \<P>"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Inf_uexpr_def)
   apply (pred_auto)
-  apply (unfold INF_def)
   apply (rule cong[of "Inf"])
   apply (auto)
 done
 
 lemma UINF_as_Inf_collect: "(\<Squnion>P\<in>A \<bullet> f(P)) = (\<Squnion>P\<in>A. f(P))"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
-  apply (unfold INF_def)
   apply (pred_auto)
   apply (simp add: Setcompr_eq_image)
 done
@@ -643,7 +638,6 @@ done
 lemma UINF_as_Inf_image: "(\<Squnion> P \<in> \<P> \<bullet> f(P)) = \<Squnion> (f ` \<P>)"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Inf_uexpr_def)
   apply (pred_auto)
-  apply (unfold INF_def)
   apply (rule cong[of "Inf"])
   apply (auto)
 done

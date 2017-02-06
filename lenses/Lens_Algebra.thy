@@ -1,5 +1,7 @@
-theory lens_algebra
-imports lens_laws
+section \<open>Lens algebraic operators\<close>
+
+theory Lens_Algebra
+imports Lens_Laws
 begin
 
 subsection \<open>Lens composition, plus, unit, and identity\<close>
@@ -43,15 +45,15 @@ definition id_lens :: "'a \<Longrightarrow> 'a" ("1\<^sub>L") where
 definition lens_override :: "'a \<Rightarrow> 'a \<Rightarrow> ('b \<Longrightarrow> 'a) \<Rightarrow> 'a" ("_ \<oplus>\<^sub>L _ on _" [95,0,96] 95) where
 [lens_defs]: "S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on X = put\<^bsub>X\<^esub> S\<^sub>1 (get\<^bsub>X\<^esub> S\<^sub>2)"
 
-definition lens_inv :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('b \<Longrightarrow> 'a)" where
+definition lens_inv :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('b \<Longrightarrow> 'a)" ("inv\<^sub>L") where
 [lens_defs]: "lens_inv x = \<lparr> lens_get = create\<^bsub>x\<^esub>, lens_put = \<lambda> \<sigma>. get\<^bsub>x\<^esub> \<rparr>"
 
 subsection \<open>Closure properties\<close>
 
-lemma id_wb_lens: "wb_lens id_lens"
+lemma id_wb_lens: "wb_lens 1\<^sub>L"
   by (unfold_locales, simp_all add: id_lens_def)
 
-lemma unit_wb_lens: "wb_lens unit_lens"
+lemma unit_wb_lens: "wb_lens 0\<^sub>L"
   by (unfold_locales, simp_all add: unit_lens_def)
 
 lemma comp_wb_lens: "\<lbrakk> wb_lens x; wb_lens y \<rbrakk> \<Longrightarrow> wb_lens (x ;\<^sub>L y)"
@@ -68,9 +70,6 @@ lemma unit_vwb_lens: "vwb_lens 0\<^sub>L"
 
 lemma comp_vwb_lens: "\<lbrakk> vwb_lens x; vwb_lens y \<rbrakk> \<Longrightarrow> vwb_lens (x ;\<^sub>L y)"
   by (unfold_locales, simp_all add: lens_comp_def)
-
-lemma lens_comp_anhil [simp]: "wb_lens x \<Longrightarrow> 0\<^sub>L ;\<^sub>L x = 0\<^sub>L"
-  by (simp add: unit_lens_def lens_comp_def comp_def)
 
 lemma unit_ief_lens: "ief_lens 0\<^sub>L"
   by (unfold_locales, simp_all add: unit_lens_def)
@@ -110,11 +109,14 @@ lemma snd_vwb_lens: "vwb_lens snd\<^sub>L"
 lemma id_bij_lens: "bij_lens 1\<^sub>L"
   by (unfold_locales, simp_all add: id_lens_def)
 
-lemma inv_id_lens: "lens_inv 1\<^sub>L = 1\<^sub>L"
+lemma inv_id_lens: "inv\<^sub>L 1\<^sub>L = 1\<^sub>L"
   by (auto simp add: lens_inv_def id_lens_def lens_create_def)
 
-lemma lens_inv_bij: "bij_lens X \<Longrightarrow> bij_lens (lens_inv X)"
+lemma lens_inv_bij: "bij_lens X \<Longrightarrow> bij_lens (inv\<^sub>L X)"
   by (unfold_locales, simp_all add: lens_inv_def lens_create_def)
+    
+lemma swap_bij_lens: "bij_lens swap\<^sub>L"
+  by (unfold_locales, simp_all add: lens_plus_def prod.case_eq_if fst_lens_def snd_lens_def)
     
 subsection \<open>Composition laws\<close>
 
@@ -126,8 +128,14 @@ lemma lens_comp_left_id [simp]: "1\<^sub>L ;\<^sub>L X = X"
 
 lemma lens_comp_right_id [simp]: "X ;\<^sub>L 1\<^sub>L = X"
   by (simp add: id_lens_def lens_comp_def)
-    
+
+lemma lens_comp_anhil [simp]: "wb_lens X \<Longrightarrow> 0\<^sub>L ;\<^sub>L X = 0\<^sub>L"
+  by (simp add: unit_lens_def lens_comp_def comp_def)
+  
 subsection \<open>Independence laws\<close>
+  
+lemma unit_lens_indep: "0\<^sub>L \<bowtie> X"
+  by (auto simp add: unit_lens_def lens_indep_def)
   
 lemma lens_indep_quasi_irrefl: "\<lbrakk> wb_lens x; eff_lens x \<rbrakk> \<Longrightarrow> \<not> (x \<bowtie> x)"
   by (auto simp add: lens_indep_def ief_lens_def ief_lens_axioms_def, metis (full_types) wb_lens.get_put)
@@ -166,5 +174,63 @@ lemma split_prod_lens_indep:
   assumes "mwb_lens X"
   shows "(fst\<^sub>L ;\<^sub>L X) \<bowtie> (snd\<^sub>L ;\<^sub>L X)"
   using assms fst_snd_lens_indep lens_indep_left_comp vwb_lens_mwb by blast
-        
+
+lemma plus_pres_lens_indep: "\<lbrakk> X \<bowtie> Z; Y \<bowtie> Z \<rbrakk> \<Longrightarrow> (X +\<^sub>L Y) \<bowtie> Z"
+  apply (rule lens_indepI)
+  apply (simp_all add: lens_plus_def prod.case_eq_if)
+  apply (simp add: lens_indep_comm)
+  apply (simp add: lens_indep_sym)
+done
+
+lemma lens_comp_indep_cong_left:
+  "\<lbrakk> mwb_lens Z; X ;\<^sub>L Z \<bowtie> Y ;\<^sub>L Z \<rbrakk> \<Longrightarrow> X \<bowtie> Y"
+  apply (rule lens_indepI)
+  apply (rename_tac u v \<sigma>)
+  apply (drule_tac u=u and v=v and \<sigma>="create\<^bsub>Z\<^esub> \<sigma>" in lens_indep_comm)
+  apply (simp add: lens_comp_def)
+  apply (meson mwb_lens_weak weak_lens.view_determination)
+  apply (rename_tac v \<sigma>)
+  apply (drule_tac v=v and \<sigma>="create\<^bsub>Z\<^esub> \<sigma>" in lens_indep_get)
+  apply (simp add: lens_comp_def)
+  apply (drule lens_indep_sym)
+  apply (rename_tac u \<sigma>)
+  apply (drule_tac v=u and \<sigma>="create\<^bsub>Z\<^esub> \<sigma>" in lens_indep_get)
+  apply (simp add: lens_comp_def)
+done
+
+lemma lens_comp_indep_cong:
+  "\<lbrakk> mwb_lens x; mwb_lens y; mwb_lens z \<rbrakk> \<Longrightarrow> (x ;\<^sub>L z) \<bowtie> (y ;\<^sub>L z) \<longleftrightarrow> x \<bowtie> y"
+  using lens_comp_indep_cong_left lens_indep_left_comp by blast
+
+subsection \<open>Algebraic laws\<close>    
+
+lemma fst_lens_plus:
+  "wb_lens y \<Longrightarrow> fst\<^sub>L ;\<^sub>L (x +\<^sub>L y) = x"
+  by (simp add: fst_lens_def lens_plus_def lens_comp_def comp_def)
+
+text {* The second law requires independence as we have to apply x first, before y *}
+
+lemma snd_lens_plus:
+  "\<lbrakk> wb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> snd\<^sub>L ;\<^sub>L (x +\<^sub>L y) = y"
+  apply (simp add: snd_lens_def lens_plus_def lens_comp_def comp_def)
+  apply (subst lens_indep_comm)
+  apply (simp_all)
+done
+    
+lemma lens_plus_swap:
+  "X \<bowtie> Y \<Longrightarrow> (snd\<^sub>L +\<^sub>L fst\<^sub>L) ;\<^sub>L (X +\<^sub>L Y) = (Y +\<^sub>L X)"
+  by (auto simp add: lens_plus_def fst_lens_def snd_lens_def id_lens_def lens_comp_def lens_indep_comm)
+  
+lemma fst_snd_id_lens: "fst\<^sub>L +\<^sub>L snd\<^sub>L = 1\<^sub>L"
+  by (auto simp add: lens_plus_def fst_lens_def snd_lens_def id_lens_def)
+  
+lemma swap_lens_idem: "swap\<^sub>L ;\<^sub>L swap\<^sub>L = 1\<^sub>L"
+  by (simp add: fst_snd_id_lens fst_snd_lens_indep lens_indep_sym lens_plus_swap)
+
+lemma swap_lens_fst: "fst\<^sub>L ;\<^sub>L swap\<^sub>L = snd\<^sub>L"
+  by (simp add: fst_lens_plus fst_vwb_lens)
+
+lemma swap_lens_snd: "snd\<^sub>L ;\<^sub>L swap\<^sub>L = fst\<^sub>L"
+  by (simp add: fst_snd_lens_indep lens_indep_sym snd_lens_plus snd_vwb_lens)
+  
 end

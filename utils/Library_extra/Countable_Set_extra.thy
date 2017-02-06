@@ -254,8 +254,8 @@ lemma bit_seq_of_nat_cset_bij: "bij bit_seq_of_nat_set"
 done
 
 text {* This function is a partial injection from countable sets of natural sets to natural sets.
-        When used with the Cantor-Bernstein theorem, it can be used to conjure a total bijection between
-        these two types. *}
+        When used with the Schroeder-Bernstein theorem, it can be used to conjure a total 
+        bijection between these two types. *}
 
 definition nat_set_cset_collapse :: "nat set cset \<Rightarrow> nat set" where
 "nat_set_cset_collapse = inv bit_seq_of_nat_set \<circ> seq_inj \<circ> cset2seq \<circ> (\<lambda> A. (bit_seq_of_nat_set `\<^sub>c A))"
@@ -313,7 +313,7 @@ qed
 
 lemma nat_set_cset_partial_bij:
   obtains f :: "nat set cset \<Rightarrow> nat set" where "bij_betw f {A. A \<noteq> {}\<^sub>c} UNIV"
-  using Cantor_Bernstein[OF nat_set_cset_collapse_inj, of UNIV csingle, simplified, OF inj_csingle range_csingle]
+  using Schroeder_Bernstein[OF nat_set_cset_collapse_inj, of UNIV csingle, simplified, OF inj_csingle range_csingle]
   by (auto)
 
 lemma nat_set_cset_bij:

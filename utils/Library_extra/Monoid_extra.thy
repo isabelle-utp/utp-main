@@ -88,8 +88,12 @@ lemma monoid_le_add_left_mono: "a \<le>\<^sub>m b \<Longrightarrow> c + a \<le>\
   using add_assoc by (auto simp add: monoid_le_def)
 
 lemma add_monoid_diff_cancel_left [simp]: "(a + b) -\<^sub>m a = b"
-  by (auto simp add: monoid_subtract_def monoid_le_add)
-
+  apply (simp add: monoid_subtract_def monoid_le_add)
+  apply (rule the_equality)
+  apply (simp)
+  using local.add_left_imp_eq apply blast
+done
+    
 end
 
 class ordered_cancel_monoid_diff = cancel_monoid + ord + minus +
@@ -165,25 +169,25 @@ end
 lemma monoid_le_list:
   "(xs :: 'a list) \<le>\<^sub>m ys \<longleftrightarrow> xs \<le> ys"
   apply (simp add: monoid_le_def plus_list_def)
-  using strict_prefixE strict_prefixI apply blast
+  using Prefix_Order.prefixE Prefix_Order.prefixI apply blast
 done
 
 lemma monoid_subtract_list:
   "(xs :: 'a list) -\<^sub>m ys = xs - ys"
   apply (auto simp add: monoid_subtract_def monoid_le_list minus_list_def less_eq_list_def)
   apply (rule the_equality)
-  apply (simp_all add: zero_list_def plus_list_def prefixeq_drop)
+  apply (simp_all add: zero_list_def plus_list_def prefix_drop)
 done
 
 instance list :: (type) ordered_cancel_monoid_diff
   apply (intro_classes, simp_all add: zero_list_def plus_list_def monoid_le_def monoid_subtract_list)
-  using strict_prefixE strict_prefixI apply blast
+  using Prefix_Order.prefixE Prefix_Order.prefixI apply blast
   apply (simp add: less_list_def)
 done
 
 lemma monoid_le_nat:
   "(x :: nat) \<le>\<^sub>m y \<longleftrightarrow> x \<le> y"
-  by (simp add: Nat.le_iff_add monoid_le_def)
+  by (simp add: monoid_le_def nat_le_iff_add)
 
 lemma monoid_subtract_nat:
   "(x :: nat) -\<^sub>m y = x - y"
@@ -191,7 +195,7 @@ lemma monoid_subtract_nat:
 
 instance nat :: ordered_cancel_monoid_diff
   apply (intro_classes, simp_all add: monoid_subtract_nat)
-  apply (simp add: Nat.le_iff_add monoid_le_def)
+  apply (simp add: nat_le_iff_add monoid_le_def)
   apply linarith
 done
 

@@ -1,25 +1,23 @@
 section {* UTP variables *}
 
 theory utp_var
-imports
-  "../contrib/HOL-Algebra2/Complete_Lattice"
-  "../contrib/HOL-Algebra2/Galois_Connection"
-  "../utils/finite_bijection"
-  "../utils/interp"
-  "../utils/Lenses"
-  "../utils/Profiling"
-  "../utils/Library_extra/Pfun"
-  "../utils/Library_extra/Ffun"
-  "../utils/Library_extra/List_lexord_alt"
-  "../utils/Library_extra/Monoid_extra"
+  imports
+  Deriv
   "~~/src/HOL/Library/Prefix_Order"
   "~~/src/HOL/Library/Char_ord"
   "~~/src/Tools/Adhoc_Overloading"
   "~~/src/HOL/Library/Monad_Syntax"
   "~~/src/HOL/Library/Countable"
   "~~/src/HOL/Eisbach/Eisbach"
+  "../contrib/HOL-Algebra2/Complete_Lattice"
+  "../contrib/HOL-Algebra2/Galois_Connection"
+  "../lenses/Lenses"
+  "../utils/Profiling"
+  "../utils/Library_extra/Pfun"
+  "../utils/Library_extra/Ffun"
+  "../utils/Library_extra/List_lexord_alt"
+  "../utils/Library_extra/Monoid_extra"
   utp_parser_utils
-  Deriv
 begin
 
 text {* We will overload both the bullet and the square order relation with refinement so

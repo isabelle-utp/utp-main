@@ -31,17 +31,17 @@ lemma sinit_len [simp]:
 lemma sinit_0 [simp]: "sinit 0 xs = []"
   by (simp add: ssubstr_def)
   
-lemma prefixeq_upt_0 [intro]:
-  "i \<le> j \<Longrightarrow> prefixeq [0..<i] [0..<j]"
-  by (induct i, auto, metis append_prefixeqD le0 prefix_order.lift_Suc_mono_le prefix_order.order_refl upt_Suc)
+lemma prefix_upt_0 [intro]:
+  "i \<le> j \<Longrightarrow> prefix [0..<i] [0..<j]"
+  by (induct i, auto, metis append_prefixD le0 prefix_order.lift_Suc_mono_le prefix_order.order_refl upt_Suc)
   
-lemma sinit_prefixeq: 
-  "i \<le> j \<Longrightarrow> prefixeq (sinit i xs) (sinit j xs)"
-  by (auto intro: map_prefixeqI simp add: ssubstr_def)
+lemma sinit_prefix: 
+  "i \<le> j \<Longrightarrow> prefix (sinit i xs) (sinit j xs)"
+  by (auto intro: map_prefixI simp add: ssubstr_def)
 
-lemma sinit_prefix:
-  "i < j \<Longrightarrow> prefix (sinit i xs) (sinit j xs)"
-  by (metis sinit_len sinit_prefixeq le_less nat_neq_iff prefix_order.dual_order.strict_iff_order)  
+lemma sinit_strict_prefix:
+  "i < j \<Longrightarrow> strict_prefix (sinit i xs) (sinit j xs)"
+  by (metis sinit_len sinit_prefix le_less nat_neq_iff prefix_order.dual_order.strict_iff_order)  
   
 lemma nth_sinit:
   "i < n \<Longrightarrow> sinit n xs ! i = xs !\<^sub>s i"
