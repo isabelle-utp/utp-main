@@ -120,7 +120,7 @@ lemma plus_pred_sublens: "\<lbrakk> mwb_lens Z; X \<subseteq>\<^sub>L Z; Y \<sub
 done
 
 lemma lens_plus_sub_assoc_1:
-  "\<lbrakk> X \<bowtie> Y; Y \<bowtie> Z; X \<bowtie> Z \<rbrakk> \<Longrightarrow> X +\<^sub>L Y +\<^sub>L Z \<subseteq>\<^sub>L (X +\<^sub>L Y) +\<^sub>L Z"
+  "X +\<^sub>L Y +\<^sub>L Z \<subseteq>\<^sub>L (X +\<^sub>L Y) +\<^sub>L Z"
   apply (simp add: sublens_def)
   apply (rule_tac x="(fst\<^sub>L ;\<^sub>L fst\<^sub>L) +\<^sub>L (snd\<^sub>L ;\<^sub>L fst\<^sub>L) +\<^sub>L snd\<^sub>L" in exI)
   apply (auto)
@@ -138,7 +138,7 @@ lemma lens_plus_sub_assoc_1:
 done
 
 lemma lens_plus_sub_assoc_2:
-  "\<lbrakk> X \<bowtie> Y; Y \<bowtie> Z; X \<bowtie> Z \<rbrakk> \<Longrightarrow> (X +\<^sub>L Y) +\<^sub>L Z \<subseteq>\<^sub>L X +\<^sub>L Y +\<^sub>L Z"
+  "(X +\<^sub>L Y) +\<^sub>L Z \<subseteq>\<^sub>L X +\<^sub>L Y +\<^sub>L Z"
   apply (simp add: sublens_def)
   apply (rule_tac x="(fst\<^sub>L +\<^sub>L (fst\<^sub>L ;\<^sub>L snd\<^sub>L)) +\<^sub>L (snd\<^sub>L ;\<^sub>L snd\<^sub>L)" in exI)
   apply (auto)
@@ -157,7 +157,7 @@ lemma lens_plus_sub_assoc_2:
 done
 
 lemma lens_plus_assoc:
-  "\<lbrakk> X \<bowtie> Y; Y \<bowtie> Z; X \<bowtie> Z \<rbrakk> \<Longrightarrow> (X +\<^sub>L Y) +\<^sub>L Z \<approx>\<^sub>L X +\<^sub>L Y +\<^sub>L Z"
+  "(X +\<^sub>L Y) +\<^sub>L Z \<approx>\<^sub>L X +\<^sub>L Y +\<^sub>L Z"
   by (simp add: lens_equivI lens_plus_sub_assoc_1 lens_plus_sub_assoc_2)
 
 lemma lens_plus_sub_comm: "X \<bowtie> Y \<Longrightarrow> X +\<^sub>L Y \<subseteq>\<^sub>L Y +\<^sub>L X"

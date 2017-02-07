@@ -140,7 +140,7 @@ lemma unit_lens_indep: "0\<^sub>L \<bowtie> X"
 lemma lens_indep_quasi_irrefl: "\<lbrakk> wb_lens x; eff_lens x \<rbrakk> \<Longrightarrow> \<not> (x \<bowtie> x)"
   by (auto simp add: lens_indep_def ief_lens_def ief_lens_axioms_def, metis (full_types) wb_lens.get_put)
 
-lemma lens_indep_left_comp:
+lemma lens_indep_left_comp [simp]:
   "\<lbrakk> mwb_lens z; x \<bowtie> y \<rbrakk> \<Longrightarrow> (x ;\<^sub>L z) \<bowtie> (y ;\<^sub>L z)"
   apply (rule lens_indepI)
   apply (auto simp add: lens_comp_def)

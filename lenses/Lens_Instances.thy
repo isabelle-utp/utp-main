@@ -216,14 +216,18 @@ text {* The following theorem attribute stores splitting theorems for alphabet t
 
 named_theorems alpha_splits
 
-(*  
+(*
 alphabet mylens =
   x :: nat
   y :: string
-  
+
 alphabet mylens_2 = mylens +
   z :: int
-  k :: "string list"
+  k :: "string list"  
+
+alphabet mylens_3 = mylens_2 +
+  n :: real
+  h :: nat
 *)
 
 subsection {* Lens Interpretation *}

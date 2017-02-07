@@ -12,6 +12,7 @@ val FLDLENS = "FLDLENS"
 val child_lens_suffix = "_child_lens"
 val vwb_lens_suffix = "_vwb_lens"
 val indeps_suffix = "_indeps"
+val pl_indeps_suffix = "_pl_indeps"
 val sublens_suffix = "_sublenses"
 val Trueprop = "HOL.Trueprop"
 val imp = "Pure.imp"
@@ -81,7 +82,24 @@ fun indep_proof thy (x, y) =
                 )]))
       (fn {context, prems} => EVERY [ Locale.intro_locales_tac true context []
                                     , PARALLEL_ALLGOALS 
-                                        (asm_simp_tac (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def")) (Simplifier.add_simp (Global_Theory.get_thm thy (y ^ "_def")) context)))])
+                                        (asm_simp_tac (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def")) 
+                                                      (Simplifier.add_simp (Global_Theory.get_thm thy (y ^ "_def")) 
+                                         context)))])
+
+fun pl_indep_proof thy (x, y) =
+  Goal.prove_global thy [] []
+      (hd (Type_Infer_Context.infer_types 
+              (Proof_Context.init_global thy) 
+              [ Const (Trueprop, dummyT) 
+              $ ( Const (lens_indep, dummyT) 
+                $ Const (Context.theory_name thy ^ "." ^ x, dummyT)
+                $ Const (Context.theory_name thy ^ "." ^ y, dummyT)
+                )]))
+      (fn {context, prems} => EVERY [ PARALLEL_ALLGOALS 
+                                        (asm_simp_tac (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def")) 
+                                                      (Simplifier.add_simp (Global_Theory.get_thm thy (y ^ "_def")) 
+                                         context)))])
+
 
 (*
 fun parent_indep_proof thy y x =
@@ -187,16 +205,23 @@ fun add_alphabet_cmd overloaded (raw_params, binding) raw_parent raw_fields thy 
     val mldef_name =  if (raw_parent = NONE) then tname ^ child_lens_suffix else tname ^ child_lens_suffix ^ ext_suffix
     val mldef = mldef_name ^ " = " ^ FLDLENS ^ " more";
     val plnames = if (raw_parent = NONE) then [] else lnames  @ [tname ^ child_lens_suffix];
- in thy |> add_record_cmd {overloaded = false} (raw_params, binding) NONE fields 
+ in thy     (* Add a new record for the new alphabet lenses *)
+         |> add_record_cmd {overloaded = false} (raw_params, binding) NONE fields 
+            (* Add the record splitting theorems to the alpha_splits set for proof automation *)
          |> Named_Target.theory_map (snd o Specification.theorems_cmd "" [((Binding.empty, []), [(Facts.named (tname ^ splits_suffix), alpha_splits)])] [] false)
+            (* Add definitions for each of the lenses corresponding to each record field in-situ *) 
          |> Named_Target.theory_map 
               (fold (fn x => snd o Specification.definition_cmd NONE [] [] (lens_defs, x) true) (ldefs @ [mldef]))
+            (* Add definitions for each of the lenses corresponding to each record field augmented with the parent's child lens *)
          |> Named_Target.theory_map 
               (fold (fn x => snd o Specification.definition_cmd NONE [] [] (lens_defs, x) true) pldefs)
+            (* Add a vwb lens proof for each in-situ lens *)
          |> fold (fn x => fn thy => snd (Global_Theory.add_thm ((Binding.make (x ^ vwb_lens_suffix, Position.none), lens_proof x thy), [Simplifier.simp_add]) thy)) ((map ldef_name lnames) @ [mldef_name])
-         |> (fn thy => snd (Global_Theory.add_thmss 
-              [((Binding.make (Binding.name_of binding ^ indeps_suffix, Position.none), map (indep_proof thy) (pairings ((map ldef_name lnames) @ [mldef_name])) @ map (parent_indep_proof_1 thy plchild) plnames @ map (parent_indep_proof_2 thy plchild) plnames), [Simplifier.simp_add])] thy))
+         |> (fn thy => snd (Global_Theory.add_thmss                                                                                                                                                         
+              [((Binding.make (Binding.name_of binding ^ indeps_suffix, Position.none), map (indep_proof thy) (pairings ((map ldef_name lnames) @ [mldef_name])) (* @ map (pl_indep_proof thy) (pairings (plnames @ [mldef_name])) *) @ map (parent_indep_proof_1 thy plchild) plnames @ map (parent_indep_proof_2 thy plchild) plnames), [Simplifier.simp_add])] thy))
          |> fold (fn x => fn thy => snd (Global_Theory.add_thm ((Binding.make (x ^ vwb_lens_suffix, Position.none), lens_child_proof thy x), [Simplifier.simp_add]) thy)) plnames
+         |> (fn thy => snd (Global_Theory.add_thmss                                                                                                                                                         
+              [((Binding.make (Binding.name_of binding ^ indeps_suffix, Position.none), map (pl_indep_proof thy) (pairings (plnames))), [Simplifier.simp_add])] thy))
          |> (fn thy => snd (Global_Theory.add_thmss [((Binding.make (Binding.name_of binding ^ sublens_suffix, Position.none), map (sublens_proof thy plchild) plnames), [Simplifier.simp_add])] thy))
   end;
 
