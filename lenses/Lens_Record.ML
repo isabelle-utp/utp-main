@@ -218,10 +218,10 @@ fun add_alphabet_cmd overloaded (raw_params, binding) raw_parent raw_fields thy 
             (* Add a vwb lens proof for each in-situ lens *)
          |> fold (fn x => fn thy => snd (Global_Theory.add_thm ((Binding.make (x ^ vwb_lens_suffix, Position.none), lens_proof x thy), [Simplifier.simp_add]) thy)) ((map ldef_name lnames) @ [mldef_name])
          |> (fn thy => snd (Global_Theory.add_thmss                                                                                                                                                         
-              [((Binding.make (Binding.name_of binding ^ indeps_suffix, Position.none), map (indep_proof thy) (pairings ((map ldef_name lnames) @ [mldef_name])) (* @ map (pl_indep_proof thy) (pairings (plnames @ [mldef_name])) *) @ map (parent_indep_proof_1 thy plchild) plnames @ map (parent_indep_proof_2 thy plchild) plnames), [Simplifier.simp_add])] thy))
+              [((Binding.make (Binding.name_of binding ^ indeps_suffix, Position.none), map (indep_proof thy) (pairings ((map ldef_name lnames) @ [mldef_name])) @ map (parent_indep_proof_1 thy plchild) plnames @ map (parent_indep_proof_2 thy plchild) plnames), [Simplifier.simp_add])] thy))
          |> fold (fn x => fn thy => snd (Global_Theory.add_thm ((Binding.make (x ^ vwb_lens_suffix, Position.none), lens_child_proof thy x), [Simplifier.simp_add]) thy)) plnames
          |> (fn thy => snd (Global_Theory.add_thmss                                                                                                                                                         
-              [((Binding.make (Binding.name_of binding ^ indeps_suffix, Position.none), map (pl_indep_proof thy) (pairings (plnames))), [Simplifier.simp_add])] thy))
+              [((Binding.make (Binding.name_of binding ^ pl_indeps_suffix, Position.none), map (pl_indep_proof thy) (pairings (plnames))), [Simplifier.simp_add])] thy))
          |> (fn thy => snd (Global_Theory.add_thmss [((Binding.make (Binding.name_of binding ^ sublens_suffix, Position.none), map (sublens_proof thy plchild) plnames), [Simplifier.simp_add])] thy))
   end;
 
