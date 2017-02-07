@@ -1,7 +1,11 @@
 section {* Dyadic rational numbers *}
 
 theory Dyadic
-imports Real Transcendental cardinals 
+imports 
+  "~~/src/HOL/Library/Float"
+  Real 
+  Transcendental 
+  Lightweight_Cardinals 
 begin
 
 text {* A dyadic rational is a rational whose denominator is a power of 2. They are precisely the
@@ -53,19 +57,19 @@ lemma dyadic_times:
   shows "dyadic (x * y)"
   using assms
   by (auto simp add: dyadic_def, metis Ints_mult power_add)
-
+    
 lemma dyadic_rational: "dyadic x \<Longrightarrow> x \<in> \<rat>"
   by (auto simp add: dyadic_def, metis Ints_def Rats_divide Rats_number_of Rats_of_int Rats_power imageE)
-  
-lemma dyadic_setsum: "\<lbrakk> finite A; \<forall> i \<in> A. dyadic (f i) \<rbrakk> \<Longrightarrow> dyadic (setsum f A)"
+    
+lemma dyadic_sum: "\<lbrakk> finite A; \<forall> i \<in> A. dyadic (f i) \<rbrakk> \<Longrightarrow> dyadic (sum f A)"
   by (induct rule: finite_induct, auto intro: dyadic_plus dyadic_zero)
 
 lemma dyadic_div_pow_2: "x \<in> \<int> \<Longrightarrow> dyadic (x / 2^n)"
   by (auto simp add: dyadic_def)
-
+  
 lemma Dyadics_Rats: "\<rat>\<^sub>D \<subseteq> \<rat>"
   using dyadic_rational by blast
-
+    
 lemma Ints_dyadic: "\<int> \<subseteq> \<rat>\<^sub>D"
   apply (auto)
   apply (rename_tac x)
@@ -74,39 +78,58 @@ lemma Ints_dyadic: "\<int> \<subseteq> \<rat>\<^sub>D"
   apply (rule_tac x="0" in exI)
   apply (auto) 
 done
-
+  
 lemma Nats_dyadic: "\<nat> \<subseteq> \<rat>\<^sub>D"
   by (metis Ints_dyadic Ints_of_nat Nats_cases subset_eq)
-
+    
 lemma Dyadics_countable:
   "countable \<rat>\<^sub>D"
   using Dyadics_Rats countable_rat countable_subset by blast
+
 lemma coprime_power_two: "b > 0 \<Longrightarrow> coprime (a::int) (2^b) \<longleftrightarrow> odd a"
   apply (induct b arbitrary: a)
   apply (auto)
-  apply (metis dvd_triv_left gcd_greatest_iff_int odd_one)
-  apply (metis coprime_exp_int even_iff_mod_2_eq_zero gcd_1_int gcd_red_int not_mod_2_eq_0_eq_1 power_Suc)
+  apply (metis dvd_triv_left even_power gcd_greatest_iff less_irrefl power_0)
+  apply (rename_tac b a)
+  apply (case_tac "0 < b")
+  apply (simp_all)
+  apply (metis coprime_power power.simps(2) zero_less_Suc)
+  apply (metis even_iff_mod_2_eq_zero gcd_1_int gcd_red_int not_mod_2_eq_0_eq_1)
 done
 
 typedef drat = "{x :: rat. dyadic x}"
   by (rule_tac x="0" in exI, auto simp add: dyadic_def)
 
-setup_lifting type_definition_drat
+setup_lifting type_definition_drat  
 
+lift_definition drat_of_int :: "int \<Rightarrow> drat" is rat_of_int
+  apply (rename_tac int)
+  apply (simp add: dyadic_def)
+  apply (rule_tac x="rat_of_int int" in bexI)
+  apply (rule_tac x="0" in exI)
+  apply (auto)
+done 
+ 
 lift_definition DFract :: "int \<Rightarrow> nat \<Rightarrow> drat"
 is "\<lambda> a b. Fract a (2 ^ b)"
   apply (auto simp add: dyadic_def)
   apply (rename_tac a b)
   apply (rule_tac x="of_int a" in bexI)
   apply (rule_tac x="b" in exI)
-  apply (auto simp add: Fract_of_int_quotient of_int_power)
+  apply (auto simp add: Fract_of_int_quotient)
 done
 
 lift_definition dfrac_of :: "drat \<Rightarrow> int \<times> nat" is
 "\<lambda> x. (fst (quotient_of x), nat \<lfloor>log 2 (snd (quotient_of x))\<rfloor>)" .
 
-lemma powr_as_power: "x > 0 \<Longrightarrow> x powr (real n) = x ^ n"
-  by (induct n, simp_all, auto simp add: powr_add)
+definition drat_of_float :: "float \<Rightarrow> drat" where
+"drat_of_float n = 
+  (if (exponent n \<ge> 0) 
+    then drat_of_int (mantissa n * 2^nat (exponent n))
+    else DFract (mantissa n) (nat (- exponent n)))"
+
+definition float_of_drat :: "drat \<Rightarrow> float" where
+"float_of_drat n = (let (m,e) = dfrac_of n in Float m (- int e))"
 
 lemma dfrac_of_DFract:
   assumes "coprime a (2^b)"
@@ -117,9 +140,9 @@ proof (cases "b = 0")
     by (transfer, simp add: quotient_of_Fract)
 next
   case False with assms show ?thesis
-    by (transfer, auto simp add: quotient_of_Fract powr_as_power[THEN sym])
+    by (transfer, auto simp add: quotient_of_Fract powr_realpow[THEN sym])
 qed
-
+  
 lemma dyadic_Fract: "dyadic x \<Longrightarrow> \<exists> a b. x = Fract a (2^b)"
   apply (auto simp add: dyadic_def)
   apply (erule Ints_cases)
@@ -131,60 +154,6 @@ done
    
 lemma dyadic_FractE: "\<lbrakk> dyadic x; \<And> a b. x = Fract a (2^b) \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   using dyadic_Fract by blast
-
-thm parity_induct
-
-(*
-inductive 
-
-lemma even_induct: 
-  fixes a :: nat
-  assumes "even a" "P 0" "\<And> n. \<lbrakk> even n; P n \<rbrakk> \<Longrightarrow> P (Suc (Suc n))"
-  shows "P a"
-using assms(1) proof (induct a)
-  case 0 from assms show ?case by simp
-next
-  case (Suc n) thus ?case
-  proof (induct n)
-    case 0 thus ?case by auto
-  next
-    case (Suc m) thus ?case
-      apply (auto)
-*)
-
-inductive ieven :: "nat \<Rightarrow> bool" and iodd :: "nat \<Rightarrow> bool" where
-ieven_0 [intro]: "ieven 0" | 
-ieven_Suc [intro]: "iodd n \<Longrightarrow> ieven (Suc n)" |
-iodd_Suc [intro]: "ieven n \<Longrightarrow> iodd (Suc n)"
-
-print_theorems
-
-inductive_cases
-  ieven_0E [elim]: "ieven 0" and
-  iodd_0E [elim]: "iodd 0" and
-  ieven_SucE [elim]: "ieven (Suc n)" and
-  iodd_SucE [elim]: "iodd (Suc n)"
-
-lemma ieven_induct: "\<lbrakk> ieven x; P 0; \<And> n. \<lbrakk> ieven n; P n \<rbrakk> \<Longrightarrow> P (Suc (Suc n)) \<rbrakk> \<Longrightarrow> P x"
-  by (simp add: ieven_iodd.inducts(1))
-
-lemma iodd_induct: "\<lbrakk> iodd x; P 1; \<And> n. \<lbrakk> iodd n; P n \<rbrakk> \<Longrightarrow> P (Suc (Suc n)) \<rbrakk> \<Longrightarrow> P x"
-  by (simp add: ieven_iodd.inducts(2))
-
-lemma iodd_odd: "iodd x \<Longrightarrow> odd x" and ieven_even: "ieven x \<Longrightarrow> even x"
-  by (induct x, auto)
-
-lemma odd_iodd: "odd x \<Longrightarrow> iodd x" and even_ieven: "even x \<Longrightarrow> ieven x"
-  by (induct x, auto)
-
-lemma ieven_iff_even: "ieven x = even x"
-  using even_ieven ieven_even by blast
-
-lemma iodd_iff_odd: "iodd x = odd x"
-  using odd_iodd iodd_odd by blast
-
-lemma [simp]: "iodd 0 = False"
-  by (auto)
 
 fun tdiv2 :: "nat \<Rightarrow> nat" where
 "tdiv2 x = (if (odd x \<or> x = 0) then 0 else Suc (tdiv2 (x div 2)))"
@@ -215,7 +184,7 @@ done
 
 text {* Every number greater than 0 can be expressed as the multiple of a perfect square
         and an odd number *}
-
+    
 lemma evenE_nat [elim?]:
   fixes a :: nat
   assumes "a > 0"
@@ -224,7 +193,7 @@ proof -
   have "odd (a div (2^(tdiv2 a)))"
     using assms odd_div_tdiv2 by blast
   moreover have "a div (2^(tdiv2 a)) * (2^(tdiv2 a)) = a"
-    using mod_div_equality[of a "2^(tdiv2 a)"] by (simp add: tdiv2_mod)
+    using div_mult_mod_eq[of a "2^(tdiv2 a)"] by (simp add: tdiv2_mod)
   ultimately show ?thesis
     by (metis mult.commute that)
 qed
@@ -254,8 +223,8 @@ qed
 lemma rat_of_int_div: "\<lbrakk> y dvd x \<rbrakk> \<Longrightarrow> rat_of_int x / rat_of_int y = rat_of_int (x div y)"
   by (metis Fract_of_int_quotient div_by_1 divide_eq_0_iff dvd_div_mult_self eq_rat(1) gcd_1_int gcd_dvd1 of_int_eq_0_iff of_int_rat zdiv_eq_0_iff)
 
-(* FIXME: This proof can be tidied and shortened *)
-
+(* FIXME: This proof can be tidied and shortened *)    
+  
 lemma dyadic_Fract_0_1_coprime: 
   assumes "dyadic x" "x \<in> {0<..<1}"
   obtains a b where "x = Fract a (2^b)" "coprime a (2^b)"
@@ -294,7 +263,7 @@ proof -
       by (simp add: Fract_of_int_quotient x_def)
   qed
   moreover have "coprime k (2 ^ (b' - n))"
-    by (metis coprime_exp_int even_iff_mod_2_eq_zero gcd_1_int gcd_red_int kn(1) not_mod_2_eq_1_eq_0)
+    by (metis coprime_power_two gcd_1_int kn(1) not_gr_zero power_0)
   ultimately show ?thesis
     using that by blast
 qed
@@ -329,7 +298,7 @@ lemma gcd_power_two: "gcd a (2^Suc b) = (if ((a::int) mod 2 = 0) then (2 * gcd (
   apply (auto)
   apply (subst gcd_mult_distrib_int[THEN sym])
   apply (simp)
-  apply (metis abs_gcd_int coprime_exp_int gcd_dvd1 gcd_red_int power.simps(2) zdvd1_eq)
+  apply (metis coprime_exp gcd_1_int gcd_red_int power.simps(2))
 done
 
 instantiation drat :: "{plus,minus,uminus,times,one,zero}"

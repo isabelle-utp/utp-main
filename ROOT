@@ -37,6 +37,7 @@ session "HOL-Algebra2" (main timing) in "contrib/Algebra" = HOL +
     UnivPoly             (* Polynomials *)
   document_files "root.bib" "root.tex"
 
+(* Kleene Algebra *)    
 
 session Kleene_Algebra (AFP) in "contrib/Kleene_Algebra"
   = "HOL-Library" +
@@ -57,6 +58,8 @@ session Kleene_Algebra (AFP) in "contrib/Kleene_Algebra"
     "document/root.bib"
     "document/root.tex"
 
+(* Lenses *)
+    
 session "Optics" in "lenses" 
   = "HOL-Algebra2" +
   options [timeout = 300]
@@ -69,6 +72,19 @@ session "Optics" in "lenses"
     Lens_Instances
     Lenses
 
+(* Continuum Universe *)
+    
+session "Continuum" in "continuum" = "HOL-Cardinals" +
+  options [document = false, timeout = 1000]
+  theories
+    Continuum
+    Dyadic
+    Finite_Bijection
+    Infinity
+    Lightweight_Cardinals
+    Real_Bit
+    UNIV_TYPE
+ 
 (* UTP library imports *)
 
 session "UTP-IMPORTS" in "utils" = "Optics" +
@@ -107,6 +123,14 @@ session "UTP" in "utp" = "UTP-IMPORTS" +
     "root.tex"
     "document.sty"
 
+(* Imports including the axiomatic value model *)
+    
+session "UTP-DEEP" in "deep" = "UTP" +
+  options [browser_info = true, document = false]
+  theories
+    "../continuum/Continuum"
+    utp_deep
+    
 (* Core framework including the axiomatic value model *)
 
 session "UTP-AX" in "utp" = "UTP-IMPORTS-AX" +
@@ -118,9 +142,9 @@ session "UTP-AX" in "utp" = "UTP-IMPORTS-AX" +
     "root.tex"
     "document.sty"
 
-(* VMD-SL Mechanisation *)
+(* VDM-SL Mechanisation *)
 
-session "VDM-SL" in "vdm-sl" = "UTP" +
+session "VDM-SL" in "vdm-sl" = "UTP-DEEP" +
   options [document = none]
   theories
     PFOL

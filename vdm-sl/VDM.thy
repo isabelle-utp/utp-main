@@ -2,9 +2,8 @@ section {* VDM-SL in UTP *}
 
 theory VDM
   imports 
-    "../utp/utp_designs"
-    "../utp/utp_procedure"
     PFOL
+    "../deep/utp_deep"
 begin
 
 subsection {* Core operator definitions *}
@@ -597,14 +596,14 @@ subsection {* VDM-SL programs *}
 text {* Assignment requires that the expression assigned to the 
         expression be defined, otherwise an abort will result. *}
 
-definition vassign_uvar :: "('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d" where
+definition vassign_uvar :: "('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel_des" where
 [urel_defs]: "vassign_uvar x v = (\<lfloor> \<D>\<^sub>v(v) \<rfloor>\<^sub>v \<turnstile>\<^sub>n (x := \<lfloor>v\<rfloor>\<^sub>v))"
 
-definition vassign_dvar :: "'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) vexpr \<Rightarrow> '\<alpha> hrelation_d" where
+definition vassign_dvar :: "'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) vexpr \<Rightarrow> '\<alpha> hrel_des" where
 [urel_defs]: "vassign_dvar x v = vassign_uvar (x\<up>) v"
 
 consts
-  vassign :: "'v \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d"
+  vassign :: "'v \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel_des"
 
 adhoc_overloading
   vassign vassign_uvar and vassign vassign_dvar
@@ -617,9 +616,9 @@ abbreviation "vassign_upd x f v \<equiv> vassign_uvar x (vbop (bpfun' (\<lambda>
 (* TODO: Implement pretty print rules for record update assignment *)
 
 syntax
-  "_vassign"     :: "id \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d" (infix ":=\<^sub>v" 40)
-  "_vassign_rec" :: "id \<Rightarrow> id \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation" ("_.\<^sub>v_/ :=\<^sub>v/ _" [999,999,40] 40)
-  "_vassign_map" :: "id \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation" ("_'(_')/ :=\<^sub>v/ _" [999,999,40] 40)
+  "_vassign"     :: "id \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel_des" (infix ":=\<^sub>v" 40)
+  "_vassign_rec" :: "id \<Rightarrow> id \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel" ("_.\<^sub>v_/ :=\<^sub>v/ _" [999,999,40] 40)
+  "_vassign_map" :: "id \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel" ("_'(_')/ :=\<^sub>v/ _" [999,999,40] 40)
 
 translations 
   "x :=\<^sub>v v" == "CONST vassign x v"
@@ -641,7 +640,7 @@ lemma hd_nil_abort:
   shows "(x :=\<^sub>v hd\<^sub>v([]\<^sub>v)) = true"
   by rel_auto  
 
-definition wp_vdm :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> '\<beta> vpred \<Rightarrow> '\<alpha> vpred" (infix "wp\<^sub>v" 60)
+definition wp_vdm :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> '\<beta> vpred \<Rightarrow> '\<alpha> vpred" (infix "wp\<^sub>v" 60)
 where "Q wp\<^sub>v r = \<lceil>Q wp\<^sub>D \<lfloor>r\<rfloor>\<^sub>v\<rceil>\<^sub>v"
 
 text {* Here we augment the set of design weakest precondition laws 
@@ -664,7 +663,7 @@ lemma wp_calc_test_2:
 
 subsection {* VDM-SL operations *}
 
-definition vdm_sl_op :: "(bool, '\<alpha>) vexpr \<Rightarrow> (bool, '\<alpha> \<times> '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d \<Rightarrow> '\<alpha> hrelation_d"
+definition vdm_sl_op :: "(bool, '\<alpha>) vexpr \<Rightarrow> (bool, '\<alpha> \<times> '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel_des \<Rightarrow> '\<alpha> hrel_des"
   ("[pre _ post _ body _]\<^sub>v")
 where [upred_defs]: "[pre pr post po body bd]\<^sub>v = (\<lfloor>\<D>\<^sub>v(pr)\<rfloor>\<^sub>v \<and> \<lfloor>pr\<rfloor>\<^sub>v) \<turnstile>\<^sub>n (\<lfloor>\<D>\<^sub>v(po)\<rfloor>\<^sub>v \<and> \<lfloor>po\<rfloor>\<^sub>v \<and> post\<^sub>D(bd))"
 

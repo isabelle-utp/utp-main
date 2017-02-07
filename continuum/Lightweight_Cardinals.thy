@@ -7,8 +7,8 @@
 
 section {* Lightweight Cardinals *}
 
-theory cardinals
-imports Main Real Countable_Set "~~/src/HOL/Cardinals/Cardinals" Infinity UNIV_TYPE
+theory Lightweight_Cardinals
+imports Main Real "~~/src/HOL/Library/Countable_Set" "~~/src/HOL/Cardinals/Cardinals" Infinity UNIV_TYPE
 begin
 
 subsection {* Cardinal Order *}
@@ -208,7 +208,7 @@ apply (unfold equal_card_def leq_card_def)
 apply (safe)
 -- {* Subgoal 1 *}
 apply (rename_tac f g)
-apply (rule Cantor_Bernstein)
+apply (rule Schroeder_Bernstein)
 apply (assumption)+
 -- {* Subgoal 2 *}
 apply (unfold bij_betw_def)
@@ -430,7 +430,7 @@ definition from_nat_bij :: "nat \<Rightarrow> 'a::{countable, infinite}" where
 "from_nat_bij = inv to_nat_bij"
 
 lemma from_nat_bij_inv [simp]: "to_nat_bij (from_nat_bij x) = x"
-  by (simp add: bij_betw_imageE from_nat_bij_def surj_f_inv_f to_nat_bij)
+  by (simp add: bij_is_surj from_nat_bij_def surj_f_inv_f to_nat_bij)
 
 lemma to_nat_bij_inv [simp]: "from_nat_bij (to_nat_bij x) = x"
   by (metis UNIV_I bij_betw_inv_into_left from_nat_bij_def to_nat_bij)

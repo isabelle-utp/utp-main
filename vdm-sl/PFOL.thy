@@ -1,7 +1,7 @@
 section {* Partial First Order Logic *}
 
 theory PFOL
-  imports "../utp/utp_var"
+  imports "../deep/utp_deep"
 begin
 
 subsection {* Truth values *}

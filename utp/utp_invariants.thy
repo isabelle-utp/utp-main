@@ -40,7 +40,7 @@ definition "ISH(\<psi>)(D) = (D \<or> ($ok \<and> \<not> D\<^sup>f \<and> \<lcei
 declare ISH_def [upred_defs]
 
 lemma ISH_design: "ISH(\<psi>)(D) = (\<not> D\<^sup>f \<and> \<lceil>\<psi>\<rceil>\<^sub><) \<turnstile> D\<^sup>t"
-  by (rel_auto, (metis (full_types) alpha_d.surjective alpha_d.update_convs(1))+)
+  by (rel_auto, metis+)
 
 lemma ISH_idem: "ISH(\<psi>)(ISH(\<psi>)(D)) = ISH(\<psi>)(D)"
   by (simp add: ISH_design usubst design_def, pred_auto)

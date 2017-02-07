@@ -45,6 +45,7 @@ translations
   (type) "('t,'\<alpha>) rp" <= (type) "('t, '\<alpha>) rp_vars_scheme des"
   (type) "('t,'\<alpha>,'\<beta>) rel_rp" <= (type) "(('t,'\<alpha>) rp, (_,'\<beta>) rp) rel"
 
+notation rp_vars_child_lens\<^sub>a ("\<Sigma>\<^sub>r")
 notation rp_vars_child_lens ("\<Sigma>\<^sub>R")
 
 lemma rea_var_ords [usubst]:

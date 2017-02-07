@@ -23,6 +23,7 @@ imports
   utp_theory
   utp_boyle
   utp_designs
+  utp_invariants
   utp_concurrency
   utp_reactive
   utp_rel_opsem

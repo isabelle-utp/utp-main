@@ -208,6 +208,10 @@ proof -
   finally show ?thesis .
 qed
 
+hide_const k
+hide_const p
+hide_const V
+  
 (*<*)
 end
 (*>*)
