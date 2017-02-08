@@ -198,9 +198,7 @@ proof -
   ultimately show ?thesis
     by linarith
 qed
-
-term int
-
+  
 lemma real_bin_ub:
   assumes "m > 0"
   shows "\<exists> n. 2^n > (m::real)"
@@ -209,8 +207,13 @@ proof -
     by (simp add: le_of_int_ceiling)
   moreover from assms have "2 powr \<lceil>log 2 \<lceil>m\<rceil>\<rceil> \<ge> \<lceil>m\<rceil>"
     by (subst log_le_iff[THEN sym], simp_all)
-  moreover have "2 powr \<lceil>log 2 \<lceil>m\<rceil>\<rceil> = 2 powr (real (nat (\<lceil>log 2 \<lceil>m\<rceil>\<rceil> :: int)))"
-    by (smt assms calculation(2) int_nat_eq of_int_1 of_int_le_iff of_nat_0 of_nat_eq_iff power.simps(1) powr_int powr_mono powr_realpow zero_less_ceiling)
+  moreover from assms have "2 powr \<lceil>log 2 \<lceil>m\<rceil>\<rceil> = 2 powr (real (nat (\<lceil>log 2 \<lceil>m\<rceil>\<rceil> :: int)))"
+  proof -
+    from assms have "log 2 \<lceil>m\<rceil> \<ge> 0"
+      by simp
+    thus ?thesis
+      by simp
+  qed
   ultimately have "2 ^ nat \<lceil>log 2 \<lceil>m\<rceil>\<rceil> \<ge> m"
     by (metis order_trans powr_realpow zero_less_numeral)
   with assms have "2 ^ (nat \<lceil>log 2 \<lceil>m\<rceil>\<rceil> + 1) > m"

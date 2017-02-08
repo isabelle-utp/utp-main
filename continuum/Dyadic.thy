@@ -284,9 +284,13 @@ proof -
     by (auto simp add: dyadic_def, metis Ints_def imageE)
   thus ?thesis
     apply (rule_tac x="DFract a b" in exI)
-    apply (transfer)  
-    apply (auto simp add: dyadic_def quotient_of_Fract)
-    apply (smt normalize_denom_pos normalize_eq numeral_One numeral_plus_numeral of_int_1 of_int_add of_int_power of_rat_rat power_not_zero semiring_norm(2) surjective_pairing)
+    apply (simp)
+    apply (transfer)
+    apply (rename_tac x a b)
+    apply (auto simp add: dyadic_def quotient_of_Fract)     
+    apply (subgoal_tac "snd (Rat.normalize (a, 2 ^ b)) \<noteq> 0")
+    apply (metis normalize_eq of_int_of_nat_eq of_int_power of_nat_numeral of_rat_rat order_less_irrefl power_eq_0_iff prod.collapse rel_simps(51))
+    apply (metis less_irrefl normalize_denom_pos prod.collapse)
   done
 qed
 
