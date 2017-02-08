@@ -94,6 +94,14 @@ lemma out_var_indep [simp]:
   "x \<bowtie> y \<Longrightarrow> out_var x \<bowtie> out_var y"
   by (simp add: out_var_def)
 
+lemma prod_lens_indep_in_var [simp]:
+  "a \<bowtie> x \<Longrightarrow> a \<times>\<^sub>L b \<bowtie> in_var x"
+  by (metis in_var_def in_var_indep out_in_indep out_var_def plus_pres_lens_indep prod_as_plus)
+
+lemma prod_lens_indep_out_var [simp]:
+  "b \<bowtie> x \<Longrightarrow> a \<times>\<^sub>L b \<bowtie> out_var x"
+  by (metis in_out_indep in_var_def out_var_def out_var_indep plus_pres_lens_indep prod_as_plus)
+    
 text {* We also define some lookup abstraction simplifications. *}
 
 lemma var_lookup_in [simp]: "lens_get (in_var x) (A, A') = lens_get x A"

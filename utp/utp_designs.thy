@@ -189,17 +189,8 @@ qed
 
 subsection {* Design laws *}
 
-lemma prod_lens_indep_in_var [simp]:
-  "a \<bowtie> x \<Longrightarrow> a \<times>\<^sub>L b \<bowtie> in_var x"
-  by (metis in_var_def in_var_indep out_in_indep out_var_def plus_pres_lens_indep prod_as_plus)
-
-lemma prod_lens_indep_out_var [simp]:
-  "b \<bowtie> x \<Longrightarrow> a \<times>\<^sub>L b \<bowtie> out_var x"
-  by (metis in_out_indep in_var_def out_var_def out_var_indep plus_pres_lens_indep prod_as_plus)
-
 lemma unrest_out_des_lift [unrest]: "out\<alpha> \<sharp> p \<Longrightarrow> out\<alpha> \<sharp> \<lceil>p\<rceil>\<^sub>D"
-  by (pred_auto, auto simp add: out\<alpha>_def des_vars_child_lens_def prod_lens_def)
-
+  by (pred_auto, auto simp add: out\<alpha>_def des_vars_child_lens_def)
 
 lemma lift_dist_seq [simp]:
   "\<lceil>P ;; Q\<rceil>\<^sub>D = (\<lceil>P\<rceil>\<^sub>D ;; \<lceil>Q\<rceil>\<^sub>D)"
@@ -1194,9 +1185,9 @@ lemma wp_assigns_d [wp]: "\<langle>\<sigma>\<rangle>\<^sub>D wp\<^sub>D r = \<si
 
 theorem wpd_seq_r_H1_H3 [wp]:
   fixes P Q :: "'\<alpha> hrel_des"
-  assumes "P is H1_H3" "Q is H1_H3"
+  assumes "P is \<^bold>N" "Q is \<^bold>N"
   shows "(P ;; Q) wp\<^sub>D r = P wp\<^sub>D (Q wp\<^sub>D r)"
-  by (smt H1_H3_commute H1_H3_is_rdesign H1_idem Healthy_def' assms(1) assms(2) drop_pre_inv precond_equiv rdesign_H3_iff_pre wpd_seq_r)
+  by (metis H1_H3_commute H1_H3_is_normal_design H1_idem Healthy_def' assms(1) assms(2) wpnd_seq_r)
 
 text {* If two normal designs have the same weakest precondition for any given postcondition, then
   the two designs are equivalent. *}

@@ -241,7 +241,7 @@ definition is_sorted_list_of_set :: "('a::ord) set \<Rightarrow> 'a list \<Right
 lemma sorted_distinct [intro]: "\<lbrakk> sorted (xs); distinct(xs) \<rbrakk> \<Longrightarrow> (\<forall> i<length xs - 1. xs!i < xs!(i + 1))"
   apply (induct xs)
   apply (auto)
-  apply (smt Suc_lessI diff_le_self distinct.simps(2) le_neq_trans length_Cons lessI less_SucI list.sel(3) nat_neq_iff nth_Cons' nth_eq_iff_index_eq nth_mem nth_tl sorted_equals_nth_mono)
+  apply (metis Suc_mono distinct.simps(2) length_Cons lessI less_SucI less_le nth_Cons_Suc nth_eq_iff_index_eq sorted_equals_nth_mono)
 done
 
 lemma sorted_is_sorted_list_of_set:
@@ -298,7 +298,7 @@ definition sorted_list_of_set_alt :: "('a::ord) set \<Rightarrow> 'a list" where
 lemma is_sorted_list_of_set:
   "finite A \<Longrightarrow> is_sorted_list_of_set A (sorted_list_of_set A)"
   apply (simp add: is_sorted_list_of_set_def)
-  apply (smt Suc_pred card_length le_less_trans less_imp_diff_less linorder_not_less not_less_eq not_less_iff_gr_or_eq nth_eq_iff_index_eq sorted_list_of_set sorted_nth_mono zero_less_Suc)
+  apply (metis One_nat_def add.right_neutral add_Suc_right sorted_distinct sorted_list_of_set)
 done
 
 lemma sorted_list_of_set_other_def:
