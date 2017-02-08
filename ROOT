@@ -84,7 +84,16 @@ session "Continuum" in "continuum" = "HOL-Cardinals" +
     Lightweight_Cardinals
     Real_Bit
     UNIV_TYPE
- 
+
+(* Continuous system dynamics *)
+    
+session "Dynamics" in "dynamics" = "HOL-Analysis" +
+  options [document = false, timeout = 1000]
+  theories
+    Derivative_extra
+    Contiguous_Functions
+    Timed_Traces
+    
 (* UTP library imports *)
 
 session "UTP-IMPORTS" in "utils" = "Optics" +
@@ -123,7 +132,7 @@ session "UTP" in "utp" = "UTP-IMPORTS" +
     "root.tex"
     "document.sty"
 
-(* Imports including the axiomatic value model *)
+(* Imports including deep variables *)
     
 session "UTP-DEEP" in "deep" = "UTP" +
   options [browser_info = true, document = false]
