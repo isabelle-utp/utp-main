@@ -14,6 +14,12 @@ definition lens_plus :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longright
 [lens_defs]: "X +\<^sub>L Y = \<lparr> lens_get = (\<lambda> \<sigma>. (lens_get X \<sigma>, lens_get Y \<sigma>))
                        , lens_put = (\<lambda> \<sigma> (u, v). lens_put X (lens_put Y \<sigma> v) u) \<rparr>"
 
+text {* Product functor lens *}
+
+definition lens_prod :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longrightarrow> 'd) \<Rightarrow> ('a \<times> 'b \<Longrightarrow> 'c \<times> 'd)" (infixr "\<times>\<^sub>L" 85) where
+[lens_defs]: "lens_prod X Y = \<lparr> lens_get = map_prod get\<^bsub>X\<^esub> get\<^bsub>Y\<^esub>
+                              , lens_put = \<lambda> (u, v) (x, y). (put\<^bsub>X\<^esub> u x, put\<^bsub>Y\<^esub> v y) \<rparr>"
+
 definition fst_lens :: "'a \<Longrightarrow> 'a \<times> 'b" ("fst\<^sub>L") where
 [lens_defs]: "fst\<^sub>L = \<lparr> lens_get = fst, lens_put = (\<lambda> (\<sigma>, \<rho>) u. (u, \<rho>)) \<rparr>"
 
@@ -99,6 +105,22 @@ lemma plus_vwb_lens:
   apply (simp add: lens_indep_sym prod.case_eq_if)
   apply (simp add: lens_indep_comm prod.case_eq_if)
 done
+    
+lemma prod_mwb_lens:
+  "\<lbrakk> mwb_lens X; mwb_lens Y \<rbrakk> \<Longrightarrow> mwb_lens (X \<times>\<^sub>L Y)"
+  by (unfold_locales, simp_all add: lens_prod_def prod.case_eq_if)
+
+lemma prod_wb_lens:
+  "\<lbrakk> wb_lens X; wb_lens Y \<rbrakk> \<Longrightarrow> wb_lens (X \<times>\<^sub>L Y)"
+  by (unfold_locales, simp_all add: lens_prod_def prod.case_eq_if)
+
+lemma prod_vwb_lens:
+  "\<lbrakk> vwb_lens X; vwb_lens Y \<rbrakk> \<Longrightarrow> vwb_lens (X \<times>\<^sub>L Y)"
+  by (unfold_locales, simp_all add: lens_prod_def prod.case_eq_if)
+
+lemma prod_bij_lens:
+  "\<lbrakk> bij_lens X; bij_lens Y \<rbrakk> \<Longrightarrow> bij_lens (X \<times>\<^sub>L Y)"
+  by (unfold_locales, simp_all add: lens_prod_def prod.case_eq_if)
 
 lemma fst_vwb_lens: "vwb_lens fst\<^sub>L"
   by (unfold_locales, simp_all add: fst_lens_def prod.case_eq_if)
@@ -199,9 +221,16 @@ lemma lens_comp_indep_cong_left:
 done
 
 lemma lens_comp_indep_cong:
-  "\<lbrakk> mwb_lens x; mwb_lens y; mwb_lens z \<rbrakk> \<Longrightarrow> (x ;\<^sub>L z) \<bowtie> (y ;\<^sub>L z) \<longleftrightarrow> x \<bowtie> y"
+  "mwb_lens Z \<Longrightarrow> (X ;\<^sub>L Z) \<bowtie> (Y ;\<^sub>L Z) \<longleftrightarrow> X \<bowtie> Y"
   using lens_comp_indep_cong_left lens_indep_left_comp by blast
 
+lemma lens_indep_prod:
+  "\<lbrakk> X\<^sub>1 \<bowtie> X\<^sub>2; Y\<^sub>1 \<bowtie> Y\<^sub>2 \<rbrakk> \<Longrightarrow> X\<^sub>1 \<times>\<^sub>L Y\<^sub>1 \<bowtie> X\<^sub>2 \<times>\<^sub>L Y\<^sub>2"
+  apply (rule lens_indepI)
+  apply (auto simp add: lens_prod_def prod.case_eq_if lens_indep_comm map_prod_def)
+  apply (simp_all add: lens_indep_sym)
+done
+    
 subsection \<open>Algebraic laws\<close>    
 
 lemma fst_lens_plus:
@@ -220,7 +249,18 @@ done
 lemma lens_plus_swap:
   "X \<bowtie> Y \<Longrightarrow> (snd\<^sub>L +\<^sub>L fst\<^sub>L) ;\<^sub>L (X +\<^sub>L Y) = (Y +\<^sub>L X)"
   by (auto simp add: lens_plus_def fst_lens_def snd_lens_def id_lens_def lens_comp_def lens_indep_comm)
-  
+
+lemma prod_as_plus: "X \<times>\<^sub>L Y = X ;\<^sub>L fst\<^sub>L +\<^sub>L Y ;\<^sub>L snd\<^sub>L"
+  by (auto simp add: lens_prod_def fst_lens_def snd_lens_def lens_comp_def lens_plus_def)
+
+lemma prod_lens_id_equiv:
+  "1\<^sub>L \<times>\<^sub>L 1\<^sub>L = 1\<^sub>L"
+  by (auto simp add: lens_prod_def id_lens_def)
+    
+lemma prod_lens_comp_plus:
+  "X\<^sub>2 \<bowtie> Y\<^sub>2 \<Longrightarrow> ((X\<^sub>1 \<times>\<^sub>L Y\<^sub>1) ;\<^sub>L (X\<^sub>2 +\<^sub>L Y\<^sub>2)) = (X\<^sub>1 ;\<^sub>L X\<^sub>2) +\<^sub>L (Y\<^sub>1 ;\<^sub>L Y\<^sub>2)"
+  by (auto simp add: lens_comp_def lens_plus_def lens_prod_def prod.case_eq_if fun_eq_iff)
+    
 lemma fst_snd_id_lens: "fst\<^sub>L +\<^sub>L snd\<^sub>L = 1\<^sub>L"
   by (auto simp add: lens_plus_def fst_lens_def snd_lens_def id_lens_def)
   

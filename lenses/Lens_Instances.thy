@@ -5,81 +5,6 @@ theory Lens_Instances
   keywords "alphabet" :: "thy_decl_block"
 begin
 
-text {* Product functor lens *}
-
-definition prod_lens :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longrightarrow> 'd) \<Rightarrow> ('a \<times> 'b \<Longrightarrow> 'c \<times> 'd)" (infixr "\<times>\<^sub>L" 85) where
-[lens_defs]: "prod_lens X Y = \<lparr> lens_get = map_prod get\<^bsub>X\<^esub> get\<^bsub>Y\<^esub>
-                              , lens_put = \<lambda> (u, v) (x, y). (put\<^bsub>X\<^esub> u x, put\<^bsub>Y\<^esub> v y) \<rparr>"
-
-lemma prod_mwb_lens:
-  "\<lbrakk> mwb_lens X; mwb_lens Y \<rbrakk> \<Longrightarrow> mwb_lens (X \<times>\<^sub>L Y)"
-  by (unfold_locales, simp_all add: prod_lens_def prod.case_eq_if)
-
-lemma prod_wb_lens:
-  "\<lbrakk> wb_lens X; wb_lens Y \<rbrakk> \<Longrightarrow> wb_lens (X \<times>\<^sub>L Y)"
-  by (unfold_locales, simp_all add: prod_lens_def prod.case_eq_if)
-
-lemma prod_vwb_lens:
-  "\<lbrakk> vwb_lens X; vwb_lens Y \<rbrakk> \<Longrightarrow> vwb_lens (X \<times>\<^sub>L Y)"
-  by (unfold_locales, simp_all add: prod_lens_def prod.case_eq_if)
-
-lemma prod_bij_lens:
-  "\<lbrakk> bij_lens X; bij_lens Y \<rbrakk> \<Longrightarrow> bij_lens (X \<times>\<^sub>L Y)"
-  by (unfold_locales, simp_all add: prod_lens_def prod.case_eq_if)
-
-lemma prod_as_plus: "X \<times>\<^sub>L Y = X ;\<^sub>L fst\<^sub>L +\<^sub>L Y ;\<^sub>L snd\<^sub>L"
-  by (auto simp add: prod_lens_def fst_lens_def snd_lens_def lens_comp_def lens_plus_def)
-
-lemma prod_lens_sublens_cong:
-  "\<lbrakk> X\<^sub>1 \<subseteq>\<^sub>L X\<^sub>2; Y\<^sub>1 \<subseteq>\<^sub>L Y\<^sub>2 \<rbrakk> \<Longrightarrow> (X\<^sub>1 \<times>\<^sub>L Y\<^sub>1) \<subseteq>\<^sub>L (X\<^sub>2 \<times>\<^sub>L Y\<^sub>2)"
-  apply (auto simp add: sublens_def)
-  apply (rename_tac Z\<^sub>1 Z\<^sub>2)
-  apply (rule_tac x="Z\<^sub>1 \<times>\<^sub>L Z\<^sub>2" in exI)
-  apply (auto)
-  using prod_vwb_lens apply blast
-  apply (auto simp add: prod_lens_def lens_comp_def prod.case_eq_if)
-  apply (rule ext, rule ext)
-  apply (auto simp add: prod_lens_def lens_comp_def prod.case_eq_if)
-done
-
-lemma prod_lens_equiv_cong:
-  "\<lbrakk> X\<^sub>1 \<approx>\<^sub>L X\<^sub>2; Y\<^sub>1 \<approx>\<^sub>L Y\<^sub>2 \<rbrakk> \<Longrightarrow> (X\<^sub>1 \<times>\<^sub>L Y\<^sub>1) \<approx>\<^sub>L (X\<^sub>2 \<times>\<^sub>L Y\<^sub>2)"
-  by (simp add: lens_equiv_def prod_lens_sublens_cong)
-
-lemma prod_lens_id_equiv:
-  "1\<^sub>L \<times>\<^sub>L 1\<^sub>L = 1\<^sub>L"
-  by (auto simp add: prod_lens_def id_lens_def)
-
-lemma lens_indep_prod:
-  "\<lbrakk> X\<^sub>1 \<bowtie> X\<^sub>2; Y\<^sub>1 \<bowtie> Y\<^sub>2 \<rbrakk> \<Longrightarrow> X\<^sub>1 \<times>\<^sub>L Y\<^sub>1 \<bowtie> X\<^sub>2 \<times>\<^sub>L Y\<^sub>2"
-  apply (rule lens_indepI)
-  apply (auto simp add: prod_lens_def prod.case_eq_if lens_indep_comm map_prod_def)
-  apply (simp_all add: lens_indep_sym)
-done
-
-lemma lens_plus_prod_exchange:
-  "(X\<^sub>1 +\<^sub>L X\<^sub>2) \<times>\<^sub>L (Y\<^sub>1 +\<^sub>L Y\<^sub>2) \<approx>\<^sub>L (X\<^sub>1 \<times>\<^sub>L Y\<^sub>1) +\<^sub>L (X\<^sub>2 \<times>\<^sub>L Y\<^sub>2)"
-proof (rule lens_equivI)
-  show "(X\<^sub>1 +\<^sub>L X\<^sub>2) \<times>\<^sub>L (Y\<^sub>1 +\<^sub>L Y\<^sub>2) \<subseteq>\<^sub>L (X\<^sub>1 \<times>\<^sub>L Y\<^sub>1) +\<^sub>L (X\<^sub>2 \<times>\<^sub>L Y\<^sub>2)"
-    apply (simp add: sublens_def)
-    apply (rule_tac x="((fst\<^sub>L ;\<^sub>L fst\<^sub>L) +\<^sub>L (fst\<^sub>L ;\<^sub>L snd\<^sub>L)) +\<^sub>L ((snd\<^sub>L ;\<^sub>L fst\<^sub>L) +\<^sub>L (snd\<^sub>L ;\<^sub>L snd\<^sub>L))" in exI)
-    apply (auto)
-    apply (auto intro!: plus_vwb_lens comp_vwb_lens fst_vwb_lens snd_vwb_lens lens_indep_right_comp)
-    apply (auto intro!: lens_indepI simp add: lens_comp_def lens_plus_def fst_lens_def snd_lens_def)
-    apply (auto simp add: prod_lens_def lens_plus_def lens_comp_def fst_lens_def snd_lens_def prod.case_eq_if comp_def)[1]
-    apply (rule ext, rule ext, auto simp add: prod.case_eq_if)
-  done
-  show "(X\<^sub>1 \<times>\<^sub>L Y\<^sub>1) +\<^sub>L (X\<^sub>2 \<times>\<^sub>L Y\<^sub>2) \<subseteq>\<^sub>L (X\<^sub>1 +\<^sub>L X\<^sub>2) \<times>\<^sub>L (Y\<^sub>1 +\<^sub>L Y\<^sub>2)"
-    apply (simp add: sublens_def)
-    apply (rule_tac x="((fst\<^sub>L ;\<^sub>L fst\<^sub>L) +\<^sub>L (fst\<^sub>L ;\<^sub>L snd\<^sub>L)) +\<^sub>L ((snd\<^sub>L ;\<^sub>L fst\<^sub>L) +\<^sub>L (snd\<^sub>L ;\<^sub>L snd\<^sub>L))" in exI)
-    apply (auto)
-    apply (auto intro!: plus_vwb_lens comp_vwb_lens fst_vwb_lens snd_vwb_lens lens_indep_right_comp)
-    apply (auto intro!: lens_indepI simp add: lens_comp_def lens_plus_def fst_lens_def snd_lens_def)
-    apply (auto simp add: prod_lens_def lens_plus_def lens_comp_def fst_lens_def snd_lens_def prod.case_eq_if comp_def)[1]
-    apply (rule ext, rule ext, auto simp add: prod_lens_def prod.case_eq_if)
-  done
-qed
-
 text {* We require that range type of a lens function has cardinality of at least 2; this ensures
         that properties of independence are provable. *}
 
@@ -221,6 +146,10 @@ alphabet mylens =
   x :: nat
   y :: string
 
+lemma mylens_bij_lens:
+  "bij_lens (x +\<^sub>L y +\<^sub>L mylens_child_lens)"
+  by (unfold_locales, simp_all add: lens_plus_def x_def y_def mylens_child_lens_def id_lens_def sublens_def lens_comp_def prod.case_eq_if)
+    
 alphabet mylens_2 = mylens +
   z :: int
   k :: "string list"  
