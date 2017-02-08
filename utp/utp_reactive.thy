@@ -43,6 +43,7 @@ type_synonym ('t,'\<alpha>) hrel_rp  = "('t,'\<alpha>) rp hrel"
 
 translations 
   (type) "('t,'\<alpha>) rp" <= (type) "('t, '\<alpha>) rp_vars_scheme des"
+  (type) "('t,'\<alpha>) rp" <= (type) "('t, '\<alpha>) rp_vars_ext des"
   (type) "('t,'\<alpha>,'\<beta>) rel_rp" <= (type) "(('t,'\<alpha>) rp, (_,'\<beta>) rp) rel"
 
 notation rp_vars_child_lens\<^sub>a ("\<Sigma>\<^sub>r")

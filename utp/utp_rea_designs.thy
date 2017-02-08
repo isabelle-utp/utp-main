@@ -4,6 +4,1108 @@ theory utp_rea_designs
   imports utp_reactive
 begin
 
+subsection {* Preliminaries *}
+
+text {* R3 as presented in the UTP book and related publications is not sensitive to state, although
+  reactive designs often need this property. Thus is is necessary to use a modification of R3 
+  from Butterfield et al. (2009) that explicitly states that intermediate
+  waiting states do not propogate final state variables. In order to do this we need an additional
+  observational variable that capture the program state that we call $st$. *}
+
+alphabet ('s, 't) rsp_vars = "'t rp_vars" +
+  st :: 's
+
+type_synonym ('s,'t,'\<alpha>) rsp = "('t, ('s, 't, '\<alpha>) rsp_vars_scheme) rp"
+type_synonym ('s,'t,'\<alpha>,'\<beta>) rel_rsp  = "(('s,'t,'\<alpha>) rsp, ('s,'t,'\<beta>) rsp) rel"
+type_synonym ('s,'t,'\<alpha>) hrel_rsp  = "('s,'t,'\<alpha>) rsp hrel"
+
+translations 
+  (type) "('s,'t,'\<alpha>) rsp" <= (type) "(_,('s,'t,'\<alpha>) rsp_vars_ext) rp"
+  (type) "('s,'t,'\<alpha>) rsp" <= (type) "(_, ('s, 't, '\<alpha>) rsp_vars_ext) rp_vars_ext des"
+  (type) "('s,'t,'\<alpha>,'\<beta>) rel_rp" <= (type) "(('s,'t,'\<alpha>) rsp, (_,_,'\<beta>) rsp) rel"
+
+interpretation alphabet_state:
+  lens_interp "\<lambda>(ok, wait, tr, r). (ok, wait, tr, st\<^sub>v r, more r)"
+apply (unfold_locales)
+apply (rule injI)
+apply (clarsimp)
+done
+
+interpretation alphabet_state_rel: lens_interp "\<lambda>(ok, ok', wait, wait', tr, tr', r, r').
+  (ok, ok', wait, wait', tr, tr', st\<^sub>v r, st\<^sub>v r', more r, more r')"
+apply (unfold_locales)
+apply (rule injI)
+apply (clarsimp)
+done
+
+subsection {* Healthiness conditions *}
+
+text {* The fundamental healthiness conditions of reactive designs are $RD1$ and $RD2$ which
+  are essentially modifications of H1 and H2 from the theory of designs, viewed through
+  the prism of reactive processes. *}
+
+definition [upred_defs]: "RD1(P) = (P \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
+definition [upred_defs]: "RD2(P) = H2(P)"
+
+text {* RD2 is just H2 since the type system will automatically have J identifying the reactive
+        variables as required. *}
+
+lemma RD1_idem: "RD1(RD1(P)) = RD1(P)"
+  by (rel_auto)
+
+lemma RD1_Idempotent: "Idempotent RD1"
+  by (simp add: Idempotent_def RD1_idem)
+
+lemma RD1_mono: "P \<sqsubseteq> Q \<Longrightarrow> RD1(P) \<sqsubseteq> RD1(Q)"
+  by (rel_auto)
+
+lemma RD1_Monotonic: "Monotonic RD1"
+  using Monotonic_def RD1_mono by blast
+
+lemma RD2_idem: "RD2(RD2(P)) = RD2(P)"
+  by (simp add: H2_idem RD2_def)
+
+lemma RD2_Idempotent: "Idempotent RD2"
+  by (simp add: Idempotent_def RD2_idem)
+
+lemma RD2_mono: "P \<sqsubseteq> Q \<Longrightarrow> RD2(P) \<sqsubseteq> RD2(Q)"
+  by (simp add: H2_def RD2_def seqr_mono)
+
+lemma RD2_Monotonic: "Monotonic RD2"
+  using Monotonic_def RD2_mono by blast
+
+lemma RD1_RD2_commute: "RD1(RD2(P)) = RD2(RD1(P))"
+  by (rel_auto)
+
+lemma RD1_R1_commute: "RD1(R1(P)) = R1(RD1(P))"
+  by (rel_auto)
+
+lemma RD1_R2c_commute: "RD1(R2c(P)) = R2c(RD1(P))"
+  by (rel_auto)
+
+lemma RD1_via_R1: "R1(H1(P)) = RD1(R1(P))"
+  by (rel_auto)
+
+definition skip_rea_def [urel_defs]: "II\<^sub>r = (II \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
+
+definition skip_srea_def [urel_defs]: "II\<^sub>s = ((\<exists> $st \<bullet> II\<^sub>r) \<triangleleft> $wait \<triangleright> II\<^sub>r)"
+
+definition R3c_def [upred_defs]: "R3c(P) = (II\<^sub>r \<triangleleft> $wait \<triangleright> P)"
+
+definition R3h_def [upred_defs]: "R3h(P) = ((\<exists> $st \<bullet> II\<^sub>r) \<triangleleft> $wait \<triangleright> P)"
+
+lemma R3c_idem: "R3c(R3c(P)) = R3c(P)"
+  by (rel_auto)
+
+lemma R3c_Idempotent: "Idempotent R3c"
+  by (simp add: Idempotent_def R3c_idem)
+  
+lemma R3c_mono: "P \<sqsubseteq> Q \<Longrightarrow> R3c(P) \<sqsubseteq> R3c(Q)"
+  by (rel_auto)
+
+lemma R3c_Monotonic: "Monotonic R3c"
+  by (simp add: Monotonic_def R3c_mono)
+
+lemma R3h_idem: "R3h(R3h(P)) = R3h(P)"
+  by (rel_auto)
+
+lemma R3h_Idempotent: "Idempotent R3h"
+  by (simp add: Idempotent_def R3h_idem)
+  
+lemma R3h_mono: "P \<sqsubseteq> Q \<Longrightarrow> R3h(P) \<sqsubseteq> R3h(Q)"
+  by (rel_auto)
+
+lemma R3h_Monotonic: "Monotonic R3h"
+  by (simp add: Monotonic_def R3h_mono)
+
+lemma R3c_via_RD1_R3: "RD1(R3(P)) = R3c(RD1(P))"
+  by (rel_auto)
+
+lemma R3c_RD1_def: "P is RD1 \<Longrightarrow> R3c(P) = RD1(R3(P))"
+  by (simp add: Healthy_if R3c_via_RD1_R3)
+
+lemma RD1_R3c_commute: "RD1(R3c(P)) = R3c(RD1(P))"
+  by (rel_auto)
+
+lemma RD2_R3c_commute: "RD2(R3c(P)) = R3c(RD2(P))"
+  by (rel_auto)
+
+lemma R1_R3c_commute: "R1(R3c(P)) = R3c(R1(P))"
+  by (rel_auto)
+
+lemma R2c_R3c_commute: "R2c(R3c(P)) = R3c(R2c(P))"
+  apply (rel_auto) using minus_zero_eq by blast+
+
+lemma R1_R3h_commute: "R1(R3h(P)) = R3h(R1(P))"
+  by (rel_auto)
+
+lemma R2c_R3h_commute: "R2c(R3h(P)) = R3h(R2c(P))"
+  apply (rel_auto) using minus_zero_eq by blast+
+
+lemma RD1_R3h_commute: "RD1(R3h(P)) = R3h(RD1(P))"
+  by (rel_auto)
+
+lemma RD2_R3h_commute: "RD2(R3h(P)) = R3h(RD2(P))"
+  by (rel_auto)
+
+lemma R3c_cancels_R3: "R3c(R3(P)) = R3c(P)"
+  by (rel_auto)
+
+lemma R3_cancels_R3c: "R3(R3c(P)) = R3(P)"
+  by (rel_auto)
+
+lemma R3h_cancels_R3c: "R3h(R3c(P)) = R3h(P)"
+  by (rel_auto)
+ 
+lemma skip_rea_RD1_skip: "II\<^sub>r = RD1(II)"
+  by (rel_auto)
+
+lemma R1_skip_rea: "R1(II\<^sub>r) = II\<^sub>r"
+  by rel_auto
+
+lemma skip_rea_form: "II\<^sub>r = (II \<triangleleft> $ok \<triangleright> R1(true))"
+  by rel_auto
+
+lemma R2c_skip_rea: "R2c II\<^sub>r = II\<^sub>r"
+  by (simp add: skip_rea_def R2c_and R2c_disj R2c_skip_r R2c_not R2c_ok R2c_tr'_ge_tr)
+
+definition RH :: "('t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp" ("\<^bold>R")
+where [upred_defs]: "RH(P) = R1(R2c(R3c(P)))"
+
+definition RHS :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" ("\<^bold>R\<^sub>s")
+where [upred_defs]: "RHS(P) = R1(R2c(R3h(P)))"
+
+definition RD :: "('t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp"
+where [upred_defs]: "RD(P) = RD1(RD2(RP(P)))"
+
+definition SRD :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
+where [upred_defs]: "SRD(P) = RD1(RD2(RHS(P)))"
+
+lemma RH_idem: "\<^bold>R(\<^bold>R(P)) = \<^bold>R(P)"
+  by (simp add: R1_R2c_commute R1_R3c_commute R1_idem R2c_R3c_commute R2c_idem R3c_idem RH_def)
+
+lemma RH_Idempotent: "Idempotent \<^bold>R"
+  by (simp add: Idempotent_def RH_idem)
+
+lemma RH_Monotonic: "Monotonic \<^bold>R"
+  by (metis Monotonic_def R1_Monotonic R2c_Monotonic R3c_mono RH_def)
+
+lemma RHS_idem: "\<^bold>R\<^sub>s(\<^bold>R\<^sub>s(P)) = \<^bold>R\<^sub>s(P)"
+  by (simp add: R1_R2c_is_R2 R1_R3h_commute R2_idem R2c_R3h_commute R3h_idem RHS_def)
+
+lemma RHS_Idempotent: "Idempotent \<^bold>R\<^sub>s"
+  by (simp add: Idempotent_def RHS_idem)
+
+lemma RHS_Monotonic: "Monotonic \<^bold>R\<^sub>s"
+  by (simp add: Monotonic_def R1_R2c_is_R2 R2_mono R3h_mono RHS_def)
+
+lemma RD_alt_def: "RD(P) = RD1(RD2(\<^bold>R(P)))"
+  by (simp add: R3c_via_RD1_R3 RD1_R1_commute RD1_R2c_commute RD1_R3c_commute RD1_RD2_commute RH_def RD_def RP_def)
+
+lemma RD1_RH_commute: "RD1(\<^bold>R(P)) = \<^bold>R(RD1(P))"
+  by (simp add: RD1_R1_commute RD1_R2c_commute RD1_R3c_commute RH_def)
+
+lemma RD2_RH_commute: "RD2(\<^bold>R(P)) = \<^bold>R(RD2(P))"
+  by (metis R1_H2_commute R2c_H2_commute RD2_R3c_commute RD2_def RH_def)
+  
+lemma RD_idem: "RD(RD(P)) = RD(P)"
+  by (simp add: RD_alt_def RD1_RH_commute RD2_RH_commute RD1_RD2_commute RD2_idem RD1_idem RH_idem)
+
+lemma RD_Monotonic: "Monotonic RD"
+  by (metis Monotonic_def RD1_mono RD2_Monotonic RD_alt_def RH_Monotonic)
+
+lemma R3_RD_RP: "R3(RD(P)) = RP(RD1(RD2(P)))"
+  by (metis (no_types, lifting) R1_R2c_is_R2 R2_R3_commute R3_cancels_R3c RD1_RH_commute RD2_RH_commute RD_alt_def RH_def RP_def)
+
+lemma RD1_RHS_commute: "RD1(\<^bold>R\<^sub>s(P)) = \<^bold>R\<^sub>s(RD1(P))"
+  by (simp add: RD1_R1_commute RD1_R2c_commute RD1_R3h_commute RHS_def)
+    
+lemma RD2_RHS_commute: "RD2(\<^bold>R\<^sub>s(P)) = \<^bold>R\<^sub>s(RD2(P))"
+  by (metis R1_H2_commute R2c_H2_commute RD2_R3h_commute RD2_def RHS_def)
+    
+typedecl RDES
+typedecl SRDES
+
+abbreviation "RDES \<equiv> UTHY(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp)"
+abbreviation "SRDES \<equiv> UTHY(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp)"
+
+overloading
+  rdes_hcond   == "utp_hcond :: (RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
+  srdes_hcond   == "utp_hcond :: (SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health"
+begin
+  definition rdes_hcond :: "(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health" where
+  [upred_defs]: "rdes_hcond T = RD"
+  definition srdes_hcond :: "(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health" where
+  [upred_defs]: "srdes_hcond T = SRD"
+
+end
+
+interpretation rdes_theory: utp_theory "UTHY(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp)"
+  by (unfold_locales, simp_all add: rdes_hcond_def RD_idem)
+
+interpretation rdes_theory_mono: utp_theory_mono "UTHY(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp)"
+  by (unfold_locales, simp_all add: rdes_hcond_def RD_Monotonic)
+
+interpretation rdes_rea_galois: 
+  galois_connection "(RDES \<leftarrow>\<langle>RD1 \<circ> RD2,R3\<rangle>\<rightarrow> REA)"
+proof (simp add: mk_conn_def, rule galois_connectionI', simp_all add: utp_partial_order rdes_hcond_def rea_hcond_def)
+  show "R3 \<in> \<lbrakk>RD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RP\<rbrakk>\<^sub>H"
+    by (metis (no_types, lifting) Healthy_def' Pi_I R3_RD_RP RP_idem mem_Collect_eq)
+  show "RD1 \<circ> RD2 \<in> \<lbrakk>RP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RD\<rbrakk>\<^sub>H"
+    by (simp add: Pi_iff Healthy_def, metis RD_def RD_idem)
+  show "isotone (utp_order RD) (utp_order RP) R3"
+    by (simp add: R3_Monotonic isotone_utp_orderI)
+  show "isotone (utp_order RP) (utp_order RD) (RD1 \<circ> RD2)"
+    by (simp add: Monotonic_comp RD1_Monotonic RD2_Monotonic isotone_utp_orderI)
+  fix P :: "('a, 'b) hrel_rp"
+  assume "P is RD"
+  thus "P \<sqsubseteq> RD1 (RD2 (R3 P))"
+    by (metis Healthy_if R3_RD_RP RD_def RP_idem eq_iff)
+next
+  fix P :: "('a, 'b) hrel_rp"
+  assume a: "P is RP"
+  thus "R3 (RD1 (RD2 P)) \<sqsubseteq> P"
+  proof -
+    have "R3 (RD1 (RD2 P)) = RP (RD1 (RD2(P)))"
+      by (metis Healthy_if R3_RD_RP RD_def a)
+    moreover have "RD1(RD2(P)) \<sqsubseteq> P"
+      by (rel_auto)
+    ultimately show ?thesis
+      by (metis Healthy_if RP_mono a)
+  qed
+qed
+
+interpretation rdes_rea_retract: 
+  retract "(RDES \<leftarrow>\<langle>RD1 \<circ> RD2,R3\<rangle>\<rightarrow> REA)"
+  by (unfold_locales, simp_all add: mk_conn_def utp_partial_order rdes_hcond_def rea_hcond_def)
+     (metis Healthy_if R3_RD_RP RD_def RP_idem eq_refl)
+
+lemma R2_skip_rea: "R2(II\<^sub>r) = II\<^sub>r"
+  by (metis R1_R2c_is_R2 R1_skip_rea R2c_skip_rea)
+
+lemma R2c_skip_rea3: "R2c(II\<^sub>s) = II\<^sub>s"
+  apply (rel_auto) using minus_zero_eq by blast+
+
+lemma R3c_semir_form:
+  "(R3c(P) ;; R3c(R1(Q))) = R3c(P ;; R3c(R1(Q)))"
+  by (rel_simp, safe, auto intro: order_trans)
+
+lemma R3h_semir_form:
+  "(R3h(P) ;; R3h(R1(Q))) = R3h(P ;; R3h(R1(Q)))"
+  by (rel_simp, safe, auto intro: order_trans, blast+)
+
+lemma R3c_seq_closure:
+  assumes "P is R3c" "Q is R3c" "Q is R1"
+  shows "(P ;; Q) is R3c"
+  by (metis Healthy_def' R3c_semir_form assms)
+
+lemma R3h_seq_closure:
+  assumes "P is R3h" "Q is R3h" "Q is R1"
+  shows "(P ;; Q) is R3h"
+  by (metis Healthy_def' R3h_semir_form assms)
+
+lemma R3c_R3_left_seq_closure:
+  assumes "P is R3" "Q is R3c"
+  shows "(P ;; Q) is R3c"
+proof -
+  have "(P ;; Q) = ((P ;; Q)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (metis cond_var_split cond_var_subst_right in_var_uvar wait_vwb_lens)
+  also have "... = (((II \<triangleleft> $wait \<triangleright> P) ;; Q)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (metis Healthy_def' R3_def assms(1))
+  also have "... = ((II\<lbrakk>true/$wait\<rbrakk> ;; Q) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (subst_tac)
+  also have "... = ((II \<and> $wait\<acute> ;; Q) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (metis (no_types, lifting) cond_def conj_pos_var_subst seqr_pre_var_out skip_var utp_pred.inf_left_idem wait_vwb_lens)
+  also have "... = ((II\<lbrakk>true/$wait\<acute>\<rbrakk> ;; Q\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (metis seqr_pre_transfer seqr_right_one_point true_alt_def uovar_convr upred_eq_true utp_rel.unrest_ouvar vwb_lens_mwb wait_vwb_lens)
+  also have "... = ((II\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (II\<^sub>r \<triangleleft> $wait \<triangleright> Q)\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (metis Healthy_def' R3c_def assms(2))
+  also have "... = ((II\<lbrakk>true/$wait\<acute>\<rbrakk> ;; II\<^sub>r\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (subst_tac)
+  also have "... = ((II \<and> $wait\<acute> ;; II\<^sub>r) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (metis seqr_pre_transfer seqr_right_one_point true_alt_def uovar_convr upred_eq_true utp_rel.unrest_ouvar vwb_lens_mwb wait_vwb_lens)
+  also have "... = ((II ;; II\<^sub>r) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by (simp add: cond_def seqr_pre_transfer utp_rel.unrest_ouvar)
+  also have "... = (II\<^sub>r \<triangleleft> $wait \<triangleright> (P ;; Q))"
+    by simp
+  also have "... = R3c(P ;; Q)"
+    by (simp add: R3c_def)
+  finally show ?thesis
+    by (simp add: Healthy_def') 
+qed
+
+lemma R3c_cases: "R3c(P) = ((II \<triangleleft> $ok \<triangleright> R1(true)) \<triangleleft> $wait \<triangleright> P)"
+  by (rel_auto)
+
+lemma R3c_subst_wait: "R3c(P) = R3c(P \<^sub>f)"
+  by (metis R3c_def cond_var_subst_right wait_vwb_lens)
+
+lemma R3h_subst_wait: "R3h(P) = R3h(P \<^sub>f)"
+  by (metis R3h_def cond_var_subst_right wait_vwb_lens)
+
+lemma skip_rea_R1_lemma: "II\<^sub>r = R1($ok \<Rightarrow> II)"
+  by (rel_auto)
+    
+subsection {* Reactive design form *}
+  
+lemma RD1_algebraic_intro:
+  assumes 
+    "P is R1" "(R1(true\<^sub>h) ;; P) = R1(true\<^sub>h)" "(II\<^sub>r ;; P) = P"
+  shows "P is RD1"
+proof -
+  have "P = (II\<^sub>r ;; P)"
+    by (simp add: assms(3))
+  also have "... = (R1($ok \<Rightarrow> II) ;; P)"
+    by (simp add: skip_rea_R1_lemma)
+  also have "... = (((\<not> $ok \<and> R1(true)) ;; P) \<or> P)"
+    by (metis (no_types, lifting) R1_def seqr_left_unit seqr_or_distl skip_rea_R1_lemma skip_rea_def utp_pred.inf_top_left utp_pred.sup_commute)
+  also have "... = (((R1(\<not> $ok) ;; R1(true\<^sub>h)) ;; P) \<or> P)"
+    by (rel_auto, metis order.trans)
+  also have "... = ((R1(\<not> $ok) ;; (R1(true\<^sub>h) ;; P)) \<or> P)"
+    by (simp add: seqr_assoc)
+  also have "... = ((R1(\<not> $ok) ;; R1(true\<^sub>h)) \<or> P)"
+    by (simp add: assms(2))
+  also have "... = (R1(\<not> $ok) \<or> P)"
+    by (rel_auto)
+  also have "... = RD1(P)"
+    by (rel_auto)
+  finally show ?thesis 
+    by (simp add: Healthy_def)
+qed
+
+theorem RD1_left_zero:
+  assumes "P is R1" "P is RD1"
+  shows "(R1(true) ;; P) = R1(true)"
+proof -
+  have "(R1(true) ;; R1(RD1(P))) = R1(true)"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms(1) assms(2))
+qed
+
+theorem RD1_left_unit:
+  assumes "P is R1" "P is RD1"
+  shows "(II\<^sub>r ;; P) = P"
+proof -
+  have "(II\<^sub>r ;; R1(RD1(P))) = R1(RD1(P))"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms(1) assms(2))
+qed
+
+lemma RD1_alt_def: 
+  assumes "P is R1"
+  shows "RD1(P) = (P \<triangleleft> $ok \<triangleright> R1(true))"
+proof -
+  have "RD1(R1(P)) = (R1(P) \<triangleleft> $ok \<triangleright> R1(true))"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+theorem RD1_algebraic:
+  assumes "P is R1"
+  shows "P is RD1 \<longleftrightarrow> (R1(true\<^sub>h) ;; P) = R1(true\<^sub>h) \<and> (II\<^sub>r ;; P) = P"
+  using RD1_algebraic_intro RD1_left_unit RD1_left_zero assms by blast
+
+lemma RD1_reactive_design: "RD1(\<^bold>R(P \<turnstile> Q)) = \<^bold>R(P \<turnstile> Q)"
+  by rel_auto
+
+lemma RD2_reactive_design:
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q"
+  shows "RD2(\<^bold>R(P \<turnstile> Q)) = \<^bold>R(P \<turnstile> Q)"
+  using assms
+  by (metis H2_design RD2_RH_commute RD2_def)
+
+lemma RD1_st_reactive_design: "RD1(\<^bold>R\<^sub>s(P \<turnstile> Q)) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
+  by rel_auto
+
+lemma RD2_st_reactive_design:
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q"
+  shows "RD2(\<^bold>R\<^sub>s(P \<turnstile> Q)) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
+  using assms
+  by (metis H2_design RD2_RHS_commute RD2_def)
+    
+lemma wait_false_design:
+  "(P \<turnstile> Q) \<^sub>f = ((P \<^sub>f) \<turnstile> (Q \<^sub>f))"
+  by (rel_auto)
+
+lemma RD_RH_design_form:
+  "RD(P) = \<^bold>R((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
+proof -
+  have "RD(P) = RD1(RD2(R1(R2c(R3c(P)))))"
+    by (simp add: RD_alt_def RH_def)
+  also have "... = RD1(H2(R1(R2s(R3c(P)))))"
+    by (simp add: R1_R2s_R2c RD2_def)
+  also have "... = RD1(R1(H2(R2s(R3c(P)))))"
+    by (simp add: R1_H2_commute)
+  also have "... = R1(H1(R1(H2(R2s(R3c(P))))))"
+    by (simp add: R1_idem RD1_via_R1)
+  also have "... = R1(H1(H2(R2s(R3c(R1(P))))))"
+    by (simp add: R1_H2_commute R1_R2c_commute R1_R2s_R2c R1_R3c_commute RD1_via_R1)
+  also have "... = R1(R2s(H1(H2(R3c(R1(P))))))"
+    by (simp add: R2s_H1_commute R2s_H2_commute)
+  also have "... = R1(R2s(H1(R3c(H2(R1(P))))))"
+    by (metis RD2_R3c_commute RD2_def)
+  also have "... = R2(R1(H1(R3c(H2(R1(P))))))"
+    by (metis R1_R2_commute R1_idem R2_def)
+  also have "... = R2(R3c(R1(\<^bold>H(R1(P)))))"
+    by (simp add: R1_R3c_commute RD1_R3c_commute RD1_via_R1)
+  also have "... = RH(\<^bold>H(R1(P)))"
+    by (metis R1_R2s_R2c R1_R3c_commute R2_R1_form RH_def)
+  also have "... = RH(\<^bold>H(P))"
+    by (simp add: R1_H2_commute R1_R2c_commute R1_R3c_commute R1_idem RD1_via_R1 RH_def)
+  also have "... = RH((\<not> P\<^sup>f) \<turnstile> P\<^sup>t)"
+    by (simp add: H1_H2_eq_design)
+  also have "... = \<^bold>R((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
+    by (metis (no_types, lifting) R3c_subst_wait RH_def subst_not wait_false_design)
+  finally show ?thesis .
+qed
+
+lemma RD_reactive_design:
+  assumes "P is RD"
+  shows "\<^bold>R((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f) = P"
+  by (metis RD_RH_design_form Healthy_def' assms)
+
+lemma RD_RH_design: 
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q"
+  shows "RD(\<^bold>R(P \<turnstile> Q)) = \<^bold>R(P \<turnstile> Q)"
+  by (simp add: RD1_reactive_design RD2_reactive_design RD_alt_def RH_idem assms(1) assms(2))
+
+lemma RH_design_is_RD:
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q"
+  shows "\<^bold>R(P \<turnstile> Q) is RD"
+  by (simp add: RD_RH_design Healthy_def' assms(1) assms(2))
+
+lemma SRD_RH_design_form:
+  "SRD(P) = \<^bold>R\<^sub>s((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
+proof -
+  have "SRD(P) = R1(R2c(R3h(RD1(RD2(R1(P))))))"
+    by (metis (no_types, lifting) R1_H2_commute R1_R2c_commute R1_R3h_commute R1_idem R2c_H2_commute RD1_R1_commute RD1_R2c_commute RD1_R3h_commute RD2_R3h_commute RD2_def RHS_def SRD_def)    
+  also have "... = R1(R2s(R3h(\<^bold>H(P))))"
+    by (metis (no_types, lifting) R1_H2_commute R1_R2c_is_R2 R1_R3h_commute R2_R1_form RD1_via_R1 RD2_def)
+  also have "... = \<^bold>R\<^sub>s(\<^bold>H(P))"
+    by (simp add: R1_R2s_R2c RHS_def)
+  also have "... = \<^bold>R\<^sub>s((\<not> P\<^sup>f) \<turnstile> P\<^sup>t)"
+    by (simp add: H1_H2_eq_design)
+  also have "... = \<^bold>R\<^sub>s((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
+    by (metis (no_types, lifting) R3h_subst_wait RHS_def subst_not wait_false_design)
+  finally show ?thesis .
+qed
+
+lemma SRD_reactive_design:
+  assumes "P is SRD"
+  shows "\<^bold>R\<^sub>s((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f) = P"
+  by (metis SRD_RH_design_form Healthy_def' assms)
+
+lemma SRD_RH_design: 
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q"
+  shows "SRD(\<^bold>R\<^sub>s(P \<turnstile> Q)) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
+  by (simp add: RD1_st_reactive_design RD2_st_reactive_design RHS_idem SRD_def assms(1) assms(2))
+
+lemma RHS_design_is_SRD:
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q"
+  shows "\<^bold>R\<^sub>s(P \<turnstile> Q) is SRD"
+  by (simp add: Healthy_def' SRD_RH_design assms(1) assms(2))
+
+subsection {* Reactive design composition laws *}
+  
+theorem R1_design_composition:
+  fixes P Q :: "('t::ordered_cancel_monoid_diff,'\<alpha>,'\<beta>) rel_rp"
+  and R S :: "('t,'\<beta>,'\<gamma>) rel_rp"
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok \<sharp> R" "$ok \<sharp> S"
+  shows
+  "(R1(P \<turnstile> Q) ;; R1(R \<turnstile> S)) = 
+   R1((\<not> (R1(\<not> P) ;; R1(true)) \<and> \<not> (R1(Q) ;; R1(\<not> R))) \<turnstile> (R1(Q) ;; R1(S)))"
+proof -
+  have "(R1(P \<turnstile> Q) ;; R1(R \<turnstile> S)) = (\<^bold>\<exists> ok\<^sub>0 \<bullet> (R1(P \<turnstile> Q))\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<acute>\<rbrakk> ;; (R1(R \<turnstile> S))\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<rbrakk>)"
+    using seqr_middle ok_vwb_lens by blast
+  also from assms have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> R1(($ok \<and> P) \<Rightarrow> (\<guillemotleft>ok\<^sub>0\<guillemotright> \<and> Q)) ;; R1((\<guillemotleft>ok\<^sub>0\<guillemotright>  \<and> R) \<Rightarrow> ($ok\<acute> \<and> S)))"
+    by (simp add: design_def R1_def usubst unrest)
+  also from assms have "... = ((R1(($ok \<and> P) \<Rightarrow> (true \<and> Q)) ;; R1((true \<and> R) \<Rightarrow> ($ok\<acute> \<and> S)))
+                             \<or> (R1(($ok \<and> P) \<Rightarrow> (false \<and> Q)) ;; R1((false \<and> R) \<Rightarrow> ($ok\<acute> \<and> S))))"
+    by (simp add: false_alt_def true_alt_def)
+  also from assms have "... = ((R1(($ok \<and> P) \<Rightarrow> Q) ;; R1(R \<Rightarrow> ($ok\<acute> \<and> S))) 
+                             \<or> (R1(\<not> ($ok \<and> P)) ;; R1(true)))"
+    by simp
+  also from assms have "... = ((R1(\<not> $ok \<or> \<not> P \<or> Q) ;; R1(\<not> R \<or> ($ok\<acute> \<and> S))) 
+                             \<or> (R1(\<not> $ok \<or> \<not> P) ;; R1(true)))"
+    by (simp add: impl_alt_def utp_pred.sup.assoc)
+  also from assms have "... = (((R1(\<not> $ok \<or> \<not> P) \<or> R1(Q)) ;; R1(\<not> R \<or> ($ok\<acute> \<and> S))) 
+                               \<or> (R1(\<not> $ok \<or> \<not> P) ;; R1(true)))"
+    by (simp add: R1_disj utp_pred.disj_assoc)
+  also from assms have "... = ((R1(\<not> $ok \<or> \<not> P) ;; R1(\<not> R \<or> ($ok\<acute> \<and> S)))
+                               \<or> (R1(Q) ;; R1(\<not> R \<or> ($ok\<acute> \<and> S))) 
+                               \<or> (R1(\<not> $ok \<or> \<not> P) ;; R1(true)))"
+    by (simp add: seqr_or_distl utp_pred.sup.assoc)
+  also from assms have "... = ((R1(Q) ;; R1(\<not> R \<or> ($ok\<acute> \<and> S))) 
+                               \<or> (R1(\<not> $ok \<or> \<not> P) ;; R1(true)))"
+    by rel_blast
+  also from assms have "... = ((R1(Q) ;; (R1(\<not> R) \<or> R1(S) \<and> $ok\<acute>)) 
+                               \<or> (R1(\<not> $ok \<or> \<not> P) ;; R1(true)))"
+    by (simp add: R1_disj R1_extend_conj utp_pred.inf_commute)
+  also have "... = ((R1(Q) ;; (R1(\<not> R) \<or> R1(S) \<and> $ok\<acute>)) 
+                  \<or> ((R1(\<not> $ok) :: ('t,'\<alpha>,'\<beta>) rel_rp) ;; R1(true)) 
+                  \<or> (R1(\<not> P) ;; R1(true)))"
+    by (simp add: R1_disj seqr_or_distl)
+  also have "... = ((R1(Q) ;; (R1(\<not> R) \<or> R1(S) \<and> $ok\<acute>)) 
+                  \<or> (R1(\<not> $ok))
+                  \<or> (R1(\<not> P) ;; R1(true)))"
+  proof -
+    have "((R1(\<not> $ok) :: ('t,'\<alpha>,'\<beta>) rel_rp) ;; R1(true)) = 
+           (R1(\<not> $ok) :: ('t,'\<alpha>,'\<gamma>) rel_rp)"
+      by (rel_auto)
+    thus ?thesis
+      by simp
+  qed
+  also have "... = ((R1(Q) ;; (R1(\<not> R) \<or> (R1(S \<and> $ok\<acute>)))) 
+                  \<or> R1(\<not> $ok)
+                  \<or> (R1(\<not> P) ;; R1(true)))"
+    by (simp add: R1_extend_conj)
+  also have "... = ( (R1(Q) ;; (R1 (\<not> R)))
+                   \<or> (R1(Q) ;; (R1(S \<and> $ok\<acute>)))
+                   \<or> R1(\<not> $ok)
+                   \<or> (R1(\<not> P) ;; R1(true)))"
+    by (simp add: seqr_or_distr utp_pred.sup.assoc)
+  also have "... = R1( (R1(Q) ;; (R1 (\<not> R)))
+                     \<or> (R1(Q) ;; (R1(S \<and> $ok\<acute>)))
+                     \<or> (\<not> $ok)
+                     \<or> (R1(\<not> P) ;; R1(true)))"
+    by (simp add: R1_disj R1_seqr)
+  also have "... = R1( (R1(Q) ;; (R1 (\<not> R)))
+                     \<or> ((R1(Q) ;; R1(S)) \<and> $ok\<acute>)
+                     \<or> (\<not> $ok)
+                     \<or> (R1(\<not> P) ;; R1(true)))"
+    by (rel_blast)
+  also have "... = R1(\<not>($ok \<and> \<not> (R1(\<not> P) ;; R1(true)) \<and> \<not> (R1(Q) ;; (R1 (\<not> R))))
+                     \<or>  ((R1(Q) ;; R1(S)) \<and> $ok\<acute>))"
+    by (rel_blast)
+  also have "... = R1(($ok \<and> \<not> (R1(\<not> P) ;; R1(true)) \<and> \<not> (R1(Q) ;; (R1 (\<not> R))))
+                      \<Rightarrow> ($ok\<acute> \<and> (R1(Q) ;; R1(S))))"
+    by (simp add: impl_alt_def utp_pred.inf_commute)
+  also have "... = R1((\<not> (R1(\<not> P) ;; R1(true)) \<and> \<not> (R1(Q) ;; R1(\<not> R))) \<turnstile> (R1(Q) ;; R1(S)))"
+    by (simp add: design_def)
+  finally show ?thesis .
+qed
+
+definition [upred_defs]: "R3c_pre(P) = (true \<triangleleft> $wait \<triangleright> P)"
+
+definition [upred_defs]: "R3c_post(P) = (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> P)"
+
+definition [upred_defs]: "R3h_post(P) = ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> P)"
+
+lemma R3c_pre_conj: "R3c_pre(P \<and> Q) = (R3c_pre(P) \<and> R3c_pre(Q))"
+  by rel_auto
+
+lemma R3c_pre_seq:
+  "(true ;; Q) = true \<Longrightarrow> R3c_pre(P ;; Q) = (R3c_pre(P) ;; Q)"
+  by (rel_auto)
+
+lemma R2s_design: "R2s(P \<turnstile> Q) = (R2s(P) \<turnstile> R2s(Q))"
+  by (simp add: R2s_def design_def usubst)
+
+lemma R2c_design: "R2c(P \<turnstile> Q) = (R2c(P) \<turnstile> R2c(Q))"
+  by (simp add: design_def impl_alt_def R2c_disj R2c_not R2c_ok R2c_and R2c_ok')
+
+lemma R1_R3c_design:
+  "R1(R3c(P \<turnstile> Q)) = R1(R3c_pre(P) \<turnstile> R3c_post(Q))"
+  by (rel_auto)
+
+lemma R1_R3h_design:
+  "R1(R3h(P \<turnstile> Q)) = R1(R3c_pre(P) \<turnstile> R3h_post(Q))"
+  by (rel_auto)
+
+lemma unrest_ok_R2s [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R2s(P)"
+  by (simp add: R2s_def unrest)
+
+lemma unrest_ok'_R2s [unrest]: "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> R2s(P)"
+  by (simp add: R2s_def unrest)
+
+lemma unrest_ok_R2c [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R2c(P)"
+  by (simp add: R2c_def unrest)
+
+lemma unrest_ok'_R2c [unrest]: "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> R2c(P)"
+  by (simp add: R2c_def unrest)
+
+lemma unrest_ok_R3c_pre [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R3c_pre(P)"
+  by (simp add: R3c_pre_def cond_def unrest)
+
+lemma unrest_ok'_R3c_pre [unrest]: "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> R3c_pre(P)"
+  by (simp add: R3c_pre_def cond_def unrest)
+
+lemma unrest_ok_R3c_post [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R3c_post(P)"
+  by (simp add: R3c_post_def cond_def unrest)
+
+lemma unrest_ok_R3c_post' [unrest]: "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> R3c_post(P)"
+  by (simp add: R3c_post_def cond_def unrest)
+
+lemma unrest_ok_R3h_post [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R3h_post(P)"
+  by (simp add: R3h_post_def cond_def unrest)
+
+lemma unrest_ok_R3h_post' [unrest]: "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> R3h_post(P)"
+  by (simp add: R3h_post_def cond_def unrest)
+
+lemma R3c_R1_design_composition: 
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok \<sharp> R" "$ok \<sharp> S"
+  shows "(R3c(R1(P \<turnstile> Q)) ;; R3c(R1(R \<turnstile> S))) = 
+       R3c(R1((\<not> (R1(\<not> P) ;; R1(true)) \<and> \<not> ((R1(Q) \<and> \<not> $wait\<acute>) ;; R1(\<not> R))) 
+       \<turnstile> (R1(Q) ;; (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1(S)))))"
+proof -
+  have 1:"(\<not> (R1 (\<not> R3c_pre P) ;; R1 true)) = (R3c_pre (\<not> (R1 (\<not> P) ;; R1 true)))"
+    by (rel_auto)
+  have 2:"(\<not> (R1 (R3c_post Q) ;; R1 (\<not> R3c_pre R))) = R3c_pre(\<not> (R1 Q \<and> \<not> $wait\<acute> ;; R1 (\<not> R)))"
+    by (rel_auto)
+  have 3:"(R1 (R3c_post Q) ;; R1 (R3c_post S)) = R3c_post (R1 Q ;; (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 S))"
+    by (rel_auto)
+  show ?thesis
+    apply (simp add: R3c_semir_form R1_R3c_commute[THEN sym] R1_R3c_design unrest )
+    apply (subst R1_design_composition)
+    apply (simp_all add: unrest assms R3c_pre_conj 1 2 3)
+  done
+qed
+
+lemma R3h_R1_design_composition: 
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok \<sharp> R" "$ok \<sharp> S"
+  shows "(R3h(R1(P \<turnstile> Q)) ;; R3h(R1(R \<turnstile> S))) = 
+       R3h(R1((\<not> (R1(\<not> P) ;; R1(true)) \<and> \<not> ((R1(Q) \<and> \<not> $wait\<acute>) ;; R1(\<not> R))) 
+       \<turnstile> (R1(Q) ;; ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1(S)))))"
+proof -
+  have 1:"(\<not> (R1 (\<not> R3c_pre P) ;; R1 true)) = (R3c_pre (\<not> (R1 (\<not> P) ;; R1 true)))"
+   by (rel_auto, blast+)
+  have 2:"(\<not> (R1 (R3h_post Q) ;; R1 (\<not> R3c_pre R))) = R3c_pre(\<not> (R1 Q \<and> \<not> $wait\<acute> ;; R1 (\<not> R)))"
+    by (rel_auto, blast+)
+  have 3:"(R1 (R3h_post Q) ;; R1 (R3h_post S)) = R3h_post (R1 Q ;; ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 S))"
+    by (rel_auto, blast+)
+  show ?thesis
+    apply (simp add: R3h_semir_form R1_R3h_commute[THEN sym] R1_R3h_design unrest )
+    apply (subst R1_design_composition)
+    apply (simp_all add: unrest assms R3c_pre_conj 1 2 3)
+  done
+qed
+
+lemma R1_des_lift_skip: "R1(\<lceil>II\<rceil>\<^sub>D) = \<lceil>II\<rceil>\<^sub>D"
+  by (rel_auto)
+    
+lemma R2s_subst_wait_true [usubst]:
+  "(R2s(P))\<lbrakk>true/$wait\<rbrakk> = R2s(P\<lbrakk>true/$wait\<rbrakk>)"
+  by (simp add: R2s_def usubst unrest)
+
+lemma R2s_subst_wait'_true [usubst]:
+  "(R2s(P))\<lbrakk>true/$wait\<acute>\<rbrakk> = R2s(P\<lbrakk>true/$wait\<acute>\<rbrakk>)"
+  by (simp add: R2s_def usubst unrest)
+
+lemma R2_subst_wait_true [usubst]:
+  "(R2(P))\<lbrakk>true/$wait\<rbrakk> = R2(P\<lbrakk>true/$wait\<rbrakk>)"
+  by (simp add: R2_def R1_def R2s_def usubst unrest)
+
+lemma R2_subst_wait'_true [usubst]:
+  "(R2(P))\<lbrakk>true/$wait\<acute>\<rbrakk> = R2(P\<lbrakk>true/$wait\<acute>\<rbrakk>)"
+  by (simp add: R2_def R1_def R2s_def usubst unrest)
+
+lemma R2_subst_wait_false [usubst]:
+  "(R2(P))\<lbrakk>false/$wait\<rbrakk> = R2(P\<lbrakk>false/$wait\<rbrakk>)"
+  by (simp add: R2_def R1_def R2s_def usubst unrest)
+
+lemma R2_subst_wait'_false [usubst]:
+  "(R2(P))\<lbrakk>false/$wait\<acute>\<rbrakk> = R2(P\<lbrakk>false/$wait\<acute>\<rbrakk>)"
+  by (simp add: R2_def R1_def R2s_def usubst unrest)
+
+lemma R2_des_lift_skip:
+  "R2(\<lceil>II\<rceil>\<^sub>D) = \<lceil>II\<rceil>\<^sub>D"
+  apply (rel_auto) using minus_zero_eq by blast
+
+lemma R2c_R2s_absorb: "R2c(R2s(P)) = R2s(P)"
+  by (rel_auto)
+
+lemma R2_design_composition: 
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok \<sharp> R" "$ok \<sharp> S"
+  shows "(R2(P \<turnstile> Q) ;; R2(R \<turnstile> S)) = 
+       R2((\<not> (R1 (\<not> R2c P) ;; R1 true) \<and> \<not> (R1 (R2c Q) ;; R1 (\<not> R2c R))) \<turnstile> (R1 (R2c Q) ;; R1 (R2c S)))"
+  apply (simp add: R2_R2c_def R2c_design R1_design_composition assms unrest R2c_not R2c_and R2c_disj R1_R2c_commute[THEN sym] R2c_idem R2c_R1_seq)
+  apply (metis (no_types, lifting) R2c_R1_seq R2c_not R2c_true)
+done
+
+lemma RH_design_composition: 
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok \<sharp> R" "$ok \<sharp> S"
+  shows "(RH(P \<turnstile> Q) ;; RH(R \<turnstile> S)) = 
+       RH((\<not> (R1 (\<not> R2s P) ;; R1 true) \<and> \<not> (R1 (R2s Q) \<and> (\<not> $wait\<acute>) ;; R1 (\<not> R2s R))) \<turnstile>
+                       (R1 (R2s Q) ;; (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s S))))"
+proof -
+  have 1: "R2c (R1 (\<not> R2s P) ;; R1 true) = (R1 (\<not> R2s P) ;; R1 true)"
+  proof -
+    have 1:"(R1 (\<not> R2s P) ;; R1 true) = (R1(R2 (\<not> P) ;; R2 true))"
+      by (rel_auto)
+    have "R2c(R1(R2 (\<not> P) ;; R2 true)) = R2c(R1(R2 (\<not> P) ;; R2 true))"
+      using R2c_not by blast
+    also have "... = R2(R2 (\<not> P) ;; R2 true)"
+      by (metis R1_R2c_commute R1_R2c_is_R2)
+    also have "... = (R2 (\<not> P) ;; R2 true)"
+      by (simp add: R2_seqr_distribute)
+    also have "... = (R1 (\<not> R2s P) ;; R1 true)"
+      by (simp add: R2_def R2s_not R2s_true)
+    finally show ?thesis
+      by (simp add: 1)
+  qed
+
+  have 2:"R2c (R1 (R2s Q) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R)) = (R1 (R2s Q) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R))"
+  proof -
+    have "(R1 (R2s Q) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R)) = R1 (R2 (Q \<and> \<not> $wait\<acute>) ;; R2 (\<not> R))"
+      by (rel_auto)
+    hence "R2c (R1 (R2s Q) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R)) = (R2 (Q \<and> \<not> $wait\<acute>) ;; R2 (\<not> R))"
+      by (metis R1_R2c_commute R1_R2c_is_R2 R2_seqr_distribute)
+    also have "... = (R1 (R2s Q) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R))"
+      by rel_auto
+    finally show ?thesis .
+  qed
+
+  have 3:"R2c((R1 (R2s Q) ;; (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s S)))) = (R1 (R2s Q) ;; (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s S)))"
+  proof -
+    have "R2c(((R1 (R2s Q))\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s S))\<lbrakk>true/$wait\<rbrakk>))
+          = ((R1 (R2s Q))\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s S))\<lbrakk>true/$wait\<rbrakk>)"
+    proof -
+      have "R2c(((R1 (R2s Q))\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s S))\<lbrakk>true/$wait\<rbrakk>)) = 
+            R2c(R1 (R2s (Q\<lbrakk>true/$wait\<acute>\<rbrakk>)) ;; \<lceil>II\<rceil>\<^sub>D\<lbrakk>true/$wait\<rbrakk>)"
+        by (simp add: usubst cond_unit_T R1_def R2s_def)
+      also have "... = R2c(R2(Q\<lbrakk>true/$wait\<acute>\<rbrakk>) ;; R2(\<lceil>II\<rceil>\<^sub>D\<lbrakk>true/$wait\<rbrakk>))"
+        by (metis R2_def R2_des_lift_skip R2_subst_wait_true)
+      also have "... = (R2(Q\<lbrakk>true/$wait\<acute>\<rbrakk>) ;; R2(\<lceil>II\<rceil>\<^sub>D\<lbrakk>true/$wait\<rbrakk>))"
+        using R2c_seq by blast
+      also have "... = ((R1 (R2s Q))\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s S))\<lbrakk>true/$wait\<rbrakk>)"
+        apply (simp add: usubst R2_des_lift_skip)
+        apply (metis R2_def R2_des_lift_skip R2_subst_wait'_true R2_subst_wait_true)
+      done
+      finally show ?thesis .
+    qed
+    moreover have "R2c(((R1 (R2s Q))\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s S))\<lbrakk>false/$wait\<rbrakk>))
+          = ((R1 (R2s Q))\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s S))\<lbrakk>false/$wait\<rbrakk>)"
+      by (simp add: usubst cond_unit_F, metis R2_R1_form R2_subst_wait'_false R2_subst_wait_false R2c_seq)
+    ultimately show ?thesis
+      by (smt R2_R1_form R2_condr' R2_des_lift_skip R2c_seq R2s_wait)
+  qed
+
+  have "(R1(R2s(R3c(P \<turnstile> Q))) ;; R1(R2s(R3c(R \<turnstile> S)))) =
+        ((R3c(R1(R2s(P) \<turnstile> R2s(Q)))) ;; R3c(R1(R2s(R) \<turnstile> R2s(S))))"
+    by (metis (no_types, hide_lams) R1_R2s_R2c R1_R3c_commute R2c_R3c_commute R2s_design)
+  also have "... = R3c (R1 ((\<not> (R1 (\<not> R2s P) ;; R1 true) \<and> \<not> (R1 (R2s Q) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R))) \<turnstile>
+                       (R1 (R2s Q) ;; (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s S)))))"
+    by (simp add: R3c_R1_design_composition assms unrest)
+  also have "... = R3c(R1(R2c((\<not> (R1 (\<not> R2s P) ;; R1 true) \<and> \<not> (R1 (R2s Q) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R))) \<turnstile>
+                              (R1 (R2s Q) ;; (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s S))))))"
+    by (simp add: R2c_design R2c_and R2c_not 1 2 3)
+  finally show ?thesis
+    by (simp add: R1_R2s_R2c R1_R3c_commute R2c_R3c_commute RH_def)
+qed
+
+lemma R2_st_ex: "R2 (\<exists> $st \<bullet> P) = (\<exists> $st \<bullet> R2(P))"
+  by (rel_auto)
+
+lemma RHS_design_composition: 
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok \<sharp> R" "$ok \<sharp> S"
+  shows "(\<^bold>R\<^sub>s(P \<turnstile> Q) ;; \<^bold>R\<^sub>s(R \<turnstile> S)) = 
+       \<^bold>R\<^sub>s((\<not> (R1 (\<not> R2s P) ;; R1 true) \<and> \<not> (R1 (R2s Q) \<and> (\<not> $wait\<acute>) ;; R1 (\<not> R2s R))) \<turnstile>
+                       (R1 (R2s Q) ;; ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s S))))"
+proof -
+  have 1: "R2c (R1 (\<not> R2s P) ;; R1 true) = (R1 (\<not> R2s P) ;; R1 true)"
+  proof -
+    have 1:"(R1 (\<not> R2s P) ;; R1 true) = (R1(R2 (\<not> P) ;; R2 true))"
+      by (rel_auto, blast)
+    have "R2c(R1(R2 (\<not> P) ;; R2 true)) = R2c(R1(R2 (\<not> P) ;; R2 true))"
+      using R2c_not by blast
+    also have "... = R2(R2 (\<not> P) ;; R2 true)"
+      by (metis R1_R2c_commute R1_R2c_is_R2)
+    also have "... = (R2 (\<not> P) ;; R2 true)"
+      by (simp add: R2_seqr_distribute)
+    also have "... = (R1 (\<not> R2s P) ;; R1 true)"
+      by (simp add: R2_def R2s_not R2s_true)
+    finally show ?thesis
+      by (simp add: 1)
+  qed
+
+  have 2:"R2c (R1 (R2s Q) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R)) = (R1 (R2s Q) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R))"
+  proof -
+    have "(R1 (R2s Q) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R)) = R1 (R2 (Q \<and> \<not> $wait\<acute>) ;; R2 (\<not> R))"
+      by (rel_auto, blast+)
+    hence "R2c (R1 (R2s Q) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R)) = (R2 (Q \<and> \<not> $wait\<acute>) ;; R2 (\<not> R))"
+      by (metis (no_types, lifting) R1_R2c_commute R1_R2c_is_R2 R2_seqr_distribute)
+    also have "... = (R1 (R2s Q) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R))"
+      by (rel_auto, blast+)
+    finally show ?thesis .
+  qed
+
+  have 3:"R2c((R1 (R2s Q) ;; ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s S)))) = 
+          (R1 (R2s Q) ;; ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s S)))"
+  proof -
+    have "R2c(((R1 (R2s Q))\<lbrakk>true/$wait\<acute>\<rbrakk> ;; ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s S))\<lbrakk>true/$wait\<rbrakk>))
+          = ((R1 (R2s Q))\<lbrakk>true/$wait\<acute>\<rbrakk> ;; ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s S))\<lbrakk>true/$wait\<rbrakk>)"
+    proof -
+      have "R2c(((R1 (R2s Q))\<lbrakk>true/$wait\<acute>\<rbrakk> ;; ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s S))\<lbrakk>true/$wait\<rbrakk>)) = 
+            R2c(R1 (R2s (Q\<lbrakk>true/$wait\<acute>\<rbrakk>)) ;; (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D)\<lbrakk>true/$wait\<rbrakk>)"
+        by (simp add: usubst cond_unit_T R1_def R2s_def)
+      also have "... = R2c(R2(Q\<lbrakk>true/$wait\<acute>\<rbrakk>) ;; R2((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D)\<lbrakk>true/$wait\<rbrakk>))"
+        by (metis (no_types, lifting) R2_def R2_des_lift_skip R2_subst_wait_true R2_st_ex)
+      also have "... = (R2(Q\<lbrakk>true/$wait\<acute>\<rbrakk>) ;; R2((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D)\<lbrakk>true/$wait\<rbrakk>))"
+        using R2c_seq by blast
+      also have "... = ((R1 (R2s Q))\<lbrakk>true/$wait\<acute>\<rbrakk> ;; ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s S))\<lbrakk>true/$wait\<rbrakk>)"
+        apply (simp add: usubst R2_des_lift_skip)
+        apply (metis (no_types) R2_def R2_des_lift_skip R2_st_ex R2_subst_wait'_true R2_subst_wait_true)
+      done
+      finally show ?thesis .
+    qed
+    moreover have "R2c(((R1 (R2s Q))\<lbrakk>false/$wait\<acute>\<rbrakk> ;; ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s S))\<lbrakk>false/$wait\<rbrakk>))
+          = ((R1 (R2s Q))\<lbrakk>false/$wait\<acute>\<rbrakk> ;; ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s S))\<lbrakk>false/$wait\<rbrakk>)"
+      by (simp add: usubst, metis (no_types, lifting) R2_R1_form R2_subst_wait'_false R2_subst_wait_false R2c_seq)
+    ultimately show ?thesis
+      by (smt R2_R1_form R2_condr' R2_des_lift_skip R2_st_ex R2c_seq R2s_wait)
+  qed
+
+  have "(R1(R2s(R3h(P \<turnstile> Q))) ;; R1(R2s(R3h(R \<turnstile> S)))) =
+        ((R3h(R1(R2s(P) \<turnstile> R2s(Q)))) ;; R3h(R1(R2s(R) \<turnstile> R2s(S))))"
+    by (metis (no_types, hide_lams) R1_R2s_R2c R1_R3h_commute R2c_R3h_commute R2s_design)
+  also have "... = R3h (R1 ((\<not> (R1 (\<not> R2s P) ;; R1 true) \<and> \<not> (R1 (R2s Q) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R))) \<turnstile>
+                       (R1 (R2s Q) ;; ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s S)))))"
+    by (simp add: R3h_R1_design_composition assms unrest)
+  also have "... = R3h(R1(R2c((\<not> (R1 (\<not> R2s P) ;; R1 true) \<and> \<not> (R1 (R2s Q) \<and> \<not> $wait\<acute> ;; R1 (\<not> R2s R))) \<turnstile>
+                              (R1 (R2s Q) ;; ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s S))))))"
+    by (simp add: R2c_design R2c_and R2c_not 1 2 3)
+  finally show ?thesis
+    by (simp add: R1_R2s_R2c R1_R3h_commute R2c_R3h_commute RHS_def)
+qed
+
+lemma RH_design_export_R1: "RH(P \<turnstile> Q) = RH(P \<turnstile> R1(Q))"
+  by (rel_auto)
+
+lemma RH_design_export_R2s: "RH(P \<turnstile> Q) = RH(P \<turnstile> R2s(Q))"
+  by (rel_auto)
+
+    
+(*
+lemma R1_R3c_commute: "R1(R3c(P)) = R3c(R1(P))"
+  by rel_auto
+
+lemma R1_R3h_commute: "R1(R3h(P)) = R3h(R1(P))"
+  by rel_auto
+
+lemma R2_R3c_commute: "R2(R3c(P)) = R3c(R2(P))"
+  apply (rel_auto)
+  using minus_zero_eq apply blast+
+done
+
+lemma R2_R3h_commute: "R2(R3h(P)) = R3h(R2(P))"
+  apply (rel_auto)
+  using minus_zero_eq apply blast+
+done
+
+lemma R2c_R3c_commute: "R2c(R3c(P)) = R3c(R2c(P))"
+  by (simp add: R3c_def R2c_condr R2c_wait R2c_skip_rea)
+
+lemma R2c_ex_st': "R2c(\<exists> $st \<bullet> P) = (\<exists> $st \<bullet> R2c(P))"
+  by (rel_auto)
+
+lemma R2c_R3h_commute: "R2c(R3h(P)) = R3h(R2c(P))"
+  by (simp add: R3h_def R2c_condr R2c_wait R2c_ex_st' R2c_skip_rea)
+
+lemma R1_H1_R3c_commute:
+  "R1(H1(R3c(P))) = R3c(R1(H1(P)))"
+  by rel_auto
+
+lemma R1_H1_R3h_commute:
+  "R1(H1(R3h(P))) = R3h(R1(H1(P)))"
+  by rel_auto
+
+lemma R3c_H2_commute: "R3c(H2(P)) = H2(R3c(P))"
+  by (simp add: H2_split R3c_def usubst, rel_auto)
+
+lemma R3h_H2_commute: "R3h(H2(P)) = H2(R3h(P))"
+  by (simp add: H2_split R3h_def usubst, rel_auto)
+
+lemma R3c_idem: "R3c(R3c(P)) = R3c(P)"
+  by rel_auto
+
+lemma R3c_Idempotent: "Idempotent R3c"
+  using Idempotent_def R3c_idem by blast
+
+lemma R3c_mono: "P \<sqsubseteq> Q \<Longrightarrow> R3c(P) \<sqsubseteq> R3c(Q)"
+  by rel_auto
+
+lemma R3c_Monotonic: "Monotonic R3c"
+  by (simp add: Monotonic_def R3c_mono)
+
+lemma R3h_idem: "R3h(R3h(P)) = R3h(P)"
+  by rel_auto
+
+lemma R3h_Idempotent: "Idempotent R3h"
+  using Idempotent_def R3h_idem by blast
+
+lemma R3h_mono: "P \<sqsubseteq> Q \<Longrightarrow> R3h(P) \<sqsubseteq> R3h(Q)"
+  by rel_auto
+
+lemma R3h_Monotonic: "Monotonic R3h"
+  by (simp add: Monotonic_def R3h_mono)
+
+lemma R3c_conj: "R3c(P \<and> Q) = (R3c(P) \<and> R3c(Q))"
+  by (rel_auto)
+
+lemma R3c_disj: "R3c(P \<or> Q) = (R3c(P) \<or> R3c(Q))"
+  by rel_auto
+
+lemma R3c_USUP:
+  assumes "A \<noteq> {}"
+  shows "R3c(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> R3c(P(i)))"
+  using assms by (rel_auto)
+
+lemma R3c_UINF:
+  assumes "A \<noteq> {}"
+  shows "R3c(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> R3c(P(i)))"
+  using assms by (rel_auto)
+
+lemma R3h_conj: "R3h(P \<and> Q) = (R3h(P) \<and> R3h(Q))"
+  by (rel_auto)
+
+lemma R3h_disj: "R3h(P \<or> Q) = (R3h(P) \<or> R3h(Q))"
+  by rel_auto
+
+lemma R3h_USUP:
+  assumes "A \<noteq> {}"
+  shows "R3h(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> R3h(P(i)))"
+  using assms by (rel_auto)
+
+lemma R3h_UINF:
+  assumes "A \<noteq> {}"
+  shows "R3h(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> R3h(P(i)))"
+  using assms by (rel_auto)
+
+lemma R3c_refines_R3h: "R3h(P) \<sqsubseteq> R3c(P)"
+  by (rel_auto)
+
+
+
+lemma R3c_absorbs_R3h: "R3c(R3h(P)) = R3c(P)"
+  by (rel_auto)
+
+lemma R3h_absorbs_R3c: "R3h(R3c(P)) = R3h(P)"
+  by (rel_auto)
+
+lemma R1_skip_rea3: "R1(II\<^sub>R) = II\<^sub>R"
+  by (rel_auto)
+
+definition RH_def [upred_defs]: "RH(P) = R1(R2c(R3(P)))"
+definition RHS_def [upred_defs]: "RHS(P) = R1(R2s(R3h(P)))"
+
+notation RH ("\<^bold>R")
+notation RHS ("\<^bold>R\<^sub>s")
+
+definition reactive_sup :: "_ set \<Rightarrow> _" ("\<Sqinter>\<^sub>r") where
+"\<Sqinter>\<^sub>r A = (if (A = {}) then \<^bold>R(false) else \<Sqinter> A)"
+
+definition reactive_inf :: "_ set \<Rightarrow> _" ("\<Squnion>\<^sub>r") where
+"\<Squnion>\<^sub>r A = (if (A = {}) then \<^bold>R(true) else \<Squnion> A)"
+
+lemma RH_alt_def:
+  "\<^bold>R(P) = R1(R2(R3c(P)))"
+  by (simp add: R1_idem R2_def RH_def)
+
+lemma RH_alt_def':
+  "\<^bold>R(P) = R2(R3c(P))"
+  by (simp add: R2_def RH_def)
+
+lemma RH_alt_def'':
+  "\<^bold>R(P) = R1(R2c(R3c(P)))"
+  by (simp add: R1_R2s_R2c RH_def)
+
+lemma RHS_alt_def:
+  "\<^bold>R\<^sub>s(P) = R1(R2c(R3h(P)))"
+  by (simp add: RHS_def R1_R2s_R2c)  
+
+lemma RH_idem:
+  "\<^bold>R(\<^bold>R(P)) = \<^bold>R(P)"
+  by (metis R2_R3c_commute R2_def R2_idem R3c_idem RH_def)
+
+lemma RH_Idempotent: "Idempotent \<^bold>R"
+  by (simp add: Idempotent_def RH_idem)
+
+lemma RH_monotone:
+  "P \<sqsubseteq> Q \<Longrightarrow> \<^bold>R(P) \<sqsubseteq> \<^bold>R(Q)"
+  by rel_auto
+
+lemma RHS_idem:
+  "\<^bold>R\<^sub>s(\<^bold>R\<^sub>s(P)) = \<^bold>R\<^sub>s(P)"
+  by (metis (no_types, hide_lams) R2_R3h_commute R2_def R2_idem R3h_idem RHS_def)
+  
+lemma RHS_Idempotent: "Idempotent \<^bold>R\<^sub>s"
+  by (simp add: Idempotent_def RHS_idem)
+
+lemma RHS_monotone:
+  "P \<sqsubseteq> Q \<Longrightarrow> \<^bold>R\<^sub>s(P) \<sqsubseteq> \<^bold>R\<^sub>s(Q)"
+  by rel_auto
+
+lemma RH_disj: "\<^bold>R(P \<or> Q) = (\<^bold>R(P) \<or> \<^bold>R(Q))"
+  by (simp add: RH_def R3c_disj R2s_disj R1_disj)
+
+lemma RH_USUP:
+  assumes "A \<noteq> {}"
+  shows "\<^bold>R(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> \<^bold>R(P(i)))"
+  using assms by (rel_auto)
+
+lemma RH_UINF:
+  assumes "A \<noteq> {}"
+  shows "\<^bold>R(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> \<^bold>R(P(i)))"
+  using assms by (rel_auto)
+
+lemma RH_intro:
+  "\<lbrakk> P is R1; P is R2; P is R3c \<rbrakk> \<Longrightarrow> P is \<^bold>R"
+  by (simp add: Healthy_def' R2_def RH_def)
+
+lemma R1_true_left_zero_R: "(R1(true) ;; \<^bold>R(P)) = R1(true)"
+  by (rel_auto)
+
+lemma RH_seq_closure:
+  assumes "P is \<^bold>R" "Q is \<^bold>R"
+  shows "(P ;; Q) is \<^bold>R"
+proof (rule RH_intro)
+  show "(P ;; Q) is R1"
+    by (metis Healthy_def' R1_seqr_closure R2_def RH_alt_def RH_def assms(1) assms(2))
+  show "(P ;; Q) is R2"
+    by (metis Healthy_def' R2_def R2_idem R2_seqr_closure RH_def assms(1) assms(2))
+  show "(P ;; Q) is R3c"
+    by (metis Healthy_def' R2_R3c_commute R2_def R3c_idem R3c_seq_closure RH_alt_def RH_def assms(1) assms(2))
+qed
+
+lemma RH_R2c_def: "\<^bold>R(P) = R1(R2c(R3c(P)))"
+  by (rel_auto)
+
+lemma RHS_R2c_def: "\<^bold>R\<^sub>s(P) = R1(R2c(R3h(P)))"
+  by (rel_auto)
+
+lemma RH_absorbs_R2c: "\<^bold>R(R2c(P)) = \<^bold>R(P)"
+  by (metis R1_R2_commute R1_R2c_is_R2 R1_R3c_commute R2_R3c_commute R2_idem RH_alt_def RH_alt_def')
+
+lemma RH_subst_wait: "\<^bold>R(P \<^sub>f) = \<^bold>R(P)"
+  by (metis R3c_subst_wait RH_alt_def')
+
+lemma RH_false: "\<^bold>R(false) = ($wait \<and> II\<^sub>r)"
+  by (rel_auto, metis minus_zero_eq)
+
+lemma RH_true: "\<^bold>R(true) = (II\<^sub>r \<triangleleft> $wait \<triangleright> $tr \<le>\<^sub>u $tr\<acute>)"
+  by (rel_auto, metis minus_zero_eq)
+
+lemma RH_false_top:
+  "\<^bold>R(P) \<sqsubseteq> \<^bold>R(false)"
+  by (simp add: RH_monotone)
+
+lemma RH_false_bottom:
+  "\<^bold>R(true) \<sqsubseteq> \<^bold>R(P)"
+  by (simp add: RH_monotone)
+
+lemma 
+  assumes "P is R3"
+  shows "R1 (H1 (P)) is R3c"
+proof -
+  have "R1(H1(R3(P))) = R3c(R1(H1(P)))"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_def' assms)
+qed  
+
 subsection {* Commutativity properties *}
 
 lemma H2_R1_comm: "H2(R1(P)) = R1(H2(P))"
@@ -535,12 +1637,6 @@ qed
 
 subsection {* Healthiness conditions *}
 
-definition [upred_defs]: "CSP1(P) = (P \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
-
-text {* CSP2 is just H2 since the type system will automatically have J identifying the reactive
-        variables as required. *}
-
-definition [upred_defs]: "CSP2(P) = H2(P)"
 
 abbreviation "CSP(P) \<equiv> CSP1(CSP2(RH(P)))"
 
@@ -1310,7 +2406,7 @@ definition [urel_defs]: "Chaos = RH(false \<turnstile> true \<diamondop> true)"
 
 definition [urel_defs]: "Term = RH(true \<turnstile> true \<diamondop> true)"
 
-definition assigns_rea :: "'\<alpha> usubst \<Rightarrow> ('t::ordered_cancel_monoid_diff, '\<alpha>) hrelation_rp" ("\<langle>_\<rangle>\<^sub>R") where
+definition assigns_rea :: "'\<alpha> usubst \<Rightarrow> ('t::ordered_cancel_monoid_diff, '\<alpha>) hrel_rp" ("\<langle>_\<rangle>\<^sub>R") where
 "assigns_rea \<sigma> = RH(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>R))"
 
 definition rea_design_sup :: "_ set \<Rightarrow> _" ("\<Sqinter>\<^sub>R") where
@@ -1775,7 +2871,7 @@ proof (simp add: mk_conn_def, rule galois_connectionI', simp_all add: utp_partia
     by (simp add: CSP_RH_design_form CSP_reactive_design RH_H1_H2_eq_CSP)
   show "\<And> X. X is \<^bold>H \<Longrightarrow> X \<sqsubseteq> \<^bold>H (\<^bold>R X)"
   proof -
-    fix P :: "('t::ordered_cancel_monoid_diff,'\<alpha>) hrelation_rp"
+    fix P :: "('t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rp"
     assume "P is \<^bold>H"
     hence "(P \<sqsubseteq> \<^bold>H (\<^bold>R P)) \<longleftrightarrow> (\<^bold>H(P) \<sqsubseteq> \<^bold>H(\<^bold>R(\<^bold>H(P))))"
       by (simp add: Healthy_def')
@@ -1897,6 +2993,6 @@ proof -
   finally show ?thesis
     by (simp add: Healthy_def')
 qed
-
+*)
 
 end
