@@ -482,6 +482,10 @@ theorem wpnd_seq_r [wp]:
   shows "(p1 \<turnstile>\<^sub>n Q1 ;; p2 \<turnstile>\<^sub>n Q2) wp\<^sub>D r = (p1 \<turnstile>\<^sub>n Q1) wp\<^sub>D ((p2 \<turnstile>\<^sub>n Q2) wp\<^sub>D r)"
   by (simp add: ndesign_def wpd_seq_r)
 
+lemma design_subst_ok:
+  "(P\<lbrakk>true/$ok\<rbrakk> \<turnstile> Q\<lbrakk>true/$ok\<rbrakk>) = (P \<turnstile> Q)"
+  by (rel_auto)
+ 
 lemma design_subst_ok_ok':
   "(P\<lbrakk>true/$ok\<rbrakk> \<turnstile> Q\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>) = (P \<turnstile> Q)"
 proof -

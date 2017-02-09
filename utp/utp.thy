@@ -26,5 +26,6 @@ imports
   utp_invariants
   utp_concurrency
   utp_reactive
+  utp_rea_designs
   utp_rel_opsem
 begin end
