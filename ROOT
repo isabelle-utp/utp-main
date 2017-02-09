@@ -154,7 +154,7 @@ session "UTP-AX" in "utp" = "UTP-IMPORTS-AX" +
 (* VDM-SL Mechanisation *)
 
 session "VDM-SL" in "vdm-sl" = "UTP-DEEP" +
-  options [document = none]
+  options [document = false]
   theories
     PFOL
     VDM
