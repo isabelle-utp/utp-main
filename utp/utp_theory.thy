@@ -88,6 +88,12 @@ definition FunctionalConjunctive :: "'\<alpha> health \<Rightarrow> bool" where
 definition WeakConjunctive :: "'\<alpha> health \<Rightarrow> bool" where 
   "WeakConjunctive(H) \<longleftrightarrow> (\<forall> P. \<exists> Q. H(P) = (P \<and> Q))"
 
+definition Disjunctuous :: "'\<alpha> health \<Rightarrow> bool" where
+  [upred_defs]: "Disjunctuous H = (\<forall> P Q. H(P \<sqinter> Q) = (H(P) \<sqinter> H(Q)))"
+    
+definition Continuous :: "'\<alpha> health \<Rightarrow> bool" where
+  [upred_defs]: "Continuous H = (\<forall> A. A \<noteq> {} \<longrightarrow> H (\<Sqinter> A) = \<Sqinter> (H ` A))"
+  
 lemma Healthy_Idempotent [closure]: 
   "Idempotent H \<Longrightarrow> H(P) is H"
   by (simp add: Healthy_def Idempotent_def)
@@ -160,6 +166,20 @@ lemma WeakConjunctive_implies_WeakConjunctive:
 declare Conjunctive_def [upred_defs]
 declare Monotonic_def [upred_defs]
 
+lemma Disjunctuous_Monotonic: "Disjunctuous H \<Longrightarrow> Monotonic H"
+  by (metis Disjunctuous_def Monotonic_def semilattice_sup_class.le_iff_sup)
+
+lemma Continuous_Disjunctous: "Continuous H \<Longrightarrow> Disjunctuous H"
+  apply (auto simp add: Continuous_def Disjunctuous_def)
+  apply (rename_tac P Q)
+  apply (drule_tac x="{P,Q}" in spec)
+  apply (simp)
+done
+
+lemma Continuous_Monotonic: "Continuous H \<Longrightarrow> Monotonic H"
+  by (simp add: Continuous_Disjunctous Disjunctuous_Monotonic)
+
+  
 lemma Healthy_fixed_points [simp]: "fps \<P> H = \<lbrakk>H\<rbrakk>\<^sub>H"
   by (simp add: fps_def upred_lattice_def Healthy_def)
 

@@ -217,7 +217,7 @@ syntax
 translations
   "\<nu> X \<bullet> P" == "CONST lfp (\<lambda> X. P)"
   "\<mu> X \<bullet> P" == "CONST gfp (\<lambda> X. P)"
-
+  
 text {* With the lattice operators defined, we can proceed to give definitions for the
         standard predicate operators in terms of them. *}
 
@@ -641,6 +641,18 @@ lemma UINF_as_Inf_image: "(\<Squnion> P \<in> \<P> \<bullet> f(P)) = \<Squnion> 
   apply (rule cong[of "Inf"])
   apply (auto)
 done
+
+lemma mu_id: "(\<mu> X \<bullet> X) = true"
+  by (simp add: antisym gfp_upperbound)
+
+lemma mu_const: "(\<mu> X \<bullet> P) = P"
+  by (simp add: gfp_const)
+    
+lemma nu_id: "(\<nu> X \<bullet> X) = false"
+  by (simp add: lfp_lowerbound utp_pred.bot.extremum_uniqueI)
+
+lemma nu_const: "(\<nu> X \<bullet> P) = P"
+  by (simp add: lfp_const)
 
 lemma true_iff [simp]: "(P \<Leftrightarrow> true) = P"
   by pred_auto
