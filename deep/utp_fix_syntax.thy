@@ -10,6 +10,8 @@ text {* In order to add more HOL theories to the UTP we need to override the syn
   
 no_notation 
   le (infixl "\<sqsubseteq>\<index>" 50) and
+  asup ("\<Squnion>\<index>_" [90] 90) and
+  ainf ("\<Sqinter>\<index>_" [90] 90)
   conj (infixr "\<and>" 35) and
   disj (infixr "\<or>" 30) and
   Not ("\<not> _" [40] 40)

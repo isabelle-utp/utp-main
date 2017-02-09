@@ -427,10 +427,6 @@ lemma cond_seq_right_distr:
   "in\<alpha> \<sharp> b \<Longrightarrow> (P ;; (Q \<triangleleft> b \<triangleright> R)) = ((P ;; Q) \<triangleleft> b \<triangleright> (P ;; R))"
   by rel_auto
 
-text {* These laws may seem to duplicate quantale laws, but they don't -- they are
-        applicable to non-homogeneous relations as well, which will become important
-        later. *}
-
 lemma seqr_assoc: "(P ;; (Q ;; R)) = ((P ;; Q) ;; R)"
   by rel_auto
 
@@ -449,7 +445,15 @@ lemma seqr_left_zero [simp]:
 lemma seqr_right_zero [simp]:
   "(P ;; false) = false"
   by pred_auto
-
+    
+text {* Quantale laws for relations *}
+    
+lemma seq_Sup_distl: "(P ;; (\<Sqinter> A)) = (\<Sqinter> Q\<in>A. P ;; Q)"
+  by (transfer, auto)
+    
+lemma seq_Sup_distr: "((\<Sqinter> A) ;; Q) = (\<Sqinter> P\<in>A. P ;; Q)"
+  by (transfer, auto)
+    
 lemma impl_seqr_mono: "\<lbrakk> `P \<Rightarrow> Q`; `R \<Rightarrow> S` \<rbrakk> \<Longrightarrow> `(P ;; R) \<Rightarrow> (Q ;; S)`"
   by (pred_blast)
 

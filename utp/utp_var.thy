@@ -20,10 +20,13 @@ theory utp_var
   utp_parser_utils
 begin
 
-text {* We will overload both the bullet and the square order relation with refinement so
-  we will turn of this notation. *}
+text {* We will overload the square order relation with refinement and also the lattice operators so
+  we will turn off these notations. *}
 
-no_notation le (infixl "\<sqsubseteq>\<index>" 50)
+no_notation 
+  le (infixl "\<sqsubseteq>\<index>" 50) and
+  asup ("\<Squnion>\<index>_" [90] 90) and
+  ainf ("\<Sqinter>\<index>_" [90] 90)
 
 text {* We hide HOL's built-in relation type since we will replace it with our own *}
 
