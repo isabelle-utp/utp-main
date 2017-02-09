@@ -9,7 +9,7 @@
 section {* Theory of CSP *}
 
 theory utp_csp
-  imports utp_procedure
+  imports utp_procedure utp_event
 begin
 
 subsection {* CSP Alphabet *}
@@ -126,6 +126,9 @@ where "CSP1(P) \<equiv> RD1(P)"
 abbreviation CSP2 :: "(('\<sigma>, '\<phi>) circus \<times> ('\<sigma>, '\<phi>) circus) health"
 where "CSP2(P) \<equiv> RD2(P)"
   
+abbreviation CSP :: "(('\<sigma>, '\<phi>) circus \<times> ('\<sigma>, '\<phi>) circus) health"
+where "CSP(P) \<equiv> SRD(P)"
+
 text {*
   Simon, the definition below did not explicitly include type information. I
   think it is good practice to specify types in all definitions, I thus added
@@ -154,21 +157,16 @@ definition [upred_defs]:
 "Skip = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R))"
 
 text {* Simon, why is none of the below tagged with @{attribute upred_defs}? *}
-
-declare [[show_types]]
   
 definition Guard ::
-  "('\<sigma>, '\<phi>) rel_circus \<Rightarrow>
-   '\<sigma> cond \<Rightarrow>
+  "'\<sigma> cond \<Rightarrow>
+   ('\<sigma>, '\<phi>) rel_circus \<Rightarrow>
    ('\<sigma>, '\<phi>) rel_circus" (infix "&\<^sub>u" 65) where
-"g &\<^sub>u A = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow> \<not> A\<^sup>f\<^sub>f) \<turnstile> ((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> A\<^sup>t\<^sub>f) \<or> (\<not> \<lceil>g\<rceil>\<^sub>S\<^sub><) \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
+[upred_defs]: "g &\<^sub>u A = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow> \<not> A\<^sup>f\<^sub>f) \<turnstile> ((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> A\<^sup>t\<^sub>f) \<or> (\<not> \<lceil>g\<rceil>\<^sub>S\<^sub><) \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
 
 definition ExtChoice ::
-  "('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow>
-   ('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow>
-   ('\<theta>, '\<alpha>) hrelation_csp" (infixl "\<box>" 65) where
-"A\<^sub>1 \<box> A\<^sub>2 =
-  R(\<not> A\<^sub>1\<^sup>f\<^sub>f \<and> \<not> A\<^sub>2\<^sup>f\<^sub>f \<turnstile> (A\<^sub>1\<^sup>t\<^sub>f \<and> A\<^sub>2\<^sup>t\<^sub>f) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (A\<^sub>1\<^sup>t\<^sub>f \<or> A\<^sub>2\<^sup>t\<^sub>f))"
+  "('\<sigma>, '\<phi>) rel_circus \<Rightarrow> ('\<sigma>, '\<phi>) rel_circus \<Rightarrow> ('\<sigma>, '\<phi>) rel_circus" (infixl "\<box>" 65) where 
+[upred_defs]: "A\<^sub>1 \<box> A\<^sub>2 = \<^bold>R\<^sub>s(\<not> A\<^sub>1\<^sup>f\<^sub>f \<and> \<not> A\<^sub>2\<^sup>f\<^sub>f \<turnstile> (A\<^sub>1\<^sup>t\<^sub>f \<and> A\<^sub>2\<^sup>t\<^sub>f) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (A\<^sub>1\<^sup>t\<^sub>f \<or> A\<^sub>2\<^sup>t\<^sub>f))"
 
 text {*
   Simon, I changed the type of the parameter @{term e} of @{text "do\<^sub>u"} to
@@ -180,12 +178,10 @@ text {*
   Intuitively, we may want to exclude that expression @{term e} refers to
   dashed or auxiliary variables though, which motivated my use @{typ "'\<alpha>"}.
 *}
-
+  
 definition do\<^sub>u ::
-  "('\<theta>, (*'\<alpha>*) ('\<theta>, '\<alpha>) alphabet_csp) uexpr \<Rightarrow>
-   ('\<theta>, '\<alpha>) hrelation_csp" where
-"do\<^sub>u e = (let e\<^sub>r = \<lceil>e\<rceil>\<^sub>< in
-  ($tr\<acute> =\<^sub>u $tr \<and> e\<^sub>r \<notin>\<^sub>u $ref\<acute> \<triangleleft> $wait\<acute> \<triangleright> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>e\<^sub>r\<rangle>))"
+  "_ \<Rightarrow> ('\<sigma>, '\<phi>) rel_circus" where
+[upred_defs]: "do\<^sub>u e = ((($tr\<acute> =\<^sub>u $tr) \<and> \<lceil>e\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>) \<triangleleft> $wait\<acute> \<triangleright> ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>e\<rceil>\<^sub>S\<^sub><\<rangle>))"
 
 text {*
   Simon, I believe we need a conjunction with @{term "\<lceil>II\<rceil>\<^sub>R"} here too, namely
@@ -196,22 +192,21 @@ text {*
 *}
 
 definition OutputCSP ::
-  "('a, '\<theta>) chan \<Rightarrow>
-  ('a, (*'\<alpha>*) ('\<theta>, '\<alpha>) alphabet_csp) uexpr \<Rightarrow>
-  ('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow>
-  ('\<theta>, '\<alpha>) hrelation_csp" where
-"OutputCSP c v A = (R(true \<turnstile> (do\<^sub>u (c\<cdot>v)\<^sub>u \<and> \<lceil>II\<rceil>\<^sub>R)) ;; A)"
-
+  "('a, '\<phi>) chan \<Rightarrow>
+  ('a, '\<sigma>) uexpr \<Rightarrow>
+  ('\<sigma>, '\<phi>) rel_circus \<Rightarrow>
+  ('\<sigma>, '\<phi>) rel_circus" where
+[upred_defs]: "OutputCSP c v A = (\<^bold>R\<^sub>s(true \<turnstile> (do\<^sub>u (c\<cdot>v)\<^sub>u \<and> \<lceil>II\<rceil>\<^sub>R)) ;; A)"
 
 definition do\<^sub>I :: "
   ('a, '\<theta>) chan \<Rightarrow>
-  ('a, (*'\<alpha>*) ('\<theta>, '\<alpha>) alphabet_csp) uvar \<Rightarrow>
-  ('a \<Rightarrow> (*'\<alpha>*) ('\<theta>, '\<alpha>) hrelation_csp) \<Rightarrow>
-  ('\<theta>, '\<alpha>) hrelation_csp" where
+  _ \<Rightarrow>
+  ('a \<Rightarrow> ('\<sigma>, '\<theta>) rel_circus) \<Rightarrow>
+  ('\<sigma>, '\<theta>) rel_circus" where
 "do\<^sub>I c x P = (
   ($tr\<acute> =\<^sub>u $tr \<and> {e : \<guillemotleft>\<delta>\<^sub>u(c)\<guillemotright> | P(e) \<bullet> (c\<cdot>\<guillemotleft>e\<guillemotright>)\<^sub>u}\<^sub>u \<inter>\<^sub>u $ref\<acute> =\<^sub>u {}\<^sub>u)
     \<triangleleft> $wait\<acute> \<triangleright>
-  ($tr\<acute> - $tr) \<in>\<^sub>u {e : \<guillemotleft>\<delta>\<^sub>u(c)\<guillemotright> | P(e) \<bullet> \<langle>(c\<cdot>\<guillemotleft>e\<guillemotright>)\<^sub>u\<rangle>}\<^sub>u \<and> (c\<cdot>$x\<acute>)\<^sub>u =\<^sub>u last\<^sub>u($tr\<acute>))"
+  (($tr\<acute> - $tr) \<in>\<^sub>u {e : \<guillemotleft>\<delta>\<^sub>u(c)\<guillemotright> | P(e) \<bullet> \<langle>(c\<cdot>\<guillemotleft>e\<guillemotright>)\<^sub>u\<rangle>}\<^sub>u \<and> (c\<cdot>$x\<acute>)\<^sub>u =\<^sub>u last\<^sub>u($tr\<acute>)))"
 
 text {*
   Simon, I believe there was an earlier problem here due to the conjunction
@@ -224,14 +219,14 @@ text {*
 
 definition InputCSP ::
   "('a::{continuum, two}, '\<theta>) chan \<Rightarrow>
-    ('a, (*'\<alpha>*) ('\<theta>, '\<alpha>) alphabet_csp) lvar \<Rightarrow>
-    ('a \<Rightarrow> (*'\<alpha>*) ('\<theta>, '\<alpha>) hrelation_csp) \<Rightarrow>
-    (('a, ('\<theta>, '\<alpha>) alphabet_csp) uvar \<Rightarrow> ('\<theta>, '\<alpha>) hrelation_csp) \<Rightarrow>
-    ('\<theta>, (*'\<alpha>*) '\<alpha>) hrelation_csp" where
-"InputCSP c x P A = (var\<^bsub>RDES\<^esub> x \<bullet> R(true \<turnstile> ((do\<^sub>I c x P) \<and> (\<exists> $x\<acute> \<bullet> II))) ;; A(x))"
+    ('a, (*'\<alpha>*) ('\<sigma>, '\<theta>) circus) lvar \<Rightarrow>
+    ('a \<Rightarrow> (*'\<alpha>*) ('\<sigma>, '\<theta>) rel_circus) \<Rightarrow>
+    (('a, ('\<sigma>, '\<theta>) circus) uvar \<Rightarrow> ('\<sigma>, '\<theta>) rel_circus) \<Rightarrow>
+    ('\<sigma>, '\<theta>) rel_circus" where
+"InputCSP c x P A = (var\<^bsub>RDES\<^esub> x \<bullet> \<^bold>R\<^sub>s(true \<turnstile> ((do\<^sub>I c x P) \<and> (\<exists> $x\<acute> \<bullet> II))) ;; A(x))"
 
 syntax
-  "_csp_sync" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<rightarrow>\<^sub>u _" [81, 80] 80)
+  "_csp_sync" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<^bold>\<rightarrow> _" [81, 80] 80)
   "_csp_output" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"
     ("_!\<^sub>u'(_') \<rightarrow> _" [81, 0, 80] 80)
   "_csp_input"  :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"
@@ -247,11 +242,20 @@ text {*
 *}
 
 translations
-  "c \<rightarrow>\<^sub>u A"         \<rightleftharpoons> "(CONST OutputCSP) c ()\<^sub>u A"
+  "c \<^bold>\<rightarrow> A"         \<rightleftharpoons> "(CONST OutputCSP) c ()\<^sub>u A"
   "c!\<^sub>u(v) \<rightarrow> A"     \<rightleftharpoons> "(CONST OutputCSP) c v A"
   "c?\<^sub>u(x : P) \<rightarrow> A" \<rightharpoonup> "(CONST InputCSP) c
     (*(CONST top_var \<dots>*) (CONST MkDVar IDSTR(x)) (\<lambda>x. P) (\<lambda>x. A)"
   "c?\<^sub>u(x : P) \<rightarrow> A" \<leftharpoondown> "(CONST InputCSP) c x (\<lambda>v. P) (\<lambda>w. A)"
+
+subsection {* Laws *}
+  
+lemma Guard_false [simp]: "false &\<^sub>u P = Stop"
+  by (simp add: Guard_def Stop_def alpha)
+
+lemma Guard_true [simp]: 
+  "P is CSP \<Longrightarrow> true &\<^sub>u P = P"
+  by (simp add: Guard_def alpha SRD_reactive_design)
 
 subsection {* Parallel Composition *}
 

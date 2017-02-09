@@ -27,8 +27,8 @@ translations
 notation rsp_vars_child_lens\<^sub>a ("\<Sigma>\<^sub>s")
 notation rsp_vars_child_lens ("\<Sigma>\<^sub>S")
   
-abbreviation lift_state_rel :: "'\<sigma> hrel \<Rightarrow> ('\<sigma>,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp" ("\<lceil>_\<rceil>\<^sub>S") where
-"\<lceil>P\<rceil>\<^sub>S \<equiv> P \<oplus>\<^sub>p (st \<times>\<^sub>L st)"
+abbreviation lift_state_rel ("\<lceil>_\<rceil>\<^sub>S") 
+where "\<lceil>P\<rceil>\<^sub>S \<equiv> P \<oplus>\<^sub>p (st \<times>\<^sub>L st)"
   
 abbreviation lift_state_pre ("\<lceil>_\<rceil>\<^sub>S\<^sub><")
 where "\<lceil>p\<rceil>\<^sub>S\<^sub>< \<equiv> \<lceil>\<lceil>p\<rceil>\<^sub><\<rceil>\<^sub>S"

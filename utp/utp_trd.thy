@@ -4,6 +4,8 @@ theory utp_trd
 imports utp_rea_designs
 begin
 
+adhoc_overloading uapply cgf_apply and uapply tt_apply
+  
 type_synonym ('d, 'c) alpha_trd_scheme = "('c ttrace, 'd \<times> 'c) alpha_rp_scheme"
 
 type_synonym ('d,'c) alphabet_trd  = "('d,'c) alpha_trd_scheme alphabet"
