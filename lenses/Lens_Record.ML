@@ -58,7 +58,8 @@ fun lens_proof x thy =
               (Proof_Context.init_global thy) 
               [ Const (Trueprop, dummyT) 
               $ (Const (vwb_lens, dummyT) $ Const (Context.theory_name thy ^ "." ^ x, dummyT))]))
-      (fn {context, prems} => EVERY [ Locale.intro_locales_tac true context []
+      (fn {context = context, prems = _} 
+                           => EVERY [ Locale.intro_locales_tac true context []
                                     , PARALLEL_ALLGOALS (asm_simp_tac (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def")) context))])
 
 fun lens_child_proof thy x =
@@ -67,7 +68,7 @@ fun lens_child_proof thy x =
               (Proof_Context.init_global thy) 
               [ Const (Trueprop, dummyT) 
               $ (Const (vwb_lens, dummyT) $ Const (Context.theory_name thy ^ "." ^ x, dummyT))]))
-      (fn {context, prems} => 
+      (fn {context = context, prems = _} => 
           EVERY [ PARALLEL_ALLGOALS 
                     (asm_simp_tac (Simplifier.add_simp @{thm comp_vwb_lens} (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def")) context)))])
   
@@ -80,7 +81,8 @@ fun indep_proof thy (x, y) =
                 $ Const (Context.theory_name thy ^ "." ^ x, dummyT)
                 $ Const (Context.theory_name thy ^ "." ^ y, dummyT)
                 )]))
-      (fn {context, prems} => EVERY [ Locale.intro_locales_tac true context []
+      (fn {context = context, prems = _} 
+                           => EVERY [ Locale.intro_locales_tac true context []
                                     , PARALLEL_ALLGOALS 
                                         (asm_simp_tac (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def")) 
                                                       (Simplifier.add_simp (Global_Theory.get_thm thy (y ^ "_def")) 
@@ -95,7 +97,8 @@ fun pl_indep_proof thy (x, y) =
                 $ Const (Context.theory_name thy ^ "." ^ x, dummyT)
                 $ Const (Context.theory_name thy ^ "." ^ y, dummyT)
                 )]))
-      (fn {context, prems} => EVERY [ PARALLEL_ALLGOALS 
+      (fn {context = context, prems = _} 
+                           => EVERY [ PARALLEL_ALLGOALS 
                                         (asm_simp_tac (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def")) 
                                                       (Simplifier.add_simp (Global_Theory.get_thm thy (y ^ "_def")) 
                                          context)))])
@@ -136,7 +139,7 @@ fun parent_indep_proof_1 thy y x =
                   )
                 ))))
               ]))
-      (fn {context, prems} => 
+      (fn {context = context, prems = _} => 
           EVERY [(auto_tac (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def")) context))])
 
 fun parent_indep_proof_2 thy y x =
@@ -159,7 +162,7 @@ fun parent_indep_proof_2 thy y x =
                   )
                 ))))
               ]))
-      (fn {context, prems} => 
+      (fn {context, prems = _} => 
           EVERY [(auto_tac (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def")) context))])
 
 
@@ -172,9 +175,9 @@ fun sublens_proof thy y x =
                 $ Const (Context.theory_name thy ^ "." ^ x, dummyT)
                 $ Const (y, dummyT)
                 )]))
-      (fn {context, prems} => 
+      (fn {context, prems = _} => 
           EVERY [ PARALLEL_ALLGOALS 
-                    (asm_simp_tac (Simplifier.add_simp @{thm lens_comp_lb} (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def")) context)))])
+                    (asm_simp_tac (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def")) context))])
   
 fun pairWith _ [] = []
   | pairWith x (y :: ys) = [(x, y), (y, x)] @ pairWith x ys;
@@ -182,12 +185,12 @@ fun pairWith _ [] = []
 fun pairings [] = [] 
   | pairings (x :: xs) = pairWith x xs @ pairings xs;
 
-fun add_alphabet_cmd overloaded (raw_params, binding) raw_parent raw_fields thy =
+fun add_alphabet_cmd _ (raw_params, binding) raw_parent raw_fields thy =
   let
     val tname = Binding.name_of binding
     val fields = map (fn (x, y, z) => (Binding.suffix_name lens_suffix x, y, z)) raw_fields
     val lnames = map (fn (x, _, _) => Binding.name_of x) raw_fields
-    val (parent, ctxt2) = read_parent raw_parent (Proof_Context.init_global thy);
+    val (parent, _) = read_parent raw_parent (Proof_Context.init_global thy);
     fun ldef_name x = if (raw_parent = NONE) then x else x ^ ext_suffix
     val ldefs = map (fn x => (ldef_name x) ^ " = " ^ FLDLENS ^ " " ^ x ^ lens_suffix) lnames
     val mpldef = 

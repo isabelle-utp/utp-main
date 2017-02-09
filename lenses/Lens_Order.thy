@@ -184,7 +184,7 @@ lemma lens_plus_right_sublens:
   apply (simp add: lens_comp_assoc snd_lens_plus)
 done
 
-lemma lens_comp_lb: "vwb_lens X \<Longrightarrow> X ;\<^sub>L Y \<subseteq>\<^sub>L Y"
+lemma lens_comp_lb [simp]: "vwb_lens X \<Longrightarrow> X ;\<^sub>L Y \<subseteq>\<^sub>L Y"
   by (auto simp add: sublens_def)
 
 lemma lens_unit_plus_sublens_1: "X \<subseteq>\<^sub>L 0\<^sub>L +\<^sub>L X"

@@ -134,7 +134,6 @@ translations "FLDLENS x" => "\<lparr> lens_get = x, lens_put = CONST fld_put (_u
 
 text {* Introduce the alphabet command that creates a record with lenses for each field *}
 
-
 ML_file "Lens_Record.ML"
 
 text {* The following theorem attribute stores splitting theorems for alphabet types *}
