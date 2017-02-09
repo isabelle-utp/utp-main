@@ -362,7 +362,7 @@ proof -
   also from assms
   have "... = ((($ok \<and> P1 \<Rightarrow> Q1\<lbrakk>true/$ok\<acute>\<rbrakk>) ;; (P2 \<Rightarrow> $ok\<acute> \<and> Q2\<lbrakk>true/$ok\<rbrakk>)) \<or> ((\<not> ($ok \<and> P1)) ;; true))"
     by (simp add: design_def usubst unrest, pred_auto)
-  also have "... = ((\<not>$ok ;; true\<^sub>h) \<or> (\<not>P1 ;; true) \<or> (Q1\<lbrakk>true/$ok\<acute>\<rbrakk> ;; \<not>P2) \<or> ($ok\<acute> \<and> (Q1\<lbrakk>true/$ok\<acute>\<rbrakk> ;; Q2\<lbrakk>true/$ok\<rbrakk>)))"
+  also have "... = ((\<not>$ok ;; true\<^sub>h) \<or> ((\<not>P1) ;; true) \<or> (Q1\<lbrakk>true/$ok\<acute>\<rbrakk> ;; (\<not>P2)) \<or> ($ok\<acute> \<and> (Q1\<lbrakk>true/$ok\<acute>\<rbrakk> ;; Q2\<lbrakk>true/$ok\<rbrakk>)))"
     by (rel_auto)
   also have "... = (((\<not> ((\<not> P1) ;; true)) \<and> \<not> (Q1\<lbrakk>true/$ok\<acute>\<rbrakk> ;; (\<not> P2))) \<turnstile> (Q1\<lbrakk>true/$ok\<acute>\<rbrakk> ;; Q2\<lbrakk>true/$ok\<rbrakk>))"
     by (simp add: precond_right_unit design_def unrest, rel_auto)
@@ -405,17 +405,17 @@ theorem design_composition_runrest:
 proof -
   have "($ok \<and> $ok\<acute> \<and> (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>)) = ($ok \<and> $ok\<acute> \<and> (Q1 ;; Q2))"
   proof -
-    have "($ok \<and> $ok\<acute> \<and> (Q1 ;; Q2)) = ($ok \<and> Q1 ;; Q2 \<and> $ok\<acute>)"
+    have "($ok \<and> $ok\<acute> \<and> (Q1 ;; Q2)) = (($ok \<and> Q1) ;; (Q2 \<and> $ok\<acute>))"
       by (metis (no_types, lifting) conj_comm seqr_post_var_out seqr_pre_var_out)
-    also have "... = (Q1 \<and> $ok\<acute> ;; $ok \<and> Q2)"
+    also have "... = ((Q1 \<and> $ok\<acute>) ;; ($ok \<and> Q2))"
       by (simp add: assms(3) assms(4) runrest_ident_var)
     also have "... = (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>)"
       by (metis ok_vwb_lens seqr_pre_transfer seqr_right_one_point true_alt_def uovar_convr upred_eq_true utp_pred.inf.left_idem utp_rel.unrest_ouvar vwb_lens_mwb)
     finally show ?thesis
       by (metis utp_pred.inf.left_commute utp_pred.inf_left_idem)
   qed
-  moreover have "(\<not> (\<not> P1 ;; true) \<and> \<not> (Q1\<^sup>t ;; \<not> P2)) \<turnstile> (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>) =
-                 (\<not> (\<not> P1 ;; true) \<and> \<not> (Q1\<^sup>t ;; \<not> P2)) \<turnstile> ($ok \<and> $ok\<acute> \<and> (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>))"
+  moreover have "(\<not> (\<not> P1 ;; true) \<and> \<not> (Q1\<^sup>t ;; (\<not> P2))) \<turnstile> (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>) =
+                 (\<not> (\<not> P1 ;; true) \<and> \<not> (Q1\<^sup>t ;; (\<not> P2))) \<turnstile> ($ok \<and> $ok\<acute> \<and> (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>))"
     by (metis design_export_ok design_export_ok')
   ultimately show ?thesis using assms
     by (simp add: design_composition_subst usubst, metis design_export_ok design_export_ok')
@@ -518,7 +518,7 @@ theorem design_left_unit_hom:
 proof -
   have "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (true \<turnstile>\<^sub>r II ;; P \<turnstile>\<^sub>r Q)"
     by (simp add: skip_d_def)
-  also have "... = (true \<and> \<not> (II ;; \<not> P)) \<turnstile>\<^sub>r (II ;; Q)"
+  also have "... = (true \<and> \<not> (II ;; (\<not> P))) \<turnstile>\<^sub>r (II ;; Q)"
   proof -
     have "out\<alpha> \<sharp> true"
       by unrest_tac
@@ -535,7 +535,7 @@ theorem design_left_unit [simp]:
   by rel_auto
 
 theorem design_right_semi_unit:
-  "(P \<turnstile>\<^sub>r Q ;; II\<^sub>D) = ((\<not> (\<not> P ;; true)) \<turnstile>\<^sub>r Q)"
+  "(P \<turnstile>\<^sub>r Q ;; II\<^sub>D) = ((\<not> (\<not> P) ;; true) \<turnstile>\<^sub>r Q)"
   by (simp add: skip_d_def rdesign_composition)
 
 theorem design_right_cond_unit [simp]:
@@ -557,7 +557,7 @@ lemma assign_d_left_comp:
   by (simp add: assigns_d_def rdesign_composition assigns_r_comp subst_not)
 
 lemma assign_d_right_comp:
-  "((P \<turnstile>\<^sub>r Q) ;; \<langle>f\<rangle>\<^sub>D) = ((\<not> (\<not> P ;; true)) \<turnstile>\<^sub>r (Q ;; \<langle>f\<rangle>\<^sub>a))"
+  "((P \<turnstile>\<^sub>r Q) ;; \<langle>f\<rangle>\<^sub>D) = ((\<not> ((\<not> P) ;; true)) \<turnstile>\<^sub>r (Q ;; \<langle>f\<rangle>\<^sub>a))"
   by (simp add: assigns_d_def rdesign_composition)
 
 lemma assigns_d_comp:
@@ -614,11 +614,11 @@ proof -
     by (simp add: H1_design_skip)
   also have "... = (($ok \<Rightarrow> II) ;; R)"
     by (simp add: H1_def)
-  also have "... = ((\<not> $ok ;; R) \<or> R)"
+  also have "... = (((\<not> $ok) ;; R) \<or> R)"
     by (simp add: impl_alt_def seqr_or_distl)
-  also have "... = (((\<not> $ok ;; true\<^sub>h) ;; R) \<or> R)"
+  also have "... = ((((\<not> $ok) ;; true\<^sub>h) ;; R) \<or> R)"
     by (simp add: precond_right_unit unrest)
-  also have "... = ((\<not> $ok ;; true\<^sub>h) \<or> R)"
+  also have "... = (((\<not> $ok) ;; true\<^sub>h) \<or> R)"
     by (metis assms(1) seqr_assoc)
   also have "... = ($ok \<Rightarrow> R)"
     by (simp add: impl_alt_def precond_right_unit unrest)
@@ -638,7 +638,7 @@ proof -
   (* The next step ensures we get the right alphabet for true by copying it *)
   also from assms have "... = (true ;; (\<not> $ok \<or> P))" (is "_ = (?true ;; _)")
     by (simp add: impl_alt_def)
-  also from assms have "... = ((?true ;; \<not> $ok) \<or> (?true ;; P))"
+  also from assms have "... = ((?true ;; (\<not> $ok)) \<or> (?true ;; P))"
     using seqr_or_distr by blast
   also from assms have "... = (true \<or> (true ;; P))"
     by (simp add: nok_not_false precond_left_zero unrest)
@@ -653,11 +653,11 @@ theorem H1_left_unit:
 proof -
   have "(II\<^sub>D ;; P) = (($ok \<Rightarrow> II) ;; P)"
     by (metis H1_def H1_design_skip)
-  also have "... = ((\<not> $ok ;; P) \<or> P)"
+  also have "... = (((\<not> $ok) ;; P) \<or> P)"
     by (simp add: impl_alt_def seqr_or_distl)
-  also from assms have "... = (((\<not> $ok ;; true\<^sub>h) ;; P) \<or> P)"
+  also from assms have "... = ((((\<not> $ok) ;; true\<^sub>h) ;; P) \<or> P)"
     by (simp add: precond_right_unit unrest)
-  also have "... = ((\<not> $ok ;; (true\<^sub>h ;; P)) \<or> P)"
+  also have "... = (((\<not> $ok) ;; (true\<^sub>h ;; P)) \<or> P)"
     by (simp add: seqr_assoc)
   also from assms have "... = ($ok \<Rightarrow> P)"
     by (simp add: H1_left_zero impl_alt_def precond_right_unit unrest)
@@ -672,9 +672,9 @@ theorem H1_algebraic:
 theorem H1_nok_left_zero:
   fixes P :: "'\<alpha> hrel_des"
   assumes "P is H1"
-  shows "(\<not> $ok ;; P) = (\<not> $ok)"
+  shows "((\<not> $ok) ;; P) = (\<not> $ok)"
 proof -
-  have "(\<not> $ok ;; P) = ((\<not> $ok ;; true\<^sub>h) ;; P)"
+  have "((\<not> $ok) ;; P) = (((\<not> $ok) ;; true\<^sub>h) ;; P)"
     by (simp add: precond_right_unit unrest)
   also have "... = ((\<not> $ok) ;; true\<^sub>h)"
     by (metis H1_left_zero assms seqr_assoc)
@@ -849,7 +849,7 @@ proof -
     by (simp add: H1_def H2_def)
   also have "... = ((\<not> $ok \<or> P) ;; J)"
     by rel_auto
-  also have "... = ((\<not> $ok ;; J) \<or> (P ;; J))"
+  also have "... = (((\<not> $ok) ;; J) \<or> (P ;; J))"
     using seqr_or_distl by blast
   also have "... =  ((H2 (\<not> $ok)) \<or> H2(P))"
     by (simp add: H2_def)
@@ -1036,7 +1036,7 @@ theorem design_condition_is_H3:
   assumes "out\<alpha> \<sharp> p"
   shows "(p \<turnstile> Q) is H3"
 proof -
-  have "((p \<turnstile> Q) ;; II\<^sub>D) = (\<not> (\<not> p ;; true)) \<turnstile> (Q\<^sup>t ;; II\<lbrakk>true/$ok\<rbrakk>)"
+  have "((p \<turnstile> Q) ;; II\<^sub>D) = (\<not> ((\<not> p) ;; true)) \<turnstile> (Q\<^sup>t ;; II\<lbrakk>true/$ok\<rbrakk>)"
     by (simp add: skip_d_alt_def design_composition_subst unrest assms)
   also have "... = p \<turnstile> (Q\<^sup>t ;; II\<lbrakk>true/$ok\<rbrakk>)"
     using assms precond_equiv seqr_true_lemma by force
@@ -1051,16 +1051,17 @@ theorem rdesign_H3_iff_pre:
 proof -
   have "(P \<turnstile>\<^sub>r Q ;; II\<^sub>D) = (P \<turnstile>\<^sub>r Q ;; true \<turnstile>\<^sub>r II)"
     by (simp add: skip_d_def)
-  also have "... = (\<not> (\<not> P ;; true) \<and> \<not> (Q ;; \<not> true)) \<turnstile>\<^sub>r (Q ;; II)"
+  also have "... = (\<not> ((\<not> P) ;; true) \<and> \<not> (Q ;; (\<not> true))) \<turnstile>\<^sub>r (Q ;; II)"
     by (simp add: rdesign_composition)
-  also have "... = (\<not> (\<not> P ;; true) \<and> \<not> (Q ;; \<not> true)) \<turnstile>\<^sub>r Q"
+  also have "... = (\<not> ((\<not> P) ;; true) \<and> \<not> (Q ;; (\<not> true))) \<turnstile>\<^sub>r Q"
     by simp
-  also have "... = (\<not> (\<not> P ;; true)) \<turnstile>\<^sub>r Q"
+  also have "... = (\<not> ((\<not> P) ;; true)) \<turnstile>\<^sub>r Q"
     by pred_auto
-  finally have "P \<turnstile>\<^sub>r Q is H3 \<longleftrightarrow> P \<turnstile>\<^sub>r Q = (\<not> (\<not> P ;; true)) \<turnstile>\<^sub>r Q"
+  finally have "P \<turnstile>\<^sub>r Q is H3 \<longleftrightarrow> P \<turnstile>\<^sub>r Q = (\<not> ((\<not> P) ;; true)) \<turnstile>\<^sub>r Q"
     by (metis H3_def Healthy_def')
-  also have "... \<longleftrightarrow> P = (\<not> (\<not> P ;; true))"
+  also have "... \<longleftrightarrow> P = (\<not> ((\<not> P) ;; true))"
     by (metis rdesign_pre)
+      thm seqr_true_lemma
   also have "... \<longleftrightarrow> P = (P ;; true)"
     by (simp add: seqr_true_lemma)
   finally show ?thesis .
@@ -1089,7 +1090,7 @@ lemma skip_d_absorb_J_1:
 lemma skip_d_absorb_J_2:
   "(J ;; II\<^sub>D) = II\<^sub>D"
 proof -
-  have "(J ;; II\<^sub>D) = (($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D ;; true \<turnstile> II)"
+  have "(J ;; II\<^sub>D) = ((($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D) ;; true \<turnstile> II)"
     by (simp add: J_def skip_d_alt_def)
   also have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> (($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<acute>\<rbrakk> ;; (true \<turnstile> II)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<rbrakk>)"
     by (subst seqr_middle[of ok], simp_all)

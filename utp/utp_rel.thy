@@ -54,7 +54,7 @@ method rel_blast = (rel_simp; blast)
 -- {* TODO: Rename @{text rel_auto} into @{text rel_auto}. *}
 
 consts
-  useq   :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infixr ";;" 15)
+  useq   :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infixr ";;" 51)
   uskip  :: "'a" ("II")
 
 definition in\<alpha> :: "('\<alpha>, '\<alpha> \<times> '\<beta>) uvar" where
@@ -94,16 +94,16 @@ translations
   (type) "('\<alpha>, '\<beta>) rel" <= (type) "('\<alpha> \<times> '\<beta>) upred"
 
 definition cond::"'\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred"
-                                                          ("(3_ \<triangleleft> _ \<triangleright>/ _)" [14,0,15] 14)
+                                                          ("(3_ \<triangleleft> _ \<triangleright>/ _)" [52,0,53] 52)
 where "(P \<triangleleft> b \<triangleright> Q) \<equiv> (b \<and> P) \<or> ((\<not> b) \<and> Q)"
 
 abbreviation rcond::"('\<alpha>,  '\<beta>) rel \<Rightarrow> '\<alpha> cond \<Rightarrow> ('\<alpha>,  '\<beta>) rel \<Rightarrow> ('\<alpha>,  '\<beta>) rel"
-                                                          ("(3_ \<triangleleft> _ \<triangleright>\<^sub>r/ _)" [14,0,15] 14)
+                                                          ("(3_ \<triangleleft> _ \<triangleright>\<^sub>r/ _)" [52,0,53] 52)
 where "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<equiv> (P \<triangleleft> \<lceil>b\<rceil>\<^sub>< \<triangleright> Q)"
 
 lift_definition seqr::"(('\<alpha> \<times> '\<beta>) upred) \<Rightarrow> (('\<beta> \<times> '\<gamma>) upred) \<Rightarrow> ('\<alpha> \<times> '\<gamma>) upred"
 is "\<lambda> P Q r. r \<in> ({p. P p} O {q. Q q})" .
-
+    
 lift_definition conv_r :: "('a, '\<alpha> \<times> '\<beta>) uexpr \<Rightarrow> ('a, '\<beta> \<times> '\<alpha>) uexpr" ("_\<^sup>-" [999] 999)
 is "\<lambda> e (b1, b2). e (b2, b1)" .
 
@@ -162,20 +162,20 @@ adhoc_overloading
   uskip skip_r
 
 definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<top>" [999] 999) where
-[urel_defs]: "rassume c = (II \<triangleleft> c \<triangleright>\<^sub>r false)"
+[urel_defs]: "rassume c = II \<triangleleft> c \<triangleright>\<^sub>r false"
 
 definition rassert :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("_\<^sub>\<bottom>" [999] 999) where
-[urel_defs]: "rassert c = (II \<triangleleft> c \<triangleright>\<^sub>r true)"
+[urel_defs]: "rassert c = II \<triangleleft> c \<triangleright>\<^sub>r true"
 
 text {* We describe some properties of relations *}
 
 definition ufunctional :: "('a, 'b) rel \<Rightarrow> bool"
-where "ufunctional R \<longleftrightarrow> (II \<sqsubseteq> (R\<^sup>- ;; R))"
+where "ufunctional R \<longleftrightarrow> II \<sqsubseteq> R\<^sup>- ;; R"
 
 declare ufunctional_def [urel_defs]
 
 definition uinj :: "('a, 'b) rel \<Rightarrow> bool"
-where "uinj R \<longleftrightarrow> II \<sqsubseteq> (R ;; R\<^sup>-)"
+where "uinj R \<longleftrightarrow> II \<sqsubseteq> R ;; R\<^sup>-"
 
 declare uinj_def [urel_defs]
 
@@ -206,17 +206,17 @@ lemma unrest_ouvar [unrest]: "mwb_lens x \<Longrightarrow> in\<alpha> \<sharp> $
 lemma unrest_semir_undash [unrest]:
   fixes x :: "('a, '\<alpha>) uvar"
   assumes "$x \<sharp> P"
-  shows "$x \<sharp> (P ;; Q)"
+  shows "$x \<sharp> P ;; Q"
   using assms by (rel_auto)
 
 lemma unrest_semir_dash [unrest]:
   fixes x :: "('a, '\<alpha>) uvar"
   assumes "$x\<acute> \<sharp> Q"
-  shows "$x\<acute> \<sharp> (P ;; Q)"
+  shows "$x\<acute> \<sharp> P ;; Q"
   using assms by (rel_auto)
 
 lemma unrest_cond [unrest]:
-  "\<lbrakk> x \<sharp> P; x \<sharp> b; x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> (P \<triangleleft> b \<triangleright> Q)"
+  "\<lbrakk> x \<sharp> P; x \<sharp> b; x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<triangleleft> b \<triangleright> Q"
   by (rel_auto)
 
 lemma unrest_in\<alpha>_var [unrest]:
@@ -266,11 +266,11 @@ lemma unrest_out_rel_var_res [unrest]:
 subsection {* Substitution laws *}
 
 lemma subst_seq_left [usubst]:
-  "out\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P ;; Q) = ((\<sigma> \<dagger> P) ;; Q)"
+  "out\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P ;; Q) = (\<sigma> \<dagger> P) ;; Q"
   by (rel_auto, (metis (no_types, lifting) Pair_inject surjective_pairing)+)
 
 lemma subst_seq_right [usubst]:
-  "in\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P ;; Q) = (P ;; (\<sigma> \<dagger> Q))"
+  "in\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P ;; Q) = P ;; (\<sigma> \<dagger> Q)"
   by (rel_auto, (metis (no_types, lifting) Pair_inject surjective_pairing)+)
 
 text {* The following laws support substitution in heterogeneous relations for polymorphically
@@ -399,7 +399,7 @@ lemma cond_conj_distr:"(P \<and> (Q \<triangleleft> b \<triangleright> S)) = ((P
 
 lemma cond_disj_distr:"(P \<or> (Q \<triangleleft> b \<triangleright> S)) = ((P \<or> Q) \<triangleleft> b \<triangleright> (P \<or> S))" by rel_auto
 
-lemma cond_neg: "\<not> (P \<triangleleft> b \<triangleright> Q) = (\<not> P \<triangleleft> b \<triangleright> \<not> Q)" by rel_auto
+lemma cond_neg: "\<not> (P \<triangleleft> b \<triangleright> Q) = ((\<not> P) \<triangleleft> b \<triangleright> (\<not> Q))" by rel_auto
 
 lemma comp_cond_left_distr:
   "((P \<triangleleft> b \<triangleright>\<^sub>r Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright>\<^sub>r (Q ;; R))"
@@ -427,31 +427,31 @@ lemma cond_seq_right_distr:
   "in\<alpha> \<sharp> b \<Longrightarrow> (P ;; (Q \<triangleleft> b \<triangleright> R)) = ((P ;; Q) \<triangleleft> b \<triangleright> (P ;; R))"
   by rel_auto
 
-lemma seqr_assoc: "(P ;; (Q ;; R)) = ((P ;; Q) ;; R)"
+lemma seqr_assoc: "P ;; (Q ;; R) = (P ;; Q) ;; R"
   by rel_auto
 
 lemma seqr_left_unit [simp]:
-  "(II ;; P) = P"
+  "II ;; P = P"
   by rel_auto
 
 lemma seqr_right_unit [simp]:
-  "(P ;; II) = P"
+  "P ;; II = P"
   by rel_auto
 
 lemma seqr_left_zero [simp]:
-  "(false ;; P) = false"
+  "false ;; P = false"
   by pred_auto
 
 lemma seqr_right_zero [simp]:
-  "(P ;; false) = false"
+  "P ;; false = false"
   by pred_auto
     
 text {* Quantale laws for relations *}
     
-lemma seq_Sup_distl: "(P ;; (\<Sqinter> A)) = (\<Sqinter> Q\<in>A. P ;; Q)"
+lemma seq_Sup_distl: "P ;; (\<Sqinter> A) = (\<Sqinter> Q\<in>A. P ;; Q)"
   by (transfer, auto)
     
-lemma seq_Sup_distr: "((\<Sqinter> A) ;; Q) = (\<Sqinter> P\<in>A. P ;; Q)"
+lemma seq_Sup_distr: "(\<Sqinter> A) ;; Q = (\<Sqinter> P\<in>A. P ;; Q)"
   by (transfer, auto)
     
 lemma impl_seqr_mono: "\<lbrakk> `P \<Rightarrow> Q`; `R \<Rightarrow> S` \<rbrakk> \<Longrightarrow> `(P ;; R) \<Rightarrow> (Q ;; S)`"
@@ -625,13 +625,13 @@ done
 
 lemma seqr_left_one_point:
   assumes "vwb_lens x"
-  shows "(P \<and> ($x\<acute> =\<^sub>u \<guillemotleft>v\<guillemotright>) ;; Q) = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
+  shows "((P \<and> $x\<acute> =\<^sub>u \<guillemotleft>v\<guillemotright>) ;; Q) = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
   using assms
   by (rel_auto, metis vwb_lens_wb wb_lens.get_put)
 
 lemma seqr_right_one_point:
   assumes "vwb_lens x"
-  shows "(P ;; ($x =\<^sub>u \<guillemotleft>v\<guillemotright>) \<and> Q) = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
+  shows "(P ;; ($x =\<^sub>u \<guillemotleft>v\<guillemotright> \<and> Q)) = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
   using assms
   by (rel_auto, metis vwb_lens_wb wb_lens.get_put)
 
@@ -649,7 +649,7 @@ lemma seqr_insert_ident_right:
 
 lemma seq_var_ident_lift:
   assumes "vwb_lens x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
-  shows "(($x\<acute> =\<^sub>u $x \<and> P) ;; ($x\<acute> =\<^sub>u $x) \<and> Q) = ($x\<acute> =\<^sub>u $x \<and> (P ;; Q))"
+  shows "(($x\<acute> =\<^sub>u $x \<and> P) ;; ($x\<acute> =\<^sub>u $x \<and> Q)) = ($x\<acute> =\<^sub>u $x \<and> (P ;; Q))"
   using assms apply (rel_auto)
   by (metis (no_types, lifting) vwb_lens_wb wb_lens_weak weak_lens.put_get)
 
@@ -738,7 +738,7 @@ lemma seqr_post_var_out:
   shows "(P ;; (Q \<and> $x\<acute>)) = ((P ;; Q) \<and> $x\<acute>)"
   by (rel_auto)
 
-theorem seqr_post_transfer: "out\<alpha> \<sharp> q \<Longrightarrow> (P ;; (q \<and> R)) = (P \<and> q\<^sup>- ;; R)"
+theorem seqr_post_transfer: "out\<alpha> \<sharp> q \<Longrightarrow> (P ;; (q \<and> R)) = ((P \<and> q\<^sup>-) ;; R)"
   by (simp add: seqr_pre_transfer unrest_convr_in\<alpha>)
 
 lemma seqr_pre_out: "out\<alpha> \<sharp> p \<Longrightarrow> ((p \<and> Q) ;; R) = (p \<and> (Q ;; R))"
@@ -750,7 +750,7 @@ lemma seqr_pre_var_out:
   by (rel_auto)
 
 lemma seqr_true_lemma:
-  "(P = (\<not> (\<not> P ;; true))) = (P = (P ;; true))"
+  "(P = (\<not> ((\<not> P) ;; true))) = (P = (P ;; true))"
   by rel_auto
 
 lemma shEx_lift_seq_1 [uquant_lift]:
@@ -804,11 +804,11 @@ text {* While loop laws *}
 theorem while_unfold:
   "while b do P od = ((P ;; while b do P od) \<triangleleft> b \<triangleright>\<^sub>r II)"
 proof -
-  have m:"mono (\<lambda>X. P ;; X \<triangleleft> b \<triangleright>\<^sub>r II)"
+  have m:"mono (\<lambda>X. (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
     by (auto intro: monoI seqr_mono cond_mono)
-  have "(while b do P od) = (\<nu> X \<bullet> P ;; X \<triangleleft> b \<triangleright>\<^sub>r II)"
+  have "(while b do P od) = (\<nu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
     by (simp add: while_def)
-  also have "... = (P ;; (\<nu> X \<bullet> P ;; X \<triangleleft> b \<triangleright>\<^sub>r II) \<triangleleft> b \<triangleright>\<^sub>r II)"
+  also have "... = ((P ;; (\<nu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)) \<triangleleft> b \<triangleright>\<^sub>r II)"
     by (subst lfp_unfold, simp_all add: m)
   also have "... = ((P ;; while b do P od) \<triangleleft> b \<triangleright>\<^sub>r II)"
     by (simp add: while_def)
@@ -864,9 +864,9 @@ lemma RID_seq_left:
   assumes "vwb_lens x"
   shows "RID(x)(RID(x)(P) ;; Q) = (RID(x)(P) ;; RID(x)(Q))"
 proof -
-  have "RID(x)(RID(x)(P) ;; Q) = ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x ;; Q) \<and> $x\<acute> =\<^sub>u $x)"
+  have "RID(x)(RID(x)(P) ;; Q) = ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; Q) \<and> $x\<acute> =\<^sub>u $x)"
     by (simp add: RID_def usubst)
-  also from assms have "... = (((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> (\<exists> $x \<bullet> $x\<acute> =\<^sub>u $x) ;; (\<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
+  also from assms have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> (\<exists> $x \<bullet> $x\<acute> =\<^sub>u $x)) ;; (\<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
     by (rel_auto)
   also from assms have "... = (((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
     apply (rel_auto)
@@ -888,7 +888,7 @@ lemma RID_seq_right:
   assumes "vwb_lens x"
   shows "RID(x)(P ;; RID(x)(Q)) = (RID(x)(P) ;; RID(x)(Q))"
 proof -
-  have "RID(x)(P ;; RID(x)(Q)) = ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> $x\<acute> =\<^sub>u $x) \<and> $x\<acute> =\<^sub>u $x)"
+  have "RID(x)(P ;; RID(x)(Q)) = ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P ;; ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> $x\<acute> =\<^sub>u $x)) \<and> $x\<acute> =\<^sub>u $x)"
     by (simp add: RID_def usubst)
   also from assms have "... = (((\<exists> $x \<bullet>  P) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> (\<exists> $x\<acute> \<bullet> $x\<acute> =\<^sub>u $x)) \<and> $x\<acute> =\<^sub>u $x)"
     by (rel_auto)
