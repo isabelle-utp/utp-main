@@ -14,7 +14,7 @@ begin
 
 subsection {* CSP Alphabet *}
 
-alphabet ('\<sigma>,'\<phi>) csp_vars = "('\<sigma>, '\<phi> list) rsp_vars" +
+alphabet '\<phi> csp_vars = "'\<sigma> rsp_vars" +
   ref :: "'\<phi> set"
 
 text {*
@@ -41,9 +41,13 @@ apply (rule injI)
 apply (clarsimp)
 done
 
-type_synonym ('\<sigma>,'\<phi>) circus = "('\<sigma>, '\<phi> list, ('\<sigma>, '\<phi>, unit) csp_vars_scheme) rsp"
+type_synonym ('\<sigma>,'\<phi>) circus = "('\<sigma>, '\<phi> list, ('\<phi>, unit) csp_vars_scheme) rsp"
 type_synonym ('\<sigma>,'\<phi>) rel_circus  = "('\<sigma>,'\<phi>) circus hrel"
 
+translations
+  (type) "('\<sigma>,'\<phi>) circus" <= (type) "('\<sigma>, ('\<phi> list, ('a, 'd) csp_vars_scheme) rsp_vars_ext) rp"
+ 
+  
 type_synonym '\<phi> csp = "(unit,'\<phi>) circus"
 type_synonym '\<phi> rel_csp  = "'\<phi> csp hrel"
 
@@ -51,14 +55,6 @@ notation csp_vars_child_lens\<^sub>a ("\<Sigma>\<^sub>c")
 notation csp_vars_child_lens ("\<Sigma>\<^sub>C")
 
 subsection {* CSP Trace Merge *}
-
-text {*
-  The function below defines the parallel composition of two CSP event traces.
-  It is parametrised by the set of events on which the traces must synchronise.
-  The definition is given in terms of distributed concatenation @{term "op \<^sup>\<frown>"}
-  of (sets of) lists. We note that type @{typ "'\<theta> event"} is synonymous for
-  @{typ "'\<theta>"} (see theory @{theory utp_event}).
-*}
 
 fun tr_par ::
   "'\<theta> set \<Rightarrow> '\<theta> list \<Rightarrow> '\<theta> list \<Rightarrow> '\<theta> list set" where
@@ -159,11 +155,13 @@ definition [upred_defs]:
 
 text {* Simon, why is none of the below tagged with @{attribute upred_defs}? *}
 
+declare [[show_types]]
+  
 definition Guard ::
-  "('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow>
-   ('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow>
-   ('\<theta>, '\<alpha>) hrelation_csp" (infix "&\<^sub>u" 65) where
-"g &\<^sub>u A = R((g \<Rightarrow> \<not> A\<^sup>f\<^sub>f) \<turnstile> ((g \<and> A\<^sup>t\<^sub>f) \<or> (\<not> g) \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
+  "('\<sigma>, '\<phi>) rel_circus \<Rightarrow>
+   '\<sigma> cond \<Rightarrow>
+   ('\<sigma>, '\<phi>) rel_circus" (infix "&\<^sub>u" 65) where
+"g &\<^sub>u A = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow> \<not> A\<^sup>f\<^sub>f) \<turnstile> ((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> A\<^sup>t\<^sub>f) \<or> (\<not> \<lceil>g\<rceil>\<^sub>S\<^sub><) \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
 
 definition ExtChoice ::
   "('\<theta>, '\<alpha>) hrelation_csp \<Rightarrow>

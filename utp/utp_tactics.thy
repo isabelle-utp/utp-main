@@ -57,7 +57,7 @@ method fast_pred_simp = (
   -- {* The tactic below is much faster than the general transfer tactic. *}
   (simp add: uexpr_eq_iff uexpr_rep_eq)?,
   (simp add: fun_eq_iff
-    lens_defs uvar_defs upred_defs alpha_splits Product_Type.split_beta)?,
+    lens_defs upred_defs alpha_splits Product_Type.split_beta)?,
   (simp add: lens_interp_laws)?,
   (clarsimp)?)
 

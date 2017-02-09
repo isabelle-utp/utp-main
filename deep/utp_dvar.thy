@@ -379,7 +379,7 @@ text {* Instantiate the vstore for stateful reactive alphabets *}
 
 instantiation rsp_vars_ext :: (vst,type) vst
 begin
-  definition vstore_lens_rsp_vars_ext :: "vstore \<Longrightarrow> ('a, 't, 'b) rsp_vars_scheme" where
+  definition vstore_lens_rsp_vars_ext :: "vstore \<Longrightarrow> ('a, 'b) rsp_vars_scheme" where
   "vstore_lens_rsp_vars_ext = \<V> ;\<^sub>L st\<^sub>a"
 instance
   by (intro_classes, simp add: vstore_lens_rsp_vars_ext_def)

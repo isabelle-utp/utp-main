@@ -12,24 +12,27 @@ text {* R3 as presented in the UTP book and related publications is not sensitiv
   waiting states do not propogate final state variables. In order to do this we need an additional
   observational variable that capture the program state that we call $st$. *}
 
-alphabet ('s, 't) rsp_vars = "'t rp_vars" +
+alphabet 's rsp_vars = "'t rp_vars" +
   st :: 's
 
-type_synonym ('s,'t,'\<alpha>) rsp = "('t, ('s, 't, '\<alpha>) rsp_vars_scheme) rp"
+type_synonym ('s,'t,'\<alpha>) rsp = "('t, ('s, '\<alpha>) rsp_vars_scheme) rp"
 type_synonym ('s,'t,'\<alpha>,'\<beta>) rel_rsp  = "(('s,'t,'\<alpha>) rsp, ('s,'t,'\<beta>) rsp) rel"
 type_synonym ('s,'t,'\<alpha>) hrel_rsp  = "('s,'t,'\<alpha>) rsp hrel"
 
 translations 
   (type) "('s,'t,'\<alpha>) rsp" <= (type) "(_,('s,'t,'\<alpha>) rsp_vars_ext) rp"
-  (type) "('s,'t,'\<alpha>) rsp" <= (type) "(_, ('s, 't, '\<alpha>) rsp_vars_scheme) rp_vars_scheme des_vars_scheme"
+  (type) "('s,'t,'\<alpha>) rsp" <= (type) "('t, ('s, '\<alpha>) rsp_vars_scheme) rp_vars_ext des"
   (type) "('s,'t,'\<alpha>,'\<beta>) rel_rp" <= (type) "(('s,'t,'\<alpha>) rsp, (_,_,'\<beta>) rsp) rel"
-
+  
 notation rsp_vars_child_lens\<^sub>a ("\<Sigma>\<^sub>s")
 notation rsp_vars_child_lens ("\<Sigma>\<^sub>S")
   
 abbreviation lift_state_rel :: "'\<sigma> hrel \<Rightarrow> ('\<sigma>,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp" ("\<lceil>_\<rceil>\<^sub>S") where
 "\<lceil>P\<rceil>\<^sub>S \<equiv> P \<oplus>\<^sub>p (st \<times>\<^sub>L st)"
   
+abbreviation lift_state_pre ("\<lceil>_\<rceil>\<^sub>S\<^sub><")
+where "\<lceil>p\<rceil>\<^sub>S\<^sub>< \<equiv> \<lceil>\<lceil>p\<rceil>\<^sub><\<rceil>\<^sub>S"
+
 interpretation alphabet_state:
   lens_interp "\<lambda>(ok, wait, tr, r). (ok, wait, tr, st\<^sub>v r, more r)"
 apply (unfold_locales)

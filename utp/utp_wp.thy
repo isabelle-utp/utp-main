@@ -14,7 +14,7 @@ consts
   uwp :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infix "wp" 60)
 
 definition wp_upred :: "('\<alpha>, '\<beta>) rel \<Rightarrow> '\<beta> cond \<Rightarrow> '\<alpha> cond" where
-"wp_upred Q r = \<lfloor>\<not> (Q ;; \<not> \<lceil>r\<rceil>\<^sub><) :: ('\<alpha>, '\<beta>) rel\<rfloor>\<^sub><"
+"wp_upred Q r = \<lfloor>\<not> (Q ;; (\<not> \<lceil>r\<rceil>\<^sub><)) :: ('\<alpha>, '\<beta>) rel\<rfloor>\<^sub><"
 
 adhoc_overloading
   uwp wp_upred
