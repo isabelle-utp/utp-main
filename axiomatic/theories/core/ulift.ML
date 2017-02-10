@@ -78,6 +78,7 @@ end;
 structure Ulift_Printer : ULIFT_PRINTER =
 struct
   open Term_Utils;
+  open Type_Utils;
 
   fun dest_MkName
     (Const (@{const_abbrev MkName}, _) $ name $ dashes $ subscr) =

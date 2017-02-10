@@ -4,12 +4,13 @@
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
 (* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
-(* LAST REVIEWED: 27 Jan 2017 *)
+(* LAST REVIEWED: 7 Feb 2017 *)
 
 section {* Deep Expressions *}
 
 theory uexpr
 imports uvar ustate unrest_sf
+keywords "declare_uvar" :: thy_decl
 begin
 
 default_sort type
@@ -167,8 +168,6 @@ apply (unfold unrest_sf_def)
 apply (clarsimp)
 done
 
-(* no_notation lit_uexpr ("\<guillemotleft>_\<guillemotright>") *)
-
 text {* \todo{What about substitution?} *}
 
 subsection {* Alphabet Theorems *}
@@ -270,10 +269,10 @@ apply (clarsimp)
 done
 
 method uexpr_transfer =
-  (unfold uexpr_transfer, simp add: alphas)
+  (unfold uexpr_transfer, (simp add: alphas)?)
 
 method uexpr_tac =
-  (uexpr_transfer, (ustate_transfer)?)
+  (uexpr_transfer, (ustate_transfer)?; simp?)
 
 method uexpr_auto =
   (uexpr_transfer, (ustate_transfer)?; auto)
@@ -281,19 +280,31 @@ method uexpr_auto =
 method uexpr_blast =
   (uexpr_transfer, (ustate_transfer)?; blast)
 
+subsection {* Metalogical Operators *}
+
+lift_definition taut :: "bool uexpr \<Rightarrow> bool"
+is "\<lambda>(a, sf). (\<forall>s. sf s)"
+done
+
+lemma taut_transfer [uexpr_transfer]:
+"taut e = (\<forall>s. \<lbrakk>e\<rbrakk> s)"
+apply (transfer')
+apply (clarsimp)
+done
+
 subsection {* Expression Parser *}
 
 text {*
   We define a constant to tag terms to be processed by the parser. Note that
-  this processing is done by a term-checker (rewrite engine) and takes place
+  this processing is done by a term-checker (rewrite step) and takes place
   \emph{after} the term has been parsed and type-checked by Isabelle/HOL.
-  This means that typing information is available in the term to be parsed,
-  which allows us to suitably lift the various operators and free variables.
+  Hence typing information is readily available during the rewrite step and
+  this allows us to correctly lift the various operators and free variables.
 *}
 
 consts uparse :: "'a \<Rightarrow> 'a uexpr" ("'(_')\<^sub>u")
 
-text {* The following enables us to protect inner terms from processing. *}
+text {* The following tag protect inner terms from processing. *}
 
 consts uprotect :: "'a uexpr \<Rightarrow> 'a" ("@'(_')")
 
@@ -306,21 +317,117 @@ setup {*
     (Syntax_Phases.term_check 2 "ulift parser" Expr_Parser.uparse_tr))
 *}
 
-paragraph {* Parsing Experiments *}
+subsection {* Automatic Typing *}
 
 text {*
-  The below fails because the type @{typ 'a} of the variables @{term x} and
-  @{term x'} is not injectable. An improvement to the expression parser may
-  be to automatically introduce a sort constraint on type variables. This is
-  still a pending work to do but should not be incredibly difficult. Likewise
-  the expression parser does not support implicit typing of variables yet.
+  We lastly configure a convenience mechanism for automatic typing of free
+  variables inside @{text "(_)\<^sub>u"} terms. Free variables without an explicit
+  type constrain are thus automatically typed according to their `declared
+  type' via the command @{command declare_uvar}. Or otherwise, if no type
+  was declared for the variable name, any free type of a free variable is
+  at least forced to be injectable. The mechanism is useful, for instance,
+  to predetermine the types of auxiliary variables of a UTP theory. It also
+  reduces the need for explicit typing e.g.~of terms like @{text "(x + 1)\<^sub>u"}.
 *}
 
--- {* @{text "(x' = x + 1)\<^sub>u"} *}
+text {*
+  We add an outer command to declare the type of lifted HOL variables. The
+  command takes a variable name and a HOL type. For example, we may declare
+  the type of HOL variable @{term ok} to be @{typ bool} using the following
+  command invocation: @{text "declare_uvar ok \"bool\""}. As hinted above,
+  this affects the way the parser performs its translation and lifting.
+*}
 
-term "(\<lambda>x::nat. x + 1 = 2)\<^sub>u"
+ML {*
+  Outer_Syntax.local_theory @{command_keyword "declare_uvar"} "declare uvar"
+    (Parse.const_decl >>
+      (fn (uvar, typ, _) => UVAR_Typing.mk_uvar_type_synonym uvar typ));
+*}
 
-text {* As can be seen, lambda expressions and binders are well supported. *}
+text {* Automatic typing is achieved by the following syntax translation. *}
+
+parse_translation {*
+  [(@{const_syntax "uparse"}, UVAR_Typing.uvar_implicit_typing_tr)]
+*}
+
+subsection {* Expression Cartouche *}
+
+text {*
+  We additionally embed the expression parser into a cartouche. With this, we
+  can use the syntax @{text "\<open>\<dots>\<close>"} synonymously for @{text "(\<dots>)\<^sub>u"}. There is
+  a slight difference between these uses though, as with the cartouche we do
+  not get unification of lifted variables beyond the inside of @{text "\<open>\<dots>\<close>"}.
+  This is due to having to parse the content of the cartouche in isolation and
+  not in the context of the entire HOL term. This perhaps makes the cartouche
+  less attractive, although sometimes there may be benefit in taming the scope
+  of unification.
+*}
+
+syntax "_uexpr_cartouche" :: "cartouche_position \<Rightarrow> 'a uexpr" ("_\<^sub>e")
+
+parse_translation {*
+  [(@{syntax_const "_uexpr_cartouche"}, Expr_Cartouche.uexpr_cartouche_tr)]
+*}
+
+declare [[show_types]]
+
+text {* Observe the difference in the type of @{term f}. *}
+
+term "taut (x = (1::nat) \<and> y = x + 1 \<longrightarrow> y = 2)\<^sub>u \<and> (f x)"
+term "taut \<open>x = (1::nat) \<and> y = x + 1 \<longrightarrow> y = 2\<close>\<^sub>e \<and> (f x)"
+
+declare [[show_types = false]]
+
+theorem "taut \<open>x = 1 \<and> y = x + 1 \<longrightarrow> y = 2\<close>\<^sub>e"
+apply (unfold uexpr_transfer)
+apply (clarsimp)
+done
+
+theorem "taut \<open>ok \<and> x = 1 \<longrightarrow> ok' \<and> x' = 2\<close>\<^sub>e"
+apply (uexpr_transfer)
+apply (ustate_transfer)
+-- {* TODO: Implement a conversion that carries out a renaming. *}
+oops
+
+subsection {* Parsing Tests *}
+
+inject_type "fun"
+inject_type set
+inject_type list
+
+text {* Automatic typing seems to work well in various scenarios. *}
+
+declare [[show_types]]
+declare [[show_sorts]]
+
+term "(x)\<^sub>u"
+term "(x::'a)\<^sub>u"
+term "(x::nat)\<^sub>u"
+(* term "(x::'a::zero)\<^sub>u" *)
+term "(x::'a::{zero,injectable})\<^sub>u"
+term "(x + 1)\<^sub>u"
+term "(x = {})\<^sub>u"
+term "(\<lambda>x. x + 1)\<^sub>u"
+term "\<lambda>x. (x + 1)\<^sub>u"
+
+(* declare [[show_types]] *)
+(* declare [[show_sorts]] *)
+
+declare_uvar ok :: "bool"
+declare_uvar tr :: "'\<tau> list"
+(* declare_ulens ok = "ok\<^sub>L" *)
+
+term "(ok)\<^sub>u"
+term "(tr)\<^sub>u"
+term "(tr = [] \<and> x = 1)\<^sub>u"
+term "(P \<and> ok \<longrightarrow> Q \<and> ok')\<^sub>u"
+
+(* declare [[show_types=false]] *)
+(* declare [[show_sorts=false]] *)
+
+text {* Lambda expressions and binders are properly lifted too. *}
+
+term "(x + 1)\<^sub>u"
 
 term "(\<lambda>x::nat. x + 1 = 2)\<^sub>u"
 term "\<lambda>x::nat. (x + 1 = 2)\<^sub>u"
@@ -369,9 +476,9 @@ subsection {* Proof Experiments *}
 
 text {* We can prove equivalence laws with expression and state transfer. *}
 
-theorem "(\<forall>x::nat. y < x + 1)\<^sub>u = (y = 0)\<^sub>u"
+theorem "(\<forall>x. y < x + 1)\<^sub>u = (y = (0::nat))\<^sub>u"
 apply (uexpr_transfer)
--- {* Make @{text ustate_transfer} keep the original variables names! *}
+-- {* TODO: Let @{text ustate_transfer} retain the original variables names. *}
 apply (ustate_transfer)
 apply (auto)
 done
@@ -383,9 +490,10 @@ apply (uexpr_transfer)
 done
 
 theorem
-fixes x :: "nat"
+(* fixes x :: "nat" *)
 shows "{$y\<down>} \<sharp> (x + 1)\<^sub>u"
 apply (rule unrestI)
-apply (simp add: alphas)
+apply (unfold alphas)
+apply (simp)
 done
 end

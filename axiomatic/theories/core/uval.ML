@@ -8,6 +8,7 @@
 
 signature INJECT_TYPE =
 sig
+  val is_injectable : Proof.context -> typ -> bool
   val injectable_tac1 : Proof.context -> tactic
   val injectable_tac2 : Proof.context -> tactic
   val injectable_tac : Proof.context -> tactic
@@ -17,6 +18,9 @@ end;
 structure Inject_Type : INJECT_TYPE =
 struct
   open Tactic_Utils;
+
+  fun is_injectable ctx typ =
+    Sign.of_sort (Proof_Context.theory_of ctx) (typ, @{sort injectable});
 
   fun injectable_tac1 ctx =
     (unfold_tac ctx (typing.get ctx)) THEN

@@ -9,14 +9,14 @@
 section {* Variable Lenses *}
 
 theory ulens
-imports ustate
+imports ustate usort
 begin
 
 text {* Perhaps this file should be part of Isabelle/UTP. *}
 
 default_sort type
 
-subsection {* Lens Type *}
+subsection {* Lens Types *}
 
 type_synonym 'a ulens = "'a \<Longrightarrow> ustate"
 
@@ -87,10 +87,10 @@ apply (rule two_diff)
 apply (erule uvar_indepI)
 done
 
-theorem avar_vwb_lens [simp]:
-"vwb_lens (avar\<^sub>L x)"
+theorem avar_mwb_lens [simp]:
+"mwb_lens (avar\<^sub>L x)"
 apply (unfold avar_lens_def)
-apply (simp add: comp_vwb_lens vwb_lens_ust)
+apply (simp add: comp_mwb_lens vwb_lens_ust)
 done
 
 theorem avar_indepI [simp, intro]:
