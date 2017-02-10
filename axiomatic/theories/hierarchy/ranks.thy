@@ -87,10 +87,17 @@ definition rank_ind :: "ind itself \<Rightarrow> nat" where
 instance ..
 end
 
+(* rank(A \<Rightarrow> B) = rank(A) + 1 according to Burkhart Wolff. *)
+
+(* Citation: Ranked typed systems in the HOL discussion group. *)
+
+(* Work that caused impact / discussion in ITP. *)
+
 instantiation "fun" :: (rank, rank) rank
 begin
 definition rank_fun :: "('a \<Rightarrow> 'b) itself \<Rightarrow> nat" where
 [ranks]: "rank_fun t = max RANK('a) RANK('b)"
+(* [ranks]: "rank_fun t = RANK('a) + 1" *)
 instance ..
 end
 

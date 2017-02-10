@@ -64,6 +64,8 @@ setup {*
     (Local_Theory.background_theory o Typerep_Collect.collect_typerep_thm))
 *}
 
+thm typing
+
 text {*
   The following are not collected by the interpretation above as they are
   ground types; we hence add them manually.

@@ -15,6 +15,7 @@ imports uimports document
   (* "utils/Infinity" *)
   "utils/Normalise"
   "utils/Sum_Order"
+  "utils/Typedef_transfer"
   "utils/Transfer_Plus"
   (* "utils/Typedep" *)
   "utils/Typerep_ind"
@@ -24,7 +25,7 @@ begin
 
 text {* ML Utility Functions *}
 
-ML_file "utils/ml_utils.ML"
+ML_file "utils/Pure_Utils.ML"
 
 subsection {* Configuration *}
 

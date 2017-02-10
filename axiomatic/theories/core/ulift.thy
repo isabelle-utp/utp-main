@@ -74,7 +74,7 @@ text {* The following configures a command to declare an auxiliary variable. *}
 ML {*
   Outer_Syntax.local_theory @{command_keyword "declare_uvar"} "declare uvar"
     (Parse.const_decl >>
-      (fn (uvar, typ, _) =>  Ulift_Typing.mk_uvar_type_synonym uvar typ));
+      (fn (uvar, typ, _) => Ulift_Typing.mk_uvar_type_synonym uvar typ));
 *}
 
 subsection {* Proof Support *}
