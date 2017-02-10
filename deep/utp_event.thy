@@ -9,7 +9,7 @@
 section {* UTP Events *}
 
 theory utp_event
-imports utp_pred
+imports "../utp/utp_pred"
 begin
 
 subsection {* Events *}

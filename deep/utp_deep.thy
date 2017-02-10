@@ -5,4 +5,6 @@ theory utp_deep
     utp_fix_syntax
     utp_dvar
     utp_procedure
+    utp_event
+    utp_csp
 begin end

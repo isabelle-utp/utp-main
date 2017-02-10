@@ -380,6 +380,9 @@ lemma design_export_ok':
 lemma design_export_pre: "P \<turnstile> (P \<and> Q) = P \<turnstile> Q"
   by (rel_auto)
 
+lemma design_ok_pre_conj: "($ok \<and> P) \<turnstile> Q = P \<turnstile> Q"
+  by (rel_auto)
+    
 theorem design_composition:
   assumes
     "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2" "$ok\<acute> \<sharp> Q1" "$ok \<sharp> Q2"
@@ -600,6 +603,18 @@ lemma H1_design_skip:
   "H1(II) = II\<^sub>D"
   by rel_auto
 
+lemma H1_cond: "H1(P \<triangleleft> b \<triangleright> Q) = H1(P) \<triangleleft> b \<triangleright> H1(Q)"
+  by (rel_auto)  
+    
+lemma H1_conj: "H1(P \<and> Q) = (H1(P) \<and> H1(Q))"
+  by (rel_auto)
+    
+lemma H1_disj: "H1(P \<or> Q) = (H1(P) \<or> H1(Q))"
+  by (rel_auto)
+
+lemma design_export_H1: "(P \<turnstile> Q) = (P \<turnstile> H1(Q))"
+  by (rel_auto)
+   
 text {* The H1 algebraic laws are valid only when $\alpha(R)$ is homogeneous. This should maybe be
         generalised. *}
 
@@ -1289,11 +1304,17 @@ interpretation ndes_unital: utp_theory_unital NDES
 done
 
 interpretation design_theory_mono: utp_theory_mono DES
-  rewrites "carrier (uthy_order DES) = \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H" 
+  rewrites "\<And> P. P \<in> carrier (uthy_order DES) \<longleftrightarrow> P is \<^bold>H"
+  and "carrier (uthy_order DES) \<rightarrow> carrier (uthy_order DES) \<equiv> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
+  and "le (uthy_order DES) = op \<sqsubseteq>"
+  and "eq (uthy_order DES) = op ="  
   by (unfold_locales, simp_all add: des_hcond_def H1_H2_monotonic utp_order_def)
 
 interpretation normal_design_theory_mono: utp_theory_mono NDES
-  rewrites "carrier (uthy_order NDES) = \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H" 
+  rewrites "\<And> P. P \<in> carrier (uthy_order NDES) \<longleftrightarrow> P is \<^bold>N"
+  and "carrier (uthy_order NDES) \<rightarrow> carrier (uthy_order NDES) \<equiv> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"
+  and "le (uthy_order NDES) = op \<sqsubseteq>"
+  and "eq (uthy_order NDES) = op ="  
   by (unfold_locales, simp_all add: ndes_hcond_def H1_H3_monotonic utp_order_def)
 
 lemma design_lat_top: "\<^bold>\<top>\<^bsub>DES\<^esub> = \<^bold>H(false)"
