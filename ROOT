@@ -23,10 +23,10 @@ session Kleene_Algebra (AFP) in "contrib/Kleene_Algebra"
     Quantales
     Signatures
   files
-    "document/root.bib"
     "document/root.tex"
+    "document/root.bib"
 
-(* HOL library imports *)
+(* HOL Library Imports *)
 
 session "UTP-DEPS" = "Kleene_Algebra" +
   options [timeout = 600]
@@ -43,7 +43,7 @@ session "UTP-DEPS" = "Kleene_Algebra" +
     "contrib/HOL-Algebra2/Complete_Lattice"
     "contrib/HOL-Algebra2/Galois_Connection"
 
-(* UTP library imports *)
+(* UTP Library Imports *)
 
 session "UTP-IMPORTS" in "utils" = "UTP-DEPS" +
   options [document = pdf, document_output = "output", timeout = 1000]
@@ -69,36 +69,36 @@ session "UTP-IMPORTS" in "utils" = "UTP-DEPS" +
     ttrace
     interp
   document_files
-    "root.bib"
     "root.tex"
+    "root.bib"
     "document.sty"
 
-(* Imports including the axiomatic value model *)
+(* UTP Library Imports + Axiomatic Model *)
 
 session "UTP-IMPORTS-AX" in "axiomatic/theories" = "UTP-IMPORTS" +
   options [browser_info = true, document = false]
   theories "core/ulens" "core/udefaults"
 
-(* Core UTP framework *)
+(* Core Framework *)
 
 session "UTP" in "utp" = "UTP-IMPORTS" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     utp
   document_files
-    "root.bib"
     "root.tex"
+    "root.bib"
     "document.sty"
 
-(* Core framework including the axiomatic value model *)
+(* Core Framework + Axiomatic Model *)
 
 session "UTP-AX" in "utp" = "UTP-IMPORTS-AX" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     utp_ax
   document_files
-    "root.bib"
     "root.tex"
+    "root.bib"
     "document.sty"
 
 (* VMD-SL Mechanisation *)
@@ -108,3 +108,14 @@ session "VDM-SL" in "vdm-sl" = "UTP" +
   theories
     PFOL
     VDM
+    
+(* FMI Mechanisation *)
+
+session "FMI" in "fmi" = "UTP-AX" +
+  options [document = pdf, document_output = "output", timeout = 1000]
+  theories
+    fmi
+  document_files
+    "root.tex"
+    (* "root.bib" *)
+    "document.sty"

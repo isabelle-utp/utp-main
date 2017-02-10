@@ -109,7 +109,7 @@ text {*
   It is not quite obvious why we need so many definitions for each variable,
   and what the purpose of the various definitions is. For instance, what is
   the different between @{text "ref"} and @{text "ref\<^sub>r"}? Ask Simon Foster if
-  he could insert some comments here. to clarify this. Maybe we can do with
+  he could insert some comments here to clarify this. Maybe we can do with
   introducing less definitions?! Unless all of them are needed at some point.
 *}
 
@@ -118,6 +118,7 @@ definition [uvar_defs]: "\<Sigma>\<^sub>c = VAR more"
 definition [uvar_defs]: "ref = (ref\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
 definition [uvar_defs]: "ref\<^sub>r = (ref\<^sub>c ;\<^sub>L \<Sigma>\<^sub>r)"
 definition [uvar_defs]: "\<Sigma>\<^sub>C = (\<Sigma>\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
+definition [uvar_defs]: "\<Sigma>\<^sub>C\<^sub>x\<^sub>C = \<Sigma>\<^sub>C \<times>\<^sub>L \<Sigma>\<^sub>C"
 
 subsubsection {* Lens Laws *}
 
