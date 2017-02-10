@@ -164,7 +164,7 @@ definition Guard ::
 
 definition ExtChoice ::
   "('\<sigma>, '\<phi>) rel_circus \<Rightarrow> ('\<sigma>, '\<phi>) rel_circus \<Rightarrow> ('\<sigma>, '\<phi>) rel_circus" (infixl "\<box>" 65) where 
-[upred_defs]: "A\<^sub>1 \<box> A\<^sub>2 = \<^bold>R\<^sub>s((\<not> A\<^sub>1\<^sup>f\<^sub>f \<and> \<not> A\<^sub>2\<^sup>f\<^sub>f) \<turnstile> ((A\<^sub>1\<^sup>t\<^sub>f \<and> A\<^sub>2\<^sup>t\<^sub>f) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (A\<^sub>1\<^sup>t\<^sub>f \<or> A\<^sub>2\<^sup>t\<^sub>f)))"
+[upred_defs]: "A\<^sub>1 \<box> A\<^sub>2 = \<^bold>R\<^sub>s((pre\<^sub>R(A\<^sub>1) \<and> pre\<^sub>R(A\<^sub>2)) \<turnstile> ((cmt\<^sub>R(A\<^sub>1) \<and> cmt\<^sub>R(A\<^sub>2)) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (cmt\<^sub>R(A\<^sub>1) \<or> cmt\<^sub>R(A\<^sub>2))))"
 
 text {*
   Simon, I changed the type of the parameter @{term e} of @{text "do\<^sub>u"} to
@@ -323,6 +323,96 @@ lemma Guard_true [simp]:
   "P is CSP \<Longrightarrow> true &\<^sub>u P = P"
   by (simp add: Guard_def alpha SRD_reactive_design_alt)
     
+lemma RHS_design_neg_R2c_pre:
+  "\<^bold>R\<^sub>s(R2c(P) \<turnstile> Q) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
+  by (rel_auto)
+  
+lemma ExtChoice_rdes:
+  assumes "$ok\<acute> \<sharp> P\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>1"
+  shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2) \<box> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2) = \<^bold>R\<^sub>s ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> ((P\<^sub>2 \<and> Q\<^sub>2) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (P\<^sub>2 \<or> Q\<^sub>2)))"
+proof -
+  have "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2) \<box> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2) =      
+        \<^bold>R\<^sub>s ((pre\<^sub>R (\<^bold>R\<^sub>s (P\<^sub>1 \<turnstile> P\<^sub>2)) \<and> pre\<^sub>R (\<^bold>R\<^sub>s (Q\<^sub>1 \<turnstile> Q\<^sub>2))) \<turnstile>
+            ((cmt\<^sub>R (\<^bold>R\<^sub>s (P\<^sub>1 \<turnstile> P\<^sub>2)) \<and> cmt\<^sub>R (\<^bold>R\<^sub>s (Q\<^sub>1 \<turnstile> Q\<^sub>2))) 
+                  \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
+             (cmt\<^sub>R (\<^bold>R\<^sub>s (P\<^sub>1 \<turnstile> P\<^sub>2)) \<or> cmt\<^sub>R (\<^bold>R\<^sub>s (Q\<^sub>1 \<turnstile> Q\<^sub>2)))))"
+    by (simp add: ExtChoice_def)  
+  also have "... =
+        \<^bold>R\<^sub>s (((\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1)))) \<and> (\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> Q\<^sub>1))))) \<turnstile>
+            ((R1(R2c(cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2))) \<and> R1(R2c(cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)))) 
+                  \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
+             (R1(R2c(cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2))) \<or> R1(R2c(cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))))"
+      by (simp add: rea_pre_RHS_design rea_cmt_RHS_design)
+  also have "... =
+        \<^bold>R\<^sub>s (((\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1)))) \<and> (\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> Q\<^sub>1))))) \<turnstile>
+            R1(R2c
+            ((R1(R2c(cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2))) \<and> R1(R2c(cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)))) 
+                  \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
+             (R1(R2c(cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2))) \<or> R1(R2c(cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)))))))"
+    by (metis (no_types, lifting) RHS_design_export_R1 RHS_design_export_R2c)
+  also have "... =
+        \<^bold>R\<^sub>s (((\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1)))) \<and> (\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> Q\<^sub>1))))) \<turnstile>
+            R1(R2c
+            (((cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2)) \<and> (cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))) 
+                  \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
+             ((cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2)) \<or> (cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))))"
+    by (simp add: R1_R2c_commute R1_cond R1_conj R1_disj R1_idem R2c_and R2c_condr R2c_disj R2c_idem)
+  also have "... =
+        \<^bold>R\<^sub>s (((\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1)))) \<and> (\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> Q\<^sub>1))))) \<turnstile>
+            (((cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2)) \<and> (cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))) 
+                  \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
+             ((cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2)) \<or> (cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)))))"
+    by (metis (no_types, lifting) RHS_design_export_R1 RHS_design_export_R2c)
+  also have "... =
+        \<^bold>R\<^sub>s (((\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1)))) \<and> (\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> Q\<^sub>1))))) \<turnstile>
+            cmt\<^sub>s \<dagger>
+            (((cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2)) \<and> (cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))) 
+                  \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
+             ((cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2)) \<or> (cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)))))"
+    by (simp add: rdes_export_cmt)
+  also have "... =
+        \<^bold>R\<^sub>s (((\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1)))) \<and> (\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> Q\<^sub>1))))) \<turnstile>
+            cmt\<^sub>s \<dagger>
+            (((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<or> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))"
+    by (simp add: usubst)
+  also have "... =
+        \<^bold>R\<^sub>s (((\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1)))) \<and> (\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> Q\<^sub>1))))) \<turnstile>
+            (((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<or> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))"
+    by (simp add: rdes_export_cmt)
+  also have "... =
+        \<^bold>R\<^sub>s ((\<not> (R1 (R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1))) \<or> R1 (R2c (pre\<^sub>s \<dagger> (\<not> Q\<^sub>1))))) \<turnstile>
+            (((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<or> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))"
+    by simp
+  also have "... =
+        \<^bold>R\<^sub>s ((\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1 \<or> \<not> Q\<^sub>1)))) \<turnstile>
+            (((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<or> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))"
+    by (simp add: R1_R2c_is_R2 R2_disj subst_disj)    
+  also have "... =
+        \<^bold>R\<^sub>s ((\<not> R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1 \<or> \<not> Q\<^sub>1))) \<turnstile>
+            (((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<or> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))"
+    by (metis (no_types, lifting) RHS_design_neg_R1_pre conj_disj_abs utp_pred.compl_sup_top)
+  also have "... =
+        \<^bold>R\<^sub>s ((\<not> pre\<^sub>s \<dagger> (\<not> P\<^sub>1 \<or> \<not> Q\<^sub>1)) \<turnstile>
+            (((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<or> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))"
+    by (metis (no_types, hide_lams) R2c_not RHS_design_neg_R2c_pre)
+  also from assms have "... =
+        \<^bold>R\<^sub>s ((\<not> (\<not> P\<^sub>1 \<or> \<not> Q\<^sub>1))\<lbrakk>true,false/$ok,$wait\<rbrakk> \<turnstile>
+            (((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<or> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))"
+  proof -
+    from assms have "(\<not> [$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s false, $wait \<mapsto>\<^sub>s false] \<dagger> P\<^sub>1) = (\<not> [$ok \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s false] \<dagger> P\<^sub>1)"
+      by (rel_auto)
+    moreover from assms have "(\<not> [$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s false, $wait \<mapsto>\<^sub>s false] \<dagger> Q\<^sub>1) = (\<not> [$ok \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s false] \<dagger> Q\<^sub>1)"
+      by (rel_auto)
+    ultimately show ?thesis by (simp add: usubst)
+  qed
+  also have "... =
+        \<^bold>R\<^sub>s ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> (((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<or> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))"
+    by (simp add: rdes_export_pre)
+  also have "... = \<^bold>R\<^sub>s ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> ((P\<^sub>2 \<and> Q\<^sub>2) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (P\<^sub>2 \<or> Q\<^sub>2)))"
+    by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)      
+  finally show ?thesis .
+qed
+
 lemma ExtChoice_comm:
   "P \<box> Q = Q \<box> P"
   by (simp add: ExtChoice_def conj_comm disj_comm)
@@ -331,30 +421,16 @@ lemma ExtChoice_Stop:
   assumes "Q is CSP"
   shows "Stop \<box> Q = Q"
 proof -
-  have 1:"Stop\<^sup>f\<^sub>f = R1(\<not> $ok)"
-    by (rel_auto)
-  have 2:"Stop\<^sup>t\<^sub>f = R1(H1($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
-    apply (rel_auto) using minus_zero_eq by blast
-  have "Stop \<box> Q = \<^bold>R\<^sub>s((\<not> Stop\<^sup>f\<^sub>f \<and> \<not> Q\<^sup>f\<^sub>f) \<turnstile> ((Stop\<^sup>t\<^sub>f \<and> Q\<^sup>t\<^sub>f) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (Stop\<^sup>t\<^sub>f \<or> Q\<^sup>t\<^sub>f)))"
-    by (simp add: ExtChoice_def)
-  also have "... = \<^bold>R\<^sub>s((\<not> Q\<^sup>f\<^sub>f) \<turnstile> ((Stop\<^sup>t\<^sub>f \<and> Q\<^sup>t\<^sub>f) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (Stop\<^sup>t\<^sub>f \<or> Q\<^sup>t\<^sub>f)))"
-    by (simp add: 1 RHS_design_neg_R1_pre design_ok_pre_conj)
-  also have "... = \<^bold>R\<^sub>s((\<not> Q\<^sup>f\<^sub>f) \<turnstile> R1((R1(H1($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)) \<and> Q\<^sup>t\<^sub>f) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (R1(H1($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)) \<or> Q\<^sup>t\<^sub>f)))"
-    by (metis (no_types, hide_lams) "2" utp_rea_designs.RHS_design_export_R1)
-  also have "... = \<^bold>R\<^sub>s((\<not> Q\<^sup>f\<^sub>f) \<turnstile> R1(((H1($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)) \<and> Q\<^sup>t\<^sub>f) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ((H1($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)) \<or> Q\<^sup>t\<^sub>f)))"
-    by (simp add: R1_cond R1_disj R1_extend_conj R1_idem)
-  also have "... = \<^bold>R\<^sub>s((\<not> Q\<^sup>f\<^sub>f) \<turnstile> H1(((H1($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)) \<and> Q\<^sup>t\<^sub>f) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ((H1($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)) \<or> Q\<^sup>t\<^sub>f)))"
-    by (metis (no_types, lifting) design_export_H1 utp_rea_designs.RHS_design_export_R1)
-  also have "... = \<^bold>R\<^sub>s((\<not> Q\<^sup>f\<^sub>f) \<turnstile> H1((($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>) \<and> Q\<^sup>t\<^sub>f) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>) \<or> Q\<^sup>t\<^sub>f)))"
-    by (simp add: H1_cond H1_conj H1_disj H1_idem)   
-  also have "... = \<^bold>R\<^sub>s((\<not> Q\<^sup>f\<^sub>f) \<turnstile> ((($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>) \<and> Q\<^sup>t\<^sub>f) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>) \<or> Q\<^sup>t\<^sub>f)))"
-    by (metis design_export_H1)      
-  also have "... = \<^bold>R\<^sub>s((\<not> Q\<^sup>f\<^sub>f) \<turnstile> (Q\<^sup>t\<^sub>f \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> Q\<^sup>t\<^sub>f))"
+  have "Stop \<box> Q = \<^bold>R\<^sub>s (true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)) \<box> \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> cmt\<^sub>R(Q))"
+    by (simp add: Stop_def SRD_reactive_design_alt assms)
+  also have "... = \<^bold>R\<^sub>s (pre\<^sub>R Q \<turnstile> ((($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>) \<and> cmt\<^sub>R Q) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<or> cmt\<^sub>R Q)))"
+    by (simp add: ExtChoice_rdes unrest)
+  also have "... = \<^bold>R\<^sub>s (pre\<^sub>R Q \<turnstile> (cmt\<^sub>R Q \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> cmt\<^sub>R Q))"
     by (metis (no_types, lifting) cond_def eq_upred_sym neg_conj_cancel1 utp_pred.inf.left_idem)
-  also have "... = \<^bold>R\<^sub>s((\<not> Q\<^sup>f\<^sub>f) \<turnstile> Q\<^sup>t\<^sub>f)"
+  also have "... = \<^bold>R\<^sub>s (pre\<^sub>R Q \<turnstile> cmt\<^sub>R Q)"
     by (simp add: cond_idem)
   also have "... = Q"
-    by (simp add: SRD_reactive_design assms)
+    by (simp add: SRD_reactive_design_alt assms)
   finally show ?thesis .
 qed
   
