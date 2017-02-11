@@ -412,11 +412,52 @@ proof -
     by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)      
   finally show ?thesis .
 qed
-
+  
 lemma ExtChoice_comm:
   "P \<box> Q = Q \<box> P"
   by (simp add: ExtChoice_def conj_comm disj_comm)
 
+lemma ExtChoice_idem:
+  "P is CSP \<Longrightarrow> P \<box> P = P"
+  by (simp add: ExtChoice_def cond_idem SRD_reactive_design_alt)
+    
+lemma ExtChoice_assoc:
+  assumes "P is CSP" "Q is CSP" "R is CSP"
+  shows "P \<box> Q \<box> R = P \<box> (Q \<box> R)"
+proof -
+  have "P \<box> Q \<box> R = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P)) \<box> \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> cmt\<^sub>R(Q)) \<box> \<^bold>R\<^sub>s(pre\<^sub>R(R) \<turnstile> cmt\<^sub>R(R))"
+    by (simp add: SRD_reactive_design_alt assms(1) assms(2) assms(3))
+  also have "... = 
+    \<^bold>R\<^sub>s (((pre\<^sub>R P \<and> pre\<^sub>R Q) \<and> pre\<^sub>R R) \<turnstile>
+          (((cmt\<^sub>R P \<and> cmt\<^sub>R Q) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (cmt\<^sub>R P \<or> cmt\<^sub>R Q) \<and> cmt\<^sub>R R) 
+              \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
+           ((cmt\<^sub>R P \<and> cmt\<^sub>R Q) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (cmt\<^sub>R P \<or> cmt\<^sub>R Q) \<or> cmt\<^sub>R R)))"
+    by (simp add: ExtChoice_rdes unrest)
+  also have "... = 
+    \<^bold>R\<^sub>s (((pre\<^sub>R P \<and> pre\<^sub>R Q) \<and> pre\<^sub>R R) \<turnstile>
+          (((cmt\<^sub>R P \<and> cmt\<^sub>R Q) \<and> cmt\<^sub>R R) 
+              \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
+            ((cmt\<^sub>R P \<or> cmt\<^sub>R Q) \<or> cmt\<^sub>R R)))"
+    by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)      
+  also have "... = 
+    \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> pre\<^sub>R Q \<and> pre\<^sub>R R) \<turnstile>
+          ((cmt\<^sub>R P \<and> (cmt\<^sub>R Q \<and> cmt\<^sub>R R) ) 
+              \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
+           (cmt\<^sub>R P \<or> (cmt\<^sub>R Q \<or> cmt\<^sub>R R))))"
+    by (simp add: conj_assoc disj_assoc)
+  also have "... = 
+    \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> pre\<^sub>R Q \<and> pre\<^sub>R R) \<turnstile>
+          ((cmt\<^sub>R P \<and> (cmt\<^sub>R Q \<and> cmt\<^sub>R R) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (cmt\<^sub>R Q \<or> cmt\<^sub>R R)) 
+              \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
+           (cmt\<^sub>R P \<or> (cmt\<^sub>R Q \<and> cmt\<^sub>R R) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (cmt\<^sub>R Q \<or> cmt\<^sub>R R))))"
+    by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
+  also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P)) \<box> (\<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> cmt\<^sub>R(Q)) \<box> \<^bold>R\<^sub>s(pre\<^sub>R(R) \<turnstile> cmt\<^sub>R(R)))"
+    by (simp add: ExtChoice_rdes unrest)
+  also have "... = P \<box> (Q \<box> R)"
+    by (simp add: SRD_reactive_design_alt assms(1) assms(2) assms(3))
+  finally show ?thesis .
+qed
+      
 lemma ExtChoice_Stop:
   assumes "Q is CSP"
   shows "Stop \<box> Q = Q"
@@ -431,6 +472,21 @@ proof -
     by (simp add: cond_idem)
   also have "... = Q"
     by (simp add: SRD_reactive_design_alt assms)
+  finally show ?thesis .
+qed
+
+lemma ExtChoice_Chaos:
+  assumes "Q is CSP"
+  shows "Chaos \<box> Q = Chaos"
+proof -
+  have "Chaos \<box> Q = \<^bold>R\<^sub>s (false \<turnstile> true) \<box> \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> cmt\<^sub>R(Q))"
+    by (simp add: Chaos_def SRD_reactive_design_alt assms)
+  also have "... = \<^bold>R\<^sub>s (false \<turnstile> (cmt\<^sub>R Q \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> true))"
+    by (simp add: ExtChoice_rdes unrest)
+  also have "... = \<^bold>R\<^sub>s (false \<turnstile> true)"
+    by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
+  also have "... = Chaos"
+    by (simp add: Chaos_def)
   finally show ?thesis .
 qed
   
