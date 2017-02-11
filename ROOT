@@ -151,6 +151,30 @@ session "UTP-AX" in "utp" = "UTP-IMPORTS-AX" +
     "root.tex"
     "document.sty"
 
+(* Imports for Hybrid UTP *)
+
+(* We chose to start another root from the Analysis session (via Dynamics) 
+   and build everything else on top of it. This is because Analysis takes 
+   more than 10 minutes to build on a laptop and everything else is 
+   comparatively lightweight. *)
+
+session "UTP-HY-IMPORTS" = "Dynamics" +
+  options [document = false]
+  theories
+    "~~/src/HOL/Library/FuncSet"
+    "~~/src/HOL/Library/Permutation"
+    "contrib/Algebra/Complete_Lattice"
+    "contrib/Algebra/Galois_Connection"
+    "contrib/Ordinary_Differential_Equations/ODE_Analysis"
+    "utp/utp"
+
+(* Hybrid UTP *)
+
+session "UTP-Hybrid" in "hybrid" = "UTP-HY-IMPORTS" +
+  options [document = false]
+  theories
+    utp_hybrid
+
 (* VDM-SL Mechanisation *)
 
 session "VDM-SL" in "vdm-sl" = "UTP-DEEP" +
