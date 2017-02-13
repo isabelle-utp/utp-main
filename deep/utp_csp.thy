@@ -163,8 +163,18 @@ definition Guard ::
 [upred_defs]: "g &\<^sub>u A = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R(A)) \<turnstile> ((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> cmt\<^sub>R(A)) \<or> (\<not> \<lceil>g\<rceil>\<^sub>S\<^sub><) \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
 
 definition ExtChoice ::
+  "('\<sigma>, '\<phi>) rel_circus set \<Rightarrow> ('\<sigma>, '\<phi>) rel_circus" where
+"ExtChoice A = \<^bold>R\<^sub>s((\<Squnion> P\<in>A \<bullet> pre\<^sub>R(P)) \<turnstile> ((\<Squnion> P\<in>A \<bullet> cmt\<^sub>R(P)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter> P\<in>A \<bullet> cmt\<^sub>R(P))))"
+
+syntax
+  "_ExtChoice" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<box>_\<in>_ \<bullet>/ _)" [0, 0, 10] 10)
+
+translations
+  "\<box>P\<in>A \<bullet> B"   \<rightleftharpoons> "CONST ExtChoice ((\<lambda>P. B) ` A)"
+  
+definition extChoice ::
   "('\<sigma>, '\<phi>) rel_circus \<Rightarrow> ('\<sigma>, '\<phi>) rel_circus \<Rightarrow> ('\<sigma>, '\<phi>) rel_circus" (infixl "\<box>" 65) where 
-[upred_defs]: "A\<^sub>1 \<box> A\<^sub>2 = \<^bold>R\<^sub>s((pre\<^sub>R(A\<^sub>1) \<and> pre\<^sub>R(A\<^sub>2)) \<turnstile> ((cmt\<^sub>R(A\<^sub>1) \<and> cmt\<^sub>R(A\<^sub>2)) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (cmt\<^sub>R(A\<^sub>1) \<or> cmt\<^sub>R(A\<^sub>2))))"
+[upred_defs]: "P \<box> Q \<equiv> ExtChoice {P, Q}"
 
 text {*
   Simon, I changed the type of the parameter @{term e} of @{text "do\<^sub>u"} to
@@ -181,20 +191,14 @@ definition do\<^sub>u ::
   "_ \<Rightarrow> ('\<sigma>, '\<phi>) rel_circus" where
 [upred_defs]: "do\<^sub>u e = ((($tr\<acute> =\<^sub>u $tr) \<and> \<lceil>e\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>) \<triangleleft> $wait\<acute> \<triangleright> ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>e\<rceil>\<^sub>S\<^sub><\<rangle>))"
 
-text {*
-  Simon, I believe we need a conjunction with @{term "\<lceil>II\<rceil>\<^sub>R"} here too, namely
-  if we assume the operator will be used in the context of stateful processes.
-  Otherwise, anything might happen to the program variables after the output
-  communication was performed. Do you agree with this? If yes, just remove the
-  comment with the next commit. If not, perhaps catch me and we talk about it!
-*}
-
-definition OutputCSP ::
+definition PrefixCSP ::
   "('a, '\<phi>) chan \<Rightarrow>
   ('a, '\<sigma>) uexpr \<Rightarrow>
   ('\<sigma>, '\<phi>) rel_circus \<Rightarrow>
   ('\<sigma>, '\<phi>) rel_circus" where
-[upred_defs]: "OutputCSP c v A = (\<^bold>R\<^sub>s(true \<turnstile> (do\<^sub>u (c\<cdot>v)\<^sub>u \<and> \<lceil>II\<rceil>\<^sub>R)) ;; A)"
+[upred_defs]: "PrefixCSP c v A = (\<^bold>R\<^sub>s(true \<turnstile> (do\<^sub>u (c\<cdot>v)\<^sub>u \<and> \<lceil>II\<rceil>\<^sub>R)) ;; A)"
+
+abbreviation "OutputCSP \<equiv> PrefixCSP"
 
 definition do\<^sub>I :: "
   ('a, '\<theta>) chan \<Rightarrow>
@@ -326,100 +330,173 @@ lemma Guard_true [simp]:
 lemma RHS_design_neg_R2c_pre:
   "\<^bold>R\<^sub>s(R2c(P) \<turnstile> Q) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
   by (rel_auto)
+    
+lemma USUP_image_eq [simp]: "USUP (\<lambda>i. \<guillemotleft>i\<guillemotright> \<in>\<^sub>u \<guillemotleft>f ` A\<guillemotright>) g = (\<Sqinter> i\<in>A \<bullet> g(f(i)))"
+  by (rel_auto, rule_tac cong[of Sup Sup], auto)
+
+lemma UINF_image_eq [simp]: "UINF (\<lambda>i. \<guillemotleft>i\<guillemotright> \<in>\<^sub>u \<guillemotleft>f ` A\<guillemotright>) g = (\<Squnion> i\<in>A \<bullet> g(f(i)))"
+  by (rel_auto, rule_tac cong[of Inf Inf], auto)
+
+lemma not_USUP: "(\<not> (\<Sqinter> i\<in>A\<bullet> P(i))) = (\<Squnion> i\<in>A\<bullet> \<not> P(i))"
+  by (rel_auto)
+
+lemma USUP_empty [simp]: "(\<Sqinter> i \<in> {} \<bullet> P(i)) = false"
+  by (rel_auto)
+    
+lemma USUP_insert [simp]: "(\<Sqinter> i\<in>insert x xs \<bullet> P(i)) = (P(x) \<sqinter> (\<Sqinter> i\<in>xs \<bullet> P(i)))"
+  apply (rel_auto)
+  apply (subst Sup_insert[THEN sym])
+  apply (rule_tac cong[of Sup Sup])
+  apply (auto)
+done
+
+lemma UINF_empty [simp]: "(\<Squnion> i \<in> {} \<bullet> P(i)) = true"
+  by (rel_auto)
   
+lemma UINF_insert [simp]: "(\<Squnion> i\<in>insert x xs \<bullet> P(i)) = (P(x) \<squnion> (\<Squnion> i\<in>xs \<bullet> P(i)))"
+  apply (rel_auto)
+  apply (subst Inf_insert[THEN sym])
+  apply (rule_tac cong[of Inf Inf])
+  apply (auto)
+done
+  
+lemma R3h_cond: "R3h(P \<triangleleft> b \<triangleright> Q) = (R3h(P) \<triangleleft> b \<triangleright> R3h(Q))"
+  by (rel_auto)
+  
+lemma R2c_lit: "R2c(\<guillemotleft>x\<guillemotright>) = \<guillemotleft>x\<guillemotright>"
+  by (rel_auto)
+    
+lemma RHS_cond: "\<^bold>R\<^sub>s(P \<triangleleft> b \<triangleright> Q) = (\<^bold>R\<^sub>s(P) \<triangleleft> R2c b \<triangleright> \<^bold>R\<^sub>s(Q))"
+  by (simp add: RHS_def R3h_cond R2c_condr R1_cond)
+    
+lemma uinf_or: 
+  fixes P Q :: "'\<alpha> upred"
+  shows "(P \<sqinter> Q) = (P \<or> Q)"
+  by (pred_auto)
+
+lemma usup_and: 
+  fixes P Q :: "'\<alpha> upred"
+  shows "(P \<squnion> Q) = (P \<and> Q)"
+  by (pred_auto)
+  
+lemma RHS_design_neg_R1_pre:
+  "\<^bold>R\<^sub>s ((\<not> R1 P) \<turnstile> R) = \<^bold>R\<^sub>s ((\<not> P) \<turnstile> R)"
+  by (rel_auto)
+    
 lemma ExtChoice_rdes:
-  assumes "$ok\<acute> \<sharp> P\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>1"
-  shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2) \<box> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2) = \<^bold>R\<^sub>s ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> ((P\<^sub>2 \<and> Q\<^sub>2) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (P\<^sub>2 \<or> Q\<^sub>2)))"
+  assumes "\<And> i. $ok\<acute> \<sharp> P(i)" "A \<noteq> {}"
+  shows "(\<box>i\<in>A \<bullet> \<^bold>R\<^sub>s(P(i) \<turnstile> Q(i))) = \<^bold>R\<^sub>s((\<Squnion>i\<in>A \<bullet> P(i)) \<turnstile> ((\<Squnion>i\<in>A \<bullet> Q(i)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter>i\<in>A \<bullet> Q(i))))"
 proof -
-  have "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2) \<box> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2) =      
-        \<^bold>R\<^sub>s ((pre\<^sub>R (\<^bold>R\<^sub>s (P\<^sub>1 \<turnstile> P\<^sub>2)) \<and> pre\<^sub>R (\<^bold>R\<^sub>s (Q\<^sub>1 \<turnstile> Q\<^sub>2))) \<turnstile>
-            ((cmt\<^sub>R (\<^bold>R\<^sub>s (P\<^sub>1 \<turnstile> P\<^sub>2)) \<and> cmt\<^sub>R (\<^bold>R\<^sub>s (Q\<^sub>1 \<turnstile> Q\<^sub>2))) 
-                  \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
-             (cmt\<^sub>R (\<^bold>R\<^sub>s (P\<^sub>1 \<turnstile> P\<^sub>2)) \<or> cmt\<^sub>R (\<^bold>R\<^sub>s (Q\<^sub>1 \<turnstile> Q\<^sub>2)))))"
-    by (simp add: ExtChoice_def)  
+  have "(\<box>i\<in>A \<bullet> \<^bold>R\<^sub>s(P(i) \<turnstile> Q(i))) = 
+        \<^bold>R\<^sub>s ((\<Squnion>i\<in>A \<bullet> pre\<^sub>R (\<^bold>R\<^sub>s (P i \<turnstile> Q i))) \<turnstile> 
+            ((\<Squnion>i\<in>A \<bullet> cmt\<^sub>R (\<^bold>R\<^sub>s (P i \<turnstile> Q i))) 
+              \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> 
+             (\<Sqinter>i\<in>A \<bullet> cmt\<^sub>R (\<^bold>R\<^sub>s (P i \<turnstile> Q i)))))"
+    by (simp add: ExtChoice_def)
   also have "... =
-        \<^bold>R\<^sub>s (((\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1)))) \<and> (\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> Q\<^sub>1))))) \<turnstile>
-            ((R1(R2c(cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2))) \<and> R1(R2c(cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)))) 
-                  \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
-             (R1(R2c(cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2))) \<or> R1(R2c(cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))))"
-      by (simp add: rea_pre_RHS_design rea_cmt_RHS_design)
+        \<^bold>R\<^sub>s ((\<Squnion>i\<in>A \<bullet> \<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P(i))))) \<turnstile> 
+            ((\<Squnion>i\<in>A \<bullet> R1(R2c(cmt\<^sub>s \<dagger> (P(i) \<Rightarrow> Q(i))))) 
+              \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> 
+             (\<Sqinter>i\<in>A \<bullet> R1(R2c(cmt\<^sub>s \<dagger> (P(i) \<Rightarrow> Q(i)))))))"
+    by (simp add: rea_pre_RHS_design rea_cmt_RHS_design)
   also have "... =
-        \<^bold>R\<^sub>s (((\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1)))) \<and> (\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> Q\<^sub>1))))) \<turnstile>
-            R1(R2c
-            ((R1(R2c(cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2))) \<and> R1(R2c(cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)))) 
-                  \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
-             (R1(R2c(cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2))) \<or> R1(R2c(cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)))))))"
+        \<^bold>R\<^sub>s ((\<Squnion>i\<in>A \<bullet> \<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P(i))))) \<turnstile> 
+            R1(R2c   
+            ((\<Squnion>i\<in>A \<bullet> R1(R2c(cmt\<^sub>s \<dagger> (P(i) \<Rightarrow> Q(i))))) 
+              \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> 
+             (\<Sqinter>i\<in>A \<bullet> R1(R2c(cmt\<^sub>s \<dagger> (P(i) \<Rightarrow> Q(i))))))))"
     by (metis (no_types, lifting) RHS_design_export_R1 RHS_design_export_R2c)
   also have "... =
-        \<^bold>R\<^sub>s (((\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1)))) \<and> (\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> Q\<^sub>1))))) \<turnstile>
-            R1(R2c
-            (((cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2)) \<and> (cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))) 
-                  \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
-             ((cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2)) \<or> (cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))))"
-    by (simp add: R1_R2c_commute R1_cond R1_conj R1_disj R1_idem R2c_and R2c_condr R2c_disj R2c_idem)
+        \<^bold>R\<^sub>s ((\<Squnion>i\<in>A \<bullet> \<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P(i))))) \<turnstile> 
+            R1(R2c   
+            ((\<Squnion>i\<in>A \<bullet> (cmt\<^sub>s \<dagger> (P(i) \<Rightarrow> Q(i)))) 
+              \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> 
+             (\<Sqinter>i\<in>A \<bullet> (cmt\<^sub>s \<dagger> (P(i) \<Rightarrow> Q(i)))))))"
+    by (simp add: R2c_UINF R2c_condr R1_cond R1_idem R1_R2c_commute R2c_idem R1_UINF assms R1_USUP R2c_USUP)
   also have "... =
-        \<^bold>R\<^sub>s (((\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1)))) \<and> (\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> Q\<^sub>1))))) \<turnstile>
-            (((cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2)) \<and> (cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))) 
-                  \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
-             ((cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2)) \<or> (cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)))))"
-    by (metis (no_types, lifting) RHS_design_export_R1 RHS_design_export_R2c)
+        \<^bold>R\<^sub>s ((\<Squnion>i\<in>A \<bullet> \<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P(i))))) \<turnstile> 
+            cmt\<^sub>s \<dagger>   
+            ((\<Squnion>i\<in>A \<bullet> (cmt\<^sub>s \<dagger> (P(i) \<Rightarrow> Q(i)))) 
+              \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> 
+             (\<Sqinter>i\<in>A \<bullet> (cmt\<^sub>s \<dagger> (P(i) \<Rightarrow> Q(i))))))"
+    by (metis (no_types, lifting) RHS_design_export_R1 RHS_design_export_R2c rdes_export_cmt)
   also have "... =
-        \<^bold>R\<^sub>s (((\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1)))) \<and> (\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> Q\<^sub>1))))) \<turnstile>
-            cmt\<^sub>s \<dagger>
-            (((cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2)) \<and> (cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))) 
-                  \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
-             ((cmt\<^sub>s \<dagger> (P\<^sub>1 \<Rightarrow> P\<^sub>2)) \<or> (cmt\<^sub>s \<dagger> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)))))"
-    by (simp add: rdes_export_cmt)
-  also have "... =
-        \<^bold>R\<^sub>s (((\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1)))) \<and> (\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> Q\<^sub>1))))) \<turnstile>
-            cmt\<^sub>s \<dagger>
-            (((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<or> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))"
+        \<^bold>R\<^sub>s ((\<Squnion>i\<in>A \<bullet> \<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P(i))))) \<turnstile> 
+            cmt\<^sub>s \<dagger>   
+            ((\<Squnion>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i))) 
+              \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> 
+             (\<Sqinter>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i)))))"
     by (simp add: usubst)
   also have "... =
-        \<^bold>R\<^sub>s (((\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1)))) \<and> (\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> Q\<^sub>1))))) \<turnstile>
-            (((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<or> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))"
+        \<^bold>R\<^sub>s ((\<Squnion>i\<in>A \<bullet> \<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P(i))))) \<turnstile> 
+            ((\<Squnion>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i))) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i)))))"
     by (simp add: rdes_export_cmt)
   also have "... =
-        \<^bold>R\<^sub>s ((\<not> (R1 (R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1))) \<or> R1 (R2c (pre\<^sub>s \<dagger> (\<not> Q\<^sub>1))))) \<turnstile>
-            (((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<or> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))"
-    by simp
+        \<^bold>R\<^sub>s ((\<not> R1(R2c(\<Sqinter>i\<in>A \<bullet> (pre\<^sub>s \<dagger> (\<not> P(i)))))) \<turnstile> 
+            ((\<Squnion>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i))) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i)))))"
+    by (simp add: not_USUP R1_USUP R2c_USUP assms)
   also have "... =
-        \<^bold>R\<^sub>s ((\<not> R1 (R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1 \<or> \<not> Q\<^sub>1)))) \<turnstile>
-            (((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<or> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))"
-    by (simp add: R1_R2c_is_R2 R2_disj subst_disj)    
+        \<^bold>R\<^sub>s ((\<not> R2c(\<Sqinter>i\<in>A \<bullet> (pre\<^sub>s \<dagger> (\<not> P(i))))) \<turnstile> 
+            ((\<Squnion>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i))) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i)))))"
+    by (simp add: RHS_design_neg_R1_pre)
   also have "... =
-        \<^bold>R\<^sub>s ((\<not> R2c (pre\<^sub>s \<dagger> (\<not> P\<^sub>1 \<or> \<not> Q\<^sub>1))) \<turnstile>
-            (((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<or> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))"
-    by (metis (no_types, lifting) RHS_design_neg_R1_pre conj_disj_abs utp_pred.compl_sup_top)
+        \<^bold>R\<^sub>s ((\<not> (\<Sqinter>i\<in>A \<bullet> (pre\<^sub>s \<dagger> (\<not> P(i))))) \<turnstile> 
+            ((\<Squnion>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i))) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i)))))"
+    by (metis (no_types, lifting) R2c_not RHS_design_neg_R2c_pre)
   also have "... =
-        \<^bold>R\<^sub>s ((\<not> pre\<^sub>s \<dagger> (\<not> P\<^sub>1 \<or> \<not> Q\<^sub>1)) \<turnstile>
-            (((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<or> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))"
-    by (metis (no_types, hide_lams) R2c_not RHS_design_neg_R2c_pre)
-  also from assms have "... =
-        \<^bold>R\<^sub>s ((\<not> (\<not> P\<^sub>1 \<or> \<not> Q\<^sub>1))\<lbrakk>true,false/$ok,$wait\<rbrakk> \<turnstile>
-            (((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<or> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))"
+        \<^bold>R\<^sub>s (([$ok \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s false] \<dagger> (\<not> (\<Sqinter>i\<in>A \<bullet> (\<not> P(i))))) \<turnstile> 
+            ((\<Squnion>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i))) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i)))))"
   proof -
-    from assms have "(\<not> [$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s false, $wait \<mapsto>\<^sub>s false] \<dagger> P\<^sub>1) = (\<not> [$ok \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s false] \<dagger> P\<^sub>1)"
+    from assms have "\<And> i. pre\<^sub>s \<dagger> (\<not> P(i)) = [$ok \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s false] \<dagger> (\<not> P(i))"
       by (rel_auto)
-    moreover from assms have "(\<not> [$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s false, $wait \<mapsto>\<^sub>s false] \<dagger> Q\<^sub>1) = (\<not> [$ok \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s false] \<dagger> Q\<^sub>1)"
-      by (rel_auto)
-    ultimately show ?thesis by (simp add: usubst)
+    thus ?thesis
+      by (simp add: usubst)
   qed
   also have "... =
-        \<^bold>R\<^sub>s ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> (((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<or> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2))))"
-    by (simp add: rdes_export_pre)
-  also have "... = \<^bold>R\<^sub>s ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> ((P\<^sub>2 \<and> Q\<^sub>2) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (P\<^sub>2 \<or> Q\<^sub>2)))"
-    by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)      
+        \<^bold>R\<^sub>s ((\<Squnion>i\<in>A \<bullet> P(i)) \<turnstile> ((\<Squnion>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i))) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i)))))"
+    by (simp add: rdes_export_pre not_USUP)
+  also have "... = \<^bold>R\<^sub>s ((\<Squnion>i\<in>A \<bullet> P(i)) \<turnstile> ((\<Squnion>i\<in>A \<bullet> Q(i)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter>i\<in>A \<bullet> Q(i))))"
+    by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto, blast+)
+  
   finally show ?thesis .
+qed
+  
+lemma ExtChoice_empty: "ExtChoice {} = Stop"
+  by (simp add: ExtChoice_def cond_def Stop_def)
+   
+lemma ExtChoice_single: 
+  "P is CSP \<Longrightarrow> ExtChoice {P} = P"
+  by (simp add: ExtChoice_def usup_and uinf_or SRD_reactive_design_alt cond_idem)
+  
+(* Small external choice as an indexed big external choice *)
+    
+lemma extChoice_alt_def:
+  "P \<box> Q = (\<box>i::nat\<in>{0,1} \<bullet> P \<triangleleft> \<guillemotleft>i = 0\<guillemotright> \<triangleright> Q)"
+  by (simp add: extChoice_def ExtChoice_def, unliteralise, simp)
+    
+lemma extChoice_rdes:
+  assumes "$ok\<acute> \<sharp> P\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>1"
+  shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2) \<box> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2) = \<^bold>R\<^sub>s ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> ((P\<^sub>2 \<and> Q\<^sub>2) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (P\<^sub>2 \<or> Q\<^sub>2)))"
+proof -
+  have "(\<box>i::nat\<in>{0, 1} \<bullet> \<^bold>R\<^sub>s (P\<^sub>1 \<turnstile> P\<^sub>2) \<triangleleft> \<guillemotleft>i = 0\<guillemotright> \<triangleright> \<^bold>R\<^sub>s (Q\<^sub>1 \<turnstile> Q\<^sub>2)) = (\<box>i::nat\<in>{0, 1} \<bullet> \<^bold>R\<^sub>s ((P\<^sub>1 \<turnstile> P\<^sub>2) \<triangleleft> \<guillemotleft>i = 0\<guillemotright> \<triangleright> (Q\<^sub>1 \<turnstile> Q\<^sub>2)))"
+    by (simp only: RHS_cond R2c_lit)
+  also have "... = (\<box>i::nat\<in>{0, 1} \<bullet> \<^bold>R\<^sub>s ((P\<^sub>1 \<triangleleft> \<guillemotleft>i = 0\<guillemotright> \<triangleright> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<triangleleft> \<guillemotleft>i = 0\<guillemotright> \<triangleright> Q\<^sub>2)))"
+    by (simp add: design_condr)
+  also have "... = \<^bold>R\<^sub>s ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> ((P\<^sub>2 \<and> Q\<^sub>2) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (P\<^sub>2 \<or> Q\<^sub>2)))"
+    apply (subst ExtChoice_rdes, simp_all add: assms unrest) 
+    apply unliteralise
+    apply (simp add: uinf_or usup_and)
+  done
+  finally show ?thesis by (simp add: extChoice_alt_def)
 qed
   
 lemma ExtChoice_comm:
   "P \<box> Q = Q \<box> P"
-  by (simp add: ExtChoice_def conj_comm disj_comm)
+  by (unfold extChoice_def, simp add: insert_commute)
 
 lemma ExtChoice_idem:
   "P is CSP \<Longrightarrow> P \<box> P = P"
-  by (simp add: ExtChoice_def cond_idem SRD_reactive_design_alt)
+  by (unfold extChoice_def, simp add: ExtChoice_single)
     
 lemma ExtChoice_assoc:
   assumes "P is CSP" "Q is CSP" "R is CSP"
@@ -429,30 +506,30 @@ proof -
     by (simp add: SRD_reactive_design_alt assms(1) assms(2) assms(3))
   also have "... = 
     \<^bold>R\<^sub>s (((pre\<^sub>R P \<and> pre\<^sub>R Q) \<and> pre\<^sub>R R) \<turnstile>
-          (((cmt\<^sub>R P \<and> cmt\<^sub>R Q) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (cmt\<^sub>R P \<or> cmt\<^sub>R Q) \<and> cmt\<^sub>R R) 
-              \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
-           ((cmt\<^sub>R P \<and> cmt\<^sub>R Q) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (cmt\<^sub>R P \<or> cmt\<^sub>R Q) \<or> cmt\<^sub>R R)))"
-    by (simp add: ExtChoice_rdes unrest)
+          (((cmt\<^sub>R P \<and> cmt\<^sub>R Q) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (cmt\<^sub>R P \<or> cmt\<^sub>R Q) \<and> cmt\<^sub>R R) 
+              \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright>
+           ((cmt\<^sub>R P \<and> cmt\<^sub>R Q) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (cmt\<^sub>R P \<or> cmt\<^sub>R Q) \<or> cmt\<^sub>R R)))"
+    by (simp add: extChoice_rdes unrest)
   also have "... = 
     \<^bold>R\<^sub>s (((pre\<^sub>R P \<and> pre\<^sub>R Q) \<and> pre\<^sub>R R) \<turnstile>
           (((cmt\<^sub>R P \<and> cmt\<^sub>R Q) \<and> cmt\<^sub>R R) 
-              \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
+              \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright>
             ((cmt\<^sub>R P \<or> cmt\<^sub>R Q) \<or> cmt\<^sub>R R)))"
     by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)      
   also have "... = 
     \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> pre\<^sub>R Q \<and> pre\<^sub>R R) \<turnstile>
           ((cmt\<^sub>R P \<and> (cmt\<^sub>R Q \<and> cmt\<^sub>R R) ) 
-              \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
+              \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright>
            (cmt\<^sub>R P \<or> (cmt\<^sub>R Q \<or> cmt\<^sub>R R))))"
     by (simp add: conj_assoc disj_assoc)
   also have "... = 
     \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> pre\<^sub>R Q \<and> pre\<^sub>R R) \<turnstile>
-          ((cmt\<^sub>R P \<and> (cmt\<^sub>R Q \<and> cmt\<^sub>R R) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (cmt\<^sub>R Q \<or> cmt\<^sub>R R)) 
-              \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright>
-           (cmt\<^sub>R P \<or> (cmt\<^sub>R Q \<and> cmt\<^sub>R R) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> (cmt\<^sub>R Q \<or> cmt\<^sub>R R))))"
+          ((cmt\<^sub>R P \<and> (cmt\<^sub>R Q \<and> cmt\<^sub>R R) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (cmt\<^sub>R Q \<or> cmt\<^sub>R R)) 
+              \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright>
+           (cmt\<^sub>R P \<or> (cmt\<^sub>R Q \<and> cmt\<^sub>R R) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (cmt\<^sub>R Q \<or> cmt\<^sub>R R))))"
     by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
   also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P)) \<box> (\<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> cmt\<^sub>R(Q)) \<box> \<^bold>R\<^sub>s(pre\<^sub>R(R) \<turnstile> cmt\<^sub>R(R)))"
-    by (simp add: ExtChoice_rdes unrest)
+    by (simp add: extChoice_rdes unrest)
   also have "... = P \<box> (Q \<box> R)"
     by (simp add: SRD_reactive_design_alt assms(1) assms(2) assms(3))
   finally show ?thesis .
@@ -464,9 +541,9 @@ lemma ExtChoice_Stop:
 proof -
   have "Stop \<box> Q = \<^bold>R\<^sub>s (true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)) \<box> \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> cmt\<^sub>R(Q))"
     by (simp add: Stop_def SRD_reactive_design_alt assms)
-  also have "... = \<^bold>R\<^sub>s (pre\<^sub>R Q \<turnstile> ((($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>) \<and> cmt\<^sub>R Q) \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<or> cmt\<^sub>R Q)))"
-    by (simp add: ExtChoice_rdes unrest)
-  also have "... = \<^bold>R\<^sub>s (pre\<^sub>R Q \<turnstile> (cmt\<^sub>R Q \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> cmt\<^sub>R Q))"
+  also have "... = \<^bold>R\<^sub>s (pre\<^sub>R Q \<turnstile> ((($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>) \<and> cmt\<^sub>R Q) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<or> cmt\<^sub>R Q)))"
+    by (simp add: extChoice_rdes unrest)
+  also have "... = \<^bold>R\<^sub>s (pre\<^sub>R Q \<turnstile> (cmt\<^sub>R Q \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> cmt\<^sub>R Q))"
     by (metis (no_types, lifting) cond_def eq_upred_sym neg_conj_cancel1 utp_pred.inf.left_idem)
   also have "... = \<^bold>R\<^sub>s (pre\<^sub>R Q \<turnstile> cmt\<^sub>R Q)"
     by (simp add: cond_idem)
@@ -481,8 +558,8 @@ lemma ExtChoice_Chaos:
 proof -
   have "Chaos \<box> Q = \<^bold>R\<^sub>s (false \<turnstile> true) \<box> \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> cmt\<^sub>R(Q))"
     by (simp add: Chaos_def SRD_reactive_design_alt assms)
-  also have "... = \<^bold>R\<^sub>s (false \<turnstile> (cmt\<^sub>R Q \<triangleleft> $tr =\<^sub>u $tr\<acute> \<and> $wait\<acute> \<triangleright> true))"
-    by (simp add: ExtChoice_rdes unrest)
+  also have "... = \<^bold>R\<^sub>s (false \<turnstile> (cmt\<^sub>R Q \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> true))"
+    by (simp add: extChoice_rdes unrest)
   also have "... = \<^bold>R\<^sub>s (false \<turnstile> true)"
     by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
   also have "... = Chaos"
