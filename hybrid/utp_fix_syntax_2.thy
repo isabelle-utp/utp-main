@@ -17,7 +17,8 @@ no_notation
   conj (infixr "\<and>" 35) and
   disj (infixr "\<or>" 30) and
   Not ("\<not> _" [40] 40) and
-  Not  ("~ _" [40] 40)
+  Not  ("~ _" [40] 40) and 
+  BNF_Def.convol ("\<langle>(_,/ _)\<rangle>")
   
 no_notation inf (infixl "\<sqinter>" 70)
 notation inf (infixl "\<squnion>" 70)

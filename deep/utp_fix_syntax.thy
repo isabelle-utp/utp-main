@@ -14,7 +14,8 @@ no_notation
   ainf ("\<Sqinter>\<index>_" [90] 90) and
   conj (infixr "\<and>" 35) and
   disj (infixr "\<or>" 30) and
-  Not ("\<not> _" [40] 40)
+  Not ("\<not> _" [40] 40) and
+  BNF_Def.convol ("\<langle>(_,/ _)\<rangle>")
   
 no_notation inf (infixl "\<sqinter>" 70)
 notation inf (infixl "\<squnion>" 70)
