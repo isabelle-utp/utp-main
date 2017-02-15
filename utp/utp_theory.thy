@@ -198,7 +198,7 @@ lemma upred_lattice_Idempotent [simp]: "Idem\<^bsub>\<P>\<^esub> H = Idempotent 
 
 lemma upred_lattice_Monotonic [simp]: "Mono\<^bsub>\<P>\<^esub> H = Monotonic H"
   using upred_lattice.weak_partial_order_axioms by (auto simp add: isotone_def Monotonic_def)
-
+    
 subsection {* UTP theories hierarchy *}
 
 typedef ('\<T>, '\<alpha>) uthy = "UNIV :: unit set"
@@ -271,6 +271,10 @@ done
 lemma isotone_utp_orderI: "Monotonic H \<Longrightarrow> isotone (utp_order X) (utp_order Y) H"
   by (auto simp add: Monotonic_def isotone_def utp_weak_partial_order)
 
+lemma Mono_utp_orderI:
+  "\<lbrakk> \<And> P Q. \<lbrakk> P \<sqsubseteq> Q; P is H; Q is H \<rbrakk> \<Longrightarrow> F(P) \<sqsubseteq> F(Q) \<rbrakk> \<Longrightarrow> Mono\<^bsub>utp_order H\<^esub> F"
+  by (auto simp add: isotone_def utp_weak_partial_order)
+    
 text {* The UTP order can equivalently be characterised as the fixed point lattice, @{const fpl}. *}
 
 lemma utp_order_fpl: "utp_order H = fpl \<P> H"
@@ -659,12 +663,23 @@ definition utp_star ("_\<^bold>\<star>\<index>" [999] 999) where
 definition utp_omega ("_\<^bold>\<omega>\<index>" [999] 999) where
 "utp_omega \<T> P = (\<mu>\<^bsub>\<T>\<^esub> (\<lambda> X. (P ;; X)))"
 
-locale utp_pre_left_quantale = utp_theory_lattice + utp_theory_left_unital
+locale utp_pre_left_quantale = utp_theory_continuous + utp_theory_left_unital
 begin
 
   lemma star_healthy [closure]: "P\<^bold>\<star> is \<H>"
     by (metis mem_Collect_eq utp_order_carrier utp_star_def weak.GFP_closed)
 
+      
+  lemma star_unfold: "P is \<H> \<Longrightarrow> P\<^bold>\<star> = (P;;P\<^bold>\<star>) \<sqinter> \<I>\<I>"
+    apply (simp add: utp_star_def healthy_meet_cont)
+    apply (subst GFP_unfold)
+    apply (rule Mono_utp_orderI)
+    apply (simp add: healthy_meet_cont closure semilattice_sup_class.le_supI1 seqr_mono)
+    apply (auto intro: funcsetI)
+    apply (simp add: Healthy_Left_Unit Healthy_Sequence healthy_meet_cont meet_is_healthy)
+    using Healthy_Left_Unit Healthy_Sequence healthy_meet_cont weak.GFP_closed apply auto
+  done
+      
 end
 
 sublocale utp_theory_unital \<subseteq> utp_theory_left_unital
