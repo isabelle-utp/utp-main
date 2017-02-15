@@ -259,6 +259,7 @@ syntax
   "_vapply"        :: "('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> ('c, '\<alpha>) vexpr" ("_'(_')\<^sub>v" [950,0] 950)
   "_vdom"          :: "('a \<rightharpoonup> 'b, '\<alpha>) vexpr \<Rightarrow> ('a set, '\<alpha>) vexpr" ("dom\<^sub>v'(_')")
   "_vrng"          :: "('a \<rightharpoonup> 'b, '\<alpha>) vexpr \<Rightarrow> ('b set, '\<alpha>) vexpr" ("rng\<^sub>v'(_')")
+  "_vcard"         :: "('a set, '\<alpha>) vexpr \<Rightarrow> (nat, '\<alpha>) vexpr" ("card\<^sub>v'(_')")
   "_vmapempty"     :: "('a \<rightharpoonup> 'b, '\<alpha>) vexpr" ("\<lbrace>\<mapsto>\<rbrace>\<^sub>v")
   "_vmaplet"       :: "('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> vmaplet" ("_ /\<mapsto>/ _")
   "_vmaplets_unit" :: "vmaplet \<Rightarrow> vmaplets" ("_")
@@ -308,6 +309,7 @@ translations
   "f(x)\<^sub>v"  == "CONST vbop CONST vapply f x"
   "dom\<^sub>v(f)" == "CONST vuop (CONST upfun' CONST dom) f"
   "rng\<^sub>v(f)" == "CONST vuop (CONST upfun' CONST ran) f"
+  "card\<^sub>v(f)" == "CONST vuop (CONST upfun' CONST card) f"
   "\<lbrace>\<mapsto>\<rbrace>\<^sub>v"   == "\<guillemotleft>Map.empty\<guillemotright>\<^sub>v"
   (* For some reason I can't get maps to show correctly -- seems something is wrong with these rules *)
   "_vmap_enum (_vmaplets_unit (_vmaplet k v))" == "CONST vbop (CONST bpfun' (CONST map_upd Map.empty)) k v"
