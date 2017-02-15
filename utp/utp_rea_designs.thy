@@ -71,6 +71,9 @@ lemma RD1_mono: "P \<sqsubseteq> Q \<Longrightarrow> RD1(P) \<sqsubseteq> RD1(Q)
 lemma RD1_Monotonic: "Monotonic RD1"
   using Monotonic_def RD1_mono by blast
 
+lemma RD1_Continuous: "Continuous RD1"
+  by (rel_auto)
+    
 lemma RD2_idem: "RD2(RD2(P)) = RD2(P)"
   by (simp add: H2_idem RD2_def)
 
@@ -83,6 +86,9 @@ lemma RD2_mono: "P \<sqsubseteq> Q \<Longrightarrow> RD2(P) \<sqsubseteq> RD2(Q)
 lemma RD2_Monotonic: "Monotonic RD2"
   using Monotonic_def RD2_mono by blast
 
+lemma RD2_Continuous: "Continuous RD2"
+  by (rel_auto)
+    
 lemma RD1_RD2_commute: "RD1(RD2(P)) = RD2(RD1(P))"
   by (rel_auto)
 
@@ -115,6 +121,9 @@ lemma R3c_mono: "P \<sqsubseteq> Q \<Longrightarrow> R3c(P) \<sqsubseteq> R3c(Q)
 lemma R3c_Monotonic: "Monotonic R3c"
   by (simp add: Monotonic_def R3c_mono)
 
+lemma R3c_Continuous: "Continuous R3c"
+  by (rel_auto)
+    
 lemma R3h_idem: "R3h(R3h(P)) = R3h(P)"
   by (rel_auto)
 
@@ -127,6 +136,9 @@ lemma R3h_mono: "P \<sqsubseteq> Q \<Longrightarrow> R3h(P) \<sqsubseteq> R3h(Q)
 lemma R3h_Monotonic: "Monotonic R3h"
   by (simp add: Monotonic_def R3h_mono)
 
+lemma R3h_Continuous: "Continuous R3h"
+  by (rel_auto)
+    
 lemma R3c_via_RD1_R3: "RD1(R3(P)) = R3c(RD1(P))"
   by (rel_auto)
 
@@ -190,6 +202,18 @@ where [upred_defs]: "RD(P) = RD1(RD2(RP(P)))"
 definition SRD :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
 where [upred_defs]: "SRD(P) = RD1(RD2(RHS(P)))"
 
+lemma RH_comp: "RH = R1 \<circ> R2c \<circ> R3c"
+  by (auto simp add: RH_def)
+
+lemma RHS_comp: "RHS = R1 \<circ> R2c \<circ> R3h"
+  by (auto simp add: RHS_def)
+
+lemma RD_comp: "RD = RD1 \<circ> RD2 \<circ> RP"
+  by (auto simp add: RD_def)
+
+lemma SRD_comp: "SRD = RD1 \<circ> RD2 \<circ> RHS"
+  by (auto simp add: SRD_def)
+
 lemma RH_idem: "\<^bold>R(\<^bold>R(P)) = \<^bold>R(P)"
   by (simp add: R1_R2c_commute R1_R3c_commute R1_idem R2c_R3c_commute R2c_idem R3c_idem RH_def)
 
@@ -198,7 +222,10 @@ lemma RH_Idempotent: "Idempotent \<^bold>R"
 
 lemma RH_Monotonic: "Monotonic \<^bold>R"
   by (metis Monotonic_def R1_Monotonic R2c_Monotonic R3c_mono RH_def)
-
+    
+lemma RH_Continuous: "Continuous \<^bold>R"
+  by (simp add: Continuous_comp R1_Continuous R2c_Continuous R3c_Continuous RH_comp)
+    
 lemma RHS_idem: "\<^bold>R\<^sub>s(\<^bold>R\<^sub>s(P)) = \<^bold>R\<^sub>s(P)"
   by (simp add: R1_R2c_is_R2 R1_R3h_commute R2_idem R2c_R3h_commute R3h_idem RHS_def)
 
@@ -208,6 +235,9 @@ lemma RHS_Idempotent: "Idempotent \<^bold>R\<^sub>s"
 lemma RHS_Monotonic: "Monotonic \<^bold>R\<^sub>s"
   by (simp add: Monotonic_def R1_R2c_is_R2 R2_mono R3h_mono RHS_def)
 
+lemma RHS_Continuous: "Continuous \<^bold>R\<^sub>s"
+  by (simp add: Continuous_comp R1_Continuous R2c_Continuous R3h_Continuous RHS_comp)
+    
 lemma RD_alt_def: "RD(P) = RD1(RD2(\<^bold>R(P)))"
   by (simp add: R3c_via_RD1_R3 RD1_R1_commute RD1_R2c_commute RD1_R3c_commute RD1_RD2_commute RH_def RD_def RP_def)
 
@@ -223,6 +253,9 @@ lemma RD_idem: "RD(RD(P)) = RD(P)"
 lemma RD_Monotonic: "Monotonic RD"
   by (metis Monotonic_def RD1_mono RD2_Monotonic RD_alt_def RH_Monotonic)
 
+lemma RD_Continuous: "Continuous RD"
+  by (simp add: Continuous_comp RD1_Continuous RD2_Continuous RD_comp RP_Continuous)
+    
 lemma R3_RD_RP: "R3(RD(P)) = RP(RD1(RD2(P)))"
   by (metis (no_types, lifting) R1_R2c_is_R2 R2_R3_commute R3_cancels_R3c RD1_RH_commute RD2_RH_commute RD_alt_def RH_def RP_def)
 
@@ -237,6 +270,9 @@ lemma SRD_idem: "SRD(SRD(P)) = SRD(P)"
 
 lemma SRD_Monotonic: "Monotonic SRD"
   by (metis Monotonic_def RD1_mono RD2_Monotonic RHS_Monotonic SRD_def)
+    
+lemma SRD_Continuous: "Continuous SRD"
+  by (simp add: Continuous_comp RD1_Continuous RD2_Continuous RHS_Continuous SRD_comp)
     
 typedecl RDES
 typedecl SRDES
@@ -258,12 +294,12 @@ end
 interpretation rdes_theory: utp_theory "UTHY(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp)"
   by (unfold_locales, simp_all add: rdes_hcond_def RD_idem)
 
-interpretation rdes_theory_mono: utp_theory_mono "UTHY(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp)"
+interpretation rdes_theory_continuous: utp_theory_continuous "UTHY(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp)"
   rewrites "\<And> P. P \<in> carrier (uthy_order RDES) \<longleftrightarrow> P is RD"
   and "carrier (uthy_order RDES) \<rightarrow> carrier (uthy_order RDES) \<equiv> \<lbrakk>RD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RD\<rbrakk>\<^sub>H"
   and "le (uthy_order RDES) = op \<sqsubseteq>"
   and "eq (uthy_order RDES) = op ="
-  by (unfold_locales, simp_all add: rdes_hcond_def RD_Monotonic)
+  by (unfold_locales, simp_all add: rdes_hcond_def RD_Continuous)
 
 interpretation rdes_rea_galois: 
   galois_connection "(RDES \<leftarrow>\<langle>RD1 \<circ> RD2,R3\<rangle>\<rightarrow> REA)"
@@ -302,12 +338,13 @@ interpretation rdes_rea_retract:
 interpretation srdes_theory: utp_theory "UTHY(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp)"
   by (unfold_locales, simp_all add: srdes_hcond_def SRD_idem)
 
-interpretation srdes_theory_mono: utp_theory_mono "UTHY(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp)"
+interpretation srdes_theory_continuous: utp_theory_continuous "UTHY(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp)"
   rewrites "\<And> P. P \<in> carrier (uthy_order SRDES) \<longleftrightarrow> P is SRD"
+  and "P is \<H>\<^bsub>SRDES\<^esub> \<longleftrightarrow> P is SRD"
   and "carrier (uthy_order SRDES) \<rightarrow> carrier (uthy_order SRDES) \<equiv> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
   and "le (uthy_order SRDES) = op \<sqsubseteq>"
   and "eq (uthy_order SRDES) = op ="
-  by (unfold_locales, simp_all add: srdes_hcond_def SRD_Monotonic)
+  by (unfold_locales, simp_all add: srdes_hcond_def SRD_Continuous)
     
 lemma SRD_healths:
   assumes "P is SRD"
@@ -1383,7 +1420,7 @@ abbreviation Miracle :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp"
 lemma Chaos_def: "Chaos = \<^bold>R\<^sub>s(false \<turnstile> true)"
 proof -
   have "Chaos = SRD(true)"
-    by (metis srdes_hcond_def srdes_theory_mono.healthy_bottom)
+    by (metis srdes_hcond_def srdes_theory_continuous.healthy_bottom)
   also have "... = \<^bold>R\<^sub>s(\<^bold>H(true))"
     by (simp add: SRD_RHS_H1_H2)
   also have "... = \<^bold>R\<^sub>s(false \<turnstile> true)"
@@ -1394,7 +1431,7 @@ qed
 lemma Miracle_def: "Miracle = \<^bold>R\<^sub>s(true \<turnstile> false)"
 proof -
   have "Miracle = SRD(false)"
-    by (metis srdes_hcond_def srdes_theory_mono.healthy_top)
+    by (metis srdes_hcond_def srdes_theory_continuous.healthy_top)
   also have "... = \<^bold>R\<^sub>s(\<^bold>H(false))"
     by (simp add: SRD_RHS_H1_H2)
   also have "... = \<^bold>R\<^sub>s(true \<turnstile> false)"
@@ -1402,8 +1439,10 @@ proof -
   finally show ?thesis .
 qed
 
-thm srdes_theory_mono.weak.bottom_lower
-thm srdes_theory_mono.weak.top_higher
+thm srdes_theory_continuous.weak.bottom_lower
+thm srdes_theory_continuous.weak.top_higher
+thm srdes_theory_continuous.meet_bottom
+thm srdes_theory_continuous.meet_top
 
 subsection {* Reactive design parallel-by-merge *}
 

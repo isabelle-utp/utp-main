@@ -595,6 +595,9 @@ lemma H1_monotone:
   "P \<sqsubseteq> Q \<Longrightarrow> H1(P) \<sqsubseteq> H1(Q)"
   by pred_auto
 
+lemma H1_Continuous: "Continuous H1"
+  by rel_auto
+    
 lemma H1_below_top:
   "H1(P) \<sqsubseteq> \<top>\<^sub>D"
   by pred_auto
@@ -823,6 +826,9 @@ theorem H2_idem:
   "H2(H2(P)) = H2(P)"
   by (metis H2_def J_idem seqr_assoc)
 
+theorem H2_Continuous: "Continuous H2"
+  by (rel_auto)
+    
 theorem H2_not_okay: "H2 (\<not> $ok) = (\<not> $ok)"
 proof -
   have "H2 (\<not> $ok) = ((\<not> $ok)\<^sup>f \<or> ((\<not> $ok)\<^sup>t \<and> $ok\<acute>))"
@@ -885,6 +891,9 @@ abbreviation "H1_H2 P \<equiv> H1 (H2 P)"
 
 notation H1_H2 ("\<^bold>H")
 
+lemma H1_H2_comp: "\<^bold>H = H1 \<circ> H2"
+  by (auto)
+  
 theorem H1_H2_eq_design:
   "\<^bold>H(P) = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
 proof -
@@ -938,6 +947,9 @@ lemma H1_H2_Idempotent: "Idempotent \<^bold>H"
 lemma H1_H2_monotonic: "Monotonic \<^bold>H"
   by (simp add: H1_monotone H2_def Monotonic_def seqr_mono)
 
+lemma H1_H2_Continuous: "Continuous \<^bold>H"
+  by (simp add: Continuous_comp H1_Continuous H1_H2_comp H2_Continuous)
+    
 lemma design_is_H1_H2 [closure]:
   "\<lbrakk> $ok\<acute> \<sharp> P; $ok\<acute> \<sharp> Q \<rbrakk> \<Longrightarrow> (P \<turnstile> Q) is \<^bold>H"
   by (simp add: H1_design H2_design Healthy_def')
@@ -1047,6 +1059,9 @@ theorem H3_Monotonic:
   "Monotonic H3"
   by (simp add: H3_mono Monotonic_def)
 
+theorem H3_Continuous: "Continuous H3"
+  by (rel_auto)
+ 
 theorem design_condition_is_H3:
   assumes "out\<alpha> \<sharp> p"
   shows "(p \<turnstile> Q) is H3"
@@ -1166,6 +1181,9 @@ abbreviation "H1_H3 p \<equiv> H1 (H3 p)"
 
 notation H1_H3 ("\<^bold>N")
 
+lemma H1_H3_comp: "H1_H3 = H1 \<circ> H3"
+  by (auto)
+  
 lemma H1_H3_idempotent: "\<^bold>N (\<^bold>N P) = \<^bold>N P"
   by (simp add: H1_H3_commute H1_idem H3_idem)
 
@@ -1175,6 +1193,9 @@ lemma H1_H3_Idempotent: "Idempotent \<^bold>N"
 lemma H1_H3_monotonic: "Monotonic \<^bold>N"
   by (simp add: H1_monotone H3_mono Monotonic_def)
 
+lemma H1_H3_Continuous: "Continuous \<^bold>N"
+  by (simp add: Continuous_comp H1_Continuous H1_H3_comp H3_Continuous)
+    
 lemma H1_H3_impl_H2: "P is H1_H3 \<Longrightarrow> P is H1_H2"
   by (metis H1_H2_commute H1_idem H2_H3_absorb Healthy_def')
 
@@ -1303,25 +1324,25 @@ interpretation ndes_unital: utp_theory_unital NDES
   apply (metis H1_H3_commute H3_def H3_idem Healthy_def')
 done
 
-interpretation design_theory_mono: utp_theory_mono DES
+interpretation design_theory_continuous: utp_theory_continuous DES
   rewrites "\<And> P. P \<in> carrier (uthy_order DES) \<longleftrightarrow> P is \<^bold>H"
   and "carrier (uthy_order DES) \<rightarrow> carrier (uthy_order DES) \<equiv> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
   and "le (uthy_order DES) = op \<sqsubseteq>"
   and "eq (uthy_order DES) = op ="  
-  by (unfold_locales, simp_all add: des_hcond_def H1_H2_monotonic utp_order_def)
-
-interpretation normal_design_theory_mono: utp_theory_mono NDES
+  by (unfold_locales, simp_all add: des_hcond_def H1_H2_Continuous utp_order_def)
+    
+interpretation normal_design_theory_mono: utp_theory_continuous NDES
   rewrites "\<And> P. P \<in> carrier (uthy_order NDES) \<longleftrightarrow> P is \<^bold>N"
   and "carrier (uthy_order NDES) \<rightarrow> carrier (uthy_order NDES) \<equiv> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"
   and "le (uthy_order NDES) = op \<sqsubseteq>"
   and "eq (uthy_order NDES) = op ="  
-  by (unfold_locales, simp_all add: ndes_hcond_def H1_H3_monotonic utp_order_def)
+  by (unfold_locales, simp_all add: ndes_hcond_def H1_H3_Continuous utp_order_def)
 
 lemma design_lat_top: "\<^bold>\<top>\<^bsub>DES\<^esub> = \<^bold>H(false)"
-  by (simp add: design_theory_mono.healthy_top, simp add: des_hcond_def)
+  by (simp add: design_theory_continuous.healthy_top, simp add: des_hcond_def)
 
 lemma design_lat_bottom: "\<^bold>\<bottom>\<^bsub>DES\<^esub> = \<^bold>H(true)"
-  by (simp add: design_theory_mono.healthy_bottom, simp add: des_hcond_def)
+  by (simp add: design_theory_continuous.healthy_bottom, simp add: des_hcond_def)
 
 abbreviation design_lfp :: "('\<alpha> hrel_des \<Rightarrow> '\<alpha> hrel_des) \<Rightarrow> '\<alpha> hrel_des" ("\<mu>\<^sub>D") where
 "\<mu>\<^sub>D F \<equiv> \<mu>\<^bsub>uthy_order DES\<^esub> F"
@@ -1329,8 +1350,8 @@ abbreviation design_lfp :: "('\<alpha> hrel_des \<Rightarrow> '\<alpha> hrel_des
 abbreviation design_gfp :: "('\<alpha> hrel_des \<Rightarrow> '\<alpha> hrel_des) \<Rightarrow> '\<alpha> hrel_des" ("\<nu>\<^sub>D") where
 "\<nu>\<^sub>D F \<equiv> \<nu>\<^bsub>uthy_order DES\<^esub> F"
 
-thm design_theory_mono.GFP_unfold
-thm design_theory_mono.LFP_unfold
+thm design_theory_continuous.GFP_unfold
+thm design_theory_continuous.LFP_unfold
 
 text {* We also set up local variables for designs. *}
 

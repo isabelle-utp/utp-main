@@ -45,7 +45,7 @@ lemma upred_lattice_le [simp]:
 lemma upred_lattice_carrier [simp]:
   "carrier \<P> = UNIV"
   by (simp add: upred_lattice_def)
-
+    
 subsection {* Healthiness conditions *}
 
 type_synonym '\<alpha> health = "'\<alpha> upred \<Rightarrow> '\<alpha> upred"
@@ -179,7 +179,10 @@ done
 lemma Continuous_Monotonic: "Continuous H \<Longrightarrow> Monotonic H"
   by (simp add: Continuous_Disjunctous Disjunctuous_Monotonic)
 
-  
+lemma Continuous_comp [intro]: 
+  "\<lbrakk> Continuous f; Continuous g \<rbrakk> \<Longrightarrow> Continuous (f \<circ> g)"
+  by (simp add: Continuous_def)
+    
 lemma Healthy_fixed_points [simp]: "fps \<P> H = \<lbrakk>H\<rbrakk>\<^sub>H"
   by (simp add: fps_def upred_lattice_def Healthy_def)
 
@@ -365,6 +368,10 @@ abbreviation utp_gfp ("\<^bold>\<nu>\<index>") where
 abbreviation utp_lfp ("\<^bold>\<mu>\<index>") where
 "utp_lfp \<T> \<equiv> \<mu>\<^bsub>uthy_order \<T>\<^esub>"
 
+lemma upred_lattice_inf:
+  "ainf \<P> A = \<Sqinter> A"
+  by (metis Sup_least Sup_upper UNIV_I antisym_conv subsetI upred_lattice.weak.inf_greatest upred_lattice.weak.inf_lower upred_lattice_carrier upred_lattice_le)
+    
 text {* We can then derive a number of properties about these operators, as below. *}
 
 context utp_theory_lattice
@@ -459,9 +466,64 @@ begin
       by (simp add: upred_bottom)
     finally show ?thesis .
   qed
+    
+lemma healthy_inf: 
+  assumes "A \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H"
+  shows "\<^bold>\<Sqinter> A = \<H> (\<Sqinter> A)"
+proof -
+  have 1: "weak_complete_lattice (uthy_order \<T>)"
+    by (simp add: weak.weak_complete_lattice_axioms)
+  have 2: "Mono\<^bsub>uthy_order \<T>\<^esub> \<H>"
+    by (simp add: HCond_Mono isotone_utp_orderI)
+  have 3: "Idem\<^bsub>uthy_order \<T>\<^esub> \<H>"
+    by (simp add: HCond_Idem idempotent_def)
+  show ?thesis
+    using Knaster_Tarski_idem_inf_eq[OF upred_weak_complete_lattice, of "\<H>"]
+    by (simp, metis HCond_Idempotent HCond_Mono assms partial_object.simps(3) upred_lattice_def upred_lattice_inf utp_order_def)
+qed
 
 end
 
+locale utp_theory_continuous = utp_theory + 
+  assumes HCond_Cont [closure,intro]: "Continuous \<H>"
+
+sublocale utp_theory_continuous \<subseteq> utp_theory_mono
+proof
+  show "Monotonic \<H>"
+    by (simp add: Continuous_Monotonic HCond_Cont)
+qed
+  
+context utp_theory_continuous
+begin
+  
+  lemma healthy_inf_cont: 
+    assumes "A \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H" "A \<noteq> {}"
+    shows "\<^bold>\<Sqinter> A = \<Sqinter> (\<H> ` A)"
+    using Continuous_def assms(1) assms(2) healthy_inf by auto
+
+  lemma healthy_meet_cont:
+    assumes "P is \<H>" "Q is \<H>"
+    shows "P \<^bold>\<sqinter> Q = P \<sqinter> Q"
+    using healthy_inf_cont[of "{P, Q}"] assms
+    by (simp add: Healthy_if meet_def)
+    
+  lemma meet_is_healthy:
+    assumes "P is \<H>" "Q is \<H>"  
+    shows "P \<sqinter> Q is \<H>"
+    by (metis Continuous_Disjunctous Disjunctuous_def HCond_Cont Healthy_def' assms(1) assms(2))
+
+  lemma meet_bottom [simp]:
+    assumes "P is \<H>"
+    shows "P \<sqinter> \<^bold>\<bottom> = \<^bold>\<bottom>"
+      by (simp add: assms semilattice_sup_class.sup_absorb2 utp_bottom)
+      
+  lemma meet_top [simp]:
+    assumes "P is \<H>"
+    shows "P \<sqinter> \<^bold>\<top> = P"
+      by (simp add: assms semilattice_sup_class.sup_absorb1 utp_top)
+
+end
+  
 text {* In another direction, we can also characterise UTP theories that are relational. Minimally
   this requires that the healthiness condition is closed under sequential composition. *}
 

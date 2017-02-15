@@ -114,6 +114,9 @@ lemma R1_mono: "P \<sqsubseteq> Q \<Longrightarrow> R1(P) \<sqsubseteq> R1(Q)"
 lemma R1_Monotonic: "Monotonic R1"
   by (simp add: Monotonic_def R1_mono)
 
+lemma R1_Continuous: "Continuous R1"
+  by (auto simp add: Continuous_def, rel_auto)
+    
 lemma R1_unrest [unrest]: "\<lbrakk> x \<bowtie> in_var tr; x \<bowtie> out_var tr; x \<sharp> P \<rbrakk> \<Longrightarrow> x \<sharp> R1(P)"
   by (metis R1_def in_var_uvar lens_indep_sym out_var_uvar tr_vwb_lens unrest_bop unrest_conj unrest_var)
 
@@ -252,6 +255,9 @@ lemma R2_idem: "R2(R2(P)) = R2(P)"
 lemma R2_mono: "P \<sqsubseteq> Q \<Longrightarrow> R2(P) \<sqsubseteq> R2(Q)"
   by (pred_auto)
 
+lemma R2c_Continuous: "Continuous R2c"
+  by (auto simp add: Continuous_def, rel_auto)
+    
 lemma R2s_conj: "R2s(P \<and> Q) = (R2s(P) \<and> R2s(Q))"
   by (pred_auto)
 
@@ -507,6 +513,9 @@ lemma R3_mono: "P \<sqsubseteq> Q \<Longrightarrow> R3(P) \<sqsubseteq> R3(Q)"
 lemma R3_Monotonic: "Monotonic R3"
   by (simp add: Monotonic_def R3_mono)
 
+lemma R3_Continuous: "Continuous R3"
+  by (rel_auto)
+    
 lemma R3_conj: "R3(P \<and> Q) = (R3(P) \<and> R3(Q))"
   by rel_auto
 
@@ -562,6 +571,9 @@ subsection {* RP laws *}
 
 definition RP_def [upred_defs]: "RP(P) = R1(R2c(R3(P)))"
 
+lemma RP_comp_def: "RP = R1 \<circ> R2c \<circ> R3"
+  by (auto simp add: RP_def)
+  
 lemma RP_alt_def: "RP(P) = R1(R2(R3(P)))"
   by (metis R1_R2c_is_R2 R1_idem RP_def)
 
@@ -579,7 +591,10 @@ lemma RP_mono: "P \<sqsubseteq> Q \<Longrightarrow> RP(P) \<sqsubseteq> RP(Q)"
 
 lemma RP_Monotonic: "Monotonic RP"
   by (simp add: Monotonic_def RP_mono)
- 
+    
+lemma RP_Continuous: "Continuous RP"
+  by (simp add: Continuous_comp R1_Continuous R2c_Continuous R3_Continuous RP_comp_def)
+
 lemma RP_skip:
   "RP(II) = II"
   by (simp add: R1_skip R2c_skip_r R3_skipr RP_def)
@@ -619,10 +634,10 @@ interpretation rea_utp_theory: utp_theory "UTHY(REA, ('t::ordered_cancel_monoid_
   rewrites "carrier (uthy_order REA) = \<lbrakk>RP\<rbrakk>\<^sub>H"
   by (simp_all add: rea_hcond_def utp_theory_def RP_idem)
 
-interpretation rea_utp_theory_mono: utp_theory_mono "UTHY(REA, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp)"
+interpretation rea_utp_theory_mono: utp_theory_continuous "UTHY(REA, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp)"
   rewrites "carrier (uthy_order REA) = \<lbrakk>RP\<rbrakk>\<^sub>H"
-  by (unfold_locales, simp_all add: RP_Monotonic rea_hcond_def)
-
+  by (unfold_locales, simp_all add: RP_Continuous rea_hcond_def)
+    
 interpretation rea_utp_theory_rel: utp_theory_unital "UTHY(REA, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp)"
   rewrites "carrier (uthy_order REA) = \<lbrakk>RP\<rbrakk>\<^sub>H"
   by (unfold_locales, simp_all add: rea_hcond_def rea_unit_def RP_seq_closure RP_skip_closure)
