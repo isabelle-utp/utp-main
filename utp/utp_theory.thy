@@ -65,6 +65,10 @@ declare Healthy_def' [upred_defs]
 abbreviation Healthy_carrier :: "'\<alpha> health \<Rightarrow> '\<alpha> upred set" ("\<lbrakk>_\<rbrakk>\<^sub>H")
 where "\<lbrakk>H\<rbrakk>\<^sub>H \<equiv> {P. P is H}"
 
+lemma Healthy_carrier_image:
+  "A \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H \<Longrightarrow> \<H> ` A = A"
+    by (auto simp add: image_def, (metis Healthy_if mem_Collect_eq subsetCE)+)
+
 subsection {* Properties of healthiness conditions *}
 
 definition Idempotent :: "'\<alpha> health \<Rightarrow> bool" where 
@@ -100,11 +104,14 @@ lemma Healthy_Idempotent [closure]:
 
 lemma Idempotent_id [simp]: "Idempotent id"
   by (simp add: Idempotent_def)
-
+    
 lemma Idempotent_comp [intro]:
   "\<lbrakk> Idempotent f; Idempotent g; f \<circ> g = g \<circ> f \<rbrakk> \<Longrightarrow> Idempotent (f \<circ> g)"
   by (auto simp add: Idempotent_def comp_def, metis)
 
+lemma Idempotent_image: "Idempotent f \<Longrightarrow> f ` f ` A = f ` A"
+  by (metis (mono_tags, lifting) Idempotent_def image_cong image_image)
+    
 lemma Monotonic_id [simp]: "Monotonic id"
   by (simp add: Monotonic_def)
 
@@ -498,9 +505,20 @@ begin
   
   lemma healthy_inf_cont: 
     assumes "A \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H" "A \<noteq> {}"
-    shows "\<^bold>\<Sqinter> A = \<Sqinter> (\<H> ` A)"
-    using Continuous_def assms(1) assms(2) healthy_inf by auto
-
+    shows "\<^bold>\<Sqinter> A = \<Sqinter> A"
+  proof -
+    have "\<^bold>\<Sqinter> A = \<Sqinter> (\<H>`A)"
+      using Continuous_def assms(1) assms(2) healthy_inf by auto
+    also have "... = \<Sqinter> A"
+      by (unfold Healthy_carrier_image[OF assms(1)], simp)
+    finally show ?thesis .
+  qed
+      
+  lemma healthy_inf_def:
+    assumes "A \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H"
+    shows "\<^bold>\<Sqinter> A = (if (A = {}) then \<^bold>\<top> else (\<Sqinter> A))"
+    using assms healthy_inf_cont weak.weak_inf_empty by auto
+      
   lemma healthy_meet_cont:
     assumes "P is \<H>" "Q is \<H>"
     shows "P \<^bold>\<sqinter> Q = P \<sqinter> Q"
@@ -531,6 +549,31 @@ locale utp_theory_rel =
   utp_theory +
   assumes Healthy_Sequence [closure]: "\<lbrakk> P is \<H>; Q is \<H> \<rbrakk> \<Longrightarrow> (P ;; Q) is \<H>"
 
+locale utp_theory_cont_rel = utp_theory_continuous + utp_theory_rel
+begin
+  
+  lemma seq_cont_Sup_distl:
+    assumes "P is \<H>" "A \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H" "A \<noteq> {}"
+    shows "P ;; (\<^bold>\<Sqinter> A) = \<^bold>\<Sqinter> {P ;; Q | Q. Q \<in> A }"
+  proof -
+    have "{P ;; Q | Q. Q \<in> A } \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H"
+      using Healthy_Sequence assms(1) assms(2) by (auto)
+    thus ?thesis
+      by (simp add: healthy_inf_cont seq_Sup_distl setcompr_eq_image assms)
+  qed
+
+  lemma seq_cont_Sup_distr:
+    assumes "Q is \<H>" "A \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H" "A \<noteq> {}"
+    shows "(\<^bold>\<Sqinter> A) ;; Q = \<^bold>\<Sqinter> {P ;; Q | P. P \<in> A }"
+  proof -
+    have "{P ;; Q | P. P \<in> A } \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H"
+      using Healthy_Sequence assms(1) assms(2) by (auto)
+    thus ?thesis
+      by (simp add: healthy_inf_cont seq_Sup_distr setcompr_eq_image assms)
+  qed
+    
+end
+    
 text {* There also exist UTP theories with units, and the following operator is a theory specific
   operator for them. *}
 
