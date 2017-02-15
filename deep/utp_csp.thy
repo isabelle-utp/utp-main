@@ -255,6 +255,32 @@ subsection {* Sequential Process Laws *}
 theorem STOP_is_Stop: "STOP = Stop"
   by (rel_simp, meson minus_zero_eq order_refl ordered_cancel_monoid_diff_class.diff_cancel)
   
+lemma R1_R2s_tr_wait: 
+  "R1 (R2s ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)) = ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)"
+  apply rel_auto using minus_zero_eq by blast
+    
+lemma Stop_left_zero:
+  assumes "P is CSP"
+  shows "Stop ;; P = Stop"
+proof -
+  have "Stop ;; P = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)) ;; \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P))"
+    by (simp add: Stop_def SRD_reactive_design_alt assms)
+  also have "... =  \<^bold>R\<^sub>s ((\<not> (($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>) \<and> \<not> $wait\<acute>) ;; R1 (\<not> R2s (pre\<^sub>R P))) \<turnstile>
+                       (($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>) ;; (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s (cmt\<^sub>R P))))"
+    by (simp add: RHS_design_composition unrest R1_R2s_tr_wait R2s_true R1_false)
+  also have "... =  \<^bold>R\<^sub>s (true \<turnstile> (($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>) ;; (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s (cmt\<^sub>R P))))"
+    by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
+  also have "... = \<^bold>R\<^sub>s (true \<turnstile> (($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>) ;; (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> true \<triangleright> R1 (R2s (cmt\<^sub>R P))))"
+    by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
+  also have "... = \<^bold>R\<^sub>s (true \<turnstile> (($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>) ;; (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D)))"
+    by simp
+  also have "... = \<^bold>R\<^sub>s (true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
+    by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
+  also have "... = Stop"
+    by (simp add: Stop_def)
+  finally show ?thesis .
+qed
+  
 lemma rdes_export_cmt: "\<^bold>R\<^sub>s(P \<turnstile> cmt\<^sub>s \<dagger> Q) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
   by (rel_auto)
   

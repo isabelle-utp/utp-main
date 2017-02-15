@@ -1248,6 +1248,9 @@ lemma ok_peri_unrest [unrest]: "$ok \<sharp> peri\<^sub>R P"
 lemma ok_post_unrest [unrest]: "$ok \<sharp> post\<^sub>R P"
   by (simp add: post\<^sub>R_def unrest usubst)
 
+lemma ok_cmt_unrest [unrest]: "$ok \<sharp> cmt\<^sub>R P"
+  by (simp add: cmt\<^sub>R_def unrest usubst)
+
 lemma ok'_pre_unrest [unrest]: "$ok\<acute> \<sharp> pre\<^sub>R P"
   by (simp add: pre\<^sub>R_def unrest usubst)
 
@@ -1256,6 +1259,9 @@ lemma ok'_peri_unrest [unrest]: "$ok\<acute> \<sharp> peri\<^sub>R P"
 
 lemma ok'_post_unrest [unrest]: "$ok\<acute> \<sharp> post\<^sub>R P"
   by (simp add: post\<^sub>R_def unrest usubst)
+
+lemma ok'_cmt_unrest [unrest]: "$ok\<acute> \<sharp> cmt\<^sub>R P"
+  by (simp add: cmt\<^sub>R_def unrest usubst)
 
 lemma wait_pre_unrest [unrest]: "$wait \<sharp> pre\<^sub>R P"
   by (simp add: pre\<^sub>R_def unrest usubst)
@@ -1266,6 +1272,9 @@ lemma wait_peri_unrest [unrest]: "$wait \<sharp> peri\<^sub>R P"
 lemma wait_post_unrest [unrest]: "$wait \<sharp> post\<^sub>R P"
   by (simp add: post\<^sub>R_def unrest usubst)
 
+lemma wait_cmt_unrest [unrest]: "$wait \<sharp> cmt\<^sub>R P"
+  by (simp add: cmt\<^sub>R_def unrest usubst)
+    
 lemma wait'_peri_unrest [unrest]: "$wait\<acute> \<sharp> peri\<^sub>R P"
   by (simp add: peri\<^sub>R_def unrest usubst)
 
@@ -1444,6 +1453,40 @@ thm srdes_theory_continuous.weak.top_higher
 thm srdes_theory_continuous.meet_bottom
 thm srdes_theory_continuous.meet_top
 
+lemma Miracle_left_zero:
+  assumes "P is SRD"
+  shows "Miracle ;; P = Miracle"
+proof -
+  have "Miracle ;; P = \<^bold>R\<^sub>s(true \<turnstile> false) ;; \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P))"
+    by (simp add: Miracle_def SRD_reactive_design_alt assms)
+  also have "... = \<^bold>R\<^sub>s(true \<turnstile> false)"
+    by (simp add: RHS_design_composition unrest R1_false R2s_false R2s_true)
+  also have "... = Miracle"
+    by (simp add: Miracle_def)
+  finally show ?thesis .
+qed
+
+lemma Chaos_left_zero:
+  assumes "P is SRD"
+  shows "(Chaos ;; P) = Chaos"
+proof -
+  have "Chaos ;; P = \<^bold>R\<^sub>s(false \<turnstile> true) ;; \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P))"
+    by (simp add: Chaos_def SRD_reactive_design_alt assms)
+  also have "... = \<^bold>R\<^sub>s ((\<not> R1 true \<and> \<not> (R1 true \<and> \<not> $wait\<acute>) ;; R1 (\<not> R2s (pre\<^sub>R P))) \<turnstile>
+                       (R1 true ;; (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s (cmt\<^sub>R P))))"    
+    by (simp add: RHS_design_composition unrest R2s_false R2s_true R1_false R1_true_comp)
+  also have "... = \<^bold>R\<^sub>s ((false \<and> \<not> (R1 true \<and> \<not> $wait\<acute>) ;; R1 (\<not> R2s (pre\<^sub>R P))) \<turnstile>
+                       (R1 true ;; (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s (cmt\<^sub>R P))))" 
+    by (simp add: RHS_design_neg_R1_pre)
+  also have "... = \<^bold>R\<^sub>s(true)"
+    by (simp add: design_false_pre)
+  also have "... = \<^bold>R\<^sub>s(false \<turnstile> true)"
+    by (simp add: design_def)
+  also have "... = Chaos"
+    by (simp add: Chaos_def)
+  finally show ?thesis .
+qed
+  
 subsection {* Reactive design parallel-by-merge *}
 
 definition [upred_defs]: "nil\<^sub>r\<^sub>m = (nil\<^sub>m \<triangleleft> $0-ok \<and> $1-ok \<triangleright> ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>))"
