@@ -540,6 +540,58 @@ begin
     shows "P \<sqinter> \<^bold>\<top> = P"
       by (simp add: assms semilattice_sup_class.sup_absorb1 utp_top)
 
+  text {* The UTP theory lfp operator can be rewritten to the alphabetised predicate lfp when
+    in a continuous context. *}
+    
+  theorem utp_lfp_def:
+    assumes "Monotonic F" "F \<in> \<lbrakk>\<H>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<rbrakk>\<^sub>H"
+    shows "\<^bold>\<mu> F = (\<mu> X \<bullet> F(\<H>(X)))" 
+  proof (rule antisym)
+    have ne: "{P. (P is \<H>) \<and> F P \<sqsubseteq> P} \<noteq> {}"
+    proof -
+      have "F \<^bold>\<top> \<sqsubseteq> \<^bold>\<top>"
+        using assms(2) utp_top weak.top_closed by force
+      thus ?thesis
+        by (auto, rule_tac x="\<^bold>\<top>" in exI, auto simp add: top_healthy)
+    qed
+    show "\<^bold>\<mu> F \<sqsubseteq> (\<mu> X \<bullet> F (\<H> X))"
+    proof -
+      have "\<Sqinter>{P. (P is \<H>) \<and> F(P) \<sqsubseteq> P} \<sqsubseteq> \<Sqinter>{P. F(\<H>(P)) \<sqsubseteq> P}"
+      proof -
+        have 1: "\<And> P. F(\<H>(P)) = \<H>(F(\<H>(P)))"
+          by (metis HCond_Idem Healthy_def assms(2) funcset_mem mem_Collect_eq)
+        show ?thesis
+        proof (rule Sup_least, auto) 
+          fix P
+          assume a: "F (\<H> P) \<sqsubseteq> P"
+          hence F: "(F (\<H> P)) \<sqsubseteq> (\<H> P)"
+            by (metis 1 HCond_Mono Monotonic_def)
+          show "\<Sqinter>{P. (P is \<H>) \<and> F P \<sqsubseteq> P} \<sqsubseteq> P"
+          proof (rule Sup_upper2[of "F (\<H> P)"])
+            show "F (\<H> P) \<in> {P. (P is \<H>) \<and> F P \<sqsubseteq> P}"
+            proof (auto)
+              show "F (\<H> P) is \<H>"
+                by (metis 1 Healthy_def)
+              show "F (F (\<H> P)) \<sqsubseteq> F (\<H> P)"
+                using F Monotonic_def assms(1) by blast
+            qed
+            show "F (\<H> P) \<sqsubseteq> P"
+              by (simp add: a)
+          qed
+        qed
+      qed
+        
+      with ne show ?thesis
+        by (simp add: LFP_def gfp_def, subst healthy_inf_cont, auto simp add: lfp_def)
+    qed
+    from ne show "(\<mu> X \<bullet> F (\<H> X)) \<sqsubseteq> \<^bold>\<mu> F"     
+      apply (simp add: LFP_def gfp_def, subst healthy_inf_cont, auto simp add: lfp_def)
+      apply (rule Sup_least)
+      apply (auto simp add: Healthy_def Sup_upper)
+    done
+  qed
+
+        
 end
   
 text {* In another direction, we can also characterise UTP theories that are relational. Minimally
@@ -571,7 +623,7 @@ begin
     thus ?thesis
       by (simp add: healthy_inf_cont seq_Sup_distr setcompr_eq_image assms)
   qed
-    
+      
 end
     
 text {* There also exist UTP theories with units, and the following operator is a theory specific
