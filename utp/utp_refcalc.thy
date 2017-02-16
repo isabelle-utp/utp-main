@@ -29,7 +29,9 @@ lemma rc_skip:
   using assms by (rel_auto)
 
 lemma rc_seq:
-  "w:[pre, post]\<^sub>u \<sqsubseteq> w:[pre, mid]\<^sub>u ;; w:[mid, post]\<^sub>u"
-  by rel_auto
+  assumes "vwb_lens w"
+  shows "w:[pre, post]\<^sub>u \<sqsubseteq> w:[pre, mid]\<^sub>u ;; w:[mid, post]\<^sub>u"
+  using assms                                   
+  by (rel_auto, metis vwb_lens.put_eq)
     
 end
