@@ -6,33 +6,16 @@ begin
   
 type_synonym 'c ODE = "real \<Rightarrow> 'c \<Rightarrow> 'c"
 
-lift_definition hasDerivAt :: 
+abbreviation hasDerivAt :: 
   "((real \<Rightarrow> 'c :: real_normed_vector), '\<alpha>) uexpr \<Rightarrow> 
-   ('c ODE, '\<alpha>) uexpr \<Rightarrow> real \<Rightarrow> real \<Rightarrow> '\<alpha> upred" ("_ has-deriv _ at _ < _" [90, 0, 91] 90)
-is "\<lambda> \<F> \<F>' \<tau> l A. (\<F> A has_vector_derivative (\<F>' A \<tau> (\<F> A \<tau>))) (at \<tau> within {0..l})" .
-
-lemma hasDerivAt_unrest [unrest]: "\<lbrakk> vwb_lens x; x \<sharp> f; x \<sharp> f' \<rbrakk> \<Longrightarrow> x \<sharp> f has-deriv f' at \<tau> < l"
-  by (pred_auto, presburger+)
+   ('c ODE, '\<alpha>) uexpr \<Rightarrow> 
+   (real, '\<alpha>) uexpr \<Rightarrow> 
+   (real, '\<alpha>) uexpr \<Rightarrow> '\<alpha> upred" ("_ has-deriv _ at _ < _" [90, 0, 0, 91] 90)
+where "hasDerivAt \<F> \<F>' \<tau> l \<equiv>
+       qtop (\<lambda> \<F> \<F>' \<tau> l. (\<F> has_vector_derivative \<F>' \<tau> (\<F> \<tau>)) (at \<tau> within {0..l})) \<F> \<F>' \<tau> l"
     
-term "\<^bold>\<lceil> \<guillemotleft>\<F>\<guillemotright> has-deriv \<F>' at \<tau> < l \<and> &x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u \<^bold>\<rceil>\<^sub>H"
-
 definition hODE :: "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) hyrel" ("\<langle>_ \<bullet> _\<rangle>\<^sub>H") where
-[urel_defs]: "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H = (\<^bold>\<exists> \<F>, l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<^bold>\<lceil> \<guillemotleft>\<F>\<guillemotright> has-deriv \<F>' at \<tau> < l \<and> &x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u \<^bold>\<rceil>\<^sub>H)"
-
-(*
-definition hODE_ivp :: "('a, 'd, 'c) cond_trd \<Rightarrow> ('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) relation_trd" ("_ \<Turnstile> \<langle>_ \<bullet> _\<rangle>\<^sub>H") where
-[urel_defs]: "\<I> \<Turnstile> \<langle>x \<bullet> \<F>'\<rangle>\<^sub>H = \<langle>x \<bullet> \<F>'\<rangle>\<^sub>H\<lbrakk>\<lceil>\<I>\<rceil>\<^sub></$\<^bold>c:x\<rbrakk>"
-
-
-definition hODE :: 
-  "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> 
-   ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) relation_trd" ("\<langle>_ \<bullet> _\<rangle>\<^sub>H") where
-  [upred_defs]:
-  "hODE x \<F>' = (\<^bold>\<exists> \<F> \<bullet> ($tr <\<^sub>u $tr\<acute>
-                       \<and> IVP(\<lceil>\<F>'\<rceil>\<^sub>C\<^sub><, \<^bold>l, $\<^bold>c:x) has-solution \<guillemotleft>\<F>\<guillemotright>
-                       \<and> (\<^bold>\<forall> t\<in>{0..<\<^bold>l}\<^sub>u \<bullet> x~(\<guillemotleft>t\<guillemotright>) =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u)
-                       \<and> $\<^bold>c:x\<acute> =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<^bold>l\<rparr>\<^sub>u))"
-*)
+[urel_defs]: "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H = (\<^bold>\<exists> \<F>, l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<^bold>\<lceil> \<guillemotleft>\<F>\<guillemotright> has-deriv \<F>' at \<guillemotleft>\<tau>\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> &x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u \<^bold>\<rceil>\<^sub>H)"
 
 abbreviation hODE_IVP ("\<langle>_ := _ \<bullet> _\<rangle>\<^sub>H") where
 "\<langle>x := x\<^sub>0 \<bullet> \<F>'\<rangle>\<^sub>H \<equiv> (\<^bold>c:x := x\<^sub>0 ;; \<langle>x \<bullet> \<F>'\<rangle>\<^sub>H)"
