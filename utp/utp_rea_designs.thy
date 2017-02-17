@@ -139,6 +139,9 @@ lemma R3h_Monotonic: "Monotonic R3h"
 lemma R3h_Continuous: "Continuous R3h"
   by (rel_auto)
     
+lemma R3h_cond: "R3h(P \<triangleleft> b \<triangleright> Q) = (R3h(P) \<triangleleft> b \<triangleright> R3h(Q))"
+  by (rel_auto)
+    
 lemma R3c_via_RD1_R3: "RD1(R3(P)) = R3c(RD1(P))"
   by (rel_auto)
 
@@ -237,6 +240,9 @@ lemma RHS_Monotonic: "Monotonic \<^bold>R\<^sub>s"
 
 lemma RHS_Continuous: "Continuous \<^bold>R\<^sub>s"
   by (simp add: Continuous_comp R1_Continuous R2c_Continuous R3h_Continuous RHS_comp)
+    
+lemma RHS_cond: "\<^bold>R\<^sub>s(P \<triangleleft> b \<triangleright> Q) = (\<^bold>R\<^sub>s(P) \<triangleleft> R2c b \<triangleright> \<^bold>R\<^sub>s(Q))"
+  by (simp add: RHS_def R3h_cond R2c_condr R1_cond)
     
 lemma RD_alt_def: "RD(P) = RD1(RD2(\<^bold>R(P)))"
   by (simp add: R3c_via_RD1_R3 RD1_R1_commute RD1_R2c_commute RD1_R3c_commute RD1_RD2_commute RH_def RD_def RP_def)
@@ -1329,6 +1335,12 @@ lemma rea_post_RHS_design: "post\<^sub>R(\<^bold>R\<^sub>s(P \<turnstile> Q \<di
 lemma rea_cmt_RHS_design: "cmt\<^sub>R(\<^bold>R\<^sub>s(P \<turnstile> Q)) = R1(R2c(cmt\<^sub>s \<dagger> (P \<Rightarrow> Q)))"
   by (simp add:RHS_def usubst cmt\<^sub>R_def R3h_def cmt\<^sub>s_design)
     
+lemma rdes_export_cmt: "\<^bold>R\<^sub>s(P \<turnstile> cmt\<^sub>s \<dagger> Q) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
+  by (rel_auto)
+  
+lemma rdes_export_pre: "\<^bold>R\<^sub>s((P\<lbrakk>true,false/$ok,$wait\<rbrakk>) \<turnstile> Q) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
+  by (rel_auto)
+    
 lemma SRD_reactive_design_alt:
   assumes "P is SRD"
   shows "\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P)) = P"
@@ -1387,9 +1399,17 @@ lemma RHS_pre_lemma: "(\<^bold>R\<^sub>s P)\<^sup>f\<^sub>f = R1(R2c(P\<^sup>f\<
   by (rel_auto)
     
 lemma RHS_design_neg_R1_pre:
-  "\<^bold>R\<^sub>s (((\<not> R1 P) \<and> Q) \<turnstile> R) = \<^bold>R\<^sub>s ((\<not> P \<and> Q) \<turnstile> R)"
+  "\<^bold>R\<^sub>s ((\<not> R1 P) \<turnstile> R) = \<^bold>R\<^sub>s ((\<not> P) \<turnstile> R)"
   by (rel_auto)
 
+lemma RHS_design_conj_neg_R1_pre:
+  "\<^bold>R\<^sub>s (((\<not> R1 P) \<and> Q) \<turnstile> R) = \<^bold>R\<^sub>s (((\<not> P) \<and> Q) \<turnstile> R)"
+  by (rel_auto)
+
+lemma RHS_design_R2c_pre:
+  "\<^bold>R\<^sub>s(R2c(P) \<turnstile> Q) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
+  by (rel_auto)
+    
 lemma SRD_composition:
   assumes "P is SRD" "Q is SRD"
   shows "(P ;; Q) = \<^bold>R\<^sub>s ((\<not> ((\<not> pre\<^sub>R P) ;; R1 true) \<and> \<not> ((post\<^sub>R P \<and> \<not> $wait\<acute>) ;; (\<not> pre\<^sub>R Q))) \<turnstile>
@@ -1477,7 +1497,7 @@ proof -
     by (simp add: RHS_design_composition unrest R2s_false R2s_true R1_false R1_true_comp)
   also have "... = \<^bold>R\<^sub>s ((false \<and> \<not> (R1 true \<and> \<not> $wait\<acute>) ;; R1 (\<not> R2s (pre\<^sub>R P))) \<turnstile>
                        (R1 true ;; (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s (cmt\<^sub>R P))))" 
-    by (simp add: RHS_design_neg_R1_pre)
+    by (simp add: RHS_design_conj_neg_R1_pre)
   also have "... = \<^bold>R\<^sub>s(true)"
     by (simp add: design_false_pre)
   also have "... = \<^bold>R\<^sub>s(false \<turnstile> true)"
@@ -1638,7 +1658,7 @@ proof -
   also have "... = 
         \<^bold>R\<^sub>s((\<not> R2c (\<not> P\<^sub>1) \<and> \<not> R2c (\<not> P\<^sub>2)) \<turnstile>
            (R1 (R2s (P\<^sub>1 \<Rightarrow> Q\<^sub>1)) \<and> R1 (R2s (P\<^sub>2 \<Rightarrow> Q\<^sub>2))))"
-    by (metis RHS_design_neg_R1_pre utp_pred.inf_commute)
+    by (metis (no_types, lifting) R1_disj RHS_design_neg_R1_pre utp_pred.compl_sup)
   also have "... = 
         \<^bold>R\<^sub>s((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (R1 (R2s (P\<^sub>1 \<Rightarrow> Q\<^sub>1)) \<and> R1 (R2s (P\<^sub>2 \<Rightarrow> Q\<^sub>2))))"
     by (simp add: R2c_R3h_commute R2c_and R2c_design R2c_idem R2c_not RHS_def)

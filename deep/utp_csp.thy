@@ -200,6 +200,13 @@ definition PrefixCSP ::
 
 abbreviation "OutputCSP \<equiv> PrefixCSP"
 
+text {* This version of input prefix is implemented using iterated external choice and so does not
+  depend on the existence of local variables. *}
+  
+definition InputCSP ::
+  "('a, '\<theta>) chan \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> ('\<sigma>, '\<theta>) rel_circus) \<Rightarrow> ('\<sigma>, '\<theta>) rel_circus" where
+"InputCSP c A P = (\<box> x \<in> A \<bullet> PrefixCSP c \<guillemotleft>x\<guillemotright> (P x))" 
+
 definition do\<^sub>I :: "
   ('a, '\<theta>) chan \<Rightarrow>
   _ \<Rightarrow>
@@ -219,13 +226,15 @@ text {*
   above, making usage more error-prone due to additional need for coercions.
 *}
 
-definition InputCSP ::
+text {* This operator should be removed from here and places in the Circus theory *}
+  
+definition InputCircus ::
   "('a::{continuum, two}, '\<theta>) chan \<Rightarrow>
-    ('a, (*'\<alpha>*) ('\<sigma>, '\<theta>) circus) lvar \<Rightarrow>
-    ('a \<Rightarrow> (*'\<alpha>*) ('\<sigma>, '\<theta>) rel_circus) \<Rightarrow>
+    ('a, ('\<sigma>, '\<theta>) circus) lvar \<Rightarrow>
+    ('a \<Rightarrow> ('\<sigma>, '\<theta>) rel_circus) \<Rightarrow>
     (('a, ('\<sigma>, '\<theta>) circus) uvar \<Rightarrow> ('\<sigma>, '\<theta>) rel_circus) \<Rightarrow>
     ('\<sigma>, '\<theta>) rel_circus" where
-"InputCSP c x P A = (var\<^bsub>RDES\<^esub> x \<bullet> \<^bold>R\<^sub>s(true \<turnstile> ((do\<^sub>I c x P) \<and> (\<exists> $x\<acute> \<bullet> II))) ;; A(x))"
+"InputCircus c x P A = (var\<^bsub>RDES\<^esub> x \<bullet> \<^bold>R\<^sub>s(true \<turnstile> ((do\<^sub>I c x P) \<and> (\<exists> $x\<acute> \<bullet> II))) ;; A(x))"
 
 syntax
   "_csp_sync" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<^bold>\<rightarrow> _" [81, 80] 80)
@@ -246,9 +255,9 @@ text {*
 translations
   "c \<^bold>\<rightarrow> A"         \<rightleftharpoons> "(CONST OutputCSP) c ()\<^sub>u A"
   "c!\<^sub>u(v) \<rightarrow> A"     \<rightleftharpoons> "(CONST OutputCSP) c v A"
-  "c?\<^sub>u(x : P) \<rightarrow> A" \<rightharpoonup> "(CONST InputCSP) c
+  "c?\<^sub>u(x : P) \<rightarrow> A" \<rightharpoonup> "(CONST InputCircus) c
     (*(CONST top_var \<dots>*) (CONST MkDVar IDSTR(x)) (\<lambda>x. P) (\<lambda>x. A)"
-  "c?\<^sub>u(x : P) \<rightarrow> A" \<leftharpoondown> "(CONST InputCSP) c x (\<lambda>v. P) (\<lambda>w. A)"
+  "c?\<^sub>u(x : P) \<rightarrow> A" \<leftharpoondown> "(CONST InputCircus) c x (\<lambda>v. P) (\<lambda>w. A)"
 
 subsection {* Sequential Process Laws *}
 
@@ -280,12 +289,6 @@ proof -
     by (simp add: Stop_def)
   finally show ?thesis .
 qed
-  
-lemma rdes_export_cmt: "\<^bold>R\<^sub>s(P \<turnstile> cmt\<^sub>s \<dagger> Q) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
-  by (rel_auto)
-  
-lemma rdes_export_pre: "\<^bold>R\<^sub>s((P\<lbrakk>true,false/$ok,$wait\<rbrakk>) \<turnstile> Q) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
-  by (rel_auto)
     
 lemma Guard_rdes_def:
   assumes "$ok\<acute> \<sharp> P"
@@ -352,63 +355,7 @@ lemma Guard_false [simp]: "false &\<^sub>u P = Stop"
 lemma Guard_true [simp]: 
   "P is CSP \<Longrightarrow> true &\<^sub>u P = P"
   by (simp add: Guard_def alpha SRD_reactive_design_alt)
-    
-lemma RHS_design_neg_R2c_pre:
-  "\<^bold>R\<^sub>s(R2c(P) \<turnstile> Q) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
-  by (rel_auto)
-    
-lemma USUP_image_eq [simp]: "USUP (\<lambda>i. \<guillemotleft>i\<guillemotright> \<in>\<^sub>u \<guillemotleft>f ` A\<guillemotright>) g = (\<Sqinter> i\<in>A \<bullet> g(f(i)))"
-  by (rel_auto, rule_tac cong[of Sup Sup], auto)
-
-lemma UINF_image_eq [simp]: "UINF (\<lambda>i. \<guillemotleft>i\<guillemotright> \<in>\<^sub>u \<guillemotleft>f ` A\<guillemotright>) g = (\<Squnion> i\<in>A \<bullet> g(f(i)))"
-  by (rel_auto, rule_tac cong[of Inf Inf], auto)
-
-lemma not_USUP: "(\<not> (\<Sqinter> i\<in>A\<bullet> P(i))) = (\<Squnion> i\<in>A\<bullet> \<not> P(i))"
-  by (rel_auto)
-
-lemma USUP_empty [simp]: "(\<Sqinter> i \<in> {} \<bullet> P(i)) = false"
-  by (rel_auto)
-    
-lemma USUP_insert [simp]: "(\<Sqinter> i\<in>insert x xs \<bullet> P(i)) = (P(x) \<sqinter> (\<Sqinter> i\<in>xs \<bullet> P(i)))"
-  apply (rel_auto)
-  apply (subst Sup_insert[THEN sym])
-  apply (rule_tac cong[of Sup Sup])
-  apply (auto)
-done
-
-lemma UINF_empty [simp]: "(\<Squnion> i \<in> {} \<bullet> P(i)) = true"
-  by (rel_auto)
   
-lemma UINF_insert [simp]: "(\<Squnion> i\<in>insert x xs \<bullet> P(i)) = (P(x) \<squnion> (\<Squnion> i\<in>xs \<bullet> P(i)))"
-  apply (rel_auto)
-  apply (subst Inf_insert[THEN sym])
-  apply (rule_tac cong[of Inf Inf])
-  apply (auto)
-done
-  
-lemma R3h_cond: "R3h(P \<triangleleft> b \<triangleright> Q) = (R3h(P) \<triangleleft> b \<triangleright> R3h(Q))"
-  by (rel_auto)
-  
-lemma R2c_lit: "R2c(\<guillemotleft>x\<guillemotright>) = \<guillemotleft>x\<guillemotright>"
-  by (rel_auto)
-    
-lemma RHS_cond: "\<^bold>R\<^sub>s(P \<triangleleft> b \<triangleright> Q) = (\<^bold>R\<^sub>s(P) \<triangleleft> R2c b \<triangleright> \<^bold>R\<^sub>s(Q))"
-  by (simp add: RHS_def R3h_cond R2c_condr R1_cond)
-    
-lemma uinf_or: 
-  fixes P Q :: "'\<alpha> upred"
-  shows "(P \<sqinter> Q) = (P \<or> Q)"
-  by (pred_auto)
-
-lemma usup_and: 
-  fixes P Q :: "'\<alpha> upred"
-  shows "(P \<squnion> Q) = (P \<and> Q)"
-  by (pred_auto)
-  
-lemma RHS_design_neg_R1_pre:
-  "\<^bold>R\<^sub>s ((\<not> R1 P) \<turnstile> R) = \<^bold>R\<^sub>s ((\<not> P) \<turnstile> R)"
-  by (rel_auto)
-    
 lemma ExtChoice_rdes:
   assumes "\<And> i. $ok\<acute> \<sharp> P(i)" "A \<noteq> {}"
   shows "(\<box>i\<in>A \<bullet> \<^bold>R\<^sub>s(P(i) \<turnstile> Q(i))) = \<^bold>R\<^sub>s((\<Squnion>i\<in>A \<bullet> P(i)) \<turnstile> ((\<Squnion>i\<in>A \<bullet> Q(i)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter>i\<in>A \<bullet> Q(i))))"
@@ -468,7 +415,7 @@ proof -
   also have "... =
         \<^bold>R\<^sub>s ((\<not> (\<Sqinter>i\<in>A \<bullet> (pre\<^sub>s \<dagger> (\<not> P(i))))) \<turnstile> 
             ((\<Squnion>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i))) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i)))))"
-    by (metis (no_types, lifting) R2c_not RHS_design_neg_R2c_pre)
+    by (metis (no_types, lifting) R2c_not RHS_design_R2c_pre)
   also have "... =
         \<^bold>R\<^sub>s (([$ok \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s false] \<dagger> (\<not> (\<Sqinter>i\<in>A \<bullet> (\<not> P(i))))) \<turnstile> 
             ((\<Squnion>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i))) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i)))))"

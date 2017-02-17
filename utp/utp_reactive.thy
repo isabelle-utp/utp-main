@@ -258,6 +258,9 @@ lemma R2_mono: "P \<sqsubseteq> Q \<Longrightarrow> R2(P) \<sqsubseteq> R2(Q)"
 lemma R2c_Continuous: "Continuous R2c"
   by (auto simp add: Continuous_def, rel_auto)
     
+lemma R2c_lit: "R2c(\<guillemotleft>x\<guillemotright>) = \<guillemotleft>x\<guillemotright>"
+  by (rel_auto)
+    
 lemma R2s_conj: "R2s(P \<and> Q) = (R2s(P) \<and> R2s(Q))"
   by (pred_auto)
 

@@ -597,6 +597,16 @@ lemma closure_conj_distr: "([P]\<^sub>u \<and> [Q]\<^sub>u) = [P \<and> Q]\<^sub
 lemma closure_imp_distr: "`[P \<Rightarrow> Q]\<^sub>u \<Rightarrow> [P]\<^sub>u \<Rightarrow> [Q]\<^sub>u`"
   by pred_auto
 
+lemma uinf_or: 
+  fixes P Q :: "'\<alpha> upred"
+  shows "(P \<sqinter> Q) = (P \<or> Q)"
+  by (pred_auto)
+
+lemma usup_and: 
+  fixes P Q :: "'\<alpha> upred"
+  shows "(P \<squnion> Q) = (P \<and> Q)"
+  by (pred_auto)
+    
 lemma USUP_cong_eq:
   "\<lbrakk> \<And> x. P\<^sub>1(x) = P\<^sub>2(x); \<And> x. `P\<^sub>1(x) \<Rightarrow> Q\<^sub>1(x) =\<^sub>u Q\<^sub>2(x)` \<rbrakk> \<Longrightarrow>
         (\<Sqinter> x | P\<^sub>1(x) \<bullet> Q\<^sub>1(x)) = (\<Sqinter> x | P\<^sub>2(x) \<bullet> Q\<^sub>2(x))"
@@ -639,6 +649,38 @@ lemma UINF_as_Inf_image: "(\<Squnion> P \<in> \<P> \<bullet> f(P)) = \<Squnion> 
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Inf_uexpr_def)
   apply (pred_auto)
   apply (rule cong[of "Inf"])
+  apply (auto)
+done
+
+lemma USUP_image_eq [simp]: "USUP (\<lambda>i. \<guillemotleft>i\<guillemotright> \<in>\<^sub>u \<guillemotleft>f ` A\<guillemotright>) g = (\<Sqinter> i\<in>A \<bullet> g(f(i)))"
+  by (pred_auto, rule_tac cong[of Sup Sup], auto)
+
+lemma UINF_image_eq [simp]: "UINF (\<lambda>i. \<guillemotleft>i\<guillemotright> \<in>\<^sub>u \<guillemotleft>f ` A\<guillemotright>) g = (\<Squnion> i\<in>A \<bullet> g(f(i)))"
+  by (pred_auto, rule_tac cong[of Inf Inf], auto)
+
+lemma not_USUP: "(\<not> (\<Sqinter> i\<in>A\<bullet> P(i))) = (\<Squnion> i\<in>A\<bullet> \<not> P(i))"
+  by (pred_auto)
+
+lemma not_UINF: "(\<not> (\<Squnion> i\<in>A\<bullet> P(i))) = (\<Sqinter> i\<in>A\<bullet> \<not> P(i))"
+  by (pred_auto)
+
+lemma USUP_empty [simp]: "(\<Sqinter> i \<in> {} \<bullet> P(i)) = false"
+  by (pred_auto)
+    
+lemma USUP_insert [simp]: "(\<Sqinter> i\<in>insert x xs \<bullet> P(i)) = (P(x) \<sqinter> (\<Sqinter> i\<in>xs \<bullet> P(i)))"
+  apply (pred_auto)
+  apply (subst Sup_insert[THEN sym])
+  apply (rule_tac cong[of Sup Sup])
+  apply (auto)
+done
+
+lemma UINF_empty [simp]: "(\<Squnion> i \<in> {} \<bullet> P(i)) = true"
+  by (pred_auto)
+  
+lemma UINF_insert [simp]: "(\<Squnion> i\<in>insert x xs \<bullet> P(i)) = (P(x) \<squnion> (\<Squnion> i\<in>xs \<bullet> P(i)))"
+  apply (pred_auto)
+  apply (subst Inf_insert[THEN sym])
+  apply (rule_tac cong[of Inf Inf])
   apply (auto)
 done
 

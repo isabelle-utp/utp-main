@@ -12,6 +12,8 @@ no_notation
   le (infixl "\<sqsubseteq>\<index>" 50) and
   asup ("\<Squnion>\<index>_" [90] 90) and
   ainf ("\<Sqinter>\<index>_" [90] 90) and
+  join (infixl "\<squnion>\<index>" 65) and
+  meet (infixl "\<sqinter>\<index>" 70) and
   conj (infixr "\<and>" 35) and
   disj (infixr "\<or>" 30) and
   Not ("\<not> _" [40] 40) and
