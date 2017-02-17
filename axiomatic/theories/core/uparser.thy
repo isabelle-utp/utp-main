@@ -94,8 +94,6 @@ term "`x = y + 1 \<and> y = (2::nat)`"
 
 term "`(x = y + 1 ; y = 2) \<Rightarrow> x = (3::nat)`"
 
-inject_type bool
-
 term "`ok \<and> x = (1::nat) \<Rightarrow> ok' \<and> x' = x + 1`"
 
 text {* Types are propagates through predicate connectives. *}

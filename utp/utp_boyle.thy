@@ -1,7 +1,7 @@
 section {* Example UTP theory: Boyle's laws *}
 (*<*)
 theory utp_boyle
-imports utp_theory
+imports utp_theory (* utp_avar *)
 begin
 (*>*)
 
@@ -211,7 +211,24 @@ qed
 hide_const k
 hide_const p
 hide_const V
-  
+
+(************************)
+(* Added by Frank Zeyda *)
+(************************)
+
+(*
+lemma "(<x::nat> := 1 ;; <x::nat> := &<x::nat> + 1) = <x::nat> := 2"
+apply (rel_auto)
+apply (simp add: numeral_2_eq_2)
+apply (simp add: numeral_2_eq_2)
+done
+
+lemma "({x::nat} := 1 ;; {x::nat} := &{x::nat} + 1) = {x::nat} := 2"
+apply (rel_auto)
+apply (simp add: numeral_2_eq_2)
+apply (simp add: numeral_2_eq_2)
+done
+*)
 (*<*)
 end
 (*>*)

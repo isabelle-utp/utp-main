@@ -6,7 +6,7 @@
 (******************************************************************************)
 (* LAST REVIEWED: 25 Jan 2017 *)
 
-section {* State Space *}
+section {* Universal State *}
 
 theory ustate
 imports utype uval uvar
@@ -16,9 +16,13 @@ text {*
   In this theory, we define a notion of state space (binding) for universal
   values. This is through a new type @{text uspace}. We consider states as
   total bindings so that there is no notion of frame and all variables are
-  assigned a value. A property of state bindings is that they are well-typed
-  by construction.
+  assigned a value. An important property of state bindings is that they are
+  well-typed by construction; this is the main reason why we need the axiom
+  @{thm [source] utypes_non_empty} in our @{text axiomatization}.
 *}
+
+no_notation
+  converse  ("(_\<inverse>)" [1000] 999)
 
 default_sort injectable
 
@@ -28,8 +32,8 @@ text {*
   As before, total functions are used to encode states. This is possible due
   to the axiom @{thm [source] utypes_non_empty} which enforces non-emptiness
   of all model types, irrespective of them being injectable into @{type uval}
-  or not. Such guarantees the existence of a well-typed binding here and this
-  is needed to discharge the non-emptiness assumption of the type definition.
+  or not. It guarantees the existence of a well-typed binding and this here is
+  needed to discharge the non-emptiness assumption of the type definition.
 *}
 
 typedef ustate = "{b::uvar \<Rightarrow> uval. \<forall>v. (b v) :\<^sub>u (type v)}"
@@ -41,84 +45,6 @@ done
 text {* \fixme{Is there a way to fix the warning about relators below?} *}
 
 setup_lifting type_definition_ustate
-
-subsection {* State Class  *}
-
-text {*
-  This type class enables us to locate a universal state type inside a larger
-  type into which @{type ustate} may be embedded. Access to the embedded state
-  is via a lens @{text "ust\<^sub>L"}. That lens is typically composed with the lens
-  for axiomatic variables (theory @{text ulens}. We thus obtain a model which
-  is agnostic to the particular structure of the state type. This is in line
-  with Isabelle/UTP's solution to integrating deep variables and lends itself
-  nicely for combination of our model with the existing variable model(s) in
-  Isabelle/UTP, meaning we potentially can potentially use different kinds of
-  variables alongside. This unifying aspect of lenses is very interesting in
-  its own right, and maybe deserves more investigation and possibly a paper.
-*}
-
-text {* An open issue is perhaps how we deal with relational state spaces. *}
-
-class ust =
-  fixes ust_lens :: "ustate \<Longrightarrow> 'a::type" ("ust\<^sub>L")
-  assumes vwb_lens_ust: "vwb_lens ust_lens"
-
-text {* Clearly type @{type ustate} instantiates @{class ust}. *}
-
-instantiation ustate :: ust
-begin
-definition ust_lens_ustate :: "ustate \<Longrightarrow> ustate" where
-[simp]: "ust_lens_ustate = 1\<^sub>L"
-instance
-apply (intro_classes)
-apply (unfold ust_lens_ustate_def)
-apply (rule id_vwb_lens)
-done
-end
-
-text {*
-  We should be able to instantiate the product type as class @{class ust}
-  too. The idea is to combine two plain states into a relational one. This
-  is taking the undashed variables of each of the states and merging them
-  via state override while dashing the variables of the second one. We then
-  should be able to treat relational states uniformly within our model: we
-  ought to be able to instantiate @{text "'a uexpr"} with either a flat or
-  relational type while still being able to define all concepts, including
-  the unrestriction caveat of the type and expression parser. This suggests
-  that a relational expression model does not need any `special treatment'.
-*}
-
-lift_definition dash_ustate :: "ustate \<Rightarrow> ustate"
-is "\<lambda>s. \<lambda>v::uvar. s v\<inverse>"
-apply (rename_tac \<sigma> v)
-apply (atomize (full))
-apply (clarsimp)
-apply (unfold vars)
-apply (metis uvar.select_convs(2) uvar.surjective uvar.update_convs(1))
-done
-
-consts ustate_comb_lens :: "ustate \<Longrightarrow> ustate \<times> ustate" ("ust\<^sub>>\<^sub><")
-
--- {* TODO *}
-
-(*
-lemma ustate_comb_vwb_lens:
-"vwb_lens ust\<^sub>>\<^sub><"
-sorry
-*)
-
-(*
-instantiation prod :: (ust, ust) ust
-begin
-definition ust_lens_prod :: "ustate \<Longrightarrow> 'a \<times> 'b" where
-"ust_lens_prod = ust\<^sub>>\<^sub>< ;\<^sub>L (ust\<^sub>L::ustate \<Longrightarrow> 'a) \<times>\<^sub>L (ust\<^sub>L::ustate \<Longrightarrow> 'b)"
-instance
-apply (intro_classes)
-apply (unfold ust_lens_prod_def)
-apply (simp add: ustate_comb_vwb_lens comp_vwb_lens prod_vwb_lens vwb_lens_ust)
-done
-end
-*)
 
 subsection {* Constants *}
 
@@ -209,8 +135,6 @@ done
 notation ustate_cong_on ("_ \<cong>\<^sub>b _ on _" [51, 51, 0] 50)
 
 subsection {* Theorems *}
-
-paragraph {* Transfer Laws *}
 
 theorem ustate_eq:
 "b1 = b2 \<longleftrightarrow> (\<forall>v. b1\<cdot>v = b2\<cdot>v)"
@@ -347,26 +271,6 @@ theorem ustate_override_reorder:
 apply (transfer')
 apply (rule override_on_reorder)
 apply (auto)
-done
-
-paragraph {* Undashed State Laws *}
-
-theorem dash_ustate_app_mono [simp]:
-"v \<in> UNDASHED \<Longrightarrow> (dash_ustate s)\<cdot>(v\<acute>) = s\<cdot>v"
-apply (transfer')
-apply (erule rev_mp)
-apply (induct_tac v)
-apply (rename_tac n t)
-apply (induct_tac n)
-apply (simp add: vars)
-done
-
-theorem dash_ustate_app_poly [simp]:
-"v \<in> UNDASHED \<Longrightarrow>(dash_ustate s)\<star>(v\<acute>) = s\<star>v"
-apply (unfold ustate_app_poly_def)
-apply (subst dash_erasure_commutes)
-apply (rule arg_cong) back
-apply (simp add: UNDASHED_uvar_def UNDASHED_var_def)
 done
 
 subsection {* Transfer *}
@@ -566,7 +470,7 @@ theorem meta_ustate_transfer_5:
 "distinct [v1\<down>, v2\<down>, v3\<down>, v4\<down>, v5\<down>] \<Longrightarrow>
  (\<And>s::ustate. P s\<star>v1 s\<star>v2 s\<star>v3 s\<star>v4 s\<star>v5) \<equiv> (\<And>v1 v2 v3 v4 v5. P v1 v2 v3 v4 v5)"
 apply (atomize (full))
-apply (simp add: all_ustate_transfer_5)
+apply (simp add:all_ustate_transfer_5)
 done
 
 lemmas meta_ustate_transfer =
@@ -579,9 +483,9 @@ lemmas meta_ustate_transfer =
 
 named_theorems ustate_transfer "ustate transfer rules"
 
-declare ex_ustate_transfer [ustate_transfer]
-declare all_ustate_transfer [ustate_transfer]
 declare meta_ustate_transfer [ustate_transfer]
+declare all_ustate_transfer [ustate_transfer]
+declare ex_ustate_transfer [ustate_transfer]
 
 text {* @{text simp} alone is not sufficient as we require HO unification. *}
 

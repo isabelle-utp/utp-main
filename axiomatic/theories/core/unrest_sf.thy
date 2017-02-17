@@ -5,7 +5,7 @@
 (* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
 
-section {* Unrestriction of State Functions *}
+section {* Unrestriction *}
 
 theory unrest_sf
 imports uvar ustate

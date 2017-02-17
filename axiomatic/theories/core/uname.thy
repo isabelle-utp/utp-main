@@ -80,7 +80,7 @@ text {* An empty string indicates the absence of a subscript. *}
 
 syntax "_NoSub" :: "string" ("NoSub")
 
-translations "NoSub" \<rightharpoonup> "CONST STR('''')"
+translations "NoSub" \<rightharpoonup> "(CONST STR) []"
 
 subsubsection {* Add Subscript *}
 
@@ -215,7 +215,6 @@ text {* The simplifications below evaluate inequalities on names. *}
 
 declare less_eq_char_def [simp]
 declare less_char_def [simp]
-declare nat_of_char_def [simp]
 declare less_eq_literal.rep_eq [simp]
 declare less_literal.rep_eq [simp]
 declare sym [OF explode_inject, simp]
@@ -263,6 +262,7 @@ subsection {* Experiments *}
 lemma
 "f(\<lfloor>c\<rfloor> := (30::nat), \<lfloor>b\<rfloor> := (20::nat), \<lfloor>a\<rfloor> := (10::nat)) =
  f(\<lfloor>b\<rfloor> := (20::nat), \<lfloor>a\<rfloor> := (10::nat), \<lfloor>c\<rfloor> := (30::nat))"
+(* This seems to take a little more time... An Isabelle2016-1 issue? *)
 apply (fun_upd_normalise_tac)
 apply (rule refl)
 done

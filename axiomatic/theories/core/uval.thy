@@ -94,7 +94,7 @@ ML_file "uval.ML"
 
 ML {*
   Outer_Syntax.command @{command_keyword "inject_type"} "inject type"
-    (Parse.typ_group >> (Toplevel.theory o Inject_Type.inject_type));
+    (Parse.type_const >> (Toplevel.theory o Inject_Type.inject_type));
 *}
 
 subsection {* Axiomatisation *}

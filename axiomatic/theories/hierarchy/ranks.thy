@@ -10,7 +10,6 @@ section {* Type Ranks *}
 
 theory ranks
 imports Main Eisbach
-  "../utils/Named_Attrib"
   "../core/uattrib"
 begin
 
@@ -87,9 +86,16 @@ definition rank_ind :: "ind itself \<Rightarrow> nat" where
 instance ..
 end
 
+(* rank(A \<Rightarrow> B) = rank(A) + 1 according to Burkhart Wolff. *)
+
+(* Citation: Ranked typed systems (see HOL discussion group). *)
+
+(* Work that caused impact / discussion in ITP 2016! *)
+
 instantiation "fun" :: (rank, rank) rank
 begin
 definition rank_fun :: "('a \<Rightarrow> 'b) itself \<Rightarrow> nat" where
+(* [ranks]: "rank_fun t = RANK('a) + 1" *)
 [ranks]: "rank_fun t = max RANK('a) RANK('b)"
 instance ..
 end
@@ -126,11 +132,14 @@ fixes a :: "nat"
 fixes b :: "nat"
 fixes c :: "nat"
 shows
-"max a (max a b) = max a b"
-"max b (max a b) = max a b"
-"max (max a b) a = max a b"
-"max (max a b) b = max a b"
-"max (max a (max b c)) (max (max b c) a) = max a (max b c)"
+"max a a = a"
+"max (max a b) c = max a (max b c)"
+"max a (max b a) = max a b"
+"max a (max b (max c a)) = max a (max b c)"
+"max a (max a X) = max a X"
+"max a (max b (max a X)) = max a (max b X)"
+"max a (max b (max c (max a X))) = max a (max b (max c X))"
+apply (clarsimp)
 apply (auto)
 done
 

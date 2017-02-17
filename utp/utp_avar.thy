@@ -4,7 +4,7 @@
 (* Author: Frank Zeyda (University of York, UK)                               *)
 (* Email: frank.zeyda@york.ac.uk                                              *)
 (******************************************************************************)
-(* LAST REVIEWED: 27 Jan 2017 *)
+(* LAST REVIEWED: 16 Feb 2017 *)
 
 section {* Axiomatic Variables *}
 
@@ -16,40 +16,44 @@ default_sort type
 
 text {*
   Note that theory @{theory ulens} already includes key definitions and laws
-  for defining the necessary lenses for axiomatic variables. Our concern here
+  for defining the required lenses for axiomatic variables. Our concern here
   is merely to integrate them smoothly into Isabelle/UTP.
 *}
 
 subsection {* Compatibility with Isabelle/UTP *}
 
-subsubsection {* Late Inclusion Side-effects *}
+subsubsection {* Late-Inclusion Side-effects *}
 
 text {*
   A problem in Isabelle/HOL is that depending on the order in which imported
   theory are processed, the undeclaration of syntax and notations may be lost
   after the inclusion; in particular, if a theory is imported that does not
   depend on the theory that undeclares the respective notation or syntax. The
-  below is a hack that replicates such undeclarations from various theories in
-  the utp folder. A better solution would perhaps be to define a central theory
-  to collect undeclarations. Other theories could then include that theory as
-  needed. Talk to Simon Foster about this issue at some point. [TODO]
+  below is a hack that replicates undeclarations from various theories in the
+  utp folder. Apparently, this is an issue to do with theory merging; perhaps
+  raise this with the Isabelle community and developers, putting in a request
+  for a solution to this problem.
 *}
 
-no_notation
-  inner (infix "\<bullet>" 70) and
-  le (infixl "\<sqsubseteq>\<index>" 50)
+-- {* From @{theory utype}. *}
 
 no_notation
   Set.member  ("op :") and
   Set.member  ("(_/ : _)" [51, 51] 50)
 
--- {* From @{text utp_pred}. *}
+-- {* From @{text utp_var}. *}
 
-no_syntax
-  "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
-  "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sqinter>_\<in>_./ _)" [0, 0, 10] 10)
-  "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Squnion>_./ _)" [0, 10] 10)
-  "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
+no_notation 
+  le (infixl "\<sqsubseteq>\<index>" 50) and
+  asup ("\<Squnion>\<index>_" [90] 90) and
+  ainf ("\<Sqinter>\<index>_" [90] 90)
+
+-- {* From @{text utp_expr}. *}
+
+no_notation
+  BNF_Def.convol ("\<langle>(_,/ _)\<rangle>")
+
+-- {* From @{text utp_pred}. *}
 
 no_notation
   conj (infixr "\<and>" 35) and
@@ -64,16 +68,18 @@ no_notation
   bot ("\<bottom>") and
   top ("\<top>")
 
-subsubsection {* Hiding Constants and Types *}
-
-hide_type (open) uvar.uvar
+no_syntax
+  "_INF1" :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
+  "_INF"  :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sqinter>_\<in>_./ _)" [0, 0, 10] 10)
+  "_SUP1" :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Squnion>_./ _)" [0, 10] 10)
+  "_SUP"  :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
 
 subsubsection {* Syntactic Adjustments *}
 
 text {*
   We undeclare several notations here to avoid inherent ambiguities with those
-  used in Isabelle/UTP. Note that is is sufficient to undeclare them as input
-  notations, namely to be able to still take advantage of them being printed.
+  used in Isabelle/UTP. Note that it is sufficient to undeclare them as input
+  notations, namely to be still able to take advantage of them being printed.
 *}
 
 no_notation (input)
@@ -95,6 +101,10 @@ no_notation (input)
   ustate_app_mono ("_\<cdot>_" [1000, 1000] 1000) and
   ustate_app_poly ("_\<star>_" [1000, 1000] 1000)
 
+subsubsection {* Hiding Constants and Types *}
+
+hide_type (open) uvar.uvar
+
 subsubsection {* Forgetting Liftings *}
 
 text {* The liftings below can interfere with the automatic proof tactics. *}
@@ -106,10 +116,10 @@ lifting_forget ustate.ustate.lifting
 subsection {* Variable Constructors *}
 
 definition in_avar :: "'a::injectable var \<Rightarrow> ('a \<Longrightarrow> '\<alpha>::ust \<times> '\<beta>)" where
-[simp]: "in_avar x = in_var (avar\<^sub>L x)"
+[simp]: "in_avar x = in_var (avar_ust\<^sub>L x)"
 
 definition out_avar :: "'a::injectable var \<Rightarrow> ('a \<Longrightarrow> '\<alpha> \<times> '\<beta>::ust)" where
-[simp]: "out_avar x = out_var (avar\<^sub>L x)"
+[simp]: "out_avar x = out_var (avar_ust\<^sub>L x)"
 
 adhoc_overloading
   ivar in_avar and
@@ -118,23 +128,19 @@ adhoc_overloading
 
 subsection {* Variable Syntax *}
 
-syntax "_check_var" :: "svar \<Rightarrow> logic" ("CHECK'(_')")
+syntax "_MkAxVar1" :: "id \<Rightarrow>         svid" ("{_}" [1000] 1000)
+syntax "_MkAxVar2" :: "id \<Rightarrow> type \<Rightarrow> svid" ("{_::_}"  [1000, 0] 1000)
+syntax "_MkAxVar3" :: "id \<Rightarrow> type \<Rightarrow> svid" ("{_::_}-" [1000, 0] 1000)
 
-translations "_check_var v" \<rightharpoonup> "v"
-
-syntax "_MkAxVar1" :: "id \<Rightarrow>         svid" ("{_}\<^sub>x" [1000] 1000)
-syntax "_MkAxVar2" :: "id \<Rightarrow> type \<Rightarrow> svid" ("{_::_}\<^sub>x"  [1000, 0] 1000)
-syntax "_MkAxVar3" :: "id \<Rightarrow> type \<Rightarrow> svid" ("{_::_}\<^sub>x-" [1000, 0] 1000)
+syntax "_MkAxVar1_logic" :: "id \<Rightarrow>         logic" ("{_}\<^sub>x" [1000] 1000)
+syntax "_MkAxVar2_logic" :: "id \<Rightarrow> type \<Rightarrow> logic" ("{_::_}\<^sub>x"  [1000, 0] 1000)
+syntax "_MkAxVar3_logic" :: "id \<Rightarrow> type \<Rightarrow> logic" ("{_::_}\<^sub>x-" [1000, 0] 1000)
 
 translations "_MkAxVar1 n"   \<rightleftharpoons> "_MkPVar1 n"
 translations "_MkAxVar2 n a" \<rightleftharpoons> "_MkPVar2 n a"
 translations "_MkAxVar3 n a" \<rightleftharpoons> "_MkPVar3 n a"
 
-declare [[show_types]]
-declare [[show_sorts]]
-
-term "CHECK(${x::nat}\<^sub>x\<acute>)"
-
-declare [[show_types=false]]
-declare [[show_sorts=false]]
+translations "_MkAxVar1_logic n"   \<rightharpoonup> "_MkPVar1 n"
+translations "_MkAxVar2_logic n a" \<rightharpoonup> "_MkPVar2 n a"
+translations "_MkAxVar3_logic n a" \<rightharpoonup> "_MkPVar3 n a"
 end

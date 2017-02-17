@@ -4,40 +4,42 @@
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
 (* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
-(* LAST REVIEWED: 26 Jan 2017 *)
+(* LAST REVIEWED: 14 Feb 2017 *)
 
-section {* Variable Lenses *}
+section {* Axiomatic Lenses *}
 
 theory ulens
-imports ustate
+imports ustate ustore
 begin
 
-text {* Perhaps this file should be part of Isabelle/UTP. *}
+text {* This is a source of ambiguity in the presence of structure variables. *}
+
+no_notation subscr ("_\<^bsub>_\<^esub>" [1000] 1000)
 
 default_sort type
 
-subsection {* Lens Type *}
+subsection {* Lens Types *}
 
 type_synonym 'a ulens = "'a \<Longrightarrow> ustate"
 
 subsection {* Constructors *}
 
-definition uvar_lens :: "'a::injectable var \<Rightarrow> 'a ulens" where
-"uvar_lens x = \<lparr>lens_get = (\<lambda>s. s\<star>x), lens_put = (\<lambda>s v. s(x := v)\<^sub>s)\<rparr>"
-
-notation uvar_lens ("uvar\<^sub>L")
-
-definition avar_lens :: "'a::injectable var \<Rightarrow> ('a \<Longrightarrow> 'b::ust)" where
-"avar_lens x = uvar\<^sub>L x ;\<^sub>L ust\<^sub>L"
+definition avar_lens :: "'a::injectable var \<Rightarrow> 'a ulens" where
+"avar_lens v = \<lparr>lens_get = (\<lambda>s. s\<star>v), lens_put = (\<lambda>s x. s(v := x)\<^sub>s)\<rparr>"
 
 notation avar_lens ("avar\<^sub>L")
 
+definition avar_ust_lens :: "'a::injectable var \<Rightarrow> ('a \<Longrightarrow> 'b::ust)" where
+"avar_ust_lens v = avar\<^sub>L v ;\<^sub>L ust\<^sub>L"
+
+notation avar_ust_lens ("avar'_ust\<^sub>L")
+
 subsection {* Lens Laws *}
 
-theorem uvar_vwb_lens [simp]:
-"vwb_lens (uvar\<^sub>L x)"
+theorem avar_vwb_lens [simp]:
+"vwb_lens (avar\<^sub>L v)"
 apply (unfold_locales)
-apply (unfold uvar_lens_def)
+apply (unfold avar_lens_def)
 apply (simp_all)
 -- {* Subgoal 1 *}
 apply (transfer)
@@ -46,11 +48,17 @@ apply (clarsimp)
 apply (metis ProjU_inverse)
 done
 
-theorem uvar_indepI [simp, intro]:
+theorem avar_ust_vwb_lens [simp]:
+"vwb_lens (avar_ust\<^sub>L v)"
+apply (unfold avar_ust_lens_def)
+apply (simp add: comp_vwb_lens)
+done
+
+theorem avar_indepI [simp]:
 fixes x :: "'a::injectable var"
 fixes y :: "'b::injectable var"
-shows "x\<down> \<noteq> y\<down> \<Longrightarrow> uvar\<^sub>L x \<bowtie> uvar\<^sub>L y"
-apply (unfold lens_indep_def uvar_lens_def)
+shows "v\<down> \<noteq> w\<down> \<Longrightarrow> avar\<^sub>L v \<bowtie> avar\<^sub>L w"
+apply (unfold lens_indep_def avar_lens_def)
 apply (clarsimp)
 apply (transfer')
 apply (clarsimp)
@@ -58,71 +66,61 @@ apply (rule ext)
 apply (clarsimp)
 done
 
-theorem uvar_indep_iff (*[iff]*):
-fixes x :: "'a::{injectable, two} var"
-fixes y :: "'b::{injectable, two} var"
-shows "uvar\<^sub>L x \<bowtie> uvar\<^sub>L y \<longleftrightarrow> x\<down> \<noteq> y\<down>"
+theorem avar_indep_iff [iff]:
+fixes v :: "'a::{injectable, two} var"
+fixes w :: "'b::{injectable, two} var"
+shows "avar\<^sub>L v \<bowtie> avar\<^sub>L w \<longleftrightarrow> v\<down> \<noteq> w\<down>"
 apply (rule iffI)
 -- {* Subgoal 1 *}
 apply (unfold lens_indep_def) [1]
-apply (unfold uvar_lens_def) [1]
+apply (unfold avar_lens_def) [1]
 apply (clarsimp)
 apply (erule contrapos_pp)
 apply (clarsimp)
 apply (subgoal_tac "\<exists>(a\<^sub>1::'a) (a\<^sub>2::'a). a\<^sub>1 \<noteq> a\<^sub>2")
-apply (clarsimp)
+prefer 2 apply (rule two_diff)
 apply (subgoal_tac "\<exists>(b\<^sub>1::'b) (b\<^sub>2::'b). b\<^sub>1 \<noteq> b\<^sub>2")
+prefer 2 apply (rule two_diff)
 apply (clarsimp)
--- {* Subgoal 1.1 *}
 apply (rule_tac x = "\<sigma>\<^sub>0" in exI)
-apply (rule_tac x = "if \<sigma>\<^sub>0\<star>y = b\<^sub>1 then b\<^sub>2 else b\<^sub>1" in exI)
-apply (rule_tac x = "if \<sigma>\<^sub>0\<star>x = a\<^sub>1 then a\<^sub>2 else a\<^sub>1" in exI)
+apply (rule_tac x = "if \<sigma>\<^sub>0\<star>w = b\<^sub>1 then b\<^sub>2 else b\<^sub>1" in exI)
+apply (rule_tac x = "if \<sigma>\<^sub>0\<star>v = a\<^sub>1 then a\<^sub>2 else a\<^sub>1" in exI)
 apply (clarsimp)
 apply ((*smt*)metis ustate_upd_poly_app1)
--- {* Subgoal 1.2 *}
-apply (rule two_diff)
--- {* Subgoal 1.3 *}
-apply (rule two_diff)
 -- {* Subgoal 2 *}
-apply (erule uvar_indepI)
+apply (erule avar_indepI)
 done
 
-theorem avar_vwb_lens [simp]:
-"vwb_lens (avar\<^sub>L x)"
-apply (unfold avar_lens_def)
-apply (simp add: comp_vwb_lens vwb_lens_ust)
+theorem avar_ust_indepI [simp]:
+fixes v :: "'a::injectable var"
+fixes w :: "'b::injectable var"
+shows "v\<down> \<noteq> w\<down> \<Longrightarrow> avar_ust\<^sub>L v \<bowtie> avar_ust\<^sub>L w"
+apply (unfold avar_ust_lens_def)
+apply (simp)
 done
 
-theorem avar_indepI [simp, intro]:
-fixes x :: "'a::injectable var"
-fixes y :: "'b::injectable var"
-shows "x\<down> \<noteq> y\<down> \<Longrightarrow> avar\<^sub>L x \<bowtie> avar\<^sub>L y"
-apply (unfold avar_lens_def)
-apply (simp add: lens_indep_left_comp vwb_lens_ust)
-done
-
-theorem avar_indep_iff (*[iff]*):
-fixes x :: "'a::{injectable, two} var"
-fixes y :: "'b::{injectable, two} var"
-shows "avar\<^sub>L x \<bowtie> avar\<^sub>L y \<longleftrightarrow> x\<down> \<noteq> y\<down>"
-apply (unfold sym [OF uvar_indep_iff])
-apply (unfold avar_lens_def)
-apply (simp add: lens_comp_indep_cong vwb_lens_ust)
-done
-
-lemma uvar_indep_iff' (*[iff]*):
-fixes x :: "'a::{injectable, two} var"
-fixes y :: "'a::{injectable, two} var"
-shows "uvar\<^sub>L x \<bowtie> uvar\<^sub>L y \<longleftrightarrow> x \<noteq> y"
-using Rep_var_inject uvar_indep_iff
-apply (blast)
+theorem avar_ust_indep_iff [iff]:
+fixes v :: "'a::{injectable, two} var"
+fixes w :: "'b::{injectable, two} var"
+shows "avar_ust\<^sub>L v \<bowtie> avar_ust\<^sub>L w \<longleftrightarrow> v\<down> \<noteq> w\<down>"
+apply (unfold sym [OF avar_indep_iff])
+apply (unfold avar_ust_lens_def)
+apply (simp add: lens_comp_indep_cong)
 done
 
 lemma avar_indep_iff' (*[iff]*):
 fixes x :: "'a::{injectable, two} var"
 fixes y :: "'a::{injectable, two} var"
 shows "avar\<^sub>L x \<bowtie> avar\<^sub>L y \<longleftrightarrow> x \<noteq> y"
-using avar_indep_iff by (auto)
+using Rep_var_inject avar_indep_iff
+apply (blast)
+done
+
+lemma avar_ustindep_iff' (*[iff]*):
+fixes x :: "'a::{injectable, two} var"
+fixes y :: "'a::{injectable, two} var"
+shows "avar_ust\<^sub>L x \<bowtie> avar_ust\<^sub>L y \<longleftrightarrow> x \<noteq> y"
+using avar_ust_indep_iff by (auto)
 
 subsection {* Lens Syntax *}
 
@@ -134,17 +132,17 @@ syntax "_MkAxVar1" :: "id \<Rightarrow>         ('a, 'b) lens" ("@_" [1000] 1000
 syntax "_MkAxVar2" :: "id \<Rightarrow> type \<Rightarrow> ('a, 'b) lens" ("@_:{_}"  [1000, 0] 1000)
 syntax "_MkAxVar3" :: "id \<Rightarrow> type \<Rightarrow> ('a, 'b) lens" ("@_:{_}-" [1000, 0] 1000)
 
-translations "@n"       \<rightleftharpoons> "avar\<^sub>L $n"
-translations "@n:{'a}"  \<rightleftharpoons> "avar\<^sub>L $n:{'a}"
-translations "@n:{'a}-" \<rightleftharpoons> "avar\<^sub>L $n:{'a}-"
+translations "@n"       \<rightleftharpoons> "avar_ust\<^sub>L $n"
+translations "@n:{'a}"  \<rightleftharpoons> "avar_ust\<^sub>L $n:{'a}"
+translations "@n:{'a}-" \<rightleftharpoons> "avar_ust\<^sub>L $n:{'a}-"
 
 subsection {* Experiments *}
 
 declare [[show_sorts]]
 
-term "avar\<^sub>L $x"
-term "avar\<^sub>L $x:{nat}"
-term "avar\<^sub>L $x:{bool}-"
+term "avar_ust\<^sub>L $x"
+term "avar_ust\<^sub>L $x:{nat}"
+term "avar_ust\<^sub>L $x:{bool}-"
 
 text {* We deal with relational state spaces through lens composition. *}
 

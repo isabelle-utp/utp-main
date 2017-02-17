@@ -41,7 +41,7 @@ struct
     (case term of
       (Const (@{const_name MkPVar}, t) $ name $ type_of_term) =>
         (Const (@{const_name MkPVar}, t) $ name $
-          Logic.mk_type (Term_Utils.dest_itselfT (type_of type_of_term)))
+          Logic.mk_type (Type_Utils.dest_itselfT (type_of type_of_term)))
     | _ => raise Match);
 
   fun remove_hidden_vars_tr ctx terms =

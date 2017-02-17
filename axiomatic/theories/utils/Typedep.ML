@@ -46,7 +46,7 @@ struct
 
   fun simplify_typedep_def ctx =
     let val ctx' = Simplifier.addsimps (ctx,
-      (typedep.get ctx) @ @{thms remove_set_duplicates});
+      (typedep.get ctx) @ @{thms insert_dup_simps union_dup_simps});
     in
       (* (remove_duplicates_rule ctx) o *) (Simplifier.simplify ctx')
     end;
@@ -68,7 +68,7 @@ struct
         |> Class.instantiation ([tyco], vs, @{sort typedep})
         |> `(fn lthy => Syntax.check_term lthy def_eq)
         |-> (fn def_eq =>
-          Specification.definition (NONE, (Attrib.empty_binding, def_eq)))
+          Specification.definition NONE [] [] (Binding.empty_atts, def_eq))
         |> (fn ((_, (_, thm)), lthy) => (* Tag defn with typedep attribute. *)
           snd (Local_Theory.note (typedep_attr,
             [simplify_typedep_def (Local_Theory.target_of lthy) thm]) lthy))

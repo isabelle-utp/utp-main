@@ -20,6 +20,9 @@ structure Flat_Order : FALT_ORDER =
 struct
   val simp_attr = @{attributes [simp]};
 
+  fun full_type_name ctx typ = (#1 o dest_Type)
+    (Proof_Context.read_type_name {proper = true, strict = false} ctx typ);
+
   fun mk_less_eq_def typ =
       HOLogic.mk_Trueprop (HOLogic.mk_eq (
         Const (@{const_name "less_eq"}, typ --> typ --> HOLogic.boolT),
@@ -34,7 +37,7 @@ struct
     (Class.intro_classes_tac ctx []) THEN ALLGOALS (asm_full_simp_tac ctx);
 
   fun flat_order typ thy =
-    let val tyco = (Sign.intern_type thy typ);
+    let val tyco = full_type_name (Proof_Context.init_global thy) typ;
       val sorts = replicate (Sign.arity_number thy tyco) @{sort type};
       val vs = Name.invent_names Name.context "'a" sorts;
       val typ_inst = Type (tyco, map TFree vs);
@@ -45,10 +48,10 @@ struct
         error ("Type \"" ^ typ ^ "\" already instantiates class ord.")
       else (thy
         |> Class.instantiation ([tyco], vs, @{sort "ord"})
-        |> Specification.definition (NONE, (Attrib.empty_binding, less_eq_def))
+        |> Specification.definition NONE [] [] (Binding.empty_atts, less_eq_def)
         |> (fn ((_, (_, thm)), lthy) =>
           snd (Local_Theory.note ((Binding.empty, simp_attr), [thm]) lthy))
-        |> Specification.definition (NONE, (Attrib.empty_binding, less_def))
+        |> Specification.definition  NONE [] [] (Binding.empty_atts, less_def)
         |> (fn ((_, (_, thm)), lthy) =>
           snd (Local_Theory.note ((Binding.empty, simp_attr), [thm]) lthy))
         |> Class.prove_instantiation_exit
