@@ -4,31 +4,64 @@ theory utp_hyrel
 imports utp_fix_syntax_2
 begin
 
-adhoc_overloading uapply cgf_apply and uapply tt_apply
+subsection {* Types and Preliminaries *}
+  
+text {* We first set up some types to represent hybrid relations. *}
   
 type_synonym ('d,'c) hybs = "('d \<times> 'c, 'c ttrace, unit) rsp"
 type_synonym ('d,'c) hyrel  = "('d,'c) hybs hrel"
 type_synonym ('a,'d,'c) hyexpr = "('a,('d,'c) hybs \<times> ('d,'c) hybs) uexpr"
   
+text {* Type @{typ "('d, 'c) hybs"} represents a hybrid state, where the discrete part is stored
+  in @{typ "'d"} and the continuous part in @{typ "'c"}. It is defined in terms of 
+  @{typ "('s, 't, '\<alpha>) rsp"}, the type of reactive stateful process which includes the observational
+  variables like @{term ok} and @{term tr}. The type @{typ "'s"} corresponds to the state space of 
+  the process and @{typ "'t"} refers to the trace model of the process.
+
+  In our case, the state space is a product of the discrete and continuous state, @{typ "'d \<times> 'c"},
+  and the trace  is instantiated to be @{typ "'c ttrace"}, a timed trace over the continuous state 
+  @{typ 'c}. It must be emphasised that the continuous state is present both in the flat relational
+  state and also in the timed trace. This is so that we can both manipulate the continuous state
+  at a point through assignment, but also evolve it continuously using differential equations.
+
+  Type @{typ "('d, 'c) hyrel"} is a hybrid relation -- a homogeneous relation over the hybrid 
+  state. Finally, @{typ "('a,'d, 'c) hyexpr"} is an expression over the hybrid state. 
+
+  Next we set up some necessary syntax and operators. 
+*}
+
 syntax
   "_ulens_expr" :: "logic \<Rightarrow> svid \<Rightarrow> logic" ("_:'(_')" [100,100] 100)
 
 translations
   "_ulens_expr e x" == "CONST uop get\<^bsub>x\<^esub> e"                                                                                                                                                                 
 
-abbreviation trace :: "('c::topological_space ttrace, 'd, 'c) hyexpr" ("\<phi>") where
-"\<phi> \<equiv> $tr\<acute> - $tr"
+text {* The syntax annotation @{term "e:(x)"} allows us to apply a variable lens $x$ to an 
+  expression $e$. This can be used, for example, to lookup a field of the given record or 
+  variable of a given state space. *}
+  
+abbreviation trace :: "('c::topological_space ttrace, 'd, 'c) hyexpr" ("\<^bold>t") where
+"\<^bold>t \<equiv> $tr\<acute> - $tr"
 
-abbreviation time_length :: "_" ("\<^bold>l")
-where "\<^bold>l \<equiv> uop end\<^sub>t trace"
+text {* The syntax @{term "\<^bold>t"} refers to the part of the trace that the present process can
+  contribute to. *}
+
+abbreviation time_length :: "(real, 'd, 'c::topological_space) hyexpr" ("\<^bold>l")
+  where "\<^bold>l \<equiv> uop end\<^sub>t \<^bold>t"
+    
+text {* @{term "\<^bold>l"} refers to the length of the time length of the current computation, and is
+  obtained by taking length of the trace contribution. *}
 
 abbreviation cvar :: 
   "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real, 'd, 'c) hyexpr \<Rightarrow> ('a, 'd, 'c) hyexpr" 
   ("_~'(_')" [999,0] 999) 
-where "x~(t) \<equiv> \<phi>\<lparr>t\<rparr>\<^sub>u:(x)"
+where "x~(t) \<equiv> \<^bold>t\<lparr>t\<rparr>\<^sub>u:(x)"
+    
+text {* The syntax @{term "x~(t)"} is a convenient way of refer to the value of a continuous 
+  variable $x$ at a particular instant $t$. *}
 
 translations
-  "\<phi>" <= "CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr))"
+  "\<^bold>t" <= "CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr))"
   "x~(t)" <= "CONST uop (CONST lens_get x) (CONST bop (CONST uapply) (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr))) t)"
   "\<^bold>l" <= "CONST uop end\<^sub>t (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr)))"
 
@@ -38,8 +71,26 @@ definition disc_alpha :: "'d \<Longrightarrow> ('d, 'c::topological_space) hybs"
 definition cont_alpha :: "'c \<Longrightarrow> ('d, 'c::topological_space) hybs" ("\<^bold>c") where
 [lens_defs]: "cont_alpha = snd\<^sub>L ;\<^sub>L st"
 
+text {* We also set up some lenses to focus on the discrete and continuous parts of the state,
+  which we call @{term "\<^bold>d"} and @{term "\<^bold>c"}, respectively. We then prove some of the key lens
+  theorems about these. *}
+ 
 lemma disc_alpha_vwb_lens [simp]: "vwb_lens \<^bold>d"
   by (simp add: comp_vwb_lens disc_alpha_def fst_vwb_lens)
+
+lemma cont_alpha_uvar [simp]: "vwb_lens \<^bold>c"
+  by (simp add: comp_vwb_lens cont_alpha_def snd_vwb_lens)
+
+lemma cont_indep_disc [simp]: "\<^bold>c \<bowtie> \<^bold>d" "\<^bold>d \<bowtie> \<^bold>c"
+   apply (simp_all add: disc_alpha_def cont_alpha_def)
+   apply (rule lens_indep_sym)
+   apply (auto intro: lens_indep_sym split_prod_lens_indep)
+done
+    
+text {* Both lenses are very well-behaved, effectively meaning they are valid variables. Moreover
+  they are also independent, @{term "\<^bold>c \<bowtie> \<^bold>d"}, meaning they refer to disjoint parts of the
+  state space, as expected. We also show some similar independence theorems with some of the other
+  observational variables. *}
 
 lemma disc_indep_ok [simp]: "\<^bold>d \<bowtie> ok" "ok \<bowtie> \<^bold>d"
   by (simp_all add: disc_alpha_def lens_indep_left_ext lens_indep_sym)
@@ -50,9 +101,6 @@ lemma disc_indep_wait [simp]: "\<^bold>d \<bowtie> wait" "wait \<bowtie> \<^bold
 lemma disc_indep_tr [simp]: "\<^bold>d \<bowtie> tr" "tr \<bowtie> \<^bold>d"
   by (simp_all add: disc_alpha_def lens_indep_left_ext lens_indep_sym)
 
-lemma cont_alpha_uvar [simp]: "vwb_lens \<^bold>c"
-  by (simp add: comp_vwb_lens cont_alpha_def snd_vwb_lens)
-
 lemma cont_indep_ok [simp]: "\<^bold>c \<bowtie> ok" "ok \<bowtie> \<^bold>c"
   by (simp_all add: cont_alpha_def lens_indep_left_ext lens_indep_sym)
 
@@ -62,29 +110,13 @@ lemma cont_indep_wait [simp]: "\<^bold>c \<bowtie> wait" "wait \<bowtie> \<^bold
 lemma cont_indep_tr [simp]: "\<^bold>c \<bowtie> tr" "tr \<bowtie> \<^bold>c"
   by (simp_all add: cont_alpha_def lens_indep_left_ext lens_indep_sym)
 
-lemma cont_indep_disc [simp]: "\<^bold>c \<bowtie> \<^bold>d" "\<^bold>d \<bowtie> \<^bold>c"
-   apply (simp_all add: disc_alpha_def cont_alpha_def)
-   apply (rule lens_indep_sym)
-   apply (auto intro: lens_indep_sym split_prod_lens_indep)
-done
-
-abbreviation disc_lift :: "('a, 'd \<times> 'd) uexpr \<Rightarrow> ('a, 'd, 'c::topological_space) hyexpr" ("\<lceil>_\<rceil>\<^sub>\<delta>") where
-"\<lceil>P\<rceil>\<^sub>\<delta> \<equiv> P \<oplus>\<^sub>p (\<^bold>d \<times>\<^sub>L \<^bold>d)"
-
-abbreviation cont_lift :: "('a, 'c \<times> 'c) uexpr \<Rightarrow> ('a, 'd, 'c::topological_space) hyexpr" ("\<lceil>_\<rceil>\<^sub>C") where
-"\<lceil>P\<rceil>\<^sub>C \<equiv> P \<oplus>\<^sub>p (\<^bold>c \<times>\<^sub>L \<^bold>c)"
-
-abbreviation cont_pre_lift :: "('a, 'c) uexpr \<Rightarrow> ('a,'d,'c::topological_space) hyexpr" ("\<lceil>_\<rceil>\<^sub>C\<^sub><") where
-"\<lceil>P\<rceil>\<^sub>C\<^sub>< \<equiv> P \<oplus>\<^sub>p (ivar \<^bold>c)"
-
-syntax
+ syntax
   "_cont_alpha" :: "svid" ("\<^bold>c")
   "_disc_alpha" :: "svid" ("\<^bold>d")
 
 translations
   "_cont_alpha" == "CONST cont_alpha"
   "_disc_alpha" == "CONST disc_alpha"
-  "\<lceil>P\<rceil>\<^sub>C\<^sub><" <= "CONST aext P (CONST ivar CONST cont_alpha)"
 
 lemma var_in_var_prod [simp]:
   fixes x :: "('a, '\<alpha>) uvar"
@@ -95,46 +127,67 @@ lemma var_out_var_prod [simp]:
   fixes x :: "('a, '\<alpha>) uvar"
   shows "utp_expr.var ((out_var x) ;\<^sub>L X \<times>\<^sub>L Y) = $Y\<acute>:(x)"
   by (pred_auto)
-
-definition ufloor :: "'a::{floor_ceiling} \<Rightarrow> 'a" 
-where [upred_defs]: "ufloor = of_int \<circ> floor"
-
-definition uceiling :: "'a::{floor_ceiling} \<Rightarrow> 'a"
-where [upred_defs]: "uceiling = of_int \<circ> floor"
-
-syntax
-  "_ufloor"   :: "logic \<Rightarrow> logic" ("\<lfloor>_\<rfloor>\<^sub>u")
-  "_uceiling" :: "logic \<Rightarrow> logic" ("\<lceil>_\<rceil>\<^sub>u")
-
-translations
-  "\<lfloor>x\<rfloor>\<^sub>u" == "CONST uop CONST ufloor x"
-  "\<lceil>x\<rceil>\<^sub>u" == "CONST uop CONST uceiling x"
-
+    
 lemma rea_var_ords [usubst]:
   "$\<^bold>c \<prec>\<^sub>v $tr" "$\<^bold>c \<prec>\<^sub>v $tr\<acute>" "$\<^bold>c\<acute> \<prec>\<^sub>v $tr" "$\<^bold>c\<acute> \<prec>\<^sub>v $tr\<acute>"
   by (simp_all add: var_name_ord_def)
+    
+text {* We next define some useful "lifting" operators. These operators effectively extend the state
+  space of an expression by adding additional variables. This is useful, for instance, to lift an
+  expression only on discrete variables to a hybrid expression. *}
+    
+abbreviation disc_lift :: "('a, 'd \<times> 'd) uexpr \<Rightarrow> ('a, 'd, 'c::topological_space) hyexpr" ("\<lceil>_\<rceil>\<^sub>\<delta>") where
+"\<lceil>P\<rceil>\<^sub>\<delta> \<equiv> P \<oplus>\<^sub>p (\<^bold>d \<times>\<^sub>L \<^bold>d)"
+
+abbreviation cont_lift :: "('a, 'c \<times> 'c) uexpr \<Rightarrow> ('a, 'd, 'c::topological_space) hyexpr" ("\<lceil>_\<rceil>\<^sub>C") where
+"\<lceil>P\<rceil>\<^sub>C \<equiv> P \<oplus>\<^sub>p (\<^bold>c \<times>\<^sub>L \<^bold>c)"
+
+abbreviation cont_pre_lift :: "('a, 'c) uexpr \<Rightarrow> ('a,'d,'c::topological_space) hyexpr" ("\<lceil>_\<rceil>\<^sub>C\<^sub><") where
+"\<lceil>P\<rceil>\<^sub>C\<^sub>< \<equiv> P \<oplus>\<^sub>p (ivar \<^bold>c)"
+
+translations
+  "\<lceil>P\<rceil>\<^sub>C\<^sub><" <= "CONST aext P (CONST ivar CONST cont_alpha)"
+
+text {* @{term "\<lceil>P\<rceil>\<^sub>\<delta>"} takes an expression @{term "P"}, whose state space is the relational on
+  the discrete state @{typ "'d"}, that is @{typ "'d \<times> 'd"} and lifts it into the hybrid state
+  space, @{typ "('d, 'c) hybs"}. Note that following this lifting all continuous variables will
+  be unconstrained -- this operator simply extends the alphabet. Similarly, @{term "\<lceil>P\<rceil>\<^sub>C"} lifts
+  an expression on the relational continuous state to one on the whole hybrid state. Finally, 
+  @{term "\<lceil>P\<rceil>\<^sub>C\<^sub><"} lifts an expression on a scalar continuous state space @{typ "'c"} to one
+  on the hybrid state. Effectively this is building a precondition, since it can only
+  refer to unprimed continuous variables. *}
 
 lemma zero_least_uexpr [simp]:
   "0 \<le>\<^sub>u (x::('a::ordered_cancel_monoid_diff, '\<alpha>) uexpr) = true"
   by (rel_auto)
 
+text {* We also set up some useful syntax to refer to the end of a continuous trace. *}
+    
 syntax
   "_uend" :: "logic \<Rightarrow> logic" ("end\<^sub>u'(_')")
-  "_time" :: "logic" ("time")
-  "_time'" :: "logic" ("time'")
 
 translations
-  "time"  == "CONST uop end\<^sub>t (CONST utp_expr.var (CONST ivar CONST tr))"
-  "time'" == "CONST uop end\<^sub>t (CONST utp_expr.var (CONST ovar CONST tr))"
   "end\<^sub>u(t)" == "CONST uop end\<^sub>t t"
 
-(* Need to lift the continuous predicate to a relation *)
+subsection {* Instant predicates *}
+  
+definition at :: 
+  "('a, 'c::topological_space) uexpr \<Rightarrow> real \<Rightarrow> ('a, 'd, 'c) hyexpr" 
+  (infix "@\<^sub>u" 60) where
+[upred_defs]: "P @\<^sub>u t = [$\<^bold>c \<mapsto>\<^sub>s \<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u] \<dagger> \<lceil>P\<rceil>\<^sub>C\<^sub><" 
 
-definition at :: "('a, 'c::topological_space) uexpr \<Rightarrow> real \<Rightarrow> ('a, 'd, 'c) hyexpr" (infix "@\<^sub>u" 60) where
-[upred_defs]: "P @\<^sub>u t = [$\<^bold>c \<mapsto>\<^sub>s \<phi>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u] \<dagger> \<lceil>P\<rceil>\<^sub>C\<^sub><" 
+text {* The expression @{term "P @\<^sub>u t"} asserts that the predicate @{term "P"} is satisfied by
+  the continuous state at time instant @{term "t"}. Here, @{term "P"} is a predicate only
+  on the flat continuous state. The operator is implemented by first extending the alphabet
+  of @{term "P"} to include all the hybrid variables, and then substituting the continuous
+  state for the continuous state at @{term "t"}, denoted by @{term "\<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u"}. *}
 
 lemma R2c_at: "R2c(P @\<^sub>u t) = P @\<^sub>u t"
   by (simp add: at_def R2c_def cond_idem usubst unrest R2s_def)
+    
+text {* @{term "P @\<^sub>u t"} always satisfies healthiness condition @{term "R2c"}, meaning that it
+  is history independent -- it does not refer to the variable @{term "tr"}, and only refers
+  to the contribution of the present trace contained in @{term "\<^bold>t"}. *} 
 
 lemma at_unrest_cont [unrest]: "$\<^bold>c \<sharp> (P @\<^sub>u t)"
   by (simp add: at_def unrest)
@@ -144,6 +197,10 @@ lemma at_unrest_ok [unrest]: "$ok \<sharp> (P @\<^sub>u t)" "$ok\<acute> \<sharp
 
 lemma at_unrest_wait [unrest]: "$wait \<sharp> (P @\<^sub>u t)" "$wait\<acute> \<sharp> (P @\<^sub>u t)"
   by (simp_all add: at_def unrest alpha)
+    
+text {* The above results tell us that the continuous state, @{term "ok"}, and @{term "wait"} are
+  all not referred to by @{term "P @\<^sub>u t"}. We also prove some distributivity properties for
+  the operator. *}
 
 lemma at_true [simp]: "true @\<^sub>u t = true"
   by (simp add: at_def alpha usubst)
@@ -163,14 +220,31 @@ lemma at_ueq [simp]: "(x =\<^sub>u y) @\<^sub>u t = (x @\<^sub>u t =\<^sub>u y @
 lemma at_plus [simp]:
   "(x + y) @\<^sub>u t = ((x @\<^sub>u t) + (y @\<^sub>u t))"
   by (simp add: at_def alpha usubst)
-
+    
 lemma at_var [simp]:
   fixes x :: "('a, 'c::topological_space) uvar"
-  shows "utp_expr.var x @\<^sub>u t = \<phi>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u:(x)"
+  shows "utp_expr.var x @\<^sub>u t = \<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u:(x)"
   by (pred_auto)
 
+text {* Lemma @{thm [source] "at_var"} tells us the result of lifting a flat continuous variable 
+  @{term "x"}. It results in an expression which refers to that particular variable within the 
+  timed trace at instant @{term "t"}. *}
+ 
+lemma subst_cvar_traj [usubst]: "\<langle>[$\<^bold>c \<mapsto>\<^sub>s \<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u]\<rangle>\<^sub>s (x ;\<^sub>L in_var \<^bold>c) = x~(\<guillemotleft>t\<guillemotright>)"
+  by (pred_auto)
+
+subsection {* The interval operator *}
+    
 definition hInt :: "(real \<Rightarrow> 'c::topological_space upred) \<Rightarrow> ('d,'c) hyrel" where
 [urel_defs]: "hInt P = ($tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
+
+text {* The interval operator, @{term "hInt P"}, asserts that a predicate on the continuous state
+  is satisfied at every instant between the beginning and end of the evolution, that is on the
+  right-open interval $[0, \textbf{l})$. This is specified using the instant operator, 
+  @{term "(P t) @\<^sub>u t"}. Note that in this version of the interval operator we also allow that
+  $P$ itself can depend on the instant $t$. We also require that the trace is \emph{strictly}
+  increasing, meaning that the trace cannot be over an empty interval. The next couple of
+  results that the interval does not constrain the $ok$ or $wait$ variables. *}
 
 lemma hInt_unrest_ok [unrest]: "$ok \<sharp> hInt P" "$ok\<acute> \<sharp> hInt P"
   by (simp_all add: hInt_def unrest)
@@ -179,7 +253,19 @@ lemma hInt_unrest_wait [unrest]: "$wait \<sharp> hInt P" "$wait\<acute> \<sharp>
   by (simp_all add: hInt_def unrest)
 
 definition hDisInt :: "(real \<Rightarrow> 'c::t2_space upred) \<Rightarrow> ('d, 'c) hyrel" where 
-[urel_defs]: "hDisInt P = (hInt P \<and> $\<^bold>c =\<^sub>u \<phi>\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<phi>\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+[urel_defs]: "hDisInt P = (hInt P \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+
+text {* We also set up the adapted version of the interval operator, @{term "hDisInt P"}, that
+  conjoins an interval specification with three predicates, which also happen to be coupling 
+  invariants. The first states that the continuous state within the trace at instant 0 must 
+  correspond to the before value of the continuous state, i.e. @{term "$\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u"}. The second 
+  states that the after value of the continuous state must take on the limit of the continuous 
+  state as the trace approaches the end value @{term "\<^bold>l"}, i.e. @{term "$\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u)"}. 
+  This second constraint requires that the timed trace must converge to a point at @{term "\<^bold>l"}, 
+  which is true because our timed trace is piecewise convergent. The last two constraints are what 
+  makes our model a hybrid computational model, since we link together discrete assignments to 
+  continuous variables in the before and after state, and continuous evolution in the timed trace.
+  The final predicate states that the discrete state does not change during a continuous evolution. *}
 
 syntax
   "_time_var" :: "logic"
@@ -206,9 +292,6 @@ where "P \<lbrakk>b\<rbrakk>\<^sub>H Q = (((Q \<triangleleft> b @\<^sub>u 0 \<tr
 
 lemma uend_0 [simp]: "end\<^sub>u(0) = 0"
   by (simp add: upred_defs lit_def uop_def Abs_uexpr_inverse)
-
-lemma R2c_time_range: "R2c (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<time'-time}\<^sub>u) = (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<time'-time}\<^sub>u)"
-  by (rel_auto ; simp add: tt_end_minus)
 
 lemma R2c_time_length: "R2c (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u) = (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u)"
   by (rel_auto ; simp add: tt_end_minus)

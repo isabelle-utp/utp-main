@@ -49,4 +49,8 @@ syntax
 
 hide_type rel
   
+text {* We also set up adhoc overloading to apply timed traces and contiguous functions *}
+  
+adhoc_overloading uapply cgf_apply and uapply tt_apply
+  
 end
