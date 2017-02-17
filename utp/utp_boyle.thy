@@ -1,7 +1,7 @@
 section {* Example UTP theory: Boyle's laws *}
 (*<*)
 theory utp_boyle
-imports utp_theory
+imports utp_theory (* utp_avar *)
 begin
 (*>*)
 
@@ -243,7 +243,7 @@ apply (simp add: numeral_2_eq_2)
 apply (simp add: numeral_2_eq_2)
 done
 
-lemma "({x::nat}\<^sub>x := 1 ;; {x::nat}\<^sub>x := &{x::nat}\<^sub>x + 1) = {x::nat}\<^sub>x := 2"
+lemma "({x::nat} := 1 ;; {x::nat} := &{x::nat} + 1) = {x::nat} := 2"
 apply (rel_auto)
 apply (simp add: numeral_2_eq_2)
 apply (simp add: numeral_2_eq_2)

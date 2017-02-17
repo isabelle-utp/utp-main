@@ -32,7 +32,7 @@ text {*
 
 class ust =
   fixes ust_lens :: "ustate \<Longrightarrow> 'a" ("ust\<^sub>L")
-  assumes vwb_lens_ust: "vwb_lens ust_lens"
+  assumes vwb_lens_ust [simp]: "vwb_lens ust_lens"
 
 subsection {* Instantiations *}
 

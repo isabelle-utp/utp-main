@@ -74,6 +74,52 @@ print_translation {*
     @{const_syntax Action} @{syntax_const "_Action"}]
 *}
 
+subsection {* Substitution *}
+
+definition subst_upd_avar ::
+  "('\<alpha>::ust, '\<beta>) psubst \<Rightarrow>
+    'a::injectable uvar.var \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>, '\<beta>) psubst" where
+"subst_upd_avar ss v e = (\<lambda>\<sigma>. ss (put\<^bsub>avar\<^sub>L v\<^esub> \<sigma> (\<lbrakk>e\<rbrakk>\<^sub>e\<sigma>)))"
+
+adhoc_overloading subst_upd subst_upd_avar
+
+subsection {* Instantiations *}
+
+instantiation alpha_d_ext :: (ust) ust
+begin
+definition ust_lens_alpha_d_ext :: "ustate \<Longrightarrow> 'a alphabet_d" where
+"ust_lens_alpha_d_ext = ust\<^sub>L ;\<^sub>L \<Sigma>\<^sub>D"
+instance
+apply (intro_classes)
+apply (unfold ust_lens_alpha_d_ext_def)
+apply (simp)
+done
+end
+
+instantiation alpha_rp'_ext :: (ordered_cancel_monoid_diff, ust) ust
+begin
+definition ust_lens_alpha_rp'_ext ::
+  "ustate \<Longrightarrow> ('a, 'b) alpha_rp'_scheme" where
+"ust_lens_alpha_rp'_ext = ust\<^sub>L ;\<^sub>L \<Sigma>\<^sub>r"
+instance
+apply (intro_classes)
+apply (unfold ust_lens_alpha_rp'_ext_def)
+apply (simp)
+done
+end
+
+instantiation alpha_csp'_ext :: (type, ust) ust
+begin
+definition ust_lens_alpha_csp'_ext ::
+  "ustate \<Longrightarrow> ('a, 'b) alpha_csp'_scheme" where
+"ust_lens_alpha_csp'_ext = ust\<^sub>L ;\<^sub>L \<Sigma>\<^sub>c"
+instance
+apply (intro_classes)
+apply (unfold ust_lens_alpha_csp'_ext_def)
+apply (simp)
+done
+end
+
 subsection {* Proof Experiments *}
 
 theorem
