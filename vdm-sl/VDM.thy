@@ -153,7 +153,7 @@ begin
   definition one_vexpr :: "('a, 'b) vexpr" where [upred_defs]: "one_vexpr = vlit 1"
   instance ..
 end
-
+  
 instantiation vexpr :: (plus, type) plus
 begin
 
@@ -180,7 +180,7 @@ begin
 
 instance ..
 end
-
+  
 text {* We augment inverse and divide so that it is undefined when the divisor is 0 *}
 
 instantiation vexpr :: ("{zero,inverse}", type) inverse
@@ -194,6 +194,20 @@ begin
 instance ..
 end
 
+instance vexpr :: (semigroup_add, type) semigroup_add
+  apply (intro_classes) 
+  apply (auto simp add: plus_vexpr_def times_vexpr_def, transfer, simp add: fun_eq_iff add.commute semiring_class.distrib_right semiring_class.distrib_left)+
+  apply (rename_tac a b c x)
+  apply (case_tac "a x")
+  apply (simp_all)
+  apply (case_tac "b x")
+  apply (simp_all)    
+  apply (case_tac "c x")
+  apply (simp_all add: bpfun_def add.assoc)
+done
+    
+instance vexpr :: (numeral, type) numeral
+  by (intro_classes)
 
 definition vmap_apply :: "('a \<rightharpoonup> 'b) \<times> 'a \<Rightarrow> 'b option" where
 "vmap_apply = (\<lambda> (f, x). f(x))"
