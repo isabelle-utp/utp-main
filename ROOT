@@ -88,12 +88,18 @@ session "Continuum" in "continuum" = "HOL-Cardinals" +
 (* Continuous System Dynamics *)
 
 session "Dynamics" in "dynamics" = "HOL-Analysis" +
-  options [document = false, timeout = 1000]
+  options [document = pdf, document_output = "output", timeout = 1000]
   theories
     Derivative_extra
     Contiguous_Functions
     Timed_Traces
-
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty"
+    "zed.sty"
+    "csp.sty"
+    
 (* Library Imports for UTP *)
 
 session "UTP-IMPORTS" in "utils" = "Optics" +
