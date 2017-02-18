@@ -204,6 +204,9 @@ lemma R1_extend_conj_unrest': "\<lbrakk> $tr \<sharp> P; $tr\<acute> \<sharp> P 
 lemma R1_tr'_eq_tr: "R1($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u $tr)"
   by (rel_auto)
 
+lemma R1_tr_less_tr': "R1($tr <\<^sub>u $tr\<acute>) = ($tr <\<^sub>u $tr\<acute>)"
+  by (rel_auto)
+    
 lemma R1_H2_commute: "R1(H2(P)) = H2(R1(P))"
   by (simp add: H2_split R1_def usubst, rel_auto)
 
@@ -269,7 +272,7 @@ lemma R2_conj: "R2(P \<and> Q) = (R2(P) \<and> R2(Q))"
 
 lemma R2s_disj: "R2s(P \<or> Q) = (R2s(P) \<or> R2s(Q))"
   by pred_auto
-
+    
 lemma R2s_USUP:
   "R2s(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> R2s(P(i)))"
   by (simp add: R2s_def usubst)
@@ -355,10 +358,22 @@ lemma R2c_tr'_minus_tr: "R2c($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u
 
 lemma R2c_tr'_ge_tr: "R2c($tr\<acute> \<ge>\<^sub>u $tr) = ($tr\<acute> \<ge>\<^sub>u $tr)"
   by (rel_auto)
+    
+lemma R2c_tr_less_tr': "R2c($tr <\<^sub>u $tr\<acute>) = ($tr <\<^sub>u $tr\<acute>)"
+  apply (rel_auto)
+  using le_imp_less_or_eq apply fastforce
+  using dual_order.strict_iff_order minus_zero_eq apply fastforce
+done
 
 lemma R2c_condr: "R2c(P \<triangleleft> b \<triangleright> Q) = (R2c(P) \<triangleleft> R2c(b) \<triangleright> R2c(Q))"
   by (rel_auto)
 
+lemma R2c_shAll: "R2c (\<^bold>\<forall> x \<bullet> P x) = (\<^bold>\<forall> x \<bullet> R2c(P x))"
+  by (rel_auto)
+
+lemma R2c_impl: "R2c(P \<Rightarrow> Q) = (R2c(P) \<Rightarrow> R2c(Q))"
+  by (metis (no_types, lifting) R2c_and R2c_not double_negation impl_alt_def not_conj_deMorgans)
+    
 lemma R2c_skip_r: "R2c(II) = II"
 proof -
   have "R2c(II) = R2c($tr\<acute> =\<^sub>u $tr \<and> II\<restriction>\<^sub>\<alpha>tr)"

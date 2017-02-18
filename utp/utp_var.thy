@@ -19,7 +19,7 @@ theory utp_var
   "../utils/Library_extra/Monoid_extra"
   utp_parser_utils
 begin
-
+  
 text {* We will overload the square order relation with refinement and also the lattice operators so
   we will turn off these notations. *}
 

@@ -238,6 +238,9 @@ lemma RHS_Idempotent: "Idempotent \<^bold>R\<^sub>s"
 lemma RHS_Monotonic: "Monotonic \<^bold>R\<^sub>s"
   by (simp add: Monotonic_def R1_R2c_is_R2 R2_mono R3h_mono RHS_def)
 
+lemma RHS_mono: "P \<sqsubseteq> Q \<Longrightarrow> \<^bold>R\<^sub>s(P) \<sqsubseteq> \<^bold>R\<^sub>s(Q)"
+  using Monotonic_def RHS_Monotonic by blast  
+    
 lemma RHS_Continuous: "Continuous \<^bold>R\<^sub>s"
   by (simp add: Continuous_comp R1_Continuous R2c_Continuous R3h_Continuous RHS_comp)
     
