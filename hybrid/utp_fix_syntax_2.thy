@@ -20,8 +20,6 @@ no_notation
   Not  ("~ _" [40] 40) and 
   BNF_Def.convol ("\<langle>(_,/ _)\<rangle>")
 
-
-  
 no_notation (ASCII)
   Set.member  ("op :") and
   Set.member  ("(_/ : _)" [51, 51] 50)

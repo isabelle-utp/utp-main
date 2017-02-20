@@ -34,8 +34,14 @@ text {* We introduce the notation @{term "\<F> has-deriv \<F>' at t < \<tau>"} t
   
 definition hODE :: 
   "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> 
-   ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) hyrel" ("\<langle>_ \<bullet> _\<rangle>\<^sub>H") where
-[urel_defs]: "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H = (\<^bold>\<exists> \<F>, l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<^bold>\<lceil> \<guillemotleft>\<F>\<guillemotright> has-deriv \<F>' at \<guillemotleft>\<tau>\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> &x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u \<^bold>\<rceil>\<^sub>H)"
+   ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) hyrel" where
+[urel_defs]: "hODE x \<F>' = (\<^bold>\<exists> \<F>, l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<^bold>\<lceil> \<guillemotleft>\<F>\<guillemotright> has-deriv \<F>' at \<guillemotleft>\<tau>\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> &x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u \<^bold>\<rceil>\<^sub>H)"
+
+syntax
+  "_hODE" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_ \<bullet> _\<rangle>\<^sub>H")
+
+translations
+  "_hODE a P" == "CONST hODE a P"
 
 text {* We next introduce the construct @{term "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H"}, which states that continuous state lens 
   $x$ evolves according the ODE described by @{term "\<F>'"}. The lens $x$ identifies a portion of

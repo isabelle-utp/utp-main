@@ -423,7 +423,7 @@ proof -
     by (simp add: R2_hInt)
   finally show ?thesis .
 qed
-
+  
 text {* The proof of the theorem is quite long, but the theorem intuitively tells us that an interval
   can always be split into two intervals where the property holds of both. *}
   
