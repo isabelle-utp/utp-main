@@ -129,6 +129,9 @@ lemma R1_conj: "R1(P \<and> Q) = (R1(P) \<and> R1(Q))"
 lemma R1_disj: "R1(P \<or> Q) = (R1(P) \<or> R1(Q))"
   by pred_auto
 
+lemma R1_inf: "R1(P \<sqinter> Q) = (R1(P) \<sqinter> R1(Q))"
+  by pred_auto
+    
 lemma R1_USUP:
   "R1(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> R1(P(i)))"
   by (rel_auto)
@@ -341,6 +344,9 @@ lemma R2c_and: "R2c(P \<and> Q) = (R2c(P) \<and> R2c(Q))"
 lemma R2c_disj: "R2c(P \<or> Q) = (R2c(P) \<or> R2c(Q))"
   by (rel_auto)
 
+lemma R2c_inf: "R2c(P \<sqinter> Q) = (R2c(P) \<sqinter> R2c(Q))"
+  by (rel_auto)
+    
 lemma R2c_not: "R2c(\<not> P) = (\<not> R2c(P))"
   by (rel_auto)
 

@@ -129,13 +129,6 @@ where "CSP2(P) \<equiv> RD2(P)"
 abbreviation CSP :: "(('\<sigma>, '\<phi>) circus \<times> ('\<sigma>, '\<phi>) circus) health"
 where "CSP(P) \<equiv> SRD(P)"
 
-text {*
-  Simon, the definition below did not explicitly include type information. I
-  think it is good practice to specify types in all definitions, I thus added
-  the type @{typ "'\<phi> csp"}. Is that correct? I suppose pure CSP processes do
-  not consider program state?!
-*}
-
 definition STOP :: "'\<phi> rel_csp" where
 [upred_defs]: "STOP = CSP1($ok\<acute> \<and> R3c($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
 
@@ -175,37 +168,28 @@ translations
 definition extChoice ::
   "('\<sigma>, '\<phi>) rel_circus \<Rightarrow> ('\<sigma>, '\<phi>) rel_circus \<Rightarrow> ('\<sigma>, '\<phi>) rel_circus" (infixl "\<box>" 65) where 
 [upred_defs]: "P \<box> Q \<equiv> ExtChoice {P, Q}"
-
-text {*
-  Simon, I changed the type of the parameter @{term e} of @{text "do\<^sub>u"} to
-  an expression over undashed variable only rather then relational ones. I
-  considered changing it to @{typ "'\<alpha>"} but realised that this causes some
-  inconveniences as increasing the need for explicit coercions of alphabet
-  types, for instance, if variables used in @{term e} have a state-space
-  type consistent with the theory of CSP rather than plain program states.
-  Intuitively, we may want to exclude that expression @{term e} refers to
-  dashed or auxiliary variables though, which motivated my use @{typ "'\<alpha>"}.
-*}
   
 definition do\<^sub>u ::
-  "_ \<Rightarrow> ('\<sigma>, '\<phi>) rel_circus" where
+  "('\<phi>, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>, '\<phi>) rel_circus" where
 [upred_defs]: "do\<^sub>u e = ((($tr\<acute> =\<^sub>u $tr) \<and> \<lceil>e\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>) \<triangleleft> $wait\<acute> \<triangleright> ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>e\<rceil>\<^sub>S\<^sub><\<rangle>))"
 
-definition PrefixCSP ::
-  "('a, '\<phi>) chan \<Rightarrow>
-  ('a, '\<sigma>) uexpr \<Rightarrow>
-  ('\<sigma>, '\<phi>) rel_circus \<Rightarrow>
-  ('\<sigma>, '\<phi>) rel_circus" where
-[upred_defs]: "PrefixCSP c v A = (\<^bold>R\<^sub>s(true \<turnstile> (do\<^sub>u (c\<cdot>v)\<^sub>u \<and> \<lceil>II\<rceil>\<^sub>R)) ;; A)"
+definition DoCSP :: "('\<phi>, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>, '\<phi>) rel_circus" ("do\<^sub>C") where
+[upred_defs]: "DoCSP a = \<^bold>R\<^sub>s(true \<turnstile> (do\<^sub>u a \<and> \<lceil>II\<rceil>\<^sub>R))"
 
-abbreviation "OutputCSP \<equiv> PrefixCSP"
+definition PrefixCSP ::
+  "('\<phi>, '\<sigma>) uexpr \<Rightarrow>
+  ('\<sigma>, '\<phi>) rel_circus \<Rightarrow>
+  ('\<sigma>, '\<phi>) rel_circus" ("_ \<^bold>\<longrightarrow> _" [81, 80] 80) where
+[upred_defs]: "PrefixCSP a P = (do\<^sub>C(a) ;; P)"
+
+abbreviation "OutputCSP c v P \<equiv> PrefixCSP (c\<cdot>v)\<^sub>u P"
 
 text {* This version of input prefix is implemented using iterated external choice and so does not
   depend on the existence of local variables. *}
   
 definition InputCSP ::
   "('a, '\<theta>) chan \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> ('\<sigma>, '\<theta>) rel_circus) \<Rightarrow> ('\<sigma>, '\<theta>) rel_circus" where
-"InputCSP c A P = (\<box> x \<in> A \<bullet> PrefixCSP c \<guillemotleft>x\<guillemotright> (P x))" 
+"InputCSP c A P = (\<box> x \<in> A \<bullet> PrefixCSP (c\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u (P x))" 
 
 definition do\<^sub>I :: "
   ('a, '\<theta>) chan \<Rightarrow>
@@ -217,16 +201,7 @@ definition do\<^sub>I :: "
     \<triangleleft> $wait\<acute> \<triangleright>
   (($tr\<acute> - $tr) \<in>\<^sub>u {e : \<guillemotleft>\<delta>\<^sub>u(c)\<guillemotright> | P(e) \<bullet> \<langle>(c\<cdot>\<guillemotleft>e\<guillemotright>)\<^sub>u\<rangle>}\<^sub>u \<and> (c\<cdot>$x\<acute>)\<^sub>u =\<^sub>u last\<^sub>u($tr\<acute>)))"
 
-text {*
-  Simon, I believe there was an earlier problem here due to the conjunction
-  with @{term "\<lceil>II\<rceil>\<^sub>R"} as this also puts a constraint on variable @{term x}.
-  If you agree with the fix below, feel free to remove this comments. Below
-  I also highlighted places where we could consider using the plain program
-  state type @{typ "'\<alpha>"}. I did not adopt this for the same reason as noted
-  above, making usage more error-prone due to additional need for coercions.
-*}
-
-text {* This operator should be removed from here and places in the Circus theory *}
+text {* Frank: This operator should be removed from here and places in the Circus theory *}
   
 definition InputCircus ::
   "('a::{continuum, two}, '\<theta>) chan \<Rightarrow>
@@ -242,15 +217,6 @@ syntax
     ("_!\<^sub>u'(_') \<rightarrow> _" [81, 0, 80] 80)
   "_csp_input"  :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"
     ("_?\<^sub>u'(_ :/ _') \<rightarrow> _" [81, 0, 0, 80] 80)
-
-text {*
-  Simon, I think @{text "(CONST top_var \<dots>"} below was a bug since the result
-  is not a type instance of @{typ "('a, '\<alpha>) lvar"} but @{typ "('a, '\<alpha>) uvar"}.
-  Could you perhaps check with the previous version of the translation rules?
-  Pretty-printing of input prefixes now soft of works, although there is still
-  an issue with eta-contractions (@{text "Syntax_Trans.preserve_binder_abs_\<dots>"}
-  only handles the suppression of eta-contraction up to the second argument.
-*}
 
 translations
   "c \<^bold>\<rightarrow> A"         \<rightleftharpoons> "(CONST OutputCSP) c ()\<^sub>u A"
@@ -462,6 +428,30 @@ proof -
   done
   finally show ?thesis by (simp add: extChoice_alt_def)
 qed
+
+lemma cond_conj: "P \<triangleleft> b \<and> c \<triangleright> Q = (P \<triangleleft> c \<triangleright> Q) \<triangleleft> b \<triangleright> Q"
+  by (rel_auto)
+  
+lemma extChoice_tri_rdes:
+  assumes "$ok\<acute> \<sharp> P\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>1"
+  shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<box> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) = 
+         \<^bold>R\<^sub>s ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> (((P\<^sub>2 \<and> Q\<^sub>2) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (P\<^sub>2 \<or> Q\<^sub>2)) \<diamondop> (P\<^sub>3 \<or> Q\<^sub>3)))"
+proof -
+  have "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<box> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) =
+        \<^bold>R\<^sub>s ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> ((P\<^sub>2 \<diamondop> P\<^sub>3 \<and> Q\<^sub>2 \<diamondop> Q\<^sub>3) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (P\<^sub>2 \<diamondop> P\<^sub>3 \<or> Q\<^sub>2 \<diamondop> Q\<^sub>3)))"
+    by (simp add: extChoice_rdes assms)
+  also
+  have "... = \<^bold>R\<^sub>s ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> ((P\<^sub>2 \<diamondop> P\<^sub>3 \<and> Q\<^sub>2 \<diamondop> Q\<^sub>3) \<triangleleft> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<triangleright> (P\<^sub>2 \<diamondop> P\<^sub>3 \<or> Q\<^sub>2 \<diamondop> Q\<^sub>3)))"
+    by (simp add: conj_comm)
+  also
+  have "... = \<^bold>R\<^sub>s ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile>
+               (((P\<^sub>2 \<diamondop> P\<^sub>3 \<and> Q\<^sub>2 \<diamondop> Q\<^sub>3) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (P\<^sub>2 \<diamondop> P\<^sub>3 \<or> Q\<^sub>2 \<diamondop> Q\<^sub>3)) \<diamondop> (P\<^sub>2 \<diamondop> P\<^sub>3 \<or> Q\<^sub>2 \<diamondop> Q\<^sub>3)))"
+    by (simp add: cond_conj wait'_cond_def)
+  also
+  have "... = \<^bold>R\<^sub>s ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> (((P\<^sub>2 \<and> Q\<^sub>2) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (P\<^sub>2 \<or> Q\<^sub>2)) \<diamondop> (P\<^sub>3 \<or> Q\<^sub>3)))"
+    by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
+  finally show ?thesis .
+qed
   
 lemma ExtChoice_comm:
   "P \<box> Q = Q \<box> P"
@@ -540,8 +530,54 @@ proof -
   finally show ?thesis .
 qed
   
-subsection {* Parallel Composition *}
+lemma DoCSP_RHS_tri:
+  "do\<^sub>C(a) = \<^bold>R\<^sub>s(true \<turnstile> (($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute> \<and> \<lceil>II\<rceil>\<^sub>R) \<diamondop> ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>II\<rceil>\<^sub>R)))"
+  by (simp add: DoCSP_def do\<^sub>u_def wait'_cond_def, rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
+  
+lemma PrefixCSP_RHS_tri_lemma1:
+  "R1 (R2s ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>II\<rceil>\<^sub>R)) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>II\<rceil>\<^sub>R)"
+  apply (rel_auto)
+  apply (metis append.left_neutral less_eq_list_def prefix_concat_minus zero_list_def)
+  apply (simp add: zero_list_def)
+  done
+    
+lemma PrefixCSP_RHS_tri_lemma2:
+  assumes "$ok \<sharp> P" "$wait \<sharp> P"
+  shows "(($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>II\<rceil>\<^sub>R) \<and> \<not> $wait\<acute>) ;; P = P\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
+  using assms
+  by (rel_auto, meson, fastforce)
 
+lemma PrefixCSP_RHS_tri_lemma3:
+  assumes "$ok \<sharp> P" "$wait \<sharp> P"
+  shows "($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>II\<rceil>\<^sub>R) ;; P = P\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
+  using assms
+  by (rel_auto, meson)
+    
+lemma PrefixCSP_RHS_tri:
+  assumes "P is CSP"
+  shows "a \<^bold>\<longrightarrow> P = 
+        \<^bold>R\<^sub>s (pre\<^sub>R(P\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>) \<turnstile>
+                ((\<exists> $st\<acute> \<bullet> $tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute> \<and> \<lceil>II\<rceil>\<^sub>R) \<or> peri\<^sub>R(P\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>)) 
+                \<diamondop> post\<^sub>R(P\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>))"
+proof -
+  have "a \<^bold>\<longrightarrow> P = 
+          \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute> \<and> \<lceil>II\<rceil>\<^sub>R) \<diamondop> ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>II\<rceil>\<^sub>R)) ;; 
+          \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
+    by (simp add: PrefixCSP_def DoCSP_RHS_tri SRD_reactive_tri_design assms)
+  also have "... = 
+     \<^bold>R\<^sub>s ((\<not> (($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>II\<rceil>\<^sub>R) \<and> \<not> $wait\<acute>) ;; (\<not> pre\<^sub>R P)) \<turnstile>
+             ((\<exists> $st\<acute> \<bullet> $tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute> \<and> \<lceil>II\<rceil>\<^sub>R) \<or>
+              ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>II\<rceil>\<^sub>R) ;; peri\<^sub>R P) \<diamondop>
+             (($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>II\<rceil>\<^sub>R) ;; post\<^sub>R P))"
+      by (simp_all add: RHS_tri_design_composition unrest R1_neg_R2s_pre_RHS R1_R2s_peri_SRD R1_R2s_post_SRD R2s_true R1_false PrefixCSP_RHS_tri_lemma1 assms)
+  also have "... = 
+     \<^bold>R\<^sub>s (pre\<^sub>R(P\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>) \<turnstile>
+             ((\<exists> $st\<acute> \<bullet> $tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute> \<and> \<lceil>II\<rceil>\<^sub>R) \<or> peri\<^sub>R(P\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>)) 
+              \<diamondop> post\<^sub>R(P\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>))"
+    by (simp add: PrefixCSP_RHS_tri_lemma2 PrefixCSP_RHS_tri_lemma3 unrest usubst)
+  finally show ?thesis .
+qed
+  
 subsection {* Merge Predicates *}
 
 text {*
