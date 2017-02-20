@@ -69,6 +69,20 @@ lemma Healthy_carrier_image:
   "A \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H \<Longrightarrow> \<H> ` A = A"
     by (auto simp add: image_def, (metis Healthy_if mem_Collect_eq subsetCE)+)
 
+lemma Healthy_carrier_Collect: "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> A = {H(P) | P. P \<in> A}"
+  by (simp add: Healthy_carrier_image Setcompr_eq_image)
+  
+lemma Healthy_SUPREMUM: 
+  "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> SUPREMUM A H = \<Sqinter> A"
+  by (drule Healthy_carrier_image, presburger)
+
+lemma Healthy_INFIMUM: 
+  "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> INFIMUM A H = \<Squnion> A"
+  by (drule Healthy_carrier_image, presburger)
+    
+lemma Healthy_subset_member: "\<lbrakk> A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H; P \<in> A \<rbrakk> \<Longrightarrow> H(P) = P"
+  by (meson Ball_Collect Healthy_if)
+      
 subsection {* Properties of healthiness conditions *}
 
 definition Idempotent :: "'\<alpha> health \<Rightarrow> bool" where 

@@ -1376,35 +1376,52 @@ lemma rdes_export_cmt: "\<^bold>R\<^sub>s(P \<turnstile> cmt\<^sub>s \<dagger> Q
   
 lemma rdes_export_pre: "\<^bold>R\<^sub>s((P\<lbrakk>true,false/$ok,$wait\<rbrakk>) \<turnstile> Q) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
   by (rel_auto)
+
+lemma RHS_design_pre_post_form: 
+  "\<^bold>R\<^sub>s((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P))"
+proof -
+  have "\<^bold>R\<^sub>s((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f) = \<^bold>R\<^sub>s((\<not> P\<^sup>f\<^sub>f)\<lbrakk>true/$ok\<rbrakk> \<turnstile> P\<^sup>t\<^sub>f\<lbrakk>true/$ok\<rbrakk>)"
+    by (simp add: design_subst_ok)
+  also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P))"
+    by (simp add: pre\<^sub>R_def cmt\<^sub>R_def usubst)
+  finally show ?thesis .
+qed
+    
+lemma SRD_as_reactive_design:
+  "SRD(P) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P))"
+  by (simp add: RHS_design_pre_post_form SRD_RH_design_form)
     
 lemma SRD_reactive_design_alt:
   assumes "P is SRD"
   shows "\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P)) = P"
 proof -
   have "\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P)) = \<^bold>R\<^sub>s((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f)"
-    by (rel_auto)
+    by (simp add: RHS_design_pre_post_form)
   thus ?thesis
     by (simp add: SRD_reactive_design assms)
 qed
-    
+  
 lemma SRD_reactive_tri_design_lemma:
-  assumes "P is SRD"
-  shows "\<^bold>R\<^sub>s((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> P\<^sup>t\<^sub>f\<lbrakk>false/$wait\<acute>\<rbrakk>) = P"
-  by (simp add: SRD_reactive_design assms wait'_cond_split)
+  "SRD(P) = \<^bold>R\<^sub>s((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> P\<^sup>t\<^sub>f\<lbrakk>false/$wait\<acute>\<rbrakk>)"
+  by (simp add: SRD_RH_design_form wait'_cond_split)
 
-lemma SRD_reactive_tri_design:
-  assumes "P is SRD"
-  shows "\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) = P"
+lemma SRD_as_reactive_tri_design:
+  "SRD(P) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
 proof -
-  have "P = \<^bold>R\<^sub>s((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> P\<^sup>t\<^sub>f\<lbrakk>false/$wait\<acute>\<rbrakk>)"
-    by (simp add: SRD_reactive_tri_design_lemma assms)
+  have "SRD(P) = \<^bold>R\<^sub>s((\<not> P\<^sup>f\<^sub>f) \<turnstile> P\<^sup>t\<^sub>f\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> P\<^sup>t\<^sub>f\<lbrakk>false/$wait\<acute>\<rbrakk>)"
+    by (simp add: SRD_RH_design_form wait'_cond_split)
   also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
     apply (simp add: usubst)
     apply (subst design_subst_ok_ok'[THEN sym])
     apply (simp add: pre\<^sub>R_def peri\<^sub>R_def post\<^sub>R_def usubst unrest)
   done
-  finally show ?thesis ..
+  finally show ?thesis .
 qed
+    
+lemma SRD_reactive_tri_design:
+  assumes "P is SRD"
+  shows "\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) = P"
+  by (metis Healthy_if SRD_as_reactive_tri_design assms)
 
 lemma R1_neg_R2s_pre_RHS:
   assumes "P is SRD"

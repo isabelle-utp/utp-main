@@ -428,9 +428,6 @@ proof -
   done
   finally show ?thesis by (simp add: extChoice_alt_def)
 qed
-
-lemma cond_conj: "P \<triangleleft> b \<and> c \<triangleright> Q = (P \<triangleleft> c \<triangleright> Q) \<triangleleft> b \<triangleright> Q"
-  by (rel_auto)
   
 lemma extChoice_tri_rdes:
   assumes "$ok\<acute> \<sharp> P\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>1"
@@ -577,6 +574,44 @@ proof -
     by (simp add: PrefixCSP_RHS_tri_lemma2 PrefixCSP_RHS_tri_lemma3 unrest usubst)
   finally show ?thesis .
 qed
+          
+lemma extChoice_Dist:
+  assumes "P is CSP" "S \<subseteq> \<lbrakk>CSP\<rbrakk>\<^sub>H" "S \<noteq> {}"
+  shows "P \<box> (\<Sqinter> S) = (\<Sqinter> Q\<in>S. P \<box> Q)"
+proof -
+  let ?S1 = "pre\<^sub>R ` S" and ?S2 = "cmt\<^sub>R ` S"
+  have "P \<box> (\<Sqinter> S) = P \<box> (\<Sqinter> Q\<in>S \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> cmt\<^sub>R(Q)))"
+    by (simp add: SRD_as_reactive_design[THEN sym] Healthy_SUPREMUM USUP_as_Sup_collect assms)
+  also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P)) \<box> \<^bold>R\<^sub>s((\<Squnion> Q \<in> S \<bullet> pre\<^sub>R(Q)) \<turnstile> (\<Sqinter> Q \<in> S \<bullet> cmt\<^sub>R(Q)))"
+    by (simp add: RHS_design_USUP SRD_reactive_design_alt assms)
+  also have "... = \<^bold>R\<^sub>s ((pre\<^sub>R(P) \<and> (\<Squnion> Q \<in> S \<bullet> pre\<^sub>R(Q))) \<turnstile> 
+                       ((cmt\<^sub>R(P) \<and> (\<Sqinter> Q \<in> S \<bullet> cmt\<^sub>R(Q))) 
+                         \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> 
+                        (cmt\<^sub>R(P) \<or> (\<Sqinter> Q \<in> S \<bullet> cmt\<^sub>R(Q)))))"
+    by (simp add: extChoice_rdes unrest)
+  also have "... = \<^bold>R\<^sub>s ((\<Squnion> Q\<in>S \<bullet> pre\<^sub>R P \<and> pre\<^sub>R Q) \<turnstile>
+                       (\<Sqinter> Q\<in>S \<bullet> (cmt\<^sub>R P \<and> cmt\<^sub>R Q) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (cmt\<^sub>R P \<or> cmt\<^sub>R Q)))"
+    by (simp add: conj_USUP_dist conj_UINF_dist disj_USUP_dist cond_UINF_dist assms)
+  also have "... = (\<Sqinter> Q \<in> S \<bullet> \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> pre\<^sub>R Q) \<turnstile>
+                                  ((cmt\<^sub>R P \<and> cmt\<^sub>R Q) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (cmt\<^sub>R P \<or> cmt\<^sub>R Q))))"
+    by (simp add: assms RHS_design_USUP)
+  also have "... = (\<Sqinter> Q\<in>S \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P)) \<box> \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> cmt\<^sub>R(Q)))"
+    by (simp add: extChoice_rdes unrest)
+  also have "... = (\<Sqinter> Q\<in>S. P \<box> CSP(Q))"
+    by (simp add: USUP_as_Sup_collect, metis (no_types, lifting) Healthy_if SRD_as_reactive_design assms(1))
+  also have "... = (\<Sqinter> Q\<in>S. P \<box> Q)"
+    by (rule SUP_cong, simp_all add: Healthy_subset_member[OF assms(2)])
+  finally show ?thesis .
+qed
+  
+lemma extChoice_dist:
+  assumes "P is CSP" "Q is CSP" "R is CSP"
+  shows "P \<box> (Q \<sqinter> R) = (P \<box> Q) \<sqinter> (P \<box> R)"
+  using assms extChoice_Dist[of P "{Q, R}"] by simp
+  
+lemma PrefixCSP_dist:
+  "a \<^bold>\<longrightarrow> (P \<sqinter> Q) = (a \<^bold>\<longrightarrow> P) \<sqinter> (a \<^bold>\<longrightarrow> Q)"
+  by (simp add: PrefixCSP_def, metis disj_upred_def seqr_or_distr)
   
 subsection {* Merge Predicates *}
 

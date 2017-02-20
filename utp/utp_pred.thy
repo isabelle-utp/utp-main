@@ -657,7 +657,7 @@ lemma USUP_image_eq [simp]: "USUP (\<lambda>i. \<guillemotleft>i\<guillemotright
 
 lemma UINF_image_eq [simp]: "UINF (\<lambda>i. \<guillemotleft>i\<guillemotright> \<in>\<^sub>u \<guillemotleft>f ` A\<guillemotright>) g = (\<Squnion> i\<in>A \<bullet> g(f(i)))"
   by (pred_auto, rule_tac cong[of Inf Inf], auto)
-
+    
 lemma not_USUP: "(\<not> (\<Sqinter> i\<in>A\<bullet> P(i))) = (\<Squnion> i\<in>A\<bullet> \<not> P(i))"
   by (pred_auto)
 
@@ -684,6 +684,18 @@ lemma UINF_insert [simp]: "(\<Squnion> i\<in>insert x xs \<bullet> P(i)) = (P(x)
   apply (auto)
 done
 
+lemma conj_USUP_dist:
+  "(P \<and> (\<Sqinter> Q\<in>S \<bullet> F(Q))) = (\<Sqinter> Q\<in>S \<bullet> P \<and> F(Q))"
+  by (simp add: upred_defs bop.rep_eq lit.rep_eq, pred_auto)
+
+lemma disj_USUP_dist:
+  "S \<noteq> {} \<Longrightarrow> (P \<or> (\<Sqinter> Q\<in>S \<bullet> F(Q))) = (\<Sqinter> Q\<in>S \<bullet> P \<or> F(Q))"
+  by (simp add: upred_defs bop.rep_eq lit.rep_eq, pred_auto)
+    
+lemma conj_UINF_dist:
+  "S \<noteq> {} \<Longrightarrow> (P \<and> (\<Squnion> Q\<in>S \<bullet> F(Q))) = (\<Squnion> Q\<in>S \<bullet> P \<and> F(Q))"
+  by (subst uexpr_eq_iff, auto simp add: conj_upred_def UINF.rep_eq inf_uexpr.rep_eq bop.rep_eq lit.rep_eq)
+  
 lemma mu_id: "(\<mu> X \<bullet> X) = true"
   by (simp add: antisym gfp_upperbound)
 
