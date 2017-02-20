@@ -1,10 +1,22 @@
-subsection {* Differential Equations and their solutions *}
+section {* Differential Equations and their solutions *}
 
 theory utp_differential
   imports utp_hyrel
 begin
   
 type_synonym 'c ODE = "real \<Rightarrow> 'c \<Rightarrow> 'c"
+
+text {* An ordinary differential equation, @{typ "'c ODE"} is Isabelle is specified as a function
+  from a real number, denoting the present time, and the continuous state @{typ "'c"} to the
+  continuous state. Intuitively, the input @{typ "'c"} is the present value of the continuous
+  variables, and that output @{typ "'c"} gives the derivative, that is the rate at which
+  the continuous state is changing. For example, the ODE $\dot{x} = 5 \cdot x$, which states
+  that $x$ is changing at a rate of $5 \cdot x$, is written in Isabelle as 
+  @{term "\<lambda> (t::real) (x::real). 5 * x"}. Of course we can only quantify this for certain kinds of
+  type @{typ "'c"} and so we will usually require that @{typ "'c"} is a vector of real numbers,
+  or some isomorphic structure. For more information on ODEs in Isabelle, please see~\cite{Immler2012}
+  for a paper on an Isabelle analysis library for ODEs that this work depends on.
+  *}
 
 abbreviation hasDerivAt :: 
   "((real \<Rightarrow> 'c :: real_normed_vector), '\<alpha>) uexpr \<Rightarrow> 
@@ -13,19 +25,53 @@ abbreviation hasDerivAt ::
    (real, '\<alpha>) uexpr \<Rightarrow> '\<alpha> upred" ("_ has-deriv _ at _ < _" [90, 0, 0, 91] 90)
 where "hasDerivAt \<F> \<F>' \<tau> l \<equiv>
        qtop (\<lambda> \<F> \<F>' \<tau> l. (\<F> has_vector_derivative \<F>' \<tau> (\<F> \<tau>)) (at \<tau> within {0..l})) \<F> \<F>' \<tau> l"
-    
-definition hODE :: "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) hyrel" ("\<langle>_ \<bullet> _\<rangle>\<^sub>H") where
+
+text {* We introduce the notation @{term "\<F> has-deriv \<F>' at t < \<tau>"} to mean that the derivative
+  of a function @{term "\<F>"} is given by the ODE @{term "\<F>'"} at a point $t$ in the time domain
+  $[0,\tau]$. Note, that unlike for our hybrid relational calculus we deal with ODEs over closed
+  intervals; the final value at $\tau$ will correspond to the after value of the continuous
+  state and justify that our timed trace is piecewise convergent. *}
+  
+definition hODE :: 
+  "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> 
+   ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) hyrel" ("\<langle>_ \<bullet> _\<rangle>\<^sub>H") where
 [urel_defs]: "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H = (\<^bold>\<exists> \<F>, l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<^bold>\<lceil> \<guillemotleft>\<F>\<guillemotright> has-deriv \<F>' at \<guillemotleft>\<tau>\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> &x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u \<^bold>\<rceil>\<^sub>H)"
+
+text {* We next introduce the construct @{term "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H"}, which states that continuous state lens 
+  $x$ evolves according the ODE described by @{term "\<F>'"}. The lens $x$ identifies a portion of
+  the continuous state; that is it is not necessary that this construct define evolution for
+  all continuous variables, only those specified. The others will evolve arbitrarily. The definition states that there is a function
+  @{term "\<F>"} and evolution length @{term "l"}, such that at each instant $\tau$ in the time
+  domain, @{term "\<F>'"} is the derivative @{term "\<F>"} and the continuous state $x$ is given by
+  @{term "\<F>"}. Function @{term "\<F>"} is thus the solution of the ODE, and the definition states
+  that such a solution exists. This actually may not always be the case, and if not such solution
+  exists then the predicate will have the value @{term "false"}, the miraculous program. Note
+  that since we use the hybrid interval operator here, the ODE will automatically pick up its
+  initial value from the before value of $x$; thus an initial value problem is posed by this
+  construct. Moreover, the final value of $x$ will be the value that the ODE tends toward at
+  the limit, which is always defined as per our previous definition. *}
 
 abbreviation hODE_IVP ("\<langle>_ := _ \<bullet> _\<rangle>\<^sub>H") where
 "\<langle>x := x\<^sub>0 \<bullet> \<F>'\<rangle>\<^sub>H \<equiv> (\<^bold>c:x := x\<^sub>0 ;; \<langle>x \<bullet> \<F>'\<rangle>\<^sub>H)"
+
+text {* We also set up notation that explicitly sets up the initial value for the continuous state,
+  @{term "\<langle>x := x\<^sub>0 \<bullet> \<F>'\<rangle>\<^sub>H"}, which states that the initial value of @{term "x"} in the ODE 
+  @{term "\<F>'"} takes its value from @{term "x\<^sub>0"}. We next prove some important theorems about
+  solutions to ODEs. *}
 
 lemma at_left_from_zero:
   "n > 0 \<Longrightarrow> at_left n = at n within {0::real ..< n}"
   by (rule at_within_nhd[of _ "{0<..<n+1}"], auto)
    
+lemma at_has_deriv [simp]: 
+  "(f has-deriv f' at \<tau> < l) @\<^sub>u t = (f @\<^sub>u t) has-deriv (f' @\<^sub>u t) at (\<tau> @\<^sub>u t) < (l @\<^sub>u t)"
+  by (simp add: at_def usubst alpha)
+    
 lemma ivp_solution_refine:
-  "\<lbrakk> vwb_lens x; continuous_on UNIV get\<^bsub>x\<^esub>; \<forall> l > 0. (\<F> usolves_ode \<F>' from 0) {0..l} UNIV; \<F>(0) = x\<^sub>0 \<rbrakk> 
+  "\<lbrakk> vwb_lens x; 
+     continuous_on UNIV get\<^bsub>x\<^esub>; 
+     \<forall> l > 0. (\<F> usolves_ode \<F>' from 0) {0..l} UNIV; 
+     \<F>(0) = x\<^sub>0 \<rbrakk> 
    \<Longrightarrow> \<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H \<sqsubseteq> (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>H)"
 proof (rel_auto)
   fix x :: "'a \<Longrightarrow> 'b" and \<F>' \<F> tr b tr' v
@@ -95,10 +141,20 @@ proof (rel_auto)
   qed
 qed
 
-lemma "(\<^bold>\<lceil>P(\<tau>)\<^bold>\<rceil>\<^sub>H ;; \<^bold>\<lceil>P(\<tau>)\<^bold>\<rceil>\<^sub>H) = \<^bold>\<lceil>P(\<tau>)\<^bold>\<rceil>\<^sub>H"
-  apply (rel_auto)
-oops
-
+text {* Theorem @{thm [source] ivp_solution_refine} how the specification of an ODE with given initial 
+  condition @{term "\<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H"} can be refined to its solution. We require that the 
+  continuous state in @{term x} is a very well-behaved lens, and
+  moreover that its get function is continuous. The latter assumption is necessary to ensure
+  continuity between the entire continuous state and the portion described by $x$. Usually
+  this will be the case since $x$ should identify a subset of the continuous variables in the
+  real vector, and such a projective mapping is always continuous. The theorem also requires 
+  that the there exists a function @{term "\<F>"} that solves the ODE on any non-empty right closed 
+  interval $[0..l]$. This is specified by the notation @{term "(\<F> usolves_ode \<F>' from 0) {0..l} UNIV"}
+  that is due to Immler~\cite{Immler2012,Immler2014}. Finally the theorem also requires that the value
+  of the solution at time 0 corresponds to $x_0$. The continuous state $x$ is existentially
+  quantified in the solution on the right hand side since the solution is closed and cannot
+  be modified by changing the initial value. *}
+ 
 lemma usolves_ode_subset:
   "\<lbrakk> (f usolves_ode f' from t\<^sub>0) T A; S \<subseteq> T; t\<^sub>0 \<in> S; is_interval S \<rbrakk> \<Longrightarrow> (f usolves_ode f' from t\<^sub>0) S A"
   apply (auto simp add: usolves_ode_from_def solves_ode_def has_vderiv_on_def)
@@ -147,6 +203,12 @@ proof (rel_auto)
     by (rule_tac usolves_odeD(4)[OF F_sol', of "{0..<end\<^sub>t (tr' - tr)}"], auto simp add: G_sol assms(6,7))
 qed
 
+text {* The next theorem, @{thm [source] "ivp_uniq_solution_refine"}, shows the refinement in the
+  opposite direction, that is when an ODE refines its solution. Similar assumptions are required. 
+  Proving the theorem in this direction effectively shows that we have a unique solution, which
+  the Picard-Lindel\"{o}f theorem guarantees~\cite{Immler2012} for differential equations which
+  are Lipschitz continuous. *}
+
 theorem ivp_to_solution:
   fixes \<F> :: "real \<Rightarrow> 'a::ordered_euclidean_space"
   assumes
@@ -163,6 +225,10 @@ next
     by (rule_tac ivp_uniq_solution_refine, simp_all)
 qed
 
+text {* Finally @{thm [source] ivp_to_solution} combines the previous two theorems to produce a
+  statement of equality. If we have a unique solution to a differential equation then its
+  specification can be rewritten to the solution evolution. *}
+  
 theorem ivp_to_solution':
   fixes \<F> :: "real \<Rightarrow> 'a::ordered_euclidean_space"
   assumes
@@ -198,7 +264,7 @@ proof -
     using assms(3) uos.solution_usolves_ode usolves_ode_solves_odeI by blast
 qed
 
-(* Example of solving an ODE *)
+text {* We next show an example of solving an ODE. *}
 
 term "\<langle>x := \<guillemotleft>(v\<^sub>0, h\<^sub>0)\<guillemotright> \<bullet> \<guillemotleft>(\<lambda> t (v, h). (- g, v))\<guillemotright>\<rangle>\<^sub>H"
   

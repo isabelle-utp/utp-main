@@ -188,10 +188,16 @@ session "UTP-HY-IMPORTS" = "Dynamics" +
 (* Hybrid UTP *)
 
 session "UTP-Hybrid" in "hybrid" = "UTP-HY-IMPORTS" +
-  options [document = false]
+  options [document = pdf, document_output = "output", timeout = 1000]
   theories
     utp_hybrid
-
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty"
+    "zed.sty"
+    "csp.sty"
+    
 (* VDM-SL Mechanisation *)
 
 session "VDM-SL" in "vdm-sl" = "UTP-DEEP" +
