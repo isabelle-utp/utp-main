@@ -431,20 +431,20 @@ subsection {* Pre-emption *}
   
 definition hPreempt :: 
   "('d, 'c::topological_space) hyrel \<Rightarrow> 'c upred \<Rightarrow> 
-    ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ \<lbrakk>_\<rbrakk>\<^sub>u _" [64,0,65] 64)
-where "P \<lbrakk>b\<rbrakk>\<^sub>u Q = (((Q \<triangleleft> b @\<^sub>u 0 \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>H)) \<or> ((\<lceil>\<not> b\<rceil>\<^sub>H \<and> P) ;; ((b @\<^sub>u 0) \<and> Q))))"
+    ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>H _" [64,0,65] 64)
+where "P [b]\<^sub>H Q = (((Q \<triangleleft> b @\<^sub>u 0 \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>H)) \<or> ((\<lceil>\<not> b\<rceil>\<^sub>H \<and> P) ;; ((b @\<^sub>u 0) \<and> Q))))"
 
-text {* The pre-emption operator @{term "P \<lbrakk>b\<rbrakk>\<^sub>u Q"} states that $P$ is active until $b$ is satisfied
+text {* The pre-emption operator @{term "P [b]\<^sub>H Q"} states that $P$ is active until $b$ is satisfied
   by the continuous variables. At this point $Q$ will be activated. Usually $P$ will be an evolution
   of the continuous variables, and $b$ some kind of barrier condition. The operator can be used
   to write hybrid systems where an evolution occurs until some condition is satisfied, e.g. a 
   particular temperature or other quantity is reached, and then some discrete activity is executed.
   We prove a few simple properties about this operator. *}
   
-lemma hPreempt_true: "P \<lbrakk>true\<rbrakk>\<^sub>u Q = Q"
+lemma hPreempt_true: "P [true]\<^sub>H Q = Q"
   by (simp add: hPreempt_def hInt_false)
 
-lemma hPreempt_false: "P \<lbrakk>false\<rbrakk>\<^sub>u Q = (P \<and> $tr <\<^sub>u $tr\<acute>)"
+lemma hPreempt_false: "P [false]\<^sub>H Q = (P \<and> $tr <\<^sub>u $tr\<acute>)"
   by (simp add: hPreempt_def hInt_true)
     
 end
