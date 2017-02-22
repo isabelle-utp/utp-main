@@ -159,12 +159,18 @@ lemma R1_cond': "R1(P \<triangleleft> b \<triangleright> Q) = (R1(P) \<trianglel
 lemma R1_negate_R1: "R1(\<not> R1(P)) = R1(\<not> P)"
   by pred_auto
 
-lemma R1_wait_true: "(R1 P)\<^sub>t = R1(P)\<^sub>t"
+lemma R1_wait_true [usubst]: "(R1 P)\<^sub>t = R1(P)\<^sub>t"
   by pred_auto
 
-lemma R1_wait_false: "(R1 P) \<^sub>f = R1(P) \<^sub>f"
+lemma R1_wait_false [usubst]: "(R1 P) \<^sub>f = R1(P) \<^sub>f"
   by pred_auto
 
+lemma R1_wait'_true [usubst]: "(R1 P)\<lbrakk>true/$wait\<acute>\<rbrakk> = R1(P\<lbrakk>true/$wait\<acute>\<rbrakk>)"
+  by (rel_auto)
+
+lemma R1_wait'_false [usubst]: "(R1 P)\<lbrakk>false/$wait\<acute>\<rbrakk> = R1(P\<lbrakk>false/$wait\<acute>\<rbrakk>)"
+  by (rel_auto)
+    
 lemma R1_skip: "R1(II) = II"
   by rel_auto
 
@@ -365,6 +371,12 @@ lemma R2c_ok': "R2c($ok\<acute>) = ($ok\<acute>)"
 lemma R2c_wait: "R2c($wait) = $wait"
   by (rel_auto)
 
+lemma R2c_wait'_true [usubst]: "(R2c P)\<lbrakk>true/$wait\<acute>\<rbrakk> = R2c(P\<lbrakk>true/$wait\<acute>\<rbrakk>)"
+  by (rel_auto)
+
+lemma R2c_wait'_false [usubst]: "(R2c P)\<lbrakk>false/$wait\<acute>\<rbrakk> = R2c(P\<lbrakk>false/$wait\<acute>\<rbrakk>)"
+  by (rel_auto)
+    
 lemma R2c_tr'_minus_tr: "R2c($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u $tr)"
   apply (rel_auto) using minus_zero_eq by blast
 
@@ -407,6 +419,22 @@ lemma R1_R2c_is_R2: "R1(R2c(P)) = R2(P)"
 lemma R1_R2s_R2c: "R1(R2s(P)) = R1(R2c(P))"
   by (rel_auto)
 
+lemma R1_R2s_tr_wait: 
+  "R1 (R2s ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)) = ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)"
+  apply rel_auto using minus_zero_eq by blast
+    
+lemma R1_R2s_tr'_eq_tr:
+  "R1 (R2s ($tr\<acute> =\<^sub>u $tr)) = ($tr\<acute> =\<^sub>u $tr)"
+  apply (rel_auto) using minus_zero_eq by blast
+
+lemma R1_R2s_tr'_extend_tr:
+  "\<lbrakk> $tr \<sharp> v; $tr\<acute> \<sharp> v \<rbrakk> \<Longrightarrow> R1 (R2s ($tr\<acute> =\<^sub>u $tr ^\<^sub>u v)) = ($tr\<acute> =\<^sub>u $tr  ^\<^sub>u v)"
+  apply (rel_auto)
+  apply (metis less_eq_list_def prefix_concat_minus self_append_conv2 zero_list_def)
+  apply (metis append_minus self_append_conv2 zero_list_def)
+  apply (simp add: Prefix_Order.prefixI)
+done
+    
 lemma R2_tr_prefix: "R2($tr \<le>\<^sub>u $tr\<acute>) = ($tr \<le>\<^sub>u $tr\<acute>)"
   by (pred_auto)
 
@@ -799,11 +827,11 @@ lemma R3_par_by_merge:
   shows "(P \<parallel>\<^bsub>M\<^esub> Q) is R3"
 proof -
   have "(P \<parallel>\<^bsub>M\<^esub> Q) = ((P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
-    by (metis cond_L6 cond_var_split in_var_uvar wait_vwb_lens)
+    by (metis cond_L6 cond_var_split in_var_uvar pr_var_def wait_vwb_lens)
   also have "... = ((P\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> Q\<lbrakk>true/$wait\<rbrakk>)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
     by (rel_auto)
   also have "... = ((P\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> Q\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
-    by (metis cond_var_subst_left wait_vwb_lens)
+    by (metis cond_def conj_pos_var_subst wait_vwb_lens)
   also have "... = (((II \<triangleleft> $wait \<triangleright> P)\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> (II \<triangleleft> $wait \<triangleright> Q)\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
     by (metis Healthy_if R3_def assms(1) assms(2))
   also have "... = ((II\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> II\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"

@@ -211,7 +211,8 @@ qed
 hide_const k
 hide_const p
 hide_const V
-
+hide_const B
+  
 (************************)
 (* Added by Frank Zeyda *)
 (************************)

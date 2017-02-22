@@ -416,13 +416,13 @@ lemma comp_cond_left_distr:
 
 lemma cond_var_subst_left:
   assumes "vwb_lens x"
-  shows "(P \<triangleleft> $x \<triangleright> Q) = (P\<lbrakk>true/$x\<rbrakk> \<triangleleft> $x \<triangleright> Q)"
-  using assms by (metis cond_def conj_pos_var_subst)
+  shows "(P\<lbrakk>true/x\<rbrakk> \<triangleleft> var x \<triangleright> Q) = (P \<triangleleft> var x \<triangleright> Q)"
+  using assms by (metis cond_def conj_comm conj_var_subst upred_eq_true) 
 
 lemma cond_var_subst_right:
   assumes "vwb_lens x"
-  shows "(P \<triangleleft> $x \<triangleright> Q) = (P \<triangleleft> $x \<triangleright> Q\<lbrakk>false/$x\<rbrakk>)"
-  using assms by (metis cond_def conj_neg_var_subst)
+  shows "(P \<triangleleft> var x \<triangleright> Q\<lbrakk>false/x\<rbrakk>) = (P \<triangleleft> var x \<triangleright> Q)"
+  using assms by (metis cond_def conj_var_subst upred_eq_false utp_pred.inf_commute) 
 
 lemma cond_var_split:
   "vwb_lens x \<Longrightarrow> (P\<lbrakk>true/x\<rbrakk> \<triangleleft> var x \<triangleright> P\<lbrakk>false/x\<rbrakk>) = P"

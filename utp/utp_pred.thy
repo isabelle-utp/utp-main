@@ -711,6 +711,12 @@ lemma USUP_cong:
   shows "(\<Squnion> P\<in>A \<bullet> F(P)) = (\<Squnion> P\<in>A \<bullet> G(P))"
   by (simp add: UINF_as_Inf_collect assms)
     
+lemma UINF_subset_mono: "A \<subseteq> B \<Longrightarrow> (\<Sqinter> P\<in>B \<bullet> F(P)) \<sqsubseteq> (\<Sqinter> P\<in>A \<bullet> F(P))"
+  by (simp add: SUP_subset_mono USUP_as_Sup_collect)
+
+lemma USUP_subset_mono: "A \<subseteq> B \<Longrightarrow> (\<Squnion> P\<in>A \<bullet> F(P)) \<sqsubseteq> (\<Squnion> P\<in>B \<bullet> F(P))"
+  by (simp add: INF_superset_mono UINF_as_Inf_collect)
+    
 lemma mu_id: "(\<mu> X \<bullet> X) = true"
   by (simp add: antisym gfp_upperbound)
 
@@ -942,6 +948,18 @@ lemma all_mono: "P \<sqsubseteq> Q \<Longrightarrow> (\<forall> x \<bullet> P) \
 lemma all_strengthens: "wb_lens x \<Longrightarrow> P \<sqsubseteq> (\<forall> x \<bullet> P)"
   by (pred_auto, metis wb_lens.get_put)
 
+lemma ex_unrest: "x \<sharp> P \<Longrightarrow> (\<exists> x \<bullet> P) = P"
+  by (pred_auto)
+  
+lemma all_unrest: "x \<sharp> P \<Longrightarrow> (\<forall> x \<bullet> P) = P"
+  by (pred_auto)  
+
+lemma not_ex_not: "\<not> (\<exists> x \<bullet> \<not> P) = (\<forall> x \<bullet> P)"
+  by (pred_auto)
+    
+lemma not_all_not: "\<not> (\<forall> x \<bullet> \<not> P) = (\<exists> x \<bullet> P)"
+  by (pred_auto)  
+    
 subsection {* Cylindric algebra *}
 
 lemma C1: "(\<exists> x \<bullet> false) = false"
