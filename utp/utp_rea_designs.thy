@@ -1469,17 +1469,17 @@ lemma RHS_design_R2c_pre:
   by (rel_auto)
     
 lemma UINF_R1_neg_R2s_pre_RHS:
-  assumes "A \<subseteq> \<lbrakk>CSP\<rbrakk>\<^sub>H"
+  assumes "A \<subseteq> \<lbrakk>SRD\<rbrakk>\<^sub>H"
   shows "(\<Sqinter> P \<in> A \<bullet> R1 (\<not> R2s (pre\<^sub>R P))) = (\<Sqinter> P \<in> A \<bullet> \<not> (pre\<^sub>R P))"
   by (rule UINF_cong[of A], metis (no_types, lifting) Ball_Collect R1_neg_R2s_pre_RHS assms)
 
 lemma USUP_R1_R2s_cmt_SRD:
-  assumes "A \<subseteq> \<lbrakk>CSP\<rbrakk>\<^sub>H"
+  assumes "A \<subseteq> \<lbrakk>SRD\<rbrakk>\<^sub>H"
   shows "(\<Squnion> P \<in> A \<bullet> R1 (R2s (cmt\<^sub>R P))) = (\<Squnion> P \<in> A \<bullet> cmt\<^sub>R P)"
   by (rule USUP_cong[of A], metis (mono_tags, lifting) Ball_Collect R1_R2s_cmt_SRD assms)  
 
 lemma UINF_R1_R2s_cmt_SRD:
-  assumes "A \<subseteq> \<lbrakk>CSP\<rbrakk>\<^sub>H"
+  assumes "A \<subseteq> \<lbrakk>SRD\<rbrakk>\<^sub>H"
   shows "(\<Sqinter> P \<in> A \<bullet> R1 (R2s (cmt\<^sub>R P))) = (\<Sqinter> P \<in> A \<bullet> cmt\<^sub>R P)"
   by (rule UINF_cong[of A], metis (mono_tags, lifting) Ball_Collect R1_R2s_cmt_SRD assms)  
     
