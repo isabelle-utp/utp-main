@@ -255,10 +255,12 @@ translations
   "\<Sqinter> x \<bullet> F"     == "\<Sqinter> x | true \<bullet> F"
   "\<Sqinter> x \<in> A \<bullet> F" => "\<Sqinter> x | \<guillemotleft>x\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> F"
   "\<Sqinter> x | P \<bullet> F" <= "CONST USUP (\<lambda> x. P) (\<lambda> y. F)"
+  "\<Sqinter> x | P \<bullet> F(x)" <= "CONST USUP (\<lambda> x. P) F"
   "\<Squnion> x | P \<bullet> F" => "CONST UINF (\<lambda> x. P) (\<lambda> x. F)"
   "\<Squnion> x \<bullet> F"     == "\<Squnion> x | true \<bullet> F"
   "\<Squnion> x \<in> A \<bullet> F" => "\<Squnion> x | \<guillemotleft>x\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> F"
   "\<Squnion> x | P \<bullet> F" <= "CONST UINF (\<lambda> x. P) (\<lambda> y. F)"
+  "\<Squnion> x | P \<bullet> F(x)" <= "CONST UINF (\<lambda> x. P) F"
 
 text {* We also define the other predicate operators *}
 
@@ -695,7 +697,20 @@ lemma disj_USUP_dist:
 lemma conj_UINF_dist:
   "S \<noteq> {} \<Longrightarrow> (P \<and> (\<Squnion> Q\<in>S \<bullet> F(Q))) = (\<Squnion> Q\<in>S \<bullet> P \<and> F(Q))"
   by (subst uexpr_eq_iff, auto simp add: conj_upred_def UINF.rep_eq inf_uexpr.rep_eq bop.rep_eq lit.rep_eq)
-  
+
+lemma UINF_conj_UINF: "((\<Squnion> P \<in> A \<bullet> F(P)) \<and> (\<Squnion> P \<in> A \<bullet> G(P))) = (\<Squnion> P \<in> A \<bullet> F(P) \<and> G(P))"
+  by (simp add: upred_defs bop.rep_eq lit.rep_eq, pred_auto)  
+    
+lemma UINF_cong: 
+  assumes "\<And> P. P \<in> A \<Longrightarrow> F(P) = G(P)"
+  shows "(\<Sqinter> P\<in>A \<bullet> F(P)) = (\<Sqinter> P\<in>A \<bullet> G(P))"
+  by (simp add: USUP_as_Sup_collect assms)
+
+lemma USUP_cong: 
+  assumes "\<And> P. P \<in> A \<Longrightarrow> F(P) = G(P)"
+  shows "(\<Squnion> P\<in>A \<bullet> F(P)) = (\<Squnion> P\<in>A \<bullet> G(P))"
+  by (simp add: UINF_as_Inf_collect assms)
+    
 lemma mu_id: "(\<mu> X \<bullet> X) = true"
   by (simp add: antisym gfp_upperbound)
 

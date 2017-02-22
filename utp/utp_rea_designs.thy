@@ -1362,14 +1362,14 @@ lemma subst_tr_post [usubst]:
 lemma rea_pre_RHS_design: "pre\<^sub>R(\<^bold>R\<^sub>s(P \<turnstile> Q)) = (\<not> R1(R2c(pre\<^sub>s \<dagger> (\<not> P))))"
   by (simp add: RHS_def usubst R3h_def pre\<^sub>R_def pre\<^sub>s_design)
 
+lemma rea_cmt_RHS_design: "cmt\<^sub>R(\<^bold>R\<^sub>s(P \<turnstile> Q)) = R1(R2c(cmt\<^sub>s \<dagger> (P \<Rightarrow> Q)))"
+  by (simp add: RHS_def usubst R3h_def cmt\<^sub>R_def cmt\<^sub>s_design)
+    
 lemma rea_peri_RHS_design: "peri\<^sub>R(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = R1(R2c(peri\<^sub>s \<dagger> (P \<Rightarrow> Q)))"
   by (simp add:RHS_def usubst peri\<^sub>R_def R3h_def peri\<^sub>s_design)
 
 lemma rea_post_RHS_design: "post\<^sub>R(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = R1(R2c(post\<^sub>s \<dagger> (P \<Rightarrow> R)))"
   by (simp add:RHS_def usubst post\<^sub>R_def R3h_def post\<^sub>s_design)
-
-lemma rea_cmt_RHS_design: "cmt\<^sub>R(\<^bold>R\<^sub>s(P \<turnstile> Q)) = R1(R2c(cmt\<^sub>s \<dagger> (P \<Rightarrow> Q)))"
-  by (simp add:RHS_def usubst cmt\<^sub>R_def R3h_def cmt\<^sub>s_design)
     
 lemma rdes_export_cmt: "\<^bold>R\<^sub>s(P \<turnstile> cmt\<^sub>s \<dagger> Q) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
   by (rel_auto)
@@ -1437,7 +1437,12 @@ proof -
     by (simp add: SRD_reactive_tri_design assms)
   finally show ?thesis ..
 qed
-    
+
+lemma R1_R2s_cmt_SRD:
+  assumes "P is SRD"
+  shows "R1(R2s(cmt\<^sub>R(P))) = cmt\<^sub>R(P)"
+  by (metis (no_types, hide_lams) Healthy_def R1_R2s_R2c R2_def R2_idem SRD_as_reactive_design assms rea_cmt_RHS_design)
+  
 lemma R1_R2s_peri_SRD:
   assumes "P is SRD"
   shows "R1(R2s(peri\<^sub>R(P))) = peri\<^sub>R(P)"
@@ -1462,6 +1467,21 @@ lemma RHS_design_conj_neg_R1_pre:
 lemma RHS_design_R2c_pre:
   "\<^bold>R\<^sub>s(R2c(P) \<turnstile> Q) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
   by (rel_auto)
+    
+lemma UINF_R1_neg_R2s_pre_RHS:
+  assumes "A \<subseteq> \<lbrakk>CSP\<rbrakk>\<^sub>H"
+  shows "(\<Sqinter> P \<in> A \<bullet> R1 (\<not> R2s (pre\<^sub>R P))) = (\<Sqinter> P \<in> A \<bullet> \<not> (pre\<^sub>R P))"
+  by (rule UINF_cong[of A], metis (no_types, lifting) Ball_Collect R1_neg_R2s_pre_RHS assms)
+
+lemma USUP_R1_R2s_cmt_SRD:
+  assumes "A \<subseteq> \<lbrakk>CSP\<rbrakk>\<^sub>H"
+  shows "(\<Squnion> P \<in> A \<bullet> R1 (R2s (cmt\<^sub>R P))) = (\<Squnion> P \<in> A \<bullet> cmt\<^sub>R P)"
+  by (rule USUP_cong[of A], metis (mono_tags, lifting) Ball_Collect R1_R2s_cmt_SRD assms)  
+
+lemma UINF_R1_R2s_cmt_SRD:
+  assumes "A \<subseteq> \<lbrakk>CSP\<rbrakk>\<^sub>H"
+  shows "(\<Sqinter> P \<in> A \<bullet> R1 (R2s (cmt\<^sub>R P))) = (\<Sqinter> P \<in> A \<bullet> cmt\<^sub>R P)"
+  by (rule UINF_cong[of A], metis (mono_tags, lifting) Ball_Collect R1_R2s_cmt_SRD assms)  
     
 lemma SRD_composition:
   assumes "P is SRD" "Q is SRD"

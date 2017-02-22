@@ -82,7 +82,10 @@ lemma Healthy_INFIMUM:
     
 lemma Healthy_subset_member: "\<lbrakk> A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H; P \<in> A \<rbrakk> \<Longrightarrow> H(P) = P"
   by (meson Ball_Collect Healthy_if)
-      
+
+lemma is_Healthy_subset_member: "\<lbrakk> A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H; P \<in> A \<rbrakk> \<Longrightarrow> P is H"
+  by blast
+
 subsection {* Properties of healthiness conditions *}
 
 definition Idempotent :: "'\<alpha> health \<Rightarrow> bool" where 

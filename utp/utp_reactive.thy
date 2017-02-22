@@ -129,6 +129,9 @@ lemma R1_conj: "R1(P \<and> Q) = (R1(P) \<and> R1(Q))"
 lemma R1_disj: "R1(P \<or> Q) = (R1(P) \<or> R1(Q))"
   by pred_auto
 
+lemma R1_impl: "R1(P \<Rightarrow> Q) = ((\<not> R1(\<not> P)) \<Rightarrow> R1(Q))"
+  by rel_auto
+    
 lemma R1_inf: "R1(P \<sqinter> Q) = (R1(P) \<sqinter> R1(Q))"
   by pred_auto
     
@@ -150,6 +153,9 @@ lemma R1_extend_conj': "R1(P \<and> Q) = (P \<and> R1(Q))"
 lemma R1_cond: "R1(P \<triangleleft> b \<triangleright> Q) = (R1(P) \<triangleleft> b \<triangleright> R1(Q))"
   by rel_auto
 
+lemma R1_cond': "R1(P \<triangleleft> b \<triangleright> Q) = (R1(P) \<triangleleft> R1(b) \<triangleright> R1(Q))"
+  by (rel_auto)
+    
 lemma R1_negate_R1: "R1(\<not> R1(P)) = R1(\<not> P)"
   by pred_auto
 
