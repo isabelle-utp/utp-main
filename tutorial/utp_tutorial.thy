@@ -194,8 +194,9 @@ lemma "($x\<acute> >\<^sub>u $y) \<sqsubseteq> (x, y := &y + 3, 5)"
 text {* This tells us that the specification that the after value of $x$ must be greater than the initial
   value of $y$, is refined by the program which adds $3$ to $y$ and assigns this to $x$, and 
   simultaneously assigns $5$ to $y$. Of course this is not the only refinement, but an interesting
-  one. In addition to assignments, we can also construct relational specifications and programs using 
-  sequential (or relational) composition: *}
+  one. A refinement conjecture @{term "P \<sqsubseteq> Q"} in general asserts that @{term "Q"} is more deterministic
+  than @{term "P"}. In addition to assignments, we can also construct relational specifications and programs 
+  using sequential (or relational) composition: *}
     
 lemma "(x := 1 ;; x := &x + 1) = (x := 2)"
   by (rel_auto)
@@ -221,11 +222,120 @@ proof -
 qed
 
 text {* UTP also gives us an if-then-else conditional construct, written @{term "P \<triangleleft> b \<triangleright> Q"}, which
-  is a more concise way of writing $\textbf{if}~b~\textbf{then}~P~\textbf{else}~Q$. *}
+  is a more concise way of writing $\textbf{if}~b~\textbf{then}~P~\textbf{else}~Q$. It also allows
+  the expression of while loops, which gives us a simple imperative programming language. *}
 
 lemma "(x := 1 ;; (y := 7 \<triangleleft> $x >\<^sub>u 0 \<triangleright> y := 8)) = (x,y := 1,7)"
   by (rel_auto)
+    
+term "(x,y := 3,1;; while &x >\<^sub>u 0 do x := &x - 1;; y := &y * 2 od)"
+  
+subsection {* Laws of programming *}
+  
+text {* Although we have some primitive tactics for proving conjectures in the predicate and relational
+  calculi, in order to build verification tools for programs we need a set of algebraic ``laws of
+  programming'' that describe important theoretical properties of the operators. Isabelle/UTP contains
+  several hundred examples of such laws, and we here outline a few of them. *}
+  
+theorem seq_assoc: "(P ;; Q) ;; R = P ;; (Q ;; R)"
+  by (rel_auto)
+    
+theorem seq_unit: "P ;; II = P" "II ;; P = P"
+  by (rel_auto)+
+    
+theorem seq_zero: "P ;; false = false" "false ;; P = false"
+  by (rel_auto)+
+  
+text {* Sequential composition is associative, has the operator @{term "II"} as its left and
+  right unit, and @{term "false"} as its left and right zeros. The @{term "II"} operator is a form 
+  of assignment which simply identifies all the variables between the before and after state, 
+  as the following example demonstrates. *}
+  
+lemma "x := &x = II"
+  by (rel_auto)
+    
+text {* In the context of relations, @{term "false"} denotes the empty relation, and is usually
+  used to represent a miraculous program. Such a program can achieve anything, and thus refines
+  any given specification as the following laws demonstrate: *}
+  
+lemma false_greatest: "P \<sqsubseteq> false"
+  by (rel_auto)
+   
+lemma true_least: "true \<sqsubseteq> P"
+  by (rel_auto)
+    
+text {* We also have it that @{term true} is refined by any given specification -- it represents
+  the most non-deterministic program. The conditional @{term "P \<triangleleft> b \<triangleright> Q"} also has a number of
+  algebraic laws that we can prove. *}
+  
+theorem cond_true: "P \<triangleleft> true \<triangleright> Q = P"
+  by (rel_auto)
+  
+theorem cond_false: "P \<triangleleft> false \<triangleright> Q = Q"
+  by (rel_auto)
+   
+theorem cond_commute: "(P \<triangleleft> \<not> b \<triangleright> Q) = (Q \<triangleleft> b \<triangleright> P)"
+  by (rel_auto)
+    
+theorem cond_shadow: "(P \<triangleleft> b \<triangleright> Q) \<triangleleft> b \<triangleright> R = P \<triangleleft> b \<triangleright> R"
+  by (rel_auto)
 
+text {* A conditional with @{term true} or @{term false} as its condition presents no choice. 
+  A conditional can also be commuted by negating the condition. Finally, a conditional within
+  a conditional over the same condition, @{term b}, presents and unreachable branch. Thus the
+  inner branch can be pruned away.
+    
+  In addition to deterministic constructs like the conditional @{term "P \<triangleleft> b \<triangleright> Q"}, we can
+  also write non-deterministic specification in UTP, such as @{term "P \<sqinter> Q"} which effectively
+  non-deterministically selects between the behaviours of @{term "P"} and the behaviours of @{term "Q"}.
+  This also enable use to understand more about the meaning of refinement. *}
+  
+theorem non_det_refine: 
+  fixes P Q :: "'\<alpha> upred"
+  shows "P \<sqinter> Q \<sqsubseteq> P"
+  by (rel_auto)
+
+text {* A specification $Q$ refines $P$ if $Q$ is more deterministic than $P$ -- that is, it 
+  offers less options. This is the intuition behind theorem @{thm [source] non_det_refine} which 
+  states that we can refine by removing non-determinism. 
+
+  We next prove some useful laws about assignment: *}
+  
+theorem assign_commute: 
+  assumes "x \<bowtie> y" "y \<sharp> e" "x \<sharp> f"
+  shows "x := e;; y := f = y := f ;; x := e"
+  using assms by (rel_auto)
+
+theorem assign_twice:
+  shows "x := \<guillemotleft>e\<guillemotright>;; x := \<guillemotleft>f\<guillemotright> = x := \<guillemotleft>f\<guillemotright>"
+  by (rel_auto)
+    
+theorem assign_null:
+  assumes "x \<bowtie> y"
+  shows "(x, y := e, &y) = x := e"
+  using assms by (rel_auto)
+      
+text {* Assignments can commute provided that the two variables are independent, and the expressions
+  being assigned do not depend on the variable of the other assignment. A sequence of assignments
+  to the same variable is equal to the second assignment, provided that the two expressions are
+  both literals, i.e. @{term "\<guillemotleft>e\<guillemotright>"}. Finally, in a multiple assignment, if one of the variables
+  is assigned to itself then this can be hidden, provided the two variables are independent. We next
+  prove some laws about iteration. *}
+    
+theorem while_false: "while false do P od = II"
+  by (metis aext_false cond_unit_F while_unfold)
+      
+text {* UTP relations possess a number of important theoretical properties. Notably, UTP relations
+  form a complete lattice; indeed the while loop we described above is defined using the 
+   fixed-point. *}
+  
+subsection {* Designs *}
+  
+text {* Though we now have a theory of UTP relations with which can from simple programs, this 
+  theory experiences some problems. A UTP design, @{term "P \<turnstile> Q"}, is a relational specification in terms of assumption $P$
+  and commitment $Q$. Such a construction states that, if $P$ holds and the program is allowed to
+  execute, then the program will terminate and satisfy its commitment $Q$. *}
+  
 (*<*)
 end
 (*>*)
