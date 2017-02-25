@@ -1,30 +1,42 @@
+section {* Isabelle/UTP Primer *}
+
+(*<*)
 theory utp_tutorial
-  imports "../utp/utp_designs"
+  imports "../utp/utp"
 begin
+(*>*)
+  
+text {* In this section we will introduce Hoare and He's \emph{Unifying Theories of Programming} through
+  a tutorial about our mechanisation, in Isabelle, called Isabelle/UTP. The UTP is a framework for building and reasoning
+  about heterogeneous semantics of programming and modelling languages. One of the core ideas of the UTP
+  is that any program (or model) can be represented as a logical predicate over the program's state
+  variables. The UTP thus begins from a higher-order logical core, and constructs a semantics for
+  imperative relational programs, which can then be refined and extended with more complex language
+  paradigms and theories. Predicates in the UTP are alphabetised, meaning they specify beheaviours
+  in terms of a collection of variables, the alphabet, which effectively gives a state-space for
+  a particular program. In Isabelle/UTP we can create a state-space with the alphabet command. *}
+  
+alphabet my_state =
+  x :: "int"
+  y :: "int"
+  z :: "int set"
+  
+text {* This command creates an alphabet with three variables, $x$, $y$, and $z$, each of which
+  has a defined type. A new Isabelle type is created, @{typ my_state}, which can be then used
+  as a parameter for our predicate model. In the context of our mechanisation, such variables are 
+  represented using \emph{lenses}. A lens, $X : V \Longrightarrow S$, is a pair of functions, 
+  $get :: V \to S$ and $put : S \to V \to S$, where $S$ is the source type, and $V$ is the view type. 
+  The source type represents a larger type, and view type a particular region of the source that 
+  can be observed and manipulated independently of
+  the rest of the source. In Isabelle/UTP, the source type is the state space, and the view type is
+  the variable type. For instance, we here have that @{term "x"} has type @{typ "int \<Longrightarrow> my_state"}
+  and @{term "z"} has type @{typ "int set \<Longrightarrow> my_state"}. Since the different variable characterise
+  different regions of the state space we can distinguish them using the independence predicate
+  @{term "x \<bowtie> z"}. In this case we can prove that the two variables are different using the simplifier: *}
 
-(* Set up the lenses for our two state variables, x and y *)
-
-record my_state =
-  st_x :: int
-  st_y :: int
-  st_z :: int
-
-definition "x = VAR st_x"
-definition "y = VAR st_y"
-definition "z = VAR st_z"
-
-lemma uvar_x [simp]: "vwb_lens x"
-  by (unfold_locales, auto simp add: x_def)
-
-lemma uvar_y [simp]: "vwb_lens y"
-  by (unfold_locales, auto simp add: y_def)
-
-lemma uvar_z [simp]: "vwb_lens z"
-  by (unfold_locales, auto simp add: z_def)
-
-lemma my_state_indeps [simp]: "x \<bowtie> y" "y \<bowtie> x" "x \<bowtie> z" "z \<bowtie> x" "y \<bowtie> z" "z \<bowtie> y"
-  by (simp_all add: lens_indep_def x_def y_def z_def)
-
+lemma "x \<bowtie> z"
+  by simp
+  
 (* Beginning of exercises *)
 
 lemma "(true \<and> false) = false"
