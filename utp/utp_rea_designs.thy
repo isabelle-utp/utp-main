@@ -1654,6 +1654,36 @@ proof -
   finally show ?thesis .
 qed
   
+lemma RHS_design_right_Chaos_lemma:
+  assumes "P is SRD" 
+  shows "P ;; Chaos = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true \<and> \<not> (cmt\<^sub>R P \<and> \<not> $wait\<acute>) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> cmt\<^sub>R P) \<and> $wait\<acute>))"
+proof -
+  have "P ;; Chaos = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P)) ;; \<^bold>R\<^sub>s(false \<turnstile> false)"
+    by (simp add: Chaos_def SRD_reactive_design_alt assms design_false_pre)
+  also have "... = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true \<and> \<not> (cmt\<^sub>R P \<and> \<not> $wait\<acute>) ;; R1 true) \<turnstile> (cmt\<^sub>R P ;; ($wait \<and> (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D))))"
+    by (simp add: RHS_design_composition unrest R2s_true R1_false R1_R2s_cmt_SRD R2s_wait' R2s_false R2s_not
+                  R1_neg_R2s_pre_RHS assms R2s_conj R1_extend_conj R1_R2s_tr'_eq_tr R2s_lift_rea)
+       (simp add: cond_def)
+  also have "... = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true \<and> \<not> (cmt\<^sub>R P \<and> \<not> $wait\<acute>) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> cmt\<^sub>R P) \<and> $wait\<acute>))"
+    by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
+  finally show ?thesis .
+qed
+
+lemma RHS_design_right_Miracle_lemma:
+  assumes "P is SRD" 
+  shows "P ;; Miracle = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> cmt\<^sub>R P) \<and> $wait\<acute>))"
+proof -
+  have "P ;; Miracle = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P)) ;; \<^bold>R\<^sub>s(true \<turnstile> false)"
+    by (simp add: Miracle_def SRD_reactive_design_alt assms design_false_pre)
+  also have "... = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true) \<turnstile> (cmt\<^sub>R P ;; ($wait \<and> (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D))))"
+    by (simp add: RHS_design_composition unrest R2s_true R1_false R1_R2s_cmt_SRD R2s_wait' R2s_false R2s_not
+                  R1_neg_R2s_pre_RHS assms R2s_conj R1_extend_conj R1_R2s_tr'_eq_tr R2s_lift_rea)
+       (simp add: cond_def)
+  also have "... = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> cmt\<^sub>R P) \<and> $wait\<acute>))"
+    by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
+  finally show ?thesis .
+qed
+
 subsection {* Reactive design parallel-by-merge *}
 
 definition [upred_defs]: "nil\<^sub>r\<^sub>m = (nil\<^sub>m \<triangleleft> $0-ok \<and> $1-ok \<triangleright> ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>))"
