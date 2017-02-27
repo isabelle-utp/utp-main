@@ -7,7 +7,7 @@ begin
 
 text {* Theory takes about 2:15 minutes to load; brute force proof innit? *}
 
-no_notation disj (infixr "|" 30)
+purge_notation disj (infixr "|" 30)
 
 subsection {* Preliminary setup *}
 

@@ -2,7 +2,7 @@ section {* UTP variables *}
 
 theory utp_var
   imports
-  Deriv
+  Deriv TotalRecall
   "~~/src/HOL/Library/Prefix_Order"
   "~~/src/HOL/Library/Char_ord"
   "~~/src/Tools/Adhoc_Overloading"
@@ -23,7 +23,7 @@ begin
 text {* We will overload the square order relation with refinement and also the lattice operators so
   we will turn off these notations. *}
 
-no_notation 
+purge_notation 
   le (infixl "\<sqsubseteq>\<index>" 50) and
   asup ("\<Squnion>\<index>_" [90] 90) and
   ainf ("\<Sqinter>\<index>_" [90] 90)

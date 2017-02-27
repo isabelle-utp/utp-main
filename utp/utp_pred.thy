@@ -66,7 +66,7 @@ text {* We want to remain as close as possible to the mathematical UTP syntax, b
         operator (UTP vs. HOL). Thus we will first remove the standard syntax for conjunction,
         disjunction, and negation, and replace these with adhoc overloaded definitions. *}
 
-no_notation
+purge_notation
   conj (infixr "\<and>" 35) and
   disj (infixr "\<or>" 30) and
   Not ("\<not> _" [40] 40)
@@ -141,22 +141,22 @@ text {* Since, on the whole, lattices in UTP are the opposite way up to the stan
         in HOL, we syntactically invert the lattice operators. This is the one exception where
         we do steal HOL syntax, but I think it makes sense for UTP. *}
 
-no_notation inf (infixl "\<sqinter>" 70)
+purge_notation inf (infixl "\<sqinter>" 70)
 notation inf (infixl "\<squnion>" 70)
-no_notation sup (infixl "\<squnion>" 65)
+purge_notation sup (infixl "\<squnion>" 65)
 notation sup (infixl "\<sqinter>" 65)
 
-no_notation Inf ("\<Sqinter>_" [900] 900)
+purge_notation Inf ("\<Sqinter>_" [900] 900)
 notation Inf ("\<Squnion>_" [900] 900)
-no_notation Sup ("\<Squnion>_" [900] 900)
+purge_notation Sup ("\<Squnion>_" [900] 900)
 notation Sup ("\<Sqinter>_" [900] 900)
 
-no_notation bot ("\<bottom>")
+purge_notation bot ("\<bottom>")
 notation bot ("\<top>")
-no_notation top ("\<top>")
+purge_notation top ("\<top>")
 notation top ("\<bottom>")
 
-no_syntax
+purge_syntax
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
   "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sqinter>_\<in>_./ _)" [0, 0, 10] 10)
   "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Squnion>_./ _)" [0, 10] 10)

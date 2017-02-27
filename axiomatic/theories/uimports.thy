@@ -18,6 +18,6 @@ imports Main Real
   "~~/src/HOL/Library/Option_ord"
   "~~/src/HOL/Library/FSet"
   "~~/src/HOL/Library/Infinite_Set"
-  "~~/src/HOL/Cardinals/Bounded_Set"
+  (* "~~/src/HOL/Cardinals/Bounded_Set" *)
 begin
 end

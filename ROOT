@@ -39,6 +39,8 @@ session "HOL-Algebra2" (main timing) in "contrib/Algebra" = HOL +
 
 (* Kleene Algebra *)
 
+(* This module seems not to compile anymore...! *)
+
 session Kleene_Algebra (AFP) in "contrib/Kleene_Algebra"
   = "HOL-Library" +
   options [timeout = 300]
@@ -61,7 +63,7 @@ session Kleene_Algebra (AFP) in "contrib/Kleene_Algebra"
 (* Lenses *)
 
 session "Optics" in "lenses"
-  = "HOL-Algebra2" +
+  = (* "HOL-Algebra2" *) "HOL" +
   options [timeout = 300]
   theories
     Interp
@@ -85,7 +87,7 @@ session "Continuum" in "continuum" = "HOL-Cardinals" +
     Real_Bit
     UNIV_TYPE
 
-(* Continuous System Dynamics *)
+(* Continuous Systems Dynamics *)
 
 session "Dynamics" in "dynamics" = "HOL-Analysis" +
   options [document = false, timeout = 1000]
@@ -96,48 +98,15 @@ session "Dynamics" in "dynamics" = "HOL-Analysis" +
 
 (* Library Imports for UTP *)
 
-session "UTP-IMPORTS" in "utils" = "Optics" +
+session "UTP-IMPORTS" in "utils" = (* "HOL-Library" *) "HOL" +
   options [document = false, timeout = 1000]
-  theories
-    "~~/src/HOL/Eisbach/Eisbach"
-    "~~/src/Tools/Adhoc_Overloading"
-    "~~/src/HOL/Library/Char_ord"
-    "~~/src/HOL/Library/Countable_Set"
-    "~~/src/HOL/Library/FSet"
-    "~~/src/HOL/Library/Monad_Syntax"
-    "~~/src/HOL/Library/Prefix_Order"
-    "~~/src/HOL/Library/Sublist"
-    Profiling
-    "Library_extra/FSet_extra"
-    "Library_extra/List_extra"
-    "Library_extra/List_lexord_alt"
-    "Library_extra/Monoid_extra"
-    "Library_extra/Pfun"
-    "Library_extra/Ffun"
+  theories utp_imports
 
-(* Library Imports for UTP-AX *)
-
-session "UTP-IMPORTS-AX" in "axiomatic/theories" = "UTP-IMPORTS" +
-  options [browser_info = true, document = false]
-  theories
-    "uimports"
-    "ucommon"
-    "core/uconsts"
-    "core/uname"
-    "core/utype"
-    "core/uval"
-    "core/uvar"
-    "core/ustate"
-    "core/ustore"
-    "core/ulens"
-    "core/udefaults"
-
-(* UTP Core Framework *)
+(* Core UTP Framework *)
 
 session "UTP" in "utp" = "UTP-IMPORTS" +
   options [document = pdf, document_output = "output", timeout = 1000]
-  theories
-    utp
+  theories utp
   document_files
     "root.bib"
     "root.tex"
@@ -147,20 +116,22 @@ session "UTP" in "utp" = "UTP-IMPORTS" +
 
 session "UTP-DEEP" in "deep" = "UTP" +
   options [browser_info = true, document = false]
-  theories
+  theories utp_deep
     "../continuum/Continuum"
-    utp_deep
 
 (* Core UTP with Axiomatic Variables *)
 
-session "UTP-AX" in "utp" = "UTP-IMPORTS-AX" +
-  options [document = pdf, document_output = "output", timeout = 1000]
-  theories
-    utp_ax
-  document_files
-    "root.bib"
-    "root.tex"
-    "document.sty"
+session "UTP-AX" in "utp" = "UTP" +
+  options [browser_info = true, document = false]
+  theories utp
+    "../axiomatic/Axiomatic"
+
+(* Core UTP with Deep and Axiomatic Variables *)
+
+session "UTP-DEEP-AX" in "deep" = "UTP-DEEP" +
+  options [browser_info = true, document = false]
+  theories utp_deep
+    "../axiomatic/Axiomatic"
 
 (* Imports for Hybrid UTP *)
 
@@ -196,7 +167,7 @@ session "VDM-SL" in "vdm-sl" = "UTP-DEEP" +
 
 (* FMI Mechanisation *)
 
-session "FMI" in "fmi" = "UTP-AX" +
+session "FMI" in "fmi" = "UTP-DEEP-AX" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     fmi

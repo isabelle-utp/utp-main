@@ -26,7 +26,7 @@ abbreviation trace :: "('c::topological_space ttrace, 'd, 'c) expr_trd" ("\<phi>
 abbreviation time_length :: "_" ("\<^bold>l")
 where "\<^bold>l \<equiv> uop end\<^sub>t trace"
 
-no_notation Not  ("~ _" [40] 40)
+purge_notation Not  ("~ _" [40] 40)
 
 abbreviation cvar :: 
   "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real, 'd, 'c) expr_trd \<Rightarrow> ('a, 'd, 'c) expr_trd" ("_~'(_')" [999,0] 999) where

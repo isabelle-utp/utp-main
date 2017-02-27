@@ -5,7 +5,7 @@ imports
   utp_var
 begin
 
-no_notation BNF_Def.convol ("\<langle>(_,/ _)\<rangle>")
+purge_notation BNF_Def.convol ("\<langle>(_,/ _)\<rangle>")
 
 text {* Before building the predicate model, we will build a model of expressions that generalise
         alphabetised predicates. Expressions are represented semantically as mapping from

@@ -1,5 +1,5 @@
 theory Lenses
-  imports 
+  imports
     Lens_Laws
     Lens_Algebra
     Lens_Order

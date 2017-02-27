@@ -22,7 +22,7 @@ text {*
   about this? Precedence of other UTP operators may need need discussion too.
 *}
 
-no_notation useq (infixr ";;" 15)
+purge_notation useq (infixr ";;" 15)
    notation useq (infixr ";;" 51)
 
 text {*
@@ -31,7 +31,7 @@ text {*
   syntax of @{text "R(_)"}. TODO: Alter this in theory @{theory utp_reactive}.
 *}
 
-no_notation RH ("\<^bold>R")
+purge_notation RH ("\<^bold>R")
    notation RH ("R'(_')")
 
 subsection {* CSP Alphabet *}
@@ -109,7 +109,7 @@ text {*
   It is not quite obvious why we need so many definitions for each variable,
   and what the purpose of the various definitions is. For instance, what is
   the different between @{text "ref"} and @{text "ref\<^sub>r"}? Ask Simon Foster if
-  he could insert some comments here. to clarify this. Maybe we can do with
+  he could insert some comments here to clarify this. Maybe we can do with
   introducing less definitions?! Unless all of them are needed at some point.
 *}
 
@@ -118,6 +118,7 @@ definition [uvar_defs]: "\<Sigma>\<^sub>c = VAR more"
 definition [uvar_defs]: "ref = (ref\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
 definition [uvar_defs]: "ref\<^sub>r = (ref\<^sub>c ;\<^sub>L \<Sigma>\<^sub>r)"
 definition [uvar_defs]: "\<Sigma>\<^sub>C = (\<Sigma>\<^sub>c ;\<^sub>L \<Sigma>\<^sub>R)"
+definition [uvar_defs]: "\<Sigma>\<^sub>C\<^sub>x\<^sub>C = \<Sigma>\<^sub>C \<times>\<^sub>L \<Sigma>\<^sub>C"
 
 subsubsection {* Lens Laws *}
 

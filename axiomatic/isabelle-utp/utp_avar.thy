@@ -9,8 +9,9 @@
 section {* Axiomatic Variables *}
 
 theory utp_avar
-imports utp_var ulens
-begin
+imports utp_var
+  "../theories/core/ulens"
+begin recall_syntax
 
 default_sort type
 
@@ -26,78 +27,45 @@ subsubsection {* Late-Inclusion Side-effects *}
 
 text {*
   A problem in Isabelle/HOL is that depending on the order in which imported
-  theory are processed, the undeclaration of syntax and notations may be lost
+  theories are processed, undeclaration of syntax and notations may be lost
   after the inclusion; in particular, if a theory is imported that does not
-  depend on the theory that undeclares the respective notation or syntax. The
-  below is a hack that replicates undeclarations from various theories in the
-  utp folder. Apparently, this is an issue to do with theory merging; perhaps
-  raise this with the Isabelle community and developers, putting in a request
-  for a solution to this problem.
+  depend on the theory that undeclares the respective notation or syntax. We
+  use the @{theory TotalRecall} utility and @{command purge_notation} command
+  to solve this problem here.
 *}
 
 -- {* From @{theory utype}. *}
 
-no_notation
+purge_notation
   Set.member  ("op :") and
   Set.member  ("(_/ : _)" [51, 51] 50)
-
--- {* From @{text utp_var}. *}
-
-no_notation 
-  le (infixl "\<sqsubseteq>\<index>" 50) and
-  asup ("\<Squnion>\<index>_" [90] 90) and
-  ainf ("\<Sqinter>\<index>_" [90] 90)
-
--- {* From @{text utp_expr}. *}
-
-no_notation
-  BNF_Def.convol ("\<langle>(_,/ _)\<rangle>")
-
--- {* From @{text utp_pred}. *}
-
-no_notation
-  conj (infixr "\<and>" 35) and
-  disj (infixr "\<or>" 30) and
-  Not ("\<not> _" [40] 40)
-
-no_notation
-  inf (infixl "\<sqinter>" 70) and
-  sup (infixl "\<squnion>" 65) and
-  Inf ("\<Sqinter>_" [900] 900) and
-  Sup ("\<Squnion>_" [900] 900) and
-  bot ("\<bottom>") and
-  top ("\<top>")
-
-no_syntax
-  "_INF1" :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
-  "_INF"  :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sqinter>_\<in>_./ _)" [0, 0, 10] 10)
-  "_SUP1" :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Squnion>_./ _)" [0, 10] 10)
-  "_SUP"  :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
 
 subsubsection {* Syntactic Adjustments *}
 
 text {*
   We undeclare several notations here to avoid inherent ambiguities with those
-  used in Isabelle/UTP. Note that it is sufficient to undeclare them as input
+  used in Isabelle/UTP. We note that it is sufficient to remove them as input
   notations, namely to be still able to take advantage of them being printed.
 *}
 
-no_notation (input)
+purge_notation (input)
   dash ("_\<acute>" [1000] 1000) and
   undash ("_\<inverse>" [1000] 1000) and
   subscr ("_\<^bsub>_\<^esub>" [1000, 0] 1000)
 
-no_syntax (input)
-  "_MkPVar1" :: "id \<Rightarrow>         'a var" ("$_" [1000] 1000)
-  "_MkPVar2" :: "id \<Rightarrow> type \<Rightarrow> 'a var" ("$_:{_}"  [1000, 0] 1000)
-  "_MkPVar3" :: "id \<Rightarrow> type \<Rightarrow> 'a var" ("$_:{_}-" [1000, 0] 1000)
+text {* The prefix @{text "uvar."} is important to avoid errors by the tool. *}
 
-no_syntax (input)
+purge_syntax (input)
+  "_MkPVar1" :: "id \<Rightarrow>         'a uvar.var" ("$_" [1000] 1000)
+  "_MkPVar2" :: "id \<Rightarrow> type \<Rightarrow> 'a uvar.var" ("$_:{_}"  [1000, 0] 1000)
+  "_MkPVar3" :: "id \<Rightarrow> type \<Rightarrow> 'a uvar.var" ("$_:{_}-" [1000, 0] 1000)
+
+purge_syntax (input)
   "_MkAxVar1" :: "id \<Rightarrow>         ('a, 'b) lens" ("@_" [1000] 1000)
   "_MkAxVar2" :: "id \<Rightarrow> type \<Rightarrow> ('a, 'b) lens" ("@_:{_}"  [1000, 0] 1000)
   "_MkAxVar3" :: "id \<Rightarrow> type \<Rightarrow> ('a, 'b) lens" ("@_:{_}-" [1000, 0] 1000)
 
-no_notation (input)
+purge_notation (input)
   ustate_app_mono ("_\<cdot>_" [1000, 1000] 1000) and
   ustate_app_poly ("_\<star>_" [1000, 1000] 1000)
 
