@@ -163,6 +163,9 @@ lemma subst_lit [usubst]: "\<sigma> \<dagger> \<guillemotleft>v\<guillemotright>
 lemma subst_var [usubst]: "\<sigma> \<dagger> var x = \<langle>\<sigma>\<rangle>\<^sub>s x"
   by (transfer, simp)
 
+lemma usubst_ulambda [usubst]: "\<sigma> \<dagger> (\<lambda> x \<bullet> P(x)) = (\<lambda> x \<bullet> \<sigma> \<dagger> P(x))"
+  by (transfer, simp)
+    
 lemma unrest_usubst_del [unrest]: "\<lbrakk> vwb_lens x; x \<sharp> (\<langle>\<sigma>\<rangle>\<^sub>s x); x \<sharp> \<sigma> -\<^sub>s x \<rbrakk> \<Longrightarrow>  x \<sharp> (\<sigma> \<dagger> P)"
   by (simp add: subst_del_def subst_upd_uvar_def unrest_upred_def unrest_usubst_def subst.rep_eq usubst_lookup.rep_eq)
      (metis vwb_lens.put_eq)

@@ -4,6 +4,10 @@ theory utp_hyrel
 imports utp_fix_syntax_2
 begin
 
+text {* This section contains a mechanisation of the hybrid relational calculus described 
+  in~\cite{Foster16b}, though with a new semantic model based on generalised reactive processes
+  and timed traces~\cite{Hayes2006, Hayes2010, Hofner2009}. *}
+  
 subsection {* Types and Preliminaries *}
   
 text {* We first set up some types to represent hybrid relations. *}
@@ -148,6 +152,10 @@ abbreviation cont_pre_lift :: "('a, 'c) uexpr \<Rightarrow> ('a,'d,'c::topologic
 translations
   "\<lceil>P\<rceil>\<^sub>C\<^sub><" <= "CONST aext P (CONST ivar CONST cont_alpha)"
 
+lemma unrest_lift_cont_subst [unrest]:
+  "\<lbrakk> vwb_lens x; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> (\<lceil>P\<rceil>\<^sub>C\<^sub><)\<lbrakk>v/$\<^bold>c\<rbrakk>"
+  by (rel_auto)
+  
 text {* @{term "\<lceil>P\<rceil>\<^sub>\<delta>"} takes an expression @{term "P"}, whose state space is the relational on
   the discrete state @{typ "'d"}, that is @{typ "'d \<times> 'd"} and lifts it into the hybrid state
   space, @{typ "('d, 'c) hybs"}. Note that following this lifting all continuous variables will
@@ -169,6 +177,11 @@ syntax
 translations
   "end\<^sub>u(t)" == "CONST uop end\<^sub>t t"
 
+text {* The next properties states that the end point of an empty timed trace is 0. *}
+  
+lemma uend_0 [simp]: "end\<^sub>u(0) = 0"
+  by (simp add: upred_defs lit_def uop_def Abs_uexpr_inverse)
+  
 subsection {* Instant predicates *}
   
 definition at :: 
@@ -185,9 +198,17 @@ text {* The expression @{term "P @\<^sub>u t"} asserts that the predicate @{term
 lemma R2c_at: "R2c(P @\<^sub>u t) = P @\<^sub>u t"
   by (simp add: at_def R2c_def cond_idem usubst unrest R2s_def)
     
+lemma R2c_time_length: "R2c (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u) = (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u)"
+  by (rel_auto ; simp add: tt_end_minus)
+    
 text {* @{term "P @\<^sub>u t"} always satisfies healthiness condition @{term "R2c"}, meaning that it
   is history independent -- it does not refer to the variable @{term "tr"}, and only refers
-  to the contribution of the present trace contained in @{term "\<^bold>t"}. *} 
+  to the contribution of the present trace contained in @{term "\<^bold>t"}. This in an important
+  property of hybrid predicates, since in a sequential hybrid program @{term "P ;; Q ;; R"}
+  satisfaction of @{term "R2c"} ensures that $P$, $Q$, and $R$ all refer to different parts
+  of the trace and cannot interfere with each other. We can show this is also the case of
+  the predicate @{term "\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u"}, since this only refers to @{term "\<^bold>l"}, which
+  denotes the length of the present computation, and does not depend on the history. *} 
 
 lemma at_unrest_cont [unrest]: "$\<^bold>c \<sharp> (P @\<^sub>u t)"
   by (simp add: at_def unrest)
@@ -220,6 +241,18 @@ lemma at_ueq [simp]: "(x =\<^sub>u y) @\<^sub>u t = (x @\<^sub>u t =\<^sub>u y @
 lemma at_plus [simp]:
   "(x + y) @\<^sub>u t = ((x @\<^sub>u t) + (y @\<^sub>u t))"
   by (simp add: at_def alpha usubst)
+    
+lemma at_lit [simp]:
+  "\<guillemotleft>x\<guillemotright> @\<^sub>u t = \<guillemotleft>x\<guillemotright>"
+  by (simp add: at_def usubst alpha)
+    
+lemma at_lambda [simp]:
+  "(\<lambda> x \<bullet> f(x)) @\<^sub>u t = (\<lambda> x \<bullet> (f(x) @\<^sub>u t))"
+  by (simp add: at_def usubst alpha)
+   
+lemma at_bop [simp]:
+  "(bop f x y) @\<^sub>u t = bop f (x @\<^sub>u t) (y @\<^sub>u t)"
+  by (simp add: at_def usubst alpha)
     
 lemma at_var [simp]:
   fixes x :: "('a, 'c::topological_space) uvar"
@@ -257,7 +290,8 @@ definition hDisInt :: "(real \<Rightarrow> 'c::t2_space upred) \<Rightarrow> ('d
 
 text {* We also set up the adapted version of the interval operator, @{term "hDisInt P"}, that
   conjoins an interval specification with three predicates, which also happen to be coupling 
-  invariants. The first states that the continuous state within the trace at instant 0 must 
+  invariants, and yield what we might call a ``hybrid interval''. The first invariant 
+  states that the continuous state within the trace at instant 0 must 
   correspond to the before value of the continuous state, i.e. @{term "$\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u"}. The second 
   states that the after value of the continuous state must take on the limit of the continuous 
   state as the trace approaches the end value @{term "\<^bold>l"}, i.e. @{term "$\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u)"}. 
@@ -265,8 +299,10 @@ text {* We also set up the adapted version of the interval operator, @{term "hDi
   which is true because our timed trace is piecewise convergent. The last two constraints are what 
   makes our model a hybrid computational model, since we link together discrete assignments to 
   continuous variables in the before and after state, and continuous evolution in the timed trace.
-  The final predicate states that the discrete state does not change during a continuous evolution. *}
+  The final predicate states that the discrete state does not change during a continuous evolution. 
 
+  We next set up some useful syntax translations for the interval operator. *}
+  
 syntax
   "_time_var" :: "logic"
   "_hInt"     :: "logic \<Rightarrow> logic" ("\<lceil>_\<rceil>\<^sub>H")
@@ -285,35 +321,14 @@ translations
   "\<lceil>P\<rceil>\<^sub>H"   == "CONST hInt (\<lambda> _time_var. P)"
   "\<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>H" == "CONST hDisInt (\<lambda> _time_var. P)"
 
-definition hPreempt :: 
-  "('d, 'c::topological_space) hyrel \<Rightarrow> 'c upred \<Rightarrow> 
-    ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ \<lbrakk>_\<rbrakk>\<^sub>H _" [64,0,65] 64)
-where "P \<lbrakk>b\<rbrakk>\<^sub>H Q = (((Q \<triangleleft> b @\<^sub>u 0 \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>H)) \<or> ((\<lceil>\<not> b\<rceil>\<^sub>H \<and> P) ;; ((b @\<^sub>u 0) \<and> Q))))"
-
-lemma uend_0 [simp]: "end\<^sub>u(0) = 0"
-  by (simp add: upred_defs lit_def uop_def Abs_uexpr_inverse)
-
-lemma R2c_time_length: "R2c (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u) = (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u)"
-  by (rel_auto ; simp add: tt_end_minus)
-
-lemma R2c_tr_less_tr': "R2c($tr <\<^sub>u $tr\<acute>) = ($tr <\<^sub>u $tr\<acute>)"
-  apply (rel_auto)
-  using le_imp_less_or_eq apply fastforce
-  using dual_order.strict_iff_order minus_zero_eq apply fastforce
-done
-
-lemma R2c_shAll: "R2c (\<^bold>\<forall> x \<bullet> P x) = (\<^bold>\<forall> x \<bullet> R2c(P x))"
-  by (rel_auto)
-
-lemma R2c_impl: "R2c(P \<Rightarrow> Q) = (R2c(P) \<Rightarrow> R2c(Q))"
-  by (metis (no_types, lifting) R2c_and R2c_not double_negation impl_alt_def not_conj_deMorgans)
-
-lemma R1_tr_less_tr': "R1($tr <\<^sub>u $tr\<acute>) = ($tr <\<^sub>u $tr\<acute>)"
-  by (rel_auto)
-
+text {* A regular interval can be written using the notation @{term "\<lceil>P(\<tau>)\<rceil>\<^sub>H"}, where $\tau$ is
+  a free variable denoting the present time. Having the present time as a free variable means
+  we can write algebraic equations that depend on time, such as @{term "\<lceil>&x =\<^sub>u 2 * \<guillemotleft>\<tau>\<guillemotright>\<rceil>\<^sub>H"} for
+  example. Similarly, a hybrid interval can be written using a boldface as @{term "\<^bold>\<lceil>P(\<tau>)\<^bold>\<rceil>\<^sub>H"}. *}
+  
 lemma hInt_unrest_cont [unrest]: "$\<^bold>c \<sharp> \<lceil>P(\<tau>)\<rceil>\<^sub>H"
   by (simp add: hInt_def unrest)
-
+    
 lemma R1_hInt: "R1(\<lceil>P(\<tau>)\<rceil>\<^sub>H) = \<lceil>P(\<tau>)\<rceil>\<^sub>H"
   by (simp add: hInt_def R1_extend_conj R1_tr_less_tr')
 
@@ -322,19 +337,38 @@ lemma R2s_hInt: "R2c(\<lceil>P(\<tau>)\<rceil>\<^sub>H) = \<lceil>P(\<tau>)\<rce
 
 lemma R2_hInt: "R2(\<lceil>P(\<tau>)\<rceil>\<^sub>H) = \<lceil>P(\<tau>)\<rceil>\<^sub>H"
   by (metis R1_R2c_is_R2 R1_hInt R2s_hInt)
+    
+text {* Theorem @{thm [source] "hInt_unrest_cont"} states that no continuous before variable
+  is fixed by the regular interval operator. This is because the regular interval operator
+  does not refer to state variables but only the evolution of the trajectory. We can also
+  show that the interval operator is both @{term "R1"} healthy, since the trajectory can
+  only get longer, and also @{term "R2c"} healthy, since it does not refer to the history. 
 
+  We also prove some laws about intervals. *}
+    
 lemma hInt_false: "\<lceil>false\<rceil>\<^sub>H = false"
   by (simp add: hInt_def, rel_auto, metis dual_order.strict_iff_order minus_zero_eq tt_end_0_iff tt_end_ge_0)
 
-lemma seqr_to_conj: "\<lbrakk> out\<alpha> \<sharp> P; in\<alpha> \<sharp> Q \<rbrakk> \<Longrightarrow> (P ;; Q) = (P \<and> Q)"
-  by (metis postcond_left_unit seqr_pre_out utp_pred.inf_top.right_neutral)
+lemma hInt_true: "\<lceil>true\<rceil>\<^sub>H = ($tr <\<^sub>u $tr\<acute>)"
+  by (rel_auto)
 
-lemma unrest_lift_cont_subst [unrest]:
-  "\<lbrakk> vwb_lens x; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> (\<lceil>P\<rceil>\<^sub>C\<^sub><)\<lbrakk>v/$\<^bold>c\<rbrakk>"
+lemma hInt_conj: "\<lceil>P(\<tau>) \<and> Q(\<tau>)\<rceil>\<^sub>H = (\<lceil>P(\<tau>)\<rceil>\<^sub>H \<and> \<lceil>Q(\<tau>)\<rceil>\<^sub>H)"
+  by (rel_auto)
+
+lemma hInt_disj: "\<lceil>P(\<tau>) \<or> Q(\<tau>)\<rceil>\<^sub>H \<sqsubseteq> (\<lceil>P(\<tau>)\<rceil>\<^sub>H \<or> \<lceil>Q(\<tau>)\<rceil>\<^sub>H)"
   by (rel_auto)
 
 lemma hInt_refine: "`\<^bold>\<forall> \<tau> \<bullet> P(\<tau>) \<Rightarrow> Q(\<tau>)` \<Longrightarrow> \<lceil>Q(\<tau>)\<rceil>\<^sub>H \<sqsubseteq> \<lceil>P(\<tau>)\<rceil>\<^sub>H"
   by (rel_auto)
+    
+text {* Theorem @{thm [source] hInt_false} and @{thm [source] hInt_true} give us obvious results
+  about intervals over false and true. Theorem @{thm [source] hInt_conj} allows us to rewrite
+  and interval conjunction as a conjunction of intervals. The same is not true of disjunction,
+  as @{thm [source] hInt_disj} shows, because at each instant each $P$ or $Q$ may hold, and thus an
+  inequality is present in the rule. Finally, theorem @{thm [source] hInt_refine} tells us that
+  an interval can be refined to another is we can show that an implication between the two interval
+  predicates. Additionally we prove the following law about sequential composition of 
+  time-independent intervals. *}
 
 lemma hInt_seq_r: "(\<lceil>P\<rceil>\<^sub>H ;; \<lceil>P\<rceil>\<^sub>H) = \<lceil>P\<rceil>\<^sub>H"
 proof -
@@ -389,17 +423,28 @@ proof -
     by (simp add: R2_hInt)
   finally show ?thesis .
 qed
+  
+text {* The proof of the theorem is quite long, but the theorem intuitively tells us that an interval
+  can always be split into two intervals where the property holds of both. *}
+  
+subsection {* Pre-emption *}
+  
+definition hPreempt :: 
+  "('d, 'c::topological_space) hyrel \<Rightarrow> 'c upred \<Rightarrow> 
+    ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>H _" [64,0,65] 64)
+where "P [b]\<^sub>H Q = (((Q \<triangleleft> b @\<^sub>u 0 \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>H)) \<or> ((\<lceil>\<not> b\<rceil>\<^sub>H \<and> P) ;; ((b @\<^sub>u 0) \<and> Q))))"
 
-lemma hInt_true: "\<lceil>true\<rceil>\<^sub>H = ($tr <\<^sub>u $tr\<acute>)"
-  by (rel_auto)
-
-lemma "P \<lbrakk>true\<rbrakk>\<^sub>H Q = Q"
+text {* The pre-emption operator @{term "P [b]\<^sub>H Q"} states that $P$ is active until $b$ is satisfied
+  by the continuous variables. At this point $Q$ will be activated. Usually $P$ will be an evolution
+  of the continuous variables, and $b$ some kind of barrier condition. The operator can be used
+  to write hybrid systems where an evolution occurs until some condition is satisfied, e.g. a 
+  particular temperature or other quantity is reached, and then some discrete activity is executed.
+  We prove a few simple properties about this operator. *}
+  
+lemma hPreempt_true: "P [true]\<^sub>H Q = Q"
   by (simp add: hPreempt_def hInt_false)
 
-lemma "P \<lbrakk>false\<rbrakk>\<^sub>H Q = (P \<and> $tr <\<^sub>u $tr\<acute>)"
+lemma hPreempt_false: "P [false]\<^sub>H Q = (P \<and> $tr <\<^sub>u $tr\<acute>)"
   by (simp add: hPreempt_def hInt_true)
-
-lemma hInt_conj: "\<lceil>P(\<tau>) \<and> Q(\<tau>)\<rceil>\<^sub>H = (\<lceil>P(\<tau>)\<rceil>\<^sub>H \<and> \<lceil>Q(\<tau>)\<rceil>\<^sub>H)"
-  by (rel_auto)
     
 end

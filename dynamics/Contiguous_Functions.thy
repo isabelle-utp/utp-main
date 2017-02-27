@@ -15,7 +15,10 @@ text {* In this section we will define a type to represent contiguous functions 
   a real domain, which will be used to represent trajectories, together with suitable algebraic
   operators. We then specialise this to piecewise continuous and convergent functions, and show
   closure of the algebraic operators. The properties we use here will be crucial in our hybrid
-  relational calculus. *}
+  relational calculus. Our model and the associated algebra is based partly on the work of
+  Hayes~\cite{Hayes2006,Hayes2010} who introduces a theory of timed traces to give semantics
+  to real-time programs, and also H\"{o}fner~\cite{Hofner2009} who gives and algebraic foundation for verifying 
+  hybrid systems, including operators on continuous trajectories that underlie hybrid automata. *}
 
 subsection {* Preliminaries *}
 

@@ -90,12 +90,18 @@ session "Continuum" in "continuum" = "HOL-Cardinals" +
 (* Continuous Systems Dynamics *)
 
 session "Dynamics" in "dynamics" = "HOL-Analysis" +
-  options [document = false, timeout = 1000]
+  options [document = pdf, document_output = "output", timeout = 1000]
   theories
     Derivative_extra
     Contiguous_Functions
     Timed_Traces
-
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty"
+    "zed.sty"
+    "csp.sty"
+    
 (* Library Imports for UTP *)
 
 session "UTP-IMPORTS" in "utils" = (* "HOL-Library" *) "HOL" +
@@ -153,10 +159,16 @@ session "UTP-HY-IMPORTS" = "Dynamics" +
 (* Hybrid UTP *)
 
 session "UTP-Hybrid" in "hybrid" = "UTP-HY-IMPORTS" +
-  options [document = false]
+  options [document = pdf, document_output = "output", timeout = 1000]
   theories
     utp_hybrid
-
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty"
+    "zed.sty"
+    "csp.sty"
+    
 (* VDM-SL Mechanisation *)
 
 session "VDM-SL" in "vdm-sl" = "UTP-DEEP" +

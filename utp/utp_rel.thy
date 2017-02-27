@@ -401,19 +401,28 @@ lemma cond_disj_distr:"(P \<or> (Q \<triangleleft> b \<triangleright> S)) = ((P 
 
 lemma cond_neg: "\<not> (P \<triangleleft> b \<triangleright> Q) = ((\<not> P) \<triangleleft> b \<triangleright> (\<not> Q))" by rel_auto
 
+lemma cond_USUP_dist: "(\<Squnion> P\<in>S \<bullet> F(P)) \<triangleleft> b \<triangleright> (\<Squnion> P\<in>S \<bullet> G(P)) = (\<Squnion> P\<in>S \<bullet> F(P) \<triangleleft> b \<triangleright> G(P))"
+  by (subst uexpr_eq_iff, auto simp add: disj_upred_def conj_upred_def not_upred_def cond_def UINF.rep_eq uminus_uexpr_def inf_uexpr.rep_eq sup_uexpr.rep_eq uop.rep_eq bop.rep_eq lit.rep_eq)
+
+lemma cond_UINF_dist: "(\<Sqinter> P\<in>S \<bullet> F(P)) \<triangleleft> b \<triangleright> (\<Sqinter> P\<in>S \<bullet> G(P)) = (\<Sqinter> P\<in>S \<bullet> F(P) \<triangleleft> b \<triangleright> G(P))"
+  by (subst uexpr_eq_iff, auto simp add: disj_upred_def conj_upred_def not_upred_def cond_def USUP.rep_eq uminus_uexpr_def inf_uexpr.rep_eq sup_uexpr.rep_eq uop.rep_eq bop.rep_eq lit.rep_eq)
+
+lemma cond_conj: "P \<triangleleft> b \<and> c \<triangleright> Q = (P \<triangleleft> c \<triangleright> Q) \<triangleleft> b \<triangleright> Q"
+  by (rel_auto)
+    
 lemma comp_cond_left_distr:
   "((P \<triangleleft> b \<triangleright>\<^sub>r Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright>\<^sub>r (Q ;; R))"
   by rel_auto
 
 lemma cond_var_subst_left:
   assumes "vwb_lens x"
-  shows "(P \<triangleleft> $x \<triangleright> Q) = (P\<lbrakk>true/$x\<rbrakk> \<triangleleft> $x \<triangleright> Q)"
-  using assms by (metis cond_def conj_pos_var_subst)
+  shows "(P\<lbrakk>true/x\<rbrakk> \<triangleleft> var x \<triangleright> Q) = (P \<triangleleft> var x \<triangleright> Q)"
+  using assms by (metis cond_def conj_comm conj_var_subst upred_eq_true) 
 
 lemma cond_var_subst_right:
   assumes "vwb_lens x"
-  shows "(P \<triangleleft> $x \<triangleright> Q) = (P \<triangleleft> $x \<triangleright> Q\<lbrakk>false/$x\<rbrakk>)"
-  using assms by (metis cond_def conj_neg_var_subst)
+  shows "(P \<triangleleft> var x \<triangleright> Q\<lbrakk>false/x\<rbrakk>) = (P \<triangleleft> var x \<triangleright> Q)"
+  using assms by (metis cond_def conj_var_subst upred_eq_false utp_pred.inf_commute) 
 
 lemma cond_var_split:
   "vwb_lens x \<Longrightarrow> (P\<lbrakk>true/x\<rbrakk> \<triangleleft> var x \<triangleright> P\<lbrakk>false/x\<rbrakk>) = P"
@@ -454,6 +463,12 @@ lemma seq_Sup_distl: "P ;; (\<Sqinter> A) = (\<Sqinter> Q\<in>A. P ;; Q)"
 lemma seq_Sup_distr: "(\<Sqinter> A) ;; Q = (\<Sqinter> P\<in>A. P ;; Q)"
   by (transfer, auto)
     
+lemma seq_UINF_distl: "P ;; (\<Sqinter> Q\<in>A \<bullet> F(Q)) = (\<Sqinter> Q\<in>A \<bullet> P ;; F(Q))"
+  by (simp add: USUP_as_Sup_collect seq_Sup_distl)
+
+lemma seq_UINF_distr: "(\<Sqinter> P\<in>A \<bullet> F(P)) ;; Q = (\<Sqinter> P\<in>A \<bullet> F(P) ;; Q)"
+  by (simp add: USUP_as_Sup_collect seq_Sup_distr)
+
 lemma impl_seqr_mono: "\<lbrakk> `P \<Rightarrow> Q`; `R \<Rightarrow> S` \<rbrakk> \<Longrightarrow> `(P ;; R) \<Rightarrow> (Q ;; S)`"
   by (pred_blast)
 
@@ -753,6 +768,9 @@ lemma seqr_true_lemma:
   "(P = (\<not> ((\<not> P) ;; true))) = (P = (P ;; true))"
   by rel_auto
 
+lemma seqr_to_conj: "\<lbrakk> out\<alpha> \<sharp> P; in\<alpha> \<sharp> Q \<rbrakk> \<Longrightarrow> (P ;; Q) = (P \<and> Q)"
+  by (metis postcond_left_unit seqr_pre_out utp_pred.inf_top.right_neutral)
+    
 lemma shEx_lift_seq_1 [uquant_lift]:
   "((\<^bold>\<exists> x \<bullet> P x) ;; Q) = (\<^bold>\<exists> x \<bullet> (P x ;; Q))"
   by pred_auto

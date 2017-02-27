@@ -19,14 +19,16 @@ theory utp_var
   "../utils/Library_extra/Monoid_extra"
   utp_parser_utils
 begin
-
+  
 text {* We will overload the square order relation with refinement and also the lattice operators so
   we will turn off these notations. *}
 
 purge_notation 
   le (infixl "\<sqsubseteq>\<index>" 50) and
   asup ("\<Squnion>\<index>_" [90] 90) and
-  ainf ("\<Sqinter>\<index>_" [90] 90)
+  ainf ("\<Sqinter>\<index>_" [90] 90) and
+  join (infixl "\<squnion>\<index>" 65) and
+  meet (infixl "\<sqinter>\<index>" 70)
 
 text {* We hide HOL's built-in relation type since we will replace it with our own *}
 
