@@ -30,20 +30,20 @@ text {*
 -- {* \todo{Additionally perform an alphabet restriction below.} *}
 
 definition Process ::
-  "('\<epsilon>, '\<alpha>) rel_circus \<Rightarrow>
-   ('\<epsilon>, '\<alpha>) rel_circus" where
+  "('\<epsilon>, '\<alpha>) action \<Rightarrow>
+   ('\<epsilon>, '\<alpha>) action" where
 "Process p = (\<exists> \<Sigma>\<^sub>C\<^sub>x\<^sub>C \<bullet> p) (*\<restriction>\<^sub>p \<Sigma>\<^sub>C\<^sub>x\<^sub>C*)"
 
 definition Action ::
-  "('\<epsilon>, '\<alpha>) rel_circus \<Rightarrow>
-  (('\<epsilon>, '\<alpha>) rel_circus \<Rightarrow> ('\<epsilon>, '\<alpha>) rel_circus) \<Rightarrow>
-  ('\<epsilon>, '\<alpha>) rel_circus" where
+  "('\<epsilon>, '\<alpha>) action \<Rightarrow>
+  (('\<epsilon>, '\<alpha>) action \<Rightarrow> ('\<epsilon>, '\<alpha>) action) \<Rightarrow>
+  ('\<epsilon>, '\<alpha>) action" where
 "Action = Let"
 
 definition RecAction ::
-  "(('\<epsilon>, '\<alpha>) rel_circus \<Rightarrow>
-    ('\<epsilon>, '\<alpha>) rel_circus \<times> ('\<epsilon>, '\<alpha>) rel_circus) \<Rightarrow>
-  ('\<epsilon>, '\<alpha>) rel_circus" where
+  "(('\<epsilon>, '\<alpha>) action \<Rightarrow>
+    ('\<epsilon>, '\<alpha>) action \<times> ('\<epsilon>, '\<alpha>) action) \<Rightarrow>
+  ('\<epsilon>, '\<alpha>) action" where
 "RecAction act_body =
   Action (SUPREMUM UNIV (\<lambda>X. fst (act_body X))) (\<lambda>X. snd (act_body X))"
 

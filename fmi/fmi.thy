@@ -635,5 +635,5 @@ term "InputCSP setT x"
 term "\<lceil>''x''\<rceil>\<^sub>d"
 term "(dvar_lens \<lceil>''x''\<rceil>\<^sub>d)"
 term "\<lceil>''x''\<rceil>\<^sub>d\<up>"
-term "InputCSP setT (\<lceil>''x''\<rceil>\<^sub>d\<up>)"
+term "InputCircus setT (\<lceil>''x''\<rceil>\<^sub>d\<up>)"
 end
