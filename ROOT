@@ -94,6 +94,17 @@ session "UTP" in "utp" = "UTP-IMPORTS" +
     "root.bib"
     "root.tex"
     "document.sty"
+    
+(* Isabelle/UTP tutorial *)
+    
+session "UTP-Tutorial" in "tutorial" = "UTP" +
+  options [document = pdf, document_output = "output", timeout = 1000]
+  theories
+    utp_tutorial
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty" 
 
 (* Core UTP with Deep Variables *)
 

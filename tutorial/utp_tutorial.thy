@@ -7,7 +7,7 @@ begin
 (*>*)
   
 text {* In this section we will introduce Hoare and He's \emph{Unifying Theories of Programming} through
-  a tutorial about our mechanisation, in Isabelle, called Isabelle/UTP. The UTP is a framework for building and reasoning
+  a tutorial about our mechanisation, in Isabelle, called Isabelle/UTP~\cite{Foster16a}. The UTP is a framework for building and reasoning
   about heterogeneous semantics of programming and modelling languages. One of the core ideas of the UTP
   is that any program (or model) can be represented as a logical predicate over the program's state
   variables. The UTP thus begins from a higher-order logical core, and constructs a semantics for
