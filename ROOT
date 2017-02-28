@@ -37,29 +37,6 @@ session "HOL-Algebra2" (main timing) in "contrib/Algebra" = HOL +
     UnivPoly             (* Polynomials *)
   document_files "root.bib" "root.tex"
 
-(* Kleene Algebra *)
-
-(* This module seems not to compile anymore...! *)
-
-session Kleene_Algebra (AFP) in "contrib/Kleene_Algebra"
-  = "HOL-Library" +
-  options [timeout = 300]
-  theories
-    Action_Algebra
-    Action_Algebra_Models
-    Dioid
-    Dioid_Models
-    Kleene_Algebras
-    Kleene_Algebra_Models
-    Matrix
-    Omega_Algebra
-    Omega_Algebra_Models
-    Quantales
-    Signatures
-  files
-    "document/root.bib"
-    "document/root.tex"
-
 (* Lenses *)
 
 session "Optics" in "lenses"
@@ -154,6 +131,7 @@ session "UTP-HY-IMPORTS" = "Dynamics" +
     "contrib/Algebra/Complete_Lattice"
     "contrib/Algebra/Galois_Connection"
     "contrib/Ordinary_Differential_Equations/ODE_Analysis"
+    "utils/utp_imports"
     "utp/utp"
 
 (* Hybrid UTP *)

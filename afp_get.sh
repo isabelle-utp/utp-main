@@ -6,7 +6,13 @@ AFP_INSTALL=${AFP_INSTALL:-./contrib/}
 show_help() {
 cat << EOF
 Usage: ${0##*/} [-hd] [-v VERSION] [AFP_ENTRY]...
-Download an entry from the Archive of Formal Proofs
+Download the entry AFP_ENTRY from the Archive of Formal Proofs and extract 
+it to AFP_INSTALL directory.
+
+    -h          display this help and exit
+    -d          delete the AFP entry
+    -v VERSION  install a specific version from the AFP 
+                (default is current)
 EOF
 }
 

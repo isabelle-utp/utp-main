@@ -2,7 +2,7 @@ section {* UTP variables *}
 
 theory utp_var
   imports
-  Deriv TotalRecall
+  Deriv 
   "~~/src/HOL/Library/Prefix_Order"
   "~~/src/HOL/Library/Char_ord"
   "~~/src/Tools/Adhoc_Overloading"
@@ -13,6 +13,7 @@ theory utp_var
   "../contrib/Algebra/Galois_Connection"
   "../lenses/Lenses"
   "../utils/Profiling"
+  "../utils/TotalRecall"
   "../utils/Library_extra/Pfun"
   "../utils/Library_extra/Ffun"
   "../utils/Library_extra/List_lexord_alt"
