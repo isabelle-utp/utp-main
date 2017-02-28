@@ -1446,6 +1446,11 @@ lemma SRD_reactive_tri_design:
   shows "\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) = P"
   by (metis Healthy_if SRD_as_reactive_tri_design assms)
 
+lemma RHS_tri_design_is_SRD:
+  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok\<acute> \<sharp> R"
+  shows "\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) is SRD"
+  by (rule RHS_design_is_SRD, simp_all add: unrest assms)
+    
 lemma R1_neg_R2s_pre_RHS:
   assumes "P is SRD"
   shows "R1 (\<not> R2s(pre\<^sub>R(P))) = (\<not> (pre\<^sub>R(P)))"

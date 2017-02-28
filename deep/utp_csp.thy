@@ -408,7 +408,15 @@ proof -
     by (simp add: Stop_def)
   finally show ?thesis .
 qed
-    
+  
+lemma Guard_tri_design:
+  "g &\<^sub>u P = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P) \<turnstile> (peri\<^sub>R(P) \<triangleleft> \<lceil>g\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)) \<diamondop> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R(P)))"
+proof -
+  have "(\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> cmt\<^sub>R P \<or> \<not> \<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>) = (peri\<^sub>R(P) \<triangleleft> \<lceil>g\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)) \<diamondop> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R(P))"
+    by (rel_auto, (metis (full_types))+)
+  thus ?thesis by (simp add: Guard_def)
+qed
+  
 lemma Guard_rdes_def:
   assumes "$ok\<acute> \<sharp> P"
   shows "g &\<^sub>u (\<^bold>R\<^sub>s(P \<turnstile> Q)) = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow> P) \<turnstile> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> Q \<or> \<not> \<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
@@ -761,7 +769,7 @@ lemma extChoice_dist:
   shows "P \<box> (Q \<sqinter> R) = (P \<box> Q) \<sqinter> (P \<box> R)"
   using assms extChoice_Dist[of P "{Q, R}"] by simp
 
-lemma R2_neg_pre_CSP: "P is CSP \<Longrightarrow> R2(\<not> pre\<^sub>R P) = (\<not> pre\<^sub>R P)"
+lemma R2_neg_pre_SRD: "P is SRD \<Longrightarrow> R2(\<not> pre\<^sub>R P) = (\<not> pre\<^sub>R P)"
   by (simp add: R1_neg_R2s_pre_RHS R2_def R2s_not)
 
 lemma R2_cmt_conj_wait':
@@ -785,9 +793,9 @@ proof -
   have "pre\<^sub>R(P ;; Q) = pre\<^sub>R(\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P)) ;; \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> cmt\<^sub>R(Q)))"
     by (simp add: SRD_reactive_design_alt assms)    
   also have "... =  ((\<not> R2(R2(\<not> (pre\<^sub>R P)) ;; R2(R1 true)) \<and> \<not> R2(R2(cmt\<^sub>R P \<and> \<not> $wait\<acute>) ;; R2(\<not> (pre\<^sub>R Q)))))"
-    by (simp add: RHS_design_composition unrest R1_neg_R2s_pre_RHS R1_R2s_peri_SRD R1_R2s_post_SRD R1_R2s_cmt_SRD assms rea_pre_RHS_design R2c_disj R1_disj usubst R1_R2c_is_R2 R2_neg_pre_CSP R2_cmt_conj_wait' R2_R1_true)
+    by (simp add: RHS_design_composition unrest R1_neg_R2s_pre_RHS R1_R2s_peri_SRD R1_R2s_post_SRD R1_R2s_cmt_SRD assms rea_pre_RHS_design R2c_disj R1_disj usubst R1_R2c_is_R2 R2_neg_pre_SRD R2_cmt_conj_wait' R2_R1_true)
   also have "... =  (\<not> (\<not> pre\<^sub>R P) ;; R1 true \<and> \<not> (cmt\<^sub>R P \<and> \<not> $wait\<acute>) ;; (\<not> pre\<^sub>R Q))"
-    by (simp add: R2_seqr_distribute, simp add: R2_R1_true R2_neg_pre_CSP R2_cmt_conj_wait' assms)
+    by (simp add: R2_seqr_distribute, simp add: R2_R1_true R2_neg_pre_SRD R2_cmt_conj_wait' assms)
   finally show ?thesis .
 qed
      
@@ -832,11 +840,94 @@ proof -
                            \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright>
                         (\<Sqinter> P\<in>A \<bullet> cmt\<^sub>R P ;; (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> cmt\<^sub>R Q)))"
     by (simp add: ExtChoice_rdes assms unrest)
+*)
+
+text {* A healthiness condition for weakly guarded CSP processes *}
+
+definition [upred_defs]: "WG(P) = (P \<and> ($ok \<and> \<not> $wait\<acute> \<and> pre\<^sub>R(P) \<Rightarrow> $tr <\<^sub>u $tr\<acute>))"
+   
+lemma rea_des_ok_nwait':
+  "(\<^bold>R\<^sub>s(P) \<and> $ok \<and> \<not>$wait\<acute>) = (\<^bold>R\<^sub>s(P) \<and> $ok \<and> \<not>$wait \<and> \<not>$wait\<acute>)"
+  by (rel_auto)
     
+lemma WG_intro:
+  assumes "P is SRD" "($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> (pre\<^sub>R(P) \<and> post\<^sub>R(P))" "$wait\<acute> \<sharp> pre\<^sub>R(P)"
+  shows "P is WG"
+proof -
+  have P:"\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)) = P"
+  proof -
+    have "\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> (pre\<^sub>R(P) \<and> peri\<^sub>R(P)) \<diamondop> (pre\<^sub>R(P) \<and> post\<^sub>R(P)))"
+      by (metis (no_types, hide_lams) design_export_pre wait'_cond_conj_exchange wait'_cond_idem)
+    also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> (pre\<^sub>R(P) \<and> peri\<^sub>R(P)) \<diamondop> (pre\<^sub>R(P) \<and> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)))"
+      by (metis assms(2) utp_pred.inf.absorb1 utp_pred.inf.assoc)
+    also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))"
+      by (metis (no_types, hide_lams) design_export_pre wait'_cond_conj_exchange wait'_cond_idem)
+    finally show ?thesis
+      by (simp add: SRD_reactive_tri_design assms(1))
+  qed
+  have F: "WG(P) = (P \<and> (P \<and> $ok \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P) \<Rightarrow> $tr <\<^sub>u $tr\<acute>))"
+    by (rel_auto)
+  have "(P \<and> $ok \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P)) = (P \<and> $ok \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P))"
+    by (metis P rea_des_ok_nwait' utp_pred.inf.assoc)
+  also have "... = (P\<lbrakk>true,false,false/$ok,$wait,$wait\<acute>\<rbrakk> \<and> $ok \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P))"
+    by (rel_auto) 
+  also have "... = (R1(R2c((pre\<^sub>R(P))\<lbrakk>false/$wait\<acute>\<rbrakk> \<Rightarrow> ($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))) \<and> $ok \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P))"
+   by (subst P[THEN sym], simp add: usubst RHS_def R1_def R2c_def R2s_def R3h_def design_def wait'_cond_def unrest assms(1), rel_auto)
+  also have "... = (R1(R2c((pre\<^sub>R(P)) \<Rightarrow> ($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))) \<and> $ok \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P))"
+    by (simp add: R1_def R2c_def usubst assms)
+  also have "... = (R1(R2c((pre\<^sub>R(P)) \<Rightarrow> ($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))) \<and> $ok \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> R2c(pre\<^sub>R(P)))"
+    by (metis (no_types, hide_lams) R1_R2c_commute R1_R2c_is_R2 R2_neg_pre_SRD R2c_idem R2c_not assms(1) utp_pred.double_compl)
+  also have "... = (R1(R2c(($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))) \<and> $ok \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> R2c(pre\<^sub>R(P)))"
+    by (rel_auto)
+  also have "... = (R1(R2c(($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))) \<and> $ok \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P))"      
+    by (metis (no_types, hide_lams) R1_R2c_commute R1_R2c_is_R2 R2_neg_pre_SRD R2c_idem R2c_not assms(1) utp_pred.double_compl)      
+  also have "(... \<Rightarrow> $tr\<acute> >\<^sub>u $tr) = true"
+    apply (rel_auto) using le_imp_less_or_eq by force
+  finally show ?thesis
+    by (simp add: F Healthy_def)
+qed
+
+(*
+lemma 
+  assumes "P is SRD" "P is WG" 
+  shows "($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> (pre\<^sub>R(P) \<and> post\<^sub>R(P))"
+  apply (rel_auto)
+*)  
+
+lemma WG_rdes_intro:
+  assumes "($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> R" "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok\<acute> \<sharp> R" "$wait \<sharp> P" "$wait\<acute> \<sharp> P"  
+  shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) is WG"
+proof (rule WG_intro)
+  show "\<^bold>R\<^sub>s (P \<turnstile> Q \<diamondop> R) is SRD"
+    by (simp add: RHS_tri_design_is_SRD assms)
+  
+  from assms(1) show "($tr\<acute> >\<^sub>u $tr) \<sqsubseteq> (pre\<^sub>R (\<^bold>R\<^sub>s (P \<turnstile> Q \<diamondop> R)) \<and> post\<^sub>R (\<^bold>R\<^sub>s (P \<turnstile> Q \<diamondop> R)))"
+    apply (simp add: rea_pre_RHS_design rea_post_RHS_design usubst assms)
+    using assms(1) apply (rel_auto)
+    using dual_order.strict_iff_order apply fastforce
+  done
+  
+  show "$wait\<acute> \<sharp> pre\<^sub>R (\<^bold>R\<^sub>s (P \<turnstile> Q \<diamondop> R))"
+    by (simp add: rea_pre_RHS_design rea_post_RHS_design usubst R1_def R2c_def R2s_def assms unrest)
+qed
+    
+lemma WG_DoCSP:
+  "do\<^sub>C(a) is WG"
+  apply (simp add: DoCSP_RHS_tri)
+  apply (rule WG_rdes_intro)
+  apply (simp_all add: unrest)
+  apply (rel_auto)
+  apply (simp add: Prefix_Order.strict_prefixI') 
+done
+  
+lemma ExtChoice_seq_distr:
+  assumes "A \<subseteq> \<lbrakk>CSP\<rbrakk>\<^sub>H" "A \<subseteq> \<lbrakk>WG\<rbrakk>\<^sub>H" "A \<noteq> {}" "Q is CSP"
+  shows "(\<box> P\<in>A \<bullet> P) ;; Q = (\<box> P\<in>A \<bullet> P ;; Q)"
+proof -  
   have "(\<box> P\<in>A \<bullet> P) ;; Q = (\<box> P\<in>A \<bullet> CSP(P)) ;; Q"
     by (metis (no_types, lifting) Ball_Collect Healthy_if assms(1) image_cong)
   have "... = (\<box> P\<in>A \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P))) ;; \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> cmt\<^sub>R(Q))"
-    by (metis (no_types, lifting) SRD_as_reactive_design SRD_reactive_design_alt assms(2) image_cong)
+    by (metis (no_types, lifting) SRD_as_reactive_design SRD_reactive_design_alt assms(4) image_cong)
   have "... = \<^bold>R\<^sub>s((\<Squnion>P\<in>A \<bullet> pre\<^sub>R(P)) \<turnstile> ((\<Squnion>P\<in>A \<bullet> cmt\<^sub>R(P)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter>P\<in>A \<bullet> cmt\<^sub>R(P)))) ;;
               \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> cmt\<^sub>R(Q))"
     by (simp add: ExtChoice_rdes unrest assms)
@@ -884,9 +975,7 @@ proof -
                      ((\<Squnion> P\<in>A \<bullet> cmt\<^sub>R P) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter> P\<in>A \<bullet> cmt\<^sub>R P) ;; 
                         (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> cmt\<^sub>R Q))"
     by (simp add: not_USUP UINF_conj_UINF)
-  have "... = undefined"
-    apply (simp add: cond_conj)
-  have "... = \<^bold>R\<^sub>s ((\<Squnion> P\<in>A \<bullet> \<not> (\<not> pre\<^sub>R P) ;; R1 true \<and> \<not> (cmt\<^sub>R P \<and> \<not> $wait\<acute>) ;; (\<not> pre\<^sub>R Q)) \<turnstile>
+  have "... = \<^bold>R\<^sub>s ((\<Squnion> P\<in>A \<bullet> (\<not> (\<not> pre\<^sub>R P) ;; R1 true) \<and> \<not> ((cmt\<^sub>R P \<and> \<not> $wait\<acute>) ;; (\<not> pre\<^sub>R Q))) \<turnstile>
                        ((\<Squnion> P\<in>A \<bullet> cmt\<^sub>R P ;; (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> cmt\<^sub>R Q) 
                            \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright>
                         (\<Sqinter> P\<in>A \<bullet> cmt\<^sub>R P ;; (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> cmt\<^sub>R Q)))"    
@@ -896,7 +985,8 @@ proof -
           ((\<Squnion> P\<in>A \<bullet> cmt\<^sub>R P ;; (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> cmt\<^sub>R Q) 
                            \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright>
                         (\<Sqinter> P\<in>A \<bullet> cmt\<^sub>R P ;; (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> cmt\<^sub>R Q))"
-*)    
+
+oops
     
 lemma PrefixCSP_dist:
   "a \<^bold>\<longrightarrow> (P \<sqinter> Q) = (a \<^bold>\<longrightarrow> P) \<sqinter> (a \<^bold>\<longrightarrow> Q)"
