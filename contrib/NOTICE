@@ -1,6 +1,0 @@
-Libraries in this directory are dependencies from the AFP. They are provided for 
-convenience only, and should not be considered to form part of Isabelle/UTP.
-
-Included:
-
-- A. Armstrong, G. Struth, T. Weber. Kleene Algebra. From http://afp.sourceforge.net/entries/Kleene_Algebra.shtml. Jan 2013.

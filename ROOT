@@ -5,7 +5,7 @@
 (* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
 (******************************************************************************)
 
-(* Third-party Contributions *)
+(* AFP Contributions *)
 
 session "HOL-Algebra2" (main timing) in "contrib/Algebra" = HOL +
   description {*
@@ -78,7 +78,7 @@ session "Dynamics" in "dynamics" = "HOL-Analysis" +
     "document.sty"
     "zed.sty"
     "csp.sty"
-    
+
 (* Library Imports for UTP *)
 
 session "UTP-IMPORTS" in "utils" = (* "HOL-Library" *) "HOL" +
@@ -94,17 +94,6 @@ session "UTP" in "utp" = "UTP-IMPORTS" +
     "root.bib"
     "root.tex"
     "document.sty"
-    
-(* Isabelle/UTP tutorial *)
-    
-session "UTP-Tutorial" in "tutorial" = "UTP" +
-  options [document = pdf, document_output = "output", timeout = 1000]
-  theories
-    utp_tutorial
-  document_files
-    "root.bib"
-    "root.tex"
-    "document.sty" 
 
 (* Core UTP with Deep Variables *)
 
@@ -134,7 +123,7 @@ session "UTP-DEEP-AX" in "deep" = "UTP-DEEP" +
    more than 10 minutes to build on a laptop and everything else is
    comparatively lightweight. *)
 
-session "UTP-HY-IMPORTS" = "Dynamics" +
+session "UTP-HYBRID-IMPORTS" = "Dynamics" +
   options [document = false]
   theories
     "~~/src/HOL/Library/FuncSet"
@@ -147,7 +136,7 @@ session "UTP-HY-IMPORTS" = "Dynamics" +
 
 (* Hybrid UTP *)
 
-session "UTP-Hybrid" in "hybrid" = "UTP-HY-IMPORTS" +
+session "UTP-HYBRID" in "hybrid" = "UTP-HYBRID-IMPORTS" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     utp_hybrid
@@ -157,7 +146,7 @@ session "UTP-Hybrid" in "hybrid" = "UTP-HY-IMPORTS" +
     "document.sty"
     "zed.sty"
     "csp.sty"
-    
+
 (* VDM-SL Mechanisation *)
 
 session "VDM-SL" in "vdm-sl" = "UTP-DEEP" +
@@ -165,6 +154,17 @@ session "VDM-SL" in "vdm-sl" = "UTP-DEEP" +
   theories
     PFOL
     VDM
+
+(* Isabelle/UTP Tutorial *)
+
+session "UTP-Tutorial" in "tutorial" = "UTP" +
+  options [document = pdf, document_output = "output", timeout = 1000]
+  theories
+    utp_tutorial
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty"
 
 (* FMI Mechanisation *)
 

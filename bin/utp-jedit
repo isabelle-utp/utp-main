@@ -1,0 +1,16 @@
+#!/bin/sh
+# Guess name of Isabelle/UTP home directory unless already set.
+ISABELLE_UTP=${ISABELLE_UTP:-$(readlink -f $(dirname $0))/..}
+
+# Default heap to be used if no argument(s) are provided.
+HEAP="UTP-DEEP"
+
+# The first argument if given specifies the heap to load.
+if [ ! $# -eq 0 ]
+    then
+        HEAP=$1
+        shift 1
+fi
+
+# Open jedit while setting the root directory and heap to load.
+isabelle jedit -d $ISABELLE_UTP -l $HEAP $@
