@@ -17,4 +17,5 @@ isabelle build -d. -c -b UTP-DEEP-AX
 isabelle build -d. -c -b UTP-HY-IMPORTS
 isabelle build -d. -c -b UTP-Hybrid
 isabelle build -d. -c -b VDM-SL
+isabelle build -d. -c -b UTP-Tutorial
 isabelle build -d. -c -b FMI
