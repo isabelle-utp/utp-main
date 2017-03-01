@@ -69,6 +69,7 @@ session "Continuum" in "continuum" = "HOL-Cardinals" +
 session "Dynamics" in "dynamics" = "HOL-Analysis" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
+    "../contrib/Ordinary_Differential_Equations/ODE_Analysis"
     Derivative_extra
     Contiguous_Functions
     Timed_Traces
@@ -81,7 +82,7 @@ session "Dynamics" in "dynamics" = "HOL-Analysis" +
 
 (* Library Imports for UTP *)
 
-session "UTP-IMPORTS" in "utils" = (* "HOL-Library" *) "HOL" +
+session "UTP-IMPORTS" in "utils" = "HOL-Algebra2" +
   options [document = false, timeout = 1000]
   theories utp_imports
 
@@ -130,7 +131,6 @@ session "UTP-HYBRID-IMPORTS" = "Dynamics" +
     "~~/src/HOL/Library/Permutation"
     "contrib/Algebra/Complete_Lattice"
     "contrib/Algebra/Galois_Connection"
-    "contrib/Ordinary_Differential_Equations/ODE_Analysis"
     "utils/utp_imports"
     "utp/utp"
 
@@ -157,7 +157,7 @@ session "VDM-SL" in "vdm-sl" = "UTP-DEEP" +
 
 (* Isabelle/UTP Tutorial *)
 
-session "UTP-Tutorial" in "tutorial" = "UTP" +
+session "UTP-TUTORIAL" in "tutorial" = "UTP" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     utp_tutorial

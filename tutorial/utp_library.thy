@@ -1,5 +1,5 @@
 theory utp_library
-  imports "../utp/utp_invariants"
+  imports "../utp/utp"
 begin
   
 type_synonym book = string
@@ -31,42 +31,39 @@ definition BorrowBook' :: "book \<Rightarrow> library hrel_des" where
 definition ReturnBook' :: "book \<Rightarrow> library hrel_des" where
 [upred_defs]: "ReturnBook'(b)  = ((\<guillemotleft>b\<guillemotright> \<in>\<^sub>u &loans) \<turnstile>\<^sub>n (loans := &loans - {\<guillemotleft>b\<guillemotright>}\<^sub>u))"
 
+lemma "InitLibrary ;; InitLibrary = InitLibrary"
+  by (fast_rel_blast)
+
 lemma "BorrowBook(b) = BorrowBook'(b)"
-  by (rel_auto)
+  by (fast_rel_auto)
     
 lemma "ReturnBook(b) = ReturnBook'(b)"
-  by (rel_auto)
-
+  by (fast_rel_auto)
 
 lemma BorrowBook_twice: "(BorrowBook(b) ;; BorrowBook(b)) = \<bottom>\<^sub>D"
-  by (rel_auto)
+  by (fast_rel_auto)
     
-thm wpd_eq_intro
-  
 lemma [simp]: 
-  "{}\<^sub>u \<union>\<^sub>u A = A" "x \<in>\<^sub>u {x}\<^sub>u = true" "x \<notin>\<^sub>u {}\<^sub>u = true"
+  "{}\<^sub>u \<union>\<^sub>u A = A" "A - A = {}\<^sub>u" "x \<in>\<^sub>u {x}\<^sub>u = true" "x \<notin>\<^sub>u {}\<^sub>u = true"
   by (pred_auto)+
     
 lemma BorrowAndReturn: 
   assumes "b \<in> Books"
   shows "(InitLibrary' ;; BorrowBook'(b) ;; ReturnBook'(b)) = InitLibrary'"
+  using assms
+  apply (fast_rel_auto)
+  apply blast
+(*
   apply (rule wpd_H3_eq_intro)
   apply (simp_all add: InitLibrary'_def BorrowBook'_def ReturnBook'_def closure)
   apply (simp add: wp closure usubst)
-  
-(*
-  apply blast
-  apply (metis empty_Diff insert_Diff1)
-  apply blast
-  apply (metis empty_Diff insert_Diff1)
-  apply blast
-  apply (metis empty_Diff insert_Diff1)
-done
-*)  
-  
+  apply literalise
+  apply (metis (full_types) assms true_alt_def utp_pred.inf_top_left)
+*)
+oops
+    
 lemma NotInLibrary:
   "(InitLibrary ;; BorrowBook(''Pride and Prejudice and Zombies'')) = \<bottom>\<^sub>D"
-  by (rel_auto)
-  
+  by (fast_rel_auto)
   
 end

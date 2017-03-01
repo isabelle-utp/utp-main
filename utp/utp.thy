@@ -18,6 +18,7 @@ imports
   utp_pred
   utp_deduct
   utp_rel
+  utp_tactics
   utp_hoare
   utp_wp
   utp_theory

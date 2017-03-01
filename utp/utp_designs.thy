@@ -1166,7 +1166,7 @@ theorem H3_rdesign_pre:
 theorem H3_ndesign:
   "H3(p \<turnstile>\<^sub>n Q) = (p \<turnstile>\<^sub>n Q)"
   by (simp add: H3_def ndesign_def unrest_pre_out\<alpha>)
-
+    
 theorem H1_H3_is_design:
   assumes "P is H1" "P is H3"
   shows "P = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
@@ -1228,6 +1228,9 @@ qed
 lemma H3_unrest_out_alpha [unrest]: "P is H1_H3 \<Longrightarrow> out\<alpha> \<sharp> pre\<^sub>D(P)"
   by (metis H1_H3_commute H1_H3_is_rdesign H1_idem Healthy_def' precond_equiv rdesign_H3_iff_pre)
 
+lemma ndesign_H1_H3 [closure]: "p \<turnstile>\<^sub>n Q is \<^bold>N"
+  by (simp add: H1_rdesign H3_def Healthy_def' ndesign_def unrest_pre_out\<alpha>)
+    
 lemma des_bot_H1_H3 [closure]: "\<bottom>\<^sub>D is \<^bold>N"
   by (metis H1_design H3_def Healthy_def' design_false_pre design_true_left_zero skip_d_alt_def)
 
