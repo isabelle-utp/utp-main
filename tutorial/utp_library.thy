@@ -4,6 +4,8 @@ theory utp_library
   imports "../utp/utp"
 begin
 
+subsection {* Preliminaries -- set up some syntax *}
+  
 notation true_upred ("abort")
 
 definition establishes_inv :: "'a hrel_des \<Rightarrow> 'a upred \<Rightarrow> bool" (infixl "establishes" 85) where
@@ -14,6 +16,8 @@ definition maintains_inv :: "'a hrel_des \<Rightarrow> 'a upred \<Rightarrow> bo
   
 type_synonym 'a prog = "'a hrel_des"
 
+subsection {* Library state space *}  
+  
 type_synonym book = string
   
 alphabet library =
@@ -24,6 +28,8 @@ abbreviation "Books \<equiv> {''War and Peace''
                        ,''Pride and Prejudice''
                        ,''Les Miserables''}"
 
+subsection {* Library operations *}
+  
 definition InitLibrary :: "library prog" where
 [upred_defs]: "InitLibrary = true \<turnstile>\<^sub>n books, loans := \<guillemotleft>Books\<guillemotright>, {}\<^sub>u"
   
@@ -41,6 +47,8 @@ definition BorrowBook :: "book \<Rightarrow> library prog" where
 
 definition ReturnBook :: "book \<Rightarrow> library prog" where
 [upred_defs]: "ReturnBook(b) = ((\<guillemotleft>b\<guillemotright> \<in>\<^sub>u &loans) \<turnstile>\<^sub>n (loans := &loans - {\<guillemotleft>b\<guillemotright>}\<^sub>u))"
+
+subsection {* Library proofs *}
 
 lemma InitLibrary_Idempotent: "InitLibrary ;; InitLibrary = InitLibrary"
   by (fast_rel_blast)
