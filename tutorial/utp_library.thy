@@ -1,69 +1,72 @@
+section {* A simple library in the UTP theory of designs *}
+
 theory utp_library
   imports "../utp/utp"
 begin
+
+notation true_upred ("abort")
+
+definition establishes_inv :: "'a hrel_des \<Rightarrow> 'a upred \<Rightarrow> bool" (infixl "establishes" 85) where
+[upred_defs]: "establishes_inv P iv \<equiv> true \<turnstile>\<^sub>r \<lceil>iv\<rceil>\<^sub>> \<sqsubseteq> P"
+    
+definition maintains_inv :: "'a hrel_des \<Rightarrow> 'a upred \<Rightarrow> bool" (infixl "maintains" 85) where
+[upred_defs]: "maintains_inv P iv \<equiv> (pre\<^sub>D(P) \<and> \<lceil>iv\<rceil>\<^sub><) \<turnstile>\<^sub>r \<lceil>iv\<rceil>\<^sub>> \<sqsubseteq> P"
   
+type_synonym 'a prog = "'a hrel_des"
+
 type_synonym book = string
   
 alphabet library =
   books :: "book set"
   loans :: "book set"
   
-abbreviation "Books \<equiv> {''War and Peace'', ''Pride and Prejudice'', ''Les Miserables''}"
+abbreviation "Books \<equiv> {''War and Peace''
+                       ,''Pride and Prejudice''
+                       ,''Les Miserables''}"
+
+definition InitLibrary :: "library prog" where
+[upred_defs]: "InitLibrary = true \<turnstile>\<^sub>n books, loans := \<guillemotleft>Books\<guillemotright>, {}\<^sub>u"
   
-definition InitLibrary :: "library hrel_des" where
-[upred_defs]: "InitLibrary = true \<turnstile>\<^sub>n ($books\<acute> =\<^sub>u \<guillemotleft>Books\<guillemotright> \<and> $loans\<acute> =\<^sub>u {}\<^sub>u)"
+definition InitLibraryAlt :: "library prog" where
+[upred_defs]: "InitLibraryAlt = true \<turnstile>\<^sub>n ($books\<acute> =\<^sub>u \<guillemotleft>Books\<guillemotright> \<and> $loans\<acute> =\<^sub>u {}\<^sub>u)"
 
-definition InitLibrary' :: "library hrel_des" where
-[upred_defs]: "InitLibrary' = true \<turnstile>\<^sub>n (books, loans := \<guillemotleft>Books\<guillemotright>, {}\<^sub>u)"
+lemma InitLibrary_alt_same: "InitLibrary = InitLibraryAlt"
+  by (fast_rel_auto)
 
-definition Library_inv :: "library upred" where
-"Library_inv = (&loans \<subseteq>\<^sub>u &books)"
+definition LibraryInvariant :: "library upred" where
+[upred_defs]: "LibraryInvariant = (&loans \<subseteq>\<^sub>u &books)"
 
-definition BorrowBook :: "book \<Rightarrow> library hrel_des" where
-[upred_defs]: "BorrowBook(b)  = ((\<guillemotleft>b\<guillemotright> \<notin>\<^sub>u &loans \<and> \<guillemotleft>b\<guillemotright> \<in>\<^sub>u &books) \<turnstile>\<^sub>n ($loans\<acute> =\<^sub>u $loans \<union>\<^sub>u {\<guillemotleft>b\<guillemotright>}\<^sub>u \<and> $books\<acute> =\<^sub>u $books))"
+definition BorrowBook :: "book \<Rightarrow> library prog" where
+[upred_defs]: "BorrowBook(b) = (\<guillemotleft>b\<guillemotright> \<notin>\<^sub>u &loans \<and> \<guillemotleft>b\<guillemotright> \<in>\<^sub>u &books) \<turnstile>\<^sub>n loans := &loans \<union>\<^sub>u {\<guillemotleft>b\<guillemotright>}\<^sub>u"
 
-definition ReturnBook :: "book \<Rightarrow> library hrel_des" where
-[upred_defs]: "ReturnBook(b)  = ((\<guillemotleft>b\<guillemotright> \<in>\<^sub>u &loans) \<turnstile>\<^sub>n ($loans\<acute> =\<^sub>u $loans - {\<guillemotleft>b\<guillemotright>}\<^sub>u \<and> $books\<acute> =\<^sub>u $books))"
+definition ReturnBook :: "book \<Rightarrow> library prog" where
+[upred_defs]: "ReturnBook(b) = ((\<guillemotleft>b\<guillemotright> \<in>\<^sub>u &loans) \<turnstile>\<^sub>n (loans := &loans - {\<guillemotleft>b\<guillemotright>}\<^sub>u))"
 
-definition BorrowBook' :: "book \<Rightarrow> library hrel_des" where
-[upred_defs]: "BorrowBook'(b)  = ((\<guillemotleft>b\<guillemotright> \<notin>\<^sub>u &loans \<and> \<guillemotleft>b\<guillemotright> \<in>\<^sub>u &books) \<turnstile>\<^sub>n loans := &loans \<union>\<^sub>u {\<guillemotleft>b\<guillemotright>}\<^sub>u)"
-
-definition ReturnBook' :: "book \<Rightarrow> library hrel_des" where
-[upred_defs]: "ReturnBook'(b)  = ((\<guillemotleft>b\<guillemotright> \<in>\<^sub>u &loans) \<turnstile>\<^sub>n (loans := &loans - {\<guillemotleft>b\<guillemotright>}\<^sub>u))"
-
-lemma "InitLibrary ;; InitLibrary = InitLibrary"
+lemma InitLibrary_Idempotent: "InitLibrary ;; InitLibrary = InitLibrary"
   by (fast_rel_blast)
 
-lemma "BorrowBook(b) = BorrowBook'(b)"
-  by (fast_rel_auto)
-    
-lemma "ReturnBook(b) = ReturnBook'(b)"
+lemma BorrowBook_Twice: "(BorrowBook(b) ;; BorrowBook(b)) = abort"
   by (fast_rel_auto)
 
-lemma BorrowBook_twice: "(BorrowBook(b) ;; BorrowBook(b)) = \<bottom>\<^sub>D"
+lemma ReturnBook_Twice: "(ReturnBook(b) ;; ReturnBook(b)) = abort"
+  by (fast_rel_auto)
+
+lemma NotInLibrary:
+  "(InitLibrary ;; BorrowBook(''Pride and Prejudice and Zombies'')) = abort"
+  by (fast_rel_auto)
+        
+theorem BorrowAndReturn: 
+  assumes "b \<in> Books"
+  shows "(InitLibrary ;; BorrowBook(b) ;; ReturnBook(b)) = InitLibrary"
+  using assms by (fast_rel_blast)
+
+lemma "InitLibrary establishes LibraryInvariant"
+  by (fast_rel_auto)
+
+lemma "BorrowBook(b) maintains LibraryInvariant"
   by (fast_rel_auto)
     
-lemma [simp]: 
-  "{}\<^sub>u \<union>\<^sub>u A = A" "A - A = {}\<^sub>u" "x \<in>\<^sub>u {x}\<^sub>u = true" "x \<notin>\<^sub>u {}\<^sub>u = true"
-  by (pred_auto)+
-    
-lemma BorrowAndReturn: 
-  assumes "b \<in> Books"
-  shows "(InitLibrary' ;; BorrowBook'(b) ;; ReturnBook'(b)) = InitLibrary'"
-  using assms
-  apply (fast_rel_auto)
-  apply blast
-(*
-  apply (rule wpd_H3_eq_intro)
-  apply (simp_all add: InitLibrary'_def BorrowBook'_def ReturnBook'_def closure)
-  apply (simp add: wp closure usubst)
-  apply literalise
-  apply (metis (full_types) assms true_alt_def utp_pred.inf_top_left)
-*)
-oops
-    
-lemma NotInLibrary:
-  "(InitLibrary ;; BorrowBook(''Pride and Prejudice and Zombies'')) = \<bottom>\<^sub>D"
+lemma "ReturnBook(b) maintains LibraryInvariant"
   by (fast_rel_auto)
   
 end
