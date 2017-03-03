@@ -5,7 +5,7 @@ imports utp_rea_designs
 begin
 
 adhoc_overloading uapply cgf_apply and uapply tt_apply
-  
+
 type_synonym ('d, 'c) alpha_trd_scheme = "('c ttrace, 'd \<times> 'c) alpha_rp_scheme"
 
 type_synonym ('d,'c) alphabet_trd  = "('d,'c) alpha_trd_scheme alphabet"
@@ -18,7 +18,7 @@ syntax
   "_ulens_expr" :: "logic \<Rightarrow> svid \<Rightarrow> logic" ("_:'(_')" [100,100] 100)
 
 translations
-  "_ulens_expr e x" == "CONST uop get\<^bsub>x\<^esub> e"                                                                                                                                                                 
+  "_ulens_expr e x" == "CONST uop get\<^bsub>x\<^esub> e"                                                                                                                                                      
 
 abbreviation trace :: "('c::topological_space ttrace, 'd, 'c) expr_trd" ("\<phi>") where
 "\<phi> \<equiv> $tr\<acute> - $tr"
@@ -28,7 +28,7 @@ where "\<^bold>l \<equiv> uop end\<^sub>t trace"
 
 purge_notation Not  ("~ _" [40] 40)
 
-abbreviation cvar :: 
+abbreviation cvar ::
   "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real, 'd, 'c) expr_trd \<Rightarrow> ('a, 'd, 'c) expr_trd" ("_~'(_')" [999,0] 999) where
 "x~(t) \<equiv> \<phi>\<lparr>t\<rparr>\<^sub>u:(x)"
 
@@ -101,7 +101,7 @@ lemma var_out_var_prod [simp]:
   shows "var ((out_var x) ;\<^sub>L X \<times>\<^sub>L Y) = $Y\<acute>:(x)"
   by (pred_auto)
 
-definition ufloor :: "'a::{floor_ceiling} \<Rightarrow> 'a" 
+definition ufloor :: "'a::{floor_ceiling} \<Rightarrow> 'a"
 where [upred_defs]: "ufloor = of_int \<circ> floor"
 
 definition uceiling :: "'a::{floor_ceiling} \<Rightarrow> 'a"
@@ -136,7 +136,7 @@ translations
 (* Need to lift the continuous predicate to a relation *)
 
 definition at :: "('a, 'c::topological_space) uexpr \<Rightarrow> real \<Rightarrow> ('a, 'd, 'c) expr_trd" (infix "@\<^sub>u" 60) where
-[upred_defs]: "P @\<^sub>u t = [$\<^bold>c \<mapsto>\<^sub>s \<phi>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u] \<dagger> \<lceil>P\<rceil>\<^sub>C\<^sub><" 
+[upred_defs]: "P @\<^sub>u t = [$\<^bold>c \<mapsto>\<^sub>s \<phi>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u] \<dagger> \<lceil>P\<rceil>\<^sub>C\<^sub><"
 
 lemma R2c_at: "R2c(P @\<^sub>u t) = P @\<^sub>u t"
   by (simp add: at_def R2c_def cond_idem usubst unrest R2s_def)
@@ -183,7 +183,7 @@ lemma hInt_unrest_ok [unrest]: "$ok \<sharp> hInt P" "$ok\<acute> \<sharp> hInt 
 lemma hInt_unrest_wait [unrest]: "$wait \<sharp> hInt P" "$wait\<acute> \<sharp> hInt P"
   by (simp_all add: hInt_def unrest)
 
-definition hDisInt :: "(real \<Rightarrow> 'c::t2_space upred) \<Rightarrow> ('d, 'c) relation_trd" where 
+definition hDisInt :: "(real \<Rightarrow> 'c::t2_space upred) \<Rightarrow> ('d, 'c) relation_trd" where
 [urel_defs]: "hDisInt P = (hInt P \<and> $\<^bold>c =\<^sub>u \<phi>\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<phi>\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
 
 syntax
@@ -204,8 +204,8 @@ translations
   "\<lceil>P\<rceil>\<^sub>H"   == "CONST hInt (\<lambda> _time_var. P)"
   "\<lceil>|P|\<rceil>\<^sub>H" == "CONST hDisInt (\<lambda> _time_var. P)"
 
-definition hPreempt :: 
-  "('d, 'c::topological_space) relation_trd \<Rightarrow> 'c upred \<Rightarrow> 
+definition hPreempt ::
+  "('d, 'c::topological_space) relation_trd \<Rightarrow> 'c upred \<Rightarrow>
     ('d,'c) relation_trd \<Rightarrow> ('d,'c) relation_trd" ("_ \<lbrakk>_\<rbrakk>\<^sub>H _" [64,0,65] 64)
 where "P \<lbrakk>B\<rbrakk>\<^sub>H Q = (((Q \<triangleleft> B @\<^sub>u 0 \<triangleright> (P \<and> \<lceil>\<not> B\<rceil>\<^sub>H)) \<or> ((\<lceil>\<not> B\<rceil>\<^sub>H \<and> P) ;; ((B @\<^sub>u 0) \<and> Q))))"
 
@@ -308,7 +308,7 @@ lemma hInt_conj: "\<lceil>P(\<tau>) \<and> Q(\<tau>)\<rceil>\<^sub>H = (\<lceil>
 
 type_synonym 'c ODE = "real \<times> 'c \<Rightarrow> 'c"
 
-lift_definition hasDerivAt :: 
+lift_definition hasDerivAt ::
   "((real \<Rightarrow> 'c :: real_normed_vector), '\<alpha>) uexpr \<Rightarrow> ('c ODE, '\<alpha>) uexpr \<Rightarrow> real \<Rightarrow> '\<alpha> upred" ("_ has-deriv _ at _" [90, 0, 91] 90)
 is "\<lambda> \<F> \<F>' \<tau> A. (\<F> A has_vector_derivative (\<F>' A (\<tau>, \<F> A \<tau>))) (at \<tau> within {0..})" .
 
@@ -332,7 +332,7 @@ lemma assign_ivp:
   by (simp add: assigns_r_comp hODE_def hODE_ivp_def usubst)
 
 lemma cont_rea_design_par:
-  assumes 
+  assumes
     "$ok\<acute> \<sharp> P\<^sub>1" "$wait \<sharp> P\<^sub>1" "$ok\<acute> \<sharp> P\<^sub>2" "$wait \<sharp> P\<^sub>2"
   shows "RH(P\<^sub>1 \<turnstile> \<lceil>Q\<^sub>1(\<tau>)\<rceil>\<^sub>H) \<parallel>\<^sub>R RH(P\<^sub>2 \<turnstile> \<lceil>Q\<^sub>2(\<tau>)\<rceil>\<^sub>H) = RH((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (\<lceil>Q\<^sub>1(\<tau>) \<and> Q\<^sub>2(\<tau>)\<rceil>\<^sub>H))"
   by (simp add: RH_design_par assms unrest hInt_conj)
@@ -348,5 +348,4 @@ lemma gravity_ode_refine:
   apply (auto)
   apply (metis tt_end_0_iff tt_end_ge_0 dual_order.strict_iff_order minus_zero_eq)
 done
-
 end

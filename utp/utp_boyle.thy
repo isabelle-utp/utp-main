@@ -84,7 +84,7 @@ text {* We first prove an obvious property: that these two predicates are differ
         application of \emph{pred-tac}, followed by \emph{sledgehammer}~\cite{Blanchette2011} which yields a \emph{metis} proof. *}
 
 lemma \<phi>\<^sub>1_diff_\<phi>\<^sub>2: "\<phi>\<^sub>1 \<noteq> \<phi>\<^sub>2"
-  by (pred_auto, fastforce)
+  by (pred_simp, fastforce)
 
 text {* We prove that @{const "\<phi>\<^sub>1"} satisfies Boyle's law by application of the predicate calculus
         tactic, \emph{pred-tac}. *}
@@ -212,7 +212,7 @@ hide_const k
 hide_const p
 hide_const V
 hide_const B
-  
+
 (************************)
 (* Added by Frank Zeyda *)
 (************************)

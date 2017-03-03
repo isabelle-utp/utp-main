@@ -21,7 +21,7 @@ lemma assigns_hoare_r [hoare]: "`p \<Rightarrow> \<sigma> \<dagger> q` \<Longrig
   by rel_auto
 
 lemma skip_hoare_r [hoare]: "\<lbrace>p\<rbrace>II\<lbrace>p\<rbrace>\<^sub>u"
-  by rel_auto  
+  by rel_auto
 
 lemma seq_hoare_r [hoare]: "\<lbrakk> \<lbrace>p\<rbrace>Q\<^sub>1\<lbrace>s\<rbrace>\<^sub>u ; \<lbrace>s\<rbrace>Q\<^sub>2\<lbrace>r\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>Q\<^sub>1 ;; Q\<^sub>2\<lbrace>r\<rbrace>\<^sub>u"
   by rel_auto
@@ -29,7 +29,7 @@ lemma seq_hoare_r [hoare]: "\<lbrakk> \<lbrace>p\<rbrace>Q\<^sub>1\<lbrace>s\<rb
 lemma cond_hoare_r [hoare]: "\<lbrakk> \<lbrace>b \<and> p\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u ; \<lbrace>\<not>b \<and> p\<rbrace>T\<lbrace>q\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>S \<triangleleft> b \<triangleright>\<^sub>r T\<lbrace>q\<rbrace>\<^sub>u"
   by rel_auto
 
-lemma while_hoare_r [hoare]: 
+lemma while_hoare_r [hoare]:
   assumes "\<lbrace>p \<and> b\<rbrace>S\<lbrace>p\<rbrace>\<^sub>u"
   shows "\<lbrace>p\<rbrace>while b do S od\<lbrace>\<not>b \<and> p\<rbrace>\<^sub>u"
   using assms
@@ -39,5 +39,4 @@ lemma while_invr_hoare_r [hoare]:
   assumes "\<lbrace>p \<and> b\<rbrace>S\<lbrace>p\<rbrace>\<^sub>u" "`pre \<Rightarrow> p`" "`(\<not>b \<and> p) \<Rightarrow> post`"
   shows "\<lbrace>pre\<rbrace>while b invr p do S od\<lbrace>post\<rbrace>\<^sub>u"
   by (metis assms hoare_r_conseq while_hoare_r while_inv_def)
-
 end

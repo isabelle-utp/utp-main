@@ -21,7 +21,7 @@ adhoc_overloading
 
 declare wp_upred_def [urel_defs]
 
-theorem wp_assigns_r [wp]: 
+theorem wp_assigns_r [wp]:
   "\<langle>\<sigma>\<rangle>\<^sub>a wp r = \<sigma> \<dagger> r"
   by rel_auto
 
@@ -43,7 +43,7 @@ theorem wp_seq_r [wp]: "(P ;; Q) wp r = P wp (Q wp r)"
 theorem wp_cond [wp]: "(P \<triangleleft> b \<triangleright>\<^sub>r Q) wp r = ((b \<Rightarrow> P wp r) \<and> ((\<not> b) \<Rightarrow> Q wp r))"
   by rel_auto
 
-theorem wp_hoare_link: 
+theorem wp_hoare_link:
   "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u \<longleftrightarrow> (Q wp r \<sqsubseteq> p)"
   by rel_auto
 
@@ -51,6 +51,5 @@ text {* If two programs have the same weakest precondition for any postcondition
   are the same. *}
 
 theorem wp_eq_intro: "\<lbrakk> \<And> r. P wp r = Q wp r \<rbrakk> \<Longrightarrow> P = Q"
-  by (rel_auto, fastforce+)
-
+  by (rel_auto robust, fastforce+)
 end

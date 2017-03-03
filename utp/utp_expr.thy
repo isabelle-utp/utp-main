@@ -55,7 +55,7 @@ lift_definition trop ::
   "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('c, '\<alpha>) uexpr \<Rightarrow> ('d, '\<alpha>) uexpr"
   is "\<lambda> f u v w b. f (u b) (v b) (w b)" .
 lift_definition qtop ::
-  "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd \<Rightarrow> 'e) \<Rightarrow> 
+  "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd \<Rightarrow> 'e) \<Rightarrow>
    ('a, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('c, '\<alpha>) uexpr \<Rightarrow> ('d, '\<alpha>) uexpr \<Rightarrow>
    ('e, '\<alpha>) uexpr"
   is "\<lambda> f u v w x b. f (u b) (v b) (w b) (x b)" .
@@ -147,7 +147,7 @@ begin
   definition mod_uexpr_def: "u mod v = bop (op mod) u v"
 instance ..
 end
-  
+
 instantiation uexpr :: (sgn, type) sgn
 begin
   definition sgn_uexpr_def: "sgn u = uop sgn u"
@@ -217,13 +217,13 @@ instance uexpr :: (ordered_ab_group_add_abs, type) ordered_ab_group_add_abs
   apply (simp add: abs_uexpr_def zero_uexpr_def plus_uexpr_def uminus_uexpr_def, transfer, simp add: abs_ge_self abs_le_iff abs_triangle_ineq)+
   apply (metis ab_group_add_class.ab_diff_conv_add_uminus abs_ge_minus_self abs_ge_self add_mono_thms_linordered_semiring(1))
 done
-  
-lemma uexpr_diff_zero [simp]: 
+
+lemma uexpr_diff_zero [simp]:
   fixes a :: "('\<alpha>::ordered_cancel_monoid_diff, 'a) uexpr"
   shows "a - 0 = a"
   by (simp add: minus_uexpr_def zero_uexpr_def, transfer, auto)
 
-lemma uexpr_add_diff_cancel_left [simp]: 
+lemma uexpr_add_diff_cancel_left [simp]:
   fixes a b :: "('\<alpha>::ordered_cancel_monoid_diff, 'a) uexpr"
   shows "(a + b) - a = b"
   by (simp add: minus_uexpr_def plus_uexpr_def, transfer, auto)
@@ -509,17 +509,17 @@ lemma lit_num_simps [lit_simps]: "\<guillemotleft>0\<guillemotright> = 0" "\<gui
 
 lemma lit_arith_simps [lit_simps]:
   "\<guillemotleft>- x\<guillemotright> = - \<guillemotleft>x\<guillemotright>"
-  "\<guillemotleft>x + y\<guillemotright> = \<guillemotleft>x\<guillemotright> + \<guillemotleft>y\<guillemotright>" "\<guillemotleft>x - y\<guillemotright> = \<guillemotleft>x\<guillemotright> - \<guillemotleft>y\<guillemotright>" 
+  "\<guillemotleft>x + y\<guillemotright> = \<guillemotleft>x\<guillemotright> + \<guillemotleft>y\<guillemotright>" "\<guillemotleft>x - y\<guillemotright> = \<guillemotleft>x\<guillemotright> - \<guillemotleft>y\<guillemotright>"
   "\<guillemotleft>x * y\<guillemotright> = \<guillemotleft>x\<guillemotright> * \<guillemotleft>y\<guillemotright>" "\<guillemotleft>x / y\<guillemotright> = \<guillemotleft>x\<guillemotright> / \<guillemotleft>y\<guillemotright>"
   "\<guillemotleft>x div y\<guillemotright> = \<guillemotleft>x\<guillemotright> div \<guillemotleft>y\<guillemotright>"
   by (simp add: uexpr_defs, transfer, simp)+
 
-lemma lit_fun_simps [lit_simps]: 
+lemma lit_fun_simps [lit_simps]:
   "\<guillemotleft>i x y z u\<guillemotright> = qtop i \<guillemotleft>x\<guillemotright> \<guillemotleft>y\<guillemotright> \<guillemotleft>z\<guillemotright> \<guillemotleft>u\<guillemotright>"
   "\<guillemotleft>h x y z\<guillemotright> = trop h \<guillemotleft>x\<guillemotright> \<guillemotleft>y\<guillemotright> \<guillemotleft>z\<guillemotright>"
   "\<guillemotleft>g x y\<guillemotright> = bop g \<guillemotleft>x\<guillemotright> \<guillemotleft>y\<guillemotright>"
   "\<guillemotleft>f x\<guillemotright> = uop f \<guillemotleft>x\<guillemotright>"
-  by (transfer, simp)+ 
+  by (transfer, simp)+
 
 text {* In general unliteralising converts function applications to corresponding expression
   liftings. Since some operators, like + and *, have specific operators we also have to
@@ -534,6 +534,6 @@ lemma lit_numeral_2: "Abs_uexpr (\<lambda> b. numeral v) = numeral v"
   by (metis lit.abs_eq lit_num_simps(3))
 
 method literalise = (unfold lit_simps[THEN sym])
-method unliteralise = (unfold lit_simps uexpr_defs[THEN sym]; 
+method unliteralise = (unfold lit_simps uexpr_defs[THEN sym];
                      (unfold lit_numeral_1 ; (unfold ueval); (unfold lit_numeral_2))?)+
 end

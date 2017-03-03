@@ -17,7 +17,7 @@ lemma skip_trel: "(\<sigma>, II) \<rightarrow>\<^sub>u (\<sigma>, II)"
 lemma assigns_trel: "(\<sigma>, \<langle>\<rho>\<rangle>\<^sub>a) \<rightarrow>\<^sub>u (\<rho> \<circ> \<sigma>, II)"
   by (simp add: assigns_comp)
 
-lemma assign_trel: 
+lemma assign_trel:
   fixes x :: "('a, '\<alpha>) uvar"
   assumes "uvar x"
   shows "(\<sigma>, x := v) \<rightarrow>\<^sub>u (\<sigma>(x \<mapsto>\<^sub>s \<sigma> \<dagger> v), II)"
@@ -27,7 +27,7 @@ lemma seq_trel:
   assumes "(\<sigma>, P) \<rightarrow>\<^sub>u (\<rho>, Q)"
   shows "(\<sigma>, P ;; R) \<rightarrow>\<^sub>u (\<rho>, Q ;; R)"
   by (metis (no_types, lifting) assms order_refl seqr_assoc seqr_mono trel.simps)
- 
+
 lemma seq_skip_trel:
   "(\<sigma>, II ;; P) \<rightarrow>\<^sub>u (\<sigma>, P)"
   by simp
@@ -63,5 +63,4 @@ lemma while_false_trel:
   by (metis assms rcond_false_trel while_unfold)
 
 declare trel.simps [simp del]
-
 end

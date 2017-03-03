@@ -6,6 +6,7 @@ imports
   utp_wp
   utp_theory
   utp_local
+  utp_tactics
 begin
 
 text {* In UTP, in order to explicitly record the termination of a program,
@@ -21,7 +22,7 @@ designs are defined by $H1$, $H2$, $H3$ and $H4$.*}
 
 alphabet des_vars =
   ok :: bool
-  
+
 text {*
   The two locale interpretations below are a technicality to improve automatic
   proof support via the predicate and relational tactics. This is to enable the
@@ -53,7 +54,7 @@ type_synonym '\<alpha> des  = "'\<alpha> des_vars_scheme"
 type_synonym ('\<alpha>, '\<beta>) rel_des = "('\<alpha> des, '\<beta> des) rel"
 type_synonym '\<alpha> hrel_des = "('\<alpha> des) hrel"
 
-translations 
+translations
   (type) "'\<alpha> des" <= (type) "'\<alpha> des_vars_scheme"
   (type) "'\<alpha> des" <= (type) "'\<alpha> des_vars_ext"
   (type) "('\<alpha>, '\<beta>) rel_des" <= (type) "('\<alpha> des, '\<beta> des) rel"
@@ -64,11 +65,11 @@ lemma ok_des_bij_lens: "bij_lens (ok +\<^sub>L \<Sigma>\<^sub>D)"
   by (unfold_locales, simp_all add: ok_def des_vars_child_lens_def lens_plus_def prod.case_eq_if)
 
 text {* Define the lens functor for designs *}
-    
+
 definition lmap_des_vars :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> ('\<alpha> des_vars_scheme \<Longrightarrow> '\<beta> des_vars_scheme)" ("lmap\<^sub>D")
   where "lmap_des_vars f = \<lparr> lens_get = \<lambda> v. extend (truncate v) (get\<^bsub>f\<^esub> (more v))
                            , lens_put = \<lambda> s v. extend (truncate v) (put\<^bsub>f\<^esub> (more s) (more v)) \<rparr>"
-    
+
 lemma lmap_des_vars: "vwb_lens f \<Longrightarrow> vwb_lens (lmap_des_vars f)"
   by (unfold_locales, simp_all add: lmap_des_vars_def extend_def truncate_def)
 
@@ -203,7 +204,7 @@ qed
 subsection {* Design laws *}
 
 lemma unrest_out_des_lift [unrest]: "out\<alpha> \<sharp> p \<Longrightarrow> out\<alpha> \<sharp> \<lceil>p\<rceil>\<^sub>D"
-  by (pred_auto, auto simp add: out\<alpha>_def des_vars_child_lens_def)
+  by (pred_simp, auto simp add: out\<alpha>_def des_vars_child_lens_def)
 
 lemma lift_dist_seq [simp]:
   "\<lceil>P ;; Q\<rceil>\<^sub>D = (\<lceil>P\<rceil>\<^sub>D ;; \<lceil>Q\<rceil>\<^sub>D)"
@@ -214,23 +215,23 @@ lemma lift_des_skip_dr_unit_unrest: "$ok\<acute> \<sharp> P \<Longrightarrow> (P
 
 lemma true_is_design:
   "(false \<turnstile> true) = true"
-  by rel_auto
+  by (rel_auto)
 
 lemma true_is_rdesign:
   "(false \<turnstile>\<^sub>r true) = true"
-  by rel_auto
+  by (rel_auto)
 
 lemma design_false_pre:
   "(false \<turnstile> P) = true"
-  by rel_auto
+  by (rel_auto)
 
 lemma rdesign_false_pre:
   "(false \<turnstile>\<^sub>r P) = true"
-  by rel_auto
+  by (rel_auto)
 
 lemma ndesign_false_pre:
   "(false \<turnstile>\<^sub>n P) = true"
-  by rel_auto
+  by (rel_auto)
 
 theorem design_refinement:
   assumes
@@ -239,7 +240,7 @@ theorem design_refinement:
   shows "(P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2) \<longleftrightarrow> (`P1 \<Rightarrow> P2` \<and> `P1 \<and> Q2 \<Rightarrow> Q1`)"
 proof -
   have "(P1 \<turnstile> Q1) \<sqsubseteq> (P2 \<turnstile> Q2) \<longleftrightarrow> `($ok \<and> P2 \<Rightarrow> $ok\<acute> \<and> Q2) \<Rightarrow> ($ok \<and> P1 \<Rightarrow> $ok\<acute> \<and> Q1)`"
-    by pred_auto
+    by (pred_auto)
   also with assms have "... = `(P2 \<Rightarrow> $ok\<acute> \<and> Q2) \<Rightarrow> (P1 \<Rightarrow> $ok\<acute> \<and> Q1)`"
     by (subst subst_bool_split[of "in_var ok"], simp_all, subst_tac)
   also with assms have "... = `(\<not> P2 \<Rightarrow> \<not> P1) \<and> ((P2 \<Rightarrow> Q2) \<Rightarrow> P1 \<Rightarrow> Q1)`"
@@ -251,30 +252,30 @@ qed
 
 theorem rdesign_refinement:
   "(P1 \<turnstile>\<^sub>r Q1 \<sqsubseteq> P2 \<turnstile>\<^sub>r Q2) \<longleftrightarrow> (`P1 \<Rightarrow> P2` \<and> `P1 \<and> Q2 \<Rightarrow> Q1`)"
-  by rel_auto
+  by (rel_auto)
 
 lemma design_refine_intro:
   assumes "`P1 \<Rightarrow> P2`" "`P1 \<and> Q2 \<Rightarrow> Q1`"
   shows "P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2"
   using assms unfolding upred_defs
-  by pred_auto
+  by (pred_auto)
 
 lemma design_refine_intro':
   assumes "P\<^sub>2 \<sqsubseteq> P\<^sub>1" "Q\<^sub>1 \<sqsubseteq> (P\<^sub>1 \<and> Q\<^sub>2)"
   shows "P\<^sub>1 \<turnstile> Q\<^sub>1 \<sqsubseteq> P\<^sub>2 \<turnstile> Q\<^sub>2"
   using assms design_refine_intro[of P\<^sub>1 P\<^sub>2 Q\<^sub>2 Q\<^sub>1] by (simp add: refBy_order)
-    
+
 lemma rdesign_refine_intro:
   assumes "`P1 \<Rightarrow> P2`" "`P1 \<and> Q2 \<Rightarrow> Q1`"
   shows "P1 \<turnstile>\<^sub>r Q1 \<sqsubseteq> P2 \<turnstile>\<^sub>r Q2"
   using assms unfolding upred_defs
-  by pred_auto
+  by (pred_auto)
 
 lemma ndesign_refine_intro:
   assumes "`p1 \<Rightarrow> p2`" "`\<lceil>p1\<rceil>\<^sub>< \<and> Q2 \<Rightarrow> Q1`"
   shows "p1 \<turnstile>\<^sub>n Q1 \<sqsubseteq> p2 \<turnstile>\<^sub>n Q2"
   using assms unfolding upred_defs
-  by pred_auto
+  by (pred_auto)
 
 lemma design_subst [usubst]:
   "\<lbrakk> $ok \<sharp> \<sigma>; $ok\<acute> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> (P \<turnstile> Q) = (\<sigma> \<dagger> P) \<turnstile> (\<sigma> \<dagger> Q)"
@@ -298,10 +299,10 @@ theorem design_post:
   by (rel_auto)
 
 theorem rdesign_pre [simp]: "pre\<^sub>D(P \<turnstile>\<^sub>r Q) = P"
-  by pred_auto
+  by (pred_auto)
 
 theorem rdesign_post [simp]: "post\<^sub>D(P \<turnstile>\<^sub>r Q) = (P \<Rightarrow> Q)"
-  by pred_auto
+  by (pred_auto)
 
 theorem design_true_left_zero: "(true ;; (P \<turnstile> Q)) = true"
 proof -
@@ -317,27 +318,27 @@ proof -
 qed
 
 theorem design_top_left_zero: "(\<top>\<^sub>D ;; (P \<turnstile> Q)) = \<top>\<^sub>D"
-  by rel_auto
+  by (rel_auto)
 
 theorem design_choice:
   "(P\<^sub>1 \<turnstile> P\<^sub>2) \<sqinter> (Q\<^sub>1 \<turnstile> Q\<^sub>2) = ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<or> Q\<^sub>2))"
-  by rel_auto
+  by (rel_auto)
 
 theorem design_inf:
   "(P\<^sub>1 \<turnstile> P\<^sub>2) \<squnion> (Q\<^sub>1 \<turnstile> Q\<^sub>2) = ((P\<^sub>1 \<or> Q\<^sub>1) \<turnstile> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)))"
-  by rel_auto
+  by (rel_auto)
 
 theorem rdesign_choice:
   "(P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) \<sqinter> (Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2) = ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile>\<^sub>r (P\<^sub>2 \<or> Q\<^sub>2))"
-  by rel_auto
+  by (rel_auto)
 
 theorem design_condr:
   "((P\<^sub>1 \<turnstile> P\<^sub>2) \<triangleleft> b \<triangleright> (Q\<^sub>1 \<turnstile> Q\<^sub>2)) = ((P\<^sub>1 \<triangleleft> b \<triangleright> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<triangleleft> b \<triangleright> Q\<^sub>2))"
-  by rel_auto
+  by (rel_auto)
 
 lemma design_top:
   "(P \<turnstile> Q) \<sqsubseteq> \<top>\<^sub>D"
-  by rel_auto
+  by (rel_auto)
 
 lemma design_bottom:
   "\<bottom>\<^sub>D \<sqsubseteq> (P \<turnstile> Q)"
@@ -346,11 +347,11 @@ lemma design_bottom:
 lemma design_USUP:
   assumes "A \<noteq> {}"
   shows "(\<Sqinter> i \<in> A \<bullet> P(i) \<turnstile> Q(i)) = (\<Squnion> i \<in> A \<bullet> P(i)) \<turnstile> (\<Sqinter> i \<in> A \<bullet> Q(i))"
-  using assms by rel_auto
+  using assms by (rel_auto)
 
 lemma design_UINF:
   "(\<Squnion> i \<in> A \<bullet> P(i) \<turnstile> Q(i)) = (\<Sqinter> i \<in> A \<bullet> P(i)) \<turnstile> (\<Squnion> i \<in> A \<bullet> P(i) \<Rightarrow> Q(i))"
-  by rel_auto
+  by (rel_auto)
 
 theorem design_composition_subst:
   assumes
@@ -387,7 +388,7 @@ lemma design_export_pre: "P \<turnstile> (P \<and> Q) = P \<turnstile> Q"
 
 lemma design_ok_pre_conj: "($ok \<and> P) \<turnstile> Q = P \<turnstile> Q"
   by (rel_auto)
-    
+
 theorem design_composition:
   assumes
     "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2" "$ok\<acute> \<sharp> Q1" "$ok \<sharp> Q2"
@@ -462,15 +463,15 @@ theorem design_composition_wp:
 
 theorem rdesign_composition_wp:
   "((\<lceil>p1\<rceil>\<^sub>< \<turnstile>\<^sub>r Q1) ;; (\<lceil>p2\<rceil>\<^sub>< \<turnstile>\<^sub>r Q2)) = ((\<lceil>p1 \<and> Q1 wp p2\<rceil>\<^sub><) \<turnstile>\<^sub>r (Q1 ;; Q2))"
-  by rel_blast
+  by (rel_blast)
 
 theorem ndesign_composition_wp:
   "((p1 \<turnstile>\<^sub>n Q1) ;; (p2 \<turnstile>\<^sub>n Q2)) = ((p1 \<and> Q1 wp p2) \<turnstile>\<^sub>n (Q1 ;; Q2))"
-  by rel_blast
+  by (rel_blast)
 
 theorem rdesign_wp [wp]:
   "(\<lceil>p\<rceil>\<^sub>< \<turnstile>\<^sub>r Q) wp\<^sub>D r = (p \<and> Q wp r)"
-  by rel_auto
+  by (rel_auto)
 
 theorem ndesign_wp [wp]:
   "(p \<turnstile>\<^sub>n Q) wp\<^sub>D r = (p \<and> Q wp r)"
@@ -493,7 +494,7 @@ theorem wpnd_seq_r [wp]:
 lemma design_subst_ok:
   "(P\<lbrakk>true/$ok\<rbrakk> \<turnstile> Q\<lbrakk>true/$ok\<rbrakk>) = (P \<turnstile> Q)"
   by (rel_auto)
- 
+
 lemma design_subst_ok_ok':
   "(P\<lbrakk>true/$ok\<rbrakk> \<turnstile> Q\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>) = (P \<turnstile> Q)"
 proof -
@@ -540,7 +541,7 @@ qed
 
 theorem design_left_unit [simp]:
   "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
-  by rel_auto
+  by (rel_auto)
 
 theorem design_right_semi_unit:
   "(P \<turnstile>\<^sub>r Q ;; II\<^sub>D) = ((\<not> (\<not> P) ;; true) \<turnstile>\<^sub>r Q)"
@@ -555,7 +556,7 @@ theorem design_right_cond_unit [simp]:
 lemma lift_des_skip_dr_unit [simp]:
   "(\<lceil>P\<rceil>\<^sub>D ;; \<lceil>II\<rceil>\<^sub>D) = \<lceil>P\<rceil>\<^sub>D"
   "(\<lceil>II\<rceil>\<^sub>D ;; \<lceil>P\<rceil>\<^sub>D) = \<lceil>P\<rceil>\<^sub>D"
-  by rel_auto rel_auto
+  by (rel_auto)+
 
 lemma assigns_d_id [simp]: "\<langle>id\<rangle>\<^sub>D = II\<^sub>D"
   by (rel_auto)
@@ -594,35 +595,35 @@ subsection {* H1: No observation is allowed before initiation *}
 
 lemma H1_idem:
   "H1 (H1 P) = H1(P)"
-  by pred_auto
+  by (pred_auto)
 
 lemma H1_monotone:
   "P \<sqsubseteq> Q \<Longrightarrow> H1(P) \<sqsubseteq> H1(Q)"
-  by pred_auto
+  by (pred_auto)
 
 lemma H1_Continuous: "Continuous H1"
-  by rel_auto
-    
+  by (rel_auto)
+
 lemma H1_below_top:
   "H1(P) \<sqsubseteq> \<top>\<^sub>D"
-  by pred_auto
+  by (pred_auto)
 
 lemma H1_design_skip:
   "H1(II) = II\<^sub>D"
-  by rel_auto
+  by (rel_auto)
 
 lemma H1_cond: "H1(P \<triangleleft> b \<triangleright> Q) = H1(P) \<triangleleft> b \<triangleright> H1(Q)"
-  by (rel_auto)  
-    
+  by (rel_auto)
+
 lemma H1_conj: "H1(P \<and> Q) = (H1(P) \<and> H1(Q))"
   by (rel_auto)
-    
+
 lemma H1_disj: "H1(P \<or> Q) = (H1(P) \<or> H1(Q))"
   by (rel_auto)
 
 lemma design_export_H1: "(P \<turnstile> Q) = (P \<turnstile> H1(Q))"
   by (rel_auto)
-   
+
 text {* The H1 algebraic laws are valid only when $\alpha(R)$ is homogeneous. This should maybe be
         generalised. *}
 
@@ -650,7 +651,7 @@ qed
 
 lemma nok_not_false:
   "(\<not> $ok) \<noteq> false"
-  by pred_auto
+  by (pred_auto)
 
 theorem H1_left_zero:
   assumes "P is H1"
@@ -720,7 +721,7 @@ lemma H1_choice_closed:
 
 lemma H1_inf_closed:
   "\<lbrakk> P is H1; Q is H1 \<rbrakk> \<Longrightarrow> P \<squnion> Q is H1"
-  by rel_blast
+  by (rel_blast)
 
 lemma H1_USUP:
   assumes "A \<noteq> {}"
@@ -759,27 +760,27 @@ proof -
   have "(P ;; J) = (P ;; (($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D))"
     by (simp add: H2_def J_def design_def)
   also have "... = (P ;; (($ok \<Rightarrow> $ok \<and> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D))"
-    by rel_auto
+    by (rel_auto)
   also have "... = ((P ;; (\<not> $ok \<and> \<lceil>II\<rceil>\<^sub>D)) \<or> (P ;; ($ok \<and> (\<lceil>II\<rceil>\<^sub>D \<and> $ok\<acute>))))"
-    by rel_auto
+    by (rel_auto)
   also have "... = (P\<^sup>f \<or> (P\<^sup>t \<and> $ok\<acute>))"
   proof -
     have "(P ;; (\<not> $ok \<and> \<lceil>II\<rceil>\<^sub>D)) = P\<^sup>f"
     proof -
       have "(P ;; (\<not> $ok \<and> \<lceil>II\<rceil>\<^sub>D)) = ((P \<and> \<not> $ok\<acute>) ;; \<lceil>II\<rceil>\<^sub>D)"
-        by rel_auto
+        by (rel_auto)
       also have "... = (\<exists> $ok\<acute> \<bullet> P \<and> $ok\<acute> =\<^sub>u false)"
-        by rel_auto
+        by (rel_auto)
       also have "... = P\<^sup>f"
-        by (metis C1 one_point out_var_uvar pr_var_def unrest_as_exists ok_vwb_lens vwb_lens_mwb)
+        by (metis C1 one_point out_var_uvar unrest_as_exists ok_vwb_lens vwb_lens_mwb)
      finally show ?thesis .
     qed
     moreover have "(P ;; ($ok \<and> (\<lceil>II\<rceil>\<^sub>D \<and> $ok\<acute>))) = (P\<^sup>t \<and> $ok\<acute>)"
     proof -
       have "(P ;; ($ok \<and> (\<lceil>II\<rceil>\<^sub>D \<and> $ok\<acute>))) = (P ;; ($ok \<and> II))"
-        by rel_auto
+        by (rel_auto)
       also have "... = (P\<^sup>t \<and> $ok\<acute>)"
-        by rel_auto
+        by (rel_auto)
       finally show ?thesis .
     qed
     ultimately show ?thesis
@@ -802,9 +803,9 @@ proof -
   also have "... = `(P\<^sup>f \<Leftrightarrow> P\<^sup>f) \<and> (P\<^sup>t \<Leftrightarrow> P\<^sup>f \<or> P\<^sup>t)`"
     by subst_tac
   also have "... = `P\<^sup>t \<Leftrightarrow> (P\<^sup>f \<or> P\<^sup>t)`"
-    by pred_auto
+    by (pred_auto robust)
   also have "... = `(P\<^sup>f \<Rightarrow> P\<^sup>t)`"
-    by pred_auto
+    by (pred_auto)
   finally show ?thesis
     by (metis H2_def Healthy_def' taut_iff_eq)
 qed
@@ -825,7 +826,7 @@ lemma H2_rdesign:
 
 theorem J_idem:
   "(J ;; J) = J"
-  by rel_auto
+  by (rel_auto)
 
 theorem H2_idem:
   "H2(H2(P)) = H2(P)"
@@ -833,7 +834,7 @@ theorem H2_idem:
 
 theorem H2_Continuous: "Continuous H2"
   by (rel_auto)
-    
+
 theorem H2_not_okay: "H2 (\<not> $ok) = (\<not> $ok)"
 proof -
   have "H2 (\<not> $ok) = ((\<not> $ok)\<^sup>f \<or> ((\<not> $ok)\<^sup>t \<and> $ok\<acute>))"
@@ -841,7 +842,7 @@ proof -
   also have "... = (\<not> $ok \<or> (\<not> $ok) \<and> $ok\<acute>)"
     by (subst_tac)
   also have "... = (\<not> $ok)"
-    by pred_auto
+    by (pred_auto)
   finally show ?thesis .
 qed
 
@@ -874,7 +875,7 @@ proof -
   have "H2 (H1 P) = (($ok \<Rightarrow> P) ;; J)"
     by (simp add: H1_def H2_def)
   also have "... = ((\<not> $ok \<or> P) ;; J)"
-    by rel_auto
+    by (rel_auto)
   also have "... = (((\<not> $ok) ;; J) \<or> (P ;; J))"
     using seqr_or_distl by blast
   also have "... =  ((H2 (\<not> $ok)) \<or> H2(P))"
@@ -882,15 +883,15 @@ proof -
   also have "... =  ((\<not> $ok) \<or> H2(P))"
     by (simp add: H2_not_okay)
   also have "... = H1(H2(P))"
-    by rel_auto
+    by (rel_auto)
   finally show ?thesis by simp
 qed
 
 lemma ok_pre: "($ok \<and> \<lceil>pre\<^sub>D(P)\<rceil>\<^sub>D) = ($ok \<and> (\<not> P\<^sup>f))"
-  by (pred_auto)
+  by (pred_auto robust)
 
 lemma ok_post: "($ok \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>D) = ($ok \<and> (P\<^sup>t))"
-  by (pred_auto)
+  by (pred_auto robust)
 
 abbreviation "H1_H2 P \<equiv> H1 (H2 P)"
 
@@ -898,7 +899,7 @@ notation H1_H2 ("\<^bold>H")
 
 lemma H1_H2_comp: "\<^bold>H = H1 \<circ> H2"
   by (auto)
-  
+
 theorem H1_H2_eq_design:
   "\<^bold>H(P) = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
 proof -
@@ -907,9 +908,9 @@ proof -
   also have "... = ($ok \<Rightarrow> (P\<^sup>f \<or> (P\<^sup>t \<and> $ok\<acute>)))"
     by (metis H2_split)
   also have "... = ($ok \<and> (\<not> P\<^sup>f) \<Rightarrow> $ok\<acute> \<and> $ok \<and> P\<^sup>t)"
-    by rel_auto
+    by (rel_auto)
   also have "... = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
-    by rel_auto
+    by (rel_auto)
   finally show ?thesis .
 qed
 
@@ -926,13 +927,13 @@ proof -
   also have "... = ($ok \<Rightarrow> (P\<^sup>f \<or> (P\<^sup>t \<and> $ok\<acute>)))"
     by (metis H2_split)
   also have "... = ($ok \<and> (\<not> P\<^sup>f) \<Rightarrow> $ok\<acute> \<and> P\<^sup>t)"
-    by pred_auto
+    by (pred_auto)
   also have "... = ($ok \<and> (\<not> P\<^sup>f) \<Rightarrow> $ok\<acute> \<and> $ok \<and> P\<^sup>t)"
-    by pred_auto
+    by (pred_auto)
   also have "... = ($ok \<and> \<lceil>pre\<^sub>D(P)\<rceil>\<^sub>D \<Rightarrow> $ok\<acute> \<and> $ok \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>D)"
     by (simp add: ok_post ok_pre)
   also have "... = ($ok \<and> \<lceil>pre\<^sub>D(P)\<rceil>\<^sub>D \<Rightarrow> $ok\<acute> \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>D)"
-    by pred_auto
+    by (pred_auto)
   also have "... =  pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P)"
     by (simp add: rdesign_def design_def)
   finally show ?thesis .
@@ -954,7 +955,7 @@ lemma H1_H2_monotonic: "Monotonic \<^bold>H"
 
 lemma H1_H2_Continuous: "Continuous \<^bold>H"
   by (simp add: Continuous_comp H1_Continuous H1_H2_comp H2_Continuous)
-    
+
 lemma design_is_H1_H2 [closure]:
   "\<lbrakk> $ok\<acute> \<sharp> P; $ok\<acute> \<sharp> Q \<rbrakk> \<Longrightarrow> (P \<turnstile> Q) is \<^bold>H"
   by (simp add: H1_design H2_design Healthy_def')
@@ -965,7 +966,7 @@ lemma rdesign_is_H1_H2 [closure]:
 
 lemma assigns_d_is_H1_H2 [closure]:
   "\<langle>\<sigma>\<rangle>\<^sub>D is \<^bold>H"
-  by (simp add: assigns_d_def rdesign_is_H1_H2) 
+  by (simp add: assigns_d_def rdesign_is_H1_H2)
 
 lemma seq_r_H1_H2_closed [closure]:
   assumes "P is \<^bold>H" "Q is \<^bold>H"
@@ -1059,14 +1060,14 @@ theorem H3_idem:
 theorem H3_mono:
   "P \<sqsubseteq> Q \<Longrightarrow> H3(P) \<sqsubseteq> H3(Q)"
   by (simp add: H3_def seqr_mono)
-  
+
 theorem H3_Monotonic:
   "Monotonic H3"
   by (simp add: H3_mono Monotonic_def)
 
 theorem H3_Continuous: "Continuous H3"
   by (rel_auto)
- 
+
 theorem design_condition_is_H3:
   assumes "out\<alpha> \<sharp> p"
   shows "(p \<turnstile> Q) is H3"
@@ -1091,7 +1092,7 @@ proof -
   also have "... = (\<not> ((\<not> P) ;; true) \<and> \<not> (Q ;; (\<not> true))) \<turnstile>\<^sub>r Q"
     by simp
   also have "... = (\<not> ((\<not> P) ;; true)) \<turnstile>\<^sub>r Q"
-    by pred_auto
+    by (pred_auto)
   finally have "P \<turnstile>\<^sub>r Q is H3 \<longleftrightarrow> P \<turnstile>\<^sub>r Q = (\<not> ((\<not> P) ;; true)) \<turnstile>\<^sub>r Q"
     by (metis H3_def Healthy_def')
   also have "... \<longleftrightarrow> P = (\<not> ((\<not> P) ;; true))"
@@ -1111,12 +1112,12 @@ proof -
   moreover hence "\<lfloor>P\<rfloor>\<^sub>D \<turnstile>\<^sub>r \<lfloor>Q\<rfloor>\<^sub>D is H3 \<longleftrightarrow> \<lfloor>P\<rfloor>\<^sub>D = (\<lfloor>P\<rfloor>\<^sub>D ;; true)"
     using rdesign_H3_iff_pre by blast
   ultimately show ?thesis
-    by (metis assms drop_desr_inv lift_desr_inv lift_dist_seq aext_true)
+    by (metis assms(1,2) drop_desr_inv lift_desr_inv lift_dist_seq aext_true)
 qed
 
 theorem H1_H3_commute:
   "H1 (H3 P) = H3 (H1 P)"
-  by rel_auto
+  by (rel_auto)
 
 lemma skip_d_absorb_J_1:
   "(II\<^sub>D ;; J) = II\<^sub>D"
@@ -1133,9 +1134,9 @@ proof -
                   \<or> ((($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D)\<lbrakk>true/$ok\<acute>\<rbrakk> ;; (true \<turnstile> II)\<lbrakk>true/$ok\<rbrakk>))"
     by (simp add: disj_comm false_alt_def true_alt_def)
   also have "... = ((\<not> $ok \<and> \<lceil>II\<rceil>\<^sub>D ;; true) \<or> (\<lceil>II\<rceil>\<^sub>D ;; $ok\<acute> \<and> \<lceil>II\<rceil>\<^sub>D))"
-    by rel_auto
+    by (rel_auto)
   also have "... = II\<^sub>D"
-    by rel_auto
+    by (rel_auto)
   finally show ?thesis .
 qed
 
@@ -1166,7 +1167,7 @@ theorem H3_rdesign_pre:
 theorem H3_ndesign:
   "H3(p \<turnstile>\<^sub>n Q) = (p \<turnstile>\<^sub>n Q)"
   by (simp add: H3_def ndesign_def unrest_pre_out\<alpha>)
-    
+
 theorem H1_H3_is_design:
   assumes "P is H1" "P is H3"
   shows "P = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
@@ -1188,7 +1189,7 @@ notation H1_H3 ("\<^bold>N")
 
 lemma H1_H3_comp: "H1_H3 = H1 \<circ> H3"
   by (auto)
-  
+
 lemma H1_H3_idempotent: "\<^bold>N (\<^bold>N P) = \<^bold>N P"
   by (simp add: H1_H3_commute H1_idem H3_idem)
 
@@ -1200,7 +1201,7 @@ lemma H1_H3_monotonic: "Monotonic \<^bold>N"
 
 lemma H1_H3_Continuous: "Continuous \<^bold>N"
   by (simp add: Continuous_comp H1_Continuous H1_H3_comp H3_Continuous)
-    
+
 lemma H1_H3_impl_H2: "P is H1_H3 \<Longrightarrow> P is H1_H2"
   by (metis H1_H2_commute H1_idem H2_H3_absorb Healthy_def')
 
@@ -1230,7 +1231,7 @@ lemma H3_unrest_out_alpha [unrest]: "P is H1_H3 \<Longrightarrow> out\<alpha> \<
 
 lemma ndesign_H1_H3 [closure]: "p \<turnstile>\<^sub>n Q is \<^bold>N"
   by (simp add: H1_rdesign H3_def Healthy_def' ndesign_def unrest_pre_out\<alpha>)
-    
+
 lemma des_bot_H1_H3 [closure]: "\<bottom>\<^sub>D is \<^bold>N"
   by (metis H1_design H3_def Healthy_def' design_false_pre design_true_left_zero skip_d_alt_def)
 
@@ -1255,7 +1256,8 @@ text {* If two normal designs have the same weakest precondition for any given p
   the two designs are equivalent. *}
 
 theorem wpd_eq_intro: "\<lbrakk> \<And> r. (p\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>1) wp\<^sub>D r = (p\<^sub>2 \<turnstile>\<^sub>n Q\<^sub>2) wp\<^sub>D r \<rbrakk> \<Longrightarrow> (p\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>1) = (p\<^sub>2 \<turnstile>\<^sub>n Q\<^sub>2)"
-  by (rel_auto, (metis curry_conv)+)
+apply (rel_simp robust; metis curry_conv)
+done
 
 theorem wpd_H3_eq_intro: "\<lbrakk> P is H1_H3; Q is H1_H3; \<And> r. P wp\<^sub>D r = Q wp\<^sub>D r \<rbrakk> \<Longrightarrow> P = Q"
   by (metis H1_H3_commute H1_H3_is_normal_design H3_idem Healthy_def' wpd_eq_intro)
@@ -1264,7 +1266,7 @@ subsection {* H4: Feasibility *}
 
 theorem H4_idem:
   "H4(H4(P)) = H4(P)"
-  by pred_auto
+  by (pred_auto)
 
 lemma is_H4_alt_def:
   "P is H4 \<longleftrightarrow> (P ;; true) = true"
@@ -1336,14 +1338,14 @@ interpretation design_theory_continuous: utp_theory_continuous DES
   rewrites "\<And> P. P \<in> carrier (uthy_order DES) \<longleftrightarrow> P is \<^bold>H"
   and "carrier (uthy_order DES) \<rightarrow> carrier (uthy_order DES) \<equiv> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
   and "le (uthy_order DES) = op \<sqsubseteq>"
-  and "eq (uthy_order DES) = op ="  
+  and "eq (uthy_order DES) = op ="
   by (unfold_locales, simp_all add: des_hcond_def H1_H2_Continuous utp_order_def)
-    
+
 interpretation normal_design_theory_mono: utp_theory_continuous NDES
   rewrites "\<And> P. P \<in> carrier (uthy_order NDES) \<longleftrightarrow> P is \<^bold>N"
   and "carrier (uthy_order NDES) \<rightarrow> carrier (uthy_order NDES) \<equiv> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"
   and "le (uthy_order NDES) = op \<sqsubseteq>"
-  and "eq (uthy_order NDES) = op ="  
+  and "eq (uthy_order NDES) = op ="
   by (unfold_locales, simp_all add: ndes_hcond_def H1_H3_Continuous utp_order_def)
 
 lemma design_lat_top: "\<^bold>\<top>\<^bsub>DES\<^esub> = \<^bold>H(false)"
@@ -1475,5 +1477,4 @@ thm Des_Rel_coretract.deflation[simplified]
 thm Des_Rel_coretract.inflation
 thm Des_Rel_coretract.upper_comp[simplified]
 thm Des_Rel_coretract.lower_comp
-
 end

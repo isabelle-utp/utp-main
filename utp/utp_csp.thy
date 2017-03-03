@@ -497,19 +497,19 @@ subsubsection {* CSP Merge Laws *}
 text {* Jim's merge predicate lemmas. *}
 
 lemma JL1: "(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk> = (N0(cs) ;; R1(true))"
-  by (fast_rel_auto)
+  by (rel_auto)
 
 lemma JL2: "(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk> = (N0(cs) ;; R1(true))"
-  by (fast_rel_auto)
+  by (rel_auto)
 
 lemma JL3: "(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk> = (N0(cs) ;; R1(true))"
-  by (fast_rel_auto)
+  by (rel_auto)
 
 lemma SKIP_no_start: "(SKIP\<lbrakk>false/$ok\<rbrakk>) = R1(true)"
-  by (fast_rel_auto)
+  by (rel_auto)
 
 lemma SKIP_pre: "SKIP\<^sup>f = R1(\<not> $ok)"
-  by (fast_rel_auto)
+  by (rel_auto)
 
 lemma parallel_ok_cases:
 "((P \<parallel>\<^sub>s Q) ;; M) = (
@@ -535,36 +535,36 @@ proof -
 qed
 
 lemma SKIP_alt_def: "SKIP = R(\<exists> $ref \<bullet> II\<^sub>r)"
-  by (fast_rel_auto)
+  by (rel_auto)
 
 lemma SKIP_rea_des: "SKIP = R(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute>))"
-  by (fast_rel_auto)
+  by (rel_auto)
 
 lemma SKIP_is_R1: "SKIP is R1"
-  by (fast_rel_auto)
+  by (rel_auto)
 
 lemma SKIP_is_R2: "SKIP is R2"
-  by (fast_rel_auto)
+  by (rel_auto)
 
 lemma SKIP_is_R3c: "SKIP is R3c"
-apply (fast_rel_auto)
+apply (rel_auto)
 apply (simp_all add: zero_list_def)
 apply (metis append_Nil2 append_minus strict_prefixE)
 done
 
 lemma SKIP_is_CSP1: "SKIP is CSP1"
-  by (fast_rel_auto)
+  by (rel_auto)
 
 lemma SKIP_is_CSP2: "SKIP is CSP2"
-  by (fast_rel_auto)
+  by (rel_auto)
 
 lemma CSPMerge'_is_R1m:
 "CSPMerge'(cs) is R1m"
-  by (fast_rel_auto)
+  by (rel_auto)
 
 lemma CSPMerge_is_R1m:
 "CSPMerge(cs) is R1m"
-  by (fast_rel_auto)
+  by (rel_auto)
 
 lemma parallel'_is_R1:
 "(P \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R1"
@@ -583,7 +583,7 @@ assumes "P is R2" "Q is R2"
 shows "(P \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R2"
 proof -
   have "N\<^sub>C\<^sub>S\<^sub>P cs is R2m"
-    by (fast_rel_auto)
+    by (rel_auto)
   thus ?thesis
     using R2_par_by_merge assms(1) assms(2) by blast
 qed
@@ -598,14 +598,14 @@ assumes "P is R3" "Q is R3"
 shows "(P \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R3"
 proof -
   have "(skip\<^sub>m ;; N\<^sub>C\<^sub>S\<^sub>P(cs)) = II"
-    apply (fast_rel_auto) using strict_prefixE by fastforce
+    apply (rel_auto) using strict_prefixE by fastforce
   thus ?thesis
     by (simp add: R3_par_by_merge assms)
 qed
 
 lemma CSPMerge_div_prop:
 "(div\<^sub>m ;; CSPMerge(cs)) = R1 true"
-apply (fast_rel_auto)
+apply (rel_auto)
 apply (rename_tac ok wait tr ref ok' wait' tr' ref')
 apply (rule_tac x = "ok" in exI)
 apply (rule_tac x = "wait" in exI)
@@ -617,7 +617,7 @@ done
 
 lemma CSPMerge_wait_prop:
 "(wait\<^sub>m ;; M\<^sub>C\<^sub>S\<^sub>P(cs)) = II\<lbrakk>true,true/$ok,$wait\<rbrakk>"
-apply (fast_rel_auto)
+apply (rel_auto)
 apply (metis minus_zero_eq zero_list_def)
 using zero_list_def apply auto
 done
@@ -667,7 +667,7 @@ proof -
   have "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>f\<^sub>f = ((P \<parallel>\<^sub>s Q) ;; M\<^sub>C\<^sub>S\<^sub>P(cs))\<^sup>f\<^sub>f"
     by (simp add: par_by_merge_def)
   also have "... = (((P \<^sub>f \<parallel>\<^sub>s Q \<^sub>f) ;; N\<^sub>C\<^sub>S\<^sub>P(cs)) ;; R1(\<not> $ok))"
-    by fast_rel_blast
+    by rel_blast
   also have "... = ((
       ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
       ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N\<^sub>C\<^sub>S\<^sub>P cs)\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk>)) \<or>
@@ -684,7 +684,7 @@ proof -
   also have "... = (?C2 \<or> ?C3)"
   proof -
     have "?C1 = false"
-      by (fast_rel_auto)
+      by (rel_auto)
     moreover have "`?C4 \<Rightarrow> ?C3`" (is "`(?A ;; ?B) \<Rightarrow> (?C ;; ?D)`")
     proof -
       from assms have "`P\<^sup>f \<Rightarrow> P\<^sup>t`"
@@ -704,7 +704,7 @@ proof -
   also have "... = (
       ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N0 cs ;; R1(\<not> $ok)))) \<or>
       ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N0 cs ;; R1(\<not> $ok)))))"
-    by (fast_rel_blast)
+    by (rel_blast)
   also have "... = (
       (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(\<not> $ok)\<^esub> Q\<^sup>t\<^sub>f) \<or>
       (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(\<not> $ok)\<^esub> Q\<^sup>f\<^sub>f))"
@@ -715,9 +715,9 @@ proof -
       (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))"
   proof -
     have "?M1 = (N0 cs ;; R1(true))"
-      by (fast_rel_auto)
+      by (rel_auto)
     moreover have "?M2 = (N0 cs ;; R1(true))"
-      by (fast_rel_auto)
+      by (rel_auto)
     ultimately show ?thesis by simp
   qed
 
@@ -734,7 +734,7 @@ proof -
   have "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>t\<^sub>f = ((P \<parallel>\<^sub>s Q) ;; M\<^sub>C\<^sub>S\<^sub>P(cs))\<^sup>t\<^sub>f"
     by (simp add: par_by_merge_def)
   also have "... = ((P \<^sub>f \<parallel>\<^sub>s Q \<^sub>f) ;; (M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t)"
-    by (fast_rel_blast)
+    by (rel_blast)
   also have "... = (
       ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
       ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk>)) \<or>
@@ -788,7 +788,7 @@ proof -
      P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>f\<^sub>f))"
     by (simp add: parallel_precondition parallel_postcondition CSP_healths(5) assms(1))
   also have "... = R(
-    (\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 (true)\<^esub> Q\<^sup>t\<^sub>f) \<and> \<not> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f)) 
+    (\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 (true)\<^esub> Q\<^sup>t\<^sub>f) \<and> \<not> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))
       \<turnstile>
     ((\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 (true)\<^esub> Q\<^sup>t\<^sub>f \<or> P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f)) \<and>
     (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f \<or>
@@ -810,7 +810,7 @@ proof -
 qed
 
 lemma design_subst_ok_ok: "(P\<lbrakk>true/$ok\<rbrakk> \<turnstile> Q\<lbrakk>true/$ok\<rbrakk>) = (P \<turnstile> Q)"
-  by (fast_rel_auto)
+  by (rel_auto)
 
 theorem parallel_reactive_design':
   assumes "P is CSP" "Q is CSP"
@@ -820,14 +820,14 @@ theorem parallel_reactive_design':
     (cmt\<^sub>R(P) \<parallel>\<^bsub>(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> cmt\<^sub>R(Q)))"
 proof -
   have 1:"(P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>t\<^sub>f)\<lbrakk>true/$ok\<rbrakk> = (\<not> pre\<^sub>R(P)) \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> cmt\<^sub>R(Q)"
-    by (fast_rel_blast)
+    by (rel_blast)
 
   have 2:"(P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>f\<^sub>f)\<lbrakk>true/$ok\<rbrakk> = (cmt\<^sub>R(P) \<parallel>\<^bsub>N0 cs ;; R1(true)\<^esub> (\<not> pre\<^sub>R(Q)))"
-    by (fast_rel_blast)
+    by (rel_blast)
 
   have 3:"(P\<^sup>t\<^sub>f \<parallel>\<^bsub>[$0-ok \<mapsto>\<^sub>s true, $1-ok \<mapsto>\<^sub>s true] \<dagger> (M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<^esub> Q\<^sup>t\<^sub>f)\<lbrakk>true/$ok\<rbrakk> =
       cmt\<^sub>R P \<parallel>\<^bsub>[$0-ok \<mapsto>\<^sub>s true, $1-ok \<mapsto>\<^sub>s true] \<dagger> (M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<^esub> cmt\<^sub>R Q"
-    by (fast_rel_blast)
+    by (rel_blast)
 
   have "R((\<not> P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>t\<^sub>f \<and> \<not> P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0 cs ;; R1 true\<^esub> Q\<^sup>f\<^sub>f) \<turnstile>
              P\<^sup>t\<^sub>f \<parallel>\<^bsub>[$0-ok \<mapsto>\<^sub>s true, $1-ok \<mapsto>\<^sub>s true] \<dagger> (M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<^esub> Q\<^sup>t\<^sub>f) =
@@ -852,16 +852,16 @@ proof -
 qed
 
 theorem STOP_is_Stop: "STOP = Stop"
-apply (fast_rel_simp)
+apply (rel_simp)
 apply (simp_all add: zero_list_def)
 apply (metis minus_cancel minus_zero_eq order_refl zero_list_def)
 done
 
 lemma Skip_is_rea_skip: "Skip = II\<^sub>r"
-apply (fast_rel_auto) using minus_zero_eq by (blast)+
+apply (rel_auto) using minus_zero_eq by (blast)+
 
 lemma swap_CSPMerge': "(swap\<^sub>m ;; N\<^sub>C\<^sub>S\<^sub>P cs) = N\<^sub>C\<^sub>S\<^sub>P cs"
-  by (fast_rel_auto, (metis tr_par_sym)+)
+  by (rel_auto, (metis tr_par_sym)+)
 
 lemma swap_CSPMerge: "(swap\<^sub>m ;; M\<^sub>C\<^sub>S\<^sub>P cs) = M\<^sub>C\<^sub>S\<^sub>P cs"
   by (simp add: CSPMerge_def seqr_assoc swap_CSPMerge')
@@ -871,10 +871,10 @@ theorem parallel_commutative:
   by (simp add: par_by_merge_commute swap_CSPMerge)
 
 lemma STOP_pre: "pre\<^sub>R(STOP) = true"
-  by (fast_rel_auto)
+  by (rel_auto)
 
 lemma STOP_cmt: "cmt\<^sub>R(STOP) = ($wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr)"
-  by (fast_rel_auto)
+  by (rel_auto)
 
 lemma STOP_reactive_design: "STOP = R(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
   by (simp add: STOP_is_Stop Stop_def)

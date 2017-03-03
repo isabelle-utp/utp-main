@@ -2,7 +2,7 @@ section {* UTP variables *}
 
 theory utp_var
   imports
-  Deriv 
+  Deriv
   "~~/src/HOL/Library/Prefix_Order"
   "~~/src/HOL/Library/Char_ord"
   "~~/src/Tools/Adhoc_Overloading"
@@ -20,11 +20,11 @@ theory utp_var
   "../utils/Library_extra/Monoid_extra"
   utp_parser_utils
 begin
-  
+
 text {* We will overload the square order relation with refinement and also the lattice operators so
   we will turn off these notations. *}
 
-purge_notation 
+purge_notation
   le (infixl "\<sqsubseteq>\<index>" 50) and
   asup ("\<Squnion>\<index>_" [90] 90) and
   ainf ("\<Sqinter>\<index>_" [90] 90) and
@@ -37,14 +37,14 @@ hide_type rel
 
 declare fst_vwb_lens [simp]
 declare snd_vwb_lens [simp]
-declare lens_indep_left_comp [simp]
+(* declare lens_indep_left_comp [simp] *)
 declare comp_vwb_lens [simp]
 declare lens_indep_left_ext [simp]
 declare lens_indep_right_ext [simp]
 
 text {* This theory describes the foundational structure of UTP variables, upon which the rest
-        of our model rests. We start by defining alphabets, which following~\cite{Feliachi2010,Feliachi2012} 
-        in this shallow model are simply represented as types, though by convention usually a record 
+        of our model rests. We start by defining alphabets, which following~\cite{Feliachi2010,Feliachi2012}
+        in this shallow model are simply represented as types, though by convention usually a record
         type where each field corresponds to a variable. *}
 
 type_synonym '\<alpha> "alphabet"  = "'\<alpha>"
@@ -107,7 +107,7 @@ lemma prod_lens_indep_in_var [simp]:
 lemma prod_lens_indep_out_var [simp]:
   "b \<bowtie> x \<Longrightarrow> a \<times>\<^sub>L b \<bowtie> out_var x"
   by (metis in_out_indep in_var_def out_var_def out_var_indep plus_pres_lens_indep prod_as_plus)
-    
+
 text {* We also define some lookup abstraction simplifications. *}
 
 lemma var_lookup_in [simp]: "lens_get (in_var x) (A, A') = lens_get x A"
@@ -193,5 +193,4 @@ let
     | uvar_ty_tr ts = raise TERM ("uvar_ty_tr", ts);
 in [(@{syntax_const "_uvar_ty"}, K uvar_ty_tr)] end
 *}
-
 end

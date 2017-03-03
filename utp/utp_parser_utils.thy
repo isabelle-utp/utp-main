@@ -8,14 +8,14 @@
 section {* Parser Utilities *}
 
 theory utp_parser_utils
-imports 
+imports
   Main
 begin
 
 syntax
   "_id_string"     :: "id \<Rightarrow> string" ("IDSTR'(_')")
 
-ML {* 
+ML {*
 signature UTP_PARSER_UTILS =
 sig
   val mk_nib : int -> Ast.ast
@@ -85,7 +85,7 @@ end;
 *}
 
 parse_translation {*
-let 
+let
   fun id_string_tr [Free (full_name, _)] = HOLogic.mk_string full_name
     | id_string_tr [Const (full_name, _)] = HOLogic.mk_string full_name
     | id_string_tr _ = raise Match;
@@ -93,6 +93,4 @@ in
   [(@{syntax_const "_id_string"}, K id_string_tr)]
 end
 *}
-
 end
-

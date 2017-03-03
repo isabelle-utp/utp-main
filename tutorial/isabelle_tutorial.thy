@@ -16,7 +16,7 @@ begin
     oops
 
   lemma "P \<Longrightarrow> Q"
-    oops  
+    oops
 
   lemma "P \<longrightarrow> P"
     oops
@@ -90,7 +90,7 @@ begin
     oops
 
   (* What's the difference between the following two goals? *)
-  
+
   lemma "\<forall> y :: int. \<exists> x :: int. x > y"
     oops
 
@@ -122,12 +122,11 @@ begin
       sorry
     have f2: "?m < y"
       sorry
-      
+
     from f1 f2 show ?thesis
       by auto
   qed
 
-   
   theorem cantor: "\<exists>S. S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
   proof
     let ?S = "{x. x \<notin> f x}"
@@ -149,5 +148,4 @@ begin
       qed
     qed
   qed
-
 end

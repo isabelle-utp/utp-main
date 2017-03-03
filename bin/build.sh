@@ -24,5 +24,5 @@ isabelle build -d $ROOT -c -b UTP-DEEP-AX
 isabelle build -d $ROOT -c -b UTP-HYBRID-IMPORTS
 isabelle build -d $ROOT -c -b UTP-HYBRID
 isabelle build -d $ROOT -c -b VDM-SL
-isabelle build -d $ROOT -c -b UTP-Tutorial
+isabelle build -d $ROOT -c -b UTP-TUTORIAL
 isabelle build -d $ROOT -c -b FMI

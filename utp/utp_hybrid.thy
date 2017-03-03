@@ -1,7 +1,7 @@
 section {* Hybrid relations *}
 
 theory utp_hybrid
-imports 
+imports
   utp_designs
 begin
 
@@ -62,14 +62,14 @@ subsection {* Hybrid healthiness conditions *}
 
 definition "HCT1(P) = (P \<and> $time \<ge>\<^sub>u 0 \<and> $time \<le>\<^sub>u $time\<acute>)"
 
-definition "HCT2(P) = (P \<and> ($time\<acute> >\<^sub>u $time \<Rightarrow> 
-                              (\<^bold>\<exists> I \<bullet> elems\<^sub>u(\<guillemotleft>I\<guillemotright>) \<subseteq>\<^sub>u {$time .. $time\<acute>}\<^sub>u 
+definition "HCT2(P) = (P \<and> ($time\<acute> >\<^sub>u $time \<Rightarrow>
+                              (\<^bold>\<exists> I \<bullet> elems\<^sub>u(\<guillemotleft>I\<guillemotright>) \<subseteq>\<^sub>u {$time .. $time\<acute>}\<^sub>u
                                    \<and> {$time, $time\<acute>}\<^sub>u \<subseteq>\<^sub>u elems\<^sub>u(\<guillemotleft>I\<guillemotright>)
                                    \<and> (\<^bold>\<forall> n \<bullet> \<guillemotleft>n\<guillemotright> <\<^sub>u #\<^sub>u(\<guillemotleft>I\<guillemotright>) - 1
                                        \<Rightarrow> $traj cont-on\<^sub>u {\<guillemotleft>I\<guillemotright>\<lparr>\<guillemotleft>n\<guillemotright>\<rparr>\<^sub>u ..< \<guillemotleft>I\<guillemotright>\<lparr>\<guillemotleft>n\<guillemotright>+1\<rparr>\<^sub>u}\<^sub>u)
                                    \<and> sorted\<^sub>u(\<guillemotleft>I\<guillemotright>) \<and> distinct\<^sub>u(\<guillemotleft>I\<guillemotright>))))"
 
-definition "HCT3(P) = (\<Sqinter> t | \<guillemotleft>t\<guillemotright> \<notin>\<^sub>u {$time ..< $time\<acute>}\<^sub>u \<bullet> \<Sqinter> v \<bullet> (P \<and> $traj\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u =\<^sub>u \<guillemotleft>v\<guillemotright>))" 
+definition "HCT3(P) = (\<Sqinter> t | \<guillemotleft>t\<guillemotright> \<notin>\<^sub>u {$time ..< $time\<acute>}\<^sub>u \<bullet> \<Sqinter> v \<bullet> (P \<and> $traj\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u =\<^sub>u \<guillemotleft>v\<guillemotright>))"
 
 definition "HTRAJ(P) = (P \<and> $traj =\<^sub>u $traj\<acute>)"
 
@@ -100,9 +100,9 @@ definition hInt :: "(real \<Rightarrow> ('d \<times> 'c :: topological_space) co
 where "hInt P = HCT2(HTRAJ($time \<ge>\<^sub>u 0 \<and> $time\<acute> >\<^sub>u $time \<and> (\<^bold>\<forall> t \<in> {$time ..< $time\<acute>}\<^sub>u \<bullet> P @\<^sub>u \<guillemotleft>t\<guillemotright>)))"
 
 definition hDisInt :: "(real \<Rightarrow> ('d \<times> 'c :: t2_space) condition) \<Rightarrow> ('d, 'c) hyrel"
-where "hDisInt P = (hInt P \<and> 
+where "hDisInt P = (hInt P \<and>
                     \<pi>\<^sub>1($disc\<acute>) =\<^sub>u \<pi>\<^sub>1($disc) \<and>
-                    \<pi>\<^sub>2($disc) =\<^sub>u $traj\<lparr>$time\<rparr>\<^sub>u \<and> 
+                    \<pi>\<^sub>2($disc) =\<^sub>u $traj\<lparr>$time\<rparr>\<^sub>u \<and>
                     \<pi>\<^sub>2($disc\<acute>) =\<^sub>u lim\<^sub>u(x \<rightarrow> $time\<acute>\<^sup>-)($traj\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u)
                     )"
 
@@ -126,8 +126,8 @@ translations
 
 declare hTrue_def [urel_defs] and hInt_def [urel_defs] and hDisInt_def [urel_defs] and hSkip_def [urel_defs] and hAssigns_def [urel_defs]
 
-definition hPreempt :: 
-  "('d, 'c::topological_space) hyrel \<Rightarrow> ('d \<times> 'c) condition \<Rightarrow> 
+definition hPreempt ::
+  "('d, 'c::topological_space) hyrel \<Rightarrow> ('d \<times> 'c) condition \<Rightarrow>
     ('d, 'c) hyrel \<Rightarrow> ('d, 'c) hyrel" ("_ \<lbrakk>_\<rbrakk>\<^sub>u _" [64,0,65] 64)
 where "P\<lbrakk>B\<rbrakk>\<^sub>uQ = ((Q \<triangleleft> (\<lambda>_.B) @\<^sub>u $time \<triangleright> (P \<and> \<lceil>\<not> B\<rceil>\<^sub>H)) \<or> ((\<lceil>B\<rceil>\<^sub>H \<and> ((\<lambda>_.B) @\<^sub>u $time) \<and> P) ;; Q))"
 
@@ -135,7 +135,7 @@ declare hPreempt_def [urel_defs]
 
 type_synonym 'c ODE = "real \<times> 'c \<Rightarrow> 'c"
 
-lift_definition hasDerivAt :: 
+lift_definition hasDerivAt ::
   "(real \<Rightarrow> 'c :: real_normed_vector) \<Rightarrow> 'c ODE \<Rightarrow> real \<Rightarrow> ('a, 'b) relation" ("_ has-deriv _ at _" [90, 0, 91] 90)
 is "\<lambda> \<F> \<F>' \<tau> A. (\<F> has_vector_derivative (\<F>' (\<tau>, \<F> \<tau>))) (at \<tau> within {0..})" .
 
@@ -328,12 +328,11 @@ proof -
 qed
 
 lemma gravity_ode_refine:
-  "((\<guillemotleft>v\<^sub>0\<guillemotright>, \<guillemotleft>h\<^sub>0\<guillemotright>)\<^sub>u \<Turnstile> \<langle>\<lambda> (t, v, h). (- g, v)\<rangle>\<^sub>H \<and> $time =\<^sub>u 0) \<sqsubseteq> 
+  "((\<guillemotleft>v\<^sub>0\<guillemotright>, \<guillemotleft>h\<^sub>0\<guillemotright>)\<^sub>u \<Turnstile> \<langle>\<lambda> (t, v, h). (- g, v)\<rangle>\<^sub>H \<and> $time =\<^sub>u 0) \<sqsubseteq>
    (\<lceil>| &con\<alpha> =\<^sub>u (\<guillemotleft>v\<^sub>0\<guillemotright> - \<guillemotleft>g\<guillemotright>*\<guillemotleft>\<tau>\<guillemotright>, \<guillemotleft>v\<^sub>0\<guillemotright>*\<guillemotleft>\<tau>\<guillemotright> - \<guillemotleft>g\<guillemotright>*(\<guillemotleft>\<tau>\<guillemotright>*\<guillemotleft>\<tau>\<guillemotright>) / 2 + \<guillemotleft>h\<^sub>0\<guillemotright>)\<^sub>u |\<rceil>\<^sub>H \<and> $time =\<^sub>u 0)"
   apply (rel_auto)
   apply (rule exI)
   apply (auto)
   apply (safe intro!: has_vector_derivative_Pair, (rule has_vector_derivative_eq_rhs, (rule derivative_intros; (simp)?)+, simp)+)
 done
-
 end

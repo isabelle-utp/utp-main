@@ -5,11 +5,11 @@ ISABELLE_UTP=${ISABELLE_UTP:-$(readlink -f $(dirname $0))/..}
 # Default heap to be used if no argument(s) are provided.
 HEAP="UTP-DEEP"
 
-# The first argument if given specifies the heap to load.
+# The first argument given specifies the heap to load.
 if [ ! $# -eq 0 ]
     then
         HEAP=$1
-        shift 1
+        shift 1 # Other arguments are passed to the isabelle jedit.
 fi
 
 # Open jedit while setting the root directory and heap to load.

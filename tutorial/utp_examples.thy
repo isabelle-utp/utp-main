@@ -3,12 +3,12 @@ section {* Isabelle/UTP Examples *}
 theory utp_examples
   imports "../utp/utp"
 begin
-    
+
 alphabet my_state =
   x :: "int"
   y :: "int"
   z :: "int"
-  
+
 (* Beginning of exercises *)
 
 lemma "(true \<and> false) = false"
@@ -38,7 +38,7 @@ lemma "(\<forall> x \<bullet> &x =\<^sub>u &x) = true"
 
 lemma "(\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> =\<^sub>u \<guillemotleft>x\<guillemotright>) = true"
   by (pred_auto)
-  
+
 lemma "(1 :\<^sub>u nat) + 1 = 2"
   by (pred_auto)
 
@@ -49,7 +49,7 @@ lemma "(x := 1 ;; x := &x + 1) = (x := 2)"
 proof -
   have "(x := 1 ;; x := &x + 1) = (x := &x + 1)\<lbrakk>1/$x\<rbrakk>"
     by (simp add: assigns_r_comp alpha)
-  also have "... = x := 1 + 1" 
+  also have "... = x := 1 + 1"
     by (rel_auto)
   also have "... = x := 2"
     by (simp)
@@ -83,19 +83,19 @@ lemma wp_ex_2: "(x := &x - 5 ;; x := &x div 2) wp (&x >\<^sub>u 20) = (&x >\<^su
   oops
 
 lemma wp_ex_3:
-      "(x := \<guillemotleft>X\<guillemotright> ;; 
-        y := \<guillemotleft>Y\<guillemotright> ;; 
-        x := &x + &y ;; 
-        y := &x - &y ;; 
-        x := &x - &y) wp (&x =\<^sub>u \<guillemotleft>Y\<guillemotright> \<and> &y =\<^sub>u \<guillemotleft>X\<guillemotright>) = true" 
+      "(x := \<guillemotleft>X\<guillemotright> ;;
+        y := \<guillemotleft>Y\<guillemotright> ;;
+        x := &x + &y ;;
+        y := &x - &y ;;
+        x := &x - &y) wp (&x =\<^sub>u \<guillemotleft>Y\<guillemotright> \<and> &y =\<^sub>u \<guillemotleft>X\<guillemotright>) = true"
   oops
 
-lemma wp_ex_4: 
-      "(x := \<guillemotleft>X\<guillemotright> ;; 
-        y := \<guillemotleft>Y\<guillemotright> ;; 
-        x := &x * &y ;; 
-        y := &x div &y ;; 
-        x := &x div &y) wp (&x =\<^sub>u \<guillemotleft>Y\<guillemotright> \<and> &y =\<^sub>u \<guillemotleft>X\<guillemotright>) = true" 
+lemma wp_ex_4:
+      "(x := \<guillemotleft>X\<guillemotright> ;;
+        y := \<guillemotleft>Y\<guillemotright> ;;
+        x := &x * &y ;;
+        y := &x div &y ;;
+        x := &x div &y) wp (&x =\<^sub>u \<guillemotleft>Y\<guillemotright> \<and> &y =\<^sub>u \<guillemotleft>X\<guillemotright>) = true"
   oops (* Additional assumptions are needed *)
 
 lemma hoare_ex_1:
@@ -108,7 +108,7 @@ lemma hoare_ex_2:
   "\<lbrace>&x =\<^sub>u \<guillemotleft>X\<guillemotright> \<and> &y =\<^sub>u \<guillemotleft>Y\<guillemotright>\<rbrace>
     while \<not>(&x =\<^sub>u &y)
     invr &x >\<^sub>u 0 \<and> &y >\<^sub>u 0 \<and> (gcd\<^sub>u(&x,&y) =\<^sub>u gcd\<^sub>u(\<guillemotleft>X\<guillemotright>,\<guillemotleft>Y\<guillemotright>))
-    do 
+    do
        (x := &x - &y) \<triangleleft> (&x >\<^sub>u &y) \<triangleright>\<^sub>r (y := &y - &x)
     od
     \<lbrace>&x =\<^sub>u gcd\<^sub>u(\<guillemotleft>X\<guillemotright>, \<guillemotleft>Y\<guillemotright>)\<rbrace>\<^sub>u"
@@ -120,8 +120,4 @@ lemma "(x :=\<^sub>D 1 ;; x :=\<^sub>D &x + 1) = (x :=\<^sub>D 2)"
 lemma violate_precond:
   "(true \<turnstile>\<^sub>n x := 1 ;; (&x >\<^sub>u 1) \<turnstile>\<^sub>n y := 2) = \<bottom>\<^sub>D"
   oops (* Prove using Isar *)
-
-
-
 end
-

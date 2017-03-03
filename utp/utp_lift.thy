@@ -1,7 +1,7 @@
 section {* Lifting expressions *}
 
 theory utp_lift
-  imports 
+  imports
     utp_alphabet
 begin
 
@@ -56,5 +56,4 @@ lemma unrest_dash_var_cond_pre [unrest]:
   fixes x :: "('a, '\<alpha>) uvar"
   shows "$x\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>\<leftarrow>"
   by (pred_auto)
-
 end

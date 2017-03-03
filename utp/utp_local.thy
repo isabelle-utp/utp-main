@@ -13,15 +13,15 @@ type_synonym ('a, '\<alpha>) lvar = "('a list, '\<alpha>) uvar"
 
 text {* Different UTP theories have different assignment operators; consequently in order to
   generically characterise variable blocks we need to abstractly characterise assignments.
-  We first create two polymorphic constants that characterise the underlying program state model 
+  We first create two polymorphic constants that characterise the underlying program state model
   of a UTP theory. *}
 
-consts 
+consts
   pvar         :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<beta> \<Longrightarrow> '\<alpha>" ("\<^bold>v\<index>")
   pvar_assigns :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<beta> usubst \<Rightarrow> '\<alpha> hrel" ("\<^bold>\<langle>_\<^bold>\<rangle>\<index>")
 
 text {* @{const pvar} is a lens from the program state, @{typ "'\<beta>"}, to the overall global state
-  @{typ "'\<alpha>"}, which also contains none user-space information, such as observational variables. 
+  @{typ "'\<alpha>"}, which also contains none user-space information, such as observational variables.
   @{const pvar_assigns} takes as parameter a UTP theory and returns an assignment operator
   which maps a substitution over the program state to a homogeneous relation on the global
   state. We now set up some syntax translations for these operators. *}
@@ -39,20 +39,20 @@ text {* Next, we define constants to represent the top most variable on the loca
   another lens is produced. *}
 
 definition top_var :: "('a::two, '\<alpha>) lvar \<Rightarrow> ('a, '\<alpha>) uvar" where
-[upred_defs]: "top_var x = (list_lens 0 ;\<^sub>L x)" 
+[upred_defs]: "top_var x = (list_lens 0 ;\<^sub>L x)"
 
 text {* The remainder of the local variable stack (the tail) *}
 
 definition rest_var :: "('a::two, '\<alpha>) lvar \<Rightarrow> ('a list, '\<alpha>) uvar" where
 [upred_defs]: "rest_var x = (tl_lens ;\<^sub>L x)"
 
-text {* We can show that the top variable is a mainly well-behaved lense, and that the top most 
+text {* We can show that the top variable is a mainly well-behaved lense, and that the top most
   variable lens is independent of the rest of the stack. *}
 
 lemma top_mwb_lens [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (top_var x)"
   by (simp add: list_mwb_lens top_var_def)
 
-lemma top_rest_var_indep [simp]:  
+lemma top_rest_var_indep [simp]:
   "mwb_lens x \<Longrightarrow> top_var x \<bowtie> rest_var x"
   by (simp add: lens_indep_left_comp rest_var_def top_var_def)
 
@@ -68,7 +68,7 @@ translations
   "_top_var x" == "CONST top_var x"
   "_rest_var x" == "CONST rest_var x"
 
-text {* With operators to represent local variables, assignments, and stack manipulation defined, 
+text {* With operators to represent local variables, assignments, and stack manipulation defined,
   we can go about defining variable blocks themselves. *}
 
 definition var_begin :: "('\<T>, '\<alpha>) uthy \<Rightarrow> ('a, '\<beta>) lvar \<Rightarrow> '\<alpha> hrel" where
@@ -77,7 +77,7 @@ definition var_begin :: "('\<T>, '\<alpha>) uthy \<Rightarrow> ('a, '\<beta>) lv
 definition var_end :: "('\<T>, '\<alpha>) uthy \<Rightarrow> ('a, '\<beta>) lvar \<Rightarrow> '\<alpha> hrel" where
 [urel_defs]: "var_end T x = (x ::=\<^bsub>T\<^esub> tail\<^sub>u(&x))"
 
-text {* @{const var_begin} takes as parameters a UTP theory and a local variable, and uses the 
+text {* @{const var_begin} takes as parameters a UTP theory and a local variable, and uses the
   theory assignment operator to push and undefined value onto the variable stack. @{const var_end}
   removes the top most variable from the stack in a similar way. *}
 
@@ -125,12 +125,12 @@ text {* If a left unit exists then an assignment with an identity substitution s
   identity relation, as the above assumption requires. With these laws available, we can
   prove the main laws of variable blocks. *}
 
-lemma var_begin_healthy [closure]: 
+lemma var_begin_healthy [closure]:
   fixes x :: "('a, '\<beta>) lvar"
   shows "var x is \<H>"
   by (simp add: var_begin_def Healthy_pvar_assigns)
 
-lemma var_end_healthy [closure]: 
+lemma var_end_healthy [closure]:
   fixes x :: "('a, '\<beta>) lvar"
   shows "end x is \<H>"
   by (simp add: var_end_def Healthy_pvar_assigns)
@@ -149,20 +149,18 @@ lemma var_open_close_commute:
   fixes x :: "('a, '\<beta>) lvar" and y :: "('b, '\<beta>) lvar"
   assumes "vwb_lens x" "vwb_lens y" "x \<bowtie> y"
   shows "(var x ;; end y) = (end y ;; var x)"
-  by (simp add: var_begin_def var_end_def shEx_lift_seq_1 shEx_lift_seq_2 
+  by (simp add: var_begin_def var_end_def shEx_lift_seq_1 shEx_lift_seq_2
                 Healthy_pvar_assigns pvar_assigns_comp
                 assms usubst unrest  lens_indep_sym, simp add: assms usubst_upd_comm)
 
 text {* The beginning and end of variable blocks from different variables commute. *}
 
-lemma var_block_vacuous: 
+lemma var_block_vacuous:
   fixes x :: "('a::two, '\<beta>) lvar"
   assumes "vwb_lens x"
   shows "(var x \<bullet> \<I>\<I>) = \<I>\<I>"
   by (simp add: Left_Unit assms var_end_healthy var_open_close)
 
 text {* A variable block with a skip inside results in a skip. *}
-
 end
-
 end

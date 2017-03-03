@@ -24,7 +24,7 @@ using uinject_card by blast
 
 setup_lifting type_definition_uval
 
-lift_definition InjU :: "'a::injectable \<Rightarrow> uval" 
+lift_definition InjU :: "'a::injectable \<Rightarrow> uval"
 is "\<lambda> x. (UTYPE('a), uinject x)" by auto
 
 lift_definition ProjU :: "uval \<Rightarrow> 'a::injectable"
@@ -49,10 +49,9 @@ lemma type_rel: "(InjU x) :\<^sub>u t \<longleftrightarrow> x : t"
 lemma types_non_empty: "\<exists> y . y :\<^sub>u t"
   by (auto simp add: type_rel_def, transfer, auto simp add: ex_in_conv ucard_non_empty)
 
-theorem InjU_unique_type: 
+theorem InjU_unique_type:
   fixes x :: "'a::injectable" and y :: "'b::injectable"
   assumes "InjU x = InjU y"
   shows "UTYPE('a) = UTYPE('b)"
   by (metis InjU.rep_eq assms fst_conv)
-
 end

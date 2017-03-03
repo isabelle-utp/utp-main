@@ -28,7 +28,7 @@ lemma R2_design_R2_neg_pre: "R2((\<not> R2(\<not> P)) \<turnstile> Q) = R2(P \<t
   by (rel_auto)
 
 lemma R2_design_R2_post: "R2(P \<turnstile> R2(Q)) = R2(P \<turnstile> Q)"
-  by (rel_auto) 
+  by (rel_auto)
 
 lemma R2_design_pre_R2:
   "R2((\<not> (R2(P \<turnstile> Q))\<^sup>f) \<turnstile> R) = R2(P\<^sup>f \<turnstile> R)"
@@ -52,7 +52,7 @@ proof -
   also have "... = P \<turnstile> (P \<Rightarrow> Q)"
     by (metis design_subst_ok' subst_impl)
   also have "... = P \<turnstile> Q"
-    by (rel_auto)    
+    by (rel_auto)
   finally show ?thesis
     by (simp add: R2_ok_true design_post R2_design_R2_post design_export_ok[THEN sym])
 qed
@@ -96,5 +96,4 @@ proof -
     by (simp add: tskip_def)
   finally show ?thesis .
 qed
-
 end

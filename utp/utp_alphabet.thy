@@ -1,7 +1,7 @@
 section {* Alphabet manipulation *}
 
 theory utp_alphabet
-  imports 
+  imports
     utp_pred
 begin
 
@@ -17,6 +17,8 @@ text {* Extend an alphabet by application of a lens that demonstrates how the sm
 lift_definition aext :: "('a, '\<beta>) uexpr \<Rightarrow> ('\<beta>, '\<alpha>) lens \<Rightarrow> ('a, '\<alpha>) uexpr" (infixr "\<oplus>\<^sub>p" 95)
 is "\<lambda> P x b. P (get\<^bsub>x\<^esub> b)" .
 
+update_uexpr_rep_eq_thms
+
 lemma aext_id [alpha]: "P \<oplus>\<^sub>p 1\<^sub>L = P"
   by (pred_auto)
 
@@ -29,7 +31,7 @@ lemma aext_zero [alpha]: "0 \<oplus>\<^sub>p a = 0"
 lemma aext_one [alpha]: "1 \<oplus>\<^sub>p a = 1"
   by (pred_auto)
 
-lemma aext_numeral [alpha]: "numeral n \<oplus>\<^sub>p a = numeral n" 
+lemma aext_numeral [alpha]: "numeral n \<oplus>\<^sub>p a = numeral n"
   by (pred_auto)
 
 lemma aext_uop [alpha]: "uop f u \<oplus>\<^sub>p a = uop f (u \<oplus>\<^sub>p a)"
@@ -45,7 +47,7 @@ lemma aext_qtop [alpha]: "qtop f u v w x \<oplus>\<^sub>p a = qtop f (u \<oplus>
   by (pred_auto)
 
 lemma aext_plus [alpha]:
-  "(x + y) \<oplus>\<^sub>p a = (x \<oplus>\<^sub>p a) + (y \<oplus>\<^sub>p a)" 
+  "(x + y) \<oplus>\<^sub>p a = (x \<oplus>\<^sub>p a) + (y \<oplus>\<^sub>p a)"
   by (pred_auto)
 
 lemma aext_minus [alpha]:
@@ -70,7 +72,7 @@ lemma aext_var [alpha]:
 
 lemma aext_ulambda [alpha]: "((\<lambda> x \<bullet> P(x)) \<oplus>\<^sub>p a) = (\<lambda> x \<bullet> P(x) \<oplus>\<^sub>p a)"
   by (pred_auto)
-    
+
 lemma aext_true [alpha]: "true \<oplus>\<^sub>p a = true"
   by (pred_auto)
 
@@ -84,10 +86,10 @@ lemma aext_and [alpha]: "(P \<and> Q) \<oplus>\<^sub>p x = (P \<oplus>\<^sub>p x
   by (pred_auto)
 
 lemma aext_or [alpha]: "(P \<or> Q) \<oplus>\<^sub>p x = (P \<oplus>\<^sub>p x \<or> Q \<oplus>\<^sub>p x)"
-  by (pred_auto) 
+  by (pred_auto)
 
 lemma aext_imp [alpha]: "(P \<Rightarrow> Q) \<oplus>\<^sub>p x = (P \<oplus>\<^sub>p x \<Rightarrow> Q \<oplus>\<^sub>p x)"
-  by (pred_auto) 
+  by (pred_auto)
 
 lemma aext_iff [alpha]: "(P \<Leftrightarrow> Q) \<oplus>\<^sub>p x = (P \<oplus>\<^sub>p x \<Leftrightarrow> Q \<oplus>\<^sub>p x)"
   by (pred_auto)
@@ -109,6 +111,8 @@ text {* Restrict an alphabet by application of a lens that demonstrates how the 
 lift_definition arestr :: "('a, '\<alpha>) uexpr \<Rightarrow> ('\<beta>, '\<alpha>) lens \<Rightarrow> ('a, '\<beta>) uexpr" (infixr "\<restriction>\<^sub>p" 90)
 is "\<lambda> P x b. P (create\<^bsub>x\<^esub> b)" .
 
+update_uexpr_rep_eq_thms
+
 lemma arestr_id [alpha]: "P \<restriction>\<^sub>p 1\<^sub>L = P"
   by (pred_auto)
 
@@ -119,15 +123,15 @@ text {* If an expression's alphabet can be divided into two disjoint sections an
   does not depend on the second half then restricting the expression to the first half is
   lossless. *}
 
-lemma aext_arestr [alpha]: 
-  assumes "mwb_lens a" "bij_lens (a +\<^sub>L b)" "a \<bowtie> b" "b \<sharp> P" 
+lemma aext_arestr [alpha]:
+  assumes "mwb_lens a" "bij_lens (a +\<^sub>L b)" "a \<bowtie> b" "b \<sharp> P"
   shows "(P \<restriction>\<^sub>p a) \<oplus>\<^sub>p a = P"
 proof -
   from assms(2) have "1\<^sub>L \<subseteq>\<^sub>L a +\<^sub>L b"
     by (simp add: bij_lens_equiv_id lens_equiv_def)
   with assms(1,3,4) show ?thesis
     apply (auto simp add: alpha_of_def id_lens_def lens_plus_def sublens_def lens_comp_def prod.case_eq_if)
-    apply (pred_auto)
+    apply (pred_simp)
     apply (metis lens_indep_comm mwb_lens_weak weak_lens.put_get)
   done
 qed
@@ -206,15 +210,15 @@ subsection {* Substitution alphabet extension *}
 definition subst_ext :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> '\<beta> usubst" (infix "\<oplus>\<^sub>s" 65) where
 [upred_defs]: "\<sigma> \<oplus>\<^sub>s x = (\<lambda> s. put\<^bsub>x\<^esub> s (\<sigma> (get\<^bsub>x\<^esub> s)))"
 
-lemma id_subst_ext [usubst,alpha]: 
+lemma id_subst_ext [usubst,alpha]:
   "vwb_lens x \<Longrightarrow> id \<oplus>\<^sub>s x = id"
   by pred_auto
 
-lemma upd_subst_ext [alpha]: 
+lemma upd_subst_ext [alpha]:
   "vwb_lens x \<Longrightarrow> \<sigma>(y \<mapsto>\<^sub>s v) \<oplus>\<^sub>s x = (\<sigma> \<oplus>\<^sub>s x)(&x:y \<mapsto>\<^sub>s v \<oplus>\<^sub>p x)"
   by pred_auto
 
-lemma apply_subst_ext [alpha]: 
+lemma apply_subst_ext [alpha]:
   "vwb_lens x \<Longrightarrow> (\<sigma> \<dagger> e) \<oplus>\<^sub>p x = (\<sigma> \<oplus>\<^sub>s x) \<dagger> (e \<oplus>\<^sub>p x)"
   by (pred_auto)
 
@@ -231,7 +235,7 @@ lemma id_subst_res [alpha,usubst]:
   "mwb_lens x \<Longrightarrow> id \<restriction>\<^sub>s x = id"
   by pred_auto
 
-lemma upd_subst_res [alpha]: 
+lemma upd_subst_res [alpha]:
   "vwb_lens x \<Longrightarrow> \<sigma>(&x:y \<mapsto>\<^sub>s v) \<restriction>\<^sub>s x = (\<sigma> \<restriction>\<^sub>s x)(&y \<mapsto>\<^sub>s v \<restriction>\<^sub>p x)"
   by (pred_auto)
 
@@ -241,6 +245,5 @@ lemma subst_ext_res [alpha,usubst]:
 
 lemma unrest_subst_alpha_ext [unrest]:
   "x \<bowtie> y \<Longrightarrow> x \<sharp> (P \<oplus>\<^sub>s y)"
-  by (pred_auto, metis lens_indep_def)
-
+  by (pred_simp robust, metis lens_indep_def)
 end

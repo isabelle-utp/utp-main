@@ -10,7 +10,7 @@ definition "OIH(\<psi>)(D) = (D \<and> ($ok \<and> \<not> D\<^sup>f \<Rightarrow
 
 declare OIH_def [upred_defs]
 
-lemma OIH_design: 
+lemma OIH_design:
   assumes "D is H1_H2"
   shows "OIH(\<psi>)(D) = ((\<not> D\<^sup>f) \<turnstile> (D\<^sup>t \<and> \<psi>))"
 proof -
@@ -45,7 +45,7 @@ lemma ISH_design: "ISH(\<psi>)(D) = (\<not> D\<^sup>f \<and> \<lceil>\<psi>\<rce
 lemma ISH_idem: "ISH(\<psi>)(ISH(\<psi>)(D)) = ISH(\<psi>)(D)"
   by (simp add: ISH_design usubst design_def, pred_auto)
 
-lemma ISH_of_design: 
+lemma ISH_of_design:
   "\<lbrakk> $ok\<acute> \<sharp> P; $ok\<acute> \<sharp> Q \<rbrakk> \<Longrightarrow> ISH(\<psi>)(P \<turnstile> Q) = ((P \<and> \<lceil>\<psi>\<rceil>\<^sub><) \<turnstile> Q)"
   by (simp add: ISH_design design_def usubst, pred_auto)
 
@@ -64,7 +64,7 @@ lemma OSH_design:
 
 lemma OSH_of_design:
   "\<lbrakk> $ok\<acute> \<sharp> P; $ok\<acute> \<sharp> Q \<rbrakk> \<Longrightarrow> OSH(\<psi>)(P \<turnstile> Q) = (P \<turnstile> (Q \<and> (\<lceil>\<psi>\<rceil>\<^sub>< \<Rightarrow> \<lceil>\<psi>\<rceil>\<^sub>>)))"
-  by (simp add: OSH_design design_is_H1_H2 unrest, simp add: design_def usubst, pred_auto)  
+  by (simp add: OSH_design design_is_H1_H2 unrest, simp add: design_def usubst, pred_auto)
 
 definition "SIH(\<psi>) = ISH(\<psi>) \<circ> OSH(\<psi>)"
 
@@ -73,5 +73,4 @@ declare SIH_def [upred_defs]
 lemma SIH_of_design:
   "\<lbrakk> $ok\<acute> \<sharp> P; $ok\<acute> \<sharp> Q; ok \<sharp> \<psi> \<rbrakk> \<Longrightarrow> SIH(\<psi>)(P \<turnstile> Q) = ((P \<and> \<lceil>\<psi>\<rceil>\<^sub><) \<turnstile> (Q \<and> \<lceil>\<psi>\<rceil>\<^sub>>))"
   by (simp add: SIH_def OSH_of_design ISH_of_design unrest, pred_auto)
-
 end

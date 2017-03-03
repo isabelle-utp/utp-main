@@ -28,10 +28,10 @@ lemma state_make_bij:
   "bij_lens state_make"
   by (unfold_locales, simp_all add: state_make_def)
 (*
-definition state_map :: 
+definition state_map ::
   "('\<Sigma>\<^sub>1 \<Longrightarrow> '\<Sigma>\<^sub>2) \<Rightarrow> ('\<O>\<^sub>1 \<Longrightarrow> '\<O>\<^sub>2) \<Rightarrow> (('\<Sigma>\<^sub>1, '\<O>\<^sub>1) state_scheme \<Longrightarrow> ('\<Sigma>\<^sub>2, '\<O>\<^sub>2) state_scheme)" where
 "state_map = "
-*) 
+*)
 
 syntax
   "_svid_palpha" :: "svid" ("\<^bold>v")
@@ -56,5 +56,4 @@ lemma palpha_obs_bij: "bij_lens (\<^bold>v +\<^sub>L \<O>)"
 
 lemma palpha_obs_state: "\<^bold>v +\<^sub>L \<O> \<approx>\<^sub>L 1\<^sub>L"
   using bij_lens_equiv_id palpha_obs_bij by blast
-
 end

@@ -1,9 +1,10 @@
 subsection {* Deep UTP variables *}
 
 theory utp_dvar
-  imports 
-    utp_fix_syntax
-begin
+  imports
+    "../utp/utp"
+    "../continuum/Continuum"
+begin recall_syntax
 
 text {* UTP variables represented by record fields are shallow, nameless entities. They are fundamentally
         static in nature, since a new record field can only be introduced definitionally and cannot be
@@ -36,13 +37,13 @@ text {* Our universe is simply the set of natural numbers; this is sufficient fo
 type_synonym uuniv = "nat set"
 
 text {* We introduce a function that gives the set of values within our universe of the given
-        cardinality. Since a cardinality of 0 is no proper type, we use finite cardinality 0 to 
+        cardinality. Since a cardinality of 0 is no proper type, we use finite cardinality 0 to
         mean cardinality 1, 1 to mean 2 etc. *}
 
 fun uuniv :: "ucard \<Rightarrow> uuniv set" ("\<U>'(_')") where
 "\<U>(fin n) = {{x} | x. x \<le> n}" |
 "\<U>(\<aleph>\<^sub>0) = {{x} | x. True}" |
-"\<U>(\<c>) = UNIV" 
+"\<U>(\<c>) = UNIV"
 
 text {* We also define the following function that gives the cardinality of a type within
         the @{class continuum} type class. *}
@@ -107,7 +108,7 @@ lemma uinject_uncountable:
   "uncountable (UNIV :: 'a::continuum set) \<Longrightarrow> (uinject :: 'a \<Rightarrow> uuniv) = to_nat_set"
   by (rule ext, auto simp add: uinject_def countable_finite)
 
-lemma card_finite_lemma: 
+lemma card_finite_lemma:
   assumes "finite (UNIV :: 'a set)"
   shows "x < card (UNIV :: 'a set) \<longleftrightarrow> x \<le> card (UNIV :: 'a set) - Suc 0"
 proof -
@@ -117,7 +118,7 @@ proof -
     by linarith
 qed
 
-text {* This is a key theorem that shows that the injection function provides a bijection between 
+text {* This is a key theorem that shows that the injection function provides a bijection between
         any continuum type and the subuniverse of types with a matching cardinality. *}
 
 lemma uinject_bij:
@@ -167,7 +168,7 @@ declare dname.splits [alpha_splits]
 text {* A vstore is a function mapping deep variable names to corresponding values in the universe, such
         that the deep variables specified cardinality is matched by the value it points to. *}
 
-typedef vstore = "{f :: dname \<Rightarrow> uuniv. \<forall> x. f(x) \<in> \<U>(dname_card x)}" 
+typedef vstore = "{f :: dname \<Rightarrow> uuniv. \<forall> x. f(x) \<in> \<U>(dname_card x)}"
   apply (rule_tac x="\<lambda> x. {0}" in exI)
   apply (auto)
   apply (rename_tac x)
@@ -215,7 +216,7 @@ lemma vstore_vwb_lens [simp]:
   apply (transfer, simp)
 done
 
-lemma dvar_lens_indep_iff: 
+lemma dvar_lens_indep_iff:
   fixes x :: "'a::{continuum,two} dvar" and y :: "'b::{continuum,two} dvar"
   shows "dvar_lens x \<bowtie> dvar_lens y \<longleftrightarrow> (dvar_dname x \<noteq> dvar_dname y)"
 proof -
@@ -229,7 +230,7 @@ proof -
     fix y :: dname
     assume a1: "ucard_of (TYPE('b)::'b itself) = ucard_of (TYPE('a)::'a itself)"
     assume "dname_card y = ucard_of (TYPE('a)::'a itself)"
-    assume a2: 
+    assume a2:
       "\<forall> \<sigma>. (\<forall>x. \<sigma> x \<in> \<U>(dname_card x)) \<longrightarrow> (\<forall> v u. \<sigma>(y := uinject (u::'a)) = \<sigma>(y := uinject (v::'b)))"
       "\<forall> \<sigma>. (\<forall>x. \<sigma> x \<in> \<U>(dname_card x)) \<longrightarrow> (\<forall> v. (uproject (uinject v)::'a) = uproject (\<sigma> y))"
       "\<forall> \<sigma>. (\<forall>x. \<sigma> x \<in> \<U>(dname_card x)) \<longrightarrow> (\<forall> u. (uproject (uinject u)::'b) = uproject (\<sigma> y))"
@@ -237,7 +238,7 @@ proof -
       "\<And>v. \<forall>d. NN v d \<in> \<U>(dname_card d)"
       by (metis (lifting) Abs_vstore_cases mem_Collect_eq)
     then show False
-      using a2 a1 by (metis fun_upd_same uv) 
+      using a2 a1 by (metis fun_upd_same uv)
   qed
 qed
 
@@ -271,7 +272,7 @@ proof -
     by (simp add: dvar_lens_indep_iff)
   finally show ?thesis .
 qed
-    
+
 lemma dvar_indep_diff_name' [simp]:
   "x \<noteq> y \<Longrightarrow> \<lceil>x\<rceil>\<^sub>d\<up> \<bowtie> \<lceil>y\<rceil>\<^sub>d\<up>"
   by (simp add: dvar_lift_indep_iff mk_dvar.rep_eq)
@@ -288,7 +289,7 @@ instance
   by (intro_classes, unfold_locales, simp_all add: vstore_lens_vstore_d_ext_def)
 end
 
-syntax 
+syntax
   "_sin_dvar"  :: "id \<Rightarrow> svar" ("%_" [999] 999)
   "_sout_dvar" :: "id \<Rightarrow> svar" ("%_\<acute>" [999] 999)
 
@@ -313,13 +314,13 @@ lemma MkDVar_put_comm [simp]:
 
 text {* Set up parsing and pretty printing for deep variables *}
 
-syntax 
+syntax
   "_dvar"     :: "id \<Rightarrow> svid" ("<_>")
   "_dvar_ty"  :: "id \<Rightarrow> type \<Rightarrow> svid" ("<_::_>")
   "_dvard"    :: "id \<Rightarrow> logic" ("<_>\<^sub>d")
   "_dvar_tyd" :: "id \<Rightarrow> type \<Rightarrow> logic" ("<_::_>\<^sub>d")
 
-translations 
+translations
   "_dvar x" => "CONST MkDVar IDSTR(x)"
   "_dvar_ty x a" => "_constrain (CONST MkDVar IDSTR(x)) (_uvar_ty a)"
   "_dvard x" => "CONST MkDVar IDSTR(x)"
@@ -374,7 +375,7 @@ begin
 instance
   by (intro_classes, simp add: vstore_lens_rp_vars_ext_def)
 end
-  
+
 text {* Instantiate the vstore for stateful reactive alphabets *}
 
 instantiation rsp_vars_ext :: (vst,type) vst
@@ -384,5 +385,4 @@ begin
 instance
   by (intro_classes, simp add: vstore_lens_rsp_vars_ext_def)
 end
-  
 end

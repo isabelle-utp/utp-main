@@ -57,7 +57,7 @@ lemma uvar_gvar [simp]: "uvar gvar"
 lemma lvar_indep_gvar [simp]: "lvar \<bowtie> gvar" "gvar \<bowtie> lvar"
   by (auto intro:lens_indepI simp add: lvar_def gvar_def)
 
-definition var_scope :: 
+definition var_scope ::
   "(('a \<Longrightarrow> ('a \<times> '\<L>, '\<alpha>) lvar_scheme) \<Rightarrow> (('a \<times> '\<L>, '\<alpha>) lvar_scheme) hrelation) \<Rightarrow>
    (('\<L>, '\<alpha>) lvar_scheme) hrelation" where
 [upred_defs]: "var_scope P = (\<^bold>+(lvar_lift snd\<^sub>L) ;; P (fst\<^sub>L ;\<^sub>L lvar) ;; \<^bold>-(lvar_lift snd\<^sub>L))"
@@ -77,7 +77,7 @@ lemma lvar_assign_null:
 lemma lvlift_var_commute:
   "(\<^bold>+(lvar_lift snd\<^sub>L) ;; \<lceil>P\<rceil>\<^sub>l) = (P ;; \<^bold>+(lvar_lift snd\<^sub>L))"
   by (rel_simp, metis lvar.select_convs(1) lvar.select_convs(2) lvar.surjective prod.collapse snd_conv)
-  
+
 lemma lvlift_end_commute:
   "(\<lceil>P\<rceil>\<^sub>l ;; \<^bold>-(lvar_lift snd\<^sub>L)) = (\<^bold>-(lvar_lift snd\<^sub>L) ;; P)"
   by (rel_simp, metis lvar.select_convs(1) lvar.select_convs(2) lvar.surjective prod.collapse snd_conv)
@@ -89,5 +89,4 @@ lemma lvlift_out_right:
 lemma lvlift_out_left:
   "(var x \<bullet> \<lceil>P\<rceil>\<^sub>l ;; Q x) = (P ;; (var x \<bullet> Q x))"
   by (simp add: var_scope_def, simp add: lvlift_var_commute seqr_assoc)
-
 end

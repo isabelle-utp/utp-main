@@ -19,8 +19,8 @@ theorem cond_seq_left_distr:
   shows "((P \<triangleleft> b \<triangleright> Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright> (Q ;; R))"
   using assms by (rel_auto, blast+)
 
-theorem assign_twice: 
-  assumes "uvar x" "x \<sharp> f" 
+theorem assign_twice:
+  assumes "uvar x" "x \<sharp> f"
   shows "(x := e ;; x := f) = (x := f)"
   using assms by rel_auto
 
@@ -118,6 +118,4 @@ lemma violate_precond:
   apply (subst_tac)
   apply (rel_auto)
 done
-
 end
-

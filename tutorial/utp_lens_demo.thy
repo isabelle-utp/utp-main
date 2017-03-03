@@ -57,5 +57,4 @@ lemma "(surname ;\<^sub>L y) \<subseteq>\<^sub>L y"
 
 lemma "x +\<^sub>L y +\<^sub>L z \<approx>\<^sub>L 1\<^sub>L"
   oops
-
 end

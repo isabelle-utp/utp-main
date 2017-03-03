@@ -56,7 +56,7 @@ subsection {* Logical operators *}
 
 text {* The operators in this section are taken from a paper by Gavilanes-Franco and Lucio-Carrasco
         called "A first order logic for partial functions". Rather than defining them in terms
-        of conjunction and disjunction, we define them all separately and then prove the laws 
+        of conjunction and disjunction, we define them all separately and then prove the laws
         about the relationships. *}
 
 definition knot :: "tvl \<Rightarrow> tvl" ("\<not>\<^sub>k _" [40] 40) where
@@ -89,7 +89,7 @@ definition kimpl :: "tvl \<Rightarrow> tvl \<Rightarrow> tvl" (infixr "\<Rightar
      else \<bottom>\<^sub>3)"
 
 definition kEx :: "('a \<Rightarrow> tvl) \<Rightarrow> tvl" (binder "\<exists>\<^sub>k" 10) where
-"kEx P = 
+"kEx P =
   (if (\<exists> x. P(x) = true\<^sub>3)
       then true\<^sub>3
    else if (\<forall> x. P(x) = false\<^sub>3)
@@ -97,7 +97,7 @@ definition kEx :: "('a \<Rightarrow> tvl) \<Rightarrow> tvl" (binder "\<exists>\
    else \<bottom>\<^sub>3)"
 
 definition kAll :: "('a \<Rightarrow> tvl) \<Rightarrow> tvl" (binder "\<forall>\<^sub>k" 10) where
-"kAll P = 
+"kAll P =
   (if (\<forall> x. P(x) = true\<^sub>3)
       then true\<^sub>3
    else if (\<exists> x. P(x) = false\<^sub>3)
@@ -242,7 +242,7 @@ lemma kor_demorgan:
   "(p \<or>\<^sub>k q) = (\<not>\<^sub>k ((\<not>\<^sub>k p) \<and>\<^sub>k (\<not>\<^sub>k q)))"
   apply (cases p rule: tvl_cases; cases q rule: tvl_cases)
   apply (simp_all add: kor_def kand_def knot_def)
-done  
+done
 
 lemma kand_demorgan:
   "(p \<and>\<^sub>k q) = (\<not>\<^sub>k ((\<not>\<^sub>k p) \<or>\<^sub>k (\<not>\<^sub>k q)))"
@@ -267,5 +267,4 @@ lemma kAll_kand: "(\<forall>\<^sub>k x. P x \<and>\<^sub>k Q x) = ((\<forall>\<^
 
 lemma kAll_false [simp]: "(\<exists>\<^sub>k x. true\<^sub>3) = true\<^sub>3"
   by (simp add: kEx_def)
-
 end
