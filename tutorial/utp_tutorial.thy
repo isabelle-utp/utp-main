@@ -229,7 +229,52 @@ lemma "(x := 1 ;; (y := 7 \<triangleleft> $x >\<^sub>u 0 \<triangleright> y := 8
   by (rel_auto)
 
 term "(x,y := 3,1;; while &x >\<^sub>u 0 do x := &x - 1;; y := &y * 2 od)"
+  
+subsection {* Nondetermism and Complete Lattices *}
+  
+text {* So far we have considered only deterministic programming operators. However, one of the
+  key feature of the UTP is that it allows non-deterministic specifications. Determinism is
+  ordered by the refinement order @{term "P \<sqsubseteq> Q"}, which states that $P$ is more deterministic
+  that $Q$, or alternatively that $Q$ makes fewer commitments than $P$. The refinement order
+  @{term "P \<sqsubseteq> Q"} corresponds to a universally closed implication @{term "Q \<Rightarrow> P"}. The most
+  deterministic specification is @{term "false"}, which also corresponds to a miraculous program,
+  and the least is @{term "true"}, as the following theorems demonstrate. *}
 
+theorem false_greatest: "P \<sqsubseteq> false"
+  by (rel_auto)
+   
+theorem true_least: "true \<sqsubseteq> P"
+  by (rel_auto)
+  
+text {* We can similarly specify a non-deterministic choice between $P$ and $Q$ with 
+  @{term "P \<sqinter> Q"}, or alternatively @{term "\<Sqinter> A"} where $A$ is a set of possible behaviours.
+  Predicate @{term "P \<sqinter> Q"} encapsulates the behaviours of both $P$ and $Q$, and is thus 
+  refined by both. We can also prove a variety of theorems about non-deterministic choice. *}
+  
+theorem Choice_equiv: 
+  fixes P Q :: "'\<alpha> upred"
+  shows "\<Sqinter> {P, Q} = P \<sqinter> Q"
+  by simp
+
+theorem Choice_refine: 
+  fixes A B :: "'\<alpha> upred set"
+  assumes "B \<subseteq> A"
+  shows "\<Sqinter> A \<sqsubseteq> \<Sqinter> B"
+  by (simp add: Sup_subset_mono assms)
+    
+text {* The intuition of theorem @{thm [source] Choice_refine} is that a specification with more
+  options is refined by one with less options. *}
+    
+theorem choice_thms:
+  fixes P Q :: "'\<alpha> upred"
+  shows 
+    "P \<sqinter> P = P"
+    "P \<sqinter> Q = Q \<sqinter> P"
+    "P \<sqinter> true = true"
+    "P \<sqinter> false = P"
+    "P \<sqinter> Q \<sqsubseteq> P"
+  by (simp_all add: lattice_class.inf_sup_aci(5) true_upred_def false_upred_def)
+    
 subsection {* Laws of programming *}
 
 text {* Although we have some primitive tactics for proving conjectures in the predicate and relational
@@ -240,10 +285,14 @@ text {* Although we have some primitive tactics for proving conjectures in the p
 theorem seq_assoc: "(P ;; Q) ;; R = P ;; (Q ;; R)"
   by (rel_auto)
 
-theorem seq_unit: "P ;; II = P" "II ;; P = P"
+theorem seq_unit: 
+  "P ;; II = P" 
+  "II ;; P = P"
   by (rel_auto)+
-
-theorem seq_zero: "P ;; false = false" "false ;; P = false"
+    
+theorem seq_zero: 
+  "P ;; false = false" 
+  "false ;; P = false"
   by (rel_auto)+
 
 text {* Sequential composition is associative, has the operator @{term "II"} as its left and
@@ -255,17 +304,7 @@ lemma "x := &x = II"
   by (rel_auto)
 
 text {* In the context of relations, @{term "false"} denotes the empty relation, and is usually
-  used to represent a miraculous program. Such a program can achieve anything, and thus refines
-  any given specification as the following laws demonstrate: *}
-
-lemma false_greatest: "P \<sqsubseteq> false"
-  by (rel_auto)
-
-lemma true_least: "true \<sqsubseteq> P"
-  by (rel_auto)
-
-text {* We also have it that @{term true} is refined by any given specification -- it represents
-  the most non-deterministic program. The conditional @{term "P \<triangleleft> b \<triangleright> Q"} also has a number of
+  used to represent a miraculous program. The conditional @{term "P \<triangleleft> b \<triangleright> Q"} also has a number of
   algebraic laws that we can prove. *}
 
 theorem cond_true: "P \<triangleleft> true \<triangleright> Q = P"
@@ -330,12 +369,12 @@ text {* UTP relations possess a number of important theoretical properties. Nota
    fixed-point. *}
 
 subsection {* Designs *}
-
-text {* Though we now have a theory of UTP relations with which can from simple programs, this
-  theory experiences some problems. A UTP design, @{term "P \<turnstile> Q"}, is a relational specification in terms of assumption $P$
-  and commitment $Q$. Such a construction states that, if $P$ holds and the program is allowed to
-  execute, then the program will terminate and satisfy its commitment $Q$. *}
-
+  
+text {* Though we now have a theory of UTP relations with which can from simple programs, this 
+  theory experiences some problems. A UTP design, @{term "P \<turnstile> Q"}, is a relational specification 
+  in terms of assumption $P$ and commitment $Q$. Such a construction states that, if $P$ holds and 
+  the program is allowed to execute, then the program will terminate and satisfy its commitment $Q$. *}
+  
 (*<*)
 end
 (*>*)

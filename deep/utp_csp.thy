@@ -881,12 +881,14 @@ qed
 
 text {* A healthiness condition for weakly guarded CSP processes *}
 
-definition [upred_defs]: "WG(P) = (P \<and> ($ok \<and> \<not> $wait\<acute> \<and> pre\<^sub>R(P) \<Rightarrow> $tr <\<^sub>u $tr\<acute>))"
-
+abbreviation "WGP(P) \<equiv> ($ok \<and> $ok\<acute> \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P) \<Rightarrow> $tr <\<^sub>u $tr\<acute>)"
+  
+definition [upred_defs]: "WG(P) = (P \<and> WGP(P))"
+   
 lemma rea_des_ok_nwait':
-  "(\<^bold>R\<^sub>s(P) \<and> $ok \<and> \<not>$wait\<acute>) = (\<^bold>R\<^sub>s(P) \<and> $ok \<and> \<not>$wait \<and> \<not>$wait\<acute>)"
+  "(\<^bold>R\<^sub>s(P) \<and> $ok \<and> $ok\<acute> \<and> \<not>$wait\<acute>) = (\<^bold>R\<^sub>s(P) \<and> $ok \<and> $ok\<acute> \<and> \<not>$wait \<and> \<not>$wait\<acute>)"
   by (rel_auto)
-
+    
 lemma WG_intro:
   assumes "P is SRD" "($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> (pre\<^sub>R(P) \<and> post\<^sub>R(P))" "$wait\<acute> \<sharp> pre\<^sub>R(P)"
   shows "P is WG"
@@ -902,21 +904,22 @@ proof -
     finally show ?thesis
       by (simp add: SRD_reactive_tri_design assms(1))
   qed
-  have F: "WG(P) = (P \<and> (P \<and> $ok \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P) \<Rightarrow> $tr <\<^sub>u $tr\<acute>))"
+  have F: "WG(P) = (P \<and> (P \<and> $ok \<and> $ok\<acute> \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P) \<Rightarrow> $tr <\<^sub>u $tr\<acute>))"
     by (rel_auto)
-  have "(P \<and> $ok \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P)) = (P \<and> $ok \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P))"
+  have "(P \<and> $ok \<and> $ok\<acute> \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P)) = (P \<and> $ok \<and> $ok\<acute> \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P))"
     by (metis P rea_des_ok_nwait' utp_pred.inf.assoc)
-  also have "... = (P\<lbrakk>true,false,false/$ok,$wait,$wait\<acute>\<rbrakk> \<and> $ok \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P))"
-    by (rel_auto)
-  also have "... = (R1(R2c((pre\<^sub>R(P))\<lbrakk>false/$wait\<acute>\<rbrakk> \<Rightarrow> ($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))) \<and> $ok \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P))"
-   by (subst P[THEN sym], simp add: usubst RHS_def R1_def R2c_def R2s_def R3h_def design_def wait'_cond_def unrest assms(1), rel_auto)
-  also have "... = (R1(R2c((pre\<^sub>R(P)) \<Rightarrow> ($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))) \<and> $ok \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P))"
+
+  also have "... = (P\<lbrakk>true,false,false/$ok,$wait,$wait\<acute>\<rbrakk> \<and> $ok \<and> $ok\<acute> \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P))"
+    by (rel_auto) 
+  also have "... = (R1(R2c((pre\<^sub>R(P))\<lbrakk>false/$wait\<acute>\<rbrakk> \<Rightarrow> ($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))) \<and> $ok \<and> $ok\<acute> \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P))"
+    by (subst P[THEN sym], simp add: usubst RHS_def R1_def R2c_def R2s_def R3h_def design_def wait'_cond_def unrest assms(1), rel_auto)
+  also have "... = (R1(R2c((pre\<^sub>R(P)) \<Rightarrow> ($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))) \<and> $ok \<and> $ok\<acute> \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P))"
     by (simp add: R1_def R2c_def usubst assms)
-  also have "... = (R1(R2c((pre\<^sub>R(P)) \<Rightarrow> ($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))) \<and> $ok \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> R2c(pre\<^sub>R(P)))"
+  also have "... = (R1(R2c((pre\<^sub>R(P)) \<Rightarrow> ($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))) \<and> $ok \<and> $ok\<acute> \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> R2c(pre\<^sub>R(P)))"
     by (metis (no_types, hide_lams) R1_R2c_commute R1_R2c_is_R2 R2_neg_pre_SRD R2c_idem R2c_not assms(1) utp_pred.double_compl)
-  also have "... = (R1(R2c(($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))) \<and> $ok \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> R2c(pre\<^sub>R(P)))"
+  also have "... = (R1(R2c(($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))) \<and> $ok \<and> $ok\<acute> \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> R2c(pre\<^sub>R(P)))"
     by (rel_auto)
-  also have "... = (R1(R2c(($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))) \<and> $ok \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P))"      
+  also have "... = (R1(R2c(($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))) \<and> $ok \<and> $ok\<acute> \<and> \<not>$wait \<and> \<not>$wait\<acute> \<and> pre\<^sub>R(P))"      
     by (metis (no_types, hide_lams) R1_R2c_commute R1_R2c_is_R2 R2_neg_pre_SRD R2c_idem R2c_not assms(1) utp_pred.double_compl)      
   also have "(... \<Rightarrow> $tr\<acute> >\<^sub>u $tr) = true"
     apply (rel_simp) using le_imp_less_or_eq by force
