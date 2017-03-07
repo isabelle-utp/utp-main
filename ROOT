@@ -41,8 +41,8 @@ session "HOL-Algebra2" (main timing) in "contrib/Algebra" = HOL +
 
 session "Optics" in "lenses"
   = (* "HOL-Algebra2" *) "HOL" +
-  options [timeout = 300]
-  theories
+  options [document = pdf, document_output = "output", timeout = 300]
+  theories 
     Interp
     Two
     Lens_Laws
@@ -50,7 +50,12 @@ session "Optics" in "lenses"
     Lens_Order
     Lens_Instances
     Lenses
-
+  document_files 
+    "root.bib" 
+    "root.tex" 
+    "document.sty"
+    "figures/Lens.pdf"
+    
 (* Continuum Universe *)
 
 session "Continuum" in "continuum" = "HOL-Cardinals" +

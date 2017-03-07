@@ -14,10 +14,28 @@ record ('a, 'b) lens =
 type_notation
   lens (infixr "\<Longrightarrow>" 0)
 
+text {*   
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=3.5cm]{figures/Lens}
+  \end{center}
+  \vspace{-5ex}
+  \caption{Visualisation of a simple lens}
+  \label{fig:Lens}
+  \end{figure}
+
+  A lens $X : \view \lto \src$, for source type $\src$ and view type $\view$, identifies 
+  $\view$ with a subregion of $\src$~\cite{Foster07,Foster09}, as illustrated in Figure~\ref{fig:Lens}. The arrow denotes 
+  $X$ and the hatched area denotes the subregion $\view$ it characterises. Transformations on 
+  $\view$ can be performed without affecting the parts of $\src$ outside the hatched area. The lens 
+  signature consists of a pair of functions $\lget_X : \src \Rightarrow \view$ that extracts a view 
+  from a source, and $\lput_X : \src \Rightarrow \view \Rightarrow \src$ that updates a view within 
+  a given source. *}
+  
 named_theorems lens_defs
 
 definition lens_create :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ("create\<index>") where
-[lens_defs]: "lens_create X v = lens_put X undefined v"
+[lens_defs]: "create\<^bsub>X\<^esub> v = put\<^bsub>X\<^esub> undefined v"
 
 subsection {* Weak lenses *}
 
