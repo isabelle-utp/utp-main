@@ -315,8 +315,17 @@ abbreviation falser :: "'\<alpha> hrel" ("false\<^sub>h") where
 lemma drop_pre_inv [simp]: "\<lbrakk> out\<alpha> \<sharp> p \<rbrakk> \<Longrightarrow> \<lceil>\<lfloor>p\<rfloor>\<^sub><\<rceil>\<^sub>< = p"
   by (pred_simp, auto simp add: out\<alpha>_def lens_create_def fst_lens_def prod.case_eq_if)
 
-definition while :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while _ do _ od") where
-"while b do P od = (\<nu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
+text {* We define two variants of while loops based on strongest and weakest fixed points. Only
+  the latter properly accounts for infinite behaviours. *}
+    
+definition while :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while\<^sup>\<top> _ do _ od") where
+"while\<^sup>\<top> b do P od = (\<nu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
+
+abbreviation while_top :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while _ do _ od") where
+"while b do P od \<equiv> while\<^sup>\<top> b do P od"
+
+definition while_bot :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while\<^sub>\<bottom> _ do _ od") where
+"while\<^sub>\<bottom> b do P od = (\<mu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
 
 declare while_def [urel_defs]
 
@@ -778,7 +787,7 @@ lemma antiframe_to_frame:
   by (rel_auto, metis lens_indep_def, metis lens_indep_def surj_pair)
 
 text {* While loop laws *}
-
+  
 theorem while_unfold:
   "while b do P od = ((P ;; while b do P od) \<triangleleft> b \<triangleright>\<^sub>r II)"
 proof -
@@ -793,6 +802,47 @@ proof -
   finally show ?thesis .
 qed
 
+theorem while_false: "while false do P od = II"
+  by (subst while_unfold, simp add: aext_false)
+  
+theorem while_true: "while true do P od = false"
+  apply (simp add: while_def alpha)
+  apply (rule antisym)
+  apply (simp_all)
+  apply (rule lfp_lowerbound)
+  apply (simp)
+done
+    
+theorem while_bot_unfold: 
+  "while\<^sub>\<bottom> b do P od = ((P ;; while\<^sub>\<bottom> b do P od) \<triangleleft> b \<triangleright>\<^sub>r II)"
+proof -
+  have m:"mono (\<lambda>X. (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
+    by (auto intro: monoI seqr_mono cond_mono)
+  have "(while\<^sub>\<bottom> b do P od) = (\<mu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
+    by (simp add: while_bot_def)
+  also have "... = ((P ;; (\<mu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)) \<triangleleft> b \<triangleright>\<^sub>r II)"
+    by (subst gfp_unfold, simp_all add: m)
+  also have "... = ((P ;; while\<^sub>\<bottom> b do P od) \<triangleleft> b \<triangleright>\<^sub>r II)"
+    by (simp add: while_bot_def)
+  finally show ?thesis .
+qed
+  
+theorem while_bot_false: "while\<^sub>\<bottom> false do P od = II"
+  by (simp add: while_bot_def mu_const alpha)
+
+theorem while_bot_true: "while\<^sub>\<bottom> true do P od = (\<mu> X \<bullet> P ;; X)"
+  by (simp add: while_bot_def alpha)
+  
+text {* An infinite loop with a feasible body corresponds to a program error (non-termination). *}
+    
+theorem while_infinite: "P ;; true\<^sub>h = true \<Longrightarrow> while\<^sub>\<bottom> true do P od = true"
+  apply (simp add: while_bot_true)
+  apply (rule antisym)
+  apply (simp)
+  apply (rule gfp_upperbound) 
+  apply (simp)
+done
+    
 subsection {* Relational unrestriction *}
 
 text {* Relational unrestriction states that a variable is unchanged by a relation. Eventually
