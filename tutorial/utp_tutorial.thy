@@ -6,9 +6,9 @@ theory utp_tutorial
 begin
 (*>*)
 
-text {* In this section we will introduce Hoare and He's \emph{Unifying Theories of Programming} through
-  a tutorial about our mechanisation, in Isabelle, called Isabelle/UTP~\cite{Foster16a}. The UTP is a framework for building and reasoning
-  about heterogeneous semantics of programming and modelling languages. One of the core ideas of the UTP
+text {* In this section we will introduce Hoare and He's \emph{Unifying Theories of Programming}~\cite{Hoare&98} through
+  a tutorial about our mechanisation, in Isabelle, called Isabelle/UTP~\cite{Foster16a,Feliachi2010,Zeyda16}. The UTP 
+  is a framework for building and reasoning about heterogeneous semantics of programming and modelling languages. One of the core ideas of the UTP
   is that any program (or model) can be represented as a logical predicate over the program's state
   variables. The UTP thus begins from a higher-order logical core, and constructs a semantics for
   imperative relational programs, which can then be refined and extended with more complex language
@@ -20,14 +20,14 @@ lemma "(true \<and> false) = false"
 
 text {* We discharge this using our predicate calculus tactic, \emph{pred-auto}. It should be noted
   that @{term true}, @{term false}, and the conjunction operator are not simply the HOL operators;
-  rather they act on on our UTP predicate type. *}
+  rather they act on on our UTP predicate type (@{typ "'\<alpha> upred"}). *}
 
 subsection {* State-spaces and lenses *}
 
 text {* Predicates in the UTP are alphabetised, meaning they specify beheaviours
   in terms of a collection of variables, the alphabet, which effectively gives a state-space for
   a particular program. Thus the type of UTP predicates @{typ "'\<alpha> upred"} is parametric in the alphabet
-  @{typ "'\<alpha>"}. In Isabelle/UTP we can create a particular state-space with the alphabet command: *}
+  @{typ "'\<alpha>"}. In Isabelle/UTP we can create a particular state-space with the \textbf{alphabet} command: *}
 
 alphabet myst =
   x :: "int"
@@ -38,31 +38,40 @@ text {* This command creates an alphabet with three variables, $x$, $y$, and $z$
   has a defined type. A new Isabelle type is created, @{typ myst}, which can be then used
   as the parameter for our predicate model, e.g. @{typ "myst upred"}.
   In the context of our mechanisation, such variables are
-  represented using \emph{lenses}. A lens, $X : V \Longrightarrow S$, is a pair of functions,
-  $get :: V \to S$ and $put : S \to V \to S$, where $S$ is the source type, and $V$ is the view type.
-  The source type represents a larger type, and view type a particular region of the source that
-  can be observed and manipulated independently of
-  the rest of the source. In Isabelle/UTP, the source type is the state space, and the view type is
+  represented using \emph{lenses}~\cite{Foster16a,Foster09}. A lens, $X : V \Longrightarrow S$, 
+  is a pair of functions, $get :: V \to S$ and $put : S \to V \to S$, where $S$ is the source type, 
+  and $V$ is the view type. The source type represents a ``larger'' type that can in some sense be 
+  subdivided, and the view type a particular region of the source that can be observed and 
+  manipulated independently of the rest of the source. 
+
+  In Isabelle/UTP, the source type is the state space, and the view type is
   the variable type. For instance, we here have that @{term "x"} has type @{typ "int \<Longrightarrow> myst"}
-  and @{term "z"} has type @{typ "int set \<Longrightarrow> myst"}. Since the different variable characterise
-  different regions of the state space we can distinguish them using the independence predicate
-  @{term "x \<bowtie> z"}. In this case we can prove that the two variables are different using the simplifier: *}
+  and @{term "z"} has type @{typ "int set \<Longrightarrow> myst"}. Thus, performing an assignment to $x$ equates
+  to application of the $put$ function, and looking up the present valuation is application of the
+  $get$ function.
+
+  Since the different variable characterise different regions of the state space we can distinguish 
+  them using the independence predicate @{term "x \<bowtie> z"}. Two lenses are independent if they characterise
+  disjoint regions of the source type. In this case we can prove that the two variables are different 
+  using the simplifier: *}
 
 lemma "x \<bowtie> z"
   by simp
 
 text {* However, we cannot prove, for example, that @{term "x \<bowtie> x"} of course since the same region
-  of the state-space is characterised by both. *}
+  of the state-space is characterised by both. Lenses thus provide us with a semantic characterisation
+  of variables, rather than a syntactic notion. For more background on this use of lenses please see
+  our recent paper~\cite{Foster16a}. *}
 
 subsection {* Predicate calculus *}
 
-  text {* We can now use these variables to define predicates
+text {* We can now use this characterisation of variables to define predicates
   in Isabelle/UTP, for example @{term "&x >\<^sub>u &y"}, which corresponds to all valuations of the state-space
-  in which $x$ is greater than $y$. Often we have to annotate our variable to help Isabelle understand
+  in which $x$ is greater than $y$. Often we have to annotate our variables to help Isabelle understand
   that we are referring to UTP variables, and not, for example, HOL logical variables. In this case we
-  have to decorate with an ampersand. Moreover, we often have to annotate operators with $u$ subscripts
-  to denote that they refer to the UTP version of the operator, and not the HOL version. We can now
-  write down and prove a simple proof goal: *}
+  have to decorate the names with an ampersand. Moreover, we often have to annotate operators with 
+  $u$ subscripts to denote that they refer to the UTP version of the operator, and not the HOL version. 
+  We can now write down and prove a simple proof goal: *}
 
 lemma "`(&x =\<^sub>u 8 \<and> &y =\<^sub>u 5) \<Rightarrow> &x >\<^sub>u &y`"
   by (pred_auto)
@@ -85,7 +94,7 @@ lemma "(\<forall> x \<bullet> &x >\<^sub>u &y) = false"
 
 text {* The first goal states that for any given valuation of $y$ there is a valuation of $x$ which
   is greater. Predicate calculus alone is insufficient to prove this and so we can also use Isabelle's
-  \emph{sledgehammer} tool which attempts to solve the goal using an array of automated theorem provers
+  \emph{sledgehammer} tool~\cite{Blanchette2011} which attempts to solve the goal using an array of automated theorem provers
   and SMT solvers. In this case it finds that Isabelle's tactic for Presburger arithmetic can solve the
   goal. In this second case we have a goal which states that every valuation of $x$ is greater than
   a given valuation of $y$. Of course, this isn't the case and so we can prove the goal is equivalent
@@ -95,7 +104,7 @@ subsection {* Meta-logical operators *}
 
 text {* In addition to predicate calculus operators, we also often need to assert meta-logical
   properties about a predicate, such as ``variable $x$ is not present in predicate $P$''. In Isabelle/UTP
-  we assert this property using the unrestriction operator, e.g. @{term "x \<sharp> true"}. Here are some
+  we assert this property using the \emph{unrestriction} operator, e.g. @{term "x \<sharp> true"}. Here are some
   examples of its use, including discharge using our tactic \emph{unrest-tac}. *}
 
 lemma "x \<sharp> true"
@@ -108,7 +117,8 @@ lemma "x \<sharp> (\<forall> x \<bullet> &x =\<^sub>u &y)"
   by (unrest_tac)
 
 text {* The tactic attempts to prove the unrestriction using a set of built-in unrestriction laws
-  that exist for every operator of the calculus. The final example is interesting, because it shows we are not dealing with a syntactic
+  that exist for every operator of the calculus. The final example is interesting, because it shows we are 
+  not dealing with a syntactic
   property but rather a semantic one. Typically one would describe the (non-)presence of variables
   syntactically, by checking if the syntax tree of $P$ refers to $x$. In this case we are actually
   checking whether the valuation of $P$ depends on $x$ or not not. In other words, if we can rewrite
@@ -151,8 +161,8 @@ done
 
 text {* So far, we have considered UTP predicates which contain only UTP variables. However it is
   possible to have another kind of variable -- a logical HOL variable which is sometimes known
-  as a ``logical constant''. Such variables are not program or model variables, but they simply
-  exist to assert logical properties of a predicate. The next two examples compare UTP and HOL
+  as a ``logical constant''~\cite{Morgan90}. Such variables are not program or model variables, 
+  but they simply exist to assert logical properties of a predicate. The next two examples compare UTP and HOL
   variables in a quantification. *}
 
 lemma "(\<forall> x \<bullet> &x =\<^sub>u &x) = true"
@@ -180,7 +190,7 @@ text {* Type @{typ "'\<alpha> hrel"} is the type of homogeneous relations, which
   $x$ to $1$ and leaves the other two variables unchanged. We would normally refer to this as
   an assignment of course, and for convenience we can write such a predicate using a more
   convenient syntax, @{term "x := 1"}, which is equivalent: *}
-
+  
 lemma "(x := 1) = (($x\<acute> =\<^sub>u 1 \<and> $y\<acute> =\<^sub>u $y \<and> $z\<acute> =\<^sub>u $z) :: myst hrel)"
   by (rel_auto)
 
@@ -230,7 +240,7 @@ lemma "(x := 1 ;; (y := 7 \<triangleleft> $x >\<^sub>u 0 \<triangleright> y := 8
 
 term "(x,y := 3,1;; while &x >\<^sub>u 0 do x := &x - 1;; y := &y * 2 od)"
   
-subsection {* Nondetermism and Complete Lattices *}
+subsection {* Non-determinism and Complete Lattices *}
   
 text {* So far we have considered only deterministic programming operators. However, one of the
   key feature of the UTP is that it allows non-deterministic specifications. Determinism is
@@ -246,7 +256,9 @@ theorem false_greatest: "P \<sqsubseteq> false"
 theorem true_least: "true \<sqsubseteq> P"
   by (rel_auto)
   
-text {* We can similarly specify a non-deterministic choice between $P$ and $Q$ with 
+text {* In this context @{term true} corresponds to a programmer error, such as an aborting or
+  non-terminating program (the theory of relations does not distinguish these). We can similarly 
+  specify a non-deterministic choice between $P$ and $Q$ with 
   @{term "P \<sqinter> Q"}, or alternatively @{term "\<Sqinter> A"} where $A$ is a set of possible behaviours.
   Predicate @{term "P \<sqinter> Q"} encapsulates the behaviours of both $P$ and $Q$, and is thus 
   refined by both. We can also prove a variety of theorems about non-deterministic choice. *}
@@ -263,24 +275,57 @@ theorem Choice_refine:
   by (simp add: Sup_subset_mono assms)
     
 text {* The intuition of theorem @{thm [source] Choice_refine} is that a specification with more
-  options is refined by one with less options. *}
+  options is refined by one with less options. We can also prove a number of theorems about
+  the binary version of the operator. *}
     
 theorem choice_thms:
   fixes P Q :: "'\<alpha> upred"
   shows 
     "P \<sqinter> P = P"
     "P \<sqinter> Q = Q \<sqinter> P"
+    "(P \<sqinter> Q) \<sqinter> R = P \<sqinter> (Q \<sqinter> R)"
     "P \<sqinter> true = true"
     "P \<sqinter> false = P"
     "P \<sqinter> Q \<sqsubseteq> P"
-  by (simp_all add: lattice_class.inf_sup_aci(5) true_upred_def false_upred_def)
+  by (simp_all add: lattice_class.inf_sup_aci true_upred_def false_upred_def)
+    
+text {* Non-deterministic choice is idempotent, meaning that a choice between $P$ and $P$ is no choice. It
+  is also commutative and associative. If we make a choice between @{term "P"} and @{term "true"} then
+  the erroneous behaviour signified by the latter is always chosen. Thus our operator is a so-called 
+  ``demonic choice'' since the worst possibility is always picked. Similarly, if a choice is made between
+  @{term "P"} and a miracle (@{term "false"}) then @{term "P"} is always chosen in order to avoid miracles. 
+  Finally, the choice between @{term "P"} and @{term "Q"} can always be refined by removing one of the
+  possibilities. 
+
+  Since predicates form a complete lattice, then by the Knaster-Tarski theorem the set of fixed points
+  of a monotone function @{term "F"} is also a complete lattice. In particular, this complete lattice
+  has a weakest and strongest element which can be calculated using the notations @{term "\<mu> X \<bullet> F(X)"}
+  and @{term "\<nu> X \<bullet> F(X)"}, respectively. Such fixed point constructions are of particular use for
+  expressing recursive and iterative constructions. Isabelle/HOL provides a number of laws for reasoning
+  about fixed points, a few of which are detailed below.
+*}
+  
+theorem mu_id: "(\<mu> X \<bullet> X) = true"
+  by (simp add: mu_id)
+
+theorem nu_id: "(\<nu> X \<bullet> X) = false"
+  by (simp add: nu_id)
+
+theorem mu_unfold: "mono F \<Longrightarrow> (\<mu> X \<bullet> F(X)) = F(\<mu> X \<bullet> F(X))"
+  by (simp add: def_gfp_unfold)
+
+theorem nu_unfold: "mono F \<Longrightarrow> (\<nu> X \<bullet> F(X)) = F(\<nu> X \<bullet> F(X))"
+  by (simp add: def_lfp_unfold)
+
+text {* Perhaps of most interest are the unfold laws, also known as the ``copy rule'', that allows
+  the function body $F$ of the fixed point equation to be expanded once. *}
     
 subsection {* Laws of programming *}
 
 text {* Although we have some primitive tactics for proving conjectures in the predicate and relational
   calculi, in order to build verification tools for programs we need a set of algebraic ``laws of
-  programming'' that describe important theoretical properties of the operators. Isabelle/UTP contains
-  several hundred examples of such laws, and we here outline a few of them. *}
+  programming''~\cite{Hoare87} that describe important theoretical properties of the operators. 
+  Isabelle/UTP contains several hundred examples of such laws, and we here outline a few of them. *}
 
 theorem seq_assoc: "(P ;; Q) ;; R = P ;; (Q ;; R)"
   by (rel_auto)
@@ -322,23 +367,7 @@ theorem cond_shadow: "(P \<triangleleft> b \<triangleright> Q) \<triangleleft> b
 text {* A conditional with @{term true} or @{term false} as its condition presents no choice.
   A conditional can also be commuted by negating the condition. Finally, a conditional within
   a conditional over the same condition, @{term b}, presents and unreachable branch. Thus the
-  inner branch can be pruned away.
-
-  In addition to deterministic constructs like the conditional @{term "P \<triangleleft> b \<triangleright> Q"}, we can
-  also write non-deterministic specification in UTP, such as @{term "P \<sqinter> Q"} which effectively
-  non-deterministically selects between the behaviours of @{term "P"} and the behaviours of @{term "Q"}.
-  This also enable use to understand more about the meaning of refinement. *}
-
-theorem non_det_refine:
-  fixes P Q :: "'\<alpha> upred"
-  shows "P \<sqinter> Q \<sqsubseteq> P"
-  by (rel_auto)
-
-text {* A specification $Q$ refines $P$ if $Q$ is more deterministic than $P$ -- that is, it
-  offers less options. This is the intuition behind theorem @{thm [source] non_det_refine} which
-  states that we can refine by removing non-determinism.
-
-  We next prove some useful laws about assignment: *}
+  inner branch can be pruned away. We next prove some useful laws about assignment: *}
 
 theorem assign_commute:
   assumes "x \<bowtie> y" "y \<sharp> e" "x \<sharp> f"
@@ -358,22 +387,67 @@ text {* Assignments can commute provided that the two variables are independent,
   being assigned do not depend on the variable of the other assignment. A sequence of assignments
   to the same variable is equal to the second assignment, provided that the two expressions are
   both literals, i.e. @{term "\<guillemotleft>e\<guillemotright>"}. Finally, in a multiple assignment, if one of the variables
-  is assigned to itself then this can be hidden, provided the two variables are independent. We next
-  prove some laws about iteration. *}
+  is assigned to itself then this can be hidden, provided the two variables are independent. 
 
-theorem while_false: "while false do P od = II"
-  by (metis aext_false cond_unit_F while_unfold)
+  Since alphabetised relations form a complete lattice, we can denote iterative constructions like
+  the while loop which is defined as @{term "while\<^sub>\<bottom> b do P od = (\<mu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"}. We can
+  then prove some common laws about iteration. *}
 
-text {* UTP relations possess a number of important theoretical properties. Notably, UTP relations
-  form a complete lattice; indeed the while loop we described above is defined using the
-   fixed-point. *}
+theorem while_false: "while\<^sub>\<bottom> false do P od = II"
+  by (simp add: while_bot_false)
 
+theorem while_unfold: "while\<^sub>\<bottom> b do P od = (P ;; while\<^sub>\<bottom> b do P od) \<triangleleft> b \<triangleright>\<^sub>r II"
+  using while_bot_unfold by blast
+    
+text {* As we have seen, the predicate @{term "true"} represents the erroneous program. For loops, we
+  have it that a non-terminating program equates to @{term true}, as the following example demonstrates. *}
+  
+lemma "while\<^sub>\<bottom> true do x := &x + 1 od = true"
+  by (simp add: assigns_r_feasible while_infinite)
+    
+text {* A program should not be able to recover from non-termination, of course, and therefore it 
+  ought to be the case that @{term true} is a left zero for sequential composition: 
+  @{term "true ;; P = true"}. However this is not the case as the following examples illustrate: *}
+  
+lemma "true ;; P = true"
+  apply (rel_simp)
+  nitpick -- {* Counterexample found *}
+oops
+    
+lemma "(true ;; x,y,z := \<guillemotleft>c\<^sub>1\<guillemotright>,\<guillemotleft>c\<^sub>2\<guillemotright>,\<guillemotleft>c\<^sub>3\<guillemotright>) = ((x,y,z := \<guillemotleft>c\<^sub>1\<guillemotright>,\<guillemotleft>c\<^sub>2\<guillemotright>,\<guillemotleft>c\<^sub>3\<guillemotright>) :: myst hrel)"
+  by (rel_auto)
+  
+text {* The latter gives an example of a relation for which @{term true} is actually a left unit
+  rather than a left zero. The assignment @{term "x,y,z := \<guillemotleft>c\<^sub>1\<guillemotright>,\<guillemotleft>c\<^sub>2\<guillemotright>,\<guillemotleft>c\<^sub>3\<guillemotright>"} does not depend
+  on any before variables, and thus it is insensitive to a non-terminating program preceding it. 
+  Thus we can see that the theory of relations alone is insufficient to handle non-termination. *}
+    
 subsection {* Designs *}
   
-text {* Though we now have a theory of UTP relations with which can from simple programs, this 
-  theory experiences some problems. A UTP design, @{term "P \<turnstile> Q"}, is a relational specification 
+text {* Though we now have a theory of UTP relations with which can form simple programs, as we have seen
+  this theory experiences some problems. A UTP design, @{term "P \<turnstile>\<^sub>r Q"}, is a relational specification 
   in terms of assumption $P$ and commitment $Q$. Such a construction states that, if $P$ holds and 
-  the program is allowed to execute, then the program will terminate and satisfy its commitment $Q$. *}
+  the program is allowed to execute, then the program will terminate and satisfy its commitment $Q$. If
+  $P$ is not satisfied then the program will abort yielding the predicate @{term true}. For example the design 
+  @{term "($x \<noteq>\<^sub>u 0) \<turnstile>\<^sub>r (y := &y div &x)"} represents a program which, assuming that $x \neq 0$ assigns
+  $y$ divided by $x$ to $y.
+*} 
+  
+lemma dex1: "true \<turnstile>\<^sub>r x,y := 2,6 ;; ($x \<noteq>\<^sub>u 0) \<turnstile>\<^sub>r y := &y div &x = true \<turnstile>\<^sub>r x,y := 2,3"
+  by (rel_auto, fastforce+)
+    
+lemma dex2: "true \<turnstile>\<^sub>r x,y := 0,4 ;; ($x \<noteq>\<^sub>u 0) \<turnstile>\<^sub>r y := &y div &x = true"
+  by (rel_blast)
+  
+text {* The first example shows the result of pre-composing this design with another design that
+  has a @{term true} assumption, and assigns 2 and 6 to $x$ and $y$ respectively. Since $x$ satisfies
+  $x \neq 0$, then the design executes and changes $y$ to $3$. In the second example 0 is assigned to $x$,
+  which leads to the design aborting. Unlike with relations, designs do have @{term true} as a left zero: *}
+
+theorem design_left_zero: "true ;; (P \<turnstile>\<^sub>r Q) = true"
+  by (simp add: H1_left_zero H1_rdesign Healthy_def)
+  
+subsection {* Reactive Designs *}
   
 (*<*)
 end

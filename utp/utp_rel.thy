@@ -662,6 +662,10 @@ theorem precond_left_zero:
   apply (auto)
 done
 
+theorem feasibile_iff_true_right_zero:
+  "P ;; true = true \<longleftrightarrow> `\<exists> out\<alpha> \<bullet> P`"
+  by (rel_auto)
+  
 subsection {* Converse laws *}
 
 lemma convr_invol [simp]: "p\<^sup>-\<^sup>- = p"
