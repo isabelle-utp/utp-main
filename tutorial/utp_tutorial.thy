@@ -430,7 +430,7 @@ text {* Though we now have a theory of UTP relations with which can form simple 
   the program is allowed to execute, then the program will terminate and satisfy its commitment $Q$. If
   $P$ is not satisfied then the program will abort yielding the predicate @{term true}. For example the design 
   @{term "($x \<noteq>\<^sub>u 0) \<turnstile>\<^sub>r (y := &y div &x)"} represents a program which, assuming that $x \neq 0$ assigns
-  $y$ divided by $x$ to $y.
+  $y$ divided by $x$ to $y$.
 *} 
   
 lemma dex1: "true \<turnstile>\<^sub>r x,y := 2,6 ;; ($x \<noteq>\<^sub>u 0) \<turnstile>\<^sub>r y := &y div &x = true \<turnstile>\<^sub>r x,y := 2,3"
@@ -446,9 +446,37 @@ text {* The first example shows the result of pre-composing this design with ano
 
 theorem design_left_zero: "true ;; (P \<turnstile>\<^sub>r Q) = true"
   by (simp add: H1_left_zero H1_rdesign Healthy_def)
-  
+    
+text {* Thus designs allow us to properly handle programmer error, such as non-termination.
+
+  The design turnstile is defined using two observational variables $ok, ok' : \mathbb{B}$, 
+  which are used to represent whether a program has been started ($ok$) and whether it has
+  terminated ($ok'$). Specifically, a design @{term "P \<turnstile> Q"} is defined as 
+  $(ok \wedge P) \Rightarrow (ok' \wedge Q)$. This means that if the program was started ($ok$) and
+  satisfied its assumption ($P$), then it will terminate ($ok'$) and satisfy its commitment ($Q$).
+  For more on the theory of designs please see the associated tutorial~\cite{Cavalcanti&06}. *}
+    
 subsection {* Reactive Designs *}
   
+text {* A reactive design, @{term "\<^bold>R\<^sub>s(P \<turnstile> Q)"}, is a specialised form of design which is reactive
+  in nature. Whereas designs represents programs that start and terminate, reactive designs also
+  have intermediate ``waiting'' states. In such a state the reactive design is waiting for something
+  external to occur before it can continue, such as receiving a message or waiting for sufficient time 
+  to pass as measured by a clock. When waiting, a reactive design has not terminated, but neither is 
+  it an infinite loop or some other error state.
+
+  Reactive designs have two additional pair of observational variables:
+
+  \begin{itemize}
+    \item $wait, wait' : \mathbb{B}$ -- denote whether the predecessor is in a waiting state, and
+      whether the current program is a waiting state;
+    \item $tr, tr' : \mathcal{T}$ -- denotes the interaction history using a suitable trace type
+      $\mathcal{T}$.
+ \end{itemize}
+
+ For more details on reactive designs please see the associated tutorial~\cite{Cavalcanti&06}.
+
+*}
 (*<*)
 end
 (*>*)
