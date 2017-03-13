@@ -156,13 +156,16 @@ instance
   by (intro_classes) (transfer, auto)+
 end
 
+instance uexpr :: (distrib_lattice, type) distrib_lattice
+  by (intro_classes) (transfer, rule ext, auto simp add: sup_inf_distrib1)
+
 text {* Finally we show that predicates form a Boolean algebra (under the lattice operators). *}
 
 instance uexpr :: (boolean_algebra, type) boolean_algebra
 apply (intro_classes, unfold uexpr_defs; transfer, rule ext)
 apply (simp_all add: sup_inf_distrib1 diff_eq)
 done
-
+    
 instantiation uexpr :: (complete_lattice, type) complete_lattice
 begin
   lift_definition Inf_uexpr :: "('a, 'b) uexpr set \<Rightarrow> ('a, 'b) uexpr"
@@ -182,6 +185,16 @@ translations
   "\<nu> X \<bullet> P" == "CONST lfp (\<lambda> X. P)"
   "\<mu> X \<bullet> P" == "CONST gfp (\<lambda> X. P)"
 
+instance uexpr :: (complete_distrib_lattice, type) complete_distrib_lattice
+  apply (intro_classes)
+  apply (transfer, rule ext, auto)
+  using sup_INF apply fastforce
+  apply (transfer, rule ext, auto)
+  using inf_SUP apply fastforce
+done
+
+instance uexpr :: (complete_boolean_algebra, type) complete_boolean_algebra ..
+  
 text {* With the lattice operators defined, we can proceed to give definitions for the
         standard predicate operators in terms of them. *}
 
@@ -191,6 +204,12 @@ definition "conj_upred  = (inf :: '\<alpha> upred \<Rightarrow> '\<alpha> upred 
 definition "disj_upred  = (sup :: '\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred)"
 definition "not_upred   = (uminus :: '\<alpha> upred \<Rightarrow> '\<alpha> upred)"
 definition "diff_upred  = (minus :: '\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred)"
+
+abbreviation Conj_upred :: "'\<alpha> upred set \<Rightarrow> '\<alpha> upred" ("\<And>_" [900] 900) where
+"\<And> A \<equiv> \<Squnion> A"
+
+abbreviation Disj_upred :: "'\<alpha> upred set \<Rightarrow> '\<alpha> upred" ("\<Or>_" [900] 900) where
+"\<Or> A \<equiv> \<Sqinter> A"
 
 notation
   conj_upred (infixr "\<and>\<^sub>p" 35) and
@@ -976,4 +995,5 @@ lemma shEx_lift_conj_1 [uquant_lift]:
 lemma shEx_lift_conj_2 [uquant_lift]:
   "(P \<and> (\<^bold>\<exists> x \<bullet> Q(x))) = (\<^bold>\<exists> x \<bullet> P \<and> Q(x))"
   by (pred_auto)
+
 end
