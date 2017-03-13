@@ -1,9 +1,11 @@
-section {* Piecewise continuous and convergent functions *}
+section {* Timed Traces *}
 
 theory Timed_Traces
 imports Contiguous_Functions
 begin
 
+subsection {* Piecewise continuity *}
+  
 text {* With the foundation of contiguous functions established, we can now proceed to define
   piecewise continuous and convergent functions. We begin with a locale that gives the necessary
   invariants on a piecewise continuous function. *}
@@ -98,8 +100,24 @@ definition piecewise_convergent :: "'a::topological_space cgf \<Rightarrow> bool
 "piecewise_convergent f = (\<exists> I. pc_cvg_interval I f)"
 
 text {* Functions are respectively piecewise continuous or convergent, if there exists an $I$
-  that characterises the piecewise segments. We next prove some continuity properties 
-  about transformed functions. *}
+  that characterises the piecewise segments.  *}
+
+lemma piecewise_continuous_empty [simp]: "piecewise_continuous []\<^sub>C"
+  by (auto simp add: piecewise_continuous_def, rule_tac x="[0]" in exI, 
+      simp add: pc_interval_def cgf_end_empty)
+
+lemma piecewise_convergent_empty [simp]: "piecewise_convergent []\<^sub>C"
+   by (auto simp add: piecewise_convergent_def, rule_tac x="[0]" in exI, 
+       simp add: pc_interval_def pc_cvg_interval_def pc_cvg_interval_axioms_def cgf_end_empty)
+
+text {* Empty contiguous functions are both piecewise continuous and piecewise convergent. *}
+  
+subsection {* Concatenation of piecewise continuous functions *}
+
+text {* A major result of this theory is to show that the a piecewise continuous function can always
+  be decomposed into two piecewise continuous functions with the help of concatenation operator.
+  This requires a lot of lemmas and theorems which we will develop in this section. We first prove 
+  some continuity properties about transformed functions. *}
 
 lemma continuous_on_linear: 
   fixes A :: "real set"
@@ -168,16 +186,6 @@ qed
 
 text {* These previous three theorems show that if the concatenation of two contiguous functions is continuous,
   then the functions themselves must also be continuous. *}
-
-lemma piecewise_continuous_empty [simp]: "piecewise_continuous []\<^sub>C"
-  by (auto simp add: piecewise_continuous_def, rule_tac x="[0]" in exI, 
-      simp add: pc_interval_def cgf_end_empty)
-
-lemma piecewise_convergent_empty [simp]: "piecewise_convergent []\<^sub>C"
-   by (auto simp add: piecewise_convergent_def, rule_tac x="[0]" in exI, 
-       simp add: pc_interval_def pc_cvg_interval_def pc_cvg_interval_axioms_def cgf_end_empty)
-
-text {* Empty contiguous functions are both piecewise continuous and piecewise convergent. *}
 
 definition "left_pc_interval n I = (takeWhile (\<lambda> x. x < n) I) @ [n]"
 
@@ -824,7 +832,7 @@ lemma piecewise_convergent_cat_iff:
   using piecewise_convergent_cat piecewise_convergent_cat_left piecewise_convergent_cat_right 
   by blast
 
-subsection {* Timed traces *}
+subsection {* Timed trace type *}
 
 text {* Finally, having proved the important closure properties for piecewise continuous and convergent
   functions we can now create our type of timed traces, which are piecewise convergent functions. *}
