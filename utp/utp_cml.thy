@@ -73,12 +73,18 @@ translations
 abbreviation CML :: "(('\<sigma>, '\<phi>) st_cml \<times> ('\<sigma>, '\<phi>) st_cml) health"
 where "CML \<equiv> SRD"
   
+abbreviation Skip :: "('\<sigma>,'\<theta>) cmlact" where
+"Skip \<equiv> II\<^sub>R"
+
+abbreviation Assigns :: "'\<sigma> usubst \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" ("\<langle>_\<rangle>\<^sub>C") where
+"Assigns \<sigma> \<equiv> \<langle>\<sigma>\<rangle>\<^sub>R"
+
 definition Stop :: "('\<sigma>,'\<theta>) cmlact" where
 [upred_defs]: "Stop = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle>) \<diamondop> false)"
 
-definition Prefix :: "('\<theta>, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where
+definition DoCML :: "('\<theta>, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where
   [upred_defs]:
-  "Prefix a = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u refusals\<^sub>u(tt))
+  "DoCML a = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u refusals\<^sub>u(tt))
                       \<diamondop> (tt =\<^sub>u idleprefix\<^sub>u(tt) ^\<^sub>u \<langle>ev\<^sub>u(\<lceil>a\<rceil>\<^sub>S\<^sub><)\<rangle>
                          \<and> $st\<acute> =\<^sub>u $st \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u refusals\<^sub>u(tt)))"
 
@@ -91,7 +97,10 @@ definition Wait :: "(nat, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>,'\<theta>) c
 lemma length_list_minus [simp]: "ys \<le> xs \<Longrightarrow> length(xs - ys) = length(xs) - length(ys)"
   by (auto simp add: minus_list_def less_eq_list_def)
     
-lemma Wait_0: "Wait 0 = II\<^sub>R"
+lemma Skip_def: "Skip = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st))"
+  by (rel_auto)
+    
+lemma Wait_0: "Wait 0 = Skip"
 proof -
   have "Wait 0 = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> 0 >\<^sub>u #\<^sub>u(tt)) \<diamondop> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u 0 \<and> $st\<acute> =\<^sub>u $st))"
     (is "?lhs = \<^bold>R\<^sub>s(?P \<turnstile> ?Q \<diamondop> ?R)")
@@ -105,7 +114,7 @@ proof -
     show ?thesis
       by (metis (no_types, lifting) "1" "2" RHS_design_post_R1)
   qed
-  also have "... = II\<^sub>R"
+  also have "... = Skip"
     by (rel_auto)
   finally show ?thesis .
 qed

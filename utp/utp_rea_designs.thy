@@ -32,6 +32,12 @@ where "\<lceil>P\<rceil>\<^sub>S \<equiv> P \<oplus>\<^sub>p (st \<times>\<^sub>
 
 abbreviation lift_state_pre ("\<lceil>_\<rceil>\<^sub>S\<^sub><")
 where "\<lceil>p\<rceil>\<^sub>S\<^sub>< \<equiv> \<lceil>\<lceil>p\<rceil>\<^sub><\<rceil>\<^sub>S"
+    
+syntax
+  "_svid_st_alpha"  :: "svid" ("\<Sigma>\<^sub>S")
+
+translations
+  "_svid_st_alpha" => "CONST rsp_vars_child_lens"
 
 interpretation alphabet_state:
   lens_interp "\<lambda>(ok, wait, tr, r). (ok, wait, tr, st\<^sub>v r, more r)"
@@ -1545,6 +1551,9 @@ subsection {* Reactive design signature *}
 definition srdes_skip :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp" ("II\<^sub>R") where
 [upred_defs]: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R))"
 
+definition assigns_rea :: "'s usubst \<Rightarrow> ('s, 't::ordered_cancel_monoid_diff, '\<alpha>) hrel_rsp" ("\<langle>_\<rangle>\<^sub>R") where
+[upred_defs]: "assigns_rea \<sigma> = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S))"
+
 abbreviation Chaos :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp" where
 "Chaos \<equiv> \<^bold>\<bottom>\<^bsub>SRDES\<^esub>"
 
@@ -1693,6 +1702,9 @@ proof -
   finally show ?thesis .
 qed
 
+lemma assigns_rea_id: "\<langle>id\<rangle>\<^sub>R = II\<^sub>R"
+  by (rel_auto)
+  
 subsection {* Reactive design parallel-by-merge *}
 
 definition [upred_defs]: "nil\<^sub>r\<^sub>m = (nil\<^sub>m \<triangleleft> $0-ok \<and> $1-ok \<triangleright> ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>))"
