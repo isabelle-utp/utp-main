@@ -211,7 +211,7 @@ definition subst_ext :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<Longrightar
 [upred_defs]: "\<sigma> \<oplus>\<^sub>s x = (\<lambda> s. put\<^bsub>x\<^esub> s (\<sigma> (get\<^bsub>x\<^esub> s)))"
 
 lemma id_subst_ext [usubst,alpha]:
-  "vwb_lens x \<Longrightarrow> id \<oplus>\<^sub>s x = id"
+  "wb_lens x \<Longrightarrow> id \<oplus>\<^sub>s x = id"
   by pred_auto
 
 lemma upd_subst_ext [alpha]:
@@ -236,11 +236,11 @@ lemma id_subst_res [alpha,usubst]:
   by pred_auto
 
 lemma upd_subst_res [alpha]:
-  "vwb_lens x \<Longrightarrow> \<sigma>(&x:y \<mapsto>\<^sub>s v) \<restriction>\<^sub>s x = (\<sigma> \<restriction>\<^sub>s x)(&y \<mapsto>\<^sub>s v \<restriction>\<^sub>p x)"
+  "mwb_lens x \<Longrightarrow> \<sigma>(&x:y \<mapsto>\<^sub>s v) \<restriction>\<^sub>s x = (\<sigma> \<restriction>\<^sub>s x)(&y \<mapsto>\<^sub>s v \<restriction>\<^sub>p x)"
   by (pred_auto)
 
 lemma subst_ext_res [alpha,usubst]:
-  "vwb_lens x \<Longrightarrow> (\<sigma> \<oplus>\<^sub>s x) \<restriction>\<^sub>s x = \<sigma>"
+  "mwb_lens x \<Longrightarrow> (\<sigma> \<oplus>\<^sub>s x) \<restriction>\<^sub>s x = \<sigma>"
   by (pred_auto)
 
 lemma unrest_subst_alpha_ext [unrest]:

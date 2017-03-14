@@ -49,10 +49,6 @@ type_synonym '\<alpha> hrel      = "('\<alpha> \<times> '\<alpha>) upred"
 translations
   (type) "('\<alpha>, '\<beta>) rel" <= (type) "('\<alpha> \<times> '\<beta>) upred"
 
-definition cond::"'\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred"
-                                                          ("(3_ \<triangleleft> _ \<triangleright>/ _)" [52,0,53] 52)
-where "(P \<triangleleft> b \<triangleright> Q) \<equiv> (b \<and> P) \<or> ((\<not> b) \<and> Q)"
-
 abbreviation rcond::"('\<alpha>,  '\<beta>) rel \<Rightarrow> '\<alpha> cond \<Rightarrow> ('\<alpha>,  '\<beta>) rel \<Rightarrow> ('\<alpha>,  '\<beta>) rel"
                                                           ("(3_ \<triangleleft> _ \<triangleright>\<^sub>r/ _)" [52,0,53] 52)
 where "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<equiv> (P \<triangleleft> \<lceil>b\<rceil>\<^sub>< \<triangleright> Q)"
@@ -157,10 +153,10 @@ update_uexpr_rep_eq_thms -- {* Reread @{text rep_eq} theorems. *}
 
 subsection {* Unrestriction Laws *}
 
-lemma unrest_iuvar [unrest]: "mwb_lens x \<Longrightarrow> out\<alpha> \<sharp> $x"
+lemma unrest_iuvar [unrest]: "out\<alpha> \<sharp> $x"
   by (simp add: out\<alpha>_def, transfer, auto)
 
-lemma unrest_ouvar [unrest]: "mwb_lens x \<Longrightarrow> in\<alpha> \<sharp> $x\<acute>"
+lemma unrest_ouvar [unrest]: "in\<alpha> \<sharp> $x\<acute>"
   by (simp add: in\<alpha>_def, transfer, auto)
 
 lemma unrest_semir_undash [unrest]:
@@ -334,68 +330,9 @@ text {* While loops with invariant decoration *}
 definition while_inv :: "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while _ invr _ do _ od") where
 "while b invr p do S od = while b do S od"
 
-lemma cond_idem:"(P \<triangleleft> b \<triangleright> P) = P" by (rel_auto)
-
-lemma cond_symm:"(P \<triangleleft> b \<triangleright> Q) = (Q \<triangleleft> \<not> b \<triangleright> P)" by (rel_auto)
-
-lemma cond_assoc: "((P \<triangleleft> b \<triangleright> Q) \<triangleleft> c \<triangleright> R) = (P \<triangleleft> b \<and> c \<triangleright> (Q \<triangleleft> c \<triangleright> R))" by (rel_auto)
-
-lemma cond_distr: "(P \<triangleleft> b \<triangleright> (Q \<triangleleft> c \<triangleright> R)) = ((P \<triangleleft> b \<triangleright> Q) \<triangleleft> c \<triangleright> (P \<triangleleft> b \<triangleright> R))" by (rel_auto)
-
-lemma cond_unit_T [simp]:"(P \<triangleleft> true \<triangleright> Q) = P" by (rel_auto)
-
-lemma cond_unit_F [simp]:"(P \<triangleleft> false \<triangleright> Q) = Q" by (rel_auto)
-
-lemma cond_and_T_integrate:
-  "((P \<and> b) \<or> (Q \<triangleleft> b \<triangleright> R)) = ((P \<or> Q) \<triangleleft> b \<triangleright> R)"
-  by (rel_auto)
-
-lemma cond_L6: "(P \<triangleleft> b \<triangleright> (Q \<triangleleft> b \<triangleright> R)) = (P \<triangleleft> b \<triangleright> R)" by (rel_auto)
-
-lemma cond_L7: "(P \<triangleleft> b \<triangleright> (P \<triangleleft> c \<triangleright> Q)) = (P \<triangleleft> b \<or> c \<triangleright> Q)" by (rel_auto)
-
-lemma cond_and_distr: "((P \<and> Q) \<triangleleft> b \<triangleright> (R \<and> S)) = ((P \<triangleleft> b \<triangleright> R) \<and> (Q \<triangleleft> b \<triangleright> S))" by (rel_auto)
-
-lemma cond_or_distr: "((P \<or> Q) \<triangleleft> b \<triangleright> (R \<or> S)) = ((P \<triangleleft> b \<triangleright> R) \<or> (Q \<triangleleft> b \<triangleright> S))" by (rel_auto)
-
-lemma cond_imp_distr:
-"((P \<Rightarrow> Q) \<triangleleft> b \<triangleright> (R \<Rightarrow> S)) = ((P \<triangleleft> b \<triangleright> R) \<Rightarrow> (Q \<triangleleft> b \<triangleright> S))" by (rel_auto)
-
-lemma cond_eq_distr:
-"((P \<Leftrightarrow> Q) \<triangleleft> b \<triangleright> (R \<Leftrightarrow> S)) = ((P \<triangleleft> b \<triangleright> R) \<Leftrightarrow> (Q \<triangleleft> b \<triangleright> S))" by (rel_auto)
-
-lemma cond_conj_distr:"(P \<and> (Q \<triangleleft> b \<triangleright> S)) = ((P \<and> Q) \<triangleleft> b \<triangleright> (P \<and> S))" by (rel_auto)
-
-lemma cond_disj_distr:"(P \<or> (Q \<triangleleft> b \<triangleright> S)) = ((P \<or> Q) \<triangleleft> b \<triangleright> (P \<or> S))" by (rel_auto)
-
-lemma cond_neg: "\<not> (P \<triangleleft> b \<triangleright> Q) = ((\<not> P) \<triangleleft> b \<triangleright> (\<not> Q))" by (rel_auto)
-
-lemma cond_USUP_dist: "(\<Squnion> P\<in>S \<bullet> F(P)) \<triangleleft> b \<triangleright> (\<Squnion> P\<in>S \<bullet> G(P)) = (\<Squnion> P\<in>S \<bullet> F(P) \<triangleleft> b \<triangleright> G(P))"
-  by (subst uexpr_eq_iff, auto simp add: disj_upred_def conj_upred_def not_upred_def cond_def UINF.rep_eq uminus_uexpr_def inf_uexpr.rep_eq sup_uexpr.rep_eq uop.rep_eq bop.rep_eq lit.rep_eq)
-
-lemma cond_UINF_dist: "(\<Sqinter> P\<in>S \<bullet> F(P)) \<triangleleft> b \<triangleright> (\<Sqinter> P\<in>S \<bullet> G(P)) = (\<Sqinter> P\<in>S \<bullet> F(P) \<triangleleft> b \<triangleright> G(P))"
-  by (subst uexpr_eq_iff, auto simp add: disj_upred_def conj_upred_def not_upred_def cond_def USUP.rep_eq uminus_uexpr_def inf_uexpr.rep_eq sup_uexpr.rep_eq uop.rep_eq bop.rep_eq lit.rep_eq)
-
-lemma cond_conj: "P \<triangleleft> b \<and> c \<triangleright> Q = (P \<triangleleft> c \<triangleright> Q) \<triangleleft> b \<triangleright> Q"
-  by (rel_auto)
-
 lemma comp_cond_left_distr:
   "((P \<triangleleft> b \<triangleright>\<^sub>r Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright>\<^sub>r (Q ;; R))"
   by (rel_auto)
-
-lemma cond_var_subst_left:
-  assumes "vwb_lens x"
-  shows "(P\<lbrakk>true/x\<rbrakk> \<triangleleft> var x \<triangleright> Q) = (P \<triangleleft> var x \<triangleright> Q)"
-  using assms by (metis cond_def conj_comm conj_var_subst upred_eq_true)
-
-lemma cond_var_subst_right:
-  assumes "vwb_lens x"
-  shows "(P \<triangleleft> var x \<triangleright> Q\<lbrakk>false/x\<rbrakk>) = (P \<triangleleft> var x \<triangleright> Q)"
-  using assms by (metis cond_def conj_var_subst upred_eq_false utp_pred.inf_commute)
-
-lemma cond_var_split:
-  "vwb_lens x \<Longrightarrow> (P\<lbrakk>true/x\<rbrakk> \<triangleleft> var x \<triangleright> P\<lbrakk>false/x\<rbrakk>) = P"
-  by (rel_simp, (metis (full_types) vwb_lens.put_eq)+)
 
 lemma cond_seq_left_distr:
   "out\<alpha> \<sharp> b \<Longrightarrow> ((P \<triangleleft> b \<triangleright> Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright> (Q ;; R))"
@@ -473,11 +410,11 @@ lemma skip_var:
   by (rel_auto)
 
 lemma seqr_exists_left:
-  "mwb_lens x \<Longrightarrow> ((\<exists> $x \<bullet> P) ;; Q) = (\<exists> $x \<bullet> (P ;; Q))"
+  "((\<exists> $x \<bullet> P) ;; Q) = (\<exists> $x \<bullet> (P ;; Q))"
   by (rel_auto)
 
 lemma seqr_exists_right:
-  "mwb_lens x \<Longrightarrow> (P ;; (\<exists> $x\<acute> \<bullet> Q)) = (\<exists> $x\<acute> \<bullet> (P ;; Q))"
+  "(P ;; (\<exists> $x\<acute> \<bullet> Q)) = (\<exists> $x\<acute> \<bullet> (P ;; Q))"
   by (rel_auto)
 
 lemma assigns_subst [usubst]:
@@ -511,13 +448,13 @@ lemma assign_pred_transfer:
   shows "(b \<and> x := v) = (x := v \<and> b\<^sup>-)"
   using assms by (rel_blast)
 
-lemma assign_r_comp: "mwb_lens x \<Longrightarrow> (x := u ;; P) = P\<lbrakk>\<lceil>u\<rceil>\<^sub></$x\<rbrakk>"
+lemma assign_r_comp: "x := u ;; P = P\<lbrakk>\<lceil>u\<rceil>\<^sub></$x\<rbrakk>"
   by (simp add: assigns_r_comp usubst)
 
 lemma assign_test: "mwb_lens x \<Longrightarrow> (x := \<guillemotleft>u\<guillemotright> ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright>)"
   by (simp add: assigns_comp subst_upd_comp subst_lit usubst_upd_idem)
 
-lemma assign_twice: "\<lbrakk> vwb_lens x; x \<sharp> f \<rbrakk> \<Longrightarrow> (x := e ;; x := f) = (x := f)"
+lemma assign_twice: "\<lbrakk> mwb_lens x; x \<sharp> f \<rbrakk> \<Longrightarrow> (x := e ;; x := f) = (x := f)"
   by (simp add: assigns_comp usubst)
 
 lemma assign_commute:
@@ -1024,4 +961,5 @@ is "\<lambda> P b. P (fst b) b" .
 
 lemma call_prog_val: "call \<lbrace>P\<rbrace>\<^sub>u = P"
   by (simp add: call_def urel_defs lit.rep_eq Rep_uexpr_inverse)
+
 end

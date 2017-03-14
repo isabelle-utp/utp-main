@@ -1036,7 +1036,8 @@ lemma RHS_design_export_R2c: "\<^bold>R\<^sub>s(P \<turnstile> Q) = \<^bold>R\<^
 
 subsection {* Reactive design triples *}
 
-definition wait'_cond :: "_ \<Rightarrow> _ \<Rightarrow> _" (infixr "\<diamondop>" 65) where
+definition wait'_cond :: 
+  "('t::ordered_cancel_monoid_diff,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" (infixr "\<diamondop>" 65) where
 [upred_defs]: "P \<diamondop> Q = (P \<triangleleft> $wait\<acute> \<triangleright> Q)"
 
 lemma wait'_cond_unrest [unrest]:
@@ -1073,10 +1074,10 @@ lemma subst_wait'_cond_false [usubst]: "(P \<diamondop> Q)\<lbrakk>false/$wait\<
   by (rel_auto)
 
 lemma subst_wait'_left_subst: "(P\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> Q) = (P \<diamondop> Q)"
-  by (metis wait'_cond_def cond_def conj_comm conj_eq_out_var_subst upred_eq_true wait_vwb_lens)
+  by (rel_auto)
 
 lemma subst_wait'_right_subst: "(P \<diamondop> Q\<lbrakk>false/$wait\<acute>\<rbrakk>) = (P \<diamondop> Q)"
-  by (metis cond_def conj_eq_out_var_subst upred_eq_false utp_pred.inf.commute wait'_cond_def wait_vwb_lens)
+  by (rel_auto)
 
 lemma wait'_cond_split: "P\<lbrakk>true/$wait\<acute>\<rbrakk> \<diamondop> P\<lbrakk>false/$wait\<acute>\<rbrakk> = P"
   by (simp add: wait'_cond_def cond_var_split)

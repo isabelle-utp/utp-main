@@ -228,11 +228,12 @@ lemma R1_H2_commute: "R1(H2(P)) = H2(R1(P))"
 subsection {* R2 *}
 
 definition R2a_def [upred_defs]: "R2a (P) = (\<Sqinter> s \<bullet> P\<lbrakk>\<guillemotleft>s\<guillemotright>,\<guillemotleft>s\<guillemotright>+($tr\<acute>-$tr)/$tr,$tr\<acute>\<rbrakk>)"
-definition R2a'_def [upred_defs]: "R2a' (P) = (R2a(P) \<triangleleft> R1(true) \<triangleright> P)"
+definition R2a' :: "('t::ordered_cancel_monoid_diff, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" where
+R2a'_def [upred_defs]: "R2a' (P :: _ upred) = (R2a(P) \<triangleleft> R1(true) \<triangleright> P)"
 definition R2s_def [upred_defs]: "R2s (P) = (P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>($tr\<acute>-$tr)/$tr\<acute>\<rbrakk>)"
 definition R2_def  [upred_defs]: "R2(P) = R1(R2s(P))"
 definition R2c_def [upred_defs]: "R2c(P) = (R2s(P) \<triangleleft> R1(true) \<triangleright> P)"
-
+  
 lemma R2a_R2s: "R2a(R2s(P)) = R2s(P)"
   by (rel_auto)
 

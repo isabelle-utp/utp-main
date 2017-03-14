@@ -320,6 +320,11 @@ lemma false_alt_def: "false = \<guillemotleft>False\<guillemotright>"
 declare true_alt_def[THEN sym,lit_simps]
 declare false_alt_def[THEN sym,lit_simps]
 
+abbreviation cond :: 
+  "('a,'\<alpha>) uexpr \<Rightarrow> '\<alpha> upred \<Rightarrow> ('a,'\<alpha>) uexpr \<Rightarrow> ('a,'\<alpha>) uexpr"
+  ("(3_ \<triangleleft> _ \<triangleright>/ _)" [52,0,53] 52)
+where "P \<triangleleft> b \<triangleright> Q \<equiv> trop If b P Q"
+  
 subsection {* Unrestriction Laws *}
 
 lemma unrest_true [unrest]: "x \<sharp> true"
@@ -950,6 +955,71 @@ lemma not_ex_not: "\<not> (\<exists> x \<bullet> \<not> P) = (\<forall> x \<bull
 lemma not_all_not: "\<not> (\<forall> x \<bullet> \<not> P) = (\<exists> x \<bullet> P)"
   by (pred_auto)
 
+subsection {* Conditional laws *}
+  
+lemma cond_def:
+  "(P \<triangleleft> b \<triangleright> Q) = ((b \<and> P) \<or> ((\<not> b) \<and> Q))"
+  by (pred_auto)
+
+lemma cond_idem:"(P \<triangleleft> b \<triangleright> P) = P" by (pred_auto)
+
+lemma cond_symm:"(P \<triangleleft> b \<triangleright> Q) = (Q \<triangleleft> \<not> b \<triangleright> P)" by (pred_auto)
+
+lemma cond_assoc: "((P \<triangleleft> b \<triangleright> Q) \<triangleleft> c \<triangleright> R) = (P \<triangleleft> b \<and> c \<triangleright> (Q \<triangleleft> c \<triangleright> R))" by (pred_auto)
+
+lemma cond_distr: "(P \<triangleleft> b \<triangleright> (Q \<triangleleft> c \<triangleright> R)) = ((P \<triangleleft> b \<triangleright> Q) \<triangleleft> c \<triangleright> (P \<triangleleft> b \<triangleright> R))" by (pred_auto)
+
+lemma cond_unit_T [simp]:"(P \<triangleleft> true \<triangleright> Q) = P" by (pred_auto)
+
+lemma cond_unit_F [simp]:"(P \<triangleleft> false \<triangleright> Q) = Q" by (pred_auto)
+
+lemma cond_and_T_integrate:
+  "((P \<and> b) \<or> (Q \<triangleleft> b \<triangleright> R)) = ((P \<or> Q) \<triangleleft> b \<triangleright> R)"
+  by (pred_auto)
+
+lemma cond_L6: "(P \<triangleleft> b \<triangleright> (Q \<triangleleft> b \<triangleright> R)) = (P \<triangleleft> b \<triangleright> R)" by (pred_auto)
+
+lemma cond_L7: "(P \<triangleleft> b \<triangleright> (P \<triangleleft> c \<triangleright> Q)) = (P \<triangleleft> b \<or> c \<triangleright> Q)" by (pred_auto)
+
+lemma cond_and_distr: "((P \<and> Q) \<triangleleft> b \<triangleright> (R \<and> S)) = ((P \<triangleleft> b \<triangleright> R) \<and> (Q \<triangleleft> b \<triangleright> S))" by (pred_auto)
+
+lemma cond_or_distr: "((P \<or> Q) \<triangleleft> b \<triangleright> (R \<or> S)) = ((P \<triangleleft> b \<triangleright> R) \<or> (Q \<triangleleft> b \<triangleright> S))" by (pred_auto)
+
+lemma cond_imp_distr:
+"((P \<Rightarrow> Q) \<triangleleft> b \<triangleright> (R \<Rightarrow> S)) = ((P \<triangleleft> b \<triangleright> R) \<Rightarrow> (Q \<triangleleft> b \<triangleright> S))" by (pred_auto)
+
+lemma cond_eq_distr:
+"((P \<Leftrightarrow> Q) \<triangleleft> b \<triangleright> (R \<Leftrightarrow> S)) = ((P \<triangleleft> b \<triangleright> R) \<Leftrightarrow> (Q \<triangleleft> b \<triangleright> S))" by (pred_auto)
+
+lemma cond_conj_distr:"(P \<and> (Q \<triangleleft> b \<triangleright> S)) = ((P \<and> Q) \<triangleleft> b \<triangleright> (P \<and> S))" by (pred_auto)
+
+lemma cond_disj_distr:"(P \<or> (Q \<triangleleft> b \<triangleright> S)) = ((P \<or> Q) \<triangleleft> b \<triangleright> (P \<or> S))" by (pred_auto)
+
+lemma cond_neg: "\<not> (P \<triangleleft> b \<triangleright> Q) = ((\<not> P) \<triangleleft> b \<triangleright> (\<not> Q))" by (pred_auto)
+
+lemma cond_conj: "P \<triangleleft> b \<and> c \<triangleright> Q = (P \<triangleleft> c \<triangleright> Q) \<triangleleft> b \<triangleright> Q"
+  by (pred_auto)
+
+lemma cond_USUP_dist: "(\<Squnion> P\<in>S \<bullet> F(P)) \<triangleleft> b \<triangleright> (\<Squnion> P\<in>S \<bullet> G(P)) = (\<Squnion> P\<in>S \<bullet> F(P) \<triangleleft> b \<triangleright> G(P))"
+  by (pred_auto)
+
+lemma cond_UINF_dist: "(\<Sqinter> P\<in>S \<bullet> F(P)) \<triangleleft> b \<triangleright> (\<Sqinter> P\<in>S \<bullet> G(P)) = (\<Sqinter> P\<in>S \<bullet> F(P) \<triangleleft> b \<triangleright> G(P))"
+  by (pred_auto)
+
+lemma cond_var_subst_left:
+  assumes "vwb_lens x"
+  shows "(P\<lbrakk>true/x\<rbrakk> \<triangleleft> var x \<triangleright> Q) = (P \<triangleleft> var x \<triangleright> Q)"
+  using assms by (pred_auto, metis (full_types) vwb_lens_wb wb_lens.get_put)
+
+lemma cond_var_subst_right:
+  assumes "vwb_lens x"
+  shows "(P \<triangleleft> var x \<triangleright> Q\<lbrakk>false/x\<rbrakk>) = (P \<triangleleft> var x \<triangleright> Q)"
+  using assms by (pred_auto, metis (full_types) vwb_lens.put_eq)
+
+lemma cond_var_split:
+  "vwb_lens x \<Longrightarrow> (P\<lbrakk>true/x\<rbrakk> \<triangleleft> var x \<triangleright> P\<lbrakk>false/x\<rbrakk>) = P"
+  by (rel_simp, (metis (full_types) vwb_lens.put_eq)+)
+    
 subsection {* Cylindric algebra *}
 
 lemma C1: "(\<exists> x \<bullet> false) = false"
