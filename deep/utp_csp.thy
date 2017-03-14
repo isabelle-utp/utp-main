@@ -888,6 +888,12 @@ definition [upred_defs]: "WG(P) = (P \<and> WGP(P))"
 lemma rea_des_ok_nwait':
   "(\<^bold>R\<^sub>s(P) \<and> $ok \<and> $ok\<acute> \<and> \<not>$wait\<acute>) = (\<^bold>R\<^sub>s(P) \<and> $ok \<and> $ok\<acute> \<and> \<not>$wait \<and> \<not>$wait\<acute>)"
   by (rel_auto)
+
+lemma WG_post_tr_inc:
+  assumes "P is SRD" "P is WG" "$wait\<acute> \<sharp> pre\<^sub>R(P)"
+  shows  "($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> (pre\<^sub>R(P) \<and> post\<^sub>R(P))"
+  using assms
+  by (rel_auto, (metis (no_types, lifting)))
     
 lemma WG_intro:
   assumes "P is SRD" "($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> (pre\<^sub>R(P) \<and> post\<^sub>R(P))" "$wait\<acute> \<sharp> pre\<^sub>R(P)"
@@ -927,12 +933,10 @@ proof -
     by (simp add: F Healthy_def)
 qed
 
-(*
-lemma
-  assumes "P is SRD" "P is WG"
-  shows "($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> (pre\<^sub>R(P) \<and> post\<^sub>R(P))"
-  apply (rel_auto)
-*)
+lemma WG_iff:
+  assumes "P is SRD" "$wait\<acute> \<sharp> pre\<^sub>R(P)"
+  shows "P is WG \<longleftrightarrow> ($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> (pre\<^sub>R(P) \<and> post\<^sub>R(P))"
+  using WG_intro WG_post_tr_inc assms(1) assms(2) by blast
 
 lemma WG_rdes_intro:
   assumes "($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> R" "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok\<acute> \<sharp> R" "$wait \<sharp> P" "$wait\<acute> \<sharp> P"
@@ -959,7 +963,7 @@ lemma WG_DoCSP:
   apply (rel_simp)
   apply (simp add: Prefix_Order.strict_prefixI')
 done
-
+  
 lemma ExtChoice_seq_distr:
   assumes "A \<subseteq> \<lbrakk>CSP\<rbrakk>\<^sub>H" "A \<subseteq> \<lbrakk>WG\<rbrakk>\<^sub>H" "A \<noteq> {}" "Q is CSP"
   shows "(\<box> P\<in>A \<bullet> P) ;; Q = (\<box> P\<in>A \<bullet> P ;; Q)"

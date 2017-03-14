@@ -55,7 +55,7 @@ where "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<equiv> (P \<trianglele
 
 lift_definition seqr::"(('\<alpha> \<times> '\<beta>) upred) \<Rightarrow> (('\<beta> \<times> '\<gamma>) upred) \<Rightarrow> ('\<alpha> \<times> '\<gamma>) upred"
 is "\<lambda> P Q r. r \<in> ({p. P p} O {q. Q q})" .
-
+    
 lift_definition conv_r :: "('a, '\<alpha> \<times> '\<beta>) uexpr \<Rightarrow> ('a, '\<beta> \<times> '\<alpha>) uexpr" ("_\<^sup>-" [999] 999)
 is "\<lambda> e (b1, b2). e (b2, b1)" .
 
@@ -113,6 +113,11 @@ adhoc_overloading
   useq seqr and
   uskip skip_r
 
+text {* Homogeneous sequential composition *}
+  
+abbreviation seqh :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" (infixr ";;\<^sub>h" 51) where
+"seqh P Q \<equiv> (P ;; Q)"
+  
 definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<top>" [999] 999) where
 [urel_defs]: "rassume c = II \<triangleleft> c \<triangleright>\<^sub>r false"
 
