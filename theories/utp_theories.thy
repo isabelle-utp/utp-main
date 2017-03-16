@@ -11,6 +11,7 @@ theory utp_theories
 imports 
   utp_designs
   utp_invariants
+  utp_refcalc
   utp_reactive
   utp_rea_designs
   utp_csp

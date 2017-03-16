@@ -3,8 +3,8 @@ section {* VDM-SL in UTP *}
 theory VDM
   imports
     PFOL
-    "../deep/utp_deep"
-begin
+    "../utp/models/utp_deep"
+begin recall_syntax
 
 subsection {* Core operator definitions *}
 

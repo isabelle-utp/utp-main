@@ -103,10 +103,11 @@ session "UTP" in "utp" = "UTP-IMPORTS" +
     
 (* Core UTP with Deep Variables *)
 
-session "UTP-DEEP" in "deep" = "UTP" +
+session "UTP-DEEP" = "UTP-IMPORTS" +
   options [browser_info = true, document = false]
-  theories utp_deep
-    "../continuum/Continuum"
+  theories 
+    "continuum/Continuum"
+    "utp/models/utp_deep"
 
 (* Core UTP with Axiomatic Variables *)
 
