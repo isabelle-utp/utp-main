@@ -1,5 +1,5 @@
 theory VDM_Ops
-imports PFOL
+  imports PFOL "../utp/utp_pred"
 begin
   
 text {* The following function checks if an input x satisfies a predicate (belongs to a set). If
@@ -91,12 +91,7 @@ definition uminus_option :: "'a option \<Rightarrow> 'a option" where
   instance ..
 end
 
-instantiation option :: (modulo) modulo
-begin
-definition modulo_option :: "'a option \<Rightarrow> 'a option \<Rightarrow> 'a option" where
-  [upred_defs]: "modulo_option = bpfun' (op mod)"
-  instance ..
-end 
+
 
 instantiation option :: (abs) abs
 begin
@@ -108,17 +103,20 @@ end
 text {* Inverse is the reciprocal 1/x, and division is obvious. These two functions are lifted differently
   than plus because we need to check if the denominator is 0 or not. *}
   
-instantiation option :: ("{zero, inverse}") inverse
+instantiation option :: ("{modulo, divide, zero, inverse}") inverse
 begin
-  definition inverse_option :: "'a option \<Rightarrow> 'a option" where
-  [upred_defs]: "inverse_option = upfun {x. x \<noteq> 0} inverse"
-
   definition divide_option :: "'a option \<Rightarrow> 'a option \<Rightarrow> 'a option" where
-  [upred_defs]: "divide_option = bpfun {(x, y). y \<noteq> 0} divide"
-
-  instance ..
-end
+    [upred_defs]: "divide_option = bpfun {(x,y) . y \<noteq> 0} divide"
   
+  definition inverse_option :: "'a option \<Rightarrow> 'a option" where
+    [upred_defs]: "inverse_option = upfun {x. x \<noteq> 0} inverse"
+    
+  definition modulo_option :: "'a option \<Rightarrow> 'a option \<Rightarrow> 'a option" where
+    [upred_defs]: "modulo_option = bpfun' (op mod)"
+  
+  instance ..
+end    
+
 text {* We prove that our lifted plus type is a semigroup; i.e. it is associative *}
   
 instance option :: (semigroup_add) semigroup_add
