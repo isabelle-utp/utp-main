@@ -742,4 +742,10 @@ begin
 instance
   by (intro_classes, unfold_locales, simp_all)
 end
+
+subsection {*Utility functions*}
+
+definition inds :: "'a list \<Rightarrow> nat set" where
+  "inds x = {1..length x}"
+  
 end
