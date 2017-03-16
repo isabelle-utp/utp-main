@@ -1,12 +1,17 @@
-section {* Lens instances *}
+section \<open>Lens instances\<close>
 
 theory Lens_Instances
   imports Lens_Order
   keywords "alphabet" :: "thy_decl_block"
 begin
 
-text {* We require that range type of a lens function has cardinality of at least 2; this ensures
-        that properties of independence are provable. *}
+text \<open>In this section we define a number of concrete instantiations of the lens locales, including
+  functions lenses, list lenses, and record lenses.\<close>
+  
+subsection \<open>Function lens\<close>
+  
+text \<open>We require that range type of a lens function has cardinality of at least 2; this ensures
+      that properties of independence are provable.\<close>
 
 definition fun_lens :: "'a \<Rightarrow> ('b::two \<Longrightarrow> ('a \<Rightarrow> 'b))" where
 [lens_defs]: "fun_lens x = \<lparr> lens_get = (\<lambda> f. f x), lens_put = (\<lambda> f u. f(x := u)) \<rparr>"
@@ -23,7 +28,7 @@ proof -
     by (auto simp add: fun_lens_def lens_indep_def)
 qed
 
-text {* The function range lens allows us to focus on a particular region on a functions range *}
+text \<open>The function range lens allows us to focus on a particular region on a functions range.\<close>
 
 definition fun_ran_lens :: "('c \<Longrightarrow> 'b) \<Rightarrow> (('a \<Rightarrow> 'b) \<Longrightarrow> '\<alpha>) \<Rightarrow> (('a \<Rightarrow> 'c) \<Longrightarrow> '\<alpha>)" where
 [lens_defs]: "fun_ran_lens X Y = \<lparr> lens_get = \<lambda> s. get\<^bsub>X\<^esub> \<circ> get\<^bsub>Y\<^esub> s
@@ -38,12 +43,16 @@ lemma fun_ran_wb_lens: "\<lbrakk> wb_lens X; wb_lens Y \<rbrakk> \<Longrightarro
 lemma fun_ran_vwb_lens: "\<lbrakk> vwb_lens X; vwb_lens Y \<rbrakk> \<Longrightarrow> vwb_lens (fun_ran_lens X Y)"
   by (unfold_locales, auto simp add: fun_ran_lens_def)
 
+subsection \<open>Map lens\<close>
+  
 definition map_lens :: "'a \<Rightarrow> ('b \<Longrightarrow> ('a \<rightharpoonup> 'b))" where
 [lens_defs]: "map_lens x = \<lparr> lens_get = (\<lambda> f. the (f x)), lens_put = (\<lambda> f u. f(x \<mapsto> u)) \<rparr>"
 
 lemma map_mwb_lens: "mwb_lens (map_lens x)"
   by (unfold_locales, simp_all add: map_lens_def)
 
+subsection \<open>List lens\<close>
+    
 definition list_pad_out :: "'a list \<Rightarrow> nat \<Rightarrow> 'a list" where
 "list_pad_out xs k = xs @ replicate (k + 1 - length xs) undefined"
 
@@ -125,7 +134,7 @@ lemma hd_tl_lens_indep [simp]:
   apply (metis Nitpick.size_list_simp(2) One_nat_def add_Suc_right append.simps(1) append_Nil2 diff_Suc_Suc diff_zero hd_Cons_tl list.inject list.size(4) list_augment_0 list_augment_def list_augment_same_twice list_pad_out_def nth_list_augment replicate.simps(1) replicate.simps(2) tl_Nil)
 done
 
-subsection {* Record field lenses *}
+subsection \<open>Record field lenses\<close>
 
 abbreviation (input) "fld_put f \<equiv> (\<lambda> \<sigma> u. f (\<lambda>_. u) \<sigma>)"
 

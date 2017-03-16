@@ -4,4 +4,5 @@ theory Lenses
     Lens_Algebra
     Lens_Order
     Lens_Instances
+    Prisms
 begin end

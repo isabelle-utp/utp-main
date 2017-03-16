@@ -27,6 +27,8 @@
   %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
   %\<currency>
 
+\usepackage{stmaryrd}
+
 % this should be the last package used
 \usepackage{pdfsetup}
 
@@ -37,6 +39,27 @@
 % for uniform font size
 %\renewcommand{\isastyle}{\isastyleminor}
 
+% Lens operations
+
+\newcommand{\view}{\mathit{V}}
+\newcommand{\src}{\mathit{S}}
+\newcommand{\lsbs}{{L}}
+\newcommand{\lput}{\textit{\textsf{put}}}
+\newcommand{\lget}{\textit{\textsf{get}}}
+\newcommand{\lcreate}{\mathit{create}}
+\newcommand{\lto}{\Longrightarrow}
+\newcommand{\lsubseteq}{\preceq}
+\newcommand{\lsupseteq}{\mathop{\supseteq_\lsbs}}
+\newcommand{\lequiv}{\approx}
+\newcommand{\lcomp}{;_\lsbs}
+\newcommand{\lplus}{+_\lsbs}
+\newcommand{\lquot}{\mathop{/\!_\lsbs}}
+\newcommand{\lindep}{\mathop{\,\bowtie\,}}
+\newcommand{\lone}{\mathbf{1}}
+\newcommand{\lzero}{\mathbf{0}}
+\newcommand{\lfst}{\textit{\textsf{\textbf{fst}}}}
+\newcommand{\lsnd}{\textit{\textsf{\textbf{snd}}}}
+
 \begin{document}
 
 \title{Optics in Isabelle}
@@ -44,6 +67,16 @@
 \author{Simon Foster \and Frank Zeyda}
 
 \maketitle
+
+\begin{abstract}
+  Lenses provide an abstract interface for manipulating data types through spatially-separated views. They are defined
+  abstractly in terms of two functions, $\lget$, the return a value from the source type, and $\lput$ that updates
+  the value. We mechanise the underlying theory of lenses, in terms of an algebraic hiearchy of lenses, including
+  well-behaved and very well-behaved lenses, each lens class being characterised by a set of lens laws. We also mechanise 
+  a lens algebra in Isabelle that enables their composition and comparison, so as to allow construction of complex lenses.
+  This is accompanied by a large library of algebraic laws. Moreover we also show how the lens classes can be applied by 
+  instantiating them with a number of Isabelle data types. This theory development is based on our recent paper~\cite{Foster16a}
+\end{abstract}
 
 \tableofcontents
 

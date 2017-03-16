@@ -6,19 +6,29 @@ begin
 
 subsection \<open>Lens composition, plus, unit, and identity\<close>
 
+text \<open>We introduce the algebraic lens operators; for more information please see our paper~\cite{Foster16a}.
+      Lens composition constructs a lens by composing the source of one lens with the view of another.\<close>
+  
 definition lens_comp :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> ('a \<Longrightarrow> 'c)" (infixr ";\<^sub>L" 80) where
 [lens_defs]: "lens_comp Y X = \<lparr> lens_get = lens_get Y \<circ> lens_get X
                               , lens_put = (\<lambda> \<sigma> v. lens_put X \<sigma> (lens_put Y (lens_get X \<sigma>) v)) \<rparr>"
+
+text \<open>Lens plus parallel composes two indepedent lenses, resulting in a lens whose view is the 
+  product of the two underlying lens views.\<close>
 
 definition lens_plus :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Longrightarrow> 'c" (infixr "+\<^sub>L" 75) where
 [lens_defs]: "X +\<^sub>L Y = \<lparr> lens_get = (\<lambda> \<sigma>. (lens_get X \<sigma>, lens_get Y \<sigma>))
                        , lens_put = (\<lambda> \<sigma> (u, v). lens_put X (lens_put Y \<sigma> v) u) \<rparr>"
 
-text {* Product functor lens *}
+text \<open>The product functor lens similarly parallel composes two lenses, but in this case the lenses
+  have different sources and so the resulting source is also a product.\<close>
 
 definition lens_prod :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longrightarrow> 'd) \<Rightarrow> ('a \<times> 'b \<Longrightarrow> 'c \<times> 'd)" (infixr "\<times>\<^sub>L" 85) where
 [lens_defs]: "lens_prod X Y = \<lparr> lens_get = map_prod get\<^bsub>X\<^esub> get\<^bsub>Y\<^esub>
                               , lens_put = \<lambda> (u, v) (x, y). (put\<^bsub>X\<^esub> u x, put\<^bsub>Y\<^esub> v y) \<rparr>"
+
+text \<open>The $\lfst$ and $\lsnd$ lenses project the first and second elements, respectively, of a 
+  product source type.\<close>
 
 definition fst_lens :: "'a \<Longrightarrow> 'a \<times> 'b" ("fst\<^sub>L") where
 [lens_defs]: "fst\<^sub>L = \<lparr> lens_get = fst, lens_put = (\<lambda> (\<sigma>, \<rho>) u. (u, \<rho>)) \<rparr>"
@@ -32,24 +42,35 @@ lemma get_fst_lens [simp]: "get\<^bsub>fst\<^sub>L\<^esub> (x, y) = x"
 lemma get_snd_lens [simp]: "get\<^bsub>snd\<^sub>L\<^esub> (x, y) = y"
   by (simp add: snd_lens_def)
 
+text \<open>The swap lens is a bijective lens which swaps over the elements of the product source type.\<close>
+    
 abbreviation swap_lens :: "'a \<times> 'b \<Longrightarrow> 'b \<times> 'a" ("swap\<^sub>L") where
 "swap\<^sub>L \<equiv> snd\<^sub>L +\<^sub>L fst\<^sub>L"
 
-definition unit_lens :: "unit \<Longrightarrow> 'a" ("0\<^sub>L") where
+text \<open>The zero lens is an ineffectual lens whose view is a unit type. This means the zero lens
+  cannot distinguish or change the source type.\<close>
+
+definition zero_lens :: "unit \<Longrightarrow> 'a" ("0\<^sub>L") where
 [lens_defs]: "0\<^sub>L = \<lparr> lens_get = (\<lambda> _. ()), lens_put = (\<lambda> \<sigma> x. \<sigma>) \<rparr>"
 
-text {* The quotient operator $X /_L Y$ shortens lens $X$ by cutting off $Y$ from the end. It is
-  thus the dual of the composition operator. *}
+text \<open>The identity lens is a bijective lens where the source and view type are the same.\<close>
+
+definition id_lens :: "'a \<Longrightarrow> 'a" ("1\<^sub>L") where
+[lens_defs]: "1\<^sub>L = \<lparr> lens_get = id, lens_put = (\<lambda> _. id) \<rparr>"
+
+text \<open>The quotient operator $X \lquot Y$ shortens lens $X$ by cutting off $Y$ from the end. It is
+  thus the dual of the composition operator.\<close>
 
 definition lens_quotient :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> 'a \<Longrightarrow> 'b" (infixr "'/\<^sub>L" 90) where
 [lens_defs]: "X /\<^sub>L Y = \<lparr> lens_get = \<lambda> \<sigma>. get\<^bsub>X\<^esub> (create\<^bsub>Y\<^esub> \<sigma>)
                        , lens_put = \<lambda> \<sigma> v. get\<^bsub>Y\<^esub> (put\<^bsub>X\<^esub> (create\<^bsub>Y\<^esub> \<sigma>) v) \<rparr>"
 
-definition id_lens :: "'a \<Longrightarrow> 'a" ("1\<^sub>L") where
-[lens_defs]: "1\<^sub>L = \<lparr> lens_get = id, lens_put = (\<lambda> _. id) \<rparr>"
+text \<open>Lens override uses a lens to override part of a source type.\<close>
 
 definition lens_override :: "'a \<Rightarrow> 'a \<Rightarrow> ('b \<Longrightarrow> 'a) \<Rightarrow> 'a" ("_ \<oplus>\<^sub>L _ on _" [95,0,96] 95) where
 [lens_defs]: "S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on X = put\<^bsub>X\<^esub> S\<^sub>1 (get\<^bsub>X\<^esub> S\<^sub>2)"
+
+text \<open>Lens inversion take a bijective lens and swaps the source and view types.\<close>
 
 definition lens_inv :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('b \<Longrightarrow> 'a)" ("inv\<^sub>L") where
 [lens_defs]: "lens_inv x = \<lparr> lens_get = create\<^bsub>x\<^esub>, lens_put = \<lambda> \<sigma>. get\<^bsub>x\<^esub> \<rparr>"
@@ -60,7 +81,7 @@ lemma id_wb_lens: "wb_lens 1\<^sub>L"
   by (unfold_locales, simp_all add: id_lens_def)
 
 lemma unit_wb_lens: "wb_lens 0\<^sub>L"
-  by (unfold_locales, simp_all add: unit_lens_def)
+  by (unfold_locales, simp_all add: zero_lens_def)
 
 lemma comp_wb_lens: "\<lbrakk> wb_lens x; wb_lens y \<rbrakk> \<Longrightarrow> wb_lens (x ;\<^sub>L y)"
   by (unfold_locales, simp_all add: lens_comp_def)
@@ -72,13 +93,13 @@ lemma id_vwb_lens: "vwb_lens 1\<^sub>L"
   by (unfold_locales, simp_all add: id_lens_def)
 
 lemma unit_vwb_lens: "vwb_lens 0\<^sub>L"
-  by (unfold_locales, simp_all add: unit_lens_def)
+  by (unfold_locales, simp_all add: zero_lens_def)
 
 lemma comp_vwb_lens: "\<lbrakk> vwb_lens x; vwb_lens y \<rbrakk> \<Longrightarrow> vwb_lens (x ;\<^sub>L y)"
   by (unfold_locales, simp_all add: lens_comp_def)
 
 lemma unit_ief_lens: "ief_lens 0\<^sub>L"
-  by (unfold_locales, simp_all add: unit_lens_def)
+  by (unfold_locales, simp_all add: zero_lens_def)
 
 lemma plus_mwb_lens:
   assumes "mwb_lens x" "mwb_lens y" "x \<bowtie> y"
@@ -152,12 +173,12 @@ lemma lens_comp_right_id [simp]: "X ;\<^sub>L 1\<^sub>L = X"
   by (simp add: id_lens_def lens_comp_def)
 
 lemma lens_comp_anhil [simp]: "wb_lens X \<Longrightarrow> 0\<^sub>L ;\<^sub>L X = 0\<^sub>L"
-  by (simp add: unit_lens_def lens_comp_def comp_def)
+  by (simp add: zero_lens_def lens_comp_def comp_def)
   
 subsection \<open>Independence laws\<close>
   
-lemma unit_lens_indep: "0\<^sub>L \<bowtie> X"
-  by (auto simp add: unit_lens_def lens_indep_def)
+lemma zero_lens_indep: "0\<^sub>L \<bowtie> X"
+  by (auto simp add: zero_lens_def lens_indep_def)
   
 lemma lens_indep_quasi_irrefl: "\<lbrakk> wb_lens x; eff_lens x \<rbrakk> \<Longrightarrow> \<not> (x \<bowtie> x)"
   by (auto simp add: lens_indep_def ief_lens_def ief_lens_axioms_def, metis (full_types) wb_lens.get_put)

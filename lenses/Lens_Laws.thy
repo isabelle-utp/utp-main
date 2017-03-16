@@ -40,7 +40,7 @@ definition lens_create :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'a \<Rightarr
 text {* Function $\lcreate_X~v$ creates an instance of the source type of $X$ by injecting $v$
   as the view, and leaving the remaining context arbitrary. *}
 
-subsection {* Weak lenses *}
+subsection \<open>Weak lenses\<close>
   
 text {* Weak lenses are the least constrained class of lenses in our algebraic hierarchy. They
   simply require that the PutGet law~\cite{Foster09,Fischer2015} is satisfied, meaning that 
@@ -73,7 +73,7 @@ end
 declare weak_lens.put_get [simp]
 declare weak_lens.create_get [simp]
 
-subsection {* Well-behaved lenses *}
+subsection \<open>Well-behaved lenses\<close>
 
 text {* Well-behaved lenses add to weak lenses that requirement that the GetPut law~\cite{Foster09,Fischer2015} 
   is satisfied, meaning that $\lput$ is the inverse of $\lget$. *}
@@ -98,9 +98,11 @@ declare wb_lens.get_put [simp]
 lemma wb_lens_weak [simp]: "wb_lens x \<Longrightarrow> weak_lens x"
   by (simp_all add: wb_lens_def)
 
-
 subsection {* Mainly well-behaved lenses *}
 
+text {* Mainly well-behaved lenses extend weak lenses with the PutPut law that shows how one put
+  override a previous one. *}
+  
 locale mwb_lens = weak_lens +
   assumes put_put: "put (put \<sigma> v) u = put \<sigma> u"
 begin
@@ -116,8 +118,10 @@ lemma mwb_lens_weak [simp]:
   "mwb_lens x \<Longrightarrow> weak_lens x"
   by (simp add: mwb_lens_def)
 
-subsection {* Very well-behaved lenses *}
+subsection \<open>Very well-behaved lenses\<close>
 
+text \<open>Very well-behaved lenses combine all three laws, as in the literature~\cite{Foster09,Fischer2015}.\<close>
+  
 locale vwb_lens = wb_lens + mwb_lens
 begin
 
@@ -138,6 +142,9 @@ lemma vwb_lens_mwb [simp]: "vwb_lens x \<Longrightarrow> mwb_lens x"
 
 subsection {* Ineffectual lenses *}
 
+text \<open>Ineffectual lenses can have no effect on the view type -- application of the $\lput$ function
+  always yields the same source. They are trivially very well-behaved lenses.\<close>
+  
 locale ief_lens = weak_lens +
   assumes put_inef: "put \<sigma> v = \<sigma>"
 begin
@@ -161,7 +168,9 @@ abbreviation "eff_lens X \<equiv> (weak_lens X \<and> (\<not> ief_lens X))"
 
 subsection {* Bijective lenses *}
 
-text {* Bijective lenses express that two views of a particular source are equivalent. *}
+text \<open>Bijective lenses characterise the situation where the source and view type are equivalent:
+  in other words the view type full characterises the whole source type. This is specified using
+  the strong GetPut law~\cite{Foster09,Fischer2015}.\<close>
 
 locale bij_lens = weak_lens +
   assumes strong_get_put: "put \<sigma> (get \<rho>) = \<rho>"
@@ -200,8 +209,13 @@ lemma bij_lens_weak [simp]:
 lemma bij_lens_vwb [simp]: "bij_lens x \<Longrightarrow> vwb_lens x"
   by (unfold_locales, simp_all add: bij_lens.put_is_create)
   
-subsection {* Lens independence *}
+subsection \<open>Lens independence\<close>
 
+text {* Lens independence shows when two lenses $X$ and $Y$ characterise disjoint regions of the 
+  source type. We specify this by requiring that the $\lput$ functions of the two lenses commute,
+  and that the $\lget$ function of each lens is unaffected by application of $\lput$ from the
+  corresponding lens. *}
+  
 locale lens_indep =
   fixes X :: "'a \<Longrightarrow> 'c" and Y :: "'b \<Longrightarrow> 'c"
   assumes lens_put_comm: "lens_put X (lens_put Y \<sigma> v) u = lens_put Y (lens_put X \<sigma> u) v"
@@ -216,11 +230,11 @@ lemma lens_indepI:
      \<And> u \<sigma>. lens_get y (lens_put x \<sigma> u) = lens_get y \<sigma> \<rbrakk> \<Longrightarrow> x \<bowtie> y"
   by (simp add: lens_indep_def)
 
-text {* Independence is irreflexive for effectual lenses *}
+text \<open>Independence is symmetric.\<close>
 
 lemma lens_indep_sym:  "x \<bowtie> y \<Longrightarrow> y \<bowtie> x"
   by (simp add: lens_indep_def)
-
+    
 lemma lens_indep_comm:
   "x \<bowtie> y \<Longrightarrow> lens_put x (lens_put y \<sigma> v) u = lens_put y (lens_put x \<sigma> u) v"
   by (simp add: lens_indep_def)

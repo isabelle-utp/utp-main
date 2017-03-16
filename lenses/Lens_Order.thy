@@ -1,11 +1,11 @@
-section {* Order and equivalence on lenses *}
+section \<open>Order and equivalence on lenses\<close>
 
 theory Lens_Order
 imports Lens_Algebra
 begin
 
-text {* A lens $X$ is a sub-lens of $Y$ if there is a well-behaved lens $Z$ such that $X = Z ; Y$,
-  or in other words if $X$ can be expressed purely in terms of $Y$. *}
+text \<open>A lens $X$ is a sub-lens of $Y$ if there is a well-behaved lens $Z$ such that $X = Z \lcomp Y$,
+  or in other words if $X$ can be expressed purely in terms of $Y$.\<close>
 
 definition sublens :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> bool" (infix "\<subseteq>\<^sub>L" 55) where
 [lens_defs]: "sublens X Y = (\<exists> Z :: ('a, 'b) lens. vwb_lens Z \<and> X = Z ;\<^sub>L Y)"
@@ -78,12 +78,12 @@ lemma lens_quotient_mwb:
   "\<lbrakk> mwb_lens Y; X \<subseteq>\<^sub>L Y \<rbrakk> \<Longrightarrow> mwb_lens (X /\<^sub>L Y)"
   by (unfold_locales, auto simp add: lens_quotient_def lens_create_def sublens_def lens_comp_def comp_def)
 
-subsection {* Lens algebraic laws *}
+subsection \<open>Lens algebraic laws\<close>
 
 lemma plus_lens_distr: "mwb_lens Z \<Longrightarrow> (X +\<^sub>L Y) ;\<^sub>L Z = (X ;\<^sub>L Z) +\<^sub>L (Y ;\<^sub>L Z)"
   by (auto simp add: lens_comp_def lens_plus_def comp_def)
 
-text {* This law explains the behaviour of lens quotient. *}
+text \<open>This law explains the behaviour of lens quotient.\<close>
 
 lemma lens_quotient_comp:
   "\<lbrakk> weak_lens Y; X \<subseteq>\<^sub>L Y \<rbrakk> \<Longrightarrow> (X /\<^sub>L Y) ;\<^sub>L Y = X"
@@ -100,7 +100,7 @@ lemma lens_quotient_id_denom: "X /\<^sub>L 1\<^sub>L = X"
   by (simp add: lens_quotient_def id_lens_def lens_create_def)
 
 lemma lens_quotient_unit: "weak_lens X \<Longrightarrow> (0\<^sub>L /\<^sub>L X) = 0\<^sub>L"
-  by (simp add: lens_quotient_def unit_lens_def)
+  by (simp add: lens_quotient_def zero_lens_def)
 
 lemma lens_quotient_plus:
   "\<lbrakk> mwb_lens Z; X \<subseteq>\<^sub>L Z; Y \<subseteq>\<^sub>L Z \<rbrakk> \<Longrightarrow> (X +\<^sub>L Y) /\<^sub>L Z = (X /\<^sub>L Z) +\<^sub>L (Y /\<^sub>L Z)"
@@ -188,7 +188,7 @@ lemma lens_comp_lb [simp]: "vwb_lens X \<Longrightarrow> X ;\<^sub>L Y \<subsete
   by (auto simp add: sublens_def)
 
 lemma lens_unit_plus_sublens_1: "X \<subseteq>\<^sub>L 0\<^sub>L +\<^sub>L X"
-  by (metis lens_comp_lb snd_lens_plus snd_vwb_lens unit_lens_indep unit_wb_lens)
+  by (metis lens_comp_lb snd_lens_plus snd_vwb_lens zero_lens_indep unit_wb_lens)
 
 lemma lens_unit_prod_sublens_2: "0\<^sub>L +\<^sub>L X \<subseteq>\<^sub>L X"
   apply (auto simp add: sublens_def)
@@ -197,8 +197,8 @@ lemma lens_unit_prod_sublens_2: "0\<^sub>L +\<^sub>L X \<subseteq>\<^sub>L X"
   apply (rule plus_vwb_lens)
   apply (simp add: unit_vwb_lens)
   apply (simp add: id_vwb_lens)
-  apply (simp add: unit_lens_indep)
-  apply (auto simp add: lens_plus_def unit_lens_def lens_comp_def id_lens_def prod.case_eq_if comp_def)
+  apply (simp add: zero_lens_indep)
+  apply (auto simp add: lens_plus_def zero_lens_def lens_comp_def id_lens_def prod.case_eq_if comp_def)
   apply (rule ext)
   apply (rule ext)
   apply (auto)
@@ -208,7 +208,7 @@ lemma lens_plus_left_unit: "0\<^sub>L +\<^sub>L X \<approx>\<^sub>L X"
   by (simp add: lens_equivI lens_unit_plus_sublens_1 lens_unit_prod_sublens_2)
 
 lemma lens_plus_right_unit: "X +\<^sub>L 0\<^sub>L \<approx>\<^sub>L X"
-  using lens_equiv_trans lens_indep_sym lens_plus_comm lens_plus_left_unit unit_lens_indep by blast
+  using lens_equiv_trans lens_indep_sym lens_plus_comm lens_plus_left_unit zero_lens_indep by blast
   
 lemma lens_plus_mono_left:
   "\<lbrakk> Y \<bowtie> Z; X \<subseteq>\<^sub>L Y \<rbrakk> \<Longrightarrow> X +\<^sub>L Z \<subseteq>\<^sub>L Y +\<^sub>L Z"
@@ -293,7 +293,7 @@ lemma bij_lens_inv_right:
   "bij_lens X \<Longrightarrow> X ;\<^sub>L inv\<^sub>L X = 1\<^sub>L"
   by (auto simp add: lens_inv_def lens_comp_def comp_def id_lens_def, rule ext, auto)
 
-text {* Bijective lenses are precisely those that are equivalent to identity *}
+text \<open>Bijective lenses are precisely those that are equivalent to identity\<close>
 
 lemma bij_lens_equiv_id:
   "bij_lens X \<longleftrightarrow> X \<approx>\<^sub>L 1\<^sub>L"
@@ -344,7 +344,7 @@ lemma bij_lens_via_comp_id_right:
   apply (metis select_convs(1) select_convs(2) wb_lens_weak weak_lens.put_get)
 done
 
-text {* An equivalence can be proved by demonstrating a suitable bijective lens *}
+text \<open>An equivalence can be proved by demonstrating a suitable bijective lens\<close>
 
 lemma lens_equiv_via_bij:
   assumes "bij_lens Z" "X = Z ;\<^sub>L Y"
@@ -372,7 +372,7 @@ lemma lens_equiv_iff_bij:
   using lens_equiv_via_bij apply blast
 done
 
-text {* Lens override laws *}
+text \<open>Lens override laws\<close>
 
 lemma lens_override_id:
   "S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on 1\<^sub>L = S\<^sub>2"
@@ -380,7 +380,7 @@ lemma lens_override_id:
 
 lemma lens_override_unit:
   "S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on 0\<^sub>L = S\<^sub>1"
-  by (simp add: lens_override_def unit_lens_def)
+  by (simp add: lens_override_def zero_lens_def)
 
 lemma lens_override_overshadow:
   assumes "mwb_lens Y"  "X \<subseteq>\<^sub>L Y"

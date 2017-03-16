@@ -1,4 +1,4 @@
-section {* Prisms *}
+section \<open>Prisms\<close>
 
 theory Prisms
   imports Main
