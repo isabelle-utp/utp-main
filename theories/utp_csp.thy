@@ -210,6 +210,27 @@ lemma CSP3_intro:
   "\<lbrakk> P is CSP; $ref \<sharp> P\<lbrakk>false/$wait\<rbrakk> \<rbrakk> \<Longrightarrow> P is CSP3"
   by (simp add: CSP3_def Healthy_def' Skip_left_unit)
 
+lemma Skip_unrest_ref [unrest]: "$ref \<sharp> Skip\<lbrakk>false/$wait\<rbrakk>"
+  by (simp add: Skip_def RHS_def R1_def R2c_def R2s_def R3h_def design_def usubst unrest)
+
+lemma Skip_unrest_ref' [unrest]: "$ref\<acute> \<sharp> Skip\<lbrakk>false/$wait\<rbrakk>"
+  by (simp add: Skip_def RHS_def R1_def R2c_def R2s_def R3h_def design_def usubst unrest)
+        
+lemma CSP3_iff: 
+  assumes "P is CSP"
+  shows "P is CSP3 \<longleftrightarrow> ($ref \<sharp> P\<lbrakk>false/$wait\<rbrakk>)"
+proof
+  assume 1: "P is CSP3"
+  have "$ref \<sharp> (Skip ;; P)\<lbrakk>false/$wait\<rbrakk>"
+    by (simp add: usubst unrest)
+  with 1 show "$ref \<sharp> P\<lbrakk>false/$wait\<rbrakk>"
+    by (metis CSP3_def Healthy_def)
+next
+  assume 1:"$ref \<sharp> P\<lbrakk>false/$wait\<rbrakk>"  
+  show "P is CSP3"
+    by (simp add: 1 CSP3_intro assms)
+qed
+  
 lemma CSP3_Skip:
   "Skip is CSP3"
   by (rule CSP3_intro, simp add: Skip_is_CSP, simp add: Skip_def unrest)
@@ -265,6 +286,12 @@ proof -
     by (simp add: Healthy_def')
 qed
 
+lemma R1_ref_unrest [unrest]: "$ref \<sharp> P \<Longrightarrow> $ref \<sharp> R1(P)"
+  by (simp add: R1_def unrest)
+
+lemma R2c_ref_unrest [unrest]: "$ref \<sharp> P \<Longrightarrow> $ref \<sharp> R2c(P)"
+  by (simp add: R2c_def unrest)
+
 lemma R1_ref'_unrest [unrest]: "$ref\<acute> \<sharp> P \<Longrightarrow> $ref\<acute> \<sharp> R1(P)"
   by (simp add: R1_def unrest)
 
@@ -293,6 +320,12 @@ lemma CSP4_Idempotent: "Idempotent CSP4"
 lemma CSP4_Continuous: "Continuous CSP4"
   by (simp add: Continuous_def CSP4_def seq_Sup_distr)
 
+lemma pre_Stop: "pre\<^sub>R(Stop) = true"
+  by (simp add: Stop_def Stop_is_CSP rea_pre_RHS_design unrest usubst R2c_false R1_false)
+    
+lemma cmt_Stop: "cmt\<^sub>R(Stop) = ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)"
+  apply (rel_auto) using minus_zero_eq by blast
+    
 subsection {* CSP Constructs *}
 
 translations
@@ -381,6 +414,32 @@ translations
   "c\<^bold>?x:A \<^bold>\<rightarrow> P" \<rightleftharpoons> "CONST InputCSP c A (\<lambda> x. P)"
   "c\<^bold>?x \<^bold>\<rightarrow> P"   \<rightharpoonup> "CONST InputCSP c (CONST UNIV) (\<lambda> x. P)"
   
+subsection {* Closure properties *}
+
+lemma CSP_DoCSP: "do\<^sub>C(a) is CSP"
+  by (simp add: DoCSP_def do\<^sub>u_def RHS_design_is_SRD unrest)
+  
+lemma CSP3_DoCSP: "do\<^sub>C(a) is CSP3"
+  by (rule CSP3_intro[OF CSP_DoCSP])
+     (simp add: DoCSP_def do\<^sub>u_def RHS_def design_def R1_def R2c_def R2s_def R3h_def unrest usubst)
+  
+lemma CSP_Guard: "b &\<^sub>u P is CSP"
+  by (simp add: Guard_def, rule RHS_design_is_SRD, simp_all add: unrest)
+    
+lemma CSP3_Guard: 
+  assumes "P is CSP" "P is CSP3"
+  shows "b &\<^sub>u P is CSP3"
+proof -
+  from assms have 1:"$ref \<sharp> P\<lbrakk>false/$wait\<rbrakk>"
+    by (simp add: CSP_Guard CSP3_iff)
+  hence "$ref \<sharp> pre\<^sub>R (P\<lbrakk>0/$tr\<rbrakk>)" "$ref \<sharp> pre\<^sub>R P" "$ref \<sharp> cmt\<^sub>R P"
+    by (pred_auto)+
+  hence "$ref \<sharp> (b &\<^sub>u P)\<lbrakk>false/$wait\<rbrakk>"
+    by (simp add: CSP3_iff Guard_def RHS_def R1_def R2c_def R2s_def R3h_def design_def unrest usubst)
+  thus ?thesis
+    by (metis CSP3_intro CSP_Guard)
+qed
+    
 subsection {* Sequential Process Laws *}
 
 lemma Stop_left_zero:
@@ -1102,7 +1161,7 @@ text {*
 *}
 
 abbreviation ParCSP ::
-  "'\<theta> rel_csp \<Rightarrow> '\<theta> event set \<Rightarrow> '\<theta> rel_csp \<Rightarrow> '\<theta> rel_csp" (infixl "[|_|]" 85) where
+  "'\<theta> rel_csp \<Rightarrow> '\<theta> event set \<Rightarrow> '\<theta> rel_csp \<Rightarrow> '\<theta> rel_csp" (infixr "[|_|]" 105) where
 "P [|cs|] Q \<equiv> P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q"
 
 subsubsection {* CSP Merge Laws *}
@@ -1467,4 +1526,5 @@ lemma swap_CSPMerge: "(swap\<^sub>m ;; M\<^sub>C\<^sub>S\<^sub>P cs) = M\<^sub>C
 theorem parallel_commutative:
   "(P [|cs|] Q) = (Q [|cs|] P)"
   by (simp add: par_by_merge_commute swap_CSPMerge)
+   
 end
