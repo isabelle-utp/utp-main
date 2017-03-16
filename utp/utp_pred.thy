@@ -712,6 +712,10 @@ lemma UINF_subset_mono: "A \<subseteq> B \<Longrightarrow> (\<Sqinter> P\<in>B \
 lemma USUP_subset_mono: "A \<subseteq> B \<Longrightarrow> (\<Squnion> P\<in>A \<bullet> F(P)) \<sqsubseteq> (\<Squnion> P\<in>B \<bullet> F(P))"
   by (simp add: INF_superset_mono UINF_as_Inf_collect)
 
+lemma cond_UINF_dist:
+  "(\<Sqinter> P\<in>A \<bullet> F(P)) \<triangleleft> b \<triangleright> (\<Sqinter> P\<in>A \<bullet> G(P)) = (\<Sqinter> P\<in>A \<bullet> F(P) \<triangleleft> b \<triangleright> G(P))"
+  by (rel_auto)
+    
 lemma mu_id: "(\<mu> X \<bullet> X) = true"
   by (simp add: antisym gfp_upperbound)
 

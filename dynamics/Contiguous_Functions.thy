@@ -47,6 +47,9 @@ lemma shift_minus_cong: "f \<ggreater> n = g \<ggreater> n \<Longrightarrow> f =
   apply (simp)
 done
 
+lemma dom_shift_map_add: "(f ++ g) \<ggreater> n = (f \<ggreater> n) ++ (g \<ggreater> n)"
+  by (simp add: map_add_def)
+  
 lemma plus_image_atLeastLessThan:
   fixes m n k :: "real"
   shows "op + k ` {m..<n} = {m+k..<n+k}"
