@@ -9,7 +9,7 @@
 section {* Theory of CSP *}
 
 theory utp_csp
-  imports utp_procedure utp_event
+  imports utp_rea_designs
 begin
 
 subsection {* CSP Alphabet *}
@@ -45,12 +45,11 @@ type_synonym ('\<sigma>,'\<phi>) st_csp = "('\<sigma>, '\<phi> list, ('\<phi>, u
 type_synonym ('\<sigma>,'\<phi>) action  = "('\<sigma>,'\<phi>) st_csp hrel"
 
 translations
-  (type) "('\<sigma>,'\<phi>) st_csp" <= (type) "('\<sigma>, ('\<phi> list, ('a, 'd) csp_vars_scheme) rsp_vars_ext) rp"
-
+  (type) "('\<sigma>,'\<phi>) st_csp" <= (type) "('\<phi> list, ('\<sigma>, _ csp_vars) rsp_vars_ext) rp"
 
 type_synonym '\<phi> csp = "(unit,'\<phi>) st_csp"
 type_synonym '\<phi> rel_csp  = "'\<phi> csp hrel"
-
+  
 notation csp_vars_child_lens\<^sub>a ("\<Sigma>\<^sub>c")
 notation csp_vars_child_lens ("\<Sigma>\<^sub>C")
 
@@ -329,23 +328,22 @@ definition DoCSP :: "('\<phi>, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>, '\<phi
 definition PrefixCSP ::
   "('\<phi>, '\<sigma>) uexpr \<Rightarrow>
   ('\<sigma>, '\<phi>) action \<Rightarrow>
-  ('\<sigma>, '\<phi>) action" ("_ \<^bold>\<longrightarrow> _" [81, 80] 80) where
+  ('\<sigma>, '\<phi>) action" ("_ \<^bold>\<rightarrow> _" [81, 80] 80) where
 [upred_defs]: "PrefixCSP a P = (do\<^sub>C(a) ;; P)"
 
 abbreviation "OutputCSP c v P \<equiv> PrefixCSP (c\<cdot>v)\<^sub>u P"
 
 abbreviation GuardedChoiceCSP :: "'\<theta> set \<Rightarrow> ('\<theta> \<Rightarrow> ('\<sigma>, '\<theta>) action) \<Rightarrow> ('\<sigma>, '\<theta>) action" where
-"GuardedChoiceCSP A P \<equiv> (\<box> x\<in>A \<bullet> \<guillemotleft>x\<guillemotright> \<^bold>\<longrightarrow> P(x))"
+"GuardedChoiceCSP A P \<equiv> (\<box> x\<in>A \<bullet> \<guillemotleft>x\<guillemotright> \<^bold>\<rightarrow> P(x))"
 
 syntax
-  "_GuardedChoiceCSP" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("\<box> _ \<in> _ \<^bold>\<longrightarrow> _" [0,0,85] 86)
+  "_GuardedChoiceCSP" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("\<box> _ \<in> _ \<^bold>\<rightarrow> _" [0,0,85] 86)
 
 translations
-  "\<box> x\<in>A \<^bold>\<longrightarrow> P" == "CONST GuardedChoiceCSP A (\<lambda> x. P)"
+  "\<box> x\<in>A \<^bold>\<rightarrow> P" == "CONST GuardedChoiceCSP A (\<lambda> x. P)"
 
 text {* This version of input prefix is implemented using iterated external choice and so does not
   depend on the existence of local variables. *}
-
 
 definition InputCSP ::
   "('a, '\<theta>) chan \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> ('\<sigma>, '\<theta>) action) \<Rightarrow> ('\<sigma>, '\<theta>) action" where
@@ -363,6 +361,7 @@ definition do\<^sub>I :: "
 
 text {* Frank: This operator should be removed from here and places in the Circus theory *}
 
+(*
 definition InputCircus ::
   "('a::{continuum, two}, '\<theta>) chan \<Rightarrow>
     ('a, ('\<sigma>, '\<theta>) st_csp) lvar \<Rightarrow>
@@ -370,21 +369,18 @@ definition InputCircus ::
     (('a, ('\<sigma>, '\<theta>) st_csp) uvar \<Rightarrow> ('\<sigma>, '\<theta>) action) \<Rightarrow>
     ('\<sigma>, '\<theta>) action" where
 "InputCircus c x P A = (var\<^bsub>RDES\<^esub> x \<bullet> \<^bold>R\<^sub>s(true \<turnstile> ((do\<^sub>I c x P) \<and> (\<exists> $x\<acute> \<bullet> II))) ;; A(x))"
+*)
 
 syntax
-  "_csp_sync" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<^bold>\<rightarrow> _" [81, 80] 80)
-  "_csp_output" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"
-    ("_!\<^sub>u'(_') \<rightarrow> _" [81, 0, 80] 80)
-  "_csp_input"  :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"
-    ("_?\<^sub>u'(_ :/ _') \<rightarrow> _" [81, 0, 0, 80] 80)
-
+  "_csp_output" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>!_ \<^bold>\<rightarrow> _" [81, 0, 80] 80)
+  "_csp_input"  :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>?_:_ \<^bold>\<rightarrow> _" [81, 0, 0, 80] 80)
+  "_csp_inputu" :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>?_ \<^bold>\<rightarrow> _" [81, 0, 80] 80)
+  
 translations
-  "c \<^bold>\<rightarrow> A"         \<rightleftharpoons> "(CONST OutputCSP) c ()\<^sub>u A"
-  "c!\<^sub>u(v) \<rightarrow> A"     \<rightleftharpoons> "(CONST OutputCSP) c v A"
-  "c?\<^sub>u(x : P) \<rightarrow> A" \<rightharpoonup> "(CONST InputCircus) c
-    (*(CONST top_var \<dots>*) (CONST MkDVar IDSTR(x)) (\<lambda>x. P) (\<lambda>x. A)"
-  "c?\<^sub>u(x : P) \<rightarrow> A" \<leftharpoondown> "(CONST InputCircus) c x (\<lambda>v. P) (\<lambda>w. A)"
-
+  "c\<^bold>!v \<^bold>\<rightarrow> P"   \<rightleftharpoons> "CONST OutputCSP c v P"
+  "c\<^bold>?x:A \<^bold>\<rightarrow> P" \<rightleftharpoons> "CONST InputCSP c A (\<lambda> x. P)"
+  "c\<^bold>?x \<^bold>\<rightarrow> P"   \<rightharpoonup> "CONST InputCSP c (CONST UNIV) (\<lambda> x. P)"
+  
 subsection {* Sequential Process Laws *}
 
 lemma Stop_left_zero:
@@ -737,11 +733,11 @@ lemma PrefixCSP_RHS_tri_lemma3:
 
 lemma PrefixCSP_RHS_tri:
   assumes "P is CSP" "$ref \<sharp> P"
-  shows "a \<^bold>\<longrightarrow> P =
+  shows "a \<^bold>\<rightarrow> P =
          \<^bold>R\<^sub>s ((pre\<^sub>R(P\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>)) \<turnstile>
               ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute> \<or> peri\<^sub>R(P\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>)) \<diamondop> post\<^sub>R(P\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>))"
 proof -
-  have "a \<^bold>\<longrightarrow> P =
+  have "a \<^bold>\<rightarrow> P =
           \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>) \<diamondop> ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st)) ;;
           \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
     by (simp add: PrefixCSP_def DoCSP_RHS_tri SRD_reactive_tri_design assms)
@@ -839,14 +835,14 @@ lemma cond_conj_not: "((P \<triangleleft> b \<triangleright> Q) \<and> (\<not> b
 
 lemma GuardedChoiceCSP:
   assumes "\<And> x. P(x) is CSP" "\<And> x. $ref \<sharp> P(x)" "A \<noteq> {}"
-  shows "(\<box> x\<in>A \<^bold>\<longrightarrow> P(x)) =
+  shows "(\<box> x\<in>A \<^bold>\<rightarrow> P(x)) =
                    \<^bold>R\<^sub>s ((\<Squnion> x\<in>A \<bullet> pre\<^sub>R((P x)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>)) \<turnstile>
                         ((\<Squnion> x\<in>A \<bullet> \<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>)
                            \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright>
                          (\<Sqinter> x\<in>A \<bullet> peri\<^sub>R((P x)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>))) \<diamondop>
                       (\<Sqinter> x\<in>A \<bullet> post\<^sub>R((P x)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>)))"
 proof -
-  have "(\<box> x\<in>A \<^bold>\<longrightarrow> P(x))
+  have "(\<box> x\<in>A \<^bold>\<rightarrow> P(x))
         = \<^bold>R\<^sub>s ((\<Squnion> x\<in>A \<bullet> pre\<^sub>R((P x)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>)) \<turnstile>
               ((\<Squnion> x\<in>A \<bullet> $tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute> \<or> peri\<^sub>R((P x)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright>
               (\<Sqinter> x\<in>A \<bullet> $tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute> \<or> peri\<^sub>R((P x)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>))) \<diamondop>
@@ -1033,11 +1029,11 @@ proof -
 oops
 
 lemma PrefixCSP_dist:
-  "a \<^bold>\<longrightarrow> (P \<sqinter> Q) = (a \<^bold>\<longrightarrow> P) \<sqinter> (a \<^bold>\<longrightarrow> Q)"
+  "a \<^bold>\<rightarrow> (P \<sqinter> Q) = (a \<^bold>\<rightarrow> P) \<sqinter> (a \<^bold>\<rightarrow> Q)"
   by (simp add: PrefixCSP_def, metis disj_upred_def seqr_or_distr)
 
 lemma DoCSP_is_Prefix:
-  "do\<^sub>C(a) = a \<^bold>\<longrightarrow> Skip"
+  "do\<^sub>C(a) = a \<^bold>\<rightarrow> Skip"
   apply (simp add: PrefixCSP_def DoCSP_def do\<^sub>u_def Skip_def RHS_design_composition unrest R2s_true R1_false)
   apply (simp add: R1_extend_conj R2s_conj R1_cond R2s_condr R2s_wait' R1_R2s_tr'_eq_tr R2s_st'_eq_st R1_R2s_tr'_extend_tr R2s_not unrest)
   apply (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"])
@@ -1045,7 +1041,7 @@ lemma DoCSP_is_Prefix:
   apply (rel_auto)
 done
 
-lemma Prefix_CSP_seq: "(a \<^bold>\<longrightarrow> P) ;; Q = (a \<^bold>\<longrightarrow> (P ;; Q))"
+lemma Prefix_CSP_seq: "(a \<^bold>\<rightarrow> P) ;; Q = (a \<^bold>\<rightarrow> (P ;; Q))"
   by (simp add: PrefixCSP_def seqr_assoc)
 
 subsection {* Merge Predicates *}

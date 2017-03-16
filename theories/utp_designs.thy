@@ -2,11 +2,7 @@ section {* Designs *}
 
 theory utp_designs
 imports
-  utp_rel
-  utp_wp
-  utp_theory
-  utp_local
-  utp_tactics
+  "../utp/utp"
 begin
 
 text {* In UTP, in order to explicitly record the termination of a program,

@@ -20,10 +20,9 @@ type_synonym ('s,'t,'\<alpha>,'\<beta>) rel_rsp  = "(('s,'t,'\<alpha>) rsp, ('s,
 type_synonym ('s,'t,'\<alpha>) hrel_rsp  = "('s,'t,'\<alpha>) rsp hrel"
 
 translations
-  (type) "('s,'t,'\<alpha>) rsp" <= (type) "(_,('s,'t,'\<alpha>) rsp_vars_ext) rp"
   (type) "('s,'t,'\<alpha>) rsp" <= (type) "('t, ('s, '\<alpha>) rsp_vars_scheme) rp_vars_ext des"
   (type) "('s,'t,'\<alpha>,'\<beta>) rel_rp" <= (type) "(('s,'t,'\<alpha>) rsp, (_,_,'\<beta>) rsp) rel"
-
+  
 notation rsp_vars_child_lens\<^sub>a ("\<Sigma>\<^sub>s")
 notation rsp_vars_child_lens ("\<Sigma>\<^sub>S")
 
@@ -227,7 +226,7 @@ lemma RH_comp: "RH = R1 \<circ> R2c \<circ> R3c"
 
 lemma RHS_comp: "RHS = R1 \<circ> R2c \<circ> R3h"
   by (auto simp add: RHS_def)
-
+    
 lemma RD_comp: "RD = RD1 \<circ> RD2 \<circ> RP"
   by (auto simp add: RD_def)
 

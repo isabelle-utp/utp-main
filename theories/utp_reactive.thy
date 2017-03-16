@@ -2,8 +2,8 @@ section {* Reactive processes *}
 
 theory utp_reactive
 imports
+  "../utp/utp_concurrency"    
   utp_designs
-  utp_concurrency
 begin
 
 alphabet 't::ordered_cancel_monoid_diff rp_vars = des_vars +

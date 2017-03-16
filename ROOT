@@ -100,7 +100,7 @@ session "UTP" in "utp" = "UTP-IMPORTS" +
     "root.bib"
     "root.tex"
     "document.sty"
-
+    
 (* Core UTP with Deep Variables *)
 
 session "UTP-DEEP" in "deep" = "UTP" +
@@ -122,6 +122,12 @@ session "UTP-DEEP-AX" in "deep" = "UTP-DEEP" +
   theories utp_deep
     "../axiomatic/Axiomatic"
 
+(* Core UTP theories *)
+    
+session "UTP-THY-BASE" in "theories" = "UTP" +
+  options [browser_info = true, document = false]
+  theories utp_theories
+    
 (* Imports for Hybrid UTP *)
 
 (* We chose to start another root from the Analysis session (via Dynamics)
