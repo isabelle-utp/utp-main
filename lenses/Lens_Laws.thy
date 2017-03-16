@@ -37,8 +37,15 @@ named_theorems lens_defs
 definition lens_create :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ("create\<index>") where
 [lens_defs]: "create\<^bsub>X\<^esub> v = put\<^bsub>X\<^esub> undefined v"
 
-subsection {* Weak lenses *}
+text {* Function $\lcreate_X~v$ creates an instance of the source type of $X$ by injecting $v$
+  as the view, and leaving the remaining context arbitrary. *}
 
+subsection {* Weak lenses *}
+  
+text {* Weak lenses are the least constrained class of lenses in our algebraic hierarchy. They
+  simply require that the PutGet law~\cite{Foster09,Fischer2015} is satisfied, meaning that 
+  $\lget$ is the inverse of $\lput$. *}
+  
 locale weak_lens =
   fixes x :: "'a \<Longrightarrow> 'b" (structure)
   assumes put_get: "get (put \<sigma> v) = v"
@@ -68,6 +75,9 @@ declare weak_lens.create_get [simp]
 
 subsection {* Well-behaved lenses *}
 
+text {* Well-behaved lenses add to weak lenses that requirement that the GetPut law~\cite{Foster09,Fischer2015} 
+  is satisfied, meaning that $\lput$ is the inverse of $\lget$. *}
+  
 locale wb_lens = weak_lens +
   assumes get_put: "put \<sigma> (get \<sigma>) = \<sigma>"
 begin
