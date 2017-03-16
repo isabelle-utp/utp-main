@@ -144,6 +144,7 @@ session "UTP-HYBRID-IMPORTS" = "Dynamics" +
     "contrib/Algebra/Galois_Connection"
     "utils/utp_imports"
     "utp/utp"
+    "theories/utp_theories"
 
 (* Hybrid UTP *)
 
