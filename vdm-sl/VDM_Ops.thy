@@ -84,15 +84,31 @@ begin
   instance ..
 end
 
+(*
+class length =
+  fixes length :: "'a \<Rightarrow> nat"
+
+instantiation list :: (type) length
+begin
+definition length_list :: "'a list \<Rightarrow> nat" where
+"length_list l = List.length l"
+instance ..
+end
+*)
+ 
+definition length_vdm :: "'a list option \<Rightarrow> nat option" ("length\<^sub>v") where
+"length_vdm = upfun' length"
+
+term "length"
+term "length\<^sub>v"
+  
 instantiation option :: (uminus) uminus
 begin
 definition uminus_option :: "'a option \<Rightarrow> 'a option" where
   [upred_defs]: "uminus_option = upfun' uminus"
   instance ..
 end
-
-
-
+  
 instantiation option :: (abs) abs
 begin
 definition abs_option :: "'a option \<Rightarrow> 'a option" where
@@ -116,7 +132,7 @@ begin
   
   instance ..
 end    
-
+ 
 text {* We prove that our lifted plus type is a semigroup; i.e. it is associative *}
   
 instance option :: (semigroup_add) semigroup_add
@@ -141,5 +157,8 @@ lemma div_ex_1: "1 / None = None"
 
 lemma div_ex_2: "1 / 0 = None"
   by (simp add: divide_option_def zero_option_def one_option_def)
+
+definition vcard :: "'a set option \<Rightarrow> nat option" where
+  "vcard inSet = (case inSet of Some a => (if finite a then Some (card a) else None) | None => None)"
     
 end
