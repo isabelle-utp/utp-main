@@ -1403,6 +1403,10 @@ lemma rea_peri_RHS_design: "peri\<^sub>R(\<^bold>R\<^sub>s(P \<turnstile> Q \<di
 lemma rea_post_RHS_design: "post\<^sub>R(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = R1(R2c(post\<^sub>s \<dagger> (P \<Rightarrow> R)))"
   by (simp add:RHS_def usubst post\<^sub>R_def R3h_def post\<^sub>s_design)
 
+lemma wait'_cond_peri_post_cmt:
+  "peri\<^sub>R P \<diamondop> post\<^sub>R P = cmt\<^sub>R P"
+  by (rel_auto, (metis (full_types))+)
+    
 lemma rdes_export_cmt: "\<^bold>R\<^sub>s(P \<turnstile> cmt\<^sub>s \<dagger> Q) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
   by (rel_auto)
 
@@ -1550,6 +1554,10 @@ subsection {* Reactive design signature *}
 definition srdes_skip :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp" ("II\<^sub>R") where
 [upred_defs]: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R))"
 
+text {* This additional healthiness condition is analogous to H3 *}
+
+definition [upred_defs]: "RD3(P) = P ;; II\<^sub>R"
+
 definition assigns_rea :: "'s usubst \<Rightarrow> ('s, 't::ordered_cancel_monoid_diff, '\<alpha>) hrel_rsp" ("\<langle>_\<rangle>\<^sub>R") where
 [upred_defs]: "assigns_rea \<sigma> = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S))"
 
@@ -1671,6 +1679,16 @@ proof -
   finally show ?thesis .
 qed
 
+lemma RHS_tri_design_right_unit_lemma:
+  assumes "P is SRD"
+  shows "P ;; II\<^sub>R = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> peri\<^sub>R(P)) \<diamondop> post\<^sub>R P))"
+proof -
+  have "((\<exists> $st\<acute> \<bullet> cmt\<^sub>R P) \<triangleleft> $wait\<acute> \<triangleright> cmt\<^sub>R P) = (\<exists> $st\<acute> \<bullet> peri\<^sub>R P) \<diamondop> post\<^sub>R P"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: RHS_design_right_unit_lemma assms)
+qed
+  
 lemma RHS_design_right_Chaos_lemma:
   assumes "P is SRD"
   shows "P ;; Chaos = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true \<and> \<not> (cmt\<^sub>R P \<and> \<not> $wait\<acute>) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> cmt\<^sub>R P) \<and> $wait\<acute>))"
@@ -1703,6 +1721,104 @@ qed
 
 lemma assigns_rea_id: "\<langle>id\<rangle>\<^sub>R = II\<^sub>R"
   by (rel_auto)
+  
+lemma SRD_srdes_skip: "II\<^sub>R is SRD"
+  by (simp add: srdes_skip_def RHS_design_is_SRD unrest)
+
+text {* Properties about healthiness condition RD3 *}
+    
+lemma RD3_idem: "RD3(RD3(P)) = RD3(P)"
+proof -
+  have a: "II\<^sub>R ;; II\<^sub>R = II\<^sub>R"
+    by (simp add: RHS_design_left_unit SRD_srdes_skip)
+  show ?thesis
+    by (simp add: RD3_def seqr_assoc[THEN sym] a)
+qed
+ 
+lemma RD3_Idempotent: "Idempotent RD3"
+  by (simp add: Idempotent_def RD3_idem)
+  
+lemma RD3_continuous: "RD3(\<Sqinter>A) = (\<Sqinter>P\<in>A. RD3(P))"
+  by (simp add: RD3_def seq_Sup_distr)
+  
+lemma RD3_Continuous: "Continuous RD3"
+  by (simp add: Continuous_def RD3_continuous)  
+    
+lemma RD3_subsumes_RD2: "RD2(RD3(P)) = RD3(P)"
+proof -
+  have a:"II\<^sub>R ;; J = II\<^sub>R"
+    by (rel_auto)
+  show ?thesis
+    by (metis (no_types, hide_lams) H2_def RD2_def RD3_def a seqr_assoc)
+qed
+  
+lemma RD3_implies_RD2: "P is RD3 \<Longrightarrow> P is RD2"
+  by (metis Healthy_def RD3_subsumes_RD2)
+
+lemma RD3_intro_pre:
+  assumes "P is SRD" "(\<not> pre\<^sub>R(P)) ;; R1(true) = (\<not> pre\<^sub>R(P))" "$st\<acute> \<sharp> peri\<^sub>R(P)"
+  shows "P is RD3"
+proof -
+  have "RD3(P) = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true) \<turnstile> (\<exists> $st\<acute> \<bullet> peri\<^sub>R P) \<diamondop> post\<^sub>R P)"
+    by (simp add: RD3_def RHS_tri_design_right_unit_lemma assms)
+  also have "... = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true) \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P)"
+    by (simp add: assms(3) ex_unrest)
+  also have "... = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true) \<turnstile> cmt\<^sub>R P)"
+    by (simp add: wait'_cond_peri_post_cmt)
+  also have "... = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> cmt\<^sub>R P)"
+    by (simp add: assms(2))
+  finally show ?thesis
+    by (metis Healthy_def SRD_as_reactive_design assms(1))
+qed
+    
+lemma R1_right_unit_lemma:
+  "\<lbrakk> out\<alpha> \<sharp> b; out\<alpha> \<sharp> e \<rbrakk> \<Longrightarrow> (b \<or> $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>) ;; R1(true) = (b \<or> $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>)"
+  by (rel_auto, blast, metis (no_types, lifting) dual_order.trans)
+        
+lemma RHS_design_RD3_intro:
+  assumes 
+    "R1(R2c(\<not> p)) ;; R1(true) = R1(R2c(\<not> p))" "$ok \<sharp> p" "$ok\<acute> \<sharp> p" "$wait \<sharp> p" "$st\<acute> \<sharp> p"
+    "$ok \<sharp> Q" "$ok\<acute> \<sharp> Q" "$wait \<sharp> Q" "$st\<acute> \<sharp> Q"
+  shows "\<^bold>R\<^sub>s(p \<turnstile> Q) is RD3"
+proof -
+  have "RD3(\<^bold>R\<^sub>s(p \<turnstile> Q)) = \<^bold>R\<^sub>s (p \<turnstile> ((\<exists> $st\<acute> \<bullet> R1 (R2c (p \<Rightarrow> Q))) \<triangleleft> $wait\<acute> \<triangleright> R1 (R2c (p \<Rightarrow> Q))))"
+    apply (simp add: RD3_def)
+    apply (subst RHS_design_right_unit_lemma)
+    apply (rule RHS_design_is_SRD)
+    apply (simp_all add: rea_pre_RHS_design rea_cmt_RHS_design unrest assms usubst)
+    apply (simp add: R2c_not RHS_design_R2c_pre RHS_design_neg_R1_pre)
+  done
+  also have "... = \<^bold>R\<^sub>s (p \<turnstile> ((\<exists> $st\<acute> \<bullet> (p \<Rightarrow> Q)) \<triangleleft> $wait\<acute> \<triangleright> (p \<Rightarrow> Q)))"      
+    by (rel_auto)
+  also have "... = \<^bold>R\<^sub>s (p \<turnstile> ((p \<Rightarrow> Q) \<triangleleft> $wait\<acute> \<triangleright> (p \<Rightarrow> Q)))"      
+      by (simp add: assms ex_unrest unrest_impl)
+  also have "... = \<^bold>R\<^sub>s (p \<turnstile> Q)"
+    by (metis cond_idem design_export_pre impl_alt_def neg_conj_cancel1 utp_pred.double_compl)
+  finally show ?thesis
+    using Healthy_def by blast
+qed
+
+text {* RD3 reactive designs are those whose assumption can be written as a conjunction of a 
+  precondition on (undashed) program variables, and a negated statement about the trace. The latter
+  allows us to state that certain events must not occur in the trace -- which are effectively safety 
+  properties. *}
+  
+lemma RHS_design_RD3_intro_form:
+  assumes  
+    "out\<alpha> \<sharp> b" "out\<alpha> \<sharp> e" "$tr \<sharp> b" "$tr \<sharp> e"
+    "$ok \<sharp> b" "$wait \<sharp> b" "$ok \<sharp> e" "$wait \<sharp> e"
+    "$ok \<sharp> Q" "$ok\<acute> \<sharp> Q" "$wait \<sharp> Q" "$st\<acute> \<sharp> Q"
+  shows "\<^bold>R\<^sub>s((b \<and> \<not> $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>) \<turnstile> Q) is RD3"
+  apply (rule RHS_design_RD3_intro)
+  apply (simp_all add: assms unrest)
+  using assms(1-4)
+  apply (rel_auto)
+  apply meson+
+  apply (metis (no_types, lifting) Prefix_Order.prefixE Prefix_Order.same_prefix_prefix append_minus dual_order.trans)
+  apply (metis (no_types, lifting) Prefix_Order.prefixE Prefix_Order.same_prefix_prefix append_minus dual_order.trans)
+  apply (meson order_refl)
+  apply (metis (no_types, lifting) order_refl)
+done
   
 subsection {* Reactive design parallel-by-merge *}
 

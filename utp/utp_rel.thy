@@ -181,12 +181,12 @@ lemma unrest_cond [unrest]:
   by (rel_auto)
 
 lemma unrest_in\<alpha>_var [unrest]:
-  "\<lbrakk> mwb_lens x; in\<alpha> \<sharp> (P :: ('\<alpha>, '\<beta>) rel) \<rbrakk> \<Longrightarrow> $x \<sharp> P"
-  by (pred_auto, simp add: in\<alpha>_def, blast, metis in\<alpha>_def lens.select_convs(2) old.prod.case)
+  "\<lbrakk> mwb_lens x; in\<alpha> \<sharp> (P :: ('a, ('\<alpha> \<times> '\<beta>)) uexpr) \<rbrakk> \<Longrightarrow> $x \<sharp> P"
+  by (rel_auto)
 
 lemma unrest_out\<alpha>_var [unrest]:
-  "\<lbrakk> mwb_lens x; out\<alpha> \<sharp> (P :: ('\<alpha>, '\<beta>) rel) \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> P"
-  by (pred_auto, simp add: out\<alpha>_def, blast, metis lens.select_convs(2) old.prod.case out\<alpha>_def)
+  "\<lbrakk> mwb_lens x; out\<alpha> \<sharp> (P :: ('a, ('\<alpha> \<times> '\<beta>)) uexpr) \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> P"
+  by (rel_auto)
 
 lemma in\<alpha>_uvar [simp]: "vwb_lens in\<alpha>"
   by (unfold_locales, auto simp add: in\<alpha>_def)
