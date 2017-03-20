@@ -75,9 +75,6 @@ definition upfun :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('
 definition applyFunc :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a lpf \<Rightarrow> 'b lpf" where
 "applyFunc f = Abs_lpf \<circ> Some \<circ> f \<circ> the \<circ> Rep_lpf"*)
 
-text {* lift1_lpf' takes a set which is a predicate on the input values, a total HOL function and turns
-  it into a function on option types. The resulting value is defined if (1) each input is defined
-  and (2) the input satisfies the predicate. *}
 (*definition lift1_lpf' :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf)" where
 "lift1_lpf' u f = (\<lambda> x. (if ( \<D>(lpfSat u x)) then applyFunc f x else lpf_None))"  *)
 
@@ -90,11 +87,11 @@ definition lift1_bind :: "'a lpf \<Rightarrow> ('a \<Rightarrow> 'b lpf) \<Right
 adhoc_overloading
 bind lift1_bind
 
+text {* lift1_lpf' takes a set which is a predicate on the input values, a total HOL function and turns
+  it into a function on option types. The resulting value is defined if (1) each input is defined
+  and (2) the input satisfies the predicate. *}
 definition lift1_lpf :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf)" where
 "lift1_lpf u f = (\<lambda>x . (x\<bind>lpfSat u)\<bind> lpf_Some \<circ> f)"
-
-consts lift1_lpf :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf)"
-(* Perhaps you can define the above lifting functor properly. *)
 
 consts lift1_vdm :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> (('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr)"
 (* Open question: do we really need two layers of lifting? *)
