@@ -2,23 +2,28 @@ section {* Isabelle/UTP Primer *}
 
 (*<*)
 theory utp_tutorial
-  imports "../utp/utp"
+  imports 
+    "../utp/utp" 
+    "../theories/utp_theories"
 begin
 (*>*)
 
-text {* In this section we will introduce Hoare and He's \emph{Unifying Theories of Programming}~\cite{Hoare&98} through
+text {* In this section, we will introduce Hoare and He's \emph{Unifying Theories of Programming}~\cite{Hoare&98} through
   a tutorial about our mechanisation, in Isabelle, called Isabelle/UTP~\cite{Foster16a,Feliachi2010,Zeyda16}. The UTP 
   is a framework for building and reasoning about heterogeneous semantics of programming and modelling languages. One of the core ideas of the UTP
   is that any program (or model) can be represented as a logical predicate over the program's state
   variables. The UTP thus begins from a higher-order logical core, and constructs a semantics for
   imperative relational programs, which can then be refined and extended with more complex language
   paradigms and theories. Isabelle/UTP mechanises this language of predicates and relations, and provides
-  proof tactics for solving conjectures. For example, we can prove the following simple conjecture: *}
+  proof tactics for solving conjectures. For example, we can prove the following simple conjectures: *}
 
 lemma "(true \<and> false) = false"
   by pred_auto
+    
+lemma "(true \<Rightarrow> P \<and> P) = P"
+  by (pred_auto)
 
-text {* We discharge this using our predicate calculus tactic, \emph{pred-auto}. It should be noted
+text {* We discharge these using our predicate calculus tactic, \emph{pred-auto}. It should be noted
   that @{term true}, @{term false}, and the conjunction operator are not simply the HOL operators;
   rather they act on on our UTP predicate type (@{typ "'\<alpha> upred"}). *}
 
@@ -119,9 +124,9 @@ lemma "x \<sharp> (\<forall> x \<bullet> &x =\<^sub>u &y)"
 text {* The tactic attempts to prove the unrestriction using a set of built-in unrestriction laws
   that exist for every operator of the calculus. The final example is interesting, because it shows we are 
   not dealing with a syntactic
-  property but rather a semantic one. Typically one would describe the (non-)presence of variables
+  property but rather a semantic one. Typically, one would describe the (non-)presence of variables
   syntactically, by checking if the syntax tree of $P$ refers to $x$. In this case we are actually
-  checking whether the valuation of $P$ depends on $x$ or not not. In other words, if we can rewrite
+  checking whether the valuation of $P$ depends on $x$ or not. In other words, if we can rewrite
   $P$ to a form where $x$ is not present, but $P$ is otherwise equivalent, then $x$ is unrestricted --
   it can take any value. The following example illustrates this: *}
 
@@ -134,7 +139,7 @@ text {* Of course, if $x$ is either less than $5$, equal to $5$, or greater than
   encode necessary side conditions on algebraic laws of programming.
 
   In addition to presence of variables, we will often want to substitute a variable for an expression.
-  We write this using the familiar syntax @{term "P\<lbrakk>v/x\<rbrakk>"}, and also @{term "P\<lbrakk>v\<^sub>1,v\<^sub>2,v\<^sub>3/x\<^sub>1,x\<^sub>2,x\<^sub>3\<rbrakk>"} for
+  We write this using the familiar syntax @{term "P\<lbrakk>v/x\<rbrakk>"}, and also @{term [source] "P\<lbrakk>v\<^sub>1,v\<^sub>2,v\<^sub>3/x\<^sub>1,x\<^sub>2,x\<^sub>3\<rbrakk>"} for
   an arbitrary number of expressions and variables. We can evaluate substitutions using the tactic
   \emph{subst-tac} as the following examples show:
  *}
@@ -196,14 +201,16 @@ lemma "(x := 1) = (($x\<acute> =\<^sub>u 1 \<and> $y\<acute> =\<^sub>u $y \<and>
 
 text {* Since we are now in the world of relations, we have an additional tactic called \emph{rel-auto}
   that solves conjectures in relational calculus. We can use relational variables to write to
-  loose specifications for programs, and then prove that a given program is a refinement. For example: *}
+  loose specifications for programs, and then prove that a given program is a refinement. Refinement
+  is an order on programs that allows us to assert that a program refines a given specification,
+  for example: *}
 
 lemma "($x\<acute> >\<^sub>u $y) \<sqsubseteq> (x, y := &y + 3, 5)"
   by (rel_auto)
 
 text {* This tells us that the specification that the after value of $x$ must be greater than the initial
   value of $y$, is refined by the program which adds $3$ to $y$ and assigns this to $x$, and
-  simultaneously assigns $5$ to $y$. Of course this is not the only refinement, but an interesting
+  simultaneously assigns $5$ to $y$. Of course, this is not the only refinement, but an interesting
   one. A refinement conjecture @{term "P \<sqsubseteq> Q"} in general asserts that @{term "Q"} is more deterministic
   than @{term "P"}. In addition to assignments, we can also construct relational specifications and programs
   using sequential (or relational) composition: *}
@@ -211,7 +218,7 @@ text {* This tells us that the specification that the after value of $x$ must be
 lemma "(x := 1 ;; x := &x + 1) = (x := 2)"
   by (rel_auto)
 
-text {* Internally what is happening here is quite subtle, so we can also prove this laws in the Isar
+text {* Internally, what is happening here is quite subtle, so we can also prove this law in the Isar
   proof scripting language which allows us to further expose the details of the argument. In this
   proof we will make use of both the tactic and already proven laws of programming from Isabelle/UTP. *}
 
@@ -238,6 +245,8 @@ text {* UTP also gives us an if-then-else conditional construct, written @{term 
 lemma "(x := 1 ;; (y := 7 \<triangleleft> $x >\<^sub>u 0 \<triangleright> y := 8)) = (x,y := 1,7)"
   by (rel_auto)
 
+text {* Below is an illustration of how we can express a simple while loop in Isabelle/UTP. *}
+    
 term "(x,y := 3,1;; while &x >\<^sub>u 0 do x := &x - 1;; y := &y * 2 od)"
   
 subsection {* Non-determinism and Complete Lattices *}
@@ -268,6 +277,9 @@ theorem Choice_equiv:
   shows "\<Sqinter> {P, Q} = P \<sqinter> Q"
   by simp
 
+text {* Theorem @{thm [source] Choice_equiv} shows the relationship between the big choice operator
+  and its binary equivalent. The latter is simply a choice over a set with two elements. *}
+    
 theorem Choice_refine: 
   fixes A B :: "'\<alpha> upred set"
   assumes "B \<subseteq> A"
@@ -318,7 +330,9 @@ theorem nu_unfold: "mono F \<Longrightarrow> (\<nu> X \<bullet> F(X)) = F(\<nu> 
   by (simp add: def_lfp_unfold)
 
 text {* Perhaps of most interest are the unfold laws, also known as the ``copy rule'', that allows
-  the function body $F$ of the fixed point equation to be expanded once. *}
+  the function body $F$ of the fixed point equation to be expanded once. These state that, provided
+  that the body of the fixed point is a monotone function, then the body can be copied to the outside.
+  These can be used to prove equivalent laws for operators like the while loop. *}
     
 subsection {* Laws of programming *}
 
@@ -349,8 +363,9 @@ lemma "x := &x = II"
   by (rel_auto)
 
 text {* In the context of relations, @{term "false"} denotes the empty relation, and is usually
-  used to represent a miraculous program. The conditional @{term "P \<triangleleft> b \<triangleright> Q"} also has a number of
-  algebraic laws that we can prove. *}
+  used to represent a miraculous program. This is intuition of it being a left and right zero:
+  if a miracle occurred then the whole of the program collapses. The conditional @{term "P \<triangleleft> b \<triangleright> Q"} 
+  also has a number of algebraic laws that we can prove. *}
 
 theorem cond_true: "P \<triangleleft> true \<triangleright> Q = P"
   by (rel_auto)
@@ -429,7 +444,7 @@ text {* Though we now have a theory of UTP relations with which can form simple 
   in terms of assumption $P$ and commitment $Q$. Such a construction states that, if $P$ holds and 
   the program is allowed to execute, then the program will terminate and satisfy its commitment $Q$. If
   $P$ is not satisfied then the program will abort yielding the predicate @{term true}. For example the design 
-  @{term "($x \<noteq>\<^sub>u 0) \<turnstile>\<^sub>r (y := &y div &x)"} represents a program which, assuming that $x \neq 0$ assigns
+  @{term "($x \<noteq>\<^sub>u 0) \<turnstile>\<^sub>r (y := (&y div &x))"} represents a program which, assuming that $x \neq 0$ assigns
   $y$ divided by $x$ to $y$.
 *} 
   
