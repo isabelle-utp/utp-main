@@ -1,8 +1,8 @@
 (******************************************************************************)
 (* Project: The Isabelle/UTP Proof System                                     *)
 (* File: utp_avar.thy                                                         *)
-(* Author: Frank Zeyda (University of York, UK)                               *)
-(* Email: frank.zeyda@york.ac.uk                                              *)
+(* Authors: Simon Foster and Frank Zeyda (University of York, UK)             *)
+(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
 (******************************************************************************)
 (* LAST REVIEWED: 16 Feb 2017 *)
 
@@ -10,7 +10,7 @@ section {* Axiomatic Variables *}
 
 theory utp_avar
 imports utp_var
-  "../theories/core/ulens"
+  "../../axiomatic/Axiomatic"
 begin recall_syntax
 
 default_sort type

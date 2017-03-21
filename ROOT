@@ -37,12 +37,12 @@ session "HOL-Algebra2" (main timing) in "contrib/Algebra" = HOL +
     UnivPoly             (* Polynomials *)
   document_files "root.bib" "root.tex"
 
-(* Lenses *)
+(* Optics Library *)
 
 session "Optics" in "lenses"
   = (* "HOL-Algebra2" *) "HOL" +
   options [document = pdf, document_output = "output", timeout = 300]
-  theories 
+  theories
     Interp
     Two
     Lens_Laws
@@ -50,12 +50,12 @@ session "Optics" in "lenses"
     Lens_Order
     Lens_Instances
     Lenses
-  document_files 
-    "root.bib" 
-    "root.tex" 
+  document_files
+    "root.bib"
+    "root.tex"
     "document.sty"
     "figures/Lens.pdf"
-    
+
 (* Continuum Universe *)
 
 session "Continuum" in "continuum" = "HOL-Cardinals" +
@@ -69,7 +69,7 @@ session "Continuum" in "continuum" = "HOL-Cardinals" +
     Real_Bit
     UNIV_TYPE
 
-(* Continuous Systems Dynamics *)
+(* Continuous System Dynamics *)
 
 session "Dynamics" in "dynamics" = "HOL-Analysis" +
   options [document = pdf, document_output = "output", timeout = 1000]
@@ -100,35 +100,47 @@ session "UTP" in "utp" = "UTP-IMPORTS" +
     "root.bib"
     "root.tex"
     "document.sty"
-    
+
 (* Core UTP with Deep Variables *)
 
-session "UTP-DEEP" = "UTP-IMPORTS" +
+session "UTP-DEEP" in "utp/models" = "UTP" +
   options [browser_info = true, document = false]
-  theories 
-    "continuum/Continuum"
-    "utp/models/utp_deep"
+  theories utp_deep
 
 (* Core UTP with Axiomatic Variables *)
 
-session "UTP-AX" in "utp" = "UTP" +
+session "UTP-AXM" in "utp/models" = "UTP" +
   options [browser_info = true, document = false]
-  theories utp
-    "../axiomatic/Axiomatic"
+  theories utp_axm
 
-(* Core UTP with Deep and Axiomatic Variables *)
+(* Core UTP with Deep & Axiomatic Variables *)
 
-session "UTP-DEEP-AX" in "deep" = "UTP-DEEP" +
+session "UTP-DEEP-AXM" in "utp/models" = "UTP-DEEP" +
   options [browser_info = true, document = false]
-  theories utp_deep
-    "../axiomatic/Axiomatic"
+  theories utp_deep utp_axm
 
-(* Core UTP theories *)
-    
-session "UTP-THY-BASE" in "theories" = "UTP" +
+(* UTP Theory Base *)
+
+session "UTP-THY" in "theories" = "UTP" +
   options [browser_info = true, document = false]
   theories utp_theories
-    
+
+session "UTP-THY-DEEP" in "utp/models" = "UTP-THY" +
+  options [browser_info = true, document = false]
+  theories utp_theories utp_deep
+
+session "UTP-THY-AXM" in "utp/models" = "UTP-THY" +
+  options [browser_info = true, document = false]
+  theories utp_theories utp_axm
+
+session "UTP-THY-DEEP-AXM" in "utp/models" = "UTP-THY-DEEP" +
+  options [browser_info = true, document = false]
+  theories utp_theories utp_deep utp_axm
+
+(***********************)
+(* REVIEWED UNTIL HERE *)
+(***********************)
+
 (* Imports for Hybrid UTP *)
 
 (* We chose to start another root from the Analysis session (via Dynamics)
@@ -162,7 +174,7 @@ session "UTP-HYBRID" in "hybrid" = "UTP-HYBRID-IMPORTS" +
 
 (* VDM-SL Mechanisation *)
 
-session "VDM-SL" in "vdm-sl" = "UTP-DEEP" +
+session "VDM-SL" in "vdm-sl" = "UTP-THY" +
   options [document = false]
   theories
     PFOL
@@ -181,7 +193,7 @@ session "UTP-TUTORIAL" in "tutorial" = "UTP" +
 
 (* FMI Mechanisation *)
 
-session "FMI" in "fmi" = "UTP-DEEP-AX" +
+session "FMI" in "fmi" = "UTP-THY-DEEP-AXM" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     fmi

@@ -10,8 +10,9 @@ imports
 begin recall_syntax
 
 hide_type rel
+
 no_notation inner (infix "\<bullet>" 70)
-  
+
 text {* We also set up adhoc overloading to apply timed traces and contiguous functions *}
 
 adhoc_overloading uapply cgf_apply and uapply tt_apply

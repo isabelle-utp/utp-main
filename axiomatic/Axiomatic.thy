@@ -11,5 +11,5 @@ section {* Axiomatic Model *}
 theory Axiomatic
 imports
   "theories/meta/umodel"
-  "isabelle-utp/utp_avar"
+(* "isabelle-utp/utp_avar" *)
 begin end

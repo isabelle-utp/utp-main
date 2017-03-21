@@ -1,9 +1,18 @@
-subsection {* Deep UTP variables *}
+(******************************************************************************)
+(* Project: The Isabelle/UTP Proof System                                     *)
+(* File: utp_dvar.thy                                                         *)
+(* Authors: Simon Foster and Frank Zeyda (University of York, UK)             *)
+(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
+(******************************************************************************)
+
+subsection {* Deep Variables *}
 
 theory utp_dvar
-  imports
-    "../../theories/utp_theories"    
-    "../../continuum/Continuum"
+imports utp_var utp_expr utp_unrest utp_subst
+  "../../theories/utp_designs"     (* TODO: Remove this dependency! *)
+  "../../theories/utp_reactive"    (* TODO: Remove this dependency! *)
+  "../../theories/utp_rea_designs" (* TODO: Remove this dependency! *)
+  "../../continuum/Continuum"
 begin recall_syntax
 
 text {* UTP variables represented by record fields are shallow, nameless entities. They are fundamentally
