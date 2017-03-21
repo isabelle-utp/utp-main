@@ -163,4 +163,32 @@ lemma var_block_vacuous:
 
 text {* A variable block with a skip inside results in a skip. *}
 end
+  
+text {* Example instantiation for the theory of relations *}
+  
+overloading 
+  rel_pvar == "pvar :: (REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha>"
+  rel_pvar_assigns == "pvar_assigns :: (REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel"
+begin
+  definition rel_pvar :: "(REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha>" where
+  [upred_defs]: "rel_pvar T = 1\<^sub>L"
+  definition rel_pvar_assigns :: "(REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel" where
+  [upred_defs]: "rel_pvar_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>a"
+end
+
+interpretation rel_local_var: utp_local_var "UTHY(REL, '\<alpha>)" "TYPE('\<alpha>)"
+proof -
+  interpret vw: vwb_lens "pvar REL :: '\<alpha> \<Longrightarrow> '\<alpha>"
+    by (simp add: rel_pvar_def id_vwb_lens)
+  show "utp_local_var TYPE('\<alpha>) UTHY(REL, '\<alpha>)"
+  proof
+    show "\<And>\<sigma>::'\<alpha> \<Rightarrow> '\<alpha>. \<^bold>\<langle>\<sigma>\<^bold>\<rangle>\<^bsub>REL\<^esub> is \<H>\<^bsub>REL\<^esub>"
+      by (simp add: rel_pvar_assigns_def rel_hcond_def Healthy_def)
+    show "\<And>(\<sigma>::'\<alpha> \<Rightarrow> '\<alpha>) \<rho>. \<^bold>\<langle>\<sigma>\<^bold>\<rangle>\<^bsub>UTHY(REL, '\<alpha>)\<^esub> ;; \<^bold>\<langle>\<rho>\<^bold>\<rangle>\<^bsub>REL\<^esub> = \<^bold>\<langle>\<rho> \<circ> \<sigma>\<^bold>\<rangle>\<^bsub>REL\<^esub>"
+      by (simp add: rel_pvar_assigns_def assigns_comp)
+    show "\<^bold>\<langle>id::'\<alpha> \<Rightarrow> '\<alpha>\<^bold>\<rangle>\<^bsub>UTHY(REL, '\<alpha>)\<^esub> = \<I>\<I>\<^bsub>REL\<^esub>"
+      by (simp add: rel_pvar_assigns_def rel_unit_def skip_r_def)
+  qed
+qed
+  
 end
