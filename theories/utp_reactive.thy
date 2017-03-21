@@ -345,6 +345,9 @@ lemma true_is_R2s:
 lemma R2s_lift_rea: "R2s(\<lceil>P\<rceil>\<^sub>R) = \<lceil>P\<rceil>\<^sub>R"
   by (simp add: R2s_def usubst unrest)
 
+lemma R2c_lift_rea: "R2c(\<lceil>P\<rceil>\<^sub>R) = \<lceil>P\<rceil>\<^sub>R"
+  by (simp add: R2c_def R2s_lift_rea cond_idem usubst unrest)
+
 lemma R2c_true: "R2c(true) = true"
   by (rel_auto)
 
