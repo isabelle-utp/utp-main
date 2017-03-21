@@ -96,7 +96,7 @@ text {* lift1_lpf takes a set which is a predicate on the input values,
 
 definition lift1_lpf_old :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf)" where
 [lpf_defs]:"lift1_lpf_old u f = (\<lambda>x . (x\<bind>lpfSat u)\<bind> lpf_Some \<circ> f)"
-print_theorems
+
 definition lift1_lpf'_old :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf)" where
 [lpf_defs]:"lift1_lpf'_old = lift1_lpf_old UNIV"
 
@@ -104,20 +104,79 @@ lift_definition lift1_lpf :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Right
 "(\<lambda> u f x . (x\<bind>lpfSat u)\<bind> lpf_Some \<circ> f)"
 done
 
+declare lift1_lpf.transfer [lpf_transfer]
+declare lift1_lpf_def [lpf_defs]
+
 lift_definition lift1_lpf' :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf)" is
 "(\<lambda> f . lift1_lpf UNIV f)"
 done
 
+declare lift1_lpf'.transfer [lpf_transfer]
+declare lift1_lpf'_def [lpf_defs]
+
+text {*
+  Below we define unary operators on the lpf type 
+  using the lifting defined above.
+*}
+
+(* With instantiation, use the type class syntax for uminus. *)
+(*instantiation lpf :: (uminus) uminus
+begin
+definition uminus_lpf :: "'a lpf \<Rightarrow> 'a lpf" where
+"uminus_lpf = lift1_lpf' uminus"
+instance ..
+end*)
+
+definition uminus_lpf :: "'a::uminus lpf \<Rightarrow> 'a lpf" ("-\<^sub>L _" [81] 80) where
+[lpf_defs]: "uminus_lpf = lift1_lpf' uminus"
+
+definition card_lpf :: "'a set lpf \<Rightarrow> nat lpf" where
+[lpf_defs]: "card_lpf = lift1_lpf' card"
+
+definition abs_lpf :: "real lpf \<Rightarrow> real lpf" where
+[lpf_defs]: "abs_lpf = lift1_lpf' abs"
+
+definition floor_lpf :: "real lpf \<Rightarrow> int lpf" where
+[lpf_defs]: "floor_lpf = lift1_lpf' floor"
+
+definition len_lpf :: "'a list lpf \<Rightarrow> nat lpf" where
+[lpf_defs]: "len_lpf = lift1_lpf' length"
+
+-- {* \todo{Define the following operators: 
+  Boolean type: Negation
+  Record types: field select and is.
+  Set unary operators: dunion, dinter and power.
+  Sequence unary operators: hd, tl, elems, inds, reverse, conc and indexing.
+  Map unary operators: dom, rng, merge, apply and inverse.  } 
+*}
+
+lift_definition lift2_lpf :: 
+  "('a * 'b) set \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf \<Rightarrow> 'c lpf)" is
+  "(\<lambda> u f v1 v2. 
+  do { x \<leftarrow> v1; y \<leftarrow> v2; lpfSat u (x, y) } \<bind> lpf_Some \<circ> uncurry f)"
+done
+
+declare lift2_lpf.transfer [lpf_transfer]
+declare lift2_lpf_def [lpf_defs]
+
+lift_definition lift2_lpf' :: 
+  "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf \<Rightarrow> 'c lpf)" is 
+  "lift2_lpf UNIV"
+done
+
+declare lift2_lpf'.transfer [lpf_transfer]
+declare lift2_lpf'_def [lpf_defs]
+
 text {*
   Lifts a HOL function with two arguments into a function on the lpf type 
 *}
-definition lift2_lpf :: 
+definition lift2_lpf_old :: 
   "('a * 'b) set \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf \<Rightarrow> 'c lpf)" where
-[lpf_defs]: "lift2_lpf u f = 
+[lpf_defs]: "lift2_lpf_old u f = 
   (\<lambda> v1 v2. do { x \<leftarrow> v1; y \<leftarrow> v2; lpfSat u (x, y) } \<bind> lpf_Some \<circ> uncurry f)"
 
-definition lift2_lpf' :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf \<Rightarrow> 'c lpf)" where
-[lpf_defs]:"lift2_lpf' = lift2_lpf UNIV"
+definition lift2_lpf'_old :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf \<Rightarrow> 'c lpf)" where
+[lpf_defs]:"lift2_lpf'_old = lift2_lpf UNIV"
 
 (*TODO: How should this be done? First lift into lpf', and then lift into vexpr?"*)
 consts lift1_vdm :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> (('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr)"
@@ -129,7 +188,6 @@ declare lift1_lpf'_def [lpf_defs]
 
 definition uminus_lpf :: "'a::uminus lpf \<Rightarrow> 'a lpf" ("-\<^sub>L _" [81] 80) where
 [lpf_defs]: "uminus_lpf = lift1_lpf' uminus"
-
 
 (* With instantiation, use the type class syntax for uminus. *)
 (*instantiation lpf :: (uminus) uminus
