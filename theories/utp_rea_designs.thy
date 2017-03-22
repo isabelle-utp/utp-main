@@ -320,7 +320,6 @@ begin
   [upred_defs]: "rdes_hcond T = RD"
   definition srdes_hcond :: "(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health" where
   [upred_defs]: "srdes_hcond T = SRD"
-
 end
 
 interpretation rdes_theory: utp_theory "UTHY(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp)"
@@ -1638,7 +1637,7 @@ thm srdes_theory_continuous.weak.bottom_lower
 thm srdes_theory_continuous.weak.top_higher
 thm srdes_theory_continuous.meet_bottom
 thm srdes_theory_continuous.meet_top
-
+    
 lemma Miracle_left_zero:
   assumes "P is SRD"
   shows "Miracle ;; P = Miracle"
@@ -1673,6 +1672,37 @@ proof -
   finally show ?thesis .
 qed
 
+lemma assigns_rea_RHS_tri_des:
+  "\<langle>\<sigma>\<rangle>\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S))"
+  by (rel_auto)
+
+lemma preR_Miracle: "pre\<^sub>R(Miracle) = true"
+  by (simp add: Miracle_def, rel_auto)
+    
+lemma periR_Miracle: "peri\<^sub>R(Miracle) = false"
+  by (simp add: Miracle_def, rel_auto)
+
+lemma postR_Miracle: "post\<^sub>R(Miracle) = false"
+  by (simp add: Miracle_def, rel_auto)
+    
+lemma preR_srdes_skip: "pre\<^sub>R(II\<^sub>R) = true"
+  by (rel_auto)
+
+lemma periR_srdes_skip: "peri\<^sub>R(II\<^sub>R) = false"
+  by (rel_auto)
+    
+lemma postR_srdes_skip: "post\<^sub>R(II\<^sub>R) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R)"
+  apply (rel_auto) using minus_zero_eq by blast
+
+lemma preR_assigns_rea: "pre\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R) = true"
+  by (simp add: assigns_rea_def rea_pre_RHS_design usubst R2c_false R1_false)
+  
+lemma periR_assigns_rea: "peri\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R) = false"
+  by (simp add: assigns_rea_RHS_tri_des rea_peri_RHS_design usubst R2c_false R1_false)
+    
+lemma postR_assigns_rea: "post\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)"
+  apply (rel_auto) using minus_zero_eq by blast
+  
 lemma RHS_design_choice: "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1) \<sqinter> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (Q\<^sub>1 \<or> Q\<^sub>2))"
   by (metis RHS_inf design_choice)
 
@@ -1688,7 +1718,7 @@ lemma RHS_design_USUP:
   shows "(\<Sqinter> i \<in> A \<bullet> \<^bold>R\<^sub>s(P(i) \<turnstile> Q(i))) = \<^bold>R\<^sub>s((\<Squnion> i \<in> A \<bullet> P(i)) \<turnstile> (\<Sqinter> i \<in> A \<bullet> Q(i)))"
   by (subst RHS_INF[OF assms, THEN sym], simp add: design_USUP assms)
 
-lemma RHS_design_left_unit:
+lemma SRD_left_unit:
   assumes "P is SRD"
   shows "II\<^sub>R ;; P = P"
 proof -
@@ -1709,7 +1739,7 @@ proof -
     by (simp add: SRD_reactive_design_alt assms)
 qed
 
-lemma RHS_design_right_unit_lemma:
+lemma SRD_right_unit_lemma:
   assumes "P is SRD"
   shows "P ;; II\<^sub>R = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> cmt\<^sub>R P) \<triangleleft> $wait\<acute> \<triangleright> cmt\<^sub>R P))"
 proof -
@@ -1724,15 +1754,21 @@ proof -
   finally show ?thesis .
 qed
 
-lemma SRD_right_unit_lemma:
+lemma SRD_right_unit_tri_lemma:
   assumes "P is SRD"
   shows "P ;; II\<^sub>R = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> peri\<^sub>R(P)) \<diamondop> post\<^sub>R P))"
 proof -
   have "((\<exists> $st\<acute> \<bullet> cmt\<^sub>R P) \<triangleleft> $wait\<acute> \<triangleright> cmt\<^sub>R P) = (\<exists> $st\<acute> \<bullet> peri\<^sub>R P) \<diamondop> post\<^sub>R P"
     by (rel_auto)
   thus ?thesis
-    by (simp add: RHS_design_right_unit_lemma assms)
+    by (simp add: SRD_right_unit_lemma assms)
 qed
+
+lemma SRD_srdes_skip: "II\<^sub>R is SRD"
+  by (simp add: srdes_skip_def RHS_design_is_SRD unrest)
+
+lemma srdes_skip_tri_design: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R))"
+  by (rel_auto)
   
 lemma SRD_right_Chaos_lemma:
   assumes "P is SRD"
@@ -1764,21 +1800,12 @@ proof -
   finally show ?thesis .
 qed
 
-lemma assigns_rea_id: "\<langle>id\<rangle>\<^sub>R = II\<^sub>R"
-  by (rel_auto)
-  
-lemma SRD_srdes_skip: "II\<^sub>R is SRD"
-  by (simp add: srdes_skip_def RHS_design_is_SRD unrest)
-
-lemma srdes_skip_tri_design: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R))"
-  by (rel_auto)
-    
 text {* Properties about healthiness condition RD3 *}
     
 lemma RD3_idem: "RD3(RD3(P)) = RD3(P)"
 proof -
   have a: "II\<^sub>R ;; II\<^sub>R = II\<^sub>R"
-    by (simp add: RHS_design_left_unit SRD_srdes_skip)
+    by (simp add: SRD_left_unit SRD_srdes_skip)
   show ?thesis
     by (simp add: RD3_def seqr_assoc[THEN sym] a)
 qed
@@ -1816,7 +1843,7 @@ lemma RD3_intro_pre:
   shows "P is RD3"
 proof -
   have "RD3(P) = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true) \<turnstile> (\<exists> $st\<acute> \<bullet> peri\<^sub>R P) \<diamondop> post\<^sub>R P)"
-    by (simp add: RD3_def SRD_right_unit_lemma assms)
+    by (simp add: RD3_def SRD_right_unit_tri_lemma assms)
   also have "... = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true) \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P)"
     by (simp add: assms(3) ex_unrest)
   also have "... = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true) \<turnstile> cmt\<^sub>R P)"
@@ -1826,7 +1853,7 @@ proof -
   finally show ?thesis
     by (metis Healthy_def SRD_as_reactive_design assms(1))
 qed
-    
+  
 lemma RHS_tri_design_right_unit_lemma:
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok\<acute> \<sharp> R" "$wait\<acute> \<sharp> R"
   shows "\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) ;; II\<^sub>R = \<^bold>R\<^sub>s((\<not> (\<not> P) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> Q) \<diamondop> R))"
@@ -1976,8 +2003,8 @@ lemma NSRD_iff:
 lemma NSRD_composition_wp:
   assumes "P is NSRD" "Q is SRD"
   shows "P ;; Q = 
-         \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<sqinter> (post\<^sub>R P ;; peri\<^sub>R Q)) \<diamondop> (post\<^sub>R P ;; post\<^sub>R Q))"
-  by (simp add: SRD_composition_wp assms NSRD_is_SRD wpR_def NSRD_neg_pre_unit NSRD_st'_unrest_peri ex_unrest disj_upred_def)
+         \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<or> (post\<^sub>R P ;; peri\<^sub>R Q)) \<diamondop> (post\<^sub>R P ;; post\<^sub>R Q))"
+  by (simp add: SRD_composition_wp assms NSRD_is_SRD wpR_def NSRD_neg_pre_unit NSRD_st'_unrest_peri ex_unrest)
     
 lemma RHS_tri_normal_design_composition:
   assumes 
@@ -1995,6 +2022,71 @@ proof -
   also have "... = \<^bold>R\<^sub>s((P \<and> Q\<^sub>2 wp\<^sub>R R) \<turnstile> (Q\<^sub>1 \<sqinter> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2))"
     by (simp add: assms wpR_def ex_unrest)
   finally show ?thesis .
+qed
+  
+lemma assigns_rea_id: "\<langle>id\<rangle>\<^sub>R = II\<^sub>R"
+  by (rel_auto)
+    
+lemma SRD_assigns_rea [closure]: "\<langle>\<sigma>\<rangle>\<^sub>R is SRD"
+  by (simp add: assigns_rea_def RHS_design_is_SRD unrest)
+    
+lemma RD3_assigns_rea: "\<langle>\<sigma>\<rangle>\<^sub>R is RD3"
+  by (rule RD3_intro_pre, simp_all add: SRD_assigns_rea preR_assigns_rea periR_assigns_rea unrest)
+    
+lemma NSRD_assigns_rea [closure]: "\<langle>\<sigma>\<rangle>\<^sub>R is NSRD"
+  by (simp add: NSRD_iff SRD_assigns_rea periR_assigns_rea preR_assigns_rea unrest_false)
+    
+lemma assigns_rea_comp: "\<langle>\<sigma>\<rangle>\<^sub>R ;; \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
+proof -
+  have a: "(($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S) ;; ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<rho>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)) =
+        ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)"
+    by (rel_auto)
+  have "\<langle>\<sigma>\<rangle>\<^sub>R ;; \<langle>\<rho>\<rangle>\<^sub>R = \<^bold>R\<^sub>s (true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S))"
+    by (simp add: NSRD_composition_wp closure preR_assigns_rea periR_assigns_rea postR_assigns_rea wp a)
+  also have "... = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
+    by (simp add: assigns_rea_RHS_tri_des)
+  finally show ?thesis .
+qed
+
+text {* Stateful reactive designs are left unital *}
+  
+overloading
+  srdes_unit == "utp_unit :: (SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp) uthy \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
+begin
+  definition srdes_unit :: "(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp) uthy \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" where
+  "srdes_unit T = II\<^sub>R"
+end
+
+interpretation srdes_left_unital: utp_theory_left_unital SRDES
+  by (unfold_locales, simp_all add: srdes_hcond_def srdes_unit_def SRD_seqr_closure SRD_srdes_skip SRD_left_unit)
+  
+text {* Stateful reactive designs and assignment *}
+    
+overloading 
+  srdes_pvar == "pvar :: (SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp) uthy \<Rightarrow> 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp"
+  srdes_pvar_assigns == "pvar_assigns :: (SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp) uthy \<Rightarrow> 's usubst \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
+begin
+  definition srdes_pvar :: 
+    "(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp) uthy \<Rightarrow> 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp" where
+  [upred_defs]: "srdes_pvar T = st"
+  definition srdes_pvar_assigns :: 
+    "(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp) uthy \<Rightarrow> 's usubst \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" where
+  [upred_defs]: "srdes_pvar_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>R"
+end
+  
+interpretation srdes_local_var: utp_local_var "UTHY(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp)" "TYPE('s)"
+proof -
+  interpret vw: vwb_lens "pvar SRDES :: 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp"
+    by (simp add: srdes_pvar_def)
+  show "utp_local_var TYPE('s) UTHY(SRDES, ('s,'t,'\<alpha>) rsp)"
+  proof
+    show "\<And>\<sigma>::'s \<Rightarrow> 's. \<^bold>\<langle>\<sigma>\<^bold>\<rangle>\<^bsub>UTHY(SRDES, ('s,'t,'\<alpha>) rsp)\<^esub> is \<H>\<^bsub>SRDES\<^esub>"
+      by (simp add: srdes_pvar_assigns_def srdes_hcond_def SRD_assigns_rea)
+    show "\<And>(\<sigma>::'s \<Rightarrow> 's) \<rho>. \<^bold>\<langle>\<sigma>\<^bold>\<rangle>\<^bsub>UTHY(SRDES, ('s,'t,'\<alpha>) rsp)\<^esub> ;; \<^bold>\<langle>\<rho>\<^bold>\<rangle>\<^bsub>SRDES\<^esub> = \<^bold>\<langle>\<rho> \<circ> \<sigma>\<^bold>\<rangle>\<^bsub>SRDES\<^esub>"
+      by (simp add: srdes_pvar_assigns_def assigns_rea_comp)
+    show "\<^bold>\<langle>id::'s \<Rightarrow> 's\<^bold>\<rangle>\<^bsub>UTHY(SRDES, ('s,'t,'\<alpha>) rsp)\<^esub> = \<I>\<I>\<^bsub>SRDES\<^esub>"
+      by (simp add: srdes_pvar_assigns_def srdes_unit_def assigns_rea_id)
+  qed
 qed
       
 subsection {* Reactive design parallel-by-merge *}
