@@ -27,11 +27,12 @@ text {* Piecewise continuity means that there exists an ordered list $I$ of poin
     are given above. These require, respectively, that:
 
     \begin{itemize}
-      \item the points within $I$ are all within the function domain;
-      \item the beginning and end point are both within the domain;
-      \item $I$ is sorted list;
-      \item no point in $I$ appears twice -- it is a distinct list;
-      \item $f$ is continuous between each point $i$ and its successor.
+      \item the points within $I$ are all within the function domain (@{thm [source] I_range});
+      \item the beginning and end point are both within the domain (@{thm [source] I_bounds});
+      \item $I$ is sorted list (@{thm [source] I_sorted});
+      \item no point in $I$ appears twice -- it is a distinct list (@{thm [source] I_distinct});
+      \item $f$ is continuous between each point $i$ and its successor. Term @{term "I!i"} extracts
+        the $i$th element from list $I$ (@{thm [source] continuous_segments}).
     \end{itemize}
 
     The function predicate @{term "continuous_on g A"} describes that a function $g$ is continuous
@@ -128,7 +129,7 @@ proof (clarsimp simp add: continuous_on_def)
     by (force intro: tendsto_add[of "(\<lambda>x. m * x)" "m * x" "at x within A" "\<lambda>_. a" a, simplified] tendsto_mult)
 qed
 
-text {* This property states that any linear function on real number is everywhere continuous. *}
+text {* This property states that any linear function on a real number is everywhere continuous. *}
 
 lemma continuous_on_shift:
   fixes f :: "real \<Rightarrow> 'b::topological_space"
@@ -831,6 +832,9 @@ lemma piecewise_convergent_cat_iff:
   "piecewise_convergent (f @\<^sub>C g) \<longleftrightarrow> piecewise_convergent f \<and> piecewise_convergent g"
   using piecewise_convergent_cat piecewise_convergent_cat_left piecewise_convergent_cat_right 
   by blast
+    
+text {* Thus we have proved the key properties about composition of piecewise continuous functions,
+  and so we now proceed to create the type. *}
 
 subsection {* Timed trace type *}
 

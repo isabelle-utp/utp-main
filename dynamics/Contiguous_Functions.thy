@@ -1,5 +1,6 @@
 section {* Contiguous Functions *}
 
+(*<*)
 theory Contiguous_Functions
   imports 
   Real_Vector_Spaces
@@ -10,7 +11,8 @@ theory Contiguous_Functions
   Derivative_extra
   "~~/src/HOL/Analysis/Topology_Euclidean_Space"
 begin
-
+(*>*)
+  
 text {* In this section we will define a type to represent contiguous functions with
   a real domain, which will be used to represent trajectories, together with suitable algebraic
   operators. We then specialise this to piecewise continuous and convergent functions, and show
@@ -18,7 +20,10 @@ text {* In this section we will define a type to represent contiguous functions 
   relational calculus. Our model and the associated algebra is based partly on the work of
   Hayes~\cite{Hayes2006,Hayes2010} who introduces a theory of timed traces to give semantics
   to real-time programs, and also H\"{o}fner~\cite{Hofner2009} who gives and algebraic foundation for verifying 
-  hybrid systems, including operators on continuous trajectories that underlie hybrid automata. *}
+  hybrid systems, including operators on continuous trajectories that underlie hybrid automata. 
+  A timed trace is essentially a function from real numbers to a continuous state space; in the
+  following we will further elaborate this.
+*}
 
 subsection {* Preliminaries *}
 
@@ -71,6 +76,9 @@ lemma Sup'_empty [simp]: "Sup' {} = 0"
 lemma Sup'_interval [simp]: "Sup' {0..<m} = (if (m > 0) then m else 0)"
   by (simp add: Sup'_def)
 
+text {* The first property tells us that the supremum of an empty set is zero, and the second
+  tells us that the supremum of a right open interval is the limit of the interval. *}   
+    
 subsection {* Contiguous functions *}
 
 typedef 'a cgf = 
@@ -82,12 +90,14 @@ proof
     by (auto)
 qed
 
+(*<*)
 setup_lifting type_definition_cgf
-
+(*>*)
+  
 text {* We begin our definition of contiguous functions by defining the core type, @{typ "'a cgf"}
   using the Isabelle \textbf{typedef} command. Such a definition creates a new type from a subset
-  of an existing type, assuming the subset is non-empty. A contiguous function is partial function
-  from real number to some range type @{typ "'a"}, such that there is a non-negative @{term i} that gives
+  of an existing type, assuming the subset is non-empty. A contiguous function is a partial function
+  from real numbers to some range type @{typ "'a"}, such that there is a non-negative @{term i} that gives
   the "end point" of the contiguous function. Specifically, the domain is the right-open interval
   @{term "{0..<i}"}, which in pure mathematics is usually written as [0,i). *}
 
@@ -115,12 +125,12 @@ text {* We also create functions that allow various manipulations on contiguous 
   lifting functions on the underlying partial function type. Function @{term cgf_apply}, also 
   written as @{term "\<langle>f\<rangle>\<^sub>C"}, allows the application of a contiguous function to an input real number.
   When the input is outside of the domain, and arbitrary value is returned. @{term cgf_dom} 
-  (@{term "dom\<^sub>C(f)"}) gives the domain of function, and @{term cgf_end} (@{term "end\<^sub>C(f)"}) returns 
-  the end point. @{term cgf_map} (@{term "map\<^sub>C f g"}) applies a function to every element
-  in the range, like a typical map function. Finally, @{term cgf_restrict} (@{term "f \<restriction>\<^sub>C i"}) restricts
+  (@{term "dom\<^sub>C(f)"}) gives the domain of function, and @{term [source] cgf_end} (@{term "end\<^sub>C(f)"}) returns 
+  the end point. Term (@{term "map\<^sub>C f g"}) applies a function to every element
+  in the range, like a typical map function. Finally, @{term [source] cgf_restrict} (@{term "f \<restriction>\<^sub>C i"}) restricts
   the domain of a contiguous function to the interval [0,i), and @{term cgf_force} (@{term "f !\<^sub>C i"}) has
-  a similar effect but forces the function to get longer is necessary. If the function is required
-  to become longer then the range will be filled with arbitrary values. *}
+  a similar effect but forces the function to be extended if necessary. If the function is required
+  to extend then the range will be filled with arbitrary values. *}
 
 instantiation cgf :: (type) zero
 begin
@@ -131,12 +141,12 @@ end
 abbreviation (input) cgf_empty :: "'a cgf" ("[]\<^sub>C") where "[]\<^sub>C \<equiv> 0"
 
 text {* We will now define the algebraic operators of timed traces, with which we will be able to
-  instantiate our theory of generalised reactive designs, and thence produce timed reactive designs. We do
+  instantiate our theory of generalised reactive designs with, and thence produce timed reactive designs. We do
   this by instantiating various type classes towards showing that contiguous functions form a 
   cancellative monoid, which is the underlying trace algebra. The zero element is the empty 
-  contiguous function, obtained by lifting the empty partial function, 
+  contiguous function, obtained by lifting the empty partial function 
   and demonstrating (as before) that this satisfies the invariant of a contiguous function. We 
-  also give the zero element the syntax @{term "[]\<^sub>C"}. *}
+  also give the zero element the syntax @{term [source] "[]\<^sub>C"}. *}
 
 instantiation cgf :: (type) plus
 begin
@@ -163,11 +173,11 @@ end
 abbreviation (input) cgf_cat :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cgf" (infixl "@\<^sub>C" 85) 
 where "xs @\<^sub>C ys \<equiv> xs + ys"
 
-text {* We next define the concatenation operator, which is our algebra is a plus operator. The 
-  concatentation of functions, @{term "f @\<^sub>C g"}, takes @{term g}, shifts it to the right by
+text {* We next define the concatenation operator, which in our algebra is a plus operator. The 
+  concatentation of functions, @{term [source] "f @\<^sub>C g"}, takes @{term g}, shifts it to the right by
   the length of @{term f}, and finally unions this with @{term f} using the partial function
   operator @{term "op ++"}. It is necessary to show that this definition is closed under contiguous functions,
-  i.e. we must demonstrate an $k$ such that the domain of @{term "f @\<^sub>C g"} is $[0..k)$, which we do
+  i.e. we must demonstrate an $k$ such that the domain of @{term [source] "f @\<^sub>C g"} is $[0..k)$, which we do
   using an Isar proof. Since we're concatentating two functions of length $i$ and $j$, respectively,
   then their combined length will be $i + j$, which our proof confirms. *}
 
@@ -535,6 +545,9 @@ definition cgf_lens :: "('a cgf \<Longrightarrow> '\<alpha>) \<Rightarrow> ('b \
 lemma cgf_weak_lens: "\<lbrakk> weak_lens X; weak_lens Y \<rbrakk> \<Longrightarrow> weak_lens (cgf_lens X Y)"
   by (unfold_locales, auto simp add: cgf_lens_def cgf_map_map cgf_map_indep)
 
+text {* Finally we show a few properties about subtraction that are also derived from the trace
+  algebra. *}
+    
 lemma cgf_cat_minus_prefix:
   "f \<le> g \<Longrightarrow> g = f @\<^sub>C (g - f)"
   by (simp add: diff_add_cancel_left')
@@ -548,7 +561,6 @@ lemma cgf_end_minus: "g \<le> f \<Longrightarrow> end\<^sub>C(f-g) = end\<^sub>C
 lemma list_concat_minus_list_concat: "(f @\<^sub>C g) - (f @\<^sub>C h) = g - h"
   using ordered_cancel_monoid_diff_class.add_diff_cancel_left' by blast
 
-text {* Finally we show a few properties about subtraction that are also derived from the trace
-  algebra. *}
-
+(*<*)
 end
+(*>*)
