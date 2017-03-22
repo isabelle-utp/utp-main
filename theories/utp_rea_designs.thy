@@ -1943,6 +1943,32 @@ proof -
   finally show ?thesis .
 qed
       
+lemma NSRD_wait'_unrest_pre:
+  assumes "P is NSRD"
+  shows "$wait\<acute> \<sharp> pre\<^sub>R(P)"
+proof -
+  have "pre\<^sub>R(P) = pre\<^sub>R(\<^bold>R\<^sub>s((\<not> (\<not> pre\<^sub>R(P)) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> peri\<^sub>R(P)) \<diamondop> post\<^sub>R(P))))"
+    by (simp add: NSRD_healthy_form assms)
+  also have "... = (\<not> R1 (R2c ((\<not> pre\<^sub>R P) ;; R1 true)))"
+    by (simp add: rea_pre_RHS_design usubst unrest)
+  also have "$wait\<acute> \<sharp> ..."
+    by (simp add: R1_def R2c_def unrest)
+  finally show ?thesis .
+qed
+
+lemma NSRD_st'_unrest_pre:
+  assumes "P is NSRD"
+  shows "$st\<acute> \<sharp> pre\<^sub>R(P)"
+proof -
+  have "pre\<^sub>R(P) = pre\<^sub>R(\<^bold>R\<^sub>s((\<not> (\<not> pre\<^sub>R(P)) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> peri\<^sub>R(P)) \<diamondop> post\<^sub>R(P))))"
+    by (simp add: NSRD_healthy_form assms)
+  also have "... = (\<not> R1 (R2c ((\<not> pre\<^sub>R P) ;; R1 true)))"
+    by (simp add: rea_pre_RHS_design usubst unrest)
+  also have "$st\<acute> \<sharp> ..."
+    by (simp add: R1_def R2c_def unrest)
+  finally show ?thesis .
+qed
+  
 lemma NSRD_iff: 
   "P is NSRD \<longleftrightarrow> ((P is SRD) \<and> (\<not> pre\<^sub>R(P)) ;; R1(true) = (\<not> pre\<^sub>R(P)) \<and> ($st\<acute> \<sharp> peri\<^sub>R(P)))"
   by (meson NSRD_intro NSRD_is_SRD NSRD_neg_pre_unit NSRD_st'_unrest_peri)

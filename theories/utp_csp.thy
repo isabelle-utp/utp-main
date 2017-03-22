@@ -352,7 +352,20 @@ proof -
     by (simp add: wait'_cond_def usubst peri\<^sub>R_def post\<^sub>R_def cmt\<^sub>R_def unrest)
   finally show ?thesis .
 qed    
-     
+
+lemma CSP4_ref'_unrest_pre:
+  assumes "P is CSP" "P is CSP4"
+  shows "$ref\<acute> \<sharp> pre\<^sub>R(P)"
+proof -
+  have "pre\<^sub>R(P) = pre\<^sub>R(\<^bold>R\<^sub>s((\<not> (\<not> pre\<^sub>R(P)) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> peri\<^sub>R(P)) \<diamondop> (\<exists> $ref\<acute> \<bullet> post\<^sub>R(P)))))"
+    using CSP4_healthy_form assms(1) assms(2) by fastforce
+  also have "... = (\<not> R1 (R2c ((\<not> pre\<^sub>R P) ;; R1 true)))"
+    by (simp add: rea_pre_RHS_design usubst unrest)
+  also have "$ref\<acute> \<sharp> ..."
+    by (simp add: R1_def R2c_def unrest)
+  finally show ?thesis .
+qed
+
 lemma CSP4_ref'_unrest_post:
   assumes "P is CSP" "P is CSP4"
   shows "$ref\<acute> \<sharp> post\<^sub>R(P)"
@@ -365,7 +378,7 @@ proof -
     by (simp add: R1_def R2c_def unrest)
   finally show ?thesis .
 qed
-
+  
 lemma R1_ref_unrest [unrest]: "$ref \<sharp> P \<Longrightarrow> $ref \<sharp> R1(P)"
   by (simp add: R1_def unrest)
 
@@ -495,17 +508,89 @@ translations
   "c\<^bold>?x \<^bold>\<rightarrow> P"   \<rightharpoonup> "CONST InputCSP c (CONST UNIV) (\<lambda> x. P)"
   
 subsection {* Closure properties *}
-
+  
+lemma DoCSP_RHS_tri:
+  "do\<^sub>C(a) = \<^bold>R\<^sub>s(true \<turnstile> (($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>) \<diamondop> ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st)))"
+  by (simp add: DoCSP_def do\<^sub>u_def wait'_cond_def)
+  
 lemma CSP_DoCSP: "do\<^sub>C(a) is CSP"
   by (simp add: DoCSP_def do\<^sub>u_def RHS_design_is_SRD unrest)
   
+lemma pre_DoCSP: "pre\<^sub>R(do\<^sub>C(a)) = true"
+  by (simp add: DoCSP_def rea_pre_RHS_design unrest usubst R2c_false R1_false)
+
+lemma peri_DoCSP: "peri\<^sub>R(do\<^sub>C(a)) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>)"
+  apply (rel_auto) using minus_zero_eq by blast
+
+lemma post_DoCSP: "post\<^sub>R(do\<^sub>C(a)) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st)"
+  apply (rel_auto)
+  using Prefix_Order.prefixE zero_list_def apply fastforce
+  apply (simp add: zero_list_def) 
+done
+    
 lemma CSP3_DoCSP: "do\<^sub>C(a) is CSP3"
   by (rule CSP3_intro[OF CSP_DoCSP])
      (simp add: DoCSP_def do\<^sub>u_def RHS_def design_def R1_def R2c_def R2s_def R3h_def unrest usubst)
   
+lemma CSP4_DoCSP: "do\<^sub>C(a) is CSP4"
+  by (rule CSP4_tri_intro[OF CSP_DoCSP], simp_all add: pre_DoCSP peri_DoCSP post_DoCSP unrest)
+
+lemma Guard_tri_design:
+  "g &\<^sub>u P = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P) \<turnstile> (peri\<^sub>R(P) \<triangleleft> \<lceil>g\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)) \<diamondop> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R(P)))"
+proof -
+  have "(\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> cmt\<^sub>R P \<or> \<not> \<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>) = (peri\<^sub>R(P) \<triangleleft> \<lceil>g\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)) \<diamondop> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R(P))"
+    by (rel_auto, (metis (full_types))+)
+  thus ?thesis by (simp add: Guard_def)
+qed
+    
 lemma CSP_Guard: "b &\<^sub>u P is CSP"
   by (simp add: Guard_def, rule RHS_design_is_SRD, simp_all add: unrest)
+
+lemma R2_neg_pre_SRD: "P is SRD \<Longrightarrow> R2(\<not> pre\<^sub>R P) = (\<not> pre\<^sub>R P)"
+  by (simp add: R1_neg_R2s_pre_RHS R2_def R2s_not)
+
+lemma R2_cmt_conj_wait':
+  "P is CSP \<Longrightarrow> R2(cmt\<^sub>R P \<and> \<not> $wait\<acute>) = (cmt\<^sub>R P \<and> \<not> $wait\<acute>)"
+  by (simp add: R2_def R2s_conj R2s_not R2s_wait' R1_extend_conj R1_R2s_cmt_SRD)
+
+lemma R2_R1_true:
+  "R2(R1(true)) = R1(true)"
+  by (simp add: R2_R1_form R2s_true)
     
+lemma R2c_preR:
+  "P is CSP \<Longrightarrow> R2c(pre\<^sub>R(P)) = pre\<^sub>R(P)"
+  by (metis (no_types, lifting) R1_R2c_commute R1_idem R2_R2c_def R2_neg_pre_SRD R2c_not utp_pred.compl_eq_compl_iff)
+
+lemma R2c_periR:
+  "P is CSP \<Longrightarrow> R2c(peri\<^sub>R(P)) = peri\<^sub>R(P)"
+  by (metis (no_types, lifting) R1_R2c_commute R1_R2s_R2c R1_R2s_peri_SRD R2c_idem)
+    
+lemma R2c_postR:
+  "P is CSP \<Longrightarrow> R2c(post\<^sub>R(P)) = post\<^sub>R(P)"
+  by (metis (no_types, hide_lams) R1_R2c_commute R1_R2c_is_R2 R1_R2s_post_SRD R2_def R2s_idem)
+
+lemma R2c_lift_state_pre:
+  "R2c(\<lceil>b\<rceil>\<^sub>S\<^sub><) = \<lceil>b\<rceil>\<^sub>S\<^sub><"
+  by (rel_auto)
+    
+lemma pre_Guard: "P is CSP \<Longrightarrow> pre\<^sub>R(b &\<^sub>u P) = (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P)"
+  apply (simp add: Guard_tri_design rea_pre_RHS_design usubst unrest R2c_not R2c_impl R2c_preR R2c_lift_state_pre)
+  apply (rel_blast)
+done 
+  
+lemma peri_Guard: 
+  "\<lbrakk> P is CSP; $wait\<acute> \<sharp> pre\<^sub>R(P) \<rbrakk> \<Longrightarrow> peri\<^sub>R(b &\<^sub>u P) = ((\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P) \<Rightarrow> (peri\<^sub>R P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)))"
+  apply (simp add: Guard_tri_design rea_peri_RHS_design usubst unrest R2c_not R2c_impl R2c_preR R2c_periR R2c_tr'_minus_tr R2c_lift_state_pre R2c_condr)
+  apply (rel_blast)
+  done
+
+lemma post_Guard: 
+  "\<lbrakk> P is CSP; $wait\<acute> \<sharp> pre\<^sub>R(P) \<rbrakk> \<Longrightarrow> post\<^sub>R(b &\<^sub>u P) = ((\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P) \<Rightarrow> (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R P))"
+  apply (simp add: Guard_tri_design rea_post_RHS_design usubst unrest R2c_not R2c_and R2c_impl 
+                   R2c_preR R2c_postR R2c_tr'_minus_tr R2c_lift_state_pre R2c_condr)
+  apply (rel_blast)
+done
+
 lemma CSP3_Guard: 
   assumes "P is CSP" "P is CSP3"
   shows "b &\<^sub>u P is CSP3"
@@ -519,7 +604,37 @@ proof -
   thus ?thesis
     by (metis CSP3_intro CSP_Guard)
 qed
-    
+
+lemma CSP4_Guard: 
+  assumes "P is CSP" "P is CSP4"
+  shows "b &\<^sub>u P is CSP4"
+proof (rule CSP4_tri_intro[OF CSP_Guard])
+  show "(\<not> pre\<^sub>R (b &\<^sub>u P)) ;; R1 true = (\<not> pre\<^sub>R (b &\<^sub>u P))"
+  proof -
+    have a:"(\<not> pre\<^sub>R P) ;; R1 true = (\<not> pre\<^sub>R P)"
+      by (simp add: CSP4_neg_pre_unit assms(1) assms(2))
+    have "(\<not> (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P)) ;; R1 true = (\<not> (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P))"
+    proof -
+      have "(\<not> (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P)) = (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> (\<not> pre\<^sub>R P))"
+        by (rel_auto)
+      also have "... = (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> ((\<not> pre\<^sub>R P) ;; R1 true))"
+        by (simp add: a)
+      also have "... = (\<not> (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P)) ;; R1 true"
+        by (rel_auto)
+      finally show ?thesis ..
+    qed
+    thus ?thesis
+      by (simp add: pre_Guard peri_Guard NSRD_CSP4_intro NSRD_wait'_unrest_pre 
+                    NSRD_st'_unrest_pre NSRD_st'_unrest_peri assms unrest)
+  qed    
+  show "$st\<acute> \<sharp> peri\<^sub>R (b &\<^sub>u P)"
+    by (simp add: pre_Guard peri_Guard NSRD_CSP4_intro NSRD_wait'_unrest_pre NSRD_st'_unrest_pre 
+                  NSRD_st'_unrest_peri assms unrest)
+  show "$ref\<acute> \<sharp> post\<^sub>R (b &\<^sub>u P)"
+    by (simp add: pre_Guard post_Guard NSRD_CSP4_intro NSRD_wait'_unrest_pre  
+                  CSP4_ref'_unrest_pre CSP4_ref'_unrest_post assms unrest)
+qed
+  
 subsection {* Sequential Process Laws *}
 
 lemma Stop_left_zero:
@@ -542,14 +657,6 @@ proof -
   also have "... = Stop"
     by (simp add: Stop_def)
   finally show ?thesis .
-qed
-
-lemma Guard_tri_design:
-  "g &\<^sub>u P = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P) \<turnstile> (peri\<^sub>R(P) \<triangleleft> \<lceil>g\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)) \<diamondop> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R(P)))"
-proof -
-  have "(\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> cmt\<^sub>R P \<or> \<not> \<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>) = (peri\<^sub>R(P) \<triangleleft> \<lceil>g\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)) \<diamondop> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R(P))"
-    by (rel_auto, (metis (full_types))+)
-  thus ?thesis by (simp add: Guard_def)
 qed
 
 lemma Guard_rdes_def:
@@ -845,10 +952,6 @@ proof -
   finally show ?thesis .
 qed
 
-lemma DoCSP_RHS_tri:
-  "do\<^sub>C(a) = \<^bold>R\<^sub>s(true \<turnstile> (($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>) \<diamondop> ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st)))"
-  by (simp add: DoCSP_def do\<^sub>u_def wait'_cond_def)
-
 lemma PrefixCSP_RHS_tri_lemma1:
   "R1 (R2s ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>II\<rceil>\<^sub>R)) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>II\<rceil>\<^sub>R)"
   apply (rel_auto)
@@ -925,17 +1028,6 @@ lemma extChoice_dist:
   assumes "P is CSP" "Q is CSP" "R is CSP"
   shows "P \<box> (Q \<sqinter> R) = (P \<box> Q) \<sqinter> (P \<box> R)"
   using assms extChoice_Dist[of P "{Q, R}"] by simp
-
-lemma R2_neg_pre_SRD: "P is SRD \<Longrightarrow> R2(\<not> pre\<^sub>R P) = (\<not> pre\<^sub>R P)"
-  by (simp add: R1_neg_R2s_pre_RHS R2_def R2s_not)
-
-lemma R2_cmt_conj_wait':
-  "P is CSP \<Longrightarrow> R2(cmt\<^sub>R P \<and> \<not> $wait\<acute>) = (cmt\<^sub>R P \<and> \<not> $wait\<acute>)"
-  by (simp add: R2_def R2s_conj R2s_not R2s_wait' R1_extend_conj R1_R2s_cmt_SRD)
-
-lemma R2_R1_true:
-  "R2(R1(true)) = R1(true)"
-  by (simp add: R2_R1_form R2s_true)
 
 lemma R1_R2c_seqr_distribute:
   fixes P :: "('t::ordered_cancel_monoid_diff,'\<alpha>,'\<beta>) rel_rp" and Q :: "('t,'\<beta>,'\<gamma>) rel_rp"
@@ -1032,19 +1124,7 @@ proof -
     by (simp add: RHS_tri_design_par unrest)
   finally show ?thesis .
 qed
-      
-lemma R2c_preR:
-  "P is CSP \<Longrightarrow> R2c(pre\<^sub>R(P)) = pre\<^sub>R(P)"
-  by (metis (no_types, lifting) R1_R2c_commute R1_idem R2_R2c_def R2_neg_pre_SRD R2c_not utp_pred.compl_eq_compl_iff)
-
-lemma R2c_periR:
-  "P is CSP \<Longrightarrow> R2c(peri\<^sub>R(P)) = peri\<^sub>R(P)"
-  by (metis (no_types, lifting) R1_R2c_commute R1_R2s_R2c R1_R2s_peri_SRD R2c_idem)
-    
-lemma R2c_postR:
-  "P is CSP \<Longrightarrow> R2c(post\<^sub>R(P)) = post\<^sub>R(P)"
-  by (metis (no_types, hide_lams) R1_R2c_commute R1_R2c_is_R2 R1_R2s_post_SRD R2_def R2s_idem)
-    
+          
 lemma WG_post_refines_tr_increase:
   assumes "P is CSP" "P is WG" "$wait\<acute> \<sharp> pre\<^sub>R(P)"
   shows "($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> (pre\<^sub>R(P) \<and> post\<^sub>R(P))"
