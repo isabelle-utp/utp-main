@@ -22,7 +22,7 @@ type_synonym ('s,'t,'\<alpha>) hrel_rsp  = "('s,'t,'\<alpha>) rsp hrel"
 translations
   (type) "('s,'t,'\<alpha>) rsp" <= (type) "('t, ('s, '\<alpha>) rsp_vars_scheme) rp_vars_ext des"
   (type) "('s,'t,'\<alpha>,'\<beta>) rel_rp" <= (type) "(('s,'t,'\<alpha>) rsp, (_,_,'\<beta>) rsp) rel"
-  
+
 notation rsp_vars_child_lens\<^sub>a ("\<Sigma>\<^sub>s")
 notation rsp_vars_child_lens ("\<Sigma>\<^sub>S")
 
@@ -31,7 +31,7 @@ where "\<lceil>P\<rceil>\<^sub>S \<equiv> P \<oplus>\<^sub>p (st \<times>\<^sub>
 
 abbreviation lift_state_pre ("\<lceil>_\<rceil>\<^sub>S\<^sub><")
 where "\<lceil>p\<rceil>\<^sub>S\<^sub>< \<equiv> \<lceil>\<lceil>p\<rceil>\<^sub><\<rceil>\<^sub>S"
-    
+
 syntax
   "_svid_st_alpha"  :: "svid" ("\<Sigma>\<^sub>S")
 
@@ -226,7 +226,7 @@ lemma RH_comp: "RH = R1 \<circ> R2c \<circ> R3c"
 
 lemma RHS_comp: "RHS = R1 \<circ> R2c \<circ> R3h"
   by (auto simp add: RHS_def)
-    
+
 lemma RD_comp: "RD = RD1 \<circ> RD2 \<circ> RP"
   by (auto simp add: RD_def)
 
@@ -1044,13 +1044,13 @@ lemma RHS_design_export_R2c: "\<^bold>R\<^sub>s(P \<turnstile> Q) = \<^bold>R\<^
 
 lemma RHS_design_export_R2: "\<^bold>R\<^sub>s(P \<turnstile> Q) = \<^bold>R\<^sub>s(P \<turnstile> R2(Q))"
   by (rel_auto)
-    
+
 lemma RHS_design_ok_wait: "\<^bold>R\<^sub>s(P\<lbrakk>true,false/$ok,$wait\<rbrakk> \<turnstile> Q\<lbrakk>true,false/$ok,$wait\<rbrakk>) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
   by (rel_auto)
-    
+
 subsection {* Reactive design triples *}
 
-definition wait'_cond :: 
+definition wait'_cond ::
   "('t::ordered_cancel_monoid_diff,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" (infixr "\<diamondop>" 65) where
 [upred_defs]: "P \<diamondop> Q = (P \<triangleleft> $wait\<acute> \<triangleright> Q)"
 
@@ -1221,14 +1221,14 @@ lemma ex_conj_contr_right: "x \<sharp> Q \<Longrightarrow> (\<exists> x \<bullet
 
 lemma R1_R2c_ex_st: "R1 (R2c (\<exists> $st\<acute> \<bullet> Q\<^sub>1)) = (\<exists> $st\<acute> \<bullet> R1 (R2c Q\<^sub>1))"
   by (rel_auto)
-    
-definition wpR (infix "wp\<^sub>R" 60) 
+
+definition wpR (infix "wp\<^sub>R" 60)
 where [upred_defs]: "P wp\<^sub>R Q = (\<not> (P ;; R1(\<not> Q)))"
-  
+
 lemma wpR_true [wp]: "P wp\<^sub>R true = true"
   by (rel_auto)
-    
-lemma wpR_seq [wp]: 
+
+lemma wpR_seq [wp]:
   "Q is R1 \<Longrightarrow>(P ;; Q) wp\<^sub>R R = P wp\<^sub>R (Q wp\<^sub>R R)"
   by (simp add: wpR_def, metis (no_types, hide_lams) Healthy_def' R1_seqr seqr_assoc)
 
@@ -1286,7 +1286,7 @@ proof -
 
   from assms(7,8) have 3: "(R1 (R2s Q\<^sub>2) \<and> \<not> $wait\<acute>) ;; R1 (\<not> R2s R) = R1 (R2s Q\<^sub>2) ;; R1 (\<not> R2s R)"
     by (rel_auto, blast, meson)
-    
+
   show ?thesis
     apply (subst RHS_design_composition)
     apply (simp_all add: assms)
@@ -1301,21 +1301,21 @@ qed
 lemma R1_R2s_R1_true_lemma:
   "R1(R2s(R1 (\<not> R2s P) ;; R1 true)) = R1(R2s((\<not> P) ;; R1 true))"
   by (rel_auto)
-  
+
 lemma R2c_healthy_R2s: "P is R2c \<Longrightarrow> R1(R2s(P)) = R1(P)"
   by (simp add: Healthy_def R1_R2s_R2c)
-    
+
 theorem RHS_tri_design_composition_wp:
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>2" "$ok \<sharp> R" "$ok \<sharp> S\<^sub>1" "$ok \<sharp> S\<^sub>2"
           "$wait \<sharp> R" "$wait\<acute> \<sharp> Q\<^sub>2" "$wait \<sharp> S\<^sub>1" "$wait \<sharp> S\<^sub>2"
           "P is R2c" "Q\<^sub>1 is R1" "Q\<^sub>1 is R2c" "Q\<^sub>2 is R1" "Q\<^sub>2 is R2c"
-          "R is R2c" "S\<^sub>1 is R1" "S\<^sub>1 is R2c" "S\<^sub>2 is R1" "S\<^sub>2 is R2c"          
+          "R is R2c" "S\<^sub>1 is R1" "S\<^sub>1 is R2c" "S\<^sub>2 is R1" "S\<^sub>2 is R2c"
   shows "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) ;; \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2) =
           \<^bold>R\<^sub>s((R1(\<not> P) wp\<^sub>R false \<and> Q\<^sub>2 wp\<^sub>R R) \<turnstile> (((\<exists> $st\<acute> \<bullet> Q\<^sub>1) \<sqinter> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2)))"
   apply (simp add: RHS_tri_design_composition assms wpR_def Healthy_if R2c_healthy_R2s disj_upred_def)
   apply (metis (no_types, hide_lams) Healthy_if R1_R2c_is_R2 R1_negate_R1 R2_def assms(11) assms(16))
 done
-  
+
 text {* Syntax for pre-, post-, and periconditions *}
 
 abbreviation "pre\<^sub>s  \<equiv> [$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s false, $wait \<mapsto>\<^sub>s false]"
@@ -1443,7 +1443,7 @@ lemma rea_post_RHS_design: "post\<^sub>R(\<^bold>R\<^sub>s(P \<turnstile> Q \<di
 lemma wait'_cond_peri_post_cmt:
   "peri\<^sub>R P \<diamondop> post\<^sub>R P = cmt\<^sub>R P"
   by (rel_auto, (metis (full_types))+)
-    
+
 lemma rdes_export_cmt: "\<^bold>R\<^sub>s(P \<turnstile> cmt\<^sub>s \<dagger> Q) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
   by (rel_auto)
 
@@ -1545,7 +1545,7 @@ lemma RHS_design_conj_neg_R1_pre:
 lemma RHS_design_R2c_pre:
   "\<^bold>R\<^sub>s(R2c(P) \<turnstile> Q) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
   by (rel_auto)
-    
+
 lemma UINF_R1_neg_R2s_pre_RHS:
   assumes "A \<subseteq> \<lbrakk>SRD\<rbrakk>\<^sub>H"
   shows "(\<Sqinter> P \<in> A \<bullet> R1 (\<not> R2s (pre\<^sub>R P))) = (\<Sqinter> P \<in> A \<bullet> \<not> (pre\<^sub>R P))"
@@ -1580,7 +1580,7 @@ lemma SRD_composition_wp:
                        ((\<exists> $st\<acute> \<bullet> peri\<^sub>R P) \<or> (post\<^sub>R P ;; peri\<^sub>R Q)) \<diamondop> (post\<^sub>R P ;; post\<^sub>R Q))"
   using assms
   by (simp add: SRD_composition wpR_def, metis (no_types, lifting) R1_idem R1_neg_R2s_pre_RHS)
-  
+
 lemma SRD_seqr_closure:
   assumes "P is SRD" "Q is SRD"
   shows "(P ;; Q) is SRD"
@@ -1632,12 +1632,12 @@ proof -
     by (metis (no_types, lifting) H1_H2_eq_design p_imp_p subst_impl subst_not utp_pred.compl_bot_eq utp_pred.compl_top_eq)
   finally show ?thesis .
 qed
-  
+
 thm srdes_theory_continuous.weak.bottom_lower
 thm srdes_theory_continuous.weak.top_higher
 thm srdes_theory_continuous.meet_bottom
 thm srdes_theory_continuous.meet_top
-    
+
 lemma Miracle_left_zero:
   assumes "P is SRD"
   shows "Miracle ;; P = Miracle"
@@ -1678,31 +1678,31 @@ lemma assigns_rea_RHS_tri_des:
 
 lemma preR_Miracle: "pre\<^sub>R(Miracle) = true"
   by (simp add: Miracle_def, rel_auto)
-    
+
 lemma periR_Miracle: "peri\<^sub>R(Miracle) = false"
   by (simp add: Miracle_def, rel_auto)
 
 lemma postR_Miracle: "post\<^sub>R(Miracle) = false"
   by (simp add: Miracle_def, rel_auto)
-    
+
 lemma preR_srdes_skip: "pre\<^sub>R(II\<^sub>R) = true"
   by (rel_auto)
 
 lemma periR_srdes_skip: "peri\<^sub>R(II\<^sub>R) = false"
   by (rel_auto)
-    
+
 lemma postR_srdes_skip: "post\<^sub>R(II\<^sub>R) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R)"
   apply (rel_auto) using minus_zero_eq by blast
 
 lemma preR_assigns_rea: "pre\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R) = true"
   by (simp add: assigns_rea_def rea_pre_RHS_design usubst R2c_false R1_false)
-  
+
 lemma periR_assigns_rea: "peri\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R) = false"
   by (simp add: assigns_rea_RHS_tri_des rea_peri_RHS_design usubst R2c_false R1_false)
-    
+
 lemma postR_assigns_rea: "post\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)"
   apply (rel_auto) using minus_zero_eq by blast
-  
+
 lemma RHS_design_choice: "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1) \<sqinter> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (Q\<^sub>1 \<or> Q\<^sub>2))"
   by (metis RHS_inf design_choice)
 
@@ -1769,7 +1769,7 @@ lemma SRD_srdes_skip: "II\<^sub>R is SRD"
 
 lemma srdes_skip_tri_design: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R))"
   by (rel_auto)
-  
+
 lemma SRD_right_Chaos_lemma:
   assumes "P is SRD"
   shows "P ;; Chaos = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true \<and> \<not> (cmt\<^sub>R P \<and> \<not> $wait\<acute>) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> cmt\<^sub>R P) \<and> $wait\<acute>))"
@@ -1801,7 +1801,7 @@ proof -
 qed
 
 text {* Properties about healthiness condition RD3 *}
-    
+
 lemma RD3_idem: "RD3(RD3(P)) = RD3(P)"
 proof -
   have a: "II\<^sub>R ;; II\<^sub>R = II\<^sub>R"
@@ -1809,16 +1809,16 @@ proof -
   show ?thesis
     by (simp add: RD3_def seqr_assoc[THEN sym] a)
 qed
- 
+
 lemma RD3_Idempotent: "Idempotent RD3"
   by (simp add: Idempotent_def RD3_idem)
-  
+
 lemma RD3_continuous: "RD3(\<Sqinter>A) = (\<Sqinter>P\<in>A. RD3(P))"
   by (simp add: RD3_def seq_Sup_distr)
-  
+
 lemma RD3_Continuous: "Continuous RD3"
-  by (simp add: Continuous_def RD3_continuous)  
-    
+  by (simp add: Continuous_def RD3_continuous)
+
 lemma RD3_right_subsumes_RD2: "RD2(RD3(P)) = RD3(P)"
 proof -
   have a:"II\<^sub>R ;; J = II\<^sub>R"
@@ -1853,7 +1853,7 @@ proof -
   finally show ?thesis
     by (metis Healthy_def SRD_as_reactive_design assms(1))
 qed
-  
+
 lemma RHS_tri_design_right_unit_lemma:
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok\<acute> \<sharp> R" "$wait\<acute> \<sharp> R"
   shows "\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) ;; II\<^sub>R = \<^bold>R\<^sub>s((\<not> (\<not> P) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> Q) \<diamondop> R))"
@@ -1875,26 +1875,26 @@ proof -
 qed
 
 lemma RHS_tri_design_RD3_intro:
-  assumes 
+  assumes
     "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok\<acute> \<sharp> R" "$st\<acute> \<sharp> Q"  "$wait\<acute> \<sharp> R"
-    "(\<not> P) ;; R1(true) = (\<not> P)" 
+    "(\<not> P) ;; R1(true) = (\<not> P)"
   shows "\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) is RD3"
   apply (simp add: Healthy_def RD3_def)
   apply (subst RHS_tri_design_right_unit_lemma)
   apply (simp_all add:assms ex_unrest)
-done  
-  
-text {* RD3 reactive designs are those whose assumption can be written as a conjunction of a 
+done
+
+text {* RD3 reactive designs are those whose assumption can be written as a conjunction of a
   precondition on (undashed) program variables, and a negated statement about the trace. The latter
-  allows us to state that certain events must not occur in the trace -- which are effectively safety 
+  allows us to state that certain events must not occur in the trace -- which are effectively safety
   properties. *}
 
 lemma R1_right_unit_lemma:
   "\<lbrakk> out\<alpha> \<sharp> b; out\<alpha> \<sharp> e \<rbrakk> \<Longrightarrow> (b \<or> $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>) ;; R1(true) = (b \<or> $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>)"
   by (rel_auto, blast, metis (no_types, lifting) dual_order.trans)
-  
+
 lemma RHS_tri_design_RD3_intro_form:
-  assumes  
+  assumes
     "out\<alpha> \<sharp> b" "out\<alpha> \<sharp> e" "$ok\<acute> \<sharp> Q" "$st\<acute> \<sharp> Q" "$ok\<acute> \<sharp> R" "$wait\<acute> \<sharp> R"
   shows "\<^bold>R\<^sub>s((b \<and> \<not> $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>) \<turnstile> Q \<diamondop> R) is RD3"
   apply (rule RHS_tri_design_RD3_intro)
@@ -1907,35 +1907,35 @@ where [upred_defs]: "NSRD = RD1 \<circ> RD3 \<circ> RHS"
 
 lemma RD1_RD3_commute: "RD1(RD3(P)) = RD3(RD1(P))"
   by (rel_auto, blast+)
-  
+
 lemma NSRD_is_SRD: "P is NSRD \<Longrightarrow> P is SRD"
   by (simp add: Healthy_def NSRD_def SRD_def, metis Healthy_def RD1_RD3_commute RD2_RHS_commute RD3_def RD3_right_subsumes_RD2 SRD_def SRD_idem SRD_seqr_closure SRD_srdes_skip)
 
 lemma NSRD_Idempotent: "Idempotent NSRD"
   by (clarsimp simp add: Idempotent_def NSRD_def, metis (no_types, hide_lams) Healthy_def RD1_RD3_commute RD3_def RD3_idem RD3_left_subsumes_RD2 SRD_def SRD_idem SRD_seqr_closure SRD_srdes_skip)
-    
+
 lemma NSRD_Continuous: "Continuous NSRD"
   by (simp add: Continuous_comp NSRD_def RD1_Continuous RD3_Continuous RHS_Continuous)
-    
+
 lemma NSRD_form:
   "NSRD(P) = \<^bold>R\<^sub>s((\<not> (\<not> pre\<^sub>R(P)) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> peri\<^sub>R(P)) \<diamondop> post\<^sub>R(P)))"
-proof - 
+proof -
   have "NSRD(P) = RD3(SRD(P))"
     by (metis (no_types, lifting) NSRD_def RD1_RD3_commute RD3_left_subsumes_RD2 SRD_def comp_def)
   also have "... = RD3(\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)))"
     by (simp add: SRD_as_reactive_tri_design)
   also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) ;; II\<^sub>R"
-    by (simp add: RD3_def)      
+    by (simp add: RD3_def)
   also have "... = \<^bold>R\<^sub>s((\<not> (\<not> pre\<^sub>R(P)) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> peri\<^sub>R(P)) \<diamondop> post\<^sub>R(P)))"
     by (simp add: RHS_tri_design_right_unit_lemma unrest)
   finally show ?thesis .
 qed
-    
+
 lemma NSRD_healthy_form:
   assumes "P is NSRD"
   shows "\<^bold>R\<^sub>s((\<not> (\<not> pre\<^sub>R(P)) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> peri\<^sub>R(P)) \<diamondop> post\<^sub>R(P))) = P"
   by (metis Healthy_def NSRD_form assms)
-  
+
 lemma NSRD_intro:
   assumes "P is SRD" "(\<not> pre\<^sub>R(P)) ;; R1(true) = (\<not> pre\<^sub>R(P))" "$st\<acute> \<sharp> peri\<^sub>R(P)"
   shows "P is NSRD"
@@ -1949,11 +1949,11 @@ proof -
   finally show ?thesis
     using Healthy_def by blast
 qed
-      
+
 lemma SRD_RD3_implies_NSRD:
   "\<lbrakk> P is SRD; P is RD3 \<rbrakk> \<Longrightarrow> P is NSRD"
   by (metis (no_types, lifting) Healthy_def NSRD_def RHS_idem SRD_healths(4) SRD_reactive_design comp_apply)
-  
+
 lemma NSRD_neg_pre_unit:
   assumes "P is NSRD"
   shows "(\<not> pre\<^sub>R(P)) ;; R1(true) = (\<not> pre\<^sub>R(P))"
@@ -1966,7 +1966,7 @@ proof -
     by (metis R1_seqr R2_R2c_def R2_def R2c_seq R2s_true calculation)
   finally show ?thesis ..
 qed
-    
+
 lemma NSRD_st'_unrest_peri:
   assumes "P is NSRD"
   shows "$st\<acute> \<sharp> peri\<^sub>R(P)"
@@ -1979,7 +1979,7 @@ proof -
     by (simp add: R1_def R2c_def unrest)
   finally show ?thesis .
 qed
-      
+
 lemma NSRD_wait'_unrest_pre:
   assumes "P is NSRD"
   shows "$wait\<acute> \<sharp> pre\<^sub>R(P)"
@@ -2005,47 +2005,47 @@ proof -
     by (simp add: R1_def R2c_def unrest)
   finally show ?thesis .
 qed
-  
-lemma NSRD_iff: 
+
+lemma NSRD_iff:
   "P is NSRD \<longleftrightarrow> ((P is SRD) \<and> (\<not> pre\<^sub>R(P)) ;; R1(true) = (\<not> pre\<^sub>R(P)) \<and> ($st\<acute> \<sharp> peri\<^sub>R(P)))"
   by (meson NSRD_intro NSRD_is_SRD NSRD_neg_pre_unit NSRD_st'_unrest_peri)
 
 lemma NSRD_composition_wp:
   assumes "P is NSRD" "Q is SRD"
-  shows "P ;; Q = 
+  shows "P ;; Q =
          \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<or> (post\<^sub>R P ;; peri\<^sub>R Q)) \<diamondop> (post\<^sub>R P ;; post\<^sub>R Q))"
   by (simp add: SRD_composition_wp assms NSRD_is_SRD wpR_def NSRD_neg_pre_unit NSRD_st'_unrest_peri ex_unrest)
-    
+
 lemma RHS_tri_normal_design_composition:
-  assumes 
+  assumes
     "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>2" "$ok \<sharp> R" "$ok \<sharp> S\<^sub>1" "$ok \<sharp> S\<^sub>2"
     "$wait \<sharp> R" "$wait\<acute> \<sharp> Q\<^sub>2" "$wait \<sharp> S\<^sub>1" "$wait \<sharp> S\<^sub>2"
     "P is R2c" "Q\<^sub>1 is R1" "Q\<^sub>1 is R2c" "Q\<^sub>2 is R1" "Q\<^sub>2 is R2c"
     "R is R2c" "S\<^sub>1 is R1" "S\<^sub>1 is R2c" "S\<^sub>2 is R1" "S\<^sub>2 is R2c"
     "R1 (\<not> P) ;; R1(true) = (\<not> P)" "$st\<acute> \<sharp> Q\<^sub>1"
-  shows "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) ;; \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2) 
+  shows "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) ;; \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2)
          = \<^bold>R\<^sub>s((P \<and> Q\<^sub>2 wp\<^sub>R R) \<turnstile> (Q\<^sub>1 \<sqinter> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2))"
-proof -  
-  have "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) ;; \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2) = 
+proof -
+  have "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) ;; \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2) =
         \<^bold>R\<^sub>s ((R1 (\<not> P) wp\<^sub>R false \<and> Q\<^sub>2 wp\<^sub>R R) \<turnstile> ((\<exists> $st\<acute> \<bullet> Q\<^sub>1) \<sqinter> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2))"
-    by (simp_all add: RHS_tri_design_composition_wp assms unrest) 
+    by (simp_all add: RHS_tri_design_composition_wp assms unrest)
   also have "... = \<^bold>R\<^sub>s((P \<and> Q\<^sub>2 wp\<^sub>R R) \<turnstile> (Q\<^sub>1 \<sqinter> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2))"
     by (simp add: assms wpR_def ex_unrest)
   finally show ?thesis .
 qed
-  
+
 lemma assigns_rea_id: "\<langle>id\<rangle>\<^sub>R = II\<^sub>R"
   by (rel_auto)
-    
+
 lemma SRD_assigns_rea [closure]: "\<langle>\<sigma>\<rangle>\<^sub>R is SRD"
   by (simp add: assigns_rea_def RHS_design_is_SRD unrest)
-    
+
 lemma RD3_assigns_rea: "\<langle>\<sigma>\<rangle>\<^sub>R is RD3"
   by (rule RD3_intro_pre, simp_all add: SRD_assigns_rea preR_assigns_rea periR_assigns_rea unrest)
-    
+
 lemma NSRD_assigns_rea [closure]: "\<langle>\<sigma>\<rangle>\<^sub>R is NSRD"
   by (simp add: NSRD_iff SRD_assigns_rea periR_assigns_rea preR_assigns_rea unrest_false)
-    
+
 lemma assigns_rea_comp: "\<langle>\<sigma>\<rangle>\<^sub>R ;; \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
 proof -
   have a: "(($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S) ;; ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<rho>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)) =
@@ -2059,7 +2059,7 @@ proof -
 qed
 
 text {* Stateful reactive designs are left unital *}
-  
+
 overloading
   srdes_unit == "utp_unit :: (SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp) uthy \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
 begin
@@ -2069,21 +2069,21 @@ end
 
 interpretation srdes_left_unital: utp_theory_left_unital SRDES
   by (unfold_locales, simp_all add: srdes_hcond_def srdes_unit_def SRD_seqr_closure SRD_srdes_skip SRD_left_unit)
-  
+
 text {* Stateful reactive designs and assignment *}
-    
-overloading 
+
+overloading
   srdes_pvar == "pvar :: (SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp) uthy \<Rightarrow> 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp"
   srdes_pvar_assigns == "pvar_assigns :: (SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp) uthy \<Rightarrow> 's usubst \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
 begin
-  definition srdes_pvar :: 
+  definition srdes_pvar ::
     "(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp) uthy \<Rightarrow> 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp" where
   [upred_defs]: "srdes_pvar T = st"
-  definition srdes_pvar_assigns :: 
+  definition srdes_pvar_assigns ::
     "(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp) uthy \<Rightarrow> 's usubst \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" where
   [upred_defs]: "srdes_pvar_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>R"
 end
-  
+
 interpretation srdes_local_var: utp_local_var "UTHY(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp)" "TYPE('s)"
 proof -
   interpret vw: vwb_lens "pvar SRDES :: 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp"
@@ -2098,7 +2098,7 @@ proof -
       by (simp add: srdes_pvar_assigns_def srdes_unit_def assigns_rea_id)
   qed
 qed
-      
+
 subsection {* Reactive design parallel-by-merge *}
 
 definition [upred_defs]: "nil\<^sub>r\<^sub>m = (nil\<^sub>m \<triangleleft> $0-ok \<and> $1-ok \<triangleright> ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>))"
@@ -2241,15 +2241,14 @@ lemma RHS_design_par:
     "$ok\<acute> \<sharp> P\<^sub>1" "$ok\<acute> \<sharp> P\<^sub>2"
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1) \<parallel>\<^sub>R \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (Q\<^sub>1 \<and> Q\<^sub>2))"
 proof -
-  have "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1) \<parallel>\<^sub>R \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2) = 
+  have "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1) \<parallel>\<^sub>R \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2) =
         \<^bold>R\<^sub>s(P\<^sub>1\<lbrakk>true,false/$ok,$wait\<rbrakk> \<turnstile> Q\<^sub>1\<lbrakk>true,false/$ok,$wait\<rbrakk>) \<parallel>\<^sub>R \<^bold>R\<^sub>s(P\<^sub>2\<lbrakk>true,false/$ok,$wait\<rbrakk> \<turnstile> Q\<^sub>2\<lbrakk>true,false/$ok,$wait\<rbrakk>)"
     by (simp add: RHS_design_ok_wait)
-    
-  
+
   also from assms
   have "... =
         \<^bold>R\<^sub>s((\<not> R1 (R2c (\<not> P\<^sub>1)) \<and> \<not> R1 (R2c (\<not> P\<^sub>2)))\<lbrakk>true,false/$ok,$wait\<rbrakk> \<turnstile>
-           (R1 (R2c (P\<^sub>1 \<Rightarrow> Q\<^sub>1)) \<and> R1 (R2c (P\<^sub>2 \<Rightarrow> Q\<^sub>2)))\<lbrakk>true,false/$ok,$wait\<rbrakk>)" 
+           (R1 (R2c (P\<^sub>1 \<Rightarrow> Q\<^sub>1)) \<and> R1 (R2c (P\<^sub>2 \<Rightarrow> Q\<^sub>2)))\<lbrakk>true,false/$ok,$wait\<rbrakk>)"
       apply (simp add: rea_design_par_def rea_pre_RHS_design rea_cmt_RHS_design usubst unrest assms)
       apply (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp)
       using assms apply (rel_auto)
@@ -2272,5 +2271,4 @@ lemma RHS_tri_design_par:
   assumes "$ok\<acute> \<sharp> P\<^sub>1" "$ok\<acute> \<sharp> P\<^sub>2"
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1 \<diamondop> R\<^sub>1) \<parallel>\<^sub>R \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2 \<diamondop> R\<^sub>2) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (Q\<^sub>1 \<and> Q\<^sub>2) \<diamondop> (R\<^sub>1 \<and> R\<^sub>2))"
   by (simp add: RHS_design_par assms unrest wait'_cond_conj_exchange)
-
 end

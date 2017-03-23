@@ -7,7 +7,7 @@
 header {* Finite set type *}
 
 theory Fset
-imports Main 
+imports Main
   "../../contrib/HOL-Algebra2/Complete_Lattice"
   List_lexord
   Countable
@@ -17,7 +17,7 @@ begin
 
 default_sort type
 
-definition fsets :: "'a set set" 
+definition fsets :: "'a set set"
 where "fsets = Collect finite"
 
 typedef 'a fset = "fsets :: 'a set set"
@@ -69,8 +69,8 @@ notation (xsymbols)
   fnmember      ("op \<notin>\<^sub>f") and
   fnmember      ("(_/ \<notin>\<^sub>f _)" [50, 51] 50)
 
-definition fcard :: "'a fset \<Rightarrow> nat" where 
-"fcard xs = card \<langle>xs\<rangle>\<^sub>f" 
+definition fcard :: "'a fset \<Rightarrow> nat" where
+"fcard xs = card \<langle>xs\<rangle>\<^sub>f"
 
 lift_definition funion :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" (infixl "\<union>\<^sub>f" 65) is "op \<union>"
   by (simp add:fsets_def)
@@ -151,7 +151,7 @@ translations
   "\<lbrace>x, xs\<rbrace>" == "CONST finsert x \<lbrace>xs\<rbrace>"
   "\<lbrace>x\<rbrace>" == "CONST finsert x \<lbrace>\<rbrace>"
 
-definition fset_elem :: "('a * 'a fset) set" 
+definition fset_elem :: "('a * 'a fset) set"
 where "fset_elem = {(x,xs) | x xs. x \<notin> Rep_fset xs}"
 
 text {* Finite least upper bound with respect to a top element *}
@@ -244,7 +244,6 @@ lemma fset_inv [simp]: "\<lbrakk> sorted xs; distinct xs \<rbrakk> \<Longrightar
   apply (metis finite_set sorted_distinct_set_unique sorted_list_of_set)
 done
 
-
 lemma fcard_flist:
   "fcard xs = length (flist xs)"
   apply (simp add:fcard_def)
@@ -317,7 +316,7 @@ end
 instantiation fset :: ("{equal,linorder}") equal
 begin
 
-definition 
+definition
   equal_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" where
   "equal_fset xs ys = equal_class.equal (flist xs) (flist ys)"
 
@@ -340,12 +339,12 @@ qed (rule below_fset_def)
 
 end
 
-lemma fsetE: 
+lemma fsetE:
   assumes "s = fempty \<Longrightarrow> P"
     and "\<And>(x::'a) xs. s = finsert x xs \<Longrightarrow> P"
   shows P
 proof (rule Abs_fset_cases [of s])
-  fix f 
+  fix f
   assume "s = Abs_fset f" and "f \<in> fset"
   with assms show P
     apply (auto simp add: fset_def fempty_def finsert_def)
@@ -354,7 +353,7 @@ proof (rule Abs_fset_cases [of s])
 qed
 *)
 
-(* Induction rule for fset *)  
+(* Induction rule for fset *)
 lemma fset_induct [case_names fempty finsert, induct type]:
   -- {* Discharging @{text "x \<notin> F"} entails extra work. *}
   assumes "P \<lbrace>\<rbrace>"
@@ -391,7 +390,7 @@ lemma funion_finsert_left [simp]:
   "finsert a B \<union>\<^sub>f C = finsert a (B \<union>\<^sub>f C)"
   by auto
 
-lemma funion_finsert_right [simp]: 
+lemma funion_finsert_right [simp]:
   "A \<union>\<^sub>f (finsert a B) = finsert a (A \<union>\<^sub>f B)"
   by (auto)
 
@@ -415,7 +414,6 @@ lemma fset_transfer_eq: "xs = ys \<longleftrightarrow> flist xs = flist ys"
 lemma fset_transfer_neq: "xs \<noteq> ys \<longleftrightarrow> flist xs \<noteq> flist ys"
   by (metis flist_inv)
 
-
 lemma fset_simps [simp]:
   "x \<union>\<^sub>f \<lbrace>\<rbrace> = x"
   "\<lbrace>\<rbrace> \<union>\<^sub>f x = x"
@@ -428,7 +426,7 @@ lemma fset_simps [simp]:
   "\<lbrace>\<rbrace> -\<^sub>f xs = \<lbrace>\<rbrace>"
   by (auto)
 
-lemma finsert_member [simp]: 
+lemma finsert_member [simp]:
   "x \<in>\<^sub>f xs \<Longrightarrow> finsert x xs = xs"
   by auto
 
@@ -469,7 +467,7 @@ proof -
 
 qed
 
-lemma FinPow_rep_eq [simp]: 
+lemma FinPow_rep_eq [simp]:
   "Rep_fset (FinPow xs) = {ys. ys \<subseteq>\<^sub>f xs}"
   apply (subgoal_tac "finite (Abs_fset ` Pow \<langle>xs\<rangle>\<^sub>f)")
   apply (auto simp add:FinPow_def)
@@ -479,12 +477,11 @@ lemma FinPow_rep_eq [simp]:
   apply (metis Pow_def Rep_fset_inverse image_iff mem_Collect_eq)
 done
 
-lemma FUnion_rep_eq [simp]: 
+lemma FUnion_rep_eq [simp]:
   "\<langle>\<Union>\<^sub>f xs\<rangle>\<^sub>f = (\<Union>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)"
   by (simp add:FUnion_def)
 
-
-lemma FInter_rep_eq [simp]: 
+lemma FInter_rep_eq [simp]:
   "xs \<noteq> \<lbrace>\<rbrace> \<Longrightarrow> \<langle>\<Inter>\<^sub>f xs\<rangle>\<^sub>f = (\<Inter>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)"
   apply (simp add:FInter_def)
   apply (subgoal_tac "finite (\<Inter>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)")
@@ -521,7 +518,7 @@ abbreviation Fex :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow>
 syntax
   "_Fall" :: "pttrn => 'a fset => bool => bool" ("(3\<forall> _\<in>\<^sub>f_./ _)" [0, 0, 10] 10)
   "_Fex"  :: "pttrn => 'a fset => bool => bool" ("(3\<exists> _\<in>\<^sub>f_./ _)" [0, 0, 10] 10)
-  
+
 translations
   "\<forall> x\<in>\<^sub>fA. P" == "CONST Fall A (%x. P)"
   "\<exists> x\<in>\<^sub>fA. P" == "CONST Fex A (%x. P)"
@@ -540,7 +537,7 @@ proof -
 
   from xs_props have "P (fset xs)"
   proof (induct xs)
-    case Nil thus ?case 
+    case Nil thus ?case
       by (simp add:fempty)
   next
     case (Cons ys y) thus ?case
@@ -554,14 +551,14 @@ qed
 definition fset_option :: "'a option fset \<Rightarrow> 'a fset option" where
 "fset_option xs = (if (None \<in>\<^sub>f xs) then None else Some (the `\<^sub>f xs))"
 
-lemma fset_option_empty: 
+lemma fset_option_empty:
   "fset_option \<lbrace>\<rbrace> = Some \<lbrace>\<rbrace>"
   by (simp add:fset_option_def)
 
 (*
 fun interleave :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list fset" where
 "interleave [] ys = \<lbrace>ys\<rbrace>" |
-"interleave (x # xs) (y # ys) = (Cons x) `\<^sub>f (interleave xs (y # ys)) 
+"interleave (x # xs) (y # ys) = (Cons x) `\<^sub>f (interleave xs (y # ys))
                               \<union>\<^sub>f (Cons y) `\<^sub>f (interleave (x # xs) ys)" |
 "interleave xs [] = \<lbrace>xs\<rbrace>"
 
@@ -587,10 +584,9 @@ lemma interleave_member:
   apply (auto)
 oops
 
-
 (* FIXME: What happens if no progress can be made? *)
 fun intersync :: "'a set \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list fset" where
-"intersync s (x # xs) (y # ys) 
+"intersync s (x # xs) (y # ys)
   = (case (x = y , x \<in> s , y \<in> s) of
           (True  , True   , _      ) \<Rightarrow> Cons x `\<^sub>f intersync s xs ys |
           (True  , False  , _      ) \<Rightarrow> ((Cons x `\<^sub>f intersync s xs (y # ys))
@@ -600,9 +596,9 @@ fun intersync :: "'a set \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarro
           (False , False  , True   ) \<Rightarrow> Cons x `\<^sub>f intersync s xs (y # ys) |
           (False , False  , False  ) \<Rightarrow> ((Cons x `\<^sub>f intersync s xs (y # ys))
                                          \<union>\<^sub>f (Cons y `\<^sub>f intersync s (x # xs) ys)))" |
-"intersync s [] (y # ys) = 
+"intersync s [] (y # ys) =
    (if (y \<in> s) then \<lbrace>[]\<rbrace> else Cons y `\<^sub>f intersync s [] ys)" |
-"intersync s (x # xs) [] = 
+"intersync s (x # xs) [] =
    (if (x \<in> s) then \<lbrace>[]\<rbrace> else Cons x `\<^sub>f intersync s xs [])" |
 "intersync s [] [] = \<lbrace>[]\<rbrace>"
 
@@ -650,7 +646,7 @@ interpretation fset_lattice: lattice "fset_order A"
   apply (rule_tac x="x \<union>\<^sub>f y" in exI, simp add:funion_lub)
   apply (rule_tac x="x \<inter>\<^sub>f y" in exI, simp add:finter_glb)
 done
-  
+
 lemma flub_lub:
   "B \<subseteq> Fow \<langle>A\<rangle>\<^sub>f \<Longrightarrow> least (fset_order \<langle>A\<rangle>\<^sub>f) (flub B A) (Upper (fset_order \<langle>A\<rangle>\<^sub>f) B)"
   apply (rule least_UpperI, auto simp add:flub_rep_eq Upper_def)
@@ -699,6 +695,4 @@ lemma sup_flub:
 lemma inf_fglb:
   "B \<subseteq> Fow \<langle>A\<rangle>\<^sub>f \<Longrightarrow> inf (fset_order \<langle>A\<rangle>\<^sub>f) B = fglb B A"
   by (metis fglb_glb fset_complete_lattice.inf_glb fset_order.weak_greatest_unique)
-
 end
-

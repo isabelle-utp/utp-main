@@ -8,10 +8,7 @@
 subsection {* Deep Variables *}
 
 theory utp_dvar
-imports utp_var utp_expr utp_unrest utp_subst
-  "../../theories/utp_designs"     (* TODO: Remove this dependency! *)
-  "../../theories/utp_reactive"    (* TODO: Remove this dependency! *)
-  "../../theories/utp_rea_designs" (* TODO: Remove this dependency! *)
+imports utp_var utp_expr utp_pred utp_unrest utp_subst utp_local
   "../../continuum/Continuum"
 begin recall_syntax
 
@@ -364,34 +361,4 @@ translations
   "var\<^bsub>T\<^esub> <x> \<bullet> P" => "var\<^bsub>T\<^esub> <x> ;; ((\<lambda> x. P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end\<^bsub>T\<^esub> <x>"
   "var\<^bsub>T\<^esub> <x> :: 'a \<bullet> P" => "var\<^bsub>T\<^esub> <x::'a list> ;; ((\<lambda> x :: ('a, _) uvar. P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end\<^bsub>T\<^esub> <x::'a list>"
   "var\<^bsub>T\<^esub> <x>  :: 'a := v \<bullet> P" => "var\<^bsub>T\<^esub> <x> :: 'a \<bullet> x ::=\<^bsub>T\<^esub> v ;; P"
-
-text {* Instantiate the vstore for design alphabets *}
-
-instantiation des_vars_ext :: (vst) vst
-begin
-  definition vstore_lens_des_vars_ext :: "vstore \<Longrightarrow> 'a des_vars_ext" where
-  "vstore_lens_des_vars_ext = \<V> ;\<^sub>L \<Sigma>\<^sub>D"
-instance
-  by (intro_classes, simp add: vstore_lens_des_vars_ext_def)
-end
-
-text {* Instantiate the vstore for reactive alphabets *}
-
-instantiation rp_vars_ext :: (ordered_cancel_monoid_diff,vst) vst
-begin
-  definition vstore_lens_rp_vars_ext :: "vstore \<Longrightarrow> ('a, 'b) rp_vars_ext" where
-  "vstore_lens_rp_vars_ext = \<V> ;\<^sub>L \<Sigma>\<^sub>r"
-instance
-  by (intro_classes, simp add: vstore_lens_rp_vars_ext_def)
-end
-
-text {* Instantiate the vstore for stateful reactive alphabets *}
-
-instantiation rsp_vars_ext :: (vst,type) vst
-begin
-  definition vstore_lens_rsp_vars_ext :: "vstore \<Longrightarrow> ('a, 'b) rsp_vars_scheme" where
-  "vstore_lens_rsp_vars_ext = \<V> ;\<^sub>L st\<^sub>a"
-instance
-  by (intro_classes, simp add: vstore_lens_rsp_vars_ext_def)
-end
 end

@@ -76,7 +76,7 @@ lemma at_has_deriv [simp]:
 lemma ode_to_ivp:
   "vwb_lens x \<Longrightarrow> \<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H = (\<^bold>\<exists> x\<^sub>0 \<bullet> \<guillemotleft>x\<^sub>0\<guillemotright> =\<^sub>u $\<^bold>c:x \<and> \<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H)"
   by (rel_auto)
-    
+
 lemma ivp_solution_refine:
   "\<lbrakk> vwb_lens x;
      continuous_on UNIV get\<^bsub>x\<^esub>;

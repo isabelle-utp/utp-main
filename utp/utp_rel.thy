@@ -55,7 +55,7 @@ where "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<equiv> (P \<trianglele
 
 lift_definition seqr::"(('\<alpha> \<times> '\<beta>) upred) \<Rightarrow> (('\<beta> \<times> '\<gamma>) upred) \<Rightarrow> ('\<alpha> \<times> '\<gamma>) upred"
 is "\<lambda> P Q r. r \<in> ({p. P p} O {q. Q q})" .
-    
+
 lift_definition conv_r :: "('a, '\<alpha> \<times> '\<beta>) uexpr \<Rightarrow> ('a, '\<beta> \<times> '\<alpha>) uexpr" ("_\<^sup>-" [999] 999)
 is "\<lambda> e (b1, b2). e (b2, b1)" .
 
@@ -114,10 +114,10 @@ adhoc_overloading
   uskip skip_r
 
 text {* Homogeneous sequential composition *}
-  
+
 abbreviation seqh :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" (infixr ";;\<^sub>h" 51) where
 "seqh P Q \<equiv> (P ;; Q)"
-  
+
 definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<top>" [999] 999) where
 [urel_defs]: "rassume c = II \<triangleleft> c \<triangleright>\<^sub>r false"
 
@@ -318,7 +318,7 @@ lemma drop_pre_inv [simp]: "\<lbrakk> out\<alpha> \<sharp> p \<rbrakk> \<Longrig
 
 text {* We define two variants of while loops based on strongest and weakest fixed points. Only
   the latter properly accounts for infinite behaviours. *}
-    
+
 definition while :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while\<^sup>\<top> _ do _ od") where
 "while\<^sup>\<top> b do P od = (\<nu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
 
@@ -607,7 +607,7 @@ done
 theorem feasibile_iff_true_right_zero:
   "P ;; true = true \<longleftrightarrow> `\<exists> out\<alpha> \<bullet> P`"
   by (rel_auto)
-  
+
 subsection {* Converse laws *}
 
 lemma convr_invol [simp]: "p\<^sup>-\<^sup>- = p"
@@ -733,7 +733,7 @@ lemma antiframe_to_frame:
   by (rel_auto, metis lens_indep_def, metis lens_indep_def surj_pair)
 
 text {* While loop laws *}
-  
+
 theorem while_unfold:
   "while b do P od = ((P ;; while b do P od) \<triangleleft> b \<triangleright>\<^sub>r II)"
 proof -
@@ -750,7 +750,7 @@ qed
 
 theorem while_false: "while false do P od = II"
   by (subst while_unfold, simp add: aext_false)
-  
+
 theorem while_true: "while true do P od = false"
   apply (simp add: while_def alpha)
   apply (rule antisym)
@@ -758,8 +758,8 @@ theorem while_true: "while true do P od = false"
   apply (rule lfp_lowerbound)
   apply (simp)
 done
-    
-theorem while_bot_unfold: 
+
+theorem while_bot_unfold:
   "while\<^sub>\<bottom> b do P od = ((P ;; while\<^sub>\<bottom> b do P od) \<triangleleft> b \<triangleright>\<^sub>r II)"
 proof -
   have m:"mono (\<lambda>X. (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
@@ -772,23 +772,23 @@ proof -
     by (simp add: while_bot_def)
   finally show ?thesis .
 qed
-  
+
 theorem while_bot_false: "while\<^sub>\<bottom> false do P od = II"
   by (simp add: while_bot_def mu_const alpha)
 
 theorem while_bot_true: "while\<^sub>\<bottom> true do P od = (\<mu> X \<bullet> P ;; X)"
   by (simp add: while_bot_def alpha)
-  
+
 text {* An infinite loop with a feasible body corresponds to a program error (non-termination). *}
-    
+
 theorem while_infinite: "P ;; true\<^sub>h = true \<Longrightarrow> while\<^sub>\<bottom> true do P od = true"
   apply (simp add: while_bot_true)
   apply (rule antisym)
   apply (simp)
-  apply (rule gfp_upperbound) 
+  apply (rule gfp_upperbound)
   apply (simp)
 done
-    
+
 subsection {* Relational unrestriction *}
 
 text {* Relational unrestriction states that a variable is unchanged by a relation. Eventually
@@ -966,5 +966,4 @@ is "\<lambda> P b. P (fst b) b" .
 
 lemma call_prog_val: "call \<lbrace>P\<rbrace>\<^sub>u = P"
   by (simp add: call_def urel_defs lit.rep_eq Rep_uexpr_inverse)
-
 end

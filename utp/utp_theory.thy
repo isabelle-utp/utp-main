@@ -612,7 +612,6 @@ begin
     done
   qed
 
-
 end
 
 text {* In another direction, we can also characterise UTP theories that are relational. Minimally
@@ -685,7 +684,6 @@ begin
 
   lemma star_healthy [closure]: "P\<^bold>\<star> is \<H>"
     by (metis mem_Collect_eq utp_order_carrier utp_star_def weak.GFP_closed)
-
 
   lemma star_unfold: "P is \<H> \<Longrightarrow> P\<^bold>\<star> = (P;;P\<^bold>\<star>) \<sqinter> \<I>\<I>"
     apply (simp add: utp_star_def healthy_meet_cont)

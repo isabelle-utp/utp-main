@@ -1,22 +1,22 @@
 section {* A simple library in the UTP theory of designs *}
 
 theory utp_library
-  imports "../utp/utp"
+  imports utp_theories
 begin
 
 subsection {* Preliminaries -- set up some syntax *}
-  
+
 notation true_upred ("abort")
 
 definition establishes_inv :: "'a hrel_des \<Rightarrow> 'a upred \<Rightarrow> bool" (infixl "establishes" 85) where
 [upred_defs]: "establishes_inv P iv \<equiv> true \<turnstile>\<^sub>r \<lceil>iv\<rceil>\<^sub>> \<sqsubseteq> P"
-    
+
 definition maintains_inv :: "'a hrel_des \<Rightarrow> 'a upred \<Rightarrow> bool" (infixl "maintains" 85) where
 [upred_defs]: "maintains_inv P iv \<equiv> (pre\<^sub>D(P) \<and> \<lceil>iv\<rceil>\<^sub><) \<turnstile>\<^sub>r \<lceil>iv\<rceil>\<^sub>> \<sqsubseteq> P"
-  
+
 type_synonym 'a prog = "'a hrel_des"
 
-subsection {* Library state space *}  
+subsection {* Library state space *}
 
 type_synonym book = string
 
@@ -25,10 +25,10 @@ alphabet library =
   loans :: "book set"
 
 subsection {* Library operations *}
-  
+
 definition InitLibrary :: "book set \<Rightarrow> library prog" where
 [upred_defs]: "InitLibrary(bs) = true \<turnstile>\<^sub>n books, loans := \<guillemotleft>bs\<guillemotright>, {}\<^sub>u"
-  
+
 definition InitLibraryAlt :: "book set \<Rightarrow> library prog" where
 [upred_defs]: "InitLibraryAlt(bs) = true \<turnstile>\<^sub>n ($books\<acute> =\<^sub>u \<guillemotleft>bs\<guillemotright> \<and> $loans\<acute> =\<^sub>u {}\<^sub>u)"
 
@@ -58,12 +58,12 @@ lemma ReturnBook_Twice: "(ReturnBook(b) ;; ReturnBook(b)) = abort"
 abbreviation "Books \<equiv> {''War and Peace''
                        ,''Pride and Prejudice''
                        ,''Les Miserables''}"
-    
+
 lemma NotInLibrary:
   "(InitLibrary(Books) ;; BorrowBook(''Pride and Prejudice and Zombies'')) = abort"
   by (rel_auto)
 
-theorem BorrowAndReturn: 
+theorem BorrowAndReturn:
   assumes "b \<in> bs"
   shows "(InitLibrary(bs) ;; BorrowBook(b) ;; ReturnBook(b)) = InitLibrary(bs)"
   using assms by (rel_blast)
@@ -73,8 +73,7 @@ lemma "InitLibrary(bs) establishes LibraryInvariant"
 
 lemma "BorrowBook(b) maintains LibraryInvariant"
   by (rel_auto)
-    
+
 lemma "ReturnBook(b) maintains LibraryInvariant"
   by (rel_auto)
-
 end

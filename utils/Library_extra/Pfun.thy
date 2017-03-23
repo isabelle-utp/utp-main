@@ -32,10 +32,10 @@ lift_definition pId_on :: "'a set \<Rightarrow> ('a, 'a) pfun" is "\<lambda> A x
 abbreviation pId :: "('a, 'a) pfun" where
 "pId \<equiv> pId_on UNIV"
 
-lift_definition pdom_res :: "'a set \<Rightarrow> ('a, 'b) pfun \<Rightarrow> ('a, 'b) pfun" (infixl "\<lhd>\<^sub>p" 85) 
+lift_definition pdom_res :: "'a set \<Rightarrow> ('a, 'b) pfun \<Rightarrow> ('a, 'b) pfun" (infixl "\<lhd>\<^sub>p" 85)
 is "\<lambda> A f. restrict_map f A" .
 
-lift_definition pran_res :: "('a, 'b) pfun \<Rightarrow> 'b set \<Rightarrow> ('a, 'b) pfun" (infixl "\<rhd>\<^sub>p" 85) 
+lift_definition pran_res :: "('a, 'b) pfun \<Rightarrow> 'b set \<Rightarrow> ('a, 'b) pfun" (infixl "\<rhd>\<^sub>p" 85)
 is ran_restrict_map .
 
 lift_definition pfun_graph :: "('a, 'b) pfun \<Rightarrow> ('a \<times> 'b) set" is map_graph .
@@ -98,11 +98,11 @@ where "pfun_subset_eq \<equiv> less_eq"
 instance pfun :: (type, type) semilattice_inf
   by (intro_classes, (transfer, auto simp add: map_le_def dom_def)+)
 
-lemma pfun_subset_eq_least [simp]: 
+lemma pfun_subset_eq_least [simp]:
   "{}\<^sub>p \<subseteq>\<^sub>p f"
   by (transfer, auto)
 
-syntax   
+syntax
   "_PfunUpd"  :: "[('a, 'b) pfun, maplets] => ('a, 'b) pfun" ("_'(_')\<^sub>p" [900,0]900)
   "_Pfun"     :: "maplets => ('a, 'b) pfun"            ("(1{_}\<^sub>p)")
 
@@ -159,7 +159,7 @@ lemma pfun_minus_plus_commute:
 lemma pfun_plus_minus:
   "f \<subseteq>\<^sub>p g \<Longrightarrow> (g - f) + f = g"
   by (transfer, rule ext, auto simp add: map_le_def map_minus_def map_add_def option.case_eq_if)
-  
+
 lemma pfun_minus_common_subset:
   "\<lbrakk> h \<subseteq>\<^sub>p f; h \<subseteq>\<^sub>p g \<rbrakk> \<Longrightarrow> (f - h = g - h) = (f = g)"
   by (transfer, simp add: map_minus_common_subset)
@@ -190,7 +190,7 @@ lemma pfun_app_upd_1 [simp]: "x = y \<Longrightarrow> (f(x \<mapsto> v)\<^sub>p)
   by (transfer, simp)
 
 lemma pfun_app_upd_2 [simp]: "x \<noteq> y \<Longrightarrow> (f(x \<mapsto> v)\<^sub>p)(y)\<^sub>p = f(y)\<^sub>p"
-  by (transfer, simp) 
+  by (transfer, simp)
 
 lemma pfun_upd_add [simp]: "f + g(x \<mapsto> v)\<^sub>p = (f + g)(x \<mapsto> v)\<^sub>p"
   by (transfer, simp)
@@ -212,23 +212,23 @@ lemma pfun_upd_comm_linorder [simp]:
 lemma pfun_app_minus [simp]: "x \<notin> pdom g \<Longrightarrow> (f - g)(x)\<^sub>p = f(x)\<^sub>p"
   by (transfer, auto simp add: map_minus_def)
 
-lemma pfun_upd_minus [simp]: 
-  "x \<notin> pdom g \<Longrightarrow> (f - g)(x \<mapsto> v)\<^sub>p = (f(x \<mapsto> v)\<^sub>p - g)" 
+lemma pfun_upd_minus [simp]:
+  "x \<notin> pdom g \<Longrightarrow> (f - g)(x \<mapsto> v)\<^sub>p = (f(x \<mapsto> v)\<^sub>p - g)"
   by (transfer, auto simp add: map_minus_def)
 
 lemma pdom_member_minus_iff [simp]:
   "x \<notin> pdom g \<Longrightarrow> x \<in> pdom(f - g) \<longleftrightarrow> x \<in> pdom(f)"
   by (transfer, simp add: domIff map_minus_def)
 
-lemma psubseteq_pfun_upd1 [intro]: 
+lemma psubseteq_pfun_upd1 [intro]:
   "\<lbrakk> f \<subseteq>\<^sub>p g; x \<notin> pdom(g) \<rbrakk> \<Longrightarrow> f \<subseteq>\<^sub>p g(x \<mapsto> v)\<^sub>p"
   by (transfer, auto simp add: map_le_def dom_def)
 
-lemma psubseteq_pfun_upd2 [intro]: 
+lemma psubseteq_pfun_upd2 [intro]:
   "\<lbrakk> f \<subseteq>\<^sub>p g; x \<notin> pdom(f) \<rbrakk> \<Longrightarrow> f \<subseteq>\<^sub>p g(x \<mapsto> v)\<^sub>p"
   by (transfer, auto simp add: map_le_def dom_def)
 
-lemma psubseteq_pfun_upd3 [intro]: 
+lemma psubseteq_pfun_upd3 [intro]:
   "\<lbrakk> f \<subseteq>\<^sub>p g; g(x)\<^sub>p = v \<rbrakk> \<Longrightarrow> f \<subseteq>\<^sub>p g(x \<mapsto> v)\<^sub>p"
   by (transfer, auto simp add: map_le_def dom_def)
 
@@ -270,7 +270,7 @@ lemma pdom_pran_res_finite [simp]:
   "finite (pdom f) \<Longrightarrow> finite (pdom (f \<rhd>\<^sub>p A))"
   by (transfer, auto)
 
-lemma pdom_pfun_graph_finite [simp]: 
+lemma pdom_pfun_graph_finite [simp]:
   "finite (pdom f) \<Longrightarrow> finite (pfun_graph f)"
   by (transfer, simp add: finite_dom_graph)
 
@@ -302,11 +302,11 @@ lemma pdom_res_zero [simp]: "A \<lhd>\<^sub>p {}\<^sub>p = {}\<^sub>p"
 lemma pdom_res_alt_def: "A \<lhd>\<^sub>p f =  f \<circ>\<^sub>p pId_on A"
   by (transfer, rule ext, auto simp add: restrict_map_def)
 
-lemma pdom_res_upd_in [simp]: 
+lemma pdom_res_upd_in [simp]:
   "k \<in> A \<Longrightarrow> A \<lhd>\<^sub>p f(k \<mapsto> v)\<^sub>p = (A \<lhd>\<^sub>p f)(k \<mapsto> v)\<^sub>p"
   by (transfer, auto)
 
-lemma pdom_res_upd_out [simp]: 
+lemma pdom_res_upd_out [simp]:
   "k \<notin> A \<Longrightarrow> A \<lhd>\<^sub>p f(k \<mapsto> v)\<^sub>p = A \<lhd>\<^sub>p f"
   by (transfer, auto)
 
@@ -324,7 +324,7 @@ lemma pdom_res_twice [simp]: "A \<lhd>\<^sub>p (B \<lhd>\<^sub>p f) = (A \<inter
 
 lemma pdom_res_comp [simp]: "A \<lhd>\<^sub>p (g \<circ>\<^sub>p f) =  g \<circ>\<^sub>p (A \<lhd>\<^sub>p f)"
   by (simp add: pdom_res_alt_def pfun_comp_assoc)
-  
+
 subsection {* Range restriction laws *}
 
 lemma pran_res_zero [simp]: "{}\<^sub>p \<rhd>\<^sub>p A = {}\<^sub>p"
@@ -366,7 +366,7 @@ lemma pfun_graph_inter: "pfun_graph (f \<inter>\<^sub>p g) = pfun_graph f \<inte
 done
 
 text {* Hide implementation details for partial functions *}
-  
+
 lifting_update pfun.lifting
 lifting_forget pfun.lifting
 

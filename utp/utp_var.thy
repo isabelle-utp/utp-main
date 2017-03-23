@@ -32,7 +32,7 @@ purge_notation
   meet (infixl "\<sqinter>\<index>" 70)
 
 text {* We hide HOL's built-in relation type since we will replace it with our own *}
-  
+
 hide_type rel
 type_synonym 'a relation = "('a \<times> 'a) set"
 

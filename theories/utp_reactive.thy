@@ -2,7 +2,7 @@ section {* Reactive processes *}
 
 theory utp_reactive
 imports
-  "../utp/utp_concurrency"    
+  "../utp/utp_concurrency"
   utp_designs
 begin
 
@@ -91,7 +91,7 @@ lemma unrest_wait_lift_rea [unrest]:
 lemma unrest_tr_lift_rea [unrest]:
   "$tr \<sharp> \<lceil>P\<rceil>\<^sub>R" "$tr\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>R"
   by (pred_auto)+
-                                    
+
 lemma seqr_wait_true [usubst]: "(P ;; Q) \<^sub>t = (P \<^sub>t ;; Q)"
   by (rel_auto)
 
@@ -233,7 +233,7 @@ R2a'_def [upred_defs]: "R2a' (P :: _ upred) = (R2a(P) \<triangleleft> R1(true) \
 definition R2s_def [upred_defs]: "R2s (P) = (P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>($tr\<acute>-$tr)/$tr\<acute>\<rbrakk>)"
 definition R2_def  [upred_defs]: "R2(P) = R1(R2s(P))"
 definition R2c_def [upred_defs]: "R2c(P) = (R2s(P) \<triangleleft> R1(true) \<triangleright> P)"
-  
+
 lemma R2a_R2s: "R2a(R2s(P)) = R2s(P)"
   by (rel_auto)
 

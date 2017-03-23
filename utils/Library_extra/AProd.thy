@@ -6,7 +6,7 @@
 
 header {* Alternative Product type *}
 
-theory AProd 
+theory AProd
 imports Main
 begin
 
@@ -54,7 +54,6 @@ lemma surjective_aprod: "x = <afst x, asnd x>"
 lemma aprod_case [simp]:
   "aprod_case f <x, y> = f x y"
   by (transfer, simp)
-
 
 instantiation aprod :: (minus, minus) minus
 begin
@@ -212,9 +211,6 @@ instance aprod :: (boolean_algebra, boolean_algebra) boolean_algebra
         by (metis afst asnd diff_eq uminus_aprod_def)
   qed
 
-
-
-
 subsection {* Complete lattice operations *}
 
 instantiation aprod :: (complete_lattice, complete_lattice) complete_lattice
@@ -286,5 +282,4 @@ next
   case goal2 thus ?case
     by (auto simp: inf_aprod_def Sup_aprod_def SUP_aprod_alt_def inf_Sup inf_SUP)
 qed
-
 end

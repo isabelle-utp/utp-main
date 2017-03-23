@@ -1,13 +1,13 @@
 section {* Derivatives: extra laws and tactics *}
 
 theory Derivative_extra
-  imports 
+  imports
   "~~/src/HOL/Analysis/Derivative"
   "~~/src/HOL/Eisbach/Eisbach"
 begin
 
 subsection {* Properties of filters *}
-  
+
 lemma filtermap_within_range_minus: "filtermap (\<lambda> x. x - n::real) (at y within {x..<y}) = (at (y - n) within ({x-n..<y-n}))"
   by (simp add: filter_eq_iff eventually_filtermap eventually_at_filter filtermap_nhds_shift[symmetric])
 
@@ -38,8 +38,8 @@ done
 
 lemma has_vector_derivative_divide[simp, derivative_intros]:
   fixes f :: "real \<Rightarrow> 'a :: real_normed_div_algebra"
-  assumes f: "(f has_vector_derivative f') (at x within s)" 
-      and g: "(g has_vector_derivative g') (at x within s)" 
+  assumes f: "(f has_vector_derivative f') (at x within s)"
+      and g: "(g has_vector_derivative g') (at x within s)"
   assumes x: "g x \<noteq> 0"
   shows "((\<lambda>x. f x / g x) has_vector_derivative
                 (- f x * (inverse (g x) * g' * inverse (g x)) + f' / g x)) (at x within s)"

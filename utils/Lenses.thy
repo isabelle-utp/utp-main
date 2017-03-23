@@ -217,7 +217,6 @@ locale lens_indep =
 
 notation lens_indep (infix "\<bowtie>" 50)
 
-
 lemma lens_indepI:
   "\<lbrakk> \<And> u v \<sigma>. lens_put x (lens_put y \<sigma> v) u = lens_put y (lens_put x \<sigma> u) v;
      \<And> v \<sigma>. lens_get x (lens_put y \<sigma> v) = lens_get x \<sigma>;
@@ -955,11 +954,11 @@ translations "FLDLENS x" => "\<lparr> lens_get = x, lens_put = CONST fld_put (_u
 (* Introduce the alphabet command that creates a record with lenses for each field *)
 
 ML {* Specification.definition_cmd *}
-  
+
   (*
      (binding * string option * mixfix) option * (Attrib.binding * string) ->
      bool -> local_theory -> (term * (string * thm)) * local_theory
-*)  
+*)
 
 ML_file "Lenses.ML"
 

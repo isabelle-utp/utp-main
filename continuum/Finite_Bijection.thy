@@ -9,7 +9,7 @@ text {* This theory shows that there exists a bijection between any finite type 
 
 definition is_to_nat_ind :: "'a \<Rightarrow> nat \<Rightarrow> bool" where
 "is_to_nat_ind x i \<longleftrightarrow> (finite (UNIV :: 'a set) \<and>
-                        i < card (UNIV :: 'a set) \<and> 
+                        i < card (UNIV :: 'a set) \<and>
                         sorted_list_of_set (to_nat_on (UNIV :: 'a set) ` (UNIV :: 'a set)) ! i = to_nat_on (UNIV :: 'a set) x)"
 
 text {* The function @{const to_nat} from the countable class makes no guarantees about
@@ -31,15 +31,15 @@ lemma nat_ind_exists:
   assumes "finite (UNIV :: 'a set)"
   shows "\<exists> i. is_to_nat_ind (x :: 'a) i"
 proof -
-  have "to_nat_on (UNIV :: 'a set) x \<in> range (to_nat_on (UNIV :: 'a set)) \<longleftrightarrow> 
-          (\<exists> i<card (UNIV :: 'a set). sorted_list_of_set (range (to_nat_on (UNIV :: 'a set))) ! i = to_nat_on (UNIV :: 'a set) x)"     
+  have "to_nat_on (UNIV :: 'a set) x \<in> range (to_nat_on (UNIV :: 'a set)) \<longleftrightarrow>
+          (\<exists> i<card (UNIV :: 'a set). sorted_list_of_set (range (to_nat_on (UNIV :: 'a set))) ! i = to_nat_on (UNIV :: 'a set) x)"
     by (meson assms card_image_le dual_order.strict_trans1 finite_imageI range_eqI sorted_list_of_set_index_ex)
 
-  then obtain a 
-    where a_card: "a < card (UNIV :: 'a set)" 
+  then obtain a
+    where a_card: "a < card (UNIV :: 'a set)"
     and a_ind: "sorted_list_of_set (range (to_nat_on (UNIV :: 'a set))) ! a = to_nat_on (UNIV :: 'a set) x"
     by auto
-  
+
   thus ?thesis
     by (auto simp add: is_to_nat_ind_def assms)
 qed
@@ -65,7 +65,7 @@ proof -
     by (simp add: is_to_nat_ind_def)
   hence "distinct (sorted_list_of_set ?A)"
     using sorted_list_of_set by blast
-  with assms have "\<And> i j. \<lbrakk> i < card(UNIV :: 'a set); j < card (UNIV :: 'a set) 
+  with assms have "\<And> i j. \<lbrakk> i < card(UNIV :: 'a set); j < card (UNIV :: 'a set)
                  ; sorted_list_of_set ?A ! i = sorted_list_of_set ?A ! j \<rbrakk> \<Longrightarrow> i = j"
     using finite_card_to_nat_on is_to_nat_ind_def by (fastforce simp add: distinct_conv_nth finA)
   with assms show ?thesis
@@ -94,7 +94,7 @@ proof -
     using nat_ind_unique by fastforce
 qed
 
-lemma to_nat_fin_bounded: 
+lemma to_nat_fin_bounded:
   fixes x :: "'a"
   assumes "finite (UNIV :: 'a set)"
   shows "to_nat_fin x < card (UNIV :: 'a set)"
@@ -105,7 +105,7 @@ proof -
     using is_to_nat_ind_def nat_ind_unique by fastforce
 qed
 
-lemma range_to_nat_fin: 
+lemma range_to_nat_fin:
   "finite (UNIV :: 'a set) \<Longrightarrow> range (to_nat_fin :: 'a \<Rightarrow> nat) = {n. n < card(UNIV :: 'a set)}"
   using to_nat_fin_ex by (auto simp add: to_nat_fin_bounded)
 
@@ -136,5 +136,4 @@ qed
 lemma to_nat_fin_bij:
   "finite (UNIV :: 'a set) \<Longrightarrow> bij_betw to_nat_fin (UNIV :: 'a set) {n. n < card (UNIV :: 'a set)}"
   by (auto simp add: bij_betw_def to_nat_fin_inj to_nat_fin_bounded range_to_nat_fin)
-
 end

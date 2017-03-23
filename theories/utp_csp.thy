@@ -1033,7 +1033,6 @@ proof -
     using NSRD_st'_unrest_pre by blast
 qed
 
-
 lemma unrest_USUP_mem [unrest]:
   "\<lbrakk>(\<And> i. i \<in> A \<Longrightarrow> x \<sharp> P(i)) \<rbrakk> \<Longrightarrow> x \<sharp> (\<Sqinter> i\<in>A \<bullet> P(i))"
   by (pred_simp, metis)
@@ -1926,5 +1925,4 @@ lemma swap_CSPMerge: "(swap\<^sub>m ;; M\<^sub>C\<^sub>S\<^sub>P cs) = M\<^sub>C
 theorem parallel_commutative:
   "(P [|cs|] Q) = (Q [|cs|] P)"
   by (simp add: par_by_merge_commute swap_CSPMerge)
-
 end

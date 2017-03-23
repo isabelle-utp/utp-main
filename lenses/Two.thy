@@ -7,7 +7,6 @@ begin
 class two =
   assumes card_two: "infinite (UNIV :: 'a set) \<or> card (UNIV :: 'a set) \<ge> 2"
 begin
-
 lemma two_diff: "\<exists> x y :: 'a. x \<noteq> y"
 proof -
   obtain A where "finite A" "card A = 2" "A \<subseteq> (UNIV :: 'a set)"
@@ -24,7 +23,6 @@ proof -
   thus ?thesis
     by (metis (full_types) One_nat_def Suc_1 UNIV_eq_I card.empty card.insert finite.intros(1) insertCI nat.inject nat.simps(3))
 qed
-
 end
 
 instance bool :: two
@@ -41,8 +39,8 @@ instance rat :: two
 
 instance real :: two
   by (intro_classes, auto simp add: infinite_UNIV_char_0)
-    
+
 instance list :: (type) two
   by (intro_classes, auto simp add: infinite_UNIV_listI)
-    
+
 end

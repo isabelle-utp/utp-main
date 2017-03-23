@@ -232,7 +232,7 @@ lemma at_unrest_cont [unrest]: "$\<^bold>c \<sharp> (P @\<^sub>u t)" "$\<^bold>c
 
 lemma at_unrest_dis [unrest]: "$\<^bold>d \<sharp> (P @\<^sub>u t)" "$\<^bold>d\<acute> \<sharp> (P @\<^sub>u t)"
   by (simp_all add: at_def unrest)
-    
+
 lemma at_unrest_ok [unrest]: "$ok \<sharp> (P @\<^sub>u t)" "$ok\<acute> \<sharp> (P @\<^sub>u t)"
   by (simp_all add: at_def unrest alpha)
 
@@ -307,7 +307,7 @@ lemma hInt_unrest_wait [unrest]: "$wait \<sharp> hInt P" "$wait\<acute> \<sharp>
 
 lemma hInt_unrest_dis [unrest]: "$\<^bold>d \<sharp> hInt P" "$\<^bold>d\<acute> \<sharp> hInt P"
   by (simp_all add: hInt_def unrest)
-    
+
 definition hDisInt :: "(real \<Rightarrow> 'c::t2_space upred) \<Rightarrow> ('d, 'c) hyrel" where
 [urel_defs]: "hDisInt P = (hInt P \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
 
@@ -449,41 +449,40 @@ qed
 
 text {* The proof of the theorem is quite long, but the theorem intuitively tells us that an interval
   can always be split into two intervals where the property holds of both. *}
-  
+
 lemma seq_var_ident_liftr:
   assumes "vwb_lens x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
   shows "((P \<and> $x\<acute> =\<^sub>u $x) ;; (Q \<and> $x\<acute> =\<^sub>u $x)) = ((P ;; Q) \<and> $x\<acute> =\<^sub>u $x)"
   using assms apply (rel_auto)
   by (metis (no_types, lifting) vwb_lens_wb wb_lens_weak weak_lens.put_get)
 
-(*    
+(*
 lemma hInt_seq_r: "(\<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>H ;; \<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>H) = \<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>H"
-proof -  
+proof -
   have "((\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<^bold>t)\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) ;;
-         (\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<^bold>t)\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)) =  
+         (\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<^bold>t)\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)) =
         (((\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<^bold>t)\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u)) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) ;;
          ((\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<^bold>t)\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u)) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d))"
     by (rel_auto)
-  
-  also 
-  have "... = 
+
+  also
+  have "... =
         (((\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<^bold>t)\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u)) ;;
           (\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<^bold>t)\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u))) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
     by (subst seq_var_ident_liftr, simp_all add: unrest)
-  also 
-  have "... = 
+  also
+  have "... =
         (((\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<guillemotleft>t\<^sub>0\<guillemotright>\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<guillemotleft>t\<^sub>0\<guillemotright>)\<^sup>-)(\<guillemotleft>t\<^sub>0\<guillemotright>\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u)) ;;
           (\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<guillemotleft>t\<^sub>1\<guillemotright>\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<guillemotleft>t\<^sub>1\<guillemotright>)\<^sup>-)(\<guillemotleft>t\<^sub>1\<guillemotright>\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u))) \<and>  \<and>  $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
     by (subst seq_var_ident_liftr, simp_all add: unrest)
 
-  
-  also 
-  have "... = 
+  also
+  have "... =
         (((\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u \<^bold>t\<lparr>end\<^sub>u(\<^bold>t)\<rparr>\<^sub>u) ;;
           (\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<^bold>t)\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u))) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
     apply (rel_auto)
 *)
-  
+
 subsection {* Pre-emption *}
 
 definition hPreempt ::

@@ -7,9 +7,9 @@ begin
 
 text \<open>In this section we define a number of concrete instantiations of the lens locales, including
   functions lenses, list lenses, and record lenses.\<close>
-  
+
 subsection \<open>Function lens\<close>
-  
+
 text \<open>We require that range type of a lens function has cardinality of at least 2; this ensures
       that properties of independence are provable.\<close>
 
@@ -44,7 +44,7 @@ lemma fun_ran_vwb_lens: "\<lbrakk> vwb_lens X; vwb_lens Y \<rbrakk> \<Longrighta
   by (unfold_locales, auto simp add: fun_ran_lens_def)
 
 subsection \<open>Map lens\<close>
-  
+
 definition map_lens :: "'a \<Rightarrow> ('b \<Longrightarrow> ('a \<rightharpoonup> 'b))" where
 [lens_defs]: "map_lens x = \<lparr> lens_get = (\<lambda> f. the (f x)), lens_put = (\<lambda> f u. f(x \<mapsto> u)) \<rparr>"
 
@@ -52,7 +52,7 @@ lemma map_mwb_lens: "mwb_lens (map_lens x)"
   by (unfold_locales, simp_all add: map_lens_def)
 
 subsection \<open>List lens\<close>
-    
+
 definition list_pad_out :: "'a list \<Rightarrow> nat \<Rightarrow> 'a list" where
 "list_pad_out xs k = xs @ replicate (k + 1 - length xs) undefined"
 
@@ -157,10 +157,10 @@ alphabet mylens =
 lemma mylens_bij_lens:
   "bij_lens (x +\<^sub>L y +\<^sub>L mylens_child_lens)"
   by (unfold_locales, simp_all add: lens_plus_def x_def y_def mylens_child_lens_def id_lens_def sublens_def lens_comp_def prod.case_eq_if)
-    
+
 alphabet mylens_2 = mylens +
   z :: int
-  k :: "string list"  
+  k :: "string list"
 
 alphabet mylens_3 = mylens_2 +
   n :: real
@@ -177,5 +177,4 @@ declare meta_interp_law [lens_interp_laws]
 declare all_interp_law [lens_interp_laws]
 declare exists_interp_law [lens_interp_laws]
 end
-
 end

@@ -16,7 +16,7 @@ lemma "(\<exists> x \<bullet> &x >\<^sub>u 1) = true"
   by (rel_auto)
 
 lemma "(\<forall> x \<bullet> &x >\<^sub>u 1) = true"
-  apply (rel_auto)
+  apply (rel_simp)
   nitpick
 oops
 

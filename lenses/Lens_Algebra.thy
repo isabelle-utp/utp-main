@@ -8,12 +8,12 @@ subsection \<open>Lens composition, plus, unit, and identity\<close>
 
 text \<open>We introduce the algebraic lens operators; for more information please see our paper~\cite{Foster16a}.
       Lens composition constructs a lens by composing the source of one lens with the view of another.\<close>
-  
+
 definition lens_comp :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> ('a \<Longrightarrow> 'c)" (infixr ";\<^sub>L" 80) where
 [lens_defs]: "lens_comp Y X = \<lparr> lens_get = lens_get Y \<circ> lens_get X
                               , lens_put = (\<lambda> \<sigma> v. lens_put X \<sigma> (lens_put Y (lens_get X \<sigma>) v)) \<rparr>"
 
-text \<open>Lens plus parallel composes two indepedent lenses, resulting in a lens whose view is the 
+text \<open>Lens plus parallel composes two indepedent lenses, resulting in a lens whose view is the
   product of the two underlying lens views.\<close>
 
 definition lens_plus :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Longrightarrow> 'c" (infixr "+\<^sub>L" 75) where
@@ -27,7 +27,7 @@ definition lens_prod :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longright
 [lens_defs]: "lens_prod X Y = \<lparr> lens_get = map_prod get\<^bsub>X\<^esub> get\<^bsub>Y\<^esub>
                               , lens_put = \<lambda> (u, v) (x, y). (put\<^bsub>X\<^esub> u x, put\<^bsub>Y\<^esub> v y) \<rparr>"
 
-text \<open>The $\lfst$ and $\lsnd$ lenses project the first and second elements, respectively, of a 
+text \<open>The $\lfst$ and $\lsnd$ lenses project the first and second elements, respectively, of a
   product source type.\<close>
 
 definition fst_lens :: "'a \<Longrightarrow> 'a \<times> 'b" ("fst\<^sub>L") where
@@ -43,7 +43,7 @@ lemma get_snd_lens [simp]: "get\<^bsub>snd\<^sub>L\<^esub> (x, y) = y"
   by (simp add: snd_lens_def)
 
 text \<open>The swap lens is a bijective lens which swaps over the elements of the product source type.\<close>
-    
+
 abbreviation swap_lens :: "'a \<times> 'b \<Longrightarrow> 'b \<times> 'a" ("swap\<^sub>L") where
 "swap\<^sub>L \<equiv> snd\<^sub>L +\<^sub>L fst\<^sub>L"
 
@@ -109,7 +109,7 @@ lemma plus_mwb_lens:
   apply (simp_all add: lens_plus_def prod.case_eq_if lens_indep_sym)
   apply (simp add: lens_indep_comm)
 done
-    
+
 lemma plus_wb_lens:
   assumes "wb_lens x" "wb_lens y" "x \<bowtie> y"
   shows "wb_lens (x +\<^sub>L y)"
@@ -126,7 +126,7 @@ lemma plus_vwb_lens:
   apply (simp add: lens_indep_sym prod.case_eq_if)
   apply (simp add: lens_indep_comm prod.case_eq_if)
 done
-    
+
 lemma prod_mwb_lens:
   "\<lbrakk> mwb_lens X; mwb_lens Y \<rbrakk> \<Longrightarrow> mwb_lens (X \<times>\<^sub>L Y)"
   by (unfold_locales, simp_all add: lens_prod_def prod.case_eq_if)
@@ -157,10 +157,10 @@ lemma inv_id_lens: "inv\<^sub>L 1\<^sub>L = 1\<^sub>L"
 
 lemma lens_inv_bij: "bij_lens X \<Longrightarrow> bij_lens (inv\<^sub>L X)"
   by (unfold_locales, simp_all add: lens_inv_def lens_create_def)
-    
+
 lemma swap_bij_lens: "bij_lens swap\<^sub>L"
   by (unfold_locales, simp_all add: lens_plus_def prod.case_eq_if fst_lens_def snd_lens_def)
-    
+
 subsection \<open>Composition laws\<close>
 
 lemma lens_comp_assoc: "(X ;\<^sub>L Y) ;\<^sub>L Z = X ;\<^sub>L (Y ;\<^sub>L Z)"
@@ -174,12 +174,12 @@ lemma lens_comp_right_id [simp]: "X ;\<^sub>L 1\<^sub>L = X"
 
 lemma lens_comp_anhil [simp]: "wb_lens X \<Longrightarrow> 0\<^sub>L ;\<^sub>L X = 0\<^sub>L"
   by (simp add: zero_lens_def lens_comp_def comp_def)
-  
+
 subsection \<open>Independence laws\<close>
-  
+
 lemma zero_lens_indep: "0\<^sub>L \<bowtie> X"
   by (auto simp add: zero_lens_def lens_indep_def)
-  
+
 lemma lens_indep_quasi_irrefl: "\<lbrakk> wb_lens x; eff_lens x \<rbrakk> \<Longrightarrow> \<not> (x \<bowtie> x)"
   by (auto simp add: lens_indep_def ief_lens_def ief_lens_axioms_def, metis (full_types) wb_lens.get_put)
 
@@ -212,7 +212,7 @@ lemma lens_indep_right_ext [intro]:
 lemma fst_snd_lens_indep:
   "fst\<^sub>L \<bowtie> snd\<^sub>L"
   by (simp add: lens_indep_def fst_lens_def snd_lens_def)
-    
+
 lemma split_prod_lens_indep:
   assumes "mwb_lens X"
   shows "(fst\<^sub>L ;\<^sub>L X) \<bowtie> (snd\<^sub>L ;\<^sub>L X)"
@@ -251,8 +251,8 @@ lemma lens_indep_prod:
   apply (auto simp add: lens_prod_def prod.case_eq_if lens_indep_comm map_prod_def)
   apply (simp_all add: lens_indep_sym)
 done
-    
-subsection \<open>Algebraic laws\<close>    
+
+subsection \<open>Algebraic laws\<close>
 
 lemma fst_lens_plus:
   "wb_lens y \<Longrightarrow> fst\<^sub>L ;\<^sub>L (x +\<^sub>L y) = x"
@@ -266,7 +266,7 @@ lemma snd_lens_plus:
   apply (subst lens_indep_comm)
   apply (simp_all)
 done
-    
+
 lemma lens_plus_swap:
   "X \<bowtie> Y \<Longrightarrow> (snd\<^sub>L +\<^sub>L fst\<^sub>L) ;\<^sub>L (X +\<^sub>L Y) = (Y +\<^sub>L X)"
   by (auto simp add: lens_plus_def fst_lens_def snd_lens_def id_lens_def lens_comp_def lens_indep_comm)
@@ -277,14 +277,14 @@ lemma prod_as_plus: "X \<times>\<^sub>L Y = X ;\<^sub>L fst\<^sub>L +\<^sub>L Y 
 lemma prod_lens_id_equiv:
   "1\<^sub>L \<times>\<^sub>L 1\<^sub>L = 1\<^sub>L"
   by (auto simp add: lens_prod_def id_lens_def)
-    
+
 lemma prod_lens_comp_plus:
   "X\<^sub>2 \<bowtie> Y\<^sub>2 \<Longrightarrow> ((X\<^sub>1 \<times>\<^sub>L Y\<^sub>1) ;\<^sub>L (X\<^sub>2 +\<^sub>L Y\<^sub>2)) = (X\<^sub>1 ;\<^sub>L X\<^sub>2) +\<^sub>L (Y\<^sub>1 ;\<^sub>L Y\<^sub>2)"
   by (auto simp add: lens_comp_def lens_plus_def lens_prod_def prod.case_eq_if fun_eq_iff)
-    
+
 lemma fst_snd_id_lens: "fst\<^sub>L +\<^sub>L snd\<^sub>L = 1\<^sub>L"
   by (auto simp add: lens_plus_def fst_lens_def snd_lens_def id_lens_def)
-  
+
 lemma swap_lens_idem: "swap\<^sub>L ;\<^sub>L swap\<^sub>L = 1\<^sub>L"
   by (simp add: fst_snd_id_lens fst_snd_lens_indep lens_indep_sym lens_plus_swap)
 
@@ -293,5 +293,4 @@ lemma swap_lens_fst: "fst\<^sub>L ;\<^sub>L swap\<^sub>L = snd\<^sub>L"
 
 lemma swap_lens_snd: "snd\<^sub>L ;\<^sub>L swap\<^sub>L = fst\<^sub>L"
   by (simp add: fst_snd_lens_indep lens_indep_sym snd_lens_plus snd_vwb_lens)
-  
 end

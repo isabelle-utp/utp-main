@@ -35,12 +35,12 @@ end
 
 definition inds where "inds f t = {i. <t,i> \<in> dom(f)}"
 
-typedef 'a sdf = 
-  "{f :: sdreal \<rightharpoonup> 'a. (\<exists> t\<ge>0. ((\<forall> t'\<in>{0..t}. <t',0> \<in> dom(f)) \<or> 
+typedef 'a sdf =
+  "{f :: sdreal \<rightharpoonup> 'a. (\<exists> t\<ge>0. ((\<forall> t'\<in>{0..t}. <t',0> \<in> dom(f)) \<or>
                                 (\<forall> t'\<in>{0..<t}. <t',0> \<in> dom(f))))
                      \<and> (\<forall> t\<in>inst`dom(f). \<exists> i. \<forall> i'\<in>inds f t. i' \<le> i)
    }"
-   
+
   by (rule_tac x="Map.empty" in exI, auto)
 
 setup_lifting type_definition_sdf
@@ -73,7 +73,6 @@ lemma inj_cgf_to_sdf: "inj cgf_to_sdf"
   apply (metis (full_types) atLeastLessThan_empty atLeastLessThan_empty_iff2 atLeastLessThan_iff domIff)
   apply (metis atLeastLessThan_iff domIff inst)
 done
-  
 
 lift_definition init_f :: "'a sdf \<Rightarrow> (real \<rightharpoonup> 'a)" is "\<lambda> f t. f <t, 0>" .
 lift_definition final_f :: "'a sdf \<Rightarrow> (real \<rightharpoonup> 'a)" is "\<lambda> f t. f <t, Max (inds f t)>" .
@@ -90,5 +89,4 @@ lemma cgf_init_f_eq_final_f:
   apply (subgoal_tac "{i. i = 0 \<and> <t,i> \<in> dom (\<lambda>st. g (inst st))} = {0}")
   apply (auto)
 done
-
 end

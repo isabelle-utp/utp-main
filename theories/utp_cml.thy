@@ -72,7 +72,7 @@ translations
 
 abbreviation CML :: "(('\<sigma>, '\<phi>) st_cml \<times> ('\<sigma>, '\<phi>) st_cml) health"
 where "CML \<equiv> SRD"
-  
+
 abbreviation Skip :: "('\<sigma>,'\<theta>) cmlact" where
 "Skip \<equiv> II\<^sub>R"
 
@@ -96,10 +96,10 @@ definition Wait :: "(nat, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>,'\<theta>) c
 
 lemma length_list_minus [simp]: "ys \<le> xs \<Longrightarrow> length(xs - ys) = length(xs) - length(ys)"
   by (auto simp add: minus_list_def less_eq_list_def)
-    
+
 lemma Skip_def: "Skip = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st))"
   by (rel_auto)
-    
+
 lemma Wait_0: "Wait 0 = Skip"
 proof -
   have "Wait 0 = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> 0 >\<^sub>u #\<^sub>u(tt)) \<diamondop> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u 0 \<and> $st\<acute> =\<^sub>u $st))"
@@ -110,7 +110,7 @@ proof -
     have 1:"?Q = false"
       by (pred_auto)
     have 2:"R1(?R) = ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
-      by (rel_auto, simp_all add: minus_zero_eq zero_list_def) 
+      by (rel_auto, simp_all add: minus_zero_eq zero_list_def)
     show ?thesis
       by (metis (no_types, lifting) "1" "2" RHS_design_post_R1)
   qed
@@ -118,11 +118,11 @@ proof -
     by (rel_auto)
   finally show ?thesis .
 qed
-  
+
 lemma skip_lift_state [alpha]: "\<lceil>II\<rceil>\<^sub>S = ($st\<acute> =\<^sub>u $st)"
   by (rel_auto)
-  
-lemma Stop_left_zero: 
+
+lemma Stop_left_zero:
   assumes "P is CML"
   shows "Stop ;; P = Stop"
 proof -
@@ -134,8 +134,8 @@ proof -
     by (simp add: ex_unrest unrest)
   finally show ?thesis
     by (simp add: Stop_def)
-qed    
-    
+qed
+
 lemma Wait_m_plus_n: "(Wait m ;; Wait n) = (Wait (m + n))"
 proof -
   have 1: "(R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st) ;; R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(tt))) =
@@ -182,7 +182,7 @@ proof -
   have 2:"(R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st) ;; R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st)) =
                  R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st)" (is "?lhs = ?rhs")
   proof -
-    have "?lhs = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st) ;;\<^sub>h 
+    have "?lhs = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st) ;;\<^sub>h
                                    (events\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st))
                          \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
       by (simp add: R2_seqr_form usubst unrest)

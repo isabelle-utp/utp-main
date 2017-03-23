@@ -52,7 +52,7 @@ proof
 
   also from assms have "..."
   by (metis le_iff_sup xley)
-    
+
   finally show "F x \<le> F y" by simp
 qed
 
@@ -107,7 +107,7 @@ proof
 
   also from assms have "..."
     by (metis sup_absorb2 x1ley1 x2ley2)
-    
+
   finally show "F x1 x2 \<le> F y1 y2" by simp
 qed
 

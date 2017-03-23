@@ -163,10 +163,10 @@ lemma var_block_vacuous:
 
 text {* A variable block with a skip inside results in a skip. *}
 end
-  
+
 text {* Example instantiation for the theory of relations *}
-  
-overloading 
+
+overloading
   rel_pvar == "pvar :: (REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha>"
   rel_pvar_assigns == "pvar_assigns :: (REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel"
 begin
@@ -190,5 +190,4 @@ proof -
       by (simp add: rel_pvar_assigns_def rel_unit_def skip_r_def)
   qed
 qed
-  
 end

@@ -6,7 +6,7 @@ begin
 
 type_synonym vertex = int
 
-type_synonym 'a table = "'a list" 
+type_synonym 'a table = "'a list"
 type_synonym graph = "(int list) table"
 type_synonym edge = "vertex * vertex"
 
@@ -59,10 +59,10 @@ lemma hd_before_last: "length(xs) \<ge> 2 \<Longrightarrow> before (hd xs) (last
 done
 
 definition is_topological_order :: "int list \<Rightarrow> graph \<Rightarrow> bool" where
-"is_topological_order xs G = (distinct(xs) \<and> set(xs) = set(vertices(G)) \<and> (\<forall> (x, y) \<in> set(edges(G)). before x y xs))" 
+"is_topological_order xs G = (distinct(xs) \<and> set(xs) = set(vertices(G)) \<and> (\<forall> (x, y) \<in> set(edges(G)). before x y xs))"
 
-inductive path :: "'a rel \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<turnstile> _ -<_>\<rightarrow> _" [100, 0, 0, 101] 101) where 
-unit_path [intro]: "(a, b) \<in> R \<Longrightarrow> R \<turnstile> a -<[a, b]>\<rightarrow> b" | 
+inductive path :: "'a rel \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<turnstile> _ -<_>\<rightarrow> _" [100, 0, 0, 101] 101) where
+unit_path [intro]: "(a, b) \<in> R \<Longrightarrow> R \<turnstile> a -<[a, b]>\<rightarrow> b" |
 step_path [intro]: "\<lbrakk> (a, b) \<in> R; R \<turnstile> b -<p>\<rightarrow> c \<rbrakk> \<Longrightarrow> R \<turnstile> a -<a # p>\<rightarrow> c"
 
 lemma path_concat_list: "\<lbrakk> R \<turnstile> a -<p>\<rightarrow> b; (b, c) \<in> R \<rbrakk> \<Longrightarrow> R \<turnstile> a -<p @ [c]>\<rightarrow> c"
@@ -87,8 +87,6 @@ lemma path_implies_trancl:
 lemma trancl_iff_path:
   "(a, b) \<in> R\<^sup>+ \<longleftrightarrow> (\<exists> p. R \<turnstile> a -<p>\<rightarrow> b)"
   by (meson path_implies_trancl trancl_implies_path)
-  
-
 
 (*
 lemma path_chop: "\<lbrakk> R \<turnstile> a -<p>\<rightarrow> b; length p > 2 \<rbrakk>
@@ -101,8 +99,8 @@ done
 
 lemma finpath_init_pair: "R \<turnstile> a -<p>\<rightarrow> b \<Longrightarrow> (a, p!1) \<in> R"
   by (induct rule: path.induct, auto)
-  
-lemma finpath_pairs: 
+
+lemma finpath_pairs:
   assumes "finpath p R" "i \<le> length p - 2"
   shows "(p!i, p!(Suc i)) \<in> R"
 proof -
@@ -114,7 +112,6 @@ proof -
   done
   with assms(2) show ?thesis by auto
 qed
-
 
 lemma finpath_elems: "\<lbrakk> finpath p R; i < j; j \<le> length p - 2 \<rbrakk> \<Longrightarrow> (p!i, p!j) \<in> R\<^sup>+"
   apply (induct j)
@@ -139,7 +136,7 @@ done
 lemma trancl_finpathE:
   "\<lbrakk> (x, y) \<in> R\<^sup>+; \<And> xs. \<lbrakk> finpath xs R; hd(xs) = x; last(xs) = y \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (metis trancl_finpath)
-  
+
 lemma before_topological_order: "\<lbrakk> is_topological_order xs G; (x, y) \<in> (graph_rel(G))\<^sup>+ \<rbrakk> \<Longrightarrow> before x y xs"
   apply (auto simp add: is_topological_order_def graph_rel_def)
   apply (induct rule: trancl_induct)
@@ -167,5 +164,4 @@ proof (rule acyclicI, clarify)
   with assms show False
     by (metis is_topological_order_def distinct_not_before_self)
 qed
-
 end

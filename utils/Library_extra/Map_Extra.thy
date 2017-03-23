@@ -1,8 +1,8 @@
 section {* Map type: extra functions and properties *}
 
 theory Map_Extra
-imports 
-  Main 
+imports
+  Main
   "~~/src/HOL/Library/Countable_Set"
   "~~/src/HOL/Library/Char_ord"
   "~~/src/HOL/Library/Monad_Syntax"
@@ -73,7 +73,7 @@ lemma graph_map_empty[simp]: "graph_map {} = empty"
   by (simp add:graph_map_def)
 
 lemma graph_map_insert [simp]: "\<lbrakk>functional g; g``{x} \<subseteq> {y}\<rbrakk> \<Longrightarrow> graph_map (insert (x,y) g) = (graph_map g)(x \<mapsto> y)"
-  by (rule ext, auto simp add:graph_map_def)  
+  by (rule ext, auto simp add:graph_map_def)
 
 lemma dom_map_graph: "dom f = Domain(map_graph f)"
   by (simp add: map_graph_def dom_def image_def)
@@ -105,7 +105,7 @@ lemma graph_map_dom: "dom (graph_map R) = fst ` R"
 lemma graph_map_countable_dom: "countable R \<Longrightarrow> countable (dom (graph_map R))"
   by (simp add: graph_map_dom)
 
-lemma countable_ran: 
+lemma countable_ran:
   assumes "countable (dom f)"
   shows "countable (ran f)"
 proof -
@@ -117,7 +117,7 @@ proof -
     by (simp add: ran_map_graph)
 qed
 
-lemma map_graph_inv' [simp]: 
+lemma map_graph_inv' [simp]:
   "graph_map' (map_graph f) = Some f"
   by (simp add: graph_map'_def)
 
@@ -204,8 +204,8 @@ done
 
 subsection {* Minus operation for maps *}
 
-definition map_minus :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" (infixl "--" 100) 
-where "map_minus f g = (\<lambda> x. if (f x = g x) then None else f x)" 
+definition map_minus :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" (infixl "--" 100)
+where "map_minus f g = (\<lambda> x. if (f x = g x) then None else f x)"
 
 lemma map_minus_apply [simp]: "y \<in> dom(f -- g) \<Longrightarrow> (f -- g)(y)\<^sub>m = f(y)\<^sub>m"
   by (auto simp add: map_minus_def dom_def map_apply_def)
@@ -235,7 +235,7 @@ lemma map_minus_common_subset:
 text {* Create some extra intro/elim rules to help dealing with proof about
         option bind. *}
 
-lemma option_bindSomeE [elim!]: 
+lemma option_bindSomeE [elim!]:
   "\<lbrakk> X >>= F = Some(v); \<And> x. \<lbrakk> X = Some(x); F(x) = Some(v) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (case_tac X, auto)
 
@@ -266,7 +266,7 @@ lemma ran_ran_restrict [simp]: "ran(f\<upharpoonleft>\<^bsub>B\<^esub>) = ran(f)
 lemma dom_ran_restrict: "dom(f\<upharpoonleft>\<^bsub>B\<^esub>) \<subseteq> dom(f)"
   by (auto simp add:ran_restrict_map_def dom_def)
 
-lemma ran_restrict_finite_dom [intro]: 
+lemma ran_restrict_finite_dom [intro]:
   "finite(dom(f)) \<Longrightarrow> finite(dom(f\<upharpoonleft>\<^bsub>B\<^esub>))"
   by (metis finite_subset dom_ran_restrict)
 
@@ -297,20 +297,20 @@ lemma map_id_on_UNIV[simp]: "map_id_on UNIV = Some"
   by (simp add:map_id_on_def)
 
 lemma map_id_on_inj [simp]:
-  "inj_on (map_id_on xs) xs" 
+  "inj_on (map_id_on xs) xs"
   by (simp add:inj_on_def)
 
 lemma map_inv_empty [simp]: "map_inv empty = empty"
   by (simp add:map_inv_def)
 
-lemma map_inv_id [simp]: 
+lemma map_inv_id [simp]:
   "map_inv (map_id_on xs) = map_id_on xs"
   by (force simp add:map_inv_def map_id_on_def ran_def)
 
 lemma map_inv_Some [simp]: "map_inv Some = Some"
   by (simp add:map_inv_def ran_def)
 
-lemma map_inv_f_f [simp]: 
+lemma map_inv_f_f [simp]:
   "\<lbrakk> inj_on f (dom f); f x = Some y \<rbrakk> \<Longrightarrow> map_inv f y = Some x"
   apply (auto simp add: map_inv_def)
   apply (rule some_equality)
@@ -366,7 +366,7 @@ proof -
     apply (simp)
     apply (metis assms dom_image_ran dom_map_inv image_iff map_add_dom_app_simps(2) map_add_dom_app_simps(3) ran_map_inv)
   done
-qed    
+qed
 
 lemma dom_left_map_add [simp]: "x \<in> dom g \<Longrightarrow> (f ++ g) x = g x"
   by (auto simp add:map_add_def dom_def)
@@ -378,7 +378,7 @@ lemma map_add_restrict:
   "f ++ g = (f |` (- dom g)) ++ g"
   by (rule ext, auto simp add: map_add_def restrict_map_def)
 
-lemma map_self_adjoin_complete [intro]: 
+lemma map_self_adjoin_complete [intro]:
   assumes "dom f \<inter> ran f = {}" "inj_on f (dom f)"
   shows "inj_on (map_inv f ++ f) (dom f \<union> ran f)"
   apply (rule inj_onI)
@@ -421,7 +421,7 @@ lemma inj_completed_map [intro]:
 done
 
 lemma bij_completed_map [intro]:
-  "\<lbrakk> dom f = ran f; inj_on f (dom f) \<rbrakk> \<Longrightarrow> 
+  "\<lbrakk> dom f = ran f; inj_on f (dom f) \<rbrakk> \<Longrightarrow>
    bij_betw (Some ++ f) UNIV (range Some)"
   apply (auto intro: inj_completed_map simp add:bij_betw_def)
   apply (case_tac "xa \<in> dom f")
@@ -441,8 +441,8 @@ lemma bij_map_Some:
   apply (metis imageI image_comp option.sel)
 done
 
-lemma ran_map_add [simp]: 
-  "m`(dom m \<inter> dom n) = n`(dom m \<inter> dom n) \<Longrightarrow> 
+lemma ran_map_add [simp]:
+  "m`(dom m \<inter> dom n) = n`(dom m \<inter> dom n) \<Longrightarrow>
    ran(m++n) = ran n \<union> ran m"
   apply (auto simp add:ran_def)
   apply (metis map_add_find_right)
@@ -455,12 +455,12 @@ lemma ran_map_add [simp]:
   apply (metis (full_types) map_add_None map_add_dom_app_simps(1) map_add_dom_app_simps(3) not_None_eq)
 done
 
-lemma ran_maplets [simp]: 
+lemma ran_maplets [simp]:
   "\<lbrakk> length xs = length ys; distinct xs \<rbrakk> \<Longrightarrow> ran [xs [\<mapsto>] ys] = set ys"
     by (induct rule:list_induct2, simp_all)
 
 lemma inj_map_add:
-  "\<lbrakk> inj_on f (dom f); inj_on g (dom g); ran f \<inter> ran g = {} \<rbrakk> \<Longrightarrow> 
+  "\<lbrakk> inj_on f (dom f); inj_on g (dom g); ran f \<inter> ran g = {} \<rbrakk> \<Longrightarrow>
    inj_on (f ++ g) (dom f \<union> dom g)"
   apply (auto simp add:inj_on_def)
   apply (metis (full_types) disjoint_iff_not_equal domI dom_left_map_add map_add_dom_app_simps(3) ranI)
@@ -471,8 +471,8 @@ lemma inj_map_add:
 done
 
 lemma map_inv_add [simp]:
-  assumes "inj_on f (dom f)" "inj_on g (dom g)" 
-          "dom f \<inter> dom g = {}" "ran f \<inter> ran g = {}" 
+  assumes "inj_on f (dom f)" "inj_on g (dom g)"
+          "dom f \<inter> dom g = {}" "ran f \<inter> ran g = {}"
   shows "map_inv (f ++ g) = map_inv f ++ map_inv g"
 proof (rule ext)
 
@@ -519,7 +519,7 @@ proof (rule ext)
   done
 qed
 
-lemma map_add_lookup [simp]: 
+lemma map_add_lookup [simp]:
   "x \<notin> dom f \<Longrightarrow> ([x \<mapsto> y] ++ f) x = Some y"
   by (simp add:map_add_def dom_def)
 
@@ -529,12 +529,12 @@ lemma map_add_Some: "Some ++ f = map_id_on (- dom f) ++ f"
   apply (simp_all)
 done
 
-lemma distinct_map_dom: 
+lemma distinct_map_dom:
   "x \<notin> set xs \<Longrightarrow> x \<notin> dom [xs [\<mapsto>] ys]"
   by (simp add:dom_def)
 
 lemma distinct_map_ran:
-  "\<lbrakk> distinct xs; y \<notin> set ys; length xs = length ys \<rbrakk> \<Longrightarrow> 
+  "\<lbrakk> distinct xs; y \<notin> set ys; length xs = length ys \<rbrakk> \<Longrightarrow>
    y \<notin> ran ([xs [\<mapsto>] ys])"
   apply (simp add:map_upds_def)
   apply (subgoal_tac "distinct (map fst (rev (zip xs ys)))")
@@ -543,13 +543,13 @@ lemma distinct_map_ran:
   apply (simp add:zip_rev[THEN sym])
 done
 
-lemma maplets_lookup[rule_format,dest]: 
-  "\<lbrakk> length xs = length ys; distinct xs \<rbrakk> \<Longrightarrow> 
+lemma maplets_lookup[rule_format,dest]:
+  "\<lbrakk> length xs = length ys; distinct xs \<rbrakk> \<Longrightarrow>
      \<forall> y. [xs [\<mapsto>] ys] x = Some y \<longrightarrow> y \<in> set ys"
   by (induct rule:list_induct2, auto)
 
 lemma maplets_distinct_inj [intro]:
-  "\<lbrakk> length xs = length ys; distinct xs; distinct ys; set xs \<inter> set ys = {} \<rbrakk> \<Longrightarrow> 
+  "\<lbrakk> length xs = length ys; distinct xs; distinct ys; set xs \<inter> set ys = {} \<rbrakk> \<Longrightarrow>
    inj_on [xs [\<mapsto>] ys] (set xs)"
   apply (induct rule:list_induct2)
   apply (simp_all)
@@ -569,12 +569,11 @@ lemma maplets_distinct_inj [intro]:
   apply (metis maplets_lookup)
 done
 
-
 lemma map_inv_maplet[simp]: "map_inv [x \<mapsto> y] = [y \<mapsto> x]"
   by (auto simp add:map_inv_def)
 
 lemma map_inv_maplets [simp]:
-  "\<lbrakk> length xs = length ys; distinct xs; distinct ys; set xs \<inter> set ys = {} \<rbrakk> \<Longrightarrow> 
+  "\<lbrakk> length xs = length ys; distinct xs; distinct ys; set xs \<inter> set ys = {} \<rbrakk> \<Longrightarrow>
   map_inv [xs [\<mapsto>] ys] = [ys [\<mapsto>] xs]"
   apply (induct rule:list_induct2)
   apply (simp_all)
@@ -583,9 +582,9 @@ lemma map_inv_maplets [simp]:
   apply (rule map_inv_add)
   apply (auto)
 done
-  
+
 lemma maplets_lookup_nth [rule_format,simp]:
-  "\<lbrakk> length xs = length ys; distinct xs \<rbrakk> \<Longrightarrow> 
+  "\<lbrakk> length xs = length ys; distinct xs \<rbrakk> \<Longrightarrow>
    \<forall> i < length ys. [xs [\<mapsto>] ys] (xs ! i) = Some (ys ! i)"
   apply (induct rule:list_induct2)
   apply (auto)
@@ -595,7 +594,6 @@ lemma maplets_lookup_nth [rule_format,simp]:
   apply (case_tac i)
   apply (auto)
 done
-
 
 theorem the_Some[simp]: "the \<circ> Some = id"
   by (simp add:comp_def id_def)
@@ -608,7 +606,7 @@ theorem map_inv_expand [simp]:
 done
 
 theorem inv_map_inv:
-  "\<lbrakk> inj_on f (dom f); ran f = dom f \<rbrakk> 
+  "\<lbrakk> inj_on f (dom f); ran f = dom f \<rbrakk>
   \<Longrightarrow> inv (the \<circ> (Some ++ f)) = the \<circ> map_inv (Some ++ f)"
   apply (rule ext)
   apply (simp add:map_add_Some)
@@ -636,7 +634,7 @@ lemma map_comp_dom: "dom (g \<circ>\<^sub>m f) \<subseteq> dom f"
   by (metis (lifting, full_types) Collect_mono dom_def map_comp_simps(1))
 
 lemma map_comp_assoc: "f \<circ>\<^sub>m (g \<circ>\<^sub>m h) = f \<circ>\<^sub>m g \<circ>\<^sub>m h"
-proof 
+proof
   fix x
   show "(f \<circ>\<^sub>m (g \<circ>\<^sub>m h)) x = (f \<circ>\<^sub>m g \<circ>\<^sub>m h) x"
   proof (cases "h x")
@@ -652,7 +650,7 @@ lemma map_comp_runit [simp]: "f \<circ>\<^sub>m Some = f"
   by (simp add: map_comp_def)
 
 lemma map_comp_lunit [simp]: "Some \<circ>\<^sub>m f = f"
-proof 
+proof
   fix x
   show "(Some \<circ>\<^sub>m f) x = f x"
   proof (cases "f x")
@@ -682,7 +680,7 @@ lemma comp_map_sym: "f \<parallel>\<^sub>m g \<Longrightarrow> g \<parallel>\<^s
   by (simp add: comp_map_def)
 
 definition merge :: "('a \<rightharpoonup> 'b) set \<Rightarrow> 'a \<rightharpoonup> 'b" where
-"merge fs = 
+"merge fs =
   (\<lambda> x. if (\<exists> f \<in> fs. x \<in> dom(f)) then (THE y. \<forall> f \<in> fs. x \<in> dom(f) \<longrightarrow> f(x) = y) else None)"
 
 lemma merge_empty: "merge {} = Map.empty"
@@ -702,7 +700,7 @@ lemma map_of_list_nil [simp]: "map_of_list [] = Map.empty"
   by (simp add: map_of_list_def)
 
 lemma dom_map_of_list [simp]: "dom (map_of_list xs) = {0..<length xs}"
-  by (auto simp add: map_of_list_def dom_def) 
+  by (auto simp add: map_of_list_def dom_def)
 
 lemma ran_map_of_list [simp]: "ran (map_of_list xs) = set xs"
   apply (simp add: ran_def map_of_list_def)
@@ -738,11 +736,11 @@ text {* Map comprehension simply converts a relation built through set comprehen
 
 syntax
   "_Mapcompr" :: "'a \<Rightarrow> 'b \<Rightarrow> idts \<Rightarrow> bool \<Rightarrow> 'a \<rightharpoonup> 'b"    ("(1[_ \<mapsto> _ |/_./ _])")
-  
+
 translations
   "_Mapcompr F G xs P" == "CONST graph_map {(F, G) | xs. P}"
-  
-lemma map_compr_eta: 
+
+lemma map_compr_eta:
   "[x \<mapsto> y | x y. (x, y) \<in>\<^sub>m f] = f"
   apply (rule ext)
   apply (auto simp add: graph_map_def)
@@ -774,12 +772,12 @@ subsection {* Sorted lists from maps *}
 definition sorted_list_of_map :: "('a::linorder \<rightharpoonup> 'b) \<Rightarrow> ('a \<times> 'b) list" where
 "sorted_list_of_map f = map (\<lambda> k. (k, the (f k))) (sorted_list_of_set(dom(f)))"
 
-lemma sorted_list_of_map_empty [simp]: 
+lemma sorted_list_of_map_empty [simp]:
   "sorted_list_of_map Map.empty = []"
   by (simp add: sorted_list_of_map_def)
-  
+
 lemma sorted_list_of_map_inv:
-  assumes "finite(dom(f))" 
+  assumes "finite(dom(f))"
   shows "map_of (sorted_list_of_map f) = f"
 proof -
   obtain A where "finite A" "A = dom(f)"
@@ -813,7 +811,7 @@ lemma map_plus_restrict_dist: "(f ++ g) |` A = (f |` A) ++ (g |` A)"
   by (auto simp add: restrict_map_def map_add_def)
 
 lemma map_plus_eq_left:
-  assumes "f ++ h = g ++ h" 
+  assumes "f ++ h = g ++ h"
   shows "(f |` (- dom h)) = (g |` (- dom h))"
 proof -
   have "h |` (- dom h) = Map.empty"
@@ -833,5 +831,4 @@ lemma map_add_split:
 lemma map_le_via_restrict:
   "f \<subseteq>\<^sub>m g \<longleftrightarrow> g |` dom(f) = f"
   by (auto simp add: map_le_def restrict_map_def dom_def fun_eq_iff)
-
 end

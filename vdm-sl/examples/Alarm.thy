@@ -15,7 +15,7 @@ declare Plant.defs [simp]
 
 abbreviation "mk_Plant \<equiv> vuop (bpfun' Plant.make)"
 
-abbreviation 
+abbreviation
   "inv_Plant \<equiv> (\<Union>\<^sub>v (rng\<^sub>v(&\<^sub>vschedule)) \<subseteq>\<^sub>v &\<^sub>vstaff \<and>\<^sub>v (\<forall>\<^sub>v exs \<in> rng\<^sub>v(&\<^sub>vschedule) \<bullet> \<guillemotleft>exs\<guillemotright>\<^sub>v <>\<^sub>v {}\<^sub>v))"
 
 abbreviation
@@ -30,7 +30,7 @@ abbreviation
   "addExpert \<equiv> val e :: Expert \<bullet>\<^sub>N [pre &\<^sub>ve \<notin>\<^sub>v &\<^sub>vstaff post true\<^sub>v body staff :=\<^sub>v &\<^sub>vstaff \<union>\<^sub>v {&\<^sub>ve}\<^sub>v]\<^sub>v"
 
 abbreviation
-  "Assign \<equiv> val e :: Expert, val p :: Period \<bullet>\<^sub>N 
+  "Assign \<equiv> val e :: Expert, val p :: Period \<bullet>\<^sub>N
               [pre (&\<^sub>ve \<in>\<^sub>v &\<^sub>vstaff \<and>\<^sub>v &\<^sub>vp \<in>\<^sub>v dom\<^sub>v(&\<^sub>vschedule))
                post $\<^sub>ve\<acute> \<in>\<^sub>v $\<^sub>vschedule\<acute>($\<^sub>vp)\<^sub>v
                body schedule(&\<^sub>vp) :=\<^sub>v ({&\<^sub>ve}\<^sub>v \<union>\<^sub>v (&\<^sub>vschedule(&\<^sub>vp)\<^sub>v))]\<^sub>v"
@@ -52,5 +52,4 @@ lemma "(\<lfloor> inv_Plant \<and>\<^sub>v \<guillemotleft>p\<guillemotright>\<^
    apply (rule ndesign_refine_intro)
    apply (pred_auto)
 oops
-
 end

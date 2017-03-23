@@ -10,12 +10,11 @@ Type of (at most) countable sets.
 section {* Type of (at Most) Countable Sets *}
 
 theory Countable_Set_Type_alt
-imports 
-  "~~/src/HOL/Library/Countable_Set" 
-  "~~/src/HOL/Library/Cardinal_Notations" 
+imports
+  "~~/src/HOL/Library/Countable_Set"
+  "~~/src/HOL/Library/Cardinal_Notations"
   "~~/src/HOL/Library/Conditionally_Complete_Lattices"
 begin
-
 
 subsection{* Cardinal stuff *}
 
@@ -367,14 +366,14 @@ lemma mk_disjoint_cinsert: "cin a A \<Longrightarrow> \<exists>B. A = cinsert a 
 subsubsection {* @{text cimage} *}
 
 lemma subset_cimage_iff: "csubset_eq B (cimage f A) \<longleftrightarrow> (\<exists>AA. csubset_eq AA A \<and> B = cimage f AA)"
-by transfer (metis countable_subset image_mono mem_Collect_eq subset_imageE) 
+by transfer (metis countable_subset image_mono mem_Collect_eq subset_imageE)
 
 subsubsection {* bounded quantification *}
 
 lemma cBex_simps [simp, no_atp]:
-  "\<And>A P Q. cBex A (\<lambda>x. P x \<and> Q) = (cBex A P \<and> Q)" 
+  "\<And>A P Q. cBex A (\<lambda>x. P x \<and> Q) = (cBex A P \<and> Q)"
   "\<And>A P Q. cBex A (\<lambda>x. P \<and> Q x) = (P \<and> cBex A Q)"
-  "\<And>P. cBex cempty P = False" 
+  "\<And>P. cBex cempty P = False"
   "\<And>a B P. cBex (cinsert a B) P = (P a \<or> cBex B P)"
   "\<And>A P f. cBex (cimage f A) P = cBex A (\<lambda>x. P (f x))"
   "\<And>A P. (\<not> cBex A P) = cBall A (\<lambda>x. \<not> P x)"
@@ -401,7 +400,6 @@ subsubsection {* @{const cUnion} *}
 
 lemma cUNION_cimage: "cUNION (cimage f A) g = cUNION A (g \<circ> f)"
 including cset.lifting by transfer auto
-
 
 subsection {* Setup for Lifting/Transfer *}
 
@@ -476,7 +474,7 @@ unfolding rel_fun_def rel_cset_iff bi_unique_def by metis
 
 lemma cInt_parametric [transfer_rule]:
   "bi_unique A \<Longrightarrow> (rel_cset A ===> rel_cset A ===> rel_cset A) cInt cInt"
-unfolding rel_fun_def 
+unfolding rel_fun_def
 using inter_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred]
 by blast
 
@@ -534,7 +532,6 @@ lemma rcset_to_rcset: "countable A \<Longrightarrow> rcset (the_inv rcset A) = A
 lemma Collect_Int_Times: "{(x, y). R x y} \<inter> A \<times> B = {(x, y). R x y \<and> x \<in> A \<and> y \<in> B}"
 by auto
 
-
 lemma rel_cset_aux:
 "(\<forall>t \<in> rcset a. \<exists>u \<in> rcset b. R t u) \<and> (\<forall>t \<in> rcset b. \<exists>u \<in> rcset a. R u t) \<longleftrightarrow>
  ((BNF_Def.Grp {x. rcset x \<subseteq> {(a, b). R a b}} (cimage fst))\<inverse>\<inverse> OO
@@ -588,5 +585,4 @@ next
          BNF_Def.Grp {x. rcset x \<subseteq> Collect (split R)} (cimage snd)"
   unfolding rel_cset_alt_def[abs_def] rel_cset_aux by simp
 qed(simp add: cempty.rep_eq)
-
 end

@@ -7,9 +7,8 @@
 header {* Extra list functions and lemmas *}
 
 theory List_extra
-  imports 
-    Main 
+  imports
+    Main
     Monad_Syntax
     Sublist
-begin
-
+begin end

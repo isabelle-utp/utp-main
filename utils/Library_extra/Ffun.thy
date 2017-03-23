@@ -24,16 +24,16 @@ lift_definition ffun_comp :: "('b, 'c) ffun \<Rightarrow> ('a, 'b) ffun \<Righta
 
 lift_definition ffun_member :: "'a \<times> 'b \<Rightarrow> ('a, 'b) ffun \<Rightarrow> bool" (infix "\<in>\<^sub>f" 50) is "op \<in>\<^sub>p" .
 
-lift_definition fdom_res :: "'a set \<Rightarrow> ('a, 'b) ffun \<Rightarrow> ('a, 'b) ffun" (infixl "\<lhd>\<^sub>f" 85) 
+lift_definition fdom_res :: "'a set \<Rightarrow> ('a, 'b) ffun \<Rightarrow> ('a, 'b) ffun" (infixl "\<lhd>\<^sub>f" 85)
 is "pdom_res" by simp
 
-lift_definition fran_res :: "('a, 'b) ffun \<Rightarrow> 'b set \<Rightarrow> ('a, 'b) ffun" (infixl "\<rhd>\<^sub>f" 85) 
+lift_definition fran_res :: "('a, 'b) ffun \<Rightarrow> 'b set \<Rightarrow> ('a, 'b) ffun" (infixl "\<rhd>\<^sub>f" 85)
 is pran_res by simp
 
 lift_definition ffun_graph :: "('a, 'b) ffun \<Rightarrow> ('a \<times> 'b) set" is pfun_graph .
 
-lift_definition graph_ffun :: "('a \<times> 'b) set \<Rightarrow> ('a, 'b) ffun" is 
-  "\<lambda> R. if (finite (Domain R)) then graph_pfun R else pempty" 
+lift_definition graph_ffun :: "('a \<times> 'b) set \<Rightarrow> ('a, 'b) ffun" is
+  "\<lambda> R. if (finite (Domain R)) then graph_pfun R else pempty"
   by (simp add: finite_Domain)
 
 definition pcard :: "('a, 'b) pfun \<Rightarrow> nat"
@@ -93,11 +93,11 @@ where "ffun_subset_eq \<equiv> less_eq"
 instance ffun :: (type, type) semilattice_inf
   by (intro_classes, (transfer, auto)+)
 
-lemma ffun_subset_eq_least [simp]: 
+lemma ffun_subset_eq_least [simp]:
   "{}\<^sub>f \<subseteq>\<^sub>f f"
   by (transfer, auto)
 
-syntax   
+syntax
   "_FfunUpd"  :: "[('a, 'b) ffun, maplets] => ('a, 'b) ffun" ("_'(_')\<^sub>f" [900,0]900)
   "_Ffun"     :: "maplets => ('a, 'b) ffun"            ("(1{_}\<^sub>f)")
 
@@ -169,7 +169,7 @@ lemma ffun_app_upd_1 [simp]: "x = y \<Longrightarrow> (f(x \<mapsto> v)\<^sub>f)
   by (transfer, simp)
 
 lemma ffun_app_upd_2 [simp]: "x \<noteq> y \<Longrightarrow> (f(x \<mapsto> v)\<^sub>f)(y)\<^sub>f = f(y)\<^sub>f"
-  by (transfer, simp) 
+  by (transfer, simp)
 
 lemma ffun_upd_add [simp]: "f + g(x \<mapsto> v)\<^sub>f = (f + g)(x \<mapsto> v)\<^sub>f"
   by (transfer, simp)
@@ -191,23 +191,23 @@ lemma ffun_upd_comm_linorder [simp]:
 lemma ffun_app_minus [simp]: "x \<notin> fdom g \<Longrightarrow> (f - g)(x)\<^sub>f = f(x)\<^sub>f"
   by (transfer, auto)
 
-lemma ffun_upd_minus [simp]: 
-  "x \<notin> fdom g \<Longrightarrow> (f - g)(x \<mapsto> v)\<^sub>f = (f(x \<mapsto> v)\<^sub>f - g)" 
+lemma ffun_upd_minus [simp]:
+  "x \<notin> fdom g \<Longrightarrow> (f - g)(x \<mapsto> v)\<^sub>f = (f(x \<mapsto> v)\<^sub>f - g)"
   by (transfer, auto)
 
 lemma fdom_member_minus_iff [simp]:
   "x \<notin> fdom g \<Longrightarrow> x \<in> fdom(f - g) \<longleftrightarrow> x \<in> fdom(f)"
   by (transfer, simp)
 
-lemma fsubseteq_ffun_upd1 [intro]: 
+lemma fsubseteq_ffun_upd1 [intro]:
   "\<lbrakk> f \<subseteq>\<^sub>f g; x \<notin> fdom(g) \<rbrakk> \<Longrightarrow> f \<subseteq>\<^sub>f g(x \<mapsto> v)\<^sub>f"
   by (transfer, auto)
 
-lemma fsubseteq_ffun_upd2 [intro]: 
+lemma fsubseteq_ffun_upd2 [intro]:
   "\<lbrakk> f \<subseteq>\<^sub>f g; x \<notin> fdom(f) \<rbrakk> \<Longrightarrow> f \<subseteq>\<^sub>f g(x \<mapsto> v)\<^sub>f"
   by (transfer, auto)
 
-lemma psubseteq_pfun_upd3 [intro]: 
+lemma psubseteq_pfun_upd3 [intro]:
   "\<lbrakk> f \<subseteq>\<^sub>f g; g(x)\<^sub>f = v \<rbrakk> \<Longrightarrow> f \<subseteq>\<^sub>f g(x \<mapsto> v)\<^sub>f"
   by (transfer, auto)
 
@@ -239,7 +239,7 @@ lemma fdom_upd [simp]: "fdom (f(k \<mapsto> v)\<^sub>f) = insert k (fdom f)"
 lemma fdom_fdom_res [simp]: "fdom (A \<lhd>\<^sub>f f) = A \<inter> fdom(f)"
   by (transfer, auto)
 
-lemma fdom_graph_ffun [simp]: 
+lemma fdom_graph_ffun [simp]:
   "finite (Domain R) \<Longrightarrow> fdom (graph_ffun R) = Domain R"
   by (transfer, simp add: Domain_fst graph_map_dom)
 
@@ -262,11 +262,11 @@ subsection {* Domain restriction laws *}
 lemma fdom_res_zero [simp]: "A \<lhd>\<^sub>f {}\<^sub>f = {}\<^sub>f"
   by (transfer, auto)
 
-lemma pdom_res_upd_in [simp]: 
+lemma pdom_res_upd_in [simp]:
   "k \<in> A \<Longrightarrow> A \<lhd>\<^sub>f f(k \<mapsto> v)\<^sub>f = (A \<lhd>\<^sub>f f)(k \<mapsto> v)\<^sub>f"
   by (transfer, auto)
 
-lemma pdom_res_upd_out [simp]: 
+lemma pdom_res_upd_out [simp]:
   "k \<notin> A \<Longrightarrow> A \<lhd>\<^sub>f f(k \<mapsto> v)\<^sub>f = A \<lhd>\<^sub>f f"
   by (transfer, auto)
 
@@ -284,7 +284,7 @@ lemma fdom_res_twice [simp]: "A \<lhd>\<^sub>f (B \<lhd>\<^sub>f f) = (A \<inter
 
 lemma fdom_res_comp [simp]: "A \<lhd>\<^sub>f (g \<circ>\<^sub>f f) =  g \<circ>\<^sub>f (A \<lhd>\<^sub>f f)"
   by (transfer, simp)
-  
+
 subsection {* Range restriction laws *}
 
 lemma fran_res_zero [simp]: "{}\<^sub>f \<rhd>\<^sub>f A = {}\<^sub>f"
@@ -314,7 +314,7 @@ lemma ffun_graph_inter: "ffun_graph (f \<inter>\<^sub>f g) = ffun_graph f \<inte
   by (transfer, simp add: pfun_graph_inter)
 
 text {* Hide implementation details for partial functions *}
-  
+
 lifting_update ffun.lifting
 lifting_forget ffun.lifting
 

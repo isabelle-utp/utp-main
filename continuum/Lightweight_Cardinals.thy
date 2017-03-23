@@ -424,7 +424,7 @@ proof -
     using countable_infinite_type_bij_ex by blast
   thus ?thesis
     by (auto simp add: to_nat_bij_def intro: someI[of bij])
-qed  
+qed
 
 definition from_nat_bij :: "nat \<Rightarrow> 'a::{countable, infinite}" where
 "from_nat_bij = inv to_nat_bij"
@@ -434,5 +434,4 @@ lemma from_nat_bij_inv [simp]: "to_nat_bij (from_nat_bij x) = x"
 
 lemma to_nat_bij_inv [simp]: "from_nat_bij (to_nat_bij x) = x"
   by (metis UNIV_I bij_betw_inv_into_left from_nat_bij_def to_nat_bij)
-
 end

@@ -315,7 +315,6 @@ lemma sorted_list_of_set_alt [simp]:
   apply (auto simp add: sorted_list_of_set_alt_def is_sorted_list_of_set_alt_def sorted_list_of_set_other_def)
 done
 
-
 text {* Greatest common prefix *}
 
 fun gcp :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
@@ -607,7 +606,7 @@ lemma set_dropWhile_le:
   using sorted_Cons apply auto
 done
 
-lemma set_takeWhile_less_sorted: 
+lemma set_takeWhile_less_sorted:
   "\<lbrakk> sorted I; x \<in> set I; x < n \<rbrakk> \<Longrightarrow> x \<in> set (takeWhile (\<lambda>x. x < n) I)"
 proof (induct I arbitrary: x)
   case Nil thus ?case

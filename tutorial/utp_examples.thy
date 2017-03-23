@@ -1,7 +1,7 @@
 section {* Isabelle/UTP Examples *}
 
 theory utp_examples
-  imports "../utp/utp"
+  imports utp_theories
 begin
 
 alphabet my_state =
@@ -64,7 +64,7 @@ lemma "($x\<acute> >\<^sub>u $x \<and> $y\<acute> <\<^sub>u $y) \<sqsubseteq> x,
   oops
 
 lemma "false \<sqsubseteq> x, y := &x + 1, &y"
-  apply (rel_auto)
+  apply (rel_simp)
   oops
 
 lemma "(true ;; x := \<guillemotleft>c\<guillemotright>) = ($x\<acute> =\<^sub>u \<guillemotleft>c\<guillemotright>)"

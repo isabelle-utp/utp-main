@@ -111,7 +111,7 @@ lemma "bij_betw binlist {xs. length xs > 0 \<longrightarrow> last xs = 1} \<rat>
 
 text {* For real number x, calculate the nth binary digit, given all the bits from 0..n-1 *}
 
-definition rbit :: "real \<Rightarrow> nat \<Rightarrow> bit list \<Rightarrow> bit" where 
+definition rbit :: "real \<Rightarrow> nat \<Rightarrow> bit list \<Rightarrow> bit" where
   "rbit x n xs = of_int \<lfloor>(x - binlist xs) * 2^(n+2)\<rfloor>"
 
 text {* Convert a real number in the range [0..1) to a sequence of binary digits *}
@@ -128,10 +128,10 @@ lemma of_drat_DFract: "coprime a (2^b) \<Longrightarrow> of_drat (DFract a b) = 
 
 definition real_bits2 :: "real \<Rightarrow> nat \<Rightarrow> bit list" where
 "real_bits2 x n = map (rbseq x) [0..<n+1]"
- 
+
 fun real_bits :: "real \<Rightarrow> nat \<Rightarrow> bit list" where
 "real_bits x 0 = [of_int \<lfloor>x * 2\<rfloor>]" |
-"real_bits x (Suc n) = 
+"real_bits x (Suc n) =
    (real_bits x n @ [rbit x n (real_bits x n)])"
 
 definition drat_bits :: "drat \<Rightarrow> bit list" where
@@ -144,7 +144,7 @@ definition real_bin :: "real \<Rightarrow> (nat \<Rightarrow> bit)" where
 
 definition real_bin_seq :: "real \<Rightarrow> (nat \<Rightarrow> bool)" where
 "real_bin_seq x n = (last (real_bits x n) = 1)"
-  
+
 definition binseq :: "(nat \<Rightarrow> bit) \<Rightarrow> (nat \<Rightarrow> real)" where
 "binseq x = (\<lambda> i. of_bit (x(i)) / 2^(i+1))"
 
@@ -198,7 +198,7 @@ proof -
   ultimately show ?thesis
     by linarith
 qed
-  
+
 lemma real_bin_ub:
   assumes "m > 0"
   shows "\<exists> n. 2^n > (m::real)"
@@ -232,7 +232,7 @@ proof -
     by (subst frac_less2, auto)
   thus ?thesis
     by (rule_tac x="n" in exI, auto)
-qed 
+qed
 
 theorem binseq_summable: "summable (binseq x)"
 proof (simp add: summable_Cauchy, clarify)
@@ -253,7 +253,7 @@ proof (simp add: summable_Cauchy, clarify)
         apply (case_tac "x i")
         apply (simp_all add: frac_le)
       done
-      also from mnassm have "... \<le> (\<Sum>i=j+1..n-1. 1/2^i)"        
+      also from mnassm have "... \<le> (\<Sum>i=j+1..n-1. 1/2^i)"
         by (auto intro!: sum_mono2)
       also have "... < 1/2^j"
       proof (cases "j \<le> n - 1")
@@ -321,7 +321,7 @@ next
     by (auto, metis le_trans not_less not_less_eq_eq not_less_iff_gr_or_eq nth_Cons_Suc)
 qed
 
-lemma real_bits_prefix: 
+lemma real_bits_prefix:
   assumes "m \<le> n"
   shows "prefix (real_bits x m) (real_bits x n)"
 proof -
@@ -360,7 +360,7 @@ proof -
   also have "... = 1 - (1 / 2^(n + 1))"
     by (subst geometric_sum, simp_all add: power_one_over)
   finally show ?thesis .
-qed  
+qed
 
 lemma nth_cont_bit_diff_ge_zero:
   assumes "0 \<le> x" "x < 1"
@@ -377,7 +377,7 @@ next
   with odd show ?thesis
     by (simp add: nth_cont_def pos_divide_le_eq)
 qed
-  
+
 lemma bin_series_geometric':
   "((\<Sum> i\<le>n. 1/2^(i+1)) :: real) = 1 - (1 / 2^(n + 1))"
 proof -
@@ -414,7 +414,7 @@ lemma nth_cont_indep1:
   assumes "i < j"
   shows "nth_cont (x - nth_cont x i) j = nth_cont x j"
 proof -
-  have "(x - (\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) / (2 ^ (i+1))) * (2 ^ (j+1)) = 
+  have "(x - (\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) / (2 ^ (i+1))) * (2 ^ (j+1)) =
         (x * 2 ^ (j+1)) - ((\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) / (2 ^ (i+1)) * (2 ^ (j+1)))"
     using left_diff_distrib by blast
   moreover have "x * (2 * 2 ^ j) - 2 ^ j / 2 ^ i = x * (2 * 2 ^ j) - real ((2::nat) ^ (j - i))"
@@ -426,7 +426,7 @@ proof -
 (*
   moreover have "x * (2 * 2 ^ j) - 2 ^ j / 2 ^ i = 2^j * (2*x - 1/(2^i))"
     by (simp add: linordered_field_class.sign_simps(38))
-*)  
+*)
   ultimately show ?thesis
   apply (simp add: nth_cont_def)
   apply (cases "\<lfloor>x * (2 * 2 ^ i)\<rfloor>" rule: parity_cases)
@@ -440,13 +440,13 @@ lemma nth_cont_indep2:
   assumes "i > j"
   shows "nth_cont (x - nth_cont x i) j = nth_cont x j"
 proof -
-  have "(x - (\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) / (2 ^ (i+1))) * (2 ^ (j+1)) = 
+  have "(x - (\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) / (2 ^ (i+1))) * (2 ^ (j+1)) =
         (x * 2 ^ (j+1)) - ((\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) / (2 ^ (i+1)) * (2 ^ (j+1)))"
     using left_diff_distrib by blast
 
   moreover have "x * (2 * 2 ^ j) - 2 ^ j / 2 ^ i = 2^j * (2*x - 1/(2^i))"
     by (simp add: linordered_field_class.sign_simps(38))
-  
+
   moreover have "i > 0"
     using assms by linarith
 
@@ -456,7 +456,6 @@ proof -
     apply (simp_all)
   sorry
 qed
-
 
 lemma nth_cont_indep:
   assumes "i \<noteq> j"
@@ -492,7 +491,7 @@ proof (induct n)
 next
   case (Suc n) note hyp = this
   have "(\<Sum>i<n. \<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2 * 2 ^ (Suc n - i)) = (\<Sum>i<n. \<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2 * 2 ^ (n - i))*2"
-    by (auto intro: sum.cong simp add: Suc_diff_le sum_distrib_right) 
+    by (auto intro: sum.cong simp add: Suc_diff_le sum_distrib_right)
   -- {* This can be proven with reference to integer division and modulus *}
   moreover have "\<lfloor>x * (2 ^ (n+1))\<rfloor> * 2 = \<lfloor>x * (2 ^ (n+2))\<rfloor> - \<lfloor>x * (2 ^ (n+2))\<rfloor> mod 2"
   proof -
@@ -512,11 +511,11 @@ next
     thus ?thesis
       by (simp)
   qed
-  ultimately show ?case 
+  ultimately show ?case
     using hyp by simp
 qed
 
-text {* This theorem shows that the nth digit of a real number x in [0..1) can equivalently 
+text {* This theorem shows that the nth digit of a real number x in [0..1) can equivalently
         be obtained either by shift;floor;modulus 2, or alternatively by subtracting the
         approximation of the real number up to the nth digit, followed by a shift and floor.
         It can be used to show that the recursive algorithm and functional specification
@@ -540,7 +539,7 @@ proof -
     finally show ?thesis
       by auto
   qed
-  ultimately have "\<lfloor>(x - (\<Sum>i<n. nth_cont x i))*2^(n+1)\<rfloor> = 
+  ultimately have "\<lfloor>(x - (\<Sum>i<n. nth_cont x i))*2^(n+1)\<rfloor> =
                    \<lfloor>x * 2^(n+1)\<rfloor> - (\<Sum>i<n. (\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) * (2 ^ (n-i)))"
     by linarith
   also from assms have "... = \<lfloor>x * 2 ^ (n + 1)\<rfloor> - (\<lfloor>x * 2 ^ (n + 1)\<rfloor> - \<lfloor>x * 2 ^ (n + 1)\<rfloor> mod 2)"
@@ -548,7 +547,6 @@ proof -
   finally show ?thesis
     by linarith
 qed
-
 
 lemma binlist_as_nth_cont:
   fixes x :: real
@@ -587,13 +585,13 @@ qed
 lemma real_bin_eq_rbseq:
   "\<lbrakk> 0 \<le> x; x < 1 \<rbrakk> \<Longrightarrow> real_bin x = rbseq x"
   by (auto simp add: real_bin_def real_bits_rbseq)
-    
+
 lemma of_int_floor: "\<lbrakk> 0 \<le> x; x < 1; of_int \<lfloor>x\<rfloor> = 0 \<rbrakk> \<Longrightarrow> \<lfloor>x\<rfloor> = 0"
   by (simp add: floor_unique)
-    
+
 lemma binlist_approaching_range:
   assumes "0 \<le> x" "x < 1"
-  shows "x - binlist (real_bits x n) \<in> {0..<1/2^(n+1)}" 
+  shows "x - binlist (real_bits x n) \<in> {0..<1/2^(n+1)}"
 proof (induct n)
   case 0
   from assms have "0 \<le> x - binlist (real_bits x 0)"
@@ -622,7 +620,7 @@ next
       apply (auto simp add: rbit_def pos_less_divide_eq)
       apply (subgoal_tac "\<lfloor>(x - binlist (real_bits x n)) * (4 * 2 ^ n)\<rfloor> = 0")
       apply linarith
-      apply (metis atLeastLessThan_iff bit.distinct(1) blran floor_less_one linorder_neqE_linordered_idom linorder_not_less of_int_1 of_int_floor one_less_floor) 
+      apply (metis atLeastLessThan_iff bit.distinct(1) blran floor_less_one linorder_neqE_linordered_idom linorder_not_less of_int_1 of_int_floor one_less_floor)
     done
     with hyp zero show ?thesis
       by (auto simp add: mult_imp_less_div_pos)
@@ -645,20 +643,20 @@ lemma sum_binlist: "sum (binseq (real_bin x)) {..n} = binlist (real_bits x n)"
   apply (metis le_add_diff_inverse less_Suc_eq_le order_refl real_bits_plus)
 done
 
-lemma sum_binseq_diff: 
+lemma sum_binseq_diff:
   "\<lbrakk> 0 \<le> x; x < 1 \<rbrakk> \<Longrightarrow> x - sum (binseq (real_bin x)) {..n} < 1/2^n"
   using binlist_approaching_range[of x n] sum_binlist by fastforce
 
 lemma sum_binseq_approx: "\<lbrakk> 0 \<le> x; x < 1 \<rbrakk> \<Longrightarrow> sum (binseq (real_bin x)) {..n} \<le> x"
   using binlist_approaching_range[of x n] by (simp add: sum_binlist)
 
-lemma sum_binseq_approx2: 
+lemma sum_binseq_approx2:
   assumes "0 \<le> x" "x < 1"
   shows "sum (binseq (real_bin x)) {..<n} \<le> x"
 proof (cases n)
   case 0 with assms show ?thesis by auto
 next
-  case (Suc n') 
+  case (Suc n')
   with sum_binseq_approx[of x n'] assms
   show ?thesis
     by (simp add: lessThan_Suc_atMost)
@@ -675,7 +673,7 @@ proof (rule LIMSEQ_I, simp)
   moreover have "x - sum (binseq (real_bin x)) {..k} < 1/2^k"
     by (simp add: assms(1) assms(2) sum_binseq_diff)
   moreover have "\<And> m. m \<ge> k+1 \<Longrightarrow> sum (binseq (real_bin x)) {..<m} \<ge> sum (binseq (real_bin x)) {..k}"
-    by (auto intro: sum_mono2 simp add: binseq_pos) 
+    by (auto intro: sum_mono2 simp add: binseq_pos)
   ultimately have "\<And> m. m \<ge> k+1 \<Longrightarrow> x - sum (binseq (real_bin x)) {..<m} < r"
     by fastforce
   thus "\<exists>no. \<forall>n\<ge>no. \<bar>sum (binseq (real_bin x)) {..<n} - x\<bar> < r"
@@ -691,7 +689,7 @@ lemma real_bin_inverse:
   apply (rule sums_unique)
   apply (simp add: sums_def binseq_approaches_real_bin)
 done
- 
+
 lemma real_bin_inj:
   "inj_on real_bin {0..<1}"
   by (metis atLeastLessThan_iff inj_onI real_bin_inverse)
@@ -749,7 +747,7 @@ lemma binseq_lower: "(\<Sum> i. binseq x (i+k)) \<ge> 0"
   apply (case_tac "x (n + k)", simp_all)
 done
 
-lemma nonterminal_binseq_nonzero: 
+lemma nonterminal_binseq_nonzero:
   assumes "nonterminal x"
   shows "(\<Sum> i. binseq x (i + k)) > 0"
 proof -
@@ -774,7 +772,7 @@ using assms proof (induct xs arbitrary: ys)
 next
   case (Cons x xs')
   note hyps = this
-  then obtain y ys' where ys: "ys = y # ys'" 
+  then obtain y ys' where ys: "ys = y # ys'"
     by (metis length_0_conv neq_Nil_conv)
   thus ?case
   proof (cases "x = y")
@@ -812,7 +810,7 @@ proof -
   ultimately show ?thesis
     by (auto)
 qed
- 
+
 lemma bin_real_nonterminal_inj_aux:
   assumes "nonterminal x" "nonterminal y" "x \<noteq> y"
   shows "bin_real x \<noteq> bin_real y"
@@ -823,15 +821,15 @@ proof -
          (\<Sum>i<k. binseq x i) + of_bit (x k) / 2 ^(k+1) + (\<Sum>i. binseq x (i+(k+1)))"
     by (simp add: bin_real_def suminf_split_initial_segment[of _ "k+1"] binseq_summable)
        (simp add: binseq_def)
-  moreover 
+  moreover
   have "bin_real y =
          (\<Sum>i<k. binseq y i) + of_bit (y k) / 2 ^(k+1) + (\<Sum>i. binseq y (i+(k+1)))"
     by (simp add: bin_real_def suminf_split_initial_segment[of _ "k+1"] binseq_summable)
        (simp add: binseq_def)
-  moreover 
+  moreover
   from k(1) have "(\<Sum>i<k. binseq x i) = (\<Sum>i<k. binseq y i)"
     by (auto simp add: binseq_def)
-  moreover 
+  moreover
   have "of_bit (x k) / 2 ^(k+1) + (\<Sum>i. binseq x (i+(k+1))) \<noteq>
         of_bit (y k) / 2 ^(k+1) + (\<Sum>i. binseq y (i+(k+1)))"
   proof (cases "x k")
@@ -868,7 +866,7 @@ text {* There is an injection from non-terminal infinite bit sequences to the re
 
 lemma bin_real_inj: "inj_on bin_real NonTermBitSeqs"
   using bin_real_nonterminal_inj_aux by (blast intro: inj_onI)
-  
+
 lemma bin_real_terminal_def:
   assumes "terminal x"
   obtains k where "bin_real x = (\<Sum>i<k. binseq x i)"
@@ -876,7 +874,7 @@ proof -
   from assms obtain k where "\<forall>i\<ge>k. x i = 0"
     by (auto simp add: terminal_def terminates_at_def)
   hence "bin_real x = (\<Sum>i<k. binseq x i)"
-    unfolding bin_real_def 
+    unfolding bin_real_def
     by (subst suminf_finite[of "{..<k}"], auto simp add: binseq_def)
   thus ?thesis
     using that by blast
@@ -884,7 +882,7 @@ qed
 
 lemma sum_int: "\<lbrakk> finite A; \<forall> i. f i \<in> \<int> \<rbrakk> \<Longrightarrow> sum f A \<in> \<int>"
   by (induct rule: finite_induct, simp_all)
-  
+
 lemma bin_real_terminal_dyadic:
   assumes "terminal x"
   shows "dyadic (bin_real x)"
@@ -944,7 +942,7 @@ proof (cases "x = 0")
 next
   case False
   from assms obtain n where n:"x = of_drat n"
-     by (erule_tac drat_cases, auto) 
+     by (erule_tac drat_cases, auto)
   with assms False have nr: "n \<in> {0<..<1}"
     using of_drat_0_1 by force
   show ?thesis
@@ -955,10 +953,10 @@ next
     apply (simp_all only: nr)
   done
 qed
-    
+
 lemma bin_real_terminates_binlist:
   assumes "terminates_at x k"
-  shows "bin_real x = binlist (map x [0..<k])" 
+  shows "bin_real x = binlist (map x [0..<k])"
 proof -
   from assms have "(\<Sum>n. binseq x (n + k)) = 0"
     by (simp add: suminf_eq_zero_iff binseq_summable summable_iff_shift binseq_def terminates_at_def)
@@ -1045,7 +1043,7 @@ proof -
       from kx_nz mt have nt_kxs: "\<not> terminates_at x (?kx - 1)"
         by (metis One_nat_def Suc_n_not_le_n diff_Suc_1 gr0_implies_Suc)
       show ?thesis
-      proof 
+      proof
         assume "x (?kx - 1) = 0"
         moreover from tx have "\<forall>j\<ge>?kx. x j = 0"
           by (simp only: terminates_at_def)
@@ -1056,12 +1054,11 @@ proof -
         with nt_kxs show False by simp
       qed
     qed
-          
+
     with as show False
       by (simp add: termseq_list_def last_map)
   qed
 qed
-   
 
 lemma termseq_list_surj:
   "termseq_list ` TermSeqs = TermLists"
@@ -1151,10 +1148,10 @@ lemma card_le_NonTermBitSeqs_Reals: "|NonTermBitSeqs| \<le>o |UNIV :: real set|"
 
 lemma card_le_BitSeqs_Reals: "|BitSeqs| \<le>o |UNIV :: real set|"
   using card_eq_NonTermBitSeqs_BitSeqs card_le_NonTermBitSeqs_Reals ordIso_ordLess_trans ordIso_symmetric ordIso_transitive ordLeq_iff_ordLess_or_ordIso by blast
-  
+
 lemma card_le_PNats_Reals: "|UNIV :: nat set set| \<le>o |UNIV :: real set|"
   using card_le_BitSeqs_Reals card_of_bit_seq ordIso_iff_ordLeq ordLeq_transitive by blast
-  
+
 definition dcut :: "real \<Rightarrow> rat set" where
 "dcut r = {q. real_of_rat q < r}"
 

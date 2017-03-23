@@ -9,21 +9,21 @@ theory utp_fix_syntax_2
 begin
 
 text {* In order to add more HOL theories to the UTP we need to override the syntax again. *}
-  
-no_notation 
+
+no_notation
   le (infixl "\<sqsubseteq>\<index>" 50) and
   asup ("\<Squnion>\<index>_" [90] 90) and
   ainf ("\<Sqinter>\<index>_" [90] 90) and
   conj (infixr "\<and>" 35) and
   disj (infixr "\<or>" 30) and
   Not ("\<not> _" [40] 40) and
-  Not  ("~ _" [40] 40) and 
+  Not  ("~ _" [40] 40) and
   BNF_Def.convol ("\<langle>(_,/ _)\<rangle>")
 
 no_notation (ASCII)
   Set.member  ("op :") and
   Set.member  ("(_/ : _)" [51, 51] 50)
-  
+
 no_notation inf (infixl "\<sqinter>" 70)
 notation inf (infixl "\<squnion>" 70)
 no_notation sup (infixl "\<squnion>" 65)
@@ -52,9 +52,9 @@ syntax
   "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sqinter>_\<in>_./ _)" [0, 0, 10] 10)
 
 hide_type rel
-  
+
 text {* We also set up adhoc overloading to apply timed traces and contiguous functions *}
-  
+
 adhoc_overloading uapply cgf_apply and uapply tt_apply
-  
+
 end

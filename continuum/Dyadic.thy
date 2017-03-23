@@ -1,11 +1,11 @@
 section {* Dyadic rational numbers *}
 
 theory Dyadic
-imports 
+imports
   "~~/src/HOL/Library/Float"
-  Real 
-  Transcendental 
-  Lightweight_Cardinals 
+  Real
+  Transcendental
+  Lightweight_Cardinals
 begin
 
 text {* A dyadic rational is a rational whose denominator is a power of 2. They are precisely the
@@ -23,7 +23,7 @@ lemma dyadic_zero: "dyadic 0"
 lemma dyadic_one: "dyadic 1"
   by (auto simp add: dyadic_def)
 
-lemma dyadic_plus: 
+lemma dyadic_plus:
   assumes "dyadic x" "dyadic y"
   shows "dyadic (x + y)"
 using assms
@@ -42,7 +42,7 @@ qed
 lemma dyadic_uminus: "dyadic x \<Longrightarrow> dyadic (- x)"
   using Ints_minus minus_divide_left by (force simp add: dyadic_def)
 
-lemma dyadic_minus: 
+lemma dyadic_minus:
   assumes "dyadic x" "dyadic y"
   shows "dyadic (x - y)"
 proof -
@@ -52,36 +52,36 @@ proof -
     unfolding xy by (blast intro: dyadic_plus dyadic_uminus)
 qed
 
-lemma dyadic_times: 
+lemma dyadic_times:
   assumes "dyadic x" "dyadic y"
   shows "dyadic (x * y)"
   using assms
   by (auto simp add: dyadic_def, metis Ints_mult power_add)
-    
+
 lemma dyadic_rational: "dyadic x \<Longrightarrow> x \<in> \<rat>"
   by (auto simp add: dyadic_def, metis Ints_def Rats_divide Rats_number_of Rats_of_int Rats_power imageE)
-    
+
 lemma dyadic_sum: "\<lbrakk> finite A; \<forall> i \<in> A. dyadic (f i) \<rbrakk> \<Longrightarrow> dyadic (sum f A)"
   by (induct rule: finite_induct, auto intro: dyadic_plus dyadic_zero)
 
 lemma dyadic_div_pow_2: "x \<in> \<int> \<Longrightarrow> dyadic (x / 2^n)"
   by (auto simp add: dyadic_def)
-  
+
 lemma Dyadics_Rats: "\<rat>\<^sub>D \<subseteq> \<rat>"
   using dyadic_rational by blast
-    
+
 lemma Ints_dyadic: "\<int> \<subseteq> \<rat>\<^sub>D"
   apply (auto)
   apply (rename_tac x)
   apply (simp add: dyadic_def)
   apply (rule_tac x="x" in bexI)
   apply (rule_tac x="0" in exI)
-  apply (auto) 
+  apply (auto)
 done
-  
+
 lemma Nats_dyadic: "\<nat> \<subseteq> \<rat>\<^sub>D"
   by (metis Ints_dyadic Ints_of_nat Nats_cases subset_eq)
-    
+
 lemma Dyadics_countable:
   "countable \<rat>\<^sub>D"
   using Dyadics_Rats countable_rat countable_subset by blast
@@ -100,7 +100,7 @@ done
 typedef drat = "{x :: rat. dyadic x}"
   by (rule_tac x="0" in exI, auto simp add: dyadic_def)
 
-setup_lifting type_definition_drat  
+setup_lifting type_definition_drat
 
 lift_definition drat_of_int :: "int \<Rightarrow> drat" is rat_of_int
   apply (rename_tac int)
@@ -108,8 +108,8 @@ lift_definition drat_of_int :: "int \<Rightarrow> drat" is rat_of_int
   apply (rule_tac x="rat_of_int int" in bexI)
   apply (rule_tac x="0" in exI)
   apply (auto)
-done 
- 
+done
+
 lift_definition DFract :: "int \<Rightarrow> nat \<Rightarrow> drat"
 is "\<lambda> a b. Fract a (2 ^ b)"
   apply (auto simp add: dyadic_def)
@@ -123,8 +123,8 @@ lift_definition dfrac_of :: "drat \<Rightarrow> int \<times> nat" is
 "\<lambda> x. (fst (quotient_of x), nat \<lfloor>log 2 (snd (quotient_of x))\<rfloor>)" .
 
 definition drat_of_float :: "float \<Rightarrow> drat" where
-"drat_of_float n = 
-  (if (exponent n \<ge> 0) 
+"drat_of_float n =
+  (if (exponent n \<ge> 0)
     then drat_of_int (mantissa n * 2^nat (exponent n))
     else DFract (mantissa n) (nat (- exponent n)))"
 
@@ -142,7 +142,7 @@ next
   case False with assms show ?thesis
     by (transfer, auto simp add: quotient_of_Fract powr_realpow[THEN sym])
 qed
-  
+
 lemma dyadic_Fract: "dyadic x \<Longrightarrow> \<exists> a b. x = Fract a (2^b)"
   apply (auto simp add: dyadic_def)
   apply (erule Ints_cases)
@@ -151,7 +151,7 @@ lemma dyadic_Fract: "dyadic x \<Longrightarrow> \<exists> a b. x = Fract a (2^b)
   apply (rule_tac x="b" in exI)
   apply (simp add: Fract_of_int_quotient of_int_power)
 done
-   
+
 lemma dyadic_FractE: "\<lbrakk> dyadic x; \<And> a b. x = Fract a (2^b) \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   using dyadic_Fract by blast
 
@@ -184,7 +184,7 @@ done
 
 text {* Every number greater than 0 can be expressed as the multiple of a perfect square
         and an odd number *}
-    
+
 lemma evenE_nat [elim?]:
   fixes a :: nat
   assumes "a > 0"
@@ -223,9 +223,9 @@ qed
 lemma rat_of_int_div: "\<lbrakk> y dvd x \<rbrakk> \<Longrightarrow> rat_of_int x / rat_of_int y = rat_of_int (x div y)"
   by (metis Fract_of_int_quotient div_by_1 divide_eq_0_iff dvd_div_mult_self eq_rat(1) gcd_1_int gcd_dvd1 of_int_eq_0_iff of_int_rat zdiv_eq_0_iff)
 
-(* FIXME: This proof can be tidied and shortened *)    
-  
-lemma dyadic_Fract_0_1_coprime: 
+(* FIXME: This proof can be tidied and shortened *)
+
+lemma dyadic_Fract_0_1_coprime:
   assumes "dyadic x" "x \<in> {0<..<1}"
   obtains a b where "x = Fract a (2^b)" "coprime a (2^b)"
 proof -
@@ -236,7 +236,7 @@ proof -
   with assms(2) have "a' \<noteq> 0"
     by (auto simp add: rat_number_collapse(1))
   then obtain k n where kn: "odd k" "a' = 2^n * k" "k > 0"
-    by (metis a'_nz evenE_int not_numeral_less_zero power_less_zero_eq zero_less_mult_iff) 
+    by (metis a'_nz evenE_int not_numeral_less_zero power_less_zero_eq zero_less_mult_iff)
   then have "x = Fract k (2 ^ (b' - n))"
   proof -
     from kn have tn_dv1: "(2^n) dvd a'"
@@ -277,7 +277,7 @@ lift_definition of_drat :: "drat \<Rightarrow> 'a"
 end
 
 lemma of_drat_exists:
-  assumes "x \<in> \<rat>\<^sub>D" 
+  assumes "x \<in> \<rat>\<^sub>D"
   shows "\<exists> n. x = of_drat n"
 proof -
   from assms obtain a :: int and b :: nat where "x = (of_int a) / 2^b"
@@ -287,7 +287,7 @@ proof -
     apply (simp)
     apply (transfer)
     apply (rename_tac x a b)
-    apply (auto simp add: dyadic_def quotient_of_Fract)     
+    apply (auto simp add: dyadic_def quotient_of_Fract)
     apply (subgoal_tac "snd (Rat.normalize (a, 2 ^ b)) \<noteq> 0")
     apply (metis normalize_eq of_int_of_nat_eq of_int_power of_nat_numeral of_rat_rat order_less_irrefl power_eq_0_iff prod.collapse rel_simps(51))
     apply (metis less_irrefl normalize_denom_pos prod.collapse)
@@ -329,7 +329,7 @@ instantiation drat :: linorder
 begin
   lift_definition less_eq_drat :: "drat \<Rightarrow> drat \<Rightarrow> bool" is "op \<le>" .
   lift_definition less_drat :: "drat \<Rightarrow> drat \<Rightarrow> bool" is "op <" .
-instance 
+instance
   by (intro_classes, (transfer, auto)+)
 end
 
@@ -353,7 +353,6 @@ lemma of_drat_0: "of_drat 0 = 0"
 
 lemma of_drat_1: "of_drat 1 = 1"
   by (transfer, simp)
-
 
 lemma quotient_of_div_simp:
   "of_int (fst (quotient_of x)) / of_int (snd (quotient_of x)) = of_rat x"
@@ -383,7 +382,7 @@ lemma of_drat_0_1:
   "(of_drat x :: 'a::{linordered_field}) \<in> {0<..<1} \<longleftrightarrow> x \<in> {0<..<1}"
   by (auto) (metis of_drat_0 of_drat_less, metis of_drat_1 of_drat_less)+
 
-lemma drat_0_1_induct: 
+lemma drat_0_1_induct:
   assumes "x \<in> {0<..<1}" "\<And> a b. coprime a (2^b) \<Longrightarrow> P (DFract a b)"
   shows "P x"
 proof -
@@ -396,5 +395,4 @@ proof -
   ultimately show ?thesis
     using assms(2) by blast
 qed
-
 end

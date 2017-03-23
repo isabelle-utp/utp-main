@@ -29,13 +29,13 @@ translations
   "_UU_tvl" => "CONST None"
 
 definition mconj :: "tvl \<Rightarrow> tvl \<Rightarrow> tvl" where
-  "mconj p q = (case (p, q) of 
+  "mconj p q = (case (p, q) of
                      (Some True, x)  \<Rightarrow> x
                    | (Some False, _) \<Rightarrow> Some False
                    | (_, _) \<Rightarrow> None)"
 
 definition mdisj :: "tvl \<Rightarrow> tvl \<Rightarrow> tvl" where
-  "mdisj p q = (case (p, q) of 
+  "mdisj p q = (case (p, q) of
                      (Some True, _) \<Rightarrow> Some True
                    | (Some False, x) \<Rightarrow> x
                    | (_, _) \<Rightarrow> None)"
@@ -47,7 +47,7 @@ definition mimplies :: "tvl \<Rightarrow> tvl \<Rightarrow> tvl" where
 "mimplies p q = (mdisj (mnot p) q)"
 
 definition mtaut :: "tvl \<Rightarrow> bool" where
-"mtaut b \<longleftrightarrow> b = TT" 
+"mtaut b \<longleftrightarrow> b = TT"
 
 notation
   mconj (infixr "\<and>\<^sub>3" 35) and
@@ -84,19 +84,19 @@ lemma mtaut_Some [simp]: "[Some p]\<^sub>3 = p"
 lemma mtaut_None [simp]: "[None]\<^sub>3 = False"
   by (simp add:mtaut_def)
 
-lemma mconj_Some_Some [simp]: 
+lemma mconj_Some_Some [simp]:
   "(\<lfloor>p\<rfloor> \<and>\<^sub>3 \<lfloor>q\<rfloor>) = \<lfloor>p \<and> q\<rfloor>"
   by (case_tac p, case_tac[!] q, simp_all)
 
-lemma mdisj_Some_Some [simp]: 
+lemma mdisj_Some_Some [simp]:
   "(\<lfloor>p\<rfloor> \<or>\<^sub>3 \<lfloor>q\<rfloor>) = \<lfloor>p \<or> q\<rfloor>"
   by (case_tac p, case_tac[!] q, simp_all)
 
-lemma mimplies_Some_Some [simp]: 
+lemma mimplies_Some_Some [simp]:
   "(\<lfloor>p\<rfloor> \<Rightarrow>\<^sub>3 \<lfloor>q\<rfloor>) = \<lfloor>p \<longrightarrow> q\<rfloor>"
   by (case_tac p, case_tac[!] q, simp_all)
 
-lemma mconj_True_right [simp]: 
+lemma mconj_True_right [simp]:
   "(p \<and>\<^sub>3 TT) = p"
   by (cases p rule:tvl_cases, simp_all)
 
@@ -106,8 +106,8 @@ lemma mtaut_mimplies_rNone [simp]:
 
 lemma mand_mimplies [simp]: "(p \<and>\<^sub>3 q \<Rightarrow>\<^sub>3 r) = (p \<Rightarrow>\<^sub>3 q \<Rightarrow>\<^sub>3 r)"
   by (cases p rule:tvl_cases, simp_all)
-  
-lemma mand_assoc [simp]: "((p \<and>\<^sub>3 q) \<and>\<^sub>3 r) = (p \<and>\<^sub>3 (q \<and>\<^sub>3 r))" 
+
+lemma mand_assoc [simp]: "((p \<and>\<^sub>3 q) \<and>\<^sub>3 r) = (p \<and>\<^sub>3 (q \<and>\<^sub>3 r))"
   by (cases p rule:tvl_cases, simp_all)
 
 (* Deduction Rules for TVL *)
@@ -119,15 +119,15 @@ lemma mconjI [intro]:
   "\<lbrakk> [p]\<^sub>3; [q]\<^sub>3 \<rbrakk> \<Longrightarrow> [p \<and>\<^sub>3 q]\<^sub>3"
   by (simp add:mtaut_def)
 
-lemma mconjE [elim]: 
+lemma mconjE [elim]:
   "\<lbrakk> [P \<and>\<^sub>3 Q]\<^sub>3; \<lbrakk> [P]\<^sub>3; [Q]\<^sub>3 \<rbrakk> \<Longrightarrow> R \<rbrakk> \<Longrightarrow> R"
   by (cases P rule:tvl_cases, auto)
 
-lemma mdisjI1 [intro]: 
+lemma mdisjI1 [intro]:
   "[p]\<^sub>3 \<Longrightarrow> [p \<or>\<^sub>3 q]\<^sub>3"
   by (simp add:mtaut_def)
 
-lemma mdisjI2 [intro]: 
+lemma mdisjI2 [intro]:
   "\<lbrakk> \<D>\<^sub>3(p); [q]\<^sub>3 \<rbrakk> \<Longrightarrow> [p \<or>\<^sub>3 q]\<^sub>3"
   apply (cases p rule:tvl_cases)
   apply (simp_all add:mtaut_def)
@@ -142,6 +142,5 @@ lemma mnot_double [simp]:
   by (cases p rule:tvl_cases, simp_all)
 
 lemma p_TT [simp]: "p = TT \<longleftrightarrow> [p]\<^sub>3"
-  by (auto simp add: mtaut_def) 
-
+  by (auto simp add: mtaut_def)
 end

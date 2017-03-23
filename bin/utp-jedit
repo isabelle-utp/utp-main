@@ -3,7 +3,10 @@
 ISABELLE_UTP=${ISABELLE_UTP:-$(readlink -f $(dirname $0))/..}
 
 # Default heap to be used if no argument(s) are provided.
-HEAP="UTP-THY-DEEP"
+DEFAULT_HEAP="UTP-THY-DEEP"
+
+# Default heap to be used if no argument(s) are provided.
+HEAP=$DEFAULT_HEAP
 
 # The first argument given specifies the heap to load.
 if [ ! $# -eq 0 ]

@@ -5,10 +5,10 @@
 (* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
 (******************************************************************************)
 
-section {* UTP theories meta theory *}
+section {* Meta-theory for UTP Theories *}
 
 theory utp_theories
-imports 
+imports
   utp_designs
   utp_invariants
   utp_refcalc
@@ -16,4 +16,4 @@ imports
   utp_rea_designs
   utp_csp
   utp_cml
-begin end
+begin recall_syntax end

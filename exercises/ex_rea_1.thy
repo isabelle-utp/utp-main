@@ -12,7 +12,7 @@ definition rassign :: "('a, '\<alpha>) uvar \<Rightarrow> _ \<Rightarrow> _" (in
 lemma DEAD_wait': "(DEAD \<and> $wait\<acute>) = DEAD"
   by (rel_auto)
 
-lemma 
+lemma
   assumes "P is R3"
   shows "(DEAD ;; P) = DEAD"
 proof -
@@ -48,5 +48,4 @@ proof -
       apply (simp add: unrest)
     done
     also have "... = ((\<Sigma>\<^sub>R:x := v \<and> \<not>$wait\<acute>) ;; perform(a))"
-
 end

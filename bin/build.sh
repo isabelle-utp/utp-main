@@ -12,12 +12,13 @@ $BIN_DIR/afp_get.sh Ordinary_Differential_Equations
 ROOT=$ISABELLE_UTP
 
 # Build all heap images of Isabelle/UTP
+
 # Library Components
 isabelle build -d $ROOT -c -b HOL-Algebra2
 isabelle build -d $ROOT -c -b Optics
 isabelle build -d $ROOT -c -b Continuum
 isabelle build -d $ROOT -c -b Dynamics
-# Core UTP Framework
+# Core Framework
 isabelle build -d $ROOT -c -b UTP-IMPORTS
 isabelle build -d $ROOT -c -b UTP
 isabelle build -d $ROOT -c -b UTP-DEEP

@@ -74,7 +74,6 @@ translations
   "_proc_block T (_parm_list (_res_parm x) ps) P"
   => "CONST vres_parm_comp T <x>\<^sub>d (\<lambda> x. (_proc_block T ps P))"
 
-
 context utp_local_var
 begin
 
@@ -99,7 +98,6 @@ begin
 declare [[show_types]]
 
 declare [[show_sorts]]
-
 
 term "val_parm (MkDVar ''x'')"
 

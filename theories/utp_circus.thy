@@ -9,7 +9,7 @@
 section {* Theory of {\Circus} *}
 
 theory utp_circus
-imports utp_csp utp_deep utp_axm
+imports utp_theories_deep utp_axm
 begin recall_syntax
 
 text {* Types are not printed correctly, have a chat with Simon Foster. *}
@@ -23,6 +23,11 @@ type_synonym 'a relation = "'a Relation.rel"
 translations (type) "'a relation" \<rightleftharpoons> (type)"'a Relation.rel"
 
 hide_type Relation.rel -- {* TODO: Let the recall package hide types too! *}
+
+text {* The below interfere with the corresponding CSP definitions. *}
+
+hide_const utp_cml.Skip
+hide_const utp_cml.Stop
 
 text {* Move this back to the theory @{theory utp_csp}. *}
 
@@ -115,13 +120,12 @@ text {*
   we need to address within Isabelle/UTP.
 *}
 
-no_notation ParCSP (infixl "[|_|]" 105)
+purge_notation
+  utp_csp.ParCSP (infixr "[|_|]" 105)
 
 consts ParCircus ::
   "('\<sigma>, '\<phi>) action  \<Rightarrow> ('\<phi> event set) \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow>
    ('\<sigma>, '\<phi>) action" (infixl "[|(_)|]" 60)
-
-term "ParCSP P cs Q"
 
 definition InterleaveCircus ::
   "('\<sigma>, '\<phi>) action  \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow>

@@ -38,7 +38,7 @@ end
 context monoid_add
 begin
 
-definition monoid_le (infix "\<le>\<^sub>m" 50) 
+definition monoid_le (infix "\<le>\<^sub>m" 50)
 where "a \<le>\<^sub>m b \<longleftrightarrow> (\<exists>c. b = a + c)"
 
 definition monoid_subtract (infixl "-\<^sub>m" 65)
@@ -58,7 +58,7 @@ lemma monoid_le_refl: "a \<le>\<^sub>m a"
 lemma monoid_le_trans: "\<lbrakk> a \<le>\<^sub>m b; b \<le>\<^sub>m c \<rbrakk> \<Longrightarrow> a \<le>\<^sub>m c"
   by (metis add.assoc monoid_le_def)
 
-lemma monoid_le_antisym: 
+lemma monoid_le_antisym:
   assumes "a \<le>\<^sub>m b" "b \<le>\<^sub>m a"
   shows "a = b"
 proof -
@@ -70,7 +70,7 @@ proof -
 
   have "b' = (b' + a' + b')"
     by (metis a' add_assoc b' local.add_left_imp_eq)
-    
+
   hence "a' + b' = 0"
     by (metis add_assoc local.add_0_right local.add_left_imp_eq)
 
@@ -93,7 +93,7 @@ lemma add_monoid_diff_cancel_left [simp]: "(a + b) -\<^sub>m a = b"
   apply (simp)
   using local.add_left_imp_eq apply blast
 done
-    
+
 end
 
 class ordered_cancel_monoid_diff = cancel_monoid + ord + minus +
@@ -191,12 +191,11 @@ lemma monoid_le_nat:
 
 lemma monoid_subtract_nat:
   "(x :: nat) -\<^sub>m y = x - y"
-  by (auto simp add: monoid_subtract_def monoid_le_nat) 
+  by (auto simp add: monoid_subtract_def monoid_le_nat)
 
 instance nat :: ordered_cancel_monoid_diff
   apply (intro_classes, simp_all add: monoid_subtract_nat)
   apply (simp add: nat_le_iff_add monoid_le_def)
   apply linarith
 done
-
 end

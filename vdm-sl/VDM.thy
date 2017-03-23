@@ -1,10 +1,9 @@
 section {* VDM-SL in UTP *}
 
 theory VDM
-  imports
-    PFOL
-    "../utp/models/utp_deep"
-begin recall_syntax
+imports PFOL
+  utp_theories_deep
+begin
 
 subsection {* Core operator definitions *}
 
@@ -622,7 +621,7 @@ lemma vdefined_vmap_apply [simp]:
 done
 
 lemma vdefined_divide [simp]: "\<D>\<^sub>v(x / y) = (\<D>\<^sub>v(x) \<and>\<^sub>v \<D>\<^sub>v(y) \<and>\<^sub>v y <>\<^sub>v 0)"
-  apply (simp add: upred_defs divide_vexpr_def zero_vexpr_def vdefined_bpfun)
+  apply (simp add: upred_defs vdefined_bpfun)
   apply (transfer, rule ext, auto)
   apply (case_tac "y b", auto simp add: domIff)
 done
@@ -747,5 +746,4 @@ subsection {*Utility functions*}
 
 definition inds :: "'a list \<Rightarrow> nat set" where
   "inds x = {1..length x}"
-  
 end

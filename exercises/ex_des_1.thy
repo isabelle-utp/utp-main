@@ -73,7 +73,7 @@ qed
 lemma "x \<noteq> y \<Longrightarrow> ($s\<acute> =\<^sub>u $s \<union>\<^sub>u {\<guillemotleft>x\<guillemotright>}\<^sub>u) wp (finite\<^sub>u(s) \<and> \<guillemotleft>y\<guillemotright> \<notin>\<^sub>u s) = (finite\<^sub>u(s) \<and> \<guillemotleft>y\<guillemotright> \<notin>\<^sub>u s)"
   by (rel_auto, (meson my_state.select_convs(1))+)
 
-lemma Add_commute: 
+lemma Add_commute:
   assumes "x \<noteq> y"
   shows "(Add_A(x) ;; Add_A(y)) = (Add_A(y) ;; Add_A(x))"
 proof -
@@ -86,7 +86,6 @@ proof -
   show ?thesis
     by (simp add: Add_A_def ndesign_composition_wp 1 2 3 utp_pred.inf.commute)
 qed
- 
 
 lemma Add_Del:
   "((Inv_A \<and> \<guillemotleft>x\<guillemotright> \<notin>\<^sub>u &s) \<turnstile>\<^sub>n ($s\<acute> =\<^sub>u $s)) \<sqsubseteq> (Add_A(x) ;; Del_A(x))" (is "?P \<sqsubseteq> ?Q")
@@ -124,12 +123,11 @@ lemma r4: "`\<forall> s \<bullet> \<forall> q \<bullet> pre_Del_A(x) \<and> Abs 
 done
 
 lemma r5: "`($ok \<and> \<lceil>pre_Del_C(x) \<and> Abs\<rceil>\<^sub>D\<^sub>< \<and> Del_C(x)) \<Rightarrow> (\<exists> $\<Sigma>\<^sub>D:s\<acute> \<bullet> (Del_A(x) \<and> \<lceil>Abs\<rceil>\<^sub>D\<^sub>>))`"
-  apply (simp add: Del_C_def Del_A_def Abs_def alpha) 
+  apply (simp add: Del_C_def Del_A_def Abs_def alpha)
   apply (simp add: upred_defs urel_defs)
   apply (transfer)
   apply (simp add: lens_comp_def)
   apply (clarsimp)
   apply (safe)
-oops  
-
+oops
 end

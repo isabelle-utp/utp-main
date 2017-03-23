@@ -17,10 +17,10 @@ theorem seqr_left_zero: "(false ;; P) = false" oops
 theorem cond_seq_left_distr:
   assumes "out\<alpha> \<sharp> b"
   shows "((P \<triangleleft> b \<triangleright> Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright> (Q ;; R))"
-  using assms by (rel_auto, blast+)
+  using assms by (rel_simp, blast+)
 
 theorem assign_twice:
-  assumes "uvar x" "x \<sharp> f"
+  assumes "vwb_lens x" "x \<sharp> f"
   shows "(x := e ;; x := f) = (x := f)"
   using assms by rel_auto
 
@@ -47,14 +47,14 @@ proof -
 qed
 
 theorem rdesign_left_unit:
-  fixes P Q :: "'\<alpha> hrelation_d"
+  fixes P Q :: "'\<alpha> hrel_des"
   shows "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
 proof -
   -- {* We first expand out the definition of the design identity *}
   have "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (true \<turnstile>\<^sub>r II ;; P \<turnstile>\<^sub>r Q)"
     by (simp add: skip_d_def)
   -- {* Next, we apply the design composition law above in a subproof *}
-  also have "... = (true \<and> \<not> (II ;; \<not> P)) \<turnstile>\<^sub>r (II ;; Q)"
+  also have "... = (true \<and> \<not> (II ;; (\<not> P))) \<turnstile>\<^sub>r (II ;; Q)"
   proof -
     -- {* The assumption of identity is $\true$ so it is easy to discharge the proviso *}
     have "out\<alpha> \<sharp> true"

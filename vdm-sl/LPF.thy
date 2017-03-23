@@ -18,7 +18,7 @@ text {*
   Below we define a new type to represent values in LPF. Effectively, we encode
   these as @{type option} types where @{const None} will be used to represent
   the undefined value of our LPF logic embedding.
-*}  
+*}
 
 typedef 'a lpf = "UNIV :: 'a option set"
 apply(rule UNIV_witness)
@@ -33,7 +33,7 @@ type_synonym ('a, '\<alpha>) vexpr = "('a lpf, '\<alpha>) uexpr"
 (* With the below, pretty-printing of the type synonym works as well! *)
 
 typ "('a, '\<alpha>) vexpr"
-  
+
 translations (type) "('a, '\<alpha>) vexpr" \<leftharpoondown> (type) "('a lpf, '\<alpha>) uexpr"
 
 typ "('a, '\<alpha>) vexpr"
@@ -41,10 +41,10 @@ typ "('a, '\<alpha>) vexpr"
 text {*Two theorems to use in proofs are set up  *}
 named_theorems lpf_defs "lpf definitional axioms"
 named_theorems lpf_transfer "lpf transfer laws"
-  
+
 lemmas Abs_lpf_inject_sym = sym [OF Abs_lpf_inject]
 lemmas Rep_lpf_inject_sym = sym [OF Rep_lpf_inject]
-  
+
 declare Rep_lpf_inverse [lpf_transfer]
 declare Abs_lpf_inverse [simplified, lpf_transfer]
 declare Rep_lpf_inject_sym [lpf_transfer]
@@ -73,7 +73,7 @@ declare defined_def [lpf_defs]
 
 text {*
   The following function checks if an input x satisfies a predicate (belongs to
-  a set). If it does then it returns the value backed, wrapped up in the 
+  a set). If it does then it returns the value backed, wrapped up in the
   @{type lpf} type, otherwise it returns @{const lpf_None}.
 *}
 
@@ -82,16 +82,16 @@ definition lpfSat :: "'a set \<Rightarrow> 'a \<Rightarrow> 'a lpf" where
 
 text {* Overloading definition for monadic bind *}
 definition lift1_bind :: "'a lpf \<Rightarrow> ('a \<Rightarrow> 'b lpf) \<Rightarrow> 'b lpf" where
-[lpf_defs]: "lift1_bind a f = 
+[lpf_defs]: "lift1_bind a f =
   (if \<D>(a) then  (f \<circ> the \<circ> Rep_lpf) a else lpf_None)"
 
 adhoc_overloading
 bind lift1_bind
 
-text {* lift1_lpf takes a set which is a predicate on the input values, 
-  a total HOL function taking one argument and turns  it into a function on 
+text {* lift1_lpf takes a set which is a predicate on the input values,
+  a total HOL function taking one argument and turns  it into a function on
   option types. The resulting value is defined if (1) each input is defined
-  and (2) the input satisfies the predicate. 
+  and (2) the input satisfies the predicate.
 *}
 
 definition lift1_lpf_old :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf)" where
@@ -100,7 +100,7 @@ definition lift1_lpf_old :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Righta
 definition lift1_lpf'_old :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf)" where
 [lpf_defs]:"lift1_lpf'_old = lift1_lpf_old UNIV"
 
-lift_definition lift1_lpf :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf)" is 
+lift_definition lift1_lpf :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf)" is
 "(\<lambda> u f x . (x\<bind>lpfSat u)\<bind> lpf_Some \<circ> f)"
 done
 
@@ -115,7 +115,7 @@ declare lift1_lpf'.transfer [lpf_transfer]
 declare lift1_lpf'_def [lpf_defs]
 
 text {*
-  Below we define unary operators on the lpf type 
+  Below we define unary operators on the lpf type
   using the lifting defined above.
 *}
 
@@ -142,25 +142,25 @@ definition floor_lpf :: "real lpf \<Rightarrow> int lpf" where
 definition len_lpf :: "'a list lpf \<Rightarrow> nat lpf" where
 [lpf_defs]: "len_lpf = lift1_lpf' length"
 
--- {* \todo{Define the following operators: 
+-- {* \todo{Define the following operators:
   Boolean type: Negation
   Record types: field select and is.
   Set unary operators: dunion, dinter and power.
   Sequence unary operators: hd, tl, elems, inds, reverse, conc and indexing.
-  Map unary operators: dom, rng, merge, apply and inverse.  } 
+  Map unary operators: dom, rng, merge, apply and inverse.  }
 *}
 
-lift_definition lift2_lpf :: 
+lift_definition lift2_lpf ::
   "('a * 'b) set \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf \<Rightarrow> 'c lpf)" is
-  "(\<lambda> u f v1 v2. 
+  "(\<lambda> u f v1 v2.
   do { x \<leftarrow> v1; y \<leftarrow> v2; lpfSat u (x, y) } \<bind> lpf_Some \<circ> uncurry f)"
 done
 
 declare lift2_lpf.transfer [lpf_transfer]
 declare lift2_lpf_def [lpf_defs]
 
-lift_definition lift2_lpf' :: 
-  "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf \<Rightarrow> 'c lpf)" is 
+lift_definition lift2_lpf' ::
+  "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf \<Rightarrow> 'c lpf)" is
   "lift2_lpf UNIV"
 done
 
@@ -168,11 +168,11 @@ declare lift2_lpf'.transfer [lpf_transfer]
 declare lift2_lpf'_def [lpf_defs]
 
 text {*
-  Lifts a HOL function with two arguments into a function on the lpf type 
+  Lifts a HOL function with two arguments into a function on the lpf type
 *}
-definition lift2_lpf_old :: 
+definition lift2_lpf_old ::
   "('a * 'b) set \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf \<Rightarrow> 'c lpf)" where
-[lpf_defs]: "lift2_lpf_old u f = 
+[lpf_defs]: "lift2_lpf_old u f =
   (\<lambda> v1 v2. do { x \<leftarrow> v1; y \<leftarrow> v2; lpfSat u (x, y) } \<bind> lpf_Some \<circ> uncurry f)"
 
 definition lift2_lpf'_old :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf \<Rightarrow> 'c lpf)" where
@@ -181,7 +181,7 @@ definition lift2_lpf'_old :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarro
 (*TODO: How should this be done? First lift into lpf', and then lift into vexpr?"*)
 consts lift1_vdm :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> (('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr)"
 (* Open question: do we really need two layers of lifting? *)
-  
+
 declare lift1_lpf'_def [lpf_defs]
 
 (* Without instantiation, define your own syntax. *)
@@ -211,7 +211,7 @@ done
 
 (*How do I prove these?*)
 lemma all_lpf_transfer [lpf_transfer]:
-"(\<forall>x::'a lpf. P x) = (\<forall>x::'a option. P (Abs_lpf x))" 
+"(\<forall>x::'a lpf. P x) = (\<forall>x::'a option. P (Abs_lpf x))"
 apply (safe)
 -- {* Subgoal 1 *}
 apply (drule_tac x = "Abs_lpf x" in spec)
@@ -234,7 +234,7 @@ apply (assumption)
 done
 
 lemma meta_lpf_transfer [lpf_transfer]:
-"(\<And>x::'a lpf. P x) \<equiv> (\<And>x::'a option. P (Abs_lpf x))" 
+"(\<And>x::'a lpf. P x) \<equiv> (\<And>x::'a option. P (Abs_lpf x))"
 apply (rule)
 -- {* Subgoal 1 *}
 apply (drule_tac x = "Abs_lpf x" in meta_spec)
@@ -252,5 +252,4 @@ lemma lift1_lpf'_example: "lift1_lpf' card (lpf_Some {1,2,3}) = lpf_Some 3"
 apply (lpf_simp)
 (* We need ex_lpf_transfer *)
 oops
-
 end

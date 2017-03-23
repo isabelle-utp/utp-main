@@ -60,7 +60,7 @@ done
 (* Removed as it clashes with the instantiation of @{class continuum}. *)
 
 (*
-instance pos :: ("{zero, linorder, countable}") countable 
+instance pos :: ("{zero, linorder, countable}") countable
 apply (intro_classes)
 apply (rule_tac x = "to_nat o Rep_pos" in exI)
 apply (rule inj_comp)

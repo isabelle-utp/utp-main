@@ -131,9 +131,8 @@ lemmas prod_le_def = less_eq_prod_def
 lemmas prod_less_def = less_prod_def
 lemmas prod_less_eq = less_prod_def'
 
-lemma prod_lexord_mono [mono]: 
-  "(\<And> x y. f x y \<longrightarrow> g x y) \<Longrightarrow> (\<And> x y. f' x y \<longrightarrow> g' x y) \<Longrightarrow> 
+lemma prod_lexord_mono [mono]:
+  "(\<And> x y. f x y \<longrightarrow> g x y) \<Longrightarrow> (\<And> x y. f' x y \<longrightarrow> g' x y) \<Longrightarrow>
   (x, y) \<in> prod_lexord {(x, y). f x y} {(x, y). f' x y} \<longrightarrow> (x, y) \<in> prod_lexord {(x, y). g x y} {(x, y). g' x y}"
   by (auto simp add: prod_lexord_def)
-
 end

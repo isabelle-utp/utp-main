@@ -2,25 +2,25 @@ section {* Contiguous Functions *}
 
 (*<*)
 theory Contiguous_Functions
-  imports 
+  imports
   Real_Vector_Spaces
   "../lenses/Lenses"
-  "../utils/Library_extra/Map_Extra" 
-  "../utils/Library_extra/List_extra" 
-  "../utils/Library_extra/Monoid_extra" 
+  "../utils/Library_extra/Map_Extra"
+  "../utils/Library_extra/List_extra"
+  "../utils/Library_extra/Monoid_extra"
   Derivative_extra
   "~~/src/HOL/Analysis/Topology_Euclidean_Space"
 begin
 (*>*)
-  
+
 text {* In this section we will define a type to represent contiguous functions with
   a real domain, which will be used to represent trajectories, together with suitable algebraic
   operators. We then specialise this to piecewise continuous and convergent functions, and show
   closure of the algebraic operators. The properties we use here will be crucial in our hybrid
   relational calculus. Our model and the associated algebra is based partly on the work of
   Hayes~\cite{Hayes2006,Hayes2010} who introduces a theory of timed traces to give semantics
-  to real-time programs, and also H\"{o}fner~\cite{Hofner2009} who gives and algebraic foundation for verifying 
-  hybrid systems, including operators on continuous trajectories that underlie hybrid automata. 
+  to real-time programs, and also H\"{o}fner~\cite{Hofner2009} who gives and algebraic foundation for verifying
+  hybrid systems, including operators on continuous trajectories that underlie hybrid automata.
   A timed trace is essentially a function from real numbers to a continuous state space; in the
   following we will further elaborate this.
 *}
@@ -54,7 +54,7 @@ done
 
 lemma dom_shift_map_add: "(f ++ g) \<ggreater> n = (f \<ggreater> n) ++ (g \<ggreater> n)"
   by (simp add: map_add_def)
-  
+
 lemma plus_image_atLeastLessThan:
   fixes m n k :: "real"
   shows "op + k ` {m..<n} = {m+k..<n+k}"
@@ -77,11 +77,11 @@ lemma Sup'_interval [simp]: "Sup' {0..<m} = (if (m > 0) then m else 0)"
   by (simp add: Sup'_def)
 
 text {* The first property tells us that the supremum of an empty set is zero, and the second
-  tells us that the supremum of a right open interval is the limit of the interval. *}   
-    
+  tells us that the supremum of a right open interval is the limit of the interval. *}
+
 subsection {* Contiguous functions *}
 
-typedef 'a cgf = 
+typedef 'a cgf =
   "{f :: real \<rightharpoonup> 'a. (\<exists> i. i \<ge> 0 \<and> dom(f) = {0..<i})}"
 proof
   have "\<exists>i::real\<ge>0. {} = {0..<i}"
@@ -93,7 +93,7 @@ qed
 (*<*)
 setup_lifting type_definition_cgf
 (*>*)
-  
+
 text {* We begin our definition of contiguous functions by defining the core type, @{typ "'a cgf"}
   using the Isabelle \textbf{typedef} command. Such a definition creates a new type from a subset
   of an existing type, assuming the subset is non-empty. A contiguous function is a partial function
@@ -104,15 +104,15 @@ text {* We begin our definition of contiguous functions by defining the core typ
 lift_definition cgf_apply :: "'a cgf \<Rightarrow> real \<Rightarrow> 'a" ("\<langle>_\<rangle>\<^sub>C") is "\<lambda> f x. the (f x)" .
 lift_definition cgf_dom :: "'a cgf \<Rightarrow> real set" ("dom\<^sub>C") is dom .
 lift_definition cgf_end :: "'a cgf \<Rightarrow> real" ("end\<^sub>C") is "\<lambda> f. Sup'(dom(f))" .
-lift_definition cgf_map :: "(real \<times> 'a \<Rightarrow> 'b) \<Rightarrow> 'a cgf \<Rightarrow> 'b cgf" ("map\<^sub>C") 
-  is "\<lambda> f g x. if (x \<in> dom(g)) then Some (f (x, the(g(x)))) else None" 
+lift_definition cgf_map :: "(real \<times> 'a \<Rightarrow> 'b) \<Rightarrow> 'a cgf \<Rightarrow> 'b cgf" ("map\<^sub>C")
+  is "\<lambda> f g x. if (x \<in> dom(g)) then Some (f (x, the(g(x)))) else None"
   by (auto simp add: dom_if)
 
 abbreviation "map'\<^sub>C f \<equiv> cgf_map (\<lambda> (i, x). f x)"
 
 lift_definition cgf_restrict :: "'a cgf \<Rightarrow> real \<Rightarrow> 'a cgf" (infix "\<restriction>\<^sub>C" 85)
-is "\<lambda> f i. f |` {0..<i}" 
-  by (auto simp add: min_def, blast, metis atLeastLessThan_empty_iff2 less_eq_real_def less_irrefl) 
+is "\<lambda> f i. f |` {0..<i}"
+  by (auto simp add: min_def, blast, metis atLeastLessThan_empty_iff2 less_eq_real_def less_irrefl)
 
 lift_definition cgf_force :: "'a cgf \<Rightarrow> real \<Rightarrow> 'a cgf" (infix "!\<^sub>C" 85)
 is "\<lambda> f i x. if (0 \<le> x \<and> x < i) then Some(the(f(x))) else None"
@@ -122,10 +122,10 @@ is "\<lambda> f i x. if (0 \<le> x \<and> x < i) then Some(the(f(x))) else None"
 done
 
 text {* We also create functions that allow various manipulations on contiguous functions by
-  lifting functions on the underlying partial function type. Function @{term cgf_apply}, also 
+  lifting functions on the underlying partial function type. Function @{term cgf_apply}, also
   written as @{term "\<langle>f\<rangle>\<^sub>C"}, allows the application of a contiguous function to an input real number.
-  When the input is outside of the domain, and arbitrary value is returned. @{term cgf_dom} 
-  (@{term "dom\<^sub>C(f)"}) gives the domain of function, and @{term [source] cgf_end} (@{term "end\<^sub>C(f)"}) returns 
+  When the input is outside of the domain, and arbitrary value is returned. @{term cgf_dom}
+  (@{term "dom\<^sub>C(f)"}) gives the domain of function, and @{term [source] cgf_end} (@{term "end\<^sub>C(f)"}) returns
   the end point. Term (@{term "map\<^sub>C f g"}) applies a function to every element
   in the range, like a typical map function. Finally, @{term [source] cgf_restrict} (@{term "f \<restriction>\<^sub>C i"}) restricts
   the domain of a contiguous function to the interval [0,i), and @{term cgf_force} (@{term "f !\<^sub>C i"}) has
@@ -142,10 +142,10 @@ abbreviation (input) cgf_empty :: "'a cgf" ("[]\<^sub>C") where "[]\<^sub>C \<eq
 
 text {* We will now define the algebraic operators of timed traces, with which we will be able to
   instantiate our theory of generalised reactive designs with, and thence produce timed reactive designs. We do
-  this by instantiating various type classes towards showing that contiguous functions form a 
-  cancellative monoid, which is the underlying trace algebra. The zero element is the empty 
-  contiguous function, obtained by lifting the empty partial function 
-  and demonstrating (as before) that this satisfies the invariant of a contiguous function. We 
+  this by instantiating various type classes towards showing that contiguous functions form a
+  cancellative monoid, which is the underlying trace algebra. The zero element is the empty
+  contiguous function, obtained by lifting the empty partial function
+  and demonstrating (as before) that this satisfies the invariant of a contiguous function. We
   also give the zero element the syntax @{term [source] "[]\<^sub>C"}. *}
 
 instantiation cgf :: (type) plus
@@ -170,10 +170,10 @@ instance ..
 
 end
 
-abbreviation (input) cgf_cat :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cgf" (infixl "@\<^sub>C" 85) 
+abbreviation (input) cgf_cat :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cgf" (infixl "@\<^sub>C" 85)
 where "xs @\<^sub>C ys \<equiv> xs + ys"
 
-text {* We next define the concatenation operator, which in our algebra is a plus operator. The 
+text {* We next define the concatenation operator, which in our algebra is a plus operator. The
   concatentation of functions, @{term [source] "f @\<^sub>C g"}, takes @{term g}, shifts it to the right by
   the length of @{term f}, and finally unions this with @{term f} using the partial function
   operator @{term "op ++"}. It is necessary to show that this definition is closed under contiguous functions,
@@ -224,8 +224,8 @@ text {* Next we demonstrate some properties about the @{term end\<^sub>C} functi
   if a function has 0 as its end then it is equal to @{term "[]\<^sub>C"} (@{thm [source] cgf_end_0_iff}), and the
   end of a concatenation is the sum of the two ends (@{thm [source] cgf_end_cat}). *}
 
-lemma cgf_cat_ext_first: 
-  assumes "x < end\<^sub>C f" 
+lemma cgf_cat_ext_first:
+  assumes "x < end\<^sub>C f"
   shows "\<langle>f @\<^sub>C g\<rangle>\<^sub>C x = \<langle>f\<rangle>\<^sub>C x"
 proof (cases "f = []\<^sub>C")
   case True with assms show ?thesis
@@ -239,29 +239,29 @@ qed
 lemma cgf_cat_ext_last: "x \<ge> end\<^sub>C f \<Longrightarrow> \<langle>f @\<^sub>C g\<rangle>\<^sub>C x = \<langle>g\<rangle>\<^sub>C (x - end\<^sub>C f)"
   by (transfer, auto simp add: map_add_dom_app_simps(3))
 
-text {* Lemmas @{thm [source] cgf_cat_ext_first} and @{thm [source] cgf_cat_ext_last} show the effect of applying 
-  an input $x$ to an appended trace. If $x$ is less than the end of the first trace, then this 
+text {* Lemmas @{thm [source] cgf_cat_ext_first} and @{thm [source] cgf_cat_ext_last} show the effect of applying
+  an input $x$ to an appended trace. If $x$ is less than the end of the first trace, then this
   is equivalent to applying it to the first trace. Otherwise, if $x$ is greater than or equal
   to the end of the first, then the result is to apply to the second, but with the input shifted. *}
 
 lemma cgf_zero_sum_left:
   "f @\<^sub>C g = []\<^sub>C \<Longrightarrow> f = []\<^sub>C"
-  by (metis cgf_cat_right_unit cgf_end_0_iff cgf_end_cat cgf_end_ge_0 
+  by (metis cgf_cat_right_unit cgf_end_0_iff cgf_end_cat cgf_end_ge_0
             dual_order.antisym le_add_same_cancel2)
 
-text {* The next lemma tells us that if two functions concatenate to become the empty function then the 
+text {* The next lemma tells us that if two functions concatenate to become the empty function then the
   first must be empty. Now by the fact that @{term "[]\<^sub>C"} is a left unit we can also show that
   the second must also be empty. *}
 
-lemma cgf_cat_left_imp_eq: 
+lemma cgf_cat_left_imp_eq:
   assumes "f @\<^sub>C g = f @\<^sub>C h"
   shows "g = h"
 using assms proof (transfer)
   fix f g h :: "real \<rightharpoonup> 'a"
-  assume a: 
+  assume a:
     "\<exists>i\<ge>0. dom f = {0..<i}" "\<exists>i\<ge>0. dom g = {0..<i}" "\<exists>i\<ge>0. dom h = {0..<i}"
     "(g \<ggreater> Sup' (dom f)) ++ f = (h \<ggreater> Sup' (dom f)) ++ f"
-  then obtain i j k where ijk: 
+  then obtain i j k where ijk:
     "i \<ge> 0" "j \<ge> 0" "k \<ge> 0" "dom f = {0..<i}" "dom g = {0..<j}" "dom h = {0..<k}"
     by auto
   show "g = h"
@@ -269,7 +269,7 @@ using assms proof (transfer)
     case False with ijk a(4) show ?thesis
       by (auto)
   next
-    case True 
+    case True
     with ijk have "dom(g \<ggreater> i) \<inter> {0..<i} = {}"
       by (auto simp add: dom_shift_minus)
     moreover from True ijk have "dom(h \<ggreater> i) \<inter> {0..<i} = {}"
@@ -283,7 +283,7 @@ text {* Lemma @{thm [source] cgf_cat_left_imp_eq} shows that concatenation is ca
   Intuitively this means that a trace can be uniquely decomposed into its constituent parts and
   is one of the key properties of the trace algebra of generalised reactive processes. *}
 
-lemma cgf_cat_right_imp_eq: 
+lemma cgf_cat_right_imp_eq:
   assumes "f @\<^sub>C h = g @\<^sub>C h"
   shows "f = g"
 proof -
@@ -298,7 +298,7 @@ proof -
   next
     case False
     with assms ends show ?thesis
-    proof (transfer) 
+    proof (transfer)
       fix f g h :: "real \<rightharpoonup> 'a"
       assume a: "\<exists>i\<ge>0. dom f = {0..<i}" "\<exists>i\<ge>0. dom g = {0..<i}" "\<exists>i\<ge>0. dom h = {0..<i}"
              "(h \<ggreater> Sup' (dom f)) ++ f = (h \<ggreater> Sup' (dom g)) ++ g"
@@ -321,14 +321,14 @@ text {* Similarly, we show that concatenation is cancellative in its second argu
 lemma cgf_cat_assoc: "(f @\<^sub>C g) @\<^sub>C h = f @\<^sub>C (g @\<^sub>C h)"
 proof (rule cgf_eqI, simp_all add: cgf_end_cat add.assoc, clarify)
   fix x
-  assume x: "x < end\<^sub>C f + (end\<^sub>C g + end\<^sub>C h)" 
+  assume x: "x < end\<^sub>C f + (end\<^sub>C g + end\<^sub>C h)"
   show "\<langle>f @\<^sub>C g @\<^sub>C h\<rangle>\<^sub>C x = \<langle>f @\<^sub>C (g @\<^sub>C h)\<rangle>\<^sub>C x"
   proof (cases "x < end\<^sub>C f")
     case True thus ?thesis
-      by (metis (mono_tags, hide_lams) add.right_neutral add_less_cancel_left 
+      by (metis (mono_tags, hide_lams) add.right_neutral add_less_cancel_left
                 cgf_cat_ext_first cgf_end_cat cgf_end_ge_0 le_less_trans not_le)
   next
-    case False 
+    case False
     hence x_gef: "x \<ge> end\<^sub>C f"
       by auto
     thus ?thesis
@@ -336,27 +336,27 @@ proof (rule cgf_eqI, simp_all add: cgf_end_cat add.assoc, clarify)
       case True thus ?thesis
         by (simp add: add_less_imp_less_left cgf_cat_ext_first cgf_cat_ext_last cgf_end_cat x_gef)
     next
-      case False 
+      case False
       hence x_gefg: "x \<ge> end\<^sub>C f+end\<^sub>C g"
         by auto
       thus ?thesis
-        by (simp add: cgf_cat_ext_last cgf_end_cat cancel_ab_semigroup_add_class.diff_diff_add 
+        by (simp add: cgf_cat_ext_last cgf_end_cat cancel_ab_semigroup_add_class.diff_diff_add
                       add_le_imp_le_diff x_gef)
     qed
   qed
 qed
 
 text {* Another key property is associativity of concatenation, which is demonstrated above. We prove
-  this by extensionality, and split the proof into values of the index $x$ that fall within the 
-  three concatenated sections of the contiguous function. This allows us to show, below, that 
+  this by extensionality, and split the proof into values of the index $x$ that fall within the
+  three concatenated sections of the contiguous function. This allows us to show, below, that
   contiguous functions form a monoid. *}
 
 instance cgf :: (type) monoid_add
-  by (intro_classes, simp_all add: cgf_cat_assoc)  
+  by (intro_classes, simp_all add: cgf_cat_assoc)
 
 instantiation cgf :: (type) ord
 begin
-  lift_definition less_eq_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" is 
+  lift_definition less_eq_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" is
   "op \<subseteq>\<^sub>m" .
   definition less_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" where
   "less_cgf x y = (x \<le> y \<and> \<not> y \<le> x)"
@@ -376,7 +376,7 @@ lemma monoid_le_ttrace:
   apply (rule_tac x="i-j" in exI)
   apply (auto)
   using map_le_implies_dom_le apply fastforce
-  apply (metis add.commute add_increasing cancel_ab_semigroup_add_class.add_diff_cancel_left' 
+  apply (metis add.commute add_increasing cancel_ab_semigroup_add_class.add_diff_cancel_left'
                less_diff_eq less_eq_real_def)
   apply (subgoal_tac "f = g |` {0..<j}")
   apply (simp)
@@ -384,7 +384,7 @@ lemma monoid_le_ttrace:
   apply (simp add: map_le_via_restrict)
 done
 
-text {* At this point we also need to show that the order relation corresponds to the monoidal order 
+text {* At this point we also need to show that the order relation corresponds to the monoidal order
   relation which is constructed as $(x \le_m y) \iff (\exists z. y = x \cat z)$. This will allow us
   to link to the proofs about this order relation. *}
 
@@ -422,7 +422,7 @@ proof -
   thus ?thesis
     by (simp add: cgf_end_cat)
 qed
-    
+
 lemma cgf_dom_empty [simp]: "dom\<^sub>C([]\<^sub>C) = {}"
   by (transfer, simp)
 
@@ -457,7 +457,7 @@ lemma cgf_restrict_less: "\<lbrakk> 0 \<le> n ; n < end\<^sub>C(t) \<rbrakk> \<L
   by (metis cgf_end_restrict cgf_restrict_le dual_order.strict_iff_order)
 
 text {* Restriction yields a function which is guaranteed to be no longer than the original,
-  and is strictly less than the original provided that $n$ is positive and is less than the original 
+  and is strictly less than the original provided that $n$ is positive and is less than the original
   length. *}
 
 lemma cgf_prefix_iff: "f \<le> g \<longleftrightarrow> (\<exists> h. g = f @\<^sub>C h)"
@@ -481,7 +481,7 @@ text {* We also show some properties about the restriction operator: restricting
 
 lemma cgf_end_force [simp]: "n \<ge> 0 \<Longrightarrow> end\<^sub>C (f !\<^sub>C n) = n"
   apply (transfer, auto simp add: dom_if)
-  apply (rename_tac n f i)  
+  apply (rename_tac n f i)
   apply (subgoal_tac "{x. 0 \<le> x \<and> x < n} = {0..<n}")
   apply (auto)
 done
@@ -547,20 +547,19 @@ lemma cgf_weak_lens: "\<lbrakk> weak_lens X; weak_lens Y \<rbrakk> \<Longrightar
 
 text {* Finally we show a few properties about subtraction that are also derived from the trace
   algebra. *}
-    
+
 lemma cgf_cat_minus_prefix:
   "f \<le> g \<Longrightarrow> g = f @\<^sub>C (g - f)"
   by (simp add: diff_add_cancel_left')
-  
+
 lemma cgf_apply_minus [simp]: "\<lbrakk> 0 \<le> x; f \<le> g \<rbrakk> \<Longrightarrow> \<langle>g - f\<rangle>\<^sub>C x = \<langle>g\<rangle>\<^sub>C (x + end\<^sub>C(f))"
   by (metis add_diff_cancel cgf_cat_ext_last cgf_cat_minus_prefix le_add_same_cancel2)
-  
+
 lemma cgf_end_minus: "g \<le> f \<Longrightarrow> end\<^sub>C(f-g) = end\<^sub>C(f)-end\<^sub>C(g)"
   by (auto simp add: cgf_prefix_iff cgf_end_cat)
 
 lemma list_concat_minus_list_concat: "(f @\<^sub>C g) - (f @\<^sub>C h) = g - h"
   using ordered_cancel_monoid_diff_class.add_diff_cancel_left' by blast
-
 (*<*)
 end
 (*>*)

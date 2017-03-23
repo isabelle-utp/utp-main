@@ -20,11 +20,11 @@ translations
   "\<lbrace>x\<rbrace>" == "CONST finsert x \<lbrace>\<rbrace>"
 
 term "fBall"
-  
+
 syntax
   "_fBall" :: "pttrn => 'a fset => bool => bool" ("(3\<forall> _|\<in>|_./ _)" [0, 0, 10] 10)
   "_fBex"  :: "pttrn => 'a fset => bool => bool" ("(3\<exists> _|\<in>|_./ _)" [0, 0, 10] 10)
-  
+
 translations
   "\<forall> x|\<in>|A. P" == "CONST fBall A (%x. P)"
   "\<exists> x|\<in>|A. P" == "CONST fBex A (%x. P)"
@@ -54,11 +54,11 @@ lemma fset_intro:
 lemma fset_elim:
   "\<lbrakk> x = y; fset x = fset y \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (auto)
-  
+
 lemma fmember_intro:
   "\<lbrakk> x \<in> fset(xs) \<rbrakk> \<Longrightarrow> x |\<in>| xs"
   by (metis fmember.rep_eq)
-  
+
 lemma fmember_elim:
   "\<lbrakk> x |\<in>| xs; x \<in> fset(xs) \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (metis fmember.rep_eq)
@@ -66,7 +66,7 @@ lemma fmember_elim:
 lemma fnmember_intro [intro]:
   "\<lbrakk> x \<notin> fset(xs) \<rbrakk> \<Longrightarrow> x |\<notin>| xs"
   by (metis fmember.rep_eq)
-  
+
 lemma fnmember_elim [elim]:
   "\<lbrakk> x |\<notin>| xs; x \<notin> fset(xs) \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (metis fmember.rep_eq)
@@ -74,21 +74,21 @@ lemma fnmember_elim [elim]:
 lemma fsubset_intro [intro]:
   "\<langle>xs\<rangle>\<^sub>f \<subseteq> \<langle>ys\<rangle>\<^sub>f \<Longrightarrow> xs |\<subseteq>| ys"
   by (metis less_eq_fset.rep_eq)
-  
+
 lemma fsubset_elim [elim]:
   "\<lbrakk> xs |\<subseteq>| ys; \<langle>xs\<rangle>\<^sub>f \<subseteq> \<langle>ys\<rangle>\<^sub>f \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (metis less_eq_fset.rep_eq)
-  
+
 lemma fBall_intro [intro]:
   "Ball \<langle>A\<rangle>\<^sub>f P \<Longrightarrow> fBall A P"
   by (metis (poly_guards_query) fBallI fmember.rep_eq)
-  
+
 lemma fBall_elim [elim]:
   "\<lbrakk> fBall A P; Ball \<langle>A\<rangle>\<^sub>f P \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> Q"
   by (metis fBallE fmember.rep_eq)
-  
+
 lift_definition finset :: "'a list \<Rightarrow> 'a fset" is set ..
-  
+
 context linorder
 begin
 
@@ -198,7 +198,7 @@ proof -
   done
 qed
 
-definition flub :: "'a fset set \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where 
+definition flub :: "'a fset set \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
 "flub A t = (if (\<forall> a\<in>A. a |\<subseteq>| t) then Abs_fset (\<Union>x\<in>A. \<langle>x\<rangle>\<^sub>f) else t)"
 
 lemma finite_Union_subsets:
@@ -228,7 +228,7 @@ lemma fglb_rep_eq:
   apply (metis finite_INT finite_fset)
 done
 
-lemma FinPow_rep_eq [simp]: 
+lemma FinPow_rep_eq [simp]:
   "fset (FinPow xs) = {ys. ys |\<subseteq>| xs}"
   apply (subgoal_tac "finite (Abs_fset ` Pow \<langle>xs\<rangle>\<^sub>f)")
   apply (auto simp add:Abs_fset_inverse fmember_def FinPow_def)
@@ -238,11 +238,11 @@ lemma FinPow_rep_eq [simp]:
   apply (metis (full_types) Pow_iff fset_inverse imageI less_eq_fset.rep_eq)
 done
 
-lemma FUnion_rep_eq [simp]: 
+lemma FUnion_rep_eq [simp]:
   "\<langle>\<Union>\<^sub>f xs\<rangle>\<^sub>f = (\<Union>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)"
   by (simp add:FUnion_def Abs_fset_inverse)
 
-lemma FInter_rep_eq [simp]: 
+lemma FInter_rep_eq [simp]:
   "xs \<noteq> \<lbrace>\<rbrace> \<Longrightarrow> \<langle>\<Inter>\<^sub>f xs\<rangle>\<^sub>f = (\<Inter>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)"
   apply (simp add:FInter_def)
   apply (subgoal_tac "finite (\<Inter>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)")
@@ -269,5 +269,5 @@ lemma Fow_UNIV [simp]: "Fow UNIV = UNIV"
   by (simp add:Fow_def)
 
 lift_definition FMax :: "('a::linorder) fset \<Rightarrow> 'a" is "Max" .
-  
+
 end

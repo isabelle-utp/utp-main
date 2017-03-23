@@ -35,7 +35,9 @@ session "HOL-Algebra2" (main timing) in "contrib/Algebra" = HOL +
     Divisibility         (* Rings *)
     IntRing              (* Ideals and residue classes *)
     UnivPoly             (* Polynomials *)
-  document_files "root.bib" "root.tex"
+  document_files
+    "root.bib"
+    "root.tex"
 
 (* Optics Library *)
 
@@ -127,7 +129,7 @@ session "UTP-THY" in "theories" = "UTP" +
 
 session "UTP-THY-DEEP" in "utp/models" = "UTP-THY" +
   options [browser_info = true, document = false]
-  theories utp_theories utp_deep
+  theories utp_theories_deep
 
 session "UTP-THY-AXM" in "utp/models" = "UTP-THY" +
   options [browser_info = true, document = false]
@@ -135,11 +137,7 @@ session "UTP-THY-AXM" in "utp/models" = "UTP-THY" +
 
 session "UTP-THY-DEEP-AXM" in "utp/models" = "UTP-THY-DEEP" +
   options [browser_info = true, document = false]
-  theories utp_theories utp_deep utp_axm
-
-(***********************)
-(* REVIEWED UNTIL HERE *)
-(***********************)
+  theories utp_theories_deep utp_axm
 
 (* Imports for Hybrid UTP *)
 
@@ -174,7 +172,7 @@ session "UTP-HYBRID" in "hybrid" = "UTP-HYBRID-IMPORTS" +
 
 (* VDM-SL Mechanisation *)
 
-session "VDM-SL" in "vdm-sl" = "UTP-THY" +
+session "VDM-SL" in "vdm-sl" = "UTP-THY-DEEP" +
   options [document = false]
   theories
     PFOL
@@ -182,7 +180,7 @@ session "VDM-SL" in "vdm-sl" = "UTP-THY" +
 
 (* Isabelle/UTP Tutorial *)
 
-session "UTP-TUTORIAL" in "tutorial" = "UTP" +
+session "UTP-TUTORIAL" in "tutorial" = "UTP-THY" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     utp_tutorial
@@ -198,6 +196,6 @@ session "FMI" in "fmi" = "UTP-THY-DEEP-AXM" +
   theories
     fmi
   document_files
-    "root.tex"
     (* "root.bib" *)
+    "root.tex"
     "document.sty"

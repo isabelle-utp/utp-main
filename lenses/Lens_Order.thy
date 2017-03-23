@@ -209,7 +209,7 @@ lemma lens_plus_left_unit: "0\<^sub>L +\<^sub>L X \<approx>\<^sub>L X"
 
 lemma lens_plus_right_unit: "X +\<^sub>L 0\<^sub>L \<approx>\<^sub>L X"
   using lens_equiv_trans lens_indep_sym lens_plus_comm lens_plus_left_unit zero_lens_indep by blast
-  
+
 lemma lens_plus_mono_left:
   "\<lbrakk> Y \<bowtie> Z; X \<subseteq>\<^sub>L Y \<rbrakk> \<Longrightarrow> X +\<^sub>L Z \<subseteq>\<^sub>L Y +\<^sub>L Z"
   apply (auto simp add: sublens_def)
@@ -227,14 +227,13 @@ lemma lens_plus_mono_right:
 lemma lens_plus_subcong: "\<lbrakk> Y\<^sub>1 \<bowtie> Y\<^sub>2; X\<^sub>1 \<subseteq>\<^sub>L Y\<^sub>1; X\<^sub>2 \<subseteq>\<^sub>L Y\<^sub>2 \<rbrakk> \<Longrightarrow> X\<^sub>1 +\<^sub>L X\<^sub>2 \<subseteq>\<^sub>L Y\<^sub>1 +\<^sub>L Y\<^sub>2"
   by (metis prod_lens_comp_plus prod_vwb_lens sublens_def)
 
-      
 lemma lens_plus_eq_left: "\<lbrakk> X \<bowtie> Z; X \<approx>\<^sub>L Y \<rbrakk> \<Longrightarrow> X +\<^sub>L Z \<approx>\<^sub>L Y +\<^sub>L Z"
   by (meson lens_equiv_def lens_plus_mono_left sublens_pres_indep)
 
 lemma lens_plus_eq_right: "\<lbrakk> X \<bowtie> Y; Y \<approx>\<^sub>L Z \<rbrakk> \<Longrightarrow> X +\<^sub>L Y \<approx>\<^sub>L X +\<^sub>L Z"
   by (meson lens_equiv_def lens_indep_sym lens_plus_mono_right sublens_pres_indep)
-      
-lemma lens_plus_cong: 
+
+lemma lens_plus_cong:
   assumes "X\<^sub>1 \<bowtie> X\<^sub>2" "X\<^sub>1 \<approx>\<^sub>L Y\<^sub>1" "X\<^sub>2 \<approx>\<^sub>L Y\<^sub>2"
   shows "X\<^sub>1 +\<^sub>L X\<^sub>2 \<approx>\<^sub>L Y\<^sub>1 +\<^sub>L Y\<^sub>2"
 proof -
@@ -245,7 +244,7 @@ proof -
   ultimately show ?thesis
     using lens_equiv_trans by blast
 qed
-    
+
 lemma prod_lens_sublens_cong:
   "\<lbrakk> X\<^sub>1 \<subseteq>\<^sub>L X\<^sub>2; Y\<^sub>1 \<subseteq>\<^sub>L Y\<^sub>2 \<rbrakk> \<Longrightarrow> (X\<^sub>1 \<times>\<^sub>L Y\<^sub>1) \<subseteq>\<^sub>L (X\<^sub>2 \<times>\<^sub>L Y\<^sub>2)"
   apply (auto simp add: sublens_def)
@@ -284,7 +283,7 @@ proof (rule lens_equivI)
     apply (rule ext, rule ext, auto simp add: lens_prod_def prod.case_eq_if)
   done
 qed
-  
+
 lemma bij_lens_inv_left:
   "bij_lens X \<Longrightarrow> inv\<^sub>L X ;\<^sub>L X = 1\<^sub>L"
   by (auto simp add: lens_inv_def lens_comp_def comp_def id_lens_def, rule ext, auto)
@@ -390,5 +389,4 @@ lemma lens_override_overshadow:
 lemma lens_override_plus:
   "X \<bowtie> Y \<Longrightarrow> S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on (X +\<^sub>L Y) = (S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on X) \<oplus>\<^sub>L S\<^sub>2 on Y"
   by (simp add: lens_indep_comm lens_override_def lens_plus_def)
-  
 end

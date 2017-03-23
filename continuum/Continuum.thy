@@ -1,7 +1,7 @@
 section {* Cardinality of the continuum *}
 
 theory Continuum
-  imports 
+  imports
     Lightweight_Cardinals
     Finite_Bijection
     Transcendental
@@ -22,9 +22,9 @@ text {* This theory introduces definitions and type class that group Isabelle ty
         types that are finite, and also countably infinite. Effectively then, the @{term countable} predicate
         characterises types with cardinality up to $\aleph_0$. We will create an analogous constant called
         \emph{continuum} that characterises types up to cardinality $\mathfrak{c}$.
-        Since we don't have the continuum hypothesis in HOL, we explicitly require that types of up to cardinality $\mathfrak{c}$ 
+        Since we don't have the continuum hypothesis in HOL, we explicitly require that types of up to cardinality $\mathfrak{c}$
         either exhibit an injection into the natural numbers (for types of finite or $\aleph_0$ cardinality)
-        or a bijection with the set of natural numbers ($\mathbb{P}\,\mathbb{N}$). With informal justification by 
+        or a bijection with the set of natural numbers ($\mathbb{P}\,\mathbb{N}$). With informal justification by
         the continuum hypothesis there should be no types in between these two possibilities. *}
 
 definition continuum :: "'a set \<Rightarrow> bool" where
@@ -115,7 +115,7 @@ next
     ultimately show ?thesis
       using ordIso_transitive by blast
   qed
-    
+
   ultimately show ?thesis using assms
     apply (simp add: continuum_as_card)
     apply (erule disjE; erule disjE)
@@ -220,7 +220,7 @@ qed
 lemma to_nat_set_bij:
   assumes "uncountable (UNIV :: 'a::continuum set)"
   shows "bij (to_nat_set :: 'a \<Rightarrow> nat set)"
-proof - 
+proof -
   obtain to_nat_set :: "'a \<Rightarrow> nat set" where "bij to_nat_set"
     using assms uncountable_continuum by blast
   thus ?thesis
@@ -258,7 +258,7 @@ lemma to_nat_bij:
 definition from_nat_bij :: "nat \<Rightarrow> 'a::{countable, infinite}" where
 "from_nat_bij = inv to_nat_bij"
 
-text {* The real numbers are in the continuum -- this requires a proof that $|\mathbb{P}\,\mathbb{N}| = |\mathbb{R}|$ 
+text {* The real numbers are in the continuum -- this requires a proof that $|\mathbb{P}\,\mathbb{N}| = |\mathbb{R}|$
  that we have proved elsewhere. *}
 
 instance real :: continuum
@@ -281,9 +281,9 @@ proof
     case False
     then obtain to_nat :: "'a \<Rightarrow> nat" where bij_to_nat: "bij to_nat"
       using to_nat_on_infinite[of "UNIV :: 'a set"] by auto
-          
+
     let ?f = "(\<lambda> A. to_nat ` A) :: 'a set \<Rightarrow> nat set"
-      
+
     from bij_to_nat have "bij ?f"
     proof -
       have "inj ?f"
@@ -291,7 +291,7 @@ proof
       moreover have "surj ?f"
       proof (clarsimp simp add: surj_def)
         fix y :: "nat set"
-        have "y = to_nat ` inv to_nat ` y" 
+        have "y = to_nat ` inv to_nat ` y"
           by (simp add: bij_is_surj bij_to_nat image_f_inv_f)
         thus "\<exists>x::'a set. y = to_nat ` x"
           by (auto)
@@ -339,5 +339,4 @@ proof
   thus "(\<exists>to_nat :: 'a cset \<Rightarrow> nat. inj to_nat) \<or> (\<exists>to_nat_set :: 'a cset \<Rightarrow> nat set. bij to_nat_set)"
     by (simp add: continuum_def)
 qed
-
 end

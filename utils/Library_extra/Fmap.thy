@@ -5,10 +5,10 @@ begin
 text {* Ideally, this should only require a linear order on the domain type
         but for the sake of convenience I've got both requiring it as the
         the ordering of the graph list is just the pairwise linear order. *}
-definition fmaps :: "('a \<rightharpoonup> 'b) set" 
+definition fmaps :: "('a \<rightharpoonup> 'b) set"
 where "fmaps = Collect (finite \<circ> dom)"
 
-typedef ('a, 'b) fmap = "fmaps :: ('a \<rightharpoonup> 'b) set" 
+typedef ('a, 'b) fmap = "fmaps :: ('a \<rightharpoonup> 'b) set"
   by (rule_tac x="empty" in exI, simp add:fmaps_def)
 
 notation Rep_fmap ("\<langle>_\<rangle>\<^sub>m")
@@ -31,7 +31,7 @@ lemma Abs_fmap_inv [simp]:  "finite (dom f) \<Longrightarrow> Rep_fmap (Abs_fmap
   apply (simp_all add: fmaps_def)
 done
 
-lemma Abs_fmap_inj: 
+lemma Abs_fmap_inj:
   "\<lbrakk> Abs_fmap f = Abs_fmap g; finite (dom f); finite (dom g) \<rbrakk> \<Longrightarrow> f = g"
   by (metis Abs_fmap_inv)
 
@@ -83,15 +83,14 @@ lift_definition list_fmap :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) fmap"
 lift_definition fmap_graph :: "('a, 'b) fmap \<Rightarrow> ('a * 'b) fset" is "map_graph"
   by (simp add: fmaps_def finite_dom_graph)
 
-
 lift_definition fmap_upd :: "('a, 'b) fmap \<Rightarrow> 'a \<Rightarrow> 'b option \<Rightarrow> ('a, 'b) fmap" is "fun_upd"
   by (auto simp add:fmaps_def)
 
-lemma fdom_empty [simp]: 
+lemma fdom_empty [simp]:
   "fdom f = \<lbrace>\<rbrace> \<Longrightarrow> f = 0"
   by (erule fset_elim, auto simp add:fdom.rep_eq zero_fmap.rep_eq)
 
-lemma fran_empty [simp]: 
+lemma fran_empty [simp]:
   "fran f = \<lbrace>\<rbrace> \<Longrightarrow> f = 0"
   apply (auto elim!:fset_elim simp add:fran.rep_eq zero_fmap.rep_eq)
   apply (metis empty_iff option.exhaust ranI)
@@ -107,7 +106,7 @@ lemma fmap_list_empty [simp]:
   "fmap_list(0) = []"
   by (simp add:fmap_list_def flist_def fdom.rep_eq zero_fmap.rep_eq)
 
-lemma fmap_list_inv [simp]: 
+lemma fmap_list_inv [simp]:
   "list_fmap (fmap_list f) = f"
   apply (auto simp add:list_fmap.rep_eq fmap_list_def)
   apply (metis fdom.rep_eq flist_inv finset.rep_eq map_of_map_keys)
@@ -118,7 +117,7 @@ lemma length_fmap_list [simp]: "length (fmap_list x) = fcard (fdom x)"
   apply (metis distinct_card fdom.rep_eq flist_props(2) flist_set)
 done
 
-lemma fmap_list_nth: 
+lemma fmap_list_nth:
   "i < fcard(fdom(f)) \<Longrightarrow> fmap_list f ! i = (let k = flist (fdom f) ! i in (k, the (\<langle>f\<rangle>\<^sub>m k)))"
   by (simp add: fmap_list_def Let_def fcard_flist)
 
@@ -170,7 +169,6 @@ translations
   "_MUpdate f (_mupdbinds b bs)" == "_MUpdate (_MUpdate f b) bs"
   "f(x:=\<^sub>my)" == "CONST fmap_upd f x y"
 
-
 instantiation fmap :: (linorder,linorder) order
 begin
 
@@ -180,7 +178,7 @@ definition less_eq_fmap :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarr
 definition less_fmap :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> bool" where
 "less_fmap x y \<longleftrightarrow> x \<le> y \<and> \<not> (y \<le> x)"
 
-instance 
+instance
   apply (intro_classes)
   apply (force simp add:less_fmap_def less_eq_fmap_def)
   apply (force simp add:less_fmap_def less_eq_fmap_def)
@@ -214,7 +212,7 @@ lemma fmap_fset_fmempty [simp]:
   "fmap_graph(0) = \<lbrace>\<rbrace>"
   by (auto intro:fmember_intro elim:fmember_elim simp add: fmap_graph.rep_eq zero_fmap.rep_eq map_graph_def)
 
-lemma fdom_map_upd [simp]: 
+lemma fdom_map_upd [simp]:
   "fdom (f(k :=\<^sub>m Some v)) = finsert k (fdom f)"
   by (auto simp add:fdom.rep_eq fmap_upd.rep_eq)
 
@@ -259,16 +257,16 @@ done
 text {* Composition of finite maps *}
 
 lift_definition fmap_comp :: "('b, 'c) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'c) fmap"
-is "map_comp" 
+is "map_comp"
   apply (auto simp add:fmaps_def)
   apply (metis finite_subset map_comp_dom)
 done
 
-lemma fmap_comp_0_0 [simp]: 
+lemma fmap_comp_0_0 [simp]:
   "fmap_comp 0 f = 0"
   by (auto simp add:fmap_comp.rep_eq zero_fmap.rep_eq)
-  
-lemma fmap_comp_0_1 [simp]: 
+
+lemma fmap_comp_0_1 [simp]:
   "fmap_comp f 0 = 0"
   by (auto simp add:fmap_comp.rep_eq zero_fmap.rep_eq)
 
@@ -285,7 +283,7 @@ is "\<lambda> f A. graph_map (f ` A)"
 
 text {* Domain restriction *}
 
-lift_definition fmap_domr :: "'a fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" 
+lift_definition fmap_domr :: "'a fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap"
 is "\<lambda> s f. restrict_map f s" by (simp add:fmaps_def)
 
 definition fmap_inj :: "('a, 'b) fmap \<Rightarrow> bool"
@@ -296,10 +294,10 @@ lemma fmap_inj_empty: "fmap_inj(fmempty)"
 
 text {* Range restriction *}
 
-lift_definition fmap_ranr :: "'b fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" 
+lift_definition fmap_ranr :: "'b fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap"
   is "\<lambda> A f. ran_restrict_map f A" by (auto simp add:fmaps_def)
 
-lift_definition fmap_inv :: "('a, 'b) fmap \<Rightarrow> ('b, 'a) fmap" 
+lift_definition fmap_inv :: "('a, 'b) fmap \<Rightarrow> ('b, 'a) fmap"
 is "map_inv" by (simp add:fmaps_def)
 
 definition fmap_domr' :: "'a fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" where
@@ -310,7 +308,7 @@ definition fmap_ranr' :: "'b fset \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a,
 
 lemma finite_dom_map_of:
   fixes f :: "('a::linorder \<rightharpoonup> 'b)"
-  assumes "finite (dom f)" 
+  assumes "finite (dom f)"
   shows "\<exists> xs. f = map_of xs"
   by (metis Abs_fmap_inv assms fmap_list_inv list_fmap.rep_eq)
 
@@ -343,7 +341,7 @@ lemma fmap_graph_Fow: "fmap_graph ` finmaps A B \<subseteq> Fow (A \<times> B)"
   apply (metis (no_types, lifting) Range.intros contra_subsetD finmaps_def mem_Collect_eq ran_map_graph)
 done
 
-lemma countable_finmaps: 
+lemma countable_finmaps:
   fixes A :: "'a set" and B :: "'b set"
   assumes "countable A" "countable B"
   shows "countable (finmaps A B)"
@@ -375,7 +373,7 @@ end
 *)
 
 lift_definition map_fmap :: "('a \<Rightarrow> 'b) \<Rightarrow> ('d, 'a) fmap \<Rightarrow> ('d, 'b) fmap"
-is "\<lambda> f m x. Option.bind (m x) (Some \<circ> f)" 
+is "\<lambda> f m x. Option.bind (m x) (Some \<circ> f)"
   by (simp add: fmaps_def, metis (no_types, lifting) bind_eq_None_conv domIff finite_subset subsetI)
 
 lift_definition set_fmap :: "('d, 'a) fmap \<Rightarrow> 'a set" is ran .
@@ -392,7 +390,7 @@ bnf "('d, 'a) fmap"
 proof -
   show "map_fmap id = id"
     by (auto simp add: map_fmap_def map_fun_def)
-  show "\<And>f g. map_fmap (g \<circ> f) = map_fmap g \<circ> map_fmap f"    
+  show "\<And>f g. map_fmap (g \<circ> f) = map_fmap g \<circ> map_fmap f"
     by (auto simp add: comp_def map_fmap.rep_eq)
   show "\<And>x f g. (\<And>z. z \<in> set_fmap x \<Longrightarrow> f z = g z) \<Longrightarrow> map_fmap f x = map_fmap g x"
     by (transfer, rule ext, simp add: ran_def, metis (mono_tags, lifting) Option.bind_cong comp_apply)
@@ -449,7 +447,7 @@ proof -
   show "\<And>z. z \<in> set_fmap fmempty \<Longrightarrow> False"
     by (transfer, auto)
 qed
-    
+
 datatype mt = MyType string string "(string, mt) fmap"
 
 end

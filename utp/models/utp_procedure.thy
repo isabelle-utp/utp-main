@@ -74,7 +74,6 @@ translations
   "_proc_block T (_parm_list (_res_parm x) ps) P"
   => "CONST vres_parm_comp T <x>\<^sub>d (\<lambda> x. (_proc_block T ps P))"
 
-
 context utp_local_var
 begin
 
@@ -97,9 +96,7 @@ context utp_local_var
 begin
 
 declare [[show_types]]
-
 declare [[show_sorts]]
-
 
 term "val_parm (MkDVar ''x'')"
 
@@ -129,17 +126,4 @@ lemma vres_parm_comp_apply [simp]:
   "(vres_parm_comp x P) (u, v) = (var x \<bullet> x := &u ;; P x v ;; u := &x)"
   by (simp add: vres_parm_comp_def)
 *)
-
-text {* We also set up procedures for the theory of designs. *}
-
-abbreviation "DAL \<equiv> TYPE(DES \<times> '\<alpha> des \<times> '\<alpha>)"
-abbreviation "NDAL \<equiv> TYPE(NDES \<times> '\<alpha> des \<times> '\<alpha>)"
-
-syntax
- "_dproc_block"  :: "parm_list \<Rightarrow> logic \<Rightarrow> ('a, '\<alpha>) uproc" ("_ \<bullet>\<^sub>D/ _" [0,10] 10)
- "_nproc_block"  :: "parm_list \<Rightarrow> logic \<Rightarrow> ('a, '\<alpha>) uproc" ("_ \<bullet>\<^sub>N/ _" [0,10] 10)
-
-translations
-  "_dproc_block ps P" => "_proc_block (CONST DAL) ps P"
-  "_nproc_block ps P" => "_proc_block (CONST NDAL) ps P"
 end
