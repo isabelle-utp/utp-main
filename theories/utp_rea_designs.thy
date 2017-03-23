@@ -1785,6 +1785,18 @@ proof -
   finally show ?thesis .
 qed
 
+lemma SRD_right_Chaos_tri_lemma:
+  assumes "P is SRD"
+  shows "P ;; Chaos = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true \<and> \<not> (post\<^sub>R P ;; R1 true)) \<turnstile> ((\<exists> $st\<acute> \<bullet> peri\<^sub>R P) \<diamondop> false))"
+proof -
+  have "(\<not> (cmt\<^sub>R P \<and> \<not> $wait\<acute>) ;; R1 true) = (\<not> (post\<^sub>R P ;; R1 true\<^sub>h))"
+    by (rel_auto, blast)
+  moreover have "((\<exists> $st\<acute> \<bullet> cmt\<^sub>R P) \<and> $wait\<acute>) = (\<exists> $st\<acute> \<bullet> peri\<^sub>R P) \<diamondop> false"
+    by (rel_auto)
+  ultimately show ?thesis
+    by (simp add: SRD_right_Chaos_lemma[OF assms])
+qed
+ 
 lemma SRD_right_Miracle_lemma:
   assumes "P is SRD"
   shows "P ;; Miracle = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> cmt\<^sub>R P) \<and> $wait\<acute>))"
@@ -1800,6 +1812,11 @@ proof -
   finally show ?thesis .
 qed
 
+lemma SRD_right_Miracle_tri_lemma:
+  assumes "P is SRD"
+  shows "P ;; Miracle = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true) \<turnstile> (\<exists> $st\<acute> \<bullet> peri\<^sub>R P) \<diamondop> false)"
+  by (simp add: SRD_right_Miracle_lemma[OF assms], rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
+  
 text {* Properties about healthiness condition RD3 *}
 
 lemma RD3_idem: "RD3(RD3(P)) = RD3(P)"
@@ -2034,6 +2051,32 @@ proof -
   finally show ?thesis .
 qed
 
+lemma NSRD_right_Miracle_tri_lemma:
+  assumes "P is NSRD"
+  shows "P ;; Miracle = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> false)"
+  by (metis (no_types, lifting) Healthy_if NSRD_iff RD3_def RHS_tri_design_RD3_intro 
+            RHS_tri_design_right_unit_lemma SRD_right_Miracle_tri_lemma assms ok'_peri_unrest 
+            ok'_pre_unrest periR_srdes_skip postR_Miracle wait'_post_unrest)
+
+lemma Miracle_right_zero_law:
+  assumes "$ok\<acute> \<sharp> P"
+  shows "\<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> P) ;; Miracle = Miracle"
+proof -
+  have "\<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> P) is SRD"
+    by (simp add: RHS_tri_design_is_SRD assms unrest_false unrest_true)
+  hence "\<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> P) is NSRD"
+    by (rule NSRD_intro, (rel_auto)+)
+  thus ?thesis
+    by (simp add: NSRD_right_Miracle_tri_lemma rea_pre_RHS_design rea_peri_RHS_design usubst R2c_false R1_false)
+       (simp add: Miracle_def wait'_cond_idem)
+qed
+
+lemma NSRD_right_Chaos_tri_lemma:
+  assumes "P is NSRD"
+  shows "P ;; Chaos = \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> \<not> (post\<^sub>R P ;; R1 true)) \<turnstile> peri\<^sub>R P \<diamondop> false)"
+  by (simp add: SRD_right_Chaos_tri_lemma[OF NSRD_is_SRD[OF assms]] 
+                NSRD_neg_pre_unit NSRD_st'_unrest_peri assms ex_unrest)
+  
 lemma assigns_rea_id: "\<langle>id\<rangle>\<^sub>R = II\<^sub>R"
   by (rel_auto)
 
