@@ -73,6 +73,10 @@ lemma at_has_deriv [simp]:
   "(f has-deriv f' at \<tau> < l) @\<^sub>u t = (f @\<^sub>u t) has-deriv (f' @\<^sub>u t) at (\<tau> @\<^sub>u t) < (l @\<^sub>u t)"
   by (simp add: at_def usubst alpha)
 
+lemma ode_to_ivp:
+  "vwb_lens x \<Longrightarrow> \<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H = (\<^bold>\<exists> x\<^sub>0 \<bullet> \<guillemotleft>x\<^sub>0\<guillemotright> =\<^sub>u $\<^bold>c:x \<and> \<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H)"
+  by (rel_auto)
+    
 lemma ivp_solution_refine:
   "\<lbrakk> vwb_lens x;
      continuous_on UNIV get\<^bsub>x\<^esub>;
@@ -170,7 +174,7 @@ done
 
 lemma ivp_uniq_solution_refine:
   "\<lbrakk> vwb_lens x; \<forall> l > 0. (\<F> usolves_ode \<F>' from 0) {0..l} UNIV; \<F>(0) = x\<^sub>0 \<rbrakk>
-   \<Longrightarrow> (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>H) \<sqsubseteq> (\<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H)"
+   \<Longrightarrow> (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>H) \<sqsubseteq> \<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H"
 proof (rel_auto)
   fix x :: "'a \<Longrightarrow> 'b" and \<F>' \<F> tr b tr' \<G> t
   assume assms:

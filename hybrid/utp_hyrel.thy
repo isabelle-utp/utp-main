@@ -3,13 +3,15 @@ section {* Hybrid relational calculus *}
 theory utp_hyrel
 imports
   "../utp/utp"
+  "../theories/utp_rea_designs"
   "../contrib/Ordinary_Differential_Equations/ODE_Analysis"
   "../dynamics/Derivative_extra"
   "../dynamics/Timed_Traces"
 begin recall_syntax
 
 hide_type rel
-
+no_notation inner (infix "\<bullet>" 70)
+  
 text {* We also set up adhoc overloading to apply timed traces and contiguous functions *}
 
 adhoc_overloading uapply cgf_apply and uapply tt_apply
@@ -159,8 +161,12 @@ abbreviation cont_lift :: "('a, 'c \<times> 'c) uexpr \<Rightarrow> ('a, 'd, 'c:
 abbreviation cont_pre_lift :: "('a, 'c) uexpr \<Rightarrow> ('a,'d,'c::topological_space) hyexpr" ("\<lceil>_\<rceil>\<^sub>C\<^sub><") where
 "\<lceil>P\<rceil>\<^sub>C\<^sub>< \<equiv> P \<oplus>\<^sub>p (ivar \<^bold>c)"
 
+abbreviation cont_post_lift :: "('a, 'c) uexpr \<Rightarrow> ('a,'d,'c::topological_space) hyexpr" ("\<lceil>_\<rceil>\<^sub>C\<^sub>>") where
+"\<lceil>P\<rceil>\<^sub>C\<^sub>> \<equiv> P \<oplus>\<^sub>p (ovar \<^bold>c)"
+
 translations
   "\<lceil>P\<rceil>\<^sub>C\<^sub><" <= "CONST aext P (CONST ivar CONST cont_alpha)"
+  "\<lceil>P\<rceil>\<^sub>C\<^sub>>" <= "CONST aext P (CONST ovar CONST cont_alpha)"
 
 lemma unrest_lift_cont_subst [unrest]:
   "\<lbrakk> vwb_lens x; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> (\<lceil>P\<rceil>\<^sub>C\<^sub><)\<lbrakk>v/$\<^bold>c\<rbrakk>"
@@ -482,7 +488,7 @@ subsection {* Pre-emption *}
 definition hPreempt ::
   "('d, 'c::topological_space) hyrel \<Rightarrow> 'c upred \<Rightarrow>
     ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>H _" [64,0,65] 64)
-where "P [b]\<^sub>H Q = (((Q \<triangleleft> b @\<^sub>u 0 \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>H)) \<or> ((\<lceil>\<not> b\<rceil>\<^sub>H \<and> P) ;; ((b @\<^sub>u 0) \<and> Q))))"
+where "P [b]\<^sub>H Q = (((Q \<triangleleft> \<lceil>b\<rceil>\<^sub>C\<^sub>< \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>H)) \<sqinter> ((\<lceil>\<not> b\<rceil>\<^sub>H \<and> P) ;; (\<lceil>b\<rceil>\<^sub>C\<^sub>< \<and> Q))))"
 
 text {* The pre-emption operator @{term "P [b]\<^sub>H Q"} states that $P$ is active until $b$ is satisfied
   by the continuous variables. At this point $Q$ will be activated. Usually $P$ will be an evolution
@@ -492,8 +498,8 @@ text {* The pre-emption operator @{term "P [b]\<^sub>H Q"} states that $P$ is ac
   We prove a few simple properties about this operator. *}
 
 lemma hPreempt_true: "P [true]\<^sub>H Q = Q"
-  by (simp add: hPreempt_def hInt_false)
+  by (simp add: hPreempt_def alpha hInt_false, simp add: false_upred_def)
 
 lemma hPreempt_false: "P [false]\<^sub>H Q = (P \<and> $tr <\<^sub>u $tr\<acute>)"
-  by (simp add: hPreempt_def hInt_true)
+  by (simp add: hPreempt_def alpha hInt_true, simp add: false_upred_def)
 end
