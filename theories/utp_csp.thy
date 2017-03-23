@@ -142,8 +142,12 @@ definition Skip :: "('\<sigma>, '\<phi>) action" where
 
 definition CSP3 :: "(('\<sigma>, '\<phi>) st_csp \<times> ('\<sigma>, '\<phi>) st_csp) health" where
 [upred_defs]: "CSP3(P) = (Skip ;; P)"
+
 definition CSP4 :: "(('\<sigma>, '\<phi>) st_csp \<times> ('\<sigma>, '\<phi>) st_csp) health" where
 [upred_defs]: "CSP4(P) = (P ;; Skip)"
+
+definition NCSP :: "(('\<sigma>, '\<phi>) st_csp \<times> ('\<sigma>, '\<phi>) st_csp) health" where
+"NCSP = CSP3 \<circ> CSP4 \<circ> CSP"
 
 subsection {* Healthiness condition properties *}
 
@@ -247,7 +251,7 @@ lemma CSP3_Idempotent: "Idempotent CSP3"
 
 lemma CSP3_Continuous: "Continuous CSP3"
   by (simp add: Continuous_def CSP3_def seq_Sup_distl)
-
+    
 lemma Skip_right_lemma:
   assumes "P is CSP"
   shows "P ;; Skip = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> cmt\<^sub>R P) \<triangleleft> $wait\<acute> \<triangleright> (\<exists> $ref\<acute> \<bullet> cmt\<^sub>R P)))"
@@ -334,15 +338,27 @@ lemma CSP4_tri_intro:
   using assms
   by (rule_tac CSP4_intro, simp_all add: pre\<^sub>R_def peri\<^sub>R_def post\<^sub>R_def usubst cmt\<^sub>R_def)
 
+lemma CSP3_commutes_CSP4: "CSP3(CSP4(P)) = CSP4(CSP3(P))"
+  by (simp add: CSP3_def CSP4_def seqr_assoc)
+    
+lemma NCSP_implies_CSP: "P is NCSP \<Longrightarrow> P is CSP"
+  by (metis (no_types, hide_lams) CSP3_def CSP4_def Healthy_def NCSP_def SRD_idem SRD_seqr_closure Skip_is_CSP comp_apply)
+
+lemma NCSP_implies_RD3: "P is NCSP \<Longrightarrow> P is RD3"
+  by (metis CSP3_commutes_CSP4 CSP4_right_subsumes_RD3 Healthy_def NCSP_def comp_apply)
+        
+lemma NCSP_implies_NSRD: "P is NCSP \<Longrightarrow> P is NSRD"
+  by (simp add: NCSP_implies_CSP NCSP_implies_RD3 SRD_RD3_implies_NSRD)
+    
 lemma CSP4_neg_pre_unit:
   assumes "P is CSP" "P is CSP4"
   shows "(\<not> pre\<^sub>R(P)) ;; R1(true) = (\<not> pre\<^sub>R(P))"
-  by (metis CSP4_implies_RD3 Healthy_def' NSRD_def NSRD_neg_pre_unit RHS_idem SRD_healths(4) SRD_reactive_design_alt assms)
+  by (simp add: CSP4_implies_RD3 NSRD_neg_pre_unit SRD_RD3_implies_NSRD assms(1) assms(2))
 
 lemma NSRD_CSP4_intro:
   assumes "P is CSP" "P is CSP4"
   shows "P is NSRD"
-  by (metis CSP4_implies_RD3 Healthy_def NSRD_def RHS_idem SRD_RHS_H1_H2 SRD_healths(4) assms(1) assms(2))
+  by (simp add: CSP4_implies_RD3 SRD_RD3_implies_NSRD assms(1) assms(2))    
     
 lemma CSP4_st'_unrest_peri:
   assumes "P is CSP" "P is CSP4"
@@ -421,13 +437,20 @@ lemma CSP4_Idempotent: "Idempotent CSP4"
 
 lemma CSP4_Continuous: "Continuous CSP4"
   by (simp add: Continuous_def CSP4_def seq_Sup_distr)
-      
+    
 lemma pre_Stop: "pre\<^sub>R(Stop) = true"
   by (simp add: Stop_def Stop_is_CSP rea_pre_RHS_design unrest usubst R2c_false R1_false)
     
 lemma cmt_Stop: "cmt\<^sub>R(Stop) = ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)"
   apply (rel_auto) using minus_zero_eq by blast
     
+lemma NCSP_Idempotent: "Idempotent NCSP"
+  by (clarsimp simp add: NCSP_def Idempotent_def)
+     (metis (no_types, hide_lams) CSP3_Idempotent CSP3_def CSP4_Idempotent CSP4_def Healthy_def Idempotent_def SRD_idem SRD_seqr_closure Skip_is_CSP seqr_assoc)
+    
+lemma NCSP_Continuous: "Continuous NCSP"
+  by (simp add: CSP3_Continuous CSP4_Continuous Continuous_comp NCSP_def SRD_Continuous)
+     
 subsection {* CSP Constructs *}
 
 translations

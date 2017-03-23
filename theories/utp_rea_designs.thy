@@ -1903,19 +1903,25 @@ lemma RHS_tri_design_RD3_intro_form:
 done
 
 definition NSRD :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
-where [upred_defs]: "NSRD(P) = RD1(RD3(RHS(P)))"
+where [upred_defs]: "NSRD = RD1 \<circ> RD3 \<circ> RHS"
 
 lemma RD1_RD3_commute: "RD1(RD3(P)) = RD3(RD1(P))"
   by (rel_auto, blast+)
-    
+  
 lemma NSRD_is_SRD: "P is NSRD \<Longrightarrow> P is SRD"
-  by (metis Healthy_def NSRD_def RD1_RD3_commute RD2_RHS_commute RD3_def RD3_right_subsumes_RD2 SRD_def SRD_idem SRD_seqr_closure SRD_srdes_skip)  
+  by (simp add: Healthy_def NSRD_def SRD_def, metis Healthy_def RD1_RD3_commute RD2_RHS_commute RD3_def RD3_right_subsumes_RD2 SRD_def SRD_idem SRD_seqr_closure SRD_srdes_skip)
 
+lemma NSRD_Idempotent: "Idempotent NSRD"
+  by (clarsimp simp add: Idempotent_def NSRD_def, metis (no_types, hide_lams) Healthy_def RD1_RD3_commute RD3_def RD3_idem RD3_left_subsumes_RD2 SRD_def SRD_idem SRD_seqr_closure SRD_srdes_skip)
+    
+lemma NSRD_Continuous: "Continuous NSRD"
+  by (simp add: Continuous_comp NSRD_def RD1_Continuous RD3_Continuous RHS_Continuous)
+    
 lemma NSRD_form:
   "NSRD(P) = \<^bold>R\<^sub>s((\<not> (\<not> pre\<^sub>R(P)) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> peri\<^sub>R(P)) \<diamondop> post\<^sub>R(P)))"
 proof - 
   have "NSRD(P) = RD3(SRD(P))"
-    by (metis NSRD_def RD1_RD3_commute RD3_left_subsumes_RD2 SRD_def)
+    by (metis (no_types, lifting) NSRD_def RD1_RD3_commute RD3_left_subsumes_RD2 SRD_def comp_def)
   also have "... = RD3(\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)))"
     by (simp add: SRD_as_reactive_tri_design)
   also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) ;; II\<^sub>R"
@@ -1944,6 +1950,10 @@ proof -
     using Healthy_def by blast
 qed
       
+lemma SRD_RD3_implies_NSRD:
+  "\<lbrakk> P is SRD; P is RD3 \<rbrakk> \<Longrightarrow> P is NSRD"
+  by (metis (no_types, lifting) Healthy_def NSRD_def RHS_idem SRD_healths(4) SRD_reactive_design comp_apply)
+  
 lemma NSRD_neg_pre_unit:
   assumes "P is NSRD"
   shows "(\<not> pre\<^sub>R(P)) ;; R1(true) = (\<not> pre\<^sub>R(P))"
