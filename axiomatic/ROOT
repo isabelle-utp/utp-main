@@ -1,4 +1,4 @@
-session "UTP-AXM-IMPORTS" = "Optics" +
+session "UTP-AXM-IMPORTS" = "Optics-Library" +
   options [browser_info = true, document = false]
   theories "theories/uimports"
 

@@ -32,7 +32,7 @@ subsection {* Configuration *}
 
 default_sort type
 
-declare [[ML_print_depth = 20]]
+declare [[ML_print_depth = 100]]
 
 text {* The following prevents the simplifier from splitting pairs by default. *}
 
