@@ -18,6 +18,7 @@ imports
   "~~/src/HOL/Library/Prefix_Order"
   "~~/src/HOL/Library/Sublist"
   "../optics/Lenses"
+  "Library_extra/Countable_Set_extra"
   "Library_extra/FSet_extra"
   "Library_extra/List_extra"
   "Library_extra/List_lexord_alt"
