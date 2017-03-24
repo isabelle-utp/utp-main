@@ -1,7 +1,7 @@
 section {* Example UTP theory: Boyle's laws *}
 (*<*)
 theory utp_boyle
-imports utp_theory (* utp_avar *)
+imports "../utp/utp_theory"
 begin
 (*>*)
 
@@ -141,7 +141,7 @@ text {* Since these properties are relational, we discharge them using our relat
 
 definition InitSys :: "real \<Rightarrow> real \<Rightarrow> boyle_rel" where
   (*<*)[upred_defs]:(*>*) "InitSys ip iV
-  = ((\<guillemotleft>ip\<guillemotright> >\<^sub>u 0 \<and> \<guillemotleft>iV\<guillemotright> >\<^sub>u 0)\<^sup>\<top> ;; p,V,k := \<guillemotleft>ip\<guillemotright>,\<guillemotleft>iV\<guillemotright>,(\<guillemotleft>ip\<guillemotright>*\<guillemotleft>iV\<guillemotright>))"
+  = (\<guillemotleft>ip\<guillemotright> >\<^sub>u 0 \<and> \<guillemotleft>iV\<guillemotright> >\<^sub>u 0)\<^sup>\<top> ;; p,V,k := \<guillemotleft>ip\<guillemotright>,\<guillemotleft>iV\<guillemotright>,(\<guillemotleft>ip\<guillemotright>*\<guillemotleft>iV\<guillemotright>)"
 
 definition ChPres :: "real \<Rightarrow> boyle_rel" where
   (*<*)[upred_defs]:(*>*) "ChPres dp

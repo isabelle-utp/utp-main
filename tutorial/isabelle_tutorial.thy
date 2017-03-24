@@ -105,10 +105,10 @@ begin
     from assm have f1: "m \<le> x"
       sorry
     from assm have f2: "insert_here"
-      by auto
+      sorry
     from f1 f2 show "m \<le> x \<and> x < n"
-      by auto
-  qed
+      sorry
+  oops
 
   (* Complete this proof *)
   lemma isar2:
@@ -125,7 +125,7 @@ begin
 
     from f1 f2 show ?thesis
       by auto
-  qed
+  oops
 
   theorem cantor: "\<exists>S. S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
   proof

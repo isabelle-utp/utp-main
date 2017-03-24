@@ -1,5 +1,5 @@
 theory utp_lens_demo
-  imports "../utp/utp_designs" "../utp/utp_hoare"
+  imports "../theories/utp_designs"
 begin
 
 alphabet person =

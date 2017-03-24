@@ -1,7 +1,7 @@
 section {* ICTAC 2016 tutorial. Taipei, 24/10/2016 *}
 
 theory ictac16_tutorial
-  imports utp_designs
+  imports "../theories/utp_designs"
 begin
 
 subsection {* Laws of programming *}
@@ -72,30 +72,10 @@ qed
 
 subsection {* Program example *}
 
-(* Boiler plate: Set up the lenses for our two state variables, x and y *)
-
-record my_state =
-  st_x :: int
-  st_y :: int
-  st_z :: int
-
-definition "x = VAR st_x"
-definition "y = VAR st_y"
-definition "z = VAR st_z"
-
-lemma uvar_x [simp]: "vwb_lens x"
-  by (unfold_locales, auto simp add: x_def)
-
-lemma uvar_y [simp]: "vwb_lens y"
-  by (unfold_locales, auto simp add: y_def)
-
-lemma uvar_z [simp]: "vwb_lens z"
-  by (unfold_locales, auto simp add: z_def)
-
-lemma my_state_indeps [simp]: "x \<bowtie> y" "y \<bowtie> x" "x \<bowtie> z" "z \<bowtie> x" "y \<bowtie> z" "z \<bowtie> y"
-  by (simp_all add: lens_indep_def x_def y_def z_def)
-
-(* Beginning of examples *)
+alphabet my_state =
+  x :: int
+  y :: int
+  z :: int
 
 lemma "(x := 1 ;; x := &x + 1) = (x := 2)"
   oops

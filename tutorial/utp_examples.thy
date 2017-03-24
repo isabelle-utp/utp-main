@@ -1,7 +1,7 @@
 section {* Isabelle/UTP Examples *}
 
 theory utp_examples
-  imports utp_theories
+  imports "../theories/utp_theories"
 begin
 
 alphabet my_state =
