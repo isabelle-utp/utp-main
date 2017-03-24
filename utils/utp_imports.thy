@@ -17,7 +17,7 @@ imports
   "~~/src/HOL/Library/Monad_Syntax"
   "~~/src/HOL/Library/Prefix_Order"
   "~~/src/HOL/Library/Sublist"
-  "../lenses/Lenses"
+  "../optics/Lenses"
   "Library_extra/FSet_extra"
   "Library_extra/List_extra"
   "Library_extra/List_lexord_alt"

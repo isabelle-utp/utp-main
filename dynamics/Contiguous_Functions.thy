@@ -4,7 +4,7 @@ section {* Contiguous Functions *}
 theory Contiguous_Functions
   imports
   Real_Vector_Spaces
-  "../lenses/Lenses"
+  "../optics/Lenses"
   "../utils/Library_extra/Map_Extra"
   "../utils/Library_extra/List_extra"
   "../utils/Library_extra/Monoid_extra"

@@ -15,6 +15,6 @@ rm -rf $ISABELLE_UTP/axiomatic/hierarchy/output
 rm -rf $ISABELLE_UTP/dynamics/output
 rm -rf $ISABELLE_UTP/fmi/output
 rm -rf $ISABELLE_UTP/hybrid/output
-rm -rf $ISABELLE_UTP/lenses/output
+rm -rf $ISABELLE_UTP/optics/output
 rm -rf $ISABELLE_UTP/tutorial/output
 rm -rf $ISABELLE_UTP/utp/output

@@ -41,7 +41,7 @@ session "HOL-Algebra2" (main timing) in "contrib/Algebra" = HOL +
 
 (* Optics Library *)
 
-session "Optics" in "lenses"
+session "Optics" in "optics"
   = (* "HOL-Algebra2" *) "HOL" +
   options [document = pdf, document_output = "output", timeout = 300]
   theories

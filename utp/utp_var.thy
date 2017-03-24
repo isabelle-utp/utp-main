@@ -11,7 +11,7 @@ theory utp_var
   "~~/src/HOL/Eisbach/Eisbach"
   "../contrib/Algebra/Complete_Lattice"
   "../contrib/Algebra/Galois_Connection"
-  "../lenses/Lenses"
+  "../optics/Lenses"
   "../utils/Profiling"
   "../utils/TotalRecall"
   "../utils/Library_extra/Pfun"
