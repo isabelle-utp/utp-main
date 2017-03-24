@@ -109,11 +109,13 @@ lemma RD1_R2c_commute: "RD1(R2c(P)) = R2c(RD1(P))"
 
 lemma RD1_via_R1: "R1(H1(P)) = RD1(R1(P))"
   by (rel_auto)
+    
+definition skip_rea :: "('t::ordered_cancel_monoid_diff, '\<alpha>) hrel_rp" ("II\<^sub>r") where
+skip_rea_def [urel_defs]: "II\<^sub>r = (II \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
 
-definition skip_rea_def [urel_defs]: "II\<^sub>r = (II \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
-
-definition skip_srea_def [urel_defs]: "II\<^sub>s = ((\<exists> $st \<bullet> II\<^sub>r) \<triangleleft> $wait \<triangleright> II\<^sub>r)"
-
+definition skip_srea :: "('s, 't::ordered_cancel_monoid_diff, '\<alpha>) hrel_rsp" ("II\<^sub>R") where
+skip_srea_def [urel_defs]: "II\<^sub>R = ((\<exists> $st \<bullet> II\<^sub>r) \<triangleleft> $wait \<triangleright> II\<^sub>r)"
+  
 definition R3c_def [upred_defs]: "R3c(P) = (II\<^sub>r \<triangleleft> $wait \<triangleright> P)"
 
 definition R3h_def [upred_defs]: "R3h(P) = ((\<exists> $st \<bullet> II\<^sub>r) \<triangleleft> $wait \<triangleright> P)"
@@ -395,9 +397,15 @@ lemma SRD_intro:
 lemma R2_skip_rea: "R2(II\<^sub>r) = II\<^sub>r"
   by (metis R1_R2c_is_R2 R1_skip_rea R2c_skip_rea)
 
-lemma R2c_skip_rea3: "R2c(II\<^sub>s) = II\<^sub>s"
+lemma skip_srea_form: "II\<^sub>R = ((\<exists> $st \<bullet> II) \<triangleleft> $wait \<triangleright> II) \<triangleleft> $ok \<triangleright> R1(true)"
+  by (rel_auto)
+    
+lemma R2c_skip_srea: "R2c(II\<^sub>R) = II\<^sub>R"
   apply (rel_auto) using minus_zero_eq by blast+
 
+lemma R3h_form: "R3h(P) = II\<^sub>R \<triangleleft> $wait \<triangleright> P"
+  by (rel_auto)
+    
 lemma R3c_semir_form:
   "(R3c(P) ;; R3c(R1(Q))) = R3c(P ;; R3c(R1(Q)))"
   by (rel_simp, safe, auto intro: order_trans)
@@ -1594,9 +1602,9 @@ proof -
 qed
 
 subsection {* Reactive design signature *}
-
-definition srdes_skip :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp" ("II\<^sub>R") where
-[upred_defs]: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R))"
+  
+lemma srdes_skip_def: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R))"
+  apply (rel_auto) using minus_zero_eq by blast+
 
 text {* This additional healthiness condition is analogous to H3 *}
 
@@ -1692,7 +1700,7 @@ lemma periR_srdes_skip: "peri\<^sub>R(II\<^sub>R) = false"
   by (rel_auto)
 
 lemma postR_srdes_skip: "post\<^sub>R(II\<^sub>R) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R)"
-  apply (rel_auto) using minus_zero_eq by blast
+  by (rel_auto) 
 
 lemma preR_assigns_rea: "pre\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R) = true"
   by (simp add: assigns_rea_def rea_pre_RHS_design usubst R2c_false R1_false)
@@ -1768,8 +1776,8 @@ lemma SRD_srdes_skip: "II\<^sub>R is SRD"
   by (simp add: srdes_skip_def RHS_design_is_SRD unrest)
 
 lemma srdes_skip_tri_design: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R))"
-  by (rel_auto)
-
+  by (simp add: srdes_skip_def, rel_auto)
+  
 lemma SRD_right_Chaos_lemma:
   assumes "P is SRD"
   shows "P ;; Chaos = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true \<and> \<not> (cmt\<^sub>R P \<and> \<not> $wait\<acute>) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> cmt\<^sub>R P) \<and> $wait\<acute>))"
@@ -2078,8 +2086,8 @@ lemma NSRD_right_Chaos_tri_lemma:
                 NSRD_neg_pre_unit NSRD_st'_unrest_peri assms ex_unrest)
   
 lemma assigns_rea_id: "\<langle>id\<rangle>\<^sub>R = II\<^sub>R"
-  by (rel_auto)
-
+  by (simp add: srdes_skip_def, rel_auto)
+    
 lemma SRD_assigns_rea [closure]: "\<langle>\<sigma>\<rangle>\<^sub>R is SRD"
   by (simp add: assigns_rea_def RHS_design_is_SRD unrest)
 

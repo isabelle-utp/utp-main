@@ -98,7 +98,7 @@ lemma length_list_minus [simp]: "ys \<le> xs \<Longrightarrow> length(xs - ys) =
   by (auto simp add: minus_list_def less_eq_list_def)
 
 lemma Skip_def: "Skip = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st))"
-  by (rel_auto)
+  by (simp add: srdes_skip_def, rel_auto)
 
 lemma Wait_0: "Wait 0 = Skip"
 proof -
@@ -115,7 +115,7 @@ proof -
       by (metis (no_types, lifting) "1" "2" RHS_design_post_R1)
   qed
   also have "... = Skip"
-    by (rel_auto)
+    by (simp add: Skip_def)
   finally show ?thesis .
 qed
 
