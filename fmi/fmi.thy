@@ -683,14 +683,6 @@ text {*
   sequence of actions is only define by lists but not for (finite) sets.
 *}
 
-<<<<<<< HEAD
-consts
-  FMUs :: "FMI2COMP list"
-  parameters :: "(FMI2COMP \<times> VAR \<times> VAL) list"
-  inputs :: "(FMI2COMP \<times> VAR \<times> VAL) list"
-  outputs :: "(FMI2COMP \<times> VAR) list"
-  pdg :: "(VAR \<times> (FMI2COMP \<times> VAR)) set"
-=======
 consts FMUs :: "FMI2COMP list"
 consts parameters :: "(FMI2COMP \<times> VAR \<times> VAL) list"
 consts initialValues :: "(FMI2COMP \<times> VAR \<times> VAL) list"
@@ -699,7 +691,6 @@ consts inputs :: "port list"
 consts outputs :: "port list"
 -- {* Before: @{text "consts pdg :: \"port relation\""}. *}
 consts pdg :: "port \<Rightarrow> (port list)"
->>>>>>> origin/core
 
 subsubsection {* Instantiation with the Example in D2.2d *}
 
@@ -1158,86 +1149,6 @@ apply (unfold FMUStatesManager_def)
 apply (simp add: circus_syntax)
 oops
 
-<<<<<<< HEAD
-subsection {* Example from D2.2d (Appendix A) *}
-
-subsubsection {* FMU Configuration *}
-
-text {*
-  Since FMUs are introduced by virtue of a given type (type declaration), we
-  require an axiomatisation to define a concrete model for that type; this is
-  unless we \emph{a priori} define a model for FMU identifiers, for instance,
-  using natural numbers. The axiomatic approach is, however, not unusual and
-  used, for instance, in the B Method to introduce new types.
-*}
-
-axiomatization
-  sourcefmu :: "FMI2COMP" and
-  dfspecfmu :: "FMI2COMP" and
-  sinkfmu :: "FMI2COMP" where
-  FMI2COMP_def: "FMI2COMP = {sourcefmu, dfspecfmu, sinkfmu}" and
-  fmus_distinct: "distinct [sourcefmu, dfspecfmu, sinkfmu]"
-
-overloading FMUs_ex \<equiv> "FMUs :: FMI2COMP list"
-begin
-definition [simp]:
-  "FMUs_ex \<equiv> [sourcefmu, dfspecfmu, sinkfmu]"
-end
-
-text {*
-  It appears there exist two output variables variables in the D2.2 example,
-  which are given anonymous identities through numbers 1 and 2. It further
-  appears that variable 1 is ranging over naturals, and variable two over
-  characters. For readability, where here call them @{text x} and @{text y}.
-*}
-
-inject_type nat
-inject_type char
-
-overloading outputs_ex \<equiv> "outputs :: (FMI2COMP \<times> VAR) list"
-begin
-definition [simp]:
-  "outputs_ex \<equiv> [(sourcefmu, $x:{nat}\<^sub>u), (dfspecfmu, $y:{char}\<^sub>u)]"
-end
-
-abbreviation outputset :: "(FMI2COMP \<times> VAR) set" where
-"outputset \<equiv> set outputs"
-
-overloading pdg_ex \<equiv> "pdg :: (VAR \<times> (FMI2COMP \<times> VAR)) set"
-begin
-definition [simp]:
-  "pdg_ex \<equiv>
-    {($x:{nat}\<^sub>u, (sourcefmu, $x:{nat}\<^sub>u)),
-     ($y:{char}\<^sub>u, (dfspecfmu, $y:{char}\<^sub>u))}"
-end
-
-text {* Does this need to be a constant of the model too? *}
-
-consts canGetAndSetFMUState :: "FMI2COMP \<Rightarrow> bool"
-
-overloading canGetAndSetFMUState_ex \<equiv>
-  "canGetAndSetFMUState :: FMI2COMP \<Rightarrow> bool"
-begin
-definition [simp]: "canGetAndSetFMUState_ex \<equiv> (\<lambda>_::FMI2COMP. False)"
-end
-
-overloading parameters_ex \<equiv> "parameters :: (FMI2COMP \<times> VAR \<times> VAL) list"
-begin
-definition [simp]:
-  "parameters_ex \<equiv> [
-    (sourcefmu, $x:{nat}\<^sub>u, InjU (1::nat)),
-    (dfspecfmu, $x:{char}\<^sub>u, InjU (CHR ''a'')),
-    (sinkfmu, $y:{char}\<^sub>u, InjU (CHR ''b''))]"
-end
-
-text {* Cannot quite make sense of what is in the deliverable. *}
-
-overloading inputs_ex \<equiv> "inputs :: (FMI2COMP \<times> VAR \<times> VAL) list"
-begin
-definition [simp]:
-  "inputs_ex \<equiv> []::(FMI2COMP \<times> VAR \<times> VAL) list"
-end
-=======
 subsubsection {* Error Handling *}
 
 definition
@@ -1294,7 +1205,6 @@ begin
   \<bullet> Instantiation \<triangle> endSimulation
 end"
 *)
->>>>>>> origin/core
 
 subsection {* Proof Experiments *}
 
