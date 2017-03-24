@@ -62,7 +62,7 @@ including:
 * [``utp_reactive.thy``](theories/utp_reactive.thy) -- theory of reactive processes
 * [``utp_rea_designs.thy``](theories/utp_rea_designs.thy) -- theory of reactive designs
 * [``utp_csp.thy``](theories/utp_csp.thy) -- theory of CSP process algebra
-* [``utp_cml.thy``](theories/utp_cml.thy) -- the COMPASS modelling language (see the [http://compass-research.eu](COMPASS project) )
+* [``utp_cml.thy``](theories/utp_cml.thy) -- the COMPASS modelling language (see <http://compass-research.eu>)
 
 This repository is constantly a work in progress, so not all laws have yet been proved, though the number
 is constantly growing. Additionally to the UTP theories there is a number of contributed UTP theories included
