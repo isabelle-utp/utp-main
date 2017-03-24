@@ -79,10 +79,11 @@ Usage
 
 Isabelle/UTP is documented by a number of tutorial theories under the ``tutorial/`` directory. First and
 foremost it is worth checking the [UTP tutorial theory](tutorial/utp_tutorial.thy) which attempts to give
-an overview of the UTP in Isabelle. You can also check out [Boyle's law](tutorial/utp_boyle.thy) for a very 
+an overview of the UTP in Isabelle. You can view the associated [PDF of the tutorial](tutorial/utp_tutorial.pdf) 
+as well. You can also check out [Boyle's law](tutorial/utp_boyle.thy) for a very 
 basic UTP theory. An example of usage of the theory of designs for proving properties about programs can
 be found in the [library example](tutorial/utp_library.thy). You can also check out the 
-[proof document](utp/output/document.pdf). We also provide some preliminary usage notes below.
+[proof document](utp/utp.pdf). We also provide some preliminary usage notes below.
 
 ### Parser
 
