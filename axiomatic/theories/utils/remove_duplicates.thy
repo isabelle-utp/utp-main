@@ -11,32 +11,36 @@ theory remove_duplicates
 imports Main
 begin
 
-text {* Conversion and tactic to remove duplicate elements in sets. *}
+text {* A conversion and tactic to remove duplicate elements in sets. *}
 
 subsection {* Conversion *}
 
 ML {*
-  fun remove_duplicates_set term =
-    let val elems = distinct (op =) (HOLogic.dest_set term) in
-      (HOLogic.mk_set (HOLogic.dest_setT (type_of term)) elems)
+  fun remove_duplicates_from_set set =
+    let val fewer_elems = distinct (op =) (HOLogic.dest_set set) in
+      (HOLogic.mk_set (HOLogic.dest_setT (type_of set)) fewer_elems)
     end;
 
   local
-  val remove_duplicates_conv_thm =
-    Drule.cterm_fun (fn term => HOLogic.mk_Trueprop
-      (HOLogic.mk_eq (term, remove_duplicates_set term)));
+  fun lift_to_cterm ctx f =
+      (Thm.cterm_of ctx) o f o Thm.term_of;
   in
+  fun remove_duplicates_conv_goal ctx =
+    (lift_to_cterm ctx)
+    (fn term => HOLogic.mk_Trueprop
+      (HOLogic.mk_eq (term, remove_duplicates_from_set term)));
+  end;
+
   fun remove_duplicates_conv cterm =
     let
       val thy = Thm.theory_of_cterm cterm;
       val ctx = Proof_Context.init_global thy;
       val tac = Clasimp.auto_tac ctx;
-      val goal = (remove_duplicates_conv_thm cterm);
+      val goal = (remove_duplicates_conv_goal ctx cterm);
     in
       Conv.rewr_conv (Local_Defs.meta_rewrite_rule ctx
         (Goal.prove ctx [] [] (Thm.term_of goal) (K tac))) cterm
     end;
-  end;
 *}
 
 subsection {* Rule and Tactic *}

@@ -36,7 +36,7 @@ begin
 lift_definition plus_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> 'a pos" is plus
   by (metis add.right_neutral add_mono)
 
-instance 
+instance
   apply (intro_classes)
   apply (transfer, simp add: add.assoc)
   apply (transfer, metis add.commute)
@@ -62,7 +62,7 @@ lift_definition one_pos :: "'a pos" is 1
 lift_definition times_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> 'a pos" is times
   by (metis mult_nonneg_nonneg)
 
-lift_definition minus_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> 'a pos" 
+lift_definition minus_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> 'a pos"
 is "\<lambda> x y. if (y \<le> x) then x - y else 0"
   by (auto, metis add.left_neutral add_le_imp_le_diff)
 

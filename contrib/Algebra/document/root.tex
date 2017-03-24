@@ -1,0 +1,41 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{graphicx}
+\usepackage{isabelle,isabellesym}
+\usepackage{amssymb}
+\usepackage{textcomp}
+\usepackage[utf8]{inputenc}
+\usepackage[only,bigsqcap]{stmaryrd}
+%\usepackage{amsmath}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+\urlstyle{rm}
+\isabellestyle{tt}
+\pagestyle{myheadings}
+
+\begin{document}
+
+\title{The Isabelle/HOL Algebra Library}
+\author{Clemens Ballarin (Editor)}
+\date{With contributions by Jesús Aransay, Clemens Ballarin, Stephan Hohe,
+  Florian Kammüller and Lawrence C Paulson \\
+  \today}
+\maketitle
+
+\tableofcontents
+
+\begin{center}
+  \includegraphics[scale=0.5]{session_graph}
+\end{center}
+
+\clearpage
+
+\parindent 0pt\parskip 0.5ex
+\input{session}
+
+\pagestyle{headings}
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}

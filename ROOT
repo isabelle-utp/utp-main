@@ -5,117 +5,197 @@
 (* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
 (******************************************************************************)
 
-(* Third-party Contributions *)
+(* AFP Contributions *)
 
-session Kleene_Algebra (AFP) in "contrib/Kleene_Algebra"
-  = "HOL-Multivariate_Analysis" +
-  options [timeout = 300]
+session "HOL-Algebra2" (main timing) in "contrib/Algebra" = HOL +
+  description {*
+    Author: Clemens Ballarin, started 24 September 1999
+
+    The Isabelle Algebraic Library.
+  *}
+  theories [document = false]
+    (* Preliminaries from set and number theory *)
+    "~~/src/HOL/Library/FuncSet"
+    "~~/src/HOL/Number_Theory/Primes"
+    "~~/src/HOL/Library/Permutation"
+  theories [document = pdf]
+    (*** New development, based on explicit structures ***)
+    (* Groups *)
+    FiniteProduct        (* Product operator for commutative groups *)
+    Sylow                (* Sylow's theorem *)
+    Bij                  (* Automorphism Groups *)
+
+    (* Orders and Lattices *)
+    Order
+    Lattice
+    Complete_Lattice
+    Galois_Connection
+
+    (* Rings *)
+    Divisibility         (* Rings *)
+    IntRing              (* Ideals and residue classes *)
+    UnivPoly             (* Polynomials *)
+  document_files
+    "root.bib"
+    "root.tex"
+
+(* Optics Library *)
+
+session "Optics" in "optics"
+  = (* "HOL-Algebra2" *) "HOL" +
+  options [document = pdf, document_output = "output", timeout = 300]
   theories
-    Action_Algebra
-    Action_Algebra_Models
-    Dioid
-    Dioid_Models
-    Kleene_Algebras
-    Kleene_Algebra_Models
-    Matrix
-    Omega_Algebra
-    Omega_Algebra_Models
-    Quantales
-    Signatures
-  files
-    "document/root.tex"
-    "document/root.bib"
+    Interp
+    Two
+    Lens_Laws
+    Lens_Algebra
+    Lens_Order
+    Lens_Instances
+    Lenses
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty"
+    "figures/Lens.pdf"
 
-(* HOL Library Imports *)
+(* Continuum Universe *)
 
-session "UTP-DEPS" = "Kleene_Algebra" +
-  options [timeout = 600]
+session "Continuum" in "continuum" = "HOL-Cardinals" +
+  options [document = false, timeout = 1000]
   theories
-    "~~/src/HOL/Cardinals/Cardinals"
-    "~~/src/HOL/Eisbach/Eisbach"
-    "~~/src/Tools/Adhoc_Overloading"
-    "~~/src/HOL/Library/Char_ord"
-    "~~/src/HOL/Library/Countable_Set_Type"
-    "~~/src/HOL/Library/FSet"
-    "~~/src/HOL/Library/Monad_Syntax"
-    "~~/src/HOL/Library/Prefix_Order"
-    "~~/src/HOL/Library/Sublist"
-    "contrib/HOL-Algebra2/Complete_Lattice"
-    "contrib/HOL-Algebra2/Galois_Connection"
+    Continuum
+    Dyadic
+    Finite_Bijection
+    Infinity
+    Lightweight_Cardinals
+    Real_Bit
+    UNIV_TYPE
 
-(* UTP Library Imports *)
+(* Continuous System Dynamics *)
 
-session "UTP-IMPORTS" in "utils" = "UTP-DEPS" +
+session "Dynamics" in "dynamics" = "HOL-Analysis" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
-    cardinals
-    Continuum
-    finite_bijection
-    Dyadic
-    Lenses
-    Profiling
-    "Library_extra/Countable_Set_extra"
-    "Library_extra/Fmap"
-    "Library_extra/FSet_extra"
-    "Library_extra/List_extra"
-    "Library_extra/List_lexord_alt"
-    "Library_extra/Monoid_extra"
-    "Library_extra/Sequence"
-    "Library_extra/Pfun"
-    "Library_extra/Ffun"
-    "Library_extra/Derivative_extra"
-    Positive
-    Real_Bit
-    ttrace
-    interp
+    "../contrib/Ordinary_Differential_Equations/ODE_Analysis"
+    Derivative_extra
+    Contiguous_Functions
+    Timed_Traces
   document_files
-    "root.tex"
     "root.bib"
+    "root.tex"
     "document.sty"
+    "zed.sty"
+    "csp.sty"
 
-(* UTP Library Imports + Axiomatic Model *)
+(* Library Imports for UTP *)
 
-session "UTP-IMPORTS-AX" in "axiomatic/theories" = "UTP-IMPORTS" +
-  options [browser_info = true, document = false]
-  theories "core/ulens" "core/udefaults"
+session "UTP-IMPORTS" in "utils" = "HOL-Algebra2" +
+  options [document = false, timeout = 1000]
+  theories utp_imports
 
-(* Core Framework *)
+(* Core UTP Framework *)
 
 session "UTP" in "utp" = "UTP-IMPORTS" +
   options [document = pdf, document_output = "output", timeout = 1000]
-  theories
-    utp
+  theories utp
   document_files
-    "root.tex"
     "root.bib"
+    "root.tex"
     "document.sty"
 
-(* Core Framework + Axiomatic Model *)
+(* Core UTP with Deep Variables *)
 
-session "UTP-AX" in "utp" = "UTP-IMPORTS-AX" +
+session "UTP-DEEP" in "utp/models" = "UTP" +
+  options [browser_info = true, document = false]
+  theories utp_deep
+
+(* Core UTP with Axiomatic Variables *)
+
+session "UTP-AXM" in "utp/models" = "UTP" +
+  options [browser_info = true, document = false]
+  theories utp_axm
+
+(* Core UTP with Deep & Axiomatic Variables *)
+
+session "UTP-DEEP-AXM" in "utp/models" = "UTP-DEEP" +
+  options [browser_info = true, document = false]
+  theories utp_deep utp_axm
+
+(* UTP Theory Base *)
+
+session "UTP-THY" in "theories" = "UTP" +
+  options [browser_info = true, document = false]
+  theories utp_theories
+
+session "UTP-THY-DEEP" in "utp/models" = "UTP-THY" +
+  options [browser_info = true, document = false]
+  theories utp_theories_deep
+
+session "UTP-THY-AXM" in "utp/models" = "UTP-THY" +
+  options [browser_info = true, document = false]
+  theories utp_theories utp_axm
+
+session "UTP-THY-DEEP-AXM" in "utp/models" = "UTP-THY-DEEP" +
+  options [browser_info = true, document = false]
+  theories utp_theories_deep utp_axm
+
+(* Imports for Hybrid UTP *)
+
+(* We chose to start another root from the Analysis session (via Dynamics)
+   and build everything else on top of it. This is because Analysis takes
+   more than 10 minutes to build on a laptop and everything else is
+   comparatively lightweight. *)
+
+session "UTP-HYBRID-IMPORTS" = "Dynamics" +
+  options [document = false]
+  theories
+    "~~/src/HOL/Library/FuncSet"
+    "~~/src/HOL/Library/Permutation"
+    "contrib/Algebra/Complete_Lattice"
+    "contrib/Algebra/Galois_Connection"
+    "utils/utp_imports"
+    "utp/utp"
+    "theories/utp_theories"
+
+(* Hybrid UTP *)
+
+session "UTP-HYBRID" in "hybrid" = "UTP-HYBRID-IMPORTS" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
-    utp_ax
+    utp_hybrid
   document_files
-    "root.tex"
     "root.bib"
+    "root.tex"
     "document.sty"
+    "zed.sty"
+    "csp.sty"
 
-(* VMD-SL Mechanisation *)
+(* VDM-SL Mechanisation *)
 
-session "VDM-SL" in "vdm-sl" = "UTP" +
-  options [document = none]
+session "VDM-SL" in "vdm-sl" = "UTP-THY-DEEP" +
+  options [document = false]
   theories
     PFOL
     VDM
-    
+
+(* Isabelle/UTP Tutorial *)
+
+session "UTP-TUTORIAL" in "tutorial" = "UTP-THY" +
+  options [document = pdf, document_output = "output", timeout = 1000]
+  theories
+    utp_tutorial
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty"
+
 (* FMI Mechanisation *)
 
-session "FMI" in "fmi" = "UTP-AX" +
+session "FMI" in "fmi" = "UTP-THY-DEEP-AXM" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     fmi
   document_files
-    "root.tex"
     (* "root.bib" *)
+    "root.tex"
     "document.sty"

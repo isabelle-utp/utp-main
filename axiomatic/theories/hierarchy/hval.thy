@@ -102,7 +102,8 @@ end
 
 lemma RANK_le_uval [simp]:
 "RANK('a) < RANK(uval['idx]) \<longleftrightarrow> RANK('a) \<le> RANK('idx)"
-apply (unfold ranks, simp add: less_Suc_eq_le)
+apply (unfold ranks)
+apply (linarith)
 done
 
 subsection {* Axiomatisation *}

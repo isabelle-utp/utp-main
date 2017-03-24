@@ -18,6 +18,11 @@ no_notation
   Set.member ("op :") and
   Set.member ("(_/ : _)" [51, 51] 50)
 
+text {* We are going to use the converse symbol for undashing. *}
+
+no_notation
+  converse  ("(_\<inverse>)" [1000] 999)
+
 default_sort typerep
 
 text {* Avoids verbose printing of the prefix in @{text "'a uvar.var"}. *}
@@ -211,7 +216,7 @@ text {*
   apply transfer laws for the types @{type var}, @{type uvar} and @{type uname}.
   While record-based types already generate the underlying splitting laws, for
   the @{type var} type being defined via a type definition, we make use of the
-  utility theory @{theory Typedef_transfer} which generates those laws for us.
+  utility theory @{theory Typedef_extra} which generates those laws for us.
 *}
 
 subsubsection {* Transfer Laws *}
@@ -221,7 +226,7 @@ text {* Using a named attribute supports future extension. *}
 named_theorems var_transfer "variable transfer"
 
 lemmas var_typedef_transfer =
-  type_definition.typedef_transfer [OF uvar.type_definition_var]
+  type_definition.transfer [OF uvar.type_definition_var]
 
 declare uname.uname.splits [var_transfer]
 declare uvar.uvar.splits [var_transfer]
@@ -231,9 +236,7 @@ subsubsection {* Proof Methods *}
 
 text {* The below automates, in particular, laws about variable decorations. *}
 
-method var_tac =
-  (clarsimp simp add: var_transfer vars typing fun_eq_iff)
-
+method var_tac = (clarsimp simp add: var_transfer vars typing fun_eq_iff)
 method var_auto = (var_tac; auto)
 method var_blast = (var_tac; blast)
 
@@ -257,12 +260,8 @@ lemma dash_uvar_inv [simp]:
 apply (var_tac)
 done
 
-declare [[show_types]]
-
 lemma dash_erasure_commutes:
 "v\<acute>\<down> = v\<down>\<acute>"
--- {* How do we deal with free variables in the goal? *}
-(* apply (var_tac) *)
 apply (unfold vars)
 apply (induct v)
 apply (clarsimp)

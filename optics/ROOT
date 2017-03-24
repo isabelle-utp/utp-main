@@ -1,0 +1,24 @@
+(******************************************************************************)
+(* Project: The Optics Library                                                *)
+(* File: ROOT                                                                 *)
+(* Authors: Simon Foster (University of York, UK)                             *)
+(* Emails: simon.foster@york.ac.uk                                            *)
+(******************************************************************************)
+
+(* Optics Library *)
+
+session "Optics-Library" = "HOL" +
+  options [document = pdf, document_output = "output", timeout = 300]
+  theories
+    Interp
+    Two
+    Lens_Laws
+    Lens_Algebra
+    Lens_Order
+    Lens_Instances
+    Lenses
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty"
+    "figures/Lens.pdf"

@@ -1,10 +1,8 @@
 section {* VDM-SL in UTP *}
 
 theory VDM
-  imports 
-    "../utp/utp_designs"
-    "../utp/utp_procedure"
-    PFOL
+imports PFOL
+  utp_theories_deep
 begin
 
 subsection {* Core operator definitions *}
@@ -18,7 +16,7 @@ type_synonym 'a vtype = "'a set"
 setup_lifting type_definition_vexpr
 
 lift_definition vdefined :: "('a, '\<alpha>) vexpr \<Rightarrow> (bool, '\<alpha>) vexpr" ("\<D>\<^sub>v'(_')") is
-"\<lambda> e b. Some (b \<in> dom e)" . 
+"\<lambda> e b. Some (b \<in> dom e)" .
 
 lift_definition visdefined :: "('a, '\<alpha>) vexpr \<Rightarrow> (bool, '\<alpha>) vexpr" ("!\<D>\<^sub>v'(_')") is
 "\<lambda> e b. if b \<in> dom e then Some True else None" .
@@ -34,7 +32,7 @@ consts
   viuvar :: "'v \<Rightarrow> 'p" ("$\<^sub>v_" [999] 999)
   vouvar :: "'v \<Rightarrow> 'p" ("$\<^sub>v_\<acute>" [999] 999)
 
-lift_definition vvar :: "('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) vexpr"  
+lift_definition vvar :: "('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) vexpr"
   is "\<lambda> x b. Some (get\<^bsub>x\<^esub> b)" .
 
 definition vvar_dvar :: "'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) vexpr"
@@ -87,13 +85,13 @@ lift_definition vlit :: "'a \<Rightarrow> ('a, '\<alpha>) vexpr" ("\<guillemotle
 
 lift_definition vundef :: "('a, '\<alpha>) vexpr" ("\<bottom>\<^sub>v") is "\<lambda> b. None" .
 
-lift_definition vuop :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr" 
+lift_definition vuop :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr"
 is "\<lambda> f v b. Option.bind (v b) f" .
 
-lift_definition vbop :: "('a \<times> 'b \<rightharpoonup> 'c) \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> ('c, '\<alpha>) vexpr" 
+lift_definition vbop :: "('a \<times> 'b \<rightharpoonup> 'c) \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> ('c, '\<alpha>) vexpr"
 is "\<lambda> (f :: 'a \<times> 'b \<rightharpoonup> 'c) u v b. (do { x <- u b; y <- v b; f (x, y) })" .
 
-lift_definition vtop :: "('a \<times> 'b \<times> 'c \<rightharpoonup> 'd) \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> ('c, '\<alpha>) vexpr \<Rightarrow> ('d, '\<alpha>) vexpr" 
+lift_definition vtop :: "('a \<times> 'b \<times> 'c \<rightharpoonup> 'd) \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> ('c, '\<alpha>) vexpr \<Rightarrow> ('d, '\<alpha>) vexpr"
 is "\<lambda> (f :: 'a \<times> 'b \<times> 'c \<rightharpoonup> 'd) u v w b. (do { x <- u b; y <- v b; z <- w b; f (x, y, z) })" .
 
 lift_definition vconj :: "(bool, '\<alpha>) vexpr \<Rightarrow> (bool, '\<alpha>) vexpr \<Rightarrow> (bool, '\<alpha>) vexpr"
@@ -135,7 +133,7 @@ abbreviation "tpfun' \<equiv> tpfun UNIV"
 abbreviation (input) "vtop' f \<equiv> vtop (tpfun' f)"
 
 abbreviation "true\<^sub>v  \<equiv> \<guillemotleft>True\<guillemotright>\<^sub>v"
-abbreviation "false\<^sub>v \<equiv> \<guillemotleft>False\<guillemotright>\<^sub>v" 
+abbreviation "false\<^sub>v \<equiv> \<guillemotleft>False\<guillemotright>\<^sub>v"
 
 lift_definition vexists :: "'a vtype \<Rightarrow> ('a \<Rightarrow> (bool, '\<alpha>) vexpr) \<Rightarrow> (bool, '\<alpha>) vexpr"
 is "\<lambda> A P b. (\<exists>\<^sub>k x. P x b)" .
@@ -195,6 +193,20 @@ begin
 instance ..
 end
 
+instance vexpr :: (semigroup_add, type) semigroup_add
+  apply (intro_classes)
+  apply (auto simp add: plus_vexpr_def times_vexpr_def, transfer, simp add: fun_eq_iff add.commute semiring_class.distrib_right semiring_class.distrib_left)+
+  apply (rename_tac a b c x)
+  apply (case_tac "a x")
+  apply (simp_all)
+  apply (case_tac "b x")
+  apply (simp_all)
+  apply (case_tac "c x")
+  apply (simp_all add: bpfun_def add.assoc)
+done
+
+instance vexpr :: (numeral, type) numeral
+  by (intro_classes)
 
 definition vmap_apply :: "('a \<rightharpoonup> 'b) \<times> 'a \<Rightarrow> 'b option" where
 "vmap_apply = (\<lambda> (f, x). f(x))"
@@ -260,23 +272,24 @@ syntax
   "_vapply"        :: "('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> ('c, '\<alpha>) vexpr" ("_'(_')\<^sub>v" [950,0] 950)
   "_vdom"          :: "('a \<rightharpoonup> 'b, '\<alpha>) vexpr \<Rightarrow> ('a set, '\<alpha>) vexpr" ("dom\<^sub>v'(_')")
   "_vrng"          :: "('a \<rightharpoonup> 'b, '\<alpha>) vexpr \<Rightarrow> ('b set, '\<alpha>) vexpr" ("rng\<^sub>v'(_')")
+  "_vcard"         :: "('a set, '\<alpha>) vexpr \<Rightarrow> (nat, '\<alpha>) vexpr" ("card\<^sub>v'(_')")
   "_vmapempty"     :: "('a \<rightharpoonup> 'b, '\<alpha>) vexpr" ("\<lbrace>\<mapsto>\<rbrace>\<^sub>v")
   "_vmaplet"       :: "('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> vmaplet" ("_ /\<mapsto>/ _")
   "_vmaplets_unit" :: "vmaplet \<Rightarrow> vmaplets" ("_")
   "_vmaplets"      :: "vmaplet \<Rightarrow> vmaplets \<Rightarrow> vmaplets" ("_,/ _")
   "_vmap_enum"     :: "vmaplets \<Rightarrow> ('a \<rightharpoonup> 'b, '\<alpha>) vexpr" ("\<lbrace>_\<rbrace>\<^sub>v")
   "_vdot" :: "('a, '\<alpha>) vexpr \<Rightarrow> id \<Rightarrow> ('b, '\<alpha>) vexpr" ("_.\<^sub>v_" [998,998] 998)
-  
+
 definition [upred_defs]: "hd_pre = {x. length x > 0}"
 
 abbreviation "map_upd f k v \<equiv> fun_upd f k (Some v)"
 
-definition vneq_def [upred_defs]: 
+definition vneq_def [upred_defs]:
   "vneq x y = vbop (bpfun' op \<noteq>) x y"
 
 translations
-  "\<forall>\<^sub>v x : A \<bullet> P" == "CONST vforall A (\<lambda> x. P)" 
-  "\<exists>\<^sub>v x : A \<bullet> P" == "CONST vexists A (\<lambda> x. P)" 
+  "\<forall>\<^sub>v x : A \<bullet> P" == "CONST vforall A (\<lambda> x. P)"
+  "\<exists>\<^sub>v x : A \<bullet> P" == "CONST vexists A (\<lambda> x. P)"
   "[]\<^sub>v" == "\<guillemotleft>[]\<guillemotright>\<^sub>v"
   "[x, xs]\<^sub>v" == "CONST vbop (CONST bpfun' op #) x [xs]\<^sub>v"
   "[x]\<^sub>v"     == "CONST vbop (CONST bpfun' op #) x \<guillemotleft>[]\<guillemotright>\<^sub>v"
@@ -286,9 +299,9 @@ translations
   "x =\<^sub>v y"   == "CONST vbop (CONST bpfun' op =) x y"
   "x <>\<^sub>v y"   == "CONST vneq x y"
   "x <\<^sub>v y"   == "CONST vbop (CONST bpfun' (op <)) x y"
-  "x \<le>\<^sub>v y"   == "CONST vbop (CONST bpfun' (op \<le>)) x y" 
+  "x \<le>\<^sub>v y"   == "CONST vbop (CONST bpfun' (op \<le>)) x y"
   "x >\<^sub>v y"   == "y <\<^sub>v x"
-  "x \<ge>\<^sub>v y"   == "y \<le>\<^sub>v x" 
+  "x \<ge>\<^sub>v y"   == "y \<le>\<^sub>v x"
   "p \<and>\<^sub>v q" == "CONST vconj p q"
   "p \<or>\<^sub>v q" == "CONST vdisj p q"
   "p \<Rightarrow>\<^sub>v q" == "CONST vimpl p q"
@@ -309,6 +322,7 @@ translations
   "f(x)\<^sub>v"  == "CONST vbop CONST vapply f x"
   "dom\<^sub>v(f)" == "CONST vuop (CONST upfun' CONST dom) f"
   "rng\<^sub>v(f)" == "CONST vuop (CONST upfun' CONST ran) f"
+  "card\<^sub>v(f)" == "CONST vuop (CONST upfun' CONST card) f"
   "\<lbrace>\<mapsto>\<rbrace>\<^sub>v"   == "\<guillemotleft>Map.empty\<guillemotright>\<^sub>v"
   (* For some reason I can't get maps to show correctly -- seems something is wrong with these rules *)
   "_vmap_enum (_vmaplets_unit (_vmaplet k v))" == "CONST vbop (CONST bpfun' (CONST map_upd Map.empty)) k v"
@@ -323,6 +337,43 @@ translations
   "\<forall>\<^sub>v x \<in> A \<bullet> P" == "CONST vforallSet A (\<lambda> x. P)"
   "\<exists>\<^sub>v x \<in> A \<bullet> P" == "CONST vexistsSet A (\<lambda> x. P)"
 
+subsection {* Proof Support *}
+
+text {* t may be better to define a designated transfer tactic for VDM. *}
+
+theorem vexpr_eq_iff [uexpr_transfer_laws]:
+"e\<^sub>1 = e\<^sub>2 \<longleftrightarrow> Rep_vexpr e\<^sub>1 = Rep_vexpr e\<^sub>2"
+apply (transfer)
+apply (rule refl)
+done
+
+update_uexpr_rep_eq_thms -- {* Re-reads @[thm [source] uexpr_rep_eq_thms}. *}
+
+declare Abs_vexpr_inverse [uexpr_transfer_extra]
+declare Rep_vexpr_inverse [uexpr_transfer_extra]
+
+lemmas vexpr_rep_eq_thms [uexpr_transfer_extra] =
+  VDM.vundef.rep_eq
+  VDM.vlit.rep_eq
+  (* VDM.vexpr.rep_eq *)
+  VDM.vlift.rep_eq
+  VDM.vvar.rep_eq
+  VDM.vnot.rep_eq
+  VDM.vtaut.rep_eq
+  VDM.vsubst.rep_eq
+  VDM.vsubst_lookup.rep_eq
+  VDM.vuop.rep_eq
+  VDM.vdefined.rep_eq
+  VDM.vexists.rep_eq
+  VDM.vforall.rep_eq
+  VDM.vconj.rep_eq
+  VDM.vdisj.rep_eq
+  VDM.vimpl.rep_eq
+  VDM.visdefined.rep_eq
+  VDM.unrest_vexpr.rep_eq
+  VDM.vbop.rep_eq
+  VDM.vtop.rep_eq
+
 subsection {* VDM Unrestriction Laws *}
 
 text {* Unrestriction is effectively semantic freshness; an expression is unrestricted by a
@@ -330,27 +381,27 @@ text {* Unrestriction is effectively semantic freshness; an expression is unrest
 
 lemma vexpr_unrest [unrest]:
   "x \<sharp> v \<Longrightarrow> x \<sharp> \<lfloor>v\<rfloor>\<^sub>v"
-  by pred_auto
+  by (transfer; clarsimp)
 
 lemma vvar_unrest [unrest]:
   "x \<bowtie> y \<Longrightarrow> y \<sharp> &\<^sub>vx"
-  by pred_auto
+  by (transfer; clarsimp)
 
 lemma vlit_unrest [unrest]:
   "x \<sharp> \<guillemotleft>v\<guillemotright>\<^sub>v"
-  by pred_auto
+  by (transfer; clarsimp)
 
 lemma vuop_unrest [unrest]:
   "x \<sharp> v \<Longrightarrow> x \<sharp> vuop f v"
-  by pred_auto
+  by (transfer; clarsimp)
 
 lemma vbop_unrest [unrest]:
   "\<lbrakk> x \<sharp> u; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> vbop f u v"
-  by pred_auto
+  by (transfer; clarsimp)
 
 lemma vtop_unrest [unrest]:
   "\<lbrakk> x \<sharp> u; x \<sharp> v; x \<sharp> w \<rbrakk> \<Longrightarrow> x \<sharp> vtop f u v w"
-  by pred_auto
+  by (transfer; clarsimp)
 
 subsection {* VDM Substitution *}
 
@@ -369,39 +420,39 @@ lemma vsubst_lookup_upd_indep [usubst]:
   by (simp add: subst_upd_uvar_def, transfer, simp)
 
 lemma vvar_subst [usubst]: "\<sigma> \<dagger> &\<^sub>vx = \<langle>\<sigma>\<rangle>\<^sub>v x"
-  by (transfer, simp)
+  by (transfer; clarsimp)
 
 lemma vsubst_vnot [usubst]:
   "\<sigma> \<dagger> (\<not>\<^sub>v p ) = (\<not>\<^sub>v (\<sigma> \<dagger> p))"
-  by pred_auto
+  by (transfer; clarsimp)
 
 lemma vsubst_vconj [usubst]:
   "\<sigma> \<dagger> (p \<and>\<^sub>v q) = (\<sigma> \<dagger> p \<and>\<^sub>v \<sigma> \<dagger> q)"
-  by pred_auto
+  by (transfer; clarsimp)
 
 lemma vsubst_vdisj [usubst]:
   "\<sigma> \<dagger> (p \<or>\<^sub>v q) = (\<sigma> \<dagger> p \<or>\<^sub>v \<sigma> \<dagger> q)"
-  by pred_auto
+  by (transfer; clarsimp)
 
 lemma vsubst_vlit [usubst]:
   "\<sigma> \<dagger> \<guillemotleft>v\<guillemotright>\<^sub>v = \<guillemotleft>v\<guillemotright>\<^sub>v"
-  by pred_auto
+  by (transfer; clarsimp)
 
-lemma vsubst_vuop [usubst]: 
+lemma vsubst_vuop [usubst]:
   "\<sigma> \<dagger> (vuop f x) = vuop f (\<sigma> \<dagger> x)"
-  by pred_auto
+  by (transfer; clarsimp)
 
-lemma vsubst_vbop [usubst]: 
+lemma vsubst_vbop [usubst]:
   "\<sigma> \<dagger> (vbop f x y) = vbop f (\<sigma> \<dagger> x) (\<sigma> \<dagger> y)"
-  by pred_auto
+  by (transfer; clarsimp)
 
-lemma vsubst_vtop [usubst]: 
+lemma vsubst_vtop [usubst]:
   "\<sigma> \<dagger> (vtop f x y z) = vtop f (\<sigma> \<dagger> x) (\<sigma> \<dagger> y) (\<sigma> \<dagger> z)"
-  by pred_auto
+  by (transfer; clarsimp)
 
 lemma vsubst_vexpr [usubst]:
   "\<sigma> \<dagger> \<lfloor>v\<rfloor>\<^sub>v = \<lfloor>\<sigma> \<dagger> v\<rfloor>\<^sub>v"
-  by pred_auto
+  by (transfer; clarsimp)
 
 subsection {* Proof setup *}
 
@@ -427,52 +478,49 @@ lemma bpfun'_tvlE [elim]: "\<lbrakk> [bpfun' f (x, y)]\<^sub>3; f x y \<Longrigh
 lemma bpfun'_tvlI [intro]: "f x y \<Longrightarrow> [bpfun' f (x, y)]\<^sub>3"
   by (simp)
 
-lemma bpfun'_defined [intro,simp]: 
+lemma bpfun'_defined [intro,simp]:
   "\<D>\<^sub>3 (bpfun' f x)"
   by (auto simp add: tvl_defined_def bpfun_def split_beta)
 
 text {* We also set up some useful default simplifications. *}
 
 lemma true_vdm [simp]: "\<lfloor>true\<^sub>v\<rfloor>\<^sub>v = true"
-  by pred_auto
+  by (pred_auto)
 
 lemma false_vdm [simp]: "\<lfloor>false\<^sub>v\<rfloor>\<^sub>v = false"
-  by pred_auto
+  by (pred_auto)
 
 lemma vconj_left_unit [simp]: "(true\<^sub>v \<and>\<^sub>v p) = p"
-  by (transfer, simp)
+  by (pred_auto)
 
 lemma vconj_right_unit [simp]: "(p \<and>\<^sub>v true\<^sub>v) = p"
-  by (transfer, simp)
+  by (pred_auto)
 
 lemma vmem_UNIV [simp]: "(x \<in>\<^sub>v \<guillemotleft>UNIV\<guillemotright>\<^sub>v) = !\<D>\<^sub>v(x)"
-  apply (transfer, auto simp add: bpfun_def dom_def)
-  apply (rule ext)
-  apply (auto)
-done
+  by (pred_auto)
 
 lemma restrict_map_UNIV [simp]: "f |` UNIV = f"
   by (simp add: restrict_map_def)
 
 lemma vmem_Collect_1 [simp]: "(x \<in>\<^sub>v \<guillemotleft>{x. P x}\<guillemotright>\<^sub>v) = vuop (upfun' P) x"
-  by (transfer, auto simp add: upfun_def bpfun_def)
+  by (pred_auto)
 
 lemma vmem_Collect_2 [simp]: "((x, y)\<^sub>v \<in>\<^sub>v \<guillemotleft>{x. P x}\<guillemotright>\<^sub>v) = vbop (upfun' P) x y"
-  by (transfer, auto simp add: upfun_def bpfun_def)
+  by (pred_auto)
 
 lemma upfun'_simp [simp]: "upfun' f x = Some (f x)"
-  by (simp add: upfun_def)
+  by (pred_auto)
 
 lemma bpfun'_simp [simp]: "bpfun' f (x, y) = Some (f x y)"
-  by (simp add: bpfun_def)
+  by (pred_auto)
 
 text {* Here we are using introduction / elimination to prove some simple properties *}
 
 lemma example1: "(\<forall>\<^sub>v x : Nats \<bullet> \<guillemotleft>x\<guillemotright>\<^sub>v >\<^sub>v \<guillemotleft>1 :: nat\<guillemotright>\<^sub>v) = false\<^sub>v"
-  by pred_auto
+  by (pred_auto)
 
 lemma example2: "(\<exists>\<^sub>v x : Nats \<bullet> \<guillemotleft>x\<guillemotright>\<^sub>v >\<^sub>v \<guillemotleft>1 :: nat\<guillemotright>\<^sub>v) = true\<^sub>v"
-  by pred_auto
+  by (pred_auto)
 
 subsection {* Definedness laws *}
 
@@ -480,19 +528,19 @@ text {* The proof support also relies on a decision regarding definedness of var
         we prove some key laws. *}
 
 lemma vdefined_visdefined [simp]: "(\<D>\<^sub>v(x) \<and>\<^sub>v !\<D>\<^sub>v(x)) = \<D>\<^sub>v(x)"
-  by (transfer, auto)
+  by (pred_auto)
 
 lemma vdefined_vdefined [simp]: "\<D>\<^sub>v(\<D>\<^sub>v(v)) = true\<^sub>v"
-  by (transfer, auto)
+  by (pred_auto)
 
 lemma vdefined_vlit [simp]: "\<D>\<^sub>v(\<guillemotleft>v\<guillemotright>\<^sub>v) = true\<^sub>v"
-  by (transfer, auto)
+  by (pred_auto)
 
 lemma vdefined_zero [simp]: "\<D>\<^sub>v(0) = true\<^sub>v"
-  by (simp add: zero_vexpr_def)
+  by (pred_auto)
 
 lemma vdefined_one [simp]: "\<D>\<^sub>v(1) = true\<^sub>v"
-  by (simp add: one_vexpr_def)
+  by (pred_auto)
 
 lemma vdefined_upfun: "\<D>\<^sub>v(vuop (upfun A f) x) = (\<D>\<^sub>v(x) \<and>\<^sub>v x \<in>\<^sub>v \<guillemotleft>A\<guillemotright>\<^sub>v)"
   apply (transfer)
@@ -522,10 +570,7 @@ done
 (* FIXME: Do this proof properly! *)
 
 lemma vdefined_bpfun' [simp]: "\<D>\<^sub>v(vbop (bpfun' f) x y) = (\<D>\<^sub>v(x) \<and>\<^sub>v \<D>\<^sub>v(y))"
-  apply (simp add: vdefined_bpfun)
-  apply (transfer, rule ext, auto)
-  using kand_def apply fastforce
-done
+  by (pred_auto)
 
 lemma vdefined_tpfun: "\<D>\<^sub>v(vtop (tpfun A f) x y z) = (\<D>\<^sub>v(x) \<and>\<^sub>v \<D>\<^sub>v(y) \<and>\<^sub>v \<D>\<^sub>v(z) \<and>\<^sub>v (x, y, z)\<^sub>v \<in>\<^sub>v \<guillemotleft>A\<guillemotright>\<^sub>v)"
   apply (transfer)
@@ -541,8 +586,8 @@ lemma vdefined_tpfun: "\<D>\<^sub>v(vtop (tpfun A f) x y z) = (\<D>\<^sub>v(x) \
   apply (metis option.distinct(2) restrict_out)
 done
 
-lemma vdefined_upfunI: 
-  assumes "(x \<in>\<^sub>v \<guillemotleft>A\<guillemotright>\<^sub>v) = P(x)" 
+lemma vdefined_upfunI:
+  assumes "(x \<in>\<^sub>v \<guillemotleft>A\<guillemotright>\<^sub>v) = P(x)"
   shows "\<D>\<^sub>v(vuop (upfun A f) x) = (\<D>\<^sub>v(x) \<and>\<^sub>v P(x))"
   using assms by (simp add: vdefined_upfun hd_pre_def)
 
@@ -558,8 +603,8 @@ lemma vdefined_undef [simp]:
   "\<D>\<^sub>v(\<bottom>\<^sub>v) = false\<^sub>v"
   by (pred_auto)
 
-lemma vdefined_vvar [simp]: 
-  fixes x :: "('a, '\<alpha>) uvar" 
+lemma vdefined_vvar [simp]:
+  fixes x :: "('a, '\<alpha>) uvar"
   shows "\<D>\<^sub>v(&\<^sub>vx) = true\<^sub>v"
   by (transfer, simp)
 
@@ -576,7 +621,7 @@ lemma vdefined_vmap_apply [simp]:
 done
 
 lemma vdefined_divide [simp]: "\<D>\<^sub>v(x / y) = (\<D>\<^sub>v(x) \<and>\<^sub>v \<D>\<^sub>v(y) \<and>\<^sub>v y <>\<^sub>v 0)"
-  apply (simp add: upred_defs divide_vexpr_def zero_vexpr_def vdefined_bpfun)
+  apply (simp add: upred_defs vdefined_bpfun)
   apply (transfer, rule ext, auto)
   apply (case_tac "y b", auto simp add: domIff)
 done
@@ -594,21 +639,21 @@ lemma vdm_bind_on_dom_1 [intro]:
 
 subsection {* VDM-SL programs *}
 
-text {* Assignment requires that the expression assigned to the 
+text {* Assignment requires that the expression assigned to the
         expression be defined, otherwise an abort will result. *}
 
-definition vassign_uvar :: "('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d" where
+definition vassign_uvar :: "('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel_des" where
 [urel_defs]: "vassign_uvar x v = (\<lfloor> \<D>\<^sub>v(v) \<rfloor>\<^sub>v \<turnstile>\<^sub>n (x := \<lfloor>v\<rfloor>\<^sub>v))"
 
-definition vassign_dvar :: "'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) vexpr \<Rightarrow> '\<alpha> hrelation_d" where
+definition vassign_dvar :: "'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) vexpr \<Rightarrow> '\<alpha> hrel_des" where
 [urel_defs]: "vassign_dvar x v = vassign_uvar (x\<up>) v"
 
 consts
-  vassign :: "'v \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d"
+  vassign :: "'v \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel_des"
 
 adhoc_overloading
   vassign vassign_uvar and vassign vassign_dvar
-  
+
 text {* We define a variant of assignment that updates a particular field in a record *}
 
 abbreviation "vassign_upd x f v \<equiv> vassign_uvar x (vbop (bpfun' (\<lambda> k. f (\<lambda>_. k))) v (&\<^sub>vx))"
@@ -617,11 +662,11 @@ abbreviation "vassign_upd x f v \<equiv> vassign_uvar x (vbop (bpfun' (\<lambda>
 (* TODO: Implement pretty print rules for record update assignment *)
 
 syntax
-  "_vassign"     :: "id \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d" (infix ":=\<^sub>v" 40)
-  "_vassign_rec" :: "id \<Rightarrow> id \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation" ("_.\<^sub>v_/ :=\<^sub>v/ _" [999,999,40] 40)
-  "_vassign_map" :: "id \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation" ("_'(_')/ :=\<^sub>v/ _" [999,999,40] 40)
+  "_vassign"     :: "id \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel_des" (infix ":=\<^sub>v" 40)
+  "_vassign_rec" :: "id \<Rightarrow> id \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel" ("_.\<^sub>v_/ :=\<^sub>v/ _" [999,999,40] 40)
+  "_vassign_map" :: "id \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel" ("_'(_')/ :=\<^sub>v/ _" [999,999,40] 40)
 
-translations 
+translations
   "x :=\<^sub>v v" == "CONST vassign x v"
   "x.\<^sub>vf :=\<^sub>v v" == "CONST vassign_upd x (_update_name f) v"
   "m(k) :=\<^sub>v v" => "CONST vassign m (CONST vtop CONST vupdate (&\<^sub>vm) k v)"
@@ -629,22 +674,22 @@ translations
 lemma vassign_undef:
   fixes x :: "('a, '\<alpha>) uvar"
   shows "(x :=\<^sub>v \<bottom>\<^sub>v) = \<bottom>\<^sub>D"
-  by rel_auto
+  by (rel_auto robust)
 
 lemma H1_H3_vdm_assign [simp]:
-  fixes x :: "('a, '\<alpha>) uvar" 
+  fixes x :: "('a, '\<alpha>) uvar"
   shows "(x :=\<^sub>v v) is H1_H3"
   by (metis H1_rdesign H3_ndesign Healthy_def ndesign_def vassign_uvar_def)
 
-lemma hd_nil_abort: 
+lemma hd_nil_abort:
   fixes x :: "('a, '\<alpha>) uvar"
   shows "(x :=\<^sub>v hd\<^sub>v([]\<^sub>v)) = true"
-  by rel_auto  
+  by (rel_auto)
 
-definition wp_vdm :: "('\<alpha>, '\<beta>) relation_d \<Rightarrow> '\<beta> vpred \<Rightarrow> '\<alpha> vpred" (infix "wp\<^sub>v" 60)
+definition wp_vdm :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> '\<beta> vpred \<Rightarrow> '\<alpha> vpred" (infix "wp\<^sub>v" 60)
 where "Q wp\<^sub>v r = \<lceil>Q wp\<^sub>D \<lfloor>r\<rfloor>\<^sub>v\<rceil>\<^sub>v"
 
-text {* Here we augment the set of design weakest precondition laws 
+text {* Here we augment the set of design weakest precondition laws
         with the VDM assignment operator *}
 
 theorem wpd_vdm_assign [wp]:
@@ -653,18 +698,18 @@ theorem wpd_vdm_assign [wp]:
   by (simp add: vassign_uvar_def wp)
 
 lemma wp_calc_test_1:
-  "\<lbrakk> vwb_lens x; vwb_lens y \<rbrakk> \<Longrightarrow> (y :=\<^sub>v hd\<^sub>v(&\<^sub>vx)) wp\<^sub>D true 
+  "\<lbrakk> vwb_lens x; vwb_lens y \<rbrakk> \<Longrightarrow> (y :=\<^sub>v hd\<^sub>v(&\<^sub>vx)) wp\<^sub>D true
                                   = \<lfloor>len\<^sub>v(&\<^sub>vx) >\<^sub>v \<guillemotleft>0\<guillemotright>\<^sub>v\<rfloor>\<^sub>v"
   by (simp add: wp usubst)
 
 lemma wp_calc_test_2:
-  "\<lbrakk> vwb_lens x; vwb_lens y \<rbrakk> \<Longrightarrow> (y :=\<^sub>v 1 / hd\<^sub>v(&\<^sub>vx)) wp\<^sub>D true 
+  "\<lbrakk> vwb_lens x; vwb_lens y \<rbrakk> \<Longrightarrow> (y :=\<^sub>v 1 / hd\<^sub>v(&\<^sub>vx)) wp\<^sub>D true
                                   = \<lfloor>len\<^sub>v(&\<^sub>vx) >\<^sub>v \<guillemotleft>0\<guillemotright>\<^sub>v \<and>\<^sub>v hd\<^sub>v(&\<^sub>vx) <>\<^sub>v 0\<rfloor>\<^sub>v"
   by (simp add: wp usubst)
 
 subsection {* VDM-SL operations *}
 
-definition vdm_sl_op :: "(bool, '\<alpha>) vexpr \<Rightarrow> (bool, '\<alpha> \<times> '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrelation_d \<Rightarrow> '\<alpha> hrelation_d"
+definition vdm_sl_op :: "(bool, '\<alpha>) vexpr \<Rightarrow> (bool, '\<alpha> \<times> '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel_des \<Rightarrow> '\<alpha> hrel_des"
   ("[pre _ post _ body _]\<^sub>v")
 where [upred_defs]: "[pre pr post po body bd]\<^sub>v = (\<lfloor>\<D>\<^sub>v(pr)\<rfloor>\<^sub>v \<and> \<lfloor>pr\<rfloor>\<^sub>v) \<turnstile>\<^sub>n (\<lfloor>\<D>\<^sub>v(po)\<rfloor>\<^sub>v \<and> \<lfloor>po\<rfloor>\<^sub>v \<and> post\<^sub>D(bd))"
 
@@ -687,7 +732,7 @@ lemma vdm_sl_op_false_pre [simp]:
 
 subsection {* Support for local variables *}
 
-alphabet vlocal = 
+alphabet vlocal =
   vlocals :: "vstore"
 
 instantiation vlocal_ext :: (type) vst
@@ -697,4 +742,8 @@ instance
   by (intro_classes, unfold_locales, simp_all)
 end
 
+subsection {*Utility functions*}
+
+definition inds :: "'a list \<Rightarrow> nat set" where
+  "inds x = {1..length x}"
 end

@@ -1,6 +1,6 @@
-session "UTP-AXM-IMPORTS" = "HOL-Cardinals" +
+session "UTP-AXM-IMPORTS" = "Optics-Library" +
   options [browser_info = true, document = false]
-  theories "theories/uimports" "lenses/Lenses"
+  theories "theories/uimports"
 
 session "UTP-AXM-CORE" = "UTP-AXM-IMPORTS" +
   options [browser_info = true,

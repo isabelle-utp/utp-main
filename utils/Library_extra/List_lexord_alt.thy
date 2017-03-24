@@ -1,8 +1,11 @@
-subsection {* Alternative list lexicographic order *}
+section {* Alternative list lexicographic order *}
 
 theory List_lexord_alt
   imports "~~/src/HOL/Library/Char_ord"
 begin
+
+text {* Since we can't instantiate the order class twice for lists, and we want prefix as
+  the default order for the UTP we here add syntax for the lexicographic order relation. *}
 
 definition list_lex_less :: "'a::linorder list \<Rightarrow> 'a list \<Rightarrow> bool" (infix "<\<^sub>l" 50)
 where "xs <\<^sub>l ys \<longleftrightarrow> (xs, ys) \<in> lexord {(u, v). u < v}"
@@ -20,5 +23,4 @@ lemma Nil_less_Cons [simp]: "[] <\<^sub>l a # x"
 
 lemma Cons_less_Cons [simp]: "a # x <\<^sub>l b # y \<longleftrightarrow> a < b \<or> a = b \<and> x <\<^sub>l y"
   by (simp add: list_lex_less_def)
-
 end

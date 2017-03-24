@@ -1,26 +1,26 @@
 header {* Extra numeric properties *}
 
 theory Number_extra
-  imports 
-    Real 
+  imports
+    Real
     "~~/src/HOL/ex/Sqrt"
 begin
 
 subsection {* Non-zero naturals *}
 
-definition Nats1 :: "'a :: linordered_semidom set" ("\<nat>\<^sub>1") where 
+definition Nats1 :: "'a :: linordered_semidom set" ("\<nat>\<^sub>1") where
 "Nats1 = {n \<in> Nats. n \<ge> 1}"
 
 lemma Nats1_1 [simp]: "1 \<in> \<nat>\<^sub>1"
   by (simp add: Nats1_def)
-  
-lemma Nats1_add [simp]: 
+
+lemma Nats1_add [simp]:
   "\<lbrakk> a \<in> \<nat>\<^sub>1; b \<in> \<nat>\<^sub>1 \<rbrakk> \<Longrightarrow> a + b \<in> \<nat>\<^sub>1"
   apply (auto simp add: Nats1_def)
   apply (metis add.commute add_le_cancel_right less_add_one linear not_less order_trans)
 done
 
-lemma Nats1_mult [simp]: 
+lemma Nats1_mult [simp]:
   "\<lbrakk> a \<in> \<nat>\<^sub>1; b \<in> \<nat>\<^sub>1 \<rbrakk> \<Longrightarrow> a * b \<in> \<nat>\<^sub>1"
   apply (auto simp add: Nats1_def)
   apply (metis comm_monoid_mult_class.mult_1 dual_order.trans mult_right_mono zero_le_one)
@@ -44,10 +44,10 @@ lemma Nats1_diff_Nats [simp]: "\<nat>\<^sub>1 \<noteq> \<nat>"
 
 lemma Nats1_psub_Nats [simp]: "\<nat>\<^sub>1 \<subset> \<nat>"
   by (metis (erased, lifting) Nats1_def Nats1_diff_Nats mem_Collect_eq psubsetI subset_iff)
-  
+
 lemma Nats_diff_Ints [simp]: "(\<nat>::'a::linordered_idom set) \<noteq> \<int>"
 proof -
-  have "-1 \<in> \<int>" 
+  have "-1 \<in> \<int>"
     by (auto)
   moreover have "-1 \<notin> (\<nat>::'a set)"
     by (metis Nats_cases abs_minus_cancel abs_of_nat abs_one one_neq_neg_one)
@@ -59,14 +59,14 @@ lemma Nats_psub_Ints [simp]: "(\<nat>::'a::linordered_idom set) \<subset> \<int>
   by (auto elim:Nats_cases Ints_cases simp add: Nats_diff_Ints)
 
 text {* The following property helps to prove that rationals are not all integers *}
-  
+
 lemma int_2n_not_1: "(2 * (n :: int)) \<noteq> 1"
   by presburger
-  
+
 lemma Ints_floor_transfer: "\<lbrakk> x \<in> Ints; y \<in> Ints \<rbrakk> \<Longrightarrow> x = y \<longleftrightarrow> floor x = floor y"
   by (metis Ints_cases floor_of_int)
 
-lemma Ints_floor_mult [simp]: 
+lemma Ints_floor_mult [simp]:
   "\<lbrakk> x \<in> Ints; y \<in> Ints \<rbrakk> \<Longrightarrow> floor (x * y) = floor(x) * floor(y)"
   by (metis Ints_cases floor_of_int of_int_mult)
 
@@ -86,18 +86,18 @@ lemma half_not_int: "(1/2 :: 'a :: floor_ceiling) \<notin> \<int>"
 
 lemma Int_diff_Rat [simp]: "(\<int>::'a::floor_ceiling set) \<noteq> \<rat>"
 proof -
-  have "1/2 \<notin> (\<int>::'a::floor_ceiling set)" 
+  have "1/2 \<notin> (\<int>::'a::floor_ceiling set)"
     by (metis half_not_int)
   moreover have "1/2 \<in> (\<rat>::'a::floor_ceiling set)"
     by (metis Rats_number_of divide_minus1 divide_zero_left inverse_eq_divide nonzero_Rats_inverse numeral_neq_neg_numeral)
   ultimately show ?thesis
     by blast
 qed
-    
+
 lemma Ints_psub_Rats [simp]: "(\<int> :: 'a::floor_ceiling set) \<subset> \<rat>"
   by (auto elim!:Rats_cases Ints_cases simp add: Int_diff_Rat)
-   
-lemma Reals_UNIV [simp]: 
+
+lemma Reals_UNIV [simp]:
   "(\<real> :: real set) = UNIV"
   by (simp add: Reals_def)
 
@@ -110,8 +110,7 @@ proof -
   ultimately show ?thesis
     by (auto)
 qed
-  
+
 lemma Rats_psub_Reals [simp]: "(\<rat> :: real set) \<subset> \<real>"
   by (auto, metis Rat_diff_Real Reals_UNIV)
-
 end

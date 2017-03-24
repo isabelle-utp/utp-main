@@ -1,7 +1,7 @@
 section {* ICTAC 2016 tutorial. Taipei, 24/10/2016 *}
 
 theory ictac16_tutorial
-  imports utp_designs
+  imports "../theories/utp_designs"
 begin
 
 subsection {* Laws of programming *}
@@ -17,10 +17,10 @@ theorem seqr_left_zero: "(false ;; P) = false" oops
 theorem cond_seq_left_distr:
   assumes "out\<alpha> \<sharp> b"
   shows "((P \<triangleleft> b \<triangleright> Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright> (Q ;; R))"
-  using assms by (rel_auto, blast+)
+  using assms by (rel_simp, blast+)
 
-theorem assign_twice: 
-  assumes "uvar x" "x \<sharp> f" 
+theorem assign_twice:
+  assumes "vwb_lens x" "x \<sharp> f"
   shows "(x := e ;; x := f) = (x := f)"
   using assms by rel_auto
 
@@ -47,14 +47,14 @@ proof -
 qed
 
 theorem rdesign_left_unit:
-  fixes P Q :: "'\<alpha> hrelation_d"
+  fixes P Q :: "'\<alpha> hrel_des"
   shows "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
 proof -
   -- {* We first expand out the definition of the design identity *}
   have "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (true \<turnstile>\<^sub>r II ;; P \<turnstile>\<^sub>r Q)"
     by (simp add: skip_d_def)
   -- {* Next, we apply the design composition law above in a subproof *}
-  also have "... = (true \<and> \<not> (II ;; \<not> P)) \<turnstile>\<^sub>r (II ;; Q)"
+  also have "... = (true \<and> \<not> (II ;; (\<not> P))) \<turnstile>\<^sub>r (II ;; Q)"
   proof -
     -- {* The assumption of identity is $\true$ so it is easy to discharge the proviso *}
     have "out\<alpha> \<sharp> true"
@@ -72,30 +72,10 @@ qed
 
 subsection {* Program example *}
 
-(* Boiler plate: Set up the lenses for our two state variables, x and y *)
-
-record my_state =
-  st_x :: int
-  st_y :: int
-  st_z :: int
-
-definition "x = VAR st_x"
-definition "y = VAR st_y"
-definition "z = VAR st_z"
-
-lemma uvar_x [simp]: "vwb_lens x"
-  by (unfold_locales, auto simp add: x_def)
-
-lemma uvar_y [simp]: "vwb_lens y"
-  by (unfold_locales, auto simp add: y_def)
-
-lemma uvar_z [simp]: "vwb_lens z"
-  by (unfold_locales, auto simp add: z_def)
-
-lemma my_state_indeps [simp]: "x \<bowtie> y" "y \<bowtie> x" "x \<bowtie> z" "z \<bowtie> x" "y \<bowtie> z" "z \<bowtie> y"
-  by (simp_all add: lens_indep_def x_def y_def z_def)
-
-(* Beginning of examples *)
+alphabet my_state =
+  x :: int
+  y :: int
+  z :: int
 
 lemma "(x := 1 ;; x := &x + 1) = (x := 2)"
   oops
@@ -118,6 +98,4 @@ lemma violate_precond:
   apply (subst_tac)
   apply (rel_auto)
 done
-
 end
-

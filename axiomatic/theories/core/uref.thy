@@ -29,7 +29,7 @@ axiomatization
 -- {* Definition of Refinement *}
   ref_uval_def [simp]: "(InjU x) \<sqsubseteq>\<^sub>u (InjU y) \<longleftrightarrow> (x \<le> y)" and
 -- {* Global Ordering Axiom *}
-  uval_ordering : "ordering (op \<sqsubseteq>\<^sub>u) (\<lambda> x y . x \<sqsubseteq>\<^sub>u y \<and> x \<noteq> y)"
+  uval_ordering : "ordering (op \<sqsubseteq>\<^sub>u) (\<lambda>x y. x \<sqsubseteq>\<^sub>u y \<and> x \<noteq> y)"
 
 abbreviation ref_uval_neq :: "uval \<Rightarrow> uval \<Rightarrow> bool" (infix "\<sqsubset>\<^sub>u" 50) where
 "x \<sqsubset>\<^sub>u y \<equiv> x \<sqsubseteq>\<^sub>u y \<and> x \<noteq> y"

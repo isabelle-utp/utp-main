@@ -91,7 +91,7 @@ text {*
 
 text {* The following rewrites could be done generically by a conversion. *}
 
-theorem remove_set_duplicates :
+theorem insert_dup_simps:
 "(insert x (insert x S)) = (insert x S)"
 "(insert x (insert a (insert x S))) =
  (insert x (insert a S))"
@@ -103,6 +103,20 @@ theorem remove_set_duplicates :
  (insert x (insert a (insert b (insert c (insert d S)))))"
 "(insert x (insert a (insert b (insert c (insert d (insert e (insert x S))))))) =
  (insert x (insert a (insert b (insert c (insert d (insert e S))))))"
+apply (auto)
+done
+
+theorem union_dup_simps:
+"A \<union> A = A"
+"A \<union> (B \<union> C) = A \<union> B \<union> C"
+"A \<union> B \<union> A = A \<union> B"
+"A \<union> B \<union> C \<union> A = A \<union> B \<union> C"
+"A \<union> B \<union> C \<union> D \<union> A = A \<union> B \<union> C \<union> D"
+"A \<union> B \<union> C \<union> D \<union> E \<union> A = A \<union> B \<union> C \<union> D \<union> E"
+"X \<union> A \<union> B \<union> A = X \<union> A \<union> B"
+"X \<union> A \<union> B \<union> C \<union> A = X \<union> A \<union> B \<union> C"
+"X \<union> A \<union> B \<union> C \<union> D \<union> A = X \<union> A \<union> B \<union> C \<union> D"
+"X \<union> A \<union> B \<union> C \<union> D \<union> E \<union> A = X \<union> A \<union> B \<union> C \<union> D \<union> E"
 apply (auto)
 done
 
@@ -121,9 +135,11 @@ text {*
   theorems directly. This only became noticeable since Isabelle 2015, which is
   presumably due to a more complex type models for datatypes. To overcome this
   issue, what we store in the @{text typedep} attribute are theorems that have
-  in fact already been simplified, expanding @{text "typedep_..._def"} in the
-  RHS of the definitional equation and removing duplicates elements in set. We
-  note that the theorems in @{text typedep} are not axioms but proved lemmas.
+  in fact already been simplified, in the first instance by expanding earlier
+  definitions of @{const typedep} and secondly by using the laws provided by
+  @{thm [source] insert_dup_simps} and @{thm [source] union_dup_simps}. Hence,
+  the theorems in @{attribute typedep} are not the raw definitional axioms but
+  proved lemmas that follow from them.
 *}
 
 declare [[show_types]]

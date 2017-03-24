@@ -6,7 +6,7 @@
 (******************************************************************************)
 (* LAST REVIEWED: 25 Jan 2017 *)
 
-section {* State Space *}
+section {* Universal State *}
 
 theory ustate
 imports utype uval uvar
@@ -135,8 +135,6 @@ done
 notation ustate_cong_on ("_ \<cong>\<^sub>b _ on _" [51, 51, 0] 50)
 
 subsection {* Theorems *}
-
-paragraph {* Transfer Laws *}
 
 theorem ustate_eq:
 "b1 = b2 \<longleftrightarrow> (\<forall>v. b1\<cdot>v = b2\<cdot>v)"
@@ -406,15 +404,9 @@ apply (drule_tac x = "\<sigma>(v1 := x1, v2 := x2, v3 := x3)\<^sub>s" in spec)
 apply (clarsimp)
 done
 
-definition ustate_transfer_tag ::
-  "uvar list \<Rightarrow> bool \<Rightarrow> bool" (infix "\<leadsto>" 51) where
-"ustate_transfer_tag = (\<lambda>vs b. b)"
-
 theorem all_ustate_transfer_4:
 "distinct [v1\<down>, v2\<down>, v3\<down>, v4\<down>] \<Longrightarrow>
- (\<forall>s::ustate. P s\<star>v1 s\<star>v2 s\<star>v3 s\<star>v4) \<longleftrightarrow>
-  [v1\<down>, v2\<down>, v3\<down>, v4\<down>] \<leadsto> (\<forall>v1 v2 v3 v4. P v1 v2 v3 v4)"
-apply (unfold ustate_transfer_tag_def)
+ (\<forall>s::ustate. P s\<star>v1 s\<star>v2 s\<star>v3 s\<star>v4) \<longleftrightarrow> (\<forall>v1 v2 v3 v4. P v1 v2 v3 v4)"
 apply (rule iffI)
 apply (simp_all)
 apply (clarsimp)
@@ -471,7 +463,7 @@ theorem meta_ustate_transfer_4:
 "distinct [v1\<down>, v2\<down>, v3\<down>, v4\<down>] \<Longrightarrow>
  (\<And>s::ustate. P s\<star>v1 s\<star>v2 s\<star>v3 s\<star>v4) \<equiv> (\<And>v1 v2 v3 v4. P v1 v2 v3 v4)"
 apply (atomize (full))
-apply (simp add: all_ustate_transfer_4 [simplified ustate_transfer_tag_def])
+apply (simp add: all_ustate_transfer_4)
 done
 
 theorem meta_ustate_transfer_5:
@@ -491,9 +483,9 @@ lemmas meta_ustate_transfer =
 
 named_theorems ustate_transfer "ustate transfer rules"
 
-declare ex_ustate_transfer [ustate_transfer]
-declare all_ustate_transfer [ustate_transfer]
 declare meta_ustate_transfer [ustate_transfer]
+declare all_ustate_transfer [ustate_transfer]
+declare ex_ustate_transfer [ustate_transfer]
 
 text {* @{text simp} alone is not sufficient as we require HO unification. *}
 

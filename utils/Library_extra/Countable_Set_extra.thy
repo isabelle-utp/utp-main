@@ -30,10 +30,10 @@ setup_lifting type_definition_cset
 
 lift_definition cnin :: "'a \<Rightarrow> 'a cset \<Rightarrow> bool" (infix "\<notin>\<^sub>c" 50) is "op \<notin>" .
 
-definition cBall :: "'a cset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where 
+definition cBall :: "'a cset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
 "cBall A P = (\<forall>x. x \<in>\<^sub>c A \<longrightarrow> P x)"
 
-definition cBex :: "'a cset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where 
+definition cBex :: "'a cset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
 "cBex A P = (\<exists>x. x \<in>\<^sub>c A \<longrightarrow> P x)"
 
 declare cBall_def [mono,simp]
@@ -49,13 +49,13 @@ translations
 
 definition cset_Collect :: "('a \<Rightarrow> bool) \<Rightarrow> 'a cset" where
 "cset_Collect = (acset o Collect)"
- 
-lift_definition cset_Coll :: "'a cset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a cset" is "\<lambda> A P. {x \<in> A. P x}" 
+
+lift_definition cset_Coll :: "'a cset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a cset" is "\<lambda> A P. {x \<in> A. P x}"
   by (auto)
 
 lemma cset_Coll_equiv: "cset_Coll A P = cset_Collect (\<lambda> x. x \<in>\<^sub>c A \<and> P x)"
   by (simp add:cset_Collect_def cset_Coll_def cin_def)
-  
+
 declare cset_Collect_def [simp]
 
 syntax
@@ -71,10 +71,10 @@ translations
 
 lemma cset_CollectI: "P (a :: 'a::countable) \<Longrightarrow> a \<in>\<^sub>c {x. P x}\<^sub>c"
   by (simp add: cin_def)
-  
+
 lemma cset_CollI: "\<lbrakk> a \<in>\<^sub>c A; P a \<rbrakk> \<Longrightarrow> a \<in>\<^sub>c {x \<in>\<^sub>c A. P x}\<^sub>c"
   by (simp add: cin.rep_eq cset_Coll.rep_eq)
- 
+
 lemma cset_CollectD: "(a :: 'a::countable) \<in>\<^sub>c {x. P x}\<^sub>c \<Longrightarrow> P a"
   by (simp add: cin_def)
 
@@ -91,11 +91,11 @@ print_translation {*
 lift_definition cset_set :: "'a list \<Rightarrow> 'a cset" is set
   using countable_finite by blast
 
-lemma countable_finite_power: 
+lemma countable_finite_power:
   "countable(A) \<Longrightarrow> countable {B. B \<subseteq> A \<and> finite(B)}"
   by (metis Collect_conj_eq Int_commute countable_Collect_finite_subset)
 
-lift_definition cINTER :: "'a cset \<Rightarrow> ('a \<Rightarrow> 'b cset) \<Rightarrow> 'b cset" is 
+lift_definition cINTER :: "'a cset \<Rightarrow> ('a \<Rightarrow> 'b cset) \<Rightarrow> 'b cset" is
 "\<lambda> A f. if (A = {}) then {} else INTER A f"
   by (auto)
 
@@ -104,7 +104,7 @@ definition cInter :: "'a cset cset \<Rightarrow> 'a cset" ("\<Inter>\<^sub>c_" [
 
 lift_definition cfinite :: "'a cset \<Rightarrow> bool" is finite .
 lift_definition cInfinite :: "'a cset \<Rightarrow> bool" is infinite .
-lift_definition clist :: "'a::linorder cset \<Rightarrow> 'a list" is sorted_list_of_set . 
+lift_definition clist :: "'a::linorder cset \<Rightarrow> 'a list" is sorted_list_of_set .
 lift_definition ccard :: "'a cset \<Rightarrow> nat" is card .
 lift_definition cPow :: "'a cset \<Rightarrow> 'a cset cset" is "\<lambda> A. {B. B \<subseteq>\<^sub>c A \<and> cfinite(B)}"
 proof -
@@ -127,7 +127,7 @@ definition CCollect :: "('a \<Rightarrow> bool option) \<Rightarrow> 'a cset opt
 definition cset_mapM :: "'a option cset \<Rightarrow> 'a cset option" where
 "cset_mapM A = (if (None \<in>\<^sub>c A) then None else Some (the `\<^sub>c A))"
 
-lemma cset_mapM_Some_image [simp]: 
+lemma cset_mapM_Some_image [simp]:
   "cset_mapM (cimage Some A) = Some A"
   apply (auto simp add: cset_mapM_def)
   apply (metis cimage_cinsert cinsertI1 option.sel set_cinsert)
@@ -140,19 +140,19 @@ lemma the_Some_image [simp]:
   "the ` Some ` xs = xs"
   by (auto simp add:image_iff)
 
-lemma CCollect_ext_Some [simp]: 
+lemma CCollect_ext_Some [simp]:
   "CCollect_ext Some xs = CCollect xs"
   apply (case_tac "CCollect xs")
   apply (auto simp add:CCollect_ext_def)
 done
 
-lift_definition list_of_cset :: "'a :: linorder cset \<Rightarrow> 'a list" is sorted_list_of_set . 
+lift_definition list_of_cset :: "'a :: linorder cset \<Rightarrow> 'a list" is sorted_list_of_set .
 
 lift_definition fset_cset :: "'a fset \<Rightarrow> 'a cset" is id
   using uncountable_infinite by auto
 
 definition cset_count :: "'a cset \<Rightarrow> 'a \<Rightarrow> nat" where
-"cset_count A = 
+"cset_count A =
   (if (finite (rcset A))
    then (SOME f::'a\<Rightarrow>nat. inj_on f (rcset A))
    else (SOME f::'a\<Rightarrow>nat. bij_betw f (rcset A) UNIV))"
@@ -186,10 +186,10 @@ proof -
 qed
 
 definition cset_seq :: "'a cset \<Rightarrow> (nat \<rightharpoonup> 'a)" where
-"cset_seq A i = (if (i \<in> range (cset_count A) \<and> inv_into (rcset A) (cset_count A) i \<in>\<^sub>c A) 
-                 then Some (inv_into (rcset A) (cset_count A) i) 
+"cset_seq A i = (if (i \<in> range (cset_count A) \<and> inv_into (rcset A) (cset_count A) i \<in>\<^sub>c A)
+                 then Some (inv_into (rcset A) (cset_count A) i)
                  else None)"
-                 
+
 lemma cset_seq_ran: "ran (cset_seq A) = rcset(A)"
   apply (auto simp add: ran_def cset_seq_def cin.rep_eq)
   apply (metis cset_count_inj_seq inv_into_f_f rangeI)
@@ -203,11 +203,11 @@ proof (rule injI)
     by (metis cset_seq_ran rcset_inverse)
 qed
 
-lift_definition cset2seq :: "'a cset \<Rightarrow> 'a seq" 
+lift_definition cset2seq :: "'a cset \<Rightarrow> 'a seq"
 is "(\<lambda> A i. if (i \<in> cset_count A ` rcset A) then inv_into (rcset A) (cset_count A) i else (SOME x. x \<in>\<^sub>c A))" .
 
 lemma range_cset2seq:
-  "A \<noteq> {}\<^sub>c \<Longrightarrow> range (Rep_seq (cset2seq A)) = rcset A"  
+  "A \<noteq> {}\<^sub>c \<Longrightarrow> range (Rep_seq (cset2seq A)) = rcset A"
   by (force intro: someI2 simp add: cset2seq.rep_eq cset_count_inj_seq bot_cset.rep_eq cin.rep_eq)
 
 lemma infinite_cset_count_surj: "infinite (rcset A) \<Longrightarrow> surj (cset_count A)"
@@ -254,8 +254,8 @@ lemma bit_seq_of_nat_cset_bij: "bij bit_seq_of_nat_set"
 done
 
 text {* This function is a partial injection from countable sets of natural sets to natural sets.
-        When used with the Cantor-Bernstein theorem, it can be used to conjure a total bijection between
-        these two types. *}
+        When used with the Schroeder-Bernstein theorem, it can be used to conjure a total
+        bijection between these two types. *}
 
 definition nat_set_cset_collapse :: "nat set cset \<Rightarrow> nat set" where
 "nat_set_cset_collapse = inv bit_seq_of_nat_set \<circ> seq_inj \<circ> cset2seq \<circ> (\<lambda> A. (bit_seq_of_nat_set `\<^sub>c A))"
@@ -313,7 +313,7 @@ qed
 
 lemma nat_set_cset_partial_bij:
   obtains f :: "nat set cset \<Rightarrow> nat set" where "bij_betw f {A. A \<noteq> {}\<^sub>c} UNIV"
-  using Cantor_Bernstein[OF nat_set_cset_collapse_inj, of UNIV csingle, simplified, OF inj_csingle range_csingle]
+  using Schroeder_Bernstein[OF nat_set_cset_collapse_inj, of UNIV csingle, simplified, OF inj_csingle range_csingle]
   by (auto)
 
 lemma nat_set_cset_bij:
@@ -361,5 +361,4 @@ done
 lemma bij_betw_image_csets:
   "bij_betw f A B \<Longrightarrow> bij_betw (op `\<^sub>c f) (csets A) (csets B)"
   by (simp add: bij_betw_def inj_on_image_csets image_csets_surj)
-
 end

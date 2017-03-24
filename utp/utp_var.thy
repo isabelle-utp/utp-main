@@ -1,69 +1,60 @@
 section {* UTP variables *}
 
 theory utp_var
-imports
-  "../contrib/Kleene_Algebra/Quantales" 
-  "../contrib/HOL-Algebra2/Complete_Lattice"
-  "../contrib/HOL-Algebra2/Galois_Connection"
-  "../utils/cardinals"
-  "../utils/Continuum"
-  "../utils/finite_bijection"
-  "../utils/interp"
-  "../utils/Lenses"
-  "../utils/Positive_New"
-  "../utils/Profiling"
-  "../utils/ttrace"
-  "../utils/Library_extra/Pfun"
-  "../utils/Library_extra/Ffun"
-  "../utils/Library_extra/Derivative_extra"
-  "../utils/Library_extra/List_lexord_alt"
-  "../utils/Library_extra/Monoid_extra"
+  imports
+  Deriv
   "~~/src/HOL/Library/Prefix_Order"
   "~~/src/HOL/Library/Char_ord"
-  "~~/src/HOL/Library/Adhoc_Overloading"
+  "~~/src/Tools/Adhoc_Overloading"
   "~~/src/HOL/Library/Monad_Syntax"
   "~~/src/HOL/Library/Countable"
   "~~/src/HOL/Eisbach/Eisbach"
+  "../contrib/Algebra/Complete_Lattice"
+  "../contrib/Algebra/Galois_Connection"
+  "../optics/Lenses"
+  "../utils/Profiling"
+  "../utils/TotalRecall"
+  "../utils/Library_extra/Pfun"
+  "../utils/Library_extra/Ffun"
+  "../utils/Library_extra/List_lexord_alt"
+  "../utils/Library_extra/Monoid_extra"
   utp_parser_utils
 begin
 
-no_notation inner (infix "\<bullet>" 70)
+text {* We will overload the square order relation with refinement and also the lattice operators so
+  we will turn off these notations. *}
 
-no_notation le (infixl "\<sqsubseteq>\<index>" 50)
+purge_notation
+  le (infixl "\<sqsubseteq>\<index>" 50) and
+  asup ("\<Squnion>\<index>_" [90] 90) and
+  ainf ("\<Sqinter>\<index>_" [90] 90) and
+  join (infixl "\<squnion>\<index>" 65) and
+  meet (infixl "\<sqinter>\<index>" 70)
 
-no_notation
-  Set.member  ("op :") and
-  Set.member  ("(_/ : _)" [51, 51] 50)
+text {* We hide HOL's built-in relation type since we will replace it with our own *}
+
+hide_type rel
+type_synonym 'a relation = "('a \<times> 'a) set"
 
 declare fst_vwb_lens [simp]
 declare snd_vwb_lens [simp]
-declare lens_indep_left_comp [simp]
+(* declare lens_indep_left_comp [simp] *)
 declare comp_vwb_lens [simp]
 declare lens_indep_left_ext [simp]
 declare lens_indep_right_ext [simp]
 
 text {* This theory describes the foundational structure of UTP variables, upon which the rest
-        of our model rests. We start by defining alphabets, which following~\cite{Feliachi2010,Feliachi2012} 
-        in this shallow model are simply represented as types, though by convention usually a record 
+        of our model rests. We start by defining alphabets, which following~\cite{Feliachi2010,Feliachi2012}
+        in this shallow model are simply represented as types, though by convention usually a record
         type where each field corresponds to a variable. *}
 
 type_synonym '\<alpha> "alphabet"  = "'\<alpha>"
 
-text {* UTP variables carry two type parameters, $'a$ that corresponds to the variable's type
-        and $'\alpha$ that corresponds to alphabet of which the variable is a type. There
-        is a thus a strong link between alphabets and variables in this model. Variable are characterized 
-        by two functions, \emph{var-lookup} and \emph{var-update}, that respectively lookup and update 
-        the variable's value in some alphabetised state space. These functions can readily be extracted
-        from an Isabelle record type.
-*}
+text {* UTP variables in this frame are simply modelled as lenses, where the view type
+  @{typ "'a"} is the variable type, and the source type @{text "'\<alpha>"} is the state-space
+  type. *}
 
 type_synonym ('a, '\<alpha>) uvar = "('a, '\<alpha>) lens"
-
-text {* The $VAR$ function~\cite{Feliachi2010} is a syntactic translations that allows to retrieve a variable given its 
-        name, assuming the variable is a field in a record. *}
-
-syntax "_VAR" :: "id \<Rightarrow> ('a, 'r) uvar"  ("VAR _")
-translations "VAR x" => "FLDLENS x"
 
  text {* We also define some lifting functions for variables to create input and output variables.
         These simply lift the alphabet to a tuple type since relations will ultimately be defined
@@ -110,6 +101,14 @@ lemma out_var_indep [simp]:
   "x \<bowtie> y \<Longrightarrow> out_var x \<bowtie> out_var y"
   by (simp add: out_var_def)
 
+lemma prod_lens_indep_in_var [simp]:
+  "a \<bowtie> x \<Longrightarrow> a \<times>\<^sub>L b \<bowtie> in_var x"
+  by (metis in_var_def in_var_indep out_in_indep out_var_def plus_pres_lens_indep prod_as_plus)
+
+lemma prod_lens_indep_out_var [simp]:
+  "b \<bowtie> x \<Longrightarrow> a \<times>\<^sub>L b \<bowtie> out_var x"
+  by (metis in_out_indep in_var_def out_var_def out_var_indep plus_pres_lens_indep prod_as_plus)
+
 text {* We also define some lookup abstraction simplifications. *}
 
 lemma var_lookup_in [simp]: "lens_get (in_var x) (A, A') = lens_get x A"
@@ -133,10 +132,10 @@ abbreviation (input) univ_alpha :: "('\<alpha>, '\<alpha>) uvar" ("\<Sigma>") wh
 
 (*
   Nonterminals:
-    svid: is an identifier solely used for variables;
-    svar: is a potentially decorated variable (but does not need to be?!);
+    svid: is an identifier soely used for variables
+    svar: is a potentially decorated variable (but does not need to be?!)
     salpha: is to construct alphabets (variable sets). This can only be done
-    through lens composition due to typing restrictions.
+    through lense composition due to typing restrictions.
 *)
 
 nonterminal svid and svar and salpha
@@ -144,7 +143,6 @@ nonterminal svid and svar and salpha
 syntax
   "_salphaid"    :: "id \<Rightarrow> salpha" ("_" [998] 998)
   "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [998] 998)
-(*  "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr "," 75) *)
   "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr ";" 75)
   "_svid"        :: "id \<Rightarrow> svid" ("_" [999] 999)
   "_svid_alpha"  :: "svid" ("\<Sigma>")
@@ -196,5 +194,4 @@ let
     | uvar_ty_tr ts = raise TERM ("uvar_ty_tr", ts);
 in [(@{syntax_const "_uvar_ty"}, K uvar_ty_tr)] end
 *}
-
 end

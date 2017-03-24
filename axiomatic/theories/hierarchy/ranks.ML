@@ -35,36 +35,36 @@ struct
         (#rep_type (#1 (nth info 0)))
     end;
 
-  fun add_sort sort (TFree (x, sorts)) = TFree (x, sort :: sorts)
-  | add_sort sort (TVar (xi, sorts)) = TVar (xi, sort :: sorts)
-  | add_sort sort (Type (t, ts)) = Type (t, (map (add_sort sort) ts));
+  fun replace_sorts sorts (TFree (x, _)) = TFree (x, sorts)
+  | replace_sorts sorts (TVar (xi, _)) = TVar (xi, sorts)
+  | replace_sorts sorts (Type (t, ts)) =
+      Type (t, (map (replace_sorts sorts) ts));
 
   fun mk_rankT typ = (Term.itselfT typ) --> @{typ "nat"};
 
   fun mk_rank typ =
     Const (@{const_name "rank"}, mk_rankT typ) $ (Logic.mk_type typ);
 
-  fun simplify_rank_def ctx =
-    Simplifier.simplify
-      (Simplifier.addsimps (ctx, (ranks.get ctx) @ @{thms max_cancel_simps}))
+  fun simplify_rank_def ctx = Simplifier.simplify
+    (Simplifier.addsimps (ctx, (ranks.get ctx) @ @{thms max_cancel_simps}))
 
   val ranks_attr = (Binding.empty, @{attributes [ranks]});
 
   fun inst_rank tyco thy =
     let val ctx = Proof_Context.init_global thy;
     val abs_typ = get_abs_type ctx tyco;
-    val abs_typ' = add_sort @{class rank} abs_typ;
+    val abs_typ' = replace_sorts @{sort rank} abs_typ;
     val vs = (map dest_TFree (snd (dest_Type abs_typ')));
     val lhs = Const (@{const_name rank}, mk_rankT abs_typ') $
       Free ("t", Term.itselfT abs_typ');
     val rep_typ = get_rep_type (Proof_Context.init_global thy) tyco;
-    val rhs = mk_rank (add_sort @{class rank} rep_typ);
+    val rhs = mk_rank (replace_sorts @{sort rank} rep_typ);
     val def_eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
     in (thy (* Perform instantiation of class rank. *)
       |> Class.instantiation ([tyco], vs, @{sort rank})
       |> `(fn lthy => Syntax.check_term lthy def_eq)
       |-> (fn def_eq =>
-        Specification.definition (NONE, (Attrib.empty_binding, def_eq)))
+        Specification.definition NONE [] [] (Binding.empty_atts, def_eq))
       |> (fn ((_, (_, thm)), lthy) => (* Add defn axiom to rank attribute. *)
         snd (Local_Theory.note (ranks_attr,
           [simplify_rank_def (Local_Theory.target_of lthy) thm]) lthy))

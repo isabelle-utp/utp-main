@@ -32,10 +32,10 @@ lemma uimpI [uintro]: "\<lbrakk> \<lbrakk>p\<rbrakk>\<^sub>eb \<Longrightarrow> 
 lemma uimpE [elim]: "\<lbrakk> \<lbrakk>p \<Rightarrow> q\<rbrakk>\<^sub>eb; (\<lbrakk>p\<rbrakk>\<^sub>eb \<Longrightarrow> \<lbrakk>q\<rbrakk>\<^sub>eb) \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (pred_auto)
 
-lemma ushAllI [uintro]: "\<lbrakk> \<And> x. \<lbrakk>p(x)\<rbrakk>\<^sub>eb \<rbrakk> \<Longrightarrow> \<lbrakk>\<^bold>\<forall> x \<bullet> p(x)\<rbrakk>\<^sub>eb" 
+lemma ushAllI [uintro]: "\<lbrakk> \<And> x. \<lbrakk>p(x)\<rbrakk>\<^sub>eb \<rbrakk> \<Longrightarrow> \<lbrakk>\<^bold>\<forall> x \<bullet> p(x)\<rbrakk>\<^sub>eb"
   by pred_auto
 
-lemma ushExI [uintro]: "\<lbrakk> \<lbrakk>p(x)\<rbrakk>\<^sub>eb \<rbrakk> \<Longrightarrow> \<lbrakk>\<^bold>\<exists> x \<bullet> p(x)\<rbrakk>\<^sub>eb" 
+lemma ushExI [uintro]: "\<lbrakk> \<lbrakk>p(x)\<rbrakk>\<^sub>eb \<rbrakk> \<Longrightarrow> \<lbrakk>\<^bold>\<exists> x \<bullet> p(x)\<rbrakk>\<^sub>eb"
   by pred_auto
 
 lemma udeduct_tautI [uintro]: "\<lbrakk> \<And> b. \<lbrakk>p\<rbrakk>\<^sub>eb \<rbrakk> \<Longrightarrow> `p`"
@@ -52,7 +52,7 @@ lemma udeduct_eqI [uintro]: "\<lbrakk> \<And> b. \<lbrakk>p\<rbrakk>\<^sub>eb \<
 text {* Some of the following lemmas help backward reasoning with bindings *}
 
 lemma conj_implies: "\<lbrakk> \<lbrakk>P \<and> Q\<rbrakk>\<^sub>e b \<rbrakk> \<Longrightarrow> \<lbrakk>P\<rbrakk>\<^sub>e b \<and> \<lbrakk>Q\<rbrakk>\<^sub>e b"
-  by pred_auto                                                            
+  by pred_auto
 
 lemma conj_implies2: "\<lbrakk> \<lbrakk>P\<rbrakk>\<^sub>e b \<and> \<lbrakk>Q\<rbrakk>\<^sub>e b \<rbrakk> \<Longrightarrow> \<lbrakk>P \<and> Q\<rbrakk>\<^sub>e b"
   by pred_auto
@@ -89,7 +89,7 @@ lemma uequality: "\<lbrakk> (\<lbrakk>R\<rbrakk>\<^sub>e b = \<lbrakk>Q\<rbrakk>
 lemma ueqe1:"\<lbrakk> \<lbrakk>P\<rbrakk>\<^sub>e b \<Longrightarrow> (\<lbrakk>R\<rbrakk>\<^sub>e b = \<lbrakk>Q\<rbrakk>\<^sub>e b) \<rbrakk> \<Longrightarrow> (\<lbrakk>P \<and> R\<rbrakk>\<^sub>e b \<Longrightarrow> \<lbrakk>P \<and> Q\<rbrakk>\<^sub>e b)"
   by pred_auto
 
-lemma ueqe2: "(\<lbrakk>P\<rbrakk>\<^sub>e b \<Longrightarrow> (\<lbrakk>Q\<rbrakk>\<^sub>e b = \<lbrakk>R\<rbrakk>\<^sub>e b) \<and> \<lbrakk>Q \<and> P\<rbrakk>\<^sub>e b = \<lbrakk>R \<and> P\<rbrakk>\<^sub>e b) 
+lemma ueqe2: "(\<lbrakk>P\<rbrakk>\<^sub>e b \<Longrightarrow> (\<lbrakk>Q\<rbrakk>\<^sub>e b = \<lbrakk>R\<rbrakk>\<^sub>e b) \<and> \<lbrakk>Q \<and> P\<rbrakk>\<^sub>e b = \<lbrakk>R \<and> P\<rbrakk>\<^sub>e b)
        \<Longrightarrow>
        (\<lbrakk>P\<rbrakk>\<^sub>e b \<Longrightarrow> (\<lbrakk>Q\<rbrakk>\<^sub>e b = \<lbrakk>R\<rbrakk>\<^sub>e b))"
   by pred_auto
@@ -97,7 +97,7 @@ lemma ueqe2: "(\<lbrakk>P\<rbrakk>\<^sub>e b \<Longrightarrow> (\<lbrakk>Q\<rbra
 lemma ueqe3: "\<lbrakk> \<lbrakk>P\<rbrakk>\<^sub>e b \<Longrightarrow> (\<lbrakk>Q\<rbrakk>\<^sub>e b = \<lbrakk>R\<rbrakk>\<^sub>e b) \<rbrakk> \<Longrightarrow> (\<lbrakk>R \<and> P\<rbrakk>\<^sub>e b = \<lbrakk>Q \<and> P\<rbrakk>\<^sub>e b)"
   by pred_auto
 
-text {* The following allows simplifying the equality if P \<Rightarrow> Q = R *}
+text {* The following allows simplifying the equality if $P \Rightarrow Q = R$ *}
 
 lemma ueqe3_imp: "(\<And> b. \<lbrakk>P\<rbrakk>\<^sub>e b \<Longrightarrow> (\<lbrakk>Q\<rbrakk>\<^sub>e b = \<lbrakk>R\<rbrakk>\<^sub>e b)) \<Longrightarrow> ((R \<and> P) = (Q \<and> P))"
   by pred_auto
@@ -118,5 +118,4 @@ lemma disj_bind_dist: "\<lbrakk>P \<or> Q\<rbrakk>\<^sub>e b = (\<lbrakk>P\<rbra
 
 lemma imp_bind_dist: "\<lbrakk>P \<Rightarrow> Q\<rbrakk>\<^sub>e b = (\<lbrakk>P\<rbrakk>\<^sub>e b \<longrightarrow> \<lbrakk>Q\<rbrakk>\<^sub>e b)"
   by pred_auto
-
 end

@@ -23,6 +23,6 @@ text {* The following configures the @{command flat_order} command. *}
 
 ML {*
   Outer_Syntax.command @{command_keyword flat_order} "instantiate flat order"
-    (Parse.typ_group >> (Toplevel.theory o Flat_Order.flat_order));
+    (Parse.type_const >> (Toplevel.theory o Flat_Order.flat_order));
 *}
 end

@@ -12,15 +12,16 @@ theory ucommon
 imports uimports document
   "core/uattrib"
   "utils/flat_orders"
-  (* "utils/Infinity" *)
+  "utils/Infinity"
+  (* "utils/Interpret" *)
   "utils/Normalise"
   "utils/Sum_Order"
-  "utils/Typedef_transfer"
   "utils/Transfer_Plus"
+  "utils/Typedef_extra"
   (* "utils/Typedep" *)
   "utils/Typerep_ind"
-  (* Provided by UTP-IMPORTS *)
-  Lenses Infinity
+  (* Provided by the UTP-IMPORTS heap. *)
+  Lenses
 begin
 
 text {* ML Utility Functions *}
@@ -31,7 +32,7 @@ subsection {* Configuration *}
 
 default_sort type
 
-declare [[ML_print_depth = 20]]
+declare [[ML_print_depth = 100]]
 
 text {* The following prevents the simplifier from splitting pairs by default. *}
 

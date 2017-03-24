@@ -10,7 +10,6 @@ section {* Meta-theory for the Standard Core *}
 theory utp
 imports
   utp_var
-  utp_dvar
   utp_expr
   utp_unrest
   utp_subst
@@ -19,16 +18,12 @@ imports
   utp_pred
   utp_deduct
   utp_rel
+  utp_tactics
   utp_hoare
   utp_wp
-  utp_procedure
   utp_theory
-  utp_boyle
-  utp_designs
   utp_concurrency
-  utp_reactive
-  utp_rea_designs
   utp_rel_opsem
+  utp_local
   utp_event
-  utp_csp
 begin end

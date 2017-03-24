@@ -9,7 +9,7 @@
 section {* Positive Subtypes *}
 
 theory Positive_New
-imports Infinity "~~/src/HOL/Library/Countable"
+imports Infinity Two "~~/src/HOL/Library/Countable"
 begin
 
 subsection {* Type Definition *}
@@ -60,7 +60,7 @@ done
 (* Removed as it clashes with the instantiation of @{class continuum}. *)
 
 (*
-instance pos :: ("{zero, linorder, countable}") countable 
+instance pos :: ("{zero, linorder, countable}") countable
 apply (intro_classes)
 apply (rule_tac x = "to_nat o Rep_pos" in exI)
 apply (rule inj_comp)
@@ -86,7 +86,7 @@ apply (intro_classes; transfer)
 apply (simp_all, safe)
 apply (simp add: add.assoc)
 apply (simp add: add.commute)
-apply (simp add: add_increasing2)
+apply (simp add: diff_diff_add)
 apply (simp add: diff_diff_add)
 apply (metis add_mono dual_order.refl le_add_diff_inverse)
 apply (simp add: add.commute add_le_imp_le_diff)

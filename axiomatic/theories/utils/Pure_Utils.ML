@@ -173,3 +173,19 @@ struct
       else Seq.single st
     end;
 end;
+
+(* Isar Utils *)
+
+signature ISAR_UTILS =
+sig
+  val full_type_name : theory -> string -> string
+end;
+
+structure Isar_Utils : ISAR_UTILS =
+struct
+  fun full_type_name thy typ =
+    let val ctx = Proof_Context.init_global thy in
+      (#1 o dest_Type)
+        (Proof_Context.read_type_name {proper = true, strict = false} ctx typ)
+    end;
+end;

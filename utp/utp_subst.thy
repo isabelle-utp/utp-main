@@ -1,7 +1,7 @@
 section {* Substitution *}
 
 theory utp_subst
-imports 
+imports
   utp_expr
   utp_unrest
 begin
@@ -35,11 +35,8 @@ consts subst_upd :: "('\<alpha>,'\<beta>) psubst \<Rightarrow> 'v \<Rightarrow> 
 definition subst_upd_uvar :: "('\<alpha>,'\<beta>) psubst \<Rightarrow> ('a, '\<beta>) uvar \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>,'\<beta>) psubst" where
 "subst_upd_uvar \<sigma> x v = (\<lambda> b. put\<^bsub>x\<^esub> (\<sigma> b) (\<lbrakk>v\<rbrakk>\<^sub>eb))"
 
-definition subst_upd_dvar :: "('\<alpha>,'\<beta>::vst) psubst \<Rightarrow> 'a::continuum dvar \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>,'\<beta>) psubst" where
-"subst_upd_dvar \<sigma> x v = subst_upd_uvar \<sigma> (x\<up>) v"
-
 adhoc_overloading
-  subst_upd subst_upd_uvar and subst_upd subst_upd_dvar
+  subst_upd subst_upd_uvar
 
 text {* Lookup the expression associated with a variable in a substitution *}
 
@@ -89,7 +86,7 @@ lemma usubst_lookup_upd [usubst]:
   shows "\<langle>\<sigma>(x \<mapsto>\<^sub>s v)\<rangle>\<^sub>s x = v"
   using assms
   by (simp add: subst_upd_uvar_def, transfer) (simp)
-  
+
 lemma usubst_upd_idem [usubst]:
   assumes "mwb_lens x"
   shows "\<sigma>(x \<mapsto>\<^sub>s u, x \<mapsto>\<^sub>s v) = \<sigma>(x \<mapsto>\<^sub>s v)"
@@ -116,7 +113,7 @@ lemma swap_usubst_inj:
   apply (smt lens_indep_get lens_indep_sym var.rep_eq vwb_lens.put_eq vwb_lens_wb wb_lens_weak weak_lens.put_get)
 done
 
-lemma usubst_upd_var_id [usubst]: 
+lemma usubst_upd_var_id [usubst]:
   "vwb_lens x \<Longrightarrow> [x \<mapsto>\<^sub>s var x] = id"
   apply (simp add: subst_upd_uvar_def)
   apply (transfer)
@@ -124,10 +121,10 @@ lemma usubst_upd_var_id [usubst]:
   apply (auto)
 done
 
-lemma usubst_upd_comm_dash [usubst]: 
+lemma usubst_upd_comm_dash [usubst]:
   fixes x :: "('a, '\<alpha>) uvar"
   shows "\<sigma>($x\<acute> \<mapsto>\<^sub>s v, $x \<mapsto>\<^sub>s u) = \<sigma>($x \<mapsto>\<^sub>s u, $x\<acute> \<mapsto>\<^sub>s v)"
-  using out_in_indep usubst_upd_comm by blast  
+  using out_in_indep usubst_upd_comm by blast
 
 lemma usubst_lookup_upd_indep [usubst]:
   assumes "mwb_lens x" "x \<bowtie> y"
@@ -139,15 +136,15 @@ lemma usubst_apply_unrest [usubst]:
   "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s x = var x"
   by (simp add: unrest_usubst_def, transfer, auto simp add: fun_eq_iff, metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
 
-lemma subst_del_id [usubst]: 
+lemma subst_del_id [usubst]:
   "vwb_lens x \<Longrightarrow> id -\<^sub>s x = id"
   by (simp add: subst_del_def subst_upd_uvar_def, transfer, auto)
 
-lemma subst_del_upd_same [usubst]: 
+lemma subst_del_upd_same [usubst]:
   "mwb_lens x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) -\<^sub>s x = \<sigma> -\<^sub>s x"
   by (simp add: subst_del_def subst_upd_uvar_def)
 
-lemma subst_del_upd_diff [usubst]: 
+lemma subst_del_upd_diff [usubst]:
   "x \<bowtie> y \<Longrightarrow> \<sigma>(y \<mapsto>\<^sub>s v) -\<^sub>s x = (\<sigma> -\<^sub>s x)(y \<mapsto>\<^sub>s v)"
   by (simp add: subst_del_def subst_upd_uvar_def lens_indep_comm)
 
@@ -164,6 +161,9 @@ lemma subst_lit [usubst]: "\<sigma> \<dagger> \<guillemotleft>v\<guillemotright>
   by (transfer, simp)
 
 lemma subst_var [usubst]: "\<sigma> \<dagger> var x = \<langle>\<sigma>\<rangle>\<^sub>s x"
+  by (transfer, simp)
+
+lemma usubst_ulambda [usubst]: "\<sigma> \<dagger> (\<lambda> x \<bullet> P(x)) = (\<lambda> x \<bullet> \<sigma> \<dagger> P(x))"
   by (transfer, simp)
 
 lemma unrest_usubst_del [unrest]: "\<lbrakk> vwb_lens x; x \<sharp> (\<langle>\<sigma>\<rangle>\<^sub>s x); x \<sharp> \<sigma> -\<^sub>s x \<rbrakk> \<Longrightarrow>  x \<sharp> (\<sigma> \<dagger> P)"
@@ -238,7 +238,7 @@ lemma subst_eq_upred [usubst]: "\<sigma> \<dagger> (x =\<^sub>u y) = (\<sigma> \
 lemma subst_subst [usubst]: "\<sigma> \<dagger> \<rho> \<dagger> e = (\<rho> \<circ> \<sigma>) \<dagger> e"
   by (transfer, simp)
 
-lemma subst_upd_comp [usubst]: 
+lemma subst_upd_comp [usubst]:
   fixes x :: "('a, '\<alpha>) uvar"
   shows "\<rho>(x \<mapsto>\<^sub>s v) \<circ> \<sigma> = (\<rho> \<circ> \<sigma>)(x \<mapsto>\<^sub>s \<sigma> \<dagger> v)"
   by (rule ext, simp add:uexpr_defs subst_upd_uvar_def, transfer, simp)
@@ -263,7 +263,7 @@ translations
   "P\<lbrakk>v/$x\<acute>\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) (CONST ovar x) v) P"
   "P\<lbrakk>v/x\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) x v) P"
 
-lemma subst_singleton: 
+lemma subst_singleton:
   fixes x :: "('a, '\<alpha>) uvar"
   assumes "x \<sharp> \<sigma>"
   shows "\<sigma>(x \<mapsto>\<^sub>s v) \<dagger> P = (\<sigma> \<dagger> P)\<lbrakk>v/x\<rbrakk>"
@@ -289,5 +289,4 @@ lemma unrest_usubst_upd [unrest]:
 lemma unrest_subst [unrest]:
   "\<lbrakk> x \<sharp> P; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> x \<sharp> (\<sigma> \<dagger> P)"
   by (transfer, simp add: unrest_usubst_def)
-
 end

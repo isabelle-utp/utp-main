@@ -1,7 +1,7 @@
 section {* Derivatives: extra laws and tactics *}
 
 theory Derivative_extra
-imports 
+imports
   "~~/src/HOL/Eisbach/Eisbach"
   "~~/src/HOL/Library/Product_Vector"
   "~~/src/HOL/Multivariate_Analysis/Derivative"
@@ -39,8 +39,8 @@ done
 
 lemma has_vector_derivative_divide[simp, derivative_intros]:
   fixes f :: "real \<Rightarrow> 'a :: real_normed_div_algebra"
-  assumes f: "(f has_vector_derivative f') (at x within s)" 
-      and g: "(g has_vector_derivative g') (at x within s)" 
+  assumes f: "(f has_vector_derivative f') (at x within s)"
+      and g: "(g has_vector_derivative g') (at x within s)"
   assumes x: "g x \<noteq> 0"
   shows "((\<lambda>x. f x / g x) has_vector_derivative
                 (- f x * (inverse (g x) * g' * inverse (g x)) + f' / g x)) (at x within s)"

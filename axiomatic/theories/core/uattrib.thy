@@ -9,7 +9,7 @@
 section {* Theorem Attributes *}
 
 theory uattrib
-imports Main "../utils/Named_Attrib"
+imports "../utils/Named_Attrib"
 begin
 
 subsection {* Named Theorems *}

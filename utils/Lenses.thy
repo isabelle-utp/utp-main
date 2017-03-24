@@ -1,7 +1,7 @@
 section {* Lenses *}
 
 theory Lenses
-imports Two ttrace interp
+imports Two interp
 keywords "alphabet" :: "thy_decl_block"
 begin
 
@@ -216,7 +216,6 @@ locale lens_indep =
   and lens_put_irr2: "lens_get Y (lens_put X \<sigma> u) = lens_get Y \<sigma>"
 
 notation lens_indep (infix "\<bowtie>" 50)
-
 
 lemma lens_indepI:
   "\<lbrakk> \<And> u v \<sigma>. lens_put x (lens_put y \<sigma> v) u = lens_put y (lens_put x \<sigma> u) v;
@@ -858,14 +857,6 @@ lemma fun_ran_wb_lens: "\<lbrakk> wb_lens X; wb_lens Y \<rbrakk> \<Longrightarro
 lemma fun_ran_vwb_lens: "\<lbrakk> vwb_lens X; vwb_lens Y \<rbrakk> \<Longrightarrow> vwb_lens (fun_ran_lens X Y)"
   by (unfold_locales, auto simp add: fun_ran_lens_def)
 
-definition cgf_lens :: "('a cgf \<Longrightarrow> '\<alpha>) \<Rightarrow> ('b \<Longrightarrow> 'a) \<Rightarrow> ('b cgf \<Longrightarrow> '\<alpha>)" where
-[lens_defs]: "cgf_lens X Y =
-  \<lparr> lens_get = \<lambda> s. map'\<^sub>C get\<^bsub>Y\<^esub> (get\<^bsub>X\<^esub> s)
-  , lens_put = \<lambda> s v. put\<^bsub>X\<^esub> s (map\<^sub>C (\<lambda> (i, x). put\<^bsub>Y\<^esub> x (\<langle>v\<rangle>\<^sub>C i)) (get\<^bsub>X\<^esub> s !\<^sub>C (end\<^sub>C v))) \<rparr>"
-
-lemma cgf_weak_lens: "\<lbrakk> weak_lens X; weak_lens Y \<rbrakk> \<Longrightarrow> weak_lens (cgf_lens X Y)"
-  by (unfold_locales, auto simp add: cgf_lens_def cgf_map_map cgf_map_indep)
-
 definition map_lens :: "'a \<Rightarrow> ('b \<Longrightarrow> ('a \<rightharpoonup> 'b))" where
 [lens_defs]: "map_lens x = \<lparr> lens_get = (\<lambda> f. the (f x)), lens_put = (\<lambda> f u. f(x \<mapsto> u)) \<rparr>"
 
@@ -962,9 +953,14 @@ translations "FLDLENS x" => "\<lparr> lens_get = x, lens_put = CONST fld_put (_u
 
 (* Introduce the alphabet command that creates a record with lenses for each field *)
 
-ML_file "Lenses.ML"
+ML {* Specification.definition_cmd *}
 
-named_theorems uvar_defs
+  (*
+     (binding * string option * mixfix) option * (Attrib.binding * string) ->
+     bool -> local_theory -> (term * (string * thm)) * local_theory
+*)
+
+ML_file "Lenses.ML"
 
 (* The following theorem attribute stores splitting theorems for alphabet types *)
 

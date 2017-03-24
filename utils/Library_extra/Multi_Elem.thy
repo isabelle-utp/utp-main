@@ -7,7 +7,7 @@
 header {* Axiomatising Types with multiple elements *}
 
 theory Multi_Elem
-imports Main 
+imports Main
 begin
 
 class one_elem =
@@ -24,7 +24,7 @@ begin
 lemma elem1_new_elem2_dest [dest]:
   "elem1 = elem2 \<Longrightarrow> False"
   "elem2 = elem1 \<Longrightarrow> False"
-  by (metis elem1_neq_elem2)+ 
+  by (metis elem1_neq_elem2)+
 
 end
 
@@ -33,12 +33,11 @@ class three_elem = two_elem +
   assumes "elem1 \<noteq> elem3"
   and     "elem2 \<noteq> elem3"
 
-text {* Relational identity can be distinguished from UNIV only 
+text {* Relational identity can be distinguished from UNIV only
         for types with at least two distinct elements *}
 
-lemma Id_neq_UNIV [simp]: 
+lemma Id_neq_UNIV [simp]:
   "(Id :: ('a::two_elem rel)) \<noteq> UNIV"
   "UNIV \<noteq> (Id :: ('a::two_elem rel))"
   by (auto simp add:Id_def set_eq_iff)
-
 end

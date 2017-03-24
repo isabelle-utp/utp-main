@@ -17,7 +17,7 @@ syntax
   "_unrest" :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" (infix "\<sharp>" 20)
 
 translations
-  "_unrest x p" == "CONST unrest x p" 
+  "_unrest x p" == "CONST unrest x p"
 
 named_theorems unrest
 
@@ -25,9 +25,6 @@ method unrest_tac = (simp add: unrest)?
 
 lift_definition unrest_upred :: "('a, '\<alpha>) uvar \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> bool"
 is "\<lambda> x e. \<forall> b v. e (put\<^bsub>x\<^esub> b v) = e b" .
-
-definition unrest_dvar_upred :: "'a::continuum dvar \<Rightarrow> ('b, '\<alpha>::vst) uexpr \<Rightarrow> bool" where
-"unrest_dvar_upred x P = unrest_upred (x\<up>) P"
 
 adhoc_overloading
   unrest unrest_upred
@@ -39,7 +36,7 @@ lemma unrest_var_comp [unrest]:
 lemma unrest_lit [unrest]: "x \<sharp> \<guillemotleft>v\<guillemotright>"
   by (transfer, simp)
 
-text {* The following law demonstrates why we need variable independence: a variable 
+text {* The following law demonstrates why we need variable independence: a variable
         expression is unrestricted by another variable only when the two variables are independent. *}
 
 lemma unrest_var [unrest]: "\<lbrakk> vwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> y \<sharp> var x"
@@ -51,7 +48,7 @@ lemma unrest_iuvar [unrest]: "\<lbrakk> vwb_lens x; x \<bowtie> y \<rbrakk> \<Lo
 lemma unrest_ouvar [unrest]: "\<lbrakk> vwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> $y\<acute> \<sharp> $x\<acute>"
   by (metis out_var_indep out_var_uvar unrest_var)
 
-lemma unrest_iuvar_ouvar [unrest]: 
+lemma unrest_iuvar_ouvar [unrest]:
   fixes x :: "('a, '\<alpha>) uvar"
   assumes "vwb_lens y"
   shows "$x \<sharp> $y\<acute>"
@@ -109,7 +106,6 @@ lemma unrest_divide [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v \<rbrakk> \<
   by (simp add: divide_uexpr_def unrest)
 
 lemma unrest_ulambda [unrest]:
-  "\<lbrakk> uvar v; \<And> x. v \<sharp> F x \<rbrakk> \<Longrightarrow> v \<sharp> (\<lambda> x \<bullet> F x)"
+  "\<lbrakk> \<And> x. v \<sharp> F x \<rbrakk> \<Longrightarrow> v \<sharp> (\<lambda> x \<bullet> F x)"
   by (transfer, simp)
-
 end

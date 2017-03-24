@@ -48,10 +48,10 @@ lemma upred_lattice_carrier [simp]:
 
 subsection {* Healthiness conditions *}
 
-type_synonym '\<alpha> Healthiness_condition = "'\<alpha> upred \<Rightarrow> '\<alpha> upred"
+type_synonym '\<alpha> health = "'\<alpha> upred \<Rightarrow> '\<alpha> upred"
 
-definition 
-  Healthy::"'\<alpha> upred \<Rightarrow> '\<alpha> Healthiness_condition \<Rightarrow> bool" (infix "is" 30)
+definition
+  Healthy::"'\<alpha> upred \<Rightarrow> '\<alpha> health \<Rightarrow> bool" (infix "is" 30)
 where "P is H \<equiv> (H P = P)"
 
 lemma Healthy_def': "P is H \<longleftrightarrow> (H P = P)"
@@ -62,33 +62,60 @@ lemma Healthy_if: "P is H \<Longrightarrow> (H P = P)"
 
 declare Healthy_def' [upred_defs]
 
-abbreviation Healthy_carrier :: "'\<alpha> Healthiness_condition \<Rightarrow> '\<alpha> upred set" ("\<lbrakk>_\<rbrakk>\<^sub>H")
+abbreviation Healthy_carrier :: "'\<alpha> health \<Rightarrow> '\<alpha> upred set" ("\<lbrakk>_\<rbrakk>\<^sub>H")
 where "\<lbrakk>H\<rbrakk>\<^sub>H \<equiv> {P. P is H}"
+
+lemma Healthy_carrier_image:
+  "A \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H \<Longrightarrow> \<H> ` A = A"
+    by (auto simp add: image_def, (metis Healthy_if mem_Collect_eq subsetCE)+)
+
+lemma Healthy_carrier_Collect: "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> A = {H(P) | P. P \<in> A}"
+  by (simp add: Healthy_carrier_image Setcompr_eq_image)
+
+lemma Healthy_SUPREMUM:
+  "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> SUPREMUM A H = \<Sqinter> A"
+  by (drule Healthy_carrier_image, presburger)
+
+lemma Healthy_INFIMUM:
+  "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> INFIMUM A H = \<Squnion> A"
+  by (drule Healthy_carrier_image, presburger)
+
+lemma Healthy_subset_member: "\<lbrakk> A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H; P \<in> A \<rbrakk> \<Longrightarrow> H(P) = P"
+  by (meson Ball_Collect Healthy_if)
+
+lemma is_Healthy_subset_member: "\<lbrakk> A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H; P \<in> A \<rbrakk> \<Longrightarrow> P is H"
+  by blast
 
 subsection {* Properties of healthiness conditions *}
 
-definition Idempotent :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where 
+definition Idempotent :: "'\<alpha> health \<Rightarrow> bool" where
   "Idempotent(H) \<longleftrightarrow> (\<forall> P. H(H(P)) = H(P))"
 
-definition Monotonic :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where
+definition Monotonic :: "'\<alpha> health \<Rightarrow> bool" where
   "Monotonic(H) \<longleftrightarrow> (\<forall> P Q. Q \<sqsubseteq> P \<longrightarrow> (H(Q) \<sqsubseteq> H(P)))"
 
-definition IMH :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where
+definition IMH :: "'\<alpha> health \<Rightarrow> bool" where
   "IMH(H) \<longleftrightarrow> Idempotent(H) \<and> Monotonic(H)"
 
-definition Antitone :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where
+definition Antitone :: "'\<alpha> health \<Rightarrow> bool" where
   "Antitone(H) \<longleftrightarrow> (\<forall> P Q. Q \<sqsubseteq> P \<longrightarrow> (H(P) \<sqsubseteq> H(Q)))"
 
-definition Conjunctive :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where 
+definition Conjunctive :: "'\<alpha> health \<Rightarrow> bool" where
   "Conjunctive(H) \<longleftrightarrow> (\<exists> Q. \<forall> P. H(P) = (P \<and> Q))"
 
-definition FunctionalConjunctive :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where 
+definition FunctionalConjunctive :: "'\<alpha> health \<Rightarrow> bool" where
   "FunctionalConjunctive(H) \<longleftrightarrow> (\<exists> F. \<forall> P. H(P) = (P \<and> F(P)) \<and> Monotonic(F))"
 
-definition WeakConjunctive :: "'\<alpha> Healthiness_condition \<Rightarrow> bool" where 
+definition WeakConjunctive :: "'\<alpha> health \<Rightarrow> bool" where
   "WeakConjunctive(H) \<longleftrightarrow> (\<forall> P. \<exists> Q. H(P) = (P \<and> Q))"
 
-lemma Healthy_Idempotent [closure]: 
+definition Disjunctuous :: "'\<alpha> health \<Rightarrow> bool" where
+  [upred_defs]: "Disjunctuous H = (\<forall> P Q. H(P \<sqinter> Q) = (H(P) \<sqinter> H(Q)))"
+
+definition Continuous :: "'\<alpha> health \<Rightarrow> bool" where
+  [upred_defs]: "Continuous H = (\<forall> A. A \<noteq> {} \<longrightarrow> H (\<Sqinter> A) = \<Sqinter> (H ` A))"
+
+lemma Healthy_Idempotent [closure]:
   "Idempotent H \<Longrightarrow> H(P) is H"
   by (simp add: Healthy_def Idempotent_def)
 
@@ -99,6 +126,9 @@ lemma Idempotent_comp [intro]:
   "\<lbrakk> Idempotent f; Idempotent g; f \<circ> g = g \<circ> f \<rbrakk> \<Longrightarrow> Idempotent (f \<circ> g)"
   by (auto simp add: Idempotent_def comp_def, metis)
 
+lemma Idempotent_image: "Idempotent f \<Longrightarrow> f ` f ` A = f ` A"
+  by (metis (mono_tags, lifting) Idempotent_def image_cong image_image)
+
 lemma Monotonic_id [simp]: "Monotonic id"
   by (simp add: Monotonic_def)
 
@@ -106,11 +136,11 @@ lemma Monotonic_comp [intro]:
   "\<lbrakk> Monotonic f; Monotonic g \<rbrakk> \<Longrightarrow> Monotonic (f \<circ> g)"
   by (auto simp add: Monotonic_def)
 
-lemma Conjuctive_Idempotent: 
+lemma Conjuctive_Idempotent:
   "Conjunctive(H) \<Longrightarrow> Idempotent(H)"
   by (auto simp add: Conjunctive_def Idempotent_def)
 
-lemma Conjunctive_Monotonic: 
+lemma Conjunctive_Monotonic:
   "Conjunctive(H) \<Longrightarrow> Monotonic(H)"
   unfolding Conjunctive_def Monotonic_def
   using dual_order.trans by fastforce
@@ -160,6 +190,23 @@ lemma WeakConjunctive_implies_WeakConjunctive:
 declare Conjunctive_def [upred_defs]
 declare Monotonic_def [upred_defs]
 
+lemma Disjunctuous_Monotonic: "Disjunctuous H \<Longrightarrow> Monotonic H"
+  by (metis Disjunctuous_def Monotonic_def semilattice_sup_class.le_iff_sup)
+
+lemma Continuous_Disjunctous: "Continuous H \<Longrightarrow> Disjunctuous H"
+  apply (auto simp add: Continuous_def Disjunctuous_def)
+  apply (rename_tac P Q)
+  apply (drule_tac x="{P,Q}" in spec)
+  apply (simp)
+done
+
+lemma Continuous_Monotonic: "Continuous H \<Longrightarrow> Monotonic H"
+  by (simp add: Continuous_Disjunctous Disjunctuous_Monotonic)
+
+lemma Continuous_comp [intro]:
+  "\<lbrakk> Continuous f; Continuous g \<rbrakk> \<Longrightarrow> Continuous (f \<circ> g)"
+  by (simp add: Continuous_def)
+
 lemma Healthy_fixed_points [simp]: "fps \<P> H = \<lbrakk>H\<rbrakk>\<^sub>H"
   by (simp add: fps_def upred_lattice_def Healthy_def)
 
@@ -185,7 +232,7 @@ text {* We create a unitary parametric type to represent UTP theories. These are
 definition uthy :: "('a, 'b) uthy" where
 "uthy = Abs_uthy ()"
 
-lemma uthy_eq [intro]: 
+lemma uthy_eq [intro]:
   fixes x y :: "('a, 'b) uthy"
   shows "x = y"
   by (cases x, cases y, simp)
@@ -197,19 +244,19 @@ translations
   "UTHY('T, '\<alpha>)" == "CONST uthy :: ('T, '\<alpha>) uthy"
 
 text {* We set up polymorphic constants to denote the healthiness conditions associated with
-  a UTP theory. Unfortunately we can currently only characterise UTP theories of homogeneous 
+  a UTP theory. Unfortunately we can currently only characterise UTP theories of homogeneous
   relations; this is due to restrictions in the instantiation of Isabelle's polymorphic constants
   which apparently cannot specialise types in this way. *}
 
 consts
-  utp_hcond :: "('\<T>, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) Healthiness_condition" ("\<H>\<index>")
+  utp_hcond :: "('\<T>, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) health" ("\<H>\<index>")
 
-definition utp_order :: "('\<alpha> \<times> '\<alpha>) Healthiness_condition \<Rightarrow> '\<alpha> hrelation gorder" where
+definition utp_order :: "('\<alpha> \<times> '\<alpha>) health \<Rightarrow> '\<alpha> hrel gorder" where
 "utp_order H = \<lparr> carrier = {P. P is H}, eq = (op =), le = op \<sqsubseteq> \<rparr>"
 
 abbreviation "uthy_order T \<equiv> utp_order \<H>\<^bsub>T\<^esub>"
 
-text {* Constant @{term utp_order} obtains the order structure associated with a UTP theory. 
+text {* Constant @{term utp_order} obtains the order structure associated with a UTP theory.
   Its carrier is the set of healthy predicates, equality is HOL equality, and the order is
   refinement. *}
 
@@ -241,6 +288,10 @@ done
 lemma isotone_utp_orderI: "Monotonic H \<Longrightarrow> isotone (utp_order X) (utp_order Y) H"
   by (auto simp add: Monotonic_def isotone_def utp_weak_partial_order)
 
+lemma Mono_utp_orderI:
+  "\<lbrakk> \<And> P Q. \<lbrakk> P \<sqsubseteq> Q; P is H; Q is H \<rbrakk> \<Longrightarrow> F(P) \<sqsubseteq> F(Q) \<rbrakk> \<Longrightarrow> Mono\<^bsub>utp_order H\<^esub> F"
+  by (auto simp add: isotone_def utp_weak_partial_order)
+
 text {* The UTP order can equivalently be characterised as the fixed point lattice, @{const fpl}. *}
 
 lemma utp_order_fpl: "utp_order H = fpl \<P> H"
@@ -262,7 +313,7 @@ definition uthy_plus :: "('T\<^sub>1, '\<alpha>) uthy \<Rightarrow> ('T\<^sub>2,
 "uthy_plus T\<^sub>1 T\<^sub>2 = uthy"
 
 overloading
-  prod_hcond == "utp_hcond :: ('T\<^sub>1 \<times> 'T\<^sub>2, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) Healthiness_condition"
+  prod_hcond == "utp_hcond :: ('T\<^sub>1 \<times> 'T\<^sub>2, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) health"
 begin
 
   text {* The healthiness condition of a relation is simply identity, since every alphabetised
@@ -299,7 +350,7 @@ end
 
 text {* Theory summation is commutative provided the healthiness conditions commute. *}
 
-lemma uthy_plus_comm: 
+lemma uthy_plus_comm:
   assumes "\<H>\<^bsub>T\<^sub>1\<^esub> \<circ> \<H>\<^bsub>T\<^sub>2\<^esub> = \<H>\<^bsub>T\<^sub>2\<^esub> \<circ> \<H>\<^bsub>T\<^sub>1\<^esub>"
   shows "T\<^sub>1 +\<^sub>T T\<^sub>2 \<approx>\<^sub>T T\<^sub>2 +\<^sub>T T\<^sub>1"
 proof -
@@ -310,15 +361,15 @@ proof -
 qed
 
 lemma uthy_plus_assoc: "T\<^sub>1 +\<^sub>T (T\<^sub>2 +\<^sub>T T\<^sub>3) \<approx>\<^sub>T (T\<^sub>1 +\<^sub>T T\<^sub>2) +\<^sub>T T\<^sub>3"
-  by (simp add: uth_eq_def prod_hcond_def comp_def) 
+  by (simp add: uth_eq_def prod_hcond_def comp_def)
 
 lemma uthy_plus_idem: "utp_theory T \<Longrightarrow> T +\<^sub>T T \<approx>\<^sub>T T"
   by (simp add: uth_eq_def prod_hcond_def Healthy_def utp_theory.HCond_Idem utp_theory.uthy_simp)
 
 locale utp_theory_lattice = utp_theory \<T> + complete_lattice "uthy_order \<T>" for \<T> :: "('\<T>, '\<alpha>) uthy" (structure)
-  
+
 text {* The healthiness conditions of a UTP theory lattice form a complete lattice, and allows us to make
-  use of complete lattice results from HOL-Algebra, such as the Knaster-Tarski theorem. We can also 
+  use of complete lattice results from HOL-Algebra, such as the Knaster-Tarski theorem. We can also
   retrieve lattice operators as below. *}
 
 abbreviation utp_top ("\<^bold>\<top>\<index>")
@@ -344,6 +395,10 @@ abbreviation utp_gfp ("\<^bold>\<nu>\<index>") where
 
 abbreviation utp_lfp ("\<^bold>\<mu>\<index>") where
 "utp_lfp \<T> \<equiv> \<mu>\<^bsub>uthy_order \<T>\<^esub>"
+
+lemma upred_lattice_inf:
+  "ainf \<P> A = \<Sqinter> A"
+  by (metis Sup_least Sup_upper UNIV_I antisym_conv subsetI upred_lattice.weak.inf_greatest upred_lattice.weak.inf_lower upred_lattice_carrier upred_lattice_le)
 
 text {* We can then derive a number of properties about these operators, as below. *}
 
@@ -371,7 +426,7 @@ begin
 
   lemma bottom_healthy [closure]: "\<^bold>\<bottom> is \<H>"
     using weak.bottom_closed by auto
-    
+
   lemma utp_top: "P is \<H> \<Longrightarrow> P \<sqsubseteq> \<^bold>\<top>"
     using weak.top_higher by auto
 
@@ -389,7 +444,7 @@ lemma upred_bottom: "\<bottom>\<^bsub>\<P>\<^esub> = true"
 text {* One way of obtaining a complete lattice is showing that the healthiness conditions
   are monotone, which the below locale characterises. *}
 
-locale utp_theory_mono = utp_theory + 
+locale utp_theory_mono = utp_theory +
   assumes HCond_Mono [closure,intro]: "Monotonic \<H>"
 
 sublocale utp_theory_mono \<subseteq> utp_theory_lattice
@@ -399,7 +454,7 @@ proof -
 
   interpret weak_complete_lattice "fpl \<P> \<H>"
     by (rule Knaster_Tarski, auto simp add: upred_lattice.weak.weak_complete_lattice_axioms)
-  
+
   have "complete_lattice (fpl \<P> \<H>)"
     by (unfold_locales, simp add: fps_def sup_exists, (blast intro: sup_exists inf_exists)+)
 
@@ -421,7 +476,7 @@ begin
     have "\<^bold>\<top> = \<top>\<^bsub>fpl \<P> \<H>\<^esub>"
       by (simp add: utp_order_fpl)
     also have "... = \<H> \<top>\<^bsub>\<P>\<^esub>"
-      using Knaster_Tarski_idem_extremes(1)[of \<P> \<H>]  
+      using Knaster_Tarski_idem_extremes(1)[of \<P> \<H>]
       by (simp add: HCond_Idempotent HCond_Mono)
     also have "... = \<H> false"
       by (simp add: upred_top)
@@ -433,11 +488,128 @@ begin
     have "\<^bold>\<bottom> = \<bottom>\<^bsub>fpl \<P> \<H>\<^esub>"
       by (simp add: utp_order_fpl)
     also have "... = \<H> \<bottom>\<^bsub>\<P>\<^esub>"
-      using Knaster_Tarski_idem_extremes(2)[of \<P> \<H>]  
+      using Knaster_Tarski_idem_extremes(2)[of \<P> \<H>]
       by (simp add: HCond_Idempotent HCond_Mono)
     also have "... = \<H> true"
       by (simp add: upred_bottom)
     finally show ?thesis .
+  qed
+
+lemma healthy_inf:
+  assumes "A \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H"
+  shows "\<^bold>\<Sqinter> A = \<H> (\<Sqinter> A)"
+proof -
+  have 1: "weak_complete_lattice (uthy_order \<T>)"
+    by (simp add: weak.weak_complete_lattice_axioms)
+  have 2: "Mono\<^bsub>uthy_order \<T>\<^esub> \<H>"
+    by (simp add: HCond_Mono isotone_utp_orderI)
+  have 3: "Idem\<^bsub>uthy_order \<T>\<^esub> \<H>"
+    by (simp add: HCond_Idem idempotent_def)
+  show ?thesis
+    using Knaster_Tarski_idem_inf_eq[OF upred_weak_complete_lattice, of "\<H>"]
+    by (simp, metis HCond_Idempotent HCond_Mono assms partial_object.simps(3) upred_lattice_def upred_lattice_inf utp_order_def)
+qed
+
+end
+
+locale utp_theory_continuous = utp_theory +
+  assumes HCond_Cont [closure,intro]: "Continuous \<H>"
+
+sublocale utp_theory_continuous \<subseteq> utp_theory_mono
+proof
+  show "Monotonic \<H>"
+    by (simp add: Continuous_Monotonic HCond_Cont)
+qed
+
+context utp_theory_continuous
+begin
+
+  lemma healthy_inf_cont:
+    assumes "A \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H" "A \<noteq> {}"
+    shows "\<^bold>\<Sqinter> A = \<Sqinter> A"
+  proof -
+    have "\<^bold>\<Sqinter> A = \<Sqinter> (\<H>`A)"
+      using Continuous_def assms(1) assms(2) healthy_inf by auto
+    also have "... = \<Sqinter> A"
+      by (unfold Healthy_carrier_image[OF assms(1)], simp)
+    finally show ?thesis .
+  qed
+
+  lemma healthy_inf_def:
+    assumes "A \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H"
+    shows "\<^bold>\<Sqinter> A = (if (A = {}) then \<^bold>\<top> else (\<Sqinter> A))"
+    using assms healthy_inf_cont weak.weak_inf_empty by auto
+
+  lemma healthy_meet_cont:
+    assumes "P is \<H>" "Q is \<H>"
+    shows "P \<^bold>\<sqinter> Q = P \<sqinter> Q"
+    using healthy_inf_cont[of "{P, Q}"] assms
+    by (simp add: Healthy_if meet_def)
+
+  lemma meet_is_healthy:
+    assumes "P is \<H>" "Q is \<H>"
+    shows "P \<sqinter> Q is \<H>"
+    by (metis Continuous_Disjunctous Disjunctuous_def HCond_Cont Healthy_def' assms(1) assms(2))
+
+  lemma meet_bottom [simp]:
+    assumes "P is \<H>"
+    shows "P \<sqinter> \<^bold>\<bottom> = \<^bold>\<bottom>"
+      by (simp add: assms semilattice_sup_class.sup_absorb2 utp_bottom)
+
+  lemma meet_top [simp]:
+    assumes "P is \<H>"
+    shows "P \<sqinter> \<^bold>\<top> = P"
+      by (simp add: assms semilattice_sup_class.sup_absorb1 utp_top)
+
+  text {* The UTP theory lfp operator can be rewritten to the alphabetised predicate lfp when
+    in a continuous context. *}
+
+  theorem utp_lfp_def:
+    assumes "Monotonic F" "F \<in> \<lbrakk>\<H>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<rbrakk>\<^sub>H"
+    shows "\<^bold>\<mu> F = (\<mu> X \<bullet> F(\<H>(X)))"
+  proof (rule antisym)
+    have ne: "{P. (P is \<H>) \<and> F P \<sqsubseteq> P} \<noteq> {}"
+    proof -
+      have "F \<^bold>\<top> \<sqsubseteq> \<^bold>\<top>"
+        using assms(2) utp_top weak.top_closed by force
+      thus ?thesis
+        by (auto, rule_tac x="\<^bold>\<top>" in exI, auto simp add: top_healthy)
+    qed
+    show "\<^bold>\<mu> F \<sqsubseteq> (\<mu> X \<bullet> F (\<H> X))"
+    proof -
+      have "\<Sqinter>{P. (P is \<H>) \<and> F(P) \<sqsubseteq> P} \<sqsubseteq> \<Sqinter>{P. F(\<H>(P)) \<sqsubseteq> P}"
+      proof -
+        have 1: "\<And> P. F(\<H>(P)) = \<H>(F(\<H>(P)))"
+          by (metis HCond_Idem Healthy_def assms(2) funcset_mem mem_Collect_eq)
+        show ?thesis
+        proof (rule Sup_least, auto)
+          fix P
+          assume a: "F (\<H> P) \<sqsubseteq> P"
+          hence F: "(F (\<H> P)) \<sqsubseteq> (\<H> P)"
+            by (metis 1 HCond_Mono Monotonic_def)
+          show "\<Sqinter>{P. (P is \<H>) \<and> F P \<sqsubseteq> P} \<sqsubseteq> P"
+          proof (rule Sup_upper2[of "F (\<H> P)"])
+            show "F (\<H> P) \<in> {P. (P is \<H>) \<and> F P \<sqsubseteq> P}"
+            proof (auto)
+              show "F (\<H> P) is \<H>"
+                by (metis 1 Healthy_def)
+              show "F (F (\<H> P)) \<sqsubseteq> F (\<H> P)"
+                using F Monotonic_def assms(1) by blast
+            qed
+            show "F (\<H> P) \<sqsubseteq> P"
+              by (simp add: a)
+          qed
+        qed
+      qed
+
+      with ne show ?thesis
+        by (simp add: LFP_def gfp_def, subst healthy_inf_cont, auto simp add: lfp_def)
+    qed
+    from ne show "(\<mu> X \<bullet> F (\<H> X)) \<sqsubseteq> \<^bold>\<mu> F"
+      apply (simp add: LFP_def gfp_def, subst healthy_inf_cont, auto simp add: lfp_def)
+      apply (rule Sup_least)
+      apply (auto simp add: Healthy_def Sup_upper)
+    done
   qed
 
 end
@@ -449,21 +621,46 @@ locale utp_theory_rel =
   utp_theory +
   assumes Healthy_Sequence [closure]: "\<lbrakk> P is \<H>; Q is \<H> \<rbrakk> \<Longrightarrow> (P ;; Q) is \<H>"
 
+locale utp_theory_cont_rel = utp_theory_continuous + utp_theory_rel
+begin
+
+  lemma seq_cont_Sup_distl:
+    assumes "P is \<H>" "A \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H" "A \<noteq> {}"
+    shows "P ;; (\<^bold>\<Sqinter> A) = \<^bold>\<Sqinter> {P ;; Q | Q. Q \<in> A }"
+  proof -
+    have "{P ;; Q | Q. Q \<in> A } \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H"
+      using Healthy_Sequence assms(1) assms(2) by (auto)
+    thus ?thesis
+      by (simp add: healthy_inf_cont seq_Sup_distl setcompr_eq_image assms)
+  qed
+
+  lemma seq_cont_Sup_distr:
+    assumes "Q is \<H>" "A \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H" "A \<noteq> {}"
+    shows "(\<^bold>\<Sqinter> A) ;; Q = \<^bold>\<Sqinter> {P ;; Q | P. P \<in> A }"
+  proof -
+    have "{P ;; Q | P. P \<in> A } \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H"
+      using Healthy_Sequence assms(1) assms(2) by (auto)
+    thus ?thesis
+      by (simp add: healthy_inf_cont seq_Sup_distr setcompr_eq_image assms)
+  qed
+
+end
+
 text {* There also exist UTP theories with units, and the following operator is a theory specific
   operator for them. *}
 
 consts
-  utp_unit  :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrelation" ("\<I>\<I>\<index>")
+  utp_unit  :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrel" ("\<I>\<I>\<index>")
 
 text {* Not all theories have both a left and a right unit (e.g. H1-H2 designs) and so we split
   up the locale into two cases. *}
 
-locale utp_theory_left_unital = 
+locale utp_theory_left_unital =
   utp_theory_rel +
   assumes Healthy_Left_Unit [closure]: "\<I>\<I> is \<H>"
   and Left_Unit: "P is \<H> \<Longrightarrow> (\<I>\<I> ;; P) = P"
 
-locale utp_theory_right_unital = 
+locale utp_theory_right_unital =
   utp_theory_rel +
   assumes Healthy_Right_Unit [closure]: "\<I>\<I> is \<H>"
   and Right_Unit: "P is \<H> \<Longrightarrow> (P ;; \<I>\<I>) = P"
@@ -471,7 +668,7 @@ locale utp_theory_right_unital =
 locale utp_theory_unital =
   utp_theory_rel +
   assumes Healthy_Unit [closure]: "\<I>\<I> is \<H>"
-  and Unit_Left: "P is \<H> \<Longrightarrow> (\<I>\<I> ;; P) = P" 
+  and Unit_Left: "P is \<H> \<Longrightarrow> (\<I>\<I> ;; P) = P"
   and Unit_Right: "P is \<H> \<Longrightarrow> (P ;; \<I>\<I>) = P"
 
 locale utp_theory_mono_unital = utp_theory_mono + utp_theory_unital
@@ -482,11 +679,21 @@ definition utp_star ("_\<^bold>\<star>\<index>" [999] 999) where
 definition utp_omega ("_\<^bold>\<omega>\<index>" [999] 999) where
 "utp_omega \<T> P = (\<mu>\<^bsub>\<T>\<^esub> (\<lambda> X. (P ;; X)))"
 
-locale utp_pre_left_quantale = utp_theory_lattice + utp_theory_left_unital
+locale utp_pre_left_quantale = utp_theory_continuous + utp_theory_left_unital
 begin
 
   lemma star_healthy [closure]: "P\<^bold>\<star> is \<H>"
     by (metis mem_Collect_eq utp_order_carrier utp_star_def weak.GFP_closed)
+
+  lemma star_unfold: "P is \<H> \<Longrightarrow> P\<^bold>\<star> = (P;;P\<^bold>\<star>) \<sqinter> \<I>\<I>"
+    apply (simp add: utp_star_def healthy_meet_cont)
+    apply (subst GFP_unfold)
+    apply (rule Mono_utp_orderI)
+    apply (simp add: healthy_meet_cont closure semilattice_sup_class.le_supI1 seqr_mono)
+    apply (auto intro: funcsetI)
+    apply (simp add: Healthy_Left_Unit Healthy_Sequence healthy_meet_cont meet_is_healthy)
+    using Healthy_Left_Unit Healthy_Sequence healthy_meet_cont weak.GFP_closed apply auto
+  done
 
 end
 
@@ -509,8 +716,8 @@ text {* We declare the type @{type REL} to be the tag for this theory. We need k
   constants. *}
 
 overloading
-  rel_hcond == "utp_hcond :: (REL, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) Healthiness_condition"
-  rel_unit == "utp_unit :: (REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrelation"
+  rel_hcond == "utp_hcond :: (REL, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) health"
+  rel_unit == "utp_unit :: (REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrel"
 begin
 
   text {* The healthiness condition of a relation is simply identity, since every alphabetised
@@ -521,7 +728,7 @@ begin
 
   text {* The unit of the theory is simply the relational unit. *}
 
-  definition rel_unit :: "(REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrelation" where
+  definition rel_unit :: "(REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrel" where
   "rel_unit T = II"
 end
 
@@ -557,10 +764,10 @@ definition mk_conn ("_ \<Leftarrow>\<langle>_,_\<rangle>\<Rightarrow> _" [90,0,0
 abbreviation mk_conn' ("_ \<leftarrow>\<langle>_,_\<rangle>\<rightarrow> _" [90,0,0,91] 91) where
 "T1 \<leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<rightarrow> T2 \<equiv> \<H>\<^bsub>T1\<^esub> \<Leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<Rightarrow> \<H>\<^bsub>T2\<^esub>"
 
-lemma mk_conn_orderA [simp]: "\<X>\<^bsub>H1 \<Leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<Rightarrow> H2\<^esub> = utp_order H1" 
+lemma mk_conn_orderA [simp]: "\<X>\<^bsub>H1 \<Leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<Rightarrow> H2\<^esub> = utp_order H1"
   by (simp add:mk_conn_def)
 
-lemma mk_conn_orderB [simp]: "\<Y>\<^bsub>H1 \<Leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<Rightarrow> H2\<^esub> = utp_order H2" 
+lemma mk_conn_orderB [simp]: "\<Y>\<^bsub>H1 \<Leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<Rightarrow> H2\<^esub> = utp_order H2"
   by (simp add:mk_conn_def)
 
 lemma mk_conn_lower [simp]:  "\<pi>\<^sub>*\<^bsub>H1 \<Leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<Rightarrow> H2\<^esub> = \<H>\<^sub>1"
@@ -586,7 +793,7 @@ lemma ex_closed_unrest:
 
 text {* Any theory can be composed with an existential quantification to produce a Galois connection *}
 
-theorem ex_retract:  
+theorem ex_retract:
   assumes "vwb_lens x" "Idempotent H" "ex x \<circ> H = H \<circ> ex x"
   shows "retract ((ex x \<circ> H) \<Leftarrow>\<langle>ex x, H\<rangle>\<Rightarrow> H)"
 proof (unfold_locales, simp_all)
@@ -597,17 +804,16 @@ proof (unfold_locales, simp_all)
   fix P Q
   assume "P is (ex x \<circ> H)" "Q is H"
   thus "(H P \<sqsubseteq> Q) = (P \<sqsubseteq> (\<exists> x \<bullet> Q))"
-    by (metis (no_types, lifting) Healthy_Idempotent Healthy_if assms comp_apply dual_order.trans ex_weakens utp_pred.ex_mono vwb_lens_wb)    
+    by (metis (no_types, lifting) Healthy_Idempotent Healthy_if assms comp_apply dual_order.trans ex_weakens utp_pred.ex_mono vwb_lens_wb)
 next
   fix P
   assume "P is (ex x \<circ> H)"
   thus "(\<exists> x \<bullet> H P) \<sqsubseteq> P"
     by (simp add: Healthy_def)
 qed
-    
+
 corollary ex_retract_id:
   assumes "vwb_lens x"
   shows "retract (ex x \<Leftarrow>\<langle>ex x, id\<rangle>\<Rightarrow> id)"
-  using assms ex_retract[where H="id"] by (auto)  
-
+  using assms ex_retract[where H="id"] by (auto)
 end

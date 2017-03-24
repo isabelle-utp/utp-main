@@ -1,5 +1,5 @@
 theory utp_lens_demo
-  imports "../utp/utp_designs" "../utp/utp_hoare"
+  imports "../theories/utp_designs"
 begin
 
 alphabet person =
@@ -16,7 +16,7 @@ lemma "(\<exists> x \<bullet> &x >\<^sub>u 1) = true"
   by (rel_auto)
 
 lemma "(\<forall> x \<bullet> &x >\<^sub>u 1) = true"
-  apply (rel_auto)
+  apply (rel_simp)
   nitpick
 oops
 
@@ -57,5 +57,4 @@ lemma "(surname ;\<^sub>L y) \<subseteq>\<^sub>L y"
 
 lemma "x +\<^sub>L y +\<^sub>L z \<approx>\<^sub>L 1\<^sub>L"
   oops
-
 end

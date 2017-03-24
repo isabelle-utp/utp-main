@@ -1,12 +1,12 @@
 section {* Concurrent programming *}
 
 theory utp_concurrency
-  imports utp_rel
+  imports utp_rel utp_tactics
 begin
 
 text {* In parallel-by-merge constructions, a merge predicate defines the behaviour following execution of
         of parallel processes, P || Q, as a relation that merges the output of P and Q. In order to achieve
-        this we need to separate the variable values output from P and Q, and in addition the variable values 
+        this we need to separate the variable values output from P and Q, and in addition the variable values
         before execution. The following three constructs do these separations. *}
 
 definition [upred_defs]: "left_uvar x = x ;\<^sub>L fst\<^sub>L ;\<^sub>L snd\<^sub>L"
@@ -41,7 +41,7 @@ translations
   "_svarleft x" == "CONST left_uvar x"
   "_svarright x" == "CONST right_uvar x"
 
-type_synonym '\<alpha> merge = "('\<alpha> \<times> ('\<alpha> \<times> '\<alpha>), '\<alpha>) relation"
+type_synonym '\<alpha> merge = "('\<alpha> \<times> ('\<alpha> \<times> '\<alpha>), '\<alpha>) rel"
 
 text {* U0 and U1 are relations that index all input variables x to 0-x and 1-x, respectively. *}
 
@@ -61,7 +61,7 @@ abbreviation U1_alpha_lift ("\<lceil>_\<rceil>\<^sub>1") where "\<lceil>P\<rceil
 
 text {* We implement the following useful abbreviation for separating of two parallel processes and
   copying of the before variables, all to act as input to the merge predicate. *}
-  
+
 abbreviation par_sep (infixl "\<parallel>\<^sub>s" 85) where
 "P \<parallel>\<^sub>s Q \<equiv> (P ;; U0) \<and> (Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>"
 
@@ -70,7 +70,7 @@ text {* The following implementation of parallel by merge is less general than t
   achieve this specifying lenses into the larger alphabet, but this would complicate the definition
   of programs. May reconsider later. *}
 
-definition par_by_merge  ("_ \<parallel>\<^bsub>_\<^esub> _" [85,0,86] 85) 
+definition par_by_merge  ("_ \<parallel>\<^bsub>_\<^esub> _" [85,0,86] 85)
 where [upred_defs]: "P \<parallel>\<^bsub>M\<^esub> Q = (P \<parallel>\<^sub>s Q ;; M)"
 
 text {* nil is the merge predicate which ignores the output of both parallel predicates *}
@@ -79,21 +79,23 @@ definition [upred_defs]: "nil\<^sub>m = ($\<Sigma>\<acute> =\<^sub>u $\<Sigma>\<
 
 text {* swap is a predicate that the swaps the left and right indices; it is used to specify commutativity of the parallel operator *}
 
+-- {* TODO: There is an ambiguity below due to list assignment and tuples. *}
+
 definition [upred_defs]: "swap\<^sub>m = (0-\<Sigma>,1-\<Sigma> := &1-\<Sigma>,&0-\<Sigma>)"
 
 lemma U0_swap: "(U0 ;; swap\<^sub>m) = U1"
-  by rel_auto
+  by (rel_auto)+
 
 lemma U1_swap: "(U1 ;; swap\<^sub>m) = U0"
-  by rel_auto
+  by (rel_auto)
 
 text {* We can equivalently express separating simulations using alphabet extrusion *}
 
 lemma U0_as_alpha: "(P ;; U0) = \<lceil>P\<rceil>\<^sub>0"
-  by rel_auto
+  by (rel_auto)
 
 lemma U1_as_alpha: "(P ;; U1) = \<lceil>P\<rceil>\<^sub>1"
-  by rel_auto
+  by (rel_auto)
 
 lemma U0\<alpha>_vwb_lens [simp]: "vwb_lens U0\<alpha>"
   by (simp add: U0\<alpha>_def id_vwb_lens prod_vwb_lens)
@@ -119,11 +121,11 @@ lemma U1\<alpha>_comp_in_var [alpha]: "(in_var x) ;\<^sub>L U1\<alpha> = in_var 
 lemma U1\<alpha>_comp_out_var [alpha]: "(out_var x) ;\<^sub>L U1\<alpha> = out_var (right_uvar x)"
   by (simp add: U1\<alpha>_def alpha_out_var id_wb_lens right_uvar_def out_var_prod_lens)
 
-lemma U0_seq_subst: "(P ;; U0)\<lbrakk>\<guillemotleft>v\<guillemotright>/$0-x\<acute>\<rbrakk> = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; U0)" 
-  by rel_auto
+lemma U0_seq_subst: "(P ;; U0)\<lbrakk>\<guillemotleft>v\<guillemotright>/$0-x\<acute>\<rbrakk> = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; U0)"
+  by (rel_auto)
 
 lemma U1_seq_subst: "(P ;; U1)\<lbrakk>\<guillemotleft>v\<guillemotright>/$1-x\<acute>\<rbrakk> = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; U1)"
-  by rel_auto
+  by (rel_auto)
 
 lemma par_by_merge_false [simp]:
   "P \<parallel>\<^bsub>false\<^esub> Q = false"
@@ -146,7 +148,7 @@ proof -
   also have "... = ((((P ;; U0) \<and> (Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; swap\<^sub>m) ;; M)"
     by (metis assms seqr_assoc)
   also have "... = (((P ;; U0 ;; swap\<^sub>m) \<and> (Q ;; U1 ;; swap\<^sub>m) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
-    by rel_auto
+    by (rel_auto)
   also have "... = (((P ;; U1) \<and> (Q ;; U0) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
     by (simp add: U0_swap U1_swap)
   also have "... = Q \<parallel>\<^bsub>M\<^esub> P"
@@ -168,20 +170,11 @@ lemma par_by_merge_mono_1:
 lemma par_by_merge_mono_2:
   assumes "Q\<^sub>1 \<sqsubseteq> Q\<^sub>2"
   shows "(P \<parallel>\<^bsub>M\<^esub> Q\<^sub>1) \<sqsubseteq> (P \<parallel>\<^bsub>M\<^esub> Q\<^sub>2)"
-  using assms by rel_blast
-
-lemma bool_pbm_laws [usubst]:
-  fixes x :: "(bool \<Longrightarrow> '\<alpha>)"
-  shows 
-    "\<And> P Q M \<sigma>. \<sigma>($x \<mapsto>\<^sub>s true) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> ((P\<lbrakk>true/$x\<rbrakk>) \<parallel>\<^bsub>M\<lbrakk>true/$x\<^sub><\<rbrakk>\<^esub> (Q\<lbrakk>true/$x\<rbrakk>))"
-    "\<And> P Q M \<sigma>. \<sigma>($x \<mapsto>\<^sub>s false) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> ((P\<lbrakk>false/$x\<rbrakk>) \<parallel>\<^bsub>M\<lbrakk>false/$x\<^sub><\<rbrakk>\<^esub> (Q\<lbrakk>false/$x\<rbrakk>))"
-    "\<And> P Q M \<sigma>. \<sigma>($x\<acute> \<mapsto>\<^sub>s true) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> (P \<parallel>\<^bsub>M\<lbrakk>true/$x\<acute>\<rbrakk>\<^esub> Q)"
-    "\<And> P Q M \<sigma>. \<sigma>($x\<acute> \<mapsto>\<^sub>s false) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> (P \<parallel>\<^bsub>M\<lbrakk>false/$x\<acute>\<rbrakk>\<^esub> Q)"
-  by (rel_auto)+
+  using assms by (rel_blast)
 
 lemma zero_one_pbm_laws [usubst]:
   fixes x :: "(_ \<Longrightarrow> '\<alpha>)"
-  shows 
+  shows
     "\<And> P Q M \<sigma>. \<sigma>($x \<mapsto>\<^sub>s 0) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> ((P\<lbrakk>0/$x\<rbrakk>) \<parallel>\<^bsub>M\<lbrakk>0/$x\<^sub><\<rbrakk>\<^esub> (Q\<lbrakk>0/$x\<rbrakk>))"
     "\<And> P Q M \<sigma>. \<sigma>($x \<mapsto>\<^sub>s 1) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> ((P\<lbrakk>1/$x\<rbrakk>) \<parallel>\<^bsub>M\<lbrakk>1/$x\<^sub><\<rbrakk>\<^esub> (Q\<lbrakk>1/$x\<rbrakk>))"
     "\<And> P Q M \<sigma>. \<sigma>($x\<acute> \<mapsto>\<^sub>s 0) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> (P \<parallel>\<^bsub>M\<lbrakk>0/$x\<acute>\<rbrakk>\<^esub> Q)"
@@ -190,9 +183,8 @@ lemma zero_one_pbm_laws [usubst]:
 
 lemma numeral_pbm_laws [usubst]:
   fixes x :: "(_ \<Longrightarrow> '\<alpha>)"
-  shows 
+  shows
     "\<And> P Q M \<sigma>. \<sigma>($x \<mapsto>\<^sub>s numeral n) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> ((P\<lbrakk>numeral n/$x\<rbrakk>) \<parallel>\<^bsub>M\<lbrakk>numeral n/$x\<^sub><\<rbrakk>\<^esub> (Q\<lbrakk>numeral n/$x\<rbrakk>))"
     "\<And> P Q M \<sigma>. \<sigma>($x\<acute> \<mapsto>\<^sub>s numeral n) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> (P \<parallel>\<^bsub>M\<lbrakk>numeral n/$x\<acute>\<rbrakk>\<^esub> Q)"
   by (rel_auto)+
-
 end

@@ -40,7 +40,7 @@ struct
     THEN (check_solvable_tac);
 
   fun inject_type typ thy =
-    let val tyco = (Sign.intern_type thy typ);
+    let val tyco = Isar_Utils.full_type_name thy typ;
     val sorts = replicate (Sign.arity_number thy tyco) @{sort injectable};
     val vs = Name.invent_names Name.context "'a" sorts;
     (* val instantiates_order =
