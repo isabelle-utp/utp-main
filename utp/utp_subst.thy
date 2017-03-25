@@ -247,7 +247,7 @@ nonterminal uexprs and svars and salphas
 
 syntax
   "_psubst"  :: "[logic, svars, uexprs] \<Rightarrow> logic"
-  "_subst"   :: "logic \<Rightarrow> uexprs \<Rightarrow> salphas \<Rightarrow> logic" ("(_\<lbrakk>_'/_\<rbrakk>)" [999,0,0] 1000)
+  "_subst"   :: "logic \<Rightarrow> uexprs \<Rightarrow> salphas \<Rightarrow> logic" ("(_\<lbrakk>_'/_\<rbrakk>)" [990,0,0] 991)
   "_uexprs"  :: "[logic, uexprs] => uexprs" ("_,/ _")
   ""         :: "logic => uexprs" ("_")
   "_svars"   :: "[svar, svars] => svars" ("_,/ _")

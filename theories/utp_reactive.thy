@@ -518,7 +518,7 @@ lemma R2_seqr_closure:
   assumes "P is R2" "Q is R2"
   shows "(P ;; Q) is R2"
   by (metis Healthy_def' R2_seqr_distribute assms(1) assms(2))
-
+    
 lemma R1_R2_commute:
   "R1(R2(P)) = R2(R1(P))"
   by pred_auto
@@ -559,6 +559,16 @@ lemma R2_R2c_def: "R2(P) = R1(R2c(P))"
 lemma R2c_R1_seq: "R2c(R1(R2c(P)) ;; R1(R2c(Q))) = (R1(R2c(P)) ;; R1(R2c(Q)))"
   using R2c_seq[of P Q] by (simp add: R2_R2c_def)
 
+lemma R1_R2c_seqr_distribute:
+  fixes P :: "('t::ordered_cancel_monoid_diff,'\<alpha>,'\<beta>) rel_rp" and Q :: "('t,'\<beta>,'\<gamma>) rel_rp"
+  assumes "P is R1" "P is R2c" "Q is R1" "Q is R2c"
+  shows "R1(R2c(P ;; Q)) = P ;; Q"
+  by (metis Healthy_if R1_seqr R2c_R1_seq assms)
+    
+lemma R2_R1_true:
+  "R2(R1(true)) = R1(true)"
+  by (simp add: R2_R1_form R2s_true)
+    
 subsection {* R3 *}
 
 definition R3_def [upred_defs]: "R3(P) = (II \<triangleleft> $wait \<triangleright> P)"

@@ -1524,6 +1524,11 @@ proof -
   finally show ?thesis ..
 qed
 
+lemma R1_neg_R2c_pre_RHS:
+  assumes "P is SRD"
+  shows "R1 (\<not> R2c(pre\<^sub>R(P))) = (\<not> (pre\<^sub>R(P)))"
+  by (metis R1_R2s_R2c R1_neg_R2s_pre_RHS R2c_not R2s_not assms)
+  
 lemma R1_R2s_cmt_SRD:
   assumes "P is SRD"
   shows "R1(R2s(cmt\<^sub>R(P))) = cmt\<^sub>R(P)"
@@ -1534,11 +1539,40 @@ lemma R1_R2s_peri_SRD:
   shows "R1(R2s(peri\<^sub>R(P))) = peri\<^sub>R(P)"
   by (metis (no_types, hide_lams) Healthy_def R1_R2s_R2c R2_def R2_idem RHS_def SRD_RH_design_form assms peri\<^sub>R_def peri\<^sub>s_R1 peri\<^sub>s_R2c)
 
+lemma R1_R2c_peri_RHS:
+  assumes "P is SRD"
+  shows "R1(R2c(peri\<^sub>R(P))) = peri\<^sub>R(P)"
+  by (metis R1_R2s_R2c R1_R2s_peri_SRD assms)
+    
 lemma R1_R2s_post_SRD:
   assumes "P is SRD"
   shows "R1(R2s(post\<^sub>R(P))) = post\<^sub>R(P)"
   by (metis (no_types, hide_lams) Healthy_def R1_R2s_R2c R2_def R2_idem RHS_def SRD_RH_design_form assms post\<^sub>R_def post\<^sub>s_R1 post\<^sub>s_R2c)
 
+lemma R1_R2c_post_RHS:
+  assumes "P is SRD"
+  shows "R1(R2c(post\<^sub>R(P))) = post\<^sub>R(P)"
+  by (metis R1_R2s_R2c R1_R2s_post_SRD assms)
+
+lemma R2_neg_pre_SRD: "P is SRD \<Longrightarrow> R2(\<not> pre\<^sub>R P) = (\<not> pre\<^sub>R P)"
+  by (simp add: R1_neg_R2s_pre_RHS R2_def R2s_not)
+
+lemma R2_cmt_conj_wait':
+  "P is SRD \<Longrightarrow> R2(cmt\<^sub>R P \<and> \<not> $wait\<acute>) = (cmt\<^sub>R P \<and> \<not> $wait\<acute>)"
+  by (simp add: R2_def R2s_conj R2s_not R2s_wait' R1_extend_conj R1_R2s_cmt_SRD)
+
+lemma R2c_preR:
+  "P is SRD \<Longrightarrow> R2c(pre\<^sub>R(P)) = pre\<^sub>R(P)"
+  by (metis (no_types, lifting) R1_R2c_commute R1_idem R2_R2c_def R2_neg_pre_SRD R2c_not utp_pred.compl_eq_compl_iff)
+
+lemma R2c_periR:
+  "P is SRD \<Longrightarrow> R2c(peri\<^sub>R(P)) = peri\<^sub>R(P)"
+  by (metis (no_types, lifting) R1_R2c_commute R1_R2s_R2c R1_R2s_peri_SRD R2c_idem)
+
+lemma R2c_postR:
+  "P is SRD \<Longrightarrow> R2c(post\<^sub>R(P)) = post\<^sub>R(P)"
+  by (metis (no_types, hide_lams) R1_R2c_commute R1_R2c_is_R2 R1_R2s_post_SRD R2_def R2s_idem)
+    
 lemma RHS_pre_lemma: "(\<^bold>R\<^sub>s P)\<^sup>f\<^sub>f = R1(R2c(P\<^sup>f\<^sub>f))"
   by (rel_auto)
 
@@ -1992,7 +2026,7 @@ proof -
   finally show ?thesis ..
 qed
 
-lemma NSRD_st'_unrest_peri:
+lemma NSRD_st'_unrest_peri [unrest]:
   assumes "P is NSRD"
   shows "$st\<acute> \<sharp> peri\<^sub>R(P)"
 proof -
@@ -2005,7 +2039,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma NSRD_wait'_unrest_pre:
+lemma NSRD_wait'_unrest_pre [unrest]:
   assumes "P is NSRD"
   shows "$wait\<acute> \<sharp> pre\<^sub>R(P)"
 proof -
@@ -2018,7 +2052,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma NSRD_st'_unrest_pre:
+lemma NSRD_st'_unrest_pre [unrest]:
   assumes "P is NSRD"
   shows "$st\<acute> \<sharp> pre\<^sub>R(P)"
 proof -
@@ -2041,6 +2075,57 @@ lemma NSRD_composition_wp:
          \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<or> (post\<^sub>R P ;; peri\<^sub>R Q)) \<diamondop> (post\<^sub>R P ;; post\<^sub>R Q))"
   by (simp add: SRD_composition_wp assms NSRD_is_SRD wpR_def NSRD_neg_pre_unit NSRD_st'_unrest_peri ex_unrest)
 
+lemma R2c_lift_state_pre:
+  "R2c(\<lceil>b\<rceil>\<^sub>S\<^sub><) = \<lceil>b\<rceil>\<^sub>S\<^sub><"
+  by (rel_auto)
+
+lemma preR_SRD_seq:
+  assumes "P is SRD" "Q is SRD"
+  shows "pre\<^sub>R(P ;; Q) = (\<not> (\<not> pre\<^sub>R P) ;; R1 true \<and> \<not> (cmt\<^sub>R P \<and> \<not> $wait\<acute>) ;; (\<not> pre\<^sub>R Q))"
+proof -
+  have "pre\<^sub>R(P ;; Q) = pre\<^sub>R(\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P)) ;; \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> cmt\<^sub>R(Q)))"
+    by (simp add: SRD_reactive_design_alt assms)
+  also have "... =  ((\<not> R2(R2(\<not> (pre\<^sub>R P)) ;; R2(R1 true)) \<and> \<not> R2(R2(cmt\<^sub>R P \<and> \<not> $wait\<acute>) ;; R2(\<not> (pre\<^sub>R Q)))))"
+    by (simp add: RHS_design_composition unrest R1_neg_R2s_pre_RHS R1_R2s_peri_SRD R1_R2s_post_SRD R1_R2s_cmt_SRD assms rea_pre_RHS_design R2c_disj R1_disj usubst R1_R2c_is_R2 R2_neg_pre_SRD R2_cmt_conj_wait' R2_R1_true)
+  also have "... =  (\<not> (\<not> pre\<^sub>R P) ;; R1 true \<and> \<not> (cmt\<^sub>R P \<and> \<not> $wait\<acute>) ;; (\<not> pre\<^sub>R Q))"
+    by (simp add: R2_seqr_distribute, simp add: R2_R1_true R2_neg_pre_SRD R2_cmt_conj_wait' assms)
+  finally show ?thesis .
+qed
+
+lemma preR_NSRD_seq_lemma:
+  assumes "P is NSRD" "Q is SRD"
+  shows "R1 (R2c (post\<^sub>R P ;; R1 (\<not> pre\<^sub>R Q))) = post\<^sub>R P ;; R1 (\<not> pre\<^sub>R Q)"
+proof -
+  have "post\<^sub>R P ;; R1 (\<not> pre\<^sub>R Q) = R1(R2c(post\<^sub>R P)) ;; R1(R2c(R1 (\<not> pre\<^sub>R Q)))"
+    by (metis (no_types, lifting) NSRD_is_SRD R1_R2c_post_RHS R1_idem R1_neg_R2c_pre_RHS R2c_not assms(1) assms(2))
+  also have "... = R1 (R2c (post\<^sub>R P ;; R1 (\<not> pre\<^sub>R Q)))"
+    by (simp add: R1_seqr R2c_R1_seq calculation)
+  finally show ?thesis ..
+qed
+      
+lemma preR_NSRD_seq:
+  assumes "P is NSRD" "Q is SRD"
+  shows "pre\<^sub>R(P ;; Q) = (pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R Q)"
+    by (simp add: NSRD_composition_wp assms rea_pre_RHS_design usubst unrest wpR_def R2c_disj 
+             R1_disj R2c_not R1_neg_R2c_pre_RHS NSRD_is_SRD preR_NSRD_seq_lemma)
+
+lemma periR_NSRD_seq:
+  assumes "P is NSRD" "Q is NSRD"
+  shows "peri\<^sub>R(P ;; Q) = ((pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R Q) \<Rightarrow> (peri\<^sub>R P \<or> (post\<^sub>R P ;; peri\<^sub>R Q)))"
+  by (simp add: NSRD_is_SRD NSRD_composition_wp assms rea_peri_RHS_design usubst unrest wpR_def 
+                   impl_alt_def R2c_disj R1_disj R1_R2c_peri_RHS R1_neg_R2c_pre_RHS R2c_not 
+                   preR_NSRD_seq_lemma)
+     (metis Healthy_def NSRD_is_SRD R1_R2c_peri_RHS R1_R2c_post_RHS R1_R2c_seqr_distribute 
+                        R2c_periR R2c_postR assms(1) assms(2))
+
+lemma postR_NSRD_seq:
+  assumes "P is NSRD" "Q is NSRD"
+  shows "post\<^sub>R(P ;; Q) = ((pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R Q) \<Rightarrow> (post\<^sub>R P ;; post\<^sub>R Q))"
+  by (simp add: NSRD_is_SRD NSRD_composition_wp assms rea_post_RHS_design usubst unrest wpR_def 
+                   impl_alt_def R2c_disj R1_disj R1_R2c_peri_RHS R1_neg_R2c_pre_RHS R2c_not 
+                   preR_NSRD_seq_lemma)
+     (metis Healthy_def NSRD_is_SRD R1_R2c_post_RHS R1_R2c_seqr_distribute R2c_postR assms)
+                                           
 lemma RHS_tri_normal_design_composition:
   assumes
     "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>2" "$ok \<sharp> R" "$ok \<sharp> S\<^sub>1" "$ok \<sharp> S\<^sub>2"
