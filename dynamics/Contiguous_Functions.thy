@@ -79,7 +79,7 @@ lemma Sup'_interval [simp]: "Sup' {0..<m} = (if (m > 0) then m else 0)"
 text {* The first property tells us that the supremum of an empty set is zero, and the second
   tells us that the supremum of a right open interval is the limit of the interval. *}
 
-subsection {* Contiguous functions *}
+subsection {* Contiguous Functions *}
 
 typedef 'a cgf =
   "{f :: real \<rightharpoonup> 'a. (\<exists> i. i \<ge> 0 \<and> dom(f) = {0..<i})}"

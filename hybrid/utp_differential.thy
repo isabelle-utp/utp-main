@@ -1,4 +1,4 @@
-section {* Differential Equations and their solutions *}
+section {* Differential Equations and their Solutions *}
 
 theory utp_differential
   imports utp_hyrel

@@ -4,7 +4,7 @@ theory Timed_Traces
 imports Contiguous_Functions
 begin
 
-subsection {* Piecewise continuity *}
+subsection {* Piecewise Continuity *}
 
 text {* With the foundation of contiguous functions established, we can now proceed to define
   piecewise continuous and convergent functions. We begin with a locale that gives the necessary
@@ -113,7 +113,7 @@ lemma piecewise_convergent_empty [simp]: "piecewise_convergent []\<^sub>C"
 
 text {* Empty contiguous functions are both piecewise continuous and piecewise convergent. *}
 
-subsection {* Concatenation of piecewise continuous functions *}
+subsection {* Concatenation of Piecewise Continuous Functions *}
 
 text {* A major result of this theory is to show that the a piecewise continuous function can always
   be decomposed into two piecewise continuous functions with the help of concatenation operator.
@@ -836,7 +836,7 @@ lemma piecewise_convergent_cat_iff:
 text {* Thus we have proved the key properties about composition of piecewise continuous functions,
   and so we now proceed to create the type. *}
 
-subsection {* Timed trace type *}
+subsection {* Timed Trace Type *}
 
 text {* Finally, having proved the important closure properties for piecewise continuous and convergent
   functions we can now create our type of timed traces, which are piecewise convergent functions. *}

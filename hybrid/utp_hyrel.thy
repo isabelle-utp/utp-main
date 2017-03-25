@@ -199,7 +199,7 @@ text {* The next properties states that the end point of an empty timed trace is
 lemma uend_0 [simp]: "end\<^sub>u(0) = 0"
   by (simp add: upred_defs lit_def uop_def Abs_uexpr_inverse)
 
-subsection {* Instant predicates *}
+subsection {* Instant Predicates *}
 
 definition at ::
   "('a, 'c::topological_space) uexpr \<Rightarrow> real \<Rightarrow> ('a, 'd, 'c) hyexpr"
@@ -286,7 +286,7 @@ text {* Lemma @{thm [source] "at_var"} tells us the result of lifting a flat con
 lemma subst_cvar_traj [usubst]: "\<langle>[$\<^bold>c \<mapsto>\<^sub>s \<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u]\<rangle>\<^sub>s (x ;\<^sub>L in_var \<^bold>c) = x~(\<guillemotleft>t\<guillemotright>)"
   by (pred_auto)
 
-subsection {* The interval operator *}
+subsection {* The Interval Operator *}
 
 definition hInt :: "(real \<Rightarrow> 'c::topological_space upred) \<Rightarrow> ('d,'c) hyrel" where
 [urel_defs]: "hInt P = ($tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> (P t) @\<^sub>u t))"

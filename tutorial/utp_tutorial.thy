@@ -2,7 +2,7 @@ section {* Isabelle/UTP Primer *}
 
 (*<*)
 theory utp_tutorial
-imports utp_theories
+imports "../theories/utp_theories"
 begin
 (*>*)
 
@@ -25,7 +25,7 @@ text {* We discharge these using our predicate calculus tactic, \emph{pred-auto}
   that @{term true}, @{term false}, and the conjunction operator are not simply the HOL operators;
   rather they act on on our UTP predicate type (@{typ "'\<alpha> upred"}). *}
 
-subsection {* State-spaces and lenses *}
+subsection {* State-spaces and Lenses *}
 
 text {* Predicates in the UTP are alphabetised, meaning they specify beheaviours
   in terms of a collection of variables, the alphabet, which effectively gives a state-space for
@@ -66,7 +66,7 @@ text {* However, we cannot prove, for example, that @{term "x \<bowtie> x"} of c
   of variables, rather than a syntactic notion. For more background on this use of lenses please see
   our recent paper~\cite{Foster16a}. *}
 
-subsection {* Predicate calculus *}
+subsection {* Predicate Calculus *}
 
 text {* We can now use this characterisation of variables to define predicates
   in Isabelle/UTP, for example @{term "&x >\<^sub>u &y"}, which corresponds to all valuations of the state-space
@@ -103,7 +103,7 @@ text {* The first goal states that for any given valuation of $y$ there is a val
   a given valuation of $y$. Of course, this isn't the case and so we can prove the goal is equivalent
   to @{term false}. *}
 
-subsection {* Meta-logical operators *}
+subsection {* Meta-logical Operators *}
 
 text {* In addition to predicate calculus operators, we also often need to assert meta-logical
   properties about a predicate, such as ``variable $x$ is not present in predicate $P$''. In Isabelle/UTP
@@ -332,7 +332,7 @@ text {* Perhaps of most interest are the unfold laws, also known as the ``copy r
   that the body of the fixed point is a monotone function, then the body can be copied to the outside.
   These can be used to prove equivalent laws for operators like the while loop. *}
 
-subsection {* Laws of programming *}
+subsection {* Laws of Programming *}
 
 text {* Although we have some primitive tactics for proving conjectures in the predicate and relational
   calculi, in order to build verification tools for programs we need a set of algebraic ``laws of
@@ -485,7 +485,7 @@ text {* A reactive design, @{term "\<^bold>R\<^sub>s(P \<turnstile> Q)"}, is a s
       whether the current program is a waiting state;
     \item $tr, tr' : \mathcal{T}$ -- denotes the interaction history using a suitable trace type
       $\mathcal{T}$.
- \end{itemize}
+  \end{itemize}
 
  For more details on reactive designs please see the associated tutorial~\cite{Cavalcanti&06}. *}
 (*<*)
