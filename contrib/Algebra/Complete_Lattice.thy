@@ -97,7 +97,7 @@ qed
 lemma (in weak_complete_lattice) inf_closed [simp]:
   "A \<subseteq> carrier L ==> \<Sqinter>A \<in> carrier L"
   by (rule infI) simp_all
-
+    
 lemma (in weak_complete_lattice) inf_cong:
   assumes "A \<subseteq> carrier L" "B \<subseteq> carrier L" "A {.=} B"
   shows "\<Sqinter> A .= \<Sqinter> B"
@@ -221,6 +221,11 @@ lemma inf_greatest:
   shows "z \<sqsubseteq> \<Sqinter>A"
   by (metis Lower_memI assms greatest_le inf_glb)
 
+lemma inf_mono:
+  assumes "A \<subseteq> carrier L" "B \<subseteq> carrier L" "A \<subseteq> B"
+  shows "\<Sqinter> B \<sqsubseteq> \<Sqinter> A"
+  by (meson assms inf_lower inf_greatest subsetCE inf_closed weak_complete_lattice_axioms)
+    
 lemma weak_inf_empty [simp]: "\<Sqinter>{} .= \<top>"
   by (metis Lower_empty empty_subsetI inf_glb top_greatest weak_greatest_unique)
 
