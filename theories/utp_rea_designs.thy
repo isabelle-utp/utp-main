@@ -1427,18 +1427,6 @@ lemma cmt_wait_false:
   "cmt\<^sub>R(P\<lbrakk>false/$wait\<rbrakk>) = cmt\<^sub>R(P)"
   by (rel_auto)
 
-lemma subst_tr_pre [usubst]:
-  "\<lbrakk> $ok \<sharp> v; $ok\<acute> \<sharp> v; $wait \<sharp> v \<rbrakk> \<Longrightarrow> (pre\<^sub>R P)\<lbrakk>v/$tr\<rbrakk> = pre\<^sub>R (P\<lbrakk>v/$tr\<rbrakk>)"
-  by (rel_auto)
-
-lemma subst_tr_peri [usubst]:
-  "\<lbrakk> $ok \<sharp> v; $ok\<acute> \<sharp> v; $wait \<sharp> v; $wait\<acute> \<sharp> v \<rbrakk> \<Longrightarrow> (peri\<^sub>R P)\<lbrakk>v/$tr\<rbrakk> = peri\<^sub>R (P\<lbrakk>v/$tr\<rbrakk>)"
-  by (rel_auto)
-
-lemma subst_tr_post [usubst]:
-  "\<lbrakk> $ok \<sharp> v; $ok\<acute> \<sharp> v; $wait \<sharp> v; $wait\<acute> \<sharp> v \<rbrakk> \<Longrightarrow> (post\<^sub>R P)\<lbrakk>v/$tr\<rbrakk> = post\<^sub>R (P\<lbrakk>v/$tr\<rbrakk>)"
-  by (rel_auto)
-
 lemma rea_pre_RHS_design: "pre\<^sub>R(\<^bold>R\<^sub>s(P \<turnstile> Q)) = (\<not> R1(R2c(pre\<^sub>s \<dagger> (\<not> P))))"
   by (simp add: RHS_def usubst R3h_def pre\<^sub>R_def pre\<^sub>s_design)
 

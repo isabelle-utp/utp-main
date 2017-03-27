@@ -563,7 +563,7 @@ begin
 
   text {* The UTP theory lfp operator can be rewritten to the alphabetised predicate lfp when
     in a continuous context. *}
-
+    
   theorem utp_lfp_def:
     assumes "Monotonic F" "F \<in> \<lbrakk>\<H>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<rbrakk>\<^sub>H"
     shows "\<^bold>\<mu> F = (\<mu> X \<bullet> F(\<H>(X)))"
