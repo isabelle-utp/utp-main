@@ -404,7 +404,7 @@ text {* We can then derive a number of properties about these operators, as belo
 
 context utp_theory_lattice
 begin
-
+  
   lemma LFP_healthy_comp: "\<^bold>\<mu> F = \<^bold>\<mu> (F \<circ> \<H>)"
   proof -
     have "{P. (P is \<H>) \<and> F P \<sqsubseteq> P} = {P. (P is \<H>) \<and> F (\<H> P) \<sqsubseteq> P}"
@@ -468,32 +468,32 @@ qed
 context utp_theory_mono
 begin
 
-  text {* In a monotone theory, the top and bottom can always be obtained by applying the healthiness
-    condition to the predicate top and bottom, respectively. *}
+text {* In a monotone theory, the top and bottom can always be obtained by applying the healthiness
+  condition to the predicate top and bottom, respectively. *}
 
-  lemma healthy_top: "\<^bold>\<top> = \<H>(false)"
-  proof -
-    have "\<^bold>\<top> = \<top>\<^bsub>fpl \<P> \<H>\<^esub>"
-      by (simp add: utp_order_fpl)
-    also have "... = \<H> \<top>\<^bsub>\<P>\<^esub>"
-      using Knaster_Tarski_idem_extremes(1)[of \<P> \<H>]
-      by (simp add: HCond_Idempotent HCond_Mono)
-    also have "... = \<H> false"
-      by (simp add: upred_top)
-    finally show ?thesis .
-  qed
+lemma healthy_top: "\<^bold>\<top> = \<H>(false)"
+proof -
+  have "\<^bold>\<top> = \<top>\<^bsub>fpl \<P> \<H>\<^esub>"
+    by (simp add: utp_order_fpl)
+  also have "... = \<H> \<top>\<^bsub>\<P>\<^esub>"
+    using Knaster_Tarski_idem_extremes(1)[of \<P> \<H>]
+    by (simp add: HCond_Idempotent HCond_Mono)
+  also have "... = \<H> false"
+    by (simp add: upred_top)
+  finally show ?thesis .
+qed
 
-  lemma healthy_bottom: "\<^bold>\<bottom> = \<H>(true)"
-  proof -
-    have "\<^bold>\<bottom> = \<bottom>\<^bsub>fpl \<P> \<H>\<^esub>"
-      by (simp add: utp_order_fpl)
-    also have "... = \<H> \<bottom>\<^bsub>\<P>\<^esub>"
-      using Knaster_Tarski_idem_extremes(2)[of \<P> \<H>]
-      by (simp add: HCond_Idempotent HCond_Mono)
-    also have "... = \<H> true"
-      by (simp add: upred_bottom)
-    finally show ?thesis .
-  qed
+lemma healthy_bottom: "\<^bold>\<bottom> = \<H>(true)"
+proof -
+  have "\<^bold>\<bottom> = \<bottom>\<^bsub>fpl \<P> \<H>\<^esub>"
+    by (simp add: utp_order_fpl)
+  also have "... = \<H> \<bottom>\<^bsub>\<P>\<^esub>"
+    using Knaster_Tarski_idem_extremes(2)[of \<P> \<H>]
+    by (simp add: HCond_Idempotent HCond_Mono)
+  also have "... = \<H> true"
+    by (simp add: upred_bottom)
+   finally show ?thesis .
+qed
 
 lemma healthy_inf:
   assumes "A \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H"
@@ -509,7 +509,7 @@ proof -
     using Knaster_Tarski_idem_inf_eq[OF upred_weak_complete_lattice, of "\<H>"]
     by (simp, metis HCond_Idempotent HCond_Mono assms partial_object.simps(3) upred_lattice_def upred_lattice_inf utp_order_def)
 qed
-
+  
 end
 
 locale utp_theory_continuous = utp_theory +

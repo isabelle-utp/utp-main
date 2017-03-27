@@ -1240,6 +1240,9 @@ lemma wpR_seq [wp]:
   "Q is R1 \<Longrightarrow>(P ;; Q) wp\<^sub>R R = P wp\<^sub>R (Q wp\<^sub>R R)"
   by (simp add: wpR_def, metis (no_types, hide_lams) Healthy_def' R1_seqr seqr_assoc)
 
+lemma wpR_miracle [wp]: "false wp\<^sub>R pre\<^sub>R Q = true"
+  by (simp add: wpR_def)
+    
 theorem RHS_tri_design_composition:
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>2" "$ok \<sharp> R" "$ok \<sharp> S\<^sub>1" "$ok \<sharp> S\<^sub>2"
           "$wait \<sharp> R" "$wait\<acute> \<sharp> Q\<^sub>2" "$wait \<sharp> S\<^sub>1" "$wait \<sharp> S\<^sub>2"
@@ -1634,7 +1637,7 @@ proof -
     by (simp add: RHS_design_is_SRD add: unrest)
   finally show ?thesis .
 qed
-
+  
 subsection {* Reactive design signature *}
   
 lemma srdes_skip_def: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R))"
@@ -1679,7 +1682,7 @@ thm srdes_theory_continuous.weak.bottom_lower
 thm srdes_theory_continuous.weak.top_higher
 thm srdes_theory_continuous.meet_bottom
 thm srdes_theory_continuous.meet_top
-
+  
 lemma Miracle_left_zero:
   assumes "P is SRD"
   shows "Miracle ;; P = Miracle"
@@ -2169,7 +2172,17 @@ lemma NSRD_right_Chaos_tri_lemma:
   shows "P ;; Chaos = \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> \<not> (post\<^sub>R P ;; R1 true)) \<turnstile> peri\<^sub>R P \<diamondop> false)"
   by (simp add: SRD_right_Chaos_tri_lemma[OF NSRD_is_SRD[OF assms]] 
                 NSRD_neg_pre_unit NSRD_st'_unrest_peri assms ex_unrest)
-  
+    
+text {* If a normal reactive design has postcondition false, then it is a left zero for sequential
+  composition. *}  
+            
+lemma NSRD_seq_post_false:
+  assumes "P is NSRD" "Q is SRD" "post\<^sub>R(P) = false"
+  shows "P ;; Q = P"
+  apply (simp add: NSRD_composition_wp assms wp)
+  using NSRD_is_SRD SRD_reactive_tri_design assms(1,3) apply fastforce
+done
+              
 lemma assigns_rea_id: "\<langle>id\<rangle>\<^sub>R = II\<^sub>R"
   by (simp add: srdes_skip_def, rel_auto)
     
