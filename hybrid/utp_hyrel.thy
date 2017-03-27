@@ -1,4 +1,4 @@
-section {* Hybrid relational calculus *}
+section {* Hybrid Relational Calculus *}
 
 theory utp_hyrel
 imports
