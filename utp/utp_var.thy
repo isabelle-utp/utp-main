@@ -5,6 +5,7 @@ theory utp_var
   Deriv
   "~~/src/HOL/Library/Prefix_Order"
   "~~/src/HOL/Library/Char_ord"
+  "~~/src/HOL/Library/Product_Order"
   "~~/src/Tools/Adhoc_Overloading"
   "~~/src/HOL/Library/Monad_Syntax"
   "~~/src/HOL/Library/Countable"

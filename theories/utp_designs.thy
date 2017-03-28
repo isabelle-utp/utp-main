@@ -1473,26 +1473,5 @@ thm Des_Rel_coretract.deflation[simplified]
 thm Des_Rel_coretract.inflation
 thm Des_Rel_coretract.upper_comp[simplified]
 thm Des_Rel_coretract.lower_comp
-
-(*
-lemma 
-  assumes "F \<in> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
-  shows "\<mu>\<^sub>D F = undefined"
-proof -
-  have "\<mu>\<^sub>D F = \<Sqinter> {P. \<^bold>H(P) = P \<and> F P \<sqsubseteq> P}"
-    apply (simp add: LFP_def)
-    apply (subst design_theory_continuous.healthy_inf_cont)
-    apply (auto)
-    apply (rule_tac x="\<^bold>\<top>\<^bsub>DES\<^esub>" in exI, auto simp add: design_theory_continuous.top_healthy) 
-    using assms apply blast
-    apply (simp add: Healthy_def des_hcond_def)
-  done
-  also have "... = \<Sqinter> {P. \<^bold>H(P) = P \<and> (\<not> (F P)\<^sup>f) \<turnstile> (F P)\<^sup>t \<sqsubseteq> (\<not> P\<^sup>f) \<turnstile> P\<^sup>t}"
-    apply (rule cong[of "Sup"], auto)
-    apply (simp add: design_refine_intro' subst_mono utp_pred.inf.coboundedI2)
-    apply (metis (no_types, lifting) H1_H2_eq_design Healthy_def PiE assms mem_Collect_eq)
-  done
-  also have "... = \<Sqinter> {P. \<^bold>H(P) = P \<and> (\<not> (F P)\<^sup>f) \<turnstile> (F P)\<^sup>t \<sqsubseteq> (\<not> P\<^sup>f) \<turnstile> P\<^sup>t}"
-*)
     
 end

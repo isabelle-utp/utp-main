@@ -1628,6 +1628,17 @@ qed
   
 subsection {* Reactive design signature *}
   
+lemma srdes_refine_intro:
+  assumes "`P\<^sub>1 \<Rightarrow> P\<^sub>2`" "`P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> Q\<^sub>1`"
+  shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1) \<sqsubseteq> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2)"
+  by (simp add: RHS_mono assms design_refine_intro)
+
+lemma srdes_tri_refine_intro:
+  assumes "`P\<^sub>1 \<Rightarrow> P\<^sub>2`" "`P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> Q\<^sub>1`" "`P\<^sub>1 \<and> R\<^sub>2 \<Rightarrow> R\<^sub>1`"
+  shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1 \<diamondop> R\<^sub>1) \<sqsubseteq> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2 \<diamondop> R\<^sub>2)"
+  using assms 
+  by (rule_tac srdes_refine_intro, simp_all, rel_auto)
+    
 lemma srdes_skip_def: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R))"
   apply (rel_auto) using minus_zero_eq by blast+
 
@@ -2194,7 +2205,7 @@ proof -
     by (simp add: assigns_rea_RHS_tri_des)
   finally show ?thesis .
 qed
-
+  
 text {* Stateful reactive designs are left unital *}
 
 overloading
@@ -2235,7 +2246,7 @@ proof -
       by (simp add: srdes_pvar_assigns_def srdes_unit_def assigns_rea_id)
   qed
 qed
-
+    
 subsection {* Reactive design parallel-by-merge *}
 
 definition [upred_defs]: "nil\<^sub>r\<^sub>m = (nil\<^sub>m \<triangleleft> $0-ok \<and> $1-ok \<triangleright> ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>))"
