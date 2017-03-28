@@ -1491,6 +1491,7 @@ begin
     apply (rule gfp_mono)
     apply (rule design_refine_intro)
   oops
+
 end
  
 end

@@ -225,11 +225,17 @@ declare USUP_def [upred_defs]
 declare UINF_def [upred_defs]
 
 syntax
-  "_USup"     :: "idt \<Rightarrow> logic \<Rightarrow> logic"            ("\<Sqinter> _ \<bullet> _" [0, 10] 10)
+  "_USup"     :: "idt \<Rightarrow> logic \<Rightarrow> logic"            ("\<Or> _ \<bullet> _" [0, 10] 10)
+  "_USup"     :: "idt \<Rightarrow> logic \<Rightarrow> logic"            ("\<Sqinter> _ \<bullet> _" [0, 10] 10)  
+  "_USup_mem" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Or> _ \<in> _ \<bullet> _" [0, 10] 10)
   "_USup_mem" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Sqinter> _ \<in> _ \<bullet> _" [0, 10] 10)
+  "_USUP"     :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Or> _ | _ \<bullet> _" [0, 0, 10] 10)
   "_USUP"     :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Sqinter> _ | _ \<bullet> _" [0, 0, 10] 10)
+  "_UInf"     :: "idt \<Rightarrow> logic \<Rightarrow> logic"            ("\<And> _ \<bullet> _" [0, 10] 10)
   "_UInf"     :: "idt \<Rightarrow> logic \<Rightarrow> logic"            ("\<Squnion> _ \<bullet> _" [0, 10] 10)
+  "_UInf_mem" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<And> _ \<in> _ \<bullet> _" [0, 10] 10)
   "_UInf_mem" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Squnion> _ \<in> _ \<bullet> _" [0, 10] 10)
+  "_UINF"     :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<And> _ | _ \<bullet> _" [0, 10] 10)
   "_UINF"     :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Squnion> _ | _ \<bullet> _" [0, 10] 10)
 
 translations
@@ -244,7 +250,7 @@ translations
   "\<Squnion> x \<in> A \<bullet> F" => "\<Squnion> x | \<guillemotleft>x\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> F"
   "\<Squnion> x | P \<bullet> F" <= "CONST UINF (\<lambda> x. P) (\<lambda> y. F)"
   "\<Squnion> x | P \<bullet> F(x)" <= "CONST UINF (\<lambda> x. P) F"
-
+  
 text {* We also define the other predicate operators *}
 
 lift_definition impl::"'\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is

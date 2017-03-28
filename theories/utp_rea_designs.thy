@@ -1240,7 +1240,7 @@ lemma wpR_seq [wp]:
   "Q is R1 \<Longrightarrow>(P ;; Q) wp\<^sub>R R = P wp\<^sub>R (Q wp\<^sub>R R)"
   by (simp add: wpR_def, metis (no_types, hide_lams) Healthy_def' R1_seqr seqr_assoc)
 
-lemma wpR_miracle [wp]: "false wp\<^sub>R pre\<^sub>R Q = true"
+lemma wpR_miracle [wp]: "false wp\<^sub>R Q = true"
   by (simp add: wpR_def)
     
 theorem RHS_tri_design_composition:
@@ -1666,6 +1666,9 @@ proof -
   finally show ?thesis .
 qed
 
+lemma Chaos_tri_def: "Chaos = \<^bold>R\<^sub>s(false \<turnstile> true \<diamondop> true)"
+  by (simp add: Chaos_def design_false_pre)
+    
 lemma Miracle_def: "Miracle = \<^bold>R\<^sub>s(true \<turnstile> false)"
 proof -
   have "Miracle = SRD(false)"
@@ -1677,6 +1680,9 @@ proof -
   finally show ?thesis .
 qed
 
+lemma Miracle_tri_def: "Miracle = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> false)"
+  by (simp add: Miracle_def wait'_cond_idem)
+  
 thm srdes_theory_continuous.weak.bottom_lower
 thm srdes_theory_continuous.weak.top_higher
 thm srdes_theory_continuous.meet_bottom
@@ -1761,7 +1767,28 @@ lemma RHS_design_USUP:
   assumes "A \<noteq> {}"
   shows "(\<Sqinter> i \<in> A \<bullet> \<^bold>R\<^sub>s(P(i) \<turnstile> Q(i))) = \<^bold>R\<^sub>s((\<Squnion> i \<in> A \<bullet> P(i)) \<turnstile> (\<Sqinter> i \<in> A \<bullet> Q(i)))"
   by (subst RHS_INF[OF assms, THEN sym], simp add: design_USUP assms)
+    
+lemma preR_INF: "pre\<^sub>R(\<Sqinter> A) = (\<And> P\<in>A \<bullet> pre\<^sub>R(P))"
+  by (rel_auto)
 
+lemma periR_INF: "peri\<^sub>R(\<Sqinter> A) = (\<Or> P\<in>A \<bullet> peri\<^sub>R(P))"
+  by (rel_simp, simp add: Setcompr_eq_image)
+
+lemma postR_INF: "post\<^sub>R(\<Sqinter> A) = (\<Or> P\<in>A \<bullet> post\<^sub>R(P))"
+  by (rel_simp, simp add: Setcompr_eq_image)
+    
+lemma SRD_USUP:
+  assumes "A \<noteq> {}" "A \<subseteq> \<lbrakk>SRD\<rbrakk>\<^sub>H"
+  shows "\<Sqinter> A = \<^bold>R\<^sub>s((\<And> P\<in>A \<bullet> pre\<^sub>R(P)) \<turnstile> (\<Or> P\<in>A \<bullet> peri\<^sub>R(P)) \<diamondop> (\<Or> P\<in>A \<bullet> post\<^sub>R(P)))"
+proof -
+  have "\<Sqinter> A = \<^bold>R\<^sub>s(pre\<^sub>R(\<Sqinter> A) \<turnstile> peri\<^sub>R(\<Sqinter> A) \<diamondop> post\<^sub>R(\<Sqinter> A))"
+    by (metis SRD_as_reactive_tri_design assms srdes_hcond_def 
+              srdes_theory_continuous.healthy_inf srdes_theory_continuous.healthy_inf_def)
+  also have "... = \<^bold>R\<^sub>s((\<And> P\<in>A \<bullet> pre\<^sub>R(P)) \<turnstile> (\<Or> P\<in>A \<bullet> peri\<^sub>R(P)) \<diamondop> (\<Or> P\<in>A \<bullet> post\<^sub>R(P)))"
+    by (simp add: preR_INF periR_INF postR_INF)
+  finally show ?thesis .
+qed
+            
 lemma SRD_left_unit:
   assumes "P is SRD"
   shows "II\<^sub>R ;; P = P"
@@ -2193,7 +2220,7 @@ lemma RD3_assigns_rea: "\<langle>\<sigma>\<rangle>\<^sub>R is RD3"
 
 lemma NSRD_assigns_rea [closure]: "\<langle>\<sigma>\<rangle>\<^sub>R is NSRD"
   by (simp add: NSRD_iff SRD_assigns_rea periR_assigns_rea preR_assigns_rea unrest_false)
-
+    
 lemma assigns_rea_comp: "\<langle>\<sigma>\<rangle>\<^sub>R ;; \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
 proof -
   have a: "(($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S) ;; ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<rho>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)) =
