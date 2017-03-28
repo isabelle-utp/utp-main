@@ -1473,5 +1473,24 @@ thm Des_Rel_coretract.deflation[simplified]
 thm Des_Rel_coretract.inflation
 thm Des_Rel_coretract.upper_comp[simplified]
 thm Des_Rel_coretract.lower_comp
+  
+locale design_fp =
+  fixes F :: "'\<alpha> hrel_des \<times> '\<alpha> hrel_des \<Rightarrow> '\<alpha> hrel_des"
+  and   G :: "'\<alpha> hrel_des \<times> '\<alpha> hrel_des \<Rightarrow> '\<alpha> hrel_des"
+  assumes mono_F: "mono F"
+  and mono_G: "mono G"
+begin
+  
+  abbreviation "P(Y) \<equiv> \<nu> X \<bullet> F(X,Y)"
+  abbreviation "Q \<equiv> \<mu> Y \<bullet> (P(Y) \<Rightarrow> G(P(Y), Y))"
     
+  lemma design_fp_theorem:
+    "(\<mu> X \<bullet> \<mu> Y \<bullet> (F(X, Y) \<turnstile> G(X, Y))) = (P(Q) \<turnstile> Q)"
+    apply (rule gfp_eqI)
+    apply (rule monoI)
+    apply (rule gfp_mono)
+    apply (rule design_refine_intro)
+  oops
+end
+ 
 end
