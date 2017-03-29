@@ -1511,9 +1511,11 @@ text {*
   to be used anywhere else. Is it redundant now? If so, perhaps remove it!
 *}
 
+definition nmerge_rd ("N\<^sub>0") where
+[upred_defs]: "N\<^sub>0(M) = ($wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and> M)"
+  
 definition merge_rd ("M\<^sub>R") where
-[upred_defs]: "M\<^sub>R(M) =
-  ($ok\<acute> =\<^sub>u ($0-ok \<and> $1-ok) \<and> $wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and> M)"
+[upred_defs]: "M\<^sub>R(M) = ($ok\<acute> =\<^sub>u ($0-ok \<and> $1-ok) \<and> N\<^sub>0(M)) ;; II\<^sub>R"
 
 text {*
   I wonder if there is a possibility that the terms @{term "$0-tr - $tr\<^sub><"} and
@@ -1565,6 +1567,28 @@ abbreviation ParCSP ::
 subsubsection {* CSP Merge Laws *}
 
 text {* Jim's merge predicate lemmas. *}
+  
+lemma mwb_lens_pre_uvar [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (pre_uvar x)"
+  by (simp add: pre_uvar_def)
+      
+lemma JL1': 
+  assumes "$0-ok \<sharp> M" "$1-ok \<sharp> M" "$ok\<acute> \<sharp> M"
+  shows "(M\<^sub>R(M))\<^sup>t\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk> = (N\<^sub>0(M) ;; R1(true))"
+proof -
+  have "(M\<^sub>R(M))\<^sup>t\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk> = (\<not> $ok\<acute> \<and> $wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and> $tr\<acute> \<ge>\<^sub>u $tr\<^sub>< \<and> M) ;; II\<^sub>R\<^sup>t"
+    by (simp add: merge_rd_def nmerge_rd_def usubst assms)    
+  also have "... = (($wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and> $tr\<acute> \<ge>\<^sub>u $tr\<^sub>< \<and> M) \<and> $ok\<acute> =\<^sub>u false) ;; II\<^sub>R\<^sup>t"
+    by (rel_auto)
+  also have "... = ($wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and> $tr\<acute> \<ge>\<^sub>u $tr\<^sub>< \<and> M)\<lbrakk>false/$ok\<acute>\<rbrakk> ;; (II\<^sub>R\<^sup>t)\<lbrakk>false/$ok\<rbrakk>"
+    by (simp add: false_alt_def seqr_left_one_point)
+  also from assms 
+  have "... = ($wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and> $tr\<acute> \<ge>\<^sub>u $tr\<^sub>< \<and> M) ;; (II\<^sub>R\<^sup>t)\<lbrakk>false/$ok\<rbrakk>"
+    by (simp add: usubst)
+  also have "... = ($wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and> $tr\<acute> \<ge>\<^sub>u $tr\<^sub>< \<and> M) ;; R1(true)"
+    by (rel_auto)
+  finally show ?thesis
+    by (simp add: nmerge_rd_def)
+qed
 
 lemma JL1: "(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk> = (N0(cs) ;; R1(true))"
   by (rel_auto)

@@ -21,10 +21,42 @@ lemma left_uvar_indep_right_uvar [simp]:
   apply (simp add: alpha_in_var alpha_out_var)
 done
 
+lemma left_uvar_indep_pre_uvar [simp]:
+  "left_uvar x \<bowtie> pre_uvar y"
+  apply (simp add: left_uvar_def pre_uvar_def)
+  using fst_snd_lens_indep lens_indep_sym apply blast
+done
+  
+lemma left_uvar_indep_left_uvar [simp]:
+  "x \<bowtie> y \<Longrightarrow> left_uvar x \<bowtie> left_uvar y"
+  by (simp add: left_uvar_def)
+  
 lemma right_uvar_indep_left_uvar [simp]:
   "right_uvar x \<bowtie> left_uvar y"
   by (simp add: lens_indep_sym)
+    
+lemma right_uvar_indep_pre_uvar [simp]:
+  "right_uvar x \<bowtie> pre_uvar y"
+  apply (simp add: right_uvar_def pre_uvar_def)
+  using fst_snd_lens_indep lens_indep_sym apply blast
+done
+    
+lemma right_uvar_indep_right_uvar [simp]:
+  "x \<bowtie> y \<Longrightarrow> right_uvar x \<bowtie> right_uvar y"
+  by (simp add: right_uvar_def)
 
+lemma pre_uvar_indep_left_uvar [simp]:
+  "pre_uvar x \<bowtie> left_uvar y"
+  by (simp add: lens_indep_sym)
+
+lemma pre_uvar_indep_right_uvar [simp]:
+  "pre_uvar x \<bowtie> right_uvar y"
+  by (simp add: lens_indep_sym)
+
+lemma pre_uvar_indep_pre_uvar [simp]:
+  "x \<bowtie> y \<Longrightarrow> pre_uvar x \<bowtie> pre_uvar y"
+  by (simp add: pre_uvar_def)
+    
 lemma left_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (left_uvar x)"
   by (simp add: left_uvar_def )
 
