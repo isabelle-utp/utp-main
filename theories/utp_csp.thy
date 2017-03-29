@@ -1511,11 +1511,15 @@ text {*
   to be used anywhere else. Is it redundant now? If so, perhaps remove it!
 *}
 
-definition nmerge_rd ("N\<^sub>0") where
-[upred_defs]: "N\<^sub>0(M) = ($wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and> M)"
+definition nmerge_rd0 ("N\<^sub>0") where
+[upred_defs]: "N\<^sub>0(M) = ($wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> 
+                        \<and> (\<exists> $0-ok;$1-ok;$ok\<^sub><;$ok\<acute>;$0-wait;$1-wait;$wait\<^sub><;$wait\<acute> \<bullet> M))"
+  
+definition nmerge_rd ("N\<^sub>R") where
+[upred_defs]: "N\<^sub>R(M) = ($ok\<acute> =\<^sub>u ($0-ok \<and> $1-ok) \<and> N\<^sub>0(M)) "
   
 definition merge_rd ("M\<^sub>R") where
-[upred_defs]: "M\<^sub>R(M) = ($ok\<acute> =\<^sub>u ($0-ok \<and> $1-ok) \<and> N\<^sub>0(M)) ;; II\<^sub>R"
+[upred_defs]: "M\<^sub>R(M) = N\<^sub>R(M) ;; II\<^sub>R"
 
 text {*
   I wonder if there is a possibility that the terms @{term "$0-tr - $tr\<^sub><"} and
@@ -1567,35 +1571,23 @@ abbreviation ParCSP ::
 subsubsection {* CSP Merge Laws *}
 
 text {* Jim's merge predicate lemmas. *}
-  
-lemma mwb_lens_pre_uvar [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (pre_uvar x)"
-  by (simp add: pre_uvar_def)
       
 lemma JL1': 
-  assumes "$0-ok \<sharp> M" "$1-ok \<sharp> M" "$ok\<acute> \<sharp> M"
-  shows "(M\<^sub>R(M))\<^sup>t\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk> = (N\<^sub>0(M) ;; R1(true))"
-proof -
-  have "(M\<^sub>R(M))\<^sup>t\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk> = (\<not> $ok\<acute> \<and> $wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and> $tr\<acute> \<ge>\<^sub>u $tr\<^sub>< \<and> M) ;; II\<^sub>R\<^sup>t"
-    by (simp add: merge_rd_def nmerge_rd_def usubst assms)    
-  also have "... = (($wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and> $tr\<acute> \<ge>\<^sub>u $tr\<^sub>< \<and> M) \<and> $ok\<acute> =\<^sub>u false) ;; II\<^sub>R\<^sup>t"
-    by (rel_auto)
-  also have "... = ($wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and> $tr\<acute> \<ge>\<^sub>u $tr\<^sub>< \<and> M)\<lbrakk>false/$ok\<acute>\<rbrakk> ;; (II\<^sub>R\<^sup>t)\<lbrakk>false/$ok\<rbrakk>"
-    by (simp add: false_alt_def seqr_left_one_point)
-  also from assms 
-  have "... = ($wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and> $tr\<acute> \<ge>\<^sub>u $tr\<^sub>< \<and> M) ;; (II\<^sub>R\<^sup>t)\<lbrakk>false/$ok\<rbrakk>"
-    by (simp add: usubst)
-  also have "... = ($wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and> $tr\<acute> \<ge>\<^sub>u $tr\<^sub>< \<and> M) ;; R1(true)"
-    by (rel_auto)
-  finally show ?thesis
-    by (simp add: nmerge_rd_def)
-qed
+  "(M\<^sub>R(M))\<^sup>t\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk> = (N\<^sub>0(M) ;; R1(true))"
+  by (rel_blast)
 
 lemma JL1: "(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk> = (N0(cs) ;; R1(true))"
   by (rel_auto)
 
+lemma JL2': "(M\<^sub>R(M))\<^sup>t\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk> = (N\<^sub>0(M) ;; R1(true))"
+  by (rel_blast)
+    
 lemma JL2: "(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk> = (N0(cs) ;; R1(true))"
   by (rel_auto)
 
+lemma JL3': "(M\<^sub>R(M))\<^sup>t\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk> = (N\<^sub>0(M) ;; R1(true))"
+  by (rel_blast)
+    
 lemma JL3: "(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk> = (N0(cs) ;; R1(true))"
   by (rel_auto)
 
@@ -1750,6 +1742,69 @@ shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is CSP"
   by (metis SRD_healths(1-4) SRD_intro assms parallel_is_CSP1 parallel_is_CSP2
     parallel_is_R1 parallel_is_R2 parallel_is_R3c)
 
+lemma skip_srea_ok_f [usubst]:
+  "II\<^sub>R\<^sup>f = R1(\<not>$ok)"
+  by (rel_auto)
+  
+declare id_vwb_lens [simp]
+    
+lemma nmerge0_rd_unrest [unrest]:
+  "$0-ok \<sharp> N\<^sub>0 M" "$1-ok \<sharp> N\<^sub>0 M"
+  by (pred_auto)+
+  
+lemma parallel_precondition':
+  assumes "P is RD2"
+  shows "(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q)\<^sup>f\<^sub>f = ((P\<^sup>f\<^sub>f \<parallel>\<^bsub>N\<^sub>0(M) ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<or> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N\<^sub>0(M) ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))"
+proof -
+  have "(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q)\<^sup>f\<^sub>f = ((P \<parallel>\<^sub>s Q) ;; M\<^sub>R(M))\<^sup>f\<^sub>f"
+    by (simp add: par_by_merge_def)      
+  also have "... = ((P \<parallel>\<^sub>s Q) \<^sub>f ;; (N\<^sub>R M ;; R1(\<not> $ok)))"      
+    by (simp add: merge_rd_def usubst)
+  also have "... = ((P \<^sub>f \<parallel>\<^sub>s Q \<^sub>f) ;; N\<^sub>R M ;; R1(\<not> $ok))"      
+    by (rel_auto, metis+)
+  also have "... = ((
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N\<^sub>R M)\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk> ;; R1(\<not> $ok))) \<or>
+      ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N\<^sub>R M)\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk> ;; R1(\<not> $ok))) \<or>
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N\<^sub>R M)\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk> ;; R1(\<not> $ok))) \<or>
+      ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N\<^sub>R M)\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk> ;; R1(\<not> $ok)))) )"
+    (is "_ = (?C1 \<or>\<^sub>p ?C2 \<or>\<^sub>p ?C3 \<or>\<^sub>p ?C4)")
+    by (subst parallel_ok_cases, subst_tac)
+  also have "... = (?C2 \<or> ?C3)"
+  proof -
+    have "?C1 = false"
+      by (rel_auto)
+    moreover have "`?C4 \<Rightarrow> ?C3`" (is "`(?A ;; ?B) \<Rightarrow> (?C ;; ?D)`")
+    proof -
+      from assms have "`P\<^sup>f \<Rightarrow> P\<^sup>t`"
+        by (metis RD2_def H2_equivalence Healthy_def')
+      hence P: "`P\<^sup>f\<^sub>f \<Rightarrow> P\<^sup>t\<^sub>f`"
+        by (rel_auto)
+      have "`?A \<Rightarrow> ?C`"
+        using P by (rel_auto)
+      moreover have "`?B \<Rightarrow> ?D`"
+        by (rel_auto)
+      ultimately show ?thesis
+        by (simp add: impl_seqr_mono)
+    qed
+    ultimately show ?thesis
+      by (simp add: subsumption2)
+  qed
+  also have "... = (
+      ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((N\<^sub>0 M ;; R1(true)))) \<or>
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((N\<^sub>0 M ;; R1(true)))))"
+    by (rel_auto, metis+)
+  also have "... = (
+      (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N\<^sub>0 M ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<or>
+      (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N\<^sub>0 M ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))"
+    (is "_ = ((P\<^sup>f\<^sub>f \<parallel>\<^bsub>?M1\<^esub> Q\<^sup>t\<^sub>f) \<or> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>?M2\<^esub> Q\<^sup>f\<^sub>f))")
+    by (simp add: par_by_merge_def)
+
+  finally show ?thesis .
+qed
+
+  
+
+      
 lemma parallel_precondition:
 assumes "P is CSP2"
 shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q)\<^sup>f\<^sub>f = ((P\<^sup>f\<^sub>f \<parallel>\<^bsub>N0(cs) ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<or> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N0(cs) ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))"
@@ -1813,6 +1868,55 @@ proof -
 
   finally show ?thesis .
 qed
+  
+lemma parallel_postcondition':
+  assumes "P is RD2"
+  shows "(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q)\<^sup>t\<^sub>f = (
+  (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>R M)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f) \<or>
+  (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N\<^sub>0(M) ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<or>
+  (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N\<^sub>0(M) ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))"
+proof -
+  have "(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q)\<^sup>t\<^sub>f = ((P \<parallel>\<^sub>s Q) ;; M\<^sub>R(M))\<^sup>t\<^sub>f"
+    by (simp add: par_by_merge_def)
+  also have "... = ((P \<parallel>\<^sub>s Q) \<^sub>f ;; (M\<^sub>R M)\<^sup>t)"      
+    by (simp add: merge_rd_def usubst)     
+  also have "... = ((P \<^sub>f \<parallel>\<^sub>s Q \<^sub>f) ;; (M\<^sub>R M)\<^sup>t)"
+    by (rel_auto, metis+)    
+  also have "... = (
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((M\<^sub>R M)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+      ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((M\<^sub>R M)\<^sup>t\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((M\<^sub>R M)\<^sup>t\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk>)) \<or>
+      ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; ((M\<^sub>R M)\<^sup>t\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk>)))"
+    by (subst parallel_ok_cases, subst_tac)
+  also have "... = (
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((M\<^sub>R M)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+      ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; (N\<^sub>0(M) ;; R1(true))) \<or>
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; (N\<^sub>0(M) ;; R1(true))) \<or>
+      ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; (N\<^sub>0(M) ;; R1(true))))"
+      (is "_ = (?C1 \<or>\<^sub>p ?C2 \<or>\<^sub>p ?C3 \<or>\<^sub>p ?C4)")
+    by (simp add: JL1' JL2' JL3')
+  also have "... = (
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; ((M\<^sub>R(M))\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>
+      ((P\<^sup>f\<^sub>f \<parallel>\<^sub>s Q\<^sup>t\<^sub>f) ;; (N\<^sub>0(M) ;; R1(true))) \<or>
+      ((P\<^sup>t\<^sub>f \<parallel>\<^sub>s Q\<^sup>f\<^sub>f) ;; (N\<^sub>0(M) ;; R1(true))))"
+  proof -
+    from assms have "`P\<^sup>f \<Rightarrow> P\<^sup>t`"
+      by (metis RD2_def H2_equivalence Healthy_def')
+    hence P:"`P\<^sup>f\<^sub>f \<Rightarrow> P\<^sup>t\<^sub>f`"
+      by (rel_auto)
+    have "`?C4 \<Rightarrow> ?C3`" (is "`(?A ;; ?B) \<Rightarrow> (?C ;; ?D)`")
+    proof -
+      have "`?A \<Rightarrow> ?C`"
+        using P by (rel_auto)
+      thus ?thesis
+        by (simp add: impl_seqr_mono)
+    qed
+    thus ?thesis
+      by (simp add: subsumption2)
+  qed
+  finally show ?thesis
+    by (simp add: par_by_merge_def)
+qed
 
 lemma parallel_postcondition:
 assumes "P is CSP2"
@@ -1861,6 +1965,14 @@ proof -
     by (simp add: par_by_merge_def)
 qed
 
+theorem parallel_reactive_design'':
+assumes "P is CSP" "Q is CSP"
+shows "(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) = \<^bold>R\<^sub>s(
+  (\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N\<^sub>0 M ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<and> \<not> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N\<^sub>0 M ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))
+    \<turnstile>
+  (P\<^sup>t\<^sub>f \<parallel>\<^bsub>(M\<^sub>R M)\<^sup>t\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>\<^esub> Q\<^sup>t\<^sub>f))"
+  oops
+  
 theorem parallel_reactive_design:
 assumes "P is CSP" "Q is CSP"
 shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) = \<^bold>R\<^sub>s(

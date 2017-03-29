@@ -63,6 +63,15 @@ lemma left_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (left_uvar x)"
 lemma right_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (right_uvar x)"
   by (simp add: right_uvar_def)
 
+lemma left_uvar_mwb [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (left_uvar x)"
+  by (simp add: left_uvar_def )
+
+lemma right_uvar_mwb [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (right_uvar x)"
+  by (simp add: right_uvar_def)
+
+lemma pre_uvar_mwb [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (pre_uvar x)"
+  by (simp add: pre_uvar_def)
+    
 syntax
   "_svarpre"   :: "svid \<Rightarrow> svid" ("_\<^sub><" [999] 999)
   "_svarleft"  :: "svid \<Rightarrow> svid" ("0-_" [999] 999)
