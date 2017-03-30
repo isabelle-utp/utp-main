@@ -391,10 +391,10 @@ abbreviation utp_inf ("\<^bold>\<Sqinter>\<index>_" [90] 90) where
 "utp_inf \<T> \<equiv> ainf (uthy_order \<T>)"
 
 abbreviation utp_gfp ("\<^bold>\<nu>\<index>") where
-"utp_gfp \<T> \<equiv> \<nu>\<^bsub>uthy_order \<T>\<^esub>"
+"utp_gfp \<T> \<equiv> GFP (uthy_order \<T>)"
 
 abbreviation utp_lfp ("\<^bold>\<mu>\<index>") where
-"utp_lfp \<T> \<equiv> \<mu>\<^bsub>uthy_order \<T>\<^esub>"
+"utp_lfp \<T> \<equiv> LFP (uthy_order \<T>)"
 
 lemma upred_lattice_inf:
   "ainf \<P> A = \<Sqinter> A"
@@ -677,7 +677,7 @@ definition utp_star ("_\<^bold>\<star>\<index>" [999] 999) where
 "utp_star \<T> P = (\<^bold>\<nu>\<^bsub>\<T>\<^esub> (\<lambda> X. (P ;; X) \<^bold>\<sqinter>\<^bsub>\<T>\<^esub> \<I>\<I>\<^bsub>\<T>\<^esub>))"
 
 definition utp_omega ("_\<^bold>\<omega>\<index>" [999] 999) where
-"utp_omega \<T> P = (\<mu>\<^bsub>\<T>\<^esub> (\<lambda> X. (P ;; X)))"
+"utp_omega \<T> P = (\<^bold>\<mu>\<^bsub>\<T>\<^esub> (\<lambda> X. (P ;; X)))"
 
 locale utp_pre_left_quantale = utp_theory_continuous + utp_theory_left_unital
 begin

@@ -181,6 +181,9 @@ syntax
   "_mu" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<mu> _ \<bullet> _" [0, 10] 10)
   "_nu" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<nu> _ \<bullet> _" [0, 10] 10)
 
+notation gfp ("\<mu>")
+notation lfp ("\<nu>")
+  
 translations
   "\<nu> X \<bullet> P" == "CONST lfp (\<lambda> X. P)"
   "\<mu> X \<bullet> P" == "CONST gfp (\<lambda> X. P)"
@@ -739,6 +742,84 @@ lemma nu_id: "(\<nu> X \<bullet> X) = false"
 lemma nu_const: "(\<nu> X \<bullet> P) = P"
   by (simp add: lfp_const)
 
+text {* Obtaining termination proofs via approximation chains. Theorems and proofs adapted
+  from chapter 2, page 63 of the UTP book.  *}
+
+lemma mu_refine_intro:
+  assumes "(C \<Rightarrow> S) \<sqsubseteq> F(C \<Rightarrow> S)" "`C \<Rightarrow> (\<mu> F \<Leftrightarrow> \<nu> F)`"
+  shows "(C \<Rightarrow> S) \<sqsubseteq> \<mu> F"
+proof -
+  from assms have "(C \<Rightarrow> S) \<sqsubseteq> \<nu> F"
+    by (simp add: lfp_lowerbound)
+  with assms show ?thesis
+    by (rel_auto)
+qed
+  
+type_synonym 'a chain = "nat \<Rightarrow> 'a upred"
+  
+definition chain :: "'a chain \<Rightarrow> bool" where
+  "chain Y = ((Y 0 = false) \<and> (\<forall> i. Y (Suc i) \<sqsubseteq> Y i))"
+
+lemma chain0 [simp]: "chain Y \<Longrightarrow> Y 0 = false"
+  by (simp add:chain_def)
+
+lemma chainI: 
+  assumes "Y 0 = false" "\<And> i. Y (Suc i) \<sqsubseteq> Y i"
+  shows "chain Y"
+  using assms by (auto simp add: chain_def)
+
+lemma chainE:
+  assumes "chain Y" "\<And> i. \<lbrakk> Y 0 = false; Y (Suc i) \<sqsubseteq> Y i \<rbrakk> \<Longrightarrow> P"
+  shows "P"
+  using assms by (simp add: chain_def)
+
+lemma L274: 
+  assumes "\<forall> n. ((E n \<and>\<^sub>p X) = (E n \<and> Y))"
+  shows "(\<Sqinter> (range E) \<and> X) = (\<Sqinter> (range E) \<and> Y)"
+  using assms by (pred_auto)
+
+text {* Constructive chains *}
+    
+definition constr :: 
+  "('a upred \<Rightarrow> 'a upred) \<Rightarrow> 'a chain \<Rightarrow> bool" where
+"constr F E \<longleftrightarrow> (\<forall> X n. ((F(X) \<and> E(n + 1)) = (F(X \<and> E(n)) \<and> E (n + 1))))"
+
+text {* This lemma gives a way of showing that there is a unique fixed-point when
+        the predicate function can be built using a constructive function F
+        over an approximation chain E *}
+
+lemma chain_pred_terminates: 
+  assumes "constr F E" "chain E" "mono F"
+  shows "(\<Sqinter> (range E) \<and> \<mu> F) = (\<Sqinter> (range E) \<and> \<nu> F)"
+proof -
+  from assms have "\<forall> n. (E n \<and> \<mu> F) = (E n \<and> \<nu> F)"
+  proof (rule_tac allI)
+    fix n
+    from assms show "(E n \<and> \<mu> F) = (E n \<and> \<nu> F)"
+    proof (induct n)
+      case 0 thus ?case by simp 
+    next
+      case (Suc n) 
+      note hyp = this
+      thus ?case
+      proof -
+        have "(E (n + 1) \<and> \<mu> F) = (E (n + 1) \<and> F (\<mu> F))"
+          using gfp_unfold[OF hyp(4), THEN sym] by simp
+        also from hyp have "... = (E (n + 1) \<and> F (E n \<and> \<mu> F))"
+          by (metis conj_comm constr_def)
+        also from hyp have "... = (E (n + 1) \<and> F (E n \<and> \<nu> F))"
+          by simp
+        also from hyp have "... = (E (n + 1) \<and> \<nu> F)"
+          by (metis (no_types, lifting) conj_comm constr_def lfp_unfold)
+        ultimately show ?thesis
+          by simp
+      qed
+    qed
+  qed    
+  thus ?thesis
+    by (auto intro: L274)
+qed    
+  
 lemma true_iff [simp]: "(P \<Leftrightarrow> true) = P"
   by (pred_auto)
 

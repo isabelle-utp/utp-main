@@ -1351,10 +1351,10 @@ lemma design_lat_bottom: "\<^bold>\<bottom>\<^bsub>DES\<^esub> = \<^bold>H(true)
   by (simp add: design_theory_continuous.healthy_bottom, simp add: des_hcond_def)
 
 abbreviation design_lfp :: "('\<alpha> hrel_des \<Rightarrow> '\<alpha> hrel_des) \<Rightarrow> '\<alpha> hrel_des" ("\<mu>\<^sub>D") where
-"\<mu>\<^sub>D F \<equiv> \<mu>\<^bsub>uthy_order DES\<^esub> F"
+"\<mu>\<^sub>D F \<equiv> \<^bold>\<mu>\<^bsub>DES\<^esub> F"
 
 abbreviation design_gfp :: "('\<alpha> hrel_des \<Rightarrow> '\<alpha> hrel_des) \<Rightarrow> '\<alpha> hrel_des" ("\<nu>\<^sub>D") where
-"\<nu>\<^sub>D F \<equiv> \<nu>\<^bsub>uthy_order DES\<^esub> F"
+"\<nu>\<^sub>D F \<equiv> \<^bold>\<nu>\<^bsub>DES\<^esub> F"
 
 thm design_theory_continuous.GFP_unfold
 thm design_theory_continuous.LFP_unfold

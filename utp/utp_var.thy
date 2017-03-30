@@ -30,8 +30,10 @@ purge_notation
   asup ("\<Squnion>\<index>_" [90] 90) and
   ainf ("\<Sqinter>\<index>_" [90] 90) and
   join (infixl "\<squnion>\<index>" 65) and
-  meet (infixl "\<sqinter>\<index>" 70)
-
+  meet (infixl "\<sqinter>\<index>" 70) and
+  LFP ("\<mu>\<index>") and
+  GFP ("\<nu>\<index>")
+  
 text {* We hide HOL's built-in relation type since we will replace it with our own *}
 
 hide_type rel
