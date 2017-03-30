@@ -550,6 +550,12 @@ lemma imp_true [simp]: "(p \<Rightarrow> true) = true"
 lemma true_imp [simp]: "(true \<Rightarrow> p) = p"
   by (pred_auto)
 
+lemma impl_mp1 [simp]: "(P \<and> (P \<Rightarrow> Q)) = (P \<and> Q)"
+  by (pred_auto)
+    
+lemma impl_mp2 [simp]: "((P \<Rightarrow> Q) \<and> P) = (Q \<and> P)"
+  by (pred_auto)
+    
 lemma p_and_not_p [simp]: "(P \<and> \<not> P) = false"
   by (pred_auto)
 
