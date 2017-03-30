@@ -2539,7 +2539,7 @@ text {* The following tactic attempts to prove a reactive design refinement by c
   rel_blast. *}
   
 method rdes_refine = 
-  (rule_tac SRD_refine_intro; (simp add: closure rdes unrest ; rel_blast?))
+  (rule_tac SRD_refine_intro; (simp add: closure rdes unrest usubst ; rel_blast?))
   
 text {* The following tactic combines antisymmetry with the previous tactic to prove an equality. *}
   

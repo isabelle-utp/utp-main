@@ -147,7 +147,7 @@ definition CSP4 :: "(('\<sigma>, '\<phi>) st_csp \<times> ('\<sigma>, '\<phi>) s
 [upred_defs]: "CSP4(P) = (P ;; Skip)"
 
 definition NCSP :: "(('\<sigma>, '\<phi>) st_csp \<times> ('\<sigma>, '\<phi>) st_csp) health" where
-"NCSP = CSP3 \<circ> CSP4 \<circ> CSP"
+[upred_defs]: "NCSP = CSP3 \<circ> CSP4 \<circ> CSP"
 
 subsection {* Healthiness condition properties *}
 
@@ -531,6 +531,41 @@ lemma NCSP_Idempotent: "Idempotent NCSP"
 lemma NCSP_Continuous: "Continuous NCSP"
   by (simp add: CSP3_Continuous CSP4_Continuous Continuous_comp NCSP_def SRD_Continuous)
 
+subsection {* CSP theories *}
+  
+typedecl TCSP
+
+abbreviation "TCSP \<equiv> UTHY(TCSP, ('\<sigma>,'\<phi>) st_csp)"
+
+overloading
+  tcsp_hcond   == "utp_hcond :: (TCSP, ('\<sigma>,'\<phi>) st_csp) uthy \<Rightarrow> (('\<sigma>,'\<phi>) st_csp \<times> ('\<sigma>,'\<phi>) st_csp) health"
+begin
+  definition tcsp_hcond :: "(TCSP, ('\<sigma>,'\<phi>) st_csp) uthy \<Rightarrow> (('\<sigma>,'\<phi>) st_csp \<times> ('\<sigma>,'\<phi>) st_csp) health" where
+  [upred_defs]: "tcsp_hcond T = NCSP"
+end
+     
+interpretation csp_theory: utp_theory_continuous "UTHY(TCSP, ('\<sigma>,'\<phi>) st_csp)"
+  rewrites "\<And> P. P \<in> carrier (uthy_order TCSP) \<longleftrightarrow> P is NCSP"
+  and "P is \<H>\<^bsub>TCSP\<^esub> \<longleftrightarrow> P is NCSP"
+  and "carrier (uthy_order TCSP) \<rightarrow> carrier (uthy_order TCSP) \<equiv> \<lbrakk>NCSP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>NCSP\<rbrakk>\<^sub>H"
+  and "le (uthy_order TCSP) = op \<sqsubseteq>"
+  by (unfold_locales, simp_all add: tcsp_hcond_def NCSP_Continuous Healthy_Idempotent Healthy_if NCSP_Idempotent)
+   
+declare csp_theory.top_healthy [simp del]
+declare csp_theory.bottom_healthy [simp del]
+
+    
+lemma csp_bottom_Chaos: "\<^bold>\<bottom>\<^bsub>TCSP\<^esub> = Chaos"
+proof -
+  have 1: "\<^bold>\<bottom>\<^bsub>TCSP\<^esub> = CSP3 (CSP4 (CSP true))"
+    by (simp add: csp_theory.healthy_bottom, simp add: tcsp_hcond_def NCSP_def)
+  also have 2:"... = CSP3 (CSP4 Chaos)"
+    by (metis srdes_hcond_def srdes_theory_continuous.healthy_bottom)
+  also have 3:"... = Chaos"
+    by (metis CSP3_Chaos CSP4_Chaos Healthy_def')
+  finally show ?thesis .
+qed
+    
 subsection {* CSP Constructs *}
 
 translations
@@ -711,13 +746,13 @@ proof (rule CSP4_tri_intro[OF CSP_Guard])
       by (simp add: CSP4_neg_pre_unit assms(1) assms(2))
     have "(\<not> (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P)) ;; R1 true = (\<not> (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P))"
     proof -
-      have "(\<not> (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P)) = (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> (\<not> pre\<^sub>R P))"
+      have 1:"(\<not> (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P)) = (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> (\<not> pre\<^sub>R P))"
         by (rel_auto)
-      also have "... = (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> ((\<not> pre\<^sub>R P) ;; R1 true))"
+      also have 2:"... = (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> ((\<not> pre\<^sub>R P) ;; R1 true))"
         by (simp add: a)
-      also have "... = (\<not> (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P)) ;; R1 true"
+      also have 3:"... = (\<not> (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P)) ;; R1 true"
         by (rel_auto)
-      finally show ?thesis ..
+      finally show ?thesis .. 
     qed
     thus ?thesis
       by (simp add: preR_Guard periR_Guard NSRD_CSP4_intro NSRD_wait'_unrest_pre
@@ -1363,12 +1398,20 @@ proof -
     by (simp add: wpR_def R1_neg_preR assms closure, rel_auto, blast)
 qed
     
-lemma "P is NCSP \<Longrightarrow> (a \<^bold>\<rightarrow> P) \<box> (b \<^bold>\<rightarrow> P) = (a \<^bold>\<rightarrow> Skip) \<box> (b \<^bold>\<rightarrow> Skip) ;; P"
-  apply (rule antisym)
-  apply (rule_tac SRD_refine_intro)
-  apply (simp_all add: closure rdes unrest usubst wp)
-oops  
+lemma tr_extend_peri_lemma:
+  assumes "P is NCSP"
+  shows "($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; peri\<^sub>R P = (peri\<^sub>R(P))\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
+proof -
+  have "$ref \<sharp> peri\<^sub>R P"
+    by (simp add: CSP3_unrest_ref(2) NCSP_implies_CSP NCSP_implies_CSP3 assms)
+  thus "($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; peri\<^sub>R(P) = (peri\<^sub>R(P))\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
+    by (rel_blast)
+qed
   
+lemma cond_assign_subst: 
+  "vwb_lens x \<Longrightarrow> (P \<triangleleft> utp_expr.var x =\<^sub>u v \<triangleright> Q) = (P\<lbrakk>v/x\<rbrakk> \<triangleleft> utp_expr.var x =\<^sub>u v \<triangleright> Q)"
+  apply (rel_simp) using vwb_lens.put_eq by force
+     
 lemma extChoice_Dist:
   assumes "P is CSP" "S \<subseteq> \<lbrakk>CSP\<rbrakk>\<^sub>H" "S \<noteq> {}"
   shows "P \<box> (\<Sqinter> S) = (\<Sqinter> Q\<in>S. P \<box> Q)"
@@ -1412,11 +1455,11 @@ lemma cond_conj_not: "((P \<triangleleft> b \<triangleright> Q) \<and> (\<not> b
 lemma GuardedChoiceCSP:
   assumes "\<And> x. P(x) is CSP" "\<And> x. P(x) is CSP3" "A \<noteq> {}"
   shows "(\<box> x\<in>A \<^bold>\<rightarrow> P(x)) =
-                   \<^bold>R\<^sub>s ((\<Squnion> x\<in>A \<bullet> pre\<^sub>R((P x)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>)) \<turnstile>
-                        ((\<Squnion> x\<in>A \<bullet> \<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>)
+                   \<^bold>R\<^sub>s ((\<Squnion> x\<in>A \<bullet> pre\<^sub>R((P x)\<lbrakk>$tr ^\<^sub>u \<langle>\<guillemotleft>x\<guillemotright>\<rangle>/$tr\<rbrakk>)) \<turnstile>
+                        ((\<Squnion> x\<in>A \<bullet> \<guillemotleft>x\<guillemotright> \<notin>\<^sub>u $ref\<acute>)
                            \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright>
-                         (\<Sqinter> x\<in>A \<bullet> peri\<^sub>R((P x)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>))) \<diamondop>
-                      (\<Sqinter> x\<in>A \<bullet> post\<^sub>R((P x)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>)))"
+                         (\<Sqinter> x\<in>A \<bullet> peri\<^sub>R((P x)\<lbrakk>$tr ^\<^sub>u \<langle>\<guillemotleft>x\<guillemotright>\<rangle>/$tr\<rbrakk>))) \<diamondop>
+                      (\<Sqinter> x\<in>A \<bullet> post\<^sub>R((P x)\<lbrakk>$tr ^\<^sub>u \<langle>\<guillemotleft>x\<guillemotright>\<rangle>/$tr\<rbrakk>)))"
 proof -
   have "(\<box> x\<in>A \<^bold>\<rightarrow> P(x))
         = \<^bold>R\<^sub>s ((\<Squnion> x\<in>A \<bullet> (pre\<^sub>R(P x))\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>) \<turnstile>
@@ -1448,7 +1491,8 @@ proof -
               ((\<Squnion> x\<in>A \<bullet> \<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (\<Sqinter> x\<in>A \<bullet> peri\<^sub>R((P x)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>))) \<diamondop>
                (\<Sqinter> x\<in>A \<bullet> post\<^sub>R((P x)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>)))"
     by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
-  finally show ?thesis .
+  finally show ?thesis 
+    by (simp add: alpha)
 qed
 
 text {* A healthiness condition for weakly guarded CSP processes *}
@@ -1552,16 +1596,30 @@ proof (rule WG_intro)
     by (simp add: rea_pre_RHS_design rea_post_RHS_design usubst R1_def R2c_def R2s_def assms unrest)
 qed
   
-(*
+lemma NCSP_subset_implies_CSP [closure]: 
+  "A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H \<Longrightarrow> A \<subseteq> \<lbrakk>CSP\<rbrakk>\<^sub>H"
+  using NCSP_implies_CSP by blast
+
+lemma NCSP_subset_implies_NSRD [closure]: 
+  "A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H \<Longrightarrow> A \<subseteq> \<lbrakk>NSRD\<rbrakk>\<^sub>H"
+  using NCSP_implies_NSRD by blast
+
+    
+lemma NCSP_seqr_closure [closure]:
+  assumes "P is NCSP" "Q is NCSP"
+  shows "P ;; Q is NCSP"
+  by (metis (no_types, lifting) CSP3_def CSP4_def Healthy_def' NCSP_implies_CSP NCSP_implies_CSP3 
+      NCSP_implies_CSP4 NCSP_intro SRD_seqr_closure assms(1) assms(2) seqr_assoc)
+    
+
+(*    
 lemma ExtChoice_seq_distr:
   assumes "A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H" "A \<subseteq> \<lbrakk>WG\<rbrakk>\<^sub>H" "A \<noteq> {}" "Q is NCSP"
-  shows "(\<box> P\<in>A \<bullet> P) ;; Q = (\<box> P\<in>A \<bullet> P ;; Q)"
-    
-proof -
-  have "(\<box> P\<in>A \<bullet> P) ;; Q = (\<box> P\<in>A \<bullet> CSP(P)) ;; Q"
+  shows "(\<box> P\<in>A \<bullet> P) ;; Q = (\<box> P\<in>A \<bullet> P ;; Q)"    
+  have "(\<box> P\<in>A \<bullet> P) ;; Q = (\<box> P\<in>A \<bullet> NCSP(P)) ;; Q"
     by (metis (no_types, lifting) Ball_Collect Healthy_if assms(1) image_cong)
-  have "... = (\<box> P\<in>A \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P))) ;; \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> cmt\<^sub>R(Q))"
-    by (metis (no_types, lifting) SRD_as_reactive_design SRD_reactive_design_alt assms(4) image_cong)
+  have "... = (\<box> P\<in>A \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))) ;; \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> peri\<^sub>R(Q) \<diamondop> post\<^sub>R(Q))"
+    
   have "... = \<^bold>R\<^sub>s((\<Squnion>P\<in>A \<bullet> pre\<^sub>R(P)) \<turnstile> ((\<Squnion>P\<in>A \<bullet> cmt\<^sub>R(P)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter>P\<in>A \<bullet> cmt\<^sub>R(P)))) ;;
               \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> cmt\<^sub>R(Q))"
     by (simp add: ExtChoice_rdes unrest assms)
@@ -2197,4 +2255,5 @@ lemma swap_CSPMerge: "(swap\<^sub>m ;; M\<^sub>C\<^sub>S\<^sub>P cs) = M\<^sub>C
 theorem parallel_commutative:
   "(P [|cs|] Q) = (Q [|cs|] P)"
   by (simp add: par_by_merge_commute swap_CSPMerge)
+
 end

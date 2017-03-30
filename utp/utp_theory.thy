@@ -546,7 +546,7 @@ begin
     using healthy_inf_cont[of "{P, Q}"] assms
     by (simp add: Healthy_if meet_def)
 
-  lemma meet_is_healthy:
+  lemma meet_is_healthy [closure]:
     assumes "P is \<H>" "Q is \<H>"
     shows "P \<sqinter> Q is \<H>"
     by (metis Continuous_Disjunctous Disjunctuous_def HCond_Cont Healthy_def' assms(1) assms(2))
