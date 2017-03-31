@@ -14,10 +14,6 @@ begin
 
 subsection {* LPF Type *}
 
-  
-
-
-
 text {*
   Below we define a new type to represent values in LPF. Effectively, we encode
   these as @{type option} types where @{const None} will be used to represent

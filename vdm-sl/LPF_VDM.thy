@@ -67,9 +67,13 @@ text {*
   binding.
 *}
 
+definition lift1_vdm :: 
+  "'a set \<Rightarrow> ('a \<Rightarrow> 'b)  \<Rightarrow> (('a, '\<sigma>) vexpr \<Rightarrow> ('b, '\<sigma>) vexpr)" where
+"lift1_vdm A = uop o (lift1_lpf A)"
+
 lift_definition lift1_vdm_new :: 
   "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b)  \<Rightarrow> (('a, '\<sigma>) vexpr \<Rightarrow> ('b, '\<sigma>) vexpr)" is
-" (\<lambda>(p::'c\<Rightarrow>bool) (f::'c => 'd) (uf::'e=>'c lpf) (e::'e) .
+"(\<lambda>(p::'c\<Rightarrow>bool) (f::'c => 'd) (uf::'e=>'c lpf) (e::'e) .
   if ((defined \<circ> uf) e) \<and> (p \<circ> lpf_the \<circ> uf) e 
   then ((lift1_lpf' f) \<circ> uf) e 
   else lpf_None)" .
