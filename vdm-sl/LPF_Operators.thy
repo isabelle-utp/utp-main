@@ -26,13 +26,13 @@ text {*
   Below we define unary operators on the @{type lpf} type using the lifting 
   function @{const lift1_lpf'}.
 *}
-
-subsection {* Boolean unary operators *}
+subsection {* Unary operators *}
+subsubsection {* Boolean unary operators *}
 
 definition not_lpf :: "bool lpf \<Rightarrow> bool lpf" where
 [lpf_defs]: "not_lpf = lift1_lpf' Not"
 
-subsection {* Numeric unary operators *}
+subsubsection {* Numeric unary operators *}
 
 instantiation lpf :: (uminus) uminus
 begin
@@ -50,7 +50,7 @@ definition floor_lpf :: "real lpf \<Rightarrow> int lpf" where
 definition len_lpf :: "'a list lpf \<Rightarrow> nat lpf" where
 [lpf_defs]: "len_lpf = lift1_lpf' length"
 
-subsection {* Set unary operators *}
+subsubsection {* Set unary operators *}
 
 definition card_lpf :: "'a set lpf \<Rightarrow> nat lpf" where
 [lpf_defs]: "card_lpf = lift1_lpf' card"
@@ -64,7 +64,7 @@ definition dinter_lpf :: "'a set set lpf \<Rightarrow> 'a set lpf" where
 definition power_lpf :: "'a set lpf \<Rightarrow> 'a set set lpf" where
 [lpf_defs]: "power_lpf = lift1_lpf' Pow"
 
-subsection {* Sequence unary operators *}
+subsubsection {* Sequence unary operators *}
 
 definition hd_lpf :: "'a list lpf \<Rightarrow> 'a lpf" where
 [lpf_defs]: "hd_lpf = lift1_lpf {x . x \<noteq> []} hd" 
@@ -91,7 +91,7 @@ definition reverse_lpf :: "'a list lpf \<Rightarrow> 'a list lpf" where
 definition conc_lpf :: "'a list list lpf \<Rightarrow> 'a list lpf" where
 [lpf_defs]: "conc_lpf = lift1_lpf' concat"
 
-subsection {* Map unary operators *}
+subsubsection {* Map unary operators *}
 
 definition dom_lpf :: "('a,'b) map lpf \<Rightarrow> 'a set lpf" where
 [lpf_defs]: "dom_lpf = lift1_lpf' dom"
@@ -106,8 +106,9 @@ definition merge_lpf :: "('a, 'b) map set lpf \<Rightarrow> ('a, 'b) map lpf" wh
   Sequence unary operators: inds(Define for nat1 type).
   Map unary operators: inverse(Define for type inmap).  } 
 *}
+subsection {* Binary operators *}
 
-subsection{* Polymorphic binary operators  *}
+subsubsection {* Polymorphic binary operators  *}
 
 definition equal_lpf :: "'a lpf \<Rightarrow> 'a lpf \<Rightarrow> bool lpf" where
 [lpf_defs]: "equal_lpf = lift2_lpf' (op =)"
@@ -115,7 +116,7 @@ definition equal_lpf :: "'a lpf \<Rightarrow> 'a lpf \<Rightarrow> bool lpf" whe
 definition not_equal_lpf :: "'a lpf \<Rightarrow> 'a lpf \<Rightarrow> bool lpf" where
 [lpf_defs]: "not_equal_lpf = lift2_lpf' (op \<noteq>)"
 
-subsection {* Boolean binary operators  *}
+subsubsection {* Boolean binary operators  *}
 
 definition conj_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
 [lpf_defs]: "conj_lpf = lift2_lpf' conj"
@@ -129,7 +130,7 @@ definition implies_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lp
 definition biimplication_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
 [lpf_defs]: "biimplication_lpf = lift2_lpf' iff"
 
-subsection {* Numeric binary operators  *} 
+subsubsection {* Numeric binary operators  *} 
 
 instantiation lpf :: (plus) plus
 begin
@@ -194,14 +195,14 @@ definition sgt_lpf :: "'a::ord lpf \<Rightarrow> 'a lpf \<Rightarrow> bool lpf" 
 definition gte_lpf :: "'a::ord lpf \<Rightarrow> 'a lpf \<Rightarrow> bool lpf" where
 "gte_lpf = lift2_lpf' (op \<ge>)"
 
-subsection {* Record binary operators *}
+subsubsection {* Record binary operators *}
 (* 
   TODO 
   Define field select
   Define is  
  *)
 
-subsection {* Set binary operators *}
+subsubsection {* Set binary operators *}
 
 definition in_lpf :: "'a lpf \<Rightarrow> 'a set lpf \<Rightarrow> bool lpf" where
 "in_lpf = lift2_lpf' (op\<in>)"
@@ -224,7 +225,7 @@ definition subset_lpf :: "'a set lpf \<Rightarrow> 'a set lpf \<Rightarrow> bool
 definition psubset_lpf :: "'a set lpf \<Rightarrow> 'a set lpf \<Rightarrow> bool lpf" where
 "psubset_lpf = lift2_lpf' (op \<subset>)"
 
-subsection {* Sequence binary operators *}
+subsubsection {* Sequence binary operators *}
 
 definition conc_seq_lpf :: "'a list lpf \<Rightarrow> 'a list lpf \<Rightarrow> 'a list lpf" where
 "conc_seq_lpf = lift2_lpf' (op @)"
