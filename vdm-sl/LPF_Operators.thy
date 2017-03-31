@@ -4,40 +4,49 @@
 (* Authors: Casper Thule, Frank Zeyda and Simon Foster                        *)
 (* Emails: casper.thule@eng.au.dk and {frank.zeyda, simon.foster}@york.ac.uk  *) 
 (******************************************************************************)
-(* LAST REVIEWED: 22 Mar 2017 *)
-(* 
-  TODO: 
+(* LAST REVIEWED: 31 Mar 2017 *)
+section {* Operators for the Logic of Partial Functions *}
+
+text {* 
+  This theory contains the type used to represent undefinedness and sets up 
+  basic lifting functors. Furthermore, tactics and named theorems are created. 
+*}
+
+text {* \todo{
   Define the type nat1
   Define the type seq1
   Define the type inmap
   Define numeric operators to take arguments of different types
   Do we need to restrict certain operations to certain types?
-*)
-
-section {* Operators for the Logic of Partial Functions*}
+  Define infix operators}
+*}
 
 theory LPF_Operators
 imports LPF Transcendental
 begin recall_syntax
 
-term "x powr y::real"
-
 text {*
   Below we define unary operators on the @{type lpf} type using the lifting 
   function @{const lift1_lpf'}.
 *}
-subsection {* Unary operators *}
-subsubsection {* Boolean unary operators *}
+subsection {* Unary Operators *}
+
+-- {* \todo{Define the following operators:
+  Sequence unary operators: inds (Define for nat1 type).
+  Map unary operators: inverse (Define for type inmap).} 
+*}
+
+subsubsection {* Boolean Unary Operators *}
 
 definition not_lpf :: "bool lpf \<Rightarrow> bool lpf" where
 [lpf_defs]: "not_lpf = lift1_lpf' Not"
 
-subsubsection {* Numeric unary operators *}
+subsubsection {* Numeric Unary Operators *}
 
 instantiation lpf :: (uminus) uminus
 begin
 definition uminus_lpf :: "'a lpf \<Rightarrow> 'a lpf" where
-"uminus_lpf = lift1_lpf' uminus"
+[lpf_defs]: "uminus_lpf = lift1_lpf' uminus"
 instance ..
 end
 
@@ -50,7 +59,7 @@ definition floor_lpf :: "real lpf \<Rightarrow> int lpf" where
 definition len_lpf :: "'a list lpf \<Rightarrow> nat lpf" where
 [lpf_defs]: "len_lpf = lift1_lpf' length"
 
-subsubsection {* Set unary operators *}
+subsubsection {* Set Unary Operators *}
 
 definition card_lpf :: "'a set lpf \<Rightarrow> nat lpf" where
 [lpf_defs]: "card_lpf = lift1_lpf' card"
@@ -64,7 +73,7 @@ definition dinter_lpf :: "'a set set lpf \<Rightarrow> 'a set lpf" where
 definition power_lpf :: "'a set lpf \<Rightarrow> 'a set set lpf" where
 [lpf_defs]: "power_lpf = lift1_lpf' Pow"
 
-subsubsection {* Sequence unary operators *}
+subsubsection {* Sequence Unary Operators *}
 
 definition hd_lpf :: "'a list lpf \<Rightarrow> 'a lpf" where
 [lpf_defs]: "hd_lpf = lift1_lpf {x . x \<noteq> []} hd" 
@@ -75,13 +84,13 @@ definition tl_lpf :: "'a list lpf \<Rightarrow> 'a list lpf" where
 definition elems_lpf :: "'a list lpf \<Rightarrow> 'a set lpf" where
 [lpf_defs]: "elems_lpf = lift1_lpf' set"
 
-
 (*
 definition inds_nat1_lpf :: "'a list lpf \<Rightarrow> nat1 set lpf" where
 [lpf_defs]: "inds_nat1_lpf = lift1_lpf {x . x \<noteq> []} (\<lambda>x . {1..length x})"
 *)
 
-(* TODO: Define this for nat1 *)
+-- {* \todo{Define inds\_lpf for nat1} *}
+
 definition inds_lpf :: "'a list lpf \<Rightarrow> nat set lpf" where
 [lpf_defs]: "inds_lpf = lift1_lpf {x . x \<noteq> []} (\<lambda>x . {1..length x})"
 
@@ -91,7 +100,7 @@ definition reverse_lpf :: "'a list lpf \<Rightarrow> 'a list lpf" where
 definition conc_lpf :: "'a list list lpf \<Rightarrow> 'a list lpf" where
 [lpf_defs]: "conc_lpf = lift1_lpf' concat"
 
-subsubsection {* Map unary operators *}
+subsubsection {* Map Unary Operators *}
 
 definition dom_lpf :: "('a,'b) map lpf \<Rightarrow> 'a set lpf" where
 [lpf_defs]: "dom_lpf = lift1_lpf' dom"
@@ -102,13 +111,9 @@ definition rng_lpf :: "('a,'b) map lpf \<Rightarrow> 'b set lpf" where
 definition merge_lpf :: "('a, 'b) map set lpf \<Rightarrow> ('a, 'b) map lpf" where
 [lpf_defs]: "merge_lpf = lift1_lpf' merge"
 
--- {* \todo{Define the following operators: 
-  Sequence unary operators: inds(Define for nat1 type).
-  Map unary operators: inverse(Define for type inmap).  } 
-*}
-subsection {* Binary operators *}
+subsection {* Binary Operators *}
 
-subsubsection {* Polymorphic binary operators  *}
+subsubsection {* Polymorphic Binary Operators  *}
 
 definition equal_lpf :: "'a lpf \<Rightarrow> 'a lpf \<Rightarrow> bool lpf" where
 [lpf_defs]: "equal_lpf = lift2_lpf' (op =)"
@@ -116,7 +121,7 @@ definition equal_lpf :: "'a lpf \<Rightarrow> 'a lpf \<Rightarrow> bool lpf" whe
 definition not_equal_lpf :: "'a lpf \<Rightarrow> 'a lpf \<Rightarrow> bool lpf" where
 [lpf_defs]: "not_equal_lpf = lift2_lpf' (op \<noteq>)"
 
-subsubsection {* Boolean binary operators  *}
+subsubsection {* Boolean Binary Operators  *}
 
 definition conj_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
 [lpf_defs]: "conj_lpf = lift2_lpf' conj"
@@ -130,26 +135,26 @@ definition implies_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lp
 definition biimplication_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
 [lpf_defs]: "biimplication_lpf = lift2_lpf' iff"
 
-subsubsection {* Numeric binary operators  *} 
+subsubsection {* Numeric Binary Operators  *} 
 
 instantiation lpf :: (plus) plus
 begin
   definition plus_lpf :: "'a lpf \<Rightarrow> 'a lpf \<Rightarrow> 'a lpf" where
-  [upred_defs]: "plus_lpf = lift2_lpf' (op +)"
+  [lpf_defs]: "plus_lpf = lift2_lpf' (op +)"
   instance ..
 end
 
 instantiation lpf :: (minus) minus
 begin
   definition minus_lpf :: "'a lpf \<Rightarrow> 'a lpf \<Rightarrow> 'a lpf" where
-  [upred_defs]: "minus_lpf = lift2_lpf' (op -)"
+  [lpf_defs]: "minus_lpf = lift2_lpf' (op -)"
   instance ..
 end
 
 instantiation lpf :: (times) times
 begin
  definition times_lpf :: "'a lpf \<Rightarrow> 'a lpf \<Rightarrow> 'a lpf" where
-  [upred_defs]: "times_lpf = lift2_lpf' (op *)"
+  [lpf_defs]: "times_lpf = lift2_lpf' (op *)"
   instance ..
 end
 
@@ -161,21 +166,21 @@ begin
 end
 
 definition div_lpf :: "int lpf \<Rightarrow> int lpf \<Rightarrow> int lpf" where 
-"div_lpf = lift2_lpf {(x,y) . y\<noteq>0} (op div)"
+[lpf_defs]: "div_lpf = lift2_lpf {(x,y) . y\<noteq>0} (op div)"
 
 definition rem_lpf :: "int lpf \<Rightarrow> int lpf \<Rightarrow> int lpf" where
-"rem_lpf = lift2_lpf {(x,y) . y\<noteq>0} (op mod)"
+[lpf_defs]: "rem_lpf = lift2_lpf {(x,y) . y\<noteq>0} (op mod)"
 
 definition mod_lpf :: "int lpf \<Rightarrow> int lpf \<Rightarrow> int lpf" where
-"mod_lpf = rem_lpf"
-
-(* TODO: Define power for int and nat1 exponent *)
+[lpf_defs]: "mod_lpf = rem_lpf"
 
 definition power_nat_lpf :: "'a::power lpf \<Rightarrow> nat lpf \<Rightarrow> 'a lpf" where
-"power_nat_lpf = lift2_lpf' (op ^) "
+[lpf_defs]: "power_nat_lpf = lift2_lpf' (op ^) "
+
+-- {* \todo{Define power for int and nat1 exponent} *}
 
 definition power_real_lpf :: "'a::ln lpf \<Rightarrow> 'a lpf \<Rightarrow> 'a lpf" where
-"power_real_lpf = lift2_lpf' (op powr) "
+[lpf_defs]: "power_real_lpf = lift2_lpf' (op powr) "
 
 consts  power_num_lpf :: "'a \<Rightarrow> 'b \<Rightarrow> 'a"
 
@@ -184,59 +189,57 @@ power_num_lpf power_nat_lpf and
 power_num_lpf power_real_lpf
 
 definition slt_lpf :: "'a::ord lpf \<Rightarrow> 'a lpf \<Rightarrow> bool lpf" where
-"slt_lpf = lift2_lpf' (op <)"
+[lpf_defs]: "slt_lpf = lift2_lpf' (op <)"
 
 definition lte_lpf :: "'a::ord lpf \<Rightarrow> 'a lpf \<Rightarrow> bool lpf" where
-"lte_lpf = lift2_lpf' (op \<le>)"
+[lpf_defs]: "lte_lpf = lift2_lpf' (op \<le>)"
 
 definition sgt_lpf :: "'a::ord lpf \<Rightarrow> 'a lpf \<Rightarrow> bool lpf" where
-"sgt_lpf = lift2_lpf' (op >)"
+[lpf_defs]: "sgt_lpf = lift2_lpf' (op >)"
 
 definition gte_lpf :: "'a::ord lpf \<Rightarrow> 'a lpf \<Rightarrow> bool lpf" where
-"gte_lpf = lift2_lpf' (op \<ge>)"
+[lpf_defs]: "gte_lpf = lift2_lpf' (op \<ge>)"
 
-subsubsection {* Record binary operators *}
-(* 
-  TODO 
+subsubsection {* Record Binary Operators *}
+
+-- {* \todo{
   Define field select
-  Define is  
- *)
+  Define is}
+*}
 
-subsubsection {* Set binary operators *}
+subsubsection {* Set Binary Operators *}
 
 definition in_lpf :: "'a lpf \<Rightarrow> 'a set lpf \<Rightarrow> bool lpf" where
-"in_lpf = lift2_lpf' (op\<in>)"
+[lpf_defs]: "in_lpf = lift2_lpf' (op\<in>)"
 
 definition not_in_lpf :: "'a lpf \<Rightarrow> 'a set lpf \<Rightarrow> bool lpf" where
-"not_in_lpf = lift2_lpf' (op\<notin>)"
+[lpf_defs]: "not_in_lpf = lift2_lpf' (op\<notin>)"
 
 definition union_lpf :: "'a set lpf \<Rightarrow> 'a set lpf \<Rightarrow> 'a set lpf" where
-"union_lpf = lift2_lpf' (op\<union>)"
+[lpf_defs]: "union_lpf = lift2_lpf' (op\<union>)"
 
 definition intersect_lpf :: "'a set lpf \<Rightarrow> 'a set lpf \<Rightarrow> 'a set lpf" where
-"intersect_lpf = lift2_lpf' (op\<inter>)"
+[lpf_defs]: "intersect_lpf = lift2_lpf' (op\<inter>)"
 
 definition difference_lpf :: "'a set lpf \<Rightarrow> 'a set lpf \<Rightarrow> 'a set lpf" where
-"difference_lpf = lift2_lpf' (op -)"
+[lpf_defs]: "difference_lpf = lift2_lpf' (op -)"
 
 definition subset_lpf :: "'a set lpf \<Rightarrow> 'a set lpf \<Rightarrow> bool lpf" where
-"subset_lpf = lift2_lpf' (op \<subseteq>)"
+[lpf_defs]: "subset_lpf = lift2_lpf' (op \<subseteq>)"
 
 definition psubset_lpf :: "'a set lpf \<Rightarrow> 'a set lpf \<Rightarrow> bool lpf" where
-"psubset_lpf = lift2_lpf' (op \<subset>)"
+[lpf_defs]: "psubset_lpf = lift2_lpf' (op \<subset>)"
 
-subsubsection {* Sequence binary operators *}
+subsubsection {* Sequence Binary Operators *}
 
 definition conc_seq_lpf :: "'a list lpf \<Rightarrow> 'a list lpf \<Rightarrow> 'a list lpf" where
-"conc_seq_lpf = lift2_lpf' (op @)"
-
-declare [[show_types]]
+[lpf_defs]: "conc_seq_lpf = lift2_lpf' (op @)"
 
 definition seq_mod_lpf :: "'a list lpf \<Rightarrow> (nat, 'a) map lpf \<Rightarrow> 'a list lpf" where
-"seq_mod_lpf = lift2_lpf' (\<lambda>ls m.
+[lpf_defs]: "seq_mod_lpf = lift2_lpf' (\<lambda>ls m.
   [if i \<in> (dom m) then (map_apply m i) else ls!i. i <- [0..<(length ls)]])"
 
 definition seq_index_lpf :: "'a list lpf \<Rightarrow> nat lpf \<Rightarrow> 'a lpf" where
-"seq_index_lpf = lift2_lpf {(x,y) . y < (length x) \<and> y > 0} (op !)"
+[lpf_defs]: "seq_index_lpf = lift2_lpf {(x,y) . y < (length x) \<and> y > 0} (op !)"
 
 end

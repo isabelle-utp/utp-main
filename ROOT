@@ -199,3 +199,12 @@ session "FMI" in "fmi" = "UTP-THY-DEEP-AXM" +
     (* "root.bib" *)
     "root.tex"
     "document.sty"
+	
+session "LPF" in "vdm-sl" = "UTP" +
+	options [document = pdf, document_output = "output", timeout = 1000]
+	theories
+		LPF_Operators
+		LPF
+	document_files
+		"root.tex"
+		"document.sty"

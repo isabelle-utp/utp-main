@@ -4,15 +4,27 @@
 (* Authors: Casper Thule and Frank Zeyda                                      *)
 (* Emails: casper.thule@eng.au.dk and frank.zeyda@york.ac.uk                  *)
 (******************************************************************************)
-(* LAST REVIEWED: 22 Mar 2017 *)
+(* LAST REVIEWED: 31 Mar 2017 *)
 
 section {* Logic of Partial Functions *}
+
+text {* 
+  This theory sets up the prerequisites to reason about partial functions.
+  This includes a type definition and lifting functors along with named theorems 
+  and tactics.
+*}
 
 theory LPF
 imports Main Eisbach utp
 begin
 
-subsection {* LPF Type *}
+subsection {* Defining the LPF Type and Basic Lifting. *}
+
+text {* 
+  In this section we define the lpf type along with basic lifting of HOL values 
+  into the lpf type. Furthermore, we give a definition of definedness and set 
+  up two theorems: lpf\_defs and lpf\_transfer.
+ *}
 
 text {*
   Below we define a new type to represent values in LPF. Effectively, we encode
@@ -25,10 +37,10 @@ apply(rule UNIV_witness)
 done
 
 text {*
-  The two theorems lpf_defs and lpf_transfer are collection of proofs.
-  lpf_defs contains LPF definition aximos, such as a definition of definedness.
-  lpf_transfer contains LPF transfer laws, such as lifting values of HOL types 
-  into values of the LPF type
+  The two theorems lpf\_defs and lpf\_transfer are collection of proofs.
+  lpf\_defs contains LPF definition aximos, such as a definition of definedness.
+  lpf\_transfer contains LPF transfer laws, such as lifting values of HOL 
+  types into values of the @{type lpf} type.
 *}
 
 named_theorems lpf_defs "lpf definitional axioms"
@@ -42,38 +54,46 @@ declare Abs_lpf_inverse [simplified, lpf_transfer]
 declare Rep_lpf_inject_sym [lpf_transfer]
 declare Abs_lpf_inject [simplified, lpf_transfer]
 
-text {* The lifting of values into the type @{type lpf} is set up *}
+text {* Lifting of values into @{type lpf} is set up. *}
+
 setup_lifting type_definition_lpf
+
+text {* Extract the value wrapped in @{type lpf}. *}
 
 lift_definition lpf_the :: "'a lpf \<Rightarrow> 'a" is "(\<lambda>x . (the \<circ> Rep_lpf) x)" .
 
-text {* Here we define how to lift a value into a defined @{type lpf} value *}
+text {* Lift a value into a defined @{type lpf} value. *}
 
 lift_definition lpf_Some :: "'a \<Rightarrow> 'a lpf" is "Some" .
 
 declare lpf_Some.rep_eq [lpf_transfer]
 
-text {* The LPF value for undefined *}
+text {* The @{type lpf} value for undefined. *}
 
 lift_definition lpf_None :: "'a lpf" is "None" .
 
 declare lpf_None.rep_eq [lpf_transfer]
 
 text {* 
-  This is a definition of definedness for LPF values.  
-  A LPF value is defined if it is not @{const lpf_None}.   
+  Definition of definedness for LPF values. 
+  A value of type @{type lpf} is defined if it is not @{const lpf_None}.   
 *}
+
 definition defined :: "'a lpf \<Rightarrow> bool" ("\<D>'(_')") where
 "defined x \<longleftrightarrow> (x \<noteq> lpf_None)"
 
 declare defined_def [lpf_defs]
 
-subsection {* Lifting of unary operators *}
+subsection {* Lifting of Operators *}
+text {* This section introduces lifting of unary, binary and ternary operators 
+  into the @{type lpf} type *}
+
 
 text {*
   The following function checks if an input x satisfies a predicate (belongs to
-  a set). If it does then it returns the value backed, wrapped up in the 
-  @{type lpf} type, otherwise it returns @{const lpf_None}.
+  a set). If it does belong to the set, then the function returns the value 
+  wrapped in the @{type lpf} type. If it does not belong to the set, then the 
+  functions returns  @{const lpf_None}.
 *}
 
 definition lpfSat :: "'a set \<Rightarrow> 'a \<Rightarrow> 'a lpf" where
@@ -81,18 +101,18 @@ definition lpfSat :: "'a set \<Rightarrow> 'a \<Rightarrow> 'a lpf" where
 
 declare lpfSat_def [lpf_defs]
 
-text {* 
-  The following function is an overload of the bind operator for the lpf type 
-*}
+text {* Overload of the bind operator for @{type lpf} values. *}
 
-definition lift1_bind :: "'a lpf \<Rightarrow> ('a \<Rightarrow> 'b lpf) \<Rightarrow> 'b lpf" where
-[lpf_defs]: "lift1_bind a f = 
+definition lift_bind :: "'a lpf \<Rightarrow> ('a \<Rightarrow> 'b lpf) \<Rightarrow> 'b lpf" where
+[lpf_defs]: "lift_bind a f = 
   (if \<D>(a) then  (f \<circ> the \<circ> Rep_lpf) a else lpf_None)"
 
 adhoc_overloading
-bind lift1_bind
+bind lift_bind
 
-text {* lift1_lpf takes a set, which is a predicate on the input values, 
+subsubsection {* Lifting of Unary Operators *}
+
+text {* lift1\_lpf takes a set, which is a predicate on the input values, 
   a total HOL function taking one argument and turns it into a function on 
   @{type lpf} types. The resulting value is defined if (1) each input is defined
   and (2) the input satisfies the predicate. 
@@ -105,15 +125,15 @@ declare lift1_lpf.transfer [lpf_transfer]
 declare lift1_lpf_def [lpf_defs]
 
 lift_definition lift1_lpf' :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf)" is
-"(\<lambda> f . lift1_lpf UNIV f)"
-done
+"(\<lambda> f . lift1_lpf UNIV f)" .
 
 declare lift1_lpf'.transfer [lpf_transfer]
 declare lift1_lpf'_def [lpf_defs]
 
-subsection {* Lifting of binary operators *}
+subsubsection {* Lifting of Binary Operators *}
 
-text {* Lifting of binary operators *}
+text {* Similar to lift1\_bind. *}
+
 lift_definition lift2_lpf :: 
   "('a * 'b) set \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf \<Rightarrow> 'c lpf)" is
   "(\<lambda> u f v1 v2. 
@@ -130,21 +150,23 @@ done
 declare lift2_lpf'.transfer [lpf_transfer]
 declare lift2_lpf'_def [lpf_defs]
 
-subsection {* Lifting of ternary operators *}
+subsubsection {* Lifting of Ternary Operators. *}
+
+text {* Here we define the lifting functor for ternary operators. *}
 
 lift_definition lift3_lpf :: 
   "('a * 'b * 'c) set \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf \<Rightarrow> 'c lpf \<Rightarrow> 'd lpf)" is
 "(\<lambda> ABC f v1 v2 v3. do { x \<leftarrow> v1; y \<leftarrow> v2; z \<leftarrow> v3; lpfSat ABC (x, y, z) } \<bind> lpf_Some \<circ> (\<lambda> (x,y,z). f x y z))" .
 
 text {*  Three tactics are created for use in proofs. *}
+
 method lpf_simp = (simp add: lpf_defs lpf_transfer; clarsimp?)
 method lpf_auto = (lpf_simp; auto)
 method lpf_blast = (lpf_simp; blast)
                                                                         
-subsection {* Examples *}
-
-lemma "lpf_Some x = lpf_Some y \<longleftrightarrow> x = y"
-  by (metis lpf_Some.rep_eq option.inject)
+subsection {* Proof Examples *}
+text {* In this section we illustrate the use of the proof tactics along with 
+  proving useful laws *}
 
 lemma "lpf_Some x = lpf_Some y \<longleftrightarrow> x = y"
 apply (lpf_simp)
@@ -187,9 +209,20 @@ lemma lifted_card_undefined_example: "lift1_lpf' card lpf_None = lpf_None"
 apply (lpf_simp)
 done
 
-lemma lifted_card_defined_example: "lift1_lpf' card (lpf_Some ({1,2,3}::nat set)) = lpf_Some 3"
+lemma lifted_union_undefined_undefined_example: "lift2_lpf' union lpf_None lpf_None = lpf_None"
 apply (lpf_simp)
 done
 
+lemma lifted_union_defined_undefined_example: "lift2_lpf' union (lpf_Some {True}) lpf_None = lpf_None"
+apply (lpf_simp)
+done
+
+lemma lifted_union_defined_defined_example: "lift2_lpf' union (lpf_Some {True}) (lpf_Some {False}) = lpf_Some(union {True} {False} )"
+apply (lpf_simp)
+done
+
+lemma lifted_card_defined_example: "lift1_lpf' card (lpf_Some ({1,2,3}::nat set)) = lpf_Some 3"
+apply (lpf_simp)
+done
 
 end
