@@ -5,6 +5,8 @@ imports PFOL
   utp_theories_deep
 begin
 
+recall_syntax
+
 subsection {* Core operator definitions *}
 
 typedef ('a, '\<alpha>) vexpr = "UNIV :: ('\<alpha> \<Rightarrow> 'a option) set" ..
@@ -141,6 +143,17 @@ is "\<lambda> A P b. (\<exists>\<^sub>k x. P x b)" .
 lift_definition vforall :: "'a vtype \<Rightarrow> ('a \<Rightarrow> (bool, '\<alpha>) vexpr) \<Rightarrow> (bool, '\<alpha>) vexpr"
 is "\<lambda> A P b. (\<forall>\<^sub>k x. P x b)" .
 
+term "{ snd (PF x) b | x. x \<in> A b \<and> fst (PF x) b}"
+
+lift_definition VdmSetCompr :: 
+  "('a set, '\<alpha>) vexpr \<Rightarrow> 
+   ('a \<Rightarrow> ((bool, '\<alpha>) vexpr \<times> ('b, '\<alpha>) vexpr)) \<Rightarrow> ('b set, '\<alpha>) vexpr"
+is "\<lambda> A PF s. 
+     (case (A s) of
+        None \<Rightarrow> None
+      | Some A' \<Rightarrow> (if (None \<in> ((\<lambda> y. (snd (PF y)) s) ` A')  \<or> None \<in> ((\<lambda> y. (fst (PF y)) s) ` A'))
+                    then None else Some { the ((snd (PF x)) s) | x. (x \<in> A' \<and> the ((fst (PF x)) s))}))" .
+
 instantiation vexpr :: (zero, type) zero
 begin
   definition zero_vexpr :: "('a, 'b) vexpr" where [upred_defs]: "zero_vexpr = vlit 0"
@@ -258,6 +271,7 @@ syntax
   "_vnot"          :: "'a \<Rightarrow> 'a" ("\<not>\<^sub>v _" [40] 40)
   "_vempset"       :: "('a set, '\<alpha>) vexpr" ("{}\<^sub>v")
   "_vset"          :: "args => ('a set, '\<alpha>) vexpr" ("{(_)}\<^sub>v")
+  "_vset_compr"    :: "id \<Rightarrow> ('a set, '\<alpha>) vexpr \<Rightarrow> (bool, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> ('b set, '\<alpha>) vexpr" ("(1{_ :/ _ |/ _ \<bullet>/ _}\<^sub>v)")
   "_vunion"        :: "('a set, '\<alpha>) vexpr \<Rightarrow> ('a set, '\<alpha>) vexpr \<Rightarrow> ('a set, '\<alpha>) vexpr" (infixl "\<union>\<^sub>v" 65)
   "_vinter"        :: "('a set, '\<alpha>) vexpr \<Rightarrow> ('a set, '\<alpha>) vexpr \<Rightarrow> ('a set, '\<alpha>) vexpr" (infixl "\<inter>\<^sub>v" 70)
   "_vUnion"        :: "('a set set, '\<alpha>) vexpr \<Rightarrow> ('a set, '\<alpha>) vexpr" ("\<Union>\<^sub>v")
@@ -309,6 +323,7 @@ translations
   "{}\<^sub>v"      == "\<guillemotleft>{}\<guillemotright>\<^sub>v"
   "{x, xs}\<^sub>v" == "CONST vbop (CONST bpfun' CONST insert) x {xs}\<^sub>v"
   "{x}\<^sub>v"     == "CONST vbop (CONST bpfun' CONST insert) x \<guillemotleft>{}\<guillemotright>\<^sub>v"
+  "{x : A | P \<bullet> F}\<^sub>v" == "CONST VdmSetCompr A (\<lambda> x. (P, F))"
   "A \<union>\<^sub>v B"   == "CONST vbop (CONST bpfun' CONST Set.union) A B"
   "A \<inter>\<^sub>v B"   == "CONST vbop (CONST bpfun' CONST Set.inter) A B"
   "\<Union>\<^sub>v A"     == "CONST vuop (CONST upfun' CONST Union) A"
