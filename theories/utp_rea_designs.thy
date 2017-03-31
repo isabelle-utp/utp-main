@@ -310,80 +310,6 @@ lemma SRD_Monotonic: "Monotonic SRD"
 lemma SRD_Continuous: "Continuous SRD"
   by (simp add: Continuous_comp RD1_Continuous RD2_Continuous RHS_Continuous SRD_comp)
 
-typedecl RDES
-typedecl SRDES
-
-abbreviation "RDES \<equiv> UTHY(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp)"
-abbreviation "SRDES \<equiv> UTHY(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp)"
-
-overloading
-  rdes_hcond   == "utp_hcond :: (RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
-  srdes_hcond   == "utp_hcond :: (SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health"
-begin
-  definition rdes_hcond :: "(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health" where
-  [upred_defs]: "rdes_hcond T = RD"
-  definition srdes_hcond :: "(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health" where
-  [upred_defs]: "srdes_hcond T = SRD"
-end
-
-interpretation rdes_theory: utp_theory "UTHY(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp)"
-  by (unfold_locales, simp_all add: rdes_hcond_def RD_idem)
-
-interpretation rdes_theory_continuous: utp_theory_continuous "UTHY(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp)"
-  rewrites "\<And> P. P \<in> carrier (uthy_order RDES) \<longleftrightarrow> P is RD"
-  and "carrier (uthy_order RDES) \<rightarrow> carrier (uthy_order RDES) \<equiv> \<lbrakk>RD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RD\<rbrakk>\<^sub>H"
-  and "le (uthy_order RDES) = op \<sqsubseteq>"
-  and "eq (uthy_order RDES) = op ="
-  by (unfold_locales, simp_all add: rdes_hcond_def RD_Continuous)
-
-interpretation rdes_rea_galois:
-  galois_connection "(RDES \<leftarrow>\<langle>RD1 \<circ> RD2,R3\<rangle>\<rightarrow> REA)"
-proof (simp add: mk_conn_def, rule galois_connectionI', simp_all add: utp_partial_order rdes_hcond_def rea_hcond_def)
-  show "R3 \<in> \<lbrakk>RD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RP\<rbrakk>\<^sub>H"
-    by (metis (no_types, lifting) Healthy_def' Pi_I R3_RD_RP RP_idem mem_Collect_eq)
-  show "RD1 \<circ> RD2 \<in> \<lbrakk>RP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RD\<rbrakk>\<^sub>H"
-    by (simp add: Pi_iff Healthy_def, metis RD_def RD_idem)
-  show "isotone (utp_order RD) (utp_order RP) R3"
-    by (simp add: R3_Monotonic isotone_utp_orderI)
-  show "isotone (utp_order RP) (utp_order RD) (RD1 \<circ> RD2)"
-    by (simp add: Monotonic_comp RD1_Monotonic RD2_Monotonic isotone_utp_orderI)
-  fix P :: "('a, 'b) hrel_rp"
-  assume "P is RD"
-  thus "P \<sqsubseteq> RD1 (RD2 (R3 P))"
-    by (metis Healthy_if R3_RD_RP RD_def RP_idem eq_iff)
-next
-  fix P :: "('a, 'b) hrel_rp"
-  assume a: "P is RP"
-  thus "R3 (RD1 (RD2 P)) \<sqsubseteq> P"
-  proof -
-    have "R3 (RD1 (RD2 P)) = RP (RD1 (RD2(P)))"
-      by (metis Healthy_if R3_RD_RP RD_def a)
-    moreover have "RD1(RD2(P)) \<sqsubseteq> P"
-      by (rel_auto)
-    ultimately show ?thesis
-      by (metis Healthy_if RP_mono a)
-  qed
-qed
-
-interpretation rdes_rea_retract:
-  retract "(RDES \<leftarrow>\<langle>RD1 \<circ> RD2,R3\<rangle>\<rightarrow> REA)"
-  by (unfold_locales, simp_all add: mk_conn_def utp_partial_order rdes_hcond_def rea_hcond_def)
-     (metis Healthy_if R3_RD_RP RD_def RP_idem eq_refl)
-
-interpretation srdes_theory: utp_theory "UTHY(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp)"
-  by (unfold_locales, simp_all add: srdes_hcond_def SRD_idem)
-
-interpretation srdes_theory_continuous: utp_theory_continuous "UTHY(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp)"
-  rewrites "\<And> P. P \<in> carrier (uthy_order SRDES) \<longleftrightarrow> P is SRD"
-  and "P is \<H>\<^bsub>SRDES\<^esub> \<longleftrightarrow> P is SRD"
-  and "carrier (uthy_order SRDES) \<rightarrow> carrier (uthy_order SRDES) \<equiv> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
-  and "le (uthy_order SRDES) = op \<sqsubseteq>"
-  and "eq (uthy_order SRDES) = op ="
-  by (unfold_locales, simp_all add: srdes_hcond_def SRD_Continuous)
-
-declare srdes_theory_continuous.top_healthy [simp del]
-declare srdes_theory_continuous.bottom_healthy [simp del]
-    
 lemma SRD_healths:
   assumes "P is SRD"
   shows "P is R1" "P is R2" "P is R3h" "P is RD1" "P is RD2"
@@ -474,6 +400,85 @@ lemma R3h_subst_wait: "R3h(P) = R3h(P \<^sub>f)"
 lemma skip_rea_R1_lemma: "II\<^sub>r = R1($ok \<Rightarrow> II)"
   by (rel_auto)
 
+subsection {* Reactive design UTP theories *}
+  
+text {* We create two theory objects: one for reactive designs and one for stateful reactive 
+        designs. *}
+    
+typedecl RDES
+typedecl SRDES
+
+abbreviation "RDES \<equiv> UTHY(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp)"
+abbreviation "SRDES \<equiv> UTHY(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp)"
+
+overloading
+  rdes_hcond   == "utp_hcond :: (RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
+  srdes_hcond   == "utp_hcond :: (SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health"
+begin
+  definition rdes_hcond :: "(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health" where
+  [upred_defs]: "rdes_hcond T = RD"
+  definition srdes_hcond :: "(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health" where
+  [upred_defs]: "srdes_hcond T = SRD"
+end
+
+interpretation rdes_theory: utp_theory "UTHY(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp)"
+  by (unfold_locales, simp_all add: rdes_hcond_def RD_idem)
+
+interpretation rdes_theory_continuous: utp_theory_continuous "UTHY(RDES, ('t::ordered_cancel_monoid_diff,'\<alpha>) rp)"
+  rewrites "\<And> P. P \<in> carrier (uthy_order RDES) \<longleftrightarrow> P is RD"
+  and "carrier (uthy_order RDES) \<rightarrow> carrier (uthy_order RDES) \<equiv> \<lbrakk>RD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RD\<rbrakk>\<^sub>H"
+  and "le (uthy_order RDES) = op \<sqsubseteq>"
+  and "eq (uthy_order RDES) = op ="
+  by (unfold_locales, simp_all add: rdes_hcond_def RD_Continuous)
+
+interpretation rdes_rea_galois:
+  galois_connection "(RDES \<leftarrow>\<langle>RD1 \<circ> RD2,R3\<rangle>\<rightarrow> REA)"
+proof (simp add: mk_conn_def, rule galois_connectionI', simp_all add: utp_partial_order rdes_hcond_def rea_hcond_def)
+  show "R3 \<in> \<lbrakk>RD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RP\<rbrakk>\<^sub>H"
+    by (metis (no_types, lifting) Healthy_def' Pi_I R3_RD_RP RP_idem mem_Collect_eq)
+  show "RD1 \<circ> RD2 \<in> \<lbrakk>RP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RD\<rbrakk>\<^sub>H"
+    by (simp add: Pi_iff Healthy_def, metis RD_def RD_idem)
+  show "isotone (utp_order RD) (utp_order RP) R3"
+    by (simp add: R3_Monotonic isotone_utp_orderI)
+  show "isotone (utp_order RP) (utp_order RD) (RD1 \<circ> RD2)"
+    by (simp add: Monotonic_comp RD1_Monotonic RD2_Monotonic isotone_utp_orderI)
+  fix P :: "('a, 'b) hrel_rp"
+  assume "P is RD"
+  thus "P \<sqsubseteq> RD1 (RD2 (R3 P))"
+    by (metis Healthy_if R3_RD_RP RD_def RP_idem eq_iff)
+next
+  fix P :: "('a, 'b) hrel_rp"
+  assume a: "P is RP"
+  thus "R3 (RD1 (RD2 P)) \<sqsubseteq> P"
+  proof -
+    have "R3 (RD1 (RD2 P)) = RP (RD1 (RD2(P)))"
+      by (metis Healthy_if R3_RD_RP RD_def a)
+    moreover have "RD1(RD2(P)) \<sqsubseteq> P"
+      by (rel_auto)
+    ultimately show ?thesis
+      by (metis Healthy_if RP_mono a)
+  qed
+qed
+
+interpretation rdes_rea_retract:
+  retract "(RDES \<leftarrow>\<langle>RD1 \<circ> RD2,R3\<rangle>\<rightarrow> REA)"
+  by (unfold_locales, simp_all add: mk_conn_def utp_partial_order rdes_hcond_def rea_hcond_def)
+     (metis Healthy_if R3_RD_RP RD_def RP_idem eq_refl)
+
+interpretation srdes_theory: utp_theory "UTHY(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp)"
+  by (unfold_locales, simp_all add: srdes_hcond_def SRD_idem)
+
+interpretation srdes_theory_continuous: utp_theory_continuous "UTHY(SRDES, ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp)"
+  rewrites "\<And> P. P \<in> carrier (uthy_order SRDES) \<longleftrightarrow> P is SRD"
+  and "P is \<H>\<^bsub>SRDES\<^esub> \<longleftrightarrow> P is SRD"
+  and "carrier (uthy_order SRDES) \<rightarrow> carrier (uthy_order SRDES) \<equiv> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
+  and "le (uthy_order SRDES) = op \<sqsubseteq>"
+  and "eq (uthy_order SRDES) = op ="
+  by (unfold_locales, simp_all add: srdes_hcond_def SRD_Continuous)
+
+declare srdes_theory_continuous.top_healthy [simp del]
+declare srdes_theory_continuous.bottom_healthy [simp del]
+      
 subsection {* Reactive design form *}
 
 lemma RD1_algebraic_intro:
@@ -1335,7 +1340,7 @@ theorem RHS_tri_design_composition_wp:
   apply (metis (no_types, hide_lams) Healthy_if R1_R2c_is_R2 R1_negate_R1 R2_def assms(11) assms(16))
 done
 
-text {* Syntax for pre-, post-, and periconditions *}
+subsection {* Pre-, post-, and periconditions *}
 
 abbreviation "pre\<^sub>s  \<equiv> [$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s false, $wait \<mapsto>\<^sub>s false]"
 abbreviation "cmt\<^sub>s  \<equiv> [$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s false]"
@@ -1637,9 +1642,7 @@ proof -
     by (simp add: RHS_design_is_SRD add: unrest)
   finally show ?thesis .
 qed
-  
-subsection {* Reactive design signature *}
-  
+ 
 lemma srdes_refine_intro:
   assumes "`P\<^sub>1 \<Rightarrow> P\<^sub>2`" "`P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> Q\<^sub>1`"
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1) \<sqsubseteq> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2)"
@@ -1696,6 +1699,8 @@ lemma SRD_refine_intro_alt:
 
 lemma srdes_skip_def: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R))"
   apply (rel_auto) using minus_zero_eq by blast+
+  
+subsection {* Reactive design signature *}
 
 text {* This additional healthiness condition is analogous to H3 *}
 
@@ -2358,7 +2363,86 @@ proof -
       by (simp add: srdes_pvar_assigns_def srdes_unit_def assigns_rea_id)
   qed
 qed
+
+subsection {* Lifting designs on state to reactive designs *}
+  
+definition des_rea_lift :: "'s hrel_des \<Rightarrow> ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp" ("\<^bold>R\<^sub>D") where
+[upred_defs]: "\<^bold>R\<^sub>D(P) = \<^bold>R\<^sub>s(\<lceil>\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub><\<rceil>\<^sub>S\<^sub>< \<turnstile> (false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>S)))"
+
+lemma des_rea_lift_closure [closure]: "\<^bold>R\<^sub>D(P) is SRD"
+  by (simp add: des_rea_lift_def RHS_design_is_SRD unrest)
+
+lemma preR_des_rea_lift [rdes]: 
+  "pre\<^sub>R(\<^bold>R\<^sub>D(P)) = true \<triangleleft> \<lceil>\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub><\<rceil>\<^sub>S\<^sub>< \<triangleright> (\<not> $tr \<le>\<^sub>u $tr\<acute>)"
+  by (rel_auto)
     
+lemma periR_des_rea_lift [rdes]: 
+  "peri\<^sub>R(\<^bold>R\<^sub>D(P)) = (false \<triangleleft> \<lceil>\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub><\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr \<le>\<^sub>u $tr\<acute>))"
+  by (rel_auto)
+
+lemma postR_des_rea_lift [rdes]: 
+  "post\<^sub>R(\<^bold>R\<^sub>D(P)) = ((true \<triangleleft> \<lceil>\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub><\<rceil>\<^sub>S\<^sub>< \<triangleright> (\<not> $tr \<le>\<^sub>u $tr\<acute>)) \<Rightarrow> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>S))"
+  apply (rel_auto) using minus_zero_eq by blast
+  
+lemma ndes_rea_lift_closure [closure]: 
+  assumes "P is \<^bold>N"
+  shows "\<^bold>R\<^sub>D(P) is NSRD"
+proof -
+  obtain p Q where P: "P = (p \<turnstile>\<^sub>n Q)"
+    by (metis H1_H3_commute H1_H3_is_normal_design H1_idem Healthy_def assms)
+  show ?thesis
+    apply (rule NSRD_intro)
+    apply (simp_all add: closure rdes unrest P)
+    apply (rel_auto)
+    using dual_order.trans apply blast
+  done
+qed
+  
+text {* Homomorphism laws *}
+  
+lemma R_D_Miracle:
+  "\<^bold>R\<^sub>D(\<top>\<^sub>D) = Miracle"
+  by (simp add: Miracle_def, rel_auto)
+  
+lemma R_D_Chaos:
+  "\<^bold>R\<^sub>D(\<bottom>\<^sub>D) = Chaos"
+proof -
+  have "\<^bold>R\<^sub>D(\<bottom>\<^sub>D) = \<^bold>R\<^sub>D(false \<turnstile>\<^sub>r true)"
+    by (rel_auto)
+  also have "... = \<^bold>R\<^sub>s (false \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr))"
+    by (simp add: Chaos_def des_rea_lift_def alpha)
+  also have "... = \<^bold>R\<^sub>s (true)"
+    by (rel_auto)
+  also have "... = Chaos"
+    by (simp add: Chaos_def design_false_pre)
+  finally show ?thesis .
+qed
+  
+lemma R_D_inf:
+  assumes "P is \<^bold>N" "Q is \<^bold>N"
+  shows "\<^bold>R\<^sub>D(P \<sqinter> Q) = \<^bold>R\<^sub>D(P) \<sqinter> \<^bold>R\<^sub>D(Q)"
+  by (rule antisym, rel_auto+)
+  
+lemma R_D_seq_ndesign:
+  "\<^bold>R\<^sub>D(p\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>1) ;; \<^bold>R\<^sub>D(p\<^sub>2 \<turnstile>\<^sub>n Q\<^sub>2) = \<^bold>R\<^sub>D((p\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>1) ;; (p\<^sub>2 \<turnstile>\<^sub>n Q\<^sub>2))"
+  apply (rule antisym)
+  apply (rule SRD_refine_intro)
+  apply (simp_all add: closure rdes ndesign_composition_wp)
+  using dual_order.trans apply (rel_blast)
+  using dual_order.trans apply (rel_blast)
+  using dual_order.trans apply (rel_blast)
+  apply (rule SRD_refine_intro)
+  apply (simp_all add: closure rdes ndesign_composition_wp)
+  apply (rel_auto)
+  apply (rel_auto)
+  apply (rel_auto)
+done
+   
+lemma R_D_seq:
+  assumes "P is \<^bold>N" "Q is \<^bold>N"
+  shows "\<^bold>R\<^sub>D(P) ;; \<^bold>R\<^sub>D(Q) = \<^bold>R\<^sub>D(P ;; Q)"
+  by (metis R_D_seq_ndesign assms ndesign_form)
+
 subsection {* Reactive design parallel-by-merge *}
 
 definition [upred_defs]: "nil\<^sub>r\<^sub>m = (nil\<^sub>m \<triangleleft> $0-ok \<and> $1-ok \<triangleright> ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>))"
@@ -2531,7 +2615,7 @@ lemma RHS_tri_design_par:
   assumes "$ok\<acute> \<sharp> P\<^sub>1" "$ok\<acute> \<sharp> P\<^sub>2"
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1 \<diamondop> R\<^sub>1) \<parallel>\<^sub>R \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2 \<diamondop> R\<^sub>2) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (Q\<^sub>1 \<and> Q\<^sub>2) \<diamondop> (R\<^sub>1 \<and> R\<^sub>2))"
   by (simp add: RHS_design_par assms unrest wait'_cond_conj_exchange)
-
+    
 subsection {* Reactive design tactics *}
 
 text {* The following tactic attempts to prove a reactive design refinement by calculation of
