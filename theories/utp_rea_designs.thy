@@ -31,8 +31,14 @@ notation rsp_vars_child_lens ("\<Sigma>\<^sub>S")
 abbreviation lift_state_rel ("\<lceil>_\<rceil>\<^sub>S")
 where "\<lceil>P\<rceil>\<^sub>S \<equiv> P \<oplus>\<^sub>p (st \<times>\<^sub>L st)"
 
+abbreviation drop_state_rel ("\<lfloor>_\<rfloor>\<^sub>S")
+where "\<lfloor>P\<rfloor>\<^sub>S \<equiv> P \<restriction>\<^sub>p (st \<times>\<^sub>L st)"
+
 abbreviation lift_state_pre ("\<lceil>_\<rceil>\<^sub>S\<^sub><")
 where "\<lceil>p\<rceil>\<^sub>S\<^sub>< \<equiv> \<lceil>\<lceil>p\<rceil>\<^sub><\<rceil>\<^sub>S"
+
+abbreviation drop_state_pre ("\<lfloor>_\<rfloor>\<^sub>S\<^sub><")
+where "\<lfloor>p\<rfloor>\<^sub>S\<^sub>< \<equiv> \<lfloor>\<lfloor>p\<rfloor>\<^sub>S\<rfloor>\<^sub><"
 
 syntax
   "_svid_st_alpha"  :: "svid" ("\<Sigma>\<^sub>S")
@@ -2369,6 +2375,37 @@ subsection {* Lifting designs on state to reactive designs *}
 definition des_rea_lift :: "'s hrel_des \<Rightarrow> ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp" ("\<^bold>R\<^sub>D") where
 [upred_defs]: "\<^bold>R\<^sub>D(P) = \<^bold>R\<^sub>s(\<lceil>\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub><\<rceil>\<^sub>S\<^sub>< \<turnstile> (false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>S)))"
 
+definition des_rea_drop :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp \<Rightarrow> 's hrel_des" ("\<^bold>D\<^sub>R") where
+[upred_defs]: "\<^bold>D\<^sub>R(P) = \<lfloor>(pre\<^sub>R(P))\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<^sub>< \<turnstile>\<^sub>n \<lfloor>(post\<^sub>R(P))\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S"
+  
+lemma ndesign_rea_lift_inverse: "\<^bold>D\<^sub>R(\<^bold>R\<^sub>D(p \<turnstile>\<^sub>n Q)) = p \<turnstile>\<^sub>n Q"
+  apply (simp add: des_rea_lift_def des_rea_drop_def rea_pre_RHS_design rea_post_RHS_design)
+  apply (simp add: R1_def R2c_def R2s_def usubst unrest)
+  apply (rel_auto)
+done
+
+lemma ndesign_rea_lift_injective: 
+  assumes "P is \<^bold>N" "Q is \<^bold>N" "\<^bold>R\<^sub>D P = \<^bold>R\<^sub>D Q" (is "?RP(P) = ?RQ(Q)")
+  shows "P = Q"
+proof -
+  have "?RP(\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P)) = ?RQ(\<lfloor>pre\<^sub>D(Q)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(Q))"
+    by (simp add: ndesign_form assms)
+  hence "\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P) = \<lfloor>pre\<^sub>D(Q)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(Q)"
+    by (metis ndesign_rea_lift_inverse)
+  thus ?thesis
+    by (simp add: ndesign_form assms)
+qed
+  
+lemma 
+  assumes "P is NSRD"
+  shows "\<^bold>R\<^sub>D(\<^bold>D\<^sub>R(P)) \<sqsubseteq> P"
+proof -
+  have "\<^bold>R\<^sub>D(\<^bold>D\<^sub>R(P)) = \<^bold>R\<^sub>D((\<lfloor>pre\<^sub>R P\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<^sub>< \<turnstile>\<^sub>n \<lfloor>post\<^sub>R P\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S))"
+    by (simp add: des_rea_drop_def)
+  also have "... = \<^bold>R\<^sub>s (pre\<^sub>R P\<lbrakk>$tr\<acute>/$tr\<rbrakk> \<turnstile>
+          false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<lceil>\<lfloor>pre\<^sub>R P\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<^sub><\<rceil>\<^sub>< \<Rightarrow> \<lfloor>post\<^sub>R P\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<rceil>\<^sub>S))"
+oops
+    
 lemma des_rea_lift_closure [closure]: "\<^bold>R\<^sub>D(P) is SRD"
   by (simp add: des_rea_lift_def RHS_design_is_SRD unrest)
 
@@ -2383,7 +2420,7 @@ lemma periR_des_rea_lift [rdes]:
 lemma postR_des_rea_lift [rdes]: 
   "post\<^sub>R(\<^bold>R\<^sub>D(P)) = ((true \<triangleleft> \<lceil>\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub><\<rceil>\<^sub>S\<^sub>< \<triangleright> (\<not> $tr \<le>\<^sub>u $tr\<acute>)) \<Rightarrow> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>S))"
   apply (rel_auto) using minus_zero_eq by blast
-  
+    
 lemma ndes_rea_lift_closure [closure]: 
   assumes "P is \<^bold>N"
   shows "\<^bold>R\<^sub>D(P) is NSRD"
