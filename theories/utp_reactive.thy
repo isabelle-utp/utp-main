@@ -630,7 +630,7 @@ lemma R3_semir_closure:
   shows "(P ;; Q) is R3"
   using assms
   by (metis Healthy_def' R3_semir_form)
-
+    
 lemma R1_R3_commute: "R1(R3(P)) = R3(R1(P))"
   by (rel_auto)
 
@@ -753,18 +753,25 @@ text {* We show closure of parallel by merge under the reactive healthiness cond
   of suitable restrictions on the merge predicate. We first define healthiness conditions
   for R1 and R2 merge predicates. *}
 
-definition [upred_defs]: "R1m(M) = (M \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute>)"
+definition R1m :: "('t :: ordered_cancel_monoid_diff, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge" 
+  where [upred_defs]: "R1m(M) = (M \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute>)"
 
-definition [upred_defs]: "R1m'(M) = (M \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and> $tr\<^sub>< \<le>\<^sub>u $0-tr \<and> $tr\<^sub>< \<le>\<^sub>u $1-tr)"
+definition R1m' :: "('t :: ordered_cancel_monoid_diff, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
+  where [upred_defs]: "R1m'(M) = (M \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and> $tr\<^sub>< \<le>\<^sub>u $0-tr \<and> $tr\<^sub>< \<le>\<^sub>u $1-tr)"
 
 text {* A merge predicate can access the history through $tr$, as usual, but also through $0.tr$ and
   $1.tr$. Thus we have to remove the latter two histories as well to satisfy R2 for the overall
   construction. *}
+  
+definition R2m :: "('t :: ordered_cancel_monoid_diff, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
+  where [upred_defs]: "R2m(M) = R1m(M\<lbrakk>0,$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)"
 
-definition [upred_defs]: "R2m(M) = R1m(M\<lbrakk>0,$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)"
+definition R2m' :: "('t :: ordered_cancel_monoid_diff, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
+  where [upred_defs]: "R2m'(M) = R1m'(M\<lbrakk>0,$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)"
 
-definition [upred_defs]: "R2m'(M) = R1m'(M\<lbrakk>0,$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)"
-
+definition R2cm :: "('t :: ordered_cancel_monoid_diff, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
+  where [upred_defs]: "R2cm(M) = M\<lbrakk>0,$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk> \<triangleleft> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<triangleright> M"
+    
 lemma R2m'_form:
   "R2m'(M) =
   (\<^bold>\<exists> tt, tt\<^sub>0, tt\<^sub>1 \<bullet> M\<lbrakk>0,\<guillemotleft>tt\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>
@@ -773,6 +780,9 @@ lemma R2m'_form:
                   \<and> $1-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>1\<guillemotright>)"
   by (rel_auto, metis diff_add_cancel_left')
 
+lemma R1m_idem: "R1m(R1m(P)) = R1m(P)"
+  by (rel_auto)
+    
 lemma R1_par_by_merge:
   "M is R1m \<Longrightarrow> (P \<parallel>\<^bsub>M\<^esub> Q) is R1"
   by (rel_blast)
@@ -826,39 +836,28 @@ proof -
     by (simp add: Healthy_def)
 qed
 
-text {* For R3, we can't easily define an idempotent healthiness function of mege predicates. Thus
-  we define some units and anhilators instead. Each of these defines the behaviour of an indexed
-  parallel system of predicates to be merged. *}
-
-definition [upred_defs]: "skip\<^sub>m = ($0-\<Sigma>\<acute> =\<^sub>u $\<Sigma> \<and> $1-\<Sigma>\<acute> =\<^sub>u $\<Sigma> \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)"
-
-text {* @{term "skip\<^sub>m"} is the system which does nothing to the variables in both predicates. A merge
-  predicate which is R3 must yield @{term II} when composed with it. *}
+definition R3m :: "('t :: ordered_cancel_monoid_diff, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge" where
+  [upred_defs]: "R3m(M) = nil\<^sub>m \<triangleleft> $wait\<^sub>< \<triangleright> M"
 
 lemma R3_par_by_merge:
   assumes
-    "P is R3" "Q is R3" "(skip\<^sub>m ;; M) = II"
+    "P is R3" "Q is R3" "M is R3m"
   shows "(P \<parallel>\<^bsub>M\<^esub> Q) is R3"
 proof -
   have "(P \<parallel>\<^bsub>M\<^esub> Q) = ((P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
-    by (metis cond_L6 cond_var_split in_var_uvar pr_var_def wait_vwb_lens)
-  also have "... = ((P\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> Q\<lbrakk>true/$wait\<rbrakk>)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
-    by (rel_auto)
-  also have "... = ((P\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> Q\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
-    by (metis cond_def conj_pos_var_subst wait_vwb_lens)
-  also have "... = (((II \<triangleleft> $wait \<triangleright> P)\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> (II \<triangleleft> $wait \<triangleright> Q)\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
-    by (metis Healthy_if R3_def assms(1) assms(2))
-  also have "... = ((II\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> II\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (metis cond_L6 cond_var_split in_var_uvar wait_vwb_lens)
+  also have "... = (((R3 P)\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>(R3m M)\<lbrakk>true/$wait\<^sub><\<rbrakk>\<^esub> (R3 Q)\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (subst_tac, simp add: Healthy_if assms)
+  also have "... = ((II\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>nil\<^sub>m\<lbrakk>true/$wait\<^sub><\<rbrakk>\<^esub> II\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+    by (simp add: R3_def R3m_def usubst)
+  also have "... = ((II \<parallel>\<^bsub>nil\<^sub>m\<^esub> II)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
     by (subst_tac)
-  also have "... = ((II \<parallel>\<^bsub>M\<^esub> II) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
-    by (rel_auto)
-  also have "... = ((skip\<^sub>m ;; M) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
-    by (rel_auto)
   also have "... = (II \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
-    by (simp add: assms(3))
+    by (simp add: cond_var_subst_left par_by_merge_nil)    
   also have "... = R3(P \<parallel>\<^bsub>M\<^esub> Q)"
     by (simp add: R3_def)
   finally show ?thesis
-    by (simp add: Healthy_def')
+    by (simp add: Healthy_def)
 qed
+  
 end

@@ -396,6 +396,17 @@ abbreviation utp_gfp ("\<^bold>\<nu>\<index>") where
 abbreviation utp_lfp ("\<^bold>\<mu>\<index>") where
 "utp_lfp \<T> \<equiv> LFP (uthy_order \<T>)"
 
+syntax
+  "_tmu" :: "logic \<Rightarrow> pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<^bold>\<mu>\<index> _ \<bullet> _" [0, 10] 10)
+  "_tnu" :: "logic \<Rightarrow> pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<^bold>\<nu>\<index> _ \<bullet> _" [0, 10] 10)
+
+notation gfp ("\<mu>")
+notation lfp ("\<nu>")
+
+translations
+  "\<^bold>\<nu>\<^bsub>T\<^esub> X \<bullet> P" == "CONST utp_lfp T (\<lambda> X. P)"
+  "\<^bold>\<mu>\<^bsub>T\<^esub> X \<bullet> P" == "CONST utp_gfp T (\<lambda> X. P)"
+
 lemma upred_lattice_inf:
   "ainf \<P> A = \<Sqinter> A"
   by (metis Sup_least Sup_upper UNIV_I antisym_conv subsetI upred_lattice.weak.inf_greatest upred_lattice.weak.inf_lower upred_lattice_carrier upred_lattice_le)

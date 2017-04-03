@@ -2507,12 +2507,6 @@ lemma st_U0_alpha: "\<lceil>\<exists> $st \<bullet> II\<rceil>\<^sub>0 = (\<exis
 lemma st_U1_alpha: "\<lceil>\<exists> $st \<bullet> II\<rceil>\<^sub>1 = (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>1)"
   by (rel_auto)
 
-lemma U0_skip: "\<lceil>II\<rceil>\<^sub>0 = ($0-\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
-  by (rel_auto)
-
-lemma U1_skip: "\<lceil>II\<rceil>\<^sub>1 = ($1-\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
-  by (rel_auto)
-
 lemma R3h_par_by_merge:
   assumes
     "P is R1" "Q is R1" "P is RD1" "Q is RD1" "P is R3h" "Q is R3h"
