@@ -1483,15 +1483,65 @@ thm Des_Rel_coretract.inflation
 thm Des_Rel_coretract.upper_comp[simplified]
 thm Des_Rel_coretract.lower_comp
   
+text {* Specialise @{thm [source] mu_refine_intro} to designs. *}
+  
+lemma design_mu_refine_intro:
+  assumes "F \<in> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H" "P is \<^bold>H" "P \<sqsubseteq> F(P)" "`\<lceil>pre\<^sub>D(P)\<rceil>\<^sub>D \<Rightarrow> (\<mu>\<^sub>D F \<Leftrightarrow> \<nu>\<^sub>D F)`"
+  shows "P \<sqsubseteq> \<mu>\<^sub>D F"
+proof -
+  have P: "P = pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P)"
+    by (metis H1_H2_eq_rdesign Healthy_def' assms(2))
+  from assms have "P \<sqsubseteq> \<nu>\<^sub>D F"
+    by (simp add: design_theory_continuous.weak.GFP_upperbound)
+  moreover have "pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P) \<sqsubseteq> F(pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P))"
+    by (metis P assms(3))
+  ultimately have "pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P) \<sqsubseteq> pre\<^sub>D(\<mu>\<^sub>D F) \<turnstile>\<^sub>r post\<^sub>D(\<mu>\<^sub>D F)" using assms(4)
+    sorry
+  show ?thesis  
+    sorry
+qed      
+     
+
+(*
+lemma rdesign_mu_refine_intro:
+  assumes "(C \<turnstile>\<^sub>r S) \<sqsubseteq> F(C \<turnstile>\<^sub>r S)" "`\<lceil>C\<rceil>\<^sub>D \<Rightarrow> (\<mu> F \<Leftrightarrow> \<nu> F)`"
+  shows "(C \<turnstile>\<^sub>r S) \<sqsubseteq> \<mu> F"
+  by (metis assms design_mu_refine_intro rdesign_def)  
+*)
+
+lemma rdesign_ref_monos:
+  assumes "P is \<^bold>H" "Q is \<^bold>H" "P \<sqsubseteq> Q"
+  shows "pre\<^sub>D(Q) \<sqsubseteq> pre\<^sub>D(P)" "post\<^sub>D(P) \<sqsubseteq> (pre\<^sub>D(P) \<and> post\<^sub>D(Q))"
+proof -
+  have r: "P \<sqsubseteq> Q \<longleftrightarrow> (`pre\<^sub>D(P) \<Rightarrow> pre\<^sub>D(Q)` \<and> `pre\<^sub>D(P) \<and> post\<^sub>D(Q) \<Rightarrow> post\<^sub>D(P)`)"
+    by (metis H1_H2_eq_rdesign Healthy_if assms(1) assms(2) rdesign_refinement)
+  from r assms show "pre\<^sub>D(Q) \<sqsubseteq> pre\<^sub>D(P)"
+    by (auto simp add: refBy_order)
+  from r assms show "post\<^sub>D(P) \<sqsubseteq> (pre\<^sub>D(P) \<and> post\<^sub>D(Q))"
+    by (auto simp add: refBy_order)  
+qed
+    
 locale design_fp =
-  fixes F :: "'\<alpha> hrel_des \<times> '\<alpha> hrel_des \<Rightarrow> '\<alpha> hrel_des"
-  and   G :: "'\<alpha> hrel_des \<times> '\<alpha> hrel_des \<Rightarrow> '\<alpha> hrel_des"
+  fixes F :: "'\<alpha> hrel_des \<Rightarrow> '\<alpha> hrel_des"
   assumes mono_F: "mono F"
-  and mono_G: "mono G"
+  and type_F: "F \<in> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
 begin
   
-  abbreviation "P(Y) \<equiv> \<nu> X \<bullet> F(X,Y)"
-  abbreviation "Q \<equiv> \<mu> Y \<bullet> (P(Y) \<Rightarrow> G(P(Y), Y))"
+  definition "P(Y) \<equiv> \<nu> X \<bullet> pre\<^sub>D(F(X \<turnstile>\<^sub>r Y))"
+  definition "Q \<equiv> \<mu> Y \<bullet> (P(Y) \<Rightarrow> pre\<^sub>D(F(P(Y) \<turnstile>\<^sub>r Y)))"
+
+  lemma design_fp_theorem:
+    "P(Q) \<turnstile>\<^sub>r Q \<sqsubseteq> (\<mu>\<^sub>D F)"  
+  proof (rule_tac design_mu_refine_intro)
+    have "P(Q) \<turnstile>\<^sub>r Q \<sqsubseteq> pre\<^sub>D(F(P(Q) \<turnstile>\<^sub>r Q)) \<turnstile>\<^sub>r post\<^sub>D(F(P(Q) \<turnstile>\<^sub>r Q))"
+    proof (rule rdesign_refine_intro)
+      show "`P(Q) \<Rightarrow> pre\<^sub>D(F(P(Q) \<turnstile>\<^sub>r Q))`"
+      proof -
+        have "mono (\<lambda>X. pre\<^sub>D(F (X \<turnstile>\<^sub>r Q)))"
+          apply (rule monoI)
+          apply (rel_simp)
+          oops    
+  (*
     
   lemma design_fp_theorem:
     "(\<mu> X \<bullet> \<mu> Y \<bullet> (F(X, Y) \<turnstile> G(X, Y))) = (P(Q) \<turnstile> Q)"
@@ -1500,6 +1550,7 @@ begin
     apply (rule gfp_mono)
     apply (rule design_refine_intro)
   oops
+  *)
 
 end
  
