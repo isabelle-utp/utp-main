@@ -783,11 +783,11 @@ lemma R2m'_form:
 lemma R1m_idem: "R1m(R1m(P)) = R1m(P)"
   by (rel_auto)
     
-lemma R1_par_by_merge:
+lemma R1_par_by_merge [closure]:
   "M is R1m \<Longrightarrow> (P \<parallel>\<^bsub>M\<^esub> Q) is R1"
   by (rel_blast)
 
-lemma R2_par_by_merge:
+lemma R2_par_by_merge [closure]:
   assumes "P is R2" "Q is R2" "M is R2m"
   shows "(P \<parallel>\<^bsub>M\<^esub> Q) is R2"
 proof -

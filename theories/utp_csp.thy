@@ -1841,7 +1841,38 @@ lemma CSPMerge'_is_R1m:
 lemma CSPMerge_is_R1m:
 "CSPMerge(cs) is R1m"
   by (rel_auto)
+    
+lemma nmerge_rd_is_R1m [closure]:
+  "N\<^sub>R M is R1m"
+  by (rel_blast)
+     
+lemma nmerge_rd_is_R2m:
+  "M is R2m \<Longrightarrow> N\<^sub>R(M) is R2m"
+  by (rel_auto, meson+)
+    
+lemma nmerge_div_prop:
+  fixes M :: "(('t :: ordered_cancel_monoid_diff, '\<alpha>) rp) merge"
+  assumes "M \<noteq> false" "$0-ok \<sharp> M" "$1-ok \<sharp> M" "$ok\<^sub>< \<sharp> M"
+  shows "(div\<^sub>m ;; N\<^sub>R(M)) = R1 true"
+  apply (rel_auto)
+  apply (rename_tac ok wait tr more ok' wait' tr' more')
+  apply (rule_tac x = "ok" in exI)
+  apply (rule_tac x = "wait" in exI)
+  apply (rule_tac x = "tr" in exI)
+  apply (rule_tac x = "more" in exI)
+  apply (rule_tac x = "ok'" in exI)
+  apply (rule_tac x = "wait'" in exI)
+  apply (rule_tac x = "tr'" in exI)
+  apply (auto)
+  apply (rule_tac x = "more'" in exI)
+  apply (rule_tac x = "ok'" in exI)
+  apply (rule_tac x = "wait'" in exI)
+  apply (rule_tac x = "tr'" in exI)
 
+  apply (simp)
+apply (metis minus_cancel order_refl singletonI tr_par.simps(1))
+
+    
 lemma parallel'_is_R1:
 "(P \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R1"
   by (simp add: CSPMerge'_is_R1m R1_par_by_merge)
@@ -2162,7 +2193,7 @@ proof -
 qed
 
 theorem parallel_reactive_design'':
-assumes "P is CSP" "Q is CSP"
+assumes "P is SRD" "Q is SRD"
 shows "(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) = \<^bold>R\<^sub>s(
   (\<not> (P\<^sup>f\<^sub>f \<parallel>\<^bsub>N\<^sub>0 M ;; R1(true)\<^esub> Q\<^sup>t\<^sub>f) \<and> \<not> (P\<^sup>t\<^sub>f \<parallel>\<^bsub>N\<^sub>0 M ;; R1(true)\<^esub> Q\<^sup>f\<^sub>f))
     \<turnstile>

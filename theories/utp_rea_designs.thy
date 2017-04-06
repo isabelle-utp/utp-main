@@ -405,7 +405,10 @@ lemma R3h_subst_wait: "R3h(P) = R3h(P \<^sub>f)"
 
 lemma skip_rea_R1_lemma: "II\<^sub>r = R1($ok \<Rightarrow> II)"
   by (rel_auto)
-
+    
+lemma RD1_R1_cases: "RD1(R1(P)) = (R1(P) \<triangleleft> $ok \<triangleright> R1(true))"
+  by (rel_auto)
+    
 subsection {* Reactive design UTP theories *}
   
 text {* We create two theory objects: one for reactive designs and one for stateful reactive 
@@ -2507,86 +2510,69 @@ lemma st_U0_alpha: "\<lceil>\<exists> $st \<bullet> II\<rceil>\<^sub>0 = (\<exis
 lemma st_U1_alpha: "\<lceil>\<exists> $st \<bullet> II\<rceil>\<^sub>1 = (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>1)"
   by (rel_auto)
 
-lemma R3h_par_by_merge:
-  assumes
-    "P is R1" "Q is R1" "P is RD1" "Q is RD1" "P is R3h" "Q is R3h"
-    "(wait\<^sub>m ;; M) = ((\<exists> $st \<bullet> II)\<lbrakk>true,true/$ok,$wait\<rbrakk>)" "(div\<^sub>m ;; M) = R1(true)"
+definition 
+  [upred_defs]: "R3hm(M) = ((\<exists> $st\<^sub>< \<bullet> $\<Sigma>\<acute> =\<^sub>u $\<Sigma>\<^sub><) \<triangleleft> $wait\<^sub>< \<triangleright> M) \<triangleleft> $ok\<^sub>< \<triangleright> ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>)"
+    
+lemma R3hm_idem: "R3hm(R3hm(P)) = R3hm(P)"
+  by (rel_auto)
+  
+lemma R3h_par_by_merge [closure]:
+  assumes "P is R3h" "Q is R3h" "M is R3hm"
   shows "(P \<parallel>\<^bsub>M\<^esub> Q) is R3h"
 proof -
   have "(P \<parallel>\<^bsub>M\<^esub> Q) = (((P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true/$ok\<rbrakk> \<triangleleft> $ok \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk>)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
     by (simp add: cond_idem cond_var_subst_left cond_var_subst_right)
-  also have "... = (((P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true,true/$ok,$wait\<rbrakk> \<triangleleft> $ok \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk>)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+  also have "... = (((P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true,true/$ok,$wait\<rbrakk> \<triangleleft> $ok \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false,true/$ok,$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
     by (rel_auto)
-  also have "... = (((P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true,true/$ok,$wait\<rbrakk> \<triangleleft> $ok \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
-    by (simp add: cond_var_subst_left)
-  also have "... = (((\<exists> $st \<bullet> II)\<lbrakk>true,true/$ok,$wait\<rbrakk> \<triangleleft> $ok \<triangleright> R1(true)) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+  also have "... = (((\<exists> $st \<bullet> II)\<lbrakk>true,true/$ok,$wait\<rbrakk> \<triangleleft> $ok \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false,true/$ok,$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
   proof -
-    have "(P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk> = R1(true)"
-    proof -
-      have "(P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk> = ((P \<triangleleft> $ok \<triangleright> R1(true)) \<parallel>\<^bsub>M\<^esub> (Q \<triangleleft> $ok \<triangleright> R1(true)))\<lbrakk>false/$ok\<rbrakk>"
-        by (metis RD1_alt_def Healthy_if assms)
-      also have "... = (R1(true) \<parallel>\<^bsub>M\<lbrakk>false/$ok\<^sub><\<rbrakk>\<^esub> R1(true))"
-        by (rel_auto, metis, metis)
-      also have "... = (div\<^sub>m ;; M)\<lbrakk>false/$ok\<rbrakk>"
-        by (rel_auto, metis, metis)
-      also have "... = (R1(true))\<lbrakk>false/$ok\<rbrakk>"
-        by (simp add: assms(8))
-      also have "... = (R1(true))"
-        by (rel_auto)
-      finally show ?thesis
-        by simp
-    qed
-    moreover have "(P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true,true/$ok,$wait\<rbrakk> = (\<exists> $st \<bullet> II)\<lbrakk>true,true/$ok,$wait\<rbrakk>"
-    proof -
-      have "(P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true,true/$ok,$wait\<rbrakk> = (P\<lbrakk>true,true/$ok,$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> Q\<lbrakk>true,true/$ok,$wait\<rbrakk>)\<lbrakk>true,true/$ok,$wait\<rbrakk>"
-        by (rel_auto)
-      also have "... = ((((\<exists> $st \<bullet> II) \<triangleleft> $ok \<triangleright> R1(true)) \<triangleleft> $wait \<triangleright> P)\<lbrakk>true,true/$ok,$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> (((\<exists> $st \<bullet> II) \<triangleleft> $ok \<triangleright> R1(true)) \<triangleleft> $wait \<triangleright> Q)\<lbrakk>true,true/$ok,$wait\<rbrakk>)\<lbrakk>true,true/$ok,$wait\<rbrakk>"
-        by (metis Healthy_def' R3h_cases assms(5) assms(6))
-      also have "... = ((\<exists> $st \<bullet> II)\<lbrakk>true,true/$ok,$wait\<rbrakk> \<parallel>\<^bsub>M\<^esub> (\<exists> $st \<bullet> II)\<lbrakk>true,true/$ok,$wait\<rbrakk>)\<lbrakk>true,true/$ok,$wait\<rbrakk>"
-        by (subst_tac)
-      also have "... = ((\<exists> $st \<bullet> II) \<parallel>\<^bsub>M\<^esub> (\<exists> $st \<bullet> II))\<lbrakk>true,true/$ok,$wait\<rbrakk>"
-        by (simp add: par_by_merge_def usubst)
-      also have "... = (((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>0) \<and> (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)\<lbrakk>true,true/$ok,$wait\<rbrakk>"
-        by (simp add: par_by_merge_def U0_as_alpha U1_as_alpha alpha st_U0_alpha st_U1_alpha skip\<^sub>m_def)
-      also have "... = (wait\<^sub>m ;; M)\<lbrakk>true,true/$ok,$wait\<rbrakk>"
-        by (rel_auto)
-      also have "... = (\<exists> $st \<bullet> II)\<lbrakk>true,true/$ok,$wait\<rbrakk>"
-        by (simp add: assms usubst)
-      finally show ?thesis .
-    qed
-    ultimately show ?thesis by simp
+    have "(P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true,true/$ok,$wait\<rbrakk> = ((\<lceil>P\<rceil>\<^sub>0 \<and> \<lceil>Q\<rceil>\<^sub>1 \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; R3hm(M))\<lbrakk>true,true/$ok,$wait\<rbrakk>"
+      by (simp add: par_by_merge_def U0_as_alpha U1_as_alpha assms Healthy_if)
+    also have "... = ((\<lceil>P\<rceil>\<^sub>0 \<and> \<lceil>Q\<rceil>\<^sub>1 \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; (\<exists> $st\<^sub>< \<bullet> $\<Sigma>\<acute> =\<^sub>u $\<Sigma>\<^sub><))\<lbrakk>true,true/$ok,$wait\<rbrakk>"
+      by (rel_blast)
+    also have "... = ((\<lceil>R3h(P)\<rceil>\<^sub>0 \<and> \<lceil>R3h(Q)\<rceil>\<^sub>1 \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; (\<exists> $st\<^sub>< \<bullet> $\<Sigma>\<acute> =\<^sub>u $\<Sigma>\<^sub><))\<lbrakk>true,true/$ok,$wait\<rbrakk>"
+      by (simp add: assms Healthy_if)
+    also have "... = (\<exists> $st \<bullet> II)\<lbrakk>true,true/$ok,$wait\<rbrakk>"    
+      by (rel_auto)
+    finally show ?thesis by simp
+  qed
+  also have "... = (((\<exists> $st \<bullet> II)\<lbrakk>true,true/$ok,$wait\<rbrakk> \<triangleleft> $ok \<triangleright> (R1(true))\<lbrakk>false,true/$ok,$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"        
+  proof -
+    have "(P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false,true/$ok,$wait\<rbrakk> = ((\<lceil>P\<rceil>\<^sub>0 \<and> \<lceil>Q\<rceil>\<^sub>1 \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; R3hm(M))\<lbrakk>false,true/$ok,$wait\<rbrakk>"
+      by (simp add: par_by_merge_def U0_as_alpha U1_as_alpha assms Healthy_if)
+    also have "... = ((\<lceil>P\<rceil>\<^sub>0 \<and> \<lceil>Q\<rceil>\<^sub>1 \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>))\<lbrakk>false,true/$ok,$wait\<rbrakk>"
+      by (rel_blast)
+    also have "... = ((\<lceil>R3h(P)\<rceil>\<^sub>0 \<and> \<lceil>R3h(Q)\<rceil>\<^sub>1 \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>))\<lbrakk>false,true/$ok,$wait\<rbrakk>"
+      by (simp add: assms Healthy_if)
+    also have "... = (R1(true))\<lbrakk>false,true/$ok,$wait\<rbrakk>"        
+      by (rel_blast)
+    finally show ?thesis by simp
   qed
   also have "... = (((\<exists> $st \<bullet> II) \<triangleleft> $ok \<triangleright> R1(true)) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
     by (rel_auto)
   also have "... = R3h(P \<parallel>\<^bsub>M\<^esub> Q)"
     by (simp add: R3h_cases)
   finally show ?thesis
-    by (simp add: Healthy_def')
+    by (simp add: Healthy_def)
 qed
-
+    
+definition [upred_defs]: "RD1m(M) = (M \<or> \<not> $ok\<^sub>< \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute>)"
+  
 lemma RD1_par_by_merge:
-  assumes "P is R1" "Q is R1" "P is RD1" "Q is RD1" "M is R1m" "(div\<^sub>m ;; M) = R1(true)"
+  assumes "P is R1" "Q is R1" "M is R1m" "P is RD1" "Q is RD1" "M is RD1m"
   shows "(P \<parallel>\<^bsub>M\<^esub> Q) is RD1"
 proof -
-  have "(P \<parallel>\<^bsub>M\<^esub> Q) = ((P \<parallel>\<^bsub>M\<^esub> Q) \<triangleleft> $ok \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk>)"
-    by (simp add: cond_idem cond_var_subst_right)
-  also have "... = ((P \<parallel>\<^bsub>M\<^esub> Q) \<triangleleft> $ok \<triangleright> R1(true))"
-  proof -
-    have "(P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk> = ((P \<triangleleft> $ok \<triangleright> R1(true)) \<parallel>\<^bsub>M\<^esub> (Q \<triangleleft> $ok \<triangleright> R1(true)))\<lbrakk>false/$ok\<rbrakk>"
-      by (metis RD1_alt_def Healthy_if assms)
-    also have "... = (R1(true) \<parallel>\<^bsub>M\<lbrakk>false/$ok\<^sub><\<rbrakk>\<^esub> R1(true))"
-      by (rel_auto, metis, metis)
-    also have "... = (div\<^sub>m ;; M)\<lbrakk>false/$ok\<rbrakk>"
-      by (rel_auto, metis, metis)
-    also have "... = (R1(true))\<lbrakk>false/$ok\<rbrakk>"
-      by (simp add: assms(6))
-    also have "... = (R1(true))"
-      by (rel_auto)
-    finally show ?thesis
-      by simp
-  qed
+  have 1: "(RD1(R1(P)) \<parallel>\<^bsub>RD1m(R1m(M))\<^esub> RD1(R1(Q)))\<lbrakk>false/$ok\<rbrakk> = R1(true)"
+    by (rel_blast)
+  have "(P \<parallel>\<^bsub>M\<^esub> Q) = (P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true/$ok\<rbrakk> \<triangleleft> $ok \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>false/$ok\<rbrakk>"
+    by (simp add: cond_var_split)
+  also have "... = R1(P \<parallel>\<^bsub>M\<^esub> Q) \<triangleleft> $ok \<triangleright> R1(true)"
+    by (metis "1" Healthy_if R1_par_by_merge assms calculation 
+              cond_idem cond_var_subst_right in_var_uvar ok_vwb_lens)
+  also have "... = RD1(P \<parallel>\<^bsub>M\<^esub> Q)"
+    by (simp add: Healthy_if R1_par_by_merge RD1_alt_def assms(3))
   finally show ?thesis
-    by (metis RD1_alt_def Healthy_def R1_par_by_merge assms(5))
+    by (simp add: Healthy_def)
 qed
 
 lemma RD2_par_by_merge:
@@ -2605,6 +2591,28 @@ proof -
     by (simp add: Healthy_def')
 qed
 
+definition nmerge_rd0 ("N\<^sub>0") where
+[upred_defs]: "N\<^sub>0(M) = ($wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> 
+                        \<and> (\<exists> $0-ok;$1-ok;$ok\<^sub><;$ok\<acute>;$0-wait;$1-wait;$wait\<^sub><;$wait\<acute> \<bullet> M))"
+  
+definition nmerge_rd ("N\<^sub>R") where
+[upred_defs]: "N\<^sub>R(M) = (($ok\<acute> =\<^sub>u ($0-ok \<and> $1-ok) \<and> N\<^sub>0(M)) 
+                        \<triangleleft> $wait\<^sub>< \<triangleright> (\<exists> $st\<^sub>< \<bullet> $\<Sigma>\<acute> =\<^sub>u $\<Sigma>\<^sub><)) 
+                        \<triangleleft> $ok\<^sub>< \<triangleright> ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>)"
+  
+definition merge_rd ("M\<^sub>R") where
+[upred_defs]: "M\<^sub>R(M) = N\<^sub>R(M) ;; II\<^sub>R"
+
+lemma nmerge_rd_is_R1m [closure]: 
+  "N\<^sub>R(M) is R1m"
+  by (rel_blast)
+    
+lemma R2m_div: "R2m ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>) = ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>)"
+  by (rel_auto)
+    
+lemma R2m_skip: "R2m (\<exists> $st\<^sub>< \<bullet> $\<Sigma>\<acute> =\<^sub>u $\<Sigma>\<^sub><) = (\<exists> $st\<^sub>< \<bullet> $\<Sigma>\<acute> =\<^sub>u $\<Sigma>\<^sub><)"
+  apply (rel_auto) using minus_zero_eq by blast
+  
 subsection {* Simple parallel composition *}
 
 definition rea_design_par ::

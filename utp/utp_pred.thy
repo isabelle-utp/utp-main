@@ -559,6 +559,14 @@ lemma impl_mp1 [simp]: "(P \<and> (P \<Rightarrow> Q)) = (P \<and> Q)"
 lemma impl_mp2 [simp]: "((P \<Rightarrow> Q) \<and> P) = (Q \<and> P)"
   by (pred_auto)
     
+lemma impl_refine_intro:
+  "\<lbrakk> Q\<^sub>1 \<sqsubseteq> P\<^sub>1; P\<^sub>2 \<sqsubseteq> (P\<^sub>1 \<and> Q\<^sub>2) \<rbrakk> \<Longrightarrow> (P\<^sub>1 \<Rightarrow> P\<^sub>2) \<sqsubseteq> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)"
+  by (rel_auto) 
+    
+lemma conditional_iff:
+  "(P \<Rightarrow> Q) = (P \<Rightarrow> R) \<longleftrightarrow> `P \<Rightarrow> (Q \<Leftrightarrow> R)`"
+  by (pred_auto)
+    
 lemma p_and_not_p [simp]: "(P \<and> \<not> P) = false"
   by (pred_auto)
 
