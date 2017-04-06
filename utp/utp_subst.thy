@@ -154,6 +154,9 @@ lemma subst_unrest [usubst]: "x \<sharp> P \<Longrightarrow> \<sigma>(x \<mapsto
 lemma subst_compose_upd [usubst]: "x \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<circ> \<rho>(x \<mapsto>\<^sub>s v) = (\<sigma> \<circ> \<rho>)(x \<mapsto>\<^sub>s v) "
   by (simp add: subst_upd_uvar_def, transfer, auto simp add: unrest_usubst_def)
 
+lemma subst_mono: "mono (subst \<sigma>)"
+  by (simp add: less_eq_uexpr.rep_eq mono_def subst.rep_eq)
+    
 lemma id_subst [usubst]: "id \<dagger> v = v"
   by (transfer, simp)
 
