@@ -1700,24 +1700,6 @@ lemma Prefix_CSP_seq: "(a \<^bold>\<rightarrow> P) ;; Q = (a \<^bold>\<rightarro
 subsection {* Merge Predicates *}
 
 text {*
-  Simon, why @{term "$tr\<acute> \<le>\<^sub>u $tr\<^sub><"} and not @{term "$tr\<^sub>< \<le>\<^sub>u $tr\<acute>"} below?
-  Also as the function appears to be the merge operation for reactive designs
-  (subscript @{text "R"}), would it conceptually not be better placed in the
-  theory @{theory utp_rea_designs}? Strangely, the function below appears not
-  to be used anywhere else. Is it redundant now? If so, perhaps remove it!
-*}
-
-definition nmerge_rd0 ("N\<^sub>0") where
-[upred_defs]: "N\<^sub>0(M) = ($wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> 
-                        \<and> (\<exists> $0-ok;$1-ok;$ok\<^sub><;$ok\<acute>;$0-wait;$1-wait;$wait\<^sub><;$wait\<acute> \<bullet> M))"
-  
-definition nmerge_rd ("N\<^sub>R") where
-[upred_defs]: "N\<^sub>R(M) = ($ok\<acute> =\<^sub>u ($0-ok \<and> $1-ok) \<and> N\<^sub>0(M)) "
-  
-definition merge_rd ("M\<^sub>R") where
-[upred_defs]: "M\<^sub>R(M) = N\<^sub>R(M) ;; II\<^sub>R"
-
-text {*
   I wonder if there is a possibility that the terms @{term "$0-tr - $tr\<^sub><"} and
   @{term "$1-tr - $tr\<^sub><"} could be undefined. What ensures, for instance, that
   @{term "$tr\<^sub>< \<le>\<^sub>u $0-tr"} holds? I presume this is guaranteed by both operand
@@ -1767,23 +1749,29 @@ abbreviation ParCSP ::
 subsubsection {* CSP Merge Laws *}
 
 text {* Jim's merge predicate lemmas. *}
-      
+
+(*
 lemma JL1': 
   "(M\<^sub>R(M))\<^sup>t\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk> = (N\<^sub>0(M) ;; R1(true))"
   by (rel_blast)
+*)
 
 lemma JL1: "(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk> = (N0(cs) ;; R1(true))"
   by (rel_auto)
 
+(*
 lemma JL2': "(M\<^sub>R(M))\<^sup>t\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk> = (N\<^sub>0(M) ;; R1(true))"
   by (rel_blast)
+*)
     
 lemma JL2: "(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk> = (N0(cs) ;; R1(true))"
   by (rel_auto)
 
+(*
 lemma JL3': "(M\<^sub>R(M))\<^sup>t\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk> = (N\<^sub>0(M) ;; R1(true))"
   by (rel_blast)
-    
+*)  
+  
 lemma JL3: "(M\<^sub>C\<^sub>S\<^sub>P cs)\<^sup>t\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk> = (N0(cs) ;; R1(true))"
   by (rel_auto)
 
@@ -1845,7 +1833,8 @@ lemma CSPMerge_is_R1m:
 lemma nmerge_rd_is_R1m [closure]:
   "N\<^sub>R M is R1m"
   by (rel_blast)
-     
+
+(*
 lemma nmerge_rd_is_R2m:
   "M is R2m \<Longrightarrow> N\<^sub>R(M) is R2m"
   by (rel_auto, meson+)
@@ -1871,8 +1860,8 @@ lemma nmerge_div_prop:
 
   apply (simp)
 apply (metis minus_cancel order_refl singletonI tr_par.simps(1))
-
-    
+*)
+  
 lemma parallel'_is_R1:
 "(P \<parallel>\<^bsub>N\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R1"
   by (simp add: CSPMerge'_is_R1m R1_par_by_merge)
@@ -1931,6 +1920,7 @@ lemma CSPMerge_wait_prop:
   apply (metis (full_types) insert_iff order_refl ordered_cancel_monoid_diff_class.diff_cancel tr_par.simps(1) zero_list_def)
 done
 
+(*
 lemma parallel_is_R3c:
 assumes "P is R1" "Q is R1" "P is CSP1" "Q is CSP1" "P is R3h" "Q is R3h"
 shows "(P \<parallel>\<^bsub>M\<^sub>C\<^sub>S\<^sub>P(cs)\<^esub> Q) is R3h"
@@ -2286,5 +2276,6 @@ lemma swap_CSPMerge: "(swap\<^sub>m ;; M\<^sub>C\<^sub>S\<^sub>P cs) = M\<^sub>C
 theorem parallel_commutative:
   "(P [|cs|] Q) = (Q [|cs|] P)"
   by (simp add: par_by_merge_commute swap_CSPMerge)
+*)
 
 end

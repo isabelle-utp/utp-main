@@ -61,14 +61,8 @@ translations
 
 subsection {* Signature *}
 
-abbreviation trace :: "('\<theta> tevent list,'\<sigma>,'\<theta>) expr_cml" ("tt") where
-"tt \<equiv> $tr\<acute> - $tr"
-
 abbreviation time_length :: "(nat,'\<sigma>,'\<theta>) expr_cml" ("\<^bold>l")
 where "\<^bold>l \<equiv> #\<^sub>u(tocks\<^sub>u(tt))"
-
-translations
-  "tt" <= "CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr))"
 
 abbreviation CML :: "(('\<sigma>, '\<phi>) st_cml \<times> ('\<sigma>, '\<phi>) st_cml) health"
 where "CML \<equiv> SRD"
