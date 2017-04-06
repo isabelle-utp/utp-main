@@ -242,4 +242,28 @@ definition seq_mod_lpf :: "'a list lpf \<Rightarrow> (nat, 'a) map lpf \<Rightar
 definition seq_index_lpf :: "'a list lpf \<Rightarrow> nat lpf \<Rightarrow> 'a lpf" where
 [lpf_defs]: "seq_index_lpf = lift2_lpf {(x,y) . y < (length x) \<and> y > 0} (op !)"
 
+
+subsubsection {* Comprehensions *}
+(*
+  First the set must be defined
+  Second the predicate of the values of the set must be defined
+  Third the function over the values of the set where the predicate is true must be defined
+  
+*)
+
+definition set_sequence_lpf :: "'a lpf set \<Rightarrow> 'a set lpf" where
+[lpf_defs]: "set_sequence_lpf xs = (if \<exists>x\<in>xs . \<not>\<D>(x) then lpf_None 
+  else lpf_Some {y | x y . y = lpf_the x \<and> x\<in>xs})"
+
+definition set_comprehension_lpf :: "('a \<Rightarrow> 'b lpf) \<Rightarrow> 'a set lpf \<Rightarrow> 
+  ('a \<Rightarrow> bool lpf) \<Rightarrow> 'b set lpf" where
+[lpf_defs]: "set_comprehension_lpf f xs pred = 
+  (if \<D>(xs) \<and> (\<forall>x\<in>(lpf_the xs) . \<D>(pred x)) \<and> 
+    (\<forall>x\<in>(lpf_the xs) . if pred x = lpf_True then \<D>(f x) else True)
+  then set_sequence_lpf {y | x y . y = f x \<and> x\<in>(lpf_the xs) \<and> (pred x = lpf_True)}
+  else lpf_None)"
+
+lemma set_comprehension_lpf_test: "set_comprehension_lpf (\<lambda>x \<Rightarrow> lpf_None) {1::nat,2,3} (\<lambda>x \<Rightarrow> lpf_True) = lpf_None"
+
+
 end
