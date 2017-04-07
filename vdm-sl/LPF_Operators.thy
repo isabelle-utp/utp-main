@@ -282,7 +282,7 @@ lemma set_comprehension_lpf_undefined_pred: "(set_comprehension_lpf (\<lambda>x 
   (lpf_Some {1::nat,2,3}) (\<lambda>x . lpf_None)) = lpf_None"
 apply(simp add: set_comprehension_lpf_def)
 apply(simp add: defined_def)
-apply(simp add: lpf_Some_The)
+apply(simp add: lpf_The_Some)
 done
 
 text {* Proof that a an undefined set makes the comprehension undefined. *}
