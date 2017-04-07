@@ -228,4 +228,10 @@ lemma lifted_card_defined_example: "lift1_lpf' card (lpf_Some ({1,2,3}::nat set)
 apply (lpf_simp)
 done
 
+lemma lpf_The_Some : "lpf_the (lpf_Some a) = a"
+apply(simp add: lpf_Some_def)
+apply(simp add: lpf_the_def)
+apply(simp add: Abs_lpf_inverse)
+done
+
 end

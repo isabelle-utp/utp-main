@@ -248,22 +248,49 @@ subsubsection {* Comprehensions *}
   First the set must be defined
   Second the predicate of the values of the set must be defined
   Third the function over the values of the set where the predicate is true must be defined
-  
 *)
+
+text {* Utility function that converts 'a lpf set to 'a set lpf.
+  If any value in the source set is undefined, then the target set is undefined
+*}
 
 definition set_sequence_lpf :: "'a lpf set \<Rightarrow> 'a set lpf" where
 [lpf_defs]: "set_sequence_lpf xs = (if \<exists>x\<in>xs . \<not>\<D>(x) then lpf_None 
   else lpf_Some {y | x y . y = lpf_the x \<and> x\<in>xs})"
 
-definition set_comprehension_lpf :: "('a \<Rightarrow> 'b lpf) \<Rightarrow> 'a set lpf \<Rightarrow> 
-  ('a \<Rightarrow> bool lpf) \<Rightarrow> 'b set lpf" where
+definition set_comprehension_lpf :: "('a \<Rightarrow> 'b lpf) \<Rightarrow> 'a set lpf \<Rightarrow> ('a \<Rightarrow> bool lpf) \<Rightarrow> 'b set lpf" where
 [lpf_defs]: "set_comprehension_lpf f xs pred = 
-  (if \<D>(xs) \<and> (\<forall>x\<in>(lpf_the xs) . \<D>(pred x)) \<and> 
-    (\<forall>x\<in>(lpf_the xs) . if pred x = lpf_True then \<D>(f x) else True)
+  (if (\<D>(xs) \<and> (\<forall>x\<in>(lpf_the xs) . \<D>(pred x)) \<and> 
+    (\<forall>x\<in>(lpf_the xs) . if pred x = lpf_True then \<D>(f x) else True))
   then set_sequence_lpf {y | x y . y = f x \<and> x\<in>(lpf_the xs) \<and> (pred x = lpf_True)}
   else lpf_None)"
 
-lemma set_comprehension_lpf_test: "set_comprehension_lpf (\<lambda>x \<Rightarrow> lpf_None) {1::nat,2,3} (\<lambda>x \<Rightarrow> lpf_True) = lpf_None"
+text {* Proof that a function returning undefined for values for which the 
+  predicate holds makes the comprehension undefined. 
+*}
 
+lemma set_comprehension_lpf_undefined_fun: "(set_comprehension_lpf (\<lambda>x . lpf_None) 
+  (lpf_Some {1::nat,2,3}) (\<lambda>x . lpf_True)) = lpf_None"
+apply(simp add: set_comprehension_lpf_def)
+apply(simp add: defined_def)
+apply(simp add: lpf_The_Some)
+done
+
+text {* Proof that a predicate returning undefined makes the comprehension undefined. *}
+
+lemma set_comprehension_lpf_undefined_pred: "(set_comprehension_lpf (\<lambda>x . lpf_Some x) 
+  (lpf_Some {1::nat,2,3}) (\<lambda>x . lpf_None)) = lpf_None"
+apply(simp add: set_comprehension_lpf_def)
+apply(simp add: defined_def)
+apply(simp add: lpf_Some_The)
+done
+
+text {* Proof that a an undefined set makes the comprehension undefined. *}
+
+lemma set_comprehension_lpf_undefined_set: "(set_comprehension_lpf (\<lambda>x . lpf_Some x) 
+  lpf_None (\<lambda>x . lpf_None)) = lpf_None"
+apply(simp add: set_comprehension_lpf_def)
+apply(simp add: defined_def)
+done
 
 end
