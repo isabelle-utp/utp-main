@@ -59,7 +59,7 @@ lemma Healthy_def': "P is H \<longleftrightarrow> (H P = P)"
 
 lemma Healthy_if: "P is H \<Longrightarrow> (H P = P)"
   unfolding Healthy_def by auto
-
+    
 declare Healthy_def' [upred_defs]
 
 abbreviation Healthy_carrier :: "'\<alpha> health \<Rightarrow> '\<alpha> upred set" ("\<lbrakk>_\<rbrakk>\<^sub>H")
@@ -72,6 +72,10 @@ lemma Healthy_carrier_image:
 lemma Healthy_carrier_Collect: "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> A = {H(P) | P. P \<in> A}"
   by (simp add: Healthy_carrier_image Setcompr_eq_image)
 
+lemma Healthy_func:
+  "\<lbrakk> F \<in> \<lbrakk>\<H>\<^sub>1\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^sub>2\<rbrakk>\<^sub>H; P is \<H>\<^sub>1 \<rbrakk> \<Longrightarrow> \<H>\<^sub>2(F(P)) = F(P)"
+  using Healthy_if by blast
+    
 lemma Healthy_SUPREMUM:
   "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> SUPREMUM A H = \<Sqinter> A"
   by (drule Healthy_carrier_image, presburger)

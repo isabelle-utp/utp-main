@@ -1360,10 +1360,11 @@ done
 interpretation design_theory_continuous: utp_theory_continuous DES
   rewrites "\<And> P. P \<in> carrier (uthy_order DES) \<longleftrightarrow> P is \<^bold>H"
   and "carrier (uthy_order DES) \<rightarrow> carrier (uthy_order DES) \<equiv> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
+  and "\<lbrakk>\<H>\<^bsub>DES\<^esub>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^bsub>DES\<^esub>\<rbrakk>\<^sub>H \<equiv> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
   and "le (uthy_order DES) = op \<sqsubseteq>"
   and "eq (uthy_order DES) = op ="
   by (unfold_locales, simp_all add: des_hcond_def H1_H2_Continuous utp_order_def)
-
+    
 interpretation normal_design_theory_mono: utp_theory_continuous NDES
   rewrites "\<And> P. P \<in> carrier (uthy_order NDES) \<longleftrightarrow> P is \<^bold>N"
   and "carrier (uthy_order NDES) \<rightarrow> carrier (uthy_order NDES) \<equiv> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"
@@ -1371,6 +1372,8 @@ interpretation normal_design_theory_mono: utp_theory_continuous NDES
   and "eq (uthy_order NDES) = op ="
   by (unfold_locales, simp_all add: ndes_hcond_def H1_H3_Continuous utp_order_def)
 
+thm design_theory_continuous.healthy_top
+    
 lemma design_lat_top: "\<^bold>\<top>\<^bsub>DES\<^esub> = \<^bold>H(false)"
   by (simp add: design_theory_continuous.healthy_top, simp add: des_hcond_def)
 
@@ -1516,6 +1519,7 @@ lemma design_mu_refine_intro:
   shows "(C \<turnstile> S) \<sqsubseteq> \<mu>\<^sub>D F"
 proof -
   from assms have "(C \<turnstile> S) \<sqsubseteq> \<nu>\<^sub>D F"
+    thm design_theory_continuous.weak.GFP_upperbound
     by (simp add: design_is_H1_H2 design_theory_continuous.weak.GFP_upperbound)
   with assms show ?thesis
     by (rel_auto, metis (no_types, lifting))
@@ -1537,7 +1541,7 @@ lemma conditional_refine:
   assumes "mono F" "(P \<Rightarrow> F(Q)) \<sqsubseteq> Q"
   shows "(P \<Rightarrow> \<mu> F) \<sqsubseteq> Q"
   oops
-    
+
 locale design_fp =
   fixes F :: "'\<alpha> hrel_des \<Rightarrow> '\<alpha> hrel_des"
   assumes mono_F: "mono F"
@@ -1546,7 +1550,56 @@ begin
   
   definition "P(Y) \<equiv> \<nu> X \<bullet> pre\<^sub>D(F(X \<turnstile>\<^sub>r Y))"
   definition "Q \<equiv> \<mu> Y \<bullet> (P(Y) \<Rightarrow> post\<^sub>D(F(P(Y) \<turnstile>\<^sub>r Y)))"
-      
+
+  lemma mono_design_iter: "mono (\<lambda>X. pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (F X))"
+    apply (rule monoI)
+    apply (rule rdesign_refine_intro')
+    apply (metis design_pre_choice mono_F mono_def semilattice_sup_class.le_iff_sup utp_pred.inf.absorb_iff2)
+    apply (metis (no_types, lifting) design_post_choice mono_F semilattice_inf_class.inf.absorb2 semilattice_inf_class.inf.orderE semilattice_sup_class.mono_sup semilattice_sup_class.sup.orderE semilattice_sup_class.sup_ge1 utp_pred.le_infI2 utp_pred.sup.order_iff)
+  done
+
+  lemma mu_design_iter:
+    "(\<mu> X \<bullet> pre\<^sub>D(F(X)) \<turnstile>\<^sub>r post\<^sub>D(F(X))) = F(\<mu> X \<bullet> pre\<^sub>D(F(X)) \<turnstile>\<^sub>r post\<^sub>D(F(X)))"
+      by (metis (no_types, lifting) H1_H2_eq_rdesign H1_H2_idempotent Healthy_def Healthy_if 
+                PiE gfp_fixpoint mem_Collect_eq mono_design_iter type_F)
+
+  lemma mu_design_expand:
+    "\<mu>\<^sub>D F = (\<mu> X \<bullet> pre\<^sub>D(F(X)) \<turnstile>\<^sub>r post\<^sub>D(F(X)))"
+  proof -
+    have 1: "F (\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (F X)) is \<^bold>H"
+      by (metis (no_types, lifting) H1_H2_eq_rdesign Healthy_def' gfp_unfold mono_design_iter mu_design_iter)
+    have 2:"Mono\<^bsub>uthy_order DES\<^esub> F"
+      by (simp add: mono_F mono_Monotone_utp_order)
+    hence 3:"\<mu>\<^sub>D F = F (\<mu>\<^sub>D F)"
+      by (simp add: design_theory_continuous.LFP_unfold[THEN sym] type_F)
+    hence "pre\<^sub>D (F (F (\<mu>\<^sub>D F))) \<turnstile>\<^sub>r post\<^sub>D (F (F (\<mu>\<^sub>D F))) = \<mu>\<^sub>D F"
+      by (metis H1_H2_eq_rdesign Healthy_def design_theory_continuous.weak.LFP_closed)
+    hence "(\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (F X)) \<sqsubseteq> F (\<mu>\<^sub>D F)"
+      by (simp add: 2 design_theory_continuous.weak.LFP_lemma3 gfp_upperbound type_F)
+    thus ?thesis
+      using 1 3 design_theory_continuous.weak.LFP_lowerbound eq_iff mu_design_iter by auto
+  qed
+        
+  lemma mu_precondition:
+    "pre\<^sub>D(F(\<mu> X \<bullet> pre\<^sub>D(F(X)) \<turnstile>\<^sub>r post\<^sub>D(G(X)))) = P(Q)"
+  proof (simp add: P_def, rule antisym)
+    show "(\<nu> X \<bullet> pre\<^sub>D (F (X \<turnstile>\<^sub>r Q))) \<sqsubseteq> pre\<^sub>D (F (\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (G X)))"
+    proof (rule lfp_greatest) 
+      fix Y
+      assume a:"Y \<sqsubseteq> pre\<^sub>D (F (Y \<turnstile>\<^sub>r Q))"
+      have "pre\<^sub>D (F (Y \<turnstile>\<^sub>r Q)) \<sqsubseteq> pre\<^sub>D (F (\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (G X)))"
+      proof (rule rdesign_ref_monos)
+        show "F (\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (G X)) \<sqsubseteq> F (Y \<turnstile>\<^sub>r Q)"
+        proof (rule monoD[OF mono_F])
+          show "(\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (G X)) \<sqsubseteq> Y \<turnstile>\<^sub>r Q"
+          proof (rule gfp_upperbound, rule rdesign_refine_intro')
+            show "Y \<sqsubseteq> pre\<^sub>D (F (Y \<turnstile>\<^sub>r Q))"
+              using a by blast            
+            have "post\<^sub>D (G (Y \<turnstile>\<^sub>r Q)) \<sqsubseteq> Q"
+              apply (simp add: Q_def)
+              apply (rule gfp_least)
+            oops
+    
   lemma mono_pre_F: "X \<sqsubseteq> Y \<Longrightarrow> pre\<^sub>D(F (X \<turnstile>\<^sub>r Z)) \<sqsubseteq> pre\<^sub>D(F (Y \<turnstile>\<^sub>r Z))"
     apply (rule rdesign_ref_monos(1))
     using rdesign_is_H1_H2 type_F apply fastforce
