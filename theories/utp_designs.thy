@@ -1563,7 +1563,7 @@ begin
       by (metis (no_types, lifting) H1_H2_eq_rdesign H1_H2_idempotent Healthy_def Healthy_if 
                 PiE gfp_fixpoint mem_Collect_eq mono_design_iter type_F)
 
-  lemma mu_design_expand:
+  lemma mu_design_form:
     "\<mu>\<^sub>D F = (\<mu> X \<bullet> pre\<^sub>D(F(X)) \<turnstile>\<^sub>r post\<^sub>D(F(X)))"
   proof -
     have 1: "F (\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (F X)) is \<^bold>H"
@@ -1579,23 +1579,36 @@ begin
     thus ?thesis
       using 1 3 design_theory_continuous.weak.LFP_lowerbound eq_iff mu_design_iter by auto
   qed
+
+  lemma mu_postcondition: "post\<^sub>D(\<mu>\<^sub>D F) = Q"
+  proof (rule antisym)
+    show "Q \<sqsubseteq> post\<^sub>D (\<mu>\<^sub>D F)"
+      apply (simp add: Q_def)
+      apply (rule gfp_upperbound)
+    oops
         
+  lemma mu_postcondition:
+    "post\<^sub>D(F(\<mu> X \<bullet> pre\<^sub>D(F(X)) \<turnstile>\<^sub>r post\<^sub>D(F(X)))) = Q"
+  proof (simp add: Q_def, rule antisym)
+    show "(\<mu> Y \<bullet> P Y \<Rightarrow> post\<^sub>D (F (P Y \<turnstile>\<^sub>r Y))) \<sqsubseteq> post\<^sub>D (F (\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (F X)))"
+    proof (rule gfp_upperbound)
+      
   lemma mu_precondition:
-    "pre\<^sub>D(F(\<mu> X \<bullet> pre\<^sub>D(F(X)) \<turnstile>\<^sub>r post\<^sub>D(G(X)))) = P(Q)"
+    "pre\<^sub>D(F(\<mu> X \<bullet> pre\<^sub>D(F(X)) \<turnstile>\<^sub>r post\<^sub>D(F(X)))) = P(Q)"
   proof (simp add: P_def, rule antisym)
-    show "(\<nu> X \<bullet> pre\<^sub>D (F (X \<turnstile>\<^sub>r Q))) \<sqsubseteq> pre\<^sub>D (F (\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (G X)))"
+    show "(\<nu> X \<bullet> pre\<^sub>D (F (X \<turnstile>\<^sub>r Q))) \<sqsubseteq> pre\<^sub>D (F (\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (F X)))"
     proof (rule lfp_greatest) 
       fix Y
       assume a:"Y \<sqsubseteq> pre\<^sub>D (F (Y \<turnstile>\<^sub>r Q))"
-      have "pre\<^sub>D (F (Y \<turnstile>\<^sub>r Q)) \<sqsubseteq> pre\<^sub>D (F (\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (G X)))"
+      have "pre\<^sub>D (F (Y \<turnstile>\<^sub>r Q)) \<sqsubseteq> pre\<^sub>D (F (\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (F X)))"
       proof (rule rdesign_ref_monos)
-        show "F (\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (G X)) \<sqsubseteq> F (Y \<turnstile>\<^sub>r Q)"
+        show "F (\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (F X)) \<sqsubseteq> F (Y \<turnstile>\<^sub>r Q)"
         proof (rule monoD[OF mono_F])
-          show "(\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (G X)) \<sqsubseteq> Y \<turnstile>\<^sub>r Q"
+          show "(\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (F X)) \<sqsubseteq> Y \<turnstile>\<^sub>r Q"
           proof (rule gfp_upperbound, rule rdesign_refine_intro')
             show "Y \<sqsubseteq> pre\<^sub>D (F (Y \<turnstile>\<^sub>r Q))"
               using a by blast            
-            have "post\<^sub>D (G (Y \<turnstile>\<^sub>r Q)) \<sqsubseteq> Q"
+            have "post\<^sub>D (F (Y \<turnstile>\<^sub>r Q)) \<sqsubseteq> Q"
               apply (simp add: Q_def)
               apply (rule gfp_least)
             oops
