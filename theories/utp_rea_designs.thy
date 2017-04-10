@@ -90,7 +90,13 @@ lemma RD1_Monotonic: "Monotonic RD1"
 
 lemma RD1_Continuous: "Continuous RD1"
   by (rel_auto)
-
+    
+lemma RD1_seq: "RD1(RD1(P) ;; RD1(Q)) = RD1(P) ;; RD1(Q)"
+  by (rel_auto)
+   
+lemma RD1_seq_closure [closure]: "\<lbrakk> P is RD1; Q is RD1 \<rbrakk> \<Longrightarrow> P ;; Q is RD1"
+  by (metis Healthy_def' RD1_seq)
+    
 lemma RD2_idem: "RD2(RD2(P)) = RD2(P)"
   by (simp add: H2_idem RD2_def)
 
@@ -174,6 +180,9 @@ lemma R3c_via_RD1_R3: "RD1(R3(P)) = R3c(RD1(P))"
 lemma R3c_RD1_def: "P is RD1 \<Longrightarrow> R3c(P) = RD1(R3(P))"
   by (simp add: Healthy_if R3c_via_RD1_R3)
 
+lemma skip_srea_RD1 [closure]: "II\<^sub>R is RD1"
+  by (rel_auto)
+    
 lemma RD1_R3c_commute: "RD1(R3c(P)) = R3c(RD1(P))"
   by (rel_auto)
 
@@ -340,6 +349,15 @@ lemma skip_srea_form: "II\<^sub>R = ((\<exists> $st \<bullet> II) \<triangleleft
 lemma R2c_skip_srea: "R2c(II\<^sub>R) = II\<^sub>R"
   apply (rel_auto) using minus_zero_eq by blast+
 
+lemma skip_srea_R1 [closure]: "II\<^sub>R is R1"
+  by (metis Healthy_def R1_R3h_commute R1_skip_rea R3h_def skip_srea_def)
+
+lemma skip_srea_R2c [closure]: "II\<^sub>R is R2c"
+  by (simp add: Healthy_def R2c_skip_srea)
+  
+lemma skip_srea_R2 [closure]: "II\<^sub>R is R2"
+  by (metis Healthy_def' R1_R2c_is_R2 R2c_skip_srea skip_srea_R1)
+
 lemma R3h_form: "R3h(P) = II\<^sub>R \<triangleleft> $wait \<triangleright> P"
   by (rel_auto)
     
@@ -356,7 +374,7 @@ lemma R3c_seq_closure:
   shows "(P ;; Q) is R3c"
   by (metis Healthy_def' R3c_semir_form assms)
 
-lemma R3h_seq_closure:
+lemma R3h_seq_closure [closure]:
   assumes "P is R3h" "Q is R3h" "Q is R1"
   shows "(P ;; Q) is R3h"
   by (metis Healthy_def' R3h_semir_form assms)
@@ -403,6 +421,9 @@ lemma R3c_subst_wait: "R3c(P) = R3c(P \<^sub>f)"
 lemma R3h_subst_wait: "R3h(P) = R3h(P \<^sub>f)"
   by (simp add: R3h_cases cond_var_subst_right)
 
+lemma skip_srea_R3h [closure]: "II\<^sub>R is R3h"
+  by (rel_auto)
+    
 lemma skip_rea_R1_lemma: "II\<^sub>r = R1($ok \<Rightarrow> II)"
   by (rel_auto)
     
@@ -2131,6 +2152,11 @@ proof -
     using Healthy_def by blast
 qed
 
+lemma NSRD_intro':
+  assumes "P is R2" "P is R3h" "P is RD1" "P is RD3"
+  shows "P is NSRD"
+  by (metis (no_types, hide_lams) Healthy_def NSRD_def R1_R2c_is_R2 RHS_def assms comp_apply)
+  
 lemma SRD_RD3_implies_NSRD:
   "\<lbrakk> P is SRD; P is RD3 \<rbrakk> \<Longrightarrow> P is NSRD"
   by (metis (no_types, lifting) Healthy_def NSRD_def RHS_idem SRD_healths(4) SRD_reactive_design comp_apply)
@@ -2190,6 +2216,11 @@ qed
 lemma NSRD_iff:
   "P is NSRD \<longleftrightarrow> ((P is SRD) \<and> (\<not> pre\<^sub>R(P)) ;; R1(true) = (\<not> pre\<^sub>R(P)) \<and> ($st\<acute> \<sharp> peri\<^sub>R(P)))"
   by (meson NSRD_intro NSRD_is_SRD NSRD_neg_pre_unit NSRD_st'_unrest_peri)
+
+lemma NSRD_is_RD3 [closure]:
+  assumes "P is NSRD"
+  shows "P is RD3"
+  by (simp add: NSRD_is_SRD NSRD_neg_pre_unit NSRD_st'_unrest_peri RD3_intro_pre assms) 
 
 lemma NSRD_composition_wp:
   assumes "P is NSRD" "Q is SRD"
@@ -2491,21 +2522,6 @@ lemma R_D_seq:
 
 subsection {* Reactive design parallel-by-merge *}
 
-definition [upred_defs]: "nil\<^sub>r\<^sub>m = (nil\<^sub>m \<triangleleft> $0-ok \<and> $1-ok \<triangleright> ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>))"
-
-text {* @{term "nil\<^sub>r\<^sub>m"} is the parallel system which does nothing if the parallel predicates have both
-  terminated ($0.ok \wedge 1.ok$), and otherwise guarantees only the merged trace gets longer. *}
-
-definition [upred_defs]: "div\<^sub>m = ($tr \<le>\<^sub>u $0-tr\<acute> \<and> $tr \<le>\<^sub>u $1-tr\<acute> \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)"
-
-text {* @{term "div\<^sub>m"} is the parallel system where both sides traces get longer than the initial
-  trace and identifies the before values of the variables. *}
-
-definition [upred_defs]: "wait\<^sub>m = (((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>0) \<and> (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>)\<lbrakk>true,true/$ok,$wait\<rbrakk>)"
-
-text {* @{term "wait\<^sub>m"} is the parallel system where ok and wait are both true and all other variables
-  are identified, except for the state which is hidden in both the left and right.*}
-
 text {* R3h implicitly depends on RD1, and therefore it requires that both sides be RD1. We also
   require that both sides are R3c, and that @{term "wait\<^sub>m"} is a quasi-unit, and @{term "div\<^sub>m"} yields
   divergence. *}
@@ -2515,9 +2531,11 @@ lemma st_U0_alpha: "\<lceil>\<exists> $st \<bullet> II\<rceil>\<^sub>0 = (\<exis
 
 lemma st_U1_alpha: "\<lceil>\<exists> $st \<bullet> II\<rceil>\<^sub>1 = (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>1)"
   by (rel_auto)
-
-definition 
-  [upred_defs]: "R3hm(M) = ((\<exists> $st\<^sub>< \<bullet> $\<Sigma>\<acute> =\<^sub>u $\<Sigma>\<^sub><) \<triangleleft> $wait\<^sub>< \<triangleright> M) \<triangleleft> $ok\<^sub>< \<triangleright> ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>)"
+    
+definition skip_rm :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp merge" ("II\<^sub>R\<^sub>M") where 
+  [upred_defs]: "II\<^sub>R\<^sub>M = (\<exists> $st\<^sub>< \<bullet> skip\<^sub>m \<or> (\<not> $ok\<^sub>< \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute>))"
+    
+definition [upred_defs]: "R3hm(M) = (II\<^sub>R\<^sub>M \<triangleleft> $wait\<^sub>< \<triangleright> M)"
     
 lemma R3hm_idem: "R3hm(R3hm(P)) = R3hm(P)"
   by (rel_auto)
@@ -2621,7 +2639,36 @@ definition merge_rd ("M\<^sub>R") where
 lemma nmerge_rd_is_R1m [closure]:
   "N\<^sub>R(M) is R1m"
   by (rel_blast)
+
+lemma R2m_nmerge_rd: "R2m(N\<^sub>R(R2m(M))) = N\<^sub>R(R2m(M))"
+  apply (rel_auto) using minus_zero_eq by blast+
     
+lemma nmerge_rd_is_R2m [closure]:
+  "M is R2m \<Longrightarrow> N\<^sub>R(M) is R2m"
+  by (metis Healthy_def' R2m_nmerge_rd)
+  
+lemma nmerge_rd_is_R3hm [closure]: "N\<^sub>R(M) is R3hm"
+  by (rel_blast)
+
+lemma nmerge_rd_is_RD1m [closure]: "N\<^sub>R(M) is RD1m"
+  by (rel_blast)   
+
+lemma merge_rd_is_RD3: "M\<^sub>R(M) is RD3"
+  by (metis Healthy_Idempotent RD3_Idempotent RD3_def merge_rd_def)
+   
+lemma merge_rd_is_RD2: "M\<^sub>R(M) is RD2"
+  by (simp add: RD3_implies_RD2 merge_rd_is_RD3)
+    
+lemma par_rdes_NSRD [closure]:
+  assumes "P is SRD" "Q is SRD" "M is R2m"
+  shows "P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q is NSRD"
+proof -
+  have "(P \<parallel>\<^bsub>N\<^sub>R M\<^esub> Q ;; II\<^sub>R) is NSRD"
+    by (rule NSRD_intro', simp_all add: SRD_healths closure assms, metis Healthy_def RD3_def RD3_idem)
+  thus ?thesis
+    by (simp add: merge_rd_def par_by_merge_def seqr_assoc)
+qed
+
 lemma parallel_ok_cases:
 "((P \<parallel>\<^sub>s Q) ;; M) = (
   ((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>t) ;; (M\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk>)) \<or>

@@ -193,7 +193,7 @@ lemma R1_seqr:
   "R1(R1(P) ;; R1(Q)) = (R1(P) ;; R1(Q))"
   by (rel_auto)
 
-lemma R1_seqr_closure:
+lemma R1_seqr_closure [closure]:
   assumes "P is R1" "Q is R1"
   shows "(P ;; Q) is R1"
   using assms unfolding R1_by_refinement
@@ -521,7 +521,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma R2_seqr_closure:
+lemma R2_seqr_closure [closure]:
   assumes "P is R2" "Q is R2"
   shows "(P ;; Q) is R2"
   by (metis Healthy_def' R2_seqr_distribute assms(1) assms(2))
@@ -807,6 +807,9 @@ proof -
     by (simp add: Healthy_def)
 qed
 
+lemma R2m_idem: "R2m(R2m(P)) = R2m(P)"
+  by (rel_auto)
+  
 lemma R2m_seq_lemma: "R2m'(R2m'(M) ;; R2(P)) = R2m'(M) ;; R2(P)"
   apply (simp add: R2m'_form R2_form)
   apply (rel_auto)
@@ -871,8 +874,26 @@ proof -
     by (simp add: Healthy_def)
 qed
 
+lemma R1m_skip_merge: "R1m(skip\<^sub>m) = skip\<^sub>m"
+  by (rel_auto)
+    
+lemma R1m_disj: "R1m(P \<or> Q) = (R1m(P) \<or> R1m(Q))"
+  by (rel_auto)
+
+lemma R1m_conj: "R1m(P \<and> Q) = (R1m(P) \<and> R1m(Q))"
+  by (rel_auto)
+    
+lemma R2m_skip_merge: "R2m(skip\<^sub>m) = skip\<^sub>m"
+  apply (rel_auto) using minus_zero_eq by blast
+  
+lemma R2m_disj: "R2m(P \<or> Q) = (R2m(P) \<or> R2m(Q))"
+  by (rel_auto)
+
+lemma R2m_conj: "R2m(P \<and> Q) = (R2m(P) \<and> R2m(Q))"
+  by (rel_auto)
+    
 definition R3m :: "('t :: ordered_cancel_monoid_diff, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge" where
-  [upred_defs]: "R3m(M) = nil\<^sub>m \<triangleleft> $wait\<^sub>< \<triangleright> M"
+  [upred_defs]: "R3m(M) = skip\<^sub>m \<triangleleft> $wait\<^sub>< \<triangleright> M"
 
 lemma R3_par_by_merge:
   assumes
@@ -883,12 +904,12 @@ proof -
     by (metis cond_L6 cond_var_split in_var_uvar wait_vwb_lens)
   also have "... = (((R3 P)\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>(R3m M)\<lbrakk>true/$wait\<^sub><\<rbrakk>\<^esub> (R3 Q)\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
     by (subst_tac, simp add: Healthy_if assms)
-  also have "... = ((II\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>nil\<^sub>m\<lbrakk>true/$wait\<^sub><\<rbrakk>\<^esub> II\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+  also have "... = ((II\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>skip\<^sub>m\<lbrakk>true/$wait\<^sub><\<rbrakk>\<^esub> II\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
     by (simp add: R3_def R3m_def usubst)
-  also have "... = ((II \<parallel>\<^bsub>nil\<^sub>m\<^esub> II)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+  also have "... = ((II \<parallel>\<^bsub>skip\<^sub>m\<^esub> II)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
     by (subst_tac)
   also have "... = (II \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
-    by (simp add: cond_var_subst_left par_by_merge_nil)    
+    by (simp add: cond_var_subst_left par_by_merge_skip)    
   also have "... = R3(P \<parallel>\<^bsub>M\<^esub> Q)"
     by (simp add: R3_def)
   finally show ?thesis

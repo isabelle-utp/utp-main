@@ -91,10 +91,10 @@ text {* A merge is then a relation whose input has three parts: the prior variab
 
 type_synonym '\<alpha> merge = "('\<alpha> \<times> ('\<alpha> \<times> '\<alpha>), '\<alpha>) rel"
   
-text {* nil is the merge predicate which ignores the output of both parallel predicates *}
+text {* skip is the merge predicate which ignores the output of both parallel predicates *}
 
-definition nil\<^sub>m :: "'\<alpha> merge" where
-[upred_defs]: "nil\<^sub>m = ($\<Sigma>\<acute> =\<^sub>u $\<Sigma>\<^sub><)"
+definition skip\<^sub>m :: "'\<alpha> merge" where
+[upred_defs]: "skip\<^sub>m = ($\<Sigma>\<acute> =\<^sub>u $\<Sigma>\<^sub><)"
 
 text {* swap is a predicate that the swaps the left and right indices; it is used to specify 
         commutativity of the parallel operator *}
@@ -246,15 +246,18 @@ lemma par_by_merge_left_false [simp]:
 lemma par_by_merge_right_false [simp]:
   "P \<parallel>\<^bsub>M\<^esub> false = false"
   by (rel_auto)
-
-text {* A nil parallel-by-merge yields a skip whenever the parallel predicates are both feasible. *}
     
-lemma par_by_merge_nil:
+lemma par_by_merge_seq_add: "(P \<parallel>\<^bsub>M\<^esub> Q) ;; R = (P \<parallel>\<^bsub>M ;; R\<^esub> Q)"
+  by (simp add: par_by_merge_def seqr_assoc)
+
+text {* A skip parallel-by-merge yields a skip whenever the parallel predicates are both feasible. *}
+    
+lemma par_by_merge_skip:
   assumes "P ;; true = true" "Q ;; true = true"
-  shows "P \<parallel>\<^bsub>nil\<^sub>m\<^esub> Q = II"
+  shows "P \<parallel>\<^bsub>skip\<^sub>m\<^esub> Q = II"
   using assms by (rel_auto)
     
-lemma nil_swap: "swap\<^sub>m ;; nil\<^sub>m = nil\<^sub>m"
+lemma skip_merge_swap: "swap\<^sub>m ;; skip\<^sub>m = skip\<^sub>m"
   by (rel_auto)
     
 text {* Parallel-by-merge commutes when the merge predicate is unchanged by swap *}
