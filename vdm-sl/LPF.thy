@@ -15,7 +15,11 @@ text {*
 *}
 
 theory LPF
-imports Main Eisbach utp
+imports  
+  "LPF_Utilities"
+  "~~/src/Tools/Adhoc_Overloading"
+  "~~/src/HOL/Library/Monad_Syntax" (* Necessary for the bind operator *)
+  "~~/src/HOL/Eisbach/Eisbach"
 begin
 
 subsection {* Defining the LPF Type and Basic Lifting. *}
@@ -33,8 +37,7 @@ text {*
 *}
 
 typedef 'a lpf = "UNIV :: 'a option set"
-apply(rule UNIV_witness)
-done
+by (rule UNIV_witness)
 
 text {*
   The two theorems lpf\_defs and lpf\_transfer are collection of proofs.
@@ -45,7 +48,7 @@ text {*
 
 named_theorems lpf_defs "lpf definitional axioms"
 named_theorems lpf_transfer "lpf transfer laws"
-  
+
 lemmas Abs_lpf_inject_sym = sym [OF Abs_lpf_inject]
 lemmas Rep_lpf_inject_sym = sym [OF Rep_lpf_inject]
   
@@ -61,6 +64,8 @@ setup_lifting type_definition_lpf
 text {* Extract the value wrapped in @{type lpf}. *}
 
 lift_definition lpf_the :: "'a lpf \<Rightarrow> 'a" is "(\<lambda>x . (the \<circ> Rep_lpf) x)" .
+
+declare lpf_the.rep_eq [lpf_transfer]
 
 text {* Lift a value into a defined @{type lpf} value. *}
 
@@ -91,7 +96,6 @@ subsection {* Lifting of Operators *}
 text {* This section introduces lifting of unary, binary and ternary operators 
   into the @{type lpf} type *}
 
-
 text {*
   The following function checks if an input x satisfies a predicate (belongs to
   a set). If it does belong to the set, then the function returns the value 
@@ -113,6 +117,7 @@ definition lift_bind :: "'a lpf \<Rightarrow> ('a \<Rightarrow> 'b lpf) \<Righta
 adhoc_overloading
 bind lift_bind
 
+
 subsubsection {* Lifting of Unary Operators *}
 
 text {* lift1\_lpf takes a set, which is a predicate on the input values, 
@@ -124,14 +129,13 @@ text {* lift1\_lpf takes a set, which is a predicate on the input values,
 lift_definition lift1_lpf :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf)" is 
 "(\<lambda> u f x . (x\<bind>lpfSat u)\<bind> lpf_Some \<circ> f)" .
 
-declare lift1_lpf.transfer [lpf_transfer]
-declare lift1_lpf_def [lpf_defs]
+declare lift1_lpf.rep_eq [lpf_transfer]
 
 lift_definition lift1_lpf' :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf)" is
 "(\<lambda> f . lift1_lpf UNIV f)" .
+print_theorems
 
-declare lift1_lpf'.transfer [lpf_transfer]
-declare lift1_lpf'_def [lpf_defs]
+declare lift1_lpf'.rep_eq [lpf_transfer]
 
 subsubsection {* Lifting of Binary Operators *}
 
@@ -147,11 +151,9 @@ declare lift2_lpf_def [lpf_defs]
 
 lift_definition lift2_lpf' :: 
   "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf \<Rightarrow> 'c lpf)" is 
-  "lift2_lpf UNIV"
-done
+  "lift2_lpf UNIV" .
 
-declare lift2_lpf'.transfer [lpf_transfer]
-declare lift2_lpf'_def [lpf_defs]
+declare lift2_lpf'.rep_eq [lpf_transfer]
 
 subsubsection {* Lifting of Ternary Operators. *}
 
@@ -166,14 +168,13 @@ text {*  Three tactics are created for use in proofs. *}
 method lpf_simp = (simp add: lpf_defs lpf_transfer; clarsimp?)
 method lpf_auto = (lpf_simp; auto)
 method lpf_blast = (lpf_simp; blast)
-                                                                        
+                                                 
 subsection {* Proof Examples *}
 text {* In this section we illustrate the use of the proof tactics along with 
   proving useful laws *}
 
-lemma "lpf_Some x = lpf_Some y \<longleftrightarrow> x = y"
-apply (lpf_simp)
-done
+lemma "(lpf_Some x = lpf_Some y) \<longleftrightarrow> (x = y)"
+by (lpf_simp)
 
 lemma all_lpf_transfer [lpf_transfer]:
 "(\<forall>x::'a lpf. P x) = (\<forall>x::'a option. P (Abs_lpf x))" 
@@ -183,8 +184,7 @@ apply (drule_tac x = "Abs_lpf x" in spec)
 apply (assumption)
 -- {* Subgoal 2 *}
 apply (drule_tac x = "Rep_lpf x" in spec)
-apply (simp add: Rep_lpf_inverse)
-done
+by (simp add: Rep_lpf_inverse)
 
 lemma ex_lpf_transfer [lpf_transfer]:
 "(\<exists>x::'a lpf. P x) = (\<exists>x::'a option. P (Abs_lpf x))"
@@ -194,8 +194,7 @@ apply (rule_tac x = "Rep_lpf x" in exI)
 apply (simp add: Rep_lpf_inverse)
 -- {* Subgoal 2 *}
 apply (rule_tac x = "Abs_lpf x" in exI)
-apply (assumption)
-done
+by (assumption)
 
 lemma meta_lpf_transfer [lpf_transfer]:
 "(\<And>x::'a lpf. P x) \<equiv> (\<And>x::'a option. P (Abs_lpf x))" 
@@ -205,33 +204,26 @@ apply (drule_tac x = "Abs_lpf x" in meta_spec)
 apply (assumption)
 -- {* Subgoal 2 *}
 apply (drule_tac x = "Rep_lpf x" in meta_spec)
-apply (simp add: Rep_lpf_inverse)
-done
+by (simp add: Rep_lpf_inverse)
 
 lemma lifted_card_undefined_example: "lift1_lpf' card lpf_None = lpf_None"
-apply (lpf_simp)
-done
+by (lpf_simp)
 
 lemma lifted_union_undefined_undefined_example: "lift2_lpf' union lpf_None lpf_None = lpf_None"
-apply (lpf_simp)
-done
+by (lpf_simp)
 
 lemma lifted_union_defined_undefined_example: "lift2_lpf' union (lpf_Some {True}) lpf_None = lpf_None"
-apply (lpf_simp)
-done
+by (lpf_simp)
 
 lemma lifted_union_defined_defined_example: "lift2_lpf' union (lpf_Some {True}) (lpf_Some {False}) = lpf_Some(union {True} {False} )"
-apply (lpf_simp)
-done
+by (lpf_simp)
 
 lemma lifted_card_defined_example: "lift1_lpf' card (lpf_Some ({1,2,3}::nat set)) = lpf_Some 3"
-apply (lpf_simp)
-done
+by (lpf_simp)
 
 lemma lpf_The_Some : "lpf_the (lpf_Some a) = a"
-apply(simp add: lpf_Some_def)
-apply(simp add: lpf_the_def)
-apply(simp add: Abs_lpf_inverse)
-done
+apply (simp add: lpf_Some_def)
+apply (simp add: lpf_the_def)
+by (simp add: Abs_lpf_inverse)
 
 end

@@ -22,7 +22,12 @@ text {* \todo{
 *}
 
 theory LPF_Operators
-imports LPF Transcendental
+imports 
+  LPF 
+  Transcendental
+  "../utils/TotalRecall"
+  "../utils/Library_Extra/Map_Extra"
+  
 begin recall_syntax
 
 no_notation Lens_Order.sublens  (infix "\<subseteq>\<^sub>L" 55)
@@ -275,8 +280,7 @@ lemma set_comprehension_lpf_undefined_fun: "(set_comprehension_lpf (\<lambda>x .
   (lpf_Some {1::nat,2,3}) (\<lambda>x . lpf_True)) = lpf_None"
 apply(simp add: set_comprehension_lpf_def)
 apply(simp add: defined_def)
-apply(simp add: lpf_The_Some)
-done
+by(simp add: lpf_The_Some)
 
 text {* Proof that a predicate returning undefined makes the comprehension undefined. *}
 
@@ -284,16 +288,14 @@ lemma set_comprehension_lpf_undefined_pred: "(set_comprehension_lpf (\<lambda>x 
   (lpf_Some {1::nat,2,3}) (\<lambda>x . lpf_None)) = lpf_None"
 apply(simp add: set_comprehension_lpf_def)
 apply(simp add: defined_def)
-apply(simp add: lpf_The_Some)
-done
+by(simp add: lpf_The_Some)
 
 text {* Proof that a an undefined set makes the comprehension undefined. *}
 
 lemma set_comprehension_lpf_undefined_set: "(set_comprehension_lpf (\<lambda>x . lpf_Some x) 
   lpf_None (\<lambda>x . lpf_None)) = lpf_None"
 apply(simp add: set_comprehension_lpf_def)
-apply(simp add: defined_def)
-done
+by(simp add: defined_def)
 
 syntax
 (* Unary Operators *)
