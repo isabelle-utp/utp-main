@@ -29,8 +29,6 @@ imports
   "../utils/Library_Extra/Map_Extra"
   
 begin recall_syntax
-
-no_notation Lens_Order.sublens  (infix "\<subseteq>\<^sub>L" 55)
   
 text {*
   Below we define unary operators on the @{type lpf} type using the lifting 
@@ -370,10 +368,10 @@ translations
 "Pow\<^sub>L(A)" == "CONST power_lpf A"
 (* Sequence Unary Operators *)
 "hd\<^sub>L(xs)" == "CONST hd_lpf xs"
+"reverse\<^sub>L(xs)" == "CONST reverse_lpf xs"
 "tl\<^sub>L(xs)" == "CONST tl_lpf xs"
 "elem\<^sub>L(xs)" == "CONST elems_lpf xs"
 "inds\<^sub>L(xs)" == "CONST inds_lpf xs"
-"reverse\<^sub>L(xs)" == "CONST reverse_lpf xs"
 "conc\<^sub>L(xs)" == "CONST conc_lpf xs"
 (* Map Unary Operators *)
 "dom\<^sub>L(f)" == "CONST dom_lpf f"
@@ -415,17 +413,12 @@ translations
     
 (*This is not going to work with =\<^sub>L*)
 lemma "(x \<and>\<^sub>L x) = x"
-  using [[simp_trace=true]]
-  apply(lpf_auto)
-done
+by(lpf_auto)
 
 lemma "(x \<or>\<^sub>L x) = x"
-  using [[simp_trace=true]]
-  apply(lpf_auto)
-done
+by(lpf_auto)
 
 lemma "(p  \<and>\<^sub>L q) = (q  \<and>\<^sub>L p )"
-apply(lpf_auto)
-done      
+by(lpf_auto)
   
 end

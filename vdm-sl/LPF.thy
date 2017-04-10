@@ -133,7 +133,6 @@ declare lift1_lpf.rep_eq [lpf_transfer]
 
 lift_definition lift1_lpf' :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf)" is
 "(\<lambda> f . lift1_lpf UNIV f)" .
-print_theorems
 
 declare lift1_lpf'.rep_eq [lpf_transfer]
 
