@@ -790,6 +790,34 @@ lemma R2m'_form:
 lemma R1m_idem: "R1m(R1m(P)) = R1m(P)"
   by (rel_auto)
     
+lemma R1m_seq_lemma: "R1m(R1m(M) ;; R1(P)) = R1m(M) ;; R1(P)"
+  by (rel_auto)
+
+lemma R1m_seq:
+  assumes "M is R1m" "P is R1"
+  shows "M ;; P is R1m"
+proof -
+  from assms have "R1m(M ;; P) = R1m(R1m(M) ;; R1(P))"
+    by (simp add: Healthy_if)
+  also have "... = R1m(M) ;; R1(P)"
+    by (simp add: R1m_seq_lemma)
+  also have "... = M ;; P"
+    by (simp add: Healthy_if assms)
+  finally show ?thesis
+    by (simp add: Healthy_def)
+qed
+
+lemma R2m_seq_lemma: "R2m'(R2m'(M) ;; R2(P)) = R2m'(M) ;; R2(P)"
+  apply (simp add: R2m'_form R2_form)
+  apply (rel_auto)
+  apply (metis (no_types, lifting) add.assoc)+
+done
+
+lemma R2m'_seq:
+  assumes "M is R2m'" "P is R2"
+  shows "M ;; P is R2m'"
+  by (metis Healthy_def' R2m_seq_lemma assms(1) assms(2))
+
 lemma R1_par_by_merge [closure]:
   "M is R1m \<Longrightarrow> (P \<parallel>\<^bsub>M\<^esub> Q) is R1"
   by (rel_blast)

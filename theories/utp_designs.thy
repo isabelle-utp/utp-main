@@ -1592,6 +1592,7 @@ begin
   proof (simp add: Q_def, rule antisym)
     show "(\<mu> Y \<bullet> P Y \<Rightarrow> post\<^sub>D (F (P Y \<turnstile>\<^sub>r Y))) \<sqsubseteq> post\<^sub>D (F (\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (F X)))"
     proof (rule gfp_upperbound)
+  oops
       
   lemma mu_precondition:
     "pre\<^sub>D(F(\<mu> X \<bullet> pre\<^sub>D(F(X)) \<turnstile>\<^sub>r post\<^sub>D(F(X)))) = P(Q)"
