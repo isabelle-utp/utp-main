@@ -199,7 +199,9 @@ session "FMI" in "fmi" = "UTP-THY-DEEP-AXM" +
     (* "root.bib" *)
     "root.tex"
     "document.sty"
-	
+
+(* LFP Mechanisation (Casper) *)
+
 session "LPF" in "vdm-sl" = "UTP" +
 	options [document = pdf, document_output = "output", timeout = 1000]
 	theories
