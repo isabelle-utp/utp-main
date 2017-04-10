@@ -1683,7 +1683,7 @@ lemma srdes_refine_intro:
   assumes "`P\<^sub>1 \<Rightarrow> P\<^sub>2`" "`P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> Q\<^sub>1`"
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1) \<sqsubseteq> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2)"
   by (simp add: RHS_mono assms design_refine_intro)
-
+    
 lemma srdes_tri_refine_intro:
   assumes "`P\<^sub>1 \<Rightarrow> P\<^sub>2`" "`P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> Q\<^sub>1`" "`P\<^sub>1 \<and> R\<^sub>2 \<Rightarrow> R\<^sub>1`"
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1 \<diamondop> R\<^sub>1) \<sqsubseteq> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2 \<diamondop> R\<^sub>2)"
@@ -2831,19 +2831,30 @@ lemma parallel_commitment:
   shows "cmt\<^sub>R(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) = (pre\<^sub>R(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) \<Rightarrow> cmt\<^sub>R(P) \<parallel>\<^bsub>($ok\<acute> \<and> N\<^sub>0 M) ;; II\<^sub>R\<^sup>t\<^esub> cmt\<^sub>R(Q))"
   by (simp add: parallel_commitment_lemma_2 parallel_precondition_lemma assms cmt\<^sub>R_def pre\<^sub>R_def impl_alt_def)
      (rel_auto)
-     
+   
+theorem parallel_reactive_design:
+  assumes "P is SRD" "Q is SRD" "M is R2m"
+  shows "(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) = \<^bold>R\<^sub>s(
+    (\<not> ((\<not> pre\<^sub>R(P)) \<parallel>\<^bsub>N\<^sub>0(M) ;; R1(true)\<^esub> cmt\<^sub>R(Q)) \<and>
+     \<not> (cmt\<^sub>R(P) \<parallel>\<^bsub>N\<^sub>0(M) ;; R1(true)\<^esub> (\<not> pre\<^sub>R(Q)))) \<turnstile>
+    (cmt\<^sub>R(P) \<parallel>\<^bsub>($ok\<acute> \<and> N\<^sub>0 M) ;; II\<^sub>R\<^sup>t\<^esub> cmt\<^sub>R(Q)))"
+proof -
+  have "(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) = \<^bold>R\<^sub>s(pre\<^sub>R(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) \<turnstile> cmt\<^sub>R(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q))"
+    by (metis Healthy_def NSRD_is_SRD SRD_as_reactive_design assms(1) assms(2) assms(3) par_rdes_NSRD)
+  thus ?thesis
+    by (simp add: parallel_precondition parallel_commitment assms SRD_healths design_export_spec)
+qed   
+       
 lemma parallel_pericondition:
   assumes "P is RD2"
   shows "peri\<^sub>R(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) = undefined"
   apply (simp add: peri_cmt_def parallel_commitment assms usubst unrest)
   oops
 
-lemma R2m_div: "R2m ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>) = ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>)"
-  by (rel_auto)
+lemma swap_merge_rd:
+  "swap\<^sub>m ;; M = M \<Longrightarrow> swap\<^sub>m ;; M\<^sub>R(M) = M\<^sub>R(M)"
+  by (rel_simp, safe, metis+)
     
-lemma R2m_skip: "R2m (\<exists> $st\<^sub>< \<bullet> $\<Sigma>\<acute> =\<^sub>u $\<Sigma>\<^sub><) = (\<exists> $st\<^sub>< \<bullet> $\<Sigma>\<acute> =\<^sub>u $\<Sigma>\<^sub><)"
-  apply (rel_auto) using minus_zero_eq by blast
-  
 subsection {* Simple parallel composition *}
 
 definition rea_design_par ::
@@ -2899,6 +2910,5 @@ text {* The following tactic combines antisymmetry with the previous tactic to p
   
 method rdes_eq =
   (rule_tac antisym, rdes_refine, rdes_refine)
-
-    
+  
 end

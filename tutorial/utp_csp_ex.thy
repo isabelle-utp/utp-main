@@ -34,6 +34,9 @@ lemma csp_ex_5:
   apply rdes_refine
   apply (rule_tac SRD_refine_intro)
   apply (simp_all add: closure rdes unrest usubst)
-oops
+  oops
     
+lemma csp_ex_6: "\<guillemotleft>a\<guillemotright> \<^bold>\<rightarrow> \<guillemotleft>a\<guillemotright> \<^bold>\<rightarrow> \<guillemotleft>a\<guillemotright> \<^bold>\<rightarrow> Miracle \<sqsubseteq> \<guillemotleft>a\<guillemotright> \<^bold>\<rightarrow> Miracle"
+  by (rdes_refine)    
+  
 end

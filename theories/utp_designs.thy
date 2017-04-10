@@ -394,6 +394,9 @@ lemma design_export_ok':
 lemma design_export_pre: "P \<turnstile> (P \<and> Q) = P \<turnstile> Q"
   by (rel_auto)
 
+lemma design_export_spec: "P \<turnstile> (P \<Rightarrow> Q) = P \<turnstile> Q"
+  by (rel_auto)
+
 lemma design_ok_pre_conj: "($ok \<and> P) \<turnstile> Q = P \<turnstile> Q"
   by (rel_auto)
 
