@@ -293,4 +293,11 @@ apply(simp add: set_comprehension_lpf_def)
 apply(simp add: defined_def)
 done
 
+syntax
+"_lpfunion" :: "'a set lpf \<Rightarrow> 'a set lpf \<Rightarrow> 'a set lpf" (infixl "\<union>\<^sub>L" 65)
+
+translations
+"A \<union>\<^sub>L B"   == "CONST union_lpf A B"
+
+
 end
