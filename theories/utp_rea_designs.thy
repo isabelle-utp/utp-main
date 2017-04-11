@@ -1902,7 +1902,16 @@ proof -
     by (simp add: preR_INF periR_INF postR_INF)
   finally show ?thesis .
 qed
-            
+
+lemma preR_SUP [rdes]: "pre\<^sub>R(\<Squnion> A) = (\<Or> P\<in>A \<bullet> pre\<^sub>R(P))"
+  by (rel_auto)
+
+lemma periR_SUP [rdes]: "peri\<^sub>R(\<Squnion> A) = (\<And> P\<in>A \<bullet> peri\<^sub>R(P))"
+  by (rel_simp, simp add: Setcompr_eq_image)
+
+lemma postR_SUP [rdes]: "post\<^sub>R(\<Squnion> A) = (\<And> P\<in>A \<bullet> post\<^sub>R(P))"
+  by (rel_simp, simp add: Setcompr_eq_image)
+  
 lemma SRD_left_unit:
   assumes "P is SRD"
   shows "II\<^sub>R ;; P = P"
