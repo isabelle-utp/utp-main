@@ -133,11 +133,13 @@ Moddelling systems - Practical Tools and techniques in software development
 page 71-73 (Kleene logic)*}
   
 definition conj_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
-[lpf_defs]: "conj_lpf p q = (if(p = lpf_Some(True) \<and> q = lpf_Some(True))
-                                then lpf_Some(True)
-                              else if (p = lpf_Some(False) \<or> q = lpf_Some(False))
-                                then lpf_Some(False)
-                              else lpf_None)"
+[lpf_defs]: "conj_lpf p q = (
+  if((p = lpf_True) \<and> (q = lpf_True))                              
+  then lpf_True
+  else ( 
+    if ((p = lpf_False) \<or> (q = lpf_False))
+    then lpf_False
+    else lpf_None))"
 
 definition disj_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
 [lpf_defs]: "disj_lpf p q = (if(p = lpf_Some(True) \<or> q = lpf_Some(True))
@@ -147,7 +149,7 @@ definition disj_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" 
                               else lpf_None)"
 
 definition implies_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
-[lpf_defs]: "implies_lpf p q = (if(p = lpf_Some(False) \<or> q = lpf_Some(True)) 
+[lpf_defs]: "implies_lpf p q = (if(p = lpf_Some(True) \<or> q = lpf_Some(True)) 
                                   then lpf_Some(True) 
                                 else if (p = lpf_Some(True) \<or> q = lpf_Some(False))
                                   then lpf_Some(False)
@@ -384,10 +386,6 @@ translations
 "Pow\<^sub>L(A)" == "CONST power_lpf A"
 (* Sequence Unary Operators *)
 "hd\<^sub>L(xs)" == "CONST hd_lpf xs"
-"reverse\<^sub>L(xs)" == "CONST reverse_lpf xs"
-"tl\<^sub>L(xs)" == "CONST tl_lpf xs"
-"elem\<^sub>L(xs)" == "CONST elems_lpf xs"
-"inds\<^sub>L(xs)" == "CONST inds_lpf xs"
 "conc\<^sub>L(xs)" == "CONST conc_lpf xs"
 (* Map Unary Operators *)
 "dom\<^sub>L(f)" == "CONST dom_lpf f"
@@ -435,11 +433,11 @@ lemma "(lpf_Some(True) \<or>\<^sub>L lpf_None) = lpf_Some(True)"
 by (lpf_auto)
 
 
-lemma "(lpf_Some(True) \<and>\<^sub>L lpf_Some(True)) = lpf_True"
+lemma t0: "(lpf_Some(True) \<and>\<^sub>L lpf_Some(True)) = lpf_True"
   by (lpf_auto)
-lemma "(lpf_Some(False) \<and>\<^sub>L lpf_Some(False)) = lpf_Some(False)"
+lemma t1: "(lpf_Some(False) \<and>\<^sub>L lpf_Some(False)) = lpf_Some(False)"
   by (lpf_auto)
-lemma "(lpf_None \<and>\<^sub>L lpf_None) = lpf_None"
+lemma t2: "(lpf_None \<and>\<^sub>L lpf_None) = lpf_None"
   by (lpf_auto)    
   
 lemma double_negation : "(\<not>\<^sub>L\<not>\<^sub>Lp) = p"
@@ -450,13 +448,52 @@ by(lpf_auto)
 
 lemma domination_and: "(p \<and>\<^sub>L lpf_Some(False)) = lpf_Some(False)"
 by(lpf_auto)
-    
+
+text {* Tautologies *}
+
+definition lpf_taut :: "bool lpf \<Rightarrow> bool" where
+"lpf_taut p = (p = lpf_True)"
+   
+declare lpf_taut_def [lpf_defs]
+
+lemma lpfI [lpf_defs]: "(x::bool) \<Longrightarrow> (lpf_taut \<circ> lpf_Some) x"
+by (lpf_simp)
+
+lemma lpfD [lpf_defs]: "(lpf_taut \<circ> lpf_Some) (x::bool) \<Longrightarrow> x"
+by (lpf_simp)
+
+lemma lpf_bot [lpf_defs]: "(lpf_taut lpf_None) = False"
+by (lpf_simp)
+
+lemma lpf_and_defI1 [lpf_defs]: "\<lbrakk> \<D>(p); \<D>(q) \<rbrakk> \<Longrightarrow> \<D>(conj_lpf p q)"
+by (lpf_auto)
+
+lemma lpf_f_impl [lpf_defs]: "(p::bool lpf) \<noteq> lpf_False \<Longrightarrow> p = lpf_True \<or> p = lpf_None"
+apply(lpf_simp)
+done
+
+lemma lpf_t_impl [lpf_defs] : "(p::bool lpf) \<noteq> lpf_True \<Longrightarrow> p = lpf_False \<or> p = lpf_None"
+apply (lpf_simp)
+done
+
+
+lemma lpf_cases [lpf_defs]: "\<lbrakk> (p::bool lpf) \<noteq> lpf_True \<Longrightarrow> P; p \<noteq> lpf_False \<Longrightarrow> P; p\<noteq> lpf_None \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+apply(cases)
+apply(lpf_auto)
+apply(lpf_auto)
+done
+
 (*This is not going to work with =\<^sub>L since (lpf_None =\<^sub>L lpf_None \<equiv> lpf_None) *)
-lemma idempotent_and: "(p \<and>\<^sub>L p) = p"
-by(lpf_auto)
+
+lemma idempotent_and [lpf_defs]: "(conj_lpf (p::bool lpf) p) = p"
+apply(simp only: conj_lpf_def)
+apply(simp)
+apply(auto)
+using lpf_f_impl by auto
                            
-lemma idempotent_or: "(p \<or>\<^sub>L p) = p"
-by(lpf_auto)
+lemma idempotent_or [lpf_defs]: "(p \<or>\<^sub>L p) = p"
+  using disj_lpf_def lpf_False.transfer lpf_True.abs_eq lpf_f_impl by auto
+
 
 lemma Commutative_Law : "(p \<and>\<^sub>L q) = (q  \<and>\<^sub>L p )"
   by(lpf_auto)

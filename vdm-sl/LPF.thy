@@ -87,6 +87,9 @@ text {*
 lift_definition lpf_True :: "bool lpf" is "lpf_Some(True)" .
 declare lpf_True.rep_eq [lpf_transfer]
 
+lift_definition lpf_False :: "bool lpf" is "lpf_Some(False)" .
+declare lpf_False.rep_eq [lpf_transfer]
+
 definition defined :: "'a lpf \<Rightarrow> bool" ("\<D>'(_')") where
 "defined x \<longleftrightarrow> (x \<noteq> lpf_None)"
 
