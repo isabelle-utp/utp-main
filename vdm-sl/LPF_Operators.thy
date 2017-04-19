@@ -127,15 +127,31 @@ definition not_equal_lpf :: "'a lpf \<Rightarrow> 'a lpf \<Rightarrow> bool lpf"
 [lpf_defs]: "not_equal_lpf = lift2_lpf' (op \<noteq>)"
 
 subsubsection {* Boolean Binary Operators  *}
-
+  
+text {* This definitions are based on the LPF logic described in
+Moddelling systems - Practical Tools and techniques in software development
+page 71-73 (Kleene logic)*}
+  
 definition conj_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
-[lpf_defs]: "conj_lpf = lift2_lpf' conj"
+[lpf_defs]: "conj_lpf p q = (if(p = lpf_Some(True) \<and> q = lpf_Some(True))
+                                then lpf_Some(True)
+                              else if (p = lpf_Some(False) \<or> q = lpf_Some(False))
+                                then lpf_Some(False)
+                              else lpf_None)"
 
 definition disj_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
-[lpf_defs]: "disj_lpf = lift2_lpf' disj"
+[lpf_defs]: "disj_lpf p q = (if(p = lpf_Some(True) \<or> q = lpf_Some(True))
+                                then lpf_Some(True)
+                              else if (p = lpf_Some(False) \<and> q = lpf_Some(False))
+                                then lpf_Some(False)
+                              else lpf_None)"
 
 definition implies_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
-[lpf_defs]: "implies_lpf = lift2_lpf' implies"
+[lpf_defs]: "implies_lpf p q = (if(p = lpf_Some(False) \<or> q = lpf_Some(True)) 
+                                  then lpf_Some(True) 
+                                else if (p = lpf_Some(True) \<or> q = lpf_Some(False))
+                                  then lpf_Some(False)
+                                else lpf_None)"
 
 definition biimplication_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
 [lpf_defs]: "biimplication_lpf = lift2_lpf' iff"
@@ -411,14 +427,51 @@ translations
 "xs inds\<^sub>L x" == "CONST seq_index_lpf xs x"
 (* Comprehensions *)
     
-(*This is not going to work with =\<^sub>L*)
-lemma "(x \<and>\<^sub>L x) = x"
+lemma "(lpf_Some(True) \<or>\<^sub>L lpf_Some(True)) = lpf_Some(True)"
+by (lpf_auto)
+lemma "(lpf_None \<or>\<^sub>L lpf_Some(True)) =lpf_Some(True)"
+by (lpf_auto)
+lemma "(lpf_Some(True) \<or>\<^sub>L lpf_None) = lpf_Some(True)"
+by (lpf_auto)
+
+
+lemma "(lpf_Some(True) \<and>\<^sub>L lpf_Some(True)) = lpf_True"
+  by (lpf_auto)
+lemma "(lpf_Some(False) \<and>\<^sub>L lpf_Some(False)) = lpf_Some(False)"
+  by (lpf_auto)
+lemma "(lpf_None \<and>\<^sub>L lpf_None) = lpf_None"
+  by (lpf_auto)    
+  
+lemma double_negation : "(\<not>\<^sub>L\<not>\<^sub>Lp) = p"
+by(lpf_auto)
+    
+lemma domination_or: "(p \<or>\<^sub>L lpf_Some(True)) = lpf_Some(True)"
 by(lpf_auto)
 
-lemma "(x \<or>\<^sub>L x) = x"
+lemma domination_and: "(p \<and>\<^sub>L lpf_Some(False)) = lpf_Some(False)"
+by(lpf_auto)
+    
+(*This is not going to work with =\<^sub>L since (lpf_None =\<^sub>L lpf_None \<equiv> lpf_None) *)
+lemma idempotent_and: "(p \<and>\<^sub>L p) = p"
+by(lpf_auto)
+                           
+lemma idempotent_or: "(p \<or>\<^sub>L p) = p"
 by(lpf_auto)
 
-lemma "(p  \<and>\<^sub>L q) = (q  \<and>\<^sub>L p )"
-by(lpf_auto)
+lemma Commutative_Law : "(p \<and>\<^sub>L q) = (q  \<and>\<^sub>L p )"
+  by(lpf_auto)
+    
+lemma associativity_Law : "(p \<and>\<^sub>L(q \<and>\<^sub>L r)) = ((p  \<and>\<^sub>L q ) \<and>\<^sub>L r)"
+  by(lpf_auto)
+    
+lemma distributive_Law :  "(p \<and>\<^sub>L(q \<or>\<^sub>L r)) = ((p  \<and>\<^sub>L q ) \<or>\<^sub>L (p \<and>\<^sub>L r))"
+  by(lpf_auto)
+    
+lemma DeMorgans_Law : "(\<not>\<^sub>L(p \<and>\<^sub>L q)) = (\<not>\<^sub>Lp \<or>\<^sub>L \<not>\<^sub>Lq )"
+  by(lpf_auto)
+  
+lemma "A \<union>\<^sub>L B = B \<union>\<^sub>L A"
+  by(lpf_auto)
+  
   
 end
