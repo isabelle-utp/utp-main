@@ -1387,7 +1387,7 @@ proof -
     by (simp add: ex_unrest assms PrefixCSP_RHS_tri_lemma2 PrefixCSP_RHS_tri_lemma3 unrest usubst)
   finally show ?thesis .
 qed
-
+  
 lemma wpR_extend_tr_NCSP [wp]:
   assumes "P is NCSP"
   shows "($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) wp\<^sub>R pre\<^sub>R P = (pre\<^sub>R(P))\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
@@ -1503,6 +1503,19 @@ lemma WG_RHS_design_form:
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok\<acute> \<sharp> R"
   shows "WG(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> (R \<and> $tr <\<^sub>u $tr\<acute>))"
   using assms by (simp add: WG_def RHS_tri_design_par unrest)
+
+text {* Proofs that guarded recursion yields a unique fixed-point *}
+    
+locale guarded_recursion
+begin
+  
+  definition E :: "(('\<sigma>,'\<phi>) st_csp \<times> ('\<sigma>,'\<phi>) st_csp) chain" where
+  [upred_defs]: "E(n) = ($tr \<le>\<^sub>u $tr\<acute> \<and> #\<^sub>u($tr\<acute>) <\<^sub>u #\<^sub>u($tr) + \<guillemotleft>n\<guillemotright>)"
+  
+  lemma E_range: "\<Sqinter> (range E) = ($tr \<le>\<^sub>u $tr\<acute>)"
+    using trans_less_add2 by (rel_blast)
+
+end
 
 lemma WG_form:
   "WG(CSP(P)) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))"
