@@ -790,14 +790,14 @@ text {* Constructive chains *}
     
 definition constr :: 
   "('a upred \<Rightarrow> 'a upred) \<Rightarrow> 'a chain \<Rightarrow> bool" where
-"constr F E \<longleftrightarrow> (\<forall> X n. ((F(X) \<and> E(n + 1)) = (F(X \<and> E(n)) \<and> E (n + 1))))"
+"constr F E \<longleftrightarrow> chain E \<and> (\<forall> X n. ((F(X) \<and> E(n + 1)) = (F(X \<and> E(n)) \<and> E (n + 1))))"
 
 text {* This lemma gives a way of showing that there is a unique fixed-point when
         the predicate function can be built using a constructive function F
         over an approximation chain E *}
 
 lemma chain_pred_terminates: 
-  assumes "constr F E" "chain E" "mono F"
+  assumes "constr F E" "mono F"
   shows "(\<Sqinter> (range E) \<and> \<mu> F) = (\<Sqinter> (range E) \<and> \<nu> F)"
 proof -
   from assms have "\<forall> n. (E n \<and> \<mu> F) = (E n \<and> \<nu> F)"
@@ -805,14 +805,14 @@ proof -
     fix n
     from assms show "(E n \<and> \<mu> F) = (E n \<and> \<nu> F)"
     proof (induct n)
-      case 0 thus ?case by simp 
+      case 0 thus ?case by (simp add: constr_def)
     next
       case (Suc n) 
       note hyp = this
       thus ?case
       proof -
         have "(E (n + 1) \<and> \<mu> F) = (E (n + 1) \<and> F (\<mu> F))"
-          using gfp_unfold[OF hyp(4), THEN sym] by simp
+          using gfp_unfold[OF hyp(3), THEN sym] by (simp add: constr_def)
         also from hyp have "... = (E (n + 1) \<and> F (E n \<and> \<mu> F))"
           by (metis conj_comm constr_def)
         also from hyp have "... = (E (n + 1) \<and> F (E n \<and> \<nu> F))"
@@ -827,6 +827,11 @@ proof -
   thus ?thesis
     by (auto intro: L274)
 qed    
+
+theorem constr_fp_uniq: 
+  assumes "constr F E" "mono F" "\<Sqinter> (range E) = C"
+  shows "(C \<and> \<mu> F) = (C \<and> \<nu> F)"
+  using assms(1) assms(2) assms(3) chain_pred_terminates by blast
   
 lemma true_iff [simp]: "(P \<Leftrightarrow> true) = P"
   by (pred_auto)

@@ -910,7 +910,7 @@ notation H1_H2 ("\<^bold>H")
 
 lemma H1_H2_comp: "\<^bold>H = H1 \<circ> H2"
   by (auto)
-
+    
 theorem H1_H2_eq_design:
   "\<^bold>H(P) = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
 proof -
@@ -991,7 +991,7 @@ proof -
     by (simp add: rdesign_composition rdesign_is_H1_H2)
   ultimately show ?thesis by simp
 qed
-
+  
 lemma assigns_d_comp_ext:
   fixes P :: "'\<alpha> hrel_des"
   assumes "P is \<^bold>H"
@@ -1237,7 +1237,7 @@ lemma H1_H3_eq_design: "H1 (H3 P) = (\<not> (P\<^sup>f ;; true)) \<turnstile> P\
   apply (simp_all add: usubst unrest)
   apply (rel_auto)
 done
-
+  
 lemma H3_unrest_out_alpha_nok [unrest]:
   assumes "P is H1_H3"
   shows "out\<alpha> \<sharp> P\<^sup>f"

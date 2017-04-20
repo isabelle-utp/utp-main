@@ -76,6 +76,11 @@ lemma Healthy_func:
   "\<lbrakk> F \<in> \<lbrakk>\<H>\<^sub>1\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^sub>2\<rbrakk>\<^sub>H; P is \<H>\<^sub>1 \<rbrakk> \<Longrightarrow> \<H>\<^sub>2(F(P)) = F(P)"
   using Healthy_if by blast
     
+lemma Healthy_apply_closed:
+  assumes "F \<in> \<lbrakk>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>H\<rbrakk>\<^sub>H" "P is H"
+  shows "F(P) is H"
+  using assms(1) assms(2) by auto
+    
 lemma Healthy_SUPREMUM:
   "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> SUPREMUM A H = \<Sqinter> A"
   by (drule Healthy_carrier_image, presburger)
@@ -575,7 +580,7 @@ begin
     assumes "P is \<H>"
     shows "P \<sqinter> \<^bold>\<top> = P"
       by (simp add: assms semilattice_sup_class.sup_absorb1 utp_top)
-
+        
   text {* The UTP theory lfp operator can be rewritten to the alphabetised predicate lfp when
     in a continuous context. *}
     

@@ -319,6 +319,9 @@ lemma RD2_RHS_commute: "RD2(\<^bold>R\<^sub>s(P)) = \<^bold>R\<^sub>s(RD2(P))"
 lemma SRD_idem: "SRD(SRD(P)) = SRD(P)"
   by (simp add: RD1_RD2_commute RD1_RHS_commute RD1_idem RD2_RHS_commute RD2_idem RHS_idem SRD_def)
 
+lemma SRD_Idempotent [closure]: "Idempotent SRD"
+  by (simp add: Idempotent_def SRD_idem)
+    
 lemma SRD_Monotonic: "Monotonic SRD"
   by (metis Monotonic_def RD1_mono RD2_Monotonic RHS_Monotonic SRD_def)
 
@@ -460,7 +463,7 @@ interpretation rdes_theory_continuous: utp_theory_continuous "UTHY(RDES, ('t::or
   and "le (uthy_order RDES) = op \<sqsubseteq>"
   and "eq (uthy_order RDES) = op ="
   by (unfold_locales, simp_all add: rdes_hcond_def RD_Continuous)
-
+    
 interpretation rdes_rea_galois:
   galois_connection "(RDES \<leftarrow>\<langle>RD1 \<circ> RD2,R3\<rangle>\<rightarrow> REA)"
 proof (simp add: mk_conn_def, rule galois_connectionI', simp_all add: utp_partial_order rdes_hcond_def rea_hcond_def)
@@ -502,13 +505,26 @@ interpretation srdes_theory_continuous: utp_theory_continuous "UTHY(SRDES, ('s,'
   rewrites "\<And> P. P \<in> carrier (uthy_order SRDES) \<longleftrightarrow> P is SRD"
   and "P is \<H>\<^bsub>SRDES\<^esub> \<longleftrightarrow> P is SRD"
   and "carrier (uthy_order SRDES) \<rightarrow> carrier (uthy_order SRDES) \<equiv> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
+  and "\<lbrakk>\<H>\<^bsub>SRDES\<^esub>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^bsub>SRDES\<^esub>\<rbrakk>\<^sub>H \<equiv> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
   and "le (uthy_order SRDES) = op \<sqsubseteq>"
   and "eq (uthy_order SRDES) = op ="
   by (unfold_locales, simp_all add: srdes_hcond_def SRD_Continuous)
-
+    
 declare srdes_theory_continuous.top_healthy [simp del]
 declare srdes_theory_continuous.bottom_healthy [simp del]
-      
+
+abbreviation srd_lfp ("\<mu>\<^sub>R") where "\<mu>\<^sub>R F \<equiv> \<^bold>\<mu>\<^bsub>SRDES\<^esub> F"
+
+abbreviation srd_gfp ("\<nu>\<^sub>R") where "\<nu>\<^sub>R F \<equiv> \<^bold>\<nu>\<^bsub>SRDES\<^esub> F"
+  
+syntax
+  "_srd_mu" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<mu>\<^sub>R _ \<bullet> _" [0, 10] 10)
+  "_srd_nu" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<nu>\<^sub>R _ \<bullet> _" [0, 10] 10)
+  
+translations
+  "\<mu>\<^sub>R X \<bullet> P" == "\<^bold>\<mu>\<^bsub>CONST SRDES\<^esub> (\<lambda> X. P)"
+  "\<nu>\<^sub>R X \<bullet> P" == "\<^bold>\<nu>\<^bsub>CONST SRDES\<^esub> (\<lambda> X. P)"
+  
 subsection {* Reactive design form *}
 
 lemma RD1_algebraic_intro:
@@ -1689,6 +1705,12 @@ lemma srdes_tri_refine_intro:
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1 \<diamondop> R\<^sub>1) \<sqsubseteq> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2 \<diamondop> R\<^sub>2)"
   using assms 
   by (rule_tac srdes_refine_intro, simp_all, rel_auto)
+
+lemma srdes_tri_refine_intro':
+  assumes "P\<^sub>2 \<sqsubseteq> P\<^sub>1" "Q\<^sub>1 \<sqsubseteq> (P\<^sub>1 \<and> Q\<^sub>2)" "R\<^sub>1 \<sqsubseteq> (P\<^sub>1 \<and> R\<^sub>2)"
+  shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1 \<diamondop> R\<^sub>1) \<sqsubseteq> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2 \<diamondop> R\<^sub>2)"
+  using assms
+  by (rule_tac srdes_tri_refine_intro, simp_all add: refBy_order)
     
 lemma SRD_peri_under_pre: 
   assumes "P is SRD" "$wait\<acute> \<sharp> pre\<^sub>R(P)"
@@ -2529,6 +2551,64 @@ lemma R_D_seq:
   shows "\<^bold>R\<^sub>D(P) ;; \<^bold>R\<^sub>D(Q) = \<^bold>R\<^sub>D(P ;; Q)"
   by (metis R_D_seq_ndesign assms ndesign_form)
 
+subsection {* Recursion laws *}
+  
+lemma preR_antitone: "P \<sqsubseteq> Q \<Longrightarrow> pre\<^sub>R(Q) \<sqsubseteq> pre\<^sub>R(P)"
+  by (rel_auto)
+    
+lemma periR_monotone: "P \<sqsubseteq> Q \<Longrightarrow> peri\<^sub>R(P) \<sqsubseteq> peri\<^sub>R(Q)"
+  by (rel_auto)
+
+lemma postR_monotone: "P \<sqsubseteq> Q \<Longrightarrow> post\<^sub>R(P) \<sqsubseteq> post\<^sub>R(Q)"
+  by (rel_auto)
+
+lemma mono_srd_iter: 
+  assumes "mono F" "F \<in> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
+  shows "mono (\<lambda>X. \<^bold>R\<^sub>s(pre\<^sub>R(F X) \<turnstile> peri\<^sub>R(F X) \<diamondop> post\<^sub>R (F X)))"
+  apply (rule monoI)
+  apply (rule srdes_tri_refine_intro')
+  apply (meson assms(1) monoE preR_antitone utp_pred.le_infI2)    
+  apply (meson assms(1) monoE periR_monotone utp_pred.le_infI2)
+  apply (meson assms(1) monoE postR_monotone utp_pred.le_infI2)
+done
+
+lemma mu_srd_SRD:
+  assumes "mono F" "F \<in> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
+  shows "(\<mu> X \<bullet> \<^bold>R\<^sub>s (pre\<^sub>R (F X) \<turnstile> peri\<^sub>R (F X) \<diamondop> post\<^sub>R (F X))) is SRD"
+  apply (subst gfp_unfold)
+  apply (simp add: mono_srd_iter assms)
+  apply (rule RHS_tri_design_is_SRD)
+  apply (simp_all add: unrest)
+done
+    
+lemma mu_srd_iter:
+  assumes "mono F" "F \<in> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
+  shows "(\<mu> X \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R(F(X)) \<turnstile> peri\<^sub>R(F(X)) \<diamondop> post\<^sub>R(F(X)))) = F(\<mu> X \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R(F(X)) \<turnstile> peri\<^sub>R(F(X)) \<diamondop> post\<^sub>R(F(X))))"
+  apply (subst gfp_unfold)
+  apply (simp add: mono_srd_iter assms)
+  apply (subst SRD_as_reactive_tri_design[THEN sym])
+  using Healthy_func assms(1) assms(2) mu_srd_SRD apply blast
+done
+  
+lemma mu_srd_form:
+  assumes "mono F" "F \<in> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
+  shows "\<mu>\<^sub>R F = (\<mu> X \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R(F(X)) \<turnstile> peri\<^sub>R(F(X)) \<diamondop> post\<^sub>R(F(X))))"
+proof -
+  have 1: "F (\<mu> X \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R (F X) \<turnstile> peri\<^sub>R(F X) \<diamondop> post\<^sub>R (F X))) is SRD"
+    by (simp add: Healthy_apply_closed assms(1) assms(2) mu_srd_SRD)
+  have 2:"Mono\<^bsub>uthy_order SRDES\<^esub> F"
+    by (simp add: assms(1) mono_Monotone_utp_order)
+  hence 3:"\<mu>\<^sub>R F = F (\<mu>\<^sub>R F)"
+    by (simp add: srdes_theory_continuous.LFP_unfold[THEN sym] assms)
+  hence "\<^bold>R\<^sub>s(pre\<^sub>R (F (F (\<mu>\<^sub>R F))) \<turnstile> peri\<^sub>R (F (F (\<mu>\<^sub>R F))) \<diamondop> post\<^sub>R (F (F (\<mu>\<^sub>R F)))) = \<mu>\<^sub>R F"
+    using SRD_reactive_tri_design by force
+  hence "(\<mu> X \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R (F X) \<turnstile> peri\<^sub>R(F X) \<diamondop> post\<^sub>R (F X))) \<sqsubseteq> F (\<mu>\<^sub>R F)"
+    by (simp add: 2 srdes_theory_continuous.weak.LFP_lemma3 gfp_upperbound assms)
+  thus ?thesis
+    using assms 1 3 srdes_theory_continuous.weak.LFP_lowerbound eq_iff mu_srd_iter 
+    by (metis (mono_tags, lifting))
+qed
+    
 subsection {* Reactive design parallel-by-merge *}
 
 text {* R3h implicitly depends on RD1, and therefore it requires that both sides be RD1. We also
