@@ -382,6 +382,9 @@ lemma R2c_ok': "R2c($ok\<acute>) = ($ok\<acute>)"
 lemma R2c_wait: "R2c($wait) = $wait"
   by (rel_auto)
 
+lemma R2c_wait': "R2c($wait\<acute>) = $wait\<acute>"
+  by (rel_auto)
+
 lemma R2c_wait'_true [usubst]: "(R2c P)\<lbrakk>true/$wait\<acute>\<rbrakk> = R2c(P\<lbrakk>true/$wait\<acute>\<rbrakk>)"
   by (rel_auto)
 
