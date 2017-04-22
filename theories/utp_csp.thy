@@ -1609,115 +1609,106 @@ proof -
   finally show ?thesis by simp
 qed
  
-text {* Guardedness variant *}
-
-abbreviation "gvrt(n) \<equiv> \<guillemotleft>n\<guillemotright> >\<^sub>u 0 \<and> (#\<^sub>u(tt) <\<^sub>u \<guillemotleft>n\<guillemotright>)"
-  
-lemma 
-  assumes "P is R1" "P is R3h"
-  shows "((($ok\<acute> \<and> do\<^sub>u a) ;; P) \<and> gvrt(n+1)) = ((($ok\<acute> \<and> do\<^sub>u a) ;; (P \<and> gvrt(n))) \<and> gvrt(n+1))"
+lemma R3h_wait_true: 
+  assumes "P is R3h"
+  shows "P \<^sub>t = II\<^sub>R \<^sub>t"
 proof -
-  have 1: "((($ok\<acute> \<and> do\<^sub>u a)\<lbrakk>false/$wait\<acute>\<rbrakk> ;; P\<lbrakk>false/$wait\<rbrakk>) \<and> gvrt(n+1)) 
-          = ((($ok\<acute> \<and> do\<^sub>u a)\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (P \<and> gvrt(n))\<lbrakk>false/$wait\<rbrakk>) \<and> gvrt(n+1))"
-  proof -
-    have "((($ok\<acute> \<and> do\<^sub>u a)\<lbrakk>false/$wait\<acute>\<rbrakk> ;; P\<lbrakk>false/$wait\<rbrakk>) \<and> gvrt(n+1)) = 
-            (($ok\<acute> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; P\<lbrakk>false/$wait\<rbrakk> \<and> gvrt(n+1))"
-      by (simp add: do\<^sub>u_def usubst unrest)
-    also 
-    have "... = ((($ok\<acute> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; (R1 P)\<lbrakk>false/$wait\<rbrakk>) \<and> gvrt(n+1))"
-      by (simp add: Healthy_if assms(1))
-    also 
-    have "... = (($ok\<acute> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; (P\<lbrakk>false/$wait\<rbrakk> \<and> $tr \<le>\<^sub>u $tr\<acute>) \<and> gvrt(n+1))"
-      by (simp add: R1_def usubst)
-    also have "... = ((($ok\<acute> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; (P\<lbrakk>false/$wait\<rbrakk> \<and> $tr \<le>\<^sub>u $tr\<acute> \<and> gvrt(n)))  \<and> gvrt(n+1))"
-      apply (rel_simp, safe, simp_all add: list_append_prefixD length_minus_list)
+  have "P \<^sub>t = (II\<^sub>R \<triangleleft> $wait \<triangleright> P) \<^sub>t"
+    by (metis Healthy_if R3h_form assms)
+  also have "... = II\<^sub>R \<^sub>t"
+    by (simp add: usubst)
+  finally show ?thesis .
+qed
+  
+lemma R1_Inf: "A \<noteq> {} \<Longrightarrow> R1(\<Squnion> A) = \<Squnion> (R1 ` A)"
+  by (rel_auto)
 
-      done
-    also have "... = ((($ok\<acute> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; ((R1 P)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt(n))) \<and> gvrt(n+1))"
-      by (simp add: R1_def usubst utp_pred.conj_assoc) 
-    finally show ?thesis
-      by (simp add: do\<^sub>u_def usubst unrest Healthy_if assms(1))
-  qed
-  moreover 
-  have 2: "((($ok\<acute> \<and> do\<^sub>u a)\<lbrakk>true/$wait\<acute>\<rbrakk> ;; P\<lbrakk>true/$wait\<rbrakk>) \<and> gvrt(n+1))
-          = ((($ok\<acute> \<and> do\<^sub>u a)\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (P \<and> gvrt(n))\<lbrakk>true/$wait\<rbrakk>) \<and> gvrt(n+1))"
-    (is "?lhs = ?rhs")
-  proof -
-    have "?lhs = (($ok\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>) ;; P\<lbrakk>true/$wait\<rbrakk> \<and> gvrt(n+1))"
-      by (simp add: do\<^sub>u_def usubst unrest)
-    also have "... = (($ok\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>) ;; (R3h P)\<lbrakk>true/$wait\<rbrakk> \<and> gvrt(n+1))"
-      by (simp add: Healthy_if assms(2))
-    also have "... = (($ok\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>) ;; (\<exists> $st \<bullet> II\<^sub>r)\<lbrakk>true/$wait\<rbrakk> \<and> gvrt(n+1))"      
-      by (simp add: R3h_def usubst)
-    also have "... = (($ok\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>) ;; ((\<exists> $st \<bullet> II\<^sub>r)\<lbrakk>true/$wait\<rbrakk> \<and> gvrt(n)) \<and> gvrt(n+1))"
-      apply (rel_simp, safe, simp_all)
-        nitpick
-
-    done
-    also have "... = (($ok\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>) ;; (R3h(P) \<and> (\<guillemotleft>n\<guillemotright> >\<^sub>u 0 \<and> #\<^sub>u(tt) <\<^sub>u \<guillemotleft>n\<guillemotright>))\<lbrakk>true/$wait\<rbrakk> \<and> (\<guillemotleft>n\<guillemotright> >\<^sub>u 0 \<and> #\<^sub>u(tt) <\<^sub>u \<guillemotleft>n+1\<guillemotright>))"
-      by (simp add: R3h_def usubst)  
-    also have "... = ?rhs" 
-      by (simp add: do\<^sub>u_def usubst unrest Healthy_if assms(2))
-    finally show ?thesis .
-  qed
-    
+lemma R1_sfp:
+  "mono F \<Longrightarrow> (\<nu> X \<bullet> R1(F(X))) = R1(\<nu> X \<bullet> R1(F(X)))"
+  by (metis (no_types, lifting) R1_idem R1_mono lfp_unfold mono_def)
+ 
+(*
 lemma "((a \<^bold>\<rightarrow> R3h(P)) \<and> #\<^sub>u(tt) <\<^sub>u \<guillemotleft>n+1\<guillemotright>)\<lbrakk>true,false/$ok,$wait\<rbrakk> = 
        ((a \<^bold>\<rightarrow> (R3h(P) \<and> #\<^sub>u(tt) <\<^sub>u \<guillemotleft>n\<guillemotright>)) \<and> #\<^sub>u(tt) <\<^sub>u \<guillemotleft>n+1\<guillemotright>)\<lbrakk>true,false/$ok,$wait\<rbrakk>"
   apply (simp add: PrefixCSP_def DoCSP_alt_def R3h_def usubst unrest RD1_def)
   apply (rel_simp, safe)
-  
-    
-lemma 
-  assumes "mono F" "F \<in> \<lbrakk>id\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
-  shows "\<nu> F is SRD"
-  using assms
-  apply (simp add: lfp_def)
-  apply (rel_simp, safe)
-  
+*)
+     
 locale guarded_recursion
 begin
   
-  definition E :: "(('\<sigma>,'\<phi>) st_csp \<times> ('\<sigma>,'\<phi>) st_csp) chain" where
-  [upred_defs]: "E(n) = ($tr \<le>\<^sub>u $tr\<acute> \<and> \<guillemotleft>n\<guillemotright> >\<^sub>u 0 \<and> (\<not> $wait \<Rightarrow> (#\<^sub>u(tt) <\<^sub>u \<guillemotleft>n\<guillemotright>)))"  
+  text {* Guardedness variant *}
+
+  abbreviation gvrt :: "(('\<sigma>,'\<phi>) st_csp \<times> ('\<sigma>,'\<phi>) st_csp) chain" where 
+  "gvrt(n) \<equiv> ($tr \<le>\<^sub>u $tr\<acute> \<and> #\<^sub>u(tt) <\<^sub>u \<guillemotleft>n\<guillemotright>)"
   
-  
-  lemma E_chain: "chain E"
-    apply (simp add: chain_def E_def, safe)
+  lemma gvrt_chain: "chain gvrt"
+    apply (simp add: chain_def, safe)
     apply (rel_simp)
     apply (rel_simp)+
   done
       
-  lemma E_range: "\<Sqinter> (range E) = ($tr \<le>\<^sub>u $tr\<acute>)"
+  lemma gvrt_limit: "\<Sqinter> (range gvrt) = ($tr \<le>\<^sub>u $tr\<acute>)"
     by (rel_auto)
-      
+
+  lemma gvrt_inter_wait:
+    "((($ok\<acute> \<and> do\<^sub>u a)\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP P)\<lbrakk>false/$wait\<rbrakk>) \<and> gvrt(n+1)) 
+     = ((($ok\<acute> \<and> do\<^sub>u a)\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP(P \<and> gvrt(n)))\<lbrakk>false/$wait\<rbrakk>) \<and> gvrt(n+1))"
+  proof -
+    have "((($ok\<acute> \<and> do\<^sub>u a)\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP P)\<lbrakk>false/$wait\<rbrakk>) \<and> gvrt(n+1)) = 
+            (($ok\<acute> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; (CSP P)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt(n+1))"
+      by (simp add: do\<^sub>u_def usubst unrest)
+    also have "... = (($ok\<acute> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; (CSP2(R1(R2c(P))))\<lbrakk>false/$wait\<rbrakk> \<and> gvrt(n+1))"
+      by (rel_auto)
+    also have "... = (($ok\<acute> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; (CSP2(R1(R2c(P \<and> gvrt(n)))))\<lbrakk>false/$wait\<rbrakk> \<and> gvrt(n+1))"
+      apply (rel_simp, safe)
+      apply (metis (no_types, lifting) Prefix_Order.prefix_length_le Suc_diff_Suc length_append_singleton length_minus_list less_Suc_eq_le less_eq_Suc_le)
+      apply (metis (no_types, lifting) Prefix_Order.prefix_length_le Suc_diff_Suc length_append_singleton length_minus_list less_Suc_eq_le less_eq_Suc_le)
+       apply (blast)+
+    done
+    also have "... = (($ok\<acute> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; (CSP(P \<and> gvrt(n)))\<lbrakk>false/$wait\<rbrakk> \<and> gvrt(n+1))"
+      by (rel_auto)
+  finally show ?thesis
+      by (simp add: do\<^sub>u_def usubst unrest)
+  qed        
       
   definition Guarded :: "(('\<sigma>,'\<phi>) action \<Rightarrow> ('\<sigma>,'\<phi>) action) \<Rightarrow> bool" where
-  "Guarded(F) = (\<forall> X n. (F(X) \<and> E(n+1)) = (F(X \<and> E(n)) \<and> E(n+1)))"
+  "Guarded(F) = (\<forall> X n. (F(X) \<and> gvrt(n+1)) = (F(X \<and> gvrt(n)) \<and> gvrt(n+1)))"
+  
+lemma "\<lbrakk> Idempotent H\<^sub>2; F \<in> \<lbrakk>H\<^sub>1\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>H\<^sub>2\<rbrakk>\<^sub>H \<rbrakk> \<Longrightarrow> H\<^sub>2 \<circ> F = F"
+  apply (auto simp add: Pi_def comp_def Healthy_def fun_eq_iff)
   
   theorem guarded_fp_uniq:
-    assumes "mono F" "F \<in> \<lbrakk>REL\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H" "Guarded F"
-    shows "\<mu>\<^sub>R F = \<nu> F"
+    assumes "mono F" "F \<in> \<lbrakk>id\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H" "Guarded F"
+    shows "\<mu> F = \<nu> F"
   proof -
-    have "constr (F \<circ> SRD) E"
-      using assms apply (auto simp add: constr_def E_chain Guarded_def)
-      apply (drule_tac x="CSP X" in spec)
-      apply (simp)
-
+    have "constr F gvrt"
+      using assms by (auto simp add: constr_def gvrt_chain Guarded_def)
     hence "($tr \<le>\<^sub>u $tr\<acute> \<and> \<mu> F) = ($tr \<le>\<^sub>u $tr\<acute> \<and> \<nu> F)"
       apply (rule constr_fp_uniq)
       apply (simp add: assms)
-      using E_range apply blast
+      using gvrt_limit apply blast
     done
+    moreover have "($tr \<le>\<^sub>u $tr\<acute> \<and> \<mu> F) = \<mu> F"
+    proof -
+      have "\<mu> F = \<mu> (CSP \<circ> F)"
     thus ?thesis
   
   lemma "Guarded (\<lambda> X. a \<^bold>\<rightarrow> CSP(X))"
   proof (clarsimp simp add: Guarded_def)
     fix X n
-    have "(a \<^bold>\<rightarrow> CSP X \<and> E (Suc n))\<lbrakk>false/$ok\<rbrakk> = (a \<^bold>\<rightarrow> CSP (X \<and> E n) \<and> E (Suc n))\<lbrakk>false/$ok\<rbrakk>"
+    have "(a \<^bold>\<rightarrow> CSP X \<and> E (Suc n))\<lbrakk>false/$ok\<rbrakk> = 
+          (a \<^bold>\<rightarrow> CSP (X \<and> E n) \<and> E (Suc n))\<lbrakk>false/$ok\<rbrakk>"
       by (simp add: usubst closure)
     moreover
-    have "(a \<^bold>\<rightarrow> CSP X \<and> E (Suc n))\<lbrakk>true,true/$ok,$wait\<rbrakk> = (a \<^bold>\<rightarrow> CSP (X \<and> E n) \<and> E (Suc n))\<lbrakk>true,true/$ok,$wait\<rbrakk>"
+    have "(a \<^bold>\<rightarrow> CSP X \<and> E (Suc n))\<lbrakk>true,true/$ok,$wait\<rbrakk> = 
+          (a \<^bold>\<rightarrow> CSP (X \<and> E n) \<and> E (Suc n))\<lbrakk>true,true/$ok,$wait\<rbrakk>"
       by (simp add: usubst closure)
+    moreover 
+    have "(do\<^sub>C(a)\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (CSP X)\<lbrakk>true/$wait\<rbrakk> \<and> E (Suc n))\<lbrakk>true,true/$ok,$wait\<rbrakk> = 
+          (do\<^sub>C(a)\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (CSP (X \<and> E n))\<lbrakk>true/$wait\<rbrakk> \<and> E (Suc n))\<lbrakk>true,true/$ok,$wait\<rbrakk>"
+      by (metis (no_types, lifting) Healthy_def R3h_wait_true SRD_healths(3) SRD_idem)
+      
     moreover have "(post\<^sub>R(a \<^bold>\<rightarrow> CSP X) \<and> E (Suc n)) = (post\<^sub>R(a \<^bold>\<rightarrow> CSP (X \<and> E n)) \<and> E (Suc n))"
       
       
