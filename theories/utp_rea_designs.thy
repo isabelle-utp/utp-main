@@ -1322,6 +1322,10 @@ lemma wpR_seq [wp]:
   "Q is R1 \<Longrightarrow>(P ;; Q) wp\<^sub>R R = P wp\<^sub>R (Q wp\<^sub>R R)"
   by (simp add: wpR_def, metis (no_types, hide_lams) Healthy_def' R1_seqr seqr_assoc)
 
+lemma wpR_skip [wp]: 
+  "II wp\<^sub>R Q = (\<not> R1 (\<not> Q))"
+  by (simp add: wpR_def)
+    
 lemma wpR_miracle [wp]: "false wp\<^sub>R Q = true"
   by (simp add: wpR_def)
     
@@ -2639,7 +2643,7 @@ proof -
     by (metis (mono_tags, lifting))
 qed
     
-lemma SRD_power_Suc [closure]: "P is SRD \<Longrightarrow> P\<^bold>^(Suc n) is SRD"
+lemma SRD_power_Suc [closure]: "P is SRD \<Longrightarrow> P ;; P\<^bold>^n is SRD"
 proof (induct n)
   case 0
   then show ?case 
@@ -2650,7 +2654,7 @@ next
     using SRD_seqr_closure by auto
 qed
 
-lemma NSRD_power_Suc [closure]: "P is NSRD \<Longrightarrow> P\<^bold>^(Suc n) is NSRD"
+lemma NSRD_power_Suc [closure]: "P is NSRD \<Longrightarrow> P ;; P\<^bold>^n is NSRD"
 proof (induct n)
   case 0
   then show ?case 
@@ -2661,6 +2665,72 @@ next
     using NSRD_seqr_closure by auto
 qed
   
+lemma wpR_Inf_pre [wp]: "P wp\<^sub>R (\<Squnion>i\<in>{0..n}. Q(i)) = (\<Squnion>i\<in>{0..n}. P wp\<^sub>R Q(i))"
+  by (pred_auto)
+  
+lemma preR_power [wp]:
+  assumes "P is NSRD"
+  shows "pre\<^sub>R(P\<^bold>^(n+1)) = (\<Squnion> i\<in>{0..n}. (post\<^sub>R(P) \<^bold>^ i) wp\<^sub>R (pre\<^sub>R(P)))"
+proof (induct n)
+  case 0
+  then show ?case 
+    by (simp add: wp NSRD_is_SRD R1_neg_preR assms)
+next
+  case (Suc n) note hyp = this
+  have "pre\<^sub>R (P \<^bold>^ (Suc n + 1)) = pre\<^sub>R (P ;; P \<^bold>^ (n+1))"
+    by (simp)
+  also have "... = (pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R (P \<^bold>^ (n+1)))"
+    by (subst preR_NSRD_seq, simp_all add: closure assms)
+  also have "... = (pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R (\<Squnion>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i wp\<^sub>R pre\<^sub>R P))"
+    by (simp only: hyp)
+  also have "... = (pre\<^sub>R P \<and> (\<Squnion>i\<in>{0..n}. post\<^sub>R P wp\<^sub>R (post\<^sub>R P \<^bold>^ i wp\<^sub>R pre\<^sub>R P)))"      
+    by (simp add: wp)
+  also have "... = (pre\<^sub>R P \<and> (\<Squnion>i\<in>{0..n}. (post\<^sub>R P \<^bold>^ (i+1) wp\<^sub>R pre\<^sub>R P)))"      
+  proof -
+    have "\<And> i. R1 (post\<^sub>R P \<^bold>^ i ;; R1 (\<not> pre\<^sub>R P)) = (post\<^sub>R P \<^bold>^ i ;; R1 (\<not> pre\<^sub>R P))"
+      by (induct_tac i, simp_all add: R1_idem, metis (no_types, hide_lams) Healthy_def NSRD_is_SRD R1_R2s_post_SRD R1_idem R1_seqr_closure assms seqr_assoc)
+    thus ?thesis
+      by (simp add: wpR_def seqr_assoc)
+  qed
+  also have "... = (post\<^sub>R P \<^bold>^ 0 wp\<^sub>R pre\<^sub>R P \<and> (\<Squnion>i\<in>{0..n}. (post\<^sub>R P \<^bold>^ (i+1) wp\<^sub>R pre\<^sub>R P)))"    
+    by (simp add: wp NSRD_is_SRD R1_neg_preR assms)
+  also have "... = (post\<^sub>R P \<^bold>^ 0 wp\<^sub>R pre\<^sub>R P \<and> (\<Squnion>i\<in>{1..Suc n}. (post\<^sub>R P \<^bold>^ i wp\<^sub>R pre\<^sub>R P)))"      
+  proof -
+    have "(\<Squnion>i\<in>{0..n}. (post\<^sub>R P \<^bold>^ (i+1) wp\<^sub>R pre\<^sub>R P)) = (\<Squnion>i\<in>{1..Suc n}. (post\<^sub>R P \<^bold>^ i wp\<^sub>R pre\<^sub>R P))"
+      by (rule cong[of Inf], simp_all add: fun_eq_iff)
+         (metis (no_types, lifting) image_Suc_atLeastAtMost image_cong image_image upred_semiring.power_Suc)
+    thus ?thesis by simp
+  qed 
+  also have "... = (\<Squnion>i\<in>insert 0 {1..Suc n}. (post\<^sub>R P \<^bold>^ i wp\<^sub>R pre\<^sub>R P))"
+    by (simp add: conj_upred_def)      
+  also have "... = (\<Squnion>i\<in>{0..Suc n}. post\<^sub>R P \<^bold>^ i wp\<^sub>R pre\<^sub>R P)"
+    by (simp add: atLeast0_atMost_Suc_eq_insert_0)
+  finally show ?case .
+qed
+  
+lemma "((P wp\<^sub>R Q) \<Rightarrow> (P ;; (Q \<Rightarrow> R))) = ((P wp\<^sub>R Q) \<Rightarrow> (P ;; R))"
+  apply (simp add: wpR_def)
+  apply (rel_auto)
+oops
+  
+lemma periR_power [wp]:
+  assumes "P is NSRD"
+  shows "peri\<^sub>R(P\<^bold>^(n+1)) = (pre\<^sub>R(P\<^bold>^(n+1))\<Rightarrow> (\<Sqinter> i\<in>{0..n}. post\<^sub>R(P) \<^bold>^ i) ;; peri\<^sub>R(P))"
+proof (induct n)
+  case 0
+  then show ?case
+    by (simp add: NSRD_is_SRD NSRD_wait'_unrest_pre SRD_peri_under_pre assms)
+next
+  case (Suc n) note hyp = this
+    have "peri\<^sub>R (P \<^bold>^ (Suc n + 1)) = peri\<^sub>R (P ;; P \<^bold>^ (n+1))"
+      by (simp)
+    also have "... = (pre\<^sub>R(P \<^bold>^ (Suc n + 1)) \<Rightarrow> (peri\<^sub>R P \<or> post\<^sub>R P ;; peri\<^sub>R (P \<^bold>^ (n + 1))))"
+      by (simp add: closure assms rdes)
+    also have "... = (pre\<^sub>R(P \<^bold>^ (Suc n + 1)) \<Rightarrow> (peri\<^sub>R P \<or> post\<^sub>R P ;; (pre\<^sub>R (P \<^bold>^ (n + 1)) \<Rightarrow> (\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P)))"
+      by (simp only: hyp)
+  then show ?case sorry
+oops
+
 subsection {* Reactive design parallel-by-merge *}
 
 text {* R3h implicitly depends on RD1, and therefore it requires that both sides be RD1. We also
