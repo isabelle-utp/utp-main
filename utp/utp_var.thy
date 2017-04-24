@@ -9,6 +9,7 @@ theory utp_var
   "~~/src/Tools/Adhoc_Overloading"
   "~~/src/HOL/Library/Monad_Syntax"
   "~~/src/HOL/Library/Countable"
+  "~~/src/HOL/Library/Order_Continuity"
   "~~/src/HOL/Eisbach/Eisbach"
   "../contrib/Algebra/Complete_Lattice"
   "../contrib/Algebra/Galois_Connection"

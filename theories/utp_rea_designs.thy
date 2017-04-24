@@ -86,7 +86,7 @@ lemma RD1_mono: "P \<sqsubseteq> Q \<Longrightarrow> RD1(P) \<sqsubseteq> RD1(Q)
   by (rel_auto)
 
 lemma RD1_Monotonic: "Monotonic RD1"
-  using Monotonic_def RD1_mono by blast
+  using mono_def RD1_mono by blast
 
 lemma RD1_Continuous: "Continuous RD1"
   by (rel_auto)
@@ -107,7 +107,7 @@ lemma RD2_mono: "P \<sqsubseteq> Q \<Longrightarrow> RD2(P) \<sqsubseteq> RD2(Q)
   by (simp add: H2_def RD2_def seqr_mono)
 
 lemma RD2_Monotonic: "Monotonic RD2"
-  using Monotonic_def RD2_mono by blast
+  using mono_def RD2_mono by blast
 
 lemma RD2_Continuous: "Continuous RD2"
   by (rel_auto)
@@ -144,7 +144,7 @@ lemma R3c_mono: "P \<sqsubseteq> Q \<Longrightarrow> R3c(P) \<sqsubseteq> R3c(Q)
   by (rel_auto)
 
 lemma R3c_Monotonic: "Monotonic R3c"
-  by (simp add: Monotonic_def R3c_mono)
+  by (simp add: mono_def R3c_mono)
 
 lemma R3c_Continuous: "Continuous R3c"
   by (rel_auto)
@@ -159,7 +159,7 @@ lemma R3h_mono: "P \<sqsubseteq> Q \<Longrightarrow> R3h(P) \<sqsubseteq> R3h(Q)
   by (rel_auto)
 
 lemma R3h_Monotonic: "Monotonic R3h"
-  by (simp add: Monotonic_def R3h_mono)
+  by (simp add: mono_def R3h_mono)
 
 lemma R3h_Continuous: "Continuous R3h"
   by (rel_auto)
@@ -259,7 +259,7 @@ lemma RH_Idempotent: "Idempotent \<^bold>R"
   by (simp add: Idempotent_def RH_idem)
 
 lemma RH_Monotonic: "Monotonic \<^bold>R"
-  by (metis Monotonic_def R1_Monotonic R2c_Monotonic R3c_mono RH_def)
+  by (metis (no_types, lifting) R1_Monotonic R2c_Monotonic R3c_mono RH_def mono_def)
 
 lemma RH_Continuous: "Continuous \<^bold>R"
   by (simp add: Continuous_comp R1_Continuous R2c_Continuous R3c_Continuous RH_comp)
@@ -271,10 +271,10 @@ lemma RHS_Idempotent: "Idempotent \<^bold>R\<^sub>s"
   by (simp add: Idempotent_def RHS_idem)
 
 lemma RHS_Monotonic: "Monotonic \<^bold>R\<^sub>s"
-  by (simp add: Monotonic_def R1_R2c_is_R2 R2_mono R3h_mono RHS_def)
+  by (simp add: mono_def R1_R2c_is_R2 R2_mono R3h_mono RHS_def)
 
 lemma RHS_mono: "P \<sqsubseteq> Q \<Longrightarrow> \<^bold>R\<^sub>s(P) \<sqsubseteq> \<^bold>R\<^sub>s(Q)"
-  using Monotonic_def RHS_Monotonic by blast
+  using mono_def RHS_Monotonic by blast
 
 lemma RHS_Continuous: "Continuous \<^bold>R\<^sub>s"
   by (simp add: Continuous_comp R1_Continuous R2c_Continuous R3h_Continuous RHS_comp)
@@ -302,8 +302,8 @@ lemma RD_idem: "RD(RD(P)) = RD(P)"
   by (simp add: RD_alt_def RD1_RH_commute RD2_RH_commute RD1_RD2_commute RD2_idem RD1_idem RH_idem)
 
 lemma RD_Monotonic: "Monotonic RD"
-  by (metis Monotonic_def RD1_mono RD2_Monotonic RD_alt_def RH_Monotonic)
-
+  by (simp add: Monotonic_comp RD1_Monotonic RD2_Monotonic RD_comp RP_Monotonic)
+  
 lemma RD_Continuous: "Continuous RD"
   by (simp add: Continuous_comp RD1_Continuous RD2_Continuous RD_comp RP_Continuous)
 
@@ -323,8 +323,8 @@ lemma SRD_Idempotent [closure]: "Idempotent SRD"
   by (simp add: Idempotent_def SRD_idem)
     
 lemma SRD_Monotonic: "Monotonic SRD"
-  by (metis Monotonic_def RD1_mono RD2_Monotonic RHS_Monotonic SRD_def)
-
+  by (simp add: Monotonic_comp RD1_Monotonic RD2_Monotonic RHS_Monotonic SRD_comp)
+  
 lemma SRD_Continuous: "Continuous SRD"
   by (simp add: Continuous_comp RD1_Continuous RD2_Continuous RHS_Continuous SRD_comp)
 
@@ -342,7 +342,7 @@ lemma SRD_intro:
   assumes "P is R1" "P is R2" "P is R3h" "P is RD1" "P is RD2"
   shows "P is SRD"
   by (metis Healthy_def R1_R2c_is_R2 RHS_def SRD_def assms(2) assms(3) assms(4) assms(5))
-
+    
 lemma R2_skip_rea: "R2(II\<^sub>r) = II\<^sub>r"
   by (metis R1_R2c_is_R2 R1_skip_rea R2c_skip_rea)
 
@@ -432,6 +432,32 @@ lemma skip_rea_R1_lemma: "II\<^sub>r = R1($ok \<Rightarrow> II)"
     
 lemma RD1_R1_cases: "RD1(R1(P)) = (R1(P) \<triangleleft> $ok \<triangleright> R1(true))"
   by (rel_auto)
+    
+lemma R3h_wait_true: 
+  assumes "P is R3h"
+  shows "P \<^sub>t = II\<^sub>R \<^sub>t"
+proof -
+  have "P \<^sub>t = (II\<^sub>R \<triangleleft> $wait \<triangleright> P) \<^sub>t"
+    by (metis Healthy_if R3h_form assms)
+  also have "... = II\<^sub>R \<^sub>t"
+    by (simp add: usubst)
+  finally show ?thesis .
+qed
+    
+lemma SRD_ok_false [usubst]: "P is SRD \<Longrightarrow> P\<lbrakk>false/$ok\<rbrakk> = R1(true)"
+  by (metis (no_types, hide_lams) H1_H2_eq_design Healthy_def R1_ok_false RD1_R1_commute RD1_via_R1 RD2_def SRD_def SRD_healths(1) design_ok_false)
+
+lemma SRD_ok_true_wait_true [usubst]: 
+  assumes "P is SRD"
+  shows "P\<lbrakk>true,true/$ok,$wait\<rbrakk> = (\<exists> $st \<bullet> II)\<lbrakk>true,true/$ok,$wait\<rbrakk>"
+proof -
+  have "P = (\<exists> $st \<bullet> II) \<triangleleft> $ok \<triangleright> R1 true \<triangleleft> $wait \<triangleright> P"
+    by (metis Healthy_def R3h_cases SRD_healths(3) assms)
+  moreover have "((\<exists> $st \<bullet> II) \<triangleleft> $ok \<triangleright> R1 true \<triangleleft> $wait \<triangleright> P)\<lbrakk>true,true/$ok,$wait\<rbrakk> = (\<exists> $st \<bullet> II)\<lbrakk>true,true/$ok,$wait\<rbrakk>"
+    by (simp add: usubst)
+  ultimately show ?thesis
+    by (simp)
+qed
     
 subsection {* Reactive design UTP theories *}
   
@@ -1301,6 +1327,10 @@ lemma wpR_miracle [wp]: "false wp\<^sub>R Q = true"
     
 lemma wpR_choice [wp]: "(P \<or> Q) wp\<^sub>R R = (P wp\<^sub>R R \<and> Q wp\<^sub>R R)"
   by (rel_blast)
+    
+lemma wpR_UINF [wp]:
+  "(\<Sqinter> x\<in>A \<bullet> P(x)) wp\<^sub>R Q = (\<Squnion> x\<in>A \<bullet> P(x) wp\<^sub>R Q)"
+  by (simp add: wpR_def seq_UINF_distr not_USUP)
     
 theorem RHS_tri_design_composition:
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>2" "$ok \<sharp> R" "$ok \<sharp> S\<^sub>1" "$ok \<sharp> S\<^sub>2"
@@ -2609,6 +2639,28 @@ proof -
     by (metis (mono_tags, lifting))
 qed
     
+lemma SRD_power_Suc [closure]: "P is SRD \<Longrightarrow> P\<^bold>^(Suc n) is SRD"
+proof (induct n)
+  case 0
+  then show ?case 
+    by (simp)
+next
+  case (Suc n)
+  then show ?case
+    using SRD_seqr_closure by auto
+qed
+
+lemma NSRD_power_Suc [closure]: "P is NSRD \<Longrightarrow> P\<^bold>^(Suc n) is NSRD"
+proof (induct n)
+  case 0
+  then show ?case 
+    by (simp)
+next
+  case (Suc n)
+  then show ?case
+    using NSRD_seqr_closure by auto
+qed
+  
 subsection {* Reactive design parallel-by-merge *}
 
 text {* R3h implicitly depends on RD1, and therefore it requires that both sides be RD1. We also

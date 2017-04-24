@@ -962,7 +962,7 @@ lemma H1_H2_Idempotent: "Idempotent \<^bold>H"
   by (simp add: Idempotent_def H1_H2_idempotent)
 
 lemma H1_H2_monotonic: "Monotonic \<^bold>H"
-  by (simp add: H1_monotone H2_def Monotonic_def seqr_mono)
+  by (simp add: H1_monotone H2_def mono_def seqr_mono)
 
 lemma H1_H2_Continuous: "Continuous \<^bold>H"
   by (simp add: Continuous_comp H1_Continuous H1_H2_comp H2_Continuous)
@@ -1086,7 +1086,7 @@ theorem H3_mono:
 
 theorem H3_Monotonic:
   "Monotonic H3"
-  by (simp add: H3_mono Monotonic_def)
+  by (simp add: H3_mono mono_def)
 
 theorem H3_Continuous: "Continuous H3"
   by (rel_auto)
@@ -1220,7 +1220,7 @@ lemma H1_H3_Idempotent: "Idempotent \<^bold>N"
   by (simp add: Idempotent_def H1_H3_idempotent)
 
 lemma H1_H3_monotonic: "Monotonic \<^bold>N"
-  by (simp add: H1_monotone H3_mono Monotonic_def)
+  by (simp add: H1_monotone H3_mono mono_def)
 
 lemma H1_H3_Continuous: "Continuous \<^bold>N"
   by (simp add: Continuous_comp H1_Continuous H1_H3_comp H3_Continuous)

@@ -119,7 +119,7 @@ lemma R1_mono: "P \<sqsubseteq> Q \<Longrightarrow> R1(P) \<sqsubseteq> R1(Q)"
   by pred_auto
 
 lemma R1_Monotonic: "Monotonic R1"
-  by (simp add: Monotonic_def R1_mono)
+  by (simp add: mono_def R1_mono)
 
 lemma R1_Continuous: "Continuous R1"
   by (auto simp add: Continuous_def, rel_auto)
@@ -593,7 +593,7 @@ lemma R3_mono: "P \<sqsubseteq> Q \<Longrightarrow> R3(P) \<sqsubseteq> R3(Q)"
   by (rel_auto)
 
 lemma R3_Monotonic: "Monotonic R3"
-  by (simp add: Monotonic_def R3_mono)
+  by (simp add: mono_def R3_mono)
 
 lemma R3_Continuous: "Continuous R3"
   by (rel_auto)
@@ -672,7 +672,7 @@ lemma RP_mono: "P \<sqsubseteq> Q \<Longrightarrow> RP(P) \<sqsubseteq> RP(Q)"
   by (simp add: R1_R2c_is_R2 R2_mono R3_mono RP_def)
 
 lemma RP_Monotonic: "Monotonic RP"
-  by (simp add: Monotonic_def RP_mono)
+  by (simp add: mono_def RP_mono)
 
 lemma RP_Continuous: "Continuous RP"
   by (simp add: Continuous_comp R1_Continuous R2c_Continuous R3_Continuous RP_comp_def)

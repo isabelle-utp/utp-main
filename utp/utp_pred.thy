@@ -559,6 +559,9 @@ lemma impl_mp1 [simp]: "(P \<and> (P \<Rightarrow> Q)) = (P \<and> Q)"
 lemma impl_mp2 [simp]: "((P \<Rightarrow> Q) \<and> P) = (Q \<and> P)"
   by (pred_auto)
     
+lemma impl_adjoin: "((P \<Rightarrow> Q) \<and> R) = ((P \<and> R \<Rightarrow> Q \<and> R) \<and> R)"
+  by (pred_auto)
+        
 lemma impl_refine_intro:
   "\<lbrakk> Q\<^sub>1 \<sqsubseteq> P\<^sub>1; P\<^sub>2 \<sqsubseteq> (P\<^sub>1 \<and> Q\<^sub>2) \<rbrakk> \<Longrightarrow> (P\<^sub>1 \<Rightarrow> P\<^sub>2) \<sqsubseteq> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)"
   by (rel_auto) 
@@ -627,6 +630,9 @@ lemma usup_and:
   shows "(P \<squnion> Q) = (P \<and> Q)"
   by (pred_auto)
 
+lemma USUP_true [simp]: "(\<Squnion> P | F(P) \<bullet> true) = true"
+  by (rel_auto)
+    
 lemma USUP_cong_eq:
   "\<lbrakk> \<And> x. P\<^sub>1(x) = P\<^sub>2(x); \<And> x. `P\<^sub>1(x) \<Rightarrow> Q\<^sub>1(x) =\<^sub>u Q\<^sub>2(x)` \<rbrakk> \<Longrightarrow>
         (\<Sqinter> x | P\<^sub>1(x) \<bullet> Q\<^sub>1(x)) = (\<Sqinter> x | P\<^sub>2(x) \<bullet> Q\<^sub>2(x))"
@@ -954,6 +960,11 @@ lemma eq_split:
   using assms
   by (pred_auto)
 
+lemma bool_eq_splitI:
+  assumes "vwb_lens x" "P\<lbrakk>true/x\<rbrakk> = Q\<lbrakk>true/x\<rbrakk>" "P\<lbrakk>false/x\<rbrakk> = Q\<lbrakk>false/x\<rbrakk>"
+  shows "P = Q"
+  by (metis (full_types) assms eq_split_subst false_alt_def true_alt_def)
+    
 lemma subst_bool_split:
   assumes "vwb_lens x"
   shows "`P` = `(P\<lbrakk>false/x\<rbrakk> \<and> P\<lbrakk>true/x\<rbrakk>)`"

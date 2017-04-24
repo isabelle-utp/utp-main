@@ -5,6 +5,7 @@ imports
   Main
   "~~/src/HOL/Library/Sublist"
   "~~/src/HOL/Library/Monad_Syntax"
+  "~~/src/HOL/Library/Prefix_Order"
 begin
 
 subsection {* Extra list functions *}
@@ -72,7 +73,8 @@ lemma prefix_length_eq:
 lemma prefix_Cons_elim [elim]:
   assumes "prefix (x # xs) ys"
   obtains ys' where "ys = x # ys'" "prefix xs ys'"
-  using assms by (auto elim!: prefixE)
+  using assms
+  by (metis Sublist.Cons_prefix_Cons prefix_code(1) prefix_order.eq_iff prefixes.cases) 
 
 lemma prefix_map_inj:
   "\<lbrakk> inj_on f (set xs \<union> set ys); prefix (map f xs) (map f ys) \<rbrakk> \<Longrightarrow>
@@ -93,9 +95,7 @@ lemma strict_prefix_Cons_elim [elim]:
   assumes "strict_prefix (x # xs) ys"
   obtains ys' where "ys = x # ys'" "strict_prefix xs ys'"
   using assms
-  apply (auto elim!: strict_prefixE)
-  apply (metis (full_types) prefix_order.le_less prefix_Cons_elim)
-done
+  by (metis Sublist.strict_prefixE' Sublist.strict_prefixI' append_Cons)
 
 lemma strict_prefix_map_inj:
   "\<lbrakk> inj_on f (set xs \<union> set ys); strict_prefix (map f xs) (map f ys) \<rbrakk> \<Longrightarrow>
@@ -118,6 +118,9 @@ lemma prefix_drop:
    \<Longrightarrow> ys = xs @ zs"
   by (metis append_eq_conv_conj prefix_def)
 
+lemma list_append_prefixD: "x @ y \<le> z \<Longrightarrow> x \<le> z"
+  using append_prefixD less_eq_list_def by blast
+    
 subsection {* Minus on lists *}
 
 instantiation list :: (type) minus
@@ -144,6 +147,9 @@ lemma minus_right_nil [simp]: "xs - [] = xs"
 lemma list_concat_minus_list_concat: "(s @ t) - (s @ z) = t - z"
   by (simp add: minus_list_def)
 
+lemma length_minus_list: "y \<le> x \<Longrightarrow> length(x - y) = length(x) - length(y)"
+  by (simp add: less_eq_list_def minus_list_def)
+    
 lemma length_gt_zero_butlast_concat:
   assumes "length ys > 0"
   shows "butlast (xs @ ys) = xs @ (butlast ys)"
@@ -386,7 +392,7 @@ qed
 
 lemma strict_prefix_lexord_rel:
   "strict_prefix xs ys \<Longrightarrow> (xs, ys) \<in> lexord R"
-  by (metis lexord_append_rightI strict_prefixE')
+  by (metis Sublist.strict_prefixE' lexord_append_rightI)
 
 lemma strict_prefix_lexord_left:
   assumes "trans R" "(xs, ys) \<in> lexord R" "strict_prefix xs' xs"
@@ -450,12 +456,12 @@ lemma prefix_concat_minus:
 lemma prefix_minus_concat:
   assumes "prefix s t"
   shows "(t - s) @ z = (t @ z) - s"
-  using assms by (simp add: minus_list_def prefix_length_le)
+  using assms by (simp add: Sublist.prefix_length_le minus_list_def) 
 
 lemma strict_prefix_minus_not_empty:
   assumes "strict_prefix xs ys"
   shows "ys - xs \<noteq> []"
-  using assms by (metis append_Nil2 strict_prefixE prefix_concat_minus)
+  using assms by (metis append_Nil2 prefix_concat_minus strict_prefix_def) 
 
 lemma strict_prefix_diff_minus:
   assumes "prefix xs ys" and "xs \<noteq> ys"
@@ -465,7 +471,7 @@ lemma strict_prefix_diff_minus:
 lemma prefix_not_empty:
   assumes "strict_prefix xs ys" and "xs \<noteq> []"
   shows "ys \<noteq> []"
-  using assms strict_prefix_simps(1) by blast
+  using Sublist.strict_prefix_simps(1) assms(1) by blast
 
 lemma prefix_not_empty_length_gt_zero:
   assumes "strict_prefix xs ys" and "xs \<noteq> []"
@@ -486,7 +492,7 @@ lemma length_tl_list_minus_butlast_gt_zero:
 lemma prefix_and_concat_prefix_is_concat_prefix:
   assumes "prefix s t" "prefix (e @ t) u"
   shows "prefix (e @ s) u"
-  using assms prefix_order.dual_order.trans same_prefix_prefix by blast
+  using Sublist.same_prefix_prefix assms(1) assms(2) prefix_order.dual_order.trans by blast
 
 lemma list_minus_butlast_eq_butlast_list:
   assumes "length t = length s" and "strict_prefix (butlast s) t"
@@ -516,12 +522,12 @@ lemma butlast_eq_if_eq_length_and_prefix:
 lemma prefix_imp_length_lteq:
   assumes "prefix s t"
   shows "length s \<le> length t"
-  using assms by (simp add:prefix_length_le)
+  using assms by (simp add: Sublist.prefix_length_le) 
 
 lemma prefix_imp_length_not_gt:
   assumes "prefix s t"
   shows "\<not> length t < length s"
-  using assms by (simp add: leD prefix_length_le)
+  using assms by (simp add: Sublist.prefix_length_le leD) 
 
 lemma prefix_and_eq_length_imp_eq_list:
   assumes "prefix s t" and "length t = length s"

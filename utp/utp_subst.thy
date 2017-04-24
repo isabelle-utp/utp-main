@@ -292,4 +292,8 @@ lemma unrest_usubst_upd [unrest]:
 lemma unrest_subst [unrest]:
   "\<lbrakk> x \<sharp> P; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> x \<sharp> (\<sigma> \<dagger> P)"
   by (transfer, simp add: unrest_usubst_def)
+
 end
+  
+  
+  

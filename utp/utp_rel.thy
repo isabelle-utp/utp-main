@@ -403,6 +403,9 @@ lemma spec_refine:
   "Q \<sqsubseteq> (P \<and> R) \<Longrightarrow> (P \<Rightarrow> Q) \<sqsubseteq> R"
   by (rel_auto)
 
+lemma cond_conj_not: "((P \<triangleleft> b \<triangleright> Q) \<and> (\<not> b)) = (Q \<and> (\<not> b))"
+  by (rel_auto)
+    
 lemma cond_skip: "out\<alpha> \<sharp> b \<Longrightarrow> (b \<and> II) = (II \<and> b\<^sup>-)"
   by (rel_auto)
 
@@ -579,6 +582,12 @@ lemma seq_var_ident_lift:
   using assms apply (rel_auto)
   by (metis (no_types, lifting) vwb_lens_wb wb_lens_weak weak_lens.put_get)
 
+lemma seqr_bool_split:
+  assumes "vwb_lens x"
+  shows "P ;; Q = (P\<lbrakk>true/$x\<acute>\<rbrakk> ;; Q\<lbrakk>true/$x\<rbrakk> \<or> P\<lbrakk>false/$x\<acute>\<rbrakk> ;; Q\<lbrakk>false/$x\<rbrakk>)"
+  using assms
+  by (subst seqr_middle[of x], simp_all add: true_alt_def false_alt_def)
+    
 theorem precond_equiv:
   "P = (P ;; true) \<longleftrightarrow> (out\<alpha> \<sharp> P)"
   by (rel_auto)
@@ -919,6 +928,36 @@ lemma aext_seq [alpha]:
   "wb_lens a \<Longrightarrow> ((P ;; Q) \<oplus>\<^sub>p (a \<times>\<^sub>L a)) = ((P \<oplus>\<^sub>p (a \<times>\<^sub>L a)) ;; (Q \<oplus>\<^sub>p (a \<times>\<^sub>L a)))"
   by (rel_simp, metis wb_lens_weak weak_lens.put_get)
 
+subsection {* Algebraic properties *}
+    
+interpretation upred_semiring: semiring_1
+  where times = seqr and one = skip_r and zero = false\<^sub>h and plus = sup
+  by (unfold_locales, (rel_auto)+)
+    
+text {* We introduce the power syntax dervied from semirings *}
+    
+abbreviation upower :: "'a hrel \<Rightarrow> nat \<Rightarrow> 'a hrel" (infixr "\<^bold>^" 80) where
+"upower P n \<equiv> upred_semiring.power P n"
+    
+translations
+  "P \<^bold>^ n" <= "CONST power.power II op ;; P n"
+  
+lemma Sup_power_expand:
+  fixes P :: "nat \<Rightarrow> 'a::complete_lattice"
+  shows "P(0) \<sqinter> (\<Sqinter>i. P(i+1)) = (\<Sqinter>i. P(i))"
+proof -
+  have "UNIV = insert (0::nat) {1..}"
+    by auto
+  moreover have "(\<Sqinter>i. P(i)) = \<Sqinter> (P ` UNIV)"
+    by (blast)
+  moreover have "\<Sqinter> (P ` insert 0 {1..}) = P(0) \<sqinter> SUPREMUM {1..} P"
+    by (simp)
+  moreover have "SUPREMUM {1..} P = (\<Sqinter>i. P(i+1))"
+    by (simp add: atLeast_Suc_greaterThan)
+  ultimately show ?thesis
+    by (simp only:)
+qed    
+        
 subsection {* Relation algebra laws *}
 
 theorem RA1: "(P ;; (Q ;; R)) = ((P ;; Q) ;; R)"
