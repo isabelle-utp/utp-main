@@ -89,11 +89,6 @@ definition tl_lpf :: "'a list lpf \<Rightarrow> 'a list lpf" where
 definition elems_lpf :: "'a list lpf \<Rightarrow> 'a set lpf" where
 [lpf_defs]: "elems_lpf = lift1_lpf' set"
 
-(*
-definition inds_nat1_lpf :: "'a list lpf \<Rightarrow> nat1 set lpf" where
-[lpf_defs]: "inds_nat1_lpf = lift1_lpf {x . x \<noteq> []} (\<lambda>x . {1..length x})"
-*)
-
 -- {* \todo{Define inds\_lpf for nat1} *}
 
 definition inds_lpf :: "'a list lpf \<Rightarrow> nat set lpf" where
@@ -341,7 +336,7 @@ syntax
 (* Sequence Binary Operators *)
 "_lpfconc_seq" :: "'a list lpf \<Rightarrow> 'a list lpf \<Rightarrow> 'a list lpf" ("conc\<^sub>L")
 "_lpfseq_mod" :: "'a list lpf \<Rightarrow> (nat, 'a) map lpf \<Rightarrow> 'a list lpf" ("++\<^sub>L")
-"_lpfseq_index" :: "'a list lpf \<Rightarrow> nat lpf \<Rightarrow> 'a lpf" ("inds\<^sub>L")
+"_lpfseq_index" :: "'a list lpf \<Rightarrow> nat lpf \<Rightarrow> 'a lpf" ("!\<^sub>L")
 (* Comprehensions *)
 
 translations
@@ -399,7 +394,7 @@ translations
 (* Sequence Binary Operators *)
 "xs conc\<^sub>L ys" == "CONST conc_seq_lpf xs ys"
 "xs ++\<^sub>L ys" == "CONST seq_mod_lpf xs ys"
-"xs inds\<^sub>L x" == "CONST seq_index_lpf xs x"
+"xs !\<^sub>L x" == "CONST seq_index_lpf xs x"
 (* Comprehensions *)
   
 end
