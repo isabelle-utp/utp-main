@@ -133,27 +133,25 @@ Moddelling systems - Practical Tools and techniques in software development
 page 71-73 (Kleene logic)*}
   
 definition conj_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
-[lpf_defs]: "conj_lpf p q = (
-  if((p = lpf_True) \<and> (q = lpf_True))                              
-  then lpf_True
-  else ( 
-    if ((p = lpf_False) \<or> (q = lpf_False))
-    then lpf_False
-    else lpf_None))"
+[lpf_defs]: "conj_lpf p q = (if(p = true\<^sub>L \<and> q = true\<^sub>L)
+                                then true\<^sub>L
+                              else if (p = false\<^sub>L \<or> q = false\<^sub>L)
+                                then false\<^sub>L
+                              else \<bottom>\<^sub>L)"
 
 definition disj_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
-[lpf_defs]: "disj_lpf p q = (if(p = lpf_Some(True) \<or> q = lpf_Some(True))
-                                then lpf_Some(True)
-                              else if (p = lpf_Some(False) \<and> q = lpf_Some(False))
-                                then lpf_Some(False)
-                              else lpf_None)"
+[lpf_defs]: "disj_lpf p q = (if(p = true\<^sub>L \<or> q = true\<^sub>L)
+                                then true\<^sub>L
+                              else if ((p = false\<^sub>L) \<and> (q = false\<^sub>L))
+                                then false\<^sub>L
+                              else \<bottom>\<^sub>L)"
 
 definition implies_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
-[lpf_defs]: "implies_lpf p q = (if(p = lpf_Some(True) \<or> q = lpf_Some(True)) 
-                                  then lpf_Some(True) 
-                                else if (p = lpf_Some(True) \<or> q = lpf_Some(False))
-                                  then lpf_Some(False)
-                                else lpf_None)"
+[lpf_defs]: "implies_lpf p q = (if(p = false\<^sub>L \<or> q = true\<^sub>L) 
+                                  then true\<^sub>L 
+                                else if (p = true\<^sub>L \<or> q = false\<^sub>L)
+                                  then false\<^sub>L
+                                else \<bottom>\<^sub>L)"
 
 definition biimplication_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
 [lpf_defs]: "biimplication_lpf = lift2_lpf' iff"
@@ -278,40 +276,15 @@ text {* Utility function that converts 'a lpf set to 'a set lpf.
 *}
 
 definition set_sequence_lpf :: "'a lpf set \<Rightarrow> 'a set lpf" where
-[lpf_defs]: "set_sequence_lpf xs = (if \<exists>x\<in>xs . \<not>\<D>(x) then lpf_None 
+[lpf_defs]: "set_sequence_lpf xs = (if \<exists>x\<in>xs . \<not>\<D>(x) then \<bottom>\<^sub>L 
   else lpf_Some {y | x y . y = lpf_the x \<and> x\<in>xs})"
 
 definition set_comprehension_lpf :: "('a \<Rightarrow> 'b lpf) \<Rightarrow> 'a set lpf \<Rightarrow> ('a \<Rightarrow> bool lpf) \<Rightarrow> 'b set lpf" where
 [lpf_defs]: "set_comprehension_lpf f xs pred = 
   (if (\<D>(xs) \<and> (\<forall>x\<in>(lpf_the xs) . \<D>(pred x)) \<and> 
-    (\<forall>x\<in>(lpf_the xs) . if pred x = lpf_True then \<D>(f x) else True))
-  then set_sequence_lpf {y | x y . y = f x \<and> x\<in>(lpf_the xs) \<and> (pred x = lpf_True)}
-  else lpf_None)"
-
-text {* Proof that a function returning undefined for values for which the 
-  predicate holds makes the comprehension undefined. 
-*}
-
-lemma set_comprehension_lpf_undefined_fun: "(set_comprehension_lpf (\<lambda>x . lpf_None) 
-  (lpf_Some {1::nat,2,3}) (\<lambda>x . lpf_True)) = lpf_None"
-apply(simp add: set_comprehension_lpf_def)
-apply(simp add: defined_def)
-by(simp add: lpf_The_Some)
-
-text {* Proof that a predicate returning undefined makes the comprehension undefined. *}
-
-lemma set_comprehension_lpf_undefined_pred: "(set_comprehension_lpf (\<lambda>x . lpf_Some x) 
-  (lpf_Some {1::nat,2,3}) (\<lambda>x . lpf_None)) = lpf_None"
-apply(simp add: set_comprehension_lpf_def)
-apply(simp add: defined_def)
-by(simp add: lpf_The_Some)
-
-text {* Proof that a an undefined set makes the comprehension undefined. *}
-
-lemma set_comprehension_lpf_undefined_set: "(set_comprehension_lpf (\<lambda>x . lpf_Some x) 
-  lpf_None (\<lambda>x . lpf_None)) = lpf_None"
-apply(simp add: set_comprehension_lpf_def)
-by(simp add: defined_def)
+    (\<forall>x\<in>(lpf_the xs) . if pred x = true\<^sub>L then \<D>(f x) else True))
+  then set_sequence_lpf {y | x y . y = f x \<and> x\<in>(lpf_the xs) \<and> (pred x = true\<^sub>L)}
+  else \<bottom>\<^sub>L)"
 
 syntax
 (* Unary Operators *)
@@ -386,6 +359,10 @@ translations
 "Pow\<^sub>L(A)" == "CONST power_lpf A"
 (* Sequence Unary Operators *)
 "hd\<^sub>L(xs)" == "CONST hd_lpf xs"
+"reverse\<^sub>L(xs)" == "CONST reverse_lpf xs"
+"tl\<^sub>L(xs)" == "CONST tl_lpf xs"
+"elem\<^sub>L(xs)" == "CONST elems_lpf xs"
+"inds\<^sub>L(xs)" == "CONST inds_lpf xs"
 "conc\<^sub>L(xs)" == "CONST conc_lpf xs"
 (* Map Unary Operators *)
 "dom\<^sub>L(f)" == "CONST dom_lpf f"
@@ -424,91 +401,5 @@ translations
 "xs ++\<^sub>L ys" == "CONST seq_mod_lpf xs ys"
 "xs inds\<^sub>L x" == "CONST seq_index_lpf xs x"
 (* Comprehensions *)
-    
-lemma "(lpf_Some(True) \<or>\<^sub>L lpf_Some(True)) = lpf_Some(True)"
-by (lpf_auto)
-lemma "(lpf_None \<or>\<^sub>L lpf_Some(True)) =lpf_Some(True)"
-by (lpf_auto)
-lemma "(lpf_Some(True) \<or>\<^sub>L lpf_None) = lpf_Some(True)"
-by (lpf_auto)
-
-
-lemma t0: "(lpf_Some(True) \<and>\<^sub>L lpf_Some(True)) = lpf_True"
-  by (lpf_auto)
-lemma t1: "(lpf_Some(False) \<and>\<^sub>L lpf_Some(False)) = lpf_Some(False)"
-  by (lpf_auto)
-lemma t2: "(lpf_None \<and>\<^sub>L lpf_None) = lpf_None"
-  by (lpf_auto)    
-  
-lemma double_negation : "(\<not>\<^sub>L\<not>\<^sub>Lp) = p"
-by(lpf_auto)
-    
-lemma domination_or: "(p \<or>\<^sub>L lpf_Some(True)) = lpf_Some(True)"
-by(lpf_auto)
-
-lemma domination_and: "(p \<and>\<^sub>L lpf_Some(False)) = lpf_Some(False)"
-by(lpf_auto)
-
-text {* Tautologies *}
-
-definition lpf_taut :: "bool lpf \<Rightarrow> bool" where
-"lpf_taut p = (p = lpf_True)"
-   
-declare lpf_taut_def [lpf_defs]
-
-lemma lpfI [lpf_defs]: "(x::bool) \<Longrightarrow> (lpf_taut \<circ> lpf_Some) x"
-by (lpf_simp)
-
-lemma lpfD [lpf_defs]: "(lpf_taut \<circ> lpf_Some) (x::bool) \<Longrightarrow> x"
-by (lpf_simp)
-
-lemma lpf_bot [lpf_defs]: "(lpf_taut lpf_None) = False"
-by (lpf_simp)
-
-lemma lpf_and_defI1 [lpf_defs]: "\<lbrakk> \<D>(p); \<D>(q) \<rbrakk> \<Longrightarrow> \<D>(conj_lpf p q)"
-by (lpf_auto)
-
-lemma lpf_f_impl [lpf_defs]: "(p::bool lpf) \<noteq> lpf_False \<Longrightarrow> p = lpf_True \<or> p = lpf_None"
-apply(lpf_simp)
-done
-
-lemma lpf_t_impl [lpf_defs] : "(p::bool lpf) \<noteq> lpf_True \<Longrightarrow> p = lpf_False \<or> p = lpf_None"
-apply (lpf_simp)
-done
-
-
-lemma lpf_cases [lpf_defs]: "\<lbrakk> (p::bool lpf) \<noteq> lpf_True \<Longrightarrow> P; p \<noteq> lpf_False \<Longrightarrow> P; p\<noteq> lpf_None \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-apply(cases)
-apply(lpf_auto)
-apply(lpf_auto)
-done
-
-(*This is not going to work with =\<^sub>L since (lpf_None =\<^sub>L lpf_None \<equiv> lpf_None) *)
-
-lemma idempotent_and [lpf_defs]: "(conj_lpf (p::bool lpf) p) = p"
-apply(simp only: conj_lpf_def)
-apply(simp)
-apply(auto)
-using lpf_f_impl by auto
-                           
-lemma idempotent_or [lpf_defs]: "(p \<or>\<^sub>L p) = p"
-  using disj_lpf_def lpf_False.transfer lpf_True.abs_eq lpf_f_impl by auto
-
-
-lemma Commutative_Law : "(p \<and>\<^sub>L q) = (q  \<and>\<^sub>L p )"
-  by(lpf_auto)
-    
-lemma associativity_Law : "(p \<and>\<^sub>L(q \<and>\<^sub>L r)) = ((p  \<and>\<^sub>L q ) \<and>\<^sub>L r)"
-  by(lpf_auto)
-    
-lemma distributive_Law :  "(p \<and>\<^sub>L(q \<or>\<^sub>L r)) = ((p  \<and>\<^sub>L q ) \<or>\<^sub>L (p \<and>\<^sub>L r))"
-  by(lpf_auto)
-    
-lemma DeMorgans_Law : "(\<not>\<^sub>L(p \<and>\<^sub>L q)) = (\<not>\<^sub>Lp \<or>\<^sub>L \<not>\<^sub>Lq )"
-  by(lpf_auto)
-  
-lemma "A \<union>\<^sub>L B = B \<union>\<^sub>L A"
-  by(lpf_auto)
-  
   
 end

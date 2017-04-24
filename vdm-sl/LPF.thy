@@ -75,23 +75,22 @@ declare lpf_Some.rep_eq [lpf_transfer]
 
 text {* The @{type lpf} value for undefined. *}
 
-lift_definition lpf_None :: "'a lpf" is "None" .
-
+lift_definition lpf_None :: "'a lpf" ("\<bottom>\<^sub>L") is "None" .
 declare lpf_None.rep_eq [lpf_transfer]
+
+lift_definition lpf_True :: "bool lpf" ("true\<^sub>L") is "lpf_Some(True)" .
+declare lpf_True.rep_eq [lpf_transfer]
+
+lift_definition lpf_False :: "bool lpf" ("false\<^sub>L") is "lpf_Some(False)" .
+declare lpf_False.rep_eq [lpf_transfer]
 
 text {* 
   Definition of definedness for LPF values. 
   A value of type @{type lpf} is defined if it is not @{const lpf_None}.   
 *}
 
-lift_definition lpf_True :: "bool lpf" is "lpf_Some(True)" .
-declare lpf_True.rep_eq [lpf_transfer]
-
-lift_definition lpf_False :: "bool lpf" is "lpf_Some(False)" .
-declare lpf_False.rep_eq [lpf_transfer]
-
 definition defined :: "'a lpf \<Rightarrow> bool" ("\<D>'(_')") where
-"defined x \<longleftrightarrow> (x \<noteq> lpf_None)"
+"defined x \<equiv> (x \<noteq> \<bottom>\<^sub>L)"
 
 declare defined_def [lpf_defs]
 
@@ -107,7 +106,7 @@ text {*
 *}
 
 definition lpfSat :: "'a set \<Rightarrow> 'a \<Rightarrow> 'a lpf" where
-"lpfSat u a = (if a\<in>u then lpf_Some a else lpf_None)"
+"lpfSat u a = (if a\<in>u then lpf_Some a else \<bottom>\<^sub>L)"
 
 declare lpfSat_def [lpf_defs]
 
@@ -115,7 +114,7 @@ text {* Overload of the bind operator for @{type lpf} values. *}
 
 definition lift_bind :: "'a lpf \<Rightarrow> ('a \<Rightarrow> 'b lpf) \<Rightarrow> 'b lpf" where
 [lpf_defs]: "lift_bind a f = 
-  (if \<D>(a) then  (f \<circ> the \<circ> Rep_lpf) a else lpf_None)"
+  (if \<D>(a) then  (f \<circ> the \<circ> Rep_lpf) a else \<bottom>\<^sub>L)"
 
 adhoc_overloading
 bind lift_bind
@@ -208,13 +207,13 @@ apply (assumption)
 apply (drule_tac x = "Rep_lpf x" in meta_spec)
 by (simp add: Rep_lpf_inverse)
 
-lemma lifted_card_undefined_example: "lift1_lpf' card lpf_None = lpf_None"
+lemma lifted_card_undefined_example: "lift1_lpf' card \<bottom>\<^sub>L = \<bottom>\<^sub>L"
 by (lpf_simp)
 
-lemma lifted_union_undefined_undefined_example: "lift2_lpf' union lpf_None lpf_None = lpf_None"
+lemma lifted_union_undefined_undefined_example: "lift2_lpf' union \<bottom>\<^sub>L \<bottom>\<^sub>L = \<bottom>\<^sub>L"
 by (lpf_simp)
 
-lemma lifted_union_defined_undefined_example: "lift2_lpf' union (lpf_Some {True}) lpf_None = lpf_None"
+lemma lifted_union_defined_undefined_example: "lift2_lpf' union (lpf_Some {True}) \<bottom>\<^sub>L = \<bottom>\<^sub>L"
 by (lpf_simp)
 
 lemma lifted_union_defined_defined_example: "lift2_lpf' union (lpf_Some {True}) (lpf_Some {False}) = lpf_Some(union {True} {False} )"
