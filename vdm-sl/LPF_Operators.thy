@@ -7,11 +7,6 @@
 (* LAST REVIEWED: 31 Mar 2017 *)
 section {* Operators for the Logic of Partial Functions *}
 
-text {* 
-  This theory contains the type used to represent undefinedness and sets up 
-  basic lifting functors. Furthermore, tactics and named theorems are created. 
-*}
-
 text {* \todo{
   Define the type nat1
   Define the type seq1
@@ -29,13 +24,18 @@ imports
   "../utils/Library_Extra/Map_Extra"
   
 begin recall_syntax
-  
+
+text {* 
+  This theory implements several operators for the @{type lpf} type. 
+  Note: The terms @{term true\<^sub>L} @{term false\<^sub>L} and @{term "\<bottom>\<^sub>L"} are defined in the 
+  theory @{theory LPF}.
+*}
+
+subsection {* Unary Operators *}
 text {*
-  Below we define unary operators on the @{type lpf} type using the lifting 
+  In this section we define unary operators on the @{type lpf} type using the lifting 
   function @{const lift1_lpf'}.
 *}
-subsection {* Unary Operators *}
-
 -- {* \todo{Define the following operators:
   Sequence unary operators: inds (Define for nat1 type).
   Map unary operators: inverse (Define for type inmap).} 
@@ -112,7 +112,10 @@ definition merge_lpf :: "('a, 'b) map set lpf \<Rightarrow> ('a, 'b) map lpf" wh
 [lpf_defs]: "merge_lpf = lift1_lpf' merge"
 
 subsection {* Binary Operators *}
-
+text {*
+  In this section we define binary operators on the @{type lpf} type using the lifting 
+  function @{const lift2_lpf}.
+*}
 subsubsection {* Polymorphic Binary Operators  *}
 
 definition equal_lpf :: "'a lpf \<Rightarrow> 'a lpf \<Rightarrow> bool lpf" where
@@ -257,7 +260,6 @@ definition seq_mod_lpf :: "'a list lpf \<Rightarrow> (nat, 'a) map lpf \<Rightar
 
 definition seq_index_lpf :: "'a list lpf \<Rightarrow> nat lpf \<Rightarrow> 'a lpf" where
 [lpf_defs]: "seq_index_lpf = lift2_lpf {(x,y) . y < (length x) \<and> y > 0} (op !)"
- 
 
 subsubsection {* Comprehensions *}
 (*
@@ -280,6 +282,8 @@ definition set_comprehension_lpf :: "('a \<Rightarrow> 'b lpf) \<Rightarrow> 'a 
     (\<forall>x\<in>(lpf_the xs) . if pred x = true\<^sub>L then \<D>(f x) else True))
   then set_sequence_lpf {y | x y . y = f x \<and> x\<in>(lpf_the xs) \<and> (pred x = true\<^sub>L)}
   else \<bottom>\<^sub>L)"
+
+subsection {* Syntax and Translations for the operators defined above *}
 
 syntax
 (* Unary Operators *)

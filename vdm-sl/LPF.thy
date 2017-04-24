@@ -168,63 +168,6 @@ text {*  Three tactics are created for use in proofs. *}
 
 method lpf_simp = (simp add: lpf_defs lpf_transfer; clarsimp?)
 method lpf_auto = (lpf_simp; auto)
-method lpf_blast = (lpf_simp; blast)
-                                                 
-subsection {* Proof Examples *}
-text {* In this section we illustrate the use of the proof tactics along with 
-  proving useful laws *}
-
-lemma "(lpf_Some x = lpf_Some y) \<longleftrightarrow> (x = y)"
-by (lpf_simp)
-
-lemma all_lpf_transfer [lpf_transfer]:
-"(\<forall>x::'a lpf. P x) = (\<forall>x::'a option. P (Abs_lpf x))" 
-apply (safe)
--- {* Subgoal 1 *}
-apply (drule_tac x = "Abs_lpf x" in spec)
-apply (assumption)
--- {* Subgoal 2 *}
-apply (drule_tac x = "Rep_lpf x" in spec)
-by (simp add: Rep_lpf_inverse)
-
-lemma ex_lpf_transfer [lpf_transfer]:
-"(\<exists>x::'a lpf. P x) = (\<exists>x::'a option. P (Abs_lpf x))"
-apply (safe)
--- {* Subgoal 1 *}
-apply (rule_tac x = "Rep_lpf x" in exI)
-apply (simp add: Rep_lpf_inverse)
--- {* Subgoal 2 *}
-apply (rule_tac x = "Abs_lpf x" in exI)
-by (assumption)
-
-lemma meta_lpf_transfer [lpf_transfer]:
-"(\<And>x::'a lpf. P x) \<equiv> (\<And>x::'a option. P (Abs_lpf x))" 
-apply (rule)
--- {* Subgoal 1 *}
-apply (drule_tac x = "Abs_lpf x" in meta_spec)
-apply (assumption)
--- {* Subgoal 2 *}
-apply (drule_tac x = "Rep_lpf x" in meta_spec)
-by (simp add: Rep_lpf_inverse)
-
-lemma lifted_card_undefined_example: "lift1_lpf' card \<bottom>\<^sub>L = \<bottom>\<^sub>L"
-by (lpf_simp)
-
-lemma lifted_union_undefined_undefined_example: "lift2_lpf' union \<bottom>\<^sub>L \<bottom>\<^sub>L = \<bottom>\<^sub>L"
-by (lpf_simp)
-
-lemma lifted_union_defined_undefined_example: "lift2_lpf' union (lpf_Some {True}) \<bottom>\<^sub>L = \<bottom>\<^sub>L"
-by (lpf_simp)
-
-lemma lifted_union_defined_defined_example: "lift2_lpf' union (lpf_Some {True}) (lpf_Some {False}) = lpf_Some(union {True} {False} )"
-by (lpf_simp)
-
-lemma lifted_card_defined_example: "lift1_lpf' card (lpf_Some ({1,2,3}::nat set)) = lpf_Some 3"
-by (lpf_simp)
-
-lemma lpf_The_Some : "lpf_the (lpf_Some a) = a"
-apply (simp add: lpf_Some_def)
-apply (simp add: lpf_the_def)
-by (simp add: Abs_lpf_inverse)
+method lpf_blast = (lpf_simp; blast)                                           
 
 end
