@@ -1858,7 +1858,14 @@ proof (clarsimp simp add: Guarded_def)
       done
       also have "... = 
            ((((\<not> pre\<^sub>R P) ;; CSP(X \<and> gvrt n) \<or> ($ok\<acute> \<and> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (CSP X \<and> gvrt n)\<lbrakk>false/$wait\<rbrakk>)) \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
-oops
+      proof -
+        have "\<And> X. (($ok\<acute> \<and> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; X\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n)) =
+                    (($ok\<acute> \<and> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (X \<and> gvrt n)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))"
+          apply (rel_simp, safe)
+        sorry
+        thus ?thesis  
+              
+        oops
       
 lemma PrefixCSP_Guarded: "Guarded (PrefixCSP a)"
 proof (clarsimp simp add: Guarded_def)
