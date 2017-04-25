@@ -51,7 +51,9 @@ bin/afp_get.sh Ordinary_Differential_Equations
 ```
 
 from the main UTP root directory. Alternatively there is a script ``bin/build.sh`` which fetches all dependencies
-and builds all heap images, and thus may be an easier option for installation.
+and builds all heap images, and thus may be an easier option for installation. Our scripts rely on knowing the location
+of where Isabelle/UTP is installed. If they do not correctly guess the location then please set the environment variable
+``ISABELLE_UTP`` to the absolute path where it is installed.
 
 Repository overview
 -------------------
