@@ -35,10 +35,23 @@ from the command line in the installed directory. Alternatively you can configur
 ROOTS file so that it knows about the location of Isabelle/UTP 
 (see <https://isabelle.in.tum.de/dist/Isabelle2016-1/doc/system.pdf>). If you're developing the
 Isabelle/UTP core you can instead invoke the UTP-IMPORTS heap image. Various other heap images
-exists including:
+exist including:
 
 * UTP-DEEP -- adds support for deep variables
 * UTP-THY -- a repository of UTP theories including designs, reactive processes, and CSP
+* UTP-HYBRID - hybrid relational calculus
+
+Some of these heap images rely on other entries from the AFP. We therefore provide a utility under ``bin/``
+called ``afp_get.sh`` which fetches entries and places them in the contrib directory. UTP-HYBRID notably
+relies on [Ordinary Differential Equations](https://www.isa-afp.org/entries/Ordinary_Differential_Equations.shtml)
+which can be obtained by running
+
+```bash
+bin/afp_get.sh Ordinary_Differential_Equations
+```
+
+from the main UTP root directory. Alternatively there is a script ``bin/build.sh`` which fetches all dependencies
+and builds all heap images, and thus may be an easier option for installation.
 
 Repository overview
 -------------------
