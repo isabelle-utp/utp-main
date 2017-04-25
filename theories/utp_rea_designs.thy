@@ -2254,6 +2254,21 @@ lemma SRD_RD3_implies_NSRD:
   "\<lbrakk> P is SRD; P is RD3 \<rbrakk> \<Longrightarrow> P is NSRD"
   by (metis (no_types, lifting) Healthy_def NSRD_def RHS_idem SRD_healths(4) SRD_reactive_design comp_apply)
 
+lemma NSRD_Sup_closure [closure]:
+  assumes "A \<subseteq> \<lbrakk>NSRD\<rbrakk>\<^sub>H" "A \<noteq> {}"
+  shows "\<Sqinter> A is NSRD"
+proof -
+  have "NSRD (\<Sqinter> A) = (\<Sqinter> (NSRD `A))"
+    by (simp add: ContinuousD NSRD_Continuous assms(2))
+  also have "... = (\<Sqinter> A)"
+    by (simp only: Healthy_carrier_image assms)
+  finally show ?thesis by (simp add: Healthy_def)
+qed
+      
+lemma NRSD_SUP_closure [closure]:
+  "\<lbrakk> \<And> i. i \<in> A \<Longrightarrow> P(i) is NSRD; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter>i\<in>A. P(i)) is NSRD"
+  by (rule NSRD_Sup_closure, auto)
+    
 lemma NSRD_neg_pre_unit:
   assumes "P is NSRD"
   shows "(\<not> pre\<^sub>R(P)) ;; R1(true) = (\<not> pre\<^sub>R(P))"
@@ -2402,6 +2417,12 @@ proof -
   finally show ?thesis .
 qed
 
+lemma NSRD_Chaos [closure]: "Chaos is NSRD"
+  by (metis Chaos_left_zero Healthy_def NSRD_form SRD_right_unit_tri_lemma SRD_srdes_skip srdes_theory_continuous.weak.bottom_closed)
+
+lemma NSRD_Miracle [closure]: "Miracle is NSRD"
+  by (simp add: NSRD_iff periR_Miracle preR_Miracle srdes_theory_continuous.weak.top_closed unrest_false)
+    
 lemma NSRD_right_Miracle_tri_lemma:
   assumes "P is NSRD"
   shows "P ;; Miracle = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> false)"
@@ -2701,7 +2722,7 @@ lemma wpR_Inf_pre [wp]: "P wp\<^sub>R (\<Squnion>i\<in>{0..n}. Q(i)) = (\<Squnio
   
 lemma preR_power [rdes]:
   assumes "P is NSRD"
-  shows "pre\<^sub>R(P\<^bold>^(Suc n)) = (\<Squnion> i\<in>{0..n}. (post\<^sub>R(P) \<^bold>^ i) wp\<^sub>R (pre\<^sub>R(P)))"
+  shows "pre\<^sub>R(P ;; P\<^bold>^n) = (\<Squnion> i\<in>{0..n}. (post\<^sub>R(P) \<^bold>^ i) wp\<^sub>R (pre\<^sub>R(P)))"
 proof (induct n)
   case 0
   then show ?case 
@@ -2710,7 +2731,7 @@ next
   case (Suc n) note hyp = this
   have "pre\<^sub>R (P \<^bold>^ (Suc n + 1)) = pre\<^sub>R (P ;; P \<^bold>^ (n+1))"
     by (simp)
-  also have "... = (pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R (P \<^bold>^ (Suc n)))"
+  also have "... = (pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R (P ;; P \<^bold>^ n))"
     by (subst preR_NSRD_seq, simp_all add: closure assms)
   also have "... = (pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R (\<Squnion>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i wp\<^sub>R pre\<^sub>R P))"
     by (simp only: hyp)
@@ -2748,7 +2769,7 @@ lemma R1_Sup [closure]: "\<lbrakk> \<And> P. P \<in> A \<Longrightarrow> P is R1
 
 lemma periR_power [rdes]:
   assumes "P is NSRD"
-  shows "peri\<^sub>R(P\<^bold>^(Suc n)) = (pre\<^sub>R(P\<^bold>^(Suc n)) \<Rightarrow> (\<Sqinter> i\<in>{0..n}. post\<^sub>R(P) \<^bold>^ i) ;; peri\<^sub>R(P))"
+  shows "peri\<^sub>R(P ;; P\<^bold>^n) = (pre\<^sub>R(P\<^bold>^(Suc n)) \<Rightarrow> (\<Sqinter> i\<in>{0..n}. post\<^sub>R(P) \<^bold>^ i) ;; peri\<^sub>R(P))"
 proof (induct n)
   case 0
   then show ?case
@@ -2757,7 +2778,7 @@ next
   case (Suc n) note hyp = this
   have "peri\<^sub>R (P \<^bold>^ (Suc n + 1)) = peri\<^sub>R (P ;; P \<^bold>^ (n+1))"
     by (simp)
-  also have "... = (pre\<^sub>R(P \<^bold>^ (Suc n + 1)) \<Rightarrow> (peri\<^sub>R P \<or> post\<^sub>R P ;; peri\<^sub>R (P \<^bold>^ (Suc n))))"
+  also have "... = (pre\<^sub>R(P \<^bold>^ (Suc n + 1)) \<Rightarrow> (peri\<^sub>R P \<or> post\<^sub>R P ;; peri\<^sub>R (P ;; P \<^bold>^ n)))"
     by (simp add: closure assms rdes)
   also have "... = (pre\<^sub>R(P \<^bold>^ (Suc n + 1)) \<Rightarrow> (peri\<^sub>R P \<or> post\<^sub>R P ;; (pre\<^sub>R (P \<^bold>^ (Suc n)) \<Rightarrow> (\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P)))"
     by (simp only: hyp)
@@ -2808,7 +2829,7 @@ qed
 
 lemma postR_power [rdes]:
   assumes "P is NSRD"
-  shows "post\<^sub>R(P\<^bold>^(Suc n)) = (pre\<^sub>R(P\<^bold>^(Suc n)) \<Rightarrow> post\<^sub>R(P) \<^bold>^ Suc n)"
+  shows "post\<^sub>R(P ;; P\<^bold>^n) = (pre\<^sub>R(P\<^bold>^(Suc n)) \<Rightarrow> post\<^sub>R(P) \<^bold>^ Suc n)"
 proof (induct n)
   case 0
   then show ?case
@@ -2817,7 +2838,7 @@ next
   case (Suc n) note hyp = this
   have "post\<^sub>R (P \<^bold>^ (Suc n + 1)) = post\<^sub>R (P ;; P \<^bold>^ (n+1))"
     by (simp)
-  also have "... = (pre\<^sub>R(P \<^bold>^ (Suc n + 1)) \<Rightarrow> (post\<^sub>R P ;; post\<^sub>R (P \<^bold>^ (Suc n))))"
+  also have "... = (pre\<^sub>R(P \<^bold>^ (Suc n + 1)) \<Rightarrow> (post\<^sub>R P ;; post\<^sub>R (P ;; P \<^bold>^ n)))"
     by (simp add: closure assms rdes)
   also have "... = (pre\<^sub>R(P \<^bold>^ (Suc n + 1)) \<Rightarrow> (post\<^sub>R P ;; (pre\<^sub>R (P \<^bold>^ Suc n) \<Rightarrow> post\<^sub>R P \<^bold>^ Suc n)))"
     by (simp only: hyp)

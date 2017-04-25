@@ -1853,6 +1853,8 @@ proof (clarsimp simp add: Guarded_def)
  done
 qed
   
+text {* Example fixed-point calculation *}
+  
 lemma mu_example1: "(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = (\<Sqinter>i. do\<^sub>C(a) \<^bold>^ (i+1)) ;; Miracle"
 proof -
   have "(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = (\<nu> X \<bullet> a \<^bold>\<rightarrow> X)"
@@ -1882,6 +1884,18 @@ proof -
     by (simp add: seq_Sup_distr)    
   finally show ?thesis .
 qed
+
+lemma preR_mu_example1: "pre\<^sub>R(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = true"
+  by (simp add: mu_example1 rdes closure unrest wp)
+
+lemma periR_mu_example1: 
+  "peri\<^sub>R(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = 
+   (\<Sqinter> P \<in> UNIV \<bullet> (\<Sqinter>x\<in>{0..P}. ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) \<^bold>^ x) ;; ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>))"
+  by (simp add: mu_example1 rdes closure unrest wp)
+
+lemma postR_mu_example1: 
+  "post\<^sub>R(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = false"
+  by (simp add: mu_example1 rdes closure unrest wp) 
   
 subsection {* Merge Predicate *}
 
