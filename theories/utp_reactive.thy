@@ -181,6 +181,9 @@ lemma R1_wait'_false [usubst]: "(R1 P)\<lbrakk>false/$wait\<acute>\<rbrakk> = R1
 lemma R1_skip: "R1(II) = II"
   by (rel_auto)
 
+lemma skip_is_R1 [closure]: "II is R1"
+  by (rel_auto)
+    
 lemma R1_by_refinement:
   "P is R1 \<longleftrightarrow> (($tr \<le>\<^sub>u $tr\<acute>) \<sqsubseteq> P)"
   by (rel_blast)

@@ -1633,6 +1633,20 @@ lemma R1_R2s_peri_SRD:
   shows "R1(R2s(peri\<^sub>R(P))) = peri\<^sub>R(P)"
   by (metis (no_types, hide_lams) Healthy_def R1_R2s_R2c R2_def R2_idem RHS_def SRD_RH_design_form assms peri\<^sub>R_def peri\<^sub>s_R1 peri\<^sub>s_R2c)
 
+lemma R1_peri_SRD:
+  assumes "P is SRD"
+  shows "R1(peri\<^sub>R(P)) = peri\<^sub>R(P)"
+proof -
+  have "R1(peri\<^sub>R(P)) = R1(R1(R2s(peri\<^sub>R(P))))"
+    by (simp add: R1_R2s_peri_SRD assms)
+  also have "... = peri\<^sub>R(P)"
+    by (simp add: R1_idem, simp add: R1_R2s_peri_SRD assms)
+  finally show ?thesis .
+qed
+
+lemma periR_SRD_R1 [closure]: "P is SRD \<Longrightarrow> peri\<^sub>R(P) is R1"
+  by (simp add: Healthy_def' R1_peri_SRD)
+  
 lemma R1_R2c_peri_RHS:
   assumes "P is SRD"
   shows "R1(R2c(peri\<^sub>R(P))) = peri\<^sub>R(P)"
@@ -1642,7 +1656,21 @@ lemma R1_R2s_post_SRD:
   assumes "P is SRD"
   shows "R1(R2s(post\<^sub>R(P))) = post\<^sub>R(P)"
   by (metis (no_types, hide_lams) Healthy_def R1_R2s_R2c R2_def R2_idem RHS_def SRD_RH_design_form assms post\<^sub>R_def post\<^sub>s_R1 post\<^sub>s_R2c)
-
+    
+lemma R1_post_SRD:
+  assumes "P is SRD"
+  shows "R1(post\<^sub>R(P)) = post\<^sub>R(P)"
+proof -
+  have "R1(post\<^sub>R(P)) = R1(R1(R2s(post\<^sub>R(P))))"
+    by (simp add: R1_R2s_post_SRD assms)
+  also have "... = post\<^sub>R(P)"
+    by (simp add: R1_idem, simp add: R1_R2s_post_SRD assms)
+  finally show ?thesis .
+qed
+    
+lemma postR_SRD_R1 [closure]: "P is SRD \<Longrightarrow> post\<^sub>R(P) is R1"
+  by (simp add: Healthy_def' R1_post_SRD)
+  
 lemma R1_R2c_post_RHS:
   assumes "P is SRD"
   shows "R1(R2c(post\<^sub>R(P))) = post\<^sub>R(P)"
@@ -2642,7 +2670,10 @@ proof -
     using assms 1 3 srdes_theory_continuous.weak.LFP_lowerbound eq_iff mu_srd_iter 
     by (metis (mono_tags, lifting))
 qed
-    
+  
+lemma R1_power [closure]: "P is R1 \<Longrightarrow> P\<^bold>^n is R1"
+  by (induct n, simp_all add: closure)
+  
 lemma SRD_power_Suc [closure]: "P is SRD \<Longrightarrow> P ;; P\<^bold>^n is SRD"
 proof (induct n)
   case 0
@@ -2668,7 +2699,7 @@ qed
 lemma wpR_Inf_pre [wp]: "P wp\<^sub>R (\<Squnion>i\<in>{0..n}. Q(i)) = (\<Squnion>i\<in>{0..n}. P wp\<^sub>R Q(i))"
   by (pred_auto)
   
-lemma preR_power [wp]:
+lemma preR_power [rdes]:
   assumes "P is NSRD"
   shows "pre\<^sub>R(P\<^bold>^(n+1)) = (\<Squnion> i\<in>{0..n}. (post\<^sub>R(P) \<^bold>^ i) wp\<^sub>R (pre\<^sub>R(P)))"
 proof (induct n)
@@ -2708,11 +2739,38 @@ next
   finally show ?case .
 qed
   
-lemma "((P wp\<^sub>R Q) \<Rightarrow> (P ;; (Q \<Rightarrow> R))) = ((P wp\<^sub>R Q) \<Rightarrow> (P ;; R))"
-  apply (simp add: wpR_def)
-  apply (rel_auto)
-oops
+lemma wpR_impl_lemma: 
+  "((P wp\<^sub>R Q) \<Rightarrow> (P ;; R1(Q \<Rightarrow> R))) = ((P wp\<^sub>R Q) \<Rightarrow> (P ;; R1(R)))"
+  by (rel_blast)
+
+lemma Sup_upto_Suc: "(\<Sqinter>i\<in>{0..Suc n}. P \<^bold>^ i) = (\<Sqinter>i\<in>{0..n}. P \<^bold>^ i) \<sqinter> P \<^bold>^ Suc n"
+proof -
+  have "(\<Sqinter>i\<in>{0..Suc n}. P \<^bold>^ i) = (\<Sqinter>i\<in>insert (Suc n) {0..n}. P \<^bold>^ i)"
+    by (simp add: atLeast0_atMost_Suc)
+  also have "... = P \<^bold>^ Suc n \<sqinter> (\<Sqinter>i\<in>{0..n}. P \<^bold>^ i)"
+    by (simp)
+  finally show ?thesis
+    by (simp add: Lattices.sup_commute)
+qed
   
+lemma Sup_0_upto: 
+  assumes "(n::nat) > 0"
+  shows "\<Sqinter>i\<in>{0..n}. P(i) = P(0) \<sqinter> (\<Sqinter>i\<in>{1..n}. P(i))"
+proof -
+  have "(\<Sqinter>i\<in>{0..n}. P(i)) = (\<Sqinter>i\<in>insert 0 {1..n}. P(i))"
+  proof -
+    from assms have "{0..n} = insert 0 {1..n}"
+      by (auto)
+    thus ?thesis by simp
+  qed
+  also have "... = P(0) \<sqinter> (\<Sqinter>i\<in>{1..n}. P(i))"
+    apply (simp add: Sup_insert)
+    apply (simp)
+    by (simp add: atLeast0_atMost_Suc)
+    
+lemma R1_Sup [closure]: "\<lbrakk> \<And> P. P \<in> A \<Longrightarrow> P is R1; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter> A is R1"
+  using R1_Continuous by (auto simp add: Continuous_def Healthy_def)
+
 lemma periR_power [wp]:
   assumes "P is NSRD"
   shows "peri\<^sub>R(P\<^bold>^(n+1)) = (pre\<^sub>R(P\<^bold>^(n+1))\<Rightarrow> (\<Sqinter> i\<in>{0..n}. post\<^sub>R(P) \<^bold>^ i) ;; peri\<^sub>R(P))"
@@ -2728,6 +2786,47 @@ next
       by (simp add: closure assms rdes)
     also have "... = (pre\<^sub>R(P \<^bold>^ (Suc n + 1)) \<Rightarrow> (peri\<^sub>R P \<or> post\<^sub>R P ;; (pre\<^sub>R (P \<^bold>^ (n + 1)) \<Rightarrow> (\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P)))"
       by (simp only: hyp)
+    also 
+    have "... = (pre\<^sub>R P \<Rightarrow> peri\<^sub>R P \<or> (post\<^sub>R P wp\<^sub>R pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow> post\<^sub>R P ;; (pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow> (\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P)))"
+      by (simp add: rdes closure assms, pred_auto)        
+    also
+    have "... = (pre\<^sub>R P \<Rightarrow> peri\<^sub>R P \<or> (post\<^sub>R P wp\<^sub>R pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow> post\<^sub>R P ;; ((\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P)))"
+    proof -
+      have "(\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) is R1"
+        by (auto simp add: closure assms)
+      hence 1:"((\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P) is R1"
+        by (simp add: closure assms)
+      moreover have "(\<not> pre\<^sub>R (P ;; P \<^bold>^ n)) is R1"
+        by (simp add: Healthy_def, subst R1_neg_preR, simp_all add: closure assms)
+      ultimately have "(pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow> (\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P) is R1"
+        by (simp add: Healthy_def impl_alt_def R1_disj)
+      hence "(post\<^sub>R P wp\<^sub>R pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow> post\<^sub>R P ;; (pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow> (\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P))
+            = (post\<^sub>R P wp\<^sub>R pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow> post\<^sub>R P ;; R1(pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow> (\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P))"
+        by (simp add: Healthy_if)
+      thus ?thesis
+        by (simp only: wpR_impl_lemma, simp add: Healthy_if 1)
+    qed
+    also
+    have "... = (pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow> peri\<^sub>R P \<or> post\<^sub>R P ;; ((\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P))"
+      by (pred_auto)
+    also
+      thm Sup_power_expand[simplified]
+    have "... = (pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow> (\<Sqinter>i\<in>{0..Suc n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P)"
+      
+    also
+
+    have "... = (pre\<^sub>R P \<Rightarrow> peri\<^sub>R P \<or> (post\<^sub>R P wp\<^sub>R pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow> post\<^sub>R P ;; R1((\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P)))"
+      by (simp add: wpR_impl_lemma)
+        
+(*
+        have "R1((\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P) = ((\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P)"
+           
+          apply (metis (no_types, hide_lams) NSRD_is_SRD R1_R2_commute R1_R2c_is_R2 R1_R2c_peri_RHS R2_R1_form R2_def assms) 
+    also have "... = (pre\<^sub>R(P \<^bold>^ (Suc n + 1)) \<Rightarrow> (peri\<^sub>R P \<or> post\<^sub>R P ;; (\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P))"        
+*)
+      
+        
+        
   then show ?case sorry
 oops
 
