@@ -379,7 +379,13 @@ lemma seq_UINF_distl: "P ;; (\<Sqinter> Q\<in>A \<bullet> F(Q)) = (\<Sqinter> Q\
 
 lemma seq_UINF_distr: "(\<Sqinter> P\<in>A \<bullet> F(P)) ;; Q = (\<Sqinter> P\<in>A \<bullet> F(P) ;; Q)"
   by (simp add: USUP_as_Sup_collect seq_Sup_distr)
-
+   
+lemma seq_SUP_distl: "P ;; (\<Sqinter>i\<in>A. Q(i)) = (\<Sqinter>i\<in>A. P ;; Q(i))"
+  by (metis image_image seq_Sup_distl)
+    
+lemma seq_SUP_distr: "(\<Sqinter>i\<in>A. P(i)) ;; Q = (\<Sqinter>i\<in>A. P(i) ;; Q)"
+  by (simp add: seq_Sup_distr)
+    
 lemma impl_seqr_mono: "\<lbrakk> `P \<Rightarrow> Q`; `R \<Rightarrow> S` \<rbrakk> \<Longrightarrow> `(P ;; R) \<Rightarrow> (Q ;; S)`"
   by (pred_blast)
 
@@ -958,6 +964,22 @@ proof -
     by (simp only:)
 qed    
         
+lemma Sup_upto_Suc: "(\<Sqinter>i\<in>{0..Suc n}. P \<^bold>^ i) = (\<Sqinter>i\<in>{0..n}. P \<^bold>^ i) \<sqinter> P \<^bold>^ Suc n"
+proof -
+  have "(\<Sqinter>i\<in>{0..Suc n}. P \<^bold>^ i) = (\<Sqinter>i\<in>insert (Suc n) {0..n}. P \<^bold>^ i)"
+    by (simp add: atLeast0_atMost_Suc)
+  also have "... = P \<^bold>^ Suc n \<sqinter> (\<Sqinter>i\<in>{0..n}. P \<^bold>^ i)"
+    by (simp)
+  finally show ?thesis
+    by (simp add: Lattices.sup_commute)
+qed
+  
+lemma SUP_atLeastAtMost_first: 
+  fixes P :: "nat \<Rightarrow> 'a::complete_lattice"
+  assumes "m \<le> n"
+  shows "(\<Sqinter>i\<in>{m..n}. P(i)) = P(m) \<sqinter> (\<Sqinter>i\<in>{Suc m..n}. P(i))"
+  by (metis SUP_insert assms atLeastAtMost_insertL)
+  
 subsection {* Relation algebra laws *}
 
 theorem RA1: "(P ;; (Q ;; R)) = ((P ;; Q) ;; R)"
