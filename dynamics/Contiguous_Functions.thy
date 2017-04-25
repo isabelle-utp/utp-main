@@ -107,7 +107,7 @@ lift_definition cgf_end :: "'a cgf \<Rightarrow> real" ("end\<^sub>C") is "\<lam
 lift_definition cgf_map :: "(real \<times> 'a \<Rightarrow> 'b) \<Rightarrow> 'a cgf \<Rightarrow> 'b cgf" ("map\<^sub>C")
   is "\<lambda> f g x. if (x \<in> dom(g)) then Some (f (x, the(g(x)))) else None"
   by (auto simp add: dom_if)
-
+    
 abbreviation "map'\<^sub>C f \<equiv> cgf_map (\<lambda> (i, x). f x)"
 
 lift_definition cgf_restrict :: "'a cgf \<Rightarrow> real \<Rightarrow> 'a cgf" (infix "\<restriction>\<^sub>C" 85)
@@ -121,6 +121,10 @@ is "\<lambda> f i x. if (0 \<le> x \<and> x < i) then Some(the(f(x))) else None"
   apply (auto simp add: dom_if)
 done
 
+lemma cgf_end_alt_def:
+  "end\<^sub>C(f) = Inf ({0..} - dom\<^sub>C(f))"
+  by (transfer, auto, metis Diff_iff atLeastLessThan_iff atLeast_iff cInf_eq_minimum le_less_linear not_less_iff_gr_or_eq)
+ 
 text {* We also create functions that allow various manipulations on contiguous functions by
   lifting functions on the underlying partial function type. Function @{term cgf_apply}, also
   written as @{term "\<langle>f\<rangle>\<^sub>C"}, allows the application of a contiguous function to an input real number.
