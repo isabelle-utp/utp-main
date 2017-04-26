@@ -9,7 +9,8 @@
 section {* Axiomatic Variables *}
 
 theory utp_avar
-imports utp_var
+  imports 
+  "../utp_var"
   "../../axiomatic/Axiomatic"
 begin recall_syntax
 

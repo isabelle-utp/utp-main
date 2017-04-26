@@ -13,7 +13,6 @@ imports Main Real
   "~~/src/Tools/Adhoc_Overloading"
   "~~/src/HOL/Eisbach/Eisbach"
   "~~/src/HOL/Library/Countable"
-  "~~/src/HOL/Library/Product_Lexorder"
   "~~/src/HOL/Library/Char_ord"
   "~~/src/HOL/Library/Option_ord"
   "~~/src/HOL/Library/FSet"
