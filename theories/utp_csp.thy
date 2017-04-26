@@ -1806,13 +1806,20 @@ lemma NSRD_neg_pre_left_zero:
   shows "(\<not> pre\<^sub>R(P)) ;; Q = (\<not> pre\<^sub>R(P))"
   by (metis (no_types, hide_lams) NSRD_neg_pre_unit RD1_left_zero assms(1) assms(2) assms(3) seqr_assoc)
   
+lemma R1_wait_false [closure]: "P is R1 \<Longrightarrow> P\<lbrakk>false/$wait\<rbrakk> is R1"
+  by (rel_auto)
+
 lemma R1_wait'_false [closure]: "P is R1 \<Longrightarrow> P\<lbrakk>false/$wait\<acute>\<rbrakk> is R1"
+  by (rel_auto)
+
+lemma RD1_wait_false [closure]: "P is RD1 \<Longrightarrow> P\<lbrakk>false/$wait\<rbrakk> is RD1"
   by (rel_auto)
 
 lemma RD1_wait'_false [closure]: "P is RD1 \<Longrightarrow> P\<lbrakk>false/$wait\<acute>\<rbrakk> is RD1"
   by (rel_auto)
-    
-lemma 
+        
+lemma Productive_Guarded:
+  fixes P :: "('\<sigma>,'\<phi>) action"
   assumes "P is NCSP" "P is WG"
   shows "Guarded (\<lambda> X. P ;; CSP(X))"
 proof (clarsimp simp add: Guarded_def)
@@ -1832,38 +1839,152 @@ proof (clarsimp simp add: Guarded_def)
     have 2:"(P\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP X)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk> = 
           (P\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP (X \<and> gvrt n))\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
     proof -
-      have "(P\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP X)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk> = 
-            ((\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)))\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP X)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
-        by (metis Healthy_def WG_form assms(1) assms(2) NCSP_implies_CSP)
-      also have "... =  
-           ((R1(R2c(pre\<^sub>R(P) \<Rightarrow> ($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))))\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP X)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
-        by (simp add: RHS_def R1_def R2c_def R2s_def R3h_def RD1_def RD2_def usubst unrest assms closure design_def)
-      also have "... = 
-           (((\<not> pre\<^sub>R(P) \<or> ($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)))\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP X)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
-        apply (simp add: impl_alt_def R2c_disj R1_disj R2c_not R1_neg_R2c_pre_RHS assms closure R2c_and R1_extend_conj'
-               R2c_ok' )
-        apply (metis (no_types, hide_lams) Healthy_if R1_R2c_commute R1_tr_less_tr' R2c_idem R2c_tr_less_tr' RHS_def SRD_RH_design_form assms(1) post\<^sub>R_def post\<^sub>s_R2c NCSP_implies_CSP)
-      done
-      also have "... = 
-           ((((\<not> pre\<^sub>R P) ;; CSP(X \<and> gvrt n) \<or> ($ok\<acute> \<and> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (CSP X)\<lbrakk>false/$wait\<rbrakk>)) \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
-        apply (simp add: usubst unrest assms closure seqr_or_distl)
-        apply (subst NSRD_neg_pre_left_zero)
-        apply (simp_all add: assms closure)
-        apply (rel_auto) 
-        apply (rel_auto)
-        apply (subst NSRD_neg_pre_left_zero)          
-        apply (simp_all add: assms closure)
-        apply (rel_auto) 
-        apply (rel_auto)
-      done
+      have exp:"\<And> Y::('\<sigma>,'\<phi>) action. (P\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP Y)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk> =
+                  ((((\<not> pre\<^sub>R P) ;; (CSP(Y))\<lbrakk>false/$wait\<rbrakk> \<or> (post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (CSP Y)\<lbrakk>true,false/$ok,$wait\<rbrakk>)) 
+                     \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
+      proof -
+        fix Y :: "('\<sigma>,'\<phi>) action"
+        
+        have "(P\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP Y)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk> = 
+              ((\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)))\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP Y)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
+          by (metis Healthy_def WG_form assms(1) assms(2) NCSP_implies_CSP)
+        also have "... =  
+             ((R1(R2c(pre\<^sub>R(P) \<Rightarrow> ($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))))\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP Y)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
+          by (simp add: RHS_def R1_def R2c_def R2s_def R3h_def RD1_def RD2_def usubst unrest assms closure design_def)
+        also have "... = 
+             (((\<not> pre\<^sub>R(P) \<or> ($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)))\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP Y)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
+          by (simp add: impl_alt_def R2c_disj R1_disj R2c_not R1_neg_R2c_pre_RHS assms closure R2c_and 
+                        R1_extend_conj' R2c_ok' R2c_post_SRD R1_tr_less_tr' R2c_tr_less_tr')
+        also have "... = 
+             ((((\<not> pre\<^sub>R P) ;; (CSP(Y))\<lbrakk>false/$wait\<rbrakk> \<or> ($ok\<acute> \<and> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (CSP Y)\<lbrakk>false/$wait\<rbrakk>)) \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
+          by (simp add: usubst unrest assms closure seqr_or_distl NSRD_neg_pre_left_zero SRD_healths)
+        also have "... = 
+             ((((\<not> pre\<^sub>R P) ;; (CSP(Y))\<lbrakk>false/$wait\<rbrakk> \<or> (post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (CSP Y)\<lbrakk>true,false/$ok,$wait\<rbrakk>)) \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
+        proof -
+          have "($ok\<acute> \<and> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (CSP Y)\<lbrakk>false/$wait\<rbrakk> = 
+                ((post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) \<and> $ok\<acute> =\<^sub>u true) ;; (CSP Y)\<lbrakk>false/$wait\<rbrakk>"
+            by (rel_blast)
+          also have "... = (post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr)\<lbrakk>true/$ok\<acute>\<rbrakk> ;; (CSP Y)\<lbrakk>false/$wait\<rbrakk>\<lbrakk>true/$ok\<rbrakk>"
+            using seqr_left_one_point[of ok "(post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr)" True "(CSP Y)\<lbrakk>false/$wait\<rbrakk>"]
+            by (simp add: true_alt_def[THEN sym])
+          finally show ?thesis by (simp add: usubst unrest)
+        qed
+        finally 
+        show "(P\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP Y)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk> =
+                 ((((\<not> pre\<^sub>R P) ;; (CSP(Y))\<lbrakk>false/$wait\<rbrakk> \<or> (post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (CSP Y)\<lbrakk>true,false/$ok,$wait\<rbrakk>)) 
+                 \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>" .
+      qed
+          
+      have 1:"((post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (CSP X)\<lbrakk>true,false/$ok,$wait\<rbrakk> \<and> gvrt (Suc n)) = 
+              ((post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (CSP (X \<and> gvrt n))\<lbrakk>true,false/$ok,$wait\<rbrakk> \<and> gvrt (Suc n))"
+          apply (rel_auto)
+          apply (rename_tac tr st ref ok wait tr' st' ref' tr\<^sub>0 st\<^sub>0 ref\<^sub>0 ok')
+          apply (rule_tac x="tr\<^sub>0" in exI, rule_tac x="st\<^sub>0" in exI, rule_tac x="ref\<^sub>0" in exI)
+          apply (simp)
+          apply (erule Prefix_Order.strict_prefixE')
+          apply (rename_tac tr st ref ok wait tr' st' ref' tr\<^sub>0 st\<^sub>0 ref\<^sub>0 ok' z zs)
+          apply (simp add: length_minus_list)
+          apply (subgoal_tac "length(tr) + length(z # zs) \<le> length(tr')")
+          apply auto[1]
+          using Prefix_Order.prefix_length_le apply force
+          apply (rename_tac tr st ref ok wait tr' st' ref' tr\<^sub>0 st\<^sub>0 ref\<^sub>0 ok')
+          apply (rule_tac x="tr\<^sub>0" in exI, rule_tac x="st\<^sub>0" in exI, rule_tac x="ref\<^sub>0" in exI)          
+          apply (simp)
+          apply (erule Prefix_Order.strict_prefixE')
+          apply (rename_tac tr st ref ok wait tr' st' ref' tr\<^sub>0 st\<^sub>0 ref\<^sub>0 ok' z zs)
+          apply (simp add: length_minus_list)
+          apply (subgoal_tac "length(tr) + length(z # zs) \<le> length(tr')")
+          apply auto[1]
+          using Prefix_Order.prefix_length_le apply force
+        done
+        have 2:"(\<not> pre\<^sub>R P) ;; (CSP X)\<lbrakk>false/$wait\<rbrakk> = (\<not> pre\<^sub>R P) ;; (CSP(X \<and> gvrt n))\<lbrakk>false/$wait\<rbrakk>"
+          by (simp add: NSRD_neg_pre_left_zero closure assms SRD_healths)
+        show ?thesis
+          by (simp add: exp 1 2 utp_pred.inf_sup_distrib2)
+      qed
+      show ?thesis
+      proof -
+      have "(P ;; (CSP X) \<and> gvrt (n+1))\<lbrakk>true,false/$ok,$wait\<rbrakk> =
+          ((P\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (CSP X)\<lbrakk>true/$wait\<rbrakk> \<and> gvrt (n+1))\<lbrakk>true,false/$ok,$wait\<rbrakk> \<or>
+          (P\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP X)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (n+1))\<lbrakk>true,false/$ok,$wait\<rbrakk>)"
+      by (subst seqr_bool_split[of wait], simp_all add: usubst utp_pred.distrib(4))
+      also 
+      have "... = ((P\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (CSP (X \<and> gvrt n))\<lbrakk>true/$wait\<rbrakk> \<and> gvrt (n+1))\<lbrakk>true,false/$ok,$wait\<rbrakk> \<or>
+                 (P\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP (X \<and> gvrt n))\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (n+1))\<lbrakk>true,false/$ok,$wait\<rbrakk>)"
+        by (simp add: 1 2)
+      also 
+      have "... = ((P\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (CSP (X \<and> gvrt n))\<lbrakk>true/$wait\<rbrakk> \<or>
+                    P\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP (X \<and> gvrt n))\<lbrakk>false/$wait\<rbrakk>) \<and> gvrt (n+1))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
+        by (simp add: usubst utp_pred.distrib(4))
+      also have "... = (P ;; (CSP (X \<and> gvrt n)) \<and> gvrt (n+1))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
+        by (subst seqr_bool_split[of wait], simp_all add: usubst)
+      finally show ?thesis by (simp add: usubst)
+    qed
+
+  qed
+  show "(P ;; CSP(X) \<and> gvrt (Suc n)) = (P ;; CSP(X \<and> gvrt n) \<and> gvrt (Suc n))"
+    apply (rule_tac bool_eq_splitI[of "in_var ok"])
+    apply (simp_all add: a)
+    apply (rule_tac bool_eq_splitI[of "in_var wait"])       
+    apply (simp_all add: b c)
+  done
+qed  
+        
+        
+          by (simp add: "1" utp_pred.inf_sup_distrib2)
+        proof -
+          have "(\<not> pre\<^sub>R P) ;; CSP(X) = (\<not> pre\<^sub>R P)"
+            by (meson Healthy_def NCSP_implies_NSRD NSRD_neg_pre_left_zero SRD_healths(1) SRD_healths(4) SRD_idem assms(1))
+          also have "... = (\<not> pre\<^sub>R P) ;; CSP(X \<and> gvrt n)"
+            
+            apply (simp add: NSRD_neg_pre_left_zero closure assms SRD_healths)
+          
+        
+        also have "... = 
+             ((((\<not> pre\<^sub>R P) ;; (CSP(Y))\<lbrakk>false/$wait\<rbrakk> \<or> (post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (CSP Y)\<lbrakk>true,false/$ok,$wait\<rbrakk>)) \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
+
+        
+        also have "... = 
+           ((((\<not> pre\<^sub>R P) ;; (CSP(X \<and> gvrt n))\<lbrakk>false/$wait\<rbrakk> \<or> ($ok\<acute> \<and> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (CSP X)\<lbrakk>true,false/$ok,$wait\<rbrakk>)) \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
+      proof -
+        have "\<And> Q. ($ok\<acute> \<and> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; Q\<lbrakk>false/$wait\<rbrakk> = ($ok\<acute> \<and> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; Q\<lbrakk>true,false/$ok,$wait\<rbrakk>"
+          by (rel_auto, blast)
+        thus ?thesis by (metis)
+      qed
+  
+qed
+          
+        
+    also have "... = 
+           ((((\<not> pre\<^sub>R P) ;; CSP(X \<and> gvrt n) \<or> ($ok\<acute> \<and> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (CSP X \<and> gvrt n)\<lbrakk>false/$wait\<rbrakk>)) \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
+          
       also have "... = 
            ((((\<not> pre\<^sub>R P) ;; CSP(X \<and> gvrt n) \<or> ($ok\<acute> \<and> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (CSP X \<and> gvrt n)\<lbrakk>false/$wait\<rbrakk>)) \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
       proof -
-        have "\<And> X. (($ok\<acute> \<and> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; X\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n)) =
-                    (($ok\<acute> \<and> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (X \<and> gvrt n)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))"
+        have 1:"\<And> X. (($ok\<acute> \<and> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (R1 X)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n)) =
+                    (($ok\<acute> \<and> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; ((R1 X) \<and> gvrt n)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))"
           apply (rel_simp, safe)
-        sorry
-        thus ?thesis  
+          apply (rename_tac X tr st ref ok wait tr' st' ref' ok' tr\<^sub>0 st\<^sub>0 ref\<^sub>0)
+          apply (rule_tac x="ok'" in exI)
+          apply (auto)
+          apply (rule_tac x="tr\<^sub>0" in exI, rule_tac x="st\<^sub>0" in exI, rule_tac x="ref\<^sub>0" in exI)
+          apply (simp)
+          apply (erule Prefix_Order.strict_prefixE')
+          apply (rename_tac X tr st ref ok wait tr' st' ref' ok' tr\<^sub>0 st\<^sub>0 ref\<^sub>0 z zs)
+          apply (simp add: length_minus_list)
+          apply (subgoal_tac "length(tr) + length(z # zs) \<le> length(tr')")
+          apply auto[1]
+          using Prefix_Order.prefix_length_le by force
+        show ?thesis
+          by (simp add: "1" RHS_def SRD_RH_design_form utp_pred.inf_sup_distrib2)
+      qed
+      also have "... = 
+           ((((\<not> pre\<^sub>R P) ;; CSP(X \<and> gvrt n) \<or> ($ok\<acute> \<and> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (CSP (X \<and> gvrt n))\<lbrakk>false/$wait\<rbrakk>)) \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
+      proof -
+        have "CSP (X \<and> gvrt(n)) = ((CSP X) \<and> gvrt(n))"
+          apply (rel_auto)
+      also have "... = 
+           ((((\<not> pre\<^sub>R P =>$ok\<acute> \<and> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (CSP X \<and> gvrt n)\<lbrakk>false/$wait\<rbrakk>)) \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
               
         oops
       

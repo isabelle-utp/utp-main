@@ -1656,6 +1656,11 @@ lemma R1_R2s_post_SRD:
   assumes "P is SRD"
   shows "R1(R2s(post\<^sub>R(P))) = post\<^sub>R(P)"
   by (metis (no_types, hide_lams) Healthy_def R1_R2s_R2c R2_def R2_idem RHS_def SRD_RH_design_form assms post\<^sub>R_def post\<^sub>s_R1 post\<^sub>s_R2c)
+
+lemma R2c_peri_SRD:
+  assumes "P is SRD"
+  shows "R2c(peri\<^sub>R(P)) = peri\<^sub>R(P)"
+  by (metis R1_R2c_commute R1_R2c_peri_RHS R1_peri_SRD assms)
     
 lemma R1_post_SRD:
   assumes "P is SRD"
@@ -1667,7 +1672,12 @@ proof -
     by (simp add: R1_idem, simp add: R1_R2s_post_SRD assms)
   finally show ?thesis .
 qed
-    
+
+lemma R2c_post_SRD:
+  assumes "P is SRD"
+  shows "R2c(post\<^sub>R(P)) = post\<^sub>R(P)"
+  by (metis R1_R2c_commute R1_R2s_R2c R1_R2s_post_SRD R1_post_SRD assms)
+  
 lemma postR_SRD_R1 [closure]: "P is SRD \<Longrightarrow> post\<^sub>R(P) is R1"
   by (simp add: Healthy_def' R1_post_SRD)
   
