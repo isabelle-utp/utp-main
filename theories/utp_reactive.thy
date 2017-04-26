@@ -112,7 +112,7 @@ definition R1_def [upred_defs]: "R1 (P) =  (P \<and> ($tr \<le>\<^sub>u $tr\<acu
 lemma R1_idem: "R1(R1(P)) = R1(P)"
   by pred_auto
 
-lemma R1_Idempotent: "Idempotent R1"
+lemma R1_Idempotent [closure]: "Idempotent R1"
   by (simp add: Idempotent_def R1_idem)
 
 lemma R1_mono: "P \<sqsubseteq> Q \<Longrightarrow> R1(P) \<sqsubseteq> R1(Q)"
@@ -129,10 +129,19 @@ lemma R1_unrest [unrest]: "\<lbrakk> x \<bowtie> in_var tr; x \<bowtie> out_var 
 
 lemma R1_false: "R1(false) = false"
   by pred_auto
-
+    
+lemma tr_strict_prefix_R1_closed [closure]: "$tr <\<^sub>u $tr\<acute> is R1"
+  by (rel_auto)
+    
 lemma R1_conj: "R1(P \<and> Q) = (R1(P) \<and> R1(Q))"
   by pred_auto
 
+lemma conj_R1_closed_1 [closure]: "P is R1 \<Longrightarrow> (P \<and> Q) is R1"
+  by (rel_blast)
+
+lemma conj_R1_closed_2 [closure]: "Q is R1 \<Longrightarrow> (P \<and> Q) is R1"
+  by (rel_blast)
+    
 lemma R1_disj: "R1(P \<or> Q) = (R1(P) \<or> R1(Q))"
   by pred_auto
 
@@ -290,6 +299,9 @@ lemma R2c_Continuous: "Continuous R2c"
 lemma R2c_lit: "R2c(\<guillemotleft>x\<guillemotright>) = \<guillemotleft>x\<guillemotright>"
   by (rel_auto)
 
+lemma tr_strict_prefix_R2c_closed [closure]: "$tr <\<^sub>u $tr\<acute> is R2c"
+  apply (rel_auto) using less_le minus_zero_eq by fastforce+
+    
 lemma R2s_conj: "R2s(P \<and> Q) = (R2s(P) \<and> R2s(Q))"
   by (pred_auto)
 
@@ -367,6 +379,9 @@ lemma R2c_false: "R2c(false) = false"
 lemma R2c_and: "R2c(P \<and> Q) = (R2c(P) \<and> R2c(Q))"
   by (rel_auto)
 
+lemma conj_R2c_closed [closure]: "\<lbrakk> P is R2c; Q is R2c \<rbrakk> \<Longrightarrow> (P \<and> Q) is R2c"
+  by (simp add: Healthy_def R2c_and)
+    
 lemma R2c_disj: "R2c(P \<or> Q) = (R2c(P) \<or> R2c(Q))"
   by (rel_auto)
 
@@ -554,10 +569,10 @@ lemma R2_R1_seq_drop_left:
 lemma R2c_idem: "R2c(R2c(P)) = R2c(P)"
   by (rel_auto)
 
-lemma R2c_Idempotent: "Idempotent R2c"
+lemma R2c_Idempotent [closure]: "Idempotent R2c"
   by (simp add: Idempotent_def R2c_idem)
 
-lemma R2c_Monotonic: "Monotonic R2c"
+lemma R2c_Monotonic [closure]: "Monotonic R2c"
   by (rel_auto)
 
 lemma R2c_H2_commute: "R2c(H2(P)) = H2(R2c(P))"
@@ -589,7 +604,7 @@ definition R3_def [upred_defs]: "R3(P) = (II \<triangleleft> $wait \<trianglerig
 lemma R3_idem: "R3(R3(P)) = R3(P)"
   by (rel_auto)
 
-lemma R3_Idempotent: "Idempotent R3"
+lemma R3_Idempotent [closure]: "Idempotent R3"
   by (simp add: Idempotent_def R3_idem)
 
 lemma R3_mono: "P \<sqsubseteq> Q \<Longrightarrow> R3(P) \<sqsubseteq> R3(Q)"
@@ -668,7 +683,7 @@ lemma RP_intro: "\<lbrakk> P is R1; P is R2; P is R3 \<rbrakk> \<Longrightarrow>
 lemma RP_idem: "RP(RP(P)) = RP(P)"
   by (simp add: R1_R2c_is_R2 R2_R3_commute R2_idem R3_idem RP_def)
 
-lemma RP_Idempotent: "Idempotent RP"
+lemma RP_Idempotent [closure]: "Idempotent RP"
   by (simp add: Idempotent_def RP_idem)
 
 lemma RP_mono: "P \<sqsubseteq> Q \<Longrightarrow> RP(P) \<sqsubseteq> RP(Q)"

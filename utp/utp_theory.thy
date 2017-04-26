@@ -243,6 +243,12 @@ lemma sup_continuous_Continuous [closure]: "Continuous F \<Longrightarrow> sup_c
 lemma Healthy_fixed_points [simp]: "fps \<P> H = \<lbrakk>H\<rbrakk>\<^sub>H"
   by (simp add: fps_def upred_lattice_def Healthy_def)
 
+lemma USUP_healthy: "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> (\<Squnion> P\<in>A \<bullet> F(P)) = (\<Squnion> P\<in>A \<bullet> F(H(P)))"
+  by (rule USUP_cong, simp add: Healthy_subset_member)
+
+lemma UINF_healthy: "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> (\<Sqinter> P\<in>A \<bullet> F(P)) = (\<Sqinter> P\<in>A \<bullet> F(H(P)))"
+  by (rule UINF_cong, simp add: Healthy_subset_member)
+
 lemma upred_lattice_Idempotent [simp]: "Idem\<^bsub>\<P>\<^esub> H = Idempotent H"
   using upred_lattice.weak_partial_order_axioms by (auto simp add: idempotent_def Idempotent_def)
 

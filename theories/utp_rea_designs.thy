@@ -63,7 +63,7 @@ done
 lemma st'_unrest_st_lift_pred [unrest]:
   "$st\<acute> \<sharp> \<lceil>a\<rceil>\<^sub>S\<^sub><"
   by (pred_auto)
-
+   
 subsection {* Healthiness conditions *}
 
 text {* The fundamental healthiness conditions of reactive designs are $RD1$ and $RD2$ which
@@ -89,6 +89,9 @@ lemma RD1_Monotonic: "Monotonic RD1"
   using mono_def RD1_mono by blast
 
 lemma RD1_Continuous: "Continuous RD1"
+  by (rel_auto)
+    
+lemma R1_true_RD1_closed [closure]: "R1(true) is RD1"
   by (rel_auto)
     
 lemma RD1_seq: "RD1(RD1(P) ;; RD1(Q)) = RD1(P) ;; RD1(Q)"
@@ -318,7 +321,7 @@ lemma RD2_RHS_commute: "RD2(\<^bold>R\<^sub>s(P)) = \<^bold>R\<^sub>s(RD2(P))"
 
 lemma SRD_idem: "SRD(SRD(P)) = SRD(P)"
   by (simp add: RD1_RD2_commute RD1_RHS_commute RD1_idem RD2_RHS_commute RD2_idem RHS_idem SRD_def)
-
+    
 lemma SRD_Idempotent [closure]: "Idempotent SRD"
   by (simp add: Idempotent_def SRD_idem)
     
@@ -861,6 +864,12 @@ lemma unrest_ok_R3h_post [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp
 lemma unrest_ok_R3h_post' [unrest]: "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> R3h_post(P)"
   by (simp add: R3h_post_def cond_def unrest)
 
+lemma R1_st'_unrest [unrest]: "$st\<acute> \<sharp> P \<Longrightarrow> $st\<acute> \<sharp> R1(P)"
+  by (simp add: R1_def unrest)
+
+lemma R2c_st'_unrest [unrest]: "$st\<acute> \<sharp> P \<Longrightarrow> $st\<acute> \<sharp> R2c(P)"
+  by (simp add: R2c_def unrest)
+    
 lemma R3c_R1_design_composition:
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok \<sharp> R" "$ok \<sharp> S"
   shows "(R3c(R1(P \<turnstile> Q)) ;; R3c(R1(R \<turnstile> S))) =
@@ -1599,6 +1608,10 @@ lemma RHS_tri_design_is_SRD:
   shows "\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) is SRD"
   by (rule RHS_design_is_SRD, simp_all add: unrest assms)
 
+lemma wait'_unrest_pre_SRD [unrest]:
+  "$wait\<acute> \<sharp> pre\<^sub>R(P) \<Longrightarrow>  $wait\<acute> \<sharp> pre\<^sub>R (SRD P)"
+  by (rel_auto, blast+)
+    
 lemma R1_neg_preR: 
   "P is SRD \<Longrightarrow> R1 (\<not> pre\<^sub>R P) = (\<not> pre\<^sub>R P)"
   by (rel_blast)
@@ -1697,13 +1710,22 @@ lemma R2c_preR:
   "P is SRD \<Longrightarrow> R2c(pre\<^sub>R(P)) = pre\<^sub>R(P)"
   by (metis (no_types, lifting) R1_R2c_commute R1_idem R2_R2c_def R2_neg_pre_SRD R2c_not utp_pred.compl_eq_compl_iff)
 
+lemma preR_R2c_closed [closure]: "P is SRD \<Longrightarrow> pre\<^sub>R(P) is R2c"
+  by (simp add: Healthy_def' R2c_preR)
+    
 lemma R2c_periR:
   "P is SRD \<Longrightarrow> R2c(peri\<^sub>R(P)) = peri\<^sub>R(P)"
   by (metis (no_types, lifting) R1_R2c_commute R1_R2s_R2c R1_R2s_peri_SRD R2c_idem)
 
+lemma periR_R2c_closed [closure]: "P is SRD \<Longrightarrow> peri\<^sub>R(P) is R2c"
+  by (simp add: Healthy_def R2c_peri_SRD)
+    
 lemma R2c_postR:
   "P is SRD \<Longrightarrow> R2c(post\<^sub>R(P)) = post\<^sub>R(P)"
   by (metis (no_types, hide_lams) R1_R2c_commute R1_R2c_is_R2 R1_R2s_post_SRD R2_def R2s_idem)
+
+lemma postR_R2c_closed [closure]: "P is SRD \<Longrightarrow> post\<^sub>R(P) is R2c"
+  by (simp add: Healthy_def R2c_post_SRD)  
     
 lemma RHS_pre_lemma: "(\<^bold>R\<^sub>s P)\<^sup>f\<^sub>f = R1(R2c(P\<^sup>f\<^sub>f))"
   by (rel_auto)
@@ -2006,6 +2028,19 @@ lemma periR_SUP [rdes]: "peri\<^sub>R(\<Squnion> A) = (\<And> P\<in>A \<bullet> 
 lemma postR_SUP [rdes]: "post\<^sub>R(\<Squnion> A) = (\<And> P\<in>A \<bullet> post\<^sub>R(P))"
   by (rel_simp, simp add: Setcompr_eq_image)
   
+lemma SRD_left_zero_1: "P is SRD \<Longrightarrow> R1(true) ;; P = R1(true)"
+  by (simp add: RD1_left_zero SRD_healths(1) SRD_healths(4))
+  
+lemma SRD_left_zero_2: 
+  assumes "P is SRD"
+  shows "(\<exists> $st \<bullet> II)\<lbrakk>true,true/$ok,$wait\<rbrakk> ;; P = (\<exists> $st \<bullet> II)\<lbrakk>true,true/$ok,$wait\<rbrakk>"
+proof -
+  have "(\<exists> $st \<bullet> II)\<lbrakk>true,true/$ok,$wait\<rbrakk> ;; R3h(P) = (\<exists> $st \<bullet> II)\<lbrakk>true,true/$ok,$wait\<rbrakk>"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if SRD_healths(3) assms)
+qed
+    
 lemma SRD_left_unit:
   assumes "P is SRD"
   shows "II\<^sub>R ;; P = P"
@@ -2291,6 +2326,11 @@ proof -
     by (metis R1_seqr R2_R2c_def R2_def R2c_seq R2s_true calculation)
   finally show ?thesis ..
 qed
+
+lemma NSRD_neg_pre_left_zero:
+  assumes "P is NSRD" "Q is R1" "Q is RD1"
+  shows "(\<not> pre\<^sub>R(P)) ;; Q = (\<not> pre\<^sub>R(P))"
+  by (metis (no_types, hide_lams) NSRD_neg_pre_unit RD1_left_zero assms(1) assms(2) assms(3) seqr_assoc)
 
 lemma NSRD_st'_unrest_peri [unrest]:
   assumes "P is NSRD"

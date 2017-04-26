@@ -356,6 +356,14 @@ lemma unrest_UINF [unrest]:
   "\<lbrakk> (\<And> i. x \<sharp> P(i)); (\<And> i. x \<sharp> Q(i)) \<rbrakk> \<Longrightarrow> x \<sharp> (\<Squnion> i | P(i) \<bullet> Q(i))"
   by (pred_auto)
 
+lemma unrest_USUP_mem [unrest]:
+  "\<lbrakk>(\<And> i. i \<in> A \<Longrightarrow> x \<sharp> P(i)) \<rbrakk> \<Longrightarrow> x \<sharp> (\<Sqinter> i\<in>A \<bullet> P(i))"
+  by (pred_simp, metis)
+
+lemma unrest_UINF_mem [unrest]:
+  "\<lbrakk>(\<And> i. i \<in> A \<Longrightarrow> x \<sharp> P(i)) \<rbrakk> \<Longrightarrow> x \<sharp> (\<Squnion> i\<in>A \<bullet> P(i))"
+  by (pred_simp, metis)
+    
 lemma unrest_impl [unrest]: "\<lbrakk> x \<sharp> P; x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<Rightarrow> Q"
   by (pred_auto)
 
@@ -1139,6 +1147,10 @@ lemma cond_var_subst_right:
 lemma cond_var_split:
   "vwb_lens x \<Longrightarrow> (P\<lbrakk>true/x\<rbrakk> \<triangleleft> var x \<triangleright> P\<lbrakk>false/x\<rbrakk>) = P"
   by (rel_simp, (metis (full_types) vwb_lens.put_eq)+)
+    
+lemma cond_assign_subst: 
+  "vwb_lens x \<Longrightarrow> (P \<triangleleft> utp_expr.var x =\<^sub>u v \<triangleright> Q) = (P\<lbrakk>v/x\<rbrakk> \<triangleleft> utp_expr.var x =\<^sub>u v \<triangleright> Q)"
+  apply (rel_simp) using vwb_lens.put_eq by force
     
 subsection {* Cylindric algebra *}
 
