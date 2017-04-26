@@ -421,23 +421,23 @@ proof -
     apply (drule_tac x="end\<^sub>t x + xb" in spec)
     apply (simp)
   done
-  also have "... = (\<^bold>\<exists> tt \<bullet> ((\<guillemotleft>tt\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>(\<guillemotleft>tt\<guillemotright>)\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<guillemotright>)"
+  also have "... = (\<^bold>\<exists> tt\<^sub>0 \<bullet> ((\<guillemotleft>tt\<^sub>0\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>(\<guillemotleft>tt\<^sub>0\<guillemotright>)\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>)"
   proof (rel_auto)
     fix P tr and tt\<^sub>1 tt\<^sub>2 :: "'a ttrace"
     assume  "0 < tt\<^sub>1" "0 < tt\<^sub>2" "\<forall>i. 0 \<le> i \<and> i < end\<^sub>t (tt\<^sub>1 + tt\<^sub>2) \<longrightarrow> P (\<langle>tt\<^sub>1 + tt\<^sub>2\<rangle>\<^sub>t i)"
-    thus "\<exists> tt. 0 < tt \<and> (\<forall> i. 0 \<le> i \<and> i < end\<^sub>t tt \<longrightarrow> P (\<langle>tt\<rangle>\<^sub>ti)) \<and> tr + tt\<^sub>1 + tt\<^sub>2 = tr + tt"
+    thus "\<exists> tt\<^sub>0. 0 < tt\<^sub>0 \<and> (\<forall> i. 0 \<le> i \<and> i < end\<^sub>t tt\<^sub>0 \<longrightarrow> P (\<langle>tt\<^sub>0\<rangle>\<^sub>ti)) \<and> tr + tt\<^sub>1 + tt\<^sub>2 = tr + tt\<^sub>0"
       using add.assoc le_add less_le_trans by blast
   next
-    fix P tr and tt :: "'a ttrace"
-    assume "0 < tt" "\<forall>i. 0 \<le> i \<and> i < end\<^sub>t tt \<longrightarrow> P (\<langle>tt\<rangle>\<^sub>t i)"
-    moreover then obtain tt\<^sub>1 tt\<^sub>2 where "tt = tt\<^sub>1 + tt\<^sub>2" "end\<^sub>t tt\<^sub>1 > 0" "end\<^sub>t tt\<^sub>2 > 0"
+    fix P tr and tt\<^sub>0 :: "'a ttrace"
+    assume "0 < tt\<^sub>0" "\<forall>i. 0 \<le> i \<and> i < end\<^sub>t tt\<^sub>0 \<longrightarrow> P (\<langle>tt\<^sub>0\<rangle>\<^sub>t i)"
+    moreover then obtain tt\<^sub>1 tt\<^sub>2 where "tt\<^sub>0 = tt\<^sub>1 + tt\<^sub>2" "end\<^sub>t tt\<^sub>1 > 0" "end\<^sub>t tt\<^sub>2 > 0"
       by (metis dual_order.strict_iff_order tt_end_0_iff tt_end_ge_0 ttrace_divisible)
     moreover hence "tt\<^sub>1 > 0" "tt\<^sub>2 > 0"
-      by (simp_all add: least_zero less_le tt_end_0_iff)
+      by (simp_all add: less_le tt_end_0_iff)
     ultimately show
       "\<exists>tt\<^sub>1. 0 < tt\<^sub>1 \<and>
             (\<exists>tt\<^sub>2. 0 < tt\<^sub>2 \<and>
-                  (\<forall>i. 0 \<le> i \<and> i < end\<^sub>t (tt\<^sub>1 + tt\<^sub>2) \<longrightarrow> P (\<langle>tt\<^sub>1 + tt\<^sub>2\<rangle>\<^sub>t i)) \<and> tr + tt = tr + tt\<^sub>1 + tt\<^sub>2)"
+                  (\<forall>i. 0 \<le> i \<and> i < end\<^sub>t (tt\<^sub>1 + tt\<^sub>2) \<longrightarrow> P (\<langle>tt\<^sub>1 + tt\<^sub>2\<rangle>\<^sub>t i)) \<and> tr + tt\<^sub>0 = tr + tt\<^sub>1 + tt\<^sub>2)"
       by (metis add.assoc)
   qed
   also have "... = R2(\<lceil>P\<rceil>\<^sub>H)"
@@ -498,8 +498,9 @@ text {* The pre-emption operator @{term "P [b]\<^sub>H Q"} states that $P$ is ac
   We prove a few simple properties about this operator. *}
 
 lemma hPreempt_true: "P [true]\<^sub>H Q = Q"
-  by (simp add: hPreempt_def alpha hInt_false, simp add: false_upred_def)
+  by (simp add: hPreempt_def alpha hInt_false)
 
 lemma hPreempt_false: "P [false]\<^sub>H Q = (P \<and> $tr <\<^sub>u $tr\<acute>)"
-  by (simp add: hPreempt_def alpha hInt_true, simp add: false_upred_def)
+  by (simp add: hPreempt_def alpha hInt_true)
+    
 end
