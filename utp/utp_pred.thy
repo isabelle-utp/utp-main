@@ -752,6 +752,9 @@ lemma UINF_subset_mono: "A \<subseteq> B \<Longrightarrow> (\<Sqinter> P\<in>B \
 lemma USUP_subset_mono: "A \<subseteq> B \<Longrightarrow> (\<Squnion> P\<in>A \<bullet> F(P)) \<sqsubseteq> (\<Squnion> P\<in>B \<bullet> F(P))"
   by (simp add: INF_superset_mono UINF_as_Inf_collect)
     
+lemma UINF_impl: "(\<Sqinter> P\<in>A \<bullet> F(P) \<Rightarrow> G(P)) = ((\<Squnion> P\<in>A \<bullet> F(P)) \<Rightarrow> (\<Sqinter> P\<in>A \<bullet> G(P)))"
+  by (rel_auto)
+
 lemma mu_id: "(\<mu> X \<bullet> X) = true"
   by (simp add: antisym gfp_upperbound)
 
@@ -1128,6 +1131,9 @@ lemma cond_neg: "\<not> (P \<triangleleft> b \<triangleright> Q) = ((\<not> P) \
 lemma cond_conj: "P \<triangleleft> b \<and> c \<triangleright> Q = (P \<triangleleft> c \<triangleright> Q) \<triangleleft> b \<triangleright> Q"
   by (pred_auto)
 
+lemma spec_cond_dist: "(P \<Rightarrow> (Q \<triangleleft> b \<triangleright> R)) = ((P \<Rightarrow> Q) \<triangleleft> b \<triangleright> (P \<Rightarrow> R))"
+  by (rel_auto)
+    
 lemma cond_USUP_dist: "(\<Squnion> P\<in>S \<bullet> F(P)) \<triangleleft> b \<triangleright> (\<Squnion> P\<in>S \<bullet> G(P)) = (\<Squnion> P\<in>S \<bullet> F(P) \<triangleleft> b \<triangleright> G(P))"
   by (pred_auto)
 

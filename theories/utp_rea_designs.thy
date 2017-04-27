@@ -94,6 +94,12 @@ lemma RD1_Continuous: "Continuous RD1"
 lemma R1_true_RD1_closed [closure]: "R1(true) is RD1"
   by (rel_auto)
     
+lemma RD1_wait_false [closure]: "P is RD1 \<Longrightarrow> P\<lbrakk>false/$wait\<rbrakk> is RD1"
+  by (rel_auto)
+
+lemma RD1_wait'_false [closure]: "P is RD1 \<Longrightarrow> P\<lbrakk>false/$wait\<acute>\<rbrakk> is RD1"
+  by (rel_auto)
+    
 lemma RD1_seq: "RD1(RD1(P) ;; RD1(Q)) = RD1(P) ;; RD1(Q)"
   by (rel_auto)
    
