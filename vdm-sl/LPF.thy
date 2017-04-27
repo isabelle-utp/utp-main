@@ -184,20 +184,6 @@ consts lift1_vdm :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ((
 
 declare lift1_lpf'_def [lpf_defs]
 
-(* Without instantiation, define your own syntax. *)
-
-definition uminus_lpf :: "'a::uminus lpf \<Rightarrow> 'a lpf" ("-\<^sub>L _" [81] 80) where
-[lpf_defs]: "uminus_lpf = lift1_lpf' uminus"
-
-(* With instantiation, use the type class syntax for uminus. *)
-(*instantiation lpf :: (uminus) uminus
-begin
-definition uminus_lpf :: "'a lpf \<Rightarrow> 'a lpf" where
-"uminus_lpf = lift1_lpf' uminus"
-instance ..
-end
-*)
-
 method lpf_simp = (simp add: lpf_defs lpf_transfer; clarsimp?)
 method lpf_auto = (lpf_simp; auto)
 method lpf_blast = (lpf_simp; blast)

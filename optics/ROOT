@@ -7,7 +7,7 @@
 
 (* Optics Library *)
 
-session "Optics-Library" = "HOL" +
+session "Optics-Library" = "HOL-Eisbach" +
   options [document = pdf, document_output = "output", timeout = 300]
   theories
     Interp
