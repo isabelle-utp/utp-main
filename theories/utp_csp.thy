@@ -1766,8 +1766,23 @@ proof -
              R1_post_SRD R1_neg_R2c_pre_RHS assms closure R1_tr_less_tr' R2c_tr_less_tr')
   finally show ?thesis .
 qed
-      
-(*     
+  
+lemma preR_frame_seq_export:
+  assumes "P is NCSP" "P is WG" "Q is NCSP"
+  shows "(pre\<^sub>R P \<and> (pre\<^sub>R P \<and> post\<^sub>R P) ;; Q) = (pre\<^sub>R P \<and> (post\<^sub>R P ;; Q))"
+proof -
+  have "(pre\<^sub>R P \<and> (post\<^sub>R P ;; Q)) = (pre\<^sub>R P \<and> ((pre\<^sub>R P \<Rightarrow> post\<^sub>R P) ;; Q))"
+    by (simp add: SRD_post_under_pre assms closure unrest)
+  also have "... = (pre\<^sub>R P \<and> (((\<not> pre\<^sub>R P) ;; Q \<or> (pre\<^sub>R P \<and> post\<^sub>R P) ;; Q)))"
+    by (rel_blast)
+  also have "... = (pre\<^sub>R P \<and> (((\<not> pre\<^sub>R P) \<or> (pre\<^sub>R P \<and> post\<^sub>R P) ;; Q)))"      
+    by (simp add: NSRD_neg_pre_left_zero assms closure SRD_healths)
+  also have "... = (pre\<^sub>R P \<and> (pre\<^sub>R P \<and> post\<^sub>R P) ;; Q)"
+    by (rel_blast)
+  finally show ?thesis ..
+qed
+
+(*
 lemma ExtChoice_seq_distr:
   assumes "A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H" "A \<subseteq> \<lbrakk>WG\<rbrakk>\<^sub>H" "A \<noteq> {}" "Q is NCSP"
   shows "(\<box> P\<in>A \<bullet> P) ;; Q = (\<box> P\<in>A \<bullet> P ;; Q)"    
