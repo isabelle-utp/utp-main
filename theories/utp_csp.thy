@@ -1563,29 +1563,29 @@ lemma "\<lbrakk> \<And> a. P(a) is NCSP \<rbrakk> \<Longrightarrow> (\<box> x\<i
 
 text {* A healthiness condition for weakly guarded CSP processes *}
 
-definition [upred_defs]: "WG(P) = P \<parallel>\<^sub>R \<^bold>R\<^sub>s(true \<turnstile> true \<diamondop> ($tr <\<^sub>u $tr\<acute>))"
+definition [upred_defs]: "Productive(P) = P \<parallel>\<^sub>R \<^bold>R\<^sub>s(true \<turnstile> true \<diamondop> ($tr <\<^sub>u $tr\<acute>))"
 
-lemma WG_RHS_design_form:
+lemma Productive_RHS_design_form:
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok\<acute> \<sharp> R"
-  shows "WG(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> (R \<and> $tr <\<^sub>u $tr\<acute>))"
-  using assms by (simp add: WG_def RHS_tri_design_par unrest)
+  shows "Productive(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> (R \<and> $tr <\<^sub>u $tr\<acute>))"
+  using assms by (simp add: Productive_def RHS_tri_design_par unrest)
 
-lemma WG_form:
-  "WG(CSP(P)) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))"
+lemma Productive_form:
+  "Productive(CSP(P)) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))"
 proof -
-  have "WG(CSP(P)) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) \<parallel>\<^sub>R \<^bold>R\<^sub>s(true \<turnstile> true \<diamondop> ($tr <\<^sub>u $tr\<acute>))"
-    by (simp add: WG_def SRD_as_reactive_tri_design)
+  have "Productive(CSP(P)) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) \<parallel>\<^sub>R \<^bold>R\<^sub>s(true \<turnstile> true \<diamondop> ($tr <\<^sub>u $tr\<acute>))"
+    by (simp add: Productive_def SRD_as_reactive_tri_design)
   also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))"
     by (simp add: RHS_tri_design_par unrest)
   finally show ?thesis .
 qed
 
-lemma WG_post_refines_tr_increase:
-  assumes "P is CSP" "P is WG" "$wait\<acute> \<sharp> pre\<^sub>R(P)"
+lemma Productive_post_refines_tr_increase:
+  assumes "P is CSP" "P is Productive" "$wait\<acute> \<sharp> pre\<^sub>R(P)"
   shows "($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> (pre\<^sub>R(P) \<and> post\<^sub>R(P))"
 proof -
   have "post\<^sub>R(P) = post\<^sub>R(\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)))"
-    by (metis Healthy_def WG_form assms(1) assms(2))
+    by (metis Healthy_def Productive_form assms(1) assms(2))
   also have "... = R1(R2c(pre\<^sub>R(P) \<Rightarrow> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)))"
     by (simp add: rea_post_RHS_design unrest usubst assms)
   also have "... = R1((pre\<^sub>R(P) \<Rightarrow> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)))"
@@ -1595,24 +1595,24 @@ proof -
   finally show ?thesis .
 qed
 
-lemma WG_DoCSP:
-  "(do\<^sub>C a :: ('\<sigma>, '\<psi>) action) is WG"
+lemma Productive_DoCSP:
+  "(do\<^sub>C a :: ('\<sigma>, '\<psi>) action) is Productive"
 proof -
   have "(($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) \<and> $tr\<acute> >\<^sub>u $tr :: ('\<sigma>, '\<psi>) action)
         = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st)"
     by (rel_auto, simp add: Prefix_Order.strict_prefixI')
-  hence "WG(do\<^sub>C a) = do\<^sub>C a"
-    by (simp add: WG_RHS_design_form DoCSP_RHS_tri unrest)
+  hence "Productive(do\<^sub>C a) = do\<^sub>C a"
+    by (simp add: Productive_RHS_design_form DoCSP_RHS_tri unrest)
   thus ?thesis
     by (simp add: Healthy_def)
 qed
 
-lemma WG_Guard:
-  assumes "P is CSP" "P is WG" "$wait\<acute> \<sharp> pre\<^sub>R(P)"
-  shows "b &\<^sub>u P is WG"
+lemma Productive_Guard:
+  assumes "P is CSP" "P is Productive" "$wait\<acute> \<sharp> pre\<^sub>R(P)"
+  shows "b &\<^sub>u P is Productive"
 proof -
   have "b &\<^sub>u P = b &\<^sub>u \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))"
-    by (metis Healthy_def WG_form assms(1) assms(2))
+    by (metis Healthy_def Productive_form assms(1) assms(2))
   also have "... =
         \<^bold>R\<^sub>s ((\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> \<not> R1 (\<not> pre\<^sub>R P)) \<turnstile>
           (R1 (pre\<^sub>R P \<Rightarrow> peri\<^sub>R P) \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)) \<diamondop> (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> R1 (pre\<^sub>R P \<Rightarrow> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr)))"
@@ -1620,15 +1620,15 @@ proof -
                   usubst R2c_preR R2c_not R2c_impl R2c_periR R2c_postR R2c_and R2c_tr_less_tr')
   also have "... = \<^bold>R\<^sub>s ((\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P) \<turnstile> (peri\<^sub>R P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)) \<diamondop> ((\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R P) \<and> $tr\<acute> >\<^sub>u $tr))"
     by (rel_auto)
-  also have "... = WG(b &\<^sub>u P)"
-    by (simp add: WG_def Guard_tri_design RHS_tri_design_par unrest)
+  also have "... = Productive(b &\<^sub>u P)"
+    by (simp add: Productive_def Guard_tri_design RHS_tri_design_par unrest)
   finally show ?thesis
     by (simp add: Healthy_def')
 qed
   
-lemma WG_intro:
+lemma Productive_intro:
   assumes "P is SRD" "($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> (pre\<^sub>R(P) \<and> post\<^sub>R(P))" "$wait\<acute> \<sharp> pre\<^sub>R(P)"
-  shows "P is WG"
+  shows "P is Productive"
 proof -
   have P:"\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)) = P"
   proof -
@@ -1642,13 +1642,13 @@ proof -
       by (simp add: SRD_reactive_tri_design assms(1))
   qed
   thus ?thesis
-    by (metis Healthy_def RHS_tri_design_par WG_def ok'_pre_unrest unrest_true utp_pred.inf_right_idem utp_pred.inf_top_right)
+    by (metis Healthy_def RHS_tri_design_par Productive_def ok'_pre_unrest unrest_true utp_pred.inf_right_idem utp_pred.inf_top_right)
 qed
   
-lemma WG_rdes_intro:
+lemma Productive_rdes_intro:
   assumes "($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> R" "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok\<acute> \<sharp> R" "$wait \<sharp> P" "$wait\<acute> \<sharp> P"
-  shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) is WG"
-proof (rule WG_intro)
+  shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) is Productive"
+proof (rule Productive_intro)
   show "\<^bold>R\<^sub>s (P \<turnstile> Q \<diamondop> R) is SRD"
     by (simp add: RHS_tri_design_is_SRD assms)
 
@@ -1662,12 +1662,12 @@ proof (rule WG_intro)
     by (simp add: rea_pre_RHS_design rea_post_RHS_design usubst R1_def R2c_def R2s_def assms unrest)
 qed
         
-lemma WG_seq_1 [closure]:
-  assumes "P is NCSP" "P is WG" "Q is NCSP"
-  shows "P ;; Q is WG"
+lemma Productive_seq_1 [closure]:
+  assumes "P is NCSP" "P is Productive" "Q is NCSP"
+  shows "P ;; Q is Productive"
 proof -
   have "P ;; Q = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)) ;; \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> peri\<^sub>R(Q) \<diamondop> (post\<^sub>R(Q)))"
-    by (metis Healthy_def NCSP_implies_CSP SRD_reactive_tri_design WG_form assms(1) assms(2) assms(3))
+    by (metis Healthy_def NCSP_implies_CSP SRD_reactive_tri_design Productive_form assms(1) assms(2) assms(3))
   also have "... = \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> (post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) wp\<^sub>R pre\<^sub>R Q) \<turnstile>
                        (peri\<^sub>R P \<or> ((post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; peri\<^sub>R Q)) \<diamondop> ((post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; post\<^sub>R Q))"
     by (simp add: RHS_tri_design_composition_wp unrest closure assms wp NSRD_neg_pre_left_zero  SRD_healths R1_neg_preR ex_unrest wpR_def disj_upred_def)
@@ -1679,17 +1679,17 @@ proof -
     thus ?thesis
       by (simp add: NCSP_implies_NSRD NSRD_is_SRD R1_post_SRD assms)
   qed
-  also have "... is WG"
-    by (rule WG_rdes_intro, simp_all add: unrest assms closure wpR_def)
+  also have "... is Productive"
+    by (rule Productive_rdes_intro, simp_all add: unrest assms closure wpR_def)
   finally show ?thesis .
 qed
 
-lemma WG_seq_2 [closure]:
-  assumes "P is NCSP" "Q is NCSP" "Q is WG"
-  shows "P ;; Q is WG"
+lemma Productive_seq_2 [closure]:
+  assumes "P is NCSP" "Q is NCSP" "Q is Productive"
+  shows "P ;; Q is Productive"
 proof -
   have "P ;; Q = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P))) ;; \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> peri\<^sub>R(Q) \<diamondop> (post\<^sub>R(Q) \<and> $tr <\<^sub>u $tr\<acute>))"
-    by (metis Healthy_def NCSP_implies_CSP SRD_reactive_tri_design WG_form assms)
+    by (metis Healthy_def NCSP_implies_CSP SRD_reactive_tri_design Productive_form assms)
   also have "... = \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<or> (post\<^sub>R P ;; peri\<^sub>R Q)) \<diamondop> (post\<^sub>R P ;; (post\<^sub>R Q \<and> $tr\<acute> >\<^sub>u $tr)))"
     by (simp add: RHS_tri_design_composition_wp unrest closure assms wp NSRD_neg_pre_left_zero  SRD_healths R1_neg_preR ex_unrest wpR_def disj_upred_def)  
   also have "... = \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<or> (post\<^sub>R P ;; peri\<^sub>R Q)) \<diamondop> (post\<^sub>R P ;; (post\<^sub>R Q \<and> $tr\<acute> >\<^sub>u $tr) \<and> $tr\<acute> >\<^sub>u $tr))"
@@ -1699,51 +1699,51 @@ proof -
     thus ?thesis
       by (simp add: NCSP_implies_NSRD NSRD_is_SRD R1_post_SRD assms)
   qed
-  also have "... is WG"
-    by (rule WG_rdes_intro, simp_all add: unrest assms closure wpR_def)
+  also have "... is Productive"
+    by (rule Productive_rdes_intro, simp_all add: unrest assms closure wpR_def)
   finally show ?thesis .
 qed
     
-lemma WG_ExtChoice [closure]:
-  assumes "A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H" "A \<subseteq> \<lbrakk>WG\<rbrakk>\<^sub>H"
-  shows "ExtChoice A is WG"
+lemma Productive_ExtChoice [closure]:
+  assumes "A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H" "A \<subseteq> \<lbrakk>Productive\<rbrakk>\<^sub>H"
+  shows "ExtChoice A is Productive"
 proof -
   have 1: "\<And> P. P \<in> A \<Longrightarrow> $wait\<acute> \<sharp> pre\<^sub>R(P)"
     using NCSP_implies_NSRD NSRD_wait'_unrest_pre assms(1) by blast
   show ?thesis
-  proof (rule WG_intro, simp_all add: assms closure rdes 1 unrest)
+  proof (rule Productive_intro, simp_all add: assms closure rdes 1 unrest)
     have "((\<Squnion> P\<in>A \<bullet> pre\<^sub>R P) \<and> (\<Sqinter> P\<in>A \<bullet> post\<^sub>R P)) = 
           ((\<Squnion> P\<in>A \<bullet> pre\<^sub>R P) \<and> (\<Sqinter> P\<in>A \<bullet> (pre\<^sub>R P \<and> post\<^sub>R P)))"
       by (rel_auto)
     moreover have "(\<Sqinter> P\<in>A \<bullet> (pre\<^sub>R P \<and> post\<^sub>R P)) = (\<Sqinter> P\<in>A \<bullet> ((pre\<^sub>R P \<and> post\<^sub>R P) \<and> $tr <\<^sub>u $tr\<acute>))"
-      by (rule UINF_cong, metis (no_types, lifting) "1" Ball_Collect NCSP_implies_CSP WG_post_refines_tr_increase assms utp_pred.inf.absorb1)
+      by (rule UINF_cong, metis (no_types, lifting) "1" Ball_Collect NCSP_implies_CSP Productive_post_refines_tr_increase assms utp_pred.inf.absorb1)
     
     ultimately show "($tr\<acute> >\<^sub>u $tr) \<sqsubseteq> ((\<Squnion> P\<in>A \<bullet> pre\<^sub>R P) \<and> (\<Sqinter> P\<in>A \<bullet> post\<^sub>R P))"
       by (simp, rel_auto)
   qed
 qed 
      
-lemma WG_extChoice [closure]:
-  assumes "P is NCSP" "Q is NCSP" "P is WG" "Q is WG"
-  shows "P \<box> Q is WG"
-  by (simp add: extChoice_def WG_ExtChoice assms)
+lemma Productive_extChoice [closure]:
+  assumes "P is NCSP" "Q is NCSP" "P is Productive" "Q is Productive"
+  shows "P \<box> Q is Productive"
+  by (simp add: extChoice_def Productive_ExtChoice assms)
    
-lemma preR_WG [rdes]:
+lemma preR_Productive [rdes]:
   assumes "P is CSP"
-  shows "pre\<^sub>R(WG(P)) = pre\<^sub>R(P)"
+  shows "pre\<^sub>R(Productive(P)) = pre\<^sub>R(P)"
 proof -
-  have "pre\<^sub>R(WG(P)) = pre\<^sub>R(\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)))"
-    by (metis Healthy_def WG_form assms)
+  have "pre\<^sub>R(Productive(P)) = pre\<^sub>R(\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)))"
+    by (metis Healthy_def Productive_form assms)
   thus ?thesis
     by (simp add: rea_pre_RHS_design usubst unrest R2c_not R1_neg_R2c_pre_RHS assms)
 qed
   
-lemma periR_WG [rdes]:
+lemma periR_Productive [rdes]:
   assumes "P is NCSP"
-  shows "peri\<^sub>R(WG(P)) = peri\<^sub>R(P)"
+  shows "peri\<^sub>R(Productive(P)) = peri\<^sub>R(P)"
 proof -
-  have "peri\<^sub>R(WG(P)) = peri\<^sub>R(\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)))"
-    by (metis Healthy_def NCSP_implies_CSP WG_form assms)
+  have "peri\<^sub>R(Productive(P)) = peri\<^sub>R(\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)))"
+    by (metis Healthy_def NCSP_implies_CSP Productive_form assms)
   also have "... = R1 (R2c (pre\<^sub>R P \<Rightarrow> peri\<^sub>R P))"
     by (simp add: rea_peri_RHS_design usubst unrest R2c_not R1_neg_R2c_pre_RHS assms closure)
   also have "... = (pre\<^sub>R P \<Rightarrow> peri\<^sub>R P)"
@@ -1753,12 +1753,12 @@ proof -
     by (simp add: SRD_peri_under_pre assms unrest closure)
 qed
 
-lemma postR_WG [rdes]: 
+lemma postR_Productive [rdes]: 
   assumes "P is NCSP"
-  shows "post\<^sub>R(WG(P)) = (pre\<^sub>R(P) \<Rightarrow> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)"
+  shows "post\<^sub>R(Productive(P)) = (pre\<^sub>R(P) \<Rightarrow> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)"
 proof -
-  have "post\<^sub>R(WG(P)) = post\<^sub>R(\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)))"
-    by (metis Healthy_def NCSP_implies_CSP WG_form assms)
+  have "post\<^sub>R(Productive(P)) = post\<^sub>R(\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)))"
+    by (metis Healthy_def NCSP_implies_CSP Productive_form assms)
   also have "... = R1 (R2c (pre\<^sub>R P \<Rightarrow> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr))"
     by (simp add: rea_post_RHS_design usubst unrest assms closure)
   also have "... = (pre\<^sub>R P \<Rightarrow> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr)"
@@ -1768,7 +1768,7 @@ proof -
 qed
   
 lemma preR_frame_seq_export:
-  assumes "P is NCSP" "P is WG" "Q is NCSP"
+  assumes "P is NCSP" "P is Productive" "Q is NCSP"
   shows "(pre\<^sub>R P \<and> (pre\<^sub>R P \<and> post\<^sub>R P) ;; Q) = (pre\<^sub>R P \<and> (post\<^sub>R P ;; Q))"
 proof -
   have "(pre\<^sub>R P \<and> (post\<^sub>R P ;; Q)) = (pre\<^sub>R P \<and> ((pre\<^sub>R P \<Rightarrow> post\<^sub>R P) ;; Q))"
@@ -1784,7 +1784,7 @@ qed
 
 (*
 lemma ExtChoice_seq_distr:
-  assumes "A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H" "A \<subseteq> \<lbrakk>WG\<rbrakk>\<^sub>H" "A \<noteq> {}" "Q is NCSP"
+  assumes "A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H" "A \<subseteq> \<lbrakk>Productive\<rbrakk>\<^sub>H" "A \<noteq> {}" "Q is NCSP"
   shows "(\<box> P\<in>A \<bullet> P) ;; Q = (\<box> P\<in>A \<bullet> P ;; Q)"    
 proof -   
   have [closure]: "\<And> P. P \<in> A \<Longrightarrow> $wait\<acute> \<sharp> pre\<^sub>R(P)"
@@ -1951,7 +1951,7 @@ lemma Guarded_const [closure]: "Guarded (\<lambda> X. P)"
     
 lemma Guarded_if_Productive [closure]:
   fixes P :: "('\<sigma>,'\<phi>) action"
-  assumes "P is NCSP" "P is WG"
+  assumes "P is NCSP" "P is Productive"
   shows "Guarded (\<lambda> X. P ;; CSP(X))"
 proof (clarsimp simp add: Guarded_def)
   -- {* We split the proof into three cases corresponding to valuations for ok, wait, and wait'
@@ -1980,7 +1980,7 @@ proof (clarsimp simp add: Guarded_def)
         
         have "(P\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP Y)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk> = 
               ((\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)))\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP Y)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
-          by (metis Healthy_def WG_form assms(1) assms(2) NCSP_implies_CSP)
+          by (metis Healthy_def Productive_form assms(1) assms(2) NCSP_implies_CSP)
         also have "... =  
              ((R1(R2c(pre\<^sub>R(P) \<Rightarrow> ($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))))\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP Y)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
           by (simp add: RHS_def R1_def R2c_def R2s_def R3h_def RD1_def RD2_def usubst unrest assms closure design_def)
@@ -2070,7 +2070,7 @@ proof -
   have "PrefixCSP a = (\<lambda> X. do\<^sub>C(a) ;; CSP(X))"
     by (simp add: fun_eq_iff PrefixCSP_def)
   thus ?thesis
-    using Guarded_if_Productive NCSP_DoCSP WG_DoCSP by auto
+    using Guarded_if_Productive NCSP_DoCSP Productive_DoCSP by auto
 qed
   
 text {* Example fixed-point calculation *}
