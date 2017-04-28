@@ -1074,14 +1074,12 @@ proof -
 qed
 
 lemma CSP_ExtChoice [closure]:
-  assumes "A \<subseteq> \<lbrakk>CSP\<rbrakk>\<^sub>H"
-  shows "ExtChoice A is CSP"
+  "ExtChoice A is CSP"
   by (simp add: ExtChoice_def RHS_design_is_SRD unrest)
 
 lemma CSP_extChoice [closure]:
-  assumes "P is CSP" "Q is CSP"
-  shows "P \<box> Q is CSP"
-  by (simp add: CSP_ExtChoice assms extChoice_def)
+  "P \<box> Q is CSP"
+  by (simp add: CSP_ExtChoice extChoice_def)
     
 lemma preR_ExtChoice [rdes]:
   assumes "A \<subseteq> \<lbrakk>CSP\<rbrakk>\<^sub>H"
@@ -1917,6 +1915,9 @@ lemma gvrt_limit: "\<Sqinter> (range gvrt) = ($tr \<le>\<^sub>u $tr\<acute>)"
 definition Guarded :: "(('\<sigma>,'\<phi>) action \<Rightarrow> ('\<sigma>,'\<phi>) action) \<Rightarrow> bool" where
 "Guarded(F) = (\<forall> X n. (F(X) \<and> gvrt(n+1)) = (F(X \<and> gvrt(n)) \<and> gvrt(n+1)))"
     
+lemma GuardedI: "\<lbrakk> \<And> X n. (F(X) \<and> gvrt(n+1)) = (F(X \<and> gvrt(n)) \<and> gvrt(n+1)) \<rbrakk> \<Longrightarrow> Guarded F"
+  by (simp add: Guarded_def)
+
 theorem guarded_fp_uniq:
   assumes "mono F" "F \<in> \<lbrakk>id\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H" "Guarded F"
   shows "\<mu> F = \<nu> F"
@@ -2063,14 +2064,56 @@ proof (clarsimp simp add: Guarded_def)
     apply (simp_all add: b c)
   done
 qed  
-        
-      
+
 lemma PrefixCSP_Guarded [closure]: "Guarded (PrefixCSP a)"
 proof -
   have "PrefixCSP a = (\<lambda> X. do\<^sub>C(a) ;; CSP(X))"
     by (simp add: fun_eq_iff PrefixCSP_def)
   thus ?thesis
     using Guarded_if_Productive NCSP_DoCSP Productive_DoCSP by auto
+qed
+
+lemma ExtChoice_Guarded [closure]:
+  assumes  "\<And> P. P \<in> A \<Longrightarrow> Guarded P"
+  shows "Guarded (\<lambda> X. \<box>P\<in>A \<bullet> P(X))"
+proof (rule GuardedI)
+  fix X n
+  have "\<And> Y. ((\<box>P\<in>A \<bullet> P Y) \<and> gvrt(n+1)) = ((\<box>P\<in>A \<bullet> (P Y \<and> gvrt(n+1))) \<and> gvrt(n+1))"
+  proof -
+    fix Y
+    let ?lhs = "((\<box>P\<in>A \<bullet> P Y) \<and> gvrt(n+1))" and ?rhs = "((\<box>P\<in>A \<bullet> (P Y \<and> gvrt(n+1))) \<and> gvrt(n+1))"
+    have a:"?lhs\<lbrakk>false/$ok\<rbrakk> = ?rhs\<lbrakk>false/$ok\<rbrakk>"
+      by (rel_auto)
+    have b:"?lhs\<lbrakk>true/$ok\<rbrakk>\<lbrakk>true/$wait\<rbrakk> = ?rhs\<lbrakk>true/$ok\<rbrakk>\<lbrakk>true/$wait\<rbrakk>"
+      by (rel_auto)
+    have c:"?lhs\<lbrakk>true/$ok\<rbrakk>\<lbrakk>false/$wait\<rbrakk> = ?rhs\<lbrakk>true/$ok\<rbrakk>\<lbrakk>false/$wait\<rbrakk>"    
+      by (simp add: ExtChoice_def RHS_def R1_def R2c_def R2s_def R3h_def design_def usubst unrest, rel_blast)
+    show "?lhs = ?rhs"
+      using a b c
+      by (rule_tac bool_eq_splitI[of "in_var ok"], simp, rule_tac bool_eq_splitI[of "in_var wait"], simp_all)
+  qed
+  moreover have "((\<box>P\<in>A \<bullet> (P X \<and> gvrt(n+1))) \<and> gvrt(n+1)) =  ((\<box>P\<in>A \<bullet> (P (X \<and> gvrt(n)) \<and> gvrt(n+1))) \<and> gvrt(n+1))"
+  proof -
+    have "(\<box>P\<in>A \<bullet> (P X \<and> gvrt(n+1))) = (\<box>P\<in>A \<bullet> (P (X \<and> gvrt(n)) \<and> gvrt(n+1)))"
+    proof (rule ExtChoice_cong)
+      fix P assume "P \<in> A"
+      thus "(P X \<and> gvrt(n+1)) = (P (X \<and> gvrt(n)) \<and> gvrt(n+1))"
+        using Guarded_def assms by blast
+    qed
+    thus ?thesis by simp
+  qed
+  ultimately show "((\<box>P\<in>A \<bullet> P X) \<and> gvrt(n+1)) = ((\<box>P\<in>A \<bullet> (P (X \<and> gvrt(n)))) \<and> gvrt(n+1))"
+    by simp
+qed
+
+lemma extChoice_Guarded [closure]:
+  assumes "Guarded P" "Guarded Q"
+  shows "Guarded (\<lambda> X. P(X) \<box> Q(X))"
+proof -
+  have "Guarded (\<lambda> X. \<box>F\<in>{P,Q} \<bullet> F(X))"
+    by (rule ExtChoice_Guarded, auto simp add: assms)
+  thus ?thesis
+    by (simp add: extChoice_def)
 qed
   
 text {* Example fixed-point calculation *}
