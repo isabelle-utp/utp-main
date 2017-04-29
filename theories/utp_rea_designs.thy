@@ -2305,6 +2305,17 @@ lemma SRD_RD3_implies_NSRD:
   "\<lbrakk> P is SRD; P is RD3 \<rbrakk> \<Longrightarrow> P is NSRD"
   by (metis (no_types, lifting) Healthy_def NSRD_def RHS_idem SRD_healths(4) SRD_reactive_design comp_apply)
 
+lemma SRD_Sup_closure [closure]:
+  assumes "A \<subseteq> \<lbrakk>SRD\<rbrakk>\<^sub>H" "A \<noteq> {}"
+  shows "(\<Sqinter> A) is SRD"
+proof -
+  have "SRD (\<Sqinter> A) = (\<Sqinter> (SRD `A))"
+    by (simp add: ContinuousD SRD_Continuous assms(2))
+  also have "... = (\<Sqinter> A)"
+    by (simp only: Healthy_carrier_image assms)
+  finally show ?thesis by (simp add: Healthy_def)
+qed  
+    
 lemma NSRD_Sup_closure [closure]:
   assumes "A \<subseteq> \<lbrakk>NSRD\<rbrakk>\<^sub>H" "A \<noteq> {}"
   shows "\<Sqinter> A is NSRD"
@@ -2443,7 +2454,7 @@ lemma postR_NSRD_seq [rdes]:
                    preR_NSRD_seq_lemma)
      (metis Healthy_def NSRD_is_SRD R1_R2c_post_RHS R1_R2c_seqr_distribute R2c_postR assms)
 
-lemma NSRD_seqr_closure:
+lemma NSRD_seqr_closure [closure]:
   assumes "P is NSRD" "Q is NSRD"
   shows "(P ;; Q) is NSRD"
 proof -

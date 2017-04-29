@@ -228,7 +228,7 @@ lemma Continuous_Disjunctous: "Continuous H \<Longrightarrow> Disjunctuous H"
   apply (simp)
 done
 
-lemma Continuous_Monotonic: "Continuous H \<Longrightarrow> Monotonic H"
+lemma Continuous_Monotonic [closure]: "Continuous H \<Longrightarrow> Monotonic H"
   by (simp add: Continuous_Disjunctous Disjunctuous_Monotonic)
 
 lemma Continuous_comp [intro]:

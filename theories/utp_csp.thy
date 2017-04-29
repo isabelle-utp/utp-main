@@ -654,10 +654,10 @@ text {* This version of input prefix is implemented using iterated external choi
   depend on the existence of local variables. *}
 
 definition InputCSP ::
-  "('a, '\<theta>) chan \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> ('\<sigma>, '\<theta>) action) \<Rightarrow> ('\<sigma>, '\<theta>) action" where
-"InputCSP c A P = (\<box> x \<in> A \<bullet> PrefixCSP (c\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u (P x))"
+  "('a, '\<theta>) chan \<Rightarrow> ('a \<Rightarrow> '\<sigma> upred) \<Rightarrow> ('a \<Rightarrow> ('\<sigma>, '\<theta>) action) \<Rightarrow> ('\<sigma>, '\<theta>) action" where
+"InputCSP c A P = (\<box> x\<in>UNIV \<bullet> A(x) &\<^sub>u PrefixCSP (c\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u (P x))"
 
-definition InputVarCSP :: "('a, '\<theta>) chan \<Rightarrow> 'a set \<Rightarrow> ('a \<Longrightarrow> '\<sigma>) \<Rightarrow> ('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action" where
+definition InputVarCSP :: "('a, '\<theta>) chan \<Rightarrow> ('a \<Rightarrow> '\<sigma> upred) \<Rightarrow> ('a \<Longrightarrow> '\<sigma>) \<Rightarrow> ('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action" where
 "InputVarCSP c A x P = InputCSP c A (\<lambda> v. \<langle>[x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>]\<rangle>\<^sub>C) ;; CSP(P)"
 
 definition do\<^sub>I :: "
@@ -674,14 +674,45 @@ syntax
   "_csp_output" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>!_ \<^bold>\<rightarrow> _" [81, 0, 80] 80)
   "_csp_input"  :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>?_:_ \<^bold>\<rightarrow> _" [81, 0, 0, 80] 80)
   "_csp_inputu" :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>?_ \<^bold>\<rightarrow> _" [81, 0, 80] 80)
+  "_csp_input_var"  :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>?$_:_ \<^bold>\<rightarrow> _" [81, 0, 0, 80] 80)
+  "_csp_inputu_var" :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>?$_ \<^bold>\<rightarrow> _" [81, 0, 80] 80)
 
 translations
-  "c\<^bold>!v \<^bold>\<rightarrow> P"   \<rightleftharpoons> "CONST OutputCSP c v P"
-  "c\<^bold>?x:A \<^bold>\<rightarrow> P" \<rightleftharpoons> "CONST InputCSP c A (\<lambda> x. P)"
-  "c\<^bold>?x \<^bold>\<rightarrow> P"   \<rightharpoonup> "CONST InputCSP c (CONST UNIV) (\<lambda> x. P)"
+  "c\<^bold>!v \<^bold>\<rightarrow> P"    \<rightleftharpoons> "CONST OutputCSP c v P"
+  "c\<^bold>?x:A \<^bold>\<rightarrow> P"  \<rightharpoonup> "CONST InputCSP c (\<lambda> x. A) (\<lambda> x. P)"
+  "c\<^bold>?x \<^bold>\<rightarrow> P"    \<rightharpoonup> "CONST InputCSP c (\<lambda>_. true) (\<lambda> x. P)"
+  "c\<^bold>?x:A \<^bold>\<rightarrow> P"  <= "CONST InputCSP c (\<lambda>v. A) (\<lambda> x. P)"  
+  "c\<^bold>?x \<^bold>\<rightarrow> P"    <= "CONST InputCSP c (\<lambda>v. true) (\<lambda> x. P)"
+  "c\<^bold>?$x:A \<^bold>\<rightarrow> P" \<rightleftharpoons> "CONST InputVarCSP c x A P"
+  "c\<^bold>?$x \<^bold>\<rightarrow> P"   \<rightharpoonup> "CONST InputVarCSP c x (CONST UNIV) P"
   
 subsection {* Closure properties *}
 
+lemma CSP3_Sup_closure [closure]:
+  "A \<subseteq> \<lbrakk>CSP3\<rbrakk>\<^sub>H \<Longrightarrow> (\<Sqinter> A) is CSP3"
+  apply (auto simp add: CSP3_def Healthy_def seq_Sup_distl)
+  apply (rule cong[of Sup])
+  apply (simp)
+  using image_iff apply force
+done
+
+lemma CSP4_Sup_closure [closure]:
+  "A \<subseteq> \<lbrakk>CSP4\<rbrakk>\<^sub>H \<Longrightarrow> (\<Sqinter> A) is CSP4"
+  apply (auto simp add: CSP4_def Healthy_def seq_Sup_distr)
+  apply (rule cong[of Sup])
+  apply (simp)
+  using image_iff apply force
+done
+  
+lemma NCSP_Sup_closure [closure]: "\<lbrakk> A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter> A) is NCSP"
+  apply (rule NCSP_intro, simp_all add: closure)
+  apply (metis (no_types, lifting) Ball_Collect CSP3_Sup_closure NCSP_implies_CSP3)
+  apply (metis (no_types, lifting) Ball_Collect CSP4_Sup_closure NCSP_implies_CSP4)
+done
+
+lemma NCSP_SUP_closure [closure]: "\<lbrakk> \<And> i. P(i) is NCSP; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter> i\<in>A. P(i)) is NCSP"
+  by (metis (mono_tags, lifting) Ball_Collect NCSP_Sup_closure image_iff image_is_empty)
+  
 lemma AssignsCSP_CSP [closure]: "\<langle>\<sigma>\<rangle>\<^sub>C is CSP"
   by (simp add: AssignsCSP_def RHS_tri_design_is_SRD unrest)
 
@@ -785,7 +816,7 @@ proof -
     by (rel_auto, (metis (full_types))+)
   thus ?thesis by (simp add: Guard_def)
 qed
-
+  
 lemma CSP_Guard [closure]: "b &\<^sub>u P is CSP"
   by (simp add: Guard_def, rule RHS_design_is_SRD, simp_all add: unrest)
 
@@ -1381,6 +1412,15 @@ proof -
   finally show ?thesis .
 qed
 
+lemma InputCSP_CSP [closure]: "x\<^bold>?v:A \<^bold>\<rightarrow> P(v) is CSP"
+  by (simp add: CSP_ExtChoice InputCSP_def)
+    
+lemma InputCSP_NCSP [closure]: "\<lbrakk> \<And> v. P(v) is NCSP \<rbrakk> \<Longrightarrow> x\<^bold>?v:A(v) \<^bold>\<rightarrow> P(v) is NCSP"
+  apply (simp add: InputCSP_def)
+  apply (rule NCSP_ExtChoice)
+  apply (simp add: NCSP_Guard NCSP_PrefixCSP image_Collect_subsetI top_set_def)
+done
+  
 lemma PrefixCSP_RHS_tri_lemma1:
   "R1 (R2s ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>II\<rceil>\<^sub>R)) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>II\<rceil>\<^sub>R)"
   apply (rel_auto)
@@ -1450,6 +1490,26 @@ proof -
     by (simp add: ex_unrest assms PrefixCSP_RHS_tri_lemma2 PrefixCSP_RHS_tri_lemma3 unrest usubst)
   finally show ?thesis .
 qed
+  
+lemma preR_InputCSP [rdes]: 
+  assumes "\<And> v. P(v) is NCSP"
+  shows "pre\<^sub>R(a\<^bold>?v:A(v) \<^bold>\<rightarrow> P(v)) = (\<Squnion> v \<bullet> \<lceil>A(v)\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R (P v)\<lbrakk>$tr ^\<^sub>u \<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>/$tr\<rbrakk>)"
+  by (simp add: InputCSP_def rdes closure assms usubst unrest, rel_auto)
+
+lemma periR_InputCSP [rdes]: 
+  assumes "\<And> v. P(v) is NCSP"
+  shows "peri\<^sub>R(a\<^bold>?v:A \<^bold>\<rightarrow> P(v)) = 
+          (pre\<^sub>R(a\<^bold>?v:A \<^bold>\<rightarrow> P(v)) \<Rightarrow>
+            (\<Squnion> v \<bullet> \<lceil>A\<rceil>\<^sub>S\<^sub>< \<Rightarrow> ((a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u \<notin>\<^sub>u $ref\<acute> \<or> peri\<^sub>R (P(v))\<lbrakk>$tr^\<^sub>u\<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>/$tr\<rbrakk>)) 
+              \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright>
+            (\<Sqinter> v \<bullet> \<lceil>A\<rceil>\<^sub>S\<^sub>< \<and> (peri\<^sub>R(P(v))\<lbrakk>$tr^\<^sub>u\<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>/$tr\<rbrakk>)))"
+  using assms by (simp add: InputCSP_def rdes closure assms usubst unrest, rel_blast)
+
+lemma postR_InputCSP [rdes]: 
+  assumes "\<And> v. P(v) is NCSP"
+  shows "post\<^sub>R(a\<^bold>?v:A \<^bold>\<rightarrow> P(v)) = 
+          (pre\<^sub>R(a\<^bold>?v:A \<^bold>\<rightarrow> P(v)) \<Rightarrow> (\<Sqinter> v \<bullet> \<lceil>A\<rceil>\<^sub>S\<^sub>< \<and> (post\<^sub>R(P(v))\<lbrakk>$tr^\<^sub>u\<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>/$tr\<rbrakk>)))"
+  using assms by (simp add: InputCSP_def rdes closure assms usubst unrest, rel_blast)  
   
 lemma wpR_extend_tr_NCSP [wp]:
   assumes "P is NCSP"
@@ -1602,7 +1662,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma Productive_DoCSP:
+lemma Productive_DoCSP [closure]:
   "(do\<^sub>C a :: ('\<sigma>, '\<psi>) action) is Productive"
 proof -
   have "(($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) \<and> $tr\<acute> >\<^sub>u $tr :: ('\<sigma>, '\<psi>) action)
@@ -1613,8 +1673,8 @@ proof -
   thus ?thesis
     by (simp add: Healthy_def)
 qed
-
-lemma Productive_Guard:
+  
+lemma Productive_Guard [closure]:
   assumes "P is CSP" "P is Productive" "$wait\<acute> \<sharp> pre\<^sub>R(P)"
   shows "b &\<^sub>u P is Productive"
 proof -
@@ -1734,7 +1794,14 @@ lemma Productive_extChoice [closure]:
   assumes "P is NCSP" "Q is NCSP" "P is Productive" "Q is Productive"
   shows "P \<box> Q is Productive"
   by (simp add: extChoice_def Productive_ExtChoice assms)
-   
+
+lemma Productive_PrefixCSP [closure]: "P is NCSP \<Longrightarrow> a \<^bold>\<rightarrow> P is Productive"
+  by (simp add: Healthy_if NCSP_DoCSP NCSP_implies_NSRD NSRD_is_SRD PrefixCSP_def Productive_DoCSP Productive_seq_1)
+  
+lemma Productive_InputCSP [closure]: 
+  "\<lbrakk> \<And> v. P(v) is NCSP \<rbrakk> \<Longrightarrow> x\<^bold>?v:A(v) \<^bold>\<rightarrow> P(v) is Productive"
+  by (auto simp add: InputCSP_def unrest closure intro: Productive_ExtChoice)
+    
 lemma preR_Productive [rdes]:
   assumes "P is CSP"
   shows "pre\<^sub>R(Productive(P)) = pre\<^sub>R(P)"
@@ -2125,37 +2192,55 @@ proof -
     by (simp add: extChoice_def)
 qed
   
+lemma Continuous_mu_CSP_form_1 [closure]: "Continuous (\<lambda>X. P ;; CSP X)"
+  using SRD_Continuous 
+  by (clarsimp simp add: Continuous_def seq_SUP_distl[THEN sym], rename_tac A, drule_tac x="A" in spec, simp)
+
+lemma mu_CSP_form_1_type [closure]: 
+  assumes "P is CSP"
+  shows "(\<lambda>X. P ;; CSP X) \<in> \<lbrakk>id\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>CSP\<rbrakk>\<^sub>H"
+  by (blast intro: funcsetI closure assms)
+  
 text {* Example fixed-point calculation *}
   
-lemma mu_example1: "(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = (\<Sqinter>i. do\<^sub>C(a) \<^bold>^ (i+1)) ;; Miracle"
+lemma mu_csp_form_1 [rdes]: 
+  assumes "P is NCSP" "P is Productive"
+  shows "(\<mu> X \<bullet> P ;; CSP(X)) = (\<Sqinter>i. P \<^bold>^ (i+1)) ;; Miracle"
 proof -
-  have "(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = (\<nu> X \<bullet> a \<^bold>\<rightarrow> X)"
-    by (simp add: guarded_fp_uniq Continuous_Monotonic PrefixCSP_Continuous PrefixCSP_type PrefixCSP_Guarded)
-  also have "... = (\<Sqinter>i. (PrefixCSP a ^^ i) false)"
-    by (simp add: sup_continuous_lfp PrefixCSP_Continuous sup_continuous_Continuous false_upred_def) 
-  also have "... = (PrefixCSP a ^^ 0) false \<sqinter> (\<Sqinter>i. (PrefixCSP a ^^ (i+1)) false)"      
+  have 1:"Continuous (\<lambda>X. P ;; CSP X)"
+    using SRD_Continuous 
+    by (clarsimp simp add: Continuous_def seq_SUP_distl[THEN sym], drule_tac x="A" in spec, simp)
+  have 2: "(\<lambda>X. P ;; CSP X) \<in> \<lbrakk>id\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>CSP\<rbrakk>\<^sub>H"
+    by (blast intro: funcsetI closure assms)
+  with 1 2 have "(\<mu> X \<bullet> P ;; CSP(X)) = (\<nu> X \<bullet> P ;; CSP(X))"
+    by (simp add: guarded_fp_uniq Guarded_if_Productive[OF assms] Continuous_Monotonic funcsetI closure)
+  also have "... = (\<Sqinter>i. ((\<lambda>X. P ;; CSP X) ^^ i) false)"
+    by (simp add: sup_continuous_lfp 1 sup_continuous_Continuous false_upred_def) 
+  also have "... = ((\<lambda>X. P ;; CSP X) ^^ 0) false \<sqinter> (\<Sqinter>i. ((\<lambda>X. P ;; CSP X) ^^ (i+1)) false)"      
     by (subst Sup_power_expand, simp)
-  also have "... = (\<Sqinter>i. (PrefixCSP a ^^ (i+1)) false)"
+  also have "... = (\<Sqinter>i. ((\<lambda>X. P ;; CSP X) ^^ (i+1)) false)"
     by (simp)
-  also have "... = (\<Sqinter>i. do\<^sub>C(a) \<^bold>^ (i+1) ;; Miracle)"
+  also have "... = (\<Sqinter>i. P \<^bold>^ (i+1) ;; Miracle)"
   proof (rule SUP_cong,simp_all)
     fix i
-    show "a \<^bold>\<rightarrow> (PrefixCSP a ^^ i) false = (do\<^sub>C a ;; do\<^sub>C a \<^bold>^ i) ;; Miracle "
+    show "P ;; CSP (((\<lambda>X. P ;; CSP X) ^^ i) false) = (P ;; P \<^bold>^ i) ;; Miracle"
     proof (induct i)
       case 0
       then show ?case
-        by (simp add: PrefixCSP_def, metis srdes_hcond_def srdes_theory_continuous.healthy_top)
+        by (simp, metis srdes_hcond_def srdes_theory_continuous.healthy_top)
     next
       case (Suc i)          
       then show ?case
-        by (simp add: PrefixCSP_def)
-           (metis CSP_PrefixCSP Healthy_def PrefixCSP_def upred_semiring.mult_assoc)
+        by (simp add: Healthy_if NCSP_implies_CSP SRD_power_Suc SRD_seqr_closure assms(1) seqr_assoc srdes_theory_continuous.weak.top_closed)
     qed
   qed
-  also have "... = (\<Sqinter>i. do\<^sub>C(a) \<^bold>^ (i+1)) ;; Miracle"
+  also have "... = (\<Sqinter>i. P \<^bold>^ (i+1)) ;; Miracle"
     by (simp add: seq_Sup_distr)    
   finally show ?thesis .
 qed
+  
+lemma mu_example1: "(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = (\<Sqinter>i. do\<^sub>C(a) \<^bold>^ (i+1)) ;; Miracle"
+  by (simp add: PrefixCSP_def mu_csp_form_1 closure)
 
 lemma preR_mu_example1: "pre\<^sub>R(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = true"
   by (simp add: mu_example1 rdes closure unrest wp)
