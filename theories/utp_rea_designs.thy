@@ -2787,7 +2787,7 @@ qed
 lemma wpR_Inf_pre [wp]: "P wp\<^sub>R (\<Squnion>i\<in>{0..n}. Q(i)) = (\<Squnion>i\<in>{0..n}. P wp\<^sub>R Q(i))"
   by (pred_auto)
   
-lemma preR_power [rdes]:
+lemma preR_power:
   assumes "P is NSRD"
   shows "pre\<^sub>R(P ;; P\<^bold>^n) = (\<Squnion> i\<in>{0..n}. (post\<^sub>R(P) \<^bold>^ i) wp\<^sub>R (pre\<^sub>R(P)))"
 proof (induct n)
@@ -2826,7 +2826,12 @@ next
     by (simp add: atLeast0_atMost_Suc_eq_insert_0)
   finally show ?case by simp
 qed
-  
+
+lemma preR_power' [rdes]:
+  assumes "P is NSRD"
+  shows "pre\<^sub>R(P ;; P\<^bold>^n) = (\<Squnion> i\<in>{0..n} \<bullet> (post\<^sub>R(P) \<^bold>^ i) wp\<^sub>R (pre\<^sub>R(P)))"
+  by (simp add: preR_power assms UINF_as_Inf[THEN sym])
+    
 lemma wpR_impl_lemma: 
   "((P wp\<^sub>R Q) \<Rightarrow> (P ;; R1(Q \<Rightarrow> R))) = ((P wp\<^sub>R Q) \<Rightarrow> (P ;; R1(R)))"
   by (rel_blast)
@@ -2834,7 +2839,7 @@ lemma wpR_impl_lemma:
 lemma R1_Sup [closure]: "\<lbrakk> \<And> P. P \<in> A \<Longrightarrow> P is R1; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter> A is R1"
   using R1_Continuous by (auto simp add: Continuous_def Healthy_def)
 
-lemma periR_power [rdes]:
+lemma periR_power:
   assumes "P is NSRD"
   shows "peri\<^sub>R(P ;; P\<^bold>^n) = (pre\<^sub>R(P\<^bold>^(Suc n)) \<Rightarrow> (\<Sqinter> i\<in>{0..n}. post\<^sub>R(P) \<^bold>^ i) ;; peri\<^sub>R(P))"
 proof (induct n)
@@ -2894,6 +2899,14 @@ next
   finally show ?case by (simp)
 qed
 
+translations
+  "P \<^bold>^ i" <= "(CONST power.power II op ;; P) i"
+  
+lemma periR_power' [rdes]:
+  assumes "P is NSRD"
+  shows "peri\<^sub>R(P ;; P\<^bold>^n) = (pre\<^sub>R(P\<^bold>^(Suc n)) \<Rightarrow> (\<Sqinter> i\<in>{0..n} \<bullet> post\<^sub>R(P) \<^bold>^ i) ;; peri\<^sub>R(P))"
+  by (simp add: periR_power assms USUP_as_Sup[THEN sym])
+  
 lemma postR_power [rdes]:
   assumes "P is NSRD"
   shows "post\<^sub>R(P ;; P\<^bold>^n) = (pre\<^sub>R(P\<^bold>^(Suc n)) \<Rightarrow> post\<^sub>R(P) \<^bold>^ Suc n)"
@@ -2922,7 +2935,7 @@ next
     by (simp add: rdes closure assms)
   finally show ?case by (simp)
 qed
-
+  
 subsection {* Reactive design parallel-by-merge *}
 
 text {* R3h implicitly depends on RD1, and therefore it requires that both sides be RD1. We also
