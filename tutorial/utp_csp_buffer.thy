@@ -22,15 +22,28 @@ declare image_eqI [closure del]
 declare Healthy_set_image_member [closure del]
 declare image_subsetI [closure del]  
 declare NCSP_Healthy_subset_member [closure del]
+
+lemma preR_DoBuff: "pre\<^sub>R(DoBuff) = true"
+  by (simp add: rdes closure wp unrest usubst alpha)
+    
+lemma periR_DoBuff: 
+  "peri\<^sub>R(DoBuff) = (((\<Squnion> v \<bullet> (inp\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u \<notin>\<^sub>u $ref\<acute>) \<and> $tr\<acute> =\<^sub>u $tr) \<and>
+                     ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>(outp\<cdot>last\<^sub>u(&buff))\<^sub>u\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>) \<triangleleft> #\<^sub>u($st:buff) >\<^sub>u 0 \<triangleright> ($tr\<acute> =\<^sub>u $tr))"
+  by (simp add: rdes closure wp unrest usubst alpha, rel_auto)
+
+lemma postR_DoBuff: 
+  "post\<^sub>R(DoBuff) = ((\<Sqinter> v \<bullet> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(inp\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle> \<and> \<lceil>buff := &buff ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>\<rceil>\<^sub>S) \<or>
+                    #\<^sub>u($st:buff) >\<^sub>u 0 \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>(outp\<cdot>last\<^sub>u(&buff))\<^sub>u\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>buff := tail\<^sub>u(&buff)\<rceil>\<^sub>S)"
+  by (simp add: rdes closure wp unrest usubst alpha)
   
 lemma preR_Buffer: "pre\<^sub>R(Buffer) = true"
-  by (simp add: Buffer_def rdes closure wp Continuous_Monotonic unrest usubst alpha)
+  by (simp add: Buffer_def rdes closure wp unrest usubst alpha)
    
 lemma postR_Buffer: "post\<^sub>R(Buffer) = false"
-  by (simp add: Buffer_def rdes closure wp Continuous_Monotonic unrest usubst alpha)
-
+  by (simp add: Buffer_def rdes closure wp unrest usubst alpha)
+    
 lemma periR_Buffer: "peri\<^sub>R(Buffer) = undefined"
-    apply (simp add: Buffer_def rdes closure wp Continuous_Monotonic unrest usubst alpha)
+    apply (simp add: Buffer_def rdes closure wp unrest usubst alpha seq_UINF_distr)
 oops
     
     

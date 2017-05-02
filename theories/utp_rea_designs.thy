@@ -276,7 +276,7 @@ lemma RH_Continuous: "Continuous \<^bold>R"
 lemma RHS_idem: "\<^bold>R\<^sub>s(\<^bold>R\<^sub>s(P)) = \<^bold>R\<^sub>s(P)"
   by (simp add: R1_R2c_is_R2 R1_R3h_commute R2_idem R2c_R3h_commute R3h_idem RHS_def)
 
-lemma RHS_Idempotent: "Idempotent \<^bold>R\<^sub>s"
+lemma RHS_Idempotent [closure]: "Idempotent \<^bold>R\<^sub>s"
   by (simp add: Idempotent_def RHS_idem)
 
 lemma RHS_Monotonic: "Monotonic \<^bold>R\<^sub>s"
@@ -285,7 +285,7 @@ lemma RHS_Monotonic: "Monotonic \<^bold>R\<^sub>s"
 lemma RHS_mono: "P \<sqsubseteq> Q \<Longrightarrow> \<^bold>R\<^sub>s(P) \<sqsubseteq> \<^bold>R\<^sub>s(Q)"
   using mono_def RHS_Monotonic by blast
 
-lemma RHS_Continuous: "Continuous \<^bold>R\<^sub>s"
+lemma RHS_Continuous [closure]: "Continuous \<^bold>R\<^sub>s"
   by (simp add: Continuous_comp R1_Continuous R2c_Continuous R3h_Continuous RHS_comp)
 
 lemma RHS_inf: "\<^bold>R\<^sub>s(P \<sqinter> Q) = \<^bold>R\<^sub>s(P) \<sqinter> \<^bold>R\<^sub>s(Q)"
@@ -334,7 +334,7 @@ lemma SRD_Idempotent [closure]: "Idempotent SRD"
 lemma SRD_Monotonic: "Monotonic SRD"
   by (simp add: Monotonic_comp RD1_Monotonic RD2_Monotonic RHS_Monotonic SRD_comp)
   
-lemma SRD_Continuous: "Continuous SRD"
+lemma SRD_Continuous [closure]: "Continuous SRD"
   by (simp add: Continuous_comp RD1_Continuous RD2_Continuous RHS_Continuous SRD_comp)
 
 lemma SRD_healths:
@@ -2004,6 +2004,15 @@ lemma periR_INF [rdes]: "peri\<^sub>R(\<Sqinter> A) = (\<Or> P\<in>A \<bullet> p
 lemma postR_INF [rdes]: "post\<^sub>R(\<Sqinter> A) = (\<Or> P\<in>A \<bullet> post\<^sub>R(P))"
   by (rel_simp, simp add: Setcompr_eq_image)
     
+lemma preR_UINF [rdes]: "pre\<^sub>R(\<Sqinter> i \<bullet> P(i)) = (\<Squnion> i \<bullet> pre\<^sub>R(P(i)))"
+  by (rel_auto)
+
+lemma periR_UINF [rdes]: "peri\<^sub>R(\<Sqinter> i \<bullet> P(i)) = (\<Sqinter> i \<bullet> peri\<^sub>R(P(i)))"
+  by (rel_auto)
+
+lemma postR_UINF [rdes]: "post\<^sub>R(\<Sqinter> i \<bullet> P(i)) = (\<Sqinter> i \<bullet> post\<^sub>R(P(i)))"
+  by (rel_auto)
+    
 lemma preR_inf [rdes]: "pre\<^sub>R(P \<sqinter> Q) = (pre\<^sub>R(P) \<and> pre\<^sub>R(Q))"
   by (rel_simp)
     
@@ -2257,10 +2266,10 @@ lemma RD1_RD3_commute: "RD1(RD3(P)) = RD3(RD1(P))"
 lemma NSRD_is_SRD [closure]: "P is NSRD \<Longrightarrow> P is SRD"
   by (simp add: Healthy_def NSRD_def SRD_def, metis Healthy_def RD1_RD3_commute RD2_RHS_commute RD3_def RD3_right_subsumes_RD2 SRD_def SRD_idem SRD_seqr_closure SRD_srdes_skip)
 
-lemma NSRD_Idempotent: "Idempotent NSRD"
+lemma NSRD_Idempotent [closure]: "Idempotent NSRD"
   by (clarsimp simp add: Idempotent_def NSRD_def, metis (no_types, hide_lams) Healthy_def RD1_RD3_commute RD3_def RD3_idem RD3_left_subsumes_RD2 SRD_def SRD_idem SRD_seqr_closure SRD_srdes_skip)
 
-lemma NSRD_Continuous: "Continuous NSRD"
+lemma NSRD_Continuous [closure]: "Continuous NSRD"
   by (simp add: Continuous_comp NSRD_def RD1_Continuous RD3_Continuous RHS_Continuous)
 
 lemma NSRD_form:
@@ -2898,9 +2907,6 @@ next
     by (simp add: rdes closure assms)
   finally show ?case by (simp)
 qed
-
-translations
-  "P \<^bold>^ i" <= "(CONST power.power II op ;; P) i"
   
 lemma periR_power' [rdes]:
   assumes "P is NSRD"

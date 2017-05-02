@@ -946,7 +946,8 @@ abbreviation upower :: "'a hrel \<Rightarrow> nat \<Rightarrow> 'a hrel" (infixr
 "upower P n \<equiv> upred_semiring.power P n"
     
 translations
-  "P \<^bold>^ n" <= "CONST power.power II op ;; P n"
+  "P \<^bold>^ i" <= "CONST power.power II op ;; P i"
+  "P \<^bold>^ i" <= "(CONST power.power II op ;; P) i"
   
 lemma Sup_power_expand:
   fixes P :: "nat \<Rightarrow> 'a::complete_lattice"

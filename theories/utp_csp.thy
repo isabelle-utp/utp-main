@@ -683,8 +683,10 @@ translations
   "c\<^bold>?x \<^bold>\<rightarrow> P"    \<rightharpoonup> "CONST InputCSP c (\<lambda>_. true) (\<lambda> x. P)"
   "c\<^bold>?x:A \<^bold>\<rightarrow> P"  <= "CONST InputCSP c (\<lambda>v. A) (\<lambda> x. P)"  
   "c\<^bold>?x \<^bold>\<rightarrow> P"    <= "CONST InputCSP c (\<lambda>v. true) (\<lambda> x. P)"
+  "c\<^bold>?x \<^bold>\<rightarrow> P"    <= "c\<^bold>?x:true \<^bold>\<rightarrow> P"
   "c\<^bold>?$x:A \<^bold>\<rightarrow> P" \<rightleftharpoons> "CONST InputVarCSP c x A P"
   "c\<^bold>?$x \<^bold>\<rightarrow> P"   \<rightharpoonup> "CONST InputVarCSP c x (CONST UNIV) P"
+  "c\<^bold>?$x \<^bold>\<rightarrow> P"   <= "c\<^bold>?$x:true \<^bold>\<rightarrow> P"  
   
 subsection {* Closure properties *}
 
@@ -2237,62 +2239,24 @@ proof -
   also have "... = (\<Sqinter>i. P \<^bold>^ (i+1)) ;; Miracle"
     by (simp add: seq_Sup_distr)    
   finally show ?thesis 
-    by (simp add: USUP_as_Sup[THEN sym], rel_auto)
+    by (simp add: USUP_as_Sup[THEN sym])
 qed
   
 lemma mu_example1: "(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = (\<Sqinter>i \<bullet> do\<^sub>C(a) \<^bold>^ (i+1)) ;; Miracle"
   by (simp add: PrefixCSP_def mu_csp_form_1 closure)
-
-lemma UINF_mem_UNIV: "(\<Sqinter> x\<in>UNIV \<bullet> P(x)) = (\<Sqinter> x \<bullet> P(x))"
-  by (pred_auto)
     
-lemma Healthy_range: "Idempotent H \<Longrightarrow> range H = \<lbrakk>H\<rbrakk>\<^sub>H"
-  by (auto simp add: image_def Healthy_if Healthy_Idempotent, metis Healthy_if)
-    
-lemma UINF_false [simp]: "(\<Sqinter> i | P(i) \<bullet> false) = false"
-  by (rel_auto)
-    
-lemma UINF_SRD_closed [closure]:
-  "\<lbrakk> \<And> i. P(i) is SRD \<rbrakk> \<Longrightarrow> (\<Sqinter> i \<bullet> P(i)) is SRD"
-  using SRD_Sup_closure[of "range P"]
-  by (simp add: UINF_mem_UNIV[THEN sym] USUP_as_Sup[THEN sym] Healthy_range closure) 
-
-lemma UINF_NSRD_closed [closure]:
-  "\<lbrakk> \<And> i. P(i) is NSRD \<rbrakk> \<Longrightarrow> (\<Sqinter> i \<bullet> P(i)) is NSRD"
-  using NSRD_Sup_closure[of "range P"]
-  by (simp add: UINF_mem_UNIV[THEN sym] USUP_as_Sup[THEN sym] Healthy_range closure) 
-
-lemma UINF_NSRD_mem_closed [closure]:
-  "\<lbrakk> \<And> i. i \<in> A \<Longrightarrow> P(i) is NSRD; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter> i\<in>A \<bullet> P(i)) is NSRD"
-  using NSRD_Sup_closure[of "P ` A"]
-  by (simp add: UINF_mem_UNIV[THEN sym] USUP_as_Sup[THEN sym] Healthy_range closure)
-    
-lemma preR_UINF [rdes]: "pre\<^sub>R(\<Sqinter> i \<bullet> P(i)) = (\<Squnion> i \<bullet> pre\<^sub>R(P(i)))"
-  by (rel_auto)
-
-lemma periR_UINF [rdes]: "peri\<^sub>R(\<Sqinter> i \<bullet> P(i)) = (\<Sqinter> i \<bullet> peri\<^sub>R(P(i)))"
-  by (rel_auto)
-
-lemma postR_UINF [rdes]: "post\<^sub>R(\<Sqinter> i \<bullet> P(i)) = (\<Sqinter> i \<bullet> post\<^sub>R(P(i)))"
-  by (rel_auto)
-    
-lemma UINF_all_nats [simp]:
-  fixes P :: "nat \<Rightarrow> '\<alpha> upred"
-  shows "(\<Sqinter> n \<bullet> \<Sqinter> i\<in>{0..n} \<bullet> P(i)) = (\<Sqinter> i\<in>{0..} \<bullet> P(i))"
-  by (rel_auto)
-    
-lemma preR_mu_example1: "pre\<^sub>R(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = true"
+lemma preR_mu_example1 [rdes]: "pre\<^sub>R(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = true"
   by (simp add: mu_example1 rdes closure unrest wp)
 
-lemma periR_mu_example1: 
+lemma periR_mu_example1 [rdes]: 
   "peri\<^sub>R(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = 
-   (\<Sqinter>x\<in>{0..} \<bullet> ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) \<^bold>^ x) ;; ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>)"
+   (\<Sqinter>x\<in>{0..} \<bullet> ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) \<^bold>^ x ;; ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>))"
   by (simp add: mu_example1 rdes closure unrest wp seq_UINF_distr)
 
-lemma postR_mu_example1: 
+lemma postR_mu_example1 [rdes]: 
   "post\<^sub>R(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = false"
   by (simp add: mu_example1 rdes closure unrest wp) 
-  
+    
 subsection {* Merge Predicate *}
 
 definition CSPMerge' :: "'\<psi> set \<Rightarrow> ((unit,'\<psi>) st_csp) merge" ("N\<^sub>C") where

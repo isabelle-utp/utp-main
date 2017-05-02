@@ -92,7 +92,7 @@ lemma Healthy_SUPREMUM:
 lemma Healthy_INFIMUM:
   "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> INFIMUM A H = \<Squnion> A"
   by (drule Healthy_carrier_image, presburger)
-
+    
 declare image_subsetI [closure]
     
 lemma Healthy_nu [closure]: 
@@ -144,6 +144,9 @@ lemma Healthy_Idempotent [closure]:
   "Idempotent H \<Longrightarrow> H(P) is H"
   by (simp add: Healthy_def Idempotent_def)
 
+lemma Healthy_range: "Idempotent H \<Longrightarrow> range H = \<lbrakk>H\<rbrakk>\<^sub>H"
+  by (auto simp add: image_def Healthy_if Healthy_Idempotent, metis Healthy_if)
+    
 lemma Idempotent_id [simp]: "Idempotent id"
   by (simp add: Idempotent_def)
 
@@ -235,6 +238,22 @@ lemma Continuous_comp [intro]:
   "\<lbrakk> Continuous f; Continuous g \<rbrakk> \<Longrightarrow> Continuous (f \<circ> g)"
   by (simp add: Continuous_def)
 
+text {* Closure laws derived from continuity *}
+    
+lemma Sup_Continuous_closed [closure]:
+  "\<lbrakk> Continuous H; \<And> i. i \<in> A \<Longrightarrow> P(i) is H; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter> i\<in>A. P(i)) is H"
+  by (drule ContinuousD[of H "P ` A"], simp add: UINF_mem_UNIV[THEN sym] USUP_as_Sup[THEN sym])
+     (metis (no_types, lifting) Healthy_def' SUP_cong image_image)  
+  
+lemma UINF_mem_Continuous_closed [closure]: 
+  "\<lbrakk> Continuous H; \<And> i. i \<in> A \<Longrightarrow> P(i) is H; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter> i\<in>A \<bullet> P(i)) is H"
+  by (simp add: Sup_Continuous_closed USUP_as_Sup_collect)
+
+lemma UINF_Continuous_closed [closure]: 
+  "\<lbrakk> Continuous H; \<And> i. P(i) is H \<rbrakk> \<Longrightarrow> (\<Sqinter> i \<bullet> P(i)) is H"
+  using UINF_mem_Continuous_closed[of H UNIV P]
+  by (simp add: UINF_mem_UNIV)
+    
 text {* All continuous functions are also Scott-continuous *}
     
 lemma sup_continuous_Continuous [closure]: "Continuous F \<Longrightarrow> sup_continuous F"
