@@ -27,8 +27,8 @@ begin recall_syntax
 
 text {* 
   This theory implements several operators for the @{type lpf} type. 
-  Note: The terms @{term true\<^sub>L} @{term false\<^sub>L} and @{term "\<bottom>\<^sub>L"} are defined in the 
-  theory @{theory LPF}.
+  Note: The terms @{term true\<^sub>L} @{term false\<^sub>L}, @{term "\<bottom>\<^sub>L"} and @{term "the\<^sub>L"} 
+  are defined in the theory @{theory LPF}.
 *}
 
 subsection {* Unary Operators *}
@@ -80,6 +80,12 @@ definition power_lpf :: "'a set lpf \<Rightarrow> 'a set set lpf" where
 
 subsubsection {* Sequence Unary Operators *}
 
+definition seq_sequence_lpf :: "'a lpf list \<Rightarrow> 'a list lpf" where
+[lpf_defs]: "seq_sequence_lpf xs = (
+  if List.find (\<lambda>x. x = \<bottom>\<^sub>L) xs \<noteq> None 
+  then \<bottom>\<^sub>L 
+  else lpf_Some [the\<^sub>L y . y <- xs])"
+
 definition hd_lpf :: "'a list lpf \<Rightarrow> 'a lpf" where
 [lpf_defs]: "hd_lpf = lift1_lpf {x . x \<noteq> []} hd" 
 
@@ -129,13 +135,14 @@ subsubsection {* Boolean Binary Operators  *}
 text {* This definitions are based on the LPF logic described in
 Moddelling systems - Practical Tools and techniques in software development
 page 71-73 (Kleene logic)*}
-  
+
 definition conj_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
-[lpf_defs]: "conj_lpf p q = (if(p = true\<^sub>L \<and> q = true\<^sub>L)
-                                then true\<^sub>L
-                              else if (p = false\<^sub>L \<or> q = false\<^sub>L)
-                                then false\<^sub>L
-                              else \<bottom>\<^sub>L)"
+[lpf_defs]: "conj_lpf p q = ( if (p = true\<^sub>L \<and> q = true\<^sub>L)
+                              then true\<^sub>L
+                              else 
+                                if (p = false\<^sub>L \<or> q = false\<^sub>L) 
+                                then false\<^sub>L 
+                                else \<bottom>\<^sub>L)"
 
 definition disj_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
 [lpf_defs]: "disj_lpf p q = (if(p = true\<^sub>L \<or> q = true\<^sub>L)
@@ -180,26 +187,42 @@ end
 instantiation lpf :: ("{zero,divide}") divide
 begin
   definition divide_option :: "'a lpf \<Rightarrow> 'a lpf \<Rightarrow> 'a lpf" where
-  [lpf_defs]: "divide_option = lift2_lpf {(x,y) . y \<noteq> 0} divide"
+  [lpf_defs]: "divide_option = lift2_lpf {(x,y) . y \<noteq> 0} (op div)"
   instance ..
 end
 
-definition div_lpf :: "int lpf \<Rightarrow> int lpf \<Rightarrow> int lpf" where 
-[lpf_defs]: "div_lpf = lift2_lpf {(x,y) . y\<noteq>0} (op div)"
+text {* \todo{Prove that this is equal to ISO} *}
+text {* The right value of a mod operation cannot be 0 according to the standard *}
+instantiation lpf :: ("{zero, divide, modulo}") modulo 
+begin
+  definition modulo_lpf :: "'a lpf \<Rightarrow> 'a lpf \<Rightarrow> 'a lpf" where
+  [lpf_defs]: "modulo_lpf =  lift2_lpf {(x,y) . y \<noteq> 0} (op mod)"
+  instance ..
+end
 
+(* Covered by typeclass *)
+(*definition div_lpf :: "int lpf \<Rightarrow> int lpf \<Rightarrow> int lpf" where 
+[lpf_defs]: "div_lpf = lift2_lpf {(x,y) . y\<noteq>0} (op div)"*)
+
+text {* \todo{Prove that this is equal to ISO} *}
 definition rem_lpf :: "int lpf \<Rightarrow> int lpf \<Rightarrow> int lpf" where
-[lpf_defs]: "rem_lpf = lift2_lpf {(x,y) . y\<noteq>0} (op mod)"
+[lpf_defs]: "rem_lpf = lift2_lpf {(x,y) . y\<noteq>0} 
+  (\<lambda>l r . 
+    if l > 0 
+    then l mod (abs(r)) 
+    else l mod -(abs(r)))"
 
-definition mod_lpf :: "int lpf \<Rightarrow> int lpf \<Rightarrow> int lpf" where
-[lpf_defs]: "mod_lpf = rem_lpf"
+(* By typeclass *)
+(*definition mod_lpf :: "int lpf \<Rightarrow> int lpf \<Rightarrow> int lpf" where
+[lpf_defs]: "mod_lpf = rem_lpf"*)
+
+-- {* \todo{Define power for int and nat1 exponent} *}
 
 definition power_nat_lpf :: "'a::power lpf \<Rightarrow> nat lpf \<Rightarrow> 'a lpf" where
 [lpf_defs]: "power_nat_lpf = lift2_lpf' (op ^) "
 
--- {* \todo{Define power for int and nat1 exponent} *}
-
 definition power_real_lpf :: "'a::ln lpf \<Rightarrow> 'a lpf \<Rightarrow> 'a lpf" where
-[lpf_defs]: "power_real_lpf = lift2_lpf' (op powr) "
+[lpf_defs]: "power_real_lpf = lift2_lpf' (op powr)"
 
 consts  power_num_lpf :: "'a \<Rightarrow> 'b \<Rightarrow> 'a"
 
@@ -283,6 +306,27 @@ definition set_comprehension_lpf :: "('a \<Rightarrow> 'b lpf) \<Rightarrow> 'a 
   then set_sequence_lpf {y | x y . y = f x \<and> x\<in>(lpf_the xs) \<and> (pred x = true\<^sub>L)}
   else \<bottom>\<^sub>L)"
 
+text {* It is a design decision that lpf types should not be nested to avoid types such as:
+  'a list lpf set lpf. This will instead be sequenced into 'a list set lpf. 
+  When an element is then extracted from the set, then it will be coerced into the lpf type.
+  An interesting case here is the current implementation vs the previous one:
+  The previous one had @{text "if \<exists>x . \<not>\<D>(f x) then \<bottom>\<^sub>L else ..."}. 
+  However, using this in context with x of type @{type lpf} would always give @{term "\<bottom>\<^sub>L"}.
+*}
+definition collect_lpf :: "('a lpf \<Rightarrow> bool lpf) \<Rightarrow> 'a set lpf" where
+[lpf_defs]:  "collect_lpf f = (
+    if (\<forall>x. \<D>(x) \<longrightarrow> \<D>(f x))
+    then set_sequence_lpf {t . (f t) = true\<^sub>L}
+    else \<bottom>\<^sub>L )"
+
+subsection {* Structure to single Boolean *}
+text {* Bounded Universal Quantification *}
+definition Ball_lpf :: "'a set lpf \<Rightarrow> ('a lpf \<Rightarrow> bool lpf) \<Rightarrow> bool lpf" where
+[lpf_defs]:  "Ball_lpf A P = (
+  if \<D>(A) \<and> (\<forall>x \<in>(the\<^sub>L A) . \<D>(P (lpf_Some x)))
+  then lpf_Some (\<forall>x\<in>(the\<^sub>L A) . (P (lpf_Some x)) = true\<^sub>L)
+  else \<bottom>\<^sub>L)" 
+
 subsection {* Syntax and Translations for the operators defined above *}
 
 syntax
@@ -294,11 +338,13 @@ syntax
 "_lpffloor" :: "real lpf \<Rightarrow> int lpf" ("\<lfloor>_\<rfloor>\<^sub>L") 
 "_lpflen" :: "'a list lpf \<Rightarrow> nat lpf" ("len\<^sub>L'(_')")
 (* Set Unary Operators *)
+"_lpfseq_set" :: "'a lpf set \<Rightarrow> 'a set lpf" ("{_}\<^sub>L")
 "_lpfcard" :: "'a set lpf \<Rightarrow> nat lpf" ("card\<^sub>L'(_')")
 "_lpfdunion" :: "'a set set lpf \<Rightarrow> 'a set lpf" ("\<Union>\<^sub>L")
 "_lpfdinter" :: "'a set set lpf \<Rightarrow> 'a set lpf" ("\<Inter>\<^sub>L")
 "_lpfpower" :: "'a set lpf \<Rightarrow> 'a set set lpf" ("Pow\<^sub>L'(_')")
 (* Sequence Unary Operators *)
+"_lpfseq_seq" :: "'a lpf list \<Rightarrow> 'a list lpf" ("[_]\<^sub>L")
 "_lpfhd" :: "'a list lpf \<Rightarrow> 'a lpf" ("hd\<^sub>L'(_')")
 "_lpftl" :: "'a list lpf \<Rightarrow> 'a list lpf" ("tl\<^sub>L'(_')")
 "_lpfelems" :: "'a list lpf \<Rightarrow> 'a set lpf" ("elem\<^sub>L'(_')")
@@ -321,7 +367,7 @@ syntax
 (* Numeric Binary Operators  *)
 "_lpfdiv" :: "int lpf \<Rightarrow> int lpf \<Rightarrow> int lpf" (infixl "div\<^sub>L" 70)
 "_lpfrem" :: "int lpf \<Rightarrow> int lpf \<Rightarrow> int lpf" (infixl "rem\<^sub>L" 70) 
-"_lpfmod" :: "int lpf \<Rightarrow> int lpf \<Rightarrow> int lpf" (infixl "mod\<^sub>L" 70)
+(*"_lpfmod" :: "int lpf \<Rightarrow> int lpf \<Rightarrow> int lpf" (infixl "mod\<^sub>L" 70)*)
 "_lpfpower_nat" :: "'a::power lpf \<Rightarrow> nat lpf \<Rightarrow> 'a lpf" (infixr "^\<^sub>L" 80)
 "_lpfpower_real" :: "'a::ln lpf \<Rightarrow> 'a lpf \<Rightarrow> 'a lpf" (infixr "powr\<^sub>L" 80)
 "_lpfslt" :: "'a::ord lpf \<Rightarrow> 'a lpf \<Rightarrow> bool lpf" (infix "<\<^sub>L" 50)
@@ -342,6 +388,10 @@ syntax
 "_lpfseq_mod" :: "'a list lpf \<Rightarrow> (nat, 'a) map lpf \<Rightarrow> 'a list lpf" ("++\<^sub>L")
 "_lpfseq_index" :: "'a list lpf \<Rightarrow> nat lpf \<Rightarrow> 'a lpf" ("!\<^sub>L")
 (* Comprehensions *)
+"_collect_lpf" :: "[pttrn, bool] => 'a set" ("(1{_./ _}\<^sub>L)")
+(* Structure to single Boolean *)
+(*"_ball_lpf" :: "'a set lpf \<Rightarrow> ('a lpf \<Rightarrow> bool lpf) \<Rightarrow> bool lpf" ("\<forall>\<^sub>L _ \<in>\<^sub>L _ .\<^sub>L _")*)
+"_lpfBall"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<forall>\<^sub>L_\<in>_./ _)" [0, 0, 10] 10)
 
 translations
 (* Unary Operators *)
@@ -352,11 +402,13 @@ translations
 "\<lfloor>x\<rfloor>\<^sub>L" == "CONST floor_lpf x"
 "len\<^sub>L(xs)" == "CONST len_lpf xs"
 (* Set Unary Operators *)
+"{xs}\<^sub>L" == "CONST set_sequence_lpf xs"
 "card\<^sub>L(f)" == "CONST card_lpf f"
 "\<Union>\<^sub>L A" == "CONST dunion_lpf A"
 "\<Inter>\<^sub>L A" == "CONST dinter_lpf A"
 "Pow\<^sub>L(A)" == "CONST power_lpf A"
 (* Sequence Unary Operators *)
+"[xs]\<^sub>L" == "CONST seq_sequence_lpf xs"
 "hd\<^sub>L(xs)" == "CONST hd_lpf xs"
 "reverse\<^sub>L(xs)" == "CONST reverse_lpf xs"
 "tl\<^sub>L(xs)" == "CONST tl_lpf xs"
@@ -377,9 +429,9 @@ translations
 "p \<Rightarrow>\<^sub>L q" == "CONST implies_lpf p q"
 "p \<Leftrightarrow>\<^sub>L q" == "CONST biimplication_lpf p q"
 (* Numeric Binary Operators  *)
-"x div\<^sub>L y" == "CONST div_lpf x y"
+(*"x div\<^sub>L y" == "CONST div_lpf x y"*) (*by typeclass*)
 "x rem\<^sub>L y" == "CONST rem_lpf x y"
-"x mod\<^sub>L y" == "CONST mod_lpf x y"
+(* "x div\<^sub>L y" == "CONST div_lpf x y"*) (*by typeclass*)
 "x ^\<^sub>L y" == "CONST power_nat_lpf x y"
 "x powr\<^sub>L y" == "CONST power_real_lpf x y"
 "x >\<^sub>L y" == "CONST slt_lpf x y"
@@ -400,5 +452,8 @@ translations
 "xs ++\<^sub>L ys" == "CONST seq_mod_lpf xs ys"
 "xs !\<^sub>L x" == "CONST seq_index_lpf xs x"
 (* Comprehensions *)
+"{x. P}\<^sub>L"      == "CONST collect_lpf (%x. P)"
+"\<forall>\<^sub>Lx\<in>A. P" == "CONST Ball_lpf A (\<lambda>x. P)"
+
   
 end

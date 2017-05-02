@@ -167,8 +167,6 @@ apply (simp add: set_comprehension_lpf_def)
 apply (lpf_auto)
 by (auto)
 
-subsection {* Boolean LPF *}
-
 lemma "(true\<^sub>L \<or>\<^sub>L true\<^sub>L) = true\<^sub>L"
 by (lpf_auto)
 

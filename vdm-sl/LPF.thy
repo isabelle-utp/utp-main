@@ -63,7 +63,7 @@ setup_lifting type_definition_lpf
 
 text {* Extract the value wrapped in @{type lpf}. *}
 
-lift_definition lpf_the :: "'a lpf \<Rightarrow> 'a" is "(\<lambda>x . (the \<circ> Rep_lpf) x)" .
+lift_definition lpf_the :: "'a lpf \<Rightarrow> 'a" ("the\<^sub>L") is "(\<lambda>x . (the \<circ> Rep_lpf) x)" .
 
 declare lpf_the.rep_eq [lpf_transfer]
 
