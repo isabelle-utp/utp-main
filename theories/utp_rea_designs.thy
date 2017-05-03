@@ -3266,11 +3266,36 @@ proof -
   thus ?thesis
     by (simp add: parallel_precondition parallel_commitment assms SRD_healths design_export_spec)
 qed   
-       
+  
+lemma parallel_pericondition_lemma1:
+  "($ok\<acute> \<and> P) ;; II\<^sub>R\<lbrakk>true,true/$ok\<acute>, $wait\<acute>\<rbrakk> = (\<exists> $st\<acute> \<bullet> P)\<lbrakk>true,true/$ok\<acute>,$wait\<acute>\<rbrakk>"
+  (is "?lhs = ?rhs")
+proof -
+  have "?lhs = ($ok\<acute> \<and> P) ;; (\<exists> $st \<bullet> II)\<lbrakk>true,true/$ok\<acute>, $wait\<acute>\<rbrakk>"
+    by (rel_blast)
+  also have "... = ?rhs"
+    by (rel_auto)
+  finally show ?thesis .
+qed
+
+lemma parallel_pericondition_lemma2:
+  assumes "M is R1m" "$0-ok;$1-ok;$ok\<^sub><;$ok\<acute>;$0-wait;$1-wait;$wait\<^sub><;$wait\<acute> \<sharp> M"
+  shows "(\<exists> $st\<acute> \<bullet> N\<^sub>0(M))\<lbrakk>true,true/$ok\<acute>, $wait\<acute>\<rbrakk> = (($0-wait \<or> $1-wait) \<and> (\<exists> $st\<acute> \<bullet> M)\<lbrakk>true,true/$ok\<acute>,$wait\<acute>\<rbrakk>)"
+  using assms 
+
+  
 lemma parallel_pericondition:
-  assumes "P is RD2"
+  fixes M :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp merge"
+  assumes "P is RD2" "M is R1m" "$0-ok;$1-ok;$ok\<^sub><;$ok\<acute>;$0-wait;$1-wait;$wait\<^sub><;$wait\<acute> \<sharp> M"
   shows "peri\<^sub>R(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) = undefined"
-  apply (simp add: peri_cmt_def parallel_commitment assms usubst unrest)
+proof -
+  have "peri\<^sub>R(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) = 
+        (pre\<^sub>R (P \<parallel>\<^bsub>M\<^sub>R M\<^esub> Q) \<Rightarrow> cmt\<^sub>R P \<parallel>\<^bsub>($ok\<acute> \<and> N\<^sub>0 M) ;; II\<^sub>R\<lbrakk>true,true/$ok\<acute>, $wait\<acute>\<rbrakk>\<^esub> cmt\<^sub>R Q)"
+    by (simp add: peri_cmt_def parallel_commitment assms usubst unrest)
+  also have "... = (pre\<^sub>R (P \<parallel>\<^bsub>M\<^sub>R M\<^esub> Q) \<Rightarrow> cmt\<^sub>R P \<parallel>\<^bsub>(\<exists> $st\<acute> \<bullet> N\<^sub>0 M)\<lbrakk>true,true/$ok\<acute>, $wait\<acute>\<rbrakk>\<^esub> cmt\<^sub>R Q)"
+    by (simp add: parallel_pericondition_lemma1)
+  also have "... = (pre\<^sub>R (P \<parallel>\<^bsub>M\<^sub>R M\<^esub> Q) \<Rightarrow> cmt\<^sub>R P \<parallel>\<^bsub>($0-wait \<or> $1-wait) \<and> (\<exists> $st\<acute> \<bullet> M)\<^esub> cmt\<^sub>R Q)"
+    apply (simp add: nmerge_rd0_def usubst unrest assms)
   oops
 
 lemma swap_merge_rd:
