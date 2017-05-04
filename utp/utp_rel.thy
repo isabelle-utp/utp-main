@@ -563,13 +563,33 @@ lemma seqr_left_one_point:
   shows "((P \<and> $x\<acute> =\<^sub>u \<guillemotleft>v\<guillemotright>) ;; Q) = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
   using assms
   by (rel_auto, metis vwb_lens_wb wb_lens.get_put)
-
+    
 lemma seqr_right_one_point:
   assumes "vwb_lens x"
   shows "(P ;; ($x =\<^sub>u \<guillemotleft>v\<guillemotright> \<and> Q)) = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
   using assms
   by (rel_auto, metis vwb_lens_wb wb_lens.get_put)
 
+lemma seqr_left_one_point_true:
+  assumes "vwb_lens x"
+  shows "((P \<and> $x\<acute>) ;; Q) = (P\<lbrakk>true/$x\<acute>\<rbrakk> ;; Q\<lbrakk>true/$x\<rbrakk>)"
+  by (metis assms seqr_left_one_point true_alt_def upred_eq_true)    
+    
+lemma seqr_left_one_point_false:
+  assumes "vwb_lens x"
+  shows "((P \<and> \<not>$x\<acute>) ;; Q) = (P\<lbrakk>false/$x\<acute>\<rbrakk> ;; Q\<lbrakk>false/$x\<rbrakk>)"
+  by (metis assms false_alt_def seqr_left_one_point upred_eq_false)    
+        
+lemma seqr_right_one_point_true:
+  assumes "vwb_lens x"
+  shows "(P ;; ($x \<and> Q)) = (P\<lbrakk>true/$x\<acute>\<rbrakk> ;; Q\<lbrakk>true/$x\<rbrakk>)"
+  by (metis assms seqr_right_one_point true_alt_def upred_eq_true)
+    
+lemma seqr_right_one_point_false:
+  assumes "vwb_lens x"
+  shows "(P ;; (\<not>$x \<and> Q)) = (P\<lbrakk>false/$x\<acute>\<rbrakk> ;; Q\<lbrakk>false/$x\<rbrakk>)"
+  by (metis assms false_alt_def seqr_right_one_point upred_eq_false)
+    
 lemma seqr_insert_ident_left:
   assumes "vwb_lens x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
   shows "(($x\<acute> =\<^sub>u $x \<and> P) ;; Q) = (P ;; Q)"

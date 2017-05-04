@@ -470,12 +470,11 @@ lemma subst_shAll [usubst]: "\<sigma> \<dagger> (\<^bold>\<forall> x \<bullet> P
   by (pred_auto)
 
 text {* TODO: Generalise the quantifier substitution laws to n-ary substitutions *}
-
-lemma subst_ex_same [usubst]:
-  assumes "mwb_lens x"
-  shows "(\<exists> x \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<exists> x \<bullet> P)"
-  by (simp add: assms id_subst subst_unrest unrest_ex_in)
-
+  
+lemma subst_ex_same [usubst]: 
+  "mwb_lens x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> (\<exists> x \<bullet> P) = \<sigma> \<dagger> (\<exists> x \<bullet> P)"
+  by (pred_auto)
+    
 lemma subst_ex_indep [usubst]:
   assumes "x \<bowtie> y" "y \<sharp> v"
   shows "(\<exists> y \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<exists> y \<bullet> P\<lbrakk>v/x\<rbrakk>)"
@@ -484,10 +483,13 @@ lemma subst_ex_indep [usubst]:
   using lens_indep_comm apply fastforce+
 done
 
-lemma subst_all_same [usubst]:
-  assumes "mwb_lens x"
-  shows "(\<forall> x \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<forall> x \<bullet> P)"
-  by (simp add: assms id_subst subst_unrest unrest_all_in)
+lemma subst_ex_unrest [usubst]: 
+  "x \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (\<exists> x \<bullet> P) = (\<exists> x \<bullet> \<sigma> \<dagger> P)"
+  by (pred_auto)
+  
+lemma subst_all_same [usubst]: 
+  "mwb_lens x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> (\<forall> x \<bullet> P) = \<sigma> \<dagger> (\<forall> x \<bullet> P)"
+  by (simp add: id_subst subst_unrest unrest_all_in)
 
 lemma subst_all_indep [usubst]:
   assumes "x \<bowtie> y" "y \<sharp> v"
@@ -951,6 +953,12 @@ lemma upred_eq_true [simp]: "(p =\<^sub>u true) = p"
 lemma upred_eq_false [simp]: "(p =\<^sub>u false) = (\<not> p)"
   by (pred_auto)
 
+lemma upred_true_eq [simp]: "(true =\<^sub>u p) = p"
+  by (pred_auto)
+
+lemma upred_false_eq [simp]: "(false =\<^sub>u p) = (\<not> p)"
+  by (pred_auto)
+    
 lemma conj_var_subst:
   assumes "vwb_lens x"
   shows "(P \<and> var x =\<^sub>u v) = (P\<lbrakk>v/x\<rbrakk> \<and> var x =\<^sub>u v)"

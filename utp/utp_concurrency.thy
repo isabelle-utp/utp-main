@@ -19,15 +19,11 @@ definition [upred_defs]: "pre_uvar x = x ;\<^sub>L fst\<^sub>L"
 
 lemma left_uvar_indep_right_uvar [simp]:
   "left_uvar x \<bowtie> right_uvar y"
-  apply (simp add: left_uvar_def right_uvar_def lens_comp_assoc[THEN sym])
-  apply (simp add: alpha_in_var alpha_out_var)
-done
+  by (simp add: left_uvar_def right_uvar_def lens_comp_assoc[THEN sym])
 
 lemma left_uvar_indep_pre_uvar [simp]:
   "left_uvar x \<bowtie> pre_uvar y"
-  apply (simp add: left_uvar_def pre_uvar_def)
-  using fst_snd_lens_indep lens_indep_sym apply blast
-done
+  by (simp add: left_uvar_def pre_uvar_def)
   
 lemma left_uvar_indep_left_uvar [simp]:
   "x \<bowtie> y \<Longrightarrow> left_uvar x \<bowtie> left_uvar y"
@@ -39,9 +35,7 @@ lemma right_uvar_indep_left_uvar [simp]:
     
 lemma right_uvar_indep_pre_uvar [simp]:
   "right_uvar x \<bowtie> pre_uvar y"
-  apply (simp add: right_uvar_def pre_uvar_def)
-  using fst_snd_lens_indep lens_indep_sym apply blast
-done
+  by (simp add: right_uvar_def pre_uvar_def)
     
 lemma right_uvar_indep_right_uvar [simp]:
   "x \<bowtie> y \<Longrightarrow> right_uvar x \<bowtie> right_uvar y"
@@ -65,6 +59,9 @@ lemma left_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (left_uvar x)"
 lemma right_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (right_uvar x)"
   by (simp add: right_uvar_def)
 
+lemma pre_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (pre_uvar x)"
+  by (simp add: pre_uvar_def)
+    
 lemma left_uvar_mwb [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (left_uvar x)"
   by (simp add: left_uvar_def )
 
@@ -142,6 +139,24 @@ lemma U0\<alpha>_vwb_lens [simp]: "vwb_lens U0\<alpha>"
 lemma U1\<alpha>_vwb_lens [simp]: "vwb_lens U1\<alpha>"
   by (simp add: U1\<alpha>_def id_vwb_lens prod_vwb_lens)
 
+lemma U0\<alpha>_indep_right_uvar [simp]: "vwb_lens x \<Longrightarrow> U0\<alpha> \<bowtie> out_var (right_uvar x)"
+  by (force intro: plus_pres_lens_indep fst_snd_lens_indep lens_indep_left_comp  
+            simp add: U0\<alpha>_def right_uvar_def out_var_def prod_as_plus lens_comp_assoc[THEN sym])  
+    
+lemma U1\<alpha>_indep_left_uvar [simp]: "vwb_lens x \<Longrightarrow> U1\<alpha> \<bowtie> out_var (left_uvar x)"
+  by (force intro: plus_pres_lens_indep fst_snd_lens_indep lens_indep_left_comp  
+            simp add: U1\<alpha>_def left_uvar_def out_var_def prod_as_plus lens_comp_assoc[THEN sym])
+
+lemma U0_alpha_lift_bool_subst [usubst]:
+  "\<sigma>($0-x\<acute> \<mapsto>\<^sub>s true) \<dagger> \<lceil>P\<rceil>\<^sub>0 = \<sigma> \<dagger> \<lceil>P\<lbrakk>true/$x\<acute>\<rbrakk>\<rceil>\<^sub>0"
+  "\<sigma>($0-x\<acute> \<mapsto>\<^sub>s false) \<dagger> \<lceil>P\<rceil>\<^sub>0 = \<sigma> \<dagger> \<lceil>P\<lbrakk>false/$x\<acute>\<rbrakk>\<rceil>\<^sub>0"
+  by (pred_auto+)
+
+lemma U1_alpha_lift_bool_subst [usubst]:
+  "\<sigma>($1-x\<acute> \<mapsto>\<^sub>s true) \<dagger> \<lceil>P\<rceil>\<^sub>1 = \<sigma> \<dagger> \<lceil>P\<lbrakk>true/$x\<acute>\<rbrakk>\<rceil>\<^sub>1"
+  "\<sigma>($1-x\<acute> \<mapsto>\<^sub>s false) \<dagger> \<lceil>P\<rceil>\<^sub>1 = \<sigma> \<dagger> \<lceil>P\<lbrakk>false/$x\<acute>\<rbrakk>\<rceil>\<^sub>1"
+  by (pred_auto+)
+          
 lemma U0_alpha_out_var [alpha]: "\<lceil>$x\<acute>\<rceil>\<^sub>0 = $0-x\<acute>"
   by (rel_auto)
 
@@ -182,12 +197,15 @@ text {* The following implementation of parallel by merge is less general than t
 definition par_by_merge  ("_ \<parallel>\<^bsub>_\<^esub> _" [85,0,86] 85)
 where [upred_defs]: "P \<parallel>\<^bsub>M\<^esub> Q = (P \<parallel>\<^sub>s Q ;; M)"
 
+lemma par_by_merge_alt_def: "P \<parallel>\<^bsub>M\<^esub> Q = (\<lceil>P\<rceil>\<^sub>0 \<and> \<lceil>Q\<rceil>\<^sub>1 \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M"
+  by (simp add: par_by_merge_def U0_as_alpha U1_as_alpha)
+  
 lemma shEx_pbm_left: "((\<^bold>\<exists> x \<bullet> P x) \<parallel>\<^bsub>M\<^esub> Q) = (\<^bold>\<exists> x \<bullet> (P x \<parallel>\<^bsub>M\<^esub> Q))"
   by (rel_auto)
 
 lemma shEx_pbm_right: "(P \<parallel>\<^bsub>M\<^esub> (\<^bold>\<exists> x \<bullet> Q x)) = (\<^bold>\<exists> x \<bullet> (P \<parallel>\<^bsub>M\<^esub> Q x))"
   by (rel_auto)
- 
+    
 subsection {* Substitution laws *}
 
 text {* Substitution is a little tricky because when we push the expression through the composition

@@ -230,7 +230,7 @@ lemma CSP3_SRD_intro:
   shows "P is CSP3"
 proof -
   have P: "\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) = P"
-    by (simp add: SRD_reactive_design_alt assms(1) wait'_cond_peri_post_cmt)
+    by (simp add: SRD_reactive_design_alt assms(1) wait'_cond_peri_post_cmt[THEN sym])
   have "\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) is CSP3"
     by (rule CSP3_intro, simp add: assms P, simp add: ref_unrest_RHS_design assms)
   thus ?thesis
@@ -2257,7 +2257,7 @@ lemma postR_mu_example1 [rdes]:
   "post\<^sub>R(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = false"
   by (simp add: mu_example1 rdes closure unrest wp) 
     
-subsection {* Merge Predicate *}
+subsection {* Stateless merge Predicate *}
 
 definition CSPMerge' :: "'\<psi> set \<Rightarrow> ((unit,'\<psi>) st_csp) merge" ("N\<^sub>C") where
   [upred_defs]:
@@ -2269,7 +2269,10 @@ definition CSPMerge' :: "'\<psi> set \<Rightarrow> ((unit,'\<psi>) st_csp) merge
 
 lemma CSPMerge'_R2m [closure]: "N\<^sub>C(cs) is R2m"
   by (rel_auto)
-  
+
+lemma CSPMerge'_RDM [closure]: "N\<^sub>C(cs) is RDM"
+  by (rule RDM_intro, simp add: closure, simp_all add: CSPMerge'_def unrest)
+
 definition CSPMerge :: "'\<psi> set \<Rightarrow> ((unit,'\<psi>) st_csp) merge" ("M\<^sub>C") where
 [upred_defs]: "M\<^sub>C(cs) = M\<^sub>R(N\<^sub>C(cs)) ;; SKIP"
     
@@ -2286,13 +2289,13 @@ abbreviation ParCSP ::
 "P [|cs|] Q \<equiv> P \<parallel>\<^bsub>M\<^sub>C(cs)\<^esub> Q"
 
 subsubsection {* CSP Parallel Laws *}
-
+  
 lemma parallel_is_CSP:
   assumes "P is CSP" "Q is CSP"
   shows "(P \<parallel>\<^bsub>M\<^sub>C(cs)\<^esub> Q) is CSP"
 proof -
   have "(P \<parallel>\<^bsub>M\<^sub>R(N\<^sub>C(cs))\<^esub> Q) is CSP"
-    by (simp add: CSPMerge'_R2m NSRD_is_SRD assms par_rdes_NSRD)
+    by (simp add: closure assms)
   hence "(P \<parallel>\<^bsub>M\<^sub>R(N\<^sub>C(cs))\<^esub> Q) ;; SKIP is CSP"
     by (simp add: SKIP_is_Skip closure)
   thus ?thesis
