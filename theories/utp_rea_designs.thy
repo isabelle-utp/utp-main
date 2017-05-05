@@ -2709,6 +2709,12 @@ lemma R_D_seq:
   assumes "P is \<^bold>N" "Q is \<^bold>N"
   shows "\<^bold>R\<^sub>D(P) ;; \<^bold>R\<^sub>D(Q) = \<^bold>R\<^sub>D(P ;; Q)"
   by (metis R_D_seq_ndesign assms ndesign_form)
+    
+text {* This law is applicable only when there is no further alphabet extension *}
+    
+lemma R_D_assigns:
+  "\<^bold>R\<^sub>D(\<langle>\<sigma>\<rangle>\<^sub>D) = (\<langle>\<sigma>\<rangle>\<^sub>R :: ('s,'t::ordered_cancel_monoid_diff,unit) hrel_rsp)"
+  by (simp add: assigns_d_def des_rea_lift_def alpha assigns_rea_RHS_tri_des, rel_auto)
 
 subsection {* Recursion laws *}
   
@@ -3146,8 +3152,6 @@ qed
 lemma skip_srea_ok_f [usubst]:
   "II\<^sub>R\<^sup>f = R1(\<not>$ok)"
   by (rel_auto)
-  
-declare id_vwb_lens [simp]
     
 lemma nmerge0_rd_unrest [unrest]:
   "$0-ok \<sharp> N\<^sub>0 M" "$1-ok \<sharp> N\<^sub>0 M"
