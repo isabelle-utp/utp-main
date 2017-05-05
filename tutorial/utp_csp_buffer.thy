@@ -11,8 +11,8 @@ datatype ch_buffer =
 type_synonym act_buffer = "(st_buffer, ch_buffer) action"
   
 abbreviation DoBuff :: act_buffer where
-"DoBuff \<equiv> (inp\<^bold>?v \<^bold>\<rightarrow> buff :=\<^sub>C (&buff ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>)
-           \<box> (#\<^sub>u(&buff) >\<^sub>u 0) &\<^sub>u outp\<^bold>!head\<^sub>u(&buff) \<^bold>\<rightarrow> buff :=\<^sub>C tail\<^sub>u(&buff))"
+"DoBuff \<equiv> (inp?(v) \<^bold>\<rightarrow> buff :=\<^sub>C (&buff ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>)
+           \<box> (#\<^sub>u(&buff) >\<^sub>u 0) &\<^sub>u outp!(head\<^sub>u(&buff)) \<^bold>\<rightarrow> buff :=\<^sub>C tail\<^sub>u(&buff))"
 
 definition Buffer :: act_buffer where
 "Buffer = buff :=\<^sub>C \<langle>\<rangle> ;; (\<mu> X \<bullet> DoBuff ;; CSP(X))"

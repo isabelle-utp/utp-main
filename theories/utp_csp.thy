@@ -655,7 +655,7 @@ text {* This version of input prefix is implemented using iterated external choi
 
 definition InputCSP ::
   "('a, '\<theta>) chan \<Rightarrow> ('a \<Rightarrow> '\<sigma> upred) \<Rightarrow> ('a \<Rightarrow> ('\<sigma>, '\<theta>) action) \<Rightarrow> ('\<sigma>, '\<theta>) action" where
-"InputCSP c A P = (\<box> x\<in>UNIV \<bullet> A(x) &\<^sub>u PrefixCSP (c\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u (P x))"
+[upred_defs]: "InputCSP c A P = (\<box> x\<in>UNIV \<bullet> A(x) &\<^sub>u PrefixCSP (c\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u (P x))"
 
 definition InputVarCSP :: "('a, '\<theta>) chan \<Rightarrow> ('a \<Rightarrow> '\<sigma> upred) \<Rightarrow> ('a \<Longrightarrow> '\<sigma>) \<Rightarrow> ('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action" where
 "InputVarCSP c A x P = InputCSP c A (\<lambda> v. \<langle>[x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>]\<rangle>\<^sub>C) ;; CSP(P)"
@@ -670,20 +670,81 @@ definition do\<^sub>I :: "
     \<triangleleft> $wait\<acute> \<triangleright>
   (($tr\<acute> - $tr) \<in>\<^sub>u {e : \<guillemotleft>\<delta>\<^sub>u(c)\<guillemotright> | P(e) \<bullet> \<langle>(c\<cdot>\<guillemotleft>e\<guillemotright>)\<^sub>u\<rangle>}\<^sub>u \<and> (c\<cdot>$x\<acute>)\<^sub>u =\<^sub>u last\<^sub>u($tr\<acute>)))"
 
+subsection {* Syntax and Translations for Prefix *}
+
+text {* We next configure a syntax for mixed prefixes. *}
+
+nonterminal prefix_elem and mixed_prefix
+
+syntax "_end_prefix" :: "prefix_elem \<Rightarrow> mixed_prefix" ("_")
+  
+text {* Input Prefix: @{text "\<dots>?(x)"} *}
+
+syntax "_simple_input_prefix" :: "id \<Rightarrow> prefix_elem"  ("?'(_')")
+  
+text {* Input Prefix with Constraint: @{text "\<dots>?(x : P)"} *}
+
+syntax "_input_prefix" :: "id \<Rightarrow> ('\<sigma>, '\<epsilon>) action \<Rightarrow> prefix_elem" ("?'(_ :/ _')")
+
+text {* Output Prefix: @{text "\<dots>![v]e"} *}
+
+text {* A variable name must currently be provided for outputs, too. Fix?! *}
+
+syntax "_output_prefix" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem" ("!'(_')" [999] 999)
+syntax "_output_prefix" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem" (".'(_')" [999] 999)
+
+syntax (output) "_output_prefix_pp" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem" ("!'(_')")
+
 syntax
-  "_csp_output" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>!_ \<^bold>\<rightarrow> _" [81, 0, 80] 80)
-  "_csp_input"  :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>?_:_ \<^bold>\<rightarrow> _" [81, 0, 0, 80] 80)
-  "_csp_inputu" :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>?_ \<^bold>\<rightarrow> _" [81, 0, 80] 80)
+  "_prefix_aux" :: "pttrn \<Rightarrow> logic \<Rightarrow> prefix_elem"
+  
+text {* Mixed-Prefix Action: @{text "c\<dots>(prefix) \<^bold>\<rightarrow> A"} *}
+
+syntax "_mixed_prefix" :: "prefix_elem \<Rightarrow> mixed_prefix \<Rightarrow> mixed_prefix" ("__")
+
+syntax 
+  "_prefix_action" ::
+  "('a, '\<epsilon>) chan \<Rightarrow> mixed_prefix \<Rightarrow> ('\<sigma>, '\<epsilon>) action \<Rightarrow> ('\<sigma>, '\<epsilon>) action"
+  ("(__ \<^bold>\<rightarrow>/ _)" [81, 81, 80] 80)
+  
+text {* Syntax translations *}
+
+abbreviation lconj :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('b \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<times> 'b \<Rightarrow> '\<alpha> upred)" (infixr "\<and>\<^sub>l" 35)
+where "(P \<and>\<^sub>l Q) \<equiv> (\<lambda> (x,y). P x \<and> Q y)"
+ 
+definition [upred_defs]: "outp_constraint v \<equiv> (\<lambda> x. \<guillemotleft>x\<guillemotright> =\<^sub>u v)"
+  
+translations
+  "_simple_input_prefix x" \<rightleftharpoons> "_input_prefix x true"
+  "_mixed_prefix (_input_prefix x P) (_prefix_aux y Q)" \<rightharpoonup>
+  "_prefix_aux (_pattern x y) ((\<lambda> x. P) \<and>\<^sub>l Q)"
+  "_mixed_prefix (_output_prefix P) (_prefix_aux y Q)" \<rightharpoonup>
+  "_prefix_aux (_pattern _idtdummy y) ((CONST outp_constraint P) \<and>\<^sub>l Q)"
+  "_end_prefix (_input_prefix x P)" \<rightharpoonup> "_prefix_aux x (\<lambda> x. P)"
+  "_end_prefix (_output_prefix P)" \<rightharpoonup> "_prefix_aux _idtdummy (CONST outp_constraint P)"
+  "_prefix_action c (_prefix_aux x P) A" == "(CONST InputCSP) c P (\<lambda>x. A)"
+  
+text {* Basic print translations; more work needed *}
+  
+translations
+  "_input_prefix x P" <= "_prefix_aux v (\<lambda>x. P)"
+  "_simple_input_prefix x" <= "_input_prefix x true"
+  "_output_prefix v" <= "_prefix_aux p (CONST outp_constraint v)"  
+  "x!(v) \<^bold>\<rightarrow> P" <= "CONST OutputCSP x v P"
+  
+term "x?(v) \<^bold>\<rightarrow> P"
+term "x?(v:false) \<^bold>\<rightarrow> P"
+term "x!(\<langle>1\<rangle>) \<^bold>\<rightarrow> P"
+term "x?(v)!(1) \<^bold>\<rightarrow> P"
+term "x!(\<langle>1\<rangle>)!(2)?(v:true) \<^bold>\<rightarrow> P"
+  
+text {* Basic translations for state variable communications *}
+  
+syntax
   "_csp_input_var"  :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>?$_:_ \<^bold>\<rightarrow> _" [81, 0, 0, 80] 80)
   "_csp_inputu_var" :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>?$_ \<^bold>\<rightarrow> _" [81, 0, 80] 80)
 
 translations
-  "c\<^bold>!v \<^bold>\<rightarrow> P"    \<rightleftharpoons> "CONST OutputCSP c v P"
-  "c\<^bold>?x:A \<^bold>\<rightarrow> P"  \<rightharpoonup> "CONST InputCSP c (\<lambda> x. A) (\<lambda> x. P)"
-  "c\<^bold>?x \<^bold>\<rightarrow> P"    \<rightharpoonup> "CONST InputCSP c (\<lambda>_. true) (\<lambda> x. P)"
-  "c\<^bold>?x:A \<^bold>\<rightarrow> P"  <= "CONST InputCSP c (\<lambda>v. A) (\<lambda> x. P)"  
-  "c\<^bold>?x \<^bold>\<rightarrow> P"    <= "CONST InputCSP c (\<lambda>v. true) (\<lambda> x. P)"
-  "c\<^bold>?x \<^bold>\<rightarrow> P"    <= "c\<^bold>?x:true \<^bold>\<rightarrow> P"
   "c\<^bold>?$x:A \<^bold>\<rightarrow> P" \<rightleftharpoons> "CONST InputVarCSP c x A P"
   "c\<^bold>?$x \<^bold>\<rightarrow> P"   \<rightharpoonup> "CONST InputVarCSP c x (CONST UNIV) P"
   "c\<^bold>?$x \<^bold>\<rightarrow> P"   <= "c\<^bold>?$x:true \<^bold>\<rightarrow> P"  
@@ -1414,10 +1475,10 @@ proof -
   finally show ?thesis .
 qed
 
-lemma InputCSP_CSP [closure]: "x\<^bold>?v:A \<^bold>\<rightarrow> P(v) is CSP"
+lemma InputCSP_CSP [closure]: "x?(v:A(v)) \<^bold>\<rightarrow> P(v) is CSP"
   by (simp add: CSP_ExtChoice InputCSP_def)
     
-lemma InputCSP_NCSP [closure]: "\<lbrakk> \<And> v. P(v) is NCSP \<rbrakk> \<Longrightarrow> x\<^bold>?v:A(v) \<^bold>\<rightarrow> P(v) is NCSP"
+lemma InputCSP_NCSP [closure]: "\<lbrakk> \<And> v. P(v) is NCSP \<rbrakk> \<Longrightarrow> x?(v:A(v)) \<^bold>\<rightarrow> P(v) is NCSP"
   apply (simp add: InputCSP_def)
   apply (rule NCSP_ExtChoice)
   apply (simp add: NCSP_Guard NCSP_PrefixCSP image_Collect_subsetI top_set_def)
@@ -1495,24 +1556,55 @@ qed
   
 lemma preR_InputCSP [rdes]: 
   assumes "\<And> v. P(v) is NCSP"
-  shows "pre\<^sub>R(a\<^bold>?v:A(v) \<^bold>\<rightarrow> P(v)) = (\<Squnion> v \<bullet> \<lceil>A(v)\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R (P v)\<lbrakk>$tr ^\<^sub>u \<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>/$tr\<rbrakk>)"
+  shows "pre\<^sub>R(a?(v:A(v)) \<^bold>\<rightarrow> P(v)) = (\<Squnion> v \<bullet> \<lceil>A(v)\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R (P v)\<lbrakk>$tr ^\<^sub>u \<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>/$tr\<rbrakk>)"
   by (simp add: InputCSP_def rdes closure assms usubst unrest, rel_auto)
 
 lemma periR_InputCSP [rdes]: 
   assumes "\<And> v. P(v) is NCSP"
-  shows "peri\<^sub>R(a\<^bold>?v:A \<^bold>\<rightarrow> P(v)) = 
-          (pre\<^sub>R(a\<^bold>?v:A \<^bold>\<rightarrow> P(v)) \<Rightarrow>
-            (\<Squnion> v \<bullet> \<lceil>A\<rceil>\<^sub>S\<^sub>< \<Rightarrow> ((a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u \<notin>\<^sub>u $ref\<acute> \<or> peri\<^sub>R (P(v))\<lbrakk>$tr^\<^sub>u\<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>/$tr\<rbrakk>)) 
+  shows "peri\<^sub>R(a?(v:A(v)) \<^bold>\<rightarrow> P(v)) = 
+          (pre\<^sub>R(a?(v:A(v)) \<^bold>\<rightarrow> P(v)) \<Rightarrow>
+            (\<Squnion> v \<bullet> \<lceil>A(v)\<rceil>\<^sub>S\<^sub>< \<Rightarrow> ((a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u \<notin>\<^sub>u $ref\<acute> \<or> peri\<^sub>R (P(v))\<lbrakk>$tr^\<^sub>u\<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>/$tr\<rbrakk>)) 
               \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright>
-            (\<Sqinter> v \<bullet> \<lceil>A\<rceil>\<^sub>S\<^sub>< \<and> (peri\<^sub>R(P(v))\<lbrakk>$tr^\<^sub>u\<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>/$tr\<rbrakk>)))"
+            (\<Sqinter> v \<bullet> \<lceil>A(v)\<rceil>\<^sub>S\<^sub>< \<and> (peri\<^sub>R(P(v))\<lbrakk>$tr^\<^sub>u\<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>/$tr\<rbrakk>)))"
   using assms by (simp add: InputCSP_def rdes closure assms usubst unrest, rel_blast)
 
 lemma postR_InputCSP [rdes]: 
   assumes "\<And> v. P(v) is NCSP"
-  shows "post\<^sub>R(a\<^bold>?v:A \<^bold>\<rightarrow> P(v)) = 
-          (pre\<^sub>R(a\<^bold>?v:A \<^bold>\<rightarrow> P(v)) \<Rightarrow> (\<Sqinter> v \<bullet> \<lceil>A\<rceil>\<^sub>S\<^sub>< \<and> (post\<^sub>R(P(v))\<lbrakk>$tr^\<^sub>u\<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>/$tr\<rbrakk>)))"
+  shows "post\<^sub>R(a?(v:A(v)) \<^bold>\<rightarrow> P(v)) = 
+          (pre\<^sub>R(a?(v:A(v)) \<^bold>\<rightarrow> P(v)) \<Rightarrow> (\<Sqinter> v \<bullet> \<lceil>A(v)\<rceil>\<^sub>S\<^sub>< \<and> (post\<^sub>R(P(v))\<lbrakk>$tr^\<^sub>u\<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>/$tr\<rbrakk>)))"
   using assms by (simp add: InputCSP_def rdes closure assms usubst unrest, rel_blast)  
   
+
+    (*
+lemma 
+  assumes "A is NCSP"
+  shows "(\<guillemotleft>xa\<guillemotright> =\<^sub>u v) &\<^sub>u x.(\<guillemotleft>xa\<guillemotright>) \<^bold>\<rightarrow> A = x.(v) \<^bold>\<rightarrow> A" (is "?lhs = ?rhs")
+proof -
+  have "pre\<^sub>R(?lhs) = pre\<^sub>R(?rhs)"
+    apply (simp add: rdes closure assms unrest, rel_auto)
+*)
+  
+    
+lemma SRD_eq_intro:
+  assumes "P is SRD" "Q is SRD" "pre\<^sub>R(P) = pre\<^sub>R(Q)" "peri\<^sub>R(P) = peri\<^sub>R(Q)" "post\<^sub>R(P) = post\<^sub>R(Q)"
+  shows "P = Q"
+proof -
+  have "P = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
+    by (simp add: SRD_reactive_tri_design assms(1))
+  also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> peri\<^sub>R(Q) \<diamondop> post\<^sub>R(Q))"
+    by (simp add: assms)
+  also have "... = Q"
+    by (simp add: SRD_reactive_tri_design assms(2))
+  finally show ?thesis .
+qed
+      
+text {* Proof that the input constrained parser version of output is the same as the regular definition. *}
+  
+lemma output_prefix_is_OutputCSP [simp]:
+  assumes "A is NCSP"
+  shows "x!(P) \<^bold>\<rightarrow> A = OutputCSP x P A" (is "?lhs = ?rhs")
+  by (rule SRD_eq_intro, simp_all add: assms closure rdes, rel_auto+)
+    
 lemma wpR_extend_tr_NCSP [wp]:
   assumes "P is NCSP"
   shows "($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) wp\<^sub>R pre\<^sub>R P = (pre\<^sub>R(P))\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
@@ -1801,7 +1893,7 @@ lemma Productive_PrefixCSP [closure]: "P is NCSP \<Longrightarrow> a \<^bold>\<r
   by (simp add: Healthy_if NCSP_DoCSP NCSP_implies_NSRD NSRD_is_SRD PrefixCSP_def Productive_DoCSP Productive_seq_1)
   
 lemma Productive_InputCSP [closure]: 
-  "\<lbrakk> \<And> v. P(v) is NCSP \<rbrakk> \<Longrightarrow> x\<^bold>?v:A(v) \<^bold>\<rightarrow> P(v) is Productive"
+  "\<lbrakk> \<And> v. P(v) is NCSP \<rbrakk> \<Longrightarrow> x?(v:A(v)) \<^bold>\<rightarrow> P(v) is Productive"
   by (auto simp add: InputCSP_def unrest closure intro: Productive_ExtChoice)
     
 lemma preR_Productive [rdes]:
@@ -2308,67 +2400,5 @@ lemma swap_CSPMerge': "(swap\<^sub>m ;; N\<^sub>C(cs)) = N\<^sub>C(cs)"
 theorem parallel_commutative:
   "(P [|cs|] Q) = (Q [|cs|] P)"
   by (simp add: CSPMerge_def par_by_merge_commute seqr_assoc swap_CSPMerge' swap_merge_rd)
-
-subsection {* Syntax and Translations for Prefix *}
-
-text {* We next configure a syntax for mixed prefixes. *}
-
-nonterminal prefix_elem and mixed_prefix
-
-syntax "" :: "prefix_elem \<Rightarrow> mixed_prefix" ("_")
-
-text {* Input Prefix: @{text "\<dots>?(x)"} *}
-
-syntax "_simple_input_prefix" :: "id \<Rightarrow> prefix_elem"  ("?'(_')")
-
-text {* Input Prefix with Constraint: @{text "\<dots>?(x : P)"} *}
-
-syntax "_input_prefix" :: "id \<Rightarrow> ('\<sigma>, '\<epsilon>) action \<Rightarrow> prefix_elem" ("?'(_ :/ _')")
-
-text {* Output Prefix: @{text "\<dots>![v]e"} *}
-
-text {* A variable name must currently be provided for outputs, too. Fix?! *}
-
-syntax "_output_prefix" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem" ("!'(_')" [999] 999)
-syntax "_output_prefix" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem" (".'(_')" [999] 999)
-
-syntax (output) "_output_prefix_pp" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem" ("!'(_')")
-
-syntax
-  "_prefix_aux" :: "logic \<Rightarrow> logic \<Rightarrow> prefix_elem"
-  
-text {* Mixed-Prefix Action: @{text "c\<dots>(prefix) \<rightarrow>\<^sub>\<C> A"} *}
-
-syntax "_mixed_prefix" :: "prefix_elem \<Rightarrow> mixed_prefix \<Rightarrow> mixed_prefix" ("__")
-
-syntax "_prefix_action" ::
-  "('a, '\<epsilon>) chan \<Rightarrow> mixed_prefix \<Rightarrow> ('\<sigma>, '\<epsilon>) action \<Rightarrow> ('\<sigma>, '\<epsilon>) action"
-  ("(__ \<rightarrow>\<^sub>\<C>/ _)" [81, 81, 80] 80)
-
-text {* Syntax translations *}
-
-definition lconj :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('b \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<times> 'b \<Rightarrow> '\<alpha> upred)" (infixr "\<and>\<^sub>l" 35)
-where "(P \<and>\<^sub>l Q) \<equiv> (\<lambda> (x,y). P x \<and> Q y)"
-  
-translations
-  "_simple_input_prefix x" \<rightleftharpoons> "_input_prefix x true"
-
-abbreviation "outp_constraint v \<equiv> (\<lambda> x. \<guillemotleft>x\<guillemotright> =\<^sub>u v)"
-  
-translations
-  "_mixed_prefix (_input_prefix x P) (_input_prefix y Q)" \<rightharpoonup>
-  "_prefix_aux (_pattern x y) (\<lambda> (x, y). P \<and> Q)"
-  "_mixed_prefix (_output_prefix P) (_input_prefix y Q)" \<rightharpoonup>
-  "_prefix_aux (_pattern _idtdummy y) (CONST outp_constraint P \<and>\<^sub>l (\<lambda> y. Q))"
-  "_mixed_prefix (_input_prefix x P) (_output_prefix Q)" \<rightharpoonup>
-  "_prefix_aux (_pattern x _idtdummy) ((\<lambda> x. P) \<and>\<^sub>l CONST outp_constraint Q)"
-  "_mixed_prefix (_output_prefix P) (_output_prefix Q)" \<rightharpoonup>
-  "_prefix_aux (_pattern _idtdummy _idtdummy) (CONST outp_constraint P \<and>\<^sub>l CONST outp_constraint Q)"
-
-translations
-  "_prefix_action c (_prefix_aux x P) A"  \<rightharpoonup>
-  "(CONST InputCSP) c P (\<lambda>x. A)"
-  
-term "x!(1)!(true) \<rightarrow>\<^sub>\<C> P"
   
 end
