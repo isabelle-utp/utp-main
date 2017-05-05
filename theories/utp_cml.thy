@@ -22,7 +22,14 @@ lemma events_append [simp]: "events (xs @ ys) = events(xs) @ events(ys)"
   apply (rename_tac x xs)
   apply (case_tac x)
   apply (simp_all)
-done
+  done
+    
+lemma events_mono: "(P \<le> Q) \<Longrightarrow> (events(P) \<le> events(Q))"
+  apply (induct P rule:events.induct)
+  apply simp+
+  apply auto
+  apply (metis (no_types, lifting) Prefix_Order.prefixE Prefix_Order.prefix_prefix events.simps(2) events_append order_refl)
+  by (metis (mono_tags, lifting) Prefix_Order.prefixE Prefix_Order.prefix_prefix events.simps(3) events_append order_refl)    
 
 fun tocks :: "'\<theta> tevent list \<Rightarrow> '\<theta> tevent list" where
 "tocks [] = []" |
@@ -33,6 +40,26 @@ fun refusals :: "'\<theta> tevent list \<Rightarrow> '\<theta> set" where
 "refusals [] = {}" |
 "refusals (Tock A # t) = A \<union> refusals t" |
 "refusals (Event x # t) = refusals t"
+
+lemma refusals_dist: "refusals(a @ t) = (refusals(a) \<union> refusals(t))"
+  apply (induct a)
+  apply (simp_all)
+  apply (case_tac a1)
+  apply simp_all
+  by auto
+    
+lemma refusals_ord_subset: "(P \<le> Q) \<Longrightarrow> (refusals(P) \<subseteq> refusals(Q))"
+  apply (induct P)
+  apply (simp_all)
+  apply (case_tac a)
+  apply simp_all
+  apply auto
+  apply (metis Prefix_Order.prefixE UnI1 refusals.simps(2) refusals_dist)
+  apply (metis Prefix_Order.prefixE UnCI refusals.simps(2) refusals_dist)
+  by (metis Prefix_Order.prefixE UnI1 refusals.simps(3) refusals_dist)
+ 
+lemma refusals_prefix: "t \<le> u \<and> a \<in> refusals(t) \<Longrightarrow> a \<in> refusals(u)"
+  using refusals_ord_subset by auto
 
 fun idleprefix :: "'\<theta> tevent list \<Rightarrow> '\<theta> tevent list" where
 "idleprefix [] = []" |
@@ -57,7 +84,7 @@ translations
   "idleprefix\<^sub>u(t)" == "CONST uop CONST idleprefix t"
   "idlesuffix\<^sub>u(t)" == "CONST uop CONST idlesuffix t"
   "ev\<^sub>u(e)" == "CONST uop CONST Event e"
-  "tock\<^sub>u(t,A)" == "CONST bop CONST Tock t A"
+  "tock\<^sub>u(t,A)" == "CONST bop CONST Tock t A" (* Why does this take two parameters?*)
 
 subsection {* Signature *}
 
@@ -246,4 +273,15 @@ proof -
     finally show ?thesis .
   qed
 qed
+  
+lemma "[Event a, Tock {a}] \<le> [Event a, Tock {a,b}]"
+  quickcheck
+  oops
+
+    (*
+lemma "`\<langle>ev\<^sub>u(a), tock\<^sub>u(t,e)\<rangle> \<le>\<^sub>u \<langle>ev\<^sub>u(a), tock\<^sub>u(t,e)\<rangle>`"
+  apply pred_simp
+    by (simp add: top_uexpr.rep_eq)
+      
+    *)
 end
