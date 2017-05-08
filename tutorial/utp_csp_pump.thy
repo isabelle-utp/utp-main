@@ -24,7 +24,7 @@ definition Supply :: "nat \<Rightarrow> act_pump" where
 
 definition PumpActive :: "act_pump" where
 [urel_defs]: "PumpActive = putNozzle \<^bold>\<rightarrow> Skip \<box> 
-                           (enterAmount?(q) \<^bold>\<rightarrow> pressTrigger \<^bold>\<rightarrow> Supply(q) ;; releaseTrigger \<^bold>\<rightarrow> Skip)"
+                           enterAmount?(q) \<^bold>\<rightarrow> pressTrigger \<^bold>\<rightarrow> Supply(q) ;; releaseTrigger \<^bold>\<rightarrow> Skip"
 
 definition PumpIdle :: "act_pump" where
 [urel_defs]: "PumpIdle = liftNozzle \<^bold>\<rightarrow> PumpActive \<box>

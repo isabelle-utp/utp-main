@@ -760,6 +760,11 @@ lemma conj_UINF_dist:
 lemma UINF_conj_UINF: "((\<Squnion> P \<in> A \<bullet> F(P)) \<and> (\<Squnion> P \<in> A \<bullet> G(P))) = (\<Squnion> P \<in> A \<bullet> F(P) \<and> G(P))"
   by (simp add: upred_defs bop.rep_eq lit.rep_eq, pred_auto)
 
+lemma UINF_all_cong:
+  assumes "\<And> P. F(P) = G(P)"
+  shows "(\<Sqinter> P \<bullet> F(P)) = (\<Sqinter> P \<bullet> G(P))"
+  by (simp add: USUP_as_Sup_collect assms)
+    
 lemma UINF_cong:
   assumes "\<And> P. P \<in> A \<Longrightarrow> F(P) = G(P)"
   shows "(\<Sqinter> P\<in>A \<bullet> F(P)) = (\<Sqinter> P\<in>A \<bullet> G(P))"

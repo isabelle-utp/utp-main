@@ -111,7 +111,7 @@ definition assigns_d :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrel_des" ("\<
 where "assigns_d \<sigma> = (true \<turnstile>\<^sub>r assigns_r \<sigma>)"
 
 syntax
-  "_assignmentd" :: "svid_list \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr ":=\<^sub>D" 55)
+  "_assignmentd" :: "svid_list \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr ":=\<^sub>D" 72)
 
 translations
   "_assignmentd xs vs" => "CONST assigns_d (_mk_usubst (CONST id) xs vs)"
@@ -490,7 +490,7 @@ theorem ndesign_wp [wp]:
 
 theorem wpd_seq_r:
   fixes Q1 Q2 :: "'\<alpha> hrel"
-  shows "(\<lceil>p1\<rceil>\<^sub>< \<turnstile>\<^sub>r Q1 ;; \<lceil>p2\<rceil>\<^sub>< \<turnstile>\<^sub>r Q2) wp\<^sub>D r = (\<lceil>p1\<rceil>\<^sub>< \<turnstile>\<^sub>r Q1) wp\<^sub>D ((\<lceil>p2\<rceil>\<^sub>< \<turnstile>\<^sub>r Q2) wp\<^sub>D r)"
+  shows "((\<lceil>p1\<rceil>\<^sub>< \<turnstile>\<^sub>r Q1) ;; (\<lceil>p2\<rceil>\<^sub>< \<turnstile>\<^sub>r Q2)) wp\<^sub>D r = (\<lceil>p1\<rceil>\<^sub>< \<turnstile>\<^sub>r Q1) wp\<^sub>D ((\<lceil>p2\<rceil>\<^sub>< \<turnstile>\<^sub>r Q2) wp\<^sub>D r)"
   apply (simp add: wp)
   apply (subst rdesign_composition_wp)
   apply (simp only: wp)
@@ -499,7 +499,7 @@ done
 
 theorem wpnd_seq_r [wp]:
   fixes Q1 Q2 :: "'\<alpha> hrel"
-  shows "(p1 \<turnstile>\<^sub>n Q1 ;; p2 \<turnstile>\<^sub>n Q2) wp\<^sub>D r = (p1 \<turnstile>\<^sub>n Q1) wp\<^sub>D ((p2 \<turnstile>\<^sub>n Q2) wp\<^sub>D r)"
+  shows "((p1 \<turnstile>\<^sub>n Q1) ;; (p2 \<turnstile>\<^sub>n Q2)) wp\<^sub>D r = (p1 \<turnstile>\<^sub>n Q1) wp\<^sub>D ((p2 \<turnstile>\<^sub>n Q2) wp\<^sub>D r)"
   by (simp add: ndesign_def wpd_seq_r)
 
 lemma design_subst_ok:
@@ -534,9 +534,9 @@ qed
 
 theorem design_left_unit_hom:
   fixes P Q :: "'\<alpha> hrel_des"
-  shows "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
+  shows "(II\<^sub>D ;; (P \<turnstile>\<^sub>r Q)) = (P \<turnstile>\<^sub>r Q)"
 proof -
-  have "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (true \<turnstile>\<^sub>r II ;; P \<turnstile>\<^sub>r Q)"
+  have "(II\<^sub>D ;; (P \<turnstile>\<^sub>r Q)) = ((true \<turnstile>\<^sub>r II) ;; (P \<turnstile>\<^sub>r Q))"
     by (simp add: skip_d_def)
   also have "... = (true \<and> \<not> (II ;; (\<not> P))) \<turnstile>\<^sub>r (II ;; Q)"
   proof -
@@ -551,16 +551,16 @@ proof -
 qed
 
 theorem design_left_unit [simp]:
-  "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
+  "II\<^sub>D ;; (P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
   by (rel_auto)
 
 theorem design_right_semi_unit:
-  "(P \<turnstile>\<^sub>r Q ;; II\<^sub>D) = ((\<not> (\<not> P) ;; true) \<turnstile>\<^sub>r Q)"
+  "(P \<turnstile>\<^sub>r Q) ;; II\<^sub>D = ((\<not> (\<not> P) ;; true) \<turnstile>\<^sub>r Q)"
   by (simp add: skip_d_def rdesign_composition)
 
 theorem design_right_cond_unit [simp]:
   assumes "out\<alpha> \<sharp> p"
-  shows "(p \<turnstile>\<^sub>r Q ;; II\<^sub>D) = (p \<turnstile>\<^sub>r Q)"
+  shows "(p \<turnstile>\<^sub>r Q) ;; II\<^sub>D = (p \<turnstile>\<^sub>r Q)"
   using assms
   by (simp add: skip_d_def rdesign_composition_cond)
 
@@ -1007,7 +1007,7 @@ lemma assigns_d_comp_ext:
   assumes "P is \<^bold>H"
   shows "(\<langle>\<sigma>\<rangle>\<^sub>D ;; P) = \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D\<rceil>\<^sub>s \<dagger> P"
 proof -
-  have "(\<langle>\<sigma>\<rangle>\<^sub>D ;; P) = (\<langle>\<sigma>\<rangle>\<^sub>D ;; pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P))"
+  have "\<langle>\<sigma>\<rangle>\<^sub>D ;; P = \<langle>\<sigma>\<rangle>\<^sub>D ;; (pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P))"
     by (metis H1_H2_commute H1_H2_is_rdesign H2_idem Healthy_def' assms)
   also have "... = \<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> pre\<^sub>D(P) \<turnstile>\<^sub>r \<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> post\<^sub>D(P)"
     by (simp add: assign_d_left_comp)
@@ -1118,7 +1118,7 @@ qed
 theorem rdesign_H3_iff_pre:
   "P \<turnstile>\<^sub>r Q is H3 \<longleftrightarrow> P = (P ;; true)"
 proof -
-  have "(P \<turnstile>\<^sub>r Q ;; II\<^sub>D) = (P \<turnstile>\<^sub>r Q ;; true \<turnstile>\<^sub>r II)"
+  have "(P \<turnstile>\<^sub>r Q) ;; II\<^sub>D = (P \<turnstile>\<^sub>r Q) ;; (true \<turnstile>\<^sub>r II)"
     by (simp add: skip_d_def)
   also have "... = (\<not> ((\<not> P) ;; true) \<and> \<not> (Q ;; (\<not> true))) \<turnstile>\<^sub>r (Q ;; II)"
     by (simp add: rdesign_composition)
@@ -1159,7 +1159,7 @@ lemma skip_d_absorb_J_1:
 lemma skip_d_absorb_J_2:
   "(J ;; II\<^sub>D) = II\<^sub>D"
 proof -
-  have "(J ;; II\<^sub>D) = ((($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D) ;; true \<turnstile> II)"
+  have "(J ;; II\<^sub>D) = (($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D) ;; (true \<turnstile> II)"
     by (simp add: J_def skip_d_alt_def)
   also have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> (($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<acute>\<rbrakk> ;; (true \<turnstile> II)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<rbrakk>)"
     by (subst seqr_middle[of ok], simp_all)

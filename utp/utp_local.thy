@@ -28,7 +28,7 @@ text {* @{const pvar} is a lens from the program state, @{typ "'\<beta>"}, to th
 
 syntax
   "_svid_pvar" :: "('\<T>, '\<alpha>) uthy \<Rightarrow> svid" ("\<^bold>v\<index>")
-  "_thy_asgn"  :: "('\<T>, '\<alpha>) uthy \<Rightarrow> svid_list \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr "::=\<index>" 55)
+  "_thy_asgn"  :: "('\<T>, '\<alpha>) uthy \<Rightarrow> svid_list \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr "::=\<index>" 72)
 
 translations
   "_svid_pvar T" => "CONST pvar T"

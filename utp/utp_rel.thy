@@ -10,7 +10,7 @@ begin
 default_sort type
 
 consts
-  useq   :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infixr ";;" 51)
+  useq   :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infixr ";;" 71)
   uskip  :: "'a" ("II")
 
 definition in\<alpha> :: "('\<alpha>, '\<alpha> \<times> '\<beta>) uvar" where
@@ -98,7 +98,7 @@ syntax
   "_svid_list"  :: "svid \<Rightarrow> svid_list \<Rightarrow> svid_list" ("_,/ _")
   "_uexpr_unit" :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list" ("_" [40] 40)
   "_uexpr_list" :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list \<Rightarrow> uexpr_list" ("_,/ _" [70,70] 70)
-  "_assignment" :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  (infixr ":=" 62)
+  "_assignment" :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  (infixr ":=" 72)
   "_mk_usubst"  :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> usubst"
 
 translations
@@ -962,12 +962,30 @@ interpretation upred_semiring: semiring_1
     
 text {* We introduce the power syntax dervied from semirings *}
     
-abbreviation upower :: "'a hrel \<Rightarrow> nat \<Rightarrow> 'a hrel" (infixr "\<^bold>^" 80) where
+abbreviation upower :: "'\<alpha> hrel \<Rightarrow> nat \<Rightarrow> '\<alpha> hrel" (infixr "\<^bold>^" 80) where
 "upower P n \<equiv> upred_semiring.power P n"
-    
+
 translations
   "P \<^bold>^ i" <= "CONST power.power II op ;; P i"
   "P \<^bold>^ i" <= "(CONST power.power II op ;; P) i"
+  
+text {* Set up transfer tactic for powers *}
+  
+lemma upower_rep_eq [uexpr_transfer_laws]: 
+  "\<lbrakk>P \<^bold>^ i\<rbrakk>\<^sub>eb = (b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p} ^^ i))"
+proof (induct i arbitrary: P b)
+  case 0
+  then show ?case 
+    by (simp, rel_auto, simp add: Id_fstsnd_eq)
+next
+  case (Suc i)
+  show ?case 
+    by (simp add: Suc seqr.rep_eq relpow_commute)
+qed
+  
+lemma upower_rep_eq_alt [uexpr_transfer_laws]:
+  "\<lbrakk>power.power \<langle>id\<rangle>\<^sub>a op ;; P i\<rbrakk>\<^sub>e b = (b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p} ^^ i))"
+  by (metis skip_r_def upower_rep_eq)
   
 lemma Sup_power_expand:
   fixes P :: "nat \<Rightarrow> 'a::complete_lattice"
@@ -1001,6 +1019,15 @@ lemma SUP_atLeastAtMost_first:
   shows "(\<Sqinter>i\<in>{m..n}. P(i)) = P(m) \<sqinter> (\<Sqinter>i\<in>{Suc m..n}. P(i))"
   by (metis SUP_insert assms atLeastAtMost_insertL)
   
+text {* Kleene star *}
+    
+definition ustar :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<star>" [999] 999) where
+"P\<^sup>\<star> = (\<Sqinter>i\<in>{0..} \<bullet> P\<^bold>^i)"
+
+lemma ustar_rep_eq [uexpr_transfer_laws]: 
+  "\<lbrakk>P\<^sup>\<star>\<rbrakk>\<^sub>eb = (b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p}\<^sup>*))"
+  by (simp add: ustar_def, rel_auto, simp_all add: relpow_imp_rtrancl rtrancl_imp_relpow)
+
 subsection {* Relation algebra laws *}
 
 theorem RA1: "(P ;; (Q ;; R)) = ((P ;; Q) ;; R)"
@@ -1018,12 +1045,17 @@ theorem RA4: "(P ;; Q)\<^sup>- = (Q\<^sup>- ;; P\<^sup>-)"
 theorem RA5: "(P \<or> Q)\<^sup>- = (P\<^sup>- \<or> Q\<^sup>-)"
   by (rel_auto)
 
-theorem RA6: "((P \<or> Q) ;; R) = ((P;;R) \<or> (Q;;R))"
+theorem RA6: "((P \<or> Q) ;; R) = (P;;R \<or> Q;;R)"
   using seqr_or_distl by blast
 
 theorem RA7: "((P\<^sup>- ;; (\<not>(P ;; Q))) \<or> (\<not>Q)) = (\<not>Q)"
   by (rel_auto)
 
+subsection {* Kleene star laws *}
+  
+theorem ustar_unfoldl: "P\<^sup>\<star> \<sqsubseteq> II \<sqinter> P;;P\<^sup>\<star>"
+  by (rel_simp, simp add: rtrancl_into_trancl2 trancl_into_rtrancl)
+        
 subsection {* Relational alphabet extension *}
 
 lift_definition rel_alpha_ext :: "'\<beta> hrel \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel" (infix "\<oplus>\<^sub>R" 65)
