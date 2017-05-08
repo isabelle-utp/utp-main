@@ -68,7 +68,9 @@ syntax
 
 translations
   "_uex x P"                   == "CONST uex x P"
+  "_uex (_salphaset (_salphamk (x +\<^sub>L y))) P"  <= "_uex (x +\<^sub>L y) P"  
   "_uall x P"                  == "CONST uall x P"
+  "_uall (_salphaset (_salphamk (x +\<^sub>L y))) P"  <= "_uall (x +\<^sub>L y) P"
   "_ushEx (_idt_el x) P"       == "CONST ushEx (\<lambda> x. P)"
   "_ushEx (_idt_list x y) P"   => "CONST ushEx (\<lambda> x. (_ushEx y P))"
   "\<^bold>\<exists> x \<in> A \<bullet> P"                => "\<^bold>\<exists> x \<bullet> \<guillemotleft>x\<guillemotright> \<in>\<^sub>u A \<and> P"
@@ -1109,7 +1111,7 @@ lemma all_strengthens: "wb_lens x \<Longrightarrow> P \<sqsubseteq> (\<forall> x
 
 lemma ex_unrest: "x \<sharp> P \<Longrightarrow> (\<exists> x \<bullet> P) = P"
   by (pred_auto)
-
+    
 lemma all_unrest: "x \<sharp> P \<Longrightarrow> (\<forall> x \<bullet> P) = P"
   by (pred_auto)
 
@@ -1236,5 +1238,5 @@ lemma shEx_lift_conj_1 [uquant_lift]:
 lemma shEx_lift_conj_2 [uquant_lift]:
   "(P \<and> (\<^bold>\<exists> x \<bullet> Q(x))) = (\<^bold>\<exists> x \<bullet> P \<and> Q(x))"
   by (pred_auto)
-
+    
 end

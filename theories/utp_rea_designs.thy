@@ -64,6 +64,31 @@ lemma st'_unrest_st_lift_pred [unrest]:
   "$st\<acute> \<sharp> \<lceil>a\<rceil>\<^sub>S\<^sub><"
   by (pred_auto)
    
+lemma st_bij_lemma: "bij_lens (st\<^sub>a +\<^sub>L \<Sigma>\<^sub>s)"
+  by (unfold_locales, auto simp add: lens_defs)
+
+lemma rea_lens_equiv_st_rest: "\<Sigma>\<^sub>R \<approx>\<^sub>L st +\<^sub>L \<Sigma>\<^sub>S"
+proof -
+  have "st +\<^sub>L \<Sigma>\<^sub>S = (st\<^sub>a +\<^sub>L \<Sigma>\<^sub>s) ;\<^sub>L \<Sigma>\<^sub>R"
+    by (simp add: plus_lens_distr st_def rsp_vars_child_lens_def)
+  also have "... \<approx>\<^sub>L 1\<^sub>L ;\<^sub>L \<Sigma>\<^sub>R"
+    using lens_equiv_via_bij st_bij_lemma by auto
+  also have "... = \<Sigma>\<^sub>R"
+    by (simp)
+  finally show ?thesis
+    using lens_equiv_sym by blast
+qed
+
+lemma srea_lens_bij: "bij_lens (ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L st +\<^sub>L \<Sigma>\<^sub>S)"
+proof -
+  have "ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L st +\<^sub>L \<Sigma>\<^sub>S \<approx>\<^sub>L ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L \<Sigma>\<^sub>R"
+    by (auto intro!:lens_plus_cong, rule lens_equiv_sym, simp add: rea_lens_equiv_st_rest)
+  also have "... \<approx>\<^sub>L 1\<^sub>L"
+    using bij_lens_equiv_id[of "ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L \<Sigma>\<^sub>R"] by (simp add: rea_lens_bij)
+  finally show ?thesis
+    by (simp add: bij_lens_equiv_id)
+qed
+    
 subsection {* Healthiness conditions *}
 
 text {* The fundamental healthiness conditions of reactive designs are $RD1$ and $RD2$ which
@@ -2603,10 +2628,11 @@ qed
 subsection {* Lifting designs on state to reactive designs *}
   
 definition des_rea_lift :: "'s hrel_des \<Rightarrow> ('s,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp" ("\<^bold>R\<^sub>D") where
-[upred_defs]: "\<^bold>R\<^sub>D(P) = \<^bold>R\<^sub>s(\<lceil>\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub><\<rceil>\<^sub>S\<^sub>< \<turnstile> (false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>S)))"
+[upred_defs]: "\<^bold>R\<^sub>D(P) = \<^bold>R\<^sub>s(\<lceil>pre\<^sub>D(P)\<rceil>\<^sub>S \<turnstile> (false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>S)))"
 
 definition des_rea_drop :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp \<Rightarrow> 's hrel_des" ("\<^bold>D\<^sub>R") where
-[upred_defs]: "\<^bold>D\<^sub>R(P) = \<lfloor>(pre\<^sub>R(P))\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<^sub>< \<turnstile>\<^sub>n \<lfloor>(post\<^sub>R(P))\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S"
+[upred_defs]: "\<^bold>D\<^sub>R(P) = \<lfloor>\<exists> $tr;$tr\<acute>;$\<Sigma>\<^sub>S;$\<Sigma>\<^sub>S\<acute> \<bullet> (pre\<^sub>R(P))\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<^sub>< 
+                     \<turnstile>\<^sub>n \<lfloor>\<exists> $tr;$tr\<acute>;$\<Sigma>\<^sub>S;$\<Sigma>\<^sub>S\<acute> \<bullet> (post\<^sub>R(P))\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S"
   
 lemma ndesign_rea_lift_inverse: "\<^bold>D\<^sub>R(\<^bold>R\<^sub>D(p \<turnstile>\<^sub>n Q)) = p \<turnstile>\<^sub>n Q"
   apply (simp add: des_rea_lift_def des_rea_drop_def rea_pre_RHS_design rea_post_RHS_design)
@@ -2628,27 +2654,32 @@ qed
   
 lemma 
   assumes "P is NSRD"
-  shows "\<^bold>R\<^sub>D(\<^bold>D\<^sub>R(P)) \<sqsubseteq> P"
+  shows "P \<sqsubseteq> \<^bold>R\<^sub>D(\<^bold>D\<^sub>R(P))"
 proof -
-  have "\<^bold>R\<^sub>D(\<^bold>D\<^sub>R(P)) = \<^bold>R\<^sub>D((\<lfloor>pre\<^sub>R P\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<^sub>< \<turnstile>\<^sub>n \<lfloor>post\<^sub>R P\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S))"
+  have "\<^bold>R\<^sub>D(\<^bold>D\<^sub>R(P)) = \<^bold>R\<^sub>D(\<lfloor>\<exists> $tr;$tr\<acute>;$\<Sigma>\<^sub>S;$\<Sigma>\<^sub>S\<acute> \<bullet> (pre\<^sub>R(P))\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<^sub>< 
+                    \<turnstile>\<^sub>n \<lfloor>\<exists> $tr;$tr\<acute>;$\<Sigma>\<^sub>S;$\<Sigma>\<^sub>S\<acute> \<bullet> (post\<^sub>R(P))\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S)"
     by (simp add: des_rea_drop_def)
-  also have "... = \<^bold>R\<^sub>s (pre\<^sub>R P\<lbrakk>$tr\<acute>/$tr\<rbrakk> \<turnstile>
-          false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<lceil>\<lfloor>pre\<^sub>R P\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<^sub><\<rceil>\<^sub>< \<Rightarrow> \<lfloor>post\<^sub>R P\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<rceil>\<^sub>S))"
-oops
-    
+  also have "... = 
+    \<^bold>R\<^sub>s (\<lceil>\<lfloor>\<exists> $tr;$tr\<acute>;$\<Sigma>\<^sub>S;$\<Sigma>\<^sub>S\<acute> \<bullet> pre\<^sub>R P\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<^sub><\<rceil>\<^sub>S\<^sub>< \<turnstile>
+        false \<diamondop>
+       ($tr\<acute> =\<^sub>u $tr \<and> (\<lceil>\<lfloor>\<exists> $tr;$tr\<acute>;$\<Sigma>\<^sub>S;$\<Sigma>\<^sub>S\<acute> \<bullet> pre\<^sub>R P\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<^sub><\<rceil>\<^sub>S\<^sub>< \<Rightarrow> \<lceil>\<lfloor>\<exists> $tr;$tr\<acute>;$\<Sigma>\<^sub>S;$\<Sigma>\<^sub>S\<acute> \<bullet> post\<^sub>R P\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<rceil>\<^sub>S)))"
+    by (simp add: des_rea_lift_def alpha unrest)    
+  also have "\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) \<sqsubseteq> ..."
+    oops
+  
 lemma des_rea_lift_closure [closure]: "\<^bold>R\<^sub>D(P) is SRD"
   by (simp add: des_rea_lift_def RHS_design_is_SRD unrest)
 
 lemma preR_des_rea_lift [rdes]: 
-  "pre\<^sub>R(\<^bold>R\<^sub>D(P)) = true \<triangleleft> \<lceil>\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub><\<rceil>\<^sub>S\<^sub>< \<triangleright> (\<not> $tr \<le>\<^sub>u $tr\<acute>)"
+  "pre\<^sub>R(\<^bold>R\<^sub>D(P)) = true \<triangleleft> \<lceil>pre\<^sub>D(P)\<rceil>\<^sub>S \<triangleright> (\<not> $tr \<le>\<^sub>u $tr\<acute>)"
   by (rel_auto)
     
 lemma periR_des_rea_lift [rdes]: 
-  "peri\<^sub>R(\<^bold>R\<^sub>D(P)) = (false \<triangleleft> \<lceil>\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub><\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr \<le>\<^sub>u $tr\<acute>))"
+  "peri\<^sub>R(\<^bold>R\<^sub>D(P)) = (false \<triangleleft> \<lceil>pre\<^sub>D(P)\<rceil>\<^sub>S \<triangleright> ($tr \<le>\<^sub>u $tr\<acute>))"
   by (rel_auto)
 
 lemma postR_des_rea_lift [rdes]: 
-  "post\<^sub>R(\<^bold>R\<^sub>D(P)) = ((true \<triangleleft> \<lceil>\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub><\<rceil>\<^sub>S\<^sub>< \<triangleright> (\<not> $tr \<le>\<^sub>u $tr\<acute>)) \<Rightarrow> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>S))"
+  "post\<^sub>R(\<^bold>R\<^sub>D(P)) = ((true \<triangleleft> \<lceil>pre\<^sub>D(P)\<rceil>\<^sub>S \<triangleright> (\<not> $tr \<le>\<^sub>u $tr\<acute>)) \<Rightarrow> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>S))"
   apply (rel_auto) using minus_zero_eq by blast
     
 lemma ndes_rea_lift_closure [closure]: 
@@ -2664,6 +2695,17 @@ proof -
     using dual_order.trans apply blast
   done
 qed
+    
+lemma R_D_mono: 
+  assumes "P is \<^bold>H" "Q is \<^bold>H" "P \<sqsubseteq> Q"
+  shows "\<^bold>R\<^sub>D(P) \<sqsubseteq> \<^bold>R\<^sub>D(Q)" 
+  apply (simp add: des_rea_lift_def)
+  apply (rule srdes_tri_refine_intro')
+  apply (auto intro: H1_H2_refines assms aext_mono)
+  apply (rel_auto)
+  apply (metis (no_types, hide_lams) aext_mono assms(3) design_post_choice 
+               semilattice_sup_class.sup.orderE utp_pred.inf.coboundedI1 utp_pred.inf.commute utp_pred.sup.order_iff)
+done         
   
 text {* Homomorphism laws *}
   

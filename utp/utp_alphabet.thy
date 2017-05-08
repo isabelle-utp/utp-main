@@ -19,6 +19,9 @@ is "\<lambda> P x b. P (get\<^bsub>x\<^esub> b)" .
 
 update_uexpr_rep_eq_thms
 
+lemma aext_twice: "(P \<oplus>\<^sub>p a) \<oplus>\<^sub>p b = P \<oplus>\<^sub>p (a ;\<^sub>L b)"
+  by (pred_auto)
+  
 lemma aext_id [alpha]: "P \<oplus>\<^sub>p 1\<^sub>L = P"
   by (pred_auto)
 
@@ -142,6 +145,7 @@ proof -
   done
 qed
 
+  (*
 lemma arestr_lit [alpha]: "\<guillemotleft>v\<guillemotright> \<restriction>\<^sub>p a = \<guillemotleft>v\<guillemotright>"
   by (pred_auto)
 
@@ -175,6 +179,7 @@ lemma arestr_or [alpha]: "(P \<or> Q)\<restriction>\<^sub>px = (P\<restriction>\
 
 lemma arestr_imp [alpha]: "(P \<Rightarrow> Q)\<restriction>\<^sub>px = (P\<restriction>\<^sub>px \<Rightarrow> Q\<restriction>\<^sub>px)"
   by (pred_auto)
+*)
 
 subsection {* Alphabet lens laws *}
 

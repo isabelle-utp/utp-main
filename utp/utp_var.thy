@@ -142,12 +142,16 @@ abbreviation (input) univ_alpha :: "('\<alpha>, '\<alpha>) uvar" ("\<Sigma>") wh
     through lense composition due to typing restrictions.
 *)
 
-nonterminal svid and svar and salpha
+nonterminal svid and svar and svar_list and salpha
 
 syntax
   "_salphaid"    :: "id \<Rightarrow> salpha" ("_" [998] 998)
   "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [998] 998)
   "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr ";" 75)
+  "_salphaset"   :: "svar_list \<Rightarrow> salpha" ("{_}")
+  "_salphamk"    :: "logic \<Rightarrow> salpha"
+  "_svar_nil"    :: "svar \<Rightarrow> svar_list" ("_")
+  "_svar_cons"   :: "svar \<Rightarrow> svar_list \<Rightarrow> svar_list" ("_,/ _")
   "_svid"        :: "id \<Rightarrow> svid" ("_" [999] 999)
   "_svid_alpha"  :: "svid" ("\<Sigma>")
   "_svid_empty"  :: "svid" ("\<emptyset>")
@@ -177,6 +181,11 @@ translations
   "_salphaid x" => "x"
   "_salphacomp x y" => "x +\<^sub>L y"
   "_salphavar x" => "x"
+  "_svar_nil x" => "x"
+  "_svar_cons x xs" => "x +\<^sub>L xs"
+  "_salphaset A" => "A"
+  "(_svar_cons x (_salphamk y))" <= "_salphamk (x +\<^sub>L y)" 
+  "x" <= "_salphamk x"    
   "_svid_alpha" == "\<Sigma>"
   "_svid_empty" == "0\<^sub>L"
   "_svid_dot x y" => "y ;\<^sub>L x"
@@ -186,7 +195,7 @@ translations
   "_spvar x" == "CONST svar x"
   "_sinvar x" == "CONST ivar x"
   "_soutvar x" == "CONST ovar x"
-
+  
 text {* Syntactic function to construct a uvar type given a return type *}
 
 syntax

@@ -726,11 +726,11 @@ lemma H1_rdesign:
   "H1(P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
   by (rel_auto)
 
-lemma H1_choice_closed:
+lemma H1_choice_closed [closure]:
   "\<lbrakk> P is H1; Q is H1 \<rbrakk> \<Longrightarrow> P \<sqinter> Q is H1"
   by (simp add: H1_def Healthy_def' disj_upred_def impl_alt_def semilattice_sup_class.sup_left_commute)
 
-lemma H1_inf_closed:
+lemma H1_inf_closed [closure]:
   "\<lbrakk> P is H1; Q is H1 \<rbrakk> \<Longrightarrow> P \<squnion> Q is H1"
   by (rel_blast)
 
@@ -753,7 +753,7 @@ lemma H1_UINF:
   shows "H1(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> H1(P(i)))"
   by (rel_auto)
 
-lemma H1_Inf:
+lemma H1_Inf [closure]:
   assumes "\<forall> P \<in> A. P is H1"
   shows "(\<Squnion> A) is H1"
 proof -
@@ -860,11 +860,11 @@ qed
 lemma H2_true: "H2(true) = true"
   by (rel_auto)
 
-lemma H2_choice_closed:
+lemma H2_choice_closed [closure]:
   "\<lbrakk> P is H2; Q is H2 \<rbrakk> \<Longrightarrow> P \<sqinter> Q is H2"
   by (metis H2_def Healthy_def' disj_upred_def seqr_or_distl)
 
-lemma H2_inf_closed:
+lemma H2_inf_closed [closure]:
   assumes "P is H2" "Q is H2"
   shows "P \<squnion> Q is H2"
 proof -
@@ -955,16 +955,26 @@ theorem H1_H2_is_rdesign:
   shows "P = pre\<^sub>D(P) \<turnstile>\<^sub>r post\<^sub>D(P)"
   by (metis H1_H2_eq_rdesign Healthy_def assms(1) assms(2))
 
+lemma H1_H2_refinement:
+  assumes "P is \<^bold>H" "Q is \<^bold>H"
+  shows "P \<sqsubseteq> Q \<longleftrightarrow> (`pre\<^sub>D(P) \<Rightarrow> pre\<^sub>D(Q)` \<and> `pre\<^sub>D(P) \<and> post\<^sub>D(Q) \<Rightarrow> post\<^sub>D(P)`)"
+  by (metis H1_H2_eq_rdesign Healthy_if assms rdesign_refinement)
+    
+lemma H1_H2_refines:
+  assumes "P is \<^bold>H" "Q is \<^bold>H" "P \<sqsubseteq> Q"
+  shows "pre\<^sub>D(Q) \<sqsubseteq> pre\<^sub>D(P)" "post\<^sub>D(P) \<sqsubseteq> (pre\<^sub>D(P) \<and> post\<^sub>D(Q))"
+  using H1_H2_refinement assms refBy_order by auto
+    
 lemma H1_H2_idempotent: "\<^bold>H (\<^bold>H P) = \<^bold>H P"
   by (simp add: H1_H2_commute H1_idem H2_idem)
 
-lemma H1_H2_Idempotent: "Idempotent \<^bold>H"
+lemma H1_H2_Idempotent [closure]: "Idempotent \<^bold>H"
   by (simp add: Idempotent_def H1_H2_idempotent)
 
-lemma H1_H2_monotonic: "Monotonic \<^bold>H"
+lemma H1_H2_monotonic [closure]: "Monotonic \<^bold>H"
   by (simp add: H1_monotone H2_def mono_def seqr_mono)
 
-lemma H1_H2_Continuous: "Continuous \<^bold>H"
+lemma H1_H2_Continuous [closure]: "Continuous \<^bold>H"
   by (simp add: Continuous_comp H1_Continuous H1_H2_comp H2_Continuous)
 
 lemma design_is_H1_H2 [closure]:
@@ -1008,7 +1018,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma USUP_H1_H2_closed:
+lemma USUP_H1_H2_closed [closure]:
   assumes "A \<noteq> {}" "\<forall> P \<in> A. P is \<^bold>H"
   shows "(\<Sqinter> A) is H1_H2"
 proof -
