@@ -1238,7 +1238,7 @@ lemma H1_H3_Continuous: "Continuous \<^bold>N"
 lemma H1_H3_impl_H2: "P is H1_H3 \<Longrightarrow> P is H1_H2"
   by (metis H1_H2_commute H1_idem H2_H3_absorb Healthy_def')
 
-lemma H1_H3_eq_design_d_comp: "H1 (H3 P) = ((\<not> P\<^sup>f) \<turnstile> P\<^sup>t ;; II\<^sub>D)"
+lemma H1_H3_eq_design_d_comp: "H1 (H3 P) = ((\<not> P\<^sup>f) \<turnstile> P\<^sup>t) ;; II\<^sub>D"
   by (metis H1_H2_eq_design H1_H3_commute H3_H2_absorb H3_def)
 
 lemma H1_H3_eq_design: "H1 (H3 P) = (\<not> (P\<^sup>f ;; true)) \<turnstile> P\<^sup>t"
