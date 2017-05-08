@@ -636,13 +636,13 @@ definition DoCSP :: "('\<phi>, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>, '\<phi
 definition PrefixCSP ::
   "('\<phi>, '\<sigma>) uexpr \<Rightarrow>
   ('\<sigma>, '\<phi>) action \<Rightarrow>
-  ('\<sigma>, '\<phi>) action" ("_ \<^bold>\<rightarrow> _" [81, 80] 80) where
+  ('\<sigma>, '\<phi>) action" where
 [upred_defs]: "PrefixCSP a P = (do\<^sub>C(a) ;; CSP(P))"
 
 abbreviation "OutputCSP c v P \<equiv> PrefixCSP (c\<cdot>v)\<^sub>u P"
 
 abbreviation GuardedChoiceCSP :: "'\<theta> set \<Rightarrow> ('\<theta> \<Rightarrow> ('\<sigma>, '\<theta>) action) \<Rightarrow> ('\<sigma>, '\<theta>) action" where
-"GuardedChoiceCSP A P \<equiv> (\<box> x\<in>A \<bullet> \<guillemotleft>x\<guillemotright> \<^bold>\<rightarrow> P(x))"
+"GuardedChoiceCSP A P \<equiv> (\<box> x\<in>A \<bullet> PrefixCSP \<guillemotleft>x\<guillemotright> (P(x)))"
 
 syntax
   "_GuardedChoiceCSP" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("\<box> _ \<in> _ \<^bold>\<rightarrow> _" [0,0,85] 86)
@@ -672,6 +672,12 @@ definition do\<^sub>I :: "
 
 subsection {* Syntax and Translations for Prefix *}
 
+syntax
+  "_simple_prefix" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<^bold>\<rightarrow> _" [81, 80] 80)
+  
+translations
+  "a \<^bold>\<rightarrow> P" == "CONST PrefixCSP \<guillemotleft>a\<guillemotright> P"
+  
 text {* We next configure a syntax for mixed prefixes. *}
 
 nonterminal prefix_elem and mixed_prefix
@@ -848,21 +854,21 @@ lemma CSP4_DoCSP [closure]: "do\<^sub>C(a) is CSP4"
 lemma NCSP_DoCSP [closure]: "do\<^sub>C(a) is NCSP"
   by (metis CSP3_DoCSP CSP4_DoCSP CSP_DoCSP Healthy_def NCSP_def comp_apply)
     
-lemma CSP_PrefixCSP [closure]: "a \<^bold>\<rightarrow> P is CSP"
+lemma CSP_PrefixCSP [closure]: "PrefixCSP a P is CSP"
   by (simp add: CSP_DoCSP PrefixCSP_def closure)
 
 lemma CSP3_PrefixCSP [closure]:
-  "a \<^bold>\<rightarrow> P is CSP3"
+  "PrefixCSP a P is CSP3"
   by (metis (no_types, hide_lams) CSP3_DoCSP CSP3_def Healthy_def PrefixCSP_def seqr_assoc)
     
 lemma CSP4_PrefixCSP [closure]: 
   assumes "P is CSP" "P is CSP4"
-  shows "a \<^bold>\<rightarrow> P is CSP4"
+  shows "PrefixCSP a P is CSP4"
   by (metis (no_types, hide_lams) CSP4_def Healthy_def PrefixCSP_def assms(1) assms(2) seqr_assoc)
     
 lemma NCSP_PrefixCSP [closure]:
   assumes "P is NCSP"
-  shows "a \<^bold>\<rightarrow> P is NCSP"
+  shows "PrefixCSP a P is NCSP"
   by (metis (no_types, hide_lams) CSP3_PrefixCSP CSP3_commutes_CSP4 CSP4_Idempotent CSP4_PrefixCSP 
             CSP_PrefixCSP Healthy_Idempotent Healthy_def NCSP_def NCSP_implies_CSP assms comp_apply)
     
@@ -1507,7 +1513,7 @@ lemma PrefixCSP_RHS_tri_lemma3:
     
 lemma preR_PrefixCSP [rdes]:
   assumes "P is CSP" "$ref \<sharp> pre\<^sub>R P"
-  shows "pre\<^sub>R(a \<^bold>\<rightarrow> P) = (pre\<^sub>R P)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
+  shows "pre\<^sub>R(PrefixCSP a P) = (pre\<^sub>R P)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
 proof -
   have "($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) wp\<^sub>R pre\<^sub>R P = (pre\<^sub>R P)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
     by (simp add: wpR_def PrefixCSP_RHS_tri_lemma3 R1_neg_preR usubst unrest assms ex_unrest)
@@ -1517,28 +1523,28 @@ qed
 
 lemma preR_PrefixCSP_NCSP [rdes]:
   assumes "P is NCSP"
-  shows "pre\<^sub>R(a \<^bold>\<rightarrow> P) = (pre\<^sub>R P)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
+  shows "pre\<^sub>R(PrefixCSP a P) = (pre\<^sub>R P)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
   by (simp add: CSP3_unrest_ref(1) NCSP_implies_CSP NCSP_implies_CSP3 assms preR_PrefixCSP)
   
 lemma periR_PrefixCSP [rdes]:
   assumes "P is CSP" "P is CSP3" "P is CSP4"
-  shows "peri\<^sub>R(a \<^bold>\<rightarrow> P) = 
+  shows "peri\<^sub>R(PrefixCSP a P) = 
          ((pre\<^sub>R P)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk> \<Rightarrow> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute> \<or> (peri\<^sub>R P)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>))"
   by (simp add: PrefixCSP_def assms Healthy_if)
      (simp add: assms NSRD_CSP4_intro closure rdes R1_neg_preR PrefixCSP_RHS_tri_lemma3 unrest ex_unrest usubst wpR_def)
 
 lemma postR_PrefixCSP [rdes]:
   assumes "P is CSP" "P is CSP3" "P is CSP4"
-  shows "post\<^sub>R(a \<^bold>\<rightarrow> P) = ((pre\<^sub>R P)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk> \<Rightarrow> (post\<^sub>R P)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>)"
+  shows "post\<^sub>R(PrefixCSP a P) = ((pre\<^sub>R P)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk> \<Rightarrow> (post\<^sub>R P)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>)"
   by (simp add: PrefixCSP_def assms Healthy_if) (simp add: assms NSRD_CSP4_intro closure rdes R1_neg_preR PrefixCSP_RHS_tri_lemma3 unrest ex_unrest usubst wpR_def)
     
 lemma PrefixCSP_RHS_tri:
   assumes "P is CSP" "P is CSP3"
-  shows "a \<^bold>\<rightarrow> P =
+  shows "PrefixCSP a P =
          \<^bold>R\<^sub>s (((pre\<^sub>R P)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>) \<turnstile>
               ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute> \<or> (peri\<^sub>R P)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>) \<diamondop> (post\<^sub>R P)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>)"
 proof -
-  have "a \<^bold>\<rightarrow> P =
+  have "PrefixCSP a P =
           \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>) \<diamondop> ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st)) ;;
           \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
     by (simp add: PrefixCSP_def Healthy_if DoCSP_RHS_tri SRD_reactive_tri_design assms)
@@ -1889,7 +1895,7 @@ lemma Productive_extChoice [closure]:
   shows "P \<box> Q is Productive"
   by (simp add: extChoice_def Productive_ExtChoice assms)
 
-lemma Productive_PrefixCSP [closure]: "P is NCSP \<Longrightarrow> a \<^bold>\<rightarrow> P is Productive"
+lemma Productive_PrefixCSP [closure]: "P is NCSP \<Longrightarrow> PrefixCSP a P is Productive"
   by (simp add: Healthy_if NCSP_DoCSP NCSP_implies_NSRD NSRD_is_SRD PrefixCSP_def Productive_DoCSP Productive_seq_1)
   
 lemma Productive_InputCSP [closure]: 
@@ -2052,16 +2058,16 @@ proof -
 *)
     
 lemma PrefixCSP_dist:
-  "a \<^bold>\<rightarrow> (P \<sqinter> Q) = (a \<^bold>\<rightarrow> P) \<sqinter> (a \<^bold>\<rightarrow> Q)"
+  "PrefixCSP a (P \<sqinter> Q) = (PrefixCSP a P) \<sqinter> (PrefixCSP a Q)"
   using Continuous_Disjunctous Disjunctuous_def PrefixCSP_Continuous by auto
     
 lemma DoCSP_is_Prefix:
-  "do\<^sub>C(a) = a \<^bold>\<rightarrow> Skip"
+  "do\<^sub>C(a) = PrefixCSP a Skip"
   by (simp add: PrefixCSP_def Healthy_if closure, metis CSP4_DoCSP CSP4_def Healthy_def)
 
 lemma Prefix_CSP_seq: 
   assumes "P is CSP" "Q is CSP"
-  shows "(a \<^bold>\<rightarrow> P) ;; Q = (a \<^bold>\<rightarrow> (P ;; Q))"
+  shows "(PrefixCSP a P) ;; Q = (PrefixCSP a (P ;; Q))"
   by (simp add: PrefixCSP_def seqr_assoc Healthy_if assms closure)
 
 subsection {* Guarded recursion *}
@@ -2334,7 +2340,7 @@ proof -
     by (simp add: USUP_as_Sup[THEN sym])
 qed
   
-lemma mu_example1: "(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = (\<Sqinter>i \<bullet> do\<^sub>C(a) \<^bold>^ (i+1)) ;; Miracle"
+lemma mu_example1: "(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = (\<Sqinter>i \<bullet> do\<^sub>C(\<guillemotleft>a\<guillemotright>) \<^bold>^ (i+1)) ;; Miracle"
   by (simp add: PrefixCSP_def mu_csp_form_1 closure)
     
 lemma preR_mu_example1 [rdes]: "pre\<^sub>R(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = true"
@@ -2342,8 +2348,8 @@ lemma preR_mu_example1 [rdes]: "pre\<^sub>R(\<mu> X \<bullet> a \<^bold>\<righta
 
 lemma periR_mu_example1 [rdes]: 
   "peri\<^sub>R(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = 
-   (\<Sqinter>x\<in>{0..} \<bullet> ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) \<^bold>^ x ;; ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>))"
-  by (simp add: mu_example1 rdes closure unrest wp seq_UINF_distr)
+   (\<Sqinter>x\<in>{0..} \<bullet> ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<guillemotleft>a\<guillemotright>\<rangle> \<and> $st\<acute> =\<^sub>u $st) \<^bold>^ x ;; ($tr\<acute> =\<^sub>u $tr \<and> \<guillemotleft>a\<guillemotright> \<notin>\<^sub>u $ref\<acute>))"
+  by (simp add: mu_example1 rdes closure unrest wp seq_UINF_distr alpha)
 
 lemma postR_mu_example1 [rdes]: 
   "post\<^sub>R(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = false"

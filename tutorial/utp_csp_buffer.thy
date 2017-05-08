@@ -1,3 +1,5 @@
+section {* Simple Buffer in UTP CSP *}
+
 theory utp_csp_buffer
   imports "../theories/utp_csp"
 begin
