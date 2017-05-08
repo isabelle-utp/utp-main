@@ -93,6 +93,12 @@ lemma aext_imp [alpha]: "(P \<Rightarrow> Q) \<oplus>\<^sub>p x = (P \<oplus>\<^
 
 lemma aext_iff [alpha]: "(P \<Leftrightarrow> Q) \<oplus>\<^sub>p x = (P \<oplus>\<^sub>p x \<Leftrightarrow> Q \<oplus>\<^sub>p x)"
   by (pred_auto)
+    
+lemma aext_mono: "P \<sqsubseteq> Q \<Longrightarrow> P \<oplus>\<^sub>p a \<sqsubseteq> Q \<oplus>\<^sub>p a"
+  by (pred_auto)
+
+lemma aext_cont [alpha]: "vwb_lens a \<Longrightarrow> (\<Sqinter> A) \<oplus>\<^sub>p a = (\<Sqinter> P\<in>A.  P \<oplus>\<^sub>p a)"
+  by (pred_simp)
 
 lemma unrest_aext [unrest]:
   "\<lbrakk> mwb_lens a; x \<sharp> p \<rbrakk> \<Longrightarrow> unrest (x ;\<^sub>L a) (p \<oplus>\<^sub>p a)"

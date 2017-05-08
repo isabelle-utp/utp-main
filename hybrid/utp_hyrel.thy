@@ -99,10 +99,7 @@ lemma cont_alpha_uvar [simp]: "vwb_lens \<^bold>c"
   by (simp add: comp_vwb_lens cont_alpha_def snd_vwb_lens)
 
 lemma cont_indep_disc [simp]: "\<^bold>c \<bowtie> \<^bold>d" "\<^bold>d \<bowtie> \<^bold>c"
-   apply (simp_all add: disc_alpha_def cont_alpha_def)
-   apply (rule lens_indep_sym)
-   apply (auto intro: lens_indep_sym split_prod_lens_indep)
-done
+   by (simp_all add: disc_alpha_def cont_alpha_def)
 
 text {* Both lenses are very well-behaved, effectively meaning they are valid variables. Moreover
   they are also independent, @{term "\<^bold>c \<bowtie> \<^bold>d"}, meaning they refer to disjoint parts of the

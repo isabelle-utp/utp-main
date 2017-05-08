@@ -947,7 +947,7 @@ definition
   NextStep =
     (tm:updateSS?\<^sub>u(d : true) \<rightarrow> NextStep) \<box>
     (tm:setT?\<^sub>u(t : true) \<rightarrow> NextStep) \<box>
-    (slaveInitialized) \<box>
+    (slaveInitialized ;; NextStep) \<box>
     (Terminated)
 
   \<bullet> Instantiation ;; InstantiationMode ;; InitializationMode ;; slaveInitialized
@@ -1043,7 +1043,7 @@ definition
   NextStep =
     (tm:updateSS?\<^sub>u(d : true) \<rightarrow> NextStep) \<box>
     (tm:setT?\<^sub>u(t : true) \<rightarrow> NextStep) \<box>
-    (slaveInitialized) \<box>
+    (slaveInitialized ;; NextStep) \<box>
     (Terminated)
 
   \<bullet> Instantiation ;; InstantiationMode ;; InitializationMode ;; slaveInitialized
@@ -1109,7 +1109,7 @@ definition
   NextStep =
     (tm:updateSS?(d) \<rightarrow>\<^sub>\<C> NextStep) \<box>
     (tm:setT?(t) \<rightarrow>\<^sub>\<C> NextStep) \<box>
-    (slaveInitialized) \<box>
+    (slaveInitialized ;; NextStep) \<box>
     (Terminated)
 
   \<bullet> Instantiation ;; InstantiationMode ;; InitializationMode ;; slaveInitialized

@@ -24,7 +24,7 @@ lemma sublens_pres_vwb:
 
 lemma sublens_refl:
   "X \<subseteq>\<^sub>L X"
-  using id_vwb_lens sublens_def by force
+  using id_vwb_lens sublens_def by fastforce
 
 lemma sublens_trans:
   "\<lbrakk> X \<subseteq>\<^sub>L Y; Y \<subseteq>\<^sub>L Z \<rbrakk> \<Longrightarrow> X \<subseteq>\<^sub>L Z"

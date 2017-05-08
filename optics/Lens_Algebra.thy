@@ -89,10 +89,10 @@ lemma comp_wb_lens: "\<lbrakk> wb_lens x; wb_lens y \<rbrakk> \<Longrightarrow> 
 lemma comp_mwb_lens: "\<lbrakk> mwb_lens x; mwb_lens y \<rbrakk> \<Longrightarrow> mwb_lens (x ;\<^sub>L y)"
   by (unfold_locales, simp_all add: lens_comp_def)
 
-lemma id_vwb_lens: "vwb_lens 1\<^sub>L"
+lemma id_vwb_lens [simp]: "vwb_lens 1\<^sub>L"
   by (unfold_locales, simp_all add: id_lens_def)
 
-lemma unit_vwb_lens: "vwb_lens 0\<^sub>L"
+lemma unit_vwb_lens [simp]: "vwb_lens 0\<^sub>L"
   by (unfold_locales, simp_all add: zero_lens_def)
 
 lemma comp_vwb_lens: "\<lbrakk> vwb_lens x; vwb_lens y \<rbrakk> \<Longrightarrow> vwb_lens (x ;\<^sub>L y)"
@@ -209,8 +209,12 @@ lemma lens_indep_right_ext [intro]:
   "x \<bowtie> z \<Longrightarrow> x \<bowtie> (y ;\<^sub>L z)"
   by (simp add: lens_indep_left_ext lens_indep_sym)
 
-lemma fst_snd_lens_indep:
+lemma fst_snd_lens_indep [simp]:
   "fst\<^sub>L \<bowtie> snd\<^sub>L"
+  by (simp add: lens_indep_def fst_lens_def snd_lens_def)
+
+lemma snd_fst_lens_indep [simp]:
+  "snd\<^sub>L \<bowtie> fst\<^sub>L"
   by (simp add: lens_indep_def fst_lens_def snd_lens_def)
 
 lemma split_prod_lens_indep:
