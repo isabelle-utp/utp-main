@@ -1634,7 +1634,7 @@ lemma SRD_reactive_tri_design:
   shows "\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) = P"
   by (metis Healthy_if SRD_as_reactive_tri_design assms)
 
-lemma RHS_tri_design_is_SRD:
+lemma RHS_tri_design_is_SRD [closure]:
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok\<acute> \<sharp> R"
   shows "\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) is SRD"
   by (rule RHS_design_is_SRD, simp_all add: unrest assms)
@@ -1897,6 +1897,13 @@ abbreviation Chaos :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp" w
 
 abbreviation Miracle :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp" where
 "Miracle \<equiv> \<^bold>\<top>\<^bsub>SRDES\<^esub>"
+
+abbreviation cond_srea ::  
+  "('s,'t::ordered_cancel_monoid_diff,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow> 
+  's upred \<Rightarrow>
+  ('s,'t,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow>
+  ('s,'t,'\<alpha>,'\<beta>) rel_rsp" ("(3_ \<triangleleft> _ \<triangleright>\<^sub>R/ _)" [52,0,53] 52) where
+"cond_srea P b Q \<equiv> P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<triangleright> Q"
 
 lemma Chaos_def: "Chaos = \<^bold>R\<^sub>s(false \<turnstile> true)"
 proof -
@@ -2178,7 +2185,47 @@ qed
 lemma SRD_right_Miracle_tri_lemma:
   assumes "P is SRD"
   shows "P ;; Miracle = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true) \<turnstile> (\<exists> $st\<acute> \<bullet> peri\<^sub>R P) \<diamondop> false)"
-  by (simp add: SRD_right_Miracle_lemma[OF assms], rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
+  by (simp add: SRD_right_Miracle_lemma[OF assms], rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)  
+
+lemma cond_srea_form:
+  "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) \<triangleleft> b \<triangleright>\<^sub>R \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2) =
+   \<^bold>R\<^sub>s((P \<triangleleft> b \<triangleright>\<^sub>R R) \<turnstile> (Q\<^sub>1 \<triangleleft> b \<triangleright>\<^sub>R S\<^sub>1) \<diamondop> (Q\<^sub>2 \<triangleleft> b \<triangleright>\<^sub>R S\<^sub>2))"
+proof -
+  have "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) \<triangleleft> b \<triangleright>\<^sub>R \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2) = \<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) \<triangleleft> R2c(\<lceil>b\<rceil>\<^sub>S\<^sub><) \<triangleright> \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2)"
+    by (pred_auto)
+  also have "... = \<^bold>R\<^sub>s (P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2 \<triangleleft> b \<triangleright>\<^sub>R R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2)"
+    by (simp add: RHS_cond)
+  also have "... = \<^bold>R\<^sub>s ((P \<triangleleft> b \<triangleright>\<^sub>R R) \<turnstile> (Q\<^sub>1 \<diamondop> Q\<^sub>2 \<triangleleft> b \<triangleright>\<^sub>R S\<^sub>1 \<diamondop> S\<^sub>2))"
+    by (simp add: design_condr)
+  also have "... = \<^bold>R\<^sub>s((P \<triangleleft> b \<triangleright>\<^sub>R R) \<turnstile> (Q\<^sub>1 \<triangleleft> b \<triangleright>\<^sub>R S\<^sub>1) \<diamondop> (Q\<^sub>2 \<triangleleft> b \<triangleright>\<^sub>R S\<^sub>2))"
+    by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
+  finally show ?thesis .
+qed
+      
+lemma SRD_cond_srea [closure]:
+  assumes "P is SRD" "Q is SRD"
+  shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is SRD"
+proof -
+  have "P \<triangleleft> b \<triangleright>\<^sub>R Q = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) \<triangleleft> b \<triangleright>\<^sub>R \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> peri\<^sub>R(Q) \<diamondop> post\<^sub>R(Q))"
+    by (simp add: SRD_reactive_tri_design assms)
+  also have "... = \<^bold>R\<^sub>s ((pre\<^sub>R P \<triangleleft> b \<triangleright>\<^sub>R pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<triangleleft> b \<triangleright>\<^sub>R peri\<^sub>R Q) \<diamondop> (post\<^sub>R P \<triangleleft> b \<triangleright>\<^sub>R post\<^sub>R Q))"
+    by (simp add: cond_srea_form)
+  also have "... is SRD"
+    by (simp add: RHS_tri_design_is_SRD unrest)
+  finally show ?thesis .
+qed
+    
+lemma preR_cond_srea [rdes]: 
+  "pre\<^sub>R(P \<triangleleft> b \<triangleright>\<^sub>R Q) = (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> pre\<^sub>R(P) \<or> \<not> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> pre\<^sub>R(Q))"
+  by (rel_auto)
+
+lemma periR_cond_srea [rdes]: 
+  "peri\<^sub>R(P \<triangleleft> b \<triangleright>\<^sub>R Q) = (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> peri\<^sub>R(P) \<or> \<not> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> peri\<^sub>R(Q))"
+  by (rel_auto)
+
+lemma postR_cond_srea [rdes]: 
+  "post\<^sub>R(P \<triangleleft> b \<triangleright>\<^sub>R Q) = (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R(P) \<or> \<not> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R(Q))"
+  by (rel_auto)
   
 text {* Properties about healthiness condition RD3 *}
 

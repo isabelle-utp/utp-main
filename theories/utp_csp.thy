@@ -188,6 +188,9 @@ lemma post_unrest_ref [unrest]: "$ref \<sharp> P \<Longrightarrow> $ref \<sharp>
 lemma cmt_unrest_ref [unrest]: "$ref \<sharp> P \<Longrightarrow> $ref \<sharp> cmt\<^sub>R(P)"
   by (simp add: cmt\<^sub>R_def unrest)
 
+lemma st_lift_unrest_ref' [unrest]: "$ref\<acute> \<sharp> \<lceil>b\<rceil>\<^sub>S\<^sub><"
+  by (rel_auto)
+    
 lemma RHS_design_ref_unrest [unrest]:
   "\<lbrakk>$ref \<sharp> P; $ref \<sharp> Q \<rbrakk> \<Longrightarrow> $ref \<sharp> (\<^bold>R\<^sub>s(P \<turnstile> Q))\<lbrakk>false/$wait\<rbrakk>"
   by (simp add: RHS_def R1_def R2c_def R2s_def R3h_def design_def usubst unrest)
@@ -427,7 +430,7 @@ lemma NSRD_CSP4_intro:
   shows "P is NSRD"
   by (simp add: CSP4_implies_RD3 SRD_RD3_implies_NSRD assms(1) assms(2))
     
-lemma CSP4_st'_unrest_peri:
+lemma CSP4_st'_unrest_peri [unrest]:
   assumes "P is CSP" "P is CSP4"
   shows "$st\<acute> \<sharp> peri\<^sub>R(P)"
   by (simp add: NSRD_CSP4_intro NSRD_st'_unrest_peri assms)
@@ -445,7 +448,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma CSP4_ref'_unrest_pre:
+lemma CSP4_ref'_unrest_pre [unrest]:
   assumes "P is CSP" "P is CSP4"
   shows "$ref\<acute> \<sharp> pre\<^sub>R(P)"
 proof -
@@ -458,7 +461,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma CSP4_ref'_unrest_post:
+lemma CSP4_ref'_unrest_post [unrest]:
   assumes "P is CSP" "P is CSP4"
   shows "$ref\<acute> \<sharp> post\<^sub>R(P)"
 proof -
@@ -781,7 +784,25 @@ done
 
 lemma NCSP_SUP_closure [closure]: "\<lbrakk> \<And> i. P(i) is NCSP; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter> i\<in>A. P(i)) is NCSP"
   by (metis (mono_tags, lifting) Ball_Collect NCSP_Sup_closure image_iff image_is_empty)
-  
+
+(*
+lemma cond_srea_NCSP [closure]:
+  assumes "P is NCSP" "Q is NCSP"
+  shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is NCSP"
+proof (rule NCSP_intro)
+  show "P \<triangleleft> b \<triangleright>\<^sub>R Q is CSP3"
+    by (rule CSP3_SRD_intro, simp_all add: assms closure rdes unrest)
+  show "P \<triangleleft> b \<triangleright>\<^sub>R Q is CSP4"
+  proof -
+    have 1: "((\<not> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<or> \<not> pre\<^sub>R P) \<and> (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<or> \<not> pre\<^sub>R Q)) ;; R1 true = ((\<not> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<or> \<not> pre\<^sub>R P) \<and> (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<or> \<not> pre\<^sub>R Q))"
+      sorry
+    thus ?thesis 
+      by (rule_tac CSP4_tri_intro, simp_all add: unrest closure assms rdes)
+  qed
+qed (simp add: closure assms)
+*)  
+
+    
 lemma AssignsCSP_CSP [closure]: "\<langle>\<sigma>\<rangle>\<^sub>C is CSP"
   by (simp add: AssignsCSP_def RHS_tri_design_is_SRD unrest)
 
@@ -1828,7 +1849,23 @@ proof (rule Productive_intro)
   show "$wait\<acute> \<sharp> pre\<^sub>R (\<^bold>R\<^sub>s (P \<turnstile> Q \<diamondop> R))"
     by (simp add: rea_pre_RHS_design rea_post_RHS_design usubst R1_def R2c_def R2s_def assms unrest)
 qed
-        
+
+lemma Productive_cond_rea [closure]: 
+  assumes "P is CSP" "P is Productive" "Q is CSP" "Q is Productive"
+  shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is Productive"
+proof -
+  have "P \<triangleleft> b \<triangleright>\<^sub>R Q = 
+        \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)) \<triangleleft> b \<triangleright>\<^sub>R \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> peri\<^sub>R(Q) \<diamondop> (post\<^sub>R(Q) \<and> $tr <\<^sub>u $tr\<acute>))"
+    by (metis Healthy_if Productive_form assms)
+  also have "... = \<^bold>R\<^sub>s ((pre\<^sub>R P \<triangleleft> b \<triangleright>\<^sub>R pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<triangleleft> b \<triangleright>\<^sub>R peri\<^sub>R Q) \<diamondop> ((post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) \<triangleleft> b \<triangleright>\<^sub>R (post\<^sub>R Q \<and> $tr\<acute> >\<^sub>u $tr)))"
+    by (simp add: cond_srea_form)
+  also have "... = \<^bold>R\<^sub>s ((pre\<^sub>R P \<triangleleft> b \<triangleright>\<^sub>R pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<triangleleft> b \<triangleright>\<^sub>R peri\<^sub>R Q) \<diamondop> (((post\<^sub>R P) \<triangleleft> b \<triangleright>\<^sub>R (post\<^sub>R Q)) \<and> $tr\<acute> >\<^sub>u $tr))"      
+    by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
+  also have "... is Productive"
+    by (simp add: Healthy_def Productive_RHS_design_form unrest)
+  finally show ?thesis .
+qed
+  
 lemma Productive_seq_1 [closure]:
   assumes "P is NCSP" "P is Productive" "Q is NCSP"
   shows "P ;; Q is Productive"
@@ -2128,7 +2165,7 @@ lemma Guarded_const [closure]: "Guarded (\<lambda> X. P)"
     
 lemma Guarded_if_Productive [closure]:
   fixes P :: "('\<sigma>,'\<phi>) action"
-  assumes "P is NCSP" "P is Productive"
+  assumes "P is NSRD" "P is Productive"
   shows "Guarded (\<lambda> X. P ;; CSP(X))"
 proof (clarsimp simp add: Guarded_def)
   -- {* We split the proof into three cases corresponding to valuations for ok, wait, and wait'
@@ -2157,7 +2194,7 @@ proof (clarsimp simp add: Guarded_def)
         
         have "(P\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP Y)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk> = 
               ((\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)))\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP Y)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
-          by (metis Healthy_def Productive_form assms(1) assms(2) NCSP_implies_CSP)
+          by (metis Healthy_def Productive_form assms(1) assms(2) NSRD_is_SRD)
         also have "... =  
              ((R1(R2c(pre\<^sub>R(P) \<Rightarrow> ($ok\<acute> \<and> post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))))\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP Y)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
           by (simp add: RHS_def R1_def R2c_def R2s_def R3h_def RD1_def RD2_def usubst unrest assms closure design_def)
@@ -2246,7 +2283,7 @@ proof -
   have "PrefixCSP a = (\<lambda> X. do\<^sub>C(a) ;; CSP(X))"
     by (simp add: fun_eq_iff PrefixCSP_def)
   thus ?thesis
-    using Guarded_if_Productive NCSP_DoCSP Productive_DoCSP by auto
+    using Guarded_if_Productive NCSP_DoCSP NCSP_implies_NSRD Productive_DoCSP by auto
 qed
 
 lemma ExtChoice_Guarded [closure]:
@@ -2304,7 +2341,7 @@ lemma mu_CSP_form_1_type [closure]:
 text {* Example fixed-point calculation *}
   
 lemma mu_csp_form_1 [rdes]: 
-  assumes "P is NCSP" "P is Productive"
+  assumes "P is NSRD" "P is Productive"
   shows "(\<mu> X \<bullet> P ;; CSP(X)) = (\<Sqinter>i \<bullet> P \<^bold>^ (i+1)) ;; Miracle"
 proof -
   have 1:"Continuous (\<lambda>X. P ;; CSP X)"
@@ -2331,7 +2368,7 @@ proof -
     next
       case (Suc i)          
       then show ?case
-        by (simp add: Healthy_if NCSP_implies_CSP SRD_power_Suc SRD_seqr_closure assms(1) seqr_assoc srdes_theory_continuous.weak.top_closed)
+        by (simp add: Healthy_if NSRD_is_SRD SRD_power_Suc SRD_seqr_closure assms(1) seqr_assoc srdes_theory_continuous.weak.top_closed)
     qed
   qed
   also have "... = (\<Sqinter>i. P \<^bold>^ (i+1)) ;; Miracle"
@@ -2340,6 +2377,11 @@ proof -
     by (simp add: USUP_as_Sup[THEN sym])
 qed
   
+lemma mu_csp_form_NSRD [closure]:
+  assumes "P is NCSP" "P is Productive"
+  shows "(\<mu> X \<bullet> P ;; CSP(X)) is NSRD"
+  by (simp add: mu_csp_form_1 assms closure)
+
 lemma mu_example1: "(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = (\<Sqinter>i \<bullet> do\<^sub>C(\<guillemotleft>a\<guillemotright>) \<^bold>^ (i+1)) ;; Miracle"
   by (simp add: PrefixCSP_def mu_csp_form_1 closure)
     
