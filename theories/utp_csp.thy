@@ -2373,11 +2373,22 @@ proof -
   finally show ?thesis 
     by (simp add: USUP_as_Sup[THEN sym])
 qed
-  
+
 lemma mu_csp_form_NSRD [closure]:
   assumes "P is NCSP" "P is Productive"
   shows "(\<mu> X \<bullet> P ;; CSP(X)) is NSRD"
   by (simp add: mu_csp_form_1 assms closure)
+
+lemma mu_csp_form_1': 
+  assumes "P is NCSP" "P is Productive"
+  shows "(\<mu> X \<bullet> P ;; CSP(X)) = (P ;; P\<^sup>\<star>) ;; Miracle"
+proof -
+  have "(\<mu> X \<bullet> P ;; CSP(X)) = (\<Sqinter> i\<in>UNIV \<bullet> P ;; P \<^bold>^ i) ;; Miracle"
+    by (simp add: mu_csp_form_1 assms ustar_def)
+  also have "... = (P ;; P\<^sup>\<star>) ;; Miracle"
+    by (simp only: seq_UINF_distl[THEN sym], simp add: ustar_def)
+  finally show ?thesis .
+qed
 
 lemma mu_example1: "(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = (\<Sqinter>i \<bullet> do\<^sub>C(\<guillemotleft>a\<guillemotright>) \<^bold>^ (i+1)) ;; Miracle"
   by (simp add: PrefixCSP_def mu_csp_form_1 closure)
