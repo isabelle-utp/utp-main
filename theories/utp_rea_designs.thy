@@ -6,7 +6,7 @@ begin
 
 subsection {* Preliminaries *}
 
-named_theorems rdes
+named_theorems rdes and rdes_def
   
 text {* R3 as presented in the UTP book and related publications is not sensitive to state, although
   reactive designs often need this property. Thus is is necessary to use a modification of R3
@@ -1919,7 +1919,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma Chaos_tri_def: "Chaos = \<^bold>R\<^sub>s(false \<turnstile> true \<diamondop> true)"
+lemma Chaos_tri_def [rdes_def]: "Chaos = \<^bold>R\<^sub>s(false \<turnstile> true \<diamondop> true)"
   by (simp add: Chaos_def design_false_pre)
     
 lemma Miracle_def: "Miracle = \<^bold>R\<^sub>s(true \<turnstile> false)"
@@ -1933,7 +1933,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma Miracle_tri_def: "Miracle = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> false)"
+lemma Miracle_tri_def [rdes_def]: "Miracle = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> false)"
   by (simp add: Miracle_def wait'_cond_idem)
   
 thm srdes_theory_continuous.weak.bottom_lower
@@ -1975,7 +1975,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma assigns_rea_RHS_tri_des:
+lemma assigns_rea_RHS_tri_des [rdes_def]:
   "\<langle>\<sigma>\<rangle>\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S))"
   by (rel_auto)
 
@@ -2018,14 +2018,14 @@ lemma postR_assigns_rea [rdes]: "post\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R
 lemma RHS_design_choice: "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1) \<sqinter> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (Q\<^sub>1 \<or> Q\<^sub>2))"
   by (metis RHS_inf design_choice)
 
-lemma RHS_tri_design_choice: "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqinter> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<or> Q\<^sub>2) \<diamondop> (P\<^sub>3 \<or> Q\<^sub>3))"
+lemma RHS_tri_design_choice [rdes_def]: "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqinter> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<or> Q\<^sub>2) \<diamondop> (P\<^sub>3 \<or> Q\<^sub>3))"
   apply (simp add: RHS_design_choice)
   apply (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"])
   apply (simp)
   apply (rel_auto)
 done
 
-lemma RHS_design_USUP:
+lemma RHS_design_USUP [rdes_def]:
   assumes "A \<noteq> {}"
   shows "(\<Sqinter> i \<in> A \<bullet> \<^bold>R\<^sub>s(P(i) \<turnstile> Q(i))) = \<^bold>R\<^sub>s((\<Squnion> i \<in> A \<bullet> P(i)) \<turnstile> (\<Sqinter> i \<in> A \<bullet> Q(i)))"
   by (subst RHS_INF[OF assms, THEN sym], simp add: design_USUP assms)
@@ -2057,7 +2057,7 @@ lemma periR_inf [rdes]: "peri\<^sub>R(P \<sqinter> Q) = (peri\<^sub>R(P) \<or> p
 lemma postR_inf [rdes]: "post\<^sub>R(P \<sqinter> Q) = (post\<^sub>R(P) \<or> post\<^sub>R(Q))"
   by (rel_simp)
     
-lemma SRD_USUP:
+lemma SRD_USUP [rdes_def]:
   assumes "A \<noteq> {}" "A \<subseteq> \<lbrakk>SRD\<rbrakk>\<^sub>H"
   shows "\<Sqinter> A = \<^bold>R\<^sub>s((\<And> P\<in>A \<bullet> pre\<^sub>R(P)) \<turnstile> (\<Or> P\<in>A \<bullet> peri\<^sub>R(P)) \<diamondop> (\<Or> P\<in>A \<bullet> post\<^sub>R(P)))"
 proof -
@@ -2140,7 +2140,7 @@ qed
 lemma SRD_srdes_skip: "II\<^sub>R is SRD"
   by (simp add: srdes_skip_def RHS_design_is_SRD unrest)
 
-lemma srdes_skip_tri_design: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R))"
+lemma srdes_skip_tri_design [rdes_def]: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R))"
   by (simp add: srdes_skip_def, rel_auto)
   
 lemma SRD_right_Chaos_lemma:
@@ -2190,7 +2190,7 @@ lemma SRD_right_Miracle_tri_lemma:
   shows "P ;; Miracle = \<^bold>R\<^sub>s ((\<not> (\<not> pre\<^sub>R P) ;; R1 true) \<turnstile> (\<exists> $st\<acute> \<bullet> peri\<^sub>R P) \<diamondop> false)"
   by (simp add: SRD_right_Miracle_lemma[OF assms], rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)  
 
-lemma cond_srea_form:
+lemma cond_srea_form [rdes_def]:
   "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) \<triangleleft> b \<triangleright>\<^sub>R \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2) =
    \<^bold>R\<^sub>s((P \<triangleleft> b \<triangleright>\<^sub>R R) \<turnstile> (Q\<^sub>1 \<triangleleft> b \<triangleright>\<^sub>R S\<^sub>1) \<diamondop> (Q\<^sub>2 \<triangleleft> b \<triangleright>\<^sub>R S\<^sub>2))"
 proof -
@@ -2481,7 +2481,7 @@ lemma NSRD_is_RD3 [closure]:
   shows "P is RD3"
   by (simp add: NSRD_is_SRD NSRD_neg_pre_unit NSRD_st'_unrest_peri RD3_intro_pre assms) 
 
-lemma NSRD_composition_wp:
+lemma NSRD_composition_wp [rdes_def]:
   assumes "P is NSRD" "Q is SRD"
   shows "P ;; Q =
          \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<or> (post\<^sub>R P ;; peri\<^sub>R Q)) \<diamondop> (post\<^sub>R P ;; post\<^sub>R Q))"
@@ -2987,7 +2987,7 @@ next
   have "... = (pre\<^sub>R P \<Rightarrow> peri\<^sub>R P \<or> (post\<^sub>R P wp\<^sub>R pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow> post\<^sub>R P ;; ((\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P)))"
   proof -
     have "(\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) is R1"
-      by (auto simp add: closure assms)
+      by (simp add: NSRD_is_SRD R1_Continuous R1_power Sup_Continuous_closed assms postR_SRD_R1)
     hence 1:"((\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P) is R1"
       by (simp add: closure assms)
     moreover have "(\<not> pre\<^sub>R (P ;; P \<^bold>^ n)) is R1"
@@ -3627,6 +3627,12 @@ lemma RHS_tri_design_par:
     
 subsection {* Reactive design tactics *}
 
+method rdes_simp = (simp add: rdes_def rdes closure alpha usubst unrest wp prod.case_eq_if)
+  
+text {* Tactic to calculate pre/peri/postconditions from reactive designs *}
+  
+method rdes_calc = (simp add: rdes closure alpha usubst unrest wp prod.case_eq_if)
+  
 text {* The following tactic attempts to prove a reactive design refinement by calculation of
   the pre-, peri-, and postconditions and then showing three implications between them using
   rel_blast. *}

@@ -81,7 +81,7 @@ lemma Healthy_apply_closed:
   shows "F(P) is H"
   using assms(1) assms(2) by auto
     
-lemma Healthy_set_image_member [closure]: 
+lemma Healthy_set_image_member: 
   "\<lbrakk> P \<in> F ` A; \<And> x. F x is H \<rbrakk> \<Longrightarrow> P is H"
   by blast
     
@@ -92,8 +92,6 @@ lemma Healthy_SUPREMUM:
 lemma Healthy_INFIMUM:
   "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> INFIMUM A H = \<Squnion> A"
   by (drule Healthy_carrier_image, presburger)
-    
-declare image_subsetI [closure]
     
 lemma Healthy_nu [closure]: 
   assumes "mono F" "F \<in> \<lbrakk>id\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>H\<rbrakk>\<^sub>H"

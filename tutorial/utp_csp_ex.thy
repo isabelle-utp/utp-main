@@ -3,8 +3,10 @@ section {* CSP process examples *}
 theory utp_csp_ex
   imports "../theories/utp_csp"
 begin
-  
+
 declare zero_list_def [simp]
+  
+text {* In this theory we calculate reactive designs for a number of simple CSP processes. *}
   
 lemma csp_ex_1:
   "(a \<^bold>\<rightarrow> Skip) = \<^bold>R\<^sub>s(true \<turnstile> (tt =\<^sub>u \<langle>\<rangle> \<and> \<guillemotleft>a\<guillemotright> \<notin>\<^sub>u $ref\<acute>) \<diamondop> (tt =\<^sub>u \<langle>\<guillemotleft>a\<guillemotright>\<rangle> \<and> $st\<acute> =\<^sub>u $st))"  
