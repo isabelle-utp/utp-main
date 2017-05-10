@@ -51,7 +51,7 @@ definition
      (\<mu> X \<bullet> \<^bold>c:vel, \<^bold>c:pos := 0, 2.0 ;;
             (\<langle>pos;vel \<bullet> \<guillemotleft>(\<lambda> t (v, p). (grav, v))\<guillemotright>\<rangle>\<^sub>H
               [&pos \<le>\<^sub>u 0]\<^sub>H
-             (\<^bold>c:vel := - 0.8 * &\<^bold>c:vel ;; X)))"
+             (\<^bold>c:vel := (- 0.8 * &\<^bold>c:vel) ;; X)))"
 
 definition
   "thermostat =
