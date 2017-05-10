@@ -3059,6 +3059,51 @@ next
   finally show ?case by (simp)
 qed
   
+subsection {* Syntax for reactive design contracts *}
+
+text {* We give an experimental syntax for reactive design contracts $RD[P | Q | R]$, where $P$ is
+  a precondition on undashed state variables only, $Q$ is a pericondition that can refer to the
+  trace and before state but not the after state, and $R$ is a postcondition. Both $Q$ and $R$
+  can refer only to the trace contribution through a HOL variable $trace$ which is bound to
+  @{term "tt"}. *}
+  
+definition mk_RD :: "'s upred \<Rightarrow> ('t::ordered_cancel_monoid_diff \<Rightarrow> 's upred) \<Rightarrow> ('t \<Rightarrow> 's hrel) \<Rightarrow> ('s, 't, 'a) hrel_rsp" where
+"mk_RD P Q R = \<^bold>R\<^sub>s(\<lceil>P\<rceil>\<^sub>S\<^sub>< \<turnstile> \<lceil>Q(x)\<rceil>\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>tt\<rbrakk> \<diamondop> \<lceil>R(x)\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>tt\<rbrakk>)"
+
+syntax
+  "_trace_var" :: "logic"
+  "_mk_RD"    :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("RD[_/ | _/ | _]")
+
+parse_translation {*
+let
+  fun trace_var_tr [] = Syntax.free "trace"
+    | trace_var_tr _  = raise Match;
+in
+[(@{syntax_const "_trace_var"}, K trace_var_tr)]
+end
+*}
+
+translations
+  "RD[P|Q|R]" => "CONST mk_RD P (\<lambda> _trace_var. Q) (\<lambda> _trace_var. R)"
+  "RD[P|Q|R]" <= "CONST mk_RD P (\<lambda> x. Q) (\<lambda> y. R)"  
+  
+lemma SRD_mk_RD [closure]: "RD[P | Q(trace) | R(trace)] is SRD"
+  by (simp add: mk_RD_def closure unrest)
+  
+lemma preR_mk_RD [rdes]: "pre\<^sub>R(RD[P | Q(trace) | R(trace) ]) = (\<not> R1(\<not> \<lceil>P\<rceil>\<^sub>S\<^sub><))"
+  by (simp add: mk_RD_def rea_pre_RHS_design usubst unrest R2c_not R2c_lift_state_pre)
+
+lemma R2c_msubst_tt: "R2c (msubst (\<lambda>x. \<lceil>Q x\<rceil>\<^sub>S) tt) = (msubst (\<lambda>x. \<lceil>Q x\<rceil>\<^sub>S) tt)"
+  by (rel_auto)
+    
+lemma periR_mk_RD [rdes]: "peri\<^sub>R(RD[P | Q(trace) | R(trace) ]) = ((\<not> R1(\<not> \<lceil>P\<rceil>\<^sub>S\<^sub><)) \<Rightarrow> R1((\<lceil>Q(trace)\<rceil>\<^sub>S\<^sub><)\<lbrakk>trace\<rightarrow>tt\<rbrakk>))"
+  by (simp add: mk_RD_def rea_peri_RHS_design usubst unrest R2c_not R2c_lift_state_pre 
+                impl_alt_def R2c_disj R2c_msubst_tt R1_disj)
+
+lemma postR_mk_RD [rdes]: "post\<^sub>R(RD[P | Q(trace) | R(trace) ]) = ((\<not> R1(\<not> \<lceil>P\<rceil>\<^sub>S\<^sub><)) \<Rightarrow> R1((\<lceil>R(trace)\<rceil>\<^sub>S)\<lbrakk>trace\<rightarrow>tt\<rbrakk>))"
+  by (simp add: mk_RD_def rea_post_RHS_design usubst unrest R2c_not R2c_lift_state_pre 
+                impl_alt_def R2c_disj R2c_msubst_tt R1_disj)
+  
 subsection {* Reactive design parallel-by-merge *}
 
 text {* R3h implicitly depends on RD1, and therefore it requires that both sides be RD1. We also

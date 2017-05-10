@@ -33,5 +33,8 @@ lemma msubst_conj [usubst]: "(P(x) \<and> Q(x))\<lbrakk>x\<rightarrow>v\<rbrakk>
   
 lemma msubst_seq [usubst]: "(P(x) ;; Q(x))\<lbrakk>x\<rightarrow>\<guillemotleft>v\<guillemotright>\<rbrakk> = ((P(x))\<lbrakk>x\<rightarrow>\<guillemotleft>v\<guillemotright>\<rbrakk> ;; (Q(x))\<lbrakk>x\<rightarrow>\<guillemotleft>v\<guillemotright>\<rbrakk>)"
   by (rel_auto)  
+    
+lemma msubst_unrest [unrest]: "\<lbrakk> \<And> v. x \<sharp> P(v); x \<sharp> k \<rbrakk> \<Longrightarrow> x \<sharp> P(v)\<lbrakk>v\<rightarrow>k\<rbrakk>"
+  by (pred_auto)
   
 end

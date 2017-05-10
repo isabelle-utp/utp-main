@@ -693,37 +693,37 @@ translations
   
 text {* We next configure a syntax for mixed prefixes. *}
 
-nonterminal prefix_elem and mixed_prefix
+nonterminal prefix_elem' and mixed_prefix'
 
-syntax "_end_prefix" :: "prefix_elem \<Rightarrow> mixed_prefix" ("_")
+syntax "_end_prefix" :: "prefix_elem' \<Rightarrow> mixed_prefix'" ("_")
   
 text {* Input Prefix: @{text "\<dots>?(x)"} *}
 
-syntax "_simple_input_prefix" :: "id \<Rightarrow> prefix_elem"  ("?'(_')")
+syntax "_simple_input_prefix" :: "id \<Rightarrow> prefix_elem'"  ("?'(_')")
   
 text {* Input Prefix with Constraint: @{text "\<dots>?(x : P)"} *}
 
-syntax "_input_prefix" :: "id \<Rightarrow> ('\<sigma>, '\<epsilon>) action \<Rightarrow> prefix_elem" ("?'(_ :/ _')")
+syntax "_input_prefix" :: "id \<Rightarrow> ('\<sigma>, '\<epsilon>) action \<Rightarrow> prefix_elem'" ("?'(_ :/ _')")
 
 text {* Output Prefix: @{text "\<dots>![v]e"} *}
 
 text {* A variable name must currently be provided for outputs, too. Fix?! *}
 
-syntax "_output_prefix" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem" ("!'(_')" [999] 999)
-syntax "_output_prefix" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem" (".'(_')" [999] 999)
+syntax "_output_prefix" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem'" ("!'(_')" [999] 999)
+syntax "_output_prefix" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem'" (".'(_')" [999] 999)
 
-syntax (output) "_output_prefix_pp" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem" ("!'(_')")
+syntax (output) "_output_prefix_pp" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem'" ("!'(_')")
 
 syntax
-  "_prefix_aux" :: "pttrn \<Rightarrow> logic \<Rightarrow> prefix_elem"
+  "_prefix_aux" :: "pttrn \<Rightarrow> logic \<Rightarrow> prefix_elem'"
   
 text {* Mixed-Prefix Action: @{text "c\<dots>(prefix) \<^bold>\<rightarrow> A"} *}
 
-syntax "_mixed_prefix" :: "prefix_elem \<Rightarrow> mixed_prefix \<Rightarrow> mixed_prefix" ("__")
+syntax "_mixed_prefix" :: "prefix_elem' \<Rightarrow> mixed_prefix' \<Rightarrow> mixed_prefix'" ("__")
 
 syntax 
   "_prefix_action" ::
-  "('a, '\<epsilon>) chan \<Rightarrow> mixed_prefix \<Rightarrow> ('\<sigma>, '\<epsilon>) action \<Rightarrow> ('\<sigma>, '\<epsilon>) action"
+  "('a, '\<epsilon>) chan \<Rightarrow> mixed_prefix' \<Rightarrow> ('\<sigma>, '\<epsilon>) action \<Rightarrow> ('\<sigma>, '\<epsilon>) action"
   ("(__ \<^bold>\<rightarrow>/ _)" [81, 81, 80] 80)
   
 text {* Syntax translations *}
