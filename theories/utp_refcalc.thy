@@ -8,7 +8,7 @@ abbreviation spec_stat :: "('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> 
 "spec_stat w pre post \<equiv> (pre \<turnstile>\<^sub>n w:[\<lceil>post\<rceil>\<^sub>>])"
 
 syntax
-  "_spec_stat" :: "salpha \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> hrel_des" ("_:[_,_]\<^sub>u" [70,0,0] 70)
+  "_spec_stat" :: "salpha \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> hrel_des" ("_:[_,_]\<^sub>u" [90,0,0] 90)
 
 translations
   "_spec_stat w pre post" \<rightleftharpoons> "CONST spec_stat w pre post"
