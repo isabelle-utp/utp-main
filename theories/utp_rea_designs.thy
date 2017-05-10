@@ -63,7 +63,10 @@ done
 lemma st'_unrest_st_lift_pred [unrest]:
   "$st\<acute> \<sharp> \<lceil>a\<rceil>\<^sub>S\<^sub><"
   by (pred_auto)
-   
+
+lemma st_lift_R1_true_right: "\<lceil>b\<rceil>\<^sub>S\<^sub>< ;; R1(true) = \<lceil>b\<rceil>\<^sub>S\<^sub><"
+  by (rel_auto)
+    
 lemma st_bij_lemma: "bij_lens (st\<^sub>a +\<^sub>L \<Sigma>\<^sub>s)"
   by (unfold_locales, auto simp add: lens_defs)
 
@@ -2214,7 +2217,7 @@ proof -
     by (simp add: RHS_tri_design_is_SRD unrest)
   finally show ?thesis .
 qed
-    
+  
 lemma preR_cond_srea [rdes]: 
   "pre\<^sub>R(P \<triangleleft> b \<triangleright>\<^sub>R Q) = (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> pre\<^sub>R(P) \<or> \<not> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> pre\<^sub>R(Q))"
   by (rel_auto)
@@ -2629,6 +2632,25 @@ proof -
   also have "... = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
     by (simp add: assigns_rea_RHS_tri_des)
   finally show ?thesis .
+qed
+  
+lemma NSRD_cond_srea [closure]:
+  assumes "P is NSRD" "Q is NSRD"
+  shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is NSRD"
+proof (rule NSRD_intro)
+  show "P \<triangleleft> b \<triangleright>\<^sub>R Q is SRD"
+    by (simp add: closure assms)
+  show "(\<not> pre\<^sub>R (P \<triangleleft> b \<triangleright>\<^sub>R Q)) ;; R1 true = (\<not> pre\<^sub>R (P \<triangleleft> b \<triangleright>\<^sub>R Q))"
+  proof -
+    have 1:"(\<not> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<or> \<not> pre\<^sub>R P) ;; R1(true) = (\<not> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<or> \<not> pre\<^sub>R P)"
+      by (metis (no_types, lifting) NSRD_neg_pre_unit aext_not assms(1) seqr_or_distl st_lift_R1_true_right)
+    have 2:"(\<lceil>b\<rceil>\<^sub>S\<^sub>< \<or> \<not> pre\<^sub>R Q) ;; R1(true) = (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<or> \<not> pre\<^sub>R Q)"
+      by (simp add: NSRD_neg_pre_unit assms seqr_or_distl st_lift_R1_true_right)
+    show ?thesis
+      by (simp add: rdes closure assms, metis (no_types, lifting) 1 2 conj_R1_true_right)
+  qed
+  show "$st\<acute> \<sharp> peri\<^sub>R (P \<triangleleft> b \<triangleright>\<^sub>R Q)"
+    by (simp add: rdes assms closure unrest)
 qed
   
 text {* Stateful reactive designs are left unital *}

@@ -13,6 +13,7 @@ imports
   utp_expr
   utp_unrest
   utp_subst
+  utp_meta_subst
   utp_alphabet
   utp_lift
   utp_pred

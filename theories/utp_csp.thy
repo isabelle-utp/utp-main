@@ -375,6 +375,11 @@ lemma CSP4_tri_intro:
   using assms
   by (rule_tac CSP4_intro, simp_all add: pre\<^sub>R_def peri\<^sub>R_def post\<^sub>R_def usubst cmt\<^sub>R_def)
 
+lemma CSP4_NSRD_intro:
+  assumes "P is NSRD" "$ref\<acute> \<sharp> post\<^sub>R(P)"
+  shows "P is CSP4"
+  by (simp add: CSP4_tri_intro NSRD_is_SRD NSRD_neg_pre_unit NSRD_st'_unrest_peri assms)
+    
 lemma CSP3_commutes_CSP4: "CSP3(CSP4(P)) = CSP4(CSP3(P))"
   by (simp add: CSP3_def CSP4_def seqr_assoc)
 
@@ -419,6 +424,11 @@ lemma NCSP_intro:
   assumes "P is CSP" "P is CSP3" "P is CSP4"
   shows "P is NCSP"
   by (metis Healthy_def NCSP_def assms comp_eq_dest_lhs)
+    
+lemma NCSP_NSRD_intro:
+  assumes "P is NSRD" "$ref \<sharp> pre\<^sub>R(P)" "$ref \<sharp> peri\<^sub>R(P)" "$ref \<sharp> post\<^sub>R(P)" "$ref\<acute> \<sharp> post\<^sub>R(P)"
+  shows "P is NCSP"
+  by (simp add: CSP3_SRD_intro CSP4_NSRD_intro NCSP_intro NSRD_is_SRD assms)
     
 lemma CSP4_neg_pre_unit:
   assumes "P is CSP" "P is CSP4"
@@ -784,24 +794,11 @@ done
 
 lemma NCSP_SUP_closure [closure]: "\<lbrakk> \<And> i. P(i) is NCSP; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter> i\<in>A. P(i)) is NCSP"
   by (metis (mono_tags, lifting) Ball_Collect NCSP_Sup_closure image_iff image_is_empty)
-
-(*
-lemma cond_srea_NCSP [closure]:
+     
+lemma NCSP_cond_srea [closure]:
   assumes "P is NCSP" "Q is NCSP"
   shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is NCSP"
-proof (rule NCSP_intro)
-  show "P \<triangleleft> b \<triangleright>\<^sub>R Q is CSP3"
-    by (rule CSP3_SRD_intro, simp_all add: assms closure rdes unrest)
-  show "P \<triangleleft> b \<triangleright>\<^sub>R Q is CSP4"
-  proof -
-    have 1: "((\<not> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<or> \<not> pre\<^sub>R P) \<and> (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<or> \<not> pre\<^sub>R Q)) ;; R1 true = ((\<not> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<or> \<not> pre\<^sub>R P) \<and> (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<or> \<not> pre\<^sub>R Q))"
-      sorry
-    thus ?thesis 
-      by (rule_tac CSP4_tri_intro, simp_all add: unrest closure assms rdes)
-  qed
-qed (simp add: closure assms)
-*)  
-
+  by (rule NCSP_NSRD_intro, simp_all add: closure rdes assms unrest)
     
 lemma AssignsCSP_CSP [closure]: "\<langle>\<sigma>\<rangle>\<^sub>C is CSP"
   by (simp add: AssignsCSP_def RHS_tri_design_is_SRD unrest)
