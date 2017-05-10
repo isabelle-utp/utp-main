@@ -2384,7 +2384,7 @@ lemma mu_csp_form_1':
   shows "(\<mu> X \<bullet> P ;; CSP(X)) = (P ;; P\<^sup>\<star>) ;; Miracle"
 proof -
   have "(\<mu> X \<bullet> P ;; CSP(X)) = (\<Sqinter> i\<in>UNIV \<bullet> P ;; P \<^bold>^ i) ;; Miracle"
-    by (simp add: mu_csp_form_1 assms ustar_def)
+    by (simp add: mu_csp_form_1 assms closure ustar_def)
   also have "... = (P ;; P\<^sup>\<star>) ;; Miracle"
     by (simp only: seq_UINF_distl[THEN sym], simp add: ustar_def)
   finally show ?thesis .
