@@ -683,6 +683,12 @@ lemma USUP_as_Sup_collect: "(\<Sqinter>P\<in>A \<bullet> f(P)) = (\<Sqinter>P\<i
   apply (simp add: Setcompr_eq_image)
 done
 
+lemma USUP_as_Sup_collect': "(\<Sqinter>P \<bullet> f(P)) = (\<Sqinter>P. f(P))"
+  apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
+  apply (pred_simp)
+  apply (simp add: full_SetCompr_eq)
+done
+
 lemma USUP_as_Sup_image: "(\<Sqinter> P | \<guillemotleft>P\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> f(P)) = \<Sqinter> (f ` A)"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
@@ -703,6 +709,12 @@ lemma UINF_as_Inf_collect: "(\<Squnion>P\<in>A \<bullet> f(P)) = (\<Squnion>P\<i
   apply (simp add: Setcompr_eq_image)
 done
 
+lemma UINF_as_Inf_collect': "(\<Squnion>P \<bullet> f(P)) = (\<Squnion>P. f(P))"
+  apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
+  apply (pred_simp)
+  apply (simp add: full_SetCompr_eq)
+done
+  
 lemma UINF_as_Inf_image: "(\<Squnion> P \<in> \<P> \<bullet> f(P)) = \<Squnion> (f ` \<P>)"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Inf_uexpr_def)
   apply (pred_simp)

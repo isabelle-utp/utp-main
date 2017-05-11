@@ -377,9 +377,15 @@ lemma seq_Sup_distr: "(\<Sqinter> A) ;; Q = (\<Sqinter> P\<in>A. P ;; Q)"
 lemma seq_UINF_distl: "P ;; (\<Sqinter> Q\<in>A \<bullet> F(Q)) = (\<Sqinter> Q\<in>A \<bullet> P ;; F(Q))"
   by (simp add: USUP_as_Sup_collect seq_Sup_distl)
 
+lemma seq_UINF_distl': "P ;; (\<Sqinter> Q \<bullet> F(Q)) = (\<Sqinter> Q \<bullet> P ;; F(Q))"
+  by (metis UINF_mem_UNIV seq_UINF_distl)
+     
 lemma seq_UINF_distr: "(\<Sqinter> P\<in>A \<bullet> F(P)) ;; Q = (\<Sqinter> P\<in>A \<bullet> F(P) ;; Q)"
   by (simp add: USUP_as_Sup_collect seq_Sup_distr)
-   
+
+lemma seq_UINF_distr': "(\<Sqinter> P \<bullet> F(P)) ;; Q = (\<Sqinter> P \<bullet> F(P) ;; Q)"
+  by (metis UINF_mem_UNIV seq_UINF_distr) 
+    
 lemma seq_SUP_distl: "P ;; (\<Sqinter>i\<in>A. Q(i)) = (\<Sqinter>i\<in>A. P ;; Q(i))"
   by (metis image_image seq_Sup_distl)
     
@@ -1002,7 +1008,7 @@ proof -
   ultimately show ?thesis
     by (simp only:)
 qed    
-        
+  
 lemma Sup_upto_Suc: "(\<Sqinter>i\<in>{0..Suc n}. P \<^bold>^ i) = (\<Sqinter>i\<in>{0..n}. P \<^bold>^ i) \<sqinter> P \<^bold>^ Suc n"
 proof -
   have "(\<Sqinter>i\<in>{0..Suc n}. P \<^bold>^ i) = (\<Sqinter>i\<in>insert (Suc n) {0..n}. P \<^bold>^ i)"
@@ -1011,6 +1017,35 @@ proof -
     by (simp)
   finally show ?thesis
     by (simp add: Lattices.sup_commute)
+qed
+
+text {* The following two proofs are adapted from the AFP entry Kleene Algebra (Armstrong, Struth, Weber) *}
+  
+lemma upower_inductl: "Q \<sqsubseteq> (P ;; Q \<sqinter> R) \<Longrightarrow> Q \<sqsubseteq> P \<^bold>^ n ;; R"
+proof (induct n)
+  case 0
+  then show ?case by (auto)
+next
+  case (Suc n)
+  then show ?case
+    by (auto, metis (no_types, hide_lams) dual_order.trans order_refl seqr_assoc seqr_mono)
+qed
+  
+lemma upower_inductr:
+  assumes "Q \<sqsubseteq> (R \<sqinter> Q ;; P)"
+  shows "Q \<sqsubseteq> R ;; (P \<^bold>^ n)"
+using assms proof (induct n)
+  case 0
+  then show ?case by auto
+next
+  case (Suc n)
+  have "R ;; P \<^bold>^ Suc n = (R ;; P \<^bold>^ n) ;; P"
+    by (metis seqr_assoc upred_semiring.power_Suc2)
+  also have "Q ;; P \<sqsubseteq> ..."
+    using Suc.hyps assms seqr_mono by auto
+  also have "Q \<sqsubseteq> ..."
+    using assms by auto
+  finally show ?case .
 qed
   
 lemma SUP_atLeastAtMost_first: 
@@ -1051,11 +1086,33 @@ theorem RA6: "((P \<or> Q) ;; R) = (P;;R \<or> Q;;R)"
 theorem RA7: "((P\<^sup>- ;; (\<not>(P ;; Q))) \<or> (\<not>Q)) = (\<not>Q)"
   by (rel_auto)
 
-subsection {* Kleene star laws *}
+subsection {* Kleene algebra laws *}
   
 theorem ustar_unfoldl: "P\<^sup>\<star> \<sqsubseteq> II \<sqinter> P;;P\<^sup>\<star>"
   by (rel_simp, simp add: rtrancl_into_trancl2 trancl_into_rtrancl)
-        
+    
+theorem ustar_inductl: 
+  assumes "Q \<sqsubseteq> (R \<sqinter> P ;; Q)"
+  shows "Q \<sqsubseteq> P\<^sup>\<star> ;; R"
+proof -
+  have "P\<^sup>\<star> ;; R = (\<Sqinter> i. P \<^bold>^ i ;; R)"
+    by (simp add: ustar_def USUP_as_Sup_collect' seq_SUP_distr)
+  also have "Q \<sqsubseteq> ..."
+    by (metis (no_types, lifting) SUP_least assms semilattice_sup_class.sup_commute upower_inductl)
+  finally show ?thesis .
+qed
+
+theorem ustar_inductr: 
+  assumes "Q \<sqsubseteq> (R \<sqinter> Q ;; P)"
+  shows "Q \<sqsubseteq> R ;; P\<^sup>\<star>"
+proof -
+  have "R ;; P\<^sup>\<star> = (\<Sqinter> i. R ;; P \<^bold>^ i)"
+    by (simp add: ustar_def USUP_as_Sup_collect' seq_SUP_distl)
+  also have "Q \<sqsubseteq> ..."
+    by (meson SUP_least assms upower_inductr)
+  finally show ?thesis .
+qed
+  
 subsection {* Relational alphabet extension *}
 
 lift_definition rel_alpha_ext :: "'\<beta> hrel \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel" (infix "\<oplus>\<^sub>R" 65)
