@@ -588,6 +588,13 @@ translations
   "\<mu>\<^sub>R X \<bullet> P" == "\<^bold>\<mu>\<^bsub>CONST SRDES\<^esub> (\<lambda> X. P)"
   "\<nu>\<^sub>R X \<bullet> P" == "\<^bold>\<nu>\<^bsub>CONST SRDES\<^esub> (\<lambda> X. P)"
   
+text {* The reactive design weakest fixed-point can be defined in terms of relational calculus one. *}
+  
+lemma srd_mu_equiv: 
+  assumes "Monotonic F" "F \<in> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
+  shows "(\<mu>\<^sub>R X \<bullet> F(X)) = (\<mu> X \<bullet> F(SRD(X)))"
+  by (metis assms srdes_hcond_def srdes_theory_continuous.utp_lfp_def)
+
 subsection {* Reactive design form *}
 
 lemma RD1_algebraic_intro:
