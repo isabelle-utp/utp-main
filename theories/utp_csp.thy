@@ -162,6 +162,9 @@ theorem SKIP_is_Skip: "SKIP = Skip"
 theorem STOP_is_Stop: "STOP = Stop"
   by (rel_simp, meson minus_zero_eq order_refl ordered_cancel_monoid_diff_class.diff_cancel)
 
+theorem Skip_UTP_form: "Skip = \<^bold>R\<^sub>s(\<exists> $ref \<bullet> CSP1(II))"
+  by (rel_auto)
+    
 lemma Skip_is_CSP [closure]:
   "Skip is CSP"
   by (simp add: Skip_def RHS_design_is_SRD unrest)

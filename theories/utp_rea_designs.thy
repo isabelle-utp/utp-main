@@ -40,6 +40,11 @@ where "\<lceil>p\<rceil>\<^sub>S\<^sub>< \<equiv> \<lceil>\<lceil>p\<rceil>\<^su
 abbreviation drop_state_pre ("\<lfloor>_\<rfloor>\<^sub>S\<^sub><")
 where "\<lfloor>p\<rfloor>\<^sub>S\<^sub>< \<equiv> \<lfloor>\<lfloor>p\<rfloor>\<^sub>S\<rfloor>\<^sub><"
 
+text {* Lifting substitutions on the reactive state *}
+  
+abbreviation usubst_st_lift  ("\<lceil>_\<rceil>\<^sub>S\<^sub>\<sigma>") where
+"\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<equiv> \<sigma> \<oplus>\<^sub>s (fst\<^sub>L ;\<^sub>L (st \<times>\<^sub>L st))"
+  
 syntax
   "_svid_st_alpha"  :: "svid" ("\<Sigma>\<^sub>S")
 
@@ -2606,7 +2611,12 @@ lemma NSRD_right_Chaos_tri_lemma:
   shows "P ;; Chaos = \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> \<not> (post\<^sub>R P ;; R1 true)) \<turnstile> peri\<^sub>R P \<diamondop> false)"
   by (simp add: SRD_right_Chaos_tri_lemma[OF NSRD_is_SRD[OF assms]] 
                 NSRD_neg_pre_unit NSRD_st'_unrest_peri assms ex_unrest)
-    
+
+lemma NSRD_right_Chaos_wp_tri_lemma:
+  assumes "P is NSRD"
+  shows "P ;; Chaos = \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R false) \<turnstile> peri\<^sub>R P \<diamondop> false)"
+  by (simp add: NSRD_right_Chaos_tri_lemma assms wpR_def)
+              
 text {* If a normal reactive design has postcondition false, then it is a left zero for sequential
   composition. *}  
             
@@ -2629,6 +2639,21 @@ lemma RD3_assigns_rea: "\<langle>\<sigma>\<rangle>\<^sub>R is RD3"
 lemma NSRD_assigns_rea [closure]: "\<langle>\<sigma>\<rangle>\<^sub>R is NSRD"
   by (simp add: NSRD_iff SRD_assigns_rea periR_assigns_rea preR_assigns_rea unrest_false)
     
+lemma assigns_rea_left_seq:
+  assumes "P is NSRD"
+  shows "\<langle>\<sigma>\<rangle>\<^sub>R ;; P = \<^bold>R\<^sub>s (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> pre\<^sub>R P \<turnstile> \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> peri\<^sub>R P \<diamondop> \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> post\<^sub>R P)"
+proof -
+  have 1: "($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S) wp\<^sub>R pre\<^sub>R (R1 P) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> (pre\<^sub>R (R1 P))"
+    by (rel_auto)
+  have 2: "($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S) ;; peri\<^sub>R P = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> (peri\<^sub>R P)"
+    by (rel_auto)
+  have 3: "($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S) ;; post\<^sub>R P = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> (post\<^sub>R P)"      
+    by (rel_auto)
+  show ?thesis
+    by (simp add: NSRD_composition_wp closure assms rdes wp)
+       (metis 1 2 3 Healthy_if NSRD_is_SRD SRD_healths(1) assms)
+qed
+   
 lemma assigns_rea_comp: "\<langle>\<sigma>\<rangle>\<^sub>R ;; \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
 proof -
   have a: "(($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S) ;; ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<rho>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)) =
@@ -2641,6 +2666,12 @@ proof -
   finally show ?thesis .
 qed
   
+lemma assigns_Miracle: "\<langle>\<sigma>\<rangle>\<^sub>R ;; Miracle = Miracle"
+  by (simp add: NSRD_composition_wp closure rdes wp, simp add: Miracle_def)
+    
+lemma assigns_Chaos: "\<langle>\<sigma>\<rangle>\<^sub>R ;; Chaos = Chaos"
+  by (simp add: NSRD_composition_wp closure rdes wp, simp add: Chaos_def, rel_auto)
+    
 lemma NSRD_cond_srea [closure]:
   assumes "P is NSRD" "Q is NSRD"
   shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is NSRD"
