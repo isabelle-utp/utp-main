@@ -1797,9 +1797,9 @@ lemma Productive_RHS_design_form:
   using assms by (simp add: Productive_def RHS_tri_design_par unrest)
 
 lemma Productive_form:
-  "Productive(CSP(P)) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))"
+  "Productive(SRD(P)) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))"
 proof -
-  have "Productive(CSP(P)) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) \<parallel>\<^sub>R \<^bold>R\<^sub>s(true \<turnstile> true \<diamondop> ($tr <\<^sub>u $tr\<acute>))"
+  have "Productive(SRD(P)) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) \<parallel>\<^sub>R \<^bold>R\<^sub>s(true \<turnstile> true \<diamondop> ($tr <\<^sub>u $tr\<acute>))"
     by (simp add: Productive_def SRD_as_reactive_tri_design)
   also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))"
     by (simp add: RHS_tri_design_par unrest)
@@ -1807,7 +1807,7 @@ proof -
 qed
 
 lemma Productive_post_refines_tr_increase:
-  assumes "P is CSP" "P is Productive" "$wait\<acute> \<sharp> pre\<^sub>R(P)"
+  assumes "P is SRD" "P is Productive" "$wait\<acute> \<sharp> pre\<^sub>R(P)"
   shows "($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> (pre\<^sub>R(P) \<and> post\<^sub>R(P))"
 proof -
   have "post\<^sub>R(P) = post\<^sub>R(\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)))"
@@ -1821,6 +1821,15 @@ proof -
   finally show ?thesis .
 qed
 
+lemma Productive_Miracle [closure]:
+  "Miracle is Productive"
+  unfolding Miracle_tri_def Healthy_def
+  by (subst Productive_RHS_design_form, simp_all add: unrest)
+
+lemma Productive_Stop [closure]:
+  "Stop is Productive"
+  by (simp add: Stop_RHS_tri_design Healthy_def Productive_RHS_design_form unrest)
+    
 lemma Productive_DoCSP [closure]:
   "(do\<^sub>C a :: ('\<sigma>, '\<psi>) action) is Productive"
 proof -

@@ -87,13 +87,33 @@ definition Wait :: "(nat, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>,'\<theta>) c
   "Wait n = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) <\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub><)
                     \<diamondop> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub><
                        \<and> $st\<acute> =\<^sub>u $st))"
-
-lemma length_list_minus [simp]: "ys \<le> xs \<Longrightarrow> length(xs - ys) = length(xs) - length(ys)"
-  by (auto simp add: minus_list_def less_eq_list_def)
-
+  
 lemma Skip_def: "Skip = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st))"
   by (simp add: srdes_skip_def, rel_auto)
 
+subsection {* Healthiness conditions *}
+  
+abbreviation RT1 :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where "RT1 \<equiv> R1"
+abbreviation RT2 :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where "RT2 \<equiv> R2c"
+abbreviation RT3 :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where "RT3 \<equiv> R3h"
+abbreviation RT4 :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where "RT4 \<equiv> RD1"
+abbreviation RT5 :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where "RT5 \<equiv> RD2"
+abbreviation RT6 :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where "RT6(P) \<equiv> Skip ;; P"
+abbreviation RT7 :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where "RT7 \<equiv> RD3"
+
+abbreviation RT :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" 
+where "RT \<equiv> RT1 \<circ> RT2 \<circ> RT3 \<circ> RT4 \<circ> RT7"
+  
+text {* For the time being we omit RT8. We also omit RT5 and RT6 as, as they are both tautologies of
+  the reduced theory, as we shall show. *}
+    
+text {* The following definition is taken from (Canham and Woodcock, 2014) *}
+  
+lemma Skip_CML_def: "Skip = (RT3 \<circ> RT4) (\<not> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st \<and> $ok\<acute>)"
+  by (rel_auto)
+    
+subsection {* Laws *}
+    
 lemma Wait_0: "Wait 0 = Skip"
 proof -
   have "Wait 0 = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> 0 >\<^sub>u #\<^sub>u(tt)) \<diamondop> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u 0 \<and> $st\<acute> =\<^sub>u $st))"
