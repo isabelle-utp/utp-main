@@ -35,15 +35,15 @@ text {* We introduce the notation @{term "\<F> has-deriv \<F>' at t < \<tau>"} t
 definition hODE ::
   "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow>
    ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) hyrel" where
-[urel_defs]: "hODE x \<F>' = (\<^bold>\<exists> \<F>, l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<^bold>\<lceil> \<guillemotleft>\<F>\<guillemotright> has-deriv \<F>' at \<guillemotleft>\<tau>\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> &x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u \<^bold>\<rceil>\<^sub>H)"
+[urel_defs]: "hODE x \<F>' = (\<^bold>\<exists> \<F>, l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<^bold>\<lceil> \<guillemotleft>\<F>\<guillemotright> has-deriv \<F>' at \<guillemotleft>\<tau>\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> &x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u \<^bold>\<rceil>\<^sub>h)"
 
 syntax
-  "_hODE" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_ \<bullet> _\<rangle>\<^sub>H")
+  "_hODE" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_ \<bullet> _\<rangle>\<^sub>h")
 
 translations
   "_hODE a P" == "CONST hODE a P"
 
-text {* We next introduce the construct @{term "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H"}, which states that continuous state lens
+text {* We next introduce the construct @{term "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>h"}, which states that continuous state lens
   $x$ evolves according the ODE described by @{term "\<F>'"}. The lens $x$ identifies a portion of
   the continuous state; that is it is not necessary that this construct define evolution for
   all continuous variables, only those specified. The others will evolve arbitrarily. The definition states that there is a function
@@ -57,11 +57,11 @@ text {* We next introduce the construct @{term "\<langle>x \<bullet> \<F>'\<rang
   construct. Moreover, the final value of $x$ will be the value that the ODE tends toward at
   the limit, which is always defined as per our previous definition. *}
 
-abbreviation hODE_IVP ("\<langle>_ := _ \<bullet> _\<rangle>\<^sub>H") where
-"\<langle>x := x\<^sub>0 \<bullet> \<F>'\<rangle>\<^sub>H \<equiv> (\<^bold>c:x := x\<^sub>0 ;; \<langle>x \<bullet> \<F>'\<rangle>\<^sub>H)"
+abbreviation hODE_IVP ("\<langle>_ := _ \<bullet> _\<rangle>\<^sub>h") where
+"\<langle>x := x\<^sub>0 \<bullet> \<F>'\<rangle>\<^sub>h \<equiv> (\<^bold>c:x := x\<^sub>0 ;; \<langle>x \<bullet> \<F>'\<rangle>\<^sub>h)"
 
 text {* We also set up notation that explicitly sets up the initial value for the continuous state,
-  @{term "\<langle>x := x\<^sub>0 \<bullet> \<F>'\<rangle>\<^sub>H"}, which states that the initial value of @{term "x"} in the ODE
+  @{term "\<langle>x := x\<^sub>0 \<bullet> \<F>'\<rangle>\<^sub>h"}, which states that the initial value of @{term "x"} in the ODE
   @{term "\<F>'"} takes its value from @{term "x\<^sub>0"}. We next prove some important theorems about
   solutions to ODEs. *}
 
@@ -74,7 +74,7 @@ lemma at_has_deriv [simp]:
   by (simp add: at_def usubst alpha)
 
 lemma ode_to_ivp:
-  "vwb_lens x \<Longrightarrow> \<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H = (\<^bold>\<exists> x\<^sub>0 \<bullet> \<guillemotleft>x\<^sub>0\<guillemotright> =\<^sub>u $\<^bold>c:x \<and> \<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H)"
+  "vwb_lens x \<Longrightarrow> \<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h = (\<^bold>\<exists> x\<^sub>0 \<bullet> \<guillemotleft>x\<^sub>0\<guillemotright> =\<^sub>u $\<^bold>c:x \<and> \<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h)"
   by (rel_auto)
 
 lemma ivp_solution_refine:
@@ -82,7 +82,7 @@ lemma ivp_solution_refine:
      continuous_on UNIV get\<^bsub>x\<^esub>;
      \<forall> l > 0. (\<F> usolves_ode \<F>' from 0) {0..l} UNIV;
      \<F>(0) = x\<^sub>0 \<rbrakk>
-   \<Longrightarrow> \<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H \<sqsubseteq> (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>H)"
+   \<Longrightarrow> \<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h \<sqsubseteq> (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>h)"
 proof (rel_auto)
   fix x :: "'a \<Longrightarrow> 'b" and \<F>' \<F> tr b tr' v
   assume assms:
@@ -152,7 +152,7 @@ proof (rel_auto)
 qed
 
 text {* Theorem @{thm [source] ivp_solution_refine} how the specification of an ODE with given initial
-  condition @{term "\<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H"} can be refined to its solution. We require that the
+  condition @{term "\<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h"} can be refined to its solution. We require that the
   continuous state in @{term x} is a very well-behaved lens, and
   moreover that its get function is continuous. The latter assumption is necessary to ensure
   continuity between the entire continuous state and the portion described by $x$. Usually
@@ -174,7 +174,7 @@ done
 
 lemma ivp_uniq_solution_refine:
   "\<lbrakk> vwb_lens x; \<forall> l > 0. (\<F> usolves_ode \<F>' from 0) {0..l} UNIV; \<F>(0) = x\<^sub>0 \<rbrakk>
-   \<Longrightarrow> (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>H) \<sqsubseteq> \<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H"
+   \<Longrightarrow> (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>h) \<sqsubseteq> \<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h"
 proof (rel_auto)
   fix x :: "'a \<Longrightarrow> 'b" and \<F>' \<F> tr b tr' \<G> t
   assume assms:
@@ -226,12 +226,12 @@ theorem ivp_to_solution:
     "continuous_on UNIV get\<^bsub>x\<^esub>"
     "\<forall> l > 0. (\<F> usolves_ode \<F>' from 0) {0..l} UNIV"
     "\<F>(0) = x\<^sub>0"
-  shows "(\<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H) = (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>H)"
+  shows "(\<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h) = (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>h)"
 proof (rule antisym)
-  from assms show "(\<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H) \<sqsubseteq> (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>H)"
+  from assms show "(\<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h) \<sqsubseteq> (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>h)"
     by (blast intro: ivp_solution_refine)
 next
-  from assms show "(\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>H) \<sqsubseteq> (\<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H)"
+  from assms show "(\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>h) \<sqsubseteq> (\<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h)"
     by (rule_tac ivp_uniq_solution_refine, simp_all)
 qed
 
@@ -246,9 +246,9 @@ theorem ivp_to_solution':
     "continuous_on UNIV get\<^bsub>x\<^esub>"
     "\<forall> l > 0. (\<F> usolves_ode \<F>' from 0) {0..l} UNIV"
     "\<F>(0) = x\<^sub>0"
-  shows "(\<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H) = (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>(\<tau>)\<guillemotright>\<^bold>\<rceil>\<^sub>H)"
+  shows "(\<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h) = (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>(\<tau>)\<guillemotright>\<^bold>\<rceil>\<^sub>h)"
 proof -
-  have "(\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>H) = (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>(\<tau>)\<guillemotright>\<^bold>\<rceil>\<^sub>H)"
+  have "(\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u\<^bold>\<rceil>\<^sub>h) = (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil>&x =\<^sub>u \<guillemotleft>\<F>(\<tau>)\<guillemotright>\<^bold>\<rceil>\<^sub>h)"
     by (rel_auto)
   thus ?thesis
     by (subst ivp_to_solution, simp_all add: assms)
@@ -276,12 +276,12 @@ qed
 
 text {* We next show an example of solving an ODE. *}
 
-term "\<langle>x := \<guillemotleft>(v\<^sub>0, h\<^sub>0)\<guillemotright> \<bullet> \<guillemotleft>(\<lambda> t (v, h). (- g, v))\<guillemotright>\<rangle>\<^sub>H"
+term "\<langle>x := \<guillemotleft>(v\<^sub>0, h\<^sub>0)\<guillemotright> \<bullet> \<guillemotleft>(\<lambda> t (v, h). (- g, v))\<guillemotright>\<rangle>\<^sub>h"
 
 lemma gravity_ode_example:
   assumes "vwb_lens x" "continuous_on UNIV get\<^bsub>x\<^esub>"
-  shows "(\<langle>x := \<guillemotleft>(v\<^sub>0, h\<^sub>0)\<guillemotright> \<bullet> \<guillemotleft>(\<lambda> t (v, h). (- g, v))\<guillemotright>\<rangle>\<^sub>H) =
-         (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil> &x =\<^sub>u \<guillemotleft>(v\<^sub>0 - g * \<tau>, v\<^sub>0*\<tau> - g*(\<tau>*\<tau>) / 2 + h\<^sub>0)\<guillemotright> \<^bold>\<rceil>\<^sub>H)"
+  shows "(\<langle>x := \<guillemotleft>(v\<^sub>0, h\<^sub>0)\<guillemotright> \<bullet> \<guillemotleft>(\<lambda> t (v, h). (- g, v))\<guillemotright>\<rangle>\<^sub>h) =
+         (\<exists> $\<^bold>c:x \<bullet> \<^bold>\<lceil> &x =\<^sub>u \<guillemotleft>(v\<^sub>0 - g * \<tau>, v\<^sub>0*\<tau> - g*(\<tau>*\<tau>) / 2 + h\<^sub>0)\<guillemotright> \<^bold>\<rceil>\<^sub>h)"
 proof (rule ivp_to_solution', simp_all add: assms)
   have 1:"\<forall>l>0. unique_on_strip 0 {0..l} (\<lambda> t (v, h). (- g, v)) 1"
     by (auto, unfold_locales, auto intro!: continuous_on_Pair continuous_on_const Topological_Spaces.continuous_on_fst continuous_on_snd simp add: lipschitz_def dist_Pair_Pair prod.case_eq_if)

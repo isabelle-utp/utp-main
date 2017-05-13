@@ -49,14 +49,14 @@ abbreviation "grav \<equiv> -9.81"
 definition
   "bouncing_ball =
      (\<mu> X \<bullet> \<^bold>c:vel, \<^bold>c:pos := 0, 2.0 ;;
-            (\<langle>pos;vel \<bullet> \<guillemotleft>(\<lambda> t (v, p). (grav, v))\<guillemotright>\<rangle>\<^sub>H
-              [&pos \<le>\<^sub>u 0]\<^sub>H
+            (\<langle>pos;vel \<bullet> \<guillemotleft>(\<lambda> t (v, p). (grav, v))\<guillemotright>\<rangle>\<^sub>h
+              [&pos \<le>\<^sub>u 0]\<^sub>h
              (\<^bold>c:vel := (- 0.8 * &\<^bold>c:vel) ;; X)))"
 
 definition
   "thermostat =
     (\<mu> X \<bullet> \<^bold>c:temp, \<^bold>d:isOn := 20, false ;;
-           (\<langle>temp \<bullet> \<guillemotleft>(\<lambda> _ t. 5 - 0.1 * t)\<guillemotright>\<rangle>\<^sub>H \<triangleleft> &\<^bold>d:isOn \<triangleright>\<^sub>r \<langle>temp \<bullet> \<guillemotleft>(\<lambda> _ t. - 0.1 * t)\<guillemotright>\<rangle>\<^sub>H)
-            [&temp <\<^sub>u 19 \<or> &temp >\<^sub>u 21]\<^sub>H
+           (\<langle>temp \<bullet> \<guillemotleft>(\<lambda> _ t. 5 - 0.1 * t)\<guillemotright>\<rangle>\<^sub>h \<triangleleft> &\<^bold>d:isOn \<triangleright>\<^sub>r \<langle>temp \<bullet> \<guillemotleft>(\<lambda> _ t. - 0.1 * t)\<guillemotright>\<rangle>\<^sub>h)
+            [&temp <\<^sub>u 19 \<or> &temp >\<^sub>u 21]\<^sub>h
            (\<^bold>d:isOn := true \<triangleleft> &\<^bold>c:temp <\<^sub>u 19 \<triangleright>\<^sub>r \<^bold>d:isOn := false))"
 end

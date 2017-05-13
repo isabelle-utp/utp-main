@@ -1063,6 +1063,11 @@ lemma ustar_rep_eq [uexpr_transfer_laws]:
   "\<lbrakk>P\<^sup>\<star>\<rbrakk>\<^sub>eb = (b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p}\<^sup>*))"
   by (simp add: ustar_def, rel_auto, simp_all add: relpow_imp_rtrancl rtrancl_imp_relpow)
 
+text {* Omega *}
+    
+definition uomega :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<omega>" [999] 999) where
+"P\<^sup>\<omega> = (\<mu> X \<bullet> P ;; X)"
+    
 subsection {* Relation algebra laws *}
 
 theorem RA1: "(P ;; (Q ;; R)) = ((P ;; Q) ;; R)"
@@ -1112,6 +1117,12 @@ proof -
     by (meson SUP_least assms upower_inductr)
   finally show ?thesis .
 qed
+  
+subsection {* Omega algbra *}
+  
+lemma uomega_induct:
+  "P ;; P\<^sup>\<omega> \<sqsubseteq> P\<^sup>\<omega>"
+  by (simp add: uomega_def, metis eq_refl gfp_unfold monoI seqr_mono)
   
 subsection {* Relational alphabet extension *}
 
