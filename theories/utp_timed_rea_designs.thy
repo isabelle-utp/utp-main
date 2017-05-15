@@ -69,9 +69,9 @@ definition Wait :: "(real, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>,'t::time_tr
 [upred_defs]: "Wait n = \<^bold>R\<^sub>s(true \<turnstile> (\<^bold>l <\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> is-idle) \<diamondop> (\<^bold>l =\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> is-idle \<and> $st\<acute> =\<^sub>u $st))"
   
 definition Interrupt :: "('\<sigma>,'t::time_trace,'\<alpha>) hrel_rsp \<Rightarrow> (real, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>,'t,'\<alpha>) hrel_rsp \<Rightarrow> ('\<sigma>,'t,'\<alpha>) hrel_rsp" (infixl "\<triangle>'(_')" 85) where
-"P \<triangle>(n) Q = \<^bold>R\<^sub>s(((\<^bold>l \<le>\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R(P)) \<and> (\<^bold>l =\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub>< \<Rightarrow> post\<^sub>R(P) wp\<^sub>R pre\<^sub>R(P)))
-               \<turnstile> ((peri\<^sub>R(P) \<and> \<^bold>l \<le>\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub><) \<or> ((peri\<^sub>R(P) \<and> \<^bold>l =\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub><) ;; peri\<^sub>R(P)))
-               \<diamondop> ((post\<^sub>R(P) \<and> \<^bold>l \<le>\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub><) \<or> ((peri\<^sub>R(P) \<and> \<^bold>l =\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub><) ;; post\<^sub>R(P))))"
+"P \<triangle>(n) Q = \<^bold>R\<^sub>s(((\<^bold>l \<le>\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R(P)) \<and> (\<^bold>l =\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub>< \<Rightarrow> post\<^sub>R(P) wp\<^sub>R pre\<^sub>R(Q)))
+               \<turnstile> ((peri\<^sub>R(P) \<and> \<^bold>l \<le>\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub><) \<or> ((peri\<^sub>R(P) \<and> \<^bold>l =\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub><) ;; peri\<^sub>R(Q)))
+               \<diamondop> ((post\<^sub>R(P) \<and> \<^bold>l \<le>\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub><) \<or> ((peri\<^sub>R(P) \<and> \<^bold>l =\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub><) ;; post\<^sub>R(Q))))"
 
 definition Deadline :: "('\<sigma>,'t::time_trace,'\<alpha>) hrel_rsp \<Rightarrow> (real, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>,'t,'\<alpha>) hrel_rsp" ("_ endsby'(_')" [90,0] 91) where
 "P endsby(n) = P \<triangle>(n) Miracle"
