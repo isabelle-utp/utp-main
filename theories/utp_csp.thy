@@ -2455,57 +2455,68 @@ lemma postR_mu_example1 [rdes]:
   "post\<^sub>R(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = false"
   by (simp add: mu_example1 rdes closure unrest wp) 
     
-subsection {* Stateless merge predicate *}
+subsection {* Merge predicate *}
 
-definition CSPMerge' :: "'\<psi> set \<Rightarrow> (('\<sigma>,'\<psi>) st_csp) merge" ("N\<^sub>C") where
+definition CSPMerge' :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> '\<psi> set \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> (('\<sigma>,'\<psi>) st_csp) merge" ("N\<^sub>C") where
   [upred_defs]:
-  "CSPMerge'(cs) = (
-    $ref\<acute> =\<^sub>u ($0-ref \<inter>\<^sub>u $1-ref) \<and>
+  "CSPMerge' ns1 cs ns2 = (
+    $ref\<acute> \<subseteq>\<^sub>u (($0-ref \<union>\<^sub>u $1-ref) \<inter>\<^sub>u \<guillemotleft>cs\<guillemotright>) \<union>\<^sub>u (($0-ref \<inter>\<^sub>u $1-ref) - \<guillemotleft>cs\<guillemotright>) \<and>
     $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and>
     ($tr\<acute> - $tr\<^sub><) \<in>\<^sub>u ($0-tr - $tr\<^sub><) \<star>\<^bsub>\<guillemotleft>cs\<guillemotright>\<^esub> ($1-tr - $tr\<^sub><) \<and>
     ($0-tr - $tr\<^sub><) \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u ($1-tr - $tr\<^sub><) \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> \<and>
-    $st\<acute> =\<^sub>u $st\<^sub><)"
+    $st\<acute> =\<^sub>u ($st\<^sub>< \<oplus> $0-st on &ns1) \<oplus> $1-st on &ns2)"
 
-lemma CSPMerge'_R2m [closure]: "N\<^sub>C(cs) is R2m"
+lemma CSPMerge'_R2m [closure]: "N\<^sub>C ns1 cs ns2 is R2m"
   by (rel_auto)
 
-lemma CSPMerge'_RDM [closure]: "N\<^sub>C(cs) is RDM"
+lemma CSPMerge'_RDM [closure]: "N\<^sub>C ns1 cs ns2 is RDM"
   by (rule RDM_intro, simp add: closure, simp_all add: CSPMerge'_def unrest)
-
-definition CSPMerge :: "'\<psi> set \<Rightarrow> ((unit,'\<psi>) st_csp) merge" ("M\<^sub>C") where
-[upred_defs]: "M\<^sub>C(cs) = M\<^sub>R(N\<^sub>C(cs)) ;; SKIP"
+    
+definition CSPMerge :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> '\<psi> set \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> (('\<sigma>,'\<psi>) st_csp) merge" ("M\<^sub>C") where
+[upred_defs]: "M\<^sub>C ns1 cs ns2 = M\<^sub>R(N\<^sub>C ns1 cs ns2) ;; Skip"
     
 subsection {* Parallel Operator *}
 
-text {*
-  So we are not considering processes with program state. Is there a way to
-  generalise the definition below to cater fro state too? Or are there some
-  semantic issues associated with this, beyond merging the state spaces?
-*}
-
 abbreviation ParCSP ::
-  "'\<theta> rel_csp \<Rightarrow> '\<theta> event set \<Rightarrow> '\<theta> rel_csp \<Rightarrow> '\<theta> rel_csp" (infixr "[|_|]" 105) where
-"P [|cs|] Q \<equiv> P \<parallel>\<^bsub>M\<^sub>C(cs)\<^esub> Q"
+  "('\<sigma>, '\<theta>) action \<Rightarrow> ('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> '\<theta> event set \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> ('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action" (infixr "[|_\<parallel>_\<parallel>_|]" 105) where
+"P [|ns1\<parallel>cs\<parallel>ns2|] Q \<equiv> P \<parallel>\<^bsub>M\<^sub>C ns1 cs ns2\<^esub> Q"
 
+abbreviation ParCSP_NS ::
+  "('\<sigma>, '\<theta>) action \<Rightarrow> '\<theta> event set \<Rightarrow> ('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action" (infixr "[|_|]" 105) where
+"P [|cs|] Q \<equiv> P [|0\<^sub>L\<parallel>cs\<parallel>0\<^sub>L|] Q"
+  
 subsubsection {* CSP Parallel Laws *}
   
 lemma parallel_is_CSP:
   assumes "P is CSP" "Q is CSP"
-  shows "(P \<parallel>\<^bsub>M\<^sub>C(cs)\<^esub> Q) is CSP"
+  shows "(P [|ns1\<parallel>cs\<parallel>ns2|] Q) is CSP"
 proof -
-  have "(P \<parallel>\<^bsub>M\<^sub>R(N\<^sub>C(cs))\<^esub> Q) is CSP"
+  have "(P \<parallel>\<^bsub>M\<^sub>R(N\<^sub>C ns1 cs ns2)\<^esub> Q) is CSP"
     by (simp add: closure assms)
-  hence "(P \<parallel>\<^bsub>M\<^sub>R(N\<^sub>C(cs))\<^esub> Q) ;; SKIP is CSP"
-    by (simp add: SKIP_is_Skip closure)
+  hence "(P \<parallel>\<^bsub>M\<^sub>R(N\<^sub>C ns1 cs ns2)\<^esub> Q) ;; Skip is CSP"
+    by (simp add: closure)
   thus ?thesis
     by (simp add: CSPMerge_def par_by_merge_seq_add)
 qed
       
-lemma SymMerge_CSPMerge': "N\<^sub>C(cs) is SymMerge"
-  apply (rel_auto) using tr_par_sym by blast+
+lemma swap_CSPMerge': 
+  "ns1 \<bowtie> ns2 \<Longrightarrow> swap\<^sub>m ;; (N\<^sub>C ns1 cs ns2) = (N\<^sub>C ns2 cs ns1)"
+  apply (rel_auto)
+  using tr_par_sym apply blast
+  apply (simp add: lens_indep_comm) 
+  using tr_par_sym apply blast
+  apply (simp add: lens_indep_comm)
+done
   
 theorem parallel_commutative:
-  "(P [|cs|] Q) = (Q [|cs|] P)"
-  by (metis (no_types, lifting) CSPMerge_def SymMerge_CSPMerge' SymMerge_merge_rd par_by_merge_commute par_by_merge_seq_add)
-  
+  assumes "ns1 \<bowtie> ns2"
+  shows "(P [|ns1\<parallel>cs\<parallel>ns2|] Q) = (Q [|ns2\<parallel>cs\<parallel>ns1|] P)"
+proof -
+  have "(P [|ns1\<parallel>cs\<parallel>ns2|] Q) = P \<parallel>\<^bsub>swap\<^sub>m ;; (M\<^sub>C ns2 cs ns1)\<^esub> Q"
+    by (simp add: CSPMerge_def seqr_assoc swap_merge_rd swap_CSPMerge' lens_indep_sym assms)
+  also have "... = Q [|ns2\<parallel>cs\<parallel>ns1|] P"
+    by (metis par_by_merge_commute_swap)
+  finally show ?thesis .
+qed
+      
 end

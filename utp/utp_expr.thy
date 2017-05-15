@@ -282,10 +282,13 @@ adhoc_overloading
   uranres pran_res and udomres fran_res and
   ucard card and ucard pcard and ucard length
 
+abbreviation "ulens_override x f g \<equiv> lens_override f g x"
+  
 nonterminal utuple_args and umaplet and umaplets
 
 syntax
   "_ucoerce"    :: "('a, '\<alpha>) uexpr \<Rightarrow> type \<Rightarrow> ('a, '\<alpha>) uexpr" (infix ":\<^sub>u" 50)
+  "_ulens_ovrd" :: "logic \<Rightarrow> logic \<Rightarrow> svar \<Rightarrow> logic" ("_ \<oplus> _ on _" [85, 0, 86] 86)
   "_unil"       :: "('a list, '\<alpha>) uexpr" ("\<langle>\<rangle>")
   "_ulist"      :: "args => ('a list, '\<alpha>) uexpr"    ("\<langle>(_)\<rangle>")
   "_uappend"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" (infixr "^\<^sub>u" 80)
@@ -340,7 +343,7 @@ syntax
   "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
   "_UMapUpd"    :: "[logic, umaplets] => logic" ("_/'(_')\<^sub>u" [900,0] 900)
   "_UMap"       :: "umaplets => logic" ("(1[_]\<^sub>u)")
-
+  
 translations
   "f\<lparr>v\<rparr>\<^sub>u" <= "CONST uapply f v"
   "dom\<^sub>u(f)" <= "CONST udom f"
@@ -349,9 +352,10 @@ translations
   "f \<rhd>\<^sub>u A" <= "CONST uranres f A"
   "#\<^sub>u(f)" <= "CONST ucard f"
   "f(k \<mapsto> v)\<^sub>u" <= "CONST uupd f k v"
-
+    
 translations
   "x :\<^sub>u 'a" == "x :: ('a, _) uexpr"
+  "_ulens_ovrd f g a" == "CONST bop (CONST ulens_override a) f g"
   "\<langle>\<rangle>"       == "\<guillemotleft>[]\<guillemotright>"
   "\<langle>x, xs\<rangle>"  == "CONST bop (op #) x \<langle>xs\<rangle>"
   "\<langle>x\<rangle>"      == "CONST bop (op #) x \<guillemotleft>[]\<guillemotright>"
@@ -414,7 +418,7 @@ translations
   "_UMap (_UMaplets ms1 ms2)"     <= "_UMapUpd (_UMap ms1) ms2"
   "_UMaplets ms1 (_UMaplets ms2 ms3)" <= "_UMaplets (_UMaplets ms1 ms2) ms3"
   "f\<lparr>x,y\<rparr>\<^sub>u"  == "CONST bop CONST uapply f (x,y)\<^sub>u"
-
+  
 text {* Lifting set intervals *}
 
 syntax

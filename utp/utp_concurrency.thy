@@ -180,6 +180,12 @@ lemma U0_skip [alpha]: "\<lceil>II\<rceil>\<^sub>0 = ($0-\<Sigma>\<acute> =\<^su
 lemma U1_skip [alpha]: "\<lceil>II\<rceil>\<^sub>1 = ($1-\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
   by (rel_auto)
     
+lemma U0_seqr [alpha]: "\<lceil>P ;; Q\<rceil>\<^sub>0 = P ;; \<lceil>Q\<rceil>\<^sub>0"
+  by (rel_auto)
+    
+lemma U1_seqr [alpha]: "\<lceil>P ;; Q\<rceil>\<^sub>1 = P ;; \<lceil>Q\<rceil>\<^sub>1"
+  by (rel_auto)  
+  
 lemma U0\<alpha>_comp_in_var [alpha]: "(in_var x) ;\<^sub>L U0\<alpha> = in_var x"
   by (simp add: U0\<alpha>_def alpha_in_var in_var_prod_lens pre_uvar_def)
 
@@ -290,23 +296,25 @@ lemma skip_merge_swap: "swap\<^sub>m ;; skip\<^sub>m = skip\<^sub>m"
   by (rel_auto)
     
 text {* Parallel-by-merge commutes when the merge predicate is unchanged by swap *}
-    
+
+lemma par_by_merge_commute_swap:
+  shows "P \<parallel>\<^bsub>M\<^esub> Q = Q \<parallel>\<^bsub>swap\<^sub>m ;; M\<^esub> P"
+proof -
+  have "Q \<parallel>\<^bsub>swap\<^sub>m ;; M\<^esub> P = ((((Q ;; U0) \<and> (P ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; swap\<^sub>m) ;; M)"
+    by (simp add: par_by_merge_def seqr_assoc)
+  also have "... = (((Q ;; U0 ;; swap\<^sub>m) \<and> (P ;; U1 ;; swap\<^sub>m) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
+    by (rel_auto)
+  also have "... = (((Q ;; U1) \<and> (P ;; U0) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
+    by (simp add: U0_swap U1_swap)
+  also have "... = P \<parallel>\<^bsub>M\<^esub> Q"
+    by (simp add: par_by_merge_def utp_pred.inf.left_commute)
+  finally show ?thesis ..
+qed
+  
 lemma par_by_merge_commute:
   assumes "M is SymMerge"
   shows "P \<parallel>\<^bsub>M\<^esub> Q = Q \<parallel>\<^bsub>M\<^esub> P"
-proof -
-  have "P \<parallel>\<^bsub>M\<^esub> Q = (((P ;; U0) \<and> (Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
-    by (simp add: par_by_merge_def)
-  also have "... = ((((P ;; U0) \<and> (Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; swap\<^sub>m) ;; M)"
-    using assms by (simp add: Healthy_def', metis seqr_assoc)
-  also have "... = (((P ;; U0 ;; swap\<^sub>m) \<and> (Q ;; U1 ;; swap\<^sub>m) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
-    by (rel_auto)
-  also have "... = (((P ;; U1) \<and> (Q ;; U0) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
-    by (simp add: U0_swap U1_swap)
-  also have "... = Q \<parallel>\<^bsub>M\<^esub> P"
-    by (simp add: par_by_merge_def utp_pred.inf.left_commute)
-  finally show ?thesis .
-qed
+  by (metis Healthy_if assms par_by_merge_commute_swap)  
 
 lemma par_by_merge_mono_1:
   assumes "P\<^sub>1 \<sqsubseteq> P\<^sub>2"
