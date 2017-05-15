@@ -1,7 +1,10 @@
 section {* Concurrent programming *}
 
 theory utp_concurrency
-  imports utp_rel utp_tactics
+  imports 
+    utp_rel 
+    utp_tactics 
+    utp_theory
 begin
 
 subsection {* Variable renamings *}
@@ -77,10 +80,13 @@ syntax
   "_svarright" :: "svid \<Rightarrow> svid" ("1-_" [999] 999)
 
 translations
-  "_svarpre x" == "CONST pre_uvar x"
-  "_svarleft x" == "CONST left_uvar x"
+  "_svarpre x"   == "CONST pre_uvar x"
+  "_svarleft x"  == "CONST left_uvar x"
   "_svarright x" == "CONST right_uvar x"
-
+  "_svarpre \<Sigma>"   <= "CONST pre_uvar 1\<^sub>L"
+  "_svarleft \<Sigma>"  <= "CONST left_uvar 1\<^sub>L"
+  "_svarright \<Sigma>" <= "CONST right_uvar 1\<^sub>L"  
+  
 subsection {* Merge predicates *}
   
 text {* A merge is then a relation whose input has three parts: the prior variables, the output
@@ -101,6 +107,11 @@ text {* swap is a predicate that the swaps the left and right indices; it is use
 definition swap\<^sub>m :: "('\<alpha> \<times> '\<beta> \<times> '\<beta>, '\<alpha> \<times> '\<beta> \<times> '\<beta>) rel" where
 [upred_defs]: "swap\<^sub>m = (0-\<Sigma>,1-\<Sigma> := &1-\<Sigma>,&0-\<Sigma>)"
   
+text {* The following healthiness condition on merges is used to represent commutativity *}
+
+abbreviation SymMerge :: "'\<alpha> merge \<Rightarrow> '\<alpha> merge" where
+"SymMerge(M) \<equiv> (swap\<^sub>m ;; M)"
+
 subsection {* Separating simulations *}
 
 text {* U0 and U1 are relations that index all input variables x to 0-x and 1-x, respectively. *}
@@ -281,13 +292,13 @@ lemma skip_merge_swap: "swap\<^sub>m ;; skip\<^sub>m = skip\<^sub>m"
 text {* Parallel-by-merge commutes when the merge predicate is unchanged by swap *}
     
 lemma par_by_merge_commute:
-  assumes "(swap\<^sub>m ;; M) = M"
+  assumes "M is SymMerge"
   shows "P \<parallel>\<^bsub>M\<^esub> Q = Q \<parallel>\<^bsub>M\<^esub> P"
 proof -
   have "P \<parallel>\<^bsub>M\<^esub> Q = (((P ;; U0) \<and> (Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
     by (simp add: par_by_merge_def)
   also have "... = ((((P ;; U0) \<and> (Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; swap\<^sub>m) ;; M)"
-    by (metis assms seqr_assoc)
+    using assms by (simp add: Healthy_def', metis seqr_assoc)
   also have "... = (((P ;; U0 ;; swap\<^sub>m) \<and> (Q ;; U1 ;; swap\<^sub>m) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
     by (rel_auto)
   also have "... = (((P ;; U1) \<and> (Q ;; U0) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"

@@ -2455,15 +2455,16 @@ lemma postR_mu_example1 [rdes]:
   "post\<^sub>R(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = false"
   by (simp add: mu_example1 rdes closure unrest wp) 
     
-subsection {* Stateless merge Predicate *}
+subsection {* Stateless merge predicate *}
 
-definition CSPMerge' :: "'\<psi> set \<Rightarrow> ((unit,'\<psi>) st_csp) merge" ("N\<^sub>C") where
+definition CSPMerge' :: "'\<psi> set \<Rightarrow> (('\<sigma>,'\<psi>) st_csp) merge" ("N\<^sub>C") where
   [upred_defs]:
   "CSPMerge'(cs) = (
     $ref\<acute> =\<^sub>u ($0-ref \<inter>\<^sub>u $1-ref) \<and>
     $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and>
     ($tr\<acute> - $tr\<^sub><) \<in>\<^sub>u ($0-tr - $tr\<^sub><) \<star>\<^bsub>\<guillemotleft>cs\<guillemotright>\<^esub> ($1-tr - $tr\<^sub><) \<and>
-    ($0-tr - $tr\<^sub><) \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u ($1-tr - $tr\<^sub><) \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>)"
+    ($0-tr - $tr\<^sub><) \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u ($1-tr - $tr\<^sub><) \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> \<and>
+    $st\<acute> =\<^sub>u $st\<^sub><)"
 
 lemma CSPMerge'_R2m [closure]: "N\<^sub>C(cs) is R2m"
   by (rel_auto)
@@ -2500,11 +2501,11 @@ proof -
     by (simp add: CSPMerge_def par_by_merge_seq_add)
 qed
       
-lemma swap_CSPMerge': "(swap\<^sub>m ;; N\<^sub>C(cs)) = N\<^sub>C(cs)"
+lemma SymMerge_CSPMerge': "N\<^sub>C(cs) is SymMerge"
   apply (rel_auto) using tr_par_sym by blast+
   
 theorem parallel_commutative:
   "(P [|cs|] Q) = (Q [|cs|] P)"
-  by (simp add: CSPMerge_def par_by_merge_commute seqr_assoc swap_CSPMerge' swap_merge_rd)
+  by (metis (no_types, lifting) CSPMerge_def SymMerge_CSPMerge' SymMerge_merge_rd par_by_merge_commute par_by_merge_seq_add)
   
 end

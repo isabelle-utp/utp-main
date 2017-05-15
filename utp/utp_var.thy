@@ -195,7 +195,9 @@ translations
   "_spvar x" == "CONST svar x"
   "_sinvar x" == "CONST ivar x"
   "_soutvar x" == "CONST ovar x"
-  
+  "_sinvar \<Sigma>"  <=  "CONST ivar 1\<^sub>L"
+  "_soutvar \<Sigma>" <=  "CONST ovar 1\<^sub>L"
+
 text {* Syntactic function to construct a uvar type given a return type *}
 
 syntax

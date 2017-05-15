@@ -3588,26 +3588,6 @@ proof -
     by (simp add: par_by_merge_alt_def seqr_right_one_point_false usubst unrest cmt\<^sub>R_def post\<^sub>R_def assms)
   finally show ?thesis .
 qed    
-  
-lemma cond_inter_var_split:
-  assumes "vwb_lens x"
-  shows "(P \<triangleleft> $x\<acute> \<triangleright> Q) ;; R = (P\<lbrakk>true/$x\<acute>\<rbrakk> ;; R\<lbrakk>true/$x\<rbrakk> \<or> Q\<lbrakk>false/$x\<acute>\<rbrakk> ;; R\<lbrakk>false/$x\<rbrakk>)"
-proof -
-  have "(P \<triangleleft> $x\<acute> \<triangleright> Q) ;; R = (($x\<acute> \<and> P) ;; R \<or> (\<not> $x\<acute> \<and> Q) ;; R)"
-    by (simp add: cond_def seqr_or_distl)
-  also have "... = ((P \<and> $x\<acute>) ;; R \<or> (Q \<and> \<not>$x\<acute>) ;; R)"
-    by (rel_auto)
-  also have "... = (P\<lbrakk>true/$x\<acute>\<rbrakk> ;; R\<lbrakk>true/$x\<rbrakk> \<or> Q\<lbrakk>false/$x\<acute>\<rbrakk> ;; R\<lbrakk>false/$x\<rbrakk>)"
-    by (simp add: seqr_left_one_point_true seqr_left_one_point_false assms)
-  finally show ?thesis .
-qed
-      
-translations
-  "_sinvar \<Sigma>"  <=  "CONST ivar 1\<^sub>L"
-  "_soutvar \<Sigma>" <=  "CONST ovar 1\<^sub>L"
-  
-translations
-  "_svarpre \<Sigma>" <= "CONST pre_uvar 1\<^sub>L"
 
 lemma parallel_precondition_lemma:
   fixes M :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp merge"
@@ -3663,18 +3643,16 @@ proof -
     by (simp add: par_by_merge_alt_def)
   finally show ?thesis .
 qed
-
-abbreviation "SymMerge(M) \<equiv> (swap\<^sub>m ;; M)"
   
-lemma SymMerge_R1_true:
-  "M is SymMerge \<Longrightarrow> M ;; R1(true) is SymMerge"
-  by (rel_auto)
-  
-lemma SymMerge_nmerge_rd0:
+lemma SymMerge_nmerge_rd0 [closure]:
   "M is SymMerge \<Longrightarrow> N\<^sub>0(M) is SymMerge"
   by (rel_auto, meson+)
-    
-lemma parallel_precondition [rdes]:
+        
+lemma SymMerge_merge_rd [closure]:
+  "M is SymMerge \<Longrightarrow> M\<^sub>R(M) is SymMerge"
+  by (rel_simp, safe, metis+)
+
+lemma parallel_precondition:
   fixes M :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) rsp merge"
   assumes "P is NSRD" "Q is NSRD" "M is RDM" "M is SymMerge"
   shows "pre\<^sub>R(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) = 
@@ -3688,10 +3666,7 @@ proof -
     by (simp add: parallel_precondition_lemma assms)
 
   have b: "cmt\<^sub>R(P) \<parallel>\<^bsub>N\<^sub>0(M) ;; R1(true)\<^esub> (\<not> pre\<^sub>R(Q)) = (\<not> pre\<^sub>R(Q)) \<parallel>\<^bsub>N\<^sub>0(M) ;; R1(true)\<^esub> cmt\<^sub>R(P)"
-  proof (rule par_by_merge_commute)
-    show "swap\<^sub>m ;; N\<^sub>0 M ;; R1 true = N\<^sub>0 M ;; R1 true"
-      by (simp add: Healthy_if SymMerge_nmerge_rd0 assms(4) seqr_assoc)
-  qed
+    by (metis (no_types, lifting) SymMerge_nmerge_rd0 assms(4) par_by_merge_commute par_by_merge_seq_add)
     
   have c: "(\<not> pre\<^sub>R(Q)) \<parallel>\<^bsub>N\<^sub>0(M) ;; R1(true)\<^esub> cmt\<^sub>R(P) = 
            ((\<not> pre\<^sub>R Q) \<parallel>\<^bsub>M ;; R1(true)\<^esub> peri\<^sub>R P \<or> (\<not> pre\<^sub>R Q) \<parallel>\<^bsub>M ;; R1(true)\<^esub> post\<^sub>R P)"
@@ -3700,7 +3675,24 @@ proof -
   show ?thesis
     by (simp add: parallel_assm closure assms a b c, pred_auto)
 qed
+
+text {* Weakest Parallel Precondition *}
+  
+definition wppR ("_ wpp\<^sub>R'(_') _" [60,0,61] 61)
+where [upred_defs]: "Q wpp\<^sub>R(M) P = (\<not> ((\<not> P) \<parallel>\<^bsub>M ;; R1(true)\<^esub> Q))"
+
+lemma wppR_miracle [wp]: "false wpp\<^sub>R(M) P = true"
+  by (simp add: wppR_def)
+
+lemma wppR_true [wp]: "P wpp\<^sub>R(M) true = true"
+  by (simp add: wppR_def)
     
+lemma parallel_precondition_wpp [rdes]:
+  assumes "P is NSRD" "Q is NSRD" "M is RDM" "M is SymMerge"
+  shows "pre\<^sub>R(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) = (peri\<^sub>R(Q) wpp\<^sub>R(M) pre\<^sub>R(P) \<and> post\<^sub>R(Q) wpp\<^sub>R(M) pre\<^sub>R(P) \<and> 
+                              peri\<^sub>R(P) wpp\<^sub>R(M) pre\<^sub>R(Q) \<and> post\<^sub>R(P) wpp\<^sub>R(M) pre\<^sub>R(Q))"
+  by (simp add: assms parallel_precondition wppR_def)
+  
 lemma Miracle_parallel_left_zero:
   assumes "P is SRD" "M is RDM"
   shows "Miracle \<parallel>\<^sub>R\<^bsub>M\<^esub> P = Miracle"
@@ -3728,10 +3720,6 @@ proof -
   thus ?thesis
     by (simp add: Miracle_def)
 qed
-  
-lemma swap_merge_rd:
-  "swap\<^sub>m ;; M = M \<Longrightarrow> swap\<^sub>m ;; M\<^sub>R(M) = M\<^sub>R(M)"
-  by (rel_simp, safe, metis+)
     
 subsection {* Simple parallel composition *}
 

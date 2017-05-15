@@ -620,6 +620,19 @@ lemma seqr_bool_split:
   using assms
   by (subst seqr_middle[of x], simp_all add: true_alt_def false_alt_def)
     
+lemma cond_inter_var_split:
+  assumes "vwb_lens x"
+  shows "(P \<triangleleft> $x\<acute> \<triangleright> Q) ;; R = (P\<lbrakk>true/$x\<acute>\<rbrakk> ;; R\<lbrakk>true/$x\<rbrakk> \<or> Q\<lbrakk>false/$x\<acute>\<rbrakk> ;; R\<lbrakk>false/$x\<rbrakk>)"
+proof -
+  have "(P \<triangleleft> $x\<acute> \<triangleright> Q) ;; R = (($x\<acute> \<and> P) ;; R \<or> (\<not> $x\<acute> \<and> Q) ;; R)"
+    by (simp add: cond_def seqr_or_distl)
+  also have "... = ((P \<and> $x\<acute>) ;; R \<or> (Q \<and> \<not>$x\<acute>) ;; R)"
+    by (rel_auto)
+  also have "... = (P\<lbrakk>true/$x\<acute>\<rbrakk> ;; R\<lbrakk>true/$x\<rbrakk> \<or> Q\<lbrakk>false/$x\<acute>\<rbrakk> ;; R\<lbrakk>false/$x\<rbrakk>)"
+    by (simp add: seqr_left_one_point_true seqr_left_one_point_false assms)
+  finally show ?thesis .
+qed
+    
 theorem precond_equiv:
   "P = (P ;; true) \<longleftrightarrow> (out\<alpha> \<sharp> P)"
   by (rel_auto)

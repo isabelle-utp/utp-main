@@ -971,4 +971,8 @@ proof -
     by (simp add: Healthy_def)
 qed
   
+lemma SymMerge_R1_true [closure]:
+  "M is SymMerge \<Longrightarrow> M ;; R1(true) is SymMerge"
+  by (rel_auto)
+
 end
