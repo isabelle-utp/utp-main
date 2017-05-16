@@ -1895,6 +1895,12 @@ lemma SRD_refine_intro_alt:
   shows "P \<sqsubseteq> Q"
   by (metis SRD_refine_intro assms refBy_order utp_pred.inf.coboundedI1 utp_pred.inf.commute)
 
+lemma SRD_eq_intro:
+  assumes
+    "P is SRD" "Q is SRD" "pre\<^sub>R(P) = pre\<^sub>R(Q)" "peri\<^sub>R(P) = peri\<^sub>R(Q)" "post\<^sub>R(P) = post\<^sub>R(Q)"
+  shows "P = Q"
+  by (metis SRD_reactive_tri_design assms)
+  
 lemma srdes_skip_def: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R))"
   apply (rel_auto) using minus_zero_eq by blast+
   

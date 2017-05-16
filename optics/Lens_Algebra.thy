@@ -177,9 +177,12 @@ lemma lens_comp_anhil [simp]: "wb_lens X \<Longrightarrow> 0\<^sub>L ;\<^sub>L X
 
 subsection \<open>Independence laws\<close>
 
-lemma zero_lens_indep: "0\<^sub>L \<bowtie> X"
+lemma zero_lens_indep [simp]: "0\<^sub>L \<bowtie> X"
   by (auto simp add: zero_lens_def lens_indep_def)
 
+lemma zero_lens_indep' [simp]: "X \<bowtie> 0\<^sub>L"
+  by (auto simp add: zero_lens_def lens_indep_def)
+    
 lemma lens_indep_quasi_irrefl: "\<lbrakk> wb_lens x; eff_lens x \<rbrakk> \<Longrightarrow> \<not> (x \<bowtie> x)"
   by (auto simp add: lens_indep_def ief_lens_def ief_lens_axioms_def, metis (full_types) wb_lens.get_put)
 

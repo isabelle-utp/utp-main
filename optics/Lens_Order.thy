@@ -373,11 +373,11 @@ done
 
 text \<open>Lens override laws\<close>
 
-lemma lens_override_id:
+lemma lens_override_id [simp]:
   "S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on 1\<^sub>L = S\<^sub>2"
   by (simp add: lens_override_def id_lens_def)
 
-lemma lens_override_unit:
+lemma lens_override_unit [simp]:
   "S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on 0\<^sub>L = S\<^sub>1"
   by (simp add: lens_override_def zero_lens_def)
 

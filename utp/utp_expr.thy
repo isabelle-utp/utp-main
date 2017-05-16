@@ -497,9 +497,33 @@ declare uexpr_defs [ueval]
 
 subsection {* Misc laws *}
 
-lemma tail_cons [simp]: "tail\<^sub>u(\<langle>x\<rangle> ^\<^sub>u xs) = xs"
+lemma uop_const [simp]: "uop id u = u"
+  by (transfer, simp)
+    
+lemma bop_const_1 [simp]: "bop (\<lambda>x y. y) u v = v"
+  by (transfer, simp)  
+
+lemma bop_const_2 [simp]: "bop (\<lambda>x y. x) u v = u"
+  by (transfer, simp)
+    
+lemma uinter_empty_1 [simp]: "x \<inter>\<^sub>u {}\<^sub>u = {}\<^sub>u"
+  by (transfer, simp)
+    
+lemma uinter_empty_2 [simp]: "{}\<^sub>u \<inter>\<^sub>u x = {}\<^sub>u"
+  by (transfer, simp)
+  
+lemma uunion_empty_1 [simp]: "{}\<^sub>u \<union>\<^sub>u x = x"
+  by (transfer, simp)
+    
+lemma uset_minus_empty [simp]: "x - {}\<^sub>u = x"
+  by (simp add: uexpr_defs, transfer, simp)
+
+lemma ulist_filter_empty [simp]: "x \<restriction>\<^sub>u {}\<^sub>u = \<langle>\<rangle>"
   by (transfer, simp)
 
+lemma tail_cons [simp]: "tail\<^sub>u(\<langle>x\<rangle> ^\<^sub>u xs) = xs"
+  by (transfer, simp)
+    
 subsection {* Literalise tactics *}
 
 text {* The following tactic converts literal HOL expressions to UTP expressions and vice-versa

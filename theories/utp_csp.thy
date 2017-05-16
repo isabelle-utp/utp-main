@@ -2485,9 +2485,29 @@ abbreviation ParCSP_NS ::
   "('\<sigma>, '\<theta>) action \<Rightarrow> '\<theta> event set \<Rightarrow> ('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action" (infixr "[|_|]" 105) where
 "P [|cs|] Q \<equiv> P [|0\<^sub>L\<parallel>cs\<parallel>0\<^sub>L|] Q"
   
-subsubsection {* CSP Parallel Laws *}
+abbreviation InterleaveCSP ::
+  "('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action" (infixr "|||" 105) where
+"P ||| Q \<equiv> P [|0\<^sub>L\<parallel>{}\<parallel>0\<^sub>L|] Q"
   
-lemma parallel_is_CSP:
+subsubsection {* CSP Parallel Laws *}
+
+lemma swap_CSPMerge': 
+  "ns1 \<bowtie> ns2 \<Longrightarrow> swap\<^sub>m ;; (N\<^sub>C ns1 cs ns2) = (N\<^sub>C ns2 cs ns1)"
+  apply (rel_auto)
+  using tr_par_sym apply blast
+  apply (simp add: lens_indep_comm) 
+  using tr_par_sym apply blast
+  apply (simp add: lens_indep_comm)
+done
+  
+lemma SymMerge_CSP_NS [closure]: "N\<^sub>C 0\<^sub>L cs 0\<^sub>L is SymMerge"
+  by (simp add: Healthy_def swap_CSPMerge')
+
+lemma ParCSP_expand:
+  "P [|ns1\<parallel>cs\<parallel>ns2|] Q = (P \<parallel>\<^sub>R\<^bsub>N\<^sub>C ns1 cs ns2\<^esub> Q) ;; Skip"
+  by (simp add: CSPMerge_def par_by_merge_seq_add)
+  
+lemma parallel_is_CSP [closure]:
   assumes "P is CSP" "Q is CSP"
   shows "(P [|ns1\<parallel>cs\<parallel>ns2|] Q) is CSP"
 proof -
@@ -2498,16 +2518,7 @@ proof -
   thus ?thesis
     by (simp add: CSPMerge_def par_by_merge_seq_add)
 qed
-      
-lemma swap_CSPMerge': 
-  "ns1 \<bowtie> ns2 \<Longrightarrow> swap\<^sub>m ;; (N\<^sub>C ns1 cs ns2) = (N\<^sub>C ns2 cs ns1)"
-  apply (rel_auto)
-  using tr_par_sym apply blast
-  apply (simp add: lens_indep_comm) 
-  using tr_par_sym apply blast
-  apply (simp add: lens_indep_comm)
-done
-  
+        
 theorem parallel_commutative:
   assumes "ns1 \<bowtie> ns2"
   shows "(P [|ns1\<parallel>cs\<parallel>ns2|] Q) = (Q [|ns2\<parallel>cs\<parallel>ns1|] P)"
@@ -2518,5 +2529,13 @@ proof -
     by (metis par_by_merge_commute_swap)
   finally show ?thesis .
 qed
-      
+
+lemma Skip_inter_Skip: "Skip ||| Skip = Skip"
+  by (rule SRD_eq_intro)
+     (simp_all add: ParCSP_expand rdes closure wp, rel_auto, simp_all add: minus_zero_eq zero_list_def)
+
+lemma Stop_inter_Skip: "Stop ||| Skip = Stop"
+  by (rule SRD_eq_intro)
+     (simp_all add: ParCSP_expand rdes closure wp, rel_auto, simp_all add: minus_zero_eq zero_list_def)
+    
 end
