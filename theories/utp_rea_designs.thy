@@ -3105,7 +3105,7 @@ qed
   
 subsection {* Syntax for reactive design contracts *}
 
-text {* We give an experimental syntax for reactive design contracts $RD[P | Q | R]$, where $P$ is
+text {* We give an experimental syntax for reactive design contracts $[P \vdash Q | R]_R$, where $P$ is
   a precondition on undashed state variables only, $Q$ is a pericondition that can refer to the
   trace and before state but not the after state, and $R$ is a postcondition. Both $Q$ and $R$
   can refer only to the trace contribution through a HOL variable $trace$ which is bound to
@@ -3116,7 +3116,7 @@ definition mk_RD :: "'s upred \<Rightarrow> ('t::ordered_cancel_monoid_diff \<Ri
 
 syntax
   "_trace_var" :: "logic"
-  "_mk_RD"    :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("RD[_/ | _/ | _]")
+  "_mk_RD"    :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("[_/ \<turnstile> _/ | _]\<^sub>R")
 
 parse_translation {*
 let
@@ -3128,26 +3128,41 @@ end
 *}
 
 translations
-  "RD[P|Q|R]" => "CONST mk_RD P (\<lambda> _trace_var. Q) (\<lambda> _trace_var. R)"
-  "RD[P|Q|R]" <= "CONST mk_RD P (\<lambda> x. Q) (\<lambda> y. R)"  
+  "[P \<turnstile> Q | R]\<^sub>R" => "CONST mk_RD P (\<lambda> _trace_var. Q) (\<lambda> _trace_var. R)"
+  "[P \<turnstile> Q | R]\<^sub>R" <= "CONST mk_RD P (\<lambda> x. Q) (\<lambda> y. R)"  
   
-lemma SRD_mk_RD [closure]: "RD[P | Q(trace) | R(trace)] is SRD"
+lemma SRD_mk_RD [closure]: "[P \<turnstile> Q(trace) | R(trace)]\<^sub>R is SRD"
   by (simp add: mk_RD_def closure unrest)
   
-lemma preR_mk_RD [rdes]: "pre\<^sub>R(RD[P | Q(trace) | R(trace) ]) = (\<not> R1(\<not> \<lceil>P\<rceil>\<^sub>S\<^sub><))"
+lemma preR_mk_RD [rdes]: "pre\<^sub>R([P \<turnstile> Q(trace) | R(trace) ]\<^sub>R) = (\<not> R1(\<not> \<lceil>P\<rceil>\<^sub>S\<^sub><))"
   by (simp add: mk_RD_def rea_pre_RHS_design usubst unrest R2c_not R2c_lift_state_pre)
 
 lemma R2c_msubst_tt: "R2c (msubst (\<lambda>x. \<lceil>Q x\<rceil>\<^sub>S) tt) = (msubst (\<lambda>x. \<lceil>Q x\<rceil>\<^sub>S) tt)"
   by (rel_auto)
     
-lemma periR_mk_RD [rdes]: "peri\<^sub>R(RD[P | Q(trace) | R(trace) ]) = ((\<not> R1(\<not> \<lceil>P\<rceil>\<^sub>S\<^sub><)) \<Rightarrow> R1((\<lceil>Q(trace)\<rceil>\<^sub>S\<^sub><)\<lbrakk>trace\<rightarrow>tt\<rbrakk>))"
+lemma periR_mk_RD [rdes]: "peri\<^sub>R([P \<turnstile> Q(trace) | R(trace) ]\<^sub>R) = ((\<not> R1(\<not> \<lceil>P\<rceil>\<^sub>S\<^sub><)) \<Rightarrow> R1((\<lceil>Q(trace)\<rceil>\<^sub>S\<^sub><)\<lbrakk>trace\<rightarrow>tt\<rbrakk>))"
   by (simp add: mk_RD_def rea_peri_RHS_design usubst unrest R2c_not R2c_lift_state_pre 
                 impl_alt_def R2c_disj R2c_msubst_tt R1_disj)
 
-lemma postR_mk_RD [rdes]: "post\<^sub>R(RD[P | Q(trace) | R(trace) ]) = ((\<not> R1(\<not> \<lceil>P\<rceil>\<^sub>S\<^sub><)) \<Rightarrow> R1((\<lceil>R(trace)\<rceil>\<^sub>S)\<lbrakk>trace\<rightarrow>tt\<rbrakk>))"
+lemma postR_mk_RD [rdes]: "post\<^sub>R([P \<turnstile> Q(trace) | R(trace) ]\<^sub>R) = ((\<not> R1(\<not> \<lceil>P\<rceil>\<^sub>S\<^sub><)) \<Rightarrow> R1((\<lceil>R(trace)\<rceil>\<^sub>S)\<lbrakk>trace\<rightarrow>tt\<rbrakk>))"
   by (simp add: mk_RD_def rea_post_RHS_design usubst unrest R2c_not R2c_lift_state_pre 
                 impl_alt_def R2c_disj R2c_msubst_tt R1_disj)
   
+text {* Refinement introduction law for contracts *}
+              
+lemma RD_contract_refine:
+  assumes
+    "Q is SRD" "`\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R Q`" 
+    "`\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> peri\<^sub>R Q \<Rightarrow> \<lceil>P\<^sub>2 x\<rceil>\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>tt\<rbrakk>`"
+    "`\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R Q \<Rightarrow> \<lceil>P\<^sub>3 x\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>tt\<rbrakk>`"
+  shows "[P\<^sub>1 \<turnstile> P\<^sub>2(trace) | P\<^sub>3(trace)]\<^sub>R \<sqsubseteq> Q"
+proof -
+  have "[P\<^sub>1 \<turnstile> P\<^sub>2(trace) | P\<^sub>3(trace)]\<^sub>R \<sqsubseteq> \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> peri\<^sub>R(Q) \<diamondop> post\<^sub>R(Q))"
+    by (simp add: mk_RD_def, rule srdes_tri_refine_intro, simp_all add: assms)
+  thus ?thesis
+    by (simp add: SRD_reactive_tri_design assms(1))
+qed
+                           
 subsection {* Reactive design parallel-by-merge *}
 
 text {* R3h implicitly depends on RD1, and therefore it requires that both sides be RD1. We also
