@@ -2572,5 +2572,75 @@ lemma CSP5_Stop [closure]: "Stop is CSP5"
   unfolding CSP5_def Healthy_def
   by (rule SRD_eq_intro)
      (simp_all add: ParCSP_expand rdes closure wp, rel_auto, simp_all add: minus_zero_eq zero_list_def)
+     
+subsection {* Failures-Divergences Semantics *}
+     
+definition traces :: "('\<sigma>,'\<phi>) action \<Rightarrow> '\<sigma> \<Rightarrow> ('\<phi> list \<times> '\<sigma>) set" ("tr\<lbrakk>_\<rbrakk>_" [0,100] 100) where
+[upred_defs]: "traces P s = {(t,s') | t s'. (\<guillemotleft>t\<guillemotright> =\<^sub>u tt \<and> \<guillemotleft>s'\<guillemotright> =\<^sub>u $st\<acute> \<and> (post\<^sub>R(P))\<lbrakk>\<guillemotleft>s\<guillemotright>/$st\<rbrakk>) \<noteq> false}"
+
+definition failures :: "('\<sigma>,'\<phi>) action \<Rightarrow> '\<sigma> \<Rightarrow> ('\<phi> list \<times> '\<phi> set) set" ("fl\<lbrakk>_\<rbrakk>_" [0,100] 100) where
+[upred_defs]: "failures P s = {(t,r) | t r. (\<guillemotleft>t\<guillemotright> =\<^sub>u tt \<and> \<guillemotleft>r\<guillemotright> =\<^sub>u $ref\<acute> \<and> (peri\<^sub>R(P))\<lbrakk>\<guillemotleft>s\<guillemotright>/$st\<rbrakk>) \<noteq> false}"
+
+definition divergences :: "('\<sigma>,'\<phi>) action \<Rightarrow> '\<sigma> \<Rightarrow> '\<phi> list set" ("dv\<lbrakk>_\<rbrakk>_" [0,100] 100) where
+[upred_defs]: "divergences P s = {t | t. (\<guillemotleft>t\<guillemotright> =\<^sub>u tt \<and> (\<not> pre\<^sub>R(P))\<lbrakk>\<guillemotleft>s\<guillemotright>/$st\<rbrakk>) \<noteq> false}"
+
+lemma traces_Skip:
+  "tr\<lbrakk>Skip\<rbrakk>s = {([], s)}"
+  by (simp add: traces_def rdes alpha closure, rel_simp, auto simp add: zero_list_def)
+
+lemma failures_Skip:
+  "fl\<lbrakk>Skip\<rbrakk>s = {}"
+  by (simp add: failures_def, rdes_calc)
+
+lemma divergences_Skip:
+  "dv\<lbrakk>Skip\<rbrakk>s = {}"
+  by (simp add: divergences_def, rdes_calc)
     
+lemma traces_AssignsCSP:
+  "tr\<lbrakk>\<langle>\<sigma>\<rangle>\<^sub>C\<rbrakk>s = {([], \<sigma>(s))}"
+  by (simp add: traces_def rdes closure usubst alpha, rel_simp, simp add: zero_list_def)  
+
+lemma failures_AssignsCSP:
+  "fl\<lbrakk>\<langle>\<sigma>\<rangle>\<^sub>C\<rbrakk>s = {}"
+  by (simp add: failures_def, rdes_calc)
+
+lemma divergences_AssignsCSP:
+  "dv\<lbrakk>\<langle>\<sigma>\<rangle>\<^sub>C\<rbrakk>s = {}"
+  by (simp add: divergences_def, rdes_calc)
+
+lemma divergences_PrefixCSP:
+  assumes "P is NCSP"
+  shows "dv\<lbrakk>a \<^bold>\<rightarrow> P\<rbrakk>s = {t @ [a] | t. t \<in> dv\<lbrakk>P\<rbrakk>s}"
+proof -
+  have "dv\<lbrakk>a \<^bold>\<rightarrow> P\<rbrakk>s = {x. \<not> (\<guillemotleft>x\<guillemotright> =\<^sub>u tt \<and> ((R1(\<not> pre\<^sub>R P))\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>\<guillemotleft>a\<guillemotright>\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>)\<lbrakk>\<guillemotleft>s\<guillemotright>/$st\<rbrakk>) = false}"
+    by (simp add: divergences_def rdes closure usubst assms R1_neg_preR)
+  also have "... = {t @ [a] | t. t \<in> dv\<lbrakk>P\<rbrakk>s}"
+    apply (rel_auto)
+  oops
+    
+    
+lemma traces_assigns_srea:
+  "tr\<lbrakk>\<langle>\<sigma>\<rangle>\<^sub>R\<rbrakk>s = {([], \<sigma>(s))}"
+  by (simp add: traces_def rdes closure, rel_auto, simp_all add: zero_list_def)
+    
+lemma 
+  assumes "P is NSRD" "Q is NSRD" "pre\<^sub>R(P) = true" "pre\<^sub>R(Q) = true"
+  shows "tr\<lbrakk>P ;; Q\<rbrakk>s = {(t\<^sub>1 @ t\<^sub>2, s'') | t\<^sub>1 t\<^sub>2 s' s''. (t\<^sub>1, s') \<in> tr\<lbrakk>P\<rbrakk>s \<and> (t\<^sub>1, s'') \<in> tr\<lbrakk>Q\<rbrakk>s'}"
+  (is "?lhs = ?rhs")
+proof 
+  have "?lhs = {(t, s'). \<not> (\<guillemotleft>t\<guillemotright> =\<^sub>u tt \<and> \<guillemotleft>s'\<guillemotright> =\<^sub>u $st\<acute> \<and> (R1(post\<^sub>R P) ;; R1(post\<^sub>R Q))\<lbrakk>\<guillemotleft>s\<guillemotright>/$st\<rbrakk>) = false}"  
+    by (simp add: traces_def rdes closure assms wp R1_post_SRD)
+oops
+      
+lemma "fl\<lbrakk>Miracle\<rbrakk>s = {}"
+  by (simp add: failures_def rdes closure usubst)
+
+lemma "dv\<lbrakk>Miracle\<rbrakk>s = {}"
+  by (simp add: divergences_def rdes closure usubst)
+    
+lemma "tr\<lbrakk>Chaos\<rbrakk>s = UNIV"
+  by (simp add: traces_def rdes closure usubst, rel_auto, force)
+
+  
+        
 end
