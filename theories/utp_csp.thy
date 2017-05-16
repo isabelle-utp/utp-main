@@ -115,6 +115,9 @@ apply (clarsimp)
 apply (blast)
 done
 
+lemma trace_merge_nil: "x \<star>\<^bsub>{}\<^sub>u\<^esub> \<langle>\<rangle> = {x}\<^sub>u"
+  by (pred_auto, simp_all add: tr_par_empty, metis takeWhile_eq_all_conv)
+  
 subsection {* Healthiness Conditions *}
 
 text {* We here define extra healthiness conditions for CSP processes. *}
@@ -2489,6 +2492,9 @@ abbreviation InterleaveCSP ::
   "('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action" (infixr "|||" 105) where
 "P ||| Q \<equiv> P [|0\<^sub>L\<parallel>{}\<parallel>0\<^sub>L|] Q"
   
+definition CSP5 :: "('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action" where
+[upred_defs]: "CSP5(P) = (P ||| Skip)"
+
 subsubsection {* CSP Parallel Laws *}
 
 lemma swap_CSPMerge': 
@@ -2530,11 +2536,40 @@ proof -
   finally show ?thesis .
 qed
 
-lemma Skip_inter_Skip: "Skip ||| Skip = Skip"
+lemma interleave_commute:
+  "P ||| Q = Q ||| P"
+  using parallel_commutative zero_lens_indep by blast
+  
+lemma preR_CSP5:
+  fixes P :: "('\<sigma>, '\<phi>) action"
+  assumes "P is NCSP"
+  shows "pre\<^sub>R(CSP5(P)) = pre\<^sub>R(P)"
+proof -
+  have "pre\<^sub>R(P ||| Skip) = 
+        (\<not> (\<not> \<lceil>pre\<^sub>R P\<rceil>\<^sub>0 \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;;
+        ($ref\<acute> \<subseteq>\<^sub>u $0-ref \<inter>\<^sub>u $1-ref \<and> $tr\<acute> \<ge>\<^sub>u $tr\<^sub>< \<and> $tr\<acute> - $tr\<^sub>< \<in>\<^sub>u ($0-tr - $tr\<^sub><) \<star>\<^bsub>{}\<^sub>u\<^esub> \<langle>\<rangle> :: (('\<sigma>, '\<phi>) st_csp) merge) ;; R1 true)"
+    by (simp add: ParCSP_expand rdes closure unrest wp assms, simp add: wppR_def par_by_merge_alt_def CSPMerge'_def alpha)
+       (rel_auto, (metis zero_list_def)+)
+  also have "... =     
+        (\<not> (\<not> \<lceil>pre\<^sub>R P\<rceil>\<^sub>0 \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; ($tr\<acute> \<ge>\<^sub>u $tr\<^sub>< \<and> $tr\<acute> - $tr\<^sub>< =\<^sub>u ($0-tr - $tr\<^sub><) :: (('\<sigma>, '\<phi>) st_csp) merge) ;; R1 true)"
+    by (simp add: trace_merge_nil, rel_blast)
+  also have "... =     
+        (\<not> (\<lceil>R1 (\<not> pre\<^sub>R P)\<rceil>\<^sub>0 \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; ($tr\<acute> \<ge>\<^sub>u $tr\<^sub>< \<and> $tr\<acute> - $tr\<^sub>< =\<^sub>u ($0-tr - $tr\<^sub><) :: (('\<sigma>, '\<phi>) st_csp) merge) ;; R1 true)"
+    by (simp add: R1_neg_preR assms closure alpha)
+  also have "... = (\<not> (R1(\<not> pre\<^sub>R P) ;; R1 true))"
+    by (rel_auto, metis diff_add_cancel_left')
+  also have "... = pre\<^sub>R(P)"
+    by (simp add: R1_neg_preR closure alpha NSRD_neg_pre_unit assms)
+  finally show ?thesis by (simp add: CSP5_def)
+qed
+
+lemma CSP5_Skip [closure]: "Skip is CSP5"
+  unfolding CSP5_def Healthy_def  
   by (rule SRD_eq_intro)
      (simp_all add: ParCSP_expand rdes closure wp, rel_auto, simp_all add: minus_zero_eq zero_list_def)
 
-lemma Stop_inter_Skip: "Stop ||| Skip = Stop"
+lemma CSP5_Stop [closure]: "Stop is CSP5"
+  unfolding CSP5_def Healthy_def
   by (rule SRD_eq_intro)
      (simp_all add: ParCSP_expand rdes closure wp, rel_auto, simp_all add: minus_zero_eq zero_list_def)
     
