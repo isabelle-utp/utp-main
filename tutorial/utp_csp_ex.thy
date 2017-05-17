@@ -3,7 +3,7 @@ section {* CSP process examples *}
 theory utp_csp_ex
   imports "../theories/utp_csp"
 begin
-
+  
 declare zero_list_def [simp]
   
 text {* In this theory we calculate reactive designs for a number of simple CSP processes. *}

@@ -509,6 +509,9 @@ interpretation boolean_algebra diff_upred not_upred conj_upred "op \<le>" "op <"
 lemma taut_true [simp]: "`true`"
   by (pred_auto)
 
+lemma taut_false [simp]: "`false` = False"
+  by (pred_auto)
+    
 lemma refBy_order: "P \<sqsubseteq> Q = `Q \<Rightarrow> P`"
   by (pred_auto)
 
