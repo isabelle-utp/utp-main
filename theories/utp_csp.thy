@@ -2574,7 +2574,7 @@ lemma CSP5_Stop [closure]: "Stop is CSP5"
      (simp_all add: ParCSP_expand rdes closure wp, rel_auto, simp_all add: minus_zero_eq zero_list_def)
           
 subsection {* Failures-Divergences Semantics *}
-    
+   
 definition divergences :: "('\<sigma>,'\<phi>) action \<Rightarrow> '\<sigma> \<Rightarrow> '\<phi> list set" ("dv\<lbrakk>_\<rbrakk>_" [0,100] 100) where
 [upred_defs]: "divergences P s = {t | t. `(\<not> pre\<^sub>R(P))\<lbrakk>\<guillemotleft>s\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>/$st,$tr,$tr\<acute>\<rbrakk>`}"
   
@@ -2584,10 +2584,12 @@ definition traces :: "('\<sigma>,'\<phi>) action \<Rightarrow> '\<sigma> \<Right
 definition failures :: "('\<sigma>,'\<phi>) action \<Rightarrow> '\<sigma> \<Rightarrow> ('\<phi> list \<times> '\<phi> set) set" ("fl\<lbrakk>_\<rbrakk>_" [0,100] 100) where
 [upred_defs]: "failures P s = {(t,r) | t r. `(pre\<^sub>R(P) \<and> peri\<^sub>R(P))\<lbrakk>\<guillemotleft>r\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>/$ref\<acute>,$st,$tr,$tr\<acute>\<rbrakk>`}"
 
-lemma "\<lbrakk> \<And> s. divergences P s = divergences Q s \<rbrakk> \<Longrightarrow> pre\<^sub>R(P) = pre\<^sub>R(Q)"
-  apply (auto simp add: divergences_def set_eq_iff usubst)
-  apply (rel_auto)
-oops
+lemma 
+  assumes "P is NCSP" "Q is NCSP" "\<And> s. divergences P s = divergences Q s"
+  shows "pre\<^sub>R(P) = pre\<^sub>R(Q)"
+  using assms(3)
+  apply (simp add: divergences_def set_eq_iff taut_def)
+  oops
     
 lemma traces_Skip:
   "tr\<lbrakk>Skip\<rbrakk>s = {([], s)}"
@@ -2612,16 +2614,7 @@ lemma failures_AssignsCSP:
 lemma divergences_AssignsCSP:
   "dv\<lbrakk>\<langle>\<sigma>\<rangle>\<^sub>C\<rbrakk>s = {}"
   by (simp add: divergences_def, rdes_calc)    
-    
-lemma 
-  assumes "P is NSRD" "Q is NSRD" "pre\<^sub>R(P) = true" "pre\<^sub>R(Q) = true"
-  shows "tr\<lbrakk>P ;; Q\<rbrakk>s = {(t\<^sub>1 @ t\<^sub>2, s'') | t\<^sub>1 t\<^sub>2 s' s''. (t\<^sub>1, s') \<in> tr\<lbrakk>P\<rbrakk>s \<and> (t\<^sub>1, s'') \<in> tr\<lbrakk>Q\<rbrakk>s'}"
-  (is "?lhs = ?rhs")
-proof 
-  have "?lhs = {(t, s'). \<not> (\<guillemotleft>t\<guillemotright> =\<^sub>u tt \<and> \<guillemotleft>s'\<guillemotright> =\<^sub>u $st\<acute> \<and> (R1(post\<^sub>R P) ;; R1(post\<^sub>R Q))\<lbrakk>\<guillemotleft>s\<guillemotright>/$st\<rbrakk>) = false}"  
-    by (simp add: traces_def rdes closure assms wp R1_post_SRD)
-oops
-      
+          
 lemma "fl\<lbrakk>Miracle\<rbrakk>s = {}"
   by (simp add: failures_def rdes closure usubst)
 
@@ -2633,6 +2626,5 @@ lemma "dv\<lbrakk>Chaos\<rbrakk>s = UNIV"
     
 lemma "tr\<lbrakk>Chaos\<rbrakk>s = {}"
   by (simp add: traces_def rdes closure usubst)
-  
         
 end
