@@ -68,7 +68,7 @@ syntax
 
 translations
   "_uex x P"                   == "CONST uex x P"
-  "_uex (_salphaset (_salphamk (x +\<^sub>L y))) P"  <= "_uex (x +\<^sub>L y) P"  
+  "_uex (_salphaset (_salphamk (x +\<^sub>L y))) P"  <= "_uex (x +\<^sub>L y) P"
   "_uall x P"                  == "CONST uall x P"
   "_uall (_salphaset (_salphamk (x +\<^sub>L y))) P"  <= "_uall (x +\<^sub>L y) P"
   "_ushEx x P"                 == "CONST ushEx (\<lambda> x. P)"
@@ -78,7 +78,7 @@ translations
   "\<^bold>\<forall> x | P \<bullet> Q"                => "\<^bold>\<forall> x \<bullet> P \<Rightarrow> Q"
   "\<^bold>\<forall> x > y \<bullet> P"                => "\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> >\<^sub>u y \<Rightarrow> P"
   "\<^bold>\<forall> x < y \<bullet> P"                => "\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> <\<^sub>u y \<Rightarrow> P"
-  
+
 subsection {* Predicate operators *}
 
 text {* We chose to maximally reuse definitions and laws built into HOL. For this reason,
@@ -165,7 +165,7 @@ instance uexpr :: (boolean_algebra, type) boolean_algebra
 apply (intro_classes, unfold uexpr_defs; transfer, rule ext)
 apply (simp_all add: sup_inf_distrib1 diff_eq)
 done
-    
+
 instantiation uexpr :: (complete_lattice, type) complete_lattice
 begin
   lift_definition Inf_uexpr :: "('a, 'b) uexpr set \<Rightarrow> ('a, 'b) uexpr"
@@ -183,11 +183,11 @@ syntax
 
 notation gfp ("\<mu>")
 notation lfp ("\<nu>")
-  
+
 translations
   "\<nu> X \<bullet> P" == "CONST lfp (\<lambda> X. P)"
   "\<mu> X \<bullet> P" == "CONST gfp (\<lambda> X. P)"
-  
+
 instance uexpr :: (complete_distrib_lattice, type) complete_distrib_lattice
   apply (intro_classes)
   apply (transfer, rule ext, auto)
@@ -197,7 +197,7 @@ instance uexpr :: (complete_distrib_lattice, type) complete_distrib_lattice
 done
 
 instance uexpr :: (complete_boolean_algebra, type) complete_boolean_algebra ..
-  
+
 text {* With the lattice operators defined, we can proceed to give definitions for the
         standard predicate operators in terms of them. *}
 
@@ -229,7 +229,7 @@ declare UINF_def [upred_defs]
 
 syntax
   "_USup"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"            ("\<Or> _ \<bullet> _" [0, 10] 10)
-  "_USup"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"            ("\<Sqinter> _ \<bullet> _" [0, 10] 10)  
+  "_USup"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"            ("\<Sqinter> _ \<bullet> _" [0, 10] 10)
   "_USup_mem" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Or> _ \<in> _ \<bullet> _" [0, 10] 10)
   "_USup_mem" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Sqinter> _ \<in> _ \<bullet> _" [0, 10] 10)
   "_USUP"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Or> _ | _ \<bullet> _" [0, 0, 10] 10)
@@ -246,16 +246,16 @@ translations
   "\<Sqinter> x \<bullet> F"     == "\<Sqinter> x | true \<bullet> F"
   "\<Sqinter> x \<bullet> F"     == "\<Sqinter> x | true \<bullet> F"
   "\<Sqinter> x \<in> A \<bullet> F" => "\<Sqinter> x | \<guillemotleft>x\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> F"
-  "\<Sqinter> x \<in> A \<bullet> F" <= "\<Sqinter> x | \<guillemotleft>y\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> F"    
+  "\<Sqinter> x \<in> A \<bullet> F" <= "\<Sqinter> x | \<guillemotleft>y\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> F"
   "\<Sqinter> x | P \<bullet> F" <= "CONST USUP (\<lambda> y. P) (\<lambda> x. F)"
   "\<Sqinter> x | P \<bullet> F(x)" <= "CONST USUP (\<lambda> x. P) F"
   "\<Squnion> x | P \<bullet> F" => "CONST UINF (\<lambda> x. P) (\<lambda> x. F)"
   "\<Squnion> x \<bullet> F"     == "\<Squnion> x | true \<bullet> F"
   "\<Squnion> x \<in> A \<bullet> F" => "\<Squnion> x | \<guillemotleft>x\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> F"
-  "\<Squnion> x \<in> A \<bullet> F" <= "\<Squnion> x | \<guillemotleft>y\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> F"  
+  "\<Squnion> x \<in> A \<bullet> F" <= "\<Squnion> x | \<guillemotleft>y\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> F"
   "\<Squnion> x | P \<bullet> F" <= "CONST UINF (\<lambda> y. P) (\<lambda> x. F)"
   "\<Squnion> x | P \<bullet> F(x)" <= "CONST UINF (\<lambda> x. P) F"
-  
+
 text {* We also define the other predicate operators *}
 
 lift_definition impl::"'\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
@@ -331,11 +331,11 @@ lemma false_alt_def: "false = \<guillemotleft>False\<guillemotright>"
 declare true_alt_def[THEN sym,lit_simps]
 declare false_alt_def[THEN sym,lit_simps]
 
-abbreviation cond :: 
+abbreviation cond ::
   "('a,'\<alpha>) uexpr \<Rightarrow> '\<alpha> upred \<Rightarrow> ('a,'\<alpha>) uexpr \<Rightarrow> ('a,'\<alpha>) uexpr"
   ("(3_ \<triangleleft> _ \<triangleright>/ _)" [52,0,53] 52)
 where "P \<triangleleft> b \<triangleright> Q \<equiv> trop If b P Q"
-  
+
 subsection {* Unrestriction Laws *}
 
 lemma unrest_true [unrest]: "x \<sharp> true"
@@ -365,7 +365,7 @@ lemma unrest_USUP_mem [unrest]:
 lemma unrest_UINF_mem [unrest]:
   "\<lbrakk>(\<And> i. i \<in> A \<Longrightarrow> x \<sharp> P(i)) \<rbrakk> \<Longrightarrow> x \<sharp> (\<Squnion> i\<in>A \<bullet> P(i))"
   by (pred_simp, metis)
-    
+
 lemma unrest_impl [unrest]: "\<lbrakk> x \<sharp> P; x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<Rightarrow> Q"
   by (pred_auto)
 
@@ -459,7 +459,7 @@ lemma subst_USUP [usubst]: "\<sigma> \<dagger> (\<Sqinter> i | P(i) \<bullet> Q(
 
 lemma subst_UINF [usubst]: "\<sigma> \<dagger> (\<Squnion> i | P(i) \<bullet> Q(i)) = (\<Squnion> i | (\<sigma> \<dagger> P(i)) \<bullet> (\<sigma> \<dagger> Q(i)))"
   by (pred_auto)
-    
+
 lemma subst_closure [usubst]: "\<sigma> \<dagger> [P]\<^sub>u = [P]\<^sub>u"
   by (pred_auto)
 
@@ -470,11 +470,11 @@ lemma subst_shAll [usubst]: "\<sigma> \<dagger> (\<^bold>\<forall> x \<bullet> P
   by (pred_auto)
 
 text {* TODO: Generalise the quantifier substitution laws to n-ary substitutions *}
-  
-lemma subst_ex_same [usubst]: 
+
+lemma subst_ex_same [usubst]:
   "mwb_lens x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> (\<exists> x \<bullet> P) = \<sigma> \<dagger> (\<exists> x \<bullet> P)"
   by (pred_auto)
-    
+
 lemma subst_ex_indep [usubst]:
   assumes "x \<bowtie> y" "y \<sharp> v"
   shows "(\<exists> y \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<exists> y \<bullet> P\<lbrakk>v/x\<rbrakk>)"
@@ -483,11 +483,11 @@ lemma subst_ex_indep [usubst]:
   using lens_indep_comm apply fastforce+
 done
 
-lemma subst_ex_unrest [usubst]: 
+lemma subst_ex_unrest [usubst]:
   "x \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (\<exists> x \<bullet> P) = (\<exists> x \<bullet> \<sigma> \<dagger> P)"
   by (pred_auto)
-  
-lemma subst_all_same [usubst]: 
+
+lemma subst_all_same [usubst]:
   "mwb_lens x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> (\<forall> x \<bullet> P) = \<sigma> \<dagger> (\<forall> x \<bullet> P)"
   by (simp add: id_subst subst_unrest unrest_all_in)
 
@@ -511,7 +511,7 @@ lemma taut_true [simp]: "`true`"
 
 lemma taut_false [simp]: "`false` = False"
   by (pred_auto)
-    
+
 lemma refBy_order: "P \<sqsubseteq> Q = `Q \<Rightarrow> P`"
   by (pred_auto)
 
@@ -570,24 +570,24 @@ lemma true_imp [simp]: "(true \<Rightarrow> p) = p"
 
 lemma impl_mp1 [simp]: "(P \<and> (P \<Rightarrow> Q)) = (P \<and> Q)"
   by (pred_auto)
-    
+
 lemma impl_mp2 [simp]: "((P \<Rightarrow> Q) \<and> P) = (Q \<and> P)"
   by (pred_auto)
-    
+
 lemma impl_adjoin: "((P \<Rightarrow> Q) \<and> R) = ((P \<and> R \<Rightarrow> Q \<and> R) \<and> R)"
   by (pred_auto)
-        
+
 lemma impl_refine_intro:
   "\<lbrakk> Q\<^sub>1 \<sqsubseteq> P\<^sub>1; P\<^sub>2 \<sqsubseteq> (P\<^sub>1 \<and> Q\<^sub>2) \<rbrakk> \<Longrightarrow> (P\<^sub>1 \<Rightarrow> P\<^sub>2) \<sqsubseteq> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)"
-  by (pred_auto) 
-    
+  by (pred_auto)
+
 lemma impl_disjI: "\<lbrakk> `P \<Rightarrow> R`; `Q \<Rightarrow> R` \<rbrakk> \<Longrightarrow> `(P \<or> Q) \<Rightarrow> R`"
   by (rel_auto)
-    
+
 lemma conditional_iff:
   "(P \<Rightarrow> Q) = (P \<Rightarrow> R) \<longleftrightarrow> `P \<Rightarrow> (Q \<Leftrightarrow> R)`"
   by (pred_auto)
-    
+
 lemma p_and_not_p [simp]: "(P \<and> \<not> P) = false"
   by (pred_auto)
 
@@ -650,13 +650,13 @@ lemma usup_and:
 
 lemma USUP_true [simp]: "(\<Squnion> P | F(P) \<bullet> true) = true"
   by (pred_auto)
-    
+
 lemma UINF_mem_UNIV [simp]: "(\<Sqinter> x\<in>UNIV \<bullet> P(x)) = (\<Sqinter> x \<bullet> P(x))"
   by (pred_auto)
 
 lemma USUP_mem_UNIV [simp]: "(\<Squnion> x\<in>UNIV \<bullet> P(x)) = (\<Squnion> x \<bullet> P(x))"
   by (pred_auto)
-    
+
 lemma USUP_false [simp]: "(\<Squnion> i \<bullet> false) = false"
   by (pred_simp)
 
@@ -668,7 +668,7 @@ lemma UINF_mem_true [simp]: "A \<noteq> {} \<Longrightarrow> (\<Sqinter> i\<in>A
 
 lemma UINF_false [simp]: "(\<Sqinter> i | P(i) \<bullet> false) = false"
   by (pred_auto)
-    
+
 lemma USUP_cong_eq:
   "\<lbrakk> \<And> x. P\<^sub>1(x) = P\<^sub>2(x); \<And> x. `P\<^sub>1(x) \<Rightarrow> Q\<^sub>1(x) =\<^sub>u Q\<^sub>2(x)` \<rbrakk> \<Longrightarrow>
         (\<Sqinter> x | P\<^sub>1(x) \<bullet> Q\<^sub>1(x)) = (\<Sqinter> x | P\<^sub>2(x) \<bullet> Q\<^sub>2(x))"
@@ -718,7 +718,7 @@ lemma UINF_as_Inf_collect': "(\<Squnion>P \<bullet> f(P)) = (\<Squnion>P. f(P))"
   apply (pred_simp)
   apply (simp add: full_SetCompr_eq)
 done
-  
+
 lemma UINF_as_Inf_image: "(\<Squnion> P \<in> \<P> \<bullet> f(P)) = \<Squnion> (f ` \<P>)"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Inf_uexpr_def)
   apply (pred_simp)
@@ -733,8 +733,8 @@ lemma UINF_image_eq [simp]: "UINF (\<lambda>i. \<guillemotleft>i\<guillemotright
   by (pred_simp, rule_tac cong[of Inf Inf], auto)
 
 lemma subst_continuous [usubst]: "\<sigma> \<dagger> (\<Sqinter> A) = (\<Sqinter> {\<sigma> \<dagger> P | P. P \<in> A})"
-  by (simp add: USUP_as_Sup[THEN sym] usubst setcompr_eq_image)    
-    
+  by (simp add: USUP_as_Sup[THEN sym] usubst setcompr_eq_image)
+
 lemma not_USUP: "(\<not> (\<Sqinter> i\<in>A\<bullet> P(i))) = (\<Squnion> i\<in>A\<bullet> \<not> P(i))"
   by (pred_auto)
 
@@ -780,7 +780,7 @@ lemma UINF_all_cong:
   assumes "\<And> P. F(P) = G(P)"
   shows "(\<Sqinter> P \<bullet> F(P)) = (\<Sqinter> P \<bullet> G(P))"
   by (simp add: USUP_as_Sup_collect assms)
-    
+
 lemma UINF_cong:
   assumes "\<And> P. P \<in> A \<Longrightarrow> F(P) = G(P)"
   shows "(\<Sqinter> P\<in>A \<bullet> F(P)) = (\<Sqinter> P\<in>A \<bullet> G(P))"
@@ -796,7 +796,7 @@ lemma UINF_subset_mono: "A \<subseteq> B \<Longrightarrow> (\<Sqinter> P\<in>B \
 
 lemma USUP_subset_mono: "A \<subseteq> B \<Longrightarrow> (\<Squnion> P\<in>A \<bullet> F(P)) \<sqsubseteq> (\<Squnion> P\<in>B \<bullet> F(P))"
   by (simp add: INF_superset_mono UINF_as_Inf_collect)
-    
+
 lemma UINF_impl: "(\<Sqinter> P\<in>A \<bullet> F(P) \<Rightarrow> G(P)) = ((\<Squnion> P\<in>A \<bullet> F(P)) \<Rightarrow> (\<Sqinter> P\<in>A \<bullet> G(P)))"
   by (pred_auto)
 
@@ -804,7 +804,7 @@ lemma UINF_all_nats [simp]:
   fixes P :: "nat \<Rightarrow> '\<alpha> upred"
   shows "(\<Sqinter> n \<bullet> \<Sqinter> i\<in>{0..n} \<bullet> P(i)) = (\<Sqinter> i\<in>{0..} \<bullet> P(i))"
   by (pred_auto)
-    
+
 lemma mu_id: "(\<mu> X \<bullet> X) = true"
   by (simp add: antisym gfp_upperbound)
 
@@ -829,16 +829,16 @@ proof -
   with assms show ?thesis
     by (pred_auto)
 qed
-  
+
 type_synonym 'a chain = "nat \<Rightarrow> 'a upred"
-  
+
 definition chain :: "'a chain \<Rightarrow> bool" where
   "chain Y = ((Y 0 = false) \<and> (\<forall> i. Y (Suc i) \<sqsubseteq> Y i))"
 
 lemma chain0 [simp]: "chain Y \<Longrightarrow> Y 0 = false"
   by (simp add:chain_def)
 
-lemma chainI: 
+lemma chainI:
   assumes "Y 0 = false" "\<And> i. Y (Suc i) \<sqsubseteq> Y i"
   shows "chain Y"
   using assms by (auto simp add: chain_def)
@@ -848,14 +848,14 @@ lemma chainE:
   shows "P"
   using assms by (simp add: chain_def)
 
-lemma L274: 
+lemma L274:
   assumes "\<forall> n. ((E n \<and>\<^sub>p X) = (E n \<and> Y))"
   shows "(\<Sqinter> (range E) \<and> X) = (\<Sqinter> (range E) \<and> Y)"
   using assms by (pred_auto)
 
 text {* Constructive chains *}
-    
-definition constr :: 
+
+definition constr ::
   "('a upred \<Rightarrow> 'a upred) \<Rightarrow> 'a chain \<Rightarrow> bool" where
 "constr F E \<longleftrightarrow> chain E \<and> (\<forall> X n. ((F(X) \<and> E(n + 1)) = (F(X \<and> E(n)) \<and> E (n + 1))))"
 
@@ -863,7 +863,7 @@ text {* This lemma gives a way of showing that there is a unique fixed-point whe
         the predicate function can be built using a constructive function F
         over an approximation chain E *}
 
-lemma chain_pred_terminates: 
+lemma chain_pred_terminates:
   assumes "constr F E" "mono F"
   shows "(\<Sqinter> (range E) \<and> \<mu> F) = (\<Sqinter> (range E) \<and> \<nu> F)"
 proof -
@@ -874,7 +874,7 @@ proof -
     proof (induct n)
       case 0 thus ?case by (simp add: constr_def)
     next
-      case (Suc n) 
+      case (Suc n)
       note hyp = this
       thus ?case
       proof -
@@ -890,16 +890,16 @@ proof -
           by simp
       qed
     qed
-  qed    
+  qed
   thus ?thesis
     by (auto intro: L274)
-qed    
+qed
 
-theorem constr_fp_uniq: 
+theorem constr_fp_uniq:
   assumes "constr F E" "mono F" "\<Sqinter> (range E) = C"
   shows "(C \<and> \<mu> F) = (C \<and> \<nu> F)"
   using assms(1) assms(2) assms(3) chain_pred_terminates by blast
-  
+
 lemma true_iff [simp]: "(P \<Leftrightarrow> true) = P"
   by (pred_auto)
 
@@ -981,7 +981,7 @@ lemma upred_true_eq [simp]: "(true =\<^sub>u p) = p"
 
 lemma upred_false_eq [simp]: "(false =\<^sub>u p) = (\<not> p)"
   by (pred_auto)
-    
+
 lemma conj_var_subst:
   assumes "vwb_lens x"
   shows "(P \<and> var x =\<^sub>u v) = (P\<lbrakk>v/x\<rbrakk> \<and> var x =\<^sub>u v)"
@@ -1031,7 +1031,7 @@ lemma bool_eq_splitI:
   assumes "vwb_lens x" "P\<lbrakk>true/x\<rbrakk> = Q\<lbrakk>true/x\<rbrakk>" "P\<lbrakk>false/x\<rbrakk> = Q\<lbrakk>false/x\<rbrakk>"
   shows "P = Q"
   by (metis (full_types) assms eq_split_subst false_alt_def true_alt_def)
-    
+
 lemma subst_bool_split:
   assumes "vwb_lens x"
   shows "`P` = `(P\<lbrakk>false/x\<rbrakk> \<and> P\<lbrakk>true/x\<rbrakk>)`"
@@ -1132,7 +1132,7 @@ lemma all_strengthens: "wb_lens x \<Longrightarrow> P \<sqsubseteq> (\<forall> x
 
 lemma ex_unrest: "x \<sharp> P \<Longrightarrow> (\<exists> x \<bullet> P) = P"
   by (pred_auto)
-    
+
 lemma all_unrest: "x \<sharp> P \<Longrightarrow> (\<forall> x \<bullet> P) = P"
   by (pred_auto)
 
@@ -1143,7 +1143,7 @@ lemma not_all_not: "\<not> (\<forall> x \<bullet> \<not> P) = (\<exists> x \<bul
   by (pred_auto)
 
 subsection {* Conditional laws *}
-  
+
 lemma cond_def:
   "(P \<triangleleft> b \<triangleright> Q) = ((b \<and> P) \<or> ((\<not> b) \<and> Q))"
   by (pred_auto)
@@ -1189,7 +1189,7 @@ lemma cond_conj: "P \<triangleleft> b \<and> c \<triangleright> Q = (P \<triangl
 
 lemma spec_cond_dist: "(P \<Rightarrow> (Q \<triangleleft> b \<triangleright> R)) = ((P \<Rightarrow> Q) \<triangleleft> b \<triangleright> (P \<Rightarrow> R))"
   by (pred_auto)
-    
+
 lemma cond_USUP_dist: "(\<Squnion> P\<in>S \<bullet> F(P)) \<triangleleft> b \<triangleright> (\<Squnion> P\<in>S \<bullet> G(P)) = (\<Squnion> P\<in>S \<bullet> F(P) \<triangleleft> b \<triangleright> G(P))"
   by (pred_auto)
 
@@ -1209,11 +1209,11 @@ lemma cond_var_subst_right:
 lemma cond_var_split:
   "vwb_lens x \<Longrightarrow> (P\<lbrakk>true/x\<rbrakk> \<triangleleft> var x \<triangleright> P\<lbrakk>false/x\<rbrakk>) = P"
   by (rel_simp, (metis (full_types) vwb_lens.put_eq)+)
-    
-lemma cond_assign_subst: 
+
+lemma cond_assign_subst:
   "vwb_lens x \<Longrightarrow> (P \<triangleleft> utp_expr.var x =\<^sub>u v \<triangleright> Q) = (P\<lbrakk>v/x\<rbrakk> \<triangleleft> utp_expr.var x =\<^sub>u v \<triangleright> Q)"
   apply (rel_simp) using vwb_lens.put_eq by force
-    
+
 subsection {* Cylindric algebra *}
 
 lemma C1: "(\<exists> x \<bullet> false) = false"
@@ -1259,5 +1259,5 @@ lemma shEx_lift_conj_1 [uquant_lift]:
 lemma shEx_lift_conj_2 [uquant_lift]:
   "(P \<and> (\<^bold>\<exists> x \<bullet> Q(x))) = (\<^bold>\<exists> x \<bullet> P \<and> Q(x))"
   by (pred_auto)
-    
+
 end

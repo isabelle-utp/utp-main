@@ -34,7 +34,7 @@ purge_notation
   meet (infixl "\<sqinter>\<index>" 70) and
   LFP ("\<mu>\<index>") and
   GFP ("\<nu>\<index>")
-  
+
 text {* We hide HOL's built-in relation type since we will replace it with our own *}
 
 hide_type rel
@@ -184,8 +184,8 @@ translations
   "_svar_nil x" => "x"
   "_svar_cons x xs" => "x +\<^sub>L xs"
   "_salphaset A" => "A"
-  "(_svar_cons x (_salphamk y))" <= "_salphamk (x +\<^sub>L y)" 
-  "x" <= "_salphamk x"    
+  "(_svar_cons x (_salphamk y))" <= "_salphamk (x +\<^sub>L y)"
+  "x" <= "_salphamk x"
   "_svid_alpha" == "\<Sigma>"
   "_svid_empty" == "0\<^sub>L"
   "_svid_dot x y" => "y ;\<^sub>L x"

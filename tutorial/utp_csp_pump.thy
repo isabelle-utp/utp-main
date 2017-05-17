@@ -12,7 +12,7 @@ datatype ch_pump =
 
 type_synonym op_pump = "st_pump hrel_des"
 type_synonym act_pump = "(st_pump, ch_pump) action"
-  
+
 definition PInit :: "act_pump" where
 [urel_defs]: "PInit = (fuelQ :=\<^sub>C 5000)"
 
@@ -23,7 +23,7 @@ definition Supply :: "nat \<Rightarrow> act_pump" where
 [urel_defs]: "Supply(q) = fuelQ :=\<^sub>C (&fuelQ - \<guillemotleft>q\<guillemotright>)"
 
 definition PumpActive :: "act_pump" where
-[urel_defs]: "PumpActive = putNozzle \<^bold>\<rightarrow> Skip \<box> 
+[urel_defs]: "PumpActive = putNozzle \<^bold>\<rightarrow> Skip \<box>
                            enterAmount?(q) \<^bold>\<rightarrow> pressTrigger \<^bold>\<rightarrow> Supply(q) ;; releaseTrigger \<^bold>\<rightarrow> Skip"
 
 definition PumpIdle :: "act_pump" where

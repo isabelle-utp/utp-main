@@ -228,7 +228,7 @@ lemma rdesign_false_pre:
 lemma ndesign_false_pre:
   "(false \<turnstile>\<^sub>n P) = true"
   by (rel_auto)
-    
+
 theorem design_refinement:
   assumes
     "$ok \<sharp> P1" "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2" "$ok\<acute> \<sharp> P2"
@@ -272,7 +272,7 @@ lemma rdesign_refine_intro':
   shows "P1 \<turnstile>\<^sub>r Q1 \<sqsubseteq> P2 \<turnstile>\<^sub>r Q2"
   using assms unfolding upred_defs
   by (pred_auto)
-    
+
 lemma ndesign_refine_intro:
   assumes "`p1 \<Rightarrow> p2`" "`\<lceil>p1\<rceil>\<^sub>< \<and> Q2 \<Rightarrow> Q1`"
   shows "p1 \<turnstile>\<^sub>n Q1 \<sqsubseteq> p2 \<turnstile>\<^sub>n Q2"
@@ -311,7 +311,7 @@ theorem ndesign_pre [simp]: "pre\<^sub>D(p \<turnstile>\<^sub>n Q) = \<lceil>p\<
 
 theorem ndesign_post [simp]: "post\<^sub>D(p \<turnstile>\<^sub>n Q) = (\<lceil>p\<rceil>\<^sub>< \<Rightarrow> Q)"
   by (pred_auto)
-    
+
 theorem design_true_left_zero: "(true ;; (P \<turnstile> Q)) = true"
 proof -
   have "(true ;; (P \<turnstile> Q)) = (\<^bold>\<exists> ok\<^sub>0 \<bullet> true\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<acute>\<rbrakk> ;; (P \<turnstile> Q)\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<rbrakk>)"
@@ -360,7 +360,7 @@ lemma design_USUP:
 lemma design_UINF:
   "(\<Squnion> i \<in> A \<bullet> P(i) \<turnstile> Q(i)) = (\<Sqinter> i \<in> A \<bullet> P(i)) \<turnstile> (\<Squnion> i \<in> A \<bullet> P(i) \<Rightarrow> Q(i))"
   by (rel_auto)
-  
+
 theorem design_composition_subst:
   assumes
     "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2"
@@ -879,7 +879,7 @@ qed
 lemma H2_USUP:
   shows "H2(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> H2(P(i)))"
   by (rel_auto)
-    
+
 theorem H1_H2_commute:
   "H1 (H2 P) = H2 (H1 P)"
 proof -
@@ -910,7 +910,7 @@ notation H1_H2 ("\<^bold>H")
 
 lemma H1_H2_comp: "\<^bold>H = H1 \<circ> H2"
   by (auto)
-    
+
 theorem H1_H2_eq_design:
   "\<^bold>H(P) = (\<not> P\<^sup>f) \<turnstile> P\<^sup>t"
 proof -
@@ -959,12 +959,12 @@ lemma H1_H2_refinement:
   assumes "P is \<^bold>H" "Q is \<^bold>H"
   shows "P \<sqsubseteq> Q \<longleftrightarrow> (`pre\<^sub>D(P) \<Rightarrow> pre\<^sub>D(Q)` \<and> `pre\<^sub>D(P) \<and> post\<^sub>D(Q) \<Rightarrow> post\<^sub>D(P)`)"
   by (metis H1_H2_eq_rdesign Healthy_if assms rdesign_refinement)
-    
+
 lemma H1_H2_refines:
   assumes "P is \<^bold>H" "Q is \<^bold>H" "P \<sqsubseteq> Q"
   shows "pre\<^sub>D(Q) \<sqsubseteq> pre\<^sub>D(P)" "post\<^sub>D(P) \<sqsubseteq> (pre\<^sub>D(P) \<and> post\<^sub>D(Q))"
   using H1_H2_refinement assms refBy_order by auto
-    
+
 lemma H1_H2_idempotent: "\<^bold>H (\<^bold>H P) = \<^bold>H P"
   by (simp add: H1_H2_commute H1_idem H2_idem)
 
@@ -1001,7 +1001,7 @@ proof -
     by (simp add: rdesign_composition rdesign_is_H1_H2)
   ultimately show ?thesis by simp
 qed
-  
+
 lemma assigns_d_comp_ext:
   fixes P :: "'\<alpha> hrel_des"
   assumes "P is \<^bold>H"
@@ -1081,7 +1081,7 @@ proof -
   from r assms show "pre\<^sub>D(Q) \<sqsubseteq> pre\<^sub>D(P)"
     by (auto simp add: refBy_order)
   from r assms show "post\<^sub>D(P) \<sqsubseteq> (pre\<^sub>D(P) \<and> post\<^sub>D(Q))"
-    by (auto simp add: refBy_order)  
+    by (auto simp add: refBy_order)
 qed
 
 subsection {* H3: The design assumption is a precondition *}
@@ -1247,7 +1247,7 @@ lemma H1_H3_eq_design: "H1 (H3 P) = (\<not> (P\<^sup>f ;; true)) \<turnstile> P\
   apply (simp_all add: usubst unrest)
   apply (rel_auto)
 done
-  
+
 lemma H3_unrest_out_alpha_nok [unrest]:
   assumes "P is H1_H3"
   shows "out\<alpha> \<sharp> P\<^sup>f"
@@ -1267,7 +1267,7 @@ lemma ndesign_H1_H3 [closure]: "p \<turnstile>\<^sub>n Q is \<^bold>N"
 
 lemma ndesign_form: "P is \<^bold>N \<Longrightarrow> (\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P)) = P"
   by (metis H1_H2_eq_rdesign H1_H3_impl_H2 H3_unrest_out_alpha Healthy_def drop_pre_inv ndesign_def)
-    
+
 lemma des_bot_H1_H3 [closure]: "\<bottom>\<^sub>D is \<^bold>N"
   by (metis H1_design H3_def Healthy_def' design_false_pre design_true_left_zero skip_d_alt_def)
 
@@ -1377,7 +1377,7 @@ interpretation design_theory_continuous: utp_theory_continuous DES
   and "le (uthy_order DES) = op \<sqsubseteq>"
   and "eq (uthy_order DES) = op ="
   by (unfold_locales, simp_all add: des_hcond_def H1_H2_Continuous utp_order_def)
-    
+
 interpretation normal_design_theory_mono: utp_theory_continuous NDES
   rewrites "\<And> P. P \<in> carrier (uthy_order NDES) \<longleftrightarrow> P is \<^bold>N"
   and "carrier (uthy_order NDES) \<rightarrow> carrier (uthy_order NDES) \<equiv> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"
@@ -1386,7 +1386,7 @@ interpretation normal_design_theory_mono: utp_theory_continuous NDES
   by (unfold_locales, simp_all add: ndes_hcond_def H1_H3_Continuous utp_order_def)
 
 thm design_theory_continuous.healthy_top
-    
+
 lemma design_lat_top: "\<^bold>\<top>\<^bsub>DES\<^esub> = \<^bold>H(false)"
   by (simp add: design_theory_continuous.healthy_top, simp add: des_hcond_def)
 
@@ -1402,7 +1402,7 @@ abbreviation design_gfp :: "('\<alpha> hrel_des \<Rightarrow> '\<alpha> hrel_des
 syntax
   "_dmu" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<mu>\<^sub>D _ \<bullet> _" [0, 10] 10)
   "_dnu" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<nu>\<^sub>D _ \<bullet> _" [0, 10] 10)
-  
+
 translations
   "\<mu>\<^sub>D X \<bullet> P" == "\<^bold>\<mu>\<^bsub>CONST DES\<^esub> (\<lambda> X. P)"
   "\<nu>\<^sub>D X \<bullet> P" == "\<^bold>\<nu>\<^bsub>CONST DES\<^esub> (\<lambda> X. P)"
@@ -1524,7 +1524,7 @@ thm Des_Rel_coretract.deflation[simplified]
 thm Des_Rel_coretract.inflation
 thm Des_Rel_coretract.upper_comp[simplified]
 thm Des_Rel_coretract.lower_comp
-  
+
 text {* Specialise @{thm [source] mu_refine_intro} to designs. *}
 
 lemma design_mu_refine_intro:
@@ -1541,16 +1541,16 @@ qed
 lemma rdesign_mu_refine_intro:
   assumes "(C \<turnstile>\<^sub>r S) \<sqsubseteq> F(C \<turnstile>\<^sub>r S)" "`\<lceil>C\<rceil>\<^sub>D \<Rightarrow> (\<mu>\<^sub>D F \<Leftrightarrow> \<nu>\<^sub>D F)`"
   shows "(C \<turnstile>\<^sub>r S) \<sqsubseteq> \<mu>\<^sub>D F"
-  using assms by (simp add: rdesign_def design_mu_refine_intro unrest) 
-  
+  using assms by (simp add: rdesign_def design_mu_refine_intro unrest)
+
 lemma H1_H2_mu_refine_intro:
   assumes "P is \<^bold>H" "P \<sqsubseteq> F(P)" "`\<lceil>pre\<^sub>D(P)\<rceil>\<^sub>D \<Rightarrow> (\<mu>\<^sub>D F \<Leftrightarrow> \<nu>\<^sub>D F)`"
   shows "P \<sqsubseteq> \<mu>\<^sub>D F"
-  by (metis H1_H2_eq_rdesign Healthy_if assms rdesign_mu_refine_intro)    
-           
+  by (metis H1_H2_eq_rdesign Healthy_if assms rdesign_mu_refine_intro)
+
 text {* A theorem we'd like to have, but that doesn't seem true ... *}
-  
-lemma conditional_refine: 
+
+lemma conditional_refine:
   assumes "mono F" "(P \<Rightarrow> F(Q)) \<sqsubseteq> Q"
   shows "(P \<Rightarrow> \<mu> F) \<sqsubseteq> Q"
   oops
@@ -1560,7 +1560,7 @@ locale design_fp =
   assumes mono_F: "mono F"
   and type_F: "F \<in> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
 begin
-  
+
   definition "P(Y) \<equiv> \<nu> X \<bullet> pre\<^sub>D(F(X \<turnstile>\<^sub>r Y))"
   definition "Q \<equiv> \<mu> Y \<bullet> (P(Y) \<Rightarrow> post\<^sub>D(F(P(Y) \<turnstile>\<^sub>r Y)))"
 
@@ -1573,7 +1573,7 @@ begin
 
   lemma mu_design_iter:
     "(\<mu> X \<bullet> pre\<^sub>D(F(X)) \<turnstile>\<^sub>r post\<^sub>D(F(X))) = F(\<mu> X \<bullet> pre\<^sub>D(F(X)) \<turnstile>\<^sub>r post\<^sub>D(F(X)))"
-      by (metis (no_types, lifting) H1_H2_eq_rdesign H1_H2_idempotent Healthy_def Healthy_if 
+      by (metis (no_types, lifting) H1_H2_eq_rdesign H1_H2_idempotent Healthy_def Healthy_if
                 PiE gfp_fixpoint mem_Collect_eq mono_design_iter type_F)
 
   lemma mu_design_form:
@@ -1599,19 +1599,19 @@ begin
       apply (simp add: Q_def)
       apply (rule gfp_upperbound)
     oops
-        
+
   lemma mu_postcondition:
     "post\<^sub>D(F(\<mu> X \<bullet> pre\<^sub>D(F(X)) \<turnstile>\<^sub>r post\<^sub>D(F(X)))) = Q"
   proof (simp add: Q_def, rule antisym)
     show "(\<mu> Y \<bullet> P Y \<Rightarrow> post\<^sub>D (F (P Y \<turnstile>\<^sub>r Y))) \<sqsubseteq> post\<^sub>D (F (\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (F X)))"
     proof (rule gfp_upperbound)
   oops
-      
+
   lemma mu_precondition:
     "pre\<^sub>D(F(\<mu> X \<bullet> pre\<^sub>D(F(X)) \<turnstile>\<^sub>r post\<^sub>D(F(X)))) = P(Q)"
   proof (simp add: P_def, rule antisym)
     show "(\<nu> X \<bullet> pre\<^sub>D (F (X \<turnstile>\<^sub>r Q))) \<sqsubseteq> pre\<^sub>D (F (\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (F X)))"
-    proof (rule lfp_greatest) 
+    proof (rule lfp_greatest)
       fix Y
       assume a:"Y \<sqsubseteq> pre\<^sub>D (F (Y \<turnstile>\<^sub>r Q))"
       have "pre\<^sub>D (F (Y \<turnstile>\<^sub>r Q)) \<sqsubseteq> pre\<^sub>D (F (\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (F X)))"
@@ -1621,12 +1621,12 @@ begin
           show "(\<mu> X \<bullet> pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (F X)) \<sqsubseteq> Y \<turnstile>\<^sub>r Q"
           proof (rule gfp_upperbound, rule rdesign_refine_intro')
             show "Y \<sqsubseteq> pre\<^sub>D (F (Y \<turnstile>\<^sub>r Q))"
-              using a by blast            
+              using a by blast
             have "post\<^sub>D (F (Y \<turnstile>\<^sub>r Q)) \<sqsubseteq> Q"
               apply (simp add: Q_def)
               apply (rule gfp_least)
             oops
-    
+
   lemma mono_pre_F: "X \<sqsubseteq> Y \<Longrightarrow> pre\<^sub>D(F (X \<turnstile>\<^sub>r Z)) \<sqsubseteq> pre\<^sub>D(F (Y \<turnstile>\<^sub>r Z))"
     apply (rule rdesign_ref_monos(1))
     using rdesign_is_H1_H2 type_F apply fastforce
@@ -1640,7 +1640,7 @@ begin
     apply (subst lfp_unfold)
     apply (simp_all add: monoI mono_pre_F)
   done
-    
+
   lemma antitone_post_F: "X \<sqsubseteq> Y \<Longrightarrow> pre\<^sub>D(F (Z \<turnstile>\<^sub>r Y)) \<sqsubseteq> pre\<^sub>D(F (Z \<turnstile>\<^sub>r X))"
     apply (rule rdesign_ref_monos(1))
     using rdesign_is_H1_H2 type_F apply fastforce
@@ -1655,7 +1655,7 @@ begin
     apply (rule lfp_mono)
     apply (simp add: antitone_post_F)
   done
-    
+
   lemma mono_post_F: "Y \<sqsubseteq> X \<Longrightarrow> post\<^sub>D(F(P(Y) \<turnstile>\<^sub>r Y)) \<sqsubseteq> (P(Y) \<and> post\<^sub>D(F(P(X) \<turnstile>\<^sub>r X)))"
     apply (subst P_is_pre)
     apply (rule rdesign_ref_monos(2))
@@ -1685,12 +1685,12 @@ begin
         using P_is_pre by auto
       thus ?thesis by simp
     qed
-    also have "... = P(Q) \<turnstile>\<^sub>r (P(Q) \<Rightarrow> post\<^sub>D(F(P(Q) \<turnstile>\<^sub>r Q)))"      
+    also have "... = P(Q) \<turnstile>\<^sub>r (P(Q) \<Rightarrow> post\<^sub>D(F(P(Q) \<turnstile>\<^sub>r Q)))"
       by (rel_auto)
-    also have "... = P(Q) \<turnstile>\<^sub>r Q"      
+    also have "... = P(Q) \<turnstile>\<^sub>r Q"
     proof -
       have "mono (\<lambda>Y. P Y \<Rightarrow> post\<^sub>D(F (P Y \<turnstile>\<^sub>r Y)))"
-        by (simp add: P_antitone impl_refine_intro monoI mono_post_F)        
+        by (simp add: P_antitone impl_refine_intro monoI mono_post_F)
       hence "(P(Q) \<Rightarrow> post\<^sub>D(F(P(Q) \<turnstile>\<^sub>r Q))) = Q"
         using Q_def gfp_fixpoint by auto
       thus ?thesis
@@ -1698,7 +1698,7 @@ begin
     qed
     finally show ?thesis .
   qed
-    
+
 end
- 
+
 end

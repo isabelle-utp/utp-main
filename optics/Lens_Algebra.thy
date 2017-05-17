@@ -182,7 +182,7 @@ lemma zero_lens_indep [simp]: "0\<^sub>L \<bowtie> X"
 
 lemma zero_lens_indep' [simp]: "X \<bowtie> 0\<^sub>L"
   by (auto simp add: zero_lens_def lens_indep_def)
-    
+
 lemma lens_indep_quasi_irrefl: "\<lbrakk> wb_lens x; eff_lens x \<rbrakk> \<Longrightarrow> \<not> (x \<bowtie> x)"
   by (auto simp add: lens_indep_def ief_lens_def ief_lens_axioms_def, metis (full_types) wb_lens.get_put)
 
@@ -231,10 +231,10 @@ lemma plus_pres_lens_indep [simp]: "\<lbrakk> X \<bowtie> Z; Y \<bowtie> Z \<rbr
   apply (simp add: lens_indep_comm)
   apply (simp add: lens_indep_sym)
 done
-    
+
 lemma plus_pres_lens_indep' [simp]:
   "\<lbrakk> X \<bowtie> Y; X \<bowtie> Z \<rbrakk> \<Longrightarrow> X \<bowtie> Y +\<^sub>L Z"
-  by (auto intro: lens_indep_sym plus_pres_lens_indep)    
+  by (auto intro: lens_indep_sym plus_pres_lens_indep)
 
 lemma lens_comp_indep_cong_left:
   "\<lbrakk> mwb_lens Z; X ;\<^sub>L Z \<bowtie> Y ;\<^sub>L Z \<rbrakk> \<Longrightarrow> X \<bowtie> Y"

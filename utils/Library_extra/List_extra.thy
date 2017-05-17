@@ -74,7 +74,7 @@ lemma prefix_Cons_elim [elim]:
   assumes "prefix (x # xs) ys"
   obtains ys' where "ys = x # ys'" "prefix xs ys'"
   using assms
-  by (metis Sublist.Cons_prefix_Cons prefix_code(1) prefix_order.eq_iff prefixes.cases) 
+  by (metis Sublist.Cons_prefix_Cons prefix_code(1) prefix_order.eq_iff prefixes.cases)
 
 lemma prefix_map_inj:
   "\<lbrakk> inj_on f (set xs \<union> set ys); prefix (map f xs) (map f ys) \<rbrakk> \<Longrightarrow>
@@ -120,7 +120,7 @@ lemma prefix_drop:
 
 lemma list_append_prefixD: "x @ y \<le> z \<Longrightarrow> x \<le> z"
   using append_prefixD less_eq_list_def by blast
-    
+
 subsection {* Minus on lists *}
 
 instantiation list :: (type) minus
@@ -149,7 +149,7 @@ lemma list_concat_minus_list_concat: "(s @ t) - (s @ z) = t - z"
 
 lemma length_minus_list: "y \<le> x \<Longrightarrow> length(x - y) = length(x) - length(y)"
   by (simp add: less_eq_list_def minus_list_def)
-    
+
 lemma length_gt_zero_butlast_concat:
   assumes "length ys > 0"
   shows "butlast (xs @ ys) = xs @ (butlast ys)"
@@ -456,12 +456,12 @@ lemma prefix_concat_minus:
 lemma prefix_minus_concat:
   assumes "prefix s t"
   shows "(t - s) @ z = (t @ z) - s"
-  using assms by (simp add: Sublist.prefix_length_le minus_list_def) 
+  using assms by (simp add: Sublist.prefix_length_le minus_list_def)
 
 lemma strict_prefix_minus_not_empty:
   assumes "strict_prefix xs ys"
   shows "ys - xs \<noteq> []"
-  using assms by (metis append_Nil2 prefix_concat_minus strict_prefix_def) 
+  using assms by (metis append_Nil2 prefix_concat_minus strict_prefix_def)
 
 lemma strict_prefix_diff_minus:
   assumes "prefix xs ys" and "xs \<noteq> ys"
@@ -522,12 +522,12 @@ lemma butlast_eq_if_eq_length_and_prefix:
 lemma prefix_imp_length_lteq:
   assumes "prefix s t"
   shows "length s \<le> length t"
-  using assms by (simp add: Sublist.prefix_length_le) 
+  using assms by (simp add: Sublist.prefix_length_le)
 
 lemma prefix_imp_length_not_gt:
   assumes "prefix s t"
   shows "\<not> length t < length s"
-  using assms by (simp add: Sublist.prefix_length_le leD) 
+  using assms by (simp add: Sublist.prefix_length_le leD)
 
 lemma prefix_and_eq_length_imp_eq_list:
   assumes "prefix s t" and "length t = length s"

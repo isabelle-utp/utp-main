@@ -283,7 +283,7 @@ adhoc_overloading
   ucard card and ucard pcard and ucard length
 
 abbreviation "ulens_override x f g \<equiv> lens_override f g x"
-  
+
 nonterminal utuple_args and umaplet and umaplets
 
 syntax
@@ -343,7 +343,7 @@ syntax
   "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
   "_UMapUpd"    :: "[logic, umaplets] => logic" ("_/'(_')\<^sub>u" [900,0] 900)
   "_UMap"       :: "umaplets => logic" ("(1[_]\<^sub>u)")
-  
+
 translations
   "f\<lparr>v\<rparr>\<^sub>u" <= "CONST uapply f v"
   "dom\<^sub>u(f)" <= "CONST udom f"
@@ -352,7 +352,7 @@ translations
   "f \<rhd>\<^sub>u A" <= "CONST uranres f A"
   "#\<^sub>u(f)" <= "CONST ucard f"
   "f(k \<mapsto> v)\<^sub>u" <= "CONST uupd f k v"
-    
+
 translations
   "x :\<^sub>u 'a" == "x :: ('a, _) uexpr"
   "_ulens_ovrd f g a" == "CONST bop (CONST ulens_override a) f g"
@@ -418,7 +418,7 @@ translations
   "_UMap (_UMaplets ms1 ms2)"     <= "_UMapUpd (_UMap ms1) ms2"
   "_UMaplets ms1 (_UMaplets ms2 ms3)" <= "_UMaplets (_UMaplets ms1 ms2) ms3"
   "f\<lparr>x,y\<rparr>\<^sub>u"  == "CONST bop CONST uapply f (x,y)\<^sub>u"
-  
+
 text {* Lifting set intervals *}
 
 syntax
@@ -426,7 +426,7 @@ syntax
   "_uset_atLeastLessThan" :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("(1{_..<_}\<^sub>u)")
   "_uset_compr" :: "pttrn \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('b set, '\<alpha>) uexpr" ("(1{_ :/ _ |/ _ \<bullet>/ _}\<^sub>u)")
   "_uset_compr_nset" :: "pttrn \<Rightarrow> (bool, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('b set, '\<alpha>) uexpr" ("(1{_ |/ _ \<bullet>/ _}\<^sub>u)")
-  
+
 lift_definition ZedSetCompr ::
   "('a set, '\<alpha>) uexpr \<Rightarrow> ('a \<Rightarrow> (bool, '\<alpha>) uexpr \<times> ('b, '\<alpha>) uexpr) \<Rightarrow> ('b set, '\<alpha>) uexpr"
 is "\<lambda> A PF b. { snd (PF x) b | x. x \<in> A b \<and> fst (PF x) b}" .
@@ -501,22 +501,22 @@ subsection {* Misc laws *}
 
 lemma uop_const [simp]: "uop id u = u"
   by (transfer, simp)
-    
+
 lemma bop_const_1 [simp]: "bop (\<lambda>x y. y) u v = v"
-  by (transfer, simp)  
+  by (transfer, simp)
 
 lemma bop_const_2 [simp]: "bop (\<lambda>x y. x) u v = u"
   by (transfer, simp)
-    
+
 lemma uinter_empty_1 [simp]: "x \<inter>\<^sub>u {}\<^sub>u = {}\<^sub>u"
   by (transfer, simp)
-    
+
 lemma uinter_empty_2 [simp]: "{}\<^sub>u \<inter>\<^sub>u x = {}\<^sub>u"
   by (transfer, simp)
-  
+
 lemma uunion_empty_1 [simp]: "{}\<^sub>u \<union>\<^sub>u x = x"
   by (transfer, simp)
-    
+
 lemma uset_minus_empty [simp]: "x - {}\<^sub>u = x"
   by (simp add: uexpr_defs, transfer, simp)
 
@@ -525,7 +525,7 @@ lemma ulist_filter_empty [simp]: "x \<restriction>\<^sub>u {}\<^sub>u = \<langle
 
 lemma tail_cons [simp]: "tail\<^sub>u(\<langle>x\<rangle> ^\<^sub>u xs) = xs"
   by (transfer, simp)
-    
+
 subsection {* Literalise tactics *}
 
 text {* The following tactic converts literal HOL expressions to UTP expressions and vice-versa

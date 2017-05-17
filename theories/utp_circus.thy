@@ -9,7 +9,7 @@
 section {* Theory of {\Circus} *}
 
 theory utp_circus
-imports utp_theories_deep utp_axm
+imports utp_theories_deep "../utp/models/utp_axm"
 begin recall_syntax
 
 text {* Types are not printed correctly, have a chat with Simon Foster. *}
@@ -121,7 +121,12 @@ text {*
 *}
 
 purge_notation
-  utp_csp.ParCSP (infixr "[|_|]" 105)
+  ParCSP_NS (infixr "[|_|]" 105) and
+  InterleaveCSP (infixr "|||" 105)
+
+purge_syntax
+  "_output_prefix" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem'" ("!'(_')")
+  "_output_prefix" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem'" (".'(_')")
 
 consts ParCircus ::
   "('\<sigma>, '\<phi>) action  \<Rightarrow> ('\<phi> event set) \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow>

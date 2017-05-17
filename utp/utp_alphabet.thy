@@ -21,7 +21,7 @@ update_uexpr_rep_eq_thms
 
 lemma aext_twice: "(P \<oplus>\<^sub>p a) \<oplus>\<^sub>p b = P \<oplus>\<^sub>p (a ;\<^sub>L b)"
   by (pred_auto)
-  
+
 lemma aext_id [alpha]: "P \<oplus>\<^sub>p 1\<^sub>L = P"
   by (pred_auto)
 
@@ -96,7 +96,7 @@ lemma aext_imp [alpha]: "(P \<Rightarrow> Q) \<oplus>\<^sub>p x = (P \<oplus>\<^
 
 lemma aext_iff [alpha]: "(P \<Leftrightarrow> Q) \<oplus>\<^sub>p x = (P \<oplus>\<^sub>p x \<Leftrightarrow> Q \<oplus>\<^sub>p x)"
   by (pred_auto)
-    
+
 lemma aext_mono: "P \<sqsubseteq> Q \<Longrightarrow> P \<oplus>\<^sub>p a \<sqsubseteq> Q \<oplus>\<^sub>p a"
   by (pred_auto)
 

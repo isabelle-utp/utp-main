@@ -499,5 +499,5 @@ lemma hPreempt_true: "P [true]\<^sub>h Q = Q"
 
 lemma hPreempt_false: "P [false]\<^sub>h Q = (P \<and> $tr <\<^sub>u $tr\<acute>)"
   by (simp add: hPreempt_def alpha hInt_true)
-    
+
 end

@@ -8,7 +8,7 @@
 section {* UTP Theories Supplement for Deep Variables *}
 
 theory utp_theories_deep
-imports utp_theories utp_deep
+imports utp_theories "../utp/models/utp_deep"
 begin
 
 subsection {* Instantiation of @{class vst}. *}
