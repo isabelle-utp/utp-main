@@ -258,19 +258,22 @@ adhoc_overloading
 definition "fun_apply f x = f x"
 declare fun_apply_def [simp]
 
+text {* Various overloaded constants for the expression language *}
+  
 consts
-  uempty  :: "'f"
-  uapply  :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
-  uupd    :: "'f \<Rightarrow> 'k \<Rightarrow> 'v \<Rightarrow> 'f"
-  udom    :: "'f \<Rightarrow> 'a set"
-  uran    :: "'f \<Rightarrow> 'b set"
-  udomres :: "'a set \<Rightarrow> 'f \<Rightarrow> 'f"
-  uranres :: "'f \<Rightarrow> 'b set \<Rightarrow> 'f"
-  ucard   :: "'f \<Rightarrow> nat"
-
+  uempty     :: "'f"
+  uapply     :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
+  uupd       :: "'f \<Rightarrow> 'k \<Rightarrow> 'v \<Rightarrow> 'f"
+  udom       :: "'f \<Rightarrow> 'a set"
+  uran       :: "'f \<Rightarrow> 'b set"
+  udomres    :: "'a set \<Rightarrow> 'f \<Rightarrow> 'f"
+  uranres    :: "'f \<Rightarrow> 'b set \<Rightarrow> 'f"
+  ucard      :: "'f \<Rightarrow> nat"
+  usums      :: "'f \<Rightarrow> 'a"
+    
 definition "LNil = Nil"
 definition "LZero = 0"
-
+  
 adhoc_overloading
   uempty LZero and uempty LNil and
   uapply fun_apply and uapply nth and uapply pfun_app and
@@ -280,7 +283,8 @@ adhoc_overloading
   udom Range and uran pran and uran fran and uran set and
   udomres pdom_res and udomres fdom_res and
   uranres pran_res and udomres fran_res and
-  ucard card and ucard pcard and ucard length
+  ucard card and ucard pcard and ucard length and
+  usums list_sum and usums Sum
 
 abbreviation "ulens_override x f g \<equiv> lens_override f g x"
 
@@ -338,16 +342,18 @@ syntax
   "_umap_minus" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<ominus>\<^sub>u" 85)
   "_udom_res"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<lhd>\<^sub>u" 85)
   "_uran_res"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<rhd>\<^sub>u" 85)
+   "_usum"      :: "logic \<Rightarrow> logic" ("sum\<^sub>u'(_')")
   "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>/ _")
   ""            :: "umaplet => umaplets"             ("_")
   "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
   "_UMapUpd"    :: "[logic, umaplets] => logic" ("_/'(_')\<^sub>u" [900,0] 900)
   "_UMap"       :: "umaplets => logic" ("(1[_]\<^sub>u)")
-
+  
 translations
   "f\<lparr>v\<rparr>\<^sub>u" <= "CONST uapply f v"
   "dom\<^sub>u(f)" <= "CONST udom f"
-  "ran\<^sub>u(f)" <= "CONST uran f"
+  "ran\<^sub>u(f)" <= "CONST uran f"  
+  "sum\<^sub>u(A)" == "CONST uop CONST usums A"
   "A \<lhd>\<^sub>u f" <= "CONST udomres A f"
   "f \<rhd>\<^sub>u A" <= "CONST uranres f A"
   "#\<^sub>u(f)" <= "CONST ucard f"

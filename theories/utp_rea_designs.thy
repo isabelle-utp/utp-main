@@ -69,6 +69,10 @@ lemma st'_unrest_st_lift_pred [unrest]:
   "$st\<acute> \<sharp> \<lceil>a\<rceil>\<^sub>S\<^sub><"
   by (pred_auto)
 
+lemma out_alpha_unrest_st_lift_pre [unrest]:
+  "out\<alpha> \<sharp> \<lceil>a\<rceil>\<^sub>S\<^sub><"
+  by (rel_auto)
+    
 lemma st_lift_R1_true_right: "\<lceil>b\<rceil>\<^sub>S\<^sub>< ;; R1(true) = \<lceil>b\<rceil>\<^sub>S\<^sub><"
   by (rel_auto)
 
@@ -1391,6 +1395,10 @@ lemma wpR_UINF [wp]:
   "(\<Sqinter> x\<in>A \<bullet> P(x)) wp\<^sub>R Q = (\<Squnion> x\<in>A \<bullet> P(x) wp\<^sub>R Q)"
   by (simp add: wpR_def seq_UINF_distr not_USUP)
 
+lemma wpR_tr_subst [usubst]:
+  "out\<alpha> \<sharp> v \<Longrightarrow> (P wp\<^sub>R Q)\<lbrakk>v/$tr\<rbrakk> = (P\<lbrakk>v/$tr\<rbrakk> wp\<^sub>R Q)"
+  by (simp add: wpR_def usubst unrest)
+    
 theorem RHS_tri_design_composition:
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>2" "$ok \<sharp> R" "$ok \<sharp> S\<^sub>1" "$ok \<sharp> S\<^sub>2"
           "$wait \<sharp> R" "$wait\<acute> \<sharp> Q\<^sub>2" "$wait \<sharp> S\<^sub>1" "$wait \<sharp> S\<^sub>2"
@@ -1919,12 +1927,22 @@ abbreviation Chaos :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp" w
 abbreviation Miracle :: "('s,'t::ordered_cancel_monoid_diff,'\<alpha>) hrel_rsp" where
 "Miracle \<equiv> \<^bold>\<top>\<^bsub>SRDES\<^esub>"
 
+text {* We guard the reactive conditional condition so that it can't be simplified by alphabet
+  laws unless explicitly simplified. *}
+
+definition lift_cond_srea ("\<lceil>_\<rceil>\<^sub>S\<^sub>\<leftarrow>") where
+[upred_defs]: "\<lceil>b\<rceil>\<^sub>S\<^sub>\<leftarrow> = \<lceil>b\<rceil>\<^sub>S\<^sub><"
+
+lemma unrest_lift_cond_srea [unrest]:
+  "x \<sharp> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<Longrightarrow> x \<sharp> \<lceil>b\<rceil>\<^sub>S\<^sub>\<leftarrow>"
+  by (simp add: lift_cond_srea_def)
+
 abbreviation cond_srea ::
   "('s,'t::ordered_cancel_monoid_diff,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow>
   's upred \<Rightarrow>
   ('s,'t,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow>
   ('s,'t,'\<alpha>,'\<beta>) rel_rsp" ("(3_ \<triangleleft> _ \<triangleright>\<^sub>R/ _)" [52,0,53] 52) where
-"cond_srea P b Q \<equiv> P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<triangleright> Q"
+"cond_srea P b Q \<equiv> P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>\<leftarrow> \<triangleright> Q"
 
 lemma Chaos_def: "Chaos = \<^bold>R\<^sub>s(false \<turnstile> true)"
 proof -
@@ -2215,9 +2233,9 @@ proof -
   have "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) \<triangleleft> b \<triangleright>\<^sub>R \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2) = \<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) \<triangleleft> R2c(\<lceil>b\<rceil>\<^sub>S\<^sub><) \<triangleright> \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2)"
     by (pred_auto)
   also have "... = \<^bold>R\<^sub>s (P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2 \<triangleleft> b \<triangleright>\<^sub>R R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2)"
-    by (simp add: RHS_cond)
+    by (simp add: RHS_cond lift_cond_srea_def)
   also have "... = \<^bold>R\<^sub>s ((P \<triangleleft> b \<triangleright>\<^sub>R R) \<turnstile> (Q\<^sub>1 \<diamondop> Q\<^sub>2 \<triangleleft> b \<triangleright>\<^sub>R S\<^sub>1 \<diamondop> S\<^sub>2))"
-    by (simp add: design_condr)
+    by (simp add: design_condr lift_cond_srea_def)
   also have "... = \<^bold>R\<^sub>s((P \<triangleleft> b \<triangleright>\<^sub>R R) \<turnstile> (Q\<^sub>1 \<triangleleft> b \<triangleright>\<^sub>R S\<^sub>1) \<diamondop> (Q\<^sub>2 \<triangleleft> b \<triangleright>\<^sub>R S\<^sub>2))"
     by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
   finally show ?thesis .
@@ -2232,7 +2250,7 @@ proof -
   also have "... = \<^bold>R\<^sub>s ((pre\<^sub>R P \<triangleleft> b \<triangleright>\<^sub>R pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<triangleleft> b \<triangleright>\<^sub>R peri\<^sub>R Q) \<diamondop> (post\<^sub>R P \<triangleleft> b \<triangleright>\<^sub>R post\<^sub>R Q))"
     by (simp add: cond_srea_form)
   also have "... is SRD"
-    by (simp add: RHS_tri_design_is_SRD unrest)
+    by (simp add: RHS_tri_design_is_SRD lift_cond_srea_def unrest)
   finally show ?thesis .
 qed
 

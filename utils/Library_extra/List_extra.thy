@@ -27,6 +27,8 @@ fun sequence :: "'a option list \<Rightarrow> 'a list option" where
 
 abbreviation "mapM f \<equiv> sequence \<circ> map f"
 
+abbreviation "list_sum xs \<equiv> foldr (op +) xs 0"
+
 subsection {* List lemmas *}
 
 lemma map_nth_Cons_atLeastLessThan:
@@ -121,6 +123,27 @@ lemma prefix_drop:
 lemma list_append_prefixD: "x @ y \<le> z \<Longrightarrow> x \<le> z"
   using append_prefixD less_eq_list_def by blast
 
+lemma listsum_update: 
+  fixes xs :: "'a::ring list"
+  assumes "i < length xs"
+  shows "list_sum (xs[i := v]) = list_sum xs - xs ! i + v"
+using assms proof (induct xs arbitrary: i)
+  case Nil
+  then show ?case by (simp)
+next
+  case (Cons a xs)
+  then show ?case
+  proof (cases i)
+    case 0
+    thus ?thesis
+      by (simp add: add.commute) 
+  next
+    case (Suc i')
+    with Cons show ?thesis
+      by (auto)
+  qed
+qed
+    
 subsection {* Minus on lists *}
 
 instantiation list :: (type) minus

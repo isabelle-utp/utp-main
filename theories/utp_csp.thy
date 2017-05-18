@@ -163,7 +163,7 @@ theorem SKIP_is_Skip: "SKIP = Skip"
   by (rel_auto)
 
 theorem STOP_is_Stop: "STOP = Stop"
-  by (rel_simp, meson minus_zero_eq order_refl ordered_cancel_monoid_diff_class.diff_cancel)
+  by (rel_auto, simp_all add: zero_list_def minus_zero_eq)
 
 theorem Skip_UTP_form: "Skip = \<^bold>R\<^sub>s(\<exists> $ref \<bullet> CSP1(II))"
   by (rel_auto)
@@ -625,6 +625,34 @@ translations
   "x :=\<^sub>C v" <= "CONST AssignsCSP (CONST subst_upd (CONST id) x v)"
   "x,y :=\<^sub>C u,v" <= "CONST AssignsCSP (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
 
+text {* There are different collections that we would like to assign to, but they all have different
+  types and perhaps more importantly different conditions on the update being well defined. For example,
+  for a list well-definedness equates to the index being less than the length etc. Thus we here set
+  up a polymorphic constant for CSP assignment updates that can be specialised to different types. *}
+  
+consts
+  csp_assign_upd :: "('f \<Longrightarrow> '\<sigma>) \<Rightarrow> ('k, '\<sigma>) uexpr \<Rightarrow> ('v, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>, '\<phi>) action"
+  
+definition AssignCSP_list_update :: 
+  "('a list \<Longrightarrow> '\<sigma>) \<Rightarrow> (nat, '\<sigma>) uexpr \<Rightarrow> ('a, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>, '\<phi>) action" where
+[upred_defs]: "AssignCSP_list_update x k v = \<^bold>R\<^sub>s(\<lceil>k \<in>\<^sub>u dom\<^sub>u(&x)\<rceil>\<^sub>S\<^sub>< \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>x[k] := v\<rceil>\<^sub>S))"
+
+definition AssignCSP_pfun_update :: 
+  "(('k, 'v) pfun \<Longrightarrow> '\<sigma>) \<Rightarrow> ('k, '\<sigma>) uexpr \<Rightarrow> ('v, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>, '\<phi>) action" where
+[upred_defs]: "AssignCSP_pfun_update x k v = \<^bold>R\<^sub>s(\<lceil>k \<in>\<^sub>u dom\<^sub>u(&x)\<rceil>\<^sub>S\<^sub>< \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>x[k] := v\<rceil>\<^sub>S))"
+
+adhoc_overloading
+  csp_assign_upd AssignCSP_list_update and csp_assign_upd AssignCSP_pfun_update
+  
+text {* All different assignment updates have the same syntax; the type resolves which implementation
+  to use. *}
+  
+syntax
+  "_csp_assign_upd" :: "svid \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("{_[_]} :=\<^sub>C _" [0,0,72] 72)
+
+translations
+  "{x[k]} :=\<^sub>C v" == "CONST csp_assign_upd x k v"
+  
 text {* The CSP weakest fixed-point is obtained simply by precomposing the body with the CSP
   healthiness condition. *}
 
@@ -795,6 +823,28 @@ translations
   "c\<^bold>?$x \<^bold>\<rightarrow> P"   \<rightharpoonup> "CONST InputVarCSP c x (CONST UNIV) P"
   "c\<^bold>?$x \<^bold>\<rightarrow> P"   <= "c\<^bold>?$x:true \<^bold>\<rightarrow> P"
 
+text {* Reactive design contracts for CSP/Circus with refusals *}
+  
+definition mk_CRD :: "'s upred \<Rightarrow> ('e list \<Rightarrow> 'e set \<Rightarrow> 's upred) \<Rightarrow> ('e list \<Rightarrow> 's hrel) \<Rightarrow> ('s, 'e) action" where
+"mk_CRD P Q R = \<^bold>R\<^sub>s(\<lceil>P\<rceil>\<^sub>S\<^sub>< \<turnstile> \<lceil>Q x r\<rceil>\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk> \<diamondop> \<lceil>R(x)\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>tt\<rbrakk>)"
+
+syntax
+  "_ref_var" :: "logic"
+  "_mk_CRD"  :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("[_/ \<turnstile> _/ | _]\<^sub>C")
+
+parse_translation {*
+let
+  fun ref_var_tr [] = Syntax.free "refs"
+    | ref_var_tr _  = raise Match;
+in
+[(@{syntax_const "_ref_var"}, K ref_var_tr)]
+end
+*}
+
+translations
+  "[P \<turnstile> Q | R]\<^sub>C" => "CONST mk_CRD P (\<lambda> _trace_var _ref_var. Q) (\<lambda> _trace_var. R)"
+  "[P \<turnstile> Q | R]\<^sub>C" <= "CONST mk_CRD P (\<lambda> x r. Q) (\<lambda> y. R)"
+  
 subsection {* Closure properties *}
 
 lemma CSP3_Sup_closure [closure]:
@@ -854,6 +904,33 @@ lemma R2c_tr_ext: "R2c ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<
   apply (simp add: zero_list_def)
 done
 
+lemma AssignCSP_list_update_CSP [closure]:
+  "AssignCSP_list_update x k v is CSP"
+  by (simp add: AssignCSP_list_update_def RHS_tri_design_is_SRD unrest)
+    
+lemma preR_AssignCSP_list_update [rdes]: 
+  "pre\<^sub>R(AssignCSP_list_update x k v) = (R1(true) \<Rightarrow> \<lceil>k \<in>\<^sub>u dom\<^sub>u(&x)\<rceil>\<^sub>S\<^sub><)"
+  by (rel_auto)
+
+lemma periR_AssignCSP_list_update [rdes]:
+  "peri\<^sub>R(AssignCSP_list_update x k v) = R1(\<not> \<lceil>k \<in>\<^sub>u dom\<^sub>u(&x)\<rceil>\<^sub>S\<^sub><)"
+  by (rel_auto)
+
+lemma post_AssignCSP_list_update [rdes]:
+  "post\<^sub>R(AssignCSP_list_update x k v) = (($tr\<acute> =\<^sub>u $tr \<and> \<lceil>x[k] := v\<rceil>\<^sub>S) \<triangleleft> \<lceil>k \<in>\<^sub>u dom\<^sub>u(&x)\<rceil>\<^sub>S\<^sub>< \<triangleright> R1(true))"
+  by (rel_auto, simp_all add: minus_zero_eq zero_list_def) 
+
+lemma AssignCSP_list_update_NCSP [closure]:
+  "(AssignCSP_list_update x k v) is NCSP"
+proof (rule NCSP_intro)
+  show "{x[k]} :=\<^sub>C v is CSP"
+    by (simp add: closure)
+  show "{x[k]} :=\<^sub>C v is CSP3"
+    by (rule CSP3_SRD_intro, simp_all add: closure rdes unrest)
+  show "{x[k]} :=\<^sub>C v is CSP4"
+    by (rule CSP4_tri_intro, simp_all add: closure rdes unrest, rel_auto)
+qed
+  
 lemma R1_DoAct: "R1(do\<^sub>u(a)) = do\<^sub>u(a)"
   by (rel_auto)
 
@@ -1666,13 +1743,28 @@ proof -
   finally show ?thesis .
 qed
 
-text {* Proof that the input constrained parser version of output is the same as the regular definition. *}
+lemma outp_constraint_prod:
+  "(outp_constraint \<guillemotleft>a\<guillemotright> x \<and> outp_constraint \<guillemotleft>b\<guillemotright> y) =
+    outp_constraint \<guillemotleft>(a, b)\<guillemotright> (x, y)"
+  by (simp add: outp_constraint_def, pred_auto)
+  
+text {* Proofs that the input constrained parser versions of output is the same as the regular definition. *}
 
 lemma output_prefix_is_OutputCSP [simp]:
   assumes "A is NCSP"
   shows "x!(P) \<^bold>\<rightarrow> A = OutputCSP x P A" (is "?lhs = ?rhs")
   by (rule SRD_eq_intro, simp_all add: assms closure rdes, rel_auto+)
 
+lemma OutputCSP_pair_simp [simp]:
+  "P is NCSP \<Longrightarrow> a.(\<guillemotleft>i\<guillemotright>).(\<guillemotleft>j\<guillemotright>) \<^bold>\<rightarrow> P = OutputCSP a \<guillemotleft>(i,j)\<guillemotright> P"
+  using output_prefix_is_OutputCSP[of "P" a]
+  by (simp add: outp_constraint_prod InputCSP_def closure del: output_prefix_is_OutputCSP)
+    
+lemma OutputCSP_triple_simp [simp]:
+  "P is NCSP \<Longrightarrow> a.(\<guillemotleft>i\<guillemotright>).(\<guillemotleft>j\<guillemotright>).(\<guillemotleft>k\<guillemotright>) \<^bold>\<rightarrow> P = OutputCSP a \<guillemotleft>(i,j,k)\<guillemotright> P"
+  using output_prefix_is_OutputCSP[of "P" a]
+  by (simp add: outp_constraint_prod InputCSP_def closure del: output_prefix_is_OutputCSP)
+    
 lemma wpR_extend_tr_NCSP [wp]:
   assumes "P is NCSP"
   shows "($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) wp\<^sub>R pre\<^sub>R P = (pre\<^sub>R(P))\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
@@ -1790,6 +1882,35 @@ qed
 lemma "\<lbrakk> \<And> a. P(a) is NCSP \<rbrakk> \<Longrightarrow> (\<box> x\<in>A \<^bold>\<rightarrow> P(x)) = (\<box> x\<in>A \<^bold>\<rightarrow> Skip) ;; (P x)\<lbrakk>x\<rightarrow>last\<^sub>u($tr)\<rbrakk>"
 *)
 
+lemma CSP_mk_CRD [closure]: "[P \<turnstile> Q trace refs | R(trace)]\<^sub>C is CSP"
+  by (simp add: mk_CRD_def closure unrest)
+
+lemma preR_mk_CRD [rdes]: "pre\<^sub>R([P \<turnstile> Q trace refs | R(trace) ]\<^sub>C) = (\<not> R1(\<not> \<lceil>P\<rceil>\<^sub>S\<^sub><))"
+  by (simp add: mk_CRD_def rea_pre_RHS_design usubst unrest R2c_not R2c_lift_state_pre)
+
+lemma periR_mk_CRD [rdes]: "peri\<^sub>R([P \<turnstile> Q trace refs | R(trace) ]\<^sub>C) = ((\<not> R1(\<not> \<lceil>P\<rceil>\<^sub>S\<^sub><)) \<Rightarrow> R1((\<lceil>Q trace refs\<rceil>\<^sub>S\<^sub><)\<lbrakk>(trace,refs)\<rightarrow>(tt,$ref\<acute>)\<^sub>u\<rbrakk>))"
+  by (simp add: mk_CRD_def rea_peri_RHS_design usubst unrest R2c_not R2c_lift_state_pre
+                impl_alt_def R2c_disj R2c_msubst_tt R1_disj, rel_auto)
+
+lemma postR_mk_CRD [rdes]: "post\<^sub>R([P \<turnstile> Q trace refs | R(trace) ]\<^sub>C) = ((\<not> R1(\<not> \<lceil>P\<rceil>\<^sub>S\<^sub><)) \<Rightarrow> R1((\<lceil>R(trace)\<rceil>\<^sub>S)\<lbrakk>trace\<rightarrow>tt\<rbrakk>))"
+  by (simp add: mk_CRD_def rea_post_RHS_design usubst unrest R2c_not R2c_lift_state_pre
+                impl_alt_def R2c_disj R2c_msubst_tt R1_disj)
+
+text {* Refinement introduction law for contracts *}
+
+lemma CRD_contract_refine:
+  assumes
+    "Q is CSP" "`\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R Q`"
+    "`\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> peri\<^sub>R Q \<Rightarrow> \<lceil>P\<^sub>2 t r\<rceil>\<^sub>S\<^sub><\<lbrakk>t\<rightarrow>tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk>`"
+    "`\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R Q \<Rightarrow> \<lceil>P\<^sub>3 x\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>tt\<rbrakk>`"
+  shows "[P\<^sub>1 \<turnstile> P\<^sub>2 trace refs | P\<^sub>3(trace)]\<^sub>C \<sqsubseteq> Q"
+proof -
+  have "[P\<^sub>1 \<turnstile> P\<^sub>2 trace refs | P\<^sub>3(trace)]\<^sub>C \<sqsubseteq> \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> peri\<^sub>R(Q) \<diamondop> post\<^sub>R(Q))"
+    by (simp add: mk_CRD_def, rule srdes_tri_refine_intro, simp_all add: assms)
+  thus ?thesis
+    by (simp add: SRD_reactive_tri_design assms(1))
+qed
+  
 text {* A healthiness condition for weakly guarded CSP processes *}
 
 definition [upred_defs]: "Productive(P) = P \<parallel>\<^sub>R \<^bold>R\<^sub>s(true \<turnstile> true \<diamondop> ($tr <\<^sub>u $tr\<acute>))"
@@ -1912,7 +2033,7 @@ proof -
   also have "... = \<^bold>R\<^sub>s ((pre\<^sub>R P \<triangleleft> b \<triangleright>\<^sub>R pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<triangleleft> b \<triangleright>\<^sub>R peri\<^sub>R Q) \<diamondop> (((post\<^sub>R P) \<triangleleft> b \<triangleright>\<^sub>R (post\<^sub>R Q)) \<and> $tr\<acute> >\<^sub>u $tr))"
     by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
   also have "... is Productive"
-    by (simp add: Healthy_def Productive_RHS_design_form unrest)
+    by (simp add: Healthy_def Productive_RHS_design_form  unrest)
   finally show ?thesis .
 qed
 
@@ -2468,7 +2589,7 @@ definition CSPMerge' :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> '
     ($tr\<acute> - $tr\<^sub><) \<in>\<^sub>u ($0-tr - $tr\<^sub><) \<star>\<^bsub>\<guillemotleft>cs\<guillemotright>\<^esub> ($1-tr - $tr\<^sub><) \<and>
     ($0-tr - $tr\<^sub><) \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u ($1-tr - $tr\<^sub><) \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> \<and>
     $st\<acute> =\<^sub>u ($st\<^sub>< \<oplus> $0-st on &ns1) \<oplus> $1-st on &ns2)"
-
+  
 lemma CSPMerge'_R2m [closure]: "N\<^sub>C ns1 cs ns2 is R2m"
   by (rel_auto)
 
@@ -2477,6 +2598,22 @@ lemma CSPMerge'_RDM [closure]: "N\<^sub>C ns1 cs ns2 is RDM"
 
 definition CSPMerge :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> '\<psi> set \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> (('\<sigma>,'\<psi>) st_csp) merge" ("M\<^sub>C") where
 [upred_defs]: "M\<^sub>C ns1 cs ns2 = M\<^sub>R(N\<^sub>C ns1 cs ns2) ;; Skip"
+
+lemma CSPMerge'_form:
+  fixes P Q :: "('\<sigma>,'\<phi>) action"
+  assumes "P is R2" "Q is R2" "$wait\<acute> \<sharp> P" "$wait\<acute> \<sharp> Q" "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q"
+  shows
+  "P \<parallel>\<^bsub>N\<^sub>C ns1 cs ns2\<^esub> Q = 
+        (\<^bold>\<exists> (ref\<^sub>0, ref\<^sub>1, st\<^sub>0, st\<^sub>1, tt\<^sub>0, tt\<^sub>1) \<bullet> 
+             P\<lbrakk>\<guillemotleft>ref\<^sub>0\<guillemotright>,\<guillemotleft>st\<^sub>0\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>tt\<^sub>0\<guillemotright>/$ref\<acute>,$st\<acute>,$tr,$tr\<acute>\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>ref\<^sub>1\<guillemotright>,\<guillemotleft>st\<^sub>1\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$ref\<acute>,$st\<acute>,$tr,$tr\<acute>\<rbrakk>
+           \<and> $ref\<acute> \<subseteq>\<^sub>u ((\<guillemotleft>ref\<^sub>0\<guillemotright> \<union>\<^sub>u \<guillemotleft>ref\<^sub>1\<guillemotright>) \<inter>\<^sub>u \<guillemotleft>cs\<guillemotright>) \<union>\<^sub>u ((\<guillemotleft>ref\<^sub>0\<guillemotright> \<inter>\<^sub>u \<guillemotleft>ref\<^sub>1\<guillemotright>) - \<guillemotleft>cs\<guillemotright>)
+           \<and> $tr \<le>\<^sub>u $tr\<acute>
+           \<and> tt \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>\<guillemotleft>cs\<guillemotright>\<^esub> \<guillemotleft>tt\<^sub>1\<guillemotright>
+           \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>
+           \<and> $st\<acute> =\<^sub>u ($st \<oplus> \<guillemotleft>st\<^sub>0\<guillemotright> on &ns1) \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &ns2)"
+proof -
+  have "P \<parallel>\<^bsub>N\<^sub>C ns1 cs ns2\<^esub> Q = (\<lceil>P\<rceil>\<^sub>0 \<and> \<lceil>Q\<rceil>\<^sub>1 \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; N\<^sub>C ns1 cs ns2"
+  oops
 
 subsection {* Parallel Operator *}
 

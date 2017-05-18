@@ -33,7 +33,8 @@ purge_notation
   join (infixl "\<squnion>\<index>" 65) and
   meet (infixl "\<sqinter>\<index>" 70) and
   LFP ("\<mu>\<index>") and
-  GFP ("\<nu>\<index>")
+  GFP ("\<nu>\<index>") and
+  Set.member (infix ":" 50)
 
 text {* We hide HOL's built-in relation type since we will replace it with our own *}
 

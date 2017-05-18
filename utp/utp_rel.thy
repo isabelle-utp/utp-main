@@ -94,12 +94,13 @@ nonterminal
   svid_list and uexpr_list
 
 syntax
-  "_svid_unit"  :: "svid \<Rightarrow> svid_list" ("_")
-  "_svid_list"  :: "svid \<Rightarrow> svid_list \<Rightarrow> svid_list" ("_,/ _")
-  "_uexpr_unit" :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list" ("_" [40] 40)
-  "_uexpr_list" :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list \<Rightarrow> uexpr_list" ("_,/ _" [70,70] 70)
-  "_assignment" :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  (infixr ":=" 72)
-  "_mk_usubst"  :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> usubst"
+  "_svid_unit"      :: "svid \<Rightarrow> svid_list" ("_")
+  "_svid_list"      :: "svid \<Rightarrow> svid_list \<Rightarrow> svid_list" ("_,/ _")
+  "_uexpr_unit"     :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list" ("_" [40] 40)
+  "_uexpr_list"     :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list \<Rightarrow> uexpr_list" ("_,/ _" [70,70] 70)
+  "_assignment"     :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  (infixr ":=" 72)
+  "_assignment_upd" :: "svid \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "[_] :=" 72)
+  "_mk_usubst"      :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> usubst"
 
 translations
   "_mk_usubst \<sigma> (_svid_unit x) v" == "\<sigma>(&x \<mapsto>\<^sub>s v)"
@@ -108,7 +109,8 @@ translations
   "x := v" <= "CONST assigns_r (CONST subst_upd (CONST id) (CONST svar x) v)"
   "x := v" <= "CONST assigns_r (CONST subst_upd (CONST id) x v)"
   "x,y := u,v" <= "CONST assigns_r (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
-
+  "x [k] := v" => "x := &x(k \<mapsto> v)\<^sub>u"
+  
 adhoc_overloading
   useq seqr and
   uskip skip_r
