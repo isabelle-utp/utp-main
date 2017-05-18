@@ -35,7 +35,7 @@ text {* We introduce the notation @{term "\<F> has-deriv \<F>' at t < \<tau>"} t
 definition hODE ::
   "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow>
    ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) hyrel" where
-[urel_defs]: "hODE x \<F>' = (\<^bold>\<exists> \<F>, l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<^bold>\<lceil> \<guillemotleft>\<F>\<guillemotright> has-deriv \<F>' at \<guillemotleft>\<tau>\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> &x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u \<^bold>\<rceil>\<^sub>h)"
+[urel_defs]: "hODE x \<F>' = (\<^bold>\<exists> (\<F>, l) \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<^bold>\<lceil> \<guillemotleft>\<F>\<guillemotright> has-deriv \<F>' at \<guillemotleft>\<tau>\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> &x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u \<^bold>\<rceil>\<^sub>h)"
 
 syntax
   "_hODE" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_ \<bullet> _\<rangle>\<^sub>h")
