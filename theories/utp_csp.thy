@@ -2576,21 +2576,23 @@ lemma CSP5_Stop [closure]: "Stop is CSP5"
 subsection {* Failures-Divergences Semantics *}
 
 definition divergences :: "('\<sigma>,'\<phi>) action \<Rightarrow> '\<sigma> \<Rightarrow> '\<phi> list set" ("dv\<lbrakk>_\<rbrakk>_" [0,100] 100) where
-[upred_defs]: "divergences P s = {t | t. `(\<not> pre\<^sub>R(P))\<lbrakk>\<guillemotleft>s\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>/$st,$tr,$tr\<acute>\<rbrakk>`}"
-
+[upred_defs]: "divergences P s = {t | t. `(\<not> pre\<^sub>R(P))\<lbrakk>(\<guillemotleft>s\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>)\<^sub>u/{$st,$tr,$tr\<acute>}\<rbrakk>`}"
+  
 definition traces :: "('\<sigma>,'\<phi>) action \<Rightarrow> '\<sigma> \<Rightarrow> ('\<phi> list \<times> '\<sigma>) set" ("tr\<lbrakk>_\<rbrakk>_" [0,100] 100) where
 [upred_defs]: "traces P s = {(t,s') | t s'. `(pre\<^sub>R(P) \<and> post\<^sub>R(P))\<lbrakk>\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>/$st,$st\<acute>,$tr,$tr\<acute>\<rbrakk>`}"
 
 definition failures :: "('\<sigma>,'\<phi>) action \<Rightarrow> '\<sigma> \<Rightarrow> ('\<phi> list \<times> '\<phi> set) set" ("fl\<lbrakk>_\<rbrakk>_" [0,100] 100) where
 [upred_defs]: "failures P s = {(t,r) | t r. `(pre\<^sub>R(P) \<and> peri\<^sub>R(P))\<lbrakk>\<guillemotleft>r\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>/$ref\<acute>,$st,$tr,$tr\<acute>\<rbrakk>`}"
 
-lemma
-  assumes "P is NCSP" "Q is NCSP" "\<And> s. divergences P s = divergences Q s"
-  shows "pre\<^sub>R(P) = pre\<^sub>R(Q)"
-  using assms(3)
-  apply (simp add: divergences_def set_eq_iff taut_def)
+term "{$st,$tr,$tr\<acute>}\<^sub>\<alpha>"
+     
+lemma 
+  assumes "P is NCSP" "Q is NCSP" "\<And> s. divergences P s \<subseteq> divergences Q s"
+  shows "pre\<^sub>R(Q) \<sqsubseteq> pre\<^sub>R(P)"
+proof (rule refine_by_obs[of "{$st,$tr,$tr\<acute>}\<^sub>\<alpha>" "{$ok,$ok\<acute>,$wait,$wait\<acute>,$st\<acute>,$ref,$ref\<acute>}\<^sub>\<alpha>"],
+       simp_all add: unrest assms closure)
   oops
-
+     
 lemma traces_Skip:
   "tr\<lbrakk>Skip\<rbrakk>s = {([], s)}"
   by (simp add: traces_def rdes alpha closure, rel_simp)

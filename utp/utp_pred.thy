@@ -512,6 +512,10 @@ lemma taut_true [simp]: "`true`"
 lemma taut_false [simp]: "`false` = False"
   by (pred_auto)
 
+lemma upred_eval_taut:
+  "`P\<lbrakk>\<guillemotleft>b\<guillemotright>/&\<Sigma>\<rbrakk>` = \<lbrakk>P\<rbrakk>\<^sub>eb"
+  by (pred_auto)
+    
 lemma refBy_order: "P \<sqsubseteq> Q = `Q \<Rightarrow> P`"
   by (pred_auto)
 
@@ -1214,6 +1218,32 @@ lemma cond_assign_subst:
   "vwb_lens x \<Longrightarrow> (P \<triangleleft> utp_expr.var x =\<^sub>u v \<triangleright> Q) = (P\<lbrakk>v/x\<rbrakk> \<triangleleft> utp_expr.var x =\<^sub>u v \<triangleright> Q)"
   apply (rel_simp) using vwb_lens.put_eq by force
 
+text {* Function to obtain the set of observations of a predicate *}
+    
+definition obs_upred :: "'\<alpha> upred \<Rightarrow> '\<alpha> set" ("\<lbrakk>_\<rbrakk>\<^sub>o")
+where [upred_defs]: "\<lbrakk>P\<rbrakk>\<^sub>o = {b. \<lbrakk>P\<rbrakk>\<^sub>eb}"
+    
+lemma obs_upred_refine_iff: 
+  "P \<sqsubseteq> Q \<longleftrightarrow> \<lbrakk>Q\<rbrakk>\<^sub>o \<subseteq> \<lbrakk>P\<rbrakk>\<^sub>o"
+  by (pred_auto)
+    
+text {* A refinement can be demonstrated by considering only the observations of the predicates
+  which are relevant, i.e. not unrestricted, for them. In other words, if the alphabet can
+  be split into two disjoint segments, $x$ and $y$, and neither predicate refers to $y$ then
+  only $x$ need be considered when checking for observations. *}
+    
+lemma refine_by_obs:
+  assumes "x \<bowtie> y" "bij_lens (x +\<^sub>L y)" "y \<sharp> P" "y \<sharp> Q" "{v. `P\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>`} \<subseteq> {v. `Q\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>`}"
+  shows "Q \<sqsubseteq> P"
+  using assms(3-5)
+  apply (simp add: obs_upred_refine_iff subset_eq)
+  apply (pred_simp)
+  apply (rename_tac b)
+  apply (drule_tac x="get\<^bsub>x\<^esub>b" in spec)
+  apply (auto simp add: assms)
+  apply (metis assms(1) assms(2) bij_lens.axioms(2) bij_lens_axioms_def lens_override_def lens_override_plus)+
+done
+    
 subsection {* Cylindric algebra *}
 
 lemma C1: "(\<exists> x \<bullet> false) = false"

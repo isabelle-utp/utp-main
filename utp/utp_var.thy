@@ -149,6 +149,7 @@ syntax
   "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [998] 998)
   "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr ";" 75)
   "_salphaset"   :: "svar_list \<Rightarrow> salpha" ("{_}")
+  "_ualpha_set"  :: "svar_list \<Rightarrow> logic" ("{_}\<^sub>\<alpha>")
   "_salphamk"    :: "logic \<Rightarrow> salpha"
   "_svar_nil"    :: "svar \<Rightarrow> svar_list" ("_")
   "_svar_cons"   :: "svar \<Rightarrow> svar_list \<Rightarrow> svar_list" ("_,/ _")
@@ -184,8 +185,9 @@ translations
   "_svar_nil x" => "x"
   "_svar_cons x xs" => "x +\<^sub>L xs"
   "_salphaset A" => "A"
-  "(_svar_cons x (_salphamk y))" <= "_salphamk (x +\<^sub>L y)"
-  "x" <= "_salphamk x"
+  "_ualpha_set A" => "A"  
+  "(_svar_cons x (_salphamk y))" <= "_salphamk (x +\<^sub>L y)" 
+  "x" <= "_salphamk x"    
   "_svid_alpha" == "\<Sigma>"
   "_svid_empty" == "0\<^sub>L"
   "_svid_dot x y" => "y ;\<^sub>L x"
