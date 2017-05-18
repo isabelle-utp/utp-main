@@ -58,6 +58,15 @@ definition Mondex :: "index \<Rightarrow> action_mdx" where
 
 subsection {* Pre/peri/post calculations *}
 
+text {* The behaviour of a reactive program is described in three parts: (1) the precondition,
+  that describes how the state and environment must behave to ensure valid behaviour; (2)
+  the pericondition that describes the commitments the program makes whilst in an intermediate
+  state in terms of events only; and (3) the postcondition that describes the commitments after
+  the process terminates. The pericondition refers only to the trace, as the state is invisible
+  in intermediate states -- it can only be observed through events. The pre- and postcondition
+  can refer to both the state and the trace; although the form can only refer to a prefix
+  of the trace and before state variables -- only the postcondition refers to after state. *}
+  
 lemma Pay_CSP [closure]: "Pay i j n is CSP"
   by (simp add: Pay_def closure)
  
@@ -97,7 +106,13 @@ lemma postR_Pay [rdes]:
 
 subsection {* Verification *}
 
-text {* We first show that any payment leaves the total value shared between the cards unchanged.
+text {* We perform verification by writing contracts that specify desired behaviours of our
+  system. A contract @{term "[P \<turnstile> Q | R]\<^sub>C"} consists of three predicates that correspond to
+  the pre-, peri-, and postconditions, respectively. The precondition talks about initial state
+  variables and the $trace$ contribution via a special variable. The pericondition likewise
+  talks about initial states and traces. The postcondition also talks about final states.
+
+  We first show that any payment leaves the total value shared between the cards unchanged.
   This is under the assumption that at least two cards exist. The contract has as its precondition
   that initially the number of cards is $cardNum$. The pericondition is $true$ as we don't
   care about intermediate behaviour here. The postcondition has that the summation of the 
@@ -105,9 +120,9 @@ text {* We first show that any payment leaves the total value shared between the
   
 theorem money_constant:
   assumes "i < cardNum" "j < cardNum" "i \<noteq> j"
-  shows "[#\<^sub>u(&valueseq) =\<^sub>u \<guillemotleft>cardNum\<guillemotright> \<turnstile> true | sum\<^sub>u($valueseq) =\<^sub>u sum\<^sub>u($valueseq\<acute>)]\<^sub>R \<sqsubseteq> Pay i j n"
+  shows "[#\<^sub>u(&valueseq) =\<^sub>u \<guillemotleft>cardNum\<guillemotright> \<turnstile> true | sum\<^sub>u($valueseq) =\<^sub>u sum\<^sub>u($valueseq\<acute>)]\<^sub>C \<sqsubseteq> Pay i j n"
 -- {* We first apply the reactive design contract introduction law and discharge well-formedness of Pay *}
-proof (rule RD_contract_refine, simp add: closure)
+proof (rule CRD_contract_refine, simp add: closure)
 
   -- {* Three proof obligations result for the pre/peri/postconditions. The first requires us to
     show that the contract's precondition is weakened by the implementation precondition. 
@@ -120,7 +135,7 @@ proof (rule RD_contract_refine, simp add: closure)
 
   -- {* The second is trivial as we don't care about intermediate states. *}
       
-  show "`\<lceil>#\<^sub>u(&valueseq) =\<^sub>u \<guillemotleft>cardNum\<guillemotright>\<rceil>\<^sub>S\<^sub>< \<and> peri\<^sub>R (Pay i j n) \<Rightarrow> \<lceil>true\<rceil>\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>tt\<rbrakk>`"
+  show "`\<lceil>#\<^sub>u(&valueseq) =\<^sub>u \<guillemotleft>cardNum\<guillemotright>\<rceil>\<^sub>S\<^sub>< \<and> peri\<^sub>R (Pay i j n) \<Rightarrow> \<lceil>true\<rceil>\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk>`"
     by rel_auto
 
   -- {* The third requires that we show that the postcondition implies that the total amount remains
@@ -138,8 +153,8 @@ text {* The next property is that no card value can go below 0, assuming it was 
   
 theorem no_overdrafts:
   assumes "i < cardNum" "j < cardNum" "i \<noteq> j"
-  shows "[#\<^sub>u(&valueseq) =\<^sub>u \<guillemotleft>cardNum\<guillemotright> \<turnstile> true | (\<^bold>\<forall> k \<bullet> \<guillemotleft>k\<guillemotright> <\<^sub>u \<guillemotleft>cardNum\<guillemotright> \<and> $valueseq\<lparr>\<guillemotleft>k\<guillemotright>\<rparr>\<^sub>u \<ge>\<^sub>u 0 \<Rightarrow> $valueseq\<acute>\<lparr>\<guillemotleft>k\<guillemotright>\<rparr>\<^sub>u \<ge>\<^sub>u 0)]\<^sub>R \<sqsubseteq> Pay i j n"
-  apply (rule RD_contract_refine)
+  shows "[#\<^sub>u(&valueseq) =\<^sub>u \<guillemotleft>cardNum\<guillemotright> \<turnstile> true | (\<^bold>\<forall> k \<bullet> \<guillemotleft>k\<guillemotright> <\<^sub>u \<guillemotleft>cardNum\<guillemotright> \<and> $valueseq\<lparr>\<guillemotleft>k\<guillemotright>\<rparr>\<^sub>u \<ge>\<^sub>u 0 \<Rightarrow> $valueseq\<acute>\<lparr>\<guillemotleft>k\<guillemotright>\<rparr>\<^sub>u \<ge>\<^sub>u 0)]\<^sub>C \<sqsubseteq> Pay i j n"
+  apply (rule CRD_contract_refine)
   apply (simp add: Pay_def closure)
   apply (simp add: rdes)
   using assms
