@@ -3,7 +3,7 @@ section {* Terminated lists *}
 theory Terminated_lists
 imports
   Main
-  Monoid_Extra
+  Monoid_extra
 begin
 
 text {* Finite terminated lists are lists where the Nil element 
@@ -368,4 +368,5 @@ proof -
       
   finally show ?thesis by simp
 qed
-  
+
+end  
