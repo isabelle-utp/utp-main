@@ -10,7 +10,7 @@ begin
 default_sort type
 
 consts
-  useq   :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infixr ";;" 51)
+  useq   :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infixr ";;" 71)
   uskip  :: "'a" ("II")
 
 definition in\<alpha> :: "('\<alpha>, '\<alpha> \<times> '\<beta>) uvar" where
@@ -94,12 +94,13 @@ nonterminal
   svid_list and uexpr_list
 
 syntax
-  "_svid_unit"  :: "svid \<Rightarrow> svid_list" ("_")
-  "_svid_list"  :: "svid \<Rightarrow> svid_list \<Rightarrow> svid_list" ("_,/ _")
-  "_uexpr_unit" :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list" ("_" [40] 40)
-  "_uexpr_list" :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list \<Rightarrow> uexpr_list" ("_,/ _" [70,70] 70)
-  "_assignment" :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  (infixr ":=" 62)
-  "_mk_usubst"  :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> usubst"
+  "_svid_unit"      :: "svid \<Rightarrow> svid_list" ("_")
+  "_svid_list"      :: "svid \<Rightarrow> svid_list \<Rightarrow> svid_list" ("_,/ _")
+  "_uexpr_unit"     :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list" ("_" [40] 40)
+  "_uexpr_list"     :: "('a, '\<alpha>) uexpr \<Rightarrow> uexpr_list \<Rightarrow> uexpr_list" ("_,/ _" [70,70] 70)
+  "_assignment"     :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  (infixr ":=" 72)
+  "_assignment_upd" :: "svid \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "[_] :=" 72)
+  "_mk_usubst"      :: "svid_list \<Rightarrow> uexprs \<Rightarrow> '\<alpha> usubst"
 
 translations
   "_mk_usubst \<sigma> (_svid_unit x) v" == "\<sigma>(&x \<mapsto>\<^sub>s v)"
@@ -108,14 +109,15 @@ translations
   "x := v" <= "CONST assigns_r (CONST subst_upd (CONST id) (CONST svar x) v)"
   "x := v" <= "CONST assigns_r (CONST subst_upd (CONST id) x v)"
   "x,y := u,v" <= "CONST assigns_r (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
-
+  "x [k] := v" => "x := &x(k \<mapsto> v)\<^sub>u"
+  
 adhoc_overloading
   useq seqr and
   uskip skip_r
-  
+
 text {* Homogeneous sequential composition *}
 
-abbreviation seqh :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" (infixr ";;\<^sub>h" 51) where
+abbreviation seqh :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" (infixr ";;\<^sub>h" 71) where
 "seqh P Q \<equiv> (P ;; Q)"
 
 definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<top>" [999] 999) where
@@ -377,15 +379,21 @@ lemma seq_Sup_distr: "(\<Sqinter> A) ;; Q = (\<Sqinter> P\<in>A. P ;; Q)"
 lemma seq_UINF_distl: "P ;; (\<Sqinter> Q\<in>A \<bullet> F(Q)) = (\<Sqinter> Q\<in>A \<bullet> P ;; F(Q))"
   by (simp add: USUP_as_Sup_collect seq_Sup_distl)
 
+lemma seq_UINF_distl': "P ;; (\<Sqinter> Q \<bullet> F(Q)) = (\<Sqinter> Q \<bullet> P ;; F(Q))"
+  by (metis UINF_mem_UNIV seq_UINF_distl)
+
 lemma seq_UINF_distr: "(\<Sqinter> P\<in>A \<bullet> F(P)) ;; Q = (\<Sqinter> P\<in>A \<bullet> F(P) ;; Q)"
   by (simp add: USUP_as_Sup_collect seq_Sup_distr)
-   
+
+lemma seq_UINF_distr': "(\<Sqinter> P \<bullet> F(P)) ;; Q = (\<Sqinter> P \<bullet> F(P) ;; Q)"
+  by (metis UINF_mem_UNIV seq_UINF_distr)
+
 lemma seq_SUP_distl: "P ;; (\<Sqinter>i\<in>A. Q(i)) = (\<Sqinter>i\<in>A. P ;; Q(i))"
   by (metis image_image seq_Sup_distl)
-    
+
 lemma seq_SUP_distr: "(\<Sqinter>i\<in>A. P(i)) ;; Q = (\<Sqinter>i\<in>A. P(i) ;; Q)"
   by (simp add: seq_Sup_distr)
-    
+
 lemma impl_seqr_mono: "\<lbrakk> `P \<Rightarrow> Q`; `R \<Rightarrow> S` \<rbrakk> \<Longrightarrow> `(P ;; R) \<Rightarrow> (Q ;; S)`"
   by (pred_blast)
 
@@ -411,7 +419,7 @@ lemma spec_refine:
 
 lemma cond_conj_not: "((P \<triangleleft> b \<triangleright> Q) \<and> (\<not> b)) = (Q \<and> (\<not> b))"
   by (rel_auto)
-    
+
 lemma cond_skip: "out\<alpha> \<sharp> b \<Longrightarrow> (b \<and> II) = (II \<and> b\<^sup>-)"
   by (rel_auto)
 
@@ -563,7 +571,7 @@ lemma seqr_left_one_point:
   shows "((P \<and> $x\<acute> =\<^sub>u \<guillemotleft>v\<guillemotright>) ;; Q) = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
   using assms
   by (rel_auto, metis vwb_lens_wb wb_lens.get_put)
-    
+
 lemma seqr_right_one_point:
   assumes "vwb_lens x"
   shows "(P ;; ($x =\<^sub>u \<guillemotleft>v\<guillemotright> \<and> Q)) = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
@@ -573,23 +581,23 @@ lemma seqr_right_one_point:
 lemma seqr_left_one_point_true:
   assumes "vwb_lens x"
   shows "((P \<and> $x\<acute>) ;; Q) = (P\<lbrakk>true/$x\<acute>\<rbrakk> ;; Q\<lbrakk>true/$x\<rbrakk>)"
-  by (metis assms seqr_left_one_point true_alt_def upred_eq_true)    
-    
+  by (metis assms seqr_left_one_point true_alt_def upred_eq_true)
+
 lemma seqr_left_one_point_false:
   assumes "vwb_lens x"
   shows "((P \<and> \<not>$x\<acute>) ;; Q) = (P\<lbrakk>false/$x\<acute>\<rbrakk> ;; Q\<lbrakk>false/$x\<rbrakk>)"
-  by (metis assms false_alt_def seqr_left_one_point upred_eq_false)    
-        
+  by (metis assms false_alt_def seqr_left_one_point upred_eq_false)
+
 lemma seqr_right_one_point_true:
   assumes "vwb_lens x"
   shows "(P ;; ($x \<and> Q)) = (P\<lbrakk>true/$x\<acute>\<rbrakk> ;; Q\<lbrakk>true/$x\<rbrakk>)"
   by (metis assms seqr_right_one_point true_alt_def upred_eq_true)
-    
+
 lemma seqr_right_one_point_false:
   assumes "vwb_lens x"
   shows "(P ;; (\<not>$x \<and> Q)) = (P\<lbrakk>false/$x\<acute>\<rbrakk> ;; Q\<lbrakk>false/$x\<rbrakk>)"
   by (metis assms false_alt_def seqr_right_one_point upred_eq_false)
-    
+
 lemma seqr_insert_ident_left:
   assumes "vwb_lens x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
   shows "(($x\<acute> =\<^sub>u $x \<and> P) ;; Q) = (P ;; Q)"
@@ -613,7 +621,20 @@ lemma seqr_bool_split:
   shows "P ;; Q = (P\<lbrakk>true/$x\<acute>\<rbrakk> ;; Q\<lbrakk>true/$x\<rbrakk> \<or> P\<lbrakk>false/$x\<acute>\<rbrakk> ;; Q\<lbrakk>false/$x\<rbrakk>)"
   using assms
   by (subst seqr_middle[of x], simp_all add: true_alt_def false_alt_def)
-    
+
+lemma cond_inter_var_split:
+  assumes "vwb_lens x"
+  shows "(P \<triangleleft> $x\<acute> \<triangleright> Q) ;; R = (P\<lbrakk>true/$x\<acute>\<rbrakk> ;; R\<lbrakk>true/$x\<rbrakk> \<or> Q\<lbrakk>false/$x\<acute>\<rbrakk> ;; R\<lbrakk>false/$x\<rbrakk>)"
+proof -
+  have "(P \<triangleleft> $x\<acute> \<triangleright> Q) ;; R = (($x\<acute> \<and> P) ;; R \<or> (\<not> $x\<acute> \<and> Q) ;; R)"
+    by (simp add: cond_def seqr_or_distl)
+  also have "... = ((P \<and> $x\<acute>) ;; R \<or> (Q \<and> \<not>$x\<acute>) ;; R)"
+    by (rel_auto)
+  also have "... = (P\<lbrakk>true/$x\<acute>\<rbrakk> ;; R\<lbrakk>true/$x\<rbrakk> \<or> Q\<lbrakk>false/$x\<acute>\<rbrakk> ;; R\<lbrakk>false/$x\<rbrakk>)"
+    by (simp add: seqr_left_one_point_true seqr_left_one_point_false assms)
+  finally show ?thesis .
+qed
+
 theorem precond_equiv:
   "P = (P ;; true) \<longleftrightarrow> (out\<alpha> \<sharp> P)"
   by (rel_auto)
@@ -955,20 +976,38 @@ lemma aext_seq [alpha]:
   by (rel_simp, metis wb_lens_weak weak_lens.put_get)
 
 subsection {* Algebraic properties *}
-    
+
 interpretation upred_semiring: semiring_1
   where times = seqr and one = skip_r and zero = false\<^sub>h and plus = sup
   by (unfold_locales, (rel_auto)+)
-    
+
 text {* We introduce the power syntax dervied from semirings *}
-    
-abbreviation upower :: "'a hrel \<Rightarrow> nat \<Rightarrow> 'a hrel" (infixr "\<^bold>^" 80) where
+
+abbreviation upower :: "'\<alpha> hrel \<Rightarrow> nat \<Rightarrow> '\<alpha> hrel" (infixr "\<^bold>^" 80) where
 "upower P n \<equiv> upred_semiring.power P n"
-    
+
 translations
   "P \<^bold>^ i" <= "CONST power.power II op ;; P i"
   "P \<^bold>^ i" <= "(CONST power.power II op ;; P) i"
-  
+
+text {* Set up transfer tactic for powers *}
+
+lemma upower_rep_eq [uexpr_transfer_laws]:
+  "\<lbrakk>P \<^bold>^ i\<rbrakk>\<^sub>eb = (b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p} ^^ i))"
+proof (induct i arbitrary: P b)
+  case 0
+  then show ?case
+    by (simp, rel_auto, simp add: Id_fstsnd_eq)
+next
+  case (Suc i)
+  show ?case
+    by (simp add: Suc seqr.rep_eq relpow_commute)
+qed
+
+lemma upower_rep_eq_alt [uexpr_transfer_laws]:
+  "\<lbrakk>power.power \<langle>id\<rangle>\<^sub>a op ;; P i\<rbrakk>\<^sub>e b = (b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p} ^^ i))"
+  by (metis skip_r_def upower_rep_eq)
+
 lemma Sup_power_expand:
   fixes P :: "nat \<Rightarrow> 'a::complete_lattice"
   shows "P(0) \<sqinter> (\<Sqinter>i. P(i+1)) = (\<Sqinter>i. P(i))"
@@ -983,8 +1022,8 @@ proof -
     by (simp add: atLeast_Suc_greaterThan)
   ultimately show ?thesis
     by (simp only:)
-qed    
-        
+qed
+
 lemma Sup_upto_Suc: "(\<Sqinter>i\<in>{0..Suc n}. P \<^bold>^ i) = (\<Sqinter>i\<in>{0..n}. P \<^bold>^ i) \<sqinter> P \<^bold>^ Suc n"
 proof -
   have "(\<Sqinter>i\<in>{0..Suc n}. P \<^bold>^ i) = (\<Sqinter>i\<in>insert (Suc n) {0..n}. P \<^bold>^ i)"
@@ -994,13 +1033,56 @@ proof -
   finally show ?thesis
     by (simp add: Lattices.sup_commute)
 qed
-  
-lemma SUP_atLeastAtMost_first: 
+
+text {* The following two proofs are adapted from the AFP entry Kleene Algebra (Armstrong, Struth, Weber) *}
+
+lemma upower_inductl: "Q \<sqsubseteq> (P ;; Q \<sqinter> R) \<Longrightarrow> Q \<sqsubseteq> P \<^bold>^ n ;; R"
+proof (induct n)
+  case 0
+  then show ?case by (auto)
+next
+  case (Suc n)
+  then show ?case
+    by (auto, metis (no_types, hide_lams) dual_order.trans order_refl seqr_assoc seqr_mono)
+qed
+
+lemma upower_inductr:
+  assumes "Q \<sqsubseteq> (R \<sqinter> Q ;; P)"
+  shows "Q \<sqsubseteq> R ;; (P \<^bold>^ n)"
+using assms proof (induct n)
+  case 0
+  then show ?case by auto
+next
+  case (Suc n)
+  have "R ;; P \<^bold>^ Suc n = (R ;; P \<^bold>^ n) ;; P"
+    by (metis seqr_assoc upred_semiring.power_Suc2)
+  also have "Q ;; P \<sqsubseteq> ..."
+    using Suc.hyps assms seqr_mono by auto
+  also have "Q \<sqsubseteq> ..."
+    using assms by auto
+  finally show ?case .
+qed
+
+lemma SUP_atLeastAtMost_first:
   fixes P :: "nat \<Rightarrow> 'a::complete_lattice"
   assumes "m \<le> n"
   shows "(\<Sqinter>i\<in>{m..n}. P(i)) = P(m) \<sqinter> (\<Sqinter>i\<in>{Suc m..n}. P(i))"
   by (metis SUP_insert assms atLeastAtMost_insertL)
-  
+
+text {* Kleene star *}
+
+definition ustar :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<star>" [999] 999) where
+"P\<^sup>\<star> = (\<Sqinter>i\<in>{0..} \<bullet> P\<^bold>^i)"
+
+lemma ustar_rep_eq [uexpr_transfer_laws]:
+  "\<lbrakk>P\<^sup>\<star>\<rbrakk>\<^sub>eb = (b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p}\<^sup>*))"
+  by (simp add: ustar_def, rel_auto, simp_all add: relpow_imp_rtrancl rtrancl_imp_relpow)
+
+text {* Omega *}
+
+definition uomega :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<omega>" [999] 999) where
+"P\<^sup>\<omega> = (\<mu> X \<bullet> P ;; X)"
+
 subsection {* Relation algebra laws *}
 
 theorem RA1: "(P ;; (Q ;; R)) = ((P ;; Q) ;; R)"
@@ -1018,11 +1100,44 @@ theorem RA4: "(P ;; Q)\<^sup>- = (Q\<^sup>- ;; P\<^sup>-)"
 theorem RA5: "(P \<or> Q)\<^sup>- = (P\<^sup>- \<or> Q\<^sup>-)"
   by (rel_auto)
 
-theorem RA6: "((P \<or> Q) ;; R) = ((P;;R) \<or> (Q;;R))"
+theorem RA6: "((P \<or> Q) ;; R) = (P;;R \<or> Q;;R)"
   using seqr_or_distl by blast
 
 theorem RA7: "((P\<^sup>- ;; (\<not>(P ;; Q))) \<or> (\<not>Q)) = (\<not>Q)"
   by (rel_auto)
+
+subsection {* Kleene algebra laws *}
+
+theorem ustar_unfoldl: "P\<^sup>\<star> \<sqsubseteq> II \<sqinter> P;;P\<^sup>\<star>"
+  by (rel_simp, simp add: rtrancl_into_trancl2 trancl_into_rtrancl)
+
+theorem ustar_inductl:
+  assumes "Q \<sqsubseteq> (R \<sqinter> P ;; Q)"
+  shows "Q \<sqsubseteq> P\<^sup>\<star> ;; R"
+proof -
+  have "P\<^sup>\<star> ;; R = (\<Sqinter> i. P \<^bold>^ i ;; R)"
+    by (simp add: ustar_def USUP_as_Sup_collect' seq_SUP_distr)
+  also have "Q \<sqsubseteq> ..."
+    by (metis (no_types, lifting) SUP_least assms semilattice_sup_class.sup_commute upower_inductl)
+  finally show ?thesis .
+qed
+
+theorem ustar_inductr:
+  assumes "Q \<sqsubseteq> (R \<sqinter> Q ;; P)"
+  shows "Q \<sqsubseteq> R ;; P\<^sup>\<star>"
+proof -
+  have "R ;; P\<^sup>\<star> = (\<Sqinter> i. R ;; P \<^bold>^ i)"
+    by (simp add: ustar_def USUP_as_Sup_collect' seq_SUP_distl)
+  also have "Q \<sqsubseteq> ..."
+    by (meson SUP_least assms upower_inductr)
+  finally show ?thesis .
+qed
+
+subsection {* Omega algbra *}
+
+lemma uomega_induct:
+  "P ;; P\<^sup>\<omega> \<sqsubseteq> P\<^sup>\<omega>"
+  by (simp add: uomega_def, metis eq_refl gfp_unfold monoI seqr_mono)
 
 subsection {* Relational alphabet extension *}
 

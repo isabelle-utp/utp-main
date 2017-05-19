@@ -258,19 +258,22 @@ adhoc_overloading
 definition "fun_apply f x = f x"
 declare fun_apply_def [simp]
 
+text {* Various overloaded constants for the expression language *}
+  
 consts
-  uempty  :: "'f"
-  uapply  :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
-  uupd    :: "'f \<Rightarrow> 'k \<Rightarrow> 'v \<Rightarrow> 'f"
-  udom    :: "'f \<Rightarrow> 'a set"
-  uran    :: "'f \<Rightarrow> 'b set"
-  udomres :: "'a set \<Rightarrow> 'f \<Rightarrow> 'f"
-  uranres :: "'f \<Rightarrow> 'b set \<Rightarrow> 'f"
-  ucard   :: "'f \<Rightarrow> nat"
-
+  uempty     :: "'f"
+  uapply     :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
+  uupd       :: "'f \<Rightarrow> 'k \<Rightarrow> 'v \<Rightarrow> 'f"
+  udom       :: "'f \<Rightarrow> 'a set"
+  uran       :: "'f \<Rightarrow> 'b set"
+  udomres    :: "'a set \<Rightarrow> 'f \<Rightarrow> 'f"
+  uranres    :: "'f \<Rightarrow> 'b set \<Rightarrow> 'f"
+  ucard      :: "'f \<Rightarrow> nat"
+  usums      :: "'f \<Rightarrow> 'a"
+    
 definition "LNil = Nil"
 definition "LZero = 0"
-
+  
 adhoc_overloading
   uempty LZero and uempty LNil and
   uapply fun_apply and uapply nth and uapply pfun_app and
@@ -280,12 +283,16 @@ adhoc_overloading
   udom Range and uran pran and uran fran and uran set and
   udomres pdom_res and udomres fdom_res and
   uranres pran_res and udomres fran_res and
-  ucard card and ucard pcard and ucard length
+  ucard card and ucard pcard and ucard length and
+  usums list_sum and usums Sum
+
+abbreviation "ulens_override x f g \<equiv> lens_override f g x"
 
 nonterminal utuple_args and umaplet and umaplets
 
 syntax
   "_ucoerce"    :: "('a, '\<alpha>) uexpr \<Rightarrow> type \<Rightarrow> ('a, '\<alpha>) uexpr" (infix ":\<^sub>u" 50)
+  "_ulens_ovrd" :: "logic \<Rightarrow> logic \<Rightarrow> svar \<Rightarrow> logic" ("_ \<oplus> _ on _" [85, 0, 86] 86)
   "_unil"       :: "('a list, '\<alpha>) uexpr" ("\<langle>\<rangle>")
   "_ulist"      :: "args => ('a list, '\<alpha>) uexpr"    ("\<langle>(_)\<rangle>")
   "_uappend"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" (infixr "^\<^sub>u" 80)
@@ -335,16 +342,18 @@ syntax
   "_umap_minus" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<ominus>\<^sub>u" 85)
   "_udom_res"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<lhd>\<^sub>u" 85)
   "_uran_res"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<rhd>\<^sub>u" 85)
+   "_usum"      :: "logic \<Rightarrow> logic" ("sum\<^sub>u'(_')")
   "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>/ _")
   ""            :: "umaplet => umaplets"             ("_")
   "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
   "_UMapUpd"    :: "[logic, umaplets] => logic" ("_/'(_')\<^sub>u" [900,0] 900)
   "_UMap"       :: "umaplets => logic" ("(1[_]\<^sub>u)")
-
+  
 translations
   "f\<lparr>v\<rparr>\<^sub>u" <= "CONST uapply f v"
   "dom\<^sub>u(f)" <= "CONST udom f"
-  "ran\<^sub>u(f)" <= "CONST uran f"
+  "ran\<^sub>u(f)" <= "CONST uran f"  
+  "sum\<^sub>u(A)" == "CONST uop CONST usums A"
   "A \<lhd>\<^sub>u f" <= "CONST udomres A f"
   "f \<rhd>\<^sub>u A" <= "CONST uranres f A"
   "#\<^sub>u(f)" <= "CONST ucard f"
@@ -352,6 +361,7 @@ translations
 
 translations
   "x :\<^sub>u 'a" == "x :: ('a, _) uexpr"
+  "_ulens_ovrd f g a" == "CONST bop (CONST ulens_override a) f g"
   "\<langle>\<rangle>"       == "\<guillemotleft>[]\<guillemotright>"
   "\<langle>x, xs\<rangle>"  == "CONST bop (op #) x \<langle>xs\<rangle>"
   "\<langle>x\<rangle>"      == "CONST bop (op #) x \<guillemotleft>[]\<guillemotright>"
@@ -420,7 +430,8 @@ text {* Lifting set intervals *}
 syntax
   "_uset_atLeastAtMost" :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("(1{_.._}\<^sub>u)")
   "_uset_atLeastLessThan" :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("(1{_..<_}\<^sub>u)")
-  "_uset_compr" :: "id \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('b set, '\<alpha>) uexpr" ("(1{_ :/ _ |/ _ \<bullet>/ _}\<^sub>u)")
+  "_uset_compr" :: "pttrn \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('b set, '\<alpha>) uexpr" ("(1{_ :/ _ |/ _ \<bullet>/ _}\<^sub>u)")
+  "_uset_compr_nset" :: "pttrn \<Rightarrow> (bool, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('b set, '\<alpha>) uexpr" ("(1{_ |/ _ \<bullet>/ _}\<^sub>u)")
 
 lift_definition ZedSetCompr ::
   "('a set, '\<alpha>) uexpr \<Rightarrow> ('a \<Rightarrow> (bool, '\<alpha>) uexpr \<times> ('b, '\<alpha>) uexpr) \<Rightarrow> ('b set, '\<alpha>) uexpr"
@@ -429,6 +440,7 @@ is "\<lambda> A PF b. { snd (PF x) b | x. x \<in> A b \<and> fst (PF x) b}" .
 translations
   "{x..y}\<^sub>u" == "CONST bop CONST atLeastAtMost x y"
   "{x..<y}\<^sub>u" == "CONST bop CONST atLeastLessThan x y"
+  "{x | P \<bullet> F}\<^sub>u" == "CONST ZedSetCompr (CONST ulit CONST UNIV) (\<lambda> x. (P, F))"
   "{x : A | P \<bullet> F}\<^sub>u" == "CONST ZedSetCompr A (\<lambda> x. (P, F))"
 
 text {* Lifting limits *}
@@ -492,6 +504,30 @@ lemma qtop_ueval [ueval]: "\<lbrakk>qtop f x y z w\<rbrakk>\<^sub>eb = f (\<lbra
 declare uexpr_defs [ueval]
 
 subsection {* Misc laws *}
+
+lemma uop_const [simp]: "uop id u = u"
+  by (transfer, simp)
+
+lemma bop_const_1 [simp]: "bop (\<lambda>x y. y) u v = v"
+  by (transfer, simp)
+
+lemma bop_const_2 [simp]: "bop (\<lambda>x y. x) u v = u"
+  by (transfer, simp)
+
+lemma uinter_empty_1 [simp]: "x \<inter>\<^sub>u {}\<^sub>u = {}\<^sub>u"
+  by (transfer, simp)
+
+lemma uinter_empty_2 [simp]: "{}\<^sub>u \<inter>\<^sub>u x = {}\<^sub>u"
+  by (transfer, simp)
+
+lemma uunion_empty_1 [simp]: "{}\<^sub>u \<union>\<^sub>u x = x"
+  by (transfer, simp)
+
+lemma uset_minus_empty [simp]: "x - {}\<^sub>u = x"
+  by (simp add: uexpr_defs, transfer, simp)
+
+lemma ulist_filter_empty [simp]: "x \<restriction>\<^sub>u {}\<^sub>u = \<langle>\<rangle>"
+  by (transfer, simp)
 
 lemma tail_cons [simp]: "tail\<^sub>u(\<langle>x\<rangle> ^\<^sub>u xs) = xs"
   by (transfer, simp)

@@ -174,7 +174,7 @@ instantiation uname_ext :: (ord) ord
 begin
 definition less_eq_uname_ext :: "'a uname_ext \<Rightarrow> 'a uname_ext \<Rightarrow> bool" where
 "(less_eq_uname_ext n1 n2) \<longleftrightarrow>
-    name_str n1 < name_str n2 \<or> 
+    name_str n1 < name_str n2 \<or>
     name_str n1 \<le> name_str n2 \<and> dashed n1 < dashed n2 \<or>
     name_str n1 \<le> name_str n2 \<and> dashed n1 \<le> dashed n2 \<and> subscript n1 < subscript n2 \<or>
     name_str n1 \<le> name_str n2 \<and> dashed n1 \<le> dashed n2 \<and> subscript n1 \<le> subscript n2 \<and> more n1 \<le> more n2"
@@ -215,7 +215,6 @@ proof
   show "\<And>x y :: 'a uname_ext. x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
     by (metis dual_order.strict_iff_order less_eq_uname_ext_def less_le_not_le uname.equality)
 qed
-
 
 instance uname_ext :: (linorder) linorder
 apply (intro_classes)

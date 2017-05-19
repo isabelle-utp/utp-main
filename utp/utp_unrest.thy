@@ -17,18 +17,15 @@ syntax
   "_unrest" :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" (infix "\<sharp>" 20)
 
 translations
-  "_unrest x p" == "CONST unrest x p"
+  "_unrest x p" == "CONST unrest x p"                                           "_unrest (_salphaset (_salphamk (x +\<^sub>L y))) P"  <= "_unrest (x +\<^sub>L y) P"
 
 named_theorems unrest
-
 method unrest_tac = (simp add: unrest)?
 
 lift_definition unrest_upred :: "('a, '\<alpha>) uvar \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> bool"
 is "\<lambda> x e. \<forall> b v. e (put\<^bsub>x\<^esub> b v) = e b" .
-
-adhoc_overloading
+               adhoc_overloading
   unrest unrest_upred
-
 lemma unrest_var_comp [unrest]:
   "\<lbrakk> x \<sharp> P; y \<sharp> P \<rbrakk> \<Longrightarrow> x;y \<sharp> P"
   by (transfer, simp add: lens_defs)
@@ -36,10 +33,15 @@ lemma unrest_var_comp [unrest]:
 lemma unrest_lit [unrest]: "x \<sharp> \<guillemotleft>v\<guillemotright>"
   by (transfer, simp)
 
+lemma unrest_equiv:
+  fixes P :: "('a, '\<alpha>) uexpr"
+  assumes "mwb_lens y" "x \<approx>\<^sub>L y" "x \<sharp> P"
+  shows "y \<sharp> P"
+  by (metis assms lens_equiv_def sublens_pres_mwb sublens_put_put unrest_upred.rep_eq)
+
 text {* The following law demonstrates why we need variable independence: a variable
         expression is unrestricted by another variable only when the two variables are independent. *}
-
-lemma unrest_var [unrest]: "\<lbrakk> vwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> y \<sharp> var x"
+                                           lemma unrest_var [unrest]: "\<lbrakk> vwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> y \<sharp> var x"
   by (transfer, auto)
 
 lemma unrest_iuvar [unrest]: "\<lbrakk> vwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> $y \<sharp> $x"
@@ -108,4 +110,5 @@ lemma unrest_divide [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v \<rbrakk> \<
 lemma unrest_ulambda [unrest]:
   "\<lbrakk> \<And> x. v \<sharp> F x \<rbrakk> \<Longrightarrow> v \<sharp> (\<lambda> x \<bullet> F x)"
   by (transfer, simp)
+
 end

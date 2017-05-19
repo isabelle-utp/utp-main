@@ -177,7 +177,10 @@ lemma lens_comp_anhil [simp]: "wb_lens X \<Longrightarrow> 0\<^sub>L ;\<^sub>L X
 
 subsection \<open>Independence laws\<close>
 
-lemma zero_lens_indep: "0\<^sub>L \<bowtie> X"
+lemma zero_lens_indep [simp]: "0\<^sub>L \<bowtie> X"
+  by (auto simp add: zero_lens_def lens_indep_def)
+
+lemma zero_lens_indep' [simp]: "X \<bowtie> 0\<^sub>L"
   by (auto simp add: zero_lens_def lens_indep_def)
 
 lemma lens_indep_quasi_irrefl: "\<lbrakk> wb_lens x; eff_lens x \<rbrakk> \<Longrightarrow> \<not> (x \<bowtie> x)"
@@ -222,12 +225,16 @@ lemma split_prod_lens_indep:
   shows "(fst\<^sub>L ;\<^sub>L X) \<bowtie> (snd\<^sub>L ;\<^sub>L X)"
   using assms fst_snd_lens_indep lens_indep_left_comp vwb_lens_mwb by blast
 
-lemma plus_pres_lens_indep: "\<lbrakk> X \<bowtie> Z; Y \<bowtie> Z \<rbrakk> \<Longrightarrow> (X +\<^sub>L Y) \<bowtie> Z"
+lemma plus_pres_lens_indep [simp]: "\<lbrakk> X \<bowtie> Z; Y \<bowtie> Z \<rbrakk> \<Longrightarrow> (X +\<^sub>L Y) \<bowtie> Z"
   apply (rule lens_indepI)
   apply (simp_all add: lens_plus_def prod.case_eq_if)
   apply (simp add: lens_indep_comm)
   apply (simp add: lens_indep_sym)
 done
+
+lemma plus_pres_lens_indep' [simp]:
+  "\<lbrakk> X \<bowtie> Y; X \<bowtie> Z \<rbrakk> \<Longrightarrow> X \<bowtie> Y +\<^sub>L Z"
+  by (auto intro: lens_indep_sym plus_pres_lens_indep)
 
 lemma lens_comp_indep_cong_left:
   "\<lbrakk> mwb_lens Z; X ;\<^sub>L Z \<bowtie> Y ;\<^sub>L Z \<rbrakk> \<Longrightarrow> X \<bowtie> Y"

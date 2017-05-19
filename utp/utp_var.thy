@@ -33,8 +33,9 @@ purge_notation
   join (infixl "\<squnion>\<index>" 65) and
   meet (infixl "\<sqinter>\<index>" 70) and
   LFP ("\<mu>\<index>") and
-  GFP ("\<nu>\<index>")
-  
+  GFP ("\<nu>\<index>") and
+  Set.member (infix ":" 50)
+
 text {* We hide HOL's built-in relation type since we will replace it with our own *}
 
 hide_type rel
@@ -142,12 +143,17 @@ abbreviation (input) univ_alpha :: "('\<alpha>, '\<alpha>) uvar" ("\<Sigma>") wh
     through lense composition due to typing restrictions.
 *)
 
-nonterminal svid and svar and salpha
+nonterminal svid and svar and svar_list and salpha
 
 syntax
   "_salphaid"    :: "id \<Rightarrow> salpha" ("_" [998] 998)
   "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [998] 998)
   "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr ";" 75)
+  "_salphaset"   :: "svar_list \<Rightarrow> salpha" ("{_}")
+  "_ualpha_set"  :: "svar_list \<Rightarrow> logic" ("{_}\<^sub>\<alpha>")
+  "_salphamk"    :: "logic \<Rightarrow> salpha"
+  "_svar_nil"    :: "svar \<Rightarrow> svar_list" ("_")
+  "_svar_cons"   :: "svar \<Rightarrow> svar_list \<Rightarrow> svar_list" ("_,/ _")
   "_svid"        :: "id \<Rightarrow> svid" ("_" [999] 999)
   "_svid_alpha"  :: "svid" ("\<Sigma>")
   "_svid_empty"  :: "svid" ("\<emptyset>")
@@ -177,6 +183,12 @@ translations
   "_salphaid x" => "x"
   "_salphacomp x y" => "x +\<^sub>L y"
   "_salphavar x" => "x"
+  "_svar_nil x" => "x"
+  "_svar_cons x xs" => "x +\<^sub>L xs"
+  "_salphaset A" => "A"
+  "_ualpha_set A" => "A"  
+  "(_svar_cons x (_salphamk y))" <= "_salphamk (x +\<^sub>L y)" 
+  "x" <= "_salphamk x"    
   "_svid_alpha" == "\<Sigma>"
   "_svid_empty" == "0\<^sub>L"
   "_svid_dot x y" => "y ;\<^sub>L x"
@@ -186,6 +198,8 @@ translations
   "_spvar x" == "CONST svar x"
   "_sinvar x" == "CONST ivar x"
   "_soutvar x" == "CONST ovar x"
+  "_sinvar \<Sigma>"  <=  "CONST ivar 1\<^sub>L"
+  "_soutvar \<Sigma>" <=  "CONST ovar 1\<^sub>L"
 
 text {* Syntactic function to construct a uvar type given a return type *}
 

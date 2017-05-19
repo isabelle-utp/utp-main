@@ -59,7 +59,7 @@ lemma Healthy_def': "P is H \<longleftrightarrow> (H P = P)"
 
 lemma Healthy_if: "P is H \<Longrightarrow> (H P = P)"
   unfolding Healthy_def by auto
-    
+
 declare Healthy_def' [upred_defs]
 
 abbreviation Healthy_carrier :: "'\<alpha> health \<Rightarrow> '\<alpha> upred set" ("\<lbrakk>_\<rbrakk>\<^sub>H")
@@ -75,16 +75,16 @@ lemma Healthy_carrier_Collect: "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Long
 lemma Healthy_func:
   "\<lbrakk> F \<in> \<lbrakk>\<H>\<^sub>1\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^sub>2\<rbrakk>\<^sub>H; P is \<H>\<^sub>1 \<rbrakk> \<Longrightarrow> \<H>\<^sub>2(F(P)) = F(P)"
   using Healthy_if by blast
-    
+
 lemma Healthy_apply_closed:
   assumes "F \<in> \<lbrakk>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>H\<rbrakk>\<^sub>H" "P is H"
   shows "F(P) is H"
   using assms(1) assms(2) by auto
-    
-lemma Healthy_set_image_member [closure]: 
+
+lemma Healthy_set_image_member:
   "\<lbrakk> P \<in> F ` A; \<And> x. F x is H \<rbrakk> \<Longrightarrow> P is H"
   by blast
-    
+
 lemma Healthy_SUPREMUM:
   "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> SUPREMUM A H = \<Sqinter> A"
   by (drule Healthy_carrier_image, presburger)
@@ -92,19 +92,17 @@ lemma Healthy_SUPREMUM:
 lemma Healthy_INFIMUM:
   "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> INFIMUM A H = \<Squnion> A"
   by (drule Healthy_carrier_image, presburger)
-    
-declare image_subsetI [closure]
-    
-lemma Healthy_nu [closure]: 
+
+lemma Healthy_nu [closure]:
   assumes "mono F" "F \<in> \<lbrakk>id\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>H\<rbrakk>\<^sub>H"
   shows "\<nu> F is H"
   by (metis (mono_tags) Healthy_def Healthy_func assms eq_id_iff lfp_unfold)
 
-lemma Healthy_mu [closure]: 
+lemma Healthy_mu [closure]:
   assumes "mono F" "F \<in> \<lbrakk>id\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>H\<rbrakk>\<^sub>H"
   shows "\<mu> F is H"
   by (metis (mono_tags) Healthy_def Healthy_func assms eq_id_iff gfp_unfold)
-    
+
 lemma Healthy_subset_member: "\<lbrakk> A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H; P \<in> A \<rbrakk> \<Longrightarrow> H(P) = P"
   by (meson Ball_Collect Healthy_if)
 
@@ -146,7 +144,7 @@ lemma Healthy_Idempotent [closure]:
 
 lemma Healthy_range: "Idempotent H \<Longrightarrow> range H = \<lbrakk>H\<rbrakk>\<^sub>H"
   by (auto simp add: image_def Healthy_if Healthy_Idempotent, metis Healthy_if)
-    
+
 lemma Idempotent_id [simp]: "Idempotent id"
   by (simp add: Idempotent_def)
 
@@ -223,7 +221,7 @@ lemma Disjunctuous_Monotonic: "Disjunctuous H \<Longrightarrow> Monotonic H"
 
 lemma ContinuousD [dest]: "\<lbrakk> Continuous H; A \<noteq> {} \<rbrakk> \<Longrightarrow> H (\<Sqinter> A) = (\<Sqinter> P\<in>A. H(P))"
   by (simp add: Continuous_def)
-    
+
 lemma Continuous_Disjunctous: "Continuous H \<Longrightarrow> Disjunctuous H"
   apply (auto simp add: Continuous_def Disjunctuous_def)
   apply (rename_tac P Q)
@@ -239,26 +237,26 @@ lemma Continuous_comp [intro]:
   by (simp add: Continuous_def)
 
 text {* Closure laws derived from continuity *}
-    
+
 lemma Sup_Continuous_closed [closure]:
   "\<lbrakk> Continuous H; \<And> i. i \<in> A \<Longrightarrow> P(i) is H; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter> i\<in>A. P(i)) is H"
   by (drule ContinuousD[of H "P ` A"], simp add: UINF_mem_UNIV[THEN sym] USUP_as_Sup[THEN sym])
-     (metis (no_types, lifting) Healthy_def' SUP_cong image_image)  
-  
-lemma UINF_mem_Continuous_closed [closure]: 
+     (metis (no_types, lifting) Healthy_def' SUP_cong image_image)
+
+lemma UINF_mem_Continuous_closed [closure]:
   "\<lbrakk> Continuous H; \<And> i. i \<in> A \<Longrightarrow> P(i) is H; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter> i\<in>A \<bullet> P(i)) is H"
   by (simp add: Sup_Continuous_closed USUP_as_Sup_collect)
 
-lemma UINF_Continuous_closed [closure]: 
+lemma UINF_Continuous_closed [closure]:
   "\<lbrakk> Continuous H; \<And> i. P(i) is H \<rbrakk> \<Longrightarrow> (\<Sqinter> i \<bullet> P(i)) is H"
   using UINF_mem_Continuous_closed[of H UNIV P]
   by (simp add: UINF_mem_UNIV)
-    
+
 text {* All continuous functions are also Scott-continuous *}
-    
+
 lemma sup_continuous_Continuous [closure]: "Continuous F \<Longrightarrow> sup_continuous F"
   by (simp add: Continuous_def sup_continuous_def)
-    
+
 lemma Healthy_fixed_points [simp]: "fps \<P> H = \<lbrakk>H\<rbrakk>\<^sub>H"
   by (simp add: fps_def upred_lattice_def Healthy_def)
 
@@ -473,7 +471,7 @@ text {* We can then derive a number of properties about these operators, as belo
 
 context utp_theory_lattice
 begin
-  
+
   lemma LFP_healthy_comp: "\<^bold>\<mu> F = \<^bold>\<mu> (F \<circ> \<H>)"
   proof -
     have "{P. (P is \<H>) \<and> F P \<sqsubseteq> P} = {P. (P is \<H>) \<and> F (\<H> P) \<sqsubseteq> P}"
@@ -578,7 +576,7 @@ proof -
     using Knaster_Tarski_idem_inf_eq[OF upred_weak_complete_lattice, of "\<H>"]
     by (simp, metis HCond_Idempotent HCond_Mono assms partial_object.simps(3) upred_lattice_def upred_lattice_inf utp_order_def)
 qed
-  
+
 end
 
 locale utp_theory_continuous = utp_theory +
@@ -629,10 +627,10 @@ begin
     assumes "P is \<H>"
     shows "P \<sqinter> \<^bold>\<top> = P"
       by (simp add: assms semilattice_sup_class.sup_absorb1 utp_top)
-        
+
   text {* The UTP theory lfp operator can be rewritten to the alphabetised predicate lfp when
     in a continuous context. *}
-    
+
   theorem utp_lfp_def:
     assumes "Monotonic F" "F \<in> \<lbrakk>\<H>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<rbrakk>\<^sub>H"
     shows "\<^bold>\<mu> F = (\<mu> X \<bullet> F(\<H>(X)))"

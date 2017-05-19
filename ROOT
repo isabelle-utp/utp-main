@@ -127,7 +127,7 @@ session "UTP-THY" in "theories" = "UTP" +
   options [browser_info = true, document = false]
   theories utp_theories
 
-session "UTP-THY-DEEP" in "utp/models" = "UTP-THY" +
+session "UTP-THY-DEEP" in "theories" = "UTP-THY" +
   options [browser_info = true, document = false]
   theories utp_theories_deep
 

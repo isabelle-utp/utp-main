@@ -156,7 +156,7 @@ lemma subst_compose_upd [usubst]: "x \<sharp> \<sigma> \<Longrightarrow> \<sigma
 
 lemma subst_mono: "mono (subst \<sigma>)"
   by (simp add: less_eq_uexpr.rep_eq mono_def subst.rep_eq)
-    
+
 lemma id_subst [usubst]: "id \<dagger> v = v"
   by (transfer, simp)
 
@@ -294,6 +294,6 @@ lemma unrest_subst [unrest]:
   by (transfer, simp add: unrest_usubst_def)
 
 end
-  
-  
+
+
   

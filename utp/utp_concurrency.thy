@@ -1,11 +1,14 @@
 section {* Concurrent programming *}
 
 theory utp_concurrency
-  imports utp_rel utp_tactics
+  imports
+    utp_rel
+    utp_tactics
+    utp_theory
 begin
 
 subsection {* Variable renamings *}
-  
+
 text {* In parallel-by-merge constructions, a merge predicate defines the behaviour following execution of
         of parallel processes, P || Q, as a relation that merges the output of P and Q. In order to achieve
         this we need to separate the variable values output from P and Q, and in addition the variable values
@@ -24,19 +27,19 @@ lemma left_uvar_indep_right_uvar [simp]:
 lemma left_uvar_indep_pre_uvar [simp]:
   "left_uvar x \<bowtie> pre_uvar y"
   by (simp add: left_uvar_def pre_uvar_def)
-  
+
 lemma left_uvar_indep_left_uvar [simp]:
   "x \<bowtie> y \<Longrightarrow> left_uvar x \<bowtie> left_uvar y"
   by (simp add: left_uvar_def)
-  
+
 lemma right_uvar_indep_left_uvar [simp]:
   "right_uvar x \<bowtie> left_uvar y"
   by (simp add: lens_indep_sym)
-    
+
 lemma right_uvar_indep_pre_uvar [simp]:
   "right_uvar x \<bowtie> pre_uvar y"
   by (simp add: right_uvar_def pre_uvar_def)
-    
+
 lemma right_uvar_indep_right_uvar [simp]:
   "x \<bowtie> y \<Longrightarrow> right_uvar x \<bowtie> right_uvar y"
   by (simp add: right_uvar_def)
@@ -52,7 +55,7 @@ lemma pre_uvar_indep_right_uvar [simp]:
 lemma pre_uvar_indep_pre_uvar [simp]:
   "x \<bowtie> y \<Longrightarrow> pre_uvar x \<bowtie> pre_uvar y"
   by (simp add: pre_uvar_def)
-    
+
 lemma left_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (left_uvar x)"
   by (simp add: left_uvar_def )
 
@@ -61,7 +64,7 @@ lemma right_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (right_uvar x)"
 
 lemma pre_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (pre_uvar x)"
   by (simp add: pre_uvar_def)
-    
+
 lemma left_uvar_mwb [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (left_uvar x)"
   by (simp add: left_uvar_def )
 
@@ -70,37 +73,45 @@ lemma right_uvar_mwb [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (right_uvar 
 
 lemma pre_uvar_mwb [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (pre_uvar x)"
   by (simp add: pre_uvar_def)
-    
+
 syntax
   "_svarpre"   :: "svid \<Rightarrow> svid" ("_\<^sub><" [999] 999)
   "_svarleft"  :: "svid \<Rightarrow> svid" ("0-_" [999] 999)
   "_svarright" :: "svid \<Rightarrow> svid" ("1-_" [999] 999)
 
 translations
-  "_svarpre x" == "CONST pre_uvar x"
-  "_svarleft x" == "CONST left_uvar x"
+  "_svarpre x"   == "CONST pre_uvar x"
+  "_svarleft x"  == "CONST left_uvar x"
   "_svarright x" == "CONST right_uvar x"
+  "_svarpre \<Sigma>"   <= "CONST pre_uvar 1\<^sub>L"
+  "_svarleft \<Sigma>"  <= "CONST left_uvar 1\<^sub>L"
+  "_svarright \<Sigma>" <= "CONST right_uvar 1\<^sub>L"
 
 subsection {* Merge predicates *}
-  
+
 text {* A merge is then a relation whose input has three parts: the prior variables, the output
   variables of the left predicate, and the output of the right predicate. *}
 
 type_synonym '\<alpha> merge = "('\<alpha> \<times> ('\<alpha> \<times> '\<alpha>), '\<alpha>) rel"
-  
+
 text {* skip is the merge predicate which ignores the output of both parallel predicates *}
 
 definition skip\<^sub>m :: "'\<alpha> merge" where
 [upred_defs]: "skip\<^sub>m = ($\<Sigma>\<acute> =\<^sub>u $\<Sigma>\<^sub><)"
 
-text {* swap is a predicate that the swaps the left and right indices; it is used to specify 
+text {* swap is a predicate that the swaps the left and right indices; it is used to specify
         commutativity of the parallel operator *}
 
 -- {* TODO: There is an ambiguity below due to list assignment and tuples. *}
 
 definition swap\<^sub>m :: "('\<alpha> \<times> '\<beta> \<times> '\<beta>, '\<alpha> \<times> '\<beta> \<times> '\<beta>) rel" where
 [upred_defs]: "swap\<^sub>m = (0-\<Sigma>,1-\<Sigma> := &1-\<Sigma>,&0-\<Sigma>)"
-  
+
+text {* The following healthiness condition on merges is used to represent commutativity *}
+
+abbreviation SymMerge :: "'\<alpha> merge \<Rightarrow> '\<alpha> merge" where
+"SymMerge(M) \<equiv> (swap\<^sub>m ;; M)"
+
 subsection {* Separating simulations *}
 
 text {* U0 and U1 are relations that index all input variables x to 0-x and 1-x, respectively. *}
@@ -140,11 +151,11 @@ lemma U1\<alpha>_vwb_lens [simp]: "vwb_lens U1\<alpha>"
   by (simp add: U1\<alpha>_def id_vwb_lens prod_vwb_lens)
 
 lemma U0\<alpha>_indep_right_uvar [simp]: "vwb_lens x \<Longrightarrow> U0\<alpha> \<bowtie> out_var (right_uvar x)"
-  by (force intro: plus_pres_lens_indep fst_snd_lens_indep lens_indep_left_comp  
-            simp add: U0\<alpha>_def right_uvar_def out_var_def prod_as_plus lens_comp_assoc[THEN sym])  
-    
+  by (force intro: plus_pres_lens_indep fst_snd_lens_indep lens_indep_left_comp
+            simp add: U0\<alpha>_def right_uvar_def out_var_def prod_as_plus lens_comp_assoc[THEN sym])
+
 lemma U1\<alpha>_indep_left_uvar [simp]: "vwb_lens x \<Longrightarrow> U1\<alpha> \<bowtie> out_var (left_uvar x)"
-  by (force intro: plus_pres_lens_indep fst_snd_lens_indep lens_indep_left_comp  
+  by (force intro: plus_pres_lens_indep fst_snd_lens_indep lens_indep_left_comp
             simp add: U1\<alpha>_def left_uvar_def out_var_def prod_as_plus lens_comp_assoc[THEN sym])
 
 lemma U0_alpha_lift_bool_subst [usubst]:
@@ -156,7 +167,7 @@ lemma U1_alpha_lift_bool_subst [usubst]:
   "\<sigma>($1-x\<acute> \<mapsto>\<^sub>s true) \<dagger> \<lceil>P\<rceil>\<^sub>1 = \<sigma> \<dagger> \<lceil>P\<lbrakk>true/$x\<acute>\<rbrakk>\<rceil>\<^sub>1"
   "\<sigma>($1-x\<acute> \<mapsto>\<^sub>s false) \<dagger> \<lceil>P\<rceil>\<^sub>1 = \<sigma> \<dagger> \<lceil>P\<lbrakk>false/$x\<acute>\<rbrakk>\<rceil>\<^sub>1"
   by (pred_auto+)
-          
+
 lemma U0_alpha_out_var [alpha]: "\<lceil>$x\<acute>\<rceil>\<^sub>0 = $0-x\<acute>"
   by (rel_auto)
 
@@ -168,7 +179,13 @@ lemma U0_skip [alpha]: "\<lceil>II\<rceil>\<^sub>0 = ($0-\<Sigma>\<acute> =\<^su
 
 lemma U1_skip [alpha]: "\<lceil>II\<rceil>\<^sub>1 = ($1-\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
   by (rel_auto)
-    
+
+lemma U0_seqr [alpha]: "\<lceil>P ;; Q\<rceil>\<^sub>0 = P ;; \<lceil>Q\<rceil>\<^sub>0"
+  by (rel_auto)
+
+lemma U1_seqr [alpha]: "\<lceil>P ;; Q\<rceil>\<^sub>1 = P ;; \<lceil>Q\<rceil>\<^sub>1"
+  by (rel_auto)
+
 lemma U0\<alpha>_comp_in_var [alpha]: "(in_var x) ;\<^sub>L U0\<alpha> = in_var x"
   by (simp add: U0\<alpha>_def alpha_in_var in_var_prod_lens pre_uvar_def)
 
@@ -182,7 +199,7 @@ lemma U1\<alpha>_comp_out_var [alpha]: "(out_var x) ;\<^sub>L U1\<alpha> = out_v
   by (simp add: U1\<alpha>_def alpha_out_var id_wb_lens right_uvar_def out_var_prod_lens)
 
 subsection {* Parallel operators *}
-    
+
 text {* We implement the following useful abbreviation for separating of two parallel processes and
   copying of the before variables, all to act as input to the merge predicate. *}
 
@@ -199,31 +216,31 @@ where [upred_defs]: "P \<parallel>\<^bsub>M\<^esub> Q = (P \<parallel>\<^sub>s Q
 
 lemma par_by_merge_alt_def: "P \<parallel>\<^bsub>M\<^esub> Q = (\<lceil>P\<rceil>\<^sub>0 \<and> \<lceil>Q\<rceil>\<^sub>1 \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M"
   by (simp add: par_by_merge_def U0_as_alpha U1_as_alpha)
-  
+
 lemma shEx_pbm_left: "((\<^bold>\<exists> x \<bullet> P x) \<parallel>\<^bsub>M\<^esub> Q) = (\<^bold>\<exists> x \<bullet> (P x \<parallel>\<^bsub>M\<^esub> Q))"
   by (rel_auto)
 
 lemma shEx_pbm_right: "(P \<parallel>\<^bsub>M\<^esub> (\<^bold>\<exists> x \<bullet> Q x)) = (\<^bold>\<exists> x \<bullet> (P \<parallel>\<^bsub>M\<^esub> Q x))"
   by (rel_auto)
-    
+
 subsection {* Substitution laws *}
 
 text {* Substitution is a little tricky because when we push the expression through the composition
   operator the alphabet of the expression must also change. Consequently for now we only support
   literal substitution, though this could be generalised with suitable alphabet coercsions. We
   need quite a number of variants to support this which are below. *}
-    
+
 lemma U0_seq_subst: "(P ;; U0)\<lbrakk>\<guillemotleft>v\<guillemotright>/$0-x\<acute>\<rbrakk> = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; U0)"
   by (rel_auto)
 
 lemma U1_seq_subst: "(P ;; U1)\<lbrakk>\<guillemotleft>v\<guillemotright>/$1-x\<acute>\<rbrakk> = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; U1)"
   by (rel_auto)
-    
+
 lemma lit_pbm_subst [usubst]:
   fixes x :: "(_ \<Longrightarrow> '\<alpha>)"
-  shows 
+  shows
     "\<And> P Q M \<sigma>. \<sigma>($x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> ((P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>) \<parallel>\<^bsub>M\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<^sub><\<rbrakk>\<^esub> (Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>))"
-    "\<And> P Q M \<sigma>. \<sigma>($x\<acute> \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> (P \<parallel>\<^bsub>M\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk>\<^esub> Q)"    
+    "\<And> P Q M \<sigma>. \<sigma>($x\<acute> \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> (P \<parallel>\<^bsub>M\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk>\<^esub> Q)"
   by (rel_auto)+
 
 lemma bool_pbm_subst [usubst]:
@@ -234,7 +251,7 @@ lemma bool_pbm_subst [usubst]:
     "\<And> P Q M \<sigma>. \<sigma>($x\<acute> \<mapsto>\<^sub>s false) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> (P \<parallel>\<^bsub>M\<lbrakk>false/$x\<acute>\<rbrakk>\<^esub> Q)"
     "\<And> P Q M \<sigma>. \<sigma>($x\<acute> \<mapsto>\<^sub>s true) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> (P \<parallel>\<^bsub>M\<lbrakk>true/$x\<acute>\<rbrakk>\<^esub> Q)"
   by (rel_auto)+
-    
+
 lemma zero_one_pbm_subst [usubst]:
   fixes x :: "(_ \<Longrightarrow> '\<alpha>)"
   shows
@@ -250,9 +267,9 @@ lemma numeral_pbm_subst [usubst]:
     "\<And> P Q M \<sigma>. \<sigma>($x \<mapsto>\<^sub>s numeral n) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> ((P\<lbrakk>numeral n/$x\<rbrakk>) \<parallel>\<^bsub>M\<lbrakk>numeral n/$x\<^sub><\<rbrakk>\<^esub> (Q\<lbrakk>numeral n/$x\<rbrakk>))"
     "\<And> P Q M \<sigma>. \<sigma>($x\<acute> \<mapsto>\<^sub>s numeral n) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> (P \<parallel>\<^bsub>M\<lbrakk>numeral n/$x\<acute>\<rbrakk>\<^esub> Q)"
   by (rel_auto)+
-    
+
 subsection {* Parallel-by-merge laws *}
-    
+
 lemma par_by_merge_false [simp]:
   "P \<parallel>\<^bsub>false\<^esub> Q = false"
   by (rel_auto)
@@ -264,38 +281,40 @@ lemma par_by_merge_left_false [simp]:
 lemma par_by_merge_right_false [simp]:
   "P \<parallel>\<^bsub>M\<^esub> false = false"
   by (rel_auto)
-    
+
 lemma par_by_merge_seq_add: "(P \<parallel>\<^bsub>M\<^esub> Q) ;; R = (P \<parallel>\<^bsub>M ;; R\<^esub> Q)"
   by (simp add: par_by_merge_def seqr_assoc)
 
 text {* A skip parallel-by-merge yields a skip whenever the parallel predicates are both feasible. *}
-    
+
 lemma par_by_merge_skip:
   assumes "P ;; true = true" "Q ;; true = true"
   shows "P \<parallel>\<^bsub>skip\<^sub>m\<^esub> Q = II"
   using assms by (rel_auto)
-    
+
 lemma skip_merge_swap: "swap\<^sub>m ;; skip\<^sub>m = skip\<^sub>m"
   by (rel_auto)
-    
+
 text {* Parallel-by-merge commutes when the merge predicate is unchanged by swap *}
-    
-lemma par_by_merge_commute:
-  assumes "(swap\<^sub>m ;; M) = M"
-  shows "P \<parallel>\<^bsub>M\<^esub> Q = Q \<parallel>\<^bsub>M\<^esub> P"
+
+lemma par_by_merge_commute_swap:
+  shows "P \<parallel>\<^bsub>M\<^esub> Q = Q \<parallel>\<^bsub>swap\<^sub>m ;; M\<^esub> P"
 proof -
-  have "P \<parallel>\<^bsub>M\<^esub> Q = (((P ;; U0) \<and> (Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
-    by (simp add: par_by_merge_def)
-  also have "... = ((((P ;; U0) \<and> (Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; swap\<^sub>m) ;; M)"
-    by (metis assms seqr_assoc)
-  also have "... = (((P ;; U0 ;; swap\<^sub>m) \<and> (Q ;; U1 ;; swap\<^sub>m) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
+  have "Q \<parallel>\<^bsub>swap\<^sub>m ;; M\<^esub> P = ((((Q ;; U0) \<and> (P ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; swap\<^sub>m) ;; M)"
+    by (simp add: par_by_merge_def seqr_assoc)
+  also have "... = (((Q ;; U0 ;; swap\<^sub>m) \<and> (P ;; U1 ;; swap\<^sub>m) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
     by (rel_auto)
-  also have "... = (((P ;; U1) \<and> (Q ;; U0) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
+  also have "... = (((Q ;; U1) \<and> (P ;; U0) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
     by (simp add: U0_swap U1_swap)
-  also have "... = Q \<parallel>\<^bsub>M\<^esub> P"
+  also have "... = P \<parallel>\<^bsub>M\<^esub> Q"
     by (simp add: par_by_merge_def utp_pred.inf.left_commute)
-  finally show ?thesis .
+  finally show ?thesis ..
 qed
+
+lemma par_by_merge_commute:
+  assumes "M is SymMerge"
+  shows "P \<parallel>\<^bsub>M\<^esub> Q = Q \<parallel>\<^bsub>M\<^esub> P"
+  by (metis Healthy_if assms par_by_merge_commute_swap)
 
 lemma par_by_merge_mono_1:
   assumes "P\<^sub>1 \<sqsubseteq> P\<^sub>2"

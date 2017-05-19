@@ -213,22 +213,22 @@ text {* This tells us that the specification that the after value of $x$ must be
   than @{term "P"}. In addition to assignments, we can also construct relational specifications and programs
   using sequential (or relational) composition: *}
 
-lemma "(x := 1 ;; x := &x + 1) = (x := 2)"
+lemma "x := 1 ;; x := (&x + 1) = x := 2"
   by (rel_auto)
 
 text {* Internally, what is happening here is quite subtle, so we can also prove this law in the Isar
   proof scripting language which allows us to further expose the details of the argument. In this
   proof we will make use of both the tactic and already proven laws of programming from Isabelle/UTP. *}
 
-lemma "(x := 1 ;; x := &x + 1) = (x := 2)"
+lemma "x := 1 ;; x := (&x + 1) = x := 2"
 proof -
   -- {* We first show that a relational composition of an assignment and some program $P$ corresponds
         to substitution of the assignment into $P$, which is proved using the law
         @{thm [source] "assigns_r_comp"}. *}
-  have "(x := 1 ;; x := &x + 1) = (x := &x + 1)\<lbrakk>1/$x\<rbrakk>"
-    by (simp add: assigns_r_comp alpha)
+  have "x := 1 ;; x := (&x + 1) = (x := (&x + 1))\<lbrakk>1/$x\<rbrakk>"
+    by (simp add: assigns_r_comp alpha usubst)
   -- {* Next we execute the substitution using the relational calculus tactic. *}
-  also have "... = x := 1 + 1"
+  also have "... = x := (1 + 1)"
     by (rel_auto)
   -- {* Finally by evaluation of the expression, we obtain the desired result of $2$. *}
   also have "... = x := 2"
@@ -245,7 +245,7 @@ lemma "(x := 1 ;; (y := 7 \<triangleleft> $x >\<^sub>u 0 \<triangleright> y := 8
 
 text {* Below is an illustration of how we can express a simple while loop in Isabelle/UTP. *}
 
-term "(x,y := 3,1;; while &x >\<^sub>u 0 do x := &x - 1;; y := &y * 2 od)"
+term "(x,y := 3,1;; while &x >\<^sub>u 0 do x := (&x - 1);; y := (&y * 2) od)"
 
 subsection {* Non-determinism and Complete Lattices *}
 
@@ -415,7 +415,7 @@ theorem while_unfold: "while\<^sub>\<bottom> b do P od = (P ;; while\<^sub>\<bot
 text {* As we have seen, the predicate @{term "true"} represents the erroneous program. For loops, we
   have it that a non-terminating program equates to @{term true}, as the following example demonstrates. *}
 
-lemma "while\<^sub>\<bottom> true do x := &x + 1 od = true"
+lemma "while\<^sub>\<bottom> true do x := (&x + 1) od = true"
   by (simp add: assigns_r_feasible while_infinite)
 
 text {* A program should not be able to recover from non-termination, of course, and therefore it
@@ -446,10 +446,10 @@ text {* Though we now have a theory of UTP relations with which can form simple 
   $y$ divided by $x$ to $y$.
 *}
 
-lemma dex1: "true \<turnstile>\<^sub>r x,y := 2,6 ;; ($x \<noteq>\<^sub>u 0) \<turnstile>\<^sub>r y := &y div &x = true \<turnstile>\<^sub>r x,y := 2,3"
+lemma dex1: "(true \<turnstile>\<^sub>r x,y := 2,6) ;; (($x \<noteq>\<^sub>u 0) \<turnstile>\<^sub>r (y := (&y div &x))) = true \<turnstile>\<^sub>r x,y := 2,3"
   by (rel_auto, fastforce+)
 
-lemma dex2: "true \<turnstile>\<^sub>r x,y := 0,4 ;; ($x \<noteq>\<^sub>u 0) \<turnstile>\<^sub>r y := &y div &x = true"
+lemma dex2: "(true \<turnstile>\<^sub>r x,y := 0,4) ;; (($x \<noteq>\<^sub>u 0) \<turnstile>\<^sub>r y := (&y div &x)) = true"
   by (rel_blast)
 
 text {* The first example shows the result of pre-composing this design with another design that
@@ -463,7 +463,7 @@ theorem design_left_zero: "true ;; (P \<turnstile>\<^sub>r Q) = true"
 text {* Thus designs allow us to properly handle programmer error, such as non-termination.
 
   The design turnstile is defined using two observational variables $ok, ok' : \mathbb{B}$,
-  which are used to represent whether a program has been started ($ok$) and whether it has
+  which are used to represent whether a program has been  ($ok$) and whether it has
   terminated ($ok'$). Specifically, a design @{term "P \<turnstile> Q"} is defined as
   $(ok \wedge P) \Rightarrow (ok' \wedge Q)$. This means that if the program was started ($ok$) and
   satisfied its assumption ($P$), then it will terminate ($ok'$) and satisfy its commitment ($Q$).
