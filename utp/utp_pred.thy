@@ -338,6 +338,10 @@ where "P \<triangleleft> b \<triangleright> Q \<equiv> trop If b P Q"
 
 subsection {* Unrestriction Laws *}
 
+lemma unrest_allE:
+  "\<lbrakk> &\<Sigma> \<sharp> P; P = true \<Longrightarrow> Q; P = false \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> Q"
+  by (pred_auto)
+  
 lemma unrest_true [unrest]: "x \<sharp> true"
   by (pred_auto)
 
@@ -652,6 +656,10 @@ lemma usup_and:
   shows "(P \<squnion> Q) = (P \<and> Q)"
   by (pred_auto)
 
+lemma UINF_alt_def:
+  "(\<Sqinter> i | A(i) \<bullet> P(i)) = (\<Sqinter> i \<bullet> A(i) \<and> P(i))"
+  by (rel_auto)
+    
 lemma USUP_true [simp]: "(\<Squnion> P | F(P) \<bullet> true) = true"
   by (pred_auto)
 

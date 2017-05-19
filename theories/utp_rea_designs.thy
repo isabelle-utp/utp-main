@@ -2084,6 +2084,18 @@ lemma periR_UINF [rdes]: "peri\<^sub>R(\<Sqinter> i \<bullet> P(i)) = (\<Sqinter
 lemma postR_UINF [rdes]: "post\<^sub>R(\<Sqinter> i \<bullet> P(i)) = (\<Sqinter> i \<bullet> post\<^sub>R(P(i)))"
   by (rel_auto)
 
+lemma preR_UINF_member [rdes]: "pre\<^sub>R(\<Sqinter> i\<in>A \<bullet> P(i)) = (\<Squnion> i\<in>A \<bullet> pre\<^sub>R(P(i)))"
+  by (rel_auto)
+    
+lemma preR_UINF_member_2 [rdes]: "pre\<^sub>R(\<Sqinter> (i,j)\<in>A \<bullet> P i j) = (\<Squnion> (i,j)\<in>A \<bullet> pre\<^sub>R(P i j))"
+  by (rel_auto)
+
+lemma preR_UINF_member_3 [rdes]: "pre\<^sub>R(\<Sqinter> (i,j,k)\<in>A \<bullet> P i j k) = (\<Squnion> (i,j,k)\<in>A \<bullet> pre\<^sub>R(P i j k))"
+  by (rel_auto)
+
+lemma postR_UINF_member_3 [rdes]: "post\<^sub>R(\<Sqinter> (i,j,k)\<in>A \<bullet> P i j k) = (\<Sqinter> (i,j,k)\<in>A \<bullet> post\<^sub>R(P i j k))"
+  by (rel_auto)    
+    
 lemma preR_inf [rdes]: "pre\<^sub>R(P \<sqinter> Q) = (pre\<^sub>R(P) \<and> pre\<^sub>R(Q))"
   by (rel_simp)
 

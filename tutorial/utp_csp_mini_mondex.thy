@@ -39,16 +39,22 @@ definition Pay :: "index \<Rightarrow> index \<Rightarrow> money \<Rightarrow> a
 "Pay i j n = 
   pay.(\<guillemotleft>i\<guillemotright>).(\<guillemotleft>j\<guillemotright>).(\<guillemotleft>n\<guillemotright>) \<^bold>\<rightarrow> 
     ((reject.(\<guillemotleft>i\<guillemotright>) \<^bold>\<rightarrow> Skip) 
-      \<triangleleft> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> \<guillemotleft>n\<guillemotright> >\<^sub>u &valueseq\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u \<triangleright>\<^sub>R 
+      \<triangleleft> \<guillemotleft>i\<guillemotright> =\<^sub>u \<guillemotleft>j\<guillemotright> \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> \<guillemotleft>n\<guillemotright> >\<^sub>u &valueseq\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u \<triangleright>\<^sub>R 
     ({valueseq[\<guillemotleft>i\<guillemotright>]} :=\<^sub>C (&valueseq\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u - \<guillemotleft>n\<guillemotright>) ;;
      {valueseq[\<guillemotleft>j\<guillemotright>]} :=\<^sub>C (&valueseq\<lparr>\<guillemotleft>j\<guillemotright>\<rparr>\<^sub>u + \<guillemotleft>n\<guillemotright>) ;;
      accept.(\<guillemotleft>i\<guillemotright>) \<^bold>\<rightarrow> Skip))"
     
+definition PaySet :: "index \<Rightarrow> (index \<times> index \<times> money) set" where
+[upred_defs]: "PaySet cardNum = {(i,j,k). i < cardNum \<and> j < cardNum \<and> i \<noteq> j}"
+
+definition AllPay :: "index \<Rightarrow> action_mdx" where
+"AllPay cardNum = (\<Sqinter> (i, j, n) \<in> PaySet cardNum \<bullet> Pay i j n)"
+
 text {* The Cycle action just repeats the payments over and over for any extant and different card
-  indices. *}
+  indices. In order to be well-formed we require that $cardNum \ge 2$. *}
 
 definition Cycle :: "index \<Rightarrow> action_mdx" where
-"Cycle cardNum = (\<mu> X \<bullet> (\<Sqinter> (i, j, n) | \<guillemotleft>i\<guillemotright> <\<^sub>u \<guillemotleft>cardNum\<guillemotright> \<and> \<guillemotleft>j\<guillemotright> <\<^sub>u \<guillemotleft>cardNum\<guillemotright> \<and> \<guillemotleft>i\<guillemotright> \<noteq>\<^sub>u \<guillemotleft>j\<guillemotright> \<bullet> Pay i j n) ;; X)"
+"Cycle cardNum = (\<mu>\<^sub>C X \<bullet> AllPay(cardNum) ;; X)"
 
 text {* The Mondex action is a sample setup. It requires creates $cardNum$ cards each with 100 units
   present. *}
@@ -77,7 +83,7 @@ text {* The precondition of pay requires that, under the assumption that a payme
   
 lemma preR_Pay [rdes]:
   "pre\<^sub>R(Pay i j n) = 
-    ($tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u\<rangle> \<le>\<^sub>u $tr\<acute> \<and> 0 <\<^sub>u \<guillemotleft>n\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u $st:valueseq\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u \<Rightarrow> {\<guillemotleft>i\<guillemotright>,\<guillemotleft>j\<guillemotright>}\<^sub>u \<subseteq>\<^sub>u dom\<^sub>u($st:valueseq))"
+    ($tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u\<rangle> \<le>\<^sub>u $tr\<acute> \<and> \<guillemotleft>i\<guillemotright> \<noteq>\<^sub>u \<guillemotleft>j\<guillemotright> \<and> 0 <\<^sub>u \<guillemotleft>n\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u $st:valueseq\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u \<Rightarrow> {\<guillemotleft>i\<guillemotright>,\<guillemotleft>j\<guillemotright>}\<^sub>u \<subseteq>\<^sub>u dom\<^sub>u($st:valueseq))"
   apply (simp add: Pay_def closure rdes unrest alpha usubst wp)
   apply (rel_auto) using dual_order.trans by blast
  
@@ -88,8 +94,8 @@ text {* The pericondition has three cases: (1) nothing has happened and we are n
 lemma periR_Pay [rdes]:
   "peri\<^sub>R(Pay i j n) = 
     (pre\<^sub>R(Pay i j n) \<Rightarrow> $tr\<acute> =\<^sub>u $tr \<and> (pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u \<notin>\<^sub>u $ref\<acute>
-                     \<or> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u\<rangle> \<and> (\<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> \<guillemotleft>n\<guillemotright> >\<^sub>u $st:valueseq\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u) \<and> (reject\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u \<notin>\<^sub>u $ref\<acute>
-                     \<or> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u\<rangle> \<and> 0 <\<^sub>u \<guillemotleft>n\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u $st:valueseq\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u \<and> (accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u \<notin>\<^sub>u $ref\<acute>)"
+                     \<or> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u\<rangle> \<and> (\<guillemotleft>i\<guillemotright> =\<^sub>u \<guillemotleft>j\<guillemotright> \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> \<guillemotleft>n\<guillemotright> >\<^sub>u $st:valueseq\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u) \<and> (reject\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u \<notin>\<^sub>u $ref\<acute>
+                     \<or> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u\<rangle> \<and> \<guillemotleft>i\<guillemotright> \<noteq>\<^sub>u \<guillemotleft>j\<guillemotright> \<and> 0 <\<^sub>u \<guillemotleft>n\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u $st:valueseq\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u \<and> (accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u \<notin>\<^sub>u $ref\<acute>)"
   by (simp add: Pay_def closure rdes unrest alpha usubst wp, rel_auto)
     
 text {* The postcondition has two options. Firstly, the amount was wrong, and so the trace was extended
@@ -97,13 +103,36 @@ text {* The postcondition has two options. Firstly, the amount was wrong, and so
   the trace was extended by pay and accept, and the states of the two cards was updated appropriately. *}
     
 lemma postR_Pay [rdes]:
-  "i \<noteq> j \<Longrightarrow> 
-   post\<^sub>R(Pay i j n) = 
-    (pre\<^sub>R(Pay i j n) \<Rightarrow> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u,(reject\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle> \<and> (\<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> \<guillemotleft>n\<guillemotright> >\<^sub>u $st:valueseq\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u) \<and> $st\<acute> =\<^sub>u $st
-                     \<or> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u,(accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle> \<and> 0 <\<^sub>u \<guillemotleft>n\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u $st:valueseq\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u 
+  "post\<^sub>R(Pay i j n) = 
+    (pre\<^sub>R(Pay i j n) \<Rightarrow> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u,(reject\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle> \<and> (\<guillemotleft>i\<guillemotright> =\<^sub>u \<guillemotleft>j\<guillemotright> \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> \<guillemotleft>n\<guillemotright> >\<^sub>u $st:valueseq\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u) \<and> $st\<acute> =\<^sub>u $st
+                     \<or> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u,(accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle> \<and> \<guillemotleft>i\<guillemotright> \<noteq>\<^sub>u \<guillemotleft>j\<guillemotright> \<and> 0 <\<^sub>u \<guillemotleft>n\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u $st:valueseq\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u 
                        \<and> \<lceil>valueseq := &valueseq(\<guillemotleft>i\<guillemotright> \<mapsto> &valueseq\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u - \<guillemotleft>n\<guillemotright>, \<guillemotleft>j\<guillemotright> \<mapsto> &valueseq\<lparr>\<guillemotleft>j\<guillemotright>\<rparr>\<^sub>u + \<guillemotleft>n\<guillemotright>)\<^sub>u\<rceil>\<^sub>S)"
   by (simp add: Pay_def closure rdes unrest alpha usubst wp, rel_simp, safe, simp_all, blast+)    
-
+            
+lemma Pay_wf [closure]:
+  "Pay i j n is NCSP"
+  by (simp add: Pay_def closure)
+  
+lemma Pay_Productive [closure]: "Pay i j n is Productive"
+  by (simp add: Pay_def closure)
+       
+lemma PaySet_cardNum_nempty [closure]: 
+  "cardNum \<ge> 2 \<Longrightarrow> \<not> PaySet cardNum = {}"
+  by (rel_simp, presburger)
+  
+lemma AllPay_wf [closure]: 
+  "cardNum \<ge> 2 \<Longrightarrow> AllPay cardNum is NCSP"
+  by (simp add: AllPay_def closure)
+    
+lemma AllPay_Productive [closure]:
+  "cardNum \<ge> 2 \<Longrightarrow> AllPay cardNum is Productive"
+  by (simp add: AllPay_def closure)
+    
+lemma preR_AllPay [rdes]:
+  "cardNum \<ge> 2 \<Longrightarrow> pre\<^sub>R(AllPay cardNum) = 
+    (\<Squnion> (i, j, n) \<in> PaySet cardNum \<bullet> $tr\<acute> \<ge>\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u\<rangle> \<and> \<guillemotleft>i\<guillemotright> \<noteq>\<^sub>u \<guillemotleft>j\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> >\<^sub>u 0 \<and> $st:valueseq\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u \<ge>\<^sub>u \<guillemotleft>n\<guillemotright> \<Rightarrow> {\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>}\<^sub>u \<subseteq>\<^sub>u dom\<^sub>u($st:valueseq))"
+  by (simp add: AllPay_def rdes closure)    
+    
 subsection {* Verification *}
 
 text {* We perform verification by writing contracts that specify desired behaviours of our
@@ -161,7 +190,6 @@ theorem no_overdrafts:
   apply (rel_auto)
   apply (simp add: usubst alpha rdes)
   apply (simp add: usubst alpha rdes)
-  apply (simp add: rdes assms usubst)
   using assms apply (rel_auto)
   apply (auto simp add: nth_list_update)
 done
