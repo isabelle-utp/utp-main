@@ -273,15 +273,5 @@ proof -
     finally show ?thesis .
   qed
 qed
-  
-lemma "[Event a, Tock {a}] \<le> [Event a, Tock {a,b}]"
-  quickcheck
-  oops
 
-    (*
-lemma "`\<langle>ev\<^sub>u(a), tock\<^sub>u(t,e)\<rangle> \<le>\<^sub>u \<langle>ev\<^sub>u(a), tock\<^sub>u(t,e)\<rangle>`"
-  apply pred_simp
-    by (simp add: top_uexpr.rep_eq)
-      
-    *)
 end
