@@ -3780,6 +3780,36 @@ proof -
     by (simp add: Miracle_def)
 qed
 
+subsection {* Example basic merge *}
+  
+definition BasicMerge :: "(('s, 't::ordered_cancel_monoid_diff, unit) rsp) merge" ("N\<^sub>B") where
+[upred_defs]: "BasicMerge = ($tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and> $tr\<acute> - $tr\<^sub>< =\<^sub>u $0-tr - $tr\<^sub>< \<and> $tr\<acute> - $tr\<^sub>< =\<^sub>u $1-tr - $tr\<^sub>< \<and> $st\<acute> =\<^sub>u $st\<^sub><)"
+
+abbreviation rbasic_par ("_ \<parallel>\<^sub>B _" [85,86] 85) where
+"P \<parallel>\<^sub>B Q \<equiv> P \<parallel>\<^bsub>M\<^sub>R(N\<^sub>B)\<^esub> Q"
+
+lemma BasicMerge_RDM [closure]: "N\<^sub>B is RDM"
+  by (rule RDM_intro, (rel_auto)+)
+
+lemma BasicMerge_SymMerge [closure]: 
+  "N\<^sub>B is SymMerge"
+  by (rel_auto)
+   
+lemma BasicMerge'_calc:
+  assumes "$ok\<acute> \<sharp> P" "$wait\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$wait\<acute> \<sharp> Q" "P is R2" "Q is R2"
+  shows "P \<parallel>\<^bsub>N\<^sub>B\<^esub> Q = ((\<exists> $st\<acute> \<bullet> P) \<and> (\<exists> $st\<acute> \<bullet> Q) \<and> $st\<acute> =\<^sub>u $st)"
+  using assms
+proof -
+  have P:"(\<exists> {$ok\<acute>,$wait\<acute>} \<bullet> R2(P)) = P" (is "?P' = _")
+    by (simp add: ex_unrest ex_plus Healthy_if assms)
+  have Q:"(\<exists> {$ok\<acute>,$wait\<acute>} \<bullet> R2(Q)) = Q" (is "?Q' = _")
+    by (simp add: ex_unrest ex_plus Healthy_if assms)
+  have "?P' \<parallel>\<^bsub>N\<^sub>B\<^esub> ?Q' = ((\<exists> $st\<acute> \<bullet> ?P') \<and> (\<exists> $st\<acute> \<bullet> ?Q') \<and> $st\<acute> =\<^sub>u $st)"
+    by (simp add: par_by_merge_alt_def, rel_auto, blast+)
+  thus ?thesis
+    by (simp add: P Q)
+qed 
+  
 subsection {* Simple parallel composition *}
 
 definition rea_design_par ::

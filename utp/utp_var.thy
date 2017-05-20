@@ -34,7 +34,8 @@ purge_notation
   meet (infixl "\<sqinter>\<index>" 70) and
   LFP ("\<mu>\<index>") and
   GFP ("\<nu>\<index>") and
-  Set.member (infix ":" 50)
+  Set.member ("op :") and
+  Set.member ("(_/ : _)" [51, 51] 50)
 
 text {* We hide HOL's built-in relation type since we will replace it with our own *}
 

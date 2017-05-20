@@ -6,6 +6,8 @@ imports
   utp_designs
 begin
 
+class trace = ordered_cancel_monoid_diff
+  
 alphabet 't::ordered_cancel_monoid_diff rp_vars = des_vars +
   wait :: bool
   tr   :: "'t"
