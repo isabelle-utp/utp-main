@@ -44,7 +44,7 @@ where "a \<le>\<^sub>m b \<longleftrightarrow> (\<exists>c. b = a + c)"
 definition monoid_subtract (infixl "-\<^sub>m" 65)
 where "a -\<^sub>m b = (if (b \<le>\<^sub>m a) then THE c. a = b + c else 0)"
 
-end
+end 
 
 class cancel_monoid = left_cancel_monoid + right_cancel_monoid + monoid_sum_0
 begin
@@ -95,7 +95,31 @@ lemma add_monoid_diff_cancel_left [simp]: "(a + b) -\<^sub>m a = b"
 done
 
 end
+  
+class pre_trace = cancel_monoid + ord + minus +
+  assumes le_is_monoid_le: "a \<le> b \<longleftrightarrow> (a \<le>\<^sub>m b)"
+  and le_sum_cases: "a \<le> b + c \<Longrightarrow> a \<le> b \<or> b \<le> a"
+  and less_iff: "a < b \<longleftrightarrow> a \<le> b \<and> \<not> (b \<le> a)"
+  and minus_def: "a - b = a -\<^sub>m b"
+begin
+  
+  lemma le_common_total: "\<lbrakk> a \<le> c; b \<le> c \<rbrakk> \<Longrightarrow> a \<le> b \<or> b \<le> a"
+    by (metis le_sum_cases le_is_monoid_le monoid_le_def)
+  
+  lemma sum_eq_sum_conv:
+    assumes "(a + b) = (c + d)"
+    shows "\<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
+    by (metis add_assoc assms add_left_imp_eq le_sum_cases le_is_monoid_le monoid_le_def)
+      
+  lemma le_sum_cases':
+    "a \<le> b + c \<Longrightarrow> a \<le> b \<or> (b \<le> a) \<and> (a - b) \<le> c"
+    by (auto, metis le_sum_cases, metis minus_def le_is_monoid_le add_monoid_diff_cancel_left monoid_le_def sum_eq_sum_conv)
 
+  lemma le_sum_iff: "a \<le> b + c \<longleftrightarrow> a \<le> b \<or> (b \<le> a) \<and> (a - b) \<le> c"
+    by (metis le_sum_cases' add_monoid_diff_cancel_left le_is_monoid_le minus_def monoid_le_add_left_mono monoid_le_def monoid_le_trans)
+    
+end
+  
 class ordered_cancel_monoid_diff = cancel_monoid + ord + minus +
   assumes le_is_monoid_le: "a \<le> b \<longleftrightarrow> (a \<le>\<^sub>m b)"
   and less_iff: "a < b \<longleftrightarrow> a \<le> b \<and> \<not> (b \<le> a)"
@@ -137,7 +161,7 @@ begin
 
   lemma add_le_imp_le_left: "c + a \<le> c + b \<Longrightarrow> a \<le> b"
     by (auto simp add: le_iff_add, metis add_assoc local.add_diff_cancel_left)
-
+      
   lemma add_diff_cancel_left' [simp]:  "(c + a) - (c + b) = a - b"
   proof (cases "b \<le> a")
     case True thus ?thesis
@@ -153,6 +177,12 @@ begin
   lemma diff_add_cancel_left': "a \<le> b \<Longrightarrow> a + (b - a) = b"
     using local.le_iff_add local.monoid_le_def by auto
 
+  lemma add_left_strict_mono: "\<lbrakk> a + b < a + c \<rbrakk> \<Longrightarrow> b < c"
+    using local.add_le_imp_le_left local.add_left_mono local.less_iff by blast
+      
+  lemma sum_minus_left: "z \<le> x \<Longrightarrow> (x + y) - z = (x - z) + y"
+    by (metis add_assoc diff_add_cancel_left' local.add_monoid_diff_cancel_left local.minus_def)      
+      
 end
 
 instantiation list :: (type) monoid_add
