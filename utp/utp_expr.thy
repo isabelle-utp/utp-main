@@ -219,12 +219,12 @@ instance uexpr :: (ordered_ab_group_add_abs, type) ordered_ab_group_add_abs
 done
 
 lemma uexpr_diff_zero [simp]:
-  fixes a :: "('\<alpha>::ordered_cancel_monoid_diff, 'a) uexpr"
+  fixes a :: "('\<alpha>::trace, 'a) uexpr"
   shows "a - 0 = a"
   by (simp add: minus_uexpr_def zero_uexpr_def, transfer, auto)
 
 lemma uexpr_add_diff_cancel_left [simp]:
-  fixes a b :: "('\<alpha>::ordered_cancel_monoid_diff, 'a) uexpr"
+  fixes a b :: "('\<alpha>::trace, 'a) uexpr"
   shows "(a + b) - a = b"
   by (simp add: minus_uexpr_def plus_uexpr_def, transfer, auto)
 

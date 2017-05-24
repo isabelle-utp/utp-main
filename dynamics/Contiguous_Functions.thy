@@ -392,7 +392,7 @@ text {* At this point we also need to show that the order relation corresponds t
   relation which is constructed as $(x \le_m y) \iff (\exists z. y = x \cat z)$. This will allow us
   to link to the proofs about this order relation. *}
 
-instantiation cgf :: (type) ordered_cancel_monoid_diff
+instantiation cgf :: (type) pre_trace
 begin
   definition minus_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cgf" where
   "minus_cgf x y = x -\<^sub>m y"
@@ -407,9 +407,8 @@ instance
 done
 end
 
-text {* Thus we can show that our operators do indeed form an ordered cancellative monoid, which
-  then gives the trace algebra. In order to show this we also have to construct the subtraction
-  operator which we obtain from the derived monoidal subtraction, $x -_m y$. *}
+text {* Thus we can show that our operators form a pre-trace algebra. In order to show this we 
+  also have to construct the subtraction operator which we obtain from the derived monoidal subtraction, $x -_m y$. *}
 
 abbreviation (input) cgf_prefix :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" (infix "\<subseteq>\<^sub>C" 50)
 where "f \<subseteq>\<^sub>C g \<equiv> f \<le> g"
@@ -427,7 +426,10 @@ lemma cgf_sub_cat_cases: "f \<subseteq>\<^sub>C g @\<^sub>C h \<Longrightarrow> 
 done
 
 text {* We also show the previous important property that allows us to split a prefix statement
-  with an append on the RHS into two cases. *}
+  with an append on the RHS into two cases. We can then finally show that we have a trace algebra. *}
+  
+instance cgf :: (type) trace
+  by (intro_classes, simp add: cgf_sub_cat_cases)
   
 lemma cgf_sub_end:
   assumes "f \<le> g"
@@ -477,7 +479,7 @@ text {* Restriction yields a function which is guaranteed to be no longer than t
   length. *}
 
 lemma cgf_prefix_iff: "f \<le> g \<longleftrightarrow> (\<exists> h. g = f @\<^sub>C h)"
-  by (simp add: ordered_cancel_monoid_diff_class.le_iff_add)
+  by (simp add: pre_trace_class.le_iff_add)
 
 lemma cgf_left_mono_iff: "f @\<^sub>C g \<le> f @\<^sub>C h \<longleftrightarrow> g \<le> h"
   using add_le_imp_le_left add_left_mono by blast
@@ -575,7 +577,7 @@ lemma cgf_end_minus: "g \<le> f \<Longrightarrow> end\<^sub>C(f-g) = end\<^sub>C
   by (auto simp add: cgf_prefix_iff cgf_end_cat)
 
 lemma list_concat_minus_list_concat: "(f @\<^sub>C g) - (f @\<^sub>C h) = g - h"
-  using ordered_cancel_monoid_diff_class.add_diff_cancel_left' by blast
+  using pre_trace_class.add_diff_cancel_left' by blast
 (*<*)
 end
 (*>*)

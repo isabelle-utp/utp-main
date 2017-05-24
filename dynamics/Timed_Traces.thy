@@ -918,7 +918,7 @@ end
 text {* Similarly, we can define the minus operator for timed traces by definition from the
   summation operator. *}
 
-instance ttrace :: (topological_space) ordered_cancel_monoid_diff
+instance ttrace :: (topological_space) pre_trace
   apply (intro_classes)
   apply (transfer, metis add_monoid_diff_cancel_left)
   apply (transfer, metis cgf_zero_sum_left)
@@ -926,6 +926,12 @@ instance ttrace :: (topological_space) ordered_cancel_monoid_diff
   apply (simp_all add: less_eq_ttrace_def less_ttrace_def minus_ttrace_def)
 done
 
+instance ttrace :: (topological_space) trace
+  apply (intro_classes)
+  apply (simp add: less_eq_ttrace_def monoid_le_def, transfer)
+  apply (metis mem_Collect_eq piecewise_convergent_cat_right sum_eq_sum_conv)
+done
+  
 text {* We can then show that time traces also form a cancellative monoid, and thus fulfil the
   obligations to our trace algebra. We next lift some of the other operators for contiguous functions. *}
 
@@ -992,7 +998,7 @@ text {* Lifting the @{term tt_restrict} operator is a little more complicated si
 
 lemma tt_restrict_le: "t \<restriction>\<^sub>t n \<le> t"
   by (simp add: less_eq_ttrace_def monoid_le_def, transfer)
-     (metis cgf_restrict_le mem_Collect_eq ordered_cancel_monoid_diff_class.le_iff_add
+     (metis cgf_restrict_le mem_Collect_eq pre_trace_class.le_iff_add
             piecewise_convergent_cat_iff)
 
 lemma tt_restrict_empty [simp]: "[]\<^sub>t \<restriction>\<^sub>t n = []\<^sub>t"
