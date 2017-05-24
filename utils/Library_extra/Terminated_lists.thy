@@ -11,7 +11,17 @@ text {* Finite terminated lists are lists where the Nil element
 
 subsection {* Generic terminated lists datatype *}
 
-datatype ('\<alpha>,'\<theta>) gtlist = Nil "'\<alpha>" | Cons "'\<theta>" "('\<alpha>,'\<theta>) gtlist"
+datatype ('\<alpha>,'\<theta>) gtlist = Nil "'\<alpha>" ("[;;(_)]") | Cons "'\<theta>" "('\<alpha>,'\<theta>) gtlist" (infixr "#\<^sub>g\<^sub>t" 65) 
+  
+syntax
+  "_gtlist"     :: "args \<Rightarrow> 'a \<Rightarrow> ('\<alpha>,'\<theta>) gtlist"    ("[(_);;(_)]")
+
+translations
+  "[x,xs;;y]" == "(x#\<^sub>g\<^sub>t[xs;;y])"
+  "[x;;y]" == "x#\<^sub>g\<^sub>t[;;y]"
+  
+value "[a,b,c;;e]"
+value "[;;e]"
   
 text {* If we take '\<alpha> to be the unit type, then we have a traditional
         list where the Nil element does not record anything else. *}
@@ -35,7 +45,7 @@ lemma "ttlist1_list2list (list2ttlist1_list sl) = sl"
 text {* If we wanted to show that given a plus operator between
         '\<alpha> => '\<theta> yielding '\<theta>, we would need some kind of locale
         here, and would need a function ('\<alpha> => '\<theta> => '\<theta>) to be
-        able to define plus in a generic way. *}  
+        able to define plus in a generic way. *}
 
 subsection {* Standard terminated lists *}
   
@@ -201,14 +211,10 @@ end
 
 text {* We define a last function *}
   
-primrec last :: "'a stlist \<Rightarrow> 'a stlist" where
-"last [;x] = [;x]" |
+primrec last :: "'a stlist \<Rightarrow> 'a" where
+"last [;x] = x" |
 "last (x#\<^sub>txs) = last xs"
 
-lemma stlist_last_is_zero: "\<exists>x. last(s) = [;x]"
-  apply (induct s)
-  by auto
-    
 text {* Given an additive monoid type, we can define a front function
         that yields front(s) + last(s) for a given stlist s *}
     
@@ -218,7 +224,7 @@ primrec front :: "'a::monoid_add stlist \<Rightarrow> 'a stlist" where
 
 value "front [a;b]"
 
-lemma stlist_front_concat_last: "s = front(s) + last(s)"
+lemma stlist_front_concat_last: "s = front(s) + [;last(s)]"
   unfolding plus_stlist_def
   apply (induct s)
   apply auto
@@ -333,7 +339,7 @@ end
 
 (* assorted lemmas below *)
   
-lemma 
+lemma stlist_cons_right_prefix:
   fixes a :: "'a::ordered_cancel_monoid_diff"
   shows "[;a] \<le> [a;c]"
 proof -
@@ -357,7 +363,7 @@ lemma monoid_subtract_stlist:
   
 (* this yields the difA of CTA nicely *)    
     
-lemma 
+lemma stlist_cons_minus_zero_left:
   fixes a :: "'a::ordered_cancel_monoid_diff"
   shows "[a;c] - [;a] = [0;c]"      
 proof -
