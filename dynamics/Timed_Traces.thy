@@ -947,6 +947,11 @@ lemma tt_end_cat: "end\<^sub>t(f @\<^sub>t g) = end\<^sub>t(f)+end\<^sub>t(g)"
 lemma tt_end_minus: "g \<le> f \<Longrightarrow> end\<^sub>t(f-g) = end\<^sub>t(f)-end\<^sub>t(g)"
   by (metis add.commute diff_add_cancel_left' diff_eq_eq tt_end_cat)
 
+lemma tt_sub_end:
+  assumes "f \<le> g"
+  shows "end\<^sub>t f \<le> end\<^sub>t g"
+  by (metis add.left_neutral assms le_less less_diff_eq minus_zero_eq tt_end_0_iff tt_end_ge_0 tt_end_minus)
+    
 lift_definition tt_apply :: "'a::topological_space ttrace \<Rightarrow> real \<Rightarrow> 'a" ("\<langle>_\<rangle>\<^sub>t") is cgf_apply .
 
 text {* @{term tt_apply} is function application for timed traces, likewise defined by lifting

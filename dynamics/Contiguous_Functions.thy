@@ -417,6 +417,18 @@ where "f \<subseteq>\<^sub>C g \<equiv> f \<le> g"
 text {* We give the alternative notation of @{term "f \<subseteq>\<^sub>C g"} to the function order to highlight
   its role as a subset-like operator. *}
 
+lemma cgf_sub_cat_cases: "f \<subseteq>\<^sub>C g @\<^sub>C h \<Longrightarrow> f \<subseteq>\<^sub>C g \<or> g \<subseteq>\<^sub>C f"
+  apply (transfer, auto)
+  apply (rename_tac f g h i j k)
+  apply (case_tac "0 < j")
+  apply (auto)
+  apply (case_tac "i \<le> j")
+  apply (auto simp add: map_le_def)
+done
+
+text {* We also show the previous important property that allows us to split a prefix statement
+  with an append on the RHS into two cases. *}
+  
 lemma cgf_sub_end:
   assumes "f \<le> g"
   shows "end\<^sub>C f \<le> end\<^sub>C g"
