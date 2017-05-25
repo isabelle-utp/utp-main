@@ -6,7 +6,7 @@ imports
   utp_subst
   utp_tactics
 begin
-
+  
 text {* An alphabetised predicate is a simply a boolean valued expression *}
 
 type_synonym '\<alpha> upred = "(bool, '\<alpha>) uexpr"
@@ -39,7 +39,7 @@ consts
   uall   :: "('a, '\<alpha>) uvar \<Rightarrow> 'p \<Rightarrow> 'p"
   ushEx  :: "['a \<Rightarrow> 'p] \<Rightarrow> 'p"
   ushAll :: "['a \<Rightarrow> 'p] \<Rightarrow> 'p"
-
+  
 adhoc_overloading
   uconj conj and
   udisj disj and
@@ -97,16 +97,16 @@ text {* Since, on the whole, lattices in UTP are the opposite way up to the stan
         in HOL, we syntactically invert the lattice operators. This is the one exception where
         we do steal HOL syntax, but I think it makes sense for UTP. *}
 
-purge_notation inf (infixl "\<sqinter>" 70)
-notation inf (infixl "\<squnion>" 70)
-purge_notation sup (infixl "\<squnion>" 65)
-notation sup (infixl "\<sqinter>" 65)
-
+purge_notation Lattices.inf (infixl "\<sqinter>" 70)
+notation Lattices.inf (infixl "\<squnion>" 70)
+purge_notation Lattices.sup (infixl "\<squnion>" 65)
+notation Lattices.sup (infixl "\<sqinter>" 65)
+  
 purge_notation Inf ("\<Sqinter>_" [900] 900)
 notation Inf ("\<Squnion>_" [900] 900)
 purge_notation Sup ("\<Squnion>_" [900] 900)
 notation Sup ("\<Sqinter>_" [900] 900)
-
+  
 purge_notation bot ("\<bottom>")
 notation bot ("\<top>")
 purge_notation top ("\<top>")
@@ -141,17 +141,17 @@ text {* Next we introduce the lattice operators, which is again done by lifting.
 instantiation uexpr :: (lattice, type) lattice
 begin
   lift_definition sup_uexpr :: "('a, 'b) uexpr \<Rightarrow> ('a, 'b) uexpr \<Rightarrow> ('a, 'b) uexpr"
-  is "\<lambda>P Q A. sup (P A) (Q A)" .
+  is "\<lambda>P Q A. Lattices.sup (P A) (Q A)" .
   lift_definition inf_uexpr :: "('a, 'b) uexpr \<Rightarrow> ('a, 'b) uexpr \<Rightarrow> ('a, 'b) uexpr"
-  is "\<lambda>P Q A. inf (P A) (Q A)" .
+  is "\<lambda>P Q A. Lattices.inf (P A) (Q A)" .
 instance
   by (intro_classes) (transfer, auto)+
 end
 
 instantiation uexpr :: (bounded_lattice, type) bounded_lattice
 begin
-  lift_definition bot_uexpr :: "('a, 'b) uexpr" is "\<lambda> A. bot" .
-  lift_definition top_uexpr :: "('a, 'b) uexpr" is "\<lambda> A. top" .
+  lift_definition bot_uexpr :: "('a, 'b) uexpr" is "\<lambda> A. Orderings.bot" .
+  lift_definition top_uexpr :: "('a, 'b) uexpr" is "\<lambda> A. Orderings.top" .
 instance
   by (intro_classes) (transfer, auto)+
 end
@@ -201,10 +201,10 @@ instance uexpr :: (complete_boolean_algebra, type) complete_boolean_algebra ..
 text {* With the lattice operators defined, we can proceed to give definitions for the
         standard predicate operators in terms of them. *}
 
-definition "true_upred  = (top :: '\<alpha> upred)"
-definition "false_upred = (bot :: '\<alpha> upred)"
-definition "conj_upred  = (inf :: '\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred)"
-definition "disj_upred  = (sup :: '\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred)"
+definition "true_upred  = (Orderings.top :: '\<alpha> upred)"
+definition "false_upred = (Orderings.bot :: '\<alpha> upred)"
+definition "conj_upred  = (Lattices.inf :: '\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred)"
+definition "disj_upred  = (Lattices.sup :: '\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred)"
 definition "not_upred   = (uminus :: '\<alpha> upred \<Rightarrow> '\<alpha> upred)"
 definition "diff_upred  = (minus :: '\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred)"
 
@@ -452,6 +452,10 @@ lemma subst_disj [usubst]: "\<sigma> \<dagger> (P \<or> Q) = (\<sigma> \<dagger>
 lemma subst_conj [usubst]: "\<sigma> \<dagger> (P \<and> Q) = (\<sigma> \<dagger> P \<and> \<sigma> \<dagger> Q)"
   by (pred_auto)
 
+declare [[show_sorts]]
+    
+term "P \<sqinter> Q"
+    
 lemma subst_sup [usubst]: "\<sigma> \<dagger> (P \<sqinter> Q) = (\<sigma> \<dagger> P \<sqinter> \<sigma> \<dagger> Q)"
   by (pred_auto)
 

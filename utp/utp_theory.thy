@@ -451,10 +451,10 @@ text {* The healthiness conditions of a UTP theory lattice form a complete latti
   retrieve lattice operators as below. *}
 
 abbreviation utp_top ("\<^bold>\<top>\<index>")
-where "utp_top \<T> \<equiv> atop (uthy_order \<T>)"
+where "utp_top \<T> \<equiv> top (uthy_order \<T>)"
 
 abbreviation utp_bottom ("\<^bold>\<bottom>\<index>")
-where "utp_bottom \<T> \<equiv> abottom (uthy_order \<T>)"
+where "utp_bottom \<T> \<equiv> bottom (uthy_order \<T>)"
 
 abbreviation utp_join (infixl "\<^bold>\<squnion>\<index>" 65) where
 "utp_join \<T> \<equiv> join (uthy_order \<T>)"
@@ -463,10 +463,10 @@ abbreviation utp_meet (infixl "\<^bold>\<sqinter>\<index>" 70) where
 "utp_meet \<T> \<equiv> meet (uthy_order \<T>)"
 
 abbreviation utp_sup ("\<^bold>\<Squnion>\<index>_" [90] 90) where
-"utp_sup \<T> \<equiv> asup (uthy_order \<T>)"
+"utp_sup \<T> \<equiv> Lattice.sup (uthy_order \<T>)"
 
 abbreviation utp_inf ("\<^bold>\<Sqinter>\<index>_" [90] 90) where
-"utp_inf \<T> \<equiv> ainf (uthy_order \<T>)"
+"utp_inf \<T> \<equiv> Lattice.inf (uthy_order \<T>)"
 
 abbreviation utp_gfp ("\<^bold>\<nu>\<index>") where
 "utp_gfp \<T> \<equiv> GFP (uthy_order \<T>)"
@@ -486,7 +486,7 @@ translations
   "\<^bold>\<mu>\<^bsub>T\<^esub> X \<bullet> P" == "CONST utp_gfp T (\<lambda> X. P)"
 
 lemma upred_lattice_inf:
-  "ainf \<P> A = \<Sqinter> A"
+  "Lattice.inf \<P> A = \<Sqinter> A"
   by (metis Sup_least Sup_upper UNIV_I antisym_conv subsetI upred_lattice.weak.inf_greatest upred_lattice.weak.inf_lower upred_lattice_carrier upred_lattice_le)
 
 text {* We can then derive a number of properties about these operators, as below. *}

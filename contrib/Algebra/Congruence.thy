@@ -23,7 +23,8 @@ lemma funcset_carrier:
 lemma funcset_carrier':
   "\<lbrakk> f \<in> carrier A \<rightarrow> carrier A; x \<in> carrier A \<rbrakk> \<Longrightarrow> f x \<in> carrier A"
   by (fact funcset_mem)
-  
+
+
 subsection \<open>Structure with Carrier and Equivalence Relation \<open>eq\<close>\<close>
 
 record 'a eq_object = "'a partial_object" +

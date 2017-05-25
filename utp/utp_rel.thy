@@ -978,7 +978,7 @@ lemma aext_seq [alpha]:
 subsection {* Algebraic properties *}
 
 interpretation upred_semiring: semiring_1
-  where times = seqr and one = skip_r and zero = false\<^sub>h and plus = sup
+  where times = seqr and one = skip_r and zero = false\<^sub>h and plus = Lattices.sup
   by (unfold_locales, (rel_auto)+)
 
 text {* We introduce the power syntax dervied from semirings *}
