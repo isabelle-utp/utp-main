@@ -17,6 +17,7 @@ session "Optics-Library" = "HOL-Eisbach" +
     Lens_Order
     Lens_Instances
     Lenses
+    Prisms
   document_files
     "root.bib"
     "root.tex"
