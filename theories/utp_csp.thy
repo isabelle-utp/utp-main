@@ -1945,6 +1945,9 @@ proof -
   finally show ?thesis .
 qed
 
+lemma Continuous_Productive [closure]: "Continuous Productive"
+  by (simp add: Continuous_def Productive_def, rel_auto)
+  
 lemma Productive_Miracle [closure]:
   "Miracle is Productive"
   unfolding Miracle_tri_def Healthy_def

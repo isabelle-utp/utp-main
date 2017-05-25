@@ -9,7 +9,7 @@ subsection {* Traces with time constraints *}
 text {* Timed traces extend the trace algebra with a constant \emph{dur} that gives the duration
   of a trace. *}
 
-class time_trace = ordered_cancel_monoid_diff +
+class time_trace = trace +
   fixes dur :: "'a \<Rightarrow> real"
   and idle :: "'a \<Rightarrow> bool"
   assumes dur_non_zero [simp]: "dur(t) \<ge> 0"

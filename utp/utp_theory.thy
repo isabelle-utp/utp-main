@@ -247,6 +247,28 @@ lemma UINF_mem_Continuous_closed [closure]:
   "\<lbrakk> Continuous H; \<And> i. i \<in> A \<Longrightarrow> P(i) is H; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter> i\<in>A \<bullet> P(i)) is H"
   by (simp add: Sup_Continuous_closed USUP_as_Sup_collect)
 
+lemma UINF_mem_Continuous_closed_pair [closure]:
+  assumes "Continuous H" "\<And> i j. (i, j) \<in> A \<Longrightarrow> P i j is H" "A \<noteq> {}"
+  shows "(\<Sqinter> (i,j)\<in>A \<bullet> P i j) is H"
+proof -
+  have "(\<Sqinter> (i,j)\<in>A \<bullet> P i j) = (\<Sqinter> x\<in>A \<bullet> P (fst x) (snd x))"
+    by (rel_auto)
+  also have "... is H"
+    by (metis (mono_tags) UINF_mem_Continuous_closed assms(1) assms(2) assms(3) prod.collapse)
+  finally show ?thesis .
+qed
+
+lemma UINF_mem_Continuous_closed_triple [closure]:
+  assumes "Continuous H" "\<And> i j k. (i, j, k) \<in> A \<Longrightarrow> P i j k is H" "A \<noteq> {}"
+  shows "(\<Sqinter> (i,j,k)\<in>A \<bullet> P i j k) is H"
+proof -
+  have "(\<Sqinter> (i,j,k)\<in>A \<bullet> P i j k) = (\<Sqinter> x\<in>A \<bullet> P (fst x) (fst (snd x)) (snd (snd x)))"
+    by (rel_auto)
+  also have "... is H"
+    by (metis (mono_tags) UINF_mem_Continuous_closed assms(1) assms(2) assms(3) prod.collapse)
+  finally show ?thesis .
+qed
+    
 lemma UINF_Continuous_closed [closure]:
   "\<lbrakk> Continuous H; \<And> i. P(i) is H \<rbrakk> \<Longrightarrow> (\<Sqinter> i \<bullet> P(i)) is H"
   using UINF_mem_Continuous_closed[of H UNIV P]

@@ -25,7 +25,7 @@ end
 
 text {* Instantiate the vstore for reactive alphabets. *}
 
-instantiation rp_vars_ext :: (ordered_cancel_monoid_diff,vst) vst
+instantiation rp_vars_ext :: (trace,vst) vst
 begin
   definition vstore_lens_rp_vars_ext :: "vstore \<Longrightarrow> ('a, 'b) rp_vars_ext" where
   "vstore_lens_rp_vars_ext = \<V> ;\<^sub>L \<Sigma>\<^sub>r"

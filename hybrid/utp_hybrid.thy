@@ -4,4 +4,5 @@ theory utp_hybrid
     utp_hyrel
     utp_differential
     utp_hybrid_ex
+    utp_hrd
 begin end

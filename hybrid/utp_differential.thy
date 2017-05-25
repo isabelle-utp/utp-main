@@ -87,7 +87,7 @@ proof (rel_auto)
   fix x :: "'a \<Longrightarrow> 'b" and \<F>' \<F> tr b tr' v
   assume assms:
     "vwb_lens x" "continuous_on UNIV get\<^bsub>x\<^esub>" "\<forall>l>0. (\<F> usolves_ode \<F>' from 0) {0..l} UNIV"
-    "tr < tr'" "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) = \<F> t"
+    "tr \<le> tr'" "0 < end\<^sub>t (tr' - tr)" "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) = \<F> t"
     "put\<^bsub>x\<^esub> b v = \<langle>tr'\<rangle>\<^sub>t(end\<^sub>t tr)"
 
   let ?l = "end\<^sub>t (tr' - tr)"
@@ -102,7 +102,7 @@ proof (rel_auto)
     apply (drule_tac x="0" in spec)
     apply (simp)
     apply (drule_tac sym)
-    apply (simp)
+    apply (metis assms(7) vwb_lens.put_eq)
   done
 
   obtain L where L:"(\<langle>tr' - tr\<rangle>\<^sub>t \<longlongrightarrow> L) (at ?l within {0..<?l})"
@@ -179,7 +179,7 @@ proof (rel_auto)
   fix x :: "'a \<Longrightarrow> 'b" and \<F>' \<F> tr b tr' \<G> t
   assume assms:
     "vwb_lens x" "\<forall>l>0. (\<F> usolves_ode \<F>' from 0) {0..l} UNIV"
-    "tr < tr'"
+    "tr \<le> tr'" "t < end\<^sub>t (tr' - tr)"
     "put\<^bsub>x\<^esub> b (\<F> 0) = \<langle>tr'\<rangle>\<^sub>t (end\<^sub>t tr)"
     "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow>
          (\<G> has_vector_derivative \<F>' t (\<G> t)) (at t within {0..end\<^sub>t (tr' - tr)}) \<and>
@@ -189,7 +189,7 @@ proof (rel_auto)
   let ?l = "end\<^sub>t (tr' - tr)"
 
   have etr_nz: "?l > 0"
-    by (metis assms less_le minus_zero_eq tt_end_0_iff tt_end_ge_0)
+    using assms(4) assms(7) by linarith
 
   have F_sol: "(\<F> usolves_ode \<F>' from 0) {0..?l} UNIV"
     using assms(2) etr_nz by (force)
@@ -199,18 +199,18 @@ proof (rel_auto)
 
   have G_sol: "(\<G> solves_ode \<F>') {0..<?l} UNIV"
   proof (rule solves_odeI, simp_all)
-    from assms(5) show "(\<G> has_vderiv_on (\<lambda>x. \<F>' x (\<G> x))) {0..<end\<^sub>t (tr' - tr)}"
+    from assms show "(\<G> has_vderiv_on (\<lambda>x. \<F>' x (\<G> x))) {0..<end\<^sub>t (tr' - tr)}"
       apply (auto intro: has_vector_derivative_within_subset simp add: has_vderiv_on_def)
       apply (drule_tac x="x" in spec)
       apply (auto intro: has_vector_derivative_within_subset)
     done
   qed
 
-  from assms(1,5) etr_nz have F_G_0: "\<F>(0) = \<G>(0)"
-    by (drule_tac x="0" in spec, simp_all add:assms(4)[THEN sym])
+  from assms(1,6) etr_nz have F_G_0: "\<F>(0) = \<G>(0)"
+    by (drule_tac x="0" in spec, simp_all add:assms(5)[THEN sym])
 
   with etr_nz show "\<G> t = \<F> t"
-    by (rule_tac usolves_odeD(4)[OF F_sol', of "{0..<end\<^sub>t (tr' - tr)}"], auto simp add: G_sol assms(6,7))
+    by (rule_tac usolves_odeD(4)[OF F_sol', of "{0..<end\<^sub>t (tr' - tr)}"], auto simp add: G_sol assms(7,8))
 qed
 
 text {* The next theorem, @{thm [source] "ivp_uniq_solution_refine"}, shows the refinement in the
