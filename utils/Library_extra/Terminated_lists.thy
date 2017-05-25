@@ -127,6 +127,12 @@ where
 "[;z] @\<^sub>t (x#\<^sub>txs) = (z+x)#\<^sub>txs" |
 "(x#\<^sub>txs) @\<^sub>t zs = x#\<^sub>t(xs@\<^sub>tzs)"
 
+text {* We define a last function *}
+  
+primrec last :: "'a stlist \<Rightarrow> 'a" where
+"last [;x] = x" |
+"last (x#\<^sub>txs) = last xs"
+
 subsection {* Classes *}
 
 subsubsection {* Plus *}  
@@ -168,6 +174,27 @@ lemma stlist_concat_noteq: "x1a #\<^sub>t x2 \<noteq> x2"
 lemma stlist_concat_noteq2: "(b #\<^sub>t x2) + a \<noteq> (b #\<^sub>t x1a #\<^sub>t x2) + a"
   by (simp add: plus_stlist_def stlist_not_cons)
     
+lemma stlist_last_concat:
+  fixes s z :: "'a::plus stlist"
+  shows "last (s + (x#\<^sub>tz)) = last z"
+  unfolding plus_stlist_def
+  apply (induct s)
+  by auto
+    
+lemma stlist_last_concat2:
+  fixes s :: "'a::plus stlist"
+  shows "last (x#\<^sub>t(s + [;z])) = last s + z"
+  unfolding plus_stlist_def
+  apply (induct s)
+  by auto
+    
+lemma stlist_last_concat3:
+  fixes s :: "'a::plus stlist"
+  shows "last ((x#\<^sub>ts) + [;z]) = last s + z"
+  unfolding plus_stlist_def
+  apply (induct s)
+  by auto    
+    
 subsubsection {* Additive monoid *}
   
 text {* Given a monoid_add class we also have a monoid_add. On top of
@@ -208,12 +235,6 @@ instance
   by (auto simp:plus_seq_assoc zero_stlist_def)
   
 end
-
-text {* We define a last function *}
-  
-primrec last :: "'a stlist \<Rightarrow> 'a" where
-"last [;x] = x" |
-"last (x#\<^sub>txs) = last xs"
 
 text {* Given an additive monoid type, we can define a front function
         that yields front(s) + last(s) for a given stlist s *}
@@ -329,18 +350,95 @@ begin
   instance by intro_classes
 end
   
-subsubsection {* Ordered cancelative monoid (trace algebra) *}
+subsubsection {* Pre_trace *}
   
-instantiation stlist :: (ordered_cancel_monoid_diff) ordered_cancel_monoid_diff
+instantiation stlist :: (pre_trace) pre_trace
 begin
   
 instance by (intro_classes, simp_all add: less_eq_stlist_def less_stlist_def minus_stlist_def)
 end
 
+lemma monoid_le_stlist2:
+  "(xs :: 'a::monoid_add stlist) \<le>\<^sub>m ys \<longleftrightarrow> xs \<le> ys"
+  by (simp add: less_eq_stlist_def)
+    
+lemma stlist_eq_nil:
+  fixes a b :: "'a::pre_trace"
+  shows "a = b \<longleftrightarrow> [;a] = [;b]"
+  by simp
+  
+lemma monoid_plus_prefix_iff_zero:
+  fixes a b :: "'a::pre_trace"
+  shows "a + x \<le> a \<longleftrightarrow> x = 0"
+  by (metis add.right_neutral antisym le_add left_cancel_monoid_class.add_left_imp_eq)
+    
+lemma stlist_le_nil_imp_le_elements:
+  fixes a b :: "'a::pre_trace"
+  shows "[;a] \<le> [;b] \<Longrightarrow> a \<le> b"
+  apply (simp add: less_eq_stlist_def monoid_le_def)
+  apply auto
+  apply (case_tac c)
+  apply auto
+  apply (simp add: plus_stlist_def)
+  by (simp add: stlist_nil_concat_cons)
+    
+lemma stlist_le_nil_iff_le_elements:
+  fixes a b :: "'a::pre_trace"
+  shows "[;a] \<le> [;b] \<longleftrightarrow> a \<le> b"
+  by (metis concat_stlist.simps(1) pre_trace_class.le_iff_add plus_stlist_def stlist_le_nil_imp_le_elements)
+    
+lemma stlist_plus_nils:
+  fixes a b :: "'a::pre_trace"
+  shows "a + b = c \<longleftrightarrow> [;a] + [;b] = [;c]"
+  by (simp add: plus_stlist_def)      
+    
+lemma stlist_nil_minus:
+  fixes a b :: "'a::pre_trace"
+  shows "[;a] - [;b] = [;a-b]"
+  apply (case_tac "b \<le> a")
+  apply auto
+  apply (metis add_monoid_diff_cancel_left concat_stlist.simps(1) diff_add_cancel_left' minus_stlist_def plus_stlist_def)
+  apply (simp add:stlist_le_nil_iff_le_elements)
+  by (simp add:zero_stlist_def)
+        
+lemma stlist_nil_le_cons_imp_le:
+  fixes xs :: "'a::pre_trace stlist"
+  shows "[;a] \<le> (x#\<^sub>txs) \<Longrightarrow> a \<le> x"
+  apply (simp add:le_is_monoid_le monoid_le_def)
+  apply auto
+  apply (case_tac c)
+  apply (simp add: plus_stlist_def)
+  by (metis stlist.inject(2) stlist_nil_concat_cons)
+
+lemma stlist_cons_minus_nil_eq:
+  fixes xs :: "'a::pre_trace stlist"
+  assumes "[;a] \<le> (x#\<^sub>txs)"
+  shows "(x#\<^sub>txs) - [;a] = (x-a)#\<^sub>txs" 
+  using assms
+  apply (simp add:minus_stlist_def minus_def le_is_monoid_le)
+  by (smt Terminated_lists.last.simps(1) add.assoc add.right_neutral assms concat_stlist.simps(2) diff_add_cancel_left' front.simps(1) left_cancel_monoid_class.add_left_imp_eq minus_def stlist_front_concat_last stlist_nil_concat_cons stlist_nil_le_cons_imp_le stlist_plus_follow_concat zero_stlist_def)
+  
+instantiation stlist :: (trace) trace
+begin
+  
+lemma stlist_le_sum_cases:
+fixes a :: "'a stlist"
+shows "a \<le> b + c \<Longrightarrow> a \<le> b \<or> b \<le> a"
+  apply (induct a b rule:stlist_induct_cons)
+  apply (case_tac c)
+  apply (simp add: le_sum_cases plus_stlist_def stlist_le_nil_iff_le_elements)
+  apply (metis le_sum_cases stlist_le_nil_iff_le_elements stlist_nil_concat_cons stlist_nil_le_cons_imp_le)
+  apply (smt add.assoc add_monoid_diff_cancel_left less_eq_stlist_def minus_stlist_def monoid_le_def stlist_cons_minus_nil_eq stlist_plus_follow_concat stlist_right_cancel_monoid)
+  apply (smt add.assoc add_monoid_diff_cancel_left less_eq_stlist_def minus_stlist_def monoid_le_def right_cancel_monoid_class.add_right_imp_eq stlist_cons_minus_nil_eq stlist_plus_follow_concat)
+  by (simp add: plus_stlist_def pre_trace_class.le_iff_add)
+  
+instance by (intro_classes, simp add:stlist_le_sum_cases)
+end
+
 (* assorted lemmas below *)
   
 lemma stlist_cons_right_prefix:
-  fixes a :: "'a::ordered_cancel_monoid_diff"
+  fixes a :: "'a::pre_trace"
   shows "[;a] \<le> [a;c]"
 proof -
   have "[;a] \<le> [a;c] = ([;a] \<le> [;a] + [0;c])"
@@ -352,19 +450,19 @@ proof -
 qed
   
 lemma monoid_le_stlist:
-  fixes a :: "'a::ordered_cancel_monoid_diff stlist"
+  fixes a :: "'a::pre_trace stlist"
   shows "a \<le> b \<longleftrightarrow> a \<le>\<^sub>m b"
   by (simp add:le_is_monoid_le)
 
 lemma monoid_subtract_stlist: 
-  fixes a :: "'a::ordered_cancel_monoid_diff stlist"
+  fixes a :: "'a::pre_trace stlist"
   shows "(a - b) = (a -\<^sub>m b)"
   by (simp add:minus_def)  
   
 (* this yields the difA of CTA nicely *)    
     
 lemma stlist_cons_minus_zero_left:
-  fixes a :: "'a::ordered_cancel_monoid_diff"
+  fixes a :: "'a::pre_trace"
   shows "[a;c] - [;a] = [0;c]"      
 proof -
   have "[a;c] - [;a] = [;a] + [0;c] - [;a]"
