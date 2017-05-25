@@ -149,7 +149,15 @@ begin
       
   lemma sum_minus_left: "c \<le> a \<Longrightarrow> (a + b) - c = (a - c) + b"
     by (metis add_assoc diff_add_cancel_left' local.add_monoid_diff_cancel_left local.minus_def)      
-  
+      
+  lemma neq_zero_impl_greater:
+    "x \<noteq> 0 \<Longrightarrow> 0 < x"
+    using le_is_monoid_le less_iff monoid_le_antisym monoid_le_least_zero by auto
+ 
+  lemma minus_cancel_le:
+    "\<lbrakk> x \<le> y; y \<le> z \<rbrakk> \<Longrightarrow> y - x \<le> z - x"
+    using add_assoc le_iff_add by auto
+
 end
 
 instance pre_trace \<subseteq> order
@@ -163,6 +171,7 @@ class trace =  pre_trace +
   assumes le_sum_cases: "a \<le> b + c \<Longrightarrow> a \<le> b \<or> b \<le> a"
 begin
 
+  text {* The set subtraces of a common trace $c$ is totally ordered *} 
   lemma le_common_total: "\<lbrakk> a \<le> c; b \<le> c \<rbrakk> \<Longrightarrow> a \<le> b \<or> b \<le> a"
     by (metis le_sum_cases le_is_monoid_le monoid_le_def)
   
@@ -180,7 +189,7 @@ begin
     
   lemma sum_minus_right: "c \<ge> a \<Longrightarrow> a + b - c = b - (c - a)"
     by (metis diff_add_cancel_left' local.add_diff_cancel_left')
-  
+      
 end
 
 instantiation list :: (type) monoid_add
