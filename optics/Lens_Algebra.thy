@@ -13,7 +13,7 @@ definition lens_comp :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('b \<Longright
 [lens_defs]: "lens_comp Y X = \<lparr> lens_get = lens_get Y \<circ> lens_get X
                               , lens_put = (\<lambda> \<sigma> v. lens_put X \<sigma> (lens_put Y (lens_get X \<sigma>) v)) \<rparr>"
 
-text \<open>Lens plus parallel composes two indepedent lenses, resulting in a lens whose view is the
+text \<open>Lens plus parallel composes two independent lenses, resulting in a lens whose view is the
   product of the two underlying lens views.\<close>
 
 definition lens_plus :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Longrightarrow> 'c" (infixr "+\<^sub>L" 75) where
@@ -65,18 +65,21 @@ definition lens_quotient :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longr
 [lens_defs]: "X /\<^sub>L Y = \<lparr> lens_get = \<lambda> \<sigma>. get\<^bsub>X\<^esub> (create\<^bsub>Y\<^esub> \<sigma>)
                        , lens_put = \<lambda> \<sigma> v. get\<^bsub>Y\<^esub> (put\<^bsub>X\<^esub> (create\<^bsub>Y\<^esub> \<sigma>) v) \<rparr>"
 
-text \<open>Lens override uses a lens to override part of a source type.\<close>
+text \<open>Lens override uses a lens to replace part of a source type with a given value for the
+  corresponding view.\<close>
 
 definition lens_override :: "'a \<Rightarrow> 'a \<Rightarrow> ('b \<Longrightarrow> 'a) \<Rightarrow> 'a" ("_ \<oplus>\<^sub>L _ on _" [95,0,96] 95) where
 [lens_defs]: "S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on X = put\<^bsub>X\<^esub> S\<^sub>1 (get\<^bsub>X\<^esub> S\<^sub>2)"
 
-text \<open>Lens inversion take a bijective lens and swaps the source and view types.\<close>
+text \<open>Lens inverse take a bijective lens and swaps the source and view types.\<close>
 
 definition lens_inv :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('b \<Longrightarrow> 'a)" ("inv\<^sub>L") where
 [lens_defs]: "lens_inv x = \<lparr> lens_get = create\<^bsub>x\<^esub>, lens_put = \<lambda> \<sigma>. get\<^bsub>x\<^esub> \<rparr>"
 
 subsection \<open>Closure properties\<close>
 
+text \<open>We show that the core lenses combinators defined above are closed under the key lens classes.\<close>
+  
 lemma id_wb_lens: "wb_lens 1\<^sub>L"
   by (unfold_locales, simp_all add: id_lens_def)
 
@@ -101,6 +104,8 @@ lemma comp_vwb_lens: "\<lbrakk> vwb_lens x; vwb_lens y \<rbrakk> \<Longrightarro
 lemma unit_ief_lens: "ief_lens 0\<^sub>L"
   by (unfold_locales, simp_all add: zero_lens_def)
 
+text \<open>Lens plus requires that the lenses be independent to show closure.\<close>
+    
 lemma plus_mwb_lens:
   assumes "mwb_lens x" "mwb_lens y" "x \<bowtie> y"
   shows "mwb_lens (x +\<^sub>L y)"
@@ -163,6 +168,9 @@ lemma swap_bij_lens: "bij_lens swap\<^sub>L"
 
 subsection \<open>Composition laws\<close>
 
+text \<open>Lens composition is monoidal, with unit @{term "1\<^sub>L"}, as the following theorems demonstrate. 
+  It also has @{term "0\<^sub>L"} as a right annihilator. \<close>
+  
 lemma lens_comp_assoc: "(X ;\<^sub>L Y) ;\<^sub>L Z = X ;\<^sub>L (Y ;\<^sub>L Z)"
   by (auto simp add: lens_comp_def)
 
@@ -177,15 +185,23 @@ lemma lens_comp_anhil [simp]: "wb_lens X \<Longrightarrow> 0\<^sub>L ;\<^sub>L X
 
 subsection \<open>Independence laws\<close>
 
+text \<open>The zero lens @{term "0\<^sub>L"} is independent of any lens. This is because nothing can be observed
+  or changed using @{term "0\<^sub>L"}. \<close>
+  
 lemma zero_lens_indep [simp]: "0\<^sub>L \<bowtie> X"
   by (auto simp add: zero_lens_def lens_indep_def)
 
 lemma zero_lens_indep' [simp]: "X \<bowtie> 0\<^sub>L"
   by (auto simp add: zero_lens_def lens_indep_def)
 
+text \<open>Lens independence is irreflexive, but only for effectual lenses as otherwise nothing can
+  be observed.\<close>
+    
 lemma lens_indep_quasi_irrefl: "\<lbrakk> wb_lens x; eff_lens x \<rbrakk> \<Longrightarrow> \<not> (x \<bowtie> x)"
   by (auto simp add: lens_indep_def ief_lens_def ief_lens_axioms_def, metis (full_types) wb_lens.get_put)
 
+text \<open>Lens independence is a congruence with respect to composition, as the following properties demonstrate.\<close>
+    
 lemma lens_indep_left_comp [simp]:
   "\<lbrakk> mwb_lens z; x \<bowtie> y \<rbrakk> \<Longrightarrow> (x ;\<^sub>L z) \<bowtie> (y ;\<^sub>L z)"
   apply (rule lens_indepI)
@@ -212,30 +228,6 @@ lemma lens_indep_right_ext [intro]:
   "x \<bowtie> z \<Longrightarrow> x \<bowtie> (y ;\<^sub>L z)"
   by (simp add: lens_indep_left_ext lens_indep_sym)
 
-lemma fst_snd_lens_indep [simp]:
-  "fst\<^sub>L \<bowtie> snd\<^sub>L"
-  by (simp add: lens_indep_def fst_lens_def snd_lens_def)
-
-lemma snd_fst_lens_indep [simp]:
-  "snd\<^sub>L \<bowtie> fst\<^sub>L"
-  by (simp add: lens_indep_def fst_lens_def snd_lens_def)
-
-lemma split_prod_lens_indep:
-  assumes "mwb_lens X"
-  shows "(fst\<^sub>L ;\<^sub>L X) \<bowtie> (snd\<^sub>L ;\<^sub>L X)"
-  using assms fst_snd_lens_indep lens_indep_left_comp vwb_lens_mwb by blast
-
-lemma plus_pres_lens_indep [simp]: "\<lbrakk> X \<bowtie> Z; Y \<bowtie> Z \<rbrakk> \<Longrightarrow> (X +\<^sub>L Y) \<bowtie> Z"
-  apply (rule lens_indepI)
-  apply (simp_all add: lens_plus_def prod.case_eq_if)
-  apply (simp add: lens_indep_comm)
-  apply (simp add: lens_indep_sym)
-done
-
-lemma plus_pres_lens_indep' [simp]:
-  "\<lbrakk> X \<bowtie> Y; X \<bowtie> Z \<rbrakk> \<Longrightarrow> X \<bowtie> Y +\<^sub>L Z"
-  by (auto intro: lens_indep_sym plus_pres_lens_indep)
-
 lemma lens_comp_indep_cong_left:
   "\<lbrakk> mwb_lens Z; X ;\<^sub>L Z \<bowtie> Y ;\<^sub>L Z \<rbrakk> \<Longrightarrow> X \<bowtie> Y"
   apply (rule lens_indepI)
@@ -256,6 +248,36 @@ lemma lens_comp_indep_cong:
   "mwb_lens Z \<Longrightarrow> (X ;\<^sub>L Z) \<bowtie> (Y ;\<^sub>L Z) \<longleftrightarrow> X \<bowtie> Y"
   using lens_comp_indep_cong_left lens_indep_left_comp by blast
 
+text \<open>The first and second lenses are independent since the view different parts of a product source.\<close>
+    
+lemma fst_snd_lens_indep [simp]:
+  "fst\<^sub>L \<bowtie> snd\<^sub>L"
+  by (simp add: lens_indep_def fst_lens_def snd_lens_def)
+
+lemma snd_fst_lens_indep [simp]:
+  "snd\<^sub>L \<bowtie> fst\<^sub>L"
+  by (simp add: lens_indep_def fst_lens_def snd_lens_def)
+
+lemma split_prod_lens_indep:
+  assumes "mwb_lens X"
+  shows "(fst\<^sub>L ;\<^sub>L X) \<bowtie> (snd\<^sub>L ;\<^sub>L X)"
+  using assms fst_snd_lens_indep lens_indep_left_comp vwb_lens_mwb by blast
+    
+text \<open>Lens independence is preserved by summation.\<close>
+    
+lemma plus_pres_lens_indep [simp]: "\<lbrakk> X \<bowtie> Z; Y \<bowtie> Z \<rbrakk> \<Longrightarrow> (X +\<^sub>L Y) \<bowtie> Z"
+  apply (rule lens_indepI)
+  apply (simp_all add: lens_plus_def prod.case_eq_if)
+  apply (simp add: lens_indep_comm)
+  apply (simp add: lens_indep_sym)
+done
+
+lemma plus_pres_lens_indep' [simp]:
+  "\<lbrakk> X \<bowtie> Y; X \<bowtie> Z \<rbrakk> \<Longrightarrow> X \<bowtie> Y +\<^sub>L Z"
+  by (auto intro: lens_indep_sym plus_pres_lens_indep)
+
+text \<open>Lens independence is preserved by product.\<close>
+    
 lemma lens_indep_prod:
   "\<lbrakk> X\<^sub>1 \<bowtie> X\<^sub>2; Y\<^sub>1 \<bowtie> Y\<^sub>2 \<rbrakk> \<Longrightarrow> X\<^sub>1 \<times>\<^sub>L Y\<^sub>1 \<bowtie> X\<^sub>2 \<times>\<^sub>L Y\<^sub>2"
   apply (rule lens_indepI)
@@ -265,11 +287,18 @@ done
 
 subsection \<open>Algebraic laws\<close>
 
+text \<open>Lens plus distributes to the right through composition.\<close>
+  
+lemma plus_lens_distr: "mwb_lens Z \<Longrightarrow> (X +\<^sub>L Y) ;\<^sub>L Z = (X ;\<^sub>L Z) +\<^sub>L (Y ;\<^sub>L Z)"
+  by (auto simp add: lens_comp_def lens_plus_def comp_def)
+
+text \<open>The first lens projects the first part of a summation.\<close>
+  
 lemma fst_lens_plus:
   "wb_lens y \<Longrightarrow> fst\<^sub>L ;\<^sub>L (x +\<^sub>L y) = x"
   by (simp add: fst_lens_def lens_plus_def lens_comp_def comp_def)
 
-text {* The second law requires independence as we have to apply x first, before y *}
+text \<open>The second law requires independence as we have to apply x first, before y\<close>
 
 lemma snd_lens_plus:
   "\<lbrakk> wb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> snd\<^sub>L ;\<^sub>L (x +\<^sub>L y) = y"
@@ -278,10 +307,28 @@ lemma snd_lens_plus:
   apply (simp_all)
 done
 
+text \<open>The swap lens switches over a summation.\<close>
+  
 lemma lens_plus_swap:
-  "X \<bowtie> Y \<Longrightarrow> (snd\<^sub>L +\<^sub>L fst\<^sub>L) ;\<^sub>L (X +\<^sub>L Y) = (Y +\<^sub>L X)"
+  "X \<bowtie> Y \<Longrightarrow> swap\<^sub>L ;\<^sub>L (X +\<^sub>L Y) = (Y +\<^sub>L X)"
   by (auto simp add: lens_plus_def fst_lens_def snd_lens_def id_lens_def lens_comp_def lens_indep_comm)
 
+text \<open>The first, second, and swap lenses are all closely related.\<close>
+    
+lemma fst_snd_id_lens: "fst\<^sub>L +\<^sub>L snd\<^sub>L = 1\<^sub>L"
+  by (auto simp add: lens_plus_def fst_lens_def snd_lens_def id_lens_def)
+
+lemma swap_lens_idem: "swap\<^sub>L ;\<^sub>L swap\<^sub>L = 1\<^sub>L"
+  by (simp add: fst_snd_id_lens lens_indep_sym lens_plus_swap)
+
+lemma swap_lens_fst: "fst\<^sub>L ;\<^sub>L swap\<^sub>L = snd\<^sub>L"
+  by (simp add: fst_lens_plus fst_vwb_lens)
+
+lemma swap_lens_snd: "snd\<^sub>L ;\<^sub>L swap\<^sub>L = fst\<^sub>L"
+  by (simp add: lens_indep_sym snd_lens_plus snd_vwb_lens)
+
+text \<open>The product lens can be rewritten as a sum lens.\<close>
+    
 lemma prod_as_plus: "X \<times>\<^sub>L Y = X ;\<^sub>L fst\<^sub>L +\<^sub>L Y ;\<^sub>L snd\<^sub>L"
   by (auto simp add: lens_prod_def fst_lens_def snd_lens_def lens_comp_def lens_plus_def)
 
@@ -293,15 +340,21 @@ lemma prod_lens_comp_plus:
   "X\<^sub>2 \<bowtie> Y\<^sub>2 \<Longrightarrow> ((X\<^sub>1 \<times>\<^sub>L Y\<^sub>1) ;\<^sub>L (X\<^sub>2 +\<^sub>L Y\<^sub>2)) = (X\<^sub>1 ;\<^sub>L X\<^sub>2) +\<^sub>L (Y\<^sub>1 ;\<^sub>L Y\<^sub>2)"
   by (auto simp add: lens_comp_def lens_plus_def lens_prod_def prod.case_eq_if fun_eq_iff)
 
-lemma fst_snd_id_lens: "fst\<^sub>L +\<^sub>L snd\<^sub>L = 1\<^sub>L"
-  by (auto simp add: lens_plus_def fst_lens_def snd_lens_def id_lens_def)
+text \<open>The following laws about quotient are similar to their arithmetic analogues. Lens quotient 
+  reverse the effect of a composition.\<close>
 
-lemma swap_lens_idem: "swap\<^sub>L ;\<^sub>L swap\<^sub>L = 1\<^sub>L"
-  by (simp add: fst_snd_id_lens fst_snd_lens_indep lens_indep_sym lens_plus_swap)
+lemma lens_comp_quotient:
+  "weak_lens Y \<Longrightarrow> (X ;\<^sub>L Y) /\<^sub>L Y = X"
+  by (simp add: lens_quotient_def lens_comp_def)
+    
+lemma lens_quotient_id: "weak_lens X \<Longrightarrow> (X /\<^sub>L X) = 1\<^sub>L"
+  by (force simp add: lens_quotient_def id_lens_def)
 
-lemma swap_lens_fst: "fst\<^sub>L ;\<^sub>L swap\<^sub>L = snd\<^sub>L"
-  by (simp add: fst_lens_plus fst_vwb_lens)
+lemma lens_quotient_id_denom: "X /\<^sub>L 1\<^sub>L = X"
+  by (simp add: lens_quotient_def id_lens_def lens_create_def)
 
-lemma swap_lens_snd: "snd\<^sub>L ;\<^sub>L swap\<^sub>L = fst\<^sub>L"
-  by (simp add: fst_snd_lens_indep lens_indep_sym snd_lens_plus snd_vwb_lens)
+lemma lens_quotient_unit: "weak_lens X \<Longrightarrow> (0\<^sub>L /\<^sub>L X) = 0\<^sub>L"
+  by (simp add: lens_quotient_def zero_lens_def)
+
+    
 end

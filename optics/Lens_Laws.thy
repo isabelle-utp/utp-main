@@ -6,7 +6,10 @@ imports
 begin
 
 subsection \<open>Lens signature\<close>
-
+  
+text \<open>This theory introduces the signature of lenses and indentifies the core algebraic hierarchy of lens 
+  classes, including laws for well-behaved, very well-behaved, and bijective lenses~\cite{Foster07,Fischer2015}.\<close>
+  
 record ('a, 'b) lens =
   lens_get :: "'b \<Rightarrow> 'a" ("get\<index>")
   lens_put :: "'b \<Rightarrow> 'a \<Rightarrow> 'b" ("put\<index>")
@@ -14,7 +17,7 @@ record ('a, 'b) lens =
 type_notation
   lens (infixr "\<Longrightarrow>" 0)
 
-text {*
+text \<open>
   \begin{figure}
   \begin{center}
     \includegraphics[width=3.5cm]{figures/Lens}
@@ -30,21 +33,21 @@ text {*
   $\view$ can be performed without affecting the parts of $\src$ outside the hatched area. The lens
   signature consists of a pair of functions $\lget_X : \src \Rightarrow \view$ that extracts a view
   from a source, and $\lput_X : \src \Rightarrow \view \Rightarrow \src$ that updates a view within
-  a given source. *}
+  a given source. \<close>
 
 named_theorems lens_defs
 
 definition lens_create :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ("create\<index>") where
 [lens_defs]: "create\<^bsub>X\<^esub> v = put\<^bsub>X\<^esub> undefined v"
 
-text {* Function $\lcreate_X~v$ creates an instance of the source type of $X$ by injecting $v$
-  as the view, and leaving the remaining context arbitrary. *}
+text \<open> Function $\lcreate_X~v$ creates an instance of the source type of $X$ by injecting $v$
+  as the view, and leaving the remaining context arbitrary. \<close>
 
 subsection \<open>Weak lenses\<close>
 
-text {* Weak lenses are the least constrained class of lenses in our algebraic hierarchy. They
+text \<open> Weak lenses are the least constrained class of lenses in our algebraic hierarchy. They
   simply require that the PutGet law~\cite{Foster09,Fischer2015} is satisfied, meaning that
-  $\lget$ is the inverse of $\lput$. *}
+  $\lget$ is the inverse of $\lput$. \<close>
 
 locale weak_lens =
   fixes x :: "'a \<Longrightarrow> 'b" (structure)
@@ -57,6 +60,9 @@ begin
   lemma create_inj: "inj create"
     by (metis create_get injI)
 
+  text \<open> The update function is analogous to the record update function which lifts a function
+    on a view type to one on the source type. \<close>
+    
   definition update :: "('a \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'b)" where
   [lens_defs]: "update f \<sigma> = put \<sigma> (f (get \<sigma>))"
 
@@ -75,8 +81,8 @@ declare weak_lens.create_get [simp]
 
 subsection \<open>Well-behaved lenses\<close>
 
-text {* Well-behaved lenses add to weak lenses that requirement that the GetPut law~\cite{Foster09,Fischer2015}
-  is satisfied, meaning that $\lput$ is the inverse of $\lget$. *}
+text \<open> Well-behaved lenses add to weak lenses that requirement that the GetPut law~\cite{Foster09,Fischer2015}
+  is satisfied, meaning that $\lput$ is the inverse of $\lget$. \<close>
 
 locale wb_lens = weak_lens +
   assumes get_put: "put \<sigma> (get \<sigma>) = \<sigma>"
@@ -98,10 +104,10 @@ declare wb_lens.get_put [simp]
 lemma wb_lens_weak [simp]: "wb_lens x \<Longrightarrow> weak_lens x"
   by (simp_all add: wb_lens_def)
 
-subsection {* Mainly well-behaved lenses *}
+subsection \<open> Mainly well-behaved lenses \<close>
 
-text {* Mainly well-behaved lenses extend weak lenses with the PutPut law that shows how one put
-  override a previous one. *}
+text \<open> Mainly well-behaved lenses extend weak lenses with the PutPut law that shows how one put
+  override a previous one. \<close>
 
 locale mwb_lens = weak_lens +
   assumes put_put: "put (put \<sigma> v) u = put \<sigma> u"
@@ -140,10 +146,10 @@ lemma vwb_lens_wb [simp]: "vwb_lens x \<Longrightarrow> wb_lens x"
 lemma vwb_lens_mwb [simp]: "vwb_lens x \<Longrightarrow> mwb_lens x"
   by (simp_all add: vwb_lens_def)
 
-subsection {* Ineffectual lenses *}
+subsection \<open> Ineffectual lenses \<close>
 
 text \<open>Ineffectual lenses can have no effect on the view type -- application of the $\lput$ function
-  always yields the same source. They are trivially very well-behaved lenses.\<close>
+  always yields the same source. They are thus, trivially, very well-behaved lenses.\<close>
 
 locale ief_lens = weak_lens +
   assumes put_inef: "put \<sigma> v = \<sigma>"
@@ -166,10 +172,12 @@ end
 
 abbreviation "eff_lens X \<equiv> (weak_lens X \<and> (\<not> ief_lens X))"
 
-subsection {* Bijective lenses *}
+subsection \<open> Bijective lenses \<close>
 
 text \<open>Bijective lenses characterise the situation where the source and view type are equivalent:
-  in other words the view type full characterises the whole source type. This is specified using
+  in other words the view type full characterises the whole source type. It is often useful
+  when the view type and source type are syntactically different, but nevertheless correspond
+  precisely in terms of what they observe. Bijective lenses are formulates using
   the strong GetPut law~\cite{Foster09,Fischer2015}.\<close>
 
 locale bij_lens = weak_lens +
@@ -211,10 +219,10 @@ lemma bij_lens_vwb [simp]: "bij_lens x \<Longrightarrow> vwb_lens x"
 
 subsection \<open>Lens independence\<close>
 
-text {* Lens independence shows when two lenses $X$ and $Y$ characterise disjoint regions of the
+text \<open> Lens independence shows when two lenses $X$ and $Y$ characterise disjoint regions of the
   source type. We specify this by requiring that the $\lput$ functions of the two lenses commute,
   and that the $\lget$ function of each lens is unaffected by application of $\lput$ from the
-  corresponding lens. *}
+  corresponding lens. \<close>
 
 locale lens_indep =
   fixes X :: "'a \<Longrightarrow> 'c" and Y :: "'b \<Longrightarrow> 'c"
@@ -230,7 +238,7 @@ lemma lens_indepI:
      \<And> u \<sigma>. lens_get y (lens_put x \<sigma> u) = lens_get y \<sigma> \<rbrakk> \<Longrightarrow> x \<bowtie> y"
   by (simp add: lens_indep_def)
 
-text \<open>Independence is symmetric.\<close>
+text \<open>Lens independence is symmetric.\<close>
 
 lemma lens_indep_sym:  "x \<bowtie> y \<Longrightarrow> y \<bowtie> x"
   by (simp add: lens_indep_def)
