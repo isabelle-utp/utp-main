@@ -377,13 +377,13 @@ lemma seq_Sup_distr: "(\<Sqinter> A) ;; Q = (\<Sqinter> P\<in>A. P ;; Q)"
   by (transfer, auto)
 
 lemma seq_UINF_distl: "P ;; (\<Sqinter> Q\<in>A \<bullet> F(Q)) = (\<Sqinter> Q\<in>A \<bullet> P ;; F(Q))"
-  by (simp add: USUP_as_Sup_collect seq_Sup_distl)
+  by (simp add: UINF_as_Sup_collect seq_Sup_distl)
 
 lemma seq_UINF_distl': "P ;; (\<Sqinter> Q \<bullet> F(Q)) = (\<Sqinter> Q \<bullet> P ;; F(Q))"
   by (metis UINF_mem_UNIV seq_UINF_distl)
 
 lemma seq_UINF_distr: "(\<Sqinter> P\<in>A \<bullet> F(P)) ;; Q = (\<Sqinter> P\<in>A \<bullet> F(P) ;; Q)"
-  by (simp add: USUP_as_Sup_collect seq_Sup_distr)
+  by (simp add: UINF_as_Sup_collect seq_Sup_distr)
 
 lemma seq_UINF_distr': "(\<Sqinter> P \<bullet> F(P)) ;; Q = (\<Sqinter> P \<bullet> F(P) ;; Q)"
   by (metis UINF_mem_UNIV seq_UINF_distr)
@@ -1116,7 +1116,7 @@ theorem ustar_inductl:
   shows "Q \<sqsubseteq> P\<^sup>\<star> ;; R"
 proof -
   have "P\<^sup>\<star> ;; R = (\<Sqinter> i. P \<^bold>^ i ;; R)"
-    by (simp add: ustar_def USUP_as_Sup_collect' seq_SUP_distr)
+    by (simp add: ustar_def UINF_as_Sup_collect' seq_SUP_distr)
   also have "Q \<sqsubseteq> ..."
     by (metis (no_types, lifting) SUP_least assms semilattice_sup_class.sup_commute upower_inductl)
   finally show ?thesis .
@@ -1127,7 +1127,7 @@ theorem ustar_inductr:
   shows "Q \<sqsubseteq> R ;; P\<^sup>\<star>"
 proof -
   have "R ;; P\<^sup>\<star> = (\<Sqinter> i. R ;; P \<^bold>^ i)"
-    by (simp add: ustar_def USUP_as_Sup_collect' seq_SUP_distl)
+    by (simp add: ustar_def UINF_as_Sup_collect' seq_SUP_distl)
   also have "Q \<sqsubseteq> ..."
     by (meson SUP_least assms upower_inductr)
   finally show ?thesis .

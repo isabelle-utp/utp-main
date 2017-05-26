@@ -240,12 +240,12 @@ text {* Closure laws derived from continuity *}
 
 lemma Sup_Continuous_closed [closure]:
   "\<lbrakk> Continuous H; \<And> i. i \<in> A \<Longrightarrow> P(i) is H; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter> i\<in>A. P(i)) is H"
-  by (drule ContinuousD[of H "P ` A"], simp add: UINF_mem_UNIV[THEN sym] USUP_as_Sup[THEN sym])
+  by (drule ContinuousD[of H "P ` A"], simp add: UINF_mem_UNIV[THEN sym] UINF_as_Sup[THEN sym])
      (metis (no_types, lifting) Healthy_def' SUP_cong image_image)
 
 lemma UINF_mem_Continuous_closed [closure]:
   "\<lbrakk> Continuous H; \<And> i. i \<in> A \<Longrightarrow> P(i) is H; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter> i\<in>A \<bullet> P(i)) is H"
-  by (simp add: Sup_Continuous_closed USUP_as_Sup_collect)
+  by (simp add: Sup_Continuous_closed UINF_as_Sup_collect)
 
 lemma UINF_mem_Continuous_closed_pair [closure]:
   assumes "Continuous H" "\<And> i j. (i, j) \<in> A \<Longrightarrow> P i j is H" "A \<noteq> {}"

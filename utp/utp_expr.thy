@@ -361,7 +361,7 @@ nonterminal utuple_args and umaplet and umaplets
 
 syntax -- \<open> Core expression constructs \<close>
   "_ucoerce"    :: "logic \<Rightarrow> type \<Rightarrow> logic" (infix ":\<^sub>u" 50)
-  "_ulamba"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<lambda> _ \<bullet> _" [0, 10] 10)
+  "_ulambda"    :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<lambda> _ \<bullet> _" [0, 10] 10)
   "_ulens_ovrd" :: "logic \<Rightarrow> logic \<Rightarrow> svar \<Rightarrow> logic" ("_ \<oplus> _ on _" [85, 0, 86] 86)
 
 translations

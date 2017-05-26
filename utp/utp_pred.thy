@@ -1,4 +1,4 @@
-section {* Alphabetised Predicates *}
+section {* Alphabetised Predicate Calculus *}
 
 theory utp_pred
 imports
@@ -6,6 +6,8 @@ imports
   utp_subst
   utp_tactics
 begin
+
+subsection {* Predicate type and syntax *}
   
 text {* An alphabetised predicate is a simply a boolean valued expression *}
 
@@ -14,13 +16,12 @@ type_synonym '\<alpha> upred = "(bool, '\<alpha>) uexpr"
 translations
   (type) "'\<alpha> upred" <= (type) "(bool, '\<alpha>) uexpr"
 
-subsection {* Predicate syntax *}
-
 text {* We want to remain as close as possible to the mathematical UTP syntax, but also
         want to be conservative with HOL. For this reason we chose not to steal syntax
         from HOL, but where possible use polymorphism to allow selection of the appropriate
         operator (UTP vs. HOL). Thus we will first remove the standard syntax for conjunction,
-        disjunction, and negation, and replace these with adhoc overloaded definitions. *}
+        disjunction, and negation, and replace these with adhoc overloaded definitions. We
+        similarly use polymorphic constants for the other predicate calculus operators. *}
 
 purge_notation
   conj (infixr "\<and>" 35) and
@@ -47,8 +48,9 @@ adhoc_overloading
 
 text {* We set up two versions of each of the quantifiers: @{const uex} / @{const uall} and
         @{const ushEx} / @{const ushAll}. The former pair allows quantification of UTP variables,
-        whilst the latter allows quantification of HOL variables. Both varieties will be
-        needed at various points. Syntactically they are distinguish by a boldface quantifier
+        whilst the latter allows quantification of HOL variables in concert with the literal
+        expression constructor @{term "\<guillemotleft>x\<guillemotright>"}. Both varieties will be needed at various points. 
+        Syntactically they are distinguished by a boldface quantifier
         for the HOL versions (achieved by the "bold" escape in Isabelle). *}
 
 nonterminal idt_list
@@ -83,7 +85,7 @@ subsection {* Predicate operators *}
 
 text {* We chose to maximally reuse definitions and laws built into HOL. For this reason,
         when introducing the core operators we proceed by lifting operators from the
-        polymorphic algebraic hiearchy of HOL. Thus the initial definitions take
+        polymorphic algebraic hierarchy of HOL. Thus the initial definitions take
         place in the context of type class instantiations. We first introduce our own
         class called \emph{refine} that will add the refinement operator syntax to
         the HOL partial order class. *}
@@ -95,7 +97,8 @@ abbreviation refineBy :: "'a::refine \<Rightarrow> 'a \<Rightarrow> bool"  (infi
 
 text {* Since, on the whole, lattices in UTP are the opposite way up to the standard definitions
         in HOL, we syntactically invert the lattice operators. This is the one exception where
-        we do steal HOL syntax, but I think it makes sense for UTP. *}
+        we do steal HOL syntax, but I think it makes sense for UTP. Indeed we make this
+        inversion for all of the lattice operators. *}
 
 purge_notation Lattices.inf (infixl "\<sqinter>" 70)
 notation Lattices.inf (infixl "\<squnion>" 70)
@@ -159,7 +162,9 @@ end
 instance uexpr :: (distrib_lattice, type) distrib_lattice
   by (intro_classes) (transfer, rule ext, auto simp add: sup_inf_distrib1)
 
-text {* Finally we show that predicates form a Boolean algebra (under the lattice operators). *}
+text {* Finally we show that predicates form a Boolean algebra (under the lattice operators),
+  a complete lattice, a completely distribute lattice, and a complete boolean algebra. This
+  equip us with a very complete theory for basic logical propositions. *}
 
 instance uexpr :: (boolean_algebra, type) boolean_algebra
 apply (intro_classes, unfold uexpr_defs; transfer, rule ext)
@@ -176,6 +181,19 @@ instance
   by (intro_classes)
      (transfer, auto intro: INF_lower SUP_upper simp add: INF_greatest SUP_least)+
 end
+  
+instance uexpr :: (complete_distrib_lattice, type) complete_distrib_lattice
+  apply (intro_classes)
+  apply (transfer, rule ext, auto)
+  using sup_INF apply fastforce
+  apply (transfer, rule ext, auto)
+  using inf_SUP apply fastforce
+done
+
+instance uexpr :: (complete_boolean_algebra, type) complete_boolean_algebra ..
+  
+text {* From the complete lattice, we can also define and give syntax for the fixed-point operators. 
+  Like the lattice operators, these are reversed in UTP. *}
 
 syntax
   "_mu" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<mu> _ \<bullet> _" [0, 10] 10)
@@ -187,16 +205,6 @@ notation lfp ("\<nu>")
 translations
   "\<nu> X \<bullet> P" == "CONST lfp (\<lambda> X. P)"
   "\<mu> X \<bullet> P" == "CONST gfp (\<lambda> X. P)"
-
-instance uexpr :: (complete_distrib_lattice, type) complete_distrib_lattice
-  apply (intro_classes)
-  apply (transfer, rule ext, auto)
-  using sup_INF apply fastforce
-  apply (transfer, rule ext, auto)
-  using inf_SUP apply fastforce
-done
-
-instance uexpr :: (complete_boolean_algebra, type) complete_boolean_algebra ..
 
 text {* With the lattice operators defined, we can proceed to give definitions for the
         standard predicate operators in terms of them. *}
@@ -218,43 +226,47 @@ notation
   conj_upred (infixr "\<and>\<^sub>p" 35) and
   disj_upred (infixr "\<or>\<^sub>p" 30)
 
-lift_definition USUP :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('b::complete_lattice, '\<alpha>) uexpr) \<Rightarrow> ('b, '\<alpha>) uexpr"
+text {* Perhaps slightly confusingly, the UTP infimum is the HOL supremum and vice-versa. This is
+  because, again, in UTP the lattice is inverted due to the definition of refinement and a desire
+  to have miracle at the top, and abort at the bottom. *}
+  
+lift_definition UINF :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('b::complete_lattice, '\<alpha>) uexpr) \<Rightarrow> ('b, '\<alpha>) uexpr"
 is "\<lambda> P F b. Sup {\<lbrakk>F x\<rbrakk>\<^sub>eb | x. \<lbrakk>P x\<rbrakk>\<^sub>eb}" .
 
-lift_definition UINF :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('b::complete_lattice, '\<alpha>) uexpr) \<Rightarrow> ('b, '\<alpha>) uexpr"
+lift_definition USUP :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('b::complete_lattice, '\<alpha>) uexpr) \<Rightarrow> ('b, '\<alpha>) uexpr"
 is "\<lambda> P F b. Inf {\<lbrakk>F x\<rbrakk>\<^sub>eb | x. \<lbrakk>P x\<rbrakk>\<^sub>eb}" .
 
-declare USUP_def [upred_defs]
 declare UINF_def [upred_defs]
-
+declare USUP_def [upred_defs]
+  
 syntax
-  "_USup"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"            ("\<Or> _ \<bullet> _" [0, 10] 10)
-  "_USup"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"            ("\<Sqinter> _ \<bullet> _" [0, 10] 10)
-  "_USup_mem" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Or> _ \<in> _ \<bullet> _" [0, 10] 10)
-  "_USup_mem" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Sqinter> _ \<in> _ \<bullet> _" [0, 10] 10)
-  "_USUP"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Or> _ | _ \<bullet> _" [0, 0, 10] 10)
-  "_USUP"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Sqinter> _ | _ \<bullet> _" [0, 0, 10] 10)
-  "_UInf"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"            ("\<And> _ \<bullet> _" [0, 10] 10)
-  "_UInf"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"            ("\<Squnion> _ \<bullet> _" [0, 10] 10)
-  "_UInf_mem" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<And> _ \<in> _ \<bullet> _" [0, 10] 10)
-  "_UInf_mem" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Squnion> _ \<in> _ \<bullet> _" [0, 10] 10)
-  "_UINF"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<And> _ | _ \<bullet> _" [0, 10] 10)
-  "_UINF"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Squnion> _ | _ \<bullet> _" [0, 10] 10)
+  "_USup"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"            ("\<And> _ \<bullet> _" [0, 10] 10)
+  "_USup"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"            ("\<Squnion> _ \<bullet> _" [0, 10] 10)
+  "_USup_mem" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<And> _ \<in> _ \<bullet> _" [0, 10] 10)
+  "_USup_mem" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Squnion> _ \<in> _ \<bullet> _" [0, 10] 10)
+  "_USUP"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<And> _ | _ \<bullet> _" [0, 0, 10] 10)
+  "_USUP"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Squnion> _ | _ \<bullet> _" [0, 0, 10] 10)
+  "_UInf"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"            ("\<Or> _ \<bullet> _" [0, 10] 10)
+  "_UInf"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"            ("\<Sqinter> _ \<bullet> _" [0, 10] 10)
+  "_UInf_mem" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Or> _ \<in> _ \<bullet> _" [0, 10] 10)
+  "_UInf_mem" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Sqinter> _ \<in> _ \<bullet> _" [0, 10] 10)
+  "_UINF"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Or> _ | _ \<bullet> _" [0, 10] 10)
+  "_UINF"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<Sqinter> _ | _ \<bullet> _" [0, 10] 10)
 
 translations
-  "\<Sqinter> x | P \<bullet> F" => "CONST USUP (\<lambda> x. P) (\<lambda> x. F)"
+  "\<Sqinter> x | P \<bullet> F" => "CONST UINF (\<lambda> x. P) (\<lambda> x. F)"
   "\<Sqinter> x \<bullet> F"     == "\<Sqinter> x | true \<bullet> F"
   "\<Sqinter> x \<bullet> F"     == "\<Sqinter> x | true \<bullet> F"
   "\<Sqinter> x \<in> A \<bullet> F" => "\<Sqinter> x | \<guillemotleft>x\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> F"
   "\<Sqinter> x \<in> A \<bullet> F" <= "\<Sqinter> x | \<guillemotleft>y\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> F"
-  "\<Sqinter> x | P \<bullet> F" <= "CONST USUP (\<lambda> y. P) (\<lambda> x. F)"
-  "\<Sqinter> x | P \<bullet> F(x)" <= "CONST USUP (\<lambda> x. P) F"
-  "\<Squnion> x | P \<bullet> F" => "CONST UINF (\<lambda> x. P) (\<lambda> x. F)"
+  "\<Sqinter> x | P \<bullet> F" <= "CONST UINF (\<lambda> y. P) (\<lambda> x. F)"
+  "\<Sqinter> x | P \<bullet> F(x)" <= "CONST UINF (\<lambda> x. P) F"
+  "\<Squnion> x | P \<bullet> F" => "CONST USUP (\<lambda> x. P) (\<lambda> x. F)"
   "\<Squnion> x \<bullet> F"     == "\<Squnion> x | true \<bullet> F"
   "\<Squnion> x \<in> A \<bullet> F" => "\<Squnion> x | \<guillemotleft>x\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> F"
   "\<Squnion> x \<in> A \<bullet> F" <= "\<Squnion> x | \<guillemotleft>y\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> F"
-  "\<Squnion> x | P \<bullet> F" <= "CONST UINF (\<lambda> y. P) (\<lambda> x. F)"
-  "\<Squnion> x | P \<bullet> F(x)" <= "CONST UINF (\<lambda> x. P) F"
+  "\<Squnion> x | P \<bullet> F" <= "CONST USUP (\<lambda> y. P) (\<lambda> x. F)"
+  "\<Squnion> x | P \<bullet> F(x)" <= "CONST USUP (\<lambda> x. P) F"
 
 text {* We also define the other predicate operators *}
 
@@ -354,19 +366,19 @@ lemma unrest_conj [unrest]: "\<lbrakk> x \<sharp> (P :: '\<alpha> upred); x \<sh
 lemma unrest_disj [unrest]: "\<lbrakk> x \<sharp> (P :: '\<alpha> upred); x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<or> Q"
   by (pred_auto)
 
-lemma unrest_USUP [unrest]:
+lemma unrest_UINF [unrest]:
   "\<lbrakk> (\<And> i. x \<sharp> P(i)); (\<And> i. x \<sharp> Q(i)) \<rbrakk> \<Longrightarrow> x \<sharp> (\<Sqinter> i | P(i) \<bullet> Q(i))"
   by (pred_auto)
 
-lemma unrest_UINF [unrest]:
+lemma unrest_USUP [unrest]:
   "\<lbrakk> (\<And> i. x \<sharp> P(i)); (\<And> i. x \<sharp> Q(i)) \<rbrakk> \<Longrightarrow> x \<sharp> (\<Squnion> i | P(i) \<bullet> Q(i))"
   by (pred_auto)
 
-lemma unrest_USUP_mem [unrest]:
+lemma unrest_UINF_mem [unrest]:
   "\<lbrakk>(\<And> i. i \<in> A \<Longrightarrow> x \<sharp> P(i)) \<rbrakk> \<Longrightarrow> x \<sharp> (\<Sqinter> i\<in>A \<bullet> P(i))"
   by (pred_simp, metis)
 
-lemma unrest_UINF_mem [unrest]:
+lemma unrest_USUP_mem [unrest]:
   "\<lbrakk>(\<And> i. i \<in> A \<Longrightarrow> x \<sharp> P(i)) \<rbrakk> \<Longrightarrow> x \<sharp> (\<Squnion> i\<in>A \<bullet> P(i))"
   by (pred_simp, metis)
 
@@ -451,10 +463,6 @@ lemma subst_disj [usubst]: "\<sigma> \<dagger> (P \<or> Q) = (\<sigma> \<dagger>
 
 lemma subst_conj [usubst]: "\<sigma> \<dagger> (P \<and> Q) = (\<sigma> \<dagger> P \<and> \<sigma> \<dagger> Q)"
   by (pred_auto)
-
-declare [[show_sorts]]
-    
-term "P \<sqinter> Q"
     
 lemma subst_sup [usubst]: "\<sigma> \<dagger> (P \<sqinter> Q) = (\<sigma> \<dagger> P \<sqinter> \<sigma> \<dagger> Q)"
   by (pred_auto)
@@ -462,10 +470,10 @@ lemma subst_sup [usubst]: "\<sigma> \<dagger> (P \<sqinter> Q) = (\<sigma> \<dag
 lemma subst_inf [usubst]: "\<sigma> \<dagger> (P \<squnion> Q) = (\<sigma> \<dagger> P \<squnion> \<sigma> \<dagger> Q)"
   by (pred_auto)
 
-lemma subst_USUP [usubst]: "\<sigma> \<dagger> (\<Sqinter> i | P(i) \<bullet> Q(i)) = (\<Sqinter> i | (\<sigma> \<dagger> P(i)) \<bullet> (\<sigma> \<dagger> Q(i)))"
+lemma subst_UINF [usubst]: "\<sigma> \<dagger> (\<Sqinter> i | P(i) \<bullet> Q(i)) = (\<Sqinter> i | (\<sigma> \<dagger> P(i)) \<bullet> (\<sigma> \<dagger> Q(i)))"
   by (pred_auto)
 
-lemma subst_UINF [usubst]: "\<sigma> \<dagger> (\<Squnion> i | P(i) \<bullet> Q(i)) = (\<Squnion> i | (\<sigma> \<dagger> P(i)) \<bullet> (\<sigma> \<dagger> Q(i)))"
+lemma subst_USUP [usubst]: "\<sigma> \<dagger> (\<Squnion> i | P(i) \<bullet> Q(i)) = (\<Squnion> i | (\<sigma> \<dagger> P(i)) \<bullet> (\<sigma> \<dagger> Q(i)))"
   by (pred_auto)
 
 lemma subst_closure [usubst]: "\<sigma> \<dagger> [P]\<^sub>u = [P]\<^sub>u"
@@ -685,133 +693,133 @@ lemma UINF_mem_true [simp]: "A \<noteq> {} \<Longrightarrow> (\<Sqinter> i\<in>A
 lemma UINF_false [simp]: "(\<Sqinter> i | P(i) \<bullet> false) = false"
   by (pred_auto)
 
-lemma USUP_cong_eq:
+lemma UINF_cong_eq:
   "\<lbrakk> \<And> x. P\<^sub>1(x) = P\<^sub>2(x); \<And> x. `P\<^sub>1(x) \<Rightarrow> Q\<^sub>1(x) =\<^sub>u Q\<^sub>2(x)` \<rbrakk> \<Longrightarrow>
         (\<Sqinter> x | P\<^sub>1(x) \<bullet> Q\<^sub>1(x)) = (\<Sqinter> x | P\<^sub>2(x) \<bullet> Q\<^sub>2(x))"
- by (unfold USUP_def, pred_simp, metis)
+ by (unfold UINF_def, pred_simp, metis)
 
-lemma USUP_as_Sup: "(\<Sqinter> P \<in> \<P> \<bullet> P) = \<Sqinter> \<P>"
+lemma UINF_as_Sup: "(\<Sqinter> P \<in> \<P> \<bullet> P) = \<Sqinter> \<P>"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (rule cong[of "Sup"])
   apply (auto)
 done
 
-lemma USUP_as_Sup_collect: "(\<Sqinter>P\<in>A \<bullet> f(P)) = (\<Sqinter>P\<in>A. f(P))"
+lemma UINF_as_Sup_collect: "(\<Sqinter>P\<in>A \<bullet> f(P)) = (\<Sqinter>P\<in>A. f(P))"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (simp add: Setcompr_eq_image)
 done
 
-lemma USUP_as_Sup_collect': "(\<Sqinter>P \<bullet> f(P)) = (\<Sqinter>P. f(P))"
+lemma UINF_as_Sup_collect': "(\<Sqinter>P \<bullet> f(P)) = (\<Sqinter>P. f(P))"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (simp add: full_SetCompr_eq)
 done
 
-lemma USUP_as_Sup_image: "(\<Sqinter> P | \<guillemotleft>P\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> f(P)) = \<Sqinter> (f ` A)"
+lemma UINF_as_Sup_image: "(\<Sqinter> P | \<guillemotleft>P\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> f(P)) = \<Sqinter> (f ` A)"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (rule cong[of "Sup"])
   apply (auto)
 done
 
-lemma UINF_as_Inf: "(\<Squnion> P \<in> \<P> \<bullet> P) = \<Squnion> \<P>"
+lemma USUP_as_Inf: "(\<Squnion> P \<in> \<P> \<bullet> P) = \<Squnion> \<P>"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Inf_uexpr_def)
   apply (pred_simp)
   apply (rule cong[of "Inf"])
   apply (auto)
 done
 
-lemma UINF_as_Inf_collect: "(\<Squnion>P\<in>A \<bullet> f(P)) = (\<Squnion>P\<in>A. f(P))"
+lemma USUP_as_Inf_collect: "(\<Squnion>P\<in>A \<bullet> f(P)) = (\<Squnion>P\<in>A. f(P))"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (simp add: Setcompr_eq_image)
 done
 
-lemma UINF_as_Inf_collect': "(\<Squnion>P \<bullet> f(P)) = (\<Squnion>P. f(P))"
+lemma USUP_as_Inf_collect': "(\<Squnion>P \<bullet> f(P)) = (\<Squnion>P. f(P))"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (simp add: full_SetCompr_eq)
 done
 
-lemma UINF_as_Inf_image: "(\<Squnion> P \<in> \<P> \<bullet> f(P)) = \<Squnion> (f ` \<P>)"
+lemma USUP_as_Inf_image: "(\<Squnion> P \<in> \<P> \<bullet> f(P)) = \<Squnion> (f ` \<P>)"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Inf_uexpr_def)
   apply (pred_simp)
   apply (rule cong[of "Inf"])
   apply (auto)
 done
 
-lemma USUP_image_eq [simp]: "USUP (\<lambda>i. \<guillemotleft>i\<guillemotright> \<in>\<^sub>u \<guillemotleft>f ` A\<guillemotright>) g = (\<Sqinter> i\<in>A \<bullet> g(f(i)))"
-  by (pred_simp, rule_tac cong[of Sup Sup], auto)
-
-lemma UINF_image_eq [simp]: "UINF (\<lambda>i. \<guillemotleft>i\<guillemotright> \<in>\<^sub>u \<guillemotleft>f ` A\<guillemotright>) g = (\<Squnion> i\<in>A \<bullet> g(f(i)))"
+lemma USUP_image_eq [simp]: "USUP (\<lambda>i. \<guillemotleft>i\<guillemotright> \<in>\<^sub>u \<guillemotleft>f ` A\<guillemotright>) g = (\<Squnion> i\<in>A \<bullet> g(f(i)))"
   by (pred_simp, rule_tac cong[of Inf Inf], auto)
 
+lemma UINF_image_eq [simp]: "UINF (\<lambda>i. \<guillemotleft>i\<guillemotright> \<in>\<^sub>u \<guillemotleft>f ` A\<guillemotright>) g = (\<Sqinter> i\<in>A \<bullet> g(f(i)))"
+  by (pred_simp, rule_tac cong[of Sup Sup], auto)
+
 lemma subst_continuous [usubst]: "\<sigma> \<dagger> (\<Sqinter> A) = (\<Sqinter> {\<sigma> \<dagger> P | P. P \<in> A})"
-  by (simp add: USUP_as_Sup[THEN sym] usubst setcompr_eq_image)
+  by (simp add: UINF_as_Sup[THEN sym] usubst setcompr_eq_image)
 
-lemma not_USUP: "(\<not> (\<Sqinter> i\<in>A\<bullet> P(i))) = (\<Squnion> i\<in>A\<bullet> \<not> P(i))"
+lemma not_UINF: "(\<not> (\<Sqinter> i\<in>A\<bullet> P(i))) = (\<Squnion> i\<in>A\<bullet> \<not> P(i))"
   by (pred_auto)
 
-lemma not_UINF: "(\<not> (\<Squnion> i\<in>A\<bullet> P(i))) = (\<Sqinter> i\<in>A\<bullet> \<not> P(i))"
+lemma not_USUP: "(\<not> (\<Squnion> i\<in>A\<bullet> P(i))) = (\<Sqinter> i\<in>A\<bullet> \<not> P(i))"
   by (pred_auto)
 
-lemma USUP_empty [simp]: "(\<Sqinter> i \<in> {} \<bullet> P(i)) = false"
+lemma UINF_empty [simp]: "(\<Sqinter> i \<in> {} \<bullet> P(i)) = false"
   by (pred_auto)
 
-lemma USUP_insert [simp]: "(\<Sqinter> i\<in>insert x xs \<bullet> P(i)) = (P(x) \<sqinter> (\<Sqinter> i\<in>xs \<bullet> P(i)))"
+lemma UINF_insert [simp]: "(\<Sqinter> i\<in>insert x xs \<bullet> P(i)) = (P(x) \<sqinter> (\<Sqinter> i\<in>xs \<bullet> P(i)))"
   apply (pred_simp)
   apply (subst Sup_insert[THEN sym])
   apply (rule_tac cong[of Sup Sup])
   apply (auto)
 done
 
-lemma UINF_empty [simp]: "(\<Squnion> i \<in> {} \<bullet> P(i)) = true"
+lemma USUP_empty [simp]: "(\<Squnion> i \<in> {} \<bullet> P(i)) = true"
   by (pred_auto)
 
-lemma UINF_insert [simp]: "(\<Squnion> i\<in>insert x xs \<bullet> P(i)) = (P(x) \<squnion> (\<Squnion> i\<in>xs \<bullet> P(i)))"
+lemma USUP_insert [simp]: "(\<Squnion> i\<in>insert x xs \<bullet> P(i)) = (P(x) \<squnion> (\<Squnion> i\<in>xs \<bullet> P(i)))"
   apply (pred_simp)
   apply (subst Inf_insert[THEN sym])
   apply (rule_tac cong[of Inf Inf])
   apply (auto)
 done
 
-lemma conj_USUP_dist:
+lemma conj_UINF_dist:
   "(P \<and> (\<Sqinter> Q\<in>S \<bullet> F(Q))) = (\<Sqinter> Q\<in>S \<bullet> P \<and> F(Q))"
   by (simp add: upred_defs bop.rep_eq lit.rep_eq, pred_auto)
 
-lemma disj_USUP_dist:
+lemma disj_UINF_dist:
   "S \<noteq> {} \<Longrightarrow> (P \<or> (\<Sqinter> Q\<in>S \<bullet> F(Q))) = (\<Sqinter> Q\<in>S \<bullet> P \<or> F(Q))"
   by (simp add: upred_defs bop.rep_eq lit.rep_eq, pred_auto)
 
-lemma conj_UINF_dist:
+lemma conj_USUP_dist:
   "S \<noteq> {} \<Longrightarrow> (P \<and> (\<Squnion> Q\<in>S \<bullet> F(Q))) = (\<Squnion> Q\<in>S \<bullet> P \<and> F(Q))"
-  by (subst uexpr_eq_iff, auto simp add: conj_upred_def UINF.rep_eq inf_uexpr.rep_eq bop.rep_eq lit.rep_eq)
+  by (subst uexpr_eq_iff, auto simp add: conj_upred_def USUP.rep_eq inf_uexpr.rep_eq bop.rep_eq lit.rep_eq)
 
-lemma UINF_conj_UINF: "((\<Squnion> P \<in> A \<bullet> F(P)) \<and> (\<Squnion> P \<in> A \<bullet> G(P))) = (\<Squnion> P \<in> A \<bullet> F(P) \<and> G(P))"
+lemma USUP_conj_USUP: "((\<Squnion> P \<in> A \<bullet> F(P)) \<and> (\<Squnion> P \<in> A \<bullet> G(P))) = (\<Squnion> P \<in> A \<bullet> F(P) \<and> G(P))"
   by (simp add: upred_defs bop.rep_eq lit.rep_eq, pred_auto)
 
 lemma UINF_all_cong:
   assumes "\<And> P. F(P) = G(P)"
   shows "(\<Sqinter> P \<bullet> F(P)) = (\<Sqinter> P \<bullet> G(P))"
-  by (simp add: USUP_as_Sup_collect assms)
+  by (simp add: UINF_as_Sup_collect assms)
 
 lemma UINF_cong:
   assumes "\<And> P. P \<in> A \<Longrightarrow> F(P) = G(P)"
   shows "(\<Sqinter> P\<in>A \<bullet> F(P)) = (\<Sqinter> P\<in>A \<bullet> G(P))"
-  by (simp add: USUP_as_Sup_collect assms)
+  by (simp add: UINF_as_Sup_collect assms)
 
 lemma USUP_cong:
   assumes "\<And> P. P \<in> A \<Longrightarrow> F(P) = G(P)"
   shows "(\<Squnion> P\<in>A \<bullet> F(P)) = (\<Squnion> P\<in>A \<bullet> G(P))"
-  by (simp add: UINF_as_Inf_collect assms)
+  by (simp add: USUP_as_Inf_collect assms)
 
 lemma UINF_subset_mono: "A \<subseteq> B \<Longrightarrow> (\<Sqinter> P\<in>B \<bullet> F(P)) \<sqsubseteq> (\<Sqinter> P\<in>A \<bullet> F(P))"
-  by (simp add: SUP_subset_mono USUP_as_Sup_collect)
+  by (simp add: SUP_subset_mono UINF_as_Sup_collect)
 
 lemma USUP_subset_mono: "A \<subseteq> B \<Longrightarrow> (\<Squnion> P\<in>A \<bullet> F(P)) \<sqsubseteq> (\<Squnion> P\<in>B \<bullet> F(P))"
-  by (simp add: INF_superset_mono UINF_as_Inf_collect)
+  by (simp add: INF_superset_mono USUP_as_Inf_collect)
 
 lemma UINF_impl: "(\<Sqinter> P\<in>A \<bullet> F(P) \<Rightarrow> G(P)) = ((\<Squnion> P\<in>A \<bullet> F(P)) \<Rightarrow> (\<Sqinter> P\<in>A \<bullet> G(P)))"
   by (pred_auto)

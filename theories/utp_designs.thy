@@ -746,7 +746,7 @@ proof -
   from assms(2) have "H1 ` A = A"
     by (auto simp add: Healthy_def rev_image_eqI)
   with H1_USUP[of A id, OF assms(1)] show ?thesis
-    by (simp add: USUP_as_Sup_image Healthy_def, presburger)
+    by (simp add: UINF_as_Sup_image Healthy_def, presburger)
 qed
 
 lemma H1_UINF:
@@ -760,7 +760,7 @@ proof -
   from assms have "H1 ` A = A"
     by (auto simp add: Healthy_def rev_image_eqI)
   with H1_UINF[of A id] show ?thesis
-    by (simp add: UINF_as_Inf_image Healthy_def, presburger)
+    by (simp add: USUP_as_Inf_image Healthy_def, presburger)
 qed
 
 subsection {* H2: A specification cannot require non-termination *}
@@ -1025,7 +1025,7 @@ proof -
   from assms have A: "A = H1_H2 ` A"
     by (auto simp add: Healthy_def rev_image_eqI)
   also have "(\<Sqinter> ...) = (\<Sqinter> P \<in> A \<bullet> H1_H2(P))"
-    by (simp add: USUP_as_Sup_collect)
+    by (simp add: UINF_as_Sup_collect)
   also have "... = (\<Sqinter> P \<in> A \<bullet> (\<not> P\<^sup>f) \<turnstile> P\<^sup>t)"
     by (meson H1_H2_eq_design)
   also have "... = (\<Squnion> P \<in> A \<bullet> \<not> P\<^sup>f) \<turnstile> (\<Sqinter> P \<in> A \<bullet> P\<^sup>t)"
@@ -1059,7 +1059,7 @@ proof -
   from assms have A: "A = \<^bold>H ` A"
     by (auto simp add: Healthy_def rev_image_eqI)
   also have "(\<Squnion> ...) = (\<Squnion> P \<in> A \<bullet> \<^bold>H(P))"
-    by (simp add: UINF_as_Inf_collect)
+    by (simp add: USUP_as_Inf_collect)
   also have "... = (\<Squnion> P \<in> A \<bullet> (\<not> P\<^sup>f) \<turnstile> P\<^sup>t)"
     by (meson H1_H2_eq_design)
   also have "... = (\<Sqinter> P \<in> A \<bullet> \<not> P\<^sup>f) \<turnstile> (\<Squnion> P \<in> A \<bullet> \<not> P\<^sup>f \<Rightarrow> P\<^sup>t)"

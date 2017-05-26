@@ -155,11 +155,11 @@ subsection \<open> Syntax translations \<close>
 text \<open> In order to support nice syntax for variables, we here set up some translations. The first
   step is to introduce a collection of non-terminals. \<close>
   
-nonterminal svid and svar and svar_list and salpha
+nonterminal svid and svar and svars and salpha
 
 text \<open> These non-terminals correspond to the following syntactic entities. Non-terminal 
   @{typ "svid"} is an atomic variable identifier. @{typ "svar"} is a decorated variable, such as 
-  an input or output variable, and @{typ "svar_list"} is a list of decorated variables.
+  an input or output variable, and @{typ "svars"} is a list of decorated variables.
   @{typ "salpha"} is an alphabet or set of variables. Such sets can be constructed only
   through lens composition due to typing restrictions. Next we introduce some syntax constructors. \<close>
    
@@ -187,9 +187,9 @@ syntax -- \<open> Variable sets \<close>
   "_salphaid"    :: "id \<Rightarrow> salpha" ("_" [998] 998)
   "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [998] 998)
   "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr ";" 75)
-  "_svar_nil"    :: "svar \<Rightarrow> svar_list" ("_")
-  "_svar_cons"   :: "svar \<Rightarrow> svar_list \<Rightarrow> svar_list" ("_,/ _")
-  "_salphaset"   :: "svar_list \<Rightarrow> salpha" ("{_}")
+  "_svar_nil"    :: "svar \<Rightarrow> svars" ("_")
+  "_svar_cons"   :: "svar \<Rightarrow> svars \<Rightarrow> svars" ("_,/ _")
+  "_salphaset"   :: "svars \<Rightarrow> salpha" ("{_}")
   "_salphamk"    :: "logic \<Rightarrow> salpha"
 
 text \<open> The terminals of an alphabet are either HOL identifiers or UTP variable identifiers. 
@@ -197,7 +197,7 @@ text \<open> The terminals of an alphabet are either HOL identifiers or UTP vari
   a semi-colon or by a set-style construction $\{a,b,c\}$ with a list of UTP variables. \<close>
 
 syntax -- \<open> Quotations \<close>
-  "_ualpha_set"  :: "svar_list \<Rightarrow> logic" ("{_}\<^sub>\<alpha>")  
+  "_ualpha_set"  :: "svars \<Rightarrow> logic" ("{_}\<^sub>\<alpha>")  
   "_svar"        :: "svar \<Rightarrow> logic" ("'(_')\<^sub>v")
   
 text \<open> For various reasons, the syntax constructors above all yield specific grammar categories and

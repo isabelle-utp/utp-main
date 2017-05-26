@@ -1393,7 +1393,7 @@ lemma wpR_choice [wp]: "(P \<or> Q) wp\<^sub>R R = (P wp\<^sub>R R \<and> Q wp\<
 
 lemma wpR_UINF [wp]:
   "(\<Sqinter> x\<in>A \<bullet> P(x)) wp\<^sub>R Q = (\<Squnion> x\<in>A \<bullet> P(x) wp\<^sub>R Q)"
-  by (simp add: wpR_def seq_UINF_distr not_USUP)
+  by (simp add: wpR_def seq_UINF_distr not_UINF)
 
 lemma wpR_tr_subst [usubst]:
   "out\<alpha> \<sharp> v \<Longrightarrow> (P wp\<^sub>R Q)\<lbrakk>v/$tr\<rbrakk> = (P\<lbrakk>v/$tr\<rbrakk> wp\<^sub>R Q)"
@@ -3030,7 +3030,7 @@ qed
 lemma preR_power' [rdes]:
   assumes "P is NSRD"
   shows "pre\<^sub>R(P ;; P\<^bold>^n) = (\<Squnion> i\<in>{0..n} \<bullet> (post\<^sub>R(P) \<^bold>^ i) wp\<^sub>R (pre\<^sub>R(P)))"
-  by (simp add: preR_power assms UINF_as_Inf[THEN sym])
+  by (simp add: preR_power assms USUP_as_Inf[THEN sym])
 
 lemma wpR_impl_lemma:
   "((P wp\<^sub>R Q) \<Rightarrow> (P ;; R1(Q \<Rightarrow> R))) = ((P wp\<^sub>R Q) \<Rightarrow> (P ;; R1(R)))"
@@ -3102,7 +3102,7 @@ qed
 lemma periR_power' [rdes]:
   assumes "P is NSRD"
   shows "peri\<^sub>R(P ;; P\<^bold>^n) = (pre\<^sub>R(P\<^bold>^(Suc n)) \<Rightarrow> (\<Sqinter> i\<in>{0..n} \<bullet> post\<^sub>R(P) \<^bold>^ i) ;; peri\<^sub>R(P))"
-  by (simp add: periR_power assms USUP_as_Sup[THEN sym])
+  by (simp add: periR_power assms UINF_as_Sup[THEN sym])
 
 lemma postR_power [rdes]:
   assumes "P is NSRD"

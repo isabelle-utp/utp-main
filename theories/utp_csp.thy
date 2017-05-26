@@ -1192,7 +1192,7 @@ proof -
   also have "... =
         \<^bold>R\<^sub>s ((\<not> R1(R2c(\<Sqinter>i\<in>A \<bullet> (pre\<^sub>s \<dagger> (\<not> P(i)))))) \<turnstile>
             ((\<Squnion>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i))) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i)))))"
-    by (simp add: not_USUP R1_USUP R2c_USUP assms)
+    by (simp add: not_UINF R1_USUP R2c_USUP assms)
   also have "... =
         \<^bold>R\<^sub>s ((\<not> R2c(\<Sqinter>i\<in>A \<bullet> (pre\<^sub>s \<dagger> (\<not> P(i))))) \<turnstile>
             ((\<Squnion>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i))) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i)))))"
@@ -1212,7 +1212,7 @@ proof -
   qed
   also have "... =
         \<^bold>R\<^sub>s ((\<Squnion>i\<in>A \<bullet> P(i)) \<turnstile> ((\<Squnion>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i))) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter>i\<in>A \<bullet> (P(i) \<Rightarrow> Q(i)))))"
-    by (simp add: rdes_export_pre not_USUP)
+    by (simp add: rdes_export_pre not_UINF)
   also have "... = \<^bold>R\<^sub>s ((\<Squnion>i\<in>A \<bullet> P(i)) \<turnstile> ((\<Squnion>i\<in>A \<bullet> Q(i)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (\<Sqinter>i\<in>A \<bullet> Q(i))))"
     by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto, blast+)
 
@@ -1791,7 +1791,7 @@ lemma extChoice_Dist:
 proof -
   let ?S1 = "pre\<^sub>R ` S" and ?S2 = "cmt\<^sub>R ` S"
   have "P \<box> (\<Sqinter> S) = P \<box> (\<Sqinter> Q\<in>S \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> cmt\<^sub>R(Q)))"
-    by (simp add: SRD_as_reactive_design[THEN sym] Healthy_SUPREMUM USUP_as_Sup_collect assms)
+    by (simp add: SRD_as_reactive_design[THEN sym] Healthy_SUPREMUM UINF_as_Sup_collect assms)
   also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P)) \<box> \<^bold>R\<^sub>s((\<Squnion> Q \<in> S \<bullet> pre\<^sub>R(Q)) \<turnstile> (\<Sqinter> Q \<in> S \<bullet> cmt\<^sub>R(Q)))"
     by (simp add: RHS_design_USUP SRD_reactive_design_alt assms)
   also have "... = \<^bold>R\<^sub>s ((pre\<^sub>R(P) \<and> (\<Squnion> Q \<in> S \<bullet> pre\<^sub>R(Q))) \<turnstile>
@@ -1801,14 +1801,14 @@ proof -
     by (simp add: extChoice_rdes unrest)
   also have "... = \<^bold>R\<^sub>s ((\<Squnion> Q\<in>S \<bullet> pre\<^sub>R P \<and> pre\<^sub>R Q) \<turnstile>
                        (\<Sqinter> Q\<in>S \<bullet> (cmt\<^sub>R P \<and> cmt\<^sub>R Q) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (cmt\<^sub>R P \<or> cmt\<^sub>R Q)))"
-    by (simp add: conj_USUP_dist conj_UINF_dist disj_USUP_dist cond_UINF_dist assms)
+    by (simp add: conj_USUP_dist conj_UINF_dist disj_UINF_dist cond_UINF_dist assms)
   also have "... = (\<Sqinter> Q \<in> S \<bullet> \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> pre\<^sub>R Q) \<turnstile>
                                   ((cmt\<^sub>R P \<and> cmt\<^sub>R Q) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (cmt\<^sub>R P \<or> cmt\<^sub>R Q))))"
     by (simp add: assms RHS_design_USUP)
   also have "... = (\<Sqinter> Q\<in>S \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> cmt\<^sub>R(P)) \<box> \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> cmt\<^sub>R(Q)))"
     by (simp add: extChoice_rdes unrest)
   also have "... = (\<Sqinter> Q\<in>S. P \<box> CSP(Q))"
-    by (simp add: USUP_as_Sup_collect, metis (no_types, lifting) Healthy_if SRD_as_reactive_design assms(1))
+    by (simp add: UINF_as_Sup_collect, metis (no_types, lifting) Healthy_if SRD_as_reactive_design assms(1))
   also have "... = (\<Sqinter> Q\<in>S. P \<box> Q)"
     by (rule SUP_cong, simp_all add: Healthy_subset_member[OF assms(2)])
   finally show ?thesis .
@@ -2548,7 +2548,7 @@ proof -
   also have "... = (\<Sqinter>i. P \<^bold>^ (i+1)) ;; Miracle"
     by (simp add: seq_Sup_distr)
   finally show ?thesis
-    by (simp add: USUP_as_Sup[THEN sym])
+    by (simp add: UINF_as_Sup[THEN sym])
 qed
 
 lemma mu_csp_form_NSRD [closure]:
