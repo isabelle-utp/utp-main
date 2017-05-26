@@ -56,7 +56,6 @@ lift_definition lpf_the :: "'a lpf \<Rightarrow> 'a" ("the\<^sub>L") is "(\<lamb
 declare lpf_the.rep_eq [lpf_transfer]
 
 lift_definition lpf_Some :: "'a \<Rightarrow> 'a lpf" ("Some\<^sub>L") is "Some" .
-
 declare lpf_Some.rep_eq [lpf_transfer]
 
 lift_definition lpf_None :: "'a lpf" ("\<bottom>\<^sub>L") is "None" .
