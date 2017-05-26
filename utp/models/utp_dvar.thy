@@ -345,7 +345,7 @@ definition dvar_exp :: "'t::continuum dvar \<Rightarrow> ('t, '\<alpha>::vst) ue
 where "dvar_exp x = utp_expr.var (dvar_lift x)"
 
 definition unrest_dvar_upred :: "'a::continuum dvar \<Rightarrow> ('b, '\<alpha>::vst) uexpr \<Rightarrow> bool" where
-"unrest_dvar_upred x P = unrest_upred (x\<up>) P"
+"unrest_dvar_upred x P = unrest_uexpr (x\<up>) P"
 
 definition subst_upd_dvar :: "('\<alpha>,'\<beta>::vst) psubst \<Rightarrow> 'a::continuum dvar \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>,'\<beta>) psubst" where
 "subst_upd_dvar \<sigma> x v = subst_upd_uvar \<sigma> (x\<up>) v"

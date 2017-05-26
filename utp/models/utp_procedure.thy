@@ -7,33 +7,33 @@ begin
 type_synonym ('a, '\<alpha>) uproc = "'a \<Rightarrow> '\<alpha> hrel"
 
 definition
-  val_parm :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> '\<alpha> hrel)
+  val_parm :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a \<Longrightarrow> '\<beta>) \<Rightarrow> '\<alpha> hrel)
                \<Rightarrow> (('a, '\<beta>) uexpr, '\<alpha>) uproc"
 where [upred_defs]: "val_parm T x P = (\<lambda> v. (var\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> v ;; P x)))"
 
 definition
-  val_parm_comp :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> ('b, '\<alpha>) uproc)
+  val_parm_comp :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a \<Longrightarrow> '\<beta>) \<Rightarrow> ('b, '\<alpha>) uproc)
                \<Rightarrow> (('a, '\<beta>) uexpr \<times> 'b, '\<alpha>) uproc"
 where [upred_defs]: "val_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> u ;; P x v)))"
 
 definition
-  res_parm :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> '\<alpha> hrel)
-               \<Rightarrow> (('a, '\<beta>) uvar, '\<alpha>) uproc"
+  res_parm :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a \<Longrightarrow> '\<beta>) \<Rightarrow> '\<alpha> hrel)
+               \<Rightarrow> (('a \<Longrightarrow> '\<beta>), '\<alpha>) uproc"
 where [upred_defs]: "res_parm T x P = (\<lambda> y. (var\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> x \<bullet> (P x ;; y ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> &x)))"
 
 definition
-  res_parm_comp :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> ('b, '\<alpha>) uproc)
-               \<Rightarrow> (('a, '\<beta>) uvar \<times> 'b, '\<alpha>) uproc"
+  res_parm_comp :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a \<Longrightarrow> '\<beta>) \<Rightarrow> ('b, '\<alpha>) uproc)
+               \<Rightarrow> (('a \<Longrightarrow> '\<beta>) \<times> 'b, '\<alpha>) uproc"
 where [upred_defs]: "res_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> x \<bullet> (P x v ;; u ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> &x)))"
 
 definition
-  vres_parm :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> '\<alpha> hrel)
-               \<Rightarrow> (('a, '\<beta>) uvar, '\<alpha>) uproc"
+  vres_parm :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a \<Longrightarrow> '\<beta>) \<Rightarrow> '\<alpha> hrel)
+               \<Rightarrow> (('a \<Longrightarrow> '\<beta>), '\<alpha>) uproc"
 where [upred_defs]: "vres_parm T x P = (\<lambda> y. (var\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> &y ;; P x ;; y ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> &x)))"
 
 definition
-  vres_parm_comp :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a, '\<beta>) uvar \<Rightarrow> ('b, '\<alpha>) uproc)
-               \<Rightarrow> (('a, '\<beta>) uvar \<times> 'b, '\<alpha>) uproc"
+  vres_parm_comp :: "('\<T> \<times> '\<alpha> \<times> '\<beta>) itself \<Rightarrow> ('a::two, '\<beta>) lvar \<Rightarrow> (('a \<Longrightarrow> '\<beta>) \<Rightarrow> ('b, '\<alpha>) uproc)
+               \<Rightarrow> (('a \<Longrightarrow> '\<beta>) \<times> 'b, '\<alpha>) uproc"
 where [upred_defs]: "vres_parm_comp T x P = (\<lambda> (u, v). (var\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> x \<bullet> (x ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> &u ;; P x v ;; u ::=\<^bsub>UTHY('\<T>, '\<alpha>)\<^esub> &x)))"
 
 nonterminal parm and parm_list
