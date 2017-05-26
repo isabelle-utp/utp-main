@@ -175,34 +175,34 @@ lemma Conjunctive_conj:
   assumes "Conjunctive(HC)"
   shows "HC(P \<and> Q) = (HC(P) \<and> Q)"
   using assms unfolding Conjunctive_def
-  by (metis utp_pred.inf.assoc utp_pred.inf.commute)
+  by (metis utp_pred_laws.inf.assoc utp_pred_laws.inf.commute)
 
 lemma Conjunctive_distr_conj:
   assumes "Conjunctive(HC)"
   shows "HC(P \<and> Q) = (HC(P) \<and> HC(Q))"
   using assms unfolding Conjunctive_def
-  by (metis Conjunctive_conj assms utp_pred.inf.assoc utp_pred.inf_right_idem)
+  by (metis Conjunctive_conj assms utp_pred_laws.inf.assoc utp_pred_laws.inf_right_idem)
 
 lemma Conjunctive_distr_disj:
   assumes "Conjunctive(HC)"
   shows "HC(P \<or> Q) = (HC(P) \<or> HC(Q))"
   using assms unfolding Conjunctive_def
-  using utp_pred.inf_sup_distrib2 by fastforce
+  using utp_pred_laws.inf_sup_distrib2 by fastforce
 
 lemma Conjunctive_distr_cond:
   assumes "Conjunctive(HC)"
   shows "HC(P \<triangleleft> b \<triangleright> Q) = (HC(P) \<triangleleft> b \<triangleright> HC(Q))"
   using assms unfolding Conjunctive_def
-  by (metis cond_conj_distr utp_pred.inf_commute)
+  by (metis cond_conj_distr utp_pred_laws.inf_commute)
 
 lemma FunctionalConjunctive_Monotonic:
   "FunctionalConjunctive(H) \<Longrightarrow> Monotonic(H)"
-  unfolding FunctionalConjunctive_def by (metis mono_def utp_pred.inf_mono)
+  unfolding FunctionalConjunctive_def by (metis mono_def utp_pred_laws.inf_mono)
 
 lemma WeakConjunctive_Refinement:
   assumes "WeakConjunctive(HC)"
   shows "P \<sqsubseteq> HC(P)"
-  using assms unfolding WeakConjunctive_def by (metis utp_pred.inf.cobounded1)
+  using assms unfolding WeakConjunctive_def by (metis utp_pred_laws.inf.cobounded1)
 
 lemma WeakCojunctive_Healthy_Refinement:
   assumes "WeakConjunctive(HC)" and "P is HC"
@@ -893,7 +893,7 @@ proof (unfold_locales, simp_all)
   fix P Q
   assume "P is (ex x \<circ> H)" "Q is H"
   thus "(H P \<sqsubseteq> Q) = (P \<sqsubseteq> (\<exists> x \<bullet> Q))"
-    by (metis (no_types, lifting) Healthy_Idempotent Healthy_if assms comp_apply dual_order.trans ex_weakens utp_pred.ex_mono vwb_lens_wb)
+    by (metis (no_types, lifting) Healthy_Idempotent Healthy_if assms comp_apply dual_order.trans ex_weakens utp_pred_laws.ex_mono vwb_lens_wb)
 next
   fix P
   assume "P is (ex x \<circ> H)"

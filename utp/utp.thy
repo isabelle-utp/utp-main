@@ -17,6 +17,8 @@ imports
   utp_alphabet
   utp_lift
   utp_pred
+  utp_pred_laws
+  utp_recursion
   utp_deduct
   utp_rel
   utp_tactics

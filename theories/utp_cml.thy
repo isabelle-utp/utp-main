@@ -166,7 +166,7 @@ proof -
       by (simp add: seqr_post_out unrest conj_assoc)
     also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((#\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st) ;;\<^sub>h (\<lceil>n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>))) \<and>
                                       events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
-      by (meson shEx_cong utp_pred.inf.left_commute)
+      by (meson shEx_cong utp_pred_laws.inf.left_commute)
     also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (\<lceil>(\<lceil>#\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u m\<rceil>\<^sub>< \<and> II) ;;\<^sub>h (\<lceil>n\<rceil>\<^sub>< >\<^sub>u #\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>))\<rceil>\<^sub>S) \<and>
                                       events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
       by (simp add: alpha)

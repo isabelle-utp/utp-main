@@ -293,8 +293,8 @@ theorem design_npre:
 theorem design_pre:
   "\<not> (P \<turnstile> Q)\<^sup>f = ($ok \<and> P\<^sup>f)"
   by (simp add: design_def, subst_tac)
-     (metis (no_types, hide_lams) not_conj_deMorgans true_not_false(2) utp_pred.compl_top_eq
-            utp_pred.sup.idem utp_pred.sup_compl_top)
+     (metis (no_types, hide_lams) not_conj_deMorgans true_not_false(2) utp_pred_laws.compl_top_eq
+            utp_pred_laws.sup.idem utp_pred_laws.sup_compl_top)
 
 theorem design_post:
   "(P \<turnstile> Q)\<^sup>t = (($ok \<and> P\<^sup>t) \<Rightarrow> Q\<^sup>t)"
@@ -411,11 +411,11 @@ lemma runrest_ident_var:
   shows "($x \<and> P) = (P \<and> $x\<acute>)"
 proof -
   have "P = ($x\<acute> =\<^sub>u $x \<and> P)"
-    by (metis RID_def assms unrest_relation_def utp_pred.inf.cobounded2 utp_pred.inf_absorb2)
+    by (metis RID_def assms unrest_relation_def utp_pred_laws.inf.cobounded2 utp_pred_laws.inf_absorb2)
   moreover have "($x\<acute> =\<^sub>u $x \<and> ($x \<and> P)) = ($x\<acute> =\<^sub>u $x \<and> (P \<and> $x\<acute>))"
     by (rel_auto)
   ultimately show ?thesis
-    by (metis utp_pred.inf.assoc utp_pred.inf_left_commute)
+    by (metis utp_pred_laws.inf.assoc utp_pred_laws.inf_left_commute)
 qed
 
 theorem design_composition_runrest:
@@ -430,9 +430,9 @@ proof -
     also have "... = ((Q1 \<and> $ok\<acute>) ;; ($ok \<and> Q2))"
       by (simp add: assms(3) assms(4) runrest_ident_var)
     also have "... = (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>)"
-      by (metis ok_vwb_lens seqr_pre_transfer seqr_right_one_point true_alt_def uovar_convr upred_eq_true utp_pred.inf.left_idem utp_rel.unrest_ouvar vwb_lens_mwb)
+      by (metis ok_vwb_lens seqr_pre_transfer seqr_right_one_point true_alt_def uovar_convr upred_eq_true utp_pred_laws.inf.left_idem utp_rel.unrest_ouvar vwb_lens_mwb)
     finally show ?thesis
-      by (metis utp_pred.inf.left_commute utp_pred.inf_left_idem)
+      by (metis utp_pred_laws.inf.left_commute utp_pred_laws.inf_left_idem)
   qed
   moreover have "(\<not> (\<not> P1 ;; true) \<and> \<not> (Q1\<^sup>t ;; (\<not> P2))) \<turnstile> (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>) =
                  (\<not> (\<not> P1 ;; true) \<and> \<not> (Q1\<^sup>t ;; (\<not> P2))) \<turnstile> ($ok \<and> $ok\<acute> \<and> (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>))"
@@ -512,7 +512,7 @@ proof -
   have "(P \<turnstile> Q) = (($ok \<and> P) \<turnstile> ($ok \<and> $ok\<acute> \<and> Q))"
     by (pred_auto)
   also have "... = (($ok \<and> P\<lbrakk>true/$ok\<rbrakk>) \<turnstile> ($ok \<and> ($ok\<acute> \<and> Q\<lbrakk>true/$ok\<acute>\<rbrakk>)\<lbrakk>true/$ok\<rbrakk>))"
-    by (metis conj_eq_out_var_subst conj_pos_var_subst upred_eq_true utp_pred.inf_commute ok_vwb_lens)
+    by (metis conj_eq_out_var_subst conj_pos_var_subst upred_eq_true utp_pred_laws.inf_commute ok_vwb_lens)
   also have "... = (($ok \<and> P\<lbrakk>true/$ok\<rbrakk>) \<turnstile> ($ok \<and> $ok\<acute> \<and> Q\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>))"
     by (simp add: usubst)
   also have "... = (P\<lbrakk>true/$ok\<rbrakk> \<turnstile> Q\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>)"
@@ -526,7 +526,7 @@ proof -
   have "(P \<turnstile> Q) = (P \<turnstile> ($ok\<acute> \<and> Q))"
     by (pred_auto)
   also have "... = (P \<turnstile> ($ok\<acute> \<and> Q\<lbrakk>true/$ok\<acute>\<rbrakk>))"
-    by (metis conj_eq_out_var_subst upred_eq_true utp_pred.inf_commute ok_vwb_lens)
+    by (metis conj_eq_out_var_subst upred_eq_true utp_pred_laws.inf_commute ok_vwb_lens)
   also have "... = (P \<turnstile> Q\<lbrakk>true/$ok\<acute>\<rbrakk>)"
     by (pred_auto)
   finally show ?thesis ..
@@ -1567,8 +1567,8 @@ begin
   lemma mono_design_iter: "mono (\<lambda>X. pre\<^sub>D (F X) \<turnstile>\<^sub>r post\<^sub>D (F X))"
     apply (rule monoI)
     apply (rule rdesign_refine_intro')
-    apply (metis design_pre_choice mono_F mono_def semilattice_sup_class.le_iff_sup utp_pred.inf.absorb_iff2)
-    apply (metis (no_types, lifting) design_post_choice mono_F semilattice_inf_class.inf.absorb2 semilattice_inf_class.inf.orderE semilattice_sup_class.mono_sup semilattice_sup_class.sup.orderE semilattice_sup_class.sup_ge1 utp_pred.le_infI2 utp_pred.sup.order_iff)
+    apply (metis design_pre_choice mono_F mono_def semilattice_sup_class.le_iff_sup utp_pred_laws.inf.absorb_iff2)
+    apply (metis (no_types, lifting) design_post_choice mono_F semilattice_inf_class.inf.absorb2 semilattice_inf_class.inf.orderE semilattice_sup_class.mono_sup semilattice_sup_class.sup.orderE semilattice_sup_class.sup_ge1 utp_pred_laws.le_infI2 utp_pred_laws.sup.order_iff)
   done
 
   lemma mu_design_iter:

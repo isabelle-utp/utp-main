@@ -307,7 +307,7 @@ proof -
   also have "... = (((Q ;; U1) \<and> (P ;; U0) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
     by (simp add: U0_swap U1_swap)
   also have "... = P \<parallel>\<^bsub>M\<^esub> Q"
-    by (simp add: par_by_merge_def utp_pred.inf.left_commute)
+    by (simp add: par_by_merge_def utp_pred_laws.inf.left_commute)
   finally show ?thesis ..
 qed
 

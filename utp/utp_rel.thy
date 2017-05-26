@@ -2,7 +2,8 @@ section {* Alphabetised relations *}
 
 theory utp_rel
 imports
-  utp_pred
+  utp_pred_laws
+  utp_recursion
   utp_lift
   utp_tactics
 begin
@@ -740,7 +741,7 @@ lemma seqr_true_lemma:
   by (rel_auto)
 
 lemma seqr_to_conj: "\<lbrakk> out\<alpha> \<sharp> P; in\<alpha> \<sharp> Q \<rbrakk> \<Longrightarrow> (P ;; Q) = (P \<and> Q)"
-  by (metis postcond_left_unit seqr_pre_out utp_pred.inf_top.right_neutral)
+  by (metis postcond_left_unit seqr_pre_out utp_pred_laws.inf_top.right_neutral)
 
 lemma shEx_lift_seq_1 [uquant_lift]:
   "((\<^bold>\<exists> x \<bullet> P x) ;; Q) = (\<^bold>\<exists> x \<bullet> (P x ;; Q))"

@@ -439,7 +439,7 @@ proof -
   also have "... = ((II\<lbrakk>true/$wait\<rbrakk> ;; Q) \<triangleleft> $wait \<triangleright> (P ;; Q))"
     by (subst_tac)
   also have "... = (((II \<and> $wait\<acute>) ;; Q) \<triangleleft> $wait \<triangleright> (P ;; Q))"
-    by (metis (no_types, lifting) cond_def conj_pos_var_subst seqr_pre_var_out skip_var utp_pred.inf_left_idem wait_vwb_lens)
+    by (metis (no_types, lifting) cond_def conj_pos_var_subst seqr_pre_var_out skip_var utp_pred_laws.inf_left_idem wait_vwb_lens)
   also have "... = ((II\<lbrakk>true/$wait\<acute>\<rbrakk> ;; Q\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P ;; Q))"
     by (metis seqr_pre_transfer seqr_right_one_point true_alt_def uovar_convr upred_eq_true utp_rel.unrest_ouvar vwb_lens_mwb wait_vwb_lens)
   also have "... = ((II\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (II\<^sub>r \<triangleleft> $wait \<triangleright> Q)\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P ;; Q))"
@@ -616,7 +616,7 @@ proof -
   also have "... = (R1($ok \<Rightarrow> II) ;; P)"
     by (simp add: skip_rea_R1_lemma)
   also have "... = (((\<not> $ok \<and> R1(true)) ;; P) \<or> P)"
-    by (metis (no_types, lifting) R1_def seqr_left_unit seqr_or_distl skip_rea_R1_lemma skip_rea_def utp_pred.inf_top_left utp_pred.sup_commute)
+    by (metis (no_types, lifting) R1_def seqr_left_unit seqr_or_distl skip_rea_R1_lemma skip_rea_def utp_pred_laws.inf_top_left utp_pred_laws.sup_commute)
   also have "... = (((R1(\<not> $ok) ;; R1(true\<^sub>h)) ;; P) \<or> P)"
     by (rel_auto, metis order.trans)
   also have "... = ((R1(\<not> $ok) ;; (R1(true\<^sub>h) ;; P)) \<or> P)"
@@ -791,20 +791,20 @@ proof -
     by simp
   also from assms have "... = ((R1(\<not> $ok \<or> \<not> P \<or> Q) ;; R1(\<not> R \<or> ($ok\<acute> \<and> S)))
                              \<or> (R1(\<not> $ok \<or> \<not> P) ;; R1(true)))"
-    by (simp add: impl_alt_def utp_pred.sup.assoc)
+    by (simp add: impl_alt_def utp_pred_laws.sup.assoc)
   also from assms have "... = (((R1(\<not> $ok \<or> \<not> P) \<or> R1(Q)) ;; R1(\<not> R \<or> ($ok\<acute> \<and> S)))
                                \<or> (R1(\<not> $ok \<or> \<not> P) ;; R1(true)))"
-    by (simp add: R1_disj utp_pred.disj_assoc)
+    by (simp add: R1_disj utp_pred_laws.disj_assoc)
   also from assms have "... = ((R1(\<not> $ok \<or> \<not> P) ;; R1(\<not> R \<or> ($ok\<acute> \<and> S)))
                                \<or> (R1(Q) ;; R1(\<not> R \<or> ($ok\<acute> \<and> S)))
                                \<or> (R1(\<not> $ok \<or> \<not> P) ;; R1(true)))"
-    by (simp add: seqr_or_distl utp_pred.sup.assoc)
+    by (simp add: seqr_or_distl utp_pred_laws.sup.assoc)
   also from assms have "... = ((R1(Q) ;; R1(\<not> R \<or> ($ok\<acute> \<and> S)))
                                \<or> (R1(\<not> $ok \<or> \<not> P) ;; R1(true)))"
     by (rel_blast)
   also from assms have "... = ((R1(Q) ;; (R1(\<not> R) \<or> R1(S) \<and> $ok\<acute>))
                                \<or> (R1(\<not> $ok \<or> \<not> P) ;; R1(true)))"
-    by (simp add: R1_disj R1_extend_conj utp_pred.inf_commute)
+    by (simp add: R1_disj R1_extend_conj utp_pred_laws.inf_commute)
   also have "... = ((R1(Q) ;; (R1(\<not> R) \<or> R1(S) \<and> $ok\<acute>))
                   \<or> ((R1(\<not> $ok) :: ('t,'\<alpha>,'\<beta>) rel_rp) ;; R1(true))
                   \<or> (R1(\<not> P) ;; R1(true)))"
@@ -827,7 +827,7 @@ proof -
                    \<or> (R1(Q) ;; (R1(S \<and> $ok\<acute>)))
                    \<or> R1(\<not> $ok)
                    \<or> (R1(\<not> P) ;; R1(true)))"
-    by (simp add: seqr_or_distr utp_pred.sup.assoc)
+    by (simp add: seqr_or_distr utp_pred_laws.sup.assoc)
   also have "... = R1( (R1(Q) ;; (R1 (\<not> R)))
                      \<or> (R1(Q) ;; (R1(S \<and> $ok\<acute>)))
                      \<or> (\<not> $ok)
@@ -843,7 +843,7 @@ proof -
     by (rel_blast)
   also have "... = R1(($ok \<and> \<not> (R1(\<not> P) ;; R1(true)) \<and> \<not> (R1(Q) ;; (R1 (\<not> R))))
                       \<Rightarrow> ($ok\<acute> \<and> (R1(Q) ;; R1(S))))"
-    by (simp add: impl_alt_def utp_pred.inf_commute)
+    by (simp add: impl_alt_def utp_pred_laws.inf_commute)
   also have "... = R1((\<not> (R1(\<not> P) ;; R1(true)) \<and> \<not> (R1(Q) ;; R1(\<not> R))) \<turnstile> (R1(Q) ;; R1(S)))"
     by (simp add: design_def)
   finally show ?thesis .
@@ -1332,7 +1332,7 @@ proof -
     proof -
       have "(R1 (R2s Q\<^sub>2) ;; (\<not> $wait \<and> (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s S\<^sub>1) \<diamondop> R1 (R2s S\<^sub>2))))
             = (R1 (R2s Q\<^sub>2) ;; (\<not> $wait \<and> (R1 (R2s S\<^sub>1) \<diamondop> R1 (R2s S\<^sub>2))))"
-        by (metis (no_types, lifting) cond_def conj_disj_not_abs utp_pred.double_compl utp_pred.inf.left_idem utp_pred.sup_assoc utp_pred.sup_inf_absorb)
+        by (metis (no_types, lifting) cond_def conj_disj_not_abs utp_pred_laws.double_compl utp_pred_laws.inf.left_idem utp_pred_laws.sup_assoc utp_pred_laws.sup_inf_absorb)
 
       also have "... = ((R1 (R2s Q\<^sub>2))\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (R1 (R2s S\<^sub>1) \<diamondop> R1 (R2s S\<^sub>2))\<lbrakk>false/$wait\<rbrakk>)"
         by (metis false_alt_def seqr_right_one_point upred_eq_false wait_vwb_lens)
@@ -1430,7 +1430,7 @@ proof -
     proof -
       have "(R1 (R2s Q\<^sub>2) ;; (\<not> $wait \<and> ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s S\<^sub>1) \<diamondop> R1 (R2s S\<^sub>2))))
             = (R1 (R2s Q\<^sub>2) ;; (\<not> $wait \<and> (R1 (R2s S\<^sub>1) \<diamondop> R1 (R2s S\<^sub>2))))"
-        by (metis (no_types, lifting) cond_def conj_disj_not_abs utp_pred.double_compl utp_pred.inf.left_idem utp_pred.sup_assoc utp_pred.sup_inf_absorb)
+        by (metis (no_types, lifting) cond_def conj_disj_not_abs utp_pred_laws.double_compl utp_pred_laws.inf.left_idem utp_pred_laws.sup_assoc utp_pred_laws.sup_inf_absorb)
 
       also have "... = ((R1 (R2s Q\<^sub>2))\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (R1 (R2s S\<^sub>1) \<diamondop> R1 (R2s S\<^sub>2))\<lbrakk>false/$wait\<rbrakk>)"
         by (metis false_alt_def seqr_right_one_point upred_eq_false wait_vwb_lens)
@@ -1762,7 +1762,7 @@ lemma R2_cmt_conj_wait':
 
 lemma R2c_preR:
   "P is SRD \<Longrightarrow> R2c(pre\<^sub>R(P)) = pre\<^sub>R(P)"
-  by (metis (no_types, lifting) R1_R2c_commute R1_idem R2_R2c_def R2_neg_pre_SRD R2c_not utp_pred.compl_eq_compl_iff)
+  by (metis (no_types, lifting) R1_R2c_commute R1_idem R2_R2c_def R2_neg_pre_SRD R2c_not utp_pred_laws.compl_eq_compl_iff)
 
 lemma preR_R2c_closed [closure]: "P is SRD \<Longrightarrow> pre\<^sub>R(P) is R2c"
   by (simp add: Healthy_def' R2c_preR)
@@ -1871,7 +1871,7 @@ proof -
     by (simp add: rea_pre_RHS_design rea_peri_RHS_design rea_post_RHS_design R1_neg_R2c_pre_RHS
                   R2c_not assms unrest usubst R2c_impl R2c_periR, simp add: R2c_preR assms)
   also have "... = (pre\<^sub>R P \<Rightarrow> peri\<^sub>R P)"
-    by (metis (no_types, hide_lams) R1_idem R1_impl R1_neg_R2c_pre_RHS assms(1) calculation utp_pred.double_compl)
+    by (metis (no_types, hide_lams) R1_idem R1_impl R1_neg_R2c_pre_RHS assms(1) calculation utp_pred_laws.double_compl)
   finally show ?thesis ..
 qed
 
@@ -1886,7 +1886,7 @@ proof -
     by (simp add: rea_pre_RHS_design rea_peri_RHS_design rea_post_RHS_design R1_neg_R2c_pre_RHS
                   R2c_not assms unrest usubst R2c_impl R2c_postR, simp add: R2c_preR assms)
   also have "... = (pre\<^sub>R P \<Rightarrow> post\<^sub>R P)"
-    by (metis (no_types, hide_lams) R1_idem R1_impl R1_neg_R2c_pre_RHS assms(1) calculation utp_pred.double_compl)
+    by (metis (no_types, hide_lams) R1_idem R1_impl R1_neg_R2c_pre_RHS assms(1) calculation utp_pred_laws.double_compl)
   finally show ?thesis ..
 qed
 
@@ -1901,7 +1901,7 @@ lemma SRD_refine_intro_alt:
   assumes
     "P is SRD" "Q is SRD" "`pre\<^sub>R(P) \<Rightarrow> pre\<^sub>R(Q)`" "`peri\<^sub>R(Q) \<Rightarrow> peri\<^sub>R(P)`" "`post\<^sub>R(Q) \<Rightarrow> post\<^sub>R(P)`"
   shows "P \<sqsubseteq> Q"
-  by (metis SRD_refine_intro assms refBy_order utp_pred.inf.coboundedI1 utp_pred.inf.commute)
+  by (metis SRD_refine_intro assms refBy_order utp_pred_laws.inf.coboundedI1 utp_pred_laws.inf.commute)
 
 lemma SRD_eq_intro:
   assumes
@@ -1965,7 +1965,7 @@ proof -
   also have "... = \<^bold>R\<^sub>s(\<^bold>H(false))"
     by (simp add: SRD_RHS_H1_H2)
   also have "... = \<^bold>R\<^sub>s(true \<turnstile> false)"
-    by (metis (no_types, lifting) H1_H2_eq_design p_imp_p subst_impl subst_not utp_pred.compl_bot_eq utp_pred.compl_top_eq)
+    by (metis (no_types, lifting) H1_H2_eq_design p_imp_p subst_impl subst_not utp_pred_laws.compl_bot_eq utp_pred_laws.compl_top_eq)
   finally show ?thesis .
 qed
 
@@ -2847,7 +2847,7 @@ lemma R_D_mono:
   apply (auto intro: H1_H2_refines assms aext_mono)
   apply (rel_auto)
   apply (metis (no_types, hide_lams) aext_mono assms(3) design_post_choice
-               semilattice_sup_class.sup.orderE utp_pred.inf.coboundedI1 utp_pred.inf.commute utp_pred.sup.order_iff)
+               semilattice_sup_class.sup.orderE utp_pred_laws.inf.coboundedI1 utp_pred_laws.inf.commute utp_pred_laws.sup.order_iff)
 done
 
 text {* Homomorphism laws *}
@@ -2917,9 +2917,9 @@ lemma mono_srd_iter:
   shows "mono (\<lambda>X. \<^bold>R\<^sub>s(pre\<^sub>R(F X) \<turnstile> peri\<^sub>R(F X) \<diamondop> post\<^sub>R (F X)))"
   apply (rule monoI)
   apply (rule srdes_tri_refine_intro')
-  apply (meson assms(1) monoE preR_antitone utp_pred.le_infI2)
-  apply (meson assms(1) monoE periR_monotone utp_pred.le_infI2)
-  apply (meson assms(1) monoE postR_monotone utp_pred.le_infI2)
+  apply (meson assms(1) monoE preR_antitone utp_pred_laws.le_infI2)
+  apply (meson assms(1) monoE periR_monotone utp_pred_laws.le_infI2)
+  apply (meson assms(1) monoE postR_monotone utp_pred_laws.le_infI2)
 done
 
 lemma mu_srd_SRD:
@@ -3390,7 +3390,7 @@ proof -
       ((P\<^sup>t \<parallel>\<^sub>s Q\<^sup>f) ;; (M\<lbrakk>true,false/$0-ok,$1-ok\<rbrakk>)) \<or>
       ((P\<^sup>f \<parallel>\<^sub>s Q\<^sup>f) ;; (M\<lbrakk>false,false/$0-ok,$1-ok\<rbrakk>)))"
     by (simp add: true_alt_def[THEN sym] false_alt_def[THEN sym] disj_assoc
-      utp_pred.sup.left_commute utp_pred.sup_commute usubst)
+      utp_pred_laws.sup.left_commute utp_pred_laws.sup_commute usubst)
   finally show ?thesis .
 qed
 
@@ -3563,7 +3563,7 @@ proof -
   have "(\<exists> $st\<acute> \<bullet> N\<^sub>0(M))\<lbrakk>true,true/$ok\<acute>, $wait\<acute>\<rbrakk> = (\<exists> $st\<acute> \<bullet> ($0-wait \<or> $1-wait) \<and> $tr\<acute> \<ge>\<^sub>u $tr\<^sub>< \<and> M)"
     by (simp add: usubst unrest nmerge_rd0_def ex_unrest Healthy_if R1m_def assms)
   also have "... =  (\<exists> $st\<acute> \<bullet> ($0-wait \<or> $1-wait) \<and> M)"
-    by (metis (no_types, hide_lams) Healthy_if R1m_def R1m_idem R2m_def RDM_def assms utp_pred.inf_commute)
+    by (metis (no_types, hide_lams) Healthy_if R1m_def R1m_idem R2m_def RDM_def assms utp_pred_laws.inf_commute)
   also have "... = (($0-wait \<or> $1-wait) \<and> (\<exists> $st\<acute> \<bullet> M))"
     by (rel_auto)
   finally show ?thesis .
@@ -3620,7 +3620,7 @@ proof -
   have "(N\<^sub>0(M))\<lbrakk>true,false/$ok\<acute>,$wait\<acute>\<rbrakk> = ((\<not> $0-wait \<and> \<not> $1-wait) \<and> $tr\<acute> \<ge>\<^sub>u $tr\<^sub>< \<and> M)"
     by (simp add: usubst unrest nmerge_rd0_def ex_unrest Healthy_if R1m_def assms)
   also have "... = ((\<not> $0-wait \<and> \<not> $1-wait) \<and> M)"
-    by (metis Healthy_if R1m_def RDM_R1m assms utp_pred.inf_commute)
+    by (metis Healthy_if R1m_def RDM_R1m assms utp_pred_laws.inf_commute)
   finally show ?thesis .
 qed
 
@@ -3634,7 +3634,7 @@ proof -
     by (simp add: post_cmt_def parallel_commitment assms usubst unrest SRD_healths)
   also have "... = (pre\<^sub>R (P \<parallel>\<^bsub>M\<^sub>R M\<^esub> Q) \<Rightarrow> cmt\<^sub>R P \<parallel>\<^bsub>(\<not> $0-wait \<and> \<not> $1-wait \<and> M)\<^esub> cmt\<^sub>R Q)"
     by (simp add: parallel_postcondition_lemma1 parallel_postcondition_lemma2 assms,
-        simp add: utp_pred.inf_commute utp_pred.inf_left_commute)
+        simp add: utp_pred_laws.inf_commute utp_pred_laws.inf_left_commute)
   also have "... = (pre\<^sub>R (P \<parallel>\<^bsub>M\<^sub>R M\<^esub> Q) \<Rightarrow> post\<^sub>R P \<parallel>\<^bsub>M\<^esub> post\<^sub>R Q)"
     by (simp add: par_by_merge_alt_def seqr_right_one_point_false usubst unrest cmt\<^sub>R_def post\<^sub>R_def assms)
   finally show ?thesis .
@@ -3836,7 +3836,7 @@ proof -
   also have "... =
         \<^bold>R\<^sub>s((\<not> R2c (\<not> P\<^sub>1) \<and> \<not> R2c (\<not> P\<^sub>2)) \<turnstile>
            (R1 (R2s (P\<^sub>1 \<Rightarrow> Q\<^sub>1)) \<and> R1 (R2s (P\<^sub>2 \<Rightarrow> Q\<^sub>2))))"
-    by (metis (no_types, lifting) R1_R2s_R2c R1_disj RHS_design_neg_R1_pre RHS_design_ok_wait utp_pred.compl_sup)
+    by (metis (no_types, lifting) R1_R2s_R2c R1_disj RHS_design_neg_R1_pre RHS_design_ok_wait utp_pred_laws.compl_sup)
   also have "... =
         \<^bold>R\<^sub>s((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (R1 (R2s (P\<^sub>1 \<Rightarrow> Q\<^sub>1)) \<and> R1 (R2s (P\<^sub>2 \<Rightarrow> Q\<^sub>2))))"
     by (simp add: R2c_R3h_commute R2c_and R2c_design R2c_idem R2c_not RHS_def)

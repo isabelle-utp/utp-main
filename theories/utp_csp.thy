@@ -223,7 +223,7 @@ lemma Skip_left_unit:
   shows "Skip ;; P = P"
     using assms
     by (simp add: Skip_left_lemma)
-       (metis SRD_reactive_design_alt cmt_unrest_ref cmt_wait_false ex_unrest pre_unrest_ref pre_wait_false unrest_not utp_pred.double_compl)
+       (metis SRD_reactive_design_alt cmt_unrest_ref cmt_wait_false ex_unrest pre_unrest_ref pre_wait_false unrest_not utp_pred_laws.double_compl)
 
 lemma CSP3_intro:
   "\<lbrakk> P is CSP; $ref \<sharp> P\<lbrakk>false/$wait\<rbrakk> \<rbrakk> \<Longrightarrow> P is CSP3"
@@ -1511,7 +1511,7 @@ next
     done
   qed
   show ?thesis
-    by (metis "1" "2" "3" CSP4_tri_intro CSP_ExtChoice assms(1) utp_pred.double_compl)
+    by (metis "1" "2" "3" CSP4_tri_intro CSP_ExtChoice assms(1) utp_pred_laws.double_compl)
 qed
 
 lemma CSP4_extChoice [closure]:
@@ -1595,7 +1595,7 @@ proof -
   also have "... = \<^bold>R\<^sub>s (pre\<^sub>R Q \<turnstile> ((($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>) \<and> cmt\<^sub>R Q) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<or> cmt\<^sub>R Q)))"
     by (simp add: extChoice_rdes unrest)
   also have "... = \<^bold>R\<^sub>s (pre\<^sub>R Q \<turnstile> (cmt\<^sub>R Q \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> cmt\<^sub>R Q))"
-    by (metis (no_types, lifting) cond_def eq_upred_sym neg_conj_cancel1 utp_pred.inf.left_idem)
+    by (metis (no_types, lifting) cond_def eq_upred_sym neg_conj_cancel1 utp_pred_laws.inf.left_idem)
   also have "... = \<^bold>R\<^sub>s (pre\<^sub>R Q \<turnstile> cmt\<^sub>R Q)"
     by (simp add: cond_idem)
   also have "... = Q"
@@ -1997,14 +1997,14 @@ proof -
     have "\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> (pre\<^sub>R(P) \<and> peri\<^sub>R(P)) \<diamondop> (pre\<^sub>R(P) \<and> post\<^sub>R(P)))"
       by (metis (no_types, hide_lams) design_export_pre wait'_cond_conj_exchange wait'_cond_idem)
     also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> (pre\<^sub>R(P) \<and> peri\<^sub>R(P)) \<diamondop> (pre\<^sub>R(P) \<and> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)))"
-      by (metis assms(2) utp_pred.inf.absorb1 utp_pred.inf.assoc)
+      by (metis assms(2) utp_pred_laws.inf.absorb1 utp_pred_laws.inf.assoc)
     also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))"
       by (metis (no_types, hide_lams) design_export_pre wait'_cond_conj_exchange wait'_cond_idem)
     finally show ?thesis
       by (simp add: SRD_reactive_tri_design assms(1))
   qed
   thus ?thesis
-    by (metis Healthy_def RHS_tri_design_par Productive_def ok'_pre_unrest unrest_true utp_pred.inf_right_idem utp_pred.inf_top_right)
+    by (metis Healthy_def RHS_tri_design_par Productive_def ok'_pre_unrest unrest_true utp_pred_laws.inf_right_idem utp_pred_laws.inf_top_right)
 qed
 
 lemma Productive_rdes_intro:
@@ -2094,7 +2094,7 @@ proof -
           ((\<Squnion> P\<in>A \<bullet> pre\<^sub>R P) \<and> (\<Sqinter> P\<in>A \<bullet> (pre\<^sub>R P \<and> post\<^sub>R P)))"
       by (rel_auto)
     moreover have "(\<Sqinter> P\<in>A \<bullet> (pre\<^sub>R P \<and> post\<^sub>R P)) = (\<Sqinter> P\<in>A \<bullet> ((pre\<^sub>R P \<and> post\<^sub>R P) \<and> $tr <\<^sub>u $tr\<acute>))"
-      by (rule UINF_cong, metis (no_types, lifting) "1" Ball_Collect NCSP_implies_CSP Productive_post_refines_tr_increase assms utp_pred.inf.absorb1)
+      by (rule UINF_cong, metis (no_types, lifting) "1" Ball_Collect NCSP_implies_CSP Productive_post_refines_tr_increase assms utp_pred_laws.inf.absorb1)
 
     ultimately show "($tr\<acute> >\<^sub>u $tr) \<sqsubseteq> ((\<Squnion> P\<in>A \<bullet> pre\<^sub>R P) \<and> (\<Sqinter> P\<in>A \<bullet> post\<^sub>R P))"
       by (simp, rel_auto)
@@ -2421,7 +2421,7 @@ proof (clarsimp simp add: Guarded_def)
         have 2:"(\<not> pre\<^sub>R P) ;; (CSP X)\<lbrakk>false/$wait\<rbrakk> = (\<not> pre\<^sub>R P) ;; (CSP(X \<and> gvrt n))\<lbrakk>false/$wait\<rbrakk>"
           by (simp add: NSRD_neg_pre_left_zero closure assms SRD_healths)
         show ?thesis
-          by (simp add: exp 1 2 utp_pred.inf_sup_distrib2)
+          by (simp add: exp 1 2 utp_pred_laws.inf_sup_distrib2)
       qed
 
       show ?thesis
@@ -2429,7 +2429,7 @@ proof (clarsimp simp add: Guarded_def)
       have "(P ;; (CSP X) \<and> gvrt (n+1))\<lbrakk>true,false/$ok,$wait\<rbrakk> =
           ((P\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (CSP X)\<lbrakk>true/$wait\<rbrakk> \<and> gvrt (n+1))\<lbrakk>true,false/$ok,$wait\<rbrakk> \<or>
           (P\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP X)\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (n+1))\<lbrakk>true,false/$ok,$wait\<rbrakk>)"
-      by (subst seqr_bool_split[of wait], simp_all add: usubst utp_pred.distrib(4))
+      by (subst seqr_bool_split[of wait], simp_all add: usubst utp_pred_laws.distrib(4))
       also
       have "... = ((P\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (CSP (X \<and> gvrt n))\<lbrakk>true/$wait\<rbrakk> \<and> gvrt (n+1))\<lbrakk>true,false/$ok,$wait\<rbrakk> \<or>
                  (P\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP (X \<and> gvrt n))\<lbrakk>false/$wait\<rbrakk> \<and> gvrt (n+1))\<lbrakk>true,false/$ok,$wait\<rbrakk>)"
@@ -2437,7 +2437,7 @@ proof (clarsimp simp add: Guarded_def)
       also
       have "... = ((P\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (CSP (X \<and> gvrt n))\<lbrakk>true/$wait\<rbrakk> \<or>
                     P\<lbrakk>false/$wait\<acute>\<rbrakk> ;; (CSP (X \<and> gvrt n))\<lbrakk>false/$wait\<rbrakk>) \<and> gvrt (n+1))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
-        by (simp add: usubst utp_pred.distrib(4))
+        by (simp add: usubst utp_pred_laws.distrib(4))
       also have "... = (P ;; (CSP (X \<and> gvrt n)) \<and> gvrt (n+1))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
         by (subst seqr_bool_split[of wait], simp_all add: usubst)
       finally show ?thesis by (simp add: usubst)
