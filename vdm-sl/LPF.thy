@@ -22,14 +22,7 @@ imports
   "~~/src/HOL/Eisbach/Eisbach"
 begin
 
-subsection {* Defining the LPF Type and Basic Lifting. *}
-
-text {* 
-  In this section we define the lpf type along with basic lifting of HOL values 
-  into the lpf type. Furthermore, we give a definition of definedness and set 
-  up two theorems: lpf\_defs and lpf\_transfer.
- *}
-
+subsection {* The LPF type *}
 text {*
   Below we define a new type to represent values in LPF. Effectively, we encode
   these as @{type option} types where @{const None} will be used to represent
@@ -45,54 +38,47 @@ text {*
   lpf\_transfer contains LPF transfer laws, such as lifting values of HOL 
   types into values of the @{type lpf} type.
 *}
-
 named_theorems lpf_defs "lpf definitional axioms"
 named_theorems lpf_transfer "lpf transfer laws"
 
 lemmas Abs_lpf_inject_sym = sym [OF Abs_lpf_inject]
-lemmas Rep_lpf_inject_sym = sym [OF Rep_lpf_inject]
-  
+lemmas Rep_lpf_inject_sym = sym [OF Rep_lpf_inject]  
 declare Rep_lpf_inverse [lpf_transfer]
 declare Abs_lpf_inverse [simplified, lpf_transfer]
 declare Rep_lpf_inject_sym [lpf_transfer]
 declare Abs_lpf_inject [simplified, lpf_transfer]
+ 
 
-text {* Lifting of values into @{type lpf} is set up. *}
-
+text {* Lifting to @{type lpf} is set up. *}
 setup_lifting type_definition_lpf
 
-text {* Extract the value wrapped in @{type lpf}. *}
-
 lift_definition lpf_the :: "'a lpf \<Rightarrow> 'a" ("the\<^sub>L") is "(\<lambda>x . (the \<circ> Rep_lpf) x)" .
-
 declare lpf_the.rep_eq [lpf_transfer]
 
-text {* Lift a value into a defined @{type lpf} value. *}
-
-lift_definition lpf_Some :: "'a \<Rightarrow> 'a lpf" is "Some" .
+lift_definition lpf_Some :: "'a \<Rightarrow> 'a lpf" ("Some\<^sub>L") is "Some" .
 
 declare lpf_Some.rep_eq [lpf_transfer]
-
-text {* The @{type lpf} value for undefined. *}
 
 lift_definition lpf_None :: "'a lpf" ("\<bottom>\<^sub>L") is "None" .
 declare lpf_None.rep_eq [lpf_transfer]
 
-lift_definition lpf_True :: "bool lpf" ("true\<^sub>L") is "lpf_Some(True)" .
+lift_definition lpf_True :: "bool lpf" ("true\<^sub>L") is "Some\<^sub>L(True)" .
 declare lpf_True.rep_eq [lpf_transfer]
 
-lift_definition lpf_False :: "bool lpf" ("false\<^sub>L") is "lpf_Some(False)" .
+lift_definition lpf_False :: "bool lpf" ("false\<^sub>L") is "Some\<^sub>L(False)" .
 declare lpf_False.rep_eq [lpf_transfer]
 
 text {* 
   Definition of definedness for LPF values. 
   A value of type @{type lpf} is defined if it is not @{const lpf_None}.   
 *}
-
 definition defined :: "'a lpf \<Rightarrow> bool" ("\<D>'(_')") where
 "defined x \<equiv> (x \<noteq> \<bottom>\<^sub>L)"
-
 declare defined_def [lpf_defs]
+
+definition lpf_taut :: "bool lpf \<Rightarrow> bool" ("\<lbrakk>_\<rbrakk>\<^sub>L") where
+"lpf_taut p = (p = true\<^sub>L)"
+declare lpf_taut_def [lpf_transfer]
 
 subsection {* Lifting of Operators *}
 text {* This section introduces lifting of unary, binary and ternary operators 
@@ -107,11 +93,9 @@ text {*
 
 definition lpfSat :: "'a set \<Rightarrow> 'a \<Rightarrow> 'a lpf" where
 "lpfSat u a = (if a\<in>u then lpf_Some a else \<bottom>\<^sub>L)"
-
 declare lpfSat_def [lpf_defs]
 
 text {* Overload of the bind operator for @{type lpf} values. *}
-
 definition lift_bind :: "'a lpf \<Rightarrow> ('a \<Rightarrow> 'b lpf) \<Rightarrow> 'b lpf" where
 [lpf_defs]: "lift_bind a f = 
   (if \<D>(a) then  (f \<circ> the \<circ> Rep_lpf) a else \<bottom>\<^sub>L)"
@@ -121,7 +105,6 @@ bind lift_bind
 
 
 subsubsection {* Lifting of Unary Operators *}
-
 text {* lift1\_lpf takes a set, which is a predicate on the input values, 
   a total HOL function taking one argument and turns it into a function on 
   @{type lpf} types. The resulting value is defined if (1) each input is defined
@@ -130,44 +113,85 @@ text {* lift1\_lpf takes a set, which is a predicate on the input values,
 
 lift_definition lift1_lpf :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf)" is 
 "(\<lambda> u f x . (x\<bind>lpfSat u)\<bind> lpf_Some \<circ> f)" .
-
 declare lift1_lpf.rep_eq [lpf_transfer]
 
 lift_definition lift1_lpf' :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf)" is
 "(\<lambda> f . lift1_lpf UNIV f)" .
-
 declare lift1_lpf'.rep_eq [lpf_transfer]
 
-subsubsection {* Lifting of Binary Operators *}
 
+subsubsection {* Lifting of Binary Operators *}
 text {* Similar to lift1\_bind. *}
 
 lift_definition lift2_lpf :: 
   "('a * 'b) set \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf \<Rightarrow> 'c lpf)" is
   "(\<lambda> u f v1 v2. 
   do { x \<leftarrow> v1; y \<leftarrow> v2; lpfSat u (x, y) } \<bind> lpf_Some \<circ> uncurry f)" .
-
 declare lift2_lpf.transfer [lpf_transfer]
 declare lift2_lpf_def [lpf_defs]
 
 lift_definition lift2_lpf' :: 
   "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf \<Rightarrow> 'c lpf)" is 
   "lift2_lpf UNIV" .
-
 declare lift2_lpf'.rep_eq [lpf_transfer]
 
 subsubsection {* Lifting of Ternary Operators. *}
-
 text {* Here we define the lifting functor for ternary operators. *}
 
 lift_definition lift3_lpf :: 
   "('a * 'b * 'c) set \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> ('a lpf \<Rightarrow> 'b lpf \<Rightarrow> 'c lpf \<Rightarrow> 'd lpf)" is
 "(\<lambda> ABC f v1 v2 v3. do { x \<leftarrow> v1; y \<leftarrow> v2; z \<leftarrow> v3; lpfSat ABC (x, y, z) } \<bind> lpf_Some \<circ> (\<lambda> (x,y,z). f x y z))" .
 
+subsection {* Tactics *}
 text {*  Three tactics are created for use in proofs. *}
 
 method lpf_simp = (simp add: lpf_defs lpf_transfer; clarsimp?)
 method lpf_auto = (lpf_simp; auto)
-method lpf_blast = (lpf_simp; blast)                                           
+method lpf_blast = (lpf_simp; blast) 
+
+subsection {* Proof setup *}
+lemma lpf_cases [elim]:
+  "\<lbrakk> p = true\<^sub>L \<Longrightarrow> P; p = false\<^sub>L \<Longrightarrow> P; p = \<bottom>\<^sub>L \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (metis (full_types) Rep_lpf_inject lpf_False.transfer lpf_None.rep_eq 
+            lpf_Some.rep_eq lpf_True.transfer not_None_eq)
+
+lemma all_lpf_transfer [lpf_transfer]:
+"(\<forall>x::'a lpf. P x) = (\<forall>x::'a option. P (Abs_lpf x))" 
+apply (safe)
+-- {* Subgoal 1 *}
+apply (drule_tac x = "Abs_lpf x" in spec)
+apply (assumption)
+-- {* Subgoal 2 *}
+apply (drule_tac x = "Rep_lpf x" in spec)
+by (simp add: Rep_lpf_inverse)
+
+lemma ex_lpf_transfer [lpf_transfer]:
+"(\<exists>x::'a lpf. P x) = (\<exists>x::'a option. P (Abs_lpf x))"
+apply (safe)
+-- {* Subgoal 1 *}
+apply (rule_tac x = "Rep_lpf x" in exI)
+apply (simp add: Rep_lpf_inverse)
+-- {* Subgoal 2 *}
+apply (rule_tac x = "Abs_lpf x" in exI)
+by (assumption)
+
+lemma meta_lpf_transfer [lpf_transfer]:
+"(\<And>x::'a lpf. P x) \<equiv> (\<And>x::'a option. P (Abs_lpf x))" 
+apply (rule)
+-- {* Subgoal 1 *}
+apply (drule_tac x = "Abs_lpf x" in meta_spec)
+apply (assumption)
+-- {* Subgoal 2 *}
+apply (drule_tac x = "Rep_lpf x" in meta_spec)
+by (simp add: Rep_lpf_inverse)  
+
+lemma lpf_taut_Some [simp]: "\<lbrakk>Some\<^sub>L(x)\<rbrakk>\<^sub>L = x"
+  by (lpf_simp)
+
+lemma lpf_I [intro]: "p \<Longrightarrow> \<lbrakk>Some\<^sub>L(p)\<rbrakk>\<^sub>L"
+  by (lpf_simp)             
+
+lemma lpf_D [dest!]: "\<lbrakk>Some\<^sub>L(p)\<rbrakk>\<^sub>L \<Longrightarrow> p"
+  by (lpf_simp)                           
 
 end

@@ -9,41 +9,6 @@ theory LPF_Operators_Proofs
 imports LPF_Operators
 begin
 
-lemma lpf_cases [elim]:
-  "\<lbrakk> p = true\<^sub>L \<Longrightarrow> P; p = false\<^sub>L \<Longrightarrow> P; p = \<bottom>\<^sub>L \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
-  by (metis (full_types) Rep_lpf_inject lpf_False.transfer lpf_None.rep_eq 
-            lpf_Some.rep_eq lpf_True.transfer not_None_eq)
-
-lemma all_lpf_transfer [lpf_transfer]:
-"(\<forall>x::'a lpf. P x) = (\<forall>x::'a option. P (Abs_lpf x))" 
-apply (safe)
--- {* Subgoal 1 *}
-apply (drule_tac x = "Abs_lpf x" in spec)
-apply (assumption)
--- {* Subgoal 2 *}
-apply (drule_tac x = "Rep_lpf x" in spec)
-by (simp add: Rep_lpf_inverse)
-
-lemma ex_lpf_transfer [lpf_transfer]:
-"(\<exists>x::'a lpf. P x) = (\<exists>x::'a option. P (Abs_lpf x))"
-apply (safe)
--- {* Subgoal 1 *}
-apply (rule_tac x = "Rep_lpf x" in exI)
-apply (simp add: Rep_lpf_inverse)
--- {* Subgoal 2 *}
-apply (rule_tac x = "Abs_lpf x" in exI)
-by (assumption)
-
-lemma meta_lpf_transfer [lpf_transfer]:
-"(\<And>x::'a lpf. P x) \<equiv> (\<And>x::'a option. P (Abs_lpf x))" 
-apply (rule)
--- {* Subgoal 1 *}
-apply (drule_tac x = "Abs_lpf x" in meta_spec)
-apply (assumption)
--- {* Subgoal 2 *}
-apply (drule_tac x = "Rep_lpf x" in meta_spec)
-by (simp add: Rep_lpf_inverse)
-
 lemma "(lpf_Some x = lpf_Some y) \<longleftrightarrow> (x = y)"
 by (lpf_simp)
 
@@ -66,6 +31,9 @@ lemma lpf_The_Some : "lpf_the (lpf_Some a) = a"
 apply (simp add: lpf_Some_def)
 apply (simp add: lpf_the_def)
 by (simp add: Abs_lpf_inverse)
+
+lemma "A \<union>\<^sub>L B = B \<union>\<^sub>L A"
+  by(lpf_auto)
 
 text {* Proof that a function returning undefined for values for which the 
   predicate holds makes the comprehension undefined. 
@@ -167,54 +135,11 @@ apply (simp add: set_comprehension_lpf_def)
 apply (lpf_auto)
 by (auto)
 
-lemma "(true\<^sub>L \<or>\<^sub>L true\<^sub>L) = true\<^sub>L"
-by (lpf_auto)
+section {* LPF Logic *}
 
-lemma "(\<bottom>\<^sub>L \<or>\<^sub>L true\<^sub>L) = true\<^sub>L"
-by (lpf_auto)
 
-lemma "(true\<^sub>L \<or>\<^sub>L \<bottom>\<^sub>L) = true\<^sub>L"
-by (lpf_auto)
 
-lemma "(true\<^sub>L \<and>\<^sub>L true\<^sub>L) = true\<^sub>L"
+subsection {* Homomorphisms *}
+lemma lpf_and_Some [simp]: "\<lbrakk>p \<and>\<^sub>L q\<rbrakk>\<^sub>L = \<lbrakk>p\<rbrakk>\<^sub>L \<and> \<lbrakk>q\<rbrakk>\<^sub>L"
   by (lpf_auto)
-
-lemma "(false\<^sub>L \<and>\<^sub>L false\<^sub>L) = false\<^sub>L"
-  by (lpf_auto)
-
-lemma "(\<bottom>\<^sub>L \<and>\<^sub>L \<bottom>\<^sub>L) = \<bottom>\<^sub>L"
-  by (lpf_auto)    
-  
-lemma double_negation : "(\<not>\<^sub>L\<not>\<^sub>Lp) = p"
-by(lpf_auto)
-    
-lemma domination_or: "(p \<or>\<^sub>L true\<^sub>L) = true\<^sub>L"
-by(lpf_auto)
-
-lemma domination_and: "(p \<and>\<^sub>L false\<^sub>L) = false\<^sub>L"
-by(lpf_auto)
-
-lemma idempotent_and: "(p \<and>\<^sub>L p) = p"
-  apply (cases p rule: lpf_cases)
-  by(lpf_simp)+
-
-lemma idempotent_or: "(p \<or>\<^sub>L p) = p"
-  apply(cases p rule: lpf_cases)
-  by(lpf_simp)+
-
-lemma Commutative_Law : "(p \<and>\<^sub>L q) = (q  \<and>\<^sub>L p )"
-  by(lpf_auto)
-    
-lemma associativity_Law : "(p \<and>\<^sub>L(q \<and>\<^sub>L r)) = ((p  \<and>\<^sub>L q ) \<and>\<^sub>L r)"
-  by(lpf_auto)
-    
-lemma distributive_Law :  "(p \<and>\<^sub>L(q \<or>\<^sub>L r)) = ((p  \<and>\<^sub>L q ) \<or>\<^sub>L (p \<and>\<^sub>L r))"
-  by(lpf_auto)
-    
-lemma DeMorgans_Law : "(\<not>\<^sub>L(p \<and>\<^sub>L q)) = (\<not>\<^sub>Lp \<or>\<^sub>L \<not>\<^sub>Lq )"
-  by(lpf_auto)
-  
-lemma "A \<union>\<^sub>L B = B \<union>\<^sub>L A"
-  by(lpf_auto)
-
 end

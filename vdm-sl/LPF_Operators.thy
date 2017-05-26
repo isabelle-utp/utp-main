@@ -18,7 +18,8 @@ text {* \todo{
 
 theory LPF_Operators
 imports 
-  LPF 
+  LPF
+  LPF_Logic 
   Transcendental
   "../utils/TotalRecall"
   "../utils/Library_Extra/Map_Extra"
@@ -43,8 +44,9 @@ text {*
 
 subsubsection {* Boolean Unary Operators *}
 
+(*TODO: This is defined in LPF, as it is part of the basic LPF logic.
 definition not_lpf :: "bool lpf \<Rightarrow> bool lpf" where
-[lpf_defs]: "not_lpf = lift1_lpf' Not"
+[lpf_defs]: "not_lpf = lift1_lpf' Not"*)
 
 subsubsection {* Numeric Unary Operators *}
 
@@ -135,7 +137,7 @@ subsubsection {* Boolean Binary Operators  *}
 text {* This definitions are based on the LPF logic described in
 Moddelling systems - Practical Tools and techniques in software development
 page 71-73 (Kleene logic)*}
-
+(* TODO: These are defined in LPF, as they are part of the basic logic 
 definition conj_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
 [lpf_defs]: "conj_lpf p q = ( if (p = true\<^sub>L \<and> q = true\<^sub>L)
                               then true\<^sub>L
@@ -157,7 +159,7 @@ definition implies_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lp
                                 else if (p = true\<^sub>L \<or> q = false\<^sub>L)
                                   then false\<^sub>L
                                 else \<bottom>\<^sub>L)"
-
+*)
 definition biimplication_lpf :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" where
 [lpf_defs]: "biimplication_lpf = lift2_lpf' iff"
 
@@ -313,6 +315,13 @@ text {* It is a design decision that lpf types should not be nested to avoid typ
   The previous one had @{text "if \<exists>x . \<not>\<D>(f x) then \<bottom>\<^sub>L else ..."}. 
   However, using this in context with x of type @{type lpf} would always give @{term "\<bottom>\<^sub>L"}.
 *}
+declare [[show_types]]
+(*
+definition collect_lpf :: "('a lpf \<Rightarrow> bool lpf) \<Rightarrow> 'a set lpf" where
+[lpf_defs]:  "collect_lpf f = (
+    if \<exists>x . \<not>\<D>(f x) then \<bottom>\<^sub>L
+    else set_sequence_lpf {t . (f t) = true\<^sub>L} )"
+*)
 definition collect_lpf :: "('a lpf \<Rightarrow> bool lpf) \<Rightarrow> 'a set lpf" where
 [lpf_defs]:  "collect_lpf f = (
     if (\<forall>x. \<D>(x) \<longrightarrow> \<D>(f x))
@@ -360,9 +369,11 @@ syntax
 "_lpfequal" :: "'a lpf \<Rightarrow> 'a lpf \<Rightarrow> bool lpf" (infix "=\<^sub>L" 50) 
 "_lpfnot_equal" :: "'a lpf \<Rightarrow> 'a lpf \<Rightarrow> bool lpf" (infix "\<noteq>\<^sub>L" 50)
 (* Boolean Binary Operators  *)
+(* TODO: These are defined in LPF, as they are part of the basic logic
 "_lpfconj" :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" (infixr "\<and>\<^sub>L" 35)
 "_lpfdisj" :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" (infixr "\<or>\<^sub>L" 30)
 "_lpfimplies" :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" (infixr "\<Rightarrow>\<^sub>L" 25)
+*)
 "_lpfbiimplication" :: "bool lpf \<Rightarrow> bool lpf \<Rightarrow> bool lpf" (infixr "\<Leftrightarrow>\<^sub>L" 25)
 (* Numeric Binary Operators  *)
 "_lpfdiv" :: "int lpf \<Rightarrow> int lpf \<Rightarrow> int lpf" (infixl "div\<^sub>L" 70)
@@ -396,7 +407,9 @@ syntax
 translations
 (* Unary Operators *)
 (* Boolean Unary Operators *)
+(* TODO: This are defined in LPF, as they are part of the basic logic
 "\<not>\<^sub>L p" == "CONST not_lpf p" 
+*)
 (* Numeric Unary Operators *)
 "\<bar>x\<bar>\<^sub>L" == "CONST abs_lpf x"
 "\<lfloor>x\<rfloor>\<^sub>L" == "CONST floor_lpf x"
@@ -424,9 +437,11 @@ translations
 "x =\<^sub>L y" == "CONST equal_lpf x y"
 "x \<noteq>\<^sub>L y" == "CONST not_equal_lpf x y"
 (* Boolean Binary Operators  *)
+(* TODO: These are defined in LPF, as they are part of the basic logic
 "p \<and>\<^sub>L q" == "CONST conj_lpf p q"
 "p \<or>\<^sub>L q" == "CONST disj_lpf p q"
 "p \<Rightarrow>\<^sub>L q" == "CONST implies_lpf p q"
+*)
 "p \<Leftrightarrow>\<^sub>L q" == "CONST biimplication_lpf p q"
 (* Numeric Binary Operators  *)
 (*"x div\<^sub>L y" == "CONST div_lpf x y"*) (*by typeclass*)
